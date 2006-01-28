@@ -1,3 +1,4 @@
+.HTML "Acme: A User Interface for Programmers
 .de EX
 .nr x \\$1v
 \\!h0c n \\nx 0
@@ -6,7 +7,7 @@
 .KF
 .BP \\$1 \\$2
 .sp .5v
-.EX \\$2v
+.if !h .EX \\$2v
 .ps -1
 .vs -1
 ..
@@ -17,6 +18,17 @@
 \l'1i'
 .KE
 ..
+.if h \{\
+.de FG
+.B1 10 60
+.html - <center><a href="\\$1.png"><img src="\\$1s.png" /></a></center>
+.\" .sp .5v
+..
+.de fg
+.br
+.B2
+..
+.\}
 .TL
 Acme: A User Interface for Programmers
 .AU
@@ -25,8 +37,8 @@ Acme: A User Interface for Programmers
 .SP .22i exactly
 .AB
 .FS
-\l'1i'
-.br
+.if !h \l'1i'
+.if !h .br
 Originally appeared in
 .I
 Proc. of the Winter 1994 USENIX Conf.,
@@ -78,7 +90,7 @@ that do involve the mouse as an integral part of the interaction
 are geared towards general users, not experts, and certainly
 not programmers.
 Software developers, at least on time-sharing systems, have been left behind.
-.FG /usr/rob/doc/acme.fig1 5i
+.FG acme.fig1 5i
 Figure 1.  A small Acme screen\(emnormally it runs on a larger display\(emdemonstrating
 some of the details discussed in the text.
 The right column contains some guide files,
@@ -162,7 +174,7 @@ and finally presents some unusual aspects of its implementation.
 .SH
 User interface
 .PP
-.FG /usr/rob/doc/acme.fig2 3i
+.FG acme.fig2 3i
 Figure 2.  An Acme window showing a section of code.
 The upper line of text is the tag containing the file name,
 relevant commands, and a scratch area (right of the vertical bar);

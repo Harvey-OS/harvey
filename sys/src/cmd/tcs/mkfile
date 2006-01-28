@@ -24,6 +24,9 @@ tcs.$O big5.$O:		big5.h
 tcs.$O gb.$O:		gb.h
 tcs.$O:			cyrillic.h
 tcs.$O:			conv.h
+tcs.$O:			8859.h
+tcs.$O:			ms.h
+tcs.$O:			misc.h
 conv%.$O:		conv.h
 conv_ksc.$O:		ksc.h
 

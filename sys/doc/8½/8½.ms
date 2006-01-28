@@ -1,3 +1,4 @@
+.HTML "8½, the Plan 9 Window System
 .TL
 8½, the Plan 9 Window System
 .AU
@@ -499,7 +500,8 @@ message:
 2 bytes of boolean function code
 .DE
 .KF
-.BP fig1.ps 4.16 5.6 r 0 0
+.ie h .html - <center><a href="8½.fig1.png"><img src="8½.fig1s.png"></a></center>
+.el .BP fig1.ps 4.16 5.6 r 0 0
 .EP
 .IP
 Figure 1.
@@ -657,7 +659,8 @@ An example
 .PP
 Here is a complete program that runs under 8½.
 It prints the string
-.CW \&"hello\ world"
+.CW \&"hello
+.CW world"
 wherever the left mouse button is depressed, and exits when the
 right mouse button is depressed.
 It also prints the string in the center of its window, and maintains

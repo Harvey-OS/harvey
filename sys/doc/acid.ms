@@ -1,3 +1,4 @@
+.HTML "Acid Manual
 .am DS
 .ft I
 ..
@@ -1037,8 +1038,10 @@ description; where a parameter can be of any type it is specified as type
 .I item .
 .de Ip
 .KS
+.in 0
 .LP
-.tl '\f2\\$1\fP\ \ \f(CW\\$2(\f2\\$3\f(CW)\f1''\\$4'
+.ie h \&\f2\\$1\fP\ \ \f(CW\\$2(\f2\\$3\f(CW)\f1\ \ \ \ \ \ \ \ \\$4
+.el .tl '\f2\\$1\fP\ \ \f(CW\\$2(\f2\\$3\f(CW)\f1''\\$4'
 .IP
 ..
 .de Ex

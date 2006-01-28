@@ -1,3 +1,4 @@
+.HTML "A Manual for the Plan 9 assembler
 .ft CW
 .ta 8n +8n +8n +8n +8n +8n +8n
 .ft
@@ -291,6 +292,9 @@ The 386 has all three:
 .CW WORD ,
 and
 .CW BYTE .
+The AMD64 adds
+.CW QUAD
+to that for 64-bit values.
 The 960 has only one,
 .CW LONG .)
 .PP
@@ -893,6 +897,103 @@ stand-alone opcodes that precede the strings, for example
 Segment override prefixes in
 .CW MOD/RM
 fields are not supported.
+.SH
+AMD64
+.PP
+The assembler assumes 64-bit mode unless a
+.CW MODE
+pseudo-operation is given:
+.P1
+	MODE $32
+.P2
+to change to 32-bit mode.
+The effect is mainly to diagnose instructions that are illegal in
+the given mode, but the loader will also assume 32-bit operands and addresses,
+and 32-bit PC values for call and return.
+The assembler's conventions are similar to those for the 386, above.
+The architecture provides extra fixed-point registers
+.CW R8
+to
+.CW R15 .
+All registers are 64 bit, but instructions access low-order 8, 16 and 32 bits
+as described in the processor handbook.
+For example,
+.CW MOVL
+to
+.CW AX
+puts a value in the low-order 32 bits and clears the top 32 bits to zero.
+Literal operands are limited to signed 32 bit values, which are sign-extended
+to 64 bits in 64 bit operations; the exception is
+.CW MOVQ ,
+which allows 64-bit literals.
+The external registers in Plan 9's C are allocated from
+.CW R15
+down.
+There are many new instructions, including the MMX and XMM media instructions,
+and conditional move instructions.
+MMX registers are
+.CW M0
+to
+.CW M7 ,
+and
+XMM registers are
+.CW X0
+to
+.CW X15 .
+As with the 386 instruction names,
+all new 64-bit integer instructions, and the MMX and XMM instructions
+uniformly use
+.CW L
+for `long word' (32 bits) and
+.CW Q
+for `quad word' (64 bits).
+Some instructions use
+.CW O
+(`octword') for 128-bit values, where the processor handbook
+variously uses
+.CW O
+or
+.CW DQ .
+The assembler also consistently uses
+.CW PL
+for `packed long' in
+XMM instructions, instead of
+.CW Q ,
+.CW DQ
+or
+.CW PI .
+Either
+.CW MOVL
+or
+.CW MOVQ
+can be used to move values to and from control registers, even when
+the registers might be 64 bits.
+The assembler often accepts the handbook's name to ease conversion
+of existing code (but remember that the operand order is uniformly
+source then destination).
+C's
+.CW "long long"
+type is 64 bits, but passed and returned by value, not by reference.
+More notably, C pointer values are 64 bits, and thus
+.CW "long long"
+and
+.CW "unsigned long long"
+are the only integer types wide enough to hold a pointer value.
+The C compiler and library use the XMM floating-point instructions, not
+the old 387 ones, although the latter are implemented by assembler and loader.
+Unlike the 386, the first integer or pointer argument is passed in a register, which is
+.CW BP
+for an integer or pointer (it can be referred to in assembly code by the pseudonym
+.CW RARG ).
+.CW AX
+holds the return value from subroutines as before.
+Floating-point results are returned in
+.CW X0 ,
+although currently the first floating-point parameter is not passed in a register.
+All parameters less than 8 bytes in length have 8 byte slots reserved on the stack
+to preserve alignment and simplify variable-length argument list access,
+including the first parameter when passed in a register,
+even though bytes 4 to 7 are not initialized.
 .SH
 Alpha
 .PP

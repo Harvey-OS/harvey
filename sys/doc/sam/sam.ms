@@ -1,3 +1,4 @@
+.HTML "The Text Editor sam
 .Vx 17 11 November 87 1 32 "ROB PIKE" "THE TEXT EDITOR SAM"
 .ds DY "31 May 1987
 .ds DR "Revised 1 July 1987
@@ -18,6 +19,10 @@
 .ps
 .vs
 .sp
+..
+.de XP
+.ie h .html - <center><img src="sam.\\$1.png" /></center>
+.el .BP \\$1.ps \\$2
 ..
 .TL
 The Text Editor \&\f(CWsam\fP
@@ -255,7 +260,7 @@ the command is assumed to apply to the current text.
 For the moment, ignore the presence of multiple files and consider
 editing a single file.
 .KF L
-.BP fig1.ps 3.5i
+.XP fig1 3.5i
 .Cs
 Figure 1. A typical
 .CW sam
@@ -1272,7 +1277,7 @@ will highlight it on the screen \(em in fact,
 dot is always highlighted (see Figure 2).
 .WS 1
 .KF
-.BP fig3.ps 2.04i
+.XP fig3 2.04i
 .Cs
 Figure 2. A
 .CW sam
@@ -1357,7 +1362,7 @@ Selecting it makes the
 window the current window,
 causing subsequent typing to be interpreted as commands.
 .KF
-.BP fig2.ps 2.74i
+.XP fig2 2.74i
 .Cs
 Figure 3. The menu on button 3.
 The black rectangle on the left is a scroll bar; the menu is limited to
@@ -1449,7 +1454,7 @@ to search
 forward for the next occurrence of a match for the expression.
 .WS 1
 .KF
-.BP fig4.ps 1.20i
+.XP fig4 1.20i
 .Cs
 Figure 4. The menu on button 2.
 The bottom entry tracks the most recently used regular expression, which may

@@ -1,3 +1,4 @@
+.HTML "Acid: A Debugger Built From A Language
 .TL
 Acid: A Debugger Built From A Language
 .AU
