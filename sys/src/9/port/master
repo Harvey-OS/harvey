@@ -9,7 +9,6 @@ C	ce
 D	ssl
 E	sdp
 F	flash
-F	tinyfs
 I	ip
 K	kprof
 L	lpt
@@ -20,7 +19,6 @@ T	lm78
 U	usb
 V	lml
 V	tv
-X	loopback
 Y	pccard
 a	tls
 b	irq
@@ -43,7 +41,6 @@ v	vga
 w	wd
 y	i82365
 y	pcmcia
-z	mntstats
 |	pipe
 ¤	cap
 κ	kbmap

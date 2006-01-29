@@ -487,6 +487,82 @@ cclose(Chan *c)
 }
 
 /*
+ * Queue a chan to be closed by one of the clunk procs.
+ */
+struct {
+	Chan *head;
+	Chan *tail;
+	int nqueued;
+	int nclosed;
+	Lock l;
+	QLock q;
+	Rendez r;
+} clunkq;
+void closeproc(void*);
+
+void
+ccloseq(Chan *c)
+{
+	if(c->flag&CFREE)
+		panic("cclose %lux", getcallerpc(&c));
+
+	DBG("ccloseq %p name=%s ref=%ld\n", c, c->path->s, c->ref);
+
+	if(decref(c))
+		return;
+
+	lock(&clunkq.l);
+	clunkq.nqueued++;
+	c->next = nil;
+	if(clunkq.head)
+		clunkq.tail->next = c;
+	else
+		clunkq.head = c;
+	clunkq.tail = c;
+	unlock(&clunkq.l);
+
+	if(!wakeup(&clunkq.r))
+		kproc("closeproc", closeproc, nil);	
+}
+
+static int
+clunkwork(void*)
+{
+	return clunkq.head != nil;
+}
+
+void
+closeproc(void*)
+{
+	Chan *c;
+
+	for(;;){
+		qlock(&clunkq.q);
+		if(clunkq.head == nil){
+			if(!waserror()){
+				tsleep(&clunkq.r, clunkwork, nil, 5000);
+				poperror();
+			}
+			if(clunkq.head == nil){
+				qunlock(&clunkq.q);
+				pexit("no work", 1);
+			}
+		}
+		lock(&clunkq.l);
+		c = clunkq.head;
+		clunkq.head = c->next;
+		clunkq.nclosed++;
+		unlock(&clunkq.l);
+		qunlock(&clunkq.q);
+		if(!waserror()){
+			devtab[c->type]->close(c);
+			poperror();
+		}
+		chanfree(c);
+	}
+}
+
+/*
  * Make sure we have the only copy of c.  (Copy on write.)
  */
 Chan*
@@ -1691,3 +1767,4 @@ putmhead(Mhead *m)
 		free(m);
 	}
 }
+

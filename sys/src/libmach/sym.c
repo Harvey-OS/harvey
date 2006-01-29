@@ -103,7 +103,7 @@ syminit(int fd, Fhdr *fp)
 	nsym = 0;
 	size = 0;
 	for(p = symbols; size < fp->symsz; p++, nsym++) {
-		if(fp->magic & HDR_MAGIC){
+		if(fp->_magic && (fp->magic & HDR_MAGIC)){
 			svalsz = 8;
 			if(Bread(&b, &vl, 8) != 8)
 				return symerrmsg(8, "symbol");

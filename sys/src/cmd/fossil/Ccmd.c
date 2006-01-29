@@ -446,7 +446,7 @@ cmdInit(void)
 
 	if(pipe(cbox.confd) < 0)
 		return 0;
-	if((cbox.con = conAlloc(cbox.confd[1], "console")) == nil){
+	if((cbox.con = conAlloc(cbox.confd[1], "console", 0)) == nil){
 		close(cbox.confd[0]);
 		close(cbox.confd[1]);
 		cbox.confd[0] = cbox.confd[1] = -1;

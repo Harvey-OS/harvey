@@ -35,7 +35,9 @@ enum {
 	WinPlay,
 	WinPlaylist,
 	WinError,
-	Topselect = 0x7fffffff
+	Topselect = 0x7fffffff,
+
+	Browsedepth = 63,
 };
 
 typedef enum {
@@ -74,6 +76,7 @@ enum {
 	Volume,
 	Browsetopwin,
 	Browsebotwin,
+	Browsebotscr,
 	Playevent,
 	Playlistwin,
 	Nalt,
@@ -138,11 +141,20 @@ char *helptext[] = {
 	nil,
 };
 
+struct Browsestack {
+	char	*onum;
+	int	scrollpos;
+} browsestack[Browsedepth];
+int browsesp;	/* browse stack pointer */
+int browseline;	/* current browse position */
+
 Control		*vol;
 Control		*browsetopwin;
 Control		*browsebotwin;
 Control		*playlistwin;
 Control		*errortext;
+Control		*browsetopscr;
+Control		*browsebotscr;
 
 Playstate	playstate;
 
@@ -393,7 +405,6 @@ void
 makebrowsecontrols(void)
 {
 	int w;
-	Control *browsetopscr, *browsebotscr;
 
 	w = stringwidth(romanfont, "Roll over Beethoven");
 	browsetopscr = createslider(cs, "browsetopscr");
@@ -414,8 +425,8 @@ makebrowsecontrols(void)
 
 	chanprint(cs->ctl, "browsetopscr format '%%s: browsetopwin topline %%d'");
 	controlwire(browsetopscr, "event", cs->ctl);
-	chanprint(cs->ctl, "browsebotscr format '%%s: browsebotwin topline %%d'");
-	controlwire(browsebotscr, "event", cs->ctl);
+//	chanprint(cs->ctl, "browsebotscr format '%%s: browsebotwin topline %%d'");
+//	controlwire(browsebotscr, "event", cs->ctl);
 
 	tabs[WinBrowse].win = createcolumn(cs, tabs[WinBrowse].winname);
 	chanprint(cs->ctl, "%q add browsetop browsebot", tabs[WinBrowse].win->name);
@@ -674,6 +685,7 @@ updateplaylist(int trunc)
 	if(trunc){
 		playlistselect(-1);
 		chanprint(cs->ctl, "playlistwin clear");
+		chanprint(cs->ctl, "playlistwin topline 0");
 		chanprint(cs->ctl, "playlistscr max 0");
 		chanprint(cs->ctl, "playlistscr value 0");
 		deactivatebuttons(1<<Playbutton | 1<<Deletebutton);
@@ -703,7 +715,7 @@ updateplaylist(int trunc)
 }
 
 void
-browseto(char *onum)
+browseto(char *onum, int line)
 {
 	onum = strdup(onum);
 	setparent(onum);
@@ -711,8 +723,52 @@ browseto(char *onum)
 	fillbrowsetop(onum);
 	chanprint(cs->ctl, "browsetop show");
 	fillbrowsebot(onum);
+	if(line){
+		chanprint(cs->ctl, "browsebotscr value %d", line);
+		chanprint(cs->ctl, "browsebotwin topline %d", line);
+	}
 	chanprint(cs->ctl, "browsebot show");
 	free(onum);
+}
+
+void
+browsedown(char *onum)
+{
+	if(browsesp == 0){
+		/* Make room for an entry by deleting the last */
+		free(browsestack[Browsedepth-1].onum);
+		memmove(browsestack + 1, browsestack, (Browsedepth-1) * sizeof(browsestack[0]));
+		browsesp++;
+	}
+	/* Store current position in current stack frame */
+	assert(browsesp > 0 && browsesp < Browsedepth);
+	browsestack[browsesp].onum = strdup(parent.address);
+	browsestack[browsesp].scrollpos = browseline;
+	browsesp--;
+	browseline = 0;
+	if(browsestack[browsesp].onum && strcmp(browsestack[browsesp].onum, onum) == 0)
+		browseline = browsestack[browsesp].scrollpos;
+	browseto(onum, browseline);
+}
+
+void
+browseup(char *onum)
+{
+	if(browsesp == Browsedepth){
+		/* Make room for an entry by deleting the first */
+		free(browsestack[0].onum);
+		memmove(browsestack, browsestack + 1, browsesp * sizeof(browsestack[0]));
+		browsesp--;
+	}
+	/* Store current position in current stack frame */
+	assert(browsesp >= 0 && browsesp < Browsedepth);
+	browsestack[browsesp].onum = strdup(parent.address);
+	browsestack[browsesp].scrollpos = browseline;
+	browsesp++;
+	browseline = 0;
+	if(browsestack[browsesp].onum && strcmp(browsestack[browsesp].onum, onum) == 0)
+		browseline = browsestack[browsesp].scrollpos;
+	browseto(onum, browseline);
 }
 
 void
@@ -740,6 +796,7 @@ work(void)
 	[Volume] =		{vol->event, &eventstr, CHANRCV},
 	[Browsetopwin] =	{browsetopwin->event, &eventstr, CHANRCV},
 	[Browsebotwin] =	{browsebotwin->event, &eventstr, CHANRCV},
+	[Browsebotscr] =	{browsebotscr->event, &eventstr, CHANRCV},
 	[Playevent] =		{playevent, &eventstr, CHANRCV},
 	[Playlistwin] =		{playlistwin->event, &eventstr, CHANRCV},
 	[Nalt] =		{nil, nil, CHANEND}
@@ -877,7 +934,7 @@ work(void)
 				doplay(parent.address);
 			else if(strcmp(args[3], "4") == 0){
 				s = getparent(parent.address);
-				browseto(s);
+				browsedown(s);
 			}
 			break;
 		case Browsebotwin:
@@ -897,11 +954,15 @@ work(void)
 			if(selected >= nchildren)
 				sysfatal("Select out of range: %d [0⋯%d)", selected, nchildren);
 			if(strcmp(args[3], "1") == 0){
-				browseto(children[selected].address);
+				browseup(children[selected].address);
 			}else if(strcmp(args[3], "2") == 0)
 				doplay(children[selected].address);
 			else if(strcmp(args[3], "4") == 0)
-				browseto(getparent(parent.address));
+				browsedown(getparent(parent.address));
+			break;
+		case Browsebotscr:
+			browseline = atoi(args[2]);
+			chanprint(cs->ctl, "browsebotwin topline %d", browseline);
 			break;
 		case Playevent:
 			if(n < 3 || strcmp(args[0], "playctlproc:"))

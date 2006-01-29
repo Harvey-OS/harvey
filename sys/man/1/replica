@@ -4,8 +4,16 @@ changes, pull, push, scan \- client-server replica management
 .SH SYNOPSIS
 .B replica/pull
 [
-.B -cnsv
+.B -nv
 ]
+[
+.B -c
+.I name
+]...
+[
+.B -s
+.I name
+]...
 .I name
 [
 .I path
@@ -160,15 +168,17 @@ The
 .B -c
 flag to
 .I pull
-causes updates to be resolved using the client's copy,
+specifies that conflicts for paths beginning with
+.I name
+should be resolved using the client's copy,
 while
 .B -s
 specifies the server's copy.
-Typically these flags are only used when
-invoking
-.I pull
-with a specific list of files that are known
-to be conflicting.
+The 
+.B -c
+and
+.B -s
+options may be repeated.
 .PP
 .I Replica/changes
 prints a list of local changes made on the client
@@ -283,9 +293,36 @@ in
 To update your system, make sure you are connected
 to the internet and run
 .EX
-    disk/kfscmd allow
     replica/pull /dist/replica/network
-    disk/kfscmd disallow
+.EE
+If conflicts are reported (say you have made local changes to 
+.B /rc/bin/cpurc
+and
+.BR /rc/bin/termrc ,
+but only want to keep the
+.B cpurc
+changes),
+use
+.EX
+    replica/pull -c rc/bin/cpurc -s rc/bin/termrc /dist/replica/network
+.EE
+to instruct
+.I pull
+to ignore the server's change to 
+.BR cpurc .
+.PP
+The script
+.B /usr/glenda/bin/rc/pull
+runs 
+.I pull
+with the
+.B -v
+flag and with
+.B /dist/replica/network
+inserted at the right point on the command line.
+Logged in as glenda, one can repeat the above example with:
+.EX
+    pull -c rc/bin/cpurc -s rc/bin/cpurc
 .EE
 .PP
 To see a list of changes made to the local file system

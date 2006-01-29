@@ -16,36 +16,37 @@ enum {
 typedef struct Edf		Edf;
 
 struct Edf {
+	/* All times in µs */
 	/* time intervals */
-	vlong		D;			/* Deadline */
-	vlong		Delta;		/* Inherited deadline */
-	vlong		T;			/* period */
-	vlong		C;			/* Cost */
-	vlong		S;			/* Slice: time remaining in this period */
-	/* times */
-	vlong		r;			/* (this) release time */
-	vlong		d;			/* (this) deadline */
-	vlong		t;			/* Start of next period, t += T at release */
-	vlong		s;			/* Time at which this proc was last scheduled */
+	long		D;		/* Deadline */
+	long		Delta;		/* Inherited deadline */
+	long		T;		/* period */
+	long		C;		/* Cost */
+	long		S;		/* Slice: time remaining in this period */
+	/* times (only low-order bits of absolute time) */
+	long		r;		/* (this) release time */
+	long		d;		/* (this) deadline */
+	long		t;		/* Start of next period, t += T at release */
+	long		s;		/* Time at which this proc was last scheduled */
 	/* for schedulability testing */
-	vlong		testDelta;
-	int			testtype;	/* Release or Deadline */
-	vlong		testtime;
+	long		testDelta;
+	int		testtype;	/* Release or Deadline */
+	long		testtime;
 	Proc		*testnext;
 	/* other */
 	ushort		flags;
 	Timer;
 	/* Stats */
-	vlong		edfused;
-	vlong		extraused;
-	vlong		aged;
+	long		edfused;
+	long		extraused;
+	long		aged;
 	ulong		periods;
 	ulong		missed;
 };
 
 extern Lock	edftestlock;	/* for atomic admitting/expelling */
 
-#pragma	varargck	type	"t"		vlong
+#pragma	varargck	type	"t"		long
 #pragma	varargck	type	"U"		uvlong
 
 /* Interface: */

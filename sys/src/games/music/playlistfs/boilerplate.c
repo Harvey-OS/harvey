@@ -65,7 +65,7 @@ bcastmsg(Channel *q, Wmsg *m)
 	 * broadcast and putting themselves back on the
 	 * queue before the broadcast has finished
 	 */
-	marker.eventc = nil;
+	marker.eventc = nil;	/* Only markers have eventc == nil */
 	sendp(q, &marker);
 	while((w = recvp(q)) != &marker){
 		if(w->eventc == nil){

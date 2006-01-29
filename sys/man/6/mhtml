@@ -48,7 +48,7 @@ This macro opens the
 tag, opens and closes the
 .B <head>
 section, and opens
-.B <body> .
+.BR <body> .
 It invokes the
 .B .HEAD
 macro inside the

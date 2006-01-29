@@ -31,13 +31,16 @@
 
 /* frequency of the tod clock */
 #define TODFREQ	1000000000ULL
+#define MicroFREQ	1000000ULL
 
 struct {
 	int		init;		// true if initialized
 	ulong	cnt;
 	Lock;
-	uvlong	multiplier;	// t = off + (multiplier*ticks)>>31
-	uvlong	divider;	// ticks = (divider*(ticks-off))>>31
+	uvlong	multiplier;	// ns = off + (multiplier*ticks)>>31
+	uvlong	divider;	// ticks = (divider*(ns-off))>>31
+	uvlong	umultiplier;	// µs = (µmultiplier*ticks)>>31
+	uvlong	udivider;	// ticks = (µdivider*µs)>>31
 	vlong	hz;		// frequency of fast clock
 	vlong	last;		// last reading of fast clock
 	vlong	off;		// offset from epoch to last
@@ -72,7 +75,8 @@ todsetfreq(vlong f)
 	/* calculate multiplier for time conversion */
 	tod.multiplier = mk64fract(TODFREQ, f);
 	tod.divider = mk64fract(f, TODFREQ);
-
+	tod.umultiplier = mk64fract(MicroFREQ, f);
+	tod.udivider = mk64fract(f, MicroFREQ);
 	iunlock(&tod);
 }
 
@@ -211,6 +215,28 @@ seconds(void)
 	x = x/TODFREQ;
 	i = x;
 	return i;
+}
+
+uvlong
+fastticks2us(uvlong ticks)
+{
+	uvlong res;
+
+	if(!tod.init)
+		todinit();
+	mul64fract(&res, ticks, tod.umultiplier);
+	return res;
+}
+
+uvlong
+us2fastticks(uvlong us)
+{
+	uvlong res;
+
+	if(!tod.init)
+		todinit();
+	mul64fract(&res, us, tod.udivider);
+	return res;
 }
 
 //  convert milliseconds to fast ticks

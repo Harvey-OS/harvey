@@ -113,44 +113,44 @@ runConfig(char *file, Config *config)
 			config->naparts++;
 		}else if(i == 2 && strcmp(flds[0], "index") == 0){
 			if(!nameOk(flds[1])){
-				setErr(EAdmin, "illegal index name %s in config file %s", flds[1], config);
+				setErr(EAdmin, "illegal index name %s in config file %s", flds[1], file);
 				break;
 			}
 			if(config->index != nil){
-				setErr(EAdmin, "duplicate indices in config file %s", config);
+				setErr(EAdmin, "duplicate indices in config file %s", file);
 				break;
 			}
 			config->index = estrdup(flds[1]);
 		}else if(i == 2 && strcmp(flds[0], "bcmem") == 0){
 			if(!numOk(flds[1])){
 				setErr(EAdmin, "illegal size %s in config file %s",
-					flds[1], config);
+					flds[1], file);
 				break;
 			}
 			if(config->bcmem != 0){
-				setErr(EAdmin, "duplicate bcmem lines in config file %s", config);
+				setErr(EAdmin, "duplicate bcmem lines in config file %s", file);
 				break;
 			}
 			config->bcmem = unittoull(flds[1]);
 		}else if(i == 2 && strcmp(flds[0], "mem") == 0){
 			if(!numOk(flds[1])){
 				setErr(EAdmin, "illegal size %s in config file %s",
-					flds[1], config);
+					flds[1], file);
 				break;
 			}
 			if(config->mem != 0xFFFFFFFFUL){
-				setErr(EAdmin, "duplicate mem lines in config file %s", config);
+				setErr(EAdmin, "duplicate mem lines in config file %s", file);
 				break;
 			}
 			config->mem = unittoull(flds[1]);
 		}else if(i == 2 && strcmp(flds[0], "icmem") == 0){
 			if(!numOk(flds[1])){
 				setErr(EAdmin, "illegal size %s in config file %s",
-					flds[1], config);
+					flds[1], file);
 				break;
 			}
 			if(config->icmem != 0){
-				setErr(EAdmin, "duplicate icmem lines in config file %s", config);
+				setErr(EAdmin, "duplicate icmem lines in config file %s", file);
 				break;
 			}
 			config->icmem = unittoull(flds[1]);
@@ -158,26 +158,26 @@ runConfig(char *file, Config *config)
 			config->queueWrites = 1;
 		}else if(i == 2 && strcmp(flds[0], "httpaddr") == 0){
 			if(!nameOk(flds[1])){
-				setErr(EAdmin, "illegal http address '%s' in configuration file %s", flds[1], config);
+				setErr(EAdmin, "illegal http address '%s' in configuration file %s", flds[1], file);
 				break;
 			}
 			if(config->haddr){
-				setErr(EAdmin, "duplicate httpaddr lines in configuration file %s", config);
+				setErr(EAdmin, "duplicate httpaddr lines in configuration file %s", file);
 				break;
 			}
 			config->haddr = estrdup(flds[1]);
 		}else if(i == 2 && strcmp(flds[0], "addr") == 0){
 			if(!nameOk(flds[1])){
-				setErr(EAdmin, "illegal venti address '%s' in configuration file %s", flds[1], config);
+				setErr(EAdmin, "illegal venti address '%s' in configuration file %s", flds[1], file);
 				break;
 			}
 			if(config->vaddr){
-				setErr(EAdmin, "duplicate addr lines in configuration file %s", config);
+				setErr(EAdmin, "duplicate addr lines in configuration file %s", file);
 				break;
 			}
 			config->vaddr = estrdup(flds[1]);
 		}else{
-			setErr(EAdmin, "illegal line '%s' in configuration file %s", line, config);
+			setErr(EAdmin, "illegal line '%s' in configuration file %s", line, file);
 			break;
 		}
 		free(line);

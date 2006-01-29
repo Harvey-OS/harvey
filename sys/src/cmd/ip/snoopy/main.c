@@ -233,7 +233,7 @@ _filterpkt(Filter *f, Msg *m)
 				return 0;
 			m->needroot = 0;
 		}else{
-			if(m->pr != nil && !(m->pr->filter)(f, m))
+			if(m->pr && (m->pr->filter==nil || !(m->pr->filter)(f, m)))
 				return 0;
 		}
 		if(f->l == nil)
@@ -650,14 +650,20 @@ _compile(Filter *f, Proto *last)
 		_compile(f->r, last);
 		break;
 	case WORD:
-		if(last != nil)
+		if(last != nil){
+			if(last->compile == nil)
+				sysfatal("unknown %s subprotocol: %s", f->pr->name, f->s);
 			(*last->compile)(f);
+		}
 		if(f->l)
 			_compile(f->l, f->pr);
 		break;
 	case '=':
 		if(last == nil)
 			sysfatal("internal error: compilewalk: badly formed tree");
+		
+		if(last->compile == nil)
+			sysfatal("unknown %s field: %s", f->pr->name, f->s);
 		(*last->compile)(f);
 		break;
 	default:

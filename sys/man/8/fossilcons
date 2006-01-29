@@ -33,7 +33,7 @@ con /srv/fscons
 .PP
 .B listen
 [
-.B -d
+.B -INd
 ]
 [
 .I address
@@ -400,6 +400,28 @@ flag causes
 .I listen
 to remove the listener
 at the given address.
+By default, the user
+.I none
+is only allowed to attach on a connection after
+at least one other user has successfully attached.
+The
+.B -N
+flag allows connections from
+.I none
+at any time.
+The
+.B -I
+flag causes
+.I fossil
+to check the IP address of incoming connections
+against
+.BR /mnt/ipok ,
+rejecting attaches from disallowed addresses.
+This mechanism is not intended for general use.
+The server
+.I sources.cs.bell-labs.com
+uses it to comply with U.S. crytography
+export regulations.
 .PP
 .I Msg
 prints the maximum internal 9P message queue size

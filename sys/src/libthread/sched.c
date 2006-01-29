@@ -78,6 +78,24 @@ _schedinit(void *arg)
 }
 
 void
+needstack(int n)
+{
+	int x;
+	Proc *p;
+	Thread *t;
+	
+	p = _threadgetproc();
+	t = p->thread;
+	
+	if((uchar*)&x - n < (uchar*)t->stk){
+		fprint(2, "%s %d: &x=%p n=%d t->stk=%p\n",
+			argv0, getpid(), &x, n, t->stk);
+		fprint(2, "%s %d: stack overflow\n", argv0, getpid());
+		abort();
+	}
+}
+
+void
 _sched(void)
 {
 	Proc *p;
@@ -86,8 +104,7 @@ _sched(void)
 Resched:
 	p = _threadgetproc();
 	if((t = p->thread) != nil){
-		if((uchar*)&p < t->stk)		/* stack overflow */
-			abort();
+		needstack(128);
 		_threaddebug(DBGSCHED, "pausing, state=%s", psstate(t->state));
 		if(setjmp(t->sched)==0)
 			longjmp(p->sched, 1);

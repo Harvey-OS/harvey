@@ -2,9 +2,21 @@
 .SH NAME
 ms2html, html2ms \- convert between troff's ms macros and html
 .SH SYNOPSIS
-.B ms2html < input > output
+.B ms2html
+[
+.B -q
+] [
+.B -b
+.I basename
+] [
+.B -d
+.I delims
+] [
+.B -t
+.I title
+]
 .br
-.B html2ms < input > output
+.B html2ms
 .SH DESCRIPTION
 .I Ms2html
 converts the
@@ -28,10 +40,35 @@ will look for a
 macro, unknown to
 .IR ms (6),
 and take its value.
+Options are:
+.TF q
+.IP q
+suppresses warnings about malformed input;
+.IP b
+sets the HTML base name to
+.IR basename ;
+.IP d
+sets the
+.IR eqn (1)
+delimiters to
+.IR delim ;
+.IP t
+sets the HTML title to
+.IR title .
+.PD
+.PP
+.I Html2ms
+reads HTML from standard input and converts it
+to
+.IR ms (6)
+source on standard output.
 .SH SOURCE
 .B /sys/src/cmd/ms2html.c
 .br
 .B /sys/src/cmd/html2ms.c
+.SH SEE ALSO
+.IR htmlroff (1),
+.IR ms (6)
 .SH BUGS
 .PP
 Ms2html doesn't understand a number of troff

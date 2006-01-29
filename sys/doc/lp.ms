@@ -1,3 +1,4 @@
+.HTML "A Guide to the Lp Printer Spooler
 .TL
 A Guide to the Lp
 Printer Spooler
@@ -377,7 +378,7 @@ Within the
 .CW lp
 command, a shell variable is set for each attribute;
 the following list describes them:
-.IP "\f(CW\s-\\n(XPLPDEST\s+\\n(XP\fP " 12
+.IP "\f(CW\s-\n(XPLPDEST\s+\n(XP\fP " 12
 is the name of the device as given to
 .I lp
 with the
@@ -390,22 +391,22 @@ the file
 .CW $LPLIB/defdevice .
 This name is used in creating directories and log files that are associated with
 the printers operation.
-.IP "\f(CW\s-\\n(XPLOC\s+\\n(XP\fP "
+.IP "\f(CW\s-\n(XPLOC\s+\n(XP\fP "
 just describes where the printer is physically located.
-.IP "\f(CW\s-\\n(XPDEST_HOST\s+\\n(XP\fP "
+.IP "\f(CW\s-\n(XPDEST_HOST\s+\n(XP\fP "
 is the host from which the files are printed.
 Files may be spooled on other machines before being transferred to the
 destination host.
-.IP "\f(CW\s-\\n(XPOUT_DEV\s+\\n(XP\fP "
+.IP "\f(CW\s-\n(XPOUT_DEV\s+\n(XP\fP "
 is the physical device name or network address needed by the printer daemon
 to connect to the printer.
 This field depends on the requirements of the daemon and may contain a `\(en'
 if not required.
-.IP "\f(CW\s-\\n(XPSPEED\s+\\n(XP\fP "
+.IP "\f(CW\s-\n(XPSPEED\s+\n(XP\fP "
 is the baud rate setting for the port.
 This field depends on the requirements of the daemon and may contain a `\(en'
 if not required.
-.IP "\f(CW\s-\\n(XPLPCLASS\s+\\n(XP\fP "
+.IP "\f(CW\s-\n(XPLPCLASS\s+\n(XP\fP "
 is used to encode minor printer differences.
 The keyword
 .CW reverse
@@ -419,13 +420,13 @@ This is used for special and color printers.
 The keyword
 .CW duplex
 is used to coax double sided output from duplex printers.
-.IP "\f(CW\s-\\n(XPLPPROC\s+\\n(XP\fP "
+.IP "\f(CW\s-\n(XPLPPROC\s+\n(XP\fP "
 is the command from the
 .CW LPLIB/process
 directory to be used to convert input to a format
 that will be accepted by the device.
 The preprocessor is invoked by the spooler.
-.IP "\f(CW\s-\\n(XPSPOOLER\s+\\n(XP\fP "
+.IP "\f(CW\s-\n(XPSPOOLER\s+\n(XP\fP "
 is the command from the
 .CW LPLIB/spooler
 directory which will select files using the
@@ -437,7 +438,7 @@ into the remote spool directory.
 The output is sent directly to the spool directory on the
 destination machine to avoid conflicts when client and
 server machines share spool directories.
-.IP "\f(CW\s-\\n(XPSTAT\s+\\n(XP\fP "
+.IP "\f(CW\s-\n(XPSTAT\s+\n(XP\fP "
 is the command from the
 .CW LPLIB/stat
 directory that prints the status of the device and the list of jobs
@@ -450,7 +451,7 @@ The
 .CW SCHED
 command is used to show the jobs in the order
 in which they will be printed.
-.IP "\f(CW\s-\\n(XPKILL\s+\\n(XP\fP "
+.IP "\f(CW\s-\n(XPKILL\s+\n(XP\fP "
 is the command from the
 .CW LPLIB/kill
 that removes jobs from the queue.
@@ -459,7 +460,7 @@ The jobs to be removed are given as arguments to the
 command.
 When possible, it should also abort the currently running job
 if it has to be killed.
-.IP "\f(CW\s-\\n(XPDAEMON\s+\\n(XP\fP "
+.IP "\f(CW\s-\n(XPDAEMON\s+\n(XP\fP "
 is the command from the
 .CW LPLIB/daemon
 that is meant to run asynchronously to remove
@@ -468,7 +469,7 @@ Jobs may either be passed on to another host or sent to the
 printing device.
 .I Lp
 always tries to start a daemon process when one is specified.
-.IP "\f(CW\s-\\n(XPSCHED\s+\\n(XP\fP "
+.IP "\f(CW\s-\n(XPSCHED\s+\n(XP\fP "
 is the command from the
 .CW LPLIB/sched
 that is used to present the job names to the

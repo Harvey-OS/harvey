@@ -211,13 +211,52 @@ closefgrp(Fgrp *f)
 	if(decref(f) != 0)
 		return;
 
+	/*
+	 * If we get into trouble, forceclosefgrp
+	 * will bail us out.
+	 */
+	up->closingfgrp = f;
 	for(i = 0; i <= f->maxfd; i++)
-		if(c = f->fd[i])
+		if(c = f->fd[i]){
+			f->fd[i] = nil;
 			cclose(c);
+		}
+	up->closingfgrp = nil;
 
 	free(f->fd);
 	free(f);
 }
+
+/*
+ * Called from sleep because up is in the middle
+ * of closefgrp and just got a kill ctl message.
+ * This usually means that up has wedged because
+ * of some kind of deadly embrace with mntclose
+ * trying to talk to itself.  To break free, hand the
+ * unclosed channels to the close queue.  Once they
+ * are finished, the blocked cclose that we've 
+ * interrupted will finish by itself.
+ */
+void
+forceclosefgrp(void)
+{
+	int i;
+	Chan *c;
+	Fgrp *f;
+
+	if(up->procctl != Proc_exitme || up->closingfgrp == nil){
+		print("bad forceclosefgrp call");
+		return;
+	}
+
+	f = up->closingfgrp;
+	for(i = 0; i <= f->maxfd; i++)
+		if(c = f->fd[i]){
+			f->fd[i] = nil;
+			ccloseq(c);
+		}
+}
+
 
 Mount*
 newmount(Mhead *mh, Chan *to, int flag, char *spec)

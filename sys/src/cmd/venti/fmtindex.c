@@ -43,7 +43,7 @@ main(int argc, char *argv[])
 	file = argv[0];
 
 	if(!runConfig(file, &conf))
-		fatal("can't intialization config %s: %R", file);
+		fatal("can't run config %s: %R", file);
 	if(conf.index == nil)
 		fatal("no index specified in %s", file);
 	if(!nameOk(conf.index))

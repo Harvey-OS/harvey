@@ -8,5 +8,5 @@ acme.ps:D:	acme.ms
 	../cleanps acme.ps
 
 acme.html:D:	acme.ms
-	{echo $FONTS; cat acme.ms} | ms2html >acme.html
+	htmlroff -ms -mhtml acme.ms >acme.html
 

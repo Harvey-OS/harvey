@@ -107,7 +107,7 @@ Mach mamd64=
 	0,			/* static base register value */
 	0x1000,			/* page size */
 	0xFFFFFFFF80110000ULL,	/* kernel base */
-	0,			/* kernel text mask */
+	0xFFFF800000000000ULL,	/* kernel text mask */
 	0x00007FFFFFFFF000ULL,	/* user stack top */
 	1,			/* quantization of pc */
 	8,			/* szaddr */

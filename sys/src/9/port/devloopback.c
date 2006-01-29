@@ -143,7 +143,7 @@ loopbackattach(char *spec)
 	lb->ref++;
 	if(lb->ref == 1){
 		for(chan = 0; chan < 2; chan++){
-			lb->link[chan].ci.mode = Tabsolute;
+			lb->link[chan].ci.mode = Trelative;
 			lb->link[chan].ci.a = &lb->link[chan];
 			lb->link[chan].ci.f = linkintr;
 			lb->link[chan].limit = Loopqlim;
@@ -685,7 +685,7 @@ pushlink(Link *link, vlong now)
 	if(!tin || tin > tout && tout)
 		tin = tout;
 
-	link->ci.ns = tin;
+	link->ci.ns = tin - now;
 	if(tin){
 		if(tin < now)
 			panic("loopback unfinished business");

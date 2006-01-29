@@ -34,7 +34,6 @@ static	int	commonllp64(int, Fhdr*, ExecHdr*);
 static	int	adotout(int, Fhdr*, ExecHdr*);
 static	int	elfdotout(int, Fhdr*, ExecHdr*);
 static	int	armdotout(int, Fhdr*, ExecHdr*);
-static	int	alphadotout(int, Fhdr*, ExecHdr*);
 static	void	setsym(Fhdr*, long, long, long, vlong);
 static	void	setdata(Fhdr*, uvlong, long, vlong, long);
 static	void	settext(Fhdr*, uvlong, uvlong, long, vlong);
@@ -49,7 +48,8 @@ typedef struct Exectable{
 	long	magic;			/* big-endian magic number of file */
 	char	*name;			/* executable identifier */
 	char	*dlmname;		/* dynamically loadable module identifier */
-	int	type;			/* Internal code */
+	uchar	type;			/* Internal code */
+	uchar	_magic;			/* _MAGIC() magic */
 	Mach	*mach;			/* Per-machine data */
 	long	hsize;			/* header size */
 	ulong	(*swal)(ulong);		/* beswal or leswal */
@@ -74,6 +74,7 @@ ExecTable exectab[] =
 		"mips plan 9 executable",
 		"mips plan 9 dlm",
 		FMIPS,
+		1,
 		&mmips,
 		sizeof(Exec),
 		beswal,
@@ -82,6 +83,7 @@ ExecTable exectab[] =
 		"mips 4k plan 9 executable BE",
 		"mips 4k plan 9 dlm BE",
 		FMIPS2BE,
+		1,
 		&mmips2be,
 		sizeof(Exec),
 		beswal,
@@ -90,6 +92,7 @@ ExecTable exectab[] =
 		"mips 4k plan 9 executable LE",
 		"mips 4k plan 9 dlm LE",
 		FMIPS2LE,
+		1,
 		&mmips2le,
 		sizeof(Exec),
 		beswal,
@@ -98,6 +101,7 @@ ExecTable exectab[] =
 		"mips plan 9 boot image",
 		nil,
 		FMIPSB,
+		0,
 		&mmips,
 		sizeof(struct mipsexec),
 		beswal,
@@ -106,6 +110,7 @@ ExecTable exectab[] =
 		"mips 4k plan 9 boot image",
 		nil,
 		FMIPSB,
+		0,
 		&mmips2be,
 		sizeof(struct mips4kexec),
 		beswal,
@@ -114,6 +119,7 @@ ExecTable exectab[] =
 		"sparc plan 9 executable",
 		"sparc plan 9 dlm",
 		FSPARC,
+		1,
 		&msparc,
 		sizeof(Exec),
 		beswal,
@@ -122,6 +128,7 @@ ExecTable exectab[] =
 		"sparc plan 9 boot image",
 		nil,
 		FSPARCB,
+		0,
 		&msparc,
 		sizeof(struct sparcexec),
 		beswal,
@@ -130,6 +137,7 @@ ExecTable exectab[] =
 		"sparc64 plan 9 executable",
 		"sparc64 plan 9 dlm",
 		FSPARC64,
+		1,
 		&msparc64,
 		sizeof(Exec),
 		beswal,
@@ -138,6 +146,7 @@ ExecTable exectab[] =
 		"68020 plan 9 executable",
 		"68020 plan 9 dlm",
 		F68020,
+		1,
 		&m68020,
 		sizeof(Exec),
 		beswal,
@@ -146,6 +155,7 @@ ExecTable exectab[] =
 		"next plan 9 boot image",
 		nil,
 		FNEXTB,
+		0,
 		&m68020,
 		sizeof(struct nextexec),
 		beswal,
@@ -154,6 +164,7 @@ ExecTable exectab[] =
 		"386 plan 9 executable",
 		"386 plan 9 dlm",
 		FI386,
+		1,
 		&mi386,
 		sizeof(Exec),
 		beswal,
@@ -162,6 +173,7 @@ ExecTable exectab[] =
 		"amd64 plan 9 executable",
 		"amd64 plan 9 dlm",
 		FAMD64,
+		1,
 		&mamd64,
 		sizeof(Exec)+8,
 		nil,
@@ -170,6 +182,7 @@ ExecTable exectab[] =
 		"power plan 9 executable",
 		"power plan 9 dlm",
 		FPOWER,
+		1,
 		&mpower,
 		sizeof(Exec),
 		beswal,
@@ -178,6 +191,7 @@ ExecTable exectab[] =
 		"elf executable",
 		nil,
 		FNONE,
+		0,
 		&mi386,
 		sizeof(Ehdr),
 		nil,
@@ -186,6 +200,7 @@ ExecTable exectab[] =
 		"arm plan 9 executable",
 		"arm plan 9 dlm",
 		FARM,
+		1,
 		&marm,
 		sizeof(Exec),
 		beswal,
@@ -194,6 +209,7 @@ ExecTable exectab[] =
 		"arm *bsd executable",
 		nil,
 		FARM,
+		0,
 		&marm,
 		sizeof(Exec),
 		leswal,
@@ -202,6 +218,7 @@ ExecTable exectab[] =
 		"alpha plan 9 executable",
 		"alpha plan 9 dlm",
 		FALPHA,
+		1,
 		&malpha,
 		sizeof(Exec),
 		beswal,
@@ -209,11 +226,12 @@ ExecTable exectab[] =
 	{ 0x0700e0c3,			/* alpha boot image */
 		"alpha plan 9 boot image",
 		nil,
-		FALPHAB,
+		FALPHA,
+		0,
 		&malpha,
 		sizeof(Exec),
 		beswal,
-		alphadotout },
+		common },
 	{ 0 },
 };
 
@@ -254,27 +272,49 @@ crackhdr(int fd, Fhdr *fp)
 		return 0;
 
 	ret = 0;
-	fp->magic = magic = beswal(d.e.magic);		/* big-endian */
+	magic = beswal(d.e.magic);		/* big-endian */
 	for (mp = exectab; mp->magic; mp++) {
 		if (nb < mp->hsize)
 			continue;
-		if (mp->magic == (magic & ~DYN_MAGIC)) {
+
+		/*
+		 * The magic number has morphed into something
+		 * with fields (the straw was DYN_MAGIC) so now
+		 * a flag is needed in Fhdr to distinguish _MAGIC()
+		 * magic numbers from foreign magic numbers.
+		 *
+		 * This code is creaking a bit and if it has to
+		 * be modified/extended much more it's probably
+		 * time to step back and redo it all.
+		 */
+		if(mp->_magic){
+			if(mp->magic != (magic & ~DYN_MAGIC))
+				continue;
+
 			if(mp->magic == V_MAGIC)
 				mp = couldbe4k(mp);
 
-			fp->type = mp->type;
 			if ((magic & DYN_MAGIC) && mp->dlmname != nil)
 				fp->name = mp->dlmname;
 			else
 				fp->name = mp->name;
-			fp->hdrsz = mp->hsize;		/* zero on bootables */
-			mach = mp->mach;
-			if(mp->swal != nil)
-				hswal(&d, sizeof(d.e)/sizeof(ulong), mp->swal);
-			ret = mp->hparse(fd, fp, &d);
-			seek(fd, mp->hsize, 0);		/* seek to end of header */
-			break;
 		}
+		else{
+			if(mp->magic != magic)
+				continue;
+			fp->name = mp->name;
+		}
+		fp->type = mp->type;
+		fp->hdrsz = mp->hsize;		/* will be zero on bootables */
+		fp->_magic = mp->_magic;
+		fp->magic = magic;
+
+		mach = mp->mach;
+		if(mp->swal != nil)
+			hswal(&d, sizeof(d.e)/sizeof(ulong), mp->swal);
+		ret = mp->hparse(fd, fp, &d);
+		seek(fd, mp->hsize, 0);		/* seek to end of header */
+		break;
 	}
 	if(mp->magic == 0)
 		werrstr("unknown header type");
@@ -314,10 +354,7 @@ adotout(int fd, Fhdr *fp, ExecHdr *hp)
 static void
 commonboot(Fhdr *fp)
 {
-	uvlong kbase;
-
-	kbase = mach->kbase;
-	if ((fp->entry & kbase) != kbase)
+	if (!(fp->entry & mach->ktmask))
 		return;
 
 	switch(fp->type) {				/* boot image */
@@ -332,14 +369,14 @@ commonboot(Fhdr *fp)
 		fp->dataddr = _round(fp->txtaddr+fp->txtsz, mach->pgsize);
 		break;
 	case FARM:
-		fp->txtaddr = kbase+0x8010;
+		fp->txtaddr = mach->kbase+0x8010;
 		fp->name = "ARM plan 9 boot image";
 		fp->dataddr = fp->txtaddr+fp->txtsz;
 		return;
 	case FALPHA:
 		fp->type = FALPHAB;
 		fp->txtaddr = (u32int)fp->entry;
-		fp->name = "alpha plan 9 boot image?";
+		fp->name = "alpha plan 9 boot image";
 		fp->dataddr = fp->txtaddr+fp->txtsz;
 		break;
 	case FPOWER:
@@ -357,12 +394,11 @@ commonboot(Fhdr *fp)
 	default:
 		return;
 	}
-	fp->hdrsz = 0;					/* header stripped */
+	fp->hdrsz = 0;			/* header stripped */
 }
 
 /*
- *	68020 2.out and 68020 bootable images
- *	386I 8.out and 386I bootable images
+ *	_MAGIC() style headers and
  *	alpha plan9-style bootable images for axp "headerless" boot
  *
  */
@@ -421,24 +457,24 @@ static int
 mipsboot(int fd, Fhdr *fp, ExecHdr *hp)
 {
 	USED(fd);
+	fp->type = FMIPSB;
 	switch(hp->e.amagic) {
 	default:
 	case 0407:	/* some kind of mips */
-		fp->type = FMIPSB;
-		settext(fp, hp->e.mentry, hp->e.text_start, hp->e.tsize,
-					sizeof(struct mipsexec)+4);
-		setdata(fp, hp->e.data_start, hp->e.dsize,
-				fp->txtoff+hp->e.tsize, hp->e.bsize);
+		settext(fp, (u32int)hp->e.mentry, (u32int)hp->e.text_start,
+			hp->e.tsize, sizeof(struct mipsexec)+4);
+		setdata(fp, (u32int)hp->e.data_start, hp->e.dsize,
+			fp->txtoff+hp->e.tsize, hp->e.bsize);
 		break;
 	case 0413:	/* some kind of mips */
-		fp->type = FMIPSB;
-		settext(fp, hp->e.mentry, hp->e.text_start, hp->e.tsize, 0);
-		setdata(fp, hp->e.data_start, hp->e.dsize, hp->e.tsize,
-					hp->e.bsize);
+		settext(fp, (u32int)hp->e.mentry, (u32int)hp->e.text_start,
+			hp->e.tsize, 0);
+		setdata(fp, (u32int)hp->e.data_start, hp->e.dsize,
+			hp->e.tsize, hp->e.bsize);
 		break;
 	}
 	setsym(fp, hp->e.nsyms, 0, hp->e.pcsize, hp->e.symptr);
-	fp->hdrsz = 0;		/* header stripped */
+	fp->hdrsz = 0;			/* header stripped */
 	return 1;
 }
 
@@ -449,24 +485,24 @@ static int
 mips4kboot(int fd, Fhdr *fp, ExecHdr *hp)
 {
 	USED(fd);
+	fp->type = FMIPSB;
 	switch(hp->e.h.amagic) {
 	default:
 	case 0407:	/* some kind of mips */
-		fp->type = FMIPSB;
-		settext(fp, hp->e.h.mentry, hp->e.h.text_start, hp->e.h.tsize,
-					sizeof(struct mips4kexec));
-		setdata(fp, hp->e.h.data_start, hp->e.h.dsize,
-				fp->txtoff+hp->e.h.tsize, hp->e.h.bsize);
+		settext(fp, (u32int)hp->e.h.mentry, (u32int)hp->e.h.text_start,
+			hp->e.h.tsize, sizeof(struct mips4kexec));
+		setdata(fp, (u32int)hp->e.h.data_start, hp->e.h.dsize,
+			fp->txtoff+hp->e.h.tsize, hp->e.h.bsize);
 		break;
 	case 0413:	/* some kind of mips */
-		fp->type = FMIPSB;
-		settext(fp, hp->e.h.mentry, hp->e.h.text_start, hp->e.h.tsize, 0);
-		setdata(fp, hp->e.h.data_start, hp->e.h.dsize, hp->e.h.tsize,
-					hp->e.h.bsize);
+		settext(fp, (u32int)hp->e.h.mentry, (u32int)hp->e.h.text_start,
+			hp->e.h.tsize, 0);
+		setdata(fp, (u32int)hp->e.h.data_start, hp->e.h.dsize,
+			hp->e.h.tsize, hp->e.h.bsize);
 		break;
 	}
 	setsym(fp, hp->e.h.nsyms, 0, hp->e.h.pcsize, hp->e.h.symptr);
-	fp->hdrsz = 0;		/* header stripped */
+	fp->hdrsz = 0;			/* header stripped */
 	return 1;
 }
 
@@ -479,11 +515,11 @@ sparcboot(int fd, Fhdr *fp, ExecHdr *hp)
 	USED(fd);
 	fp->type = FSPARCB;
 	settext(fp, hp->e.sentry, hp->e.sentry, hp->e.stext,
-					sizeof(struct sparcexec));
+		sizeof(struct sparcexec));
 	setdata(fp, hp->e.sentry+hp->e.stext, hp->e.sdata,
-					fp->txtoff+hp->e.stext, hp->e.sbss);
+		fp->txtoff+hp->e.stext, hp->e.sbss);
 	setsym(fp, hp->e.ssyms, 0, hp->e.sdrsize, fp->datoff+hp->e.sdata);
-	fp->hdrsz = 0;		/* header stripped */
+	fp->hdrsz = 0;			/* header stripped */
 	return 1;
 }
 
@@ -496,12 +532,12 @@ nextboot(int fd, Fhdr *fp, ExecHdr *hp)
 	USED(fd);
 	fp->type = FNEXTB;
 	settext(fp, hp->e.textc.vmaddr, hp->e.textc.vmaddr,
-					hp->e.texts.size, hp->e.texts.offset);
+		hp->e.texts.size, hp->e.texts.offset);
 	setdata(fp, hp->e.datac.vmaddr, hp->e.datas.size,
-				hp->e.datas.offset, hp->e.bsss.size);
+		hp->e.datas.offset, hp->e.bsss.size);
 	setsym(fp, hp->e.symc.nsyms, hp->e.symc.spoff, hp->e.symc.pcoff,
-					hp->e.symc.symoff);
-	fp->hdrsz = 0;		/* header stripped */
+		hp->e.symc.symoff);
+	fp->hdrsz = 0;			/* header stripped */
 	return 1;
 }
 
@@ -640,34 +676,6 @@ elfdotout(int fd, Fhdr *fp, ExecHdr *hp)
 	if(is != -1)
 		setsym(fp, ph[is].filesz, 0, ph[is].memsz, ph[is].offset);
 	free(ph);
-	return 1;
-}
-
-/*
- * alpha bootable
- */
-static int
-alphadotout(int fd, Fhdr *fp, ExecHdr *hp)
-{
-	uvlong kbase;
-
-	USED(fd);
-	settext(fp, hp->e.entry, sizeof(Exec), hp->e.text, sizeof(Exec));
-	setdata(fp, fp->txtsz+sizeof(Exec), hp->e.data, fp->txtsz+sizeof(Exec), hp->e.bss);
-	setsym(fp, hp->e.syms, hp->e.spsz, hp->e.pcsz, fp->datoff+fp->datsz);
-
-	/*
-	 * Boot images have some of bits <31:28> set:
-	 *	0x80400000	kernel
-	 *	0x20000000	secondary bootstrap
-	 */
-	kbase = 0xF0000000;
-	if (fp->entry & kbase) {
-		fp->txtaddr = fp->entry;
-		fp->name = "alpha plan 9 boot image";
-		fp->hdrsz = 0;		/* header stripped */
-		fp->dataddr = fp->entry+fp->txtsz;
-	}
 	return 1;
 }
 

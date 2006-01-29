@@ -17,7 +17,7 @@ static Timers timers[MAXMACH];
 ulong intrcount[MAXMACH];
 ulong fcallcount[MAXMACH];
 
-static uvlong
+static vlong
 tadd(Timers *tt, Timer *nt)
 {
 	Timer *t, **last;
@@ -29,11 +29,9 @@ tadd(Timers *tt, Timer *nt)
 		panic("timer");
 		break;
 	case Trelative:
-		assert(nt->tns > 0);
+		if(nt->tns <= 0)
+			nt->tns = 1;
 		nt->twhen = fastticks(nil) + ns2fastticks(nt->tns);
-		break;
-	case Tabsolute:
-		nt->twhen = tod2fastticks(nt->tns);
 		break;
 	case Tperiodic:
 		assert(nt->tns >= 100000);	/* At least 100 µs period */
@@ -94,15 +92,6 @@ timeradd(Timer *nt)
 	Timers *tt;
 	vlong when;
 
-	if (nt->tmode == Tabsolute){
-		when = todget(nil);
-		if (nt->tns <= when){
-	//		if (nt->tns + MS2NS(10) <= when)	/* small deviations will happen */
-	//			print("timeradd (%lld %lld) %lld too early 0x%lux\n",
-	//				when, nt->tns, when - nt->tns, getcallerpc(&nt));
-			nt->tns = when;
-		}
-	}
 	/* Must lock Timer struct before Timers struct */
 	ilock(nt);
 	if(tt = nt->tt){

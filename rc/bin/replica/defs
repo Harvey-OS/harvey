@@ -19,6 +19,10 @@ fn need {
 
 opt=()
 while(! ~ $#* 0 && ~ $1 -*){
+	if(~ $1 -s -c){	# take one argument 
+		opt=($opt $1)
+		shift
+	}
 	opt=($opt $1)
 	shift
 }

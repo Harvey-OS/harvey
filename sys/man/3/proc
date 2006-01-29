@@ -351,7 +351,13 @@ to
 perform a schedulability test and start scheduling the process as a real-time
 process if the test succeeds.  If the test fails, the
 .B write
-will fail with error set to the reason for failure.  For details on real time, read on.
+will fail with error set to the reason for failure.  
+.TP 10n
+.B event
+Add a user event to the 
+.B /proc/trace
+file.
+.PD
 .PP
 Real-time processes are periodically
 .IR released ,
