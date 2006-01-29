@@ -776,6 +776,8 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 	if(up->notepending) {
 		up->notepending = 0;
 		splx(s);
+		if(up->procctl == Proc_exitme && up->closingfgrp)
+			forceclosefgrp();
 		error(Eintr);
 	}
 
@@ -1320,7 +1322,8 @@ kproc(char *name, void (*func)(void *), void *arg)
 	p->nerrlab = 0;
 	p->slash = up->slash;
 	p->dot = up->dot;
-	incref(p->dot);
+	if(p->dot)
+		incref(p->dot);
 
 	memmove(p->note, up->note, sizeof(p->note));
 	p->nnote = up->nnote;

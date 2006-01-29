@@ -684,7 +684,7 @@ arith(Node *n, int f)
 	if(n->op == OSUB)
 	if(i == TIND && j == TIND) {
 		w = n->right->type->link->width;
-		if(w < 1)
+		if(w < 1 || n->left->type->link == T || n->left->type->link->width < 1)
 			goto bad;
 		n->type = types[ewidth[TIND] <= ewidth[TLONG]? TLONG: TVLONG];
 		if(1 && ewidth[TIND] > ewidth[TLONG]){

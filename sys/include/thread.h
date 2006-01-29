@@ -69,6 +69,7 @@ ulong		nbrecvul(Channel *c);
 int		nbsend(Channel *c, void *v);
 int		nbsendp(Channel *c, void *v);
 int		nbsendul(Channel *c, ulong v);
+void		needstack(int);
 int		proccreate(void (*f)(void *arg), void *arg, uint stacksize);
 int		procrfork(void (*f)(void *arg), void *arg, uint stacksize, int flag);
 void**		procdata(void);

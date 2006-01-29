@@ -22,7 +22,6 @@ char **conf;
 int verbose;
 char **match;
 int nmatch;
-int resolve;
 int tempspool = 1;
 int safeinstall = 1;
 char *lroot;
@@ -40,6 +39,40 @@ char *timefile;
 int timefd;
 
 Db *copyerr;
+
+typedef struct Res Res;
+struct Res
+{
+	char c;
+	char *name;
+};
+
+Res *res;
+int nres;
+
+void 
+addresolve(int c, char *name)
+{
+	if(name[0] == '/')
+		name++;
+	res = erealloc(res, (nres+1)*sizeof res[0]);
+	res[nres].c = c;
+	res[nres].name = name;
+	nres++;
+}
+
+int
+resolve(char *name)
+{
+	int i, len;
+
+	for(i=0; i<nres; i++){
+		len = strlen(res[i].name);
+		if(strncmp(name, res[i].name, len) == 0 && (name[len]=='/' || name[len] == 0))
+			return res[i].c;
+	}
+	return '?';
+}
 
 void
 readtimefile(void)
@@ -134,7 +167,9 @@ void
 main(int argc, char **argv)
 { 
 	char *f[10], *local, *name, *remote, *s, *t, verb;
-	int fd, havedb, havelocal, k, n, nf, skip;
+	int fd, havedb, havelocal, i, k, n, nf, resolve1, skip;
+	int checkedmatch1, checkedmatch2, 
+		checkedmatch3, checkedmatch4;
 	ulong now;
 	Biobuf bin;
 	Dir dbd, ld, nd, rd;
@@ -146,7 +181,8 @@ main(int argc, char **argv)
 	ARGBEGIN{
 	case 's':
 	case 'c':
-		resolve = ARGC();
+		i = ARGC();
+		addresolve(i, EARGF(usage()));
 		break;
 	case 'n':
 		donothing = 1;
@@ -165,7 +201,7 @@ main(int argc, char **argv)
 		douid = 1;
 		break;
 	case 'v':
-		verbose = 1;
+		verbose++;
 		break;
 	default:
 		usage();
@@ -183,12 +219,16 @@ main(int argc, char **argv)
 	rroot = argv[2];
 	if(!isdir(rroot))
 		sysfatal("bad remote root directory");
-	
-	if((clientdb = opendb(argv[0])) == nil)
-		sysfatal("opendb %q: %r", argv[2]);
+
 	match = argv+3;
 	nmatch = argc-3;
+	for(i=0; i<nmatch; i++)
+		if(match[i][0] == '/')
+			match[i]++;
 
+	if((clientdb = opendb(argv[0])) == nil)
+		sysfatal("opendb %q: %r", argv[2]);
+	
 	copyerr = opendb(nil);
 
 	skip = 0;
@@ -209,10 +249,6 @@ main(int argc, char **argv)
 		name = f[3];
 		if(now < maxnow || (now==maxnow && n <= maxn))
 			continue;
-		if(!ismatch(name)){
-			skip = 1;
-			continue;
-		}
 		local = mkname(localbuf, sizeof localbuf, lroot, name);
 		if(strcmp(f[4], "-") == 0)
 			f[4] = f[3];
@@ -226,15 +262,41 @@ main(int argc, char **argv)
 		havedb = finddb(clientdb, name, &dbd)>=0;
 		havelocal = localdirstat(local, &ld)>=0;
 
+		resolve1 = resolve(name);
+
+		/*
+		 * if(!ismatch(name)){
+		 *	skip = 1;
+		 *	continue;
+		 * }
+		 * 
+		 * This check used to be right here, but we want
+		 * the time to be able to move forward past entries
+		 * that don't match and have already been applied.
+		 * So now every path below must checked !ismatch(name)
+		 * before making any changes to the local file
+		 * system.  The fake variable checkedmatch
+		 * tracks whether !ismatch(name) has been checked.
+		 * If the compiler doesn't produce any used/set
+		 * warnings, then all the paths should be okay.
+		 * Even so, we have the asserts to fall back on.
+		 */
 		switch(verb){
 		case 'd':	/* delete file */
 			delce(local);
 			if(!havelocal)	/* doesn't exist; who cares? */
 				break;
+			if(!ismatch(name)){
+				if(!skip)
+					fprint(2, "stopped updating log apply time because of %s\n", name);
+				skip = 1;
+				continue;
+			}
+			SET(checkedmatch1);
 			if(!havedb){
-				if(resolve == 's')
+				if(resolve1 == 's')
 					goto DoRemove;
-				else if(resolve == 'c')
+				else if(resolve1 == 'c')
 					goto DoRemoveDb;
 				conflict(name, "locally created; will not remove");
 				skip = 1;
@@ -244,15 +306,17 @@ main(int argc, char **argv)
 			if(dbd.mtime > rd.mtime)		/* we have a newer file than what was deleted */
 				break;
 			if(!(dbd.mode&DMDIR) && (dbd.mtime != ld.mtime || dbd.length != ld.length)){	/* locally modified since we downloaded it */
-				if(resolve == 's')
+				if(resolve1 == 's')
 					goto DoRemove;
-				else if(resolve == 'c')
+				else if(resolve1 == 'c')
 					break;
 				conflict(name, "locally modified; will not remove");
 				skip = 1;
 				continue;
 			}
 		    DoRemove:
+			USED(checkedmatch1);
+			assert(ismatch(name));
 			chat("d %q\n", name);
 			if(donothing)
 				break;
@@ -262,18 +326,27 @@ main(int argc, char **argv)
 				continue;
 			}
 		    DoRemoveDb:
+			USED(checkedmatch1);
+			assert(ismatch(name));
 			removedb(clientdb, name);
 			break;
 
 		case 'a':	/* add file */
 			if(!havedb){
+				if(!ismatch(name)){
+					if(!skip)
+						fprint(2, "stopped updating log apply time because of %s\n", name);
+					skip = 1;
+					continue;
+				}
+				SET(checkedmatch2);
 				if(!havelocal)
 					goto DoCreate;
 				if((ld.mode&DMDIR) && (rd.mode&DMDIR))
 					break;
-				if(resolve == 's')
+				if(resolve1 == 's')
 					goto DoCreate;
-				else if(resolve == 'c')
+				else if(resolve1 == 'c')
 					goto DoCreateDb;
 				conflict(name, "locally created; will not overwrite");
 				skip = 1;
@@ -285,17 +358,33 @@ main(int argc, char **argv)
 			if(havelocal){
 				if((ld.mode&DMDIR) && (rd.mode&DMDIR))
 					break;
+				if(!ismatch(name)){
+					if(!skip)
+						fprint(2, "stopped updating log apply time because of %s\n", name);
+					skip = 1;
+					continue;
+				}
+				SET(checkedmatch2);
 				if(dbd.mtime==ld.mtime && dbd.length==ld.length)
 					goto DoCreate;
-				if(resolve=='s')
+				if(resolve1=='s')
 					goto DoCreate;
-				else if(resolve == 'c')
+				else if(resolve1 == 'c')
 					break;
 				conflict(name, "locally modified; will not overwrite");
 				skip = 1;
 				continue;
 			}
+			if(!ismatch(name)){
+				if(!skip)
+					fprint(2, "stopped updating log apply time because of %s\n", name);
+				skip = 1;
+				continue;
+			}
+			SET(checkedmatch2);
 		    DoCreate:
+			USED(checkedmatch2);
+			assert(ismatch(name));
 			if(notexists(remote)){
 				addce(local);
 				/* no skip=1 */
@@ -335,6 +424,8 @@ main(int argc, char **argv)
 				}
 			}
 		    DoCreateDb:
+			USED(checkedmatch2);
+			assert(ismatch(name));
 			insertdb(clientdb, name, &rd);
 			break;
 			
@@ -345,9 +436,16 @@ main(int argc, char **argv)
 					/* no skip=1 */
 					break;
 				}
-				if(resolve == 's')
+				if(!ismatch(name)){
+					if(!skip)
+						fprint(2, "stopped updating log apply time because of %s\n", name);
+					skip = 1;
+					continue;
+				}
+				SET(checkedmatch3);
+				if(resolve1 == 's')
 					goto DoCopy;
-				else if(resolve=='c')
+				else if(resolve1=='c')
 					goto DoCopyDb;
 				if(havelocal)
 					conflict(name, "locally created; will not update");
@@ -358,15 +456,22 @@ main(int argc, char **argv)
 			}
 			if(dbd.mtime >= rd.mtime)		/* already have/had this version; ignore */
 				break;
+			if(!ismatch(name)){
+				if(!skip)
+					fprint(2, "stopped updating log apply time because of %s\n", name);
+				skip = 1;
+				continue;
+			}
+			SET(checkedmatch3);
 			if(!havelocal){
 				if(notexists(remote)){
 					addce(local);
 					/* no skip=1 */
 					break;
 				}
-				if(resolve == 's')
+				if(resolve1 == 's')
 					goto DoCopy;
-				else if(resolve == 'c')
+				else if(resolve1 == 'c')
 					break;
 				conflict(name, "locally removed; will not update");
 				skip = 1;
@@ -379,15 +484,17 @@ main(int argc, char **argv)
 					/* no skip=1 */
 					break;
 				}
-				if(resolve == 's')
+				if(resolve1 == 's')
 					goto DoCopy;
-				else if(resolve == 'c')
+				else if(resolve1 == 'c')
 					break;
 				conflict(name, "locally modified; will not update");
 				skip = 1;
 				continue;
 			}
 		    DoCopy:
+			USED(checkedmatch3);
+			assert(ismatch(name));
 			if(notexists(remote)){
 				addce(local);
 				/* no skip=1 */
@@ -403,6 +510,8 @@ main(int argc, char **argv)
 				continue;
 			}
 		    DoCopyDb:
+			USED(checkedmatch3);
+			assert(ismatch(name));
 			if(!havedb){
 				if(havelocal)
 					dbd = ld;
@@ -421,9 +530,19 @@ main(int argc, char **argv)
 					/* no skip=1 */
 					break;
 				}
-				if(resolve == 's')
+				if(!ismatch(name)){
+					if(!skip)
+						fprint(2, "stopped updating log apply time because of %s\n", name);
+					skip = 1;
+					continue;
+				}
+				SET(checkedmatch4);
+				if(resolve1 == 's'){
+					USED(checkedmatch4);
+					SET(checkedmatch2);
 					goto DoCreate;
-				else if(resolve == 'c')
+				}
+				else if(resolve1 == 'c')
 					goto DoMetaDb;
 				if(havelocal)
 					conflict(name, "locally created; will not update metadata");
@@ -436,17 +555,27 @@ main(int argc, char **argv)
 				break;
 			if((dbd.mode&DMDIR) && dbd.mtime > now)
 				break;
-			if(havelocal && (!douid || strcmp(ld.uid, rd.uid)==0) && strcmp(ld.gid, rd.gid)==0 && ld.mode==rd.mode)	/* nothing to do */
-				goto DoMetaDb;
+			if(havelocal && (!douid || strcmp(ld.uid, rd.uid)==0) && strcmp(ld.gid, rd.gid)==0 && ld.mode==rd.mode)
+				break;
 			if(!havelocal){
 				if(notexists(remote)){
 					addce(local);
 					/* no skip=1 */
 					break;
 				}
-				if(resolve == 's')
+				if(!ismatch(name)){
+					if(!skip)
+						fprint(2, "stopped updating log apply time because of %s\n", name);
+					skip = 1;
+					continue;
+				}
+				SET(checkedmatch4);
+				if(resolve1 == 's'){
+					USED(checkedmatch4);
+					SET(checkedmatch2);
 					goto DoCreate;
-				else if(resolve == 'c')
+				}
+				else if(resolve1 == 'c')
 					break;
 				conflict(name, "locally removed; will not update metadata");
 				skip = 1;
@@ -458,11 +587,21 @@ main(int argc, char **argv)
 					/* no skip=1 */
 					break;
 				}
-				if(resolve == 's')
+				if(!ismatch(name)){
+					if(!skip)
+						fprint(2, "stopped updating log apply time because of %s\n", name);
+					skip = 1;
+					continue;
+				}
+				SET(checkedmatch4);
+				if(resolve1 == 's')
 					goto DoMeta;
-				else if(resolve == 'c')
+				else if(resolve1 == 'c')
 					break;
-				conflict(name, "contents locally modified; will not update metadata to %s %s %luo",
+				conflict(name, "contents locally modified (%s); will not update metadata to %s %s %luo",
+					dbd.mtime != ld.mtime ? "mtime" :
+					dbd.length != ld.length ? "length" : 
+					"unknown",
 					rd.uid, rd.gid, rd.mode);
 				skip = 1;
 				continue;
@@ -473,15 +612,31 @@ main(int argc, char **argv)
 					/* no skip=1 */
 					break;
 				}
-				if(resolve == 's')
+				if(!ismatch(name)){
+					if(!skip)
+						fprint(2, "stopped updating log apply time because of %s\n", name);
+					skip = 1;
+					continue;
+				}
+				SET(checkedmatch4);
+				if(resolve1 == 's')
 					goto DoMeta;
-				else if(resolve == 'c')
+				else if(resolve1 == 'c')
 					break;
 				conflict(name, "metadata locally changed; will not update metadata to %s %s %luo", rd.uid, rd.gid, rd.mode);
 				skip = 1;
 				continue;
 			}
+			if(!ismatch(name)){
+				if(!skip)
+					fprint(2, "stopped updating log apply time because of %s\n", name);
+				skip = 1;
+				continue;
+			}
+			SET(checkedmatch4);
 		    DoMeta:
+			USED(checkedmatch4);
+			assert(ismatch(name));
 			if(notexists(remote)){
 				addce(local);
 				/* no skip=1 */
@@ -501,6 +656,8 @@ main(int argc, char **argv)
 				continue;
 			}
 		    DoMetaDb:
+			USED(checkedmatch4);
+			assert(ismatch(name));
 			if(!havedb){
 				if(havelocal)
 					dbd = ld;
@@ -604,10 +761,8 @@ ismatch(char *s)
 	if(nmatch == 0)
 		return 1;
 	for(i=0; i<nmatch; i++){
-		if(strcmp(s, match[i]) == 0)
-			return 1;
 		len = strlen(match[i]);
-		if(strncmp(s, match[i], len) == 0 && s[len]=='/')
+		if(strncmp(s, match[i], len) == 0 && (s[len]=='/' || s[len] == 0))
 			return 1;
 	}
 	return 0;

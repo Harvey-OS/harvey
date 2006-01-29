@@ -728,7 +728,7 @@ ise_erase(ulong addr)
  *	If someone learns better, please email me, though
  *	I doubt it will be much faster. -  presotto@bell-labs.com
  */
-static ulong
+static int
 ise_wbwrite(ulong *p, int n, ulong off, ulong baddr, ulong *status)
 {
 	ulong x, start;

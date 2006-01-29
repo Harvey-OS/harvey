@@ -3,6 +3,10 @@
 rfork e
 flags=()
 while(! ~ $#* 0 && ~ $1 -*){
+	if(~ $1 -c -s){
+		flags=($flags $1)
+		shift
+	}
 	flags=($flags $1)
 	shift
 }

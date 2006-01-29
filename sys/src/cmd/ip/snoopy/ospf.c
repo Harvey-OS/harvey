@@ -90,7 +90,7 @@ struct Ospfhello
 };
 
 char*
-seprintospfhello(char *p, char *e, void *a, int)
+seprintospfhello(char *p, char *e, void *a)
 {
 	Ospfhello *h = a;
 
@@ -327,18 +327,6 @@ seprintospflsack(char *p, char *e, void *a, int len)
 	return seprint(p, e, ")");
 }
 
-static void
-p_compile(Filter *f)
-{
-	sysfatal("unknown ospf field: %s", f->s);
-}
-
-static int
-p_filter(Filter *, Msg *)
-{
-	return 0;
-}
-
 int
 p_seprint(Msg *m)
 {
@@ -366,7 +354,7 @@ p_seprint(Msg *m)
 
 	switch (ospf->type) {
 	case OSPFhello:
-		p = seprintospfhello(p, e, ospf->data, x);
+		p = seprintospfhello(p, e, ospf->data);
 		break;
 	case OSPFdd:
 		p = seprintospfdatadesc(p, e, ospf->data, x);
@@ -392,8 +380,8 @@ Default:
 Proto ospf =
 {
 	"ospf",
-	p_compile,
-	p_filter,
+	nil,
+	nil,
 	p_seprint,
 	nil,
 	nil,

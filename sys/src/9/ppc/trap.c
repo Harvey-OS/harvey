@@ -225,8 +225,10 @@ trap(Ureg *ureg)
 		if(!user)
 			panic("syscall in kernel: srr1 0x%4.4luX\n", ureg->srr1);
 		syscall(ureg);
-		if (up->delaysched)
+		if (up->delaysched){
 			sched();
+			splhi();
+		}
 		kexit(ureg);
 		return;		/* syscall() calls notify itself, don't do it again */
 

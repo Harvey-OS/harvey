@@ -64,6 +64,7 @@ The grammar is:
 .EX
 \fIexpr\fP:	  \fIprotocol\fP
 	| \fIfield\fP '=' \fIvalue\fP
+	| \fIfield\fP '!=' \fIvalue\fP
 	| \fIprotocol\fP '(' \fIexpr\fP ')'
 	| '(' \fIexpr\fP ')'
 	| \fIexpr\fP '||' \fIexpr\fP

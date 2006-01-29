@@ -22,12 +22,18 @@ choochar(void)
 				continue;
 			s = table[ilin][icol].col;
 			if (point(s))
-				while (*s)
-					had[*s++] = 1;
+ 				while (*s) {
+ 					if((unsigned char)*s < 128)
+ 						had[(unsigned char)*s] = 1;
+ 					s++;
+ 				}
 			s = table[ilin][icol].rcol;
 			if (point(s))
-				while (*s)
-					had[*s++] = 1;
+ 				while (*s) {
+ 					if((unsigned char)*s < 128)
+ 						had[(unsigned char)*s] = 1;
+ 					s++;
+ 				}
 		}
 	}
 				/* choose first funny character */

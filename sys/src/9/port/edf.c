@@ -12,7 +12,7 @@
 int	edfprint = 0;
 #define DPRINT	if(edfprint)print
 
-static vlong	now;
+static long	now;	/* Low order 32 bits of time in µs */
 extern ulong	delayedscheds;
 extern Schedq	runq[Nrq];
 extern int	nrdy;
@@ -21,7 +21,7 @@ extern ulong	runvec;
 /* Statistics stuff */
 ulong		nilcount;
 ulong		scheds;
-vlong		edfruntime;
+long		edfruntime;
 ulong		edfnrun;
 int		misseddeadlines;
 
@@ -39,11 +39,10 @@ static char *testschedulability(Proc*);
 static Proc *qschedulability;
 
 enum {
-	Onemicrosecond =	1000ULL,
-	Onemillisecond =	1000000ULL,
-	Onesecond =		1000000000ULL,
-	OneRound = 		Onemillisecond/2LL,
-	MilliRound = 		Onemicrosecond/2LL,
+	Onemicrosecond =	1,
+	Onemillisecond =	1000,
+	Onesecond =		1000000,
+	OneRound = 		Onemillisecond/2,
 };
 
 static int
@@ -58,7 +57,7 @@ timeconv(Fmt *f)
 		t = va_arg(f->args, uvlong);
 		break;
 	case 't':	// vlong in nanoseconds
-		t = va_arg(f->args, vlong);
+		t = va_arg(f->args, long);
 		break;
 	default:
 		return fmtstrcpy(f, "(timeconv)");
@@ -71,16 +70,18 @@ timeconv(Fmt *f)
 		sign = "";
 	if (t > Onesecond){
 		t += OneRound;
-		sprint(buf, "%s%d.%.3ds", sign, (int)(t / Onesecond), (int)(t % Onesecond)/1000000);
-	}else if (t > Onemillisecond){
-		t += MilliRound;
-		sprint(buf, "%s%d.%.3dms", sign, (int)(t / Onemillisecond), (int)(t % Onemillisecond)/1000);
-	}else if (t > Onemicrosecond)
-		sprint(buf, "%s%d.%.3dµs", sign, (int)(t / Onemicrosecond), (int)(t % Onemicrosecond));
+		sprint(buf, "%s%d.%.3ds", sign, (int)(t / Onesecond), (int)(t % Onesecond)/Onemillisecond);
+	}else if (t > Onemillisecond)
+		sprint(buf, "%s%d.%.3dms", sign, (int)(t / Onemillisecond), (int)(t % Onemillisecond));
 	else
-		sprint(buf, "%s%dns", sign, (int)t);
+		sprint(buf, "%s%dµs", sign, (int)t);
 	return fmtstrcpy(f, buf);
 }
+
+/*
+uvlong x;
+ulong xpc;
+*/
 
 Edf*
 edflock(Proc *p)
@@ -91,7 +92,11 @@ edflock(Proc *p)
 		return nil;
 	ilock(&thelock);
 	if ((e = p->edf) && (e->flags & Admitted)){
-		now = todget(nil);
+/*
+		cycles(&x);
+		xpc = getcallerpc(&p);
+*/
+		now = fastticks2us(fastticks(nil));
 		return e;
 	}
 	iunlock(&thelock);
@@ -101,9 +106,21 @@ edflock(Proc *p)
 void
 edfunlock(void)
 {
+/*
+	uvlong y;
+	ulong n, upc;
+	cycles(&y);
+	upc = 0;
+	if((n = y - x) > 500000) upc = xpc;
+*/
+
 	edfruntime += todget(nil) - now;
 	edfnrun++;
 	iunlock(&thelock);
+/*
+	if(upc)
+		print("edfunlock %ld 0x%lux\n", n, upc);
+*/
 }
 
 void
@@ -113,7 +130,7 @@ edfinit(Proc*p)
 		fmtinstall('t', timeconv);
 		edfinited++;
 	}
-	now = todget(nil);
+	now = fastticks2us(fastticks(nil));
 	DPRINT("%t edfinit %lud[%s]\n", now, p->pid, statename[p->state]);
 	p->edf = malloc(sizeof(Edf));
 	if(p->edf == nil)
@@ -133,8 +150,8 @@ deadlineintr(Ureg*, Timer *t)
 		return;
 
 	p = t->ta;
-
-	DPRINT("%t deadlineintr %lud[%s]\n", todget(nil), p->pid, statename[p->state]);
+	now = fastticks2us(fastticks(nil));
+	DPRINT("%t deadlineintr %lud[%s]\n", now, p->pid, statename[p->state]);
 	/* If we're interrupting something other than the proc pointed to by t->a,
 	 * we've already achieved recheduling, so we need not do anything
 	 * Otherwise, we must cause a reschedule, but if we call sched()
@@ -157,18 +174,26 @@ release(Proc *p)
 	/* Called with edflock held */
 	Edf *e;
 	void (*pt)(Proc*, int, vlong);
+	long n;
+	vlong nowns;
 
 	e = p->edf;
 	e->flags &= ~Yield;
-	if (e->d < now){
+	if (e->d - now < 0){
 		e->periods++;
 		e->r = now;
 		if ((e->flags & Sporadic) == 0){
-			/* Non sporadic processes stay true to their period;
-			 * calculate next release time
+			/*
+			 * Non sporadic processes stay true to their period;
+			 * calculate next release time.
+			 * Second test limits duration of while loop.
 			 */
-			while(e->t <= now)
-				e->t += e->T;
+			if((n = now - e->t) > 0){
+				if(n < e->T)
+					e->t += e->T;
+				else
+					e->t = now + e->T - (n % e->T);
+			}
 		}else{
 			/* Sporadic processes may not be released earlier than
 			 * one period after this release
@@ -180,8 +205,9 @@ release(Proc *p)
 		DPRINT("%t release %lud[%s], r=%t, d=%t, t=%t, S=%t\n",
 			now, p->pid, statename[p->state], e->r, e->d, e->t, e->S);
 		if (pt = proctrace){
-			pt(p, SRelease, e->r);
-			pt(p, SDeadline, e->d);
+			nowns = todget(nil);
+			pt(p, SRelease, nowns);
+			pt(p, SDeadline, nowns + 1000LL*e->D);
 		}
 	}else{
 		DPRINT("%t release %lud[%s], too late t=%t, called from 0x%lux\n",
@@ -249,21 +275,21 @@ releaseintr(Ureg*, Timer *t)
 void
 edfrecord(Proc *p)
 {
-	vlong used;
+	long used;
 	Edf *e;
 	void (*pt)(Proc*, int, vlong);
 
 	if((e = edflock(p)) == nil)
 		return;
 	used = now - e->s;
-	if (e->d <= now)
+	if (e->d - now <= 0)
 		e->edfused += used;
 	else
 		e->extraused += used;
 	if (e->S > 0){
-		if (e->S <= used){
+		if(e->S <= used){
 			if(pt = proctrace)
-				pt(p, SSlice, now);
+				pt(p, SSlice, 0);
 			DPRINT("%t edfrecord slice used up\n", now);
 			e->d = now;
 			e->S = 0;
@@ -279,11 +305,13 @@ edfrun(Proc *p, int edfpri)
 {
 	Edf *e;
 	void (*pt)(Proc*, int, vlong);
+	long tns;
 
 	e = p->edf;
 	/* Called with edflock held */
 	if(edfpri){
-		if (e->d <= now || e->S == 0){
+		tns = e->d - now;
+		if (tns <= 0 || e->S == 0){
 			/* Deadline reached or resources exhausted,
 			 * deschedule forthwith
 			 */
@@ -292,17 +320,17 @@ edfrun(Proc *p, int edfpri)
 			e->s = now;
 			return;
 		}
-		e->tns = now + e->S;
-		if (e->d < e->tns)
-			e->tns = e->d;
+		if(e->S < tns)
+			tns = e->S;
+		e->tns = 1000LL * tns;
 		if(e->tt == nil || e->tf != deadlineintr){
-			DPRINT("%t edfrun, deadline=%t\n", now, e->tns);
+			DPRINT("%t edfrun, deadline=%t\n", now, tns);
 		}else{
 			DPRINT("v");
 		}
 		if(p->trace && (pt = proctrace))
-			pt(p, SInte, e->tns);
-		e->tmode = Tabsolute;
+			pt(p, SInte, todget(nil) + e->tns);
+		e->tmode = Trelative;
 		e->tf = deadlineintr;
 		e->ta = p;
 		timeradd(e);
@@ -320,6 +348,7 @@ edfadmit(Proc *p)
 	int i;
 	Proc *r;
 	void (*pt)(Proc*, int, vlong);
+	long tns;
 
 	e = p->edf;
 	if (e->flags & Admitted)
@@ -347,7 +376,7 @@ edfadmit(Proc *p)
 	edflock(p);
 
 	if(pt = proctrace)
-		pt(p, SAdmit, now);
+		pt(p, SAdmit, 0);
 
 	/* Look for another proc with the same period to synchronize to */
 	SET(r);
@@ -395,8 +424,11 @@ edfadmit(Proc *p)
 			if(e->tt == nil){
 				e->tf = releaseintr;
 				e->ta = p;
-				e->tns = e->t;
-				e->tmode = Tabsolute;
+				tns = e->t - now;
+				if(tns < 20)
+					tns = 20;
+				e->tns = 1000LL * tns;
+				e->tmode = Trelative;
 				timeradd(e);
 			}
 		}
@@ -415,9 +447,9 @@ edfstop(Proc *p)
 	if (e = edflock(p)){
 		DPRINT("%t edfstop %lud[%s]\n", now, p->pid, statename[p->state]);
 		if(pt = proctrace)
-			pt(p, SExpel, now);
+			pt(p, SExpel, 0);
 		e->flags &= ~Admitted;
-		if (e->tt)
+		if(e->tt)
 			timerdel(e);
 		edfunlock();
 	}
@@ -426,7 +458,8 @@ edfstop(Proc *p)
 static int
 yfn(void *)
 {
-	return up->trend == nil || todget(nil) >= up->edf->r;
+	now = fastticks2us(fastticks(nil));
+	return up->trend == nil || now - up->edf->r >= 0;
 }
 
 void
@@ -435,20 +468,28 @@ edfyield(void)
 	/* sleep until next release */
 	Edf *e;
 	void (*pt)(Proc*, int, vlong);
+	long n;
 
 	if((e = edflock(up)) == nil)
 		return;
 	if(pt = proctrace)
-		pt(up, SYield, now);
-	while(e->t < now)
-		e->t += e->T;
+		pt(up, SYield, 0);
+	if((n = now - e->t) > 0){
+		if(n < e->T)
+			e->t += e->T;
+		else
+			e->t = now + e->T - (n % e->T);
+	}
 	e->r = e->t;
 	e->flags |= Yield;
 	e->d = now;
 	if (up->tt == nil){
-		up->tns = e->t;
+		n = e->t - now;
+		if(n < 20)
+			n = 20;
+		up->tns = 1000LL * n;
 		up->tf = releaseintr;
-		up->tmode = Tabsolute;
+		up->tmode = Trelative;
 		up->ta = up;
 		up->trend = &up->sleep;
 		timeradd(up);
@@ -465,21 +506,32 @@ edfready(Proc *p)
 	Schedq *rq;
 	Proc *l, *pp;
 	void (*pt)(Proc*, int, vlong);
+	long n;
 
 	if((e = edflock(p)) == nil)
 		return 0;
-	if (e->d <= now){
+	if(e->d - now <= 0){
 		/* past deadline, arrange for next release */
-		if ((e->flags & Sporadic) == 0){
-			/* Non sporadic processes stay true to their period, calculate next release time */
-			while(e->t < now)
-				e->t += e->T;
+		if((e->flags & Sporadic) == 0){
+			/*
+			 * Non sporadic processes stay true to their period;
+			 * calculate next release time.
+			 */
+			if((n = now - e->t) > 0){
+				if(n < e->T)
+					e->t += e->T;
+				else
+					e->t = now + e->T - (n % e->T);
+			}
 		}	
-		if (now < e->t){
+		if(now - e->t < 0){
 			/* Next release is in the future, schedule it */
-			if (e->tt == nil || e->tf != releaseintr){
-				e->tns = e->t;
-				e->tmode = Tabsolute;
+			if(e->tt == nil || e->tf != releaseintr){
+				n = e->t - now;
+				if(n < 20)
+					n = 20;
+				e->tns = 1000LL * n;
+				e->tmode = Trelative;
 				e->tf = releaseintr;
 				e->ta = p;
 				timeradd(e);
@@ -534,7 +586,7 @@ edfready(Proc *p)
 	p->state = Ready;
 	unlock(runq);
 	if(pt = proctrace)
-		pt(p, SReady, now);
+		pt(p, SReady, 0);
 	return 1;
 }
 
@@ -554,7 +606,7 @@ testenq(Proc *p)
 	SET(xp);
 	for (xpp = &qschedulability; *xpp; xpp = &xp->edf->testnext) {
 		xp = *xpp;
-		if (e->testtime < xp->edf->testtime
+		if (e->testtime - xp->edf->testtime < 0
 		|| (e->testtime == xp->edf->testtime && e->testtype < xp->edf->testtype)){
 			e->testnext = xp;
 			*xpp = p;
@@ -569,7 +621,7 @@ static char *
 testschedulability(Proc *theproc)
 {
 	Proc *p;
-	vlong H, G, Cb, ticks;
+	long H, G, Cb, ticks;
 	int steps, i;
 
 	/* initialize */

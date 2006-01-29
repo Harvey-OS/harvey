@@ -56,7 +56,7 @@ permFile(File* file, Fid* fid, int perm)
 			return 1;
 		}
 	}
-	if(fsysNoPermCheck(fid->fsys) || fid->con->noperm){
+	if(fsysNoPermCheck(fid->fsys) || (fid->con->flags&ConNoPermCheck)){
 		deCleanup(&de);
 		return 1;
 	}
@@ -119,7 +119,7 @@ rTwstat(Msg* m)
 	ulong mode, oldmode;
 	DirEntry de;
 	char *gid, *strs, *uid;
-	int gl, op, retval, tsync;
+	int gl, op, retval, tsync, wstatallow;
 
 	if((fid = fidGet(m->con, m->t.fid, FidFWlock)) == nil)
 		return 0;
@@ -279,13 +279,15 @@ rTwstat(Msg* m)
 	else
 		gid = vtStrDup(de.gid);
 
+	wstatallow = (fsysWstatAllow(fid->fsys) || (m->con->flags&ConWstatAllow));
+
 	/*
 	 * 'Gl' counts whether neither, one or both groups are led.
 	 */
 	gl = groupLeader(gid, fid->uname) != 0;
 	gl += groupLeader(de.gid, fid->uname) != 0;
 
-	if(op && !(fsysWstatAllow(fid->fsys) || m->con->wstatallow)){
+	if(op && !wstatallow){
 		if(strcmp(fid->uid, de.uid) != 0 && !gl){
 			vtSetError("wstat -- not owner or group leader");
 			goto error;
@@ -298,7 +300,7 @@ rTwstat(Msg* m)
 	 * If gid is nil here then
 	 */
 	if(strcmp(gid, de.gid) != 0){
-		if(!(fsysWstatAllow(fid->fsys) || m->con->wstatallow)
+		if(!wstatallow
 		&& !(strcmp(fid->uid, de.uid) == 0 && groupMember(gid, fid->uname))
 		&& !(gl == 2)){
 			vtSetError("wstat -- not owner and not group leaders");
@@ -338,7 +340,7 @@ rTwstat(Msg* m)
 			goto error;
 		}
 		if(strcmp(uid, de.uid) != 0){
-			if(!(fsysWstatAllow(fid->fsys) || m->con->wstatallow)){
+			if(!wstatallow){
 				vtSetError("wstat -- not owner");
 				goto error;
 			}
@@ -926,6 +928,44 @@ parseAname(char *aname, char **fsname, char **path)
 		*path = "";
 }
 
+/*
+ * Check remote IP address against /mnt/ipok.
+ * Sources.cs.bell-labs.com uses this to disallow
+ * network connections from Sudan, Libya, etc., 
+ * following U.S. cryptography export regulations.
+ */
+static int
+conIPCheck(Con* con)
+{
+	char ok[256], *p;
+	int fd;
+
+	if(con->flags&ConIPCheck){
+		if(con->remote[0] == 0){
+			vtSetError("cannot verify unknown remote address");
+			return 0;
+		}
+		if(access("/mnt/ipok/ok", AEXIST) < 0){
+			/* mount closes the fd on success */
+			if((fd = open("/srv/ipok", ORDWR)) >= 0 
+			&& mount(fd, -1, "/mnt/ipok", MREPL, "") < 0)
+				close(fd);
+			if(access("/mnt/ipok/ok", AEXIST) < 0){
+				vtSetError("cannot verify remote address");
+				return 0;
+			}
+		}
+		snprint(ok, sizeof ok, "/mnt/ipok/ok/%s", con->remote);
+		if((p = strchr(ok, '!')) != nil)
+			*p = 0;
+		if(access(ok, AEXIST) < 0){
+			vtSetError("restricted remote address");
+			return 0;
+		}
+	}
+	return 1;
+}
+
 static int
 rTattach(Msg* m)
 {
@@ -949,14 +989,19 @@ rTattach(Msg* m)
 	else
 		fid->uname = vtStrDup(unamenone);
 
-	if(fsysNoAuthCheck(fsys) || m->con->noauth){
+	if((fid->con->flags&ConIPCheck) && !conIPCheck(fid->con)){
+		consPrint("reject %s from %s: %R\n", fid->uname, fid->con->remote);
+		fidClunk(fid);
+		vtMemFree(fsname);
+		return 0;
+	}
+	if(fsysNoAuthCheck(fsys) || (m->con->flags&ConNoAuthCheck)){
 		if((fid->uid = uidByUname(fid->uname)) == nil)
 			fid->uid = vtStrDup(unamenone);
 	}
 	else if(!authCheck(&m->t, fid, fsys)){
 		fidClunk(fid);
 		vtMemFree(fsname);
-		vtSetError("authentication failed");
 		return 0;
 	}
 
@@ -993,7 +1038,7 @@ rTauth(Msg* m)
 	}
 	vtMemFree(fsname);
 
-	if(fsysNoAuthCheck(fsys) || m->con->noauth){
+	if(fsysNoAuthCheck(fsys) || (m->con->flags&ConNoAuthCheck)){
 		m->con->aok = 1;
 		vtSetError("authentication disabled");
 		fsysPut(fsys);

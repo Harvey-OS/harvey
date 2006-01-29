@@ -18,4 +18,5 @@ fs.trout:D:	$OBJ
 	{echo $FONTS; cat $OBJ } | troff -ms >fs.trout
 
 fs.html:D:
-	{echo $FONTS; cat $OBJ } | ms2html >fs.html
+	htmlroff -ms -mhtml $OBJ >fs.html
+

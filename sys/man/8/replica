@@ -34,8 +34,16 @@ applychanges, applylog, compactdb, updatedb \- simple client-server replica mana
 .br
 .B replica/applylog
 [
-.B -cnsuv
+.B -nuv
 ]
+[
+.B -c
+.I name
+]...
+[
+.B -s
+.I name
+]...
 .I clientdb
 .I clientroot
 .I serverroot
@@ -217,14 +225,15 @@ If the
 .B -c
 flag is given, 
 .I applylog
-still takes no action, but does so silently and will not
+still takes no action for files beginning with the given names,
+but does so silently and will not
 report the conflicts in the future.
 (The conflict is resolved in favor of the client.)
-If the
+The
 .B -s
-flag is given,
+is similar but causes 
 .I applylog
-overwrites the local changes.
+to overwrite the local changes.
 (The conflict is resolved in favor of the server.)
 .PP
 .I Applychanges

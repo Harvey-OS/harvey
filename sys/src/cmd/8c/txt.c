@@ -791,9 +791,7 @@ gmove(Node *f, Node *t)
 	case CASE(	TFLOAT,	TSHORT):
 	case CASE(	TFLOAT,	TUSHORT):
 	case CASE(	TFLOAT,	TINT):
-	case CASE(	TFLOAT,	TUINT):
 	case CASE(	TFLOAT,	TLONG):
-	case CASE(	TFLOAT,	TULONG):
 	case CASE(	TFLOAT,	TIND):
 
 	case CASE(	TDOUBLE,TCHAR):
@@ -801,20 +799,8 @@ gmove(Node *f, Node *t)
 	case CASE(	TDOUBLE,TSHORT):
 	case CASE(	TDOUBLE,TUSHORT):
 	case CASE(	TDOUBLE,TINT):
-	case CASE(	TDOUBLE,TUINT):
 	case CASE(	TDOUBLE,TLONG):
-	case CASE(	TDOUBLE,TULONG):
 	case CASE(	TDOUBLE,TIND):
-
-	case CASE(	TVLONG,	TCHAR):
-	case CASE(	TVLONG,	TUCHAR):
-	case CASE(	TVLONG,	TSHORT):
-	case CASE(	TVLONG,	TUSHORT):
-	case CASE(	TVLONG,	TINT):
-	case CASE(	TVLONG,	TUINT):
-	case CASE(	TVLONG,	TLONG):
-	case CASE(	TVLONG,	TULONG):
-	case CASE(	TVLONG,	TIND):
 		if(fproundflg) {
 			regsalloc(&nod, &regnode);
 			gins(AFMOVLP, f, &nod);
@@ -834,13 +820,26 @@ gmove(Node *f, Node *t)
 		return;
 
 /*
+ * float to ulong
+ */
+	case CASE(	TDOUBLE,	TULONG):
+	case CASE(	TFLOAT,	TULONG):
+	case CASE(	TDOUBLE,	TUINT):
+	case CASE(	TFLOAT,	TUINT):
+		regsalloc(&nod, &regnode);
+		gmove(f, &fregnode0);
+		gins(AFADDD, nodfconst(-2147483648.), &fregnode0);
+		gins(AFMOVLP, f, &nod);
+		gins(ASUBL, nodconst(-2147483648), &nod);
+		gmove(&nod, t);
+		return;
+
+/*
  * ulong to float
  */
 	case CASE(	TULONG,	TDOUBLE):
-	case CASE(	TULONG,	TVLONG):
 	case CASE(	TULONG,	TFLOAT):
 	case CASE(	TUINT,	TDOUBLE):
-	case CASE(	TUINT,	TVLONG):
 	case CASE(	TUINT,	TFLOAT):
 		regalloc(&nod, f, f);
 		gmove(f, &nod);
@@ -873,14 +872,6 @@ gmove(Node *f, Node *t)
 	case CASE(	TINT,	TDOUBLE):
 	case CASE(	TLONG,	TDOUBLE):
 	case CASE(	TIND,	TDOUBLE):
-
-	case CASE(	TCHAR,	TVLONG):
-	case CASE(	TUCHAR,	TVLONG):
-	case CASE(	TSHORT,	TVLONG):
-	case CASE(	TUSHORT,TVLONG):
-	case CASE(	TINT,	TVLONG):
-	case CASE(	TLONG,	TVLONG):
-	case CASE(	TIND,	TVLONG):
 		regsalloc(&nod, &regnode);
 		gmove(f, &nod);
 		gins(AFMOVL, &nod, &fregnode0);
@@ -891,15 +882,9 @@ gmove(Node *f, Node *t)
  */
 	case CASE(	TFLOAT,	TFLOAT):
 	case CASE(	TDOUBLE,TFLOAT):
-	case CASE(	TVLONG,	TFLOAT):
 
 	case CASE(	TFLOAT,	TDOUBLE):
 	case CASE(	TDOUBLE,TDOUBLE):
-	case CASE(	TVLONG,	TDOUBLE):
-
-	case CASE(	TFLOAT,	TVLONG):
-	case CASE(	TDOUBLE,TVLONG):
-	case CASE(	TVLONG,	TVLONG):
 		a = AFMOVD;	break;
 	}
 	if(a == AMOVL || a == AFMOVD)

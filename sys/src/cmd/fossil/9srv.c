@@ -131,23 +131,31 @@ cmdSrv(int argc, char* argv[])
 	Con *con;
 	Srv *srv;
 	char *usage = "usage: srv [-APWdp] [service]";
-	int Aflag, Pflag, Wflag, dflag, fd[2], mode, pflag, r;
+	int conflags, dflag, fd[2], mode, pflag, r;
 
-	Aflag = Pflag = Wflag = dflag = pflag = 0;
+	dflag = 0;
+	pflag = 0;
+	conflags = 0;
 	mode = 0666;
 
 	ARGBEGIN{
 	default:
 		return cliError(usage);
 	case 'A':
-		Aflag = 1;
+		conflags |= ConNoAuthCheck;
+		break;
+	case 'I':
+		conflags |= ConIPCheck;
+		break;
+	case 'N':
+		conflags |= ConNoneAllow;
 		break;
 	case 'P':
-		Pflag = 1;
+		conflags |= ConNoPermCheck;
 		mode = 0600;
 		break;
 	case 'W':
-		Wflag = 1;
+		conflags |= ConWstatAllow;
 		mode = 0600;
 		break;
 	case 'd':
@@ -159,7 +167,7 @@ cmdSrv(int argc, char* argv[])
 		break;
 	}ARGEND
 
-	if(pflag && Pflag){
+	if(pflag && (conflags&ConNoPermCheck)){
 		vtSetError("srv: cannot use -P with -p");
 		return 0;
 	}
@@ -207,15 +215,11 @@ cmdSrv(int argc, char* argv[])
 	if(pflag)
 		r = consOpen(fd[1], srv->srvfd, -1);
 	else{
-		con = conAlloc(fd[1], srv->mntpnt);
+		con = conAlloc(fd[1], srv->mntpnt, conflags);
 		if(con == nil)
 			r = 0;
-		else{
+		else
 			r = 1;
-			con->noauth = Aflag;
-			con->noperm = Pflag;
-			con->wstatallow = Wflag;
-		}
 	}
 	if(r == 0){
 		close(fd[1]);

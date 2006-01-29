@@ -19,6 +19,6 @@ typedef enum Tevent {
 typedef struct Traceevent	Traceevent;
 struct Traceevent {
 	ulong	pid;	
-	ulong	etype;		/* Event type */
-	vlong	time;		/* time stamp  */
+	ulong	etype;	/* Event type */
+	vlong	time;	/* time stamp  */
 };

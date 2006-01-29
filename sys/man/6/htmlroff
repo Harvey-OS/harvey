@@ -305,13 +305,13 @@ input into a pipe to
 The redirection stops on encountering the line
 .IR stop ,
 optionally followed by white space and extra text.
-This is a dangerous and clusmy request, as 
+This is a dangerous and clumsy request, as 
 .I htmlroff
 stops interpreting its input during the redirection, so
 .I stop
 must be found in the input itself, not in a macro that
 the input might appear to call.
-Although clusmy,
+Although clumsy,
 .B .inputpipe
 allows input files to invoke
 .I troff

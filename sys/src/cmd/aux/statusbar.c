@@ -200,12 +200,15 @@ main(int argc, char **argv)
 		textmode = 1;
 		rbar = Rect(0, 0, 60, 1);
 	}else{
-		initdraw(0, 0, "bar");
+		if(initdraw(0, 0, "bar") < 0)
+			exits("initdraw");
 		initcolor();
 		einit(Emouse|Ekeyboard);
 		eresized(0);
 	}
 	bar(&b);
+
+	exits(0);
 }
 
 

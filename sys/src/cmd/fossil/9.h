@@ -44,14 +44,19 @@ enum {
 	MsgF		= 4,
 };
 
+enum {
+	ConNoneAllow	= 1<<0,
+	ConNoAuthCheck	= 1<<1,
+	ConNoPermCheck	= 1<<2,
+	ConWstatAllow	= 1<<3,
+	ConIPCheck	= 1<<4,
+};
 struct Con {
 	char*	name;
 	uchar*	data;			/* max, not negotiated */
 	int	isconsole;		/* immutable */
-	int	noauth;			/* immutable */
-	int	noperm;			/* immutable */
-	int	wstatallow;		/* immutable */
-
+	int	flags;		/* immutable */
+	char		remote[128];	/* immutable */
 	VtLock*	lock;
 	int	state;
 	int	fd;
@@ -191,7 +196,7 @@ extern int lstnInit(void);
 /*
  * 9proc.c
  */
-extern Con* conAlloc(int, char*);
+extern Con* conAlloc(int, char*, int);
 extern void conInit(void);
 extern void msgFlush(Msg*);
 extern void msgInit(void);

@@ -63,7 +63,7 @@ conFree(Con* con)
 	}
 	con->state = ConDead;
 	con->aok = 0;
-	con->noauth = con->noperm = con->wstatallow = 0;
+	con->flags = 0;
 	con->isconsole = 0;
 
 	vtLock(cbox.alock);
@@ -502,9 +502,11 @@ msgWrite(void* v)
 }
 
 Con*
-conAlloc(int fd, char* name)
+conAlloc(int fd, char* name, int flags)
 {
 	Con *con;
+	char buf[128], *p;
+	int rfd, n;
 
 	vtLock(cbox.alock);
 	while(cbox.ahead == nil){
@@ -558,8 +560,19 @@ conAlloc(int fd, char* name)
 		con->name = vtStrDup(name);
 	else
 		con->name = vtStrDup("unknown");
-	con->aok = 0;
-	con->noauth = con->noperm = con->wstatallow = 0;
+	con->remote[0] = 0;
+	snprint(buf, sizeof buf, "%s/remote", con->name);
+	if((rfd = open(buf, OREAD)) >= 0){
+		n = read(rfd, buf, sizeof buf-1);
+		close(rfd);
+		if(n > 0){
+			buf[n] = 0;
+			if((p = strchr(buf, '\n')) != nil)
+				*p = 0;
+			strecpy(con->remote, con->remote+sizeof con->remote, buf);
+		}
+	}
+	con->flags = flags;
 	con->isconsole = 0;
 	vtUnlock(cbox.alock);
 
@@ -692,7 +705,7 @@ static int
 cmdWho(int argc, char* argv[])
 {
 	char *usage = "usage: who";
-	int i;
+	int i, l1, l2, l;
 	Con *con;
 	Fid *fid, *last;
 
@@ -705,8 +718,16 @@ cmdWho(int argc, char* argv[])
 		return cliError(usage);
 
 	vtRLock(cbox.clock);
+	l1 = 0;
+	l2 = 0;
 	for(con=cbox.chead; con; con=con->cnext){
-		consPrint("\t%q:", con->name);
+		if((l = strlen(con->name)) > l1)
+			l1 = l;
+		if((l = strlen(con->remote)) > l2)
+			l2 = l;
+	}
+	for(con=cbox.chead; con; con=con->cnext){
+		consPrint("\t%-*s %-*s", l1, con->name, l2, con->remote);
 		vtLock(con->fidlock);
 		last = nil;
 		for(i=0; i<NFidHash; i++)
