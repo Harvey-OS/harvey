@@ -27504,3 +27504,10 @@
 1138501903 71 c acme/bin/386/win - 775 sys sys 1138500797 185035
 1138501903 72 c sys/src/9/bitsy/dat.h - 664 sys sys 1138500731 5941
 1138501903 73 c sys/src/9/bitsy/devflash.c - 664 sys sys 1138500612 16830
+1138552316 0 c sys/src/cmd/lex/ncform - 664 sys sys 1138551483 4074
+1138552316 1 c sys/src/cmd/lex/sub1.c - 664 sys sys 1138551488 10162
+1138552316 2 c sys/src/cmd/tbl/t1.c - 664 sys sys 1138551479 1554
+1138555917 0 c rc/bin/man - 775 sys sys 1138555265 2520
+1138555917 1 c sys/lib/plumb/basic - 664 sys sys 1138555264 2877
+1138555917 2 c sys/man/1/man - 664 sys sys 1138555093 2006
+1138566722 0 c sys/games/lib/fortunes - 664 sys sys 1138566736 257323

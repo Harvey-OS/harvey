@@ -9,7 +9,7 @@ int *yyfnd;
 extern struct yysvf *yyestate;
 int yyprevious = YYNEWLINE;
 # ifdef LEXDEBUG
-extern void allprint(char);
+extern void allprint(int);
 # endif
 yylook(void){
 	struct yysvf *yystate, **lsp;
@@ -113,7 +113,7 @@ yylook(void){
 			}
 # ifdef LEXDEBUG
 		if(debug){
-			fprintf(yyout,"stopped at %d with ",*(lsp-1)-yysvec-1);
+			fprintf(yyout,"stopped at %d with ",lsp>yylstate?*(lsp-1)-yysvec-1:0);
 			allprint(yych);
 			putchar('\n');
 			}

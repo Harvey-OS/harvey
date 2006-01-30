@@ -5444,7 +5444,7 @@ rc/bin/leak - 775 sys sys 1032057948 1005
 rc/bin/lookman - 775 sys sys 1017679344 686
 rc/bin/lp - 775 sys sys 962679927 5357
 rc/bin/mail - 775 sys sys 1045504003 138
-rc/bin/man - 775 sys sys 1040698721 2088
+rc/bin/man - 775 sys sys 1138555265 2520
 rc/bin/map - 775 sys sys 945617207 1576
 rc/bin/mapdemo - 775 sys sys 945617207 4075
 rc/bin/membername - 775 sys sys 945617207 89
@@ -5742,7 +5742,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000664 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000664 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1138129633 257147
+sys/games/lib/fortunes - 664 sys sys 1138566736 257323
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -6608,7 +6608,7 @@ sys/lib/man/trademarks - 664 sys sys 958527089 1838
 sys/lib/mimetype - 664 sys sys 1120564829 6236
 sys/lib/newuser - 775 sys sys 1112362340 1226
 sys/lib/plumb - 20000000775 sys sys 944957365 0
-sys/lib/plumb/basic - 664 sys sys 1118196423 2946
+sys/lib/plumb/basic - 664 sys sys 1138555264 2877
 sys/lib/plumb/fileaddr - 664 sys sys 944957365 88
 sys/lib/postscript - 20000000775 sys sys 950322802 0
 sys/lib/postscript/afm - 20000000775 sys sys 950322802 0
@@ -7313,7 +7313,7 @@ sys/man/1/look - 664 sys sys 1113743326 1357
 sys/man/1/lp - 664 sys sys 1113743326 3329
 sys/man/1/ls - 664 sys sys 1113743327 2890
 sys/man/1/mail - 664 sys sys 1050078464 2158
-sys/man/1/man - 664 sys sys 1113743328 1736
+sys/man/1/man - 664 sys sys 1138555093 2006
 sys/man/1/marshal - 664 sys sys 1079970326 3150
 sys/man/1/mc - 664 sys sys 1113743326 552
 sys/man/1/mk - 664 sys sys 1113743328 13198
@@ -12505,9 +12505,9 @@ sys/src/cmd/lex/header.c - 664 sys sys 1032060383 3368
 sys/src/cmd/lex/ldefs.h - 664 sys sys 1135487942 4101
 sys/src/cmd/lex/lmain.c - 664 sys sys 1135921540 6076
 sys/src/cmd/lex/mkfile - 664 sys sys 1032060382 328
-sys/src/cmd/lex/ncform - 664 sys sys 944961017 4060
+sys/src/cmd/lex/ncform - 664 sys sys 1138551483 4074
 sys/src/cmd/lex/parser.y - 664 sys sys 1136219175 14263
-sys/src/cmd/lex/sub1.c - 664 sys sys 1135921541 10121
+sys/src/cmd/lex/sub1.c - 664 sys sys 1138551488 10162
 sys/src/cmd/lex/sub2.c - 664 sys sys 1135921541 17089
 sys/src/cmd/lnfs.c - 664 sys sys 1094156765 13332
 sys/src/cmd/look.c - 664 sys sys 944961619 5994
@@ -13314,7 +13314,7 @@ sys/src/cmd/tbl - 20000000775 sys sys 954038038 0
 sys/src/cmd/tbl/mkfile - 664 sys sys 944961243 268
 sys/src/cmd/tbl/t.h - 664 sys sys 944961244 3987
 sys/src/cmd/tbl/t0.c - 664 sys sys 944961244 1009
-sys/src/cmd/tbl/t1.c - 664 sys sys 1114967760 1604
+sys/src/cmd/tbl/t1.c - 664 sys sys 1138551479 1554
 sys/src/cmd/tbl/t2.c - 664 sys sys 944961244 298
 sys/src/cmd/tbl/t3.c - 664 sys sys 944961244 1836
 sys/src/cmd/tbl/t4.c - 664 sys sys 944961244 8360

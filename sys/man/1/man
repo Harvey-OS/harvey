@@ -4,7 +4,7 @@ man, lookman, sig \- print or find pages of this manual
 .SH SYNOPSIS
 .B man
 [
-.B -ntpP
+.B -bnpPStw
 ]
 [
 .I section ...
@@ -45,6 +45,13 @@ The options are:
 Print the pages on the standard output using
 .IR nroff .
 .TP
+.B -b
+Print the pages using
+.I nroff
+and send them to 
+.IR plumber (1)
+for display in the editor.
+.TP
 .B -p
 Run
 .IR proof (1)
@@ -55,11 +62,18 @@ Run
 .IR page (1)
 on the specified man pages.
 .TP
+.B -S
+Do not search the manual indices for the names.
+Only print pages whose file names match the names.
+.TP
 .B -t
 Run
 .IR troff (1)
 and send its output
 to standard output.
+.TP
+.B -w
+Print the names of the man page source files.
 .PD
 .PP
 .B Lookman
