@@ -462,6 +462,8 @@ dupl(int n)
 void
 allprint(int c)
 {
+	if(c < 0)
+		c += 256;	/* signed char */
 	switch(c){
 		case 014:
 			print("\\f");

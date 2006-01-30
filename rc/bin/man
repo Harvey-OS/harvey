@@ -48,9 +48,10 @@ fn page {
 }
 
 
+search=yes
 while(~ $d 0) {
 	if(~ $#* 0) {
-		echo 'Usage: man [-ntp] [-s sec] [0-9] [0-9] ... name1 name2 ...' >[1=2]
+		echo 'Usage: man [-bntpPSw] [0-9] [0-9] ... name1 name2 ...' >[1=2]
 		exit
 	}
 	if(test -d $S/$1){
@@ -62,6 +63,9 @@ while(~ $d 0) {
 		case -n ; cmd=n ; shift
 		case -p ; cmd=p ; shift
 		case -P ; cmd=P ; shift
+		case -w ; cmd=w ; shift
+		case -b ; cmd=b ; shift
+		case -S ; search=no ; shift
 		case * ; d=1
 	}
 }
@@ -72,9 +76,10 @@ ix=$S/$sec/INDEX
 if(~ $#* 1) pat='^'^$1^' '
 if not pat='^('^`{echo $* | sed 's/ /|/g'}^') '
 fils=()
+if(~ $search yes)
 for(i in $S/$sec){
 	if(/bin/test -f $i/INDEX){
-		try=`{grep $pat $i/INDEX | sed 's/^[^ ]* //'}
+		try=`{grep -i $pat $i/INDEX | sed 's/^[^ ]* //'}
 		if(! ~ $#try 0)
 			fils=($fils $i/$try)
 	}
@@ -83,8 +88,9 @@ for(i in $S/$sec){
 if(~ $#fils 0) {
 	# nothing in INDEX. try for file of given name
 	for(i) {
+		if(~ $i intro) i=0intro
 		for(n in $sec) {
-			try=$S/$n/$i
+			try=`{echo $S/$n/$i | tr A-Z a-z}
 			if (/bin/test -f $try)
 				fils=($fils $try)
 		}
@@ -99,6 +105,9 @@ for(i in $fils) {
 		echo need $i >[1=2]
 	if not {
 		switch($cmd) {
+		case w
+			echo $i
+
 		case t
 			roff t $i
 
@@ -115,6 +124,17 @@ for(i in $fils) {
 				}
 				//N
 				/^\n$/D'
+
+		case b
+			x=`{echo $i | sed 's;/sys/man/(.*)/(.*);\1 \2;'}
+			if(~ $x(2) 0intro) x=($x(1) intro)
+			roff n $i | sed '
+				${
+        			       /^$/p
+				}
+				//N
+				/^\n$/D' |
+			plumb -i -d edit -a 'action=showdata filename=/man/'$x(2)^'('$x(1)^')'
 		}
 	}
 }
