@@ -320,6 +320,7 @@ static struct {
 static void
 imagereclaim(void)
 {
+	int n;
 	Page *p;
 	uvlong ticks;
 
@@ -330,10 +331,18 @@ imagereclaim(void)
 
 	lock(&palloc);
 	ticks = fastticks(nil);
-	for(p = palloc.head; p; p = p->next) {
-		if(p->ref == 0 && p->image && canlock(p)) {
-			if(p->ref == 0)
+	n = 0;
+	/*
+	 * All the pages with images backing them are at the
+	 * end of the list (see putpage) so start there and work
+	 * backward.
+	 */
+	for(p = palloc.tail; p && p->image && n<1000; p = p->prev) {
+		if(p->ref == 0 && canlock(p)) {
+			if(p->ref == 0) {
+				n++;
 				uncachepage(p);
+			}
 			unlock(p);
 		}
 	}
