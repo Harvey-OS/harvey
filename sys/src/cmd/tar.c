@@ -56,7 +56,7 @@ enum {
 	LF_PLAIN2 =	'0',
 	LF_LINK =	'1',
 	LF_SYMLINK1 =	'2',
-	LF_SYMLINK2 =	's',
+	LF_SYMLINK2 =	's',		/* 4BSD used this */
 	LF_CHR =	'3',
 	LF_BLK =	'4',
 	LF_DIR =	'5',
@@ -459,12 +459,13 @@ eotar(Hdr *hp)
 	return name(hp)[0] == '\0';
 }
 
+/* return the size from the header block, or zero for links, dirs, etc. */
 Off
 hdrsize(Hdr *hp)
 {
 	Off bytes = strtoull(hp->size, nil, 8);
 
-	if(isdir(hp))
+	if(isdir(hp) || islink(hp->linkflag))
 		bytes = 0;
 	return bytes;
 }
@@ -934,12 +935,17 @@ extract1(int ar, Hdr *hp, char *fname)
 	} else
 		print("%s\n", fname);
 
+	if (blksleft == 0)
+		bytes = 0;
 	for (; blksleft > 0; blksleft -= blksread) {
 		hbp = getblkrd(ar, (fd >= 0? Alldata: Justnxthdr));
 		if (hbp == nil)
 			sysfatal("unexpected EOF on archive extracting %s",
 				fname);
 		blksread = gothowmany(blksleft);
+		if (blksread <= 0)
+			fprint(2, "%s: got %ld blocks reading %s!\n",
+				argv0, blksread, fname);
 		wrbytes = Tblock*blksread;
 		if(wrbytes > bytes)
 			wrbytes = bytes;
@@ -948,6 +954,10 @@ extract1(int ar, Hdr *hp, char *fname)
 		putreadblks(ar, blksread);
 		bytes -= wrbytes;
 	}
+	if (bytes > 0)
+		fprint(2,
+		    "%s: %lld bytes uncopied at eof; %s not fully extracted\n",
+			argv0, bytes, fname);
 	if (fd >= 0) {
 		/*
 		 * directories should be wstated after we're done

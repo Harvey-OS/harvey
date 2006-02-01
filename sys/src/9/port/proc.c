@@ -122,7 +122,25 @@ sched(void)
 			getcallerpc(&p+2));
 
 	if(up){
-		if(up->nlocks.ref && up->state != Moribund && up->delaysched < 20){
+		/*
+		 * Delay the sched until the process gives up the locks
+		 * it is holding.  This avoids dumb lock loops.
+		 * Don't delay if the process is Moribund.
+		 * It called sched to die.
+		 * But do sched eventually.  This avoids a missing unlock
+		 * from hanging the entire kernel. 
+		 * But don't reschedule procs holding palloc or procalloc.
+		 * Those are far too important to be holding while asleep.
+		 *
+		 * This test is not exact.  There can still be a few instructions
+		 * in the middle of taslock when a process holds a lock
+		 * but Lock.p has not yet been initialized.
+		 */
+		if(up->nlocks.ref)
+		if(up->state != Moribund)
+		if(up->delaysched < 20
+		|| palloc.Lock.p == up
+		|| procalloc.Lock.p == up){
 			up->delaysched++;
  			delayedscheds++;
 			return;
