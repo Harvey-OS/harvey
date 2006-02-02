@@ -322,7 +322,7 @@ flag and with
 inserted at the right point on the command line.
 Logged in as glenda, one can repeat the above example with:
 .EX
-    pull -c rc/bin/cpurc -s rc/bin/cpurc
+    pull -c rc/bin/cpurc -s rc/bin/termrc
 .EE
 .PP
 To see a list of changes made to the local file system
