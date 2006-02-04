@@ -173,7 +173,7 @@
 386/bin/calendar - 775 sys sys 1135570797 80216
 386/bin/cat - 775 sys sys 1130384267 37465
 386/bin/cb - 775 sys sys 1135570797 77379
-386/bin/cdfs - 775 sys sys 1135570797 167135
+386/bin/cdfs - 775 sys sys 1138982896 167246
 386/bin/cfs - 775 sys sys 1135570797 128025
 386/bin/chgrp - 775 sys sys 1135570798 59279
 386/bin/chmod - 775 sys sys 1135570798 62275
@@ -547,7 +547,7 @@
 386/lib/libc.a - 664 sys sys 1138500920 502724
 386/lib/libcomplete.a - 664 sys sys 1138500945 6372
 386/lib/libcontrol.a - 664 sys sys 1138500950 274924
-386/lib/libdisk.a - 664 sys sys 1138500973 42236
+386/lib/libdisk.a - 664 sys sys 1138982896 42414
 386/lib/libdraw.a - 664 sys sys 1138500978 374124
 386/lib/libflate.a - 664 sys sys 1138500991 76832
 386/lib/libframe.a - 664 sys sys 1138500996 66116
@@ -5993,7 +5993,7 @@ sys/include/complete.h - 664 sys sys 1076276516 562
 sys/include/control.h - 664 sys sys 1084467622 4844
 sys/include/ctype.h - 664 sys sys 1014929062 951
 sys/include/cursor.h - 664 sys sys 1014929062 102
-sys/include/disk.h - 664 sys sys 1014929063 1096
+sys/include/disk.h - 664 sys sys 1138975314 1120
 sys/include/draw.h - 664 sys sys 1108655526 16144
 sys/include/event.h - 664 sys sys 1014929063 1426
 sys/include/fcall.h - 664 sys sys 1137461445 3063
@@ -14041,7 +14041,7 @@ sys/src/cmd/usb/lib/dump.c - 664 sys sys 1135896862 12915
 sys/src/cmd/usb/lib/fmt.c - 664 sys sys 1091204978 291
 sys/src/cmd/usb/lib/mkfile - 664 sys sys 1091204979 204
 sys/src/cmd/usb/lib/setup.c - 664 sys sys 1091204978 1953
-sys/src/cmd/usb/lib/usb.h - 664 sys sys 1103381265 7036
+sys/src/cmd/usb/lib/usb.h - 664 sys sys 1138975309 7049
 sys/src/cmd/usb/lib/util.c - 664 sys sys 1091204978 523
 sys/src/cmd/usb/misc - 20000000775 sys sys 1091205037 0
 sys/src/cmd/usb/misc/mkfile - 664 sys sys 1091205037 274
@@ -14053,9 +14053,9 @@ sys/src/cmd/usb/printer - 20000000775 sys sys 1073007760 0
 sys/src/cmd/usb/usbd - 20000000775 sys sys 1017802021 0
 sys/src/cmd/usb/usbd/dat.h - 664 sys sys 1091204979 675
 sys/src/cmd/usb/usbd/fns.h - 664 sys sys 1091204979 495
-sys/src/cmd/usb/usbd/hub.c - 664 sys sys 1104849419 4296
+sys/src/cmd/usb/usbd/hub.c - 664 sys sys 1138975310 4292
 sys/src/cmd/usb/usbd/mkfile - 664 sys sys 1091204979 304
-sys/src/cmd/usb/usbd/setup.c - 664 sys sys 1091204979 1192
+sys/src/cmd/usb/usbd/setup.c - 664 sys sys 1138975309 1210
 sys/src/cmd/usb/usbd/usbd.c - 664 sys sys 1091204979 5188
 sys/src/cmd/va - 20000000775 sys sys 954038374 0
 sys/src/cmd/va/a.h - 664 sys sys 1089299166 2915
@@ -15000,7 +15000,7 @@ sys/src/libdisk - 20000000775 sys sys 969512501 0
 sys/src/libdisk/disk.c - 664 sys sys 1126278243 6665
 sys/src/libdisk/mkfile - 664 sys sys 1035389777 269
 sys/src/libdisk/proto.c - 664 sys sys 1020313839 8808
-sys/src/libdisk/scsi.c - 664 sys sys 1126278243 6023
+sys/src/libdisk/scsi.c - 664 sys sys 1138975317 6099
 sys/src/libdisk/test.c - 664 sys sys 960347152 275
 sys/src/libdraw - 20000000775 sys sys 1014927873 0
 sys/src/libdraw/alloc.c - 664 sys sys 1131637702 4160

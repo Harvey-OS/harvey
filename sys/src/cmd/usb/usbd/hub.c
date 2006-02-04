@@ -45,7 +45,7 @@ newhub(Hub *parent, Device *d)
 	h->ctlrno = parent->ctlrno;
 	h->dev0 = parent->dev0;
 
-	if (setupreq(d->ep[0], RD2H|Rclass|Rdevice, GET_DESCRIPTOR, (0<<8)|0, 0, sizeof(buf)) < 0 ||
+	if (setupreq(d->ep[0], RD2H|Rclass|Rdevice, GET_DESCRIPTOR, (HUB<<8)|0, 0, DHUBLEN) < 0 ||
 	   (nr = setupreply(d->ep[0], buf, sizeof(buf))) < DHUBLEN) {
 		fprint(2, "usbd: error reading hub descriptor\n");
 		free(h);
@@ -117,11 +117,10 @@ hubfeature(Hub *h, int port, int feature, int on)
 {
 	int cmd;
 
+	cmd = CLEAR_FEATURE;
 	if(on)
 		cmd = SET_FEATURE;
-	else
-		cmd = CLEAR_FEATURE;
-	setup0(h->d, Rclass|Rother, cmd, feature, port, 0);
+	setup0(h->d, RH2D|Rclass|Rother, cmd, feature, port, 0);
 }
 
 void

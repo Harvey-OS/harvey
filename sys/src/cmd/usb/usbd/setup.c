@@ -25,7 +25,7 @@ setup0(Device *d, int type, int req, int value, int index, int count)
 void
 setconfig(Device *d, int n)
 {
-	setup0(d, RH2D, SET_CONFIGURATION, n, 0, 0);
+	setup0(d, RH2D|Rstandard|Rdevice, SET_CONFIGURATION, n, 0, 0);
 	d->state = Configured;
 }
 

@@ -324,3 +324,11 @@ openscsi(char *dev)
 
 	return s;
 }
+
+void
+closescsi(Scsi *s)
+{
+	close(s->rawfd);
+	free(s->inquire);
+	free(s);
+}

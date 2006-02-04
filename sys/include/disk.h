@@ -21,6 +21,7 @@ char*	scsierror(int, int);
 int		scsicmd(Scsi*, uchar*, int, void*, int, int);
 int		scsi(Scsi*, uchar*, int, void*, int, int);
 Scsi*		openscsi(char*);
+void		closescsi(Scsi*);
 int		scsiready(Scsi*);
 
 extern int		scsiverbose;
