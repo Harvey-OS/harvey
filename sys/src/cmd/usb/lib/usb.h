@@ -109,6 +109,7 @@ enum
 	HID = 0x21,
 	REPORT = 0x22,
 	PHYSICAL = 0x23,
+	HUB	= 0x29,
 
 	/* feature selectors */
 	DEVICE_REMOTE_WAKEUP = 1,
