@@ -673,6 +673,32 @@ int is_number(char *s)
 {
 	double r;
 	char *ep;
+
+	/*
+	 * fast could-it-be-a-number check before calling strtod,
+	 * which takes a surprisingly long time to reject non-numbers.
+	 */
+	switch (*s) {
+	case '0': case '1': case '2': case '3': case '4':
+	case '5': case '6': case '7': case '8': case '9':
+	case '\t':
+	case '\n':
+	case '\v':
+	case '\f':
+	case '\r':
+	case ' ':
+	case '-':
+	case '+':
+	case '.':
+	case 'n':		/* nans */
+	case 'N':
+	case 'i':		/* infs */
+	case 'I':
+		break;
+	default:
+		return 0;	/* can't be a number */
+	}
+
 	errno = 0;
 	r = strtod(s, &ep);
 	if (ep == s || r == HUGE_VAL || errno == ERANGE)
