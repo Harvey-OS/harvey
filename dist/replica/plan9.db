@@ -155,7 +155,7 @@
 386/bin/aux/write - 775 sys sys 1085077011 4188
 386/bin/aux/zerotrunc - 775 sys sys 1108268388 3891
 386/bin/awd - 775 sys sys 1135570793 58734
-386/bin/awk - 775 sys sys 1136656332 321786
+386/bin/awk - 775 sys sys 1139507857 324417
 386/bin/basename - 775 sys sys 1130384262 37902
 386/bin/bc - 775 sys sys 1135570793 81760
 386/bin/bind - 775 sys sys 1135570793 59562
@@ -872,7 +872,7 @@ dist - 20000000775 sys sys 1017437778 0
 dist/replica - 20000000775 sys sys 1019277119 0
 dist/replica/cd - 664 sys sys 1019527959 390
 dist/replica/kfs - 664 sys sys 1019527929 237
-dist/replica/network - 775 sys sys 1071079179 996
+dist/replica/network - 775 sys sys 1139499513 956
 dist/replica/plan9.proto - 664 sys sys 1114460221 2560
 env - 20000000775 sys sys 1015094872 0
 fd - 20000000775 sys sys 947958544 0
@@ -5392,7 +5392,7 @@ power/mkfile - 664 sys sys 948141304 46
 rc - 20000000775 sys sys 944959447 0
 rc/bin - 20000000775 sys sys 1018637942 0
 rc/bin/9fat: - 775 sys sys 1133179689 367
-rc/bin/9fs - 775 sys sys 1138385380 986
+rc/bin/9fs - 775 sys sys 1139499615 971
 rc/bin/B - 775 sys sys 945617206 645
 rc/bin/C - 775 sys sys 1127395076 855
 rc/bin/Kill - 775 sys sys 1018637942 115
@@ -9736,7 +9736,7 @@ sys/src/cmd/awk - 20000000775 sys sys 944964677 0
 sys/src/cmd/awk/awk.h - 664 sys sys 944960803 4624
 sys/src/cmd/awk/awkgram.y - 664 sys sys 944960803 13930
 sys/src/cmd/awk/lex.c - 664 sys sys 944960803 12346
-sys/src/cmd/awk/lib.c - 664 sys sys 950315704 16241
+sys/src/cmd/awk/lib.c - 664 sys sys 1139499813 16722
 sys/src/cmd/awk/main.c - 664 sys sys 1134233061 5281
 sys/src/cmd/awk/maketab.c - 664 sys sys 944960802 5101
 sys/src/cmd/awk/mkfile - 664 sys sys 1036687332 955
@@ -9744,7 +9744,7 @@ sys/src/cmd/awk/parse.c - 664 sys sys 944960802 5068
 sys/src/cmd/awk/proctab.c - 664 sys sys 944960803 5123
 sys/src/cmd/awk/proto.h - 664 sys sys 944960802 6159
 sys/src/cmd/awk/re.c - 664 sys sys 964456820 6987
-sys/src/cmd/awk/run.c - 664 sys sys 1036687054 42680
+sys/src/cmd/awk/run.c - 664 sys sys 1139499813 42772
 sys/src/cmd/awk/tran.c - 664 sys sys 944960802 11855
 sys/src/cmd/basename.c - 664 sys sys 944961619 605
 sys/src/cmd/bc.y - 664 sys sys 1134233060 13455
