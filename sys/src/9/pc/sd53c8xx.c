@@ -1941,8 +1941,6 @@ docheck:
 	return r->status = status;
 }
 
-#define	vpt ((ulong*)VPT)
-#define	VPTX(va)		(((ulong)(va))>>12)
 static void
 cribbios(Controller *c)
 {

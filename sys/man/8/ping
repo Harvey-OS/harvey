@@ -4,7 +4,7 @@ ping, gping, traceroute, hogports \- probe the Internet
 .SH SYNOPSIS
 .B ping
 [
-.B -alq
+.B -aflq
 ] [
 .B -i
 .I interval
@@ -73,6 +73,9 @@ The options are:
 .TP
 .B a
 adds the IP source and destination addresses to each report.
+.TP
+.B f
+send messages as fast as possible (flood).
 .TP
 .B i
 sets the time between messages

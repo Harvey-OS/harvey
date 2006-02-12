@@ -1,6 +1,5 @@
 NPROC=1
 </$objtype/mkfile
-CFLAGS=-I/sys/ninclude $CFLAGS
 SYSH=/sys/src/libc/9syscall/sys.h
 
 all:V: install

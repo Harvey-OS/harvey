@@ -79,7 +79,7 @@ p_compile(Filter *f)
 	Mux *m;
 
 	if(f->op == '='){
-		compile_cmp(arp.name, f, p_fields);
+		compile_cmp(bootp.name, f, p_fields);
 		return;
 	}
 	for(m = p_mux; m->name != nil; m++)

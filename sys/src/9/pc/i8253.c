@@ -201,7 +201,7 @@ i8253timerset(uvlong next)
 		period = want - now;
 		if(period < MinPeriod)
 			period = MinPeriod;
-		else if(period > (4*MaxPeriod)/5)	/* strong attraction to MaxPeriod */
+		else if(period > MaxPeriod)
 			period = MaxPeriod;
 	}
 

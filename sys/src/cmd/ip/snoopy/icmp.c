@@ -73,7 +73,7 @@ static void
 p_compile(Filter *f)
 {
 	if(f->op == '='){
-		compile_cmp(udp.name, f, p_fields);
+		compile_cmp(icmp.name, f, p_fields);
 		return;
 	}
 	if(strcmp(f->s, "ip") == 0){

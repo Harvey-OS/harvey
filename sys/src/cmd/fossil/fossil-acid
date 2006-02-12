@@ -66,12 +66,13 @@ defn vtlock(l)
 
 // try to say something intelligent about why a process is stuck.
 _pauses = {
-	"open",
-	"pread",
-	"pwrite",
-	"sleep",
-	"vtSleep",
-	"vtLock",
+	open,
+	pread,
+	pwrite,
+	sleep,
+	vtSleep,
+	vtLock,
+	vtRLock,
 };
 
 defn deadlocklist(l)
@@ -93,7 +94,9 @@ defn deadlock()
 	stallframe = 0;
 	stallname = "";
 	fossilframe = 0;
+	frame = {0};
 	while stk do {
+		lastframe = frame;
 		frame = head stk;
 		name = fmt(frame[0], 'a');
 		if !stallframe && match(name, _pauses) >= 0 then {
@@ -106,6 +109,13 @@ defn deadlock()
 			pfl(frame[1]);
 		}
 		if !fossilframe && regexp("^/sys/src/cmd/fossil/.*", pcfile(frame[0])) then {
+			if !stallframe then {
+				stallframe = lastframe;
+				stallname = fmt(lastframe[0], 'a');
+				print("\tunexpected stall: ", stallname, "\n");
+				if match(stallname, _pauses) >= 0 then
+					print("\t\t but it matches!\n");
+			}
 			fossilframe = frame;
 			print("\t", fmt(frame[0], 'a'), "(");
 			params(frame[2]);
@@ -117,7 +127,7 @@ defn deadlock()
 				print("\twaiting to lock block b=(Block)", *cacheLocalLookup:b\X, "\n");
 			if name == cacheLocal && stallname == vtSleep then
 				print("\tsleeping on block b=(Block)", *cacheLocal:b\X, "\n");
-			if name == blockFlush && stallname == vtSleep then
+			if name == blockWrite && stallname == vtSleep then
 				print("\tsleeping on block b=(Block)", *blockFlush:b\X, "\n");
 		}
 		stk = tail stk;
@@ -127,8 +137,12 @@ defn deadlock()
 		vtrendez(*vtSleep:q);
 	if stallname == vtLock then
 		vtlock(*vtLock:p);
-	if !stallframe || !fossilframe then 
-		print("\tconfused\n");
+	if !stallframe || !fossilframe then {
+		print("\tconfused:");
+		if !stallframe then print(" stallframe?");
+		if !fossilframe then print(" fossilframe?");
+		print("\n");
+	}
 	print("\n");
 }
 

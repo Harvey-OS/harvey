@@ -67,6 +67,7 @@ int rint;
 vlong sum;
 ushort firstseq;
 int addresses;
+int flood;
 
 void usage(void);
 void lost(Req*, Icmp*);
@@ -93,6 +94,7 @@ clean(ushort seq, vlong now, Icmp *ip)
 	Req **l, *r;
 
 	lock(&listlock);
+	last = nil;
 	for(l = &first; *l; ){
 		r = *l;
 
@@ -110,7 +112,7 @@ clean(ushort seq, vlong now, Icmp *ip)
 			if(r->replied == 0)
 				lost(r, ip);
 			free(r);
-		} else {
+		}else{
 			last = r;
 			l = &(r->next);
 		}
@@ -147,6 +149,8 @@ sender(int fd, int msglen, int interval, int n)
 			hnputs(ip->seq, seq);
 			r->seq = seq;
 			r->next = nil;
+			r->replied = 0;
+			r->time = nsec();	/* avoid early free in reply! */
 			lock(&listlock);
 			if(first == nil)
 				first = r;
@@ -154,7 +158,6 @@ sender(int fd, int msglen, int interval, int n)
 				last->next = r;
 			last = r;
 			unlock(&listlock);
-			r->replied = 0;
 			r->time = nsec();
 			if(write(fd, ip, msglen) < msglen){
 				fprint(2, "%s: write failed: %r\n", argv0);
@@ -261,12 +264,15 @@ main(int argc, char **argv)
 	case 'r':
 		rint = 1;
 		break;
+	case 'f':
+		flood = 1;
+		break;
 	} ARGEND;
 	if(msglen < 32)
 		msglen = 64;
 	if(msglen >= 65*1024)
 		msglen = 65*1024-1;
-	if(interval <= 0)
+	if(interval <= 0 && !flood)
 		interval = SLEEPMS;
 
 	if(argc < 1)

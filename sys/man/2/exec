@@ -1,6 +1,6 @@
 .TH EXEC 2
 .SH NAME
-exec, execl, _clock, _privates, _nprivates \- execute a file
+exec, execl, _privates, _nprivates, _tps \- execute a file
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -14,13 +14,28 @@ int exec(char *name, char* argv[])
 int execl(char *name, ...)
 .PP
 .B
-long	*_clock;
-.PP
-.B
 void	**_privates;
 .PP
 .B
 int	_nprivates;
+.PP
+.B
+#include <tos.h>
+.PP
+.ft L
+typedef struct Tos Tos;
+struct Tos {
+    struct { ... } prof;    /* profiling data */
+    uvlong  cyclefreq;      /* cycle clock frequency */
+    vlong   kcycles;        /* kernel cycles */
+    vlong   pcycles;        /* process cycles (kernel + user) */
+    ulong   pid;            /* process id */
+    ulong   clock;          /* profiling clock */
+    /* top of stack */
+};
+.PP
+.B
+extern Tos *_tos;
 .fi
 .SH DESCRIPTION
 .I Exec
@@ -114,21 +129,34 @@ process has no notification handler
 (see
 .IR notify (2)).
 .PP
-When the new program begins, the global cell
-.B _clock
-is set to the address of a cell that keeps approximate time
-expended by the process at user level.
-The time is measured in milliseconds but is updated at
-a system-dependent lower rate.
-This clock is typically used by the profiler but is available
-to all programs.
-.PP
 The global cell
 .B _privates
 points to an array of
 .B _nprivates
 elements of per-process private data.
 This storage is private for each process, even if the processes share data segments.
+.PP
+When the new program begins, the global pointer
+.B _tos
+is set to the address of a structure
+that holds information
+allowing accurate time keeping and clock reading in user space.
+If there is a user-space accessible fast clock (a processor
+cycle counter),
+.B cyclefreq
+will be set to its frequency in Hz.
+.B Kcycles
+.RB ( pcycles )
+counts the number of cycles 
+this process has spent in kernel mode
+(kernel and user mode).
+.B Clock
+is the user-profiling clock (see
+.IR prof (1)).
+Its time is measured in milliseconds but is updated at
+a system-dependent lower rate.
+This clock is typically used by the profiler but is available
+to all programs.
 .PP
 The above conventions apply to C programs; the raw system
 interface to the new image is as follows:

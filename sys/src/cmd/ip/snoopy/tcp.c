@@ -74,7 +74,7 @@ p_compile(Filter *f)
 	Mux *m;
 
 	if(f->op == '='){
-		compile_cmp(udp.name, f, p_fields);
+		compile_cmp(tcp.name, f, p_fields);
 		return;
 	}
 	for(m = p_mux; m->name != nil; m++)

@@ -8,11 +8,11 @@ grep \- search a file for a pattern
 ]
 [
 .B -e
+]
 .I pattern
-[
+|
 .B -f
 .I patternfile
-]
 [
 .I file ...
 ]

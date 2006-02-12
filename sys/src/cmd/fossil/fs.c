@@ -782,12 +782,14 @@ fsNextQid(Fs *fs, u64int *qid)
 static void
 fsMetaFlush(void *a)
 {
+	int rv;
 	Fs *fs = a;
 
 	vtRLock(fs->elk);
-	fileMetaFlush(fs->file, 1);
+	rv = fileMetaFlush(fs->file, 1);
 	vtRUnlock(fs->elk);
-	cacheFlush(fs->cache, 0);
+	if(rv > 0)
+		cacheFlush(fs->cache, 0);
 }
 
 static int
