@@ -68,6 +68,8 @@ resolve(char *name)
 
 	for(i=0; i<nres; i++){
 		len = strlen(res[i].name);
+		if(len == 0)
+			return res[i].c;
 		if(strncmp(name, res[i].name, len) == 0 && (name[len]=='/' || name[len] == 0))
 			return res[i].c;
 	}
@@ -762,6 +764,8 @@ ismatch(char *s)
 		return 1;
 	for(i=0; i<nmatch; i++){
 		len = strlen(match[i]);
+		if(len == 0)
+			return 1;
 		if(strncmp(s, match[i], len) == 0 && (s[len]=='/' || s[len] == 0))
 			return 1;
 	}

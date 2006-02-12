@@ -49,7 +49,7 @@ int fileSync(File*);
 File *fileIncRef(File*);
 int fileDecRef(File*);
 int fileIsRoot(File*);
-void fileMetaFlush(File*, int);
+int fileMetaFlush(File*, int);
 int fileSetQidSpace(File*, u64int, u64int);
 int fileTruncate(File*, char*);
 int fileIsRoFs(File*);

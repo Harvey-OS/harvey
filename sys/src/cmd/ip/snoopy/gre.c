@@ -1,3 +1,15 @@
+#include <u.h>
+#include <libc.h>
+#include <ip.h>
+#include "dat.h"
+#include "protos.h"
+
+/*
+ GRE version 0 is specified in rfc1701.
+ GRE version 0 has been respecified in rfc2784 as a subset of rfc1701.
+ GRE version 1, as used by pptp, has been specified in rfc2637.
+*/
+
 
 /* GRE flag bits */
 enum {
@@ -5,79 +17,192 @@ enum {
 	GRE_routing	= (1<<14),
 	GRE_key		= (1<<13),
 	GRE_seq		= (1<<12),
-	GRE_srcrt	= (1<<11),
+	GRE_srcrt		= (1<<11),
 	GRE_recur	= (7<<8),
 	GRE_ack		= (1<<7),
-	GRE_ver		= 0x7,
+	GRE_version	= 0x7,
 };
 
-/* GRE protocols */
-enum {
-	GRE_sna		= 0x0004,
-	GRE_osi		= 0x00fe,
-	GRE_pup		= 0x0200,
-	GRE_xns		= 0x0600,
-	GRE_ip		= 0x0800,
-	GRE_chaos	= 0x0804,
-	GRE_rfc826	= 0x0806,
-	GRE_frarp	= 0x0808,
-	GRE_vines	= 0x0bad,
-	GRE_vinesecho	= 0x0bae,
-	GRE_vinesloop	= 0x0baf,
-	GRE_decnetIV	= 0x6003,
-	GRE_ppp		= 0x880b,
+
+typedef struct Hdr	Hdr;
+struct Hdr
+{
+	ushort flags;
+	ushort proto;
+	uchar version;
+	ushort chksum;
+	ushort offset;
+	ulong key;
+	ulong seq;
+	ulong route;
+	ulong ack;
+};
+
+enum
+{
+	Oproto,
+};
+
+static Field p_fields[] = 
+{
+	{"proto",		Fnum,	Oproto,	"encapsulated protocol",	} ,
+	{0}
+};
+
+static Mux p_mux[] =
+{
+	{"pup",	0x0200, },
+	{"xns",	0x0600, },
+	{"ip",		0x0800, },
+	{"chaos",	0x0804, },
+	{"arp",	0x0806, },
+	{"frarp",	0x0808, },
+	{"vines",	0x0bad, },
+	{"vinesecho",	0x0bae, },
+	{"vinesloop",	0x0baf, },
+	{"ppp",	0x880b, },
+	{"llc",	0x007a, },
+	{"dot1q",	0x8100, },
+	{"eapol",	0x888e, },
+	{0},
 };
 
 int
-sprintgre(void *a, char *buf, int len)
+parthdrlen(ushort flags)
 {
-	int flag, prot, chksum, offset, key, seq, ack;
-	int n;
-	uchar *p = a;
+	return 4 + 
+		(flags&GRE_chksum || flags&GRE_routing) ? 4 : 0 +
+		flags&GRE_key ? 4 : 0 +
+		flags&GRE_seq ? 4 : 0 +
+		flags&GRE_ack ? 4 : 0;
+}
 
-	chksum = offset = key = seq = ack = 0;
-	
-	flag = NetS(p);
-	prot = NetS(p+2);
-	p += 4; len -= 4;
-	if(flag & (GRE_chksum|GRE_routing)){
-		chksum = NetS(p);
-		offset = NetS(p+2);
-		p += 4; len -= 4;
+int
+parsehdr(Hdr *h, uchar *s, uchar *e)
+{
+	uchar *p;
+	uchar n;
+
+	if(e - s < 4)
+		return -1;
+
+	p = s;
+
+	h->flags = NetS(p);
+	p += 2;
+	h->proto = NetS(p);
+	p += 2;
+	h->version = h->flags&GRE_version;
+
+	if(parthdrlen(h->flags) > e - s)
+		return -1;
+
+	if(h->flags&(GRE_chksum|GRE_routing)){
+		h->chksum = NetS(p);
+		p += 2;
+		h->offset = NetS(p);
+		p += 2;
 	}
-	if(flag&GRE_key){
-		key = NetL(p);
-		p += 4; len -= 4;
+	if(h->flags&GRE_key){
+		h->key = NetL(p);
+		p += 4;
 	}
-	if(flag&GRE_seq){
-		seq = NetL(p);
-		p += 4; len -= 4;
+	if(h->flags&GRE_seq){
+		h->seq = NetL(p);
+		p += 4;
 	}
-	if(flag&GRE_ack){
-		ack = NetL(p);
-		p += 4; len -= 4;
+	if(h->flags&GRE_ack){
+		h->ack = NetL(p);
+		p += 4;
 	}
-	/* skip routing if present */
-	if(flag&GRE_routing) {
-		while(len >= 4 && (n=p[3]) != 0) {
-			len -= n;
+	if(h->flags&GRE_routing){
+		for(;;){
+			if(e - p < 4)
+				return -1;
+			if((n = p[3]) == 0)
+				break;
 			p += n;
 		}
 	}
 
-	USED(offset);
-	USED(chksum);
-
-	n = sprint(buf, "GRE(f %4.4ux p %ux k %ux", flag, prot, key);
-	if(flag&GRE_seq)
-		n += sprint(buf+n, " s %ux", seq);
-	if(flag&GRE_ack)
-		n += sprint(buf+n, " a %ux", ack);
-	n += sprint(buf+n, " len = %d/%d) ", len, key>>16);
-	if(prot == GRE_ppp && len > 0)
-		n += sprintppp(p, buf+n, len);
-	else
-		n += sprintx(p, buf+n, len);
-		
-	return n;
+	return p - s;
 }
+
+static void
+p_compile(Filter *f)
+{
+	Mux *m;
+
+	if(f->op == '='){
+		compile_cmp(gre.name, f, p_fields);
+		return;
+	}
+	for(m = p_mux; m->name != nil; m++)
+		if(strcmp(f->s, m->name) == 0){
+			f->pr = m->pr;
+			f->ulv = m->val;
+			f->subop = Oproto;
+			return;
+		}
+	sysfatal("unknown gre field or protocol: %s", f->s);
+}
+
+static int
+p_filter(Filter *f, Msg *m)
+{
+	Hdr h;
+	int len;
+
+	len = parsehdr(&h, m->ps, m->pe);
+	if(len < 0)
+		return -1;
+	m->ps += len;
+
+	switch(f->subop){
+	case Oproto:
+		return h.proto == f->ulv;
+	}
+	return 0;
+}
+
+static int
+p_seprint(Msg *m)
+{
+	Hdr h;
+	int len;
+
+	len = parsehdr(&h, m->ps, m->pe);
+	if(len < 0)
+		return -1;
+	m->ps += len;
+
+	demux(p_mux, h.proto, h.proto, m, &dump);
+
+	m->p = seprint(m->p, m->e, "version=%d proto=%#ux flags=%#.4ux", h.version, h.proto, h.flags);
+	if(h.flags&GRE_chksum)
+		m->p = seprint(m->p, m->e, " checksum=%#.4ux", h.chksum);
+	if(h.flags&GRE_key)
+		m->p = seprint(m->p, m->e, " key=%#.8ulx", h.key);
+	if(h.flags&GRE_seq)
+		m->p = seprint(m->p, m->e, " seq=%#.8ulx", h.seq);
+	if(h.flags&GRE_ack)
+		m->p = seprint(m->p, m->e, " ack=%#.8ulx", h.ack);
+	if(h.flags&GRE_routing)
+		m->p = seprint(m->p, m->e, " offset=%#ux haverouting", h.offset);
+	if(h.version == 0)
+		m->p = seprint(m->p, m->e, " recursion=%ud", (h.flags&GRE_recur)>>8);
+	
+	return 0;
+}
+
+Proto gre =
+{
+	"gre",
+	p_compile,
+	p_filter,
+	p_seprint,
+	p_mux,
+	"%#.4ux",
+	p_fields,
+	defaultframer,
+};

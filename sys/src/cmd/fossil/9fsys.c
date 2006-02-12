@@ -464,7 +464,8 @@ static int
 fsysSync(Fsys* fsys, int argc, char* argv[])
 {
 	char *usage = "usage: [fsys name] sync";
-
+	int n;
+	
 	ARGBEGIN{
 	default:
 		return cliError(usage);
@@ -472,7 +473,9 @@ fsysSync(Fsys* fsys, int argc, char* argv[])
 	if(argc > 0)
 		return cliError(usage);
 
+	n = cacheDirty(fsys->fs->cache);
 	fsSync(fsys->fs);
+	consPrint("\t%s sync: wrote %d blocks\n", fsys->name, n);
 	return 1;
 }
 

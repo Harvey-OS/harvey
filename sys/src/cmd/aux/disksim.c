@@ -246,7 +246,7 @@ getblock(vlong addr, int alloc)
 	uint i0, i1, i2;
 	vlong oaddr;
 
-	if(fd)
+	if(fd >= 0)
 		alloc = 1;
 
 	addr >>= LOGBLKSZ;

@@ -73,7 +73,7 @@ again, it may be necessary to mention
 explicitly so it will be read a second time.
 .PP
 The loader options are:
-.TP 1i
+.TP 0.75i
 .B -l
 (As a bare option.)
 Suppress the default loading of the startup linkage and libraries
@@ -115,10 +115,7 @@ The entry point for the binary is
 under
 .BR -p ).
 .TP
-.B -x 
-[
-.I file
-]
+.BI -x " [ file ]"
 Produce an export table in the executable.
 The optional
 .I file
@@ -126,10 +123,7 @@ restricts the exported symbols to those listed in the file.
 See
 .IR dynld (2).
 .TP
-.B -u 
-[
-.I file
-]
+.BI -u " [ file ]"
 Produce an export table, import table
 and a dynamic load section in the executable.
 The optional

@@ -61,20 +61,42 @@ test:V: all
 	slay 8.flfmt | rc
 	slay 8.fossil | rc
 	unmount /n/fossil || status=''
-	{syscall seek 1 64000000 0; echo} >>/tmp/fossil
+	9fs emelieother
+	bind -c /n/emelieother/rsc/tmp /tmp
+	{syscall seek 1 6400000000 0; echo} >>/tmp/fossil
 	8.flfmt -y /tmp/fossil
 	8.conf -w /tmp/fossil flproto
-	8.fossil -f /tmp/fossil && mount -c /srv/test.fossil /n/fossil
+	8.fossil -f /tmp/fossil
+	cat /srv/test.fscons &
+	echo fsys main >>/srv/test.fscons
+	mount /srv/test.fossil /n/fossil
+	cd /n/fossil/tmp
+	dd -bs 1048576 -count 256 -if /dev/zero -of a
+	rm a
+	echo sync >>/srv/test.fscons
+	echo sync >>/srv/test.fscons
+	echo sync >>/srv/test.fscons
+	sleep 1
+	echo sync >>/srv/test.fscons
+	sleep 1
+	echo sync >>/srv/test.fscons
+	sleep 1
+	echo sync >>/srv/test.fscons
+	echo check >>/srv/test.fscons
+	echo check >>/srv/test.fscons
+	echo check >>/srv/test.fscons
+	
+
 #	cp /env/timezone /n/fossil/tmp
 #	cp /lib/words /n/fossil/tmp
-	dircp /sys/src/cmd/aux /n/fossil/tmp
-	chmod +t /n/fossil/tmp/lis
-	echo SHOULD NOT SEE THIS >>/n/fossil/tmp/lis
-	echo snap -a >>/srv/test.fscons
-	sleep 2
-	mount /srv/test.fossil /n/dump main/archive
-	cat /n/dump/*/*/tmp/lis
-
+#	dircp /n/sources/plan9/sys/src/cmd/aux /n/fossil/tmp
+#	>/n/fossil/tmp/lis
+#	chmod +t /n/fossil/tmp/lis
+#	echo SHOULD NOT SEE THIS >>/n/fossil/tmp/lis
+#	echo snap >>/srv/test.fscons
+#	sleep 2
+#	mount /srv/test.fossil /n/dump main/archive
+#	cat /n/dump/*/*/tmp/lis
 #	@{cd /n/fossil/tmp && time tar xTf /sys/src/cmd/fossil/test.tar}
 #	unmount /n/fossil
 #	rm /srv/fossil

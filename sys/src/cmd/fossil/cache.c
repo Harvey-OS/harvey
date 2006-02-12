@@ -22,6 +22,7 @@ enum {
 struct Cache
 {
 	VtLock	*lk;
+	VtLock	*dirtylk;
 	int 	ref;
 	int	mode;
 
@@ -162,6 +163,7 @@ cacheAlloc(Disk *disk, VtSession *z, ulong nblocks, int mode)
 	nbl = nblocks * 4;
 
 	c->lk = vtLockAlloc();
+	c->dirtylk = vtLockAlloc();	/* allowed to dirty blocks */
 	c->ref = 1;
 	c->disk = disk;
 	c->z = z;
@@ -345,19 +347,25 @@ if(refed > 0)fprint(2, "cacheCheck: in used %d\n", refed);
 static Block *
 cacheBumpBlock(Cache *c)
 {
+	int printed;
 	Block *b;
 
 	/*
 	 * locate the block with the oldest second to last use.
 	 * remove it from the heap, and fix up the heap.
 	 */
+	printed = 0;
 	if(c->nheap == 0){
 		while(c->nheap == 0){
-			fprint(2, "entire cache is busy, %d dirty -- waking flush thread\n", c->ndirty);
 			vtWakeup(c->flush);
 			vtSleep(c->heapwait);
+			if(c->nheap == 0){
+				printed = 1;
+				fprint(2, "entire cache is busy, %d dirty -- waking flush thread\n", c->ndirty);
+			}
 		}
-		fprint(2, "cache is okay again\n");
+		if(printed)
+			fprint(2, "cache is okay again, %d dirty\n", c->ndirty);
 	}
 
 	b = c->heap[0];
@@ -780,6 +788,12 @@ if(0)fprint(2, "fsAlloc %ud type=%d tag = %ux\n", addr, type, tag);
 	return b;
 }
 
+int
+cacheDirty(Cache *c)
+{
+	return c->ndirty;
+}
+
 void
 cacheCountUsed(Cache *c, u32int epochLow, u32int *used, u32int *total, u32int *bsize)
 {
@@ -1074,12 +1088,14 @@ blockDirty(Block *b)
 		return 1;
 	assert(b->iostate == BioClean);
 
+	vtLock(c->dirtylk);
 	vtLock(c->lk);
 	b->iostate = BioDirty;
 	c->ndirty++;
 	if(c->ndirty > (c->maxdirty>>1))
 		vtWakeup(c->flush);
 	vtUnlock(c->lk);
+	vtUnlock(c->dirtylk);
 
 	return 1;
 }
@@ -1471,13 +1487,20 @@ blockRemoveLink(Block *b, u32int addr, int type, u32int tag, int recurse)
 static void
 doRemoveLink(Cache *c, BList *p)
 {
-	int i, n;
+	int i, n, recurse;
 	u32int a;
 	Block *b;
 	Label l;
 	BList bl;
 
-	b = cacheLocalData(c, p->addr, p->type, p->tag, OReadOnly, 0);
+	recurse = (p->recurse && p->type != BtData && p->type != BtDir);
+
+	/*
+	 * We're not really going to overwrite b, but if we're not
+	 * going to look at its contents, there is no point in reading
+	 * them from the disk.
+	 */
+	b = cacheLocalData(c, p->addr, p->type, p->tag, recurse ? OReadOnly : OOverWrite, 0);
 	if(b == nil)
 		return;
 
@@ -1494,7 +1517,7 @@ doRemoveLink(Cache *c, BList *p)
 		return;
 	}
 
-	if(p->recurse && p->type != BtData && p->type != BtDir){
+	if(recurse){
 		n = c->size / VtScoreSize;
 		for(i=0; i<n; i++){
 			a = globalToLocal(b->data + i*VtScoreSize);
@@ -1517,7 +1540,14 @@ doRemoveLink(Cache *c, BList *p)
 			bl.epoch = p->epoch;
 			bl.next = nil;
 			bl.recurse = 1;
+			/* give up the block lock - share with others */
+			blockPut(b);
 			doRemoveLink(c, &bl);
+			b = cacheLocalData(c, p->addr, p->type, p->tag, OReadOnly, 0);
+			if(b == nil){
+				fprint(2, "warning: lost block in doRemoveLink\n");
+				return;
+			}
 		}
 	}
 
@@ -1579,6 +1609,8 @@ blistAlloc(Block *b)
 		while(c->blfree == nil){
 			vtWakeup(c->flush);
 			vtSleep(c->blrend);
+			if(c->blfree == nil)
+				fprint(2, "flushing for blists\n");
 		}
 	}
 
@@ -2001,8 +2033,10 @@ flushThread(void *a)
 				 * to flush the cache but there's no work to do.
 				 * Pause a little.
 				 */
-				if(i==0)
+				if(i==0){
+					fprint(2, "flushthread found nothing to flush - %d dirty\n", c->ndirty);
 					sleep(250);
+				}
 				break;
 			}
 		if(i==0 && c->ndirty){
@@ -2024,11 +2058,17 @@ flushThread(void *a)
 }
 
 /*
- * Keep flushing until everything is clean.
+ * Flush the cache.
  */
 void
 cacheFlush(Cache *c, int wait)
 {
+	/*
+	 * Lock c->dirtylk so that more blocks aren't being dirtied
+	 * while we try to write out what's already here.
+	 * Otherwise we might not ever finish!
+	 */
+	vtLock(c->dirtylk);
 	vtLock(c->lk);
 	if(wait){
 		while(c->ndirty){
@@ -2038,9 +2078,10 @@ cacheFlush(Cache *c, int wait)
 			vtSleep(c->flushwait);
 		}
 	//	consPrint("cacheFlush: done (uhead %p)\n", c->ndirty, c->uhead);
-	}else
+	}else if(c->ndirty)
 		vtWakeup(c->flush);
 	vtUnlock(c->lk);
+	vtUnlock(c->dirtylk);
 }
 
 /*
