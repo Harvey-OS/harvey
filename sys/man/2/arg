@@ -122,3 +122,5 @@ prog -b -f(file1) badflag('r') -f(file2) 2 args: 'arg1' 'arg2'
 .PP
 .SH SOURCE
 .B /sys/include/libc.h
+.SH SEE ALSO
+.IR getflags (8)

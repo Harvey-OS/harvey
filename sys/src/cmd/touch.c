@@ -14,13 +14,17 @@ usage(void)
 void
 main(int argc, char **argv)
 {
+	char *t, *s;
 	int nocreate = 0;
 	int status = 0;
 
 	now = time(0);
 	ARGBEGIN{
 	case 't':
-		now = strtoul(EARGF(usage()), 0, 0);
+		t = EARGF(usage());
+		now = strtoul(t, &s, 0);
+		if(s == t || *s != '\0')
+			usage();
 		break;
 	case 'c':
 		nocreate = 1;
@@ -51,7 +55,7 @@ touch(int nocreate, char *name)
 		fprint(2, "touch: %s: cannot wstat: %r\n", name);
 		return 1;
 	}
-	if ((fd = create(name, OREAD|OEXCL, 0666)) < 0) {
+	if((fd = create(name, OREAD|OEXCL, 0666)) < 0){
 		fprint(2, "touch: %s: cannot create: %r\n", name);
 		return 1;
 	}

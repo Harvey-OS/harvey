@@ -12,6 +12,7 @@ TARG=\
 	data2s\
 	depend\
 	disksim\
+	getflags\
 	lines\
 	listen\
 	listen1\
@@ -32,6 +33,7 @@ TARG=\
 	timesync\
 	trampoline\
 	typepasswd\
+	usage\
 	write\
 	zerotrunc\
 
