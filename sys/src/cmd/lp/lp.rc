@@ -33,8 +33,12 @@ USAGE='usage:	lp [-d printer] [-p process] [options] [files]
 		lp [-d printer] -k jobnos
 
 		options include:
-		-H		no header
-		-L		landscape mode
+		-D			turn on debugging output
+		-H			no header
+		-L			landscape mode
+		-M<mach>	print on machine <mach>
+		-Q			put task only into the queue
+		-R			restart printer daemon
 		-c<n>		make <n> copies
 		-f<font.size>	specify font and size
 		-i<src>		take media from <src> input bin
@@ -42,9 +46,12 @@ USAGE='usage:	lp [-d printer] [-p process] [options] [files]
 		-m<n>		magnify <n> times
 		-n<n>		print <n> logical pages per physical page
 		-o<i-j,k>	print only pages i-j and k
-		-r		reverse pages
+		-r			reverse pages
+		-u<userid>	print as <userid>
 		-x<n>		x page offset in inches
-		-y<n>		y page offset in inches'
+		-y<n>		y page offset in inches
+'
+
 # umask 000	# this doesn't work in plan 9
 if (~ $#sysname 0)
 	THIS_HOST=plan9
@@ -63,67 +70,64 @@ LPLOC=''
 if (~ $#LPDEST 0 && test -f $LPLIB/defdevice) LPDEST=`{cat $LPLIB/defdevice}
 
 # option parameters
-XOFF=''
-YOFF=''
-POINT=''
+COPIES=1
 FONT=''
-LINES=''
+IBIN=''
+KILLFLAG=0
 LAND=''
-COPIES=''
+LINES=''
+LPQ=0
 MAG=''
+NOHEAD=''
 NPAG=''
 OLIST=''
-IBIN=''
+POINT=''
+RESET=''
 REVERSE=''
-NOHEAD=''
+QONLY=''
 TRAY=''
-# remove FLAGS from environment
-FLAGD=();FLAGH=();FLAGL=();FLAGM=();FLAGQ=();FLAGc=();FLAGd=();FLAGf=()
-FLAGi=();FLAGk=();FLAGl=();FLAGm=();FLAGn=();FLAGo=();FLAGp=();FLAGq=()
-FLAGr=();FLAGt=();FLAGu=();FLAGx=();FLAGy=()
+XOFF=''
+YOFF=''
+
 # Process options
-eval `{aux/getflags DHLM:1QRc:1d:1f:1i:1kl:1m:1n:1o:1p:1qrt:1u:1x:1y:1 $*}
-if (! ~ $status '') exit $status
-if (! ~ $#FLAGD 0) { DEBUG=1; flag x + }; if not { DEBUG=''; flag x - }
-if (! ~ $#FLAGH 0) NOHEAD=1; if not NOHEAD=''
-if (! ~ $#FLAGL 0) LAND=1; if not LAND=''
-# originating machine id (for information only)
-if (! ~ $#FLAGM 0 && ~ $LPUSERID daemon) LPMACHID=$FLAGM
-if (! ~ $#FLAGQ 0) QONLY=1; if not QONLY=''
-if (! ~ $#FLAGR 0) RESET=1; if not RESET=''
-if (! ~ $#FLAGc 0) COPIES=$FLAGc; if not COPIES=1
-if (! ~ $#FLAGd 0) {
-	switch ($FLAGd) {
-	case '?'; exec awk 'BEGIN{printf "device       location  host                 class\n"}
+flagfmt='D,H,L,Q,R,r,q,c copies,d printer,f font.size,i src,k jobnos,l lines,m magnify,n lpages,o pages,u userid,x offset,y offset'
+argv0=lp
+
+if(! ifs=() eval `{aux/getflags $*}) {
+	echo $USAGE
+	exit usage
+}
+if(~ $flagd '?'){
+	awk 'BEGIN{printf "device       location  host                 class\n"}
 			/^[^#]/	{printf "%-12s %-9s %-20s %s\n", $1, $2, $3, $6 }' $LPLIB/devices
-	case *; LPDEST=$FLAGd
-	}
+	exit
 }
-if (! ~ $#FLAGf 0) eval `{echo $FLAGf | sed -e 's/([^.]*)\.([0-9.]*)/FONT=\1;POINT=\2;/'}
-if (! ~ $#FLAGi 0) IBIN=$FLAGi
-if (! ~ $#FLAGk 0) KILLFLAG=1; if not KILLFLAG=0
-if (! ~ $#FLAGl 0) LINES=$FLAGl
-if (! ~ $#FLAGm 0) MAG=$FLAGm
-if (! ~ $#FLAGn 0) NPAG=$FLAGn
-if (! ~ $#FLAGo 0) OLIST=-o$FLAGo
-if (! ~ $#FLAGp 0) {
-	switch (FLAGp) {
-	case '?';exec ls $LPLIB/process
-	case *;	LPPROC=$FLAGp
-	}
+if(~ $flagp '?'){
+	ls $LPLIB/process
+	exit
 }
-if (! ~ $#FLAGq 0) LPQ=1; if not LPQ=0
-if (! ~ $#FLAGr 0) {
-	switch ($REVERSE) {
-	case '';REVERSE=1
-	case 1;	REVERSE=''
-	}
-}
-if (! ~ $#FLAGt 0) TRAY=$FLAGt
-# originating user id
-if (! ~ $#FLAGu 0) LPUSERID=$FLAGu
-if (! ~ $#FLAGx 0) XOFF=$FLAGx
-if (! ~ $#FLAGy 0) YOFF=$FLAGy
+
+if (! ~ $#flagD 0) { DEBUG=1; flag x + }; if not { DEBUG=''; flag x - }
+if (! ~ $#flagH 0) NOHEAD=1
+if (! ~ $#flagL 0) LAND=1
+if (! ~ $#flagM 0 && ~ $LPUSERID daemon) LPMACHID=$flagM
+if (! ~ $#flagQ 0) QONLY=1
+if (! ~ $#flagR 0) RESET=1
+if (! ~ $#flagc 0) COPIES=$flagc
+if(! ~ $#flagd 0) LPDEST=$flagd
+if (! ~ $#flagf 0) eval `{echo $flagf | sed -e 's/([^.]*)\.([0-9.]*)/FONT=\1;POINT=\2;/'}
+if (! ~ $#flagi 0) IBIN=$flagi
+if (! ~ $#flagk 0) KILLFLAG=1
+if (! ~ $#flagl 0) LINES=$flagl
+if (! ~ $#flagm 0) MAG=$flagm
+if (! ~ $#flagn 0) NPAG=$flagn
+if (! ~ $#flago 0) OLIST=-o^$flago
+if (! ~ $#flagp 0) LPPROC=$flagp
+if (! ~ $#flagq 0) LPQ=1
+if (! ~ $#flagr 0) REVERSE=1
+if (! ~ $#flagu 0) LPUSERID=$flagu
+if (! ~ $#flagx 0) XOFF=$flagx
+if (! ~ $#flagy 0) YOFF=$flagy
 
 if (~ $#LPDEST 0) {
 	echo 'Set environment variable LPDEST or use the

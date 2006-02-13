@@ -1,8 +1,16 @@
 #!/bin/rc
-# ifs='' eval `{getflags dltvb:1p:1 $*}
+
+flagfmt='d,l,t,v,b stem'
+args='grammar'
+
+if(! ifs=() eval `{aux/getflags $*} || ! ~ $#* 1){
+	aux/usage
+	exit usage
+}
+
 y=-S
-#if (~ $#FLAGd 1) y=($y -d)
-#if (~ $#FLAGt 1) y=($y -D2)
-#if (~ $#FLAGv 1) y=($y -v)
-#if (~ $#FLAGb 1) y=($y -s $FLAGb)
+if (~ $#flagb 1) y=($y -s $flagb)
+if (~ $#flagd 1) y=($y -d)
+if (~ $#flagt 1) y=($y -D2)
+if (~ $#flagv 1) y=($y -v)
 exec /$cputype/bin/yacc $y $*
