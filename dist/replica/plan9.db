@@ -100,7 +100,7 @@
 386/bin/aux/faxsend - 775 sys sys 1135570783 89435
 386/bin/aux/flashfs - 775 sys sys 1135570784 166349
 386/bin/aux/g3p9bit - 775 sys sys 1104121976 67278
-386/bin/aux/getflags - 775 sys sys 1130384250 43835
+386/bin/aux/getflags - 775 sys sys 1139853471 63931
 386/bin/aux/gpsevermore - 775 sys sys 1135570784 71477
 386/bin/aux/gpsfs - 775 sys sys 1138500417 182563
 386/bin/aux/grabit - 775 sys sys 1020319063 1244
@@ -148,6 +148,7 @@
 386/bin/aux/tr2post - 775 sys sys 1104121987 176578
 386/bin/aux/trampoline - 775 sys sys 1135570791 83641
 386/bin/aux/typepasswd - 775 sys sys 1135570791 69495
+386/bin/aux/usage - 775 sys sys 1139853471 59587
 386/bin/aux/vga - 775 sys sys 1136087522 333880
 386/bin/aux/vmmousepoll - 775 sys sys 1032480572 41434
 386/bin/aux/vmware - 775 sys sys 1049428256 453
@@ -321,7 +322,7 @@
 386/bin/lex - 775 sys sys 1136224362 99020
 386/bin/lnfs - 775 sys sys 1135570831 99434
 386/bin/look - 775 sys sys 1135570831 65531
-386/bin/ls - 775 sys sys 1135570831 82459
+386/bin/ls - 775 sys sys 1139853471 82480
 386/bin/mc - 775 sys sys 1135570831 133915
 386/bin/md5sum - 775 sys sys 1135570832 61255
 386/bin/mk - 775 sys sys 1135570832 144652
@@ -430,7 +431,7 @@
 386/bin/toico - 775 sys sys 1135570849 123639
 386/bin/topng - 775 sys sys 1135570850 138333
 386/bin/toppm - 775 sys sys 1135570850 165236
-386/bin/touch - 775 sys sys 1135570850 63751
+386/bin/touch - 775 sys sys 1139853472 63826
 386/bin/tprof - 775 sys sys 1138500753 297118
 386/bin/tr - 775 sys sys 1135570851 61845
 386/bin/trace - 775 sys sys 1138500766 181475
@@ -5406,6 +5407,8 @@ rc/bin/ape/false - 775 sys sys 945617285 17
 rc/bin/ape/grep - 775 sys sys 1023738308 60
 rc/bin/ape/install - 775 sys sys 1015089725 572
 rc/bin/ape/ld - 775 sys sys 1107957880 98
+rc/bin/ape/ls - 775 sys sys 1139841321 1018
+rc/bin/ape/printf - 664 sys sys 1139841311 60
 rc/bin/ape/psh - 775 sys sys 1040481105 240
 rc/bin/ape/ranlib - 775 sys sys 1099176402 18
 rc/bin/ape/rmdir - 775 sys sys 945617286 16
@@ -5442,7 +5445,7 @@ rc/bin/label - 775 sys sys 945617207 34
 rc/bin/lc - 775 sys sys 945617207 24
 rc/bin/leak - 775 sys sys 1139744263 1052
 rc/bin/lookman - 775 sys sys 1017679344 686
-rc/bin/lp - 775 sys sys 1139744262 5119
+rc/bin/lp - 775 sys sys 1139839436 5140
 rc/bin/mail - 775 sys sys 1045504003 138
 rc/bin/man - 775 sys sys 1138555265 2520
 rc/bin/map - 775 sys sys 945617207 1576
@@ -7438,7 +7441,7 @@ sys/man/2/encode - 664 sys sys 1071289168 1572
 sys/man/2/encrypt - 664 sys sys 951229670 1885
 sys/man/2/errstr - 664 sys sys 1080218022 1705
 sys/man/2/event - 664 sys sys 1015091520 7512
-sys/man/2/exec - 664 sys sys 1139666960 4191
+sys/man/2/exec - 664 sys sys 1139838662 4191
 sys/man/2/exits - 664 sys sys 944959695 1652
 sys/man/2/exp - 664 sys sys 944959694 935
 sys/man/2/fauth - 664 sys sys 1017251164 1222
@@ -7695,7 +7698,7 @@ sys/man/8/drawterm - 664 sys sys 1135901219 1741
 sys/man/8/fossilcons - 664 sys sys 1138466274 18276
 sys/man/8/fs - 664 sys sys 1055701170 15029
 sys/man/8/fsconfig - 664 sys sys 1045501600 8142
-sys/man/8/getflags - 664 sys sys 1139744263 1703
+sys/man/8/getflags - 664 sys sys 1139839200 1712
 sys/man/8/gpsfs - 664 sys sys 1123643451 4924
 sys/man/8/httpd - 664 sys sys 1121198377 6675
 sys/man/8/init - 664 sys sys 944959679 1430
@@ -12512,13 +12515,13 @@ sys/src/cmd/look.c - 664 sys sys 944961619 5994
 sys/src/cmd/lp - 20000000775 sys sys 953344617 0
 sys/src/cmd/lp/LOCK.c - 664 sys sys 1015090023 1066
 sys/src/cmd/lp/ipcopen.c - 664 sys sys 944961017 1607
-sys/src/cmd/lp/lp.rc - 775 sys sys 1139744263 5119
+sys/src/cmd/lp/lp.rc - 775 sys sys 1139839431 5140
 sys/src/cmd/lp/lpdaemon.c - 664 sys sys 1032060412 10000
 sys/src/cmd/lp/lpdsend.c - 664 sys sys 1116770113 9583
 sys/src/cmd/lp/lpsend.c - 664 sys sys 1015090024 6180
 sys/src/cmd/lp/lpsend.rc - 775 sys sys 953344615 361
 sys/src/cmd/lp/mkfile - 664 sys sys 953344616 535
-sys/src/cmd/ls.c - 664 sys sys 1088735544 5400
+sys/src/cmd/ls.c - 664 sys sys 1139853105 5706
 sys/src/cmd/map - 20000000775 sys sys 944961024 0
 sys/src/cmd/map/index.c - 664 sys sys 956282376 4345
 sys/src/cmd/map/iplot.h - 664 sys sys 944961024 1398
@@ -14115,7 +14118,7 @@ sys/src/cmd/venti/dat.h - 664 sys sys 1132452191 15346
 sys/src/cmd/venti/dcache.c - 664 sys sys 1019678878 7374
 sys/src/cmd/venti/dump.c - 664 sys sys 1068520313 1578
 sys/src/cmd/venti/dumparena.c - 664 sys sys 1019678878 6381
-sys/src/cmd/venti/dumpvacroots - 775 sys sys 1044904736 467
+sys/src/cmd/venti/dumpvacroots - 775 sys sys 1139839229 550
 sys/src/cmd/venti/findscore.c - 664 sys sys 1121977913 2605
 sys/src/cmd/venti/fmtarenas.c - 664 sys sys 1132452192 2213
 sys/src/cmd/venti/fmtindex.c - 664 sys sys 1138471072 2524
@@ -14128,7 +14131,7 @@ sys/src/cmd/venti/index.c - 664 sys sys 1045503654 15232
 sys/src/cmd/venti/lump.c - 664 sys sys 1055707441 3844
 sys/src/cmd/venti/lumpcache.c - 664 sys sys 1019678879 7585
 sys/src/cmd/venti/lumpqueue.c - 664 sys sys 1055707442 2263
-sys/src/cmd/venti/mkfile - 664 sys sys 1055707420 1782
+sys/src/cmd/venti/mkfile - 664 sys sys 1139839228 1795
 sys/src/cmd/venti/mkroot.c - 664 sys sys 1045503630 1172
 sys/src/cmd/venti/mkxml - 775 sys sys 1019678879 1078
 sys/src/cmd/venti/mkxml.elems - 775 sys sys 1019678880 786

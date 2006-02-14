@@ -1,6 +1,6 @@
 .TH EXEC 2
 .SH NAME
-exec, execl, _privates, _nprivates, _tps \- execute a file
+exec, execl, _privates, _nprivates, _tos \- execute a file
 .SH SYNOPSIS
 .B #include <u.h>
 .br

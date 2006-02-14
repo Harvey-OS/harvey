@@ -36,6 +36,7 @@ void	growto(long);
 void	dowidths(Dir*);
 void	format(Dir*, char*);
 void	output(void);
+char*	xcleanname(char*);
 ulong	clk;
 int	swidth;			/* max width of -s size */
 int	qwidth;			/* max width of -q version */
@@ -106,7 +107,7 @@ ls(char *s, int multi)
 		n = dirreadall(fd, &db);
 		if(n < 0)
 			goto error;
-		cleanname(s);
+		xcleanname(s);
 		growto(ndir+n);
 		for(i=0; i<n; i++){
 			dirbuf[ndir+i].d = db+i;
@@ -119,7 +120,7 @@ ls(char *s, int multi)
 		growto(ndir+1);
 		dirbuf[ndir].d = db;
 		dirbuf[ndir].prefix = 0;
-		cleanname(s);
+		xcleanname(s);
 		p = utfrrune(s, '/');
 		if(p){
 			dirbuf[ndir].prefix = s;
@@ -304,3 +305,20 @@ asciitime(long l)
 	return buf;
 }
 
+/*
+ * Compress slashes, remove trailing slash.  Don't worry about . and ..
+ */
+char*
+xcleanname(char *name)
+{
+	char *r, *w;
+	
+	for(r=w=name; *r; r++){
+		if(*r=='/' && r>name && *(r-1)=='/')
+			continue;
+		*w++ = *r;
+	}
+	while(w-1>name && *(w-1)=='/')
+		*--w = 0;
+	return name;
+}
