@@ -1,6 +1,7 @@
 #!/bin/rc
-# This program enqueues the file to be printed and starts the daemon, when necessary.
-# Make changes to /sys/src/cmd/lp/lp.rc.  Changes made directly to /rc/bin/lp will be lost.
+# lp - enqueues the file to be printed and starts the daemon, when necessary.
+# Make changes to /sys/src/cmd/lp/lp.rc;
+# changes made directly to /rc/bin/lp will be lost.
 
 rfork en	# so that environment and name space are not polluted
 # 
@@ -138,6 +139,8 @@ if (~ $LPDEST */*) {	# handles MHCC destinations like mh/lino
 	LPLOC=`{echo $LPDEST|sed 's/^(.*)\/(.*)/\1/'}
 	LPDEST=`{echo $LPDEST|sed 's/^(.*)\/(.*)/\2/'}
 }
+
+# look up device, get info
 LPDLINE=`{grep '^'$LPDEST'[ 	]' $LPLIB/devices}
 if (! ~ $status '') {
 	echo 'device '$LPDEST' is not in '$LPLIB'/devices' >[1=2]

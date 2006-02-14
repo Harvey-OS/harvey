@@ -63,6 +63,7 @@ TARG=\
 	write\
 	copy\
 	conf\
+	printarena\
 #	dumparena\
 
 CFILES=${TARG:%=%.c} $LIBCFILES

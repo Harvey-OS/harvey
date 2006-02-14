@@ -1,0 +1,4 @@
+#!/bin/rc
+
+# Here only for autoconf and friends.
+echo -n $1
