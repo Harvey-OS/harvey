@@ -234,7 +234,7 @@
 386/bin/fossil/conf - 775 sys sys 1085077052 1506
 386/bin/fossil/flchk - 775 sys sys 1139680590 238422
 386/bin/fossil/flfmt - 775 sys sys 1139680591 246569
-386/bin/fossil/fossil - 775 sys sys 1139680592 363654
+386/bin/fossil/fossil - 775 sys sys 1140019618 363642
 386/bin/fossil/last - 775 sys sys 1135570812 63280
 386/bin/freq - 775 sys sys 1136397208 61797
 386/bin/fs - 20000000775 sys sys 954380769 0
@@ -5745,7 +5745,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000664 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000664 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1139760252 257379
+sys/games/lib/fortunes - 664 sys sys 1140048019 257519
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -10134,7 +10134,7 @@ sys/src/cmd/fossil/9excl.c - 664 sys sys 1042005502 1887
 sys/src/cmd/fossil/9fid.c - 664 sys sys 1045600016 5521
 sys/src/cmd/fossil/9fsys.c - 664 sys sys 1139667252 33422
 sys/src/cmd/fossil/9lstn.c - 664 sys sys 1138469518 3024
-sys/src/cmd/fossil/9p.c - 664 sys sys 1138465942 22935
+sys/src/cmd/fossil/9p.c - 664 sys sys 1140010159 22931
 sys/src/cmd/fossil/9ping.c - 664 sys sys 1042005503 1563
 sys/src/cmd/fossil/9proc.c - 664 sys sys 1138469518 15148
 sys/src/cmd/fossil/9srv.c - 664 sys sys 1138465941 3956

@@ -744,16 +744,16 @@ rTopen(Msg* m)
 	/*
 	 * Everything checks out, try to commit any changes.
 	 */
-	if((m->t.mode & OTRUNC) && !(mode & ModeAppend)){
+	if((m->t.mode & OTRUNC) && !(mode & ModeAppend))
 		if(!fileTruncate(fid->file, fid->uid))
 			goto error;
-		fid->qid.vers = fileGetMcount(fid->file);
-	}
+
 	if(isdir && fid->db != nil){
 		dirBufFree(fid->db);
 		fid->db = nil;
 	}
 
+	fid->qid.vers = fileGetMcount(fid->file);
 	m->r.qid = fid->qid;
 	m->r.iounit = m->con->msize-IOHDRSZ;
 
