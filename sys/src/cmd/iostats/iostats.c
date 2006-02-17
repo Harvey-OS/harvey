@@ -146,6 +146,8 @@ main(int argc, char **argv)
 	for(n = 0; n < Maxrpc; n++)
 		stats->rpc[n].lo = 10000000000LL;
 
+	fmtinstall('M', dirmodefmt);
+	fmtinstall('D', dirfmt);
 	fmtinstall('F', fcallfmt);
 
 	if(chdir("/") < 0)
@@ -496,14 +498,46 @@ fatal(char *s)
 	exits("fatal");
 }
 
+char*
+rdenv(char *v, char **end)
+{
+	int fd, n;
+	char *buf;
+	Dir *d;
+	if((fd = open(v, OREAD)) == -1)
+		return nil;
+	d = dirfstat(fd);
+	if(d == nil || (buf = malloc(d->length + 1)) == nil)
+		return nil;
+	n = (int)d->length;
+	n = read(fd, buf, n);
+	close(fd);
+	if(n <= 0){
+		free(buf);
+		buf = nil;
+	}else{
+		if(buf[n-1] != '\0')
+			buf[n++] = '\0';
+		*end = &buf[n];
+	}
+	free(d);
+	return buf;
+}
+
+char Defaultpath[] = ".\0/bin";
 void
 runprog(char *argv[])
 {
-	char arg0[128];
+	char *path, *ep, *p;
+	char arg0[256];
 
-	exec(argv[0], argv);
-	if (*argv[0] != '/' && strncmp(argv[0],"./",2) != 0) {
-		sprint(arg0, "/bin/%s", argv[0]);
+	path = rdenv("/env/path", &ep);
+	if(path == nil){
+		path = Defaultpath;
+		ep = path+sizeof(Defaultpath);
+	}
+	for(p = path; p < ep; p += strlen(p)+1){
+		snprint(arg0, sizeof arg0, "%s/%s", p, argv[0]);
 		exec(arg0, argv);
 	}
 	fatal("exec");

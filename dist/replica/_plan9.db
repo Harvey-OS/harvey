@@ -234,7 +234,7 @@
 386/bin/fossil/conf - 775 sys sys 1085077052 1506
 386/bin/fossil/flchk - 775 sys sys 1139680590 238422
 386/bin/fossil/flfmt - 775 sys sys 1139680591 246569
-386/bin/fossil/fossil - 775 sys sys 1140019618 363642
+386/bin/fossil/fossil - 775 sys sys 1140121256 363650
 386/bin/fossil/last - 775 sys sys 1135570812 63280
 386/bin/freq - 775 sys sys 1136397208 61797
 386/bin/fs - 20000000775 sys sys 954380769 0
@@ -279,7 +279,7 @@
 386/bin/iconv - 775 sys sys 1135570818 113279
 386/bin/idiff - 775 sys sys 1135570818 76099
 386/bin/import - 775 sys sys 1135570818 101419
-386/bin/iostats - 775 sys sys 1135570819 98375
+386/bin/iostats - 775 sys sys 1140112236 100160
 386/bin/ip - 20000000775 sys sys 1016920851 0
 386/bin/ip/dhcpclient - 775 sys sys 1135570819 94132
 386/bin/ip/dhcpd - 775 sys sys 1135570819 149217
@@ -5490,7 +5490,7 @@ rc/bin/reboot - 775 sys sys 1112276658 39
 rc/bin/replica - 20000000775 sys sys 1018321122 0
 rc/bin/replica/changes - 775 sys sys 1022177304 276
 rc/bin/replica/defs - 664 sys sys 1138478589 843
-rc/bin/replica/pull - 775 sys sys 1110990531 1447
+rc/bin/replica/pull - 775 sys sys 1140099635 1465
 rc/bin/replica/push - 775 sys sys 1043865725 361
 rc/bin/replica/scan - 775 sys sys 1089299188 472
 rc/bin/replica/setupdirs - 775 sys sys 1109511315 411
@@ -5647,7 +5647,6 @@ sys/doc/fs/p5 - 664 sys sys 944959592 1143
 sys/doc/fs/p6 - 664 sys sys 953844573 6235
 sys/doc/fs/p7 - 664 sys sys 953844581 958
 sys/doc/fs/p8 - 664 sys sys 953844574 881
-sys/doc/fs/xx - 664 sys sys 944959592 65957
 sys/doc/il - 20000000775 sys sys 945616779 0
 sys/doc/il/il.ms - 664 sys sys 1138396552 11390
 sys/doc/il/il.pdf - 664 sys sys 1020384351 44630
@@ -7485,7 +7484,7 @@ sys/man/2/memlayer - 664 sys sys 1040484074 6963
 sys/man/2/memory - 664 sys sys 944959694 2139
 sys/man/2/mktemp - 664 sys sys 950892862 669
 sys/man/2/mouse - 664 sys sys 971455512 4966
-sys/man/2/mp - 664 sys sys 1071238964 10690
+sys/man/2/mp - 664 sys sys 1140106703 10762
 sys/man/2/muldiv - 664 sys sys 984709633 639
 sys/man/2/nan - 664 sys sys 975084242 937
 sys/man/2/ndb - 664 sys sys 1078840106 9427
@@ -10138,7 +10137,7 @@ sys/src/cmd/fossil/9p.c - 664 sys sys 1140010159 22931
 sys/src/cmd/fossil/9ping.c - 664 sys sys 1042005503 1563
 sys/src/cmd/fossil/9proc.c - 664 sys sys 1138469518 15148
 sys/src/cmd/fossil/9srv.c - 664 sys sys 1138465941 3956
-sys/src/cmd/fossil/9user.c - 664 sys sys 1071179088 17260
+sys/src/cmd/fossil/9user.c - 664 sys sys 1140110621 17266
 sys/src/cmd/fossil/Ccli.c - 664 sys sys 1042005504 1624
 sys/src/cmd/fossil/Ccmd.c - 664 sys sys 1138465941 7985
 sys/src/cmd/fossil/Ccons.c - 664 sys sys 1055703737 6620
@@ -12271,9 +12270,9 @@ sys/src/cmd/idiff.c - 664 sys sys 1014926695 6896
 sys/src/cmd/import.c - 664 sys sys 1133180705 7028
 sys/src/cmd/init.c - 664 sys sys 1121977160 4462
 sys/src/cmd/iostats - 20000000775 sys sys 944962001 0
-sys/src/cmd/iostats/iostats.c - 664 sys sys 1134305453 9616
+sys/src/cmd/iostats/iostats.c - 664 sys sys 1140099908 10209
 sys/src/cmd/iostats/mkfile - 664 sys sys 1014925727 122
-sys/src/cmd/iostats/statfs.h - 664 sys sys 1135487971 2626
+sys/src/cmd/iostats/statfs.h - 664 sys sys 1140099908 2626
 sys/src/cmd/iostats/statsrv.c - 664 sys sys 1135487954 10770
 sys/src/cmd/ip - 20000000775 sys sys 1015096228 0
 sys/src/cmd/ip/arp.h - 664 sys sys 944961005 751
