@@ -479,15 +479,21 @@ computes the multiplicative inverse of
 .IR m .
 .PP
 .I Mpsignif
-returns the bit offset of the left most 1 bit in
+returns the number of significant bits in
 .IR b .
 .I Mplowbits0
-returns the bit offset of the right most 1 bit.
+returns the number of consecutive zero bits
+at the low end of the significant bits.
 For example, for 0x14,
 .I mpsignif
-would return 4 and
+returns 4 and
 .I mplowbits0
-would return 2.
+returns 2.
+For 0, 
+.I mpsignif
+and
+.I mplowbits0
+both return 0.
 .PP
 The remaining routines all work on arrays of
 .B mpdigit

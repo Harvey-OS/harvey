@@ -3,7 +3,7 @@
 rfork en
 
 fn usage {
-	echo 'usage: replica/pull [-csnv] replica-name [paths]' >[1=2]
+	echo 'usage: replica/pull [-nv] [-c name] [-s name] replica-name [paths]' >[1=2]
 	exit usage
 }
 
