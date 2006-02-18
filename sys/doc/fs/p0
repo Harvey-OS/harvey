@@ -1,20 +1,51 @@
-.HTML "The Plan 9 File Server
+.HTML "The 64-bit Standalone Plan 9 File Server
+.de Ex
+.TA 0.5i 1i 1.5i 2i 2.5i 3i 3.5i 4i 4.5i 5i 5.5i
+.P1
+.TA 0.5i 1i 1.5i 2i 2.5i 3i 3.5i 4i 4.5i 5i 5.5i
+..
+.de Ee
+.P2
+..
+
+.EQ
+delim $$
+.EN
 .FP lucidasans
+
 .TL
-The Plan 9 File Server
+The 64-bit Standalone Plan 9 File Server
 .AU
-Ken Thompson
+Ken Thompson*
 ken@plan9.bell-labs.com
+.FS
+\l'4i'
+.br
+* now
+.CW ken@entrisphere.com
+.FE
+.AU
+Geoff Collyer
+.CW geoff@collyer.net
 .AB
-This paper describes the structure
-and the operation of Plan 9 file servers.
-The specifics apply to
-our main Plan 9 file server
+This paper is a revision of Thompson's
+.I "The Plan 9 File Server" ,
+and describes the structure
+and the operation of the new 64-bit Plan 9 file servers.
+Some specifics apply to the 32-bit
+Plan 9 file server
 Emelie,
-but
-the code is also the basis for
+which code is also the basis for
 the user level file server
 .CW kfs .
+.PP
+Collyer recently created a 64-bit version of
+Thompson's 32-bit file server, updating all file
+offsets, sizes and block numbers to 64 bits.
+In addition, triple- and quadruple-indirect
+blocks were implemented.
+File name components were extended from 27 to 55 bytes.
+Further work is planned, notably improved peripheral and protocol support.
 .AE
 .SH
 Introduction
@@ -30,3 +61,15 @@ portable,
 but it has slowly come to terms with
 its particular set of cranky computers
 and devices.
+.PP
+The file server
+.I fs64
+runs a revision of Emelie's code
+with 64-bit file sizes, offsets and block numbers
+and indirect blocks from single to quadruple.
+Actually these are 63-bit values, since the type used is
+.I vlong
+(signed
+.I "long long"
+integer),
+but 63 bits should suffice for a little while.

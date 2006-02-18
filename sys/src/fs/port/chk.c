@@ -1,54 +1,65 @@
 #include	"all.h"
 #include	"mem.h"		/* for KZERO for PADDR */
 
+/* copied from ../pc/etherif.h; should probably be in all.h */
+#define	HOWMANY(x, y)	(((x)+((y)-1))/(y))
+#define ROUNDUP(x, y)	(HOWMANY((x), (y))*(y))
+
+/* augmented Dentry */
+typedef struct {
+	Dentry	*d;
+	Off	qpath;
+	int	ns;
+} Extdentry;
+
 static	char*	abits;
 static	long	sizabits;
 static	char*	qbits;
 static	long	sizqbits;
+
 static	char*	name;
 static	long	sizname;
-static	long	fstart;
-static	long	fsize;
-static	long	nfiles;
-static	long	maxq;
+
+static	Off	fstart;
+static	Off	fsize;
+static	Off	nfiles;
+static	Off	maxq;
 static	char*	calloc;
 static	Device*	dev;
-static	long	ndup;
-static	long	nused;
-static	long	nfdup;
-static	long	nqbad;
-static	long	nfree;
-static	long	nbad;
+static	Off	ndup;
+static	Off	nused;
+static	Off	nfdup;
+static	Off	nqbad;
+static	Off	nfree;
+static	Off	nbad;
 static	int	mod;
 static	int	flags;
 static	int	ronly;
 static	int	cwflag;
-static	long	sbaddr;
-static	long	oldblock;
+static	Devsize	sbaddr;
+static	Devsize	oldblock;
+
 static	int	depth;
 static	int	maxdepth;
+static	uchar	*lowstack, *startstack;
 
 /* local prototypes */
 static	int	fsck(Dentry*);
 static	void	ckfreelist(Superb*);
 static	void	mkfreelist(Superb*);
 static	void	trfreelist(Superb*);
-static	void	xaddfree(Device*, long, Superb*, Iobuf*);
+static	void	xaddfree(Device*, Off, Superb*, Iobuf*);
 static	void	xflush(Device*, Superb*, Iobuf*);
-static	Dentry*	maked(long, int, long);
-static	void	modd(long, int, Dentry*);
-static	void	xread(long, long);
-static	int	amark(long);
-static	int	fmark(long);
-static	int	ftest(long);
+static	Dentry*	maked(Off, int, Off);
+static	void	modd(Off, int, Dentry*);
+static	void	xread(Off, Off);
+static	int	amark(Off);
+static	int	fmark(Off);
+static	int	ftest(Off);
 static	void	missing(void);
-static	void	qmark(long);
+static	void	qmark(Off);
 static	void*	malloc(ulong);
-static	Iobuf*	xtag(long, int, long);
-
-/* copied from ../pc/etherif.h; should probably be in all.h */
-#define	HOWMANY(x, y)	(((x)+((y)-1))/(y))
-#define ROUNDUP(x, y)	(HOWMANY((x), (y))*(y))
+static	Iobuf*	xtag(Off, int, Off);
 
 static
 void*
@@ -106,11 +117,12 @@ void
 cmd_check(int argc, char *argv[])
 {
 	long f, i;
+	long flag;
+	Off raddr;
 	Filsys *fs;
 	Iobuf *p;
 	Superb *sb;
 	Dentry *d;
-	long raddr, flag;
 
 	flag = 0;
 	for(i=1; i<argc; i++) {
@@ -173,13 +185,13 @@ cmd_check(int argc, char *argv[])
 	if(flags & Ctouch) {
 		/* round fsize down to start of current side */
 		int s;
-		long dsize;
+		Devsize dsize;
 
 		oldblock = 0;
 		for (s = 0; dsize = wormsizeside(dev, s),
 		     dsize > 0 && oldblock + dsize < fsize; s++)
 			oldblock += dsize;
-		print("oldblock = %ld\n", oldblock);
+		print("oldblock = %lld\n", (Wideoff)oldblock);
 	}
 	amark(sbaddr);
 	if(cwflag) {
@@ -210,8 +222,8 @@ cmd_check(int argc, char *argv[])
 	}
 
 	if(sb->qidgen < maxq)
-		print("qid generator low path=%ld maxq=%ld\n",
-			sb->qidgen, maxq);
+		print("qid generator low path=%lld maxq=%lld\n",
+			(Wideoff)sb->qidgen, (Wideoff)maxq);
 	if(!(flags & Cfree))
 		ckfreelist(sb);
 	if(mod) {
@@ -220,17 +232,21 @@ cmd_check(int argc, char *argv[])
 		settag(p, Tsuper, QPNONE);
 	}
 
-	print("nfiles = %ld\n", nfiles);
-	print("fsize  = %ld\n", fsize);
-	print("nused  = %ld\n", nused);
-	print("ndup   = %ld\n", ndup);
-	print("nfree  = %ld\n", nfree);
-	print("tfree  = %ld\n", sb->tfree);
-	print("nfdup  = %ld\n", nfdup);
-	print("nmiss  = %ld\n", fsize-fstart-nused-nfree);
-	print("nbad   = %ld\n", nbad);
-	print("nqbad  = %ld\n", nqbad);
-	print("maxq   = %ld\n", maxq);
+	print("nfiles = %lld\n", (Wideoff)nfiles);
+	print("fsize  = %lld\n", (Wideoff)fsize);
+	print("nused  = %lld\n", (Wideoff)nused);
+	print("ndup   = %lld\n", (Wideoff)ndup);
+	print("nfree  = %lld\n", (Wideoff)nfree);
+	print("tfree  = %lld\n", (Wideoff)sb->tfree);
+	print("nfdup  = %lld\n", (Wideoff)nfdup);
+	print("nmiss  = %lld\n", (Wideoff)fsize-fstart-nused-nfree);
+	print("nbad   = %lld\n", (Wideoff)nbad);
+	print("nqbad  = %lld\n", (Wideoff)nqbad);
+	print("maxq   = %lld\n", (Wideoff)maxq);
+	print("base stack=%ld\n", &u->stack[sizeof(u->stack)] - startstack);
+	print("high stack=%ld of %d\n", &u->stack[sizeof(u->stack)] - lowstack,
+		MAXSTACK);	/* high-water mark of stack usage */
+	print("deepest recursion=%d\n", maxdepth-1);	/* one-origin */
 	if(!cwflag)
 		missing();
 
@@ -241,52 +257,200 @@ out:
 		wunlock(&mainlock);
 }
 
+/*
+ * if *blkp is already allocated and Cbad is set, zero it.
+ * returns *blkp if it's free, else 0.
+ */
+static Off
+blkck(Off *blkp, int *flgp)
+{
+	Off a = *blkp;
+
+	if(amark(a)) {
+		if(flags & Cbad) {
+			*blkp = 0;
+			*flgp |= Bmod;
+		}
+		a = 0;
+	}
+	return a;
+}
+
+/*
+ * if a block address within a Dentry, *blkp, is already allocated
+ * and Cbad is set, zero it.
+ * stores 0 into *resp if already allocated, else stores *blkp.
+ * returns dmod count.
+ */
+static int
+daddrck(Off *blkp, Off *resp)
+{
+	int dmod = 0;
+
+	if(amark(*blkp)) {
+		if(flags & Cbad) {
+			*blkp = 0;
+			dmod++;
+		}
+		*resp = 0;
+	} else
+		*resp = *blkp;
+	return dmod;
+}
+
+/*
+ * under Ctouch, read block `a' if it's in range.
+ * returns dmod count.
+ */
+static int
+touch(Off a)
+{
+	if((flags&Ctouch) && a < oldblock) {
+		Iobuf *pd = getbuf(dev, a, Bread|Bmod);
+
+		if(pd)
+			putbuf(pd);
+		return 1;
+	}
+	return 0;
+}
+
+/*
+ * if d is a directory, touch it and check all its entries in block a.
+ * if not, under Crdall, read a.
+ * returns dmod count.
+ */
+static int
+dirck(Extdentry *ed, Off a)
+{
+	int k, dmod = 0;
+
+	if(ed->d->mode & DDIR) {
+		dmod += touch(a);
+		for(k=0; k<DIRPERBUF; k++) {
+			Dentry *nd = maked(a, k, ed->qpath);
+
+			if(nd == nil)
+				break;
+			if(fsck(nd)) {
+				modd(a, k, nd);
+				dmod++;
+			}
+			depth--;
+			calloc -= sizeof(Dentry);
+			name[ed->ns] = 0;
+		}
+	} else if(flags & Crdall)
+		xread(a, ed->qpath);
+	return dmod;
+}
+
+/*
+ * touch a, check a's tag for Tind1, Tind2, etc.
+ * if the tag is right, validate each block number in the indirect block,
+ * and check each block (mostly in case we are reading a huge directory).
+ */
+static int
+indirck(Extdentry *ed, Off a, int tag)
+{
+	int i, dmod = 0;
+	Iobuf *p1;
+
+	if (a == 0)
+		return dmod;
+	dmod = touch(a);
+	if (p1 = xtag(a, tag, ed->qpath)) {
+		for(i=0; i<INDPERBUF; i++) {
+			a = blkck(&((Off *)p1->iobuf)[i], &p1->flags);
+			if (a)
+				/*
+				 * check each block named in this
+				 * indirect(^n) block (a).
+				 */
+				if (tag == Tind1)
+					dmod +=   dirck(ed, a);
+				else
+					dmod += indirck(ed, a, tag-1);
+		}
+		putbuf(p1);
+	}
+	return dmod;
+}
+
+static int
+indiraddrck(Extdentry *ed, Off *indirp, int tag)
+{
+	int dmod;
+	Off a;
+
+	dmod = daddrck(indirp, &a);
+	return dmod + indirck(ed, a, tag);
+}
+
+/* if result is true, *d was modified */
 static
 int
 fsck(Dentry *d)
 {
-	Dentry *nd;
-	Iobuf *p1, *p2, *pd;
-	int i, j, k, ns, dmod;
-	long a, qpath;
+	int i, dmod;
+	Extdentry edent;
 
 	depth++;
 	if(depth >= maxdepth) {
 		maxdepth = depth;
 		/*
-		 * On a 386 each recursion costs 72 bytes or thereabouts,
-		 * for some slop bump it up to 100.
+		 * On a 386 each recursion costs ~100 bytes (more for
+		 * directories with indirect blocks).  Base stack usage
+		 * is about ~320 bytes, leaving room for ~156 recursions
+		 * (assuming a 16000-byte stack).  Typical checks use
+		 * around 12 recursions.
 		 * Alternatives here might be to give the check process
-		 * a much bigger stack or rewrite it without recursion.
+		 * a much bigger stack or rewrite it without recursion,
+		 * but it hardly seems worth expending effort on.
 		 */
-		if(maxdepth >= MAXSTACK/100) {
-			print("max depth exceeded: %s\n", name);
+		if(maxdepth >= MAXSTACK/(100+10)) {
+			print("check: max depth exceeded: %s\n", name);
 			return 0;
 		}
 	}
-	dmod = 0;
+	if (lowstack == nil)
+		startstack = lowstack = (uchar *)&edent;
+	/* more precise check, assumes downward-growing stack */
+	if ((uchar *)&edent < lowstack)
+		lowstack = (uchar *)&edent;
+	if ((uchar *)&edent < &u->stack[500]) {
+		print("check: stack nearly full: %s\n", name);
+		return 0;
+	}
+
+	/* check that entry is allocated */
 	if(!(d->mode & DALLOC))
-		goto out;
+		return 0;
 	nfiles++;
 
-	ns = strlen(name);
+	/* we stash qpath & ns in an Extdentry for eventual use by dirck() */
+	memset(&edent, 0, sizeof edent);
+	edent.d = d;
+
+	/* check name */
+	edent.ns = strlen(name);
 	i = strlen(d->name);
 	if(i >= NAMELEN) {
 		d->name[NAMELEN-1] = 0;
 		print("%s->name (%s) not terminated\n", name, d->name);
 		return 0;
 	}
-	ns += i;
-	if(ns >= sizname) {
+	edent.ns += i;
+	if(edent.ns >= sizname) {
 		print("%s->name (%s) name too large\n", name, d->name);
 		return 0;
 	}
 	strcat(name, d->name);
 
 	if(d->mode & DDIR) {
-		if(ns > 1) {
+		if(edent.ns > 1) {
 			strcat(name, "/");
-			ns++;
+			edent.ns++;
 		}
 		if(flags & Cpdir) {
 			print("%s\n", name);
@@ -298,187 +462,41 @@ fsck(Dentry *d)
 		prflush();
 	}
 
-	qpath = d->qid.path & ~QPDIR;
-	qmark(qpath);
-	if(qpath > maxq)
-		maxq = qpath;
-	for(i=0; i<NDBLOCK; i++) {
-		a = d->dblock[i];
-		if(amark(a)) {
-			if(flags & Cbad) {
-				d->dblock[i] = 0;
-				dmod++;
-			}
-			a = 0;
+	/* check qid */
+	edent.qpath = d->qid.path & ~QPDIR;
+	qmark(edent.qpath);
+	if(edent.qpath > maxq)
+		maxq = edent.qpath;
+
+	/* check direct blocks (the common case) */
+	dmod = 0;
+	{
+		Off a;
+
+		for(i=0; i<NDBLOCK; i++) {
+			dmod += daddrck(&d->dblock[i], &a);
+			if (a)
+				dmod += dirck(&edent, a);
 		}
-		if(!a)
-			continue;
-		if(d->mode & DDIR) {
-			if((flags&Ctouch) && a < oldblock) {
-				pd = getbuf(dev, a, Bread|Bmod);
-				if(pd)
-					putbuf(pd);
-				dmod++;
-			}
-			for(k=0; k<DIRPERBUF; k++) {
-				nd = maked(a, k, qpath);
-				if(!nd)
-					break;
-				if(fsck(nd)) {
-					modd(a, k, nd);
-					dmod++;
-				}
-				depth--;
-				calloc -= sizeof(Dentry);
-				name[ns] = 0;
-			}
-			continue;
-		}
-		if(flags & Crdall)
-			xread(a, qpath);
 	}
-	a = d->iblock;
-	if(amark(a)) {
-		if(flags & Cbad) {
-			d->iblock = 0;
-			dmod++;
-		}
-		a = 0;
-	}
-	if(a) {
-		if((flags&Ctouch) && a < oldblock) {
-			pd = getbuf(dev, a, Bread|Bmod);
-			if(pd)
-				putbuf(pd);
-			dmod++;
-		}
-		if(p1 = xtag(a, Tind1, qpath))
-		for(i=0; i<INDPERBUF; i++) {
-			a = ((long*)p1->iobuf)[i];
-			if(amark(a)) {
-				if(flags & Cbad) {
-					((long*)p1->iobuf)[i] = 0;
-					p1->flags |= Bmod;
-				}
-				a = 0;
-			}
-			if(!a)
-				continue;
-			if(d->mode & DDIR) {
-				if((flags&Ctouch) && a < oldblock) {
-					pd = getbuf(dev, a, Bread|Bmod);
-					if(pd)
-						putbuf(pd);
-					dmod++;
-				}
-				for(k=0; k<DIRPERBUF; k++) {
-					nd = maked(a, k, qpath);
-					if(!nd)
-						break;
-					if(fsck(nd)) {
-						modd(a, k, nd);
-						dmod++;
-					}
-					depth--;
-					calloc -= sizeof(Dentry);
-					name[ns] = 0;
-				}
-				continue;
-			}
-			if(flags & Crdall)
-				xread(a, qpath);
-		}
-		if(p1)
-			putbuf(p1);
-	}
-	a = d->diblock;
-	if(amark(a)) {
-		if(flags & Cbad) {
-			d->diblock = 0;
-			dmod++;
-		}
-		a = 0;
-	}
-	if((flags&Ctouch) && a && a < oldblock) {
-		pd = getbuf(dev, a, Bread|Bmod);
-		if(pd)
-			putbuf(pd);
-		dmod++;
-	}
-	if(p2 = xtag(a, Tind2, qpath))
-	for(i=0; i<INDPERBUF; i++) {
-		a = ((long*)p2->iobuf)[i];
-		if(amark(a)) {
-			if(flags & Cbad) {
-				((long*)p2->iobuf)[i] = 0;
-				p2->flags |= Bmod;
-			}
-			continue;
-		}
-		if((flags&Ctouch) && a && a < oldblock) {
-			pd = getbuf(dev, a, Bread|Bmod);
-			if(pd)
-				putbuf(pd);
-			dmod++;
-		}
-		if(p1 = xtag(a, Tind1, qpath))
-		for(j=0; j<INDPERBUF; j++) {
-			a = ((long*)p1->iobuf)[j];
-			if(amark(a)) {
-				if(flags & Cbad) {
-					((long*)p1->iobuf)[j] = 0;
-					p1->flags |= Bmod;
-				}
-				continue;
-			}
-			if(!a)
-				continue;
-			if(d->mode & DDIR) {
-				if((flags&Ctouch) && a < oldblock) {
-					pd = getbuf(dev, a, Bread|Bmod);
-					if(pd)
-						putbuf(pd);
-					dmod++;
-				}
-				for(k=0; k<DIRPERBUF; k++) {
-					nd = maked(a, k, qpath);
-					if(!nd)
-						break;
-					if(fsck(nd)) {
-						modd(a, k, nd);
-						dmod++;
-					}
-					depth--;
-					calloc -= sizeof(Dentry);
-					name[ns] = 0;
-				}
-				continue;
-			}
-			if(flags & Crdall)
-				xread(a, qpath);
-		}
-		if(p1)
-			putbuf(p1);
-	}
-	if(p2)
-		putbuf(p2);
-out:
+	/* check indirect^n blocks, if any */
+	for (i = 0; i < NIBLOCK; i++)
+		dmod += indiraddrck(&edent, &d->iblocks[i], Tind1+i);
 	return dmod;
 }
 
 #define	XFEN	(FEPERBUF+6)
-typedef
-struct
-{
+
+typedef struct {
 	int	flag;
 	int	count;
 	int	next;
-	long	addr[XFEN];
+	Off	addr[XFEN];
 } Xfree;
 
 static
 void
-xaddfree(Device *dev, long a, Superb *sb, Iobuf *p)
+xaddfree(Device *dev, Off a, Superb *sb, Iobuf *p)
 {
 	Xfree *x;
 
@@ -525,8 +543,8 @@ static
 void
 trfreelist(Superb *sb)
 {
-	long a;
-	int n, i;
+	Off a, n;
+	int i;
 	Iobuf *p, *xp;
 	Fbuf *fb;
 
@@ -562,18 +580,17 @@ trfreelist(Superb *sb)
 	xflush(dev, sb, xp);
 	putbuf(xp);
 	mod++;
-	print("%ld blocks free\n", sb->tfree);
+	print("%lld blocks free\n", (Wideoff)sb->tfree);
 }
 
 static
 void
 ckfreelist(Superb *sb)
 {
-	long a, lo, hi;
+	Off a, lo, hi;
 	int n, i;
 	Iobuf *p;
 	Fbuf *fb;
-
 
 	strcpy(name, "free list");
 	print("check %s\n", name);
@@ -585,7 +602,7 @@ ckfreelist(Superb *sb)
 	for(;;) {
 		n = fb->nfree;
 		if(n < 0 || n > FEPERBUF) {
-			print("check: nfree bad %ld\n", a);
+			print("check: nfree bad %lld\n", (Wideoff)a);
 			break;
 		}
 		for(i=1; i<n; i++) {
@@ -616,11 +633,12 @@ ckfreelist(Superb *sb)
 	if(p)
 		putbuf(p);
 	if (flags & Ctrim) {
-		sb->fsize = fsize = hi--;	/* fsize = hi + 1 */
+		fsize = hi--;		/* fsize = hi + 1 */
+		sb->fsize = fsize;
 		mod++;
-		print("set fsize to %ld\n", fsize);
+		print("set fsize to %lld\n", (Wideoff)fsize);
 	}
-	print("lo = %ld; hi = %ld\n", lo, hi);
+	print("lo = %lld; hi = %lld\n", (Wideoff)lo, (Wideoff)hi);
 }
 
 /*
@@ -630,7 +648,7 @@ static
 void
 mkfreelist(Superb *sb)
 {
-	long a;
+	Off a;
 	int i, b;
 
 	if(ronly) {
@@ -651,13 +669,13 @@ mkfreelist(Superb *sb)
 			continue;
 		addfree(dev, fstart+a, sb);
 	}
-	print("%ld blocks free\n", sb->tfree);
+	print("%lld blocks free\n", (Wideoff)sb->tfree);
 	mod++;
 }
 
 static
 Dentry*
-maked(long a, int s, long qpath)
+maked(Off a, int s, Off qpath)
 {
 	Iobuf *p;
 	Dentry *d, *d1;
@@ -674,7 +692,7 @@ maked(long a, int s, long qpath)
 
 static
 void
-modd(long a, int s, Dentry *d1)
+modd(Off a, int s, Dentry *d1)
 {
 	Iobuf *p;
 	Dentry *d;
@@ -695,7 +713,7 @@ modd(long a, int s, Dentry *d1)
 
 static
 void
-xread(long a, long qpath)
+xread(Off a, Off qpath)
 {
 	Iobuf *p;
 
@@ -706,7 +724,7 @@ xread(long a, long qpath)
 
 static
 Iobuf*
-xtag(long a, int tag, long qpath)
+xtag(Off a, int tag, Off qpath)
 {
 	Iobuf *p;
 
@@ -742,16 +760,16 @@ xtag(long a, int tag, long qpath)
 
 static
 int
-amark(long a)
+amark(Off a)
 {
-	long i;
+	Off i;
 	int b;
 
 	if(a < fstart || a >= fsize) {
 		if(a == 0)
 			return 0;
-		print("check: \"%s\": range %ld\n",
-			name, a);
+		print("check: \"%s\": range %lld\n",
+			name, (Wideoff)a);
 		nbad++;
 		return 1;
 	}
@@ -761,8 +779,8 @@ amark(long a)
 	if(abits[i] & b) {
 		if(!ronly) {
 			if(ndup < 10)
-				print("check: \"%s\": address dup %ld\n",
-					name, fstart+a);
+				print("check: \"%s\": address dup %lld\n",
+					name, (Wideoff)fstart+a);
 			else
 			if(ndup == 10)
 				print("...");
@@ -777,14 +795,14 @@ amark(long a)
 
 static
 int
-fmark(long a)
+fmark(Off a)
 {
-	long i;
+	Off i;
 	int b;
 
 	if(a < fstart || a >= fsize) {
-		print("check: \"%s\": range %ld\n",
-			name, a);
+		print("check: \"%s\": range %lld\n",
+			name, (Wideoff)a);
 		nbad++;
 		return 1;
 	}
@@ -792,8 +810,8 @@ fmark(long a)
 	i = a/8;
 	b = 1 << (a&7);
 	if(abits[i] & b) {
-		print("check: \"%s\": address dup %ld\n",
-			name, fstart+a);
+		print("check: \"%s\": address dup %lld\n",
+			name, (Wideoff)fstart+a);
 		nfdup++;
 		return 1;
 	}
@@ -804,9 +822,9 @@ fmark(long a)
 
 static
 int
-ftest(long a)
+ftest(Off a)
 {
-	long i;
+	Off i;
 	int b;
 
 	if(a < fstart || a >= fsize)
@@ -824,7 +842,7 @@ static
 void
 missing(void)
 {
-	long a, i;
+	Off a, i;
 	int b, n;
 
 	n = 0;
@@ -832,7 +850,7 @@ missing(void)
 		i = a/8;
 		b = 1 << (a&7);
 		if(!(abits[i] & b)) {
-			print("missing: %ld\n", fstart+a);
+			print("missing: %lld\n", (Wideoff)fstart+a);
 			n++;
 		}
 		if(n > 10) {
@@ -844,24 +862,25 @@ missing(void)
 
 static
 void
-qmark(long qpath)
+qmark(Off qpath)
 {
-	int i, b;
+	int b;
+	Off i;
 
 	i = qpath/8;
 	b = 1 << (qpath&7);
 	if(i < 0 || i >= sizqbits) {
 		nqbad++;
 		if(nqbad < 20)
-			print("check: \"%s\": qid out of range %lux\n",
-				name, qpath);
+			print("check: \"%s\": qid out of range %llux\n",
+				name, (Wideoff)qpath);
 		return;
 	}
 	if((qbits[i] & b) && !ronly) {
 		nqbad++;
 		if(nqbad < 20)
-			print("check: \"%s\": qid dup %lux\n",
-				name, qpath);
+			print("check: \"%s\": qid dup %llux\n", name,
+				(Wideoff)qpath);
 	}
 	qbits[i] |= b;
 }

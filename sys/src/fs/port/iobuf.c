@@ -7,15 +7,15 @@ extern	long	nhiob;
 extern	Hiob	*hiob;
 
 Iobuf*
-getbuf(Device *d, long addr, int flag)
+getbuf(Device *d, Off addr, int flag)
 {
 	Iobuf *p, *s;
 	Hiob *hp;
-	long h;
+	Off h;
 
 	if(DEBUG)
-		print("getbuf %Z(%ld) f=%x\n", d, addr, flag);
-	h = addr + (long)d*1009L;
+		print("getbuf %Z(%lld) f=%x\n", d, (Wideoff)addr, flag);
+	h = addr + (Off)d*1009;
 	if(h < 0)
 		h = ~h;
 	h %= nhiob;
@@ -93,7 +93,7 @@ xloop:
 	}
 	if(p->flags & Bmod) {
 		unlock(hp);
-		if(iobufmap(p)) {	
+		if(iobufmap(p)) {
 			if(!devwrite(p->dev, p->addr, p->iobuf))
 				p->flags &= ~(Bimm|Bmod);
 			iobufunmap(p);
@@ -199,10 +199,11 @@ putbuf(Iobuf *p)
 {
 
 	if(canqlock(p))
-		print("buffer not locked %Z(%ld)\n", p->dev, p->addr);
+		print("buffer not locked %Z(%lld)\n", p->dev, (Wideoff)p->addr);
 	if(p->flags & Bimm) {
 		if(!(p->flags & Bmod))
-			print("imm and no mod %Z(%ld)\n", p->dev, p->addr);
+			print("imm and no mod %Z(%lld)\n",
+				p->dev, (Wideoff)p->addr);
 		if(!devwrite(p->dev, p->addr, p->iobuf))
 			p->flags &= ~(Bmod|Bimm);
 	}
@@ -211,23 +212,24 @@ putbuf(Iobuf *p)
 }
 
 int
-checktag(Iobuf *p, int tag, long qpath)
+checktag(Iobuf *p, int tag, Off qpath)
 {
 	Tag *t;
-	static long lastaddr;
+	static Off lastaddr;
 
 	t = (Tag*)(p->iobuf+BUFSIZE);
 	if(t->tag != tag) {
 		if(p->flags & Bmod) {
-			print("	tag = %d/%lud; expected %ld/%d -- not flushed\n",
-				t->tag, t->path, qpath, tag);
+			print("	tag = %d/%llud; expected %lld/%d -- not flushed\n",
+				t->tag, (Wideoff)t->path, (Wideoff)qpath, tag);
 			return 2;
 		}
 		if(p->dev != nil && p->dev->type == Devcw)
 			cwfree(p->dev, p->addr);
 		if(p->addr != lastaddr)
-			print("	tag = %G/%lud; expected %G/%ld -- flushed (%ld)\n",
-				t->tag, t->path, tag, qpath, p->addr);
+			print("	tag = %G/%llud; expected %G/%lld -- flushed (%lld)\n",
+				t->tag, (Wideoff)t->path, tag, (Wideoff)qpath,
+				(Wideoff)p->addr);
 		lastaddr = p->addr;
 		p->dev = devnone;
 		p->addr = -1;
@@ -237,8 +239,8 @@ checktag(Iobuf *p, int tag, long qpath)
 	if(qpath != QPNONE) {
 		if((qpath ^ t->path) & ~QPDIR) {
 			if(1 || CHAT(0))
-				print("	tag/path = %lud; expected %d/%lux\n",
-					t->path, tag, qpath);
+				print("	tag/path = %llud; expected %d/%llux\n",
+					(Wideoff)t->path, tag, (Wideoff)qpath);
 			return 0;
 		}
 	}
@@ -283,8 +285,8 @@ iobufql(QLock *q)
 				tag = t->tag;
 				if(tag < 0 || tag >= MAXTAG)
 					tag = Tnone;
-				print("	Iobuf %Z(%ld) t=%s\n",
-					p->dev, p->addr, tagnames[tag]);
+				print("	Iobuf %Z(%lld) t=%s\n",
+					p->dev, (Wideoff)p->addr, tagnames[tag]);
 				unlock(hp);
 				return 1;
 			}

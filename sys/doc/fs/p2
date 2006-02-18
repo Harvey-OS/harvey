@@ -21,33 +21,36 @@ and sends the
 response back to the reply queue.
 .PP
 The unit of storage is a
-block of data on a device:
-.P1
-    enum
-    {
-        RBUFSIZE = 16*1024
-    };
+logical block
+(not physical sector) of data on a device:
+.Ex
+.TA 0.5i 1i 1.5i 2i 2.5i 3i 3.5i 4i 4.5i 5i 5.5i
+	enum
+	{
+		RBUFSIZE = 8*1024
+	};
 
-    typedef
-    struct
-    {
-        short   pad;
-        short	tag;
-        long	path;
-    } Tag;
+	typedef vlong Off;
+	typedef
+	struct
+	{
+		short	pad;
+		short	tag;
+		Off	path;
+	} Tag;
 
-    enum
-    {
-        BUFSIZE = RBUFSIZE - sizeof(Tag)
-    };
+	enum
+	{
+		BUFSIZE = RBUFSIZE - sizeof(Tag)
+	};
 
-    typedef
-    struct
-    {
-        uchar   data[BUFSIZE];
-        Tag     tag;
-    } Block;
-.P2
+	typedef
+	struct
+	{
+		uchar	data[BUFSIZE];
+		Tag	tag;
+	} Block;
+.Ee
 All devices are idealized as a perfect disk
 of contiguously numbered blocks each of size
 .CW RBUFSIZE .
@@ -65,31 +68,31 @@ defines the set of block addresses that comprise a file or directory.
 Unlike the i-node,
 the directory entry also has the name of the
 file or directory in it:
-.P1
-    enum
-    {
-        NAMELEN = 28,
-        NDBLOCK = 6
-    };
-.P2
-.P1
-    typedef
-    struct
-    {
-        char    name[NAMELEN];
-        short   uid;
-        short   gid;
-        ushort  mode;
-        short   wuid;
-        Qid     qid;
-        long    size;
-        long    dblock[NDBLOCK];
-        long    iblock;
-        long    diblock;
-        long    atime;
-        long    mtime;
-    } Dentry;
-.P2
+.Ex
+	enum
+	{
+		NAMELEN = 56,
+		NDBLOCK = 6,
+		NIBLOCK = 4,
+	};
+.Ee
+.Ex
+	typedef
+	struct
+	{
+		char	name[NAMELEN];
+		short	uid;
+		short	gid;
+		ushort	mode;
+		short	wuid;
+		Qid	qid;
+		Off	size;
+		Off	dblock[NDBLOCK];
+		Off	iblocks[NIBLOCK];
+		long	atime;
+		long	mtime;
+	} Dentry;
+.Ee
 Each directory entry holds the file or directory
 name, protection mode, access times, user-id, group-id, and addressing
 information.
@@ -99,64 +102,65 @@ is the user-id of the last writer of the file
 and
 .CW size
 is the size of the file in bytes.
-The first 6
+The addresses of the first 6
 blocks of the file are held in the
 .CW dblock
 array.
 If the file is larger than that,
 an indirect block is allocated that holds
 the next
-.CW BUFSIZE/sizeof(long)
-blocks of the file.
-The indirect block address is held in the structure member
-.CW iblock .
+.CW BUFSIZE/sizeof(Off)
+block addresses of the file.
+The indirect block address is held in
+.CW iblocks[0] .
 If the file is larger yet,
 then there is a double indirect block that points
 at indirect blocks.
 The double indirect address is held in
-.CW diblock
+.CW iblocks[1]
 and can point at another
-.CW (BUFSIZE/sizeof(long))\u\s-2\&2\s+2\d
+.CW (BUFSIZE/sizeof(Off))\u\s-2\&2\s+2\d
 blocks of data.
+This is extended through a quadruple indirect block at
+.CW iblocks[3]
+but the code is now parameterised to permit easily changing the
+number of direct blocks and the depth of indirect blocks,
+and also the maximum size of a file name component.
 The maximum addressable size of a file is
-therefore 275 Gbytes.
-There is a tighter restriction of
-2\u\s-2\&32\s+2\d
-bytes because the length of a file is maintained in
-a long.
-Even so,
-sloppy use of long arithmetic restricts the length to
-2\u\s-2\&31\s+2\d
-bytes.
-These numbers are based on Emelie
-which has a block size of 16K and
-.CW sizeof(long)
-is 4.
-It would be different if the size of a block
-changed.
+therefore 7.93 petabytes at a block size of 8k,
+but 7.98 exabytes (just under $2 sup 63$ bytes) at a block size of 32k.
+File size is restricted to $2 sup 63 - 1$ bytes in any case
+because the length of a file is maintained in a
+(signed)
+.I vlong .
+These numbers are based on
+.I fs64
+which has a block size of 8k and
+.CW sizeof(Off)
+is 8.
 .PP
 The declarations of the indirect and double indirect blocks
 are as follows.
-.P1
-    enum
-    {
-        INDPERBUF = BUFSIZE/sizeof(long),
-    };
-.P2
-.P1
-    typedef
-    {
-        long    dblock[INDPERBUF];
-        Tag     ibtag;
-    } Iblock;
-.P2
-.P1
-    typedef
-    {
-        long    iblock[INDPERBUF];
-        Tag     dibtag;
-    } Diblock;
-.P2
+.Ex
+	enum
+	{
+		INDPERBUF = BUFSIZE/sizeof(Off),
+	};
+.Ee
+.Ex
+	typedef
+	{
+		Off	dblock[INDPERBUF];
+		Tag	ibtag;
+	} Iblock;
+.Ee
+.Ex
+	typedef
+	{
+		Off	iblock[INDPERBUF];
+		Tag	dibtag;
+	} Diblock;
+.Ee
 .PP
 The root of a file system is a single directory entry
 at a known block address.
@@ -164,7 +168,9 @@ A directory is a file that consists of a list of
 directory entries.
 To make access easier,
 a directory entry cannot cross blocks.
-In Emelie there are 233 directory entries per block.
+In
+.I fs64
+there are 47 directory entries per block.
 .PP
 The device on which the blocks reside is implicit
 and ultimately comes from the 9P

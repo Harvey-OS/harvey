@@ -46,6 +46,10 @@ fsconfig \- configuring a file server
 .PP
 .B copyworm
 .PP
+.B copydev
+.I from-dev
+.I to-dev
+.PP
 .B halt
 .PP
 .B end
@@ -318,6 +322,19 @@ to one named
 block by block,
 and loop.
 It knows how to read a fake worm file system.
+.PP
+.I Halt
+will cause the server to
+.I immediately
+exit and reboot.
+.PP
+.I Copydev
+will copy the device
+.I from-dev
+to the device
+.IR to-dev .
+block by block,
+and panic.
 .PP
 .I Halt
 will cause the server to

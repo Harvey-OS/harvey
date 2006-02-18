@@ -1,17 +1,44 @@
 /*
- * fundamental constants
+ * fundamental constants and types of the implementation
+ * changing any of these changes the layout on disk
  */
-#define SUPER_ADDR	2		/* address of superblock */
-#define ROOT_ADDR	3		/* address of root directory */
-#define	NAMELEN		28		/* size of names */
+
+#define SUPER_ADDR	2		/* block address of superblock */
+#define ROOT_ADDR	3		/* block address of root directory */
+
+#ifdef OLD
+/*
+ * compatible on disk with the old 32-bit file server.
+ * this lets people run this kernel on their old file systems.
+ */
+#define	NAMELEN		28		/* max size of file name components */
 #define	NDBLOCK		6		/* number of direct blocks in Dentry */
+#define NIBLOCK		2		/* max depth of indirect blocks */
+
+typedef long Off;	/* file offsets & sizes, in bytes & blocks */
+
+#else			/* OLD */
+
+/* the glorious new, incompatible (on disk) 64-bit world */
+
+/* keeping NAMELEN ≤ 50 bytes permits 3 Dentrys per mag disk sector */
+#define	NAMELEN		56		/* max size of file name components */
+#define	NDBLOCK		6		/* number of direct blocks in Dentry */
+#define NIBLOCK		4		/* max depth of indirect blocks */
+
+/*
+ * file offsets & sizes, in bytes & blocks.  typically long or vlong.
+ * vlong is used in the code where would be needed if Off were just long.
+ */
+typedef vlong Off;
+
+#endif			/* OLD */
+
+/* constants that don't affect disk layout */
 #define	MAXDAT		8192		/* max allowable data message */
 #define	MAXMSG		128		/* max size protocol message sans data */
 #define	OFFMSG		60		/* offset of msg in buffer */
-#define NDRIVE		16		/* size of drive structure */
-#define NTLOCK		200		/* number of active file Tlocks */
-#define	LRES		3		/* profiling resolution */
-#define NATTID		10		/* the last 10 ID's in attaches */
+
 #define	C0a		59		/* time constants for filters */
 #define	C0b		60
 #define	C1a		599
@@ -19,18 +46,34 @@
 #define	C2a		5999
 #define	C2b		6000
 
+/* more fundamental types */
+typedef vlong Wideoff; /* type to widen Off to for printing; ≥ as wide as Off */
+typedef short	Userid;		/* signed internal representation of user-id */
+typedef long	Timet;		/* in seconds since epoch */
+typedef vlong	Devsize;	/* in bytes */
+
+/*
+ * tunable parameters
+ */
+enum {
+	Maxword = 200,			/* max bytes per command-line word */
+};
+#define NDRIVE		16		/* size of drive structure */
+#define NTLOCK		200		/* number of active file Tlocks */
+#define	LRES		3		/* profiling resolution */
+#define NATTID		10		/* the last 10 ID's in attaches */
+
 /*
  * derived constants
  */
 #define	BUFSIZE		(RBUFSIZE-sizeof(Tag))
 #define DIRPERBUF	(BUFSIZE/sizeof(Dentry))
-#define INDPERBUF	(BUFSIZE/sizeof(long))
-#define INDPERBUF2	(INDPERBUF*INDPERBUF)
-#define FEPERBUF	((BUFSIZE-sizeof(Super1)-sizeof(long))/sizeof(long))
+#define INDPERBUF	(BUFSIZE/sizeof(Off))
+#define FEPERBUF	((BUFSIZE-sizeof(Super1)-sizeof(Off))/sizeof(Off))
 #define	SMALLBUF	(MAXMSG)
 #define	LARGEBUF	(MAXMSG+MAXDAT+256)
 #define	RAGAP		(300*1024)/BUFSIZE		/* readahead parameter */
-#define CEPERBK		((BUFSIZE-BKPERBLK*sizeof(long))/\
+#define CEPERBK		((BUFSIZE-BKPERBLK*sizeof(Off))/\
 				(sizeof(Centry)*BKPERBLK))
 #define	BKPERBLK	10
 
@@ -101,7 +144,7 @@ struct	Filter
 	int	c1;			/* time const multiplier */
 	int	c2;			/* time const divider */
 	int	c3;			/* scale for printing */
-	Float	filter;			/* filter */ 
+	Float	filter;			/* filter */
 };
 
 struct	QLock
@@ -138,9 +181,9 @@ struct	Queue
 
 struct	Tag
 {
-	short	pad;
+	short	pad;		/* make tag end at a long boundary */
 	short	tag;
-	long	path;
+	Off	path;
 };
 
 struct	Device
@@ -150,7 +193,7 @@ struct	Device
 	Device*	link;			/* link for mcat/mlev/mirror */
 	Device*	dlink;			/* link all devices */
 	void*	private;
-	long	size;
+	Devsize	size;
 	union
 	{
 		struct			/* wren, ide, (l)worm in targ */
@@ -187,7 +230,7 @@ struct	Device
 		struct			/* part */
 		{
 			Device*	d;
-			long	base;
+			long	base;	/* percentages */
 			long	size;
 		} part;
 		struct			/* byte-swapped */
@@ -198,8 +241,8 @@ struct	Device
 };
 
 typedef struct Sidestarts {
-	long	sstart;			/* blocks before start of side */
-	long	s1start;		/* blocks before start of next side */
+	Devsize	sstart;			/* blocks before start of side */
+	Devsize	s1start;		/* blocks before start of next side */
 } Sidestarts;
 
 struct	Rabuf
@@ -209,17 +252,18 @@ struct	Rabuf
 		struct
 		{
 			Device*	dev;
-			long	addr;
+			Off	addr;
 		};
 		Rabuf*	link;
 	};
 };
 
+/* user-visible Qid, from <libc.h> */
 typedef
 struct Qid
 {
-	uvlong	path;
-	ulong	vers;
+	uvlong	path;			/* Off */
+	ulong	vers;			/* should be Off */
 	uchar	type;
 } Qid;
 
@@ -234,8 +278,8 @@ struct Qid
 /* DONT TOUCH, this is the disk structure */
 struct	Qid9p1
 {
-	long	path;
-	long	version;
+	Off	path;			/* was long */
+	ulong	version;		/* should be Off */
 };
 
 struct	Hiob
@@ -255,7 +299,7 @@ struct	Chan
 	ulong	flags;
 	int	chan;			/* overall channel number, mostly for printing */
 	int	nmsgs;			/* outstanding messages, set under flock -- for flush */
-	ulong	whotime;
+	Timet	whotime;
 	Filter	work;
 	Filter	rate;
 	int	nfile;			/* used by cmd_files */
@@ -284,14 +328,14 @@ struct	Filsys
 struct	Startsb
 {
 	char*	name;
-	long	startsb;
+	Off	startsb;
 };
 
 struct	Time
 {
-	ulong	lasttoy;
-	long	bias;
-	long	offset;
+	Timet	lasttoy;
+	Timet	bias;
+	Timet	offset;
 };
 
 /*
@@ -300,8 +344,8 @@ struct	Time
 struct	Tlock
 {
 	Device*	dev;
-	ulong	time;
-	long	qpath;
+	Timet	time;
+	Off	qpath;
 	File*	file;
 };
 
@@ -313,7 +357,7 @@ struct	Cons
 	int	gid;		/* botch -- used to get gid on cons_create */
 	int	nuid;		/* number of uids */
 	int	ngid;		/* number of gids */
-	long	offset;		/* used to read files, c.f. fchar */
+	Off	offset;		/* used to read files, c.f. fchar */
 	int	chano;		/* generator for channel numbers */
 	Chan*	chan;		/* console channel */
 	Filsys*	curfs;		/* current filesystem */
@@ -352,18 +396,18 @@ struct	File
 	Tlock*	tlock;		/* if file is locked */
 	File*	next;		/* in cp->flist */
 	Filsys*	fs;
-	long	addr;
-	long	slot;
-	long	lastra;		/* read ahead address */
+	Off	addr;
+	long	slot;		/* ordinal # of Dentry with a directory block */
+	Off	lastra;		/* read ahead address */
 	ulong	fid;
-	short	uid;
+	Userid	uid;
 	Auth	*auth;
 	char	open;
 		#define	FREAD	1
 		#define	FWRITE	2
 		#define	FREMOV	4
 
-	long	doffset;	/* directory reading */
+	Off	doffset;	/* directory reading */
 	ulong	dvers;
 	long	dslot;
 };
@@ -371,7 +415,7 @@ struct	File
 struct	Wpath
 {
 	Wpath*	up;		/* pointer upwards in path */
-	long	addr;		/* directory entry addr */
+	Off	addr;		/* directory entry addr */
 	long	slot;		/* directory entry slot */
 	short	refs;		/* number of files using this structure */
 };
@@ -384,15 +428,15 @@ struct	Iobuf
 	Iobuf*	back;		/* for lru */
 	char*	iobuf;		/* only active while locked */
 	char*	xiobuf;		/* "real" buffer pointer */
-	long	addr;
+	Off	addr;
 	int	flags;
 };
 
 struct	Uid
 {
-	short	uid;		/* user id */
-	short	lead;		/* leader of group */
-	short	*gtab;		/* group table */
+	Userid	uid;		/* user id */
+	Userid	lead;		/* leader of group */
+	Userid	*gtab;		/* group table */
 	int	ngrp;		/* number of group entries */
 	char	name[NAMELEN];	/* user name */
 };
@@ -401,8 +445,8 @@ struct	Uid
 struct	Dentry
 {
 	char	name[NAMELEN];
-	short	uid;
-	short	gid;
+	Userid	uid;
+	Userid	gid;
 	ushort	mode;
 		#define	DALLOC	0x8000
 		#define	DDIR	0x4000
@@ -411,12 +455,11 @@ struct	Dentry
 		#define	DREAD	0x4
 		#define	DWRITE	0x2
 		#define	DEXEC	0x1
-	short	muid;
+	Userid	muid;
 	Qid9p1	qid;
-	long	size;
-	long	dblock[NDBLOCK];
-	long	iblock;
-	long	diblock;
+	Off	size;
+	Off	dblock[NDBLOCK];
+	Off	iblocks[NIBLOCK];
 	long	atime;
 	long	mtime;
 };
@@ -424,24 +467,29 @@ struct	Dentry
 /* DONT TOUCH, this is the disk structure */
 struct	Super1
 {
-	long	fstart;
-	long	fsize;
-	long	tfree;
-	long	qidgen;		/* generator for unique ids */
+	Off	fstart;
+	Off	fsize;
+	Off	tfree;
+	Off	qidgen;		/* generator for unique ids */
 	/*
 	 * Stuff for WWC device
 	 */
-	long	cwraddr;	/* cfs root addr */
-	long	roraddr;	/* dump root addr */
-	long	last;		/* last super block addr */
-	long	next;		/* next super block addr */
+	Off	cwraddr;	/* cfs root addr */
+	Off	roraddr;	/* dump root addr */
+	Off	last;		/* last super block addr */
+	Off	next;		/* next super block addr */
+#ifdef AUTOSWAB
+	vlong	magic;		/* for byte-order detection */
+	/* in memory only, not on disk (maybe) */
+	int	flags;
+#endif
 };
 
 /* DONT TOUCH, this is the disk structure */
 struct	Fbuf
 {
-	long	nfree;
-	long	free[FEPERBUF];
+	Off	nfree;
+	Off	free[FEPERBUF];
 };
 
 /* DONT TOUCH, this is the disk structure */
@@ -483,14 +531,14 @@ struct	Conf
 	ulong	nuid;		/* distinct uids */
 	ulong	nserve;		/* server processes */
 	ulong	nfile;		/* number of fid -- system wide */
-	ulong	nwpath;		/* number of active paths, derrived from nfile */
-	ulong	gidspace;	/* space for gid names -- derrived from nuid */
+	ulong	nwpath;		/* number of active paths, derived from nfile */
+	ulong	gidspace;	/* space for gid names -- derived from nuid */
 	ulong	nlgmsg;		/* number of large message buffers */
 	ulong	nsmmsg;		/* number of small message buffers */
-	ulong	recovcw;	/* recover addresses */
-	ulong	recovro;
-	ulong	firstsb;
-	ulong	recovsb;
+	Off	recovcw;	/* recover addresses */
+	Off	recovro;
+	Off	firstsb;
+	Off	recovsb;
 	ulong	nauth;		/* number of Auth structs */
 	uchar	nodump;		/* no periodic dumps */
 	uchar	ripoff;
@@ -503,12 +551,21 @@ struct	Conf
 	ulong	npage1;		/* total physical pages of memory */
 	ulong	base0;		/* base of bank 0 */
 	ulong	base1;		/* base of bank 1 */
+
+	ulong	idedma;		/* flag: use DMA & RWM on IDE disks? */
 };
 
 /*
  * message buffers
  * 2 types, large and small
  */
+/* flags from cpu kernel; not implemented in fs kernel yet */
+enum {
+	Bipck	=	(1<<6),		/* ip checksum */
+	Budpck	=	(1<<3),		/* udp checksum */
+	Btcpck	=	(1<<4),		/* tcp checksum */
+	Bpktck	=	(1<<5),		/* packet checksum */
+};
 struct	Msgbuf
 {
 	short	count;
@@ -563,16 +620,33 @@ struct	Mach
 {
 	int	machno;		/* physical id of processor */
 	int	mmask;		/* 1<<m->machno */
-	ulong	ticks;		/* of the clock since boot time */
+	Timet	ticks;		/* of the clock since boot time */
 	int	lights;		/* light lights, this processor */
+
 	User*	proc;		/* current process on this processor */
 	Label	sched;		/* scheduler wakeup */
 	Lock	alarmlock;	/* access to alarm list */
 	void*	alarm;		/* alarms bound to this clock */
+
 	void	(*intr)(Ureg*, ulong);	/* pending interrupt */
 	User*	intrp;		/* process that was interrupted */
 	ulong	cause;		/* arg to intr */
 	Ureg*	ureg;		/* arg to intr */
+#ifdef CPU
+	int	loopconst;
+
+	Lock	apictimerlock;
+	int	cpumhz;
+	uvlong	cyclefreq;		/* Frequency of user readable cycle counter */
+	uvlong	cpuhz;
+	int	cpuidax;
+	int	cpuiddx;
+	char	cpuidid[16];
+	char*	cpuidtype;
+	int	havetsc;
+	int	havepge;
+	uvlong	tscticks;
+#endif
 	uchar	stack[1];
 };
 
@@ -593,7 +667,7 @@ struct	User
 	int	state;
 	Rendez	tsleep;
 
-	ulong	twhen;
+	Timet	twhen;
 	Rendez	*trend;
 	User	*tlink;
 	int	(*tfn)(void*);
@@ -653,6 +727,21 @@ struct	Rtc
 	int	year;
 };
 
+typedef struct
+{
+	/* constants during a given truncation */
+	Dentry	*d;
+	Iobuf	*p;			/* the block containing *d */
+	int	uid;
+	Off	newsize;
+	Off	lastblk;		/* last data block of file to keep */
+
+	/* variables */
+	Off	relblk;			/* # of current data blk within file */
+	int	pastlast;		/* have we walked past lastblk? */
+	int	err;
+} Truncstate;
+
 /*
  * cw device
  */
@@ -660,20 +749,20 @@ struct	Rtc
 /* DONT TOUCH, this is the disk structure */
 struct	Cache
 {
-	long	maddr;		/* cache map addr */
-	long	msize;		/* cache map size in buckets */
-	long	caddr;		/* cache addr */
-	long	csize;		/* cache size */
-	long	fsize;		/* current size of worm */
-	long	wsize;		/* max size of the worm */
-	long	wmax;		/* highwater write */
+	Off	maddr;		/* cache map addr */
+	Off	msize;		/* cache map size in buckets */
+	Off	caddr;		/* cache addr */
+	Off	csize;		/* cache size */
+	Off	fsize;		/* current size of worm */
+	Off	wsize;		/* max size of the worm */
+	Off	wmax;		/* highwater write */
 
-	long	sbaddr;		/* super block addr */
-	long	cwraddr;	/* cw root addr */
-	long	roraddr;	/* dump root addr */
+	Off	sbaddr;		/* super block addr */
+	Off	cwraddr;	/* cw root addr */
+	Off	roraddr;	/* dump root addr */
 
-	long	toytime;	/* somewhere convienent */
-	long	time;
+	Timet	toytime;	/* somewhere convienent */
+	Timet	time;
 };
 
 /* DONT TOUCH, this is the disk structure */
@@ -681,7 +770,7 @@ struct	Centry
 {
 	ushort	age;
 	short	state;
-	long	waddr;		/* worm addr */
+	Off	waddr;		/* worm addr */
 };
 
 /* DONT TOUCH, this is the disk structure */
@@ -831,20 +920,42 @@ enum
  * tags on block
  */
 /* DONT TOUCH, this is in disk structures */
+/* also, the order from Tdir to Tind4 (Tmaxind) is exploited in indirck() */
 enum
 {
 	Tnone		= 0,
 	Tsuper,			/* the super block */
+#ifdef OLD
 	Tdir,			/* directory contents */
 	Tind1,			/* points to blocks */
 	Tind2,			/* points to Tind1 */
+#else
+	Tdirold,
+	Tind1old,
+	Tind2old,
+#endif
 	Tfile,			/* file contents */
 	Tfree,			/* in free list */
 	Tbuck,			/* cache fs bucket */
 	Tvirgo,			/* fake worm virgin bits */
 	Tcache,			/* cw cache things */
 	Tconfig,		/* configuration block */
-	MAXTAG
+#ifndef OLD
+	/* Tdir & indirect blocks are last to allow for greater depth */
+	Tdir,			/* directory contents */
+	Tind1,			/* points to blocks */
+	Tind2,			/* points to Tind1 */
+	Tind3,			/* points to Tind2 */
+	Tind4,			/* points to Tind3 */
+	Maxtind,
+#endif
+	MAXTAG,
+
+#ifdef OLD
+	Tmaxind = Tind2,
+#else
+	Tmaxind = Maxtind - 1,
+#endif
 };
 
 /*
@@ -856,7 +967,7 @@ enum
 	Bprobe	= (1<<1),	/* return null if miss */
 	Bmod	= (1<<2),	/* buffer is dirty, needs writing */
 	Bimm	= (1<<3),	/* write immediately on putbuf */
-	Bres	= (1<<4),	/* reserved, never renammed */
+	Bres	= (1<<4),	/* reserved, never renamed */
 };
 
 extern	register	Mach*	m;
@@ -868,7 +979,7 @@ Cons	cons;
 #define	MACHP(n)	((Mach*)(MACHADDR+n*BY2PG))
 
 #pragma	varargck	type	"Z"	Device*
-#pragma	varargck	type	"T"	ulong
+#pragma	varargck	type	"T"	Timet
 #pragma	varargck	type	"I"	uchar*
 #pragma	varargck	type	"E"	uchar*
 #pragma	varargck	type	"W"	Filter*

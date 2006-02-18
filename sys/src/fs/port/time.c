@@ -1,7 +1,7 @@
 #include	"all.h"
 #include	"mem.h"
 
-ulong
+Timet
 toytime(void)
 {
 	return mktime + TK2SEC(MACHP(0)->ticks);
@@ -9,7 +9,7 @@ toytime(void)
 
 #define SEC2MIN 60L
 #define SEC2HOUR (60L*SEC2MIN)
-#define SEC2DAY (24L*SEC2HOUR)
+#define SEC2DAY  (24L*SEC2HOUR)
 
 /*
  *  days per month plus days/year
@@ -29,7 +29,6 @@ int	rtldmsize[] =
 int*
 yrsize(int y)
 {
-
 	if((y%4) == 0 && ((y%100) != 0 || (y%400) == 0))
 		return rtldmsize;
 	else
@@ -37,16 +36,16 @@ yrsize(int y)
 }
 
 void
-sec2rtc(ulong secs, Rtc *rtc)
+sec2rtc(Timet secs, Rtc *rtc)
 {
-	long hms, day;
 	int d, *d2m;
+	Timet hms, day;
 
 	/*
 	 * break initial number into days
 	 */
-	hms = secs % SEC2DAY;
-	day = secs / SEC2DAY;
+	hms = (uvlong)secs % SEC2DAY;
+	day = (uvlong)secs / SEC2DAY;
 	if(hms < 0) {
 		hms += SEC2DAY;
 		day -= 1;
@@ -82,10 +81,10 @@ sec2rtc(ulong secs, Rtc *rtc)
 	rtc->mon = d;
 }
 
-ulong
+Timet
 rtc2sec(Rtc *rtc)
 {
-	ulong secs;
+	Timet secs;
 	int i, *d2m;
 
 	secs = 0;
@@ -113,14 +112,13 @@ rtc2sec(Rtc *rtc)
 	return secs;
 }
 
-ulong
+Timet
 time(void)
 {
-	ulong t;
-	long dt;
+	Timet t, dt;
 
 	t = toytime();
-	while(tim.bias != 0) {				/* adjust at rate 1 sec/min */
+	while(tim.bias != 0) {			/* adjust at rate 1 sec/min */
 		dt = t - tim.lasttoy;
 		if(dt < MINUTE(1))
 			break;
@@ -137,13 +135,13 @@ time(void)
 }
 
 void
-settime(ulong nt)
+settime(Timet nt)
 {
-	long dt;
+	Timet dt;
 
 	dt = nt - time();
 	tim.lasttoy = toytime();
-	if(dt > MAXBIAS || dt < -MAXBIAS) {		/* too much, just set it */
+	if(dt > MAXBIAS || dt < -MAXBIAS) {	/* too much, just set it */
 		tim.bias = 0;
 		tim.offset = nt - tim.lasttoy;
 	} else
@@ -153,7 +151,7 @@ settime(ulong nt)
 void
 prdate(void)
 {
-	ulong t;
+	Timet t;
 
 	t = time();
 	if(tim.bias >= 0)
@@ -164,8 +162,8 @@ prdate(void)
 
 static	int	dysize(int);
 static	void	ct_numb(char*, int);
-void		localtime(ulong, Tm*);
-void		gmtime(ulong, Tm*);
+void		localtime(Timet, Tm*);
+void		gmtime(Timet, Tm*);
 
 static	char	dmsize[12] =
 {
@@ -215,10 +213,10 @@ succsunday(Tm *t, int d)
 }
 
 void
-localtime(ulong tim, Tm *ct)
+localtime(Timet tim, Tm *ct)
 {
 	int daylbegin, daylend, dayno, i;
-	ulong copyt;
+	Timet copyt;
 
 	copyt = tim - conf.minuteswest*60L;
 	gmtime(copyt, ct);
@@ -240,16 +238,16 @@ localtime(ulong tim, Tm *ct)
 }
 
 void
-gmtime(ulong tim, Tm *ct)
+gmtime(Timet tim, Tm *ct)
 {
 	int d0, d1;
-	long hms, day;
+	Timet hms, day;
 
 	/*
 	 * break initial number into days
 	 */
-	hms = tim % 86400L;
-	day = tim / 86400L;
+	hms = (uvlong)tim % 86400L;
+	day = (uvlong)tim / 86400L;
 	if(hms < 0) {
 		hms += 86400L;
 		day -= 1;
@@ -298,7 +296,7 @@ gmtime(ulong tim, Tm *ct)
 }
 
 void
-datestr(char *s, ulong t)
+datestr(char *s, Timet t)
 {
 	Tm tm;
 
@@ -311,10 +309,10 @@ Tfmt(Fmt* fmt)
 {
 	char s[30];
 	char *cp;
-	ulong t;
+	Timet t;
 	Tm tm;
 
-	t = va_arg(fmt->args, ulong);
+	t = va_arg(fmt->args, Timet);
 	if(t == 0)
 		return fmtstrcpy(fmt, "The Epoch");
 
@@ -344,7 +342,6 @@ Tfmt(Fmt* fmt)
 static
 dysize(int y)
 {
-
 	if((y%4) == 0)
 		return 366;
 	return 365;
@@ -354,7 +351,6 @@ static
 void
 ct_numb(char *cp, int n)
 {
-
 	if(n >= 10)
 		cp[0] = (n/10)%10 + '0';
 	else
@@ -368,38 +364,37 @@ ct_numb(char *cp, int n)
  * day in bitpattern --
  * for automatic dumps
  */
-ulong
-nextime(ulong t, int hr, int day)
+Timet
+nextime(Timet t, int hr, int day)
 {
-	Tm tm;
 	int nhr;
+	Tm tm;
 
 	if(hr < 0 || hr >= 24)
 		hr = 5;
 	if((day&0x7f) == 0x7f)
 		day = 0;
-
-loop:
-	localtime(t, &tm);
-	t -= tm.sec;
-	t -= tm.min*60;
-	nhr = tm.hour;
-	do {
-		t += 60*60;
-		nhr++;
-	} while(nhr%24 != hr);
-	localtime(t, &tm);
-	if(tm.hour != hr) {
-		t += 60*60;
+	for (;;) {
+		localtime(t, &tm);
+		t -= tm.sec;
+		t -= tm.min*60;
+		nhr = tm.hour;
+		do {
+			t += 60*60;
+			nhr++;
+		} while(nhr%24 != hr);
 		localtime(t, &tm);
 		if(tm.hour != hr) {
-			t -= 60*60;
+			t += 60*60;
 			localtime(t, &tm);
+			if(tm.hour != hr) {
+				t -= 60*60;
+				localtime(t, &tm);
+			}
 		}
+		if(day & (1<<tm.wday))
+			t += 12*60*60;
+		else
+			return t;
 	}
-	if(day & (1<<tm.wday)) {
-		t += 12*60*60;
-		goto loop;
-	}
-	return t;
 }

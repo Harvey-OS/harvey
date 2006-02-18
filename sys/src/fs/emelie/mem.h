@@ -82,4 +82,4 @@
 
 #define MACHADDR	((ulong)&mach0)		/* hack number 1 */
 
-#define IFLAG		0x200
+#define IFLAG		0x200	/* psw: interrupt enable, to be accurate */

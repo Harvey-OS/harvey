@@ -1,0 +1,15 @@
+'emelie' is for any PC with supported hardware excluding the SONY
+jukebox, and will make an object '9emeliefs' and use a 16KB block size.
+
+To spin-off a new version to play with, say 'test':
+
+	cd /sys/src/fs
+	mkdir test
+	cp emelie/9emeliefs.c test/9testfs.c
+	cp emelie/dat.h emelie/fns.h emelie/io.h emelie/mem.h test
+	sed '1s/emelie/test/' <emelie/mkfile >test/mkfile
+
+and hack as appropriate.
+
+The mkfiles aren't quite right yet to make this as automatic as it
+should be.  There are a lot of rough edges.

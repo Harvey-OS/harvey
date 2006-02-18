@@ -23,7 +23,7 @@ char	*errstr9p[MAXERR] =
 	[Ewstatb]	"wstat -- unknown bits in qid.type/mode",
 	[Ewstatd]	"wstat -- attempt to change directory",
 	[Ewstatg]	"wstat -- not in group",
-	[Ewstatl]	"wstat -- attempt to change length",
+	[Ewstatl]	"wstat -- attempt to make length negative",
 	[Ewstatm]	"wstat -- attempt to change muid",
 	[Ewstato]	"wstat -- not owner or group leader",
 	[Ewstatp]	"wstat -- attempt to change qid.path",
@@ -59,7 +59,7 @@ char*	wormscode[0x80] =
 	[0x07]	"parity error",
 	[0x08]	"message reject error",
 	[0x0a]	"copy aborted",
-	[0x0b]	"inniator idetected error",
+	[0x0b]	"initiator detected error",
 	[0x0c]	"select re-select failed",
 	[0x0e]	"miscompare",
 
@@ -138,6 +138,11 @@ char*	tagnames[] =
 	[Tfree]		"Tfree",
 	[Tind1]		"Tind1",
 	[Tind2]		"Tind2",
+#ifndef OLD
+	[Tind3]		"Tind3",
+	[Tind4]		"Tind4",
+	/* add more Tind tags here ... */
+#endif
 	[Tnone]		"Tnone",
 	[Tsuper]	"Tsuper",
 	[Tvirgo]	"Tvirgo",

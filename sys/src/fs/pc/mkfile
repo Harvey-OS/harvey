@@ -9,4 +9,5 @@ PCSFILES=`{builtin cd ../pc;echo *.s | sed 's/ /|/g; s/\.s//g'}
 $ETHER:	../pc/etherif.h
 
 dosfs.$O nvr.$O:	../pc/dosfs.h
-compat.$O ether83815.$O etherdp83820.$O ether8139.$O: ../pc/compat.h
+compat.$O ether8139.$O ether83815.$O etherdp83820.$O etherigbe.$O etherif.$O\
+	ethermii.$O sdata.$O sdscsi.$O: ../pc/compat.h

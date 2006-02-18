@@ -1,5 +1,8 @@
 #include	"all.h"
 
+/* from ../pc/8250.c */
+extern int uartcons;
+
 static
 struct
 {
@@ -272,7 +275,9 @@ panic(char *fmt, ...)
 	char buf[PRINTSIZE];
 
 	lights(Lpanic, 1);
-	dumpstack(u);
+	/* if the only console is vga, conserve it */
+	if (uartcons)
+		dumpstack(u);
 	strcpy(buf, "panic: ");
 	va_start(arg, fmt);
 	n = vseprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg) - buf;
@@ -291,7 +296,7 @@ prflush(void)
 {
 	int i;
 
-	if(predawn)
+	if(predawn || !uartcons)
 		return;
 	for(i=0; i<50; i++) {
 		if(!printq.printing)

@@ -26,10 +26,10 @@ enum
 
 	Seconds		= 1000,
 	Iltickms 	= 50,			/* time base */
-	AckDelay	= (ulong)(2*Iltickms),	/* max time twixt message rcvd & ack sent */
-	MaxTimeout 	= (ulong)(4*Seconds),	/* max time between rexmit */
-	QueryTime	= (ulong)(10*Seconds),	/* time between subsequent queries */
-	DeathTime	= (ulong)(30*QueryTime),
+	AckDelay	= (Timet)(2*Iltickms),	/* max time twixt message rcvd & ack sent */
+	MaxTimeout 	= (Timet)(4*Seconds),	/* max time between rexmit */
+	QueryTime	= (Timet)(10*Seconds),	/* time between subsequent queries */
+	DeathTime	= (Timet)(30*QueryTime),
 
 	MaxRexmit 	= 16,		/* max retransmissions before hangup */
 	DefWin		= 20,
@@ -97,7 +97,7 @@ static void
 ilwhoprint(Chan* cp)
 {
 	Ilp *ilp;
-	ulong t;
+	Timet t;
 
 	if(cp->type != Devil)
 		return;
@@ -192,7 +192,7 @@ getchan(Ifc *ifc, Ilpkt *p, Msgbuf *mb)
 		ilp->chan = il.chan;
 		il.chan = cp;
 	}
-	
+
 
 	cp->ifc = ifc;
 	ilp = cp->pdata;
@@ -281,77 +281,76 @@ ilout(void)
 	int dlen;
 	ulong id, ack;
 
-loop:
-	mb = recv(il.reply, 0);
-	if(mb == 0)
-		goto loop;
+	for (;;) {
+		while ((mb = recv(il.reply, 0)) == nil)
+			continue;
 
-	cp = mb->chan;
-	ilp = cp->pdata;
+		cp = mb->chan;
+		ilp = cp->pdata;
 
-	switch(ilp->state) {
-	case Ilclosed:
-	case Illistening:
-	case Ilclosing:
-		goto err;
+		switch(ilp->state) {
+		case Ilclosed:
+		case Illistening:
+		case Ilclosing:
+			print("ilout: error\n");
+			mbfree(mb);
+			continue;
+		}
+
+		dlen = mb->count;
+		mb->data -= Ensize+Ipsize+Ilsize;    /* make room for header */
+		mb->count += Ensize+Ipsize+Ilsize;
+		if(mb->data < mb->xdata)
+			panic("ilout: no room for header");
+		ih = (Ilpkt*)mb->data;
+
+		/*
+		 * Ip fields
+		 */
+		ifc = cp->ifc;
+		memmove(ih->src, ifc->ipa, Pasize);
+		memmove(ih->dst, ilp->iphis, Pasize);
+		ih->proto = Ilproto;
+
+		/*
+		 * Il fields
+		 */
+		hnputs(ih->illen, Ilsize+dlen);
+		hnputs(ih->ilsrc, ilp->dstp);
+		hnputs(ih->ildst, ilp->srcp);
+		id = ilp->next++;
+		hnputl(ih->ilid, id);
+		ack = ilp->recvd;
+		hnputl(ih->ilack, ack);
+		ilp->acksent = ack;
+		ilp->acktime = msec + AckDelay;
+		ih->iltype = Ildata;
+		ih->ilspec = 0;
+		ih->ilsum[0] = 0;
+		ih->ilsum[1] = 0;
+
+		/*
+		 * checksum
+		 */
+		hnputs(ih->ilsum, ptclcsum((uchar*)ih+(Ensize+Ipsize),
+			dlen+Ilsize));
+
+		ilackq(cp, mb);
+
+		/*
+		 * Start the round trip timer for this packet if the timer
+		 * is free.
+		 */
+		if(ilp->rttack == 0) {
+			ilp->rttack = id;
+			ilp->rttstart = msec;
+			ilp->rttlen = dlen+Ipsize+Ilsize;
+		}
+
+		if(ilp->timeout <= msec)
+			ilsettimeout(ilp);
+		ipsend(mb);
 	}
-
-	dlen = mb->count;
-	mb->data -= Ensize+Ipsize+Ilsize;	/* make room for header */
-	mb->count += Ensize+Ipsize+Ilsize;
-	if(mb->data < mb->xdata)
-		panic("ilout: no room for header");
-	ih = (Ilpkt*)mb->data;
-
-	/*
-	 * Ip fields
-	 */
-	ifc = cp->ifc;
-	memmove(ih->src, ifc->ipa, Pasize);
-	memmove(ih->dst, ilp->iphis, Pasize);
-	ih->proto = Ilproto;
-
-	/*
-	 * Il fields
-	 */
-	hnputs(ih->illen, Ilsize+dlen);
-	hnputs(ih->ilsrc, ilp->dstp);
-	hnputs(ih->ildst, ilp->srcp);
-	id = ilp->next++;
-	hnputl(ih->ilid, id);
-	ack = ilp->recvd;
-	hnputl(ih->ilack, ack);
-	ilp->acksent = ack;
-	ilp->acktime = msec + AckDelay;
-	ih->iltype = Ildata;
-	ih->ilspec = 0;
-	ih->ilsum[0] = 0;
-	ih->ilsum[1] = 0;
-
-	/*
-	 * checksum
-	 */
-	hnputs(ih->ilsum, ptclcsum((uchar*)ih+(Ensize+Ipsize), dlen+Ilsize));
-
-	ilackq(cp, mb);
-
-	/* Start the round trip timer for this packet if the timer is free */
-	if(ilp->rttack == 0) {
-		ilp->rttack = id;
-		ilp->rttstart = msec;
-		ilp->rttlen = dlen+Ipsize+Ilsize;
-	}
-
-	if(ilp->timeout <= msec)
-		ilsettimeout(ilp);
-	ipsend(mb);
-	goto loop;
-
-err:
-	print("ilout: error\n");
-	mbfree(mb);
-	goto loop;
-
 }
 
 static
@@ -373,7 +372,7 @@ ilackq(Chan *cp, Msgbuf *mb)
 	lock(ilp);
 	if(ilp->unacked)
 		ilp->unackedtail->next = nmb;
-	else 
+	else
 		ilp->unacked = nmb;
 	ilp->unackedtail = nmb;
 	ilp->unackedbytes += nmb->count;
@@ -797,7 +796,7 @@ ilrexmit(Ilp *ilp)
 	mb = mballoc(omb->count, omb->chan, Mbil4);
 	memmove(mb->data, omb->data, omb->count);
 	unlock(ilp);
-	
+
 	h = (Ilpkt*)mb->data;
 
 	h->iltype = Ildataquery;
@@ -839,7 +838,7 @@ static
 void
 ilsettimeout(Ilp *ilp)
 {
-	ulong pt;
+	Timet pt;
 
 	pt = (ilp->delay>>LogAGain)
 		+ ilp->unackedbytes/(ilp->rate>>LogAGain)
@@ -854,7 +853,7 @@ static
 void
 ilbackoff(Ilp *ilp)
 {
-	ulong pt;
+	Timet pt;
 	int i;
 
 	pt = (ilp->delay>>LogAGain)
@@ -880,26 +879,26 @@ static
 void
 callil(Alarm *a, void *)
 {
-
 	cancel(a);
 	wakeup(&ilt);
 }
 
 // complain if two numbers not within an hour of each other
 #define Tfuture (1000*60*60)
+
 int
-later(ulong t1, ulong t2, char *x)
+later(Timet t1, Timet t2, char *x)
 {
-	int dt;
+	Timet dt;
 
 	dt = t1 - t2;
 	if(dt > 0) {
 		if(dt > Tfuture)
-			print("%s: way future %d\n", x, dt);
+			print("%s: way future %ld\n", x, dt);
 		return 1;
 	}
 	if(dt < -Tfuture) {
-		print("%s: way past %d\n", x, -dt);
+		print("%s: way past %ld\n", x, -dt);
 		return 1;
 	}
 	return 0;
@@ -927,7 +926,7 @@ loop:
 
 		case Ilclosing:
 			if(later(msec, ilp->timeout, "timeout")){
-				if(ilp->rexmit > MaxRexmit){ 
+				if(ilp->rexmit > MaxRexmit){
 					ilp->state = Ilclosed;
 					ilhangup(cp, "connection timed out-0", 0);
 					break;
@@ -940,7 +939,7 @@ loop:
 		case Ilsyncee:
 		case Ilsyncer:
 			if(later(msec, ilp->timeout, "timeout")){
-				if(ilp->rexmit > MaxRexmit){ 
+				if(ilp->rexmit > MaxRexmit){
 					ilp->state = Ilclosed;
 					ilhangup(cp, "connection timed out-1", 0);
 					break;

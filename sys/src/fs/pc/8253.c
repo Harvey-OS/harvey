@@ -24,12 +24,13 @@ enum
 	Freq	= 1193182,	/* Real clock frequency */
 };
 
-static int cpufreq	= 66000000;
-static int cpuhz;
+static uvlong cpufreq	= 66000000;
+static uvlong cpuhz;
 static int cpumhz	= 66;
 static int loopconst	= 100;
 /*static*/ int cpuidax, cpuiddx;
 static char cpuidid[16];
+static int havetsc;
 
 static void
 clockintr(Ureg *ur, void *v)
@@ -81,13 +82,17 @@ static X86type x86intel[] =
 	{ 6,	6,	16,	"Celeron", },
 	{ 6,	7,	16,	"PentiumIII/Xeon", },
 	{ 6,	8,	16,	"PentiumIII/Xeon", },
+	{ 6,	0xB,	16,	"PentiumIII/Xeon", },
+	{ 0xF,	1,	16,	"P4", },	/* P4 */
+	{ 0xF,	2,	16,	"PentiumIV/Xeon", },
 
 	{ 3,	-1,	32,	"386", },	/* family defaults */
 	{ 4,	-1,	22,	"486", },
 	{ 5,	-1,	23,	"P5", },
 	{ 6,	-1,	16,	"P6", },
+	{ 0xF,	-1,	16,	"P4", },	/* P4 */
 
-	{ -1,	-1,	23,	"unknown", },	/* total default */
+	{ -1,	-1,	16,	"unknown", },	/* total default */
 };
 
 /*
@@ -117,11 +122,41 @@ static X86type x86amd[] =
 	{ 4,	-1,	22,	"Am486", },	/* guesswork */
 	{ 5,	-1,	23,	"AMD-K5/K6", },	/* guesswork */
 	{ 6,	-1,	11,	"AMD-Athlon", },/* guesswork */
+	{ 0xF,	-1,	11,	"AMD64", },	/* guesswork */
 
 	{ -1,	-1,	23,	"unknown", },	/* total default */
 };
 
+/*
+ * WinChip 240MHz
+ */
+static X86type x86winchip[] =
+{
+	{5,	4,	23,	"Winchip",},	/* guesswork */
+	{6,	7,	23,	"Via C3 Samuel 2 or Ezra",},
+	{6,	8,	23,	"Via C3 Ezra-T",},
+	{ -1,	-1,	23,	"unknown", },	/* total default */
+};
+
+/*
+ * SiS 55x
+ */
+static X86type x86sis[] =
+{
+	{5,	0,	23,	"SiS 55x",},	/* guesswork */
+	{ -1,	-1,	23,	"unknown", },	/* total default */
+};
+
 static X86type	*cputype;
+
+static void
+simplecycles(uvlong*x)
+{
+	*x = m->ticks;
+}
+
+void	(*cycles)(uvlong*) = simplecycles;
+void	_cycles(uvlong*);	/* in l.s */
 
 static void
 nop(void)
@@ -174,7 +209,7 @@ void
 clockinit(void)
 {
 	int x, y;	/* change in counter */
-	int family, model, loops, incr, havecycleclock;
+	int family, model, loops, incr;
 	X86type *t;
 	uvlong a, b;
 
@@ -189,6 +224,10 @@ clockinit(void)
 	cpuid(cpuidid, &cpuidax, &cpuiddx);
 	if(strncmp(cpuidid, "AuthenticAMD", 12) == 0)
 		t = x86amd;
+	else if(strncmp(cpuidid, "CentaurHauls", 12) == 0)
+		t = x86winchip;
+	else if(strncmp(cpuidid, "SiS SiS SiS ", 12) == 0)
+		t = x86sis;
 	else
 		t = x86intel;
 	family = FAMILY(cpuidax);
@@ -202,12 +241,18 @@ clockinit(void)
 	}
 	cputype = t;
 
-	if(family >= 5){
-		havecycleclock = 1;
+	if(family >= 5)
 		coherence = wbflush;
+
+	/*
+	 *  if there is one, set tsc to a known value
+	 */
+	if(cpuiddx & 0x10){
+		havetsc = 1;
+		cycles = _cycles;
+		if(cpuiddx & 0x20)
+			wrmsr(0x10, 0);
 	}
-	else
-		havecycleclock = 0;
 
 	/*
 	 *  set clock for 1/HZ seconds
@@ -235,7 +280,7 @@ clockinit(void)
 	incr = 16000000/(t->aalcycles*HZ*2);
 	x = 2000;
 	for(loops = incr; loops < 64*1024; loops += incr) {
-	
+
 		/*
 		 *  measure time for the loop
 		 *
@@ -249,18 +294,16 @@ clockinit(void)
 		 *
 		 */
 		outb(Tmode, Latch0);
-		if(havecycleclock)
-			rdtsc(&a);
+		cycles(&a);
 		x = inb(T0cntr);
 		x |= inb(T0cntr)<<8;
 		aamloop(loops);
 		outb(Tmode, Latch0);
-		if(havecycleclock)
-			rdtsc(&b);
+		cycles(&b);
 		y = inb(T0cntr);
 		y |= inb(T0cntr)<<8;
 		x -= y;
-	
+
 		if(x < 0)
 			x += Freq/HZ;
 
@@ -272,11 +315,12 @@ clockinit(void)
  	 *  figure out clock frequency and a loop multiplier for delay().
 	 *  n.b. counter goes up by 2*Freq
 	 */
-	cpufreq = loops*((t->aalcycles*2*Freq)/x);
+	cpufreq = (vlong)loops*((t->aalcycles*2*Freq)/x);
 	loopconst = (cpufreq/1000)/t->aalcycles;	/* AAM+LOOP's for 1 ms */
+	if (0)
+		print("loops %d x %d cpufreq %,lld loopconst %d\n", loops, x, cpufreq, loopconst);
 
-	if(havecycleclock){
-
+	if(havetsc){
 		/* counter goes up by 2*Freq */
 		b = (b-a)<<1;
 		b *= Freq;
@@ -294,10 +338,14 @@ clockinit(void)
 		cpumhz = (cpufreq + cpufreq/200)/1000000;
 		cpuhz = cpufreq;
 	}
+	if (0) {
+		print("cpuhz %,lld cpumhz %d\n", cpuhz, cpumhz);
+		delay(10*1000);
+	}
 }
 
 void
-clockreload(ulong n)
+clockreload(Timet n)
 {
 	USED(n);
 }

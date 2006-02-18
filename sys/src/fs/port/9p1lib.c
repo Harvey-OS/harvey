@@ -7,9 +7,15 @@ int kernel9p = 2;
 #include "9p1.h"
 
 #define	CHAR(x)		*p++ = f->x
-#define	SHORT(x)	{ ulong vvv = f->x; p[0] = vvv; p[1] = vvv>>8; p += 2; }
-#define	VLONG(q)	p[0] = (q); p[1] = (q)>>8; p[2] = (q)>>16; p[3] = (q)>>24; p += 4
-#define	LONG(x)		{ ulong vvv = f->x; VLONG(vvv); }
+#define	SHORT(x)	{ ulong vvv = f->x; *p++ = vvv; *p++ = vvv>>8; }
+#define	LONGINT(q) {*p++ = (q); *p++ = (q)>>8; *p++ = (q)>>16; *p++ = (q)>>24;}
+#define	LONG(x)		{ ulong vvv = f->x; LONGINT(vvv); }
+#define	VLONG(x) { \
+	uvlong q = f->x; \
+	*p++ = (q)>> 0; *p++ = (q)>> 8; *p++ = (q)>>16; *p++ = (q)>>24; \
+	*p++ = (q)>>32; *p++ = (q)>>40; *p++ = (q)>>48; *p++ = (q)>>56; \
+	}
+
 #define	BYTES(x,n)	memmove(p, f->x, n); p += n
 #define	STRING(x,n)	strncpy((char*)p, f->x, n); p += n
 
@@ -86,13 +92,13 @@ convS2M9p1(Fcall *f, uchar *ap)
 
 	case Tread:
 		SHORT(fid);
-		LONG(offset); VLONG(0);
+		VLONG(offset);
 		SHORT(count);
 		break;
 
 	case Twrite:
 		SHORT(fid);
-		LONG(offset); VLONG(0);
+		VLONG(offset);
 		SHORT(count);
 		p++;
 		if((uchar*)p == (uchar*)f->data) {
@@ -222,7 +228,7 @@ convD2M9p1(Dentry *f, char *ap)
 	p += NAMELEN;
 
 	q = fakeqid9p1(f);
-	VLONG(q);
+	LONGINT(q);
 	LONG(qid.version);
 	{
 		q = f->mode & 0x0fff;
@@ -232,12 +238,12 @@ convD2M9p1(Dentry *f, char *ap)
 			q |= PAPND;
 		if(f->mode & DLOCK)
 			q |= PLOCK;
-		VLONG(q);
+		LONGINT(q);
 	}
 	LONG(atime);
 	LONG(mtime);
-	LONG(size); VLONG(0);
-	VLONG(0);
+	VLONG(size);
+	LONGINT(0);
 	return p - (uchar*)ap;
 }
 
@@ -260,14 +266,20 @@ convA2M9p1(Authenticator *f, char *ap, char *key)
 #undef	CHAR
 #undef	SHORT
 #undef	LONG
+#undef	LONGINT
 #undef	VLONG
 #undef	BYTES
 #undef	STRING
 
 #define	CHAR(x)		f->x = *p++
 #define	SHORT(x)	f->x = (p[0] | (p[1]<<8)); p += 2
-#define	VLONG(q)	q = (p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24)); p += 4
-#define	LONG(x)		VLONG(f->x)
+#define	LONG(x)	f->x = p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24); p += 4
+#define	VLONG(x) { \
+	f->x =	    (p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24)) | \
+	    (uvlong)(p[4] | (p[5]<<8) | (p[6]<<16) | (p[7]<<24)) << 32; \
+	p += 8; \
+}
+
 #define	BYTES(x,n)	memmove(f->x, p, n); p += n
 #define	STRING(x,n)	memmove(f->x, p, n); p += n
 
@@ -352,13 +364,13 @@ convM2S9p1(uchar *ap, Fcall *f, int n)
 
 	case Tread:
 		SHORT(fid);
-		LONG(offset); p += 4;
+		VLONG(offset);
 		SHORT(count);
 		break;
 
 	case Twrite:
 		SHORT(fid);
-		LONG(offset); p += 4;
+		VLONG(offset);
 		SHORT(count);
 		p++;
 		f->data = (char*)p; p += f->count;
@@ -448,7 +460,7 @@ int
 convM2D9p1(char *ap, Dentry *f)
 {
 	uchar *p;
-	char str[28];
+	char str[NAMELEN];
 
 	p = (uchar*)ap;
 	BYTES(name, sizeof(f->name));
@@ -475,7 +487,7 @@ convM2D9p1(char *ap, Dentry *f)
 	}
 	LONG(atime);
 	LONG(mtime);
-	LONG(size); p += 4;
+	VLONG(size);
 	p += 4;
 	return p - (uchar*)ap;
 }

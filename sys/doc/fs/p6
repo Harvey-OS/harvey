@@ -10,9 +10,13 @@ by performing operations on its two constituent devices
 the read-write c-device and the write-once-read-many
 w-device.
 The block numbers on the four devices are distinct,
-although the cw addresses,
+although the
+.I cw
+addresses,
 dump addresses,
-and the w addresses are
+and the
+.I w
+addresses are
 highly correlated.
 .PP
 The cw-driver uses the w-device as the
@@ -26,34 +30,34 @@ mapped through a hash table kept on a partition of the c-device.
 .PP
 The map portion of the c-device consists of blocks of buckets of entries.
 The declarations follow.
-.P1
-    enum
-    {
-        BKPERBLK = 10,
-        CEPERBK  = (BUFSIZE - BKPERBLK*sizeof(long)) /
-                   (sizeof(Centry)*BKPERBLK),
-    };
-.P2
-.P1
-    typedef
-    struct
-    {
-        ushort   age;
-        short    state;
-        long     waddr;
-    } Centry;
-.P2
-.P1
-    typedef
-    struct
-    {
-        long     agegen;
-        Centry   entry[CEPERBK];
-    } Bucket;
-.P2
-.P1
-    Bucket   bucket[BKPERBLK];
-.P2
+.Ex
+	enum
+	{
+		BKPERBLK = 10,
+		CEPERBK	= (BUFSIZE - BKPERBLK*sizeof(Off)) /
+				(sizeof(Centry)*BKPERBLK),
+	};
+.Ee
+.Ex
+	typedef
+	struct
+	{
+		ushort	age;
+		short	state;
+		Off	waddr;
+	} Centry;
+.Ee
+.Ex
+	typedef
+	struct
+	{
+		long	agegen;
+		Centry	entry[CEPERBK];
+	} Bucket;
+.Ee
+.Ex
+	Bucket	bucket[BKPERBLK];
+.Ee
 There is exactly one entry structure for each block in the
 data partition of the c-device.
 A bucket contains all of the w-addresses that have
@@ -69,10 +73,10 @@ from zero.
 .PP
 The following steps go into converting a w-address into a c-address.
 The bucket is found by
-.P1
-    bucket_number = w-address % total_buckets
-    getbuf(c-device, bucket_offset + bucket_number/BKPERBLK);
-.P2
+.Ex
+	bucket_number = w-address % total_buckets;
+	getbuf(c-device, bucket_offset + bucket_number/BKPERBLK);
+.Ee
 After the desired bucket is found,
 the desired entry is found by a linear search within the bucket for the
 entry with the desired
@@ -80,17 +84,17 @@ entry with the desired
 .PP
 The state variable in the entry is
 one of the following.
-.P1
-    enum
-    {
-        Cnone    = 0,
-        Cdirty,
-        Cdump,
-        Cread,
-        Cwrite,
-        Cdump1,
-    };
-.P2
+.Ex
+	enum
+	{
+		Cnone	= 0,
+		Cdirty,
+		Cdump,
+		Cread,
+		Cwrite,
+		Cdump1,
+	};
+.Ee
 Every w-address has a state.
 Blocks that are not in the
 c-device have the implied
@@ -157,7 +161,8 @@ blocks with
 state.
 .PP
 The dump algorithm is as follows:
-a) The tree on the cw-device is walked
+.IP a)
+The tree on the cw-device is walked
 as long as the blocks visited have been
 modified since the last dump.
 These are the blocks with state
@@ -175,7 +180,8 @@ The directory containing that directory must be
 modified for the same reason.
 The tree walk is thus drastically restrained and the
 tree walk does not take much time.
-b) All
+.IP b)
+All
 .CW Cwrite
 blocks found in the tree search
 are relocated to new blank blocks on the w-device
@@ -195,13 +201,15 @@ These blocks are marked for later
 writing to the w-device
 with the state
 .CW Cdump .
-c) All open files that were pointing to modified
+.IP c)
+All open files that were pointing to modified
 blocks are reopened to point at the corresponding
 reallocated blocks.
 This causes the directories leading to the
 open files to be modified.
 Thus the invariant discussed in a) is maintained.
-d) The background dumping process will slowly
+.IP d)
+The background dumping process will slowly
 go through the map of the c-device and write out
 all blocks with
 .CW Cdump

@@ -190,6 +190,11 @@ by the ASCII time to the file
 An example of 2 consoles complete with console logging is:
 .IP
 .EX
+% cat /lib/ndb/consoledb
+group=sys
+	uid=glenda
+console=bootes dev=/dev/eia0 gid=sys
+console=fornax dev=/dev/eia1 gid=sys
 % aux/consolefs
 % ls -p /mnt/consoles
 bootes
@@ -199,6 +204,18 @@ fornaxctl
 % clog /mnt/consoles/fornax /sys/log/fornax &
 % clog /mnt/consoles/bootes /sys/log/bootes &
 .EE
+.PP
+The console server's default name space must 
+mount the consoles for 
+.I C
+to import.
+This can be arranged by adding
+.IP
+.EX
+mount /srv/consoles /mnt/consoles
+.EE
+to
+.BR /lib/namespace.$sysname .
 .SH FILES
 .TF /lib/ndb/consoledb
 .TP

@@ -23,7 +23,7 @@ enum {
 static Lock rtclock;
 
 void
-setrtc(ulong secs)
+setrtc(Timet secs)
 {
 	Rtc rtc;
 	uchar bcdclock[Nbcd];
@@ -93,11 +93,11 @@ _rtctime(void)
 	return rtc2sec(&rtc);
 }
 
-ulong
+Timet
 rtctime(void)
 {
 	int i;
-	ulong t, ot;
+	Timet t, ot;
 
 	ilock(&rtclock);
 

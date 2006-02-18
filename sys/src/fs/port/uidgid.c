@@ -3,8 +3,8 @@
 struct
 {
 	char*	name;
-	short	uid;
-	short	lead;
+	Userid	uid;
+	Userid	lead;
 } minusers[] =
 {
 	"adm",		-1,	-1,
@@ -175,13 +175,11 @@ cmd_newuser(int argc, char *argv[])
 void
 do_newuser(int argc, char *argv[])
 {
-	Rune *r;
-	int nuid;
-	short *s;
-	Uid *ui, *u2;
+	int i, l, n, nuid;
 	char *p, *md, *q;
-	int i, l, n;
-
+	Rune *r;
+	Userid *s;
+	Uid *ui, *u2;
 
 	nuid = 10000;
 	md = 0;
@@ -505,7 +503,7 @@ int
 ingroup(int u, int g)
 {
 	Uid *p;
-	short *s, *e;
+	Userid *s, *e;
 
 	if(u == g)
 		return 1;

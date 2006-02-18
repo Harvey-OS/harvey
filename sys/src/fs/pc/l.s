@@ -3,6 +3,7 @@
 #define OP16	BYTE	$0x66
 #define NOP	XCHGL	AX,AX
 #define CPUID	BYTE $0x0F; BYTE $0xA2	/* CPUID, argument in AX */
+#define WRMSR	BYTE $0x0F; BYTE $0x30	/* WRMSR, argument in AX/DX (lo/hi) */
 #define RDMSR	BYTE $0x0F; BYTE $0x32	/* RDMSR, result in AX/DX (lo/hi) */
 #define RDTSC 	BYTE $0x0F; BYTE $0x31
 
@@ -251,6 +252,7 @@ TEXT	tas(SB),$0
 	RET
 
 TEXT wbflush(SB), $0
+	XORL	AX, AX
 	CPUID
 	RET
 
@@ -312,7 +314,7 @@ TEXT	getcr2(SB),$0		/* fault address */
 	MOVL	CR0,AX;\
 	ANDL	$~0x4,AX	/* EM=0 */;\
 	MOVL	AX,CR0
-	
+
 TEXT	fpoff(SB),$0		/* turn off floating point */
 	FPOFF
 	RET
@@ -560,7 +562,7 @@ TEXT	getstatus(SB),$0
 	POPL	AX
 	RET
 
-TEXT rdtsc(SB), $0				/* time stamp counter; cycles since power up */
+TEXT _cycles(SB), $0				/* time stamp counter; cycles since power up */
 	RDTSC
 	MOVL	vlong+0(FP), CX			/* &vlong */
 	MOVL	AX, 0(CX)			/* lo */
@@ -573,6 +575,13 @@ TEXT rdmsr(SB), $0				/* model-specific register */
 	MOVL	vlong+4(FP), CX			/* &vlong */
 	MOVL	AX, (CX)			/* lo */
 	MOVL	DX, 4(CX)			/* hi */
+	RET
+
+TEXT wrmsr(SB), $0
+	MOVL	index+0(FP), CX
+	MOVL	lo+4(FP), AX
+	MOVL	hi+8(FP), DX
+	WRMSR
 	RET
 
 /*
