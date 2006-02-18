@@ -161,9 +161,12 @@ typedef struct Pcidev {
 		int	size;
 	} mem[6];
 
+	uchar	rid;
+	uchar	ccrp;
+	uchar	ccrb;
 	uchar	intl;			/* interrupt line */
-	ushort	ccru;
-
+	ushort	ccru;			/* is uchar in cpu kernel */
+	ulong	pcr;
 
 	Pcidev*	list;
 	Pcidev*	bridge;			/* down a bus */
@@ -181,6 +184,7 @@ extern Pcidev* pcimatch(Pcidev*, int, int);
 extern Pcidev* pcimatchtbdf(int);
 extern void pcireset(void);
 extern void pcisetbme(Pcidev*);
+extern void pciclrbme(Pcidev*);
 
 /*
  *  a parsed plan9.ini line

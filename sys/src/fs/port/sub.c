@@ -1,6 +1,12 @@
 #include	"all.h"
 #include	"io.h"
 
+#ifdef OLD
+#define swaboff swab4
+#else
+#define swaboff swab8
+#endif
+
 Filsys*
 fsstr(char *p)
 {
@@ -69,8 +75,8 @@ fileinit(Chan *cp)
 
 loop:
 	lock(&flock);
-	for(h=0; h<nelem(flist); h++) {
-		for(prev=0,f=flist[h]; f; prev=f,f=f->next) {
+	for (h=0; h<nelem(flist); h++)
+		for (prev=0, f=flist[h]; f; prev=f, f=f->next) {
 			if(f->cp != cp)
 				continue;
 			if(prev) {
@@ -78,30 +84,24 @@ loop:
 				f->next = flist[h];
 				flist[h] = f;
 			}
-			goto out;
+			flist[h] = f->next;
+			unlock(&flock);
+
+			qlock(f);
+			if(t = f->tlock) {
+				if(t->file == f)
+					t->time = 0;	/* free the lock */
+				f->tlock = 0;
+			}
+			if(f->open & FREMOV)
+				doremove(f, 0);
+			freewp(f->wpath);
+			f->open = 0;
+			f->cp = 0;
+			qunlock(f);
+			goto loop;
 		}
-	}
 	unlock(&flock);
-	return;
-
-out:
-	flist[h] = f->next;
-	unlock(&flock);
-
-	qlock(f);
-	if(t = f->tlock) {
-		if(t->file == f)
-			t->time = 0;	/* free the lock */
-		f->tlock = 0;
-	}
-	if(f->open & FREMOV)
-		doremove(f, 0);
-	freewp(f->wpath);
-	f->open = 0;
-	f->cp = 0;
-	qunlock(f);
-
-	goto loop;
 }
 
 #define NOFID (ulong)~0
@@ -121,7 +121,7 @@ filep(Chan *cp, ulong fid, int flag)
 	h = (long)cp + fid;
 	if(h < 0)
 		h = ~h;
-	h = h % nelem(flist);
+	h %= nelem(flist);
 
 loop:
 	lock(&flock);
@@ -172,7 +172,7 @@ out:
 File*
 newfp(void)
 {
-	static first;
+	static int first;
 	File *f;
 	int start, i;
 
@@ -185,9 +185,7 @@ newfp(void)
 			i = 0;
 		if(f->cp)
 			continue;
-
 		first = i;
-
 		return f;
 	} while(i != start);
 
@@ -208,7 +206,7 @@ freefp(File *fp)
 	h = (long)cp + fp->fid;
 	if(h < 0)
 		h = ~h;
-	h = h % nelem(flist);
+	h %= nelem(flist);
 
 	lock(&flock);
 	for(prev=0,f=flist[h]; f; prev=f,f=f->next)
@@ -228,23 +226,21 @@ iaccess(File *f, Dentry *d, int m)
 {
 
 	/* uid none gets only other permissions */
-	if(f->uid == 0)
-		goto doother;
+	if(f->uid != 0) {
+		/*
+		 * owner
+		 */
+		if(f->uid == d->uid)
+			if((m<<6) & d->mode)
+				return 0;
+		/*
+		 * group membership
+		 */
+		if(ingroup(f->uid, d->gid))
+			if((m<<3) & d->mode)
+				return 0;
+	}
 
-	/*
-	 * owner
-	 */
-	if(f->uid == d->uid)
-		if((m<<6) & d->mode)
-			return 0;
-	/*
-	 * group membership
-	 */
-	if(ingroup(f->uid, d->gid))
-		if((m<<3) & d->mode)
-			return 0;
-
-doother:
 	/*
 	 * other
 	 */
@@ -271,7 +267,8 @@ Tlock*
 tlocked(Iobuf *p, Dentry *d)
 {
 	Tlock *t, *t1;
-	long qpath, tim;
+	Off qpath;
+	Timet tim;
 	Device *dev;
 
 	tim = toytime();
@@ -361,12 +358,12 @@ freewp(Wpath *w)
 	unlock(&wpathlock);
 }
 
-long
+Off
 qidpathgen(Device *dev)
 {
 	Iobuf *p;
 	Superb *sb;
-	long path;
+	Off path;
 
 	p = getbuf(dev, superaddr(dev), Bread|Bmod);
 	if(!p || checktag(p, Tsuper, QPSUPER))
@@ -378,27 +375,68 @@ qidpathgen(Device *dev)
 	return path;
 }
 
+/* truncating to length > 0 */
+static void
+truncfree(Truncstate *ts, Device *dev, int d, Iobuf *p, int i)
+{
+	int pastlast;
+	Off a;
+
+	pastlast = ts->pastlast;
+	a = ((Off *)p->iobuf)[i];
+	if (d > 0 || pastlast)
+		buffree(dev, a, d, ts);
+	if (pastlast) {
+		((Off *)p->iobuf)[i] = 0;
+		p->flags |= Bmod|Bimm;
+	} else if (d == 0 && ts->relblk == ts->lastblk)
+		ts->pastlast = 1;
+	if (d == 0)
+		ts->relblk++;
+}
+
+/*
+ * free the block at `addr' on dev.
+ * if it's an indirect block (d [depth] > 0),
+ * first recursively free all the blocks it names.
+ *
+ * ts->relblk is the block number within the file of this
+ * block (or the first data block eventually pointed to via
+ * this indirect block).
+ */
 void
-buffree(Device *dev, long addr, int d)
+buffree(Device *dev, Off addr, int d, Truncstate *ts)
 {
 	Iobuf *p;
-	long a;
-	int i;
+	Off a;
+	int i, pastlast;
 
 	if(!addr)
 		return;
+	pastlast = (ts == nil? 1: ts->pastlast);
+	/*
+	 * if this is an indirect block, recurse and free any
+	 * suitable blocks within it (possibly via further indirect blocks).
+	 */
 	if(d > 0) {
 		d--;
 		p = getbuf(dev, addr, Bread);
 		if(p) {
-			for(i=INDPERBUF-1; i>=0; i--) {
-				a = ((long*)p->iobuf)[i];
-				buffree(dev, a, d);
-			}
+			if (ts == nil)		/* common case: create */
+				for(i=INDPERBUF-1; i>=0; i--) {
+					a = ((Off *)p->iobuf)[i];
+					buffree(dev, a, d, nil);
+				}
+			else			/* wstat truncation */
+				for (i = 0; i < INDPERBUF; i++)
+					truncfree(ts, dev, d, p, i);
 			putbuf(p);
 		}
 	}
+	if (!pastlast)
+		return;
 	/*
+	 * having zeroed the pointer to this block, add it to the free list.
 	 * stop outstanding i/o
 	 */
 	p = getbuf(dev, addr, Bprobe);
@@ -422,13 +460,12 @@ buffree(Device *dev, long addr, int d)
 	putbuf(p);
 }
 
-long
+Off
 bufalloc(Device *dev, int tag, long qid, int uid)
 {
 	Iobuf *bp, *p;
 	Superb *sb;
-	long a;
-	int n;
+	Off a, n;
 
 	p = getbuf(dev, superaddr(dev), Bread|Bmod);
 	if(!p || checktag(p, Tsuper, QPSUPER)) {
@@ -512,7 +549,7 @@ checkname(char *n)
 }
 
 void
-addfree(Device *dev, long addr, Superb *sb)
+addfree(Device *dev, Off addr, Superb *sb)
 {
 	int n;
 	Iobuf *p;
@@ -693,7 +730,7 @@ formatinit(void)
 }
 
 void
-rootream(Device *dev, long addr)
+rootream(Device *dev, Off addr)
 {
 	Iobuf *p;
 	Dentry *d;
@@ -717,11 +754,11 @@ rootream(Device *dev, long addr)
 }
 
 void
-superream(Device *dev, long addr)
+superream(Device *dev, Off addr)
 {
 	Iobuf *p;
 	Superb *s;
-	long i;
+	Off i;
 
 	p = getbuf(dev, addr, Bmod|Bimm);
 	memset(p->iobuf, 0, RBUFSIZE);
@@ -732,6 +769,9 @@ superream(Device *dev, long addr)
 	s->fsize = devsize(dev);
 	s->fbuf.nfree = 1;
 	s->qidgen = 10;
+#ifdef AUTOSWAB
+	s->magic = 0x123456789abcdef0;
+#endif
 	for(i=s->fsize-1; i>=addr+2; i--)
 		addfree(dev, i, s);
 	putbuf(p);
@@ -888,7 +928,7 @@ mbfree(Msgbuf *mb)
  * there is no need to be clever
  */
 int
-prime(long n)
+prime(vlong n)
 {
 	long i;
 
@@ -897,7 +937,7 @@ prime(long n)
 	for(i=3;; i+=2) {
 		if((n%i) == 0)
 			return 0;
-		if(i*i >= n)
+		if((vlong)i*i >= n)
 			return 1;
 	}
 }
@@ -909,7 +949,7 @@ getwd(char *word, char *line)
 
 	while(*line == ' ')
 		line++;
-	for(n=0; n<80; n++) {
+	for(n=0; n<Maxword; n++) {
 		c = *line;
 		if(c == ' ' || c == 0 || c == '\n')
 			break;
@@ -1049,63 +1089,64 @@ no(void*)
 }
 
 int
-devread(Device *d, long b, void *c)
+devread(Device *d, Off b, void *c)
 {
 	int e;
 
-loop:
-	switch(d->type)
-	{
-	case Devcw:
-		return cwread(d, b, c);
+	for (;;)
+		switch(d->type)
+		{
+		case Devcw:
+			return cwread(d, b, c);
 
-	case Devjuke:
-		d = d->j.m;
-		goto loop;
+		case Devjuke:
+			d = d->j.m;
+			break;
 
-	case Devro:
-		return roread(d, b, c);
+		case Devro:
+			return roread(d, b, c);
 
-	case Devwren:
-		return wrenread(d, b, c);
-	case Devide:
-		return ideread(d, b, c);
+		case Devwren:
+			return wrenread(d, b, c);
+		case Devide:
+			return ideread(d, b, c);
 
-	case Devworm:
-	case Devlworm:
-		return wormread(d, b, c);
+		case Devworm:
+		case Devlworm:
+			return wormread(d, b, c);
 
-	case Devfworm:
-		return fwormread(d, b, c);
+		case Devfworm:
+			return fwormread(d, b, c);
 
-	case Devmcat:
-		return mcatread(d, b, c);
+		case Devmcat:
+			return mcatread(d, b, c);
 
-	case Devmlev:
-		return mlevread(d, b, c);
+		case Devmlev:
+			return mlevread(d, b, c);
 
-	case Devmirr:
-		return mirrread(d, b, c);
+		case Devmirr:
+			return mirrread(d, b, c);
 
-	case Devpart:
-		return partread(d, b, c);
+		case Devpart:
+			return partread(d, b, c);
 
-	case Devswab:
-		e = devread(d->swab.d, b, c);
-		if(e == 0)
-			swab(c, 0);
-		return e;
+		case Devswab:
+			e = devread(d->swab.d, b, c);
+			if(e == 0)
+				swab(c, 0);
+			return e;
 
-	case Devnone:
-		print("read from device none(%ld)\n", b);
-		return 1;
-	}
-	panic("illegal device in read: %Z %ld", d, b);
-	return 1;
+		case Devnone:
+			print("read from device none(%lld)\n", (Wideoff)b);
+			return 1;
+		default:
+			panic("illegal device in read: %Z %lld", d, (Wideoff)b);
+			return 1;
+		}
 }
 
 int
-devwrite(Device *d, long b, void *c)
+devwrite(Device *d, Off b, void *c)
 {
 	int e;
 
@@ -1115,145 +1156,142 @@ devwrite(Device *d, long b, void *c)
 	 */
 	if (readonly)
 		return 0;
-loop:
-	switch(d->type)
-	{
-	case Devcw:
-		return cwwrite(d, b, c);
+	for (;;)
+		switch(d->type)
+		{
+		case Devcw:
+			return cwwrite(d, b, c);
 
-	case Devjuke:
-		d = d->j.m;
-		goto loop;
+		case Devjuke:
+			d = d->j.m;
+			break;
 
-	case Devro:
-		print("write to ro device %Z(%ld)\n", d, b);
-		return 1;
+		case Devro:
+			print("write to ro device %Z(%lld)\n", d, (Wideoff)b);
+			return 1;
 
-	case Devwren:
-		return wrenwrite(d, b, c);
-	case Devide:
-		return idewrite(d, b, c);
+		case Devwren:
+			return wrenwrite(d, b, c);
+		case Devide:
+			return idewrite(d, b, c);
 
-	case Devworm:
-	case Devlworm:
-		return wormwrite(d, b, c);
+		case Devworm:
+		case Devlworm:
+			return wormwrite(d, b, c);
 
-	case Devfworm:
-		return fwormwrite(d, b, c);
+		case Devfworm:
+			return fwormwrite(d, b, c);
 
-	case Devmcat:
-		return mcatwrite(d, b, c);
+		case Devmcat:
+			return mcatwrite(d, b, c);
 
-	case Devmlev:
-		return mlevwrite(d, b, c);
+		case Devmlev:
+			return mlevwrite(d, b, c);
 
-	case Devmirr:
-		return mirrwrite(d, b, c);
+		case Devmirr:
+			return mirrwrite(d, b, c);
 
-	case Devpart:
-		return partwrite(d, b, c);
+		case Devpart:
+			return partwrite(d, b, c);
 
-	case Devswab:
-		swab(c, 1);
-		e = devwrite(d->swab.d, b, c);
-		swab(c, 0);
-		return e;
+		case Devswab:
+			swab(c, 1);
+			e = devwrite(d->swab.d, b, c);
+			swab(c, 0);
+			return e;
 
-	case Devnone:
-		/* checktag() can generate blocks with type devnone */
-		if (0) {
-			print("write to device none(%ld)\n", b);
+		case Devnone:
+			/* checktag() can generate blocks with type devnone */
+			return 0;
+		default:
+			panic("illegal device in write: %Z %ld", d, b);
 			return 1;
 		}
-		return 0;
-	}
-	panic("illegal device in write: %Z %ld", d, b);
-	return 1;
 }
 
-long
+Devsize
 devsize(Device *d)
 {
+	for (;;)
+		switch(d->type)
+		{
+		case Devcw:
+		case Devro:
+			return cwsize(d);
 
-loop:
-	switch(d->type)
-	{
-	case Devcw:
-	case Devro:
-		return cwsize(d);
+		case Devjuke:
+			d = d->j.m;
+			break;
 
-	case Devjuke:
-		d = d->j.m;
-		goto loop;
+		case Devwren:
+			return wrensize(d);
+		case Devide:
+			return idesize(d);
 
-	case Devwren:
-		return wrensize(d);
-	case Devide:
-		return atasize(d);
+		case Devworm:
+		case Devlworm:
+			return wormsize(d);
 
-	case Devworm:
-	case Devlworm:
-		return wormsize(d);
+		case Devfworm:
+			return fwormsize(d);
 
-	case Devfworm:
-		return fwormsize(d);
+		case Devmcat:
+			return mcatsize(d);
 
-	case Devmcat:
-		return mcatsize(d);
+		case Devmlev:
+			return mlevsize(d);
 
-	case Devmlev:
-		return mlevsize(d);
+		case Devmirr:
+			return mirrsize(d);
 
-	case Devmirr:
-		return mirrsize(d);
+		case Devpart:
+			return partsize(d);
 
-	case Devpart:
-		return partsize(d);
-
-	case Devswab:
-		d = d->swab.d;
-		goto loop;
-	}
-	panic("illegal device in dev_size: %Z", d);
-	return 0;
+		case Devswab:
+			d = d->swab.d;
+			break;
+		default:
+			panic("illegal device in dev_size: %Z", d);
+			return 0;
+		}
 }
 
-long
+Off
 superaddr(Device *d)
 {
+	for (;;)
+		switch(d->type) {
+		default:
+			return SUPER_ADDR;
 
-loop:
-	switch(d->type) {
-	default:
-		return SUPER_ADDR;
+		case Devcw:
+		case Devro:
+			return cwsaddr(d);
 
-	case Devcw:
-	case Devro:
-		return cwsaddr(d);
-
-	case Devswab:
-		d = d->swab.d;
-		goto loop;
-	}
+		case Devswab:
+			d = d->swab.d;
+			break;
+		}
+	return 0;		/* unreachable */
 }
 
-long
+Off
 getraddr(Device *d)
 {
+	for (;;)
+		switch(d->type) {
+		default:
+			return ROOT_ADDR;
 
-loop:
-	switch(d->type) {
-	default:
-		return ROOT_ADDR;
+		case Devcw:
+		case Devro:
+			return cwraddr(d);
 
-	case Devcw:
-	case Devro:
-		return cwraddr(d);
-
-	case Devswab:
-		d = d->swab.d;
-		goto loop;
-	}
+		case Devswab:
+			d = d->swab.d;
+			break;
+		}
+	return 0;		/* unreachable */
 }
 
 void
@@ -1318,91 +1356,91 @@ loop:
 void
 devrecover(Device *d)
 {
+	for (;;) {
+		print("recover: %Z\n", d);
+		switch(d->type) {
+		default:
+			print("recover: unknown dev type %Z\n", d);
+			return;
 
-loop:
-	print("recover: %Z\n", d);
-	switch(d->type) {
-	default:
-		print("recover: unknown dev type %Z\n", d);
-		return;
+		case Devcw:
+			wlock(&mainlock);	/* recover */
+			cwrecover(d);
+			wunlock(&mainlock);
+			return;
 
-	case Devcw:
-		wlock(&mainlock);	/* recover */
-		cwrecover(d);
-		wunlock(&mainlock);
-		break;
-
-	case Devswab:
-		d = d->swab.d;
-		goto loop;
+		case Devswab:
+			d = d->swab.d;
+			break;
+		}
 	}
 }
 
 void
 devinit(Device *d)
 {
+	for (;;) {
+		if(d->init)
+			return;
+		d->init = 1;
+		print("	devinit %Z\n", d);
+		switch(d->type) {
+		default:
+			print("devinit unknown device %Z\n", d);
+			return;
 
-loop:
-	if(d->init)
-		return;
-	d->init = 1;
-	print("	devinit %Z\n", d);
-	switch(d->type) {
-	default:
-		print("devinit unknown device %Z\n", d);
-		return;
+		case Devro:
+			cwinit(d->ro.parent);
+			return;
 
-	case Devro:
-		cwinit(d->ro.parent);
-		break;
+		case Devcw:
+			cwinit(d);
+			return;
 
-	case Devcw:
-		cwinit(d);
-		break;
+		case Devjuke:
+			jukeinit(d);
+			return;
 
-	case Devjuke:
-		jukeinit(d);
-		break;
+		case Devwren:
+			wreninit(d);
+			return;
 
-	case Devwren:
-		wreninit(d);
-		break;
+		case Devide:
+			ideinit(d);
+			return;
 
-	case Devide:
-		ideinit(d);
-		break;
+		case Devworm:
+		case Devlworm:
+			return;
 
-	case Devworm:
-	case Devlworm:
-		break;
+		case Devfworm:
+			fworminit(d);
+			return;
 
-	case Devfworm:
-		fworminit(d);
-		break;
+		case Devmcat:
+			mcatinit(d);
+			return;
 
-	case Devmcat:
-		mcatinit(d);
-		break;
+		case Devmlev:
+			mlevinit(d);
+			return;
 
-	case Devmlev:
-		mlevinit(d);
-		break;
+		case Devmirr:
+			mirrinit(d);
+			return;
 
-	case Devmirr:
-		mirrinit(d);
-		break;
+		case Devpart:
+			partinit(d);
+			return;
 
-	case Devpart:
-		partinit(d);
-		break;
+		case Devswab:
+			d = d->swab.d;
+			break;
 
-	case Devswab:
-		d = d->swab.d;
-		goto loop;
-
-	case Devnone:
-		print("devinit of Devnone\n");
-		break;
+		case Devnone:
+			print("devinit of Devnone\n");
+			return;
+		}
 	}
 }
 
@@ -1436,6 +1474,31 @@ swab4(void *c)
 	p[2] = t;
 }
 
+void
+swab8(void *c)
+{
+	uchar *p;
+	int t;
+
+	p = c;
+
+	t = p[0];
+	p[0] = p[7];
+	p[7] = t;
+
+	t = p[1];
+	p[1] = p[6];
+	p[6] = t;
+
+	t = p[2];
+	p[2] = p[5];
+	p[5] = t;
+
+	t = p[3];
+	p[3] = p[4];
+	p[4] = t;
+}
+
 /*
  * swab a block
  *	flag = 0 -- convert from foreign to native
@@ -1452,7 +1515,7 @@ swab(void *c, int flag)
 	Bucket *b;
 	Superb *s;
 	Fbuf *f;
-	long *l;
+	Off *l;
 
 	/* swab the tag */
 	p = (uchar*)c;
@@ -1460,7 +1523,7 @@ swab(void *c, int flag)
 	if(!flag) {
 		swab2(&t->pad);
 		swab2(&t->tag);
-		swab4(&t->path);
+		swaboff(&t->path);
 	}
 
 	/* swab each block type */
@@ -1482,17 +1545,20 @@ swab(void *c, int flag)
 
 	case Tsuper:
 		s = (Superb*)p;
-		swab4(&s->fbuf.nfree);
+		swaboff(&s->fbuf.nfree);
 		for(i=0; i<FEPERBUF; i++)
-			swab4(&s->fbuf.free[i]);
-		swab4(&s->fstart);
-		swab4(&s->fsize);
-		swab4(&s->tfree);
-		swab4(&s->qidgen);
-		swab4(&s->cwraddr);
-		swab4(&s->roraddr);
-		swab4(&s->last);
-		swab4(&s->next);
+			swaboff(&s->fbuf.free[i]);
+#ifdef AUTOSWAB
+		swaboff(&s->magic);
+#endif
+		swaboff(&s->fstart);
+		swaboff(&s->fsize);
+		swaboff(&s->tfree);
+		swaboff(&s->qidgen);
+		swaboff(&s->cwraddr);
+		swaboff(&s->roraddr);
+		swaboff(&s->last);
+		swaboff(&s->next);
 		break;
 
 	case Tdir:
@@ -1502,13 +1568,13 @@ swab(void *c, int flag)
 			swab2(&d->gid);
 			swab2(&d->mode);
 			swab2(&d->muid);
-			swab4(&d->qid.path);
+			swaboff(&d->qid.path);
 			swab4(&d->qid.version);
-			swab4(&d->size);
+			swaboff(&d->size);
 			for(j=0; j<NDBLOCK; j++)
-				swab4(&d->dblock[j]);
-			swab4(&d->iblock);
-			swab4(&d->diblock);
+				swaboff(&d->dblock[j]);
+			for (j = 0; j < NIBLOCK; j++)
+				swaboff(&d->iblocks[j]);
 			swab4(&d->atime);
 			swab4(&d->mtime);
 		}
@@ -1516,18 +1582,23 @@ swab(void *c, int flag)
 
 	case Tind1:
 	case Tind2:
-		l = (long*)p;
+#ifndef OLD
+	case Tind3:
+	case Tind4:
+	/* add more Tind tags here ... */
+#endif
+		l = (Off *)p;
 		for(i=0; i<INDPERBUF; i++) {
-			swab4(l);
+			swaboff(l);
 			l++;
 		}
 		break;
 
 	case Tfree:
 		f = (Fbuf*)p;
-		swab4(&f->nfree);
+		swaboff(&f->nfree);
 		for(i=0; i<FEPERBUF; i++)
-			swab4(&f->free[i]);
+			swaboff(&f->free[i]);
 		break;
 
 	case Tbuck:
@@ -1537,23 +1608,23 @@ swab(void *c, int flag)
 			for(j=0; j<CEPERBK; j++) {
 				swab2(&b->entry[j].age);
 				swab2(&b->entry[j].state);
-				swab4(&b->entry[j].waddr);
+				swaboff(&b->entry[j].waddr);
 			}
 		}
 		break;
 
 	case Tcache:
 		h = (Cache*)p;
-		swab4(&h->maddr);
-		swab4(&h->msize);
-		swab4(&h->caddr);
-		swab4(&h->csize);
-		swab4(&h->fsize);
-		swab4(&h->wsize);
-		swab4(&h->wmax);
-		swab4(&h->sbaddr);
-		swab4(&h->cwraddr);
-		swab4(&h->roraddr);
+		swaboff(&h->maddr);
+		swaboff(&h->msize);
+		swaboff(&h->caddr);
+		swaboff(&h->csize);
+		swaboff(&h->fsize);
+		swaboff(&h->wsize);
+		swaboff(&h->wmax);
+		swaboff(&h->sbaddr);
+		swaboff(&h->cwraddr);
+		swaboff(&h->roraddr);
 		swab4(&h->toytime);
 		swab4(&h->time);
 		break;
@@ -1569,6 +1640,6 @@ swab(void *c, int flag)
 	if(flag) {
 		swab2(&t->pad);
 		swab2(&t->tag);
-		swab4(&t->path);
+		swaboff(&t->path);
 	}
 }

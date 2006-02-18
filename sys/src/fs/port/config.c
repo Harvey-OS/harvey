@@ -2,6 +2,7 @@
 #include	"io.h"
 
 static void	dowormcopy(void);
+static int	dodevcopy(void);
 
 /*
  * This is needed for IP configuration.
@@ -24,78 +25,77 @@ struct
 } f;
 
 static Device* confdev;
-static int copyworm = 0;
+static int copyworm = 0, copydev = 0;
+static char *src, *dest;
 
 int
 devcmpr(Device *d1, Device *d2)
 {
+	while (d1 != d2) {
+		if(d1 == 0 || d2 == 0 || d1->type != d2->type)
+			return 1;
 
-loop:
-	if(d1 == d2)
-		return 0;
-	if(d1 == 0 || d2 == 0 || d1->type != d2->type)
-		return 1;
+		switch(d1->type) {
+		default:
+			print("can't compare dev: %Z\n", d1);
+			panic("devcmp");
+			return 1;
 
-	switch(d1->type) {
-	default:
-		print("can't compare dev: %Z\n", d1);
-		panic("devcmp");
-		break;
-
-	case Devmcat:
-	case Devmlev:
-	case Devmirr:
-		d1 = d1->cat.first;
-		d2 = d2->cat.first;
-		while(d1 && d2) {
-			if(devcmpr(d1, d2))
-				return 1;
-			d1 = d1->link;
-			d2 = d2->link;
-		}
-		goto loop;
-
-	case Devnone:
-		return 0;
-
-	case Devro:
-		d1 = d1->ro.parent;
-		d2 = d2->ro.parent;
-		goto loop;
-
-	case Devjuke:
-	case Devcw:
-		if(devcmpr(d1->cw.c, d2->cw.c))
+		case Devmcat:
+		case Devmlev:
+		case Devmirr:
+			d1 = d1->cat.first;
+			d2 = d2->cat.first;
+			while(d1 && d2) {
+				if(devcmpr(d1, d2))
+					return 1;
+				d1 = d1->link;
+				d2 = d2->link;
+			}
 			break;
-		d1 = d1->cw.w;
-		d2 = d2->cw.w;
-		goto loop;
 
-	case Devfworm:
-		d1 = d1->fw.fw;
-		d2 = d2->fw.fw;
-		goto loop;
-
-	case Devwren:
-	case Devworm:
-	case Devlworm:
-	case Devide:
-		if(d1->wren.ctrl == d2->wren.ctrl)
-		if(d1->wren.targ == d2->wren.targ)
-		if(d1->wren.lun == d2->wren.lun)
+		case Devnone:
 			return 0;
-		break;
 
-	case Devpart:
-		if(d1->part.base == d2->part.base)
-		if(d1->part.size == d2->part.size) {
-			d1 = d1->part.d;
-			d2 = d2->part.d;
-			goto loop;
+		case Devro:
+			d1 = d1->ro.parent;
+			d2 = d2->ro.parent;
+			break;
+
+		case Devjuke:
+		case Devcw:
+			if(devcmpr(d1->cw.c, d2->cw.c))
+				return 1;
+			d1 = d1->cw.w;
+			d2 = d2->cw.w;
+			break;
+
+		case Devfworm:
+			d1 = d1->fw.fw;
+			d2 = d2->fw.fw;
+			break;
+
+		case Devwren:
+		case Devworm:
+		case Devlworm:
+		case Devide:
+			if(d1->wren.ctrl == d2->wren.ctrl)
+			if(d1->wren.targ == d2->wren.targ)
+			if(d1->wren.lun == d2->wren.lun)
+				return 0;
+			return 1;
+
+		case Devpart:
+			if(d1->part.base == d2->part.base)
+			if(d1->part.size == d2->part.size) {
+				d1 = d1->part.d;
+				d2 = d2->part.d;
+				break;
+			}
+			return 1;
 		}
-		break;
 	}
-	return 1;
+	return 0;
 }
 
 void
@@ -123,11 +123,9 @@ cnumb(void)
 				f.nextiter = -1;
 				f.lastiter = -1;
 			}
-			for(;;) {
+			do {
 				c = *f.charp++;
-				if(c == '>')
-					break;
-			}
+			} while (c != '>');
 			return n;
 		}
 		n = cnumb();
@@ -175,7 +173,7 @@ config1(int c)
 			d->cat.last->link = t;
 		d->cat.last = t;
 		if(f.error)
-			goto bad;
+			return devnone;
 		m = *f.charp;
 		if(c == '(' && m == ')') {
 			d->type = Devmcat;
@@ -194,9 +192,6 @@ config1(int c)
 	if(d->cat.first == d->cat.last)
 		d = d->cat.first;
 	return d;
-
-bad:
-	return devnone;
 }
 
 Device*
@@ -207,14 +202,14 @@ config(void)
 	char *icp;
 
 	if(f.error)
-		goto bad;
+		return devnone;
 	d = ialloc(sizeof(Device), 0);
 
 	c = *f.charp++;
 	switch(c) {
 	default:
 		cdiag("unknown type", c);
-		goto bad;
+		return devnone;
 
 	case '(':	/* (d+) one or multiple cat */
 	case '[':	/* [d+] one or multiple interleave */
@@ -269,7 +264,7 @@ config(void)
 	case 'o':	/* o ro part of last cw */
 		if(f.lastcw == 0) {
 			cdiag("no cw to match", c);
-			goto bad;
+			return devnone;
 		}
 		return f.lastcw->cw.ro;
 
@@ -299,7 +294,7 @@ config(void)
 		d->part.size = cnumb();
 		break;
 
-	case 'x':	/* xD swab a device */
+	case 'x':	/* xD swab a device's metadata */
 		d->type = Devswab;
 		d->swab.d = config();
 		break;
@@ -307,9 +302,6 @@ config(void)
 	d->dlink = f.devlist;
 	f.devlist = d;
 	return d;
-
-bad:
-	return devnone;
 }
 
 char*
@@ -375,83 +367,65 @@ astrcmp(char *a, char *b)
 void
 mergeconf(Iobuf *p)
 {
-	char word[100];
+	char word[Maxword+1];
 	char *cp;
 	Filsys *fs;
 
-	cp = p->iobuf;
-	goto line;
-
-loop:
-	if(*cp != '\n')
-		goto bad;
-	cp++;
-
-line:
-	cp = getwd(word, cp);
-	if(strcmp(word, "") == 0)
-		return;
-	if(strcmp(word, "service") == 0) {
+	for (cp = p->iobuf; ; cp++) {
 		cp = getwd(word, cp);
-		if(service[0] == 0)
-			strcpy(service, word);
-		goto loop;
-	}
-	if(strcmp(word, "ipauth") == 0) {
-		cp = getwd(word, cp);
-		if(!f.ipauthset)
-			if(chartoip(authip, word))
-				goto bad;
-		goto loop;
-	}
-	if(astrcmp(word, "ip") == 0) {
-		cp = getwd(word, cp);
-		if(!isvalidip(ipaddr[aindex].sysip))
-			if(chartoip(ipaddr[aindex].sysip, word))
-				goto bad;
-		goto loop;
-	}
-	if(astrcmp(word, "ipgw") == 0) {
-		cp = getwd(word, cp);
-		if(!isvalidip(ipaddr[aindex].defgwip))
-			if(chartoip(ipaddr[aindex].defgwip, word))
-				goto bad;
-		goto loop;
-	}
-	if(astrcmp(word, "ipsntp") == 0) {
-		cp = getwd(word, cp);
-		if (!isvalidip(sntpip))
-			if (chartoip(sntpip, word))
-				goto bad;
-		goto loop;
-	}
-	if(astrcmp(word, "ipmask") == 0) {
-		cp = getwd(word, cp);
-		if(!isvalidip(ipaddr[aindex].defmask))
-			if(chartoip(ipaddr[aindex].defmask, word))
-				goto bad;
-		goto loop;
-	}
-	if(strcmp(word, "filsys") == 0) {
-		cp = getwd(word, cp);
-		for(fs=filsys; fs->name; fs++)
-			if(strcmp(fs->name, word) == 0) {
-				if(fs->flags & FEDIT) {
-					cp = getwd(word, cp);
-					goto loop;
+		if(strcmp(word, "") == 0)
+			return;
+		else if(strcmp(word, "service") == 0) {
+			cp = getwd(word, cp);
+			if(service[0] == 0)
+				strcpy(service, word);
+		} else if(strcmp(word, "ipauth") == 0) {
+			cp = getwd(word, cp);
+			if(!f.ipauthset)
+				if(chartoip(authip, word))
+					goto bad;
+		} else if(astrcmp(word, "ip") == 0) {
+			cp = getwd(word, cp);
+			if(!isvalidip(ipaddr[aindex].sysip))
+				if(chartoip(ipaddr[aindex].sysip, word))
+					goto bad;
+		} else if(astrcmp(word, "ipgw") == 0) {
+			cp = getwd(word, cp);
+			if(!isvalidip(ipaddr[aindex].defgwip))
+				if(chartoip(ipaddr[aindex].defgwip, word))
+					goto bad;
+		} else if(astrcmp(word, "ipsntp") == 0) {
+			cp = getwd(word, cp);
+			if (!isvalidip(sntpip))
+				if (chartoip(sntpip, word))
+					goto bad;
+		} else if(astrcmp(word, "ipmask") == 0) {
+			cp = getwd(word, cp);
+			if(!isvalidip(ipaddr[aindex].defmask))
+				if(chartoip(ipaddr[aindex].defmask, word))
+					goto bad;
+		} else if(strcmp(word, "filsys") == 0) {
+			cp = getwd(word, cp);
+			for(fs=filsys; fs->name; fs++)
+				if(strcmp(fs->name, word) == 0) {
+					if(fs->flags & FEDIT) {
+						cp = getwd(word, cp);
+						goto loop;
+					}
+					break;
 				}
-				break;
-			}
-		fs->name = strdup(word);
-		cp = getwd(word, cp);
-		fs->conf = strdup(word);
-		goto loop;
-	}
-	goto bad;
-
+			fs->name = strdup(word);
+			cp = getwd(word, cp);
+			fs->conf = strdup(word);
+		} else {
 bad:
-	putbuf(p);
-	panic("unknown word in config block: %s", word);
+			putbuf(p);
+			panic("unknown word in config block: %s", word);
+		}
+loop:
+		if(*cp != '\n')
+			goto bad;
+	}
 }
 
 void
@@ -624,6 +598,11 @@ loop:
 		dowormcopy();		/* can return if user quits early */
 		panic("copyworm bailed out!");
 	}
+	if (copydev)
+		if (dodevcopy() < 0)
+			panic("copydev failed!");
+		else
+			panic("copydev done.");
 }
 
 /* an unfinished idea.  a non-blocking rawchar() would help. */
@@ -642,12 +621,12 @@ userabort(char *msg)
 }
 
 static int
-blockok(Device *d, long a)
+blockok(Device *d, Off a)
 {
 	Iobuf *p = getbuf(d, a, Bread);
 
 	if (p == 0) {
-		print("i/o error reading %Z block %ld\n", d, a);
+		print("i/o error reading %Z block %lld\n", d, (Wideoff)a);
 		return 0;
 	}
 	putbuf(p);
@@ -681,13 +660,13 @@ wormof(Device *dev)
  * return the number of the highest-numbered block actually written, plus 1.
  * 0 indicates an error.
  */
-static long
+static Devsize
 writtensize(Device *worm)
 {
-	long lim = devsize(worm);
+	Devsize lim = devsize(worm);
 	Iobuf *p;
 
-	print("devsize(%Z) = %ld\n", worm, lim);
+	print("devsize(%Z) = %lld\n", worm, (Wideoff)lim);
 	if (!blockok(worm, 0) || !blockok(worm, lim-1))
 		return 0;
 	delay(5*1000);
@@ -707,11 +686,9 @@ writtensize(Device *worm)
 			break;
 		}
 	}
-	print("limit(%Z) = %ld\n", worm, lim);
+	print("limit(%Z) = %lld\n", worm, (Wideoff)lim);
 	return lim <= 0? 0: lim + 1;
 }
-
-extern int devatadebug, devataidedebug;
 
 /* copy worm fs from "main"'s inner worm to "output" */
 static void
@@ -720,7 +697,8 @@ dowormcopy(void)
 	Filsys *f1, *f2;
 	Device *fdev, *from, *to = nil;
 	Iobuf *p;
-	long a, lim;
+	Off a;
+	Devsize lim;
 
 	/*
 	 * convert file system names into Filsyss and Devices.
@@ -765,8 +743,8 @@ dowormcopy(void)
 			return;
 		devream(to, 0);
 		devinit(to);
-		print("copying worm: %ld blocks from %Z to %Z\n",
-			lim, from, to);
+		print("copying worm: %lld blocks from %Z to %Z\n",
+			(Wideoff)lim, from, to);
 	}
 	/* can't read to's blocks in case to is a real WORM device */
 
@@ -775,7 +753,6 @@ dowormcopy(void)
 	 * if no "output" fs).
 	 */
 
-	// devatadebug = 1; devataidedebug = 1;
 	for (a = 0; a < lim; a++) {
 		if (userabort("copy"))
 			break;
@@ -786,27 +763,110 @@ dowormcopy(void)
 		 * be contiguous.
 		 */
 		if (p == 0) {
-			print("%ld not written yet; can't read\n", a);
+			print("%lld not written yet; can't read\n", (Wideoff)a);
 			continue;
 		}
 		if (to != 0 && devwrite(to, p->addr, p->iobuf) != 0) {
-			print("out block %ld: write error; bailing", a);
+			print("out block %lld: write error; bailing",
+				(Wideoff)a);
 			break;
 		}
 		putbuf(p);
 		if(a % 20000 == 0)
-			print("block %ld %T\n", a, time());
+			print("block %lld %T\n", (Wideoff)a, time());
 	}
 
 	/*
 	 * wrap up: sync target, loop
 	 */
-	print("copied %ld blocks from %Z to %Z\n", a, from, to);
+	print("copied %lld blocks from %Z to %Z\n", (Wideoff)a, from, to);
 	sync("wormcopy");
 	delay(2000);
 	print("looping; reset the machine at any time.\n");
 	for (; ; )
 		continue;		/* await reset */
+}
+
+/* copy device from src to dest */
+static int
+dodevcopy(void)
+{
+	Device *from, *to;
+	Iobuf *p;
+	Off a;
+	Devsize lim, tosize;
+
+	/*
+	 * convert config strings into Devices.
+	 */
+	from = iconfig(src);
+	if(f.error || from == nil) {
+		print("bad src device %s\n", src);
+		return -1;
+	}
+	to = iconfig(dest);
+	if(f.error || to == nil) {
+		print("bad dest device %s\n", dest);
+		return -1;
+	}
+
+	/*
+	 * initialise devices, size them, more sanity checking.
+	 */
+
+	devinit(from);
+	lim = devsize(from);
+	if(lim == 0)
+		panic("no blocks to copy on %Z", from);
+	devinit(to);
+	tosize = devsize(to);
+	if(tosize == 0)
+		panic("no blocks to copy on %Z", to);
+
+	/* use smaller of the device sizes */
+	if (tosize < lim)
+		lim = tosize;
+
+	print("copy %Z to %Z in 8 seconds\n", from, to);
+	delay(8000);
+	if (userabort("preparing to copy"))
+		return -1;
+	print("copying dev: %lld blocks from %Z to %Z\n", (Wideoff)lim,
+		from, to);
+
+	/*
+	 * Copy all blocks, a block at a time.
+	 */
+
+	for (a = 0; a < lim; a++) {
+		if (userabort("copy"))
+			break;
+		p = getbuf(from, a, Bread);
+		/*
+		 * if from is a real WORM device, we'll get errors trying to
+		 * read unwritten blocks, but the unwritten blocks need not
+		 * be contiguous.
+		 */
+		if (p == 0) {
+			print("%lld not written yet; can't read\n", (Wideoff)a);
+			continue;
+		}
+		if (to != 0 && devwrite(to, p->addr, p->iobuf) != 0) {
+			print("out block %lld: write error; bailing",
+				(Wideoff)a);
+			break;
+		}
+		putbuf(p);
+		if(a % 20000 == 0)
+			print("block %lld %T\n", (Wideoff)a, time());
+	}
+
+	/*
+	 * wrap up: sync target
+	 */
+	print("copied %lld blocks from %Z to %Z\n", (Wideoff)a, from, to);
+	sync("devcopy");
+	return 0;
 }
 
 void
@@ -834,7 +894,7 @@ void
 arginit(void)
 {
 	int verb, c;
-	char line[300], word[300], *cp;
+	char line[2*Maxword], word[Maxword+1], *cp;
 	uchar localip[Pasize];
 	Filsys *fs;
 
@@ -847,155 +907,157 @@ arginit(void)
 		}
 	}
 
-loop:
-	print("config: ");
-	getline(line);
-	cp = getwd(word, line);
-	if(strcmp(word, "end") == 0)
-		return;
-	if(strcmp(word, "halt") == 0)
-		exit();
-
-	if(strcmp(word, "allow") == 0) {
-		wstatallow = 1;
-		writeallow = 1;
-		goto loop;
-	}
-	if(strcmp(word, "copyworm") == 0) {
-		copyworm = 1;
-		goto loop;
-	}
-	if(strcmp(word, "noauth") == 0) {
-		noauth = !noauth;
-		goto loop;
-	}
-	if(strcmp(word, "noattach") == 0) {
-		noattach = !noattach;
-		goto loop;
-	}
-	if(strcmp(word, "readonly") == 0) {
-		readonly = 1;
-		goto loop;
-	}
-	if(strcmp(word, "ream") == 0) {
-		verb = FREAM;
-		goto gfsname;
-	}
-	if(strcmp(word, "recover") == 0) {
-		verb = FRECOVER;
-		goto gfsname;
-	}
-	if(strcmp(word, "filsys") == 0) {
-		verb = FEDIT;
-		goto gfsname;
-	}
-	if(strcmp(word, "nvram") == 0) {
-		getwd(word, cp);
-		if(testconfig(word))
-			goto loop;
-		if(nvrsetconfig(word) != 0)
-			goto loop;
-		goto loop;
-	}
-	if(strcmp(word, "config") == 0) {
-		getwd(word, cp);
-		if(testconfig(word))
-			goto loop;
-		if(nvrsetconfig(word) != 0)
-			goto loop;
-		f.newconf = 1;
-		goto loop;
-	}
-	if(strcmp(word, "service") == 0) {
-		getwd(word, cp);
-		strcpy(service, word);
-		f.modconf = 1;
-		goto loop;
-	}
-	if(strcmp(word, "ipauth") == 0) {
-		f.ipauthset = 1;
-		verb = 2;
-		goto ipname;
-	}
-	if(astrcmp(word, "ip") == 0) {
-		verb = 0;
-		goto ipname;
-	}
-	if(astrcmp(word, "ipgw") == 0) {
-		verb = 1;
-		goto ipname;
-	}
-	if(astrcmp(word, "ipmask") == 0) {
-		verb = 3;
-		goto ipname;
-	}
-	if(astrcmp(word, "ipsntp") == 0) {
-		verb = 4;
-		goto ipname;
-	}
-
-	print("unknown config command\n");
-	print("	type end to get out\n");
-	goto loop;
-
-ipname:
-	getwd(word, cp);
-	if(chartoip(localip, word)) {
-		print("bad ip address\n");
-		goto loop;
-	}
-	switch(verb) {
-	case 0:
-		memmove(ipaddr[aindex].sysip, localip,
-			sizeof(ipaddr[aindex].sysip));
-		break;
-	case 1:
-		memmove(ipaddr[aindex].defgwip, localip,
-			sizeof(ipaddr[aindex].defgwip));
-		break;
-	case 2:
-		memmove(authip, localip,
-			sizeof(authip));
-		break;
-	case 3:
-		memmove(ipaddr[aindex].defmask, localip,
-			sizeof(ipaddr[aindex].defmask));
-		break;
-	case 4:
-		memmove(sntpip, localip,
-			sizeof(sntpip));
-		break;
-	}
-	f.modconf = 1;
-	goto loop;
-
-gfsname:
-	cp = getwd(word, cp);
-	for(fs=filsys; fs->name; fs++)
-		if(strcmp(word, fs->name) == 0)
-			goto found;
-	memset(fs, 0, sizeof(*fs));
-	fs->name = strdup(word);
-
-found:
-	switch(verb) {
-	case FREAM:
-		if(strcmp(fs->name, "main") == 0)
-			wstatallow = 1;		/* only set, never reset */
-	case FRECOVER:
-		fs->flags |= verb;
-		goto loop;
-	case FEDIT:
-		f.modconf = 1;
-		getwd(word, cp);
-		fs->flags |= verb;
-		if(word[0] == 0) {
-			fs->conf = 0;
-			goto loop;
+	for (;;) {
+		print("config: ");
+		getline(line);
+		cp = getwd(word, line);
+		if (word[0] == '\0' || word[0] == '#')
+			continue;
+		if(strcmp(word, "end") == 0)
+			return;
+		if(strcmp(word, "halt") == 0) {
+			floppyhalt();
+			exit();
 		}
-		if(testconfig(word))
-			goto loop;
-		fs->conf = strdup(word);
-		goto loop;
+
+		if(strcmp(word, "allow") == 0) {
+			wstatallow = 1;
+			writeallow = 1;
+			continue;
+		}
+		if(strcmp(word, "copyworm") == 0) {
+			copyworm = 1;
+			continue;
+		}
+		if(strcmp(word, "copydev") == 0) {	/* not yet documented */
+			cp = getwd(word, cp);
+			if(testconfig(word))
+				continue;
+			src = strdup(word);
+			getwd(word, cp);
+			if(testconfig(word))
+				continue;
+			dest = strdup(word);
+			copydev = 1;
+			continue;
+		}
+		if(strcmp(word, "noauth") == 0) {
+			noauth = !noauth;
+			continue;
+		}
+		if(strcmp(word, "noattach") == 0) {
+			noattach = !noattach;
+			continue;
+		}
+		if(strcmp(word, "readonly") == 0) {
+			readonly = 1;
+			continue;
+		}
+
+		if(strcmp(word, "ream") == 0) {
+			verb = FREAM;
+			goto gfsname;
+		}
+		if(strcmp(word, "recover") == 0) {
+			verb = FRECOVER;
+			goto gfsname;
+		}
+		if(strcmp(word, "filsys") == 0) {
+			verb = FEDIT;
+			goto gfsname;
+		}
+
+		if(strcmp(word, "nvram") == 0) {
+			getwd(word, cp);
+			if(testconfig(word))
+				continue;
+			/* if it fails, it will complain */
+			nvrsetconfig(word);
+			continue;
+		}
+		if(strcmp(word, "config") == 0) {
+			getwd(word, cp);
+			if(!testconfig(word) && nvrsetconfig(word) == 0)
+				f.newconf = 1;
+			continue;
+		}
+		if(strcmp(word, "service") == 0) {
+			getwd(word, cp);
+			strcpy(service, word);
+			f.modconf = 1;
+			continue;
+		}
+
+		if(strcmp(word, "ipauth") == 0) {
+			f.ipauthset = 1;
+			verb = 2;
+		} else if(astrcmp(word, "ip") == 0)
+			verb = 0;
+		else if(astrcmp(word, "ipgw") == 0)
+			verb = 1;
+		else if(astrcmp(word, "ipmask") == 0)
+			verb = 3;
+		else if(astrcmp(word, "ipsntp") == 0)
+			verb = 4;
+		else {
+			print("unknown config command\n");
+			print("	type end to get out\n");
+			continue;
+		}
+
+		getwd(word, cp);
+		if(chartoip(localip, word)) {
+			print("bad ip address\n");
+			continue;
+		}
+		switch(verb) {
+		case 0:
+			memmove(ipaddr[aindex].sysip, localip,
+				sizeof(ipaddr[aindex].sysip));
+			break;
+		case 1:
+			memmove(ipaddr[aindex].defgwip, localip,
+				sizeof(ipaddr[aindex].defgwip));
+			break;
+		case 2:
+			memmove(authip, localip, sizeof(authip));
+			break;
+		case 3:
+			memmove(ipaddr[aindex].defmask, localip,
+				sizeof(ipaddr[aindex].defmask));
+			break;
+		case 4:
+			memmove(sntpip, localip, sizeof(sntpip));
+			break;
+		}
+		f.modconf = 1;
+		continue;
+
+	gfsname:
+		cp = getwd(word, cp);
+		for(fs=filsys; fs->name; fs++)
+			if(strcmp(word, fs->name) == 0)
+				break;
+		if (fs->name == nil) {
+			memset(fs, 0, sizeof(*fs));
+			fs->name = strdup(word);
+		}
+		switch(verb) {
+		case FREAM:
+			if(strcmp(fs->name, "main") == 0)
+				wstatallow = 1;	/* only set, never reset */
+		case FRECOVER:
+			fs->flags |= verb;
+			break;
+		case FEDIT:
+			f.modconf = 1;
+			getwd(word, cp);
+			fs->flags |= verb;
+			if(word[0] == 0)
+				fs->conf = nil;
+			else if(!testconfig(word))
+				fs->conf = strdup(word);
+			break;
+		}
 	}
 }

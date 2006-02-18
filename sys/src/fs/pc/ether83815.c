@@ -2,7 +2,8 @@
  * National Semiconductor DP83815
  *
  * Supports only internal PHY and has been tested on:
- *	Netgear FA311TX (using Netgear DS108 10/100 hub)
+ *	Netgear FA311TX (using Netgear DS108 10/100 hub, and using switches)
+ *	SiS 900 within SiS 630 (works under light load only)
  * To do:
  *	check Ethernet address;
  *	test autonegotiation on 10 Mbit, and 100 Mbit full duplex;
@@ -50,13 +51,13 @@ typedef struct Des {
 } Des;
 
 enum {	/* cmdsts */
-	Own		= 1<<31,	/* set by data producer to hand to consumer */
+	Own	= 1<<31,	/* set by data producer to hand to consumer */
 	More	= 1<<30,	/* more of packet in next descriptor */
-	Intr		= 1<<29,	/* interrupt when device is done with it */
+	Intr	= 1<<29,	/* interrupt when device is done with it */
 	Supcrc	= 1<<28,	/* suppress crc on transmit */
 	Inccrc	= 1<<28,	/* crc included on receive (always) */
-	Ok		= 1<<27,	/* packet ok */
-	Size		= 0xFFF,	/* packet size in bytes */
+	Ok	= 1<<27,	/* packet ok */
+	Size	= 0xFFF,	/* packet size in bytes */
 
 	/* transmit */
 	Txa	= 1<<26,	/* transmission aborted */
@@ -74,8 +75,8 @@ enum {	/* cmdsts */
 	Dest	= 3<<23,	/* destination class */
 	  Drej=	0<<23,		/* packet was rejected */
 	  Duni=	1<<23,		/* unicast */
-	  Dmulti=	2<<23,		/* multicast */
-	  Dbroad=	3<<23,		/* broadcast */
+	  Dmulti=2<<23,		/* multicast */
+	  Dbroad=3<<23,		/* broadcast */
 	Long = 1<<22,	/* too long packet received */
 	Runt =  1<<21,	/* packet less than 64 bytes */
 	Ise =	1<<20,	/* invalid symbol */
@@ -92,14 +93,16 @@ enum {
 	SiS		= 0x1039,
 	SiS900		=  (0x900<<16)|SiS,
 	SiS7016		= (0x7016<<16)|SiS,
+	SiS630bridge	= 0x0008,
 
 	// SiS 900 PCI revision codes
 	SiSrev630s =	0x81,
 	SiSrev630e =	0x82,
 	SiSrev630ea1 =	0x83,
 
-	SiSeenodeaddr = 8,
-	Nseenodeaddr = 6,		// in shorts, not bytes
+	SiSeenodeaddr = 8,		// short addr of SiS eeprom mac addr
+	SiS630eenodeaddr = 9,		// likewise for the 630
+	Nseenodeaddr = 6,		// " for NS eeprom
 };
 
 typedef struct Ctlr Ctlr;
@@ -164,7 +167,7 @@ static Ctlr* ctlrtail;
 
 enum {
 	/* registers (could memory map) */
-	Rcr=		0x00,	/* command register */
+	Rcr=	0x00,	/* command register */
 	  Rst=		1<<8,
 	  Rxr=		1<<5,	/* receiver reset */
 	  Txr=		1<<4,	/* transmitter reset */
@@ -173,7 +176,7 @@ enum {
 	  Txd=		1<<1,	/* transmitter disable */
 	  Txe=		1<<0,	/* transmitter enable */
 	Rcfg=	0x04,	/* configuration */
-	  Lnksts=		1<<31,	/* link good */
+	  Lnksts=	1<<31,	/* link good */
 	  Speed100=	1<<30,	/* 100 Mb/s link */
 	  Fdup=		1<<29,	/* full duplex */
 	  Pol=		1<<28,	/* polarity reversal (10baseT) */
@@ -183,74 +186,74 @@ enum {
 	  Paneg_ena=	1<<13,	/* auto negotiation enable */
 	  Paneg_all=	7<<13,	/* auto negotiation enable 10/100 half & full */
 	  Ext_phy=	1<<12,	/* enable MII for external PHY */
-	  Phy_rst=		1<<10,	/* reset internal PHY */
-	  Phy_dis=		1<<9,	/* disable internal PHY (eg, low power) */
+	  Phy_rst=	1<<10,	/* reset internal PHY */
+	  Phy_dis=	1<<9,	/* disable internal PHY (eg, low power) */
 	  Req_alg=	1<<7,	/* PCI bus request: set means less aggressive */
-	  Sb=			1<<6,	/* single slot back-off not random */
+	  Sb=		1<<6,	/* single slot back-off not random */
 	  Pow=		1<<5,	/* out of window timer selection */
 	  Exd=		1<<4,	/* disable excessive deferral timer */
-	  Pesel=		1<<3,	/* parity error algorithm selection */
+	  Pesel=	1<<3,	/* parity error algorithm selection */
 	  Brom_dis=	1<<2,	/* disable boot rom interface */
 	  Bem=		1<<0,	/* big-endian mode */
 	Rmear=	0x08,	/* eeprom access */
 	  Mdc=		1<<6,	/* MII mangement check */
-	  Mddir=		1<<5,	/* MII management direction */
+	  Mddir=	1<<5,	/* MII management direction */
 	  Mdio=		1<<4,	/* MII mangement data */
-	  Eesel=		1<<3,	/* EEPROM chip select */
-	  Eeclk=		1<<2,	/* EEPROM clock */
+	  Eesel=	1<<3,	/* EEPROM chip select */
+	  Eeclk=	1<<2,	/* EEPROM clock */
 	  Eedo=		1<<1,	/* EEPROM data out (from chip) */
 	  Eedi=		1<<0,	/* EEPROM data in (to chip) */
 	Rptscr=	0x0C,	/* pci test control */
-	Risr=		0x10,	/* interrupt status */
+	Risr=	0x10,	/* interrupt status */
 	  Txrcmp=	1<<25,	/* transmit reset complete */
 	  Rxrcmp=	1<<24,	/* receiver reset complete */
-	  Dperr=		1<<23,	/* detected parity error */
-	  Sserr=		1<<22,	/* signalled system error */
-	  Rmabt=		1<<21,	/* received master abort */
-	  Rtabt=		1<<20,	/* received target abort */
-	  Rxsovr=		1<<16,	/* RX status FIFO overrun */
-	  Hiberr=		1<<15,	/* high bits error set (OR of 25-16) */
+	  Dperr=	1<<23,	/* detected parity error */
+	  Sserr=	1<<22,	/* signalled system error */
+	  Rmabt=	1<<21,	/* received master abort */
+	  Rtabt=	1<<20,	/* received target abort */
+	  Rxsovr=	1<<16,	/* RX status FIFO overrun */
+	  Hiberr=	1<<15,	/* high bits error set (OR of 25-16) */
 	  Phy=		1<<14,	/* PHY interrupt */
 	  Pme=		1<<13,	/* power management event (wake online) */
 	  Swi=		1<<12,	/* software interrupt */
 	  Mib=		1<<11,	/* MIB service */
-	  Txurn=		1<<10,	/* TX underrun */
-	  Txidle=		1<<9,	/* TX idle */
-	  Txerr=		1<<8,	/* TX packet error */
-	  Txdesc=		1<<7,	/* TX descriptor (with Intr bit done) */
+	  Txurn=	1<<10,	/* TX underrun */
+	  Txidle=	1<<9,	/* TX idle */
+	  Txerr=	1<<8,	/* TX packet error */
+	  Txdesc=	1<<7,	/* TX descriptor (with Intr bit done) */
 	  Txok=		1<<6,	/* TX ok */
-	  Rxorn=		1<<5,	/* RX overrun */
-	  Rxidle=		1<<4,	/* RX idle */
-	  Rxearly=		1<<3,	/* RX early threshold */
-	  Rxerr=		1<<2,	/* RX packet error */
-	  Rxdesc=		1<<1,	/* RX descriptor (with Intr bit done) */
+	  Rxorn=	1<<5,	/* RX overrun */
+	  Rxidle=	1<<4,	/* RX idle */
+	  Rxearly=	1<<3,	/* RX early threshold */
+	  Rxerr=	1<<2,	/* RX packet error */
+	  Rxdesc=	1<<1,	/* RX descriptor (with Intr bit done) */
 	  Rxok=		1<<0,	/* RX ok */
 	Rimr=	0x14,	/* interrupt mask */
 	Rier=	0x18,	/* interrupt enable */
-	  Ie=			1<<0,	/* interrupt enable */
+	  Ie=		1<<0,	/* interrupt enable */
 	Rtxdp=	0x20,	/* transmit descriptor pointer */
 	Rtxcfg=	0x24,	/* transmit configuration */
 	  Csi=		1<<31,	/* carrier sense ignore (needed for full duplex) */
 	  Hbi=		1<<30,	/* heartbeat ignore (needed for full duplex) */
 	  Atp=		1<<28,	/* automatic padding of runt packets */
-	  Mxdma=		7<<20,	/* maximum dma transfer field */
+	  Mxdma=	7<<20,	/* maximum dma transfer field */
 	  Mxdma32=	4<<20,	/* 4x32-bit words (32 bytes) */
 	  Mxdma64=	5<<20,	/* 8x32-bit words (64 bytes) */
-	  Flth=		0x3F<<8,	/* Tx fill threshold, units of 32 bytes (must be > Mxdma) */
-	  Drth=		0x3F<<0,	/* Tx drain threshold (units of 32 bytes) */
-	  Flth128=		4<<8,	/* fill at 128 bytes */
-	// TODO: different on SiS?
+	  Flth=		0x3F<<8, /* Tx fill threshold, units of 32 bytes (must be > Mxdma) */
+	  Drth=		0x3F<<0, /* Tx drain threshold (units of 32 bytes) */
+	  Flth128=	4<<8,	/* fill at 128 bytes */
+	// seems to be the same on SiS 900; maybe use larger value @ 100Mb/s
 	  Drth512=	16<<0,	/* drain at 512 bytes */
 	Rrxdp=	0x30,	/* receive descriptor pointer */
 	Rrxcfg=	0x34,	/* receive configuration */
 	  Atx=		1<<28,	/* accept transmit packets (needed for full duplex) */
-	  Rdrth=		0x1F<<1,	/* Rx drain threshold (units of 32 bytes) */
+	  Rdrth=	0x1F<<1, /* Rx drain threshold (units of 32 bytes) */
 	  Rdrth64=	2<<1,	/* drain at 64 bytes */
 	Rccsr=	0x3C,	/* CLKRUN control/status */
-	  Pmests=		1<<15,	/* PME status */
+	  Pmests=	1<<15,	/* PME status */
 	Rwcsr=	0x40,	/* wake on lan control/status */
 	Rpcr=	0x44,	/* pause control/status */
-	// TODO: different on SiS, but does it matter?
+	// TODO: different on SiS, but does it matter? Rfen - Aau are same.
 	Rrfcr=	0x48,	/* receive filter/match control */
 	  Rfen=		1<<31,	/* receive filter enable */
 	  Aab=		1<<30,	/* accept all broadcast */
@@ -272,22 +275,22 @@ enum {
 
 	/* PHY registers */
 	Rbmcr=	0x80,	/* basic mode configuration */
-	  Reset=		1<<15,
-	  Sel100=		1<<13,	/* select 100Mb/sec if no auto neg */
-	  Anena=		1<<12,	/* auto negotiation enable */
+	  Reset=	1<<15,
+	  Sel100=	1<<13,	/* select 100Mb/sec if no auto neg */
+	  Anena=	1<<12,	/* auto negotiation enable */
 	  Anrestart=	1<<9,	/* restart auto negotiation */
-	  Selfdx=		1<<8,	/* select full duplex if no auto neg */
+	  Selfdx=	1<<8,	/* select full duplex if no auto neg */
 	Rbmsr=	0x84,	/* basic mode status */
 	  Ancomp=	1<<5,	/* autonegotiation complete */
 	Rphyidr1= 0x88,
 	Rphyidr2= 0x8C,
 	Ranar=	0x90,	/* autonegotiation advertisement */
-	Ranlpar=	0x94,	/* autonegotiation link partner ability */
+	Ranlpar=0x94,	/* autonegotiation link partner ability */
 	Raner=	0x98,	/* autonegotiation expansion */
-	Rannptr=	0x9C,	/* autonegotiation next page TX */
-	Rphysts=	0xC0,	/* PHY status */
+	Rannptr=0x9C,	/* autonegotiation next page TX */
+	Rphysts=0xC0,	/* PHY status */
 	Rmicr=	0xC4,	/* MII control */
-	  Inten=		1<<1,	/* PHY interrupt enable */
+	  Inten=	1<<1,	/* PHY interrupt enable */
 	Rmisr=	0xC8,	/* MII status */
 	Rfcscr=	0xD0,	/* false carrier sense counter */
 	Rrecr=	0xD4,	/* receive error counter */
@@ -329,6 +332,12 @@ promiscuous(void* arg, int on)
 		csr32w(ctlr, Rrfcr, Rfen | (w ^ Aau));
 	}
 	iunlock(&ctlr->lock);
+}
+
+/* multicast already on, don't need to do anything */
+static void
+multicast(void*, uchar*, int)
+{
 }
 
 static void
@@ -427,11 +436,11 @@ txstart(Ether* ether)
 		des = &ctlr->tdr[ctlr->tdrh];
 		des->bp = bp;
 		des->addr = PADDR(bp->rp);
-		debug("83815: txstart: des->addr %lux\n", des->addr);
+		debug("ns83815: txstart: des->addr %lux\n", des->addr);
 		ctlr->ntq++;
 		coherence();
 		des->cmdsts = Own | BLEN(bp);
-		debug("83815: txstart: des->cmdsts %ux\n", des->cmdsts);
+		debug("ns83815: txstart: des->cmdsts %ux\n", des->cmdsts);
 		ctlr->tdrh = NEXT(ctlr->tdrh, ctlr->ntdr);
 		started = 1;
 	}
@@ -532,14 +541,30 @@ interrupt(Ureg*, void* arg)
 				}
 				else if(bp = iallocb(Rbsz)){
 					len = (cmdsts&Size)-4;
-					SETWPCNT(des->bp, len);
-					ETHERIQ(ether, des->bp, 1);
+					if (len <= 0) {
+						print(
+				"ns83815: interrupt: packet len %d <= 0\n",
+							len);
+						freeb(des->bp);	/* toss it */
+					} else {
+						SETWPCNT(des->bp, len);
+						ETHERIQ(ether, des->bp, 1);
+					}
+					/* replace just-queued/freed packet */
 					des->bp = bp;
 					des->addr = PADDR(bp->rp);
 					debug(
-		"83815: interrupt: packet into input q, new des->addr %lux\n",
+		"ns83815: interrupt: packet into input q, new des->addr %lux\n",
 						des->addr);
 					coherence();
+				} else {
+					print(
+		"ns83815: interrupt: iallocb for input buffer failed\n");
+					/*
+					 * prevent accidents & ignore this
+					 * packet.  it will be overwritten.
+					 */
+					des->bp->next = 0;
 				}
 
 				des->cmdsts = Rbsz;
@@ -591,7 +616,7 @@ interrupt(Ureg*, void* arg)
 #endif
 			}
 
-			debug("83815: interrupt: done output for des->addr %lux\n",
+			debug("ns83815: interrupt: done output for des->addr %lux\n",
 				des->addr);
 			freeb(des->bp);
 			des->bp = nil;
@@ -628,14 +653,14 @@ ctlrinit(Ether* ether)
 	 */
 	ctlr->rdr = malloc(ctlr->nrdr*sizeof(Des));
 	if(ctlr->rdr == nil) {
-		print("83815: ctlrinit: iallocb of rcv. descs. failed\n");
+		print("ns83815: ctlrinit: iallocb of rcv. descs. failed\n");
 		return;
 	}
 	last = nil;
 	for(des = ctlr->rdr; des < &ctlr->rdr[ctlr->nrdr]; des++){
 		des->bp = iallocb(Rbsz);
 		if (des->bp == nil) {
-			print("83815: ctlrinit: iallocb(%d) failed\n", Rbsz);
+			print("ns83815: ctlrinit: iallocb(%d) failed\n", Rbsz);
 			return;
 		}
 		des->cmdsts = Rbsz;
@@ -669,7 +694,7 @@ ctlrinit(Ether* ether)
 		Txdesc|Txok|Rxorn|Rxerr|Rxdesc|Rxok);	/* Phy|Pme|Mib */
 	csr32r(ctlr, Risr);	/* clear status */
 	csr32w(ctlr, Rier, Ie);
-	debug("83815: ctlrinit: set Ie, done\n");
+	debug("ns83815: ctlrinit: set Ie, done\n");
 }
 
 static void
@@ -703,7 +728,7 @@ eegetw(Ctlr *ctlr, int a)
 	eeidle(ctlr);
 	eeclk(ctlr, 0);
 	eeclk(ctlr, Eeclk);
-	d = 0x180 | a;
+	d = 0x180 | a;			// read EEPROM at address `a'
 	for(i=0x400; i; i>>=1){
 		if(d & i)
 			csr32w(ctlr, Rmear, Eesel|Eedi);
@@ -726,13 +751,10 @@ eegetw(Ctlr *ctlr, int a)
 }
 
 static void
-softreset(Ctlr* ctlr, int resetphys)
+resetctlr(Ctlr *ctlr)
 {
-	int i, w;
+	int i;
 
-	/*
-	 * Soft-reset the controller
-	 */
 	csr32w(ctlr, Rcr, Rst);
 	for(i=0;; i++){
 		if(i > 100)
@@ -742,7 +764,27 @@ softreset(Ctlr* ctlr, int resetphys)
 			break;
 		delay(1);
 	}
+}
 
+static void
+shutdown(Ether* ether)
+{
+	Ctlr *ctlr = ether->ctlr;
+
+print("ether83815 shutting down\n");
+	csr32w(ctlr, Rcr, Rxd|Txd);	/* disable transceiver */
+	resetctlr(ctlr);
+}
+
+static void
+softreset(Ctlr* ctlr, int resetphys)
+{
+	int i, w;
+
+	/*
+	 * Soft-reset the controller
+	 */
+	resetctlr(ctlr);
 	csr32w(ctlr, Rccsr, Pmests);
 	csr32w(ctlr, Rccsr, 0);
 	csr32w(ctlr, Rcfg, csr32r(ctlr, Rcfg) | Pint_acen);
@@ -762,7 +804,8 @@ softreset(Ctlr* ctlr, int resetphys)
 	}
 
 	/*
-	 * Initialisation values, in sequence (see 4.4 Recommended Registers Configuration)
+	 * Initialisation values, in sequence
+	 * (see 4.4 Recommended Registers Configuration)
 	 */
 	csr16w(ctlr, 0xCC, 0x0001);	/* PGSEL */
 	csr16w(ctlr, 0xE4, 0x189C);	/* PMCCSR */
@@ -780,7 +823,7 @@ softreset(Ctlr* ctlr, int resetphys)
 		csr16w(ctlr, Rbmcr, Anena|Anrestart);
 		for(i=0;; i++){
 			if(i > 6000){
-				print("ns83815: auto neg timed out\n");
+				print("ns83815: speed auto neg. timed out\n");
 				break;
 			}
 			if((w = csr16r(ctlr, Rbmsr)) & Ancomp)
@@ -830,38 +873,56 @@ static char* mediatable[9] = {
 enum {
 	MagicReg = 0x48,
 	MagicRegSz = 1,
+	Magicrden = 0x40,	/* read enable, apparently */
+	Paddr=		0x70,	/* address port */
+	Pdata=		0x71,	/* data port */
 };
 
-static void
+/* rcmos() originally from LANL's SiS 900 driver's rcmos() */
+static int
 sisrdcmos(Ctlr *ctlr)
 {
-	union {
-		uchar	eaddr[Eaddrlen];
-		ushort	alignment;
-	} ee;
-	ushort *shp = (ushort *)ee.eaddr;
-	int off = 9, cnt = sizeof ee.eaddr;
+	int i;
+	unsigned reg;
+	ulong port;
+	Pcidev *p;
 
-	print("ns83815: sis: reading mac address from cmos (unimplemented)!\n");
-	memset(ctlr->sromea, 0, sizeof ctlr->sromea);
-#ifdef notdef
-	// TODO: make this code from freebsd work to read mac addr from cmos
-	int i, reg, btag = 0;
-	void *bridge = (void *)sis_find_bridge(0 /* dev */);
-
-	if (bridge == nil)
-		return;
-	reg = pci_read_config(bridge, MagicReg, MagicRegSz);
-	pci_write_config(bridge, MagicReg, reg|0x40, MagicRegSz);
-	// btag = I386_BUS_SPACE_IO;
-	for (i = 0; i < cnt; i++) {
-		bus_space_write_1(btag, 0x0, 0x70, i + off);
-		dest[i] = bus_space_read_1(btag, 0x0, 0x71);
+	print("ns83815: SiS 630 rev. %ux reading mac address from cmos\n",
+		ctlr->pcidev->rid);
+	p = pcimatch(nil, SiS, SiS630bridge);
+	if (p == nil) {
+		print("ns83815: no SiS 630 rev. %ux bridge for mac addr\n",
+			ctlr->pcidev->rid);
+		return 0;
 	}
-	pci_write_config(bridge, MagicReg, reg & ~0x40, MagicRegSz);
-#endif
-	USED(off, cnt, shp);
-	memmove(ctlr->sromea, ee.eaddr, sizeof ctlr->sromea);
+	port = p->mem[0].bar & ~0x01;
+	print(
+"ns83815: SiS 630 rev. %ux reading mac addr from cmos via bridge at port 0x%lux\n",
+		ctlr->pcidev->rid, port);
+
+	reg = pcicfgr8(p, MagicReg);
+	pcicfgw8(p, MagicReg, reg|Magicrden);
+
+	for (i = 0; i < Eaddrlen; i++) {
+		outb(port+Paddr, SiS630eenodeaddr + i);
+		ctlr->sromea[i] = inb(port+Pdata);
+	}
+
+	pcicfgw8(p, MagicReg, reg & ~Magicrden);
+	return 1;
+}
+
+static int
+is630(ulong id, Pcidev *p)
+{
+	if (id == SiS900)
+		switch (p->rid) {
+		case SiSrev630s:
+		case SiSrev630e:
+	  	case SiSrev630ea1:
+			return 1;
+		}
+	return 0;
 }
 
 /*
@@ -879,21 +940,12 @@ sissrom(Ctlr *ctlr)
 	int i, off = SiSeenodeaddr, cnt = sizeof ee.eaddr / sizeof(short);
 	ushort *shp = (ushort *)ee.eaddr;
 
-	// TODO: try ignoring this; maybe eeprom has the mac address anyway
-#ifndef FS
-	if (0 && ctlr->id == SiS900)
-		switch (ctlr->pcidev->rid) {
-		case SiSrev630s:
-		case SiSrev630e:
-	  	case SiSrev630ea1:
-			sisrdcmos(ctlr);
-			return;
-		}
-#endif
-	print("ns83815: sis: reading mac address from eeprom\n");
-	for (i = 0; i < cnt; i++)
-		*shp++ = eegetw(ctlr, off + i);
-	memmove(ctlr->sromea, ee.eaddr, sizeof ctlr->sromea);
+	if (!is630(ctlr->id, ctlr->pcidev) || !sisrdcmos(ctlr)) {
+		print("ns83815: reading SiS mac address from eeprom\n");
+		for (i = 0; i < cnt; i++)
+			*shp++ = eegetw(ctlr, off++);
+		memmove(ctlr->sromea, ee.eaddr, sizeof ctlr->sromea);
+	}
 }
 
 static void
@@ -908,7 +960,6 @@ nssrom(Ctlr *ctlr)
 	/*
 	 * the MAC address is reversed, straddling word boundaries
 	 */
-	memset(ctlr->sromea, 0, sizeof(ctlr->sromea));
 	j = Nseenodeaddr*16 + 15;		// bit offset to read
 	for (i=0; i<48; i++, j++)
 		ctlr->sromea[i>>3] |=
@@ -918,6 +969,7 @@ nssrom(Ctlr *ctlr)
 static void
 srom(Ctlr* ctlr)
 {
+	memset(ctlr->sromea, 0, sizeof(ctlr->sromea));
 	switch (ctlr->id) {
 	case SiS900:
 	case SiS7016:
@@ -954,11 +1006,8 @@ scanpci83815(void)
 	Pcidev *p = nil;
 
 	while(p = pcimatch(p, 0, 0)){
-#ifdef FS
-		if (p->ccru != ((Pcinetctlr<<8)|0x00))
-#else
-		if (p->ccrb != Pcinetctlr || p->ccru != 0)
-#endif
+		/* ccru is a short in the FS kernel, thus the cast to uchar */
+		if (p->ccrb != Pcinetctlr || (uchar)p->ccru != 0)
 			continue;		// not a nic
 		id = (p->did<<16)|p->vid;
 		// print("ns83815: id 0x%lux on pci bus\n", id);
@@ -967,7 +1016,10 @@ scanpci83815(void)
 			print("ns83815: FA31[12] found\n");
 			break;
 		case SiS900:
-			print("ns83815: SiS900 found\n");
+			print("ns83815: SiS900");
+			if (is630(id, p))
+				print(" (within SiS630)");
+			print(" found\n");
 			break;
 		case SiS7016:
 			print("ns83815: SiS7016 found\n");
@@ -1058,7 +1110,7 @@ dp83815reset(Ether* ether)
 
 	/*
 	 * Look for a medium override in case there's no autonegotiation
-	 * the autonegotiation fails.
+	 * or the autonegotiation fails.
 	 */
 
 	for(i = 0; i < ether->nopt; i++){
@@ -1107,9 +1159,11 @@ dp83815reset(Ether* ether)
 #ifndef FS
 	ether->ifstat = ifstat;
 	ether->arg = ether;
+	ether->multicast = multicast;
+	ether->shutdown = shutdown;
 	ether->promiscuous = promiscuous;
 #endif
-	debug("83815: dp83815reset: done\n");
+	debug("ns83815: dp83815reset: done\n");
 	return 0;
 }
 

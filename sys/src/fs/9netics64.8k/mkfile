@@ -1,4 +1,4 @@
-CONF=sony
+CONF=net64.8k
 p=9
 
 objtype=386
@@ -7,10 +7,11 @@ objtype=386
 TARG=$p$CONF'fs'
 
 DEV=\
+	apc.$O\
 	cw.$O\
 	fworm.$O\
+	juke.$O\
 	mworm.$O\
-	sony.$O\
 	wren.$O\
 
 IP=\
@@ -51,7 +52,9 @@ PC=\
 	8250.$O\
 	8253.$O\
 	cga.$O\
-	devata.$O\
+	devsd.$O\
+	sdscsi.$O\
+	sdata.$O\
 	dosfs.$O\
 	floppy.$O\
 	kbd.$O\
@@ -65,16 +68,17 @@ PC=\
 	trap.$O\
 
 ETHER=\
-	etherif.$O\
-	ether2114x.$O\
-	etherelnk3.$O\
-	ether82557.$O\
 	compat.$O\
-	ethermii.$O\
+	ether2114x.$O\
+	ether8139.$O\
+	ether82557.$O\
 	ether83815.$O\
 	etherdp83820.$O\
-	ether8139.$O\
+	etherelnk3.$O\
 	etherga620.$O\
+	etherif.$O\
+	etherigbe.$O\
+	ethermii.$O\
 
 SCSI=\
 	scsi.$O\
@@ -88,26 +92,26 @@ OBJ=\
 	$IP\
 	$ETHER\
 	$SCSI\
-	
+
 HFILES=\
 	../port/all.h\
 	../port/lib.h\
 	../port/portdat.h\
 	../port/portfns.h\
-	./dat.h\
-	./fns.h\
-	./io.h\
-	./mem.h\
+	dat.h\
+	fns.h\
+	io.h\
+	mem.h\
 	/$objtype/include/u.h\
 	/$objtype/include/ureg.h\
 
 LIB=\
 	-lauthsrv\
-	/$objtype/lib/libc.a\
+	-lc\
 	-lsec\
 
 # -I../pc & -DFS are for compat.h
-CFLAGS=-FVw -I. -I../port -I../pc -DFS
+CFLAGS=-FTVw -I. -I../port -I../pc -DFS
 
 all:V:	$TARG
 
@@ -116,16 +120,14 @@ all:V:	$TARG
 <../dev/mkfile
 <../ip/mkfile
 
-$TARG:	$OBJ $TARG.$O
-	$LD -o $target -l -T0x80100020 $prereq $LIB
-	size $target
-
-$TARG.$O:	$TARG.c
+$TARG:	$TARG.c $OBJ
 	$CC $CFLAGS -DDATE'='`{date -n} $TARG.c
+	$LD -o $target -l -T0x80100020 $OBJ $TARG.$O $LIB
+	size $target
 
 install:V: $TARG
 	cp $TARG /$objtype/
-	9fs dinar && cp $TARG /n/dinar/$objtype/
+#	9fs stand && cp -x $TARG /n/stand/$objtype
 
 $TARG.$O:	../pc/dosfs.h
 

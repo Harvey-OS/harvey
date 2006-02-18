@@ -86,7 +86,7 @@ arpreceive(Enpkt *ep, int l, Ifc *ifc)
 	Arpe *a;
 	uchar *tpa;
 	int type, i, h;
-	ulong t;
+	Timet t;
 
 	if(l < Ensize+Arpsize)
 		return;
@@ -208,7 +208,7 @@ ipsend1(Msgbuf *mb, Ifc *ifc, uchar *ipgate)
 	Arppkt *q;
 	Arpe *a;
 	int i, id, len, dlen, off;
-	ulong t;
+	Timet t;
 
 	p = (Ippkt*)mb->data;
 

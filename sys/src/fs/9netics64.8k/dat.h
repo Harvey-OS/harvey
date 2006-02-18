@@ -1,9 +1,11 @@
-#define RBUFSIZE	(16*1024)	/* raw buffer size */
 /*
- * verify that the kernel prints this size
- * when you first boot this kernel.
- * #define	DSIZE		157933
+ * The most fundamental constant.
+ * The code will not compile with RBUFSIZE made a variable;
+ * for one thing, RBUFSIZE determines FEPERBUF, which determines
+ * the number of elements in a free-list-block array.
  */
+#define RBUFSIZE	(8*1024)	/* raw buffer size */
+
 #include "../port/portdat.h"
 
 extern	Mach	mach0;

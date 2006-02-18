@@ -14,18 +14,26 @@ virtual memory.
 The structure of the file system server
 is a set of kernel processes
 synchronizing mostly through message passing.
-In Emelie there are 26 processes of 10 types:
-.P1
-.ft R
-number name  function
-  15       \f(CWsrv\fP   Main file system server processes
-  \01       \f(CWrah\fP   Block read-ahead processes
-  \h'\w'0'u'1       \f(CWscp\fP   Sync process
-  \h'\w'0'u'1       \f(CWwcp\fP   WORM copy process
-  \h'\w'0'u'1       \f(CWcon\fP   Console process
-  \h'\w'0'u'1       \f(CWilo\fP   IL protocol process
-  \h'\w'0'u'1       \f(CWilt\fP   IL timer process
-  \h'\w'0'u'2       \f(CWethi\fP   Ethernet input process
-  \h'\w'0'u'2       \f(CWetho\fP   Ethernet output process
-  \h'\w'0'u'1       \f(CWflo\fP   Floppy disk process
-.P2
+In
+.I fs64
+there are 27 processes of 11 types:
+.KS
+.TS
+center ;
+c l c
+n lf(CW) l .
+number	name	function
+_
+15	srv	Main file system server processes
+1	rah	Block read-ahead processes
+1	scp	Sync process
+1	wcp	WORM copy process
+1	con	Console process
+1	ilo	IL protocol process
+1	ilt	IL timer process
+2	ethi	Ethernet input process
+2	etho	Ethernet output process
+1	flo	Floppy disk process
+1	snt	sntp clock-synchronisation process
+.TE
+.KE

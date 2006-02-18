@@ -42,6 +42,18 @@ then the pseudo-device is the N-way block
 interleaving of the sub-devices.
 The size of the interleaved device is
 N times the size of the smallest sub-device.
+.IP "\fID\fP = {\fIDD\fP...}"
+.br
+This is a set of devices that
+constitute a `mirror' of the first sub-device, and form a single device.
+A write to the device is performed,
+at the same block address,
+on the sub-devices, in right-to-left order.
+A read from the device is performed on each sub-device,
+in left-to-right order, until a read succeeds without error,
+or the set is exhausted.
+One can think of this as a poor man's RAID 1.
+The size of the device is the size of the smallest sub-device.
 .IP "\fID\fP = \f(CWp\fP\fIDN1.N2\fP"
 .br
 This is a partition of a sub-device.
@@ -62,6 +74,20 @@ This second device is partitioned
 into a set of block flags and a set of blocks.
 The flags are used to generate errors if a
 block is ever written twice or read without being written first.
+.IP "\fID\fP = \f(CWx\fP\fID\fP"
+.br
+This is a byte-swapped version of the file system on D.
+Since the file server currently writes integers in metadata to disk
+in native byte order, moving a file system to a machine of the other
+major byte order (e.g., MIPS to Pentium)
+requires the use of
+.CW x .
+It knows the sizes of the various integer fields in the file system metadata.
+Ideally, the file server would follow the Plan 9 religion and write a consistent
+byte order on disk, regardless of processor.
+In the mean time, it should be possible to automatically determine the need
+for byte-swapping by examining data in the super-block of each file system,
+though this has not been implemented yet.
 .IP "\fID\fP = \f(CWc\fP\fIDD\fP"
 .br
 This is the cache/WORM device made up of a cache (read-write)
@@ -78,13 +104,27 @@ be referenced as
 in this pseudo device.
 The second dump taken that day will be
 .CW /1995/02181 .
-.IP "\fID\fP = \f(CWw\fP\fIN1.N2\fP"
+.IP "\fID\fP = \f(CWw\fP\fIN1.N2.N3\fP"
 .br
-This is a SCSI disk on controller N1 and target N2.
-.IP "\fID\fP = \f(CWl\fP\fIN1.N2\fP"
+This is a SCSI disk on controller N1, target N2 and logical unit number N3.
+.IP "\fID\fP = \f(CWh\fP\fIN1.N2.0\fP"
+.br
+This is an (E)IDE or *ATA disk on controller N1, target N2
+(target 0 is the IDE master, 1 the slave device).
+These disks are currently run via programmed I/O, not DMA,
+so they tend to be slower to access than SCSI disks.
+.IP "\fID\fP = \f(CWr\fP\fIN1\fP"
 .br
 This is the same as
 .CW w ,
+but refers to a side of a WORM disc.
+See the
+.I j
+device.
+.IP "\fID\fP = \f(CWl\fP\fIN1\fP"
+.br
+This is the same as
+.CW r ,
 but one block from the SCSI disk is removed for labeling.
 .IP "\fID\fP = \f(CWj(\fP\fID\d\s-2\&1\s+2\u\fID\d\s-2\&2\s+2\u\f(CW*)\fID\d\s-2\&3\s+2\u\f1"
 .br
@@ -93,7 +133,7 @@ is the juke box SCSI interface.
 The
 .I D\d\s-2\&2\s+2\u 's
 are the SCSI drives in the juke box
-and  the
+and the
 .I D\d\s-2\&3\s+2\u 's
 are the demountable platters in the juke box.
 .I D\d\s-2\&1\s+2\u
@@ -103,32 +143,52 @@ must be
 .CW w .
 .I D\d\s-2\&3\s+2\u
 must be pseudo devices of
-.CW w
+.CW w ,
+.CW r ,
 or
 .CW l
 devices.
 .PP
-For both
-.CW w
+For
+.CW w ,
+.CW h ,
+.CW l ,
 and
 .CW r
 devices any of the configuration numbers
 can be replaced by an iterator of the form
 .CW <\fIN1-N2\fP> .
+N1 can be greater than N2, indicating a descending sequence.
 Thus
-.P1
-    [w0.<2-6>]
-.P2
+.Ex
+	[w0.<2-6>]
+.Ee
 is the interleaved SCSI disks on SCSI targets
 2 through 6 of SCSI controller 0.
 The main file system on
 Emelie
 is defined by the configuration string
-.P1
-    c[w1.<0-5>.0]j(w6w5w4w3w2)l(<0-236>l<238-474>)
-.P2
+.Ex
+	c[w1.<0-5>.0]j(w6w5w4w3w2)(l<0-236>l<238-474>)
+.Ee
 This is a cache/WORM driver.
 The cache is three interleaved disks on SCSI controller 1
 targets 0, 1, 2, 3, 4, and 5.
 The WORM half of the cache/WORM
 is 474 jukebox disks.
+Another file server,
+.I choline ,
+has a main file system defined by
+.Ex
+	c[w<1-3>]j(w1.<6-0>.0)(l<0-124>l<128-252>)
+.Ee
+The order of
+.CW w1.<6-0>.0
+matters here, since the optical jukebox's WORM drives's
+SCSI target ids,
+as delivered,
+run in descending order relative to the numbers of the drives
+in SCSI commands
+(e.g., the jukebox controller is SCSI target 6,
+drive #1 is SCSI target 5,
+and drive #6 is SCSI target 0).

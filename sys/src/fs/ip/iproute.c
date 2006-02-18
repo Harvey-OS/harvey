@@ -73,7 +73,7 @@ struct Route
 	uchar	gate[Pasize];
 	int	metric;
 	int	inuse;
-	long	time;
+	Timet	time;
 };
 struct
 {
@@ -147,18 +147,14 @@ usage:
 				goto usage;
 			break;
 		}
-		if(chartoip(r.dest, argv[2]))
-			goto usage;
-		if(chartoip(r.gate, argv[3]))
+		if(chartoip(r.dest, argv[2]) || chartoip(r.gate, argv[3]))
 			goto usage;
 		r.metric = 0;			/* rip can't nuke these */
 		deleteroute(&r);
 		considerroute(&r);
 	} else
 	if(strcmp(argv[1], "delete") == 0) {
-		if(argc != 3)
-			goto usage;
-		if(chartoip(r.dest, argv[2]))
+		if(argc != 3 || chartoip(r.dest, argv[2]))
 			goto usage;
 		deleteroute(&r);
 	} else

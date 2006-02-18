@@ -9,14 +9,18 @@ OBJ=\
 	p6\
 	p7\
 	p8\
+	p9\
+	pa\
 
 fs.ps:D:	$OBJ
-	{echo $FONTS; cat $OBJ } | troff -ms | lp -dstdout >fs.ps
-	../cleanps fs.ps
+	{echo $FONTS; tbl $OBJ } | eqn | troff -ms | lp -dstdout >$target
+	../cleanps $target
 
 fs.trout:D:	$OBJ
-	{echo $FONTS; cat $OBJ } | troff -ms >fs.trout
+	{echo $FONTS; tbl $OBJ } | eqn | troff -ms >$target
 
 fs.html:D:
-	htmlroff -ms -mhtml $OBJ >fs.html
+	{echo $FONTS; tbl $OBJ } | eqn | htmlroff -ms -mhtml >$target
 
+clean:V:
+	rm -f fs.^(html trout ps pdf)

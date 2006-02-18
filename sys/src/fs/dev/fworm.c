@@ -3,11 +3,11 @@
 #define	DEBUG		0
 #define	FDEV(d)		(d->fw.fw)
 
-long
+Devsize
 fwormsize(Device *d)
 {
 	Device *fdev;
-	long l;
+	Devsize l;
 
 	fdev = FDEV(d);
 	l = devsize(fdev);
@@ -20,15 +20,15 @@ fwormream(Device *d)
 {
 	Iobuf *p;
 	Device *fdev;
-	long a, b;
+	Off a, b;
 
 	print("fworm ream\n");
 	devinit(d);
 	fdev = FDEV(d);
 	a = fwormsize(d);
 	b = devsize(fdev);
-	print("	fwsize = %ld\n", a);
-	print("	bwsize = %ld\n", b-a);
+	print("	fwsize = %lld\n", (Wideoff)a);
+	print("	bwsize = %lld\n", (Wideoff)b-a);
 	for(; a < b; a++) {
 		p = getbuf(fdev, a, Bmod|Bres);
 		if(!p)
@@ -42,34 +42,33 @@ fwormream(Device *d)
 void
 fworminit(Device *d)
 {
-
 	print("fworm init\n");
 	devinit(FDEV(d));
 }
 
 int
-fwormread(Device *d, long b, void *c)
+fwormread(Device *d, Off b, void *c)
 {
 	Iobuf *p;
 	Device *fdev;
-	long l;
+	Devsize l;
 
 	if(DEBUG)
-		print("fworm read  %ld\n", b);
+		print("fworm read  %lld\n", (Wideoff)b);
 	fdev = FDEV(d);
 	l = devsize(fdev);
 	l -= l/(BUFSIZE*8) + 1;
 	if(b >= l)
-		panic("fworm: rbounds %ld\n", b);
+		panic("fworm: rbounds %lld\n", (Wideoff)b);
 	l += b/(BUFSIZE*8);
 
 	p = getbuf(fdev, l, Bread|Bres);
 	if(!p || checktag(p, Tvirgo, l))
-		panic("fworm: checktag %ld\n", l);
+		panic("fworm: checktag %lld\n", (Wideoff)l);
 	l = b % (BUFSIZE*8);
 	if(!(p->iobuf[l/8] & (1<<(l%8)))) {
 		putbuf(p);
-		print("fworm: read %ld\n", b);
+		print("fworm: read %lld\n", (Wideoff)b);
 		return 1;
 	}
 	putbuf(p);
@@ -77,28 +76,28 @@ fwormread(Device *d, long b, void *c)
 }
 
 int
-fwormwrite(Device *d, long b, void *c)
+fwormwrite(Device *d, Off b, void *c)
 {
 	Iobuf *p;
 	Device *fdev;
-	long l;
+	Devsize l;
 
 	if(DEBUG)
-		print("fworm write %ld\n", b);
+		print("fworm write %lld\n", (Wideoff)b);
 	fdev = FDEV(d);
 	l = devsize(fdev);
 	l -= l/(BUFSIZE*8) + 1;
 	if(b >= l)
-		panic("fworm: wbounds %ld\n", b);
+		panic("fworm: wbounds %lld\n", (Wideoff)b);
 	l += b/(BUFSIZE*8);
 
 	p = getbuf(fdev, l, Bread|Bmod|Bres);
 	if(!p || checktag(p, Tvirgo, l))
-		panic("fworm: checktag %ld", l);
+		panic("fworm: checktag %lld", (Wideoff)l);
 	l = b % (BUFSIZE*8);
 	if((p->iobuf[l/8] & (1<<(l%8)))) {
 		putbuf(p);
-		print("fworm: write %ld\n", b);
+		print("fworm: write %lld\n", (Wideoff)b);
 		return 1;
 	}
 	p->iobuf[l/8] |= 1<<(l%8);

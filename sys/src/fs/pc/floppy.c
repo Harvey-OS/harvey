@@ -85,7 +85,7 @@ struct Type
 	int	heads;		/* number of heads */
 	int	steps;		/* steps per cylinder */
 	int	tracks;		/* tracks/disk */
-	int	gpl;		/* intersector gap length for read/write */	
+	int	gpl;		/* intersector gap length for read/write */
 	int	fgpl;		/* intersector gap length for format */
 	int	rate;		/* rate code */
 
@@ -137,7 +137,7 @@ struct Floppy
 	int	dt;
 	int	dev;
 
-	ulong	lasttouched;	/* time last touched */
+	Timet	lasttouched;	/* time last touched */
 	int	cyl;		/* current cylinder */
 	int	confused;	/* needs to be recalibrated (or worse) */
 	long	offset;		/* current offset */
@@ -455,7 +455,7 @@ floppypos(Floppy *dp, long off)
 				*dp->t->sectors;
 	}
 
-	dp->lasttouched = MACHP(0)->ticks;	
+	dp->lasttouched = MACHP(0)->ticks;
 	fl.intr = 0;
 }
 
@@ -532,8 +532,8 @@ floppyrecal(Floppy *dp)
 	return 0;
 }
 
-vlong
-floppyseek(int dev, vlong off)
+Devsize
+floppyseek(int dev, Devsize off)
 {
 	Floppy *dp;
 
@@ -679,13 +679,13 @@ floppyxfer(Floppy *dp, int cmd, void *a, long n)
 	return dp->len;
 }
 
-long
+Off
 floppyread(int dev, void *a, long n)
 {
 	Floppy *dp;
-	long rv, i, nn, offset, sec;
-	uchar *aa;
 	int tries;
+	Off rv, i, nn, offset, sec;
+	uchar *aa;
 
 	dp = &fl.d[dev];
 
@@ -693,7 +693,7 @@ floppyread(int dev, void *a, long n)
 	qlock(&fl);
 	floppypos(dp, dp->offset);
 	offset = dp->offset;
-	sec = dp->tsec + dp->t->sectors*dp->thead;
+	sec = dp->tsec + (Off)dp->t->sectors*(Off)dp->thead;
 	n = dp->len;
 	if(fl.ccyl==dp->tcyl && fl.cdev==dev)
 		goto out;
@@ -701,8 +701,8 @@ floppyread(int dev, void *a, long n)
 	fl.ccyl = -1;
 	fl.cdev = dev;
 	aa = fl.ccache;
-	nn = dp->t->bytes*dp->t->sectors*dp->t->heads;
-	dp->offset = dp->tcyl*nn;
+	nn = (Off)dp->t->bytes * (Off)dp->t->sectors * (Off)dp->t->heads;
+	dp->offset = dp->tcyl * nn;
 	for(rv = 0; rv < nn; rv += i){
 		i = 0;
 		for(tries = 0; tries < dp->maxtries; tries++){
@@ -727,13 +727,13 @@ out:
 	return n;
 }
 
-long
+Off
 floppywrite(int dev, void *a, long n)
 {
 	Floppy *dp;
-	long rv, i, offset;
-	uchar *aa;
 	int tries;
+	Off rv, i, offset;
+	uchar *aa;
 
 	dp = &fl.d[dev];
 

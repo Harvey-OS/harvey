@@ -17,8 +17,8 @@ struct	Side
 	uchar	rot;		/* if backside */
 	int	ord;		/* ordinal number for labeling */
 
-	long	time;		/* time since last access, to unspin */
-	long	stime;		/* time since last spinup, for hysteresis */
+	Timet	time;		/* time since last access, to unspin */
+	Timet	stime;		/* time since last spinup, for hysteresis */
 	long	nblock;		/* number of native blocks */
 	long	block;		/* bytes per native block */
 	long	mult;		/* multiplier to get plan9 blocks */
@@ -199,7 +199,7 @@ bestdrive(Juke *w, int side)
 {
 	Side *v, *bv[MAXDRIVE];
 	int i, s, e, drive;
-	long t, t0;
+	Timet t, t0;
 
 loop:
 	/* build table of what platters on what drives */
@@ -268,27 +268,25 @@ loop:
 	return drive;
 }
 
-long
+Devsize
 wormsize(Device *d)
 {
 	Side *v;
 	Juke *w;
-	long size;
+	Devsize size;
 
 	w = d->private;
-	if(w->fixedsize) {
+	if(w->fixedsize)
 		size = w->fixedsize;
-		goto out;
+	else {
+		v = wormunit(d);
+		if(v == 0)
+			return 0;
+		size = v->max;
+		qunlock(v);
+		if(FIXEDSIZE) // TODO? push FIXEDSIZE into Device or Juke struct
+			w->fixedsize = size;
 	}
-
-	v = wormunit(d);
-	if(v == 0)
-		return 0;
-	size = v->max;
-	qunlock(v);
-	if(FIXEDSIZE)	// TODO? push FIXEDSIZE into Device or Juke struct
-		w->fixedsize = size;
-out:
 	if(d->type == Devlworm)
 		return size-1;
 	return size;
@@ -397,10 +395,10 @@ typedef struct {
  * the main complication is mcats and the like with Devjukes in them.
  * use Devjuke's d->private as Juke* and see sides.
  */
-static long
+static Off
 visitsides(Device *d, Device *parentj, Visit *vp)
 {
-	long size = 0;
+	Off size = 0;
 	Device *x;
 	Juke *w;
 
@@ -472,10 +470,10 @@ visitsides(Device *d, Device *parentj, Visit *vp)
  * etc. if called from chk.c Ctouch code.  Note too that the worm part of
  * the Devcw might be other than a Devjuke.
  */
-long
+Devsize
 wormsizeside(Device *d, int side)
 {
-	long size;
+	Devsize size;
 	Visit visit;
 
 	memset(&visit, 0, sizeof visit);
@@ -497,7 +495,7 @@ void
 wormsidestarts(Device *dev, int side, Sidestarts *stp)
 {
 	int s;
-	long dstart;
+	Devsize dstart;
 
 	for (dstart = s = 0; s < side; s++)
 		dstart += wormsizeside(dev, s);
@@ -507,12 +505,13 @@ wormsidestarts(Device *dev, int side, Sidestarts *stp)
 
 static
 int
-wormiocmd(Device *d, int io, long b, void *c)
+wormiocmd(Device *d, int io, Off b, void *c)
 {
 	Side *v;
 	Juke *w;
-	long l, m;
+	Off l;
 	int s;
+	long m;
 	uchar cmd[10];
 
 	w = d->private;
@@ -521,7 +520,7 @@ wormiocmd(Device *d, int io, long b, void *c)
 		return 0x71;
 	if(b >= v->max) {
 		qunlock(v);
-		print("worm: wormiocmd out of range %Z(%ld)\n", d, b);
+		print("worm: wormiocmd out of range %Z(%lld)\n", d, (Wideoff)b);
 		return 0x071;
 	}
 
@@ -546,13 +545,13 @@ wormiocmd(Device *d, int io, long b, void *c)
 }
 
 int
-wormread(Device *d, long b, void *c)
+wormread(Device *d, Off b, void *c)
 {
 	int s;
 
 	s = wormiocmd(d, SCSIread, b, c);
 	if(s) {
-		print("wormread: %Z(%ld) bad status #%x\n", d, b, s);
+		print("wormread: %Z(%lld) bad status #%x\n", d, (Wideoff)b, s);
 		cons.nwormre++;
 		return s;
 	}
@@ -560,13 +559,13 @@ wormread(Device *d, long b, void *c)
 }
 
 int
-wormwrite(Device *d, long b, void *c)
+wormwrite(Device *d, Off b, void *c)
 {
 	int s;
 
 	s = wormiocmd(d, SCSIwrite, b, c);
 	if(s) {
-		print("wormwrite: %Z(%ld) bad status #%x\n", d, b, s);
+		print("wormwrite: %Z(%lld) bad status #%x\n", d, (Wideoff)b, s);
 		cons.nwormwe++;
 		return s;
 	}
@@ -666,7 +665,6 @@ element(Juke *w, int e)
 	uchar cmd[12], buf[8+8+88];
 	int s, t;
 
-//loop:
 	memset(cmd, 0, sizeof(cmd));
 	memset(buf, 0, sizeof(buf));
 	cmd[0] = 0xb8;		/* read element status */
@@ -770,10 +768,8 @@ element(Juke *w, int e)
 		break;
 	}
 	return;
-
 bad:
-//	panic("element");
-	return;
+	/* panic("element") */ ;
 }
 
 static
@@ -820,7 +816,7 @@ jinit(Juke *w, Device *d, int o)
 	switch(d->type) {
 	default:
 		print("juke platter not (devmcat of) dev(l)worm: %Z\n", d);
-		goto bad;
+		panic("jinit: type");
 
 	case Devmcat:
 		/*
@@ -842,15 +838,11 @@ jinit(Juke *w, Device *d, int o)
 		if(d->private) {
 			print("juke platter private pointer set %p\n",
 				d->private);
-			goto bad;
+			panic("jinit: private");
 		}
 		d->private = w;
 		break;
 	}
-	return;
-
-bad:
-	panic("jinit");
 }
 
 Side*
@@ -1127,12 +1119,6 @@ bad:
 	panic("juke init");
 }
 
-int
-dowcp(void)
-{
-	return 0;
-}
-
 /*
  * called periodically
  */
@@ -1140,10 +1126,9 @@ void
 wormprobe(void)
 {
 	int i, drive;
-	long t;
+	Timet t;
 	Side *v;
 	Juke *w;
-
 
 	t = toytime() - TWORM;
 	for(w=jukelist; w; w=w->link) {

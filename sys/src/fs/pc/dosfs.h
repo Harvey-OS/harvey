@@ -46,18 +46,18 @@ struct Dosfile{
 	char	name[8];
 	char	ext[3];
 	uchar	attr;
-	long	length;
-	long	pstart;		/* physical start cluster address */
-	long	pcurrent;	/* physical current cluster address */
-	long	lcurrent;	/* logical current cluster address */
-	long	offset;
+	Devsize	length;
+	Devsize	pstart;		/* physical start cluster address */
+	Devsize	pcurrent;	/* physical current cluster address */
+	Devsize	lcurrent;	/* logical current cluster address */
+	Devsize	offset;
 };
 
 struct Dos{
 	int	dev;				/* device id */
-	long	(*read)(int, void*, long);	/* read routine */
-	vlong	(*seek)(int, vlong);		/* seek routine */
-	long	(*write)(int, void*, long);	/* write routine */
+	Off	(*read)(int, void*, long);	/* read routine */
+	Devsize	(*seek)(int, Devsize);		/* seek routine */
+	Off	(*write)(int, void*, long);	/* write routine */
 
 	int	start;		/* start of file system (sector no.) */
 	int	sectbytes;	/* size of a sector */
@@ -72,10 +72,10 @@ struct Dos{
 	int	fatbytes;	/* size of a fat (in bytes) */
 	int	fatclusters;	/* no. of clusters governed by fat */
 	int	fatbits;	/* 12 or 16 */
-	long	fataddr;	/* sector address of first fat */
-	long	rootaddr;	/* sector address of root directory */
-	long	dataaddr;	/* sector address of first data block */
-	long	freeptr;	/* for cluster allocation */
+	Devsize	fataddr;	/* sector address of first fat */
+	Devsize	rootaddr;	/* sector address of root directory */
+	Devsize	dataaddr;	/* sector address of first data block */
+	Devsize	freeptr;	/* for cluster allocation */
 
 	Dosfile	root;
 };

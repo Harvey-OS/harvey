@@ -1,7 +1,10 @@
 ARCH=\
+	fs\
+	fs64\
+	9netics32.16k\
+	9netics64.8k\
 	choline\
 	emelie\
-	roro\
 
 all:V:
 	for(i in $ARCH)@{

@@ -84,7 +84,7 @@ enum {					/* Imr/Isr */
 	PunLc		= 0x0020,	/* Packet Underrun or Link Change */
 	Fovw		= 0x0040,	/* Receive FIFO Overflow */
 	Clc		= 0x2000,	/* Cable Length Change */
-	Timer		= 0x4000,	/* Timer */
+	Timerbit	= 0x4000,	/* Timer */
 	Serr		= 0x8000,	/* System Error */
 };
 
@@ -226,7 +226,6 @@ static Ctlr* ctlrtail;
 #define csr16w(c, r, w)	(outs((c)->port+(r), (ushort)(w)))
 #define csr32w(c, r, l)	(outl((c)->port+(r), (ulong)(l)))
 
-#ifndef FS
 static void
 rtl8139promiscuous(void* arg, int on)
 {
@@ -285,19 +284,23 @@ rtl8139ifstat(Ether* edev, void* a, long n, ulong offset)
 
 	return n;
 }
-#endif
 
 static int
 rtl8139reset(Ctlr* ctlr)
 {
+	int timeo;
+
 	/*
 	 * Soft reset the controller.
 	 */
 	csr8w(ctlr, Cr, Rst);
-	while(csr8r(ctlr, Cr) & Rst)
-		;
+	for(timeo = 0; timeo < 1000; timeo++){
+		if(!(csr8r(ctlr, Cr) & Rst))
+			return 0;
+		delay(1);
+	}
 
-	return 0;
+	return -1;
 }
 
 static void
@@ -365,7 +368,7 @@ rtl8139init(Ether* edev)
 	 * Interrupts.
 	 */
 	csr32w(ctlr, TimerInt, 0);
-	csr16w(ctlr, Imr, Serr|Timer|Fovw|PunLc|Rxovw|Ter|Tok|Rer|Rok);
+	csr16w(ctlr, Imr, Serr|Timerbit|Fovw|PunLc|Rxovw|Ter|Tok|Rer|Rok);
 	csr32w(ctlr, Mpc, 0);
 
 	/*
@@ -598,7 +601,7 @@ rtl8139interrupt(Ureg*, void* arg)
 		}
 
 		/*
-		 * Only Serr|Timer should be left by now.
+		 * Only Serr|Timerbit should be left by now.
 		 * Should anything be done to tidy up? TimerInt isn't
 		 * used so that can be cleared. A PCI bus error is indicated
 		 * by Serr, that's pretty serious; is there anyhing to do
@@ -607,7 +610,7 @@ rtl8139interrupt(Ureg*, void* arg)
 		if(isr != 0){
 			iprint("rtl8139interrupt: imr %4.4ux isr %4.4ux\n",
 				csr16r(ctlr, Imr), isr);
-			if(isr & Timer)
+			if(isr & Timerbit)
 				csr32w(ctlr, TimerInt, 0);
 			if(isr & Serr)
 				rtl8139init(edev);
@@ -658,6 +661,8 @@ static struct {
 } rtl8139pci[] = {
 	{ "rtl8139",	(0x8139<<16)|0x10EC, },	/* generic */
 	{ "smc1211",	(0x1211<<16)|0x1113, },	/* SMC EZ-Card */
+	{ "dfe-538tx",	(0x1300<<16)|0x1186, }, /* D-Link DFE-538TX */
+	{ "dfe-560txd",	(0x1340<<16)|0x1186, }, /* D-Link DFE-560TXD */
 	{ nil },
 };
 
@@ -757,10 +762,14 @@ rtl8139pnp(Ether* edev)
 	return 0;
 }
 
-#ifndef FS
 void
 ether8139link(void)
 {
 	addethercard("rtl8139", rtl8139pnp);
 }
-#endif
+
+void
+ether8139bothlink(void)
+{
+	ether8139link();
+}

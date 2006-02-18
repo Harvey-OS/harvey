@@ -32,8 +32,8 @@ since the relative block mark is set to 1
 and only block offset 0 is read.
 This is to prevent some
 fairly common action such as
-.P1
-    file *
-.P2
+.Ex
+	file *
+.Ee
 from swamping the file system with read-ahead
 requests that will never be used.

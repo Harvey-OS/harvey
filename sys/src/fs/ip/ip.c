@@ -19,7 +19,7 @@ struct	Rock
 	uchar	dst[Pasize];
 	int	id;		/* src,dst,id are address of the rock */
 	Msgbuf*	mb;		/* reassembly. if 0, the rock is empty */
-	ulong	age;		/* timeout to throw away */
+	Timet	age;		/* timeout to throw away */
 	int	last;		/* set to data size when last frag arrives */
 	int	nfrag;
 	Frag	frag[Nfrag];
@@ -41,7 +41,7 @@ ipreceive(Enpkt *ep, int l, Ifc *ifc)
 	Frag *f;
 	int len, id, frag, off, loff, i, n;
 	Ippkt pkt;
-	ulong t;
+	Timet t;
 
 	p = (Ippkt*)ep;
 	if(l < Ensize+Ipsize) {

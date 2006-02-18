@@ -136,8 +136,7 @@ iobufinit(void)
 	i = 0;
 	for(mbp = mconf.bank; mbp < &mconf.bank[mconf.nbank]; mbp++)
 		i += mbp->limit - mbp->base;
-	print("	mem left = %d\n", i);
-	print("		out of = %ld\n", conf.mem);
+	print("	mem left = %,d, out of %,ld\n", i, conf.mem);
 	/* paranoia: add this command as late as is easy */
 	cmd_install("memory", "-- print ranges of memory banks", cmd_memory);
 }

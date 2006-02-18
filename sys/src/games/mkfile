@@ -15,6 +15,7 @@ BIN=/$objtype/bin/games
 DIRS=\
 	mahjongg\
 	sokoban\
+	sudoku\
 
 4s.$O 5s.$O xs.$O:	xs.h
 $O.4s $O.5s: xs.$O

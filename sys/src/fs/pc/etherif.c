@@ -9,6 +9,7 @@ extern int etherga620reset(Ether*);
 extern int ether21140reset(Ether*);
 extern int etherelnk3reset(Ether*);
 extern int etheri82557reset(Ether*);
+extern int igbepnp(Ether *);
 extern int dp83815reset(Ether*);
 extern int dp83820pnp(Ether*);
 extern int rtl8139pnp(Ether*);
@@ -19,15 +20,16 @@ static struct
 	int	(*reset)(Ether*);
 } etherctlr[] =
 {
-	{ "ga620", etherga620reset, },
-	{ "21140", ether21140reset, },
-	{ "2114x", ether21140reset, },
-	{ "3C509", etherelnk3reset, },
-	{ "83815",  dp83815reset, },
-	{ "dp83820", dp83820pnp, },
-	{ "elnk3", etherelnk3reset, },
-	{ "i82557", etheri82557reset, },
-	{ "rtl8139", rtl8139pnp, },
+	{ "21140",	ether21140reset, },
+	{ "2114x",	ether21140reset, },
+	{ "3C509",	etherelnk3reset, },
+	{ "83815",	dp83815reset, },
+	{ "dp83820",	dp83820pnp, },
+	{ "elnk3",	etherelnk3reset, },
+	{ "ga620",	etherga620reset, },
+	{ "i82557",	etheri82557reset, },
+	{ "igbe",	igbepnp, },
+	{ "rtl8139",	rtl8139pnp, },
 	{ 0, },
 };
 

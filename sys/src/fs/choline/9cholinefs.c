@@ -13,10 +13,10 @@
 int FIXEDSIZE = 1;
 
 #ifndef	DATE
-#define	DATE	568011600L+4*3600
+#define	DATE	1094098624L
 #endif
 
-ulong	mktime		= DATE;				/* set by mkfile */
+Timet	mktime		= DATE;				/* set by mkfile */
 Startsb	startsb[] =
 {
 	"main",		2,
@@ -25,23 +25,21 @@ Startsb	startsb[] =
 
 Dos dos;
 
-static
-struct
+static struct
 {
 	char	*name;
-	long	(*read)(int, void*, long);
-	vlong	(*seek)(int, vlong);
-	long	(*write)(int, void*, long);
+	Off	(*read)(int, void*, long);
+	Devsize	(*seek)(int, Devsize);
+	Off	(*write)(int, void*, long);
 	int	(*part)(int, char*);
-} nvrdevs[] =
-{
+} nvrdevs[] = {
 	{ "fd", floppyread, floppyseek, floppywrite, 0, },
 	{ "hd", ataread,   ataseek,   atawrite,   setatapart, },
-	/*
-	{ "sd", scsiread,   scsiseek,   scsiwrite,   setscsipart, },
-	 */
+	/* { "sd", scsiread,   scsiseek,   scsiwrite,   setscsipart, },  */
 	{ 0, },
 };
+
+void apcinit(void);
 
 void
 otherinit(void)
@@ -53,6 +51,7 @@ otherinit(void)
 	printcpufreq();
 	etherinit();
 	scsiinit();
+	apcinit();
 
 	s = spllo();
 	nhd = atainit();

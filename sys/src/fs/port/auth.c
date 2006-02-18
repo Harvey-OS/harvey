@@ -210,7 +210,7 @@ struct	Auth
 	int	inuse;
 	char	uname[NAMELEN];	/* requestor's remote user name */
 	char	aname[NAMELEN];	/* requested aname */
-	short	uid;		/* uid decided on */
+	Userid	uid;		/* uid decided on */
 	int	phase;
 	char	cchal[CHALLEN];
 	char	tbuf[TICKETLEN+AUTHENTLEN];	/* server ticket */

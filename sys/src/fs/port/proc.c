@@ -17,7 +17,7 @@ struct
 	User	*free;
 } procalloc;
 
-struct
+volatile struct
 {
 	Lock;
 	User	*head;
@@ -157,16 +157,16 @@ runproc(void)
 {
 	User *p;
 
-loop:
-	while(runq.head == 0)
-		;
-	splhi();
-	lock(&runq);
-	p = runq.head;
-	if(p==0 || p->mach){
+	for (;;) {
+		while(runq.head == 0)		/* if nobody to run, */
+			;			/* idle with intrs enabled */
+		splhi();
+		lock(&runq);
+		p = runq.head;
+		if (p != nil && !p->mach)
+			break;
 		unlock(&runq);
 		spllo();
-		goto loop;
 	}
 	if(p->rnext == 0)
 		runq.tail = 0;
@@ -240,7 +240,7 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 	/*
 	 * if condition happened, never mind
 	 */
-	if((*f)(arg)) {	
+	if((*f)(arg)) {
 		unlock(r);
 		splx(s);
 		return;
@@ -273,13 +273,15 @@ tfn(void *arg)
 void
 tsleep(Rendez *r, int (*fn)(void*), void *arg, int ms)
 {
-	ulong when;
+	Timet when;
 	User *f, **l;
 
 	when = MS2TK(ms)+MACHP(0)->ticks;
 
 	lock(&talarm);
 	/* take out of list if checkalarm didn't */
+	if (u == nil)
+		panic("tsleep: nil u");
 	if(u->trend) {
 		l = &talarm.list;
 		for(f = *l; f; f = f->tlink) {

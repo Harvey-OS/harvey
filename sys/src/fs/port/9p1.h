@@ -15,7 +15,7 @@ struct	Fcall
 	{
 		struct
 		{
-			short	uid;		/* T-Userstr */
+			short	uid;		/* T-Userstr [obs.] */
 			short	oldtag;		/* T-nFlush */
 			Qid9p1	qid;		/* R-Attach, R-Clwalk, R-Walk,
 						 * R-Open, R-Create */
@@ -44,7 +44,7 @@ struct	Fcall
 		};
 		struct
 		{
-			long	offset;		/* T-Read, T-Write */
+			Off	offset;		/* T-Read, T-Write */
 			long	count;		/* T-Read, T-Write, R-Read */
 			char*	data;		/* T-Write, R-Read */
 		};

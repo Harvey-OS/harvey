@@ -45,18 +45,18 @@ struct	Cw
 
 	Filter	ncwio[3];
 	int	dbucket;	/* last bucket dumped */
-	long	daddr;		/* last block dumped */
-	long	ncopy;
+	Off	daddr;		/* last block dumped */
+	Off	ncopy;
 	int	nodump;
 /*
  * following are cached variables for dumps
  */
-	long	fsize;
-	long	ndump;
+	Off	fsize;
+	Off	ndump;
 	int	depth;
 	int	all;		/* local flag to recur on modified directories */
 	int	allflag;	/* global flag to recur on modified directories */
-	long	falsehits;	/* times recur found modified blocks */
+	Off	falsehits;	/* times recur found modified blocks */
 	struct
 	{
 		char	name[500];
@@ -83,8 +83,8 @@ char*	cwnames[] =
 	[Orele]		"rele",
 };
 
-Centry*	getcentry(Bucket*, long);
-int	cwio(Device*, long, void*, int);
+Centry*	getcentry(Bucket*, Off);
+int	cwio(Device*, Off, void*, int);
 void	cmd_cwcmd(int, char*[]);
 
 /*
@@ -120,9 +120,9 @@ cmd_statw(int, char*[])
 	Cache *h;
 	Bucket *b;
 	Centry *c, *ce;
-	long m, nw, bw, state[Onone];
-	long sbfsize, sbcwraddr, sbroraddr, sblast, sbnext;
-	long hmsize, hmaddr, dsize, dsizepct;
+	Off m, nw, bw, state[Onone];
+	Off sbfsize, sbcwraddr, sbroraddr, sblast, sbnext;
+	Off hmsize, hmaddr, dsize, dsizepct;
 	Device *dev;
 	Cw *cw;
 	int s;
@@ -179,32 +179,35 @@ cmd_statw(int, char*[])
 	hmaddr = h->maddr;
 	hmsize = h->msize;
 
-	print("		maddr  = %8ld\n", hmaddr);
-	print("		msize  = %8ld\n", hmsize);
-	print("		caddr  = %8ld\n", h->caddr);
-	print("		csize  = %8ld\n", h->csize);
-	print("		sbaddr = %8ld\n", h->sbaddr);
-	print("		craddr = %8ld %8ld\n", h->cwraddr, sbcwraddr);
-	print("		roaddr = %8ld %8ld\n", h->roraddr, sbroraddr);
+	print("		maddr  = %8lld\n", (Wideoff)hmaddr);
+	print("		msize  = %8lld\n", (Wideoff)hmsize);
+	print("		caddr  = %8lld\n", (Wideoff)h->caddr);
+	print("		csize  = %8lld\n", (Wideoff)h->csize);
+	print("		sbaddr = %8lld\n", (Wideoff)h->sbaddr);
+	print("		craddr = %8lld %8lld\n", (Wideoff)h->cwraddr, (Wideoff)sbcwraddr);
+	print("		roaddr = %8lld %8lld\n", (Wideoff)h->roraddr, (Wideoff)sbroraddr);
 	/* print stats in terms of (first-)disc sides */
 	dsize = wormsizeside(dev, 0);
 	if (dsize < 1) {
 		if (DEBUG)
-			print("wormsizeside returned size %ld for %Z side 0\n",
-				dsize, dev);
+			print("wormsizeside returned size %lld for %Z side 0\n",
+				(Wideoff)dsize, dev);
 		dsize = h->wsize;	/* it's probably a fake worm */
 		if (dsize < 1)
 			dsize = 1000;	/* don't divide by zero */
 	}
 	dsizepct = dsize/100;
-	print("		fsize  = %8ld %8ld %2ld+%2ld%%\n", h->fsize, sbfsize,
-				h->fsize/dsize, (h->fsize%dsize)/dsizepct);
-	print("		slast  =          %8ld\n", sblast);
-	print("		snext  =          %8ld\n", sbnext);
-	print("		wmax   = %8ld          %2ld+%2ld%%\n", h->wmax,
-				h->wmax/dsize, (h->wmax%dsize)/dsizepct);
-	print("		wsize  = %8ld          %2ld+%2ld%%\n", h->wsize,
-				h->wsize/dsize, (h->wsize%dsize)/dsizepct);
+	print("		fsize  = %8lld %8lld %2lld+%2lld%%\n", (Wideoff)h->fsize,
+				(Wideoff)sbfsize, (Wideoff)h->fsize/dsize,
+				(Wideoff)(h->fsize%dsize)/dsizepct);
+	print("		slast  =          %8lld\n", (Wideoff)sblast);
+	print("		snext  =          %8lld\n", (Wideoff)sbnext);
+	print("		wmax   = %8lld          %2lld+%2lld%%\n", (Wideoff)h->wmax,
+				(Wideoff)h->wmax/dsize,
+				(Wideoff)(h->wmax%dsize)/dsizepct);
+	print("		wsize  = %8lld          %2lld+%2lld%%\n", (Wideoff)h->wsize,
+				(Wideoff)h->wsize/dsize,
+				(Wideoff)(h->wsize%dsize)/dsizepct);
 	putbuf(p);
 
 	bw = 0;	/* max filled bucket */
@@ -231,8 +234,8 @@ cmd_statw(int, char*[])
 			bw = nw;
 	}
 	for(s=Cnone; s<Cerror; s++)
-		print("		%6ld %s\n", state[s], cwnames[s]);
-	print("		cache %2ld%% full\n", (bw*100)/CEPERBK);
+		print("		%6lld %s\n", (Wideoff)state[s], cwnames[s]);
+	print("		cache %2lld%% full\n", ((Wideoff)bw*100)/CEPERBK);
 }
 
 int
@@ -242,7 +245,7 @@ dumpblock(Device *dev)
 	Cache *h;
 	Centry *c, *ce, *bc;
 	Bucket *b;
-	long m, a, msize, maddr, wmax, caddr;
+	Off m, a, msize, maddr, wmax, caddr;
 	int s1, s2, count;
 	Cw *cw;
 
@@ -290,7 +293,7 @@ dumpblock(Device *dev)
 		putbuf(p);
 	}
 	if(cw->ncopy) {
-		print("%ld blocks copied to worm\n", cw->ncopy);
+		print("%lld blocks copied to worm\n", (Wideoff)cw->ncopy);
 		cw->ncopy = 0;
 	}
 	cw->nodump = 1;
@@ -333,7 +336,7 @@ retry:
 		if(s1)
 			goto stop1;
 		if(memcmp(p1->iobuf, p2->iobuf, RBUFSIZE)) {
-			print("reread C%ld W%ld didnt compare\n", a, m);
+			print("reread C%lld W%lld didnt compare\n", (Wideoff)a, (Wideoff)m);
 			goto stop1;
 		}
 		putbuf(p2);
@@ -410,7 +413,7 @@ cwinit(Device *dev)
 	Cw *cw;
 	Cache *h;
 	Iobuf *cb, *p;
-	long l, m;
+	Off l, m;
 
 	cwinit1(dev);
 
@@ -422,7 +425,7 @@ cwinit(Device *dev)
 	h->time = time();
 	m = h->wsize;
 	if(l != m) {
-		print("wdev changed size %ld to %ld\n", m, l);
+		print("wdev changed size %lld to %lld\n", (Wideoff)m, (Wideoff)l);
 		h->wsize = l;
 		cb->flags |= Bmod;
 	}
@@ -436,11 +439,11 @@ cwinit(Device *dev)
 	putbuf(cb);
 }
 
-long
+Off
 cwsaddr(Device *dev)
 {
 	Iobuf *cb;
-	long sa;
+	Off sa;
 
 	cb = getbuf(CDEV(dev), CACHE_ADDR, Bread|Bres);
 	sa = ((Cache*)cb->iobuf)->sbaddr;
@@ -448,11 +451,11 @@ cwsaddr(Device *dev)
 	return sa;
 }
 
-long
+Off
 cwraddr(Device *dev)
 {
 	Iobuf *cb;
-	long ra;
+	Off ra;
 
 	switch(dev->type) {
 	default:
@@ -473,11 +476,11 @@ cwraddr(Device *dev)
 	return ra;
 }
 
-long
+Devsize
 cwsize(Device *dev)
 {
 	Iobuf *cb;
-	long fs;
+	Devsize fs;
 
 	cb = getbuf(CDEV(dev), CACHE_ADDR, Bread|Bres);
 	fs = ((Cache*)cb->iobuf)->fsize;
@@ -486,19 +489,19 @@ cwsize(Device *dev)
 }
 
 int
-cwread(Device *dev, long b, void *c)
+cwread(Device *dev, Off b, void *c)
 {
 	return cwio(dev, b, c, Oread) == Cerror;
 }
 
 int
-cwwrite(Device *dev, long b, void *c)
+cwwrite(Device *dev, Off b, void *c)
 {
 	return cwio(dev, b, c, Owrite) == Cerror;
 }
 
 int
-roread(Device *dev, long b, void *c)
+roread(Device *dev, Off b, void *c)
 {
 	Device *d;
 	int s;
@@ -517,23 +520,23 @@ roread(Device *dev, long b, void *c)
 		s = cwio(d, b, c, Oread);
 		if(s == Cdump || s == Cdump1 || s == Cread) {
 			if(cons.flags & roflag)
-				print("roread: %Z %ld -> %Z(hit)\n", dev, b, d);
+				print("roread: %Z %lld -> %Z(hit)\n", dev, (Wideoff)b, d);
 			return 0;
 		}
 	}
 	if(cons.flags & roflag)
-		print("roread: %Z %ld -> %Z(miss)\n", dev, b, WDEV(d));
+		print("roread: %Z %lld -> %Z(miss)\n", dev, (Wideoff)b, WDEV(d));
 	return devread(WDEV(d), b, c);
 }
 
 int
-cwio(Device *dev, long addr, void *buf, int opcode)
+cwio(Device *dev, Off addr, void *buf, int opcode)
 {
 	Iobuf *p, *p1, *p2, *cb;
 	Cache *h;
 	Bucket *b;
 	Centry *c;
-	long bn, a1, a2, max, newmax;
+	Off bn, a1, a2, max, newmax;
 	int state;
 	Cw *cw;
 
@@ -571,7 +574,7 @@ cwio(Device *dev, long addr, void *buf, int opcode)
 	c = getcentry(b, addr);
 	if(c == 0) {
 		putbuf(p);
-		print("%Z disk cache bucket %ld is full\n", cw->cdev, a1);
+		print("%Z disk cache bucket %lld is full\n", cw->cdev, (Wideoff)a1);
 		return Cerror;
 	}
 	a2 += c - b->entry;
@@ -684,8 +687,8 @@ cwio(Device *dev, long addr, void *buf, int opcode)
 
 	case Ogrow:
 		if(state != Cnone) {
-			print("%Z for block %ld cwgrow with state = %s\n",
-				cw->cdev, addr, cwnames[state]);
+			print("%Z for block %lld cwgrow with state = %s\n",
+				cw->cdev, (Wideoff)addr, cwnames[state]);
 			break;
 		}
 		c->state = Cdirty;
@@ -693,8 +696,8 @@ cwio(Device *dev, long addr, void *buf, int opcode)
 
 	case Odump:
 		if(state != Cdirty) {	/* BOTCH */
-			print("%Z for block %ld cwdump with state = %s\n",
-				cw->cdev, addr, cwnames[state]);
+			print("%Z for block %lld cwdump with state = %s\n",
+				cw->cdev, (Wideoff)addr, cwnames[state]);
 			break;
 		}
 		c->state = Cdump;
@@ -704,8 +707,8 @@ cwio(Device *dev, long addr, void *buf, int opcode)
 	case Orele:
 		if(state != Cwrite) {
 			if(state != Cdump1)
-				print("%Z for block %ld cwrele with state = %s\n",
-					cw->cdev, addr, cwnames[state]);
+				print("%Z for block %lld cwrele with state = %s\n",
+					cw->cdev, (Wideoff)addr, cwnames[state]);
 			break;
 		}
 		c->state = Cnone;
@@ -717,8 +720,8 @@ cwio(Device *dev, long addr, void *buf, int opcode)
 		break;
 	}
 	if(DEBUG)
-		print("cwio: %Z %ld s=%s o=%s ns=%s\n",
-			dev, addr, cwnames[state],
+		print("cwio: %Z %lld s=%s o=%s ns=%s\n",
+			dev, (Wideoff)addr, cwnames[state],
 			cwnames[opcode],
 			cwnames[c->state]);
 	putbuf(p);
@@ -732,8 +735,8 @@ cwio(Device *dev, long addr, void *buf, int opcode)
 	return state;
 
 bad:
-	print("%Z block %ld cw state = %s; cw opcode = %s",
-		dev, addr, cwnames[state], cwnames[opcode]);
+	print("%Z block %lld cw state = %s; cw opcode = %s",
+		dev, (Wideoff)addr, cwnames[state], cwnames[opcode]);
 	return Cerror;
 }
 
@@ -746,7 +749,7 @@ cwgrow(Device *dev, Superb *sb, int uid)
 	Iobuf *cb;
 	Cache *h;
 	Filsys *filsys;
-	long fs, nfs, ws;
+	Off fs, nfs, ws;
 
 	cb = getbuf(CDEV(dev), CACHE_ADDR, Bread|Bmod|Bres);
 	h = (Cache*)cb->iobuf;
@@ -767,8 +770,8 @@ cwgrow(Device *dev, Superb *sb, int uid)
 	else
 		print("%s", filsys->name);
 	uidtostr(str, uid, 1);
-	print(" grow from %ld to %ld limit %ld by %s uid=%d\n",
-		fs, nfs, ws, str, uid);
+	print(" grow from %lld to %lld limit %lld by %s uid=%d\n",
+		(Wideoff)fs, (Wideoff)nfs, (Wideoff)ws, str, uid);
 	for(nfs--; nfs>=fs; nfs--) {
 		switch(cwio(dev, nfs, 0, Ogrow)) {
 		case Cerror:
@@ -781,7 +784,7 @@ cwgrow(Device *dev, Superb *sb, int uid)
 }
 
 int
-cwfree(Device *dev, long addr)
+cwfree(Device *dev, Off addr)
 {
 	int state;
 
@@ -818,7 +821,7 @@ bktcheck(Bucket *b)
 				if(c1->waddr == c->waddr)
 				if(c1->state != Cnone)
 				if(c->state != Cnone) {
-					print("same waddr %ld\n", c->waddr);
+					print("same waddr %lld\n", (Wideoff)c->waddr);
 					err = 1;
 				}
 			}
@@ -872,7 +875,7 @@ resequence(Bucket *b)
 }
 
 Centry*
-getcentry(Bucket *b, long addr)
+getcentry(Bucket *b, Off addr)
 {
 	Centry *c, *ce, *cr;
 	int s, age;
@@ -937,7 +940,7 @@ cacheinit(Device *dev)
 	Iobuf *cb, *p;
 	Cache *h;
 	Device *cdev;
-	long m;
+	Off m;
 
 	print("cache init %Z\n", dev);
 	cdev = CDEV(dev);
@@ -955,7 +958,7 @@ cacheinit(Device *dev)
 	 */
 	h->maddr = CACHE_ADDR + 1;
 	m = devsize(cdev) - h->maddr;
-	h->csize = ((long long)(m-1) * CEPERBK*BKPERBLK) / (CEPERBK*BKPERBLK+1);
+	h->csize = ((Devsize)(m-1) * CEPERBK*BKPERBLK) / (CEPERBK*BKPERBLK+1);
 	h->msize = h->csize/CEPERBK - 5;
 	while(!prime(h->msize))
 		h->msize--;
@@ -981,23 +984,21 @@ cacheinit(Device *dev)
 	return cb;
 }
 
-long
+Off
 getstartsb(Device *dev)
 {
 	Filsys *f;
 	Startsb *s;
 
 	for(f=filsys; f->name; f++)
-		if(devcmpr(f->dev, dev) == 0)
-			goto found;
-print("getstartsb: no filsys for device %Z\n", dev);
-	return FIRST;
-
-found:
-	for(s=startsb; s->name; s++)
-		if(strcmp(f->name, s->name) == 0)
-			return s->startsb;
+		if(devcmpr(f->dev, dev) == 0) {
+			for(s=startsb; s->name; s++)
+				if(strcmp(f->name, s->name) == 0)
+					return s->startsb;
 print("getstartsb: no special starting superblock for %Z %s\n", dev, f->name);
+			return FIRST;
+		}
+print("getstartsb: no filsys for device %Z\n", dev);
 	return FIRST;
 }
 
@@ -1013,7 +1014,7 @@ cwrecover(Device *dev)
 	Iobuf *p, *cb;
 	Cache *h;
 	Superb *s;
-	long m, baddr;
+	Off m, baddr;
 	Device *wdev;
 
 	cwinit1(dev);
@@ -1033,7 +1034,7 @@ cwrecover(Device *dev)
 			break;
 		baddr = m;
 		m = s->next;
-		print("dump %ld is good; %ld next\n", baddr, m);
+		print("dump %lld is good; %lld next\n", (Wideoff)baddr, (Wideoff)m);
 		if(baddr == conf.recovsb)
 			break;
 	}
@@ -1060,6 +1061,7 @@ cwrecover(Device *dev)
 
 	p = getbuf(dev, baddr, Bread|Bmod);
 	s = (Superb*)p->iobuf;
+/* TODO: check s->magic byte order, arrange autoswabbing */
 
 	memset(&s->fbuf, 0, sizeof(s->fbuf));
 	s->fbuf.free[0] = 0;
@@ -1085,7 +1087,7 @@ cwream(Device *dev)
 	Iobuf *p, *cb;
 	Cache *h;
 	Superb *s;
-	long m, baddr;
+	Off m, baddr;
 	Device *cdev;
 
 	print("cwream %Z\n", dev);
@@ -1126,14 +1128,17 @@ cwream(Device *dev)
 	s->roraddr = baddr+2;
 	s->next = baddr+3;
 	s->fsize = baddr+4;
+#ifdef AUTOSWAB
+	s->magic = 0x123456789abcdef0;
+#endif
 	putbuf(p);
 
 	for(m=0; m<3; m++)
 		cwio(dev, baddr+m, 0, Odump);
 }
 
-long
-rewalk1(Cw *cw, long addr, int slot, Wpath *up)
+Off
+rewalk1(Cw *cw, Off addr, int slot, Wpath *up)
 {
 	Iobuf *p, *p1;
 	Dentry *d;
@@ -1157,8 +1162,8 @@ rewalk1(Cw *cw, long addr, int slot, Wpath *up)
 		return addr;
 	}
 	if(DEBUG)
-		print("rewalk1 %ld to %ld \"%s\"\n",
-			addr, p1->addr, d->name);
+		print("rewalk1 %lld to %lld \"%s\"\n",
+			(Wideoff)addr, (Wideoff)p1->addr, d->name);
 	addr = p1->addr;
 	p1->flags |= Bmod;
 	putbuf(p1);
@@ -1166,8 +1171,8 @@ rewalk1(Cw *cw, long addr, int slot, Wpath *up)
 	return addr;
 }
 
-long
-rewalk2(Cw *cw, long addr, int slot, Wpath *up)
+Off
+rewalk2(Cw *cw, Off addr, int slot, Wpath *up)
 {
 	Iobuf *p, *p1;
 	Dentry *d;
@@ -1191,8 +1196,8 @@ rewalk2(Cw *cw, long addr, int slot, Wpath *up)
 		return addr;
 	}
 	if(DEBUG)
-		print("rewalk2 %ld to %ld \"%s\"\n",
-			addr, p1->addr, d->name);
+		print("rewalk2 %lld to %lld \"%s\"\n",
+			(Wideoff)addr, (Wideoff)p1->addr, d->name);
 	addr = p1->addr;
 	putbuf(p1);
 	putbuf(p);
@@ -1218,10 +1223,10 @@ rewalk(Cw *cw)
 	}
 }
 
-long
-split(Cw *cw, Iobuf *p, long addr)
+Off
+split(Cw *cw, Iobuf *p, Off addr)
 {
-	long na;
+	Off na;
 	int state;
 
 	na = 0;
@@ -1272,7 +1277,7 @@ split(Cw *cw, Iobuf *p, long addr)
 }
 
 int
-isdirty(Cw *cw, Iobuf *p, long addr, int tag)
+isdirty(Cw *cw, Iobuf *p, Off addr, int tag)
 {
 	int s;
 
@@ -1281,29 +1286,29 @@ isdirty(Cw *cw, Iobuf *p, long addr, int tag)
 	s = cwio(cw->dev, addr, 0, Onone);
 	if(s == Cdirty || s == Cwrite)
 		return 1;
-	if(tag == Tind1 || tag == Tind2)	/* botch, get these modified */
+	if(tag >= Tind1 && tag <= Tmaxind)
+		/* botch, get these modified */
 		if(s != Cnone)
 			return 1;
 	return 0;
 }
 
-long
-cwrecur(Cw *cw, long addr, int tag, int tag1, long qp)
+Off
+cwrecur(Cw *cw, Off addr, int tag, int tag1, long qp)
 {
 	Iobuf *p;
 	Dentry *d;
 	int i, j, shouldstop;
-	long na;
+	Off na;
 	char *np;
-
 
 	shouldstop = 0;
 	p = getbuf(cw->dev, addr, Bprobe);
 	if(!isdirty(cw, p, addr, tag)) {
 		if(!cw->all) {
 			if(DEBUG)
-				print("cwrecur: %ld t=%s not dirty %s\n",
-					addr, tagnames[tag], cw->name);
+				print("cwrecur: %lld t=%s not dirty %s\n",
+					(Wideoff)addr, tagnames[tag], cw->name);
 			if(p)
 				putbuf(p);
 			return 0;
@@ -1311,8 +1316,8 @@ cwrecur(Cw *cw, long addr, int tag, int tag1, long qp)
 		shouldstop = 1;
 	}
 	if(DEBUG)
-		print("cwrecur: %ld t=%s %s\n",
-			addr, tagnames[tag], cw->name);
+		print("cwrecur: %lld t=%s %s\n",
+			(Wideoff)addr, tagnames[tag], cw->name);
 	if(cw->depth >= 100) {
 		print("dump depth too great %s\n", cw->name);
 		if(p)
@@ -1362,7 +1367,8 @@ cwrecur(Cw *cw, long addr, int tag, int tag1, long qp)
 			if(d->mode & DDIR)
 				tag1 = Tdir;
 			for(j=0; j<NDBLOCK; j++) {
-				if(na = d->dblock[j]) {
+				na = d->dblock[j];
+				if(na) {
 					na = cwrecur(cw, na, tag1, 0, qp);
 					if(na) {
 						d->dblock[j] = na;
@@ -1370,18 +1376,14 @@ cwrecur(Cw *cw, long addr, int tag, int tag1, long qp)
 					}
 				}
 			}
-			if(na = d->iblock) {
-				na = cwrecur(cw, na, Tind1, tag1, qp);
+			for (j = 0; j < NIBLOCK; j++) {
+				na = d->iblocks[j];
 				if(na) {
-					d->iblock = na;
-					p->flags |= Bmod;
-				}
-			}
-			if(na = d->diblock) {
-				na = cwrecur(cw, na, Tind2, tag1, qp);
-				if(na) {
-					d->diblock = na;
-					p->flags |= Bmod;
+					na = cwrecur(cw, na, Tind1+j, tag1, qp);
+					if(na) {
+						d->iblocks[j] = na;
+						p->flags |= Bmod;
+					}
 				}
 			}
 		}
@@ -1393,22 +1395,26 @@ cwrecur(Cw *cw, long addr, int tag, int tag1, long qp)
 		goto tind;
 
 	case Tind2:
-		j = Tind1;
-
+#ifndef OLD
+	case Tind3:
+	case Tind4:
+	/* add more Tind tags here ... */
+#endif
+		j = tag-1;
 	tind:
 		if(!p) {
 			p = getbuf(cw->dev, addr, Bread);
 			if(!p) {
-				print("cwrecur: Tind p null %s\n",
-					cw->name);
+				print("cwrecur: Tind p null %s\n", cw->name);
 				break;
 			}
 		}
 		for(i=0; i<INDPERBUF; i++) {
-			if(na = ((long*)p->iobuf)[i]) {
+			na = ((Off *)p->iobuf)[i];
+			if(na) {
 				na = cwrecur(cw, na, j, tag1, qp);
 				if(na) {
-					((long*)p->iobuf)[i] = na;
+					((Off *)p->iobuf)[i] = na;
 					p->flags |= Bmod;
 				}
 			}
@@ -1419,22 +1425,27 @@ cwrecur(Cw *cw, long addr, int tag, int tag1, long qp)
 	cw->depth--;
 	if(na && shouldstop) {
 		if(cw->falsehits < 10)
-			print("shouldstop %ld %ld t=%s %s\n",
-				addr, na, tagnames[tag], cw->name);
+			print("shouldstop %lld %lld t=%s %s\n",
+				(Wideoff)addr, (Wideoff)na,
+				tagnames[tag], cw->name);
 		cw->falsehits++;
 	}
 	return na;
 }
 
+Timet	nextdump(Timet t);
+
 void
 cfsdump(Filsys *fs)
 {
+	long m, n, i;
+	Off orba, rba, oroa, roa, sba, a;
+	Timet tim;
+	char tstr[20];
 	Iobuf *pr, *p1, *p;
 	Dentry *dr, *d1, *d;
 	Cache *h;
 	Superb *s;
-	long orba, rba, oroa, roa, sba, a, m, n, i, tim;
-	char tstr[20];
 	Cw *cw;
 
 	if(fs->dev->type != Devcw) {
@@ -1464,13 +1475,13 @@ cfsdump(Filsys *fs)
 	sync("before dump");
 	cw->fsize = cwsize(cw->dev);
 	orba = cwraddr(cw->dev);
-	print("cwroot %ld", orba);
+	print("cwroot %lld", (Wideoff)orba);
 	cons.noage = 1;
 	cw->all = cw->allflag;
 	rba = cwrecur(cw, orba, Tsuper, 0, QPROOT);
 	if(rba == 0)
 		rba = orba;
-	print("->%ld\n", rba);
+	print("->%lld\n", (Wideoff)rba);
 	sync("after cw");
 
 	/*
@@ -1480,6 +1491,9 @@ cfsdump(Filsys *fs)
 	s = (Superb*)p->iobuf;
 	s->fsize = cw->fsize;
 	s->cwraddr = rba;
+#ifdef AUTOSWAB
+	s->magic = 0x123456789abcdef0;
+#endif
 	putbuf(p);
 
 	/*
@@ -1579,7 +1593,7 @@ found:
 
 	cw->fsize = cwsize(cw->dev);
 	oroa = cwraddr(cw->rodev);		/* probably redundant */
-	print("roroot %ld", oroa);
+	print("roroot %lld", (Wideoff)oroa);
 
 	cons.noage = 0;
 	cw->all = 0;
@@ -1588,14 +1602,14 @@ found:
 		print("[same]");
 		roa = oroa;
 	}
-	print("->%ld /%.4s/%s\n", roa, tstr, tstr+4);
+	print("->%lld /%.4s/%s\n", (Wideoff)roa, tstr, tstr+4);
 	sync("after ro");
 
 	/*
 	 * final super block
 	 */
 	a = cwsaddr(cw->dev);
-	print("sblock %ld", a);
+	print("sblock %lld", (Wideoff)a);
 	p = getbuf(cw->dev, a, Bread|Bmod|Bimm);
 	s = (Superb*)p->iobuf;
 	s->last = a;
@@ -1604,11 +1618,14 @@ found:
 	cw->fsize++;
 	s->fsize = cw->fsize;
 	s->roraddr = roa;
+#ifdef AUTOSWAB
+	s->magic = 0x123456789abcdef0;
+#endif
 
 	cwio(cw->dev, sba, 0, Ogrow);
 	cwio(cw->dev, sba, p->iobuf, Owrite);
 	cwio(cw->dev, sba, 0, Odump);
-	print("->%ld (->%ld)\n", sba, s->next);
+	print("->%lld (->%lld)\n", (Wideoff)sba, (Wideoff)s->next);
 
 	putbuf(p);
 
@@ -1625,8 +1642,8 @@ found:
 	rewalk(cw);
 	sync("all done");
 
-	print("%ld blocks queued for worm\n", cw->ndump);
-	print("%ld falsehits\n", cw->falsehits);
+	print("%lld blocks queued for worm\n", (Wideoff)cw->ndump);
+	print("%lld falsehits\n", (Wideoff)cw->falsehits);
 	cw->nodump = 0;
 
 	/*
@@ -1638,6 +1655,7 @@ found:
 			tlocks[i].time += tim;
 
 	wunlock(&mainlock);
+	nextdump(time());
 	return;
 
 bad:
@@ -1651,7 +1669,7 @@ mvstates(Device *dev, int s1, int s2, int side)
 	Cache *h;
 	Bucket *b;
 	Centry *c, *ce;
-	long m, lo, hi, msize, maddr;
+	Off m, lo, hi, msize, maddr;
 	Cw *cw;
 
 	cw = dev->private;
@@ -1687,7 +1705,7 @@ mvstates(Device *dev, int s1, int s2, int side)
 }
 
 void
-prchain(Device *dev, long m, int flg)
+prchain(Device *dev, Off m, int flg)
 {
 	Iobuf *p;
 	Superb *s;
@@ -1706,14 +1724,18 @@ prchain(Device *dev, long m, int flg)
 		   checktag(p, Tsuper, QPSUPER))
 			break;
 		if(flg) {
-			print("dump %ld is good; %ld prev\n", m, s->last);
-			print("\t%ld cwroot; %ld roroot\n", s->cwraddr, s->roraddr);
+			print("dump %lld is good; %lld prev\n", (Wideoff)m,
+				(Wideoff)s->last);
+			print("\t%lld cwroot; %lld roroot\n", (Wideoff)s->cwraddr,
+				(Wideoff)s->roraddr);
 			if(m <= s->last)
 				break;
 			m = s->last;
 		} else {
-			print("dump %ld is good; %ld next\n", m, s->next);
-			print("\t%ld cwroot; %ld roroot\n", s->cwraddr, s->roraddr);
+			print("dump %lld is good; %lld next\n", (Wideoff)m,
+				(Wideoff)s->next);
+			print("\t%lld cwroot; %lld roroot\n", (Wideoff)s->cwraddr,
+				(Wideoff)s->roraddr);
 			if(m >= s->next)
 				break;
 			m = s->next;
@@ -1726,7 +1748,7 @@ void
 touchsb(Device *dev)
 {
 	Iobuf *p;
-	long m;
+	Off m;
 
 	m = cwsaddr(dev);
 	p = getbuf(devnone, Cwxx2, 0);
@@ -1734,20 +1756,20 @@ touchsb(Device *dev)
 	memset(p->iobuf, 0, RBUFSIZE);
 	if(devread(WDEV(dev), m, p->iobuf) ||
 	   checktag(p, Tsuper, QPSUPER))
-		print("%Z block %ld WORM SUPER BLOCK READ FAILED\n",
-			WDEV(dev), m);
+		print("%Z block %lld WORM SUPER BLOCK READ FAILED\n",
+			WDEV(dev), (Wideoff)m);
 	else
-		print("%Z touch superblock %ld\n", WDEV(dev), m);
+		print("%Z touch superblock %lld\n", WDEV(dev), (Wideoff)m);
 	putbuf(p);
 }
 
 void
-storesb(Device *dev, long last, int doit)
+storesb(Device *dev, Off last, int doit)
 {
 	Iobuf *ph, *ps;
 	Cache *h;
 	Superb *s;
-	long sbaddr, qidgen;
+	Off sbaddr, qidgen;
 
 	sbaddr = cwsaddr(dev);
 
@@ -1773,8 +1795,8 @@ storesb(Device *dev, long last, int doit)
 		qidgen = 0x31415;
 	qidgen += 1000;
 	if(s->next != sbaddr)
-		print("next(last) is not sbaddr %ld %ld\n",
-			s->next, sbaddr);
+		print("next(last) is not sbaddr %lld %lld\n",
+			(Wideoff)s->next, (Wideoff)sbaddr);
 	else
 		print("next(last) is sbaddr\n");
 
@@ -1790,7 +1812,7 @@ storesb(Device *dev, long last, int doit)
 		return;
 	} else
 		print("read cached sb succeeded\n");
-		
+
 	h = (Cache*)ph->iobuf;
 
 	memset(ps->iobuf, 0, RBUFSIZE);
@@ -1806,13 +1828,17 @@ storesb(Device *dev, long last, int doit)
 	s->next = h->roraddr+1;
 
 	s->qidgen = qidgen;
+#ifdef AUTOSWAB
+	s->magic = 0x123456789abcdef0;
+#endif
 	putbuf(ph);
 
 	if(s->fsize-1 != s->next ||
 	   s->fsize-2 != s->roraddr ||
 	   s->fsize-5 != s->cwraddr) {
-		print("addrs not in relationship %ld %ld %ld %ld\n",
-			s->cwraddr, s->roraddr, s->next, s->fsize);
+		print("addrs not in relationship %lld %lld %lld %lld\n",
+			(Wideoff)s->cwraddr, (Wideoff)s->roraddr,
+			(Wideoff)s->next, (Wideoff)s->fsize);
 		putbuf(ps);
 		return;
 	} else
@@ -1820,8 +1846,8 @@ storesb(Device *dev, long last, int doit)
 
 	if(doit)
 	if(devwrite(WDEV(dev), sbaddr, ps->iobuf))
-		print("%Z block %ld WORM SUPER BLOCK WRITE FAILED\n",
-			WDEV(dev), sbaddr);
+		print("%Z block %lld WORM SUPER BLOCK WRITE FAILED\n",
+			WDEV(dev), (Wideoff)sbaddr);
 	ps->flags = 0;
 	putbuf(ps);
 }
@@ -1833,14 +1859,14 @@ savecache(Device *dev)
 	Cache *h;
 	Bucket *b;
 	Centry *c, *ce;
-	long m, n, maddr, msize, left, *longp, nbyte;
+	long n, left;
+	Off m, maddr, msize, *longp, nbyte;
 	Device *cdev;
 
-	if(walkto("/adm/cache"))
-		goto bad;
-	if(con_open(FID2, OWRITE|OTRUNC))
-		goto bad;
-
+	if(walkto("/adm/cache") || con_open(FID2, OWRITE|OTRUNC)) {
+		print("cant open /adm/cache\n");
+		return;
+	}
 	cdev = CDEV(dev);
 	cb = getbuf(cdev, CACHE_ADDR, Bread|Bres);
 	if(!cb || checktag(cb, Tcache, QPSUPER))
@@ -1855,50 +1881,46 @@ savecache(Device *dev)
 		n = MAXDAT;
 
 	cb = getbuf(devnone, Cwxx4, 0);
-	longp = (long*)cb->iobuf;
-	left = n/sizeof(long);
+	longp = (Off *)cb->iobuf;
+	left = n/sizeof(Off);
 	cons.offset = 0;
 
 	for(m=0; m<msize; m++) {
 		if(left < BKPERBLK) {
-			nbyte = (n/sizeof(long) - left) * sizeof(long);
+			nbyte = (n/sizeof(Off) - left) * sizeof(Off);
 			con_write(FID2, cb->iobuf, cons.offset, nbyte);
 			cons.offset += nbyte;
-			longp = (long*)cb->iobuf;
-			left = n/sizeof(long);
+			longp = (Off *)cb->iobuf;
+			left = n/sizeof(Off);
 		}
 		p = getbuf(cdev, maddr + m/BKPERBLK, Bread);
 		if(!p || checktag(p, Tbuck, maddr + m/BKPERBLK))
 			panic("cwtest: checktag c bucket");
 		b = (Bucket*)p->iobuf + m%BKPERBLK;
 		ce = b->entry + CEPERBK;
-		for(c=b->entry; c<ce; c++)
+		for(c = b->entry; c < ce; c++)
 			if(c->state == Cread) {
 				*longp++ = c->waddr;
 				left--;
 			}
 		putbuf(p);
 	}
-	nbyte = (n/sizeof(long) - left) * sizeof(long);
+	nbyte = (n/sizeof(Off) - left) * sizeof(Off);
 	con_write(FID2, cb->iobuf, cons.offset, nbyte);
 	putbuf(cb);
-	return;
-
-bad:
-	print("cant open /adm/cache\n");
 }
 
 void
 loadcache(Device *dev, int dskno)
 {
 	Iobuf *p, *cb;
-	long m, nbyte, *longp, count;
+	Off m, nbyte, *longp, count;
 	Sidestarts ss;
 
-	if(walkto("/adm/cache"))
-		goto bad;
-	if(con_open(FID2, OREAD))
-		goto bad;
+	if(walkto("/adm/cache") || con_open(FID2, OREAD)) {
+		print("cant open /adm/cache\n");
+		return;
+	}
 
 	cb = getbuf(devnone, Cwxx4, 0);
 	cons.offset = 0;
@@ -1908,11 +1930,11 @@ loadcache(Device *dev, int dskno)
 		wormsidestarts(dev, dskno, &ss);
 	for(;;) {
 		memset(cb->iobuf, 0, BUFSIZE);
-		nbyte = con_read(FID2, cb->iobuf, cons.offset, 100) / sizeof(long);
+		nbyte = con_read(FID2, cb->iobuf, cons.offset, 100) / sizeof(Off);
 		if(nbyte <= 0)
 			break;
-		cons.offset += nbyte * sizeof(long);
-		longp = (long*)cb->iobuf;
+		cons.offset += nbyte * sizeof(Off);
+		longp = (Off *)cb->iobuf;
 		while(nbyte > 0) {
 			m = *longp++;
 			nbyte--;
@@ -1928,18 +1950,14 @@ loadcache(Device *dev, int dskno)
 		}
 	}
 	putbuf(cb);
-	print("%ld blocks loaded from worm %d\n", count, dskno);
-	return;
-
-bad:
-	print("cant open /adm/cache\n");
+	print("%lld blocks loaded from worm %d\n", (Wideoff)count, dskno);
 }
 
 void
-morecache(Device *dev, int dskno, long size)
+morecache(Device *dev, int dskno, Off size)
 {
 	Iobuf *p;
-	long m, ml, mh, mm, count;
+	Off m, ml, mh, mm, count;
 	Cache *h;
 	Sidestarts ss;
 
@@ -1955,7 +1973,7 @@ morecache(Device *dev, int dskno, long size)
 	mh = ml + size;
 	if(mh > mm) {
 		mh = mm;
-		print("limited to %ld\n", mh-ml);
+		print("limited to %lld\n", (Wideoff)mh-ml);
 	}
 
 	count = 0;
@@ -1965,24 +1983,24 @@ morecache(Device *dev, int dskno, long size)
 			putbuf(p);
 		count++;
 	}
-	print("%ld blocks loaded from worm %d\n", count, dskno);
+	print("%lld blocks loaded from worm %d\n", (Wideoff)count, dskno);
 }
 
 void
-blockcmp(Device *dev, long wa, long ca)
+blockcmp(Device *dev, Off wa, Off ca)
 {
 	Iobuf *p1, *p2;
 	int i, c;
 
 	p1 = getbuf(WDEV(dev), wa, Bread);
 	if(!p1) {
-		print("dowcmp: wdev error\n");
+		print("blockcmp: wdev error\n");
 		return;
 	}
 
 	p2 = getbuf(CDEV(dev), ca, Bread);
 	if(!p2) {
-		print("dowcmp: cdev error\n");
+		print("blockcmp: cdev error\n");
 		putbuf(p1);
 		return;
 	}
@@ -2006,7 +2024,7 @@ blockcmp(Device *dev, long wa, long ca)
 }
 
 void
-wblock(Device *dev, long addr)
+wblock(Device *dev, Off addr)
 {
 	Iobuf *p1;
 	int i;
@@ -2067,7 +2085,7 @@ cwtest(Device*)
 		putbuf(p);
 	}
 	putbuf(cb);
-	print("count = %ld\n", count);
+	print("count = %lld\n", (Wideoff)count);
 #endif
 
 int
@@ -2083,7 +2101,7 @@ convstate(char *name)
 }
 
 void
-searchtag(Device *d, long a, int tag, int n)
+searchtag(Device *d, Off a, int tag, int n)
 {
 	Iobuf *p;
 	Tag *t;
@@ -2101,7 +2119,7 @@ searchtag(Device *d, long a, int tag, int n)
 			continue;
 		}
 		if(t->tag == tag) {
-			print("tag %d found at %Z %ld\n", tag, d, a+i);
+			print("tag %d found at %Z %lld\n", tag, d, (Wideoff)a+i);
 			break;
 		}
 	}
@@ -2113,9 +2131,9 @@ cmd_cwcmd(int argc, char *argv[])
 {
 	Device *dev;
 	char *arg;
-	long s1, s2, a, b, n;
-	Cw *cw;
 	char str[28];
+	Off s1, s2, a, b, n;
+	Cw *cw;
 
 	if(argc <= 1) {
 		print("	cwcmd mvstate state1 state2 [platter]\n");
@@ -2129,7 +2147,7 @@ cmd_cwcmd(int argc, char *argv[])
 		print("	cwcmd startdump [01]\n");
 		print("	cwcmd acct\n");
 		print("	cwcmd clearacct\n");
-		goto out;
+		return;
 	}
 	arg = argv[1];
 
@@ -2141,16 +2159,16 @@ cmd_cwcmd(int argc, char *argv[])
 			b = growacct[a];
 			if(b) {
 				uidtostr(str, a, 1);
-				print("%10ld %s\n",
-					(b*ADDFREE*RBUFSIZE+500000)/1000000,
-						str);
+				print("%10lld %s\n",
+					((Wideoff)b*ADDFREE*RBUFSIZE+500000)/1000000,
+					str);
 			}
 		}
-		goto out;
+		return;
 	}
 	if(strcmp(arg, "clearacct") == 0) {
 		memset(growacct, 0, sizeof(growacct));
-		goto out;
+		return;
 	}
 
 	/*
@@ -2159,7 +2177,7 @@ cmd_cwcmd(int argc, char *argv[])
 	dev = cons.curfs->dev;
 	if(dev == 0 || dev->type != Devcw || dev->private == 0) {
 		print("cfs not a cw filesystem: %Z\n", dev);
-		goto out;
+		return;
 	}
 	cw = dev->private;
 	if(strcmp(arg, "searchtag") == 0) {
@@ -2173,9 +2191,7 @@ cmd_cwcmd(int argc, char *argv[])
 		if(argc > 4)
 			n = number(argv[4], 0, 10);
 		searchtag(dev, a, b, n);
-		goto out;
-	}
-	if(strcmp(arg, "mvstate") == 0) {
+	} else if(strcmp(arg, "mvstate") == 0) {
 		if(argc < 4)
 			goto bad;
 		s1 = convstate(argv[2]);
@@ -2186,12 +2202,10 @@ cmd_cwcmd(int argc, char *argv[])
 		if(argc > 4)
 			a = number(argv[4], 0, 10);
 		mvstates(dev, s1, s2, a);
-		goto out;
+		return;
 	bad:
 		print("cwcmd mvstate: bad args\n");
-		goto out;
-	}
-	if(strcmp(arg, "prchain") == 0) {
+	} else if(strcmp(arg, "prchain") == 0) {
 		a = 0;
 		if(argc > 2)
 			a = number(argv[2], 0, 10);
@@ -2199,27 +2213,19 @@ cmd_cwcmd(int argc, char *argv[])
 		if(argc > 3)
 			s1 = number(argv[3], 0, 10);
 		prchain(dev, a, s1);
-		goto out;
-	}
-	if(strcmp(arg, "touchsb") == 0) {
+	} else if(strcmp(arg, "touchsb") == 0)
 		touchsb(dev);
-		goto out;
-	}
-	if(strcmp(arg, "savecache") == 0) {
+	else if(strcmp(arg, "savecache") == 0)
 		savecache(dev);
-		goto out;
-	}
-	if(strcmp(arg, "loadcache") == 0) {
+	else if(strcmp(arg, "loadcache") == 0) {
 		s1 = -1;
 		if(argc > 2)
 			s1 = number(argv[2], 0, 10);
 		loadcache(dev, s1);
-		goto out;
-	}
-	if(strcmp(arg, "morecache") == 0) {
+	} else if(strcmp(arg, "morecache") == 0) {
 		if(argc <= 2) {
 			print("arg count\n");
-			goto out;
+			return;
 		}
 		s1 = number(argv[2], 0, 10);
 		if(argc > 3)
@@ -2227,19 +2233,15 @@ cmd_cwcmd(int argc, char *argv[])
 		else
 			s2 = wormsizeside(dev, s1); /* default to 1 disc side */
 		morecache(dev, s1, s2);
-		goto out;
-	}
-	if(strcmp(arg, "blockcmp") == 0) {
+	} else if(strcmp(arg, "blockcmp") == 0) {
 		if(argc < 4) {
 			print("cannot arg count\n");
-			goto out;
+			return;
 		}
 		s1 = number(argv[2], 0, 10);
 		s2 = number(argv[3], 0, 10);
 		blockcmp(dev, s1, s2);
-		goto out;
-	}
-	if(strcmp(arg, "startdump") == 0) {
+	} else if(strcmp(arg, "startdump") == 0) {
 		if(argc > 2)
 			cw->nodump = number(argv[2], 0, 10);
 		cw->nodump = !cw->nodump;
@@ -2247,18 +2249,14 @@ cmd_cwcmd(int argc, char *argv[])
 			print("dump stopped\n");
 		else
 			print("dump allowed\n");
-		goto out;
-	}
-	if(strcmp(arg, "allflag") == 0) {
+	} else if(strcmp(arg, "allflag") == 0) {
 		if(argc > 2)
 			cw->allflag = number(argv[2], 0, 10);
 		else
 			cw->allflag = !cw->allflag;
-		print("allflag = %d; falsehits = %ld\n",
-			cw->allflag, cw->falsehits);
-		goto out;
-	}
-	if(strcmp(arg, "storesb") == 0) {
+		print("allflag = %d; falsehits = %lld\n",
+			cw->allflag, (Wideoff)cw->falsehits);
+	} else if(strcmp(arg, "storesb") == 0) {
 		a = 4168344;
 		b = 0;
 		if(argc > 2)
@@ -2266,12 +2264,8 @@ cmd_cwcmd(int argc, char *argv[])
 		if(argc > 3)
 			b = number(argv[3], 0, 10);
 		storesb(dev, a, b);
-		goto out;
-	}
-	if(strcmp(arg, "test") == 0) {
+	} else if(strcmp(arg, "test") == 0)
 		cwtest(dev);
-		goto out;
-	}
-	print("unknown cwcmd %s\n", arg);
-out:;
+	else
+		print("unknown cwcmd %s\n", arg);
 }
