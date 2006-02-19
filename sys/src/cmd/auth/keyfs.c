@@ -679,7 +679,7 @@ randombytes(uchar *p, int len)
 
 	fd = open("/dev/random", OREAD);
 	if(fd < 0){
-		fprint(2, "can't open /dev/random, using rand()\n");
+		fprint(2, "keyfs: can't open /dev/random, using rand()\n");
 		srand(time(0));
 		for(i = 0; i < len; i++)
 			p[i] = rand();

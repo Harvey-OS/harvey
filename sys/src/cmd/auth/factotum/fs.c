@@ -161,7 +161,7 @@ main(int argc, char **argv)
 				rerrstr(err, sizeof err);
 				if(strcmp(err, "cancel") == 0)
 					break;
-				fprint(2, "secstorefetch: %r\n");
+				fprint(2, "factotum: secstorefetch: %r\n");
 				fprint(2, "Enter an empty password to quit.\n");
 				free(secstorepw);
 				secstorepw = nil; /* just try nvram pw once */
@@ -170,7 +170,7 @@ main(int argc, char **argv)
 /*
 			rerrstr(err, sizeof err);
 			if(*err)
-				fprint(2, "havesecstore: %r\n");
+				fprint(2, "factotum: havesecstore: %r\n");
 */
 		}
 	}

@@ -20,7 +20,7 @@ ensure_exists(char *f, ulong perm)
 		fprint(2,"first time setup for secstore: create %s %lo\n", f, perm);
 	fd = create(f, OREAD, perm);
 	if(fd < 0){
-		fprint(2, "unable to create %s\n", f);
+		fprint(2, "secuser: unable to create %s\n", f);
 		exits("secstored directories");
 	}
 	close(fd);

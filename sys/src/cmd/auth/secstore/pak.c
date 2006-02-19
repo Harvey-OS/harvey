@@ -124,7 +124,7 @@ PAKclient(SConn *conn, char *C, char *pass, char **pS)
 
 	hexHi = PAK_Hi(C, pass, H, Hi);
 	if(verbose)
-		fprint(2,"%s\n", feedback[H->p[0]&0x7]);  // provide a clue to catch typos
+		fprint(2, "%s\n", feedback[H->p[0]&0x7]);  // provide a clue to catch typos
 
 	// random 1<=x<=q-1; send C, m=g**x H
 	x = mprand(240, genrandom, nil);
@@ -142,7 +142,7 @@ PAKclient(SConn *conn, char *C, char *pass, char **pS)
 
 	// recv g**y, S, check hash1(g**xy)
 	if(readstr(conn, mess) < 0){
-		fprint(2, "error: %s\n", mess);
+		fprint(2, "%s: error: %s\n", argv0, mess);
 		writerr(conn, "couldn't read g**y");
 		goto done;
 	}
@@ -240,7 +240,7 @@ PAKserver(SConn *conn, char *S, char *mess, PW **pwp)
 	// parse first message into C, m
 	eol = strchr(mess, '\n');
 	if(strncmp("C=", mess, 2) != 0 || !eol){
-		fprint(2,"mess[1]=%s\n", mess);
+		fprint(2, "%s: mess[1]=%s\n", argv0, mess);
 		writerr(conn, "PAK version mismatch");
 		goto done;
 	}

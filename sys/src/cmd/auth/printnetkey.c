@@ -26,10 +26,6 @@ main(int argc, char *argv[])
 	u = argv[0];
 	fmtinstall('K', keyfmt);
 	
-	if(argc != 1){
-		fprint(2, "usage: printnetkey user\n");
-		exits("usage");
-	}
 	if(memchr(u, '\0', ANAMELEN) == 0)
 		error("bad user name");
 	key = findkey(NETKEYDB, u, keybuf);

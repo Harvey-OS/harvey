@@ -88,7 +88,8 @@ convert(char *p, char *np, char *key, int len)
 	int i, off, noff;
 
 	if(len % OKEYDBLEN)
-		fprint(2, "file odd length; not converting %d bytes\n", len % KEYDBLEN);
+		fprint(2, "convkeys2: file odd length; not converting %d bytes\n",
+			len % KEYDBLEN);
 	len /= OKEYDBLEN;
 	for(i = 0; i < len; i ++){
 		off = i*OKEYDBLEN;
@@ -108,7 +109,7 @@ convert(char *p, char *np, char *key, int len)
 void
 usage(void)
 {
-	fprint(2, "usage: convkeys keyfile\n");
+	fprint(2, "usage: convkeys2 keyfile\n");
 	exits("usage");
 }
 
@@ -119,7 +120,7 @@ randombytes(uchar *p, int len)
 
 	fd = open("/dev/random", OREAD);
 	if(fd < 0){
-		fprint(2, "can't open /dev/random, using rand()\n");
+		fprint(2, "convkeys2: can't open /dev/random, using rand()\n");
 		srand(time(0));
 		for(i = 0; i < len; i++)
 			p[i] = rand();

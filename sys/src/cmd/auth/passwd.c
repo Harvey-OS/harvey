@@ -130,7 +130,7 @@ main(int argc, char **argv)
 			error("AS protocol botch: %r");
 		if(asrdresp(fd, buf, 0) == 0)
 			break;
-		fprint(2, "refused: %r\n");
+		fprint(2, "passwd: refused: %r\n");
 	}
 	close(fd);
 

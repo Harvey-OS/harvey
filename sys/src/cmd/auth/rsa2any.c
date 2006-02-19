@@ -70,11 +70,11 @@ getkey(int argc, char **argv, int needprivate, Attr **pa)
 		return nil;
 	}
 	if((p = _strfindattr(a, "size")) == nil)
-		fprint(2, "warning: missing size; will add\n");
+		fprint(2, "rsa2any: warning: missing size; will add\n");
 	else if((sz = strtol(p, &p, 10)) == 0 || *p != 0)
-		fprint(2, "warning: bad size; will correct\n");
+		fprint(2, "rsa2any: warning: bad size; will correct\n");
 	else if(sz != mpsignif(key->pub.n))
-		fprint(2, "warning: wrong size (got %d, expected %d); will correct\n",
+		fprint(2, "rsa2any: warning: wrong size (got %d, expected %d); will correct\n",
 			sz, mpsignif(key->pub.n));
 	if(!needprivate)
 		goto call;
@@ -103,32 +103,32 @@ getkey(int argc, char **argv, int needprivate, Attr **pa)
 		return nil;
 	}
 	if((p = _strfindattr(a, "!kp")) == nil){
-		fprint(2, "warning: no !kp\n");
+		fprint(2, "rsa2any: warning: no !kp\n");
 		regen = 1;
 		goto regen;
 	}
 	if((key->kp = strtomp(p, &p, 16, nil)) == nil || *p != 0){
-		fprint(2, "warning: bad !kp\n");
+		fprint(2, "rsa2any: warning: bad !kp\n");
 		regen = 1;	
 		goto regen;
 	}
 	if((p = _strfindattr(a, "!kq")) == nil){
-		fprint(2, "warning: no !kq\n");
+		fprint(2, "rsa2any: warning: no !kq\n");
 		regen = 1;	
 		goto regen;
 	}
 	if((key->kq = strtomp(p, &p, 16, nil)) == nil || *p != 0){
-		fprint(2, "warning: bad !kq\n");
+		fprint(2, "rsa2any: warning: bad !kq\n");
 		regen = 1;	
 		goto regen;
 	}
 	if((p = _strfindattr(a, "!c2")) == nil){
-		fprint(2, "warning: no !c2\n");
+		fprint(2, "rsa2any: warning: no !c2\n");
 		regen = 1;	
 		goto regen;
 	}
 	if((key->c2 = strtomp(p, &p, 16, nil)) == nil || *p != 0){
-		fprint(2, "warning: bad !c2\n");
+		fprint(2, "rsa2any: warning: bad !c2\n");
 		regen = 1;	
 		goto regen;
 	}

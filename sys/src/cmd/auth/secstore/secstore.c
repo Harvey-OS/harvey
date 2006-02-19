@@ -35,7 +35,7 @@ getfile(SConn *conn, char *gf, uchar **buf, ulong *buflen, uchar *key, int nkey)
 	DigestState *sha;
 
 	if(strchr(gf, '/')){
-		fprint(2, "simple filenames, not paths like %s\n", gf);
+		fprint(2, "secstore: simple filenames, not paths like %s\n", gf);
 		return -1;
 	}
 	memset(&aes, 0, sizeof aes);
@@ -47,18 +47,18 @@ getfile(SConn *conn, char *gf, uchar **buf, ulong *buflen, uchar *key, int nkey)
 	s[0] = '\0';
 	bufw = bufe = nil;
 	if(readstr(conn, s) < 0){
-		fprint(2, "remote: %s\n", s);
+		fprint(2, "secstore: remote: %s\n", s);
 		return -1;
 	}
 	len = atoi(s);
 	if(len == -1){
-		fprint(2, "remote file %s does not exist\n", gf);
+		fprint(2, "secstore: remote file %s does not exist\n", gf);
 		return -1;
 	}else if(len == -3){
-		fprint(2, "implausible filesize for %s\n", gf);
+		fprint(2, "secstore: implausible filesize for %s\n", gf);
 		return -1;
 	}else if(len < 0){
-		fprint(2, "GET refused for %s\n", gf);
+		fprint(2, "secstore: GET refused for %s\n", gf);
 		return -1;
 	}
 	if(buf != nil){
@@ -73,7 +73,7 @@ getfile(SConn *conn, char *gf, uchar **buf, ulong *buflen, uchar *key, int nkey)
 			*buflen = len;
 		for(i=0; i < len; i += n){
 			if((n = conn->read(conn, (uchar*)s, Maxmsg)) <= 0){
-				fprint(2, "empty file chunk\n");
+				fprint(2, "secstore: empty file chunk\n");
 				return -1;
 			}
 			if(buf == nil)
@@ -87,21 +87,22 @@ getfile(SConn *conn, char *gf, uchar **buf, ulong *buflen, uchar *key, int nkey)
 	/* conn is already encrypted against wiretappers, 
 		but gf is also encrypted against server breakin. */
 	if(buf == nil && (fd =create(gf, OWRITE, 0600)) < 0){
-		fprint(2, "can't open %s: %r\n", gf);
+		fprint(2, "secstore: can't open %s: %r\n", gf);
 		return -1;
 	}
 
 	ibr = ibw = ib;
 	for(nr=0; nr < len;){
 		if((n = conn->read(conn, ibw, Maxmsg)) <= 0){
-			fprint(2, "empty file chunk n=%d nr=%d len=%d: %r\n", n, nr, len);
+			fprint(2, "secstore: empty file chunk n=%d nr=%d len=%d: %r\n",
+				n, nr, len);
 			return -1;
 		}
 		nr += n;
 		ibw += n;
 		if(!aes.setup){ /* first time, read 16 byte IV */
 			if(n < AESbsize){
-				fprint(2, "no IV in file\n");
+				fprint(2, "secstore: no IV in file\n");
 				return -1;
 			}
 			sha = sha1((uchar*)"aescbc file", 11, nil, nil);
@@ -117,7 +118,7 @@ getfile(SConn *conn, char *gf, uchar **buf, ulong *buflen, uchar *key, int nkey)
 			if(buf == nil){
 				nw = write(fd, ibr, n);
 				if(nw != n){
-					fprint(2, "write error on %s", gf);
+					fprint(2, "secstore: write error on %s", gf);
 					return -1;
 				}
 			}else{
@@ -135,8 +136,8 @@ getfile(SConn *conn, char *gf, uchar **buf, ulong *buflen, uchar *key, int nkey)
 		close(fd);
 	n = ibw-ibr;
 	if((n != CHK) || (memcmp(ib, "XXXXXXXXXXXXXXXX", CHK) != 0)){
-			fprint(2,"decrypted file failed to authenticate!\n");
-			return -1;
+		fprint(2, "secstore: decrypted file failed to authenticate!\n");
+		return -1;
 	}
 	return 0;
 }
@@ -167,7 +168,7 @@ putfile(SConn *conn, char *pf, uchar *buf, ulong len, uchar *key, int nkey)
 	if(buf == nil){
 		/* get file size */
 		if((fd = open(pf, OREAD)) < 0){
-			fprint(2, "can't open %s: %r\n", pf);
+			fprint(2, "secstore: can't open %s: %r\n", pf);
 			return -1;
 		}
 		len = seek(fd, 0, 2);
@@ -176,7 +177,8 @@ putfile(SConn *conn, char *pf, uchar *buf, ulong len, uchar *key, int nkey)
 		fd = -1;
 	}
 	if(len > MAXFILESIZE){
-		fprint(2, "implausible filesize %ld for %s\n", len, pf);
+		fprint(2, "secstore: implausible filesize %ld for %s\n",
+			len, pf);
 		return -1;
 	}
 
@@ -192,7 +194,8 @@ putfile(SConn *conn, char *pf, uchar *buf, ulong len, uchar *key, int nkey)
 		if(buf == nil){
 			n = read(fd, b+ivo, Maxmsg-ivo);
 			if(n < 0){
-				fprint(2, "read error on %s: %r\n", pf);
+				fprint(2, "secstore: read error on %s: %r\n",
+					pf);
 				return -1;
 			}
 		}else{
@@ -220,7 +223,7 @@ putfile(SConn *conn, char *pf, uchar *buf, ulong len, uchar *key, int nkey)
 
 	if(buf == nil)
 		close(fd);
-	fprint(2, "saved %ld bytes\n", len);
+	fprint(2, "secstore: saved %ld bytes\n", len);
 
 	return 0;
 }
@@ -231,7 +234,7 @@ removefile(SConn *conn, char *rf)
 	char buf[Maxmsg];
 
 	if(strchr(rf, '/')){
-		fprint(2, "simple filenames, not paths like %s\n", rf);
+		fprint(2, "secstore: simple filenames, not paths like %s\n", rf);
 		return -1;
 	}
 
@@ -326,11 +329,11 @@ chpasswd(AuthConn *c, char *id)
 	snprint(prompt, sizeof(prompt), "retype password: ");
 	passck = getpassm(prompt);
 	if(passck == nil){
-		fprint(2, "getpassm failed\n");
+		fprint(2, "secstore: getpassm failed\n");
 		goto Out;
 	}
 	if(strcmp(passck, newpass) != 0){
-		fprint(2, "passwords didn't match\n");
+		fprint(2, "secstore: passwords didn't match\n");
 		goto Out;
 	}
 
@@ -342,7 +345,7 @@ chpasswd(AuthConn *c, char *id)
 	mpfree(Hi);
 
 	if(getfile(c->conn, ".", (uchar **) &list, &len, nil, 0) < 0){
-		fprint(2, "directory listing failed.\n");
+		fprint(2, "secstore: directory listing failed.\n");
 		goto Out;
 	}
 
@@ -351,13 +354,13 @@ chpasswd(AuthConn *c, char *id)
 		*next = '\0';
 		if(tokenize(cur, f, nelem(f))< 1)
 			break;
-		fprint(2, "reencrypting '%s'\n", f[0]);
+		fprint(2, "secstore: reencrypting '%s'\n", f[0]);
 		if(getfile(c->conn, f[0], &memfile, &len, (uchar*)c->pass, c->passlen) < 0){
-			fprint(2, "getfile of '%s' failed\n", f[0]);
+			fprint(2, "secstore: getfile of '%s' failed\n", f[0]);
 			continue;
 		}
 		if(putfile(c->conn, f[0], memfile, len, (uchar*)newpass, newpasslen) < 0)
-			fprint(2, "putfile of '%s' failed\n", f[0]);
+			fprint(2, "secstore: putfile of '%s' failed\n", f[0]);
 		free(memfile);
 	}
 	free(list);
@@ -380,10 +383,8 @@ login(char *id, char *dest, int pass_stdin, int pass_nvram)
 	int fd, n, ntry = 0;
 	char *S, *PINSTA = nil, *nl, s[Maxmsg+1], *pass;
 
-	if(dest == nil){
-		fprint(2, "tried to login with nil dest\n");
-		exits("nil dest");
-	}
+	if(dest == nil)
+		sysfatal("tried to login with nil dest");
 	c = emalloc(sizeof(*c));
 	if(pass_nvram){
 		if(readnvram(&nvr, 0) < 0)
@@ -409,7 +410,7 @@ login(char *id, char *dest, int pass_stdin, int pass_nvram)
 		if(verbose)
 			fprint(2, "dialing %s\n", dest);
 		if((fd = dial(dest, nil, nil, nil)) < 0){
-			fprint(2, "can't dial %s\n", dest);
+			fprint(2, "secstore: can't dial %s\n", dest);
 			free(c);
 			return nil;
 		}
@@ -421,7 +422,7 @@ login(char *id, char *dest, int pass_stdin, int pass_nvram)
 		if(!pass_stdin && !pass_nvram){
 			pass = getpassm("secstore password: ");
 			if(strlen(pass) >= sizeof c->pass){
-				fprint(2, "password too long, skipping secstore login\n");
+				fprint(2, "secstore: password too long, skipping secstore login\n");
 				exits("password too long");
 			}
 			strcpy(c->pass, pass);
@@ -429,7 +430,7 @@ login(char *id, char *dest, int pass_stdin, int pass_nvram)
 			free(pass);
 		}
 		if(c->pass[0]==0){
-			fprint(2, "null password, skipping secstore login\n");
+			fprint(2, "secstore: null password, skipping secstore login\n");
 			exits("no password");
 		}
 		if(PAKclient(c->conn, id, c->pass, &S) >= 0)
@@ -548,7 +549,7 @@ main(int argc, char **argv)
 		usage();
 
 	if(chpass && (ngfile || npfile || nrfile)){
-		fprint(2, "Get, put, and remove invalid with password change.\n");
+		fprint(2, "secstore: Get, put, and remove invalid with password change.\n");
 		exits("usage");
 	}
 
@@ -560,19 +561,14 @@ main(int argc, char **argv)
 		snprint(tcpserve, rc, "tcp!%s!5356", serve);
 	c = login(user, tcpserve, pass_stdin, pass_nvram);
 	free(tcpserve);
-	if(c == nil){
-		fprint(2, "secstore authentication failed\n");
-		exits("secstore authentication failed");
-	}
+	if(c == nil)
+		sysfatal("secstore authentication failed");
 	if(chpass)
 		rc = chpasswd(c, user);
 	else
 		rc = cmd(c, gfile, Gflag, pfile, rfile);
-	if(rc < 0){
-		fprint(2, "secstore cmd failed\n");
-		exits("secstore cmd failed");
-	}
+	if(rc < 0)
+		sysfatal("secstore cmd failed");
 	exits("");
 	return 0;
 }
-

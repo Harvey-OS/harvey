@@ -58,7 +58,7 @@ main(int argc, char **argv)
 
 		w = malloc(sizeof(Who));
 		if(w == 0){
-			fprint(2, "out of memory\n");
+			fprint(2, "auth/uniq: out of memory\n");
 			exits(0);
 		}
 		memset(w, 0, sizeof(Who));
