@@ -74,7 +74,7 @@ randombytes(uchar *p, int len)
 
 	fd = open("/dev/random", OREAD);
 	if(fd < 0){
-		fprint(2, "can't open /dev/random, using rand()\n");
+		fprint(2, "convkeys: can't open /dev/random, using rand()\n");
 		srand(time(0));
 		for(i = 0; i < len; i++)
 			p[i] = rand();
@@ -118,7 +118,8 @@ convert(char *p, char *key, int len)
 
 	len -= KEYDBOFF;
 	if(len % KEYDBLEN){
-		fprint(2, "file odd length; not converting %d bytes\n", len % KEYDBLEN);
+		fprint(2, "convkeys: file odd length; not converting %d bytes\n",
+			len % KEYDBLEN);
 		len -= len % KEYDBLEN;
 	}
 	len += KEYDBOFF;

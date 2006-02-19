@@ -40,15 +40,11 @@ getpassm(char *prompt)
 
 	if(cons == 0){ // first time
 		cons = open("/dev/cons", ORDWR);
-		if(cons < 0){
-			fprint(2, "couldn't open cons\n");
-			exits("no cons");
-		}
+		if(cons < 0)
+			sysfatal("couldn't open cons");
 		consctl = open("/dev/consctl", OWRITE);
-		if(consctl < 0){
-			fprint(2, "couldn't set raw mode\n");
-			exits("no consctl");
-		}
+		if(consctl < 0)
+			sysfatal("couldn't set raw mode via consctl");
 	}
 	fprint(consctl, "rawon");
 	fprint(cons, "%s", prompt);

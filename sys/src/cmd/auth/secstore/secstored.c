@@ -208,7 +208,7 @@ remoteIP(char *ldir)
 		return strdup("?!?");
 	n = read(fd, ap, sizeof ap);
 	if(n <= 0 || n == sizeof ap){
-		fprint(2, "error %d reading %s: %r\n", n, rp);
+		fprint(2, "secstored: error %d reading %s: %r\n", n, rp);
 		return strdup("?!?");
 	}
 	close(fd);
@@ -234,7 +234,7 @@ dologin(int fd, char *S, int forceSTA)
 	if((conn = newSConn(fd)) == nil)
 		return -1;
 	if(readstr(conn, msg) < 0){
-		fprint(2, "remote: %s: %r\n", msg);
+		fprint(2, "secstored: remote: %s: %r\n", msg);
 		writerr(conn, "can't read your first message");
 		goto Out;
 	}

@@ -363,7 +363,7 @@ getfile(SConn *conn, uchar *key, int nkey)
 			*q++ = '\0';
 		n++;
 		if(ctlwrite(p, 0) < 0)
-			fprint(2, "secstore(%s) line %d: %r\n", gf, n);
+			fprint(2, "factotum: secstore(%s) line %d: %r\n", gf, n);
 		p = q;
 	}
 	free(buf);
@@ -497,7 +497,7 @@ PAKclient(SConn *conn, char *C, char *pass, char **pS)
 
 	// recv g**y, S, check hash1(g**xy)
 	if(readstr(conn, mess) < 0){
-		fprint(2, "error: %s\n", mess);
+		fprint(2, "factotum: error: %s\n", mess);
 		writerr(conn, "couldn't read g**y");
 		goto done;
 	}

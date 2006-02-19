@@ -15,7 +15,7 @@ readln(char *prompt, char *line, int len, int raw)
 	if(raw){
 		ctl = open("/dev/consctl", OWRITE);
 		if(ctl < 0){
-			fprint(2, "couldn't set raw mode");
+			fprint(2, "login: couldn't set raw mode");
 			exits("readln");
 		}
 		write(ctl, "rawon", 5);
@@ -29,7 +29,7 @@ readln(char *prompt, char *line, int len, int raw)
 			close(ctl);
 			close(fdin);
 			close(fdout);
-			fprint(2, "can't read cons");
+			fprint(2, "login: can't read cons");
 			exits("readln");
 		}
 		if(*p == 0x7f)
@@ -162,7 +162,7 @@ main(int argc, char *argv[])
 
 	service = getenv("service");
 	if(strcmp(service, "cpu") == 0)
-		fprint(2, "warning: running on a cpu server!\n");
+		fprint(2, "login: warning: running on a cpu server!\n");
 	if(argc != 1){
 		fprint(2, "usage: login username\n");
 		exits("usage");

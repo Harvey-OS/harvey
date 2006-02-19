@@ -948,7 +948,8 @@ writehostowner(char *owner)
 	fd = open("#c/hostowner", OWRITE);
 	if(fd >= 0){
 		if(fprint(fd, "%s", owner) < 0)
-			fprint(2, "setting #c/hostowner to %q: %r\n", owner);
+			fprint(2, "factotum: setting #c/hostowner to %q: %r\n",
+				owner);
 		close(fd);
 	}
 }

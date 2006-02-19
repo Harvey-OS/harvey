@@ -140,20 +140,16 @@ createuser(void)
 	user = getuser();
 	sprint(file, "/cron/%s", user);
 	fd = create(file, OREAD, 0755|DMDIR);
-	if(fd < 0){
-		fprint(2, "couldn't create %s: %r\n", file);
-		exits("create");
-	}
+	if(fd < 0)
+		sysfatal("couldn't create %s: %r", file);
 	nulldir(&d);
 	d.gid = user;
 	dirfwstat(fd, &d);
 	close(fd);
 	sprint(file, "/cron/%s/cron", user);
 	fd = create(file, OREAD, 0644);
-	if(fd < 0){
-		fprint(2, "couldn't create %s: %r\n", file);
-		exits("create");
-	}
+	if(fd < 0)
+		sysfatal("couldn't create %s: %r", file);
 	nulldir(&d);
 	d.gid = user;
 	dirfwstat(fd, &d);
