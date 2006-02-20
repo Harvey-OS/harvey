@@ -1309,7 +1309,7 @@ lib/face/48x48x4/f - 20000000775 sys sys 944945448 0
 lib/face/48x48x4/f/freund.1 - 664 sys sys 944941891 1028
 lib/face/48x48x4/f/ftg.1 - 664 sys sys 944941891 919
 lib/face/48x48x4/g - 20000000775 sys sys 944941892 0
-lib/face/48x48x4/g/geoff.1 - 644 sys sys 1140277644 1168
+lib/face/48x48x4/g/geoff.1 - 664 sys sys 1140277644 1168
 lib/face/48x48x4/g/george.1 - 664 sys sys 944941892 1100
 lib/face/48x48x4/g/gerard.1 - 664 sys sys 944941892 1088
 lib/face/48x48x4/g/ghost.1 - 664 sys sys 944941892 783
@@ -14350,7 +14350,7 @@ sys/src/fs/pc/dosfs.h - 664 sys sys 1140167937 2696
 sys/src/fs/pc/ether2114x.c - 664 sys sys 1015110044 31874
 sys/src/fs/pc/ether8139.c - 664 sys sys 1086569718 18552
 sys/src/fs/pc/ether82557.c - 664 sys sys 1037805116 24037
-sys/src/fs/pc/ether83815.c - 664 sys sys 1079341568 28160
+sys/src/fs/pc/ether83815.c - 664 sys sys 1140335463 26764
 sys/src/fs/pc/ether83815.mii.c - 664 sys sys 1049156663 31622
 sys/src/fs/pc/etherdp83820.c - 664 sys sys 1092268058 30976
 sys/src/fs/pc/etherelnk3.c - 664 sys sys 1015110054 42732
