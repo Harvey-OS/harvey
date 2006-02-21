@@ -51,7 +51,7 @@ If one address is given, it is taken to be the address of a port mapper service;
 .I nfs
 queries the port mapper to find the addresses
 of the NFS mount service and file service.
-If two addresses are given, the port mapper is bypasswd;
+If two addresses are given, the port mapper is bypassed;
 .I addr1
 is used as the address of the NFS mount service,
 and
@@ -101,7 +101,7 @@ Without this option, users and groups are presented
 as decimal numbers, and everyone attaches as uid \-1
 .RB ( nobody
 on most Unix systems).
-.PD
+.PP
 .I Portmap
 and
 .I nfsmount
