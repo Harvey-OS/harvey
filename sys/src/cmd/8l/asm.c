@@ -2,7 +2,7 @@
 
 #define	Dbufslop	100
 
-#define PADDR(a)	((ulong)(a) & ~0x80000000)
+#define PADDR(a)	((ulong)(a) & ~0xF0000000)
 
 long
 entryvalue(void)

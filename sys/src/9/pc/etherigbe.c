@@ -38,7 +38,7 @@ enum {
 	i82545gmc	= (0x1026<<16)|0x8086,
 	i82547gi   	= (0x1075<<16)|0x8086,
 	i82541gi   	= (0x1076<<16)|0x8086,
-	i82541gi2		= (0x1077<<16)|0x8086,
+	i82541gi2	= (0x1077<<16)|0x8086,
 	i82546gb   	= (0x1079<<16)|0x8086,
 	i82541pi	= (0x107c<<16)|0x8086,
 	i82546eb	= (0x1010<<16)|0x8086,
@@ -173,7 +173,9 @@ enum {					/* Eecd */
 	Do		= 0x00000008,	/* Data Output from the EEPROM */
 	Areq		= 0x00000040,	/* EEPROM Access Request */
 	Agnt		= 0x00000080,	/* EEPROM Access Grant */
+	Eepresent	= 0x00000100,	/* EEPROM Present */
 	Eesz256		= 0x00000200,	/* EEPROM is 256 words not 64 */
+	Eeszaddr	= 0x00000400,	/* EEPROM size for 8254[17] */
 	Spi		= 0x00002000,	/* EEPROM is SPI not Microwire */
 };
 
@@ -440,7 +442,7 @@ enum {
 
 typedef struct Ctlr Ctlr;
 typedef struct Ctlr {
-	ulong	port;
+	int	port;
 	Pcidev*	pcidev;
 	Ctlr*	next;
 	int	active;
@@ -831,8 +833,8 @@ igbelproc(void* arg)
 		case i82540em:
 		case i82540eplp:
 		case i82547gi:
-		case i82541gi2:
 		case i82541gi:
+		case i82541gi2:
 		case i82541pi:
 			break;
 		}
@@ -883,12 +885,12 @@ igbetxinit(Ctlr* ctlr)
 	case i82540em:
 	case i82540eplp:
 	case i82541gi:
+	case i82541gi2:
 	case i82541pi:
 	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
 	case i82547gi:
-	case i82541gi2:
 		r = 8;
 		break;
 	}
@@ -922,11 +924,11 @@ igbetxinit(Ctlr* ctlr)
 	case i82540em:
 	case i82540eplp:
 	case i82547gi:
-	case i82541gi2:
 	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
 	case i82541gi:
+	case i82541gi2:
 	case i82541pi:
 		r = csr32r(ctlr, Txdctl);
 		r &= ~WthreshMASK;
@@ -1056,12 +1058,12 @@ igberxinit(Ctlr* ctlr)
 	case i82540em:
 	case i82540eplp:
 	case i82541gi:
+	case i82541gi2:
 	case i82541pi:
 	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
 	case i82547gi:
-	case i82541gi2:
 		csr32w(ctlr, Radv, 64);
 		break;
 	}
@@ -1182,7 +1184,7 @@ igbeattach(Ether* edev)
 		qunlock(&ctlr->alock);
 		return;
 	}
-	ctlr->rdba = (Rd*)ROUNDUP((ulong)ctlr->alloc, 128);
+	ctlr->rdba = (Rd*)ROUNDUP((uintptr)ctlr->alloc, 128);
 	ctlr->tdba = (Td*)(ctlr->rdba+ctlr->nrd);
 
 	ctlr->rb = malloc(ctlr->nrd*sizeof(Block*));
@@ -1452,8 +1454,8 @@ igbemii(Ctlr* ctlr)
 	case i82540em:
 	case i82540eplp:
 	case i82547gi:
-	case i82541gi2:
 	case i82541gi:
+	case i82541gi2:
 	case i82541pi:
 	case i82545gmc:
 	case i82546gb:
@@ -1486,8 +1488,8 @@ igbemii(Ctlr* ctlr)
 	 */
 	switch(ctlr->id){
 	case i82547gi:
-	case i82541gi2:
 	case i82541gi:
+	case i82541gi2:
 	case i82541pi:
 	case i82545gmc:
 	case i82546gb:
@@ -1586,7 +1588,7 @@ at93c46io(Ctlr* ctlr, char* op, int data)
 			break;
 		}
 		csr32w(ctlr, Eecd, eecd);
-		microdelay(1);
+		microdelay(50);
 	}
 	if(loop >= 0)
 		return -1;
@@ -1605,11 +1607,10 @@ at93c46r(Ctlr* ctlr)
 		print("igbe: SPI EEPROM access not implemented\n");
 		return 0;
 	}
-	if(eecd & Eesz256)
+	if(eecd & (Eeszaddr|Eesz256))
 		bits = 8;
 	else
 		bits = 6;
-	snprint(rop, sizeof(rop), "S :%dDCc;", bits+3);
 
 	sum = 0;
 
@@ -1617,11 +1618,11 @@ at93c46r(Ctlr* ctlr)
 	default:
 		areq = 0;
 		break;
+	case i82541gi:
+	case i82547gi:
 	case i82540em:
 	case i82540eplp:
-	case i82541gi:
 	case i82541pi:
-	case i82547gi:
 	case i82541gi2:
 	case i82545gmc:
 	case i82546gb:
@@ -1639,6 +1640,7 @@ at93c46r(Ctlr* ctlr)
 		}
 		break;
 	}
+	snprint(rop, sizeof(rop), "S :%dDCc;", bits+3);
 
 	for(addr = 0; addr < 0x40; addr++){
 		/*
@@ -1761,6 +1763,8 @@ igbereset(Ctlr* ctlr)
 	if ((ctlr->id == i82546gb || ctlr->id == i82546eb) && BUSFNO(ctlr->pcidev->tbdf) == 1)
 		ctlr->eeprom[Ea+2] += 0x100;	// second interface
 	for(i = Ea; i < Eaddrlen/2; i++){
+if(i == Ea && ctlr->id == i82541gi && ctlr->eeprom[i] == 0xFFFF)
+    ctlr->eeprom[i] = 0xD000;
 		ctlr->ra[2*i] = ctlr->eeprom[i];
 		ctlr->ra[2*i+1] = ctlr->eeprom[i]>>8;
 	}
@@ -1978,3 +1982,4 @@ etherigbelink(void)
 	addethercard("i82543", igbepnp);
 	addethercard("igbe", igbepnp);
 }
+

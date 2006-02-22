@@ -16,7 +16,7 @@
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1135570766 116009
 386/bin/8c - 775 sys sys 1138464441 361964
-386/bin/8l - 775 sys sys 1130384229 115712
+386/bin/8l - 775 sys sys 1140553397 115719
 386/bin/9660srv - 775 sys sys 1135570766 104023
 386/bin/aan - 775 sys sys 1138500151 131061
 386/bin/acid - 775 sys sys 1138500164 400525
@@ -5746,7 +5746,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000664 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000664 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1140048019 257519
+sys/games/lib/fortunes - 664 sys sys 1140522013 257576
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -7966,7 +7966,7 @@ sys/src/9/pc/etherelnk3.c - 664 sys sys 1131290378 48733
 sys/src/9/pc/etherga620.c - 664 sys sys 1134390125 28760
 sys/src/9/pc/etherga620fw.h - 664 sys sys 1026847642 222295
 sys/src/9/pc/etherif.h - 664 sys sys 1088178711 961
-sys/src/9/pc/etherigbe.c - 664 sys sys 1131896403 44621
+sys/src/9/pc/etherigbe.c - 664 sys sys 1140545255 44829
 sys/src/9/pc/ethermii.c - 664 sys sys 1084331434 4612
 sys/src/9/pc/ethermii.h - 664 sys sys 1086873891 3258
 sys/src/9/pc/etherrhine.c - 664 sys sys 1081706478 13799
@@ -9235,7 +9235,7 @@ sys/src/cmd/8c/sgen.c - 664 sys sys 1089299181 12833
 sys/src/cmd/8c/swt.c - 664 sys sys 1098463321 10943
 sys/src/cmd/8c/txt.c - 664 sys sys 1138460007 23789
 sys/src/cmd/8l - 20000000775 sys sys 1017165863 0
-sys/src/cmd/8l/asm.c - 664 sys sys 1107755623 11882
+sys/src/cmd/8l/asm.c - 664 sys sys 1140545812 11882
 sys/src/cmd/8l/compat.c - 664 sys sys 944960733 445
 sys/src/cmd/8l/l.h - 664 sys sys 1120557254 5785
 sys/src/cmd/8l/list.c - 664 sys sys 1045503947 4185
