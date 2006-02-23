@@ -145,6 +145,27 @@ snarf(Vga* vga, Ctlr* ctlr)
 		if(p == nil)
 			error("%s: not found\n", ctlr->name);
 
+		vgactlw("type", ctlr->name);
+
+		mmio = segattach(0, "nvidiammio", 0, p->mem[0].size);
+		if(mmio == (void*)-1)
+			error("%s: segattach nvidiammio, size %d: %r\n",
+				ctlr->name, p->mem[0].size);
+
+		nv->pci = p;
+		nv->mmio = mmio;
+
+		nv->pfb = mmio+0x00100000/4;
+		nv->pramdac = mmio+0x00680000/4;
+		nv->pextdev = mmio+0x00101000/4;
+		nv->pmc	= mmio+0x00000000/4;
+		nv->ptimer = mmio+0x00009000/4;
+		nv->pfifo = mmio+0x00002000/4;
+		nv->pramin = mmio+0x00710000/4;
+		nv->pgraph = mmio+0x00400000/4;
+		nv->fifo = mmio+0x00800000/4;
+		nv->pcrtc= mmio+0x00600000/4;		
+
 		nv->did = p->did;
 		if ((nv->did & 0xfff0) == 0x00f0)
 			getpcixdid(nv);
@@ -190,26 +211,6 @@ snarf(Vga* vga, Ctlr* ctlr)
 			error("%s: DID %4.4uX unsupported\n", ctlr->name, nv->did);
 			break;
 		}
-		vgactlw("type", ctlr->name);
-
-		mmio = segattach(0, "nvidiammio", 0, p->mem[0].size);
-		if(mmio == (void*)-1)
-			error("%s: segattach nvidiammio, size %d: %r\n",
-				ctlr->name, p->mem[0].size);
-
-		nv->pci = p;
-		nv->mmio = mmio;
-
-		nv->pfb = mmio+0x00100000/4;
-		nv->pramdac = mmio+0x00680000/4;
-		nv->pextdev = mmio+0x00101000/4;
-		nv->pmc	= mmio+0x00000000/4;
-		nv->ptimer = mmio+0x00009000/4;
-		nv->pfifo = mmio+0x00002000/4;
-		nv->pramin = mmio+0x00710000/4;
-		nv->pgraph = mmio+0x00400000/4;
-		nv->fifo = mmio+0x00800000/4;
-		nv->pcrtc= mmio+0x00600000/4;		
 	}
 	nv = vga->private;
 	implementation = nv->did & 0x0ff0;
