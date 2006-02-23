@@ -149,7 +149,7 @@
 386/bin/aux/trampoline - 775 sys sys 1135570791 83641
 386/bin/aux/typepasswd - 775 sys sys 1135570791 69495
 386/bin/aux/usage - 775 sys sys 1139853471 59587
-386/bin/aux/vga - 775 sys sys 1136087522 333880
+386/bin/aux/vga - 775 sys sys 1140631128 333747
 386/bin/aux/vmmousepoll - 775 sys sys 1032480572 41434
 386/bin/aux/vmware - 775 sys sys 1049428256 453
 386/bin/aux/vmwarefs - 775 sys sys 1095563640 99117
@@ -5746,7 +5746,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000664 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000664 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1140522013 257576
+sys/games/lib/fortunes - 664 sys sys 1140655027 257628
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -7966,7 +7966,7 @@ sys/src/9/pc/etherelnk3.c - 664 sys sys 1131290378 48733
 sys/src/9/pc/etherga620.c - 664 sys sys 1134390125 28760
 sys/src/9/pc/etherga620fw.h - 664 sys sys 1026847642 222295
 sys/src/9/pc/etherif.h - 664 sys sys 1088178711 961
-sys/src/9/pc/etherigbe.c - 664 sys sys 1140545255 44829
+sys/src/9/pc/etherigbe.c - 664 sys sys 1140615989 44814
 sys/src/9/pc/ethermii.c - 664 sys sys 1084331434 4612
 sys/src/9/pc/ethermii.h - 664 sys sys 1086873891 3258
 sys/src/9/pc/etherrhine.c - 664 sys sys 1081706478 13799
@@ -9705,7 +9705,7 @@ sys/src/cmd/aux/vga/mga4xx.c - 664 sys sys 1135487948 35804
 sys/src/cmd/aux/vga/mkfile - 664 sys sys 1115734903 927
 sys/src/cmd/aux/vga/neomagic.c - 664 sys sys 1104430499 8975
 sys/src/cmd/aux/vga/notes.txt - 664 sys sys 1028334647 14376
-sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1135487946 31487
+sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1140615970 31488
 sys/src/cmd/aux/vga/palette.c - 664 sys sys 1014925010 2201
 sys/src/cmd/aux/vga/pci.c - 664 sys sys 1014925011 8659
 sys/src/cmd/aux/vga/pci.h - 664 sys sys 1014925011 3290

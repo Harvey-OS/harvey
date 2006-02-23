@@ -674,13 +674,13 @@ igbectl(Ether* edev, void* buf, long n)
 {
 	int v;
 	char *p;
-	Ctlr *ctlr;	
+	Ctlr *ctlr;
 	Cmdbuf *cb;
 	Cmdtab *ct;
 
 	if((ctlr = edev->ctlr) == nil)
 		error(Enonexist);
-	
+
 	cb = parsecmd(buf, n);
 	if(waserror()){
 		free(cb);
@@ -739,7 +739,7 @@ igbemulticast(void* arg, uchar* addr, int on)
 		ctlr->mta[x] |= 1<<bit;
 	else
 		ctlr->mta[x] &= ~(1<<bit);
-	
+
 	csr32w(ctlr, Mta+x*4, ctlr->mta[x]);
 }
 
@@ -1107,10 +1107,10 @@ igberproc(void* arg)
 		rdh = ctlr->rdh;
 		for(;;){
 			rd = &ctlr->rdba[rdh];
-	
+
 			if(!(rd->status & Rdd))
 				break;
-	
+
 			/*
 			 * Accept eop packets with no errors.
 			 * With no errors and the Ixsm bit set,
@@ -1157,7 +1157,7 @@ igberproc(void* arg)
 			rdh = NEXT(rdh, ctlr->nrd);
 		}
 		ctlr->rdh = rdh;
-	
+
 		if(ctlr->rdfree < ctlr->nrd/2 || (ctlr->rim & Rxdmt0))
 			igbereplenish(ctlr);
 	}
@@ -1501,13 +1501,13 @@ igbemii(Ctlr* ctlr)
 		r |= 0x0060;			/* auto-crossover all speeds */
 		r |= 0x0002;			/* polarity reversal enabled */
 		miimiw(ctlr->mii, 16, r);
-	
+
 		r = miimir(ctlr->mii, 20);
 		r |= 0x0070;			/* +25MHz clock */
 		r &= ~0x0F00;
 		r |= 0x0100;			/* 1x downshift */
 		miimiw(ctlr->mii, 20, r);
-	
+
 		miireset(ctlr->mii);
 		p = 0;
 		if(ctlr->txcw & TxcwPs)
@@ -1794,7 +1794,7 @@ if(i == Ea && ctlr->id == i82541gi && ctlr->eeprom[i] == 0xFFFF)
 		txcw &= ~(TxcwAne|TxcwPauseMASK|TxcwFd);
 		ctrl = csr32r(ctlr, Ctrl);
 		ctrl &= ~(SwdpioloMASK|Frcspd|Ilos|Lrst|Fd);
-	
+
 		if(ctlr->eeprom[Icw1] & 0x0400){
 			ctrl |= Fd;
 			txcw |= TxcwFd;
@@ -1808,7 +1808,7 @@ if(i == Ea && ctlr->id == i82541gi && ctlr->eeprom[i] == 0xFFFF)
 		swdpio = (ctlr->eeprom[Icw1] & 0x01E0)>>5;
 		ctrl |= swdpio<<SwdpioloSHIFT;
 		csr32w(ctlr, Ctrl, ctrl);
-		
+
 		ctrl = csr32r(ctlr, Ctrlext);
 		ctrl &= ~(Ips|SwdpiohiMASK);
 		swdpio = (ctlr->eeprom[Icw2] & 0x00F0)>>4;
@@ -1816,7 +1816,7 @@ if(i == Ea && ctlr->id == i82541gi && ctlr->eeprom[i] == 0xFFFF)
 			ctrl |= Ips;
 		ctrl |= swdpio<<SwdpiohiSHIFT;
 		csr32w(ctlr, Ctrlext, ctrl);
-	
+
 		if(ctlr->eeprom[Icw2] & 0x0800)
 			txcw |= TxcwAne;
 		pause = (ctlr->eeprom[Icw2] & 0x3000)>>12;
@@ -1841,7 +1841,7 @@ if(i == Ea && ctlr->id == i82541gi && ctlr->eeprom[i] == 0xFFFF)
 		csr32w(ctlr, Txcw, txcw);
 	}
 
-		
+
 	/*
 	 * Flow control - values from the datasheet.
 	 */
@@ -1866,7 +1866,7 @@ igbepci(void)
 	Pcidev *p;
 	Ctlr *ctlr;
 	void *mem;
-	
+
 	p = nil;
 	while(p = pcimatch(p, 0, 0)){
 		if(p->ccrb != 0x02 || p->ccru != 0)

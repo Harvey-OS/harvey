@@ -27813,3 +27813,7 @@
 1140546700 0 c sys/src/9/pc/etherigbe.c - 664 sys sys 1140545255 44829
 1140546700 1 c sys/src/cmd/8l/asm.c - 664 sys sys 1140545812 11882
 1140553902 0 c 386/bin/8l - 775 sys sys 1140553397 115719
+1140616917 0 c sys/src/9/pc/etherigbe.c - 664 sys sys 1140615989 44814
+1140616917 1 c sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1140615970 31488
+1140631323 0 c 386/bin/aux/vga - 775 sys sys 1140631128 333747
+1140656409 0 c sys/games/lib/fortunes - 664 sys sys 1140655027 257628
