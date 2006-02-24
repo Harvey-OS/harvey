@@ -56,6 +56,9 @@ enum {
 	Ricoh_476_did = 0x0476,
 	Ricoh_478_did = 0x0478,
 
+	O2_vid = 0x1217,
+	O2_OZ711M3_did = 0x7134,
+
 	Nslots = 4,		/* Maximum number of CardBus slots to use */
 
 	K = 1024,
@@ -65,7 +68,7 @@ enum {
 	NUMEVENTS = 10,
 
 	TI1131xSC = 0x80,		// system control
-		TI122X_SC_INTRTIE	= 1 << 29,
+		TI122X_SC_INTRTIE = 1 << 29,
 	TI12xxIM = 0x8c,		// 
 	TI1131xCC = 0x91,		// card control
 		TI113X_CC_RIENB = 1 << 7,
@@ -87,10 +90,11 @@ typedef struct {
 static variant_t variant[] = {
 {	Ricoh_vid,	Ricoh_476_did,	"Ricoh 476 PCI/Cardbus bridge",	},
 {	Ricoh_vid,	Ricoh_478_did,	"Ricoh 478 PCI/Cardbus bridge",	},
-{	TI_vid,		TI_1131_did,		"TI PCI-1131 Cardbus Controller",	},
-{	TI_vid,		TI_1250_did,		"TI PCI-1250 Cardbus Controller",	},
-{	TI_vid,		TI_1450_did,		"TI PCI-1450 Cardbus Controller",	},
-{	TI_vid,		TI_1251A_did,		"TI PCI-1251A Cardbus Controller",	},
+{	TI_vid,		TI_1131_did,	"TI PCI-1131 Cardbus Controller", },
+{	TI_vid,		TI_1250_did,	"TI PCI-1250 Cardbus Controller", },
+{	TI_vid,		TI_1450_did,	"TI PCI-1450 Cardbus Controller", },
+{	TI_vid,		TI_1251A_did,	"TI PCI-1251A Cardbus Controller", },
+{	O2_vid,		O2_OZ711M3_did,	"O2Micro OZ711M3 MemoryCardBus", },
 };
 
 /* Cardbus registers */
@@ -135,10 +139,10 @@ enum {
 };
 
 static char *chipname[] = {
-[Ti82365]		"Intel 82365SL",
+[Ti82365]	"Intel 82365SL",
 [Tpd6710]	"Cirrus Logic PD6710",
 [Tpd6720]	"Cirrus Logic PD6720",
-[Tvg46x]		"Vadem VG-46x",
+[Tvg46x]	"Vadem VG-46x",
 };
 
 /*
@@ -255,16 +259,16 @@ struct PCMconftab
 };
 
 typedef struct {
-	char			pi_verstr[512];		/* Version string */
+	char		pi_verstr[512];		/* Version string */
 	PCMmap		pi_mmap[4];		/* maps, last is always for the kernel */
 	ulong		pi_conf_addr;		/* Config address */
 	uchar		pi_conf_present;	/* Config register present */
-	int			pi_nctab;			/* In use configuration tables */
+	int		pi_nctab;		/* In use configuration tables */
 	PCMconftab	pi_ctab[8];		/* Configuration tables */
 	PCMconftab	*pi_defctab;		/* Default conftab */
 
-	int			pi_port;			/* Actual port usage */
-	int			pi_irq;			/* Actual IRQ usage */
+	int		pi_port;		/* Actual port usage */
+	int		pi_irq;			/* Actual IRQ usage */
 } pcminfo_t;
 
 #define qlock(i)	{/* nothing to do */;}
@@ -273,19 +277,19 @@ typedef struct QLock { int r; } QLock;
 
 typedef struct {
 	QLock;
-	variant_t		*cb_variant;		/* Which CardBus chipset */
-	Pcidev		*cb_pci;			/* The bridge itself */
-	ulong		*cb_regs;			/* Cardbus registers */
-	int			cb_ltype;			/* Legacy type */
-	int			cb_lindex;		/* Legacy port index address */
-	int			cb_ldata;			/* Legacy port data address */
-	int			cb_lbase;			/* Base register for this socket */
+	variant_t	*cb_variant;		/* Which CardBus chipset */
+	Pcidev		*cb_pci;		/* The bridge itself */
+	ulong		*cb_regs;		/* Cardbus registers */
+	int		cb_ltype;		/* Legacy type */
+	int		cb_lindex;		/* Legacy port index address */
+	int		cb_ldata;		/* Legacy port data address */
+	int		cb_lbase;		/* Base register for this socket */
 
-	int			cb_state;			/* Current state of card */
-	int			cb_type;			/* Type of card */
-	pcminfo_t	cb_linfo;			/* PCMCIA slot info */
+	int		cb_state;		/* Current state of card */
+	int		cb_type;		/* Type of card */
+	pcminfo_t	cb_linfo;		/* PCMCIA slot info */
 
-	int			cb_refs;			/* Number of refs to slot */
+	int		cb_refs;		/* Number of refs to slot */
 	QLock		cb_refslock;		/* inc/dev ref lock */
 } cb_t;
 
@@ -361,7 +365,7 @@ enum {
 
 static char *states[] = {
 [SlotEmpty]		"SlotEmpty",
-[SlotFull]			"SlotFull",
+[SlotFull]		"SlotFull",
 [SlotPowered]		"SlotPowered",
 [SlotConfigured]	"SlotConfigured",
 };
@@ -1740,10 +1744,10 @@ timing(Cisdat *cis, PCMconftab *ct)
 		ct->maxwait = ttiming(cis, i);		/* max wait */
 	i = (c>>2)&0x7;
 	if(i != 7)
-		ct->readywait = ttiming(cis, i);		/* max ready/busy wait */
+		ct->readywait = ttiming(cis, i);	/* max ready/busy wait */
 	i = (c>>5)&0x7;
 	if(i != 7)
-		ct->otherwait = ttiming(cis, i);		/* reserved wait */
+		ct->otherwait = ttiming(cis, i);	/* reserved wait */
 }
 
 static void

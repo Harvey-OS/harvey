@@ -29,6 +29,7 @@ prototab[] =
 	&apop,
 	&chap,
 	&cram,
+	&httpdigest,
 	&mschap,
 	&p9any,
 	&p9cr,

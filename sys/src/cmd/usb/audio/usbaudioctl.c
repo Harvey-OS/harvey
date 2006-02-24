@@ -9,6 +9,7 @@ int endpt[2] =		{-1, -1};
 int interface[2] =	{-1, -1};
 int featureid[2] =	{-1, -1};
 int selectorid[2] =	{-1, -1};
+int mixerid[2] =	{-1, -1};
 int curalt[2] =		{-1, -1};
 int buttonendpt =	-1;
 
@@ -17,33 +18,35 @@ Device *ad;
 
 Audiocontrol controls[2][Ncontrol] = {
 	{
-	[Speed_control] = {		"speed",		0, {0}, 0,	44100,	Undef},
-	[Mute_control] = {		"mute",		0, {0}, 0,	0,		Undef},
-	[Volume_control] = {	"volume",		0, {0}, 0,	0,		Undef},
-	[Bass_control] = {		"bass",		0, {0}, 0,	0,		Undef},
-	[Mid_control] = {		"mid",		0, {0}, 0,	0,		Undef},
-	[Treble_control] = {		"treble",		0, {0}, 0,	0,		Undef},
-	[Equalizer_control] = {	"equalizer",	0, {0}, 0,	0,		Undef},
-	[Agc_control] = {		"agc",		0, {0}, 0,	0,		Undef},
-	[Delay_control] = {		"delay",		0, {0}, 0,	0,		Undef},
-	[Bassboost_control] = {	"bassboost",	0, {0}, 0,	0,		Undef},
-	[Loudness_control] = {	"loudness",	0, {0}, 0,	0,		Undef},
-	[Channel_control] = {	"channels",	0, {0}, 0,	2,		Undef},
-	[Resolution_control] = {	"resolution",	0, {0}, 0,	16,		Undef},
+	[Speed_control] = {		"speed",	0, {0}, 0,	44100,	Undef},
+	[Mute_control] = {		"mute",		0, {0}, 0,	0,	Undef},
+	[Volume_control] = {		"volume",	0, {0}, 0,	0,	Undef},
+	[Bass_control] = {		"bass",		0, {0}, 0,	0,	Undef},
+	[Mid_control] = {		"mid",		0, {0}, 0,	0,	Undef},
+	[Treble_control] = {		"treble",	0, {0}, 0,	0,	Undef},
+	[Equalizer_control] = {		"equalizer",	0, {0}, 0,	0,	Undef},
+	[Agc_control] = {		"agc",		0, {0}, 0,	0,	Undef},
+	[Delay_control] = {		"delay",	0, {0}, 0,	0,	Undef},
+	[Bassboost_control] = {		"bassboost",	0, {0}, 0,	0,	Undef},
+	[Loudness_control] = {		"loudness",	0, {0}, 0,	0,	Undef},
+	[Channel_control] = {		"channels",	0, {0}, 0,	2,	Undef},
+	[Resolution_control] = {	"resolution",	0, {0}, 0,	16,	Undef},
+//	[Selector_control] = {		"selector",	0, {0}, 0,	0,	Undef},
 	}, {
-	[Speed_control] = {		"speed",		0, {0}, 0,	44100,	Undef},
-	[Mute_control] = {		"mute",		0, {0}, 0,	0,		Undef},
-	[Volume_control] = {	"volume",		0, {0}, 0,	0,		Undef},
-	[Bass_control] = {		"bass",		0, {0}, 0,	0,		Undef},
-	[Mid_control] = {		"mid",		0, {0}, 0,	0,		Undef},
-	[Treble_control] = {		"treble",		0, {0}, 0,	0,		Undef},
-	[Equalizer_control] = {	"equalizer",	0, {0}, 0,	0,		Undef},
-	[Agc_control] = {		"agc",		0, {0}, 0,	0,		Undef},
-	[Delay_control] = {		"delay",		0, {0}, 0,	0,		Undef},
-	[Bassboost_control] = {	"bassboost",	0, {0}, 0,	0,		Undef},
-	[Loudness_control] = {	"loudness",	0, {0}, 0,	0,		Undef},
-	[Channel_control] = {	"channels",	0, {0}, 0,	2,		Undef},
-	[Resolution_control] = {	"resolution",	0, {0}, 0,	16,		Undef},
+	[Speed_control] = {		"speed",	0, {0}, 0,	44100,	Undef},
+	[Mute_control] = {		"mute",		0, {0}, 0,	0,	Undef},
+	[Volume_control] = {		"volume",	0, {0}, 0,	0,	Undef},
+	[Bass_control] = {		"bass",		0, {0}, 0,	0,	Undef},
+	[Mid_control] = {		"mid",		0, {0}, 0,	0,	Undef},
+	[Treble_control] = {		"treble",	0, {0}, 0,	0,	Undef},
+	[Equalizer_control] = {		"equalizer",	0, {0}, 0,	0,	Undef},
+	[Agc_control] = {		"agc",		0, {0}, 0,	0,	Undef},
+	[Delay_control] = {		"delay",	0, {0}, 0,	0,	Undef},
+	[Bassboost_control] = {		"bassboost",	0, {0}, 0,	0,	Undef},
+	[Loudness_control] = {		"loudness",	0, {0}, 0,	0,	Undef},
+	[Channel_control] = {		"channels",	0, {0}, 0,	2,	Undef},
+	[Resolution_control] = {	"resolution",	0, {0}, 0,	16,	Undef},
+//	[Selector_control] = {		"selector",	0, {0}, 0,	0,	Undef},
 	}
 };
 
@@ -130,7 +133,7 @@ findalt(int rec, int nchan, int res, int speed)
 int
 setspeed(int rec, int speed)
 {
-	int ps, n, no;
+	int ps, n, no, dist, i;
 	Audioalt *a;
 	Dalt *da;
 	Endpt *ep;
@@ -150,10 +153,13 @@ setspeed(int rec, int speed)
 		sysfatal("curalt[%s] not set\n", rec?"Record":"Playback");
 	da = ep->iface->dalt[curalt[rec]];
 	a = da->devspec;
-	no = -1;
 	if (a->caps & onefreq){
+		if (debug & Dbgcontrol)
+			fprint(2, "setspeed %d: onefreq\n", speed);
 		speed = a->freqs[0];		/* speed not settable, but packet size must still be set */
 	}else if (a->caps & has_contfreq){
+		if (debug & Dbgcontrol)
+			fprint(2, "setspeed %d: contfreq\n", speed);
 		if (speed < a->minfreq)
 			speed = a->minfreq;
 		else if (speed > a->maxfreq)
@@ -162,7 +168,8 @@ setspeed(int rec, int speed)
 			fprint(2, "Setting continuously variable %s speed to %d\n",
 				rec?"record":"playback", speed);
 	}else if (a->caps & has_discfreq){
-		int dist, i;
+		if (debug & Dbgcontrol)
+			fprint(2, "setspeed %d: discfreq\n", speed);
 		dist = 1000000;
 		no = -1;
 		for (i = 0; a->freqs[i] > 0; i++)
@@ -186,25 +193,22 @@ setspeed(int rec, int speed)
 	}
 	if (a->caps & has_setspeed){
 		if (debug & Dbgcontrol)
-			fprint(2, "Setting %s speed to %d Hz;",
-				rec?"record":"playback", speed);
-		if (a->caps & has_discfreq){
-			buf[0] = no;
-			buf[1] = 0;
-			buf[2] = 0;
-		}else{
-			buf[0] = speed;
-			buf[1] = speed >> 8;
-			buf[2] = speed >> 16;
+			fprint(2, "Setting %s speed to %d Hz;", rec?"record":"playback", speed);
+		buf[0] = speed;
+		buf[1] = speed >> 8;
+		buf[2] = speed >> 16;
+		if(setupcmd(ad->ep[0], RH2D|Rclass|Rendpt, SET_CUR, sampling_freq_control<<8, endpt[rec], buf, 3) < 0){
+			fprint(2, "Error in setupcmd\n");
+			return Undef;
 		}
-		if (setupcmd(ad->ep[0], RH2D|Rclass|Rendpt, SET_CUR, sampling_freq_control<<8, endpt[rec], buf, 3) < 0)
+		if (setupreq(ad->ep[0], RD2H|Rclass|Rendpt, GET_CUR, sampling_freq_control<<8, endpt[rec], 3) < 0){
+			fprint(2, "Error in setupreq\n");
 			return Undef;
-		if (setupreq(ad->ep[0], RD2H|Rclass|Rendpt, GET_CUR, sampling_freq_control<<8, endpt[rec], 3) < 0)
-			return Undef;
+		}
 		n = setupreply(ad->ep[0], buf, 3);
 		if (n != 3)
-			return Undef;
-		if (buf[2]){
+			fprint(2, "Error in setupreply: %d\n", n);
+		else if (buf[2]){
 			if (debug & Dbgcontrol)
 				fprint(2, "Speed out of bounds %d (0x%x)\n",
 					buf[0] | buf[1] << 8 | buf[2] << 16,
@@ -251,6 +255,8 @@ getspeed(int rec, int which)
 	}
 	if (endpt[rec] < 0)
 		sysfatal("endpt[%s] not set\n", rec?"Record":"Playback");
+	if(debug & Dbgcontrol)
+		fprint(2, "getspeed: curalt[%d] == %d\n", rec, endpt[rec]);
 	ep = ad->ep[endpt[rec]];
 	if (ep->iface == nil)
 		sysfatal("no interface");
@@ -259,23 +265,33 @@ getspeed(int rec, int which)
 	da = ep->iface->dalt[curalt[rec]];
 	a = da->devspec;
 	if (a->caps & onefreq){
+		if(debug & Dbgcontrol)
+			fprint(2, "getspeed: onefreq\n");
 		if (which == GET_RES)
 			return Undef;
 		return a->freqs[0];		/* speed not settable */
-	}else if (a->caps & has_setspeed){
+	}
+	if (a->caps & has_setspeed){
+		if(debug & Dbgcontrol)
+			fprint(2, "getspeed: has_setspeed, ask\n");
 		if (setupreq(ad->ep[0], RD2H|Rclass|Rendpt, which, sampling_freq_control<<8, endpt[rec], 3) < 0)
 			return Undef;
 		n = setupreply(ad->ep[0], buf, 3);
-		if (n != 3)
-			return Undef;
-		if (buf[2]){
-			if (debug & Dbgcontrol)
-				fprint(2, "Speed out of bounds\n");
-			if ((a->caps & has_discfreq) && (buf[0] | buf[1] << 8) < 8)
-				return a->freqs[buf[0] | buf[1] << 8];
+		if(n == 3){
+			if(buf[2]){
+				if (debug & Dbgcontrol)
+					fprint(2, "Speed out of bounds\n");
+				if ((a->caps & has_discfreq) && (buf[0] | buf[1] << 8) < 8)
+					return a->freqs[buf[0] | buf[1] << 8];
+			}
+			return buf[0] | buf[1] << 8 | buf[2] << 16;
 		}
-		return buf[0] | buf[1] << 8 | buf[2] << 16;
-	}else if (a->caps & has_contfreq){
+		if(debug & Dbgcontrol)
+			fprint(2, "getspeed: n = %d\n", n);
+	}
+	if (a->caps & has_contfreq){
+		if(debug & Dbgcontrol)
+			fprint(2, "getspeed: has_contfreq\n");
 		if (which == GET_CUR)
 			return controls[rec][Speed_control].value[0];
 		if (which == GET_MIN)
@@ -284,7 +300,10 @@ getspeed(int rec, int which)
 			return a->maxfreq;
 		if (which == GET_RES)
 			return 1;
-	}else if (a->caps & has_discfreq){
+	}
+	if (a->caps & has_discfreq){
+		if(debug & Dbgcontrol)
+			fprint(2, "getspeed: has_discfreq\n");
 		if (which == GET_CUR)
 			return controls[rec][Speed_control].value[0];
 		if (which == GET_MIN)
@@ -390,6 +409,11 @@ setcontrol(int rec, char *name, long *value)
 		control = ctl<<8;
 		index = featureid[rec]<<8;
 		break;
+	case Selector_control:
+		type = RH2D|Rclass|Rinterface;
+		control = ctl<<8;
+		index = selectorid[rec];
+		break;
 	case Channel_control:
 		control = findalt(rec, value[0], controls[rec][Resolution_control].value[0], defaultspeed[rec]);
 		if(control < 0 || setaudioalt(rec, c, control) < 0){
@@ -401,7 +425,7 @@ setcontrol(int rec, char *name, long *value)
 		controls[rec][Speed_control].value[0] = defaultspeed[rec];
 		return 0;
 	}
-	if (c->chans){
+	if(c->chans){
 		for (i = 1; i < 8; i++)
 			if (c->chans & 1 << i){
 				switch(count){
@@ -475,6 +499,11 @@ getspecialcontrol(int rec, int ctl, int req, long *value)
 		type = RD2H|Rclass|Rinterface;
 		control = ctl<<8;
 		index = featureid[rec]<<8;
+		break;
+	case Selector_control:
+		type = RD2H|Rclass|Rinterface;
+		control = ctl<<8;
+		index = selectorid[rec];
 		break;
 	}
 	if (controls[rec][ctl].chans){

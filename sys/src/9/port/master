@@ -19,6 +19,7 @@ T	lm78
 U	usb
 V	lml
 V	tv
+X	loopback
 Y	pccard
 a	tls
 b	irq

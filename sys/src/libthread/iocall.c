@@ -29,7 +29,7 @@ iocall(Ioproc *io, long (*op)(va_list*), ...)
 	}
 
 	/*
-	 * If we get interrupted, we have stick around so that
+	 * If we get interrupted, we have to stick around so that
 	 * the IO proc has someone to talk to.  Send it an interrupt
 	 * and try again.
 	 */

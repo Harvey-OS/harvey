@@ -97,6 +97,39 @@ audio_interface(Device *d, int n, ulong csp, void *bb, int nb) {
 		case 0x04:
 			if (verbose)
 				fprint(2, "Audio Mixer Unit %d\n", b[3]);
+			if (debug & Dbginfo){
+				fprint(2, "\t%d bytes:", nb);
+				for(ctl = 0; ctl < nb; ctl++)
+					fprint(2, " 0x%2.2x", b[ctl]);
+				fprint(2, "\n\tbUnitId %d, bNrInPins %d", b[3], b[4]);
+			}
+			if (b[4]){
+				if(debug & Dbginfo) fprint(2, ", baSourceIDs: [%d", b[5]);
+				u = findunit(b[5]);
+				for (ctl = 1; ctl < b[4]; ctl++){
+					if (u < 0)
+						u = findunit(b[5+ctl]);
+					else if ((x = findunit(b[5+ctl])) >= 0 && u != x && verbose)
+						fprint(2, "\tMixer %d for output AND input\n", b[3]);
+					if (debug & Dbginfo) fprint(2, ", %d", b[5+ctl]);
+				}
+				if (debug & Dbginfo) fprint(2, "]\n");
+				if (u >= 0){
+					units[u][nunits[u]++] = b[3];
+					if (mixerid[u] >= 0)
+						fprint(2, "Second mixer (%d, %d) on %s\n", mixerid[u], b[3], u?"record":"playback");
+					mixerid[u] = b[3];
+				}
+				if (debug & Dbginfo){
+					fprint(2, "Channels %d, config %d, ",
+						b[ctl+5], b[ctl+5+1] | b[ctl+5+2] << 8);
+					x = b[ctl+5] * b[4];
+					fprint(2, "programmable: %d bits, 0x", x);
+					x = (x + 7) >> 3;
+					while(x--)
+						fprint(2, "%2.2x", b[ctl+x+5+4]);
+				}
+			}
 			break;
 		case 0x05:
 			if (verbose)
@@ -104,8 +137,9 @@ audio_interface(Device *d, int n, ulong csp, void *bb, int nb) {
 			if (debug & Dbginfo)
 				fprint(2, "\tbUnitId %d, bNrInPins %d", b[3], b[4]);
 			if (b[4]){
-				if (debug & Dbginfo) fprint(2, ", baSourceIDs: [%d", b[5]);
 				u = findunit(b[5]);
+				if (debug & Dbginfo) fprint(2, ", baSourceIDs: %s [%d",
+					u?"record":"playback", b[5]);
 				for (ctl = 1; ctl < b[4]; ctl++){
 					if (u < 0)
 						u = findunit(b[5+ctl]);
