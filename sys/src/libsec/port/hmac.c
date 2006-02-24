@@ -16,13 +16,13 @@ hmac_x(uchar *p, ulong len, uchar *key, ulong klen, uchar *digest, DigestState *
 		return nil;
 
 	/* first time through */
-	if(s == nil){
+	if(s == nil || s->seeded == 0){
 		for(i=0; i<64; i++)
 			pad[i] = 0x36;
 		pad[64] = 0;
 		for(i=0; i<klen; i++)
 			pad[i] ^= key[i];
-		s = (*x)(pad, 64, nil, nil);
+		s = (*x)(pad, 64, nil, s);
 		if(s == nil)
 			return nil;
 	}

@@ -72,7 +72,9 @@ defn fnname(a){
 			return sym[0];
 		s = tail s;
 	}
-	return itoa(a, "%x");
+	if a == {} then
+		return "{}";
+	return itoa(a\X, "%x");
 }
 
 stkignorelist = {};
@@ -82,7 +84,7 @@ defn stkignore(s){
 }
 
 defn threadstkline(T){
-	local stk, frame, pc, pc0, file, lastpc0, s, sym, i, stop;
+	local ostk, stk, frame, pc, pc0, file, lastpc0, s, sym, i, stop;
 
 	if T.state == Running then{
 		pc = *PC;
@@ -91,16 +93,22 @@ defn threadstkline(T){
 		pc = labpc(T.sched);
 		stk = strace(labpc(T.sched), labsp(T.sched), 0);
 	}
+	firstpc = pc;
 	lastpc0 = 0;
 	pc0 = 0;
 	stop = 0;
+	ostk = stk;
 	while stk && !stop do {
 		file = pcfile(pc);
 		if !regexp("^/sys/src/libc/", file)
 		&& !regexp("^/sys/src/libthread/", file) 
 		&& match(file, stkignore)==-1 then
 			stop = 1;
-		else{
+		else if stk[0][1] == 0xfefefefe then {
+			pc = ostk[0][1];
+			pc0 = ostk[1][0];
+			stop = 1;
+		}else{
 			lastpc0 = pc0;
 			frame = head stk;
 			stk = tail stk;

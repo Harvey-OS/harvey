@@ -252,6 +252,7 @@ threadmain(int argc, char **argv)
 	long volume[8];
 	Audiocontrol *c;
 	char buf[32], *p, line[256];
+	extern int attachok;
 
 	ctlrno = -1;
 	id = -1;
@@ -280,6 +281,9 @@ threadmain(int argc, char **argv)
 		break;
 	case 's':
 		srvpost = EARGF(usage());
+		break;
+	case 'p':
+		attachok++;
 		break;
 	default:
 		usage();
@@ -329,6 +333,9 @@ threadmain(int argc, char **argv)
 	findendpoints();
 
 	if (endpt[Play] >= 0){
+		if(verbose)
+			fprint(2, "Setting default play parameters: %d Hz, %d channels at %d bits\n",
+				defaultspeed[Play], 2, 16);
 		if(findalt(Play, 2, 16, defaultspeed[Play]) < 0){
 			if(findalt(Play, 2, 16, 48000) < 0)
 				sysfatal("Can't configure playout for %d or %d Hz", defaultspeed[Play], 48000);
@@ -345,6 +352,9 @@ threadmain(int argc, char **argv)
 	}
 
 	if (endpt[Record] >= 0){
+		if(verbose)
+			fprint(2, "Setting default record parameters: %d Hz, %d channels at %d bits\n",
+				defaultspeed[Play], 2, 16);
 		if(findalt(Record, 2, 16, defaultspeed[Record]) < 0){
 			if(findalt(Record, 2, 16, 48000) < 0)
 				sysfatal("Can't configure record for %d or %d Hz", defaultspeed[Record], 48000);

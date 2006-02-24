@@ -34,14 +34,14 @@ enum {
 	i82542     = (0x1000<<16)|0x8086,
 	i82543gc   = (0x1004<<16)|0x8086,
 	i82544ei   = (0x1008<<16)|0x8086,
-	i82547ei   = (0x1019<<16)|0x8086,
 	i82540em   = (0x100E<<16)|0x8086,
+	i82546eb   = (0x1010<<16)|0x8086,
+	i82547ei   = (0x1019<<16)|0x8086,
 	i82540eplp = (0x101E<<16)|0x8086,
 	i82547gi   = (0x1075<<16)|0x8086,
 	i82541gi   = (0x1076<<16)|0x8086,
 	i82546gb   = (0x1079<<16)|0x8086,
 	i82541pi   = (0x107c<<16)|0x8086,
-	i82546eb   = (0x1010<<16)|0x8086,
 };
 
 /* compatibility with cpu kernels */
@@ -169,7 +169,9 @@ enum {					/* Eecd */
 	Do		= 0x00000008,	/* Data Output from the EEPROM */
 	Areq		= 0x00000040,	/* EEPROM Access Request */
 	Agnt		= 0x00000080,	/* EEPROM Access Grant */
+	Eepresent	= 0x00000100,	/* EEPROM Present */
 	Eesz256		= 0x00000200,	/* EEPROM is 256 words not 64 */
+	Eeszaddr	= 0x00000400,	/* EEPROM size for 8254[17] */
 	Spi		= 0x00002000,	/* EEPROM is SPI not Microwire */
 };
 
@@ -385,8 +387,8 @@ enum {					/* Tdesc status */
 };
 
 enum {
-	Nrdesc		= 128,		/* multiple of 8 */
-	Ntdesc		= 128,		/* multiple of 8 */
+	Nrdesc		= 32,		/* multiple of 8 */
+	Ntdesc		= 8,		/* multiple of 8 */
 };
 
 typedef struct Ctlr Ctlr;
@@ -845,10 +847,10 @@ igbeinit(Ether* edev)
 	case i82540em:
 	case i82540eplp:
 	case i82541gi:
+	case i82541pi:
 	case i82546gb:
 	case i82546eb:
 	case i82547gi:
-	case i82541pi:
 		csr32w(ctlr, Radv, 64);
 		break;
 	}
@@ -925,10 +927,10 @@ igbeinit(Ether* edev)
 	case i82540em:
 	case i82540eplp:
 	case i82547gi:
+	case i82541pi:
 	case i82546gb:
 	case i82546eb:
 	case i82541gi:
-	case i82541pi:
 		r = csr32r(ctlr, Txdctl);
 		r &= ~WthreshMASK;
 		r |= Gran|(4<<WthreshSHIFT);
@@ -1200,13 +1202,13 @@ igbemii(Ctlr* ctlr)
 		r |= 0x0060;			/* auto-crossover all speeds */
 		r |= 0x0002;			/* polarity reversal enabled */
 		miimiw(ctlr->mii, 16, r);
-	
+
 		r = miimir(ctlr->mii, 20);
 		r |= 0x0070;			/* +25MHz clock */
 		r &= ~0x0F00;
 		r |= 0x0100;			/* 1x downshift */
 		miimiw(ctlr->mii, 20, r);
-	
+
 		miireset(ctlr->mii);
 		break;
 	}
@@ -1288,7 +1290,7 @@ at93c46io(Ctlr* ctlr, char* op, int data)
 			break;
 		}
 		csr32w(ctlr, Eecd, eecd);
-		microdelay(1);
+		microdelay(50);
 	}
 	if(loop >= 0)
 		return -1;
@@ -1307,12 +1309,10 @@ at93c46r(Ctlr* ctlr)
 		print("igbe: SPI EEPROM access not implemented\n");
 		return 0;
 	}
-	if(eecd & Eesz256)
+	if(eecd & (Eeszaddr|Eesz256))
 		bits = 8;
 	else
 		bits = 6;
-	snprint(rop, sizeof(rop), "S :%dDCc;", bits+3);
-
 	sum = 0;
 
 	switch(ctlr->id){
@@ -1339,6 +1339,7 @@ at93c46r(Ctlr* ctlr)
 		}
 		break;
 	}
+	snprint(rop, sizeof(rop), "S :%dDCc;", bits+3);
 
 	for(addr = 0; addr < 0x40; addr++){
 		/*
@@ -1355,7 +1356,12 @@ at93c46r(Ctlr* ctlr)
 		at93c46io(ctlr, "sic", 0);
 		ctlr->eeprom[addr] = data;
 		sum += data;
+
+		if(addr && ((addr & 0x07) == 0))
+			print("\n");
+		print(" %4.4ux", data);
 	}
+	print("\n");
 
 release:
 	if(areq)
@@ -1377,7 +1383,7 @@ detach(Ctlr *ctlr)
 	csr32w(ctlr, Rctl, 0);
 	csr32w(ctlr, Tctl, 0);
 
-	delay(10);
+	delay(20);
 
 	csr32w(ctlr, Ctrl, Devrst);
 	/* apparently needed on multi-GHz processors to avoid infinite loops */
@@ -1451,6 +1457,8 @@ igbereset(Ctlr* ctlr)
 	if ((ctlr->id == i82546gb || ctlr->id == i82546eb) && BUSFNO(ctlr->pcidev->tbdf) == 1)
 		ctlr->eeprom[Ea+2] += 0x100;	// second interface
 	for(i = Ea; i < Eaddrlen/2; i++){
+if(i == Ea && ctlr->id == i82541gi && ctlr->eeprom[i] == 0xFFFF)
+    ctlr->eeprom[i] = 0xD000;
 		ctlr->ra[2*i] = ctlr->eeprom[i];
 		ctlr->ra[2*i+1] = ctlr->eeprom[i]>>8;
 	}
@@ -1480,7 +1488,7 @@ igbereset(Ctlr* ctlr)
 		txcw &= ~(TxcwAne|TxcwPauseMASK|TxcwFd);
 		ctrl = csr32r(ctlr, Ctrl);
 		ctrl &= ~(SwdpioloMASK|Frcspd|Ilos|Lrst|Fd);
-	
+
 		if(ctlr->eeprom[Icw1] & 0x0400){
 			ctrl |= Fd;
 			txcw |= TxcwFd;
@@ -1502,7 +1510,7 @@ igbereset(Ctlr* ctlr)
 			ctrl |= Ips;
 		ctrl |= swdpio<<SwdpiohiSHIFT;
 		csr32w(ctlr, Ctrlext, ctrl);
-	
+
 		if(ctlr->eeprom[Icw2] & 0x0800)
 			txcw |= TxcwAne;
 		pause = (ctlr->eeprom[Icw2] & 0x3000)>>12;

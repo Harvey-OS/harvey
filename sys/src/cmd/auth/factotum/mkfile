@@ -6,6 +6,7 @@ TARG=factotum\
 PROTO=\
 	apop.$O\
 	chap.$O\
+	httpdigest.$O\
 	p9any.$O\
 	p9cr.$O\
 	p9sk1.$O\

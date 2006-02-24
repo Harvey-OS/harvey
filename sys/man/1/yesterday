@@ -1,6 +1,6 @@
 .TH YESTERDAY 1
 .SH NAME
-yesterday \- print file names from the dump
+yesterday, diffy \- print file names from the dump
 .SH SYNOPSIS
 .B yesterday
 [
@@ -10,6 +10,12 @@ yesterday \- print file names from the dump
 .I daysago
 ] [
 .I \-date
+]
+.I files ...
+.PP
+.I diffy
+[
+.B -abcefmnrw
 ]
 .I files ...
 .SH DESCRIPTION
@@ -98,6 +104,13 @@ than dumps.
 .PP
 .I Yesterday
 does not guarantee that the string it prints represents an existing file.
+.PP
+.I Diffy
+runs
+.IR diff (1)
+with the given options
+to compare yesterday's version of each of the named files
+with today's.
 .SH EXAMPLES
 .PP
 Back up to yesterday's MIPS binary of
@@ -121,6 +134,12 @@ Find what has changed in the C library since March 1:
 .IP
 .EX
 yesterday -d -0301 /sys/src/libc/port/*.c
+.EE
+.PP
+Find what has changed in the source tree today:
+.IP
+.EX
+diffy -r /sys/src
 .EE
 .SH FILES
 .B /n/dump

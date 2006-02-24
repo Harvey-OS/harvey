@@ -13,10 +13,12 @@ enum {
 	Delay_control		= 0x08,
 	Bassboost_control	= 0x09,
 	Loudness_control	= 0x0a,
-	/* Items below are define by implementation: */
+	/* Items below are defined by implementation: */
 	Channel_control		= 0x0b,
 	Resolution_control	= 0x0c,
 	Ncontrol,
+	Selector_control	= 0x0d,
+
 	sampling_freq_control	= 0x01,
 };
 
