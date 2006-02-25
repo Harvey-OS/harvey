@@ -926,14 +926,15 @@ i82557pci(void)
 			continue;
 		case 0x1031:		/* Intel 82562EM */
 		case 0x1050:		/* Intel 82562EZ */
+		case 0x1039:		/* Intel 82801BD PRO/100 VE */
+		case 0x103A:		/* Intel 82562 PRO/100 VE */
+		case 0x1064:		/* Intel 82562 PRO/100 VE */
 		case 0x2449:		/* Intel 82562ET */
 			nop = 1;
 			/*FALLTHROUGH*/
 		case 0x1209:		/* Intel 82559ER */
 		case 0x1229:		/* Intel 8255[789] */
 		case 0x1030:		/* Intel 82559 InBusiness 10/100  */
-		case 0x1039:		/* Intel 82801BD PRO/100 VE */
-		case 0x103A:		/* Intel 82562 PRO/100 VE */
 			break;
 		}
 
