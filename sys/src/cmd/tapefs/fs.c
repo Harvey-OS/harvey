@@ -2,7 +2,7 @@
 #include <libc.h>
 #include <authsrv.h>
 #include <fcall.h>
-#include <tapefs.h>
+#include "tapefs.h"
 
 Fid	*fids;
 Ram	*ram;

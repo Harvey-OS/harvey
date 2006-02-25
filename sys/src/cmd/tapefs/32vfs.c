@@ -58,7 +58,8 @@ populate(char *name)
 	f = iget(VROOT);
 	ram->perm = f.mode;
 	ram->mtime = f.mdate;
-	ram->data = f.addr;
+	ram->addr = f.addr;
+	ram->data = f.data;
 	ram->ndata = f.size;
 }
 
@@ -103,7 +104,7 @@ docreate(Ram *r)
 }
 
 char *
-doread(Ram *r, long off, long cnt)
+doread(Ram *r, vlong off, long cnt)
 {
 	static char buf[Maxbuf+BLSIZE];
 	int bno, i;
@@ -159,9 +160,9 @@ iget(int ino)
 	f.size = g4byte(dp->size);
 	if ((flags&VFMT)==VIFCHR || (flags&VFMT)==VIFBLK)
 		f.size = 0;
-	f.addr = emalloc(VNADDR*sizeof(long));
+	f.data = emalloc(VNADDR*sizeof(long));
 	for (i = 0; i < VNADDR; i++)
-		((long*)f.addr)[i] = g3byte(dp->addr+3*i);
+		((long*)f.data)[i] = g3byte(dp->addr+3*i);
 	f.mode = flags & VMODE;
 	if ((flags&VFMT)==VIFDIR)
 		f.mode |= DMDIR;

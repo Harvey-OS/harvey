@@ -10,6 +10,7 @@
 
 #define FORCE_LOWER	1	/* force filenames to lower case */
 #define MUNGE_CR	1	/* replace '\r\n' with ' \n' */
+#define High64 (1LL<<63)
 
 /*
  * File system for zip archives (read-only)
@@ -30,14 +31,6 @@ struct Block{
 static Biobuf *bin;
 static ulong *crctab;
 static ulong crc;
-
-extern void populate(char *);
-extern void dotrunc(Ram *);
-extern void docreate(Ram *);
-extern char *doread(Ram *, long, long);
-extern void popdir(Ram *);
-extern void dowrite(Ram *, char *, long, long);
-extern int dopermw(Ram *);
 
 static int findCDir(Biobuf *);
 static int header(Biobuf *, ZipHead *);
@@ -75,7 +68,9 @@ populate(char *name)
 		memset(&zh, 0, sizeof(zh));
 		if(!cheader(bin, &zh))
 			break;
-		f.addr = (void*)(zh.off | ((zh.iattr & IS_TEXT)? 0x80000000: 0));
+		f.addr = zh.off;
+		if(zh.iattr & IS_TEXT)
+			f.addr |= High64;
 		f.mode = (zh.madevers == IS_MSDOS && zh.eattr & IS_RDONLY)? 0444: 0644;
 		if (zh.meth == 0 && zh.uncsize == 0){
 			p = strchr(zh.file, '\0');
@@ -106,7 +101,7 @@ docreate(Ram *r)
 }
 
 char *
-doread(Ram *r, long off, long cnt)
+doread(Ram *r, vlong off, long cnt)
 {
 	int i, err;
 	Block bs;
@@ -118,7 +113,7 @@ doread(Ram *r, long off, long cnt)
 	if (cnt > Maxbuf)
 		sysfatal("file too big (>%d)", Maxbuf);
 
-	if (Bseek(bin, (uvlong)r->data & 0x7fffffff, 0) < 0)
+	if (Bseek(bin, r->addr & 0x7FFFFFFFFFFFFFFFLL, 0) < 0)
 		sysfatal("seek failed");
 
 	memset(&zh, 0, sizeof(zh));
@@ -147,7 +142,7 @@ doread(Ram *r, long off, long cnt)
 			if (blockcrc(crctab, crc, cache, r->ndata) != zh.crc)
 				fprint(2, "%s - crc failed", r->name);
 
-			if ((uvlong)r->data & 0x80000000 && MUNGE_CR){
+			if ((r->addr & High64) && MUNGE_CR){
 				for (i = 0; i < r->ndata -1; i++)
 					if (cache[i] == '\r' && cache[i +1] == '\n')
 						cache[i] = ' ';
