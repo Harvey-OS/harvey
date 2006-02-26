@@ -27869,3 +27869,7 @@
 1140814852 10 c sys/src/cmd/tapefs/zipfs.c - 664 sys sys 1140814625 6588
 1140816653 0 c rc/bin/yesterday - 775 sys sys 1140816178 2439
 1140816653 1 c sys/src/cmd/tapefs/tarfs.c - 664 sys sys 1140815766 2759
+1140874268 0 c sys/src/cmd/tapefs/tapefs.h - 664 sys sys 1140872664 1701
+1140876068 0 c sys/src/cmd/tapefs/tapefs.h - 664 sys sys 1140875580 1702
+1140901275 0 c sys/man/2/graphics - 664 sys sys 1140900146 12765
+1140901275 1 c sys/man/2/mouse - 664 sys sys 1140900146 4952

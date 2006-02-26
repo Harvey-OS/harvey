@@ -1,6 +1,6 @@
 .TH MOUSE 2
 .SH NAME
-initmouse, readmouse, closemouse, moveto, cursorswitch, getrect, drawgetrect, menuhit, setcursor \- mouse control
+initmouse, readmouse, closemouse, moveto, getrect, drawgetrect, menuhit, setcursor \- mouse control
 .SH SYNOPSIS
 .nf
 .B

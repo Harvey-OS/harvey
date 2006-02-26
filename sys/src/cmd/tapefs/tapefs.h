@@ -1,7 +1,7 @@
 #define	g2byte(x)	(((x)[1]<<8) + (x)[0])		/* little-endian */
 #define	g3byte(x)	(((x)[2]<<16) + ((x)[1]<<8) + (x)[0])
 #define	g4byte(x)	(((x)[3]<<24) + ((x)[2]<<16) + ((x)[1]<<8) + (x)[0])
-
+#define	g8byte(x)	(((vlong)g4byte(x)<<32) | (u32int)g4byte(x+4))
 enum
 {
 	OPERM	= 0x3,		/* mask of all permission types in open mode */
@@ -40,7 +40,7 @@ struct Ram
 	char	*group;
 	vlong addr;
 	void *data;
-	long	ndata;
+	vlong	ndata;
 };
 
 enum

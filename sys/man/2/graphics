@@ -1,6 +1,6 @@
 .TH GRAPHICS 2
 .SH NAME
-Display, Point, Rectangle, Cursor, initdraw, geninitdraw, drawerror, initdisplay, closedisplay, getdefont, getwindow, gengetwindow, flushimage, bufimage, lockdisplay, unlockdisplay, cursorswitch, cursorset, openfont, buildfont, freefont, Pfmt, Rfmt, strtochan, chantostr, chantodepth \- interactive graphics
+Display, Point, Rectangle, Cursor, initdraw, geninitdraw, drawerror, initdisplay, closedisplay, getdefont, getwindow, gengetwindow, flushimage, bufimage, lockdisplay, unlockdisplay, openfont, buildfont, freefont, Pfmt, Rfmt, strtochan, chantostr, chantodepth \- interactive graphics
 .SH SYNOPSIS
 .nf
 .PP
@@ -60,12 +60,6 @@ int	gengetwindow(Display *d, char *winname,
 .br
 .B
 	   Image **ip, Screen **sp, int ref)
-.PP
-.B
-void	cursorswitch(Cursor *curs)
-.PP
-.B
-void	cursorset(Point p)
 .PP
 .B
 Font*	openfont(Display *d, char *name)
@@ -276,6 +270,18 @@ as a mask to draw white at the pixels where
 is one, and then drawing black at the pixels where
 .B set
 is one.
+.I Setcursor
+and
+.I moveto
+(see
+.IR mouse (2))
+and
+.I esetcursor
+and
+.I emoveto
+(see
+.IR event (2))
+change the cursor image and its location on the screen.
 .PP
 The routine
 .I initdraw
@@ -501,20 +507,6 @@ file and pointers to be overwritten with the values of the `global'
 and
 .B Screen
 variables for the new window.
-.PP
-The mouse cursor is always displayed.
-The initial cursor is an arrow.
-.I Cursorswitch
-causes the argument cursor to be displayed instead.
-A zero argument causes a switch back to the arrow cursor.
-.I Cursorset
-moves the mouse cursor to position
-.IR p ,
-provided (if in a window) that the requesting program is
-executing in the current window and the mouse is within
-the window boundaries; otherwise
-.I cursorset
-is a no-op.
 .PP
 The graphics functions described in
 .IR draw (2),
