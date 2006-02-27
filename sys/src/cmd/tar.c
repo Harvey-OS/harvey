@@ -32,6 +32,12 @@
 #define ROUNDUP(a, b)	(((a) + (b) - 1)/(b))
 #define BYTES2TBLKS(bytes) ROUNDUP(bytes, Tblock)
 
+/* read big-endian binary integers; args must be (uchar *) */
+#define	G2BEBYTE(x)	(((x)[0]<<8)  |  (x)[1])
+#define	G3BEBYTE(x)	(((x)[0]<<16) | ((x)[1]<<8)  |  (x)[2])
+#define	G4BEBYTE(x)	(((x)[0]<<24) | ((x)[1]<<16) | ((x)[2]<<8) | (x)[3])
+#define	G8BEBYTE(x)	(((vlong)G4BEBYTE(x)<<32) | (u32int)G4BEBYTE((x)+4))
+
 typedef vlong Off;
 typedef char *(*Refill)(int ar, char *bufs, int justhdr);
 
@@ -42,11 +48,14 @@ enum { None, Toc, Xtract, Replace };
 enum { Alldata, Justnxthdr };
 enum {
 	Tblock = 512,
-	Nblock = 40,		/* maximum blocksize */
-	Dblock = 20,		/* default blocksize */
 	Namsiz = 100,
 	Maxpfx = 155,		/* from POSIX */
 	Maxname = Namsiz + 1 + Maxpfx,
+	Binsize = 0x80,		/* flag in size[0], from gnu: positive binary size */
+	Binnegsz = 0xff,	/* flag in size[0]: negative binary size */
+
+	Nblock = 40,		/* maximum blocksize */
+	Dblock = 20,		/* default blocksize */
 	DEBUG = 0,
 };
 
@@ -386,7 +395,7 @@ putblkmany(int ar, int blks)
  * modifies hp->chksum but restores it; important for the last block of the
  * old archive when updating with `tar rf archive'
  */
-long
+static long
 chksum(Hdr *hp)
 {
 	int n = Tblock;
@@ -459,15 +468,62 @@ eotar(Hdr *hp)
 	return name(hp)[0] == '\0';
 }
 
-/* return the size from the header block, or zero for links, dirs, etc. */
-Off
+/*
+static uvlong
+getbe(uchar *src, int size)
+{
+	uvlong vl = 0;
+
+	while (size-- > 0) {
+		vl <<= 8;
+		vl |= *src++;
+	}
+	return vl;
+}
+ */
+
+static void
+putbe(uchar *dest, uvlong vl, int size)
+{
+	for (dest += size; size-- > 0; vl >>= 8)
+		*--dest = vl;
+}
+
+/*
+ * return the nominal size from the header block, which is not always the
+ * size in the archive (the archive size may be zero for some file types
+ * regardless of the nominal size).
+ *
+ * gnu and freebsd tars are now recording vlongs as big-endian binary
+ * with a flag in byte 0 to indicate this, which permits file sizes up to
+ * 2^64-1 (actually 2^80-1 but our file sizes are vlongs) rather than 2^33-1.
+ */
+static Off
 hdrsize(Hdr *hp)
 {
-	Off bytes = strtoull(hp->size, nil, 8);
+	uchar *p;
 
+	if((uchar)hp->size[0] == Binnegsz) {
+		fprint(2, "%s: %s: negative length, which is insane\n",
+			argv0, name(hp));
+		return 0;
+	} else if((uchar)hp->size[0] == Binsize) {
+		p = (uchar *)hp->size + sizeof hp->size - 1 -
+			sizeof(vlong);		/* -1 for terminating space */
+		return G8BEBYTE(p);
+	} else
+		return strtoull(hp->size, nil, 8);
+}
+
+/*
+ * return the number of bytes recorded in the archive.
+ */
+static Off
+arsize(Hdr *hp)
+{
 	if(isdir(hp) || islink(hp->linkflag))
-		bytes = 0;
-	return bytes;
+		return 0;
+	return hdrsize(hp);
 }
 
 static Hdr *
@@ -485,7 +541,7 @@ readhdr(int ar)
 	if (chksum(hp) != hdrcksum)
 		sysfatal("bad archive header checksum: name %.64s...",
 			hp->name);
-	nexthdr += Tblock*(1 + BYTES2TBLKS(hdrsize(hp)));
+	nexthdr += Tblock*(1 + BYTES2TBLKS(arsize(hp)));
 	return hp;
 }
 
@@ -563,16 +619,19 @@ mkhdr(Hdr *hp, Dir *dir, char *file)
 	sprint(hp->mode, "%6lo ", dir->mode & 0777);
 	sprint(hp->uid, "%6o ", aruid);
 	sprint(hp->gid, "%6o ", argid);
-	/*
-	 * files > 2⁳⁳ bytes can't be described
-	 * (unless we resort to xustar or exustar formats).
-	 */
-	if (dir->length >= (Off)1<<33) {
-		fprint(2, "%s: %s: too large for tar header format\n",
-			argv0, file);
-		return -1;
-	}
-	sprint(hp->size, "%11lluo ", dir->length);
+	if (dir->length >= (Off)1<<32) {
+		static int printed;
+
+		if (!printed) {
+			printed = 1;
+			fprint(2, "%s: storing large sizes in \"base 256\"\n", argv0);
+		}
+		hp->size[0] = Binsize;
+		/* emit so-called `base 256' representation of size */
+		putbe((uchar *)hp->size+1, dir->length, sizeof hp->size - 2);
+		hp->size[sizeof hp->size - 1] = ' ';
+	} else
+		sprint(hp->size, "%11lluo ", dir->length);
 	sprint(hp->mtime, "%11luo ", dir->mtime);
 	hp->linkflag = (dir->mode&DMDIR? LF_DIR: LF_PLAIN1);
 	putfullname(hp, file);
@@ -722,7 +781,7 @@ replace(char **argv)
 	if (usefile && !docreate) {
 		/* skip quickly to the end */
 		while ((hp = readhdr(ar)) != nil) {
-			bytes = hdrsize(hp);
+			bytes = arsize(hp);
 			for (blksleft = BYTES2TBLKS(bytes);
 			     blksleft > 0 && getblkrd(ar, Justnxthdr) != nil;
 			     blksleft -= blksread) {
@@ -874,8 +933,8 @@ extract1(int ar, Hdr *hp, char *fname)
 	int wrbytes, fd = -1, dir = 0;
 	long mtime = strtol(hp->mtime, nil, 8);
 	ulong mode = strtoul(hp->mode, nil, 8) & 0777;
-	Off bytes  = strtoll(hp->size, nil, 8);		/* for printing */
-	ulong blksread, blksleft = BYTES2TBLKS(hdrsize(hp));
+	Off bytes = hdrsize(hp);		/* for printing */
+	ulong blksread, blksleft = BYTES2TBLKS(arsize(hp));
 	Hdr *hbp;
 
 	if (isdir(hp)) {
@@ -982,7 +1041,7 @@ skip(int ar, Hdr *hp, char *fname)
 	ulong blksleft, blksread;
 	Hdr *hbp;
 
-	for (blksleft = BYTES2TBLKS(hdrsize(hp)); blksleft > 0;
+	for (blksleft = BYTES2TBLKS(arsize(hp)); blksleft > 0;
 	     blksleft -= blksread) {
 		hbp = getblkrd(ar, Justnxthdr);
 		if (hbp == nil)

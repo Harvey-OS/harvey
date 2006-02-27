@@ -27873,3 +27873,16 @@
 1140876068 0 c sys/src/cmd/tapefs/tapefs.h - 664 sys sys 1140875580 1702
 1140901275 0 c sys/man/2/graphics - 664 sys sys 1140900146 12765
 1140901275 1 c sys/man/2/mouse - 664 sys sys 1140900146 4952
+1140962491 0 c sys/src/cmd/tapefs/tapefs.h - 664 sys sys 1140960820 1704
+1140966090 0 c 386/bin/aux/disksim - 775 sys sys 1140964829 150649
+1140966090 1 c sys/man/4/tapefs - 664 sys sys 1140965924 1861
+1140966090 2 c sys/src/cmd/aux/disksim.c - 664 sys sys 1140964826 11178
+1140966090 3 c sys/src/cmd/tapefs/32vfs.c - 664 sys sys 1140965787 3922
+1140966090 4 c sys/src/cmd/tapefs/util.c - 664 sys sys 1140966088 2964
+1140967892 0 c sys/src/cmd/tapefs/tapefs.h - 664 sys sys 1140966413 1815
+1140976894 0 c 386/bin/aux/disksim - 775 sys sys 1140976599 150655
+1141003901 0 c sys/src/cmd/tapefs/fs.c - 664 sys sys 1141003366 9887
+1141003901 1 c sys/src/cmd/tapefs/tarfs.c - 664 sys sys 1141003342 2759
+1141009304 0 c sys/src/cmd/tar.c - 664 sys sys 1141007861 24018
+1141011104 0 a sys/man/8/disksim - 664 sys sys 1141009713 1452
+1141012904 0 c 386/bin/tar - 775 sys sys 1141012626 93114

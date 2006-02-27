@@ -4,6 +4,10 @@
 .SH SYNOPSIS
 .B fs/32vfs
 [
+.B -b
+.I blocksize
+]
+[
 .B -m
 .I mountpoint
 ]
@@ -52,7 +56,7 @@ attached; the default is
 .PP
 .I 32vfs
 interprets raw disk images of 32V systems, which are ca. 1978 research Unix systems for
-the VAX, and also pre-FFS Berkeley VAX systems (1KB block size).
+the VAX (512 byte block size, the default), and also pre-FFS Berkeley VAX systems (1KB block size).
 .PP
 .I Cpiofs
 interprets
@@ -101,6 +105,5 @@ which in
 turn derive substantially from
 .IR ramfs (4).
 .SH "SEE ALSO
-Section 5
-.IR passim ,
+.IR intro (5),
 .IR ramfs (4).
