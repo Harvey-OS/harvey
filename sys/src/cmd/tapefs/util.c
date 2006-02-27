@@ -58,19 +58,25 @@ mapid(Idmap *up, int id)
 Ram *
 poppath(Fileinf fi, int new)
 {
-	char *suffix;
+	char *suffix, *origname;
 	Ram *dir, *ent;
 	Fileinf f;
 
 	if (*fi.name=='\0')
 		return 0;
+	origname = estrdup(fi.name);
 	if (suffix=strrchr(fi.name, '/')){
 		*suffix = 0;
 		suffix++;
 		if (*suffix=='\0'){
 			fi.mode |= DMDIR;
+			free(origname);
 			return poppath(fi, 1);
 		}
+		/*
+		 * create parent directory of suffix;
+		 * may recurse, thus shortening fi.name even further.
+		 */
 		f = fi;
 		f.size = 0;
 		f.addr = 0;
@@ -81,15 +87,20 @@ poppath(Fileinf fi, int new)
 	} else {
 		suffix = fi.name;
 		dir = ram;
-		if (strcmp(suffix, ".")==0)
+		if (strcmp(suffix, ".")==0) {
+			free(origname);
 			return dir;
+		}
 	}
 	ent = lookup(dir, suffix);
 	fi.mode |= 0400;			/* at least user read */
 	if (ent){
 		if (((fi.mode&DMDIR)!=0) != ((ent->qid.type&QTDIR)!=0)){
-			fprint(2, "%s/%s directory botch\n", fi.name, suffix);
-			exits("");
+			fprint(2,
+		"%s file type changed; probably due to union dir.; ignoring\n",
+				origname);
+			free(origname);
+			return ent;
 		}
 		if (new)  {
 			ent->ndata = fi.size;
@@ -104,6 +115,7 @@ poppath(Fileinf fi, int new)
 		fi.name = suffix;
 		ent = popfile(dir, fi);
 	}
+	free(origname);
 	return ent;
 }
 
