@@ -64,7 +64,7 @@ Aconv(Fmt *fp)
 
 	a = va_arg(fp->args, int);
 	s = "???";
-	if(a >= AXXX && a <= AEND)
+	if(a >= AXXX && a < ALAST)
 		s = anames[a];
 	return fmtstrcpy(fp, s);
 }

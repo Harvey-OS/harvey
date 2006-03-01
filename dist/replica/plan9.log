@@ -27886,3 +27886,8 @@
 1141009304 0 c sys/src/cmd/tar.c - 664 sys sys 1141007861 24018
 1141011104 0 a sys/man/8/disksim - 664 sys sys 1141009713 1452
 1141012904 0 c 386/bin/tar - 775 sys sys 1141012626 93114
+1141146019 0 c sys/src/cmd/ql/l.h - 664 sys sys 1141144912 5936
+1141146019 1 c sys/src/cmd/ql/list.c - 664 sys sys 1141144912 5663
+1141146019 2 c sys/src/cmd/ql/obj.c - 664 sys sys 1141144914 25389
+1141146019 3 c sys/src/cmd/tapefs/32vfs.c - 664 sys sys 1141144939 3899
+1141147820 0 c sys/man/1/trace - 664 sys sys 1141147048 1497

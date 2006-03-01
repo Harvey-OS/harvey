@@ -7380,7 +7380,7 @@ sys/man/1/thesaurus - 664 sys sys 1068121775 222
 sys/man/1/time - 664 sys sys 944959673 380
 sys/man/1/touch - 664 sys sys 1018369246 461
 sys/man/1/tr - 664 sys sys 944959675 1730
-sys/man/1/trace - 664 sys sys 1121082621 1776
+sys/man/1/trace - 664 sys sys 1141147048 1497
 sys/man/1/troff - 664 sys sys 944959675 3102
 sys/man/1/troff2html - 664 sys sys 1113743328 1924
 sys/man/1/tweak - 664 sys sys 957920008 4762
@@ -13045,12 +13045,12 @@ sys/src/cmd/ql/asmout.c - 664 sys sys 1137459145 35737
 sys/src/cmd/ql/cnam.c - 664 sys sys 1089299167 335
 sys/src/cmd/ql/compat.c - 664 sys sys 944961082 445
 sys/src/cmd/ql/cputime.c - 664 sys sys 944961081 336
-sys/src/cmd/ql/l.h - 664 sys sys 1089299168 5935
-sys/src/cmd/ql/list.c - 664 sys sys 1089299166 5663
+sys/src/cmd/ql/l.h - 664 sys sys 1141144912 5936
+sys/src/cmd/ql/list.c - 664 sys sys 1141144912 5663
 sys/src/cmd/ql/mkcname - 664 sys sys 944961082 143
 sys/src/cmd/ql/mkfile - 664 sys sys 1089299166 304
 sys/src/cmd/ql/noop.c - 664 sys sys 1089299167 8982
-sys/src/cmd/ql/obj.c - 664 sys sys 1134346080 25287
+sys/src/cmd/ql/obj.c - 664 sys sys 1141144914 25389
 sys/src/cmd/ql/optab.c - 664 sys sys 1089299167 13392
 sys/src/cmd/ql/pass.c - 664 sys sys 1132450403 11861
 sys/src/cmd/ql/sched.c - 664 sys sys 1089299166 12776
@@ -13302,7 +13302,7 @@ sys/src/cmd/syscall/mkfile - 664 sys sys 1037122264 549
 sys/src/cmd/syscall/syscall.c - 664 sys sys 1135487934 3951
 sys/src/cmd/tail.c - 664 sys sys 1123123922 6034
 sys/src/cmd/tapefs - 20000000775 sys sys 944962012 0
-sys/src/cmd/tapefs/32vfs.c - 664 sys sys 1140965787 3922
+sys/src/cmd/tapefs/32vfs.c - 664 sys sys 1141144939 3899
 sys/src/cmd/tapefs/cpiofs.c - 664 sys sys 1140814623 2491
 sys/src/cmd/tapefs/fs.c - 664 sys sys 1141003366 9887
 sys/src/cmd/tapefs/mkfile - 664 sys sys 1097914131 254
