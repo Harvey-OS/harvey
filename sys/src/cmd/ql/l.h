@@ -88,7 +88,7 @@ struct
 {
 	Optab*	start;
 	Optab*	stop;
-} oprange[AEND];
+} oprange[ALAST];
 
 enum
 {

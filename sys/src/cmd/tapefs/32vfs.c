@@ -52,7 +52,6 @@ void
 populate(char *name)
 {
 	Fileinf f;
-	uchar buf[MAXBLSIZE];
 
 	BLSIZE = 512;	/* 32v */
 	if(blocksize){
