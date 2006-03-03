@@ -64,7 +64,7 @@ a different IP stack to use.
 .PP
 Option
 .B -v
-writes progress lines to standard output once a second.
+writes progress lines to standard error once a second.
 Each line contains two numbers, the bytes transferred so
 far and the total length to be transferred.
 .PP

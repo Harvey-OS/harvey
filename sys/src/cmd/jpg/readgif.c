@@ -279,6 +279,7 @@ readone(Header *h)
 	i->r.max.y = top+height;
 	i->nchans = 1;
 	i->chandesc = CRGB1;
+	memset(i->chans, 0, sizeof(i->chans));
 	return i;
 }
 
@@ -371,9 +372,9 @@ static
 uchar*
 decode(Header *h, Rawimage *i, Entry *tbl)
 {
-	int c, incode, codesize, CTM, EOD, pici, datai, stacki, nbits, sreg, fc, code, piclen;
+	int c, doclip, incode, codesize, CTM, EOD, pici, datai, stacki, nbits, sreg, fc, code, piclen;
 	int csize, nentry, maxentry, first, ocode, ndata, nb;
-	uchar *pic;
+	uchar clip, *p, *pic;
 	uchar stack[4096], data[256];
 
 	if(Bread(h->fd, h->buf, 1) != 1)
@@ -381,9 +382,10 @@ decode(Header *h, Rawimage *i, Entry *tbl)
 	codesize = h->buf[0];
 	if(codesize>8 || 0>codesize)
 		giferror(h, "ReadGIF: can't handle codesize %d", codesize);
+	doclip = 0;
 	if(i->cmap!=nil && i->cmaplen!=3*(1<<codesize)
-	  && (codesize!=2 || i->cmaplen!=3*2)) /* peculiar GIF bitmap files... */
-		giferror(h, "ReadGIF: codesize %d doesn't match color map 3*%d", codesize, i->cmaplen/3);
+	  && (codesize!=2 || i->cmaplen!=3*2))			/* peculiar GIF bitmap files... */
+		doclip = 1;
 
 	CTM =1<<codesize;
 	EOD = CTM+1;
@@ -428,7 +430,7 @@ decode(Header *h, Rawimage *i, Entry *tbl)
 			if(code == EOD){
 				ndata = readdata(h, data);
 				if(ndata != 0)
-					fprint(2, "ReadGIF: unexpected data past EOD");
+					fprint(2, "ReadGIF: unexpected data past EOD\n");
 				goto Return;
 			}
 
@@ -445,9 +447,10 @@ decode(Header *h, Rawimage *i, Entry *tbl)
 				code = ocode;
 			}
 
-			if(code > nentry)
-				giferror(h, "ReadGIF: bad code %x %x", code, nentry);
-
+			if(code > nentry){
+				fprint(2, "ReadGIF: GIF invalid, code out of range, %x > %x\n", code, nentry);
+				code = nentry;
+			}
 			for(c=code; c>=0; c=tbl[c].prefix)
 				stack[stacki--] = tbl[c].exten;
 
@@ -483,6 +486,12 @@ decode(Header *h, Rawimage *i, Entry *tbl)
 	}
 
 Return:
+	if(doclip){
+		clip = i->cmaplen/3;
+		for(p = pic; p < pic+piclen; p++)
+			if(*p >= clip)
+				*p = clip;
+	}
 	h->pic = nil;
 	return pic;
 }

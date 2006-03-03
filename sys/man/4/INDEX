@@ -26,6 +26,7 @@ fgui factotum
 fossil fossil
 fs fs
 ftpfs ftpfs
+httpfile httpfile
 import import
 iostats iostats
 keyfs keyfs
@@ -57,6 +58,7 @@ tarfs tapefs
 tpfs tapefs
 v10fs tapefs
 v6fs tapefs
+zipfs tapefs
 fax telco
 faxreceive telco
 faxsend telco
@@ -68,7 +70,7 @@ upasfs upasfs
 usb usb
 usbaudio usb
 usbmouse usb
-usbprint usb
+usbprinter usb
 usbd usbd
 vacfs vacfs
 webcookies webcookies

@@ -64,7 +64,7 @@ input to
 Monitor a long download:
 .IP
 .EX
-hget -v -o bigfile http://server.com/bigfile | 
+hget -v -o bigfile http://server.com/bigfile |[2]
   aux/statusbar 'big file download'
 .EE
 .SH SOURCE
