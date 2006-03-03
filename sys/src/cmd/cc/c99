@@ -7,7 +7,7 @@ Not done (yet?):
 9, 19. Hexdecimal floating point constants.
 11. _Complex, _Imaginary, _Bool
 14. Variable arrays in parameter lists.
-33. Variable-length arrows
+33. Variable-length arrays
 34. goto restrictions for variable-length arrows
 18. Notation for universal characters \uXXXX
 25. Division and mod truncate toward zero.

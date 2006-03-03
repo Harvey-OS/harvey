@@ -51,7 +51,6 @@ cal cal
 calendar calendar
 cat cat
 read cat
-.I cb  cb
 cb cb
 chgrp chgrp
 chmod chmod
@@ -66,6 +65,7 @@ telnet con
 xmr con
 xms con
 cp cp
+fcp cp
 mv cp
 cpp cpp
 cpu cpu
@@ -76,12 +76,13 @@ date date
 db db
 dc dc
 dd dd
+delkey delkey
 delatex deroff
 deroff deroff
 diff diff
 doc2txt doc2txt
-mswordstrings doc2txt
-olefs doc2txt
+mswordstrings msexceltable doc2txt
+xls2txt olefs doc2txt
 doctype doctype
 du du
 echo echo
@@ -107,9 +108,13 @@ fmt fmt
 htmlfmt fmt
 fortune fortune
 freq freq
+4s games
+5s games
 games games
+juggle games
 mahjongg games
 sokoban games
+sudoku games
 grap grap
 graph graph
 grep grep
@@ -125,8 +130,10 @@ zip gzip
 hget hget
 history history
 hoc hoc
+htmlroff htmlroff
 idiff idiff
 join join
+bmp jpg
 gif jpg
 ico jpg
 jpg jpg
@@ -136,6 +143,7 @@ togif jpg
 toico jpg
 topng jpg
 toppm jpg
+yuv jpg
 kbmap kbmap
 broke kill
 kill kill
@@ -151,6 +159,7 @@ ls ls
 mail mail
 lookman man
 man man
+sig man
 marshal marshal
 mc mc
 membername mk
@@ -161,7 +170,6 @@ mlmgr mlmgr
 mlowner mlmgr
 html2ms ms2html
 ms2html ms2html
-fs nedmail
 nedmail nedmail
 netstat netstat
 news news
@@ -218,6 +226,7 @@ rwd rwd
 B sam
 sam sam
 sam.save sam
+samterm sam
 aescbc secstore
 ipso secstore
 secstore secstore
@@ -244,15 +253,6 @@ sha1sum sum
 sum sum
 syscall syscall
 tail tail
-32vfs tapefs
-cpiofs tapefs
-tapefs tapefs
-tapfs tapefs
-tarfs tapefs
-tpfs tapefs
-v10fs tapefs
-v6fs tapefs
-zipfs tapefs
 tar tar
 tbl tbl
 tcs tcs
@@ -284,6 +284,8 @@ vt vt
 wc wc
 who who
 whois who
+winwatch winwatch
 xd xd
 yacc yacc
+diffy yesterday
 yesterday yesterday

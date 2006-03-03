@@ -211,7 +211,7 @@ dac4xxload(VGAscr* scr, Cursor* curs)
 	
 	dac4xxdisable(scr);
 
-	p = scr->vaddr;
+	p = (uchar*)scr->storage;
 	for(y = 0; y < 64; y++){
 		*p++ = 0; *p++ = 0; *p++ = 0;
 		*p++ = 0; *p++ = 0; *p++ = 0;
