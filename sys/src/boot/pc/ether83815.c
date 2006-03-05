@@ -3,6 +3,7 @@
  *
  * Supports only internal PHY and has been tested on:
  *	Netgear FA311TX (using Netgear DS108 10/100 hub)
+ *	SiS 900 within SiS 630
  * To do:
  *	check Ethernet address;
  *	test autonegotiation on 10 Mbit, and 100 Mbit full duplex;
@@ -24,7 +25,7 @@
 
 #include "etherif.h"
 
-#define DEBUG		(1)
+#define DEBUG		0
 #define debug		if(DEBUG)print
 
 enum {
@@ -77,8 +78,22 @@ enum {	/* cmdsts */
 	Col =	1<<16,	/* collision during receive */
 };
 
-enum {					/* Variants */
-	Nat83815		= (0x0020<<16)|0x100B,
+enum {				/* PCI vendor & device IDs */
+	Nat83815	= (0x0020<<16)|0x100B,
+	SiS = 	0x1039,
+	SiS900 =	(0x0900<<16)|SiS,
+	SiS7016 =	(0x7016<<16)|SiS,
+
+	SiS630bridge	= 0x0008,
+
+	/* SiS 900 PCI revision codes */
+	SiSrev630s =	0x81,
+	SiSrev630e =	0x82,
+	SiSrev630ea1 =	0x83,
+
+	SiSeenodeaddr =	8,		/* short addr of SiS eeprom mac addr */
+	SiS630eenodeaddr =	9,	/* likewise for the 630 */
+	Nseenodeaddr =	6,		/* " for NS eeprom */
 };
 
 typedef struct Ctlr Ctlr;
@@ -652,6 +667,7 @@ softreset(Ctlr* ctlr, int resetphys)
 		debug("%d ms\n", i);
 		w &= 0xFFFF;
 		debug("bmsr: %4.4ux\n", w);
+		USED(w);
 	}
 	debug("anar: %4.4ux\n", csr16r(ctlr, Ranar));
 	debug("anlpar: %4.4ux\n", csr16r(ctlr, Ranlpar));
@@ -672,8 +688,83 @@ static char* mediatable[9] = {
 	"100BASE-FXFD",
 };
 
+static int
+is630(ulong id, Pcidev *p)
+{
+	if(id == SiS900)
+		switch (p->rid) {
+		case SiSrev630s:
+		case SiSrev630e:
+	  	case SiSrev630ea1:
+			return 1;
+		}
+	return 0;
+}
+
+enum {
+	MagicReg = 0x48,
+	MagicRegSz = 1,
+	Magicrden = 0x40,	/* read enable, apparently */
+	Paddr=		0x70,	/* address port */
+	Pdata=		0x71,	/* data port */
+	Pcinetctlr = 2,
+};
+
+/* rcmos() originally from LANL's SiS 900 driver's rcmos() */
+static int
+sisrdcmos(Ctlr *ctlr)
+{
+	int i;
+	unsigned reg;
+	ulong port;
+	Pcidev *p;
+
+	debug("ns83815: SiS 630 rev. %ux reading mac address from cmos\n", ctlr->pcidev->rid);
+	p = pcimatch(nil, SiS, SiS630bridge);
+	if(p == nil) {
+		print("ns83815: no SiS 630 rev. %ux bridge for mac addr\n",
+			ctlr->pcidev->rid);
+		return 0;
+	}
+	port = p->mem[0].bar & ~0x01;
+	debug("ns83815: SiS 630 rev. %ux reading mac addr from cmos via bridge at port 0x%lux\n", ctlr->pcidev->rid, port);
+
+	reg = pcicfgr8(p, MagicReg);
+	pcicfgw8(p, MagicReg, reg|Magicrden);
+
+	for (i = 0; i < Eaddrlen; i++) {
+		outb(port+Paddr, SiS630eenodeaddr + i);
+		ctlr->sromea[i] = inb(port+Pdata);
+	}
+
+	pcicfgw8(p, MagicReg, reg & ~Magicrden);
+	return 1;
+}
+
+/*
+ * If this is a SiS 630E chipset with an embedded SiS 900 controller,
+ * we have to read the MAC address from the APC CMOS RAM. - sez freebsd.
+ * However, CMOS *is* NVRAM normally.  See devrtc.c:440, memory.c:88.
+ */
 static void
-srom(Ctlr* ctlr)
+sissrom(Ctlr *ctlr)
+{
+	union {
+		uchar	eaddr[Eaddrlen];
+		ushort	alignment;
+	} ee;
+	int i, off = SiSeenodeaddr, cnt = sizeof ee.eaddr / sizeof(short);
+	ushort *shp = (ushort *)ee.eaddr;
+
+	if(!is630(ctlr->id, ctlr->pcidev) || !sisrdcmos(ctlr)) {
+		for (i = 0; i < cnt; i++)
+			*shp++ = eegetw(ctlr, off++);
+		memmove(ctlr->sromea, ee.eaddr, sizeof ctlr->sromea);
+	}
+}
+
+static void
+nssrom(Ctlr* ctlr)
 {
 	int i, j;
 
@@ -683,11 +774,28 @@ srom(Ctlr* ctlr)
 	/*
 	 * the MAC address is reversed, straddling word boundaries
 	 */
-	memset(ctlr->sromea, 0, sizeof(ctlr->sromea));
-	j = 6*16 + 15;
+	j = Nseenodeaddr*16 + 15;
 	for(i=0; i<48; i++){
 		ctlr->sromea[i>>3] |= ((ctlr->srom[j>>4] >> (15-(j&0xF))) & 1) << (i&7);
 		j++;
+	}
+}
+
+static void
+srom(Ctlr* ctlr)
+{
+	memset(ctlr->sromea, 0, sizeof(ctlr->sromea));
+	switch (ctlr->id) {
+	case SiS900:
+	case SiS7016:
+		sissrom(ctlr);
+		break;
+	case Nat83815:
+		nssrom(ctlr);
+		break;
+	default:
+		print("ns83815: srom: unknown id 0x%ux\n", ctlr->id);
+		break;
 	}
 }
 
@@ -706,6 +814,7 @@ scanpci83815(void)
 			continue;
 
 		case Nat83815:
+		case SiS900:
 			break;
 		}
 
@@ -734,6 +843,7 @@ ether83815reset(Ether* ether)
 {
 	Ctlr *ctlr;
 	int i, x;
+	ulong ctladdr;
 	uchar ea[Eaddrlen];
 	static int scandone;
 
@@ -772,7 +882,8 @@ ether83815reset(Ether* ether)
 		memmove(ether->ea, ctlr->sromea, Eaddrlen);
 	for(i=0; i<Eaddrlen; i+=2){
 		x = ether->ea[i] | (ether->ea[i+1]<<8);
-		csr32w(ctlr, Rrfcr, i);
+		ctladdr = (ctlr->id == Nat83815? i: i<<15);
+		csr32w(ctlr, Rrfcr, ctladdr);
 		csr32w(ctlr, Rrfdr, x);
 	}
 	csr32w(ctlr, Rrfcr, Rfen|Apm|Aab|Aam);

@@ -1,6 +1,6 @@
 386 - 20000000775 sys sys 1010957353 0
 386/9load - 775 sys sys 1131317303 216948
-386/9loaddebug - 775 sys sys 1140808449 312052
+386/9loaddebug - 775 sys sys 1141532057 312489
 386/9loadlite - 775 sys sys 1131317306 135668
 386/9loadlitedebug - 775 sys sys 1140726314 200137
 386/9pc - 775 sys sys 1141258200 1909853
@@ -9023,7 +9023,7 @@ sys/src/boot/pc/ether8003.c - 664 sys sys 1015007950 6446
 sys/src/boot/pc/ether8139.c - 664 sys sys 1121393459 14823
 sys/src/boot/pc/ether8169.c - 664 sys sys 1121391787 18687
 sys/src/boot/pc/ether82557.c - 664 sys sys 1140802406 19090
-sys/src/boot/pc/ether83815.c - 664 sys sys 1019537742 19576
+sys/src/boot/pc/ether83815.c - 664 sys sys 1141485864 22026
 sys/src/boot/pc/ether8390.c - 664 sys sys 1112382847 16209
 sys/src/boot/pc/ether8390.h - 664 sys sys 1015007951 1392
 sys/src/boot/pc/etherec2t.c - 664 sys sys 1015007951 3598
