@@ -9023,7 +9023,7 @@ sys/src/boot/pc/ether8003.c - 664 sys sys 1015007950 6446
 sys/src/boot/pc/ether8139.c - 664 sys sys 1121393459 14823
 sys/src/boot/pc/ether8169.c - 664 sys sys 1121391787 18687
 sys/src/boot/pc/ether82557.c - 664 sys sys 1140802406 19090
-sys/src/boot/pc/ether83815.c - 664 sys sys 1019537742 19576
+sys/src/boot/pc/ether83815.c - 664 sys sys 1141485864 22026
 sys/src/boot/pc/ether8390.c - 664 sys sys 1112382847 16209
 sys/src/boot/pc/ether8390.h - 664 sys sys 1015007951 1392
 sys/src/boot/pc/etherec2t.c - 664 sys sys 1015007951 3598
@@ -15612,3 +15612,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/9loaddebug - 775 sys sys 1141532057 312489
