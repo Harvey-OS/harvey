@@ -144,7 +144,7 @@
 386/bin/aux/stub - 775 sys sys 1135570791 140900
 386/bin/aux/tcpostio - 775 sys sys 1094040084 200808
 386/bin/aux/text2post - 775 sys sys 1104121986 78336
-386/bin/aux/timesync - 775 sys sys 1135570791 128368
+386/bin/aux/timesync - 775 sys sys 1141616696 128406
 386/bin/aux/tr2post - 775 sys sys 1104121987 176578
 386/bin/aux/trampoline - 775 sys sys 1135570791 83641
 386/bin/aux/typepasswd - 775 sys sys 1135570791 69495
@@ -560,7 +560,7 @@
 386/lib/libmach.a - 664 sys sys 1141271057 782466
 386/lib/libmemdraw.a - 664 sys sys 1138501040 284158
 386/lib/libmemlayer.a - 664 sys sys 1115950157 47360
-386/lib/libmp.a - 664 sys sys 1138501044 79942
+386/lib/libmp.a - 664 sys sys 1141616696 80024
 386/lib/libndb.a - 664 sys sys 1138501050 60716
 386/lib/libplumb.a - 664 sys sys 1138501055 19408
 386/lib/libregexp.a - 664 sys sys 1115950157 37464
@@ -15318,7 +15318,7 @@ sys/src/libmp/port/mptobe.c - 664 sys sys 1127128751 915
 sys/src/libmp/port/mptoi.c - 664 sys sys 1055700264 580
 sys/src/libmp/port/mptole.c - 664 sys sys 952888274 786
 sys/src/libmp/port/mptoui.c - 664 sys sys 984710625 413
-sys/src/libmp/port/mptouv.c - 664 sys sys 984710626 715
+sys/src/libmp/port/mptouv.c - 664 sys sys 1141591528 723
 sys/src/libmp/port/mptov.c - 664 sys sys 984710626 983
 sys/src/libmp/port/mpvecadd.c - 664 sys sys 950104715 519
 sys/src/libmp/port/mpveccmp.c - 664 sys sys 1055700265 378
