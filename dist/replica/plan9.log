@@ -27946,3 +27946,9 @@
 1141592421 0 c sys/src/libmp/port/mptouv.c - 664 sys sys 1141591528 723
 1141617629 0 c 386/bin/aux/timesync - 775 sys sys 1141616696 128406
 1141617629 1 c 386/lib/libmp.a - 664 sys sys 1141616696 80024
+1141662642 0 c sys/games/lib/fortunes - 664 sys sys 1141660932 257780
+1141662642 1 c sys/man/8/vga - 664 sys sys 1141660952 3856
+1141662642 2 c sys/src/cmd/snap/read.c - 664 sys sys 1141660969 4332
+1141662642 3 c sys/src/cmd/webfs/http.c - 664 sys sys 1141662357 9487
+1141662642 4 c sys/src/cmd/unix/drawterm/Make.win32 - 664 sys sys 1141662620 826
+1141662642 5 c sys/src/cmd/unix/drawterm/gui-win32/screen.c - 664 sys sys 1141662620 11653

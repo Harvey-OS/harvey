@@ -5747,7 +5747,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000664 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000664 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1140655027 257628
+sys/games/lib/fortunes - 664 sys sys 1141660932 257780
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -7749,7 +7749,7 @@ sys/man/8/udpecho - 664 sys sys 954305553 303
 sys/man/8/update - 664 sys sys 961259288 2336
 sys/man/8/venti - 664 sys sys 1069101926 5422
 sys/man/8/ventiaux - 664 sys sys 1063855987 10487
-sys/man/8/vga - 664 sys sys 1131301001 3864
+sys/man/8/vga - 664 sys sys 1141660952 3856
 sys/man/fonts - 664 sys sys 944959700 218
 sys/man/index.html - 664 sys sys 1019918444 1859
 sys/man/mkfile - 664 sys sys 1018974173 2264
@@ -13201,7 +13201,7 @@ sys/src/cmd/size.c - 664 sys sys 944961619 717
 sys/src/cmd/sleep.c - 664 sys sys 1126031186 170
 sys/src/cmd/snap - 20000000775 sys sys 951229639 0
 sys/src/cmd/snap/mkfile - 664 sys sys 1023834477 257
-sys/src/cmd/snap/read.c - 664 sys sys 1131659453 4287
+sys/src/cmd/snap/read.c - 664 sys sys 1141660969 4332
 sys/src/cmd/snap/snap.c - 664 sys sys 1014924727 1176
 sys/src/cmd/snap/snap.h - 664 sys sys 1131659453 985
 sys/src/cmd/snap/snapfs.c - 664 sys sys 1014924728 2932
@@ -13459,7 +13459,7 @@ sys/src/cmd/unix/drawterm/LICENSE - 664 sys sys 1135900534 12184
 sys/src/cmd/unix/drawterm/Make.config - 664 sys sys 1135900534 29
 sys/src/cmd/unix/drawterm/Make.irix - 664 sys sys 1137502401 493
 sys/src/cmd/unix/drawterm/Make.unix - 664 sys sys 1135900534 429
-sys/src/cmd/unix/drawterm/Make.win32 - 664 sys sys 1135900534 816
+sys/src/cmd/unix/drawterm/Make.win32 - 664 sys sys 1141662620 826
 sys/src/cmd/unix/drawterm/Makefile - 664 sys sys 1135900534 1112
 sys/src/cmd/unix/drawterm/README - 664 sys sys 1138469123 1002
 sys/src/cmd/unix/drawterm/args.h - 664 sys sys 1135900534 709
@@ -13481,7 +13481,7 @@ sys/src/cmd/unix/drawterm/gui-win32/alloc.c - 664 sys sys 1135900546 286
 sys/src/cmd/unix/drawterm/gui-win32/cload.c - 664 sys sys 1135900546 188
 sys/src/cmd/unix/drawterm/gui-win32/draw.c - 664 sys sys 1135900546 365
 sys/src/cmd/unix/drawterm/gui-win32/load.c - 664 sys sys 1135900546 186
-sys/src/cmd/unix/drawterm/gui-win32/screen.c - 664 sys sys 1135900547 11539
+sys/src/cmd/unix/drawterm/gui-win32/screen.c - 664 sys sys 1141662620 11653
 sys/src/cmd/unix/drawterm/gui-win32/wstrtoutf.c - 664 sys sys 1135900547 408
 sys/src/cmd/unix/drawterm/gui-x11 - 20000000775 sys sys 1135900548 0
 sys/src/cmd/unix/drawterm/gui-x11/Makefile - 664 sys sys 1135900547 207
@@ -14248,7 +14248,7 @@ sys/src/cmd/webfs/cookies.c - 664 sys sys 1128664611 21888
 sys/src/cmd/webfs/dat.h - 664 sys sys 1128664462 1621
 sys/src/cmd/webfs/fns.h - 664 sys sys 1032665987 1453
 sys/src/cmd/webfs/fs.c - 664 sys sys 1128664603 10944
-sys/src/cmd/webfs/http.c - 664 sys sys 1128666924 9396
+sys/src/cmd/webfs/http.c - 664 sys sys 1141662357 9487
 sys/src/cmd/webfs/io.c - 664 sys sys 1034736588 1384
 sys/src/cmd/webfs/main.c - 664 sys sys 1128664462 1083
 sys/src/cmd/webfs/mkfile - 664 sys sys 1032665986 340

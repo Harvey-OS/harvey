@@ -387,6 +387,10 @@ httpopen(Client *c, Url *url)
 		werrstr("Not found on server (404)");
 		goto Error;
 
+	case 405:	/* Method Not Allowed  */
+		werrstr("Method not allowed (405)");
+		goto Error;
+
 	case 407:	/* Proxy auth */
 		werrstr("Proxy authentication required (407)");
 		goto Error;

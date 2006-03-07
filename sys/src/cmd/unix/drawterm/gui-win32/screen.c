@@ -1,3 +1,4 @@
+#define _WIN32_WINNT 0x0500
 #include	<windows.h>
 
 #undef Rectangle
@@ -188,13 +189,13 @@ winproc(void *a)
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wc.hbrBackground = GetStockObject(WHITE_BRUSH);
 	wc.lpszMenuName = 0;
-	wc.lpszClassName = "9pmgraphics";
+	wc.lpszClassName = L"9pmgraphics";
 	RegisterClass(&wc);
 
 	window = CreateWindowEx(
 		0,			/* extended style */
-		"9pmgraphics",		/* class */
-		"drawterm screen",		/* caption */
+		L"9pmgraphics",		/* class */
+		L"drawterm screen",		/* caption */
 		WS_OVERLAPPEDWINDOW,    /* style */
 		CW_USEDEFAULT,		/* init. x pos */
 		CW_USEDEFAULT,		/* init. y pos */
@@ -338,6 +339,11 @@ WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 			return 1;
 		}
 		return DefWindowProc(hwnd, msg, wparam, lparam);
+	case WM_MOUSEWHEEL:
+		if ((int)(wparam & 0xFFFF0000)>0)
+			b|=8;
+		else
+			b|=16;
 	case WM_MOUSEMOVE:
 	case WM_LBUTTONUP:
 	case WM_MBUTTONUP:

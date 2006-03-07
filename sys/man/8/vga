@@ -25,7 +25,7 @@ vga \- configure a VGA card
 ]
 ]
 .SH DESCRIPTION
-.B Aux/vga
+.I Vga
 configures a VGA controller for various display sizes and depths.
 Using the monitor type specified in
 .B /env/monitor
@@ -36,7 +36,7 @@ and the
 given as argument
 (default
 .BR 640x480x1 ), 
-.B aux/vga
+.I vga
 uses the database of known VGA controllers and monitors in
 .B /lib/vgadb
 (see
