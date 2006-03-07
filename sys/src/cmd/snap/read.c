@@ -136,7 +136,7 @@ readseg(Seg **ps, Biobuf *b, Proc *plist)
 	Page **pp;
 	int i, npg;
 	int t;
-	int len;
+	int n, len;
 	ulong pid;
 	uvlong off;
 	char buf[Pagesize];
@@ -180,8 +180,8 @@ readseg(Seg **ps, Biobuf *b, Proc *plist)
 				fprint(2, "0x%.8llux same as %s pid %lud 0x%.8llux\n", s->offset+i*Pagesize, t=='m'?"mem":"text", pid, off);
 			break;
 		case 'r':
-			if(Bread(b, buf, len) != len)
-				panic("error reading segment xx");
+			if((n=Bread(b, buf, len)) != len)
+				sysfatal("short read of segment %d/%d at %llx: %r", n, len, Boffset(b));
 			pp[i] = datapage(buf, len);
 			if(debug)
 				fprint(2, "0x%.8llux is raw data\n", s->offset+i*Pagesize);
