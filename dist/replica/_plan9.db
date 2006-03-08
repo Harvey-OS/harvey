@@ -5457,7 +5457,7 @@ rc/bin/nroff - 775 sys sys 945617208 27
 rc/bin/patch - 20000000775 sys sys 1067803227 0
 rc/bin/patch/applied - 775 sys sys 1115941614 111
 rc/bin/patch/apply - 775 sys sys 1109511606 1285
-rc/bin/patch/create - 775 sys sys 1127761278 1457
+rc/bin/patch/create - 775 sys sys 1141738939 1509
 rc/bin/patch/diff - 775 sys sys 1109511606 474
 rc/bin/patch/email - 775 sys sys 1109511607 409
 rc/bin/patch/list - 775 sys sys 1115941576 749
@@ -7334,7 +7334,7 @@ sys/man/1/ns - 664 sys sys 944959677 893
 sys/man/1/p - 664 sys sys 944959673 504
 sys/man/1/page - 664 sys sys 1087829646 5839
 sys/man/1/passwd - 664 sys sys 1113743327 1382
-sys/man/1/patch - 664 sys sys 1127761213 2237
+sys/man/1/patch - 664 sys sys 1141738937 2361
 sys/man/1/pcc - 664 sys sys 1015024740 3478
 sys/man/1/pic - 664 sys sys 1022625353 8229
 sys/man/1/pipefile - 664 sys sys 984709628 1861

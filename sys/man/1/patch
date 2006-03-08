@@ -4,6 +4,7 @@ patch \- simple patch creation and tracking system
 .SH SYNOPSIS
 .B patch/create
 .I name
+.I email
 .I files ...
 [
 .B < 
@@ -43,6 +44,12 @@ and is stored in
 creates a new patch consisting of the changes to
 the listed files, reading
 a description of the patch from standard input.
+The
+.I email
+address, if not
+.LR - ,
+will be sent notification messages when the patch is applied
+or commented on.
 .PP
 .I Patch/list
 displays information about the named patches,
