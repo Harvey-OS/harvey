@@ -1,12 +1,21 @@
 #!/bin/rc
 rfork e
-if(~ $#* 0 1){
-	echo 'usage: patch/create name file... [< description]' >[1=2]
+
+fn xchmod { 
+	chmod $* >[2]/dev/null
+}
+
+if(~ $#* 0 1 2){
+	echo 'usage: patch/create name email file... [< description]' >[1=2]
 	exit usage
 }
 
 if(! echo $1 | grep -s '^[a-z_0-9.\-]+$'){
 	echo 'bad name: [a-z0-9._\-]+ only' >[1=2]
+	exit usage
+}
+if(! echo $2 | grep -s '^(-|[A-Za-z0-9.\-+]+@[A-Za-z0-9.\-+]+)$'){
+	echo 'bad email: [a-z0-9.-+] only; use ''-'' to not leave an email address.' >[1=2]
 	exit usage
 }
 
@@ -16,17 +25,22 @@ if(! test -d /n/sources/patch){
 }
 
 patch=$1
+email=$2
+shift
+shift
 d=/n/sources/patch/$patch
 if(! mkdir $d){
 	echo mkdir $d failed >[1=2]
 	exit mkdir
 }
+if(! ~ $email -){
+	echo $email >$d/email
+}
 
-chmod o-w $d
+xchmod o-w $d
 >$d/readme
 >$d/files
 >$d/notes
-shift
 for(i in $*){
 	i=`{cleanname -d `{pwd} $i}
 	if(! test -f $i){
@@ -50,8 +64,8 @@ for(i in $*){
 	if not
 		echo warning: new file $i not on sources >[1=2]
 	echo $i $uniq >>$d/files
-	chmod ug+rw $d/*
-	chmod a+r $d/*
+	xchmod ug+rw $d/*
+	xchmod a+r $d/*
 }
 
 if(~ `{cat /proc/$pid/fd | awk 'NR==2{print $NF}'} */dev/cons && test -w /dev/consctl){
@@ -69,9 +83,4 @@ if(! test -s $d/readme){
 	exit oops
 }
 
-
-echo >[1=2] please run patch/email $patch your-email-address
-echo >[1=2] so that 9trouble can mail you if there are questions.  thanks.
-echo >[1=2] the email address will not be readable by other sources users.
-echo >[1=2]
 echo $d

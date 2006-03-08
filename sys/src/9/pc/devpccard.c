@@ -24,6 +24,9 @@ enum {
 	Ricoh_476_did = 0x0476,
 	Ricoh_478_did = 0x0478,
 
+	O2_vid = 0x1217,
+	O2_OZ711M3_did = 0x7134,
+
 	Nslots = 4,		/* Maximum number of CardBus slots to use */
 
 	K = 1024,
@@ -62,6 +65,7 @@ static Variant variant[] = {
 {	TI_vid,		TI_1450_did,	"TI PCI-1450 Cardbus Controller", },
 {	TI_vid,		TI_1251A_did,	"TI PCI-1251A Cardbus Controller", },
 {	TI_vid,		TI_1420_did,	"TI PCI-1420 Cardbus Controller", },
+{	O2_vid,		O2_OZ711M3_did,	"O2Micro OZ711M3 MemoryCardBus", },
 };
 
 /* Cardbus registers */
@@ -105,13 +109,6 @@ enum {
 	Tpd6710,
 	Tpd6720,
 	Tvg46x,
-};
-
-static char *chipname[] = {
-[Ti82365]		"Intel 82365SL",
-[Tpd6710]	"Cirrus Logic PD6710",
-[Tpd6720]	"Cirrus Logic PD6720",
-[Tvg46x]		"Vadem VG-46x",
 };
 
 /*

@@ -1970,6 +1970,8 @@ atapnp(void)
 			 * Ditto, although it may have a different base
 			 * address for the registers (0x50?).
 			 */
+			/*FALLTHROUGH*/
+		case (0x4376<<16)|0x1002:	/* ATI Radeon Xpress 200M */
 			break;
 		case (0x0211<<16)|0x1166:	/* ServerWorks IB6566 */
 			{

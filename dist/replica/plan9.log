@@ -27952,3 +27952,5 @@
 1141662642 3 c sys/src/cmd/webfs/http.c - 664 sys sys 1141662357 9487
 1141662642 4 c sys/src/cmd/unix/drawterm/Make.win32 - 664 sys sys 1141662620 826
 1141662642 5 c sys/src/cmd/unix/drawterm/gui-win32/screen.c - 664 sys sys 1141662620 11653
+1141740066 0 c rc/bin/patch/create - 775 sys sys 1141738939 1509
+1141740066 1 c sys/man/1/patch - 664 sys sys 1141738937 2361
