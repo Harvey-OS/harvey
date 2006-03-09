@@ -27954,3 +27954,6 @@
 1141662642 5 c sys/src/cmd/unix/drawterm/gui-win32/screen.c - 664 sys sys 1141662620 11653
 1141740066 0 c rc/bin/patch/create - 775 sys sys 1141738939 1509
 1141740066 1 c sys/man/1/patch - 664 sys sys 1141738937 2361
+1141794082 0 c sys/src/9/pc/devpccard.c - 664 sys sys 1141793347 40159
+1141794082 1 c sys/src/9/pc/pci.c - 664 sys sys 1141793347 26875
+1141794082 2 c sys/src/9/pc/sdata.c - 664 sys sys 1141793347 52244
