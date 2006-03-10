@@ -4,28 +4,30 @@
 include("/sys/src/libc/port/pool.acid");
 
 defn
-dumppool(p)
+dumppool(p, sum)
 {
 	complex Pool p;
 	a = p.arenalist;
 
-	while a != 0 && a < 0x60000000 do {
+	print("A: ", p.arenalist\X, "\n");
+	while a != 0 && a < 0xff000000 do {
 		complex Arena a;
-		dumparena(a);
+		dumparena(a, sum);
 		a = a.down;
 	}
 }
 
 defn
-dumparena(arena)
+dumparena(arena, sum)
 {
 	local atail, b, nb;
 
 	atail = A2TB(arena);
 	complex Bhdr arena;
 	b = a;
+	print("B: ", b\X, " ", atail\X, "\n");
 	while b < atail && b.magic != ARENATAIL_MAGIC do {
-		dumpblock(b);
+		dumpblock(b, sum);
 		nb = B2NB(b);
 		if nb == b then {
 			print("B2NB(", b\X, ") = b\n");
@@ -54,24 +56,47 @@ isptr(a)
 	return 0;
 }
 
+lastalloc = 0;
+lastcount = 0;
+lastsize = 0;
 defn
-dumpblock(addr)
+emitsum()
+{
+	if lastalloc then
+		print("summary ", lastalloc\a, " ", lastcount\D, " ", lastsize\D, "\n");
+	lastalloc = 0;
+	lastcount = 0;
+	lastsize = 0;
+}
+
+defn
+dumpblock(addr, sum)
 {
 	complex Bhdr addr;
 
-	if addr.magic == ALLOC_MAGIC || addr.magic == FREE_MAGIC then {
+	if addr.magic == ALLOC_MAGIC || (!sum && addr.magic == FREE_MAGIC) then {
 		local a, x, s;
 
 		a = addr;
 		complex Alloc a;
 
 		x = addr+8;
-		if addr.magic == ALLOC_MAGIC then
-			s = "block";
-		else
-			s = "free";
-		print(s, " ", addr\X, " ", a.size\X, " ");
-		print(*(addr+8)\X, " ", *(addr+12)\X, "\n");
+		if sum then {
+			if *(addr+8) != lastalloc then {
+				emitsum();
+				lastalloc = *(addr+8);
+			}
+			lastcount = lastcount+1;
+			lastsize = lastsize+a.size;
+		}else{
+			if addr.magic == ALLOC_MAGIC then
+				s = "block";
+			else
+				s = "free";
+			print(s, " ", addr\X, " ", a.size\X, " ");
+			print(*(addr+8)\X, " ", *(addr+12)\X, " ",
+				*(addr+8)\a, " ", *(addr+12)\a, "\n");
+		}
 	}
 }
 
@@ -134,7 +159,7 @@ defn
 leakdump(l)
 {
 	print("==LEAK BEGIN==\n");
-	dumppool(sbrkmem);
+	dumppool(*mainmem, 0);
 	dumpmem();
 	dumpregs();
 	while l != {} do {
@@ -149,6 +174,15 @@ defn
 blockdump()
 {
 	print("==BLOCK BEGIN==\n");
-	dumppool(sbrkmem);
+	dumppool(*mainmem, 0);
+	print("==BLOCK END==\n");
+}
+
+defn
+blocksummary()
+{
+	print("==BLOCK BEGIN==\n");
+	dumppool(*mainmem, 1);
+	emitsum();
 	print("==BLOCK END==\n");
 }

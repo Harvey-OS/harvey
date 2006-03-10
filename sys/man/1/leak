@@ -19,6 +19,11 @@ leak \- examine family of processes for memory leaks
 .I width
 ]
 .I pid ...
+.PP
+.B kmem
+[
+.I kernel
+]
 .SH DESCRIPTION
 .I Leak
 examines the named processes, which
@@ -57,7 +62,9 @@ at that point in the program.
 .PP
 If the
 .B -b
-option is given, leak will print a Plan 9 image file
+option is given,
+.I leak
+will print a Plan 9 image file
 graphically summarizing the memory arenas.
 In the image, each pixel represents
 .I res
@@ -102,6 +109,12 @@ command-line used to inspect the
 processes, and is only necessary
 when inspecting processes started
 from stripped binaries.
+.PP
+.I Kmem
+prints a summary of all allocated blocks in the running kernel.
+Each line of the summary gives
+the count and total size of blocks allocated at an allocation point.
+The list is sorted by count in decreasing order.
 .SH EXAMPLES
 List lost blocks in 
 .IR 8.out .
@@ -113,19 +126,27 @@ running; if there were more, the output of
 would need editing before sending to the shell.
 .IP
 .EX
-g% leak -s 8.out
+% leak -s 8.out
 leak -s 229 230
-g% leak -s 8.out | rc
+% leak -s 8.out | rc
 src(0x0000bf1b); // 64
 src(0x000016f5); // 7
 src(0x0000a988); // 7
-g%
+%
 .EE
 .LP
 View the memory usage graphic for the window system.
 .IP
 .EX
-g% leak -b rio | rc | page
+% leak -b rio | rc | page
+.EE
+.PP
+List the top allocation points in the kernel,
+first by count and then by total size:
+.IP
+.EX
+% kmem | sed 10q
+% kmem | sort -nr +1 | sed 10q
 .EE
 .SH SOURCE
 .B /sys/lib/acid/leak
@@ -133,9 +154,16 @@ g% leak -b rio | rc | page
 .B /sys/src/cmd/aux/acidleak.c
 .br
 .B /rc/bin/leak
+.br
+.B /rc/bin/kmem
 .SH BUGS
-Leak depends on the internal structure of the
+.I Leak
+and
+.I kmem
+depend on the internal structure of the
 libc pool memory allocator (see 
 .IR pool (2)).
 Since the ANSI/POSIX environment uses a different
-allocator, leak will not work on APE programs.
+allocator,
+.I leak
+will not work on APE programs.
