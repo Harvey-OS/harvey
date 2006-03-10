@@ -101,7 +101,7 @@ or after an error.
 .B /rc/bin/ipconf/*
 example dialer scripts for ppp
 .SH SOURCE
-.B /sys/src/dial/*.c
+.B /sys/src/cmd/dial/*.c
 .SH SEE ALSO
 .IR ppp (8),
 .IR telco (4)

@@ -220,7 +220,7 @@
 386/bin/du - 775 sys sys 1135570806 73708
 386/bin/echo - 775 sys sys 1135570806 57349
 386/bin/ed - 775 sys sys 1135570807 93021
-386/bin/eqn - 775 sys sys 1136656335 243034
+386/bin/eqn - 775 sys sys 1141927235 244405
 386/bin/execnet - 775 sys sys 1138500564 178046
 386/bin/exportfs - 775 sys sys 1135570807 162237
 386/bin/ext2srv - 775 sys sys 1135570808 179710
@@ -319,7 +319,7 @@
 386/bin/kprof - 775 sys sys 1138500643 105075
 386/bin/ktrace - 775 sys sys 1138500657 122747
 386/bin/lens - 775 sys sys 1135570830 150725
-386/bin/lex - 775 sys sys 1136224362 99020
+386/bin/lex - 775 sys sys 1141927236 99035
 386/bin/lnfs - 775 sys sys 1135570831 99434
 386/bin/look - 775 sys sys 1135570831 65531
 386/bin/ls - 775 sys sys 1139853471 82480
@@ -507,7 +507,7 @@
 386/bin/wc - 775 sys sys 1130384372 41174
 386/bin/webcookies - 775 sys sys 1135570853 167402
 386/bin/webfs - 775 sys sys 1134389883 360008
-386/bin/webfsget - 775 sys sys 1130384374 39161
+386/bin/webfsget - 775 sys sys 1141927236 39180
 386/bin/wikifs - 775 sys sys 1134505646 203414
 386/bin/winwatch - 775 sys sys 1135570853 154876
 386/bin/x.echo - 775 sys sys 1135619568 57349
@@ -5442,6 +5442,7 @@ rc/bin/ipso - 775 sys sys 1079377794 2838
 rc/bin/iwhois - 775 sys sys 1100534870 1372
 rc/bin/juke - 775 sys sys 1105565140 1131
 rc/bin/kill - 775 sys sys 1018387014 132
+rc/bin/kmem - 775 sys sys 1141940177 468
 rc/bin/label - 775 sys sys 945617207 34
 rc/bin/lc - 775 sys sys 945617207 24
 rc/bin/leak - 775 sys sys 1139744263 1052
@@ -5747,7 +5748,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000664 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000664 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1141660932 257780
+sys/games/lib/fortunes - 664 sys sys 1141922030 257851
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -6040,7 +6041,7 @@ sys/lib/acid/alpha - 664 sys sys 944955985 4849
 sys/lib/acid/arm - 664 sys sys 984696197 1842
 sys/lib/acid/coverage - 664 sys sys 944955985 1746
 sys/lib/acid/kernel - 664 sys sys 1134390252 6399
-sys/lib/acid/leak - 664 sys sys 1131289472 2363
+sys/lib/acid/leak - 664 sys sys 1141940182 3022
 sys/lib/acid/mips - 664 sys sys 944955985 5472
 sys/lib/acid/network - 664 sys sys 1020313817 2499
 sys/lib/acid/pool - 664 sys sys 1063858105 4898
@@ -7287,7 +7288,7 @@ sys/man/1/echo - 664 sys sys 1079969656 430
 sys/man/1/ed - 664 sys sys 961259286 13916
 sys/man/1/emacs - 664 sys sys 944959673 199
 sys/man/1/eqn - 664 sys sys 1134592617 5655
-sys/man/1/expect - 664 sys sys 1134557311 3014
+sys/man/1/expect - 664 sys sys 1141913757 3018
 sys/man/1/faces - 664 sys sys 1113743326 2395
 sys/man/1/factor - 664 sys sys 1135084026 1015
 sys/man/1/file - 664 sys sys 1015024739 1578
@@ -7312,7 +7313,7 @@ sys/man/1/jpg - 664 sys sys 1113743325 4842
 sys/man/1/kbmap - 664 sys sys 1079969760 845
 sys/man/1/kill - 664 sys sys 1018369246 1193
 sys/man/1/ktrace - 664 sys sys 957920006 1330
-sys/man/1/leak - 664 sys sys 1017423522 2871
+sys/man/1/leak - 664 sys sys 1141940187 3307
 sys/man/1/lens - 664 sys sys 1130425868 1272
 sys/man/1/lex - 664 sys sys 1113743328 1520
 sys/man/1/look - 664 sys sys 1113743326 1357
@@ -8062,7 +8063,7 @@ sys/src/9/port/alloc.c - 664 sys sys 1138459977 5704
 sys/src/9/port/allocb.c - 664 sys sys 1123676437 3340
 sys/src/9/port/auth.c - 664 sys sys 1123647282 2392
 sys/src/9/port/cache.c - 664 sys sys 1126586168 9241
-sys/src/9/port/chan.c - 664 sys sys 1138458251 34790
+sys/src/9/port/chan.c - 664 sys sys 1141940068 34831
 sys/src/9/port/cis.c - 664 sys sys 1099761153 9248
 sys/src/9/port/debugalloc.c - 664 sys sys 1014931171 10402
 sys/src/9/port/dev.c - 664 sys sys 1131289870 8219
@@ -8134,7 +8135,7 @@ sys/src/9/port/rebootcmd.c - 664 sys sys 1015278340 1561
 sys/src/9/port/sd.h - 664 sys sys 1134411408 2494
 sys/src/9/port/segment.c - 664 sys sys 1138749368 13939
 sys/src/9/port/swap.c - 664 sys sys 1138028310 7019
-sys/src/9/port/sysfile.c - 664 sys sys 1134042952 22178
+sys/src/9/port/sysfile.c - 664 sys sys 1141940070 22192
 sys/src/9/port/sysproc.c - 664 sys sys 1137622456 15153
 sys/src/9/port/systab.h - 664 sys sys 1062721698 3044
 sys/src/9/port/taslock.c - 664 sys sys 1131290039 3928
@@ -10065,7 +10066,7 @@ sys/src/cmd/eqn/input.c - 664 sys sys 944960989 5402
 sys/src/cmd/eqn/integral.c - 664 sys sys 944960989 774
 sys/src/cmd/eqn/lex.c - 664 sys sys 944960989 5090
 sys/src/cmd/eqn/lookup.c - 664 sys sys 944960990 4228
-sys/src/cmd/eqn/main.c - 664 sys sys 944960989 7115
+sys/src/cmd/eqn/main.c - 664 sys sys 1141913958 7121
 sys/src/cmd/eqn/mark.c - 664 sys sys 944960989 292
 sys/src/cmd/eqn/matrix.c - 664 sys sys 944960989 1746
 sys/src/cmd/eqn/mkfile - 664 sys sys 944960989 530
@@ -13957,7 +13958,7 @@ sys/src/cmd/upas/fs/readdir.c - 664 sys sys 944961331 203
 sys/src/cmd/upas/fs/strtotm.c - 664 sys sys 1041137528 1904
 sys/src/cmd/upas/fs/tester.c - 664 sys sys 985037420 1418
 sys/src/cmd/upas/marshal - 20000000775 sys sys 1015009721 0
-sys/src/cmd/upas/marshal/marshal.c - 664 sys sys 1135352267 32852
+sys/src/cmd/upas/marshal/marshal.c - 664 sys sys 1141913896 32859
 sys/src/cmd/upas/marshal/mkfile - 664 sys sys 1047490298 235
 sys/src/cmd/upas/misc - 20000000775 sys sys 944961318 0
 sys/src/cmd/upas/misc/gone.fishing - 664 sys sys 944961318 313
@@ -14256,7 +14257,7 @@ sys/src/cmd/webfs/plumb.c - 664 sys sys 1015090008 2761
 sys/src/cmd/webfs/url.c - 664 sys sys 1128664462 24144
 sys/src/cmd/webfs/util.c - 664 sys sys 1015015823 1211
 sys/src/cmd/webfs/webget.c - 664 sys sys 1124711795 1589
-sys/src/cmd/webfsget.c - 664 sys sys 1068413017 1595
+sys/src/cmd/webfsget.c - 664 sys sys 1141913846 1597
 sys/src/cmd/wikifs - 20000000775 sys sys 1018211094 0
 sys/src/cmd/wikifs/fs.c - 664 sys sys 1134354783 14440
 sys/src/cmd/wikifs/io.c - 664 sys sys 1134498935 11573

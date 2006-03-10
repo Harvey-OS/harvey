@@ -18,7 +18,7 @@ xfer(int from, int to)
 void
 usage(void)
 {
-	fprint(2, "usage: webget [-b baseurl] [-m mtpt] [-p postbody] url\n");
+	fprint(2, "usage: webfsget [-b baseurl] [-m mtpt] [-p postbody] url\n");
 	exits("usage");
 }
 
