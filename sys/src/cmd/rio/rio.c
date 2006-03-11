@@ -517,7 +517,7 @@ mousethread(void*)
 					scrolling = mouse->buttons;
 				else
 					scrolling = mouse->buttons && ptinrect(xy, winput->scrollr);
-				/* topped will be zero if window has been bottomed */
+				/* topped will be zero or less if window has been bottomed */
 				if(sending == FALSE && !scrolling && winborder(winput, mouse->xy) && winput->topped>0){
 					moving = TRUE;
 				}else if(inside && (scrolling || winput->mouseopen || (mouse->buttons&1)))
@@ -566,7 +566,7 @@ mousethread(void*)
 				cornercursor(w, mouse->xy, 0);
 			/* we're not sending the event, but if button is down maybe we should */
 			if(mouse->buttons){
-				/* w->topped will be zero if window has been bottomed */
+				/* w->topped will be zero or less if window has been bottomed */
 				if(w==nil || (w==winput && w->topped>0)){
 					if(mouse->buttons & 1){
 						;

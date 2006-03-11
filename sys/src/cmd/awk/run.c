@@ -903,8 +903,10 @@ int format(char **pbuf, int *pbufsize, char *s, Node *a)	/* printf-like conversi
 			if (isnum(x)) {
 				if (getfval(x))
 					sprintf(p, fmt, (int) getfval(x));
-				else
+				else{
 					*p++ = '\0';
+					*p = '\0';
+				}
 			} else
 				sprintf(p, fmt, getsval(x)[0]);
 			break;
