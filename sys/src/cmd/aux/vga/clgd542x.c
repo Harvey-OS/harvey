@@ -29,6 +29,7 @@ static Gd542x family[] = {
 
 	{ 0xAC, 135000000, },		/* CL-GD5436 */
 	{ 0xB8, 135000000, },		/* CL-GD5446 */
+	{ 0xBC, 135000000, },		/* CL-GD5480 */
 
 	{ 0x30,  80000000, },		/* CL-GD7543 */
 
@@ -127,6 +128,17 @@ snarf(Vga* vga, Ctlr* ctlr)
 		 */
 		if(((vga->sequencer[0x17]>>3) & 0x07) == 0x04)
 			ctlr->flag |= Hlinear;
+		break;
+	case 0xBC:				/* CL-GD5480 */
+		i = 2;				/* 1024 = 256<<2 */
+		if((vga->sequencer[0x0F] & 0x18) == 0x18){
+			i <<= 1;		/* 2048 = 256<<3 */
+			if(vga->sequencer[0x0F] & 0x80)
+				i <<= 2;	/* 2048 = 256<<4 */
+		}
+		if(vga->sequencer[0x17] & 0x80)
+			i <<= 1;
+		ctlr->flag |= Hlinear;
 		break;
 
 	default:				/* uh, ah dunno */

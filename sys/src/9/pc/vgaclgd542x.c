@@ -119,6 +119,18 @@ clgd542xenable(VGAscr* scr)
 			mem++;
 		break;
 
+	case 0xBC:				/* CL-GD5480 */
+		mem = 2;			/* 1024 = 256<<2 */
+		x = vgaxi(Seqx, 0x0F);
+		if((x & 0x18) == 0x18){
+			mem <<= 1;		/* 2048 = 256<<3 */
+			if(x & 0x80)
+				mem <<= 2;	/* 2048 = 256<<4 */
+		}
+		if(vgaxi(Seqx, 0x17) & 0x80)
+			mem <<= 1;
+		break;
+
 	default:				/* uh, ah dunno */
 		break;
 	}

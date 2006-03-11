@@ -192,6 +192,7 @@ ctlr							# CL-GD542x
 	0xE0039="CL-GD540x/542x VGA BIOS"		# NCR 3230
 	0xC0039="CL-GD543x"
 	0xC0039="CL-GD5440"
+	0xC0039="CL-GD5480"				# Intel L440GX+
 	0xC003B="SpeedStar PRO"				# Diamond SpeedStar Pro
 	0xC0038="SpeedStar 64"				# Diamond SpeedStar 64
 	0xC00F4="KELVIN 64"				# Orchid Kelvin 64

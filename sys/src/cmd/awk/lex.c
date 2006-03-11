@@ -86,8 +86,8 @@ Keyword keywords[] ={	/* keep sorted: binary searched */
 	{ "system",	FSYSTEM,	BLTIN },
 	{ "tolower",	FTOLOWER,	BLTIN },
 	{ "toupper",	FTOUPPER,	BLTIN },
-	{ "while",	WHILE,		WHILE },
 	{ "utf",	FUTF,		BLTIN },
+	{ "while",	WHILE,		WHILE },
 };
 
 #define DEBUG

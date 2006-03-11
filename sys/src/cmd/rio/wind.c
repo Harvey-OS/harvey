@@ -1268,7 +1268,7 @@ wbottomme(Window *w)
 	if(w!=nil && w->i!=nil && !w->deleted){
 		bottomwindow(w->i);
 		flushimage(display, 1);
-		w->topped = 0;
+		w->topped = - ++topped;
 	}
 }
 
