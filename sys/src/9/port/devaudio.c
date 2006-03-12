@@ -1206,6 +1206,7 @@ audiowrite(Chan *c, void *vp, long n, vlong)
 				audio.filling = 0;
 				swab(b->virt);
 				putbuf(&audio.full, b);
+				pokeaudio();
 			}
 		}
 		poperror();

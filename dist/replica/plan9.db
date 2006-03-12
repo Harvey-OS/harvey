@@ -224,7 +224,7 @@
 386/bin/execnet - 775 sys sys 1138500564 178046
 386/bin/exportfs - 775 sys sys 1135570807 162237
 386/bin/ext2srv - 775 sys sys 1135570808 179710
-386/bin/faces - 775 sys sys 1139457581 194170
+386/bin/faces - 775 sys sys 1142099815 194163
 386/bin/factor - 775 sys sys 1135570809 61456
 386/bin/fcp - 775 sys sys 1136656336 82190
 386/bin/file - 775 sys sys 1138500574 120581
@@ -7994,7 +7994,7 @@ sys/src/9/pc/main.c - 664 sys sys 1131290418 15224
 sys/src/9/pc/mem.h - 664 sys sys 1137622431 5203
 sys/src/9/pc/memory.c - 664 sys sys 1131573303 18191
 sys/src/9/pc/mkfile - 664 sys sys 1137622906 3572
-sys/src/9/pc/mmu.c - 664 sys sys 1136336093 24152
+sys/src/9/pc/mmu.c - 664 sys sys 1142124315 25229
 sys/src/9/pc/mouse.c - 664 sys sys 1098479254 7057
 sys/src/9/pc/mp.c - 664 sys sys 1131538523 17317
 sys/src/9/pc/mp.h - 664 sys sys 1131538511 6652
@@ -8069,7 +8069,7 @@ sys/src/9/port/chan.c - 664 sys sys 1141940068 34831
 sys/src/9/port/cis.c - 664 sys sys 1099761153 9248
 sys/src/9/port/debugalloc.c - 664 sys sys 1014931171 10402
 sys/src/9/port/dev.c - 664 sys sys 1131289870 8219
-sys/src/9/port/devaudio.c - 664 sys sys 1067722761 21130
+sys/src/9/port/devaudio.c - 664 sys sys 1142086793 21147
 sys/src/9/port/devbridge.c - 664 sys sys 1055688301 24308
 sys/src/9/port/devcap.c - 664 sys sys 1048644215 4113
 sys/src/9/port/devcons.c - 664 sys sys 1139667186 23014
@@ -8085,7 +8085,7 @@ sys/src/9/port/devmntstats.c - 664 sys sys 1014931173 4039
 sys/src/9/port/devmouse.c - 664 sys sys 1130848303 13517
 sys/src/9/port/devpipe.c - 664 sys sys 1077055016 5825
 sys/src/9/port/devpnp.c - 664 sys sys 1088560907 13624
-sys/src/9/port/devproc.c - 664 sys sys 1138469351 28497
+sys/src/9/port/devproc.c - 664 sys sys 1142086847 28500
 sys/src/9/port/devroot.c - 664 sys sys 1067722764 4254
 sys/src/9/port/devsd.c - 664 sys sys 1138458233 30866
 sys/src/9/port/devsdp.c - 664 sys sys 1057323393 44800
@@ -10111,7 +10111,7 @@ sys/src/cmd/ext2srv/xfile.c - 664 sys sys 1055687749 2543
 sys/src/cmd/ext2srv/xfssrv.c - 664 sys sys 1055687749 1292
 sys/src/cmd/faces - 20000000775 sys sys 952888246 0
 sys/src/cmd/faces/dblook.c - 664 sys sys 944961084 359
-sys/src/cmd/faces/facedb.c - 664 sys sys 1139442044 10555
+sys/src/cmd/faces/facedb.c - 664 sys sys 1142086801 10551
 sys/src/cmd/faces/faces.h - 664 sys sys 1072972232 1115
 sys/src/cmd/faces/main.c - 664 sys sys 1106409986 13643
 sys/src/cmd/faces/mkfile - 664 sys sys 1062460262 355

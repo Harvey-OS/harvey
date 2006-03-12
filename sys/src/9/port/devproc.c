@@ -1395,7 +1395,7 @@ procctlreq(Proc *p, char *va, int n)
 			p->trace ^= 1;
 			break;
 		case 2:
-			p->trace = atoi(cb->f[1])?1:0;
+			p->trace = (atoi(cb->f[1]) != 0);
 			break;
 		default:
 			error("args");
