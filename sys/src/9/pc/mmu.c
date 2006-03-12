@@ -195,7 +195,7 @@ flushpg(ulong va)
 	if(X86FAMILY(m->cpuidax) >= 4)
 		invlpg(va);
 	else
-		putcr3(m->tss->cr3);
+		putcr3(getcr3());
 }
 	
 /*
@@ -287,7 +287,6 @@ taskswitch(ulong pdb, ulong stack)
 	tss->esp1 = stack;
 	tss->ss2 = KDSEL;
 	tss->esp2 = stack;
-	tss->cr3 = pdb;
 	putcr3(pdb);
 }
 
@@ -336,8 +335,8 @@ mmurelease(Proc* proc)
 			panic("mmurelease: no mmupdb");
 		if(--proc->kmaptable->ref)
 			panic("mmurelease: kmap ref %d\n", proc->kmaptable->ref);
-		if(up->nkmap)
-			panic("mmurelease: nkmap %d\n", up->nkmap);
+		if(proc->nkmap)
+			panic("mmurelease: nkmap %d\n", proc->nkmap);
 		/*
 		 * remove kmaptable from pdb before putting pdb up for reuse.
 		 */
@@ -379,29 +378,56 @@ upallocpdb(void)
 	ulong *pdb;
 	Page *page;
 	
+	if(up->mmupdb != nil)
+		return;
 	page = mmupdballoc();
 	s = splhi();
+	if(up->mmupdb != nil){
+		/*
+		 * Perhaps we got an interrupt while
+		 * mmupdballoc was sleeping and that
+		 * interrupt allocated an mmupdb?
+		 * Seems unlikely.
+		 */
+		mmupdbfree(up, page);
+		splx(s);
+		return;
+	}
 	pdb = tmpmap(page);
 	pdb[PDX(MACHADDR)] = m->pdb[PDX(MACHADDR)];
 	tmpunmap(pdb);
 	up->mmupdb = page;
-//XXX should have this	m->tss->cr3 = up->mmupdb->pa;
 	putcr3(up->mmupdb->pa);
 	splx(s);
 }
-	
+
 /*
  * Update the mmu in response to a user fault.  pa may have PTEWRITE set.
  */
 void
 putmmu(ulong va, ulong pa, Page*)
 {
-	int old;
+	int old, s;
 	Page *page;
 
 	if(up->mmupdb == nil)
 		upallocpdb();
 
+	/*
+	 * We should be able to get through this with interrupts
+	 * turned on (if we get interrupted we'll just pick up 
+	 * where we left off) but we get many faults accessing
+	 * vpt[] near the end of this function, and they always happen
+	 * after the process has been switched out and then 
+	 * switched back, usually many times in a row (perhaps
+	 * it cannot switch back successfully for some reason).
+	 * 
+	 * In any event, I'm tired of searching for this bug.  
+	 * Turn off interrupts during putmmu even though
+	 * we shouldn't need to.		- rsc
+	 */
+	
+	s = splhi();
 	if(!(vpd[PDX(va)]&PTEVALID)){
 		if(up->mmufree == 0)
 			page = newpage(0, 0, 0);
@@ -422,6 +448,7 @@ putmmu(ulong va, ulong pa, Page*)
 		flushpg(va);
 	if(getcr3() != up->mmupdb->pa)
 		print("bad cr3 %.8lux %.8lux\n", getcr3(), up->mmupdb->pa);
+	splx(s);
 }
 
 /*
@@ -652,8 +679,8 @@ int
 pdbmap(ulong *pdb, ulong pa, ulong va, int size)
 {
 	int pse;
-	ulong pae, pgsz, *pte, *table;
-	ulong flag;
+	ulong pgsz, *pte, *table;
+	ulong flag, off;
 	
 	flag = pa&0xFFF;
 	pa &= ~0xFFF;
@@ -663,30 +690,27 @@ pdbmap(ulong *pdb, ulong pa, ulong va, int size)
 	else
 		pse = 0;
 
-	pae = pa + size;
-	while(pa < pae){
-		table = &pdb[PDX(va)];
+	for(off=0; off<size; off+=pgsz){
+		table = &pdb[PDX(va+off)];
 		if((*table&PTEVALID) && (*table&PTESIZE))
 			panic("vmap: va=%#.8lux pa=%#.8lux pde=%#.8lux",
-				va, pa, *table);
+				va+off, pa+off, *table);
 
 		/*
 		 * Check if it can be mapped using a 4MB page:
 		 * va, pa aligned and size >= 4MB and processor can do it.
 		 */
-		if(pse && pa%(4*MB) == 0 && va%(4*MB) == 0 && (pae >= pa+4*MB)){
-			*table = pa|PTESIZE|flag|PTEVALID;
+		if(pse && (pa+off)%(4*MB) == 0 && (va+off)%(4*MB) == 0 && (size-off) >= 4*MB){
+			*table = (pa+off)|flag|PTESIZE|PTEVALID;
 			pgsz = 4*MB;
 		}else{
-			pte = mmuwalk(pdb, va, 2, 1);
+			pte = mmuwalk(pdb, va+off, 2, 1);
 			if(*pte&PTEVALID)
 				panic("vmap: va=%#.8lux pa=%#.8lux pte=%#.8lux",
-					va, pa, *pte);
-			*pte = pa|flag|PTEVALID;
+					va+off, pa+off, *pte);
+			*pte = (pa+off)|flag|PTEVALID;
 			pgsz = BY2PG;
 		}
-		pa += pgsz;
-		va += pgsz;
 	}
 	return 0;
 }
@@ -774,6 +798,14 @@ kmap(Page *page)
 		panic("kmap: up=0 pc=%#.8lux", getcallerpc(&page));
 	if(up->mmupdb == nil)
 		upallocpdb();
+	if(up->nkmap < 0)
+		panic("kmap %lud %s: nkmap=%d", up->pid, up->text, up->nkmap);
+	
+	/*
+	 * Splhi shouldn't be necessary here, but paranoia reigns.
+	 * See comment in putmmu above.
+	 */
+	s = splhi();
 	up->nkmap++;
 	if(!(vpd[PDX(KMAP)]&PTEVALID)){
 		/* allocate page directory */
@@ -781,15 +813,15 @@ kmap(Page *page)
 			panic("bad kmapsize");
 		if(up->kmaptable != nil)
 			panic("kmaptable");
-		s = spllo();
+		spllo();
 		up->kmaptable = newpage(0, 0, 0);
-		splx(s);
+		splhi();
 		vpd[PDX(KMAP)] = up->kmaptable->pa|PTEWRITE|PTEVALID;
+		flushpg((ulong)kpt);
 		memset(kpt, 0, BY2PG);
-
-		/* might as well finish the job */
 		kpt[0] = page->pa|PTEWRITE|PTEVALID;
 		up->lastkmap = 0;
+		splx(s);
 		return (KMap*)KMAP;
 	}
 	if(up->kmaptable == nil)
@@ -800,6 +832,7 @@ kmap(Page *page)
 			o = (i+o)%NKPT;
 			kpt[o] = page->pa|PTEWRITE|PTEVALID;
 			up->lastkmap = o;
+			splx(s);
 			return (KMap*)(KMAP+o*BY2PG);
 		}
 	}
@@ -820,10 +853,11 @@ kunmap(KMap *k)
 	if(!(vpt[VPTX(va)]&PTEVALID))
 		panic("kunmap: not mapped %#.8lux pc=%#.8lux", va, getcallerpc(&k));
 	up->nkmap--;
+	if(up->nkmap < 0)
+		panic("kunmap %lud %s: nkmap=%d", up->pid, up->text, up->nkmap);
 	vpt[VPTX(va)] = 0;
 	flushpg(va);
 }
-
 
 /*
  * Temporary one-page mapping used to edit page directories.

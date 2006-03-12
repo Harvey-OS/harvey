@@ -275,7 +275,7 @@ tryfindfiledir(char *dom, char *user, char *dir)
 	while((n = dirread(fd, &d)) > 0){
 		for(i=0; i<n; i++){
 			if((d[i].mode&DMDIR)
-			&& strncmp(d[i].name, "512x512x", 8) != 0
+			&& strncmp(d[i].name, "512x", 4) != 0
 			&& strncmp(d[i].name, "48x48x", 6) != 0){
 				ndir = emalloc(strlen(dir)+1+strlen(d[i].name)+1);
 				strcpy(ndir, dir);
