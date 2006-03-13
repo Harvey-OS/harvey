@@ -14,6 +14,7 @@ extern Dev ipdevtab;
 extern Dev fsdevtab;
 extern Dev mntdevtab;
 extern Dev lfddevtab;
+extern Dev audiodevtab;
 
 Dev *devtab[] = {
 	&rootdevtab,
@@ -26,6 +27,7 @@ Dev *devtab[] = {
 	&fsdevtab,
 	&mntdevtab,
 	&lfddevtab,
+	&audiodevtab,
 	0
 };
 

@@ -149,7 +149,7 @@ addtok(char *p, int val)
 {
 	if(p==0)
 		return 0;
-	if(p==&tok[NTOK]){
+	if(p==&tok[NTOK-1]){
 		*p = 0;
 		yyerror("token buffer too short");
 		return 0;

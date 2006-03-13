@@ -109,6 +109,7 @@ main(int argc, char **argv)
 	syslog(0, HTTPLOG, nil);
 	logall[0] = open("/sys/log/httpd/0", OWRITE);
 	logall[1] = open("/sys/log/httpd/1", OWRITE);
+	logall[2] = open("/sys/log/httpd/clf", OWRITE);
 	redirectinit();
 	contentinit();
 	urlinit();
@@ -275,21 +276,59 @@ doreq(HConnect *c)
 {
 	HSPriv *hp;
 	Strings ss;
-	char *magic, *uri, *origuri, *newpath, *hb;
+	char *magic, *uri, *newuri, *origuri, *newpath, *hb;
 	char virtualhost[100], logfd0[10], logfd1[10], vers[16];
-	int n;
+	int n, nredirect;
 
 	/*
 	 * munge uri for magic
 	 */
 	uri = c->req.uri;
+	nredirect = 0;
+top:
+	if(++nredirect > 10){
+		if(hparseheaders(c, 15*60*1000) < 0)
+			exits("failed");
+		return hfail(c, HNotFound, uri);
+	}
 	ss = stripmagic(c, uri);
 	uri = ss.s1;
+	origuri = uri;
 	magic = ss.s2;
+	if(magic)
+		goto magic;
+
+	/*
+	 * Apply redirects.  Do this before reading headers
+	 * (if possible) so that we can redirect to magic invisibly.
+	 */
+	if(origuri[0]=='/' && origuri[1]=='~'){
+		n = strlen(origuri) + 4 + UTFmax;
+		newpath = halloc(c, n);
+		snprint(newpath, n, "/who/%s", origuri+2);
+		c->req.uri = newpath;
+		newuri = newpath;
+	}else if(origuri[0]=='/' && origuri[1]==0){
+		/* can't redirect / until we read the headers */
+		newuri = nil;
+	}else
+		newuri = redirect(c, origuri);
+	
+	if(newuri != nil){
+		if(newuri[0] == '@'){
+			c->req.uri = newuri+1;
+			uri = newuri+1;
+			goto top;
+		}
+		if(hparseheaders(c, 15*60*1000) < 0)
+			exits("failed");
+		return hmoved(c, newuri);
+	}
 
 	/*
 	 * for magic we exec a new program and serve no more requests
 	 */
+magic:
 	if(magic != nil && strcmp(magic, "httpd") != 0){
 		snprint(c->xferbuf, HBufSize, "/bin/ip/httpd/%s", magic);
 		snprint(logfd0, sizeof(logfd0), "%d", logall[0]);
@@ -312,28 +351,18 @@ doreq(HConnect *c)
 	/*
 	 * normal case is just file transfer
 	 */
-	origuri = uri;
 	if(hparseheaders(c, 15*60*1000) < 0)
 		exits("failed");
+	if(origuri[0] == '/' && origuri[1] == 0){	
+		snprint(virtualhost, sizeof virtualhost, "http://%s/", c->head.host);
+		newuri = redirect(c, virtualhost);
+		if(newuri == nil)
+			newuri = redirect(c, origuri);
+		if(newuri)
+			return hmoved(c, newuri);
+	}
 	if(!http11(c) && !c->head.persist)
 		c->head.closeit = 1;
-
-	if(origuri[0]=='/' && origuri[1]=='~'){
-		n = strlen(origuri) + 4 + UTFmax;
-		newpath = halloc(c, n);
-		snprint(newpath, n, "/who/%s", origuri+2);
-		c->req.uri = newpath;
-		uri = newpath;
-	}else if(origuri[0]=='/' && origuri[1]==0){
-		snprint(virtualhost, sizeof virtualhost, "http://%s/", c->head.host);
-		uri = redirect(c, virtualhost);
-		if(uri == nil)
-			uri = redirect(c, origuri);
-	}else
-		uri = redirect(c, origuri);
-
-	if(uri != nil)
-		return hmoved(c, uri);
 	return send(c);
 }
 

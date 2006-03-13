@@ -616,6 +616,16 @@ dell2000fp=1600x1200
 	defaultclock=200
 	shb=1664 ehb=1864 ht=2136
 	vrs=1202 vre=1207 vt=1251
+#
+# Dell 2001FP at 1600x1200 with geforce2 DVI card
+#
+dell2001fp
+	videobw=162
+	alias=multisync
+dell2001fp=1600x1200
+	defaultclock=162
+	shb=1624 ehb=1976 ht=2160
+	vrs=1201 vre=1204 vt=1250
 
 #
 # EIZO (Nanao) FlexScan 6600 (greyscale)

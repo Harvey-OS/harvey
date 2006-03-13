@@ -1027,9 +1027,12 @@ extract1(int ar, Hdr *hp, char *fname)
 
 			nulldir(&nd);
 			nd.mtime = mtime;
-			if (isustar(hp))
-				nd.gid = hp->gname;
 			dirfwstat(fd, &nd);
+			if (isustar(hp)) {
+				nulldir(&nd);
+				nd.gid = hp->gname;
+				dirfwstat(fd, &nd);
+			}
 		}
 		close(fd);
 	}

@@ -13,6 +13,8 @@ GUI=x11
 LDADD=-L$(X11)/lib -lX11 -ggdb
 LDFLAGS=$(PTHREAD)
 TARG=drawterm
+# AUDIO=none
+AUDIO=unix
 
 all: default
 
