@@ -684,7 +684,7 @@ reset(Ether* ether)
 		return -1;
 	}
 
-	if(!(ether->port >= 0 && ether->port < 3)){
+	if(ether->port > 3){
 		print("%s ether: no FCC port %ld\n", ether->type, ether->port);
 		return -1;
 	}

@@ -11,7 +11,7 @@ struct HSPriv
 	char		*remoteserv;
 };
 
-extern	int		logall[2];
+extern	int		logall[3];
 extern	char*		HTTPLOG;
 extern	char*		webroot;
 extern	char*		netdir;

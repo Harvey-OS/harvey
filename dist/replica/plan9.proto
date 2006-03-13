@@ -140,7 +140,7 @@ sys	- sys sys
 		*	a666 sys sys 
 		timesync.d	d775 sys sys
 		httpd	- sys sys
-			*	666 sys sys
+			*	a666 sys sys
 	man	- sys sys
 		+	- sys sys
 	src	- sys sys

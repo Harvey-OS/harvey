@@ -1,151 +1,331 @@
 .TH SPIN 1
 .SH NAME
-spin \- verification tool for concurrent systems
+spin \- verification tool for models of concurrent systems
 .SH SYNOPSIS
 .B spin
+.B -a
+[
+.B -m
+]
+[
+.BI -P cpp
+]
+.I file
+.PP
+.B spin
+[
+.B -bglmprsv
+]
 [
 .BI -n N
 ]
 [
-.B -cplgrsmv
+.BI -P cpp
 ]
-[
-.B -iat
-]
-[
-.B -V
-]
-[
 .I file
+.PP
+.B spin
+.B -c
+[
+.B -t
 ]
+[
+.BI -P cpp
+]
+.I file
+.PP
+.B spin
+.B -d
+[
+.BI -P cpp
+]
+.I file
+.PP
+.B spin
+.B -f
+.I ltl
+.PP
+.B spin
+.B -F
+.I file
+.PP
+.B spin
+.B -i
+[
+.B -bglmprsv
+]
+[
+.BI -n N
+]
+[
+.BI -P cpp
+]
+.I file
+.PP
+.B spin
+.B -M
+[
+.B -t
+]
+[
+.BI -P cpp
+]
+.I file
+.PP
+.B spin
+.BR -t [ \fIN ]
+[
+.B -bglmprsv
+]
+[
+.BI -j N
+]
+[
+.BI -P cpp
+]
+.I file
+.PP
+.B spin
+.B -V
 .SH DESCRIPTION
 .I Spin
 is a tool for analyzing the logical consistency of
-concurrent systems, specifically communication protocols.
-The system is specified in a guarded command language called
-.SM PROMELA\c
-\&.
-The language, described in the references,
-allows for the dynamic creation of processes,
-nondeterministic case selection, loops, gotos,
-variables, and the specification of correctness requirements.
-The tool has fast algorithms for analyzing arbitrary
-liveness and safety conditions.
+asynchronous systems, specifically distributed software
+amd communication protocols.
+A verification model of the system is first specified
+in a guarded command language called Promela.
+This specification language, described in the reference,
+allows for the modeling of dynamic creation of
+asynchronous processes,
+nondeterministic case selection, loops, gotos, local and
+global variables.
+It also allows for a concise specification of logical
+correctness requirements, including, but not restricted
+to requirements expressed in linear temporal logic.
 .PP
-Given a model system specified in
-.SM PROMELA\c
-,
+Given a Promela model
+stored in
+.I file ,
 .I spin
 can perform interactive, guided, or random simulations
-of the system's execution
-or it can generate a C program that performs an exhaustive
-or approximate verification of the system.
-The verifier can check, for instance, if user specified system
-invariants are violated during a protocol's execution, or
-if non-progress execution cycles exist.
+of the system's execution.
+It can also generate a C program that performs an exhaustive
+or approximate verification of the correctness requirements
+for the system.
 .PP
-Without any options the program performs a random simulation of the system
-defined in the input
-.IR file ,
-default standard input.
-The option
-.BI -n N
-sets the random seed to the integer value
+The basic command options are:
+.\"----------------------a----------------
+.TP
+.B -a
+Generate a verifier (model checker) for the specification.
+The output is written into a set of C files, named
+.BR pan.[cbhmt] ,
+that can be compiled
+.RB ( "pcc pan.c" )
+to produce an executable verifier.
+The online
+.I spin
+manuals (see below) contain
+the details on compilation and use of the verifiers.
+.\"--------------------------c------------
+.TP
+.B -c
+Produce an ASCII approximation of a message sequence
+chart for a random or guided (when combined with 
+.BR -t )
+simulation run. 
+See also option
+.BR -M .
+.\"--------------------------d------------
+.TP
+.BI -d
+Produce symbol table information for the model specified in
+.I file .
+For each Promela object this information includes the type, name and
+number of elements (if declared as an array), the initial
+value (if a data object) or size (if a message channel), the
+scope (global or local), and whether the object is declared as
+a variable or as a parameter.  For message channels, the data types
+of the message fields are listed.
+For structure variables, the third field defines the
+name of the structure declaration that contains the variable.
+.\"--------------------------f------------
+.TP
+.B "-f \f2ltl\f1"
+Translate the LTL formula
+.I ltl
+into a never claim.
+.br
+This option reads a formula in LTL syntax from the second argument
+and translates it into Promela syntax (a never claim, which is Promela's
+equivalent of a Büchi Automaton).
+The LTL operators are written: 
+.B []
+(always),
+.B <>
+(eventually),
+and
+.B U
+(strong until).  There is no 
+.B X
+(next) operator, to secure
+compatibility with the partial order reduction rules that are
+applied during the verification process.
+If the formula contains spaces, it should be quoted to form a
+single argument to the
+.I spin
+command.
+.\"--------------------------F------------
+.TP
+.B "-F \f2file\f1"
+Translate the LTL formula stored in
+.I file
+into a never claim.
+.br
+This behaves identical to option
+.B -f
+but will read the formula from the
+.I file
+instead of from the command line.
+The file should contain the formula as the first line.  Any text
+that follows this first line is ignored, so it can be used to
+store comments or annotation on the formula.
+(On some systems the quoting conventions of the shell complicate
+the use of option
+.BR -f .
+Option
+.B -F
+is meant to solve those problems.)
+.\"--------------------------i------------
+.TP
+.B -i
+Perform an interactive simulation, prompting the user at
+every execution step that requires a nondeterministic choice
+to be made.  The simulation proceeds without user intervention
+when execution is deterministic.
+.\"--------------------------M------------
+.TP
+.B -M
+Produce a message sequence chart in Postscript form for a
+random simulation or a guided simulation
+(when combined with 
+.BR -t ),
+for the model in
+.I file ,
+and write the result into
+.I file.ps .
+See also option
+.BR -c .
+.\"--------------------------m------------
+.TP
+.B -m
+Changes the semantics of send events.
+Ordinarily, a send action will be (blocked) if the
+target message buffer is full.
+With this option a message sent to a full buffer is lost.
+.\"--------------------------n------------
+.TP
+.B "-n\f2N"
+Set the seed for a random simulation to the integer value
+.I N .
+There is no space between the
+.B -n
+and the integer
 .IR N .
+.\"--------------------------t------------
+.TP
+.B -t
+Perform a guided simulation, following the error trail that
+was produces by an earlier verification run, see the online manuals
+for the details on verification.
+.\"--------------------------V------------
+.TP
+.B -V
+Prints the
+.I spin
+version number and exits.
+.\"--------------------------.------------
+.PD
 .PP
+With only a filename as an argument and no option flags,
+.I spin
+performs a random simulation of the model specified in
+the file (standard input is the default if the filename is omitted).
+If option
+.B -i
+is added, the simulation is 
+.IR interactive ,
+or if option
+.B -t
+is added, the simulation is
+.IR guided .
+.PP
+The simulation normally does not generate output, except what is generated
+explicitly by the user within the model with
+.B printf
+statements, and some details about the final state that is
+reached after the simulation completes.
 The group of options
-.B -pglmrsv
-is used to set the level of information reported
-about the simulation run.
+.B -bglprsv
+sets the desired level of information that the user wants
+about a random, guided, or interactive simulation run.
 Every line of output normally contains a reference to the source
-line in the specification that caused it.
+line in the specification that generated it.
+The options are:
+.\"--------------------------bglprsv------------
 .TP
-.B c
-Show message send and receive operations in tabular form, but
-no other information about the execution.
+.B -b
+Suppress the execution of
+.B printf
+statements within the model.
 .TP
-.B p
-Show at each time step which process changed state and what source
-statement was executed.
+.B -g
+Show at each time step the current value of global variables.
 .TP
-.B l
+.B -l
 In combination with option
-.BR p ,
+.BR -p ,
 show the current value of local variables of the process.
 .TP
-.B g
-Show the value of global variables at each time step.
+.B -p
+Show at each simulation step which process changed state,
+and what source statement was executed.
 .TP
-.B r
+.B -r
 Show all message-receive events, giving
 the name and number of the receiving process
-and the corresponding source line number.
+and the corresponding the source line number.
 For each message parameter, show
 the message type and the message channel number and name.
 .TP
-.B s
+.B -s
 Show all message-send events.
 .TP
-.B m
-Ordinarily, a send action will be delayed if the
-target message buffer if full.
-With this option a message sent to a full buffer is lost.
-The option can be combined with
-.B -a
-(see below).
-.TP
-.B v
-Verbose mode: add extra detail and include more warnings.
-.TP
-.BI i
-Perform an interactive simulation.
-.TP
-.B a
-Generate a protocol-specific verifier.
-The output is written into a set of C files, named
-.BR pan. [ cbhmt ],
-that can be compiled
-.RB ( "cc pan.c" )
-to produce an executable verifier.
-Systems that require more memory than available
-on the target machine can still be analyzed by compiling
-the verifier with a bit state space:
-.IP
-.B "   cc -DBITSTATE pan.c
-.IP
-This collapses the state space to 1 bit per system state,
-with minimal side-effects.
-Partial order reduction rules normally take effect during the
-verification unless the compiler directive
-.B -DNOREDUCE
-is used.
-.IP
-The compiled verifiers have their own sets of options,
-which can be seen by running them with option
-.BR -? .
-.TP
-.B t
-If the verifier finds a violation of a correctness property,
-it writes an error trail.
-The trail can be inspected in detail by invoking
-.I spin
-with the
-.B -t
-option.
-In combination with the options
-.BR pglrsv ,
-different views of the error sequence are then be obtained.
-.TP
-.B V
-Print the version number and exit.
+.B -v
+Verbose mode, add some more detail, and generat more
+hints and warnings about the model.
+.PD
 .SH SOURCE
 .B /sys/src/cmd/spin
 .SH SEE ALSO
 G.J. Holzmann,
-.I
-Design and Validation of Computer Protocols,
+.IR "Design and Validation of Computer Protocols" ,
 Prentice Hall, 1991.
+.br
+\(em, ``Design and validation of protocols: a tutorial,''
+.I "Computer Networks and ISDN Systems" ,
+Vol. 25, No. 9, 1993, pp. 981-1017.
+.br
+\(em, ``The model checker
+.SM SPIN\c
+\&,''
+.I "IEEE Trans. on Software Engineering" ,
+Vol, 23, No. 5, May 1997.
 .br
 \(em, ``Using
 .SM SPIN\c
-\&''.
+\&,''
+this manual.
+.PP
+.B http://spinroot.com/
+
