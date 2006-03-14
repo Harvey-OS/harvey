@@ -13113,7 +13113,7 @@ sys/src/cmd/rio/data.c - 664 sys sys 1142015551 6169
 sys/src/cmd/rio/fns.h - 664 sys sys 1039133251 1065
 sys/src/cmd/rio/fsys.c - 664 sys sys 1019678647 13259
 sys/src/cmd/rio/mkfile - 664 sys sys 1111249068 431
-sys/src/cmd/rio/rio.c - 664 sys sys 1142015539 22807
+sys/src/cmd/rio/rio.c - 664 sys sys 1142289011 22866
 sys/src/cmd/rio/scrl.c - 664 sys sys 1014926357 3245
 sys/src/cmd/rio/time.c - 664 sys sys 1014926357 1829
 sys/src/cmd/rio/util.c - 664 sys sys 1014926357 2061

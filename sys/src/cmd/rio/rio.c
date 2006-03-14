@@ -1011,7 +1011,7 @@ pointto(int wait)
 		w = wpointto(mouse->xy);
 	else
 		w = nil;
-	if(wait)
+	if(wait){
 		while(mouse->buttons){
 			if(mouse->buttons!=4 && w !=nil){	/* cancel */
 				cornercursor(input, mouse->xy, 0);
@@ -1019,6 +1019,9 @@ pointto(int wait)
 			}
 			readmouse(mousectl);
 		}
+		if(w != nil && wpointto(mouse->xy) != w)
+			w = nil;
+	}
 	cornercursor(input, mouse->xy, 0);
 	moveto(mousectl, mouse->xy);	/* force cursor update; ugly */
 	menuing = FALSE;
