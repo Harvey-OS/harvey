@@ -28038,3 +28038,4 @@
 1142188272 7 c 386/bin/ip/httpd/wikipost - 775 sys sys 1142186777 114643
 1142188272 8 c 386/bin/tar - 775 sys sys 1142186778 93165
 1142188272 9 c sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1142187216 20134
+1142289106 0 c sys/src/cmd/rio/rio.c - 664 sys sys 1142289011 22866
