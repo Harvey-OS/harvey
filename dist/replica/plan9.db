@@ -373,7 +373,7 @@
 386/bin/pwd - 775 sys sys 1130384323 36915
 386/bin/ramfs - 775 sys sys 1135570842 89784
 386/bin/rc - 775 sys sys 1135101637 143284
-386/bin/rdbfs - 775 sys sys 1138500707 174769
+386/bin/rdbfs - 775 sys sys 1142358997 174432
 386/bin/read - 775 sys sys 1135570843 58040
 386/bin/replica - 20000000775 sys sys 1018321168 0
 386/bin/replica/applychanges - 775 sys sys 1132506870 98629
@@ -13091,7 +13091,7 @@ sys/src/cmd/rc/tree.c - 664 sys sys 1055698780 2071
 sys/src/cmd/rc/unix.c - 664 sys sys 1055698781 8726
 sys/src/cmd/rc/var.c - 664 sys sys 1055698781 1298
 sys/src/cmd/rc/win32.c - 664 sys sys 1132448675 8697
-sys/src/cmd/rdbfs.c - 664 sys sys 1131289483 7964
+sys/src/cmd/rdbfs.c - 664 sys sys 1142342219 7633
 sys/src/cmd/read.c - 664 sys sys 1022047660 1278
 sys/src/cmd/replica - 20000000775 sys sys 1018321113 0
 sys/src/cmd/replica/all.h - 664 sys sys 1091904421 1265
