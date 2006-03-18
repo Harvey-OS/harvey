@@ -772,6 +772,25 @@ pro502=1024x768
 	include=1024x768
 
 #
+# Iiyama Vision Master 400
+# horizontal sync: 27-96kHz, vertical: 50-160Hz
+#
+pro400
+ 	videobw=160
+ 	alias=multisync
+pro400=1600x1200					# 76Hz, 90.0KHz
+	defaultclock=160				# 146MHz
+	shb=1664 ehb=2088 ht=2144
+	shs=1648
+	vrs=1202 vre=1208 vt=1240
+nec5fg=1280x1024
+	defaultclock=135				# 90hz, 103Khz
+	shb=1352 ehb=1544 ht=1712			# 
+	shs=1328
+	vrs=1028 vre=1034 vt=1075
+pro400=1024x768
+
+#
 # Micron 17FGx
 # Horizontal timing: 
 #	Allowable frequency range: 30-64KHz
