@@ -25,12 +25,24 @@ bindnetcs(void)
 int
 _authdial(char *net, char *authdom)
 {
-	int fd;
+	int fd, vanilla;
 
-	if(bindnetcs() >= 0 && (fd=authdial(net, authdom)) >= 0)
-		return fd;
-	if(net != nil && strcmp(net, "/net") != 0)
-		return -1;
+	vanilla = net==nil || strcmp(net, "/net")==0;
+
+	if(!vanilla || bindnetcs()>=0)
+		return authdial(net, authdom);
+
+	/*
+	 * If we failed to mount /srv/cs, assume that
+	 * we're still bootstrapping the system and dial
+	 * the one auth server passed to us on the command line.
+	 * In normal operation, it is important *not* to do this,
+	 * because the bootstrap auth server is only good for
+	 * a single auth domain.
+	 *
+	 * The ticket request code should really check the
+	 * remote authentication domain too.
+	 */
 
 	/* use the auth sever passed to us as an arg */
 	if(authaddr == nil)
@@ -976,6 +988,8 @@ disablekey(Key *k)
 {
 	Attr *a;
 
+	if(sflag)	/* not on servers */
+		return;
 	for(a=k->attr; a; a=a->next){
 		if(a->type==AttrNameval && strcmp(a->name, "disabled") == 0)
 			return;
