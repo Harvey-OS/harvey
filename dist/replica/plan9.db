@@ -15,7 +15,7 @@
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1135570766 116009
-386/bin/8c - 775 sys sys 1141271048 362551
+386/bin/8c - 775 sys sys 1142740570 362700
 386/bin/8l - 775 sys sys 1140553397 115719
 386/bin/9660srv - 775 sys sys 1135570766 104023
 386/bin/aan - 775 sys sys 1138500151 131061
@@ -53,7 +53,7 @@
 386/bin/auth/debug - 775 sys sys 1140285590 101085
 386/bin/auth/disable - 775 sys sys 1020319057 146
 386/bin/auth/enable - 775 sys sys 1020319057 134
-386/bin/auth/factotum - 775 sys sys 1140717383 321439
+386/bin/auth/factotum - 775 sys sys 1142740571 321467
 386/bin/auth/fgui - 775 sys sys 1138500284 218624
 386/bin/auth/guard.srv - 775 sys sys 1135570774 142833
 386/bin/auth/iam - 775 sys sys 1085076981 50791
@@ -5213,7 +5213,7 @@ lib/tftpd - 20000000775 sys sys 944944178 0
 lib/unicode - 664 sys sys 958440028 223312
 lib/unicode.notice - 664 sys sys 958504386 1398
 lib/units - 664 sys sys 1071415518 9997
-lib/vgadb - 664 sys sys 1142618435 29319
+lib/vgadb - 664 sys sys 1142693929 29319
 lib/volcanoes - 664 sys sys 944944024 119831
 lib/words - 664 sys sys 1014923442 247097
 lp - 20000000775 sys sys 958199268 0
@@ -7719,7 +7719,7 @@ sys/man/8/mouse - 664 sys sys 971455511 2476
 sys/man/8/na - 664 sys sys 958527089 859
 sys/man/8/ndb - 664 sys sys 1118851681 9943
 sys/man/8/newuser - 664 sys sys 1116954242 2418
-sys/man/8/nfsserver - 664 sys sys 1128483119 3397
+sys/man/8/nfsserver - 664 sys sys 1142693998 3585
 sys/man/8/pcmcia - 664 sys sys 944959679 408
 sys/man/8/pem - 664 sys sys 1060263669 1189
 sys/man/8/ping - 664 sys sys 1139667147 3489
@@ -7846,7 +7846,7 @@ sys/src/9/bitsy/sd.h - 664 sys sys 1037029038 0
 sys/src/9/bitsy/sdata.c - 664 sys sys 1131289776 44404
 sys/src/9/bitsy/tar.c - 664 sys sys 1017695521 1375
 sys/src/9/bitsy/trap.c - 664 sys sys 1105030166 19484
-sys/src/9/bitsy/uartsa1110.c - 664 sys sys 1037029045 8530
+sys/src/9/bitsy/uartsa1110.c - 664 sys sys 1142741102 8537
 sys/src/9/bitsy/wavelan.c - 664 sys sys 1116097770 27267
 sys/src/9/bitsy/wavelan.h - 664 sys sys 1037029076 27
 sys/src/9/boot - 20000000775 sys sys 1018556557 0
@@ -9469,7 +9469,7 @@ sys/src/cmd/auth/factotum/rpc.c - 664 sys sys 1107633794 11167
 sys/src/cmd/auth/factotum/rsa.c - 664 sys sys 1107706104 3416
 sys/src/cmd/auth/factotum/secstore.c - 664 sys sys 1140272941 14955
 sys/src/cmd/auth/factotum/sshrsa.c - 664 sys sys 1107633793 3416
-sys/src/cmd/auth/factotum/util.c - 664 sys sys 1140272942 18056
+sys/src/cmd/auth/factotum/util.c - 664 sys sys 1142728071 18491
 sys/src/cmd/auth/factotum/wep.c - 664 sys sys 1107706104 2140
 sys/src/cmd/auth/guard.srv.c - 664 sys sys 1032497638 2334
 sys/src/cmd/auth/iam.c - 664 sys sys 1015008430 841
@@ -9824,7 +9824,7 @@ sys/src/cmd/cc/com.c - 664 sys sys 1134321739 22202
 sys/src/cmd/cc/com64.c - 664 sys sys 1089299182 9975
 sys/src/cmd/cc/compat - 664 sys sys 1014925177 684
 sys/src/cmd/cc/compat.c - 664 sys sys 1132451523 454
-sys/src/cmd/cc/dcl.c - 664 sys sys 1141256563 26858
+sys/src/cmd/cc/dcl.c - 664 sys sys 1142726518 27014
 sys/src/cmd/cc/dpchk.c - 664 sys sys 1107365037 7152
 sys/src/cmd/cc/funct.c - 664 sys sys 984718510 6167
 sys/src/cmd/cc/lex.c - 664 sys sys 1141250058 23973

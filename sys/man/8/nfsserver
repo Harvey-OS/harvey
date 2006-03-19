@@ -78,7 +78,8 @@ Set up NFS service for the 9P server at
 .BR /srv ).
 .TP
 .B -n
-Do not allow per-user authentication.
+Do not allow per-user authentication
+(default and mandatory).
 .TP
 .BI -c " file"
 .I File
@@ -97,6 +98,13 @@ separated by white space: a regular expression (in the notation of
 for a class of servers, a regular expression for
 a class of clients, a file of user id's (in the format of a Unix
 password file), and a file of group id's (same format).
+.TP
+.B -s
+Expect a network connection on file descriptor 1
+instead of listening for incoming calls.
+.TP
+.B -t
+Listen for incoming TCP calls, rather than UDP calls.
 .PP
 NFS clients must be in the Plan 9
 .B /lib/ndb

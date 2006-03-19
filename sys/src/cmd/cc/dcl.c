@@ -347,6 +347,10 @@ init1(Sym *s, Type *t, long o, int exflag)
 			return Z;
 
 		if(a->op == OCONST) {
+			if(vconst(a) && t->etype == TIND && a->type && a->type->etype != TIND){
+				diag(a, "initialize pointer to an integer: %s", s->name);
+				return Z;
+			}
 			if(!sametype(a->type, t)) {
 				/* hoop jumping to save malloc */
 				if(nodcast == Z)
