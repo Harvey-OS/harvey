@@ -2034,7 +2034,7 @@ flushThread(void *a)
 				 * Pause a little.
 				 */
 				if(i==0){
-					fprint(2, "flushthread found nothing to flush - %d dirty\n", c->ndirty);
+					// fprint(2, "flushthread found nothing to flush - %d dirty\n", c->ndirty);
 					sleep(250);
 				}
 				break;

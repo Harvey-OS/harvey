@@ -232,9 +232,9 @@
 386/bin/fortune - 775 sys sys 1135570810 67113
 386/bin/fossil - 20000000775 sys sys 1042005470 0
 386/bin/fossil/conf - 775 sys sys 1085077052 1506
-386/bin/fossil/flchk - 775 sys sys 1139680590 238422
-386/bin/fossil/flfmt - 775 sys sys 1139680591 246569
-386/bin/fossil/fossil - 775 sys sys 1140121256 363650
+386/bin/fossil/flchk - 775 sys sys 1142799698 238423
+386/bin/fossil/flfmt - 775 sys sys 1142799699 246570
+386/bin/fossil/fossil - 775 sys sys 1142799701 363651
 386/bin/fossil/last - 775 sys sys 1135570812 63280
 386/bin/freq - 775 sys sys 1136397208 61797
 386/bin/fs - 20000000775 sys sys 954380769 0
@@ -5746,7 +5746,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000664 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000664 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1141922030 257851
+sys/games/lib/fortunes - 664 sys sys 1142795692 257917
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -7704,7 +7704,7 @@ sys/man/8/fs - 664 sys sys 1055701170 15029
 sys/man/8/fsconfig - 664 sys sys 1107841165 8350
 sys/man/8/getflags - 664 sys sys 1139839200 1712
 sys/man/8/gpsfs - 664 sys sys 1123643451 4924
-sys/man/8/httpd - 664 sys sys 1121198377 6675
+sys/man/8/httpd - 664 sys sys 1142795704 6866
 sys/man/8/init - 664 sys sys 944959679 1430
 sys/man/8/ipconfig - 664 sys sys 1116383710 6170
 sys/man/8/ipserv - 664 sys sys 1095862383 4375
@@ -10151,7 +10151,7 @@ sys/src/cmd/fossil/archive.c - 664 sys sys 1087005594 10230
 sys/src/cmd/fossil/build - 664 sys sys 1042005505 449
 sys/src/cmd/fossil/buildsh - 775 sys sys 1042005505 561
 sys/src/cmd/fossil/bwatch.c - 664 sys sys 1042005505 6754
-sys/src/cmd/fossil/cache.c - 664 sys sys 1139667233 43883
+sys/src/cmd/fossil/cache.c - 664 sys sys 1142795449 43886
 sys/src/cmd/fossil/check.c - 664 sys sys 1091904423 17315
 sys/src/cmd/fossil/conf.rc - 775 sys sys 1084333190 1416
 sys/src/cmd/fossil/dat.h - 664 sys sys 1135487938 7582
