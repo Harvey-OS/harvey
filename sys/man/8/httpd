@@ -136,6 +136,14 @@ the requested server),
 but not both:
 .B http://system/who/rob
 will never match a request.
+.I Httpd
+handles replacements prefixed with 
+.B @ 
+internally,
+treating the request as if it were for the replacement
+(without the
+.BR @ )
+but not informing the client of the rewritten name.
 .PP
 Before opening any file,
 .I httpd
