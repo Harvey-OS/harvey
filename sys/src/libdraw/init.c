@@ -419,6 +419,8 @@ doflush(Display *d)
 int
 flushimage(Display *d, int visible)
 {
+	if(d == nil)
+		return 0;
 	if(visible){
 		*d->bufp++ = 'v';	/* five bytes always reserved for this */
 		if(d->_isnewdisplay){
