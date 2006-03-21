@@ -54,7 +54,7 @@ readsubfonti(Display*d, char *name, int fd, Image *ai, int dolock)
 }
 
 Subfont*
-readsubfont(Display*d, char *name, int fd, int dolock)
+readsubfont(Display *d, char *name, int fd, int dolock)
 {
 	return readsubfonti(d, name, fd, nil, dolock);
 }

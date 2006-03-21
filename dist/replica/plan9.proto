@@ -73,7 +73,16 @@ sys	- sys sys
 	doc	- sys sys
 		+	- sys sys
 	games	- sys sys
-		+	- sys sys
+		lib	- sys sys
+			4scores	a666 sys sys
+			5scores	a666 sys sys
+			fortunes	- sys sys
+			mahjongg	- sys sys
+				+	- sys sys
+			sokoban	- sys sys
+				+	- sys sys
+			sudoku	- sys sys
+				+	- sys sys
 	include	- sys sys
 		+	- sys sys
 	lib	- sys sys

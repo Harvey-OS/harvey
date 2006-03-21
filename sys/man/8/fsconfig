@@ -323,11 +323,6 @@ block by block,
 and loop.
 It knows how to read a fake worm file system.
 .PP
-.I Halt
-will cause the server to
-.I immediately
-exit and reboot.
-.PP
 .I Copydev
 will copy the device
 .I from-dev
