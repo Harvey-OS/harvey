@@ -30,7 +30,7 @@ typedef struct Vctl	Vctl;
 
 struct Lock
 {
-	ulong	key;			/* semaphore (non-zero = locked) */
+	ulong	key;
 	ulong	sr;
 	ulong	pc;
 	Proc	*p;

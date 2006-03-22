@@ -26,7 +26,7 @@ deccnt(Ref *r)
 
 	x = _xdec(&r->ref);
 	if(x < 0)
-		panic("decref pc=0x%lux", getcallerpc(&r));
+		panic("deccnt pc=0x%lux", getcallerpc(&r));
 	return x;
 }
 

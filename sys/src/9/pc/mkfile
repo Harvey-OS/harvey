@@ -77,8 +77,18 @@ $p$CONF:	$CONF.c $OBJ $LIB
 	$LD -o $target -T$KTZERO -l $OBJ $CONF.$O $LIB
 	size $target
 
-$p$CONF.gz:	$p$CONF
-	strip -o /fd/1 $p$CONF | gzip -9 > $p$CONF.gz
+# don't strip the gzipped kernels -- too frustrating when that's all you have!
+$p%.gz:	$p%
+	gzip -9 <$p$stem >$p$stem.gz
+
+
+# pcflop and pccd need all the space they can get
+9pcflop.gz: 9pcflop
+	strip -o /fd/1 9pcflop | gzip -9 >9pcflop.gz
+
+9pccd.gz: 9pccd
+	strip -o /fd/1 9pccd | gzip -9 >9pccd.gz
+
 
 install:V:	$p$CONF $p$CONF.gz
 	cp $p$CONF $p$CONF.gz /$objtype/

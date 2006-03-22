@@ -33,7 +33,7 @@ misc
 	arch164
 
 	sdata		pci sdscsi
-	sd53c8xx	pci sdscsi
+#	sd53c8xx	pci sdscsi
 
 	uarti8250
 

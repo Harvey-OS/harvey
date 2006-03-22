@@ -113,7 +113,7 @@ struct PMMU
 	Page*	mmuused;		/* used page table pages */
 	Page*	kmaptable;		/* page table used by kmap */
 	uint	lastkmap;		/* last entry used by kmap */
-	int	nkmap;		/* number of current kmaps */
+	int	nkmap;			/* number of current kmaps */
 };
 
 /*
@@ -136,7 +136,7 @@ typedef struct {
 	ulong	ss1;			/* privilege level 1 stack selector */
 	ulong	esp2;			/* privilege level 2 stack pointer */
 	ulong	ss2;			/* privilege level 2 stack selector */
-	ulong	cr3;			/* page directory base register */
+	ulong	xcr3;			/* page directory base register - not used because we don't use trap gates */
 	ulong	eip;			/* instruction pointer */
 	ulong	eflags;			/* flags register */
 	ulong	eax;			/* general registers */
