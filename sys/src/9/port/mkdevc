@@ -25,6 +25,10 @@ collect && section ~ "dev"{
 			devuart = 1;
 		else if($1 ~ "vga")
 			devvga = 1;
+		for(i = 2; i <= NF; i++){
+			if($i ~ "dma" && objtype ~ "(386|alpha|amd64)")
+				i8237dma++;
+		}
 }
 collect && section ~ "ip"{
 		ip[nip++] = $1;
@@ -84,6 +88,15 @@ END{
 			printf "\t&%sdevtab,\n", dev[i];
 		printf "\tnil,\n};\n\n";
 
+		if(objtype ~ "(386|alpha|amd64)"){
+			alloc = "nil";
+			if(i8237dma){
+				printf "extern void _i8237alloc(void);\n";
+				alloc = "_i8237alloc";
+			}
+			printf "void (*i8237alloc)(void) = %s;\n", alloc;
+			printf "int i8237dma = %d;\n\n", i8237dma;
+		}
 
 		for(i = 0; i < nlink; i++)
 			printf "extern void %slink(void);\n", link[i];

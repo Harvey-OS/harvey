@@ -62,6 +62,41 @@ DMA dma[2] = {
 	 1 },
 };
 
+extern int i8237dma;
+static void* i8237bva[2];
+static int i8237used;
+
+/*
+ *  DMA must be in the first 16MB.  This gets called early by the
+ *  initialisation routines of any devices which require DMA to ensure
+ *  the allocated bounce buffers are below the 16MB limit.
+ */
+void
+_i8237alloc(void)
+{
+	void* bva;
+
+	if(i8237dma <= 0)
+		return;
+	if(i8237dma > 2)
+		i8237dma = 2;
+
+	bva = xspanalloc(64*1024*i8237dma, BY2PG, 64*1024);
+	if(bva == nil || PADDR(bva)+64*1024*i8237dma > 16*MB){
+		/*
+		 * This will panic with the current
+		 * implementation of xspanalloc().
+		if(bva != nil)
+			xfree(bva);
+		 */
+		return;
+	}
+
+	i8237bva[0] = bva;
+	if(i8237dma == 2)
+		i8237bva[1] = ((uchar*)i8237bva[0])+64*1024;
+}
+
 /*
  *  DMA must be in the first 16MB.  This gets called early by the
  *  initialisation routines of any devices which require DMA to ensure
@@ -94,19 +129,12 @@ dmainit(int chan, int maxtransfer)
 		return 0;
 	}
 
-	xp->bva = xspanalloc(maxtransfer, BY2PG, 64*1024);
-	if(xp->bva == nil)
-		return 1;
-	xp->bpa = PADDR(xp->bva);
-	if(xp->bpa >= 16*MB){
-		/*
-		 * This will panic with the current
-		 * implementation of xspanalloc().
-		xfree(xp->bva);
-		 */
-		xp->bva = nil;
+	if(i8237used >= i8237dma || i8237bva[i8237used] == nil){
+		print("no i8237 DMA bounce buffer < 16MB\n");
 		return 1;
 	}
+	xp->bva = i8237bva[i8237used++];
+	xp->bpa = PADDR(xp->bva);
 	xp->blen = maxtransfer;
 	xp->len = 0;
 	xp->isread = 0;

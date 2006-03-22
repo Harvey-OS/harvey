@@ -180,6 +180,11 @@ floppyreset(void)
 			maxtsize = t->tsize;
 	}
 
+	/*
+	 * Should check if this fails. Can do so
+	 * if there is no space <= 16MB for the DMA
+	 * bounce buffer.
+	 */
 	dmainit(DMAchan, maxtsize);
 
 	/*
