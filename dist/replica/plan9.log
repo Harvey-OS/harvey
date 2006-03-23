@@ -28119,3 +28119,4 @@
 1142962313 0 c sys/src/9/pc/mkfile - 664 sys sys 1142960857 3804
 1142967714 0 c sys/src/9/alphapc/dma.c - 664 sys sys 1142966373 6526
 1142967714 1 c sys/src/9/pc/dma.c - 664 sys sys 1142966373 5332
+1143081031 0 c sys/man/2/rune - 664 sys sys 1143079849 3086
