@@ -32,10 +32,6 @@ typedef void IntrHandler(Ureg*, void*);
  */
 #define AOUT_MAGIC	(E_MAGIC)
 
-enum {
-	Lockcycles = 0,	/* Don't measure lock latencies */
-};
-
 struct Lock
 {
 	ulong	key;
@@ -44,7 +40,6 @@ struct Lock
 	Proc	*p;
 	Mach	*m;
 	ushort	isilock;
-	uvlong	lockcycles;	/* Measure lock latencies */
 };
 
 struct Label

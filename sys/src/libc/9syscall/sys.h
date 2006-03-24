@@ -35,6 +35,8 @@
 #define	RENDEZVOUS	34
 #define	UNMOUNT		35
 #define	_WAIT		36
+#define	SEMACQUIRE	37
+#define	SEMRELEASE	38
 #define	SEEK		39
 #define	FVERSION	40
 #define	ERRSTR		41
@@ -44,5 +46,5 @@
 #define	FWSTAT		45
 #define	MOUNT		46
 #define	AWAIT		47
-#define PREAD		50
-#define PWRITE		51
+#define	PREAD		50
+#define	PWRITE		51

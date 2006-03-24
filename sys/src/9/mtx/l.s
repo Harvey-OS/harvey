@@ -301,6 +301,22 @@ xdecloop:
 	BNE		xdecloop
 	RETURN
 
+TEXT cmpswap(SB),$0	/* int cmpswap(long*, long, long) */
+	MOVW	R3, R4	/* addr */
+	MOVW	old+4(FP), R5
+	MOVW	new+8(FP), R6
+	DCBF	(R4)		/* fix for 603x bug? */
+	LWAR	(R4), R3
+	CMP	R3, R5
+	BNE fail
+	STWCCC	R6, (R4)
+	BNE fail
+	MOVW $1, R3
+	RETURN
+fail:
+	MOVW $0, R3
+	RETURN
+
 TEXT	getpvr(SB), $0
 	MOVW	SPR(PVR), R3
 	RETURN
