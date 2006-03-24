@@ -497,6 +497,22 @@ nop(void)
 }
 
 /*
+ * 386 has no compare-and-swap instruction.
+ * Run it with interrupts turned off instead.
+ */
+static int
+cmpswap386(long *addr, long old, long new)
+{
+	int r, s;
+	
+	s = splhi();
+	if(r = (*addr == old))
+		*addr = new;
+	splx(s);
+	return r;
+}
+
+/*
  * On a uniprocessor, you'd think that coherence could be nop,
  * but it can't.  We still need a barrier when using coherence() in
  * device drivers.
@@ -505,6 +521,8 @@ nop(void)
  * Aux/vmware does this via the #P/archctl file.
  */
 void (*coherence)(void) = nop;
+
+int (*cmpswap)(long*, long, long) = cmpswap386;
 
 PCArch* arch;
 extern PCArch* knownarch[];
@@ -787,6 +805,13 @@ archctlread(Chan*, void *a, long nn, vlong offset)
 		n += snprint(buf+n, sizeof buf-n, "nop\n");
 	else
 		n += snprint(buf+n, sizeof buf-n, "0x%p\n", coherence);
+	n += snprint(buf+n, sizeof buf-n, "cmpswap ");
+	if(cmpswap == cmpswap386)
+		n += snprint(buf+n, sizeof buf-n, "cmpswap386\n");
+	else if(cmpswap == cmpswap486)
+		n += snprint(buf+n, sizeof buf-n, "cmpswap486\n");
+	else
+		n += snprint(buf+n, sizeof buf-n, "0x%p\n", cmpswap);
 	n += snprint(buf+n, sizeof buf-n, "i8253set %s\n", doi8253set ? "on" : "off");
 	buf[n] = 0;
 	return readstr(offset, a, nn, buf);
@@ -896,6 +921,9 @@ archinit(void)
 	 */
 	if(X86FAMILY(m->cpuidax) == 3)
 		conf.copymode = 1;
+
+	if(X86FAMILY(m->cpuidax) >= 4)
+		cmpswap = cmpswap486;
 
 	if(X86FAMILY(m->cpuidax) >= 5)
 		coherence = mb586;

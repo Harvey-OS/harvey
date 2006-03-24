@@ -5,9 +5,10 @@ int	cistrncmp(char*, char*, int);
 void	clockinit(void);
 void	clockintr(Ureg*);
 void	clockintrsched(void);
+int	cmpswap(long*, long, long);
 #define coherence()	eieio()
 void	cpuidprint(void);
-#define cycles(x)
+#define cycles(x)	do{}while(0)
 void	dcflush(void*, ulong);
 void	delay(int);
 void	dumpregs(Ureg*);

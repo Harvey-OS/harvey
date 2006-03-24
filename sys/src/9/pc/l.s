@@ -839,6 +839,19 @@ TEXT xchgw(SB), $0
 	XCHGW	AX, (BX)
 	RET
 
+TEXT cmpswap486(SB), $0
+	MOVL	addr+0(FP), BX
+	MOVL	old+4(FP), AX
+	MOVL	new+8(FP), CX
+	LOCK
+	BYTE $0x0F; BYTE $0xB1; BYTE $0x0B	/* CMPXCHGL CX, (BX) */
+	JNZ didnt
+	MOVL	$1, AX
+	RET
+didnt:
+	XORL	AX,AX
+	RET
+
 TEXT mul64fract(SB), $0
 /*
  * Multiply two 64-bit number s and keep the middle 64 bits from the 128-bit result

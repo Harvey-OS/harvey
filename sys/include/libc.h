@@ -659,6 +659,8 @@ extern	void*	segbrk(void*, void*);
 extern	int	segdetach(void*);
 extern	int	segflush(void*, ulong);
 extern	int	segfree(void*, ulong);
+extern	int	semacquire(long*, int);
+extern	long	semrelease(long*, long);
 extern	int	sleep(long);
 extern	int	stat(char*, uchar*, int);
 extern	Waitmsg*	wait(void);

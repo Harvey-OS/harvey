@@ -106,14 +106,9 @@ command(Window *w, char *s)
 {
 	while(*s==' ' || *s=='\t' || *s=='\n')
 		s++;
-	if(strcmp(s, "Delete")==0){
+	if(strcmp(s, "Delete")==0 || strcmp(s, "Del")==0){
 		windel(w, 1);
 		threadexitsall(nil);
-		return 1;
-	}
-	if(strcmp(s, "Del")==0){
-		if(windel(w, 0))
-			threadexitsall(nil);
 		return 1;
 	}
 	if(EQUAL(s, "scroll")){

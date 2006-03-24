@@ -193,6 +193,20 @@ inc1:
 	BEQ	R0, inc1		/* write failed, retry */
 	RET
 
+TEXT	cmpswap(SB), $-8
+	MOVQ	R0, R1	/* p */
+	MOVL	old+4(FP), R2
+	MOVL	new+8(FP), R3
+	MOVLL	(R1), R0
+	CMPEQ	R0, R2, R4
+	BEQ	R4, fail	/* if R0 != [sic] R2, goto fail */
+	MOVQ	R3, R0
+	MOVLC	R0, (R1)
+	RET
+fail:
+	MOVL	$0, R0
+	RET
+	
 TEXT	fpenab(SB), $-8
 	MOVQ	R0, R16
 	CALL_PAL $PALwrfen

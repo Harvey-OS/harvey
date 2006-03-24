@@ -5,6 +5,8 @@ Dirtab*	addarchfile(char*, int, long(*)(Chan*,void*,long,vlong), long(*)(Chan*,v
 void	archinit(void);
 void	bootargs(void*);
 void	clockintr(Ureg*, void*);
+int	(*cmpswap)(long*, long, long);
+int	cmpswap486(long*, long, long);
 void	(*coherence)(void);
 void	cpuid(char*, int*, int*);
 int	cpuidentify(void);

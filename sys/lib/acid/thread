@@ -227,7 +227,7 @@ defn stacksizes(){
 				sp = *(T.sched);
 			}
 			sp = *(T.sched);
-			print(top-sp\D, "\n");
+			print(top-sp\D, " / ", T.stksize\D, "\n");
 			T = T.nextt;
 		}
 		P = P.next;

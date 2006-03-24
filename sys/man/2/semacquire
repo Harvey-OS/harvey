@@ -1,0 +1,106 @@
+.TH SEMACQUIRE 2
+.SH NAME
+semacquire, semrelease \- user level semaphores
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
+.B
+int semacquire(long *addr, int block);
+.PP
+.B
+long semrelease(long *addr, long count);
+.SH DESCRIPTION
+.I Semacquire
+and 
+.I semrelease
+facilitate scheduling between processes sharing memory.
+Processes arrange to share memory by using
+.I rfork
+with the
+.B RFMEM
+flag
+(see
+.IR fork (2)), 
+.IR segattach (2),
+or
+.IR thread (2).
+.PP
+The semaphore's value is the integer pointed at by
+.IR addr .
+.I Semacquire
+atomically waits until the semaphore has a positive value
+and then decrements that value.
+It returns 1 if the semaphore was acquired and \-1 on error
+(e.g., if it was interrupted).
+If
+.I block
+is zero
+and the semaphore is not immediately available,
+.I semacquire
+returns 0 instead of waiting.
+.I Semrelease
+adds 
+.I count
+to the semaphore's value
+and returns the new value.
+.PP
+.I Semacquire
+and
+.I semrelease
+can be thought of as efficient, correct replacements for:
+.IP
+.EX
+int
+semacquire(long *addr, int block)
+{
+	while(*addr == 0){
+		if(!block)
+			return 0;
+		if(interrupted)
+			return -1;
+	}
+	--*addr;
+	return 1;
+}
+
+int
+semrelease(long *addr, int count)
+{
+	return *addr += count;
+}
+.EE
+.PP
+Like
+.IR rendezvous (2),
+.I semacquire
+and
+.I semrelease
+are not typically used directly.
+Instead, they are intended to be used to coordinate
+scheduling in higher-level abstractions such as
+locks, rendezvous points, and channels
+(see
+.IR lock (2)
+and
+.IR thread (2)).
+Also like
+.I rendezvous ,
+.I semacquire
+and
+.I semrelease
+cannot be used to coordinate between threads
+in a single process.
+Use locks, rendezvous points, or channels instead.
+.SH SOURCE
+.B /sys/src/9/port/sysproc.c
+.SH SEE ALSO
+.IR fork (2),
+.IR lock (2),
+.IR rendezvous (2),
+.IR segattach (2),
+.IR thread (2)
+.SH DIAGNOSTICS
+These functions set
+.IR errstr .
