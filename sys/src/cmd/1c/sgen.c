@@ -38,6 +38,7 @@ gen(Node *n)
 	Prog *sp, *spc, *spb;
 	Case *cn;
 	long sbc, scc;
+	int snbreak;
 	int g, o;
 
 loop:
@@ -178,12 +179,15 @@ loop:
 
 		sbc = breakpc;
 		breakpc = pc;
+		snbreak = nbreak;
+		nbreak = 0;
 		gbranch(OGOTO);
 		spb = p;
 
 		gen(n->right);
 		gbranch(OGOTO);
 		patch(p, breakpc);
+		nbreak++;
 
 		patch(sp, pc);
 		doswit(g, l);
@@ -191,6 +195,7 @@ loop:
 		patch(spb, pc);
 		cases = cn;
 		breakpc = sbc;
+		nbreak = snbreak;
 		setsp();
 		break;
 
@@ -207,6 +212,8 @@ loop:
 
 		sbc = breakpc;
 		breakpc = pc;
+		snbreak = nbreak;
+		nbreak = 0;
 		gbranch(OGOTO);
 		spb = p;
 
@@ -215,6 +222,8 @@ loop:
 			patch(sp, pc);
 		bcomplex(l);	/* test */
 		patch(p, breakpc);
+		if(l->op != OCONST || vconst(l) == 0)
+			nbreak++;
 
 		if(n->op == ODWHILE)
 			patch(sp, pc);
@@ -225,6 +234,9 @@ loop:
 		patch(spb, pc);
 		continpc = scc;
 		breakpc = sbc;
+		if(nbreak == 0)
+			retok = 1;
+		nbreak = snbreak;
 		break;
 
 	case OFOR:
@@ -240,6 +252,8 @@ loop:
 
 		sbc = breakpc;
 		breakpc = pc;
+		snbreak = nbreak;
+		nbreak = 0;
 		gbranch(OGOTO);
 		spb = p;
 
@@ -249,6 +263,8 @@ loop:
 		if(l->left != Z) {	/* test */
 			bcomplex(l->left);
 			patch(p, breakpc);
+			if(l->left->op != OCONST || vconst(l->left) == 0)
+				nbreak++;
 		}
 		gen(n->right);		/* body */
 		gbranch(OGOTO);
@@ -257,6 +273,9 @@ loop:
 		patch(spb, pc);
 		continpc = scc;
 		breakpc = sbc;
+		if(nbreak == 0)
+			retok = 1;
+		nbreak = snbreak;
 		break;
 
 	case OCONTINUE:
@@ -275,6 +294,7 @@ loop:
 		}
 		gbranch(OGOTO);
 		patch(p, breakpc);
+		nbreak++;
 		break;
 
 	case OIF:

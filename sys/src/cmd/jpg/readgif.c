@@ -451,7 +451,7 @@ decode(Header *h, Rawimage *i, Entry *tbl)
 				fprint(2, "ReadGIF: GIF invalid, code out of range, %x > %x\n", code, nentry);
 				code = nentry;
 			}
-			for(c=code; c>=0; c=tbl[c].prefix)
+			for(c=code; stacki>0 && c>=0; c=tbl[c].prefix)
 				stack[stacki--] = tbl[c].exten;
 
 			nb = (sizeof stack)-(stacki+1);

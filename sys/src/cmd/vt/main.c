@@ -519,7 +519,6 @@ waitchar(void)
 		} while(newmouse == 1);
 		cursoff();	/* turn cursor back off */
 	}
-	return 1;		/* to shut up compiler */
 }
 
 void

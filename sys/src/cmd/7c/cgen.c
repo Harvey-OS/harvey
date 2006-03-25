@@ -497,6 +497,8 @@ cgen(Node *n, Node *nn)
 		} else
 			gopcode(OADD, nodconst(v), Z, &nod);
 		gopcode(OAS, &nod, Z, &nod2);
+		if(nn && l->op == ONAME)	/* in x=++i, emit USED(i) */
+			gins(ANOP, l, Z);
 
 		regfree(&nod);
 		if(l->addable < INDEXED)
