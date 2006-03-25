@@ -26,3 +26,7 @@ $LIB:
 	cd ../cc
 	mk install
 	mk clean
+
+%.$O: ../cc/%.c
+	$CC $CFLAGS ../cc/$stem.c
+

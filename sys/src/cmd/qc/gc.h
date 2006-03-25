@@ -60,6 +60,7 @@ struct	Case
 	long	val;
 	long	label;
 	char	def;
+	char isv;
 };
 #define	C	((Case*)0)
 
@@ -133,6 +134,7 @@ struct	Rgn
 };
 
 EXTERN	long	breakpc;
+EXTERN	long	nbreak;
 EXTERN	Case*	cases;
 EXTERN	Node	constnode;
 EXTERN	Node	fconstnode;
@@ -264,7 +266,8 @@ void	gpseudo(int, Sym*, Node*);
  */
 int	swcmp(void*, void*);
 void	doswit(Node*);
-void	swit1(C1*, int, long, Node*, Node*);
+void	swit1(C1*, int, long, Node*);
+void	swit2(C1*, int, long, Node*, Node*);
 void	cas(void);
 void	bitload(Node*, Node*, Node*, Node*, Node*);
 void	bitstore(Node*, Node*, Node*, Node*, Node*);

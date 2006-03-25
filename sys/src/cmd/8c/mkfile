@@ -2,19 +2,21 @@
 
 TARG=8c
 OFILES=\
+	bound.$O\
 	cgen.$O\
+	cgen64.$O\
+	div.$O\
 	enam.$O\
 	list.$O\
+	machcap.$O\
+	mul.$O\
+	peep.$O\
+	pgen.$O\
+	pswt.$O\
+	reg.$O\
 	sgen.$O\
 	swt.$O\
 	txt.$O\
-	reg.$O\
-	peep.$O\
-	machcap.$O\
-	cgen64.$O\
-	bound.$O\
-	div.$O\
-	mul.$O\
 
 HFILES=\
 	gc.h\
@@ -32,3 +34,8 @@ $LIB:
 	mk clean
 
 bound.$O:	bound.h
+
+%.$O: ../cc/%.c
+	$CC $CFLAGS ../cc/$stem.c
+
+

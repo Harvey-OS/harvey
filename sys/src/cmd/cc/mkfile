@@ -16,7 +16,7 @@ OFILES=\
 	com64.$O\
 	compat.$O\
 	dpchk.$O\
-	machcap.$O\
+	omachcap.$O\
 
 HFILES=cc.h\
 	y.tab.h\

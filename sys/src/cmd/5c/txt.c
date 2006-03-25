@@ -170,7 +170,7 @@ garg1(Node *n, Node *tn1, Node *tn2, int f, Node **fnxp)
 			nod.left = *fnxp;
 			nod.right = n;
 			nod.type = n->type;
-			cgen(&nod, Z, 0);
+			cgen(&nod, Z);
 			(*fnxp)++;
 		}
 		return;
@@ -187,18 +187,18 @@ garg1(Node *n, Node *tn1, Node *tn2, int f, Node **fnxp)
 	if(REGARG >= 0 && curarg == 0 && typechlp[n->type->etype]) {
 		regaalloc1(tn1, n);
 		if(n->complex >= FNX) {
-			cgen(*fnxp, tn1, 0);
+			cgen(*fnxp, tn1);
 			(*fnxp)++;
 		} else
-			cgen(n, tn1, 0);
+			cgen(n, tn1);
 		return;
 	}
 	regalloc(tn1, n, Z);
 	if(n->complex >= FNX) {
-		cgen(*fnxp, tn1, 0);
+		cgen(*fnxp, tn1);
 		(*fnxp)++;
 	} else
-		cgen(n, tn1, 0);
+		cgen(n, tn1);
 	regaalloc(tn2, n);
 	gopcode(OAS, tn1, Z, tn2);
 	regfree(tn1);
