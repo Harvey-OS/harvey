@@ -1011,7 +1011,7 @@ semacquire(Segment *s, long *addr, int block)
 		return 1;
 	if(!block)
 		return 0;
-	
+
 	acquired = 0;
 	semqueue(s, addr, &phore);
 	for(;;){

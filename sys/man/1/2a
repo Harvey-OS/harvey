@@ -1,6 +1,6 @@
 .TH 2A 1 
 .SH NAME
-1a, 2a, 5a, 7a, 8a, ka, qa, va \- assemblers
+0a, 1a, 2a, 5a, 7a, 8a, ka, qa, va \- assemblers
 .SH SYNOPSIS
 .B 2a
 [

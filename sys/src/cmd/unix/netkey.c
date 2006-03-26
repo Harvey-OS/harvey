@@ -537,7 +537,6 @@ passtokey(char *key, char *p)
 		}
 		encrypt9(key, t, 8);
 	}
-	return 1;	/* not reached */
 }
 
 int

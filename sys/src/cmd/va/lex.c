@@ -36,6 +36,10 @@ main(int argc, char *argv[])
 		p = ARGF();
 		setinclude(p);
 		break;
+	case  'L':			/* for little-endian mips */
+		thechar = '0';
+		thestring = "spim";
+		break;
 	} ARGEND
 	if(*argv == 0) {
 		print("usage: %ca [-options] file.s\n", thechar);
