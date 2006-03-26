@@ -79,7 +79,6 @@ readpublickey(Biobuf *b, char **sp)
 		fprint(2, "warning: skipping line '%s'; cannot parse\n", s);
 		free(s);
 	}
-	return nil;	/* ken */
 }
 
 static int

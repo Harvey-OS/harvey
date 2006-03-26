@@ -636,7 +636,8 @@ align(long i, Type *t, int op)
 			w = SZ_LONG;
 			break;
 		}
-		o += SZ_LONG - w;	/* big endian adjustment */
+		if (!little)
+			o += SZ_LONG - w;	/* big endian adjustment */
 		w = 1;
 		break;
 

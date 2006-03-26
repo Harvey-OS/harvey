@@ -13,7 +13,27 @@ long	BADOFFSET	=	-1;
 		OFFSET++;\
 */
 
-#define	LPUT(c)\
+#define LPUT(l) { \
+		if (little) { \
+			LLEPUT(l); \
+		} else { \
+			LBEPUT(l); \
+		} \
+	}
+
+#define	LLEPUT(c)\
+	{\
+		cbp[0] = (c);\
+		cbp[1] = (c)>>8;\
+		cbp[2] = (c)>>16;\
+		cbp[3] = (c)>>24;\
+		cbp += 4;\
+		cbc -= 4;\
+		if(cbc <= 0)\
+			cflush();\
+	}
+
+#define	LBEPUT(c)\
 	{\
 		cbp[0] = (c)>>24;\
 		cbp[1] = (c)>>16;\
@@ -25,6 +45,7 @@ long	BADOFFSET	=	-1;
 			cflush();\
 	}
 
+
 #define	CPUT(c)\
 	{\
 		cbp[0] = (c);\
@@ -33,6 +54,18 @@ long	BADOFFSET	=	-1;
 		if(cbc <= 0)\
 			cflush();\
 	}
+
+void
+objput(long l)	/* emit long in byte order appropriate to object machine */
+{
+	LPUT(l);
+}
+
+void
+lput(long l)		/* emit long in big-endian byte order */
+{
+	LBEPUT(l);
+}
 
 long
 entryvalue(void)
@@ -111,6 +144,7 @@ asmb(void)
 	case 2:
 	case 3:
 	case 5:
+	case 6:
 		OFFSET = HEADR+textsize;
 		seek(cout, OFFSET, 0);
 		break;
@@ -138,6 +172,7 @@ asmb(void)
 		case 2:
 		case 1:
 		case 5:
+		case 6:
 			OFFSET = HEADR+textsize+datsize;
 			seek(cout, OFFSET, 0);
 			break;
@@ -203,7 +238,11 @@ asmb(void)
 		lput(0L);			/* complete mystery */
 		break;
 	case 2:
-		lput(0x407);			/* magic */
+		if (little)
+			t = 24;
+		else
+			t = 16;
+		lput(((((4*t)+0)*t)+7));	/* magic */
 		lput(textsize);			/* sizes */
 		lput(datsize);
 		lput(bsssize);
@@ -333,14 +372,15 @@ asmb(void)
 		lput((3L<<16)|0L);		/* # Phdrs & Shdr size */
 		lput((0L<<16)|0L);		/* # Shdrs & shdr string size */
 
-		lput(1L);			/* text - type = PT_LOAD */
-		lput(0L);			/* file offset */
-		lput(INITTEXT-HEADR);		/* vaddr */
-		lput(INITTEXT-HEADR);		/* paddr */
-		lput(HEADR+textsize);		/* file size */
-		lput(HEADR+textsize);		/* memory size */
-		lput(0x05L);			/* protections = RX */
-		lput(0x10000L);			/* alignment code?? */
+		/* TODO: only these few words are in native byte order? */
+		objput(1L);			/* text - type = PT_LOAD */
+		objput(0L);			/* file offset */
+		objput(INITTEXT-HEADR);		/* vaddr */
+		objput(INITTEXT-HEADR);		/* paddr */
+		objput(HEADR+textsize);		/* file size */
+		objput(HEADR+textsize);		/* memory size */
+		objput(0x05L);			/* protections = RX */
+		objput(0x10000L);		/* alignment code?? */
 
 		lput(1L);			/* data - type = PT_LOAD */
 		lput(HEADR+textsize);		/* file offset */
@@ -359,6 +399,9 @@ asmb(void)
 		lput(lcsize);			/* line number size */
 		lput(0x04L);			/* protections = R */
 		lput(0x04L);			/* alignment code?? */
+		break;
+	case 6:
+		break;
 	}
 	cflush();
 }
@@ -372,13 +415,6 @@ strnput(char *s, int n)
 	}
 	for(; n > 0; n--)
 		CPUT(0);
-}
-
-void
-lput(long l)
-{
-
-	LPUT(l);
 }
 
 void
@@ -477,7 +513,7 @@ putsymb(char *s, int t, long v, int ver)
 
 	if(t == 'f')
 		s++;
-	LPUT(v);
+	LBEPUT(v);
 	if(ver)
 		t += 'a' - 'A';
 	CPUT(t+0x80);			/* 0x80 is variable length */

@@ -18,7 +18,10 @@ char	*thestring 	= "mips";
  *	-H3 -T0x80020000 -R8		is bootp() format for 4k
  *	-H4 -T0x400000 -R4		is sgi unix coff executable
  *	-H5 -T0x4000A0 -R4		is sgi unix elf executable
+ *	-H6						is headerless
  */
+
+int little;
 
 void
 main(int argc, char *argv[])
@@ -51,6 +54,11 @@ main(int argc, char *argv[])
 		a = ARGF();
 		if(a)
 			INITENTRY = a;
+		break;
+	case  'L':			/* for little-endian mips */
+		thechar = '0';
+		thestring = "spim";
+		little = 1;
 		break;
 	case 'T':
 		a = ARGF();
@@ -150,6 +158,15 @@ main(int argc, char *argv[])
 		if(INITRND == -1)
 			INITRND = 0;
 		break;
+	case 6:	/* headerless */
+		HEADR = 0;
+		if(INITTEXT == -1)
+			INITTEXT = 0x80000000L+HEADR;
+		if(INITDAT == -1)
+			INITDAT = 0;
+		if(INITRND == -1)
+			INITRND = 4096;
+		break;
 	}
 	if(INITDAT != 0 && INITRND != 0)
 		print("warning: -D0x%lux is ignored because of -R0x%lux\n",
@@ -170,8 +187,12 @@ main(int argc, char *argv[])
 	datap = P;
 	pc = 0;
 	dtype = 4;
-	if(outfile == 0)
-		outfile = "v.out";
+	if(outfile == 0) {
+		static char name[20];
+
+		snprint(name, sizeof name, "%c.out", thechar);
+		outfile = name;
+	}
 	cout = create(outfile, 1, 0775);
 	if(cout < 0) {
 		diag("%s: cannot create", outfile);
@@ -677,7 +698,7 @@ loop:
 	o = bloc[0];		/* as */
 	if(o <= AXXX || o >= ALAST) {
 		diag("%s: line %ld: opcode out of range %d", pn, pc-ipc, o);
-		print("	probably not a .v file\n");
+		print("	probably not a .%c file\n", thechar);
 		errorexit();
 	}
 	if(o == ANAME || o == ASIGNAME) {
@@ -1239,17 +1260,27 @@ nuxiinit(void)
 {
 	int i, c;
 
-	for(i=0; i<4; i++) {
-		c = find1(0x01020304L, i+1);
-		if(i >= 2)
-			inuxi2[i-2] = c;
-		if(i >= 3)
-			inuxi1[i-3] = c;
-		inuxi4[i] = c;
-
-		fnuxi8[i] = c+4;
-		fnuxi8[i+4] = c;
-	}
+	for(i=0; i<4; i++)
+		if (!little) {			/* normal big-endian case */
+			c = find1(0x01020304L, i+1);
+			if(i >= 2)
+				inuxi2[i-2] = c;
+			if(i >= 3)
+				inuxi1[i-3] = c;
+			inuxi4[i] = c;
+			fnuxi8[i] = c+4;
+			fnuxi8[i+4] = c;
+		} else {			/* oddball little-endian case */
+			c = find1(0x04030201L, i+1);
+			if(i < 2)
+				inuxi2[i] = c;
+			if(i < 1)
+				inuxi1[i] = c;
+			inuxi4[i] = c;
+			fnuxi4[i] = c;
+			fnuxi8[i] = c;
+			fnuxi8[i+4] = c+4;
+		}
 	if(debug['v']) {
 		Bprint(&bso, "inuxi = ");
 		for(i=0; i<1; i++)
