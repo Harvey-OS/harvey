@@ -54,7 +54,7 @@ main(int argc, char **argv)
 		clean = 1;
 		break;
 	case 'f':
-		from = ARGF();
+		from = EARGF(usage());
 		break;	
 	case 'l':
 		listem = 1;
@@ -63,7 +63,7 @@ main(int argc, char **argv)
 		squawk = 0;
 		break;
 	case 't':
-		to = ARGF();
+		to = EARGF(usage());
 		break;
 	case 'v':
 		verbose = 1;

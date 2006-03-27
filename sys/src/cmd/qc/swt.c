@@ -148,33 +148,6 @@ outstring(char *s, long n)
 	return r;
 }
 
-long
-outlstring(ushort *s, long n)
-{
-	char buf[2];
-	int c;
-	long r;
-
-	if(suppress)
-		return nstring;
-	while(nstring & 1)
-		outstring("", 1);
-	r = nstring;
-	while(n > 0) {
-		c = *s++;
-		if(align(0, types[TCHAR], Aarg1)) {
-			buf[0] = c>>8;
-			buf[1] = c;
-		} else {
-			buf[0] = c;
-			buf[1] = c>>8;
-		}
-		outstring(buf, 2);
-		n -= sizeof(ushort);
-	}
-	return r;
-}
-
 int
 mulcon(Node *n, Node *nn)
 {
@@ -262,16 +235,6 @@ loop:
 	}
 	p += 2;
 	goto loop;
-}
-
-void
-nullwarn(Node *l, Node *r)
-{
-	warn(Z, "result of operation not used");
-	if(l != Z)
-		cgen(l, Z);
-	if(r != Z)
-		cgen(r, Z);
 }
 
 void
@@ -562,35 +525,6 @@ zaddr(char *bp, Adr *a, int s)
 		break;
 	}
 	return bp;
-}
-
-void
-ieeedtod(Ieee *ieee, double native)
-{
-	double fr, ho, f;
-	int exp;
-
-	if(native < 0) {
-		ieeedtod(ieee, -native);
-		ieee->h |= 0x80000000L;
-		return;
-	}
-	if(native == 0) {
-		ieee->l = 0;
-		ieee->h = 0;
-		return;
-	}
-	fr = frexp(native, &exp);
-	f = 2097152L;		/* shouldnt use fp constants here */
-	fr = modf(fr*f, &ho);
-	ieee->h = ho;
-	ieee->h &= 0xfffffL;
-	ieee->h |= (exp+1022L) << 20;
-	f = 65536L;
-	fr = modf(fr*f, &ho);
-	ieee->l = ho;
-	ieee->l <<= 16;
-	ieee->l |= (long)(fr*f);
 }
 
 long

@@ -15,7 +15,7 @@
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1135570766 116009
-386/bin/8c - 775 sys sys 1143309591 363861
+386/bin/8c - 775 sys sys 1143396110 363837
 386/bin/8l - 775 sys sys 1140553397 115719
 386/bin/9660srv - 775 sys sys 1135570766 104023
 386/bin/aan - 775 sys sys 1138500151 131061
@@ -273,7 +273,7 @@
 386/bin/history - 775 sys sys 1136397209 75433
 386/bin/hoc - 775 sys sys 1135570817 99860
 386/bin/html2ms - 775 sys sys 1135570817 66078
-386/bin/htmlfmt - 775 sys sys 1143230649 163098
+386/bin/htmlfmt - 775 sys sys 1143396110 163047
 386/bin/htmlroff - 775 sys sys 1138464442 148089
 386/bin/ico - 775 sys sys 1142871034 161788
 386/bin/iconv - 775 sys sys 1135570818 113279
@@ -553,7 +553,7 @@
 386/lib/libflate.a - 664 sys sys 1143309597 76818
 386/lib/libframe.a - 664 sys sys 1143137032 66118
 386/lib/libgeometry.a - 664 sys sys 1143137033 50470
-386/lib/libhtml.a - 664 sys sys 1143230650 229608
+386/lib/libhtml.a - 664 sys sys 1143396111 229478
 386/lib/libhttpd.a - 664 sys sys 1143309598 99554
 386/lib/libip.a - 664 sys sys 1143309598 35590
 386/lib/libl.a - 664 sys sys 1143137034 5384
@@ -5417,7 +5417,7 @@ rc/bin/ape/true - 775 sys sys 945617286 17
 rc/bin/ape/umask - 775 sys sys 945617286 34
 rc/bin/ape/yacc - 775 sys sys 1139744263 280
 rc/bin/b: - 775 sys sys 1015089510 204
-rc/bin/broke - 775 sys sys 945617206 132
+rc/bin/broke - 775 sys sys 1143389260 142
 rc/bin/bundle - 775 sys sys 945617206 173
 rc/bin/c: - 775 sys sys 1015089511 86
 rc/bin/cpurc - 775 sys sys 1123380857 1306
@@ -5442,7 +5442,7 @@ rc/bin/ipconf/theworld - 775 sys sys 1058790940 1212
 rc/bin/ipso - 775 sys sys 1079377794 2838
 rc/bin/iwhois - 775 sys sys 1100534870 1372
 rc/bin/juke - 775 sys sys 1105565140 1131
-rc/bin/kill - 775 sys sys 1018387014 132
+rc/bin/kill - 775 sys sys 1143389260 142
 rc/bin/kmem - 775 sys sys 1141940177 468
 rc/bin/label - 775 sys sys 945617207 34
 rc/bin/lc - 775 sys sys 945617207 24
@@ -5533,7 +5533,7 @@ rc/bin/service/tcp993 - 775 sys sys 1018720071 151
 rc/bin/service/telcodata - 775 sys sys 945617224 95
 rc/bin/service/telcofax - 775 sys sys 945617224 93
 rc/bin/sig - 775 sys sys 1082221092 530
-rc/bin/slay - 775 sys sys 1018387014 123
+rc/bin/slay - 775 sys sys 1143389260 133
 rc/bin/spell - 775 sys sys 964540791 312
 rc/bin/src - 775 sys sys 1084333365 916
 rc/bin/srvssh - 775 sys sys 1112039374 2296
@@ -9155,7 +9155,7 @@ sys/src/cmd/5c/mul.c - 664 sys sys 969500849 9271
 sys/src/cmd/5c/peep.c - 664 sys sys 1089299175 24469
 sys/src/cmd/5c/reg.c - 664 sys sys 1089299174 19492
 sys/src/cmd/5c/sgen.c - 664 sys sys 1143241856 3066
-sys/src/cmd/5c/swt.c - 664 sys sys 1143241856 12009
+sys/src/cmd/5c/swt.c - 664 sys sys 1143384790 11028
 sys/src/cmd/5c/txt.c - 664 sys sys 1143241857 19013
 sys/src/cmd/5i - 20000000775 sys sys 984756705 0
 sys/src/cmd/5i/5i.c - 664 sys sys 1124229121 4415
@@ -9201,7 +9201,7 @@ sys/src/cmd/7c/mul.c - 664 sys sys 944961627 9189
 sys/src/cmd/7c/peep.c - 664 sys sys 950104622 11473
 sys/src/cmd/7c/reg.c - 664 sys sys 1089299275 19737
 sys/src/cmd/7c/sgen.c - 664 sys sys 1143241857 3294
-sys/src/cmd/7c/swt.c - 664 sys sys 1143241857 10652
+sys/src/cmd/7c/swt.c - 664 sys sys 1143384791 9703
 sys/src/cmd/7c/txt.c - 664 sys sys 1143241858 20240
 sys/src/cmd/7l - 20000000775 sys sys 954267784 0
 sys/src/cmd/7l/asm.c - 774 sys sys 1045503943 27093
@@ -9238,7 +9238,7 @@ sys/src/cmd/8c/mul.c - 664 sys sys 1089382812 5535
 sys/src/cmd/8c/peep.c - 664 sys sys 1143241859 11185
 sys/src/cmd/8c/reg.c - 664 sys sys 1113585456 20572
 sys/src/cmd/8c/sgen.c - 664 sys sys 1143241859 6517
-sys/src/cmd/8c/swt.c - 664 sys sys 1143241859 10003
+sys/src/cmd/8c/swt.c - 664 sys sys 1143384791 9022
 sys/src/cmd/8c/txt.c - 664 sys sys 1143241859 23848
 sys/src/cmd/8l - 20000000775 sys sys 1017165863 0
 sys/src/cmd/8l/asm.c - 664 sys sys 1140545812 11882
@@ -9823,7 +9823,7 @@ sys/src/cmd/cc - 20000000775 sys sys 1018556175 0
 sys/src/cmd/cc/acid.c - 664 sys sys 944960808 5314
 sys/src/cmd/cc/bits.c - 664 sys sys 944960873 850
 sys/src/cmd/cc/c99 - 664 sys sys 1141313718 1302
-sys/src/cmd/cc/cc.h - 664 sys sys 1143290259 12189
+sys/src/cmd/cc/cc.h - 664 sys sys 1143384807 12170
 sys/src/cmd/cc/cc.y - 664 sys sys 1143220759 16160
 sys/src/cmd/cc/com.c - 664 sys sys 1134321739 22202
 sys/src/cmd/cc/com64.c - 664 sys sys 1143240308 10001
@@ -9832,7 +9832,7 @@ sys/src/cmd/cc/compat.c - 664 sys sys 1132451523 454
 sys/src/cmd/cc/dcl.c - 664 sys sys 1142726518 27014
 sys/src/cmd/cc/dpchk.c - 664 sys sys 1107365037 7152
 sys/src/cmd/cc/funct.c - 664 sys sys 984718510 6167
-sys/src/cmd/cc/lex.c - 664 sys sys 1143290259 24192
+sys/src/cmd/cc/lex.c - 664 sys sys 1143384810 24178
 sys/src/cmd/cc/lexbody - 664 sys sys 1131293457 9188
 sys/src/cmd/cc/mac.c - 664 sys sys 944960808 36
 sys/src/cmd/cc/macbody - 664 sys sys 1108281581 11703
@@ -9840,7 +9840,7 @@ sys/src/cmd/cc/mkfile - 664 sys sys 1143240308 564
 sys/src/cmd/cc/omachcap.c - 664 sys sys 1143241829 78
 sys/src/cmd/cc/pgen.c - 664 sys sys 1143240307 6826
 sys/src/cmd/cc/pickle.c - 664 sys sys 1063855374 4829
-sys/src/cmd/cc/pswt.c - 664 sys sys 1143240307 989
+sys/src/cmd/cc/pswt.c - 664 sys sys 1143384795 1969
 sys/src/cmd/cc/scon.c - 664 sys sys 1138463621 8788
 sys/src/cmd/cc/sub.c - 664 sys sys 1143240307 34164
 sys/src/cmd/cc/y.tab.h - 664 sys sys 1098501521 1680
@@ -12481,7 +12481,7 @@ sys/src/cmd/kc/mul.c - 664 sys sys 1089299171 9255
 sys/src/cmd/kc/peep.c - 664 sys sys 1089299171 10332
 sys/src/cmd/kc/reg.c - 664 sys sys 1089299171 18937
 sys/src/cmd/kc/sgen.c - 664 sys sys 1143241860 3319
-sys/src/cmd/kc/swt.c - 664 sys sys 1143241860 11175
+sys/src/cmd/kc/swt.c - 664 sys sys 1143384791 10226
 sys/src/cmd/kc/txt.c - 664 sys sys 1089299171 19578
 sys/src/cmd/ki - 20000000775 sys sys 944961015 0
 sys/src/cmd/ki/bpt.c - 664 sys sys 944961014 2247
@@ -13027,7 +13027,7 @@ sys/src/cmd/qc/peep.c - 664 sys sys 1089299168 15241
 sys/src/cmd/qc/q.out.h - 664 sys sys 1089299169 5042
 sys/src/cmd/qc/reg.c - 664 sys sys 1089299169 19059
 sys/src/cmd/qc/sgen.c - 664 sys sys 1143241861 3452
-sys/src/cmd/qc/swt.c - 664 sys sys 1143241861 11287
+sys/src/cmd/qc/swt.c - 664 sys sys 1143384791 10306
 sys/src/cmd/qc/txt.c - 664 sys sys 1089299169 20223
 sys/src/cmd/qi - 20000000775 sys sys 1076688570 0
 sys/src/cmd/qi/bpt.c - 664 sys sys 1076688568 2247
@@ -13392,7 +13392,7 @@ sys/src/cmd/tcs/misc.h - 664 sys sys 1138382780 19274
 sys/src/cmd/tcs/mkfile - 664 sys sys 1138382781 591
 sys/src/cmd/tcs/ms.h - 664 sys sys 1138382780 44069
 sys/src/cmd/tcs/plan9.h - 664 sys sys 944961287 751
-sys/src/cmd/tcs/tcs.c - 664 sys sys 1143220777 15545
+sys/src/cmd/tcs/tcs.c - 664 sys sys 1143384248 15561
 sys/src/cmd/tcs/utf.c - 664 sys sys 1143131195 7907
 sys/src/cmd/tee.c - 664 sys sys 954970286 1062
 sys/src/cmd/telco - 20000000775 sys sys 1015701205 0
@@ -14112,7 +14112,7 @@ sys/src/cmd/vc/mul.c - 664 sys sys 944961340 9189
 sys/src/cmd/vc/peep.c - 664 sys sys 1089299165 10302
 sys/src/cmd/vc/reg.c - 664 sys sys 1089299166 19378
 sys/src/cmd/vc/sgen.c - 664 sys sys 1143241861 3139
-sys/src/cmd/vc/swt.c - 664 sys sys 1143290259 11310
+sys/src/cmd/vc/swt.c - 664 sys sys 1143384791 10367
 sys/src/cmd/vc/txt.c - 664 sys sys 1089299165 22720
 sys/src/cmd/vc/v.out.h - 664 sys sys 1089299165 2630
 sys/src/cmd/venti - 20000000775 sys sys 947360466 0
@@ -14199,7 +14199,7 @@ sys/src/cmd/vl/l.h - 664 sys sys 1143293748 5458
 sys/src/cmd/vl/list.c - 664 sys sys 1055699765 4753
 sys/src/cmd/vl/mkfile - 664 sys sys 944961342 372
 sys/src/cmd/vl/noop.c - 664 sys sys 944961342 7349
-sys/src/cmd/vl/obj.c - 664 sys sys 1143293748 23718
+sys/src/cmd/vl/obj.c - 664 sys sys 1143384835 23728
 sys/src/cmd/vl/optab.c - 664 sys sys 944961342 8973
 sys/src/cmd/vl/pass.c - 664 sys sys 1132449538 8706
 sys/src/cmd/vl/sched.c - 664 sys sys 1014936060 11363
@@ -15137,7 +15137,7 @@ sys/src/libgeometry/quaternion.c - 664 sys sys 944961726 5707
 sys/src/libgeometry/transform.c - 664 sys sys 944961726 1995
 sys/src/libgeometry/tstack.c - 664 sys sys 944961726 4716
 sys/src/libhtml - 20000000775 sys sys 1016902547 0
-sys/src/libhtml/build.c - 664 sys sys 1022112161 94832
+sys/src/libhtml/build.c - 664 sys sys 1143384150 94721
 sys/src/libhtml/impl.h - 664 sys sys 1021580002 4627
 sys/src/libhtml/lex.c - 664 sys sys 1143220767 28128
 sys/src/libhtml/mkfile - 664 sys sys 1035389778 246

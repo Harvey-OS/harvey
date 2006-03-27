@@ -2246,27 +2246,20 @@ addlinebrk(Pstate* ps, int clr)
 {
 	int	obrkstate;
 	int	b;
-	int	addit;
 
 	// don't want break before our null item unless the previous item
 	// was also a null item for the purposes of line breaking
 	obrkstate = ps->curstate&(IFbrk|IFbrksp);
 	b = IFnobrk;
-	addit = 0;
 	if(ps->lastit != nil) {
 		if(ps->lastit->tag == Ispacertag) {
 			if(((Ispacer*)ps->lastit)->spkind == ISPvline)
 				b = IFbrk;
-			addit = 1;
 		}
-		else if(ps->lastit->tag == Ifloattag)
-			addit = 1;
 	}
-	if(addit) {
-		ps->curstate = (ps->curstate&~(IFbrk|IFbrksp))|b;
-		additem(ps, newispacer(ISPvline), nil);
-		ps->curstate = (ps->curstate&~(IFbrk|IFbrksp))|obrkstate;
-	}
+	ps->curstate = (ps->curstate&~(IFbrk|IFbrksp))|b;
+	additem(ps, newispacer(ISPvline), nil);
+	ps->curstate = (ps->curstate&~(IFbrk|IFbrksp))|obrkstate;
 	addbrk(ps, 0, clr);
 }
 
