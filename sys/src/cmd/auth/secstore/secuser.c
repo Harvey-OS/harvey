@@ -225,7 +225,7 @@ userinput(char *buf, int blen)
 {
 	int n;
 
-	while(1){
+	for(;;){
 		n = read(0, buf, blen);
 		if(n<=0)
 			exits("read error");

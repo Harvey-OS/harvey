@@ -100,7 +100,7 @@ main(int argc, char **argv)
 		aesCBCencrypt(buf+AESbsize, AESbsize, &aes);  /* use second AESbsize bytes as initial plaintext */
 		safewrite(buf, 2*AESbsize);
 		dstate = hmac_sha1(buf+AESbsize, AESbsize, key2, MD5dlen, 0, 0);
-		while(1){
+		for(;;){
 			n = Bread(&bin, buf, BUF);
 			if(n < 0)
 				sysfatal("read error");

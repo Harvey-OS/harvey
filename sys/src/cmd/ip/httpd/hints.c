@@ -51,7 +51,7 @@ urllookup(uint url)
 
 	hash = 1 + url%(URLmax-1);
 	j = urlhash[hash];
-	while(1){
+	for(;;){
 		if(j==0)
 			return -hash;
 		if(url==urltab[j])
@@ -185,7 +185,7 @@ statsinit(void)
 	}
 	arena = (Hint*)ezalloc((filelen/3)*sizeof(Hint));
 	oldarena = arena;
-	while(1){
+	for(;;){
 		i = Bread(b,buf,3);
 		if(i<3)
 			break;
