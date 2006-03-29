@@ -437,7 +437,7 @@
 386/bin/trace - 775 sys sys 1142871043 181505
 386/bin/troff - 775 sys sys 1134151360 357941
 386/bin/troff2html - 775 sys sys 1132506877 85770
-386/bin/tweak - 775 sys sys 1142871044 192901
+386/bin/tweak - 775 sys sys 1143568603 192903
 386/bin/unicode - 775 sys sys 1135570852 62504
 386/bin/uniq - 775 sys sys 1135570852 61885
 386/bin/units - 775 sys sys 1135570852 75235
@@ -7580,7 +7580,7 @@ sys/man/3/srv - 664 sys sys 958419690 1470
 sys/man/3/ssl - 664 sys sys 1018386776 3413
 sys/man/3/tls - 664 sys sys 1045501496 7018
 sys/man/3/uart - 664 sys sys 1138191356 2003
-sys/man/3/usb - 664 sys sys 1126971427 6960
+sys/man/3/usb - 664 sys sys 1143567502 6941
 sys/man/3/vga - 664 sys sys 1131301005 4957
 sys/man/4 - 20000000775 sys sys 1018581459 0
 sys/man/4/0intro - 664 sys sys 944959699 472
@@ -7729,7 +7729,7 @@ sys/man/8/ping - 664 sys sys 1139667147 3489
 sys/man/8/plan9.ini - 664 sys sys 1131294569 22077
 sys/man/8/pop3 - 664 sys sys 1063854676 2720
 sys/man/8/ppp - 664 sys sys 1125530075 4414
-sys/man/8/prep - 664 sys sys 1138460130 13853
+sys/man/8/prep - 664 sys sys 1143568557 13874
 sys/man/8/qer - 664 sys sys 1067723129 4909
 sys/man/8/reboot - 664 sys sys 969499895 414
 sys/man/8/replica - 664 sys sys 1138479158 6383
@@ -13440,7 +13440,7 @@ sys/src/cmd/troff2html - 20000000775 sys sys 961257241 0
 sys/src/cmd/troff2html/chars.h - 664 sys sys 1105584129 3957
 sys/src/cmd/troff2html/mkfile - 664 sys sys 1105631961 242
 sys/src/cmd/troff2html/troff2html.c - 664 sys sys 1132450028 14280
-sys/src/cmd/tweak.c - 664 sys sys 1134305456 38986
+sys/src/cmd/tweak.c - 664 sys sys 1143562011 38997
 sys/src/cmd/unicode.c - 664 sys sys 944961351 1953
 sys/src/cmd/uniq.c - 664 sys sys 944961351 2236
 sys/src/cmd/units.y - 664 sys sys 1014926801 10979

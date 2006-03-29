@@ -134,10 +134,11 @@ is the number of data units transmitted or received per second.
 .PP
 The data rate is thus
 .IR hz × samplesize
-bytes per second, and the packet size used will vary between
-⌊(\f2period\fP×\f2hz\fP)/1000⌋×\f2samplesize\fP
-and
-⌈(\f2period\fP×\f2hz\fP)/1000⌉×\f2samplesize\fP.
+bytes per second, and the number of samples in a packet
+will be 
+.RI ( period × hz )/1000,
+rounded up or down.
+Packets do not contain fractional samples.
 .PP
 The mouse, which produces 3-byte samples, is configured with
 .BR "ep 1 bulk r 3 32" :
