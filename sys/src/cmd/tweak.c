@@ -536,6 +536,7 @@ tohex(int c)
 		return 10 + (c - 'a');
 	if('A'<=c && c<='F')
 		return 10 + (c - 'A');
+	return 0;
 }
 
 Thing*

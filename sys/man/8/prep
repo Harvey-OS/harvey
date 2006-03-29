@@ -600,17 +600,18 @@ is an example of a suitable
 .I bfile
 to make the disk a boot disk.
 It gets loaded by the BIOS at 0x7C00,
-reads the root directory into address 0x7E00, and looks at
-the first root directory entry.
-If that file is called
-.BR 9LOAD ,
+reads the first sector of the
+root directory into address 0x7E00, and looks for
+a directory entry named 
+.BR 9LOAD .
+If it finds such an entry, 
 it uses
 single sector reads to load the file into address 0x10000 and then
 jumps to the loaded file image.
 The file
 .B /386/pbslba
 is similar, but because it uses LBA addressing (not supported
-by all BIOSes), it can access more than the first 8.5GB of the disk.
+by older BIOSes), it can access more than the first 8.5GB of the disk.
 .PP
 .I Mbr
 installs a new boot block in sector 0 (the master boot record)
