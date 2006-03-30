@@ -393,12 +393,15 @@ echoserialoq(char *buf, int n)
 		qiwrite(serialoq, ebuf, p - ebuf);
 }
 
-void
+static void
 echo(char *buf, int n)
 {
 	static int ctrlt, pid;
 	int x;
 	char *e, *p;
+
+	if(n == 0)
+		return;
 
 	e = buf+n;
 	for(p = buf; p < e; p++){
@@ -548,8 +551,10 @@ kbdputcclock(void)
 			echo(kbd.ir, kbd.ie-kbd.ir);
 			kbd.ir = kbd.istage;
 		}
-		echo(kbd.ir, iw-kbd.ir);
-		kbd.ir = iw;
+		if(kbd.ir != iw){
+			echo(kbd.ir, iw-kbd.ir);
+			kbd.ir = iw;
+		}
 	}
 }
 
@@ -745,7 +750,8 @@ consread(Chan *c, void *buf, long n, vlong off)
 			nexterror();
 		}
 		while(!qcanread(lineq)){
-			qread(kbdq, &ch, 1);
+			if(qread(kbdq, &ch, 1) == 0)
+				continue;
 			send = 0;
 			if(ch == 0){
 				/* flush output on rawoff -> rawon */

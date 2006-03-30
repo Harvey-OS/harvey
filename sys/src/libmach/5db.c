@@ -475,22 +475,23 @@ armcondpass(Map *map, Rgetter rget, uchar cond)
 	v = (psr >> 28) & 1;
 
 	switch(cond) {
-		case 0:		return z;
-		case 1:		return !z;
-		case 2:		return c;
-		case 3:		return !c;
-		case 4:		return n;
-		case 5:		return !n;
-		case 6:		return v;
-		case 7:		return !v;
-		case 8:		return c && !z;
-		case 9:		return !c || z;
-		case 10:	return n == v;
-		case 11:	return n != v;
-		case 12:	return !z && (n == v);
-		case 13:	return z && (n != v);
-		case 14:	return 1;
-		case 15:	return 0;
+	default:
+	case 0:		return z;
+	case 1:		return !z;
+	case 2:		return c;
+	case 3:		return !c;
+	case 4:		return n;
+	case 5:		return !n;
+	case 6:		return v;
+	case 7:		return !v;
+	case 8:		return c && !z;
+	case 9:		return !c || z;
+	case 10:	return n == v;
+	case 11:	return n != v;
+	case 12:	return !z && (n == v);
+	case 13:	return z && (n != v);
+	case 14:	return 1;
+	case 15:	return 0;
 	}
 }
 
@@ -510,6 +511,7 @@ armshiftval(Map *map, Rgetter rget, Instr *i)
 		v = rget(map, buf);
 
 		switch((i->w & BITS(4, 6)) >> 4) {
+		default:
 		case 0:					/* LSLIMM */
 			return v << s;
 		case 1:					/* LSLREG */
@@ -586,10 +588,11 @@ armmaddr(Map *map, Rgetter rget, Instr *i)
 	nb = nbits(i->w & ((1 << 15) - 1));
 
 	switch((i->w >> 23) & 3) {
-		case 0: return (v - (nb*4)) + 4;
-		case 1: return v;
-		case 2: return v - (nb*4);
-		case 3: return v + 4;
+	default:
+	case 0: return (v - (nb*4)) + 4;
+	case 1: return v;
+	case 2: return v - (nb*4);
+	case 3: return v + 4;
 	}
 }
 

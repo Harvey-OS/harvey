@@ -296,6 +296,7 @@ cat(YYSTYPE *y1, YYSTYPE *y2, YYSTYPE *y3, YYSTYPE *y4, YYSTYPE *y5, YYSTYPE *y6
 		}
 	} else
 		return rv;
+	return rv;
 }
 
 void

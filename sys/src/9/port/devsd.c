@@ -506,7 +506,7 @@ sdgen(Chan* c, char*, Dirtab*, int, int s, Dir* dp)
 		}
 		
 		if((sdev = sdgetdev(DEV(c->qid))) == nil){
-			devdir(c, q, "unavailable", 0, eve, 0, dp);
+			devdir(c, c->qid, "unavailable", 0, eve, 0, dp);
 			return 1;
 		}
 

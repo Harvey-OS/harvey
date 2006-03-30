@@ -613,7 +613,7 @@ drawtrace(void)
 	paused = 0;
 	scaleno = 7;	/* 100 milliseconds */
 	now = nsec();
-	while(1) {
+	for(;;) {
 		Alt a[] = {
 			{ mousectl->c,			nil,		CHANRCV		},
 			{ mousectl->resizec,	nil,		CHANRCV		},
