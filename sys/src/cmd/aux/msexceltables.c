@@ -467,7 +467,7 @@ gstr(Biff *b, int len_width)
 		ap = gint(b, 4);
 	else
 		ap = 0;
-	while (1){
+	for(;;){
 		w = (opt & Unicode)? sizeof(Rune): sizeof(char);
 
 		while(b->len > 0){

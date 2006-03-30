@@ -4112,3 +4112,4 @@ x11 code is just so bad. by which i mean bad of course, and not good.  - forsyth
 Peter Seebach is not POSIX compliant but runs most UNIX applications.
 Glyph 390 is called ".notdef", a singularly inept choice of name.
 Well, I have tried to learn as much as possible from prior attempts.  If nothing else, we are committed to failing in a new way :)  - Elon Musk, SpaceX founder
+You've got a syntax error somewhere in your code.  It could be around line 15.  Good luck finding it.  - the Mini-C compiler

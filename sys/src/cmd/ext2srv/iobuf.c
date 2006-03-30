@@ -137,12 +137,13 @@ xread(Xfs *dev, Iobuf *p, long addr)
 	/*chat("xread %d,%d...", dev->dev, addr);*/
 
 	seek(dev->dev, (vlong)addr*dev->block_size, 0);
-	if( read(dev->dev, p->iobuf, dev->block_size) != dev->block_size){
+	if(read(dev->dev, p->iobuf, dev->block_size) != dev->block_size){
 		chat("xread %d, block=%d failed ...", dev->dev, addr);
 		errno = Eio;
 		return -1;
 	}
 	/*chat("xread ok...");*/
+	return 0;
 }
 void 
 xwrite(Iobuf *p)

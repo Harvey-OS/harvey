@@ -225,6 +225,7 @@ unicode_in(int fd, long *notused, struct convert *out)
 			swab2((char *)buf, n);
 		OUT(out, buf, n/2);
 	}
+	OUT(out, buf, 0);
 }
 
 void
@@ -270,6 +271,7 @@ intable(int fd, long *table, struct convert *out)
 		}
 		OUT(out, runes, r-runes);
 	}
+	OUT(out, runes, 0);
 	if(n < 0){
 #ifdef	PLAN9
 		EPR "%s: input read: %r\n", argv0);
@@ -448,6 +450,8 @@ struct convert convert[] =
 	{ "sf1", "ISO-646: Finnish/Swedish SF-1 variant", Table, (void *)tabsf1 },
 	{ "sf2", "ISO-646: Finnish/Swedish SF-2 variant (recommended)", Table, (void *)tabsf2 },
 	{ "tis", "Thai+ASCII (TIS 620-1986)", Table, (void *)tabtis620 },
+ 	{ "tune", "TUNE (Tamil)", From|Func, 0, (Fnptr)tune_in },
+ 	{ "tune", "TUNE (Tamil)", Func, 0, (Fnptr)tune_out },
 	{ "ucode", "Russian U-code", Table, (void *)tabucode },
 	{ "ujis", "EUC-JX: JIS 0208", From|Func, 0, (Fnptr)ujis_in },
 	{ "ujis", "EUC-JX: JIS 0208", Func, 0, (Fnptr)ujis_out },

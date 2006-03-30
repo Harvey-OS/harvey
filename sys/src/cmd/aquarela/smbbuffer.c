@@ -401,6 +401,7 @@ smbbuffergetv(SmbBuffer *b, vlong *vp)
 		b->rn += 8;
 		return 1;
 	}
+	return 0;
 }
 
 ulong
