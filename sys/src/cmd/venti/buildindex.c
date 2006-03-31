@@ -40,7 +40,6 @@ buildIndex(Index *ix, Part *part, u64int off, u64int clumps, int zero)
 	if(b == nil || z == nil || ies == nil){
 		ok = 0;
 		goto breakout;
-		return 0;
 	}
 	ok = 1;
 	next = 0;

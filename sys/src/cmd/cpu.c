@@ -684,7 +684,6 @@ rmtnoteproc(void)
 			buf[n] = 0;
 			postnote(PNGROUP, pid, buf);
 		}
-		break;
 	}
 
 	/* original proc waits for shell proc to die and kills note proc */

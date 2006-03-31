@@ -26,5 +26,4 @@ utfrune(char *s, long c)
 			return s;
 		s += n;
 	}
-	return 0;
 }

@@ -343,7 +343,6 @@ menu(Biobuf *bp, int net)
 		case 'q':
 			comm->stopped = 0;
 			return -1;
-			break;
 		case 'o':
 			switch(*(cp+1)){
 			case 'd':

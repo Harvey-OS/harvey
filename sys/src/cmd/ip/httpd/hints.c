@@ -58,7 +58,6 @@ urllookup(uint url)
 			return j;
 		j = urlnext[j];
 	}
-	return 0;  /* not reached */
 }
 
 int

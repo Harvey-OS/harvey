@@ -269,7 +269,6 @@ vtVersionRead(VtSession *z, char *prefix, int *ret)
 			return 0;
 		p++;
 	}	
-	return 0;
 }
 
 Packet*

@@ -138,7 +138,7 @@ main(int argc, char **argv)
 		atnotify(watcher, 1);
 		for(;;)
 			sleep(1000);
-		_exits(0);
+		/* not reached */
 	}
 
 	rfork(RFNOTEG);

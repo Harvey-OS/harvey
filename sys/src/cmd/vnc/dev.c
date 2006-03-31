@@ -217,7 +217,6 @@ devstat(Chan *c, uchar *db, int n, Dirtab *tab, int ntab, Devgen *gen)
 			}
 			break;
 		}
-	return 0;
 }
 
 long

@@ -355,7 +355,6 @@ passbody(Part *p, int dobound)
 			}
 		Bwrite(&out, cp, Blinelen(b));
 	}
-	return nil;
 }
 
 /*

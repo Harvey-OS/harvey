@@ -224,8 +224,9 @@ aclass(Adr *a)
 			instoffset = s->value + a->offset + INITDAT;
 			if(dlm)
 				return C_LCON;
-/* not sure why this barfs */
-return C_LCON;
+			/* not sure why this barfs */
+			return C_LCON;
+		/*
 			if(instoffset == 0)
 				return C_ZCON;
 			if(instoffset >= -0x8000 && instoffset <= 0xffff)
@@ -233,6 +234,7 @@ return C_LCON;
 			if((instoffset & 0xffff) == 0)
 				return C_UCON;
 			return C_LCON;
+		*/
 
 		case D_AUTO:
 			instoffset = autosize + a->offset;

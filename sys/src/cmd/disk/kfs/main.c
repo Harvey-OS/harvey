@@ -361,7 +361,6 @@ netserve(char *netaddr)
 			continue;
 		}
 	}
-	return 0;
 }
 
 int

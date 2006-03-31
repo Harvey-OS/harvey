@@ -38,5 +38,4 @@ hypot(double p, double q)
 		q *= r;
 		r = q/p;
 	}
-	return 0;
 }

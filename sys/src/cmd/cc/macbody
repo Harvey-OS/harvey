@@ -452,6 +452,8 @@ macexpand(Sym *s, char *b)
 	cp = s->macro+1;
 	for(;;) {
 		c = *cp++;
+		if(c == '\n')
+			c = ' ';
 		if(c != '#') {
 			*b++ = c;
 			if(c == 0)

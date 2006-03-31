@@ -194,7 +194,6 @@ if(d->class == 10) setup0(d, RH2D|Rinterface, SET_INTERFACE, 10, 0, 0);
 			fprint(2, "%H: port %d detached\n", h, port);
 		detach(h, port);
 	}
-	threadexits(nil);
 }
 
 Device*

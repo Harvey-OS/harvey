@@ -34,7 +34,7 @@ FPdbleword(addr) {
 UTFmax = 3;
 Runesync = 128;
 Runeself = 128;
-Runeerror = 128;
+Runeerror = 65533;
 sizeofFmt = 48;
 aggr Fmt
 {

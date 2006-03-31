@@ -1,6 +1,7 @@
 #include <u.h>
 #include <libc.h>
 #include <pool.h>
+#include <tos.h>
 
 static void*	sbrkalloc(ulong);
 static int		sbrkmerge(void*, void*);
@@ -12,6 +13,7 @@ static void		ppanic(Pool*, char*, ...);
 typedef struct Private Private;
 struct Private {
 	Lock		lk;
+	int		pid;
 	int		printfd;	/* gets debugging output if set */
 };
 
@@ -76,6 +78,9 @@ plock(Pool *p)
 	Private *pv;
 	pv = p->private;
 	lock(&pv->lk);
+	if(pv->pid != 0)
+		abort();
+	pv->pid = _tos->pid;
 }
 
 static void
@@ -83,6 +88,9 @@ punlock(Pool *p)
 {
 	Private *pv;
 	pv = p->private;
+	if(pv->pid != _tos->pid)
+		abort();
+	pv->pid = 0;
 	unlock(&pv->lk);
 }
 
@@ -154,7 +162,7 @@ ppanic(Pool *p, char *fmt, ...)
 		write(pv->printfd, "\n", 1);
 	}
 	va_end(v);
-	unlock(&pv->lk);
+//	unlock(&pv->lk);
 	abort();
 }
 

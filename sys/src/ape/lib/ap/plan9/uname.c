@@ -5,11 +5,9 @@
 int
 uname(struct utsname *n)
 {
-	char *osname;
-	
 	n->sysname = getenv("osname");
 	if(!n->sysname)
-		osname = "Plan9";
+		n->sysname = "Plan9";
 	n->nodename = getenv("sysname");
 	if(!n->nodename){
 		n->nodename = getenv("site");

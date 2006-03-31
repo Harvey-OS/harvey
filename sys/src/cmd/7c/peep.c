@@ -630,7 +630,6 @@ copyu(Prog *p, Adr *v, Adr *s)
 				return 3;
 		return 0;
 	}
-	return 0;
 }
 
 int

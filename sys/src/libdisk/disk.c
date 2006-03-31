@@ -159,7 +159,6 @@ drivergeometry(Disk *disk)
 		disk->c = disk->secs / (disk->h * disk->s);
 		return 0;
 	}
-	return -1;	/* not reached */
 }
 
 /*

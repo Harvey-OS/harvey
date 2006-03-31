@@ -902,7 +902,6 @@ io(void *)
 		if(write(mfd[1], mdata, n) != n)
 			sysfatal("mount write");
 	}
-	threadexitsall("die yankee pig dog");
 }
 
 int

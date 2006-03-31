@@ -370,15 +370,19 @@ regsalloc(Node *n, Node *nn)
 void
 regaalloc1(Node *n, Node *nn)
 {
+	USED(nn);
+
 	if(REGARG < 0) {
 		diag(n, "regaalloc1");
 		return;
 	}
+/* not reached 
 	nodreg(n, nn, REGARG);
 	reg[REGARG]++;
 	curarg = align(curarg, nn->type, Aarg1);
 	curarg = align(curarg, nn->type, Aarg2);
 	maxargsafe = maxround(maxargsafe, cursafe+curarg);
+*/
 }
 
 void

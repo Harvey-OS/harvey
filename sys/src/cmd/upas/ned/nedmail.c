@@ -1756,7 +1756,6 @@ tokenize822(char *str, char **args, int max)
 			args[na++] = str;
 			intok = 1;
 		}
-	return 0;	/* can't get here; silence compiler */
 }
 
 Message*

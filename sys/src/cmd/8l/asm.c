@@ -228,7 +228,6 @@ asmb(void)
 		lput(0L);
 		lput(~0L);			/* gp value ?? */
 		break;
-		lputl(0);			/* x */
 	case 1:	/* unix coff */
 		/*
 		 * file header
