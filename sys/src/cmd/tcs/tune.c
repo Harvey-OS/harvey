@@ -180,7 +180,7 @@ tune_in(int fd, long *x, struct convert *out)
 void
 tune_out(Rune *r, int n, long *x)
 {
-	static enum { state0, state1, state2, state3, state4, state5, state6, state7 } state = state0;
+	static int state = 0;
 	static Rune lastr;
 	Rune *er, tr, rr;
 	char *p;
@@ -191,69 +191,69 @@ tune_out(Rune *r, int n, long *x)
 	er = r+n;
 	for(p = obuf; r < er; r++){
 		switch(state){
-		case state0:
-		casestate0:
+		case 0:
+		case0:
 			if((tr = findbyuni(t3, nelem(t3), *r)) != Runeerror){
 				lastr = tr;
-				state = state1;
+				state = 1;
 			}else if(*r == 0x0b92/*ஒ*/){
 				lastr = 0xe20a/**/;
-				state = state3;
+				state = 3;
 			}else if((tr = findbyuni(t1, nelem(t1), *r)) != Runeerror)
 				p += runetochar(p, &tr);
 			else
 				p += runetochar(p, r);
 			break;
-		case state1:
-		casestate1:
+		case 1:
+		case1:
 			if((i = findindex(t2, nelem(t2), *r)) != -1){
 				if(lastr && lastr != Runeerror)
 					lastr += i-1;
 				if(*r ==0x0bc6/*ெ*/)
-					state = state5;
+					state = 5;
 				else if(*r ==0x0bc7/*ே*/)
-					state = state4;
+					state = 4;
 				else if(lastr == 0xe210/**/)
-					state = state2;
+					state = 2;
 				else if(lastr == 0xe340/**/)
-					state = state6;
+					state = 6;
 				else{
 					if(lastr)
 						p += runetochar(p, &lastr);
-					state = state0;
+					state = 0;
 				}
 			}else if(lastr && lastr != Runeerror && (*r == 0x00b2/*²*/ || *r == 0x00b3/*³*/ || *r == 0x2074/*⁴*/)){
 				if(squawk)
-					EPR( "%s: character <U+%04X, U+%04X> not in output cs\n", argv0, lastr, *r);
+					EPR "%s: character <U+%.4X, U+%.4X> not in output cs\n", argv0, lastr, *r);
 				lastr = clean ? 0 : Runeerror;
 				nerrors++;
 			}else{
 				if(lastr)
 					p += runetochar(p, &lastr);
-				state = state0;
-				goto casestate0;
+				state = 0;
+				goto case0;
 			}
 			break;
-		case state2:
+		case 2:
 			if(*r == 0x0bb7/*ஷ*/){
 				lastr = 0xe381/**/;
-				state = state1;
+				state = 1;
 				break;
 			}
 			p += runetochar(p, &lastr);
-			state = state0;
-			goto casestate0;
-		case state3:
-			state = state0;
+			state = 0;
+			goto case0;
+		case 3:
+			state = 0;
 			if(*r == 0x0bd7/*ௗ*/){
 				rr = 0xe20c/**/;
 				p += runetochar(p, &rr);
 				break;
 			}
 			p += runetochar(p, &lastr);
-			goto casestate0;
-		case state4:
-			state = state0;
+			goto case0;
+		case 4:
+			state = 0;
 			if(*r == 0x0bbe/*ா*/){
 				if(lastr){
 					if(lastr != Runeerror)
@@ -264,9 +264,9 @@ tune_out(Rune *r, int n, long *x)
 			}
 			if(lastr)
 				p += runetochar(p, &lastr);
-			goto casestate0;
-		case state5:
-			state = state0;
+			goto case0;
+		case 5:
+			state = 0;
 			if(*r == 0x0bbe/*ா*/ || *r == 0x0bd7/*ௗ*/){
 				if(lastr){
 					if(lastr != Runeerror)
@@ -277,32 +277,32 @@ tune_out(Rune *r, int n, long *x)
 			}
 			if(lastr)
 				p += runetochar(p, &lastr);
-			goto casestate0;
-		case state6:
+			goto case0;
+		case 6:
 			if(*r == 0x0bb0/*ர*/){
-				state = state7;
+				state = 7;
 				break;
 			}
 			p += runetochar(p, &lastr);
-			state = state0;
-			goto casestate0;
-		case state7:
+			state = 0;
+			goto case0;
+		case 7:
 			if(*r == 0x0bc0/*ீ*/){
 				rr = 0xe38d/**/;
 				p += runetochar(p, &rr);
-				state = state0;
+				state = 0;
 				break;
 			}
 			p += runetochar(p, &lastr);
 			lastr = 0xe2c1/**/;
-			state = state1;
-			goto casestate1;
+			state = 1;
+			goto case1;
 		}
 	}
-	if(n == 0 && state != state0){
+	if(n == 0 && state != 0){
 		if(lastr)
 			p += runetochar(p, &lastr);
-		state = state0;
+		state = 0;
 	}
 	noutput += p-obuf;
 	write(1, obuf, p-obuf);

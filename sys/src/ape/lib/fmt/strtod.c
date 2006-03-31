@@ -383,7 +383,6 @@ fpcmp(char *a, ulong* f)
 		a++;
 	cont:;
 	}
-	return 0;
 }
 
 static void

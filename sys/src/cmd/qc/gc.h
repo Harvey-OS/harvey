@@ -147,7 +147,6 @@ EXTERN	int	hintabsize;
 EXTERN	long	maxargsafe;
 EXTERN	Multab	multab[20];
 EXTERN	int	mnstring;
-EXTERN	int	retok;
 EXTERN	Node*	nodrat;
 EXTERN	Node*	nodret;
 EXTERN	Node*	nodsafe;

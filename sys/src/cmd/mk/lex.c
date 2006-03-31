@@ -130,5 +130,4 @@ nextrune(Biobuf *bp, int elide)
 			mkinline++;
 		return c;
 	}
-	return 0;
 }

@@ -1259,11 +1259,6 @@ asmea(Prog *p, Adr *a)
 	diag("unknown addressing mode: %d in %s", t, TNAME);
 	return 0;
 
-	if(!debug['a'])
-		print("%P\n", p);
-	diag("bad operand in %s", TNAME);
-	return 0;
-
 toobig:
 	if(!debug['a'])
 		print("%P\n", p);

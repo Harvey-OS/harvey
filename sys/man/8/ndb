@@ -43,7 +43,7 @@ query, mkhash, mkdb, cs, csquery, dns, dnsquery, ipquery, dnsdebug, mkhosts \- n
 .br
 .B ndb/dns
 [
-.B -rsn
+.B -rRsn
 ] [
 .B -f
 .I dbfile
@@ -205,7 +205,13 @@ whenever we receive a UDP NOTIFY message, run
 with the domain name of the area as its argument.
 .TP
 .B -r
-defer to other servers to resolve queries.
+send `recursive' queries, asking the other servers
+to complete lookups.
+.TP
+.B -R
+ignore the `recursive' bit on incoming requests.
+do not complete lookups on behalf of remote systems.
+.PD
 .PP
 When the
 .B -r
@@ -221,8 +227,6 @@ ipnet=mh-net ip=135.104.0.0 ipmask=255.255.0.0
 	dns=ns2.cs.bell-labs.com
 dom=ns1.cs.bell-labs.com ip=135.104.1.11
 dom=ns2.cs.bell-labs.com ip=135.104.1.12
-
-.EE
 .PP
 The server for a domain is indicated by a database entry containing
 both a

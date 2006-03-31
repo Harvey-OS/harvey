@@ -285,7 +285,6 @@ getword(HConnect *c)
 		}
 		ch = getc(c);
 	}
-	return nil;	/* stupid 8c */
 }
 
 static int

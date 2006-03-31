@@ -104,7 +104,6 @@ readln(char *prompt, char *line, int len)
 			p = line;
 		}
 	}
-	return -1;
 }
 
 int

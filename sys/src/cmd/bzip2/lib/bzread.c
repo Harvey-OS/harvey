@@ -211,7 +211,6 @@ int BZ_API(BZ2_bzRead)
       
    }
 
-   return 0; /*not reached*/
 }
 
 

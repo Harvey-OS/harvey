@@ -80,7 +80,7 @@ main(int argc, char *argv[])
 	alarm(0);
 
 	if(!findkey(NETKEYDB, user, ukey) || !netcheck(ukey, chal, resp))
-	if(!findkey(KEYDB, user, ukey) || !netcheck(ukey, chal, resp))
+	/* if(!findkey(KEYDB, user, ukey) || !netcheck(ukey, chal, resp)) /* remove password login from guard.research.bell-labs.com, sucre, etc. */
 	if((err = secureidcheck(user, resp)) != nil){
 		print("NO %s", err);
 		write(1, "NO", 2);

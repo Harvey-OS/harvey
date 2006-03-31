@@ -696,7 +696,7 @@ armfmov(Map *map, Rgetter rget, Instr *i, uvlong pc)
 
 	 /* LDR */
 	/* BUG: Needs LDH/B, too */
-	if((i->w>>26)&0x3 == 1) {
+	if(((i->w>>26)&0x3) == 1) {
 		if(get4(map, armaddr(map, rget, i), &v) < 0) {
 			werrstr("can't read instruction: %r");
 			return pc+4;

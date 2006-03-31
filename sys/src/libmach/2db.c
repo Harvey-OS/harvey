@@ -1007,7 +1007,7 @@ getimm(Inst *ip, Operand *ap, int mode)
 			ip->errmsg = "bad immediate float data";
 			return -1;
 		}
-		break;
+		/* not reached */
 	case IV:	/* size encoded in bits 6&7 of opcode word */
 	default:
 		switch((ip->raw[0]>>6)&0x03)
@@ -1022,9 +1022,8 @@ getimm(Inst *ip, Operand *ap, int mode)
 			ip->errmsg = "bad immediate size";
 			return -1;
 		}
-		break;
+		/* not reached */
 	}
-	return 1;
 }
 
 static int
@@ -1817,7 +1816,6 @@ immsize(Inst *ip, int mode)
 	default:
 		return isize[(ip->raw[0]>>6)&0x03];
 	}
-	return -1;
 }
 
 static int

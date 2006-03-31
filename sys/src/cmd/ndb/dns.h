@@ -439,6 +439,7 @@ extern char	*dbfile;
 extern char	mntpt[];
 extern char	*logfile;
 extern int	resolver;
+extern int	norecursion;
 extern int	maxage;		/* age of oldest entry in cache (secs) */
 extern char	*zonerefreshprogram;
 extern int	sendnotifies;

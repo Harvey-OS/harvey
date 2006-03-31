@@ -8,6 +8,9 @@ static void	hint(RR**, RR*);
 
 extern char *logfile;
 
+/* set in dns.c */
+int	norecursion;		/* don't allow recursive requests */
+
 /*
  *  answer a dns request
  */
@@ -19,12 +22,14 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req)
 	DN *nsdp, *dp;
 	Area *myarea;
 	char tname[32];
+	int recursionflag;
 
 	dncheck(nil, 1);
 
+	recursionflag = norecursion?0:Fcanrec;
 	memset(repp, 0, sizeof(*repp));
 	repp->id = reqp->id;
-	repp->flags = Fresp | Fcanrec | Oquery;
+	repp->flags = Fresp | recursionflag | Oquery;
 
 	/* move one question from reqp to repp */
 	tp = reqp->qd;
@@ -45,10 +50,18 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req)
 	}
 
 	myarea = inmyarea(repp->qd->owner->name);
-	if(myarea != nil && (repp->qd->type == Tixfr || repp->qd->type == Taxfr)){
-		syslog(0, logfile, "server: request %s", rrname(repp->qd->type, tname, sizeof tname));
-		repp->flags = Runimplimented | Fresp | Fcanrec | Oquery;
-		return;
+	if(myarea != nil) {
+		if(repp->qd->type == Tixfr || repp->qd->type == Taxfr){
+			syslog(0, logfile, "server: request %s", rrname(repp->qd->type, tname, sizeof tname));
+			repp->flags = Runimplimented | Fresp | recursionflag | Oquery;
+			return;
+		}
+	} else {
+		if(norecursion) {
+			/* we don't recurse and we're not authoritative */
+			repp->flags = Rok | Fresp | Oquery;
+			return;
+		}
 	}
 
 	/*

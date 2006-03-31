@@ -514,7 +514,6 @@ delset(Reg *e, Reg *s)
 		if(c == nil)
 			return s;
 	}
-	return nil;
 }
 
 static void

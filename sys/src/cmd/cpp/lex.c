@@ -470,7 +470,6 @@ gettokens(Tokenrow *trp, int reset)
 		tp->len = ip - tp->t;
 		tp++;
 	}
-	return 0;
 }
 
 /* have seen ?; handle the trigraph it starts (if any) else 0 */

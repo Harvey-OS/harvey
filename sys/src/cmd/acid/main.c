@@ -152,8 +152,7 @@ main(int argc, char *argv[])
 
 		unwind();
 	}
-	Bputc(bout, '\n');
-	exits(0);
+	/* not reached */
 }
 
 static int

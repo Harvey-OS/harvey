@@ -179,41 +179,32 @@ Jconv(Fmt *fp)
 	case FT_DCREATE1:
 		return fmtprint(fp, "create f %ld p %ld t %lud m %ulo %s",
 			j->fnum, j->parent, j->mtime, j->mode, j->name);
-		break;
 	case FT_chmod:
 	case FT_CHMOD0:
 	case FT_CHMOD1:
 		return fmtprint(fp, "chmod f %ld m %ulo #%ld",
 			j->fnum, j->mode, j->mnum);
-		break;
 	case FT_REMOVE:
 		return fmtprint(fp, "remove f %ld", j->fnum);
-		break;
 	case FT_WRITE:
 		return fmtprint(fp, "write f %ld z %ld o %ld t %uld",
 			j->fnum, j->size, j->offset, j->mtime);
-		break;
 	case FT_AWRITE:
 		return fmtprint(fp, "awrite f %ld z %ld o %ld",
 			j->fnum, j->size, j->offset);
-		break;
 	case FT_trunc:
 	case FT_TRUNC0:
 	case FT_TRUNC1:
 		return fmtprint(fp, "trunc f %ld o %ld p %ld t %ld m %ulo %s",
 			j->fnum, j->tnum, j->parent, j->mtime, j->mode, j->name);
-		break;
 	case FT_SUMMARY:
 		return fmtprint(fp, "summary %ld",
 			j->seq);
-		break;
 	case FT_SUMBEG:
 		return fmtprint(fp, "sumbeg %ld",
 			j->seq);
-		break;
 	case FT_SUMEND:
 		return fmtprint(fp, "end");
-		break;
 	default:
 		return fmtprint(fp, "?type %d", j->type);
 	}

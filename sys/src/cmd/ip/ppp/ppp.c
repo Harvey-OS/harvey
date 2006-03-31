@@ -476,7 +476,6 @@ getframe(PPP *ppp, int *protop)
 
 		freeb(b);
 	}
-	return nil;
 }
 
 /* send a PPP frame */
@@ -845,6 +844,7 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 			switch(o->type){
 			case Octhwack:
 				break;
+			/*
 				if(o->len == 2){
 					ctype = &cthwack;
 					continue;
@@ -856,6 +856,7 @@ getopts(PPP *ppp, Pstate *p, Block *b)
 				}
 				puto(repb, Octhwack);
 				continue;
+			*/
 			case Ocmppc:
 				x = nhgetl(o->data);
 
@@ -1659,7 +1660,6 @@ Again:
 			ppp->stat.uncompout += BLEN(b);
 /* netlog("ppp: uncompressed frame %ux %d %d (%d uchars)\n", proto, b->rptr[0], b->rptr[1], BLEN(b)); /* */
 			goto Again;	
-			break;
 		default:
 			syslog(0, LOG, "unknown proto %ux", proto);
 			if(ppp->lcp->state == Sopened){

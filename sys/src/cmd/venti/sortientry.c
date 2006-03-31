@@ -241,7 +241,6 @@ fprint(2, "ib->chunks = %ud\n", ib->chunks);
 		tot += n;
 	}
 	return tot;
-	return 1;
 }
 
 /*

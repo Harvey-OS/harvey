@@ -156,7 +156,6 @@ yylook(void){
 		if(debug)putchar('\n');
 # endif
 		}
-	return(0);	/* shut up the compiler; i have no idea what should be returned */
 	}
 yyback(int *p, int m)
 {

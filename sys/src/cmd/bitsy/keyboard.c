@@ -434,5 +434,4 @@ threadmain(int argc, char *argv[])
 			break;
 		}
 	}
-	threadexitsall(nil);
 }

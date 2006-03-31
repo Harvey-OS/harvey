@@ -86,7 +86,6 @@ readcons(char *prompt, char *def, int raw, char *buf, int nbuf)
 				buf[m++] = line[0];
 		}
 	}
-	return buf;	/* how does this happen */
 }
 
 void authdialfutz(char*, char*);

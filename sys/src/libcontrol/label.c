@@ -151,9 +151,10 @@ labelctl(Control *c, CParse *cp)
 	case EShow:
 		_ctlargcount(l, cp, 1);
 		labelshow(l);
-		break;
+		/*
 		_ctlargcount(l, cp, 2);
 		_setctlimage(l, &l->textcolor, cp->args[1]);
+		*/
 		break;
 	case ESize:
 		if (cp->nargs == 3)

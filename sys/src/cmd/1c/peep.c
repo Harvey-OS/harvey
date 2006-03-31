@@ -565,9 +565,6 @@ anyvar(Adr *a)
 	if(regtyp(a->type))
 		return 1;
 	return 0;
-	if(a->type == D_AUTO || a->type == D_PARAM)
-		return 1;
-	return 0;
 }
 
 /*

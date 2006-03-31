@@ -171,8 +171,6 @@ dolisten(char *address)
 	ctl = announce(address, dir);
 	if(ctl < 0){
 		syslog(0, HTTPLOG, "can't announce on %s: %r", address);
-fprint(2, "failed: %d\n", getpid());
-for(;;)sleep(1000);
 		return;
 	}
 	strcpy(netdirb, dir);
@@ -254,8 +252,8 @@ for(;;)sleep(1000);
 
 				hreqcleanup(c);
 			}
+			/* not reached */
 
-			exits(nil);
 		default:
 			close(nctl);
 			break;

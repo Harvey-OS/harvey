@@ -245,7 +245,6 @@ ltreewalk(Free **t, ulong size)
 		else
 			t = &(*t)->right;
 	}
-	return nil;	/* not reached */
 }
 
 /* treelookup: find node in tree with size == size */
@@ -321,11 +320,9 @@ treelookupgt(Free *t, ulong size)
 		if(size < t->size) {
 			lastgood = t;
 			t = t->left;
-		} else {
+		} else
 			t = t->right;
-		}
 	}
-	return nil;	/* not reached */
 }
 
 /* 
@@ -1001,6 +998,9 @@ poolallocl(Pool *p, ulong dsize)
 
 	ab = trim(p, pooldel(p, fb), dsize);
 	p->curalloc += ab->size;
+	antagonism {
+		memset(B2D(p, ab), 0xDF, dsize);
+	}
 	return B2D(p, ab);
 }
 
@@ -1078,6 +1078,9 @@ poolreallocl(Pool *p, void *v, ulong ndsize)
 
 	/* enough cleverness */
 	memmove(nv, v, odsize);
+	antagonism { 
+		memset((char*)nv+odsize, 0xDE, ndsize-odsize);
+	}
 	poolfreel(p, v);
 	return nv;
 }
@@ -1173,6 +1176,9 @@ poolallocalignl(Pool *p, ulong dsize, ulong align, long offset, ulong span)
 	}
 	trim(p, b, skip+dsize);
 	assert(D2B(p, c) == b);
+	antagonism { 
+		memset(c, 0xDD, dsize);
+	}
 	return c;
 }
 
@@ -1457,7 +1463,7 @@ memmark(void *v, int sig, ulong size)
 	lp = v;
 	elp = lp+size/4;
 	while(lp < elp)
-		*lp++ = (sig<<24) ^ (ulong)(uintptr)v;
+		*lp++ = (sig<<24) ^ ((uintptr)lp-(uintptr)v);
 	p = (uchar*)lp;
 	ep = (uchar*)v+size;
 	while(p<ep)

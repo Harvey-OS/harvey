@@ -487,8 +487,6 @@ gstr(Biff *b, int len_width)
 			sysfatal("in STRING expected CONTINUE, got op=0x%x\n", b->op);
 		opt = gint(b, 1);
 	}
-	sysfatal("cannot ever happen error\n");
-	return nil;  // shut up 8c
 }
 
 void

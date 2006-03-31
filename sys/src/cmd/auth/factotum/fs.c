@@ -444,7 +444,6 @@ readlist(int off, int (*gen)(int, char*, uint, Fsstate*), Req *r, Fsstate *fss)
 		a += n;
 		off++;
 	}
-	return -1;		/* not reached */
 }
 
 static int

@@ -178,7 +178,6 @@ listendir(char *protodir, char *srvdir, int trusted)
 					dolisten(proto, dir, ctl, srvdir);
 					close(ctl);
 				}
-				break;
 			default:
 				a->announced = pid;
 				break;
@@ -197,7 +196,7 @@ listendir(char *protodir, char *srvdir, int trusted)
 		if(start > 0)
 			sleep(start*1000);
 	}
-	exits(0);
+	/* not reached */
 }
 
 /*

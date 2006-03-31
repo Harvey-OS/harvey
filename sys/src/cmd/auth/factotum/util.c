@@ -775,7 +775,6 @@ readcons(char *prompt, char *def, int raw)
 			s = estrappend(s, "%c", line[0]);
 		}
 	}
-	return nil; /* not reached */
 }
 
 /*

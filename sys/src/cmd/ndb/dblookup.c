@@ -651,10 +651,8 @@ db2cache(int doit)
 				free(d);
 			}
 		}
-		if(!doit && youngest == lastyoungest){
-			unlock(&dblock);
-			return;
-		}
+		if(!doit && youngest == lastyoungest)
+			break;
 	
 		/* forget our area definition */
 		freearea(&owned);

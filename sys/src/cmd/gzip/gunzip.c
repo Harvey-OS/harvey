@@ -210,7 +210,6 @@ gunzip(int ofd, char *ofile, Biobuf *bin)
 		h.file = nil;
 		gzok = Boffset(bin);
 	}
-	return 0;
 }
 
 static void
