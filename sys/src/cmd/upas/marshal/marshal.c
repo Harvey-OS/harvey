@@ -122,6 +122,8 @@ void	freeaddrs(Addr*);
 void	freealias(Alias*);
 void	freealiases(Alias*);
 int	doublequote(Fmt*);
+int	rfc2047fmt(Fmt*);
+char*	mksubject(char*);
 
 int rflag, lbflag, xflag, holding, nflag, Fflag, eightflag, dflag;
 int pgpflag = 0;
@@ -141,6 +143,7 @@ enum
 };
 
 #pragma varargck	type	"Z"	char*
+#pragma varargck	type	"U"	char*
 
 void
 usage(void)
@@ -193,6 +196,7 @@ main(int argc, char **argv)
 
 	quotefmtinstall();
 	fmtinstall('Z', doublequote);
+	fmtinstall('U', rfc2047fmt);
 
 	ARGBEGIN{
 	case 't':
@@ -475,7 +479,10 @@ readheaders(Biobuf *in, int *fp, String **sp, Addr **top, int strict)
 					break;
 				}
 			}
-			if(top==nil || hdrtype!=Hbcc){
+			if(hdrtype == Hsubject){
+				s_append(s, mksubject(s_to_c(sline)));
+				s_append(s, "\n");
+			}else if(top==nil || hdrtype!=Hbcc){
 				s_append(s, s_to_c(sline));
 				s_append(s, "\n");
 			}
@@ -781,7 +788,7 @@ printcc(Biobuf *b, Addr *a)
 int
 printsubject(Biobuf *b, char *subject)
 {
-	return Bprint(b, "Subject: %s\n", subject);
+	return Bprint(b, "Subject: %U\n", subject);
 }
 
 int
@@ -1852,4 +1859,50 @@ doublequote(Fmt *f)
 		fmtrune(f, r);
 	}
 	return fmtrune(f, '"');
+}
+
+int
+rfc2047fmt(Fmt *fmt)
+{
+	char *s, *p;
+
+	s = va_arg(fmt->args, char*);
+	if(s == nil)
+		return fmtstrcpy(fmt, "");
+	for(p=s; *p; p++)
+		if((uchar)*p >= 0x80)
+			goto hard;
+	return fmtstrcpy(fmt, s);
+
+hard:
+	fmtprint(fmt, "=?utf-8?q?");
+	for(p=s; *p; p++){
+		if(*p == ' ')
+			fmtrune(fmt, '_');
+		else if(*p == '_' || *p == '\t' || *p == '=' || *p == '?' || (uchar)*p >= 0x80)
+			fmtprint(fmt, "=%.2uX", (uchar)*p);
+		else
+			fmtrune(fmt, (uchar)*p);
+	}			
+	fmtprint(fmt, "?=");
+	return 0;
+}
+
+char*
+mksubject(char *line)
+{
+	char *p, *q;
+	static char buf[1024];
+
+	p = strchr(line, ':')+1;
+	while(*p == ' ')
+		p++;
+	for(q=p; *q; q++)
+		if((uchar)*q >= 0x80)
+			goto hard;
+	return line;
+
+hard:
+	snprint(buf, sizeof buf, "Subject: %U", p);
+	return buf;
 }

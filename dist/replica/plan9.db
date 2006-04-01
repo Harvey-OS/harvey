@@ -450,10 +450,10 @@
 386/bin/upas/bayes - 775 sys sys 1130594796 74627
 386/bin/upas/deliver - 775 sys sys 1135101637 100133
 386/bin/upas/filter - 775 sys sys 1135101637 147751
-386/bin/upas/fs - 775 sys sys 1134389879 334032
+386/bin/upas/fs - 775 sys sys 1143863649 334451
 386/bin/upas/isspam - 775 sys sys 1064598349 38
 386/bin/upas/list - 775 sys sys 1135101638 82799
-386/bin/upas/marshal - 775 sys sys 1135360965 133019
+386/bin/upas/marshal - 775 sys sys 1143863649 134381
 386/bin/upas/ml - 775 sys sys 1132506879 123917
 386/bin/upas/mlmgr - 775 sys sys 1132506880 104539
 386/bin/upas/mlowner - 775 sys sys 1130594799 92131
@@ -510,7 +510,7 @@
 386/bin/webfsget - 775 sys sys 1141927236 39180
 386/bin/wikifs - 775 sys sys 1134505646 203414
 386/bin/winwatch - 775 sys sys 1143777849 155250
-386/bin/x.echo - 775 sys sys 1143742050 57368
+386/bin/x.echo - 775 sys sys 1143825550 57687
 386/bin/xd - 775 sys sys 1143777849 64374
 386/bin/xmr - 775 sys sys 1143742050 40192
 386/bin/xms - 775 sys sys 1143742050 40775
@@ -557,7 +557,7 @@
 386/lib/libhttpd.a - 664 sys sys 1143777863 99458
 386/lib/libip.a - 664 sys sys 1143777863 35576
 386/lib/libl.a - 664 sys sys 1143777863 5372
-386/lib/libmach.a - 664 sys sys 1143777865 782080
+386/lib/libmach.a - 664 sys sys 1143863651 782098
 386/lib/libmemdraw.a - 664 sys sys 1143777866 284092
 386/lib/libmemlayer.a - 664 sys sys 1143777866 47360
 386/lib/libmp.a - 664 sys sys 1143777866 79974
@@ -787,7 +787,7 @@ adm/timezone/Turkey - 664 adm adm 1020313577 1164
 adm/timezone/US_Alaska - 664 adm adm 1020313577 1518
 adm/timezone/US_Arizona - 664 adm adm 1020313577 22
 adm/timezone/US_Central - 664 adm adm 1020313577 1518
-adm/timezone/US_East-Indiana - 664 adm adm 1020313577 22
+adm/timezone/US_East-Indiana - 664 adm adm 1143844688 726
 adm/timezone/US_Eastern - 664 adm adm 1020313577 1518
 adm/timezone/US_Hawaii - 664 adm adm 1020313577 22
 adm/timezone/US_Michigan - 664 adm adm 1020313577 1452
@@ -6012,7 +6012,7 @@ sys/include/ip.h - 664 sys sys 1103554773 2989
 sys/include/keyboard.h - 664 sys sys 1131637696 865
 sys/include/libc.h - 664 sys sys 1143129918 19699
 sys/include/libsec.h - 664 sys sys 1124709121 9345
-sys/include/mach.h - 664 sys sys 1138471011 8621
+sys/include/mach.h - 664 sys sys 1143814376 8641
 sys/include/memdraw.h - 664 sys sys 1091904419 5645
 sys/include/memlayer.h - 664 sys sys 1051031022 1851
 sys/include/mouse.h - 664 sys sys 1035232010 1003
@@ -6615,7 +6615,7 @@ sys/lib/man/trademarks - 664 sys sys 958527089 1838
 sys/lib/mimetype - 664 sys sys 1120564829 6236
 sys/lib/newuser - 775 sys sys 1112362340 1226
 sys/lib/plumb - 20000000775 sys sys 944957365 0
-sys/lib/plumb/basic - 664 sys sys 1138555264 2877
+sys/lib/plumb/basic - 664 sys sys 1143814229 2878
 sys/lib/plumb/fileaddr - 664 sys sys 944957365 88
 sys/lib/postscript - 20000000775 sys sys 950322802 0
 sys/lib/postscript/afm - 20000000775 sys sys 950322802 0
@@ -7720,7 +7720,7 @@ sys/man/8/mkpaqfs - 664 sys sys 1018386778 892
 sys/man/8/mksacfs - 664 sys sys 964886843 710
 sys/man/8/mouse - 664 sys sys 971455511 2476
 sys/man/8/na - 664 sys sys 958527089 859
-sys/man/8/ndb - 664 sys sys 1143760373 10084
+sys/man/8/ndb - 664 sys sys 1143814327 10087
 sys/man/8/newuser - 664 sys sys 1116954242 2418
 sys/man/8/nfsserver - 664 sys sys 1142693998 3585
 sys/man/8/pcmcia - 664 sys sys 944959679 408
@@ -13956,10 +13956,10 @@ sys/src/cmd/upas/filterkit/pipeto.sample-hold - 664 sys sys 1019837081 872
 sys/src/cmd/upas/filterkit/readaddrs.c - 664 sys sys 1143759341 1331
 sys/src/cmd/upas/filterkit/token.c - 664 sys sys 1018549521 1312
 sys/src/cmd/upas/fs - 20000000775 sys sys 988250018 0
-sys/src/cmd/upas/fs/dat.h - 664 sys sys 1047490337 4267
-sys/src/cmd/upas/fs/fs.c - 664 sys sys 1107880276 27460
+sys/src/cmd/upas/fs/dat.h - 664 sys sys 1143845990 4272
+sys/src/cmd/upas/fs/fs.c - 664 sys sys 1143845990 27463
 sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1133147970 16258
-sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1107835226 28935
+sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1143845990 29022
 sys/src/cmd/upas/fs/mkfile - 664 sys sys 1047490336 321
 sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1071334861 7465
 sys/src/cmd/upas/fs/pop3.c - 664 sys sys 1133988332 13024
@@ -13967,7 +13967,7 @@ sys/src/cmd/upas/fs/readdir.c - 664 sys sys 944961331 203
 sys/src/cmd/upas/fs/strtotm.c - 664 sys sys 1041137528 1904
 sys/src/cmd/upas/fs/tester.c - 664 sys sys 985037420 1418
 sys/src/cmd/upas/marshal - 20000000775 sys sys 1015009721 0
-sys/src/cmd/upas/marshal/marshal.c - 664 sys sys 1141913896 32859
+sys/src/cmd/upas/marshal/marshal.c - 664 sys sys 1143827332 33818
 sys/src/cmd/upas/marshal/mkfile - 664 sys sys 1047490298 235
 sys/src/cmd/upas/misc - 20000000775 sys sys 944961318 0
 sys/src/cmd/upas/misc/gone.fishing - 664 sys sys 944961318 313
@@ -15187,10 +15187,7 @@ sys/src/liblex/reject.c - 664 sys sys 944961728 1000
 sys/src/liblex/yyless.c - 664 sys sys 944961728 403
 sys/src/liblex/yywrap.c - 664 sys sys 944961728 85
 sys/src/libmach - 20000000775 sys sys 969559166 0
-sys/src/libmach/0.c - 664 sys sys 1131289379 4080
-sys/src/libmach/0c - 20000000775 sys sys 1114459438 0
-sys/src/libmach/0c/README - 664 sys sys 1114459609 73
-sys/src/libmach/0c/ureg.h - 664 sys sys 1114459438 886
+sys/src/libmach/0.c - 664 sys sys 1143834577 4167
 sys/src/libmach/2.c - 664 sys sys 1138471014 2085
 sys/src/libmach/2db.c - 664 sys sys 1143696097 61333
 sys/src/libmach/2obj.c - 664 sys sys 1091732624 2335
@@ -15215,6 +15212,7 @@ sys/src/libmach/kdb.c - 664 sys sys 1136322404 21222
 sys/src/libmach/kobj.c - 664 sys sys 1091732625 2217
 sys/src/libmach/machdata.c - 664 sys sys 1131289377 8799
 sys/src/libmach/map.c - 664 sys sys 1131289376 3056
+sys/src/libmach/mips2ureg.h - 664 sys sys 1143821483 886
 sys/src/libmach/mkfile - 664 sys sys 1131375713 479
 sys/src/libmach/obj.c - 664 sys sys 1131289376 5929
 sys/src/libmach/obj.h - 664 sys sys 1131292890 604

@@ -227,6 +227,7 @@ ipnet=mh-net ip=135.104.0.0 ipmask=255.255.0.0
 	dns=ns2.cs.bell-labs.com
 dom=ns1.cs.bell-labs.com ip=135.104.1.11
 dom=ns2.cs.bell-labs.com ip=135.104.1.12
+.EE
 .PP
 The server for a domain is indicated by a database entry containing
 both a
@@ -244,7 +245,6 @@ dom=
 dom=A.ROOT-SERVERS.NET ip=198.41.0.4
 dom=B.ROOT-SERVERS.NET ip=128.9.0.107
 dom=C.ROOT-SERVERS.NET ip=192.33.4.12
-
 .EE
 The last three lines provide a mapping for the
 server names to their ip addresses.  This is only
