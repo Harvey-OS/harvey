@@ -1403,7 +1403,7 @@ rfc2047convert(String *s, char *token, int len)
 		decoded[len] = 0;
 	} else if(cistrncmp(token, "q?", 2) == 0){
 		token += 2;
-		len = decquoted(decoded, token, e);
+		len = decquoted(decoded, token, e, 1);
 		if(len > 0 && decoded[len-1] == '\n')
 			len--;
 		decoded[len] = 0;
