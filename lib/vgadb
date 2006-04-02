@@ -380,9 +380,9 @@ ctlr
 	hwgc=vmwarehwgc
 
 ctlr
-	0xC002D="MATROX/Matrox G400"
-	0xC002D="MATROX/Matrox G450"
-	0xC002D="MATROX/MGA-G200 VGA"
+	vid=0x102B did=0x0521		# Matrox G200
+	vid=0x102B did=0x0525		# Matrox G450
+	vid=0x102B did=0x2527		# Matrox G550
 	link=vga
 	ctlr=mga4xx linear=1
 	hwgc=mga4xxhwgc
