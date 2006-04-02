@@ -8,6 +8,7 @@
 				  Big Endian format ! (+ Fix for the palette init. )
 	- 2001-09-06 : Added Full 2D Accel ! (see drivers in /sys/src/9/pc)
 	- 2001-10-01 : Rid Fix.
+	- 2006-04-01 : Add MGA550 support.
 
      Greets and Acknowledgements go to :
      	- Sylvain Chipaux <a.k.a. asle>.
@@ -34,7 +35,8 @@ enum {
 	Meg			= 1024*1024,
 	
 	MATROX			= 0x102B,	/* pci chip manufacturer */
-	MGA4XX			= 0x0525,	/* pci chip device ids */
+	MGA550			= 0x2527, /* pci chip device ids */
+	MGA4XX			= 0x0525,
 	MGA200			= 0x0521,
 
 	/* Pci configuration space mapping */
@@ -513,16 +515,21 @@ snarf(Vga* vga, Ctlr* ctlr)
 	trace("%s->snarf\n", ctlr->name);
 	if(vga->private == nil) {
 		pci = pcimatch(nil, MATROX, MGA4XX);
-		if(pci == nil) {
+		if(pci == nil)
+			pci = pcimatch(nil, MATROX, MGA550);
+		if(pci == nil)
 			pci = pcimatch(nil, MATROX, MGA200);
-			if(pci == nil) {
-				error("%s: no Pcidev with Vid=0x102B, Did=0x052[51]\n", ctlr->name);
-			}
-		}
+		if(pci == nil)
+			error("%s: cannot find matrox adapter\n", ctlr->name);
 
 		rid = pcicfgr8(pci, PciRID); // PciRID = 0x08
 
-		trace("%s: G%d%d0 rev %d\n", ctlr->name, pci->did==0x0521?2:4, rid&0x80?5:0, rid&(~0x80));
+		trace("%s: G%d%d0 rev %d\n", ctlr->name, 
+			2*(pci->did==MGA200)
+			+4*(pci->did==MGA4XX)
+			+5*(pci->did==MGA550),
+			rid&0x80 ? 5 : 0,
+			rid&~0x80);
 		i = pcicfgr32(pci, PCfgMgaDevCtrl);
 		if ((i & 2) != 2)
 			error("%s: Memory Space not enabled ... Aborting ...\n", ctlr->name);	
@@ -982,7 +989,7 @@ g400_calcclock(Mga* mga, long Fneeded)
 	double 	Ferr, Fcalc;
 	int		m, n, p;
 	
-	if (mga->devid == 0x0525) {
+	if (mga->devid == MGA4XX || mga->devid == MGA550) {
 		/* These values are taken from Matrox G400 Specification - p 4-91 */
 		Fref     		= 27000000.0;
 		pixpll_n_min 	= 7;
@@ -990,7 +997,7 @@ g400_calcclock(Mga* mga, long Fneeded)
 		pixpll_m_min	= 1;
 		pixpll_m_max	= 31;
 		pixpll_p_max 	= 7;
-	} else { 				/* 0x0521 */
+	} else { 				/* MGA200 */
 		/* These values are taken from Matrox G200 Specification - p 4-77 */
 		//Fref     		= 14318180.0;
 		Fref     		= 27050500.0;
@@ -1024,7 +1031,7 @@ g400_calcclock(Mga* mga, long Fneeded)
 	
 	Fvco = Fref * (mga->pixpll_n + 1) / (mga->pixpll_m + 1);
 
-	if (mga->devid == 0x0525) {
+	if (mga->devid == MGA4XX || mga->devid == MGA550) {
 		if ( (50000000.0 <= Fvco) && (Fvco < 110000000.0) )
 			mga->pixpll_p |= 0;	
 		if ( (110000000.0 <= Fvco) && (Fvco < 170000000.0) )
@@ -1089,7 +1096,7 @@ init(Vga* vga, Ctlr* ctlr)
 	trace("%s: Interlace = %d\n", 			ctlr->name, mode->interlace);
 
 	/* TODO : G400 Max : 360000000 */
-	if (mga->devid == 0x0525)
+	if (mga->devid == MGA4XX || mga->devid == MGA550)
 		mga->maxpclk	= 300000000;
 	else
 		mga->maxpclk	= 250000000;
@@ -1103,7 +1110,7 @@ init(Vga* vga, Ctlr* ctlr)
 			mode->frequency, mga->maxpclk);
 	
 	trace("mga: revision ID is %x\n", mga->revid);
-	if ((mga->revid == 0x0521) || ((mga->revid & 0x80) == 0x00)) { 
+	if ((mga->devid == MGA200) || ((mga->devid == MGA4XX) && (mga->revid & 0x80) == 0x00)) {
 		/* Is it G200/G400 or G450 ? */
 		Fpll = g400_calcclock(mga, mode->frequency);
 		trace("Fpll set to %f\n", Fpll);
@@ -1483,7 +1490,7 @@ load(Vga* vga, Ctlr* ctlr)
 	for (i = 0; i < 50; i++)
 		mgaread32(mga, MGA_STATUS);
 
-	if ((mga->devid == 0x0521) || ((mga->revid & 0x80) == 0x00))	{ 
+	if ((mga->devid == MGA200) || ((mga->devid == MGA4XX) && (mga->revid & 0x80) == 0x00)) { 
 		dacset(mga, Dac_Xpixpllcm, mga->pixpll_m, 0xff);
 		dacset(mga, Dac_Xpixpllcn, mga->pixpll_n, 0xff);
 		dacset(mga, Dac_Xpixpllcp, mga->pixpll_p, 0xff);
@@ -1494,6 +1501,7 @@ load(Vga* vga, Ctlr* ctlr)
 			;
 		trace("mga: pixpll locked !\n");
 	} else {
+	/* MGA450 and MGA550 */
 		/* Wait until new clock becomes stable */
 		trace("mga450: waiting for the clock source becomes stable ...\n");
 		while ((dacget(mga, Dac_Xpixpllstat) & Pixlock) != Pixlock)

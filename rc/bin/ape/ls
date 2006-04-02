@@ -33,7 +33,7 @@ if(! ifs=() eval `{aux/getflags $*}){
 
 fn fixlong {
 	echo total 1000
-	sed 's/^(.).(.........) . [0-9]+ /\1\2 1 /'
+	/$cputype/bin/sed 's/^(.).(.........) . [0-9]+ /\1\2 1 /'
 }
 
 post=cat

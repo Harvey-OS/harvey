@@ -20,6 +20,7 @@
 
 enum {
 	MATROX			= 0x102B,
+	MGA550			= 0x2527,
 	MGA4xx			= 0x0525,
 	MGA200			= 0x0521,
 
@@ -78,6 +79,8 @@ mgapcimatch(void)
 	
 	p = pcimatch(nil, MATROX, MGA4xx);
 	if(p == nil)
+		p = pcimatch(nil, MATROX, MGA550);
+	if(p == nil)
 		p = pcimatch(nil, MATROX, MGA200);
 	return p;
 }
@@ -132,7 +135,7 @@ mga4xxenable(VGAscr* scr)
 	addvgaseg("mga4xxmmio", pci->mem[1].bar&~0x0F, pci->mem[1].size);
 
 	/* need to map frame buffer here too, so vga can find memory size */
-	if(pci->did == MGA4xx)
+	if(pci->did == MGA4xx || pci->did == MGA550)
 		size = 32*MB;
 	else
 		size = 8*MB;
@@ -464,9 +467,9 @@ mga4xxdrawinit(VGAscr *scr)
 	uchar *mga;
  	Pcidev *p;
 
-	p = pcimatch(nil, MATROX, MGA4xx);
-	if(p == nil)
-		return ;
+	p = mgapcimatch();
+	if(p->did == MGA200)
+		return;
 
 	if(scr->mmio == 0)
 		return;
