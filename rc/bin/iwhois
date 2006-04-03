@@ -26,6 +26,7 @@ case *.fr
 	fn boilerplate { grep -v '^%%' $* }
 case *.de
 	machine=whois.denic.de
+	person='-T dn '^$person
 	fn boilerplate { cat $* }
 case *.dk
 	machine=whois.dk-hostmaster.dk
@@ -36,8 +37,19 @@ case *.se
 case *.es
 	echo no known whois server for .es
 	exit
+case *.jp
+	machine=whois.jprs.jp
+	person=$person^'/e'
+	fn boilerplate { cat $* }
+case *.in
+	machine=whois.inregistry.net
+	fn boilerplate { cat $* }
+case *.cn
+	machine=whois.cnnic.net.cn
+	fn boilerplate { cat $* }
 case *
 	machine=whois.internic.net	# alternate: whois.networksolutions.com
+	fn boilerplate { cat $* }
 }
 file=/tmp/iwhois$pid
 fn sigexit {

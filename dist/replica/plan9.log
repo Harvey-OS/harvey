@@ -29232,3 +29232,4 @@
 1143946859 0 c sys/src/cmd/upas/fs/fs.c - 664 sys sys 1143946869 26924
 1143948659 0 a sys/src/cmd/upas/fs/rfc2047-test - 664 sys sys 1143946985 1146
 1143950460 0 c 386/bin/aux/vga - 775 sys sys 1143950134 334335
+1143981068 0 c rc/bin/iwhois - 775 sys sys 1143979502 1637
