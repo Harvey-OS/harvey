@@ -5440,7 +5440,7 @@ rc/bin/ipconf/lra - 775 sys sys 1058791152 1558
 rc/bin/ipconf/outside - 775 sys sys 1058790951 550
 rc/bin/ipconf/theworld - 775 sys sys 1058790940 1212
 rc/bin/ipso - 775 sys sys 1079377794 2838
-rc/bin/iwhois - 775 sys sys 1100534870 1372
+rc/bin/iwhois - 775 sys sys 1143979502 1637
 rc/bin/juke - 775 sys sys 1105565140 1131
 rc/bin/kill - 775 sys sys 1143389260 142
 rc/bin/kmem - 775 sys sys 1141940177 468
