@@ -123,11 +123,15 @@ ndbsearch(Ndb *db, Ndbs *s, char *attr, char *val)
 	memset(s, 0, sizeof(*s));
 	if(_ndbcachesearch(db, s, attr, val, &t) == 0){
 		/* found in cache */
-		if(t != nil)
+		if(t != nil){
+			ndbsetmalloctag(t, getcallerpc(&db));
 			return t;	/* answer from this file */
+		}
 		if(db->next == nil)
 			return nil;
-		return ndbsearch(db->next, s, attr, val);
+		t = ndbsearch(db->next, s, attr, val);
+		ndbsetmalloctag(t, getcallerpc(&db));
+		return t;
 	}
 
 	s->db = db;
@@ -135,8 +139,11 @@ ndbsearch(Ndb *db, Ndbs *s, char *attr, char *val)
 	if(s->hf){
 		s->ptr = ndbhash(val, s->hf->hlen)*NDBPLEN;
 		p = hfread(s->hf, s->ptr+NDBHLEN, NDBPLEN);
-		if(p == 0)
-			return _ndbcacheadd(db, s, attr, val, nil);
+		if(p == 0){
+			t = _ndbcacheadd(db, s, attr, val, nil);
+			ndbsetmalloctag(t, getcallerpc(&db));
+			return t;
+		}
 		s->ptr = NDBGETP(p);
 		s->type = Cptr1;
 	} else if(db->length > 128*1024){
@@ -148,14 +155,16 @@ ndbsearch(Ndb *db, Ndbs *s, char *attr, char *val)
 		_ndbcacheadd(db, s, attr, val, nil);
 		if(db->next == 0)
 			return nil;
-		return ndbsearch(db->next, s, attr, val);
+		t = ndbsearch(db->next, s, attr, val);
+		ndbsetmalloctag(t, getcallerpc(&db));
+		return t;
 	} else {
 		s->ptr = 0;
 		s->type = Dptr;
 	}
 	t = ndbsnext(s, attr, val);
 	_ndbcacheadd(db, s, attr, val, (t != nil && s->db == db)?t:nil);
-	setmalloctag(t, getcallerpc(&db));
+	ndbsetmalloctag(t, getcallerpc(&db));
 	return t;
 }
 
@@ -193,8 +202,10 @@ ndbsnext(Ndbs *s, char *attr, char *val)
 			s->ptr = Boffset(&db->b);
 			if(t == 0)
 				break;
-			if(s->t = match(t, attr, val))
+			if(s->t = match(t, attr, val)){
+				ndbsetmalloctag(t, getcallerpc(&s));
 				return t;
+			}
 			ndbfree(t);
 		} else if(s->type == Cptr){
 			if(Bseek(&db->b, s->ptr, 0) < 0)
@@ -204,8 +215,10 @@ ndbsnext(Ndbs *s, char *attr, char *val)
 			t = ndbparse(db);
 			if(t == 0)
 				break;
-			if(s->t = match(t, attr, val))
+			if(s->t = match(t, attr, val)){
+				ndbsetmalloctag(t, getcallerpc(&s));
 				return t;
+			}
 			ndbfree(t);
 		} else if(s->type == Cptr1){
 			if(s->ptr & NDBCHAIN){	/* hash chain continuation */
@@ -224,7 +237,7 @@ ndbsnext(Ndbs *s, char *attr, char *val)
 				if(t == 0)
 					break;
 				if(s->t = match(t, attr, val)){
-					setmalloctag(t, getcallerpc(&s));
+					ndbsetmalloctag(t, getcallerpc(&s));
 					return t;
 				}
 				ndbfree(t);
@@ -242,6 +255,6 @@ nextfile:
 
 	/* advance search to next db file */
 	t = ndbsearch(db->next, s, attr, val);
-	setmalloctag(t, getcallerpc(&s));
+	ndbsetmalloctag(t, getcallerpc(&s));
 	return t;
 }

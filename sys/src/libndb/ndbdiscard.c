@@ -25,5 +25,6 @@ ndbdiscard(Ndbtuple *t, Ndbtuple *a)
 	a->entry = nil;
 	ndbfree(a);
 
+	ndbsetmalloctag(t, getcallerpc(&t));
 	return t;
 }

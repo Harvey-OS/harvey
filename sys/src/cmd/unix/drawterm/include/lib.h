@@ -230,6 +230,7 @@ extern	int	fmtinstall(int, int (*)(Fmt*));
 extern	char*	fmtstrflush(Fmt*);
 extern	int	runefmtstrinit(Fmt*);
 extern	Rune*	runefmtstrflush(Fmt*);
+extern	int	encodefmt(Fmt*);
 extern	int	fmtstrcpy(Fmt*, char*);
 extern	int	fmtprint(Fmt*, char*, ...);
 extern	int	fmtvprint(Fmt*, char*, va_list);
