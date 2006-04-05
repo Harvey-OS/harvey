@@ -1,7 +1,8 @@
 </$objtype/mkfile
 
 LIB=/$objtype/lib/libmach.a
-FILES=executable\
+FILES=\
+	executable\
 	map\
 	obj\
 	swap\

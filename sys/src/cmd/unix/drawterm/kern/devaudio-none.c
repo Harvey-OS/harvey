@@ -21,6 +21,20 @@ audiodevclose(void)
 	error("no audio support");
 }
 
+int
+audiodevread(void *a, int n)
+{
+	error("no audio support");
+	return -1;
+}
+
+int
+audiodevwrite(void *a, int n)
+{
+	error("no audio support");
+	return -1;
+}
+
 void
 audiodevsetvol(int what, int left, int right)
 {

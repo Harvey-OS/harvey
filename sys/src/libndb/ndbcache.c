@@ -64,6 +64,7 @@ ndbcopy(Ndb *db, Ndbtuple *from_t, Ndbs *from_s, Ndbs *to_s)
 		last = to_t;
 		newline = from_t->line != from_t->entry;
 	}
+	ndbsetmalloctag(first, getcallerpc(&db));
 	return first;
 }
 
@@ -127,6 +128,7 @@ _ndbcacheadd(Ndb *db, Ndbs *s, char *attr, char *val, Ndbtuple *t)
 	*l = nil;
 err:
 	ndbcachefree(c);
+	ndbsetmalloctag(t, getcallerpc(&db));
 	return t;
 }
 

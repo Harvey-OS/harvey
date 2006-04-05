@@ -61,5 +61,16 @@ ndbnew(char *attr, char *val)
 	t->val = t->valbuf;
 	if(val != nil)
 		ndbsetval(t, val, strlen(val));
+	ndbsetmalloctag(t, getcallerpc(&attr));
 	return t;	
+}
+
+/*
+ *  set owner of a tuple
+ */
+void
+ndbsetmalloctag(Ndbtuple *t, uintptr tag)
+{
+	for(; t; t=t->entry)
+		setmalloctag(t, tag);
 }

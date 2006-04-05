@@ -71,5 +71,6 @@ ndbgetval(Ndb *db, Ndbs *s, char *attr, char *val, char *rattr, char *buf)
 		}
 		free(p);
 	}
+	ndbsetmalloctag(t, getcallerpc(&db));
 	return t;
 }

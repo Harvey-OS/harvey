@@ -9,16 +9,8 @@ help Plan 9 co-exist with the non-Plan 9 world.
 	drawterm/
 		Drawterm is a Unix and Windows program that simulates
 		a Plan 9 terminal to connect to a Plan 9 cpu server.
-		The version in this directory speaks the pre-9P2000 
-		protocols.  
 
-		A new 9P2000 version is in progress but still crashes
-		with some regularity on Unix.  It can be found at
-		  http://cvs.pdos.csail.mit.edu/cvs/drawterm/
-		or use
-		  cvs -d :pserver:anoncvs@cvs.pdos.csail.mit.edu:/cvs co drawterm
-		For more information about CVS, see
-		  http://swtch.com/plan9port/man/man1/cvs.html
+		See drawterm/README for details.
 
 	u9fs/
 		U9fs is a simple 9P server that runs on Unix.

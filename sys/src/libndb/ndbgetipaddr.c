@@ -16,6 +16,7 @@ ndbgetipaddr(Ndb *db, char *val)
 	attr = ipattr(val);
 	if(strcmp(attr, "ip") == 0){
 		it = ndbnew("ip", val);
+		ndbsetmalloctag(it, getcallerpc(&db));
 		return it;
 	}
 
@@ -43,5 +44,6 @@ ndbgetipaddr(Ndb *db, char *val)
 		}
 	}
 
+	ndbsetmalloctag(first, getcallerpc(&db));
 	return first;
 }

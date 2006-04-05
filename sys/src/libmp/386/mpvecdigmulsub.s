@@ -21,14 +21,14 @@
  *		oldhi = EX
  *		
  */
-TEXT	mpvecdigmulsub(SB),$0
+TEXT	mpvecdigmulsub(SB),$4
 
 	MOVL	b+0(FP),SI
 	MOVL	n+4(FP),CX
 	MOVL	m+8(FP),BX
 	MOVL	p+12(FP),DI
 	XORL	BP,BP
-	PUSHL	BP
+	MOVL	BP,0(SP)
 _mulsubloop:
 	MOVL	(SI)(BP*4),AX		/* lo = b[i] */
 	MULL	BX			/* hi, lo = b[i] * m */
@@ -43,7 +43,7 @@ _mulsubnocarry2:
 	MOVL	DX,0(SP)
 	INCL	BP
 	LOOP	_mulsubloop
-	POPL	AX
+	MOVL	0(SP),AX
 	SUBL	AX,(DI)(BP*4)
 	JCC	_mulsubnocarry3
 	MOVL	$-1,AX

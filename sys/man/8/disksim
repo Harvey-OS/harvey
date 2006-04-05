@@ -64,6 +64,7 @@ disks:
 .EX
 aux/disksim
 echo geometry 40000 512 0 0 0 >/dev/sdXX/ctl # 20MB
+disk/mbr /dev/sdXX/data
 disk/fdisk -baw /dev/sdXX/data
 disk/prep /dev/sdXX/plan9
 .EE
