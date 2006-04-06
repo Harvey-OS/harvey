@@ -65,6 +65,10 @@ struct	Tab
 	char*	cmp;
 };
 
+#ifndef ERANGE
+#define ERANGE 12345
+#endif
+
 double
 fmtstrtod(const char *as, char **aas)
 {
