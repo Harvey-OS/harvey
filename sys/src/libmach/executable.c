@@ -71,9 +71,18 @@ extern	Mach	malpha;
 ExecTable exectab[] =
 {
 	{ V_MAGIC,			/* Mips v.out */
-		"mips plan 9 executable",
-		"mips plan 9 dlm",
+		"mips plan 9 executable BE",
+		"mips plan 9 dlm BE",
 		FMIPS,
+		1,
+		&mmips,
+		sizeof(Exec),
+		beswal,
+		adotout },
+	{ P_MAGIC,			/* Mips 0.out (r3k le) */
+		"mips plan 9 executable LE",
+		"mips plan 9 dlm LE",
+		FMIPSLE,
 		1,
 		&mmips,
 		sizeof(Exec),

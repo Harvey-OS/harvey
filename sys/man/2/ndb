@@ -77,13 +77,16 @@ void	ndbfree(Ndbtuple *db)
 Ndbtuple*	ndbdiscard(Ndbtuple  *t, Ndbtuple *a)
 .PP
 .B
-Ndbtuple*	ndbconcatenate(Ndbtuple *a, Ndbtuple *b);
+Ndbtuple*	ndbconcatenate(Ndbtuple *a, Ndbtuple *b)
 .PP
 .B
-Ndbtuple*	ndbreorder(Ndbtuple *t, Ndbtuple *a);
+Ndbtuple*	ndbreorder(Ndbtuple *t, Ndbtuple *a)
 .PP
 .B
-Ndbtuple*	ndbsubstitute(Ndbtuple *t, Ndbtuple *from, Ndbtuple *to);
+Ndbtuple*	ndbsubstitute(Ndbtuple *t, Ndbtuple *from, Ndbtuple *to)
+.PP
+.B
+void	ndbsetmalloctag(Ndbtuple *t, uintptr tag)
 .SH DESCRIPTION
 These routines are used by network administrative programs to search
 the network database.
@@ -442,6 +445,17 @@ All attr/val pairs in
 end up on the same line.
 .I from
 is freed.
+.PP
+.I Ndbsetmalloctag
+sets the malloc tag 
+(see
+.I setmalloctag
+in
+.IR malloc (2))
+of each tuple in the list 
+.I t
+to
+.IR tag .
 .SH FILES
 .BR /lib/ndb "    directory of network database files
 .SH SOURCE
