@@ -868,13 +868,13 @@ arm/lib/ape - 20000000775 sys sys 985643938 0
 arm/mkfile - 664 sys sys 948141303 46
 cron - 20000000777 sys sys 1039727915 0
 cron/upas - 20000000775 upas sys 1017438409 0
-cron/upas/cron - 664 upas sys 1020896386 146
+cron/upas/cron - 664 upas sys 1144339539 247
 dist - 20000000775 sys sys 1017437778 0
 dist/replica - 20000000775 sys sys 1019277119 0
 dist/replica/cd - 664 sys sys 1019527959 390
 dist/replica/kfs - 664 sys sys 1019527929 237
 dist/replica/network - 775 sys sys 1139499513 956
-dist/replica/plan9.proto - 664 sys sys 1142862598 2744
+dist/replica/plan9.proto - 664 sys sys 1144339418 2765
 env - 20000000775 sys sys 1015094872 0
 fd - 20000000775 sys sys 947958544 0
 lib - 20000000775 sys sys 958504315 0
