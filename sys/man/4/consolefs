@@ -214,6 +214,7 @@ This can be arranged by adding
 .EX
 mount /srv/consoles /mnt/consoles
 .EE
+.LP
 to
 .BR /lib/namespace.$sysname .
 .SH FILES

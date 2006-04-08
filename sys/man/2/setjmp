@@ -55,9 +55,9 @@ argument should be the first argument passed to the note handler.
 and
 .I longjmp
 can also be used to switch stacks.
-Defined in
-.B </$objtype/u.h>
-are several macros that can be used to build
+Several macros are defined in
+.B /$objtype/include/u.h
+that can be used to build
 .B jmp_bufs
 by hand.  The following code establishes a
 .B jmp_buf
