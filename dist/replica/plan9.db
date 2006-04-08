@@ -7531,7 +7531,7 @@ sys/man/2/segattach - 664 sys sys 1135487945 4166
 sys/man/2/segbrk - 664 sys sys 1135487945 1195
 sys/man/2/segflush - 664 sys sys 944959695 944
 sys/man/2/semacquire - 664 sys sys 1143134715 1865
-sys/man/2/setjmp - 664 sys sys 1125540984 1857
+sys/man/2/setjmp - 664 sys sys 1144424826 1863
 sys/man/2/sin - 664 sys sys 944959694 967
 sys/man/2/sinh - 664 sys sys 944959694 360
 sys/man/2/sleep - 664 sys sys 944959694 984
@@ -7590,7 +7590,7 @@ sys/man/4/acme - 664 sys sys 1142172883 10392
 sys/man/4/archfs - 664 sys sys 960000712 533
 sys/man/4/cdfs - 664 sys sys 1026846913 3638
 sys/man/4/cfs - 664 sys sys 1015024813 1758
-sys/man/4/consolefs - 664 sys sys 1140209468 4241
+sys/man/4/consolefs - 664 sys sys 1144424854 4245
 sys/man/4/dossrv - 664 sys sys 1015024813 4176
 sys/man/4/execnet - 664 sys sys 1019866708 1069
 sys/man/4/exportfs - 664 sys sys 1115314261 4653
