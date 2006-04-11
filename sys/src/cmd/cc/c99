@@ -14,6 +14,7 @@ Not done (yet?):
 26. _Bool, float _Complex, double _Complex, long double _Complex
 
 Done:
+7. __VA_ARGS__
 11, 30, 31, 32. restrict, inline
 12. Allow declarations anywhere.
 15. for loop declarations
@@ -40,7 +41,6 @@ Unwanted:
 4. __STDC_VERSION__
 5. __STDC_IEC_559__, __STDC_IEC_559_COMPLEX__,
 	__STDC_ISO_10646__
-7. __VA_ARGS__
 13. Digraph tokens
 23. __func__ identifier
 

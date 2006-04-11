@@ -1,6 +1,6 @@
 .TH LEAK 1
 .SH NAME
-leak \- examine family of processes for memory leaks
+leak, kmem \- help find memory leaks
 .SH SYNOPSIS
 .B leak
 [

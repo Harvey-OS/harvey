@@ -2,4 +2,4 @@
 0,10,20,30,40,50 * * * *	mailserver		/bin/upas/runq -a /mail/queue /mail/lib/remotemail
 
 # clean up after grey list
-47 4 * * *	mailserver	cd /mail/grey && rm -f [0-9]*.[0-9]*.[0-9]*.[0-9]*
+47 4 * * *	mailserver	rm -rf /mail/grey/tmp/*/*

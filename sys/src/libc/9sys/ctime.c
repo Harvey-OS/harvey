@@ -219,8 +219,10 @@ readtimezone(void)
 	i = open("/env/timezone", 0);
 	if(i < 0)
 		goto error;
-	if(read(i, buf, sizeof(buf)) >= sizeof(buf))
+	if(read(i, buf, sizeof(buf)) >= sizeof(buf)){
+		close(i);
 		goto error;
+	}
 	close(i);
 	p = buf;
 	if(rd_name(&p, timezone.stname))

@@ -1,3 +1,4 @@
+#define VARMAC 0x80
 
 long
 getnsn(void)
@@ -41,6 +42,27 @@ getsym(void)
 	if(cp > symb+NSYMB-4)
 		yyerror("symbol too large: %s", symb);
 	return lookup();
+}
+
+Sym*
+getsymdots(int *dots)
+{
+	int c;
+	Sym *s;
+
+	s = getsym();
+	if(s != S)
+		return s;
+
+	c = getnsc();
+	if(c != '.'){
+		unget(c);
+		return S;
+	}
+	if(getc() != '.' || getc() != '.')
+		yyerror("bad dots in macro");
+	*dots = 1;
+	return slookup("__VA_ARGS__");
 }
 
 int
@@ -172,7 +194,7 @@ macdef(void)
 {
 	Sym *s, *a;
 	char *args[NARG], *np, *base;
-	int n, i, c, len;
+	int n, i, c, len, dots;
 	int ischr;
 
 	s = getsym();
@@ -182,13 +204,14 @@ macdef(void)
 		yyerror("macro redefined: %s", s->name);
 	c = getc();
 	n = -1;
+	dots = 0;
 	if(c == '(') {
 		n++;
 		c = getnsc();
 		if(c != ')') {
 			unget(c);
 			for(;;) {
-				a = getsym();
+				a = getsymdots(&dots);
 				if(a == S)
 					goto bad;
 				if(n >= NARG) {
@@ -199,7 +222,7 @@ macdef(void)
 				c = getnsc();
 				if(c == ')')
 					break;
-				if(c != ',')
+				if(c != ',' || dots)
 					goto bad;
 			}
 		}
@@ -325,6 +348,8 @@ macdef(void)
 	} while(len & 3);
 
 	*base = n+1;
+	if(dots)
+		*base |= VARMAC;
 	s->macro = base;
 	if(debug['m'])
 		print("#define %s %s\n", s->name, s->macro+1);
@@ -343,16 +368,19 @@ macexpand(Sym *s, char *b)
 {
 	char buf[2000];
 	int n, l, c, nargs;
-	char *arg[NARG], *cp, *ob, *ecp;
+	char *arg[NARG], *cp, *ob, *ecp, dots;
 
 	ob = b;
-	nargs = *s->macro - 1;
-	if(nargs < 0) {
+	if(*s->macro == 0) {
 		strcpy(b, s->macro+1);
 		if(debug['m'])
 			print("#expand %s %s\n", s->name, ob);
 		return;
 	}
+	
+	nargs = (char)(*s->macro & ~VARMAC) - 1;
+	dots = *s->macro & VARMAC;
+
 	c = getnsc();
 	if(c != '(')
 		goto bad;
@@ -425,6 +453,10 @@ macexpand(Sym *s, char *b)
 			}
 			if(l == 0) {
 				if(c == ',') {
+					if(n == nargs && dots) {
+						*cp++ = ',';
+						continue;
+					}
 					*cp++ = 0;
 					arg[n++] = cp;
 					if(n > nargs)

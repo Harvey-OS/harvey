@@ -4,12 +4,12 @@ ps, psu \- process status
 .SH SYNOPSIS
 .B ps
 [
-.B -pa
+.B -apr
 ]
 .PP
 .B psu
 [
-.B -pa
+.B -apr
 ]
 [
 .I user
@@ -82,11 +82,17 @@ waiting for more of a critical
 .IR resource .
 .PD
 .PP
-With the
-.B -p
-flag,
+The
+.B -r
+flag causes
 .I ps
-also prints, after the system time, the baseline and current priorities of each process.
+to print, before the user time, the elapsed real time for the process.
+.PP
+The
+.B -p
+flag causes
+.I ps
+to print, after the system time, the baseline and current priorities of each process.
 .PP
 The
 .B -a
