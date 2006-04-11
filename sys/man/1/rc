@@ -7,7 +7,12 @@ rc, cd, eval, exec, exit, flag, rfork, shift, wait, whatis, ., ~ \- command lang
 .B -srdiIlxepvV
 ]
 [
-.B -c command
+.B -c
+.I command
+]
+[
+.B -m
+.I initial
 ]
 [
 .I file
@@ -937,6 +942,14 @@ is given or the first character of argument zero is
 reads commands from
 .BR $home/lib/profile ,
 if it exists, before reading its normal input.
+.TP
+.B -m
+Read commands to initialize
+.I rc
+from
+.I initial
+instead of from
+.BR /rc/lib/rcmain .
 .TP
 .B -p
 A no-op.

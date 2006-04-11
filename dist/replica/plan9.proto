@@ -14,7 +14,9 @@ mail	- upas upas
 	faxoutqueue	d777 upas upas
 	faxqueue	d777 upas upas
 		*	- upas upas
-	grey	d777 upas upas
+	grey	d775 upas upas
+		whitelist a666 upas upas
+		tmp	d777 upas upas
 	fs	- upas upas
 	lib	- upas upas
 		+	- upas upas

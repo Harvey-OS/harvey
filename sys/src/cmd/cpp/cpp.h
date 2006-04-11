@@ -27,6 +27,7 @@ enum kwtype { KIF, KIFDEF, KIFNDEF, KELIF, KELSE, KENDIF, KINCLUDE, KDEFINE,
 #define	ISKW		02	/* is PP keyword */
 #define	ISUNCHANGE	04	/* can't be #defined in PP */
 #define	ISMAC		010	/* builtin macro, e.g. __LINE__ */
+#define	ISVARMAC	020	/* variadic macro */
 
 #define	EOB	0xFE		/* sentinel for end of input buffer */
 #define	EOFC	0xFD		/* sentinel for end of input file */
@@ -110,7 +111,7 @@ void	doinclude(Tokenrow *);
 void	doif(Tokenrow *, enum kwtype);
 void	expand(Tokenrow *, Nlist *);
 void	builtin(Tokenrow *, int);
-int	gatherargs(Tokenrow *, Tokenrow **, int *);
+int	gatherargs(Tokenrow *, Tokenrow **, int, int *);
 void	substargs(Nlist *, Tokenrow *, Tokenrow **);
 void	expandrow(Tokenrow *, char *);
 void	maketokenrow(int, Tokenrow *);

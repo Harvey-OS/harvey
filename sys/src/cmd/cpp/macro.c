@@ -12,7 +12,9 @@ dodefine(Tokenrow *trp)
 	Token *tp;
 	Nlist *np;
 	Tokenrow *def, *args;
+	int dots;
 
+	dots = 0;
 	tp = trp->tp+1;
 	if (tp>=trp->lp || tp->type!=NAME) {
 		error(ERROR, "#defined token is not a name");
@@ -36,7 +38,9 @@ dodefine(Tokenrow *trp)
 			int err = 0;
 			for (;;) {
 				Token *atp;
-				if (tp->type!=NAME) {
+				if (tp->type == ELLIPS)
+					dots++;
+				else if (tp->type!=NAME) {
 					err++;
 					break;
 				}
@@ -51,6 +55,8 @@ dodefine(Tokenrow *trp)
 				tp += 1;
 				if (tp->type==RP)
 					break;
+				if (dots)
+					error(ERROR, "arguments after '...' in macro");
 				if (tp->type!=COMMA) {
 					err++;
 					break;
@@ -83,6 +89,8 @@ dodefine(Tokenrow *trp)
 	np->ap = args;
 	np->vp = def;
 	np->flag |= ISDEFINED;
+	if(dots)
+		np->flag |= ISVARMAC;
 }
 
 /*
@@ -188,7 +196,7 @@ expand(Tokenrow *trp, Nlist *np)
 	if (np->ap==NULL)			/* parameterless */
 		ntokc = 1;
 	else {
-		ntokc = gatherargs(trp, atr, &narg);
+		ntokc = gatherargs(trp, atr, (np->flag&ISVARMAC) ? rowlen(np->ap) : 0, &narg);
 		if (narg<0) {			/* not actually a call (no '(') */
 /* error(WARNING, "%d %r\n", narg, trp); */
 			/* gatherargs has already pushed trp->tr to the next token */
@@ -229,7 +237,7 @@ expand(Tokenrow *trp, Nlist *np)
  * trp->tp is not changed relative to the tokenrow.
  */
 int
-gatherargs(Tokenrow *trp, Tokenrow **atr, int *narg)
+gatherargs(Tokenrow *trp, Tokenrow **atr, int dots, int *narg)
 {
 	int parens = 1;
 	int ntok = 0;
@@ -304,7 +312,9 @@ gatherargs(Tokenrow *trp, Tokenrow **atr, int *narg)
 			parens--;
 		if (lp->type==DSHARP)
 			lp->type = DSHARP1;	/* ## not special in arg */
-		if (lp->type==COMMA && parens==0 || parens<0 && (lp-1)->type!=LP) {
+		if ((lp->type==COMMA && parens==0) || (parens<0 && (lp-1)->type!=LP)) {
+			if (lp->type == COMMA && dots && *narg == dots-1)
+				continue;
 			if (*narg>=NARG-1)
 				error(FATAL, "Sorry, too many macro arguments");
 			ttr.bp = ttr.tp = bp;
@@ -412,6 +422,8 @@ lookuparg(Nlist *mac, Token *tp)
 
 	if (tp->type!=NAME || mac->ap==NULL)
 		return -1;
+	if((mac->flag & ISVARMAC) && strcmp((char*)tp->t, "__VA_ARGS__") == 0)
+		return rowlen(mac->ap) - 1;
 	for (ap=mac->ap->bp; ap<mac->ap->lp; ap++) {
 		if (ap->len==tp->len && strncmp((char*)ap->t,(char*)tp->t,ap->len)==0)
 			return ap - mac->ap->bp;

@@ -37,8 +37,9 @@ location(HttpState *hs, char *value)
 static void
 contenttype(HttpState *hs, char *value)
 {
-	if(hs->c->contenttype == nil)
-		hs->c->contenttype = estrdup(value);
+	if(hs->c->contenttype != nil)
+		free(hs->c->contenttype);
+	hs->c->contenttype = estrdup(value);
 }
 
 static void

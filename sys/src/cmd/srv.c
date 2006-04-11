@@ -10,6 +10,7 @@ void	error(char *);
 void	rpc(int, int);
 void	post(char*, int);
 void	mountfs(char*, int);
+int	doauth = 1;
 
 void
 usage(void)
@@ -105,6 +106,9 @@ main(int argc, char *argv[])
 		domount = 1;
 		reallymount = 1;
 		break;
+	case 'n':
+		doauth = 0;
+		break;
 	case 'q':
 		domount = 1;
 		reallymount = 0;
@@ -193,7 +197,8 @@ Mount:
 	if(domount == 0 || reallymount == 0)
 		exits(0);
 
-	if(amount(fd, mtpt, mountflag, "") < 0){
+	if((!doauth && mount(fd, -1, mtpt, mountflag, "") < 0)
+	|| (doauth && amount(fd, mtpt, mountflag, "") < 0)){
 		err[0] = 0;
 		errstr(err, sizeof err);
 		if(strstr(err, "Hangup") || strstr(err, "hungup") || strstr(err, "timed out")){
