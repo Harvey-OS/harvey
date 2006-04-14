@@ -133,7 +133,7 @@ enum {					/* type 2 pre-defined header */
 	PciCBILR0	= 0x30,		/* I/O limit */
 	PciCBIBR1	= 0x34,		/* I/O base */
 	PciCBILR1	= 0x38,		/* I/O limit */
-	PciCBBCTL	= 0x3E,		/* Bridhe control */
+	PciCBBCTL	= 0x3E,		/* Bridge control */
 	PciCBSVID	= 0x40,		/* subsystem vendor ID */
 	PciCBSID	= 0x42,		/* subsystem ID */
 	PciCBLMBAR	= 0x44,		/* legacy mode base address */
@@ -153,10 +153,14 @@ typedef struct Pcidev {
 	ushort	vid;			/* vendor ID */
 	ushort	did;			/* device ID */
 
+	ushort	pcr;
+
 	uchar	rid;
 	uchar	ccrp;
 	uchar	ccru;
 	uchar	ccrb;
+	uchar	cls;
+	uchar	ltr;
 
 	struct {
 		ulong	bar;		/* base address */
@@ -170,14 +174,15 @@ typedef struct Pcidev {
 	uchar	intl;			/* interrupt line */
 
 	Pcidev*	list;
-	Pcidev*	bridge;			/* down a bus */
 	Pcidev*	link;			/* next device on this bno */
+
+	Pcidev*	bridge;			/* down a bus */
 	struct {
 		ulong	bar;
 		int	size;
 	} ioa, mema;
 
-	ulong	pcr;
+	int	pmrb;			/* power management register block */
 };
 
 #define PCIWINDOW	0
@@ -188,6 +193,9 @@ typedef struct Pcidev {
 /*
  * PCMCIA support code.
  */
+typedef struct PCMslot		PCMslot;
+typedef struct PCMconftab	PCMconftab;
+
 /*
  * Map between ISA memory space and PCMCIA card memory space.
  */
@@ -198,4 +206,64 @@ struct PCMmap {
 	int	len;			/* length of the ISA area */
 	int	attr;			/* attribute memory */
 	int	ref;
+};
+
+/* configuration table entry */
+struct PCMconftab
+{
+	int	index;
+	ushort	irqs;		/* legal irqs */
+	uchar	irqtype;
+	uchar	bit16;		/* true for 16 bit access */
+	struct {
+		ulong	start;
+		ulong	len;
+	} io[16];
+	int	nio;
+	uchar	vpp1;
+	uchar	vpp2;
+	uchar	memwait;
+	ulong	maxwait;
+	ulong	readywait;
+	ulong	otherwait;
+};
+
+/* a card slot */
+struct PCMslot
+{
+	Lock;
+	int	ref;
+
+	void	*cp;		/* controller for this slot */
+	long	memlen;		/* memory length */
+	uchar	base;		/* index register base */
+	uchar	slotno;		/* slot number */
+
+	/* status */
+	uchar	special;	/* in use for a special device */
+	uchar	already;	/* already inited */
+	uchar	occupied;
+	uchar	battery;
+	uchar	wrprot;
+	uchar	powered;
+	uchar	configed;
+	uchar	enabled;
+	uchar	busy;
+
+	/* cis info */
+	ulong	msec;		/* time of last slotinfo call */
+	char	verstr[512];	/* version string */
+	int	ncfg;		/* number of configurations */
+	struct {
+		ushort	cpresent;	/* config registers present */
+		ulong	caddr;		/* relative address of config registers */
+	} cfg[8];
+	int	nctab;		/* number of config table entries */
+	PCMconftab	ctab[8];
+	PCMconftab	*def;	/* default conftab */
+
+	/* memory maps */
+	Lock	mlock;		/* lock down the maps */
+	int	time;
+	PCMmap	mmap[4];	/* maps, last is always for the kernel */
 };

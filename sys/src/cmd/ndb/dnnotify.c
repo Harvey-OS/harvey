@@ -150,9 +150,9 @@ notifyproc(void)
 	req.isslave = 1;	/* son't fork off subprocesses */
 
 	for(;;){
-		getactivity(&req);
+		getactivity(&req, 0);
 		notify_areas(owned, &req);
-		putactivity();
+		putactivity(0);
 		sleep(60*1000);
 	}
 }

@@ -22,8 +22,6 @@ typedef struct QLock { int r; } QLock;
 #define qlock(i)	while(0)
 #define qunlock(i)	while(0)
 #define iallocb		allocb
-extern void mb386(void);
-#define coherence()	mb386()
 #define iprint		print
 #define mallocalign(n, a, o, s)	ialloc((n), (a))
 

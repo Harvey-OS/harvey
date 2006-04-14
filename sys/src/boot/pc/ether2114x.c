@@ -186,6 +186,8 @@ enum {					/* Variants */
 	Tulip3		= (0x0019<<16)|0x1011,
 	Pnic		= (0x0002<<16)|0x11AD,
 	Pnic2		= (0xC115<<16)|0x11AD,
+	CentaurP	= (0x0985<<16)|0x1317,
+	CentaurPcb	= (0x1985<<16)|0x1317,
 };
 
 typedef struct Ctlr Ctlr;
@@ -1372,6 +1374,13 @@ srom(Ctlr* ctlr)
 			ctlr->srom[20+i+1] = ctlr->srom[i];
 		}
 	}
+	if(ctlr->id == CentaurP || ctlr->id == CentaurPcb){
+		memmove(&ctlr->srom[20], leafpnic, sizeof(leafpnic));
+		for(i = 0; i < Eaddrlen; i += 2){
+			ctlr->srom[20+i] = ctlr->srom[8+i];
+			ctlr->srom[20+i+1] = ctlr->srom[8+i+1];
+		}
+	}
 
 	/*
 	 * Next, try to find the info leaf in the SROM for media detection.
@@ -1453,6 +1462,8 @@ srom(Ctlr* ctlr)
 	if(phy){
 		x = 0;
 		for(k = 0; k < nelem(ctlr->phy); k++){
+			if((ctlr->id == CentaurP || ctlr->id == CentaurPcb) && k != 1)
+				continue;
 			if((oui = miir(ctlr, k, 2)) == -1 || oui == 0)
 				continue;
 			if(DEBUG){
@@ -1497,10 +1508,12 @@ dec2114xpci(void)
 			pcicfgw32(p, 0x40, x);
 			/*FALLTHROUGH*/
 
-		case Pnic:			/* PNIC */
-		case Pnic2:			/* PNIC-II */
 		case Tulip0:			/* 21140 */
 		case Tulip1:			/* 21041 */
+		case Pnic:			/* PNIC */
+		case Pnic2:			/* PNIC-II */
+		case CentaurP:			/* ADMtek */
+		case CentaurPcb:		/* ADMtek CardBus */
 			break;
 		}
 
@@ -1531,12 +1544,26 @@ dec2114xpci(void)
 		switch(ctlr->id){
 		default:
 			break;
-
 		case Pnic:			/* PNIC */
 			/*
 			 * Turn off the jabber timer.
 			 */
 			csr32w(ctlr, 15, 0x00000001);
+			break;
+		case CentaurP:
+		case CentaurPcb:
+			/*
+			 * Nice - the register offsets change from *8 to *4
+			 * for CSR16 and up...
+			 * CSR25/26 give the MAC address read from the SROM.
+			 * Don't really need to use this other than as a check,
+			 * the SROM will be read in anyway so the value there
+			 * can be used directly.
+			 */
+			debug("csr25 %8.8luX csr26 %8.8luX\n",
+				inl(ctlr->port+0xA4), inl(ctlr->port+0xA8));
+			debug("phyidr1 %4.4luX phyidr2 %4.4luX\n",
+				inl(ctlr->port+0xBC), inl(ctlr->port+0xC0));
 			break;
 		}
 

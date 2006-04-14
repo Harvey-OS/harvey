@@ -26,8 +26,6 @@ typedef struct QLock{ int r; } QLock;
 typedef struct Rendez{ int r; } Rendez;
 #define	intrenable(irq, f, c, tbdf, name)	setvec(VectorPIC+(irq), f, c);\
 						USED(tbdf);
-#define ioalloc(p, b, c, d)	(1)
-#define iofree(p)
 
 #define K2BPA(va, tbdf)	PADDR(va)
 #define BPA2K(pa, tbdf)	KADDR(pa)

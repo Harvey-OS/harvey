@@ -182,7 +182,7 @@ trapinit(void)
 	 */
 	outb(Int0ctl, Icw1|0x01);	/* ICW1 - edge triggered, master,
 					   ICW4 will be sent */
-	outb(Int0aux, VectorPIC);		/* ICW2 - interrupt vector offset */
+	outb(Int0aux, VectorPIC);	/* ICW2 - interrupt vector offset */
 	outb(Int0aux, 0x04);		/* ICW3 - have slave on level 2 */
 	outb(Int0aux, 0x01);		/* ICW4 - 8086 mode, not buffered */
 
@@ -194,7 +194,7 @@ trapinit(void)
 	 */
 	outb(Int1ctl, Icw1|0x01);	/* ICW1 - edge triggered, master,
 					   ICW4 will be sent */
-	outb(Int1aux, VectorPIC+8);		/* ICW2 - interrupt vector offset */
+	outb(Int1aux, VectorPIC+8);	/* ICW2 - interrupt vector offset */
 	outb(Int1aux, 0x02);		/* ICW3 - I am a slave on level 2 */
 	outb(Int1aux, 0x01);		/* ICW4 - 8086 mode, not buffered */
 	outb(Int1aux, int1mask);

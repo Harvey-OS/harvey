@@ -414,7 +414,7 @@ doquery(char *name, char *tstr)
 		return;
 	}
 
-	getactivity(&req);
+	getactivity(&req, 0);
 	req.isslave = 1;
 	req.aborttime = now + 60;	/* don't spend more than 60 seconds */
 	rr = dnresolve(buf, Cin, type, &req, 0, 0, Recurse, rooted, 0);
@@ -426,7 +426,7 @@ doquery(char *name, char *tstr)
 	}
 	rrfreelist(rr);
 
-	putactivity();
+	putactivity(0);
 }
 
 void

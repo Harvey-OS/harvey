@@ -94,7 +94,7 @@ dnresolve1(char *name, int class, int type, Request *req, int depth, int recurse
 	char *cp;
 
 	if(debug)
-		syslog(0, LOG, "dnresolve1 %s %d %d", name, type, class);
+		syslog(0, LOG, "[%d] dnresolve1 %s %d %d", getpid(), name, type, class);
 
 	/* only class Cin implemented so far */
 	if(class != Cin)

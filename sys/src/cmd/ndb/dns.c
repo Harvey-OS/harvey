@@ -376,7 +376,7 @@ io(void)
 	 *  through 'mret'.
 	 */
 	if(setjmp(req.mret))
-		putactivity();
+		putactivity(0);
 	req.isslave = 0;
 	for(;;){
 		n = read9pmsg(mfd[0], mdata, sizeof mdata);
@@ -393,7 +393,7 @@ io(void)
 		if(debug)
 			syslog(0, logfile, "%F", &job->request);
 
-		getactivity(&req);
+		getactivity(&req, 0);
 		req.aborttime = now + 60;	/* don't spend more than 60 seconds */
 
 		switch(job->request.type){
@@ -447,11 +447,11 @@ io(void)
 		 *  slave processes die after replying
 		 */
 		if(req.isslave){
-			putactivity();
+			putactivity(0);
 			_exits(0);
 		}
 	
-		putactivity();
+		putactivity(0);
 	}
 }
 
@@ -871,8 +871,8 @@ logsend(int id, int subid, uchar *addr, char *sname, char *rname, int type)
 {
 	char buf[12];
 
-	syslog(0, LOG, "%d.%d: sending to %I/%s %s %s",
-		id, subid, addr, sname, rname, rrname(type, buf, sizeof buf));
+	syslog(0, LOG, "[%d] %d.%d: sending to %I/%s %s %s",
+		getpid(), id, subid, addr, sname, rname, rrname(type, buf, sizeof buf));
 }
 
 RR*

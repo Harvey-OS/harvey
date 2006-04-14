@@ -1869,23 +1869,28 @@ static Variant variant[] = {
 static int
 xfunc(Controller *c, enum na_external x, unsigned long *v)
 {
-	switch (x)
-	{
-	case X_scsi_id_buf:
-		*v = offsetof(Dsa, scsi_id_buf[0]); return 1;
-	case X_msg_out_buf:
-		*v = offsetof(Dsa, msg_out_buf); return 1;
-	case X_cmd_buf:
-		*v = offsetof(Dsa, cmd_buf); return 1;
-	case X_data_buf:
-		*v = offsetof(Dsa, data_buf); return 1;
-	case X_status_buf:
-		*v = offsetof(Dsa, status_buf); return 1;
-	case X_dsa_head:
-		*v = DMASEG(&c->dsalist.head[0]); return 1;
+	switch (x) {
 	default:
 		print("xfunc: can't find external %d\n", x);
 		return 0;
+	case X_scsi_id_buf:
+		*v = offsetof(Dsa, scsi_id_buf[0]);
+		break;
+	case X_msg_out_buf:
+		*v = offsetof(Dsa, msg_out_buf);
+		break;
+	case X_cmd_buf:
+		*v = offsetof(Dsa, cmd_buf);
+		break;
+	case X_data_buf:
+		*v = offsetof(Dsa, data_buf);
+		break;
+	case X_status_buf:
+		*v = offsetof(Dsa, status_buf);
+		break;
+	case X_dsa_head:
+		*v = DMASEG(&c->dsalist.head[0]);
+		break;
 	}
 	return 1;
 }
@@ -1960,7 +1965,7 @@ sympnp(void)
 		}
 		if(v >= &variant[nelem(variant)])
 			continue;
-		print("sd53c8xx: %s rev. 0x%2.2x intr=%d command=%4.4luX\n",
+		print("sd53c8xx: %s rev. 0x%2.2x intr=%d command=%4.4uX\n",
 			v->name, p->rid, p->intl, p->pcr);
 
 		regpa = p->mem[1].bar;

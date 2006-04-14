@@ -39,6 +39,7 @@ static Field p_fields[] =
 
 static Mux p_mux[] =
 {
+	{"dns",	53, },
 	{"bootp",	67, },
 	{"ninep",	6346, },	/* tvs */
 	{"rtp",		ANYPORT, },

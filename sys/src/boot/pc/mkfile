@@ -33,9 +33,10 @@ LOAD=\
 	8250.$O\
 	apm.$O\
 	boot.$O\
-	devpccard.$O\
+	cis.$O\
 	conf.$O\
 	devi82365.$O\
+	devpccard.$O\
 	devsd.$O\
 	inflate.$O\
 	load.$O\
@@ -166,8 +167,8 @@ install:V:
 		mk $MKFLAGS $i.install
 
 %.install:V:	$BIN/%
-	#import lookout / /n/lookout
-	#cp $prereq /n/lookout/$prereq
+	import lookout / /n/lookout
+	cp $prereq /n/lookout/$prereq
 
 $BIN/%:	%
 	cp $stem $BIN/$stem

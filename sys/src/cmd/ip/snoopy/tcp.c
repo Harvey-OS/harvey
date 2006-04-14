@@ -50,6 +50,7 @@ static Field p_fields[] =
 
 static Mux p_mux[] =
 {
+	{"dns",	53, },
 	{"ninep",	17007, },	/* exportfs */
 	{"ninep",	564, },		/* 9fs */
 	{"ninep",	17005, },	/* ocpu */

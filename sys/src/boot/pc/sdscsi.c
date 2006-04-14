@@ -133,7 +133,7 @@ scsirio(SDreq* r)
 // cgascreenputs("C", 1);
 	switch(r->unit->dev->ifc->rio(r)){
 	default:
-		return -1;
+		break;
 	case SDcheck:
 		if(!(r->flags & SDvalidsense))
 			return -1;
@@ -151,7 +151,7 @@ scsirio(SDreq* r)
 				return 2;
 			if(r->sense[12] == 0x29)
 				return 2;
-			return -1;
+			break;
 		case 0x02:		/* not ready */
 			/*
 			 * If no medium present, bail out.
@@ -166,9 +166,9 @@ scsirio(SDreq* r)
 			scsitest(r);
 			return 2;
 		default:
-			return -1;
+			break;
 		}
-		return -1;
+		break;
 	case SDok:
 		return 0;
 	}
