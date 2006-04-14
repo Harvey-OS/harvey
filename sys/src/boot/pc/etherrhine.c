@@ -18,7 +18,6 @@
 typedef struct QLock { int r; } QLock;
 #define qlock(i)	while(0)
 #define qunlock(i)	while(0)
-#define coherence()
 #define iprint		print
 
 #include "etherif.h"

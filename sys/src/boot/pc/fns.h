@@ -15,6 +15,7 @@ int	cistrncmp(char*, char*, int);
 void	changeconf(char*, ...);
 void	checkalarms(void);
 void	clockinit(void);
+#define coherence()	mb386()
 void	consdrain(void);
 void	consinit(char*, char*);
 void	consputs(char*, int);
@@ -53,11 +54,14 @@ ulong	inl(int);
 void	insb(int, void*, int);
 void	inss(int, void*, int);
 void	insl(int, void*, int);
+#define ioalloc(addr, len, align, name)	(addr)
+#define iofree(addr)
 void	iunlock(Lock*);
 int	isaconfig(char*, int, ISAConf*);
 void	kbdinit(void);
 void	kbdchar(int);
 void	machinit(void);
+void	mb386(void);
 void	meminit(ulong);
 void	microdelay(int);
 void	mmuinit(void);
@@ -83,7 +87,9 @@ uchar	pciintl(Pcidev *);
 uchar	pciipin(Pcidev *, uchar);
 void	pcireset(void);
 void	pcisetbme(Pcidev*);
-int	pcmcistuple(int, int, void*, int);
+void	pcmcisread(PCMslot*);
+int	pcmcistuple(int, int, int, void*, int);
+PCMmap*	pcmmap(int, ulong, int, int);
 int	pcmspecial(char*, ISAConf*);
 void	pcmspecialclose(int);
 void	pcmunmap(int, PCMmap*);

@@ -9,8 +9,6 @@
 #include "error.h"
 #include "io.h"
 
-#define ioalloc(addr, len, align, name)	(addr)
-#define iofree(addr)
 extern int pciscan(int, Pcidev **);
 extern ulong pcibarsize(Pcidev *, int);
 
@@ -33,7 +31,7 @@ pcmspecialclose(int a)
 static ulong
 ioreserve(ulong, int size, int align, char *)
 {
-	static ulong isaend = 0xfd00;
+	static ulong isaend = 0x400; /*0xfd00*/;
 	ulong ioaddr;
 
 	if (align)
@@ -51,8 +49,10 @@ enum {
 	TI_1250_did = 0xAC16,
 	TI_1450_did = 0xAC1B,
 	TI_1251A_did = 0xAC1D,
+	TI_1420_did = 0xAC51,
 
 	Ricoh_vid = 0x1180,
+	Ricoh_475_did = 0x0475,
 	Ricoh_476_did = 0x0476,
 	Ricoh_478_did = 0x0478,
 
@@ -68,7 +68,7 @@ enum {
 	NUMEVENTS = 10,
 
 	TI1131xSC = 0x80,		// system control
-		TI122X_SC_INTRTIE = 1 << 29,
+		TI122X_SC_INTRTIE	= 1 << 29,
 	TI12xxIM = 0x8c,		// 
 	TI1131xCC = 0x91,		// card control
 		TI113X_CC_RIENB = 1 << 7,
@@ -81,19 +81,22 @@ enum {
 	TI1131xDC = 0x92,		// device control
 };
 
-typedef struct {
-	ushort	r_vid;
-	ushort	r_did;
-	char		*r_name;
-} variant_t;
+typedef struct Variant Variant;
+struct Variant {
+	ushort	vid;
+	ushort	did;
+	char	*name;
+};
 
-static variant_t variant[] = {
+static Variant variant[] = {
+{	Ricoh_vid,	Ricoh_475_did,	"Ricoh 475 PCI/Cardbus bridge",	},
 {	Ricoh_vid,	Ricoh_476_did,	"Ricoh 476 PCI/Cardbus bridge",	},
 {	Ricoh_vid,	Ricoh_478_did,	"Ricoh 478 PCI/Cardbus bridge",	},
 {	TI_vid,		TI_1131_did,	"TI PCI-1131 Cardbus Controller", },
 {	TI_vid,		TI_1250_did,	"TI PCI-1250 Cardbus Controller", },
 {	TI_vid,		TI_1450_did,	"TI PCI-1450 Cardbus Controller", },
 {	TI_vid,		TI_1251A_did,	"TI PCI-1251A Cardbus Controller", },
+{	TI_vid,		TI_1420_did,	"TI PCI-1420 Cardbus Controller", },
 {	O2_vid,		O2_OZ711M3_did,	"O2Micro OZ711M3 MemoryCardBus", },
 };
 
@@ -123,6 +126,8 @@ enum {
 	PciPCR_MEM = 1 << 1,
 	PciPCR_Master = 1 << 2,
 
+	PciPMC = 0xa4,
+
 	Nbars = 6,
 	Ncmd = 10,
 	CBIRQ = 9,
@@ -136,13 +141,6 @@ enum {
 	Tpd6710,
 	Tpd6720,
 	Tvg46x,
-};
-
-static char *chipname[] = {
-[Ti82365]	"Intel 82365SL",
-[Tpd6710]	"Cirrus Logic PD6710",
-[Tpd6720]	"Cirrus Logic PD6720",
-[Tvg46x]	"Vadem VG-46x",
 };
 
 /*
@@ -230,70 +228,48 @@ enum
  *  important parameters like power
  */
 /* cis memory walking */
-typedef struct Cisdat {
+typedef struct Cisdat Cisdat;
+struct Cisdat {
 	uchar		*cisbase;
-	int			cispos;
-	int			cisskip;
-	int			cislen;
-} Cisdat;
-
-/* configuration table entry */
-typedef struct PCMconftab	PCMconftab;
-struct PCMconftab
-{
-	int	index;
-	ushort	irqs;		/* legal irqs */
-	uchar	irqtype;
-	uchar	bit16;		/* true for 16 bit access */
-	struct {
-		ulong	start;
-		ulong	len;
-	} io[16];
-	int	nio;
-	uchar	vpp1;
-	uchar	vpp2;
-	uchar	memwait;
-	ulong	maxwait;
-	ulong	readywait;
-	ulong	otherwait;
+	int		cispos;
+	int		cisskip;
+	int		cislen;
 };
 
-typedef struct {
-	char		pi_verstr[512];		/* Version string */
-	PCMmap		pi_mmap[4];		/* maps, last is always for the kernel */
-	ulong		pi_conf_addr;		/* Config address */
-	uchar		pi_conf_present;	/* Config register present */
-	int		pi_nctab;		/* In use configuration tables */
-	PCMconftab	pi_ctab[8];		/* Configuration tables */
-	PCMconftab	*pi_defctab;		/* Default conftab */
+typedef struct Pcminfo Pcminfo;
+struct Pcminfo {
+	char		verstr[512];		/* Version string */
+	PCMmap		mmap[4];		/* maps, last is always for the kernel */
+	ulong		conf_addr;		/* Config address */
+	uchar		conf_present;		/* Config register present */
+	int		nctab;			/* In use configuration tables */
+	PCMconftab	ctab[8];		/* Configuration tables */
+	PCMconftab	*defctab;		/* Default conftab */
 
-	int		pi_port;		/* Actual port usage */
-	int		pi_irq;			/* Actual IRQ usage */
-} pcminfo_t;
+	int		port;			/* Actual port usage */
+	int		irq;			/* Actual IRQ usage */
+};
 
-#define qlock(i)	{/* nothing to do */;}
-#define qunlock(i)	{/* nothing to do */;}
-typedef struct QLock { int r; } QLock;
+typedef struct Cardbus Cardbus;
+struct Cardbus {
+	Lock;
+	Variant		*variant;		/* Which CardBus chipset */
+	Pcidev		*pci;			/* The bridge itself */
+	ulong		*regs;			/* Cardbus registers */
+	int		ltype;			/* Legacy type */
+	int		lindex;			/* Legacy port index address */
+	int		ldata;			/* Legacy port data address */
+	int		lbase;			/* Base register for this socket */
 
-typedef struct {
-	QLock;
-	variant_t	*cb_variant;		/* Which CardBus chipset */
-	Pcidev		*cb_pci;		/* The bridge itself */
-	ulong		*cb_regs;		/* Cardbus registers */
-	int		cb_ltype;		/* Legacy type */
-	int		cb_lindex;		/* Legacy port index address */
-	int		cb_ldata;		/* Legacy port data address */
-	int		cb_lbase;		/* Base register for this socket */
+	int		state;			/* Current state of card */
+	int		type;			/* Type of card */
+	Pcminfo		linfo;			/* PCMCIA slot info */
 
-	int		cb_state;		/* Current state of card */
-	int		cb_type;		/* Type of card */
-	pcminfo_t	cb_linfo;		/* PCMCIA slot info */
+	int		special;		/* card is allocated to a driver */
 
-	int		cb_refs;		/* Number of refs to slot */
-	QLock		cb_refslock;		/* inc/dev ref lock */
-} cb_t;
-
-static int managerstarted;
+	int		refs;			/* Number of refs to slot */
+	Lock		refslock;		/* inc/dev ref lock */
+};
 
 enum {
 	Mshift=	12,
@@ -301,7 +277,7 @@ enum {
 	Mmask=	~(Mgran-1),	/* mask for address bits important to the chip */
 };
 
-static cb_t cbslots[Nslots];
+static Cardbus cbslots[Nslots];
 static int nslots;
 
 static ulong exponent[8] = { 
@@ -316,28 +292,26 @@ static ulong mantissa[16] = {
 	0, 10, 12, 13, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 80, 
 };
 
-static char Enocard[] = "No card in slot";
-
 static void cbint(Ureg *, void *);
-static int powerup(cb_t *);
-static void configure(cb_t *);
-static void managecard(cb_t *);
+static int powerup(Cardbus *);
+static void configure(Cardbus *);
+static void managecard(Cardbus *);
 static void cardmanager(void *);
-static void eject(cb_t *);
+static void eject(Cardbus *);
 static void interrupt(Ureg *, void *);
-static void powerdown(cb_t *cb);
-static void unconfigure(cb_t *cb);
+static void powerdown(Cardbus *cb);
+static void unconfigure(Cardbus *cb);
 
-static void i82365probe(cb_t *cb, int lindex, int ldata);
-static void i82365configure(cb_t *cb);
-static PCMmap *isamap(cb_t *cb, ulong offset, int len, int attr);
+static void i82365probe(Cardbus *cb, int lindex, int ldata);
+static void i82365configure(Cardbus *cb);
+static PCMmap *isamap(Cardbus *cb, ulong offset, int len, int attr);
 static void isaunmap(PCMmap* m);
-static uchar rdreg(cb_t *cb, int index);
-static void wrreg(cb_t *cb, int index, uchar val);
+static uchar rdreg(Cardbus *cb, int index);
+static void wrreg(Cardbus *cb, int index, uchar val);
 static int readc(Cisdat *cis, uchar *x);
-static void tvers1(cb_t *cb, Cisdat *cis, int );
-static void tcfig(cb_t *cb, Cisdat *cis, int );
-static void tentry(cb_t *cb, Cisdat *cis, int );
+static void tvers1(Cardbus *cb, Cisdat *cis, int );
+static void tcfig(Cardbus *cb, Cisdat *cis, int );
+static void tentry(Cardbus *cb, Cisdat *cis, int );
 static int vcode(int volt);
 static int pccard_pcmspecial(char *idstr, ISAConf *isa);
 static void pccard_pcmspecialclose(int slotno);
@@ -371,23 +345,23 @@ static char *states[] = {
 };
 
 static void
-engine(cb_t *cb, int message)
+engine(Cardbus *cb, int message)
 {
 	// print("engine(%d): %s(%s)\n", 
-	//	 (int)(cb - cbslots), states[cb->cb_state], messages[message]);
-	switch (cb->cb_state) {
+	//	 (int)(cb - cbslots), states[cb->state], messages[message]);
+	switch (cb->state) {
 	case SlotEmpty:
 
 		switch (message) {
 		case CardDetected:
-			cb->cb_state = SlotFull;
+			cb->state = SlotFull;
 			powerup(cb);
 			break;
 		case CardEjected:
 			break;
 		default:
-			print("#Y%d: Invalid message %s in SlotEmpty state\n",
-				(int)(cb - cbslots), messages[message]);
+			//print("#Y%d: Invalid message %s in SlotEmpty state\n",
+			//	(int)(cb - cbslots), messages[message]);
 			break;
 		}
 		break;
@@ -396,11 +370,11 @@ engine(cb_t *cb, int message)
 
 		switch (message) {
 		case CardPowered:
-			cb->cb_state = SlotPowered;
+			cb->state = SlotPowered;
 			configure(cb);
 			break;
 		case CardEjected:
-			cb->cb_state = SlotEmpty;
+			cb->state = SlotEmpty;
 			powerdown(cb);
 			break;
 		default:
@@ -414,10 +388,10 @@ engine(cb_t *cb, int message)
 
 		switch (message) {
 		case CardConfigured:
-			cb->cb_state = SlotConfigured;
+			cb->state = SlotConfigured;
 			break;
 		case CardEjected:
-			cb->cb_state = SlotEmpty;
+			cb->state = SlotEmpty;
 			unconfigure(cb);
 			powerdown(cb);
 			break;
@@ -432,118 +406,18 @@ engine(cb_t *cb, int message)
 
 		switch (message) {
 		case CardEjected:
-			cb->cb_state = SlotEmpty;
+			cb->state = SlotEmpty;
 			unconfigure(cb);
 			powerdown(cb);
 			break;
 		default:
-			print("#Y%d: Invalid message %s in SlotConfigured state\n",
-				(int)(cb - cbslots), messages[message]);
+			//print("#Y%d: Invalid message %s in SlotConfigured state\n",
+			//	(int)(cb - cbslots), messages[message]);
 			break;
 		}
 		break;
 	}
 }
-
-static void
-qengine(cb_t *cb, int message)
-{
-	qlock(cb);
-	engine(cb, message);
-	qunlock(cb);
-}
-
-typedef struct {
-	cb_t	*e_cb;
-	int	e_message;
-} events_t;
-
-static Lock levents;
-static events_t events[NUMEVENTS];
-// static Rendez revents;
-static int nevents;
-
-//static void
-//iengine(cb_t *cb, int message)
-//{
-//	if (nevents >= NUMEVENTS) {
-//		print("#Y: Too many events queued, discarding request\n");
-//		return;
-//	}
-//	ilock(&levents);
-//	events[nevents].e_cb = cb;
-//	events[nevents].e_message = message;
-//	nevents++;
-//	iunlock(&levents);
-//	wakeup(&revents);
-//}
-
-static int
-eventoccured(void)
-{
-	return nevents > 0;
-}
-
-// static void
-// processevents(void *)
-// {
-//	while (1) {
-//		int message;
-//		cb_t *cb;
-//
-//		sleep(&revents, (int (*)(void *))eventoccured, nil);
-//
-//		cb = nil;
-//		message = 0;
-//		ilock(&levents);
-//		if (nevents > 0) {
-//			cb = events[0].e_cb;
-//			message = events[0].e_message;
-//			nevents--;
-//			if (nevents > 0)
-//				memmove(events, &events[1], nevents * sizeof(events_t));
-//		}
-//		iunlock(&levents);
-//
-//		if (cb)
-//			qengine(cb, message);
-//	}
-// }
-
-// static void
-// interrupt(Ureg *, void *)
-// {
-// 	int i;
-// 
-// 	for (i = 0; i != nslots; i++) {
-// 		cb_t *cb = &cbslots[i];
-// 		ulong event, state;
-// 
-// 		event= cb->cb_regs[SocketEvent];
-// 		state = cb->cb_regs[SocketState];
-// 		rdreg(cb, Rcsc);	/* Ack the interrupt */
-// 
-// 		print("interrupt: slot %d, event %.8lX, state %.8lX, (%s)\n", 
-// 			(int)(cb - cbslots), event, state, states[cb->cb_state]);
-// 
-// 		if (event & SE_CCD) {
-// 			cb->cb_regs[SocketEvent] |= SE_CCD;	/* Ack interrupt */
-// 			if (state & SE_CCD) {
-// 				if (cb->cb_state != SlotEmpty) {
-// 					print("#Y: take cardejected interrupt\n");
-// 					iengine(cb, CardEjected);
-// 				}
-// 			}
-// 			else
-// 				iengine(cb, CardDetected);
-// 		}
-// 
-// 		if (event & SE_POWER) {
-// 			cb->cb_regs[SocketEvent] |= SE_POWER;	/* Ack interrupt */
-// 			iengine(cb, CardPowered);
-// 		}
-// 	}
-// }
 
 void
 devpccardlink(void)
@@ -551,22 +425,17 @@ devpccardlink(void)
 	static int initialized;
 	Pcidev *pci;
 	int i;
-//	uchar intl;
+	char *p;
 
 	if (initialized) 
 		return;
 	initialized = 1;
 
-	if (!getconf("pccard0"))
+	if((p=getconf("pccard0")) && strncmp(p, "disabled", 8)==0)
 		return;
 
-	if (_pcmspecial) {
-		print("#Y: CardBus and PCMCIA at the same time?\n");
+	if(_pcmspecial)
 		return;
-	}
-
-	_pcmspecial = pccard_pcmspecial;
-	_pcmspecialclose = pccard_pcmspecialclose;
 
 
 	/* Allocate legacy space */
@@ -575,15 +444,16 @@ devpccardlink(void)
 
 	/* Find all CardBus controllers */
 	pci = nil;
-//	intl = (uchar)-1;
 	while ((pci = pcimatch(pci, 0, 0)) != nil) {
 		ulong baddr;
 		uchar pin;
-		cb_t *cb;
+		Cardbus *cb;
 		int slot;
 
+		if(pci->ccrb != 6 || pci->ccru != 7)
+			continue;
 		for (i = 0; i != nelem(variant); i++)
-			if (pci->vid == variant[i].r_vid && pci->did == variant[i].r_did)
+			if (pci->vid == variant[i].vid && pci->did == variant[i].did)
 				break;
 		if (i == nelem(variant))
 			continue;
@@ -592,8 +462,27 @@ devpccardlink(void)
 		slot = nslots++;
 		cb = &cbslots[slot];
 
-		cb->cb_pci = pci;
-		cb->cb_variant = &variant[i];
+		cb->pci = pci;
+		cb->variant = &variant[i];
+
+		// Set up PCI bus numbers if needed.
+		if (pcicfgr8(pci, PciSBN) == 0) {
+			static int busbase = 0x20;
+
+			pcicfgw8(pci, PciSBN, busbase);
+			pcicfgw8(pci, PciUBN, busbase + 2);
+			busbase += 3;
+		}
+
+		// Patch up intl if needed.
+		if ((pin = pcicfgr8(pci, PciINTP)) != 0 && 
+		    (pci->intl == 0xff || pci->intl == 0)) {
+			pci->intl = pciipin(nil, pin);
+			pcicfgw8(pci, PciINTL, pci->intl);
+
+			if (pci->intl == 0xff || pci->intl == 0)
+				print("#Y%d: No interrupt?\n", (int)(cb - cbslots));
+		}
 		
 		// Don't you love standards!
 		if (pci->vid == TI_vid) {
@@ -620,84 +509,73 @@ devpccardlink(void)
 			else if (pci->did == TI_1250_did) {
 				print("No support yet for the TI_1250_did, prod pb\n");
 			}
-		}
-
-//		if (intl != -1 && intl != pci->intl)
-//			intrenable(pci->intl, interrupt, cb, pci->tbdf, "cardbus");
-//		intl = pci->intl;
-
-		// Set up PCI bus numbers if needed.
-		if (pcicfgr8(pci, PciSBN) == 0) {
-			static int busbase = 0x20;
-
-			pcicfgw8(pci, PciSBN, busbase);
-			pcicfgw8(pci, PciUBN, busbase + 2);
-			busbase += 3;
-		}
-
-		// Patch up intl if needed.
-		if ((pin = pcicfgr8(pci, PciINTP)) != 0 && 
-		    (pci->intl == 0xff || pci->intl == 0)) {
-			pci->intl = pciipin(nil, pin);
-			pcicfgw8(pci, PciINTL, pci->intl);
-
-			if (pci->intl == 0xff || pci->intl == 0)
-				print("#Y%d: No interrupt?\n", (int)(cb - cbslots));
+			else if (pci->did == TI_1420_did) {
+				// Disable Vcc protection
+				pcicfgw32(cb->pci, 0x80, 
+					pcicfgr32(cb->pci, 0x80) | (1 << 21));
+			}
+			
+			pcicfgw16(cb->pci, PciPMC, pcicfgr16(cb->pci, PciPMC) & ~3);
 		}
 	
-		if ((baddr = pcicfgr32(cb->cb_pci, PciBAR0)) == 0) {
-			int align = (pci->did == Ricoh_478_did)? 0x10000: 0x1000;
+		if ((baddr = pcicfgr32(cb->pci, PciBAR0)) == 0) {
+			int size = (pci->did == Ricoh_478_did)? 0x10000: 0x1000;
 
-			baddr = upamalloc(baddr, align, align);
-			pcicfgw32(cb->cb_pci, PciBAR0, baddr);
-			cb->cb_regs = (ulong *)KADDR(baddr);
+			baddr = upamalloc(baddr, size, size);
+			pcicfgw32(cb->pci, PciBAR0, baddr);
+			cb->regs = (ulong *)KADDR(baddr);
 		}
 		else
-			cb->cb_regs = (ulong *)KADDR(upamalloc(baddr, 4096, 0));
-		cb->cb_state = SlotEmpty;
+			cb->regs = (ulong *)KADDR(upamalloc(baddr, 4096, 0));
+		cb->state = SlotEmpty;
 
 		/* Don't really know what to do with this... */
 		i82365probe(cb, LegacyAddr, LegacyAddr + 1);
 
 		print("#Y%ld: %s, %.8ulX intl %d\n", cb - cbslots, 
-			 variant[i].r_name, baddr, pci->intl);
+			 variant[i].name, baddr, pci->intl);
 	}
 
 	if (nslots == 0)
 		return;
 
-	for (i = 0; i != nslots; i++) {
-		cb_t *cb = &cbslots[i];
+	_pcmspecial = pccard_pcmspecial;
+	_pcmspecialclose = pccard_pcmspecialclose;
 
-		if ((cb->cb_regs[SocketState] & SE_CCD) == 0)
+	for (i = 0; i != nslots; i++) {
+		Cardbus *cb = &cbslots[i];
+
+		if ((cb->regs[SocketState] & SE_CCD) == 0)
 			engine(cb, CardDetected);
 	}
 
 	delay(500);			/* Allow time for power up */
 
 	for (i = 0; i != nslots; i++) {
-		cb_t *cb = &cbslots[i];
+		Cardbus *cb = &cbslots[i];
 
-		if (cb->cb_regs[SocketState] & SE_POWER)
+		if (cb->regs[SocketState] & SE_POWER)
 			engine(cb, CardPowered);
 
-		/* Enable interrupt on all events */
-//		cb->cb_regs[SocketMask] |= 0xF;	
-//		wrreg(cb, Rcscic, 0xC);
+		/* Ack and enable interrupts on all events */
+		//cb->regs[SocketEvent] = cb->regs[SocketEvent];
+		//cb->regs[SocketMask] |= 0xF;	
+		//wrreg(cb, Rcscic, 0xC);
 	}
 }
 
 static int
-powerup(cb_t *cb)
+powerup(Cardbus *cb)
 {
 	ulong state;
 	ushort bcr;
 
-	if ((state = cb->cb_regs[SocketState]) & SS_PC16) {
+	state = cb->regs[SocketState];
+	if (state & SS_PC16) {
 	
 		// print("#Y%ld: Probed a PC16 card, powering up card\n", cb - cbslots);
-		cb->cb_type = PC16;
-		memset(&cb->cb_linfo, 0, sizeof(pcminfo_t));
+		cb->type = PC16;
+		memset(&cb->linfo, 0, sizeof(Pcminfo));
 
 		/* power up and unreset, wait's are empirical (???) */
 		wrreg(cb, Rpc, Fautopower|Foutena|Fcardena);
@@ -705,104 +583,111 @@ powerup(cb_t *cb)
 		wrreg(cb, Rigc, 0);
 		delay(100);
 		wrreg(cb, Rigc, Fnotreset);
+		delay(500);
 
 		return 1;
 	}
 
-	if (cb->cb_regs[SocketState] & SS_CCD)
+	if (state & SS_CCD)
 		return 0;
 
-	if ((state & SS_CBC) == 0 || (state & SS_NOTCARD)) {
-		print("#Y%ld: No cardbus card inserted\n", cb - cbslots);
+	if (state & SS_NOTCARD) {
+		print("#Y%ld: No card inserted\n", cb - cbslots);
 		return 0;
 	}
 
 	if (state & SS_BADVCC) {
 		print("#Y%ld: Bad VCC request to card, powering down card!\n", 
 			 cb - cbslots);
-		cb->cb_regs[SocketControl] = 0;
+		cb->regs[SocketControl] = 0;
 		return 0;
 	}
 
 	if ((state & SS_3V) == 0 && (state & SS_5V) == 0) {
 		print("#Y%ld: Unsupported voltage, powering down card!\n", 
 			cb - cbslots);
-		cb->cb_regs[SocketControl] = 0;
+		cb->regs[SocketControl] = 0;
 		return 0;
 	}
 
-	print("#Y%ld: card %spowered at %d volt\n", cb - cbslots, 
-		(state & SS_POWER)? "": "not ", 
-		(state & SS_3V)? 3: (state & SS_5V)? 5: -1);
+	//print("#Y%ld: card %spowered at %d volt\n", cb - cbslots, 
+	//	(state & SS_POWER)? "": "not ", 
+	//	(state & SS_3V)? 3: (state & SS_5V)? 5: -1);
 
 	/* Power up the card
 	 * and make sure the secondary bus is not in reset.
 	 */
-	cb->cb_regs[SocketControl] = (state & SS_5V)? SC_5V: SC_3V;
+	cb->regs[SocketControl] = (state & SS_5V)? SC_5V: SC_3V;
 	delay(50);
-	bcr = pcicfgr16(cb->cb_pci, PciBCR);
+	bcr = pcicfgr16(cb->pci, PciBCR);
 	bcr &= ~0x40;
-	pcicfgw16(cb->cb_pci, PciBCR, bcr);
+	pcicfgw16(cb->pci, PciBCR, bcr);
 	delay(100);
 
-	cb->cb_type = PC32;
+	cb->type = PC32;
 
 	return 1;
 }
 
 static void
-powerdown(cb_t *cb)
+powerdown(Cardbus *cb)
 {
 	ushort bcr;
 
-	if (cb->cb_type == PC16) {
+	if (cb->type == PC16) {
 
 		wrreg(cb, Rpc, 0);	/* turn off card power */
 		wrreg(cb, Rwe, 0);	/* no windows */
 
-		cb->cb_type = -1;
+		cb->type = -1;
 		return;
 	}
 
-	bcr = pcicfgr16(cb->cb_pci, PciBCR);
+	bcr = pcicfgr16(cb->pci, PciBCR);
 	bcr |= 0x40;
-	pcicfgw16(cb->cb_pci, PciBCR, bcr);
-	cb->cb_regs[SocketControl] = 0;
-	cb->cb_type = -1;
+	pcicfgw16(cb->pci, PciBCR, bcr);
+	cb->regs[SocketControl] = 0;
+	cb->type = -1;
 }
 
 static void
-configure(cb_t *cb)
+configure(Cardbus *cb)
 {
-	int i;
 	Pcidev *pci;
+	ulong size, bar;
+	int i, ioindex, memindex, r;
 
-	// print("configuring slot %d (%s)\n", (int)(cb - cbslots), states[cb->cb_state]);
-	if (cb->cb_state == SlotConfigured)
+	//print("configuring slot %d (%s)\n", (int)(cb - cbslots), states[cb->state]);
+	if (cb->state == SlotConfigured)
 		return;
 	engine(cb, CardConfigured);
 
 	delay(50);					/* Emperically established */
 
-	if (cb->cb_type == PC16) {
+	if (cb->type == PC16) {
 		i82365configure(cb);
 		return;
 	}
 
 	/* Scan the CardBus for new PCI devices */
-	pciscan(pcicfgr8(cb->cb_pci, PciSBN), &cb->cb_pci->bridge);
-	pci = cb->cb_pci->bridge;
+	pciscan(pcicfgr8(cb->pci, PciSBN), &cb->pci->bridge);
+	pci = cb->pci->bridge;
 	while (pci) {
-		ulong size, bar;
-		int memindex, ioindex;
+		r = pcicfgr16(pci, PciPCR);
+		r &= ~(PciPCR_IO|PciPCR_MEM);
+		pcicfgw16(pci, PciPCR, r);
 
-		/* Treat the found device as an ordinary PCI card.  It seems that the 
-		     CIS is not always present in CardBus cards.  XXX, need to support 
-		     multifunction cards */
+		/*
+		 * Treat the found device as an ordinary PCI card.
+		 * It seems that the CIS is not always present in
+		 * CardBus cards.
+		 * XXX, need to support multifunction cards
+		 */
 		memindex = ioindex = 0;
 		for (i = 0; i != Nbars; i++) {
 
-			if (pci->mem[i].size == 0) continue;
+			if (pci->mem[i].size == 0)
+				continue;
 			if (pci->mem[i].bar & 1) {
 
 				// Allocate I/O space
@@ -814,8 +699,8 @@ configure(cb_t *cb)
 				pci->mem[i].bar = bar | 1;
 				pcicfgw32(pci, PciBAR0 + i * sizeof(ulong), 
 					          pci->mem[i].bar);
-				pcicfgw16(cb->cb_pci, PciCBIBR0 + ioindex * 8, bar);
-				pcicfgw16(cb->cb_pci, PciCBILR0 + ioindex * 8, 
+				pcicfgw16(cb->pci, PciCBIBR0 + ioindex * 8, bar);
+				pcicfgw16(cb->pci, PciCBILR0 + ioindex * 8, 
 						 bar + pci->mem[i].size - 1);
 				//print("ioindex[%d] %.8uX (%d)\n", 
 				//	ioindex, bar, pci->mem[i].size);
@@ -832,15 +717,16 @@ configure(cb_t *cb)
 			bar = upamalloc(0, pci->mem[i].size, BY2PG);
 			pci->mem[i].bar = bar | (pci->mem[i].bar & 0x80);
 			pcicfgw32(pci, PciBAR0 + i * sizeof(ulong), pci->mem[i].bar);
-			pcicfgw32(cb->cb_pci, PciCBMBR0 + memindex * 8, bar);
-			pcicfgw32(cb->cb_pci, PciCBMLR0 + memindex * 8, 
+			pcicfgw32(cb->pci, PciCBMBR0 + memindex * 8, bar);
+			pcicfgw32(cb->pci, PciCBMLR0 + memindex * 8, 
 					  bar + pci->mem[i].size - 1);
 
-			if (pci->mem[i].bar & 0x80)
+			if (pci->mem[i].bar & 0x80) {
 				/* Enable prefetch */
-				pcicfgw16(cb->cb_pci, PciBCR, 
-						 pcicfgr16(cb->cb_pci, PciBCR) | 
-							          (1 << (8 + memindex)));
+				r = pcicfgr16(cb->pci, PciBCR);
+				r |= 1 << (8 + memindex);
+				pcicfgw16(cb->pci, PciBCR, r);
+			}
 
 			//print("memindex[%d] %.8uX (%d)\n", 
 			//	  memindex, bar, pci->mem[i].size);
@@ -857,27 +743,29 @@ configure(cb_t *cb)
 				pci->rom.size = size;
 
 				pcicfgw32(pci, PciEBAR0, pci->rom.bar);
-				pcicfgw32(cb->cb_pci, PciCBMBR0 + memindex * 8,
+				pcicfgw32(cb->pci, PciCBMBR0 + memindex * 8,
 						 pci->rom.bar);
-				pcicfgw32(cb->cb_pci, PciCBMLR0 + memindex * 8, 
+				pcicfgw32(cb->pci, PciCBMLR0 + memindex * 8, 
 						 pci->rom.bar + pci->rom.size - 1);
 			}
 		}
 
 		/* Set the basic PCI registers for the device */
-		pcicfgw16(pci, PciPCR, 
-				 pcicfgr16(pci, PciPCR) | 
-				 	PciPCR_IO|PciPCR_MEM|PciPCR_Master);
-		pcicfgw8(pci, PciCLS, 8);
-		pcicfgw8(pci, PciLTR, 64);
+		pci->pcr = pcicfgr16(pci, PciPCR);
+		pci->pcr |= PciPCR_IO|PciPCR_MEM|PciPCR_Master;
+		pci->cls = 8;
+		pci->ltr = 64;
+		pcicfgw16(pci, PciPCR, pci->pcr);
+		pcicfgw8(pci, PciCLS, pci->cls);
+		pcicfgw8(pci, PciLTR, pci->ltr);
 
 		if (pcicfgr8(pci, PciINTP)) {
-			pci->intl = pcicfgr8(cb->cb_pci, PciINTL);
+			pci->intl = pcicfgr8(cb->pci, PciINTL);
 			pcicfgw8(pci, PciINTL, pci->intl);
 
 			/* Route interrupts to INTA#/B# */
-			pcicfgw16(cb->cb_pci, PciBCR, 
-					  pcicfgr16(cb->cb_pci, PciBCR) & ~(1 << 7));
+			pcicfgw16(cb->pci, PciBCR, 
+					  pcicfgr16(cb->pci, PciBCR) & ~(1 << 7));
 		}
 			
 		pci = pci->list;
@@ -885,54 +773,53 @@ configure(cb_t *cb)
 }
 
 static void
-unconfigure(cb_t *cb)
+unconfigure(Cardbus *cb)
 {
 	Pcidev *pci;
-	int i, ioindex, memindex;
+	int i, ioindex, memindex, r;
 
-	if (cb->cb_type == PC16) {
+	if (cb->type == PC16) {
 		print("#Y%d: Don't know how to unconfigure a PC16 card\n",
 			 (int)(cb - cbslots));
 
-		memset(&cb->cb_linfo, 0, sizeof(pcminfo_t));
+		memset(&cb->linfo, 0, sizeof(Pcminfo));
 		return;
 	}
 
-	pci = cb->cb_pci->bridge;
+	pci = cb->pci->bridge;
 	if (pci == nil) 
 		return;		/* Not configured */
-	cb->cb_pci->bridge = nil;		
+	cb->pci->bridge = nil;		
 
 	memindex = ioindex = 0;
 	while (pci) {
 		Pcidev *_pci;
 
 		for (i = 0; i != Nbars; i++) {
-			if (pci->mem[i].size == 0) continue;
+			if (pci->mem[i].size == 0)
+				continue;
 			if (pci->mem[i].bar & 1) {
 				iofree(pci->mem[i].bar & ~1);
-				pcicfgw16(cb->cb_pci, PciCBIBR0 + ioindex * 8, 
+				pcicfgw16(cb->pci, PciCBIBR0 + ioindex * 8, 
 						 (ushort)-1);
-				pcicfgw16(cb->cb_pci, PciCBILR0 + ioindex * 8, 0);
+				pcicfgw16(cb->pci, PciCBILR0 + ioindex * 8, 0);
 				ioindex++;
 				continue;
 			}
 
 			upafree(pci->mem[i].bar & ~0xF, pci->mem[i].size);
-			pcicfgw32(cb->cb_pci, PciCBMBR0 + memindex * 8, 
-				          (ulong)-1);
-			pcicfgw32(cb->cb_pci, PciCBMLR0 + memindex * 8, 0);
-			pcicfgw16(cb->cb_pci, PciBCR, 
-					 pcicfgr16(cb->cb_pci, PciBCR) & 
-							       ~(1 << (8 + memindex)));
+			pcicfgw32(cb->pci, PciCBMBR0 + memindex * 8, (ulong)-1);
+			pcicfgw32(cb->pci, PciCBMLR0 + memindex * 8, 0);
+			r = pcicfgr16(cb->pci, PciBCR);
+			r &= ~(1 << (8 + memindex));
+			pcicfgw16(cb->pci, PciBCR, r);
 			memindex++;
 		}
 
 		if (pci->rom.bar && memindex < 2) {
 			upafree(pci->rom.bar & ~0xF, pci->rom.size);
-			pcicfgw32(cb->cb_pci, PciCBMBR0 + memindex * 8, 
-					  (ulong)-1);
-			pcicfgw32(cb->cb_pci, PciCBMLR0 + memindex * 8, 0);
+			pcicfgw32(cb->pci, PciCBMBR0 + memindex * 8, (ulong)-1);
+			pcicfgw32(cb->pci, PciCBMLR0 + memindex * 8, 0);
 			memindex++;
 		}
 
@@ -943,7 +830,7 @@ unconfigure(cb_t *cb)
 }
 
 static void
-i82365configure(cb_t *cb)
+i82365configure(Cardbus *cb)
 {
 	int this;
 	Cisdat cis;
@@ -1001,20 +888,21 @@ pccard_pcmspecial(char *idstr, ISAConf *isa)
 {
 	int i, irq;
 	PCMconftab *ct, *et;
-	pcminfo_t *pi;
-	cb_t *cb;
+	Pcminfo *pi;
+	Cardbus *cb;
 	uchar x, we, *p;
 
 	cb = nil;
 	for (i = 0; i != nslots; i++) {
 		cb = &cbslots[i];
 
-		qlock(cb);
-		if (cb->cb_state == SlotConfigured &&
-		    cb->cb_type == PC16 && 
-		    strstr(cb->cb_linfo.pi_verstr, idstr)) 
+		lock(cb);
+		if (cb->state == SlotConfigured &&
+		    cb->type == PC16 && 
+		    !cb->special &&
+		    strstr(cb->linfo.verstr, idstr)) 
 			break;
-		qunlock(cb);
+		unlock(cb);
 	}
 
 	if (i == nslots) {
@@ -1022,7 +910,7 @@ pccard_pcmspecial(char *idstr, ISAConf *isa)
 		return -1;
 	}
 
-	pi = &cb->cb_linfo;
+	pi = &cb->linfo;
 
 	/*
  	  *  configure the PCMslot for IO.  We assume very heavily that we can read
@@ -1032,7 +920,7 @@ pccard_pcmspecial(char *idstr, ISAConf *isa)
 	if(irq == 2)
 		irq = 9;
 
-	et = &pi->pi_ctab[pi->pi_nctab];
+	et = &pi->ctab[pi->nctab];
 	ct = nil;
 	for(i = 0; i < isa->nopt; i++){
 		int index;
@@ -1041,28 +929,28 @@ pccard_pcmspecial(char *idstr, ISAConf *isa)
 		if(strncmp(isa->opt[i], "index=", 6))
 			continue;
 		index = strtol(&isa->opt[i][6], &cp, 0);
-		if(cp == &isa->opt[i][6] || index >= pi->pi_nctab) {
-			qunlock(cb);
+		if(cp == &isa->opt[i][6] || index >= pi->nctab) {
+			unlock(cb);
 			print("#Y%d: Cannot find index %d in conf table\n", 
 				 (int)(cb - cbslots), index);
 			return -1;
 		}
-		ct = &pi->pi_ctab[index];
+		ct = &pi->ctab[index];
 	}
 
 	if(ct == nil){
 		PCMconftab *t;
 
 		/* assume default is right */
-		if(pi->pi_defctab)
-			ct = pi->pi_defctab;
+		if(pi->defctab)
+			ct = pi->defctab;
 		else
-			ct = pi->pi_ctab;
+			ct = pi->ctab;
 	
 		/* try for best match */
 		if(ct->nio == 0
 		|| ct->io[0].start != isa->port || ((1<<irq) & ct->irqs) == 0){
-			for(t = pi->pi_ctab; t < et; t++)
+			for(t = pi->ctab; t < et; t++)
 				if(t->nio
 				&& t->io[0].start == isa->port
 				&& ((1<<irq) & t->irqs)){
@@ -1071,14 +959,14 @@ pccard_pcmspecial(char *idstr, ISAConf *isa)
 				}
 		}
 		if(ct->nio == 0 || ((1<<irq) & ct->irqs) == 0){
-			for(t = pi->pi_ctab; t < et; t++)
+			for(t = pi->ctab; t < et; t++)
 				if(t->nio && ((1<<irq) & t->irqs)){
 					ct = t;
 					break;
 				}
 		}
 		if(ct->nio == 0){
-			for(t = pi->pi_ctab; t < et; t++)
+			for(t = pi->ctab; t < et; t++)
 				if(t->nio){
 					ct = t;
 					break;
@@ -1087,15 +975,17 @@ pccard_pcmspecial(char *idstr, ISAConf *isa)
 	}
 
 	if(ct == et || ct->nio == 0) {
-		qunlock(cb);
+		unlock(cb);
 		print("#Y%d: No configuration?\n", (int)(cb - cbslots));
 		return -1;
 	}
 	if(isa->port == 0 && ct->io[0].start == 0) {
-		qunlock(cb);
+		unlock(cb);
 		print("#Y%d: No part or start address\n", (int)(cb - cbslots));
 		return -1;
 	}
+
+	cb->special = 1;	/* taken */
 
 	/* route interrupts */
 	isa->irq = irq;
@@ -1138,16 +1028,16 @@ pccard_pcmspecial(char *idstr, ISAConf *isa)
 	wrreg(cb, Rwe, we);
 
 	/* only touch Rconfig if it is present */
-	if(pi->pi_conf_present & (1<<Rconfig)){
+	if(pi->conf_present & (1<<Rconfig)){
 		PCMmap *m;
 
 		/*  Reset adapter */
-		m = isamap(cb, pi->pi_conf_addr + Rconfig, 1, 1);
-		p = KADDR(m->isa + pi->pi_conf_addr + Rconfig - m->ca);
+		m = isamap(cb, pi->conf_addr + Rconfig, 1, 1);
+		p = KADDR(m->isa + pi->conf_addr + Rconfig - m->ca);
 
 		/* set configuration and interrupt type */
 		x = ct->index;
-		if((ct->irqtype & 0x20) && ((ct->irqtype & 0x40)==0 || isa->irq>7))
+		if((ct->irqtype & 0x20)/* && ((ct->irqtype & 0x40)==0 || isa->irq>7)*/)
 			x |= Clevel;
 		*p = x;
 		delay(5);
@@ -1155,20 +1045,21 @@ pccard_pcmspecial(char *idstr, ISAConf *isa)
 		isaunmap(m);
 	}
 
-	pi->pi_port = isa->port;
-	pi->pi_irq = isa->irq;
-	qunlock(cb);
+	pi->port = isa->port;
+	pi->irq = isa->irq;
+	unlock(cb);
 
-	print("#Y%d: %s irq %ld, port %lX\n", (int)(cb - cbslots), pi->pi_verstr, isa->irq, isa->port);
+	print("#Y%d: %s irq %ld, port %lX\n", (int)(cb - cbslots), pi->verstr, isa->irq, isa->port);
 	return (int)(cb - cbslots);
 }
 
 static void
 pccard_pcmspecialclose(int slotno)
 {
-	cb_t *cb = &cbslots[slotno];
+	Cardbus *cb = &cbslots[slotno];
 
 	wrreg(cb, Rwe, 0);	/* no windows */
+	cb->special = 0;
 }
 
 static int
@@ -1180,7 +1071,7 @@ xcistuple(int slotno, int tuple, int subtuple, void *v, int nv, int attr)
 	uchar *p;
 	uchar type, link, n, c;
 	int this, subtype;
-	cb_t *cb = &cbslots[slotno];
+	Cardbus *cb = &cbslots[slotno];
 
 	m = isamap(cb, 0, 0, attr);
 	if(m == 0)
@@ -1226,260 +1117,16 @@ xcistuple(int slotno, int tuple, int subtuple, void *v, int nv, int attr)
 	return -1;
 }
 
-// static Chan*
-// pccardattach(char *spec)
-// {
-// 	if (!managerstarted) {
-// 		managerstarted = 1;
-// 		kproc("cardbus", processevents, nil);
-// 	}
-// 	return devattach('Y', spec);
-// }
-//
-//enum
-//{
-//	Qdir,
-//	Qctl,
-//
-//	Nents = 1,
-//};
-//
-//#define SLOTNO(c)	((ulong)((c->qid.path>>8)&0xff))
-//#define TYPE(c)	((ulong)(c->qid.path&0xff))
-//#define QID(s,t)	(((s)<<8)|(t))
-//
-//static int
-//pccardgen(Chan *c, char*, Dirtab *, int , int i, Dir *dp)
-//{
-//	int slotno;
-//	Qid qid;
-//	long len;
-//	int entry;
-//
-//	if(i == DEVDOTDOT){
-//		mkqid(&qid, Qdir, 0, QTDIR);
-//		devdir(c, qid, "#Y", 0, eve, 0555, dp);
-//		return 1;
-//	}
-//
-//	len = 0;
-//	if(i >= Nents * nslots) return -1;
-//	slotno = i / Nents;
-//	entry = i % Nents;
-//	if (entry == 0) {
-//		qid.path = QID(slotno, Qctl);
-//		snprint(up->genbuf, sizeof up->genbuf, "cb%dctl", slotno);
-//	}
-//	else {
-//		/* Entries for memory regions.  I'll implement them when 
-//		     needed. (pb) */
-//	}
-//	qid.vers = 0;	
-//	qid.type = QTFILE;
-//	devdir(c, qid, up->genbuf, len, eve, 0660, dp);
-//	return 1;
-//}
-//
-//static Walkqid*
-//pccardwalk(Chan *c, Chan *nc, char **name, int nname)
-//{
-//	return devwalk(c, nc, name, nname, 0, 0, pccardgen);
-//}
-//
-//static int
-//pccardstat(Chan *c, uchar *db, int n)
-//{
-//	return devstat(c, db, n, 0, 0, pccardgen);
-//}
-//
-//static void
-//increfp(cb_t *cb)
-//{
-//	qlock(&cb->cb_refslock);
-//	cb->cb_refs++;
-//	qunlock(&cb->cb_refslock);
-//}
-//
-//static void
-//decrefp(cb_t *cb)
-//{
-//	qlock(&cb->cb_refslock);
-//	cb->cb_refs--;
-//	qunlock(&cb->cb_refslock);
-//}
-//
-//static Chan*
-//pccardopen(Chan *c, int omode)
-//{
-//	if (c->qid.type & QTDIR){
-//		if(omode != OREAD)
-//			error(Eperm);
-//	} else
-//		increfp(&cbslots[SLOTNO(c)]);
-//	c->mode = openmode(omode);
-//	c->flag |= COPEN;
-//	c->offset = 0;
-//	return c;
-//}
-//
-//static void
-//pccardclose(Chan *c)
-//{
-//	if(c->flag & COPEN)
-//		if((c->qid.type & QTDIR) == 0)
-//			decrefp(&cbslots[SLOTNO(c)]);
-//}
-//
-//static long
-//pccardread(Chan *c, void *a, long n, vlong offset)
-//{
-//	cb_t *cb;
-//	char *buf, *p, *e;
-//
-//	switch(TYPE(c)){
-//	case Qdir:
-//		return devdirread(c, a, n, 0, 0, pccardgen);
-//
-//	case Qctl:
-//		buf = p = malloc(READSTR);
-//		buf[0] = 0;
-//		e = p + READSTR;
-//	
-//		cb = &cbslots[SLOTNO(c)];
-//		qlock(cb);
-//		p = seprint(p, e, "slot %ld: %s; ", cb - cbslots, states[cb->cb_state]);
-//
-//		switch (cb->cb_type) {
-//		case -1:
-//			seprint(p, e, "\n");
-//			break;
-//
-//		case PC32:
-//			if (cb->cb_pci->bridge) {
-//				Pcidev *pci = cb->cb_pci->bridge;
-//				int i;
-//
-//				while (pci) {
-//					p = seprint(p, e, "%.4uX %.4uX; irq %d\n", 
-//							  pci->vid, pci->did, pci->intl);
-//					for (i = 0; i != Nbars; i++)
-//						if (pci->mem[i].size)
-//							p = seprint(p, e, 
-//									  "\tmem[%d] %.8uX (%.8uX)\n",
-//									  i, pci->mem[i].bar, 
-//									  pci->mem[i].size);
-//					if (pci->rom.size)
-//						p = seprint(p, e, "\tROM %.8uX (%.8uX)\n", i, 
-//								  pci->rom.bar, pci->rom.size);
-//					pci = pci->list;
-//				}
-//			}
-//			break;
-//
-//		case PC16:
-//			if (cb->cb_state == SlotConfigured) {
-//				pcminfo_t *pi = &cb->cb_linfo;
-//
-//				p = seprint(p, e, "%s port %X; irq %d;\n",
-//						  pi->pi_verstr, pi->pi_port,
-//						  pi->pi_irq);
-//				for (n = 0; n != pi->pi_nctab; n++) {
-//					PCMconftab *ct;
-//					int i;
-//
-//					ct = &pi->pi_ctab[n];
-//					p = seprint(p, e, 
-//						"\tconfiguration[%d] irqs %.4X; vpp %d, %d; %s\n",
-//							  n, ct->irqs, ct->vpp1, ct->vpp2,
-//							  (ct == pi->pi_defctab)? "(default);": "");
-//					for (i = 0; i != ct->nio; i++)
-//						if (ct->io[i].len > 0)
-//							p = seprint(p, e, "\t\tio[%d] %.8lX %d\n",
-//									  i, ct->io[i].start, ct->io[i].len);
-//				}
-//			}
-//			break;
-//		}
-//		qunlock(cb);
-//			
-//		n = readstr(offset, a, n, buf);
-//		free(buf);
-//		return n;
-//	}
-//	return 0;
-//}
-//
-//static long
-//pccardwrite(Chan *c, void *v, long n, vlong)
-//{
-//	Rune r;
-//	ulong n0;
-//	int i, nf;
-//	char buf[255], *field[Ncmd], *device;
-//	cb_t *cb;
-//
-//	n0 = n;
-//	switch(TYPE(c)){
-//	case Qctl:
-//		cb = &cbslots[SLOTNO(c)];
-//		if(n > sizeof(buf)-1) n = sizeof(buf)-1;
-//		memmove(buf, v, n);
-//		buf[n] = '\0';
-//
-//		nf = getfields(buf, field, Ncmd, 1, " \t\n");
-//		for (i = 0; i != nf; i++) {
-//			if (!strcmp(field[i], "down")) {
-//
-//				if (i + 1 < nf && *field[i + 1] == '#') {
-//					device = field[++i];
-//					device += chartorune(&r, device);
-//					if ((n = devno(r, 1)) >= 0 && devtab[n]->config)
-//						devtab[n]->config(0, device, nil);
-//				}
-//				qengine(cb, CardEjected);
-//			}
-//			else if (!strcmp(field[i], "power")) {
-//				if ((cb->cb_regs[SocketState] & SS_CCD) == 0)
-//					qengine(cb, CardDetected);
-//			}
-//			else
-//				error(Ebadarg);
-//		}
-//		break;
-//	}
-//	return n0 - n;
-//}
-//
-//Dev pccarddevtab = {
-//	'Y',
-//	"cardbus",
-//
-//	devreset,
-//	devinit,
-//	pccardattach,
-//	pccardwalk,
-//	pccardstat,
-//	pccardopen,
-//	devcreate,
-//	pccardclose,
-//	pccardread,
-//	devbread,
-//	pccardwrite,
-//	devbwrite,
-//	devremove,
-//	devwstat,
-//};
-
 static PCMmap *
-isamap(cb_t *cb, ulong offset, int len, int attr)
+isamap(Cardbus *cb, ulong offset, int len, int attr)
 {
 	uchar we, bit;
 	PCMmap *m, *nm;
-	pcminfo_t *pi;
+	Pcminfo *pi;
 	int i;
 	ulong e;
 
-	pi = &cb->cb_linfo;
+	pi = &cb->linfo;
 
 	/* convert offset to granularity */
 	if(len <= 0)
@@ -1492,7 +1139,7 @@ isamap(cb_t *cb, ulong offset, int len, int attr)
 	we = rdreg(cb, Rwe);
 	bit = 1;
 	nm = 0;
-	for(m = pi->pi_mmap; m < &pi->pi_mmap[nelem(pi->pi_mmap)]; m++){
+	for(m = pi->mmap; m < &pi->mmap[nelem(pi->mmap)]; m++){
 		if((we & bit))
 		if(m->attr == attr)
 		if(offset >= m->ca && e <= m->cea){
@@ -1526,7 +1173,7 @@ isamap(cb_t *cb, ulong offset, int len, int attr)
 	m->ca = offset;
 	m->cea = m->ca + m->len;
 	m->attr = attr;
-	i = m - pi->pi_mmap;
+	i = m - pi->mmap;
 	bit = 1<<i;
 	wrreg(cb, Rwe, we & ~bit);		/* disable map before changing it */
 	wrreg(cb, MAP(i, Mbtmlo), m->isa>>Mshift);
@@ -1554,17 +1201,17 @@ isaunmap(PCMmap* m)
  *  reading and writing card registers
  */
 static uchar
-rdreg(cb_t *cb, int index)
+rdreg(Cardbus *cb, int index)
 {
-	outb(cb->cb_lindex, cb->cb_lbase + index);
-	return inb(cb->cb_ldata);
+	outb(cb->lindex, cb->lbase + index);
+	return inb(cb->ldata);
 }
 
 static void
-wrreg(cb_t *cb, int index, uchar val)
+wrreg(Cardbus *cb, int index, uchar val)
 {
-	outb(cb->cb_lindex, cb->cb_lbase + index);
-	outb(cb->cb_ldata, val);
+	outb(cb->lindex, cb->lbase + index);
+	outb(cb->ldata, val);
 }
 
 static int
@@ -1594,11 +1241,11 @@ getlong(Cisdat *cis, int size)
 }
 
 static void
-tcfig(cb_t *cb, Cisdat *cis, int )
+tcfig(Cardbus *cb, Cisdat *cis, int )
 {
 	uchar size, rasize, rmsize;
 	uchar last;
-	pcminfo_t *pi;
+	Pcminfo *pi;
 
 	if(readc(cis, &size) != 1)
 		return;
@@ -1607,25 +1254,25 @@ tcfig(cb_t *cb, Cisdat *cis, int )
 	if(readc(cis, &last) != 1)
 		return;
 
-	pi = &cb->cb_linfo;
-	pi->pi_conf_addr = getlong(cis, rasize);
-	pi->pi_conf_present = getlong(cis, rmsize);
+	pi = &cb->linfo;
+	pi->conf_addr = getlong(cis, rasize);
+	pi->conf_present = getlong(cis, rmsize);
 }
 
 static void
-tvers1(cb_t *cb, Cisdat *cis, int )
+tvers1(Cardbus *cb, Cisdat *cis, int )
 {
 	uchar c, major, minor, last;
 	int  i;
-	pcminfo_t *pi;
+	Pcminfo *pi;
 
-	pi = &cb->cb_linfo;
+	pi = &cb->linfo;
 	if(readc(cis, &major) != 1)
 		return;
 	if(readc(cis, &minor) != 1)
 		return;
 	last = 0;
-	for(i = 0; i < sizeof(pi->pi_verstr) - 1; i++){
+	for(i = 0; i < sizeof(pi->verstr) - 1; i++){
 		if(readc(cis, &c) != 1)
 			return;
 		if(c == 0)
@@ -1636,10 +1283,10 @@ tvers1(cb_t *cb, Cisdat *cis, int )
 			break;
 		if(c == ';' && last == ';')
 			continue;
-		pi->pi_verstr[i] = c;
+		pi->verstr[i] = c;
 		last = c;
 	}
-	pi->pi_verstr[i] = 0;
+	pi->verstr[i] = 0;
 }
 
 static ulong
@@ -1813,28 +1460,28 @@ memspace(Cisdat *cis, int asize, int lsize, int host)
 }
 
 static void
-tentry(cb_t *cb, Cisdat *cis, int )
+tentry(Cardbus *cb, Cisdat *cis, int )
 {
 	uchar c, i, feature;
 	PCMconftab *ct;
-	pcminfo_t *pi;
+	Pcminfo *pi;
 
-	pi = &cb->cb_linfo;
-	if(pi->pi_nctab >= nelem(pi->pi_ctab))
+	pi = &cb->linfo;
+	if(pi->nctab >= nelem(pi->ctab))
 		return;
 	if(readc(cis, &c) != 1)
 		return;
-	ct = &pi->pi_ctab[pi->pi_nctab++];
+	ct = &pi->ctab[pi->nctab++];
 
 	/* copy from last default config */
-	if(pi->pi_defctab)
-		*ct = *pi->pi_defctab;
+	if(pi->defctab)
+		*ct = *pi->defctab;
 
 	ct->index = c & 0x3f;
 
 	/* is this the new default? */
 	if(c & 0x40)
-		pi->pi_defctab = ct;
+		pi->defctab = ct;
 
 	/* memory wait specified? */
 	if(c & 0x80){
@@ -1885,7 +1532,7 @@ tentry(cb_t *cb, Cisdat *cis, int )
 }
 
 static void
-i82365probe(cb_t *cb, int lindex, int ldata)
+i82365probe(Cardbus *cb, int lindex, int ldata)
 {
 	uchar c, id;
 	int dev = 0;	/* According to the Ricoh spec 00->3F _and_ 80->BF seem
@@ -1898,51 +1545,51 @@ i82365probe(cb_t *cb, int lindex, int ldata)
 	if((id & 0x0f) == 0x00)
 		return;		/* no revision number, not possible */
 
-	cb->cb_lindex = lindex;
-	cb->cb_ldata = ldata;
-	cb->cb_ltype = Ti82365;
-	cb->cb_lbase = (int)(cb - cbslots) * 0x40;
+	cb->lindex = lindex;
+	cb->ldata = ldata;
+	cb->ltype = Ti82365;
+	cb->lbase = (int)(cb - cbslots) * 0x40;
 
 	switch(id){
 	case 0x82:
 	case 0x83:
 	case 0x84:
 		/* could be a cirrus */
-		outb(cb->cb_lindex, Rchipinfo + (dev<<7));
-		outb(cb->cb_ldata, 0);
-		c = inb(cb->cb_ldata);
+		outb(cb->lindex, Rchipinfo + (dev<<7));
+		outb(cb->ldata, 0);
+		c = inb(cb->ldata);
 		if((c & 0xc0) != 0xc0)
 			break;
-		c = inb(cb->cb_ldata);
+		c = inb(cb->ldata);
 		if((c & 0xc0) != 0x00)
 			break;
 		if(c & 0x20){
-			cb->cb_ltype = Tpd6720;
+			cb->ltype = Tpd6720;
 		} else {
-			cb->cb_ltype = Tpd6710;
+			cb->ltype = Tpd6710;
 		}
 		break;
 	}
 
 	/* if it's not a Cirrus, it could be a Vadem... */
-	if(cb->cb_ltype == Ti82365){
+	if(cb->ltype == Ti82365){
 		/* unlock the Vadem extended regs */
-		outb(cb->cb_lindex, 0x0E + (dev<<7));
-		outb(cb->cb_lindex, 0x37 + (dev<<7));
+		outb(cb->lindex, 0x0E + (dev<<7));
+		outb(cb->lindex, 0x37 + (dev<<7));
 
 		/* make the id register show the Vadem id */
-		outb(cb->cb_lindex, 0x3A + (dev<<7));
-		c = inb(cb->cb_ldata);
-		outb(cb->cb_ldata, c|0xC0);
-		outb(cb->cb_lindex, Rid + (dev<<7));
-		c = inb(cb->cb_ldata);
+		outb(cb->lindex, 0x3A + (dev<<7));
+		c = inb(cb->ldata);
+		outb(cb->ldata, c|0xC0);
+		outb(cb->lindex, Rid + (dev<<7));
+		c = inb(cb->ldata);
 		if(c & 0x08)
-			cb->cb_ltype = Tvg46x;
+			cb->ltype = Tvg46x;
 
 		/* go back to Intel compatible id */
-		outb(cb->cb_lindex, 0x3A + (dev<<7));
-		c = inb(cb->cb_ldata);
-		outb(cb->cb_ldata, c & ~0xC0);
+		outb(cb->lindex, 0x3A + (dev<<7));
+		c = inb(cb->ldata);
+		outb(cb->ldata, c & ~0xC0);
 	}
 }
 
@@ -1958,4 +1605,3 @@ vcode(int volt)
 		return 0;
 	}
 }
-
