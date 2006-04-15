@@ -1,8 +1,8 @@
 386 - 20000000775 sys sys 1010957353 0
 386/9load - 775 sys sys 1131317303 216948
-386/9loaddebug - 775 sys sys 1143931720 312489
+386/9loaddebug - 775 sys sys 1144985392 312489
 386/9loadlite - 775 sys sys 1131317306 135668
-386/9loadlitedebug - 775 sys sys 1143931720 200137
+386/9loadlitedebug - 775 sys sys 1144985393 200137
 386/9pc - 775 sys sys 1143137104 1913157
 386/9pc.gz - 664 sys sys 1141258202 668936
 386/9pccpu - 775 sys sys 1141258205 1583315
@@ -289,7 +289,7 @@
 386/bin/ip/gping - 775 sys sys 1144688933 183478
 386/bin/ip/hogports - 775 sys sys 1143742001 42914
 386/bin/ip/httpd - 20000000775 sys sys 1016920846 0
-386/bin/ip/httpd/httpd - 775 sys sys 1144688934 294986
+386/bin/ip/httpd/httpd - 775 sys sys 1145033670 294994
 386/bin/ip/httpd/imagemap - 775 sys sys 1144688935 117122
 386/bin/ip/httpd/man2html - 775 sys sys 1144688935 125680
 386/bin/ip/httpd/netlib_find - 775 sys sys 1144688935 117975
@@ -336,10 +336,10 @@
 386/bin/ndb - 20000000775 sys sys 985743147 0
 386/bin/ndb/cs - 775 sys sys 1144688943 150957
 386/bin/ndb/csquery - 775 sys sys 1143777822 61797
-386/bin/ndb/dns - 775 sys sys 1144688944 246827
-386/bin/ndb/dnsdebug - 775 sys sys 1144688945 221463
+386/bin/ndb/dns - 775 sys sys 1145033671 247331
+386/bin/ndb/dnsdebug - 775 sys sys 1145033672 221818
 386/bin/ndb/dnsquery - 775 sys sys 1143777824 63965
-386/bin/ndb/dnstcp - 775 sys sys 1144688946 220100
+386/bin/ndb/dnstcp - 775 sys sys 1145033672 220786
 386/bin/ndb/ipquery - 775 sys sys 1144688946 97032
 386/bin/ndb/mkdb - 775 sys sys 1143777826 64306
 386/bin/ndb/mkhash - 775 sys sys 1144688946 84875
@@ -401,7 +401,7 @@
 386/bin/snap - 775 sys sys 1136346852 313627
 386/bin/snapfs - 775 sys sys 1134389876 388292
 386/bin/sniffer - 775 sys sys 1038443185 99028
-386/bin/snoopy - 775 sys sys 1143777838 170709
+386/bin/snoopy - 775 sys sys 1145033673 183331
 386/bin/sort - 775 sys sys 1143777838 82618
 386/bin/spin - 775 sys sys 1134151359 758520
 386/bin/split - 775 sys sys 1143777838 75981
@@ -7336,7 +7336,7 @@ sys/man/1/ns - 664 sys sys 944959677 893
 sys/man/1/p - 664 sys sys 944959673 504
 sys/man/1/page - 664 sys sys 1087829646 5839
 sys/man/1/passwd - 664 sys sys 1113743327 1382
-sys/man/1/patch - 664 sys sys 1141738937 2361
+sys/man/1/patch - 664 sys sys 1145023250 2375
 sys/man/1/pcc - 664 sys sys 1015024740 3478
 sys/man/1/pic - 664 sys sys 1022625353 8229
 sys/man/1/pipefile - 664 sys sys 984709628 1861
@@ -7398,7 +7398,7 @@ sys/man/1/who - 664 sys sys 944959674 332
 sys/man/1/winwatch - 664 sys sys 1113252108 723
 sys/man/1/xd - 664 sys sys 944959674 1517
 sys/man/1/yacc - 664 sys sys 944959676 3273
-sys/man/1/yesterday - 664 sys sys 1140694868 2607
+sys/man/1/yesterday - 664 sys sys 1145023317 2628
 sys/man/2 - 20000000775 sys sys 1017423721 0
 sys/man/2/0intro - 664 sys sys 1115941566 11660
 sys/man/2/9p - 664 sys sys 1134335896 15859
@@ -9054,7 +9054,7 @@ sys/src/boot/pc/load.c - 664 sys sys 1135487939 8923
 sys/src/boot/pc/mbr.s - 664 sys sys 1015007953 6234
 sys/src/boot/pc/mem.h - 664 sys sys 1130887225 3371
 sys/src/boot/pc/memory.c - 664 sys sys 1019533021 10272
-sys/src/boot/pc/mkfile - 664 sys sys 1144961190 3112
+sys/src/boot/pc/mkfile - 664 sys sys 1145035359 3116
 sys/src/boot/pc/noether.c - 664 sys sys 1094674488 358
 sys/src/boot/pc/part.c - 664 sys sys 1114697151 7153
 sys/src/boot/pc/pbs.s - 664 sys sys 1143465387 8291
@@ -12315,7 +12315,7 @@ sys/src/cmd/ip/gping.c - 664 sys sys 1015013112 20476
 sys/src/cmd/ip/hogports.c - 664 sys sys 1118623129 989
 sys/src/cmd/ip/httpd - 20000000775 sys sys 1016902735 0
 sys/src/cmd/ip/httpd/anonymous.c - 664 sys sys 984773807 195
-sys/src/cmd/ip/httpd/authorize.c - 664 sys sys 1016902735 2387
+sys/src/cmd/ip/httpd/authorize.c - 664 sys sys 1145023291 2403
 sys/src/cmd/ip/httpd/classify.c - 664 sys sys 1078840017 9665
 sys/src/cmd/ip/httpd/content.c - 664 sys sys 1015090170 3140
 sys/src/cmd/ip/httpd/emem.c - 664 sys sys 984773807 278
@@ -15627,5 +15627,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/9loaddebug - 775 sys sys 1144985392 312489
-386/9loadlitedebug - 775 sys sys 1144985393 200137

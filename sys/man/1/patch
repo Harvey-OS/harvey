@@ -86,7 +86,7 @@ Propose a change to
 .IR pwd ,
 which you have modified locally:
 .EX
-% patch/create pwd-errors /sys/src/cmd/pwd.c
+% patch/create pwd-errors user@host.dom /sys/src/cmd/pwd.c
 Fix pwd to print errors to fd 2 rather than 1.
 ^D
 % 
