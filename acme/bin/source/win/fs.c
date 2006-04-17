@@ -46,7 +46,7 @@ fswrite(Req *r)
 {
 	static Event *e[4];
 	Event *ep;
-	int i, j, nb, wid, pid;
+	int i, j, ei, nb, wid, pid;
 	Rune rune;
 	char *s;
 	char tmp[UTFmax], *t;
@@ -97,8 +97,9 @@ fswrite(Req *r)
 		nb = j;
 		t[j] = '\0';
 	}
+	ei = nb>8192? 8192 : nb;
 	/* process bytes into runes, transferring terminal partial runes into next buffer */
-	for(i=j=0; i<nb && fullrune(ep->b+i, nb-i); i+=wid,j++)
+	for(i=j=0; i<ei && fullrune(ep->b+i, ei-i); i+=wid,j++)
 		wid = chartorune(&rune, ep->b+i);
 	memmove(tmp, ep->b+i, nb-i);
 	partial = nb-i;
