@@ -7,9 +7,9 @@
 386/9pc.gz - 664 sys sys 1141258202 668936
 386/9pccpu - 775 sys sys 1141258205 1583315
 386/9pccpu.gz - 664 sys sys 1141258206 561499
-386/9pcdisk - 775 sys sys 1141258210 2100897
+386/9pcdisk - 775 sys sys 1145192021 2106905
 386/9pcdisk.gz - 664 sys sys 1141258211 755785
-386/9pcf - 775 sys sys 1141258216 2446791
+386/9pcf - 775 sys sys 1145192013 2452775
 386/9pcf.gz - 664 sys sys 1141258217 910970
 386/9pxeload - 775 sys sys 1131317321 216948
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
@@ -683,8 +683,8 @@ acme/bin/source/mkwnew.c - 664 sys sys 1017680666 862
 acme/bin/source/spout.c - 664 sys sys 1015011255 1868
 acme/bin/source/win - 20000000775 sys sys 1015011255 0
 acme/bin/source/win/dat.h - 664 sys sys 1017679345 1992
-acme/bin/source/win/fs.c - 664 sys sys 1045503982 2713
-acme/bin/source/win/main.c - 664 sys sys 1143126825 12447
+acme/bin/source/win/fs.c - 664 sys sys 1145192656 2743
+acme/bin/source/win/main.c - 664 sys sys 1145192657 12432
 acme/bin/source/win/mkfile - 664 sys sys 1046654934 309
 acme/bin/source/win/pipe.c - 664 sys sys 1104430371 2802
 acme/bin/source/win/util.c - 664 sys sys 1017679346 1169
@@ -5749,7 +5749,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1143777872 258440
+sys/games/lib/fortunes - 664 sys sys 1145163827 258572
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -9277,7 +9277,7 @@ sys/src/cmd/9nfs/nametest.c - 664 sys sys 1015090372 1723
 sys/src/cmd/9nfs/nfs.c - 664 sys sys 1131293679 9526
 sys/src/cmd/9nfs/nfs.h - 664 sys sys 1015090372 642
 sys/src/cmd/9nfs/nfsmount.c - 664 sys sys 1071498520 6142
-sys/src/cmd/9nfs/nfsserver.c - 664 sys sys 1040952455 15576
+sys/src/cmd/9nfs/nfsserver.c - 664 sys sys 1145192364 15772
 sys/src/cmd/9nfs/pcnfsd.c - 664 sys sys 1017337815 3964
 sys/src/cmd/9nfs/portmapper.c - 664 sys sys 1040952456 3179
 sys/src/cmd/9nfs/rpc.c - 664 sys sys 1017337815 5293

@@ -436,7 +436,7 @@ mainctl(void *v)
 			sprint(tmp, "#%lud", hostpt);
 			winsetaddr(w, tmp, 0);
 			write(w->data, e->b, e->nb);
-			pendingS += utfnlen(e->b, e->nb);
+			pendingS += e->nr;
 			break;
 	
 		case 'E':	/* write to tag or body; body happens due to sendit */

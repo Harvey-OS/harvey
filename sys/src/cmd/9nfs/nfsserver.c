@@ -629,17 +629,22 @@ static int
 nfsstatfs(int n, Rpccall *cmd, Rpccall *reply)
 {
 	uchar *dataptr = reply->results;
+	enum {
+		Xfersize = 2048,
+		Maxlong = (long)((1ULL<<31) - 1),
+		Maxfreeblks = Maxlong / Xfersize,
+	};
 
 	chat("statfs...");
 	showauth(&cmd->cred);
 	if(n != FHSIZE)
 		return garbage(reply, "bad count");
 	PLONG(NFS_OK);
-	PLONG(4096);	/* tsize */
-	PLONG(2048);	/* bsize */
-	PLONG(100000);	/* blocks */
-	PLONG(50000);	/* bfree */
-	PLONG(40000);	/* bavail */
+	PLONG(4096);		/* tsize (fs block size) */
+	PLONG(Xfersize);	/* bsize (optimal transfer size) */
+	PLONG(Maxfreeblks);	/* blocks in fs */
+	PLONG(Maxfreeblks);	/* bfree to root*/
+	PLONG(Maxfreeblks);	/* bavail (free to mortals) */
 	chat("OK\n");
 	/*conftime = 0;
 	readunixidmaps(config);*/
