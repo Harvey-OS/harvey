@@ -5749,7 +5749,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1145163827 258572
+sys/games/lib/fortunes - 664 sys sys 1145277998 258634
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -6146,7 +6146,7 @@ sys/lib/dist/pc/inst/configfs - 775 sys sys 1116594995 427
 sys/lib/dist/pc/inst/configip - 775 sys sys 1018469719 1132
 sys/lib/dist/pc/inst/confignet - 775 sys sys 1116594996 1294
 sys/lib/dist/pc/inst/configppp - 775 sys sys 1019058714 1402
-sys/lib/dist/pc/inst/copydist - 775 sys sys 1112361037 713
+sys/lib/dist/pc/inst/copydist - 775 sys sys 1145312927 715
 sys/lib/dist/pc/inst/defs - 664 sys sys 1112361037 2439
 sys/lib/dist/pc/inst/download - 775 sys sys 1127670124 1218
 sys/lib/dist/pc/inst/finish - 775 sys sys 1032990669 266
