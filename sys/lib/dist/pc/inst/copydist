@@ -17,7 +17,7 @@ case checkready
 	}
 case go
 	inst/watchfd applylog 0 `{ls -l /n/dist/dist/replica/plan9.log | awk '{print $6}'} 'Installing file system' &
-	replica/pull -c /rc/bin/inst/replcfg
+	replica/pull -c / /rc/bin/inst/replcfg
 	if(~ $status '' *conflicts || test -f /n/newfs/dist/replica/didplan9witherrors)
 		>/n/newfs/dist/replica/didplan9
 	if not

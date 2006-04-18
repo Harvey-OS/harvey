@@ -29502,3 +29502,5 @@
 1145192467 2 c sys/src/cmd/9nfs/nfsserver.c - 664 sys sys 1145192364 15772
 1145194268 0 c acme/bin/source/win/fs.c - 664 sys sys 1145192656 2743
 1145194268 1 c acme/bin/source/win/main.c - 664 sys sys 1145192657 12432
+1145278896 0 c sys/games/lib/fortunes - 664 sys sys 1145277998 258634
+1145313115 0 c sys/lib/dist/pc/inst/copydist - 775 sys sys 1145312927 715
