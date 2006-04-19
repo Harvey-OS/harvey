@@ -11,7 +11,7 @@
 386/9pcdisk.gz - 664 sys sys 1141258211 755785
 386/9pcf - 775 sys sys 1145192013 2452775
 386/9pcf.gz - 664 sys sys 1141258217 910970
-386/9pxeload - 775 sys sys 1131317321 216948
+386/9pxeload - 775 sys sys 1145359841 217880
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1144696729 116699
@@ -122,7 +122,7 @@
 386/bin/aux/mswordstrings - 775 sys sys 1143777761 65636
 386/bin/aux/na - 775 sys sys 1143777762 154518
 386/bin/aux/nfsmount - 775 sys sys 1143777763 234786
-386/bin/aux/nfsserver - 775 sys sys 1144688919 186025
+386/bin/aux/nfsserver - 775 sys sys 1145379323 186025
 386/bin/aux/olefs - 775 sys sys 1143777764 149666
 386/bin/aux/p9bitpost - 775 sys sys 1104121982 127974
 386/bin/aux/pcmcia - 775 sys sys 1143741951 46940
@@ -631,7 +631,7 @@ acme/bin/386/acd - 775 sys sys 1032232412 137068
 acme/bin/386/adict - 775 sys sys 1015011247 99806
 acme/bin/386/mkwnew - 775 sys sys 1143742054 38994
 acme/bin/386/spout - 775 sys sys 1143777852 61936
-acme/bin/386/win - 775 sys sys 1143777852 185302
+acme/bin/386/win - 775 sys sys 1145379325 185327
 acme/bin/Battery - 775 sys sys 1017457907 451
 acme/bin/Isspam - 775 sys sys 1063951165 235
 acme/bin/Mail - 775 sys sys 1114697798 201
@@ -7954,7 +7954,7 @@ sys/src/9/pc/devusb.c - 664 sys sys 1105193103 18364
 sys/src/9/pc/devvga.c - 664 sys sys 1131290315 9332
 sys/src/9/pc/dma.c - 664 sys sys 1142966373 5332
 sys/src/9/pc/ether2000.c - 664 sys sys 1089299187 4819
-sys/src/9/pc/ether2114x.c - 664 sys sys 1144963814 41694
+sys/src/9/pc/ether2114x.c - 664 sys sys 1145359795 41693
 sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
 sys/src/9/pc/ether79c970.c - 664 sys sys 1131290338 13953
 sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
@@ -8020,7 +8020,7 @@ sys/src/9/pc/realmode.c - 664 sys sys 1139667044 2678
 sys/src/9/pc/rebootcode.s - 664 sys sys 1015014522 988
 sys/src/9/pc/screen.c - 664 sys sys 1136336092 13971
 sys/src/9/pc/screen.h - 664 sys sys 1131290516 4156
-sys/src/9/pc/sd53c8xx.c - 664 sys sys 1139667209 55143
+sys/src/9/pc/sd53c8xx.c - 664 sys sys 1145359822 55087
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
 sys/src/9/pc/sdata.c - 664 sys sys 1141793347 52244
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1131290638 25780

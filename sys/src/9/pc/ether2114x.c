@@ -1692,7 +1692,6 @@ dec2114xpci(void)
 		switch(ctlr->id){
 		default:
 			break;
-
 		case Pnic:			/* PNIC */
 			/*
 			 * Turn off the jabber timer.
