@@ -31,7 +31,7 @@ pcmspecialclose(int a)
 static ulong
 ioreserve(ulong, int size, int align, char *)
 {
-	static ulong isaend = 0x400; /*0xfd00*/;
+	static ulong isaend = 0x400; /*0xfd00*/
 	ulong ioaddr;
 
 	if (align)
