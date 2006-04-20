@@ -5213,7 +5213,7 @@ lib/tftpd - 20000000775 sys sys 944944178 0
 lib/unicode - 664 sys sys 958440028 223312
 lib/unicode.notice - 664 sys sys 958504386 1398
 lib/units - 664 sys sys 1071415518 9997
-lib/vgadb - 664 sys sys 1143927653 29342
+lib/vgadb - 664 sys sys 1145484293 30282
 lib/volcanoes - 664 sys sys 944944024 119831
 lib/words - 664 sys sys 1014923442 247097
 lp - 20000000775 sys sys 958199268 0
@@ -9011,7 +9011,7 @@ sys/src/boot/pc/dat.h - 664 sys sys 1144961189 3597
 sys/src/boot/pc/devfloppy.c - 664 sys sys 1032215913 15505
 sys/src/boot/pc/devfloppy.h - 664 sys sys 1032409559 4081
 sys/src/boot/pc/devi82365.c - 664 sys sys 1144961189 15051
-sys/src/boot/pc/devpccard.c - 664 sys sys 1144961189 33938
+sys/src/boot/pc/devpccard.c - 664 sys sys 1145459731 33937
 sys/src/boot/pc/devsd.c - 664 sys sys 1077033681 11262
 sys/src/boot/pc/dma.c - 664 sys sys 1015007949 4972
 sys/src/boot/pc/dosboot.c - 664 sys sys 1097716791 11240
@@ -15627,3 +15627,5 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/9loaddebug - 775 sys sys 1145502380 313752
+386/9loadlitedebug - 775 sys sys 1145502380 201058

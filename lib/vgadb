@@ -1204,6 +1204,50 @@ planar=1280x1024
 	hsync=+ vsync=+
 
 #
+# Dell 2405FPW LCD
+#
+2405fpw=640x480				# 60Hz 
+	clock=25.175
+	shb=648 ehb=792 ht=800
+	vrs=490 vre=492 vt=525
+	hsync=- vsync=- 
+2405fpw=640x480				# 75Hz 
+	clock=31.5
+	shb=640 ehb=840 ht=840
+	vrs=481 vre=484 vt=500
+	hsync=- vsync=- 
+2405fpw=800x600				# 60Hz 
+	clock=40
+	shb=800 ehb=1056 ht=1056
+	vrs=601 vre=605 vt=628
+	hsync=+ vsync=+ 
+2405fpw=800x600				# 75Hz 
+	clock=49.5
+	shb=800 ehb=1056 ht=1056
+	vrs=601 vre=604 vt=625
+	hsync=+ vsync=+ 
+2405fpw=1024x768			# 60Hz
+	clock=65
+	shb=1024 ehb=1344 ht=1344
+	vrs=771 vre=777 vt=806
+	hsync=- vsync=- 
+2405fpw=1024x768			# 75Hz
+	clock=78.75
+	shb=1024 ehb=1312 ht=1312
+	vrs=769 vre=772 vt=800
+	hsync=+ vsync=+ 
+2405fpw=1280x1024			# 75Hz
+	clock=135
+	shb=1280 ehb=1688 ht=1688
+	vrs=1025 vre=1028 vt=1066
+	hsync=+ vsync=+ 
+2405fpw=1920x1200			# 60Hz
+	clock=154
+	shb=1968 ehb=2000 ht=2080
+	vrs=1203 vre=1209 vt=1235
+	hsync=+ vsync=- 
+
+#
 # QVGA		320x240		Quarter Video Graphics Array
 # VGA		640x480		Video Graphics Array
 # SVGA		800x600		Super Video Graphics Array
@@ -1211,6 +1255,8 @@ planar=1280x1024
 # SXGA		1280x1024	Super eXtended Graphics Array
 # SXGA+		1400x1050
 # UXGA		1600x1200	Ultra eXtended Graphics Array
+# WSXGA+	1680x1050	Wide SXGA+
+# WUXGA		1920x1200	Wide UXGA
 # QXGA		2048x1536	Quad XGA 
 # QSXGA		2560x2048	Quad SXGA 
 # QUXGA		3200x2400	Quad UXGA
