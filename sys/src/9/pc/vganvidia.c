@@ -146,11 +146,11 @@ nvidiaenable(VGAscr* scr)
 		scr->storage = (((tmp >> 4) & 127) + 1) * 1024 * 1024;
 		break;
 	default:
-		q = (void*)((uchar*)scr->mmio + Pfb +  0x020C);
-		tmp = (*q >> 20) & 0xFF;
+		q = (void*)((uchar*)scr->mmio + Pfb + 0x020C);
+		tmp = (*q >> 20) & 0xFFF;
 		if (tmp == 0)
 			tmp = 16;
-		scr->storage =  tmp*1024*1024;
+		scr->storage = tmp*1024*1024;
 		break;
 	}
 }
@@ -294,7 +294,7 @@ nvdmanext(ulong data)
 	nv.dmabase[nv.dmacurrent++] = data;
 }
 
-void 
+void
 nvdmawait(VGAscr *scr, int size)
 {
 	int dmaget;
@@ -318,7 +318,7 @@ nvdmawait(VGAscr *scr, int size)
 				nv.dmacurrent = nv.dmaput = SKIPS;
 				nv.dmafree = dmaget - (SKIPS + 1);
 			}
-		} else 
+		} else
 			nv.dmafree = dmaget - nv.dmacurrent - 1;
 	}
 }
@@ -411,21 +411,21 @@ nvresetgraphics(VGAscr *scr)
 	case 24:
 		surfaceFormat = SURFACE_FORMAT_DEPTH24;
 		patternFormat = PATTERN_FORMAT_DEPTH24;
-		rectFormat    = RECT_FORMAT_DEPTH24;
-		lineFormat    = LINE_FORMAT_DEPTH24;
+		rectFormat = RECT_FORMAT_DEPTH24;
+		lineFormat = LINE_FORMAT_DEPTH24;
 		break;
 	case 16:
 	case 15:
 		surfaceFormat = SURFACE_FORMAT_DEPTH16;
 		patternFormat = PATTERN_FORMAT_DEPTH16;
-		rectFormat    = RECT_FORMAT_DEPTH16;
-		lineFormat    = LINE_FORMAT_DEPTH16;
+		rectFormat = RECT_FORMAT_DEPTH16;
+		lineFormat = LINE_FORMAT_DEPTH16;
 		break;
 	default:
 		surfaceFormat = SURFACE_FORMAT_DEPTH8;
 		patternFormat = PATTERN_FORMAT_DEPTH8;
-		rectFormat    = RECT_FORMAT_DEPTH8;
-		lineFormat    = LINE_FORMAT_DEPTH8;
+		rectFormat = RECT_FORMAT_DEPTH8;
+		lineFormat = LINE_FORMAT_DEPTH8;
 		break;
 	}
 
@@ -452,7 +452,7 @@ nvresetgraphics(VGAscr *scr)
 
 	nvdmastart(scr, ROP_SET, 1);
 	nvdmanext(0xCC);
- 
+
 	nvdmakickoff(scr);
 	waitforidle(scr);
 }

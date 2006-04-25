@@ -29516,3 +29516,12 @@
 1145509257 0 c sys/games/lib/fortunes - 664 sys sys 1145507816 258670
 1145554271 0 c sys/games/lib/fortunes - 664 sys sys 1145553099 258781
 1145777424 0 c sys/games/lib/fortunes - 664 sys sys 1145776709 258931
+1145881858 0 c sys/man/1/ascii - 664 sys sys 1145881662 2726
+1145881858 1 c sys/man/8/9pcon - 664 sys sys 1145881850 2234
+1145881858 2 c sys/src/cmd/tcs/tcs.c - 664 sys sys 1145881809 19215
+1145883658 0 c sys/man/1/jpg - 664 sys sys 1145882310 4843
+1145883658 1 c sys/man/4/exportfs - 664 sys sys 1145881912 4655
+1145883658 2 c sys/man/8/timesync - 664 sys sys 1145882352 1717
+1145907066 0 c sys/src/9/pc/vganvidia.c - 664 sys sys 1145906148 12373
+1145907066 1 c sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1145906420 33115
+1145934074 0 c 386/bin/aux/vga - 775 sys sys 1145933837 335827
