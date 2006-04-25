@@ -202,9 +202,9 @@ To export the archive of one user for one month, except for secrets,
 .IP
 .EX
 cd /n/dump
-echo '+ ^\.(/2003(/10..(/usr(/glenda/?)?)?)?)?' > /tmp/pattern
-echo '- \.(aes|pgp)$' >> /tmp/pattern
-exportfs -p /tmp/pattern
+echo '+ ^\e.(/2003(/10..(/usr(/glenda/?)?)?)?)?' > /tmp/pattern
+echo '- \e.(aes|pgp)$' >> /tmp/pattern
+exportfs -P /tmp/pattern
 .EE
 .LP
 Use

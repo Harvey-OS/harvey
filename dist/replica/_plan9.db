@@ -149,7 +149,7 @@
 386/bin/aux/trampoline - 775 sys sys 1144688920 84240
 386/bin/aux/typepasswd - 775 sys sys 1143777767 69833
 386/bin/aux/usage - 775 sys sys 1143777768 59904
-386/bin/aux/vga - 775 sys sys 1144688921 335018
+386/bin/aux/vga - 775 sys sys 1145933837 335827
 386/bin/aux/vmmousepoll - 775 sys sys 1032480572 41434
 386/bin/aux/vmware - 775 sys sys 1049428256 453
 386/bin/aux/vmwarefs - 775 sys sys 1095563640 99117
@@ -7253,7 +7253,7 @@ sys/man/1/acid - 664 sys sys 1134233059 9730
 sys/man/1/acme - 664 sys sys 1134233060 18105
 sys/man/1/ap - 664 sys sys 1068471657 364
 sys/man/1/ar - 664 sys sys 1079397701 3153
-sys/man/1/ascii - 664 sys sys 1134233061 2737
+sys/man/1/ascii - 664 sys sys 1145881662 2726
 sys/man/1/awk - 664 sys sys 1134233061 10881
 sys/man/1/basename - 664 sys sys 944959673 535
 sys/man/1/bc - 664 sys sys 1134233060 3784
@@ -7310,7 +7310,7 @@ sys/man/1/hoc - 664 sys sys 1136378274 2357
 sys/man/1/htmlroff - 664 sys sys 1138396051 1831
 sys/man/1/idiff - 664 sys sys 1113743324 914
 sys/man/1/join - 664 sys sys 1113743324 2561
-sys/man/1/jpg - 664 sys sys 1113743325 4842
+sys/man/1/jpg - 664 sys sys 1145882310 4843
 sys/man/1/kbmap - 664 sys sys 1079969760 845
 sys/man/1/kill - 664 sys sys 1018369246 1193
 sys/man/1/ktrace - 664 sys sys 957920006 1330
@@ -7593,7 +7593,7 @@ sys/man/4/cfs - 664 sys sys 1015024813 1758
 sys/man/4/consolefs - 664 sys sys 1144424854 4245
 sys/man/4/dossrv - 664 sys sys 1015024813 4176
 sys/man/4/execnet - 664 sys sys 1019866708 1069
-sys/man/4/exportfs - 664 sys sys 1115314261 4653
+sys/man/4/exportfs - 664 sys sys 1145881912 4655
 sys/man/4/ext2srv - 664 sys sys 1055692986 2409
 sys/man/4/factotum - 664 sys sys 1131294573 14841
 sys/man/4/fossil - 664 sys sys 1112368411 9546
@@ -7687,7 +7687,7 @@ sys/man/7/scat - 664 sys sys 970069855 8904
 sys/man/8 - 20000000775 sys sys 1018384448 0
 sys/man/8/0intro - 664 sys sys 944959679 247
 sys/man/8/9load - 664 sys sys 1094676489 9170
-sys/man/8/9pcon - 664 sys sys 1018973955 2226
+sys/man/8/9pcon - 664 sys sys 1145881850 2234
 sys/man/8/INDEX - 664 sys sys 1141357442 2768
 sys/man/8/INDEX.html - 664 sys sys 1141352367 8470
 sys/man/8/aan - 664 sys sys 1045501064 1670
@@ -7745,7 +7745,7 @@ sys/man/8/stats - 664 sys sys 1067722908 4291
 sys/man/8/statusbar - 664 sys sys 1141313214 1253
 sys/man/8/stub - 664 sys sys 1044830500 943
 sys/man/8/swap - 664 sys sys 944959679 880
-sys/man/8/timesync - 664 sys sys 1107606876 1717
+sys/man/8/timesync - 664 sys sys 1145882352 1717
 sys/man/8/tlssrv - 664 sys sys 1037580152 2594
 sys/man/8/trampoline - 664 sys sys 1126104844 1199
 sys/man/8/udpecho - 664 sys sys 954305553 303
@@ -8047,7 +8047,7 @@ sys/src/9/pc/vgamach64xx.c - 664 sys sys 1131290601 28257
 sys/src/9/pc/vgamga2164w.c - 664 sys sys 1132331257 4769
 sys/src/9/pc/vgamga4xx.c - 664 sys sys 1143927896 9573
 sys/src/9/pc/vganeomagic.c - 664 sys sys 1131422294 10255
-sys/src/9/pc/vganvidia.c - 664 sys sys 1137689150 12395
+sys/src/9/pc/vganvidia.c - 664 sys sys 1145906148 12373
 sys/src/9/pc/vgargb524.c - 664 sys sys 1131290602 4251
 sys/src/9/pc/vgas3.c - 664 sys sys 1131290603 10994
 sys/src/9/pc/vgasavage.c - 664 sys sys 1064679984 16251
@@ -9713,7 +9713,7 @@ sys/src/cmd/aux/vga/mga4xx.c - 664 sys sys 1143927895 36098
 sys/src/cmd/aux/vga/mkfile - 664 sys sys 1115734903 927
 sys/src/cmd/aux/vga/neomagic.c - 664 sys sys 1104430499 8975
 sys/src/cmd/aux/vga/notes.txt - 664 sys sys 1028334647 14376
-sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1140615970 31488
+sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1145906420 33115
 sys/src/cmd/aux/vga/palette.c - 664 sys sys 1014925010 2201
 sys/src/cmd/aux/vga/pci.c - 664 sys sys 1014925011 8659
 sys/src/cmd/aux/vga/pci.h - 664 sys sys 1014925011 3290
@@ -13394,7 +13394,7 @@ sys/src/cmd/tcs/misc.h - 664 sys sys 1138382780 19274
 sys/src/cmd/tcs/mkfile - 664 sys sys 1143673021 601
 sys/src/cmd/tcs/ms.h - 664 sys sys 1138382780 44069
 sys/src/cmd/tcs/plan9.h - 664 sys sys 944961287 751
-sys/src/cmd/tcs/tcs.c - 664 sys sys 1143727175 19206
+sys/src/cmd/tcs/tcs.c - 664 sys sys 1145881809 19215
 sys/src/cmd/tcs/tune.c - 664 sys sys 1143723685 6283
 sys/src/cmd/tcs/utf.c - 664 sys sys 1143673021 7975
 sys/src/cmd/tee.c - 664 sys sys 954970286 1062

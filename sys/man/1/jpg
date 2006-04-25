@@ -221,7 +221,7 @@ specified,
 .I ico
 reads from standard input.
 Icon files
-contain sets of icons represeted by an image and a mask.
+contain sets of icons represented by an image and a mask.
 Clicking the right button pops up a menu that lets you
 write any icon's image as a Plan 9 image (\fIwidth\fBx\fIheight\fB.image),
 write any icon's mask as a Plan 9 image (\fIwidth\fBx\fIheight\fB.mask),

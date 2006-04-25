@@ -93,7 +93,7 @@ options are allowed.
 .TP
 .B -S
 sets the stratum number to
-.IR startum .
+.IR stratum .
 .TP
 .B -l
 turns on logging to

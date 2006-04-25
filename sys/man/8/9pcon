@@ -150,7 +150,7 @@ For example,
 .EE
 sends a
 .I wstat
-message that attempts to change the group id associated with 
+message that attempts to change the group id associated with fid 101.
 .SH SOURCE
 .B /sys/src/cmd/aux/9pcon.c
 .SH SEE ALSO
