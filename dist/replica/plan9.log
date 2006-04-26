@@ -29525,3 +29525,5 @@
 1145907066 0 c sys/src/9/pc/vganvidia.c - 664 sys sys 1145906148 12373
 1145907066 1 c sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1145906420 33115
 1145934074 0 c 386/bin/aux/vga - 775 sys sys 1145933837 335827
+1145964683 0 c sys/src/cmd/exportfs/exportfs.c - 664 sys sys 1145964192 16377
+1145993491 0 c 386/bin/exportfs - 775 sys sys 1145992764 162645

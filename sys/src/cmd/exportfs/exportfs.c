@@ -59,7 +59,7 @@ int	filter(int, char *);
 void
 usage(void)
 {
-	fprint(2, "usage:	%s [-adnsR] [-f dbgfile] [-m msize] [-r root] [-S srvfile] [-e 'crypt hash'] [-A announce-string] [-B address]\n", argv0);
+	fprint(2, "usage:	%s [-adnsR] [-f dbgfile] [-m msize] [-r root] [-S srvfile] [-e 'crypt hash'] [-P exclusion-file] [-A announce-string] [-B address]\n", argv0);
 	fatal("usage");
 }
 
