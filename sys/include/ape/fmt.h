@@ -1,11 +1,13 @@
-#ifndef _FMT_H_
-#define _FMT_H_ 1
-#pragma lib "/$M/lib/ape/libfmt.a"
-#pragma src "/sys/src/ape/lib/fmt"
-
-#if defined(__cplusplus)
-extern "C" { 
+#ifndef _PLAN9_SOURCE
+  This header file is an extension to ANSI/POSIX
 #endif
+
+#ifndef __FMT_H_
+#define __FMT_H_
+#pragma src "/sys/src/ape/lib/fmt"
+#pragma lib "/$M/lib/ape/libfmt.a"
+
+#include <u.h>
 
 /*
  * The authors of this software are Rob Pike and Ken Thompson.
@@ -59,6 +61,10 @@ enum{
 	FmtFlag		= FmtLDouble << 1
 };
 
+#ifdef	__cplusplus
+extern "C" { 
+#endif
+
 extern	int	print(char*, ...);
 extern	char*	seprint(char*, char*, char*, ...);
 extern	char*	vseprint(char*, char*, char*, va_list);
@@ -101,7 +107,8 @@ extern	double	fmtcharstod(int(*)(void*), void*);
 
 extern	void	werrstr(const char*, ...);
 
-#if defined(__cplusplus)
+#ifdef	__cplusplus
 }
 #endif
+
 #endif
