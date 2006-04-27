@@ -1,19 +1,19 @@
-#ifndef __BSD_H__
-#define __BSD_H__
-
 #ifndef _BSD_EXTENSION
     This header file is an extension to ANSI/POSIX
 #endif
 
-#if defined(_INC_PREREQS) && !defined(__TYPES_H)
+#ifndef __BSD_H_
+#define __BSD_H_
+#pragma src "/sys/src/ape/lib/bsd"
+#pragma lib "/$M/lib/ape/libbsd.a"
+
+#ifndef __TYPES_H
 #include <sys/types.h>
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#pragma lib "/$M/lib/ape/libbsd.a"
 
 #ifndef _SIZE_T
 #define _SIZE_T
@@ -49,9 +49,8 @@ extern char	*mktemp(char *);
 extern char	*sys_errlist[];
 extern int		sys_nerr;
 
-
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* !__BSD_H__ */
+#endif

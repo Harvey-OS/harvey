@@ -1,3 +1,4 @@
+int	argopt(int c);
 int	auth2unix(Auth*, Authunix*);
 int	authhostowner(Session*);
 int	canlock(Lock*);

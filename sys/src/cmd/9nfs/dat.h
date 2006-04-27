@@ -265,5 +265,6 @@ extern void	(*rpcalarm)(void);
 extern long	starttime;
 extern long	nfstime;
 extern char *	config;
-extern int staletime;
+extern int	staletime;
 extern int	messagesize;
+extern char *	commonopts;

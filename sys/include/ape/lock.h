@@ -1,9 +1,12 @@
+#if !defined(_RESEARCH_SOURCE) && !defined(_PLAN9_SOURCE)
+   This header file is an extension of ANSI/POSIX
+#endif
+
 #ifndef __LOCK_H
 #define __LOCK_H
-#ifndef _LOCK_EXTENSION
-   This header file is not defined in ANSI/POSIX
-#endif
 #pragma lib "/$M/lib/ape/libap.a"
+
+#include <u.h>
 
 typedef struct
 {

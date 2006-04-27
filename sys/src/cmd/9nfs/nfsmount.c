@@ -40,7 +40,6 @@ mnttimer(long now)
 void
 mntinit(int argc, char **argv)
 {
-	char *argv0 = 0;
 	int tries;
 
 	config = "config";
@@ -69,9 +68,14 @@ mntinit(int argc, char **argv)
 	case 'T':
 		staletime = atoi(ARGF());
 		break;
+	default:
+		if(argopt(ARGC()) < 0)
+			sysfatal(
+"usage: %s %s [-ns] [-a dialstring] [-f srvfile] [-c uidmap] [-T staletime]",
+				argv0, commonopts);
+		break;
 	}ARGEND
 noauth=1;	/* ZZZ */
-	USED(argv0);
 	if(tries == 0 && head == 0)
 		srvinit(-1, 0, "il!bootes");
 	if(head == 0)
@@ -149,7 +153,7 @@ srvinit(int fd, char *file, char *addr)
 	xf = xfid("none", xp, 1);
 	xf->urfid = f;
 	clog("service=%s uid=%s fid=%ld\n",
-		s->service, xf->uid, xf->urfid-s->fids);
+		s->service, xf->uid, xf->urfid - s->fids);
 	if(tail)
 		tail->next = s;
 	else
@@ -200,7 +204,7 @@ mntmnt(int n, Rpccall *cmd, Rpccall *reply)
 	argptr += string2S(argptr, &root);
 	if(argptr != &((uchar *)cmd->args)[n])
 		return garbage(reply, "bad count");
-	clog("host=%I, port=%ld, root=\"%.*s\"...", 
+	clog("host=%I, port=%ld, root=\"%.*s\"...",
 		cmd->host, cmd->port, utfnlen(root.s, root.n), root.s);
 	if(auth2unix(&cmd->cred, &au) != 0){
 		chat("auth flavor=%ld, count=%ld\n",

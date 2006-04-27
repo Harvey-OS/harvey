@@ -1,5 +1,7 @@
-#ifndef _RESEARCH_SOURCE
-   This header file is not defined in ANSI or POSIX
+#ifndef __U_H
+#define __U_H
+#ifndef _PLAN9_SOURCE
+   This header file is an extension to ANSI/POSIX
 #endif
 
 #define nil		((void*)0)
@@ -13,3 +15,5 @@ typedef	unsigned long long uvlong;
 typedef	ushort		Rune;
 typedef 	union FPdbleword FPdbleword;
 typedef	char*	p9va_list;
+
+#endif

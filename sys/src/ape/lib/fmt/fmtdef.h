@@ -37,7 +37,7 @@ typedef unsigned long long	uvlong;
 typedef long long		vlong;
 #endif
 
-#define nil		0	/* cannot be ((void*)0) because used for function pointers */
+/* #define nil		0	/* cannot be ((void*)0) because used for function pointers */
 
 typedef int (*Fmts)(Fmt*);
 

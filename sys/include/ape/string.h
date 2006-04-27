@@ -1,5 +1,5 @@
-#ifndef __STRING
-#define __STRING
+#ifndef __STRING_H_
+#define __STRING_H_
 #pragma lib "/$M/lib/ape/libap.a"
 
 #include <stddef.h>
@@ -39,4 +39,4 @@ extern size_t strlen(const char *);
 }
 #endif
 
-#endif /* __STRING */
+#endif
