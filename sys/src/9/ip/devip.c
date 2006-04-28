@@ -970,11 +970,11 @@ Fsstdannounce(Conv* c, char* argv[], int argc)
 	c->rport = 0;
 	switch(argc){
 	default:
-		return "bad args to announce";
+		break;
 	case 2:
 		return setladdrport(c, argv[1], 1);
 	}
-	return nil;
+	return "bad args to announce";
 }
 
 /*
@@ -1021,11 +1021,11 @@ Fsstdbind(Conv* c, char* argv[], int argc)
 {
 	switch(argc){
 	default:
-		return "bad args to bind";
+		break;
 	case 2:
 		return setladdrport(c, argv[1], 0);
 	}
-	return nil;
+	return "bad args to bind";
 }
 
 static void

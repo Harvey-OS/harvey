@@ -1156,7 +1156,6 @@ sdread(Chan *c, void *a, long n, vlong off)
 		return sdbio(c, 0, a, n, off);
 	}
 
-	return 0;
 }
 
 static void legacytopctl(Cmdbuf*);

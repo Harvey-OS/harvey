@@ -376,7 +376,6 @@ tlsgen(Chan *c, char*, Dirtab *, int, int s, Dir *dp)
 		unlock(&tdlock);
 		return 1;
 	}
-	return -1;
 }
 
 static Chan*
