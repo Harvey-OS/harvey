@@ -264,7 +264,7 @@ devstat(Chan *c, uchar *db, int n, Dirtab *tab, int ntab, Devgen *gen)
 	Dir dir;
 	char *p, *elem;
 
-	for(i=0;; i++)
+	for(i=0;; i++){
 		switch((*gen)(c, nil, tab, ntab, i, &dir)){
 		case -1:
 			if(c->qid.type & QTDIR){
@@ -297,8 +297,7 @@ devstat(Chan *c, uchar *db, int n, Dirtab *tab, int ntab, Devgen *gen)
 			}
 			break;
 		}
-	error(Egreg);	/* not reached? */
-	return -1;
+	}
 }
 
 long

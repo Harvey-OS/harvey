@@ -363,6 +363,19 @@ This extension allows inclusion of
 which defines the networking functions described in the Plan 9 manual page
 .I dial (2).
 .XX
+.CW _PLAN9_EXTENSION .
+This extension allows inclusion of
+.CW <u.h> ,
+.CW <lock.h> ,
+.CW <qlock.h> ,
+.CW <utf.h> ,
+.CW <fmt.h> ,
+and
+.CW <draw.h> .
+These are pieces of Plan 9 source code ported into APE,
+mostly from 
+.CW <libc.h> .
+.XX
 .CW _REGEXP_EXTENSION .
 This extension allows inclusion of
 .CW <regexp.h> ,

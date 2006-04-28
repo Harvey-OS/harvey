@@ -11,14 +11,16 @@ typedef struct Objtype {
 } Objtype;
 
 Objtype objtype[] = {
+	{"spim",	"0c", "0l", "0", "0.out"},
+	{"68000",	"1c", "1l", "1", "1.out"},
 	{"68020",	"2c", "2l", "2", "2.out"},
 	{"arm",		"5c", "5l", "5", "5.out"},
 	{"amd64",	"6c", "6l", "6", "6.out"},
 	{"alpha",	"7c", "7l", "7", "7.out"},
 	{"386",		"8c", "8l", "8", "8.out"},
 	{"sparc",	"kc", "kl", "k", "k.out"},
-	{"mips",	"vc", "vl", "v", "v.out"},
 	{"power",	"qc", "ql", "q", "q.out"},
+	{"mips",	"vc", "vl", "v", "v.out"},
 };
 
 enum {
@@ -33,7 +35,7 @@ typedef struct List {
 
 List	srcs, objs, cpp, cc, ld, ldargs;
 int	cflag, vflag, Eflag, Pflag;
-char	*allos = "2478kqv";
+char	*allos = "01245678kqv";
 
 void	append(List *, char *);
 char	*changeext(char *, char *);

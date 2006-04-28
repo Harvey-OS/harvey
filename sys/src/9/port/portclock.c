@@ -209,6 +209,10 @@ timersinit(void)
 {
 	Timer *t;
 
+	/*
+	 * This is only called on the bootstrap processor; hence,
+	 * the Hzclock will only be active on that processor
+	 */
 	todinit();
 	t = malloc(sizeof(*t));
 	t->tmode = Tperiodic;

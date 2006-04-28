@@ -159,7 +159,6 @@ panic("whoops");
 		devdir(c, d->qid, d->name, d->length, eve, d->perm, dp);
 		return 1;
 	}
-	return -1;
 }
 
 static Walkqid*
