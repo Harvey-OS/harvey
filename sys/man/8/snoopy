@@ -6,6 +6,9 @@ snoopy \- spy on network packets
 [
 .B -CDdpst
 ] [
+.B -M
+.I m
+] [
 .B -N
 .I n
 ] [
@@ -135,6 +138,14 @@ this interface will be seen.
 .B -s
 force one output line per packet.  The
 default is multiline.
+.TP
+.B -M
+discard all but the first
+.I m
+bytes of each packet.  The default is to keep the entire packet.
+This option is most useful when writing packets to a file with the
+.B -d
+option.
 .TP
 .B -N
 dump

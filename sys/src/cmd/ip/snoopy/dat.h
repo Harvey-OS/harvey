@@ -97,6 +97,7 @@ extern void	compile_cmp(char*, Filter*, Field*);
 extern void	demux(Mux*, ulong, ulong, Msg*, Proto*);
 extern int	defaultframer(int, uchar*, int);
 
+extern int Mflag;
 extern int Nflag;
 extern int dflag;
 extern int Cflag;
