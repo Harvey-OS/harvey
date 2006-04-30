@@ -9,6 +9,8 @@
 #include "../port/error.h"
 #include "io.h"
 
+#define DEBUG	0
+
 #define MAP(x,o)	(Rmap + (x)*0x8 + o)
 
 enum {
@@ -53,7 +55,7 @@ typedef struct Variant Variant;
 struct Variant {
 	ushort	vid;
 	ushort	did;
-	char		*name;
+	char	*name;
 };
 
 static Variant variant[] = {
@@ -199,23 +201,23 @@ enum
 typedef struct Cisdat Cisdat;
 struct Cisdat {
 	uchar		*cisbase;
-	int			cispos;
-	int			cisskip;
-	int			cislen;
+	int		cispos;
+	int		cisskip;
+	int		cislen;
 };
 
 typedef struct Pcminfo Pcminfo;
 struct Pcminfo {
-	char			verstr[512];		/* Version string */
+	char		verstr[512];		/* Version string */
 	PCMmap		mmap[4];		/* maps, last is always for the kernel */
 	ulong		conf_addr;		/* Config address */
-	uchar		conf_present;	/* Config register present */
-	int			nctab;			/* In use configuration tables */
+	uchar		conf_present;		/* Config register present */
+	int		nctab;			/* In use configuration tables */
 	PCMconftab	ctab[8];		/* Configuration tables */
 	PCMconftab	*defctab;		/* Default conftab */
 
-	int			port;			/* Actual port usage */
-	int			irq;			/* Actual IRQ usage */
+	int		port;			/* Actual port usage */
+	int		irq;			/* Actual IRQ usage */
 };
 
 typedef struct Cardbus Cardbus;
@@ -224,18 +226,18 @@ struct Cardbus {
 	Variant		*variant;		/* Which CardBus chipset */
 	Pcidev		*pci;			/* The bridge itself */
 	ulong		*regs;			/* Cardbus registers */
-	int			ltype;			/* Legacy type */
-	int			lindex;		/* Legacy port index address */
-	int			ldata;			/* Legacy port data address */
-	int			lbase;			/* Base register for this socket */
+	int		ltype;			/* Legacy type */
+	int		lindex;			/* Legacy port index address */
+	int		ldata;			/* Legacy port data address */
+	int		lbase;			/* Base register for this socket */
 
-	int			state;			/* Current state of card */
-	int			type;			/* Type of card */
+	int		state;			/* Current state of card */
+	int		type;			/* Type of card */
 	Pcminfo		linfo;			/* PCMCIA slot info */
 
-	int			special;		/* card is allocated to a driver */
+	int		special;		/* card is allocated to a driver */
 
-	int			refs;			/* Number of refs to slot */
+	int		refs;			/* Number of refs to slot */
 	Lock		refslock;		/* inc/dev ref lock */
 };
 
@@ -323,7 +325,7 @@ enum {
 
 static char *states[] = {
 [SlotEmpty]		"SlotEmpty",
-[SlotFull]			"SlotFull",
+[SlotFull]		"SlotFull",
 [SlotPowered]		"SlotPowered",
 [SlotConfigured]	"SlotConfigured",
 };
@@ -331,8 +333,9 @@ static char *states[] = {
 static void
 engine(Cardbus *cb, int message)
 {
-	//print("engine(%d): %s(%s)\n", 
-	//	 (int)(cb - cbslots), states[cb->state], messages[message]);
+	if(DEBUG)
+		print("engine(%ld): %s(%s)\n", cb - cbslots,
+			states[cb->state], messages[message]);
 	switch (cb->state) {
 	case SlotEmpty:
 
@@ -344,8 +347,9 @@ engine(Cardbus *cb, int message)
 		case CardEjected:
 			break;
 		default:
-			//print("#Y%d: Invalid message %s in SlotEmpty state\n",
-			//	(int)(cb - cbslots), messages[message]);
+			if(DEBUG)
+				print("#Y%ld: Invalid message %s in SlotEmpty state\n",
+					cb - cbslots, messages[message]);
 			break;
 		}
 		break;
@@ -362,8 +366,9 @@ engine(Cardbus *cb, int message)
 			powerdown(cb);
 			break;
 		default:
-			//print("#Y%d: Invalid message %s in SlotFull state\n",
-			//	(int)(cb - cbslots), messages[message]);
+			if(DEBUG)
+				print("#Y%ld: Invalid message %s in SlotFull state\n",
+					cb - cbslots, messages[message]);
 			break;
 		}
 		break;
@@ -380,8 +385,8 @@ engine(Cardbus *cb, int message)
 			powerdown(cb);
 			break;
 		default:
-			//print("#Y%d: Invalid message %s in SlotPowered state\n",
-			//	(int)(cb - cbslots), messages[message]);
+			print("#Y%ld: Invalid message %s in SlotPowered state\n",
+				cb - cbslots, messages[message]);
 			break;
 		}
 		break;
@@ -395,8 +400,9 @@ engine(Cardbus *cb, int message)
 			powerdown(cb);
 			break;
 		default:
-			//print("#Y%d: Invalid message %s in SlotConfigured state\n",
-			//	(int)(cb - cbslots), messages[message]);
+			if(DEBUG)
+				print("#Y%ld: Invalid message %s in SlotConfigured state\n",
+					cb - cbslots, messages[message]);
 			break;
 		}
 		break;
@@ -478,12 +484,15 @@ cbinterrupt(Ureg *, void *)
 		Cardbus *cb = &cbslots[i];
 		ulong event, state;
 
-		event= cb->regs[SocketEvent];
+		event = cb->regs[SocketEvent];
+		if(!(event & (SE_POWER|SE_CCD)))
+			continue;
 		state = cb->regs[SocketState];
 		rdreg(cb, Rcsc);	/* Ack the interrupt */
 
-		//print("interrupt: slot %d, event %.8lX, state %.8lX, (%s)\n", 
-		//	(int)(cb - cbslots), event, state, states[cb->state]);
+		if(DEBUG)
+			print("#Y%ld: interrupt: event %.8lX, state %.8lX, (%s)\n", 
+				cb - cbslots, event, state, states[cb->state]);
 
 		if (event & SE_CCD) {
 			cb->regs[SocketEvent] |= SE_CCD;	/* Ack interrupt */
@@ -537,6 +546,8 @@ devpccardlink(void)
 		int slot;
 		uchar pin;
 
+		if(pci->ccrb != 6 || pci->ccru != 7)
+			continue;
 		for (i = 0; i != nelem(variant); i++)
 			if (pci->vid == variant[i].vid && pci->did == variant[i].did)
 				break;
@@ -579,7 +590,7 @@ devpccardlink(void)
 			pcicfgw8(pci, PciINTL, pci->intl);
 
 			if (pci->intl == 0xff || pci->intl == 0)
-				print("#Y%d: No interrupt?\n", (int)(cb - cbslots));
+				print("#Y%ld: No interrupt?\n", cb - cbslots);
 		}
 
 		// Don't you love standards!
@@ -614,6 +625,12 @@ devpccardlink(void)
 			}
 			
 			pcicfgw16(cb->pci, PciPMC, pcicfgr16(cb->pci, PciPMC) & ~3);
+		}
+		if (pci->vid == O2_vid) {
+			if(DEBUG)
+				print("writing O2 config\n");
+			pcicfgw8(cb->pci, 0x94, 0xCA);
+			pcicfgw8(cb->pci, 0xD4, 0xCA);
 		}
 
 		if (intl != -1 && intl != pci->intl)
@@ -663,7 +680,7 @@ devpccardlink(void)
 			engine(cb, CardPowered);
 
 		/* Ack and enable interrupts on all events */
-		// cb->regs[SocketEvent] = cb->regs[SocketEvent];
+		//cb->regs[SocketEvent] = cb->regs[SocketEvent];
 		cb->regs[SocketMask] |= 0xF;	
 		wrreg(cb, Rcscic, 0xC);
 	}
@@ -677,8 +694,9 @@ powerup(Cardbus *cb)
 
 	state = cb->regs[SocketState];
 	if (state & SS_PC16) {
-	
-		// print("#Y%ld: Probed a PC16 card, powering up card\n", cb - cbslots);
+		if(DEBUG)
+			print("#Y%ld: Probed a PC16 card, powering up card\n",
+				cb - cbslots);
 		cb->type = PC16;
 		memset(&cb->linfo, 0, sizeof(Pcminfo));
 
@@ -697,7 +715,7 @@ powerup(Cardbus *cb)
 		return 0;
 
 	if (state & SS_NOTCARD) {
-		print("#Y%ld: Not a card inserted\n", cb - cbslots);
+		print("#Y%ld: No card inserted\n", cb - cbslots);
 		return 0;
 	}
 
@@ -708,9 +726,10 @@ powerup(Cardbus *cb)
 		return 0;
 	}
 
-	//print("#Y%ld: card %spowered at %d volt\n", cb - cbslots, 
-	//	(state & SS_POWER)? "": "not ", 
-	//	(state & SS_3V)? 3: (state & SS_5V)? 5: -1);
+	if(DEBUG)
+		print("#Y%ld: card %spowered at %d volt\n", cb - cbslots, 
+			(state & SS_POWER)? "": "not ", 
+			(state & SS_3V)? 3: (state & SS_5V)? 5: -1);
 
 	/* Power up the card
 	 * and make sure the secondary bus is not in reset.
@@ -722,7 +741,8 @@ powerup(Cardbus *cb)
 	pcicfgw16(cb->pci, PciBCR, bcr);
 	delay(100);
 
-	cb->type = (state & SS_PC16)? PC16: PC32;
+	cb->type = PC32;
+
 	return 1;
 }
 
@@ -750,10 +770,13 @@ powerdown(Cardbus *cb)
 static void
 configure(Cardbus *cb)
 {
-	int i;
 	Pcidev *pci;
+	ulong size, bar;
+	int i, ioindex, memindex, r;
 
-	//print("configuring slot %d (%s)\n", (int)(cb - cbslots), states[cb->state]);
+	if(DEBUG)
+		print("configuring slot %ld (%s)\n",
+			cb - cbslots, states[cb->state]);
 	if (cb->state == SlotConfigured)
 		return;
 	engine(cb, CardConfigured);
@@ -769,19 +792,21 @@ configure(Cardbus *cb)
 	pciscan(pcicfgr8(cb->pci, PciSBN), &cb->pci->bridge);
 	pci = cb->pci->bridge;
 	while (pci) {
-		ulong size, bar;
-		int memindex, ioindex;
+		r = pcicfgr16(pci, PciPCR);
+		r &= ~(PciPCR_IO|PciPCR_MEM);
+		pcicfgw16(pci, PciPCR, r);
 
-		pcicfgw16(pci, PciPCR, 
-				pcicfgr16(pci, PciPCR) & ~(PciPCR_IO|PciPCR_MEM));
-
-		/* Treat the found device as an ordinary PCI card.  It seems that the 
-		     CIS is not always present in CardBus cards.  XXX, need to support 
-		     multifunction cards */
+		/*
+		 * Treat the found device as an ordinary PCI card.
+		 * It seems that the CIS is not always present in
+		 * CardBus cards.
+		 * XXX, need to support multifunction cards
+		 */
 		memindex = ioindex = 0;
 		for (i = 0; i != Nbars; i++) {
 
-			if (pci->mem[i].size == 0) continue;
+			if (pci->mem[i].size == 0)
+				continue;
 			if (pci->mem[i].bar & 1) {
 
 				// Allocate I/O space
@@ -797,8 +822,9 @@ configure(Cardbus *cb)
 				pcicfgw16(cb->pci, PciCBIBR0 + ioindex * 8, bar);
 				pcicfgw16(cb->pci, PciCBILR0 + ioindex * 8, 
 						 bar + pci->mem[i].size - 1);
-				//print("ioindex[%d] %.8uX (%d)\n", 
-				//	ioindex, bar, pci->mem[i].size);
+				if(DEBUG)
+					print("ioindex[%d] %.8luX (%d)\n", 
+						ioindex, bar, pci->mem[i].size);
 				ioindex++;
 				continue;
 			}
@@ -816,14 +842,16 @@ configure(Cardbus *cb)
 			pcicfgw32(cb->pci, PciCBMLR0 + memindex * 8, 
 					  bar + pci->mem[i].size - 1);
 
-			if (pci->mem[i].bar & 0x80)
+			if (pci->mem[i].bar & 0x80) {
 				/* Enable prefetch */
-				pcicfgw16(cb->pci, PciBCR, 
-						 pcicfgr16(cb->pci, PciBCR) | 
-							          (1 << (8 + memindex)));
+				r = pcicfgr16(cb->pci, PciBCR);
+				r |= 1 << (8 + memindex);
+				pcicfgw16(cb->pci, PciBCR, r);
+			}
 
-			//print("memindex[%d] %.8uX (%d)\n", 
-			//	  memindex, bar, pci->mem[i].size);
+			if(DEBUG)
+				print("memindex[%d] %.8luX (%d)\n", 
+					  memindex, bar, pci->mem[i].size);
 			memindex++;
 		}
 
@@ -845,7 +873,8 @@ configure(Cardbus *cb)
 		}
 
 		/* Set the basic PCI registers for the device */
-		pci->pcr = pcicfgr16(pci, PciPCR) | PciPCR_IO|PciPCR_MEM|PciPCR_Master;
+		pci->pcr = pcicfgr16(pci, PciPCR);
+		pci->pcr |= PciPCR_IO|PciPCR_MEM|PciPCR_Master;
 		pci->cls = 8;
 		pci->ltr = 64;
 		pcicfgw16(pci, PciPCR, pci->pcr);
@@ -869,7 +898,7 @@ static void
 unconfigure(Cardbus *cb)
 {
 	Pcidev *pci;
-	int i, ioindex, memindex;
+	int i, ioindex, memindex, r;
 
 	if (cb->type == PC16) {
 		print("#Y%d: Don't know how to unconfigure a PC16 card\n",
@@ -889,7 +918,8 @@ unconfigure(Cardbus *cb)
 		Pcidev *_pci;
 
 		for (i = 0; i != Nbars; i++) {
-			if (pci->mem[i].size == 0) continue;
+			if (pci->mem[i].size == 0)
+				continue;
 			if (pci->mem[i].bar & 1) {
 				iofree(pci->mem[i].bar & ~1);
 				pcicfgw16(cb->pci, PciCBIBR0 + ioindex * 8, 
@@ -900,19 +930,17 @@ unconfigure(Cardbus *cb)
 			}
 
 			upafree(pci->mem[i].bar & ~0xF, pci->mem[i].size);
-			pcicfgw32(cb->pci, PciCBMBR0 + memindex * 8, 
-				          (ulong)-1);
+			pcicfgw32(cb->pci, PciCBMBR0 + memindex * 8, (ulong)-1);
 			pcicfgw32(cb->pci, PciCBMLR0 + memindex * 8, 0);
-			pcicfgw16(cb->pci, PciBCR, 
-					 pcicfgr16(cb->pci, PciBCR) & 
-							       ~(1 << (8 + memindex)));
+			r = pcicfgr16(cb->pci, PciBCR);
+			r &= ~(1 << (8 + memindex));
+			pcicfgw16(cb->pci, PciBCR, r);
 			memindex++;
 		}
 
 		if (pci->rom.bar && memindex < 2) {
 			upafree(pci->rom.bar & ~0xF, pci->rom.size);
-			pcicfgw32(cb->pci, PciCBMBR0 + memindex * 8, 
-					  (ulong)-1);
+			pcicfgw32(cb->pci, PciCBMBR0 + memindex * 8, (ulong)-1);
 			pcicfgw32(cb->pci, PciCBMLR0 + memindex * 8, 0);
 			memindex++;
 		}
@@ -1000,7 +1028,8 @@ pccard_pcmspecial(char *idstr, ISAConf *isa)
 	}
 
 	if (i == nslots) {
-		// print("#Y: %s not found\n", idstr);
+		//if(DEBUG)
+		//	print("#Y: %s not found\n", idstr);
 		return -1;
 	}
 
@@ -1143,7 +1172,7 @@ pccard_pcmspecial(char *idstr, ISAConf *isa)
 	pi->irq = isa->irq;
 	unlock(cb);
 
-	print("#Y%d: %s irq %d, port %lX\n", (int)(cb - cbslots), pi->verstr, isa->irq, isa->port);
+	print("#Y%ld: %s irq %d, port %lX\n", cb - cbslots, pi->verstr, isa->irq, isa->port);
 	return (int)(cb - cbslots);
 }
 
@@ -1731,10 +1760,10 @@ timing(Cisdat *cis, PCMconftab *ct)
 		ct->maxwait = ttiming(cis, i);		/* max wait */
 	i = (c>>2)&0x7;
 	if(i != 7)
-		ct->readywait = ttiming(cis, i);		/* max ready/busy wait */
+		ct->readywait = ttiming(cis, i);	/* max ready/busy wait */
 	i = (c>>5)&0x7;
 	if(i != 7)
-		ct->otherwait = ttiming(cis, i);		/* reserved wait */
+		ct->otherwait = ttiming(cis, i);	/* reserved wait */
 }
 
 static void
@@ -1945,4 +1974,3 @@ vcode(int volt)
 		return 0;
 	}
 }
-

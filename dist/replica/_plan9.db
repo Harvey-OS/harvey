@@ -174,7 +174,7 @@
 386/bin/calendar - 775 sys sys 1144688922 80581
 386/bin/cat - 775 sys sys 1143741965 37482
 386/bin/cb - 775 sys sys 1143777775 77723
-386/bin/cdfs - 775 sys sys 1143777776 167575
+386/bin/cdfs - 775 sys sys 1146338539 167582
 386/bin/cfs - 775 sys sys 1144688922 128366
 386/bin/chgrp - 775 sys sys 1143777776 59617
 386/bin/chmod - 775 sys sys 1143777776 62613
@@ -401,7 +401,7 @@
 386/bin/snap - 775 sys sys 1136346852 313627
 386/bin/snapfs - 775 sys sys 1134389876 388292
 386/bin/sniffer - 775 sys sys 1038443185 99028
-386/bin/snoopy - 775 sys sys 1145033673 183331
+386/bin/snoopy - 775 sys sys 1146338540 183502
 386/bin/sort - 775 sys sys 1143777838 82618
 386/bin/spin - 775 sys sys 1134151359 758520
 386/bin/split - 775 sys sys 1143777838 75981
@@ -411,7 +411,7 @@
 386/bin/ssh - 775 sys sys 1133827764 211090
 386/bin/sshnet - 775 sys sys 1134389877 288327
 386/bin/stats - 775 sys sys 1143777839 190894
-386/bin/strings - 775 sys sys 1143777839 62445
+386/bin/strings - 775 sys sys 1146338540 62457
 386/bin/strip - 775 sys sys 1144264735 80765
 386/bin/sum - 775 sys sys 1143742038 39505
 386/bin/swap - 775 sys sys 1143777840 62468
@@ -5448,7 +5448,7 @@ rc/bin/label - 775 sys sys 945617207 34
 rc/bin/lc - 775 sys sys 945617207 24
 rc/bin/leak - 775 sys sys 1139744263 1052
 rc/bin/lookman - 775 sys sys 1017679344 686
-rc/bin/lp - 775 sys sys 1139839436 5140
+rc/bin/lp - 775 sys sys 1146317617 5154
 rc/bin/mail - 775 sys sys 1045504003 138
 rc/bin/man - 775 sys sys 1138555265 2520
 rc/bin/map - 775 sys sys 945617207 1576
@@ -7740,7 +7740,7 @@ sys/man/8/secstore - 664 sys sys 1105016705 1954
 sys/man/8/securenet - 664 sys sys 954305552 3160
 sys/man/8/send - 664 sys sys 1045501634 2168
 sys/man/8/smtp - 664 sys sys 1133631990 4507
-sys/man/8/snoopy - 664 sys sys 1138463452 4086
+sys/man/8/snoopy - 664 sys sys 1146318297 4288
 sys/man/8/stats - 664 sys sys 1067722908 4291
 sys/man/8/statusbar - 664 sys sys 1141313214 1253
 sys/man/8/stub - 664 sys sys 1044830500 943
@@ -7942,12 +7942,12 @@ sys/src/9/pc/dat.h - 664 sys sys 1142958313 6628
 sys/src/9/pc/devarch.c - 664 sys sys 1143129812 19249
 sys/src/9/pc/devether.c - 664 sys sys 1131290265 10315
 sys/src/9/pc/devfloppy.c - 664 sys sys 1142958305 20139
-sys/src/9/pc/devi82365.c - 664 sys sys 1099761153 20505
+sys/src/9/pc/devi82365.c - 664 sys sys 1146318335 20504
 sys/src/9/pc/devlm78.c - 664 sys sys 1128255048 6291
 sys/src/9/pc/devlml.c - 664 sys sys 1132448361 7502
 sys/src/9/pc/devlml.h - 664 sys sys 1026847636 2948
 sys/src/9/pc/devlpt.c - 664 sys sys 1015014514 4420
-sys/src/9/pc/devpccard.c - 664 sys sys 1141793347 40159
+sys/src/9/pc/devpccard.c - 664 sys sys 1146318335 40443
 sys/src/9/pc/devrtc.c - 664 sys sys 1015014515 7167
 sys/src/9/pc/devtv.c - 664 sys sys 1131290299 45676
 sys/src/9/pc/devusb.c - 664 sys sys 1105193103 18364
@@ -9851,7 +9851,7 @@ sys/src/cmd/cdfs/dat.h - 664 sys sys 1014925665 2334
 sys/src/cmd/cdfs/fns.h - 664 sys sys 969542122 297
 sys/src/cmd/cdfs/main.c - 664 sys sys 1017679316 11040
 sys/src/cmd/cdfs/mkfile - 664 sys sys 959922196 182
-sys/src/cmd/cdfs/mmc.c - 664 sys sys 1143670611 17182
+sys/src/cmd/cdfs/mmc.c - 664 sys sys 1146318348 17198
 sys/src/cmd/cfs - 20000000775 sys sys 1015009266 0
 sys/src/cmd/cfs/bcache.c - 664 sys sys 1014925219 2956
 sys/src/cmd/cfs/bcache.h - 664 sys sys 1014925220 797
@@ -12386,7 +12386,7 @@ sys/src/cmd/ip/rlogind.c - 664 sys sys 1121977161 757
 sys/src/cmd/ip/snoopy - 20000000775 sys sys 1015090062 0
 sys/src/cmd/ip/snoopy/arp.c - 664 sys sys 1128179536 1914
 sys/src/cmd/ip/snoopy/bootp.c - 664 sys sys 1139667382 3442
-sys/src/cmd/ip/snoopy/dat.h - 664 sys sys 1128179536 1915
+sys/src/cmd/ip/snoopy/dat.h - 664 sys sys 1146318302 1933
 sys/src/cmd/ip/snoopy/dhcp.c - 664 sys sys 1138463389 8958
 sys/src/cmd/ip/snoopy/dns.c - 664 sys sys 1144956777 14815
 sys/src/cmd/ip/snoopy/dump.c - 664 sys sys 1138463389 1078
@@ -12403,7 +12403,7 @@ sys/src/cmd/ip/snoopy/icmp6.c - 664 sys sys 1143759343 7726
 sys/src/cmd/ip/snoopy/il.c - 664 sys sys 1139667365 2260
 sys/src/cmd/ip/snoopy/ip.c - 664 sys sys 1128179538 4300
 sys/src/cmd/ip/snoopy/ip6.c - 664 sys sys 1128179538 5371
-sys/src/cmd/ip/snoopy/main.c - 664 sys sys 1138463390 15607
+sys/src/cmd/ip/snoopy/main.c - 664 sys sys 1146318297 15720
 sys/src/cmd/ip/snoopy/mkfile - 664 sys sys 1144955678 889
 sys/src/cmd/ip/snoopy/ninep.c - 664 sys sys 1138463390 555
 sys/src/cmd/ip/snoopy/ospf.c - 664 sys sys 1138463391 7369
@@ -12528,7 +12528,7 @@ sys/src/cmd/look.c - 664 sys sys 944961619 5994
 sys/src/cmd/lp - 20000000775 sys sys 953344617 0
 sys/src/cmd/lp/LOCK.c - 664 sys sys 1015090023 1066
 sys/src/cmd/lp/ipcopen.c - 664 sys sys 944961017 1607
-sys/src/cmd/lp/lp.rc - 775 sys sys 1139839431 5140
+sys/src/cmd/lp/lp.rc - 775 sys sys 1146317617 5154
 sys/src/cmd/lp/lpdaemon.c - 664 sys sys 1032060412 10000
 sys/src/cmd/lp/lpdsend.c - 664 sys sys 1116770113 9583
 sys/src/cmd/lp/lpsend.c - 664 sys sys 1015090024 6180
@@ -13301,7 +13301,7 @@ sys/src/cmd/ssh/sshnet.c - 664 sys sys 1078840016 17641
 sys/src/cmd/ssh/sshserve.c - 664 sys sys 1135487956 5772
 sys/src/cmd/ssh/util.c - 664 sys sys 1063858753 4478
 sys/src/cmd/stats.c - 664 sys sys 1127974208 28128
-sys/src/cmd/strings.c - 664 sys sys 944961364 1216
+sys/src/cmd/strings.c - 664 sys sys 1146317512 1231
 sys/src/cmd/strip.c - 664 sys sys 1131293244 2502
 sys/src/cmd/sum.c - 664 sys sys 1014926615 5548
 sys/src/cmd/swap.c - 664 sys sys 1014926662 1141

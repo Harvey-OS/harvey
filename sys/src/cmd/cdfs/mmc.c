@@ -630,7 +630,8 @@ mmcread(Buf *buf, void *v, long nblock, long off)
 	n = nblock*bs;
 	nn = scsi(drive, cmd, sizeof(cmd), v, n, Sread);
 	if(nn != n) {
-		werrstr("short read %ld/%ld", nn, n);
+		if(nn != -1)
+			werrstr("short read %ld/%ld", nn, n);
 		if(vflag)
 			print("read off %lud nblock %ld bs %d failed\n", off, nblock, bs);
 		return -1;

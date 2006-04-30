@@ -91,7 +91,7 @@ XOFF=''
 YOFF=''
 
 # Process options
-flagfmt='D,H,L,Q,R,r,q,c copies,d printer,f font.size,i src,k jobnos,l lines,m magnify,n lpages,o pages,u userid,x offset,y offset'
+flagfmt='D,H,L,Q,R,r,q,M mach,c copies,d printer,f font.size,i src,k jobnos,l lines,m magnify,n lpages,o pages,p proc,u userid,x offset,y offset'
 argv0=lp
 
 if(! ifs=() eval `{aux/getflags $*}) {
