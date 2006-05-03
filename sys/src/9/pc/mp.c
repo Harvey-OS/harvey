@@ -369,6 +369,7 @@ squidboy(Apic* apic)
 	lapicinit(apic);
 	lapiconline();
 	syncclock();
+	timersinit();
 
 	fpoff();
 
