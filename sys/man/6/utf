@@ -83,7 +83,7 @@ the shortest encoding is used.
 .PP
 In the inverse mapping,
 any sequence except those described above
-is incorrect and is converted to rune hexadecimal 0080.
+is incorrect and is converted to rune hexadecimal FFFD.
 .SH FILES
 .TF "/lib/unicode "
 .TP

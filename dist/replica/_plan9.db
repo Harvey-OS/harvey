@@ -7671,7 +7671,7 @@ sys/man/6/smtpd - 664 sys sys 1138191586 8178
 sys/man/6/snap - 664 sys sys 1132452694 2402
 sys/man/6/thumbprint - 664 sys sys 1019866709 1124
 sys/man/6/users - 664 sys sys 1130912014 1392
-sys/man/6/utf - 664 sys sys 944959678 2430
+sys/man/6/utf - 664 sys sys 1146582112 2430
 sys/man/6/venti.conf - 664 sys sys 1055707590 1917
 sys/man/6/vgadb - 664 sys sys 960256513 10972
 sys/man/7 - 20000000775 sys sys 1015092163 0
@@ -7996,7 +7996,7 @@ sys/src/9/pc/memory.c - 664 sys sys 1131573303 18191
 sys/src/9/pc/mkfile - 664 sys sys 1142960857 3804
 sys/src/9/pc/mmu.c - 664 sys sys 1142124315 25229
 sys/src/9/pc/mouse.c - 664 sys sys 1098479254 7057
-sys/src/9/pc/mp.c - 664 sys sys 1146151715 17302
+sys/src/9/pc/mp.c - 664 sys sys 1146542974 17317
 sys/src/9/pc/mp.h - 664 sys sys 1131538511 6652
 sys/src/9/pc/nv_dma.h - 664 sys sys 1081384508 12943
 sys/src/9/pc/pc - 664 sys sys 1143768293 1452
