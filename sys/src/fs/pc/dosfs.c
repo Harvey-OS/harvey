@@ -24,7 +24,7 @@ struct Clustbuf
 {
 	int	flags;
 	int	age;
-	Devsize	sector;
+	long	sector;
 	uchar *	iobuf;
 	Dos *	dos;
 	int	size;
@@ -50,12 +50,11 @@ static void
 writeclust(Clustbuf *p)
 {
 	Dos *dos;
-	Off addr;
+	int addr;
 
 	dos = p->dos;
 	addr = (p->sector+dos->start)*dos->sectbytes;
-	chat("writeclust @ %lld addr %lld...", (Wideoff)p->sector,
-		(Wideoff)addr);
+	chat("writeclust @ %ld addr %d...", p->sector, addr);
 	if((*dos->seek)(dos->dev, addr) < 0)
 		panic("writeclust: seek");
 	if((*dos->write)(dos->dev, p->iobuf, p->size) != p->size)
@@ -84,11 +83,11 @@ syncclust(void)
  *  get an io buffer, possibly with valid data
  */
 static Clustbuf*
-getclust0(Dos *dos, Off sector)
+getclust0(Dos *dos, long sector)
 {
 	Clustbuf *p, *oldest;
 
-	chat("getclust0 @ %lld\n", (Wideoff)sector);
+	chat("getclust0 @ %ld\n", sector);
 
 	/*
 	 *  if we have it, just return it
@@ -99,7 +98,7 @@ getclust0(Dos *dos, Off sector)
 		if(sector == p->sector && dos == p->dos){
 			if(p->flags & LOCKED)
 				panic("getclust0 locked");
-			chat("getclust0 %lld in cache\n", (Wideoff)sector);
+			chat("getclust0 %ld in cache\n", sector);
 			p->flags |= LOCKED;
 			return p;
 		}
@@ -134,10 +133,10 @@ getclust0(Dos *dos, Off sector)
  *  get an io block from an io buffer
  */
 static Clustbuf*
-getclust(Dos *dos, Off sector)
+getclust(Dos *dos, long sector)
 {
 	Clustbuf *p;
-	Off addr;
+	int addr;
 
 	p = getclust0(dos, sector);
 	if(p->dos){
@@ -145,12 +144,12 @@ getclust(Dos *dos, Off sector)
 		return p;
 	}
 	addr = (sector+dos->start)*dos->sectbytes;
-	chat("getclust seek addr %lld\n", (Wideoff)addr);
+	chat("getclust seek addr %d\n", addr);
 	if((*dos->seek)(dos->dev, addr) < 0){
 		chat("can't seek block\n");
 		return 0;
 	}
-	chat("getclust read addr %lld\n", (Wideoff)addr);
+	chat("getclust read addr %d\n", addr);
 	if((*dos->read)(dos->dev, p->iobuf, p->size) != p->size){
 		chat("can't read block\n");
 		return 0;
@@ -159,7 +158,7 @@ getclust(Dos *dos, Off sector)
 	p->age = MACHP(0)->ticks;
 	p->dos = dos;
 	p->sector = sector;
-	chat("getclust %lld read\n", (Wideoff)sector);
+	chat("getclust %ld read\n", sector);
 	return p;
 }
 
@@ -168,7 +167,7 @@ getclust(Dos *dos, Off sector)
  *  any current data is discarded.
  */
 static Clustbuf*
-getclustz(Dos *dos, Off sector)
+getclustz(Dos *dos, long sector)
 {
 	Clustbuf *p;
 
@@ -178,7 +177,7 @@ getclustz(Dos *dos, Off sector)
 	p->sector = sector;
 	memset(p->iobuf, 0, p->size);
 	p->flags |= MOD;
-	chat("getclustz %lld\n", (Wideoff)sector);
+	chat("getclustz %ld\n", sector);
 	return p;
 }
 
@@ -193,7 +192,7 @@ putclust(Clustbuf *p)
 	if((p->flags & (MOD|IMMED)) == (MOD|IMMED))
 		writeclust(p);
 	p->flags &= ~LOCKED;
-	chat("putclust @ sector %lld...", (Wideoff)p->sector);
+	chat("putclust @ sector %ld...", p->sector);
 }
 
 /*
@@ -253,7 +252,7 @@ fatwalk(Dos *dos, int n)
 static void
 fatwrite(Dos *dos, int n, int val)
 {
-	Off k, sect;
+	ulong k, sect;
 	Clustbuf *p;
 	int i, o;
 
@@ -344,13 +343,13 @@ fatalloc(Dos *dos)
  *  map a file's logical sector address to a physical sector address
  */
 static long
-fileaddr(Dosfile *fp, Off ltarget, Clustbuf *pdir)
+fileaddr(Dosfile *fp, long ltarget, Clustbuf *pdir)
 {
 	Dos *dos = fp->dos;
 	Dosdir *dp;
-	Off p;
+	long p;
 
-	chat("fileaddr %8.8s %lld\n", fp->name, (Wideoff)ltarget);
+	chat("fileaddr %8.8s %ld\n", fp->name, ltarget);
 	/*
 	 *  root directory is contiguous and easy
 	 */
@@ -358,7 +357,7 @@ fileaddr(Dosfile *fp, Off ltarget, Clustbuf *pdir)
 		if(ltarget*dos->sectbytes >= dos->rootsize*sizeof(Dosdir))
 			return -1;
 		p = dos->rootaddr + ltarget;
-		chat("fileaddr %lld -> %lld\n", (Wideoff)ltarget, (Wideoff)p);
+		chat("fileaddr %ld -> %ld\n", ltarget, p);
 		return p;
 	}
 	if(fp->pstart == 0){	/* empty file */
@@ -367,7 +366,7 @@ fileaddr(Dosfile *fp, Off ltarget, Clustbuf *pdir)
 		p = fatalloc(dos);
 		if(p <= 0)
 			return -1;
-		chat("fileaddr initial alloc %lld\n", (Wideoff)p);
+		chat("fileaddr initial alloc %ld\n", p);
 		dp = (Dosdir *)(pdir->iobuf + fp->odir);
 		puttime(dp);
 		dp->start[0] = p;
@@ -408,7 +407,7 @@ fileaddr(Dosfile *fp, Off ltarget, Clustbuf *pdir)
 	 *  clusters start at 2 instead of 0 (why? - presotto)
 	 */
 	p = dos->dataaddr + (fp->pcurrent-2)*dos->clustsize;
-	chat("fileaddr %lld -> %lld\n", (Wideoff)ltarget, (Wideoff)p);
+	chat("fileaddr %ld -> %ld\n", ltarget, p);
 	return p;
 }
 
@@ -457,7 +456,7 @@ doswalk(Dosfile *fp, char *name)
 	char dname[8], dext[3];
 	Clustbuf *p;
 	Dosdir *dp;
-	Off o, addr;
+	long o, addr;
 
 	if((fp->attr & DOSDIR) == 0){
 		chat("walking non-directory!\n");
@@ -485,7 +484,7 @@ doswalk(Dosfile *fp, char *name)
 		fp->offset += p->size;
 		putclust(p);
 	}
-	panic("doswalk");
+
 Found:
 	fp->pdir = p->sector;
 	fp->odir = o;
@@ -636,8 +635,7 @@ dosinit(Dos *dos)
 	dos->root.attr = DOSDIR;
 	dos->root.length = dos->rootsize*sizeof(Dosdir);
 	dos->root.pstart = 0;
-	dos->root.lcurrent = 0;
-	dos->root.pcurrent = 0;
+	dos->root.pcurrent = dos->root.lcurrent = 0;
 	dos->root.offset = 0;
 
 	syncclust();
@@ -667,7 +665,7 @@ nextelem(char *path, char *elem)
 static void
 puttime(Dosdir *d)
 {
-	Timet secs;
+	ulong secs;
 	Rtc rtc;
 	ushort x;
 
@@ -696,9 +694,8 @@ dosopen(Dos *dos, char *path, Dosfile *fp)
 			print("%s not found\n", element);
 			return 0;
 		case 1:
-			print("found %s attr 0x%ux start 0x%llux len %lld\n",
-				element, fp->attr, (Wideoff)fp->pstart,
-				(Wideoff)fp->length);
+			print("found %s attr 0x%ux start 0x%lux len %ld\n",
+				element, fp->attr, fp->pstart, fp->length);
 			break;
 		}
 	}
@@ -713,7 +710,7 @@ dosopen(Dos *dos, char *path, Dosfile *fp)
 long
 dosread(Dosfile *fp, void *a, long n)
 {
-	Off addr, k, o;
+	long addr, k, o;
 	Clustbuf *p;
 	uchar *to;
 
@@ -758,7 +755,7 @@ dosread(Dosfile *fp, void *a, long n)
 long
 doswrite(Dosfile *fp, void *a, long n)
 {
-	Off blksize, addr, k, o;
+	long blksize, addr, k, o;
 	Clustbuf *p, *pdir;
 	Dosdir *dp;
 	uchar *from;
@@ -828,7 +825,7 @@ dostrunc(Dosfile *fp)
 {
 	Clustbuf *pdir;
 	Dosdir *dp;
-	Off p, np;
+	int p, np;
 
 	if(fp->attr & DOSDIR){
 		print("trunc dir\n");

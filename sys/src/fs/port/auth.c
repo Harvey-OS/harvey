@@ -166,13 +166,13 @@ conslock(void)
 		passtokey(nkey1, passwd);
 		if(memcmp(nkey1, nvr.authkey, DESKEYLEN) == 0) {
 			prdate();
-			return 1;
+			break;
 		}
 
 		print("Bad password\n");
 		delay(1000);
 	}
-	return 0;
+	return 1;
 }
 
 /*
@@ -210,7 +210,7 @@ struct	Auth
 	int	inuse;
 	char	uname[NAMELEN];	/* requestor's remote user name */
 	char	aname[NAMELEN];	/* requested aname */
-	Userid	uid;		/* uid decided on */
+	short	uid;		/* uid decided on */
 	int	phase;
 	char	cchal[CHALLEN];
 	char	tbuf[TICKETLEN+AUTHENTLEN];	/* server ticket */

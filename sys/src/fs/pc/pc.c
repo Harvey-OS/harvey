@@ -118,7 +118,7 @@ cistrcmp(char* a, char* b)
 	for(;;){
 		ac = *a++;
 		bc = *b++;
-
+	
 		if(ac >= 'A' && ac <= 'Z')
 			ac = 'a' + (ac - 'A');
 		if(bc >= 'A' && bc <= 'Z')
@@ -170,7 +170,7 @@ getconf(char *name)
 
 /* memory map */
 /* the file server kernel will only see MAXMEG megabytes of RAM at most.  */
-#define MAXMEG 1791		/* 1.75GB-1MB, to avoid overshooting 1.75GB */
+#define MAXMEG 1024
 
 char mmap[MAXMEG+2];
 Mconf mconf;
@@ -309,6 +309,7 @@ pcgetc(void)
 		return c;
 	if(useuart)
 		return uartgetc();
+	return 0;
 }
 
 static void

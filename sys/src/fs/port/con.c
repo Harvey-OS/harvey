@@ -1,7 +1,7 @@
 #include	"all.h"
 #include	"mem.h"
 
-static	char	conline[2*Maxword];
+static	char	conline[100];
 static	Command	command[100];
 static	Flag	flag[35];
 static	void	installcmds(void);
@@ -67,7 +67,6 @@ loop:
 			goto loop;
 		}
 	}
-	goto loop;
 }
 
 static
@@ -105,7 +104,7 @@ cmd_install(char *arg0, char *help, void (*func)(int, char*[]))
 void
 cmd_exec(char *arg)
 {
-	char line[2*Maxword], *s;
+	char line[100], *s;
 	char *argv[10];
 	int argc, i, c;
 
@@ -421,7 +420,8 @@ static
 void
 cmd_date(int argc, char *argv[])
 {
-	Timet ct, t;
+	ulong ct;
+	long t;
 	char *arg;
 
 	if(argc <= 1)
@@ -556,24 +556,23 @@ cmd_disallow(int, char**)
 }
 
 void
-ckblock(Device *d, Off a, int typ, Off qpath)
+ckblock(Device *d, long a, int typ, long qpath)
 {
 	Iobuf *p;
 
 	if(a) {
 		p = getbuf(d, a, Bread);
-		if(p) {
-			checktag(p, typ, qpath);
+		checktag(p, typ, qpath);
+		if(p)
 			putbuf(p);
-		}
 	}
 }
 
 void
-doclean(Iobuf *p, Dentry *d, int n, Off a)
+doclean(Iobuf *p, Dentry *d, int n, long a)
 {
 	int i, mod, typ;
-	Off qpath;
+	long qpath;
 
 	mod = 0;
 	qpath = d->qid.path;
@@ -581,24 +580,29 @@ doclean(Iobuf *p, Dentry *d, int n, Off a)
 	if(d->mode & DDIR)
 		typ = Tdir;
 	for(i=0; i<NDBLOCK; i++) {
-		print("dblock[%d] = %lld\n", i, (Wideoff)d->dblock[i]);
+		print("dblock[%d] = %ld\n", i, d->dblock[i]);
 		ckblock(p->dev, d->dblock[i], typ, qpath);
 		if(i == n) {
 			d->dblock[i] = a;
 			mod = 1;
-			print("dblock[%d] modified %lld\n", i, (Wideoff)a);
+			print("dblock[%d] modified %ld\n", i, a);
 		}
 	}
 
-	/* add NDBLOCK so user can cite block address by index */
-	for (i = 0; i < NIBLOCK; i++) {
-		print("iblocks[%d] = %lld\n", NDBLOCK+i, (Wideoff)d->iblocks[i]);
-		ckblock(p->dev, d->iblocks[i], Tind1+i, qpath);
-		if(NDBLOCK+i == n) {
-			d->iblocks[i] = a;
-			mod = 1;
-			print("iblocks[%d] modified %lld\n", NDBLOCK+i, (Wideoff)a);
-		}
+	print("iblock[%d] = %ld\n", NDBLOCK, d->iblock);
+	ckblock(p->dev, d->iblock, Tind1, qpath);
+	if(NDBLOCK == n) {
+		d->iblock = a;
+		mod = 1;
+		print("iblock[%d] modified %ld\n", NDBLOCK, a);
+	}
+
+	print("diblock[%d] = %ld\n", NDBLOCK+1, d->diblock);
+	ckblock(p->dev, d->diblock, Tind2, qpath);
+	if(NDBLOCK+1 == n) {
+		d->diblock = a;
+		mod = 1;
+		print("diblock[%d] modified %ld\n", NDBLOCK+1, a);
 	}
 
 	if(mod)
@@ -610,7 +614,7 @@ void
 cmd_clean(int argc, char *argv[])
 {
 	int n;
-	Off a;
+	long a;
 	Iobuf *p;
 	Dentry *d;
 	File *f;
@@ -670,8 +674,8 @@ void
 cmd_version(int, char *[])
 {
 
-	print("%d-bit %s as of %T\n", sizeof(Off)*8 - 1, service, mktime);
-	print("\tlast boot %T\n", boottime);
+	print("%s as of %T\n", service, mktime);
+	print("	last boot %T\n", boottime);
 }
 
 static
@@ -756,7 +760,7 @@ static
 void
 cmd_time(int argc, char *argv[])
 {
-	Timet t1, t2;
+	long t1, t2;
 	int i;
 
 	t1 = MACHP(0)->ticks;
@@ -880,15 +884,13 @@ walkto(char *name)
 			return 1;
 		name = p;
 	}
-	return 0;
 }
 
-/* needs to parse and return vlongs to cope with new larger block numbers */
-vlong
+long
 number(char *arg, int def, int base)
 {
 	int c, sign, any;
-	vlong n;
+	long n;
 
 	if(arg == 0)
 		return def;

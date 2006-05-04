@@ -29597,3 +29597,12 @@
 1146339069 2 c 386/bin/strings - 775 sys sys 1146338540 62457
 1146544209 0 c sys/src/9/pc/mp.c - 664 sys sys 1146542974 17317
 1146583821 0 c sys/man/6/utf - 664 sys sys 1146582112 2430
+1146677452 0 c sys/src/fs/pc/dosfs.c - 664 sys sys 1146675982 16443
+1146677452 1 c sys/src/fs/pc/etherga620.c - 664 sys sys 1146675981 24749
+1146677452 2 c sys/src/fs/pc/pc.c - 664 sys sys 1146675981 7949
+1146677452 3 c sys/src/fs/pc/scsincr53c8xx.c - 664 sys sys 1146675981 53427
+1146677452 4 c sys/src/fs/port/9p2.c - 664 sys sys 1146675939 36160
+1146677452 5 c sys/src/fs/port/auth.c - 664 sys sys 1146675939 7605
+1146677452 6 c sys/src/fs/port/con.c - 664 sys sys 1146675938 16231
+1146677452 7 c sys/src/fs/port/fcmd.c - 664 sys sys 1146675938 1255
+1146677452 8 c sys/src/fs/port/sub.c - 664 sys sys 1146675938 23732
