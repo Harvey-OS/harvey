@@ -5,7 +5,6 @@
 
 #define	CHAT(cp)	((cons.flags&chatflag)||(cp&&(((Chan*)cp)->flags&chatflag)))
 #define	QID9P1(a,b)	(Qid9p1){(a),(b)}
-#define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
 
 #define	QPDIR		0x80000000L
 #define	QPNONE		0
