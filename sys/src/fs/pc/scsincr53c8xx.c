@@ -13,7 +13,7 @@
  * Read/write mismatch recovery may fail on 53c1010s. Really need to get a manual.
 */
 
-#define MAXTARGET	8		/* can be 8 or 16 */
+#define MAXTARGET	16		/* can be 8 or 16 */
 
 /* Define one or the other ... */
 //#define CPU
@@ -187,7 +187,7 @@ typedef struct Ncr {
 	uchar dcntl;
 
 	uchar adder[4];	/* 3c */
-	
+
 	uchar sien0;	/* 40 */
 	uchar sien1;
 	uchar sist0;
@@ -421,7 +421,7 @@ oprint(char *format, ...)
 		debuglast = debugbuf;
 	debuglast = doprint(debuglast, debugbuf + (DEBUGSIZE - 1), format, (&format + 1));
 	splx(s);
-	iflush();	
+	iflush();
 }
 #endif
 
@@ -510,7 +510,7 @@ dumpncrregs(Controller *c, int intr)
 		else
 			KPRINT("\n");
 	}
-}	
+}
 
 static int
 chooserate(Controller *c, int tpf, int *scfp, int *xferpp)
@@ -830,7 +830,7 @@ softreset(Controller *c)
 
 	n->stime0 = 0xdd;		/* about 0.5 second timeout on each device */
 	n->scntl0 |= 0x8;		/* Enable parity checking */
-	
+
 	/* continued setup */
 	n->sien0 = 0x8f;
 	n->sien1 = 0x04;
@@ -940,7 +940,7 @@ msgsm(Dsa *dsa, Controller *c, int msg, int *cont, int *wakeme)
 			return;
 		}
 		break;
-		
+
 	case NeitherDone:
 	case WideDone:
 	case BothDone:
@@ -1154,14 +1154,12 @@ write_mismatch_recover(Controller *c, Ncr *n, Dsa *dsa)
 static void
 interrupt(Ureg *ur, void *a)
 {
-	uchar istat;
+	int wakeme = 0, cont = -1;
+	uchar istat, dstat;
 	ushort sist;
-	uchar dstat;
-	int wakeme = 0;
-	int cont = -1;
-	Dsa *dsa;
 	Controller *c = a;
 	Ncr *n = c->n;
+	Dsa *dsa;
 
 	USED(ur);
 	if (DEBUG(1))
@@ -1197,8 +1195,11 @@ interrupt(Ureg *ur, void *a)
 
 	sist = (n->sist1<<8)|n->sist0;	/* BUG? can two-byte read be inconsistent? */
 	dstat = n->dstat;
+
 	dsa = (Dsa *)DMASEG_TO_KADDR(legetl(n->dsa));
 	c->running = 0;
+	if (dsa == nil || dsa == (Dsa *)-1)
+		panic("53c8xx: dsa == %ld in interrupt; bad controller", (long)dsa);
 	if (istat & Sip) {
 		if (DEBUG(1))
 			IPRINT("sist = %.4x\n", sist);
@@ -1285,7 +1286,7 @@ interrupt(Ureg *ur, void *a)
 				 * 2. It's not SCSI-II compliant. The new phase will be other
 				 *    than message_in. We should also indicate that the device
 				 *    is asynchronous, if it's the SDTR that got ignored
-				 * 
+				 *
 				 * For now, if the phase switch is not to message_in, and
 				 * and it happens after IDENTIFY and before SDTR, we
 				 * notify the negotiation state machine.
@@ -1500,13 +1501,18 @@ interrupt(Ureg *ur, void *a)
 			IPRINT("%.8lux %.8lux %.8lux\n",
 			    *(ulong *)(addr - 12), *(ulong *)(addr - 8), *(ulong *)(addr - 4));
 			USED(addr, dbc);
-			dsa->p9status = STATUS_FAIL;
+			if (dsa)
+				dsa->p9status = STATUS_FAIL;
 			wakeme = 1;
 		}
 		/*else*/ if (dstat & Bf) {
-			IPRINT(PRINTPREFIX "%d/%d: Bus Fault\n", dsa->target, dsa->lun);
+			if (dsa == nil)
+				print(PRINTPREFIX "Bus Fault with dsa==0\n");
+			else {
+				print(PRINTPREFIX "%d/%d: Bus Fault\n", dsa->target, dsa->lun);
+				dsa->p9status = STATUS_FAIL;
+			}
 			dumpncrregs(c, 1);
-			dsa->p9status = STATUS_FAIL;
 			wakeme = 1;
 		}
 	}
@@ -1514,7 +1520,7 @@ interrupt(Ureg *ur, void *a)
 		ncrcontinue(c);
 	else if (cont >= 0)
 		start(c, cont);
-	if (wakeme){
+	if (wakeme && dsa){
 		if(dsa->p9status == 0xffff)
 			dsa->p9status = STATUS_FAIL;
 		wakeup(dsa);
@@ -1530,8 +1536,6 @@ done(void *arg)
 {
 	return ((Dsa *)arg)->p9status != 0xffff;
 }
-
-#define offsetof(s, t) ((ulong)&((s *)0)->t)
 
 static int
 xfunc(Controller *c, enum na_external x, unsigned long *v)
@@ -1557,6 +1561,9 @@ xfunc(Controller *c, enum na_external x, unsigned long *v)
 		break;
 	case X_dsa_head:
 		*v = DMASEG(&c->dsalist.head[0]);
+		break;
+	case X_ssid_mask:
+		*v = SSIDMASK(c);
 		break;
 	}
 	return 1;
@@ -1675,7 +1682,7 @@ io(Controller *c, uchar target, uchar lun, int rw, uchar *cmd, int cmdlen, uchar
 	d->scsi_id_buf[2] = target;
 	d->scsi_id_buf[3] = c->scntl3[target];
 	synctodsa(d, c);
-	
+
 	bc = 0;
 
 	d->msg_out[bc] = 0x80 | lun;
@@ -1744,7 +1751,7 @@ io(Controller *c, uchar target, uchar lun, int rw, uchar *cmd, int cmdlen, uchar
 			dumpwritedata(data, datalen);
 	}
 
-	setmovedata(&d->status_buf, DMASEG(&d->status), 1);	
+	setmovedata(&d->status_buf, DMASEG(&d->status), 1);
 
 	d->p9status = 0xffff;
 	d->parityerror = 0;
@@ -1831,7 +1838,7 @@ exec(Scsi *p, int rw)
 	    p->cmd.base, p->cmd.lim - p->cmd.base,
 	    p->data.base, p->data.lim - p->data.base, &transferred);
 	p->data.ptr = p->data.base + transferred;
-	return p->status;	
+	return p->status;
 }
 #endif
 
@@ -1882,7 +1889,7 @@ cribbios(Controller *c)
 {
 	c->bios.scntl3 = c->n->scntl3;
 	c->bios.stest2 = c->n->stest2;
-	print(PRINTPREFIX "bios scntl3(%.2x) stest2(%.2x)\n", c->bios.scntl3, c->bios.stest2);
+	KPRINT(PRINTPREFIX "bios scntl3(%.2x) stest2(%.2x)\n", c->bios.scntl3, c->bios.stest2);
 }
 
 static int
@@ -2005,7 +2012,6 @@ scanpci(void)
 		ap = (Adapter*)mb->data;
 		ap->pcidev = p;
 		ap->port = p->mem[0].bar & ~0x01;
-
 		if(adapter == nil)
 			adapter = mb;
 		else
@@ -2100,7 +2106,7 @@ init(Controller* ctlr, ISAConf* isa, int differential)
 		 */
 		/*
 		 * should allocate memory and copy na_script into it for
-		 * multiple controllers here 
+		 * multiple controllers here
 		 * single controller version uses the microcode in place
 		 */
 		ctlr->script = na_script;
@@ -2123,10 +2129,10 @@ init(Controller* ctlr, ISAConf* isa, int differential)
 
 	isa->port = (ulong)KADDR(regpa);
 	isa->irq = pcidev->intl;
-	
+
 	synctabinit(ctlr);
 	cribbios(ctlr);
-	/*	
+	/*
 	intrenable(isa->irq, interrupt, ctlr, pcidev->tbdf);
 	 */
 	setvec(IRQBASE + isa->irq, interrupt, ctlr);

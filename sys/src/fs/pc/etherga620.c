@@ -473,7 +473,7 @@ ga620interrupt(Ureg*, void* arg)
 			return;
 	}
 	if(DoCountTicks)
-		rdtsc(&tsc0);
+		cycles(&tsc0);
 
 	ctlr->interrupts++;
 	csr32w(ctlr, Hi, 1);
@@ -493,7 +493,7 @@ ga620interrupt(Ureg*, void* arg)
 	csr32w(ctlr, Hi, 0);
 
 	if(DoCountTicks){
-		rdtsc(&tsc1);
+		cycles(&tsc1);
 		ctlr->ticks += tsc1-tsc0;
 	}
 }
@@ -603,9 +603,9 @@ ga620init(Ether* edev)
 	sethost64(&ctlr->gib->srcb.addr, ctlr->sr);
 	if(DoHardwareCksum)
 		flags = TcpUdpCksum|NoPseudoHdrCksum|HostRing;
-	else 
+	else
 		flags = HostRing;
-	if(DoCoalUpdateOnly) 
+	if(DoCoalUpdateOnly)
 		flags |= CoalUpdateOnly;
 	ctlr->gib->srcb.control = (Nsr<<16)|flags;
 	sethost64(&ctlr->gib->scp, ctlr->sci);
@@ -693,7 +693,7 @@ ga620init(Ether* edev)
 	 * A unique index for this controller and the maximum packet
 	 * length expected.
 	 * For now only standard packets are expected.
-	 */ 
+	 */
 	csr32w(ctlr, Ifx, 1);
 	csr32w(ctlr, IfMTU, ETHERMAXTU+4);
 

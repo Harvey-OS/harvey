@@ -1,6 +1,8 @@
 /*
  * functions (possibly) linked in, complete, from libc.
  */
+#define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
+#define offsetof(s, m)	(ulong)(&(((s*)0)->m))
 
 /*
  * mem routines
