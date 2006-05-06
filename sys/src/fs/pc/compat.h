@@ -43,10 +43,14 @@
 
 /* other memory */
 #define malloc(sz)  ialloc((sz), 0)
-#define xspanalloc(sz, align, span) ialloc((sz)+(align)+(span), (align))
+#define xspanalloc(sz, align, span)	ialloc((sz)+(align)+(span), (align))
+/* offset==0 in all uses in fs */
+#define mallocalign(sz, align, offset, span) \
+			ialloc((sz)+(align)+(span), (align))
 /* sleazy hacks; really need better allocators */
 #define xalloc(sz) malloc(sz)
 #define xfree(p)
+#define smalloc(sz) malloc(sz)
 
 #define waserror() 0
 #define poperror()

@@ -14324,7 +14324,7 @@ sys/src/fs/dev/mworm.c - 664 sys sys 1140167915 4264
 sys/src/fs/dev/wren.c - 664 sys sys 1140167916 2392
 sys/src/fs/doc - 20000000775 sys sys 1140158639 0
 sys/src/fs/doc/changes - 664 sys sys 1140168029 2967
-sys/src/fs/doc/words - 664 sys sys 1140168029 507
+sys/src/fs/doc/words - 664 sys sys 1146803821 1162
 sys/src/fs/doc/worm.fs - 664 sys sys 1140168030 4057
 sys/src/fs/doc/worm.fs64 - 664 sys sys 1101811981 1554
 sys/src/fs/doc/worms.32-bit - 664 sys sys 1140168032 2806
@@ -14366,7 +14366,7 @@ sys/src/fs/pc/8250.c - 664 sys sys 1140161725 6957
 sys/src/fs/pc/8253.c - 664 sys sys 1097579039 7264
 sys/src/fs/pc/cga.c - 664 sys sys 1015110034 1484
 sys/src/fs/pc/compat.c - 664 sys sys 1140164905 1575
-sys/src/fs/pc/compat.h - 664 sys sys 1140167957 2426
+sys/src/fs/pc/compat.h - 664 sys sys 1140774918 2578
 sys/src/fs/pc/dosfs.c - 664 sys sys 1146784976 16619
 sys/src/fs/pc/dosfs.h - 664 sys sys 1140167937 2696
 sys/src/fs/pc/ether2114x.c - 664 sys sys 1015110044 31874

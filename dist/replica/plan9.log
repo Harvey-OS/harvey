@@ -29626,3 +29626,5 @@
 1146799887 0 c sys/src/fs/pc/scsincr53c8xx.c - 664 sys sys 1146798658 53619
 1146799887 1 c sys/src/fs/port/all.h - 664 sys sys 1146798594 1888
 1146799887 2 c sys/src/fs/port/lib.h - 664 sys sys 1146798595 3791
+1146805289 0 c sys/src/fs/doc/words - 664 sys sys 1146803821 1162
+1146805289 1 c sys/src/fs/pc/compat.h - 664 sys sys 1140774918 2578
