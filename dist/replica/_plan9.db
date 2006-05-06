@@ -14324,7 +14324,7 @@ sys/src/fs/dev/mworm.c - 664 sys sys 1140167915 4264
 sys/src/fs/dev/wren.c - 664 sys sys 1140167916 2392
 sys/src/fs/doc - 20000000775 sys sys 1140158639 0
 sys/src/fs/doc/changes - 664 sys sys 1140168029 2967
-sys/src/fs/doc/words - 664 sys sys 1140168029 507
+sys/src/fs/doc/words - 664 sys sys 1146803821 1162
 sys/src/fs/doc/worm.fs - 664 sys sys 1140168030 4057
 sys/src/fs/doc/worm.fs64 - 664 sys sys 1101811981 1554
 sys/src/fs/doc/worms.32-bit - 664 sys sys 1140168032 2806
@@ -14366,7 +14366,7 @@ sys/src/fs/pc/8250.c - 664 sys sys 1140161725 6957
 sys/src/fs/pc/8253.c - 664 sys sys 1097579039 7264
 sys/src/fs/pc/cga.c - 664 sys sys 1015110034 1484
 sys/src/fs/pc/compat.c - 664 sys sys 1140164905 1575
-sys/src/fs/pc/compat.h - 664 sys sys 1140167957 2426
+sys/src/fs/pc/compat.h - 664 sys sys 1140774918 2578
 sys/src/fs/pc/dosfs.c - 664 sys sys 1146784976 16619
 sys/src/fs/pc/dosfs.h - 664 sys sys 1140167937 2696
 sys/src/fs/pc/ether2114x.c - 664 sys sys 1015110044 31874
@@ -14396,7 +14396,7 @@ sys/src/fs/pc/pci.c - 664 sys sys 1094949424 12118
 sys/src/fs/pc/script.i - 664 sys sys 1015110072 27323
 sys/src/fs/pc/scsi.c - 664 sys sys 1091803674 8661
 sys/src/fs/pc/scsibuslogic.c - 664 sys sys 1015110077 28645
-sys/src/fs/pc/scsincr53c8xx.c - 664 sys sys 1146785080 53665
+sys/src/fs/pc/scsincr53c8xx.c - 664 sys sys 1146798658 53619
 sys/src/fs/pc/sdata.c - 664 sys sys 1097712291 61793
 sys/src/fs/pc/sdscsi.c - 664 sys sys 1146786984 7017
 sys/src/fs/pc/toy.c - 664 sys sys 1140167948 2166
@@ -14406,7 +14406,7 @@ sys/src/fs/port/9p1.c - 664 sys sys 1140167971 29982
 sys/src/fs/port/9p1.h - 664 sys sys 1140167972 2128
 sys/src/fs/port/9p1lib.c - 664 sys sys 1101627232 7911
 sys/src/fs/port/9p2.c - 664 sys sys 1146785189 36265
-sys/src/fs/port/all.h - 664 sys sys 1140167977 1932
+sys/src/fs/port/all.h - 664 sys sys 1146798594 1888
 sys/src/fs/port/auth.c - 664 sys sys 1146785221 7606
 sys/src/fs/port/chk.c - 664 sys sys 1097832483 15683
 sys/src/fs/port/clock.c - 664 sys sys 1097580538 4033
@@ -14420,7 +14420,7 @@ sys/src/fs/port/devsd.c - 664 sys sys 1097712378 10993
 sys/src/fs/port/fcmd.c - 664 sys sys 1146785267 1255
 sys/src/fs/port/fs.h - 664 sys sys 1140168001 682
 sys/src/fs/port/iobuf.c - 664 sys sys 1140167988 4956
-sys/src/fs/port/lib.h - 664 sys sys 1091960844 3701
+sys/src/fs/port/lib.h - 664 sys sys 1146798595 3791
 sys/src/fs/port/lrand.c - 664 sys sys 1091803568 1093
 sys/src/fs/port/main.c - 664 sys sys 1140167990 7639
 sys/src/fs/port/mkfile - 664 sys sys 1140167991 214
@@ -15627,6 +15627,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-sys/src/fs/pc/scsincr53c8xx.c - 664 sys sys 1146798658 53619
-sys/src/fs/port/all.h - 664 sys sys 1146798594 1888
-sys/src/fs/port/lib.h - 664 sys sys 1146798595 3791
