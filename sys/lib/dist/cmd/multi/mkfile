@@ -1,0 +1,76 @@
+objtype=386
+</$objtype/mkfile
+
+TARG=multi
+
+PIECES=\
+	aux/mouse\
+	aux/pcmcia\
+	aux/vga\
+	aux/zerotrunc\
+	disk/fdisk\
+	disk/format\
+	disk/mbr\
+	disk/prep\
+#	fossil/fossil\
+#	fossil/flfmt\
+	ip/ipconfig\
+	ip/ppp\
+	ndb/cs\
+	ndb/dns\
+	replica/applylog\
+	9660srv\
+#	awk\
+	basename\
+	cat\
+	chgrp\
+	chmod\
+	cleanname\
+	cmp\
+	cp\
+	date\
+	dd\
+	dossrv\
+	echo\
+	ed\
+	ext2srv\
+#	fcp\
+	grep\
+	hget\
+	hoc\
+	ls\
+	mc\
+	mount\
+	mv\
+	ps\
+	read\
+#	rio\
+	rm\
+	sed\
+	sort\
+	srv\
+#	stats\
+	syscall\
+	tail\
+	tee\
+	test\
+	wc\
+	xd\
+
+8.multi:V: mkmulti mkfile
+	mkmulti $PIECES 
+	ls -l 8.multi
+	ls -l /386/bin/$PIECES | awk '{s += $6} END{print s}'
+
+scripts:V:
+	rm -rf ../../pc/multi
+	mkdir ../../pc/multi
+	for(i in $PIECES){
+		b=`{basename $i}
+		echo '#!/bin/multi' >>../../pc/multi/$b
+		chmod +x ../../pc/multi/$b
+	}
+
+BIN=/sys/lib/dist/bin/$objtype
+</sys/src/cmd/mkmany
+

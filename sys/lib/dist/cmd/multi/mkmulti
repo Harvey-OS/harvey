@@ -1,0 +1,70 @@
+#!/bin/rc
+
+targ=multi
+
+n=0
+dir=`{pwd}
+
+fn grab {
+	echo using $*
+	for(i){
+		n=`{echo 1+$n|hoc}
+		mv $i $dir/a.$n.8
+	}
+}
+
+fn getfiles {
+	sed -n 's/^(pcc|8\^l|8l) +(-o [^ ]* +)?([^\-].*)/ \3/p' | sed 's/ -[^ ]*//g' |
+		sed 's/ [^ ]*\.a//g'
+}
+
+rm a.*.8
+>multi.h
+>multiproto.h
+
+for(i){
+echo $i...
+	b=`{basename $i}
+	p=$b
+	if(~ $b [0-9]*)
+		p=_$b
+	echo void $p^_main'(int, char**);' >>$dir/multiproto.h
+	echo "$b", $p^_main, >>$dir/multi.h
+	d=`{basename -d $i}
+	if(~ $i disk/prep disk/fdisk){
+		cd /sys/src/cmd/disk/prep
+		rm 8.$b
+		files=`{mk 8.$b | getfiles}
+	}
+	if not if(test -d /sys/src/cmd/$i && @{cd /sys/src/cmd/$i && mk 8.out}){
+		cd /sys/src/cmd/$i
+		rm 8.out
+		files=`{mk 8.out | getfiles}
+	}
+	if not if(test -d /sys/src/cmd/$i && @{cd /sys/src/cmd/$i && mk 8.$b}){
+		cd /sys/src/cmd/$i
+		rm 8.out
+		files=`{mk 8.$b | getfiles}
+	}
+	if not if(test -d /sys/src/cmd/$d && @{cd /sys/src/cmd/$d && mk 8.$b}){
+		cd /sys/src/cmd/$d
+		rm 8.$b
+		files=`{mk 8.$b | getfiles}
+	}
+	if not{
+		echo do not know how to make $i
+		exit oops
+	}
+	aux/8prefix $p^_ $files
+	grab $files
+	switch(`{pwd}){
+	case /sys/src/cmd /sys/src/cmd/aux /sys/src/cmd/ip
+		rm 8.$b
+	case *
+		mk clean
+	}
+}
+cd $dir
+8c -FVw multi.c
+8l -o 8.$targ multi.8 a.*.8
+# rm a.*.8

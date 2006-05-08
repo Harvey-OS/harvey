@@ -79,6 +79,7 @@
 386/bin/auth/warning - 775 sys sys 1144688915 101390
 386/bin/auth/wrkey - 775 sys sys 1143777752 75559
 386/bin/aux - 20000000775 sys sys 1016920817 0
+386/bin/aux/8prefix - 775 sys sys 1147057033 67198
 386/bin/aux/9pcon - 775 sys sys 1143777753 95248
 386/bin/aux/LOCK - 775 sys sys 1143777753 60240
 386/bin/aux/X509gen - 775 sys sys 1048341826 129186
@@ -6114,6 +6115,10 @@ sys/lib/dist/cmd/bzfs/unbzip.c - 664 sys sys 1018469727 24395
 sys/lib/dist/cmd/cdsh.c - 664 sys sys 1018469727 2100
 sys/lib/dist/cmd/clog.c - 664 sys sys 1018469727 920
 sys/lib/dist/cmd/mkfile - 664 sys sys 1018641017 259
+sys/lib/dist/cmd/multi - 20000000775 sys sys 1147022829 0
+sys/lib/dist/cmd/multi/mkfile - 664 sys sys 1147022825 844
+sys/lib/dist/cmd/multi/mkmulti - 775 sys sys 1147022824 1235
+sys/lib/dist/cmd/multi/multi.c - 664 sys sys 1147022829 543
 sys/lib/dist/cmd/tailfsrv.c - 664 sys sys 1018469727 258
 sys/lib/dist/cmd/touchfs.c - 664 sys sys 1018469727 1120
 sys/lib/dist/cmd/unbflz.c - 664 sys sys 1018469727 1688
@@ -6183,11 +6188,12 @@ sys/lib/dist/pc/inst/textonly - 775 sys sys 1112361039 182
 sys/lib/dist/pc/inst/watchfd - 775 sys sys 1127670125 362
 sys/lib/dist/pc/inst/xxx - 775 sys sys 1018469719 160
 sys/lib/dist/pc/mkfile - 664 sys sys 1142958580 2193
+sys/lib/dist/pc/multi - 20000000775 sys sys 1147022870 0
 sys/lib/dist/pc/plan9.ini - 664 sys sys 1142177575 236
 sys/lib/dist/pc/plan9.ini.blank - 664 sys sys 1018469720 512
 sys/lib/dist/pc/plan9.ini.cd - 664 sys sys 1132452554 369
 sys/lib/dist/pc/plan9.ini.vmware - 664 sys sys 1045500078 168
-sys/lib/dist/pc/proto - 664 sys sys 1112535197 4250
+sys/lib/dist/pc/proto - 664 sys sys 1147022862 5596
 sys/lib/dist/pc/sub - 20000000775 sys sys 1018640631 0
 sys/lib/dist/pc/sub/a: - 775 sys sys 1018469726 481
 sys/lib/dist/pc/sub/bind - 775 sys sys 1018469726 207
@@ -7797,7 +7803,7 @@ sys/src/9/alphapc/mkfile - 664 sys sys 1109218102 1682
 sys/src/9/alphapc/mmu.c - 664 sys sys 1131538486 4981
 sys/src/9/alphapc/osf1pal.h - 664 sys sys 1137179966 1471
 sys/src/9/alphapc/pci.c - 664 sys sys 1039753420 7868
-sys/src/9/alphapc/screen.h - 664 sys sys 1131289708 3818
+sys/src/9/alphapc/screen.h - 664 sys sys 1147023555 3888
 sys/src/9/alphapc/sd53c8xx.c - 664 sys sys 1137179967 55257
 sys/src/9/alphapc/sio.c - 664 sys sys 1015012787 293
 sys/src/9/alphapc/trap.c - 664 sys sys 1105030177 18099
@@ -7844,7 +7850,7 @@ sys/src/9/bitsy/random.c - 664 sys sys 1036813517 1982
 sys/src/9/bitsy/sa1110dma.c - 664 sys sys 1017695520 4666
 sys/src/9/bitsy/sa1110dma.h - 664 sys sys 1017695520 381
 sys/src/9/bitsy/screen.c - 664 sys sys 1053340962 10145
-sys/src/9/bitsy/screen.h - 664 sys sys 1017695520 260
+sys/src/9/bitsy/screen.h - 664 sys sys 1147023548 284
 sys/src/9/bitsy/sd.h - 664 sys sys 1037029038 0
 sys/src/9/bitsy/sdata.c - 664 sys sys 1131289776 44404
 sys/src/9/bitsy/tar.c - 664 sys sys 1017695521 1375
@@ -8019,7 +8025,7 @@ sys/src/9/pc/random.c - 664 sys sys 1036812832 2021
 sys/src/9/pc/realmode.c - 664 sys sys 1139667044 2678
 sys/src/9/pc/rebootcode.s - 664 sys sys 1015014522 988
 sys/src/9/pc/screen.c - 664 sys sys 1136336092 13971
-sys/src/9/pc/screen.h - 664 sys sys 1131290516 4156
+sys/src/9/pc/screen.h - 664 sys sys 1147023549 4256
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1145359822 55087
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
 sys/src/9/pc/sdata.c - 664 sys sys 1141793347 52244
@@ -8073,7 +8079,7 @@ sys/src/9/port/devaudio.c - 664 sys sys 1142086793 21147
 sys/src/9/port/devbridge.c - 664 sys sys 1055688301 24308
 sys/src/9/port/devcap.c - 664 sys sys 1048644215 4113
 sys/src/9/port/devcons.c - 664 sys sys 1143648105 23071
-sys/src/9/port/devdraw.c - 664 sys sys 1131289870 43537
+sys/src/9/port/devdraw.c - 664 sys sys 1147023550 44447
 sys/src/9/port/devdup.c - 664 sys sys 1014931172 2332
 sys/src/9/port/devenv.c - 664 sys sys 1048644225 6992
 sys/src/9/port/devfs.c - 664 sys sys 1105799131 10783
@@ -9536,6 +9542,7 @@ sys/src/cmd/auth/userpasswd.c - 664 sys sys 1015008432 591
 sys/src/cmd/auth/warning.c - 664 sys sys 1140272945 5271
 sys/src/cmd/auth/wrkey.c - 664 sys sys 1019058717 176
 sys/src/cmd/aux - 20000000775 sys sys 1015008975 0
+sys/src/cmd/aux/8prefix.c - 664 sys sys 1147022850 4505
 sys/src/cmd/aux/9pcon.c - 664 sys sys 1127394247 6284
 sys/src/cmd/aux/accupoint.c - 664 sys sys 985124882 2166
 sys/src/cmd/aux/acidleak.c - 664 sys sys 1143670676 5965
@@ -9651,7 +9658,7 @@ sys/src/cmd/aux/lines.c - 664 sys sys 1015008782 546
 sys/src/cmd/aux/lis - 775 sys sys 944960794 45
 sys/src/cmd/aux/listen.c - 664 sys sys 1143759349 8150
 sys/src/cmd/aux/listen1.c - 664 sys sys 1143759349 2005
-sys/src/cmd/aux/mkfile - 664 sys sys 1139744302 1011
+sys/src/cmd/aux/mkfile - 664 sys sys 1147022848 1021
 sys/src/cmd/aux/mklatinkbd.c - 664 sys sys 953253425 3813
 sys/src/cmd/aux/mnihongo - 20000000775 sys sys 944960789 0
 sys/src/cmd/aux/mnihongo/README - 664 sys sys 944960789 475

@@ -1,6 +1,7 @@
 </$objtype/mkfile
 
 TARG=\
+	8prefix\
 	9pcon\
 	accupoint\
 	acidleak\
