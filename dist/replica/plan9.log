@@ -29628,3 +29628,16 @@
 1146799887 2 c sys/src/fs/port/lib.h - 664 sys sys 1146798595 3791
 1146805289 0 c sys/src/fs/doc/words - 664 sys sys 1146803821 1162
 1146805289 1 c sys/src/fs/pc/compat.h - 664 sys sys 1140774918 2578
+1147023034 0 a sys/lib/dist/cmd/multi - 20000000775 sys sys 1147022829 0
+1147023034 1 a sys/lib/dist/cmd/multi/mkfile - 664 sys sys 1147022825 844
+1147023034 2 a sys/lib/dist/cmd/multi/mkmulti - 775 sys sys 1147022824 1235
+1147023034 3 a sys/lib/dist/cmd/multi/multi.c - 664 sys sys 1147022829 543
+1147023034 4 a sys/lib/dist/pc/multi - 20000000775 sys sys 1147022870 0
+1147023034 5 c sys/lib/dist/pc/proto - 664 sys sys 1147022862 5596
+1147023034 6 a sys/src/cmd/aux/8prefix.c - 664 sys sys 1147022850 4505
+1147023034 7 c sys/src/cmd/aux/mkfile - 664 sys sys 1147022848 1021
+1147024835 0 c sys/src/9/alphapc/screen.h - 664 sys sys 1147023555 3888
+1147024835 1 c sys/src/9/bitsy/screen.h - 664 sys sys 1147023548 284
+1147024835 2 c sys/src/9/pc/screen.h - 664 sys sys 1147023549 4256
+1147024835 3 c sys/src/9/port/devdraw.c - 664 sys sys 1147023550 44447
+1147057243 0 a 386/bin/aux/8prefix - 775 sys sys 1147057033 67198
