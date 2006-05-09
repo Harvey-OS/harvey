@@ -166,6 +166,6 @@ extern void	vgablank(VGAscr*, int);
 
 extern Lock	vgascreenlock;
 
-#define ishwimage(i)	((i)->data->bdata == vgascreen[0].gscreendata)
+#define ishwimage(i)	(vgascreen[0].gscreendata && (i)->data->bdata == vgascreen[0].gscreendata->bdata)
 
 

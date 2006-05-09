@@ -10,6 +10,7 @@ void	clockintrsched(void);
 #define coherence 	mb
 int	cistrcmp(char*, char*);
 int	cistrncmp(char*, char*, int);
+int	cmpswap(long*, long, long);
 void	cpuidprint(void);
 void	cserve(ulong, ulong);
 #define cycles(x)	do{}while(0)

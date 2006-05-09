@@ -1138,7 +1138,10 @@ static	ulong	randn;
 static void
 seedrand(void)
 {
-	randomread((void*)&randn, sizeof(randn));
+	if(!waserror()){
+		randomread((void*)&randn, sizeof(randn));
+		poperror();
+	}
 }
 
 int
