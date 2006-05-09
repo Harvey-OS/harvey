@@ -45,7 +45,7 @@
 386/bin/auth - 20000000775 sys sys 1016920815 0
 386/bin/auth/aescbc - 775 sys sys 1144688910 140827
 386/bin/auth/asn12rsa - 775 sys sys 1144688910 120832
-386/bin/auth/authsrv - 775 sys sys 1144688911 166594
+386/bin/auth/authsrv - 775 sys sys 1147107324 166594
 386/bin/auth/changeuser - 775 sys sys 1144688911 97391
 386/bin/auth/convkeys - 775 sys sys 1143777742 87820
 386/bin/auth/convkeys2 - 775 sys sys 1143777742 87879
@@ -55,7 +55,7 @@
 386/bin/auth/enable - 775 sys sys 1020319057 134
 386/bin/auth/factotum - 775 sys sys 1144256028 322096
 386/bin/auth/fgui - 775 sys sys 1143777744 218963
-386/bin/auth/guard.srv - 775 sys sys 1144688912 143771
+386/bin/auth/guard.srv - 775 sys sys 1147107324 143771
 386/bin/auth/iam - 775 sys sys 1085076981 50791
 386/bin/auth/keyfs - 775 sys sys 1144688912 115970
 386/bin/auth/login - 775 sys sys 1143777745 104842
@@ -72,7 +72,7 @@
 386/bin/auth/rsagen - 775 sys sys 1144169667 153628
 386/bin/auth/secretpem - 775 sys sys 1045537944 118526
 386/bin/auth/secstore - 775 sys sys 1144688914 195958
-386/bin/auth/secstored - 775 sys sys 1144688915 198070
+386/bin/auth/secstored - 775 sys sys 1147107325 198070
 386/bin/auth/secuser - 775 sys sys 1144688915 153331
 386/bin/auth/status - 775 sys sys 1020319060 738
 386/bin/auth/uniq - 775 sys sys 1143777752 63409
@@ -337,7 +337,7 @@
 386/bin/ndb - 20000000775 sys sys 985743147 0
 386/bin/ndb/cs - 775 sys sys 1144688943 150957
 386/bin/ndb/csquery - 775 sys sys 1143777822 61797
-386/bin/ndb/dns - 775 sys sys 1145033671 247331
+386/bin/ndb/dns - 775 sys sys 1147107326 247339
 386/bin/ndb/dnsdebug - 775 sys sys 1145033672 221818
 386/bin/ndb/dnsquery - 775 sys sys 1143777824 63965
 386/bin/ndb/dnstcp - 775 sys sys 1145033672 220786
@@ -5750,7 +5750,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1145776709 258931
+sys/games/lib/fortunes - 664 sys sys 1147102515 258975
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -7788,7 +7788,7 @@ sys/src/9/alphapc/etherif.h - 664 sys sys 1045063621 1025
 sys/src/9/alphapc/faultalpha.c - 664 sys sys 1015012784 1257
 sys/src/9/alphapc/fdc37c93x.c - 664 sys sys 1015012785 1110
 sys/src/9/alphapc/floppy.h - 664 sys sys 1015012785 3783
-sys/src/9/alphapc/fns.h - 664 sys sys 1143129891 3626
+sys/src/9/alphapc/fns.h - 664 sys sys 1147116740 3658
 sys/src/9/alphapc/fptrap.c - 664 sys sys 1015012785 707
 sys/src/9/alphapc/i8259.c - 664 sys sys 1015012785 3409
 sys/src/9/alphapc/initcode - 664 sys sys 1039753419 779
@@ -7803,7 +7803,7 @@ sys/src/9/alphapc/mkfile - 664 sys sys 1109218102 1682
 sys/src/9/alphapc/mmu.c - 664 sys sys 1131538486 4981
 sys/src/9/alphapc/osf1pal.h - 664 sys sys 1137179966 1471
 sys/src/9/alphapc/pci.c - 664 sys sys 1039753420 7868
-sys/src/9/alphapc/screen.h - 664 sys sys 1147023555 3888
+sys/src/9/alphapc/screen.h - 664 sys sys 1147108286 3923
 sys/src/9/alphapc/sd53c8xx.c - 664 sys sys 1137179967 55257
 sys/src/9/alphapc/sio.c - 664 sys sys 1015012787 293
 sys/src/9/alphapc/trap.c - 664 sys sys 1105030177 18099
@@ -7944,7 +7944,7 @@ sys/src/9/pc/apmjump.s - 664 sys sys 1032058947 1527
 sys/src/9/pc/archmp.c - 664 sys sys 1131290214 2357
 sys/src/9/pc/audio.h - 664 sys sys 1015014513 343
 sys/src/9/pc/cga.c - 664 sys sys 1015014513 1843
-sys/src/9/pc/dat.h - 664 sys sys 1142958313 6628
+sys/src/9/pc/dat.h - 664 sys sys 1147098951 6654
 sys/src/9/pc/devarch.c - 664 sys sys 1143129812 19249
 sys/src/9/pc/devether.c - 664 sys sys 1131290265 10315
 sys/src/9/pc/devfloppy.c - 664 sys sys 1142958305 20139
@@ -8000,7 +8000,7 @@ sys/src/9/pc/main.c - 664 sys sys 1142958321 15304
 sys/src/9/pc/mem.h - 664 sys sys 1137622431 5203
 sys/src/9/pc/memory.c - 664 sys sys 1131573303 18191
 sys/src/9/pc/mkfile - 664 sys sys 1142960857 3804
-sys/src/9/pc/mmu.c - 664 sys sys 1142124315 25229
+sys/src/9/pc/mmu.c - 664 sys sys 1147098958 24086
 sys/src/9/pc/mouse.c - 664 sys sys 1098479254 7057
 sys/src/9/pc/mp.c - 664 sys sys 1146542974 17317
 sys/src/9/pc/mp.h - 664 sys sys 1131538511 6652
@@ -8078,7 +8078,7 @@ sys/src/9/port/dev.c - 664 sys sys 1146151714 8177
 sys/src/9/port/devaudio.c - 664 sys sys 1142086793 21147
 sys/src/9/port/devbridge.c - 664 sys sys 1055688301 24308
 sys/src/9/port/devcap.c - 664 sys sys 1048644215 4113
-sys/src/9/port/devcons.c - 664 sys sys 1143648105 23071
+sys/src/9/port/devcons.c - 664 sys sys 1147098985 23107
 sys/src/9/port/devdraw.c - 664 sys sys 1147023550 44447
 sys/src/9/port/devdup.c - 664 sys sys 1014931172 2332
 sys/src/9/port/devenv.c - 664 sys sys 1048644225 6992
@@ -9535,7 +9535,7 @@ sys/src/cmd/auth/secstore/secstore.h - 664 sys sys 1106575526 859
 sys/src/cmd/auth/secstore/secstored.c - 664 sys sys 1140272944 8087
 sys/src/cmd/auth/secstore/secuser.c - 664 sys sys 1143465899 5136
 sys/src/cmd/auth/secstore/util.c - 664 sys sys 1143694883 1741
-sys/src/cmd/auth/secureidcheck.c - 664 sys sys 1143648183 9006
+sys/src/cmd/auth/secureidcheck.c - 664 sys sys 1147099026 9788
 sys/src/cmd/auth/status - 775 sys sys 1015008430 738
 sys/src/cmd/auth/uniq.c - 664 sys sys 1140272945 1440
 sys/src/cmd/auth/userpasswd.c - 664 sys sys 1015008432 591
@@ -12646,7 +12646,7 @@ sys/src/cmd/ndb/dn.c - 664 sys sys 1144952605 28763
 sys/src/cmd/ndb/dnarea.c - 664 sys sys 1121977162 2128
 sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1144952605 3066
 sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1144952604 15346
-sys/src/cmd/ndb/dns.c - 664 sys sys 1144952604 15308
+sys/src/cmd/ndb/dns.c - 664 sys sys 1147098969 15309
 sys/src/cmd/ndb/dns.h - 664 sys sys 1144969092 10171
 sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1144952604 8492
 sys/src/cmd/ndb/dnserver.c - 664 sys sys 1143759353 3982
@@ -13556,7 +13556,7 @@ sys/src/cmd/unix/drawterm/kern/devpipe.c - 664 sys sys 1135900767 5927
 sys/src/cmd/unix/drawterm/kern/devroot.c - 664 sys sys 1137502216 4755
 sys/src/cmd/unix/drawterm/kern/devssl.c - 664 sys sys 1135900767 26455
 sys/src/cmd/unix/drawterm/kern/devtab.c - 664 sys sys 1144150884 544
-sys/src/cmd/unix/drawterm/kern/devtls.c - 664 sys sys 1144150884 45295
+sys/src/cmd/unix/drawterm/kern/devtls.c - 664 sys sys 1147099089 45427
 sys/src/cmd/unix/drawterm/kern/error.c - 664 sys sys 1135900767 2100
 sys/src/cmd/unix/drawterm/kern/error.h - 664 sys sys 1135900768 2583
 sys/src/cmd/unix/drawterm/kern/exportfs.c - 664 sys sys 1135900768 13444

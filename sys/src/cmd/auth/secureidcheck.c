@@ -1,3 +1,14 @@
+/*
+	This code uses RADIUS as a portable way to validate tokens such as SecurID.
+	It is relatively simple to send a UDP packet and get a response, but various
+	things can go wrong.  Speaking the proprietary ACE protocol would allow
+	handling "next token code" and other error messages.  More importantly, the
+	timeout threshold is inherently hard to pick.  We observe responses taking
+	longer than 10 seconds in normal times.  That is a long time to wait before
+	retrying on a second server.  Moreover, if the UDP response is lost, retrying
+	on a second server will also fail because the valid token code may be
+	presented only once.  This whole approach is flawed, but best we can do.
+*/
 /* RFC2138 */
 #include <u.h>
 #include <libc.h>
@@ -144,7 +155,8 @@ rpc(char *dest, Secret *shared, Packet *req)
 	atnotify(ding, 1);
 	m = -1;
 	for(try = 0; try < 2; try++){
-		alarm(4000);
+		/* increased timeout from 4sec to 15sec because corporate server really takes that long */
+		alarm(15000);
 		m = write(fd, buf, n);
 		if(m != n){
 			syslog(0, AUTHLOG, "%s: rpc write err %d %d: %r", dest, m, n);

@@ -103,7 +103,7 @@ char	*LOG;
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-rs] [-f ndb-file] [-x netmtpt]\n", argv0);
+	fprint(2, "usage: %s [-rRs] [-f ndb-file] [-x netmtpt]\n", argv0);
 	exits("usage");
 }
 

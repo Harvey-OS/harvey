@@ -29641,3 +29641,16 @@
 1147024835 2 c sys/src/9/pc/screen.h - 664 sys sys 1147023549 4256
 1147024835 3 c sys/src/9/port/devdraw.c - 664 sys sys 1147023550 44447
 1147057243 0 a 386/bin/aux/8prefix - 775 sys sys 1147057033 67198
+1147100456 0 c sys/src/9/pc/dat.h - 664 sys sys 1147098951 6654
+1147100456 1 c sys/src/9/pc/mmu.c - 664 sys sys 1147098958 24086
+1147100456 2 c sys/src/9/port/devcons.c - 664 sys sys 1147098985 23107
+1147100456 3 c sys/src/cmd/auth/secureidcheck.c - 664 sys sys 1147099026 9788
+1147100456 4 c sys/src/cmd/ndb/dns.c - 664 sys sys 1147098969 15309
+1147100456 5 c sys/src/cmd/unix/drawterm/kern/devtls.c - 664 sys sys 1147099089 45427
+1147104057 0 c sys/games/lib/fortunes - 664 sys sys 1147102515 258975
+1147107659 0 c 386/bin/auth/authsrv - 775 sys sys 1147107324 166594
+1147107659 1 c 386/bin/auth/guard.srv - 775 sys sys 1147107324 143771
+1147107659 2 c 386/bin/auth/secstored - 775 sys sys 1147107325 198070
+1147107659 3 c 386/bin/ndb/dns - 775 sys sys 1147107326 247339
+1147109459 0 c sys/src/9/alphapc/screen.h - 664 sys sys 1147108286 3923
+1147118462 0 c sys/src/9/alphapc/fns.h - 664 sys sys 1147116740 3658
