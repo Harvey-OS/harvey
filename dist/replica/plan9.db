@@ -12259,7 +12259,7 @@ sys/src/cmd/htmlfmt/util.c - 664 sys sys 1015364025 1765
 sys/src/cmd/htmlroff - 20000000775 sys sys 1138396082 0
 sys/src/cmd/htmlroff/a.h - 664 sys sys 1138396079 3200
 sys/src/cmd/htmlroff/char.c - 664 sys sys 1138396079 2178
-sys/src/cmd/htmlroff/html.c - 664 sys sys 1138396079 3991
+sys/src/cmd/htmlroff/html.c - 664 sys sys 1147180952 3992
 sys/src/cmd/htmlroff/input.c - 664 sys sys 1138396079 3147
 sys/src/cmd/htmlroff/main.c - 664 sys sys 1138396080 1065
 sys/src/cmd/htmlroff/mkfile - 664 sys sys 1138396082 330
