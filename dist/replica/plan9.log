@@ -29655,3 +29655,5 @@
 1147109459 0 c sys/src/9/alphapc/screen.h - 664 sys sys 1147108286 3923
 1147118462 0 c sys/src/9/alphapc/fns.h - 664 sys sys 1147116740 3658
 1147181480 0 c sys/src/cmd/htmlroff/html.c - 664 sys sys 1147180952 3992
+1147356016 0 c sys/src/cmd/fossil/9lstn.c - 664 sys sys 1147355153 3038
+1147366819 0 c 386/bin/fossil/fossil - 775 sys sys 1147366528 363992

@@ -235,7 +235,7 @@
 386/bin/fossil/conf - 775 sys sys 1085077052 1506
 386/bin/fossil/flchk - 775 sys sys 1144688928 238706
 386/bin/fossil/flfmt - 775 sys sys 1144688928 246851
-386/bin/fossil/fossil - 775 sys sys 1144688929 363965
+386/bin/fossil/fossil - 775 sys sys 1147366528 363992
 386/bin/fossil/last - 775 sys sys 1143777793 63645
 386/bin/freq - 775 sys sys 1143777793 62135
 386/bin/fs - 20000000775 sys sys 954380769 0
@@ -10152,7 +10152,7 @@ sys/src/cmd/fossil/9dir.c - 664 sys sys 1085333382 2219
 sys/src/cmd/fossil/9excl.c - 664 sys sys 1042005502 1887
 sys/src/cmd/fossil/9fid.c - 664 sys sys 1045600016 5521
 sys/src/cmd/fossil/9fsys.c - 664 sys sys 1139667252 33422
-sys/src/cmd/fossil/9lstn.c - 664 sys sys 1138469518 3024
+sys/src/cmd/fossil/9lstn.c - 664 sys sys 1147355153 3038
 sys/src/cmd/fossil/9p.c - 664 sys sys 1140010159 22931
 sys/src/cmd/fossil/9ping.c - 664 sys sys 1042005503 1563
 sys/src/cmd/fossil/9proc.c - 664 sys sys 1138469518 15148
