@@ -112,7 +112,7 @@ turns on forward DNS validation of non-trusted sender address.
 .B -g
 turns on grey/white list processing.  All mail is rejected (with a
 retry code) unless the sender's IP address is on the whitelist,
-.BR /mail/lib/whitelist ,
+.BR /mail/grey/whitelist ,
 an append only file.
 Addresses can be added to the whitelist by the administrator.  However,
 the usual way for addresses to be added is by
@@ -120,10 +120,10 @@ the usual way for addresses to be added is by
 itself.
 Whenever a message is received and the sender's address isn't on the whitelist,
 .I smtpd
-first looks for the file,
-.B /mail/grey/<remote ipaddr>/<local ipaddr>/<recipient> .
-If that file exists, the remote address is added to the whitelist.  If
-not, the file is created and the mail is rejected with a 'try again'
+first looks for the file
+.BI /mail/grey/tmp/\| local-ipaddr /\| remote-ipaddr /\| recipient.
+If it exists, the remote address is added to the whitelist.  If
+not, the file is created and the mail is rejected with a `try again'
 code.  The expectation is that spammers will not retry and that others
 will.
 .TP
@@ -179,7 +179,6 @@ is normally run by a network listener such as
 Most of the command line options are more conveniently
 specified in the smtpd configuration file stored in
 .BR /mail/lib/smtpd.conf .
-.SH FILES
 .SH SOURCE
 .TP
 .B /sys/src/cmd/upas/smtp

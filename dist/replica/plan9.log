@@ -29657,3 +29657,9 @@
 1147181480 0 c sys/src/cmd/htmlroff/html.c - 664 sys sys 1147180952 3992
 1147356016 0 c sys/src/cmd/fossil/9lstn.c - 664 sys sys 1147355153 3038
 1147366819 0 c 386/bin/fossil/fossil - 775 sys sys 1147366528 363992
+1147440641 0 c sys/man/8/smtp - 664 sys sys 1147439305 4499
+1147440641 1 c sys/src/cmd/auth/cron.c - 664 sys sys 1147439284 11681
+1147440641 2 c sys/src/cmd/faces/main.c - 664 sys sys 1147439217 13713
+1147440641 3 c sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1147439361 31157
+1147453245 0 c 386/bin/faces - 775 sys sys 1147453006 194589
+1147453245 1 c 386/bin/auth/cron - 775 sys sys 1147453006 144614
