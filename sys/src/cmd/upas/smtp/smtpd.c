@@ -284,11 +284,12 @@ hello(String *himp, int extended)
 	/*
 	 * it is never acceptable to claim to be "localhost",
 	 * "localhost.localdomain" or "localhost.example.com"; only spammers
-	 * do this.  it should be unacceptable to claim any string that doesn't
+	 * do this.  it is also unacceptable to claim any string that doesn't
 	 * look like a domain name (e.g., has at least one dot in it), but
-	 * Microsoft mail software gets this wrong.
+	 * Microsoft mail client software gets this wrong, so let trusted
+	 * (local) clients get it wrong.
 	 */
-	if (strcmp(him, "localhost") == 0 ||
+	if (!trusted && strchr(him, '.') == nil ||
 	    strcmp(him, "localhost.localdomain") == 0 ||
 	    strcmp(him, "localhost.example.com") == 0)
 		goto Liarliar;
