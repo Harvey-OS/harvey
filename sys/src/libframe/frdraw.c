@@ -6,7 +6,7 @@
 #include <frame.h>
 
 void
-_frredraw(Frame *f, Point pt)
+_frredraw(Frame *f, Point pt, Image *text, Image *back)
 {
 	Frbox *b;
 	int nb;
@@ -15,7 +15,7 @@ _frredraw(Frame *f, Point pt)
 	for(nb=0,b=f->box; nb<f->nbox; nb++, b++){
 		_frcklinewrap(f, &pt, b);
 		if(b->nrune >= 0){
-			string(f->b, pt, f->cols[TEXT], ZP, f->font, (char *)b->ptr);
+			stringbg(f->b, pt, text, ZP, f->font, (char *)b->ptr, back, ZP);
 		}
 		pt.x += b->wid;
 	}
@@ -78,6 +78,7 @@ frdrawsel0(Frame *f, Point pt, ulong p0, ulong p1, Image *back, Image *text)
 		if(p >= p0){
 			qt = pt;
 			_frcklinewrap(f, &pt, b);
+			// fill in the end of a wrapped line
 			if(pt.y > qt.y)
 				draw(f->b, Rect(qt.x, qt.y, f->r.max.x, pt.y), back, nil, qt);
 		}
@@ -101,7 +102,7 @@ frdrawsel0(Frame *f, Point pt, ulong p0, ulong p1, Image *back, Image *text)
 			x = f->r.max.x;
 		draw(f->b, Rect(pt.x, pt.y, x, pt.y+f->font->height), back, nil, pt);
 		if(b->nrune >= 0)
-			stringn(f->b, pt, text, ZP, f->font, ptr, nr);
+			stringnbg(f->b, pt, text, ZP, f->font, ptr, nr, back, ZP);
 		pt.x += w;
 	    Continue:
 		b++;

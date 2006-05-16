@@ -20,7 +20,7 @@
 386/bin/9660srv - 775 sys sys 1144688906 104376
 386/bin/aan - 775 sys sys 1144688907 131393
 386/bin/acid - 775 sys sys 1144264731 401249
-386/bin/acme - 775 sys sys 1143777737 429841
+386/bin/acme - 775 sys sys 1147712341 432237
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1136656314 132873
 386/bin/ape/cc - 775 sys sys 1143777737 70737
@@ -552,7 +552,7 @@
 386/lib/libdisk.a - 664 sys sys 1143777861 42368
 386/lib/libdraw.a - 664 sys sys 1143777862 374146
 386/lib/libflate.a - 664 sys sys 1143777862 76726
-386/lib/libframe.a - 664 sys sys 1143777862 66118
+386/lib/libframe.a - 664 sys sys 1147712341 66398
 386/lib/libgeometry.a - 664 sys sys 1143777862 50470
 386/lib/libhtml.a - 664 sys sys 1143777863 229354
 386/lib/libhttpd.a - 664 sys sys 1143777863 99458
@@ -6005,7 +6005,7 @@ sys/include/draw.h - 664 sys sys 1108655526 16144
 sys/include/event.h - 664 sys sys 1014929063 1426
 sys/include/fcall.h - 664 sys sys 1137461445 3063
 sys/include/flate.h - 664 sys sys 1014929063 1245
-sys/include/frame.h - 664 sys sys 1014929063 2666
+sys/include/frame.h - 664 sys sys 1147706379 2682
 sys/include/geometry.h - 664 sys sys 1014929063 2632
 sys/include/html.h - 664 sys sys 1128662123 15232
 sys/include/httpd.h - 664 sys sys 1091904418 5771
@@ -15135,9 +15135,9 @@ sys/src/libflate/zlib.h - 664 sys sys 984709217 219
 sys/src/libframe - 20000000775 sys sys 944961726 0
 sys/src/libframe/frbox.c - 664 sys sys 1078466650 3028
 sys/src/libframe/frdelete.c - 664 sys sys 944961726 3079
-sys/src/libframe/frdraw.c - 664 sys sys 1136063243 3366
+sys/src/libframe/frdraw.c - 664 sys sys 1147706378 3447
 sys/src/libframe/frinit.c - 664 sys sys 1019498851 1761
-sys/src/libframe/frinsert.c - 664 sys sys 984709939 6700
+sys/src/libframe/frinsert.c - 664 sys sys 1147706378 6720
 sys/src/libframe/frptofchar.c - 664 sys sys 944961726 1995
 sys/src/libframe/frselect.c - 664 sys sys 1021580002 2623
 sys/src/libframe/frstr.c - 664 sys sys 944961726 646

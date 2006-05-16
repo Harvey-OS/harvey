@@ -80,7 +80,7 @@ void	_fradvance(Frame*, Point*, Frbox*);
 int	_frnewwid(Frame*, Point, Frbox*);
 int	_frnewwid0(Frame*, Point, Frbox*);
 void	_frclean(Frame*, Point, int, int);
-void	_frredraw(Frame*, Point);
+void	_frredraw(Frame*, Point, Image*, Image*);
 void	_fraddbox(Frame*, int, int);
 Point	_frptofcharptb(Frame*, ulong, Point, int);
 Point	_frptofcharnb(Frame*, ulong, int);
