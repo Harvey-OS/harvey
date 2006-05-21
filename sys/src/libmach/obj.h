@@ -18,6 +18,7 @@ struct Prog		/* info from .$O files */
 	char	type;		/* type of the symbol: ie, 'T', 'a', etc. */
 	char	sym;		/* index of symbol's name */
 	char	*id;		/* name for the symbol, if it introduces one */
+	uint	sig;		/* type signature for symbol */
 };
 
 #define UNKNOWN	'?'

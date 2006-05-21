@@ -39,6 +39,7 @@ typedef	struct	Sym	Sym;
 struct	Sym
 {
 	vlong	value;
+	uint	sig;
 	char	type;
 	char	*name;
 };

@@ -21,6 +21,7 @@ int	hflag;
 int	nflag;
 int	sflag;
 int	uflag;
+int	Tflag;
 
 Sym	**fnames;		/* file path translation table */
 Sym	**symptr;
@@ -37,6 +38,13 @@ void	dofile(Biobuf*);
 void	zenter(Sym*);
 
 void
+usage(void)
+{
+	fprint(2, "usage: nm [-aghnsTu] file ...\n");
+	exits("usage");
+}
+
+void
 main(int argc, char *argv[])
 {
 	int i;
@@ -45,13 +53,17 @@ main(int argc, char *argv[])
 	Binit(&bout, 1, OWRITE);
 	argv0 = argv[0];
 	ARGBEGIN {
+	default:	usage();
 	case 'a':	aflag = 1; break;
 	case 'g':	gflag = 1; break;
 	case 'h':	hflag = 1; break;
 	case 'n':	nflag = 1; break;
 	case 's':	sflag = 1; break;
 	case 'u':	uflag = 1; break;
+	case 'T':	Tflag = 1; break;
 	} ARGEND
+	if (argc == 0)
+		usage();
 	if (argc > 1)
 		multifile++;
 	for(i=0; i<argc; i++){
@@ -249,14 +261,24 @@ psym(Sym *s, void* p)
 void
 printsyms(Sym **symptr, long nsym)
 {
+	int i, wid;
 	Sym *s;
 	char *cp;
 	char path[512];
 
 	if(!sflag)
 		qsort(symptr, nsym, sizeof(*symptr), cmp);
-	while (nsym-- > 0) {
-		s = *symptr++;
+	
+	wid = 0;
+	for (i=0; i<nsym; i++) {
+		s = symptr[i];
+		if (s->value && wid == 0)
+			wid = 8;
+		else if (s->value >= 0x100000000LL && wid == 8)
+			wid = 16;
+	}	
+	for (i=0; i<nsym; i++) {
+		s = symptr[i];
 		if (multifile && !hflag)
 			Bprint(&bout, "%s:", filename);
 		if (s->type == 'z') {
@@ -264,10 +286,13 @@ printsyms(Sym **symptr, long nsym)
 			cp = path;
 		} else
 			cp = s->name;
+		if (Tflag)
+			Bprint(&bout, "%8ux ", s->sig);
 		if (s->value || s->type == 'a' || s->type == 'p')
-			Bprint(&bout, "%16llux %c %s\n", s->value, s->type, cp);
+			Bprint(&bout, "%*llux ", wid, s->value);
 		else
-			Bprint(&bout, "         %c %s\n", s->type, cp);
+			Bprint(&bout, "%*s ", wid, "");
+		Bprint(&bout, "%c %s\n", s->type, cp);
 	}
 }
 
