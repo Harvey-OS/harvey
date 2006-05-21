@@ -4,7 +4,7 @@ nm \- name list (symbol table)
 .SH SYNOPSIS
 .B nm
 [
-.B -aghnsu
+.B -aghnsTu
 ]
 .I file ...
 .SH DESCRIPTION
@@ -90,6 +90,9 @@ Sort according to the address of the symbols.
 .TP
 .B -s
 Don't sort; print in symbol-table order.
+.TP
+.B -T
+Prefix each line with the symbol's type signature.
 .TP
 .B -u
 Print only undefined symbols.

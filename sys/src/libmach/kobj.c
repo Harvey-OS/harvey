@@ -4,6 +4,7 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
+#include <mach.h>
 #include "kc/k.out.h"
 #include "obj.h"
 
@@ -39,9 +40,12 @@ _readk(Biobuf *bp, Prog *p)
 	if(as < 0)
 		return 0;
 	p->kind = aNone;
+	p->sig = 0;
 	if(as == ANAME || as == ASIGNAME){
-		if(as == ASIGNAME)
-			skip(bp, 4);	/* signature */
+		if(as == ASIGNAME){
+			Bread(bp, &p->sig, 4);
+			p->sig = beswal(p->sig);
+		}
 		p->kind = aName;
 		p->type = type2char(Bgetc(bp));		/* type */
 		p->sym = Bgetc(bp);			/* sym */

@@ -709,11 +709,8 @@ void
 wrepaint(Window *w)
 {
 	wsetcols(w);
-	if(!w->mouseopen){
-		if(font->maxdepth > 1)
-			draw(w->Frame.b, w->Frame.r, cols[BACK], nil, ZP);
-		_frredraw(w, w->Frame.r.min);
-	}
+	if(!w->mouseopen)
+		_frredraw(w, w->Frame.r.min, w->cols[TEXT], w->cols[BACK]);
 	if(w == input){
 		wborder(w, Selborder);
 		wsetcursor(w, 0);
