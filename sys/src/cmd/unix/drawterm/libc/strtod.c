@@ -224,7 +224,7 @@ fmtstrtod(const char *as, char **aas)
 	/* close approx by naive conversion */
 	mid[0] = 0;
 	mid[1] = 1;
-	for(i=0; c=a[i]; i++) {
+	for(i=0; (c=a[i]); i++) {
 		mid[0] = mid[0]*10 + (c-'0');
 		mid[1] = mid[1]*10;
 		if(i >= 8)

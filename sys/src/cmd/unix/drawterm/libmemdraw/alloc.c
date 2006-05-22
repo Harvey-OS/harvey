@@ -19,7 +19,7 @@ memimagemove(void *from, void *to)
 	md->base = to;
 
 	/* if allocmemimage changes this must change too */
-	md->bdata = (uchar*)&md->base[2];
+	md->bdata = (uchar*)md->base+sizeof(Memdata*)+sizeof(ulong);
 }
 
 Memimage*
@@ -70,7 +70,8 @@ Memimage*
 _allocmemimage(Rectangle r, ulong chan)
 {
 	int d;
-	ulong l, nw;
+	u32int l, nw;
+	uchar *p;
 	Memdata *md;
 	Memimage *i;
 
@@ -86,18 +87,21 @@ _allocmemimage(Rectangle r, ulong chan)
 		return nil;
 
 	md->ref = 1;
-	md->base = poolalloc(imagmem, (2+nw)*sizeof(ulong));
+	md->base = poolalloc(imagmem, sizeof(Memdata*)+(1+nw)*sizeof(ulong));
 	if(md->base == nil){
 		free(md);
 		return nil;
 	}
 
-	md->base[0] = (ulong)md;
-	md->base[1] = getcallerpc(&r);
+	p = (uchar*)md->base;
+	*(Memdata**)p = md;
+	p += sizeof(Memdata*);
+
+	*(ulong*)p = getcallerpc(&r);
+	p += sizeof(ulong);
 
 	/* if this changes, memimagemove must change too */
-	md->bdata = (uchar*)&md->base[2];
-
+	md->bdata = p;
 	md->allocd = 1;
 
 	i = allocmemimaged(r, chan, md, nil);
@@ -129,7 +133,7 @@ _freememimage(Memimage *i)
 ulong*
 wordaddr(Memimage *i, Point p)
 {
-	return (ulong*) ((ulong)byteaddr(i, p) & ~(sizeof(ulong)-1));
+	return (ulong*) ((uintptr)byteaddr(i, p) & ~(sizeof(ulong)-1));
 }
 
 uchar*

@@ -1890,7 +1890,7 @@ boolcopyfn(Memimage *img, Memimage *mask)
 	default:
 		assert(0 /* boolcopyfn */);
 	}
-	return nil;
+	return 0;
 }
 
 /*

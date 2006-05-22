@@ -216,7 +216,7 @@ mntversion(Chan *c, char *version, int msize, int returnlen)
 	m->version = nil;
 	kstrdup(&m->version, f.version);
 	m->id = mntalloc.id++;
-	m->q = qopen(10*MAXRPC, 0, nil, nil);
+	m->q = qopen(10*MAXRPC, 0, 0, nil);
 	m->msize = f.msize;
 	unlock(&mntalloc.lk);
 
@@ -970,7 +970,7 @@ mountmux(Mnt *m, Mntrpc *r)
 			}
 			q->done = 1;
 			unlock(&m->lk);
-			if(mntstats != nil)
+			if(mntstats != 0)
 				(*mntstats)(q->request.type,
 					m->c, q->stime,
 					q->reqlen + r->replen);
@@ -1037,7 +1037,7 @@ alloctag(void)
 
 	for(i = 0; i < NMASK; i++){
 		v = mntalloc.tagmask[i];
-		if(v == ~0UL)
+		if(v == ~0)
 			continue;
 		for(j = 0; j < 1<<TAGSHIFT; j++)
 			if((v & (1<<j)) == 0){

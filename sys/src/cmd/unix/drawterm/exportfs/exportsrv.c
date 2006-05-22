@@ -434,7 +434,7 @@ slave(Fsrpc *f)
 			if(p->busy == 0) {
 				f->pid = p->pid;
 				p->busy = 1;
-				pid = rendezvous(p->pid, (ulong)f);
+				pid = (uintptr)rendezvous((void*)(uintptr)p->pid, f);
 				if(pid != p->pid)
 					fatal("rendezvous sync fail");
 				return;
@@ -459,7 +459,7 @@ slave(Fsrpc *f)
 		Proclist = p;
 
 DEBUG(DFD, "parent %d rendez\n", pid);
-		rendezvous(pid, (ulong)p);
+		rendezvous((void*)(uintptr)pid, p);
 DEBUG(DFD, "parent %d went\n", pid);
 	}
 }
@@ -479,12 +479,12 @@ blockingslave(void *x)
 	pid = getpid();
 
 DEBUG(DFD, "blockingslave %d rendez\n", pid);
-	m = (Proc*)rendezvous(pid, 0);
+	m = (Proc*)rendezvous((void*)(uintptr)pid, 0);
 DEBUG(DFD, "blockingslave %d rendez got %p\n", pid, m);
 	
 	for(;;) {
-		p = (Fsrpc*)rendezvous(pid, pid);
-		if((int)p == ~0)			/* Interrupted */
+		p = rendezvous((void*)(uintptr)pid, (void*)(uintptr)pid);
+		if((uintptr)p == ~(uintptr)0)			/* Interrupted */
 			continue;
 
 		DEBUG(DFD, "\tslave: %d %F b %d p %d\n", pid, &p->work, p->busy, p->pid);

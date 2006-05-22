@@ -45,18 +45,18 @@ static	struct
 	int	irval;
 } volumes[] =
 {
-[Vaudio]		"audio",	Fout, 		50,	50,
-[Vsynth]		"synth",	Fin|Fout,	0,	0,
-[Vcd]		"cd",		Fin|Fout,	0,	0,
-[Vline]		"line",	Fin|Fout,	0,	0,
-[Vmic]		"mic",	Fin|Fout|Fmono,	0,	0,
-[Vspeaker]	"speaker",	Fout|Fmono,	0,	0,
+	"audio",	Fout, 		50,	50,
+	"synth",	Fin|Fout,	0,	0,
+	"cd",		Fin|Fout,	0,	0,
+	"line",	Fin|Fout,	0,	0,
+	"mic",	Fin|Fout|Fmono,	0,	0,
+	"speaker",	Fout|Fmono,	0,	0,
 
-[Vtreb]		"treb",		Fout, 		50,	50,
-[Vbass]		"bass",		Fout, 		50,	50,
+	"treb",		Fout, 		50,	50,
+	"bass",		Fout, 		50,	50,
 
-[Vspeed]	"speed",	Fin|Fout|Fmono,	Speed,	Speed,
-		0
+	"speed",	Fin|Fout|Fmono,	Speed,	Speed,
+	0
 };
 
 static	char	Emode[]		= "illegal open mode";

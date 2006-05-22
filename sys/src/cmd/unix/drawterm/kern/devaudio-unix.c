@@ -179,4 +179,5 @@ int
 audiodevread(void *v, int n)
 {
 	error("no reading");
+	return -1;
 }

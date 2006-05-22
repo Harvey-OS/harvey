@@ -444,3 +444,27 @@ oserrstr(void)
 {
 	osrerrstr(up->errstr, ERRMAX);
 }
+
+long
+showfilewrite(char *a, int n)
+{
+	Rune *action, *arg, *cmd;
+	static Rune Lopen[] = { 'o', 'p', 'e', 'n', 0 };
+
+	cmd = runesmprint("%.*s", n, a);
+	if(cmd == nil)
+		error("out of memory");
+	if(cmd[runestrlen(cmd)-1] == '\n')
+		cmd[runestrlen(cmd)] = 0;
+	p = runestrchr(cmd, ' ');
+	if(p){
+		action = cmd;
+		*p++ = 0;
+		arg = p;
+	}else{
+		action = Lopen;
+		arg = cmd;
+	}
+	ShellExecute(0, 0, action, arg, 0, SW_SHOWNORMAL);
+	return n;
+}

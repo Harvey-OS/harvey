@@ -139,7 +139,7 @@ rdb(void)
 }
 
 void
-setmalloctag(void *v, ulong tag)
+setmalloctag(void *v, uintptr tag)
 {
 	USED(v);
 	USED(tag);

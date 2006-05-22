@@ -224,7 +224,7 @@ static void	put64(uchar *p, vlong x);
 static void	put32(uchar *p, u32int);
 static void	put24(uchar *p, int);
 static void	put16(uchar *p, int);
-static u32int	get32(uchar *p);
+/* static u32int	get32(uchar *p); */
 static int	get16(uchar *p);
 static void	tlsSetState(TlsRec *tr, int new, int old);
 static void	rcvAlert(TlsRec *tr, int err);
@@ -244,15 +244,15 @@ static char *tlsnames[] = {
 	/* unused */ 0,
 	/* topdir */ 0,
 	/* protodir */ 0,
-	"clone",		/* [Qclonus] */
-	"encalgs",		/* [Qencalgs] */
-	"hashalgs",		/* [Qhashalgs] */
+	"clone",
+	"encalgs",
+	"hashalgs",
 	/* convdir */ 0,
-	"data",			/* [Qdata] */
-	"ctl",			/* [Qctl] */
-	"hand",			/* [Qhand] */
-	"status",		/* [Qstatus] */
-	"stats",		/* [Qstats] */
+	"data",
+	"ctl",
+	"hand",
+	"status",
+	"stats",
 };
 
 static int convdir[] = { Qctl, Qdata, Qhand, Qstatus, Qstats };
@@ -467,7 +467,7 @@ tlsopen(Chan *c, int omode)
 			lock(&tr->hqlock);
 			if(tr->handq != nil)
 				error(Einuse);
-			tr->handq = qopen(2 * MaxCipherRecLen, 0, nil, nil);
+			tr->handq = qopen(2 * MaxCipherRecLen, 0, 0, nil);
 			if(tr->handq == nil)
 				error("cannot allocate handshake queue");
 			tr->hqref = 1;
@@ -2136,11 +2136,13 @@ put16(uchar *p, int x)
 	p[1] = x;
 }
 
+/*
 static u32int
 get32(uchar *p)
 {
 	return (p[0]<<24)|(p[1]<<16)|(p[2]<<8)|p[3];
 }
+*/
 
 static int
 get16(uchar *p)

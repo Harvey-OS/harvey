@@ -1,7 +1,7 @@
 #include <u.h>
 #include <libc.h>
-#define VLONG_MAX	~(((vlong) 1)<<63)
-#define VLONG_MIN	(((vlong) 1)<<63)
+#define VLONG_MAX	((vlong)~(((uvlong)1)<<63))
+#define VLONG_MIN	((vlong)(((uvlong)1)<<63))
 vlong
 strtoll(const char *nptr, char **endptr, int base)
 {
