@@ -688,7 +688,11 @@ parseip(char *to, char *from)
 	p = from;
 	memset(to, 0, 4);
 	for(i = 0; i < 4 && *p; i++){
-		to[i] = strtoul(p, &p, 0);
+		to[i] = strtoul(p, &p, 10);
+		if(*p != '.' && *p != 0){
+			memset(to, 0, 4);
+			return 0;
+		}
 		if(*p == '.')
 			p++;
 	}

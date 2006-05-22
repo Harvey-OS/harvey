@@ -236,7 +236,7 @@ extern	int	fmtprint(Fmt*, char*, ...);
 extern	int	fmtvprint(Fmt*, char*, va_list);
 extern	void*	mallocz(ulong, int);
 
-extern	ulong	getcallerpc(void*);
+extern	uintptr	getcallerpc(void*);
 extern	char*	cleanname(char*);
 extern	void	sysfatal(char*, ...);
 extern	char*	strecpy(char*, char*, char*);
@@ -250,6 +250,7 @@ extern	int	dec64(uchar*, int, char*, int);
 extern	int	enc64(char*, int, uchar*, int);
 extern	int	dec32(uchar*, int, char*, int);
 extern	int	enc32(char*, int, uchar*, int);
+extern	int	enc16(char*, int, uchar*, int);
 void		hnputs(void *p, unsigned short v);
 extern	int	dofmt(Fmt*, char*);
 extern	double	__NaN(void);

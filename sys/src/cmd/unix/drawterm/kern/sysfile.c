@@ -1189,15 +1189,15 @@ rerrstr(char *buf, uint n)
 	return strlen(buf);
 }
 
-ulong
-_sysrendezvous(ulong arg0, ulong arg1)
+void*
+_sysrendezvous(void* arg0, void* arg1)
 {
-	ulong tag, val;
+	void *tag, *val;
 	Proc *p, **l;
 
 	tag = arg0;
-	l = &REND(up->rgrp, tag);
-	up->rendval = ~0UL;
+	l = &REND(up->rgrp, (uintptr)tag);
+	up->rendval = (void*)~0;
 
 	lock(&up->rgrp->ref.lk);
 	for(p = *l; p; p = p->rendhash) {
@@ -1228,15 +1228,15 @@ _sysrendezvous(ulong arg0, ulong arg1)
 	return up->rendval;
 }
 
-ulong
-sysrendezvous(ulong tag, ulong val)
+void*
+sysrendezvous(void *tag, void *val)
 {
-	ulong n;
+	void *n;
 
 	starterror();
 	if(waserror()){
 		_syserror();
-		return -1;
+		return (void*)~0;
 	}
 	n = _sysrendezvous(tag, val);
 	enderror();

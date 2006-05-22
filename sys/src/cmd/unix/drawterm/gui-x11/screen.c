@@ -566,6 +566,8 @@ initmap(Window w)
 		 * some displays say MSB even though they run on LSB.
 		 * Besides, this is more anal.
 		 */
+		if(xscreendepth != DefaultDepth(xdisplay, DefaultScreen(xdisplay)))
+			xcmap = XCreateColormap(xdisplay, w, xvis, AllocNone);
 
 		c = map[19];
 		/* find out index into colormap for our RGB */

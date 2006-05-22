@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <time.h>
 #include <sys/time.h>
+#include <sys/select.h>
 #include <signal.h>
 #include <pwd.h>
 #include <errno.h>
@@ -212,3 +213,9 @@ ticks(void)
 	return (t.tv_sec-sec0)*1000+(t.tv_usec-usec0+500)/1000;
 }
 
+long
+showfilewrite(char *a, int n)
+{
+	error("not implemented");
+	return -1;
+}

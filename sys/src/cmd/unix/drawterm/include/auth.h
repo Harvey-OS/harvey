@@ -17,7 +17,7 @@ typedef struct	AuthRpc		AuthRpc;
 enum
 {
 	MAXCHLEN=	256,		/* max challenge length	*/
-	MAXNAMELEN=	256,		/* maximum name length */
+	AMAXNAMELEN=	256,		/* maximum name length */
 	MD5LEN=		16,
 
 	ARok = 0,			/* rpc return values */
@@ -63,7 +63,7 @@ struct Chalstate
 /* for implementation only */
 	int	afd;			/* to factotum */
 	AuthRpc	*rpc;			/* to factotum */
-	char	userbuf[MAXNAMELEN];	/* temp space if needed */
+	char	userbuf[AMAXNAMELEN];	/* temp space if needed */
 	int	userinchal;		/* user was sent to obtain challenge */
 };
 

@@ -358,7 +358,7 @@ sslwstat(Chan *c, uchar *db, int n)
 
 	if(!emptystr(dir->uid))
 		kstrdup(&s->user, dir->uid);
-	if(dir->mode != ~0UL)
+	if(dir->mode != ~0)
 		s->perm = dir->mode;
 
 	free(dir);

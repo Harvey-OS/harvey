@@ -1,4 +1,4 @@
-#if defined(linux) || defined(IRIX) || defined(SOLARIS) || defined(OSF1) || defined(__FreeBSD__) || defined(__APPLE__) || defined(__NetBSD__)
+#if defined(linux) || defined(IRIX) || defined(SOLARIS) || defined(OSF1) || defined(__FreeBSD__) || defined(__APPLE__) || defined(__NetBSD__) || defined(__sun) || defined(sun)
 #	include "unix.h"
 #	ifdef __APPLE__
 #		define panic dt_panic
