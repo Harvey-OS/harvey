@@ -29768,3 +29768,5 @@
 1148256058 1 c sys/src/cmd/unix/drawterm/kern/fns.h - 664 sys sys 1148254417 10766
 1148256058 2 c sys/src/cmd/unix/drawterm/kern/posix.c - 664 sys sys 1148254418 3251
 1148256058 3 c sys/src/cmd/unix/drawterm/kern/win32.c - 664 sys sys 1148254419 8237
+1148279466 0 c sys/src/cmd/ip/snoopy/icmp.c - 664 sys sys 1148279205 2970
+1148308273 0 c sys/src/cmd/unix/drawterm/posix-amd64/getcallerpc.c - 664 sys sys 1148308306 94
