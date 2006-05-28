@@ -45,7 +45,7 @@ When presented with a path of the form
 .I yesterday
 will look for
 dump files of the form
-.BI /n/ fs dump/ yyyy / hhmm / path \fR.
+\fL/n/\fIfs\fLdump/\fIyyyy\fL/\fIhhmm\fL/\fIpath\fR.
 .PP
 By default, 
 .I yesterday

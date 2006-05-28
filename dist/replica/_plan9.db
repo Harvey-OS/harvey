@@ -7402,7 +7402,7 @@ sys/man/1/who - 664 sys sys 944959674 332
 sys/man/1/winwatch - 664 sys sys 1113252108 723
 sys/man/1/xd - 664 sys sys 944959674 1517
 sys/man/1/yacc - 664 sys sys 944959676 3273
-sys/man/1/yesterday - 664 sys sys 1145023317 2628
+sys/man/1/yesterday - 664 sys sys 1148760984 2640
 sys/man/2 - 20000000775 sys sys 1017423721 0
 sys/man/2/0intro - 664 sys sys 1115941566 11660
 sys/man/2/9p - 664 sys sys 1134335896 15859
