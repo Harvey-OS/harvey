@@ -293,6 +293,22 @@ hello(String *himp, int extended)
 	    strcmp(him, "localhost.localdomain") == 0 ||
 	    strcmp(him, "localhost.example.com") == 0)
 		goto Liarliar;
+	/*
+	 * similarly, if the claimed domain is not an address-literal,
+	 * require at least one letter, which there will be in
+	 * at least the last component (e.g., .com, .net) if it's real.
+	 * this rejects non-address-literal IP addresses,
+	 * among other bogosities.
+	 */
+	if (!trusted && him[0] != '[') {
+		char *p;
+
+		for (p = him; *p != '\0'; p++)
+			if (isascii(*p) && isalpha(*p))
+				break;
+		if (*p == '\0')
+			goto Liarliar;
+	}
 	if(strchr(him, '.') == 0 && nci != nil && strchr(nci->rsys, '.') != nil)
 		him = nci->rsys;
 
