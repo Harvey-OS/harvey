@@ -872,7 +872,7 @@ cron/upas - 20000000775 upas sys 1017438409 0
 cron/upas/cron - 664 upas sys 1144683680 222
 dist - 20000000775 sys sys 1017437778 0
 dist/replica - 20000000775 sys sys 1019277119 0
-dist/replica/cd - 664 sys sys 1019527959 390
+dist/replica/cd - 664 sys sys 1149084099 922
 dist/replica/kfs - 664 sys sys 1019527929 237
 dist/replica/network - 775 sys sys 1139499513 956
 dist/replica/plan9.proto - 664 sys sys 1144683345 2813
@@ -14064,7 +14064,7 @@ sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417
 sys/src/cmd/upas/smtp/rmtdns.c - 664 sys sys 1015013150 1069
 sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1143759341 20123
 sys/src/cmd/upas/smtp/smtp.h - 664 sys sys 1108827986 1270
-sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1148482561 31169
+sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1149083996 31606
 sys/src/cmd/upas/smtp/smtpd.h - 664 sys sys 1067722781 1111
 sys/src/cmd/upas/smtp/smtpd.y - 664 sys sys 1143670612 6961
 sys/src/cmd/upas/smtp/spam.c - 664 sys sys 1139699502 10238
