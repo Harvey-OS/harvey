@@ -2020,6 +2020,9 @@ xfunc(Controller *c, enum na_external x, unsigned long *v)
 	case X_dsa_head:
 		*v = DMASEG(&c->dsalist.head[0]);
 		break;
+	case X_ssid_mask:
+		*v = SSIDMASK(c);
+		break;
 	}
 	return 1;
 }

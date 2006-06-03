@@ -8024,7 +8024,7 @@ sys/src/9/pc/realmode.c - 664 sys sys 1139667044 2678
 sys/src/9/pc/rebootcode.s - 664 sys sys 1015014522 988
 sys/src/9/pc/screen.c - 664 sys sys 1136336092 13971
 sys/src/9/pc/screen.h - 664 sys sys 1147023549 4256
-sys/src/9/pc/sd53c8xx.c - 664 sys sys 1145359822 55087
+sys/src/9/pc/sd53c8xx.c - 664 sys sys 1149280015 55135
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
 sys/src/9/pc/sdata.c - 664 sys sys 1141793347 52244
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1131290638 25780
