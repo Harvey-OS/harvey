@@ -30105,3 +30105,4 @@
 1148761897 0 c sys/man/1/yesterday - 664 sys sys 1148760984 2640
 1149170502 0 c sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1149083996 31606
 1149170502 1 c dist/replica/cd - 664 sys sys 1149084099 922
+1149280219 0 c sys/src/9/pc/sd53c8xx.c - 664 sys sys 1149280015 55135
