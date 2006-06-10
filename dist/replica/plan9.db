@@ -9622,7 +9622,7 @@ sys/src/cmd/aux/apm.c - 664 sys sys 1130423972 20275
 sys/src/cmd/aux/astarld.c - 664 sys sys 1015008684 4638
 sys/src/cmd/aux/cddb.c - 664 sys sys 1126795279 4610
 sys/src/cmd/aux/clog.c - 664 sys sys 1014925109 1000
-sys/src/cmd/aux/consolefs.c - 664 sys sys 1134305455 20200
+sys/src/cmd/aux/consolefs.c - 664 sys sys 1149909790 21168
 sys/src/cmd/aux/conswdir.c - 664 sys sys 1045504955 2077
 sys/src/cmd/aux/data2s.c - 664 sys sys 1032059295 796
 sys/src/cmd/aux/depend.c - 664 sys sys 1134305455 25880
