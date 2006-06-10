@@ -8,7 +8,7 @@
 
 /*
  *  This fs presents a 1 level file system.  It contains
- *  three files per console (xxx and xxxctl and xxxstat)
+ *  up to three files per console (xxx and xxxctl and xxxstat)
  */
 
 typedef struct Console Console;
@@ -20,20 +20,20 @@ typedef struct Fs Fs;
 enum
 {
 	/* last 5 bits of qid.path */
-	Textern=	0,	/* fake parent of top level */
-	Ttopdir,		/* top level directory */
+	Textern=	0,		/* fake parent of top level */
+	Ttopdir,			/* top level directory */
 	Qctl,
 	Qstat,
 	Qdata,
 
 	Bufsize=	32*1024,	/* chars buffered per reader */
-	Maxcons=	64,	/* maximum consoles */
-	Nhash=		64,	/* Fid hash buckets */
+	Maxcons=	64,		/* maximum consoles */
+	Nhash=		64,		/* Fid hash buckets */
 };
 
-#define TYPE(x) (((ulong)x.path) & 0xf)
-#define CONS(x) ((((ulong)x.path) >> 4)&0xfff)
-#define QID(c, x) (((c)<<4) | (x))
+#define TYPE(x)		(((ulong)x.path) & 0xf)
+#define CONS(x)		((((ulong)x.path) >> 4)&0xfff)
+#define QID(c, x)	(((c)<<4) | (x))
 
 struct Request
 {
@@ -54,14 +54,17 @@ struct Reqlist
 struct Fid
 {
 	Lock;
-	Fid	*next;		/* hash list */
-	Fid	*cnext;		/* list of Fid's on a console */
+	Fid	*next;			/* hash list */
+	Fid	*cnext;			/* list of Fid's on a console */
 	int	fid;
 	int	ref;
 
 	int	attached;
 	int	open;
 	char	*user;
+	char	mbuf[Bufsize];		/* message */
+	int	bufn;
+	int	used;
 	Qid	qid;
 
 	Console	*c;
@@ -70,7 +73,7 @@ struct Fid
 	char	*rp;
 	char	*wp;
 
-	Reqlist	r;		/* active read requests */
+	Reqlist	r;			/* active read requests */
 };
 
 struct Console
@@ -82,21 +85,22 @@ struct Console
 	int	speed;
 	int	cronly;
 	int	ondemand;		/* open only on demand */
+	int	chat;			/* chat consoles are special */
 
-	int	pid;		/* pid of reader */
+	int	pid;			/* pid of reader */
 
 	int	fd;
 	int	cfd;
 	int	sfd;
 
-	Fid	*flist;		/* open fids to broadcast to */
+	Fid	*flist;			/* open fids to broadcast to */
 };
 
 struct Fs
 {
 	Lock;
 
-	int	fd;		/* to kernel mount point */
+	int	fd;			/* to kernel mount point */
 	int	messagesize;
 	Fid	*hash[Nhash];
 	Console	*cons[Maxcons];
@@ -148,8 +152,8 @@ void 	(*fcall[])(Fs*, Request*, Fid*) =
 	[Twstat]	fswstat
 };
 
-char Eperm[]   = "permission denied";
-char Eexist[]  = "file does not exist";
+char Eperm[] = "permission denied";
+char Eexist[] = "file does not exist";
 char Enotdir[] = "not a directory";
 char Eisopen[] = "file already open";
 char Ebadcount[] = "bad read/write count";
@@ -158,7 +162,7 @@ char Enofid[] = "no such fid";
 char *consoledb = "/lib/ndb/consoledb";
 char *mntpt = "/mnt/consoles";
 
-int	messagesize = 8192+IOHDRSZ;
+int messagesize = 8192+IOHDRSZ;
 
 void
 fatal(char *fmt, ...)
@@ -483,6 +487,10 @@ console(Fs* fs, char *name, char *dev, int speed, int cronly, int ondemand)
 	fs->ncons++;
 	c->name = strdup(name);
 	c->dev = strdup(dev);
+	if(strcmp(c->dev, "/dev/null") == 0) 
+		c->chat = 1;
+	else 
+		c->chat = 0;
 	c->fd = -1;
 	c->cfd = -1;
 	c->sfd = -1;
@@ -560,7 +568,6 @@ handler(void*, char *msg)
 		noted(NCONT);
 	noted(NDFLT);
 }
-
 
 /*
  *  a process to read console output and broadcast it (one per console)
@@ -724,7 +731,6 @@ fsputfid(Fs *fs, Fid *f)
 	free(f->user);
 	free(f);
 }
-
 
 void
 fsauth(Fs *fs, Request *r, Fid*)
@@ -892,6 +898,7 @@ userok(char *u, char *cname)
 			break;
 	}
 	ndbfree(t);
+
 	return nt != nil;
 }
 
@@ -900,6 +907,20 @@ int m2p[] ={
 	[OWRITE]	2,
 	[ORDWR]		6
 };
+
+/*
+ *  broadcast a message to all listeners
+ */
+void
+bcastmsg(Fs *fs, Console *c, char *msg, int n)
+{
+	Fid *fl;
+
+	for(fl = c->flist; fl; fl = fl->cnext){
+		fromconsole(fl, msg, n);
+		fskick(fs, fl);
+	}
+}
 
 void
 fsopen(Fs *fs, Request *r, Fid *f)
@@ -935,6 +956,9 @@ fsopen(Fs *fs, Request *r, Fid *f)
 		f->wp = f->buf;
 		f->c = c;
 		lock(c);
+		sprint(f->mbuf, "[%s] ", f->user);
+		f->bufn = strlen(f->mbuf);
+		f->used = 0;
 		f->cnext = c->flist;
 		c->flist = f;
 		bcastmembers(fs, c, "+", f);
@@ -1038,7 +1062,7 @@ fsread(Fs *fs, Request *r, Fid *f)
 void
 fswrite(Fs *fs, Request *r, Fid *f)
 {
-	int i;
+	int i, eol = 0;
 
 	if(f->attached == 0){
 		fsreply(fs, r, Enofid);
@@ -1063,11 +1087,36 @@ fswrite(Fs *fs, Request *r, Fid *f)
 		write(f->c->cfd, r->f.data, r->f.count);
 		break;
 	case Qdata:
-		if(f->c->cronly)
-			for(i = 0; i < r->f.count; i++)
-				if(r->f.data[i] == '\n')
+		for(i = 0; i < r->f.count; i++){
+			if(r->f.data[i] == '\n'){
+				if(f->c->chat && f->used)
+					eol = 1;
+				if(f->c->cronly)
 					r->f.data[i] = '\r';
-		write(f->c->fd, r->f.data, r->f.count);
+			}
+			else
+				f->used = 1;
+		}
+		if(f->c->chat){
+			fskick(fs, f);
+			if(!f->used)
+				break;
+	
+			if(f->bufn + r->f.count > Bufsize){
+				r->f.count -= (f->bufn + r->f.count) % Bufsize;
+				eol = 1;
+			}
+			strncat(f->mbuf, r->f.data, r->f.count);
+			f->bufn += r->f.count;
+			if(eol){
+				bcastmsg(fs, f->c, f->mbuf, f->bufn);
+				sprint(f->mbuf, "[%s] ", f->user);
+				f->bufn = strlen(f->mbuf);
+				f->used = 0;
+			}
+		}
+		else
+			write(f->c->fd, r->f.data, r->f.count);
 		break;
 	}
 	fsreply(fs, r, nil);
@@ -1107,7 +1156,6 @@ fsremove(Fs *fs, Request *r, Fid*)
 {
 	fsreply(fs, r, Eperm);
 }
-
 
 void
 fsstat(Fs *fs, Request *r, Fid *f)
@@ -1222,4 +1270,3 @@ threadmain(int argc, char **argv)
 
 	fsmount(mntpt);
 }
-
