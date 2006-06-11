@@ -30107,3 +30107,4 @@
 1149170502 1 c dist/replica/cd - 664 sys sys 1149084099 922
 1149280219 0 c sys/src/9/pc/sd53c8xx.c - 664 sys sys 1149280015 55135
 1149910303 0 c sys/src/cmd/aux/consolefs.c - 664 sys sys 1149909790 21168
+1149958920 0 c 386/bin/aux/consolefs - 775 sys sys 1149958582 156345
