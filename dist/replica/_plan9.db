@@ -90,7 +90,7 @@
 386/bin/aux/astarld - 775 sys sys 1148500590 65012
 386/bin/aux/cddb - 775 sys sys 1148500590 72557
 386/bin/aux/clog - 775 sys sys 1148500590 66783
-386/bin/aux/consolefs - 775 sys sys 1148500591 155171
+386/bin/aux/consolefs - 775 sys sys 1149958582 156345
 386/bin/aux/conswdir - 775 sys sys 1062080411 38855
 386/bin/aux/cropmarks - 775 sys sys 1020319062 1808
 386/bin/aux/data2s - 775 sys sys 1148500591 60855
@@ -9622,7 +9622,7 @@ sys/src/cmd/aux/apm.c - 664 sys sys 1130423972 20275
 sys/src/cmd/aux/astarld.c - 664 sys sys 1015008684 4638
 sys/src/cmd/aux/cddb.c - 664 sys sys 1126795279 4610
 sys/src/cmd/aux/clog.c - 664 sys sys 1014925109 1000
-sys/src/cmd/aux/consolefs.c - 664 sys sys 1134305455 20200
+sys/src/cmd/aux/consolefs.c - 664 sys sys 1149909790 21168
 sys/src/cmd/aux/conswdir.c - 664 sys sys 1045504955 2077
 sys/src/cmd/aux/data2s.c - 664 sys sys 1032059295 796
 sys/src/cmd/aux/depend.c - 664 sys sys 1134305455 25880
@@ -15651,4 +15651,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-sys/src/cmd/aux/consolefs.c - 664 sys sys 1149909790 21168
