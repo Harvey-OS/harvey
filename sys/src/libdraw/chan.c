@@ -41,9 +41,10 @@ strtochan(char *s)
 {
 	char *p, *q;
 	ulong c;
-	int t, n;
+	int t, n, d;
 
 	c = 0;
+	d = 0;
 	p=s;
 	while(*p && isspace(*p))
 		p++;
@@ -55,9 +56,12 @@ strtochan(char *s)
 		if(p[1] < '0' || p[1] > '9')
 			return 0;
 		n = p[1]-'0';
+		d += n;
 		c = (c<<8) | __DC(t, n);
 		p += 2;
 	}
+	if(d==0 || (d>8 && d%8) || (d<8 && 8%d))
+		return 0;
 	return c;
 }
 
