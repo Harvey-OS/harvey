@@ -90,7 +90,7 @@
 386/bin/aux/astarld - 775 sys sys 1148500590 65012
 386/bin/aux/cddb - 775 sys sys 1148500590 72557
 386/bin/aux/clog - 775 sys sys 1148500590 66783
-386/bin/aux/consolefs - 775 sys sys 1149958582 156345
+386/bin/aux/consolefs - 775 sys sys 1150217767 156373
 386/bin/aux/conswdir - 775 sys sys 1062080411 38855
 386/bin/aux/cropmarks - 775 sys sys 1020319062 1808
 386/bin/aux/data2s - 775 sys sys 1148500591 60855
@@ -1277,7 +1277,7 @@ lib/face/48x48x2/x - 20000000775 sys sys 1020895710 0
 lib/face/48x48x2/y - 20000000775 sys sys 1020895710 0
 lib/face/48x48x2/z - 20000000775 sys sys 1020895710 0
 lib/face/48x48x4 - 20000000775 sys sys 944941894 0
-lib/face/48x48x4/.dict - 664 sys sys 1142018530 3254
+lib/face/48x48x4/.dict - 664 sys sys 1150202436 3276
 lib/face/48x48x4/Z - 20000000775 sys sys 944945342 0
 lib/face/48x48x4/a - 20000000775 sys sys 944945701 0
 lib/face/48x48x4/a/adb.1 - 664 sys sys 944941890 962
@@ -9622,7 +9622,7 @@ sys/src/cmd/aux/apm.c - 664 sys sys 1130423972 20275
 sys/src/cmd/aux/astarld.c - 664 sys sys 1015008684 4638
 sys/src/cmd/aux/cddb.c - 664 sys sys 1126795279 4610
 sys/src/cmd/aux/clog.c - 664 sys sys 1014925109 1000
-sys/src/cmd/aux/consolefs.c - 664 sys sys 1149909790 21168
+sys/src/cmd/aux/consolefs.c - 664 sys sys 1150201588 21201
 sys/src/cmd/aux/conswdir.c - 664 sys sys 1045504955 2077
 sys/src/cmd/aux/data2s.c - 664 sys sys 1032059295 796
 sys/src/cmd/aux/depend.c - 664 sys sys 1134305455 25880

@@ -587,6 +587,8 @@ fsreader(void *v)
 	c = a[1];
 	c->pid = getpid();
 	notify(handler);
+	if(c->chat)
+		threadexits(nil);
 	for(;;){
 		n = read(c->fd, buf, sizeof(buf));
 		if(n < 0)
