@@ -30151,3 +30151,4 @@
 1150201874 0 c sys/src/cmd/aux/consolefs.c - 664 sys sys 1150201588 21201
 1150203675 0 c lib/face/48x48x4/.dict - 664 sys sys 1150202436 3276
 1150218079 0 c 386/bin/aux/consolefs - 775 sys sys 1150217767 156373
+1150857061 0 c sys/games/lib/fortunes - 664 sys sys 1150855959 259748
