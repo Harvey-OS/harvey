@@ -12,10 +12,11 @@
 
 #define parttrace 0
 
-extern SDifc sdataifc;
+extern SDifc sdataifc; // , sdmv50xxifc;
 
 SDifc* sdifc[] = {
 	&sdataifc,
+//	&sdmv50xxifc,
 	nil,
 };
 
@@ -149,7 +150,7 @@ sdinitpart(SDunit* unit)
 	return 1;
 }
 
-static SDunit*
+SDunit*
 sdgetunit(SDev* sdev, int subno)
 {
 	int index;
@@ -191,7 +192,6 @@ sdgetunit(SDev* sdev, int subno)
 		sdunit[index] = unit;
 	}
 	qunlock(&sdqlock);
-
 	return unit;
 }
 
@@ -206,11 +206,9 @@ sdindex2unit(int index)
 	 * The device will be probed if it has not already been
 	 * successfully accessed.
 	 */
-	for(sdev = sdlist; sdev != nil; sdev = sdev->next){
+	for(sdev = sdlist; sdev != nil; sdev = sdev->next)
 		if(index >= sdev->index && index < sdev->index+sdev->nunit)
 			return sdgetunit(sdev, index-sdev->index);
-	}
-
 	return nil;
 }
 
@@ -596,4 +594,194 @@ sdmalloc(void *p, ulong sz)
 		return p;
 	}
 	return malloc(sz);
+}
+
+/*
+ * SCSI simulation for non-SCSI devices
+ */
+int
+sdsetsense(SDreq *r, int status, int key, int asc, int ascq)
+{
+	int len;
+	SDunit *unit;
+	
+	unit = r->unit;
+	unit->sense[2] = key;
+	unit->sense[12] = asc;
+	unit->sense[13] = ascq;
+
+	if(status == SDcheck && !(r->flags & SDnosense)){
+		/* request sense case from sdfakescsi */
+		len = sizeof unit->sense;
+		if(len > sizeof r->sense-1)
+			len = sizeof r->sense-1;
+		memmove(r->sense, unit->sense, len);
+		unit->sense[2] = 0;
+		unit->sense[12] = 0;
+		unit->sense[13] = 0;
+		r->flags |= SDvalidsense;
+		return SDok;
+	}
+	return status;
+}
+
+int
+sdfakescsi(SDreq *r, void *info, int ilen)
+{
+	uchar *cmd, *p;
+	uvlong len;
+	SDunit *unit;
+	
+	cmd = r->cmd;
+	r->rlen = 0;
+	unit = r->unit;
+	
+	/*
+	 * Rewrite read(6)/write(6) into read(10)/write(10).
+	 */
+	switch(cmd[0]){
+	case 0x08:	/* read */
+	case 0x0A:	/* write */
+		cmd[9] = 0;
+		cmd[8] = cmd[4];
+		cmd[7] = 0;
+		cmd[6] = 0;
+		cmd[5] = cmd[3];
+		cmd[4] = cmd[2];
+		cmd[3] = cmd[1] & 0x0F;
+		cmd[2] = 0;
+		cmd[1] &= 0xE0;
+		cmd[0] |= 0x20;
+		break;
+	}
+
+	/*
+	 * Map SCSI commands into ATA commands for discs.
+	 * Fail any command with a LUN except INQUIRY which
+	 * will return 'logical unit not supported'.
+	 */
+	if((cmd[1]>>5) && cmd[0] != 0x12)
+		return sdsetsense(r, SDcheck, 0x05, 0x25, 0);
+	
+	switch(cmd[0]){
+	default:
+		return sdsetsense(r, SDcheck, 0x05, 0x20, 0);
+	
+	case 0x00:	/* test unit ready */
+		return sdsetsense(r, SDok, 0, 0, 0);
+	
+	case 0x03:	/* request sense */
+		if(cmd[4] < sizeof unit->sense)
+			len = cmd[4];
+		else
+			len = sizeof unit->sense;
+		if(r->data && r->dlen >= len){
+			memmove(r->data, unit->sense, len);
+			r->rlen = len;
+		}
+		return sdsetsense(r, SDok, 0, 0, 0);
+	
+	case 0x12:	/* inquiry */
+		/* warning: useless or misleading comparison: UCHAR < 0x100 */
+		if(cmd[4] < sizeof unit->inquiry)
+			len = cmd[4];
+		else
+			len = sizeof unit->inquiry;
+		if(r->data && r->dlen >= len){
+			memmove(r->data, r->sense, len);
+			r->rlen = len;
+		}
+		return sdsetsense(r, SDok, 0, 0, 0);
+
+	case 0x1B:	/* start/stop unit */
+		/*
+		 * nop for now, can use power management later.
+		 */
+		return sdsetsense(r, SDok, 0, 0, 0);
+	
+	case 0x25:	/* read capacity */
+		if((cmd[1] & 0x01) || cmd[2] || cmd[3])
+			return sdsetsense(r, SDcheck, 0x05, 0x24, 0);
+		if(r->data == nil || r->dlen < 8)
+			return sdsetsense(r, SDcheck, 0x05, 0x20, 1);
+		
+		/*
+		 * Read capacity returns the LBA of the last sector.
+		 */
+		len = unit->sectors - 1;
+		p = r->data;
+		*p++ = len>>24;
+		*p++ = len>>16;
+		*p++ = len>>8;
+		*p++ = len;
+		len = 512;
+		*p++ = len>>24;
+		*p++ = len>>16;
+		*p++ = len>>8;
+		*p++ = len;
+		r->rlen = p - (uchar*)r->data;
+		return sdsetsense(r, SDok, 0, 0, 0);
+
+	case 0x9E:	/* long read capacity */
+		if((cmd[1] & 0x01) || cmd[2] || cmd[3])
+			return sdsetsense(r, SDcheck, 0x05, 0x24, 0);
+		if(r->data == nil || r->dlen < 8)
+			return sdsetsense(r, SDcheck, 0x05, 0x20, 1);	
+		/*
+		 * Read capcity returns the LBA of the last sector.
+		 */
+		len = unit->sectors - 1;
+		p = r->data;
+		*p++ = len>>56;
+		*p++ = len>>48;
+		*p++ = len>>40;
+		*p++ = len>>32;
+		*p++ = len>>24;
+		*p++ = len>>16;
+		*p++ = len>>8;
+		*p++ = len;
+		len = 512;
+		*p++ = len>>24;
+		*p++ = len>>16;
+		*p++ = len>>8;
+		*p++ = len;
+		r->rlen = p - (uchar*)r->data;
+		return sdsetsense(r, SDok, 0, 0, 0);
+	
+	case 0x5A:	/* mode sense */
+		return sdmodesense(r, cmd, info, ilen);
+	
+	case 0x28:	/* read */
+	case 0x2A:	/* write */
+		return SDnostatus;
+	}
+}
+
+int
+sdmodesense(SDreq *r, uchar *cmd, void *info, int ilen)
+{
+	int len;
+	uchar *data;
+	
+	/*
+	 * Fake a vendor-specific request with page code 0,
+	 * return the drive info.
+	 */
+	if((cmd[2] & 0x3F) != 0 && (cmd[2] & 0x3F) != 0x3F)
+		return sdsetsense(r, SDcheck, 0x05, 0x24, 0);
+	len = (cmd[7]<<8)|cmd[8];
+	if(len == 0)
+		return SDok;
+	if(len < 8+ilen)
+		return sdsetsense(r, SDcheck, 0x05, 0x1A, 0);
+	if(r->data == nil || r->dlen < len)
+		return sdsetsense(r, SDcheck, 0x05, 0x20, 1);
+	data = r->data;
+	memset(data, 0, 8);
+	data[0] = ilen>>8;
+	data[1] = ilen;
+	if(ilen)
+		memmove(data+8, info, ilen);
+	r->rlen = 8+ilen;
+	return sdsetsense(r, SDok, 0, 0, 0);
 }

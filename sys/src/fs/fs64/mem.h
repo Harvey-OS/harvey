@@ -13,16 +13,20 @@
 /*
  * Fundamental addresses
  */
-#define IDTADDR		0x80000800		/* idt */
-#define APBOOTSTRAP	0x80001000		/* AP bootstrap code */
-#define CONFADDR	0x80001200		/* info passed from boot loader */
-#define CPU0PDB		0x80002000		/* bootstrap processor PDB */
-#define CPU0PTE		0x80003000		/* bootstrap processor PTE's for 0-2MB */
-#define CPU0MACHPTE	0x80004000		/* bootstrap processor PTE for MACHADDR */
-#define CPU0MACH	0x80005000		/* Mach for bootstrap processor */
+/*
+ * KZERO == 0 or 0x80000000 will work fine.  0x10000000 will work but limit
+ * usable memory to 256MB.
+ */
+#define	KZERO		0x80000000	/* base of kernel address space */
+#define	KTZERO		(KZERO+0x100000) /* first address in kernel text */
 
-#define	KZERO		0x80000000		/* base of kernel address space */
-#define	KTZERO		0x80100000		/* first address in kernel text */
+#define IDTADDR		(KZERO+0x800)	/* idt */
+#define APBOOTSTRAP	(KZERO+0x1000)	/* AP bootstrap code */
+#define CONFADDR	(KZERO+0x1200)	/* info passed from boot loader */
+#define CPU0PDB		(KZERO+0x2000)	/* bootstrap processor PDB */
+#define CPU0PTE		(KZERO+0x3000)	/* bootstrap processor PTE's for 0-2MB */
+#define CPU0MACHPTE	(KZERO+0x4000)	/* bootstrap processor PTE for MACHADDR */
+#define CPU0MACH	(KZERO+0x5000)	/* Mach for bootstrap processor */
 
 #define	MACHSIZE	4096
 
@@ -31,7 +35,7 @@
  */
 #define	NULLSEG	0	/* null segment */
 #define	KDSEG	1	/* kernel data/stack */
-#define	KESEG	2	/* kernel executable */	
+#define	KESEG	2	/* kernel executable */
 #define	UDSEG	3	/* user data/stack */
 #define	UESEG	4	/* user executable */
 #define TSSSEG	5	/* task segment */
@@ -73,7 +77,7 @@
  *  physical MMU
  */
 #define	PTEVALID	(1<<0)
-#define	PTEUNCACHED	(1<<4)	
+#define	PTEUNCACHED	(1<<4)
 #define PTEWRITE	(1<<1)
 #define	PTERONLY	(0<<1)
 #define	PTEKERNEL	(0<<2)

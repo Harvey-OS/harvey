@@ -168,9 +168,10 @@ getconf(char *name)
 	return 0;
 }
 
-/* memory map */
-/* the file server kernel will only see MAXMEG megabytes of RAM at most.  */
-#define MAXMEG 1791		/* 1.75GB-1MB, to avoid overshooting 1.75GB */
+/* memory map; this kernel will see MAXMEG megabytes of RAM at most.  */
+#ifndef MAXMEG
+#define MAXMEG 1791	/* 1.75GB-1MB, to avoid overshooting into PCI space */
+#endif
 
 char mmap[MAXMEG+2];
 Mconf mconf;

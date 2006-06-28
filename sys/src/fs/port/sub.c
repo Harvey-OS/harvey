@@ -609,6 +609,9 @@ Zfmt(Fmt* fmt)
 	case Devide:
 		c = 'h';
 		goto d1;
+	case Devmarvsata:
+		c = 'm';
+		goto d1;
 	case Devworm:
 		c = 'r';
 		goto d1;
@@ -675,7 +678,7 @@ Wfmt(Fmt* fmt)
 	char s[30];
 
 	a = va_arg(fmt->args, Filter*);
-	sprint(s, "%lud", fdf(a->filter, a->c3*a->c1));
+	snprint(s, sizeof s, "%lud", fdf(a->filter, a->c3*a->c1));
 
 	return fmtstrcpy(fmt, s);
 }
@@ -1337,6 +1340,7 @@ loop:
 	case Devlworm:
 	case Devwren:
 	case Devide:
+	case Devmarvsata:
 		break;
 
 	case Devswab:
