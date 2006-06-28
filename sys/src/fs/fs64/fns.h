@@ -73,7 +73,19 @@ void	cpuid(char*, int*, int*);
 
 #define PADDR(a)	((ulong)(a)&~KZERO)
 
+/* pata */
 void	ideinit(Device *d);
 Devsize	idesize(Device *d);
 int	ideread(Device *d,  Devsize, void*);
 int	idewrite(Device *d, Devsize, void*);
+
+/* marvell sata */
+void	mvideinit(Device *d);
+Devsize	mvidesize(Device *d);
+int	mvideread(Device *d,  Devsize, void*);
+int	mvidewrite(Device *d, Devsize, void*);
+int	mvsatainit(void);
+Off	mvsataread(int, void*, long);
+Devsize	mvsataseek(int, Devsize);
+Off	mvsatawrite(int, void*, long);
+int	setmv50part(int, char*);

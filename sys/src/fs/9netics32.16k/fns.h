@@ -73,7 +73,14 @@ void	cpuid(char*, int*, int*);
 
 #define PADDR(a)	((ulong)(a)&~KZERO)
 
+/* pata */
 void	ideinit(Device *d);
 Devsize	idesize(Device *d);
 int	ideread(Device *d,  Devsize, void*);
 int	idewrite(Device *d, Devsize, void*);
+
+/* sata */
+void	mvideinit(Device *d);
+Devsize	mvidesize(Device *d);
+int	mvideread(Device *d,  Devsize, void*);
+int	mvidewrite(Device *d, Devsize, void*);

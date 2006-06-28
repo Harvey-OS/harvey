@@ -535,6 +535,8 @@ vid2name(int vid)
 		return "neomagic";	/* or magicgraph */
 	case 0x10de:
 		return "nvidia";
+	case 0x11ab:
+		return "marvell";
 	case 0x11ad:
 		return "(pnic?)";
 	case 0x121a:

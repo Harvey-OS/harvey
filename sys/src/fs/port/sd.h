@@ -21,6 +21,7 @@ typedef struct SDunit {
 	SDev*	dev;
 	int	subno;
 	uchar	inquiry[256];		/* format follows SCSI spec */
+	uchar	sense[18];		/* format follows SCSI spec */
 	char	name[NAMELEN];
 	Rendez	rendez;
 
@@ -105,12 +106,15 @@ enum {
 };
 
 /* sdscsi.c */
-extern int scsiverify(SDunit*);
-extern int scsionline(SDunit*);
-extern long scsibio(SDunit*, int, int, void*, long, Off);
-extern SDev* scsiid(SDev*, SDifc*);
+int	scsiverify(SDunit*);
+int	scsionline(SDunit*);
+long	scsibio(SDunit*, int, int, void*, long, Off);
+SDev*	scsiid(SDev*, SDifc*);
 
-extern long sdbio(SDunit *unit, SDpart *pp, void *a, long len, Off off);
+/* devsd.c */
+int	sdfakescsi(SDreq *r, void *info, int ilen);
+int	sdmodesense(SDreq *r, uchar *cmd, void *info, int ilen);
+long	sdbio(SDunit *unit, SDpart *pp, void *a, long len, Off off);
 void	partition(SDunit*);
 void	addpartconf(SDunit*);
 SDpart* sdfindpart(SDunit*, char*);

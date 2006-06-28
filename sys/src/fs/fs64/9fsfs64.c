@@ -5,6 +5,9 @@
 
 #include "../pc/dosfs.h"
 
+void	apcinit(void);
+int	sdinit(void);
+
 /*
  * setting this to zero permits the use of discs of different sizes, but
  * can make jukeinit() quite slow while the robotics work through each disc
@@ -34,13 +37,12 @@ static struct
 	Off	(*write)(int, void*, long);
 	int	(*part)(int, char*);
 } nvrdevs[] = {
-	{ "fd", floppyread, floppyseek, floppywrite, 0, },
-	{ "hd", ataread,   ataseek,   atawrite,   setatapart, },
-	/* { "sd", scsiread,   scsiseek,   scsiwrite,   setscsipart, },  */
+	{ "fd", floppyread,	floppyseek,	floppywrite, 0, },
+	{ "hd", ataread,	ataseek,	atawrite,	setatapart, },
+	{ "md", mvsataread,	mvsataseek,	mvsatawrite,	setmv50part, },
+/*	{ "sd", scsiread,	scsiseek,	scsiwrite,	setscsipart, },  */
 	{ 0, },
 };
-
-void apcinit(void);
 
 void
 otherinit(void)
@@ -55,7 +57,9 @@ otherinit(void)
 	apcinit();
 
 	s = spllo();
-	nhd = atainit();
+	sdinit();
+	nhd = atainit();	/* harmless to call again */
+	mvsatainit();		/* harmless to call again */
 	nfd = floppyinit();
 	dev = 0;
 	if(p = getconf("nvr")){
@@ -94,7 +98,8 @@ otherinit(void)
 	for(i = 0; nvrdevs[i].name; i++){
 		if(strcmp(p, nvrdevs[i].name) == 0){
 			dos.dev = dev;
-			if(nvrdevs[i].part && (*nvrdevs[i].part)(dos.dev, "disk") == 0)
+			if (nvrdevs[i].part &&
+			    (*nvrdevs[i].part)(dos.dev, "disk") == 0)
 				break;
 			dos.read = nvrdevs[i].read;
 			dos.seek = nvrdevs[i].seek;
@@ -103,10 +108,16 @@ otherinit(void)
 		}
 	}
 	if(dos.read == 0)
-		panic("no device for nvram\n");
+		panic("no device (%s) for nvram\n", p);
 	if(dosinit(&dos) < 0)
 		panic("can't init dos dosfs on %s\n", p);
 	splx(s);
+}
+
+static int
+isdawn(void *)
+{
+	return predawn == 0;
 }
 
 void
@@ -117,6 +128,8 @@ touser(void)
 	settime(rtctime());
 	boottime = time();
 
+	/* wait for predawn to change to zero to avoid confusing print */
+	sleep(&dawnrend, isdawn, 0);
 	print("sysinit\n");
 	sysinit();
 

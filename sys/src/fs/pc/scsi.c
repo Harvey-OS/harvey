@@ -53,9 +53,10 @@ cmd_stat(int, char*[])
 			tp = &ctlr->target[targetno];
 			if(tp->fflag == 0)
 				continue;
-			print("	%d.%d work =%7W%7W%7W pkts\n", ctlrno, targetno,
+			print("\t%d.%d work =%7W%7W%7W xfrs\n",
+				ctlrno, targetno,
 				tp->work+0, tp->work+1, tp->work+2);
-			print("	    rate =%7W%7W%7W tBps\n",
+			print("\t    rate =%7W%7W%7W tBps\n",
 				tp->rate+0, tp->rate+1, tp->rate+2);
 		}
 	}
@@ -373,12 +374,14 @@ scsiio(Device* d, int rw, uchar* cmd, int cbytes, void* data, int dbytes)
 	if(tp->ok == 0)
 		scsiprobe(d);
 	if(tp->fflag == 0) {
+		/* last args were 1000, now 1 */
+		dofilter(tp->work+0, C0a, C0b, 1);
+		dofilter(tp->work+1, C1a, C1b, 1);
+		dofilter(tp->work+2, C2a, C2b, 1);
+		/* */
 		dofilter(tp->rate+0, C0a, C0b, 1);
 		dofilter(tp->rate+1, C1a, C1b, 1);
 		dofilter(tp->rate+2, C2a, C2b, 1);
-		dofilter(tp->work+0, C0a, C0b, 1000);
-		dofilter(tp->work+1, C1a, C1b, 1000);
-		dofilter(tp->work+2, C2a, C2b, 1000);
 		tp->fflag = 1;
 	}
 	tp->work[0].count++;

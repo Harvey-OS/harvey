@@ -131,7 +131,7 @@ date2tm(Tm *tm, char *date)
 		return nil;
 
 	if(n == 5){
-		for(n = 5; n >= 0; n--)
+		for(n = 5; n >= 1; n--)
 			flds[n] = flds[n - 1];
 		n = 5;
 	}else{
