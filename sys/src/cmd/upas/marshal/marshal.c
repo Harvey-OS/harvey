@@ -386,7 +386,7 @@ main(int argc, char **argv)
 		Bprint(&out, "\tboundary=\"%s\"\n\n", boundary);
 		Bprint(&out, "This is a multi-part message in MIME format.\n");
 		Bprint(&out, "--%s\n", boundary);
-		Bprint(&out, "Content-Disposition: ainline\n");
+		Bprint(&out, "Content-Disposition: inline\n");
 	}
 
 	if(!nflag){
@@ -687,7 +687,7 @@ attachment(Attach *a, Biobuf *out)
 		Bprint(out, "Content-Type: %s\n", a->type);
 
 	if(a->ainline){
-		Bprint(out, "Content-Disposition: ainline\n");
+		Bprint(out, "Content-Disposition: inline\n");
 	} else {
 		p = strrchr(a->path, '/');
 		if(p == nil)

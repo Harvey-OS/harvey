@@ -13998,7 +13998,7 @@ sys/src/cmd/upas/fs/rfc2047-test - 664 sys sys 1143946985 1146
 sys/src/cmd/upas/fs/strtotm.c - 664 sys sys 1041137528 1904
 sys/src/cmd/upas/fs/tester.c - 664 sys sys 985037420 1418
 sys/src/cmd/upas/marshal - 20000000775 sys sys 1015009721 0
-sys/src/cmd/upas/marshal/marshal.c - 664 sys sys 1143827332 33818
+sys/src/cmd/upas/marshal/marshal.c - 664 sys sys 1151596511 33817
 sys/src/cmd/upas/marshal/mkfile - 664 sys sys 1047490298 235
 sys/src/cmd/upas/misc - 20000000775 sys sys 944961318 0
 sys/src/cmd/upas/misc/gone.fishing - 664 sys sys 944961318 313
