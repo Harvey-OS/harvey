@@ -55,6 +55,7 @@ PC=\
 	devsd.$O\
 	sdscsi.$O\
 	sdata.$O\
+	sdmv50xx.$O\
 	dosfs.$O\
 	floppy.$O\
 	kbd.$O\

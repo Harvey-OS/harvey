@@ -23,6 +23,9 @@
 #include "compat.h"
 #undef error
 
+#define	HOWMANY(x, y)	(((x)+((y)-1))/(y))
+#define ROUNDUP(x, y)	(HOWMANY((x), (y))*(y))
+
 enum {
 	IDEBUG = 0,
 
@@ -303,7 +306,9 @@ typedef struct Prd {
 } Prd;
 
 enum {
-	Nprd		= SDmaxio/(64*1024)+2,
+	BMspan		= 64*1024,	/* must be power of 2 <= 64*1024 */
+
+	Nprd		= SDmaxio/BMspan+2,
 };
 
 typedef struct Ctlr {
@@ -312,6 +317,8 @@ typedef struct Ctlr {
 	int	irq;
 	int	tbdf;
 	int	bmiba;			/* bus master interface base address */
+	int	maxio;			/* sector count transfer maximum */
+	int	span;			/* don't span this boundary with dma */
 
 	Pcidev*	pcidev;
 	void	(*ienable)(Ctlr*);
@@ -1253,18 +1260,18 @@ atadmasetup(Drive* drive, int len)
 	Prd *prd;
 	ulong pa;
 	Ctlr *ctlr;
-	int bmiba, bmisx, count;
+	int bmiba, bmisx, count, i, span;
 
+	ctlr = drive->ctlr;
 	pa = PCIWADDR(drive->data);
 	if(pa & 0x03)
 		return -1;
-	ctlr = drive->ctlr;
-	prd = ctlr->prdt;
 
 	/*
 	 * Sometimes drives identify themselves as being DMA capable
 	 * although they are not on a busmastering controller.
 	 */
+	prd = ctlr->prdt;
 	if(prd == nil){
 		drive->dmactl = 0;
 		print("h%d: disabling dma: not on a busmastering controller\n",
@@ -1272,11 +1279,14 @@ atadmasetup(Drive* drive, int len)
 		return -1;
 	}
 
-	for(;;){
+	for(i = 0; len && i < Nprd; i++){
 		prd->pa = pa;
-		count = 64*1024 - (pa & 0xFFFF);
+		span = ROUNDUP(pa, ctlr->span);
+		if(span == pa)
+			span += ctlr->span;
+		count = span - pa;
 		if(count >= len){
-			prd->count = PrdEOT|(len & 0xFFFF);
+			prd->count = PrdEOT|len;
 			break;
 		}
 		prd->count = count;
@@ -1284,6 +1294,8 @@ atadmasetup(Drive* drive, int len)
 		pa += count;
 		prd++;
 	}
+	if(i == Nprd)
+		(prd-1)->count |= PrdEOT;
 
 	bmiba = ctlr->bmiba;
 	outl(bmiba+Bmidtpx, PCIWADDR(ctlr->prdt));
@@ -1623,8 +1635,8 @@ atagenio(Drive* drive, uchar* cmd, int)
 {
 	uchar *p;
 	Ctlr *ctlr;
-	int count, max;
 	Devsize lba, len;
+	int count, maxio;
 
 	/*
 	 * Map SCSI commands into ATA commands for discs.
@@ -1734,10 +1746,15 @@ atagenio(Drive* drive, uchar* cmd, int)
 	if(drive->dlen < count*drive->secsize)
 		count = drive->dlen/drive->secsize;
 	qlock(ctlr);
+	if(ctlr->maxio)
+		maxio = ctlr->maxio;
+	else if(drive->flags & Lba48)
+		maxio = 65536;
+	else
+		maxio = 256;
 	while(count){
-		max = (drive->flags&Lba48) ? 65536 : 256;
-		if(count > max)
-			drive->count = max;
+		if(count > maxio)
+			drive->count = maxio;
 		else
 			drive->count = count;
 		if(atageniostart(drive, lba)){
@@ -1750,7 +1767,7 @@ atagenio(Drive* drive, uchar* cmd, int)
 
 		while(waserror())
 			;
-		tsleep(ctlr, atadone, ctlr, 30*1000);
+		tsleep(ctlr, atadone, ctlr, 60*1000);
 		poperror();
 		if(!ctlr->done){
 			/*
@@ -1990,8 +2007,8 @@ atapnp(void)
 {
 	Ctlr *ctlr;
 	Pcidev *p;
-	int channel, ispc87415, pi, r;
 	SDev *legacy[2], *sdev, *head, *tail;
+	int channel, ispc87415, maxio, pi, r, span;
 	static int done;
 
 	if (done)
@@ -2049,6 +2066,8 @@ atapnp(void)
 
 		pi = p->ccrp;
 		ispc87415 = 0;
+		maxio = 0;
+		span = BMspan;
 
 		switch((p->did<<16)|p->vid){
 		default:
@@ -2078,9 +2097,14 @@ atapnp(void)
 		case (0x4D69<<16)|0x105A:	/* Promise Ultra/133 TX2 */
 		case (0x3373<<16)|0x105A:	/* Promise 20378 RAID */
 		case (0x3149<<16)|0x1106:	/* VIA VT8237 SATA/RAID */
+		case (0x3112<<16)|0x1095:   	/* SiI 3112 SATA/RAID */
+			maxio = 15;
+			span = 8*1024;
+			/*FALLTHROUGH*/
+		case (0x3114<<16)|0x1095:	/* SiI 3114 SATA/RAID */
 			pi = 0x85;
 			break;
-		case (0x0004<<16)|0x1103:	/* HighPoint HPT-370 */
+		case (0x0004<<16)|0x1103:	/* HighPoint HPT366 */
 			pi = 0x85;
 			/*
 			 * Turn off fast interrupt prediction.
@@ -2112,10 +2136,40 @@ atapnp(void)
 			r = pcicfgr8(p, 0x46);
 			pcicfgw8(p, 0x46, (r & 0x0C)|0xF0);
 		case (0x7469<<16)|0x1022:	/* AMD 3111 */
+			/*
+			 * This can probably be lumped in with the 768 above.
+			 */
+			/*FALLTHROUGH*/
+		case (0x01BC<<16)|0x10DE:	/* nVidia nForce1 */
+		case (0x0065<<16)|0x10DE:	/* nVidia nForce2 */
+		case (0x0085<<16)|0x10DE:	/* nVidia nForce2 MCP */
+		case (0x00D5<<16)|0x10DE:	/* nVidia nForce3 */
+		case (0x00E5<<16)|0x10DE:	/* nVidia nForce3 Pro */
+		case (0x0035<<16)|0x10DE:	/* nVidia nForce3 MCP */
+		case (0x0053<<16)|0x10DE:	/* nVidia nForce4 */
+			/*
+			 * Ditto, although it may have a different base
+			 * address for the registers (0x50?).
+			 */
+			/*FALLTHROUGH*/
+		case (0x4376<<16)|0x1002:	/* ATI Radeon Xpress 200M */
 			break;
+		case (0x0211<<16)|0x1166:	/* ServerWorks IB6566 */
+			{
+				Pcidev *sb;
+
+				sb = pcimatch(nil, 0x1166, 0x0200);
+				if(sb == nil)
+					break;
+				r = pcicfgr32(sb, 0x64);
+				r &= ~0x2000;
+				pcicfgw32(sb, 0x64, r);
+			}
+			span = 32*1024;
+			break;
+		case (0x5513<<16)|0x1039:	/* SiS 962 */
 		case (0x0646<<16)|0x1095:	/* CMD 646 */
 		case (0x0571<<16)|0x1106:	/* VIA 82C686 */
-		case (0x0211<<16)|0x1166:	/* ServerWorks IB6566 */
 		case (0x1230<<16)|0x8086:	/* 82371FB (PIIX) */
 		case (0x7010<<16)|0x8086:	/* 82371SB (PIIX3) */
 		case (0x7111<<16)|0x8086:	/* 82371[AE]B (PIIX4[E]) */
@@ -2128,6 +2182,7 @@ atapnp(void)
 		case (0x24CA<<16)|0x8086:	/* 82801DBM (ICH4, Mobile) */
 		case (0x24CB<<16)|0x8086:	/* 82801DB (ICH4, High-End) */
 		case (0x24DB<<16)|0x8086:	/* 82801EB (ICH5) */
+		case (0x266F<<16)|0x8086:	/* 82801FB (ICH6) */
 			break;
 		}
 
@@ -2158,6 +2213,8 @@ atapnp(void)
 				ctlr = sdev->ctlr;
 
 			ctlr->pcidev = p;
+			ctlr->maxio = maxio;
+			ctlr->span = span;
 			if(!(pi & 0x80))
 				continue;
 			ctlr->bmiba = (p->mem[4].bar & ~0x01) + channel*8;
