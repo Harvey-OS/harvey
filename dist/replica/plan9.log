@@ -30179,3 +30179,13 @@
 1151456435 0 c sys/src/cmd/ip/imap4d/date.c - 664 sys sys 1151455743 5684
 1151463637 0 c 386/bin/ip/imap4d - 775 sys sys 1151463461 238064
 1151596881 0 c sys/src/cmd/upas/marshal/marshal.c - 664 sys sys 1151596511 33817
+1151728324 0 c sys/src/fs/pc/sdata.c - 664 sys sys 1151726802 64709
+1151739007 0 c sys/src/fs/fs64/mkfile - 664 sys sys 1140911236 1617
+1151739007 1 a sys/src/fs/pc/sdmv50xx.c - 664 sys sys 1151486130 39434
+1151739007 2 c sys/src/fs/port/sub.c - 664 sys sys 1151380380 25860
+1151740808 0 c sys/src/fs/9netics32.16k/mkfile - 664 sys sys 1141020616 1629
+1151740808 1 c sys/src/fs/9netics64.8k/mkfile - 664 sys sys 1141020626 1622
+1151740808 2 c sys/src/fs/choline/mkfile - 664 sys sys 1151739686 1765
+1151740808 3 c sys/src/fs/emelie/mkfile - 664 sys sys 1151739603 1764
+1151740808 4 c sys/src/fs/fs/mkfile - 664 sys sys 1141020574 1677
+1151740808 5 c sys/src/fs/port/devsd.c - 664 sys sys 1151371646 15110

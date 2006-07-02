@@ -12,11 +12,11 @@
 
 #define parttrace 0
 
-extern SDifc sdataifc; // , sdmv50xxifc;
+extern SDifc sdataifc, sdmv50xxifc;
 
 SDifc* sdifc[] = {
 	&sdataifc,
-//	&sdmv50xxifc,
+	&sdmv50xxifc,
 	nil,
 };
 
