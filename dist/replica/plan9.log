@@ -30189,3 +30189,5 @@
 1151740808 3 c sys/src/fs/emelie/mkfile - 664 sys sys 1151739603 1764
 1151740808 4 c sys/src/fs/fs/mkfile - 664 sys sys 1141020574 1677
 1151740808 5 c sys/src/fs/port/devsd.c - 664 sys sys 1151371646 15110
+1151854245 0 c sys/man/2/bio - 664 sys sys 1151854125 6546
+1151879453 0 c sys/games/lib/fortunes - 664 sys sys 1151878959 259906

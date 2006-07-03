@@ -5748,7 +5748,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1150855959 259748
+sys/games/lib/fortunes - 664 sys sys 1151878959 259906
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -7425,7 +7425,7 @@ sys/man/2/auth - 664 sys sys 1017423719 7539
 sys/man/2/authsrv - 664 sys sys 1055734550 4145
 sys/man/2/bin - 664 sys sys 985023077 1880
 sys/man/2/bind - 664 sys sys 1015091518 4685
-sys/man/2/bio - 664 sys sys 1138335268 6523
+sys/man/2/bio - 664 sys sys 1151854125 6546
 sys/man/2/blowfish - 664 sys sys 1032058672 1280
 sys/man/2/brk - 664 sys sys 944959694 1179
 sys/man/2/cachechars - 664 sys sys 1082222350 7061
