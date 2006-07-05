@@ -30191,3 +30191,4 @@
 1151740808 5 c sys/src/fs/port/devsd.c - 664 sys sys 1151371646 15110
 1151854245 0 c sys/man/2/bio - 664 sys sys 1151854125 6546
 1151879453 0 c sys/games/lib/fortunes - 664 sys sys 1151878959 259906
+1151994688 0 c sys/games/lib/fortunes - 664 sys sys 1151993809 259988
