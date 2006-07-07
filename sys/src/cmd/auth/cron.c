@@ -67,13 +67,30 @@ void	printjobs(void);
 int	qidcmp(Qid, Qid);
 int	becomeuser(char*);
 
+ulong
+minute(ulong tm)
+{
+	return tm - tm%Minute;		/* round down to the minute */
+}
+
+int
+sleepuntil(ulong tm)
+{
+	ulong now = time(0);
+	
+	if (now < tm)
+		return sleep((tm - now)*1000);
+	else
+		return 0;
+}
+
 void
 main(int argc, char *argv[])
 {
 	Job *j;
 	Tm tm;
 	Time t;
-	ulong now, last, nowsecs, future;
+	ulong now, last;		/* in seconds */
 	int i;
 
 	debug = 0;
@@ -107,14 +124,29 @@ main(int argc, char *argv[])
 
 	argv0 = "cron";
 	srand(getpid()*time(0));
-	last = time(0) / Minute;
+	last = time(0);
 	for(;;){
 		readalljobs();
-		now = time(0) / Minute;
-		if (now-last > Day/Minute)	/* don't go mad */
-			last = now - Day/Minute; /* just execute 1 day's jobs */
-		for(; last <= now; last++){
-			tm = *localtime(last*Minute);
+		/*
+		 * the system's notion of time may have jumped forward or
+		 * backward an arbitrary amount since the last call to time().
+		 */
+		now = time(0);
+		/*
+		 * if time has jumped backward, just note it and adapt.
+		 * if time has jumped forward more than a day,
+		 * just execute one day's jobs.
+		 */
+		if (now < last) {
+			syslog(0, CRONLOG, "time went backward");
+			last = now;
+		} else if (now - last > Day) {
+			syslog(0, CRONLOG, "time advanced more than a day");
+			last = now - Day;
+		}
+		now = minute(now);
+		for(last = minute(last); last <= now; last += Minute){
+			tm = *localtime(last);
 			t.min = 1ULL << tm.min;
 			t.hour = 1 << tm.hour;
 			t.wday = 1 << tm.wday;
@@ -130,13 +162,11 @@ main(int argc, char *argv[])
 						rexec(&users[i], j);
 		}
 		/*
-		 * if we're not there yet, sleep until (now+1)*Minute,
+		 * if we're not at next minute yet, sleep until a second past
+		 * (to allow for sleep intervals being approximate),
 		 * which synchronises with minute roll-over as a side-effect.
 		 */
-		future = (now + 1) * Minute;
-		nowsecs = time(0);
-		if (nowsecs < future)
-			sleep((future - nowsecs)*1000);
+		sleepuntil(now + Minute + 1);
 	}
 	/* not reached */
 }
