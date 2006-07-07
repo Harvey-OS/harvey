@@ -5748,7 +5748,7 @@ sys/games - 20000000775 sys sys 952648872 0
 sys/games/lib - 20000000775 sys sys 952648879 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1151993809 259988
+sys/games/lib/fortunes - 664 sys sys 1152212060 260027
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -9457,7 +9457,7 @@ sys/src/cmd/auth/changeuser.c - 664 sys sys 1118884775 2932
 sys/src/cmd/auth/convbio.c - 664 sys sys 1015008432 2212
 sys/src/cmd/auth/convkeys.c - 664 sys sys 1140272940 2370
 sys/src/cmd/auth/convkeys2.c - 664 sys sys 1140272940 2427
-sys/src/cmd/auth/cron.c - 664 sys sys 1147439284 11681
+sys/src/cmd/auth/cron.c - 664 sys sys 1152222646 12266
 sys/src/cmd/auth/debug.c - 664 sys sys 1143694911 7325
 sys/src/cmd/auth/disable - 775 sys sys 1015008431 146
 sys/src/cmd/auth/enable - 775 sys sys 1015008430 134
@@ -9491,7 +9491,7 @@ sys/src/cmd/auth/lib/getauthkey.c - 664 sys sys 1015008430 434
 sys/src/cmd/auth/lib/getexpiration.c - 664 sys sys 1045504996 1557
 sys/src/cmd/auth/lib/keyfmt.c - 664 sys sys 1015008430 491
 sys/src/cmd/auth/lib/log.c - 664 sys sys 1015008430 601
-sys/src/cmd/auth/lib/mkfile - 664 sys sys 1035833803 381
+sys/src/cmd/auth/lib/mkfile - 664 sys sys 1152223363 386
 sys/src/cmd/auth/lib/netcheck.c - 664 sys sys 1015008430 2048
 sys/src/cmd/auth/lib/okpasswd.c - 664 sys sys 1015008430 690
 sys/src/cmd/auth/lib/querybio.c - 664 sys sys 1015008430 1344
