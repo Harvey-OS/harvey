@@ -30195,3 +30195,4 @@
 1152212440 0 c sys/games/lib/fortunes - 664 sys sys 1152212060 260027
 1152225005 0 c sys/src/cmd/auth/cron.c - 664 sys sys 1152222646 12266
 1152225005 1 c sys/src/cmd/auth/lib/mkfile - 664 sys sys 1152223363 386
+1152291604 0 c 386/bin/auth/cron - 775 sys sys 1152291495 144824
