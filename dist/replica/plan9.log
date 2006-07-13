@@ -30196,3 +30196,5 @@
 1152225005 0 c sys/src/cmd/auth/cron.c - 664 sys sys 1152222646 12266
 1152225005 1 c sys/src/cmd/auth/lib/mkfile - 664 sys sys 1152223363 386
 1152291604 0 c 386/bin/auth/cron - 775 sys sys 1152291495 144824
+1152730805 0 c sys/man/8/prep - 664 sys sys 1152729153 14013
+1152730805 1 c sys/src/9/pc/usbuhci.c - 664 sys sys 1152730364 30793

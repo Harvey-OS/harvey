@@ -63,6 +63,7 @@ prep, fdisk, format, mbr \- prepare hard and floppy diskettes, flashes
 .B -m
 .I mbrfile
 ]
+.I disk
 .SH DESCRIPTION
 A partition table is stored on a hard disk to specify the division of
 the physical disk into a set of logical units.
@@ -617,6 +618,11 @@ by older BIOSes), it can access more than the first 8.5GB of the disk.
 installs a new boot block in sector 0 (the master boot record)
 of a disk such as
 .BR /dev/sdC0/data .
+If
+.I mbrfile
+contains more than one sector of `boot block',
+the rest will be copied into the first track of the
+disk, if it fits.
 This boot block should not be confused with the
 boot block used by 
 .IR format ,
