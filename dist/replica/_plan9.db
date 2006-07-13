@@ -7733,7 +7733,7 @@ sys/man/8/ping - 664 sys sys 1139667147 3489
 sys/man/8/plan9.ini - 664 sys sys 1131294569 22077
 sys/man/8/pop3 - 664 sys sys 1063854676 2720
 sys/man/8/ppp - 664 sys sys 1125530075 4414
-sys/man/8/prep - 664 sys sys 1143568557 13874
+sys/man/8/prep - 664 sys sys 1152729153 14013
 sys/man/8/qer - 664 sys sys 1067723129 4909
 sys/man/8/reboot - 664 sys sys 969499895 414
 sys/man/8/replica - 664 sys sys 1138479158 6383
@@ -8035,7 +8035,7 @@ sys/src/9/pc/uarti8250.c - 664 sys sys 1102820421 13958
 sys/src/9/pc/uartisa.c - 664 sys sys 1127126907 1777
 sys/src/9/pc/uartpci.c - 664 sys sys 1096379063 2891
 sys/src/9/pc/usb.h - 664 sys sys 1099760881 3650
-sys/src/9/pc/usbuhci.c - 664 sys sys 1099760881 30955
+sys/src/9/pc/usbuhci.c - 664 sys sys 1152730364 30793
 sys/src/9/pc/vga.c - 664 sys sys 1131290595 5148
 sys/src/9/pc/vga3dfx.c - 664 sys sys 1133218367 3833
 sys/src/9/pc/vgaark2000pv.c - 664 sys sys 1131290600 3422

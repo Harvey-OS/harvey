@@ -9,6 +9,7 @@
 #include	"usb.h"
 
 #define XPRINT if(debug)print
+#define XXPRINT if(0)print
 
 static int Chatty = 0;
 static int debug = 0;
@@ -1044,22 +1045,22 @@ interrupt(Ureg*, void *a)
 	for(e = ctlr->activends.f; e != nil; e = e->activef) {
 		x = e->private;
 		if(!e->iso && x->epq != nil) {
-			XPRINT("cleanq(ctlr, x->epq, 0, 0)\n");
+			XXPRINT("cleanq(ctlr, x->epq, 0, 0)\n");
 			cleanq(ctlr, x->epq, 0, 0);
 		}
 		if(e->iso) {
-			XPRINT("cleaniso(e)\n");
+			XXPRINT("cleaniso(e)\n");
 			cleaniso(e, frnum);
 		}
 	}
 	iunlock(&ctlr->activends);
-	XPRINT("cleanq(ctlr, ctlr->ctlq, 0, 0)\n");
+	XXPRINT("cleanq(ctlr, ctlr->ctlq, 0, 0)\n");
 	cleanq(ctlr, ctlr->ctlq, 0, 0);
-	XPRINT("cleanq(ctlr, ctlr->bulkq, 0, Vf)\n");
+	XXPRINT("cleanq(ctlr, ctlr->bulkq, 0, Vf)\n");
 	cleanq(ctlr, ctlr->bulkq, 0, Vf);
-	XPRINT("clean recvq\n");
+	XXPRINT("clean recvq\n");
 	for (q = ctlr->recvq->next; q; q = q->hlink) {
-		XPRINT("cleanq(ctlr, q, 0, Vf)\n");
+		XXPRINT("cleanq(ctlr, q, 0, Vf)\n");
 		cleanq(ctlr, q, 0, Vf);
 	}
 }
@@ -1074,26 +1075,13 @@ eptinput(void *arg)
 }
 
 static int
-isoreadyx(Endptx *x)
+isoready(void *a)
 {
-	return x->etd == nil || (x->etd != x->xtd && (x->etd->status & Active) == 0);
-}
-
-static int
-isoready(void *arg)
-{
-	int ret;
-	Ctlr *ctlr;
-	Endpt *e;
 	Endptx *x;
+	TD *etd;
 
-	e = arg;
-	ctlr = e->dev->uh->ctlr;
-	x = e->private;
-	ilock(&ctlr->activends);
-	ret = isoreadyx(x);
-	iunlock(&ctlr->activends);
-	return ret;
+	x = a;
+	return (etd = x->etd) == nil || (etd != x->xtd && (etd->status & Active) == 0);
 }
 
 static long
@@ -1167,10 +1155,10 @@ isoio(Ctlr *ctlr, Endpt *e, void *a, long n, ulong offset, int w)
 				e->off = 0;
 			}else{
 				/* New td, make sure it's ready */
-				while (isoreadyx(x) == 0){
+				while (isoready(x) == 0){
 					isolock = 0;
 					iunlock(&ctlr->activends);
-					sleep(&e->wr, isoready, e);
+					sleep(&e->wr, isoready, x);
 					ilock(&ctlr->activends);
 					isolock = 1;
 				}
