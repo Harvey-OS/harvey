@@ -213,7 +213,7 @@ abspath(HConnect *cc, char *origpath, char *curdir)
 	/*
 	 * remove any really special characters
 	 */
-	for(sp = "`;| "; *sp; sp++){
+	for(sp = "`;|"; *sp; sp++){
 		p = strchr(path, *sp);
 		if(p)
 			*p = 0;
