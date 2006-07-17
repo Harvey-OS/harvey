@@ -176,10 +176,6 @@ pcibusmap(Pcidev *root, ulong *pmema, ulong *pioa, int wrreg)
 	int ntb, i, size, rno, hole;
 	ulong v, mema, ioa, sioa, smema, base, limit;
 	Pcisiz *table, *tptr, *mtb, *itb;
-	extern void qsort(void*, long, long, int (*)(void*, void*));
-
-	if(!nobios)
-		return;
 
 	ioa = *pioa;
 	mema = *pmema;
@@ -763,6 +759,14 @@ pcirouting(void)
 
 static void pcireservemem(void);
 
+void
+pcibussize(Pcidev *root, ulong *msize, ulong *iosize)
+{
+	*msize = 0;
+	*iosize = 0;
+	pcibusmap(root, msize, iosize, 0);
+}
+
 static void
 pcicfginit(void)
 {
@@ -854,8 +858,7 @@ pcicfginit(void)
 			  * If we have found a PCI-to-Cardbus bridge, make sure
 			  * it has no valid mappings anymore.  
 			  */
-			pci = pciroot;
-			while (pci) {
+			for(pci = pciroot; pci != nil; pci = pci->link){
 				if (pci->ccrb == 6 && pci->ccru == 7) {
 					ushort bcr;
 
@@ -864,7 +867,6 @@ pcicfginit(void)
 					pcicfgw16(pci, PciBCR, 0x40 | bcr);
 					delay(50);
 				}
-				pci = pci->link;
 			}
 		}
 	}
@@ -876,12 +878,7 @@ pcicfginit(void)
 		/*
 		 * Work out how big the top bus is
 		 */
-		mema = 0;
-		ioa = 0;
-		pcibusmap(pciroot, &mema, &ioa, 0);
-
-		DBG("Sizes: mem=%8.8lux size=%8.8lux io=%8.8lux\n",
-			mema, pcimask(mema), ioa);
+		pcibussize(pciroot, &mema, &ioa);
 	
 		/*
 		 * Align the windows and map it
