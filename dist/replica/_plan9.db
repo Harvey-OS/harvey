@@ -290,7 +290,7 @@
 386/bin/ip/gping - 775 sys sys 1150062738 183566
 386/bin/ip/hogports - 775 sys sys 1148500655 42914
 386/bin/ip/httpd - 20000000775 sys sys 1016920846 0
-386/bin/ip/httpd/httpd - 775 sys sys 1148500656 294993
+386/bin/ip/httpd/httpd - 775 sys sys 1153069070 294993
 386/bin/ip/httpd/imagemap - 775 sys sys 1148500656 117121
 386/bin/ip/httpd/man2html - 775 sys sys 1148500657 125679
 386/bin/ip/httpd/netlib_find - 775 sys sys 1148500657 117974
@@ -555,7 +555,7 @@
 386/lib/libframe.a - 664 sys sys 1147712341 66398
 386/lib/libgeometry.a - 664 sys sys 1143777862 50470
 386/lib/libhtml.a - 664 sys sys 1143777863 229354
-386/lib/libhttpd.a - 664 sys sys 1143777863 99458
+386/lib/libhttpd.a - 664 sys sys 1153069071 99458
 386/lib/libip.a - 664 sys sys 1143777863 35576
 386/lib/libl.a - 664 sys sys 1143777863 5372
 386/lib/libmach.a - 664 sys sys 1148180229 785314
@@ -7951,7 +7951,7 @@ sys/src/9/pc/devlm78.c - 664 sys sys 1128255048 6291
 sys/src/9/pc/devlml.c - 664 sys sys 1132448361 7502
 sys/src/9/pc/devlml.h - 664 sys sys 1026847636 2948
 sys/src/9/pc/devlpt.c - 664 sys sys 1015014514 4420
-sys/src/9/pc/devpccard.c - 664 sys sys 1146318335 40443
+sys/src/9/pc/devpccard.c - 664 sys sys 1153082883 39122
 sys/src/9/pc/devrtc.c - 664 sys sys 1015014515 7167
 sys/src/9/pc/devtv.c - 664 sys sys 1131290299 45676
 sys/src/9/pc/devusb.c - 664 sys sys 1105193103 18364
@@ -7965,7 +7965,7 @@ sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
 sys/src/9/pc/ether8139.c - 664 sys sys 1131290376 18400
 sys/src/9/pc/ether8169.c - 664 sys sys 1131290377 22723
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1131290377 32294
-sys/src/9/pc/ether82557.c - 664 sys sys 1140802391 30152
+sys/src/9/pc/ether82557.c - 664 sys sys 1153082663 30197
 sys/src/9/pc/ether83815.c - 664 sys sys 1140271743 26125
 sys/src/9/pc/ether8390.c - 664 sys sys 1131290377 17702
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
@@ -7985,7 +7985,7 @@ sys/src/9/pc/ethervgbe.c - 664 sys sys 1138114457 26558
 sys/src/9/pc/ethervt6102.c - 664 sys sys 1131907459 22286
 sys/src/9/pc/etherwavelan.c - 664 sys sys 1131290380 3747
 sys/src/9/pc/floppy.h - 664 sys sys 1055700609 3835
-sys/src/9/pc/fns.h - 664 sys sys 1143129956 4531
+sys/src/9/pc/fns.h - 664 sys sys 1153082883 4564
 sys/src/9/pc/hcwAMC.h - 664 sys sys 1026860163 166004
 sys/src/9/pc/i8253.c - 664 sys sys 1139681387 6236
 sys/src/9/pc/i8259.c - 664 sys sys 1131290399 4586
@@ -8012,7 +8012,7 @@ sys/src/9/pc/pcdisk - 664 sys sys 1138115243 1471
 sys/src/9/pc/pcf - 664 sys sys 1138115243 1529
 sys/src/9/pc/pcfl - 664 sys sys 1042004821 1563
 sys/src/9/pc/pcflop - 664 sys sys 1138115244 1498
-sys/src/9/pc/pci.c - 664 sys sys 1150036688 26932
+sys/src/9/pc/pci.c - 664 sys sys 1153082883 26859
 sys/src/9/pc/pcmciamodem.c - 664 sys sys 1099761153 1586
 sys/src/9/pc/pcmkfile - 664 sys sys 1109303822 101
 sys/src/9/pc/piix4smbus.c - 664 sys sys 1091129037 5230
