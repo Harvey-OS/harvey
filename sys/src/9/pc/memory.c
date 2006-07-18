@@ -22,7 +22,7 @@ enum {
 	KB		= 1024,
 
 	MemMinMB	= 4,		/* minimum physical memory (<=4MB) */
-	MemMaxMB	= 3*1024+768,		/* maximum physical memory to check */
+	MemMaxMB	= 3*1024+768,	/* maximum physical memory to check */
 
 	NMemBase	= 10,
 };
@@ -227,6 +227,38 @@ rampage(void)
 }
 
 static void
+umbexclude(void)
+{
+	int size;
+	ulong addr;
+	char *op, *p, *rptr;
+
+	if((p = getconf("umbexclude")) == nil)
+		return;
+
+	while(p && *p != '\0' && *p != '\n'){
+		op = p;
+		addr = strtoul(p, &rptr, 0);
+		if(rptr == nil || rptr == p || *rptr != '-'){
+			print("umbexclude: invalid argument <%s>\n", op);
+			break;
+		}
+		p = rptr+1;
+
+		size = strtoul(p, &rptr, 0) - addr + 1;
+		if(size <= 0){
+			print("umbexclude: bad range <%s>\n", op);
+			break;
+		}
+		if(rptr != nil && *rptr == ',')
+			*rptr++ = '\0';
+		p = rptr;
+
+		mapalloc(&rmapumb, addr, size, 0);
+	}
+}
+
+static void
 umbscan(void)
 {
 	uchar *p;
@@ -283,6 +315,8 @@ umbscan(void)
 		if(p[0] != 0xCC && p[64*KB-1] != 0xCC)
 			mapfree(&rmapumb, PADDR(p), 64*KB);
 	}
+
+	umbexclude();
 }
 
 static void
