@@ -207,22 +207,27 @@ enum {
 	ApicIMASK	= 0x00010000,	/* [16] Interrupt Mask */
 };
 
+extern void ioapicinit(Apic*, int);
 extern void ioapicrdtr(Apic*, int, int*, int*);
 extern void ioapicrdtw(Apic*, int, int, int);
-extern void ioapicinit(Apic*, int);
-extern void lapiconline(void);
-extern void lapicinit(Apic*);
-extern void lapicstartap(Apic*, int);
-extern void lapicerror(Ureg*, void*);
-extern void lapicspurious(Ureg*, void*);
-extern int lapicisr(int);
+
+extern void lapicclock(Ureg*, void*);
 extern int lapiceoi(int);
+extern void lapicerror(Ureg*, void*);
 extern void lapicicrw(int, int);
-extern void lapicintron(void);
+extern void lapicinit(Apic*);
 extern void lapicintroff(void);
+extern void lapicintron(void);
+extern int lapicisr(int);
+extern void lapicnmidisable(void);
+extern void lapicnmienable(void);
+extern void lapiconline(void);
+extern void lapicspurious(Ureg*, void*);
+extern void lapicstartap(Apic*, int);
+extern void lapictimerset(uvlong);
 
 extern void mpinit(void);
-extern void mpshutdown(void);
 extern int mpintrenable(Vctl*);
+extern void mpshutdown(void);
 
 extern _MP_ *_mp_;

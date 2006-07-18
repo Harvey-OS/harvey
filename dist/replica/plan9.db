@@ -7730,7 +7730,7 @@ sys/man/8/nfsserver - 664 sys sys 1142693998 3585
 sys/man/8/pcmcia - 664 sys sys 944959679 408
 sys/man/8/pem - 664 sys sys 1060263669 1189
 sys/man/8/ping - 664 sys sys 1139667147 3489
-sys/man/8/plan9.ini - 664 sys sys 1131294569 22077
+sys/man/8/plan9.ini - 664 sys sys 1153172733 22284
 sys/man/8/pop3 - 664 sys sys 1063854676 2720
 sys/man/8/ppp - 664 sys sys 1125530075 4414
 sys/man/8/prep - 664 sys sys 1152729153 14013
@@ -7996,7 +7996,7 @@ sys/src/9/pc/kbd.c - 664 sys sys 1132574883 12365
 sys/src/9/pc/l.s - 664 sys sys 1143129925 28552
 sys/src/9/pc/main.c - 664 sys sys 1142958321 15304
 sys/src/9/pc/mem.h - 664 sys sys 1137622431 5203
-sys/src/9/pc/memory.c - 664 sys sys 1131573303 18191
+sys/src/9/pc/memory.c - 664 sys sys 1153172671 18773
 sys/src/9/pc/mkfile - 664 sys sys 1142960857 3804
 sys/src/9/pc/mmu.c - 664 sys sys 1147098958 24086
 sys/src/9/pc/mouse.c - 664 sys sys 1098479254 7057
