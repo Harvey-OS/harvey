@@ -7951,7 +7951,7 @@ sys/src/9/pc/devlm78.c - 664 sys sys 1128255048 6291
 sys/src/9/pc/devlml.c - 664 sys sys 1132448361 7502
 sys/src/9/pc/devlml.h - 664 sys sys 1026847636 2948
 sys/src/9/pc/devlpt.c - 664 sys sys 1015014514 4420
-sys/src/9/pc/devpccard.c - 664 sys sys 1153082883 39122
+sys/src/9/pc/devpccard.c - 664 sys sys 1153250455 39299
 sys/src/9/pc/devrtc.c - 664 sys sys 1015014515 7167
 sys/src/9/pc/devtv.c - 664 sys sys 1131290299 45676
 sys/src/9/pc/devusb.c - 664 sys sys 1105193103 18364
@@ -8001,7 +8001,7 @@ sys/src/9/pc/mkfile - 664 sys sys 1142960857 3804
 sys/src/9/pc/mmu.c - 664 sys sys 1147098958 24086
 sys/src/9/pc/mouse.c - 664 sys sys 1098479254 7057
 sys/src/9/pc/mp.c - 664 sys sys 1146542974 17317
-sys/src/9/pc/mp.h - 664 sys sys 1131538511 6652
+sys/src/9/pc/mp.h - 664 sys sys 1153193597 6795
 sys/src/9/pc/nv_dma.h - 664 sys sys 1081384508 12943
 sys/src/9/pc/pc - 664 sys sys 1143768293 1452
 sys/src/9/pc/pcauth - 664 sys sys 1131907692 715
