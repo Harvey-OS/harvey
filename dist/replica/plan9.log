@@ -30207,3 +30207,5 @@
 1153083605 3 c sys/src/9/pc/pci.c - 664 sys sys 1153082883 26859
 1153173604 0 c sys/man/8/plan9.ini - 664 sys sys 1153172733 22284
 1153173604 1 c sys/src/9/pc/memory.c - 664 sys sys 1153172671 18773
+1153195206 0 c sys/src/9/pc/mp.h - 664 sys sys 1153193597 6795
+1153251006 0 c sys/src/9/pc/devpccard.c - 664 sys sys 1153250455 39299
