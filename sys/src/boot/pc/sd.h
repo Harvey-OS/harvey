@@ -121,7 +121,6 @@ void tsleep(void*, int(*)(void*), void*, int);
 #define wakeup(x) while(0)
 extern long sdbio(SDunit *unit, SDpart *pp, void *a, long len, vlong off);
 void	partition(SDunit*);
-void	addpartconf(SDunit*);
 SDpart* sdfindpart(SDunit*, char*);
 void	sdaddpart(SDunit*, char*, ulong, ulong);
 void*	sdmalloc(void*, ulong);

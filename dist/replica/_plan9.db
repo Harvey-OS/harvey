@@ -1,8 +1,8 @@
 386 - 20000000775 sys sys 1010957353 0
 386/9load - 775 sys sys 1146095338 217880
-386/9loaddebug - 775 sys sys 1148576273 313752
+386/9loaddebug - 775 sys sys 1153337893 313752
 386/9loadlite - 775 sys sys 1146095338 136160
-386/9loadlitedebug - 775 sys sys 1148576273 201058
+386/9loadlitedebug - 775 sys sys 1153337893 201058
 386/9pc - 775 sys sys 1143137104 1913157
 386/9pc.gz - 664 sys sys 1141258202 668936
 386/9pccpu - 775 sys sys 1141258205 1583315
@@ -9015,7 +9015,7 @@ sys/src/boot/pc/dat.h - 664 sys sys 1144961189 3597
 sys/src/boot/pc/devfloppy.c - 664 sys sys 1032215913 15505
 sys/src/boot/pc/devfloppy.h - 664 sys sys 1032409559 4081
 sys/src/boot/pc/devi82365.c - 664 sys sys 1144961189 15051
-sys/src/boot/pc/devpccard.c - 664 sys sys 1145459731 33937
+sys/src/boot/pc/devpccard.c - 664 sys sys 1153333456 33897
 sys/src/boot/pc/devsd.c - 664 sys sys 1077033681 11262
 sys/src/boot/pc/dma.c - 664 sys sys 1015007949 4972
 sys/src/boot/pc/dosboot.c - 664 sys sys 1097716791 11240
@@ -9029,7 +9029,7 @@ sys/src/boot/pc/ether589.c - 664 sys sys 1144961189 4624
 sys/src/boot/pc/ether79c970.c - 664 sys sys 1015007950 11717
 sys/src/boot/pc/ether8003.c - 664 sys sys 1015007950 6446
 sys/src/boot/pc/ether8139.c - 664 sys sys 1121393459 14823
-sys/src/boot/pc/ether8169.c - 664 sys sys 1144961385 18634
+sys/src/boot/pc/ether8169.c - 664 sys sys 1153333456 21470
 sys/src/boot/pc/ether82557.c - 664 sys sys 1140802406 19090
 sys/src/boot/pc/ether83815.c - 664 sys sys 1144961190 21993
 sys/src/boot/pc/ether8390.c - 664 sys sys 1112382847 16209
@@ -9042,7 +9042,7 @@ sys/src/boot/pc/etherigbe.c - 664 sys sys 1140710606 40769
 sys/src/boot/pc/ethermii.c - 664 sys sys 1103641771 4413
 sys/src/boot/pc/ethermii.h - 664 sys sys 1071175087 3259
 sys/src/boot/pc/etherrhine.c - 664 sys sys 1144961190 12383
-sys/src/boot/pc/fns.h - 664 sys sys 1144961190 4457
+sys/src/boot/pc/fns.h - 664 sys sys 1153333456 4667
 sys/src/boot/pc/fs.c - 664 sys sys 1094674483 1509
 sys/src/boot/pc/fs.h - 664 sys sys 1094674488 653
 sys/src/boot/pc/ilock.c - 664 sys sys 1015007952 303
@@ -9067,10 +9067,10 @@ sys/src/boot/pc/pbsdisk.s - 664 sys sys 1017854325 6371
 sys/src/boot/pc/pbsdisklba - 775 sys sys 1015007954 509
 sys/src/boot/pc/pbsdisklba.s - 664 sys sys 1015007954 6022
 sys/src/boot/pc/pbslba.s - 664 sys sys 1143465392 8158
-sys/src/boot/pc/pci.c - 664 sys sys 1121366869 17898
+sys/src/boot/pc/pci.c - 664 sys sys 1153333456 20363
 sys/src/boot/pc/print.c - 664 sys sys 1094674483 219
 sys/src/boot/pc/queue.c - 664 sys sys 1015007954 566
-sys/src/boot/pc/sd.h - 664 sys sys 1094674489 2271
+sys/src/boot/pc/sd.h - 664 sys sys 1153333456 2244
 sys/src/boot/pc/sd53c8xx.c - 664 sys sys 1144961191 52127
 sys/src/boot/pc/sd53c8xx.i - 664 sys sys 1015007955 27245
 sys/src/boot/pc/sdata.c - 664 sys sys 1144961191 38221

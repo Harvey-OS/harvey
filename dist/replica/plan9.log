@@ -30209,3 +30209,10 @@
 1153173604 1 c sys/src/9/pc/memory.c - 664 sys sys 1153172671 18773
 1153195206 0 c sys/src/9/pc/mp.h - 664 sys sys 1153193597 6795
 1153251006 0 c sys/src/9/pc/devpccard.c - 664 sys sys 1153250455 39299
+1153333810 0 c sys/src/boot/pc/devpccard.c - 664 sys sys 1153333456 33897
+1153333810 1 c sys/src/boot/pc/ether8169.c - 664 sys sys 1153333456 21470
+1153333810 2 c sys/src/boot/pc/fns.h - 664 sys sys 1153333456 4667
+1153333810 3 c sys/src/boot/pc/pci.c - 664 sys sys 1153333456 20363
+1153333810 4 c sys/src/boot/pc/sd.h - 664 sys sys 1153333456 2244
+1153339205 0 c 386/9loaddebug - 775 sys sys 1153337893 313752
+1153339205 1 c 386/9loadlitedebug - 775 sys sys 1153337893 201058

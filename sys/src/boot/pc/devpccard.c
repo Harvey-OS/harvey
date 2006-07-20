@@ -10,7 +10,6 @@
 #include "io.h"
 
 extern int pciscan(int, Pcidev **);
-extern ulong pcibarsize(Pcidev *, int);
 
 int (*_pcmspecial)(char *, ISAConf *);
 void (*_pcmspecialclose)(int);
