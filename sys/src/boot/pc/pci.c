@@ -23,6 +23,16 @@ enum {					/* configuration mechanism #1 */
 	MaxUBN		= 255,
 };
 
+enum
+{					/* command register */
+	IOen		= (1<<0),
+	MEMen		= (1<<1),
+	MASen		= (1<<2),
+	MemWrInv	= (1<<4),
+	PErrEn		= (1<<6),
+	SErrEn		= (1<<8),
+};
+
 static Lock pcicfglock;
 static Lock pcicfginitlock;
 static int pcicfgmode = -1;
@@ -145,7 +155,8 @@ pciscan(int bno, Pcidev** list)
 	*list = head;
 	for(p = head; p != nil; p = p->link){
 		/*
-		 * Find PCI-PCI and PCI-Cardbus bridges and recursively descend the tree.
+		 * Find PCI-PCI and PCI-Cardbus bridges
+		 * and recursively descend the tree.
 		 */
 		if(p->ccrb != 0x06 || p->ccru != 0x04)
 			continue;
@@ -181,7 +192,16 @@ pciscan(int bno, Pcidev** list)
 			pcicfgw32(p, PciPBN, l);
 		}
 		else{
-			maxubn = ubn;
+			/*
+			 * You can't go back.
+			 * This shouldn't be possible, but the
+			 * Iwill DK8-HTX seems to have subordinate
+			 * bus numbers which get smaller on the
+			 * way down. Need to look more closely at
+			 * this.
+			 */
+			if(ubn > maxubn)
+				maxubn = ubn;
 			pciscan(sbn, &p->bridge);
 		}
 	}
@@ -841,12 +861,149 @@ pcireset(void)
 }
 
 void
-pcisetbme(Pcidev* p)
+pcisetioe(Pcidev* p)
 {
-	int pcr;
-
-	pcr = pcicfgr16(p, PciPCR);
-	pcr |= 0x0004;
-	pcicfgw16(p, PciPCR, pcr);
+	p->pcr |= IOen;
+	pcicfgw16(p, PciPCR, p->pcr);
 }
 
+void
+pciclrioe(Pcidev* p)
+{
+	p->pcr &= ~IOen;
+	pcicfgw16(p, PciPCR, p->pcr);
+}
+
+void
+pcisetbme(Pcidev* p)
+{
+	p->pcr |= MASen;
+	pcicfgw16(p, PciPCR, p->pcr);
+}
+
+void
+pciclrbme(Pcidev* p)
+{
+	p->pcr &= ~MASen;
+	pcicfgw16(p, PciPCR, p->pcr);
+}
+
+void
+pcisetmwi(Pcidev* p)
+{
+	p->pcr |= MemWrInv;
+	pcicfgw16(p, PciPCR, p->pcr);
+}
+
+void
+pciclrmwi(Pcidev* p)
+{
+	p->pcr &= ~MemWrInv;
+	pcicfgw16(p, PciPCR, p->pcr);
+}
+
+static int
+pcigetpmrb(Pcidev* p)
+{
+	int ptr;
+
+	if(p->pmrb != 0)
+		return p->pmrb;
+	p->pmrb = -1;
+
+	/*
+	 * If there are no extended capabilities implemented,
+	 * (bit 4 in the status register) assume there's no standard
+	 * power management method.
+	 * Find the capabilities pointer based on PCI header type.
+	 */
+	if(!(p->pcr & 0x0010))
+		return -1;
+	switch(pcicfgr8(p, PciHDT)){
+	default:
+		return -1;
+	case 0:					/* all other */
+	case 1:					/* PCI to PCI bridge */
+		ptr = 0x34;
+		break;
+	case 2:					/* CardBus bridge */
+		ptr = 0x14;
+		break;
+	}
+	ptr = pcicfgr32(p, ptr);
+
+	while(ptr != 0){
+		/*
+		 * Check for validity.
+		 * Can't be in standard header and must be double
+		 * word aligned.
+		 */
+		if(ptr < 0x40 || (ptr & ~0xFC))
+			return -1;
+		if(pcicfgr8(p, ptr) == 0x01){
+			p->pmrb = ptr;
+			return ptr;
+		}
+
+		ptr = pcicfgr8(p, ptr+1);
+	}
+
+	return -1;
+}
+
+int
+pcigetpms(Pcidev* p)
+{
+	int pmcsr, ptr;
+
+	if((ptr = pcigetpmrb(p)) == -1)
+		return -1;
+
+	/*
+	 * Power Management Register Block:
+	 *  offset 0:	Capability ID
+	 *	   1:	next item pointer
+	 *	   2:	capabilities
+	 *	   4:	control/status
+	 *	   6:	bridge support extensions
+	 *	   7:	data
+	 */
+	pmcsr = pcicfgr16(p, ptr+4);
+
+	return pmcsr & 0x0003;
+}
+
+int
+pcisetpms(Pcidev* p, int state)
+{
+	int ostate, pmc, pmcsr, ptr;
+
+	if((ptr = pcigetpmrb(p)) == -1)
+		return -1;
+
+	pmc = pcicfgr16(p, ptr+2);
+	pmcsr = pcicfgr16(p, ptr+4);
+	ostate = pmcsr & 0x0003;
+	pmcsr &= ~0x0003;
+
+	switch(state){
+	default:
+		return -1;
+	case 0:
+		break;
+	case 1:
+		if(!(pmc & 0x0200))
+			return -1;
+		break;
+	case 2:
+		if(!(pmc & 0x0400))
+			return -1;
+		break;
+	case 3:
+		break;
+	}
+	pmcsr |= state;
+	pcicfgw16(p, ptr+4, pmcsr);
+
+	return ostate;
+}
