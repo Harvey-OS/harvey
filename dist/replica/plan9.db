@@ -11,7 +11,7 @@
 386/9pcdisk.gz - 664 sys sys 1141258211 755785
 386/9pcf - 775 sys sys 1145192013 2452775
 386/9pcf.gz - 664 sys sys 1141258217 910970
-386/9pxeload - 775 sys sys 1145359841 217880
+386/9pxeload - 775 sys sys 1153399639 219632
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1148500566 116698
@@ -7963,7 +7963,7 @@ sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
 sys/src/9/pc/ether79c970.c - 664 sys sys 1131290338 13953
 sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
 sys/src/9/pc/ether8139.c - 664 sys sys 1131290376 18400
-sys/src/9/pc/ether8169.c - 664 sys sys 1131290377 22723
+sys/src/9/pc/ether8169.c - 664 sys sys 1153399639 25120
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1131290377 32294
 sys/src/9/pc/ether82557.c - 664 sys sys 1153082663 30197
 sys/src/9/pc/ether83815.c - 664 sys sys 1140271743 26125
