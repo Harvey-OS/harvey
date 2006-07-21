@@ -97,6 +97,16 @@ enum {					/* Tcr */
 	Ifg2		= 0x00080000,	/* Interframe Gap 2 */
 	HwveridSHIFT	= 23,		/* Hardware Version ID */
 	HwveridMASK	= 0x7C800000,
+	Macv01		= 0x00000000,	/* RTL8169 */
+	Macv02		= 0x00800000,	/* RTL8169S/8110S */
+	Macv03		= 0x04000000,	/* RTL8169S/8110S */
+	Macv04		= 0x10000000,	/* RTL8169SB/8110SB */
+	Macv05		= 0x18000000,	/* RTL8169SC/8110SC */
+	Macv11		= 0x30000000,	/* RTL8168B/8111B */
+	Macv12		= 0x38000000,	/* RTL8169B/8111B */
+	Macv13		= 0x34000000,	/* RTL8101E */
+	Macv14		= 0x30800000,	/* RTL8100E */
+	Macv15		= 0x38800000,	/* RTL8100E */
 	Ifg0		= 0x01000000,	/* Interframe Gap 0 */
 	Ifg1		= 0x02000000,	/* Interframe Gap 1 */
 };
@@ -202,8 +212,8 @@ enum {					/* General Descriptor control */
 /*
  */
 enum {					/* Ring sizes  (<= 1024) */
-	Ntd		= 128,		/* Transmit Ring */
-	Nrd		= 64,		/* Receive Ring */
+	Ntd		= 32,		/* Transmit Ring */
+	Nrd		= 128,		/* Receive Ring */
 
 	Mps		= ROUNDUP(ETHERMAXTU+4, 128),
 };
@@ -225,17 +235,27 @@ struct Dtcc {
 	u16int	txundrn;
 };
 
+enum {						/* Variants */
+	Rtl8100e	= (0x8136<<16)|0x10EC,	/* RTL810[01]E ? */
+	Rtl8169sc	= (0x8167<<16)|0x10EC,	/* RTL8169SC */
+	Rtl8168b	= (0x8168<<16)|0x10EC,	/* RTL8168B */
+	Rtl8169		= (0x8169<<16)|0x10EC,	/* RTL8169 */
+};
+
 typedef struct Ctlr Ctlr;
 typedef struct Ctlr {
 	int	port;
 	Pcidev*	pcidev;
 	Ctlr*	next;
 	int	active;
-	uint	id;
 
 	QLock	alock;			/* attach */
 	Lock	ilock;			/* init */
 	int	init;			/*  */
+
+	int	pciv;			/*  */
+	int	macv;			/* MAC version */
+	int	phyv;			/* PHY version */
 
 	Mii*	mii;
 
@@ -262,6 +282,7 @@ typedef struct Ctlr {
 
 	int	tcr;			/* transmit configuration register */
 	int	rcr;			/* receive configuration register */
+	int	imr;
 
 	QLock	slock;			/* statistics */
 	Dtcc*	dtcc;
@@ -277,15 +298,15 @@ typedef struct Ctlr {
 	uint	fovw;
 } Ctlr;
 
-static Ctlr* ctlrhead;
-static Ctlr* ctlrtail;
+static Ctlr* rtl8169ctlrhead;
+static Ctlr* rtl8169ctlrtail;
 
 #define csr8r(c, r)	(inb((c)->port+(r)))
 #define csr16r(c, r)	(ins((c)->port+(r)))
 #define csr32r(c, r)	(inl((c)->port+(r)))
-#define csr8w(c, r, b)	(outb((c)->port+(r), (int)(b)))
-#define csr16w(c, r, w)	(outs((c)->port+(r), (ushort)(w)))
-#define csr32w(c, r, l)	(outl((c)->port+(r), (ulong)(l)))
+#define csr8w(c, r, b)	(outb((c)->port+(r), (u8int)(b)))
+#define csr16w(c, r, w)	(outs((c)->port+(r), (u16int)(w)))
+#define csr32w(c, r, l)	(outl((c)->port+(r), (u32int)(l)))
 
 static int
 rtl8169miimir(Mii* mii, int pa, int ra)
@@ -350,15 +371,24 @@ rtl8169mii(Ctlr* ctlr)
 	ctlr->mii->mir = rtl8169miimir;
 	ctlr->mii->miw = rtl8169miimiw;
 	ctlr->mii->ctlr = ctlr;
-	rtl8169miimiw(ctlr->mii, 1, 0x0B, 0x0000);	/* magic */
 
-	if(mii(ctlr->mii, ~0) == 0 || (phy = ctlr->mii->curphy) == nil){
+	/*
+	 * Get rev number out of Phyidr2 so can config properly.
+	 * There's probably more special stuff for Macv0[234] needed here.
+	 */
+	ctlr->phyv = rtl8169miimir(ctlr->mii, 1, Phyidr2) & 0x0F;
+	if(ctlr->macv == Macv02){
+		csr8w(ctlr, 0x82, 1);				/* magic */
+		rtl8169miimiw(ctlr->mii, 1, 0x0B, 0x0000);	/* magic */
+	}
+
+	if(mii(ctlr->mii, (1<<1)) == 0 || (phy = ctlr->mii->curphy) == nil){
 		free(ctlr->mii);
 		ctlr->mii = nil;
 		return -1;
 	}
-	USED(phy);
-	// print("oui %X phyno %d\n", phy->oui, phy->phyno);
+	print("oui %#ux phyno %d, macv = %#8.8ux phyv = %#4.4ux\n",
+		phy->oui, phy->phyno, ctlr->macv, ctlr->phyv);
 
 	miiane(ctlr->mii, ~0, ~0, ~0);
 
@@ -475,30 +505,35 @@ rtl8169ifstat(Ether* edev, void* a, long n, ulong offset)
 	return n;
 }
 
-static int
-rtl8169reset(Ctlr* ctlr)
-{
-	int timeo;
-
-	/*
-	 * Soft reset the controller.
-	 */
-	csr8w(ctlr, Cr, Rst);
-	for(timeo = 0; timeo < 1000; timeo++){
-		if(!(csr8r(ctlr, Cr) & Rst))
-			return 0;
-		delay(1);
-	}
-
-	return -1;
-}
-
 static void
 rtl8169halt(Ctlr* ctlr)
 {
 	csr8w(ctlr, Cr, 0);
 	csr16w(ctlr, Imr, 0);
 	csr16w(ctlr, Isr, ~0);
+}
+
+static int
+rtl8169reset(Ctlr* ctlr)
+{
+	u32int r;
+	int timeo;
+
+	/*
+	 * Soft reset the controller.
+	 */
+	csr8w(ctlr, Cr, Rst);
+	for(r = timeo = 0; timeo < 1000; timeo++){
+		r = csr8r(ctlr, Cr);
+		if(!(r & Rst))
+			break;
+		delay(1);
+	}
+	rtl8169halt(ctlr);
+
+	if(r & Rst)
+		return -1;
+	return 0;
 }
 
 static void
@@ -513,7 +548,8 @@ rtl8169replenish(Ctlr* ctlr)
 		d = &ctlr->rd[rdt];
 		if(ctlr->rb[rdt] == nil){
 			/*
-			 * simple allocation for now
+			 * Simple allocation for now.
+			 * This better be aligned on 8.
 			 */
 			bp = iallocb(Mps);
 			if(bp == nil){
@@ -532,24 +568,19 @@ rtl8169replenish(Ctlr* ctlr)
 	ctlr->rdt = rdt;
 }
 
-static void
+static int
 rtl8169init(Ether* edev)
 {
 	int i;
-	uint r;
+	u32int r;
 	Block *bp;
 	Ctlr *ctlr;
+	u8int cplusc;
 
 	ctlr = edev->ctlr;
 	ilock(&ctlr->ilock);
 
 	rtl8169halt(ctlr);
-
-	/*
-	 * Setting Mulrw in Cplusc disables the Tx/Rx DMA burst settings
-	 * in Tcr/Rcr.
-	 */
-	csr16w(ctlr, Cplusc, (1<<14)|Rxchksum|Mulrw);	/* magic (1<<14) */
 
 	/*
 	 * MAC Address.
@@ -562,26 +593,18 @@ rtl8169init(Ether* edev)
 	csr32w(ctlr, Idr0+4, r);
 
 	/*
-	 * Enable receiver/transmitter.
-	 * Need to do this first or some of the settings below
-	 * won't take.
-	 */
-	csr8w(ctlr, Cr, Te|Re);
-
-	/*
 	 * Transmitter.
-	 * Mtps is in units of 128.
 	 */
 	memset(ctlr->td, 0, sizeof(D)*ctlr->ntd);
 	ctlr->tdh = ctlr->tdt = 0;
 	ctlr->td[ctlr->ntd-1].control = Eor;
-	ctlr->mtps = HOWMANY(Mps, 128);
 
 	/*
 	 * Receiver.
+	 * Need to do something here about the multicast filter.
 	 */
 	memset(ctlr->rd, 0, sizeof(D)*ctlr->nrd);
-	ctlr->rdh = ctlr->rdt = 0;
+	ctlr->nrdfree = ctlr->rdh = ctlr->rdt = 0;
 	ctlr->rd[ctlr->nrd-1].control = Eor;
 
 	for(i = 0; i < ctlr->nrd; i++){
@@ -591,25 +614,88 @@ rtl8169init(Ether* edev)
 		}
 	}
 	rtl8169replenish(ctlr);
-	ctlr->rcr = Rxfth256|Mrxdmaunlimited|Ab|Apm;
+	ctlr->rcr = Rxfthnone|Mrxdmaunlimited|Ab|Apm;
+
+	/*
+	 * Mtps is in units of 128 except for the RTL8169
+	 * where is is 32. If using jumbo frames should be
+	 * set to 0x3F.
+	 * Setting Mulrw in Cplusc disables the Tx/Rx DMA burst
+	 * settings in Tcr/Rcr; the (1<<14) is magic.
+	 */
+	ctlr->mtps = HOWMANY(Mps, 128);
+	cplusc = csr16r(ctlr, Cplusc) & ~(1<<14);
+	cplusc |= /*Rxchksum|*/Mulrw;
+	switch(ctlr->macv){
+	default:
+		return -1;
+	case Macv01:
+		ctlr->mtps = HOWMANY(Mps, 32);
+		break;
+	case Macv02:
+	case Macv03:
+		cplusc |= (1<<14);			/* magic */
+		break;
+	case Macv05:
+		/*
+		 * This is interpreted from clearly bogus code
+		 * in the manufacturer-supplied driver, it could
+		 * be wrong. Untested.
+		 */
+		r = csr8r(ctlr, Config2) & 0x07;
+		if(r == 0x01)				/* 66MHz PCI */
+			csr32w(ctlr, 0x7C, 0x0007FFFF);	/* magic */
+		else
+			csr32w(ctlr, 0x7C, 0x0007FF00);	/* magic */
+		pciclrmwi(ctlr->pcidev);
+		break;
+	case Macv13:
+		/*
+		 * This is interpreted from clearly bogus code
+		 * in the manufacturer-supplied driver, it could
+		 * be wrong. Untested.
+		 */
+		pcicfgw8(ctlr->pcidev, 0x68, 0x00);	/* magic */
+		pcicfgw8(ctlr->pcidev, 0x69, 0x08);	/* magic */
+		break;
+	case Macv04:
+	case Macv11:
+	case Macv12:
+	case Macv14:
+	case Macv15:
+		break;
+	}
+
+	/*
+	 * Enable receiver/transmitter.
+	 * Need to do this first or some of the settings below
+	 * won't take.
+	 */
+	switch(ctlr->pciv){
+	default:
+		csr8w(ctlr, Cr, Te|Re);
+		csr32w(ctlr, Tcr, Ifg1|Ifg0|Mtxdmaunlimited);
+		csr32w(ctlr, Rcr, ctlr->rcr);
+	case Rtl8169sc:
+	case Rtl8168b:
+		break;
+	}
 
 	/*
 	 * Interrupts.
 	 * Disable Tdu|Tok for now, the transmit routine will tidy.
-	 * Tdu means the NIC ran out of descritors to send, so it
+	 * Tdu means the NIC ran out of descriptors to send, so it
 	 * doesn't really need to ever be on.
 	 */
 	csr32w(ctlr, Timerint, 0);
-	csr16w(ctlr, Imr, Serr|Timeout/*|Tdu*/|Fovw|Punlc|Rdu|Ter/*|Tok*/|Rer|Rok);
+	ctlr->imr = Serr|Timeout|Fovw|Punlc|Rdu|Ter|Rer|Rok;
+	csr16w(ctlr, Imr, ctlr->imr);
 
 	/*
 	 * Clear missed-packet counter;
 	 * initial early transmit threshold value;
 	 * set the descriptor ring base addresses;
-	 * set the maximum receive packet size - if it is
-	 * larger than 8191 the Rwt|Res bits may be set
-	 * in the receive descriptor control info even if
-	 * the packet is good;
+	 * set the maximum receive packet size;
 	 * no early-receive interrupts.
 	 */
 	csr32w(ctlr, Mpc, 0);
@@ -619,26 +705,46 @@ rtl8169init(Ether* edev)
 	csr32w(ctlr, Rdsar+4, 0);
 	csr32w(ctlr, Rdsar, PCIWADDR(ctlr->rd));
 	csr16w(ctlr, Rms, Mps);
-	csr16w(ctlr, Mulint, 0);
+	r = csr16r(ctlr, Mulint) & 0xF000;
+	csr16w(ctlr, Mulint, r);
+	csr16w(ctlr, Cplusc, cplusc);
 
 	/*
 	 * Set configuration.
 	 */
-	csr32w(ctlr, Tcr, Ifg1|Ifg0|Mtxdmaunlimited);
+	switch(ctlr->pciv){
+	default:
+		break;
+	case Rtl8169sc:
+		csr16w(ctlr, 0xE2, 0);			/* magic */
+		csr8w(ctlr, Cr, Te|Re);
+		csr32w(ctlr, Tcr, Ifg1|Ifg0|Mtxdmaunlimited);
+		csr32w(ctlr, Rcr, ctlr->rcr);
+		break;
+	case Rtl8168b:
+		csr16w(ctlr, 0xE2, 0);			/* magic */
+		csr16w(ctlr, Cplusc, 0x2000);		/* magic */
+		csr8w(ctlr, Cr, Te|Re);
+		csr32w(ctlr, Tcr, Ifg1|Ifg0|Mtxdmaunlimited);
+		csr32w(ctlr, Rcr, ctlr->rcr);
+		csr16w(ctlr, Rms, 0x0800);
+		csr8w(ctlr, Mtps, 0x3F);
+		break;
+	}
 	ctlr->tcr = csr32r(ctlr, Tcr);
-	csr32w(ctlr, Rcr, ctlr->rcr);
-	csr16w(ctlr, 0xE2, 0);			/* magic */
-
 	csr8w(ctlr, Cr9346, 0);
 
 	iunlock(&ctlr->ilock);
 
 //	rtl8169mii(ctlr);
+
+	return 0;
 }
 
 static void
 rtl8169attach(Ether* edev)
 {
+	int timeo;
 	Ctlr *ctlr;
 
 	ctlr = edev->ctlr;
@@ -660,8 +766,13 @@ rtl8169attach(Ether* edev)
 	qunlock(&ctlr->alock);
 
 	/*
-	 * Should wait for link to be ready here.
+	 * Wait for link to be ready.
 	 */
+	for(timeo = 0; timeo < 3500; timeo++){
+		if(miistatus(ctlr->mii) == 0)
+			break;
+		delay(10);
+	}
 }
 
 static void
@@ -776,7 +887,7 @@ rtl8169receive(Ether* edev)
 		if((control & (Fs|Ls|Res)) == (Fs|Ls)){
 			bp = ctlr->rb[rdh];
 			ctlr->rb[rdh] = nil;
-			bp->wp = bp->rp + ((control & RxflMASK)>>RxflSHIFT) - 4;
+			bp->wp = bp->rp + ((control & RxflMASK)>>RxflSHIFT)-4;
 			bp->next = nil;
 
 			if(control & Fovf)
@@ -818,11 +929,11 @@ rtl8169receive(Ether* edev)
 		d->control &= Eor;
 		ctlr->nrdfree--;
 		rdh = NEXT(rdh, ctlr->nrd);
+
+		if(ctlr->nrdfree < ctlr->nrd/2)
+			rtl8169replenish(ctlr);
 	}
 	ctlr->rdh = rdh;
-	
-	if(ctlr->nrdfree < ctlr->nrd/2)
-		rtl8169replenish(ctlr);
 }
 
 static void
@@ -835,8 +946,10 @@ rtl8169interrupt(Ureg*, void* arg)
 	edev = arg;
 	ctlr = edev->ctlr;
 
-	while((isr = csr16r(ctlr, Isr)) != 0){
+	while((isr = csr16r(ctlr, Isr)) != 0 && isr != 0xFFFF){
 		csr16w(ctlr, Isr, isr);
+		if((isr & ctlr->imr) == 0)
+			break;
 		if(isr & (Fovw|Punlc|Rdu|Rer|Rok)){
 			rtl8169receive(edev);
 			if(!(isr & (Punlc|Rok)))
@@ -871,31 +984,41 @@ rtl8169interrupt(Ureg*, void* arg)
 	}
 }
 
-static Ctlr*
-rtl8169match(Ether* edev, int id)
+static void
+rtl8169pci(void)
 {
 	Pcidev *p;
 	Ctlr *ctlr;
 	int i, port;
 
-	/*
-	 * Any adapter matches if no edev->port is supplied,
-	 * otherwise the ports must match.
-	 */
-	for(ctlr = ctlrhead; ctlr != nil; ctlr = ctlr->next){
-		if(ctlr->active)
-			continue;
-		p = ctlr->pcidev;
-		if(((p->did<<16)|p->vid) != id)
-			continue;
-		port = p->mem[0].bar & ~0x01;
-		if(edev->port != 0 && edev->port != port)
+	p = nil;
+	while(p = pcimatch(p, 0, 0)){
+		if(p->ccrb != 0x02 || p->ccru != 0)
 			continue;
 
+		switch(i = ((p->did<<16)|p->vid)){
+		default:
+			continue;
+		case Rtl8100e:			/* RTL810[01]E ? */
+		case Rtl8169sc:			/* RTL8169SC */
+		case Rtl8168b:			/* RTL8168B */
+		case Rtl8169:			/* RTL8169 */
+			break;
+		case (0xC107<<16)|0x1259:	/* Corega CG-LAPCIGT */
+			i = Rtl8169;
+			break;
+		}
+
+		port = p->mem[0].bar & ~0x01;
 		if(ioalloc(port, p->mem[0].size, 0, "rtl8169") < 0){
 			print("rtl8169: port %#ux in use\n", port);
 			continue;
 		}
+
+		ctlr = malloc(sizeof(Ctlr));
+		ctlr->port = port;
+		ctlr->pcidev = p;
+		ctlr->pciv = i;
 
 		if(pcigetpms(p) > 0){
 			pcisetpms(p, 0);
@@ -908,78 +1031,51 @@ rtl8169match(Ether* edev, int id)
 			pcicfgw16(p, PciPCR, p->pcr);
 		}
 
-		ctlr->port = port;
-		if(rtl8169reset(ctlr))
+		if(rtl8169reset(ctlr)){
+			iofree(port);
+			free(ctlr);
 			continue;
+		}
 
-		csr8w(ctlr, 0x82, 1);		/* magic */
+		/*
+		 * Extract the chip hardware version,
+		 * needed to configure each properly.
+		 */
+		ctlr->macv = csr32r(ctlr, Tcr) & HwveridMASK;
 
 		rtl8169mii(ctlr);
 
 		pcisetbme(p);
-		ctlr->active = 1;
-		return ctlr;
-	}
-	return nil;
-}
 
-static struct {
-	char*	name;
-	int	id;
-} rtl8169pci[] = {
-	{ "rtl8169",	(0x8169<<16)|0x10EC, },	/* generic */
-	{ "CG-LAPCIGT",	(0xC107<<16)|0x1259, },	/* Corega CG-LAPCIGT */
-	{ nil },
-};
+		if(rtl8169ctlrhead != nil)
+			rtl8169ctlrtail->next = ctlr;
+		else
+			rtl8169ctlrhead = ctlr;
+		rtl8169ctlrtail = ctlr;
+	}
+}
 
 static int
 rtl8169pnp(Ether* edev)
 {
-	Pcidev *p;
+	u32int r;
 	Ctlr *ctlr;
-	int i, id;
 	uchar ea[Eaddrlen];
 
-	/*
-	 * Make a list of all ethernet controllers
-	 * if not already done.
-	 */
-	if(ctlrhead == nil){
-		p = nil;
-		while(p = pcimatch(p, 0, 0)){
-			if(p->ccrb != 0x02 || p->ccru != 0)
-				continue;
-			ctlr = malloc(sizeof(Ctlr));
-			ctlr->pcidev = p;
-			ctlr->id = (p->did<<16)|p->vid;
-
-			if(ctlrhead != nil)
-				ctlrtail->next = ctlr;
-			else
-				ctlrhead = ctlr;
-			ctlrtail = ctlr;
-		}
-	}
+	if(rtl8169ctlrhead == nil)
+		rtl8169pci();
 
 	/*
-	 * Is it an RTL8169 under a different name?
-	 * Normally a search is made through all the found controllers
-	 * for one which matches any of the known vid+did pairs.
-	 * If a vid+did pair is specified a search is made for that
-	 * specific controller only.
+	 * Any adapter matches if no edev->port is supplied,
+	 * otherwise the ports must match.
 	 */
-	id = 0;
-	for(i = 0; i < edev->nopt; i++){
-		if(cistrncmp(edev->opt[i], "id=", 3) == 0)
-			id = strtol(&edev->opt[i][3], nil, 0);
-	}
-
-	ctlr = nil;
-	if(id != 0)
-		ctlr = rtl8169match(edev, id);
-	else for(i = 0; rtl8169pci[i].name; i++){
-		if((ctlr = rtl8169match(edev, rtl8169pci[i].id)) != nil)
+	for(ctlr = rtl8169ctlrhead; ctlr != nil; ctlr = ctlr->next){
+		if(ctlr->active)
+			continue;
+		if(edev->port == 0 || edev->port == ctlr->port){
+			ctlr->active = 1;
 			break;
+		}
 	}
 	if(ctlr == nil)
 		return -1;
@@ -988,6 +1084,7 @@ rtl8169pnp(Ether* edev)
 	edev->port = ctlr->port;
 	edev->irq = ctlr->pcidev->intl;
 	edev->tbdf = ctlr->pcidev->tbdf;
+	edev->mbps = 100;
 
 	/*
 	 * Check if the adapter's station address is to be overridden.
@@ -995,14 +1092,14 @@ rtl8169pnp(Ether* edev)
 	 */
 	memset(ea, 0, Eaddrlen);
 	if(memcmp(ea, edev->ea, Eaddrlen) == 0){
-		i = csr32r(ctlr, Idr0);
-		edev->ea[0] = i;
-		edev->ea[1] = i>>8;
-		edev->ea[2] = i>>16;
-		edev->ea[3] = i>>24;
-		i = csr32r(ctlr, Idr0+4);
-		edev->ea[4] = i;
-		edev->ea[5] = i>>8;
+		r = csr32r(ctlr, Idr0);
+		edev->ea[0] = r;
+		edev->ea[1] = r>>8;
+		edev->ea[2] = r>>16;
+		edev->ea[3] = r>>24;
+		r = csr32r(ctlr, Idr0+4);
+		edev->ea[4] = r;
+		edev->ea[5] = r>>8;
 	}
 
 	edev->attach = rtl8169attach;
