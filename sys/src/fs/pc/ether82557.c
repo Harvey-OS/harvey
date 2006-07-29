@@ -660,9 +660,8 @@ receive(Ether* ether)
 			pbp = nil;
 			count = rfd->count & 0x3FFF;
 			if((count < ETHERMAXTU/4) && (pbp = iallocb(count))){
-				memmove(pbp->rp, bp->rp+offsetof(Rfd, data[0]),
-					count);
-				SETWPCNT(bp, count);
+				memmove(pbp->rp, bp->rp+offsetof(Rfd, data[0]), count);
+				SETWPCNT(pbp, count);
 				rfd->count = 0;
 				rfd->field = 0;
 			}
@@ -958,6 +957,7 @@ i82557pci(void)
 		case 0x1050:		/* Intel 82562EZ */
 		case 0x1039:		/* Intel 82801BD PRO/100 VE */
 		case 0x103A:		/* Intel 82562 PRO/100 VE */
+		case 0x103D:		/* Intel 82562 PRO/100 VE */
 		case 0x1064:		/* Intel 82562 PRO/100 VE */
 		case 0x2449:		/* Intel 82562ET */
 			nop = 1;

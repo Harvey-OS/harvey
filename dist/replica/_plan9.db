@@ -14395,7 +14395,7 @@ sys/src/fs/pc/dosfs.c - 664 sys sys 1146784976 16619
 sys/src/fs/pc/dosfs.h - 664 sys sys 1140167937 2696
 sys/src/fs/pc/ether2114x.c - 664 sys sys 1015110044 31874
 sys/src/fs/pc/ether8139.c - 664 sys sys 1086569718 18552
-sys/src/fs/pc/ether82557.c - 664 sys sys 1141035189 30669
+sys/src/fs/pc/ether82557.c - 664 sys sys 1154067789 30710
 sys/src/fs/pc/ether83815.c - 664 sys sys 1140335463 26764
 sys/src/fs/pc/ether83815.mii.c - 664 sys sys 1049156663 31622
 sys/src/fs/pc/etherdp83820.c - 664 sys sys 1146355081 32045
