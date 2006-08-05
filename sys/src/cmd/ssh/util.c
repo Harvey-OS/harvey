@@ -259,7 +259,7 @@ privatefactotum(void)
 
 	if((user=getuser()) && (d=dirstat("/mnt/factotum/rpc")) && strcmp(user, d->uid)!=0){
 		/* grab the terminal's factotum */
-		rfork(RFNOTEG);
+		rfork(RFNAMEG);	/* was RFNOTEG, which makes little sense */
 		if(access("/mnt/term/mnt/factotum", AEXIST) >= 0){
 //			fprint(2, "binding terminal's factotum\n");
 			if(bind("/mnt/term/mnt/factotum", "/mnt/factotum", MREPL) < 0)

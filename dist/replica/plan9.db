@@ -8035,7 +8035,7 @@ sys/src/9/pc/uarti8250.c - 664 sys sys 1102820421 13958
 sys/src/9/pc/uartisa.c - 664 sys sys 1127126907 1777
 sys/src/9/pc/uartpci.c - 664 sys sys 1096379063 2891
 sys/src/9/pc/usb.h - 664 sys sys 1099760881 3650
-sys/src/9/pc/usbuhci.c - 664 sys sys 1152730364 30793
+sys/src/9/pc/usbuhci.c - 664 sys sys 1154725785 30910
 sys/src/9/pc/vga.c - 664 sys sys 1131290595 5148
 sys/src/9/pc/vga3dfx.c - 664 sys sys 1133218367 3833
 sys/src/9/pc/vgaark2000pv.c - 664 sys sys 1131290600 3422
@@ -13304,7 +13304,7 @@ sys/src/cmd/ssh/ssh.c - 664 sys sys 1133821217 9671
 sys/src/cmd/ssh/ssh.h - 664 sys sys 1091904420 6086
 sys/src/cmd/ssh/sshnet.c - 664 sys sys 1078840016 17641
 sys/src/cmd/ssh/sshserve.c - 664 sys sys 1135487956 5772
-sys/src/cmd/ssh/util.c - 664 sys sys 1063858753 4478
+sys/src/cmd/ssh/util.c - 664 sys sys 1154722953 4522
 sys/src/cmd/stats.c - 664 sys sys 1127974208 28128
 sys/src/cmd/strings.c - 664 sys sys 1146317512 1231
 sys/src/cmd/strip.c - 664 sys sys 1131293244 2502
