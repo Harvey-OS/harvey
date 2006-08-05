@@ -30221,3 +30221,5 @@
 1153839605 0 c sys/games/lib/fortunes - 664 sys sys 1153838057 260146
 1154068205 0 c sys/src/fs/pc/ether82557.c - 664 sys sys 1154067789 30710
 1154460605 0 c sys/man/8/plan9.ini - 664 sys sys 1154459321 22479
+1154723405 0 c sys/src/cmd/ssh/util.c - 664 sys sys 1154722953 4522
+1154727005 0 c sys/src/9/pc/usbuhci.c - 664 sys sys 1154725785 30910
