@@ -7730,7 +7730,7 @@ sys/man/8/nfsserver - 664 sys sys 1142693998 3585
 sys/man/8/pcmcia - 664 sys sys 944959679 408
 sys/man/8/pem - 664 sys sys 1060263669 1189
 sys/man/8/ping - 664 sys sys 1139667147 3489
-sys/man/8/plan9.ini - 664 sys sys 1154459321 22479
+sys/man/8/plan9.ini - 664 sys sys 1155153087 22548
 sys/man/8/pop3 - 664 sys sys 1063854676 2720
 sys/man/8/ppp - 664 sys sys 1125530075 4414
 sys/man/8/prep - 664 sys sys 1152729153 14013
@@ -10140,7 +10140,7 @@ sys/src/cmd/fax/receiverc - 775 sys sys 944960990 581
 sys/src/cmd/fax/send.c - 664 sys sys 944960990 923
 sys/src/cmd/fax/subr.c - 664 sys sys 1015090401 1245
 sys/src/cmd/fcp.c - 664 sys sys 1136651872 3799
-sys/src/cmd/file.c - 664 sys sys 1148481459 24833
+sys/src/cmd/file.c - 664 sys sys 1155176190 26901
 sys/src/cmd/fmt.c - 664 sys sys 1137603598 4078
 sys/src/cmd/fortune.c - 664 sys sys 1072729222 1779
 sys/src/cmd/fossil - 20000000775 sys sys 1042005512 0
