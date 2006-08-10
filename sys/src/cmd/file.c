@@ -52,7 +52,7 @@ struct
 	"common",	Fword,
 	"con",		Lword,
 	"data",		Fword,
-	"dimension",	Fword,	
+	"dimension",	Fword,
 	"double",	Cword,
 	"extern",	Cword,
 	"bio",		I2,
@@ -86,7 +86,7 @@ struct
 enum	{
 		Normal	= 0,
 		First,		/* first entry for language spanning several ranges */
-		Multi,		/* later entries "   "       "  ... */ 
+		Multi,		/* later entries "   "       "  ... */
 		Shared,		/* codes used in several languages */
 	};
 
@@ -97,7 +97,7 @@ struct
 	int	low;
 	int	high;
 	char	*name;
-	
+
 } language[] =
 {
 	Normal, 0,	0x0080, 0x0080,	"Extended Latin",
@@ -127,8 +127,8 @@ struct
 	Shared,	0,	0x4e00,	0x9fff,	"CJK",
 	Normal,	0,	0,	0,	0,		/* terminal entry */
 };
-	
-	
+
+
 enum
 {
 	Fascii,		/* printable ascii */
@@ -159,8 +159,10 @@ int	isrtf(void);
 int	ismsdos(void);
 int	iself(void);
 int	istring(void);
+int	isoffstr(void);
 int	iff(void);
 int	long0(void);
+int	longoff(void);
 int	istar(void);
 int	isface(void);
 int	isexec(void);
@@ -178,6 +180,8 @@ int	(*call[])(void) =
 	iself,		/* ELF (foreign) executable */
 	isexec,		/* native executables */
 	iff,		/* interchange file format (strings) */
+	longoff,	/* recognizable by 4 bytes at some offset */
+	isoffstr,	/* recognizable by string at some offset */
 	isrfc822,	/* email file */
 	ismbox,		/* mail box */
 	istar,		/* recognizable by tar checksum */
@@ -339,15 +343,22 @@ filetype(int fd)
 	else if (cfreq[Ceascii])
 		guess = Feascii;
 	else if (cfreq[Cnull] == n) {
+		/*
+		 * ISO9660 CDs, venti and fossil partitions start with zeroes or
+		 * unwritten blocks, so this old heuristic is no longer helpful.
+		 */
+	/*
 		print(mime ? OCTET : "first block all null bytes\n");
 		return;
+	 */
+		guess = Fbinary;
 	}
 	else guess = Fascii;
 	/*
 	 * lookup dictionary words
 	 */
 	memset(wfreq, 0, sizeof(wfreq));
-	if(guess == Fascii || guess == Flatin || guess == Futf) 
+	if(guess == Fascii || guess == Flatin || guess == Futf)
 		wordfreq();
 	/*
 	 * call individual classify routines
@@ -518,10 +529,16 @@ struct Filemagic {
 	char *mime;
 };
 
+/*
+ * integers in this table must be as seen on a little-endian machine
+ * when read from a file.
+ */
 Filemagic long0tab[] = {
 	0xF16DF16D,	0xFFFFFFFF,	"pac1 audio file\n",	OCTET,
+	/* "pac1" */
 	0x31636170,	0xFFFFFFFF,	"pac3 audio file\n",	OCTET,
-	0x32636170,	0xFFFF00FF,	"pac4 audio file\n",	OCTET,
+	/* "pXc2 */
+	0x32630070,	0xFFFF00FF,	"pac4 audio file\n",	OCTET,
 	0xBA010000,	0xFFFFFFFF,	"mpeg system stream\n",	OCTET,
 	0x30800CC0,	0xFFFFFFFF,	"inferno .dis executable\n", OCTET,
 	0x04034B50,	0xFFFFFFFF,	"zip archive\n", "application/zip",
@@ -532,6 +549,11 @@ Filemagic long0tab[] = {
 	0xfffe,		0xffffffff,	"utf-32le\n",	"text/plain charset=utf-32le",
 	0xfeff,		0xffff,		"utf-16be\n",	"text/plain charset=utf-16be",
 	0xfffe,		0xffff,		"utf-16le\n",	"text/plain charset=utf-16le",
+	/*
+	 * venti & fossil magic numbers are stored big-endian on disk,
+	 * thus the numbers appear reversed in this table.
+	 */
+	0xad4e5cd1,	0xFFFFFFFF,	"venti arena\n", OCTET,
 };
 
 int
@@ -546,16 +568,59 @@ filemagic(Filemagic *tab, int ntab, ulong x)
 		}
 	return 0;
 }
-	
+
 int
 long0(void)
 {
-	long x;
+	return filemagic(long0tab, nelem(long0tab), LENDIAN(buf));
+}
 
-	x = LENDIAN(buf);
-	if(filemagic(long0tab, nelem(long0tab), x))
-		return 1;
+typedef struct Fileoffmag Fileoffmag;
+struct Fileoffmag {
+	ulong	off;
+	Filemagic;
+};
+
+/*
+ * integers in this table must be as seen on a little-endian machine
+ * when read from a file.
+ */
+Fileoffmag longofftab[] = {
+	/*
+	 * venti & fossil magic numbers are stored big-endian on disk,
+	 * thus the numbers appear reversed in this table.
+	 */
+	256*1024, 0xe7a5e4a9, 0xFFFFFFFF, "venti arenas partition\n", OCTET,
+	256*1024, 0xc75e5cd1, 0xFFFFFFFF, "venti index section\n", OCTET,
+	128*1024, 0x89ae7637, 0xFFFFFFFF, "fossil write buffer\n", OCTET,
+};
+
+int
+fileoffmagic(Fileoffmag *tab, int ntab)
+{
+	int i;
+	ulong x;
+	Fileoffmag *tp;
+	uchar buf[sizeof(long)];
+
+	for(i=0; i<ntab; i++) {
+		tp = tab + i;
+		seek(fd, tp->off, 0);
+		if (read(fd, buf, sizeof buf) != sizeof buf)
+			continue;
+		x = LENDIAN(buf);
+		if((x&tp->mask) == tp->x){
+			print(mime? tp->mime: tp->desc);
+			return 1;
+		}
+	}
 	return 0;
+}
+
+int
+longoff(void)
+{
+	return fileoffmagic(longofftab, nelem(longofftab));
 }
 
 int
@@ -708,6 +773,40 @@ istring(void)
 		else
 			print("%.*s picture\n", utfnlen((char*)buf+5, i-5), (char*)buf+5);
 		return 1;
+	}
+	return 0;
+}
+
+struct offstr
+{
+	ulong	off;
+	struct FILE_STRING;
+} offstrs[] = {
+	32*1024, "\001CD001\001",	"ISO9660 CD image",	7,	OCTET,	
+	0, 0, 0, 0, 0
+};
+
+int
+isoffstr(void)
+{
+	int n;
+	char buf[256];
+	struct offstr *p;
+
+	for(p = offstrs; p->key; p++) {
+		seek(fd, p->off, 0);
+		n = p->length;
+		if (n > sizeof buf)
+			n = sizeof buf;
+		if (read(fd, buf, n) != n)
+			continue;
+		if(memcmp(buf, p->key, n) == 0) {
+			if(mime)
+				print("%s\n", p->mime);
+			else
+				print("%s\n", p->filetype);
+			return 1;
+		}
 	}
 	return 0;
 }
@@ -902,7 +1001,7 @@ yes:
 	}
 	if(wfreq[Alword] > 0)
 		print("alef program\n");
-	else 
+	else
 		print("c program\n");
 	return 1;
 }
@@ -1074,7 +1173,7 @@ depthof(char *s, int *newp)
 		s++;	/* skip letter */
 		d += strtoul(s, &s, 10);
 	}
-	
+
 	switch(d){
 	case 32:
 	case 24:
@@ -1335,7 +1434,7 @@ isface(void)
 		if (*p++ != '\n')
 			return 0;
 	}
-	
+
 	if(mime)
 		print("application/x-face\n");
 	else
