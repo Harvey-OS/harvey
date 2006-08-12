@@ -655,8 +655,10 @@ addtreetoar(int ar, char *file, char *shortf, int fd)
 	String *name = s_new();
 
 	n = dirreadall(fd, &dirents);
+	if (n < 0)
+		fprint(2, "%s: dirreadall %s: %r\n", argv0, file);
 	close(fd);
-	if (n == 0)
+	if (n <= 0)
 		return;
 
 	if (chdir(shortf) < 0)
