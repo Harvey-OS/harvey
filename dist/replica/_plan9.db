@@ -1405,8 +1405,10 @@ lib/face/48x48x8/d - 20000000775 sys sys 944941833 0
 lib/face/48x48x8/d/dancross.1 - 664 sys sys 1057029244 1580
 lib/face/48x48x8/d/dlewis.1 - 664 sys sys 1118196820 2364
 lib/face/48x48x8/e - 20000000775 sys sys 944941833 0
+lib/face/48x48x8/e/ericvh.2 - 664 sys sys 1155331573 1049
 lib/face/48x48x8/f - 20000000775 sys sys 944941833 0
 lib/face/48x48x8/f/forsyth.1 - 664 sys sys 1056982111 1864
+lib/face/48x48x8/f/fst.1 - 664 sys sys 1155331586 6750
 lib/face/48x48x8/g - 20000000775 sys sys 944941833 0
 lib/face/48x48x8/g/gmail.1 - 664 sys sys 1097900774 1779
 lib/face/48x48x8/g/google.1 - 664 sys sys 1038967265 712
@@ -13328,7 +13330,7 @@ sys/src/cmd/tapefs/v10fs.c - 664 sys sys 1140814624 3776
 sys/src/cmd/tapefs/v6fs.c - 664 sys sys 1140814625 3993
 sys/src/cmd/tapefs/zip.h - 664 sys sys 1097914153 1428
 sys/src/cmd/tapefs/zipfs.c - 664 sys sys 1140814625 6588
-sys/src/cmd/tar.c - 664 sys sys 1142172914 24068
+sys/src/cmd/tar.c - 664 sys sys 1155348700 24133
 sys/src/cmd/tbl - 20000000775 sys sys 954038038 0
 sys/src/cmd/tbl/mkfile - 664 sys sys 944961243 268
 sys/src/cmd/tbl/t.h - 664 sys sys 944961244 3987
