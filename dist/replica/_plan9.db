@@ -5410,7 +5410,7 @@ rc/bin/ape/grep - 775 sys sys 1023738308 60
 rc/bin/ape/install - 775 sys sys 1015089725 572
 rc/bin/ape/ld - 775 sys sys 1107957880 98
 rc/bin/ape/ls - 775 sys sys 1143927118 1032
-rc/bin/ape/printf - 664 sys sys 1139841311 60
+rc/bin/ape/printf - 775 sys sys 1139841311 60
 rc/bin/ape/psh - 775 sys sys 1040481105 240
 rc/bin/ape/ranlib - 775 sys sys 1099176402 18
 rc/bin/ape/rmdir - 775 sys sys 945617286 16
@@ -5451,7 +5451,7 @@ rc/bin/leak - 775 sys sys 1139744263 1052
 rc/bin/lookman - 775 sys sys 1017679344 686
 rc/bin/lp - 775 sys sys 1146317617 5154
 rc/bin/mail - 775 sys sys 1045504003 138
-rc/bin/man - 775 sys sys 1138555265 2520
+rc/bin/man - 775 sys sys 1155361978 2516
 rc/bin/map - 775 sys sys 945617207 1576
 rc/bin/mapdemo - 775 sys sys 945617207 4075
 rc/bin/membername - 775 sys sys 945617207 89
@@ -5462,7 +5462,6 @@ rc/bin/patch/applied - 775 sys sys 1115941614 111
 rc/bin/patch/apply - 775 sys sys 1109511606 1285
 rc/bin/patch/create - 775 sys sys 1141738939 1509
 rc/bin/patch/diff - 775 sys sys 1109511606 474
-rc/bin/patch/email - 775 sys sys 1109511607 409
 rc/bin/patch/list - 775 sys sys 1115941576 749
 rc/bin/patch/move - 775 sys sys 1112166652 643
 rc/bin/patch/note - 664 sys sys 1109511607 663
@@ -6621,7 +6620,7 @@ sys/lib/man/trademarks - 664 sys sys 958527089 1838
 sys/lib/mimetype - 664 sys sys 1120564829 6236
 sys/lib/newuser - 775 sys sys 1112362340 1226
 sys/lib/plumb - 20000000775 sys sys 944957365 0
-sys/lib/plumb/basic - 664 sys sys 1143814229 2878
+sys/lib/plumb/basic - 664 sys sys 1155363394 2879
 sys/lib/plumb/fileaddr - 664 sys sys 944957365 88
 sys/lib/postscript - 20000000775 sys sys 950322802 0
 sys/lib/postscript/afm - 20000000775 sys sys 950322802 0
@@ -7357,7 +7356,7 @@ sys/man/1/pwd - 664 sys sys 1104639653 744
 sys/man/1/rc - 664 sys sys 1144685483 20019
 sys/man/1/replica - 664 sys sys 1138843328 7210
 sys/man/1/resample - 664 sys sys 1015024740 1083
-sys/man/1/rio - 664 sys sys 1130425691 14707
+sys/man/1/rio - 664 sys sys 1155362586 14707
 sys/man/1/rm - 664 sys sys 944959673 515
 sys/man/1/rwd - 664 sys sys 1042469992 2958
 sys/man/1/sam - 664 sys sys 1113743327 18295
@@ -7422,7 +7421,7 @@ sys/man/2/allocimage - 664 sys sys 1046787977 7304
 sys/man/2/arg - 664 sys sys 1139744263 2184
 sys/man/2/arith3 - 664 sys sys 969499887 4397
 sys/man/2/assert - 664 sys sys 1102868467 377
-sys/man/2/atof - 664 sys sys 1015091517 2766
+sys/man/2/atof - 664 sys sys 1155361945 2777
 sys/man/2/auth - 664 sys sys 1017423719 7539
 sys/man/2/authsrv - 664 sys sys 1055734550 4145
 sys/man/2/bin - 664 sys sys 985023077 1880
@@ -7708,7 +7707,7 @@ sys/man/8/cron - 664 sys sys 1063858596 1867
 sys/man/8/dhcpd - 664 sys sys 1032654987 5237
 sys/man/8/disksim - 664 sys sys 1144150487 1476
 sys/man/8/drawterm - 664 sys sys 1135901219 1741
-sys/man/8/fossilcons - 664 sys sys 1138466274 18276
+sys/man/8/fossilcons - 664 sys sys 1155362671 18291
 sys/man/8/fs - 664 sys sys 1055701170 15029
 sys/man/8/fsconfig - 664 sys sys 1142906116 8281
 sys/man/8/getflags - 664 sys sys 1139839200 1712
@@ -8028,7 +8027,7 @@ sys/src/9/pc/screen.c - 664 sys sys 1136336092 13971
 sys/src/9/pc/screen.h - 664 sys sys 1147023549 4256
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1149280015 55135
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
-sys/src/9/pc/sdata.c - 664 sys sys 1141793347 52244
+sys/src/9/pc/sdata.c - 664 sys sys 1155361705 52464
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1131290638 25780
 sys/src/9/pc/sdmylex.c - 664 sys sys 1133068062 27806
 sys/src/9/pc/sdscsi.c - 664 sys sys 1146746630 7106
@@ -8051,7 +8050,7 @@ sys/src/9/pc/vgahiqvideo.c - 664 sys sys 1131290601 4098
 sys/src/9/pc/vgai81x.c - 664 sys sys 1135487942 4421
 sys/src/9/pc/vgamach64xx.c - 664 sys sys 1131290601 28257
 sys/src/9/pc/vgamga2164w.c - 664 sys sys 1132331257 4769
-sys/src/9/pc/vgamga4xx.c - 664 sys sys 1143927896 9573
+sys/src/9/pc/vgamga4xx.c - 664 sys sys 1155364221 9879
 sys/src/9/pc/vganeomagic.c - 664 sys sys 1131422294 10255
 sys/src/9/pc/vganvidia.c - 664 sys sys 1145906148 12373
 sys/src/9/pc/vgargb524.c - 664 sys sys 1131290602 4251
@@ -9018,7 +9017,7 @@ sys/src/boot/pc/devfloppy.c - 664 sys sys 1032215913 15505
 sys/src/boot/pc/devfloppy.h - 664 sys sys 1032409559 4081
 sys/src/boot/pc/devi82365.c - 664 sys sys 1144961189 15051
 sys/src/boot/pc/devpccard.c - 664 sys sys 1153333456 33897
-sys/src/boot/pc/devsd.c - 664 sys sys 1077033681 11262
+sys/src/boot/pc/devsd.c - 664 sys sys 1155361765 11262
 sys/src/boot/pc/dma.c - 664 sys sys 1015007949 4972
 sys/src/boot/pc/dosboot.c - 664 sys sys 1097716791 11240
 sys/src/boot/pc/dosfs.h - 664 sys sys 1032215924 1467
@@ -9075,7 +9074,7 @@ sys/src/boot/pc/queue.c - 664 sys sys 1015007954 566
 sys/src/boot/pc/sd.h - 664 sys sys 1153333456 2244
 sys/src/boot/pc/sd53c8xx.c - 664 sys sys 1144961191 52127
 sys/src/boot/pc/sd53c8xx.i - 664 sys sys 1015007955 27245
-sys/src/boot/pc/sdata.c - 664 sys sys 1144961191 38221
+sys/src/boot/pc/sdata.c - 664 sys sys 1155361707 38635
 sys/src/boot/pc/sdmylex.c - 664 sys sys 1144961191 28693
 sys/src/boot/pc/sdscsi.c - 664 sys sys 1144961224 7006
 sys/src/boot/pc/trap.c - 664 sys sys 1144961191 7499
@@ -9408,7 +9407,7 @@ sys/src/cmd/aquarela/smbtime.c - 664 sys sys 1135892114 1232
 sys/src/cmd/aquarela/smbtrans2client.c - 664 sys sys 1135892114 3726
 sys/src/cmd/aquarela/smbtrans2find.c - 664 sys sys 1135892115 9041
 sys/src/cmd/aquarela/smbtrans2query.c - 664 sys sys 1135892115 8215
-sys/src/cmd/aquarela/smbtrans2set.c - 664 sys sys 1135892115 2440
+sys/src/cmd/aquarela/smbtrans2set.c - 664 sys sys 1155362132 2510
 sys/src/cmd/aquarela/smbtransaction.c - 664 sys sys 1135892115 16684
 sys/src/cmd/aquarela/smbtree.c - 664 sys sys 1135892115 1314
 sys/src/cmd/aquarela/testconnect.c - 664 sys sys 1135892115 1533
@@ -9716,7 +9715,7 @@ sys/src/cmd/aux/vga/mach64.c - 664 sys sys 1014925009 8279
 sys/src/cmd/aux/vga/mach64xx.c - 664 sys sys 1097900455 30266
 sys/src/cmd/aux/vga/main.c - 664 sys sys 1131741978 9725
 sys/src/cmd/aux/vga/mga2164w.c - 664 sys sys 1135487945 13173
-sys/src/cmd/aux/vga/mga4xx.c - 664 sys sys 1143927895 36098
+sys/src/cmd/aux/vga/mga4xx.c - 664 sys sys 1155364222 36908
 sys/src/cmd/aux/vga/mkfile - 664 sys sys 1115734903 927
 sys/src/cmd/aux/vga/neomagic.c - 664 sys sys 1104430499 8975
 sys/src/cmd/aux/vga/notes.txt - 664 sys sys 1028334647 14376
@@ -12243,7 +12242,7 @@ sys/src/cmd/history.c - 664 sys sys 1136378274 6098
 sys/src/cmd/hoc - 20000000775 sys sys 954036932 0
 sys/src/cmd/hoc/code.c - 664 sys sys 1132451870 10050
 sys/src/cmd/hoc/hoc.h - 664 sys sys 944960999 2358
-sys/src/cmd/hoc/hoc.y - 664 sys sys 984718583 9640
+sys/src/cmd/hoc/hoc.y - 664 sys sys 1155364037 9666
 sys/src/cmd/hoc/init.c - 664 sys sys 944960999 1441
 sys/src/cmd/hoc/math.c - 664 sys sys 944961000 990
 sys/src/cmd/hoc/mkfile - 664 sys sys 944960999 173
@@ -13111,7 +13110,7 @@ sys/src/cmd/rdbfs.c - 664 sys sys 1142342219 7633
 sys/src/cmd/read.c - 664 sys sys 1022047660 1278
 sys/src/cmd/replica - 20000000775 sys sys 1018321113 0
 sys/src/cmd/replica/all.h - 664 sys sys 1091904421 1265
-sys/src/cmd/replica/applychanges.c - 664 sys sys 1068497831 6123
+sys/src/cmd/replica/applychanges.c - 664 sys sys 1155363028 6122
 sys/src/cmd/replica/applylog.c - 664 sys sys 1139667399 21874
 sys/src/cmd/replica/avl.c - 664 sys sys 1068497830 6242
 sys/src/cmd/replica/compactdb.c - 664 sys sys 1018323475 652
@@ -13410,7 +13409,7 @@ sys/src/cmd/telco/mkfile - 664 sys sys 944961290 201
 sys/src/cmd/telco/telco.c - 664 sys sys 1021579996 26253
 sys/src/cmd/telco/telcodata - 775 sys sys 944961290 95
 sys/src/cmd/telco/telcofax - 664 sys sys 944961289 30
-sys/src/cmd/test.c - 664 sys sys 1079372543 5409
+sys/src/cmd/test.c - 664 sys sys 1155362259 5606
 sys/src/cmd/time.c - 664 sys sys 1014926662 1546
 sys/src/cmd/tlsclient.c - 664 sys sys 1024375149 1631
 sys/src/cmd/tlssrv.c - 664 sys sys 1134498997 3426
@@ -14285,13 +14284,13 @@ sys/src/cmd/vt/vt.c - 664 sys sys 1133808291 19606
 sys/src/cmd/wc.c - 664 sys sys 984717764 12652
 sys/src/cmd/webcookies.c - 664 sys sys 1132449468 23687
 sys/src/cmd/webfs - 20000000775 sys sys 1015015823 0
-sys/src/cmd/webfs/buf.c - 664 sys sys 1032665987 1198
+sys/src/cmd/webfs/buf.c - 664 sys sys 1155362544 1199
 sys/src/cmd/webfs/client.c - 664 sys sys 1130422711 6818
 sys/src/cmd/webfs/cookies.c - 664 sys sys 1128664611 21888
 sys/src/cmd/webfs/dat.h - 664 sys sys 1128664462 1621
 sys/src/cmd/webfs/fns.h - 664 sys sys 1032665987 1453
 sys/src/cmd/webfs/fs.c - 664 sys sys 1128664603 10944
-sys/src/cmd/webfs/http.c - 664 sys sys 1144685411 9503
+sys/src/cmd/webfs/http.c - 664 sys sys 1155363881 9305
 sys/src/cmd/webfs/io.c - 664 sys sys 1034736588 1384
 sys/src/cmd/webfs/main.c - 664 sys sys 1128664462 1083
 sys/src/cmd/webfs/mkfile - 664 sys sys 1032665986 340
@@ -14941,7 +14940,7 @@ sys/src/libc/port/mkfile - 664 sys sys 1067719044 1545
 sys/src/libc/port/mktemp.c - 664 sys sys 1014927399 395
 sys/src/libc/port/muldiv.c - 664 sys sys 1014927399 403
 sys/src/libc/port/nan.c - 664 sys sys 1014927399 610
-sys/src/libc/port/needsrcquote.c - 664 sys sys 1037034490 151
+sys/src/libc/port/needsrcquote.c - 664 sys sys 1155363805 152
 sys/src/libc/port/netcrypt.c - 664 sys sys 1014927400 317
 sys/src/libc/port/netmkaddr.c - 664 sys sys 1014927400 863
 sys/src/libc/port/nrand.c - 664 sys sys 1035832917 191
@@ -15131,7 +15130,7 @@ sys/src/libdraw/stringsubfont.c - 664 sys sys 944961725 960
 sys/src/libdraw/stringwidth.c - 664 sys sys 1080400060 1589
 sys/src/libdraw/subfont.c - 664 sys sys 984709666 495
 sys/src/libdraw/subfontcache.c - 664 sys sys 1082924459 752
-sys/src/libdraw/subfontname.c - 664 sys sys 1115916774 789
+sys/src/libdraw/subfontname.c - 664 sys sys 1155362344 813
 sys/src/libdraw/test.c - 664 sys sys 944961725 201
 sys/src/libdraw/unloadimage.c - 664 sys sys 944961725 1000
 sys/src/libdraw/window.c - 664 sys sys 1018387005 3529
@@ -15172,7 +15171,7 @@ sys/src/libgeometry/quaternion.c - 664 sys sys 944961726 5707
 sys/src/libgeometry/transform.c - 664 sys sys 944961726 1995
 sys/src/libgeometry/tstack.c - 664 sys sys 944961726 4716
 sys/src/libhtml - 20000000775 sys sys 1016902547 0
-sys/src/libhtml/build.c - 664 sys sys 1143384150 94721
+sys/src/libhtml/build.c - 664 sys sys 1155362319 94787
 sys/src/libhtml/impl.h - 664 sys sys 1021580002 4627
 sys/src/libhtml/lex.c - 664 sys sys 1143220767 28128
 sys/src/libhtml/mkfile - 664 sys sys 1035389778 246

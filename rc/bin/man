@@ -34,9 +34,9 @@ fn roff {
 		case 2
 			{echo -n $FONTS; cat $2< /dev/null} | $preproc(1) | $preproc(2) | troff $Nflag -$MAN
 		case 3
-			{echo -n $FONTS; cat $2< /dev/null} | $preproc(1) | $preproc(2) | $preproc(3) | | troff $Nflag -$MAN
+			{echo -n $FONTS; cat $2< /dev/null} | $preproc(1) | $preproc(2) | $preproc(3) | troff $Nflag -$MAN
 		case *
-			{echo -n $FONTS; cat $2< /dev/null} | $preproc(1) | $preproc(2) | $preproc(3) | | $preproc(4) | troff $Nflag -$MAN
+			{echo -n $FONTS; cat $2< /dev/null} | $preproc(1) | $preproc(2) | $preproc(3) | $preproc(4) | troff $Nflag -$MAN
 	}
 }
 

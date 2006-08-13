@@ -2,6 +2,10 @@
 /*
  * Matrox G200, G400 and G450.
  * Written by Philippe Anel <xigh@free.fr>
+ *
+ *  2006-08-07 : Minor fix to allow the G200 cards to work fine. YDSTORG is now initialized.
+ *             : Also support for 16 and 24 bit modes is added.
+ *             : by Leonardo Valencia <leoval@anixcorp.com>
  */
 
 #include "u.h"
@@ -43,6 +47,7 @@ enum {
  	SRCORG			= 0x2cb4,
 	PITCH			= 0x1c8c,
 	DSTORG			= 0x2cb8,
+	YDSTORG			= 0x1c94,
 	PLNWRT			= 0x1c1c,
 	ZORG			= 0x1c0c,
 	MACCESS			= 0x1c04,
@@ -465,18 +470,15 @@ static void
 mga4xxdrawinit(VGAscr *scr)
 {
 	uchar *mga;
- 	Pcidev *p;
-
-	p = mgapcimatch();
-	if(p->did == MGA200)
-		return;
 
 	if(scr->mmio == 0)
 		return;
+
 	mga = (uchar*)scr->mmio;
 
 	mgawrite32(mga, SRCORG, 0);
 	mgawrite32(mga, DSTORG, 0);
+	mgawrite32(mga, YDSTORG, 0);
 	mgawrite32(mga, ZORG, 0);
 	mgawrite32(mga, PLNWRT, ~0);
 	mgawrite32(mga, FCOL, 0xffff0000);
@@ -487,6 +489,12 @@ mga4xxdrawinit(VGAscr *scr)
 	switch(scr->gscreen->depth){
 	case 8:
 		mgawrite32(mga, MACCESS, 0);
+		break;
+	case 16:
+		mgawrite32(mga, MACCESS, 1);
+		break;
+	case 24:
+		mgawrite32(mga, MACCESS, 3);
 		break;
 	case 32:
 		mgawrite32(mga, MACCESS, 2);

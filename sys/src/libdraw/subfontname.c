@@ -40,11 +40,13 @@ subfontname(char *cfname, char *fname, int maxdepth)
 			free(t);
 			return tmp2;
 		}
+		free(tmp2);
 	}
 
 	/* try default */
 	if(access(t, AREAD) == 0)
 		return t;
 
+	free(t);
 	return nil;
 }

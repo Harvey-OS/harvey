@@ -180,7 +180,7 @@ yylex(void)		/* hoc6 */
 		yylval.sym = install("", NUMBER, d);
 		return NUMBER;
 	}
-	if (isalpha(c) || c == '_') {
+	if (isalpha(c) || c == '_' || c >= 0x80) {
 		Symbol *s;
 		char sbuf[100], *p = sbuf;
 		do {
@@ -189,7 +189,7 @@ yylex(void)		/* hoc6 */
 				execerror("name too long", sbuf);
 			}
 			*p++ = c;
-		} while ((c=Bgetc(bin)) >= 0 && (isalnum(c) || c == '_'));
+		} while ((c=Bgetc(bin)) >= 0 && (isalnum(c) || c == '_' || c >= 0x80));
 		Bungetc(bin);
 		*p = '\0';
 		if ((s=lookup(sbuf)) == 0)

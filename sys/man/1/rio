@@ -384,7 +384,7 @@ for the preceding string (see
 .PP
 Typing a left or right arrow moves the cursor one character in that direction.
 Typing an SOH character (control-A) moves the cursor to the beginning of the
-current line; an ENQ character (control-F) moves to the end.
+current line; an ENQ character (control-E) moves to the end.
 .PP
 Text may be moved vertically within the window.
 A scroll bar on the left of the window shows in its clear portion what fragment of the
