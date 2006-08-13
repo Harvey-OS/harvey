@@ -247,7 +247,7 @@ _sdinit(void)
 		else
 			sdlist = sdev;
 		for(tail = sdev; tail->next != nil; tail = tail->next){
-			sdev->index = sdnunit;
+			tail->index = sdnunit;
 			sdnunit += tail->nunit;
 		}
 		tail->index = sdnunit;

@@ -73,9 +73,13 @@ con /srv/fscons
 .PP
 .B users
 [
-.B -dw
+.B -d
 |
+.B -r
 .I file
+]
+[
+.B -w
 ]
 .PP
 .B who

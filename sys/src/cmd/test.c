@@ -30,10 +30,13 @@ int	isnewerthan(char *, char *);
 int	hasmode(char *, ulong);
 int	tio(char *, int);
 int	e(void), e1(void), e2(void), e3(void);
+char *nxtarg(int);
 
 void
 main(int argc, char *argv[])
 {
+	int r;
+	char *c;
 
 	ac = argc; av = argv; ap = 1;
 	if(EQ(argv[0],"[")) {
@@ -42,7 +45,10 @@ main(int argc, char *argv[])
 	}
 	argv[ac] = 0;
 	if (ac<=1) exits("usage");
-	exits(e()?0:"false");
+	r = e();
+	if(c = nxtarg(1))
+		synbad("unexpected operator/operand: ", c);
+	exits(r?0:"false");
 }
 
 char *
@@ -153,10 +159,12 @@ e3(void) {
 		return(fsizep(nxtarg(0)));
 
 	if(EQ(a, "-t"))
-		if(ap>=ac || !nxtintarg(&int1))
+		if(ap>=ac)
 			return(isatty(1));
-		else
+		else if(nxtintarg(&int1))
 			return(isatty(int1));
+		else
+			synbad("not a valid file descriptor number ", "");
 
 	if(EQ(a, "-n"))
 		return(!EQ(nxtarg(0), ""));
@@ -182,7 +190,7 @@ e3(void) {
 		return(isnewerthan(nxtarg(0), a));
 
 	if(!isint(a, &int1))
-		return(!EQ(a,""));
+		synbad("unexpected operator/operand: ", p2);
 
 	if(nxtintarg(&int2)){
 		if(EQ(p2, "-eq"))

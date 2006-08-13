@@ -140,7 +140,7 @@ walk(char *new, char *old, Dir *pd, void*)
 void
 usage(void)
 {
-	fprint(2, "usage: replica/applychanges [-p proto] [-r root] [-t now n] [-u uid] [-x path]... clientdb [path ...]\n");
+	fprint(2, "usage: replica/applychanges [-nuv] [-p proto] [-x path]... clientdb clientroot serverroot [path ...]\n");
 	exits("usage");
 }
 

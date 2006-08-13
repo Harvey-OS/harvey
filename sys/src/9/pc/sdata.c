@@ -1966,6 +1966,8 @@ atapnp(void)
 		case (0x00E5<<16)|0x10DE:	/* nVidia nForce3 Pro */
 		case (0x0035<<16)|0x10DE:	/* nVidia nForce3 MCP */
 		case (0x0053<<16)|0x10DE:	/* nVidia nForce4 */
+		case (0x0054<<16)|0x10DE:	/* nVidia nForce4 SATA */
+		case (0x0055<<16)|0x10DE:	/* nVidia nForce4 SATA */
 			/*
 			 * Ditto, although it may have a different base
 			 * address for the registers (0x50?).
@@ -1986,6 +1988,9 @@ atapnp(void)
 			}
 			span = 32*1024;
 			break;
+		case (0x5229<<16)|0x10B9:	/* ALi M1543 */
+		case (0x5288<<16)|0x10B9:	/* ALi M5288 SATA */
+			/*FALLTHROUGH*/
 		case (0x5513<<16)|0x1039:	/* SiS 962 */
 		case (0x0646<<16)|0x1095:	/* CMD 646 */
 		case (0x0571<<16)|0x1106:	/* VIA 82C686 */

@@ -10,7 +10,7 @@ plumb to showmail
 # cheap http/gif,jpeg,ps,pdf renderer
 type is text
 data matches '(https?|ftp|file|gopher|mailto|news|nntp|telnet|wais|prospero)://[a-zA-Z0-9_@\-]+([.:][a-zA-Z0-9_@\-]+)*/?[a-zA-Z0-9_?.,%#~&/\-+=]+([:.][a-zA-Z0-9_?,%#~&/\-+=]+)*\.(jpe?g|JPE?G|gif|GIF|ps|PS|pdf|PDF|png|PNG)'
-plumb start rc -c 'hget '$0' | page -w'
+plumb start rc -c 'hget '''$0''' | page -w'
 
 # rtf files go to wdoc2txt
 type is text
@@ -86,7 +86,7 @@ plumb	start	window -r 4 120 750 600 upas/nedmail -s $0
 # man index entries are synthesized
 type is text
 data matches '([a-zA-Z¡-￿0-9_\-./]+)\(([1-8])\)'
-plumb start rc -c 'man -S -b '$2' '$1'
+plumb start rc -c 'man -b '$2' '$1'
 
 # start rule for images without known suffixes
 dst is image
