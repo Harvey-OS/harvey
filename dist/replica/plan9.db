@@ -150,7 +150,7 @@
 386/bin/aux/trampoline - 775 sys sys 1148500604 84239
 386/bin/aux/typepasswd - 775 sys sys 1148500604 69832
 386/bin/aux/usage - 775 sys sys 1148500605 59903
-386/bin/aux/vga - 775 sys sys 1155491746 336112
+386/bin/aux/vga - 775 sys sys 1155696972 336205
 386/bin/aux/vmmousepoll - 775 sys sys 1032480572 41434
 386/bin/aux/vmware - 775 sys sys 1049428256 453
 386/bin/aux/vmwarefs - 775 sys sys 1095563640 99117
@@ -8007,8 +8007,8 @@ sys/src/9/pc/nv_dma.h - 664 sys sys 1081384508 12943
 sys/src/9/pc/pc - 664 sys sys 1143768293 1452
 sys/src/9/pc/pcauth - 664 sys sys 1131907692 715
 sys/src/9/pc/pccd - 664 sys sys 1138115243 1451
-sys/src/9/pc/pccpu - 664 sys sys 1138115243 891
-sys/src/9/pc/pccpuf - 664 sys sys 1138115243 1511
+sys/src/9/pc/pccpu - 664 sys sys 1155674606 925
+sys/src/9/pc/pccpuf - 664 sys sys 1155674479 1532
 sys/src/9/pc/pcdisk - 664 sys sys 1138115243 1471
 sys/src/9/pc/pcf - 664 sys sys 1138115243 1529
 sys/src/9/pc/pcfl - 664 sys sys 1042004821 1563
@@ -9706,7 +9706,7 @@ sys/src/cmd/aux/vga/error.c - 664 sys sys 1014925008 745
 sys/src/cmd/aux/vga/et4000.c - 664 sys sys 1014925008 6720
 sys/src/cmd/aux/vga/et4000hwgc.c - 664 sys sys 1014925008 552
 sys/src/cmd/aux/vga/hiqvideo.c - 664 sys sys 1048635653 9211
-sys/src/cmd/aux/vga/i81x.c - 664 sys sys 1136074453 12059
+sys/src/cmd/aux/vga/i81x.c - 664 sys sys 1155674438 12163
 sys/src/cmd/aux/vga/ibm8514.c - 664 sys sys 1014925009 2389
 sys/src/cmd/aux/vga/icd2061a.c - 664 sys sys 1014925009 2152
 sys/src/cmd/aux/vga/ics2494.c - 664 sys sys 1014925009 2000

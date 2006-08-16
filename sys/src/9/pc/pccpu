@@ -52,11 +52,12 @@ misc
 
 	uarti8250
 	uartpci		pci
+	uartaxp		pci
 
 	sdata		pci sdscsi
 	sd53c8xx	pci sdscsi
 	sdmv50xx	pci sdscsi
-
+	sdmylex		pci sdscsi
 
 ip
 	il
