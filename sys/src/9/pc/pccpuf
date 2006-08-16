@@ -67,6 +67,7 @@ misc
 
 	sdata		pci sdscsi
 	sd53c8xx	pci sdscsi
+	sdmylex		pci sdscsi
 
 	vga3dfx		+cur
 	vgaark2000pv	+cur
