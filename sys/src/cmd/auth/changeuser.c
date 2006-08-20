@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <authsrv.h>
 #include <ctype.h>
+#include <bio.h>
 #include "authcmdlib.h"
 
 void	install(char*, char*, char*, long, int);

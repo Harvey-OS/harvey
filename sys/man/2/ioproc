@@ -65,7 +65,7 @@ rather than return an error.
 .IR iowrite ,
 and
 .IR iodial
-are execute the
+execute the
 similarly named library or system calls
 (see
 .IR open (2),

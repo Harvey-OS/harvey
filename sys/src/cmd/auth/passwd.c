@@ -1,6 +1,7 @@
 #include <u.h>
 #include <libc.h>
 #include <authsrv.h>
+#include <bio.h>
 #include "authcmdlib.h"
 
 static char *pbmsg = "AS protocol botch";

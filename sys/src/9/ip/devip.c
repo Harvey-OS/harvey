@@ -119,7 +119,7 @@ ip2gen(Chan *c, int i, Dir *dp)
 		mkqid(&q, QID(PROTO(c->qid), 0, Qstats), 0, QTFILE);
 		devdir(c, q, "stats", 0, network, 0444, dp);
 		return 1;
-	}	
+	}
 	return -1;
 }
 
@@ -431,7 +431,7 @@ ipopen(Chan* c, int omode)
 			if(strcmp(ATTACHER(c), cv->owner) != 0)
 				error(Eperm);
 		 	if((perm & cv->perm) != perm)
-				error(Eperm); 
+				error(Eperm);
 
 		}
 		cv->inuse++;
@@ -449,7 +449,7 @@ ipopen(Chan* c, int omode)
 			if(strcmp(ATTACHER(c), cv->owner) != 0)
 				error(Eperm);
 		 	if((perm & cv->perm) != perm)
-				error(Eperm); 
+				error(Eperm);
 
 		}
 
@@ -1147,7 +1147,7 @@ ipwrite(Chan* ch, void *v, long n, vlong off)
 			p = x->ctl(c, cb->f, cb->nf);
 			if(p != nil)
 				error(p);
-		} else 
+		} else
 			error("unknown control request");
 		qunlock(c);
 		free(cb);

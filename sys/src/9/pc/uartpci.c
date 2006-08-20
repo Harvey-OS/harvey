@@ -63,12 +63,18 @@ uartpcipnp(void)
 	head = tail = nil;
 	ctlrno = 0;
 	for(p = pcimatch(nil, 0, 0); p != nil; p = pcimatch(p, 0, 0)){
-		if(p->ccrb != 0x07 || p->ccru != 0)
+		if(p->ccrb != 0x07 || p->ccru > 2)
 			continue;
 
 		switch((p->did<<16)|p->vid){
 		default:
 			continue;
+		case (0x9835<<16)|0x9710:	/* StarTech PCI2S550 */
+			uart = uartpci(ctlrno, p, 0, 1, 1843200, "PCI2S550-0");
+			if(uart == nil)
+				continue;
+			uart->next = uartpci(ctlrno, p, 1, 1, 1843200, "PCI2S550-1");
+			break;
 		case (0x9050<<16)|0x10B5:	/* Perle PCI-Fast4 series */
 		case (0x9030<<16)|0x10B5:	/* Perle Ultraport series */
 			/*
