@@ -1155,7 +1155,6 @@ sdread(Chan *c, void *a, long n, vlong off)
 	case Qpart:
 		return sdbio(c, 0, a, n, off);
 	}
-
 }
 
 static void legacytopctl(Cmdbuf*);

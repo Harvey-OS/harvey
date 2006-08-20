@@ -980,6 +980,7 @@ enum
 #pragma	varargck	type	"V"	uchar*
 #pragma	varargck	type	"E"	uchar*
 #pragma	varargck	type	"M"	uchar*
+#pragma	varargck	type	"p"	uintptr
 #pragma	varargck	type	"p"	void*
 #pragma	varargck	type	"q"	char*
 #pragma	varargck	flag	','

@@ -173,7 +173,7 @@ there will be
 Options are:
 .TP
 .B \-e
-a zero length message will be written to the
+a zero length message will not be written to the
 connection when standard input is closed.
 .TP
 .B \-l

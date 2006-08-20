@@ -652,7 +652,7 @@ shutdown(int ispanic)
 	unlock(&active);
 
 	if(once)
-		print("cpu%d: exiting\n", m->machno);
+		iprint("cpu%d: exiting\n", m->machno);
 	spllo();
 	for(ms = 5*1000; ms > 0; ms -= TK2MS(2)){
 		delay(TK2MS(2));

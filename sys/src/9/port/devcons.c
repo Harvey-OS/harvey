@@ -274,7 +274,7 @@ iprint(char *fmt, ...)
 void
 panic(char *fmt, ...)
 {
-	int n;
+	int n, s;
 	va_list arg;
 	char buf[PRINTSIZE];
 
@@ -284,7 +284,7 @@ panic(char *fmt, ...)
 		for(;;);
 	panicking = 1;
 
-	splhi();
+	s = splhi();
 	strcpy(buf, "panic: ");
 	va_start(arg, fmt);
 	n = vseprint(buf+strlen(buf), buf+sizeof(buf), fmt, arg) - buf;
@@ -292,7 +292,7 @@ panic(char *fmt, ...)
 	iprint("%s\n", buf);
 	if(consdebug)
 		(*consdebug)();
-	spllo();
+	splx(s);
 	prflush();
 	buf[n] = '\n';
 	putstrn(buf, n+1);

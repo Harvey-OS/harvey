@@ -1267,7 +1267,7 @@ pcigetpmrb(Pcidev* p)
 	 * power management method.
 	 * Find the capabilities pointer based on PCI header type.
 	 */
-	if(!(p->pcr & 0x0010))
+	if(!(pcicfgr16(p, PciPSR) & 0x0010))
 		return -1;
 	switch(pcicfgr8(p, PciHDT)){
 	default:
