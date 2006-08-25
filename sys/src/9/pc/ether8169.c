@@ -237,6 +237,7 @@ struct Dtcc {
 
 enum {						/* Variants */
 	Rtl8100e	= (0x8136<<16)|0x10EC,	/* RTL810[01]E ? */
+	Rtl8169c		= (0x0116<<16)|0x16EC,	/* RTL8169C+ (USR997902) */
 	Rtl8169sc	= (0x8167<<16)|0x10EC,	/* RTL8169SC */
 	Rtl8168b	= (0x8168<<16)|0x10EC,	/* RTL8168B */
 	Rtl8169		= (0x8169<<16)|0x10EC,	/* RTL8169 */
@@ -722,6 +723,7 @@ rtl8169init(Ether* edev)
 		csr32w(ctlr, Rcr, ctlr->rcr);
 		break;
 	case Rtl8168b:
+	case Rtl8169c:
 		csr16w(ctlr, 0xE2, 0);			/* magic */
 		csr16w(ctlr, Cplusc, 0x2000);		/* magic */
 		csr8w(ctlr, Cr, Te|Re);
@@ -1000,6 +1002,7 @@ rtl8169pci(void)
 		default:
 			continue;
 		case Rtl8100e:			/* RTL810[01]E ? */
+		case Rtl8169c:			/* RTL8169C */
 		case Rtl8169sc:			/* RTL8169SC */
 		case Rtl8168b:			/* RTL8168B */
 		case Rtl8169:			/* RTL8169 */

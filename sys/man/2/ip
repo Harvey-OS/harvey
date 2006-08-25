@@ -291,8 +291,6 @@ typedef struct Ipifc
 	char	dev[64];	/* associated physical device */
  	int	mtu;		/* max transfer unit */
 
-	long	validlt;	/* valid life time */
- 	long	preflt;		/* preferred life time */
 	uchar	sendra6;	/* on == send router adv */
 	uchar	recvra6;	/* on == rcv router adv */
 
