@@ -12356,7 +12356,7 @@ sys/src/cmd/ip/imap4d/folder.c - 664 sys sys 1015013076 5959
 sys/src/cmd/ip/imap4d/imap4d.c - 664 sys sys 1066325859 40675
 sys/src/cmd/ip/imap4d/imap4d.h - 664 sys sys 1015013076 6697
 sys/src/cmd/ip/imap4d/list.c - 664 sys sys 1015013076 7619
-sys/src/cmd/ip/imap4d/mbox.c - 664 sys sys 1065963776 16849
+sys/src/cmd/ip/imap4d/mbox.c - 664 sys sys 1156547804 16935
 sys/src/cmd/ip/imap4d/mkfile - 664 sys sys 1063897579 332
 sys/src/cmd/ip/imap4d/msg.c - 664 sys sys 1130423893 31401
 sys/src/cmd/ip/imap4d/mutf7.c - 664 sys sys 1015013077 2724
