@@ -6593,7 +6593,7 @@ sys/lib/man - 20000000775 sys sys 960356011 0
 sys/lib/man/checkman.awk - 664 sys sys 1017679304 6277
 sys/lib/man/colophon - 664 sys sys 956337727 545
 sys/lib/man/lookman - 20000000775 sys sys 956337764 0
-sys/lib/man/lookman/index - 664 sys sys 1141357445 1500899
+sys/lib/man/lookman/index - 664 sys sys 1156789277 1500899
 sys/lib/man/lookman/junkwords - 664 sys sys 956337764 3059
 sys/lib/man/lookman/mkindex - 775 sys sys 1017679307 306
 sys/lib/man/mkhtmlindex - 775 sys sys 1072129593 1235
