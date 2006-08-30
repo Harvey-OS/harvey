@@ -30330,3 +30330,5 @@
 1156721406 3 c sys/src/cmd/ip/imap4d/mbox.c - 664 sys sys 1156547804 16935
 1156734006 0 c sys/src/cmd/file.c - 664 sys sys 1156733921 26901
 1156789805 0 c sys/lib/man/lookman/index - 664 sys sys 1156789277 1500899
+1156876205 0 c sys/lib/man/lookman/index - 664 sys sys 1156875673 1500899
+1156883406 0 c sys/lib/man/lookman/index - 664 sys sys 1156883241 1500899
