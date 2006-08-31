@@ -299,7 +299,7 @@
 386/bin/ip/httpd/webls - 775 sys sys 1148500658 133642
 386/bin/ip/httpd/wikipost - 775 sys sys 1148500658 115002
 386/bin/ip/httpfile - 775 sys sys 1148500659 284317
-386/bin/ip/imap4d - 775 sys sys 1151463461 238064
+386/bin/ip/imap4d - 775 sys sys 1156976707 238121
 386/bin/ip/ipconfig - 775 sys sys 1148500661 139400
 386/bin/ip/ping - 775 sys sys 1148500661 76814
 386/bin/ip/ppp - 775 sys sys 1148500662 220485
@@ -15655,3 +15655,5 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+lib/face/48x48x4/.dict - 664 sys sys 1156993280 3337
+lib/face/48x48x8/.dict - 664 sys sys 1156993289 2648
