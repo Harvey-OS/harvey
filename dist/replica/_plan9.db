@@ -1277,7 +1277,7 @@ lib/face/48x48x2/x - 20000000775 sys sys 1020895710 0
 lib/face/48x48x2/y - 20000000775 sys sys 1020895710 0
 lib/face/48x48x2/z - 20000000775 sys sys 1020895710 0
 lib/face/48x48x4 - 20000000775 sys sys 944941894 0
-lib/face/48x48x4/.dict - 664 sys sys 1150202436 3276
+lib/face/48x48x4/.dict - 664 sys sys 1156993280 3337
 lib/face/48x48x4/Z - 20000000775 sys sys 944945342 0
 lib/face/48x48x4/a - 20000000775 sys sys 944945701 0
 lib/face/48x48x4/a/adb.1 - 664 sys sys 944941890 962
@@ -1391,7 +1391,7 @@ lib/face/48x48x4/x/xigh.1 - 664 sys sys 1142019024 1204
 lib/face/48x48x4/y - 20000000775 sys sys 944941894 0
 lib/face/48x48x4/z - 20000000775 sys sys 944941894 0
 lib/face/48x48x8 - 20000000775 sys sys 944941834 0
-lib/face/48x48x8/.dict - 664 sys sys 1142017869 2523
+lib/face/48x48x8/.dict - 664 sys sys 1156993289 2648
 lib/face/48x48x8/Z - 20000000775 sys sys 944941832 0
 lib/face/48x48x8/a - 20000000775 sys sys 944941832 0
 lib/face/48x48x8/a/axel.1 - 664 sys sys 1056983599 473
@@ -12259,7 +12259,7 @@ sys/src/cmd/htmlfmt/mkfile - 664 sys sys 1034015650 297
 sys/src/cmd/htmlfmt/util.c - 664 sys sys 1015364025 1765
 sys/src/cmd/htmlroff - 20000000775 sys sys 1138396082 0
 sys/src/cmd/htmlroff/a.h - 664 sys sys 1138396079 3200
-sys/src/cmd/htmlroff/char.c - 664 sys sys 1138396079 2178
+sys/src/cmd/htmlroff/char.c - 664 sys sys 1157078288 2295
 sys/src/cmd/htmlroff/html.c - 664 sys sys 1147180952 3992
 sys/src/cmd/htmlroff/input.c - 664 sys sys 1138396079 3147
 sys/src/cmd/htmlroff/main.c - 664 sys sys 1138396080 1065
@@ -15655,5 +15655,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-lib/face/48x48x4/.dict - 664 sys sys 1156993280 3337
-lib/face/48x48x8/.dict - 664 sys sys 1156993289 2648
