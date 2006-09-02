@@ -219,6 +219,11 @@ voidcache(int n)
 		wlock(c);
 		c->tcurrent = 0;
 		c->thist = 0;
+		/* aggressively free memory */
+		closewhist(c->hist);
+		c->hist = nil;
+		closewhist(c->current);
+		c->current = nil;
 		wunlock(c);
 	}
 	runlock(&cachelock);
@@ -584,11 +589,18 @@ getcurrentbyname(char *s)
 static String*
 Brdstring(Biobuf *b)
 {
+	long len;
 	String *s;
+	Dir *d;
 
-	s = s_new();
-	while(s_read(b, s, 8192) > 0)
-		;
+	d = dirfstat(Bfildes(b));
+	if (d == nil)	/* shouldn't happen, we just opened it */
+		len = 0;
+	else
+		len = d->length;
+	free(d);
+	s = s_newalloc(len);
+	s_read(b, s, len);
 	return s;
 }
 
@@ -624,10 +636,12 @@ writepage(int num, ulong t, String *s, char *title)
 			snprint(err, sizeof err, "bad format in extant file");
 			conflict = 1;
 		}else if(strtoul(p+1, 0, 0) != t){
-			os = Brdstring(b);
+			os = Brdstring(b);	/* why read the whole file? */
 			p = strchr(s_to_c(s), '\n');
 			if(p!=nil && strcmp(p+1, s_to_c(os))==0){	/* ignore dup write */
 				close(lfd);
+				s_free(os);
+				Bterm(b);
 				return 0;
 			}
 			s_free(os);

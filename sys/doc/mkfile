@@ -43,6 +43,7 @@ ALL=\
 
 ALLPS=${ALL:%=%.ps}
 HTML=${ALL:%=%.html} release3.html release4.html
+PDF=${ALL:%=%.pdf} release3.pdf release4.pdf
 FILES=`{mkfilelist $ALL}
 DIRS=`{mkdirlist $ALL}
 NAMES=$FILES $DIRS
@@ -56,7 +57,7 @@ dirs:V:
 	}
 
 print:V: $ALLPS
-	lp -dfn -H -i0 $prereq
+	lp -H -i0 $prereq
 
 title.ps:D:	title
 	troff $prereq | lp -dstdout > $target
@@ -96,6 +97,8 @@ index.html: contents.html
 &.html:D:	&.ms
 	pic $stem.ms | tbl | eqn | htmlroff -ms -mhtml >$target
 
+pdf:V: $PDF
+
 ^(8½|acme|fs|il|net|sam|venti)/([^/]*\.(pdf|ps|html))'$':R:
 	cd $stem1
 	mk $stem2
@@ -104,9 +107,9 @@ index.html: contents.html
 	cp $stem1/$stem1.html .
 
 %.pdf: %.ps
-	{ cat docfonts $stem.ps } >_$stem.ps
-	distill _$stem.ps
-	mv _$stem.pdf $stem.pdf
+	cat docfonts $stem.ps >_$stem.ps
+	# distill _$stem.ps && mv _$stem.pdf $stem.pdf
+	ps2pdf _$stem.ps $stem.pdf && rm -f _$stem.ps
 
 %.all:V:
 	mk $stem.ps $stem.pdf $stem.html

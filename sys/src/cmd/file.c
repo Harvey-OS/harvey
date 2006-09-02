@@ -746,6 +746,18 @@ struct	FILE_STRING
 	"P3\n",			"ppm",				3,	"image/ppm",
 	"P6\n",			"ppm",				3,	"image/ppm",
 	"/* XPM */\n",	"xbm",				10,	"image/xbm",
+	".HTML ",		"troff -ms input",	6,	"text/plain",
+	".LP",			"troff -ms input",	3,	"text/plain",
+	".ND",			"troff -ms input",	3,	"text/plain",
+	".PP",			"troff -ms input",	3,	"text/plain",
+	".TL",			"troff -ms input",	3,	"text/plain",
+	".TR",			"troff -ms input",	3,	"text/plain",
+	".TH",			"manual page",		3,	"text/plain",
+	".\\\"",		"troff input",		3,	"text/plain",
+	".de",			"troff input",		3,	"text/plain",
+	".if",			"troff input",		3,	"text/plain",
+	".nr",			"troff input",		3,	"text/plain",
+	".tr",			"troff input",		3,	"text/plain",
 	0,0,0,0
 };
 

@@ -109,9 +109,4 @@ binary.
 .SH SOURCE
 .B /sys/src/cmd/file.c
 .SH BUGS
-It can make mistakes, for example classifying a file of decimal data,
-.LR .01 ,
-.LR .02 ,
-etc. as
-.IR troff (1)
-input.
+It can make mistakes.
