@@ -73,10 +73,10 @@ wcondense(Wpage *wtxt)
 		strcat(w->text, " ");
 		strcat(w->text, w->next->text);
 		
-		free(w->next->text);
 		ow = w->next;
-		w->next = w->next->next;
-		free(ow);
+		w->next = ow->next;
+		ow->next = nil;
+		freepage(ow);
 	}
 	return wtxt;
 }

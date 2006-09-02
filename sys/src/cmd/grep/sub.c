@@ -156,6 +156,8 @@ str2top(char *p)
 
 	oldtop = topre;
 	input = p;
+	if (*p == '\0')
+		yyerror("empty pattern");
 	topre.beg = 0;
 	topre.end = 0;
 	yyparse();

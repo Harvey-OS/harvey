@@ -228,7 +228,7 @@
 386/bin/faces - 775 sys sys 1155491750 194710
 386/bin/factor - 775 sys sys 1148500632 61793
 386/bin/fcp - 775 sys sys 1148500632 82527
-386/bin/file - 775 sys sys 1155229029 123983
+386/bin/file - 775 sys sys 1157143567 124531
 386/bin/fmt - 775 sys sys 1148500633 65661
 386/bin/fortune - 775 sys sys 1148500633 67450
 386/bin/fossil - 20000000775 sys sys 1042005470 0
@@ -264,7 +264,7 @@
 386/bin/gif - 775 sys sys 1150062736 158649
 386/bin/grap - 775 sys sys 1136656337 280496
 386/bin/graph - 775 sys sys 1148500640 129344
-386/bin/grep - 775 sys sys 1148500640 79405
+386/bin/grep - 775 sys sys 1157138535 79446
 386/bin/gs - 775 sys sys 1137468663 13275174
 386/bin/gunzip - 775 sys sys 1148500640 80617
 386/bin/gview - 775 sys sys 1155491751 239077
@@ -275,7 +275,7 @@
 386/bin/hoc - 775 sys sys 1155491751 100190
 386/bin/html2ms - 775 sys sys 1148500645 66415
 386/bin/htmlfmt - 775 sys sys 1155491752 163435
-386/bin/htmlroff - 775 sys sys 1148500646 148482
+386/bin/htmlroff - 775 sys sys 1157138536 148544
 386/bin/ico - 775 sys sys 1155491752 162226
 386/bin/iconv - 775 sys sys 1150062738 113723
 386/bin/idiff - 775 sys sys 1148500648 76436
@@ -333,6 +333,7 @@
 386/bin/mount - 775 sys sys 1148500672 73436
 386/bin/ms2html - 775 sys sys 1148500672 104279
 386/bin/mtime - 775 sys sys 1148500673 59470
+386/bin/mug - 775 sys sys 1157143842 176351
 386/bin/mv - 775 sys sys 1148500673 65825
 386/bin/ndb - 20000000775 sys sys 985743147 0
 386/bin/ndb/cs - 775 sys sys 1148500674 150956
@@ -509,7 +510,7 @@
 386/bin/webcookies - 775 sys sys 1148500701 167738
 386/bin/webfs - 775 sys sys 1134389883 360008
 386/bin/webfsget - 775 sys sys 1148500702 39177
-386/bin/wikifs - 775 sys sys 1134505646 203414
+386/bin/wikifs - 775 sys sys 1157146170 203727
 386/bin/winwatch - 775 sys sys 1155491758 155371
 386/bin/x.echo - 775 sys sys 1148500702 57686
 386/bin/xd - 775 sys sys 1148500703 64373
@@ -1288,6 +1289,7 @@ lib/face/48x48x4/a/andrey.1 - 664 sys sys 1056984105 1212
 lib/face/48x48x4/b - 20000000775 sys sys 944945360 0
 lib/face/48x48x4/b/bobf.1 - 664 sys sys 944941890 1429
 lib/face/48x48x4/b/bsb.1 - 664 sys sys 944941890 1374
+lib/face/48x48x4/b/bwc.1 - 664 sys sys 1157087065 1210
 lib/face/48x48x4/b/bwk.1 - 664 sys sys 944941890 968
 lib/face/48x48x4/c - 20000000775 sys sys 945319564 0
 lib/face/48x48x4/c/ches.1 - 664 sys sys 944941891 965
@@ -1408,7 +1410,7 @@ lib/face/48x48x8/e - 20000000775 sys sys 944941833 0
 lib/face/48x48x8/e/ericvh.2 - 664 sys sys 1155331573 1049
 lib/face/48x48x8/f - 20000000775 sys sys 944941833 0
 lib/face/48x48x8/f/forsyth.1 - 664 sys sys 1056982111 1864
-lib/face/48x48x8/f/fst.1 - 664 sys sys 1155331586 6750
+lib/face/48x48x8/f/fst.1 - 664 sys sys 1157149515 1099
 lib/face/48x48x8/g - 20000000775 sys sys 944941833 0
 lib/face/48x48x8/g/gmail.1 - 664 sys sys 1097900774 1779
 lib/face/48x48x8/g/google.1 - 664 sys sys 1038967265 712
@@ -1431,6 +1433,7 @@ lib/face/48x48x8/n/nigel.1 - 664 sys sys 1056981488 1611
 lib/face/48x48x8/n/noah.1 - 664 sys sys 1081200582 7065
 lib/face/48x48x8/o - 20000000775 sys sys 944941833 0
 lib/face/48x48x8/p - 20000000775 sys sys 944941833 0
+lib/face/48x48x8/p/plus.1 - 664 sys sys 1157142255 1049
 lib/face/48x48x8/q - 20000000775 sys sys 944941833 0
 lib/face/48x48x8/q/quanstro.1 - 664 sys sys 1136131296 2250
 lib/face/48x48x8/r - 20000000775 sys sys 944941833 0
@@ -5626,7 +5629,7 @@ sys/doc/auth.ms - 664 sys sys 1138396404 66854
 sys/doc/auth.ps - 664 sys sys 1021579976 451672
 sys/doc/cleanps - 775 sys sys 961259933 184
 sys/doc/colophon.ps - 664 sys sys 960837922 214122
-sys/doc/comp.ms - 664 sys sys 1138396405 37832
+sys/doc/comp.ms - 664 sys sys 1157083635 37859
 sys/doc/comp.ps - 664 sys sys 960837915 345786
 sys/doc/compiler.ms - 664 sys sys 1138396405 30305
 sys/doc/compiler.ps - 664 sys sys 1091459054 309735
@@ -5671,7 +5674,7 @@ sys/doc/lp.ps - 664 sys sys 960837917 294399
 sys/doc/mk.ms - 664 sys sys 1138396445 34456
 sys/doc/mk.ps - 664 sys sys 960837917 329779
 sys/doc/mkdirlist - 775 sys sys 1138498508 48
-sys/doc/mkfile - 664 sys sys 1138396461 2393
+sys/doc/mkfile - 664 sys sys 1157083603 2493
 sys/doc/mkfilelist - 775 sys sys 1138498508 50
 sys/doc/mkfiles.ms - 664 sys sys 1138396445 17910
 sys/doc/mkfiles.ps - 664 sys sys 960837918 269496
@@ -7297,7 +7300,7 @@ sys/man/1/eqn - 664 sys sys 1134592617 5655
 sys/man/1/expect - 664 sys sys 1141913757 3018
 sys/man/1/faces - 664 sys sys 1113743326 2395
 sys/man/1/factor - 664 sys sys 1135084026 1015
-sys/man/1/file - 664 sys sys 1015024739 1578
+sys/man/1/file - 664 sys sys 1157143697 1481
 sys/man/1/filter - 664 sys sys 1135083932 6142
 sys/man/1/fmt - 664 sys sys 1070032221 1557
 sys/man/1/fortune - 664 sys sys 944959673 449
@@ -10143,7 +10146,7 @@ sys/src/cmd/fax/receiverc - 775 sys sys 944960990 581
 sys/src/cmd/fax/send.c - 664 sys sys 944960990 923
 sys/src/cmd/fax/subr.c - 664 sys sys 1015090401 1245
 sys/src/cmd/fcp.c - 664 sys sys 1136651872 3799
-sys/src/cmd/file.c - 664 sys sys 1156733921 26901
+sys/src/cmd/file.c - 664 sys sys 1157143564 27438
 sys/src/cmd/fmt.c - 664 sys sys 1137603598 4078
 sys/src/cmd/fortune.c - 664 sys sys 1072729222 1779
 sys/src/cmd/fossil - 20000000775 sys sys 1042005512 0
@@ -10234,7 +10237,7 @@ sys/src/cmd/grep/grep.h - 664 sys sys 1068478083 2176
 sys/src/cmd/grep/grep.y - 664 sys sys 944961351 2804
 sys/src/cmd/grep/main.c - 664 sys sys 1136378273 4686
 sys/src/cmd/grep/mkfile - 664 sys sys 944961351 153
-sys/src/cmd/grep/sub.c - 664 sys sys 984789207 3896
+sys/src/cmd/grep/sub.c - 664 sys sys 1157090728 3941
 sys/src/cmd/gs - 20000000775 sys sys 1017695101 0
 sys/src/cmd/gs/386.h - 664 sys sys 1137462348 1464
 sys/src/cmd/gs/alpha.h - 664 sys sys 1137462348 1373
@@ -12259,7 +12262,7 @@ sys/src/cmd/htmlfmt/mkfile - 664 sys sys 1034015650 297
 sys/src/cmd/htmlfmt/util.c - 664 sys sys 1015364025 1765
 sys/src/cmd/htmlroff - 20000000775 sys sys 1138396082 0
 sys/src/cmd/htmlroff/a.h - 664 sys sys 1138396079 3200
-sys/src/cmd/htmlroff/char.c - 664 sys sys 1157078288 2295
+sys/src/cmd/htmlroff/char.c - 664 sys sys 1157082850 2301
 sys/src/cmd/htmlroff/html.c - 664 sys sys 1147180952 3992
 sys/src/cmd/htmlroff/input.c - 664 sys sys 1138396079 3147
 sys/src/cmd/htmlroff/main.c - 664 sys sys 1138396080 1065
@@ -12635,6 +12638,7 @@ sys/src/cmd/mntgen.c - 664 sys sys 1106410349 3630
 sys/src/cmd/mount.c - 664 sys sys 1138061862 1633
 sys/src/cmd/ms2html.c - 664 sys sys 1143695278 41022
 sys/src/cmd/mtime.c - 664 sys sys 1036172302 450
+sys/src/cmd/mug.c - 664 sys sys 1157143847 24888
 sys/src/cmd/mv.c - 664 sys sys 1126278115 4241
 sys/src/cmd/ndb - 20000000775 sys sys 988249988 0
 sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1119276409 6866
@@ -14303,14 +14307,14 @@ sys/src/cmd/webfs/webget.c - 664 sys sys 1124711795 1589
 sys/src/cmd/webfsget.c - 664 sys sys 1141913846 1597
 sys/src/cmd/wikifs - 20000000775 sys sys 1018211094 0
 sys/src/cmd/wikifs/fs.c - 664 sys sys 1143759339 14446
-sys/src/cmd/wikifs/io.c - 664 sys sys 1134498935 11573
+sys/src/cmd/wikifs/io.c - 664 sys sys 1157090225 11589
 sys/src/cmd/wikifs/lookup.c - 664 sys sys 1018211093 182
 sys/src/cmd/wikifs/map.c - 664 sys sys 1018211093 109
 sys/src/cmd/wikifs/mkfile - 664 sys sys 1045503591 468
-sys/src/cmd/wikifs/parse.c - 664 sys sys 1124975709 5394
+sys/src/cmd/wikifs/parse.c - 664 sys sys 1157146110 5388
 sys/src/cmd/wikifs/parsehist.c - 664 sys sys 1124975708 1988
 sys/src/cmd/wikifs/testwrite.c - 664 sys sys 1018211093 818
-sys/src/cmd/wikifs/tohtml.c - 664 sys sys 1128979520 14527
+sys/src/cmd/wikifs/tohtml.c - 664 sys sys 1157090250 14546
 sys/src/cmd/wikifs/util.c - 664 sys sys 1018211093 1807
 sys/src/cmd/wikifs/wdir.c - 664 sys sys 1018211094 876
 sys/src/cmd/wikifs/wiki.h - 664 sys sys 1113275619 1897

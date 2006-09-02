@@ -284,6 +284,8 @@ for SPARC,
 for Motorola Power PC 630 and 640,
 .CW v
 for MIPS,
+.CW 0
+for little-endian MIPS,
 .CW 1
 for Motorola 68000,
 .CW 2
@@ -291,7 +293,7 @@ for Motorola 68020 and 68040,
 .CW 5
 for Acorn ARM 7500,
 .CW 6
-for Intel 960,
+for AMD 64,
 .CW 7
 for DEC Alpha,
 .CW 8
