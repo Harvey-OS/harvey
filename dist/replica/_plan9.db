@@ -14306,8 +14306,8 @@ sys/src/cmd/webfs/util.c - 664 sys sys 1015015823 1211
 sys/src/cmd/webfs/webget.c - 664 sys sys 1124711795 1589
 sys/src/cmd/webfsget.c - 664 sys sys 1141913846 1597
 sys/src/cmd/wikifs - 20000000775 sys sys 1018211094 0
-sys/src/cmd/wikifs/fs.c - 664 sys sys 1143759339 14446
-sys/src/cmd/wikifs/io.c - 664 sys sys 1157090225 11589
+sys/src/cmd/wikifs/fs.c - 664 sys sys 1157169486 14459
+sys/src/cmd/wikifs/io.c - 664 sys sys 1157169580 11896
 sys/src/cmd/wikifs/lookup.c - 664 sys sys 1018211093 182
 sys/src/cmd/wikifs/map.c - 664 sys sys 1018211093 109
 sys/src/cmd/wikifs/mkfile - 664 sys sys 1045503591 468
