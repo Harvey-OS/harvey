@@ -30361,3 +30361,5 @@
 1157146206 0 c 386/bin/wikifs - 775 sys sys 1157146170 203727
 1157146206 1 c sys/src/cmd/wikifs/parse.c - 664 sys sys 1157146110 5388
 1157149806 0 c lib/face/48x48x8/f/fst.1 - 664 sys sys 1157149515 1099
+1157169606 0 c sys/src/cmd/wikifs/fs.c - 664 sys sys 1157169486 14459
+1157169606 1 c sys/src/cmd/wikifs/io.c - 664 sys sys 1157169580 11896
