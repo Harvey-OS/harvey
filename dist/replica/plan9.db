@@ -182,7 +182,7 @@
 386/bin/cifscmd - 775 sys sys 1155491749 343673
 386/bin/cleanname - 775 sys sys 1148500614 58635
 386/bin/clock - 775 sys sys 1155491749 158782
-386/bin/cmp - 775 sys sys 1148500615 40600
+386/bin/cmp - 775 sys sys 1157597609 40658
 386/bin/colors - 775 sys sys 1155491750 151061
 386/bin/comm - 775 sys sys 1148500616 61680
 386/bin/con - 775 sys sys 1148500616 78580
@@ -228,7 +228,7 @@
 386/bin/faces - 775 sys sys 1155491750 194710
 386/bin/factor - 775 sys sys 1148500632 61793
 386/bin/fcp - 775 sys sys 1148500632 82527
-386/bin/file - 775 sys sys 1157143567 124531
+386/bin/file - 775 sys sys 1157570246 124531
 386/bin/fmt - 775 sys sys 1148500633 65661
 386/bin/fortune - 775 sys sys 1148500633 67450
 386/bin/fossil - 20000000775 sys sys 1042005470 0
@@ -333,7 +333,7 @@
 386/bin/mount - 775 sys sys 1148500672 73436
 386/bin/ms2html - 775 sys sys 1148500672 104279
 386/bin/mtime - 775 sys sys 1148500673 59470
-386/bin/mug - 775 sys sys 1157143842 176351
+386/bin/mug - 775 sys sys 1157570246 176473
 386/bin/mv - 775 sys sys 1148500673 65825
 386/bin/ndb - 20000000775 sys sys 985743147 0
 386/bin/ndb/cs - 775 sys sys 1148500674 150956
@@ -510,7 +510,7 @@
 386/bin/webcookies - 775 sys sys 1148500701 167738
 386/bin/webfs - 775 sys sys 1134389883 360008
 386/bin/webfsget - 775 sys sys 1148500702 39177
-386/bin/wikifs - 775 sys sys 1157146170 203727
+386/bin/wikifs - 775 sys sys 1157570247 203727
 386/bin/winwatch - 775 sys sys 1155491758 155371
 386/bin/x.echo - 775 sys sys 1148500702 57686
 386/bin/xd - 775 sys sys 1148500703 64373
@@ -9883,7 +9883,7 @@ sys/src/cmd/chgrp.c - 664 sys sys 1014926580 624
 sys/src/cmd/chmod.c - 664 sys sys 1079372923 1904
 sys/src/cmd/cleanname.c - 664 sys sys 944960760 715
 sys/src/cmd/clock.c - 664 sys sys 1014925410 1881
-sys/src/cmd/cmp.c - 664 sys sys 1134330528 2379
+sys/src/cmd/cmp.c - 664 sys sys 1157581072 2491
 sys/src/cmd/colors.c - 664 sys sys 951763912 3186
 sys/src/cmd/comm.c - 664 sys sys 1093979717 2140
 sys/src/cmd/con - 20000000775 sys sys 944961996 0

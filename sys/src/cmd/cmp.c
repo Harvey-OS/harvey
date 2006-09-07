@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <ctype.h>
 
 #define		BUF		65536
 
@@ -9,6 +10,24 @@ int Lflag = 0;
 
 static void usage(void);
 
+char **
+seekoff(int fd, char *name, char **argv)
+{
+	vlong o;
+
+	if(*argv){
+		if (!isascii(**argv) || !isdigit(**argv))
+			usage();
+		o = strtoll(*argv++, 0, 0);
+		if(seek(fd, o, 0) < 0){
+			if(!sflag) fprint(2, "cmp: %s: seek by %lld: %r\n",
+				name, o);
+			exits("seek");
+		}
+	}
+	return argv;
+}
+
 void
 main(int argc, char *argv[])
 {
@@ -16,7 +35,7 @@ main(int argc, char *argv[])
 	uchar *p, *q;
 	uchar buf1[BUF], buf2[BUF];
 	int f1, f2;
-	vlong nc = 1, o, l = 1;
+	vlong nc = 1, l = 1;
 	char *name1, *name2;
 	uchar *b1s, *b1e, *b2s, *b2e;
 
@@ -26,7 +45,7 @@ main(int argc, char *argv[])
 	case 'L':	Lflag = 1; break;
 	default:	usage();
 	}ARGEND
-	if(argc < 2)
+	if(argc < 2 || argc > 4)
 		usage();
 	if((f1 = open(name1 = *argv++, OREAD)) == -1){
 		if(!sflag) perror(name1);
@@ -36,22 +55,11 @@ main(int argc, char *argv[])
 		if(!sflag) perror(name2);
 		exits("open");
 	}
-	if(*argv){
-		o = strtoll(*argv++, 0, 0);
-		if(seek(f1, o, 0) < 0){
-			if(!sflag) perror("cmp: seek by offset1");
-			exits("seek 1");
-		}
-	}
-	if(*argv){
-		o = strtoll(*argv++, 0, 0);
-		if(seek(f2, o, 0) < 0){
-			if(!sflag) perror("cmp: seek by offset2");
-			exits("seek 2");
-		}
-	}
+	argv = seekoff(f1, name1, argv);
+	argv = seekoff(f2, name2, argv);
 	if(*argv)
 		usage();
+
 	b1s = b1e = buf1;
 	b2s = b2e = buf2;
 	for(;;){
