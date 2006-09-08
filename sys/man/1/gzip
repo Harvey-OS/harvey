@@ -1,6 +1,6 @@
 .TH GZIP 1
 .SH NAME
-gzip, gunzip, bzip2, bunzip2, zip, unzip, \- compress and expand data
+gzip, gunzip, bzip2, bunzip2, compress, uncompress, zip, unzip \- compress and expand data
 .SH SYNOPSIS
 .B gzip
 .RB [ -cvD [ 1-9 ]]
@@ -22,6 +22,22 @@ gzip, gunzip, bzip2, bunzip2, zip, unzip, \- compress and expand data
 .RI [ file
 .BR ... ]
 .PP
+.B compress
+[
+.B -cv
+] [
+.I file
+.B ...
+]
+.PP
+.B uncompress
+[
+.B -cv
+] [
+.I file
+.B ...
+]
+.PP
 .B zip
 .RB [ -vD [ 1-9 ]]
 .RB [ -f
@@ -33,7 +49,7 @@ gzip, gunzip, bzip2, bunzip2, zip, unzip, \- compress and expand data
 .RB [ -cistTvD ]
 .RB [ -f
 .IR zipfile ]
-.IR [ file
+.RI [ file
 .BR ... ]
 .SH DESCRIPTION
 .PP
@@ -83,6 +99,19 @@ recognizes the extension
 as a synonym for
 .BR .tbz .
 .PP
+.I Compress
+and
+.I uncompress
+are similar in interface to
+.I gzip
+and
+.IR gunzip ,
+but use the Lempel-Ziv-Welch compression algorithm.
+The default suffix for output files is
+.BR .Z .
+.I Compress
+is one of the oldest widespread Unix compression programs.
+.PP
 .I Zip
 encodes the named files and places the results into the archive
 .IR zipfile ,
@@ -92,12 +121,16 @@ extracts files from an archive created by
 .IR zip .
 If no files are named as arguments, all of files in the archive are extracted.
 A directory's name implies all recursively contained files and subdirectories.
+.I Zip
+is the
+.I "de facto"
+standard for compression on Microsoft operating systems.
 .PP
 None of these programs removes the original files.
 If the process fails, the faulty output files are removed.
 .PP
 The options are:
-.TP 1i
+.TP 0.6i
 .B -c
 Write to standard output rather than creating an output file.
 .TP
@@ -149,9 +182,15 @@ Produce debugging output.
 .B /sys/src/cmd/gzip
 .br
 .B /sys/src/cmd/bzip2
+.br
+.B /sys/src/cmd/compress
 .SH SEE ALSO
-.IR tar (1),
-.IR compress (1)
+.IR tar (1)
+.br
+"A Technique for High Performance Data Compression",
+Terry A. Welch,
+.IR "IEEE Computer" ,
+vol. 17, no. 6 (June 1984), pp. 8-19.
 .SH BUGS
 .I Unzip
 can only extract files which are uncompressed or compressed

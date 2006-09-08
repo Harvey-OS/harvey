@@ -185,6 +185,7 @@
 386/bin/cmp - 775 sys sys 1157597609 40658
 386/bin/colors - 775 sys sys 1155491750 151061
 386/bin/comm - 775 sys sys 1148500616 61680
+386/bin/compress - 775 sys sys 1157684160 166929
 386/bin/con - 775 sys sys 1148500616 78580
 386/bin/cp - 775 sys sys 1148500616 63548
 386/bin/cpp - 775 sys sys 1148500616 150553
@@ -264,7 +265,7 @@
 386/bin/gif - 775 sys sys 1150062736 158649
 386/bin/grap - 775 sys sys 1136656337 280496
 386/bin/graph - 775 sys sys 1148500640 129344
-386/bin/grep - 775 sys sys 1157138535 79446
+386/bin/grep - 775 sys sys 1157684160 79663
 386/bin/gs - 775 sys sys 1137468663 13275174
 386/bin/gunzip - 775 sys sys 1148500640 80617
 386/bin/gview - 775 sys sys 1155491751 239077
@@ -7311,7 +7312,7 @@ sys/man/1/graph - 664 sys sys 1148227125 3061
 sys/man/1/grep - 664 sys sys 1139690020 2257
 sys/man/1/gs - 664 sys sys 1032054727 6906
 sys/man/1/gview - 664 sys sys 1136378273 4361
-sys/man/1/gzip - 664 sys sys 1124839836 3226
+sys/man/1/gzip - 664 sys sys 1157681393 3830
 sys/man/1/hget - 664 sys sys 1141313152 1482
 sys/man/1/history - 664 sys sys 1109685635 1709
 sys/man/1/hoc - 664 sys sys 1136378274 2357
@@ -7570,7 +7571,7 @@ sys/man/3/ether - 664 sys sys 984709635 2563
 sys/man/3/floppy - 664 sys sys 954378905 881
 sys/man/3/fs - 664 sys sys 1133880474 2702
 sys/man/3/i82365 - 664 sys sys 954378906 884
-sys/man/3/ip - 664 sys sys 1133880453 21677
+sys/man/3/ip - 664 sys sys 1157657123 21416
 sys/man/3/kbmap - 664 sys sys 1131110122 1732
 sys/man/3/kprof - 664 sys sys 1018029972 1377
 sys/man/3/loopback - 664 sys sys 964662153 1995
@@ -9886,6 +9887,9 @@ sys/src/cmd/clock.c - 664 sys sys 1014925410 1881
 sys/src/cmd/cmp.c - 664 sys sys 1157581072 2491
 sys/src/cmd/colors.c - 664 sys sys 951763912 3186
 sys/src/cmd/comm.c - 664 sys sys 1093979717 2140
+sys/src/cmd/compress - 20000000775 sys sys 1157679448 0
+sys/src/cmd/compress/compress.c - 664 sys sys 1157679448 31907
+sys/src/cmd/compress/mkfile - 664 sys sys 1157679443 118
 sys/src/cmd/con - 20000000775 sys sys 944961996 0
 sys/src/cmd/con/con.c - 664 sys sys 1143759347 15227
 sys/src/cmd/con/hayes.c - 664 sys sys 1014925263 3865
@@ -10233,11 +10237,11 @@ sys/src/cmd/graph/subr.c - 664 sys sys 985051276 321
 sys/src/cmd/graph/whoami.c - 664 sys sys 944960999 62
 sys/src/cmd/grep - 20000000775 sys sys 1018466661 0
 sys/src/cmd/grep/comp.c - 664 sys sys 1135487941 4177
-sys/src/cmd/grep/grep.h - 664 sys sys 1068478083 2176
-sys/src/cmd/grep/grep.y - 664 sys sys 944961351 2804
+sys/src/cmd/grep/grep.h - 664 sys sys 1157665788 2198
+sys/src/cmd/grep/grep.y - 664 sys sys 1157665806 2964
 sys/src/cmd/grep/main.c - 664 sys sys 1136378273 4686
 sys/src/cmd/grep/mkfile - 664 sys sys 944961351 153
-sys/src/cmd/grep/sub.c - 664 sys sys 1157090728 3941
+sys/src/cmd/grep/sub.c - 664 sys sys 1157665944 4006
 sys/src/cmd/gs - 20000000775 sys sys 1017695101 0
 sys/src/cmd/gs/386.h - 664 sys sys 1137462348 1464
 sys/src/cmd/gs/alpha.h - 664 sys sys 1137462348 1373
