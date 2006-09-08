@@ -1,0 +1,10 @@
+</$objtype/mkfile
+
+TARG=compress
+OFILES=compress.$O
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+CC=pcc
+LD=pcc
+CFLAGS=-B -c

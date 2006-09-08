@@ -51,10 +51,9 @@ However multiple stacks can be used for debugging
 new IP networks or implementing firewalls or proxy
 services.
 .PP
-All addresses used are 16-byte IPv6 addresses.  Though
-we currently implement only IPv4, the IPv6 format is intended to
-prepare the way for an IPv6 implementation.  IPv4 addresses
-are a subset of the IPv6 addresses and both standard
+All addresses used are 16-byte IPv6 addresses.
+We implement IPv4 and IPv6.
+IPv4 addresses are a subset of the IPv6 addresses and both standard
 .SM ASCII
 formats
 are accepted.  In binary, all v4 addresses start with the
@@ -566,19 +565,6 @@ one of the following messages is written to
 .BR ctl ,
 then all messages sent to the announced port
 are received on the announced connection prefixed with the given structure.
-.TP
-.B headers4
-.EX
-typedef struct Udphdr4 Udphdr4;
-struct Udphdr
-{
-	uchar	raddr[4];		/* v4 remote address and port */
-	uchar	laddr[4];		/* v4 local address and port */
-	uchar	rport[2];
-	uchar	lport[2];
-};
-.EE
-.TP
 .B headers
 .EX
 typedef struct Udphdr Udphdr;
@@ -586,6 +572,7 @@ struct Udphdr
 {
 	uchar	raddr[16];	/* v6 remote address and port */
 	uchar	laddr[16];	/* v6 local address and port */
+	uchar	ifcaddr[16];	/* interface address (receive only) */
 	uchar	rport[2];
 	uchar	lport[2];
 };
@@ -612,9 +599,7 @@ One must use either
 or
 .B announce
 followed immediately by
-.B headers
-or
-.BR headers4 .
+.B headers .
 .PP
 Unlike IL or TCP, the reboot of one end of a connection does
 not force a closing of the connection.  Communications will
