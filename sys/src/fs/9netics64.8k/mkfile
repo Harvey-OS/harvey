@@ -72,6 +72,7 @@ ETHER=\
 	compat.$O\
 	ether2114x.$O\
 	ether8139.$O\
+	ether8169.$O\
 	ether82557.$O\
 	ether83815.$O\
 	etherdp83820.$O\

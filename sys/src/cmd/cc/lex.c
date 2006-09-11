@@ -157,6 +157,7 @@ compile(char *file, char **defs, int ndef)
 			include[0] = strdup(ofile);
 	} else
 		p = ofile;
+
 	if(outfile == 0) {
 		outfile = p;
 		if(outfile) {
@@ -186,6 +187,7 @@ compile(char *file, char **defs, int ndef)
 			setinclude("/sys/include");
 		}
 	}
+	Binit(&diagbuf, 1, OWRITE);
 	if((debug['a'] || debug['Z']) && !debug['n']) {
 		outfile = 0;
 		Binit(&outbuf, dup(1, -1), OWRITE);
@@ -193,13 +195,12 @@ compile(char *file, char **defs, int ndef)
 	} else {
 		c = mycreat(outfile, 0664);
 		if(c < 0) {
-			diag(Z, "cannot open %s", outfile);
+			diag(Z, "cannot open %s - %r", outfile);
 			outfile = 0;
 			errorexit();
 		}
 		Binit(&outbuf, c, OWRITE);
 	}
-	Binit(&diagbuf, 1, OWRITE);
 	newio();
 
 	/* Use an ANSI preprocessor */

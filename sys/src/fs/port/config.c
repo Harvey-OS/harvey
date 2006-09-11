@@ -713,6 +713,11 @@ dowormcopy(void)
 		panic("main file system missing");
 	fdev = f1->dev;
 	from = wormof(fdev);			/* fake worm special */
+	if (from->type != Devfworm && from->type != Devcw) {
+		print("main file system is not a worm; copyworm may not do what you want!\n");
+		print("waiting for 20 seconds...\n");
+		delay(20000);
+	}
 
 	f2 = fsstr("output");
 	if(f2 == nil) {

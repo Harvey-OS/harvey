@@ -960,7 +960,7 @@ bandsize(Window *w)
 	int which, but;
 
 	p = mouse->xy;
-	
+	but = mouse->buttons;
 	which = whichcorner(w, p);
 	p = cornerpt(w->screenr, p, which);
 	wmovemouse(w, p);
@@ -969,7 +969,7 @@ bandsize(Window *w)
 	drawborder(r, 1);
 	or = r;
 	startp = p;
-	but = mouse->buttons;
+	
 	while(mouse->buttons == but){
 		p = onscreen(mouse->xy);
 		r = whichrect(w->screenr, p, which);

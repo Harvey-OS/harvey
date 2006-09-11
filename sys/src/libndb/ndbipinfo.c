@@ -181,8 +181,10 @@ ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 	ipstr = ndbgetvalue(db, &s, attr, val, "ip", &nt);
 	if(ipstr == nil){
 		/* none found, make one up */
-		if(strcmp(attr, "ip") != 0)
-			return nil;
+		if(strcmp(attr, "ip") != 0) {
+			ndbfree(f);
+			return nil;	
+		}
 		t = ndbnew("ip", val);
 		t->line = t;
 		t->entry = nil;

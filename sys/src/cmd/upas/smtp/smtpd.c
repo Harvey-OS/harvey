@@ -1341,6 +1341,10 @@ starttls(void)
 	int certlen, fd;
 	TLSconn *conn;
 
+	if (tlscert == nil) {
+		reply("454 TLS not available\r\n");
+		return;
+	}
 	conn = mallocz(sizeof *conn, 1);
 	cert = readcert(tlscert, &certlen);
 	if (conn == nil || cert == nil) {
