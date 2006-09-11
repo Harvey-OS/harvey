@@ -13,7 +13,7 @@ bind -a #¤ /dev
 bind -a #S /dev
 
 # mount points
-mount /srv/slashn /n
+mount -a /srv/slashn /n
 
 # authentication
 mount -a /srv/factotum /mnt

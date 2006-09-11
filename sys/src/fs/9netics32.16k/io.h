@@ -179,6 +179,7 @@ extern int pcicfgr32(Pcidev*, int);
 extern void pcicfgw8(Pcidev*, int, int);
 extern void pcicfgw16(Pcidev*, int, int);
 extern void pcicfgw32(Pcidev*, int, int);
+extern void pciclrmwi(Pcidev*);
 extern void pcihinv(Pcidev*, ulong);
 extern Pcidev* pcimatch(Pcidev*, int, int);
 extern Pcidev* pcimatchtbdf(int);

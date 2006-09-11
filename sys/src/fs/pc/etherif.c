@@ -5,6 +5,8 @@
 #include "../ip/ip.h"
 #include "etherif.h"
 
+#define dprint(...)	/* print(__VA_ARGS__) */
+
 extern int etherga620reset(Ether*);
 extern int ether21140reset(Ether*);
 extern int etherelnk3reset(Ether*);
@@ -13,6 +15,7 @@ extern int igbepnp(Ether *);
 extern int dp83815reset(Ether*);
 extern int dp83820pnp(Ether*);
 extern int rtl8139pnp(Ether*);
+extern int rtl8169pnp(Ether*);
 
 static struct
 {
@@ -30,6 +33,7 @@ static struct
 	{ "i82557",	etheri82557reset, },
 	{ "igbe",	igbepnp, },
 	{ "rtl8139",	rtl8139pnp, },
+	{ "rtl8169",	rtl8169pnp, },
 	{ 0, },
 };
 
@@ -295,6 +299,7 @@ etherinit(void)
 		for(n = 0; etherctlr[n].type; n++){
 			if(cistrcmp(etherctlr[n].type, ether->type))
 				continue;
+			dprint("FOUND ether %s\n", etherctlr[n].type);
 			ether->ctlrno = ctlrno;
 			ether->tbdf = BUSUNKNOWN;
 			for(i = 0; i < ether->nopt; i++){
@@ -302,10 +307,13 @@ etherinit(void)
 					continue;
 				if(parseether(ether->ea, &ether->opt[i][3]) == -1)
 					memset(ether->ea, 0, Easize);
-			}	
-			if((*etherctlr[n].reset)(ether))
+			}
+			dprint("  reset ... ");
+			if((*etherctlr[n].reset)(ether)){
+				dprint("fail\n");
 				break;
-
+			}
+			dprint("okay\n");
 			if(ether->irq == 2)
 				ether->irq = 9;
 			setvec(Int0vec + ether->irq, ether->interrupt, ether);

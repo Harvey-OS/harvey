@@ -113,7 +113,7 @@ and
 represent the contents of the
 .I classification 
 (default
-.BR /mail/lib/smtpd.conf ).
+.BR /mail/lib/smtpd.conf.ext ).
 Each contains two directories;
 .B ip
 and

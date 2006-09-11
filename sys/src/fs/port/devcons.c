@@ -132,6 +132,8 @@ conschar(void)
 	return c;
 }
 
+#define ctl(c)	((c) & 037)
+
 /*
  * dispose of input character at interrupt time
  * always called splhi from proc 0
@@ -142,14 +144,15 @@ kbdchar(int c)
 	int s;
 	uchar *p;
 	uchar ch;
+	char uparrow[2];
 
-	if(c == ('T' - '@'))			/* ^t */
+	if(c == ctl('t'))
 		dotrace(0);
 	s = splhi();
 	lock(&readq);
 	if(readq.reading)
 		goto out;
-	if(c == ('U' - '@')) {
+	if(c == ctl('u')) {
 		if(echo)
 			putstrn("^U\n", 3);	/* echo */
 		readq.in = readq.out;
@@ -159,13 +162,24 @@ kbdchar(int c)
 		c = '\n';
 	ch = c;
 	if(echo)
-		putstrn((char*)&ch, 1);		/* echo */
+		/*
+		 * cga mode (for example) does a poor job of showing control
+		 * chars, so echo them as ^X.  this will mess up subsequent
+		 * backspace erasures, alas.  it also doesn't cope with utf.
+		 */
+		if (ch >= ' ' || ch == '\n' || ch == '\t' || ch == '\b')
+			putstrn((char*)&ch, 1);		/* echo */
+		else {
+			uparrow[0] = '^';
+			uparrow[1] = ch + '@';	/* ctrl -> upper case */
+			putstrn(uparrow, 2);
+		}
 	p = readq.in;
 	*p++ = c;
 	if(p >= readq.buf+sizeof(readq.buf))
 		p = readq.buf;
 	readq.in = p;
-	if(c == '\n' || c == ('D' - '@')) {
+	if(c == '\n' || c == ctl('d')) {
 		readq.reading = 1;
 		wakeup(&readq);
 	}
@@ -188,6 +202,7 @@ rawchar(int seconds)
 		if(c) {
 			if(c == '\r')
 				c = '\n';
+			/* ugh!  yet another place that does echoing */
 			if(c == '\n') {
 				(*consputc)('\r');
 				delay(10);
