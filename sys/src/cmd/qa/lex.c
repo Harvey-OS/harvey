@@ -662,6 +662,7 @@ zaddr(Gen *a, int s)
 	case D_OPT:
 		break;
 
+	case D_DCR:
 	case D_SPR:
 	case D_OREG:
 	case D_CONST:
