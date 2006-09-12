@@ -30422,3 +30422,6 @@
 1157943605 0 c sys/src/fs/port/devcons.c - 664 sys sys 1157942528 4896
 1157943605 1 c sys/src/fs/port/main.c - 664 sys sys 1157943089 7931
 1157945406 0 c sys/src/fs/port/config.c - 664 sys sys 1157944410 20574
+1157979606 0 c sys/src/cmd/qa/lex.c - 664 sys sys 1157978856 16586
+1158013806 0 c sys/src/9/pc/etherelnk3.c - 664 sys sys 1158012427 48807
+1158013806 1 c sys/src/boot/pc/etherelnk3.c - 664 sys sys 1158012439 44736
