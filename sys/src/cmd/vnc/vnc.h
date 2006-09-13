@@ -92,7 +92,7 @@ enum {
 typedef ulong Color;
 
 /* auth.c */
-extern	int		vncauth(Vnc*);
+extern	int		vncauth(Vnc*, char*);
 extern	int		vnchandshake(Vnc*);
 extern	int		vncsrvauth(Vnc*);
 extern	int		vncsrvhandshake(Vnc*);

@@ -3,19 +3,20 @@ typedef	unsigned short	ushort;
 typedef	unsigned char	uchar;
 typedef	unsigned long	ulong;
 typedef	unsigned int	uint;
-typedef	signed char	schar;
+typedef	  signed char	schar;
 typedef	long long	vlong;
 typedef	unsigned long long uvlong;
 typedef unsigned long	uintptr;
+typedef unsigned long	usize;
 typedef	ushort		Rune;
-typedef 	union FPdbleword FPdbleword;
-typedef long	jmp_buf[2];
+typedef union FPdbleword FPdbleword;
+typedef long		jmp_buf[2];
 #define	JMPBUFSP	0
 #define	JMPBUFPC	1
 #define	JMPBUFDPC	0
 typedef unsigned int	mpdigit;	/* for /sys/include/mp.h */
-typedef unsigned char u8int;
-typedef unsigned short u16int;
+typedef unsigned char	u8int;
+typedef unsigned short	u16int;
 typedef unsigned int	u32int;
 typedef unsigned long long u64int;
 
@@ -28,10 +29,10 @@ typedef unsigned long long u64int;
 #define	FPSZX	(1<<26)	/* zero divide exception ZX (sticky) */
 #define	FPSXX	(1<<25)	/* inexact exception XX (sticky) */
 #define	FPSVXSNAN (1<<24)	/* invalid operation exception for SNaN (sticky) */
-#define	FPSVXISI	(1<<23)	/* invalid operation exception for ∞-∞ (sticky) */
-#define	FPSVXIDI	(1<<22)	/* invalid operation exception for ∞/∞ (sticky) */
+#define	FPSVXISI (1<<23)	/* invalid operation exception for ∞-∞ (sticky) */
+#define	FPSVXIDI (1<<22)	/* invalid operation exception for ∞/∞ (sticky) */
 #define	FPSVXZDZ (1<<21)	/* invalid operation exception for 0/0 (sticky) */
-#define	FPSVXIMZ	(1<<20)	/* invalid operation exception for ∞*0 (sticky) */
+#define	FPSVXIMZ (1<<20)	/* invalid operation exception for ∞*0 (sticky) */
 #define	FPSVXVC	(1<<19)	/* invalid operation exception for invalid compare (sticky) */
 #define	FPSFR	(1<<18)	/* fraction rounded */
 #define	FPSFI	(1<<17)	/* fraction inexact */

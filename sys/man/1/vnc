@@ -19,6 +19,10 @@ vncs, vncv \- remote frame buffer server and viewer for Virtual Network Computin
 .IB width x height
 ]
 [
+.B -k
+.I keypattern
+]
+[
 .B -p
 .I pixfmt
 ]
@@ -108,6 +112,12 @@ set the virtual frame buffer to be
 (default
 1024x768)
 pixels.
+.TP
+.B -k \fIkeypattern
+add 
+.I keypattern
+to the pattern used to select a key from 
+.IR factotum (4).
 .TP
 .B -p \fIpixfmt
 set the virtual frame buffer's internal pixel format to

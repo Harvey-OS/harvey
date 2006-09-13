@@ -72,7 +72,7 @@ vnchungup(Vnc*)
 void
 usage(void)
 {
-	fprint(2, "usage: vncv [-e encodings] [-csv] host[:n]\n");
+	fprint(2, "usage: vncv [-e encodings] [-k keypattern] [-csv] host[:n]\n");
 	exits("usage");
 }
 
@@ -80,17 +80,18 @@ void
 main(int argc, char **argv)
 {
 	int p, fd, dfd, cfd, shared;
-	char *addr;
+	char *keypattern, *addr;
 	Point d;
 	TLSconn conn;
 
+	keypattern = nil;
 	shared = 0;
 	ARGBEGIN{
 	case 'c':
 		bpp12 = 1;
 		break;
 	case 'e':
-		encodings = ARGF();
+		encodings = EARGF(usage());
 		break;
 	case 's':
 		shared = 1;
@@ -100,6 +101,9 @@ main(int argc, char **argv)
 		break;
 	case 'v':
 		verbose = 1;
+		break;
+	case 'k':
+		keypattern = EARGF(usage());
 		break;
 	default:
 		usage();
@@ -123,7 +127,7 @@ main(int argc, char **argv)
 
 	if(vnchandshake(vnc) < 0)
 		sysfatal("handshake failure: %r");
-	if(vncauth(vnc) < 0)
+	if(vncauth(vnc, keypattern) < 0)
 		sysfatal("authentication failure: %r");
 	if(vncstart(vnc, shared) < 0)
 		sysfatal("init failure: %r");

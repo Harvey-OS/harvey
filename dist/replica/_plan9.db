@@ -229,7 +229,7 @@
 386/bin/faces - 775 sys sys 1155491750 194710
 386/bin/factor - 775 sys sys 1148500632 61793
 386/bin/fcp - 775 sys sys 1148500632 82527
-386/bin/file - 775 sys sys 1157570246 124531
+386/bin/file - 775 sys sys 1158088707 125045
 386/bin/fmt - 775 sys sys 1148500633 65661
 386/bin/fortune - 775 sys sys 1148500633 67450
 386/bin/fossil - 20000000775 sys sys 1042005470 0
@@ -400,7 +400,7 @@
 386/bin/seq - 775 sys sys 1148500688 38431
 386/bin/sha1sum - 775 sys sys 1148500688 61460
 386/bin/size - 775 sys sys 1148500689 78775
-386/bin/sleep - 775 sys sys 1085077097 3413
+386/bin/sleep - 775 sys sys 1158088708 3875
 386/bin/snap - 775 sys sys 1136346852 313627
 386/bin/snapfs - 775 sys sys 1134389876 388292
 386/bin/sniffer - 775 sys sys 1038443185 99028
@@ -560,7 +560,7 @@
 386/lib/libhttpd.a - 664 sys sys 1153069071 99458
 386/lib/libip.a - 664 sys sys 1143777863 35576
 386/lib/libl.a - 664 sys sys 1143777863 5372
-386/lib/libmach.a - 664 sys sys 1148180229 785314
+386/lib/libmach.a - 664 sys sys 1158088709 785352
 386/lib/libmemdraw.a - 664 sys sys 1143777866 284092
 386/lib/libmemlayer.a - 664 sys sys 1143777866 47360
 386/lib/libmp.a - 664 sys sys 1144169680 79980
@@ -5388,7 +5388,7 @@ power/include/ape/float.h - 664 sys sys 969656988 1608
 power/include/ape/math.h - 664 sys sys 1078495287 2176
 power/include/ape/stdarg.h - 664 sys sys 944946355 324
 power/include/ape/ureg.h - 664 sys sys 944946362 1025
-power/include/u.h - 664 sys sys 1115924096 2795
+power/include/u.h - 664 sys sys 1158071170 2826
 power/include/ureg.h - 664 sys sys 1032057837 997
 power/lib - 20000000775 sys sys 947992106 0
 power/lib/ape - 20000000775 sys sys 947992106 0
@@ -7400,7 +7400,7 @@ sys/man/1/units - 664 sys sys 1113743326 2046
 sys/man/1/uptime - 664 sys sys 1074733782 380
 sys/man/1/vac - 664 sys sys 1021579977 3227
 sys/man/1/vi - 664 sys sys 1101668051 2904
-sys/man/1/vnc - 664 sys sys 1045501432 4186
+sys/man/1/vnc - 664 sys sys 1158063994 4313
 sys/man/1/vt - 664 sys sys 1133880370 2256
 sys/man/1/wc - 664 sys sys 1113743327 908
 sys/man/1/who - 664 sys sys 944959674 332
@@ -7668,6 +7668,7 @@ sys/man/6/keys.who - 664 sys sys 1110641163 775
 sys/man/6/man - 664 sys sys 944959678 4961
 sys/man/6/map - 664 sys sys 944959678 1892
 sys/man/6/mhtml - 664 sys sys 1138458169 1711
+sys/man/6/mnihongo - 664 sys sys 1158064572 716
 sys/man/6/mpictures - 664 sys sys 944959678 2899
 sys/man/6/ms - 664 sys sys 958249504 6815
 sys/man/6/namespace - 664 sys sys 1048637182 1576
@@ -7735,7 +7736,7 @@ sys/man/8/nfsserver - 664 sys sys 1142693998 3585
 sys/man/8/pcmcia - 664 sys sys 944959679 408
 sys/man/8/pem - 664 sys sys 1060263669 1189
 sys/man/8/ping - 664 sys sys 1139667147 3489
-sys/man/8/plan9.ini - 664 sys sys 1155153087 22548
+sys/man/8/plan9.ini - 664 sys sys 1158101763 22701
 sys/man/8/pop3 - 664 sys sys 1063854676 2720
 sys/man/8/ppp - 664 sys sys 1125530075 4414
 sys/man/8/prep - 664 sys sys 1152729153 14013
@@ -8010,13 +8011,13 @@ sys/src/9/pc/mp.h - 664 sys sys 1153193597 6795
 sys/src/9/pc/nv_dma.h - 664 sys sys 1081384508 12943
 sys/src/9/pc/pc - 664 sys sys 1143768293 1452
 sys/src/9/pc/pcauth - 664 sys sys 1131907692 715
-sys/src/9/pc/pccd - 664 sys sys 1138115243 1451
+sys/src/9/pc/pccd - 664 sys sys 1158061762 1466
 sys/src/9/pc/pccpu - 664 sys sys 1155674606 925
 sys/src/9/pc/pccpuf - 664 sys sys 1155674479 1532
 sys/src/9/pc/pcdisk - 664 sys sys 1138115243 1471
 sys/src/9/pc/pcf - 664 sys sys 1138115243 1529
 sys/src/9/pc/pcfl - 664 sys sys 1042004821 1563
-sys/src/9/pc/pcflop - 664 sys sys 1138115244 1498
+sys/src/9/pc/pcflop - 664 sys sys 1158061762 1513
 sys/src/9/pc/pci.c - 664 sys sys 1155995367 26873
 sys/src/9/pc/pcmciamodem.c - 664 sys sys 1099761153 1586
 sys/src/9/pc/pcmkfile - 664 sys sys 1109303822 101
@@ -9012,7 +9013,7 @@ sys/src/boot/pc/apm.c - 664 sys sys 1015007947 289
 sys/src/boot/pc/bcom.c - 664 sys sys 1032215919 6421
 sys/src/boot/pc/boot.c - 664 sys sys 1130887226 8421
 sys/src/boot/pc/bootld.c - 664 sys sys 1015007948 1801
-sys/src/boot/pc/bootp.c - 664 sys sys 1114464742 12374
+sys/src/boot/pc/bootp.c - 664 sys sys 1158100619 12438
 sys/src/boot/pc/cga.c - 664 sys sys 1015007948 1362
 sys/src/boot/pc/cis.c - 664 sys sys 1144961189 9232
 sys/src/boot/pc/clock.c - 664 sys sys 1103641772 6425
@@ -10150,7 +10151,7 @@ sys/src/cmd/fax/receiverc - 775 sys sys 944960990 581
 sys/src/cmd/fax/send.c - 664 sys sys 944960990 923
 sys/src/cmd/fax/subr.c - 664 sys sys 1015090401 1245
 sys/src/cmd/fcp.c - 664 sys sys 1136651872 3799
-sys/src/cmd/file.c - 664 sys sys 1157143564 27438
+sys/src/cmd/file.c - 664 sys sys 1158063685 28062
 sys/src/cmd/fmt.c - 664 sys sys 1137603598 4078
 sys/src/cmd/fortune.c - 664 sys sys 1072729222 1779
 sys/src/cmd/fossil - 20000000775 sys sys 1042005512 0
@@ -13221,7 +13222,7 @@ sys/src/cmd/seq.c - 664 sys sys 1125529033 1683
 sys/src/cmd/sh.C - 664 sys sys 1055701754 10303
 sys/src/cmd/sha1sum.c - 664 sys sys 1014926229 1017
 sys/src/cmd/size.c - 664 sys sys 944961619 717
-sys/src/cmd/sleep.c - 664 sys sys 1126031186 170
+sys/src/cmd/sleep.c - 664 sys sys 1158061645 544
 sys/src/cmd/snap - 20000000775 sys sys 951229639 0
 sys/src/cmd/snap/mkfile - 664 sys sys 1023834477 257
 sys/src/cmd/snap/read.c - 664 sys sys 1141660969 4332
@@ -14248,7 +14249,7 @@ sys/src/cmd/vl/pass.c - 664 sys sys 1132449538 8706
 sys/src/cmd/vl/sched.c - 664 sys sys 1014936060 11363
 sys/src/cmd/vl/span.c - 664 sys sys 1045503977 12015
 sys/src/cmd/vnc - 20000000775 sys sys 1014926000 0
-sys/src/cmd/vnc/auth.c - 664 sys sys 1143759340 4233
+sys/src/cmd/vnc/auth.c - 664 sys sys 1158063989 4308
 sys/src/cmd/vnc/chan.c - 664 sys sys 1135487937 2623
 sys/src/cmd/vnc/color.c - 664 sys sys 1044880749 3088
 sys/src/cmd/vnc/compat.c - 664 sys sys 1135487951 3150
@@ -14275,10 +14276,10 @@ sys/src/cmd/vnc/rre.c - 664 sys sys 1044880750 11496
 sys/src/cmd/vnc/screen.c - 664 sys sys 1044880750 7537
 sys/src/cmd/vnc/screen.h - 664 sys sys 1044880750 880
 sys/src/cmd/vnc/utf2ksym.h - 664 sys sys 1082326667 18024
-sys/src/cmd/vnc/vnc.h - 664 sys sys 1044880750 2626
+sys/src/cmd/vnc/vnc.h - 664 sys sys 1158063990 2633
 sys/src/cmd/vnc/vncs.c - 664 sys sys 1108222270 21006
 sys/src/cmd/vnc/vncs.h - 664 sys sys 1046200146 908
-sys/src/cmd/vnc/vncv.c - 664 sys sys 1082221235 3197
+sys/src/cmd/vnc/vncv.c - 664 sys sys 1158063990 3316
 sys/src/cmd/vnc/vncv.h - 664 sys sys 1044880750 643
 sys/src/cmd/vnc/wsys.c - 664 sys sys 1138065372 4197
 sys/src/cmd/vt - 20000000775 sys sys 954038635 0
@@ -15261,7 +15262,7 @@ sys/src/libmach/mips2ureg.h - 664 sys sys 1143821483 886
 sys/src/libmach/mkfile - 664 sys sys 1144151016 482
 sys/src/libmach/obj.c - 664 sys sys 1148106918 5986
 sys/src/libmach/obj.h - 664 sys sys 1148170078 648
-sys/src/libmach/q.c - 664 sys sys 1131289379 3630
+sys/src/libmach/q.c - 664 sys sys 1158071179 3641
 sys/src/libmach/qdb.c - 664 sys sys 1136322404 27544
 sys/src/libmach/qobj.c - 664 sys sys 1148106912 2368
 sys/src/libmach/setmach.c - 664 sys sys 1119476886 2911
