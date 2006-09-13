@@ -620,7 +620,8 @@ pxewalk(File* f, char* name)
 			return 0;
 
 		ini = pxether[f->fs->dev].ini;
-		snprint(ini, INIPATHLEN, "/cfg/pxe/%E", rep.chaddr);
+		/* use our mac address instead of relying on a bootp answer */
+		snprint(ini, INIPATHLEN, "/cfg/pxe/%E", myaddr.ea);
 		f->path = ini;
 
 		return 1;
