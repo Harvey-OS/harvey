@@ -82,7 +82,7 @@ Offset the left margin
 character positions.
 .TP
 .BI -p
-Pad each file printed to an odd number of pages.
+Pad each file printed to an even number of pages, if necessary.
 For two-sided printers,
 this will ensure each file will start a new page.
 .TP
