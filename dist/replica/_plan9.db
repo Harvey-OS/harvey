@@ -1,6 +1,6 @@
 386 - 20000000775 sys sys 1010957353 0
 386/9load - 775 sys sys 1146095338 217880
-386/9loaddebug - 775 sys sys 1157851789 315943
+386/9loaddebug - 775 sys sys 1158181386 315977
 386/9loadlite - 775 sys sys 1146095338 136160
 386/9loadlitedebug - 775 sys sys 1155499028 202285
 386/9pc - 775 sys sys 1143137104 1913157
@@ -7351,7 +7351,7 @@ sys/man/1/pic - 664 sys sys 1022625353 8229
 sys/man/1/pipefile - 664 sys sys 984709628 1861
 sys/man/1/plot - 664 sys sys 944959673 1196
 sys/man/1/plumb - 664 sys sys 957920007 1297
-sys/man/1/pr - 664 sys sys 984709628 1804
+sys/man/1/pr - 664 sys sys 1158202686 1819
 sys/man/1/prof - 664 sys sys 1067718952 3561
 sys/man/1/proof - 664 sys sys 1113743329 2300
 sys/man/1/ps - 664 sys sys 1144686669 1722
