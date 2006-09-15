@@ -315,7 +315,7 @@
 386/bin/ip/tftpd - 775 sys sys 1157916204 132137
 386/bin/ip/traceroute - 775 sys sys 1148500665 74067
 386/bin/ip/udpecho - 775 sys sys 1148500666 43190
-386/bin/join - 775 sys sys 1148500666 114393
+386/bin/join - 775 sys sys 1158261630 114476
 386/bin/jpg - 775 sys sys 1150062739 175017
 386/bin/kbmap - 775 sys sys 1155491753 144109
 386/bin/kprof - 775 sys sys 1148500667 105499
@@ -7253,9 +7253,9 @@ sys/log/timesync.d - 20000000775 sys sys 947099701 0
 sys/man - 20000000775 sys sys 1012278794 0
 sys/man/1 - 20000000775 sys sys 1018897631 0
 sys/man/1/0intro - 664 sys sys 1101668050 9625
-sys/man/1/2a - 664 sys sys 1143293894 1192
+sys/man/1/2a - 664 sys sys 1158281866 1196
 sys/man/1/2c - 664 sys sys 1143293856 8288
-sys/man/1/2l - 664 sys sys 1143293894 4372
+sys/man/1/2l - 664 sys sys 1158281887 4376
 sys/man/1/INDEX - 664 sys sys 1141357442 3040
 sys/man/1/INDEX.html - 664 sys sys 1141352366 16517
 sys/man/1/acid - 664 sys sys 1134233059 9730
@@ -12444,7 +12444,7 @@ sys/src/cmd/ip/telnetd.c - 664 sys sys 1135487948 11772
 sys/src/cmd/ip/tftpd.c - 664 sys sys 1106943821 7646
 sys/src/cmd/ip/traceroute.c - 664 sys sys 1032060124 9370
 sys/src/cmd/ip/udpecho.c - 664 sys sys 1050714674 855
-sys/src/cmd/join.c - 664 sys sys 944961364 7488
+sys/src/cmd/join.c - 664 sys sys 1158251357 7550
 sys/src/cmd/jpg - 20000000775 sys sys 988249983 0
 sys/src/cmd/jpg/bmp.c - 664 sys sys 1108852826 4222
 sys/src/cmd/jpg/bmp.h - 664 sys sys 1105455271 1034
