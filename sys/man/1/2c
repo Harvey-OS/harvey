@@ -1,6 +1,6 @@
 .TH 2C 1 
 .SH NAME
-0c, 1c, 2c, 5c, 7c, 8c, kc, qc, vc \- C compilers
+0c, 1c, 2c, 5c, 6c, 7c, 8c, kc, qc, vc \- C compilers
 .SH SYNOPSIS
 .B 2c
 [
@@ -15,6 +15,11 @@ etc.
 These commands compile the named C
 .I files
 into object files for the corresponding architecture.
+If there are multiple C
+.IR files ,
+the compilers will attempt to keep
+.B $NPROC
+compilations running concurrently.
 Associated with each compiler is a string
 .IR objtype ,
 for example
@@ -31,6 +36,9 @@ Motorola MC68020
 .B "5c arm
 ARM 7500
 .TP
+.B "6c amd64
+AMD64 and compatibles (e.g., Intel EM64T)
+.TP
 .B "7c alpha
 Digital Alpha APX
 .TP
@@ -41,7 +49,7 @@ Intel i386, i486, Pentium, etc.
 Sun SPARC
 .TP
 .B "qc power
-Power PC,
+Power PC
 .TP
 .B "vc mips
 big-endian MIPS 3000 family
@@ -53,9 +61,11 @@ which must be run separately.
 .PP
 Let the first letter of the compiler name be
 .IR O =
+.BR 0 ,
 .BR 1 ,
 .BR 2 ,
 .BR 5 ,
+.BR 6 ,
 .BR 7 ,
 .BR 8 ,
 .BR k ,
@@ -192,6 +202,17 @@ Like
 .B -a
 except suppress information about structures
 declared in included header files.
+.TP
+.B -n
+When used with
+.B -a
+or
+.BR -aa ,
+places acid functions in
+.IB file .acid
+for input
+.IB file .c ,
+and not on standard output.
 .PP
 The compilers support several extensions to ANSI C:
 .TP
@@ -361,7 +382,16 @@ The standard header typedefs this to
 .BR vlong .
 Arithmetic on
 .B  vlong
-values is usually emulated by a run-time library.
+values is usually emulated by a run-time library,
+though in at least
+.IR 8c ,
+only division and modulus use the run-time library
+and the other operators generate in-line code
+(and
+.I uvlong-expression
+.I divison-or-modulus
+.BI "(1<<" constant )
+will turn into in-line bit operations).
 .SH EXAMPLE
 For the 68020, produce a program
 .B prog
@@ -403,6 +433,7 @@ machine-dependent part
 .IR pcc (1),
 .IR db (1),
 .IR acid (1),
+.IR ansitize (1)
 .PP
 Rob Pike,
 ``How to Use the Plan 9 C Compiler''
@@ -428,3 +459,20 @@ option.
 The default search order for include files
 differs to that of
 .IR cpp (1).
+.PP
+Some features of C99, the 1999 ANSI C standard,
+are implemented.
+.PP
+.B switch
+expressions may not be either flavor of
+.B vlong
+.RI ( 8c
+at least).
+.PP
+The implementation of
+.B vlong
+assignment can use a static location
+and this can be disturbed by interrupts
+(e.g., notes)
+.RI ( 8c
+at least).

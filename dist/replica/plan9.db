@@ -7254,7 +7254,7 @@ sys/man - 20000000775 sys sys 1012278794 0
 sys/man/1 - 20000000775 sys sys 1018897631 0
 sys/man/1/0intro - 664 sys sys 1101668050 9625
 sys/man/1/2a - 664 sys sys 1158281866 1196
-sys/man/1/2c - 664 sys sys 1143293856 8288
+sys/man/1/2c - 664 sys sys 1158355567 9168
 sys/man/1/2l - 664 sys sys 1158281887 4376
 sys/man/1/INDEX - 664 sys sys 1141357442 3040
 sys/man/1/INDEX.html - 664 sys sys 1141352366 16517
@@ -7672,7 +7672,7 @@ sys/man/6/mnihongo - 664 sys sys 1158064572 716
 sys/man/6/mpictures - 664 sys sys 944959678 2899
 sys/man/6/ms - 664 sys sys 958249504 6815
 sys/man/6/namespace - 664 sys sys 1048637182 1576
-sys/man/6/ndb - 664 sys sys 1128707622 6431
+sys/man/6/ndb - 664 sys sys 1158358889 6579
 sys/man/6/plot - 664 sys sys 944959679 6739
 sys/man/6/plumb - 664 sys sys 969499892 10918
 sys/man/6/regexp - 664 sys sys 954089523 2050
@@ -10178,9 +10178,9 @@ sys/src/cmd/fossil/bwatch.c - 664 sys sys 1042005505 6754
 sys/src/cmd/fossil/cache.c - 664 sys sys 1143759345 43875
 sys/src/cmd/fossil/check.c - 664 sys sys 1091904423 17315
 sys/src/cmd/fossil/conf.rc - 775 sys sys 1084333190 1416
-sys/src/cmd/fossil/dat.h - 664 sys sys 1135487938 7582
+sys/src/cmd/fossil/dat.h - 664 sys sys 1158373945 7622
 sys/src/cmd/fossil/deadlock - 775 sys sys 1042005506 413
-sys/src/cmd/fossil/disk.c - 664 sys sys 1135487937 6426
+sys/src/cmd/fossil/disk.c - 664 sys sys 1158373945 6887
 sys/src/cmd/fossil/dump.c - 664 sys sys 1042005506 1340
 sys/src/cmd/fossil/epoch.c - 664 sys sys 1045600021 997
 sys/src/cmd/fossil/error.c - 664 sys sys 1073851927 1450
