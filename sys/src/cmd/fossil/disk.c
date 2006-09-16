@@ -27,6 +27,14 @@ struct Disk {
 	Block *next;		/* blocks to do next scan */
 };
 
+/* keep in sync with Part* enum in dat.h */
+static char *partname[] = {
+	[PartError]	"error",
+	[PartSuper]	"super",
+	[PartLabel]	"label",
+	[PartData]	"data",
+	[PartVenti]	"venti",
+};
 
 Disk *
 diskAlloc(int fd)
@@ -276,6 +284,16 @@ mypc(int x)
 	return getcallerpc(&x);
 }
 
+static char *
+disk2file(Disk *disk)
+{
+	static char buf[256];
+
+	if (fd2path(disk->fd, buf, sizeof buf) < 0)
+		strncpy(buf, "GOK", sizeof buf);
+	return buf;
+}
+
 static void
 diskThread(void *a)
 {
@@ -322,7 +340,7 @@ diskThread(void *a)
 		 * reading or writing state, so this lock should
 		 * not cause deadlock.
 		 */
-if(0)fprint(2, "diskThread: %d:%d %x\n", getpid(), b->part, b->addr);
+if(0)fprint(2, "fossil: diskThread: %d:%d %x\n", getpid(), b->part, b->addr);
 		bwatchLock(b);
 		vtLock(b->lk);
 		b->pc = mypc(0);
@@ -332,7 +350,8 @@ if(0)fprint(2, "diskThread: %d:%d %x\n", getpid(), b->part, b->addr);
 			abort();
 		case BioReading:
 			if(!diskReadRaw(disk, b->part, b->addr, b->data)){
-fprint(2, "diskReadRaw failed: part=%d addr=%ux: %r\n", b->part, b->addr);
+fprint(2, "fossil: diskReadRaw failed: %s: score %V: part=%s addr=%ud: %r\n",
+disk2file(disk), b->score, partname[b->part], b->addr);
 				blockSetIOState(b, BioReadError);
 			}else
 				blockSetIOState(b, BioClean);
@@ -340,7 +359,8 @@ fprint(2, "diskReadRaw failed: part=%d addr=%ux: %r\n", b->part, b->addr);
 		case BioWriting:
 			p = blockRollback(b, buf);
 			if(!diskWriteRaw(disk, b->part, b->addr, p)){
-fprint(2, "diskWriteRaw failed: date=%s part=%d addr=%ux: %r\n", ctime(times(0)), b->part, b->addr);
+fprint(2, "fossil: diskWriteRaw failed: %s: %V: date=%s part=%s addr=%ud: %r\n",
+disk2file(disk), b->score, ctime(times(0)), partname[b->part], b->addr);
 				break;
 			}
 			if(p != buf)
