@@ -80,7 +80,7 @@ This option may be repeated multiple times.
 .BI -f " vacfile
 The results of 
 .I vac
-are place in
+are placed in
 .IR vacfile ,
 or the standard output if no file is given.
 .TP
