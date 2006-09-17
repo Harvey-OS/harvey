@@ -234,9 +234,9 @@
 386/bin/fortune - 775 sys sys 1148500633 67450
 386/bin/fossil - 20000000775 sys sys 1042005470 0
 386/bin/fossil/conf - 775 sys sys 1085077052 1506
-386/bin/fossil/flchk - 775 sys sys 1148500635 238705
-386/bin/fossil/flfmt - 775 sys sys 1148500636 246850
-386/bin/fossil/fossil - 775 sys sys 1148500637 363991
+386/bin/fossil/flchk - 775 sys sys 1158434410 239113
+386/bin/fossil/flfmt - 775 sys sys 1158434411 247260
+386/bin/fossil/fossil - 775 sys sys 1158434412 364401
 386/bin/fossil/last - 775 sys sys 1148500638 63644
 386/bin/freq - 775 sys sys 1148500638 62134
 386/bin/fs - 20000000775 sys sys 954380769 0
@@ -7398,7 +7398,7 @@ sys/man/1/tweak - 664 sys sys 957920008 4762
 sys/man/1/uniq - 664 sys sys 944959674 995
 sys/man/1/units - 664 sys sys 1113743326 2046
 sys/man/1/uptime - 664 sys sys 1074733782 380
-sys/man/1/vac - 664 sys sys 1021579977 3227
+sys/man/1/vac - 664 sys sys 1158391232 3228
 sys/man/1/vi - 664 sys sys 1101668051 2904
 sys/man/1/vnc - 664 sys sys 1158063994 4313
 sys/man/1/vt - 664 sys sys 1133880370 2256
