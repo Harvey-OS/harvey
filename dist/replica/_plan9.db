@@ -1394,7 +1394,7 @@ lib/face/48x48x4/x/xigh.1 - 664 sys sys 1142019024 1204
 lib/face/48x48x4/y - 20000000775 sys sys 944941894 0
 lib/face/48x48x4/z - 20000000775 sys sys 944941894 0
 lib/face/48x48x8 - 20000000775 sys sys 944941834 0
-lib/face/48x48x8/.dict - 664 sys sys 1156993289 2648
+lib/face/48x48x8/.dict - 664 sys sys 1158542759 2706
 lib/face/48x48x8/Z - 20000000775 sys sys 944941832 0
 lib/face/48x48x8/a - 20000000775 sys sys 944941832 0
 lib/face/48x48x8/a/axel.1 - 664 sys sys 1056983599 473
@@ -15666,3 +15666,5 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+sys/doc/asm.ms - 664 sys sys 1158549534 31523
+sys/doc/asm.ps - 664 sys sys 1158549581 333976

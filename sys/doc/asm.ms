@@ -11,7 +11,8 @@ rob@plan9.bell-labs.com
 Machines
 .PP
 There is an assembler for each of the MIPS, SPARC, Intel 386,
-Intel 960, AMD 29000, Motorola 68020 and 68000, Motorola Power PC, DEC Alpha, and Acorn ARM.
+Intel 960, AMD 29000, Motorola 68020 and 68000, Motorola Power PC,
+AMD64, DEC Alpha, and Acorn ARM.
 The 68020 assembler,
 .CW 2a ,
 is the oldest and in many ways the prototype.
