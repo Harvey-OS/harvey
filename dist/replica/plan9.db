@@ -1394,7 +1394,7 @@ lib/face/48x48x4/x/xigh.1 - 664 sys sys 1142019024 1204
 lib/face/48x48x4/y - 20000000775 sys sys 944941894 0
 lib/face/48x48x4/z - 20000000775 sys sys 944941894 0
 lib/face/48x48x8 - 20000000775 sys sys 944941834 0
-lib/face/48x48x8/.dict - 664 sys sys 1156993289 2648
+lib/face/48x48x8/.dict - 664 sys sys 1158542759 2706
 lib/face/48x48x8/Z - 20000000775 sys sys 944941832 0
 lib/face/48x48x8/a - 20000000775 sys sys 944941832 0
 lib/face/48x48x8/a/axel.1 - 664 sys sys 1056983599 473
@@ -5624,8 +5624,8 @@ sys/doc/acme/bs - 664 sys sys 944959634 556
 sys/doc/acme/mkfile - 664 sys sys 1138459292 295
 sys/doc/ape.ms - 664 sys sys 1146174667 12873
 sys/doc/ape.ps - 664 sys sys 960837914 258779
-sys/doc/asm.ms - 664 sys sys 1138396403 31516
-sys/doc/asm.ps - 664 sys sys 960837915 322051
+sys/doc/asm.ms - 664 sys sys 1158549534 31523
+sys/doc/asm.ps - 664 sys sys 1158549581 333976
 sys/doc/auth.ms - 664 sys sys 1138396404 66854
 sys/doc/auth.ps - 664 sys sys 1021579976 451672
 sys/doc/cleanps - 775 sys sys 961259933 184
