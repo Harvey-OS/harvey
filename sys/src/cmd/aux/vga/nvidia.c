@@ -677,7 +677,7 @@ load(Vga* vga, Ctlr* ctlr)
 			regions = 15;
 		else
 			regions = 12;
- 
+
 		for(i = 0; i < regions; i++){
 			nv->pfb[(0x0600 + (i * 0x10))/4] = 0;
 			nv->pfb[(0x0604 + (i * 0x10))/4] = vga->vmz - 1;

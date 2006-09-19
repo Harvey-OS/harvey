@@ -647,7 +647,7 @@ G450FindNextPLLParam(Mga* mga, ulong ulFout, ulong *pulPLLMNP)
 	{
 		ulVCOMin = 230000;
 	}
-   
+
 	if((ucM == 9) && (ucP & 0x40))
 	{
 		*pulPLLMNP = 0xffffffff;
@@ -696,7 +696,7 @@ G450FindNextPLLParam(Mga* mga, ulong ulFout, ulong *pulPLLMNP)
 		*pulPLLMNP |= (ulong)ucP;
 	}
 }
- 
+
 static void 
 G450FindFirstPLLParam(Mga* mga, ulong ulFout, ulong *pulPLLMNP)
 {
@@ -1642,7 +1642,7 @@ load(Vga* vga, Ctlr* ctlr)
 			mgawrite8(mga, RAMDACPALDATA, i);
 		}
 	}
-      
+
 	trace("mga: Palette initialised !\n");
 
 	/* Enable Cursor */

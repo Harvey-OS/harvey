@@ -364,11 +364,11 @@ readRoot(VtRoot *root, uchar *score, char *file)
 	else {
 		fd = open(file, OREAD);
 		if(fd < 0)
-			sysfatal("could not open file: %s: %r\n", file);
+			sysfatal("could not open file: %s: %r", file);
 	}
 	n = readn(fd, buf, sizeof(buf)-1);
 	if(n < 0)
-		sysfatal("read failed: %r\n");
+		sysfatal("read failed: %r");
 	buf[n] = 0;
 	close(fd);
 

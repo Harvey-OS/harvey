@@ -8,8 +8,6 @@
 Biobuf stdout;
 
 static int iflag, lflag, pflag, rflag;
-static char *usage =
-	"usage: aux/vga [ -BcdilpvV ] [ -b bios-id ] [ -m monitor ] [ -x db ] [ mode [ virtualsize ] ]\n";
 
 static char *dbname = "/lib/vgadb";
 static char monitordb[128];
@@ -148,6 +146,13 @@ chanstr[32+1] = {
 [32]	"x8r8g8b8",
 };
 
+static void
+usage(void)
+{
+	fprint(2, "usage: aux/vga [ -BcdilpvV ] [ -b bios-id ] [ -m monitor ] [ -x db ] [ mode [ virtualsize ] ]\n");
+	exits("usage");
+}
+
 void
 main(int argc, char** argv)
 {
@@ -166,66 +171,56 @@ main(int argc, char** argv)
 	psize = vsize = "640x480x8";
 
 	ARGBEGIN{
-
-	case 'b':
-		bios = ARGF();
+	default:
+		usage();
 		break;
-
+	case 'b':
+		bios = EARGF(usage());
+		break;
 	case 'B':
 		dumpbios(0x10000);
 		exits(0);
-
 	case 'c':
 		cflag = 1;
 		break;
-
 	case 'd':
 		dflag = 1;
 		break;
-
 	case 'i':
 		iflag = 1;
 		break;
-
 	case 'l':
 		lflag = 1;
 		break;
-
 	case 'm':
-		type = ARGF();
+		type = EARGF(usage());
 		break;
-
 	case 'p':
 		pflag = 1;
 		break;
-
 	case 'r':
 		/*
 		 * rflag > 1 means "leave me alone, I know what I'm doing."
 		 */
 		rflag++;
 		break;
-
 	case 'v':
 		vflag = 1;
 		break;
-
 	case 'V':
 		vflag = 1;
 		Vflag = 1;
 		break;
-
 	case 'x':
-		dbname = ARGF();
+		dbname = EARGF(usage());
 		break;
-
-	default:
-		error(usage, argv0);
-
 	}ARGEND
 
 	virtual = 0;
 	switch(argc){
+	default:
+		usage();
+		break;
 	case 1:
 		vsize = psize = argv[0];
 		break;
@@ -236,8 +231,6 @@ main(int argc, char** argv)
 		break;
 	case 0:
 		break;
-	default:
-		error(usage, argv0);
 	}
 
 	if(lflag && strcmp(vsize, "text") == 0){
