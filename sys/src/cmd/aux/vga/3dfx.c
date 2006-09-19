@@ -125,7 +125,8 @@ options(Vga*, Ctlr* ctlr)
 static void
 tdfxclock(Vga* vga, Ctlr*)
 {
-	uint d, dmin, f, m, n, p;
+	int d, dmin;
+	uint f, m, n, p;
 
 	dmin = vga->f[0];
 	for(m = 1; m < vga->m[1]; m++){

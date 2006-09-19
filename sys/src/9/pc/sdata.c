@@ -1915,7 +1915,7 @@ atapnp(void)
 		case (0x4D69<<16)|0x105A:	/* Promise Ultra/133 TX2 */
 		case (0x3373<<16)|0x105A:	/* Promise 20378 RAID */
 		case (0x3149<<16)|0x1106:	/* VIA VT8237 SATA/RAID */
-		case (0x3112<<16)|0x1095:   	/* SiI 3112 SATA/RAID */
+		case (0x3112<<16)|0x1095:	/* SiI 3112 SATA/RAID */
 			maxio = 15;
 			span = 8*1024;
 			/*FALLTHROUGH*/
@@ -1968,6 +1968,8 @@ atapnp(void)
 		case (0x0053<<16)|0x10DE:	/* nVidia nForce4 */
 		case (0x0054<<16)|0x10DE:	/* nVidia nForce4 SATA */
 		case (0x0055<<16)|0x10DE:	/* nVidia nForce4 SATA */
+		case (0x0266<<16)|0x10DE:	/* nVidia nForce4 430 SATA */
+		case (0x0267<<16)|0x10DE:	/* nVidia nForce4 430 SATA */
 			/*
 			 * Ditto, although it may have a different base
 			 * address for the registers (0x50?).

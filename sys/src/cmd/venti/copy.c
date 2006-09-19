@@ -62,8 +62,16 @@ walk(uchar score[VtScoreSize], uint type, int base)
 	}
 
 	n = vtRead(zsrc, score, type, buf, VtMaxLumpSize);
+	/*
+	 * we usually see this at the end of a venti/copy of a vac tree:
+	 * warning: could not read block \
+	 * 0000000000000000000000000000000000000000 1: \
+	 * no block with that score exists
+	 * maybe it's harmless.
+	 */
 	if(n < 0){
-		fprint(2, "warning: could not read block %V %d: %R", score, type);
+		fprint(2, "warning: could not read block %V %d: %R\n",
+			score, type);
 		return;
 	}
 
@@ -112,11 +120,11 @@ walk(uchar score[VtScoreSize], uint type, int base)
 	}
 
 	if(!vtWrite(zdst, score, type, buf, n))
-		fprint(2, "warning: could not write block %V %d: %R", score, type);
+		fprint(2, "warning: could not write block %V %d: %R\n", score, type);
 	free(buf);
 }
 
-int
+void
 main(int argc, char *argv[])
 {
 	int type, n;
@@ -182,5 +190,4 @@ main(int argc, char *argv[])
 
 	vtDetach();
 	exits(0);
-	return 0;	/* shut up compiler */
 }
