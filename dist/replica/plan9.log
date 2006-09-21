@@ -30479,3 +30479,8 @@
 1158618607 1 c sys/src/cmd/vac/vtdump.c - 664 sys sys 1158618245 7166
 1158618607 2 c sys/src/cmd/venti/copy.c - 664 sys sys 1158618341 3488
 1158620407 0 c sys/src/cmd/venti/copy.c - 664 sys sys 1158618908 3713
+1158793206 0 c sys/src/9/pc/uartaxp.c - 664 sys sys 1158793015 18808
+1158795007 0 c sys/src/9/pc/mkfile - 664 sys sys 1158794206 4004
+1158800407 0 a rc/bin/uncompress - 775 sys sys 1158798931 30
+1158800407 1 a sys/man/1/mug - 664 sys sys 1158800370 1424
+1158804006 0 c sys/src/9/pc/uartaxp.c - 664 sys sys 1158803840 18862

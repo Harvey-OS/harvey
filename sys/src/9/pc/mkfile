@@ -112,9 +112,7 @@ wavelan.$O:			wavelan.c ../pc/wavelan.c ../pc/wavelan.h
 etherwavelan.$O:		etherwavelan.c ../pc/wavelan.h
 devusb.$O usbuhci.$O usbohci.$O: usb.h
 trap.$O:			/sys/include/tos.h
-
-sd53c8xx.i:	sd53c8xx.n
-	aux/na $prereq > $target
+uartaxp.$O:			uartaxp.i
 
 init.h:		../port/initcode.c init9.c
 	$CC ../port/initcode.c
@@ -141,6 +139,16 @@ apbootstrap.h:	apbootstrap.s mem.h
 	 xd -1x apbootstrap.out |
 		sed -e '1,2d' -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
 	 echo '};'} > $target
+
+sd53c8xx.i:	sd53c8xx.n
+	aux/na $prereq > $target
+
+uartaxp.i:	a100p.cp
+	{echo 'static uchar uartaxpcp[] = {'
+	 xd -1x $prereq |
+		sed -e 's/^[0-9a-f]+ //' -e '/^$/d' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'
+	} > $target
 
 acid:V:
 	8c -a -w -I. i8253.c>acid
