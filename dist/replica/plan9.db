@@ -5551,6 +5551,7 @@ rc/bin/tlsclienttunnel - 775 sys sys 1024375633 153
 rc/bin/tlssrvtunnel - 775 sys sys 1024375634 175
 rc/bin/troff2gif - 775 sys sys 1127410278 164
 rc/bin/troff2png - 775 sys sys 1138456827 228
+rc/bin/uncompress - 775 sys sys 1158798931 30
 rc/bin/ups - 775 sys sys 1091021981 806
 rc/bin/uptime - 775 sys sys 1074730712 234
 rc/bin/usbstart - 775 sys sys 1044894155 81
@@ -7337,6 +7338,7 @@ sys/man/1/mk - 664 sys sys 1113743328 13198
 sys/man/1/mkdir - 664 sys sys 1082593141 717
 sys/man/1/mlmgr - 664 sys sys 1116513886 2542
 sys/man/1/ms2html - 664 sys sys 1138458899 1252
+sys/man/1/mug - 664 sys sys 1158800370 1424
 sys/man/1/nedmail - 664 sys sys 1114697978 6820
 sys/man/1/netstat - 664 sys sys 1128255431 942
 sys/man/1/news - 664 sys sys 1113743329 1151
@@ -8003,7 +8005,7 @@ sys/src/9/pc/l.s - 664 sys sys 1143129925 28552
 sys/src/9/pc/main.c - 664 sys sys 1155995697 15305
 sys/src/9/pc/mem.h - 664 sys sys 1137622431 5203
 sys/src/9/pc/memory.c - 664 sys sys 1153172671 18773
-sys/src/9/pc/mkfile - 664 sys sys 1142960857 3804
+sys/src/9/pc/mkfile - 664 sys sys 1158794206 4004
 sys/src/9/pc/mmu.c - 664 sys sys 1155995596 24115
 sys/src/9/pc/mouse.c - 664 sys sys 1098479254 7057
 sys/src/9/pc/mp.c - 664 sys sys 1146542974 17317
@@ -8037,7 +8039,7 @@ sys/src/9/pc/sdmv50xx.c - 664 sys sys 1131290638 25780
 sys/src/9/pc/sdmylex.c - 664 sys sys 1133068062 27806
 sys/src/9/pc/sdscsi.c - 664 sys sys 1146746630 7106
 sys/src/9/pc/trap.c - 664 sys sys 1135487942 21257
-sys/src/9/pc/uartaxp.c - 664 sys sys 1155522821 17906
+sys/src/9/pc/uartaxp.c - 664 sys sys 1158803840 18862
 sys/src/9/pc/uartaxp.i - 664 sys sys 1155522709 111326
 sys/src/9/pc/uarti8250.c - 664 sys sys 1102820421 13958
 sys/src/9/pc/uartisa.c - 664 sys sys 1127126907 1777

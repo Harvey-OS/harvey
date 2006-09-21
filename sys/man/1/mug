@@ -1,0 +1,56 @@
+.TH MUG 1
+.SH NAME
+mug - convert an image to a face icon
+.SH SYNOPSIS
+.B mug
+[
+.I file
+]
+.SH DESCRIPTION
+.I Mug
+reads a Plan 9
+.IR image (6)
+from
+.I file
+(or standard input if there is no
+.IR file )
+and 
+displays a working version of the icon
+a gray ramp,
+and a larger image (the `crop box'),
+all derived from
+.IR file .
+Selecting
+.L Write
+from the button-3 menu will write the icon in
+.IR face (6)
+format to standard output.
+.LP
+Imagine a 3x3 grid on the crop box.  You can move an
+edge or corner of the box by putting the mouse in the
+corresponding section of the grid and dragging.
+Dragging in the middle box in the grid translates the
+crop box.  The mouse cursor changes to tell you where you are.
+.LP
+The bar in the gray ramp controls the map from picture
+gray levels to the output levels.  The values along the
+bar are mapped to 0 through 255 in the output.  You can
+move the bar vertically by grabbing the midsection or
+adjust the width by grabbing an endpoint.
+.LP
+The current icon is shown in the bottom left corner,
+surrounded by eight small empty boxes.  You can save the
+settings as they are by dragging the current icon into
+one of the other boxes.  You can restore the settings by
+dragging an icon from one of the periphery boxes into the middle.
+.SH EXAMPLES
+Convert a JPEG image into a face icon.
+.IP
+.EX
+jpg -c plus.jpg | mug >plus.1
+.EE
+.SH SEE ALSO
+.IR faces (1),
+.IR jpg (1),
+.IR face (6),
+.IR image (6)
