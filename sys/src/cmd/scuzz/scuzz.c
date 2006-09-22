@@ -6,10 +6,13 @@
 
 #define MIN(a, b)	((a) < (b) ? (a): (b))
 
-Biobuf bin, bout;
 static char rwbuf[MaxIOsize];
 static int verbose = 1;
+
+Biobuf bin, bout;
 long maxiosize = MaxIOsize;
+int exabyte = 0;
+int force6bytecmds = 0;
 
 typedef struct {
 	char *name;
@@ -17,7 +20,17 @@ typedef struct {
 	int open;
 	char *help;
 } ScsiCmd;
+
 static ScsiCmd scsicmd[];
+
+static vlong
+vlmin(vlong a, vlong b)
+{
+	if (a < b)
+		return a;
+	else
+		return b;
+}
 
 static long
 cmdready(ScsiReq *rp, int argc, char *argv[])
@@ -128,7 +141,7 @@ waitfor(int pid)
 static long
 cmdread(ScsiReq *rp, int argc, char *argv[])
 {
-	long n, iosize;
+	long n, iosize, prevsize = 0;
 	vlong nbytes, total;
 	int fd, pid;
 	char *p;
@@ -159,13 +172,17 @@ cmdread(ScsiReq *rp, int argc, char *argv[])
 	print("bsize=%lud\n", rp->lbsize);
 	total = 0;
 	while(nbytes){
-		n = iosize;
-		if(n > nbytes)
-			n = nbytes;
-		if((n = SRread(rp, rwbuf, n)) <= 0){
+		n = vlmin(nbytes, iosize);
+		if((n = SRread(rp, rwbuf, n)) == -1){
 			if(total == 0)
 				total = -1;
 			break;
+		}
+		if (n == 0)
+			break;
+		if (prevsize != n) {
+			print("tape block size=%ld\n", n);
+			prevsize = n;
 		}
 		if(write(fd, rwbuf, n) != n){
 			if(total == 0)
@@ -188,7 +205,7 @@ cmdread(ScsiReq *rp, int argc, char *argv[])
 static long
 cmdwrite(ScsiReq *rp, int argc, char *argv[])
 {
-	long n;
+	long n, prevsize = 0;
 	vlong nbytes, total;
 	int fd, pid;
 	char *p;
@@ -217,13 +234,17 @@ cmdwrite(ScsiReq *rp, int argc, char *argv[])
 	}
 	total = 0;
 	while(nbytes){
-		n = maxiosize;
-		if(n > nbytes)
-			n = nbytes;
-		if((n = readn(fd, rwbuf, n)) <= 0){
+		n = vlmin(nbytes, maxiosize);
+		if((n = read(fd, rwbuf, n)) == -1){
 			if(total == 0)
 				total = -1;
 			break;
+		}
+		if (n == 0)
+			break;
+		if (prevsize != n) {
+			print("tape block size=%ld\n", n);
+			prevsize = n;
 		}
 		if(SRwrite(rp, rwbuf, n) != n){
 			if(total == 0)
@@ -631,7 +652,7 @@ cmdblank(ScsiReq *rp, int argc, char *argv[])
 			rp->status = Status_BADARG;
 			return -1;
 		}
-		if(type < 0 || type > 6){
+		if(type > 6){
 			rp->status = Status_BADARG;
 			return -1;
 		}
@@ -677,7 +698,7 @@ cmdrtoc(ScsiReq *rp, int argc, char *argv[])
 			rp->status = Status_BADARG;
 			return -1;
 		}
-		if(format < 0 || format > 4){
+		if(format > 4){
 			rp->status = Status_BADARG;
 			return -1;
 		}
@@ -1501,11 +1522,11 @@ static int atatable[4] = {
 };
 static int scsitable[16] = {
 	'0', '1', '2', '3', '4', '5', '6', '7',
-	'8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 
+	'8', '9', 'a', 'b', 'c', 'd', 'e', 'f',
 };
 static int unittable[16] = {
 	'0', '1', '2', '3', '4', '5', '6', '7',
-	'8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 
+	'8', '9', 'a', 'b', 'c', 'd', 'e', 'f',
 };
 
 static long
@@ -1514,7 +1535,7 @@ cmdprobe(ScsiReq *rp, int argc, char *argv[])
 	char buf[32];
 	ScsiReq scsireq;
 	char *ctlr, *unit;
-	
+
 	USED(argc, argv);
 	rp->status = STok;
 	scsireq.flags = 0;
@@ -1530,7 +1551,7 @@ cmdprobe(ScsiReq *rp, int argc, char *argv[])
 			unit = "0123456789abcdef";
 		else
 			unit = "012345678";
-			
+
 		for(; *unit; unit++){
 			sprint(buf, "/dev/sd%c%c", *ctlr, *unit);
 			if(SRopenraw(&scsireq, buf) == -1)
@@ -1540,16 +1561,16 @@ cmdprobe(ScsiReq *rp, int argc, char *argv[])
 				continue;
 			SRreqsense(&scsireq);
 			switch(scsireq.status){
-	
+
 			default:
 				break;
-	
+
 			case STok:
 			case Status_SD:
 				Bprint(&bout, "%s: ", buf);
 				cmdinquiry(&scsireq, 0, 0);
 				break;
-			}	
+			}
 			SRclose(&scsireq);
 		}
 	}
@@ -1760,10 +1781,10 @@ tokenise(char *s, char **start, char **end)
 			if(to != *start)		/* we have data */
 				break;
 			s += n;				/* null string - keep looking */
-			while(*s && SEP(*s))	
+			while(*s && SEP(*s))
 				s++;
 			to = *start = s;
-		} 
+		}
 		else if(r == '\''){
 			s += n;				/* skip leading quote */
 			while(*s){
@@ -1778,7 +1799,7 @@ tokenise(char *s, char **start, char **end)
 			}
 			if(!*s)				/* no trailing quote */
 				break;
-			s++;				/* skip trailing quote */ 
+			s++;				/* skip trailing quote */
 		}
 		else  {
 			while(n--)
@@ -1814,7 +1835,7 @@ parse(char *s, char *fields[], int nfields)
 static void
 usage(void)
 {
-	fprint(2, "%s: usage: %s [-q] [-m maxiosize] [/dev/sdXX]\n", argv0, argv0);
+	fprint(2, "usage: %s [-6eq] [-m maxiosize] [[-r] /dev/sdXX]\n", argv0);
 	exits("usage");
 }
 
@@ -1847,13 +1868,16 @@ main(int argc, char *argv[])
 {
 	ScsiReq target;
 	char *ap, *av[256];
-	int ac, i;
+	int ac, i, raw = 0;
 	ScsiCmd *cp;
 	long status;
 
 	ARGBEGIN {
-	case 'q':
-		verbose = 0;
+	case 'e':
+		exabyte = 1;
+		/* fallthrough */
+	case '6':
+		force6bytecmds = 1;
 		break;
 	case 'm':
 		ap = ARGF();
@@ -1861,7 +1885,13 @@ main(int argc, char *argv[])
 			usage();
 		maxiosize = atol(ap);
 		if(maxiosize < 512 || maxiosize > MaxIOsize)
-			usage();
+			sysfatal("max-xfer < 512 or > %d", MaxIOsize);
+		break;
+	case 'r':			/* must be last option and not bundled */
+		raw++;
+		break;
+	case 'q':
+		verbose = 0;
 		break;
 	default:
 		usage();
@@ -1873,6 +1903,10 @@ main(int argc, char *argv[])
 	}
 
 	memset(&target, 0, sizeof(target));
+	if (raw) {			/* hack for -r */
+		++argc;
+		--argv;
+	}
 	if(argc && cmdopen(&target, argc, argv) == -1) {
 		fprint(2, "open failed\n");
 		usage();

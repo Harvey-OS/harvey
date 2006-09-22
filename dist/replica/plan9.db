@@ -7747,7 +7747,7 @@ sys/man/8/reboot - 664 sys sys 969499895 414
 sys/man/8/replica - 664 sys sys 1138479158 6383
 sys/man/8/rsa - 664 sys sys 1057955511 4628
 sys/man/8/scanmail - 664 sys sys 969499895 10803
-sys/man/8/scuzz - 664 sys sys 984709640 7916
+sys/man/8/scuzz - 664 sys sys 1158891790 8692
 sys/man/8/secstore - 664 sys sys 1105016705 1954
 sys/man/8/securenet - 664 sys sys 954305552 3160
 sys/man/8/send - 664 sys sys 1045501634 2168
@@ -8037,7 +8037,7 @@ sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
 sys/src/9/pc/sdata.c - 664 sys sys 1158593448 52577
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1131290638 25780
 sys/src/9/pc/sdmylex.c - 664 sys sys 1133068062 27806
-sys/src/9/pc/sdscsi.c - 664 sys sys 1146746630 7106
+sys/src/9/pc/sdscsi.c - 664 sys sys 1158889425 7241
 sys/src/9/pc/trap.c - 664 sys sys 1135487942 21257
 sys/src/9/pc/uartaxp.c - 664 sys sys 1158803840 18862
 sys/src/9/pc/uartaxp.i - 664 sys sys 1155522709 111326
@@ -13215,9 +13215,9 @@ sys/src/cmd/scuzz/cdaudio.c - 664 sys sys 944961085 2821
 sys/src/cmd/scuzz/cdr.c - 664 sys sys 944961084 3849
 sys/src/cmd/scuzz/changer.c - 664 sys sys 944961084 1137
 sys/src/cmd/scuzz/mkfile - 664 sys sys 1032060571 231
-sys/src/cmd/scuzz/scsireq.c - 664 sys sys 1032060572 11501
-sys/src/cmd/scuzz/scsireq.h - 664 sys sys 1113741890 5929
-sys/src/cmd/scuzz/scuzz.c - 664 sys sys 1133957139 37580
+sys/src/cmd/scuzz/scsireq.c - 664 sys sys 1158891779 13609
+sys/src/cmd/scuzz/scsireq.h - 664 sys sys 1158891693 5977
+sys/src/cmd/scuzz/scuzz.c - 664 sys sys 1158891727 38135
 sys/src/cmd/scuzz/sense.c - 664 sys sys 969510790 3901
 sys/src/cmd/sed.c - 664 sys sys 1100962924 27001
 sys/src/cmd/seq.c - 664 sys sys 1125529033 1683

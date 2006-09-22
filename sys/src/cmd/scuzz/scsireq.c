@@ -7,6 +7,20 @@
  */
 #include "scsireq.h"
 
+enum {
+	Debug = 0,
+};
+
+extern long maxiosize;
+/*
+ * exabyte tape drives, at least old ones like the 8200 and 8505,
+ * are dumb: you have to read the exact block size on the tape,
+ * they don't take 10-byte SCSI commands, and various other fine points.
+ */
+extern int exabyte, force6bytecmds;
+
+static int debug = Debug;
+
 long
 SRready(ScsiReq *rp)
 {
@@ -129,6 +143,7 @@ seqdevrw(ScsiReq *rp, uchar *cmd, long nbytes)
 	long n;
 
 	cmd[1] = rp->flags&Fbfixed? 0x01: 0x00;
+	/* cmd[1]&2 is the SILI bit: don't report `incorrect' block lengths */
 	n = nbytes/rp->lbsize;
 	cmd[2] = n>>16;
 	cmd[3] = n>>8;
@@ -143,7 +158,7 @@ SRread(ScsiReq *rp, void *buf, long nbytes)
 	uchar cmd[10];
 	long n;
 
-	if((nbytes % rp->lbsize) || nbytes > MaxIOsize){
+	if((nbytes % rp->lbsize) || nbytes > maxiosize){
 		rp->status = Status_BADARG;
 		return -1;
 	}
@@ -157,8 +172,16 @@ SRread(ScsiReq *rp, void *buf, long nbytes)
 	rp->data.count = nbytes;
 	rp->data.write = 0;
 	if((n = SRrequest(rp)) == -1){
+		/* maybe we just read a short record? */
+		if (exabyte) {
+			fprint(2, "read error\n");
+			rp->status = STcheck;
+			return n;
+		}
 		if(rp->status != Status_SD || (rp->sense[0] & 0x80) == 0)
 			return -1;
+		if (debug)
+			fprint(2, "SRread: SRrequest failed with sense data; reading byte count from sense\n");
 		n = ((rp->sense[3]<<24)
 		   | (rp->sense[4]<<16)
 		   | (rp->sense[5]<<8)
@@ -172,6 +195,8 @@ SRread(ScsiReq *rp, void *buf, long nbytes)
 			rp->data.count = nbytes - n;
 		else
 			return -1;
+		if (debug)
+			fprint(2, "SRread: computing byte count from sense\n");
 		n = rp->data.count;
 		rp->status = STok;
 	}
@@ -185,7 +210,7 @@ SRwrite(ScsiReq *rp, void *buf, long nbytes)
 	uchar cmd[10];
 	long n;
 
-	if((nbytes % rp->lbsize) || nbytes > MaxIOsize){
+	if((nbytes % rp->lbsize) || nbytes > maxiosize){
 		rp->status = Status_BADARG;
 		return -1;
 	}
@@ -199,6 +224,11 @@ SRwrite(ScsiReq *rp, void *buf, long nbytes)
 	rp->data.count = nbytes;
 	rp->data.write = 1;
 	if((n = SRrequest(rp)) == -1){
+		if (exabyte) {
+			fprint(2, "write error\n");
+			rp->status = STcheck;
+			return n;
+		}
 		if(rp->status != Status_SD || rp->sense[2] != 0x40)
 			return -1;
 		if(rp->sense[0] & 0x80){
@@ -209,7 +239,7 @@ SRwrite(ScsiReq *rp, void *buf, long nbytes)
 			    * rp->lbsize;
 			rp->data.count = nbytes - n;
 		}
-		else 
+		else
 			rp->data.count = nbytes;
 		n = rp->data.count;
 	}
@@ -436,26 +466,49 @@ SRrcapacity(ScsiReq *rp, uchar *data)
 static long
 request(int fd, ScsiPtr *cmd, ScsiPtr *data, int *status)
 {
-	long n;
+	long n, r;
 	char buf[16];
 
+	/* this was an experiment but it seems to be a good idea */
+	*status = STok;
+
+	/* send SCSI command */
 	if(write(fd, cmd->p, cmd->count) != cmd->count){
 		fprint(2, "scsireq: write cmd: %r\n");
 		*status = Status_SW;
 		return -1;
 	}
+
+	/* read or write actual data */
 	if(data->write)
 		n = write(fd, data->p, data->count);
-	else
+	else {
 		n = read(fd, data->p, data->count);
-	if(read(fd, buf, sizeof(buf)) < 0){
+		if (n < 0)
+			memset(data->p, 0, data->count);
+		else if (n < data->count)
+			memset(data->p + n, 0, data->count - n);
+	}
+	if (n != data->count && n <= 0)
+		fprint(2,
+	"request: tried to %s %ld bytes of data for cmd 0x%x but got %r\n",
+			(data->write? "write": "read"), data->count, cmd->p[0]);
+	else if (n != data->count && (data->write || debug))
+		fprint(2, "request: %s %ld of %ld bytes of actual data\n",
+			(data->write? "wrote": "read"), n, data->count);
+
+	/* read status */
+	buf[0] = '\0';
+	r = read(fd, buf, sizeof buf-1);
+	if(exabyte && r <= 0 || !exabyte && r < 0){
 		fprint(2, "scsireq: read status: %r\n");
 		*status = Status_SW;
 		return -1;
 	}
-	buf[sizeof(buf)-1] = '\0';
+	if (r >= 0)
+		buf[r] = '\0';
 	*status = atoi(buf);
-	if(n < 0 && *status != STcheck)
+	if(n < 0 && (exabyte || *status != STcheck))
 		fprint(2, "scsireq: status 0x%2.2uX: data transfer: %r\n", *status);
 	return n;
 }
@@ -477,6 +530,8 @@ retry:
 	case STcheck:
 		if(rp->cmd.p[0] != ScmdRsense && SRreqsense(rp) != -1)
 			rp->status = Status_SD;
+		if (exabyte)
+			fprint(2, "SRrequest: STcheck, returning -1\n");
 		return -1;
 
 	case STbusy:
@@ -511,9 +566,10 @@ dirdevopen(ScsiReq *rp)
 	if(SRstart(rp, 1) == -1 || SRrcapacity(rp, data) == -1)
 		return -1;
 	rp->lbsize = (data[4]<<28)|(data[5]<<16)|(data[6]<<8)|data[7];
-	blocks = (data[0]<<24)|(data[1]<<16)|(data[2]<<8)|data[3];
-	if(blocks > 0x1fffff)
-		rp->flags |= Frw10;		/* some newer devices don't support 6-byte commands */
+	blocks =     (data[0]<<24)|(data[1]<<16)|(data[2]<<8)|data[3];
+	/* some newer dev's don't support 6-byte commands */
+	if(blocks > 0x1fffff && !force6bytecmds)
+		rp->flags |= Frw10;
 	return 0;
 }
 
@@ -529,25 +585,39 @@ seqdevopen(ScsiReq *rp)
 		 * On some older hardware the optional 10-byte
 		 * modeselect command isn't implemented.
 		 */
+		if (force6bytecmds)
+			rp->flags |= Fmode6;
 		if(!(rp->flags & Fmode6)){
+			/* try 10-byte command first */
 			memset(mode, 0, sizeof(mode));
-			mode[3] = 0x10;
-			mode[7] = 8;
+			mode[3] = 0x10;		/* device-specific param. */
+			mode[7] = 8;		/* block descriptor length */
+			/*
+			 * exabytes can't handle this, and
+			 * modeselect(10) is optional.
+			 */
 			if(SRmodeselect10(rp, mode, sizeof(mode)) != -1){
 				rp->lbsize = 1;
-				return 0;
+				return 0;	/* success */
 			}
+			/* can't do 10-byte commands, back off to 6-byte ones */
 			rp->flags |= Fmode6;
 		}
 
+		/* 6-byte command */
 		memset(mode, 0, sizeof(mode));
-		mode[2] = 0x10;
-		mode[3] = 8;
+		mode[2] = 0x10;		/* device-specific param. */
+		mode[3] = 8;		/* block descriptor length */
+		/*
+		 * bsd sez exabytes need this bit (NBE) in vendor-specific
+		 * page (0), but so far we haven't needed it.
+		 */
+		if (0)
+			mode[12] |= 8;
 		if(SRmodeselect6(rp, mode, 4+8) == -1)
 			return -1;
 		rp->lbsize = 1;
-	}
-	else{
+	}else{
 		rp->flags |= Fbfixed;
 		rp->lbsize = (limits[4]<<8)|limits[5];
 	}

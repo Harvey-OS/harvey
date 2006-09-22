@@ -4,9 +4,11 @@ scuzz \- SCSI target control
 .SH SYNOPSIS
 .B scuzz
 [
-.B -q
-]
-[
+.B -6eq
+] [
+.B -m
+.I max-xfer
+] [
 [
 .B -r
 ]
@@ -38,10 +40,33 @@ is printed, where
 is the number of bytes transferred to/from the target;
 the
 .B -q
-command line option suppresses the 
+command line option suppresses the
 .B ok
 message.
+.LP
+The
+.B -6
+forces the use of 6-byte SCSI commands rather than 10-byte ones.
+Some older devices require this, though
+.I scuzz
+attempts to adapt automatically.
+The
+.B -e
+makes
+.I scuzz
+more willing to retry I/O errors but less tolerant of other errors
+and implies
+.BR -6 .
+This option is often needed to read Exabyte 8mm tapes.
+The
+.B -m
+option sets the maximum I/O transfer size to
+.IR max-xfer .
+Exabyte drives often require this to be 1024 or the exact tape block size
+and some 4mm drives require this to be the exact tape block size or larger.
 .SS Commands
+.TF "inquiry"
+.PD
 .TP
 .BI help " command
 .B Help
@@ -62,6 +87,8 @@ The
 and
 .B probe
 commands may be given at any time.
+.TF "inquiry"
+.PD
 .TP
 .BI open\ [ -r ] sddev
 .B Open
@@ -97,12 +124,14 @@ and
 .B space
 commands,
 all arguments are in the style of ANSI-C integer constants.
+.TF "inquiry"
+.PD
 .TP
 .B ready
 Test Unit Ready
 checks if the unit is powered up and ready to do
 .B read
-and 
+and
 .B write
 commands.
 .TP
@@ -272,6 +301,8 @@ The following commands are specific to CD and CD-R/RW devices.
 A brief description of each is given; see the SCSI-3
 Multimedia Commands (MMC) Specification for details of arguments
 and interpretation of the results.
+.TF "inquiry"
+.PD
 .TP
 .BI blank\ [ track/LBA [ type ]]
 Erase a CD-RW disk.
@@ -317,6 +348,8 @@ Read the mechanism status.
 The following commands are specific to Media Changer devices.
 A brief description of each is given; see the SCSI-3
 Medium Changer Commands (SMC) Specification for details of arguments.
+.TF "inquiry"
+.PD
 .TP
 .B einit
 Initialize element status.
@@ -355,7 +388,7 @@ Only one target can be open at a time.
 .LP
 LUNs other than 0 are not supported.
 .LP
-No way to force 6- or 10- byte commands.
+No way to force 10-byte commands, though they are the default.
 .LP
 Should be recoded to use
 .IR scsi (2)
@@ -368,3 +401,8 @@ with a
 .B c
 even though the devices it manipulates are spelled with a
 .BR k .
+.LP
+The
+.I max-xfer
+value is currently limited to 245760
+to limit kernel memory consumption.
