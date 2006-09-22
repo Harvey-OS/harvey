@@ -30484,3 +30484,8 @@
 1158800407 0 a rc/bin/uncompress - 775 sys sys 1158798931 30
 1158800407 1 a sys/man/1/mug - 664 sys sys 1158800370 1424
 1158804006 0 c sys/src/9/pc/uartaxp.c - 664 sys sys 1158803840 18862
+1158890406 0 c sys/src/9/pc/sdscsi.c - 664 sys sys 1158889425 7241
+1158892207 0 c sys/man/8/scuzz - 664 sys sys 1158891790 8692
+1158892207 1 c sys/src/cmd/scuzz/scsireq.c - 664 sys sys 1158891779 13609
+1158892207 2 c sys/src/cmd/scuzz/scsireq.h - 664 sys sys 1158891693 5977
+1158892207 3 c sys/src/cmd/scuzz/scuzz.c - 664 sys sys 1158891727 38135

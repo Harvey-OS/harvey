@@ -345,6 +345,11 @@ again:
 		switch(r->sense[2] & 0x0F){
 		default:
 			break;
+		case 0x01:		/* recovered error */
+			print("%s: recovered error at sector %ld\n",
+				unit->name, bno);
+			rlen = r->rlen;
+			break;
 		case 0x06:		/* check condition */
 			/*
 			 * Check for a removeable media change.
