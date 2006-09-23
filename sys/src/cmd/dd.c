@@ -295,6 +295,8 @@ flsh(void)
 	int c;
 
 	if(obc) {
+		/* don't perror dregs of previous errors on a short write */
+		werrstr("");
 		c = write(obf, obuf, obc);
 		if(c != obc) {
 			if(c > 0)
