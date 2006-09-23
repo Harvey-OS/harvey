@@ -1,6 +1,6 @@
 /*
  * File system devices.
- * '#k'. 
+ * '#k'.
  * Follows device config in Ken's file server.
  * Builds mirrors, device cats, interleaving, and partition of devices out of
  * other (inner) devices.
@@ -16,21 +16,21 @@
 #include "../port/error.h"
 
 enum {
-	Fmirror,	// mirror of others
-	Fcat,		// catenation of others
-	Finter,		// interleaving of others
-	Fpart,		// part of others
+	Fmirror,		/* mirror of others */
+	Fcat,			/* catenation of others */
+	Finter,			/* interleaving of others */
+	Fpart,			/* part of others */
 
-	Blksize	= 8*1024,	// for Finter only
-	Maxconf	= 1024,		// max length for config
+	Blksize	= 8*1024,	/* for Finter only */
+	Maxconf	= 1024,		/* max length for config */
 
-	Nfsdevs = 64,
-	Ndevs	= 8,
+	Ndevs	= 64,
+	Nfsdevs = 2*Ndevs,
 
-	Qtop	= 0,	// top dir (contains "fs")
-	Qdir	= 1,	// actual dir
-	Qctl	= 2,	// ctl file
-	Qfirst	= 3,	// first fs file
+	Qtop	= 0,		/* top dir (contains "fs") */
+	Qdir	= 1,		/* actual dir */
+	Qctl	= 2,		/* ctl file */
+	Qfirst	= 3,		/* first fs file */
 };
 
 #define	Cfgstr	"fsdev:\n"
@@ -40,13 +40,13 @@ typedef struct Fsdev Fsdev;
 struct Fsdev
 {
 	int	type;
-	char	*name;		// name for this fsdev
-	vlong	start;		// start address (for Fpart)
-	vlong	size;		// min(idev sizes)
-	int	ndevs;		// number of inner devices
-	char	*iname[Ndevs];	// inner device names
-	Chan	*idev[Ndevs];	// inner devices
-	vlong	isize[Ndevs];	// sizes for inneer devices
+	char	*name;		/* name for this fsdev */
+	vlong	start;		/* start address (for Fpart) */
+	vlong	size;		/* min(idev sizes) */
+	int	ndevs;		/* number of inner devices */
+	char	*iname[Ndevs];	/* inner device names */
+	Chan	*idev[Ndevs];	/* inner devices */
+	vlong	isize[Ndevs];	/* sizes for inner devices */
 };
 
 /*
@@ -125,13 +125,13 @@ setdsize(Fsdev* mp)
 			mp->size += d.length;
 			break;
 		case Finter:
-			// truncate to multiple of Blksize
+			/* truncate to multiple of Blksize */
 			d.length = (d.length & ~(Blksize-1));
 			mp->isize[i] = d.length;
 			mp->size += d.length;
 			break;
 		case Fpart:
-			// should raise errors here?
+			/* should raise errors here? */
 			if (mp->start > d.length)
 				mp->start = d.length;
 			if (d.length < mp->start + mp->size)
@@ -148,7 +148,7 @@ mpshut(Fsdev *mp)
 	char	*nm;
 
 	nm = mp->name;
-	mp->name = nil;		// prevent others from using this.
+	mp->name = nil;		/* prevent others from using this. */
 	if (nm)
 		free(nm);
 	for (i = 0; i < mp->ndevs; i++){
@@ -162,7 +162,7 @@ mpshut(Fsdev *mp)
 
 
 static void
-mconfig(char* a, long n)	// "name idev0 idev1"
+mconfig(char* a, long n)	/* "name idev0 idev1" */
 {
 	static	QLock	lck;
 	Cmdbuf	*cb;
@@ -196,7 +196,7 @@ mconfig(char* a, long n)	// "name idev0 idev1"
 		c = seprint(c, confstr+sizeof(confstr), "%s ", cb->f[i]);
 	*(c-1) = '\n';
 	ct = lookupcmd(cb, configs, nelem(configs));
-	cb->f++;	// skip command
+	cb->f++;		/* skip command */
 	cb->nf--;
 	if (ct->index == Fpart){
 		size = strtoll(cb->f[3], nil, 10);
@@ -208,7 +208,7 @@ mconfig(char* a, long n)	// "name idev0 idev1"
 		if (fsdev[i].name != nil && strcmp(fsdev[i].name, cb->f[0])==0)
 			error(Eexist);
 	if (cb->nf - 1 > Ndevs)
-		error("too many devices; fix me");
+		error("too many devices; fix me, increase Ndevs");
 	for (i = 0; i < cb->nf; i++)
 		validname(cb->f[i], (i != 0));
 	mp = devalloc();
@@ -230,7 +230,7 @@ mconfig(char* a, long n)	// "name idev0 idev1"
 	configed = 1;
 	qunlock(&lck);
 	free(cb);
-	
+
 }
 
 static void
@@ -291,7 +291,7 @@ mgen(Chan *c, char*, Dirtab*, int, int i, Dir *dp)
 	Qid	qid;
 	Fsdev	*mp;
 
-	if (c->qid.path == Qtop){
+	if (c->qid.path == Qtop)
 		switch(i){
 		case DEVDOTDOT:
 			devdir(c, tqid, "#k", 0, eve, DMDIR|0775, dp);
@@ -302,8 +302,7 @@ mgen(Chan *c, char*, Dirtab*, int, int i, Dir *dp)
 		default:
 			return -1;
 		}
-	}
-	if (c->qid.path != Qdir){
+	if (c->qid.path != Qdir)
 		switch(i){
 		case DEVDOTDOT:
 			devdir(c, dqid, "fs", 0, eve, DMDIR|0775, dp);
@@ -311,7 +310,6 @@ mgen(Chan *c, char*, Dirtab*, int, int i, Dir *dp)
 		default:
 			return -1;
 		}
-	}
 	switch(i){
 	case DEVDOTDOT:
 		devdir(c, tqid, "#k", 0, eve, DMDIR|0775, dp);
@@ -320,7 +318,7 @@ mgen(Chan *c, char*, Dirtab*, int, int i, Dir *dp)
 		devdir(c, cqid, "ctl", 0, eve, 0664, dp);
 		return 1;
 	}
-	i--;	// for ctl
+	i--;			/* for ctl */
 	qid.path = Qfirst + i;
 	qid.vers = 0;
 	qid.type = 0;
@@ -392,7 +390,7 @@ mopen(Chan *c, int omode)
 static void
 mclose(Chan*)
 {
-	// that's easy
+	/* that's easy */
 }
 
 static long
@@ -401,7 +399,8 @@ catio(Fsdev *mp, int isread, void *a, long n, vlong off)
 	int	i;
 	Chan*	mc;
 	long	l, wl, res;
-	//print("catio %d %p %ld %lld\n", isread, a, n, off);
+
+	// print("catio %d %p %ld %lld\n", isread, a, n, off);
 	res = n;
 	for (i = 0; n >= 0 && i < mp->ndevs ; i++){
 		mc = mp->idev[i];
@@ -413,7 +412,7 @@ catio(Fsdev *mp, int isread, void *a, long n, vlong off)
 			l = mp->isize[i] - off;
 		else
 			l = n;
-		//print("\tdev %d %p %ld %lld\n", i, a, l, off);
+		// print("\tdev %d %p %ld %lld\n", i, a, l, off);
 
 		if (isread)
 			wl = devtab[mc->type]->read(mc, a, l, off);
@@ -425,7 +424,7 @@ catio(Fsdev *mp, int isread, void *a, long n, vlong off)
 		off = 0;
 		n -= l;
 	}
-	//print("\tres %ld\n", res - n);
+	// print("\tres %ld\n", res - n);
 	return res - n;
 }
 
@@ -495,15 +494,17 @@ mread(Chan *c, void *a, long n, vlong off)
 		for (i = 0; i < mp->ndevs; i++){
 			mc = mp->idev[i];
 			if (waserror()){
-				// if a read fails we let the user know and try
-				// another device.
+				/*
+				 * if a read fails we let the user know and try
+				 * another device.
+				 */
 				print("#k: mread: (%llx %d): %s\n",
 					c->qid.path, i, up->errstr);
 				continue;
 			}
 			l = devtab[mc->type]->read(mc, a, n, off);
 			poperror();
-			if (l >=0){
+			if (l >= 0){
 				res = l;
 				break;
 			}
