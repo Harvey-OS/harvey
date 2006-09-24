@@ -30490,3 +30490,5 @@
 1158892207 2 c sys/src/cmd/scuzz/scsireq.h - 664 sys sys 1158891693 5977
 1158892207 3 c sys/src/cmd/scuzz/scuzz.c - 664 sys sys 1158891727 38135
 1158980406 0 c sys/src/9/port/devfs.c - 664 sys sys 1158979963 10897
+1158984007 0 c sys/src/cmd/dd.c - 664 sys sys 1158983783 11831
+1159039806 0 c 386/bin/dd - 775 sys sys 1159039156 45991
