@@ -9891,7 +9891,7 @@ sys/src/cmd/cmp.c - 664 sys sys 1157581072 2491
 sys/src/cmd/colors.c - 664 sys sys 951763912 3186
 sys/src/cmd/comm.c - 664 sys sys 1093979717 2140
 sys/src/cmd/compress - 20000000775 sys sys 1157679448 0
-sys/src/cmd/compress/compress.c - 664 sys sys 1157679448 31907
+sys/src/cmd/compress/compress.c - 664 sys sys 1159150971 31929
 sys/src/cmd/compress/mkfile - 664 sys sys 1157679443 118
 sys/src/cmd/con - 20000000775 sys sys 944961996 0
 sys/src/cmd/con/con.c - 664 sys sys 1143759347 15227
