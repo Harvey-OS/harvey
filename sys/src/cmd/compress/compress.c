@@ -972,13 +972,13 @@ char *ifname, *ofname;
 			fprintf(stderr, "%s: ", ifname);
 		fprintf(stderr, " -- not a regular file: unchanged");
 		exit_stat = 1;
-	} else if (exit_stat == 2 && (!force)) {
+	} else if (exit_stat == 2 && !force) {
 		/* No compression: remove file.Z */
 		if (!quiet)
 			fprintf(stderr, " -- file unchanged");
 	} else {			/* Successful Compression */
 		exit_stat = 0;
-		mode = statbuf.st_mode & 07777;
+		mode = statbuf.st_mode & 0777;
 		if (chmod(ofname, mode))		/* Copy modes */
 			perror(ofname);
 		/* Copy ownership */
@@ -987,9 +987,9 @@ char *ifname, *ofname;
 		timep[1] = statbuf.st_mtime;
 		/* Update last accessed and modified times */
 		utime(ofname, timep);
-
 //		if (unlink(ifname))	/* Remove input file */
 //			perror(ifname);
+		return;			/* success */
 	}
 
 	/* Unsuccessful return -- one of the tests failed */
