@@ -803,6 +803,7 @@ struct	FILE_STRING
 	".if",			"troff input",		3,	"text/plain",
 	".nr",			"troff input",		3,	"text/plain",
 	".tr",			"troff input",		3,	"text/plain",
+	"vac:",			"venti score",		4,	"text/plain",
 	0,0,0,0
 };
 

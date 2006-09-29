@@ -334,7 +334,7 @@ mutual exclusion lock for altering mbox
 .IR marshal (1),
 .IR mlmgr (1),
 .IR nedmail (1),
-.IR upasfs(4),
+.IR upasfs (4),
 .IR smtp (8),
 .IR faces (1),
 .IR rewrite (6)

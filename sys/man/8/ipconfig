@@ -163,7 +163,7 @@ to the list of paramters requested of the DHCP server.  The
 result will appear in
 .B /net/ndb
 should this be the first interface.  The known options are:
-
+.EX
   ipmask, timeoff, ipgw, time, name, dns, log, cookie,
   lpr, impress, rl, sys, bflen, dumpfile, dom, swap,
   rootpath, extpath, ipforward, nonlocal, policyfilter,
@@ -174,11 +174,10 @@ should this be the first interface.  The known options are:
   nisdomain, ni, ntp, netbiosns, netbiosdds,
   netbiostype, netbiosscope, xfont, xdispmanager,
   nisplusdomain, nisplus, homeagent, smtp, pop3, nntp,
-  www, finger, irc, st, stdar, , ipaddr, lease,
+  www, finger, irc, st, stdar, ipaddr, lease,
   overload, type, serverid, params, message, maxmsg,
   renewaltime, rebindingtime, vendorclass, clientid,
   tftp, bootfile
-
 .EE
 The options
 .BR ipmask ,

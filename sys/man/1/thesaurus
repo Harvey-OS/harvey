@@ -8,4 +8,4 @@ thesaurus \- search online thesaurus
 .I thesaurus
 searches the online thesaurus at http://thesaurus.reference.com
 .SH SOURCE
-.B /rc/cmd/thesaurus
+.B /rc/bin/thesaurus
