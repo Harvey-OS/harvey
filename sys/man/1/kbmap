@@ -22,7 +22,7 @@ for the system; typing 'q' quits.
 requires that the file
 .B /dev/kbmap
 served by 
-.IR kbmap(3)
+.IR kbmap (3)
 exists and is writable.
 ..SH FILES
 .TF /lib/kbmap/*

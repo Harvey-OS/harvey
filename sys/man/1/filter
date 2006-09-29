@@ -270,7 +270,7 @@ and discards messages containing
 executables or
 .I zip
 (see
-.IR gzip(1))
+.IR gzip (1))
 archives of executables.
 .PP
 The

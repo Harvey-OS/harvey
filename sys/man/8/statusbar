@@ -48,7 +48,7 @@ set the coordinates of the statusbar window created
 The
 .B -v
 option to
-.IR hget(1)
+.IR hget (1)
 .\" and the 
 .\" .B -d
 .\" option to

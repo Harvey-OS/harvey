@@ -16,7 +16,7 @@ not take arguments, or a letter followed by the space-separated
 names of its arguments.
 .I Getflags 
 prints an 
-.I rc (1)
+.IR rc (1)
 script on standard output which initializes the
 environment variable
 .BI $flag x

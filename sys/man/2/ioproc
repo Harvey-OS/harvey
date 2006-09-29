@@ -144,7 +144,6 @@ instances were running in different procs, the
 common access to
 .I tot
 would be unsafe.
-.EE
 .PP
 Implement
 .IR ioread :

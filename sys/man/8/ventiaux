@@ -53,7 +53,7 @@ write \- Venti maintenance and debugging commands
 .PP
 .B venti/copy
 [
-.B -f
+.B -fq
 ]
 .I src
 .I dst
@@ -472,6 +472,9 @@ children are also already on
 .IR dst .
 Without this flag, the copy often transfers many times more
 data than necessary.
+The
+.B -q
+option suppresses messages in fast mode about skipping duplicate blocks.
 .PP
 To make it easier to bootstrap servers, the configuration
 file can be stored at the beginning of any Venti partitions using

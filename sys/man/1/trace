@@ -81,4 +81,4 @@ trace event file
 trace event data structures
 .PD
 .SH SOURCE
-.B /sys/src/cmd/trace
+.B /sys/src/cmd/trace.c
