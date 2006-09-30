@@ -75,7 +75,7 @@ and
 .B .PE
 with a PNG image corresponding to the output of
 running
-.IR troff(1)
+.IR troff (1)
 on the input.
 .TP
 .B .TS\fR, \fP.TE
