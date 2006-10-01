@@ -9630,7 +9630,7 @@ sys/src/cmd/aux/antiword/xmalloc.c - 664 sys sys 1137261474 2501
 sys/src/cmd/aux/antiword/xml.c - 664 sys sys 1137261474 34115
 sys/src/cmd/aux/apm.c - 664 sys sys 1130423972 20275
 sys/src/cmd/aux/astarld.c - 664 sys sys 1015008684 4638
-sys/src/cmd/aux/cddb.c - 664 sys sys 1126795279 4610
+sys/src/cmd/aux/cddb.c - 664 sys sys 1159664477 4676
 sys/src/cmd/aux/clog.c - 664 sys sys 1014925109 1000
 sys/src/cmd/aux/consolefs.c - 664 sys sys 1150201588 21201
 sys/src/cmd/aux/conswdir.c - 664 sys sys 1045504955 2077
