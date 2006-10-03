@@ -8109,7 +8109,7 @@ sys/src/9/port/devsrv.c - 664 sys sys 1107232208 5418
 sys/src/9/port/devssl.c - 664 sys sys 1146151714 26121
 sys/src/9/port/devtinyfs.c - 664 sys sys 1015278339 15347
 sys/src/9/port/devtls.c - 664 sys sys 1146151715 45214
-sys/src/9/port/devuart.c - 664 sys sys 1138118881 12141
+sys/src/9/port/devuart.c - 664 sys sys 1159822860 12193
 sys/src/9/port/devwd.c - 664 sys sys 1126582325 2342
 sys/src/9/port/edf.c - 664 sys sys 1138472540 13489
 sys/src/9/port/edf.h - 664 sys sys 1138469072 1195
