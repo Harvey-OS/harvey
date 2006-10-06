@@ -656,7 +656,7 @@ dp83820init(Ether* edev)
 		csr32w(ctlr, Rfcr, i);
 		csr32w(ctlr, Rfdr, (edev->ea[i+1]<<8)|edev->ea[i]);
 	}
-	csr32w(ctlr, Rfcr, Rfen|Aab|Apm);
+	csr32w(ctlr, Rfcr, Rfen|Aab|Aam|Apm);
 
 	ctlr->rxcfg = Stripcrc|(((2*(ETHERMINTU+4))/8)<<RxdrthSHFT);
 	ctlr->imr |= Rxorn|Rxidle|Rxearly|Rxdesc|Rxok;
@@ -967,6 +967,12 @@ dp83820promiscuous(void* arg, int on)
 	USED(arg, on);
 }
 
+/* multicast already on, don't need to do anything */
+static void
+dp83820multicast(void*, uchar*, int)
+{
+}
+
 static int
 atc93c46r(Ctlr* ctlr, int address)
 {
@@ -1209,6 +1215,8 @@ dp83820pnp(Ether* edev)
 
 	edev->arg = edev;
 	edev->promiscuous = dp83820promiscuous;
+	edev->multicast = dp83820multicast;
+//	edev->shutdown = dp83820shutdown;
 
 	return 0;
 }

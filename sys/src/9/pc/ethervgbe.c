@@ -12,7 +12,7 @@
  *	- thresholds
  *	- dynamic ring sizing ??
  *	- link status change
- *	- multicast
+ *	- shutdown
  *	- promiscuous
  *	- report error
  *	- Rx/Tx Csum
@@ -1087,6 +1087,18 @@ vgbectl(Ether* edev, void* buf, long n)
 	return n;
 }
 
+static void
+vgbepromiscuous(void* arg, int on)
+{
+	USED(arg, on);
+}
+
+/* multicast already on, don't need to do anything */
+static void
+vgbemulticast(void*, uchar*, int)
+{
+}
+
 static int
 vgbepnp(Ether* edev)
 {
@@ -1122,6 +1134,9 @@ vgbepnp(Ether* edev)
 	edev->transmit = vgbetransmit;
 	edev->interrupt = vgbeinterrupt;
 	edev->ifstat = vgbeifstat;
+//	edev->promiscuous = vgbepromiscuous;
+	edev->multicast = vgbemulticast;
+//	edev->shutdown = vgbeshutdown;
 	edev->ctl = vgbectl;
 
 	edev->arg = edev;
