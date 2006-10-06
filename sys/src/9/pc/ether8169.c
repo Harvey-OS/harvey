@@ -414,6 +414,12 @@ rtl8169promiscuous(void* arg, int on)
 	iunlock(&ctlr->ilock);
 }
 
+static void
+rtl8169multicast(void* arg, uchar*, int)
+{
+	rtl8169promiscuous(arg, 1);
+}
+
 static long
 rtl8169ifstat(Ether* edev, void* a, long n, ulong offset)
 {
@@ -1112,6 +1118,8 @@ rtl8169pnp(Ether* edev)
 
 	edev->arg = edev;
 	edev->promiscuous = rtl8169promiscuous;
+	edev->multicast = rtl8169multicast;
+//	edev->shutdown = rtl8169shutdown;
 
 	rtl8169link(edev);
 

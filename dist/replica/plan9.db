@@ -284,7 +284,7 @@
 386/bin/iostats - 775 sys sys 1148500650 100476
 386/bin/ip - 20000000775 sys sys 1016920851 0
 386/bin/ip/dhcpclient - 775 sys sys 1148500650 94471
-386/bin/ip/dhcpd - 775 sys sys 1157916202 150774
+386/bin/ip/dhcpd - 775 sys sys 1160103260 151069
 386/bin/ip/dhcpleases - 775 sys sys 1148500652 86543
 386/bin/ip/ftpd - 775 sys sys 1148500653 170760
 386/bin/ip/gizzard - 775 sys sys 1081480408 101521
@@ -7711,7 +7711,7 @@ sys/man/8/booting - 664 sys sys 1015024984 4136
 sys/man/8/checkarenas - 664 sys sys 1019866709 669
 sys/man/8/cpurc - 664 sys sys 971455510 1275
 sys/man/8/cron - 664 sys sys 1063858596 1867
-sys/man/8/dhcpd - 664 sys sys 1032654987 5237
+sys/man/8/dhcpd - 664 sys sys 1160071627 5460
 sys/man/8/disksim - 664 sys sys 1144150487 1476
 sys/man/8/drawterm - 664 sys sys 1135901219 1741
 sys/man/8/fossilcons - 664 sys sys 1155362671 18291
@@ -7969,16 +7969,16 @@ sys/src/9/pc/dma.c - 664 sys sys 1142966373 5332
 sys/src/9/pc/ether2000.c - 664 sys sys 1089299187 4819
 sys/src/9/pc/ether2114x.c - 664 sys sys 1145359795 41693
 sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
-sys/src/9/pc/ether79c970.c - 664 sys sys 1131290338 13953
+sys/src/9/pc/ether79c970.c - 664 sys sys 1160070602 14088
 sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
-sys/src/9/pc/ether8139.c - 664 sys sys 1131290376 18400
-sys/src/9/pc/ether8169.c - 664 sys sys 1156429147 25232
+sys/src/9/pc/ether8139.c - 664 sys sys 1160066369 18561
+sys/src/9/pc/ether8169.c - 664 sys sys 1160066369 25393
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1131290377 32294
 sys/src/9/pc/ether82557.c - 664 sys sys 1153082663 30197
 sys/src/9/pc/ether83815.c - 664 sys sys 1140271743 26125
 sys/src/9/pc/ether8390.c - 664 sys sys 1131290377 17702
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
-sys/src/9/pc/etherdp83820.c - 664 sys sys 1134042756 29166
+sys/src/9/pc/etherdp83820.c - 664 sys sys 1160069116 29352
 sys/src/9/pc/etherec2t.c - 664 sys sys 1135784135 4092
 sys/src/9/pc/etherelnk3.c - 664 sys sys 1158012427 48807
 sys/src/9/pc/etherga620.c - 664 sys sys 1134390125 28760
@@ -7990,7 +7990,7 @@ sys/src/9/pc/ethermii.h - 664 sys sys 1086873891 3258
 sys/src/9/pc/etherrhine.c - 664 sys sys 1081706478 13799
 sys/src/9/pc/ethersink.c - 664 sys sys 1048644103 1076
 sys/src/9/pc/ethersmc.c - 664 sys sys 1071245461 15103
-sys/src/9/pc/ethervgbe.c - 664 sys sys 1138114457 26558
+sys/src/9/pc/ethervgbe.c - 664 sys sys 1160066496 26838
 sys/src/9/pc/ethervt6102.c - 664 sys sys 1131907459 22286
 sys/src/9/pc/etherwavelan.c - 664 sys sys 1131290380 3747
 sys/src/9/pc/floppy.h - 664 sys sys 1055700609 3835
@@ -12313,7 +12313,7 @@ sys/src/cmd/ip/dhcpclient.c - 664 sys sys 1050714660 11978
 sys/src/cmd/ip/dhcpd - 20000000775 sys sys 988249979 0
 sys/src/cmd/ip/dhcpd/dat.h - 664 sys sys 1084471353 2522
 sys/src/cmd/ip/dhcpd/db.c - 664 sys sys 1143670612 7466
-sys/src/cmd/ip/dhcpd/dhcpd.c - 664 sys sys 1084471366 32795
+sys/src/cmd/ip/dhcpd/dhcpd.c - 664 sys sys 1160071607 33096
 sys/src/cmd/ip/dhcpd/dhcpleases.c - 664 sys sys 1032655001 779
 sys/src/cmd/ip/dhcpd/mkfile - 664 sys sys 1063897571 433
 sys/src/cmd/ip/dhcpd/ndb.c - 664 sys sys 1084471375 6063

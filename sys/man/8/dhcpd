@@ -4,7 +4,7 @@ dhcpd, dhcpleases, rarpd, tftpd \- Internet booting
 .SH SYNOPSIS
 .PP
 .B ip/dhcpd
-.RB [ -mdsnp ]
+.RB [ -mdsSnpr ]
 .RB [ -f
 .IR ndb-file ]
 .RB [ -x
@@ -176,8 +176,12 @@ Specify a file other than
 as the network database.
 .TP
 .B s
-Sleep 2 seconds before answering requests.  This is used to make a server
+Sleep 2 seconds before answering requests for static addresses.
+This is used to make a server
 be a backup only.
+.TP
+.B S
+Sleep 2 seconds before answering requests for dynamic addresses.
 .TP
 .B n
 Don't answer
@@ -190,6 +194,12 @@ Answer
 requests from
 .SM PPTP
 clients only.
+.TP
+.B r
+Mute static addresses: don't reply to requests for static addresses,
+just log them and what
+.I dhcpd
+would have done.
 .TP
 .B x
 The IP stack to use is mounted at 
