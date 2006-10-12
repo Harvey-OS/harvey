@@ -250,7 +250,8 @@ implementations in
 .SH SEE ALSO
 .IR memory (2),
 .IR rune (2),
-.IR runestrcat (2)
+.IR runestrcat (2),
+.IR string (2)
 .SH BUGS
 These routines know nothing about
 .SM UTF.

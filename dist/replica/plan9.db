@@ -39,7 +39,7 @@
 386/bin/ape/uname - 775 sys sys 1143741925 134338
 386/bin/aquarela - 775 sys sys 1155491743 332850
 386/bin/ar - 775 sys sys 1148500573 113868
-386/bin/archfs - 775 sys sys 1148500573 147191
+386/bin/archfs - 775 sys sys 1160622234 147139
 386/bin/ascii - 775 sys sys 1148500573 64978
 386/bin/astro - 775 sys sys 1148500574 138871
 386/bin/auth - 20000000775 sys sys 1016920815 0
@@ -53,7 +53,7 @@
 386/bin/auth/debug - 775 sys sys 1148500577 101660
 386/bin/auth/disable - 775 sys sys 1020319057 146
 386/bin/auth/enable - 775 sys sys 1020319057 134
-386/bin/auth/factotum - 775 sys sys 1158607305 322231
+386/bin/auth/factotum - 775 sys sys 1160622236 322179
 386/bin/auth/fgui - 775 sys sys 1155491744 219084
 386/bin/auth/guard.srv - 775 sys sys 1148500579 143770
 386/bin/auth/iam - 775 sys sys 1085076981 50791
@@ -86,7 +86,7 @@
 386/bin/aux/accupoint - 775 sys sys 1148500588 40094
 386/bin/aux/acidleak - 775 sys sys 1148500589 69771
 386/bin/aux/antiword - 775 sys sys 1070288096 511478
-386/bin/aux/apm - 775 sys sys 1148500590 180637
+386/bin/aux/apm - 775 sys sys 1160622236 180585
 386/bin/aux/astarld - 775 sys sys 1148500590 65012
 386/bin/aux/cddb - 775 sys sys 1159730491 72635
 386/bin/aux/clog - 775 sys sys 1148500590 66783
@@ -95,15 +95,15 @@
 386/bin/aux/cropmarks - 775 sys sys 1020319062 1808
 386/bin/aux/data2s - 775 sys sys 1148500591 60855
 386/bin/aux/depend - 775 sys sys 1148500591 146195
-386/bin/aux/disksim - 775 sys sys 1148500592 150971
+386/bin/aux/disksim - 775 sys sys 1160622236 150919
 386/bin/aux/download - 775 sys sys 1087442506 176016
 386/bin/aux/faxreceive - 775 sys sys 1148500592 84280
 386/bin/aux/faxsend - 775 sys sys 1148500592 89787
-386/bin/aux/flashfs - 775 sys sys 1148500593 166690
+386/bin/aux/flashfs - 775 sys sys 1160622237 166638
 386/bin/aux/g3p9bit - 775 sys sys 1104121976 67278
 386/bin/aux/getflags - 775 sys sys 1148500593 64251
 386/bin/aux/gpsevermore - 775 sys sys 1148500593 71833
-386/bin/aux/gpsfs - 775 sys sys 1148500594 182885
+386/bin/aux/gpsfs - 775 sys sys 1160622237 182833
 386/bin/aux/grabit - 775 sys sys 1020319063 1244
 386/bin/aux/hardcopy - 775 sys sys 1020319063 1699
 386/bin/aux/isvmware - 775 sys sys 1032486791 23997
@@ -124,7 +124,7 @@
 386/bin/aux/na - 775 sys sys 1148500598 154517
 386/bin/aux/nfsmount - 775 sys sys 1148500599 234785
 386/bin/aux/nfsserver - 775 sys sys 1148500600 185997
-386/bin/aux/olefs - 775 sys sys 1148500601 149665
+386/bin/aux/olefs - 775 sys sys 1160622238 149613
 386/bin/aux/p9bitpost - 775 sys sys 1104121982 127974
 386/bin/aux/pcmcia - 775 sys sys 1148500601 46940
 386/bin/aux/pcnfsd - 775 sys sys 1148500601 129897
@@ -142,7 +142,7 @@
 386/bin/aux/ssh_genkey - 775 sys sys 1045537957 194629
 386/bin/aux/sshserve - 775 sys sys 1132506841 252850
 386/bin/aux/statusbar - 775 sys sys 1155491745 152321
-386/bin/aux/stub - 775 sys sys 1148500604 141236
+386/bin/aux/stub - 775 sys sys 1160622238 141184
 386/bin/aux/tcpostio - 775 sys sys 1094040084 200808
 386/bin/aux/text2post - 775 sys sys 1104121986 78336
 386/bin/aux/timesync - 775 sys sys 1148500604 128753
@@ -175,7 +175,7 @@
 386/bin/calendar - 775 sys sys 1148500611 80580
 386/bin/cat - 775 sys sys 1148500611 37482
 386/bin/cb - 775 sys sys 1148500611 77722
-386/bin/cdfs - 775 sys sys 1148500612 167581
+386/bin/cdfs - 775 sys sys 1160622239 167529
 386/bin/cfs - 775 sys sys 1148500612 128365
 386/bin/chgrp - 775 sys sys 1148500612 59616
 386/bin/chmod - 775 sys sys 1148500613 62612
@@ -223,9 +223,9 @@
 386/bin/echo - 775 sys sys 1148500628 57686
 386/bin/ed - 775 sys sys 1148500629 93366
 386/bin/eqn - 775 sys sys 1141927235 244405
-386/bin/execnet - 775 sys sys 1148500629 178362
+386/bin/execnet - 775 sys sys 1160622239 178310
 386/bin/exportfs - 775 sys sys 1148500630 162644
-386/bin/ext2srv - 775 sys sys 1148500631 180052
+386/bin/ext2srv - 775 sys sys 1160622240 180000
 386/bin/faces - 775 sys sys 1155491750 194710
 386/bin/factor - 775 sys sys 1148500632 61793
 386/bin/fcp - 775 sys sys 1148500632 82527
@@ -271,7 +271,7 @@
 386/bin/gview - 775 sys sys 1155491751 239077
 386/bin/gzip - 775 sys sys 1148500642 85078
 386/bin/hayes - 775 sys sys 1148500642 64887
-386/bin/hget - 775 sys sys 1148500643 233879
+386/bin/hget - 775 sys sys 1160622240 233907
 386/bin/history - 775 sys sys 1148500644 75799
 386/bin/hoc - 775 sys sys 1155491751 100190
 386/bin/html2ms - 775 sys sys 1148500645 66415
@@ -299,7 +299,7 @@
 386/bin/ip/httpd/save - 775 sys sys 1148500658 133531
 386/bin/ip/httpd/webls - 775 sys sys 1148500658 133642
 386/bin/ip/httpd/wikipost - 775 sys sys 1148500658 115002
-386/bin/ip/httpfile - 775 sys sys 1148500659 284317
+386/bin/ip/httpfile - 775 sys sys 1160622242 284265
 386/bin/ip/imap4d - 775 sys sys 1156976707 238121
 386/bin/ip/ipconfig - 775 sys sys 1157916203 139417
 386/bin/ip/ping - 775 sys sys 1148500661 76814
@@ -330,7 +330,7 @@
 386/bin/mk - 775 sys sys 1148500670 144972
 386/bin/mkdir - 775 sys sys 1148500671 61299
 386/bin/mkpaqfs - 775 sys sys 1148500671 94826
-386/bin/mntgen - 775 sys sys 1148500672 145604
+386/bin/mntgen - 775 sys sys 1160622242 145552
 386/bin/mount - 775 sys sys 1148500672 73436
 386/bin/ms2html - 775 sys sys 1148500672 104279
 386/bin/mtime - 775 sys sys 1148500673 59470
@@ -351,9 +351,9 @@
 386/bin/netkey - 775 sys sys 1148500678 72690
 386/bin/netstat - 775 sys sys 1148500678 85246
 386/bin/news - 775 sys sys 1148500679 72050
-386/bin/nfs - 775 sys sys 1148500680 321719
+386/bin/nfs - 775 sys sys 1160622243 321667
 386/bin/nm - 775 sys sys 1148500680 127107
-386/bin/nntpfs - 775 sys sys 1148500681 166843
+386/bin/nntpfs - 775 sys sys 1160622243 166791
 386/bin/ns - 775 sys sys 1148500681 65586
 386/bin/p - 775 sys sys 1148500681 65314
 386/bin/page - 775 sys sys 1155491755 234276
@@ -376,7 +376,7 @@
 386/bin/pwd - 775 sys sys 1148500685 36932
 386/bin/ramfs - 775 sys sys 1148500686 90121
 386/bin/rc - 775 sys sys 1135101637 143284
-386/bin/rdbfs - 775 sys sys 1148500686 174748
+386/bin/rdbfs - 775 sys sys 1160622244 174696
 386/bin/read - 775 sys sys 1148500687 58377
 386/bin/replica - 20000000775 sys sys 1018321168 0
 386/bin/replica/applychanges - 775 sys sys 1132506870 98629
@@ -508,7 +508,7 @@
 386/bin/vt - 775 sys sys 1133820585 176212
 386/bin/vtdump - 775 sys sys 1132506892 159534
 386/bin/wc - 775 sys sys 1148500701 41191
-386/bin/webcookies - 775 sys sys 1148500701 167738
+386/bin/webcookies - 775 sys sys 1160622244 167686
 386/bin/webfs - 775 sys sys 1134389883 360008
 386/bin/webfsget - 775 sys sys 1148500702 39177
 386/bin/wikifs - 775 sys sys 1157570247 203727
@@ -542,7 +542,7 @@
 386/lib/ape/libregexp.a - 664 sys sys 1143777857 47500
 386/lib/ape/libutf.a - 664 sys sys 1146156980 88500
 386/lib/ape/libv.a - 664 sys sys 1143777858 19668
-386/lib/lib9p.a - 664 sys sys 1143777858 91076
+386/lib/lib9p.a - 664 sys sys 1160622245 90956
 386/lib/libString.a - 664 sys sys 1143777858 22126
 386/lib/libauth.a - 664 sys sys 1143777858 58570
 386/lib/libauthsrv.a - 664 sys sys 1158607308 34672
@@ -634,7 +634,7 @@ acme/bin/386/acd - 775 sys sys 1032232412 137068
 acme/bin/386/adict - 775 sys sys 1015011247 99806
 acme/bin/386/mkwnew - 775 sys sys 1148500707 38992
 acme/bin/386/spout - 775 sys sys 1148500707 61935
-acme/bin/386/win - 775 sys sys 1148500707 185326
+acme/bin/386/win - 775 sys sys 1160622245 185274
 acme/bin/Battery - 775 sys sys 1017457907 451
 acme/bin/Isspam - 775 sys sys 1063951165 235
 acme/bin/Mail - 775 sys sys 1114697798 201
@@ -5197,7 +5197,7 @@ lib/ndb/local - 664 sys sys 1077723747 292
 lib/ndb/local.complicated - 664 sys sys 1105461604 2976
 lib/ndb/nfs - 664 sys sys 954036707 113
 lib/news - 20000000775 sys sys 944943954 0
-lib/pci - 664 sys sys 1141350058 196607
+lib/pci - 664 sys sys 1160617172 206912
 lib/sky - 20000000775 sys sys 1079376081 0
 lib/sky/abell.scat - 444 sys sys 954015738 86784
 lib/sky/bayer.scat - 444 sys sys 954015738 12136
@@ -7547,7 +7547,7 @@ sys/man/2/sin - 664 sys sys 944959694 967
 sys/man/2/sinh - 664 sys sys 944959694 360
 sys/man/2/sleep - 664 sys sys 944959694 984
 sys/man/2/stat - 664 sys sys 1015091527 6852
-sys/man/2/strcat - 664 sys sys 1045501487 4688
+sys/man/2/strcat - 664 sys sys 1160618277 4704
 sys/man/2/string - 664 sys sys 1055701090 5306
 sys/man/2/stringsize - 664 sys sys 952627482 1409
 sys/man/2/subfont - 664 sys sys 956345937 5140
@@ -8021,7 +8021,7 @@ sys/src/9/pc/pcdisk - 664 sys sys 1138115243 1471
 sys/src/9/pc/pcf - 664 sys sys 1138115243 1529
 sys/src/9/pc/pcfl - 664 sys sys 1042004821 1563
 sys/src/9/pc/pcflop - 664 sys sys 1158061762 1513
-sys/src/9/pc/pci.c - 664 sys sys 1155995367 26873
+sys/src/9/pc/pci.c - 664 sys sys 1160622111 26930
 sys/src/9/pc/pcmciamodem.c - 664 sys sys 1099761153 1586
 sys/src/9/pc/pcmkfile - 664 sys sys 1109303822 101
 sys/src/9/pc/piix4smbus.c - 664 sys sys 1091129037 5230
@@ -9078,7 +9078,7 @@ sys/src/boot/pc/pbsdisk.s - 664 sys sys 1017854325 6371
 sys/src/boot/pc/pbsdisklba - 775 sys sys 1015007954 509
 sys/src/boot/pc/pbsdisklba.s - 664 sys sys 1015007954 6022
 sys/src/boot/pc/pbslba.s - 664 sys sys 1143465392 8158
-sys/src/boot/pc/pci.c - 664 sys sys 1153333456 20363
+sys/src/boot/pc/pci.c - 664 sys sys 1160622097 20440
 sys/src/boot/pc/print.c - 664 sys sys 1094674483 219
 sys/src/boot/pc/queue.c - 664 sys sys 1015007954 566
 sys/src/boot/pc/sd.h - 664 sys sys 1153333456 2244
@@ -12250,7 +12250,7 @@ sys/src/cmd/gzip/mkfile - 664 sys sys 1124884920 124
 sys/src/cmd/gzip/unzip.c - 664 sys sys 1143759338 13800
 sys/src/cmd/gzip/zip.c - 664 sys sys 1135487935 7063
 sys/src/cmd/gzip/zip.h - 664 sys sys 954778719 1428
-sys/src/cmd/hget.c - 664 sys sys 1138048432 25946
+sys/src/cmd/hget.c - 664 sys sys 1160617698 25994
 sys/src/cmd/history.c - 664 sys sys 1136378274 6098
 sys/src/cmd/hoc - 20000000775 sys sys 954036932 0
 sys/src/cmd/hoc/code.c - 664 sys sys 1132451870 10050
@@ -13402,7 +13402,7 @@ sys/src/cmd/tcs/font/qbits.c - 664 sys sys 944961251 2037
 sys/src/cmd/tcs/gb.c - 664 sys sys 944961288 62707
 sys/src/cmd/tcs/gb.h - 664 sys sys 944961287 183
 sys/src/cmd/tcs/hdr.h - 664 sys sys 944961287 1213
-sys/src/cmd/tcs/html.c - 664 sys sys 1143673020 7338
+sys/src/cmd/tcs/html.c - 664 sys sys 1160620720 7701
 sys/src/cmd/tcs/jis.h - 664 sys sys 944961287 2873
 sys/src/cmd/tcs/ksc.c - 664 sys sys 944961289 72413
 sys/src/cmd/tcs/ksc.h - 664 sys sys 944961287 112
@@ -13416,7 +13416,7 @@ sys/src/cmd/tcs/ms.h - 664 sys sys 1138382780 44069
 sys/src/cmd/tcs/plan9.h - 664 sys sys 944961287 751
 sys/src/cmd/tcs/tcs.c - 664 sys sys 1145881809 19215
 sys/src/cmd/tcs/tune.c - 664 sys sys 1143723685 6283
-sys/src/cmd/tcs/utf.c - 664 sys sys 1143673021 7975
+sys/src/cmd/tcs/utf.c - 664 sys sys 1160620948 8004
 sys/src/cmd/tee.c - 664 sys sys 954970286 1062
 sys/src/cmd/telco - 20000000775 sys sys 1015701205 0
 sys/src/cmd/telco/mkfile - 664 sys sys 944961290 201
@@ -14563,7 +14563,7 @@ sys/src/lib9p - 20000000775 sys sys 1015023311 0
 sys/src/lib9p/auth.c - 664 sys sys 1134337555 3392
 sys/src/lib9p/dirread.c - 664 sys sys 1015023310 641
 sys/src/lib9p/fid.c - 664 sys sys 1089299187 1066
-sys/src/lib9p/file.c - 664 sys sys 1132447639 6651
+sys/src/lib9p/file.c - 664 sys sys 1160614660 6601
 sys/src/lib9p/ftest.c - 664 sys sys 1015023310 502
 sys/src/lib9p/intmap.c - 664 sys sys 1016833881 2255
 sys/src/lib9p/listen.c - 664 sys sys 1134335266 1626

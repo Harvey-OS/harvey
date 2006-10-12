@@ -209,7 +209,18 @@ pciscan(int bno, Pcidev** list)
 	return maxubn;
 }
 
-static uchar 
+static uchar
+null_link(Pcidev *, uchar )
+{
+	return 0;
+}
+
+static void
+null_init(Pcidev *, uchar , uchar )
+{
+}
+
+static uchar
 pIIx_link(Pcidev *router, uchar link)
 {
 	uchar pirq;
@@ -219,13 +230,13 @@ pIIx_link(Pcidev *router, uchar link)
 	return (pirq < 16)? pirq: 0;
 }
 
-static void 
+static void
 pIIx_init(Pcidev *router, uchar link, uchar irq)
 {
 	pcicfgw8(router, link, irq);
 }
 
-static uchar 
+static uchar
 via_link(Pcidev *router, uchar link)
 {
 	uchar pirq;
@@ -236,7 +247,7 @@ via_link(Pcidev *router, uchar link)
 	return (link & 1)? (pirq >> 4): (pirq & 15);
 }
 
-static void 
+static void
 via_init(Pcidev *router, uchar link, uchar irq)
 {
 	uchar pirq;
@@ -247,7 +258,7 @@ via_init(Pcidev *router, uchar link, uchar irq)
 	pcicfgw8(router, 0x55 + (link>>1), pirq);
 }
 
-static uchar 
+static uchar
 opti_link(Pcidev *router, uchar link)
 {
 	uchar pirq = 0;
@@ -258,7 +269,7 @@ opti_link(Pcidev *router, uchar link)
 	return (link & 0x10)? (pirq >> 4): (pirq & 15);
 }
 
-static void 
+static void
 opti_init(Pcidev *router, uchar link, uchar irq)
 {
 	uchar pirq;
@@ -269,7 +280,7 @@ opti_init(Pcidev *router, uchar link, uchar irq)
 	pcicfgw8(router, 0xb8 + (link >> 5), pirq);
 }
 
-static uchar 
+static uchar
 ali_link(Pcidev *router, uchar link)
 {
 	/* No, you're not dreaming */
@@ -281,7 +292,7 @@ ali_link(Pcidev *router, uchar link)
 	return (link & 1)? map[pirq&15]: map[pirq>>4];
 }
 
-static void 
+static void
 ali_init(Pcidev *router, uchar link, uchar irq)
 {
 	/* Inverse of map in ali_link */
@@ -294,7 +305,7 @@ ali_init(Pcidev *router, uchar link, uchar irq)
 	pcicfgw8(router, 0x48 + ((link-1)>>1), pirq);
 }
 
-static uchar 
+static uchar
 cyrix_link(Pcidev *router, uchar link)
 {
 	uchar pirq;
@@ -304,7 +315,7 @@ cyrix_link(Pcidev *router, uchar link)
 	return ((link & 1)? pirq >> 4: pirq & 15);
 }
 
-static void 
+static void
 cyrix_init(Pcidev *router, uchar link, uchar irq)
 {
 	uchar pirq;
@@ -315,64 +326,42 @@ cyrix_init(Pcidev *router, uchar link, uchar irq)
 	pcicfgw8(router, 0x5c + (link>>1), pirq);
 }
 
-enum {
-	Intel = 0x8086,		
-		Intel_82371FB_0 = 0x122e,
-		Intel_82371MX_0 = 0x1234,
-		Intel_82371SB_0 = 0x7000,
-		Intel_82371AB_0 = 0x7110,
-		Intel_82443MX_1 = 0x7198,
-		Intel_82801AA_0 = 0x2410,
-		Intel_82801AB_0 = 0x2420,
-		Intel_82801BA_0 = 0x2440,
-		Intel_82801BAM_0 = 0x244c,
-		Intel_82801CAM_0 = 0x248c,
-		Intel_82801DBM_0 = 0x24cc,
-		Intel_82801EB_0 = 0x24d0,
-		Intel_82801FB_0 = 0x2640,
-	Viatech = 0x1106,
-		Via_82C586_0 = 0x0586,
-		Via_82C596 = 0x0596,
-		Via_82C686 = 0x0686,
-	Opti = 0x1045,
-		Opti_82C700 = 0xc700,
-	Al = 0x10b9,
-		Al_M1533 = 0x1533,
-	SI = 0x1039,
-		SI_503 = 0x0008,
-		SI_496 = 0x0496,
-	Cyrix = 0x1078,
-		Cyrix_5530_Legacy = 0x0100,
-};
-
 typedef struct {
 	ushort	sb_vid, sb_did;
 	uchar	(*sb_translate)(Pcidev *, uchar);
-	void	(*sb_initialize)(Pcidev *, uchar, uchar);	
+	void	(*sb_initialize)(Pcidev *, uchar, uchar);
 } bridge_t;
 
 static bridge_t southbridges[] = {
-{	Intel, Intel_82371FB_0,		pIIx_link,	pIIx_init },
-{	Intel, Intel_82371MX_0,		pIIx_link,	pIIx_init },
-{	Intel, Intel_82371SB_0,		pIIx_link,	pIIx_init },
-{	Intel, Intel_82371AB_0,		pIIx_link,	pIIx_init },
-{	Intel, Intel_82443MX_1,		pIIx_link,	pIIx_init },
-{	Intel, Intel_82801AA_0,		pIIx_link,	pIIx_init },
-{	Intel, Intel_82801AB_0,		pIIx_link,	pIIx_init },
-{	Intel, Intel_82801BA_0,		pIIx_link,	pIIx_init },
-{	Intel, Intel_82801BAM_0,	pIIx_link,	pIIx_init },
-{	Intel, Intel_82801CAM_0,	pIIx_link,	pIIx_init },
-{	Intel, Intel_82801DBM_0,	pIIx_link,	pIIx_init },
-{	Intel, Intel_82801EB_0,		pIIx_link,	pIIx_init },
-{	Intel, Intel_82801FB_0,		pIIx_link,	pIIx_init },
-{	Viatech, Via_82C586_0,		via_link,	via_init },
-{	Viatech, Via_82C596,		via_link,	via_init },
-{	Viatech, Via_82C686,		via_link,	via_init },
-{	Opti, Opti_82C700,		opti_link,	opti_init },
-{	Al, Al_M1533,			ali_link,	ali_init },
-{	SI, SI_503,			pIIx_link,	pIIx_init },
-{	SI, SI_496,			pIIx_link,	pIIx_init },
-{	Cyrix, Cyrix_5530_Legacy,	cyrix_link,	cyrix_init }
+	{ 0x8086, 0x122e, pIIx_link, pIIx_init },	// Intel 82371FB
+	{ 0x8086, 0x1234, pIIx_link, pIIx_init },	// Intel 82371MX
+	{ 0x8086, 0x7000, pIIx_link, pIIx_init },	// Intel 82371SB
+	{ 0x8086, 0x7110, pIIx_link, pIIx_init },	// Intel 82371AB
+	{ 0x8086, 0x7198, pIIx_link, pIIx_init },	// Intel 82443MX (fn 1)
+	{ 0x8086, 0x2410, pIIx_link, pIIx_init },	// Intel 82801AA
+	{ 0x8086, 0x2420, pIIx_link, pIIx_init },	// Intel 82801AB
+	{ 0x8086, 0x2440, pIIx_link, pIIx_init },	// Intel 82801BA
+	{ 0x8086, 0x244c, pIIx_link, pIIx_init },	// Intel 82801BAM
+	{ 0x8086, 0x248c, pIIx_link, pIIx_init },	// Intel 82801CAM
+	{ 0x8086, 0x24c0, pIIx_link, pIIx_init },	// Intel 82801DBL
+	{ 0x8086, 0x24cc, pIIx_link, pIIx_init },	// Intel 82801DBM
+	{ 0x8086, 0x24d0, pIIx_link, pIIx_init },	// Intel 82801EB
+	{ 0x8086, 0x2640, pIIx_link, pIIx_init },	// Intel 82801FB
+	{ 0x8086, 0x27b9, pIIx_link, pIIx_init },	// Intel 82801GBM
+	{ 0x1106, 0x0586, via_link, via_init },		// Viatech 82C586
+	{ 0x1106, 0x0596, via_link, via_init },		// Viatech 82C596
+	{ 0x1106, 0x0686, via_link, via_init },		// Viatech 82C686
+	{ 0x1106, 0x3227, via_link, via_init },		// Viatech VT8237
+	{ 0x1045, 0xc700, opti_link, opti_init },	// Opti 82C700
+	{ 0x10b9, 0x1533, ali_link, ali_init },		// Al M1533
+	{ 0x1039, 0x0008, pIIx_link, pIIx_init },	// SI 503
+	{ 0x1039, 0x0496, pIIx_link, pIIx_init },	// SI 496
+	{ 0x1078, 0x0100, cyrix_link, cyrix_init },	// Cyrix 5530 Legacy
+
+	{ 0x1002, 0x4377, nil, nil },		// ATI Radeon Xpress 200M
+	{ 0x1022, 0x746B, nil, nil },		// AMD 8111
+	{ 0x10DE, 0x00D1, nil, nil },		// NVIDIA nForce 3
+	{ 0x1166, 0x0200, nil, nil },		// ServerWorks ServerSet III LE
 };
 
 typedef struct {
@@ -443,7 +432,7 @@ pcirouting(void)
 			  vid, did);
 		return;
 	}
-	
+
 	pciirqs = (r->rt_pciirqs[1] << 8)|r->rt_pciirqs[0];
 
 	size = (r->rt_size[1] << 8)|r->rt_size[0];
@@ -463,12 +452,12 @@ pcirouting(void)
 			// obtaining the Pcidev structure.
 			tbdf = (BusPCI << 24)|(e->e_bus << 16)|((e->e_dev | fn) << 8);
 			vdid = pcicfgrw32(tbdf, PciVID, 0, 1);
-			if (vdid == 0xFFFFFFFF || vdid == 0) 
+			if (vdid == 0xFFFFFFFF || vdid == 0)
 				continue;
 
 			vid = vdid;
 			did = vdid >> 16;
-	
+
 			pci = nil;
 			while ((pci = pcimatch(pci, vid, did)) != nil) {
 
@@ -476,13 +465,13 @@ pcirouting(void)
 					continue;
 
 				pin = pcicfgr8(pci, PciINTP);
-				if (pin == 0 || pin == 0xff) 
+				if (pin == 0 || pin == 0xff)
 					continue;
-	
+
 				m = &e->e_maps[(pin - 1) * 3];
 				irq = southbridge->sb_translate(sbpci, m[0]);
 				if (irq) {
-					print("pcirouting: %.4uX/%.4uX at pin %d irq %d\n", 
+					print("pcirouting: %.4uX/%.4uX at pin %d irq %d\n",
 						  vid, did, pin, irq);
 					pcicfgw8(pci, PciINTL, irq);
 					pci->intl = irq;
@@ -541,7 +530,7 @@ pcicfginit(void)
 		}
 		outb(PciCSE, n);
 	}
-	
+
 	if(pcicfgmode < 0)
 		goto out;
 
@@ -917,7 +906,7 @@ pcigetpmrb(Pcidev* p)
 	 * power management method.
 	 * Find the capabilities pointer based on PCI header type.
 	 */
-	if(!(p->pcr & 0x0010))
+	if(!(pcicfgr16(p, PciPSR) & 0x0010))
 		return -1;
 	switch(pcicfgr8(p, PciHDT)){
 	default:
