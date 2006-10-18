@@ -1,8 +1,8 @@
 386 - 20000000775 sys sys 1010957353 0
 386/9load - 775 sys sys 1146095338 217880
-386/9loaddebug - 775 sys sys 1160710772 316140
+386/9loaddebug - 775 sys sys 1161113028 316152
 386/9loadlite - 775 sys sys 1146095338 136160
-386/9loadlitedebug - 775 sys sys 1160710772 202448
+386/9loadlitedebug - 775 sys sys 1161113029 202460
 386/9pc - 775 sys sys 1143137104 1913157
 386/9pc.gz - 664 sys sys 1141258202 668936
 386/9pccpu - 775 sys sys 1141258205 1583315
@@ -470,7 +470,7 @@
 386/bin/upas/scanmail - 775 sys sys 1132506882 129176
 386/bin/upas/send - 775 sys sys 1132506883 193043
 386/bin/upas/smtp - 775 sys sys 1132506883 275382
-386/bin/upas/smtpd - 775 sys sys 1132506884 331465
+386/bin/upas/smtpd - 775 sys sys 1161140264 332369
 386/bin/upas/spam - 775 sys sys 1064598366 36
 386/bin/upas/testscan - 775 sys sys 1130594804 83691
 386/bin/upas/token - 775 sys sys 1130594804 77586
@@ -1279,7 +1279,7 @@ lib/face/48x48x2/x - 20000000775 sys sys 1020895710 0
 lib/face/48x48x2/y - 20000000775 sys sys 1020895710 0
 lib/face/48x48x2/z - 20000000775 sys sys 1020895710 0
 lib/face/48x48x4 - 20000000775 sys sys 944941894 0
-lib/face/48x48x4/.dict - 664 sys sys 1156993280 3337
+lib/face/48x48x4/.dict - 664 sys sys 1161059931 3416
 lib/face/48x48x4/Z - 20000000775 sys sys 944945342 0
 lib/face/48x48x4/a - 20000000775 sys sys 944945701 0
 lib/face/48x48x4/a/adb.1 - 664 sys sys 944941890 962
@@ -1319,6 +1319,7 @@ lib/face/48x48x4/g/gerard.1 - 664 sys sys 944941892 1088
 lib/face/48x48x4/g/ghost.1 - 664 sys sys 944941892 783
 lib/face/48x48x4/g/glenda.1 - 664 sys sys 1019530437 686
 lib/face/48x48x4/h - 20000000775 sys sys 944945461 0
+lib/face/48x48x4/h/heiko.1 - 664 sys sys 1161059902 2254
 lib/face/48x48x4/h/hobby.1 - 664 sys sys 944941892 1042
 lib/face/48x48x4/h/howard.1 - 664 sys sys 944941892 952
 lib/face/48x48x4/i - 20000000775 sys sys 944941892 0
@@ -1394,7 +1395,7 @@ lib/face/48x48x4/x/xigh.1 - 664 sys sys 1142019024 1204
 lib/face/48x48x4/y - 20000000775 sys sys 944941894 0
 lib/face/48x48x4/z - 20000000775 sys sys 944941894 0
 lib/face/48x48x8 - 20000000775 sys sys 944941834 0
-lib/face/48x48x8/.dict - 664 sys sys 1158542759 2706
+lib/face/48x48x8/.dict - 664 sys sys 1161061288 2767
 lib/face/48x48x8/Z - 20000000775 sys sys 944941832 0
 lib/face/48x48x8/a - 20000000775 sys sys 944941832 0
 lib/face/48x48x8/a/axel.1 - 664 sys sys 1056983599 473
@@ -1402,6 +1403,7 @@ lib/face/48x48x8/b - 20000000775 sys sys 945300273 0
 lib/face/48x48x8/b/boyd.1 - 664 sys sys 1059679697 1897
 lib/face/48x48x8/b/brucee.1 - 664 sys sys 1056982181 1512
 lib/face/48x48x8/c - 20000000775 sys sys 945300281 0
+lib/face/48x48x8/c/chesky.1 - 664 sys sys 1161120611 1929
 lib/face/48x48x8/c/chrislocke.1 - 664 sys sys 1057005038 1613
 lib/face/48x48x8/c/comcast.1 - 664 sys sys 1057025679 6972
 lib/face/48x48x8/d - 20000000775 sys sys 944941833 0
@@ -7255,7 +7257,7 @@ sys/man - 20000000775 sys sys 1012278794 0
 sys/man/1 - 20000000775 sys sys 1018897631 0
 sys/man/1/0intro - 664 sys sys 1101668050 9625
 sys/man/1/2a - 664 sys sys 1158281866 1196
-sys/man/1/2c - 664 sys sys 1158355567 9168
+sys/man/1/2c - 664 sys sys 1161115344 9171
 sys/man/1/2l - 664 sys sys 1158281887 4376
 sys/man/1/INDEX - 664 sys sys 1141357442 3040
 sys/man/1/INDEX.html - 664 sys sys 1141352366 16517
@@ -7617,7 +7619,7 @@ sys/man/4/keyfs - 664 sys sys 1116594919 5048
 sys/man/4/kfs - 664 sys sys 1102088374 2164
 sys/man/4/lnfs - 664 sys sys 1073491345 1219
 sys/man/4/mntgen - 664 sys sys 1043680799 473
-sys/man/4/namespace - 664 sys sys 1018386777 6916
+sys/man/4/namespace - 664 sys sys 1161060792 6920
 sys/man/4/nfs - 664 sys sys 1140447003 4475
 sys/man/4/nntpfs - 664 sys sys 1032632346 2771
 sys/man/4/paqfs - 664 sys sys 1017723482 1541
@@ -7886,7 +7888,7 @@ sys/src/9/boot/testboot.c - 664 sys sys 1039763734 496
 sys/src/9/ip - 20000000775 sys sys 1015278450 0
 sys/src/9/ip/arp.c - 664 sys sys 1134042932 11218
 sys/src/9/ip/chandial.c - 664 sys sys 1099020048 2295
-sys/src/9/ip/devip.c - 664 sys sys 1155995788 24150
+sys/src/9/ip/devip.c - 664 sys sys 1161061185 24242
 sys/src/9/ip/eipconvtest.c - 664 sys sys 1022588098 3135
 sys/src/9/ip/esp.c - 664 sys sys 1047260561 17084
 sys/src/9/ip/ethermedium.c - 664 sys sys 1115565973 15592
@@ -8021,7 +8023,7 @@ sys/src/9/pc/pcdisk - 664 sys sys 1138115243 1471
 sys/src/9/pc/pcf - 664 sys sys 1138115243 1529
 sys/src/9/pc/pcfl - 664 sys sys 1042004821 1563
 sys/src/9/pc/pcflop - 664 sys sys 1158061762 1513
-sys/src/9/pc/pci.c - 664 sys sys 1160622111 26930
+sys/src/9/pc/pci.c - 664 sys sys 1161060538 26986
 sys/src/9/pc/pcmciamodem.c - 664 sys sys 1099761153 1586
 sys/src/9/pc/pcmkfile - 664 sys sys 1109303822 101
 sys/src/9/pc/piix4smbus.c - 664 sys sys 1091129037 5230
@@ -9078,7 +9080,7 @@ sys/src/boot/pc/pbsdisk.s - 664 sys sys 1017854325 6371
 sys/src/boot/pc/pbsdisklba - 775 sys sys 1015007954 509
 sys/src/boot/pc/pbsdisklba.s - 664 sys sys 1015007954 6022
 sys/src/boot/pc/pbslba.s - 664 sys sys 1143465392 8158
-sys/src/boot/pc/pci.c - 664 sys sys 1160622097 20440
+sys/src/boot/pc/pci.c - 664 sys sys 1161067268 20500
 sys/src/boot/pc/print.c - 664 sys sys 1094674483 219
 sys/src/boot/pc/queue.c - 664 sys sys 1015007954 566
 sys/src/boot/pc/sd.h - 664 sys sys 1153333456 2244

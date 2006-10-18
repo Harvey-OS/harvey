@@ -432,8 +432,8 @@ machine-dependent part
 .IR nm (1),
 .IR pcc (1),
 .IR db (1),
-.IR acid (1),
-.IR ansitize (1)
+.IR acid (1)
+.\" .IR ansitize (1)
 .PP
 Rob Pike,
 ``How to Use the Plan 9 C Compiler''

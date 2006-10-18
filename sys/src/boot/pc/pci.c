@@ -342,6 +342,7 @@ static bridge_t southbridges[] = {
 	{ 0x8086, 0x2420, pIIx_link, pIIx_init },	// Intel 82801AB
 	{ 0x8086, 0x2440, pIIx_link, pIIx_init },	// Intel 82801BA
 	{ 0x8086, 0x244c, pIIx_link, pIIx_init },	// Intel 82801BAM
+	{ 0x8086, 0x2480, pIIx_link, pIIx_init },	// Intel 82801CA
 	{ 0x8086, 0x248c, pIIx_link, pIIx_init },	// Intel 82801CAM
 	{ 0x8086, 0x24c0, pIIx_link, pIIx_init },	// Intel 82801DBL
 	{ 0x8086, 0x24cc, pIIx_link, pIIx_init },	// Intel 82801DBM
