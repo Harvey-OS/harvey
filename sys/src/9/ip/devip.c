@@ -142,6 +142,7 @@ ip1gen(Chan *c, int i, Dir *dp)
 		return -1;
 	case Qarp:
 		p = "arp";
+		prot = 0664;
 		break;
 	case Qbootp:
 		p = "bootp";
@@ -153,6 +154,7 @@ ip1gen(Chan *c, int i, Dir *dp)
 		break;
 	case Qiproute:
 		p = "iproute";
+		prot = 0664;
 		break;
 	case Qipselftab:
 		p = "ipselftab";
@@ -377,6 +379,9 @@ ipopen(Chan* c, int omode)
 		netlogopen(f);
 		break;
 	case Qiproute:
+	case Qarp:
+		if(omode != OREAD && !iseve())
+			error(Eperm);
 		break;
 	case Qtopdir:
 	case Qprotodir:

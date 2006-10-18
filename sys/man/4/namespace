@@ -61,9 +61,6 @@ All empty unwritable directories, place holders for mounted services and directo
 .TP
 .B /mnt
 A directory containing mount points for applications.
-.B /mnt/factotum
-Mount point for
-.IR factotum (4).
 .TP
 .B /n
 A directory containing mount points for file trees imported from
@@ -360,6 +357,10 @@ which holds connections to file servers.
 .TP
 .B /srv/boot
 The communication channel to the main file server for the machine.
+.TP
+.B /mnt/factotum
+Mount point for
+.IR factotum (4).
 .TP
 .B /mnt/wsys
 Mount point for the window system.
