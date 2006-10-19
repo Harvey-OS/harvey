@@ -33,10 +33,16 @@ A different server can be chosen by appending to the name an
 .B @
 followed by the server's domain name.
 .SH FILES
-.TF /lib/tel
+.TF /lib/areacodes
+.TP
+.B /lib/areacodes
+Telephone area codes database.
 .TP
 .B /lib/tel
 Public telephone number database.
+.TP
+.B $home/lib/tel
+Personal telephone number database.
 .SH SOURCE
 .B /rc/bin/tel
 .br
