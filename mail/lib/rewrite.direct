@@ -9,9 +9,11 @@
 #	replace YOURDOMAIN.DOM in the following rules with your domain name.
 
 # translate local aliases from /mail/lib/namefiles
+\"(.+)\"		translate	"/bin/upas/aliasmail '\1'"
 [^!@.]+			translate	"/bin/upas/aliasmail '&'"
 
 # deliver mail without a domain locally
+local!"(.+)"		>>		/mail/box/\1/mbox
 local!(.*)		>>		/mail/box/\1/mbox
 
 # your local names

@@ -197,8 +197,8 @@ attribute/value pair,
 .IR attr = val ,
 but also a pair with the attribute
 .IR rattr .
-If successful, it returns a malloced copy of the null terminated value associated with
-.IR  rattr .
+If successful, it returns a malloced copy of the NUL-terminated value associated with
+.IR rattr .
 If
 .I tp
 is non nil,
@@ -471,7 +471,7 @@ and
 set
 .I errstr
 to
-.B "buffer too short"
+.L "buffer too short"
 if the buffer provided isn't long enough for the
 returned value.
 .SH BUGS
@@ -487,5 +487,4 @@ and
 They expect a fixed 64 byte long result
 buffer and existed when the values of a
 .I Ndbtuple
-structure where fixed length.
-
+structure were fixed length.

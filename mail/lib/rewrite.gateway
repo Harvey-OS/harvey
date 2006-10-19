@@ -12,9 +12,11 @@
 #	in the DNS database in /lib/ndb (see ndb(6)).
 
 # translate local aliases from /mail/lib/namefiles
+\"(.+)\"		translate	"/bin/upas/aliasmail '\1'"
 [^!@.]+			translate	"/bin/upas/aliasmail '&'"
 
 # append the local domain to addresses without a domain
+local!"(.+)"		alias		\1@YOURDOMAIN.DOM
 local!(.*)		alias		\1@YOURDOMAIN.DOM
 
 # convert source domain address to a chain a@b@c@d...
