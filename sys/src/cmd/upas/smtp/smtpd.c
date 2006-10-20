@@ -518,8 +518,9 @@ receiver(String *path)
 
 	if(!recipok(s_to_c(path))){
 		rejectcount++;
-		syslog(0, "smtpd", "Disallowed %s (%s/%s) to blocked name %s",
-				sender, him, nci->rsys, s_to_c(path));
+		syslog(0, "smtpd",
+		 "Disallowed %s (%s/%s) to blocked, unknown or invalid name %s",
+			sender, him, nci->rsys, s_to_c(path));
 		reply("550 %s ... user unknown\r\n", s_to_c(path));
 		return;
 	}
