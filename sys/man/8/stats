@@ -114,6 +114,8 @@ affect only one graph.
 Set the number of seconds between samples to
 .I sleepsecs
 (default one second).
+.I Sleepsecs
+may be a floating-point number.
 .TP
 .BI -S " scale
 Sets a scale factor for the displays.  A value of 2, for example,

@@ -309,7 +309,7 @@ pstring(Device *, int, ulong, void *b, int n)
 		fprint(2, "illegal count\n");
 		return;
 	}
-	n /= 2;
+	n = (n - 2)/2;
 	rb = (byte*)b + 2;
 	s = malloc(n*UTFmax+1);
 	for(l=0; --n >= 0; rb += 2){
@@ -493,8 +493,10 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 			d->config[c]->iface[ifc]->dalt[dalt]->attrib = de->bmAttributes;
 			d->config[c]->iface[ifc]->dalt[dalt]->interval = de->bInterval;
 			ep = de->bEndpointAddress & 0xf;
+			if (debug) print("endpoint addr %d\n", ep); // DEBUG
 			if (d->ep[ep] == nil)
 				d->ep[ep] = newendpt(d, ep, class);
+			else print("endpoint already in use!\n"); // DEBUG
 			if(d->ep[ep]->maxpkt < GET2(de->wMaxPacketSize))
 				d->ep[ep]->maxpkt = GET2(de->wMaxPacketSize);
 			d->ep[ep]->addr = de->bEndpointAddress;

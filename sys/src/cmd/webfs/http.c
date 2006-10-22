@@ -346,6 +346,7 @@ httpopen(Client *c, Url *url)
 	case 201:	/* Created */
 	case 202:	/* Accepted */
 	case 204:	/* No Content */
+	case 205: /* Reset Content */
 #ifdef NOT_DEFINED
 		if(ofile == nil && r->start != 0)
 			sysfatal("page changed underfoot");
@@ -358,6 +359,7 @@ httpopen(Client *c, Url *url)
 
 	case 301:	/* Moved Permanently */
 	case 302:	/* Moved Temporarily */
+	case 307: /* Temporary Redirect  */
 		redirect = 1;
 		break;
 
@@ -375,8 +377,8 @@ httpopen(Client *c, Url *url)
 		}
 		authenticate = 1;
 		break;
-	case 402:	/* ??? */
-		werrstr("Unauthorized (402)");
+	case 402:	/* Payment Required */
+		werrstr("Payment Required (402)");
 		goto Error;
 
 	case 403:	/* Forbidden */
@@ -391,8 +393,52 @@ httpopen(Client *c, Url *url)
 		werrstr("Method not allowed (405)");
 		goto Error;
 
+	case 406: /* Not Acceptable */
+		werrstr("Not Acceptable (406)");
+		goto Error;
+
 	case 407:	/* Proxy auth */
 		werrstr("Proxy authentication required (407)");
+		goto Error;
+
+	case 408: /* Request Timeout */
+		werrstr("Request Timeout (408)");
+		goto Error;
+
+	case 409: /* Conflict */
+		werrstr("Conflict  (409)");
+		goto Error;
+	
+	case 410: /* Gone */
+		werrstr("Gone  (410)");
+		goto Error;
+	
+	case 411: /* Length Required */
+		werrstr("Length Required  (411)");
+		goto Error;
+	
+	case 412: /* Precondition Failed */
+		werrstr("Precondition Failed  (412)");
+		goto Error;
+	
+	case 413: /* Request Entity Too Large */
+		werrstr("Request Entity Too Large  (413)");
+		goto Error;
+	
+	case 414: /* Request-URI Too Long */
+		werrstr("Request-URI Too Long  (414)");
+		goto Error;
+	
+	case 415: /* Unsupported Media Type */
+		werrstr("Unsupported Media Type  (415)");
+		goto Error;
+	
+	case 416: /* Requested Range Not Satisfiable */
+		werrstr("Requested Range Not Satisfiable  (416)");
+		goto Error;
+	
+	case 417: /* Expectation Failed */
+		werrstr("Expectation Failed  (417)");
 		goto Error;
 
 	case 500:	/* Internal server error */

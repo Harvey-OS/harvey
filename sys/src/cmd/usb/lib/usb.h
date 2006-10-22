@@ -241,7 +241,7 @@ enum
 	Cselfpowered = 1<<6,
 	Cremotewakeup = 1<<5,
 };
-	
+
 struct Device
 {
 	Ref;
@@ -261,6 +261,8 @@ struct Device
 	int	did;		/* product (device) id */
 	Dconf*	config[16];
 	Endpt*	ep[Nendpt];
+//	Device*	setupfd;	/* for usbprobe */
+//	Device*	cfd;		/* for usbprobe */
 };
 
 /*

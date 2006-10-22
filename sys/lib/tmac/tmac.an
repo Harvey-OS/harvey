@@ -58,7 +58,6 @@
 .if\\n()s 'sp |\\n(.pu-1v-1p
 .if\\n()t 'sp |\\n(.pu-3v
 .ifn 'sp |\\n(.pu-4v
-.ifn .tl Page %\\*(]D\\*(]W
 .ift .tl %
 .ev
 'bp
@@ -465,7 +464,7 @@
 .ift \{.ds R ®
 .dsS \s\n()S
 ..\}
-.ifn \{.nr )L 11i
+.ifn \{.nr )L 1000i
 .nrLL 6.5i
 .nr)O .463i
 .if '\*(.T'think' \{.nrLL 80n

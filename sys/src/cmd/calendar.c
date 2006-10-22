@@ -23,6 +23,13 @@ void upper2lower(char*, char*, int);
 void *emalloc(unsigned int);
 
 void
+usage(void)
+{
+	fprint(2, "usage: calendar [-dy] [-p days] [files ...]\n");
+	exits("usage");
+}
+
+void
 main(int argc, char *argv[])
 {
 	int i, fd, ahead;
@@ -41,11 +48,10 @@ main(int argc, char *argv[])
 		debug = 1;
 		break;
 	case 'p':
-		ahead = atoi(ARGF());
+		ahead = atoi(EARGF(usage()));
 		break;
 	default:
-		fprint(2, "usage: calendar [-dy] [-p days] [files ...]\n");
-		exits("usage");
+		usage();
 	}ARGEND;
 
 	/* make a list of dates */

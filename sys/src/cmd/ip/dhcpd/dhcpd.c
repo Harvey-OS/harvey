@@ -428,7 +428,7 @@ rcvdiscover(Req *rp)
 	Binding *b, *nb;
 
 	if(rp->staticbinding){
-		sendoffer(rp, rp->ii.ipaddr, StaticLease);
+		sendoffer(rp, rp->ii.ipaddr, (StaticLease > minlease ? StaticLease : minlease));
 		return;
 	}
 
@@ -486,7 +486,7 @@ rcvrequest(Req *rp)
 		/* check for hard assignment */
 		if(rp->staticbinding){
 			if(forme(rp->server))
-				sendack(rp, rp->ii.ipaddr, StaticLease, 1);
+				sendack(rp, rp->ii.ipaddr, (StaticLease > minlease ? StaticLease : minlease), 1);
 			else
 				warning(0, "!Request(%s via %I): for server %I not me",
 					rp->id, rp->gii.ipaddr, rp->server);
@@ -543,7 +543,7 @@ rcvrequest(Req *rp)
 					rp->id, rp->gii.ipaddr, rp->ip, rp->bp->chaddr);
 				sendnak(rp, "not valid");
 			}
-			sendack(rp, rp->ii.ipaddr, StaticLease, 1);
+			sendack(rp, rp->ii.ipaddr, (StaticLease > minlease ? StaticLease : minlease), 1);
 			return;
 		}
 
@@ -585,7 +585,7 @@ rcvrequest(Req *rp)
 					rp->id, rp->gii.ipaddr, rp->ciaddr);
 				sendnak(rp, "not valid");
 			}
-			sendack(rp, rp->ii.ipaddr, StaticLease, 1);
+			sendack(rp, rp->ii.ipaddr, (StaticLease > minlease ? StaticLease : minlease), 1);
 			return;
 		}
 
