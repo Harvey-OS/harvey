@@ -213,7 +213,7 @@ main(int argc, char **argv)
 		flag |= MCACHE;
 		break;
 	case 'm':
-		mtpt = ARGF();
+		mtpt = EARGF(usage());
 		break;
 	default:
 		usage();

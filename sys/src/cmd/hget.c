@@ -120,7 +120,7 @@ main(int argc, char **argv)
 
 	ARGBEGIN {
 	case 'o':
-		ofile = ARGF();
+		ofile = EARGF(usage());
 		break;
 	case 'd':
 		debug = 1;
@@ -132,14 +132,10 @@ main(int argc, char **argv)
 		verbose = 1;
 		break;
 	case 'x':
-		net = ARGF();
-		if(net == nil)
-			usage();
+		net = EARGF(usage());
 		break;
 	case 'p':
-		t = ARGF();
-		if(t == nil)
-			usage();
+		t = EARGF(usage());
 		if(p != postbody)
 			p = seprint(p, e, "&%s", t);
 		else

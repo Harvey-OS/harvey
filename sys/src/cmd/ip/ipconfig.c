@@ -564,7 +564,10 @@ adddefroute(char *mpoint, uchar *gaddr)
 	cfd = open(buf, ORDWR);
 	if(cfd < 0)
 		return;
-	fprint(cfd, "add 0 0 %I", gaddr);
+	if(isv4(gaddr))
+		fprint(cfd, "add 0 0 %I", gaddr);
+	else
+		fprint(cfd, "add :: :: %I", gaddr);
 	close(cfd);
 }
 

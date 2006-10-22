@@ -94,7 +94,7 @@ _readipifc(char *file, Ipifc **l, int index)
 		free(ifc);
 		return l;
 	}
-	ifc->mtu = strtoul(findfield("maxmtu", f, n), nil, 10);
+	ifc->mtu = strtoul(findfield("maxtu", f, n), nil, 10);
 	ifc->sendra6 = atoi(findfield("sendra", f, n));
 	ifc->recvra6 = atoi(findfield("recvra", f, n));
 	ifc->rp.mflag = atoi(findfield("mflag", f, n));

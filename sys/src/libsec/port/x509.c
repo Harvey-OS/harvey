@@ -40,6 +40,7 @@ typedef struct Elist Elist;
 #define REAL 9
 #define ENUMERATED 10
 #define EMBEDDED_PDV 11
+#define UTF8String 12
 #define SEQUENCE 16		/* also SEQUENCE OF */
 #define SETOF 17				/* also SETOF OF */
 #define NumericString 18
@@ -516,7 +517,7 @@ value_decode(uchar** pp, uchar* pend, int length, int kind, int isconstr, Value*
 			pval->u.setval = vl;
 		}
 		break;
-
+	case UTF8String:
 	case NumericString:
 	case PrintableString:
 	case TeletexString:
@@ -1018,6 +1019,7 @@ val_enc(uchar** pp, Elem e, int *pconstr, int lenonly)
 		}
 		break;
 
+	case UTF8String:
 	case NumericString:
 	case PrintableString:
 	case TeletexString:
@@ -1248,6 +1250,7 @@ is_string(Elem* pe, char** pstring)
 {
 	if(pe->tag.class == Universal) {
 		switch(pe->tag.num) {
+		case UTF8String:
 		case NumericString:
 		case PrintableString:
 		case TeletexString:
@@ -2450,6 +2453,7 @@ tagdump(Tag tag)
 	case EMBEDDED_PDV: return "EMBEDDED PDV";
 	case SEQUENCE: return "SEQUENCE";
 	case SETOF: return "SETOF";
+	case UTF8String: return "UTF8String";
 	case NumericString: return "NumericString";
 	case PrintableString: return "PrintableString";
 	case TeletexString: return "TeletexString";
