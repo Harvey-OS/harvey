@@ -31621,3 +31621,4 @@
 1161486006 2 c sys/lib/tmac/tmac.an - 664 sys sys 1161484650 8228
 1161486006 3 c sys/src/cmd/ip/ipconfig.c - 664 sys sys 1161484510 34927
 1161486006 4 c sys/src/cmd/webfs/http.c - 664 sys sys 1161484900 10381
+1161604806 0 c sys/games/lib/fortunes - 664 sys sys 1161603592 261218
