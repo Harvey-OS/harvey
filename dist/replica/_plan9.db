@@ -470,7 +470,7 @@
 386/bin/upas/scanmail - 775 sys sys 1132506882 129176
 386/bin/upas/send - 775 sys sys 1132506883 193043
 386/bin/upas/smtp - 775 sys sys 1132506883 275382
-386/bin/upas/smtpd - 775 sys sys 1161209067 332398
+386/bin/upas/smtpd - 775 sys sys 1161745025 332398
 386/bin/upas/spam - 775 sys sys 1064598366 36
 386/bin/upas/testscan - 775 sys sys 1130594804 83691
 386/bin/upas/token - 775 sys sys 1130594804 77586
