@@ -31623,3 +31623,4 @@
 1161486006 4 c sys/src/cmd/webfs/http.c - 664 sys sys 1161484900 10381
 1161604806 0 c sys/games/lib/fortunes - 664 sys sys 1161603592 261218
 1161745207 0 c 386/bin/upas/smtpd - 775 sys sys 1161745025 332398
+1161910806 0 c sys/src/cmd/7l/obj.c - 774 sys sys 1161910512 22824

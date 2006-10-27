@@ -74,7 +74,7 @@ main(int argc, char *argv[])
 	USED(argc);
 
 	if(*argv == 0) {
-		diag("usage: 1l [-options] objects");
+		diag("usage: 7l [-options] objects");
 		errorexit();
 	}
 	if(!debug['9'] && !debug['B'] && !debug['U'])

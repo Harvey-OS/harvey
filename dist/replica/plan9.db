@@ -9231,7 +9231,7 @@ sys/src/cmd/7l/l.h - 774 sys sys 1134261563 5002
 sys/src/cmd/7l/list.c - 774 sys sys 1014926954 4146
 sys/src/cmd/7l/mkfile - 774 sys sys 1134261563 372
 sys/src/cmd/7l/noop.c - 774 sys sys 1045503944 19495
-sys/src/cmd/7l/obj.c - 774 sys sys 1134261563 22824
+sys/src/cmd/7l/obj.c - 774 sys sys 1161910512 22824
 sys/src/cmd/7l/optab.c - 774 sys sys 944961630 5087
 sys/src/cmd/7l/pass.c - 774 sys sys 1132450430 8676
 sys/src/cmd/7l/sched.c - 774 sys sys 944961630 244
