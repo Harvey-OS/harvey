@@ -61,8 +61,6 @@ hxferenc,
 .SH SYNOPSIS
 .nf
 .B #include <u.h>
-.nf
-.B #include <u.h>
 .B #include <libc.h>
 .B #include <httpd.h>
 .PP

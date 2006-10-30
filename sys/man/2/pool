@@ -4,9 +4,9 @@ poolalloc, poolallocalignspan, poolfree, poolmsize, poolrealloc, poolcompact, po
 pooldump \- general memory management routines
 .SH SYNOPSIS
 .B #include <u.h>
-.PP
+.br
 .B #include <libc.h>
-.PP
+.br
 .B #include <pool.h>
 .PP
 .B
@@ -36,7 +36,7 @@ void	poolcheck(Pool *pool)
 void	poolblockcheck(Pool *pool, void *ptr)
 .PP
 .B
-void pooldump(Pool *pool);
+void	pooldump(Pool *pool);
 .SH DESCRIPTION
 These routines provide a general memory management facility.
 Memory is retrieved from a coarser allocator (e.g. 

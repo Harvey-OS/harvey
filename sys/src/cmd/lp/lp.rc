@@ -99,8 +99,8 @@ if(! ifs=() eval `{aux/getflags $*}) {
 	exit usage
 }
 if(~ $flagd '?'){
-	awk 'BEGIN{printf "device       location  host                 class\n"}
-			/^[^#]/	{printf "%-12s %-9s %-20s %s\n", $1, $2, $3, $6 }' $LPLIB/devices
+	awk 'BEGIN {print "device       location  host                   class"}
+/^[^#]/	{ printf "%-12s %-9s %-22s %s\n", $1, $2, $3, $6 }' $LPLIB/devices
 	exit
 }
 if(~ $flagp '?'){
@@ -157,6 +157,7 @@ STAT=$LPDLINE(9)
 KILL=$LPDLINE(10)
 DAEMON=$LPDLINE(11)
 SCHED=$LPDLINE(12)
+if (~ $#SCHED 0) SCHED=FIFO	# everyone uses FIFO
 if (~ $KILLFLAG 1)
 	switch ($KILL) {
 	case -;	echo kill option not available on $LPDEST >[1=2]

@@ -1313,7 +1313,7 @@ lib/face/48x48x4/f - 20000000775 sys sys 944945448 0
 lib/face/48x48x4/f/freund.1 - 664 sys sys 944941891 1028
 lib/face/48x48x4/f/ftg.1 - 664 sys sys 944941891 919
 lib/face/48x48x4/g - 20000000775 sys sys 944941892 0
-lib/face/48x48x4/g/geoff.1 - 664 sys sys 1140277644 1168
+lib/face/48x48x4/g/geoff.1 - 664 sys sys 1162105947 1034
 lib/face/48x48x4/g/george.1 - 664 sys sys 944941892 1100
 lib/face/48x48x4/g/gerard.1 - 664 sys sys 944941892 1088
 lib/face/48x48x4/g/ghost.1 - 664 sys sys 944941892 783
@@ -1395,7 +1395,7 @@ lib/face/48x48x4/x/xigh.1 - 664 sys sys 1142019024 1204
 lib/face/48x48x4/y - 20000000775 sys sys 944941894 0
 lib/face/48x48x4/z - 20000000775 sys sys 944941894 0
 lib/face/48x48x8 - 20000000775 sys sys 944941834 0
-lib/face/48x48x8/.dict - 664 sys sys 1161061288 2767
+lib/face/48x48x8/.dict - 664 sys sys 1162138215 2800
 lib/face/48x48x8/Z - 20000000775 sys sys 944941832 0
 lib/face/48x48x8/a - 20000000775 sys sys 944941832 0
 lib/face/48x48x8/a/axel.1 - 664 sys sys 1056983599 473
@@ -5457,7 +5457,7 @@ rc/bin/label - 775 sys sys 945617207 34
 rc/bin/lc - 775 sys sys 945617207 24
 rc/bin/leak - 775 sys sys 1139744263 1052
 rc/bin/lookman - 775 sys sys 1017679344 686
-rc/bin/lp - 775 sys sys 1146317617 5154
+rc/bin/lp - 775 sys sys 1162105982 5201
 rc/bin/mail - 775 sys sys 1045504003 138
 rc/bin/man - 775 sys sys 1155361978 2516
 rc/bin/map - 775 sys sys 945617207 1576
@@ -7404,7 +7404,7 @@ sys/man/1/tweak - 664 sys sys 957920008 4762
 sys/man/1/uniq - 664 sys sys 944959674 995
 sys/man/1/units - 664 sys sys 1113743326 2046
 sys/man/1/uptime - 664 sys sys 1074733782 380
-sys/man/1/vac - 664 sys sys 1158391232 3228
+sys/man/1/vac - 664 sys sys 1162102172 3244
 sys/man/1/vi - 664 sys sys 1101668051 2904
 sys/man/1/vnc - 664 sys sys 1158063994 4313
 sys/man/1/vt - 664 sys sys 1133880370 2256
@@ -7429,7 +7429,7 @@ sys/man/2/addpt - 664 sys sys 958249501 2964
 sys/man/2/aes - 664 sys sys 1032058672 997
 sys/man/2/allocimage - 664 sys sys 1046787977 7304
 sys/man/2/arg - 664 sys sys 1139744263 2184
-sys/man/2/arith3 - 664 sys sys 969499887 4397
+sys/man/2/arith3 - 664 sys sys 1162102967 4393
 sys/man/2/assert - 664 sys sys 1102868467 377
 sys/man/2/atof - 664 sys sys 1155361945 2777
 sys/man/2/auth - 664 sys sys 1017423719 7539
@@ -7488,12 +7488,12 @@ sys/man/2/getuser - 664 sys sys 1016466457 641
 sys/man/2/getwd - 664 sys sys 971455511 701
 sys/man/2/graphics - 664 sys sys 1140900146 12765
 sys/man/2/html - 664 sys sys 1019828742 29269
-sys/man/2/httpd - 664 sys sys 1032633536 5941
+sys/man/2/httpd - 664 sys sys 1162102159 5919
 sys/man/2/hypot - 664 sys sys 944959693 302
 sys/man/2/intmap - 664 sys sys 1015091523 2622
 sys/man/2/ioproc - 664 sys sys 1159419768 3060
 sys/man/2/iounit - 664 sys sys 1015091523 1001
-sys/man/2/ip - 664 sys sys 1156429262 7197
+sys/man/2/ip - 664 sys sys 1162102153 7209
 sys/man/2/isalpharune - 664 sys sys 1015091523 1059
 sys/man/2/keyboard - 664 sys sys 950892860 2065
 sys/man/2/lock - 664 sys sys 1048643958 4692
@@ -7515,7 +7515,7 @@ sys/man/2/open - 664 sys sys 1015091524 3404
 sys/man/2/perror - 664 sys sys 944959696 1881
 sys/man/2/pipe - 664 sys sys 950892864 1587
 sys/man/2/plumb - 664 sys sys 1015091524 4816
-sys/man/2/pool - 664 sys sys 1102093086 8574
+sys/man/2/pool - 664 sys sys 1162102403 8574
 sys/man/2/postnote - 664 sys sys 944959695 790
 sys/man/2/prime - 664 sys sys 1063855709 1962
 sys/man/2/print - 664 sys sys 1115941566 8852
@@ -7523,9 +7523,9 @@ sys/man/2/privalloc - 664 sys sys 984709633 651
 sys/man/2/proto - 664 sys sys 969499889 2948
 sys/man/2/pushssl - 664 sys sys 958249503 1032
 sys/man/2/pushtls - 664 sys sys 1124711123 5618
-sys/man/2/qball - 664 sys sys 950892866 2000
+sys/man/2/qball - 664 sys sys 1162102671 1996
 sys/man/2/qsort - 664 sys sys 944959694 763
-sys/man/2/quaternion - 664 sys sys 950892867 3421
+sys/man/2/quaternion - 664 sys sys 1162102619 3417
 sys/man/2/quote - 664 sys sys 1067719062 3072
 sys/man/2/rand - 664 sys sys 1035836606 2881
 sys/man/2/rc4 - 664 sys sys 1032058674 1138
@@ -7977,7 +7977,7 @@ sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
 sys/src/9/pc/ether79c970.c - 664 sys sys 1160070602 14088
 sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
 sys/src/9/pc/ether8139.c - 664 sys sys 1160066369 18561
-sys/src/9/pc/ether8169.c - 664 sys sys 1160066369 25393
+sys/src/9/pc/ether8169.c - 664 sys sys 1162138241 25392
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1131290377 32294
 sys/src/9/pc/ether82557.c - 664 sys sys 1153082663 30197
 sys/src/9/pc/ether83815.c - 664 sys sys 1140271743 26125
@@ -8165,7 +8165,7 @@ sys/src/9/port/thwack.c - 664 sys sys 1057323394 7253
 sys/src/9/port/thwack.h - 664 sys sys 1015278340 1792
 sys/src/9/port/tod.c - 664 sys sys 1146746630 5377
 sys/src/9/port/unthwack.c - 664 sys sys 1057323394 5249
-sys/src/9/port/xalloc.c - 664 sys sys 1131290051 4063
+sys/src/9/port/xalloc.c - 664 sys sys 1162138307 4277
 sys/src/9/ppc - 20000000775 sys sys 1059490838 0
 sys/src/9/ppc/blast - 664 sys sys 1107436310 670
 sys/src/9/ppc/blast.h - 664 sys sys 1059490750 3109
@@ -12552,7 +12552,7 @@ sys/src/cmd/look.c - 664 sys sys 944961619 5994
 sys/src/cmd/lp - 20000000775 sys sys 953344617 0
 sys/src/cmd/lp/LOCK.c - 664 sys sys 1015090023 1066
 sys/src/cmd/lp/ipcopen.c - 664 sys sys 944961017 1607
-sys/src/cmd/lp/lp.rc - 775 sys sys 1146317617 5154
+sys/src/cmd/lp/lp.rc - 775 sys sys 1162105978 5201
 sys/src/cmd/lp/lpdaemon.c - 664 sys sys 1032060412 10000
 sys/src/cmd/lp/lpdsend.c - 664 sys sys 1116770113 9583
 sys/src/cmd/lp/lpsend.c - 664 sys sys 1015090024 6180
