@@ -4,8 +4,6 @@
 #include "dat.h"
 #include "fns.h"
 
-#define datoff		((ulong)((Xhdr*)0)->data)
-
 enum
 {
 	Chunk		= 64*1024,
@@ -29,7 +27,7 @@ struct Xhdr
 {
 	ulong	size;
 	ulong	magix;
-	char	data[1];
+	char	data[];
 };
 
 struct Xalloc
@@ -123,7 +121,7 @@ xallocz(ulong size, int zero)
 	Xhdr *p;
 	Hole *h, **l;
 
-	size += BY2V + sizeof(Xhdr);
+	size += BY2V + offsetof(Xhdr, data[0]);
 	size &= ~(BY2V-1);
 
 	ilock(&xlists);
@@ -162,10 +160,10 @@ xfree(void *p)
 {
 	Xhdr *x;
 
-	x = (Xhdr*)((ulong)p - datoff);
+	x = (Xhdr*)((ulong)p - offsetof(Xhdr, data[0]));
 	if(x->magix != Magichole) {
 		xsummary();
-		panic("xfree(0x%lux) 0x%lux!=0x%lux", p, (ulong)Magichole, x->magix);
+		panic("xfree(%#p) %#ux != %#lux", p, Magichole, x->magix);
 	}
 	xhole(PADDR(x), x->size);
 }
@@ -175,9 +173,14 @@ xmerge(void *vp, void *vq)
 {
 	Xhdr *p, *q;
 
-	p = vp;
-	if((uchar*)vp+p->size == (uchar*)vq) {
-		q = vq;
+	p = (Xhdr*)(((ulong)vp - offsetof(Xhdr, data[0])));
+	q = (Xhdr*)(((ulong)vq - offsetof(Xhdr, data[0])));
+	if(p->magix != Magichole || q->magix != Magichole) {
+		xsummary();
+		panic("xmerge(%#p, %#p) bad magic %#lux, %#lux\n",
+			vp, vq, p->magix, q->magix);
+	}
+	if((uchar*)p+p->size == (uchar*)q) {
 		p->size += q->size;
 		return 1;
 	}

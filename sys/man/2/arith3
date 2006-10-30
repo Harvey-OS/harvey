@@ -2,10 +2,9 @@
 .SH NAME
 add3, sub3, neg3, div3, mul3, eqpt3, closept3, dot3, cross3, len3, dist3, unit3, midpt3, lerp3, reflect3, nearseg3, pldist3, vdiv3, vrem3, pn2f3, ppp2f3, fff2p3, pdiv4, add4, sub4 \- operations on 3-d points and planes
 .SH SYNOPSIS
-.PP
 .B
 #include <draw.h>
-.PP
+.br
 .B
 #include <geometry.h>
 .PP

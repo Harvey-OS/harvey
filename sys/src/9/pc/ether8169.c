@@ -237,7 +237,7 @@ struct Dtcc {
 
 enum {						/* Variants */
 	Rtl8100e	= (0x8136<<16)|0x10EC,	/* RTL810[01]E ? */
-	Rtl8169c		= (0x0116<<16)|0x16EC,	/* RTL8169C+ (USR997902) */
+	Rtl8169c	= (0x0116<<16)|0x16EC,	/* RTL8169C+ (USR997902) */
 	Rtl8169sc	= (0x8167<<16)|0x10EC,	/* RTL8169SC */
 	Rtl8168b	= (0x8168<<16)|0x10EC,	/* RTL8168B */
 	Rtl8169		= (0x8169<<16)|0x10EC,	/* RTL8169 */

@@ -2,10 +2,9 @@
 .SH NAME
 qball \- 3-d rotation controller
 .SH SYNOPSIS
-.PP
 .B
 #include <draw.h>
-.PP
+.br
 .B
 #include <geometry.h>
 .PP
