@@ -630,7 +630,7 @@ devpccardlink(void)
 			pcicfgw8(cb->pci, 0xD4, 0xCA);
 		}
 
-		if (intl != -1 && intl != pci->intl)
+		if (intl != 0xFF && intl != pci->intl)
 			intrenable(pci->intl, cbinterrupt, cb, pci->tbdf, "cardbus");
 		intl = pci->intl;
 
