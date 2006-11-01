@@ -1212,3 +1212,10 @@ Err:
 	return NilBlock;
 }
 
+VacFS *
+vacfs(VacFile *vf)
+{
+	if (vf == nil)
+		return nil;
+	return vf->fs;
+}
