@@ -36,14 +36,14 @@ sourceAlloc(Cache *c, Lump *u, ulong block, int entry, int readOnly)
 		return nil;
 	
 	if(!(d.flags & VtEntryActive)) {
-fprint(2, "bad flags %#ux %V\n", d.flags, d.score);
+fprint(2, "%s: bad flags %#ux %V\n", argv0, d.flags, d.score);
 		vtSetError(ENoDir);
 		return nil;
 	}
 	
 	/* HACK for backwards compatiblity - should go away at some point */
 	if(d.depth == 0) {
-if(d.size > d.dsize) fprint(2, "depth == 0! size = %ulld\n", d.size);
+if(d.size > d.dsize) fprint(2, "%s: depth == 0! size = %ulld\n", argv0, d.size);
 		d.depth = sizeToDepth(d.size, d.psize, d.dsize);
 	}
 
@@ -77,7 +77,7 @@ sourceOpen(Source *r, ulong entry, int readOnly)
 	ulong bn;
 	Lump *u;
 
-if(0)fprint(2, "sourceOpen: %V:%d: %lud\n", r->lump->score, r->entry, entry);
+if(0)fprint(2, "%s: sourceOpen: %V:%d: %lud\n", argv0, r->lump->score, r->entry, entry);
 	if(r->readOnly && !readOnly) {
 		vtSetError(EReadOnly);
 		return nil;
@@ -365,7 +365,7 @@ sourceGetLump(Source *r, ulong block, int readOnly, int lock)
 		vtSetError(ENilBlock);
 		return nil;
 	}
-if(0)fprint(2, "sourceGetLump: %V:%d %lud\n", r->lump->score, r->entry, block);
+if(0)fprint(2, "%s: sourceGetLump: %V:%d %lud\n", argv0, r->lump->score, r->entry, block);
 	u = sourceWalk(r, block, readOnly, &off);
 	if(u == nil)
 		return nil;

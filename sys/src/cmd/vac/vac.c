@@ -71,6 +71,7 @@ void metaSinkFree(MetaSink *k);
 void plan9ToVacDir(VacDir*, Dir*, ulong entry, uvlong qid);
 
 enum {
+	Debug = 1,
 	Version = 8,
 	BlockSize = 8*1024,
 	MaxExclude = 1000,
@@ -101,7 +102,6 @@ void
 main(int argc, char *argv[])
 {
 	VtSession *z;
-	char *p;
 	char *host = nil;
 	int statsFlag = 0;
 
@@ -111,40 +111,26 @@ main(int argc, char *argv[])
 	default:
 		usage();
 	case 'b':
-		p = ARGF();
-		if(p == 0)
-			usage();
-		bsize = unittoull(p);
+		bsize = unittoull(EARGF(usage()));
 		if(bsize == ~0)
 			usage();
 		break;
 	case 'd':
-		dfile = ARGF();
-		if(dfile == nil)
-			usage();
+		dfile = EARGF(usage());
 		break;
 	case 'e':
 		if(nexclude >= MaxExclude)
 			sysfatal("too many exclusions");
-		exclude[nexclude] = ARGF();
-		if(exclude[nexclude] == nil)
-			usage();
-		nexclude++;
+		exclude[nexclude++] = EARGF(usage());
 		break;
 	case 'f':
-		oname = ARGF();
-		if(oname == 0)
-			usage();
+		oname = EARGF(usage());
 		break;
 	case 'h':
-		host = ARGF();
-		if(host == nil)
-			usage();
+		host = EARGF(usage());
 		break;
 	case 'i':
-		isi = ARGF();
-		if(isi == nil)
-			usage();
+		isi = EARGF(usage());
 		break;
 	case 'n':
 		nowrite++;
@@ -185,10 +171,13 @@ main(int argc, char *argv[])
 
 	vac(z, argv);
 	if(!vtSync(z))
-		fprint(2, "warning: could not ask server to flush pending writes: %R\n");
+		fprint(2,
+	"%s: warning: could not ask server to flush pending writes: %R\n",
+			argv0);
 
 	if(statsFlag)
-		fprint(2, "files %ld:%ld data %ld:%ld:%ld meta %ld\n", stats.file, stats.sfile,
+		fprint(2, "%s: files %ld:%ld data %ld:%ld:%ld meta %ld\n",
+			argv0, stats.file, stats.sfile,
 			stats.data, stats.skip, stats.sdata, stats.meta);
 //packetStats();
 	vtClose(z);
@@ -197,15 +186,15 @@ main(int argc, char *argv[])
 	exits(0);
 }
 
-void
-static usage(void)
+static void
+usage(void)
 {
 	fprint(2, "usage: %s [-amqsv] [-h host] [-d vacfile] [-b blocksize] [-i name] [-e exclude] [-f vacfile] file ... \n", argv0);
 	exits("usage");
 }
 
-static
-int strpCmp(void *p0, void *p1)
+static int
+strpCmp(void *p0, void *p1)
 {
 	return strcmp(*(char**)p0, *(char**)p1);
 }
@@ -241,7 +230,8 @@ assert(n > 0);
 		uchar score2[VtScoreSize];
 
 		vtSha1(score2, buf, n);
-fprint(2, "vtSha1Check: n = %d %V %V\n", n, score, score2);
+		fprint(2, "%s: vtSha1Check: n = %d %V %V\n",
+			argv0, n, score, score2);
 		vtSetError("vtSha1Check failed");
 		return 0;
 	}
@@ -274,7 +264,8 @@ vac(VtSession *z, char *argv[])
 	if(dfile != nil) {
 		fs = vfsOpen(z, dfile, 1, 10000);
 		if(fs == nil)
-			fprint(2, "could not open diff: %s: %s\n", dfile, vtGetError());
+			fprint(2, "%s: could not open diff: %s: %s\n",
+				argv0, dfile, vtGetError());
 	}
 
 
@@ -401,6 +392,7 @@ vacFile(DirSink *dsink, char *lname, char *sname, VacFile *vf)
 {
 	int fd;
 	Dir *dir;
+	Dir fake;
 	VacDir vd;
 	ulong entry;
 
@@ -415,6 +407,29 @@ vacFile(DirSink *dsink, char *lname, char *sname, VacFile *vf)
 	fd = open(sname, OREAD);
 	if(fd < 0) {
 		warn("could not open file: %s: %s", lname, vtOSError());
+
+		/*
+		 * fake up dsink & vf contents so we don't explode later.
+		 * I'm not certain that this is needed, but it seems like
+		 * a wise precaution.
+		 */
+		entry = dsink->nentry;
+		/* pretend it's a plain file */
+		dir = &fake;
+		nulldir(dir);
+		dir->type = 'M';
+		dir->dev = 10;
+		dir->qid = (Qid){ 10, 2, QTFILE};
+		dir->mode = 0664;
+		dir->atime = dir->mtime = time(nil);
+		dir->length = 0;
+		dir->name = sname;
+		dir->uid = dir->gid = dir->muid = "missing";
+
+		vacData(dsink, fd, lname, vf, dir);
+		plan9ToVacDir(&vd, dir, entry, fileid++);
+		metaSinkWriteDir(dsink->msink, &vd);
+		vdCleanup(&vd);
 		return;
 	}
 
@@ -488,7 +503,8 @@ vacDataSkip(Sink *sink, VacFile *vf, int fd, ulong blocks, uchar *buf, char *lna
 		warn("error checking append only file: %s", lname);
 		goto Err;
 	}
-	if(!vfGetBlockScore(vf, blocks-1, score) || !vtSha1Check(score, buf, n)) {
+	if(!vfGetBlockScore(vf, blocks-1, score) ||
+	    !vtSha1Check(score, buf, n)) {
 		warn("last block of append file did not match: %s", lname);
 		goto Err;
 	}
@@ -523,9 +539,10 @@ vacData(DirSink *dsink, int fd, char *lname, VacFile *vf, Dir *dir)
 	vfblocks = 0;
 	if(vf != nil && qdiff) {
 		vfGetDir(vf, &vd);
-		if(vd.mtime == dir->mtime)
-		if(vd.size == dir->length)
-		if(!vd.plan9 || /* vd.p9path == dir->qid.path && */ vd.p9version == dir->qid.vers)
+		if(vd.mtime == dir->mtime && vd.size == dir->length &&
+		    (!vd.plan9 ||
+		     /* vd.p9path == dir->qid.path && */
+		     vd.p9version == dir->qid.vers))
 		if(dirSinkWriteFile(dsink, vf)) {
 			stats.sfile++;
 			vdCleanup(&vd);
@@ -533,10 +550,8 @@ vacData(DirSink *dsink, int fd, char *lname, VacFile *vf, Dir *dir)
 		}
 
 		/* look for an append only file */
-		if((dir->mode&DMAPPEND) != 0)
-		if(vd.size < dir->length)
-		if(vd.plan9)
-		if(vd.p9path == dir->qid.path)
+		if((dir->mode&DMAPPEND) && vd.size < dir->length &&
+		    vd.plan9 && vd.p9path == dir->qid.path)
 			vfblocks = vd.size/bsize;
 
 		vdCleanup(&vd);
@@ -555,10 +570,12 @@ if(0) fprint(2, "vacData: %s: %ld\n", lname, block);
 	for(;;) {
 		n = readBlock(fd, buf, bsize);
 		if(0 && n < 0)
-			warn("file truncated due to read error: %s: %s", lname, vtOSError());
+			warn("file truncated due to read error: %s: %s",
+				lname, vtOSError());
 		if(n <= 0)
 			break;
-		if(vf != nil && vfGetBlockScore(vf, block, score) && vtSha1Check(score, buf, n)) {
+		if(vf != nil && vfGetBlockScore(vf, block, score) &&
+		    vtSha1Check(score, buf, n)) {
 			stats.sdata++;
 			sinkWriteScore(sink, score, n);
 		} else
@@ -566,8 +583,7 @@ if(0) fprint(2, "vacData: %s: %ld\n", lname, block);
 		block++;
 	}
 	same = stats.sdata+stats.skip - same;
-
-	if(same && (dir->mode&DMAPPEND) != 0)
+	if(same && (dir->mode&DMAPPEND))
 		if(0)fprint(2, "%s: total %lud same %lud:%lud diff %lud\n",
 			lname, block, same, vfblocks, block-same);
 
@@ -577,28 +593,35 @@ if(0) fprint(2, "vacData: %s: %ld\n", lname, block);
 	free(buf);
 }
 
-
 static void
 vacDir(DirSink *dsink, int fd, char *lname, char *sname, VacFile *vf)
 {
 	Dir *dirs;
 	char *ln, *sn;
+	char *name;
 	int i, nd;
 	DirSink *ds;
 	VacFile *vvf;
-	char *name;
+
+	/*
+	 * if we could see the score underlying dir, we could quickly
+	 * short-circuit further directory descent if vf (see vacfs(vf)->score)
+	 * and dir had identical scores.
+	 */
 
 	ds = dirSinkAlloc(dsink->sink->z, bsize, bsize);
 	while((nd = dirread(fd, &dirs)) > 0){
 		for(i = 0; i < nd; i++){
 			name = dirs[i].name;
 			/* check for bad file names */
-			if(name[0] == 0 || strcmp(name, ".") == 0 || strcmp(name, "..") == 0)
+			if(name[0] == 0 || name[0] == '/' ||
+			    strcmp(name, ".") == 0 || strcmp(name, "..") == 0)
 				continue;
-			ln = vtMemAlloc(strlen(lname) + strlen(name) + 2);
-			sn = vtMemAlloc(strlen(sname) + strlen(name) + 2);
-			sprint(ln, "%s/%s", lname, name);
-			sprint(sn, "%s/%s", sname, name);
+			ln = smprint("%s/%s", lname, name);
+			sn = smprint("%s/%s", sname, name);
+			if (ln == nil || sn == nil)
+				sysfatal("out of memory");
+
 			if(vf != nil)
 				vvf = vfWalk(vf, name);
 			else
@@ -606,8 +629,8 @@ vacDir(DirSink *dsink, int fd, char *lname, char *sname, VacFile *vf)
 			vacFile(ds, ln, sn, vvf);
 			if(vvf != nil)
 				vfDecRef(vvf);
-			vtMemFree(ln);
-			vtMemFree(sn);
+			free(ln);
+			free(sn);
 		}
 		free(dirs);
 	}
@@ -642,7 +665,7 @@ vacMergeFile(DirSink *dsink, VacFile *vf, VacDir *dir, uvlong offset, uvlong *ma
 		vtEntryUnpack(&md, buf, 0);
 	}
 
-	/* max might incorrect in some old dumps */
+	/* max might be incorrect in some old dumps */
 	if(dir->qid >= *max) {
 		warn("qid out of range: %s", dir->elem);
 		*max = dir->qid;
@@ -695,7 +718,7 @@ vacMerge(DirSink *dsink, char *lname, char *sname)
 		goto Done;
 
 	if(verbose)
-		fprint(2, "merging: %s\n", lname);
+		fprint(2, "%s: merging: %s\n", argv0, lname);
 
 	if(maxbsize < vfsGetBlockSize(fs))
 		maxbsize = vfsGetBlockSize(fs);

@@ -797,6 +797,7 @@ io(void)
 int
 permf(VacFile *vf, char *user, int p)
 {
+	int ok = 1;
 	VacDir dir;
 	ulong perm;
 
@@ -811,11 +812,10 @@ permf(VacFile *vf, char *user, int p)
 		goto Good;
 	if(strcmp(user, dir.uid)==0 && ((p*Powner) & perm))
 		goto Good;
-	vdCleanup(&dir);
-	return 0;
+	ok = 0;
 Good:
 	vdCleanup(&dir);
-	return 1;
+	return ok;
 }
 
 int
