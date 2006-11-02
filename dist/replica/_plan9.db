@@ -135,7 +135,7 @@
 386/bin/aux/postreverse - 775 sys sys 1087442508 164726
 386/bin/aux/posttek - 775 sys sys 1087442508 163239
 386/bin/aux/rdwr - 775 sys sys 1148500602 38338
-386/bin/aux/reboot - 775 sys sys 1148500602 60905
+386/bin/aux/reboot - 775 sys sys 1162419095 62256
 386/bin/aux/samterm - 775 sys sys 1133287401 250207
 386/bin/aux/searchfs - 775 sys sys 1148500603 89889
 386/bin/aux/sprog - 775 sys sys 1130594714 79372
@@ -425,7 +425,7 @@
 386/bin/tcs - 775 sys sys 1161026500 320293
 386/bin/tee - 775 sys sys 1148500692 38463
 386/bin/telco - 775 sys sys 1134389878 103347
-386/bin/telnet - 775 sys sys 1148500693 80743
+386/bin/telnet - 775 sys sys 1162416851 80751
 386/bin/test - 775 sys sys 1155491757 70321
 386/bin/time - 775 sys sys 1148500693 61712
 386/bin/tlsclient - 775 sys sys 1162241048 198972
@@ -482,8 +482,8 @@
 386/bin/usb/usbd - 775 sys sys 1130594805 129878
 386/bin/usb/usbmouse - 775 sys sys 1130594806 138159
 386/bin/usb/usbprinter - 775 sys sys 1089408719 222
-386/bin/vac - 775 sys sys 1162351724 170720
-386/bin/vacfs - 775 sys sys 1162351725 175522
+386/bin/vac - 775 sys sys 1162412620 170720
+386/bin/vacfs - 775 sys sys 1162412621 175530
 386/bin/venti - 20000000775 sys sys 947360466 0
 386/bin/venti/buildindex - 775 sys sys 1130594807 154175
 386/bin/venti/checkarenas - 775 sys sys 1130594808 158418
@@ -7746,7 +7746,7 @@ sys/man/8/pop3 - 664 sys sys 1063854676 2720
 sys/man/8/ppp - 664 sys sys 1125530075 4414
 sys/man/8/prep - 664 sys sys 1152729153 14013
 sys/man/8/qer - 664 sys sys 1067723129 4909
-sys/man/8/reboot - 664 sys sys 969499895 414
+sys/man/8/reboot - 664 sys sys 1162423006 443
 sys/man/8/replica - 664 sys sys 1138479158 6383
 sys/man/8/rsa - 664 sys sys 1057955511 4628
 sys/man/8/scanmail - 664 sys sys 969499895 10803
@@ -8013,7 +8013,7 @@ sys/src/9/pc/memory.c - 664 sys sys 1153172671 18773
 sys/src/9/pc/mkfile - 664 sys sys 1158794206 4004
 sys/src/9/pc/mmu.c - 664 sys sys 1155995596 24115
 sys/src/9/pc/mouse.c - 664 sys sys 1098479254 7057
-sys/src/9/pc/mp.c - 664 sys sys 1146542974 17317
+sys/src/9/pc/mp.c - 664 sys sys 1162388126 17349
 sys/src/9/pc/mp.h - 664 sys sys 1153193597 6795
 sys/src/9/pc/nv_dma.h - 664 sys sys 1081384508 12943
 sys/src/9/pc/pc - 664 sys sys 1143768293 1452
@@ -9691,7 +9691,7 @@ sys/src/cmd/aux/olefs.c - 664 sys sys 1071245775 9853
 sys/src/cmd/aux/pcmcia.c - 664 sys sys 1099761153 9213
 sys/src/cmd/aux/portmap.c - 664 sys sys 1049776133 3617
 sys/src/cmd/aux/rdwr.c - 664 sys sys 1016833876 811
-sys/src/cmd/aux/reboot.c - 664 sys sys 1116769521 1429
+sys/src/cmd/aux/reboot.c - 664 sys sys 1162419091 1533
 sys/src/cmd/aux/searchfs.c - 664 sys sys 1143759348 18163
 sys/src/cmd/aux/statusbar.c - 664 sys sys 1138460096 6066
 sys/src/cmd/aux/stub.c - 664 sys sys 1098196222 2723
@@ -12445,7 +12445,7 @@ sys/src/cmd/ip/snoopy/rtp.c - 664 sys sys 1138463392 1021
 sys/src/cmd/ip/snoopy/tcp.c - 664 sys sys 1144956781 3618
 sys/src/cmd/ip/snoopy/ttls.c - 664 sys sys 1128179540 1451
 sys/src/cmd/ip/snoopy/udp.c - 664 sys sys 1144955685 2015
-sys/src/cmd/ip/telnet.c - 664 sys sys 1143759344 8614
+sys/src/cmd/ip/telnet.c - 664 sys sys 1162416789 8621
 sys/src/cmd/ip/telnet.h - 664 sys sys 1015090250 5902
 sys/src/cmd/ip/telnetd.c - 664 sys sys 1135487948 11772
 sys/src/cmd/ip/tftpd.c - 664 sys sys 1106943821 7646
@@ -14147,7 +14147,7 @@ sys/src/cmd/vac/stdinc.h - 664 sys sys 1036006059 121
 sys/src/cmd/vac/util.c - 664 sys sys 1019678787 930
 sys/src/cmd/vac/vac.c - 664 sys sys 1162350579 23803
 sys/src/cmd/vac/vac.h - 664 sys sys 1091904424 3598
-sys/src/cmd/vac/vacfs.c - 664 sys sys 1162327841 13629
+sys/src/cmd/vac/vacfs.c - 664 sys sys 1162402257 13621
 sys/src/cmd/vac/vactest.c - 664 sys sys 1036024047 2742
 sys/src/cmd/vac/vtdump.c - 664 sys sys 1162327892 7323
 sys/src/cmd/vac/vtread.c - 664 sys sys 1019678788 2052
@@ -15673,3 +15673,5 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/aux/reboot - 775 sys sys 1162440193 62256
+386/bin/telnet - 775 sys sys 1162440194 80751
