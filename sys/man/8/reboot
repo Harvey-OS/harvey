@@ -11,8 +11,8 @@ reboot \- reboot the system upon loss of remote file server connection
 stats
 .IR file ,
 default
-.BR /$\fIcputype\fP/init ,
-once a minute.  If the stat times out,
+.BR /$\fIcputype\fP/lib ,
+once every five minutes.  If the stat fails, rather than timing out,
 .I reboot
 reboots the system.  This is used to restart diskless cpu
 servers whenever their file server connection is broken.
