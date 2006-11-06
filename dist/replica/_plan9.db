@@ -135,7 +135,7 @@
 386/bin/aux/postreverse - 775 sys sys 1087442508 164726
 386/bin/aux/posttek - 775 sys sys 1087442508 163239
 386/bin/aux/rdwr - 775 sys sys 1148500602 38338
-386/bin/aux/reboot - 775 sys sys 1162419095 62256
+386/bin/aux/reboot - 775 sys sys 1162440193 62256
 386/bin/aux/samterm - 775 sys sys 1133287401 250207
 386/bin/aux/searchfs - 775 sys sys 1148500603 89889
 386/bin/aux/sprog - 775 sys sys 1130594714 79372
@@ -425,7 +425,7 @@
 386/bin/tcs - 775 sys sys 1161026500 320293
 386/bin/tee - 775 sys sys 1148500692 38463
 386/bin/telco - 775 sys sys 1134389878 103347
-386/bin/telnet - 775 sys sys 1162416851 80751
+386/bin/telnet - 775 sys sys 1162440194 80751
 386/bin/test - 775 sys sys 1155491757 70321
 386/bin/time - 775 sys sys 1148500693 61712
 386/bin/tlsclient - 775 sys sys 1162241048 198972
@@ -15673,5 +15673,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/aux/reboot - 775 sys sys 1162440193 62256
-386/bin/telnet - 775 sys sys 1162440194 80751
