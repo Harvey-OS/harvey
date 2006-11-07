@@ -35,8 +35,8 @@ getexpiration(char *db, char *u)
 	char prompt[128];
 	char cdate[32];
 	Tm date;
-	ulong secs, now, fd;
-	int n;
+	ulong secs, now;
+	int n, fd;
 
 	/* read current expiration (if any) */
 	snprint(buf, sizeof buf, "%s/%s/expire", db, u);
