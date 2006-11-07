@@ -31698,3 +31698,6 @@
 1162423806 0 c sys/man/8/reboot - 664 sys sys 1162423006 443
 1162441806 0 c 386/bin/aux/reboot - 775 sys sys 1162440193 62256
 1162441806 1 c 386/bin/telnet - 775 sys sys 1162440194 80751
+1162845005 0 c sys/src/cmd/auth/lib/getexpiration.c - 664 sys sys 1162844529 1574
+1162859406 0 c sys/src/9/pc/uartpci.c - 664 sys sys 1162859151 3617
+1162872004 0 c 386/bin/auth/changeuser - 775 sys sys 1162871997 97582

@@ -46,7 +46,7 @@
 386/bin/auth/aescbc - 775 sys sys 1158607303 140962
 386/bin/auth/asn12rsa - 775 sys sys 1162241032 120927
 386/bin/auth/authsrv - 775 sys sys 1162241033 166705
-386/bin/auth/changeuser - 775 sys sys 1148500575 97390
+386/bin/auth/changeuser - 775 sys sys 1162871997 97582
 386/bin/auth/convkeys - 775 sys sys 1158607304 88100
 386/bin/auth/convkeys2 - 775 sys sys 1158607304 88159
 386/bin/auth/cron - 775 sys sys 1152291495 144824
@@ -8047,7 +8047,7 @@ sys/src/9/pc/trap.c - 664 sys sys 1135487942 21257
 sys/src/9/pc/uartaxp.c - 664 sys sys 1158803840 18862
 sys/src/9/pc/uarti8250.c - 664 sys sys 1102820421 13958
 sys/src/9/pc/uartisa.c - 664 sys sys 1127126907 1777
-sys/src/9/pc/uartpci.c - 664 sys sys 1155995486 3109
+sys/src/9/pc/uartpci.c - 664 sys sys 1162859151 3617
 sys/src/9/pc/usb.h - 664 sys sys 1099760881 3650
 sys/src/9/pc/usbuhci.c - 664 sys sys 1154725785 30910
 sys/src/9/pc/vga.c - 664 sys sys 1131290595 5148
@@ -9503,7 +9503,7 @@ sys/src/cmd/auth/lib - 20000000775 sys sys 1015008430 0
 sys/src/cmd/auth/lib/error.c - 664 sys sys 1155994850 318
 sys/src/cmd/auth/lib/fs.c - 664 sys sys 1015008430 228
 sys/src/cmd/auth/lib/getauthkey.c - 664 sys sys 1155994850 451
-sys/src/cmd/auth/lib/getexpiration.c - 664 sys sys 1155994850 1574
+sys/src/cmd/auth/lib/getexpiration.c - 664 sys sys 1162844529 1574
 sys/src/cmd/auth/lib/keyfmt.c - 664 sys sys 1155994850 508
 sys/src/cmd/auth/lib/log.c - 664 sys sys 1155994850 618
 sys/src/cmd/auth/lib/mkfile - 664 sys sys 1152223363 386

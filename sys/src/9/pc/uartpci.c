@@ -75,6 +75,25 @@ uartpcipnp(void)
 				continue;
 			uart->next = uartpci(ctlrno, p, 1, 1, 1843200, "PCI2S550-1");
 			break;
+		case (0x950A<<16)|0x1415:	/* Oxford Semi OX16PCI954 */
+			/*
+			 * These are common devices used by 3rd-party
+			 * manufacturers.
+			 * Must check the subsystem VID and DID for correct
+			 * match.
+			 */
+			subid = pcicfgr16(p, PciSVID);
+			subid |= pcicfgr16(p, PciSID)<<16;
+			switch(subid){
+			default:
+				continue;
+			case (0x2000<<16)|0x131F:/* SIIG CyberSerial PCIe */
+				uart = uartpci(ctlrno, p, 0, 1, 18432000, "CyberSerial-1S");
+					if(uart == nil)
+						continue;
+				break;
+			}
+			break;
 		case (0x9050<<16)|0x10B5:	/* Perle PCI-Fast4 series */
 		case (0x9030<<16)|0x10B5:	/* Perle Ultraport series */
 			/*
