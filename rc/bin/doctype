@@ -67,7 +67,7 @@ END {
 	if (man) x = x "-man"
 	else if (ms) x = x "-ms"
 	else if (mm) x = x "-mm"
-	if (lbits) x = x "-mbits"
+	if (lbits) x = x " -mbits"
 	if (pictures) x = x " -mpictures"
 	x = x " '$opt' '$dev' " files
 	print x

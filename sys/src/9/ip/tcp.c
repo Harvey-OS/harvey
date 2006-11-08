@@ -54,7 +54,7 @@ enum
 	TCP_CONNECT	= 1,		/* Outgoing connection */
 	SYNACK_RXTIMER	= 250,		/* ms between SYNACK retransmits */
 
-	TCPREXMTTHRESH  = 3,            /* dupack threshhold for rxt */
+	TCPREXMTTHRESH	= 3,		/* dupack threshhold for rxt */
 
 	FORCE		= 1,
 	CLONE		= 2,
@@ -285,7 +285,7 @@ struct Limbo
 };
 
 int	tcp_irtt = DEF_RTT;	/* Initial guess at round trip time */
-ushort	tcp_mss  = DEF_MSS;	/* Maximum segment size to be sent */
+ushort	tcp_mss = DEF_MSS;	/* Maximum segment size to be sent */
 
 enum {
 	/* MIB stats */
@@ -350,7 +350,7 @@ struct Tcppriv
 	ulong	stats[Nstats];
 };
 
-/* 
+/*
  *  Setting tcpporthogdefense to non-zero enables Dong Lin's
  *  solution to hijacked systems staking out port's as a form
  *  of DoS attack.
@@ -375,7 +375,7 @@ void	tcprcvwin(Conv*);
 void	tcpacktimer(void*);
 void	tcpkeepalive(void*);
 void	tcpsetkacounter(Tcpctl*);
-void    tcprxmit(Conv*);
+void	tcprxmit(Conv*);
 void	tcpsettimer(Tcpctl*);
 void	tcpsynackrtt(Conv*);
 void	tcpsetscale(Conv*, Tcpctl*, ushort, ushort);
@@ -711,7 +711,7 @@ backoff(int n)
 }
 
 void
-localclose(Conv *s, char *reason)	 /*  called with tcb locked */
+localclose(Conv *s, char *reason)	/* called with tcb locked */
 {
 	Tcpctl *tcb;
 	Reseq *rp,*rp1;
@@ -1804,8 +1804,8 @@ update(Conv *s, Tcp *seg)
 	/*
 	 *  update window
 	 */
-	if( seq_gt(seg->ack, tcb->snd.wl2)
-	||  (tcb->snd.wl2 == seg->ack && seg->wnd > tcb->snd.wnd)){
+	if(seq_gt(seg->ack, tcb->snd.wl2)
+	|| (tcb->snd.wl2 == seg->ack && seg->wnd > tcb->snd.wnd)){
 		tcb->snd.wnd = seg->wnd;
 		tcb->snd.wl2 = seg->ack;
 	}
@@ -1821,9 +1821,9 @@ update(Conv *s, Tcp *seg)
 		return;
 	}
 
-        /*
+	/*
 	 *  any positive ack turns off fast rxt,
-         *  (should we do new-reno on partial acks?)
+	 *  (should we do new-reno on partial acks?)
 	 */
 	if(!tcb->snd.recovery || seq_ge(seg->ack, tcb->snd.rxt)) {
 		tcb->snd.dupacks = 0;
@@ -1925,7 +1925,7 @@ tcpiput(Proto *tcp, Ipifc*, Block *bp)
 
 	f = tcp->f;
 	tpriv = tcp->priv;
-	
+
 	tpriv->stats[InSegs]++;
 
 	h4 = (Tcp4hdr*)(bp->rp);
@@ -1939,7 +1939,7 @@ tcpiput(Proto *tcp, Ipifc*, Block *bp)
 
 		h4->Unused = 0;
 		hnputs(h4->tcplen, length-TCP4_PKT);
-		if(!(bp->flag & Btcpck) && (h4->tcpcksum[0] || h4->tcpcksum[1]) && 
+		if(!(bp->flag & Btcpck) && (h4->tcpcksum[0] || h4->tcpcksum[1]) &&
 			ptclcsum(bp, TCP4_IPLEN, length-TCP4_IPLEN)) {
 			tpriv->stats[CsumErrs]++;
 			tpriv->stats[InErrs]++;
@@ -1978,7 +1978,7 @@ tcpiput(Proto *tcp, Ipifc*, Block *bp)
 		h6->ploadlen[0] = h6->ploadlen[1] = h6->proto = 0;
 		h6->ttl = proto;
 		hnputl(h6->vcf, length);
-		if((h6->tcpcksum[0] || h6->tcpcksum[1]) && 
+		if((h6->tcpcksum[0] || h6->tcpcksum[1]) &&
 			ptclcsum(bp, TCP6_IPLEN, length+TCP6_PHDRSIZE)) {
 			tpriv->stats[CsumErrs]++;
 			tpriv->stats[InErrs]++;
@@ -2277,7 +2277,7 @@ reset:
 					qpassnolim(s->rq, bp);
 					bp = nil;
 
-					/* 
+					/*
 					 *  Force an ack every 2 data messages.  This is
 					 *  a hack for rob to make his home system run
 					 *  faster.
@@ -2412,20 +2412,20 @@ tcpoutput(Conv *s)
 
 	for(msgs = 0; msgs < 100; msgs++) {
 		tcb = (Tcpctl*)s->ptcl;
-	
+
 		switch(tcb->state) {
 		case Listen:
 		case Closed:
 		case Finwait2:
 			return;
 		}
-	
+
 		/* force an ack when a window has opened up */
 		if(tcb->rcv.blocked && tcb->rcv.wnd > 0){
 			tcb->rcv.blocked = 0;
 			tcb->flags |= FORCE;
 		}
-	
+
 		sndcnt = qlen(s->wq)+tcb->flgcnt;
 		sent = tcb->snd.ptr - tcb->snd.una;
 
@@ -2841,7 +2841,7 @@ int
 addreseq(Tcpctl *tcb, Tcppriv *tpriv, Tcp *seg, Block *bp, ushort length)
 {
 	Reseq *rp, *rp1;
-	int i;
+	int i, rqlen;
 	static int once;
 
 	rp = malloc(sizeof(Reseq));
@@ -2864,9 +2864,9 @@ addreseq(Tcpctl *tcb, Tcppriv *tpriv, Tcp *seg, Block *bp, ushort length)
 		return 0;
 	}
 
-	length = 0;
+	rqlen = 0;
 	for(i = 0;; i++) {
-		length += rp1->length;
+		rqlen += rp1->length;
 		if(rp1->next == nil || seq_lt(seg->seq, rp1->next->seg.seq)) {
 			rp->next = rp1->next;
 			rp1->next = rp;
@@ -2876,8 +2876,8 @@ addreseq(Tcpctl *tcb, Tcppriv *tpriv, Tcp *seg, Block *bp, ushort length)
 		}
 		rp1 = rp1->next;
 	}
-	if(length > QMAX && once++ == 0){
-		print("very long tcp resequence queue: %d\n", length);
+	if(rqlen > QMAX && once++ == 0){
+		print("very long tcp resequence queue: %d\n", rqlen);
 		for(rp1 = tcb->reseq, i = 0; i < 10 && rp1 != nil; rp1 = rp1->next, i++)
 			print("0x%lux 0x%lux 0x%ux\n", rp1->seg.seq, rp1->seg.ack,
 				rp1->seg.flags);
@@ -2994,7 +2994,7 @@ tcpadvise(Proto *tcp, Block *bp, char *msg)
 		v4tov6(source, h4->tcpsrc);
 		psource = nhgets(h4->tcpsport);
 		pdest = nhgets(h4->tcpdport);
-	} 
+	}
 	else {
 		ipmove(dest, h6->tcpdst);
 		ipmove(source, h6->tcpsrc);
@@ -3122,7 +3122,7 @@ tcpsettimer(Tcpctl *tcb)
 
 	/* round trip dependency */
 	x = backoff(tcb->backoff) *
-	    (tcb->mdev + (tcb->srtt>>LOGAGAIN) + MSPTICK) / MSPTICK;
+		(tcb->mdev + (tcb->srtt>>LOGAGAIN) + MSPTICK) / MSPTICK;
 
 	/* bounded twixt 1/2 and 64 seconds */
 	if(x < 500/MSPTICK)

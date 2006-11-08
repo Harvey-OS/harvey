@@ -5436,7 +5436,7 @@ rc/bin/diffy - 775 sys sys 1140694870 277
 rc/bin/dircp - 775 sys sys 1107836261 193
 rc/bin/doc2ps - 775 sys sys 1069793831 244
 rc/bin/doc2txt - 775 sys sys 1025197880 563
-rc/bin/doctype - 775 sys sys 945617206 1726
+rc/bin/doctype - 775 sys sys 1162921755 1727
 rc/bin/dosmnt - 775 sys sys 1109288224 303
 rc/bin/eject - 775 sys sys 945617207 123
 rc/bin/fax - 775 sys sys 1127394677 2385
@@ -7559,7 +7559,7 @@ sys/man/2/symbol - 664 sys sys 950892874 9423
 sys/man/2/thread - 664 sys sys 1117034202 11640
 sys/man/2/time - 664 sys sys 1015091527 739
 sys/man/2/tmpfile - 664 sys sys 1048637161 1157
-sys/man/2/wait - 664 sys sys 1015091528 2481
+sys/man/2/wait - 664 sys sys 1162948415 2507
 sys/man/2/window - 664 sys sys 950593499 5522
 sys/man/3 - 20000000775 sys sys 1017251174 0
 sys/man/3/0intro - 664 sys sys 984709634 1873
@@ -7632,7 +7632,7 @@ sys/man/4/rdbfs - 664 sys sys 944959699 1123
 sys/man/4/rio - 664 sys sys 1023206844 8660
 sys/man/4/sacfs - 664 sys sys 964886843 907
 sys/man/4/snap - 664 sys sys 1017251244 1833
-sys/man/4/srv - 664 sys sys 1144690338 4672
+sys/man/4/srv - 664 sys sys 1162907929 4685
 sys/man/4/tapefs - 664 sys sys 1140965924 1861
 sys/man/4/telco - 664 sys sys 1015024814 4359
 sys/man/4/u9fs - 664 sys sys 1043769139 4748
@@ -7901,7 +7901,7 @@ sys/src/9/ip/igmp.c - 664 sys sys 1055700768 5175
 sys/src/9/ip/il.c - 664 sys sys 1134498903 27226
 sys/src/9/ip/inferno.c - 664 sys sys 1022588098 517
 sys/src/9/ip/ip.c - 664 sys sys 1101906449 15285
-sys/src/9/ip/ip.h - 664 sys sys 1146151712 15778
+sys/src/9/ip/ip.h - 664 sys sys 1162907930 15760
 sys/src/9/ip/ipaux.c - 664 sys sys 1079538100 12862
 sys/src/9/ip/ipifc.c - 664 sys sys 1146151712 34215
 sys/src/9/ip/ipmux.c - 664 sys sys 1047260566 15362
@@ -7915,7 +7915,7 @@ sys/src/9/ip/nullmedium.c - 664 sys sys 1086406910 492
 sys/src/9/ip/pktmedium.c - 664 sys sys 1084331746 1314
 sys/src/9/ip/ptclbsum.c - 664 sys sys 1022588099 1243
 sys/src/9/ip/rudp.c - 664 sys sys 1055700790 21415
-sys/src/9/ip/tcp.c - 664 sys sys 1087606219 65623
+sys/src/9/ip/tcp.c - 664 sys sys 1162907929 65581
 sys/src/9/ip/tripmedium.c - 664 sys sys 1045063515 7136
 sys/src/9/ip/udp.c - 664 sys sys 1077376216 13146
 sys/src/9/mkfile - 664 sys sys 1063857477 205
@@ -7949,7 +7949,7 @@ sys/src/9/mtx/uarti8250.c - 664 sys sys 1018721288 11590
 sys/src/9/pc - 20000000775 sys sys 1018721225 0
 sys/src/9/pc/a100p.cp - 444 sys sys 1159735144 21984
 sys/src/9/pc/apbootstrap.s - 664 sys sys 1131293655 3037
-sys/src/9/pc/apic.c - 664 sys sys 1131290206 8748
+sys/src/9/pc/apic.c - 664 sys sys 1162907929 8872
 sys/src/9/pc/apm.c - 664 sys sys 1131290210 3723
 sys/src/9/pc/apmjump.s - 664 sys sys 1032058947 1527
 sys/src/9/pc/archmp.c - 664 sys sys 1131290214 2357
@@ -7993,7 +7993,7 @@ sys/src/9/pc/ethermii.c - 664 sys sys 1084331434 4612
 sys/src/9/pc/ethermii.h - 664 sys sys 1086873891 3258
 sys/src/9/pc/etherrhine.c - 664 sys sys 1081706478 13799
 sys/src/9/pc/ethersink.c - 664 sys sys 1048644103 1076
-sys/src/9/pc/ethersmc.c - 664 sys sys 1071245461 15103
+sys/src/9/pc/ethersmc.c - 664 sys sys 1162951986 15116
 sys/src/9/pc/ethervgbe.c - 664 sys sys 1160066496 26838
 sys/src/9/pc/ethervt6102.c - 664 sys sys 1131907459 22286
 sys/src/9/pc/etherwavelan.c - 664 sys sys 1131290380 3747
@@ -8007,7 +8007,7 @@ sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
 sys/src/9/pc/io.h - 664 sys sys 1099761152 8095
 sys/src/9/pc/kbd.c - 664 sys sys 1132574883 12365
 sys/src/9/pc/l.s - 664 sys sys 1143129925 28552
-sys/src/9/pc/main.c - 664 sys sys 1155995697 15305
+sys/src/9/pc/main.c - 664 sys sys 1162952105 15321
 sys/src/9/pc/mem.h - 664 sys sys 1137622431 5203
 sys/src/9/pc/memory.c - 664 sys sys 1153172671 18773
 sys/src/9/pc/mkfile - 664 sys sys 1158794206 4004
@@ -9853,11 +9853,11 @@ sys/src/cmd/cc/compat.c - 664 sys sys 1132451523 454
 sys/src/cmd/cc/dcl.c - 664 sys sys 1143759352 27003
 sys/src/cmd/cc/dpchk.c - 664 sys sys 1107365037 7152
 sys/src/cmd/cc/funct.c - 664 sys sys 984718510 6167
-sys/src/cmd/cc/lex.c - 664 sys sys 1157898973 24195
+sys/src/cmd/cc/lex.c - 664 sys sys 1162952421 24538
 sys/src/cmd/cc/lexbody - 664 sys sys 1131293457 9188
 sys/src/cmd/cc/mac.c - 664 sys sys 944960808 36
 sys/src/cmd/cc/macbody - 664 sys sys 1144689980 12205
-sys/src/cmd/cc/mkfile - 664 sys sys 1143240308 564
+sys/src/cmd/cc/mkfile - 664 sys sys 1162952410 596
 sys/src/cmd/cc/omachcap.c - 664 sys sys 1143241829 78
 sys/src/cmd/cc/pgen.c - 664 sys sys 1143759337 8927
 sys/src/cmd/cc/pickle.c - 664 sys sys 1063855374 4829
@@ -14003,7 +14003,7 @@ sys/src/cmd/upas/filterkit/pipefrom.sample - 775 sys sys 1041184939 380
 sys/src/cmd/upas/filterkit/pipeto.sample - 664 sys sys 1045505695 1765
 sys/src/cmd/upas/filterkit/pipeto.sample-hold - 664 sys sys 1019837081 872
 sys/src/cmd/upas/filterkit/readaddrs.c - 664 sys sys 1143759341 1331
-sys/src/cmd/upas/filterkit/token.c - 664 sys sys 1018549521 1312
+sys/src/cmd/upas/filterkit/token.c - 664 sys sys 1162952184 1319
 sys/src/cmd/upas/fs - 20000000775 sys sys 988250018 0
 sys/src/cmd/upas/fs/dat.h - 664 sys sys 1143929916 4189
 sys/src/cmd/upas/fs/fs.c - 664 sys sys 1143946869 26924
@@ -14132,10 +14132,10 @@ sys/src/cmd/va/lex.c - 664 sys sys 1143293804 12095
 sys/src/cmd/va/mkfile - 664 sys sys 944961340 215
 sys/src/cmd/vac - 20000000775 sys sys 1019678788 0
 sys/src/cmd/vac/cache.c - 664 sys sys 1071245791 15806
-sys/src/cmd/vac/dat.h - 664 sys sys 1091904424 3994
+sys/src/cmd/vac/dat.h - 664 sys sys 1162951177 4029
 sys/src/cmd/vac/error.c - 664 sys sys 1036006057 633
 sys/src/cmd/vac/error.h - 664 sys sys 1036024048 327
-sys/src/cmd/vac/file.c - 664 sys sys 1162350655 19061
+sys/src/cmd/vac/file.c - 664 sys sys 1162951640 19943
 sys/src/cmd/vac/fns.h - 664 sys sys 1036006061 1746
 sys/src/cmd/vac/fs.c - 664 sys sys 1162327826 2902
 sys/src/cmd/vac/mkfile - 664 sys sys 1036024045 434
@@ -14149,8 +14149,8 @@ sys/src/cmd/vac/vac.c - 664 sys sys 1162350579 23803
 sys/src/cmd/vac/vac.h - 664 sys sys 1091904424 3598
 sys/src/cmd/vac/vacfs.c - 664 sys sys 1162402257 13621
 sys/src/cmd/vac/vactest.c - 664 sys sys 1036024047 2742
-sys/src/cmd/vac/vtdump.c - 664 sys sys 1162327892 7323
-sys/src/cmd/vac/vtread.c - 664 sys sys 1019678788 2052
+sys/src/cmd/vac/vtdump.c - 664 sys sys 1162951782 8007
+sys/src/cmd/vac/vtread.c - 664 sys sys 1162951740 2016
 sys/src/cmd/vac/wtest.c - 664 sys sys 1019678788 766
 sys/src/cmd/vc - 20000000775 sys sys 947099614 0
 sys/src/cmd/vc/cgen.c - 664 sys sys 1143241861 20147
@@ -15673,3 +15673,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/8c - 775 sys sys 1162959070 365562

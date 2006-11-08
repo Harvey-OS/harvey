@@ -512,7 +512,7 @@ matherror(Ureg *ur, void*)
 	fpenv(&up->fpsave);
 	mathnote();
 
-	if(ur->pc & KZERO)
+	if((ur->pc & 0xf0000000) == KZERO)
 		panic("fp: status %ux fppc=0x%lux pc=0x%lux",
 			up->fpsave.status, up->fpsave.pc, ur->pc);
 }

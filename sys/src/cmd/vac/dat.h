@@ -34,6 +34,8 @@ struct Source {
 	Cache *cache;	/* immutable */
 	int readOnly;	/* immutable */
 
+	VacFile *vf;	/* pointer back */
+
 	Lump *lump;	/* lump containing venti dir entry */
 	ulong block;	/* block number within parent: immutable */
 	int entry;	/* which entry in the block: immutable */
@@ -99,7 +101,7 @@ enum {
  * 	For Active*, no child has a parent of a greater generation
  *	For Snap*, there is a snap parent of given generation and there are
  *		no parents of greater gen - implies no children of a greater gen
- *	For *RO, the lump is fixed - no change ca be made - all pointers
+ *	For *RO, the lump is fixed - no change can be made - all pointers
  *		are valid venti addresses
  *	For *A, the lump is on the venti server
  *	There are no pointers to Zombie lumps

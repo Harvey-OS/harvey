@@ -713,6 +713,7 @@ reset(Ether* ether)
 	if (ctlr == 0) {
 		iofree(ether->port);
 		pcmspecialclose(slot);
+		return -1;
 	}
 
 	ilock(ctlr);
