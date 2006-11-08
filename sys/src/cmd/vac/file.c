@@ -30,6 +30,8 @@ struct VacFile {
 	VacFile *down;		/* children */
 };
 
+char *vfName(VacFile *, char *);
+
 static int vfMetaFlush(VacFile*);
 static ulong msAlloc(Source *ms, ulong, int n);
 
@@ -38,7 +40,6 @@ vfRUnlock(VacFile *vf)
 {
 	vtRUnlock(vf->lk);
 }
-	
 
 static int
 vfRLock(VacFile *vf)
@@ -154,7 +155,7 @@ mbSearch(MetaBlock *mb, char *elem, int *ri, MetaEntry *me)
 			*ri = i;
 			return 1;
 		}
-	
+
 		if(x < 0)
 			b = i+1;
 		else /* x > 0 */
@@ -162,7 +163,7 @@ mbSearch(MetaBlock *mb, char *elem, int *ri, MetaEntry *me)
 	}
 
 	assert(b == t);
-	
+
 	*ri = b;	/* b is the index to insert this entry */
 	memset(me, 0, sizeof(*me));
 
@@ -261,10 +262,10 @@ static void
 vfFree(VacFile *vf)
 {
 	sourceFree(vf->source);
-	vtLockFree(vf->lk);	
+	vtLockFree(vf->lk);
 	sourceFree(vf->msource);
 	vdCleanup(&vf->dir);
-	
+
 	vtMemFree(vf);
 }
 
@@ -300,7 +301,7 @@ dirLookup(VacFile *vf, char *elem)
 			nvf->block = i;
 			return nvf;
 		}
-		
+
 		lumpDecRef(u, 1);
 		u = nil;
 	}
@@ -309,6 +310,14 @@ dirLookup(VacFile *vf, char *elem)
 Err:
 	lumpDecRef(u, 1);
 	return nil;
+}
+
+/* point r back at vf */
+static void
+pointback(Source *r, VacFile *vf)
+{
+	assert(r->vf == nil);
+	r->vf = vf;
 }
 
 VacFile *
@@ -381,13 +390,16 @@ vfRoot(VacFS *fs, uchar *score)
 
 	mr = vfAlloc(fs);
 	mr->msource = r2;
+	pointback(r2, mr);
 	r2 = nil;
 
 	root = vfAlloc(fs);
 	root->up = mr;
 	root->source = r0;
+	pointback(r0, root);
 	r0 = nil;
 	root->msource = r1;
+	pointback(r1, root);
 	r1 = nil;
 
 	mr->down = root;
@@ -466,10 +478,12 @@ vfWalk(VacFile *vf, char *elem)
 	nvf->source = sourceOpen(vf->source, nvf->dir.entry, vf->fs->readOnly);
 	if(nvf->source == nil)
 		goto Err;
+	pointback(nvf->source, nvf);
 	if(nvf->dir.mode & ModeDir) {
 		nvf->msource = sourceOpen(vf->source, nvf->dir.mentry, vf->fs->readOnly);
 		if(nvf->msource == nil)
 			goto Err;
+		pointback(nvf->msource, nvf);
 	}
 
 	/* link in and up parent ref count */
@@ -569,7 +583,7 @@ vfCreate(VacFile *vf, char *elem, ulong mode, char *user)
 		if(mr == nil)
 			goto Err;
 	}
-	
+
 	dir = &nvf->dir;
 	dir->elem = vtStrDup(elem);
 	dir->entry = r->block*pr->epb + r->entry;
@@ -601,7 +615,7 @@ vfCreate(VacFile *vf, char *elem, ulong mode, char *user)
 	p = mbAlloc(&mb, n);
 	if(p == nil)
 		goto Err;
-		
+
 	if(!mbSearch(&mb, elem, &i, &me))
 		goto Err;
 	assert(me.p == nil);
@@ -614,7 +628,9 @@ vfCreate(VacFile *vf, char *elem, ulong mode, char *user)
 	lumpDecRef(u, 1);
 
 	nvf->source = r;
+	pointback(r, nvf);
 	nvf->msource = mr;
+	pointback(mr, vf);
 
 	/* link in and up parent ref count */
 	nvf->next = vf->down;
@@ -638,7 +654,6 @@ Err:
 	vfUnlock(vf);
 	return 0;
 }
-
 
 int
 vfRead(VacFile *vf, void *buf, int cnt, vlong offset)
@@ -801,7 +816,7 @@ ulong
 vfGetMcount(VacFile *vf)
 {
 	ulong mcount;
-	
+
 	vfMetaLock(vf);
 	mcount = vf->dir.mcount;
 	vfMetaUnlock(vf);
@@ -860,9 +875,9 @@ print("deleting %d entry\n", i);
 	mbDelete(&mb, i, &me);
 	memset(me.p, 0, me.size);
 	mbPack(&mb);
-	
+
 	lumpDecRef(u, 1);
-	
+
 	vf->removed = 1;
 	vf->block = NilBlock;
 
@@ -906,7 +921,7 @@ Err:
 
 int
 vfRemove(VacFile *vf, char *user)
-{	
+{
 	/* can not remove the root */
 	if(vfIsRoot(vf)) {
 		vtSetError(ERoot);
@@ -918,7 +933,7 @@ vfRemove(VacFile *vf, char *user)
 
 	if(vfIsDir(vf) && !vfCheckEmpty(vf))
 		goto Err;
-			
+
 	assert(vf->down == nil);
 
 	sourceRemove(vf->source);
@@ -927,14 +942,14 @@ vfRemove(VacFile *vf, char *user)
 		sourceRemove(vf->msource);
 		vf->msource = nil;
 	}
-	
+
 	vfUnlock(vf);
-	
+
 	if(!vfMetaRemove(vf, user))
 		return 0;
-	
+
 	return 1;
-		
+
 Err:
 	vfUnlock(vf);
 	return 0;
@@ -995,6 +1010,7 @@ vfGetVtEntry(VacFile *vf, VtEntry *e)
 	return res;
 }
 
+#ifdef notdef
 int
 vfGetBlockScore(VacFile *vf, ulong bn, uchar score[VtScoreSize])
 {
@@ -1019,6 +1035,7 @@ vfGetBlockScore(VacFile *vf, ulong bn, uchar score[VtScoreSize])
 
 	return ret;
 }
+#endif
 
 VacFile *
 vfGetParent(VacFile *vf)
@@ -1041,7 +1058,7 @@ vdeAlloc(VacFile *vf)
 
 	ds = vtMemAllocZ(sizeof(VacDirEnum));
 	ds->file = vf;
-	
+
 	return ds;
 }
 
@@ -1089,7 +1106,7 @@ fprint(2, "gen mismatch\n");
 
 	*size = e.size;
 	lumpDecRef(u, 1);
-	return 1;	
+	return 1;
 
 Err:
 	lumpDecRef(u, 1);
@@ -1218,4 +1235,31 @@ vacfs(VacFile *vf)
 	if (vf == nil)
 		return nil;
 	return vf->fs;
+}
+
+/*
+ * path may be nil; it's the right-hand part of the path so far.
+ * result is malloced, path must be malloced or nil.
+ */
+char *
+vfName(VacFile *vf, char *path)
+{
+	char *nname, *rname, *elem;
+
+	if (vf == nil || vf == vf->up) {		/* at the root? */
+		if (path == nil)
+			return strdup("/");
+		return path;
+	}
+	elem = vf->dir.elem;
+	if (elem != nil && path != nil)
+		rname = smprint("%s/%s", elem, path);
+	else if (elem != nil)
+		rname = strdup(elem);
+	else
+		return vfName(vf->up, path);
+	nname = vfName(vf->up, rname);
+	if (nname != rname)
+		free(rname);
+	return nname;
 }

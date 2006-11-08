@@ -18,7 +18,6 @@ struct Source
 
 int bsize;
 Biobuf *bout;
-VtRootLump root;
 int ver;
 int cmp;
 int all;
@@ -33,7 +32,6 @@ ulong vtGetUint32(uchar *p);
 uvlong vtGetUint48(uchar *p);
 void usage(void);
 int parseScore(uchar *score, char *buf, int n);
-void readRoot(VtRootLump*, uchar *score, char *file);
 void parse1(Source*, uchar*);
 void parse2(Source*, uchar*);
 int dumpDir(Source*, int indent);
@@ -53,6 +51,9 @@ main(int argc, char *argv[])
 	case 't':
 		type = atoi(ARGF());
 		break;
+	default:
+		usage();
+		break;
 	}ARGEND
 
 	vtAttach();
@@ -68,7 +69,7 @@ main(int argc, char *argv[])
 	fmtinstall('V', vtScoreFmt);
 	fmtinstall('R', vtErrFmt);
 
-	z = vtDial(host);
+	z = vtDial(host, 0);
 	if(z == nil)
 		vtFatal("could not connect to server: %s", vtGetError());
 
@@ -93,7 +94,7 @@ main(int argc, char *argv[])
 void
 usage(void)
 {
-	fprint(2, "%s: -t type score\n", argv0);
+	fprint(2, "%s: [-t type] score\n", argv0);
 	exits("usage");
 }
 

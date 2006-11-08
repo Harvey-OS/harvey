@@ -24,7 +24,7 @@ enum {					/* Local APIC registers */
 	LapicICRLO	= 0x0300,	/* Interrupt Command */
 	LapicICRHI	= 0x0310,	/* Interrupt Command [63:32] */
 	LapicTIMER	= 0x0320,	/* Local Vector Table 0 (TIMER) */
-	LapicPCINT	= 0x0340,	/* Performance COunter LVT */
+	LapicPCINT	= 0x0340,	/* Performance Counter LVT */
 	LapicLINT0	= 0x0350,	/* Local Vector Table 1 (LINT0) */
 	LapicLINT1	= 0x0360,	/* Local Vector Table 2 (LINT1) */
 	LapicERROR	= 0x0370,	/* Local Vector Table 3 (ERROR) */
@@ -389,3 +389,14 @@ lapicintroff(void)
 	lapicw(LapicTPR, 0xFF);
 }
 
+void
+lapicnmienable(void)
+{
+	lapicw(LapicPCINT, ApicNMI);
+}
+
+void
+lapicnmidisable(void)
+{
+	lapicw(LapicPCINT, ApicIMASK);
+}

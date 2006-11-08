@@ -105,6 +105,8 @@ returns
 .BR -1 .
 .SH SOURCE
 .B /sys/src/libc/9syscall
+.br
+.B /sys/src/libc/9sys
 .SH "SEE ALSO"
 .IR fork (2),
 .IR exits (2),

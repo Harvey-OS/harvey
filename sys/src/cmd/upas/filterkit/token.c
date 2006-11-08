@@ -7,7 +7,7 @@
 void
 usage(void)
 {
-	fprint(2, "usage: %s key [token]\n", argv0);
+	fprint(2, "usage: %s key [token [file]]\n", argv0);
 	exits("usage");
 }
 

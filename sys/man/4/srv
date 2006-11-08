@@ -181,6 +181,7 @@ script; examine it to see what local conventions apply.
 .I Srvssh
 is an
 .IR rc (1)
+command that
 connects to a remote Unix system via 
 .IR ssh (1)
 and starts
