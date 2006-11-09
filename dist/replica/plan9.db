@@ -335,7 +335,7 @@
 386/bin/ms2html - 775 sys sys 1148500672 104279
 386/bin/mtime - 775 sys sys 1148500673 59470
 386/bin/mug - 775 sys sys 1157570246 176473
-386/bin/mv - 775 sys sys 1148500673 65825
+386/bin/mv - 775 sys sys 1163044781 66723
 386/bin/ndb - 20000000775 sys sys 985743147 0
 386/bin/ndb/cs - 775 sys sys 1162241044 150965
 386/bin/ndb/csquery - 775 sys sys 1148500674 61796
@@ -7559,7 +7559,7 @@ sys/man/2/symbol - 664 sys sys 950892874 9423
 sys/man/2/thread - 664 sys sys 1117034202 11640
 sys/man/2/time - 664 sys sys 1015091527 739
 sys/man/2/tmpfile - 664 sys sys 1048637161 1157
-sys/man/2/wait - 664 sys sys 1162948415 2507
+sys/man/2/wait - 664 sys sys 1163004064 2525
 sys/man/2/window - 664 sys sys 950593499 5522
 sys/man/3 - 20000000775 sys sys 1017251174 0
 sys/man/3/0intro - 664 sys sys 984709634 1873
@@ -8108,7 +8108,7 @@ sys/src/9/port/devroot.c - 664 sys sys 1146151714 4242
 sys/src/9/port/devsd.c - 664 sys sys 1155995769 30859
 sys/src/9/port/devsdp.c - 664 sys sys 1057323393 44800
 sys/src/9/port/devsegment.c - 664 sys sys 1131289891 9610
-sys/src/9/port/devsrv.c - 664 sys sys 1107232208 5418
+sys/src/9/port/devsrv.c - 664 sys sys 1163030369 5728
 sys/src/9/port/devssl.c - 664 sys sys 1146151714 26121
 sys/src/9/port/devtinyfs.c - 664 sys sys 1015278339 15347
 sys/src/9/port/devtls.c - 664 sys sys 1146151715 45214
@@ -12651,7 +12651,7 @@ sys/src/cmd/mount.c - 664 sys sys 1138061862 1633
 sys/src/cmd/ms2html.c - 664 sys sys 1143695278 41022
 sys/src/cmd/mtime.c - 664 sys sys 1036172302 450
 sys/src/cmd/mug.c - 664 sys sys 1157143847 24888
-sys/src/cmd/mv.c - 664 sys sys 1126278115 4241
+sys/src/cmd/mv.c - 664 sys sys 1163029439 4682
 sys/src/cmd/ndb - 20000000775 sys sys 988249988 0
 sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1119276409 6866
 sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1060612175 7248

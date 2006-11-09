@@ -139,6 +139,7 @@ srvopen(Chan *c, int omode)
 static void
 srvcreate(Chan *c, char *name, int omode, ulong perm)
 {
+	char *sname;
 	Srv *sp;
 
 	if(openmode(omode) != OWRITE)
@@ -147,9 +148,13 @@ srvcreate(Chan *c, char *name, int omode, ulong perm)
 	if(omode & OCEXEC)	/* can't happen */
 		panic("someone broke namec");
 
-	sp = malloc(sizeof(Srv)+strlen(name)+1);
-	if(sp == 0)
+	sp = smalloc(sizeof *sp);
+	sname = smalloc(strlen(name)+1);
+	if(sp == nil || sname == nil) {
+		free(sp);
+		free(sname);
 		error(Enomem);
+	}
 
 	qlock(&srvlk);
 	if(waserror()){
@@ -162,8 +167,8 @@ srvcreate(Chan *c, char *name, int omode, ulong perm)
 
 	sp->path = qidpath++;
 	sp->link = srv;
-	sp->name = (char*)(sp+1);
-	strcpy(sp->name, name);
+	strcpy(sname, name);
+	sp->name = sname;
 	c->qid.type = QTFILE;
 	c->qid.path = sp->path;
 	srv = sp;
@@ -221,21 +226,25 @@ srvremove(Chan *c)
 
 	if(sp->chan)
 		cclose(sp->chan);
+	free(sp->name);
 	free(sp);
 }
 
 static int
 srvwstat(Chan *c, uchar *dp, int n)
 {
+	char *strs;
 	Dir d;
 	Srv *sp;
 
 	if(c->qid.type & QTDIR)
 		error(Eperm);
 
+	strs = nil;
 	qlock(&srvlk);
 	if(waserror()){
 		qunlock(&srvlk);
+		free(strs);
 		nexterror();
 	}
 
@@ -243,18 +252,24 @@ srvwstat(Chan *c, uchar *dp, int n)
 	if(sp == 0)
 		error(Enonexist);
 
-	if(strcmp(sp->owner, up->user) && !iseve())
+	if(strcmp(sp->owner, up->user) != 0 && !iseve())
 		error(Eperm);
 
-	n = convM2D(dp, n, &d, nil);
+	strs = smalloc(n);
+	n = convM2D(dp, n, &d, strs);
 	if(n == 0)
-		error (Eshortstat);
+		error(Eshortstat);
 	if(d.mode != ~0UL)
 		sp->perm = d.mode & 0777;
 	if(d.uid && *d.uid)
 		kstrdup(&sp->owner, d.uid);
-
+	if(d.name && *d.name && strcmp(sp->name, d.name) != 0) {
+		if(strchr(d.name, '/') != nil)
+			error(Ebadchar);
+		kstrdup(&sp->name, d.name);
+	}
 	qunlock(&srvlk);
+	free(strs);
 	poperror();
 	return n;
 }
