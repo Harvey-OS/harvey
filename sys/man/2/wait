@@ -99,9 +99,12 @@ of the truncated message.
 In other words, each call to
 .I await
 returns the information about one child, blocking if necessary if no child has exited.
+.PP
 If the calling process has no living children,
 .I await
-returns
+and
+.I waitpid
+return
 .BR -1 .
 .SH SOURCE
 .B /sys/src/libc/9syscall
