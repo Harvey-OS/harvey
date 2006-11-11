@@ -235,8 +235,8 @@ The methods available to any system depend on what was
 compiled into the kernel.
 The complete list of booting methods are listed below.
 .TP 8
-.BR il " or " tcp
-connect via Ethernet using the IL or TCP protocols.
+.BR tcp " or " il
+connect via Ethernet using the TCP or IL protocols.
 The
 .I args
 are passed to

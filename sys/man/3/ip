@@ -361,7 +361,7 @@ TCP and UDP provide the standard Internet
 protocols for reliable stream and unreliable datagram
 communication.
 IL provides a reliable datagram service for communication
-between Plan 9 machines.
+between Plan 9 machines but is now deprecated.
 GRE is a general encapsulation protocol.
 ESP is the encapsulation protocol for IPSEC.
 ICMP is IP's catch-all control protocol used to send
@@ -631,6 +631,10 @@ Like UDP, each read and write transfers a single datagram.
 IL is efficient for LANs but doesn't have the
 congestion control features needed for use through
 the Internet.
+It is no longer necessary, except to communicate with old standalone
+.IR fs (4)
+file servers.
+Its use is now deprecated.
 .SS GRE
 .PP
 GRE is the encapsulation protocol used by PPTP.

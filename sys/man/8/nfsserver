@@ -134,7 +134,7 @@ A typical entry in
 might be:
 .PP
 .EX
-aux/nfsserver -a il!bootes -a il!fornax -c /lib/ndb/nfs
+aux/nfsserver -a tcp!edith -a tcp!yoshimi -c /lib/ndb/nfs
 aux/pcnfsd
 aux/portmapper
 .EE

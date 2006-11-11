@@ -192,9 +192,6 @@ for an example.
 .SH FILES
 .TF /env/sysname
 .TP
-.B /net/il
-by convention, IL device bind point
-.TP
 .B /net/tcp
 by convention, TCP device bind point
 .TP

@@ -23,9 +23,9 @@ By default,
 .I ns
 rewrites the names of network data files to represent the network
 address that data file is connected to, for example replacing
-.B /net/il/82/data
+.B /net/tcp/82/data
 with
-.BR il!123.122.121.9 .
+.BR tcp!123.122.121.9 .
 The
 .B -r
 flag suppresses this rewriting.
