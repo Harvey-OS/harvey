@@ -161,11 +161,11 @@ enum
 };
 
 /*
->  *  net doesn't apply to (r)udp, icmp(v6), or telco (for speed)
+ *  net doesn't apply to (r)udp, icmp(v6), or telco (for speed)
  */
 Network network[] = {
-[Nilfast]	{ "il",		iplookup,	iptrans,	0, 1 },
 [Ntcp]		{ "tcp",	iplookup,	iptrans,	0, 0 },
+[Nilfast]	{ "il",		iplookup,	iptrans,	0, 1 },
 [Nil]		{ "il",		iplookup,	iptrans,	0, 0 },
 [Nudp]		{ "udp",	iplookup,	iptrans,	1, 0 },
 [Nicmp]		{ "icmp",	iplookup,	iptrans,	1, 0 },
@@ -192,7 +192,6 @@ nstrcpy(char *to, char *from, int len)
 	strncpy(to, from, len);
 	to[len-1] = 0;
 }
-
 
 void
 usage(void)

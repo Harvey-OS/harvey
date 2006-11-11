@@ -176,8 +176,8 @@ disk/mkfs -a -u files/adm.users -s dist proto > arch
 Unpack that archive onto a new file system:
 .IP
 .EX
-srv il!newfs
-mount -c /srv/il!newfs /n/newfs
+srv newfs
+mount -c /srv/newfs /n/newfs
 disk/mkext -u -d /n/newfs < arch
 .EE
 .SH SOURCE

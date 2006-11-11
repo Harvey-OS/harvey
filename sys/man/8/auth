@@ -155,7 +155,7 @@ Netkey keys for individual users.
 .PP
 .I Authsrv
 is the program, run only on the authentication server, that handles ticket requests
-on IL port 566.
+on TCP port 567.
 It is started
 by an incoming call to the server
 requesting a conversation ticket; its standard input and output
