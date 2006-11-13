@@ -318,6 +318,7 @@ xcleanname(char *name)
 			continue;
 		*w++ = *r;
 	}
+	*w = 0;
 	while(w-1>name && *(w-1)=='/')
 		*--w = 0;
 	return name;

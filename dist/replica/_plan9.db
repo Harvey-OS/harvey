@@ -324,7 +324,7 @@
 386/bin/lex - 775 sys sys 1148500669 99355
 386/bin/lnfs - 775 sys sys 1148500669 99769
 386/bin/look - 775 sys sys 1148500669 65868
-386/bin/ls - 775 sys sys 1155491754 82619
+386/bin/ls - 775 sys sys 1163362937 82624
 386/bin/mc - 775 sys sys 1155491755 134400
 386/bin/md5sum - 775 sys sys 1148500670 61592
 386/bin/mk - 775 sys sys 1148500670 144972
@@ -12557,7 +12557,7 @@ sys/src/cmd/lp/lpdsend.c - 664 sys sys 1116770113 9583
 sys/src/cmd/lp/lpsend.c - 664 sys sys 1015090024 6180
 sys/src/cmd/lp/lpsend.rc - 775 sys sys 953344615 361
 sys/src/cmd/lp/mkfile - 664 sys sys 953344616 535
-sys/src/cmd/ls.c - 664 sys sys 1139853105 5706
+sys/src/cmd/ls.c - 664 sys sys 1163342173 5715
 sys/src/cmd/map - 20000000775 sys sys 944961024 0
 sys/src/cmd/map/index.c - 664 sys sys 956282376 4345
 sys/src/cmd/map/iplot.h - 664 sys sys 944961024 1398
