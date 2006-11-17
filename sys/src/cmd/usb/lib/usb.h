@@ -169,6 +169,7 @@ enum
 	/* endpoint direction */
 	Ein = 0,
 	Eout,
+	Eboth,
 
 	/* endpoint type */
 	Econtrol = 0,
@@ -362,9 +363,9 @@ typedef struct Drivetab
 	void	(*driver)(Device *d);
 } Drivetab;
 
-#define Class(csp)		((csp)&0xff)
+#define Class(csp)	((csp)&0xff)
 #define Subclass(csp)	(((csp)>>8)&0xff)
-#define Proto(csp)		(((csp)>>16)&0xff)
+#define Proto(csp)	(((csp)>>16)&0xff)
 #define CSP(c, s, p)	((c) | ((s)<<8) | ((p)<<16))
 
 extern void (*dprinter[0x100])(Device *, int, ulong, void *b, int n);

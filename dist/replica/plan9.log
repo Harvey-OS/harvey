@@ -31735,3 +31735,6 @@
 1163343605 0 c sys/src/cmd/ls.c - 664 sys sys 1163342173 5715
 1163363406 0 c 386/bin/ls - 775 sys sys 1163362937 82624
 1163475006 0 c sys/src/libc/port/pool.c - 664 sys sys 1143695534 31040
+1163723406 0 c sys/src/cmd/usb/lib/dump.c - 664 sys sys 1163722010 12983
+1163723406 1 c sys/src/cmd/usb/lib/usb.h - 664 sys sys 1163721974 7129
+1163723406 2 c sys/src/cmd/usb/misc/usbmouse.c - 664 sys sys 1163722035 3603
