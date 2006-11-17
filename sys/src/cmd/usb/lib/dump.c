@@ -24,12 +24,12 @@ struct Classes {
 };
 
 static Classes	classname[] = {
-	[CL_AUDIO]		{"audio", {[1] {"control"}, [2] {"stream"}, [3]{"midi"}}},
-	[CL_COMMS]		{"comms", {[1] {"abstract", {[1]"AT"}}}},
-	[CL_HID]		{"hid", {[1]{"boot", {[1]"kbd", [2]"mouse"}}}},
-	[CL_PRINTER]	{"printer", {[1]"printer", {[1] "uni", [2]"bi"}}},
-	[CL_HUB]		{"hub", {[1]{"hub"}}},
-	[CL_DATA]		{"data"},
+	[CL_AUDIO]	{"audio",	{[1]{"control"}, [2]{"stream"}, [3]{"midi"}}},
+	[CL_COMMS]	{"comms",	{[1] {"abstract", {[1]"AT"}}}},
+	[CL_HID]	{"hid",		{[1] {"boot", {[1]"kbd", [2]"mouse"}}}},
+	[CL_PRINTER]	{"printer",	{[1]"printer", {[1]"uni", [2]"bi"}}},
+	[CL_HUB]	{"hub",		{[1]{"hub"}}},
+	[CL_DATA]	{"data"},
 };
 
 static	void	pflag(Flags*, uint);
@@ -94,7 +94,7 @@ phid(Device *, int, ulong, void *b, int n)
 	DHid *d;
 
 	if(n < DHIDLEN){
-		fprint(2, "hid too short\n");
+		fprint(2, "%s: hid too short\n", argv0);
 		return;
 	}
 	d = b;
@@ -382,12 +382,13 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 	void (*f)(Device *, int, ulong, void*, int);
 	int ifc = -1;
 	int dalt = -1;
-	int ep;
+	int i, ep;
 	int class, subclass, proto;
 	DConfig *dc;
 	DInterface *di;
 	DEndpoint *de;
-	int i;
+	Endpt *dep;
+	Dinf *dif;
 
 	class = Class(csp);
 
@@ -448,11 +449,13 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 					d->ep[0]->csp = csp;
 				d->config[c]->csp = csp;
 			}
-			if (d->config[c]->iface[ifc] == nil) {
-				d->config[c]->iface[ifc] = mallocz(sizeof(Dinf), 1);
-				d->config[c]->iface[ifc]->csp = csp;
+			dif = d->config[c]->iface[ifc];
+			if (dif == nil) {
+				d->config[c]->iface[ifc] = dif =
+					mallocz(sizeof(Dinf), 1);
+				dif->csp = csp;
 			}
-			d->config[c]->iface[ifc]->interface = di->bInterfaceNumber;
+			dif->interface = di->bInterfaceNumber;
 			break;
 		case ENDPOINT:
 			if(n < DENDPLEN)
@@ -486,41 +489,53 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 				fprint(2, "Unexpected ENDPOINT message\n");
 				return;
 			}
-			if (d->config[c]->iface[ifc] == nil)
-				sysfatal("d->config[c]->iface[ifc] == nil");
-			if (d->config[c]->iface[ifc]->dalt[dalt] == nil)
-				d->config[c]->iface[ifc]->dalt[dalt] = mallocz(sizeof(Dalt),1);
-			d->config[c]->iface[ifc]->dalt[dalt]->attrib = de->bmAttributes;
-			d->config[c]->iface[ifc]->dalt[dalt]->interval = de->bInterval;
+			dif = d->config[c]->iface[ifc];
+			if (dif == nil)
+				sysfatal("d->config[%d]->iface[%d] == nil",
+					c, ifc);
+			if (dif->dalt[dalt] == nil)
+				dif->dalt[dalt] = mallocz(sizeof(Dalt),1);
+			dif->dalt[dalt]->attrib = de->bmAttributes;
+			dif->dalt[dalt]->interval = de->bInterval;
 			ep = de->bEndpointAddress & 0xf;
-			if (debug) print("endpoint addr %d\n", ep); // DEBUG
-			if (d->ep[ep] == nil)
-				d->ep[ep] = newendpt(d, ep, class);
-			else print("endpoint already in use!\n"); // DEBUG
-			if(d->ep[ep]->maxpkt < GET2(de->wMaxPacketSize))
-				d->ep[ep]->maxpkt = GET2(de->wMaxPacketSize);
-			d->ep[ep]->addr = de->bEndpointAddress;
-			d->ep[ep]->dir = (de->bEndpointAddress & 0x80) ? Ein : Eout;
-			d->ep[ep]->type = de->bmAttributes & 0x03;
-			d->ep[ep]->isotype = (de->bmAttributes>>2) & 0x03;
-			d->ep[ep]->csp = csp;
-			d->ep[ep]->conf = d->config[c];
-			d->ep[ep]->iface = d->config[c]->iface[ifc];
-			for(i = 0; i < nelem(d->config[c]->iface[ifc]->endpt); i++){
-				if(d->config[c]->iface[ifc]->endpt[i] == nil){
-					d->config[c]->iface[ifc]->endpt[i] = d->ep[ep];
+			dep = d->ep[ep];
+			if (debug)
+				fprint(2, "%s: endpoint addr %d\n", argv0, ep);
+			if (dep == nil) {
+				d->ep[ep] = dep = newendpt(d, ep, class);
+				dep->dir = (de->bEndpointAddress & 0x80)?
+					Ein: Eout;
+			} else if ((dep->addr&0x80) !=
+			    (de->bEndpointAddress&0x80))
+				dep->dir = Eboth;
+			else
+				fprint(2, "%s: endpoint %d already in use!\n",
+					argv0, ep); // DEBUG
+			if(dep->maxpkt < GET2(de->wMaxPacketSize))
+				dep->maxpkt = GET2(de->wMaxPacketSize);
+			dep->addr = de->bEndpointAddress;
+			dep->type = de->bmAttributes & 0x03;
+			dep->isotype = (de->bmAttributes>>2) & 0x03;
+			dep->csp = csp;
+			dep->conf = d->config[c];
+			dep->iface = dif;
+			for(i = 0; i < nelem(dif->endpt); i++){
+				if(dif->endpt[i] == nil){
+					dif->endpt[i] = dep;
 					break;
 				}
 			}
-			if(i == nelem(d->config[c]->iface[ifc]->endpt))
+			if(i == nelem(dif->endpt))
 				fprint(2, "Too many endpoints\n");
-			if (d->nif <= ep) d->nif = ep+1;
+			if (d->nif <= ep)
+				d->nif = ep+1;
 			break;
 		default:
 			assert(nelem(dprinter) == 0x100);
 			f = dprinter[b[1]];
 			if(f != nil) {
-				(*f)(d, c, (dalt<<24) | (ifc<<16) | (csp&0xffff), b, b[0]);
+				(*f)(d, c, dalt<<24 | ifc<<16 | (csp&0xffff),
+					b, b[0]);
 				if (debug & Dbginfo)
 					fprint(2, "\n");
 			}

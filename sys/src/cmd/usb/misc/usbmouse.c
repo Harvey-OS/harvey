@@ -1,16 +1,19 @@
 #include <u.h>
 #include <libc.h>
+#include <bio.h>
 #include <thread.h>
 
 int mousefd, ctlfd, mousein;
 
-char hbm[]		= "Enabled 0x020103";
+char hbm[]		= "0x020103";
 char *mouseinfile	= "/dev/mousein";
+
 char *statfmt		= "/dev/usb%d/%d/status";
 char *ctlfmt		= "/dev/usb%d/%d/ctl";
-char *msefmt		= "/dev/usb%d/%d/ep1data";
-char *ctl3str		= "ep 1 bulk r 3 32";
-char *ctl5str		= "ep 1 bulk r 5 32";
+char *msefmt		= "/dev/usb%d/%d/ep%ddata";
+
+char *ctlmsgfmt		= "ep %d bulk r %d 32";
+
 char ctlfile[32];
 char msefile[32];
 
@@ -20,6 +23,7 @@ int accel;
 int scroll;
 int maxacc = 3;
 int debug;
+int nbuts;
 
 void work(void *);
 
@@ -86,8 +90,10 @@ usage(void)
 void
 threadmain(int argc, char *argv[])
 {
-	int ctlrno, i, sfd;
-	char line[256];
+	int ctlrno, i, ep = 0;
+	char *p, *ctlstr;
+	char buf[256];
+	Biobuf *f;
 
 	ARGBEGIN{
 	case 's':
@@ -109,39 +115,49 @@ threadmain(int argc, char *argv[])
 	switch (argc) {
 	case 0:
 		for (ctlrno = 0; ctlrno < 16; ctlrno++) {
-			for (i = 0; i < 128; i++) {
-				snprint(line, sizeof line, statfmt, ctlrno, i);
-				sfd = open(line, OREAD);
-				if (sfd < 0)
+			sprint(buf, "/dev/usb%d", ctlrno);
+			if (access(buf, AEXIST) < 0)
+				continue;
+			for (i = 1; i < 128; i++) {
+				snprint(buf, sizeof buf, statfmt, ctlrno, i);
+				f = Bopen(buf, OREAD);
+				if (f == nil)
 					break;
-				if (read(sfd, line, strlen(hbm)) && strncmp(hbm, line, strlen(hbm)) == 0) {
-					snprint(ctlfile, sizeof ctlfile, ctlfmt, ctlrno, i);
-					snprint(msefile, sizeof msefile, msefmt, ctlrno, i);
-					close(sfd);
-					goto found;
+				while ((p = Brdline(f, '\n')) != 0) {
+					p[Blinelen(f)-1] = '\0';
+					if (strncmp(p, "Enabled ", 8) == 0)
+						continue;
+					if (strstr(p, hbm) != nil) {
+						ep = atoi(p);
+						goto found;
+					}
 				}
-				close(sfd);
+				Bterm(f);
 			}
 		}
 		threadexitsall("no mouse");
-	found:
-		break;
 	case 2:
 		ctlrno = atoi(argv[0]);
 		i = atoi(argv[1]);
+		ep = 1;			/* a guess */
+	found:
 		snprint(ctlfile, sizeof ctlfile, ctlfmt, ctlrno, i);
-		snprint(msefile, sizeof msefile, msefmt, ctlrno, i);
+		snprint(msefile, sizeof msefile, msefmt, ctlrno, i, ep);
 		break;
 	default:
 		usage();
 	}
 
+	nbuts = (scroll? 5: 3);
+	ctlstr = smprint(ctlmsgfmt, ep, nbuts);
 	if ((ctlfd = open(ctlfile, OWRITE)) < 0)
 		sysfatal("%s: %r", ctlfile);
 	if (verbose)
-		fprint(2, "Send %s to %s\n", scroll?ctl5str:ctl3str, ctlfile);
-	write(ctlfd, scroll?ctl5str:ctl3str, scroll?strlen(ctl5str):strlen(ctl3str));
+		fprint(2, "Send %s to %s\n", ctlstr, ctlfile);
+	write(ctlfd, ctlstr, strlen(ctlstr));
 	close(ctlfd);
+	free(ctlstr);
+
 	if ((mousefd = open(msefile, OREAD)) < 0)
 		sysfatal("%s: %r", msefile);
 	if (verbose)
@@ -157,13 +173,14 @@ threadmain(int argc, char *argv[])
 }
 
 void
-work(void *){
+work(void *)
+{
 	char buf[6];
 	int x, y, buts;
 
 	for (;;) {
 		buts = 0;
-		switch (robustread(mousefd, buf, scroll?5:3)) {
+		switch (robustread(mousefd, buf, nbuts)) {
 		case 4:
 			if(buf[3] == 1)
 				buts |= 0x08;
@@ -184,7 +201,8 @@ work(void *){
 				x = buf[1];
 				y = buf[2];
 			}
-			fprint(mousein, "m%11d %11d %11d", x, y, buts | maptab[buf[0]&0x7]);
+			fprint(mousein, "m%11d %11d %11d",
+				x, y, buts | maptab[buf[0]&0x7]);
 			break;
 		case -1:
 			sysfatal("read error: %r");
