@@ -31738,3 +31738,4 @@
 1163723406 0 c sys/src/cmd/usb/lib/dump.c - 664 sys sys 1163722010 12983
 1163723406 1 c sys/src/cmd/usb/lib/usb.h - 664 sys sys 1163721974 7129
 1163723406 2 c sys/src/cmd/usb/misc/usbmouse.c - 664 sys sys 1163722035 3603
+1163781005 0 c sys/games/lib/fortunes - 664 sys sys 1163780348 261886
