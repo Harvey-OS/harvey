@@ -4153,3 +4153,5 @@ swapon: /dev/disk/by-uuid/928aaabd-5744-4f0a-b9ef-aa101f286514: Invalid argument
 We apologize for any inconvenience this causes  - Lucent Convenience Centers
 Some people, when confronted with a problem, think "I know, I'll use regular expressions." Now they have two problems.  - Jamie Zawinski
 [Perl] combines the power of C with the readability of PostScript.  - Jamie Zawinski
+Subclass code (assigned by the USB-IF).  Indicates which industry standard command block definition to use.
+Globus is an unstoppable monster - rminnich; No, Globus is an unstartable monster - ericvh.
