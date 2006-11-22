@@ -74,15 +74,13 @@ usage(void)
 	fprint(2, "usage: cpu [-h system] [-u user] [-a authmethod] [-e 'crypt hash'] [-k keypattern] [-P patternfile] [-c cmd args ...]\n");
 	exits("usage");
 }
-int fdd;
 
 void
 main(int argc, char **argv)
 {
 	char dat[MaxStr], buf[MaxStr], cmd[MaxStr], *p, *err;
-	int fd, ms, data;
+	int ac, fd, ms, data;
 	char *av[10];
-	int ac;
 
 	/* see if we should use a larger message size */
 	fd = open("/dev/draw", OREAD);
@@ -186,16 +184,19 @@ main(int argc, char **argv)
 	close(0);
 	dup(data, 0);
 	close(data);
+
 	sprint(buf, "%d", msgsize);
 	ac = 0;
+	av[ac++] = exportfs;
 	av[ac++] = "-m";
+	av[ac++] = buf;
 	if(dbg)
 		av[ac++] = "-d";
 	if(patternfile != nil){
 		av[ac++] = "-P";
 		av[ac++] = patternfile;
 	}
-	av[ac] = 0;
+	av[ac] = nil;
 	exec(exportfs, av);
 	fatal(1, "starting exportfs");
 }
