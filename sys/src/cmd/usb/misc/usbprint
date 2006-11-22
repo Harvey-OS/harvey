@@ -2,7 +2,7 @@
 
 for(c in `{seq 16}){
 	for(i in `{seq 20}){
-		if (grep -s 'Enabled 0x020107' '#U'/usb$c/$i/status){
+		if (grep -s 'Enabled 0x020107' '#U'/usb$c/$i/status >[2]/dev/null){
 			echo -n 'ep 2 bulk w 64 32' >'#U'/usb$c/$i/ctl
 			aux/stub /dev/lp
 			bind '#U'/usb$c/$i/ep2data /dev/lp

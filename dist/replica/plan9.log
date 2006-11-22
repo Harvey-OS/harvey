@@ -31739,3 +31739,11 @@
 1163723406 1 c sys/src/cmd/usb/lib/usb.h - 664 sys sys 1163721974 7129
 1163723406 2 c sys/src/cmd/usb/misc/usbmouse.c - 664 sys sys 1163722035 3603
 1163781005 0 c sys/games/lib/fortunes - 664 sys sys 1163780348 261886
+1164133806 0 c sys/src/cmd/exportfs/exportfs.c - 664 sys sys 1164133573 16377
+1164133806 1 c sys/src/cmd/cpu.c - 664 sys sys 1164133664 21154
+1164141005 0 c 386/bin/cpu - 775 sys sys 1164140641 139578
+1164141005 1 c 386/bin/exportfs - 775 sys sys 1164140642 162644
+1164150006 0 c sys/man/3/usb - 664 sys sys 1164149393 6960
+1164150006 1 c sys/man/4/usb - 664 sys sys 1164149417 4643
+1164150006 2 c sys/man/4/usbd - 664 sys sys 1164149441 712
+1164150006 3 c sys/src/cmd/usb/misc/usbprint - 775 sys sys 1164149479 270

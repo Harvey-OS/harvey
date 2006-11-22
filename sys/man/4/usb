@@ -42,7 +42,7 @@ has had a chance to locate the devices in question and provide
 them with device addresses and minimal configuration.
 Dynamic handling of device insertion and removal is currently not supported.
 .SS Mice
-.B Usbmouse
+.I Usbmouse
 sends mouse events from a USB mouse to
 .B /dev/mousein
 where the Plan 9 kernel processes them like other mice.
@@ -63,7 +63,7 @@ Verbose mode.
 .BI -a " accel"
 Accelerate mouse movements.
 .SS Audio devices
-.B Usbaudio
+.I Usbaudio
 configures and manages a usb audio device.  It implements a file system,
 normally mounted in
 .BI /dev ,
@@ -98,7 +98,7 @@ yields the device's settings.  The data format of
 .B volume
 is compatible with the soundblaster and
 produces something like
-.PP
+.IP
 .EX
 audio out 65
 treb out 0
@@ -148,14 +148,14 @@ The data format is little endian, samples ordered primarily by time and
 secondarily by channel.  Samples occupy the minimum integral number
 of bytes.  Read and write operations of arbitrary size are allowed.
 .SS Printers
-.B Usbprinter
+.I Usbprinter
 is a script that mounts a usb printer on
 .BR /dev/lp .
 .SH EXAMPLE
 .LP
 To use a USB mouse and audio device, put the following in your profile
 (replace x by your favorite initial volume setting):
-.PP
+.IP
 .EX
 .ta 6n
 if (test -r '#U'/usb0) {
@@ -177,6 +177,7 @@ in your profile.
 .SH BUGS
 Usbaudio only works for certain audio devices.  This is the list of devices known to work with usbaudio:
 .IP
+.RS
 .TP
 Xitel AN1
 Output only.  Marginally enough to drive headphones.  Has mute, volume, bass, treble controls.
@@ -201,3 +202,7 @@ to the output, so does nothing.
 Onkyo WAVIO series MA-500U
 Includes three optical digital interfaces, two analog, and an
 amplifier (15W + 15W).
+.TP
+Turtle Beach Audio Advantage micro
+Headset and S/Pdif out, volume and mute controls.
+.RE

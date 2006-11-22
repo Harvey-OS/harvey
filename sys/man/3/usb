@@ -4,7 +4,8 @@ usb \- USB Host Controller Interface
 .SH SYNOPSIS
 .nf
 .B bind -a #U /dev
-
+.PP
+.nf
 .BI /dev/usb m
 .BI /dev/usb m /new
 .BI /dev/usb m /port
@@ -14,7 +15,6 @@ usb \- USB Host Controller Interface
 .BI /dev/usb m / n /setup
 .BI /dev/usb m / n /ep k\fLdata
 \&...
-
 .fi
 .SH DESCRIPTION
 The Universal Serial Bus is a popular bus for connecting slow and medium speed
@@ -51,7 +51,7 @@ interfaces.
 To find a mouse, for example, scan the status files for the line beginning with
 .IP
 .EX
-.BR "Enabled 0x020103"
+.B "Enabled 0x020103"
 .EE
 .PP
 A mouse belongs to class 3 (in the least significant byte),
@@ -90,14 +90,14 @@ By sending an `endpoint message' to the
 .I ctl
 file, new driver endpoints can be created.  The syntax of these messages
 is
-.PP
+.IP
 .B ep
 .I n
 .B bulk
 .I "mode maxpkt nbuf
 .PP
 or
-.PP
+.IP
 .B ep
 .I "n period mode samplesize hz
 .PP
@@ -162,7 +162,7 @@ can be used to start the I/O at a specific time.
 The usb status file provides information that can be used to map file
 offsets to points in time:  For each endpoint, the status file produces a line
 of the form:
-.PP
+.IP
 .B "4 0x000201 \f2nnn\fP bytes \f2nnn\fP blocks
 .PP
 The fields are, from left to right,
@@ -171,7 +171,7 @@ least significant byte), number of bytes read/written, number of blocks read/wri
 .PP
 For isochronous devices only, an additional line is produced of the
 form:
-.PP
+.IP
 .B "bufsize \f2s\fP buffered \f2b\fP offset \f2o\fP time \f2t\fP
 .PP
 .I S
@@ -198,7 +198,6 @@ The number of bytes buffered can also be obtained using
 .IR stat (2)
 on the endpoint file.  See also
 .IR audio (3).
-.sp
 .SH FILES
 .TF "#U/usb n /*/status"
 .TP
@@ -232,13 +231,12 @@ configuration.
 .B /sys/src/9/pc/devusb.c
 .br
 .B /sys/src/9/pc/usbuhci.c
-.br
 .SH "SEE ALSO"
 .IR usb (4),
 .IR usbd (4),
 .IR plan9.ini (8)
 .SH BUGS
-OpenHCI USB cards are not yet supported.
+OpenHCI (OHCI) and EHCI USB controllers are not yet supported.
 .PP
 The interface for configuring endpoints is at variance with the standard.
 .PP
