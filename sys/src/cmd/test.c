@@ -11,6 +11,7 @@
 
 #include <u.h>
 #include <libc.h>
+
 #define EQ(a,b)	((tmp=a)==0?0:(strcmp(tmp,b)==0))
 
 int	ap;
@@ -30,7 +31,7 @@ int	isnewerthan(char *, char *);
 int	hasmode(char *, ulong);
 int	tio(char *, int);
 int	e(void), e1(void), e2(void), e3(void);
-char *nxtarg(int);
+char	*nxtarg(int);
 
 void
 main(int argc, char *argv[])
@@ -44,9 +45,14 @@ main(int argc, char *argv[])
 			synbad("] missing","");
 	}
 	argv[ac] = 0;
-	if (ac<=1) exits("usage");
+	if (ac<=1)
+		exits("usage");
 	r = e();
-	if(c = nxtarg(1))
+	/*
+	 * nice idea but short-circuit -o and -a operators may have
+	 * not consumed their right-hand sides.
+	 */
+	if(0 && (c = nxtarg(1)) != nil)
 		synbad("unexpected operator/operand: ", c);
 	exits(r?0:"false");
 }
@@ -75,27 +81,32 @@ nxtintarg(int *pans)
 }
 
 int
-e(void) {
+e(void)
+{
 	int p1;
 
 	p1 = e1();
-	if (EQ(nxtarg(1), "-o")) return(p1 || e());
+	if (EQ(nxtarg(1), "-o"))
+		return(p1 || e());
 	ap--;
 	return(p1);
 }
 
 int
-e1(void) {
+e1(void)
+{
 	int p1;
 
 	p1 = e2();
-	if (EQ(nxtarg(1), "-a")) return (p1 && e1());
+	if (EQ(nxtarg(1), "-a"))
+		return (p1 && e1());
 	ap--;
 	return(p1);
 }
 
 int
-e2(void) {
+e2(void)
+{
 	if (EQ(nxtarg(0), "!"))
 		return(!e2());
 	ap--;
@@ -103,16 +114,16 @@ e2(void) {
 }
 
 int
-e3(void) {
-	int p1;
-	char *a;
-	char *p2;
-	int int1, int2;
+e3(void)
+{
+	int p1, int1, int2;
+	char *a, *p2;
 
 	a = nxtarg(0);
 	if(EQ(a, "(")) {
 		p1 = e();
-		if(!EQ(nxtarg(0), ")")) synbad(") expected","");
+		if(!EQ(nxtarg(0), ")"))
+			synbad(") expected","");
 		return(p1);
 	}
 
@@ -224,9 +235,10 @@ localstat(char *f, Dir *dir)
 	Dir *d;
 
 	d = dirstat(f);
-	if(d == 0)
+	if(d == nil)
 		return(-1);
 	*dir = *d;
+	free(d);
 	dir->name = 0;
 	dir->uid = 0;
 	dir->gid = 0;
@@ -241,9 +253,10 @@ localfstat(int f, Dir *dir)
 	Dir *d;
 
 	d = dirfstat(f);
-	if(d == 0)
+	if(d == nil)
 		return(-1);
 	*dir = *d;
+	free(d);
 	dir->name = 0;
 	dir->uid = 0;
 	dir->gid = 0;

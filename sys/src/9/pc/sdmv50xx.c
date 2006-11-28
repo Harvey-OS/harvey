@@ -798,6 +798,8 @@ mv50interrupt(Ureg*, void *a)
 	for(i=0; i<ctlr->ndrive; i++){
 		if(cause & (3<<(i*2+i/4))){
 			drive = &ctlr->drive[i];
+			if(drive->edma == nil)
+				continue;		/* not ready yet */
 			ilock(drive);
 			updatedrive(drive, drive->edma->iec);
 			while(ctlr->chip[i/4].arb->ic & (0x0101 << (i%4))){

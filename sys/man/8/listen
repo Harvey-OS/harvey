@@ -10,8 +10,7 @@ listen, listen1, il7, il9, il19, il565, il566, il17007, il17008, il17009, il1701
 .IR trustsrvdir ]
 .RB [ -n
 .IR namespace ]
-.RI [ net
-.RI [ name ]]
+.RI [ net ]
 .PP
 .B aux/listen1
 [
@@ -24,11 +23,7 @@ listen, listen1, il7, il9, il19, il565, il566, il17007, il17008, il17009, il1701
 ]
 .SH DESCRIPTION
 .I listen
-announces itself to a network as
-.I name
-(by default the contents of
-.BR /env/sysname )
-and listens for inbound calls to local services.
+listens on a network for inbound calls to local services.
 .I Net
 is the network protocol on which to listen, by default
 .BR /net/il .
@@ -174,18 +169,17 @@ for each incoming connection;
 the network directory is passed in the environment
 as 
 .BR $net .
-The
+Option
 .B -t
-flag
 causes
 .I listen1
 to run as the invoking user; the default
 is to become
 .B none
 before listening.
-The
+Option
 .B -v
-flag causes verbose logging on standard output.
+causes verbose logging on standard output.
 See
 .B /rc/bin/tlssrvtunnel
 for an example.
@@ -194,9 +188,6 @@ for an example.
 .TP
 .B /net/tcp
 by convention, TCP device bind point
-.TP
-.B /env/sysname
-default announced name
 .SH SOURCE
 The sources to
 .I listen

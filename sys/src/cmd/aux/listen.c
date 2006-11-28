@@ -21,7 +21,7 @@ struct Announce
 };
 
 int	readstr(char*, char*, char*, int);
-void	dolisten(char*, char*, int, char*);
+void	dolisten(char*, char*, int, char*, char*);
 void	newcall(int, char*, char*, Service*);
 int 	findserv(char*, char*, Service*, char*);
 int	getserv(char*, char*, Service*);
@@ -43,7 +43,32 @@ char *namespace;
 void
 usage(void)
 {
-	error("usage: listen [-q] [-n namespace] [-d servdir] [-t trustdir] [proto [name]]");
+	error("usage: aux/listen [-q] [-n namespace] [-d servdir] [-t trustdir] [proto]");
+}
+
+/*
+ * based on libthread's threadsetname, but drags in less library code.
+ * actually just sets the arguments displayed.
+ */
+static void
+procsetname(char *fmt, ...)
+{
+	int fd;
+	char *cmdname;
+	char buf[128];
+	va_list arg;
+
+	va_start(arg, fmt);
+	cmdname = vsmprint(fmt, arg);
+	va_end(arg);
+	if (cmdname == nil)
+		return;
+	snprint(buf, sizeof buf, "#p/%d/args", getpid());
+	if((fd = open(buf, OWRITE)) >= 0){
+		write(fd, cmdname, strlen(cmdname)+1);
+		close(fd);
+	}
+	free(cmdname);
 }
 
 void
@@ -65,16 +90,16 @@ main(int argc, char *argv[])
 
 	ARGBEGIN{
 	case 'd':
-		servdir = ARGF();
+		servdir = EARGF(usage());
 		break;
 	case 'q':
 		quiet = 1;
 		break;
 	case 't':
-		trustdir = ARGF();
+		trustdir = EARGF(usage());
 		break;
 	case 'n':
-		namespace = ARGF();
+		namespace = EARGF(usage());
 		break;
 	default:
 		usage();
@@ -98,7 +123,7 @@ main(int argc, char *argv[])
 		usage();
 	}
 
-	syslog(0, listenlog, "started");
+	syslog(0, listenlog, "started on %s", proto);
 
 	protodir = proto;
 	proto = strrchr(proto, '/');
@@ -145,6 +170,7 @@ listendir(char *protodir, char *srvdir, int trusted)
 		return;
 	}
 
+	procsetname("%s %s %s", protodir, srvdir, namespace);
 	if (!trusted)
 		becomenone();
 
@@ -172,10 +198,11 @@ listendir(char *protodir, char *srvdir, int trusted)
 				for(;;){
 					ctl = announce(a->a, dir);
 					if(ctl < 0) {
-						syslog(1, listenlog, "giving up on %s: %r", a->a);
+						syslog(1, listenlog,
+						   "giving up on %s: %r", a->a);
 						exits("ctl");
 					}
-					dolisten(proto, dir, ctl, srvdir);
+					dolisten(proto, dir, ctl, srvdir, a->a);
 					close(ctl);
 				}
 			default:
@@ -270,12 +297,13 @@ becomenone(void)
 }
 
 void
-dolisten(char *proto, char *dir, int ctl, char *srvdir)
+dolisten(char *proto, char *dir, int ctl, char *srvdir, char *dialstr)
 {
 	Service s;
 	char ndir[40];
 	int nctl, data;
 
+	procsetname("%s %s", dir, dialstr);
 	for(;;){
 		/*
 		 *  wait for a call (or an error)

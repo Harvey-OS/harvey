@@ -96,12 +96,12 @@ case NCR* 'AT&TNSX'* generic* _MP_* 'alpha apc'*
 				pipefile -dr /bin/aux/accupoint /dev/mouse
 		}
 	}
-	disk=''
-	if(test -f /dev/sd*/swap)
-		disk=`{ls /dev/sd*/swap >[2]/dev/null | sed 1q | sed 's!swap$!!'}
-	if(! ~ $disk '') {
-		swap $disk^swap >/dev/null >[2=1]
+	# start up local swapping, mount dos fat fs
+	disk=`{ls /dev/sd*/swap >[2]/dev/null}
+	if (! ~ $#disk 0) {
+		swap $disk(1) >/dev/null >[2=1]
 		dossrv
 		c:
 	}
+	rm /env/disk
 }
