@@ -108,7 +108,7 @@
 386/bin/aux/hardcopy - 775 sys sys 1020319063 1699
 386/bin/aux/isvmware - 775 sys sys 1032486791 23997
 386/bin/aux/lines - 775 sys sys 1148500594 60810
-386/bin/aux/listen - 775 sys sys 1148500595 108351
+386/bin/aux/listen - 775 sys sys 1164659104 108897
 386/bin/aux/listen1 - 775 sys sys 1148500595 94815
 386/bin/aux/lpdaemon - 775 sys sys 1136656330 168286
 386/bin/aux/lpdsend - 775 sys sys 1136656330 155124
@@ -426,7 +426,7 @@
 386/bin/tee - 775 sys sys 1148500692 38463
 386/bin/telco - 775 sys sys 1134389878 103347
 386/bin/telnet - 775 sys sys 1162440194 80751
-386/bin/test - 775 sys sys 1155491757 70321
+386/bin/test - 775 sys sys 1164686323 70261
 386/bin/time - 775 sys sys 1148500693 61712
 386/bin/tlsclient - 775 sys sys 1162241048 198972
 386/bin/tlssrv - 775 sys sys 1162241049 199336
@@ -5549,7 +5549,7 @@ rc/bin/start - 775 sys sys 945617209 120
 rc/bin/stock - 775 sys sys 1143126371 292
 rc/bin/stop - 775 sys sys 945617209 110
 rc/bin/tel - 775 sys sys 1161209756 128
-rc/bin/termrc - 775 sys sys 1125835735 2653
+rc/bin/termrc - 775 sys sys 1164658821 2647
 rc/bin/thesaurus - 775 sys sys 1068054167 246
 rc/bin/tlsclienttunnel - 775 sys sys 1024375633 153
 rc/bin/tlssrvtunnel - 775 sys sys 1024375634 175
@@ -7392,7 +7392,7 @@ sys/man/1/tbl - 664 sys sys 944959674 4308
 sys/man/1/tcs - 664 sys sys 1143131200 2654
 sys/man/1/tee - 664 sys sys 969499886 351
 sys/man/1/tel - 664 sys sys 1161209780 1057
-sys/man/1/test - 664 sys sys 1079372544 3535
+sys/man/1/test - 664 sys sys 1164660424 3681
 sys/man/1/thesaurus - 664 sys sys 1159419920 222
 sys/man/1/time - 664 sys sys 944959673 380
 sys/man/1/touch - 664 sys sys 1018369246 461
@@ -7727,7 +7727,7 @@ sys/man/8/init - 664 sys sys 944959679 1430
 sys/man/8/ipconfig - 664 sys sys 1159419702 6170
 sys/man/8/ipserv - 664 sys sys 1095862383 4375
 sys/man/8/kfscmd - 664 sys sys 1068569797 4515
-sys/man/8/listen - 664 sys sys 1163208441 3689
+sys/man/8/listen - 664 sys sys 1164653967 3551
 sys/man/8/lp - 664 sys sys 954614702 2491
 sys/man/8/mk9660 - 664 sys sys 1104430379 3946
 sys/man/8/mkfs - 664 sys sys 1163208436 3414
@@ -8040,7 +8040,7 @@ sys/src/9/pc/screen.h - 664 sys sys 1147023549 4256
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1149280015 55135
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
 sys/src/9/pc/sdata.c - 664 sys sys 1161230658 52692
-sys/src/9/pc/sdmv50xx.c - 664 sys sys 1131290638 25780
+sys/src/9/pc/sdmv50xx.c - 664 sys sys 1164645014 25841
 sys/src/9/pc/sdmylex.c - 664 sys sys 1133068062 27806
 sys/src/9/pc/sdscsi.c - 664 sys sys 1158889425 7241
 sys/src/9/pc/trap.c - 664 sys sys 1135487942 21257
@@ -9669,7 +9669,7 @@ sys/src/cmd/aux/gps/mkfile - 664 sys sys 1108397331 219
 sys/src/cmd/aux/gps/util.c - 664 sys sys 1107448815 2795
 sys/src/cmd/aux/lines.c - 664 sys sys 1015008782 546
 sys/src/cmd/aux/lis - 775 sys sys 944960794 45
-sys/src/cmd/aux/listen.c - 664 sys sys 1143759349 8150
+sys/src/cmd/aux/listen.c - 664 sys sys 1164653434 8796
 sys/src/cmd/aux/listen1.c - 664 sys sys 1143759349 2005
 sys/src/cmd/aux/mkfile - 664 sys sys 1147022848 1021
 sys/src/cmd/aux/mklatinkbd.c - 664 sys sys 953253425 3813
@@ -13427,7 +13427,7 @@ sys/src/cmd/telco/mkfile - 664 sys sys 944961290 201
 sys/src/cmd/telco/telco.c - 664 sys sys 1021579996 26253
 sys/src/cmd/telco/telcodata - 775 sys sys 944961290 95
 sys/src/cmd/telco/telcofax - 664 sys sys 944961289 30
-sys/src/cmd/test.c - 664 sys sys 1155362259 5606
+sys/src/cmd/test.c - 664 sys sys 1164660299 5754
 sys/src/cmd/time.c - 664 sys sys 1014926662 1546
 sys/src/cmd/tlsclient.c - 664 sys sys 1024375149 1631
 sys/src/cmd/tlssrv.c - 664 sys sys 1161442158 3480
