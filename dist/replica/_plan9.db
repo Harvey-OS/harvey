@@ -5338,6 +5338,7 @@ mnt/plumb - 20000000555 sys sys 952639073 0
 mnt/rdb - 20000000555 sys sys 952639073 0
 mnt/temp - 20000000555 sys sys 1016926005 0
 mnt/term - 20000000555 sys sys 952639073 0
+mnt/ums - 20000000555 sys sys 1164743186 0
 mnt/vmware - 20000000775 sys sys 1032468121 0
 mnt/web - 20000000555 sys sys 1016926715 0
 mnt/webcookies - 20000000555 sys sys 1016926718 0
@@ -8011,7 +8012,7 @@ sys/src/9/pc/main.c - 664 sys sys 1162952105 15321
 sys/src/9/pc/mem.h - 664 sys sys 1137622431 5203
 sys/src/9/pc/memory.c - 664 sys sys 1153172671 18773
 sys/src/9/pc/mkfile - 664 sys sys 1158794206 4004
-sys/src/9/pc/mmu.c - 664 sys sys 1155995596 24115
+sys/src/9/pc/mmu.c - 664 sys sys 1164721711 24114
 sys/src/9/pc/mouse.c - 664 sys sys 1098479254 7057
 sys/src/9/pc/mp.c - 664 sys sys 1162388126 17349
 sys/src/9/pc/mp.h - 664 sys sys 1153193597 6795
