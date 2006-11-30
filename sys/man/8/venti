@@ -223,6 +223,7 @@ time the command was issued are now on disk.
 .SH "SEE ALSO"
 .IR venti.conf (6),
 .IR ventiaux (8),
+.IR fs (3),
 .IR vac (1),
 .IR vacfs (4).
 .br

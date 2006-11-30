@@ -467,6 +467,7 @@ command to prepare the script.
 .B /sys/src/cmd/fossil
 .SH SEE ALSO
 .IR yesterday (1),
+.IR fs (3),
 .IR fs (4),
 .IR srv (4),
 .IR fossilcons (8),
