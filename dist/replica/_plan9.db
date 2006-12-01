@@ -7612,7 +7612,7 @@ sys/man/4/execnet - 664 sys sys 1019866708 1069
 sys/man/4/exportfs - 664 sys sys 1145881912 4655
 sys/man/4/ext2srv - 664 sys sys 1055692986 2409
 sys/man/4/factotum - 664 sys sys 1131294573 14841
-sys/man/4/fossil - 664 sys sys 1157864806 9575
+sys/man/4/fossil - 664 sys sys 1164860933 9587
 sys/man/4/fs - 664 sys sys 1019058716 3387
 sys/man/4/ftpfs - 664 sys sys 1112563349 4410
 sys/man/4/httpfile - 664 sys sys 1128556957 1233
@@ -7689,7 +7689,7 @@ sys/man/6/snap - 664 sys sys 1132452694 2402
 sys/man/6/thumbprint - 664 sys sys 1019866709 1124
 sys/man/6/users - 664 sys sys 1130912014 1392
 sys/man/6/utf - 664 sys sys 1146582112 2430
-sys/man/6/venti.conf - 664 sys sys 1055707590 1917
+sys/man/6/venti.conf - 664 sys sys 1164860945 1929
 sys/man/6/vgadb - 664 sys sys 960256513 10972
 sys/man/7 - 20000000775 sys sys 1015092163 0
 sys/man/7/0intro - 664 sys sys 944959677 256
@@ -7766,7 +7766,7 @@ sys/man/8/tlssrv - 664 sys sys 1159419702 2590
 sys/man/8/trampoline - 664 sys sys 1126104844 1199
 sys/man/8/udpecho - 664 sys sys 954305553 303
 sys/man/8/update - 664 sys sys 961259288 2336
-sys/man/8/venti - 664 sys sys 1069101926 5422
+sys/man/8/venti - 664 sys sys 1164860929 5434
 sys/man/8/ventiaux - 664 sys sys 1159419552 10571
 sys/man/8/vga - 664 sys sys 1141660952 3856
 sys/man/fonts - 664 sys sys 944959700 218
@@ -15674,6 +15674,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-sys/man/4/fossil - 664 sys sys 1164860933 9587
-sys/man/6/venti.conf - 664 sys sys 1164860945 1929
-sys/man/8/venti - 664 sys sys 1164860929 5434
