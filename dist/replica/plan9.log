@@ -31761,3 +31761,5 @@
 1164861005 0 c sys/man/4/fossil - 664 sys sys 1164860933 9587
 1164861005 1 c sys/man/6/venti.conf - 664 sys sys 1164860945 1929
 1164861005 2 c sys/man/8/venti - 664 sys sys 1164860929 5434
+1165046406 0 c sys/src/cmd/usb/lib/setup.c - 664 sys sys 1165044747 1936
+1165046406 1 c sys/src/cmd/usb/lib/usb.h - 664 sys sys 1165044715 7066

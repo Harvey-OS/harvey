@@ -30,7 +30,7 @@ setupcmd(Endpt *e, int type, int req, int value, int index, byte *data, int coun
 	}
 	n = write(fd, wp, 8+count);
 	if (n < 0) {
-		fprint(2, "setupreq: write err: %r\n");
+		fprint(2, "setupcmd: write err: %r\n");
 		return -1;
 	}
 	if (n != 8+count) {
@@ -79,26 +79,23 @@ int
 setupreply(Endpt *e, void *buf, int nb)
 {
 	uchar *p;
-	int i, fd;
+	int i, fd, nr;
 	char err[32];
 
 	fd = e->dev->setup;
 	if(fd < 0)
 		sysfatal("RSC: this used to use the global usbsetup0\n");
-	for(;;){
-		nb = read(fd, buf, nb);
-		if (nb >= 0)
-			break;
+	while ((nr = read(fd, buf, nb)) < 0) {
 		rerrstr(err, sizeof err);
 		if (strcmp(err, "interrupted") != 0)
 			break;
 	}
 	p = buf;
 	if (debugdebug) {
-		fprint(2, "in\t%d\t[%d]", fd, nb);
-		for(i=0; i<nb; i++)
+		fprint(2, "in\t%d\t[%d]", fd, nr);
+		for(i=0; i<nr; i++)
 			fprint(2, " %.2ux", p[i]);
 		fprint(2, "\n");
 	}
-	return nb;
+	return nr;
 }

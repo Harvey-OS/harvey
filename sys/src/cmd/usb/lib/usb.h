@@ -4,10 +4,10 @@
  */
 
 enum {
-	Dbginfo = 0x01,
-	Dbgfs = 0x02,
-	Dbgproc = 0x04,
-	Dbgcontrol = 0x08,
+	Dbginfo =	0x01,
+	Dbgfs =		0x02,
+	Dbgproc =	0x04,
+	Dbgcontrol =	0x08,
 };
 
 extern int debug, debugdebug, verbose;
@@ -38,26 +38,20 @@ typedef struct Endpt Endpt;
 
 typedef struct Namelist Namelist;
 
-#ifndef nelem
-#define	nelem(x)	(sizeof((x))/sizeof((x)[0]))
-#endif
-
 #define	GET2(p)	((((p)[1]&0xFF)<<8)|((p)[0]&0xFF))
 #define	PUT2(p,v)	{((p)[0] = (v)); ((p)[1] = (v)>>8);}
 
 enum
 {
-	TokIN = 0x69,
-	TokOUT = 0xE1,
-	TokSETUP = 0x2D,
-
 	/* request type */
 	RH2D = 0<<7,
 	RD2H = 1<<7,
-	Rstandard = 0<<5,
-	Rclass = 1<<5,
+
+	Rstandard = 0<<5,	/* types */
+	Rclass =  1<<5,
 	Rvendor = 2<<5,
-	Rdevice = 0,
+
+	Rdevice = 0,		/* recipients */
 	Rinterface = 1,
 	Rendpt = 2,
 	Rother = 3,
@@ -247,9 +241,9 @@ struct Device
 {
 	Ref;
 	int	ctlrno;
-	int	ctl;
-	int	setup;
-	int	status;
+	int	ctl;		/* fd */
+	int	setup;		/* fd */
+	int	status;		/* fd */
 	int	state;
 	int	id;
 	int	class;
@@ -257,13 +251,13 @@ struct Device
 	int	ls;		/* low speed */
 	ulong	csp;		/* USB class/subclass/proto */
 	int	nconf;
-	int	nif;		/* number of interfaces (sum of per-conf `nif's) */
+	int	nif;		/* # of interfaces (sum of per-conf `nif's) */
 	int	vid;		/* vendor id */
 	int	did;		/* product (device) id */
 	Dconf*	config[16];
 	Endpt*	ep[Nendpt];
-//	Device*	setupfd;	/* for usbprobe */
-//	Device*	cfd;		/* for usbprobe */
+	Device*	setupfd;	/* for usbprobe */
+	Device*	cfd;		/* for usbprobe */
 };
 
 /*
