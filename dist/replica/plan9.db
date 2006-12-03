@@ -14108,8 +14108,8 @@ sys/src/cmd/usb/lib/device.c - 664 sys sys 1144905083 3073
 sys/src/cmd/usb/lib/dump.c - 664 sys sys 1163722010 12983
 sys/src/cmd/usb/lib/fmt.c - 664 sys sys 1091204978 291
 sys/src/cmd/usb/lib/mkfile - 664 sys sys 1091204979 204
-sys/src/cmd/usb/lib/setup.c - 664 sys sys 1091204978 1953
-sys/src/cmd/usb/lib/usb.h - 664 sys sys 1163721974 7129
+sys/src/cmd/usb/lib/setup.c - 664 sys sys 1165044747 1936
+sys/src/cmd/usb/lib/usb.h - 664 sys sys 1165044715 7066
 sys/src/cmd/usb/lib/util.c - 664 sys sys 1091204978 523
 sys/src/cmd/usb/misc - 20000000775 sys sys 1091205037 0
 sys/src/cmd/usb/misc/mkfile - 664 sys sys 1091205037 274
