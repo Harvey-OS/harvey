@@ -1,3 +1,7 @@
+/*
+ * USB device and framework.
+ * usb*.c contains host controller interface drivers.
+ */
 #include	"u.h"
 #include	"../port/lib.h"
 #include	"mem.h"
@@ -192,7 +196,8 @@ devendpt(Udev *d, int id, int add)
 	lock(d);
 	if(*p != nil){
 		incref(*p);
-		XPRINT("incref(0x%p) in devendpt, new value %ld\n", *p, (*p)->ref);
+		XPRINT("incref(0x%p) in devendpt, new value %ld\n",
+			*p, (*p)->ref);
 		unlock(d);
 		uh->epfree(uh, e);
 		free(e);
@@ -230,6 +235,11 @@ usbnewdevice(Usbhost *uh)
 	d = nil;
 	qlock(uh);
 	if(waserror()){
+		if (d) {
+			uh->dev[d->x] = nil;
+			freept(d->ep[0]);
+			free(d);
+		}
 		qunlock(uh);
 		nexterror();
 	}
@@ -243,8 +253,10 @@ usbnewdevice(Usbhost *uh)
 			d->id = (uh->idgen << 8) | i;
 			d->state = Enabled;
 			XPRINT("calling devendpt in usbnewdevice\n");
-			e = devendpt(d, 0, 1);	/* always provide control endpoint 0 */
+			e = devendpt(d, 0, 1);	/* always provide ctl endpt 0 */
 			e->mode = ORDWR;
+			e->in.epmode = e->out.epmode = Ctlmode;	/* OHCI */
+			// epsetMPS(e, 64, 64);		/* OHCI; see epalloc*/
 			e->iso = 0;
 			e->sched = -1;
 			uh->dev[i] = d;
@@ -277,7 +289,7 @@ freedev(Udev *d, int ept)
 			if(e != nil)
 				uh->epclose(uh, e);
 		}
-	}	
+	}
 }
 
 static int
@@ -429,7 +441,8 @@ usbprobe(int cardno, int ctlrno)
 	intrenable(uh->irq, uh->interrupt, uh, uh->tbdf, name);
 
 	ebuf = buf + sizeof buf;
-	p = seprint(buf, ebuf, "#U/usb%d: %s: port 0x%luX irq %d", ctlrno, usbtypes[cardno].type, uh->port, uh->irq);
+	p = seprint(buf, ebuf, "#U/usb%d: %s: port 0x%luX irq %d",
+		ctlrno, usbtypes[cardno].type, uh->port, uh->irq);
 	if(uh->mem)
 		p = seprint(p, ebuf, " addr 0x%luX", PADDR(uh->mem));
 	if(uh->size)
@@ -557,6 +570,12 @@ usbopen(Chan *c, int omode)
 		XPRINT("usbopen, Qctl 0x%p\n", d);
 		break;
 
+//	case Qsetup:			/* OHCI addition */
+//		d = usbhdevice(c);
+//		doopen(ub, d, 0);
+//		incref(d);
+//		break;
+
 	default:
 		s = type - Qep0;
 		XPRINT("usbopen, default 0x%p, %d\n", d, s);
@@ -617,11 +636,14 @@ epstatus(char *s, char *se, Endpt *e, int i)
 {
 	char *p;
 
-	p = seprint(s, se, "%2d %#6.6lux %10lud bytes %10lud blocks\n", i, e->csp, e->nbytes, e->nblocks);
+	p = seprint(s, se, "%2d %#6.6lux %10lud bytes %10lud blocks\n",
+		i, e->csp, e->nbytes, e->nblocks);
 	if(e->iso){
-		p = seprint(p, se, "bufsize %6d buffered %6d", e->maxpkt, e->buffered);
+		p = seprint(p, se, "bufsize %6d buffered %6d",
+			e->maxpkt, e->buffered);
 		if(e->toffset)
-			p = seprint(p, se, " offset  %10lud time %19lld\n", e->toffset, e->time);
+			p = seprint(p, se, " offset  %10lud time %19lld\n",
+				e->toffset, e->time);
 		p = seprint(p, se, "\n");
 	}
 	return p;
@@ -658,7 +680,7 @@ usbread(Chan *c, void *a, long n, vlong offset)
 			if(e->setin){
 				e->setin = 0;
 				e->wdata01 = 1;
-				uh->write(uh, e, "", 0, 0LL, TokOUT);
+				uh->write(uh, e, "", 0, 0LL, uh->tokout);
 			}
 			return n;
 		}
@@ -682,9 +704,11 @@ usbread(Chan *c, void *a, long n, vlong offset)
 
 	case Qstatus:
 		if (d->did || d->vid)
-			p = seprint(s, se, "%s %#6.6lux %#4.4ux %#4.4ux\n", devstates[d->state], d->csp, d->vid, d->did);
+			p = seprint(s, se, "%s %#6.6lux %#4.4ux %#4.4ux\n",
+				devstates[d->state], d->csp, d->vid, d->did);
 		else
-			p = seprint(s, se, "%s %#6.6lux\n", devstates[d->state], d->csp);
+			p = seprint(s, se, "%s %#6.6lux\n",
+				devstates[d->state], d->csp);
 		for(i=0; i<nelem(d->ep); i++) {
 			e = d->ep[i];
 			if(e == nil)
@@ -736,7 +760,7 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 			uh->portreset(uh, id);
 			break;
 		}
-	
+
 		poperror();
 		free(cb);
 		return n;
@@ -755,8 +779,11 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 		case CMclass:
 			if (cb->nf != 4 && cb->nf != 6)
 				cmderror(cb, Ebadusbmsg);
-			/* class #ifc ept csp ( == class subclass proto) [vendor product] */
-			d->npt = strtoul(cb->f[1], nil, 0);	/* # of interfaces */
+			/*
+			 * class #ifc ept csp
+			 * (== class subclass proto) [vendor product]
+			 */
+			d->npt = strtoul(cb->f[1], nil, 0); /* # of interfaces */
 			i = strtoul(cb->f[2], nil, 0);		/* endpoint */
 			if (i < 0 || i >= nelem(d->ep)
 			 || d->npt > nelem(d->ep) || i >= d->npt)
@@ -833,7 +860,8 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 			 */
 			i = strtoul(cb->f[1], nil, 0);
 			if(i < 0 || i >= nelem(d->ep)) {
-				XPRINT("field 1: 0 <= %d < %d\n", i, nelem(d->ep));
+				XPRINT("field 1: 0 <= %d < %d\n",
+					i, nelem(d->ep));
 				error(Ebadarg);
 			}
 			if((e = d->ep[i]) == nil){
@@ -880,19 +908,21 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 					e->hz = i;
 					e->remain = 0;
 				}else {
-					XPRINT("field 5: 1 < %d <= 100000 Hz\n", i);
+					XPRINT("field 5: 1 < %d <= 100000 Hz\n",
+						i);
 					error(Ebadarg);
 				}
-				e->maxpkt = (e->hz * e->pollms + 999)/1000 * e->samplesz;
+				e->maxpkt = (e->hz*e->pollms + 999)/1000 *
+					e->samplesz;
 				e->iso = 1;
 			}
-			e->mode = strcmp(cb->f[3],"r") == 0? OREAD :
-				  	strcmp(cb->f[3],"w") == 0? OWRITE : ORDWR;
+			e->mode = strcmp(cb->f[3],"r") == 0? OREAD:
+				  strcmp(cb->f[3],"w") == 0? OWRITE: ORDWR;
 			uh->epmode(uh, e);
 			poperror();
 			qunlock(uh);
 		}
-	
+
 		poperror();
 		free(cb);
 		return n;
@@ -906,7 +936,7 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 			error(Eio);
 		nw = *(uchar*)a & RD2H;
 		e->wdata01 = 0;
-		n = uh->write(uh, e, a, n, 0LL, TokSETUP);
+		n = uh->write(uh, e, a, n, 0LL, uh->toksetup);
 		if(nw == 0) {	/* host to device: use IN[DATA1] to ack */
 			e->rdata01 = 1;
 			nw = uh->read(uh, e, cmd, 0LL, 8);
@@ -923,7 +953,7 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 		e = d->ep[t];
 		if(e == nil || e->mode == OREAD)
 			error(Egreg);
-		n = uh->write(uh, e, a, n, offset, TokOUT);
+		n = uh->write(uh, e, a, n, offset, uh->tokout);
 		break;
 	}
 	return n;

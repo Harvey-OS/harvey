@@ -1,3 +1,6 @@
+/*
+ * common USB definitions
+ */
 typedef struct Ctlr Ctlr;
 typedef struct Endpt Endpt;
 typedef struct Udev Udev;
@@ -5,15 +8,8 @@ typedef struct Usbhost Usbhost;
 
 enum
 {
-	MaxUsb = 10,		/* max number of USB Host Controller Interfaces (Usbhost*) */
-	MaxUsbDev = 32,	/* max number of attached USB devices, including root hub (Udev*) */
-
-	/*
-	 * USB packet definitions...
- 	*/
-	TokIN = 0x69,
-	TokOUT = 0xE1,
-	TokSETUP = 0x2D,
+	MaxUsb = 10,	/* max # of USB Host Controller Interfaces (Usbhost*) */
+	MaxUsbDev = 32,	/* max # of attached USB devs, including root hub (Udev*) */
 
 	/* request type */
 	RH2D = 0<<7,
@@ -21,25 +17,51 @@ enum
 	Rstandard = 0<<5,
 	Rclass = 1<<5,
 	Rvendor = 2<<5,
+
 	Rdevice = 0,
 	Rinterface = 1,
 	Rendpt = 2,
 	Rother = 3,
 };
 
-#define Class(csp)		((csp)&0xff)
+#define Class(csp)	((csp)&0xff)
 #define Subclass(csp)	(((csp)>>8)&0xff)
-#define Proto(csp)		(((csp)>>16)&0xff)
+#define Proto(csp)	(((csp)>>16)&0xff)
 #define CSP(c, s, p)	((c) | ((s)<<8) | ((p)<<16))
+
+/* for OHCI */
+typedef struct ED ED;
+struct ED {
+	ulong ctrl;
+	ulong tail;		/* transfer descriptor */
+	ulong head;
+	ulong next;
+};
 
 /*
  * device endpoint
  */
 struct Endpt
 {
+	ED *ined;		/* for OHCI */
+	ED *outed;		/* for OHCI */
 	Ref;
 	Lock;
 	int	x;		/* index in Udev.ep */
+	struct {		/* OHCI */
+		int epmode;
+		int	nbuf;	/* number of buffers allowed */
+		int	ntd;
+		int	mps;
+	} out;
+	struct {		/* OHCI */
+		int epmode;
+		int	nbuf;	/* number of buffers allowed */
+		int	sched;	/* schedule index; -1 if undefined or aperiodic */
+		int	pollms;	/* polling interval in msec */
+		int	ntd;
+		int	mps;
+	} in;
 	int	id;		/* hardware endpoint address */
 	int	maxpkt;		/* maximum packet size (from endpoint descriptor) */
  	uchar	wdata01;	/* 0=DATA0, 1=DATA1 for output direction */
@@ -64,9 +86,11 @@ struct Endpt
 	ulong	foffset;	/* file offset (to detect seeks) */
 	ulong	poffset;	/* offset of next packet to be queued */
 	ulong	toffset;	/* offset associated with time */
-	vlong	time;		/* timeassociated with offset */
+	vlong	time;		/* time associated with offset */
 	int	buffered;	/* bytes captured but unread, or written but unsent */
 	/* end ISO stuff */
+
+	ulong	bw;		/* bandwidth requirement (OHCI) */
 
 	Udev*	dev;		/* owning device */
 
@@ -75,18 +99,30 @@ struct Endpt
 
 	void	*private;
 
-	/* all the rest could (should?) move to the driver private structure; except perhaps err */
+	/*
+	 * all the rest could (should?) move to the driver private structure;
+	 * except perhaps err.
+	 */
 	QLock	rlock;
 	Rendez	rr;
 	Queue*	rq;
+
 	QLock	wlock;
 	Rendez	wr;
 	Queue*	wq;
 
-	int		ntd;
-	char*	err;		// needs to be global for unstall; fix?
+	int	ntd;
+	char*	err;		/* needs to be global for unstall; fix? */
 
 	Endpt*	activef;	/* active endpoint list */
+};
+
+/* OHCI endpoint modes */
+enum {
+	Nomode,
+	Ctlmode,
+	Bulkmode,
+	Intrmode
 };
 
 /* device parameters */
@@ -112,18 +148,19 @@ struct Udev
 	Ref;
 	Lock;
 	Usbhost	*uh;
-	int		x;		/* index in usbdev[] */
-	int		busy;
-	int		state;
-	int		id;
+	int	x;		/* index in usbdev[] */
+	int	busy;
+	int	state;
+	int	id;
 	uchar	port;		/* port number on connecting hub */
 	ulong	csp;
 	ushort	vid;		/* vendor id */
 	ushort	did;		/* product id */
-	int		ls;
-	int		npt;
-	Endpt*	ep[16];	/* active end points */
-	Udev*	ports;	/* active ports, if hub */
+	int	ls;
+	int	npt;
+	Endpt*	ep[16];		/* active end points */
+
+	Udev*	ports;		/* active ports, if hub */
 	Udev*	next;		/* next device on this hub */
 };
 
@@ -132,11 +169,11 @@ struct Udev
  */
 struct Usbhost
 {
-	ISAConf;					/* hardware info */
-	int	tbdf;					/* type+busno+devno+funcno */
+	ISAConf;		/* hardware info */
+	int	tbdf;		/* type+busno+devno+funcno */
 
-	QLock;					/* protects namespace state */
-	int		idgen;			/* version number to distinguish new connections */
+	QLock;			/* protects namespace state */
+	int	idgen;		/* version # to distinguish new connections */
 	Udev*	dev[MaxUsbDev];	/* device endpoints managed by this HCI */
 
 	void	(*init)(Usbhost*);
@@ -156,6 +193,10 @@ struct Usbhost
 	long	(*write)(Usbhost*, Endpt*, void*, long, vlong, int);
 
 	void	*ctlr;
+
+	int	tokin;
+	int	tokout;
+	int	toksetup;
 };
 
 extern void addusbtype(char*, int(*)(Usbhost*));

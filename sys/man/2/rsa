@@ -162,7 +162,9 @@ The subject line is conventionally of the form
    "C=US ST=NJ L=07922 O=Lucent OU='Bell Labs' CN=Eric"
 .EE
 using the quoting conventions of
-.IR tokenize (2).
+.I tokenize
+in
+.IR getfields (2).
 .PP
 .I Asn1toRSApriv
 converts an ASN1 formatted RSA private key into the corresponding
@@ -203,4 +205,4 @@ is undefined.
 .IR sechash (2),
 .IR prime (2),
 .IR rand (2),
-.IR x509 (8)
+.IR rsa (8)

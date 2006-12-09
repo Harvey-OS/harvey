@@ -189,7 +189,7 @@ to restart
 .B /sys/src/cmd/import.c
 .SH SEE ALSO
 .IR bind (1),
-.IR aan (1),
+.IR aan (8),
 .IR ssl (3),
 .IR exportfs (4),
 .IR listen (8),

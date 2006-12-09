@@ -44,7 +44,7 @@ juke \- music jukebox
 .I Jukebox
 controls a playlist server
 (see
-.IR playlistsrv (7))
+.IR playlistfs (7))
 through a graphical user interface.  It connects to a music database server which reads a set of
 .I map
 files that describe recordings and their location.  Currently, there is

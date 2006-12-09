@@ -97,4 +97,4 @@ slow algorithm.
 .IR blowfish (2),
 .IR des (2),
 .IR elgamal (2),
-.IR rsa (2),
+.IR rsa (2)

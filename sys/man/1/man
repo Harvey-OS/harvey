@@ -49,7 +49,7 @@ Print the pages on the standard output using
 Print the pages using
 .I nroff
 and send them to 
-.IR plumber (1)
+.IR plumber (4)
 for display in the editor.
 .TP
 .B -p

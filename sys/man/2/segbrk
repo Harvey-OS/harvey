@@ -61,4 +61,6 @@ subsuming the functions of
 .IR brk (2),
 .IR segflush (2)
 and
-.IR segfree (2).
+.I segfree
+in
+.IR segattach (2).

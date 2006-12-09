@@ -305,4 +305,4 @@ regular expressions describing explicitly unlistable pathnames
 in
 .IR auth (2),
 .IR listen (8),
-.IR x509 (8)
+.IR rsa (8)

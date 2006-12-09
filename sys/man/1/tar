@@ -153,7 +153,7 @@ can be used to copy hierarchies thus:
 .SH SEE ALSO
 .IR ar (1),
 .IR bundle (1),
-.IR tapefs (1)
+.IR tapefs (4)
 .SH BUGS
 There is no way to ask for any but the last
 occurrence of a file.

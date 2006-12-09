@@ -526,7 +526,9 @@ The
 .I challenge
 is a random five-digit decimal number.
 When using a SecureNet key or
-.IR netkey (1),
+.I netkey
+(see
+.IR passwd (1)),
 the 
 .I response
 is an eight-digit decimal or hexadecimal number
