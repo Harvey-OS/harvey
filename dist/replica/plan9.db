@@ -1279,7 +1279,7 @@ lib/face/48x48x2/x - 20000000775 sys sys 1020895710 0
 lib/face/48x48x2/y - 20000000775 sys sys 1020895710 0
 lib/face/48x48x2/z - 20000000775 sys sys 1020895710 0
 lib/face/48x48x4 - 20000000775 sys sys 944941894 0
-lib/face/48x48x4/.dict - 664 sys sys 1161059931 3416
+lib/face/48x48x4/.dict - 664 sys sys 1165561735 3448
 lib/face/48x48x4/Z - 20000000775 sys sys 944945342 0
 lib/face/48x48x4/a - 20000000775 sys sys 944945701 0
 lib/face/48x48x4/a/adb.1 - 664 sys sys 944941890 962
@@ -7304,7 +7304,7 @@ sys/man/1/echo - 664 sys sys 1079969656 430
 sys/man/1/ed - 664 sys sys 961259286 13916
 sys/man/1/emacs - 664 sys sys 944959673 199
 sys/man/1/eqn - 664 sys sys 1134592617 5655
-sys/man/1/expect - 664 sys sys 1141913757 3018
+sys/man/1/expect - 664 sys sys 1165622338 3018
 sys/man/1/faces - 664 sys sys 1113743326 2395
 sys/man/1/factor - 664 sys sys 1135084026 1015
 sys/man/1/file - 664 sys sys 1157143697 1481
@@ -7336,8 +7336,8 @@ sys/man/1/look - 664 sys sys 1113743326 1357
 sys/man/1/lp - 664 sys sys 1113743326 3329
 sys/man/1/ls - 664 sys sys 1113743327 2890
 sys/man/1/mail - 664 sys sys 1050078464 2158
-sys/man/1/man - 664 sys sys 1138555093 2006
-sys/man/1/marshal - 664 sys sys 1079970326 3150
+sys/man/1/man - 664 sys sys 1165622295 2006
+sys/man/1/marshal - 664 sys sys 1165622300 3149
 sys/man/1/mc - 664 sys sys 1113743326 552
 sys/man/1/mk - 664 sys sys 1113743328 13198
 sys/man/1/mkdir - 664 sys sys 1082593141 717
@@ -7388,7 +7388,7 @@ sys/man/1/strip - 664 sys sys 1131293239 523
 sys/man/1/sum - 664 sys sys 984772442 1390
 sys/man/1/syscall - 664 sys sys 1016466457 1439
 sys/man/1/tail - 664 sys sys 1113743327 1413
-sys/man/1/tar - 664 sys sys 1131884436 3439
+sys/man/1/tar - 664 sys sys 1165622307 3439
 sys/man/1/tbl - 664 sys sys 944959674 4308
 sys/man/1/tcs - 664 sys sys 1143131200 2654
 sys/man/1/tee - 664 sys sys 969499886 351
@@ -7411,14 +7411,14 @@ sys/man/1/vnc - 664 sys sys 1158063994 4313
 sys/man/1/vt - 664 sys sys 1133880370 2256
 sys/man/1/wc - 664 sys sys 1113743327 908
 sys/man/1/who - 664 sys sys 944959674 332
-sys/man/1/winwatch - 664 sys sys 1159419872 724
+sys/man/1/winwatch - 664 sys sys 1165622316 708
 sys/man/1/xd - 664 sys sys 944959674 1517
 sys/man/1/yacc - 664 sys sys 944959676 3273
 sys/man/1/yesterday - 664 sys sys 1148760984 2640
 sys/man/2 - 20000000775 sys sys 1017423721 0
 sys/man/2/0intro - 664 sys sys 1115941566 11660
 sys/man/2/9p - 664 sys sys 1150036738 15887
-sys/man/2/9pcmdbuf - 664 sys sys 1044430197 2057
+sys/man/2/9pcmdbuf - 664 sys sys 1165622380 2076
 sys/man/2/9pfid - 664 sys sys 1106072437 3663
 sys/man/2/9pfile - 664 sys sys 1048637158 4408
 sys/man/2/INDEX - 664 sys sys 1141357442 20441
@@ -7455,7 +7455,7 @@ sys/man/2/dial - 664 sys sys 1108158522 6594
 sys/man/2/dirread - 664 sys sys 1015091519 1901
 sys/man/2/disk - 664 sys sys 1015091519 3188
 sys/man/2/draw - 664 sys sys 1059484405 19362
-sys/man/2/dsa - 664 sys sys 1027629169 2072
+sys/man/2/dsa - 664 sys sys 1165622511 2091
 sys/man/2/dup - 664 sys sys 950593489 827
 sys/man/2/elgamal - 664 sys sys 1027629189 2152
 sys/man/2/encode - 664 sys sys 1071289168 1572
@@ -7518,7 +7518,7 @@ sys/man/2/pipe - 664 sys sys 950892864 1587
 sys/man/2/plumb - 664 sys sys 1015091524 4816
 sys/man/2/pool - 664 sys sys 1162102403 8574
 sys/man/2/postnote - 664 sys sys 944959695 790
-sys/man/2/prime - 664 sys sys 1063855709 1962
+sys/man/2/prime - 664 sys sys 1165622556 1961
 sys/man/2/print - 664 sys sys 1115941566 8852
 sys/man/2/privalloc - 664 sys sys 984709633 651
 sys/man/2/proto - 664 sys sys 969499889 2948
@@ -7536,7 +7536,7 @@ sys/man/2/readv - 664 sys sys 1017423721 1454
 sys/man/2/regexp - 664 sys sys 988225293 3548
 sys/man/2/remove - 664 sys sys 958249504 518
 sys/man/2/rendezvous - 664 sys sys 1135487949 1322
-sys/man/2/rsa - 664 sys sys 1087829658 4245
+sys/man/2/rsa - 664 sys sys 1165622556 4260
 sys/man/2/rune - 664 sys sys 1143079849 3086
 sys/man/2/runestrcat - 664 sys sys 969499889 1086
 sys/man/2/scribble - 664 sys sys 985638584 3847
@@ -7544,7 +7544,7 @@ sys/man/2/scsi - 664 sys sys 969499889 3171
 sys/man/2/sechash - 664 sys sys 1046042040 3016
 sys/man/2/seek - 664 sys sys 944959696 671
 sys/man/2/segattach - 664 sys sys 1135487945 4166
-sys/man/2/segbrk - 664 sys sys 1135487945 1195
+sys/man/2/segbrk - 664 sys sys 1165622575 1211
 sys/man/2/segflush - 664 sys sys 944959695 944
 sys/man/2/semacquire - 664 sys sys 1143134715 1865
 sys/man/2/setjmp - 664 sys sys 1144424826 1863
@@ -7576,7 +7576,7 @@ sys/man/3/dup - 664 sys sys 1015024778 1099
 sys/man/3/env - 664 sys sys 1015024778 1409
 sys/man/3/ether - 664 sys sys 984709635 2563
 sys/man/3/floppy - 664 sys sys 954378905 881
-sys/man/3/fs - 664 sys sys 1133880474 2702
+sys/man/3/fs - 664 sys sys 1165622643 2702
 sys/man/3/i82365 - 664 sys sys 954378906 884
 sys/man/3/ip - 664 sys sys 1163208517 21559
 sys/man/3/kbmap - 664 sys sys 1131110122 1732
@@ -7612,11 +7612,11 @@ sys/man/4/execnet - 664 sys sys 1019866708 1069
 sys/man/4/exportfs - 664 sys sys 1145881912 4655
 sys/man/4/ext2srv - 664 sys sys 1055692986 2409
 sys/man/4/factotum - 664 sys sys 1131294573 14841
-sys/man/4/fossil - 664 sys sys 1164860933 9587
+sys/man/4/fossil - 664 sys sys 1165622806 9590
 sys/man/4/fs - 664 sys sys 1019058716 3387
 sys/man/4/ftpfs - 664 sys sys 1112563349 4410
 sys/man/4/httpfile - 664 sys sys 1128556957 1233
-sys/man/4/import - 664 sys sys 1133180700 3202
+sys/man/4/import - 664 sys sys 1165622806 3202
 sys/man/4/iostats - 664 sys sys 1105574383 1621
 sys/man/4/keyfs - 664 sys sys 1116594919 5048
 sys/man/4/kfs - 664 sys sys 1102088374 2164
@@ -7664,7 +7664,7 @@ sys/man/6/INDEX - 664 sys sys 1141357442 485
 sys/man/6/INDEX.html - 664 sys sys 1141352366 3298
 sys/man/6/a.out - 664 sys sys 1015024888 7155
 sys/man/6/ar - 664 sys sys 944959678 2092
-sys/man/6/authsrv - 664 sys sys 1128483124 13304
+sys/man/6/authsrv - 664 sys sys 1165622854 13320
 sys/man/6/color - 664 sys sys 988225304 5181
 sys/man/6/face - 664 sys sys 1062505426 2846
 sys/man/6/font - 664 sys sys 1077594184 2528
@@ -7697,7 +7697,7 @@ sys/man/7/INDEX - 664 sys sys 1104811679 111
 sys/man/7/INDEX.html - 664 sys sys 1104736386 918
 sys/man/7/astro - 664 sys sys 964455064 2454
 sys/man/7/dict - 664 sys sys 944959678 3438
-sys/man/7/juke - 664 sys sys 1159419718 7769
+sys/man/7/juke - 664 sys sys 1165622887 7768
 sys/man/7/map - 664 sys sys 1032632790 13549
 sys/man/7/playlistfs - 664 sys sys 1103794042 3831
 sys/man/7/scat - 664 sys sys 970069855 8904
@@ -7711,7 +7711,7 @@ sys/man/8/aan - 664 sys sys 1045501064 1670
 sys/man/8/aliasmail - 664 sys sys 1055701148 1353
 sys/man/8/apm - 664 sys sys 1017679308 1811
 sys/man/8/auth - 664 sys sys 1163208463 4227
-sys/man/8/boot - 664 sys sys 1163208457 8362
+sys/man/8/boot - 664 sys sys 1165623055 8357
 sys/man/8/booting - 664 sys sys 1015024984 4136
 sys/man/8/cpurc - 664 sys sys 971455510 1275
 sys/man/8/cron - 664 sys sys 1063858596 1867
@@ -7722,8 +7722,8 @@ sys/man/8/fossilcons - 664 sys sys 1155362671 18291
 sys/man/8/fs - 664 sys sys 1055701170 15029
 sys/man/8/fsconfig - 664 sys sys 1142906116 8281
 sys/man/8/getflags - 664 sys sys 1159419702 1713
-sys/man/8/gpsfs - 664 sys sys 1123643451 4924
-sys/man/8/httpd - 664 sys sys 1142795704 6866
+sys/man/8/gpsfs - 664 sys sys 1165623047 4918
+sys/man/8/httpd - 664 sys sys 1165623004 6865
 sys/man/8/init - 664 sys sys 944959679 1430
 sys/man/8/ipconfig - 664 sys sys 1159419702 6170
 sys/man/8/ipserv - 664 sys sys 1095862383 4375
@@ -7762,7 +7762,7 @@ sys/man/8/statusbar - 664 sys sys 1159419702 1254
 sys/man/8/stub - 664 sys sys 1044830500 943
 sys/man/8/swap - 664 sys sys 1158604825 886
 sys/man/8/timesync - 664 sys sys 1145882352 1717
-sys/man/8/tlssrv - 664 sys sys 1159419702 2590
+sys/man/8/tlssrv - 664 sys sys 1165623041 2589
 sys/man/8/trampoline - 664 sys sys 1126104844 1199
 sys/man/8/udpecho - 664 sys sys 954305553 303
 sys/man/8/update - 664 sys sys 961259288 2336
@@ -7968,7 +7968,7 @@ sys/src/9/pc/devlpt.c - 664 sys sys 1015014514 4420
 sys/src/9/pc/devpccard.c - 664 sys sys 1162222267 39301
 sys/src/9/pc/devrtc.c - 664 sys sys 1015014515 7167
 sys/src/9/pc/devtv.c - 664 sys sys 1131290299 45676
-sys/src/9/pc/devusb.c - 664 sys sys 1105193103 18364
+sys/src/9/pc/devusb.c - 664 sys sys 1165555433 18791
 sys/src/9/pc/devvga.c - 664 sys sys 1131290315 9332
 sys/src/9/pc/dma.c - 664 sys sys 1142966373 5332
 sys/src/9/pc/ether2000.c - 664 sys sys 1089299187 4819
@@ -8005,7 +8005,7 @@ sys/src/9/pc/i8253.c - 664 sys sys 1139681387 6236
 sys/src/9/pc/i8259.c - 664 sys sys 1131290399 4586
 sys/src/9/pc/init9.c - 664 sys sys 1040002518 94
 sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
-sys/src/9/pc/io.h - 664 sys sys 1099761152 8095
+sys/src/9/pc/io.h - 664 sys sys 1165555523 9406
 sys/src/9/pc/kbd.c - 664 sys sys 1132574883 12365
 sys/src/9/pc/l.s - 664 sys sys 1143129925 28552
 sys/src/9/pc/main.c - 664 sys sys 1162952105 15321
@@ -8049,8 +8049,8 @@ sys/src/9/pc/uartaxp.c - 664 sys sys 1158803840 18862
 sys/src/9/pc/uarti8250.c - 664 sys sys 1102820421 13958
 sys/src/9/pc/uartisa.c - 664 sys sys 1127126907 1777
 sys/src/9/pc/uartpci.c - 664 sys sys 1162859151 3617
-sys/src/9/pc/usb.h - 664 sys sys 1099760881 3650
-sys/src/9/pc/usbuhci.c - 664 sys sys 1154725785 30910
+sys/src/9/pc/usb.h - 664 sys sys 1165555430 4257
+sys/src/9/pc/usbuhci.c - 664 sys sys 1165555497 31000
 sys/src/9/pc/vga.c - 664 sys sys 1131290595 5148
 sys/src/9/pc/vga3dfx.c - 664 sys sys 1133218367 3833
 sys/src/9/pc/vgaark2000pv.c - 664 sys sys 1131290600 3422

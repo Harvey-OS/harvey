@@ -42,6 +42,5 @@ Excluding winwatch, stats and faces from being showed.
 .B /sys/src/cmd/winwatch.c
 .SH SEE ALSO
 .IR rio (1),
-.IR window (1),
 .IR rio (4),
 .IR regexp (6).

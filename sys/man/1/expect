@@ -97,14 +97,6 @@ and means the same as it does for
 discards any input waiting on standard input.  It
 is used to sync up the stream at the start of dialing
 or after an error.
-.SH FILES
-.B /rc/bin/ipconf/*
-example dialer scripts for ppp
-.SH SOURCE
-.B /sys/src/cmd/dial/*.c
-.SH SEE ALSO
-.IR ppp (8),
-.IR telco (4)
 .SH EXAMPLE
 The following
 .B rc
@@ -170,3 +162,11 @@ fn dialfn {
 	ip/ppp $primary -f
 } < $dev > $dev
 .EE
+.SH FILES
+.B /rc/bin/ipconf/*
+example dialer scripts for ppp
+.SH SOURCE
+.B /sys/src/cmd/dial/*.c
+.SH SEE ALSO
+.IR ppp (8),
+.IR telco (4)

@@ -94,7 +94,7 @@ enum {
 /*
  * PCI support code.
  */
-enum {					/* type 0 and type 1 pre-defined header */
+enum {					/* type 0 & type 1 pre-defined header */
 	PciVID		= 0x00,		/* vendor ID */
 	PciDID		= 0x02,		/* device ID */
 	PciPCR		= 0x04,		/* command */
@@ -113,6 +113,54 @@ enum {					/* type 0 and type 1 pre-defined header */
 
 	PciINTL		= 0x3C,		/* interrupt line */
 	PciINTP		= 0x3D,		/* interrupt pin */
+};
+
+/* ccrb (base class code) values; controller types */
+enum {
+	Pcibcpci1	= 0,		/* pci 1.0; no class codes defined */
+	Pcibcstore	= 1,		/* mass storage */
+	Pcibcnet	= 2,		/* network */
+	Pcibcdisp	= 3,		/* display */
+	Pcibcmmedia	= 4,		/* multimedia */
+	Pcibcmem	= 5,		/* memory */
+	Pcibcbridge	= 6,		/* bridge */
+	Pcibccomm	= 7,		/* simple comms (e.g., serial) */
+	Pcibcbasesys	= 8,		/* base system */
+	Pcibcinput	= 9,		/* input */
+	Pcibcdock	= 0xa,		/* docking stations */
+	Pcibcproc	= 0xb,		/* processors */
+	Pcibcserial	= 0xc,		/* serial bus (e.g., USB) */
+	Pcibcwireless	= 0xd,		/* wireless */
+	Pcibcintell	= 0xe,		/* intelligent i/o */
+	Pcibcsatcom	= 0xf,		/* satellite comms */
+	Pcibccrypto	= 0x10,		/* encryption/decryption */
+	Pcibcdacq	= 0x11,		/* data acquisition & signal proc. */
+};
+
+/* ccru (sub-class code) values; common cases only */
+enum {
+	/* mass storage */
+	Pciscscsi	= 0,		/* SCSI */
+	Pciscide	= 1,		/* IDE (ATA) */
+
+	/* network */
+	Pciscether	= 0,		/* Ethernet */
+
+	/* display */
+	Pciscvga	= 0,		/* VGA */
+	Pciscxga	= 1,		/* XGA */
+	Pcisc3d		= 2,		/* 3D */
+
+	/* bridges */
+	Pcischostpci	= 0,		/* host/pci */
+	Pciscpcicpci	= 1,		/* pci/pci */
+
+	/* simple comms */
+	Pciscserial	= 0,		/* 16450, etc. */
+	Pciscmultiser	= 1,		/* multiport serial */
+
+	/* serial bus */
+	Pciscusb	= 3,		/* USB */
 };
 
 enum {					/* type 0 pre-defined header */

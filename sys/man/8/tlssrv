@@ -146,7 +146,7 @@ actual TCP port numbers.)
 .SH "SEE ALSO"
 .IR factotum (4),
 .IR listen (8),
-.IR x509 (8)
+.IR rsa (8)
 .br
 Unix's
 .I stunnel

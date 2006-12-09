@@ -16,7 +16,7 @@ driver builds complex disk files out of simpler disk files.
 Inspired by the Plan 9 file server kernel's configuration strings,
 it provides device mirroring, partitioning, interleaving, and catenation
 for disk-based services like
-.IR kfs (8)
+.IR kfs (4)
 or
 .IR venti (8).
 .PP

@@ -319,7 +319,7 @@ partition,
 invokes
 .BR /boot/kfs .
 A variety of programs, like
-.IR 9660srv (4)
+.I 9660srv
 and
 .IR dossrv (4)
 masquerade as

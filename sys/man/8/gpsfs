@@ -96,12 +96,14 @@ format.
 .TP
 .I "gps time
 in
-.IR nsec (2)
+.I nsec
+(see
+.IR time (2))
 format (ms accuracy).
 .TP
 .I "system time
 in
-.IR nsec (2)
+.I nsec
 format.  This is the system time at the time of the
 .I "gps time
 sample.  The difference between this and the previous field is used in clock
@@ -236,9 +238,8 @@ given in a single argument (separated by white space), or in two arguments, in e
 Initialization time is taken from
 .IR time (2).
 .SH "SEE ALSO
-.IR timesync (2),
-.IR time (2),
-.IR nsec (2).
+.IR timesync (8),
+.IR time (2)
 .SH FILES
 .TF /mnt/gps/satellites
 .TP

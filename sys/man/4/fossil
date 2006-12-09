@@ -142,9 +142,10 @@ will be named
 .BR /archive/2002/1215/ .
 .PP
 The attach name used in
-.IR mount (1)
-(see also
-.IR mount (2)
+.I mount
+(see
+.IR bind (1),
+.IR bind (2)
 and
 .IR attach (5))
 selects a file system to be served
