@@ -150,18 +150,16 @@ srvcreate(Chan *c, char *name, int omode, ulong perm)
 
 	sp = smalloc(sizeof *sp);
 	sname = smalloc(strlen(name)+1);
-	if(sp == nil || sname == nil) {
-		free(sp);
-		free(sname);
-		error(Enomem);
-	}
 
 	qlock(&srvlk);
 	if(waserror()){
 		free(sp);
+		free(sname);
 		qunlock(&srvlk);
 		nexterror();
 	}
+	if(sp == nil || sname == nil)
+		error(Enomem);
 	if(srvlookup(name, -1))
 		error(Eexist);
 
