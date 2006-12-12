@@ -8109,7 +8109,7 @@ sys/src/9/port/devroot.c - 664 sys sys 1146151714 4242
 sys/src/9/port/devsd.c - 664 sys sys 1155995769 30859
 sys/src/9/port/devsdp.c - 664 sys sys 1057323393 44800
 sys/src/9/port/devsegment.c - 664 sys sys 1131289891 9610
-sys/src/9/port/devsrv.c - 664 sys sys 1163030369 5728
+sys/src/9/port/devsrv.c - 664 sys sys 1165810571 5711
 sys/src/9/port/devssl.c - 664 sys sys 1146151714 26121
 sys/src/9/port/devtinyfs.c - 664 sys sys 1015278339 15347
 sys/src/9/port/devtls.c - 664 sys sys 1146151715 45214
@@ -15674,4 +15674,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-sys/src/9/port/devsrv.c - 664 sys sys 1165810571 5711
