@@ -226,7 +226,7 @@ main(int argc, char *argv[])
 	if(mboxfile != nil){
 		err = newmbox(mboxfile, "mbox", std);
 		if(err != nil)
-			sysfatal("opening mailbox: %s", err);
+			sysfatal("opening %s: %s", mboxfile, err);
 	}
 
 	switch(rfork(RFFDG|RFPROC|RFNAMEG|RFNOTEG|RFREND)){

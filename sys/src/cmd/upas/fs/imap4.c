@@ -409,6 +409,18 @@ mypushtls(int fd)
 	return p[1];
 }
 
+static char*
+imaperrstr(char *host, char *port)
+{
+	static char mess[256];
+	char err[64];
+
+	err[0] = '\0';
+	errstr(err, sizeof(err));
+	snprint(mess, sizeof(mess), "%s/%s:%s", host, port, err);
+	return mess;
+}
+
 //
 // dial and handshake with the imap server
 //
@@ -434,7 +446,7 @@ imap4dial(Imap *imap)
 		port = "imap";
 
 	if((imap->fd = dial(netmkaddr(imap->host, "net", port), 0, 0, 0)) < 0)
-		return geterrstr();
+		return imaperrstr(imap->host, port);
 
 	if(imap->mustssl){
 		memset(&conn, 0, sizeof conn);
