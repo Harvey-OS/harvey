@@ -578,28 +578,57 @@ addr822(char *p)
 	return list;
 }
 
+/*
+ * per rfc2822 §4.5.3, permit multiple to, cc and bcc headers by
+ * concatenating their values.
+ */
+
 static void
 to822(Message *m, Header *h, char *p)
 {
+	String *s;
+
 	p += strlen(h->type);
-	s_free(m->to822);
-	m->to822 = addr822(p);
+	s = addr822(p);
+	if (m->to822 == nil)
+		m->to822 = s;
+	else {
+		s_append(m->to822, " ");
+		s_append(m->to822, s_to_c(s));
+		s_free(s);
+	}
 }
 
 static void
 cc822(Message *m, Header *h, char *p)
 {
+	String *s;
+
 	p += strlen(h->type);
-	s_free(m->cc822);
-	m->cc822 = addr822(p);
+	s = addr822(p);
+	if (m->cc822 == nil)
+		m->cc822 = s;
+	else {
+		s_append(m->cc822, " ");
+		s_append(m->cc822, s_to_c(s));
+		s_free(s);
+	}
 }
 
 static void
 bcc822(Message *m, Header *h, char *p)
 {
+	String *s;
+
 	p += strlen(h->type);
-	s_free(m->bcc822);
-	m->bcc822 = addr822(p);
+	s = addr822(p);
+	if (m->bcc822 == nil)
+		m->bcc822 = s;
+	else {
+		s_append(m->bcc822, " ");
+		s_append(m->bcc822, s_to_c(s));
+		s_free(s);
+	}
 }
 
 static void

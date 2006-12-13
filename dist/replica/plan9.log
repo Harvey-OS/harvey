@@ -31789,3 +31789,8 @@
 1165624206 11 c sys/man/8/httpd - 664 sys sys 1165623004 6865
 1165624206 12 c sys/man/8/tlssrv - 664 sys sys 1165623041 2589
 1165811406 0 c sys/src/9/port/devsrv.c - 664 sys sys 1165810571 5711
+1165968006 0 c sys/src/cmd/upas/fs/fs.c - 664 sys sys 1165967907 26929
+1165968006 1 c sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1165967944 16484
+1165968006 2 c sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1165967884 27070
+1165968006 3 c sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1165967878 7480
+1165969806 0 c sys/games/lib/fortunes - 664 sys sys 1165968371 262152
