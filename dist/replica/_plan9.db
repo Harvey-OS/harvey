@@ -8045,7 +8045,7 @@ sys/src/9/pc/sdmv50xx.c - 664 sys sys 1164645014 25841
 sys/src/9/pc/sdmylex.c - 664 sys sys 1133068062 27806
 sys/src/9/pc/sdscsi.c - 664 sys sys 1158889425 7241
 sys/src/9/pc/trap.c - 664 sys sys 1135487942 21257
-sys/src/9/pc/uartaxp.c - 664 sys sys 1158803840 18862
+sys/src/9/pc/uartaxp.c - 664 sys sys 1166247784 18879
 sys/src/9/pc/uarti8250.c - 664 sys sys 1102820421 13958
 sys/src/9/pc/uartisa.c - 664 sys sys 1127126907 1777
 sys/src/9/pc/uartpci.c - 664 sys sys 1162859151 3617
@@ -8148,7 +8148,7 @@ sys/src/9/port/portdat.h - 664 sys sys 1155995676 22703
 sys/src/9/port/portfns.h - 664 sys sys 1146746630 11059
 sys/src/9/port/portmkfile - 664 sys sys 1131907975 2062
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
-sys/src/9/port/proc.c - 664 sys sys 1138749368 28702
+sys/src/9/port/proc.c - 664 sys sys 1166244036 28770
 sys/src/9/port/qio.c - 664 sys sys 1070287837 23562
 sys/src/9/port/qlock.c - 664 sys sys 1139666988 3200
 sys/src/9/port/rdb.c - 664 sys sys 1018721202 1698
@@ -13106,7 +13106,7 @@ sys/src/cmd/rc/fns.h - 664 sys sys 1055698768 1377
 sys/src/cmd/rc/getflags.c - 664 sys sys 1055698770 3954
 sys/src/cmd/rc/getflags.h - 664 sys sys 944961082 185
 sys/src/cmd/rc/glob.c - 664 sys sys 1055698770 4540
-sys/src/cmd/rc/havefork.c - 664 sys sys 1055698771 3473
+sys/src/cmd/rc/havefork.c - 664 sys sys 1166244119 3482
 sys/src/cmd/rc/haventfork.c - 664 sys sys 1055698771 3122
 sys/src/cmd/rc/here.c - 664 sys sys 1135080780 2504
 sys/src/cmd/rc/io.c - 664 sys sys 1132448641 3752

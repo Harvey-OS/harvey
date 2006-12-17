@@ -842,7 +842,7 @@ axpalloc(int ctlrno, Pcidev* pcidev)
 	if(!(csr32r(ctlr, Mb0) & Cpr)){
 		print("control programme not ready; Mb0 %#ux\n",
 			csr32r(ctlr, Mb0));
-		print("%s: might not be fully seated in its PCI slot\n",
+		print("%s: distribution panel not connected or card not fully seated?\n",
 			ctlr->name);
 
 		return axpdealloc(ctlr);
