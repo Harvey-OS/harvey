@@ -16,7 +16,7 @@ Xasync(void)
 		Xerror("Can't open /dev/null\n");
 		return;
 	}
-	switch(pid = rfork(RFFDG|RFPROC|RFNOTEG|RFNOWAIT)){
+	switch(pid = rfork(RFFDG|RFPROC|RFNOTEG)){
 	case -1:
 		close(null);
 		Xerror("try again");
