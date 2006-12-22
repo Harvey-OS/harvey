@@ -99,7 +99,7 @@ These programs read, display, and write image files in public formats.
 .IR ppm ,
 .IR bmp ,
 and
-.IR yuv .
+.IR yuv
 read files in the corresponding formats and, by default, display
 them in the current window; options cause them instead to convert the images
 to Plan 9 image format and write them to standard output.

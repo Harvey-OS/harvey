@@ -28,6 +28,7 @@ enum
 	Vremove,
 	Vunbind,
 	Vether,
+	Vgbe,
 	Vloopback,
 };
 
@@ -368,6 +369,7 @@ main(int argc, char **argv)
 			break;
 		case Vether:
 		case Vloopback:
+		case Vgbe:
 			conf.type = argv[0];
 			if(argc > 1){
 				conf.dev = argv[1];
@@ -575,7 +577,7 @@ adddefroute(char *mpoint, uchar *gaddr)
 void
 mkclientid(void)
 {
-	if(strcmp(conf.type, "ether") == 0)
+	if(strcmp(conf.type, "ether") == 0 || strcmp(conf.type, "gbe") == 0)
 	if(myetheraddr(conf.hwa, conf.dev) == 0){
 		conf.hwalen = 6;
 		conf.hwatype = 1;
@@ -612,7 +614,7 @@ controldevice(void)
 	if(firstctl == nil)
 		return;
 
-	if(strcmp(conf.type, "ether") == 0)
+	if(strcmp(conf.type, "ether") == 0 || strcmp(conf.type, "gbe") == 0)
 		snprint(ctlfile, sizeof(ctlfile), "%s/clone", conf.dev);
 	else
 		return;
@@ -769,7 +771,7 @@ dhcpquery(int needconfig, int startstate)
 
 }
 
-#define HOUR (60*60)
+#define MAXSLEEP	450		/* Was an hour, needs to be less for the ARM/GS1 until the timer code has been cleaned up (pb) */
 
 void
 dhcpwatch(int needconfig)
@@ -796,8 +798,8 @@ dhcpwatch(int needconfig)
 
 		// avoid overflows
 		for(s = secs; s > 0; s -= t){
-			if(s > HOUR)
-				t = HOUR;
+			if(s > MAXSLEEP)
+				t = MAXSLEEP;
 			else
 				t = s;
 			sleep(t*1000);
@@ -818,7 +820,6 @@ dhcpwatch(int needconfig)
 			} else
 				conf.lease -= t;
 		}
-
 		dhcpquery(needconfig, needconfig ? Sselecting : Srenewing);
 
 		if(needconfig && conf.state == Sbound){
@@ -1583,6 +1584,7 @@ char *verbs[] = {
 [Vremove]	"remove",
 [Vunbind]	"unbind",
 [Vether]	"ether",
+[Vgbe]	"gbe",
 [Vloopback]	"loopback",
 };
 
@@ -1617,7 +1619,7 @@ ndbconfig(void)
 	db = ndbopen(0);
 	if(db == nil)
 		sysfatal("can't open ndb: %r");
-	if(strcmp(conf.type, "ether") != 0 || myetheraddr(conf.hwa, conf.dev) != 0)
+	if((strcmp(conf.type, "ether") != 0 && strcmp(conf.type, "gbe") != 0) || myetheraddr(conf.hwa, conf.dev) != 0)
 		sysfatal("can't read hardware address");
 	sprint(etheraddr, "%E", conf.hwa);
 	nattr = 0;

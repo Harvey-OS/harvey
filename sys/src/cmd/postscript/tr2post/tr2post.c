@@ -37,6 +37,7 @@ prologues(void) {
 
 	Bprint(Bstdout, "%s", CONFORMING);
 	Bprint(Bstdout, "%s %s\n", VERSION, PROGRAMVERSION);
+	Bprint(Bstdout, "%s %s\n", CREATOR, PROGRAMNAME);
 	Bprint(Bstdout, "%s %s\n", DOCUMENTFONTS, ATEND);
 	Bprint(Bstdout, "%s %s\n", PAGES, ATEND);
 	Bprint(Bstdout, "%s", ENDCOMMENTS);
