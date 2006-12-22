@@ -326,7 +326,7 @@ void
 lost(Req *r, Icmp *ip)
 {
 	if(!quiet){
-		if(addresses)
+		if(addresses && ip != nil)
 			print("lost %ud: %V->%V\n", r->seq-firstseq,
 				ip->src, ip->dst);
 		else

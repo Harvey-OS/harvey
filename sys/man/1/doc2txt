@@ -29,6 +29,9 @@ doc2txt, xls2txt olefs, mswordstrings msexceltable \- extract printable strings 
 .B -d
 .I delim
 ]
+.B -w
+.I worksheet-range
+]
 .I /mnt/doc/Workbook
 .SH DESCRIPTION
 .I Doc2txt
@@ -72,6 +75,18 @@ by default a single space.
 .TP
 .B -D
 Enables debugging output.
+.TP
+.BI -w " worksheet-spec
+Specifies which worksheets to process, by default all tabular sheets are
+output \- suspressed chart pages are always included in the sheet count.
+Arbitary lists of pages or page ranges may be given, individual pages
+are seperated by commas, sheet ranges are seperated by a minus.
+.SH EXAMPLE
+.EX
+	aux/olefs report.xls
+	msexceltables -w 1,7,9-14,3-4 -n -d '@' /mnt/doc/Workbook
+	unmount /mnt/doc
+.EE
 .SH SOURCE
 .B /sys/src/cmd/aux/mswordstrings.c
 .br
