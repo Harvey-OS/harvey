@@ -86,7 +86,7 @@ extern	ADDR	maxfile;
 extern	ADDR	maxstor;
 
 extern	ADDR	dot;
-extern	WORD	dotinc;
+extern	int	dotinc;
 
 extern	int	xargc;
 

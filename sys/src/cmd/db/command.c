@@ -18,7 +18,7 @@ char	stformat[ARB] = "zMi";
 ADDR	ditto;
 
 ADDR	dot;
-WORD	dotinc;
+int	dotinc;
 WORD	adrval, cntval, loopcnt;
 int	adrflg, cntflg;
 

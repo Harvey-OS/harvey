@@ -18,7 +18,6 @@ struct Strlist
 
 extern int		_inclass(Rune c, Rune* cl);
 extern int		_listlen(List* l);
-extern Rune*	_ltoStr(int n);
 extern List*	_newlist(int val, List* rest);
 extern Rune*	_newstr(int n);
 extern int		_prefix(Rune* pre, Rune* s);

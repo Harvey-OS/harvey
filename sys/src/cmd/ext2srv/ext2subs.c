@@ -208,7 +208,7 @@ get_inode( Xfile *file, uint nr )
 	Ext2 ed, es;
 
 	es = getext2(xf, EXT2_SUPER, 0);
-	if( nr < 0 || nr > es.u.sb->s_inodes_count ){
+	if(nr > es.u.sb->s_inodes_count ){
 		chat("inode number %d is too big...", nr);
 		putext2(es);
 		errno = Eio;

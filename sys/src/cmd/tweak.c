@@ -1825,7 +1825,7 @@ tchar(Thing *t)
 	c -= t->off;
 	d -= t->off;
 	while(c <= d){
-		if(c<0 || c>=t->s->n){
+		if(c>=t->s->n){
 			mesg("0x%lux not in font %s", c+t->off, t->name);
 			return;
 		}

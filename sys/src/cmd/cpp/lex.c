@@ -537,8 +537,8 @@ fillbuf(Source *s)
 	int n;
 
 	while((char *)s->inl+s->ins/8 > (char *)s->inb+s->ins) {
-		uint l = s->inl - s->inb;
-		uint p = s->inp - s->inb;
+		int l = s->inl - s->inb;
+		int p = s->inp - s->inb;
 		if(l < 0) 
 			error(FATAL, "negative end of input!?");
 		if(p < 0)
