@@ -22,7 +22,7 @@ struct Graph
 {
 	int		colindex;
 	Rectangle	r;
-	int		*data;
+	long		*data;
 	int		ndata;
 	char		*label;
 	void		(*newvalue)(Machine*, long*, long*, long*);
@@ -161,7 +161,7 @@ void	dropgraph(int);
 void	addgraph(int);
 void	startproc(void (*)(void*), void*);
 void	resize(void);
-ulong	rttscale(ulong);
+long	rttscale(long);
 int	which2index(int);
 int	index2which(int);
 
@@ -288,7 +288,7 @@ label(Point p, int dy, char *text)
 }
 
 void
-hashmark(Point p, int dy, int v, int vmax, char *label)
+hashmark(Point p, int dy, long v, long vmax, char *label)
 {
 	int y;
 	int x;
@@ -604,8 +604,8 @@ initmach(Machine *m, char *name)
 	startproc(pingrcv, m);
 }
 
-ulong
-rttscale(ulong x)
+long
+rttscale(long x)
 {
 	if(x == 0)
 		return 0;
@@ -615,8 +615,8 @@ rttscale(ulong x)
 	return x;
 }
 
-ulong
-rttunscale(ulong x)
+double
+rttunscale(long x)
 {
 	double dx;
 
@@ -966,7 +966,7 @@ dobutton1(Mouse *m)
 		seprint(g->msg+n, e, " %3.3g", f/1000000);
 		break;
 	case Mlost:
-		seprint(g->msg+n, e, " %d%%", g->data[dx]);
+		seprint(g->msg+n, e, " %ld%%", g->data[dx]);
 		break;
 	}
 

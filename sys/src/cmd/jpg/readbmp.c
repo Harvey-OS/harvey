@@ -146,7 +146,7 @@ load_4C(Biobuf *b, long width, long height, Rgb* buf, Rgb* clut)
 	while(iy >= 0) {
 		ix = 0;
 		while(ix < width) {
-			val = Bgetc(b);
+			val = (uint)Bgetc(b);
 
 			if(0 != val) {
 				valS = (uint)Bgetc(b);
@@ -155,7 +155,7 @@ load_4C(Biobuf *b, long width, long height, Rgb* buf, Rgb* clut)
 					*p = clut[0xf & (valS >> 4)];
 					p++;
 					ix++;
-					if(0 < val) {
+					if(val != 0) {
 						*p = clut[0xf & valS];
 						p++;
 						ix++;
@@ -175,9 +175,9 @@ load_4C(Biobuf *b, long width, long height, Rgb* buf, Rgb* clut)
 						iy = -1;
 						break;
 					case 2:	/* Position change detected */
-						val = Bgetc(b);
+						val = (uint)Bgetc(b);
 						ix += val;
-						val = Bgetc(b);
+						val = (uint)Bgetc(b);
 						iy -= val;
 						break;
 
@@ -193,7 +193,7 @@ load_4C(Biobuf *b, long width, long height, Rgb* buf, Rgb* clut)
 							*p = clut[0xf & (valS >> 4)];
 							p++;
 							ix++;
-							if(0 < val) {
+							if(val != 0) {
 								*p = clut[0xf & valS];
 								p++;
 								ix++;

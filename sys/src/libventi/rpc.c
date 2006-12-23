@@ -241,7 +241,7 @@ vtVersionRead(VtSession *z, char *prefix, int *ret)
 			*p = 0;
 			break;
 		}
-		if(c < ' ' || c > 0x7f || *q && c != *q) {
+		if(c < ' ' || *q && c != *q) {
 			vtSetError(EBadVersion);
 			return 0;
 		}

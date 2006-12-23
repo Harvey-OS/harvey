@@ -411,6 +411,7 @@ Xwstat(Fsrpc *r)
 void
 slave(Fsrpc *f)
 {
+	int r;
 	Proc *p;
 	uintptr pid;
 	static int nproc;
@@ -430,11 +431,11 @@ slave(Fsrpc *f)
 		if(++nproc > MAXPROC)
 			fatal("too many procs");
 
-		pid = rfork(RFPROC|RFMEM);
-		if(pid < 0)
+		r = rfork(RFPROC|RFMEM);
+		if(r < 0)
 			fatal("rfork");
 
-		if(pid == 0)
+		if(r == 0)
 			blockingslave();
 
 		p = malloc(sizeof(Proc));
@@ -442,11 +443,11 @@ slave(Fsrpc *f)
 			fatal("out of memory");
 
 		p->busy = 0;
-		p->pid = pid;
+		p->pid = r;
 		p->next = Proclist;
 		Proclist = p;
 
-		rendezvous((void*)pid, p);
+		rendezvous((void*)p->pid, p);
 	}
 }
 

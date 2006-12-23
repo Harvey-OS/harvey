@@ -683,7 +683,7 @@ getrune(void)
  	}
 
 	lastsrc = Input;
-	do {
+	for(;;) {
 		if(ssp < sstack)
 			return -1;
 		c = Bgetrune(&ssp->in);
@@ -693,7 +693,7 @@ getrune(void)
 		}
 		close(ssp->fd);
 		ssp--;
-	} while(r < 0);
+	}
 
 	return r;
 }

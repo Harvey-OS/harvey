@@ -205,10 +205,12 @@ snarf(Vga* vga, Ctlr* ctlr)
 		case 0x01D0:
 		case 0x0090:
 		case 0x0210:
+		case 0x0290:	/* nvidia 7950*/
 			nv->arch = 40;
 			break;
 		default:
-			error("%s: DID %4.4uX unsupported\n", ctlr->name, nv->did);
+			error("%s: DID %#4.4ux - %#ux unsupported\n",
+				ctlr->name, nv->did, (nv->did & 0x0ff0));
 			break;
 		}
 	}

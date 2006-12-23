@@ -537,7 +537,7 @@ static int	winchars[]= { 8226,	// 8226 is a bullet
 static StringInt*	tagtable;		// initialized from tagnames
 static StringInt*	attrtable;		// initialized from attrnames
 
-static void		lexinit();
+static void	lexinit(void);
 static int		getplaindata(TokenSource* ts, Token* a, int* pai);
 static int		getdata(TokenSource* ts, int firstc, int starti, Token* a, int* pai);
 static int		getscriptdata(TokenSource* ts, int firstc, int starti, Token* a, int* pai, int findtag);
@@ -584,7 +584,7 @@ newtokensource(uchar* data, int edata, int chset, int mtype)
 }
 
 enum {
-	ToksChunk = 500
+	ToksChunk = 500,
 };
 
 // Call this to get the tokens.
@@ -603,16 +603,16 @@ _gettoks(uchar* data, int datalen, int chset, int mtype, int* plen)
 	if(!lexinited)
 		lexinit();
 	ts = newtokensource(data, datalen, chset, mtype);
-	alen = ToksChunk;
-	a = (Token*)emalloc(alen * sizeof(Token));
-	ai = 0;
 	if(dbglex)
 		fprint(2, "_gettoks starts, ts.i=%d, ts.edata=%d\n", ts->i, ts->edata);
+	alen = 0;
+	ai = 0;
+	a = 0;
 	if(ts->mtype == TextHtml) {
 		for(;;) {
 			if(ai == alen) {
-				a = (Token*)erealloc(a, (alen+ToksChunk)*sizeof(Token));
 				alen += ToksChunk;
+				a = erealloc(a, alen*sizeof *a);
 			}
 			starti = ts->i;
 			c = getchar(ts);
@@ -639,8 +639,8 @@ _gettoks(uchar* data, int datalen, int chset, int mtype, int* plen)
 		// plain text (non-html) tokens
 		for(;;) {
 			if(ai == alen) {
-				a = (Token*)erealloc(a, (alen+ToksChunk)*sizeof(Token));
 				alen += ToksChunk;
+				a = erealloc(a, alen*sizeof *a);
 			}
 			tag = getplaindata(ts, a, &ai);
 			if(tag == -1)
@@ -653,8 +653,10 @@ _gettoks(uchar* data, int datalen, int chset, int mtype, int* plen)
 	if(dbglex)
 		fprint(2, "lex: returning %d tokens\n", ai);
 	*plen = ai;
-	if(ai == 0) 
-		return nil;
+	if(ai == 0){
+		free(a);
+		a = 0;
+	}
 	return a;
 }
 
@@ -696,7 +698,7 @@ getplaindata(TokenSource* ts, Token* a, int* pai)
 		}
 		if(c != 0) {
 			buf[j++] = c;
-			if(j == sizeof(buf)-1) {
+			if(j == nelem(buf)-1) {
 				s = buftostr(s, buf, j);
 				j = 0;
 			}
@@ -719,11 +721,16 @@ getplaindata(TokenSource* ts, Token* a, int* pai)
 static Rune*
 buftostr(Rune* s, Rune* buf, int j)
 {
-	buf[j] = 0;
+	int i;
+
 	if(s == nil)
 		s = _Strndup(buf, j);
-	else 
-		s = _Strdup2(s, buf);
+	else {
+		i = _Strlen(s);
+		s = realloc(s, ( i+j+1)*sizeof *s);
+		memcpy(&s[i], buf, j*sizeof *s);
+		s[i+j] = 0;
+	}
 	return s;
 }
 
@@ -739,12 +746,11 @@ getdata(TokenSource* ts, int firstc, int starti, Token* a, int* pai)
 	int	j;
 	int	c;
 	Token*	tok;
-	Rune	buf[BIGBUFSIZE];
+	Rune	buf[SMALLBUFSIZE];
 
 	s = nil;
 	j = 0;
-	c = firstc;
-	while(c >= 0) {
+	for(c = firstc; c >= 0; c = getchar(ts)){
 		if(c == '&') {
 			c = ampersand(ts);
 			if(c < 0)
@@ -775,12 +781,11 @@ getdata(TokenSource* ts, int firstc, int starti, Token* a, int* pai)
 		}
 		if(c != 0) {
 			buf[j++] = c;
-			if(j == BIGBUFSIZE-1) {
+			if(j == nelem(buf)-1) {
 				s = buftostr(s, buf, j);
 				j = 0;
 			}
 		}
-		c = getchar(ts);
 	}
 	s = buftostr(s, buf, j);
 	if(s == nil)
@@ -819,8 +824,6 @@ getscriptdata(TokenSource* ts, int firstc, int starti, Token* a, int* pai, int f
 			savei = ts->i;
 			c = getchar(ts);
 			if(c == '!') {
-//				while(c >= 0 && c != '\n' && c != '\r')
-//					c = getchar(ts);
 				if(comment(ts) == -1)
 					break;
 				if(c == '\r')
@@ -848,7 +851,7 @@ getscriptdata(TokenSource* ts, int firstc, int starti, Token* a, int* pai, int f
 			break;
 		if(c != 0) {
 			buf[j++] = c;
-			if(j == BIGBUFSIZE-1) {
+			if(j == nelem(buf)-1) {
 				s = buftostr(s, buf, j);
 				j = 0;
 			}
@@ -865,6 +868,7 @@ getscriptdata(TokenSource* ts, int firstc, int starti, Token* a, int* pai, int f
 		tok->starti = starti;
 		return Data;
 	}
+	free(s);
 	backup(ts, starti);
 	return -1;
 }
@@ -942,7 +946,6 @@ gettag(TokenSource* ts, int starti, Token* a, int* pai)
 		tok->tag = tag + rbra;
 	else
 		tok->text = _Strndup(buf, i);	// for warning print, in build
-
 	// attribute gathering loop
 	al = nil;
 	while(1) {
@@ -1211,7 +1214,7 @@ ampersand(TokenSource* ts)
 	int	ans;
 	int	v;
 	int	k;
-	Rune	buf[SMALLBUFSIZE];
+	Rune	buf[25];
 
 	savei = ts->i;
 	c = getchar(ts);
@@ -1258,7 +1261,7 @@ ampersand(TokenSource* ts)
 			if(c < 0)
 				break;
 			if(c < 256 && (isalpha(c) || isdigit(c))) {
-				if(k < SMALLBUFSIZE-1)
+				if(k < nelem(buf)-1)
 					buf[k++] = c;
 			}
 			else {

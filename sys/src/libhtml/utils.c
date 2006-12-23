@@ -578,14 +578,3 @@ fromStr(Rune* buf, int n, int chset)
 	return ans;
 
 }
-
-// Convert n to emalloc'd String.
-Rune*
-_ltoStr(int n)
-{
-	int m;
-	uchar buf[20];
-
-	m = snprint((char*)buf, sizeof(buf), "%d", n);
-	return toStr(buf, m, US_Ascii);
-}

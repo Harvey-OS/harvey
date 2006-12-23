@@ -163,7 +163,7 @@ plumbgetc(void *a, uint n)
 	Rune *r;
 
 	r = a;
-	if(n<0 || n>runestrlen(r))
+	if(n>runestrlen(r))
 		return 0;
 	return r[n];
 }
