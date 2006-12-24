@@ -42,6 +42,7 @@ struct	v10dir {
 };
 
 int	tapefile;
+vlong	tapelen;
 Fileinf	iget(int ino);
 long	bmap(Ram *r, long bno);
 void	getblk(Ram *r, long bno, char *buf);
@@ -50,11 +51,16 @@ void
 populate(char *name)
 {
 	Fileinf f;
+	Dir *d;
 
 	replete = 0;
 	tapefile = open(name, OREAD);
 	if (tapefile<0)
 		error("Can't open argument file");
+	if ((d=dirfstat(tapefile)) == nil)
+		error("dirfstat");
+	tapelen = d->length;
+	free(d);
 	f = iget(VROOT);
 	ram->perm = f.mode;
 	ram->mtime = f.mdate;
@@ -181,9 +187,16 @@ getblk(Ram *r, long bno, char *buf)
 		memset(buf, 0, BLSIZE);
 		return;
 	}
+	if ((vlong)(dbno+1)*BLSIZE > tapelen) {
+		fprint(2, "read past end of tape: %lld\n", (vlong)dbno*BLSIZE);
+		memset(buf, 0, BLSIZE);
+		return;
+	}
 	seek(tapefile, dbno*BLSIZE, 0);
-	if (read(tapefile, buf, BLSIZE) != BLSIZE)
+	if (readn(tapefile, buf, BLSIZE) != BLSIZE){
+		fprint(2, "readn at %lld: %r\n", (vlong)dbno*BLSIZE);
 		error("bad read");
+	}
 }
 
 /*
