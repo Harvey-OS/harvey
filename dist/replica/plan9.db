@@ -20,7 +20,7 @@
 386/bin/9660srv - 775 sys sys 1148500567 104375
 386/bin/aan - 775 sys sys 1148500568 131392
 386/bin/acid - 775 sys sys 1148500568 401250
-386/bin/acme - 775 sys sys 1166847253 432351
+386/bin/acme - 775 sys sys 1166906378 432350
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1136656314 132873
 386/bin/ape/cc - 775 sys sys 1148500570 70736
@@ -9342,7 +9342,7 @@ sys/src/cmd/acme/fsys.c - 664 sys sys 1111171699 13097
 sys/src/cmd/acme/look.c - 664 sys sys 1166822365 14203
 sys/src/cmd/acme/mkfile - 664 sys sys 1058463682 543
 sys/src/cmd/acme/regx.c - 664 sys sys 1014926094 16057
-sys/src/cmd/acme/rows.c - 664 sys sys 1103565437 14702
+sys/src/cmd/acme/rows.c - 664 sys sys 1166887151 14708
 sys/src/cmd/acme/scrl.c - 664 sys sys 1111119426 2875
 sys/src/cmd/acme/text.c - 664 sys sys 1136064450 27870
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
@@ -13344,7 +13344,7 @@ sys/src/cmd/tapefs/tapfs.c - 664 sys sys 1140814624 1924
 sys/src/cmd/tapefs/tarfs.c - 664 sys sys 1141003342 2759
 sys/src/cmd/tapefs/tpfs.c - 664 sys sys 1140814810 1999
 sys/src/cmd/tapefs/util.c - 664 sys sys 1140966088 2964
-sys/src/cmd/tapefs/v10fs.c - 664 sys sys 1140814624 3776
+sys/src/cmd/tapefs/v10fs.c - 664 sys sys 1166887348 4096
 sys/src/cmd/tapefs/v6fs.c - 664 sys sys 1140814625 3993
 sys/src/cmd/tapefs/zip.h - 664 sys sys 1097914153 1428
 sys/src/cmd/tapefs/zipfs.c - 664 sys sys 1140814625 6588
