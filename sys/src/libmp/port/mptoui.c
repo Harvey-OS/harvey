@@ -25,11 +25,9 @@ mptoui(mpint *b)
 	uint x;
 
 	x = *b->p;
-	if(b->sign < 0){
+	if(b->sign < 0)
 		x = 0;
-	} else {
-		if(b->top > 1 || x > MAXUINT)
-			x =  MAXUINT;
-	}
+	else if(b->top > 1 || (sizeof(mpdigit) > sizeof(uint) && x > MAXUINT))
+		x =  MAXUINT;
 	return x;
 }
