@@ -1,9 +1,8 @@
 </$objtype/mkfile
 
 TARG=\
-#	readir\
 	usbmouse\
-#	usbprobe\
+#	readir\
 
 HFILES=\
 	../lib/usb.h\
@@ -15,6 +14,7 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	mkfile\
 	usbprint\
+	usbprobe\
 
 BIN=/$objtype/bin/usb
 </sys/src/cmd/mkmany
@@ -25,3 +25,8 @@ $LIB:
 	cd ../lib
 	mk install
 	mk clean
+
+$BIN/usbprint: usbprint
+	cp -x $newprereq $target
+$BIN/usbprobe: usbprobe
+	cp -x $newprereq $target
