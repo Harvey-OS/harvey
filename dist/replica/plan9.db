@@ -7639,7 +7639,7 @@ sys/man/4/tapefs - 664 sys sys 1140965924 1861
 sys/man/4/telco - 664 sys sys 1015024814 4359
 sys/man/4/u9fs - 664 sys sys 1043769139 4748
 sys/man/4/upasfs - 664 sys sys 1034348505 6212
-sys/man/4/usb - 664 sys sys 1164149417 4643
+sys/man/4/usb - 664 sys sys 1167253879 4649
 sys/man/4/usbd - 664 sys sys 1164149441 712
 sys/man/4/vacfs - 664 sys sys 1084333062 1545
 sys/man/4/webcookies - 664 sys sys 1019828742 3525
@@ -7743,7 +7743,7 @@ sys/man/8/nfsserver - 664 sys sys 1163208425 3587
 sys/man/8/pcmcia - 664 sys sys 944959679 408
 sys/man/8/pem - 664 sys sys 1060263669 1189
 sys/man/8/ping - 664 sys sys 1139667147 3489
-sys/man/8/plan9.ini - 664 sys sys 1161298588 22787
+sys/man/8/plan9.ini - 664 sys sys 1167276434 22689
 sys/man/8/pop3 - 664 sys sys 1063854676 2720
 sys/man/8/ppp - 664 sys sys 1125530075 4414
 sys/man/8/prep - 664 sys sys 1152729153 14013
@@ -14113,12 +14113,11 @@ sys/src/cmd/usb/lib/setup.c - 664 sys sys 1165044747 1936
 sys/src/cmd/usb/lib/usb.h - 664 sys sys 1165044715 7066
 sys/src/cmd/usb/lib/util.c - 664 sys sys 1091204978 523
 sys/src/cmd/usb/misc - 20000000775 sys sys 1091282306 0
-sys/src/cmd/usb/misc/mkfile - 664 sys sys 1091205037 274
+sys/src/cmd/usb/misc/mkfile - 664 sys sys 1167255850 374
 sys/src/cmd/usb/misc/usbmouse.c - 664 sys sys 1163722035 3603
-sys/src/cmd/usb/misc/usbprint - 775 sys sys 1164149479 270
+sys/src/cmd/usb/misc/usbprint - 775 sys sys 1167253831 314
+sys/src/cmd/usb/misc/usbprobe - 775 sys sys 1167253836 173
 sys/src/cmd/usb/mkfile - 664 sys sys 1091327562 354
-sys/src/cmd/usb/mouse - 20000000775 sys sys 1091204964 0
-sys/src/cmd/usb/printer - 20000000775 sys sys 1091204964 0
 sys/src/cmd/usb/usbd - 20000000775 sys sys 1091204979 0
 sys/src/cmd/usb/usbd/dat.h - 664 sys sys 1091204979 675
 sys/src/cmd/usb/usbd/fns.h - 664 sys sys 1091204979 495

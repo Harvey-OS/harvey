@@ -2,7 +2,7 @@
 .SH NAME
 usbmouse,
 usbaudio,
-usbprinter
+usbprint
 \- Universal Serial Bus user level device drivers
 .SH SYNOPSIS
 .B usb/usbmouse
@@ -33,7 +33,7 @@ usbprinter
 .I n
 ]
 .PP
-.B usb/usbprinter
+.B usb/usbprint
 .SH DESCRIPTION
 These programs implement support for specific USB device classes.
 They should be run after
@@ -148,20 +148,22 @@ The data format is little endian, samples ordered primarily by time and
 secondarily by channel.  Samples occupy the minimum integral number
 of bytes.  Read and write operations of arbitrary size are allowed.
 .SS Printers
-.I Usbprinter
-is a script that mounts a usb printer on
+.I Usbprint
+is a script that mounts a USB printer on
 .BR /dev/lp .
 .SH EXAMPLE
 .LP
 To use a USB mouse and audio device, put the following in your profile
-(replace x by your favorite initial volume setting):
+(replace
+.I x
+with your favorite initial volume setting):
 .IP
 .EX
 .ta 6n
 if (test -r '#U'/usb0) {
 	usb/usbd
 	usb/usbmouse -a 2
-	usb/usbaudio -v x
+	usb/usbaudio -v \fIx\fP
 	usb/usbprint
 }
 .EE
@@ -175,29 +177,37 @@ in your profile.
 .IR usb (3),
 .IR usbd (4)
 .SH BUGS
-Usbaudio only works for certain audio devices.  This is the list of devices known to work with usbaudio:
+Usbaudio only works for certain audio devices.
+This is the list of devices known to work with usbaudio:
 .IP
 .RS
 .TP
 Xitel AN1
-Output only.  Marginally enough to drive headphones.  Has mute, volume, bass, treble controls.
+Output only.  Marginally enough to drive headphones.
+Has mute, volume, bass, treble controls.
 .TP
 Philips USB speakers, model DSS 370/17
-Usbaudio acts on the volume + and - buttons.
+Usbaudio acts on the volume
+.L +
+and
+.L -
+buttons.
 .TP
 Edirol UA-3
 Playback and record.  Playback only at 44.1 KHz, record at 32, 44.1 or 48 KHz.
-Playback volume control and mute control.  The device only has analog (slider controlled)
+Playback volume control and mute control.
+The device only has analog (slider controlled)
 input volume control.
 .TP
 Edirol UA-1X
-Playback and record.  Playback only at 32, 44.1 or 48 KHz, record at 8, 16, 22.05, 32, 44.1 or 48 KHz.
-Playback volume control and mute control.
-(haven't tested recording, but I believe it'll work)
+Playback and record.
+Playback only at 32, 44.1 or 48 KHz, record at 8, 16, 22.05, 32, 44.1 or 48 KHz.
+Playback volume control and mute control
+(haven't tested recording, but I believe it'll work).
 .TP
 Xitel Pro HiFi-Link
-Playback only.  48 KHz only.  There is a volume control but it isn't connected
-to the output, so does nothing.
+Playback only.  48 KHz only.
+There is a volume control but it isn't connected to the output, so does nothing.
 .TP
 Onkyo WAVIO series MA-500U
 Includes three optical digital interfaces, two analog, and an
