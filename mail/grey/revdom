@@ -1,0 +1,11 @@
+#!/bin/awk -f
+# reverse whilelist domains
+function rev(s,  i, n, ndom, dom) {
+	n = split(s, dom, ".")
+	ndom = dom[n]
+	for (i = n-1; i >= 1; i--)
+		ndom = ndom "." dom[i]
+	return ndom
+}
+NF == 1 { print }
+NF == 2	{ printf "%s %s\n", $1, rev($2) }
