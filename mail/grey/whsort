@@ -1,0 +1,3 @@
+#!/bin/rc
+# sort a whitelist by domains
+revdom $* | sort +1bf -2 +0 -1 | revdom
