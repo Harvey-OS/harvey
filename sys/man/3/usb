@@ -244,3 +244,6 @@ The notion that the endpoints themselves have a class and subclass
 is a distortion of the standard.
 It would be better to leave all handling of the notions of class to the
 user-level support programs, and remove it from the driver.
+.PP
+There may be a timing bug that makes disk accesses via UHCI much
+slower than necessary.

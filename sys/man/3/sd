@@ -5,6 +5,7 @@ sd \- storage device interface
 .nf
 .B bind #S /dev
 
+.B /dev/sdctl
 .BI /dev/sd Cu /ctl
 .BI /dev/sd Cu /raw
 .BI /dev/sd Cu /data
@@ -176,18 +177,61 @@ This is used by programs such as
 .IR scuzz (8)
 to manipulate devices that do not fit the simple storage model
 or for maintenance purposes.
-The following steps may be used to execute a command
-.IP
-\- Write the command to the
+The following steps may be taken to execute a command
+.IP \- 3
+Write the command to the
 .I raw
 file;
-.IP
-\- Read or write data associated with the command, according to the direction of the transfer.
-.IP
-\- Read the
+.IP \-
+Read or write data associated with the command, according to the direction of the transfer.
+.IP \-
+Read the
 .I raw
 file to retrieve the status of the command,
 returned as a text integer.
+.LP
+Reading
+.B /dev/sdctl
+yields information about each controller,
+one line per controller.
+Writing `\fLconfig \fImessage\fR' to
+.B /dev/sdctl
+passes
+.I message
+to the legacy configuration machinery,
+used to set attributes such as IRQ, port and size.
+Writing `\fIctltype message\fR' to
+.B /dev/sdctl
+passes
+.I message
+to
+.IR ctltype 's
+.B wtopctl
+function with a nil
+.B sdev
+argument,
+where
+.I ctltype
+is a known controller type such as
+.B ata
+or
+.BR scsi .
+Writing `\fIctlletter message\fR' to
+.B /dev/sdctl
+passes
+.I message
+to
+.IR ctlletter 's
+.B wtopctl
+function with an
+.B sdev
+argument corresponding to the named controller,
+where
+.I ctlletter
+is a known controller letter such as
+.B C
+or
+.BR 0 .
 .SH SOURCE
 .B /sys/src/9/port/devsd.c
 .br
@@ -195,10 +239,11 @@ returned as a text integer.
 .SH SEE ALSO
 .IR scuzz (8)
 .SH BUGS
-.PP
 Still in development.
 .PP
-No LUNs.
+For (S)ATA drives,
+LUNs (logical unit numbers) are not merely ignored but are actively
+prevented from working except for INQUIRY commands.
 .PP
 The 4 controller limit for ATA(PI) is not enforced.
 .PP

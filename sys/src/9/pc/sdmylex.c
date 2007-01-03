@@ -708,11 +708,12 @@ mylex32interrupt(Ureg*, void* arg)
 	 * and Imbl which means something completed.
 	 * There's one spurious interrupt left over from
 	 * initialisation, ignore it.
+	 * In order to share PCI IRQs, just ignore spurious interrupts.
 	 */
 	rinterrupt = inb(port+Rinterrupt);
 	rstatus = inb(port+Rstatus);
 	outb(port+Rcontrol, Rint);
-	if((rinterrupt & ~(Cmdc|Imbl)) != Intv && ctlr->spurious++)
+	if(0 && (rinterrupt & ~(Cmdc|Imbl)) != Intv && ctlr->spurious++)
 		print("%s: interrupt 0x%2.2ux\n",
 			ctlr->sdev->name, rinterrupt);
 	if((rinterrupt & Cmdc) && (rstatus & Cmdinv))
@@ -1245,5 +1246,6 @@ SDifc sdmylexifc = {
 	scsibio,			/* bio */
 	nil,				/* probe */
 	nil,				/* clear */
-	nil,				/* stat */
+	nil,				/* rtopctl */
+	nil,				/* wtopctl */
 };
