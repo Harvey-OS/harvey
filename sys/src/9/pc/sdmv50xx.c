@@ -1315,9 +1315,10 @@ SDifc sdmv50xxifc = {
 	mv50wctl,			/* wctl */
 
 	scsibio,			/* bio */
-	nil,			/* probe */
+	nil,				/* probe */
 	mv50clear,			/* clear */
 	mv50rtopctl,			/* rtopctl */
+	nil,				/* wtopctl */
 };
 
 /*

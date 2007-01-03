@@ -9,6 +9,8 @@ sleep \- suspend execution for an interval
 suspends execution for
 .I time
 seconds.
+.I Time
+may be floating-point.
 .SH EXAMPLES
 Execute a command
 100 seconds hence.

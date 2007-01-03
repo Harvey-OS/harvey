@@ -46934,3 +46934,12 @@
 1167453005 0 c 386/bin/replica/applychanges - 775 sys sys 1167451365 98591
 1167453005 1 c 386/bin/replica/compactdb - 775 sys sys 1167451365 78478
 1167453005 2 c 386/bin/replica/updatedb - 775 sys sys 1167451365 95926
+1167775206 0 c sys/man/1/sleep - 664 sys sys 1167774352 420
+1167775206 1 c sys/man/3/sd - 664 sys sys 1167774768 5652
+1167775206 2 c sys/man/3/usb - 664 sys sys 1167774741 7052
+1167775206 3 c sys/src/9/pc/sd53c8xx.c - 664 sys sys 1167774852 55161
+1167775206 4 c sys/src/9/pc/sdata.c - 664 sys sys 1167774860 52718
+1167775206 5 c sys/src/9/pc/sdmylex.c - 664 sys sys 1167774835 27902
+1167775206 6 c sys/src/9/pc/sdmv50xx.c - 664 sys sys 1167774867 25865
+1167775206 7 c sys/src/9/port/devsd.c - 664 sys sys 1167774805 31099
+1167777006 0 c sys/src/cmd/venti/dumpvacroots - 775 sys sys 1167777001 571

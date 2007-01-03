@@ -2260,5 +2260,6 @@ SDifc sd53c8xxifc = {
 	scsibio,			/* bio */
 	nil,				/* probe */
 	nil,				/* clear */
-	nil,				/* stat */
+	nil,				/* rtopctl */
+	nil,				/* wtopctl */
 };
