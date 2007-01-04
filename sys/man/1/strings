@@ -4,12 +4,20 @@ strings \- extract printable strings
 .SH SYNOPSIS
 .B strings
 [
+.B -m
+.I min
+] [
 .I file ...
 ]
 .SH DESCRIPTION
 .I Strings
-finds and prints strings containing 6 or more
-consecutive printable UTF-encoded characters
+finds and prints strings containing
+.I min
+(default 6)
+or more
+consecutive printable
+.SM UTF\c
+-encoded characters
 in a (typically) binary file, default
 standard input.
 Printable characters are taken to be
