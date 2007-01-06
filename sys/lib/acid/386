@@ -61,14 +61,14 @@ defn regs()				// print all registers
 
 defn fpr()
 {
-	print("F0\t",  *fmt(F0, 'g'), "\n");
-	print("F1\t",  *fmt(F1, 'g'), "\n");
-	print("F2\t",  *fmt(F2, 'g'), "\n");
-	print("F3\t",  *fmt(F3, 'g'), "\n");
-	print("F4\t",  *fmt(F4, 'g'), "\n");
-	print("F5\t",  *fmt(F5, 'g'), "\n");
-	print("F6\t",  *fmt(F6, 'g'), "\n");
-	print("F7\t",  *fmt(F7, 'g'), "\n");
+	print("F0\t",  *F0, "\n");
+	print("F1\t",  *F1, "\n");
+	print("F2\t",  *F2, "\n");
+	print("F3\t",  *F3, "\n");
+	print("F4\t",  *F4, "\n");
+	print("F5\t",  *F5, "\n");
+	print("F6\t",  *F6, "\n");
+	print("F7\t",  *F7, "\n");
 	print("control\t", *fmt(E0, 'x'), "\n");
 	print("status\t", *fmt(E1, 'x'), "\n");
 	print("tag\t", *fmt(E2, 'x'), "\n");
