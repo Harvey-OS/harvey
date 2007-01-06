@@ -46946,3 +46946,9 @@
 1167861606 0 c sys/man/1/strings - 664 sys sys 1167861217 815
 1167861606 1 c sys/src/cmd/strings.c - 664 sys sys 1167860903 1474
 1167883206 0 c 386/bin/strings - 775 sys sys 1167883135 62949
+1168036205 0 c 386/bin/acid - 775 sys sys 1168034569 401157
+1168036205 1 c sys/lib/acid/386 - 664 sys sys 1168035402 3188
+1168036205 2 c sys/src/cmd/acid/builtin.c - 664 sys sys 1168034619 20982
+1168036205 3 c sys/src/cmd/acid/expr.c - 664 sys sys 1168034614 15242
+1168036205 4 c sys/src/libmach/8.c - 664 sys sys 1168034569 2071
+1168054206 0 c sys/games/lib/fortunes - 664 sys sys 1168053975 262351
