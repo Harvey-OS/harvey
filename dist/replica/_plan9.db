@@ -19,7 +19,7 @@
 386/bin/8l - 775 sys sys 1148500567 115711
 386/bin/9660srv - 775 sys sys 1148500567 104375
 386/bin/aan - 775 sys sys 1148500568 131392
-386/bin/acid - 775 sys sys 1168034569 401157
+386/bin/acid - 775 sys sys 1168114898 401251
 386/bin/acme - 775 sys sys 1166906378 432350
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1136656314 132873
@@ -560,7 +560,7 @@
 386/lib/libhttpd.a - 664 sys sys 1153069071 99458
 386/lib/libip.a - 664 sys sys 1162241052 35552
 386/lib/libl.a - 664 sys sys 1143777863 5372
-386/lib/libmach.a - 664 sys sys 1158088709 785352
+386/lib/libmach.a - 664 sys sys 1168114900 785352
 386/lib/libmemdraw.a - 664 sys sys 1143777866 284092
 386/lib/libmemlayer.a - 664 sys sys 1143777866 47360
 386/lib/libmp.a - 664 sys sys 1167079193 79978
