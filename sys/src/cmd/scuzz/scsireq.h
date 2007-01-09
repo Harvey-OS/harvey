@@ -12,23 +12,23 @@ enum {					/* fundamental constants/defaults */
 };
 
 typedef struct {
-	uchar *p;
-	long count;
-	uchar write;
+	uchar	*p;
+	long	count;
+	uchar	write;
 } ScsiPtr;
 
 typedef struct {
-	int flags;
-	char *unit;			/* unit directory */
-	int lun;
-	ulong lbsize;
-	ulong offset;
-	int fd;
-	ScsiPtr cmd;
-	ScsiPtr data;
-	int status;			/* returned status */
-	uchar sense[MaxDirData];	/* returned sense data */
-	uchar inquiry[MaxDirData];	/* returned inquiry data */
+	int	flags;
+	char	*unit;			/* unit directory */
+	int	lun;
+	ulong	lbsize;
+	ulong	offset;			/* in blocks of lbsize bytes */
+	int	fd;
+	ScsiPtr	cmd;
+	ScsiPtr	data;
+	int	status;			/* returned status */
+	uchar	sense[MaxDirData];	/* returned sense data */
+	uchar	inquiry[MaxDirData];	/* returned inquiry data */
 } ScsiReq;
 
 enum {					/* flags */

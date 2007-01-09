@@ -1,5 +1,4 @@
 #include "stdinc.h"
-
 #include "9.h"
 
 int
@@ -15,7 +14,7 @@ authRead(Fid* afid, void* data, int count)
 
 	switch(auth_rpc(rpc, "read", nil, 0)){
 	default:
-		vtSetError("auth protocol not finished");
+		vtSetError("fossil authRead: auth protocol not finished");
 		return -1;
 	case ARdone:
 		if((ai = auth_getinfo(rpc)) == nil){
@@ -87,19 +86,25 @@ authCheck(Fcall* t, Fid* fid, Fs* fsys)
 		if(con->isconsole){
 			/* anything goes */
 		}else if((con->flags&ConNoneAllow) || con->aok){
-			consPrint("attach %s as %s: allowing as none\n", fsysGetName(fsys), fid->uname);
+			static int noneprint;
+
+			if(noneprint++ < 10)
+				consPrint("attach %s as %s: allowing as none\n",
+					fsysGetName(fsys), fid->uname);
 			vtMemFree(fid->uname);
 			fid->uname = vtStrDup(unamenone);
 		}else{
 			vtRUnlock(con->alock);
-			consPrint("attach %s as %s: connection not authenticated, not console\n", fsysGetName(fsys), fid->uname);
+			consPrint("attach %s as %s: connection not authenticated, not console\n",
+				fsysGetName(fsys), fid->uname);
 			vtSetError("cannot attach as none before authentication");
 			return 0;
 		}
 		vtRUnlock(con->alock);
 
 		if((fid->uid = uidByUname(fid->uname)) == nil){
-			consPrint("attach %s as %s: unknown uname\n", fsysGetName(fsys), fid->uname);
+			consPrint("attach %s as %s: unknown uname\n",
+				fsysGetName(fsys), fid->uname);
 			vtSetError("unknown user");
 			return 0;
 		}
@@ -117,13 +122,15 @@ authCheck(Fcall* t, Fid* fid, Fs* fsys)
 	 * check uname and aname match.
 	 */
 	if(!(afid->qid.type & QTAUTH)){
-		consPrint("attach %s as %s: afid not an auth file\n", fsysGetName(fsys), fid->uname);
+		consPrint("attach %s as %s: afid not an auth file\n", fsysGetName(fsys),
+			fid->uname);
 		fidPut(afid);
 		vtSetError("bad authentication fid");
 		return 0;
 	}
 	if(strcmp(afid->uname, fid->uname) != 0 || afid->fsys != fsys){
-		consPrint("attach %s as %s: afid is for %s as %s\n", fsysGetName(fsys), fid->uname, fsysGetName(afid->fsys), afid->uname);
+		consPrint("attach %s as %s: afid is for %s as %s\n", fsysGetName(fsys),
+			fid->uname, fsysGetName(afid->fsys), afid->uname);
 		fidPut(afid);
 		vtSetError("attach/auth mismatch");
 		return 0;
@@ -135,7 +142,7 @@ authCheck(Fcall* t, Fid* fid, Fs* fsys)
 			vtUnlock(afid->alock);
 			consPrint("attach %s as %s: %R\n", fsysGetName(fsys), fid->uname);
 			fidPut(afid);
-			vtSetError("authentication protocol not finished");
+			vtSetError("fossil authCheck: auth protocol not finished");
 			return 0;
 		}
 	}
@@ -143,7 +150,8 @@ authCheck(Fcall* t, Fid* fid, Fs* fsys)
 
 	assert(fid->uid == nil);
 	if((fid->uid = uidByUname(afid->cuname)) == nil){
-		consPrint("attach %s as %s: unknown cuname %s\n", fsysGetName(fsys), fid->uname, afid->cuname);
+		consPrint("attach %s as %s: unknown cuname %s\n", fsysGetName(fsys),
+			fid->uname, afid->cuname);
 		fidPut(afid);
 		vtSetError("unknown user");
 		return 0;

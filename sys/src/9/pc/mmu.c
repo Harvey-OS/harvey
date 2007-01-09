@@ -1041,4 +1041,15 @@ checkfault(ulong, ulong)
 {
 }
 
+/*
+ * Return the number of bytes that can be accessed via KADDR(pa).
+ * If pa is not a valid argument to KADDR, return 0.
+ */
+ulong
+cankaddr(ulong pa)
+{
+	if(pa >= -KZERO)
+		return 0;
+	return -KZERO - pa;
+}
 

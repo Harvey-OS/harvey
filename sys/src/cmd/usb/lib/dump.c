@@ -158,11 +158,11 @@ preport(Device *, int, ulong, byte *b, int n)
 			fprint(2, "long report tag");
 			return;
 		}
-		if((nb = tag&3)==3)
+		if((nb = tag&3) == 3)
 			nb = 4;
 		v = 0;
 		for(i=0; i<nb; i++)
-			v |= s[i]<<(i*8);
+			v |= s[i] << (i*8);
 		switch(tag & Tmtype){
 		case Treserved:
 			if(tag == Tlong){
@@ -175,12 +175,28 @@ preport(Device *, int, ulong, byte *b, int n)
 			tab = nil;
 			if (debug & Dbginfo) {
 				switch(tag & Tmitem){
-				case Tinput:	fprint(2, "Input"); tab = ioflags; break;
-				case Toutput:	fprint(2, "Output"); tab = ioflags; break;
-				case Tfeature:	fprint(2, "Feature"); tab = ioflags; break;
-				case Tcoll:	fprint(2, "Collection"); indent++; break;
-				case Tecoll:	fprint(2, "End Collection"); indent--; break;
-				default:		fprint(2, "unexpected item %.2x", tag);
+				case Tinput:
+					fprint(2, "Input");
+					tab = ioflags;
+					break;
+				case Toutput:
+					fprint(2, "Output");
+					tab = ioflags;
+					break;
+				case Tfeature:
+					fprint(2, "Feature");
+					tab = ioflags;
+					break;
+				case Tcoll:
+					fprint(2, "Collection");
+					indent++;
+					break;
+				case Tecoll:
+					fprint(2, "End Collection");
+					indent--;
+					break;
+				default:
+					fprint(2, "unexpected item %.2x", tag);
 				}
 				fprint(2, "=%#ux", v);
 				if(tab != nil)
@@ -289,8 +305,9 @@ phub(Device *, int, ulong, void *b, int n)
 	d = b;
 	if (debug & Dbginfo)
 		fprint(2, "nport %d charac %#.4x pwr %dms current %dmA remov %#.2x",
-			d->bNbrPorts, GET2(d->wHubCharacteristics), d->bPwrOn2PwrGood*2,
-			d->bHubContrCurrent, d->DeviceRemovable[0]);
+			d->bNbrPorts, GET2(d->wHubCharacteristics),
+			d->bPwrOn2PwrGood*2, d->bHubContrCurrent,
+			d->DeviceRemovable[0]);
 }
 
 void
@@ -353,14 +370,17 @@ pcs_endpoint(Device *, int, ulong, void *bb, int n)
 	if (debug & Dbginfo) {
 		switch(b[2]) {
 		case 0x01:
-			fprint(2, "CS_ENDPOINT for TerminalID %d, delay %d, format_tag %#ux\n",
+			fprint(2,
+		"CS_ENDPOINT for TerminalID %d, delay %d, format_tag %#ux\n",
 				b[3], b[4], b[5] | (b[6]<<8));
 			break;
 		case 0x02:
-			fprint(2, "CS_INTERFACE FORMAT_TYPE %d, channels %d, subframesize %d, resolution %d, freqtype %d, ",
+			fprint(2,
+"CS_INTERFACE FORMAT_TYPE %d, channels %d, subframesize %d, resolution %d, freqtype %d, ",
 				b[3], b[4], b[5], b[6], b[7]);
 			fprint(2, "freq0 %d, freq1 %d\n",
-				b[8] | (b[9]<<8) | (b[10]<<16), b[11] | (b[12]<<8) | (b[13]<<16));
+				b[8]  |  b[9]<<8 | b[10]<<16,
+				b[11] | b[12]<<8 | b[13]<<16);
 			break;
 		default:
 			pcs_raw("CS_INTERFACE", bb, n);
@@ -369,26 +389,23 @@ pcs_endpoint(Device *, int, ulong, void *bb, int n)
 }
 
 static void
-pcs_interface(Device *, int n, ulong, void *bb, int nb) {
+pcs_interface(Device *, int n, ulong, void *bb, int nb)
+{
 
-	if ((debug & Dbginfo) && n >= 0) {
+	if ((debug & Dbginfo) && n >= 0)
 		pcs_raw("CS_INTERFACE", bb, nb);
-	}
 }
 
 void
 pdesc(Device *d, int c, ulong csp, byte *b, int n)
 {
-	void (*f)(Device *, int, ulong, void*, int);
-	int ifc = -1;
-	int dalt = -1;
-	int i, ep;
-	int class, subclass, proto;
+	int class, subclass, proto, dalt = -1, i, ep, ifc = -1;
 	DConfig *dc;
-	DInterface *di;
 	DEndpoint *de;
-	Endpt *dep;
+	DInterface *di;
 	Dinf *dif;
+	Endpt *dep;
+	void (*f)(Device *, int, ulong, void*, int);
 
 	class = Class(csp);
 
@@ -414,9 +431,10 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 			d->nif += d->config[c]->nif;
 			if (debug & Dbginfo)
 				fprint(2, "config %d: tdlen %d ninterface %d iconfig %d attr %#.2x power %dmA\n",
-					dc->bConfigurationValue, GET2(dc->wTotalLength),
-					dc->bNumInterfaces, dc->iConfiguration, dc->bmAttributes,
-					dc->MaxPower*2);
+					dc->bConfigurationValue,
+					GET2(dc->wTotalLength),
+					dc->bNumInterfaces, dc->iConfiguration,
+					dc->bmAttributes, dc->MaxPower*2);
 			break;
 		case INTERFACE:
 			if(n < DINTERLEN)
@@ -428,10 +446,10 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 			csp = CSP(class, subclass, proto);
 			if (debug & Dbginfo)
 				fprint(2, "interface %d: alt %d nept %d class %#x subclass %#x proto %d [%s] iinterface %d\n",
-					di->bInterfaceNumber, di->bAlternateSetting,
-					di->bNumEndpoints, class, subclass, proto,
-					sclass(csp),
-					di->iInterface);
+					di->bInterfaceNumber,
+					di->bAlternateSetting,
+					di->bNumEndpoints, class, subclass,
+					proto, sclass(csp), di->iInterface);
 			if (c < 0) {
 				fprint(2, "Unexpected INTERFACE message\n");
 				return;
@@ -440,7 +458,8 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 			dalt = di->bAlternateSetting;
 			if (ifc < 0 || ifc >= nelem(d->config[c]->iface))
 				sysfatal("Bad interface number %d", ifc);
-			if (dalt < 0 || dalt >= nelem(d->config[c]->iface[ifc]->dalt))
+			if (dalt < 0 ||
+			    dalt >= nelem(d->config[c]->iface[ifc]->dalt))
 				sysfatal("Bad alternate number %d", dalt);
 			if (d->config[c] == nil)
 				sysfatal("No config");
@@ -470,19 +489,33 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 				else
 					fprint(2, " [OUT]");
 				switch(de->bmAttributes&0x33){
-				case 0:	fprint(2, " [Control]"); break;
-				case 1:	fprint(2, " [Iso]");
-						switch(de->bmAttributes&0xc){
-						case 0x4:	fprint(2, " [Asynchronous]"); break;
-						case 0x8:	fprint(2, " [Adaptive]"); break;
-						case 0xc:	fprint(2, " [Synchronous]"); break;
-						}
+				case 0:
+					fprint(2, " [Control]");
+					break;
+				case 1:
+					fprint(2, " [Iso]");
+					switch(de->bmAttributes&0xc){
+					case 0x4:
+						fprint(2, " [Asynchronous]");
 						break;
-				case 2:	fprint(2, " [Bulk]"); break;
-				case 3:	fprint(2, " [Interrupt]"); break;
+					case 0x8:
+						fprint(2, " [Adaptive]");
+						break;
+					case 0xc:
+						fprint(2, " [Synchronous]");
+						break;
+					}
+					break;
+				case 2:
+					fprint(2, " [Bulk]");
+					break;
+				case 3:
+					fprint(2, " [Interrupt]");
+					break;
 				}
 				if(b[0] == 9)
-					fprint(2, "refresh %d synchaddress %d", b[7], b[8]);
+					fprint(2, "refresh %d synchaddress %d",
+						b[7], b[8]);
 				fprint(2, "\n");
 			}
 			if (c < 0 || ifc < 0 || dalt < 0) {
@@ -519,12 +552,11 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 			dep->csp = csp;
 			dep->conf = d->config[c];
 			dep->iface = dif;
-			for(i = 0; i < nelem(dif->endpt); i++){
+			for(i = 0; i < nelem(dif->endpt); i++)
 				if(dif->endpt[i] == nil){
 					dif->endpt[i] = dep;
 					break;
 				}
-			}
 			if(i == nelem(dif->endpt))
 				fprint(2, "Too many endpoints\n");
 			if (d->nif <= ep)
@@ -538,8 +570,7 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 					b, b[0]);
 				if (debug & Dbginfo)
 					fprint(2, "\n");
-			}
-			else {
+			} else
 				if (verbose) {
 					int i;
 
@@ -547,10 +578,9 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 					for(i=1; i<b[0]; i++)
 						fprint(2, " %.2x", b[i]);
 					fprint(2, "\n");
-				}
-				else if (debug & Dbginfo)
+				} else if (debug & Dbginfo)
 					fprint(2, "\n");
-			}
+			break;
 		}
 		n -= b[0];
 	}

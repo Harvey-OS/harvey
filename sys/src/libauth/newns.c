@@ -63,6 +63,10 @@ buildns(int newns, char *user, char *file)
 		snprint(home, 2*ANAMELEN, "/usr/%s", user);
 		setenv("home", home);
 	}
+	/*
+	 * if rpc==nil here, a suicide will result when it's
+	 * dereferenced, typically in memmove, from auth_rpc.
+	 */
 	cdroot = nsfile(newns ? "newns" : "addns", b, rpc);
 	Bterm(b);
 	if(rpc){

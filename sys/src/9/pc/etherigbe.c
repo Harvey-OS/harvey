@@ -445,6 +445,7 @@ typedef struct Ctlr {
 	int	port;
 	Pcidev*	pcidev;
 	Ctlr*	next;
+	Ether*	edev;
 	int	active;
 	int	started;
 	int	id;
@@ -511,7 +512,7 @@ static Ctlr* igbectlrhead;
 static Ctlr* igbectlrtail;
 
 static Lock igberblock;		/* free receive Blocks */
-static Block* igberbpool;
+static Block* igberbpool;	/* receive Blocks for all igbe controllers */
 
 static char* statistics[Nstatistics] = {
 	"CRC Error",
@@ -1012,7 +1013,8 @@ igbereplenish(Ctlr* ctlr)
 		if(ctlr->rb[rdt] == nil){
 			bp = igberballoc();
 			if(bp == nil){
-				iprint("no available buffers\n");
+				iprint("#l%d: igbereplenish: no available buffers\n",
+					ctlr->edev->ctlrno);
 				break;
 			}
 			ctlr->rb[rdt] = bp;
@@ -1171,6 +1173,7 @@ igbeattach(Ether* edev)
 	char name[KNAMELEN];
 
 	ctlr = edev->ctlr;
+	ctlr->edev = edev;			/* point back to Ether* */
 	qlock(&ctlr->alock);
 	if(ctlr->alloc != nil){
 		qunlock(&ctlr->alock);
@@ -1787,9 +1790,9 @@ if(i == Ea && ctlr->id == i82541gi && ctlr->eeprom[i] == 0xFFFF)
 
 	/*
 	 * Just in case the Eerst didn't load the defaults
-	 * (doesn't appear to fully on the 8243GC), do it manually.
+	 * (doesn't appear to fully on the 82543GC), do it manually.
 	 */
-	if (ctlr->id == i82543gc) {	// 82543
+	if (ctlr->id == i82543gc) {
 		txcw = csr32r(ctlr, Txcw);
 		txcw &= ~(TxcwAne|TxcwPauseMASK|TxcwFd);
 		ctrl = csr32r(ctlr, Ctrl);

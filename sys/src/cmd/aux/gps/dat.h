@@ -8,7 +8,7 @@ struct Place {
 
 enum {
 	Undef		= 0x80000000,
-	Baud=		4800,
+	Baud=		9600,
 };
 
 extern Place nowhere;

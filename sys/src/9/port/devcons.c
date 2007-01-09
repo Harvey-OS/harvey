@@ -321,7 +321,7 @@ pprint(char *fmt, ...)
 	c = up->fgrp->fd[2];
 	if(c==0 || (c->mode!=OWRITE && c->mode!=ORDWR))
 		return 0;
-	n = sprint(buf, "%s %lud: ", up->text, up->pid);
+	n = snprint(buf, sizeof buf, "%s %lud: ", up->text, up->pid);
 	va_start(arg, fmt);
 	n = vseprint(buf+n, buf+sizeof(buf), fmt, arg) - buf;
 	va_end(arg);

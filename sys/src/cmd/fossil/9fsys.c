@@ -805,7 +805,7 @@ fsysDf(Fsys *fsys, int argc, char* argv[])
 	cacheCountUsed(fs->cache, fs->elo, &used, &tot, &bsize);
 	consPrint("\t%s: %,llud used + %,llud free = %,llud (%ud%% used)\n",
 		fsys->name, used*(vlong)bsize, (tot-used)*(vlong)bsize,
-		tot*(vlong)bsize, used*100/tot);
+		tot*(vlong)bsize, used*100LL/tot);
 	return 1;
 }
 

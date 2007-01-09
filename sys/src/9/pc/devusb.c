@@ -138,7 +138,7 @@ addusbtype(char* t, int (*r)(Usbhost*))
 static Udev*
 usbdeviceofslot(Usbhost *uh, int s)
 {
-	if(s < 0 || s > nelem(uh->dev))
+	if(s < 0 || s >= nelem(uh->dev))
 		return nil;
 	return uh->dev[s];
 }
@@ -151,7 +151,7 @@ usbdevice(Chan *c)
 	Usbhost *uh;
 
 	bus = CTLR(c->qid);
-	if(bus > nelem(usbhost) || (uh = usbhost[bus]) == nil) {
+	if(bus >= nelem(usbhost) || (uh = usbhost[bus]) == nil) {
 		error(Egreg);
 		return nil;		/* for compiler */
 	}
@@ -320,7 +320,7 @@ usbgen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
 	}
 	bus = CTLR(c->qid);
 	if(bus >= nelem(usbhost) || (uh = usbhost[bus]) == nil)
-			return -1;
+		return -1;
 
 	/*
 	 * Second level contains "new", "port", and a numbered
@@ -347,7 +347,7 @@ usbgen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
 			d = uh->dev[s];
 			if(d == nil)
 				return 0;
-			sprint(up->genbuf, "%d", s);
+			snprint(up->genbuf, sizeof up->genbuf, "%d", s);
 			mkqid(&q, PATH(Q3rd, s, bus), d->id, QTDIR);
 			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
 			return 1;
@@ -379,7 +379,7 @@ usbgen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
 		return -1;
 	if(s == 0 || (e = d->ep[s]) == nil)	/* ep0data is called "setup" */
 		return 0;
-	sprint(up->genbuf, "ep%ddata", s);
+	snprint(up->genbuf, sizeof up->genbuf, "ep%ddata", s);
 	mkqid(&q, PATH(Qep0+s, slot, bus), c->qid.vers, QTFILE);
 	switch(e->mode) {
 	case OREAD:
@@ -402,8 +402,7 @@ usbprobe(int cardno, int ctlrno)
 	Usbhost *uh;
 	char buf[128], *ebuf, name[64], *p, *type;
 
-	uh = malloc(sizeof(Usbhost));
-	memset(uh, 0, sizeof(Usbhost));
+	uh = mallocz(sizeof *uh, 1);
 	uh->tbdf = BUSUNKNOWN;
 
 	if(cardno < 0){
@@ -415,17 +414,13 @@ usbprobe(int cardno, int ctlrno)
 			type = uh->type;
 			if(type==nil || *type==0)
 				type = "uhci";
-			if(cistrcmp(usbtypes[cardno].type, type))
-				continue;
-			break;
+			if(cistrcmp(usbtypes[cardno].type, type) == 0)
+				break;
 		}
 	}
 
-	if(cardno >= MaxUsb || usbtypes[cardno].type == nil){
-		free(uh);
-		return nil;
-	}
-	if(usbtypes[cardno].reset(uh) < 0){
+	if(cardno >= MaxUsb || usbtypes[cardno].type == nil ||
+	    usbtypes[cardno].reset(uh) < 0){
 		free(uh);
 		return nil;
 	}
@@ -458,11 +453,9 @@ usbreset(void)
 	int cardno, ctlrno;
 	Usbhost *uh;
 
-	for(ctlrno = 0; ctlrno < MaxUsb; ctlrno++){
-		if((uh = usbprobe(-1, ctlrno)) == nil)
-			continue;
-		usbhost[ctlrno] = uh;
-	}
+	for(ctlrno = 0; ctlrno < MaxUsb; ctlrno++)
+		if((uh = usbprobe(-1, ctlrno)) != nil)
+			usbhost[ctlrno] = uh;
 
 	if(getconf("*nousbprobe"))
 		return;
@@ -493,7 +486,7 @@ usbinit(void)
 		uh = usbhost[ctlrno];
 		if(uh == nil)
 			continue;
-		if(uh->init != 0)
+		if(uh->init != nil)
 			uh->init(uh);
 
 		/* reserve device for configuration */
@@ -785,8 +778,8 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 			 */
 			d->npt = strtoul(cb->f[1], nil, 0); /* # of interfaces */
 			i = strtoul(cb->f[2], nil, 0);		/* endpoint */
-			if (i < 0 || i >= nelem(d->ep)
-			 || d->npt > nelem(d->ep) || i >= d->npt)
+			if (i < 0 || i >= nelem(d->ep) ||
+			    d->npt > nelem(d->ep) || i >= d->npt)
 				cmderror(cb, Ebadusbmsg);
 			if (cb->nf == 6) {
 				d->vid = strtoul(cb->f[4], nil, 0);

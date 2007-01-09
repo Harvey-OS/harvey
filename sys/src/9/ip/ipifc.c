@@ -135,7 +135,7 @@ ipifcbind(Conv *c, char **argv, int argc)
 	if(argc > 2)
 		strncpy(ifc->dev, argv[2], sizeof(ifc->dev));
 	else
-		sprint(ifc->dev, "%s%d", m->name, c->x);
+		snprint(ifc->dev, sizeof ifc->dev, "%s%d", m->name, c->x);
 	ifc->dev[sizeof(ifc->dev)-1] = 0;
 
 	/* set up parameters */

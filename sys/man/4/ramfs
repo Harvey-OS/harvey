@@ -4,7 +4,7 @@ ramfs  \- memory file system
 .SH SYNOPSIS
 .B ramfs
 [
-.B -Dips
+.B -Dipsu
 ]
 [
 .B -m
@@ -69,6 +69,16 @@ enabling multiple clients to access its files.
 However, it does not authenticate its clients and its
 implementation of groups is simplistic, so
 it should not be used for precious data.
+.PP
+The
+.B -u
+option permits
+.I ramfs
+to consume as much memory as needed;
+without it,
+.I ramfs
+will limit its consumption to some arbitrary amount,
+currently 768MB (enough to hold a CD image).
 .PP
 This program is useful mainly as an example of how
 to write a user-level file server.

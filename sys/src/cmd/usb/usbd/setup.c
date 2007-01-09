@@ -19,7 +19,7 @@ void
 setup0(Device *d, int type, int req, int value, int index, int count)
 {
 	if(setupreq(d->ep[0], type, req, value, index, count) < 0)
-		sysfatal("usbd: %D: transaction error", d);
+		sysfatal("usbd: setup0: %D: transaction error", d);
 }
 
 void
@@ -34,11 +34,20 @@ getmaxpkt(Device *d)
 {
 	DDevice *dd;
 	byte buf[8];
-	int nr = -1;
+	int nr;
 
-	if (setupreq(d->ep[0], RD2H|Rstandard|Rdevice, GET_DESCRIPTOR, (DEVICE<<8)|0, 0, sizeof(buf)) < 0 ||
-	   (nr = setupreply(d->ep[0], buf, sizeof(buf))) < sizeof(buf)) {
-		fprint(2, "usbd: getmaxpkt: error reading device descriptor for %D, got %d of %d\n", d, nr, sizeof(buf));
+	werrstr("");
+	if (setupreq(d->ep[0], RD2H|Rstandard|Rdevice, GET_DESCRIPTOR,
+	    DEVICE<<8|0, 0, sizeof buf) < 0) {
+		fprint(2,
+"usbd: getmaxpkt: error writing usb device request: GET_DESCRIPTOR for %D: %r\n",
+			d);
+		return -1;
+	}
+	if ((nr = setupreply(d->ep[0], buf, sizeof buf)) < sizeof buf) {
+		fprint(2,
+"usbd: getmaxpkt: error reading device descriptor for %D, got %d of %d: %r\n",
+			d, nr, sizeof buf);
 		return -1;
 	}
 	dd = (DDevice*)buf;

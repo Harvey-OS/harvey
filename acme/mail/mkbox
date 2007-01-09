@@ -1,7 +1,7 @@
 #!/bin/rc
 
 for(i){
-	if(! test -f $i){
+	if(! test -e $i){
 		if(cp /dev/null $i){
 			chmod 600 $i
 			chmod +al $i

@@ -105,10 +105,11 @@ capopen(Chan *c, int omode)
 	return c;
 }
 
+/*
 static char*
 hashstr(uchar *hash)
 {
-	static char buf[256];
+	static char buf[2*Hashlen+1];
 	int i;
 
 	for(i = 0; i < Hashlen; i++)
@@ -116,6 +117,7 @@ hashstr(uchar *hash)
 	buf[2*Hashlen] = 0;
 	return buf;
 }
+ */
 
 static Caphash*
 remcap(uchar *hash)
