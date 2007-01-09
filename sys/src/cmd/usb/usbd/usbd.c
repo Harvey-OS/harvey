@@ -85,7 +85,7 @@ threadmain(int argc, char **argv)
 	usbfmtinit();
 	fmtinstall('H', Hfmt);
 
-	/* always fork off usb[1-n] */
+	/* always fork off usb[1—n] */
 	for(i=1; (h = roothub(i)) != nil; i++) {
 		incref(&busy);
 		proccreate(work, h, STACKSIZE);
@@ -134,7 +134,8 @@ enumerate(void *v)
 			do {
 				yield();
 				if (debugdebug)
-					fprint(2, "usbd: probing %H.%d\n", h, port);
+					fprint(2, "usbd: probing %H.%d\n",
+						h, port);
 				sleep(500);
 			} while((portstatus(h, port) & (1<<PORT_CONNECTION)) == 0);
 			incref(&busy);
@@ -150,7 +151,8 @@ enumerate(void *v)
 		}
 		if(d->class == Hubclass) {
 			if(debug)
-				fprint(2, "usbd: %H.%d: hub %d attached\n", h, port, d->id);
+				fprint(2, "usbd: %H.%d: hub %d attached\n",
+					h, port, d->id);
 			setconfig(d, 1);
 			nh = newhub(h, d);
 			if(nh == nil) {
@@ -173,7 +175,9 @@ enumerate(void *v)
 			}
 		}else{
 			if(debug)
-				fprint(2, "usbd: %H.%d: %d: not hub, %s speed\n", h, port, d->id, d->ls?"low":"high");
+				fprint(2,
+					"usbd: %H.%d: %d: not hub, %s speed\n",
+					h, port, d->id, d->ls?"low":"high");
 			setconfig(d, 1);	/* TO DO */
 //unconscionable kludge (testing camera)
 if(d->class == 10) setup0(d, RH2D|Rinterface, SET_INTERFACE, 10, 0, 0);
@@ -185,7 +189,9 @@ if(d->class == 10) setup0(d, RH2D|Rinterface, SET_INTERFACE, 10, 0, 0);
 			yield();
 			if (d->state == Detached) {
 				if (verbose)
-					fprint(2, "%H: port %d detached by parent hub\n", h, port);
+					fprint(2,
+					 "%H: port %d detached by parent hub\n",
+						h, port);
 				/* parent hub died */
 				threadexits(nil);
 			}

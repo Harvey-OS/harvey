@@ -77,7 +77,7 @@ install:V: ndisk 9loaddebug
 	9fs outside
 	dst=/n/outside/sys/lib/dist/web.protect
 	cp 9loaddebug $dst
-	cp ndisk $dst/disk
+	gzip -9 < ndisk > $dst/plan9.flp.gz
 	#mk clean
 
 test:V: ndisk 9loaddebug

@@ -44,6 +44,7 @@ int errno;
 static char	srvfile[64];
 
 extern Xfsub	*xsublist[];
+extern int	nclust;
 
 jmp_buf	err_lab[16];
 int	nerr_lab;
@@ -78,23 +79,28 @@ main(int argc, char **argv)
 
 	stdio = 0;
 	ARGBEGIN {
-	case 'v':
-		chatty = 1;
+	case '9':
+		noplan9 = 1;
+		break;
+	case 'c':
+		nclust = atoi(EARGF(usage()));
+		if (nclust <= 0)
+			sysfatal("nclust %d non-positive", nclust);
 		break;
 	case 'f':
-		deffile = ARGF();
+		deffile = EARGF(usage());
+		break;
+	case 'r':
+		norock = 1;
 		break;
 	case 's':
 		stdio = 1;
 		break;
-	case '9':
-		noplan9 = 1;
+	case 'v':
+		chatty = 1;
 		break;
 	case 'J':
 		nojoliet = 1;
-		break;
-	case 'r':
-		norock = 1;
 		break;
 	default:
 		usage();
@@ -385,7 +391,7 @@ rwalk(void)
 			chat("\tnot dir: type=%#x\n", f->qid.type);
 			error("walk in non-directory");
 		}
-		
+
 		if(strcmp(req->wname[rep->nwqid], "..")==0){
 			if(f->qid.path != f->xf->rootqid.path)
 				(*f->xf->s->walkup)(f);

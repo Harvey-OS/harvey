@@ -489,7 +489,8 @@ mathnote(void)
 		}else
 			msg = "invalid operation";
 	}
-	sprint(note, "sys: fp: %s fppc=0x%lux status=0x%lux", msg, up->fpsave.pc, status);
+	snprint(note, sizeof note, "sys: fp: %s fppc=0x%lux status=0x%lux",
+		msg, up->fpsave.pc, status);
 	postnote(up, 1, note, NDebug);
 }
 

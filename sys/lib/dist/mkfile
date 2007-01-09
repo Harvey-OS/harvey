@@ -1,15 +1,17 @@
+# /sys/lib/dist/mkfile
 d=/n/sources/plan9
-x=`{9fs sources; 9fs fsother; import -c tcp!204.178.31.2!666 /sys/lib/dist/web.protect}
+dist=/sys/lib/dist
+x=`{9fs sources; 9fs fsother; import -c tcp!204.178.31.2!666 $dist/web.protect}
 
 cd:V: /n/fsother/dist/plan9.iso
 
 ncd:V: /n/fsother/dist/plan9-new.iso.bz2
 
 ncd-dist:V: /n/fsother/dist/plan9-new.iso.bz2
-	mk /sys/lib/dist/web.protect/plan9-new.iso.bz2
+	mk $dist/web.protect/plan9-new.iso.bz2
 
 cd-dist:V: /n/fsother/dist/plan9.iso.bz2
-	mk /sys/lib/dist/web.protect/plan9.iso.bz2
+	mk $dist/web.protect/plan9.iso.bz2
 
 contrib-cd:V:	/n/fsother/dist/contrib.iso.bz2
 
@@ -22,17 +24,20 @@ contrib-cd:V:	/n/fsother/dist/contrib.iso.bz2
 	title=`{date | sed 's/(...) (...) (..) (..:..):.. (...) (....)/Plan 9 - \2 \3 \6 \4/'}
 	title=$"title
 	echo 'CD:' $title
-	disk/mk9660 -9cj -v $title -s $d \
-		-b bootdisk.img $target
+	disk/mk9660 -9cj -v $title -s $d -b bootdisk.img $target
 
-/sys/lib/dist/web.protect/%.iso.bz2:	/n/fsother/dist/%.iso.bz2
+$dist/web.protect/%.iso.bz2:	/n/fsother/dist/%.iso.bz2
 	cp $prereq $target
 
 scan:V:
-	replica/scan /sys/lib/dist/sources.replica <scan.lock
+	test -d /n/fsother/dist		# make sure fsother was mounted above
+	test -d $d
+	test -d $dist/web.protect
+	replica/scan $dist/sources.replica <scan.lock
 
 compresslog:V:
-	awk -f logcompress.awk $d/dist/replica/plan9.log | awk -f logtime.awk -v 't='^`{date -n} >/tmp/plan9.log
+	awk -f logcompress.awk $d/dist/replica/plan9.log |
+		awk -f logtime.awk -v 't='^`{date -n} >/tmp/plan9.log
 	rm $d/dist/replica/plan9.log
 	cp /tmp/plan9.log $d/dist/replica/plan9.log
 
@@ -55,26 +60,25 @@ cd.install:V:
 D.install:V:
 	D=/n/roro/usr/rob/testplan9
 	9fs roro
-	cp $D/sys/lib/dist/pc/ndisk /sys/lib/dist/web.protect/ndisk
-	cp $D/sys/lib/dist/pc/9loaddebug /sys/lib/dist/web.protect/n9loaddebug
-
+	test -d $D
+	cp $D$dist/pc/ndisk $dist/web.protect/ndisk
+	cp $D$dist/pc/9loaddebug $dist/web.protect/n9loaddebug
 
 reallyinstall:V:
 	if(! ~ $sysname achille){ echo; echo; echo '*** this needs to run on achille.'; exit bad }
 	cd web.protect
-	for (i in plan9.iso.bz2 disk 9loaddebug vmware.zip){
+	for (i in plan9.iso.bz2 disk 9loaddebug vmware.zip)
 		if(test -f n$i){
 			mv $i _$i && { mv n$i $i || mv _$i $i }
 		}
-	}
 	rm /srv/ramfs.9down4e
-	/sys/lib/dist/startcache
+	$dist/startcache
 
 dump:V:
 	rm -f /srv/9660.xxx
 	9660srv 9660.xxx
 	mount /srv/9660.xxx /n/kremvax /n/fsother/dist/plan9.iso
-	now=`{mtime /sys/lib/dist/web.protect/plan9.iso.bz2 | awk '{print $1}'}
+	now=`{mtime $dist/web.protect/plan9.iso.bz2 | awk '{print $1}'}
 	ls -l /rls/plan9/4e.iso
 	disk/dump9660 -9cj -s /n/kremvax -n $now /rls/plan9/4e.iso
 	ls -l /rls/plan9/4e.iso
@@ -90,55 +94,85 @@ reencode:V:
 	rm /srv/9660.xxx
 
 /n/fsother/dist/%.iso.bz2:D: /n/fsother/dist/%.iso
-	bzip2 -9 < /n/fsother/dist/$stem.iso > /n/fsother/dist/n$stem.iso.bz2 &&
-	{mv /n/fsother/dist/$stem.iso.bz2 /n/fsother/dist/_$stem.iso.bz2
-	mv /n/fsother/dist/n$stem.iso.bz2 /n/fsother/dist/$stem.iso.bz2
+	@ {
+		cd /n/fsother/dist
+		bzip2 -9 <$stem.iso >n$stem.iso.bz2 &&
+		{
+			if (test -e $stem.iso.bz2)
+				mv  $stem.iso.bz2 _$stem.iso.bz2
+			mv n$stem.iso.bz2 $stem.iso.bz2
+		}
+		echo `{date} md5 `{md5sum <$stem.iso.bz2} \
+			sha1 `{sha1sum <$stem.iso.bz2} \
+			$stem.iso.bz2 >>/usr/web/plan9checksums.txt
 	}
-	echo `{date} md5 `{md5sum </n/fsother/dist/$stem.iso.bz2} sha1 `{sha1sum </n/fsother/dist/$stem.iso.bz2} $stem.iso.bz2 >>/usr/web/plan9checksums.txt
 
 /n/fsother/dist/contrib.iso:DV:
 	rm -f $target
-	disk/mk9660 -9cj -v 'Plan 9 Extras' -s /n/sources -p ./contrib.proto $target
+	disk/mk9660 -9cj -v 'Plan 9 Extras' -s /n/sources \
+		-p ./contrib.proto $target
 
 rebuild-mail:V:
 	rebuild
-	if(test -s buildit.out){
-		dd=`{date}
-		dd=$"date
-		mail -s 'nightly build errors '^$dd 9trouble <buildit.out
-	}
-	if(test -s checkbuild.out){
-		dd=`{date}
-		dd=$"date
-		mail -s 'nightly build differences '^$dd 9trouble <checkbuild.out
-	}
+	datemail 'nightly build errors' 9trouble <buildit.out
+	datemail 'nightly build differences' 9trouble <checkbuild.out
 	status=''
 
 scansources-mail:V:
-	dd=`{date}
-	dd=$"dd
-	scansources |mail -s 'nightly fs vs. martha scan '^$dd 9trouble
+	scansources | datemail 'nightly fs vs. martha scan' 9trouble
 
 worldwritable-mail:V:
-	cd /n/sources; /usr/rsc/bin/$cputype/lsr -t -d | awk '$2 ~ /[2367]$/' |{grep -v '^./patch' >/sys/lib/dist/writable || status=''}
-	if(test -s /sys/lib/dist/writable){
-		dd=`{date}
-		dd=$"date
-		mail -s 'WRITABLE FILES ON SOURCES '^$dd 9trouble </sys/lib/dist/writable
-	}
+	test -e /n/sources/plan9
+	@ {cd /n/sources; /usr/rsc/bin/$cputype/lsr -t -d} |
+		awk '$2 ~ /[2367]$/' | grep -vf ok-writable |
+		datemail 'WRITABLE FILES ON SOURCES' 9trouble || status=''
 	status=''
-	cd /n/sources/plan9; /usr/rsc/bin/$cputype/lsr -t -d /n/sources/plan9 | awk '$2 ~ /[2367][^2367].$/' >/sys/lib/dist/writable
-	if(test -s /sys/lib/dist/writable){
-		dd=`{date}
-		dd=$"date
-		mail -s 'non-group-writable files on sources'^$dd 9trouble </sys/lib/dist/writable
-	}
+	@ {
+		cd /n/sources/plan9
+		/usr/rsc/bin/$cputype/lsr -t -d /n/sources/plan9
+	} |
+		awk '$2 ~ /[2367][^2367].$/' |
+		datemail 'non-group-writable files on sources' 9trouble
 	status=''
-	/usr/rsc/bin/$cputype/lsr -t -d /sys /lib | awk '$2 ~ /[2367][^2367].$/' >/sys/lib/dist/writable
-	if(test -s /sys/lib/dist/writable){
-		dd=`{date}
-		dd=$"date
-		mail -s 'non-group-writable files on fs '^$dd 9trouble </sys/lib/dist/writable
-	}
+	# use /n/boot to avoid walking the archives mounted under
+	# /lib/vac, or other mounts or binds.
+	rfork n
+	9fs boot
+	test -e /n/boot/sys
+	/usr/rsc/bin/$cputype/lsr -t -d /n/boot/sys /n/boot/lib |
+		awk '$2 ~ /[2367][^2367].$/' |
+		datemail 'non-group-writable files on fs' 9trouble
 	status=''
 
+9.tar.gz:V:
+	@{
+		rfork n
+		9fs sources
+		test -e /n/sources/plan9
+		bind -a /n/sources/plan9 /n/sources/plan9/sys/src
+		cd /n/sources/plan9/sys/src
+		tar c LICENSE NOTICE 9
+	} | gzip >$target
+
+9-export:V: 9.tar.gz
+	9fs sources
+	cp 9.tar.gz /n/sources/extra/9.tgz
+
+plan9.tar.bz2:V:
+	@{
+		rfork n
+		9fs sources
+		cd /n/sources
+		test -e /n/sources/plan9
+		bind /n/empty /n/sources/plan9/lib/font
+		bind /n/empty /n/sources/plan9/sys/lib/postscript/font
+		bind /n/empty /n/sources/plan9/sys/lib/ghostscript
+		bind /n/empty /n/sources/plan9/sys/src/cmd/gs
+		tar c plan9/LICENSE* plan9/NOTICE plan9/*/mkfile plan9/*/include \
+			plan9/acme/*/src plan9/acme/bin/source \
+			plan9/^(adm cron lib lp mail rc sys tmp usr)
+	} | bzip2 >$target
+
+plan9-export:V: plan9.tar.bz2
+	9fs sources
+	mv plan9.tar.bz2 /n/sources/extra/plan9.tar.bz2

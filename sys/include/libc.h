@@ -181,16 +181,20 @@ extern	Rune*	runefmtstrflush(Fmt*);
 #pragma	varargck	type	"llx"	uvlong
 #pragma	varargck	type	"ld"	long
 #pragma	varargck	type	"lx"	long
+#pragma	varargck	type	"lb"	long
 #pragma	varargck	type	"ld"	ulong
 #pragma	varargck	type	"lx"	ulong
+#pragma	varargck	type	"lb"	ulong
 #pragma	varargck	type	"d"	int
 #pragma	varargck	type	"x"	int
 #pragma	varargck	type	"c"	int
 #pragma	varargck	type	"C"	int
+#pragma	varargck	type	"b"	int
 #pragma	varargck	type	"d"	uint
 #pragma	varargck	type	"x"	uint
 #pragma	varargck	type	"c"	uint
 #pragma	varargck	type	"C"	uint
+#pragma	varargck	type	"b"	uint
 #pragma	varargck	type	"f"	double
 #pragma	varargck	type	"e"	double
 #pragma	varargck	type	"g"	double
@@ -204,6 +208,7 @@ extern	Rune*	runefmtstrflush(Fmt*);
 #pragma	varargck	type	"p"	uintptr
 #pragma	varargck	type	"p"	void*
 #pragma	varargck	flag	','
+#pragma	varargck	flag	'h'
 #pragma varargck	type	"<"	void*
 #pragma varargck	type	"["	void*
 #pragma varargck	type	"H"	void*

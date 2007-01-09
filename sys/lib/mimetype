@@ -69,6 +69,7 @@
 .jpeg		image		jpeg		-		y
 .jpg		image		jpeg		-		y
 .jpg		image		pjpeg		-		y
+.js		application	x-javascript	-		y
 .latex		application	x-latex		-		y
 .ltx		application	x-latex		-		y
 .man		application	x-troff-man	-		y
@@ -123,6 +124,7 @@
 .suspect	application	octet-stream	-		y # upas/vf
 .sv4cpio	application	x-sv4cpio	-		m
 .sv4crc		application	x-sv4crc	-		y
+.swf		application	x-shockwave-flash		-		y
 .t		application	x-troff		-		y
 .tar		application	x-tar		-		m
 .tardist	application	x-tardist	-		n # SGI SoftwareManager

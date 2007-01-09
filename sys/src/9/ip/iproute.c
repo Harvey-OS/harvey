@@ -662,7 +662,7 @@ sprintroute(Route *r, Routewalk *rw)
 	iname = "-";
 	if(nifc != -1) {
 		iname = ifbuf;
-		sprint(ifbuf, "%d", nifc);
+		snprint(ifbuf, sizeof ifbuf, "%d", nifc);
 	}
 	p = seprint(rw->p, rw->e, rformat, addr, mask, gate, t, r->tag, iname);
 	if(rw->o < 0){

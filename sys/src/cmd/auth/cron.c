@@ -451,7 +451,7 @@ call(char *host)
 
 /*
  * convert command to run properly on the remote machine
- * need to escape the quotes wo they don't get stripped
+ * need to escape the quotes so they don't get stripped
  */
 int
 mkcmd(char *cmd, char *buf, int len)

@@ -455,6 +455,7 @@ cleantd(Ctlr *ctlr, TD *t, int discard)
 	case Utokout:
 		/* TO DO: mark it done somewhere */
 		XPRINT("cleanTD: TokOut %lux\n", &t->ep);
+		ilock(ctlr);		/* e->ntd++ is ilocked */
 		if(t->ep != nil){
 			if(t->bp){
 				n = BLEN(t->bp);
@@ -463,13 +464,12 @@ cleantd(Ctlr *ctlr, TD *t, int discard)
 			}
 			if(t->ep->x!=0 && err != 0)
 				t->ep->err = err==Stalled? Estalled: Eio;
-			ilock(ctlr);		/* e->ntd++ is ilocked */
 			if(--t->ep->ntd < 0)
 				panic("cleantd ntd");
-			iunlock(ctlr);
 			wakeup(&t->ep->wr);	/* TO DO */
 			XPRINT("cleanTD: wakeup %lux\n", &t->ep->wr);
 		}
+		iunlock(ctlr);
 		break;
 	}
 	freetd(ctlr, t);
@@ -1135,14 +1135,14 @@ isoio(Ctlr *ctlr, Endpt *e, void *a, long n, ulong offset, int w)
 		iprint("offset %lud, foffset %lud\n", offset, e->foffset);
 		/* Seek to a specific position */
 		frnum = (IN(Frnum) + 8) & 0x3ff;
-		td = x->td0 +frnum;
+		td = x->td0 + frnum;
 		if (offset < td->offset)
 			error("ancient history");
-		while (offset > e->toffset){
+		while (offset > e->toffset)
 			tsleep(&e->wr, return0, 0, 500);
-		}
+		/* TODO: how should this be parenthesised? */
 		while (offset >= td->offset +
-		    ((w? (td->dev>>21): td->status) + 1) & 0x7ff){
+		    (((w? (td->dev>>21): td->status) + 1) & 0x7ff)){
 			td = td->next;
 			if (td == x->xtd)
 				iprint("trouble\n");
@@ -1341,7 +1341,8 @@ write(Usbhost *uh, Endpt *e, void *a, long n, vlong offset, int tok)
 			nexterror();
 		}
 		XPRINT("out [%d]", i);
-		for (j = 0; j < i; j++) XPRINT(" %.2x", p[j]);
+		for (j = 0; j < i; j++)
+			XPRINT(" %.2x", p[j]);
 		XPRINT("\n");
 		memmove(b->wp, p, i);
 		b->wp += i;

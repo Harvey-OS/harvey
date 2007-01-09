@@ -565,7 +565,7 @@ dirdevopen(ScsiReq *rp)
 
 	if(SRstart(rp, 1) == -1 || SRrcapacity(rp, data) == -1)
 		return -1;
-	rp->lbsize = (data[4]<<28)|(data[5]<<16)|(data[6]<<8)|data[7];
+	rp->lbsize = (data[4]<<24)|(data[5]<<16)|(data[6]<<8)|data[7];
 	blocks =     (data[0]<<24)|(data[1]<<16)|(data[2]<<8)|data[3];
 	/* some newer dev's don't support 6-byte commands */
 	if(blocks > 0x1fffff && !force6bytecmds)

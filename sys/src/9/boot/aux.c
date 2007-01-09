@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <../boot/boot.h>
 
+/*
 int
 plumb(char *dir, char *dest, int *efd, char *here)
 {
@@ -39,6 +40,7 @@ plumb(char *dir, char *dest, int *efd, char *here)
 	}
 	return efd[1];
 }
+ */
 
 int
 sendmsg(int fd, char *msg)

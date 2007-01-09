@@ -415,7 +415,7 @@ secureidcheck(char *user, char *response)
 		if(strcmp(nt->attr, "ip") != 0)
 			continue;
 
-		snprint(dest,sizeof dest,"udp!%s!oradius", nt->val);
+		snprint(dest,sizeof dest,"udp!%s!radius", nt->val);
 		resp = rpc(dest, &shared, req);
 		if(resp == nil){
 			syslog(0, AUTHLOG, "%s nil response", dest);

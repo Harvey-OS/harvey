@@ -137,6 +137,8 @@ char	Enotempty[] =	"directory not empty";
 int debug;
 int private;
 
+static int memlim = 1;
+
 void
 notifyf(void *a, char *s)
 {
@@ -176,6 +178,9 @@ main(int argc, char *argv[])
 		break;
 	case 'p':
 		private++;
+		break;
+	case 'u':
+		memlim = 0;		/* unlimited memory consumption */
 		break;
 	case 'S':
 		defmnt = 0;
@@ -550,7 +555,7 @@ rwrite(Fid *f)
 	cnt = thdr.count;
 	if(r->qid.type & QTDIR)
 		return Eisdir;
-	if(off+cnt >= Maxsize)		/* sanity check */
+	if(memlim && off+cnt >= Maxsize)		/* sanity check */
 		return "write too big";
 	if(off+cnt > r->ndata)
 		r->data = erealloc(r->data, off+cnt);
@@ -885,6 +890,6 @@ estrdup(char *q)
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-Dips] [-m mountpoint] [-S srvname]\n", argv0);
+	fprint(2, "usage: %s [-Dipsu] [-m mountpoint] [-S srvname]\n", argv0);
 	exits("usage");
 }

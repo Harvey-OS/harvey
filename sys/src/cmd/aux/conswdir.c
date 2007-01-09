@@ -11,6 +11,14 @@
 #include <u.h>
 #include <libc.h>
 
+struct {
+	char *file;
+	char name[512];
+} keep[] = {
+	{ "/dev/label" },
+	{ "/dev/wdir" }
+};
+
 char *prog = "/bin/rwd";
 
 void
@@ -18,6 +26,31 @@ usage(void)
 {
 	fprint(2, "usage: conswdir [/bin/rwd]\n");
 	exits("usage");
+}
+
+void
+save(void)
+{
+	int i, fd;
+	for(i = 0; i < nelem(keep); i++){
+		*keep[i].name = 0;
+		if((fd = open(keep[i].file, OREAD)) != -1){
+			read(fd, keep[i].name, sizeof(keep[i].name));
+			close(fd);
+		}
+	}
+}
+
+void
+rest(void)
+{
+	int i, fd;
+	for(i = 0; i < nelem(keep); i++)
+		if((fd = open(keep[i].file, OWRITE)) != -1){
+			write(fd, keep[i].name, strlen(keep[i].name));
+			close(fd);
+		}
+
 }
 
 void
@@ -125,6 +158,7 @@ main(int argc, char **argv)
 	if(argc == 1)
 		prog = argv[0];
 
+	save();
 	n = 0;
 	for(;;){
 		m = read(0, buf+n, sizeof buf-n);
@@ -132,7 +166,7 @@ main(int argc, char **argv)
 			rerrstr(buf, sizeof buf);
 			if(strstr(buf, "interrupt"))
 				continue;
-			exits(nil);
+			break;
 		}
 		n += m;
 		m = process(buf, n, &n);
@@ -142,4 +176,6 @@ main(int argc, char **argv)
 			n -= m;
 		}
 	}
+	rest();
+	exits(nil);
 }

@@ -45,6 +45,7 @@ static struct {
 	"power", "#F/flash/flash0", 0x440000, sizeof(Nvrsafe),
 	"power", "#r/nvram", 4352, sizeof(Nvrsafe),	/* OK for MTX-604e */
 	"power", "/nvram", 0, sizeof(Nvrsafe),	/* OK for Ucu */
+	"arm", "#F/flash/flash0", 0x100000, sizeof(Nvrsafe),
 	"debug", "/tmp/nvram", 0, sizeof(Nvrsafe),
 };
 
@@ -236,6 +237,9 @@ readnvram(Nvrsafe *safep, int flag)
 		safe->authidsum = nvcsum(safe->authid, sizeof(safe->authid));
 		safe->authdomsum = nvcsum(safe->authdom, sizeof(safe->authdom));
 		*(Nvrsafe*)buf = *safe;
+		if(safelen < 0)
+			safelen = sizeof(Nvrsafe);
+
 		if(seek(fd, safeoff, 0) < 0
 		|| write(fd, buf, safelen) != safelen){
 			fprint(2, "can't write key to nvram: %r\n");

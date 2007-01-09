@@ -15,7 +15,7 @@
 #define NUMW		5
 #define MARGIN		10
 #define DEFTAB		8
-#define NFILES		10
+#define NFILES		20
 #define HEAD		"%12.12s %4.4s  %s Page %d\n\n\n", date+4, date+24, head, Page
 #define TOLOWER(c)	(isupper(c) ? tolower(c) : c)	/* ouch! */
 #define cerror(S)	fprint(2, "pr: %s", S)

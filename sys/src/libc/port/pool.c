@@ -725,8 +725,6 @@ dumpblock(Pool *p, Bhdr *b)
 	p->print(p, "pool %s block %p\nhdr %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux\n",
 		p->name, b, dp[0], dp[1], dp[2], dp[3], dp[4], dp[5], dp[6]);
 
-	if(b->size >= 1024*1024*1024)	/* tail pointer corrupt; printing tail will fault */
-		return;
 	dp = (ulong*)B2T(b);
 	p->print(p, "tail %.8lux %.8lux %.8lux %.8lux %.8lux %.8lux | %.8lux %.8lux\n",
 		dp[-6], dp[-5], dp[-4], dp[-3], dp[-2], dp[-1], dp[0], dp[1]);
@@ -806,9 +804,6 @@ blockcheck(Pool *p, Bhdr *b)
 		break;
 	case ALLOC_MAGIC:
 		a = (Alloc*)b;
-		if(a->size > 1024*1024*1024)
-			panicblock(p, b, "block too big");
-
 	 	t = B2T(b);
 		dsize = getdsize(a);
 		bq = (uchar*)_B2D(a)+dsize;
@@ -980,7 +975,7 @@ poolallocl(Pool *p, ulong dsize)
 	Free *fb;
 	Alloc *ab;
 
-	if(dsize < 0 || dsize >= 0x80000000UL){	/* for sanity, overflow */
+	if(dsize >= 0x80000000UL){	/* for sanity, overflow */
 		werrstr("invalid allocation size");
 		return nil;
 	}

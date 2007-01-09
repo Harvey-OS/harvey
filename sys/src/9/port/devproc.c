@@ -671,7 +671,8 @@ eventsavailable(void *)
 static long
 procread(Chan *c, void *va, long n, vlong off)
 {
-	char *a, flag[10], *sps, *srv, statbuf[NSEG*32];
+	/* NSEG*32 was too small for worst cases */
+	char *a, flag[10], *sps, *srv, statbuf[NSEG*64];
 	int i, j, m, navail, ne, pid, rsize;
 	long l;
 	uchar *rptr;
@@ -699,9 +700,9 @@ procread(Chan *c, void *va, long n, vlong off)
 			navail = n / sizeof(Traceevent);
 		while(navail > 0) {
 			ne = ((tconsumed & Emask) + navail > Nevents)? 
-						Nevents - (tconsumed & Emask): navail;
+					Nevents - (tconsumed & Emask): navail;
 			memmove(rptr, &tevents[tconsumed & Emask], 
-						ne * sizeof(Traceevent));
+					ne * sizeof(Traceevent));
 
 			tconsumed += ne;
 			rptr += ne * sizeof(Traceevent);
