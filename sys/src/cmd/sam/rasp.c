@@ -49,7 +49,7 @@ raspstart(File *f)
 		return;
 	grown = 0;
 	shrunk = 0;
-	noflush = 1;
+	outbuffered = 1;
 }
 
 void
@@ -72,11 +72,25 @@ raspdone(File *f, int toterm)
 	if(toterm)
 		outTs(Hcheck0, f->tag);
 	outflush();
-	noflush = 0;
+	outbuffered = 0;
 	if(f == cmd){
 		cmdpt += cmdptadv;
 		cmdptadv = 0;
 	}
+}
+
+void
+raspflush(File *f)
+{
+	if(grown){
+		outTsll(Hgrow, f->tag, growpos, grown);
+		grown = 0;
+	}
+	else if(shrunk){
+		outTsll(Hcut, f->tag, shrinkpos, shrunk);
+		shrunk = 0;
+	}
+	outflush();
 }
 
 void
