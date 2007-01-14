@@ -15,7 +15,7 @@
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1168402260 116604
-386/bin/8c - 775 sys sys 1168402260 365605
+386/bin/8c - 775 sys sys 1168719909 365769
 386/bin/8l - 775 sys sys 1148500567 115711
 386/bin/9660srv - 775 sys sys 1168402261 104975
 386/bin/aan - 775 sys sys 1168402261 131298
@@ -291,7 +291,7 @@
 386/bin/ip/gping - 775 sys sys 1168402319 183451
 386/bin/ip/hogports - 775 sys sys 1148500655 42914
 386/bin/ip/httpd - 20000000775 sys sys 1068385801 0
-386/bin/ip/httpd/httpd - 775 sys sys 1168402320 294990
+386/bin/ip/httpd/httpd - 775 sys sys 1168719910 295204
 386/bin/ip/httpd/imagemap - 775 sys sys 1168402320 117027
 386/bin/ip/httpd/man2html - 775 sys sys 1168402321 125585
 386/bin/ip/httpd/netlib_find - 775 sys sys 1168402321 117880
@@ -5619,7 +5619,7 @@ sys/doc/8½/fig1.ps - 664 sys sys 1020895859 473747
 sys/doc/8½/mkfile - 664 sys sys 1138459303 214
 sys/doc/9.ms - 664 sys sys 1138396402 84662
 sys/doc/9.ps - 664 sys sys 960837924 508340
-sys/doc/acid.ms - 664 sys sys 1138396403 65160
+sys/doc/acid.ms - 664 sys sys 1168701270 65160
 sys/doc/acid.ps - 664 sys sys 1015012454 426359
 sys/doc/acidpaper.ms - 664 sys sys 1138396403 44851
 sys/doc/acidpaper.ps - 664 sys sys 960837913 359639
@@ -7264,7 +7264,7 @@ sys/man - 20000000775 sys sys 1041446473 0
 sys/man/1 - 20000000775 sys sys 1158800370 0
 sys/man/1/0intro - 664 sys sys 1101668050 9625
 sys/man/1/2a - 664 sys sys 1158281866 1196
-sys/man/1/2c - 664 sys sys 1161115344 9171
+sys/man/1/2c - 664 sys sys 1168702903 9195
 sys/man/1/2l - 664 sys sys 1158281887 4376
 sys/man/1/INDEX - 664 sys sys 1141357442 3040
 sys/man/1/INDEX.html - 664 sys sys 1141352366 16517
@@ -9181,7 +9181,7 @@ sys/src/cmd/5c/peep.c - 664 sys sys 1143759351 24458
 sys/src/cmd/5c/reg.c - 664 sys sys 1089299174 19492
 sys/src/cmd/5c/sgen.c - 664 sys sys 1143241856 3066
 sys/src/cmd/5c/swt.c - 664 sys sys 1143384790 11028
-sys/src/cmd/5c/txt.c - 664 sys sys 1143241857 19013
+sys/src/cmd/5c/txt.c - 664 sys sys 1168702343 19030
 sys/src/cmd/5i - 20000000775 sys sys 1039727542 0
 sys/src/cmd/5i/5i.c - 664 sys sys 1124229121 4415
 sys/src/cmd/5i/arm.h - 664 sys sys 1124229121 3901
@@ -9227,7 +9227,7 @@ sys/src/cmd/7c/peep.c - 664 sys sys 1143759351 11462
 sys/src/cmd/7c/reg.c - 664 sys sys 1089299275 19737
 sys/src/cmd/7c/sgen.c - 664 sys sys 1143241857 3294
 sys/src/cmd/7c/swt.c - 664 sys sys 1143384791 9703
-sys/src/cmd/7c/txt.c - 664 sys sys 1143241858 20240
+sys/src/cmd/7c/txt.c - 664 sys sys 1168702344 20257
 sys/src/cmd/7l - 20000000775 sys sys 1134261563 0
 sys/src/cmd/7l/asm.c - 774 sys sys 1045503943 27093
 sys/src/cmd/7l/compat.c - 664 sys sys 1134261563 445
@@ -9851,7 +9851,7 @@ sys/src/cmd/cc/bits.c - 664 sys sys 944960873 850
 sys/src/cmd/cc/c99 - 664 sys sys 1144690029 1302
 sys/src/cmd/cc/cc.h - 664 sys sys 1143759338 12233
 sys/src/cmd/cc/cc.y - 664 sys sys 1143220759 16160
-sys/src/cmd/cc/com.c - 664 sys sys 1168307995 22218
+sys/src/cmd/cc/com.c - 664 sys sys 1168702346 22212
 sys/src/cmd/cc/com64.c - 664 sys sys 1143240308 10001
 sys/src/cmd/cc/compat - 664 sys sys 1014925177 684
 sys/src/cmd/cc/compat.c - 664 sys sys 1132451523 454
@@ -9864,9 +9864,9 @@ sys/src/cmd/cc/mac.c - 664 sys sys 944960808 36
 sys/src/cmd/cc/macbody - 664 sys sys 1144689980 12205
 sys/src/cmd/cc/mkfile - 664 sys sys 1162952410 596
 sys/src/cmd/cc/omachcap.c - 664 sys sys 1143241829 78
-sys/src/cmd/cc/pgen.c - 664 sys sys 1143759337 8927
+sys/src/cmd/cc/pgen.c - 664 sys sys 1168702347 8946
 sys/src/cmd/cc/pickle.c - 664 sys sys 1063855374 4829
-sys/src/cmd/cc/pswt.c - 664 sys sys 1143384795 1969
+sys/src/cmd/cc/pswt.c - 664 sys sys 1168702348 2219
 sys/src/cmd/cc/scon.c - 664 sys sys 1138463621 8788
 sys/src/cmd/cc/sub.c - 664 sys sys 1143759345 34268
 sys/src/cmd/cc/y.tab.h - 664 sys sys 1098501521 1680
@@ -12348,7 +12348,7 @@ sys/src/cmd/ip/httpd/classify.c - 664 sys sys 1078840017 9665
 sys/src/cmd/ip/httpd/content.c - 664 sys sys 1015090170 3140
 sys/src/cmd/ip/httpd/emem.c - 664 sys sys 984773807 278
 sys/src/cmd/ip/httpd/hints.c - 664 sys sys 1143759344 6282
-sys/src/cmd/ip/httpd/httpd.c - 664 sys sys 1143759344 11305
+sys/src/cmd/ip/httpd/httpd.c - 664 sys sys 1168701369 11538
 sys/src/cmd/ip/httpd/httpsrv.h - 664 sys sys 1142178186 1388
 sys/src/cmd/ip/httpd/imagemap.c - 664 sys sys 984773808 5229
 sys/src/cmd/ip/httpd/init.c - 664 sys sys 1015090171 2182
@@ -12512,7 +12512,7 @@ sys/src/cmd/kc/peep.c - 664 sys sys 1089299171 10332
 sys/src/cmd/kc/reg.c - 664 sys sys 1089299171 18937
 sys/src/cmd/kc/sgen.c - 664 sys sys 1143241860 3319
 sys/src/cmd/kc/swt.c - 664 sys sys 1143384791 10226
-sys/src/cmd/kc/txt.c - 664 sys sys 1089299171 19578
+sys/src/cmd/kc/txt.c - 664 sys sys 1168702345 19595
 sys/src/cmd/ki - 20000000775 sys sys 1039727563 0
 sys/src/cmd/ki/bpt.c - 664 sys sys 944961014 2247
 sys/src/cmd/ki/cmd.c - 664 sys sys 944961015 8936
@@ -13059,7 +13059,7 @@ sys/src/cmd/qc/q.out.h - 664 sys sys 1089299169 5042
 sys/src/cmd/qc/reg.c - 664 sys sys 1089299169 19059
 sys/src/cmd/qc/sgen.c - 664 sys sys 1143241861 3452
 sys/src/cmd/qc/swt.c - 664 sys sys 1143384791 10306
-sys/src/cmd/qc/txt.c - 664 sys sys 1089299169 20223
+sys/src/cmd/qc/txt.c - 664 sys sys 1168702345 20011
 sys/src/cmd/qi - 20000000775 sys sys 1121978126 0
 sys/src/cmd/qi/bpt.c - 664 sys sys 1076688568 2247
 sys/src/cmd/qi/branch.c - 664 sys sys 1076688568 4696
@@ -14168,7 +14168,7 @@ sys/src/cmd/vc/peep.c - 664 sys sys 1143759350 10291
 sys/src/cmd/vc/reg.c - 664 sys sys 1089299166 19378
 sys/src/cmd/vc/sgen.c - 664 sys sys 1143241861 3139
 sys/src/cmd/vc/swt.c - 664 sys sys 1143384791 10367
-sys/src/cmd/vc/txt.c - 664 sys sys 1089299165 22720
+sys/src/cmd/vc/txt.c - 664 sys sys 1168702346 22737
 sys/src/cmd/vc/v.out.h - 664 sys sys 1089299165 2630
 sys/src/cmd/venti - 20000000775 sys sys 1068500904 0
 sys/src/cmd/venti/arena.c - 664 sys sys 1045503653 13221

@@ -1257,7 +1257,7 @@ compar(Node *n, int reverse)
 	lt = l->type;
 	if(l->op == ONAME && l->sym->type){
 		lt = l->sym->type;
-		if(lt && lt->etype == TARRAY)
+		if(lt->etype == TARRAY)
 			lt = lt->link;
 	}
 	if(lt == T)

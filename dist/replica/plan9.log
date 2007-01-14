@@ -47346,3 +47346,16 @@
 1168619407 3 c sys/src/cmd/sam/rasp.c - 664 sys sys 1168617775 5817
 1168619407 4 c sys/src/cmd/sam/sam.h - 664 sys sys 1168617774 9418
 1168633807 0 c 386/bin/sam - 775 sys sys 1168633586 159364
+1168702206 0 c sys/doc/acid.ms - 664 sys sys 1168701270 65160
+1168702206 1 c sys/src/cmd/ip/httpd/httpd.c - 664 sys sys 1168701369 11538
+1168702206 2 c sys/src/cmd/kc/txt.c - 664 sys sys 1168702345 19595
+1168702206 3 c sys/src/cmd/qc/txt.c - 664 sys sys 1168702345 20011
+1168702206 4 c sys/src/cmd/vc/txt.c - 664 sys sys 1168702346 22737
+1168702206 5 c sys/src/cmd/7c/txt.c - 664 sys sys 1168702344 20257
+1168704007 0 c sys/man/1/2c - 664 sys sys 1168702903 9195
+1168704007 1 c sys/src/cmd/5c/txt.c - 664 sys sys 1168702343 19030
+1168704007 2 c sys/src/cmd/cc/com.c - 664 sys sys 1168702346 22212
+1168704007 3 c sys/src/cmd/cc/pgen.c - 664 sys sys 1168702347 8946
+1168704007 4 c sys/src/cmd/cc/pswt.c - 664 sys sys 1168702348 2219
+1168720206 0 c 386/bin/8c - 775 sys sys 1168719909 365769
+1168720206 1 c 386/bin/ip/httpd/httpd - 775 sys sys 1168719910 295204

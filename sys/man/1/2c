@@ -466,6 +466,7 @@ are implemented.
 .B switch
 expressions may not be either flavor of
 .B vlong
+on 32-bit architectures
 .RI ( 8c
 at least).
 .PP

@@ -297,7 +297,6 @@ regalloc(Node *n, Node *tn, Node *o)
 
 	case TFLOAT:
 	case TDOUBLE:
-	case TVLONG:
 		if(o != Z && o->op == OREGISTER) {
 			i = o->reg;
 			if(i >= NREG && i < NREG+NREG)
@@ -664,7 +663,6 @@ gmove(Node *f, Node *t)
 		case TFLOAT:
 			a = AFMOVS;
 			break;
-		case TVLONG:
 		case TDOUBLE:
 			a = AFMOVD;
 			break;
@@ -689,11 +687,9 @@ gmove(Node *f, Node *t)
 	a = AGOK;
 	switch(ft) {
 	case TDOUBLE:
-	case TVLONG:
 	case TFLOAT:
 		switch(tt) {
 		case TDOUBLE:
-		case TVLONG:
 			a = AFMOVD;
 			if(ft == TFLOAT)
 				a = AFMOVS;	/* AFMOVSD */
@@ -733,7 +729,6 @@ gmove(Node *f, Node *t)
 	case TIND:
 		switch(tt) {
 		case TDOUBLE:
-		case TVLONG:
 		case TFLOAT:
 			goto fxtofl;
 		case TINT:
@@ -752,7 +747,6 @@ gmove(Node *f, Node *t)
 	case TSHORT:
 		switch(tt) {
 		case TDOUBLE:
-		case TVLONG:
 		case TFLOAT:
 			goto fxtofl;
 		case TINT:
@@ -773,7 +767,6 @@ gmove(Node *f, Node *t)
 	case TUSHORT:
 		switch(tt) {
 		case TDOUBLE:
-		case TVLONG:
 		case TFLOAT:
 			goto fxtofl;
 		case TINT:
@@ -794,7 +787,6 @@ gmove(Node *f, Node *t)
 	case TCHAR:
 		switch(tt) {
 		case TDOUBLE:
-		case TVLONG:
 		case TFLOAT:
 			goto fxtofl;
 		case TINT:
@@ -815,7 +807,6 @@ gmove(Node *f, Node *t)
 	case TUCHAR:
 		switch(tt) {
 		case TDOUBLE:
-		case TVLONG:
 		case TFLOAT:
 		fxtofl:
 			/*
@@ -931,7 +922,7 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 		if(et == TFLOAT)
 			a = AFADDS;
 		else
-		if(et == TDOUBLE || et == TVLONG)
+		if(et == TDOUBLE)
 			a = AFADD;
 		break;
 
@@ -941,7 +932,7 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 		if(et == TFLOAT)
 			a = AFSUBS;
 		else
-		if(et == TDOUBLE || et == TVLONG)
+		if(et == TDOUBLE)
 			a = AFSUB;
 		break;
 
@@ -989,7 +980,7 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 			a = AFMULS;
 			break;
 		} else
-		if(et == TDOUBLE || et == TVLONG) {
+		if(et == TDOUBLE) {
 			a = AFMUL;
 			break;
 		}
@@ -1002,7 +993,7 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 			a = AFDIVS;
 			break;
 		} else
-		if(et == TDOUBLE || et == TVLONG) {
+		if(et == TDOUBLE) {
 			a = AFDIV;
 			break;
 		}
@@ -1030,7 +1021,7 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 
 	case ONEG:
 		a = ANEG;
-		if(et == TFLOAT || et == TDOUBLE || et == TVLONG)
+		if(et == TFLOAT || et == TDOUBLE)
 			a = AFNEG;
 		break;
 
@@ -1082,7 +1073,7 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 		if(et == TFLOAT)
 			p->as = AFCMPU;
 		else
-		if(et == TDOUBLE || et == TVLONG)
+		if(et == TDOUBLE)
 			p->as = AFCMPU;
 		if(f1 != Z)
 			naddr(f1, &p->from);
@@ -1172,7 +1163,8 @@ gpseudo(int a, Sym *s, Node *n)
 	p->as = a;
 	p->from.type = D_OREG;
 	p->from.sym = s;
-	p->reg = (profileflg ? 0 : NOPROF);
+	if(a == ATEXT)
+		p->reg = (profileflg ? 0 : NOPROF);
 	p->from.name = D_EXTERN;
 	if(s->class == CSTATIC)
 		p->from.name = D_STATIC;
