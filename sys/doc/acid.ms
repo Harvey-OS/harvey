@@ -249,7 +249,7 @@ Print four-byte integer in binary.
 Print two-byte integer in signed decimal.
 .IP \f(CWD\fP
 Print four-byte integer in signed decimal.
-.IP \f(CWY\fP
+.IP \f(CWV\fP
 Print eight-byte integer in signed decimal.
 .IP \f(CWZ\fP
 Print eight-byte integer in unsigned decimal.

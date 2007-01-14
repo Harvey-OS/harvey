@@ -207,6 +207,7 @@ loop:
 			cases->val = 0;
 			cases->def = 1;
 			cases->label = pc;
+			cases->isv = 0;
 			goto rloop;
 		}
 		complex(l);
