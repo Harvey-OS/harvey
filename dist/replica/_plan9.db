@@ -7333,7 +7333,7 @@ sys/man/1/jpg - 664 sys sys 1166760721 4841
 sys/man/1/kbmap - 664 sys sys 1159419894 846
 sys/man/1/kill - 664 sys sys 1018369246 1193
 sys/man/1/ktrace - 664 sys sys 957920006 1330
-sys/man/1/leak - 664 sys sys 1144685344 3291
+sys/man/1/leak - 664 sys sys 1168893962 3457
 sys/man/1/lens - 664 sys sys 1130425868 1272
 sys/man/1/lex - 664 sys sys 1113743328 1520
 sys/man/1/look - 664 sys sys 1113743326 1357
@@ -12378,12 +12378,12 @@ sys/src/cmd/ip/imap4d/imap4d.h - 664 sys sys 1015013076 6697
 sys/src/cmd/ip/imap4d/list.c - 664 sys sys 1015013076 7619
 sys/src/cmd/ip/imap4d/mbox.c - 664 sys sys 1156547804 16935
 sys/src/cmd/ip/imap4d/mkfile - 664 sys sys 1063897579 332
-sys/src/cmd/ip/imap4d/msg.c - 664 sys sys 1130423893 31401
+sys/src/cmd/ip/imap4d/msg.c - 664 sys sys 1168894057 31415
 sys/src/cmd/ip/imap4d/mutf7.c - 664 sys sys 1015013077 2724
 sys/src/cmd/ip/imap4d/nodes.c - 664 sys sys 1015013077 3173
 sys/src/cmd/ip/imap4d/search.c - 664 sys sys 1015013077 4520
 sys/src/cmd/ip/imap4d/store.c - 664 sys sys 1066317059 1910
-sys/src/cmd/ip/imap4d/utils.c - 664 sys sys 1015013077 2481
+sys/src/cmd/ip/imap4d/utils.c - 664 sys sys 1168894057 2587
 sys/src/cmd/ip/ipconfig.c - 664 sys sys 1166761782 35168
 sys/src/cmd/ip/measure.c - 664 sys sys 944961011 3733
 sys/src/cmd/ip/mkfile - 664 sys sys 1131110598 1243
@@ -13115,7 +13115,7 @@ sys/src/cmd/rc/haventfork.c - 664 sys sys 1055698771 3122
 sys/src/cmd/rc/here.c - 664 sys sys 1135080780 2504
 sys/src/cmd/rc/io.c - 664 sys sys 1132448641 3752
 sys/src/cmd/rc/io.h - 664 sys sys 1132448641 535
-sys/src/cmd/rc/lex.c - 664 sys sys 1142172919 6102
+sys/src/cmd/rc/lex.c - 664 sys sys 1168915241 6199
 sys/src/cmd/rc/mkfile - 664 sys sys 1055698774 812
 sys/src/cmd/rc/pcmd.c - 664 sys sys 1100894086 2681
 sys/src/cmd/rc/pfnc.c - 664 sys sys 1100894087 1320
@@ -15677,3 +15677,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/ip/imap4d - 775 sys sys 1168920102 238175

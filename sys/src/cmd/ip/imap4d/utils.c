@@ -154,6 +154,7 @@ emalloc(ulong n)
 	p = malloc(n);
 	if(p == nil)
 		bye("server out of memory");
+	setmalloctag(p, getcallerpc(&n));
 	return p;
 }
 
@@ -165,6 +166,7 @@ ezmalloc(ulong n)
 	p = malloc(n);
 	if(p == nil)
 		bye("server out of memory");
+	setmalloctag(p, getcallerpc(&n));
 	memset(p, 0, n);
 	return p;
 }
@@ -175,5 +177,6 @@ erealloc(void *p, ulong n)
 	p = realloc(p, n);
 	if(p == nil)
 		bye("server out of memory");
+	setrealloctag(p, getcallerpc(&p));
 	return p;
 }
