@@ -156,6 +156,11 @@ first by count and then by total size:
 .B /rc/bin/leak
 .br
 .B /rc/bin/kmem
+.SH SEE ALSO
+.IR getcallerpc (2),
+.I setmalloctag
+in
+.IR malloc (2)
 .SH BUGS
 .I Leak
 and
@@ -167,3 +172,7 @@ Since the ANSI/POSIX environment uses a different
 allocator,
 .I leak
 will not work on APE programs.
+.PP
+It's not speedy, and
+.I acidleak
+can consume more memory than the process(es) being examined.

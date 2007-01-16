@@ -24,6 +24,7 @@ idchr(int c)
 int future = EOF;
 int doprompt = 1;
 int inquote;
+int incomm;
 /*
  * Look ahead in the input stream
  */
@@ -68,7 +69,7 @@ getnext(void)
 	c = rchr(runq->cmdfd);
 	if(!inquote && c=='\\'){
 		c = rchr(runq->cmdfd);
-		if(c=='\n'){
+		if(c=='\n' && !incomm){		/* don't continue a comment */
 			doprompt = 1;
 			c=' ';
 		}
@@ -107,11 +108,15 @@ skipwhite(void)
 	int c;
 	for(;;){
 		c = nextc();
-		if(c=='#'){	/* Why did this used to be  if(!inquote && c=='#') ?? */
+		/* Why did this used to be  if(!inquote && c=='#') ?? */
+		if(c=='#'){
+			incomm = 1;
 			for(;;){
 				c = nextc();
-				if(c=='\n' || c==EOF)
+				if(c=='\n' || c==EOF) {
+					incomm = 0;
 					break;
+				}
 				advance();
 			}
 		}
