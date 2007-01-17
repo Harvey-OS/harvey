@@ -82,10 +82,14 @@ openBox(char *name, char *fsname, int writable)
 	fsInit();
 	if(fprint(fsCtl, "open /mail/box/%s/%s %s", username, name, fsname) < 0){
 //ZZZ
-char err[ERRMAX];
-errstr(err, sizeof err);
-if(strstr(err, "file does not exist") == nil)
-	fprint(2, "imap4d at %lud: upas/fs open %s/%s as %s failed: '%s' %s\n", time(nil), username, name, fsname, err, ctime(time(nil)));
+		char err[ERRMAX];
+
+		errstr(err, sizeof err);
+		if(strstr(err, "file does not exist") == nil)
+			fprint(2,
+		"imap4d at %lud: upas/fs open %s/%s as %s failed: '%s' %s",
+			time(nil), username, name, fsname, err,
+			ctime(time(nil)));  /* NB: ctime result ends with \n */
 		fprint(fsCtl, "close %s", fsname);
 		return nil;
 	}
@@ -203,8 +207,9 @@ readBox(Box *box)
 
 	fd = cdOpen(box->fsDir, ".", OREAD);
 	if(fd < 0){
-		syslog(0, "mail", "imap4d at %lud: upas/fs stat of %s/%s aka %s failed: %r\n", time(nil),
-			username, box->name, box->fsDir);
+		syslog(0, "mail",
+		    "imap4d at %lud: upas/fs stat of %s/%s aka %s failed: %r",
+			time(nil), username, box->name, box->fsDir);
 		mboxGone(box);
 		return -1;
 	}
