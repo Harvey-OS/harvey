@@ -4,18 +4,16 @@ ping, gping, traceroute, hogports \- probe the Internet
 .SH SYNOPSIS
 .B ping
 [
-.B -aflq
+.B -6aflqr
 ] [
 .B -i
 .I interval
 ] [
-.B -r
+.B -n
+.I count
 ] [
 .B -s
 .I size
-] [
-.B -n
-.I count
 ]
 .I destination
 .PP
@@ -71,6 +69,11 @@ returns successfully. Otherwise it returns an error status of
 .PP
 The options are:
 .TP
+.B 6
+use IPv6's ICMP,
+.BR icmpv6 ,
+instead of IPv4's ICMP.
+.TP
 .B a
 adds the IP source and destination addresses to each report.
 .TP
@@ -83,10 +86,6 @@ to be
 .I interval
 milliseconds, default 1000 ms.
 .TP
-.B r
-randomizes the delay with a minimum extra delay of 0 ms and a
-maximum extra delay of the selected interval.
-.TP
 .B l
 causes only lost messages to be reported.
 .TP
@@ -98,13 +97,16 @@ messages be sent, default 32.
 .B q
 suppresses any output (i.e. be quiet).
 .TP
+.B r
+randomizes the delay with a minimum extra delay of 0 ms and a
+maximum extra delay of the selected interval.
+.TP
 .B s
 sets the length of the message to be
 .I size
 bytes, ICMP header included.
 The size cannot be smaller than 32 or
-larger than 8192.  The default is
-64.
+larger than 8192.  The default is 64.
 .PP
 .I Gping
 is a
@@ -189,3 +191,8 @@ the network mounted at
 .B /sys/src/cmd/ip/traceroute.c
 .br
 .B /sys/src/cmd/ip/hogports.c
+.SH SEE ALSO
+.IR ip (3)
+.SH BUGS
+.I Ping
+should be able to adapt automatically to IP v4 or v6.

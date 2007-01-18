@@ -38,7 +38,7 @@ of the named processes to
 .I file 
 (default standard output).
 If 
-.I proc
+.I pid
 is a text string
 rather than a process id,
 .I snap
@@ -101,3 +101,6 @@ The snapshots take up about as much disk space
 as the processes they contain did memory.
 Compressing them when not in use is recommended,
 as is storing them on a rewritable disk.
+.PP
+.I Pid
+as a non-numeric string is unimplemented; it has to be a number.

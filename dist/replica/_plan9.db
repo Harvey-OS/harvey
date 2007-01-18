@@ -456,7 +456,7 @@
 386/bin/upas/fs - 775 sys sys 1143863649 334451
 386/bin/upas/isspam - 775 sys sys 1064598349 38
 386/bin/upas/list - 775 sys sys 1135101638 82799
-386/bin/upas/marshal - 775 sys sys 1143863649 134381
+386/bin/upas/marshal - 775 sys sys 1169065328 134608
 386/bin/upas/ml - 775 sys sys 1132506879 123917
 386/bin/upas/mlmgr - 775 sys sys 1132506880 104539
 386/bin/upas/mlowner - 775 sys sys 1130594799 92131
@@ -7368,7 +7368,7 @@ sys/man/1/proof - 664 sys sys 1113743329 2300
 sys/man/1/ps - 664 sys sys 1144686669 1722
 sys/man/1/ps2pdf - 664 sys sys 1032632098 1359
 sys/man/1/pwd - 664 sys sys 1104639653 744
-sys/man/1/rc - 664 sys sys 1144685483 20019
+sys/man/1/rc - 664 sys sys 1169092054 20021
 sys/man/1/replica - 664 sys sys 1138843328 7210
 sys/man/1/resample - 664 sys sys 1015024740 1083
 sys/man/1/rio - 664 sys sys 1155362586 14707
@@ -7392,7 +7392,7 @@ sys/man/1/strip - 664 sys sys 1131293239 523
 sys/man/1/sum - 664 sys sys 984772442 1390
 sys/man/1/syscall - 664 sys sys 1016466457 1439
 sys/man/1/tail - 664 sys sys 1113743327 1413
-sys/man/1/tar - 664 sys sys 1165622307 3439
+sys/man/1/tar - 664 sys sys 1169092135 3577
 sys/man/1/tbl - 664 sys sys 944959674 4308
 sys/man/1/tcs - 664 sys sys 1143131200 2654
 sys/man/1/tee - 664 sys sys 969499886 351
@@ -7636,7 +7636,7 @@ sys/man/4/ratfs - 664 sys sys 1157898800 3276
 sys/man/4/rdbfs - 664 sys sys 944959699 1123
 sys/man/4/rio - 664 sys sys 1023206844 8660
 sys/man/4/sacfs - 664 sys sys 964886843 907
-sys/man/4/snap - 664 sys sys 1017251244 1833
+sys/man/4/snap - 664 sys sys 1169092032 1908
 sys/man/4/srv - 664 sys sys 1162907929 4685
 sys/man/4/tapefs - 664 sys sys 1140965924 1861
 sys/man/4/telco - 664 sys sys 1015024814 4359
@@ -7745,7 +7745,7 @@ sys/man/8/newuser - 664 sys sys 1116954242 2418
 sys/man/8/nfsserver - 664 sys sys 1163208425 3587
 sys/man/8/pcmcia - 664 sys sys 944959679 408
 sys/man/8/pem - 664 sys sys 1060263669 1189
-sys/man/8/ping - 664 sys sys 1139667147 3489
+sys/man/8/ping - 664 sys sys 1169091081 3639
 sys/man/8/plan9.ini - 664 sys sys 1167276434 22689
 sys/man/8/pop3 - 664 sys sys 1063854676 2720
 sys/man/8/ppp - 664 sys sys 1125530075 4414
@@ -12387,7 +12387,7 @@ sys/src/cmd/ip/imap4d/utils.c - 664 sys sys 1168894057 2587
 sys/src/cmd/ip/ipconfig.c - 664 sys sys 1166761782 35168
 sys/src/cmd/ip/measure.c - 664 sys sys 944961011 3733
 sys/src/cmd/ip/mkfile - 664 sys sys 1131110598 1243
-sys/src/cmd/ip/ping.c - 664 sys sys 1166760556 5721
+sys/src/cmd/ip/ping.c - 664 sys sys 1169091087 8437
 sys/src/cmd/ip/ppp - 20000000775 sys sys 1065963823 0
 sys/src/cmd/ip/ppp/block.c - 664 sys sys 1015090266 5353
 sys/src/cmd/ip/ppp/compress.c - 664 sys sys 1072729513 11774
@@ -13352,7 +13352,7 @@ sys/src/cmd/tapefs/v10fs.c - 664 sys sys 1166887348 4096
 sys/src/cmd/tapefs/v6fs.c - 664 sys sys 1140814625 3993
 sys/src/cmd/tapefs/zip.h - 664 sys sys 1097914153 1428
 sys/src/cmd/tapefs/zipfs.c - 664 sys sys 1140814625 6588
-sys/src/cmd/tar.c - 664 sys sys 1155348700 24133
+sys/src/cmd/tar.c - 664 sys sys 1169092124 25725
 sys/src/cmd/tbl - 20000000775 sys sys 1039727580 0
 sys/src/cmd/tbl/mkfile - 664 sys sys 944961243 268
 sys/src/cmd/tbl/t.h - 664 sys sys 944961244 3987
