@@ -983,6 +983,6 @@ to check the value of
 changes
 .BR $status .
 .PP
-Functions that use here documents don't work.
+Functions containing here documents don't work.
 .PP
 Free carets don't get inserted next to keywords.

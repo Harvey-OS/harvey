@@ -136,11 +136,12 @@ static int settime;
 static int verbose;
 static int docompress;
 static int keepexisting;
-static Off blkoff;	/* offset of the current archive block (not Tblock) */
+static int ignerrs;		/* flag: ignore i/o errors if possible */
+static Off blkoff;		/* offset of the current archive block (not Tblock) */
 static Off nexthdr;
 
 static int nblock = Dblock;
-static char *usefile;
+static char *usefile, *arname = "archive";
 static char origdir[Maxname*2];
 static Hdr *tpblk, *endblk;
 static Hdr *curblk;
@@ -148,9 +149,64 @@ static Hdr *curblk;
 static void
 usage(void)
 {
-	fprint(2, "usage: %s {crtx}[PRTfgkmpuvz] [archive] file1 file2...\n",
+	fprint(2, "usage: %s {crtx}[PRTfgikmpuvz] [archive] file1 file2...\n",
 		argv0);
 	exits("usage");
+}
+
+/* I/O, with error retry or exit */
+
+static int
+cope(char *name, int fd, void *buf, long len, Off off)
+{
+	fprint(2, "%s: %serror reading %s: %r\n", argv0,
+		(ignerrs? "ignoring ": ""), name);
+	if (!ignerrs)
+		exits("read error");
+
+	/* pretend we read len bytes of zeroes */
+	memset(buf, 0, len);
+	if (off >= 0)			/* seekable? */
+		seek(fd, off + len, 0);
+	return len;
+}
+
+static int
+eread(char *name, int fd, void *buf, long len)
+{
+	int rd;
+	Off off;
+
+	off = seek(fd, 0, 1);		/* for coping with errors */
+	rd = read(fd, buf, len);
+	if (rd < 0)
+		rd = cope(name, fd, buf, len, off);
+	return rd;
+}
+
+static int
+ereadn(char *name, int fd, void *buf, long len)
+{
+	int rd;
+	Off off;
+
+	off = seek(fd, 0, 1);
+	rd = readn(fd, buf, len);
+	if (rd < 0)
+		rd = cope(name, fd, buf, len, off);
+	return rd;
+}
+
+static int
+ewrite(char *name, int fd, void *buf, long len)
+{
+	int rd;
+
+	werrstr("");
+	rd = write(fd, buf, len);
+	if (rd != len)
+		sysfatal("error writing %s: %r", name);
+	return rd;
 }
 
 /* compression */
@@ -260,9 +316,9 @@ refill(int ar, char *bufs, int justhdr)
 	blkoff = seek(ar, 0, 1);		/* note position for `tar r' */
 	/* try to size non-pipe input at first read */
 	if (first && usefile) {
-		n = read(ar, bufs, bytes);
-		if (n <= 0)
-			sysfatal("error reading archive: %r");
+		n = eread(arname, ar, bufs, bytes);
+		if (n == 0)
+			sysfatal("EOF reading archive: %r");
 		i = n;
 		if (i % Tblock != 0) {
 			fprint(2, "%s: archive block size (%d) error\n",
@@ -282,14 +338,12 @@ refill(int ar, char *bufs, int justhdr)
 			sysfatal("can't seek on archive: %r");
 		n = bytes;
 	} else
-		n = readn(ar, bufs, bytes);
+		n = ereadn(arname, ar, bufs, bytes);
 	first = 0;
 
 	if (n == 0)
 		sysfatal("unexpected EOF reading archive");
-	else if (n < 0)
-		sysfatal("error reading archive: %r");
-	else if (n%Tblock != 0)
+	if (n%Tblock != 0)
 		sysfatal("partial block read from archive");
 	if (n != bytes) {
 		done = 1;
@@ -355,8 +409,7 @@ putlastblk(int ar)
 	/* if writing end-of-archive, aid compression (good hygiene too) */
 	if (curblk < endblk)
 		memset(curblk, 0, (char *)endblk - (char *)curblk);
-	if (write(ar, tpblk, bytes) != bytes)
-		sysfatal("error writing archive: %r");
+	ewrite(arname, ar, tpblk, bytes);
 }
 
 static void
@@ -383,6 +436,7 @@ putreadblks(int ar, int blks)
 static void
 putblkmany(int ar, int blks)
 {
+	assert(blks > 0);
 	curblk += blks - 1;
 	putblk(ar);
 }
@@ -433,7 +487,7 @@ static char *
 name(Hdr *hp)
 {
 	int pfxlen, namlen;
-	static char fullnamebuf[2 + Maxname + 1];	/* 2 at beginning for ./ on relative names */
+	static char fullnamebuf[2+Maxname+1];  /* 2+ for ./ on relative names */
 	char *fullname;
 
 	fullname = fullnamebuf+2;
@@ -613,8 +667,8 @@ static int
 mkhdr(Hdr *hp, Dir *dir, char *file)
 {
 	/*
-	 * these fields run together, so we format them in order and don't use
-	 * snprint.
+	 * some of these fields run together, so we format them left-to-right
+	 * and don't use snprint.
 	 */
 	sprint(hp->mode, "%6lo ", dir->mode & 0777);
 	sprint(hp->uid, "%6o ", aruid);
@@ -692,8 +746,8 @@ static void
 addtoar(int ar, char *file, char *shortf)
 {
 	int n, fd, isdir;
-	long bytes;
-	ulong blksleft, blksread;
+	long bytes, blksread;
+	ulong blksleft;
 	Hdr *hbp;
 	Dir *dir;
 	String *name = nil;
@@ -737,10 +791,10 @@ addtoar(int ar, char *file, char *shortf)
 		for (; blksleft > 0; blksleft -= blksread) {
 			hbp = getblke(ar);
 			blksread = gothowmany(blksleft);
+			assert(blksread >= 0);
 			bytes = blksread * Tblock;
-			n = readn(fd, hbp->data, bytes);
-			if (n < 0)
-				sysfatal("error reading %s: %r", file);
+			n = ereadn(file, fd, hbp->data, bytes);
+			assert(n >= 0);
 			/*
 			 * ignore EOF.  zero any partial block to aid
 			 * compression and emergency recovery of data.
@@ -927,18 +981,109 @@ xaccess(char *name, int mode)
 	return rv;
 }
 
-/* copy a file from the archive into the filesystem */
-/* fname is result of name(), so has two extra bytes at beginning */
+static int
+openfname(Hdr *hp, char *fname, int dir, int mode)
+{
+	int fd;
+
+	fd = -1;
+	cleanname(fname);
+	switch (hp->linkflag) {
+	case LF_LINK:
+	case LF_SYMLINK1:
+	case LF_SYMLINK2:
+		fprint(2, "%s: can't make (sym)link %s\n",
+			argv0, fname);
+		break;
+	case LF_FIFO:
+		fprint(2, "%s: can't make fifo %s\n", argv0, fname);
+		break;
+	default:
+		if (!keepexisting || access(fname, AEXIST) < 0) {
+			int rw = (dir? OREAD: OWRITE);
+
+			fd = create(fname, rw, mode);
+			if (fd < 0) {
+				mkpdirs(fname);
+				fd = create(fname, rw, mode);
+			}
+			if (fd < 0 && (!dir || xaccess(fname, AEXIST) < 0))
+			    	cantcreate(fname, mode);
+		}
+		if (fd >= 0 && verbose)
+			fprint(2, "%s\n", fname);
+		break;
+	}
+	return fd;
+}
+
+/* copy from archive to file system (or nowhere for table-of-contents) */
+static void
+copyfromar(int ar, int fd, char *fname, ulong blksleft, Off bytes)
+{
+	int wrbytes;
+	ulong blksread;
+	Hdr *hbp;
+
+	if (blksleft == 0 || bytes < 0)
+		bytes = 0;
+	for (; blksleft > 0; blksleft -= blksread) {
+		hbp = getblkrd(ar, (fd >= 0? Alldata: Justnxthdr));
+		if (hbp == nil)
+			sysfatal("unexpected EOF on archive extracting %s",
+				fname);
+		blksread = gothowmany(blksleft);
+		if (blksread <= 0) {
+			fprint(2, "%s: got %ld blocks reading %s!\n",
+				argv0, blksread, fname);
+			blksread = 0;
+		}
+		wrbytes = Tblock*blksread;
+		assert(bytes >= 0);
+		if(wrbytes > bytes)
+			wrbytes = bytes;
+		assert(wrbytes >= 0);
+		if (fd >= 0)
+			ewrite(fname, fd, hbp->data, wrbytes);
+		putreadblks(ar, blksread);
+		bytes -= wrbytes;
+		assert(bytes >= 0);
+	}
+	if (bytes > 0)
+		fprint(2,
+	"%s: %lld bytes uncopied at EOF on archive; %s not fully extracted\n",
+			argv0, bytes, fname);
+}
+
+static void
+wrmeta(int fd, Hdr *hp, long mtime)		/* update metadata */
+{
+	Dir nd;
+
+	nulldir(&nd);
+	nd.mtime = mtime;
+	dirfwstat(fd, &nd);
+	if (isustar(hp)) {
+		nulldir(&nd);
+		nd.gid = hp->gname;
+		dirfwstat(fd, &nd);
+	}
+}
+
+/*
+ * copy a file from the archive into the filesystem.
+ * fname is result of name(), so has two extra bytes at beginning.
+ */
 static void
 extract1(int ar, Hdr *hp, char *fname)
 {
-	int wrbytes, fd = -1, dir = 0;
+	int fd = -1, dir = 0;
 	long mtime = strtol(hp->mtime, nil, 8);
 	ulong mode = strtoul(hp->mode, nil, 8) & 0777;
 	Off bytes = hdrsize(hp);		/* for printing */
-	ulong blksread, blksleft = BYTES2TBLKS(arsize(hp));
-	Hdr *hbp;
+	ulong blksleft = BYTES2TBLKS(arsize(hp));
 
+	/* fiddle name, figure out mode and blocks */
 	if (isdir(hp)) {
 		mode |= DMDIR|0700;
 		dir = 1;
@@ -951,44 +1096,17 @@ extract1(int ar, Hdr *hp, char *fname)
 		blksleft = 0;
 		break;
 	}
-	if (relative) {
+	if (relative)
 		if(fname[0] == '/')
 			*--fname = '.';
 		else if(fname[0] == '#'){
 			*--fname = '/';
 			*--fname = '.';
 		}
-	}
-	if (verb == Xtract) {
-		cleanname(fname);
-		switch (hp->linkflag) {
-		case LF_LINK:
-		case LF_SYMLINK1:
-		case LF_SYMLINK2:
-			fprint(2, "%s: can't make (sym)link %s\n",
-				argv0, fname);
-			break;
-		case LF_FIFO:
-			fprint(2, "%s: can't make fifo %s\n", argv0, fname);
-			break;
-		default:
-			if (!keepexisting || access(fname, AEXIST) < 0) {
-				int rw = (dir? OREAD: OWRITE);
 
-				fd = create(fname, rw, mode);
-				if (fd < 0) {
-					mkpdirs(fname);
-					fd = create(fname, rw, mode);
-				}
-				if (fd < 0 &&
-				    (!dir || xaccess(fname, AEXIST) < 0))
-				    	cantcreate(fname, mode);
-			}
-			if (fd >= 0 && verbose)
-				fprint(2, "%s\n", fname);
-			break;
-		}
-	} else if (verbose) {
+	if (verb == Xtract)
+		fd = openfname(hp, fname, dir, mode);
+	else if (verbose) {
 		char *cp = ctime(mtime);
 
 		print("%M %8lld %-12.12s %-4.4s %s\n",
@@ -996,46 +1114,16 @@ extract1(int ar, Hdr *hp, char *fname)
 	} else
 		print("%s\n", fname);
 
-	if (blksleft == 0)
-		bytes = 0;
-	for (; blksleft > 0; blksleft -= blksread) {
-		hbp = getblkrd(ar, (fd >= 0? Alldata: Justnxthdr));
-		if (hbp == nil)
-			sysfatal("unexpected EOF on archive extracting %s",
-				fname);
-		blksread = gothowmany(blksleft);
-		if (blksread <= 0)
-			fprint(2, "%s: got %ld blocks reading %s!\n",
-				argv0, blksread, fname);
-		wrbytes = Tblock*blksread;
-		if(wrbytes > bytes)
-			wrbytes = bytes;
-		if (fd >= 0 && write(fd, hbp->data, wrbytes) != wrbytes)
-			sysfatal("write error on %s: %r", fname);
-		putreadblks(ar, blksread);
-		bytes -= wrbytes;
-	}
-	if (bytes > 0)
-		fprint(2,
-		    "%s: %lld bytes uncopied at eof; %s not fully extracted\n",
-			argv0, bytes, fname);
+	copyfromar(ar, fd, fname, blksleft, bytes);
+
+	/* touch up meta data and close */
 	if (fd >= 0) {
 		/*
-		 * directories should be wstated after we're done
-		 * creating files in them.
+		 * directories should be wstated *after* we're done
+		 * creating files in them, but we don't do that.
 		 */
-		if (settime) {
-			Dir nd;
-
-			nulldir(&nd);
-			nd.mtime = mtime;
-			dirfwstat(fd, &nd);
-			if (isustar(hp)) {
-				nulldir(&nd);
-				nd.gid = hp->gname;
-				dirfwstat(fd, &nd);
-			}
-		}
+		if (settime)
+			wrmeta(fd, hp, mtime);
 		close(fd);
 	}
 }
@@ -1105,10 +1193,13 @@ main(int argc, char *argv[])
 		verb = Replace;
 		break;
 	case 'f':
-		usefile = EARGF(usage());
+		usefile = arname = EARGF(usage());
 		break;
 	case 'g':
 		argid = strtoul(EARGF(usage()), 0, 0);
+		break;
+	case 'i':
+		ignerrs = 1;
 		break;
 	case 'k':
 		keepexisting++;

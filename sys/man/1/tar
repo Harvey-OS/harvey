@@ -63,6 +63,11 @@ and
 Use the next (numeric) argument as the group id for files in
 the output archive.
 .TP
+.B i
+Ignore errors encountered when reading.
+Errors writing either produce a corrupt archive
+or indicate deeper file system problems.
+.TP
 .B k
 (keep)
 Modifies the behavior of
