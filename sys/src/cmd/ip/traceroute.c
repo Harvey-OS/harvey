@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <bio.h>
 #include <ndb.h>
+#include "icmp.h"
 
 enum{
 	Maxstring=	128,
@@ -11,48 +12,11 @@ enum{
 
 typedef struct DS DS;
 struct DS {
-	/* dist string */
+	/* dial string */
 	char	buf[Maxstring];
 	char	*netdir;
 	char	*proto;
 	char	*rem;
-};
-
-typedef struct Icmp Icmp;
-struct Icmp
-{
-	uchar	vihl;		/* Version and header length */
-	uchar	tos;		/* Type of service */
-	uchar	length[2];	/* packet length */
-	uchar	id[2];		/* Identification */
-	uchar	frag[2];	/* Fragment information */
-	uchar	ttl;		/* Time to live */
-	uchar	proto;		/* Protocol */
-	uchar	ipcksum[2];	/* Header checksum */
-	uchar	src[4];		/* Ip source */
-	uchar	dst[4];		/* Ip destination */
-	uchar	type;
-	uchar	code;
-	uchar	cksum[2];
-	uchar	icmpid[2];
-	uchar	seq[2];
-	uchar	data[1];
-};
-
-enum
-{			/* Packet Types */
-	EchoReply	= 0,
-	Unreachable	= 3,
-	SrcQuench	= 4,
-	EchoRequest	= 8,
-	TimeExceed	= 11,
-	Timestamp	= 13,
-	TimestampReply	= 14,
-	InfoRequest	= 15,
-	InfoReply	= 16,
-
-	ICMP_IPSIZE	= 20,
-	ICMP_HDRSIZE	= 8,
 };
 
 char *argv0;
@@ -63,7 +27,9 @@ void	histogram(long *t, int n, int buckets, long lo, long hi);
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-n] [protocol!]destination\n", argv0);
+	fprint(2,
+"usage: %s [-n][-a tries][-h buckets][-t ttl][-x net] [protocol!]destination\n",
+		argv0);
 	exits("usage");
 }
 
@@ -237,11 +203,11 @@ icmpprobe(int cfd, int dfd, char *dest, int interval)
 		ip->seq[0] = MAGIC;
 		ip->seq[1] = MAGIC>>8;
 		len = ICMP_IPSIZE+ICMP_HDRSIZE+sizeof(MSG);
-	
+
 		/* send a request */
 		if(write(dfd, buf, len) < len)
 			break;
-	
+
 		/* wait for reply */
 		n = read(dfd, buf, sizeof(buf));
 		alarm(0);
@@ -362,22 +328,19 @@ dial_string_parse(char *str, DS *ds)
 		ds->rem = p + 1;
 	}
 	if(strchr(ds->rem, '!') == 0)
-		strcat(ds->rem, "!32767");	
+		strcat(ds->rem, "!32767");
 }
 
 void
 main(int argc, char **argv)
 {
-	int j, done;
-	DS ds;
+	int buckets, ttl, j, done, tries, notranslate;
+	long lo, hi, sum, x;
+	long *t;
+	char *net, *p;
 	char clone[Maxpath], dest[Maxstring], hop[Maxstring], dom[Maxstring];
 	char err[Maxstring];
-	long lo, hi, sum, x;
-	char *p;
-	int tries, notranslate;
-	char *net;
-	int buckets, ttl;
-	long *t;
+	DS ds;
 
 	buckets = 0;
 	tries = 3;
@@ -385,26 +348,20 @@ main(int argc, char **argv)
 	net = "/net";
 	ttl = 1;
 	ARGBEGIN{
-	case 't':
-		p = ARGF();
-		if(p)
-			ttl = atoi(p);
-		break;
-	case 'h':
-		p = ARGF();
-		if(p)
-			buckets = atoi(p);
+	case 'a':
+		tries = atoi(EARGF(usage()));
 		break;
 	case 'd':
 		debug++;
 		break;
+	case 'h':
+		buckets = atoi(EARGF(usage()));
+		break;
 	case 'n':
 		notranslate++;
 		break;
-	case 'a':
-		p = ARGF();
-		if(p)
-			tries = atoi(p);
+	case 't':
+		ttl = atoi(EARGF(usage()));
 		break;
 	case 'x':
 		net = ARGF();
@@ -454,9 +411,9 @@ main(int argc, char **argv)
 				if(p)
 					*p = 0;
 				done = 1;
-			} else if(strncmp(err, "ttl exceeded at ", 16) == 0){
+			} else if(strncmp(err, "ttl exceeded at ", 16) == 0)
 				strcpy(hop, err+16);
-			} else {
+			else {
 				strcpy(hop, "*");
 				break;
 			}
@@ -486,7 +443,6 @@ main(int argc, char **argv)
 		if(done)
 			break;
 	}
-
 	exits(0);
 }
 

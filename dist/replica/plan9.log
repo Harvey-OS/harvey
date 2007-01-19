@@ -47374,3 +47374,17 @@
 1169092806 1 c sys/man/1/rc - 664 sys sys 1169092054 20021
 1169092806 2 c sys/man/4/snap - 664 sys sys 1169092032 1908
 1169092806 3 c sys/src/cmd/tar.c - 664 sys sys 1169092124 25725
+1169105406 0 c sys/man/8/ping - 664 sys sys 1169105315 3650
+1169105406 1 c sys/src/cmd/ip/ping.c - 664 sys sys 1169105376 10470
+1169148606 0 c sys/src/cmd/ip/ping.c - 664 sys sys 1169147036 10657
+1169152207 0 c 386/bin/ip/ping - 775 sys sys 1169151814 84622
+1169152207 1 c 386/bin/tar - 775 sys sys 1169151814 94824
+1169163006 0 c sys/src/cmd/ip/dhcpd/mkfile - 664 sys sys 1169162185 443
+1169163006 1 c sys/src/cmd/ip/dhcpd/ping.c - 664 sys sys 1169162185 1163
+1169163006 2 c sys/src/cmd/ip/gping.c - 664 sys sys 1169162059 19764
+1169163006 3 a sys/src/cmd/ip/icmp.h - 664 sys sys 1169162039 1563
+1169163006 4 c sys/src/cmd/ip/ping.c - 664 sys sys 1169162049 9673
+1169163006 5 c sys/src/cmd/ip/traceroute.c - 664 sys sys 1169162086 8637
+1169164807 0 c sys/src/cmd/ip/mkfile - 664 sys sys 1169163575 1250
+1169166606 0 c sys/src/cmd/ip/gping.c - 664 sys sys 1169165326 19784
+1169181137 0 c 386/bin/ip/traceroute - 775 sys sys 1169179342 74185

@@ -302,7 +302,7 @@
 386/bin/ip/httpfile - 775 sys sys 1168402324 284262
 386/bin/ip/imap4d - 775 sys sys 1169006128 238175
 386/bin/ip/ipconfig - 775 sys sys 1168402325 139510
-386/bin/ip/ping - 775 sys sys 1168402325 76725
+386/bin/ip/ping - 775 sys sys 1169151814 84622
 386/bin/ip/ppp - 775 sys sys 1168402326 220383
 386/bin/ip/pppoe - 775 sys sys 1168402326 77787
 386/bin/ip/pptp - 775 sys sys 1168402326 127175
@@ -420,7 +420,7 @@
 386/bin/swap - 775 sys sys 1168402350 62373
 386/bin/syscall - 775 sys sys 1130594788 73568
 386/bin/tail - 775 sys sys 1168402351 66406
-386/bin/tar - 775 sys sys 1168402351 93474
+386/bin/tar - 775 sys sys 1169151814 94824
 386/bin/tbl - 775 sys sys 1131302431 113308
 386/bin/tcs - 775 sys sys 1161026500 320293
 386/bin/tee - 775 sys sys 1148500692 38463
@@ -7745,7 +7745,7 @@ sys/man/8/newuser - 664 sys sys 1116954242 2418
 sys/man/8/nfsserver - 664 sys sys 1163208425 3587
 sys/man/8/pcmcia - 664 sys sys 944959679 408
 sys/man/8/pem - 664 sys sys 1060263669 1189
-sys/man/8/ping - 664 sys sys 1169091081 3639
+sys/man/8/ping - 664 sys sys 1169105315 3650
 sys/man/8/plan9.ini - 664 sys sys 1167276434 22689
 sys/man/8/pop3 - 664 sys sys 1063854676 2720
 sys/man/8/ppp - 664 sys sys 1125530075 4414
@@ -12324,9 +12324,9 @@ sys/src/cmd/ip/dhcpd/dat.h - 664 sys sys 1084471353 2522
 sys/src/cmd/ip/dhcpd/db.c - 664 sys sys 1143670612 7466
 sys/src/cmd/ip/dhcpd/dhcpd.c - 664 sys sys 1161483751 33248
 sys/src/cmd/ip/dhcpd/dhcpleases.c - 664 sys sys 1032655001 779
-sys/src/cmd/ip/dhcpd/mkfile - 664 sys sys 1063897571 433
+sys/src/cmd/ip/dhcpd/mkfile - 664 sys sys 1169162185 443
 sys/src/cmd/ip/dhcpd/ndb.c - 664 sys sys 1084471375 6063
-sys/src/cmd/ip/dhcpd/ping.c - 664 sys sys 956275654 1881
+sys/src/cmd/ip/dhcpd/ping.c - 664 sys sys 1169162185 1163
 sys/src/cmd/ip/dhcpd/testlook.c - 664 sys sys 950389140 4640
 sys/src/cmd/ip/dhcpd/testlookup.c - 664 sys sys 950389140 3195
 sys/src/cmd/ip/dhcpd/testping.c - 664 sys sys 950389141 352
@@ -12339,7 +12339,7 @@ sys/src/cmd/ip/ftpfs/mkfile - 664 sys sys 1048312050 173
 sys/src/cmd/ip/ftpfs/proto.c - 664 sys sys 1124935667 30337
 sys/src/cmd/ip/glob.c - 664 sys sys 1101155057 3290
 sys/src/cmd/ip/glob.h - 664 sys sys 1101155058 308
-sys/src/cmd/ip/gping.c - 664 sys sys 1166824873 20476
+sys/src/cmd/ip/gping.c - 664 sys sys 1169165326 19784
 sys/src/cmd/ip/hogports.c - 664 sys sys 1118623129 989
 sys/src/cmd/ip/httpd - 20000000775 sys sys 1083771060 0
 sys/src/cmd/ip/httpd/anonymous.c - 664 sys sys 984773807 195
@@ -12364,6 +12364,7 @@ sys/src/cmd/ip/httpd/webls.c - 664 sys sys 1120737502 7658
 sys/src/cmd/ip/httpd/webls.denied - 664 sys sys 1064887847 3
 sys/src/cmd/ip/httpd/wikipost.c - 664 sys sys 1083771074 5913
 sys/src/cmd/ip/httpfile.c - 664 sys sys 1128556975 10037
+sys/src/cmd/ip/icmp.h - 664 sys sys 1169162039 1563
 sys/src/cmd/ip/imap4d - 20000000775 sys sys 1066325859 0
 sys/src/cmd/ip/imap4d/auth.c - 664 sys sys 1015013075 3510
 sys/src/cmd/ip/imap4d/copy.c - 664 sys sys 1062298855 4597
@@ -12386,8 +12387,8 @@ sys/src/cmd/ip/imap4d/store.c - 664 sys sys 1066317059 1910
 sys/src/cmd/ip/imap4d/utils.c - 664 sys sys 1168894057 2587
 sys/src/cmd/ip/ipconfig.c - 664 sys sys 1166761782 35168
 sys/src/cmd/ip/measure.c - 664 sys sys 944961011 3733
-sys/src/cmd/ip/mkfile - 664 sys sys 1131110598 1243
-sys/src/cmd/ip/ping.c - 664 sys sys 1169091087 8437
+sys/src/cmd/ip/mkfile - 664 sys sys 1169163575 1250
+sys/src/cmd/ip/ping.c - 664 sys sys 1169162049 9673
 sys/src/cmd/ip/ppp - 20000000775 sys sys 1065963823 0
 sys/src/cmd/ip/ppp/block.c - 664 sys sys 1015090266 5353
 sys/src/cmd/ip/ppp/compress.c - 664 sys sys 1072729513 11774
@@ -12454,7 +12455,7 @@ sys/src/cmd/ip/telnet.c - 664 sys sys 1162416789 8621
 sys/src/cmd/ip/telnet.h - 664 sys sys 1015090250 5902
 sys/src/cmd/ip/telnetd.c - 664 sys sys 1135487948 11772
 sys/src/cmd/ip/tftpd.c - 664 sys sys 1106943821 7646
-sys/src/cmd/ip/traceroute.c - 664 sys sys 1032060124 9370
+sys/src/cmd/ip/traceroute.c - 664 sys sys 1169162086 8637
 sys/src/cmd/ip/udpecho.c - 664 sys sys 1050714674 855
 sys/src/cmd/join.c - 664 sys sys 1158251357 7550
 sys/src/cmd/jpg - 20000000775 sys sys 1132458749 0
@@ -15677,3 +15678,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/ip/traceroute - 775 sys sys 1169179342 74185

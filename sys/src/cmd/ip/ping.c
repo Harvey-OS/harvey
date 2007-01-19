@@ -1,67 +1,18 @@
 /* ping for ip v4 and v6 */
 #include <u.h>
 #include <libc.h>
+#include <ctype.h>
 #include <ip.h>
+#include <bio.h>
+#include <ndb.h>
+#include "icmp.h"
 
-enum
-{
-	/* Packet Types */
-	EchoReply	= 0,
-	Unreachable	= 3,
-	SrcQuench	= 4,
-	EchoRequest	= 8,
-	TimeExceed	= 11,
-	Timestamp	= 13,
-	TimestampReply	= 14,
-	InfoRequest	= 15,
-	InfoReply	= 16,
-
-	EchoReplyV6	= 129,
-	EchoRequestV6	= 128,
-
+enum {
 	MAXMSG		= 32,
 	SLEEPMS		= 1000,
 
 	SECOND		= 1000000000LL,
 	MINUTE		= 60*SECOND,
-};
-
-typedef struct Icmp Icmp;
-struct Icmp
-{
-	uchar	vihl;		/* Version and header length */
-	uchar	tos;		/* Type of service */
-	uchar	length[2];	/* packet length */
-	uchar	id[2];		/* Identification */
-	uchar	frag[2];	/* Fragment information */
-	uchar	ttl;		/* Time to live */
-	uchar	proto;		/* Protocol */
-	uchar	ipcksum[2];	/* Header checksum */
-	uchar	src[4];		/* Ip source */
-	uchar	dst[4];		/* Ip destination */
-	uchar	type;
-	uchar	code;
-	uchar	cksum[2];
-	uchar	icmpid[2];
-	uchar	seq[2];
-	uchar	data[1];
-};
-
-typedef struct Icmp6 Icmp6;
-struct Icmp6
-{
-	uchar	vcf[4];
-	uchar	ploadlen[2];
-	uchar	proto;
-	uchar	ttl;
-	uchar	src[16];		/* Ip source */
-	uchar	dst[16];		/* Ip destination */
-	uchar	type;
-	uchar	code;
-	uchar	cksum[2];
-	uchar	icmpid[2];
-	uchar	seq[2];
-	uchar	data[1];
 };
 
 typedef struct Req Req;
@@ -286,6 +237,7 @@ static Proto v6pr = {
 
 static Proto *proto = &v4pr;
 
+
 void
 clean(ushort seq, vlong now, void *v)
 {
@@ -403,7 +355,7 @@ rcvr(int fd, int msglen, int interval, int nmsg)
 		}
 		clean(x, now, buf);
 	}
-	
+
 	lock(&listlock);
 	for(r = first; r; r = r->next)
 		if(r->replied == 0)
@@ -415,6 +367,135 @@ rcvr(int fd, int msglen, int interval, int nmsg)
 			lostmsgs+rcvdmsgs);
 }
 
+static int
+isdottedquad(char *name)
+{
+	int dot = 0, digit = 0;
+
+	for (; *name != '\0'; name++)
+		if (*name == '.')
+			dot++;
+		else if (isdigit(*name))
+			digit++;
+		else
+			return 0;
+	return dot && digit;
+}
+
+static int
+isv6lit(char *name)
+{
+	int colon = 0, hex = 0;
+
+	for (; *name != '\0'; name++)
+		if (*name == ':')
+			colon++;
+		else if (isxdigit(*name))
+			hex++;
+		else
+			return 0;
+	return colon;
+}
+
+/* from /sys/src/libc/9sys/dial.c */
+
+enum
+{
+	Maxstring	= 128,
+	Maxpath		= 256,
+};
+
+typedef struct DS DS;
+struct DS {
+	/* dist string */
+	char	buf[Maxstring];
+	char	*netdir;
+	char	*proto;
+	char	*rem;
+
+	/* other args */
+	char	*local;
+	char	*dir;
+	int	*cfdp;
+};
+
+/*
+ *  parse a dial string
+ */
+static void
+_dial_string_parse(char *str, DS *ds)
+{
+	char *p, *p2;
+
+	strncpy(ds->buf, str, Maxstring);
+	ds->buf[Maxstring-1] = 0;
+
+	p = strchr(ds->buf, '!');
+	if(p == 0) {
+		ds->netdir = 0;
+		ds->proto = "net";
+		ds->rem = ds->buf;
+	} else {
+		if(*ds->buf != '/' && *ds->buf != '#'){
+			ds->netdir = 0;
+			ds->proto = ds->buf;
+		} else {
+			for(p2 = p; *p2 != '/'; p2--)
+				;
+			*p2++ = 0;
+			ds->netdir = ds->buf;
+			ds->proto = p2;
+		}
+		*p = 0;
+		ds->rem = p + 1;
+	}
+}
+
+static int
+isv4name(char *name)
+{
+	int r = 1;
+	char *root, *ip, *pr;
+	DS ds;
+
+	_dial_string_parse(name, &ds);
+
+	/* cope with leading /net.alt/icmp! and the like */
+	root = nil;
+	if (ds.netdir != nil) {
+		pr = strrchr(ds.netdir, '/');
+		if (pr == nil)
+			pr = ds.netdir;
+		else {
+			*pr++ = '\0';
+			root = ds.netdir;
+		}
+		if (strcmp(pr, v4pr.net) == 0)
+			return 1;
+		if (strcmp(pr, v6pr.net) == 0)
+			return 0;
+	}
+
+	/* if it's a literal, it's obvious from syntax which proto it is */
+	if (isdottedquad(ds.rem))
+		return 1;
+	else if (isv6lit(ds.rem))
+		return 0;
+
+	/* map name to ip and look at its syntax */
+	ip = csgetvalue(root, "sys", ds.rem, "ip", nil);
+	if (ip == nil)
+		ip = csgetvalue(root, "dom", ds.rem, "ip", nil);
+	if (ip == nil)
+		ip = csgetvalue(root, "sys", ds.rem, "ipv6", nil);
+	if (ip == nil)
+		ip = csgetvalue(root, "dom", ds.rem, "ipv6", nil);
+	if (ip != nil)
+		r = isv4name(ip);
+	free(ip);
+	return r;
+}
+
 void
 main(int argc, char **argv)
 {
@@ -424,6 +505,7 @@ main(int argc, char **argv)
 	nsec();		/* make sure time file is already open */
 
 	fmtinstall('V', eipfmt);
+	fmtinstall('I', eipfmt);
 
 	msglen = interval = 0;
 	nmsg = MAXMSG;
@@ -477,6 +559,8 @@ main(int argc, char **argv)
 
 	notify(catch);
 
+	if (!isv4name(argv[0]))
+		proto = &v6pr;
 	ds = netmkaddr(argv[0], proto->net, "1");
 	fd = dial(ds, 0, 0, 0);
 	if(fd < 0){

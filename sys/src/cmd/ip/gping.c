@@ -6,13 +6,13 @@
 #include <draw.h>
 #include <event.h>
 #include <ip.h>
+#include "icmp.h"
 
 #define	MAXNUM	8	/* maximum number of numbers on data line */
 
 typedef struct Graph	Graph;
 typedef struct Machine	Machine;
 typedef struct Req	Req;
-typedef struct Icmp	Icmp;
 
 enum {
 	Gmsglen	= 16,
@@ -36,41 +36,8 @@ struct Graph
 	int		vmax;
 };
 
-struct Icmp
-{
-	uchar	vihl;		/* Version and header length */
-	uchar	tos;		/* Type of service */
-	uchar	length[2];	/* packet length */
-	uchar	id[2];		/* Identification */
-	uchar	frag[2];	/* Fragment information */
-	uchar	ttl;		/* Time to live */
-	uchar	proto;		/* Protocol */
-	uchar	ipcksum[2];	/* Header checksum */
-	uchar	src[4];		/* Ip source */
-	uchar	dst[4];		/* Ip destination */
-	uchar	type;
-	uchar	code;
-	uchar	cksum[2];
-	uchar	icmpid[2];
-	uchar	seq[2];
-	uchar	data[1];
-};
-
 enum
-{			/* Packet Types */
-	EchoReply	= 0,
-	Unreachable	= 3,
-	SrcQuench	= 4,
-	EchoRequest	= 8,
-	TimeExceed	= 11,
-	Timestamp	= 13,
-	TimestampReply	= 14,
-	InfoRequest	= 15,
-	InfoReply	= 16,
-
-	ICMP_IPSIZE	= 20,
-	ICMP_HDRSIZE	= 8,
-
+{
 	MSGLEN		= 64,
 
 	Rttmax		= 50,
@@ -78,10 +45,10 @@ enum
 
 struct Req
 {
-	int	seq;	// sequence number
-	vlong	time;	// time sent
+	int	seq;	/* sequence number */
+	vlong	time;	/* time sent */
 	int	rtt;
-	Req	 *next;
+	Req	*next;
 };
 
 struct Machine
@@ -104,7 +71,7 @@ struct Machine
 	Req	*first;
 	Req	*last;
 	Req	*rcvd;
-	
+
 	char	buf[1024];
 	char	*bufp;
 	char	*ebufp;
@@ -395,10 +362,10 @@ drawmsg(Graph *g, char *msg)
 	if(g->overtmp == nil)
 		return;
 
-	// save previous contents of screen
+	/* save previous contents of screen */
 	draw(g->overtmp, g->overtmp->r, screen, nil, g->overtmp->r.min);
 
-	// draw message
+	/* draw message */
 	if(strlen(msg) > g->overtmplen)
 		msg[g->overtmplen] = 0;
 	string(screen, g->overtmp->r.min, display->black, ZP, mediumfont, msg);
@@ -437,7 +404,7 @@ update1(Graph *g, long v, long vmax, long mark)
 {
 	char buf[Gmsglen];
 
-	// put back screen value sans message
+	/* put back screen value sans message */
 	if(g->overflow || *g->msg){
 		clearmsg(g);
 		g->overflow = 0;
@@ -466,7 +433,7 @@ update1(Graph *g, long v, long vmax, long mark)
 			}
 		}
 	}
-	
+
 }
 
 void
@@ -945,7 +912,7 @@ dobutton1(Mouse *m)
 	if(g->overtmp == nil)
 		return;
 
-	// clear any previous message and cursor
+	/* clear any previous message and cursor */
 	if(g->overflow || *g->msg){
 		clearmsg(g);
 		*g->msg = 0;
@@ -1020,7 +987,7 @@ main(int argc, char *argv[])
 	fmtinstall('V', eipfmt);
 
 	f = flags;
-	pinginterval = 5000;		// 5 seconds
+	pinginterval = 5000;		/* 5 seconds */
 	ARGBEGIN{
 	case 'i':
 		p = ARGF();
