@@ -70,9 +70,11 @@ returns successfully. Otherwise it returns an error status of
 The options are:
 .TP
 .B 6
-use IPv6's ICMP,
+force the use of IPv6's ICMP,
 .BR icmpv6 ,
 instead of IPv4's ICMP.
+.I Ping
+tries to determine which version of IP to use automatically.
 .TP
 .B a
 adds the IP source and destination addresses to each report.
@@ -193,6 +195,3 @@ the network mounted at
 .B /sys/src/cmd/ip/hogports.c
 .SH SEE ALSO
 .IR ip (3)
-.SH BUGS
-.I Ping
-should be able to adapt automatically to IP v4 or v6.

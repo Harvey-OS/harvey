@@ -14,7 +14,7 @@ IOFILES=\
 	db.$O\
 	ping.$O\
 
-HFILES=dat.h ../dhcp.h
+HFILES=dat.h ../dhcp.h ../icmp.h
 
 BIN=/$objtype/bin/ip
 
