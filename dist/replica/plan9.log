@@ -47388,3 +47388,5 @@
 1169164807 0 c sys/src/cmd/ip/mkfile - 664 sys sys 1169163575 1250
 1169166606 0 c sys/src/cmd/ip/gping.c - 664 sys sys 1169165326 19784
 1169181137 0 c 386/bin/ip/traceroute - 775 sys sys 1169179342 74185
+1169247606 0 c sys/src/cmd/ip/imap4d/mbox.c - 664 sys sys 1169246001 16971
+1169267406 0 c 386/bin/ip/imap4d - 775 sys sys 1169265834 238152
