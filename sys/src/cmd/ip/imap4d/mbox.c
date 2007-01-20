@@ -485,7 +485,7 @@ createImp(Box *box, Qid *qid)
 static int
 parseImp(Biobuf *b, Box *box)
 {
-	Msg *m, *mm = nil;
+	Msg *m, *mm;
 	char *s, *t, *toks[3];
 	ulong uid, u;
 	int match, n;
@@ -575,7 +575,7 @@ parseImp(Biobuf *b, Box *box)
 		 * since it comes before all other messages, and therefore
 		 * must be in the .imp file if they should be.
 		 */
-		match = mm != nil && mm->info[IDigest] != nil &&
+		match = m->info[IDigest] != nil &&
 			strcmp(m->info[IDigest], toks[0]) == 0;
 		if(uid && (m->uid == uid || !m->uid && match)){
 			if(!match)

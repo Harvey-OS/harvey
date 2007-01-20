@@ -313,7 +313,7 @@
 386/bin/ip/rlogind - 775 sys sys 1168402328 67654
 386/bin/ip/telnetd - 775 sys sys 1168402329 123319
 386/bin/ip/tftpd - 775 sys sys 1168402329 132043
-386/bin/ip/traceroute - 775 sys sys 1168402329 73973
+386/bin/ip/traceroute - 775 sys sys 1169179342 74185
 386/bin/ip/udpecho - 775 sys sys 1148500666 43190
 386/bin/join - 775 sys sys 1168402330 114382
 386/bin/jpg - 775 sys sys 1168402330 174923
@@ -12377,7 +12377,7 @@ sys/src/cmd/ip/imap4d/folder.c - 664 sys sys 1015013076 5959
 sys/src/cmd/ip/imap4d/imap4d.c - 664 sys sys 1066325859 40675
 sys/src/cmd/ip/imap4d/imap4d.h - 664 sys sys 1015013076 6697
 sys/src/cmd/ip/imap4d/list.c - 664 sys sys 1015013076 7619
-sys/src/cmd/ip/imap4d/mbox.c - 664 sys sys 1168984478 16991
+sys/src/cmd/ip/imap4d/mbox.c - 664 sys sys 1169246001 16971
 sys/src/cmd/ip/imap4d/mkfile - 664 sys sys 1063897579 332
 sys/src/cmd/ip/imap4d/msg.c - 664 sys sys 1168894057 31415
 sys/src/cmd/ip/imap4d/mutf7.c - 664 sys sys 1015013077 2724
@@ -15678,4 +15678,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/ip/traceroute - 775 sys sys 1169179342 74185
+386/bin/ip/imap4d - 775 sys sys 1169265834 238152

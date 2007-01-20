@@ -300,7 +300,7 @@
 386/bin/ip/httpd/webls - 775 sys sys 1168402322 133548
 386/bin/ip/httpd/wikipost - 775 sys sys 1168402323 114908
 386/bin/ip/httpfile - 775 sys sys 1168402324 284262
-386/bin/ip/imap4d - 775 sys sys 1169006128 238175
+386/bin/ip/imap4d - 775 sys sys 1169265834 238152
 386/bin/ip/ipconfig - 775 sys sys 1168402325 139510
 386/bin/ip/ping - 775 sys sys 1169151814 84622
 386/bin/ip/ppp - 775 sys sys 1168402326 220383
@@ -12377,7 +12377,7 @@ sys/src/cmd/ip/imap4d/folder.c - 664 sys sys 1015013076 5959
 sys/src/cmd/ip/imap4d/imap4d.c - 664 sys sys 1066325859 40675
 sys/src/cmd/ip/imap4d/imap4d.h - 664 sys sys 1015013076 6697
 sys/src/cmd/ip/imap4d/list.c - 664 sys sys 1015013076 7619
-sys/src/cmd/ip/imap4d/mbox.c - 664 sys sys 1168984478 16991
+sys/src/cmd/ip/imap4d/mbox.c - 664 sys sys 1169246001 16971
 sys/src/cmd/ip/imap4d/mkfile - 664 sys sys 1063897579 332
 sys/src/cmd/ip/imap4d/msg.c - 664 sys sys 1168894057 31415
 sys/src/cmd/ip/imap4d/mutf7.c - 664 sys sys 1015013077 2724
