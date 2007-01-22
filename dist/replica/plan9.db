@@ -8098,7 +8098,7 @@ sys/src/9/port/devcap.c - 664 sys sys 1168304142 4128
 sys/src/9/port/devcons.c - 664 sys sys 1168304164 23127
 sys/src/9/port/devdraw.c - 664 sys sys 1147023550 44447
 sys/src/9/port/devdup.c - 664 sys sys 1014931172 2332
-sys/src/9/port/devenv.c - 664 sys sys 1048644225 6992
+sys/src/9/port/devenv.c - 664 sys sys 1169419241 6994
 sys/src/9/port/devfs.c - 664 sys sys 1158979963 10897
 sys/src/9/port/devkbmap.c - 664 sys sys 1130763846 3064
 sys/src/9/port/devkprof.c - 664 sys sys 1014931173 3111
