@@ -430,7 +430,7 @@ TEXT again32bit(SB), $0
 
 	/* enable paging and jump to kzero-address code */
 	MOVL	CR0, AX
-	ORL	$0x80000000, AX
+	ORL	$0x80010000, AX	/* PG|WP */
 	MOVL	AX, CR0
 	LEAL	again32kzero(SB), AX
 	JMP*	AX
@@ -600,6 +600,15 @@ TEXT _cycles(SB), $0				/* time stamp counter */
 	MOVL	vlong+0(FP), CX			/* &vlong */
 	MOVL	AX, 0(CX)			/* lo */
 	MOVL	DX, 4(CX)			/* hi */
+	RET
+
+/*
+ * stub for:
+ * time stamp counter; low-order 32 bits of 64-bit cycle counter
+ * Runs at fasthz/4 cycles per second (m->clkin>>3)
+ */
+TEXT lcycles(SB),1,$0
+	RDTSC
 	RET
 
 TEXT rdmsr(SB), $0				/* model-specific register */
