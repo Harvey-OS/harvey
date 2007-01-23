@@ -356,19 +356,19 @@ The
 .I ip
 device
 supports IP as well as several protocols that run over it:
-TCP, IL, UDP, GRE, ESP, ICMP, and RUDP.
+TCP, UDP, RUDP, ICMP, IL, GRE, and ESP.
 TCP and UDP provide the standard Internet
 protocols for reliable stream and unreliable datagram
 communication.
+RUDP is a locally developed reliable datagram protocol based on
+UDP.
+ICMP is IP's catch-all control protocol used to send
+low level error messages and to implement
+.IR ping (8).
 IL provides a reliable datagram service for communication
 between Plan 9 machines but is now deprecated.
 GRE is a general encapsulation protocol.
 ESP is the encapsulation protocol for IPSEC.
-ICMP is IP's catch-all control protocol used to send
-low level error messages and to implement
-.IR ping (8).
-RUDP is a locally developed reliable datagram protocol based on
-UDP.
 .PP
 Each protocol is a subdirectory of the IP stack.
 The top level directory of each protocol contains a
@@ -621,6 +621,12 @@ is treated like a reboot:
 all queued messages are dropped, an error is queued to the
 .B err
 file, and the conversation resumes.
+.SS ICMP
+.PP
+ICMP is a datagram protocol used to exchange control requests and
+their responses with other machines' IP implementations.
+ICMP is primarily a kernel-to-kernel protocol, but it is possible
+to generate `echo request' packets from user programs.
 .SS IL
 .PP
 IL is a reliable point-to-point datagram protocol.  Like TCP, IL delivers datagrams

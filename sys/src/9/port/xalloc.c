@@ -44,7 +44,7 @@ void
 xinit(void)
 {
 	int i, n, upages, kpages;
-	ulong maxkpa;
+	ulong maxpages;
 	Confmem *m;
 	Pallocmem *pm;
 	Hole *h, *eh;
@@ -58,16 +58,15 @@ xinit(void)
 	upages = conf.upages;
 	kpages = conf.npage - upages;
 	pm = palloc.mem;
-	maxkpa = -KZERO;
 	for(i=0; i<nelem(conf.mem); i++){
 		m = &conf.mem[i];
 		n = m->npage;
 		if(n > kpages)
 			n = kpages;
-		if(m->base >= maxkpa)
-			n = 0;
-		else if(n > 0 && m->base+n*BY2PG >= maxkpa)
-			n = (maxkpa - m->base)/BY2PG;
+		/* don't try to use non-KADDR-able memory for kernel */
+		maxpages = cankaddr(m->base)/BY2PG;
+		if(n > maxpages)
+			n = maxpages;
 		/* first give to kernel */
 		if(n > 0){
 			m->kbase = (ulong)KADDR(m->base);
@@ -165,7 +164,7 @@ xfree(void *p)
 		xsummary();
 		panic("xfree(%#p) %#ux != %#lux", p, Magichole, x->magix);
 	}
-	xhole(PADDR(x), x->size);
+	xhole(PADDR((uintptr)x), x->size);
 }
 
 int

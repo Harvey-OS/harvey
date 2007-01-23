@@ -41,7 +41,7 @@
 			dns	555 sys sys /sys/lib/dist/pc/multi/dns
 # 			dnsquery	555 sys sys
 		replica	d555 sys sys
-			applylog	555 sys sys /sys/lib/dist/pc/multi/applylog
+			applylog	555 sys sys
 			changes	555 sys sys
 			compactdb	555 sys sys /sys/lib/dist/pc/sub/compactdb
 			pull		555 sys sys

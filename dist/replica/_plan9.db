@@ -11,7 +11,7 @@
 386/9pcdisk.gz - 664 sys sys 1161232323 903701
 386/9pcf - 775 sys sys 1161231061 2460368
 386/9pcf.gz - 664 sys sys 1161232332 1060367
-386/9pxeload - 775 sys sys 1161230069 220860
+386/9pxeload - 775 sys sys 1169491686 220036
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1168402260 116604
@@ -1279,7 +1279,7 @@ lib/face/48x48x2/x - 20000000775 sys sys 1020895710 0
 lib/face/48x48x2/y - 20000000775 sys sys 1020895710 0
 lib/face/48x48x2/z - 20000000775 sys sys 1020895710 0
 lib/face/48x48x4 - 20000000775 sys sys 1123100641 0
-lib/face/48x48x4/.dict - 664 sys sys 1165561735 3448
+lib/face/48x48x4/.dict - 664 sys sys 1169491565 3548
 lib/face/48x48x4/Z - 20000000775 sys sys 1020895710 0
 lib/face/48x48x4/a - 20000000775 sys sys 1056984105 0
 lib/face/48x48x4/a/adb.1 - 664 sys sys 944941890 962
@@ -1395,7 +1395,7 @@ lib/face/48x48x4/x/xigh.1 - 664 sys sys 1142019024 1204
 lib/face/48x48x4/y - 20000000775 sys sys 1020895714 0
 lib/face/48x48x4/z - 20000000775 sys sys 1020895714 0
 lib/face/48x48x8 - 20000000775 sys sys 1123100641 0
-lib/face/48x48x8/.dict - 664 sys sys 1162138215 2800
+lib/face/48x48x8/.dict - 664 sys sys 1169491532 2868
 lib/face/48x48x8/Z - 20000000775 sys sys 1020895714 0
 lib/face/48x48x8/a - 20000000775 sys sys 1056983599 0
 lib/face/48x48x8/a/axel.1 - 664 sys sys 1056983599 473
@@ -5409,7 +5409,7 @@ rc/bin/0l - 775 sys sys 1143293821 24
 rc/bin/9fat: - 775 sys sys 1133179689 367
 rc/bin/9fs - 775 sys sys 1144685284 927
 rc/bin/B - 775 sys sys 945617206 645
-rc/bin/C - 775 sys sys 1142958679 889
+rc/bin/C - 664 sys sys 1169492077 980
 rc/bin/Kill - 775 sys sys 1018637942 115
 rc/bin/a: - 775 sys sys 1063856406 255
 rc/bin/ap - 775 sys sys 1123163734 733
@@ -5437,7 +5437,7 @@ rc/bin/cpurc - 775 sys sys 1123380857 1306
 rc/bin/delkey - 775 sys sys 1109429137 643
 rc/bin/dial - 20000000775 sys sys 1059180057 0
 rc/bin/diffy - 775 sys sys 1140694870 277
-rc/bin/dircp - 775 sys sys 1107836261 193
+rc/bin/dircp - 775 sys sys 1169490692 234
 rc/bin/doc2ps - 775 sys sys 1069793831 244
 rc/bin/doc2txt - 775 sys sys 1025197880 563
 rc/bin/doctype - 775 sys sys 1162921755 1727
@@ -5445,7 +5445,7 @@ rc/bin/dosmnt - 775 sys sys 1109288224 303
 rc/bin/eject - 775 sys sys 945617207 123
 rc/bin/fax - 775 sys sys 1127394677 2385
 rc/bin/fedex - 775 sys sys 1060187356 1244
-rc/bin/fshalt - 775 sys sys 1100524288 1335
+rc/bin/fshalt - 775 sys sys 1169491261 1401
 rc/bin/homespool - 775 sys sys 945617207 339
 rc/bin/ipconf - 20000000775 sys sys 1058791152 0
 rc/bin/ipconf/inside - 775 sys sys 1058790955 427
@@ -6129,7 +6129,7 @@ sys/lib/dist/cmd/cdsh.c - 664 sys sys 1018469727 2100
 sys/lib/dist/cmd/clog.c - 664 sys sys 1018469727 920
 sys/lib/dist/cmd/mkfile - 664 sys sys 1018641017 259
 sys/lib/dist/cmd/multi - 20000000775 sys sys 1147022829 0
-sys/lib/dist/cmd/multi/mkfile - 664 sys sys 1147022825 844
+sys/lib/dist/cmd/multi/mkfile - 664 sys sys 1169484170 845
 sys/lib/dist/cmd/multi/mkmulti - 775 sys sys 1147022824 1235
 sys/lib/dist/cmd/multi/multi.c - 664 sys sys 1147022829 543
 sys/lib/dist/cmd/tailfsrv.c - 664 sys sys 1018469727 258
@@ -6206,7 +6206,7 @@ sys/lib/dist/pc/plan9.ini - 664 sys sys 1142177575 236
 sys/lib/dist/pc/plan9.ini.blank - 664 sys sys 1018469720 512
 sys/lib/dist/pc/plan9.ini.cd - 664 sys sys 1132452554 369
 sys/lib/dist/pc/plan9.ini.vmware - 664 sys sys 1045500078 168
-sys/lib/dist/pc/proto - 664 sys sys 1147022862 5596
+sys/lib/dist/pc/proto - 664 sys sys 1169484200 5564
 sys/lib/dist/pc/sub - 20000000775 sys sys 1063856127 0
 sys/lib/dist/pc/sub/a: - 775 sys sys 1018469726 481
 sys/lib/dist/pc/sub/bind - 775 sys sys 1018469726 207
@@ -7582,7 +7582,7 @@ sys/man/3/ether - 664 sys sys 984709635 2563
 sys/man/3/floppy - 664 sys sys 954378905 881
 sys/man/3/fs - 664 sys sys 1165622643 2702
 sys/man/3/i82365 - 664 sys sys 954378906 884
-sys/man/3/ip - 664 sys sys 1163208517 21559
+sys/man/3/ip - 664 sys sys 1169494390 21816
 sys/man/3/kbmap - 664 sys sys 1131110122 1732
 sys/man/3/kprof - 664 sys sys 1018029972 1377
 sys/man/3/loopback - 664 sys sys 964662153 1995
@@ -7794,7 +7794,7 @@ sys/src/9/alphapc/axp.h - 664 sys sys 1015012783 1090
 sys/src/9/alphapc/cga.c - 664 sys sys 1015012783 1814
 sys/src/9/alphapc/clock.c - 664 sys sys 1032052963 1472
 sys/src/9/alphapc/cycintr.c - 664 sys sys 1018721238 230
-sys/src/9/alphapc/dat.h - 664 sys sys 1131289707 5196
+sys/src/9/alphapc/dat.h - 664 sys sys 1169491873 5217
 sys/src/9/alphapc/devarch.c - 664 sys sys 1039753422 9760
 sys/src/9/alphapc/devvga.c - 664 sys sys 1131289707 7420
 sys/src/9/alphapc/dma.c - 664 sys sys 1142966373 6526
@@ -7802,7 +7802,7 @@ sys/src/9/alphapc/etherif.h - 664 sys sys 1045063621 1025
 sys/src/9/alphapc/faultalpha.c - 664 sys sys 1015012784 1257
 sys/src/9/alphapc/fdc37c93x.c - 664 sys sys 1015012785 1110
 sys/src/9/alphapc/floppy.h - 664 sys sys 1015012785 3783
-sys/src/9/alphapc/fns.h - 664 sys sys 1147116740 3658
+sys/src/9/alphapc/fns.h - 664 sys sys 1169491822 3681
 sys/src/9/alphapc/fptrap.c - 664 sys sys 1015012785 707
 sys/src/9/alphapc/i8259.c - 664 sys sys 1015012785 3409
 sys/src/9/alphapc/initcode - 664 sys sys 1039753419 779
@@ -7814,7 +7814,7 @@ sys/src/9/alphapc/mem.h - 664 sys sys 1137179967 2312
 sys/src/9/alphapc/memmove.s - 664 sys sys 1015012786 2936
 sys/src/9/alphapc/memset.s - 664 sys sys 1015012786 844
 sys/src/9/alphapc/mkfile - 664 sys sys 1109218102 1682
-sys/src/9/alphapc/mmu.c - 664 sys sys 1131538486 4981
+sys/src/9/alphapc/mmu.c - 664 sys sys 1169491834 5189
 sys/src/9/alphapc/osf1pal.h - 664 sys sys 1137179966 1471
 sys/src/9/alphapc/pci.c - 664 sys sys 1039753420 7868
 sys/src/9/alphapc/screen.h - 664 sys sys 1147108286 3923
@@ -7912,7 +7912,7 @@ sys/src/9/ip/ipifc.c - 664 sys sys 1168305861 34233
 sys/src/9/ip/ipmux.c - 664 sys sys 1047260566 15362
 sys/src/9/ip/iproute.c - 664 sys sys 1168305878 14778
 sys/src/9/ip/ipv6.c - 664 sys sys 1047951328 14433
-sys/src/9/ip/ipv6.h - 664 sys sys 1087406259 4321
+sys/src/9/ip/ipv6.h - 664 sys sys 1169493796 4314
 sys/src/9/ip/loopbackmedium.c - 664 sys sys 1055701769 1671
 sys/src/9/ip/netdevmedium.c - 664 sys sys 1045063517 2675
 sys/src/9/ip/netlog.c - 664 sys sys 1026847568 4003
@@ -7927,13 +7927,13 @@ sys/src/9/mkfile - 664 sys sys 1063857477 205
 sys/src/9/mtx - 20000000775 sys sys 1123676466 0
 sys/src/9/mtx/clock.c - 664 sys sys 1032053278 1293
 sys/src/9/mtx/cycintr.c - 664 sys sys 1018721285 230
-sys/src/9/mtx/dat.h - 664 sys sys 1142958517 3805
+sys/src/9/mtx/dat.h - 664 sys sys 1169491926 3825
 sys/src/9/mtx/devarch.c - 664 sys sys 1018721285 6793
 sys/src/9/mtx/devether.c - 664 sys sys 1116097786 9281
 sys/src/9/mtx/devrtc.c - 664 sys sys 1018721285 6772
 sys/src/9/mtx/ether2114x.c - 664 sys sys 1026848191 37904
 sys/src/9/mtx/etherif.h - 664 sys sys 1045504432 785
-sys/src/9/mtx/fns.h - 664 sys sys 1143129832 2767
+sys/src/9/mtx/fns.h - 664 sys sys 1169491926 2790
 sys/src/9/mtx/i8259.c - 664 sys sys 1018721286 4695
 sys/src/9/mtx/inb.s - 664 sys sys 1018721286 1476
 sys/src/9/mtx/initcode - 664 sys sys 1039753442 444
@@ -7943,7 +7943,7 @@ sys/src/9/mtx/l.s - 664 sys sys 1143129840 11000
 sys/src/9/mtx/main.c - 664 sys sys 1131289814 8307
 sys/src/9/mtx/mem.h - 664 sys sys 1026848200 5959
 sys/src/9/mtx/mkfile - 664 sys sys 1072972534 1520
-sys/src/9/mtx/mmu.c - 664 sys sys 1131538486 4458
+sys/src/9/mtx/mmu.c - 664 sys sys 1169491806 4666
 sys/src/9/mtx/mtx - 664 sys sys 1056336297 416
 sys/src/9/mtx/mtxcpu - 664 sys sys 1039753442 421
 sys/src/9/mtx/pci.c - 664 sys sys 1087657434 16662
@@ -8011,7 +8011,7 @@ sys/src/9/pc/init9.c - 664 sys sys 1040002518 94
 sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
 sys/src/9/pc/io.h - 664 sys sys 1165555523 9406
 sys/src/9/pc/kbd.c - 664 sys sys 1132574883 12365
-sys/src/9/pc/l.s - 664 sys sys 1143129925 28552
+sys/src/9/pc/l.s - 664 sys sys 1169492952 28736
 sys/src/9/pc/main.c - 664 sys sys 1168306227 15337
 sys/src/9/pc/mem.h - 664 sys sys 1137622431 5203
 sys/src/9/pc/memory.c - 664 sys sys 1153172671 18773
@@ -8098,7 +8098,7 @@ sys/src/9/port/devcap.c - 664 sys sys 1168304142 4128
 sys/src/9/port/devcons.c - 664 sys sys 1168304164 23127
 sys/src/9/port/devdraw.c - 664 sys sys 1147023550 44447
 sys/src/9/port/devdup.c - 664 sys sys 1014931172 2332
-sys/src/9/port/devenv.c - 664 sys sys 1169419241 6994
+sys/src/9/port/devenv.c - 664 sys sys 1169498893 7015
 sys/src/9/port/devfs.c - 664 sys sys 1158979963 10897
 sys/src/9/port/devkbmap.c - 664 sys sys 1130763846 3064
 sys/src/9/port/devkprof.c - 664 sys sys 1014931173 3111
@@ -8169,7 +8169,7 @@ sys/src/9/port/thwack.c - 664 sys sys 1057323394 7253
 sys/src/9/port/thwack.h - 664 sys sys 1015278340 1792
 sys/src/9/port/tod.c - 664 sys sys 1146746630 5377
 sys/src/9/port/unthwack.c - 664 sys sys 1057323394 5249
-sys/src/9/port/xalloc.c - 664 sys sys 1162138307 4277
+sys/src/9/port/xalloc.c - 664 sys sys 1169491770 4289
 sys/src/9/ppc - 20000000775 sys sys 1123676466 0
 sys/src/9/ppc/blast - 664 sys sys 1107436310 670
 sys/src/9/ppc/blast.h - 664 sys sys 1059490750 3109
@@ -8195,7 +8195,7 @@ sys/src/9/ppc/main.c - 664 sys sys 1131290117 9075
 sys/src/9/ppc/mcc.c - 664 sys sys 1059490752 9667
 sys/src/9/ppc/mem.h - 664 sys sys 1091021860 7002
 sys/src/9/ppc/mkfile - 664 sys sys 1067722849 1813
-sys/src/9/ppc/mmu.c - 664 sys sys 1131538486 4934
+sys/src/9/ppc/mmu.c - 664 sys sys 1169491797 5142
 sys/src/9/ppc/msaturn.c - 664 sys sys 1072705482 2801
 sys/src/9/ppc/msaturn.h - 664 sys sys 1059490753 99
 sys/src/9/ppc/mtx.c - 664 sys sys 1059490753 177

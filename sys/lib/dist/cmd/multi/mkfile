@@ -18,7 +18,7 @@ PIECES=\
 	ip/ppp\
 	ndb/cs\
 	ndb/dns\
-	replica/applylog\
+#	replica/applylog\
 	9660srv\
 #	awk\
 	basename\

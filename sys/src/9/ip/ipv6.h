@@ -61,12 +61,12 @@ enum {			/* Header Types */
 	RSVP		= 46,
 	AH		= 51,
 	ESP		= 52,
-	ICMPv6		= 58,	
+	ICMPv6		= 58,
 	NNH		= 59,
 	DOH		= 60,
 	ISO_IP		= 80,
 	IGRP		= 88,
-	OSPF		= 89,	
+	OSPF		= 89,
 
 	Maxhdrtype	= 256,
 };
@@ -98,7 +98,7 @@ enum {
 
 	// 	various flags & constants
 
-	v6MINTU      				= 1280,	
+	v6MINTU      				= 1280,
 	HOP_LIMIT    				= 255,
 	ETHERHDR_LEN 				= 14,
 	IPV6HDR_LEN  				= 40,
@@ -113,7 +113,7 @@ enum {
 	MTU_OPTION       			= 5,
 
 	SRC_UNSPEC  				= 0,
-	SRC_UNI     				= 1, 
+	SRC_UNI     				= 1,
 	TARG_UNI    				= 2,
 	TARG_MULTI  				= 3,
 
@@ -124,7 +124,7 @@ enum {
 	//	Router constants (all times in milliseconds)
 
 	MAX_INITIAL_RTR_ADVERT_INTERVAL 	= 16000,
-	MAX_INITIAL_RTR_ADVERTISEMENTS  	= 3, 
+	MAX_INITIAL_RTR_ADVERTISEMENTS  	= 3,
 	MAX_FINAL_RTR_ADVERTISEMENTS    	= 3,
 	MIN_DELAY_BETWEEN_RAS 			= 3000,
 	MAX_RA_DELAY_TIME     			= 500,
@@ -140,9 +140,9 @@ enum {
 	MAX_MULTICAST_SOLICIT   		= 3,
 	MAX_UNICAST_SOLICIT     		= 3,
 	MAX_ANYCAST_DELAY_TIME  		= 1000,
-	MAX_NEIGHBOR_ADVERTISEMENT 		= 3,	
+	MAX_NEIGHBOR_ADVERTISEMENT 		= 3,
 	REACHABLE_TIME 				= 30000,
-	RETRANS_TIMER  				= 1000,	
+	RETRANS_TIMER  				= 1000,
 	DELAY_FIRST_PROBE_TIME 			= 5000,
 
 };

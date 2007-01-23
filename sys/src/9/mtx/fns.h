@@ -1,5 +1,6 @@
 #include "../port/portfns.h"
 
+ulong	cankaddr(ulong);
 int	cistrcmp(char*, char*);
 int	cistrncmp(char*, char*, int);
 void	clockinit(void);

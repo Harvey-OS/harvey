@@ -4,6 +4,9 @@ rfork e
 path=(/bin)
 builtin cd /
 
+kill consolefs | rc			# don't compete with /mnt/consoles
+sleep 1
+
 f=`{ls /srv/fscons*>[2]/dev/null}
 k=`{ls /srv/kfs*cmd >[2]/dev/null|sort -r}
 
