@@ -82,7 +82,7 @@ ulong
 parseipmask(uchar *to, char *from)
 {
 	ulong x;
-	int i;
+	int i, w;
 	uchar *p;
 
 	if(*from == '/'){
@@ -92,12 +92,21 @@ parseipmask(uchar *to, char *from)
 			i = 0;
 		if(i > 128)
 			i = 128;
+		w = i;
 		memset(to, 0, IPaddrlen);
 		for(p = to; i >= 8; i -= 8)
 			*p++ = 0xff;
 		if(i > 0)
 			*p = ~((1<<(8-i))-1);
 		x = nhgetl(to+IPv4off);
+		/*
+		 * identify as ipv6 if the mask is inexpressible as a v4 mask
+		 * (because it has too few mask bits) or indistinguishable
+		 * from the error value (all ones, -1)?  Arguably, we could
+		 * always return 6 here.
+		 */
+		if (w < 8*(IPaddrlen-IPv4addrlen) || w == 128)
+			return 6;
 	} else {
 		/* as a straight bit mask */
 		x = parseip(to, from);

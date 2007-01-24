@@ -1,27 +1,30 @@
-.TH IP 3 
+.TH IP 3
 .SH NAME
 ip \- network protocols over IP
 .SH SYNOPSIS
 .nf
+.2C
 .B bind -a #I\fIspec\fP /net
 
 .B /net/ipifc
 .B /net/ipifc/clone
 .B /net/ipifc/stats
-.BI /net/ipifc/ n 
+.BI /net/ipifc/ n
 .BI /net/ipifc/ n /status
 .BI /net/ipifc/ n /ctl
 \&...
 
 .B /net/arp
-.B /net/log
-.B /net/ndb
+.B /net/bootp
 .B /net/iproute
 .B /net/ipselftab
+.B /net/log
+.B /net/ndb
 
 .B /net/esp
 .B /net/gre
 .B /net/icmp
+.B /net/icmpv6
 .B /net/il
 .B /net/ipmux
 .B /net/rudp
@@ -30,7 +33,7 @@ ip \- network protocols over IP
 
 .B /net/tcp/clone
 .B /net/tcp/stats
-.BI /net/tcp/ n 
+.BI /net/tcp/ n
 .BI /net/tcp/ n /data
 .BI /net/tcp/ n /ctl
 .BI /net/tcp/ n /local
@@ -38,12 +41,13 @@ ip \- network protocols over IP
 .BI /net/tcp/ n /status
 .BI /net/tcp/ n /listen
 \&...
+.1C
 .fi
 .SH DESCRIPTION
 The IP device provides the interface to Internet protocol stacks.
 .I Spec
 is an integer from 0 to 15 identifying a stack.
-Each stack is physically independent of all others:
+Each stack is independent of all others:
 the only information transfer between them is via programs that
 mount multiple stacks.
 Normally a system uses only one stack.
@@ -55,11 +59,11 @@ All addresses used are 16-byte IPv6 addresses.
 We implement IPv4 and IPv6.
 IPv4 addresses are a subset of the IPv6 addresses and both standard
 .SM ASCII
-formats
-are accepted.  In binary, all v4 addresses start with the
-12 bytes:
+formats are accepted.
+In binary representation, all v4 addresses start with the 12 bytes, in hex:
+.IP
 .EX
-	00 00 00 00 00 00 00 00 00 00 ff ff
+00 00 00 00 00 00 00 00 00 00 ff ff
 .EE
 .SS "Configuring interfaces
 .PP
@@ -90,6 +94,8 @@ alters aspects of the interface.
 The possible
 .I ctl
 messages are:
+.TF "bind loopback"
+.PD
 .TP
 .BI "bind ether " path
 Treat the device mounted at
@@ -350,6 +356,8 @@ three white-space-separated fields: IP address, usage count,
 and flags.  The usage count is the number of interfaces to which
 the address applies.  The flags are the same as for routing
 entries.
+.br
+.ne 3
 .SS "Protocol directories
 .PP
 The
@@ -416,6 +424,8 @@ file (see
 to receive incoming calls.
 .PP
 The following control messages are supported:
+.TF "bind X"
+.PD
 .TP
 .BI connect\  ipaddress ! port "!r " local
 Establish a connection to the remote address
@@ -431,7 +441,7 @@ is not specified but
 .B !r
 is, the system will allocate
 a restricted port number (less than 1024) for the connection to allow communication
-with Unix  
+with Unix
 .B login
 and
 .B exec
@@ -529,7 +539,7 @@ TCP connections are reliable point-to-point byte streams; there are no
 message delimiters.
 A connection is determined by the address and port numbers of the two
 ends.
-TCP 
+TCP
 .B ctl
 files support the following additional messages:
 .TP
@@ -565,20 +575,34 @@ one of the following messages is written to
 .BR ctl ,
 then all messages sent to the announced port
 are received on the announced connection prefixed with the given structure.
+.TP
 .B headers
 .EX
 typedef struct Udphdr Udphdr;
 struct Udphdr
 {
-	uchar	raddr[16];	/* v6 remote address and port */
-	uchar	laddr[16];	/* v6 local address and port */
-	uchar	ifcaddr[16];	/* interface address (receive only) */
-	uchar	rport[2];
-	uchar	lport[2];
+	uchar	raddr[16];	/* V6 remote address and port */
+	uchar	laddr[16];	/* V6 local address and port */
+	uchar	ifcaddr[16];	/* V6 interface address (receive only) */
+	uchar	rport[2];	/* remote port */
+	uchar	lport[2];	/* local port */
+};
+.TP
+.B oldheaders
+.EX
+typedef struct OUdphdr OUdphdr;
+struct OUdphdr
+{
+	uchar	raddr[16];	/* V6 remote address and port */
+	uchar	laddr[16];	/* V6 local address and port */
+	uchar	rport[2];	/* remote port */
+	uchar	lport[2];	/* local port */
 };
 .EE
 .PP
-The only difference in the two is the type of address, IPv4 or IPv6.
+.L oldheaders
+is now considered obsolete and should not be used in new programs.
+.PP
 Before a write, a user must prefix a similar structure to each message.
 The system overrides the user specified local port with the announced
 one.  If the user specifies an address that isn't a unicast address in
@@ -587,7 +611,28 @@ that too is overridden.
 Since the prefixed structure is the same in read and write, it is relatively
 easy to write a server that responds to client requests by just copying new
 data into the message body and then writing back the same buffer that was
-written.
+read.
+.PP
+In this case (writing
+.L headers
+or
+.L noheaders
+to the
+.I ctl
+file),
+no
+.I listen
+nor
+.I accept
+is needed;
+otherwise,
+the usual sequence of
+.IR announce ,
+.IR listen ,
+.I accept
+must be executed before performing I/O on the corresponding
+.I data
+file.
 .SS RUDP
 .PP
 RUDP is a reliable datagram protocol based on UDP.
@@ -599,7 +644,7 @@ One must use either
 or
 .B announce
 followed immediately by
-.B headers .
+.BR headers .
 .PP
 Unlike IL or TCP, the reboot of one end of a connection does
 not force a closing of the connection.  Communications will
@@ -678,6 +723,8 @@ Received packets are checked against their MAC's,
 decrypted, and queued for reading from
 .BR data .
 The control messages are:
+.TF "alg secret"
+.PD
 .TP
 .BI esp\  "alg secret
 Encrypt with the algorithm,
@@ -731,6 +778,8 @@ file are routed to an interface and transmitted.
 A filter is a semicolon-separated list of
 relations.  Each relation describes a portion
 of a packet to match.  The possible relations are:
+.TF "ifc=expr"
+.PD
 .TP
 .BI proto= n
 the IP protocol number must be
@@ -808,25 +857,30 @@ Reading
 returns a list of 19 tagged and new line separated fields representing:
 .EX
 .ft 1
-	forwarding status (0 and 2 mean forwarding off, 1 means on)
-	default TTL
-	input packets
-	input header errors
-	input address errors
-	packets forwarded
-	input packets for unknown protocols
-	input packets discarded
-	input packets delivered to higher level protocols
-	output packets
-	output packets discarded
-	output packets with no route
-	timed out fragments in reassembly queue
-	requested reassemblies
-	successful reassemblies
-	failed reassemblies
-	successful fragmentations
-	unsuccessful fragmentations
-	fragments created
+.2C
+.in +0.25i
+forwarding status (0 and 2 mean forwarding off,
+	1 means on)
+default TTL
+input packets
+input header errors
+input address errors
+packets forwarded
+input packets for unknown protocols
+input packets discarded
+input packets delivered to higher level protocols
+output packets
+output packets discarded
+output packets with no route
+timed out fragments in reassembly queue
+requested reassemblies
+successful reassemblies
+failed reassemblies
+successful fragmentations
+unsuccessful fragmentations
+fragments created
+.in -0.25i
+.1C
 .ft
 .EE
 .PP
@@ -835,32 +889,36 @@ Reading
 returns a list of 25 tagged and new line separated fields representing:
 .EX
 .ft 1
-	messages received 
-	bad received messages
-	unreachables received
-	time exceededs received
-	input parameter problems received
-	source quenches received
-	redirects received
-	echo requests received
-	echo replies received
-	timestamps received
-	timestamp replies received
-	address mask requests received
-	address mask replies received
-	messages sent
-	transmission errors
-	unreachables sent
-	time exceededs sent
-	input parameter problems sent
-	source quenches sent
-	redirects sent
-	echo requests sent
-	echo replies sent
-	timestamps sent
-	timestamp replies sent
-	address mask requests sent
-	address mask replies sent
+.2C
+.in +0.25i
+messages received
+bad received messages
+unreachables received
+time exceededs received
+input parameter problems received
+source quenches received
+redirects received
+echo requests received
+echo replies received
+timestamps received
+timestamp replies received
+address mask requests received
+address mask replies received
+messages sent
+transmission errors
+unreachables sent
+time exceededs sent
+input parameter problems sent
+source quenches sent
+redirects sent
+echo requests sent
+echo replies sent
+timestamps sent
+timestamp replies sent
+address mask requests sent
+address mask replies sent
+.in -0.25i
+.1C
 .EE
 .PP
 Reading
@@ -868,17 +926,21 @@ Reading
 returns a list of 11 tagged and new line separated fields representing:
 .EX
 .ft 1
-	maximum number of connections
-	total outgoing calls
-	total incoming calls
-	number of established connections to be reset
-	number of currently established connections
-	segments received
-	segments sent
-	segments retransmitted
-	retransmit timeouts
-	bad received segments
-	transmission failures
+.2C
+.in +0.25i
+maximum number of connections
+total outgoing calls
+total incoming calls
+number of established connections to be reset
+number of currently established connections
+segments received
+segments sent
+segments retransmitted
+retransmit timeouts
+bad received segments
+transmission failures
+.in -0.25i
+.1C
 .EE
 .PP
 Reading
@@ -886,10 +948,14 @@ Reading
 returns a list of 4 tagged and new line separated fields representing:
 .EX
 .ft 1
-	datagrams received
-	datagrams received for bad ports
-	malformed datagrams received
-	datagrams sent
+.2C
+.in +0.25i
+datagrams received
+datagrams received for bad ports
+malformed datagrams received
+datagrams sent
+.in -0.25i
+.1C
 .EE
 .PP
 Reading
@@ -897,12 +963,16 @@ Reading
 returns a list of 7 tagged and new line separated fields representing:
 .EX
 .ft 1
-	checksum errors
-	header length errors
-	out of order messages
-	retransmitted messages
-	duplicate messages
-	duplicate bytes
+.2C
+.in +0.25i
+checksum errors
+header length errors
+out of order messages
+retransmitted messages
+duplicate messages
+duplicate bytes
+.in -0.25i
+.1C
 .EE
 .PP
 Reading
@@ -910,7 +980,9 @@ Reading
 returns a list of 1 tagged number representing:
 .EX
 .ft 1
-	header length errors
+.in +0.25i
+header length errors
+.in -0.25i
 .EE
 .SH "SEE ALSO"
 .IR listen (8),
