@@ -221,21 +221,17 @@ format(Dir *db, char *name)
 			qwidth, db->qid.vers,
 			db->qid.type);
 	if(Tflag)
-		Bprint(&bin, "%c ", (db->mode&DMTMP) ? 't' : '-');
+		Bprint(&bin, "%c ", (db->mode&DMTMP)? 't': '-');
 
 	if(lflag)
-		Bprint(&bin,
-			Qflag? "%M %C %*ud %*s %s %*llud %s %s\n" : "%M %C %*ud %*s %s %*llud %s %q\n",
+		Bprint(&bin, "%M %C %*ud %*s %s %*llud %s ",
 			db->mode, db->type,
 			vwidth, db->dev,
 			-uwidth, db->uid,
 			db->gid,
-			(int)(glwidth-strlen(db->gid)), db->length,
-			asciitime(uflag? db->atime : db->mtime), name);
-	else
-		Bprint(&bin,
-			Qflag? "%s%s\n" : "%q%s\n",
-			name, fileflag(db));
+			(int)(glwidth - strlen(db->gid)), db->length,
+			asciitime(uflag? db->atime: db->mtime));
+	Bprint(&bin, Qflag? "%s%s\n": "%q%s\n", name, fileflag(db));
 }
 
 void
@@ -248,7 +244,7 @@ growto(long n)
 	if(dirbuf == 0){
 		fprint(2, "ls: malloc fail\n");
 		exits("malloc fail");
-	}		
+	}
 }
 
 int
@@ -312,7 +308,7 @@ char*
 xcleanname(char *name)
 {
 	char *r, *w;
-	
+
 	for(r=w=name; *r; r++){
 		if(*r=='/' && r>name && *(r-1)=='/')
 			continue;
