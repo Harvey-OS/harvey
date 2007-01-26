@@ -4161,3 +4161,4 @@ In the land of the clueless, the man with half an idea is king.  - Todd Robbins
 Chebyshev said it, and I say it again / There is always a prime between n and 2n.  - Paul Erdös
 Using Linux is like rediscovering your childhood and realising it really was pretty miserable.  - jmk
 remove is identical to install except that packages are removed instead of installed. If a plus sign is appended to the package name (with no intervening space), the identified package will be installed instead of removed.  - apt-get(8)
+I guess the idea is that ... even though the structures are all different. Everythings fine, dont worry, lie back and think of England. ... I think we can call it Pollyanna-morphism. -- Ron Minnich on Python libraries.
