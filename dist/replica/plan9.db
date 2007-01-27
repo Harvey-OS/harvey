@@ -7760,7 +7760,7 @@ sys/man/8/secstore - 664 sys sys 1105016705 1954
 sys/man/8/securenet - 664 sys sys 954305552 3160
 sys/man/8/send - 664 sys sys 1045501634 2168
 sys/man/8/smtp - 664 sys sys 1147439305 4499
-sys/man/8/snoopy - 664 sys sys 1146318297 4288
+sys/man/8/snoopy - 664 sys sys 1169851832 4442
 sys/man/8/stats - 664 sys sys 1161483511 4336
 sys/man/8/statusbar - 664 sys sys 1159419702 1254
 sys/man/8/stub - 664 sys sys 1044830500 943
