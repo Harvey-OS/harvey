@@ -17,7 +17,7 @@ snoopy \- spy on network packets
 ] [
 .B -h first-header
 ] [
-packet-file
+packet-source
 ]
 .PP
 .B snoopy
@@ -28,12 +28,22 @@ packet-file
 .SH DESCRIPTION
 .PP
 .I Snoopy
-reads packets from a packet source (default
+reads packets from a
+.I packet-source
+(default
 .BR /net/ether0 ),
 matches them to a filter (by default anything matches), and writes
 matching packets to standard output either in human readable form (default)
-or in a binary trace format that can be reinput to
+or in a binary trace format that can be later read by
 .IR snoopy .
+.I Packet-source
+can be the name of an Ethernet
+(e.g.,
+.BR /net/ether0 ),
+an interface
+(e.g.,
+.BR /net/ipifc/0 ),
+or a file of captured packets.
 .PP
 The human readable format consists of multiple lines per packet.
 The first line contains the milliseconds since the
@@ -194,7 +204,7 @@ later display those to/from TCP port 80:
 .EE
 .SH FILES
 .TP
-.B /net/ether
+.B /net/ether0
 Ethernet device
 .SH SOURCE
 .B /sys/src/cmd/ip/snoopy
