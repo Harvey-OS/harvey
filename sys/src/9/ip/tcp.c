@@ -2841,8 +2841,7 @@ int
 addreseq(Tcpctl *tcb, Tcppriv *tpriv, Tcp *seg, Block *bp, ushort length)
 {
 	Reseq *rp, *rp1;
-	int i, rqlen;
-	static int once;
+	int i, rqlen, qmax;
 
 	rp = malloc(sizeof(Reseq));
 	if(rp == nil){
@@ -2876,12 +2875,29 @@ addreseq(Tcpctl *tcb, Tcppriv *tpriv, Tcp *seg, Block *bp, ushort length)
 		}
 		rp1 = rp1->next;
 	}
-	if(rqlen > QMAX && once++ == 0){
-		print("very long tcp resequence queue: %d\n", rqlen);
-		for(rp1 = tcb->reseq, i = 0; i < 10 && rp1 != nil; rp1 = rp1->next, i++)
-			print("0x%lux 0x%lux 0x%ux\n", rp1->seg.seq, rp1->seg.ack,
-				rp1->seg.flags);
-		return -1;
+	qmax = QMAX<<tcb->rcv.scale;
+	if(rqlen > qmax){
+		print("resequence queue > window: %d > %d\n", rqlen, qmax);
+		i = 0;
+	  	for(rp1 = tcb->reseq; rp1 != nil; rp1 = rp1->next){
+	  		print("%#lux %#lux %#ux\n", rp1->seg.seq,
+	  			rp1->seg.ack, rp1->seg.flags);
+			if(i++ > 10){
+				print("...\n");
+				break;
+			}
+		}
+
+		// delete entire reassembly queue; wait for retransmit.
+		// - should we be smarter and only delete the tail?
+		for(rp = tcb->reseq; rp != nil; rp = rp1){
+			rp1 = rp->next;
+			freeblist(rp->bp);
+			free(rp);
+		}
+		tcb->reseq = nil;
+
+	  	return -1;
 	}
 	return 0;
 }
