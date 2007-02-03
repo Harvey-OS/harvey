@@ -1195,7 +1195,7 @@ planar=1280x1024
 	vrs=1072 vre=1073 vt=1075
 
 #
-# Samsung 213T
+# Samsung 213T and 214T flat panels
 #
 213t=1600x1200
 	defaultclock=162

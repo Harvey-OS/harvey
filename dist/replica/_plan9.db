@@ -5222,7 +5222,7 @@ lib/tftpd - 20000000775 sys sys 1020895767 0
 lib/unicode - 664 sys sys 958440028 223312
 lib/unicode.notice - 664 sys sys 958504386 1398
 lib/units - 664 sys sys 1071415518 9997
-lib/vgadb - 664 sys sys 1145484293 30282
+lib/vgadb - 664 sys sys 1170456084 30303
 lib/volcanoes - 664 sys sys 944944024 119831
 lib/words - 664 sys sys 1014923442 247097
 lp - 20000000775 sys sys 1079376135 0
@@ -8042,7 +8042,7 @@ sys/src/9/pc/realmode.c - 664 sys sys 1139667044 2678
 sys/src/9/pc/rebootcode.s - 664 sys sys 1015014522 988
 sys/src/9/pc/screen.c - 664 sys sys 1136336092 13971
 sys/src/9/pc/screen.h - 664 sys sys 1147023549 4256
-sys/src/9/pc/sd53c8xx.c - 664 sys sys 1167774852 55161
+sys/src/9/pc/sd53c8xx.c - 664 sys sys 1170456695 55276
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
 sys/src/9/pc/sdata.c - 664 sys sys 1167774860 52718
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1167774867 25865
@@ -8054,7 +8054,7 @@ sys/src/9/pc/uarti8250.c - 664 sys sys 1102820421 13958
 sys/src/9/pc/uartisa.c - 664 sys sys 1127126907 1777
 sys/src/9/pc/uartpci.c - 664 sys sys 1162859151 3617
 sys/src/9/pc/usb.h - 664 sys sys 1165555430 4257
-sys/src/9/pc/usbuhci.c - 664 sys sys 1168306432 31047
+sys/src/9/pc/usbuhci.c - 664 sys sys 1170456715 31131
 sys/src/9/pc/vga.c - 664 sys sys 1131290595 5148
 sys/src/9/pc/vga3dfx.c - 664 sys sys 1133218367 3833
 sys/src/9/pc/vgaark2000pv.c - 664 sys sys 1131290600 3422
@@ -8087,12 +8087,12 @@ sys/src/9/port/alarm.c - 664 sys sys 1134042902 1425
 sys/src/9/port/alloc.c - 664 sys sys 1138459977 5704
 sys/src/9/port/allocb.c - 664 sys sys 1123676437 3340
 sys/src/9/port/auth.c - 664 sys sys 1123647282 2392
-sys/src/9/port/cache.c - 664 sys sys 1126586168 9241
+sys/src/9/port/cache.c - 664 sys sys 1170456667 9285
 sys/src/9/port/chan.c - 664 sys sys 1146151714 34773
 sys/src/9/port/cis.c - 664 sys sys 1099761153 9248
 sys/src/9/port/debugalloc.c - 664 sys sys 1014931171 10402
 sys/src/9/port/dev.c - 664 sys sys 1146151714 8177
-sys/src/9/port/devaudio.c - 664 sys sys 1142086793 21147
+sys/src/9/port/devaudio.c - 664 sys sys 1170456648 21199
 sys/src/9/port/devbridge.c - 664 sys sys 1055688301 24308
 sys/src/9/port/devcap.c - 664 sys sys 1168304142 4128
 sys/src/9/port/devcons.c - 664 sys sys 1168304164 23127
@@ -8117,7 +8117,7 @@ sys/src/9/port/devsrv.c - 664 sys sys 1165810571 5711
 sys/src/9/port/devssl.c - 664 sys sys 1146151714 26121
 sys/src/9/port/devtinyfs.c - 664 sys sys 1015278339 15347
 sys/src/9/port/devtls.c - 664 sys sys 1146151715 45214
-sys/src/9/port/devuart.c - 664 sys sys 1159822860 12193
+sys/src/9/port/devuart.c - 664 sys sys 1170456620 12262
 sys/src/9/port/devwd.c - 664 sys sys 1126582325 2342
 sys/src/9/port/edf.c - 664 sys sys 1138472540 13489
 sys/src/9/port/edf.h - 664 sys sys 1138469072 1195
@@ -8142,7 +8142,7 @@ sys/src/9/port/mkrootall - 775 sys sys 1055954696 386
 sys/src/9/port/mkrootc - 775 sys sys 1055954695 717
 sys/src/9/port/mksystab - 664 sys sys 1014931176 783
 sys/src/9/port/mul64fract.c - 664 sys sys 1071671674 867
-sys/src/9/port/netif.c - 664 sys sys 1066514951 13421
+sys/src/9/port/netif.c - 664 sys sys 1170456606 13474
 sys/src/9/port/netif.h - 664 sys sys 1066514947 2975
 sys/src/9/port/page.c - 664 sys sys 1131636090 11128
 sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
@@ -8158,7 +8158,7 @@ sys/src/9/port/qlock.c - 664 sys sys 1139666988 3200
 sys/src/9/port/rdb.c - 664 sys sys 1018721202 1698
 sys/src/9/port/rebootcmd.c - 664 sys sys 1015278340 1561
 sys/src/9/port/sd.h - 664 sys sys 1134411408 2494
-sys/src/9/port/segment.c - 664 sys sys 1143129964 13992
+sys/src/9/port/segment.c - 664 sys sys 1170456581 14052
 sys/src/9/port/semaphore.p - 664 sys sys 1143129797 2424
 sys/src/9/port/swap.c - 664 sys sys 1138028310 7019
 sys/src/9/port/sysfile.c - 664 sys sys 1141940070 22192

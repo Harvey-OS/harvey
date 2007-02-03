@@ -45,6 +45,8 @@ initseg(void)
 	Image *i, *ie;
 
 	imagealloc.free = xalloc(conf.nimage*sizeof(Image));
+	if (imagealloc.free == nil)
+		panic("initseg: no memory");
 	ie = &imagealloc.free[conf.nimage-1];
 	for(i = imagealloc.free; i < ie; i++)
 		i->next = i+1;

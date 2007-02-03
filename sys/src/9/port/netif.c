@@ -22,6 +22,8 @@ netifinit(Netif *nif, char *name, int nfile, ulong limit)
 	nif->name[KNAMELEN-1] = 0;
 	nif->nfile = nfile;
 	nif->f = xalloc(nfile*sizeof(Netfile*));
+	if (nif->f == nil)
+		panic("netifinit: no memory");
 	memset(nif->f, 0, nfile*sizeof(Netfile*));
 	nif->limit = limit;
 }

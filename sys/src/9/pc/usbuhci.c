@@ -1529,6 +1529,8 @@ reset(Usbhost *uh)
 
 	ctlr->frames = xspanalloc(FRAMESIZE, FRAMESIZE, 0);
 	ctlr->frameld = xallocz(FRAMESIZE, 1);
+	if (ctlr->frames == nil || ctlr->frameld == nil)
+		panic("uhci reset: no memory");
 	for (i = 0; i < NFRAME; i++)
 		ctlr->frames[i] = PCIWADDR(ctlr->ctlq) | IsQH;
 

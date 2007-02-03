@@ -404,6 +404,8 @@ dsaallocnew(Controller *c)
 	
 	/* c->dsalist must be ilocked */
 	d = xalloc(sizeof *d);
+	if (d == nil)
+		panic("sd53c8xx dsaallocnew: no memory");
 	lesetl(d->next, legetl(c->dsalist.head));
 	lesetl(&d->stateb, A_STATE_FREE);
 	coherence();
@@ -2171,6 +2173,8 @@ buggery:
 
 		if(dsaend == nil)
 			dsaend = xalloc(sizeof *dsaend);
+		if(dsaend == nil)
+			panic("sd53c8xxpnp: no memory");
 		lesetl(&dsaend->stateb, A_STATE_END);
 	//	lesetl(dsaend->next, DMASEG(dsaend));
 		coherence();

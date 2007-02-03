@@ -47451,3 +47451,11 @@
 1169852405 0 c sys/man/8/snoopy - 664 sys sys 1169851832 4442
 1169933406 0 c sys/man/1/acme - 664 sys sys 1169932614 18550
 1170032406 0 c sys/src/9/ip/tcp.c - 664 sys sys 1170031827 65877
+1170457207 0 c lib/vgadb - 664 sys sys 1170456084 30303
+1170457207 1 c sys/src/9/pc/sd53c8xx.c - 664 sys sys 1170456695 55276
+1170457207 2 c sys/src/9/pc/usbuhci.c - 664 sys sys 1170456715 31131
+1170457207 3 c sys/src/9/port/cache.c - 664 sys sys 1170456667 9285
+1170457207 4 c sys/src/9/port/devaudio.c - 664 sys sys 1170456648 21199
+1170457207 5 c sys/src/9/port/devuart.c - 664 sys sys 1170456620 12262
+1170457207 6 c sys/src/9/port/netif.c - 664 sys sys 1170456606 13474
+1170457207 7 c sys/src/9/port/segment.c - 664 sys sys 1170456581 14052

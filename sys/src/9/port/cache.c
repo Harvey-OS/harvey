@@ -109,6 +109,8 @@ cinit(void)
 
 	cache.head = xalloc(sizeof(Mntcache)*NFILE);
 	m = cache.head;
+	if (m == nil)
+		panic("cinit: no memory");
 
 	/* a better algorithm would be nice */
 //	if(conf.npage*BY2PG > 200*MB)
