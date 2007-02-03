@@ -186,6 +186,8 @@ uartreset(void)
 
 	uartndir = 1 + 3*uartnuart;
 	uartdir = xalloc(uartndir * sizeof(Dirtab));
+	if (uart == nil || uartdir == nil)
+		panic("uartreset: no memory");
 	dp = uartdir;
 	strcpy(dp->name, ".");
 	mkqid(&dp->qid, 0, 0, QTDIR);

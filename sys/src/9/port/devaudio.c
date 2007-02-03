@@ -617,7 +617,10 @@ sbbufinit(void)
 	int i;
 	uchar *p;
 
-	p = (uchar*)(((ulong)xalloc((Nbuf+1) * Bufsize) + Bufsize-1)&~(Bufsize-1));
+	p = (uchar*)(((ulong)xalloc((Nbuf+1) * Bufsize) + Bufsize-1) &
+		~(Bufsize-1));
+	if (p == nil)
+		panic("sbbufinit: no memory");
 	for(i=0; i<Nbuf; i++) {
 		dcflush(p, Bufsize);
 		audio.buf[i].virt = UNCACHED(uchar, p);
