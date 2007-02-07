@@ -9,7 +9,7 @@ aliasmail \-  expand system wide mail aliases
 .I Aliasmail 
 expands mail aliases, its arguments, according to alias files.
 .I Aliasmail
-is normally invoked by a rule in in the
+is normally invoked by a rule in the
 upas rewrite file,
 .IR rewrite (6).
 .PP
