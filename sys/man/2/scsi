@@ -1,6 +1,6 @@
 .TH SCSI 2
 .SH NAME
-openscsi, scsiready, scsi, scsicmd, scsierror \- SCSI device operations
+openscsi, closescsi, scsiready, scsi, scsicmd, scsierror \- SCSI device operations
 .SH SYNOPSIS
 .nf
 .ft L
@@ -27,12 +27,12 @@ void  closescsi(Scsi *s)
 .B
 int   scsiready(Scsi *s)
 .PP
-.B
+.ft L
 int   scsi(Scsi *s, uchar *cmd, int ncmd,
 .br
                     void *data, int ndata, int dir)
 .PP
-.B
+.ft L
 int   scsicmd(Scsi *s, uchar *cmd, int ncmd,
 .br
                     void *data, int ndata, int dir)
@@ -52,7 +52,9 @@ attempts to open the file
 .IB devdir /raw
 and use it to send raw SCSI commands.
 On success, it reads the device's inquiry
-string and stores it in in returned
+string and stores it in
+.I inquire
+in the returned
 .B Scsi
 structure.
 .I Closescsi
