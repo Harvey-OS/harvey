@@ -563,7 +563,7 @@
 386/lib/libmach.a - 664 sys sys 1168402369 785352
 386/lib/libmemdraw.a - 664 sys sys 1168402369 284092
 386/lib/libmemlayer.a - 664 sys sys 1168402369 47360
-386/lib/libmp.a - 664 sys sys 1170819576 77258
+386/lib/libmp.a - 664 sys sys 1170879862 79978
 386/lib/libndb.a - 664 sys sys 1168402370 64470
 386/lib/libplumb.a - 664 sys sys 1168402370 19408
 386/lib/libregexp.a - 664 sys sys 1168402370 37438
@@ -7544,7 +7544,7 @@ sys/man/2/rsa - 664 sys sys 1165622556 4260
 sys/man/2/rune - 664 sys sys 1143079849 3086
 sys/man/2/runestrcat - 664 sys sys 969499889 1086
 sys/man/2/scribble - 664 sys sys 985638584 3847
-sys/man/2/scsi - 664 sys sys 969499889 3171
+sys/man/2/scsi - 664 sys sys 1170885103 3203
 sys/man/2/sechash - 664 sys sys 1046042040 3016
 sys/man/2/seek - 664 sys sys 944959696 671
 sys/man/2/segattach - 664 sys sys 1135487945 4166
