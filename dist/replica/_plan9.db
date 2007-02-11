@@ -7437,7 +7437,7 @@ sys/man/2/arg - 664 sys sys 1139744263 2184
 sys/man/2/arith3 - 664 sys sys 1162102967 4393
 sys/man/2/assert - 664 sys sys 1102868467 377
 sys/man/2/atof - 664 sys sys 1155361945 2777
-sys/man/2/auth - 664 sys sys 1017423719 7539
+sys/man/2/auth - 664 sys sys 1171094909 7540
 sys/man/2/authsrv - 664 sys sys 1055734550 4145
 sys/man/2/bin - 664 sys sys 985023077 1880
 sys/man/2/bind - 664 sys sys 1015091518 4685
