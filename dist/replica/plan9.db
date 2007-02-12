@@ -5654,7 +5654,7 @@ sys/doc/fs - 20000000775 sys sys 1140157585 0
 sys/doc/fs/fs.pdf - 664 sys sys 1140157478 64965
 sys/doc/fs/fs.ps - 664 sys sys 1140157389 298023
 sys/doc/fs/mkfile - 664 sys sys 1140157064 366
-sys/doc/fs/p0 - 664 sys sys 1138445459 1677
+sys/doc/fs/p0 - 664 sys sys 1171176657 1716
 sys/doc/fs/p1 - 664 sys sys 1094002291 800
 sys/doc/fs/p2 - 664 sys sys 1094112719 3775
 sys/doc/fs/p3 - 664 sys sys 944959592 1475
@@ -5763,7 +5763,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1170942702 262875
+sys/games/lib/fortunes - 664 sys sys 1171231680 263238
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
