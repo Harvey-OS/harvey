@@ -22,11 +22,14 @@ ken@plan9.bell-labs.com
 \l'4i'
 .br
 * now
-.CW ken@entrisphere.com
+.\" .CW ken@entrisphere.com
+.CW ken@google.com
 .FE
 .AU
 Geoff Collyer
-.CW geoff@collyer.net
+.CW geoff@plan9.bell-labs.com
+.AI
+.MH
 .AB
 This paper is a revision of Thompson's
 .I "The Plan 9 File Server" ,
