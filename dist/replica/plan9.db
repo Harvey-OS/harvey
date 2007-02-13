@@ -8046,7 +8046,7 @@ sys/src/9/pc/sd53c8xx.c - 664 sys sys 1170456695 55276
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
 sys/src/9/pc/sdata.c - 664 sys sys 1167774860 52718
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1167774867 25865
-sys/src/9/pc/sdmylex.c - 664 sys sys 1167774835 27902
+sys/src/9/pc/sdmylex.c - 664 sys sys 1171321627 28237
 sys/src/9/pc/sdscsi.c - 664 sys sys 1158889425 7241
 sys/src/9/pc/trap.c - 664 sys sys 1168306369 21848
 sys/src/9/pc/uartaxp.c - 664 sys sys 1166247784 18879
