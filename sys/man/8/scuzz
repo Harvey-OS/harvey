@@ -354,11 +354,11 @@ Medium Changer Commands (SMC) Specification for details of arguments.
 .B einit
 Initialize element status.
 .TP
-.BI estatus type [ length ]
+.BI "estatus " "type " [ length ]
 Report the status of the internal elements.
 Type 0 reports all element types.
 .TP
-.BI mmove transport\ source\ destination [ invert ]
+.BI "mmove " transport\ source\ destination [ invert ]
 Move medium.
 .SH FILES
 .TF /dev/sdXX/raw
