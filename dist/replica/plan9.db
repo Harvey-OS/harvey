@@ -7755,7 +7755,7 @@ sys/man/8/reboot - 664 sys sys 1162423006 443
 sys/man/8/replica - 664 sys sys 1138479158 6383
 sys/man/8/rsa - 664 sys sys 1057955511 4628
 sys/man/8/scanmail - 664 sys sys 969499895 10803
-sys/man/8/scuzz - 664 sys sys 1158891790 8692
+sys/man/8/scuzz - 664 sys sys 1171566796 8701
 sys/man/8/secstore - 664 sys sys 1105016705 1954
 sys/man/8/securenet - 664 sys sys 954305552 3160
 sys/man/8/send - 664 sys sys 1045501634 2168
