@@ -653,7 +653,15 @@ vunmap(void *v, int size)
 	/*
 	 * Flush mapping from all the tlbs and copied pdbs.
 	 * This can be (and is) slow, since it is called only rarely.
+	 * It is possible for vunmap to be called with up == nil,
+	 * e.g. from the reset/init driver routines during system
+	 * boot. In that case it suffices to flush the MACH(0) TLB
+	 * and return.
 	 */
+	if(!active.thunderbirdsarego){
+		putcr3(PADDR(MACHP(0)->pdb));
+		return;
+	}
 	for(i=0; i<conf.nproc; i++){
 		p = proctab(i);
 		if(p->state == Dead)

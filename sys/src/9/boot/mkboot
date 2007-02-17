@@ -88,7 +88,7 @@ awk '
 
 #
 #  configure in a cache file system if a 
-# /386/bin/root appears in the rootdir section.
+# /386/bin/root appears in the bootdir section.
 #
 ../port/mkextract bootdir 0 $* | awk '
 	BEGIN			{ cfs = 0 }
