@@ -36,7 +36,7 @@ vlong	strtoll(char *nptr, char **rptr, int base)
 ulong	strtoul(char *nptr, char **rptr, int base)
 .PP
 .B
-vlong	strtoull(char *nptr, char **rptr, int base)
+uvlong	strtoull(char *nptr, char **rptr, int base)
 .fi
 .SH DESCRIPTION
 .IR Atof ,

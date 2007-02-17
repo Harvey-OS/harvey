@@ -7436,7 +7436,7 @@ sys/man/2/allocimage - 664 sys sys 1046787977 7304
 sys/man/2/arg - 664 sys sys 1139744263 2184
 sys/man/2/arith3 - 664 sys sys 1162102967 4393
 sys/man/2/assert - 664 sys sys 1102868467 377
-sys/man/2/atof - 664 sys sys 1155361945 2777
+sys/man/2/atof - 664 sys sys 1171668702 2778
 sys/man/2/auth - 664 sys sys 1171094909 7540
 sys/man/2/authsrv - 664 sys sys 1055734550 4145
 sys/man/2/bin - 664 sys sys 985023077 1880
@@ -7885,7 +7885,7 @@ sys/src/9/boot/embed.c - 664 sys sys 1039763720 1191
 sys/src/9/boot/getpasswd.c - 664 sys sys 957373373 654
 sys/src/9/boot/libboot.a8 - 664 sys sys 1161222921 66452
 sys/src/9/boot/local.c - 664 sys sys 1107436091 5619
-sys/src/9/boot/mkboot - 775 sys sys 1045504382 1935
+sys/src/9/boot/mkboot - 775 sys sys 1171608307 1935
 sys/src/9/boot/nopsession.c - 664 sys sys 957373374 843
 sys/src/9/boot/paq.c - 664 sys sys 1067722601 1099
 sys/src/9/boot/printstub.c - 664 sys sys 1091732792 169
