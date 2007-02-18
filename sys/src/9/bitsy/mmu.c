@@ -326,6 +326,23 @@ mmu_kaddr(ulong pa)
 }
 
 /*
+ * Return the number of bytes that can be accessed via KADDR(pa).
+ * If pa is not a valid argument to KADDR, return 0.
+ */
+ulong
+cankaddr(ulong pa)
+{
+	/*
+	 * Is this enough?
+	 * We'll find out if anyone still has one
+	 * of these...
+	 */
+	if(pa >= PHYSDRAM0 && pa <= PHYSDRAM0+(DRAMTOP-DRAMZERO))
+		return PHYSDRAM0+(DRAMTOP-DRAMZERO) - pa;
+	return 0;
+}
+
+/*
  *  table to map fault.c bits to physical bits
  */
 static ulong mmubits[16] =

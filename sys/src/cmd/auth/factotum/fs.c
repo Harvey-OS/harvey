@@ -150,8 +150,10 @@ main(int argc, char **argv)
 			fprint(2, "factotum warning: cannot add nvram key: %r\n");
 		if(secstorepw != nil)
 			trysecstore = 1;
-		memset(s, 0, strlen(s));
-		free(s);
+		if (s != nil) {
+			memset(s, 0, strlen(s));
+			free(s);
+		}
 	} else if(uflag)
 		promptforhostowner();
 	owner = getuser();

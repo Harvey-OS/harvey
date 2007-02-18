@@ -293,9 +293,8 @@ resetsuspendtimer(void)
 static void
 suspendtimer(void)
 {
+#ifdef notdef
 	uvlong	now;
-
-	return;	// does not work well.
 
 	if (suspendtime > 0)
 		suspendtime--;
@@ -310,6 +309,7 @@ suspendtimer(void)
 		lastsuspend = seconds();
 		return;
 	}
+#endif /* notdef */
 }
 
 void

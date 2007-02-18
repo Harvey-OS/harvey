@@ -300,29 +300,22 @@ w_read(Ctlr* ctlr, int type, int off, void* buf, ulong len)
 static int
 w_write(Ctlr* ctlr, int type, int off, void* buf, ulong len)
 {
-	int tries;
-
-	for (tries=0; tries < WTmOut; tries++){
-		if(w_seek(ctlr, type, off, 0)){
-			DEBUG("wavelan: w_write: seek failed\n");
-			return 0;
-		}
-
-		csr_outss(ctlr, WR_Data0, buf, len/2);
-
-		csr_outs(ctlr, WR_Data0, 0xdead);
-		csr_outs(ctlr, WR_Data0, 0xbeef);
-		if(w_seek(ctlr, type, off + len, 0)){
-			DEBUG("wavelan: write seek failed\n");
-			return 0;
-		}
-		if(csr_ins(ctlr, WR_Data0) == 0xdead)
-		if(csr_ins(ctlr, WR_Data0) == 0xbeef)
-			return len;
-		DEBUG("wavelan: Hermes bug byte.\n");
+	if(w_seek(ctlr, type, off, 0)){
+		DEBUG("wavelan: w_write: seek failed\n");
 		return 0;
 	}
-	DEBUG("wavelan: tx timeout\n");
+
+	csr_outss(ctlr, WR_Data0, buf, len/2);
+	csr_outs(ctlr, WR_Data0, 0xdead);
+	csr_outs(ctlr, WR_Data0, 0xbeef);
+	if(w_seek(ctlr, type, off + len, 0)){
+		DEBUG("wavelan: write seek failed\n");
+		return 0;
+	}
+	if(csr_ins(ctlr, WR_Data0) == 0xdead && csr_ins(ctlr, WR_Data0) == 0xbeef)
+		return len;
+
+	DEBUG("wavelan: Hermes bug byte.\n");
 	return 0;
 }
 
