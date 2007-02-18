@@ -273,9 +273,11 @@ p9skwrite(Fsstate *fss, void *a, uint n)
 
 		convM2T(tbuf, &s->t, (char*)s->key->priv);
 		if(s->t.num != AuthTc){
-			disablekey(s->key);
+			if(s->key->successes == 0)
+				disablekey(s->key);
 			if(askforkeys){
-				snprint(fss->keyinfo, sizeof fss->keyinfo, "%A %s", attr, p9sk1.keyprompt);
+				snprint(fss->keyinfo, sizeof fss->keyinfo,
+					"%A %s", attr, p9sk1.keyprompt);
 				_freeattr(attr);
 				return RpcNeedkey;
 			}else{
@@ -283,6 +285,7 @@ p9skwrite(Fsstate *fss, void *a, uint n)
 				return failure(fss, Ebadkey);
 			}
 		}
+		s->key->successes++;
 		_freeattr(attr);
 		memmove(s->tbuf, tbuf+TICKETLEN, TICKETLEN);
 

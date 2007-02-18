@@ -318,10 +318,12 @@ doreply(State *s, void *reply, int nreply)
 	convM2T(ticket, &s->t, s->key->priv);
 	if(s->t.num != AuthTs
 	|| memcmp(s->t.chal, s->tr.chal, sizeof(s->t.chal)) != 0){
-		disablekey(s->key);
+		if(s->key->successes == 0)
+			disablekey(s->key);
 		werrstr(Easproto);
 		return -1;
 	}
+	s->key->successes++;
 	convM2A(ticket+TICKETLEN, &a, s->t.key);
 	if(a.num != AuthAc
 	|| memcmp(a.chal, s->tr.chal, sizeof(a.chal)) != 0

@@ -106,21 +106,26 @@ and 1 otherwise.
 .PP
 .I Readnvram
 reads authentication information into the structure:
+.PP
 .EX
 .ta 4n +4n +8n +4n +4n +4n +4n
-	struct Nvrsafe
-	{
-		char	machkey[DESKEYLEN];
-		uchar	machsum;
-		char	authkey[DESKEYLEN];
-		uchar	authsum;
-		char	config[CONFIGLEN];
-		uchar	configsum;
-		char	authid[ANAMELEN];
-		uchar	authidsum;
-		char	authdom[DOMLEN];
-		uchar	authdomsum;
-	};
+struct Nvrsafe
+{
+	char	machkey[DESKEYLEN];	/* was file server's authid's des key */
+	uchar	machsum;
+	char	authkey[DESKEYLEN];	/* authid's des key from password */
+	uchar	authsum;
+	/*
+	 * file server config string of device holding full configuration;
+	 * secstore key on non-file-servers.
+	 */
+	char	config[CONFIGLEN];
+	uchar	configsum;
+	char	authid[ANAMELEN];	/* auth userid, e.g., bootes */
+	uchar	authidsum;
+	char	authdom[DOMLEN]; /* auth domain, e.g., cs.bell-labs.com */
+	uchar	authdomsum;
+};
 .EE
 .PP
 On Sparc, MIPS, and SGI machines this information is
@@ -181,6 +186,14 @@ is
 will prompt for new values on
 .B #c/cons
 and then write them back to the storage area.
+If
+.I flag
+is
+.BR NVwritemem ,
+.I readnvram
+will write the values in
+.I *nv
+back to the storage area.
 .PP
 .IR ConvT2M ,
 .IR convA2M ,

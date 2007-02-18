@@ -50,8 +50,9 @@ so that value should not be used in normal communication.
 .SH SOURCE
 .B /sys/src/libc/9syscall
 .SH SEE ALSO
-.IR segattach (2),
-.IR fork (2)
+.IR fork (2),
+.IR lock (2),
+.IR segattach (2)
 .SH DIAGNOSTICS
 Sets
 .IR errstr .

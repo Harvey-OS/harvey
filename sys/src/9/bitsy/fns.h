@@ -7,6 +7,7 @@ void	cacheflush(void);
 void	cachewb(void);
 void	cachewbaddr(void*);
 void	cachewbregion(ulong, int);
+ulong	cankaddr(ulong);
 void	dcacheinvalidate(void);
 int	cistrcmp(char*, char*);
 int	cistrncmp(char*, char*, int);

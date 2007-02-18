@@ -292,9 +292,11 @@ p9crwrite(Fsstate *fss, void *va, uint n)
 		convM2T(tbuf, &s->t, s->key->priv);
 		if(s->t.num != AuthTs
 		|| memcmp(s->t.chal, s->tr.chal, sizeof(s->t.chal)) != 0){
-			disablekey(s->key);
+			if (s->key->successes == 0)
+				disablekey(s->key);
 			return failure(fss, Easproto);
 		}
+		s->key->successes++;
 		convM2A(tbuf+TICKETLEN, &a, s->t.key);
 		if(a.num != AuthAc
 		|| memcmp(a.chal, s->tr.chal, sizeof(a.chal)) != 0

@@ -121,29 +121,25 @@ readcons(char *prompt, char *def, int raw, char *buf, int nbuf)
 	}
 }
 
+typedef struct {
+	int	fd;
+	int	safeoff;
+	int	safelen;
+} Nvrwhere;
 
-/*
- *  get key info out of nvram.  since there isn't room in the PC's nvram use
- *  a disk partition there.
- */
-int
-readnvram(Nvrsafe *safep, int flag)
+/* returns with *locp filled in and locp->fd open, if possible */
+static void
+findnvram(Nvrwhere *locp)
 {
-	char buf[1024], in[128], *cputype, *nvrfile, *nvrlen, *nvroff, *v[2];
-	int fd, err, i, safeoff, safelen;
-	Nvrsafe *safe;
-
-	err = 0;
-	memset(safep, 0, sizeof(*safep));
+	char *cputype, *nvrfile, *nvrlen, *nvroff, *v[2];
+	int fd, i, safeoff, safelen;
 
 	nvrfile = getenv("nvram");
 	cputype = getenv("cputype");
 	if(cputype == nil)
-		cputype = "mips";
+		cputype = strdup("mips");
 	if(strcmp(cputype, "386")==0 || strcmp(cputype, "alpha")==0)
-		cputype = "pc";
-
-	safe = (Nvrsafe*)buf;
+		cputype = strdup("pc");
 
 	fd = -1;
 	safeoff = -1;
@@ -159,26 +155,23 @@ readnvram(Nvrsafe *safep, int flag)
 		if(nvrlen != nil)
 			safelen = atoi(nvrlen);
 		nvroff = getenv("nvroff");
-		if(nvroff != nil){
+		if(nvroff != nil)
 			if(strcmp(nvroff, "dos") == 0)
 				safeoff = -1;
 			else
 				safeoff = atoi(nvroff);
-		}
 		if(safeoff < 0 && fd >= 0){
 			safelen = 512;
-			safeoff = finddosfile(fd, i == 2 ? v[1] : "plan9.nvr");
-			if(safeoff < 0){
+			safeoff = finddosfile(fd, i == 2? v[1]: "plan9.nvr");
+			if(safeoff < 0){	/* didn't find plan9.nvr? */
 				close(fd);
 				fd = -1;
 			}
 		}
+		free(nvroff);
+		free(nvrlen);
 		free(nvrfile);
-		if(nvrlen != nil)
-			free(nvrlen);
-		if(nvroff != nil)
-			free(nvroff);
-	}else{
+	}else
 		for(i=0; i<nelem(nvtab); i++){
 			if(strcmp(cputype, nvtab[i].cputype) != 0)
 				continue;
@@ -188,7 +181,7 @@ readnvram(Nvrsafe *safep, int flag)
 			safelen = nvtab[i].len;
 			if(safeoff == -1){
 				safeoff = finddosfile(fd, "plan9.nvr");
-				if(safeoff < 0){
+				if(safeoff < 0){  /* didn't find plan9.nvr? */
 					close(fd);
 					fd = -1;
 					continue;
@@ -196,60 +189,109 @@ readnvram(Nvrsafe *safep, int flag)
 			}
 			break;
 		}
+	free(cputype);
+	locp->fd = fd;
+	locp->safelen = safelen;
+	locp->safeoff = safeoff;
+}
+
+/*
+ *  get key info out of nvram.  since there isn't room in the PC's nvram use
+ *  a disk partition there.
+ */
+int
+readnvram(Nvrsafe *safep, int flag)
+{
+	int err;
+	char buf[512], in[128];		/* 512 for floppy i/o */
+	Nvrsafe *safe;
+	Nvrwhere loc;
+
+	err = 0;
+	memset(&loc, 0, sizeof loc);
+	findnvram(&loc);
+	if (loc.safelen < 0)
+		loc.safelen = sizeof *safe;
+	else if (loc.safelen > sizeof buf)
+		loc.safelen = sizeof buf;
+	if (loc.safeoff < 0) {
+		fprint(2, "readnvram: couldn't find nvram\n");
+		if(!(flag&NVwritemem))
+			memset(safep, 0, sizeof(*safep));
+		return -1;
 	}
 
-	if(fd < 0
-	|| seek(fd, safeoff, 0) < 0
-	|| read(fd, buf, safelen) != safelen){
-		err = 1;
-		if(flag&(NVwrite|NVwriteonerr))
-			fprint(2, "can't read nvram: %r\n");
+	safe = (Nvrsafe*)buf;
+	if(flag&NVwritemem)
+		safe = safep;
+	else {
 		memset(safep, 0, sizeof(*safep));
-		safe = safep;
-	}else{
-		*safep = *safe;
-		safe = safep;
-
-		err |= check(safe->machkey, DESKEYLEN, safe->machsum, "bad nvram key");
-//		err |= check(safe->config, CONFIGLEN, safe->configsum, "bad secstore key");
-		err |= check(safe->authid, ANAMELEN, safe->authidsum, "bad authentication id");
-		err |= check(safe->authdom, DOMLEN, safe->authdomsum, "bad authentication domain");
-
-		if(err == 0)
-		if(safe->authid[0]==0 || safe->authdom[0]==0){
-			fprint(2, "empty nvram authid or authdom\n");
+		if(loc.fd < 0
+		|| seek(loc.fd, loc.safeoff, 0) < 0
+		|| read(loc.fd, buf, loc.safelen) != loc.safelen){
 			err = 1;
+			if(flag&(NVwrite|NVwriteonerr))
+				fprint(2, "can't read nvram: %r\n");
+			/* start from scratch */
+			memset(safep, 0, sizeof(*safep));
+			safe = safep;
+		}else{
+			*safep = *safe;	/* overwrite arg with data read */
+			safe = safep;
+
+			/* verify data read */
+			err |= check(safe->machkey, DESKEYLEN, safe->machsum,
+						"bad nvram key");
+//			err |= check(safe->config, CONFIGLEN, safe->configsum,
+//						"bad secstore key");
+			err |= check(safe->authid, ANAMELEN, safe->authidsum,
+						"bad authentication id");
+			err |= check(safe->authdom, DOMLEN, safe->authdomsum,
+						"bad authentication domain");
+			if(err == 0)
+				if(safe->authid[0]==0 || safe->authdom[0]==0){
+					fprint(2, "empty nvram authid or authdom\n");
+					err = 1;
+				}
 		}
 	}
 
-	if((flag&NVwrite) || (err && (flag&NVwriteonerr))){
-		readcons("authid", nil, 0, safe->authid, sizeof(safe->authid));
-		readcons("authdom", nil, 0, safe->authdom, sizeof(safe->authdom));
-		readcons("secstore key", nil, 1, safe->config, sizeof(safe->config));
-		for(;;){
-			if(readcons("password", nil, 1, in, sizeof in) == nil)
-				goto Out;
-			if(passtokey(safe->machkey, in))
-				break;
+	if((flag&(NVwrite|NVwritemem)) || (err && (flag&NVwriteonerr))){
+		if (!(flag&NVwritemem)) {
+			readcons("authid", nil, 0, safe->authid,
+					sizeof safe->authid);
+			readcons("authdom", nil, 0, safe->authdom,
+					sizeof safe->authdom);
+			readcons("secstore key (or fs config)", nil, 1,
+					safe->config, sizeof safe->config);
+			for(;;){
+				if(readcons("password", nil, 1, in, sizeof in)
+				    == nil)
+					goto Out;
+				if(passtokey(safe->machkey, in))
+					break;
+			}
 		}
+
+		// safe->authsum = nvcsum(safe->authkey, DESKEYLEN);
 		safe->machsum = nvcsum(safe->machkey, DESKEYLEN);
 		safe->configsum = nvcsum(safe->config, CONFIGLEN);
-		safe->authidsum = nvcsum(safe->authid, sizeof(safe->authid));
-		safe->authdomsum = nvcsum(safe->authdom, sizeof(safe->authdom));
-		*(Nvrsafe*)buf = *safe;
-		if(safelen < 0)
-			safelen = sizeof(Nvrsafe);
+		safe->authidsum = nvcsum(safe->authid, sizeof safe->authid);
+		safe->authdomsum = nvcsum(safe->authdom, sizeof safe->authdom);
 
-		if(seek(fd, safeoff, 0) < 0
-		|| write(fd, buf, safelen) != safelen){
+		*(Nvrsafe*)buf = *safe;
+		if(loc.fd < 0
+		|| seek(loc.fd, loc.safeoff, 0) < 0
+		|| write(loc.fd, buf, loc.safelen) != loc.safelen){
 			fprint(2, "can't write key to nvram: %r\n");
 			err = 1;
 		}else
 			err = 0;
 	}
 Out:
-	close(fd);
-	return err ? -1 : 0;
+	if (loc.fd >= 0)
+		close(loc.fd);
+	return err? -1: 0;
 }
 
 typedef struct Dosboot	Dosboot;
@@ -358,7 +400,7 @@ finddosfile(int fd, char *file)
 	if(rootsects <= 0 || rootsects > 64)
 		return -1;
 
-	/* 
+	/*
 	 *  read root. it is contiguous to make stuff like
 	 *  this easier
 	 */
