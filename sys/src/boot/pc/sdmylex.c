@@ -899,7 +899,7 @@ buggery:
 	 * PCI and VLB buses.
 	 */
 	cmd[0] = Ciesi;
-	cmd[1] = 4;
+	cmd[1] = 14;
 	clen = 2;
 	dlen = 256;
 	if(issue(ctlr, cmd, clen, data, dlen)){
