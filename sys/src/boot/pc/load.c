@@ -7,7 +7,16 @@
 
 #include "fs.h"
 
-static char *diskparts[] = { "dos", "9fat", "fs", "data", "cdboot", 0 };
+/*
+ * "cache" must be in this list so that 9load will pass the definition of
+ * the cache partition into the kernel so that the disk named by the `cfs'
+ * variable in plan9.ini can be seen in all circumstances before termrc
+ * sets up all the disk partitions.  In particular, if it's on an odd-ball
+ * disk like sd10 rather than sdC0, this is needed.
+ */
+static char *diskparts[] = {
+	"dos", "9fat", "fs", "data", "cdboot", "cache", 0
+};
 static char *etherparts[] = { "*", 0 };
 
 static char *diskinis[] = {

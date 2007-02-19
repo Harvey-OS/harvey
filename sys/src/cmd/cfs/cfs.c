@@ -136,14 +136,12 @@ main(int argc, char *argv[])
 	std = 0;
 	format = 0;
 	part = "/dev/sdC0/cache";
-	server = "il!emelie";
+	server = "tcp!edith";
 	mtpt = "/tmp";
 
 	ARGBEGIN{
 	case 'a':
-		server = ARGF();
-		if(server == 0)
-			usage();
+		server = EARGF(usage());
 		break;
 	case 'S':
 		statson = 1;
@@ -155,9 +153,7 @@ main(int argc, char *argv[])
 		format = 1;
 		break;
 	case 'f':
-		part = ARGF();
-		if(part == 0)
-			usage();
+		part = EARGF(usage());
 		break;
 	case 'd':
 		debug = 1;
