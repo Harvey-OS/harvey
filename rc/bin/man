@@ -1,5 +1,5 @@
 #!/bin/rc
-
+# man - print manual pages
 rfork e
 
 . /sys/man/fonts
@@ -11,6 +11,7 @@ d=0
 
 fn roff {
 	preproc=()
+	postproc=cat
 	x=`{doctype $2}
 	if (~ $1 t) {
 		if(~ $x *grap*)
@@ -21,23 +22,28 @@ fn roff {
 	}
 	if not {
 		Nflag=-N
+		if (grep -s '^\.2C' $2)
+			postproc=col
 	}
 	if(~ $x *eqn*)
 		preproc=($preproc eqn)
 	if(~ $x *tbl*)
 		preproc=($preproc tbl)
-	switch($#preproc) {
+	{echo -n $FONTS; cat $2 </dev/null} |
+		switch($#preproc) {
 		case 0
-			{echo -n $FONTS; cat $2< /dev/null} | troff $Nflag -$MAN 
+			troff $Nflag -$MAN 
 		case 1
-			{echo -n $FONTS; cat $2< /dev/null} | $preproc | troff $Nflag -$MAN
+			$preproc | troff $Nflag -$MAN
 		case 2
-			{echo -n $FONTS; cat $2< /dev/null} | $preproc(1) | $preproc(2) | troff $Nflag -$MAN
+			$preproc(1) | $preproc(2) | troff $Nflag -$MAN
 		case 3
-			{echo -n $FONTS; cat $2< /dev/null} | $preproc(1) | $preproc(2) | $preproc(3) | troff $Nflag -$MAN
+			$preproc(1) | $preproc(2) | $preproc(3) |
+				troff $Nflag -$MAN
 		case *
-			{echo -n $FONTS; cat $2< /dev/null} | $preproc(1) | $preproc(2) | $preproc(3) | $preproc(4) | troff $Nflag -$MAN
-	}
+			$preproc(1) | $preproc(2) | $preproc(3) |
+				$preproc(4) | troff $Nflag -$MAN
+		} | $postproc
 }
 
 fn page {
@@ -58,7 +64,8 @@ while(~ $d 0) {
 		sec=($sec $1)
 		shift
 	}
-	if not switch($1) {
+	if not
+		switch($1) {
 		case -t ; cmd=t ; shift
 		case -n ; cmd=n ; shift
 		case -p ; cmd=p ; shift
@@ -67,7 +74,7 @@ while(~ $d 0) {
 		case -b ; cmd=b ; shift
 		case -S ; search=no ; shift
 		case * ; d=1
-	}
+		}
 }
 if(~ $#sec 0) {
 	sec=`{ls -pd $S/[0-9]* }
