@@ -1,7 +1,7 @@
 386 - 20000000775 sys sys 1010957353 0
-386/9load - 775 sys sys 1161230065 220860
+386/9load - 775 sys sys 1171784718 220040
 386/9loaddebug - 775 sys sys 1171917619 316230
-386/9loadlite - 775 sys sys 1161230067 137112
+386/9loadlite - 775 sys sys 1171784720 137116
 386/9loadlitedebug - 775 sys sys 1171917620 202506
 386/9pc - 775 sys sys 1161230890 1924142
 386/9pc.gz - 664 sys sys 1161232307 821176
@@ -11,7 +11,7 @@
 386/9pcdisk.gz - 664 sys sys 1161232323 903701
 386/9pcf - 775 sys sys 1161231061 2460368
 386/9pcf.gz - 664 sys sys 1161232332 1060367
-386/9pxeload - 775 sys sys 1169491686 220036
+386/9pxeload - 775 sys sys 1171784719 220040
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1168402260 116604
@@ -183,6 +183,7 @@
 386/bin/cleanname - 775 sys sys 1168402295 58541
 386/bin/clock - 775 sys sys 1168402296 158688
 386/bin/cmp - 775 sys sys 1157597609 40658
+386/bin/col - 775 sys sys 1172029864 64995
 386/bin/colors - 775 sys sys 1168402296 150967
 386/bin/comm - 775 sys sys 1168402296 61586
 386/bin/compress - 775 sys sys 1159212097 166928
@@ -529,7 +530,7 @@
 386/include/u.h - 664 sys sys 1168306831 1510
 386/include/ureg.h - 664 sys sys 944946012 523
 386/init - 775 sys sys 1168402360 101418
-386/ld.com - 775 sys sys 1161230065 73464
+386/ld.com - 775 sys sys 1171784723 73464
 386/lib - 20000000775 sys sys 1016826328 0
 386/lib/ape - 20000000775 sys sys 1070519112 0
 386/lib/ape/lib9.a - 664 sys sys 1135531447 6906
@@ -5463,7 +5464,7 @@ rc/bin/leak - 775 sys sys 1139744263 1052
 rc/bin/lookman - 775 sys sys 1017679344 686
 rc/bin/lp - 775 sys sys 1162105982 5201
 rc/bin/mail - 775 sys sys 1045504003 138
-rc/bin/man - 775 sys sys 1168305408 2538
+rc/bin/man - 775 sys sys 1172005212 2494
 rc/bin/map - 775 sys sys 945617207 1576
 rc/bin/mapdemo - 775 sys sys 945617207 4075
 rc/bin/membername - 775 sys sys 945617207 89
@@ -7287,6 +7288,7 @@ sys/man/1/chgrp - 664 sys sys 944959673 710
 sys/man/1/chmod - 664 sys sys 1079372922 1299
 sys/man/1/cleanname - 664 sys sys 944959674 580
 sys/man/1/cmp - 664 sys sys 1134330626 1069
+sys/man/1/col - 664 sys sys 1172005089 962
 sys/man/1/colors - 664 sys sys 1134330626 1438
 sys/man/1/comm - 664 sys sys 944959675 665
 sys/man/1/con - 664 sys sys 1155994747 4310
@@ -7877,7 +7879,7 @@ sys/src/9/boot/aux.c - 664 sys sys 1168305725 2586
 sys/src/9/boot/boot.c - 664 sys sys 1146746630 6013
 sys/src/9/boot/boot.h - 664 sys sys 1063857659 1785
 sys/src/9/boot/bootauth.c - 664 sys sys 1131289783 1160
-sys/src/9/boot/bootcache.c - 664 sys sys 1063857645 1579
+sys/src/9/boot/bootcache.c - 664 sys sys 1171955975 1608
 sys/src/9/boot/bootip.c - 664 sys sys 1072972133 3418
 sys/src/9/boot/bootmkfile - 664 sys sys 1091732792 404
 sys/src/9/boot/doauthenticate.c - 664 sys sys 1015012529 2300
@@ -9898,6 +9900,7 @@ sys/src/cmd/chmod.c - 664 sys sys 1079372923 1904
 sys/src/cmd/cleanname.c - 664 sys sys 944960760 715
 sys/src/cmd/clock.c - 664 sys sys 1014925410 1881
 sys/src/cmd/cmp.c - 664 sys sys 1157581072 2491
+sys/src/cmd/col.c - 664 sys sys 1172005084 3850
 sys/src/cmd/colors.c - 664 sys sys 951763912 3186
 sys/src/cmd/comm.c - 664 sys sys 1093979717 2140
 sys/src/cmd/compress - 20000000775 sys sys 1157679448 0
