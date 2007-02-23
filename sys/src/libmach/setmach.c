@@ -96,7 +96,7 @@ Machtab	machines[] =
 		&i386mach,	},
 	{	"arm",				/*ARM*/
 		FARM,
-		FNONE,
+		FARMB,
 		AARM,
 		&marm,
 		&armmach,	},

@@ -51,12 +51,12 @@ fmerge(Dptr *p, char *to, char *from, int start, int len)
 int
 fbwrite(Icache *ic, Ibuf *b, char *a, ulong off, int len)
 {
+	int wrinode;
+	ulong fbno;
 	Bbuf *dbb;	/* data block */
 	Bbuf *ibb;	/* indirect block */
 	Dptr *p;
 	Dptr t;
-	ulong fbno;
-	int wrinode;
 
 	fbno = off / ic->bsize;
 	p = &b->inode.ptr;
@@ -144,13 +144,11 @@ dowrite:
 	 *  correct order
 	 */
 	bcmark(ic, dbb);
-	if(ibb){
+	if(ibb)
 		bcmark(ic, ibb);
-	}
-	if(wrinode){
+	if(wrinode)
 		if(iwrite(ic, b) < 0)
 			return -1;
-	}
 	return len;
 }
 
@@ -181,12 +179,10 @@ fwrite(Icache *ic, Ibuf *b, char *a, ulong off, long n)
 Dptr *
 fpget(Icache *ic, Ibuf *b, ulong off)
 {
-	Bbuf *ibb;	/* indirect block */
 	ulong fbno;
 	long doff;
-	Dptr *p;
-	Dptr *p0;
-	Dptr *pf;
+	Bbuf *ibb;	/* indirect block */
+	Dptr *p, *p0, *pf;
 
 	fbno = off / ic->bsize;
 	p = &b->inode.ptr;
@@ -232,12 +228,12 @@ fpget(Icache *ic, Ibuf *b, ulong off)
 		if(doff<pf->end)
 			return pf;
 	}
-	for(p = pf+1 ;p < p0 + ic->p2b; p++){
+	for(p = pf+1; p < p0 + ic->p2b; p++){
 		fbno++;
 		if(p->fbno==fbno && p->bno!=Notabno && p->start<p->end)
 			return p;
 	}
-	for(p = p0 ;p < pf; p++){
+	for(p = p0; p < pf; p++){
 		fbno++;
 		if(p->fbno==fbno && p->bno!=Notabno && p->start<p->end)
 			return p;
@@ -259,12 +255,10 @@ fpget(Icache *ic, Ibuf *b, ulong off)
 long
 fread(Icache *ic, Ibuf *b, char *a, ulong off, long n)
 {
-	int len;
+	int len, start;
+	long sofar, gap;
 	Dptr *p;
 	Bbuf *bb;
-	long sofar;
-	long gap;
-	int start;
 
 	for(sofar = 0; sofar < n; sofar += len, off += len){
 		/*
@@ -283,12 +277,11 @@ fread(Icache *ic, Ibuf *b, char *a, ulong off, long n)
 		 *  if there's a gap, return the size of the gap
 		 */
 		gap = (ic->bsize*p->fbno + p->start) - off;
-		if(gap>0){
+		if(gap>0)
 			if(sofar == 0)
 				return -gap;
 			else
 				return sofar;
-		}
 
 		/*
 		 *  return what we have

@@ -457,15 +457,15 @@ rremove(Mfile *mf)
 void
 rread(Mfile *mf)
 {
-	int cnt;
-	long off, first;
-	char *cp;
-	Ibuf *b;
+	int cnt, done;
 	long n;
+	vlong off, first;
+	char *cp;
 	char data[MAXFDATA];
-	int done;
+	Ibuf *b;
 
-	first = off = c.thdr.offset;
+	off = c.thdr.offset;
+	first = off;
 	cnt = c.thdr.count;
 
 	if(statson && ctltest(mf)){
@@ -511,7 +511,8 @@ rread(Mfile *mf)
 	done = 0;
 	while(cnt>0 && !done){
 		if(off >= b->inode.length){
-			DPRINT(2, "offset %ld greater than length %lld\n", off, b->inode.length);
+			DPRINT(2, "offset %lld greater than length %lld\n",
+				off, b->inode.length);
 			break;
 		}
 		n = fread(&ic, b, cp, off, cnt);
@@ -519,15 +520,16 @@ rread(Mfile *mf)
 			n = -n;
 			if(n==0 || n>cnt)
 				n = cnt;
-			DPRINT(2, "fetch %ld bytes of data from server at offset %ld\n", n, off);
+			DPRINT(2,
+			 "fetch %ld bytes of data from server at offset %lld\n",
+				n, off);
 			s.thdr.type = c.thdr.type;
 			s.thdr.fid = c.thdr.fid;
 			s.thdr.tag = c.thdr.tag;
 			s.thdr.offset = off;
 			s.thdr.count = n;
-			if(statson){
+			if(statson)
 				cfsstat.ndelegateread++;
-			}
 			if(askserver() < 0){
 				sendreply(s.rhdr.ename);
 				return;
@@ -538,8 +540,9 @@ rread(Mfile *mf)
 			if(n == 0){
 				/* end of file */
 				if(b->inode.length > off){
-					DPRINT(2, "file %llud.%ld, length %ld\n",
-						b->inode.qid.path, b->inode.qid.vers, off);
+					DPRINT(2, "file %llud.%ld, length %lld\n",
+						b->inode.qid.path,
+						b->inode.qid.vers, off);
 					b->inode.length = off;
 				}
 				break;
@@ -552,9 +555,8 @@ rread(Mfile *mf)
 			}
 		}else{
 			DPRINT(2, "fetched %ld bytes from cache\n", n);
-			if(statson){
+			if(statson)
 				cfsstat.bytesfromcache += n;
-			}
 		}
 		cnt -= n;
 		off += n;
@@ -562,9 +564,8 @@ rread(Mfile *mf)
 	}
 	c.rhdr.data = data;
 	c.rhdr.count = off - first;
-	if(statson){
+	if(statson)
 		cfsstat.bytesread += c.rhdr.count;
-	}
 	sendreply(0);
 }
 
@@ -591,7 +592,8 @@ rwrite(Mfile *mf)
 
 	if(s.rhdr.count > 0)
 		cfsstat.byteswritten += s.rhdr.count;
-	if(mf->qid.type & QTAPPEND)	/* don't modify our cache for append-only data; always read from server*/
+	/* don't modify our cache for append-only data; always read from server*/
+	if(mf->qid.type & QTAPPEND)
 		return;
 	b = iget(&ic, mf->qid);
 	if(b == 0)
@@ -625,7 +627,8 @@ rstat(Mfile *mf)
 		d.muid = "none";
 		d.atime = time(nil);
 		d.mtime = d.atime;
-		c.rhdr.nstat = convD2M(&d, c.rhdr.stat, sizeof(c.rhdr) - (c.rhdr.stat - (uchar*)&c.rhdr));
+		c.rhdr.nstat = convD2M(&d, c.rhdr.stat,
+			sizeof c.rhdr - (c.rhdr.stat - (uchar*)&c.rhdr));
 		sendreply(0);
 		return;
 	}
@@ -655,7 +658,8 @@ rwstat(Mfile *mf)
 }
 
 void
-error(char *fmt, ...) {
+error(char *fmt, ...)
+{
 	va_list arg;
 	static char buf[2048];
 
@@ -708,9 +712,8 @@ delegate(void)
 	sendmsg(&s, &c.thdr);
 	rcvmsg(&s, &s.rhdr);
 
-	if(statson){
+	if(statson)
 		cfsstat.sm[type].t += nsec() - cfsstat.sm[type].s;
-	}
 
 	sendmsg(&c, &s.rhdr);
 	return c.thdr.type+1 == s.rhdr.type ? 0 : -1;
@@ -735,9 +738,8 @@ askserver(void)
 	sendmsg(&s, &s.thdr);
 	rcvmsg(&s, &s.rhdr);
 
-	if(statson){
+	if(statson)
 		cfsstat.sm[type].t += nsec() - cfsstat.sm[type].s;
-	}
 
 	return s.thdr.type+1 == s.rhdr.type ? 0 : -1;
 }
@@ -761,10 +763,8 @@ void
 dump(uchar *p, int len)
 {
 	fprint(2, "%d bytes", len);
-	while(len > 0){
+	while(len-- > 0)
 		fprint(2, " %.2ux", *p++);
-		len--;
-	}
 	fprint(2, "\n");
 }
 
@@ -777,16 +777,17 @@ rcvmsg(P9fs *p, Fcall *f)
 	olen = p->len;
 	p->len = read9pmsg(p->fd[0], datarcv, sizeof(datarcv));
 	if(p->len <= 0){
-		sprint(buf, "read9pmsg(%d)->%ld: %r", p->fd[0], p->len);
+		snprint(buf, sizeof buf, "read9pmsg(%d)->%ld: %r",
+			p->fd[0], p->len);
 		error(buf);
 	}
 
 	if((rlen = convM2S(datarcv, p->len, f)) != p->len)
-		error("rcvmsg format error, expected length %d, got %d", rlen, p->len);
+		error("rcvmsg format error, expected length %d, got %d",
+			rlen, p->len);
 	if(f->fid >= Nfid){
 		fprint(2, "<-%s: %d %s on %d\n", p->name, f->type,
-			mname[f->type]? mname[f->type] : "mystery",
-			f->fid);
+			mname[f->type]? mname[f->type]: "mystery", f->fid);
 		dump((uchar*)datasnd, olen);
 		dump((uchar*)datarcv, p->len);
 		error("rcvmsg fid out of range");
@@ -797,7 +798,8 @@ rcvmsg(P9fs *p, Fcall *f)
 int
 ctltest(Mfile *mf)
 {
-	return mf->busy && mf->qid.type == ctlqid.type && mf->qid.path == ctlqid.path;
+	return mf->busy && mf->qid.type == ctlqid.type &&
+		mf->qid.path == ctlqid.path;
 }
 
 void
@@ -808,59 +810,80 @@ genstats(void)
 
 	p = statbuf;
 
-	p += snprint(p, sizeof(statbuf)+statbuf-p, "        Client                          Server\n");
-	p += snprint(p, sizeof(statbuf)+statbuf-p, "   #calls     Δ  ms/call    Δ      #calls     Δ  ms/call    Δ\n");
+	p += snprint(p, sizeof statbuf+statbuf-p,
+		"        Client                          Server\n");
+	p += snprint(p, sizeof statbuf+statbuf-p,
+	    "   #calls     Δ  ms/call    Δ      #calls     Δ  ms/call    Δ\n");
 	for (i = 0; i < nelem(cfsstat.cm); i++)
 		if(cfsstat.cm[i].n || cfsstat.sm[i].n) {
-			p += snprint(p, sizeof(statbuf)+statbuf-p, "%7lud %7lud ",
-				cfsstat.cm[i].n, cfsstat.cm[i].n - cfsprev.cm[i].n);
+			p += snprint(p, sizeof statbuf+statbuf-p,
+				"%7lud %7lud ", cfsstat.cm[i].n,
+				cfsstat.cm[i].n - cfsprev.cm[i].n);
 			if (cfsstat.cm[i].n)
-				p += snprint(p, sizeof(statbuf)+statbuf-p, "%7.3f ",
-					0.000001*cfsstat.cm[i].t/cfsstat.cm[i].n);
+				p += snprint(p, sizeof statbuf+statbuf-p,
+					"%7.3f ", 0.000001*cfsstat.cm[i].t/
+					cfsstat.cm[i].n);
 			else
-				p += snprint(p, sizeof(statbuf)+statbuf-p, "        ");
+				p += snprint(p, sizeof statbuf+statbuf-p,
+					"        ");
 			if(cfsstat.cm[i].n - cfsprev.cm[i].n)
-				p += snprint(p, sizeof(statbuf)+statbuf-p, "%7.3f ",
-					0.000001*(cfsstat.cm[i].t - cfsprev.cm[i].t)/(cfsstat.cm[i].n - cfsprev.cm[i].n));
+				p += snprint(p, sizeof statbuf+statbuf-p,
+					"%7.3f ", 0.000001*
+					(cfsstat.cm[i].t - cfsprev.cm[i].t)/
+					(cfsstat.cm[i].n - cfsprev.cm[i].n));
 			else
-				p += snprint(p, sizeof(statbuf)+statbuf-p, "        ");
-			p += snprint(p, sizeof(statbuf)+statbuf-p, "%7lud %7lud ",
-				cfsstat.sm[i].n, cfsstat.sm[i].n - cfsprev.sm[i].n);
+				p += snprint(p, sizeof statbuf+statbuf-p,
+					"        ");
+			p += snprint(p, sizeof statbuf+statbuf-p,
+				"%7lud %7lud ", cfsstat.sm[i].n,
+				cfsstat.sm[i].n - cfsprev.sm[i].n);
 			if (cfsstat.sm[i].n)
-				p += snprint(p, sizeof(statbuf)+statbuf-p, "%7.3f ",
-					0.000001*cfsstat.sm[i].t/cfsstat.sm[i].n);
+				p += snprint(p, sizeof statbuf+statbuf-p,
+					"%7.3f ", 0.000001*cfsstat.sm[i].t/
+					cfsstat.sm[i].n);
 			else
-				p += snprint(p, sizeof(statbuf)+statbuf-p, "        ");
+				p += snprint(p, sizeof statbuf+statbuf-p,
+					"        ");
 			if(cfsstat.sm[i].n - cfsprev.sm[i].n)
-				p += snprint(p, sizeof(statbuf)+statbuf-p, "%7.3f ",
-					0.000001*(cfsstat.sm[i].t - cfsprev.sm[i].t)/(cfsstat.sm[i].n - cfsprev.sm[i].n));
+				p += snprint(p, sizeof statbuf+statbuf-p,
+					"%7.3f ", 0.000001*
+					(cfsstat.sm[i].t - cfsprev.sm[i].t)/
+					(cfsstat.sm[i].n - cfsprev.sm[i].n));
 			else
-				p += snprint(p, sizeof(statbuf)+statbuf-p, "        ");
-			p += snprint(p, sizeof(statbuf)+statbuf-p, "%s\n", mname[i]);
+				p += snprint(p, sizeof statbuf+statbuf-p,
+					"        ");
+			p += snprint(p, sizeof statbuf+statbuf-p, "%s\n",
+				mname[i]);
 		}
-	p += snprint(p, sizeof(statbuf)+statbuf-p, "%7lud %7lud ndirread\n",
+	p += snprint(p, sizeof statbuf+statbuf-p, "%7lud %7lud ndirread\n",
 		cfsstat.ndirread, cfsstat.ndirread - cfsprev.ndirread);
-	p += snprint(p, sizeof(statbuf)+statbuf-p, "%7lud %7lud ndelegateread\n",
-		cfsstat.ndelegateread, cfsstat.ndelegateread - cfsprev.ndelegateread);
-	p += snprint(p, sizeof(statbuf)+statbuf-p, "%7lud %7lud ninsert\n",
+	p += snprint(p, sizeof statbuf+statbuf-p, "%7lud %7lud ndelegateread\n",
+		cfsstat.ndelegateread, cfsstat.ndelegateread -
+		cfsprev.ndelegateread);
+	p += snprint(p, sizeof statbuf+statbuf-p, "%7lud %7lud ninsert\n",
 		cfsstat.ninsert, cfsstat.ninsert - cfsprev.ninsert);
-	p += snprint(p, sizeof(statbuf)+statbuf-p, "%7lud %7lud ndelete\n",
+	p += snprint(p, sizeof statbuf+statbuf-p, "%7lud %7lud ndelete\n",
 		cfsstat.ndelete, cfsstat.ndelete - cfsprev.ndelete);
-	p += snprint(p, sizeof(statbuf)+statbuf-p, "%7lud %7lud nupdate\n",
+	p += snprint(p, sizeof statbuf+statbuf-p, "%7lud %7lud nupdate\n",
 		cfsstat.nupdate, cfsstat.nupdate - cfsprev.nupdate);
 
-	p += snprint(p, sizeof(statbuf)+statbuf-p, "%7lud %7lud bytesread\n",
+	p += snprint(p, sizeof statbuf+statbuf-p, "%7llud %7llud bytesread\n",
 		cfsstat.bytesread, cfsstat.bytesread - cfsprev.bytesread);
-	p += snprint(p, sizeof(statbuf)+statbuf-p, "%7lud %7lud byteswritten\n",
-		cfsstat.byteswritten, cfsstat.byteswritten - cfsprev.byteswritten);
-	p += snprint(p, sizeof(statbuf)+statbuf-p, "%7lud %7lud bytesfromserver\n",
-		cfsstat.bytesfromserver, cfsstat.bytesfromserver - cfsprev.bytesfromserver);
-	p += snprint(p, sizeof(statbuf)+statbuf-p, "%7lud %7lud bytesfromdirs\n",
-		cfsstat.bytesfromdirs, cfsstat.bytesfromdirs - cfsprev.bytesfromdirs);
-	p += snprint(p, sizeof(statbuf)+statbuf-p, "%7lud %7lud bytesfromcache\n",
-		cfsstat.bytesfromcache, cfsstat.bytesfromcache - cfsprev.bytesfromcache);
-	p += snprint(p, sizeof(statbuf)+statbuf-p, "%7lud %7lud bytestocache\n",
-		cfsstat.bytestocache, cfsstat.bytestocache - cfsprev.bytestocache);
+	p += snprint(p, sizeof statbuf+statbuf-p, "%7llud %7llud byteswritten\n",
+		cfsstat.byteswritten, cfsstat.byteswritten -
+		cfsprev.byteswritten);
+	p += snprint(p, sizeof statbuf+statbuf-p, "%7llud %7llud bytesfromserver\n",
+		cfsstat.bytesfromserver, cfsstat.bytesfromserver -
+		cfsprev.bytesfromserver);
+	p += snprint(p, sizeof statbuf+statbuf-p, "%7llud %7llud bytesfromdirs\n",
+		cfsstat.bytesfromdirs, cfsstat.bytesfromdirs -
+		cfsprev.bytesfromdirs);
+	p += snprint(p, sizeof statbuf+statbuf-p, "%7llud %7llud bytesfromcache\n",
+		cfsstat.bytesfromcache, cfsstat.bytesfromcache -
+		cfsprev.bytesfromcache);
+	p += snprint(p, sizeof statbuf+statbuf-p, "%7llud %7llud bytestocache\n",
+		cfsstat.bytestocache, cfsstat.bytestocache -
+		cfsprev.bytestocache);
 	statlen = p - statbuf;
 	cfsprev = cfsstat;
 }

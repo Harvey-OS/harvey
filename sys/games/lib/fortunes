@@ -4165,3 +4165,5 @@ I guess the idea is that ... even though the structures are all different. Every
 Can't get device information: Success -- Linux Bluetooth discovery.
 Linux is neither Unix nor Windows — it's the worst of both worlds -- jmk
 Did you ever try to write poetry in a committee meeting? It's like a bunch of fat construction guys trying to write an opera while sitting on the couch watching Baywatch. The more fat construction guys you add to the couch, the less likely you are to get opera out of it.  - Joel Spolsky
+Don't interrupt!  Let me finish! - Rae McLellan
+bool x = "false";  // valid C++ [sets x to true]

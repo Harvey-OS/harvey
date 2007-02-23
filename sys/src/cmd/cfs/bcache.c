@@ -46,10 +46,9 @@ bcfind(Bcache *bc, ulong bno)
 	/*
 	 *  if we already have a buffer for this bno, use it
 	 */
-	for(b = bc->bb; b < &bc->bb[Nbcache]; b++){
+	for(b = bc->bb; b < &bc->bb[Nbcache]; b++)
 		if(b->inuse && b->bno==bno)
 			goto out;
-	}
 
 	/*
 	 *  get least recently used block
@@ -59,10 +58,9 @@ out:
 	/*
 	 *  if dirty, write it out
 	 */
-	if(b->dirty){
+	if(b->dirty)
 		if(bcwrite(bc, b) < 0)
 			warning("writing dirty page");
-	}
 	lruref(bc, b);
 	return b;
 }
@@ -94,7 +92,7 @@ bcread(Bcache *bc, ulong bno)
 
 	b = bcfind(bc, bno);
 	bno &= ~Indbno;
-	if(b->bno!=bno || !b->inuse){
+	if(b->bno!=bno || !b->inuse)
 		/*
 		 *  read in the one we really want
 		 */
@@ -102,7 +100,6 @@ bcread(Bcache *bc, ulong bno)
 			b->inuse = 0;
 			return 0;
 		}
-	}
 	b->bno = bno;
 	b->inuse = 1;
 	return b;
@@ -132,7 +129,7 @@ bcmark(Bcache *bc, Bbuf *b)
 }
 
 /*
- *  write out a page (and all preceeding dirty ones)
+ *  write out a page (and all preceding dirty ones)
  */
 int
 bcwrite(Bcache *bc, Bbuf *b)
@@ -140,7 +137,7 @@ bcwrite(Bcache *bc, Bbuf *b)
 	Bbuf *nb;
 
 	/*
-	 *  write out all preceeding pages
+	 *  write out all preceding pages
 	 */
 	while(nb = bc->dfirst){
 		if(bwrite(bc, nb->bno, nb->data) < 0)
@@ -179,7 +176,7 @@ bcsync(Bcache *bc)
 int
 bread(Bcache *bc, ulong bno, void *buf)
 {
-	ulong x = bno*bc->bsize;
+	uvlong x = (uvlong)bno * bc->bsize;
 
 	if(pread(bc->f, buf, bc->bsize, x) != bc->bsize)
 		return -1;
@@ -192,7 +189,7 @@ bread(Bcache *bc, ulong bno, void *buf)
 int
 bwrite(Bcache *bc, ulong bno, void *buf)
 {
-	ulong x = bno*bc->bsize;
+	uvlong x = (uvlong)bno * bc->bsize;
 
 	if(pwrite(bc->f, buf, bc->bsize, x) != bc->bsize)
 		return -1;
