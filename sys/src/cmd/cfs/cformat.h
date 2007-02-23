@@ -12,8 +12,8 @@ typedef struct Dinode	Dinode;
 
 enum
 {
-	Amagic= 		0xbebedded,	/* allocation block magic */
-	Imagic=		0xbadc0c0a,	/* inode block magic */
+	Amagic= 	0xbebeefed,	/* allocation block magic */
+	Imagic=		0xbadc00ce,	/* inode block magic */
 	BtoUL=		8*sizeof(ulong),/* bits in a ulong */
 	KNAMELEN=	28	/* old NAMELEN: BUG */
 };
@@ -54,10 +54,10 @@ struct Dptr
  */
 struct Inode
 {
-	Qid		qid;
+	Qid	qid;
 	vlong	length;
-	Dptr		ptr;		/* pointer page */	
-	char		inuse;
+	Dptr	ptr;		/* pointer page */	
+	char	inuse;
 };
 
 /*

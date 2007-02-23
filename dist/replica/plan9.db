@@ -19,7 +19,7 @@
 386/bin/8l - 775 sys sys 1148500567 115711
 386/bin/9660srv - 775 sys sys 1168402261 104975
 386/bin/aan - 775 sys sys 1168402261 131298
-386/bin/acid - 775 sys sys 1168402262 401157
+386/bin/acid - 775 sys sys 1172203052 401181
 386/bin/acme - 775 sys sys 1168402263 432256
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1136656314 132873
@@ -118,7 +118,7 @@
 386/bin/aux/mklatinkbd - 775 sys sys 1168402282 64407
 386/bin/aux/mnihongo - 775 sys sys 1168402283 140020
 386/bin/aux/mouse - 775 sys sys 1148500597 44061
-386/bin/aux/ms2 - 775 sys sys 1168402283 87373
+386/bin/aux/ms2 - 775 sys sys 1172203053 87397
 386/bin/aux/msexceltables - 775 sys sys 1168402283 82921
 386/bin/aux/mswordstrings - 775 sys sys 1168402283 65541
 386/bin/aux/na - 775 sys sys 1168402284 154423
@@ -176,7 +176,7 @@
 386/bin/cat - 775 sys sys 1148500611 37482
 386/bin/cb - 775 sys sys 1168402293 77628
 386/bin/cdfs - 775 sys sys 1168402294 167435
-386/bin/cfs - 775 sys sys 1171830300 128247
+386/bin/cfs - 775 sys sys 1172175927 128780
 386/bin/chgrp - 775 sys sys 1168402294 59522
 386/bin/chmod - 775 sys sys 1168402294 62518
 386/bin/cifscmd - 775 sys sys 1169612022 343611
@@ -193,7 +193,7 @@
 386/bin/cpu - 775 sys sys 1168402297 139484
 386/bin/crop - 775 sys sys 1168402298 116374
 386/bin/date - 775 sys sys 1148500618 43311
-386/bin/db - 775 sys sys 1168402299 345979
+386/bin/db - 775 sys sys 1172203054 346003
 386/bin/dc - 775 sys sys 1168402299 99260
 386/bin/dd - 775 sys sys 1159039156 45991
 386/bin/deroff - 775 sys sys 1168402299 74474
@@ -230,7 +230,7 @@
 386/bin/faces - 775 sys sys 1168402306 194616
 386/bin/factor - 775 sys sys 1168402307 61699
 386/bin/fcp - 775 sys sys 1168402307 82433
-386/bin/file - 775 sys sys 1168402307 124983
+386/bin/file - 775 sys sys 1172203054 125007
 386/bin/fmt - 775 sys sys 1168402307 65567
 386/bin/fortune - 775 sys sys 1168402308 67356
 386/bin/fossil - 20000000775 sys sys 1042005470 0
@@ -319,8 +319,8 @@
 386/bin/join - 775 sys sys 1168402330 114382
 386/bin/jpg - 775 sys sys 1168402330 174923
 386/bin/kbmap - 775 sys sys 1168402330 144015
-386/bin/kprof - 775 sys sys 1168402331 105405
-386/bin/ktrace - 775 sys sys 1168402331 123085
+386/bin/kprof - 775 sys sys 1172203054 105429
+386/bin/ktrace - 775 sys sys 1172203054 123109
 386/bin/lens - 775 sys sys 1168402332 151119
 386/bin/lex - 775 sys sys 1168402332 99261
 386/bin/lnfs - 775 sys sys 1168402333 99675
@@ -353,7 +353,7 @@
 386/bin/netstat - 775 sys sys 1169612032 85184
 386/bin/news - 775 sys sys 1168402341 71956
 386/bin/nfs - 775 sys sys 1168402342 321573
-386/bin/nm - 775 sys sys 1168402342 127013
+386/bin/nm - 775 sys sys 1172203055 127037
 386/bin/nntpfs - 775 sys sys 1168402342 166697
 386/bin/ns - 775 sys sys 1168402343 65492
 386/bin/p - 775 sys sys 1168402343 65220
@@ -371,7 +371,7 @@
 386/bin/ppm - 775 sys sys 1168402345 149765
 386/bin/pr - 775 sys sys 1168402345 77717
 386/bin/primes - 775 sys sys 1148500685 38820
-386/bin/prof - 775 sys sys 1168402345 110868
+386/bin/prof - 775 sys sys 1172203055 110892
 386/bin/proof - 775 sys sys 1132506869 178756
 386/bin/ps - 775 sys sys 1168402346 68812
 386/bin/pwd - 775 sys sys 1148500685 36932
@@ -400,7 +400,7 @@
 386/bin/sed - 775 sys sys 1168402348 89763
 386/bin/seq - 775 sys sys 1162241047 38441
 386/bin/sha1sum - 775 sys sys 1168402348 61366
-386/bin/size - 775 sys sys 1168402348 78681
+386/bin/size - 775 sys sys 1172203055 78705
 386/bin/sleep - 775 sys sys 1158088708 3875
 386/bin/snap - 775 sys sys 1136346852 313627
 386/bin/snapfs - 775 sys sys 1134389876 388292
@@ -416,7 +416,7 @@
 386/bin/sshnet - 775 sys sys 1134389877 288327
 386/bin/stats - 775 sys sys 1168402350 190989
 386/bin/strings - 775 sys sys 1168402350 62855
-386/bin/strip - 775 sys sys 1168402350 80670
+386/bin/strip - 775 sys sys 1172203055 80694
 386/bin/sum - 775 sys sys 1148500691 39505
 386/bin/swap - 775 sys sys 1168402350 62373
 386/bin/syscall - 775 sys sys 1130594788 73568
@@ -436,7 +436,7 @@
 386/bin/topng - 775 sys sys 1168402354 138683
 386/bin/toppm - 775 sys sys 1168402354 165616
 386/bin/touch - 775 sys sys 1168402354 64048
-386/bin/tprof - 775 sys sys 1168402355 297738
+386/bin/tprof - 775 sys sys 1172203056 297762
 386/bin/tr - 775 sys sys 1168402355 62088
 386/bin/trace - 775 sys sys 1168402356 181838
 386/bin/troff - 775 sys sys 1134151360 357941
@@ -561,7 +561,7 @@
 386/lib/libhttpd.a - 664 sys sys 1168402367 99458
 386/lib/libip.a - 664 sys sys 1169612032 35672
 386/lib/libl.a - 664 sys sys 1168402367 5372
-386/lib/libmach.a - 664 sys sys 1168402369 785352
+386/lib/libmach.a - 664 sys sys 1172203058 785440
 386/lib/libmemdraw.a - 664 sys sys 1168402369 284092
 386/lib/libmemlayer.a - 664 sys sys 1168402369 47360
 386/lib/libmp.a - 664 sys sys 1170879862 79978
@@ -5764,7 +5764,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1171231680 263238
+sys/games/lib/fortunes - 664 sys sys 1172125060 263335
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -9880,21 +9880,21 @@ sys/src/cmd/cdfs/main.c - 664 sys sys 1017679316 11040
 sys/src/cmd/cdfs/mkfile - 664 sys sys 959922196 182
 sys/src/cmd/cdfs/mmc.c - 664 sys sys 1146318348 17198
 sys/src/cmd/cfs - 20000000775 sys sys 1045505024 0
-sys/src/cmd/cfs/bcache.c - 664 sys sys 1014925219 2956
+sys/src/cmd/cfs/bcache.c - 664 sys sys 1172123361 2964
 sys/src/cmd/cfs/bcache.h - 664 sys sys 1014925220 797
-sys/src/cmd/cfs/cformat.h - 664 sys sys 1014925220 1404
-sys/src/cmd/cfs/cfs.c - 664 sys sys 1171785255 16484
-sys/src/cmd/cfs/disk.c - 664 sys sys 1134305455 5949
-sys/src/cmd/cfs/disk.h - 664 sys sys 1014925220 467
-sys/src/cmd/cfs/file.c - 664 sys sys 944960876 5124
+sys/src/cmd/cfs/cformat.h - 664 sys sys 1172125152 1400
+sys/src/cmd/cfs/cfs.c - 664 sys sys 1172123357 16567
+sys/src/cmd/cfs/disk.c - 664 sys sys 1172123358 5900
+sys/src/cmd/cfs/disk.h - 664 sys sys 1172123358 471
+sys/src/cmd/cfs/file.c - 664 sys sys 1172123358 5088
 sys/src/cmd/cfs/file.h - 664 sys sys 944960876 225
-sys/src/cmd/cfs/inode.c - 664 sys sys 1014925220 6967
+sys/src/cmd/cfs/inode.c - 664 sys sys 1172123357 6939
 sys/src/cmd/cfs/inode.h - 664 sys sys 944960876 1145
 sys/src/cmd/cfs/lru.c - 664 sys sys 944960876 1013
 sys/src/cmd/cfs/lru.h - 664 sys sys 944960876 197
 sys/src/cmd/cfs/mkfile - 664 sys sys 1032457443 663
 sys/src/cmd/cfs/notes - 664 sys sys 944960876 570
-sys/src/cmd/cfs/stats.h - 664 sys sys 1014925220 918
+sys/src/cmd/cfs/stats.h - 664 sys sys 1172123357 931
 sys/src/cmd/chgrp.c - 664 sys sys 1014926580 624
 sys/src/cmd/chmod.c - 664 sys sys 1079372923 1904
 sys/src/cmd/cleanname.c - 664 sys sys 944960760 715
@@ -15267,7 +15267,7 @@ sys/src/libmach/8db.c - 664 sys sys 1136322405 50889
 sys/src/libmach/8obj.c - 664 sys sys 1148106912 2258
 sys/src/libmach/access.c - 664 sys sys 1131289377 4588
 sys/src/libmach/elf.h - 664 sys sys 1131292881 2301
-sys/src/libmach/executable.c - 664 sys sys 1144256627 16172
+sys/src/libmach/executable.c - 664 sys sys 1172172965 16228
 sys/src/libmach/k.c - 664 sys sys 1138471021 3381
 sys/src/libmach/kdb.c - 664 sys sys 1136322404 21222
 sys/src/libmach/kobj.c - 664 sys sys 1148106912 2275
@@ -15280,7 +15280,7 @@ sys/src/libmach/obj.h - 664 sys sys 1148170078 648
 sys/src/libmach/q.c - 664 sys sys 1158071179 3641
 sys/src/libmach/qdb.c - 664 sys sys 1136322404 27544
 sys/src/libmach/qobj.c - 664 sys sys 1148106912 2368
-sys/src/libmach/setmach.c - 664 sys sys 1119476886 2911
+sys/src/libmach/setmach.c - 664 sys sys 1172172965 2911
 sys/src/libmach/swap.c - 664 sys sys 1131289376 1056
 sys/src/libmach/sym.c - 664 sys sys 1138471012 26745
 sys/src/libmach/u.c - 664 sys sys 1138471017 3447

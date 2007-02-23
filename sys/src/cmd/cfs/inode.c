@@ -105,12 +105,10 @@ iinit(Icache *ic, int f, int psize)
 int
 iformat(Icache *ic, int f, ulong nino, char *name, int bsize, int psize)
 {
+	int nib;
+	ulong bno, i2b, i;
 	Bbuf *bb;
 	Dinode *bi;
-	ulong bno;
-	ulong i;
-	ulong i2b;
-	int nib;
 
 	/*
 	 *  first format disk allocation
@@ -190,7 +188,7 @@ iget(Icache *ic, Qid qid)
 	/*
 	 *  find map entry with same qid.path
 	 */
-	for(m = ic->map, me = &ic->map[ic->nino]; m < me; m++){
+	for(m = ic->map, me = &ic->map[ic->nino]; m < me; m++)
 		if(m->inuse && m->qid.path==qid.path){
 			if(m->qid.vers != qid.vers){
 				/*
@@ -203,7 +201,6 @@ iget(Icache *ic, Qid qid)
 			}
 			break;
 		}
-	}
 
 	/*
  	 *  if an already existing inode, just get it
@@ -217,19 +214,19 @@ iget(Icache *ic, Qid qid)
 	 */
 	m = (Imap*)ic->mlru.lnext;
 	if(m->inuse){
-		DPRINT(2, "superceding file %llud.%ld by %llud.%ld\n", m->qid.path,
-			m->qid.vers, qid.path, qid.vers);
+		DPRINT(2, "superceding file %llud.%ld by %llud.%ld\n",
+			m->qid.path, m->qid.vers, qid.path, qid.vers);
 		if(iremove(ic, m - ic->map) < 0)
 			return 0;
 	}
 
-	if(statson){
+	if(statson)
 		cfsstat.ninsert++;
-	}
 	/*
 	 *  init inode and write to disk
 	 */
-	DPRINT(2, "new file %llud.%ld ino %ld\n", qid.path, qid.vers, m - ic->map);
+	DPRINT(2, "new file %llud.%ld ino %ld\n",
+		qid.path, qid.vers, m - ic->map);
 	b = ialloc(ic, m - ic->map);
 	b->inode.inuse = m->inuse = 1;
 	b->inode.qid = qid;
@@ -327,9 +324,8 @@ iupdate(Icache *ic, ulong ino, Qid qid)
 	Imap *m;
 	Dptr d;
 
-	if(statson){
+	if(statson)
 		cfsstat.nupdate++;
-	}
 	b = iread(ic, ino);
 	if(b == 0)
 		return -1;
@@ -365,9 +361,8 @@ iremove(Icache *ic, ulong ino)
 	Ibuf *b;
 	Imap *m;
 
-	if(statson){
+	if(statson)
 		cfsstat.ndelete++;
-	}
 	m = &ic->map[ino];
 
 	/*
