@@ -469,9 +469,9 @@ txrxcfg(Ctlr *ctlr, int txdrth)
 static void
 interrupt(Ureg*, void* arg)
 {
+	int len, status, cmdsts, n;
 	Ctlr *ctlr;
 	Ether *ether;
-	int len, status, cmdsts;
 	Des *des;
 	Block *bp;
 
@@ -494,6 +494,15 @@ interrupt(Ureg*, void* arg)
 			if(status & Rtabt)
 				ctlr->rtabt++;
 			status &= ~(Hiberr|Txrcmp|Rxrcmp|Rxsovr|Dperr|Sserr|Rmabt|Rtabt);
+		}
+
+		/* update link state */
+		if(status&Phy){
+			status &= ~Phy;
+			csr32r(ctlr, Rcfg);
+			n = csr32r(ctlr, Rcfg);
+//			iprint("83815 phy %x %x\n", n, n&Lnksts);
+			ether->link = (n&Lnksts) != 0;
 		}
 
 		/*
@@ -656,8 +665,10 @@ ctlrinit(Ether* ether)
 
 	txrxcfg(ctlr, Drth512);
 
-	csr32w(ctlr, Rimr, Dperr|Sserr|Rmabt|Rtabt|Rxsovr|Hiberr|Txurn|Txerr|Txdesc|Txok|Rxorn|Rxerr|Rxdesc|Rxok);	/* Phy|Pme|Mib */
-	csr32r(ctlr, Risr);	/* clear status */
+	csr32w(ctlr, Rimr, Dperr|Sserr|Rmabt|Rtabt|Rxsovr|Hiberr|Txurn|Txerr|
+		Txdesc|Txok|Rxorn|Rxerr|Rxdesc|Rxok);	/* Phy|Pme|Mib */
+	csr32w(ctlr, Rmicr, Inten);	/* enable phy interrupts */
+	csr32r(ctlr, Risr);		/* clear status */
 	csr32w(ctlr, Rier, Ie);
 }
 
@@ -783,7 +794,7 @@ softreset(Ctlr* ctlr, int resetphys)
 	if(csr16r(ctlr, Ranar) == 0 || (csr32r(ctlr, Rcfg) & Aneg_dn) == 0){
 		csr16w(ctlr, Rbmcr, Anena|Anrestart);
 		for(i=0;; i++){
-			if(i > 6000){
+			if(i > 3000){
 				print("ns83815: auto neg timed out\n");
 				break;
 			}
@@ -812,11 +823,8 @@ media(Ether* ether)
 	ctlr = ether->ctlr;
 	cfg = csr32r(ctlr, Rcfg);
 	ctlr->fd = (cfg & Fdup) != 0;
-	if(cfg & Speed100)
-		return 100;
-	if((cfg & Lnksts) == 0)
-		return 100;	/* no link: use 100 to ensure larger queues */
-	return 10;
+	ether->link = (cfg&Lnksts) != 0;
+	return (cfg&(Lnksts|Speed100)) == Lnksts? 10: 100;
 }
 
 static char* mediatable[9] = {
@@ -950,7 +958,7 @@ scanpci83815(void)
 
 	p = nil;
 	while(p = pcimatch(p, 0, 0)){
-		if(p->ccrb != 0x02 || p->ccru != 0)
+		if(p->ccrb != Pcibcnet || p->ccru != 0)
 			continue;
 		id = (p->did<<16)|p->vid;
 		switch(id){

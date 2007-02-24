@@ -796,15 +796,17 @@ rtl8169link(Ether* edev)
 	 * Maybe the link changed - do we care very much?
 	 * Could stall transmits if no link, maybe?
 	 */
-	if(!((r = csr8r(ctlr, Phystatus)) & Linksts))
+	if(!((r = csr8r(ctlr, Phystatus)) & Linksts)){
+		edev->link = 0;
 		return;
+	}
+	edev->link = 1;
 
 	limit = 256*1024;
 	if(r & Speed10){
 		edev->mbps = 10;
 		limit = 65*1024;
-	}
-	else if(r & Speed100)
+	} else if(r & Speed100)
 		edev->mbps = 100;
 	else if(r & Speed1000)
 		edev->mbps = 1000;
@@ -887,7 +889,7 @@ rtl8169receive(Ether* edev)
 	rdh = ctlr->rdh;
 	for(;;){
 		d = &ctlr->rd[rdh];
-	
+
 		if(d->control & Own)
 			break;
 
@@ -1031,7 +1033,7 @@ rtl8169pci(void)
 
 		if(pcigetpms(p) > 0){
 			pcisetpms(p, 0);
-	
+
 			for(i = 0; i < 6; i++)
 				pcicfgw32(p, PciBAR0+i*4, p->mem[i].bar);
 			pcicfgw8(p, PciINTL, p->intl);
