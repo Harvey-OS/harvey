@@ -1396,9 +1396,10 @@ lib/face/48x48x4/x/xigh.1 - 664 sys sys 1142019024 1204
 lib/face/48x48x4/y - 20000000775 sys sys 1020895714 0
 lib/face/48x48x4/z - 20000000775 sys sys 1020895714 0
 lib/face/48x48x8 - 20000000775 sys sys 1123100641 0
-lib/face/48x48x8/.dict - 664 sys sys 1169491532 2868
+lib/face/48x48x8/.dict - 664 sys sys 1172265593 2972
 lib/face/48x48x8/Z - 20000000775 sys sys 1020895714 0
 lib/face/48x48x8/a - 20000000775 sys sys 1056983599 0
+lib/face/48x48x8/a/alu.1 - 664 sys sys 1172265619 1719
 lib/face/48x48x8/a/axel.1 - 664 sys sys 1056983599 473
 lib/face/48x48x8/b - 20000000775 sys sys 1059679697 0
 lib/face/48x48x8/b/boyd.1 - 664 sys sys 1059679697 1897
@@ -1413,6 +1414,7 @@ lib/face/48x48x8/d/dlewis.1 - 664 sys sys 1118196820 2364
 lib/face/48x48x8/e - 20000000775 sys sys 1155331573 0
 lib/face/48x48x8/e/ericvh.2 - 664 sys sys 1155331573 1049
 lib/face/48x48x8/f - 20000000775 sys sys 1155331586 0
+lib/face/48x48x8/f/faa.1 - 664 sys sys 1172265611 2013
 lib/face/48x48x8/f/forsyth.1 - 664 sys sys 1056982111 1864
 lib/face/48x48x8/f/fst.1 - 664 sys sys 1157149515 1099
 lib/face/48x48x8/g - 20000000775 sys sys 1140276024 0
@@ -1441,10 +1443,12 @@ lib/face/48x48x8/p/plus.1 - 664 sys sys 1157142255 1049
 lib/face/48x48x8/q - 20000000775 sys sys 1136200674 0
 lib/face/48x48x8/q/quanstro.1 - 664 sys sys 1136131296 2250
 lib/face/48x48x8/r - 20000000775 sys sys 1123100691 0
+lib/face/48x48x8/r/rit.1 - 664 sys sys 1172264510 1128
 lib/face/48x48x8/r/rog.1 - 664 sys sys 1057005153 1621
 lib/face/48x48x8/s - 20000000775 sys sys 1118196836 0
 lib/face/48x48x8/s/scottschwartz.1 - 664 sys sys 1056981529 1837
 lib/face/48x48x8/s/sdavis.1 - 664 sys sys 1118196836 2364
+lib/face/48x48x8/s/st.1 - 664 sys sys 1172265601 629
 lib/face/48x48x8/s/stevesimon.1 - 664 sys sys 1056982262 1598
 lib/face/48x48x8/t - 20000000775 sys sys 1078950263 0
 lib/face/48x48x8/t/tiit.1 - 664 sys sys 1078950263 2061
@@ -7983,10 +7987,10 @@ sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
 sys/src/9/pc/ether79c970.c - 664 sys sys 1160070602 14088
 sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
 sys/src/9/pc/ether8139.c - 664 sys sys 1160066369 18561
-sys/src/9/pc/ether8169.c - 664 sys sys 1168305932 25430
+sys/src/9/pc/ether8169.c - 664 sys sys 1172259757 25466
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1131290377 32294
 sys/src/9/pc/ether82557.c - 664 sys sys 1153082663 30197
-sys/src/9/pc/ether83815.c - 664 sys sys 1140271743 26125
+sys/src/9/pc/ether83815.c - 664 sys sys 1172259521 26346
 sys/src/9/pc/ether8390.c - 664 sys sys 1131290377 17702
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
 sys/src/9/pc/etherdp83820.c - 664 sys sys 1160069116 29352
@@ -12265,7 +12269,7 @@ sys/src/cmd/gzip/zip.h - 664 sys sys 954778719 1428
 sys/src/cmd/hget.c - 664 sys sys 1161442159 25962
 sys/src/cmd/history.c - 664 sys sys 1136378274 6098
 sys/src/cmd/hoc - 20000000775 sys sys 1039727559 0
-sys/src/cmd/hoc/code.c - 664 sys sys 1132451870 10050
+sys/src/cmd/hoc/code.c - 664 sys sys 1172257358 10061
 sys/src/cmd/hoc/hoc.h - 664 sys sys 944960999 2358
 sys/src/cmd/hoc/hoc.y - 664 sys sys 1155364037 9666
 sys/src/cmd/hoc/init.c - 664 sys sys 944960999 1441
@@ -13033,7 +13037,7 @@ sys/src/cmd/postscript/trofftable/trofftable.ps - 664 sys sys 944961073 3678
 sys/src/cmd/postscript/trofftable/trofftable.rc - 664 sys sys 984789206 2637
 sys/src/cmd/postscript/trofftable/trofftable.sh - 664 sys sys 984789206 2613
 sys/src/cmd/pr.c - 664 sys sys 1168307016 11172
-sys/src/cmd/primes.c - 664 sys sys 1135081181 2123
+sys/src/cmd/primes.c - 664 sys sys 1172257895 2471
 sys/src/cmd/prof.c - 664 sys sys 1124305301 5547
 sys/src/cmd/proof - 20000000775 sys sys 1039727677 0
 sys/src/cmd/proof/font.c - 664 sys sys 944961621 8525
@@ -15681,3 +15685,5 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/hoc - 775 sys sys 1172289653 100101
+386/bin/primes - 775 sys sys 1172289653 63329
