@@ -274,7 +274,7 @@
 386/bin/hayes - 775 sys sys 1168402314 64793
 386/bin/hget - 775 sys sys 1169612024 233943
 386/bin/history - 775 sys sys 1168402314 75705
-386/bin/hoc - 775 sys sys 1168402314 100096
+386/bin/hoc - 775 sys sys 1172289653 100101
 386/bin/html2ms - 775 sys sys 1168402315 66321
 386/bin/htmlfmt - 775 sys sys 1168402315 163476
 386/bin/htmlroff - 775 sys sys 1168402315 148450
@@ -370,7 +370,7 @@
 386/bin/png - 775 sys sys 1168402344 164582
 386/bin/ppm - 775 sys sys 1168402345 149765
 386/bin/pr - 775 sys sys 1168402345 77717
-386/bin/primes - 775 sys sys 1148500685 38820
+386/bin/primes - 775 sys sys 1172289653 63329
 386/bin/prof - 775 sys sys 1172203055 110892
 386/bin/proof - 775 sys sys 1132506869 178756
 386/bin/ps - 775 sys sys 1168402346 68812
@@ -15685,5 +15685,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/hoc - 775 sys sys 1172289653 100101
-386/bin/primes - 775 sys sys 1172289653 63329
