@@ -1,4 +1,5 @@
 ulong	strtoul(char*, char**, int);
+vlong	strtoll(char*, char**, int);
 
 #include "../port/portfns.h"
 
@@ -20,7 +21,7 @@ char*	getconf(char*);
 ulong	getcr0(void);
 ulong	getcr2(void);
 ulong	getcr4(void);
-int	getfields(char*, char**, int, char);
+int	getfields(char*, char**, int, int, char*);
 ulong	getstatus(void);
 int	atainit(void);
 Off	ataread(int, void*, long);
