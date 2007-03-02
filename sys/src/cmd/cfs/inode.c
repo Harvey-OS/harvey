@@ -18,7 +18,7 @@
  *  nab is the first inode block.
  */
 int
-iinit(Icache *ic, int f, int psize)
+iinit(Icache *ic, int f, int psize, char* name)
 {
 	Ibuf *b;
 	Imap *m;
@@ -29,7 +29,7 @@ iinit(Icache *ic, int f, int psize)
 	/*
 	 *  get basic sizes and allocation info from disk
 	 */
-	if(dinit(ic, f, psize) < 0)
+	if(dinit(ic, f, psize, name) < 0)
 		return -1;
 
 	/*
@@ -141,7 +141,7 @@ iformat(Icache *ic, int f, ulong nino, char *name, int bsize, int psize)
 
 	bcsync(ic);
 
-	return iinit(ic, f, psize);
+	return iinit(ic, f, psize, name);
 }
 
 /*

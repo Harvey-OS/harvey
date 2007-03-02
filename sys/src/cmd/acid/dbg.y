@@ -281,8 +281,7 @@ monexpr		: term
 		}
 		| '+' monexpr
 		{
-			$$ = con(0);
-			$$ = an(OADD, $2, $$);
+			$$ = an(OADD, $2, ZN);
 		}
 		| '-' monexpr
 		{

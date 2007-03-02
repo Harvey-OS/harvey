@@ -197,24 +197,32 @@ setspeed(int rec, int speed)
 		buf[0] = speed;
 		buf[1] = speed >> 8;
 		buf[2] = speed >> 16;
-		if(setupcmd(ad->ep[0], RH2D|Rclass|Rendpt, SET_CUR, sampling_freq_control<<8, endpt[rec], buf, 3) < 0){
+		n = endpt[rec];
+		if (rec)
+			n |= 0x80;
+		if(setupcmd(ad->ep[0], RH2D|Rclass|Rendpt, SET_CUR, sampling_freq_control<<8, n, buf, 3) < 0){
 			fprint(2, "Error in setupcmd\n");
 			return Undef;
 		}
-		if (setupreq(ad->ep[0], RD2H|Rclass|Rendpt, GET_CUR, sampling_freq_control<<8, endpt[rec], 3) < 0){
+		if (setupreq(ad->ep[0], RD2H|Rclass|Rendpt, GET_CUR, sampling_freq_control<<8, n, 3) < 0){
 			fprint(2, "Error in setupreq\n");
 			return Undef;
 		}
 		n = setupreply(ad->ep[0], buf, 3);
 		if (n != 3)
 			fprint(2, "Error in setupreply: %d\n", n);
-		else if (buf[2]){
-			if (debug & Dbgcontrol)
-				fprint(2, "Speed out of bounds %d (0x%x)\n",
-					buf[0] | buf[1] << 8 | buf[2] << 16,
-					buf[0] | buf[1] << 8 | buf[2] << 16);
-		}else
-			speed = buf[0] | buf[1] << 8 | buf[2] << 16;
+		else{
+			n = buf[0] | buf[1] << 8 | buf[2] << 16;
+			if (buf[2] || n == 0){
+				if (debug & Dbgcontrol)
+					fprint(2, "Speed out of bounds %d (0x%x)\n", n, n);
+			}else if (n != speed && ad->vid == 0x077d && (ad->did == 0x0223 || ad->did == 0x07af)){
+				/* Griffin iMic responds incorrectly to sample rate inquiry */
+				if (debug & Dbgcontrol)
+					fprint(2, " reported as %d (iMic bug?);", n);
+			}else
+				speed = n;
+		}
 		if (debug & Dbgcontrol)
 			fprint(2, " speed now %d Hz;", speed);
 	}
@@ -229,7 +237,7 @@ setspeed(int rec, int speed)
 	if (debug & Dbgcontrol)
 		fprint(2, "Configuring %s endpoint for %d Hz\n",
 				rec?"record":"playback", speed);
-	sprint(cmdbuf, "ep %d %d %c %ld %d", endpt[rec], da->interval, rec?'r':'w', 
+	sprint(cmdbuf, "ep %d %d %c %ld %d", endpt[rec], da->interval, rec?'r':'w',
 		controls[rec][Channel_control].value[0]*controls[rec][Resolution_control].value[0]/8,
 		speed);
 	if (write(ad->ctl, cmdbuf, strlen(cmdbuf)) != strlen(cmdbuf)){
@@ -256,7 +264,7 @@ getspeed(int rec, int which)
 	if (endpt[rec] < 0)
 		sysfatal("endpt[%s] not set\n", rec?"Record":"Playback");
 	if(debug & Dbgcontrol)
-		fprint(2, "getspeed: curalt[%d] == %d\n", rec, endpt[rec]);
+		fprint(2, "getspeed: endpt[%d] == %d\n", rec, endpt[rec]);
 	ep = ad->ep[endpt[rec]];
 	if (ep->iface == nil)
 		sysfatal("no interface");
@@ -274,7 +282,10 @@ getspeed(int rec, int which)
 	if (a->caps & has_setspeed){
 		if(debug & Dbgcontrol)
 			fprint(2, "getspeed: has_setspeed, ask\n");
-		if (setupreq(ad->ep[0], RD2H|Rclass|Rendpt, which, sampling_freq_control<<8, endpt[rec], 3) < 0)
+		n = endpt[rec];
+		if (rec)
+			n |= 0x80;
+		if (setupreq(ad->ep[0], RD2H|Rclass|Rendpt, which, sampling_freq_control<<8, n, 3) < 0)
 			return Undef;
 		n = setupreply(ad->ep[0], buf, 3);
 		if(n == 3){
@@ -411,8 +422,8 @@ setcontrol(int rec, char *name, long *value)
 		break;
 	case Selector_control:
 		type = RH2D|Rclass|Rinterface;
-		control = ctl<<8;
-		index = selectorid[rec];
+		control = 0;
+		index = selectorid[rec]<<8;
 		break;
 	case Channel_control:
 		control = findalt(rec, value[0], controls[rec][Resolution_control].value[0], defaultspeed[rec]);
@@ -463,10 +474,11 @@ getspecialcontrol(int rec, int ctl, int req, long *value)
 {
 	byte buf[3];
 	int m, n, i;
-	int type, control, index, count;
+	int type, control, index, count, signedbyte;
 	short svalue;
 
 	count = 1;
+	signedbyte = 0;
 	switch(ctl){
 	default:
 		return Undef;
@@ -488,22 +500,29 @@ getspecialcontrol(int rec, int ctl, int req, long *value)
 	case Delay_control:
 		count = 2;
 		/* fall through */
-	case Mute_control:
 	case Bass_control:
 	case Mid_control:
 	case Treble_control:
 	case Equalizer_control:
-	case Agc_control:
-	case Bassboost_control:
-	case Loudness_control:
+		signedbyte = 1;
 		type = RD2H|Rclass|Rinterface;
 		control = ctl<<8;
 		index = featureid[rec]<<8;
 		break;
 	case Selector_control:
 		type = RD2H|Rclass|Rinterface;
+		control = 0;
+		index = selectorid[rec]<<8;
+		break;
+	case Mute_control:
+	case Agc_control:
+	case Bassboost_control:
+	case Loudness_control:
+		if (req != GET_CUR)
+			return Undef;
+		type = RD2H|Rclass|Rinterface;
 		control = ctl<<8;
-		index = selectorid[rec];
+		index = featureid[rec]<<8;
 		break;
 	}
 	if (controls[rec][ctl].chans){
@@ -528,12 +547,15 @@ getspecialcontrol(int rec, int ctl, int req, long *value)
 						value[0] = svalue;
 					break;
 				case 1:
+					svalue = buf[0];
+					if (signedbyte && (svalue&0x80))
+						svalue |= 0xFF00;
 					if (req == GET_CUR){
-						value[i] = buf[0];
-						value[0] += buf[0];
+						value[i] = svalue;
+						value[0] += svalue;
 						m++;
 					}else
-						value[0] = buf[0];
+						value[0] = svalue;
 				}
 			}
 		}
@@ -552,7 +574,10 @@ getspecialcontrol(int rec, int ctl, int req, long *value)
 		value[0] = svalue;
 		break;
 	case 1:
-		value[0] = buf[0];
+		svalue = buf[0];
+		if (signedbyte && (svalue&0x80))
+			svalue |= 0xFF00;
+		value[0] = svalue;
 	}
 	return 0;
 }

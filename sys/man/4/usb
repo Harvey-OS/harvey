@@ -108,7 +108,8 @@ speed out 44100
 .PP
 This file can be written using the same syntax.  The keyword
 .I out
-may be omitted.  Settings are given as percentages of the range.
+may be omitted.  Settings are given as percentages of the range,
+except for speed which is in Hz.
 .PP
 The file
 .B audioctl

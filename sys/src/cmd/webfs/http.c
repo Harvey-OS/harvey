@@ -359,6 +359,7 @@ httpopen(Client *c, Url *url)
 
 	case 301:	/* Moved Permanently */
 	case 302:	/* Moved Temporarily */
+	case 303:	/* See Other */
 	case 307: /* Temporary Redirect  */
 		redirect = 1;
 		break;

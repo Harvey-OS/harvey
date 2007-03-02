@@ -201,13 +201,22 @@ oindex(Node *n, Node *res)
 void
 oappend(Node *n, Node *res)
 {
+	Value *v;
 	Node r, l;
+	int  empty;
 
 	expr(n->left, &l);
 	expr(n->right, &r);
 	if(l.type != TLIST)
 		error("must append to list");
+	empty = (l.l == nil && (n->left->op == ONAME));
 	append(res, &l, &r);
+	if(empty) {
+		v = n->left->sym->v;
+		v->type = res->type;
+		v->Store = res->Store;
+		v->comt = res->comt;
+	}
 }
 
 void

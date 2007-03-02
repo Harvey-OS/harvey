@@ -10,10 +10,10 @@ struct Disk
 	ulong	nab;	/* number of allocation blocks */
 	int	b2b;	/* allocation bits to a block */
 	int	p2b;	/* Dptr's per page */
-	char	name[KNAMELEN];
+	char	name[CACHENAMELEN];
 };
 
-int	dinit(Disk*, int, int);
+int	dinit(Disk*, int, int, char*);
 int	dformat(Disk*, int, char*, ulong, ulong);
 ulong	dalloc(Disk*, Dptr*);
 ulong	dpalloc(Disk*, Dptr*);

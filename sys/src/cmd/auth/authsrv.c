@@ -65,7 +65,7 @@ main(int argc, char *argv[])
 	for(;;){
 		if(readn(0, buf, TICKREQLEN) <= 0)
 			exits(0);
-	
+
 		convM2TR(buf, &tr);
 		switch(buf[0]){
 		case AuthTreq:
@@ -246,7 +246,7 @@ changepasswd(Ticketreq *tr)
 	safecpy(t.suid, tr->uid, sizeof(t.suid));
 	convT2M(&t, tbuf+1, okey);
 	write(1, tbuf, sizeof(tbuf));
-		
+
 	/* loop trying passwords out */
 	for(;;){
 		if(readn(0, prbuf, PASSREQLEN) < 0)
@@ -323,7 +323,7 @@ http(Ticketreq *tr)
 			p++;
 		passtokey(key, p);
 	}
-	
+
 	/* send back a ticket encrypted with the key */
 	randombytes((uchar*)t.chal, CHALLEN);
 	mkkey(t.key);
@@ -390,7 +390,7 @@ apop(Ticketreq *tr, int type)
 	USED(tr);
 
 	/*
-	 *  Create a challenge and send it.  
+	 *  Create a challenge and send it.
 	 */
 	randombytes((uchar*)rb, sizeof(rb));
 	p = chal;
@@ -410,7 +410,7 @@ apop(Ticketreq *tr, int type)
 		tr = &treq;
 		if(tr->type != type)
 			exits(0);
-	
+
 		/*
 		 * read response
 		 */
@@ -418,7 +418,7 @@ apop(Ticketreq *tr, int type)
 			exits(0);
 		for(i = 0; i < MD5dlen; i++)
 			resp[i] = (h2b(buf[2*i])<<4)|h2b(buf[2*i+1]);
-	
+
 		/*
 		 * lookup
 		 */
@@ -431,7 +431,7 @@ apop(Ticketreq *tr, int type)
 				return;
 			continue;
 		}
-	
+
 		/*
 		 *  check for match
 		 */
@@ -504,7 +504,7 @@ vnc(Ticketreq *tr)
 	int i;
 
 	/*
-	 *  Create a challenge and send it.  
+	 *  Create a challenge and send it.
 	 */
 	randombytes(chal+6, VNCchallen);
 	chal[0] = AuthOKvar;
@@ -569,7 +569,7 @@ chap(Ticketreq *tr)
 	OChapreply reply;
 
 	/*
-	 *  Create a challenge and send it.  
+	 *  Create a challenge and send it.
 	 */
 	randombytes((uchar*)chal, sizeof(chal));
 	write(1, chal, sizeof(chal));
@@ -646,7 +646,7 @@ mschap(Ticketreq *tr)
 	uchar digest[SHA1dlen];
 
 	/*
-	 *  Create a challenge and send it.  
+	 *  Create a challenge and send it.
 	 */
 	randombytes((uchar*)chal, sizeof(chal));
 	write(1, chal, sizeof(chal));
@@ -656,7 +656,7 @@ mschap(Ticketreq *tr)
 	 */
 	if(readn(0, &reply, sizeof(reply)) < 0)
 		exits(0);
-	
+
 	safecpy(tr->uid, reply.uid, sizeof(tr->uid));
 	/*
 	 * lookup
@@ -712,7 +712,7 @@ nthash(uchar hash[MShashlen], char *passwd)
 {
 	uchar buf[512];
 	int i;
-	
+
 	for (i = 0; *passwd && i + 1 < sizeof(buf);) {
 		Rune r;
 		passwd += chartorune(&r, passwd);
@@ -750,7 +750,7 @@ mschalresp(uchar resp[MSresplen], uchar hash[MShashlen], uchar chal[MSchallen])
 {
 	int i;
 	uchar buf[21];
-	
+
 	memset(buf, 0, sizeof(buf));
 	memcpy(buf, hash, MShashlen);
 
@@ -781,13 +781,13 @@ speaksfor(char *speaker, char *user)
 	Ndbs s;
 	int ok;
 	char notuser[Maxpath];
-	
+
 	if(strcmp(speaker, user) == 0)
 		return 1;
 
 	if(db == 0)
 		return 0;
-	
+
 	tp = ndbsearch(db, &s, "hostid", speaker);
 	if(tp == 0)
 		return 0;

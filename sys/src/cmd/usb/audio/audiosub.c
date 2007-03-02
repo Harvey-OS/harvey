@@ -8,8 +8,10 @@
 Namelist terminal_types[] = {
 	{	0x100, "USB Terminal, undefined type"},
 	{	0x101, "USB Streaming"},
+	{	0x201, "Microphone"},
 	{	0x301, "Speaker"},
 	{	0x603, "Line connector"},
+	{	0x605, "S/PDIF"},
 	{	0, nil }
 };
 
@@ -153,6 +155,9 @@ audio_interface(Device *d, int n, ulong csp, void *bb, int nb) {
 					if (selectorid[u] >= 0)
 						fprint(2, "Second selector (%d, %d) on %s\n", selectorid[u], b[3], u?"record":"playback");
 					selectorid[u] = b[3];
+					controls[u][Selector_control].readable = 1;
+					controls[u][Selector_control].settable = 1;
+					controls[u][Selector_control].chans = 0;
 				}
 			}
 			break;

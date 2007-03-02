@@ -4,7 +4,7 @@ leak, kmem \- help find memory leaks
 .SH SYNOPSIS
 .B leak
 [
-.B -bs
+.B -abcds
 ]
 [
 .B -f
@@ -37,12 +37,13 @@ the shared bss segment as well as each process's registers.
 .PP
 Unless directed otherwise,
 .I leak
-prints, for each block, a line with five space-separated fields:
+prints, for each block, a line with seven space-separated fields:
 the string
 .BR block ,
 the address of the block,
 the size of the block, 
-and the first two words of the block.
+the first two words of the block,
+and the function names represented by the first two words of the block.
 Usually, the first two words of the block
 contain the malloc and realloc tags
 (see
@@ -51,14 +52,46 @@ useful for finding who allocated the leaked blocks.
 .PP
 If the
 .B -s
+or the
+.B -c
 option is given,
 .I leak 
 will instead present a sequence of
 .IR acid (1)
 commands that show each leaky allocation site.
-A comment appears next to each command to 
+With
+.B -s
+a comment appears next to each command to 
 indicate how many lost blocks were allocated
 at that point in the program.
+With
+.B -c
+the comments are extended to indicate also the total
+number of bytes lost at that point in the program,
+and an additional comment line gives the
+overall total number of bytes.
+.PP
+If the
+.B -a
+option is given,
+.I leak 
+will print information as decribed above,
+but for all allocated blocks,
+not only leaked ones.
+If the
+.B -d
+option is given,
+.I leak 
+will print information as decribed above,
+but for all free blocks,
+i.e. those freed,
+or those that are not yet
+in use (fragmentation?).
+The
+.B -a
+and
+.B -d
+options can be combined.
 .PP
 If the
 .B -b

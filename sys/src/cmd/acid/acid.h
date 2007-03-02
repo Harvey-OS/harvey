@@ -53,8 +53,10 @@ Extern Node*	prnt;
 Extern List*	tracelist;
 Extern int	initialising;
 Extern int	quiet;
+
 extern void	(*expop[])(Node*, Node*);
 #define expr(n, r) (r)->comt=0; (*expop[(n)->op])(n, r);
+extern int	fmtsize(Value *v) ;
 
 enum
 {

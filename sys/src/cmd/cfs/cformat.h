@@ -15,7 +15,7 @@ enum
 	Amagic= 	0xbebeefed,	/* allocation block magic */
 	Imagic=		0xbadc00ce,	/* inode block magic */
 	BtoUL=		8*sizeof(ulong),/* bits in a ulong */
-	KNAMELEN=	28	/* old NAMELEN: BUG */
+	CACHENAMELEN=	128
 };
 #define	Indbno		0x80000000	/* indirect block */
 #define	Notabno		0xFFFFFFFF	/* not a block number */
@@ -29,7 +29,7 @@ struct Dahdr
 {
 	ulong	magic;
 	ulong	bsize;		/* logical block size */
-	char	name[KNAMELEN];
+	char	name[CACHENAMELEN];
 	short	nab;		/* number of allocation blocks */
 };
 struct Dalloc

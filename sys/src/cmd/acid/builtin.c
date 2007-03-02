@@ -40,6 +40,8 @@ void	interpret(Node*, Node*);
 void	include(Node*, Node*);
 void	regexp(Node*, Node*);
 void	dosysr1(Node*, Node*);
+void	fmtof(Node*, Node*) ;
+void	dofmtsize(Node*, Node*) ;
 
 typedef struct Btab Btab;
 struct Btab
@@ -80,6 +82,8 @@ struct Btab
 	"interpret",	interpret,
 	"include",	include,
 	"regexp",	regexp,
+	"fmtof",	fmtof,
+	"fmtsize",	dofmtsize,
 	0
 };
 
@@ -1264,4 +1268,48 @@ pcline(Node *r, Node *args)
 	if(p == 0)
 		error("pcline(addr): funny file %s", buf);
 	r->ival = strtol(p+1, 0, 0);	
+}
+
+void fmtof(Node *r, Node *args)
+{
+	Node *av[Maxarg];
+	Node res;
+
+	na = 0;
+	flatten(av, args);
+	if(na < 1)
+		error("fmtof(obj): no argument");
+	if(na > 1)
+		error("fmtof(obj): too many arguments") ;
+	expr(av[0], &res);
+
+	r->op = OCONST;
+	r->type = TINT ;
+	r->ival = res.fmt ;
+	r->fmt = 'c';
+}
+
+void dofmtsize(Node *r, Node *args)
+{
+	Node *av[Maxarg];
+	Node res;
+	Store * s ;
+	Value v ;
+
+	na = 0;
+	flatten(av, args);
+	if(na < 1)
+		error("fmtsize(obj): no argument");
+	if(na > 1)
+		error("fmtsize(obj): too many arguments") ;
+	expr(av[0], &res);
+
+	v.type = res.type ;
+	s = &v.Store ;
+	*s = res ;
+
+	r->op = OCONST;
+	r->type = TINT ;
+	r->ival = fmtsize(&v) ;
+	r->fmt = 'D';
 }
