@@ -354,15 +354,22 @@ threadmain(int argc, char **argv)
 	if (endpt[Record] >= 0){
 		if(verbose)
 			fprint(2, "Setting default record parameters: %d Hz, %d channels at %d bits\n",
-				defaultspeed[Play], 2, 16);
-		if(findalt(Record, 2, 16, defaultspeed[Record]) < 0){
-			if(findalt(Record, 2, 16, 48000) < 0)
+				defaultspeed[Record], 2, 16);
+		i = 2;
+		while(findalt(Record, i, 16, defaultspeed[Record]) < 0){
+			if(i == 2 && controls[Record][Channel_control].max == 1){
+				fprint(2, "Warning, can't configure stereo recording, configuring mono instead\n");
+				i = 1;
+				continue;
+			}
+			if(findalt(Record, i, 16, 48000) < 0)
 				sysfatal("Can't configure record for %d or %d Hz", defaultspeed[Record], 48000);
 			fprint(2, "Warning, can't configure record for %d Hz, configuring for %d Hz instead\n",
 				defaultspeed[Record], 48000);
 			defaultspeed[Record] = 48000;
+			break;
 		}
-		value[0] = 2;
+		value[0] = i;
 		if (setcontrol(Record, "channels", value) == Undef)
 			sysfatal("Can't set record channels\n");
 		value[0] = 16;

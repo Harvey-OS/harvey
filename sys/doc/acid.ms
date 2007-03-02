@@ -1202,6 +1202,38 @@ acid: print(main\eX, "\et", *main)
 .\"
 .\"
 .\"
+.Ip fmt fmtof item "Get format
+.CW fmtof
+evaluates the expression
+.I item
+and returns the format of the result.
+.Ex
+acid: +fmtof(33)
+W
+acid: +fmtof("string")
+s
+.Ee
+.\"
+.\"
+.\"
+.Ip integer fmtsize item "Get format size
+.CW fmtsize
+evaluates the expression
+.I item
+and returns the size in bytes of a single element of result's format.
+.Ex
+acid: +fmtsize('c')
+8
+acid: +fmtsize('c'\ec)
+1
+acid: +fmtsize(0\eX)
+4
+acid: +fmtsize('c'\e3)
+10
+.Ee
+.\"
+.\"
+.\"
 .Ip list fnbound integer "Find start and end address of a function
 .CW fnbound
 interprets its

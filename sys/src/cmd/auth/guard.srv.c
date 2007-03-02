@@ -1,3 +1,6 @@
+/*
+ * guard service
+ */
 #include <u.h>
 #include <libc.h>
 #include <fcall.h>
@@ -5,6 +8,10 @@
 #include <ndb.h>
 #include <authsrv.h>
 #include "authcmdlib.h"
+
+enum {
+	Pinlen = 4,
+};
 
 /*
  * c -> a	client
@@ -24,11 +31,11 @@ Ndb	*db;
 void
 main(int argc, char *argv[])
 {
-	char ukey[DESKEYLEN], resp[32], buf[NETCHLEN];
-	long chal;
 	int n;
-	Ndb *db2;
+	long chal;
 	char *err;
+	char ukey[DESKEYLEN], resp[32], buf[NETCHLEN];
+	Ndb *db2;
 
 	ARGBEGIN{
 	case 'd':
@@ -43,6 +50,7 @@ main(int argc, char *argv[])
 	if(db2 == 0)
 		syslog(0, AUTHLOG, "no /lib/ndb/local");
 	db = ndbcat(db, db2);
+	werrstr("");
 
 	strcpy(raddr, "unknown");
 	if(argc >= 1)
@@ -66,27 +74,45 @@ main(int argc, char *argv[])
 	n = strlen(buf) + 1;
 	if(write(1, buf, n) != n){
 		if(debug)
-			syslog(0, AUTHLOG, "g-fail %s@%s :%r sending chal",
+			syslog(0, AUTHLOG, "g-fail %s@%s: %r sending chal",
 				user, raddr);
 		exits("replying to server");
 	}
 	alarm(3*60*1000);
+	werrstr("");
 	if(readarg(0, resp, sizeof resp) < 0){
 		if(debug)
-			syslog(0, AUTHLOG, "g-fail %s@%s :%r reading resp",
+			syslog(0, AUTHLOG, "g-fail %s@%s: %r reading resp",
 				user, raddr);
 		fail(0);
 	}
 	alarm(0);
 
+	/* remove password login from guard.research.bell-labs.com, sucre, etc. */
+//	if(!findkey(KEYDB,    user, ukey) || !netcheck(ukey, chal, resp))
 	if(!findkey(NETKEYDB, user, ukey) || !netcheck(ukey, chal, resp))
-	/* if(!findkey(KEYDB, user, ukey) || !netcheck(ukey, chal, resp)) /* remove password login from guard.research.bell-labs.com, sucre, etc. */
 	if((err = secureidcheck(user, resp)) != nil){
 		print("NO %s", err);
 		write(1, "NO", 2);
-		if(debug)
-			syslog(0, AUTHLOG, "g-fail %s@%s: %s %s to %lud",
-				err, user, raddr, resp, chal);
+		if(debug) {
+			char *r;
+
+			/*
+			 * don't log the entire response, since the first
+			 * Pinlen digits may be the user's secure-id pin.
+			 */
+			if (strlen(resp) < Pinlen)
+				r = strdup("<too short for pin>");
+			else if (strlen(resp) == Pinlen)
+				r = strdup("<pin only>");
+			else
+				r = smprint("%.*s%s", Pinlen,
+					"******************", resp + Pinlen);
+			syslog(0, AUTHLOG,
+				"g-fail %s@%s: %s: resp %s to chal %lud",
+				user, raddr, err, r, chal);
+			free(r);
+		}
 		fail(user);
 	}
 	write(1, "OK", 2);

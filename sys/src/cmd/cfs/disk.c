@@ -12,7 +12,7 @@ int	icformat(Disk*, ulong);
  *  is inconsistent.
  */
 int
-dinit(Disk *d, int f, int psize)
+dinit(Disk *d, int f, int psize, char *expname)
 {
 	ulong	i;
 	uvlong	length;
@@ -59,7 +59,13 @@ dinit(Disk *d, int f, int psize)
 	d->b2b = (d->bsize - sizeof(Dahdr))*8;
 	d->nab = (d->nb+d->b2b-1)/d->b2b;
 	d->p2b = d->bsize/sizeof(Dptr);
-	strncpy(d->name, ba->name, sizeof(d->name));
+	strncpy(d->name, ba->name, sizeof d->name);
+
+	if (expname != nil && strncmp(d->name, expname, sizeof d->name) != 0) {
+		/* Mismatch with recorded name; fail here to force a format */
+		fprint(2, "cfs: name mismatch\n");
+		return -1;
+	}
 
 	/*
 	 *  check allocation blocks for consistency
