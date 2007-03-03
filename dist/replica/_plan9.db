@@ -19,7 +19,7 @@
 386/bin/8l - 775 sys sys 1148500567 115711
 386/bin/9660srv - 775 sys sys 1168402261 104975
 386/bin/aan - 775 sys sys 1168402261 131298
-386/bin/acid - 775 sys sys 1172780590 402190
+386/bin/acid - 775 sys sys 1172808055 401961
 386/bin/acme - 775 sys sys 1168402263 432256
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1136656314 132873
@@ -45,7 +45,7 @@
 386/bin/auth - 20000000775 sys sys 1016920815 0
 386/bin/auth/aescbc - 775 sys sys 1171830297 141337
 386/bin/auth/asn12rsa - 775 sys sys 1168402266 120828
-386/bin/auth/authsrv - 775 sys sys 1169612018 166651
+386/bin/auth/authsrv - 775 sys sys 1172808056 166692
 386/bin/auth/changeuser - 775 sys sys 1168402267 97488
 386/bin/auth/convkeys - 775 sys sys 1171830297 88680
 386/bin/auth/convkeys2 - 775 sys sys 1171830297 88739
@@ -55,7 +55,7 @@
 386/bin/auth/enable - 775 sys sys 1020319057 134
 386/bin/auth/factotum - 775 sys sys 1171830298 322644
 386/bin/auth/fgui - 775 sys sys 1168402269 218990
-386/bin/auth/guard.srv - 775 sys sys 1169612018 143828
+386/bin/auth/guard.srv - 775 sys sys 1172808056 145120
 386/bin/auth/iam - 775 sys sys 1085076981 50791
 386/bin/auth/keyfs - 775 sys sys 1171830298 116576
 386/bin/auth/login - 775 sys sys 1168402270 104747
@@ -72,7 +72,7 @@
 386/bin/auth/rsagen - 775 sys sys 1168402273 153528
 386/bin/auth/secretpem - 775 sys sys 1045537944 118526
 386/bin/auth/secstore - 775 sys sys 1171830299 196463
-386/bin/auth/secstored - 775 sys sys 1169612019 198002
+386/bin/auth/secstored - 775 sys sys 1172808057 198043
 386/bin/auth/secuser - 775 sys sys 1168402275 153231
 386/bin/auth/status - 775 sys sys 1020319060 738
 386/bin/auth/uniq - 775 sys sys 1168402275 63314
@@ -176,7 +176,7 @@
 386/bin/cat - 775 sys sys 1148500611 37482
 386/bin/cb - 775 sys sys 1168402293 77628
 386/bin/cdfs - 775 sys sys 1168402294 167435
-386/bin/cfs - 775 sys sys 1172780592 131665
+386/bin/cfs - 775 sys sys 1172808057 131665
 386/bin/chgrp - 775 sys sys 1168402294 59522
 386/bin/chmod - 775 sys sys 1168402294 62518
 386/bin/cifscmd - 775 sys sys 1169612022 343611
@@ -274,7 +274,7 @@
 386/bin/hayes - 775 sys sys 1168402314 64793
 386/bin/hget - 775 sys sys 1169612024 233943
 386/bin/history - 775 sys sys 1168402314 75705
-386/bin/hoc - 775 sys sys 1172289653 100101
+386/bin/hoc - 775 sys sys 1172808058 100101
 386/bin/html2ms - 775 sys sys 1168402315 66321
 386/bin/htmlfmt - 775 sys sys 1168402315 163476
 386/bin/htmlroff - 775 sys sys 1168402315 148450
@@ -15685,9 +15685,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/acid - 775 sys sys 1172808055 401961
-386/bin/cfs - 775 sys sys 1172808057 131665
-386/bin/hoc - 775 sys sys 1172808058 100101
-386/bin/auth/authsrv - 775 sys sys 1172808056 166692
-386/bin/auth/guard.srv - 775 sys sys 1172808056 145120
-386/bin/auth/secstored - 775 sys sys 1172808057 198043
