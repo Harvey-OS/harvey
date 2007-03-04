@@ -7,16 +7,13 @@ OFILES=\
 	lock.$O\
 	main9.$O\
 	main9p.$O\
-	memchr.$O\
-	memcmp.$O\
 	memmove.$O\
 	memset.$O\
 	notetramp.$O\
 	setjmp.$O\
-	strcat.$O\
 	strchr.$O\
+	strcmp.$O\
 	strcpy.$O\
-	strlen.$O\
 	tas.$O\
 	vlop.$O\
 	vlrt.$O\

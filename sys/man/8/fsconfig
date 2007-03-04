@@ -127,6 +127,26 @@ is equivalent to
 .B h1.0.0
 (second IDE controller, master drive).
 .TP
+.BI m n1 . n2 . n3
+.I M
+is similar to
+.IR h ,
+but for SATA drives connected to Marvell 
+88SX[56]0[48][01] controllers.
+There is no need to specify the controllers in 
+.B plan9.ini
+as they are autodiscovered.
+Hot-swapping drives is not currently supported.
+Similar target naming rules apply as for IDE controllers.
+However the controller-number is multiplied by the number of 
+drives the controller supports rather than 2.
+Thus
+.B m9
+is equivalent to
+.B m1.1.0
+(second controller, second drive),
+if the first controller supports 8 drives.
+.TP
 .BI l n1 . n2 . n3
 .TP
 .BI r n1 . n2 . n3
@@ -167,7 +187,8 @@ One might think of this as RAID 1,
 and
 .B [
 .B ]
-as RAID 0.
+as RAID 0,
+though neither includes any fancy recovery mechanisms.
 Each block is written to all the devices,
 starting with the rightmost in the list and working leftward.
 A block is read from the first device that provides it without error,

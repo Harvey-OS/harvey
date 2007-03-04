@@ -4167,3 +4167,5 @@ Linux is neither Unix nor Windows — it's the worst of both worlds -- jmk
 Did you ever try to write poetry in a committee meeting? It's like a bunch of fat construction guys trying to write an opera while sitting on the couch watching Baywatch. The more fat construction guys you add to the couch, the less likely you are to get opera out of it.  - Joel Spolsky
 Don't interrupt!  Let me finish! - Rae McLellan
 bool x = "false";  // valid C++ [sets x to true]
+# The below line not be changed otherwise we refuse to work
+having read AF_UNIX(7) i'm still don't see the point.  portable programs should not do this.  portable programs should not do that.  the details of this varies from implementation to implementation.  none of the following socket things ... are implemented.  the name is limited to 107 bytes.   - forsyth

@@ -93,7 +93,7 @@ fs, exsort \- file server maintenance
 .PP
 .B "sntp kick"
 .PP
-.BR stat [ adesw ]
+.BR stat [ admiesw ]
 .PP
 .B stats
 .RB [[ - ]
@@ -678,6 +678,10 @@ last character of the name:
 SCSI targets;
 .BR e ,
 Ethernet controllers;
+.BR i ,
+IDE/ATA targets;
+.BR m ,
+Marvell SATA targets;
 .BR w ,
 cached WORM.
 The
