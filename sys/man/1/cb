@@ -18,9 +18,9 @@ cb \- C program beautifier
 .I Cb
 reads syntactically correct C programs from
 from its input or the given files, and writes them to its stdout
-with a more visualy pleasing spacing and indentation.
+with a more visually pleasing spacing and indentation.
 .I Cb
-understands no C++ syntax bar newline terminated comments;
+understands no C++ syntax bar newline-terminated comments;
 and by default all user new-lines are preserved in the output.
 .PP
 The options are:

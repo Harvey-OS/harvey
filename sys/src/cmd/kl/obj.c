@@ -979,16 +979,23 @@ void
 gethunk(void)
 {
 	char *h;
+	long nh;
 
-	h = mysbrk((int)NHUNK);
+	nh = NHUNK;
+	if(tothunk >= 5L*NHUNK) {
+		nh = 5L*NHUNK;
+		if(tothunk >= 25L*NHUNK)
+			nh = 25L*NHUNK;
+	}
+	h = mysbrk(nh);
 	if(h == (char *)-1) {
 		diag("out of memory");
 		errorexit();
 	}
 
 	hunk = h;
-	nhunk = NHUNK;
-	tothunk += NHUNK;
+	nhunk = nh;
+	tothunk += nh;
 }
 
 void

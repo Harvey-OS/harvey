@@ -4,7 +4,7 @@ lock, canlock, unlock,
 qlock, canqlock, qunlock,
 rlock, canrlock, runlock,
 wlock, canwlock, wunlock,
-rsleep, rwakeup, rwakeupall
+rsleep, rwakeup, rwakeupall,
 incref, decref
 \- spin locks, queueing rendezvous locks, reader-writer locks, rendezvous points, and reference counts
 .SH SYNOPSIS

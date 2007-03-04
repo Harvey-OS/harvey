@@ -127,6 +127,11 @@ lookupip(uchar *ipaddr, Info *iip, int gate)
 			setipaddr(iip->gwip, nt->val);
 		else
 		if(strcmp(nt->attr, "ether") == 0){
+			/*
+			 * this is probably wrong for machines with multiple
+			 * ethers.  bootp or dhcp requests could come from any
+			 * of the ethers listed in the ndb entry.
+			 */
 			if(memcmp(iip->etheraddr, noetheraddr, 6) == 0)
 				parseether(iip->etheraddr, nt->val);
 			iip->indb = 1;

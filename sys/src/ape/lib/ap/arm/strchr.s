@@ -30,13 +30,17 @@ _aligned:
 _loop:
 	MOVW.P	4(R0), R4		/* 4 at a time */
 	TST	R4, R3			/* AND.S R2, R3, Rx */
+	TST.NE	R4>>8, R3
+	TST.NE	R4>>16, R3
+	TST.NE	R4>>24, R3
+	BNE	_loop
+
+	TST	R4, R3			/* its somewhere, find it and correct */
 	BEQ	_sub4
 	TST	R4>>8, R3
 	BEQ	_sub3
 	TST	R4>>16, R3
 	BEQ	_sub2
-	TST	R4>>24, R3
-	BNE	_loop
 
 _sub1:					/* compensate for pointer increment */
 	SUB	$1, R0

@@ -13,11 +13,9 @@ TEXT memset(SB), $0
 	CMP	$4, R(N)		/* need at least 4 bytes to copy */
 	BLT	_1tail
 
-	AND	$0xFF, R(4)		/* it's a byte */
-	SLL	$8, R(4), R(TMP)	/* replicate to a word */
-	ORR	R(TMP), R(4)
-	SLL	$16, R(4), R(TMP)
-	ORR	R(TMP), R(4)
+	AND	$0xFF, R(4)
+	ORR	R(4)<<8, R(4)
+	ORR	R(4)<<16, R(4)		/* replicate to word */
 
 _4align:				/* align on 4 */
 	AND.S	$3, R(TO), R(TMP)
