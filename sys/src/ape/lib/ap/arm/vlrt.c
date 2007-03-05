@@ -9,24 +9,14 @@ typedef	signed char	schar;
 typedef	struct	Vlong	Vlong;
 struct	Vlong
 {
-	union
-	{
-		struct
-		{
-			ulong	hi;
-			ulong	lo;
-		};
-		struct
-		{
-			ushort	hims;
-			ushort	hils;
-			ushort	loms;
-			ushort	lols;
-		};
-	};
+	ulong	lo;
+	ulong	hi;
 };
 
 void	abort(void);
+
+/* needed by profiler; can't be profiled */
+#pragma profile off
 
 void
 _addv(Vlong *r, Vlong a, Vlong b)
@@ -54,6 +44,7 @@ _subv(Vlong *r, Vlong a, Vlong b)
 	r->hi = hi;
 }
 
+#pragma profile on
 
 void
 _d2v(Vlong *y, double d)
@@ -148,7 +139,6 @@ dodiv(Vlong num, Vlong den, Vlong *q, Vlong *r)
 	numlo = num.lo;
 	denhi = den.hi;
 	denlo = den.lo;
-
 	/*
 	 * get a divide by zero
 	 */
@@ -203,7 +193,6 @@ dodiv(Vlong num, Vlong den, Vlong *q, Vlong *r)
 void
 _divvu(Vlong *q, Vlong n, Vlong d)
 {
-
 	if(n.hi == 0 && d.hi == 0) {
 		q->hi = 0;
 		q->lo = n.lo / d.lo;

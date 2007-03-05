@@ -15,20 +15,49 @@ static RR*	dnresolve1(char*, int, int, Request*, int, int);
 char *LOG = "dns";
 
 /*
+ * reading /proc/pid/args yields either "name" or "name [display args]",
+ * so return only display args, if any.
+ */
+static char *
+procgetname(void)
+{
+	int fd, n;
+	char *lp, *rp;
+	char buf[256];
+
+	snprint(buf, sizeof buf, "#p/%d/args", getpid());
+	if((fd = open(buf, OREAD)) < 0)
+		return strdup("");
+	*buf = '\0';
+	n = read(fd, buf, sizeof buf-1);
+	close(fd);
+	if (n >= 0)
+		buf[n] = '\0';
+	if ((lp = strchr(buf, '[')) == nil ||
+	    (rp = strrchr(buf, ']')) == nil)
+		return strdup("");
+	*rp = '\0';
+	return strdup(lp+1);
+}
+
+/*
  *  lookup 'type' info for domain name 'name'.  If it doesn't exist, try
  *  looking it up as a canonical name.
  */
 RR*
-dnresolve(char *name, int class, int type, Request *req, RR **cn, int depth, int recurse, int rooted, int *status)
+dnresolve(char *name, int class, int type, Request *req, RR **cn, int depth,
+	int recurse, int rooted, int *status)
 {
 	RR *rp, *nrp, *drp;
 	DN *dp;
 	int loops;
+	char *procname;
 	char nname[Domlen];
 
 	if(status)
 		*status = 0;
 
+	procname = procgetname();
 	/*
 	 *  hack for systems that don't have resolve search
 	 *  lists.  Just look up the simple name in the database.
@@ -37,14 +66,18 @@ dnresolve(char *name, int class, int type, Request *req, RR **cn, int depth, int
 		rp = nil;
 		drp = domainlist(class);
 		for(nrp = drp; nrp != nil; nrp = nrp->next){
-			snprint(nname, sizeof(nname), "%s.%s", name, nrp->ptr->name);
-			rp = dnresolve(nname, class, type, req,cn, depth, recurse, rooted, status);
+			snprint(nname, sizeof nname, "%s.%s", name,
+				nrp->ptr->name);
+			rp = dnresolve(nname, class, type, req, cn, depth,
+				recurse, rooted, status);
 			rrfreelist(rrremneg(&rp));
 			if(rp != nil)
 				break;
 		}
 		if(drp != nil)
 			rrfree(drp);
+		procsetname(procname);
+		free(procname);
 		return rp;
 	}
 
@@ -52,12 +85,15 @@ dnresolve(char *name, int class, int type, Request *req, RR **cn, int depth, int
 	 *  try the name directly
 	 */
 	rp = dnresolve1(name, class, type, req, depth, recurse);
-	if(rp)
+	if(rp) {
+		procsetname(procname);
+		free(procname);
 		return randomize(rp);
+	}
 
 	/* try it as a canonical name if we weren't told the name didn't exist */
 	dp = dnlookup(name, class, 0);
-	if(type != Tptr && dp->nonexistent != Rname){
+	if(type != Tptr && dp->nonexistent != Rname)
 		for(loops=0; rp == nil && loops < 32; loops++){
 			rp = dnresolve1(name, class, Tcname, req, depth, recurse);
 			if(rp == nil)
@@ -68,37 +104,40 @@ dnresolve(char *name, int class, int type, Request *req, RR **cn, int depth, int
 				rp = nil;
 				break;
 			}
-	
+
 			name = rp->host->name;
 			if(cn)
 				rrcat(cn, rp);
 			else
 				rrfreelist(rp);
-	
+
 			rp = dnresolve1(name, class, type, req, depth, recurse);
 		}
-	}
 
 	/* distinction between not found and not good */
-	if(rp == 0 && status != 0 && dp->nonexistent != 0)
+	if(rp == nil && status != nil && dp->nonexistent != 0)
 		*status = dp->nonexistent;
 
+	procsetname(procname);
+	free(procname);
 	return randomize(rp);
 }
 
 static RR*
-dnresolve1(char *name, int class, int type, Request *req, int depth, int recurse)
+dnresolve1(char *name, int class, int type, Request *req, int depth,
+	int recurse)
 {
 	DN *dp, *nsdp;
 	RR *rp, *nsrp, *dbnsrp;
 	char *cp;
 
 	if(debug)
-		syslog(0, LOG, "[%d] dnresolve1 %s %d %d", getpid(), name, type, class);
+		syslog(0, LOG, "[%d] dnresolve1 %s %d %d",
+			getpid(), name, type, class);
 
 	/* only class Cin implemented so far */
 	if(class != Cin)
-		return 0;
+		return nil;
 
 	dp = dnlookup(name, class, 1);
 
@@ -106,24 +145,22 @@ dnresolve1(char *name, int class, int type, Request *req, int depth, int recurse
 	 *  Try the cache first
 	 */
 	rp = rrlookup(dp, type, OKneg);
-	if(rp){
+	if(rp)
 		if(rp->db){
 			/* unauthenticated db entries are hints */
 			if(rp->auth)
 				return rp;
-		} else {
+		} else
 			/* cached entry must still be valid */
-			if(rp->ttl > now){
+			if(rp->ttl > now)
 				/* but Tall entries are special */
 				if(type != Tall || rp->query == Tall)
 					return rp;
-			}
-		}
-	}
+
 	rrfreelist(rp);
 
 	/*
-	 * try the cache for a canonical name. if found punt 
+	 * try the cache for a canonical name. if found punt
 	 * since we'll find it during the canonical name search
 	 * in dnresolve().
 	 */
@@ -131,7 +168,7 @@ dnresolve1(char *name, int class, int type, Request *req, int depth, int recurse
 		rp = rrlookup(dp, Tcname, NOneg);
 		rrfreelist(rp);
 		if(rp)
-			return 0;
+			return nil;
 	}
 
 	/*
@@ -221,7 +258,8 @@ dnresolve1(char *name, int class, int type, Request *req, int depth, int recurse
 }
 
 /*
- *  walk a domain name one element to the right.  return a pointer to that element.
+ *  walk a domain name one element to the right.
+ *  return a pointer to that element.
  *  in other words, return a pointer to the parent domain name.
  */
 char*
@@ -249,8 +287,7 @@ int
 udpport(void)
 {
 	int fd, ctl;
-	char ds[64];
-	char adir[64];
+	char ds[64], adir[64];
 
 	/* get a udp port */
 	snprint(ds, sizeof(ds), "%s/udp!*!0", mntpt);
@@ -272,11 +309,8 @@ udpport(void)
 	snprint(ds, sizeof(ds), "%s/data", adir);
 	fd = open(ds, ORDWR);
 	close(ctl);
-	if(fd < 0){
+	if(fd < 0)
 		warning("can't open udp port: %r");
-		return -1;
-	}
-
 	return fd;
 }
 
@@ -300,7 +334,7 @@ mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno)
 	m.qd->type = type;
 	len = convDNS2M(&m, &buf[OUdphdrsize], Maxudp);
 	if(len < 0)
-		abort(); /* "can't convert" */;
+		abort();	/* "can't convert" */
 	rrfree(m.qd);
 	return len;
 }
@@ -323,10 +357,12 @@ freeanswers(DNSmsg *mp)
 	rrfreelist(mp->an);
 	rrfreelist(mp->ns);
 	rrfreelist(mp->ar);
+	mp->qd = mp->an = mp->ns = mp->ar = nil;
 }
 
 /*
- *  read replies to a request.  ignore any of the wrong type.  wait at most 5 seconds.
+ *  read replies to a request.  ignore any of the wrong type.
+ *  wait at most 5 seconds.
  */
 static int
 readreply(int fd, DN *dp, int type, ushort req,
@@ -351,12 +387,12 @@ readreply(int fd, DN *dp, int type, ushort req,
 		len -= OUdphdrsize;
 		if(len < 0)
 			return -1;	/* timed out */
-		
+
 		/* convert into internal format  */
 		memset(mp, 0, sizeof(*mp));
-		err = convM2DNS(&ibuf[OUdphdrsize], len, mp);
+		err = convM2DNS(&ibuf[OUdphdrsize], len, mp, nil);
 		if(err){
-			syslog(0, LOG, "input err %s: %I", err, ibuf);
+			syslog(0, LOG, "input err: %s: %I", err, ibuf);
 			continue;
 		}
 		if(debug)
@@ -373,13 +409,13 @@ readreply(int fd, DN *dp, int type, ushort req,
 			continue;
 		}
 		if(mp->qd->owner != dp){
-			syslog(0, LOG, "%d: owner %s instead of %s: %I", reqp->id,
-				mp->qd->owner->name, dp->name, ibuf);
+			syslog(0, LOG, "%d: owner %s instead of %s: %I",
+				reqp->id, mp->qd->owner->name, dp->name, ibuf);
 			continue;
 		}
 		if(mp->qd->type != type){
-			syslog(0, LOG, "%d: type %d instead of %d: %I", reqp->id,
-				mp->qd->type, type, ibuf);
+			syslog(0, LOG, "%d: type %d instead of %d: %I",
+				reqp->id, mp->qd->type, type, ibuf);
 			continue;
 		}
 
@@ -406,10 +442,9 @@ contains(RR *rp1, RR *rp2)
 			if(trp1->owner == trp2->owner)
 				break;
 		}
-		if(trp1 == 0)
+		if(trp1 == nil)
 			return 0;
 	}
-
 	return 1;
 }
 
@@ -431,14 +466,12 @@ int
 ipisbm(uchar *ip)
 {
 	if(isv4(ip)){
-		if(ip[IPv4off] >= 0xe0 && ip[IPv4off] < 0xf0)
+		if (ip[IPv4off] >= 0xe0 && ip[IPv4off] < 0xf0 ||
+		    ipcmp(ip, IPv4bcast) == 0)
 			return 4;
-		if(ipcmp(ip, IPv4bcast) == 0)
-			return 4;
-	} else {
+	} else
 		if(ip[0] == 0xff)
 			return 6;
-	}
 	return 0;
 }
 
@@ -481,7 +514,7 @@ serveraddrs(RR *nsrp, Dest *dest, int nd, int depth, Request *reqp)
 	 *  server addresses, try resolving one via the network.
 	 *  Mark any we try to resolve so we don't try a second time.
 	 */
-	if(arp == 0){
+	if(arp == 0)
 		for(rp = nsrp; rp; rp = rp->next){
 			if(rp->marker)
 				continue;
@@ -493,12 +526,12 @@ serveraddrs(RR *nsrp, Dest *dest, int nd, int depth, Request *reqp)
 			if(subsume(rp->owner->name, rp->host->name))
 				continue;
 
-			arp = dnresolve(rp->host->name, Cin, Ta, reqp, 0, depth+1, Recurse, 1, 0);
+			arp = dnresolve(rp->host->name, Cin, Ta, reqp, 0,
+				depth+1, Recurse, 1, 0);
 			rrfreelist(rrremneg(&arp));
 			if(arp)
 				break;
 		}
-	}
 
 	/* use any addresses that we found */
 	for(trp = arp; trp; trp = trp->next){
@@ -527,14 +560,14 @@ cacheneg(DN *dp, int type, int rcode, RR *soarr)
 	DN *soaowner;
 	ulong ttl;
 
-	/* no cache time specified, don' make anything up */
+	/* no cache time specified, don't make anything up */
 	if(soarr != nil){
 		if(soarr->next != nil){
 			rrfreelist(soarr->next);
 			soarr->next = nil;
 		}
 		soaowner = soarr->owner;
-	} else 
+	} else
 		soaowner = nil;
 
 	/* the attach can cause soarr to be freed so mine it now */
@@ -560,16 +593,18 @@ cacheneg(DN *dp, int type, int rcode, RR *soarr)
  *  name server, recurse.
  */
 static int
-netquery1(int fd, DN *dp, int type, RR *nsrp, Request *reqp, int depth, uchar *ibuf, uchar *obuf)
+netquery1(int fd, DN *dp, int type, RR *nsrp, Request *reqp, int depth,
+	uchar *ibuf, uchar *obuf)
 {
 	int ndest, j, len, replywaits, rv;
-	ushort req;
-	RR *tp, *soarr;
-	Dest *p, *l, *np;
-	DN *ndp;
-	Dest dest[Maxdest];
-	DNSmsg m;
 	ulong endtime;
+	ushort req;
+	char buf[12];
+	DN *ndp;
+	DNSmsg m;
+	Dest *p, *l, *np;
+	Dest dest[Maxdest];
+	RR *tp, *soarr;
 
 	/* pack request into a message */
 	req = rand();
@@ -613,7 +648,10 @@ netquery1(int fd, DN *dp, int type, RR *nsrp, Request *reqp, int depth, uchar *i
 			if((1<<p->nx) > ndest)
 				continue;
 
-			memmove(obuf, p->a, sizeof(p->a));
+			procsetname("req slave: query to %I/%s %s %s",
+				obuf, p->s->name, dp->name,
+				rrname(type, buf, sizeof buf));
+			memmove(obuf, p->a, sizeof p->a);
 			if(debug)
 				logsend(reqp->id, depth, obuf, p->s->name,
 					dp->name, type);
@@ -630,6 +668,9 @@ netquery1(int fd, DN *dp, int type, RR *nsrp, Request *reqp, int depth, uchar *i
 			endtime = reqp->aborttime;
 
 		for(replywaits = 0; replywaits < ndest; replywaits++){
+			procsetname("req slave: reading reply from %I for %s %s",
+				obuf, dp->name, rrname(type, buf, sizeof buf));
+			memset(&m, 0, sizeof m);
 			if(readreply(fd, dp, type, req, ibuf, &m, endtime, reqp) < 0)
 				break;		/* timed out */
 
@@ -673,7 +714,7 @@ netquery1(int fd, DN *dp, int type, RR *nsrp, Request *reqp, int depth, uchar *i
 
 			/* incorporate answers */
 			if(m.an)
-				rrattach(m.an, (m.flags & Fauth) ? 1 : 0);
+				rrattach(m.an, (m.flags & Fauth) != 0);
 			if(m.ar)
 				rrattach(m.ar, 0);
 			if(m.ns){
@@ -700,7 +741,8 @@ netquery1(int fd, DN *dp, int type, RR *nsrp, Request *reqp, int depth, uchar *i
 				 *  cache any negative responses, free soarr
 				 */
 				if((m.flags & Fauth) && m.an == nil)
-					cacheneg(dp, type, (m.flags & Rmask), soarr);
+					cacheneg(dp, type, (m.flags & Rmask),
+						soarr);
 				else
 					rrfreelist(soarr);
 				return 1;
@@ -714,7 +756,12 @@ netquery1(int fd, DN *dp, int type, RR *nsrp, Request *reqp, int depth, uchar *i
 			if(m.ns){
 				tp = rrlookup(ndp, Tns, NOneg);
 				if(!contains(nsrp, tp)){
-					rv = netquery(dp, type, tp, reqp, depth+1);
+					procsetname(
+					 "req slave: recursive query for %s %s",
+						dp->name,
+						rrname(type, buf, sizeof buf));
+					rv = netquery(dp, type, tp, reqp,
+						depth + 1);
 					rrfreelist(tp);
 					return rv;
 				} else
@@ -723,7 +770,7 @@ netquery1(int fd, DN *dp, int type, RR *nsrp, Request *reqp, int depth, uchar *i
 		}
 	}
 
-	/* if all servers returned failure, propogate it */
+	/* if all servers returned failure, propagate it */
 	dp->nonexistent = Rserver;
 	for(p = dest; p < l; p++)
 		if(p->code != Rserver)
@@ -735,24 +782,29 @@ netquery1(int fd, DN *dp, int type, RR *nsrp, Request *reqp, int depth, uchar *i
 static int
 netquery(DN *dp, int type, RR *nsrp, Request *reqp, int depth)
 {
-	uchar *obuf;
-	uchar *ibuf;
-	RR *rp;
 	int fd, rv;
+//	int pid;
+	uchar *obuf, *ibuf;
+	RR *rp;
 
-	if(depth > 12)
+	if(depth > 12)			/* in a recursive loop? */
 		return 0;
 
 	/* use alloced buffers rather than ones from the stack */
 	ibuf = emalloc(Maxudpin+OUdphdrsize);
 	obuf = emalloc(Maxudp+OUdphdrsize);
 
+//	pid = getpid();
 	slave(reqp);
+	/* parent process longjmped to req->mret; we're the child slave */
 
 	/* prepare server RR's for incremental lookup */
 	for(rp = nsrp; rp; rp = rp->next)
 		rp->marker = 0;
 
+//	if (pid != getpid())
+//		syslog(0, LOG, "[%d] netquery: forked child for %s",
+//			getpid(), dp->name);
 	fd = udpport();
 	if(fd < 0)
 		rv = 0;

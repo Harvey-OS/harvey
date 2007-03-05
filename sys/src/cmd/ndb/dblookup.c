@@ -137,10 +137,10 @@ dblookup(char *name, int class, int type, int auth, int ttl)
 	}
 out:
 	/* add owner to uncached records */
-	if(rp){
+	if(rp)
 		for(tp = rp; tp; tp = tp->next)
 			tp->owner = dp;
-	} else {
+	else {
 		/* don't call it non-existent if it's not ours */
 		if(err == Rname && !inmyarea(name))
 			err = Rserver;
@@ -462,13 +462,13 @@ soarr(Ndbtuple *entry, Ndbtuple *pair)
 		rp->rmb = dnlookup(mailbox, Cin, 1);
 	}
 
-	/*  hang dns slaves off of the soa.  this is 
+	/*  hang dns slaves off of the soa.  this is
 	 *  for managing the area.
 	 */
 	for(t = entry; t != nil; t = t->entry)
 		if(strcmp(t->attr, "dnsslave") == 0)
 			addserver(&rp->soa->slaves, t->val);
-			
+
 	return rp;
 }
 
@@ -527,9 +527,8 @@ dbfile2area(Ndb *db)
 	if(debug)
 		syslog(0, logfile, "rereading %s", db->file);
 	Bseek(&db->b, 0, 0);
-	while(t = ndbparse(db)){
+	while(t = ndbparse(db))
 		ndbfree(t);
-	}
 }
 
 /*
@@ -546,22 +545,20 @@ dbpair2cache(DN *dp, Ndbtuple *entry, Ndbtuple *pair)
 	if(cistrcmp(pair->attr, "ip") == 0){
 		dp->ordinal = ord++;
 		rp = addrrr(entry, pair);
-	} else 	if(cistrcmp(pair->attr, "ns") == 0){
+	} else 	if(cistrcmp(pair->attr, "ns") == 0)
 		rp = nsrr(entry, pair);
-	} else if(cistrcmp(pair->attr, "soa") == 0){
+	else if(cistrcmp(pair->attr, "soa") == 0) {
 		rp = soarr(entry, pair);
 		addarea(dp, rp, pair);
-	} else if(cistrcmp(pair->attr, "mx") == 0){
+	} else if(cistrcmp(pair->attr, "mx") == 0)
 		rp = mxrr(entry, pair);
-	} else if(cistrcmp(pair->attr, "cname") == 0){
+	else if(cistrcmp(pair->attr, "cname") == 0)
 		rp = cnamerr(entry, pair);
-	} else if(cistrcmp(pair->attr, "nullrr") == 0){
+	else if(cistrcmp(pair->attr, "nullrr") == 0)
 		rp = nullrr(entry, pair);
-	} else if(cistrcmp(pair->attr, "txtrr") == 0){
+	else if(cistrcmp(pair->attr, "txtrr") == 0)
 		rp = txtrr(entry, pair);
-	}
-
-	if(rp == 0)
+	if(rp == nil)
 		return;
 
 	rp->owner = dp;
@@ -612,11 +609,10 @@ dbfile2cache(Ndb *db)
 void
 db2cache(int doit)
 {
+	ulong youngest, temp;
 	Ndb *ndb;
 	Dir *d;
-	ulong youngest, temp;
-	static ulong lastcheck;
-	static ulong lastyoungest;
+	static ulong lastcheck, lastyoungest;
 
 	/* no faster than once every 2 minutes */
 	if(now < lastcheck + 2*Min && !doit)
@@ -641,23 +637,22 @@ db2cache(int doit)
 	for(;;){
 		lastcheck = now;
 		youngest = 0;
-		for(ndb = db; ndb; ndb = ndb->next){
-			/* the dirfstat avoids walking the mount table each time */
+		for(ndb = db; ndb; ndb = ndb->next)
+			/* dirfstat avoids walking the mount table each time */
 			if((d = dirfstat(Bfildes(&ndb->b))) != nil ||
 			   (d = dirstat(ndb->file)) != nil){
-				temp = d->mtime;		/* ulong vs int crap */
+				temp = d->mtime;	/* ulong vs int crap */
 				if(temp > youngest)
 					youngest = temp;
 				free(d);
 			}
-		}
 		if(!doit && youngest == lastyoungest)
 			break;
-	
+
 		/* forget our area definition */
 		freearea(&owned);
 		freearea(&delegated);
-	
+
 		/* reopen all the files (to get oldest for time stamp) */
 		for(ndb = db; ndb; ndb = ndb->next)
 			ndbreopen(ndb);
@@ -665,21 +660,20 @@ db2cache(int doit)
 		if(cachedb){
 			/* mark all db records as timed out */
 			dnagedb();
-	
+
 			/* read in new entries */
 			for(ndb = db; ndb; ndb = ndb->next)
 				dbfile2cache(ndb);
-	
+
 			/* mark as authentic anything in our domain */
 			dnauthdb();
-	
+
 			/* remove old entries */
 			dnageall(1);
-		} else {
+		} else
 			/* read all the soa's to get database defaults */
 			for(ndb = db; ndb; ndb = ndb->next)
 				dbfile2area(ndb);
-		}
 
 		doit = 0;
 		lastyoungest = youngest;
@@ -703,7 +697,7 @@ lookupinfo(char *attr)
 
 	snprint(buf, sizeof buf, "%I", ipaddr);
 	a[0] = attr;
-	
+
 	lock(&dblock);
 	if(opendatabase() < 0){
 		unlock(&dblock);
@@ -714,7 +708,7 @@ lookupinfo(char *attr)
 	return t;
 }
 
-char *localservers = "local#dns#servers";
+char *localservers =	  "local#dns#servers";
 char *localserverprefix = "local#dns#server";
 
 /*
@@ -740,7 +734,8 @@ baddelegation(RR *rp, RR *nsrp, uchar *addr)
 		if(rp->owner != nsrp->owner)
 		if(subsume(rp->owner->name, nsrp->owner->name) &&
 		   strcmp(nsrp->owner->name, localservers) != 0){
-			syslog(0, logfile, "delegation loop %R -> %R from %I", nsrp, rp, addr);
+			syslog(0, logfile, "delegation loop %R -> %R from %I",
+				nsrp, rp, addr);
 			return 1;
 		}
 
@@ -749,7 +744,8 @@ baddelegation(RR *rp, RR *nsrp, uchar *addr)
 			if(rp->host && cistrcmp(rp->host->name, nt->val) == 0)
 				break;
 		if(nt != nil && !inmyarea(rp->owner->name)){
-			syslog(0, logfile, "bad delegation %R from %I", rp, addr);
+			syslog(0, logfile, "bad delegation %R from %I",
+				rp, addr);
 			return 1;
 		}
 	}
@@ -792,12 +788,12 @@ addlocaldnsserver(DN *dp, int class, char *ipaddr, int i)
 RR*
 dnsservers(int class)
 {
+	int i, n;
+	char *p, *buf;
+	char *args[5];
 	Ndbtuple *t, *nt;
 	RR *nsrp;
 	DN *dp;
-	char *p;
-	int i, n;
-	char *buf, *args[5];
 
 	dp = dnlookup(localservers, class, 1);
 	nsrp = rrlookup(dp, Tns, NOneg);
@@ -880,12 +876,10 @@ static void
 createptrs(void)
 {
 	int len, dlen, n;
-	Area *s;
+	char buf[Domlen+1], ipa[48];
 	char *f[40];
-	char buf[Domlen+1];
-	uchar net[IPaddrlen];
-	uchar mask[IPaddrlen];
-	char ipa[48];
+	uchar net[IPaddrlen], mask[IPaddrlen];
+	Area *s;
 	Ndbtuple *t, *nt;
 
 	dlen = strlen(v4ptrdom);
@@ -928,10 +922,10 @@ createptrs(void)
 			net[IPv4off+3] = atoi(f[0]);
 			sprint(ipa, "%I", net);
 			t = ndbipinfo(db, "ip", ipa, attribs, 1);
-			if(t == nil) /* could be a reverse with no forward */
+			if(t == nil)	/* could be a reverse with no forward */
 				continue;
 			nt = look(t, t, "ipmask");
-			if(nt == nil){	/* we're confused */
+			if(nt == nil){		/* we're confused */
 				ndbfree(t);
 				continue;
 			}
@@ -942,7 +936,10 @@ createptrs(void)
 			continue;
 		}
 
-		/* go through all domain entries looking for RR's in this network and create ptrs */
+		/*
+		 * go through all domain entries looking for RR's
+		 * in this network and create ptrs
+		 */
 		dnptr(net, mask, s->soarr->owner->name, 6-n, 0);
 	}
 }
