@@ -9,17 +9,15 @@
  *  Hash table for domain names.  The hash is based only on the
  *  first element of the domain name.
  */
-DN	*ht[HTLEN];
+DN *ht[HTLEN];
 
-
-static struct
-{
+static struct {
 	Lock;
 	ulong	names;	/* names allocated */
 	ulong	oldest;	/* longest we'll leave a name around */
 	int	active;
 	int	mutex;
-	int	id;
+	ushort	id;	/* same size as in packet */
 } dnvars;
 
 /* names of RR types */
@@ -110,6 +108,7 @@ char *rname[Rmask+1] =
 [Rbadname]		"duplicate key name",
 [Rbadalg]		"bad algorithm",
 };
+unsigned nrname = nelem(rname);
 
 /* names of op codes */
 char *opname[] =
@@ -124,9 +123,6 @@ Lock	dnlock;
 
 static int sencodefmt(Fmt*);
 
-/*
- *  set up a pipe to use as a lock
- */
 void
 dninit(void)
 {
@@ -139,6 +135,7 @@ dninit(void)
 
 	dnvars.oldest = maxage;
 	dnvars.names = 0;
+	dnvars.id = truerand();	/* don't start with same id every time */
 }
 
 /*
@@ -151,7 +148,7 @@ dnhash(char *name)
 	uchar *val = (uchar*)name;
 
 	for(hash = 0; *val; val++)
-		hash = (hash*13) + tolower(*val)-'a';
+		hash = hash*13 + tolower(*val)-'a';
 	return hash % HTLEN;
 }
 
@@ -176,7 +173,8 @@ dnlookup(char *name, int class, int enter)
 		}
 		l = &dp->next;
 	}
-	if(enter == 0){
+
+	if(!enter){
 		unlock(&dnlock);
 		return 0;
 	}
@@ -184,7 +182,7 @@ dnlookup(char *name, int class, int enter)
 	dp = emalloc(sizeof(*dp));
 	dp->magic = DNmagic;
 	dp->name = estrdup(name);
-	assert(dp->name != 0);
+	assert(dp->name != nil);
 	dp->class = class;
 	dp->rr = 0;
 	dp->next = 0;
@@ -209,14 +207,14 @@ dndump(char *file)
 	if(fd < 0)
 		return;
 	lock(&dnlock);
-	for(i = 0; i < HTLEN; i++){
+	for(i = 0; i < HTLEN; i++)
 		for(dp = ht[i]; dp; dp = dp->next){
 			fprint(fd, "%s\n", dp->name);
 			for(rp = dp->rr; rp; rp = rp->next)
-				fprint(fd, "	%R %c%c %lud/%lud\n", rp, rp->auth?'A':'U',
-					rp->db?'D':'N', rp->expire, rp->ttl);
+				fprint(fd, "	%R %c%c %lud/%lud\n",
+					rp, rp->auth? 'A': 'U',
+					rp->db? 'D': 'N', rp->expire, rp->ttl);
 		}
-	}
 	unlock(&dnlock);
 	close(fd);
 }
@@ -274,12 +272,27 @@ dnage(DN *dp)
 	}
 }
 
-#define REF(x) if(x) x->refs++
+#define REF(x) upref(x)
+
+static void
+upref(DN *dp)
+{
+	if (dp == nil)
+		return;
+	dp->refs++;
+	assert(dp->refs < 120);		/* make sure it fits in a signed char */
+}
 
 /*
- *  our target is 4000 names cached, this should be larger on large servers
+ *  this comment used to say `our target is 4000 names cached, this should
+ *  be larger on large servers'.  /lib/ndb at Bell Labs starts off with
+ *  about 1780 names, so 4000 is not a lot.
  */
-#define TARGET 4000
+enum {
+	Deftarget = 8000,
+};
+
+ulong target = Deftarget;
 
 /*
  *  periodicly sweep for old records and remove unreferenced domain names
@@ -294,13 +307,16 @@ dnageall(int doit)
 	RR *rp;
 	static ulong nextage;
 
-	if(dnvars.names < TARGET && now < nextage && !doit){
+	if(dnvars.names < target || (now < nextage && !doit)){
 		dnvars.oldest = maxage;
 		return;
 	}
 
-	if(dnvars.names > TARGET)
+	if(dnvars.names >= target) {
+		syslog(0, "dns", "more names (%lud) than target (%lud)",
+			dnvars.names, target);
 		dnvars.oldest /= 2;
+	}
 	nextage = now + maxage;
 
 	lock(&dnlock);
@@ -375,6 +391,7 @@ dnageall(int doit)
 					free(dp->name);
 				dp->magic = ~dp->magic;
 				dnvars.names--;
+				memset(dp, 0, sizeof *dp); /* cause trouble */
 				free(dp);
 				continue;
 			}
@@ -409,14 +426,16 @@ dnagedb(void)
 }
 
 /*
- *  mark all local db records about my area as authoritative, time out any others
+ *  mark all local db records about my area as authoritative,
+ *  time out any others
  */
 void
 dnauthdb(void)
 {
-	DN *dp;
 	int i;
+	ulong minttl;
 	Area *area;
+	DN *dp;
 	RR *rp;
 	static ulong nextage;
 
@@ -429,13 +448,14 @@ dnauthdb(void)
 			for(rp = dp->rr; rp; rp = rp->next)
 				if(rp->db){
 					if(area){
-						if(rp->ttl < area->soarr->soa->minttl)
-							rp->ttl = area->soarr->soa->minttl;
+						minttl = area->soarr->soa->minttl;
+						if(rp->ttl < minttl)
+							rp->ttl = minttl;
 						rp->auth = 1;
 					}
 					if(rp->expire == 0){
 						rp->db = 0;
-						dp->referenced = now - Reserved - 1;
+						dp->referenced = now-Reserved-1;
 					}
 				}
 		}
@@ -452,7 +472,9 @@ getactivity(Request *req, int recursive)
 {
 	int rv;
 
-	if(traceactivity) syslog(0, "dns", "get %d by %d from %p", dnvars.active, getpid(), getcallerpc(&req));
+	if(traceactivity)
+		syslog(0, "dns", "get: %d active by pid %d from %p",
+			dnvars.active, getpid(), getcallerpc(&req));
 	lock(&dnvars);
 	/*
 	 * can't block here if we're already holding one
@@ -460,7 +482,9 @@ getactivity(Request *req, int recursive)
 	 */
 	while(!recursive && dnvars.mutex){
 		unlock(&dnvars);
-		sleep(200);
+		syslog(0, "dns", "get: waiting for dnvars.mutex, pid %d",
+			getpid());
+		sleep(100);			/* was 200 */
 		lock(&dnvars);
 	}
 	rv = ++dnvars.active;
@@ -475,17 +499,20 @@ putactivity(int recursive)
 {
 	static ulong lastclean;
 
-	if(traceactivity) syslog(0, "dns", "put %d by %d", dnvars.active, getpid());
+	if(traceactivity)
+		syslog(0, "dns", "put: %d active by pid %d",
+			dnvars.active, getpid());
 	lock(&dnvars);
 	dnvars.active--;
-	assert(dnvars.active >= 0); /* "dnvars.active %d", dnvars.active */;
+	assert(dnvars.active >= 0); /* "dnvars.active %d", dnvars.active */
 
 	/*
 	 *  clean out old entries and check for new db periodicly
 	 *  can't block here if being called to let go a "recursive" lock
 	 *  or we'll deadlock waiting for ourselves to give up the dnvars.active.
 	 */
-	if(recursive || dnvars.mutex || (needrefresh == 0 && dnvars.active > 0)){
+	if (recursive || dnvars.mutex ||
+	    (needrefresh == 0 && dnvars.active > 0)){
 		unlock(&dnvars);
 		return;
 	}
@@ -494,7 +521,9 @@ putactivity(int recursive)
 	dnvars.mutex = 1;
 	while(dnvars.active > 0){
 		unlock(&dnvars);
-		sleep(100);
+		syslog(0, "dns", "put: waiting for dnvars.active==0, pid %d",
+			getpid());
+		sleep(100);		/* was 100 */
 		lock(&dnvars);
 	}
 	unlock(&dnvars);
@@ -565,7 +594,8 @@ rrattach1(RR *new, int auth)
 			/* all things equal, pick the newer one */
 			if(rp->arg0 == new->arg0 && rp->arg1 == new->arg1){
 				/* new drives out old */
-				if(new->ttl > rp->ttl || new->expire > rp->expire){
+				if (new->ttl > rp->ttl ||
+				    new->expire > rp->expire){
 					*l = rp->next;
 					rp->cached = 0;
 					rrfree(rp);
@@ -580,11 +610,10 @@ rrattach1(RR *new, int auth)
 			 *  the ordering in the list reflects the ordering
 			 *  received or read from the database
 			 */
-			if(rp->type == Tptr){
+			if(rp->type == Tptr)
 				if(!rp->negative && !new->negative
 				&& rp->ptr->ordinal > new->ptr->ordinal)
 					break;
-			}
 		}
 		l = &rp->next;
 	}
@@ -612,7 +641,7 @@ rrattach(RR *rp, int auth)
 	lock(&dnlock);
 	for(; rp; rp = next){
 		next = rp->next;
-		rp->next = 0;
+		rp->next = nil;
 
 		/* avoid any outside spoofing */
 		if(cachedb && !rp->db && inmyarea(rp->owner->name))
@@ -676,41 +705,53 @@ rrfree(RR *rp)
 	if(dp){
 		assert(dp->magic == DNmagic);
 		for(nrp = dp->rr; nrp; nrp = nrp->next)
-			assert(nrp != rp); /* "rrfree of live rr" */;
+			assert(nrp != rp);	/* "rrfree of live rr" */
 	}
 
 	switch(rp->type){
 	case Tsoa:
 		freeserverlist(rp->soa->slaves);
+		memset(rp->soa, 0, sizeof *rp->soa);	/* cause trouble */
 		free(rp->soa);
 		break;
 	case Tkey:
+		memset(rp->key->data, 0, sizeof *rp->key->data); /* cause trouble */
 		free(rp->key->data);
+		memset(rp->key, 0, sizeof *rp->key);	/* cause trouble */
 		free(rp->key);
 		break;
 	case Tcert:
+		memset(rp->cert->data, 0, sizeof *rp->cert->data); /* cause trouble */
 		free(rp->cert->data);
+		memset(rp->cert, 0, sizeof *rp->cert);	/* cause trouble */
 		free(rp->cert);
 		break;
 	case Tsig:
+		memset(rp->sig->data, 0, sizeof *rp->sig->data); /* cause trouble */
 		free(rp->sig->data);
+		memset(rp->sig, 0, sizeof *rp->sig);	/* cause trouble */
 		free(rp->sig);
 		break;
 	case Tnull:
+		memset(rp->null->data, 0, sizeof *rp->null->data); /* cause trouble */
 		free(rp->null->data);
+		memset(rp->null, 0, sizeof *rp->null);	/* cause trouble */
 		free(rp->null);
 		break;
 	case Ttxt:
 		while(rp->txt != nil){
 			t = rp->txt;
 			rp->txt = t->next;
+			memset(t->p, 0, sizeof *t->p);	/* cause trouble */
 			free(t->p);
+			memset(t, 0, sizeof *t);	/* cause trouble */
 			free(t);
 		}
 		break;
 	}
 
 	rp->magic = ~rp->magic;
+	memset(rp, 0, sizeof *rp);		/* cause trouble */
 	free(rp);
 }
 
@@ -728,7 +769,7 @@ rrfreelist(RR *rp)
 	}
 }
 
-extern RR**
+RR**
 rrcopy(RR *rp, RR **last)
 {
 	RR *nrp;
@@ -874,13 +915,12 @@ rrlookup(DN *dp, int type, int flag)
 		goto out;
 
 	/* otherwise, settle for anything we got (except for negative caches)  */
-	for(rp = dp->rr; rp; rp = rp->next){
+	for(rp = dp->rr; rp; rp = rp->next)
 		if(tsame(type, rp->type)){
 			if(rp->negative)
 				goto out;
 			last = rrcopy(rp, last);
 		}
-	}
 
 out:
 	unlock(&dnlock);
@@ -900,7 +940,7 @@ rrtype(char *atype)
 		if(rrtname[i] && strcmp(rrtname[i], atype) == 0)
 			return i;
 
-	// make any a synonym for all
+	/* make any a synonym for all */
 	if(strcmp(atype, "any") == 0)
 		return Tall;
 	return atoi(atype);
@@ -914,10 +954,10 @@ rrname(int type, char *buf, int len)
 {
 	char *t;
 
-	t = 0;
-	if(type <= Tall)
+	t = nil;
+	if(type >= 0 && type <= Tall)
 		t = rrtname[type];
-	if(t==0){
+	if(t==nil){
 		snprint(buf, len, "%d", type);
 		t = buf;
 	}
@@ -932,7 +972,7 @@ rrsupported(int type)
 {
 	if(type < 0 || type >Tall)
 		return 0;
-	return rrtname[type] != 0;
+	return rrtname[type] != nil;
 }
 
 /*
@@ -954,7 +994,7 @@ rrcat(RR **start, RR *rp)
 	RR **last;
 
 	last = start;
-	while(*last != 0)
+	while(*last != nil)
 		last = &(*last)->next;
 
 	*last = rp;
@@ -992,8 +1032,8 @@ rrremneg(RR **l)
 RR*
 rrremtype(RR **l, int type)
 {
-	RR **nl, *rp;
-	RR *first;
+	RR *first, *rp;
+	RR **nl;
 
 	first = nil;
 	nl = &first;
@@ -1011,29 +1051,36 @@ rrremtype(RR **l, int type)
 	return first;
 }
 
+static char *
+dnname(DN *dn)
+{
+	return dn? dn->name: "<null>";
+}
+
 /*
  *  print conversion for rr records
  */
 int
 rrfmt(Fmt *f)
 {
-	RR *rp;
-	char *strp;
-	Fmt fstr;
 	int rv;
+	char *strp;
 	char buf[Domlen];
+	Fmt fstr;
+	RR *rp;
 	Server *s;
+	SOA *soa;
 	Txt *t;
 
 	fmtstrinit(&fstr);
 
 	rp = va_arg(f->args, RR*);
-	if(rp == 0){
+	if(rp == nil){
 		fmtprint(&fstr, "<null>");
 		goto out;
 	}
 
-	fmtprint(&fstr, "%s %s", rp->owner->name,
+	fmtprint(&fstr, "%s %s", dnname(rp->owner),
 		rrname(rp->type, buf, sizeof buf));
 
 	if(rp->negative){
@@ -1043,42 +1090,51 @@ rrfmt(Fmt *f)
 
 	switch(rp->type){
 	case Thinfo:
-		fmtprint(&fstr, "\t%s %s", rp->cpu->name, rp->os->name);
+		fmtprint(&fstr, "\t%s %s", dnname(rp->cpu), dnname(rp->os));
 		break;
 	case Tcname:
 	case Tmb:
 	case Tmd:
 	case Tmf:
 	case Tns:
-		fmtprint(&fstr, "\t%s", rp->host->name);
+		fmtprint(&fstr, "\t%s", dnname(rp->host));
 		break;
 	case Tmg:
 	case Tmr:
-		fmtprint(&fstr, "\t%s", rp->mb->name);
+		fmtprint(&fstr, "\t%s", dnname(rp->mb));
 		break;
 	case Tminfo:
-		fmtprint(&fstr, "\t%s %s", rp->mb->name, rp->rmb->name);
+		fmtprint(&fstr, "\t%s %s", dnname(rp->mb), dnname(rp->rmb));
 		break;
 	case Tmx:
-		fmtprint(&fstr, "\t%lud %s", rp->pref, rp->host->name);
+		fmtprint(&fstr, "\t%lud %s", rp->pref, dnname(rp->host));
 		break;
 	case Ta:
 	case Taaaa:
-		fmtprint(&fstr, "\t%s", rp->ip->name);
+		fmtprint(&fstr, "\t%s", dnname(rp->ip));
 		break;
 	case Tptr:
-//		fmtprint(&fstr, "\t%s(%lud)", rp->ptr->name, rp->ptr->ordinal);
-		fmtprint(&fstr, "\t%s", rp->ptr->name);
+//		fmtprint(&fstr, "\t%s(%lud)", dnname(rp->ptr),
+//			rp->ptr? rp->ptr->ordinal: "<null>");
+		fmtprint(&fstr, "\t%s", dnname(rp->ptr));
 		break;
 	case Tsoa:
-		fmtprint(&fstr, "\t%s %s %lud %lud %lud %lud %lud", rp->host->name,
-			rp->rmb->name, rp->soa->serial, rp->soa->refresh, rp->soa->retry,
-			rp->soa->expire, rp->soa->minttl);
-		for(s = rp->soa->slaves; s != nil; s = s->next)
-			fmtprint(&fstr, " %s", s->name);
+		soa = rp->soa;
+		fmtprint(&fstr, "\t%s %s %lud %lud %lud %lud %lud",
+			dnname(rp->host), dnname(rp->rmb),
+			(soa? soa->serial: 0),
+			(soa? soa->refresh: 0), (soa? soa->retry: 0),
+			(soa? soa->expire: 0), (soa? soa->minttl: 0));
+		if (soa)
+			for(s = soa->slaves; s != nil; s = s->next)
+				fmtprint(&fstr, " %s", s->name);
 		break;
 	case Tnull:
-		fmtprint(&fstr, "\t%.*H", rp->null->dlen, rp->null->data);
+		if (rp->null == nil)
+			fmtprint(&fstr, "\t<null>");
+		else
+			fmtprint(&fstr, "\t%.*H", rp->null->dlen,
+				rp->null->data);
 		break;
 	case Ttxt:
 		fmtprint(&fstr, "\t");
@@ -1086,22 +1142,31 @@ rrfmt(Fmt *f)
 			fmtprint(&fstr, "%s", t->p);
 		break;
 	case Trp:
-		fmtprint(&fstr, "\t%s %s", rp->rmb->name, rp->rp->name);
+		fmtprint(&fstr, "\t%s %s", dnname(rp->rmb), dnname(rp->rp));
 		break;
 	case Tkey:
-		fmtprint(&fstr, "\t%d %d %d", rp->key->flags, rp->key->proto,
-			rp->key->alg);
+		if (rp->key == nil)
+			fmtprint(&fstr, "\t<null> <null> <null>");
+		else
+			fmtprint(&fstr, "\t%d %d %d", rp->key->flags,
+				rp->key->proto, rp->key->alg);
 		break;
 	case Tsig:
-		fmtprint(&fstr, "\t%d %d %d %lud %lud %lud %d %s",
-			rp->sig->type, rp->sig->alg, rp->sig->labels, rp->sig->ttl,
-			rp->sig->exp, rp->sig->incep, rp->sig->tag, rp->sig->signer->name);
+		if (rp->sig == nil)
+			fmtprint(&fstr,
+		   "\t<null> <null> <null> <null> <null> <null> <null> <null>");
+		else
+			fmtprint(&fstr, "\t%d %d %d %lud %lud %lud %d %s",
+				rp->sig->type, rp->sig->alg, rp->sig->labels,
+				rp->sig->ttl, rp->sig->exp, rp->sig->incep,
+				rp->sig->tag, dnname(rp->sig->signer));
 		break;
 	case Tcert:
-		fmtprint(&fstr, "\t%d %d %d",
-			rp->sig->type, rp->sig->tag, rp->sig->alg);
-		break;
-	default:
+		if (rp->cert == nil)
+			fmtprint(&fstr, "\t<null> <null> <null>");
+		else
+			fmtprint(&fstr, "\t%d %d %d",
+				rp->cert->type, rp->cert->tag, rp->cert->alg);
 		break;
 	}
 out:
@@ -1117,69 +1182,78 @@ out:
 int
 rravfmt(Fmt *f)
 {
-	RR *rp;
+	int rv, quote;
 	char *strp;
 	Fmt fstr;
-	int rv;
+	RR *rp;
 	Server *s;
+	SOA *soa;
 	Txt *t;
-	int quote;
 
 	fmtstrinit(&fstr);
 
 	rp = va_arg(f->args, RR*);
-	if(rp == 0){
+	if(rp == nil){
 		fmtprint(&fstr, "<null>");
 		goto out;
 	}
 
 	if(rp->type == Tptr)
-		fmtprint(&fstr, "ptr=%s", rp->owner->name);
+		fmtprint(&fstr, "ptr=%s", dnname(rp->owner));
 	else
-		fmtprint(&fstr, "dom=%s", rp->owner->name);
+		fmtprint(&fstr, "dom=%s", dnname(rp->owner));
 
 	switch(rp->type){
 	case Thinfo:
-		fmtprint(&fstr, " cpu=%s os=%s", rp->cpu->name, rp->os->name);
+		fmtprint(&fstr, " cpu=%s os=%s",
+			dnname(rp->cpu), dnname(rp->os));
 		break;
 	case Tcname:
-		fmtprint(&fstr, " cname=%s", rp->host->name);
+		fmtprint(&fstr, " cname=%s", dnname(rp->host));
 		break;
 	case Tmb:
 	case Tmd:
 	case Tmf:
-		fmtprint(&fstr, " mbox=%s", rp->host->name);
+		fmtprint(&fstr, " mbox=%s", dnname(rp->host));
 		break;
 	case Tns:
-		fmtprint(&fstr,  " ns=%s", rp->host->name);
+		fmtprint(&fstr,  " ns=%s", dnname(rp->host));
 		break;
 	case Tmg:
 	case Tmr:
-		fmtprint(&fstr, " mbox=%s", rp->mb->name);
+		fmtprint(&fstr, " mbox=%s", dnname(rp->mb));
 		break;
 	case Tminfo:
-		fmtprint(&fstr, " mbox=%s mbox=%s", rp->mb->name, rp->rmb->name);
+		fmtprint(&fstr, " mbox=%s mbox=%s",
+			dnname(rp->mb), dnname(rp->rmb));
 		break;
 	case Tmx:
-		fmtprint(&fstr, " pref=%lud mx=%s", rp->pref, rp->host->name);
+		fmtprint(&fstr, " pref=%lud mx=%s", rp->pref, dnname(rp->host));
 		break;
 	case Ta:
 	case Taaaa:
-		fmtprint(&fstr, " ip=%s", rp->ip->name);
+		fmtprint(&fstr, " ip=%s", dnname(rp->ip));
 		break;
 	case Tptr:
-		fmtprint(&fstr, " dom=%s", rp->ptr->name);
+		fmtprint(&fstr, " dom=%s", dnname(rp->ptr));
 		break;
 	case Tsoa:
-		fmtprint(&fstr, " ns=%s mbox=%s serial=%lud refresh=%lud retry=%lud expire=%lud ttl=%lud",
-			rp->host->name, rp->rmb->name, rp->soa->serial,
-			rp->soa->refresh, rp->soa->retry,
-			rp->soa->expire, rp->soa->minttl);
-		for(s = rp->soa->slaves; s != nil; s = s->next)
+		soa = rp->soa;
+		fmtprint(&fstr,
+" ns=%s mbox=%s serial=%lud refresh=%lud retry=%lud expire=%lud ttl=%lud",
+			dnname(rp->host), dnname(rp->rmb),
+			(soa? soa->serial: 0),
+			(soa? soa->refresh: 0), (soa? soa->retry: 0),
+			(soa? soa->expire: 0), (soa? soa->minttl: 0));
+		for(s = soa->slaves; s != nil; s = s->next)
 			fmtprint(&fstr, " dnsslave=%s", s->name);
 		break;
 	case Tnull:
-		fmtprint(&fstr, " null=%.*H", rp->null->dlen, rp->null->data);
+		if (rp->null == nil)
+			fmtprint(&fstr, " null=<null>");
+		else
+			fmtprint(&fstr, " null=%.*H", rp->null->dlen,
+				rp->null->data);
 		break;
 	case Ttxt:
 		fmtprint(&fstr, " txt=");
@@ -1195,22 +1269,33 @@ rravfmt(Fmt *f)
 			fmtprint(&fstr, "\"");
 		break;
 	case Trp:
-		fmtprint(&fstr, " rp=%s txt=%s", rp->rmb->name, rp->rp->name);
+		fmtprint(&fstr, " rp=%s txt=%s",
+			dnname(rp->rmb), dnname(rp->rp));
 		break;
 	case Tkey:
-		fmtprint(&fstr, " flags=%d proto=%d alg=%d",
-			rp->key->flags, rp->key->proto, rp->key->alg);
+		if (rp->key == nil)
+			fmtprint(&fstr, " flags=<null> proto=<null> alg=<null>");
+		else
+			fmtprint(&fstr, " flags=%d proto=%d alg=%d",
+				rp->key->flags, rp->key->proto, rp->key->alg);
 		break;
 	case Tsig:
-		fmtprint(&fstr, " type=%d alg=%d labels=%d ttl=%lud exp=%lud incep=%lud tag=%d signer=%s",
-			rp->sig->type, rp->sig->alg, rp->sig->labels, rp->sig->ttl,
-			rp->sig->exp, rp->sig->incep, rp->sig->tag, rp->sig->signer->name);
+		if (rp->sig == nil)
+			fmtprint(&fstr,
+" type=<null> alg=<null> labels=<null> ttl=<null> exp=<null> incep=<null> tag=<null> signer=<null>");
+		else
+			fmtprint(&fstr,
+" type=%d alg=%d labels=%d ttl=%lud exp=%lud incep=%lud tag=%d signer=%s",
+				rp->sig->type, rp->sig->alg, rp->sig->labels,
+				rp->sig->ttl, rp->sig->exp, rp->sig->incep,
+				rp->sig->tag, dnname(rp->sig->signer));
 		break;
 	case Tcert:
-		fmtprint(&fstr, " type=%d tag=%d alg=%d",
-			rp->sig->type, rp->sig->tag, rp->sig->alg);
-		break;
-	default:
+		if (rp->cert == nil)
+			fmtprint(&fstr, " type=<null> tag=<null> alg=<null>");
+		else
+			fmtprint(&fstr, " type=%d tag=%d alg=%d",
+				rp->cert->type, rp->cert->tag, rp->cert->alg);
 		break;
 	}
 out:
@@ -1233,20 +1318,45 @@ warning(char *fmt, ...)
 }
 
 /*
+ * based on libthread's threadsetname, but drags in less library code.
+ * actually just sets the arguments displayed.
+ */
+void
+procsetname(char *fmt, ...)
+{
+	int fd;
+	char *cmdname;
+	char buf[128];
+	va_list arg;
+
+	va_start(arg, fmt);
+	cmdname = vsmprint(fmt, arg);
+	va_end(arg);
+	if (cmdname == nil)
+		return;
+	snprint(buf, sizeof buf, "#p/%d/args", getpid());
+	if((fd = open(buf, OWRITE)) >= 0){
+		write(fd, cmdname, strlen(cmdname)+1);
+		close(fd);
+	}
+	free(cmdname);
+}
+
+/*
  *  create a slave process to handle a request to avoid one request blocking
  *  another
  */
 void
 slave(Request *req)
 {
-	static int slaveid;
 	int ppid;
+	static int slaveid;
 
 	if(req->isslave)
 		return;		/* we're already a slave process */
 
 	/*
-	 * These calls to putactivity cannot block. 
+	 * These calls to putactivity cannot block.
 	 * After getactivity(), the current process is counted
 	 * twice in dnvars.active (one will pass to the child).
 	 * If putactivity tries to wait for dnvars.active == 0,
@@ -1255,7 +1365,8 @@ slave(Request *req)
 
 	/* limit parallelism */
 	if(getactivity(req, 1) > Maxactive){
-		if(traceactivity) syslog(0, "dns", "[%d] too much activity", getpid());
+		if(traceactivity)
+			syslog(0, "dns", "[%d] too much activity", getpid());
 		putactivity(1);
 		return;
 	}
@@ -1266,8 +1377,11 @@ slave(Request *req)
 		putactivity(1);
 		break;
 	case 0:
-		if(traceactivity) syslog(0, "dns", "[%d] take activity from %d", ppid, getpid());
-		req->isslave = 1;
+		procsetname("request slave of pid %d", ppid);
+ 		if(traceactivity)
+			syslog(0, "dns", "[%d] take activity from %d",
+				getpid(), ppid);
+		req->isslave = 1;	/* why not `= getpid()'? */
 		break;
 	default:
 		longjmp(req->mret, 1);
@@ -1283,7 +1397,6 @@ dncheck(void *p, int dolock)
 	int i;
 	DN *dp;
 	RR *rp;
-	extern Pool *mainmem;
 
 	if(p != nil){
 		dp = p;
@@ -1326,13 +1439,12 @@ unique(RR *rp)
 
 	for(; rp; rp = rp->next){
 		l = &rp->next;
-		for(nrp = *l; nrp; nrp = *l){
+		for(nrp = *l; nrp; nrp = *l)
 			if(rrequiv(rp, nrp)){
 				*l = nrp->next;
 				rrfree(nrp);
 			} else
 				l = &nrp->next;
-		}
 	}
 }
 
@@ -1346,15 +1458,9 @@ subsume(char *higher, char *lower)
 
 	ln = strlen(lower);
 	hn = strlen(higher);
-	if(ln < hn)
+	if (ln < hn || cistrcmp(lower + ln - hn, higher) != 0 ||
+	    ln > hn && hn != 0 && lower[ln - hn - 1] != '.')
 		return 0;
-
-	if(cistrcmp(lower + ln - hn, higher) != 0)
-		return 0;
-
-	if(ln > hn && hn != 0 && lower[ln - hn - 1] != '.')
-		return 0;
-
 	return 1;
 }
 
@@ -1378,7 +1484,7 @@ randomize(RR *rp)
 		if(x->type != Ta && x->type != Tmx && x->type != Tns)
 			return rp;
 
-	base = rp; 
+	base = rp;
 
 	n = rand();
 	last = first = nil;
@@ -1418,13 +1524,10 @@ randomize(RR *rp)
 static int
 sencodefmt(Fmt *f)
 {
-	char *out;
-	char *buf;
-	int i, len;
-	int ilen;
-	int rv;
+	int i, len, ilen, rv;
+	char *out, *buf;
 	uchar *b;
-	char obuf[64];	// rsc optimization
+	char obuf[64];		/* rsc optimization */
 
 	if(!(f->flags&FmtPrec) || f->prec < 1)
 		goto error;
@@ -1471,7 +1574,7 @@ sencodefmt(Fmt *f)
 	} else
 		buf = obuf;
 
-	// convert
+	/* convert */
 	out = buf;
 	switch(f->r){
 	case '<':
@@ -1497,7 +1600,6 @@ sencodefmt(Fmt *f)
 
 error:
 	return fmtstrcpy(f, "<encodefmt>");
-
 }
 
 void*
@@ -1555,17 +1657,16 @@ void
 dnptr(uchar *net, uchar *mask, char *dom, int bytes, int ttl)
 {
 	int i, j;
+	char *p, *e;
+	char ptr[Domlen];
+	uchar ip[IPaddrlen], nnet[IPaddrlen];
 	DN *dp;
 	RR *rp, *nrp, *first, **l;
-	uchar ip[IPaddrlen];
-	uchar nnet[IPaddrlen];
-	char ptr[Domlen];
-	char *p, *e;
 
 	l = &first;
 	first = nil;
-	for(i = 0; i < HTLEN; i++){
-		for(dp = ht[i]; dp; dp = dp->next){
+	for(i = 0; i < HTLEN; i++)
+		for(dp = ht[i]; dp; dp = dp->next)
 			for(rp = dp->rr; rp; rp = rp->next){
 				if(rp->type != Ta || rp->negative)
 					continue;
@@ -1582,8 +1683,6 @@ dnptr(uchar *net, uchar *mask, char *dom, int bytes, int ttl)
 				*l = nrp;
 				l = &nrp->next;
 			}
-		}
-	}
 
 	for(rp = first; rp != nil; rp = nrp){
 		nrp = rp->next;
@@ -1624,7 +1723,6 @@ copyserverlist(Server *s)
 {
 	Server *ns;
 
-	
 	for(ns = nil; s != nil; s = s->next)
 		addserver(&ns, s->name);
 	return ns;

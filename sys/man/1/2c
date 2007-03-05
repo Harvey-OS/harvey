@@ -34,7 +34,7 @@ Motorola MC68000
 Motorola MC68020
 .TP
 .B "5c arm
-ARM 7500
+little-endian ARM
 .TP
 .B "6c amd64
 AMD64 and compatibles (e.g., Intel EM64T)

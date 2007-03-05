@@ -1,6 +1,6 @@
 .TH NDB 8
 .SH NAME
-query, mkhash, mkdb, cs, csquery, dns, dnsquery, ipquery, dnsdebug, mkhosts \- network database
+query, ipquery, mkhash, mkdb, mkhosts, cs, csquery, dns, dnsquery, dnsdebug \- network database
 .SH SYNOPSIS
 .B ndb/query
 [
@@ -18,6 +18,15 @@ query, mkhash, mkdb, cs, csquery, dns, dnsquery, ipquery, dnsdebug, mkhosts \- n
 .br
 .B ndb/mkhash
 .I "file attr"
+.br
+.B ndb/mkdb
+.br
+.B ndb/mkhosts
+[
+.I domain
+[
+.I dbfile
+] ]
 .br
 .B ndb/cs
 [
@@ -43,10 +52,16 @@ query, mkhash, mkdb, cs, csquery, dns, dnsquery, ipquery, dnsdebug, mkhosts \- n
 .br
 .B ndb/dns
 [
-.B -rRsn
+.B -nrRs
+] [
+.B -a
+maxage
 ] [
 .B -f
 .I dbfile
+] [
+.B -N
+.I target
 ] [
 .B -x
 .I netmtpt
@@ -60,16 +75,16 @@ query, mkhash, mkdb, cs, csquery, dns, dnsquery, ipquery, dnsdebug, mkhosts \- n
 .B ndb/dnsdebug
 [
 .B -rx
-]
-[ [
+] [
+.B -f
+.I dbfile
+] [ [
 .BI @ server
 ]
 .I domain-name
 [
 .I type
 ] ]
-.br
-.B ndb/mkdb
 .SH DESCRIPTION
 The network database holds administrative information used by
 network programs such as
@@ -105,7 +120,7 @@ with entries of attribute type
 and
 value
 .IR value .
-.PP
+.SS "Database maintenance"
 .I Ndb/mkhash
 creates a hash file for all entries with attribute
 .I attr
@@ -115,6 +130,41 @@ The hash files are used by
 .I ndb/query
 and by the ndb library routines.
 .PP
+.I Ndb/mkdb
+is used in concert with
+.IR awk (1)
+scripts to convert
+uucp systems files and IP host files
+into database files.
+It is very specific to the situation at Murray Hill.
+.PP
+When the database files change underfoot,
+.I ndb/cs
+and
+.I ndb/dns
+track them properly.  Nonetheless, to keep the database searches efficient
+it is necessary to run
+.I ndb/mkhash
+whenever the files are modified.
+It may be profitable to control this by a frequent
+.IR cron (8)
+job.
+.PP
+.I Ndb/mkhosts
+generates a BSD style 
+.BR hosts ,
+.BR hosts.txt ,
+and
+.B hosts.equiv
+files from an ndb data base file specified on the
+command line (default
+.BR /lib/ndb/local ).
+For local reasons the files are called
+.BR hosts.1127 ,
+.BR astro.txt ,
+and
+.BR hosts.equiv .
+.SS "Connection service"
 .I Ndb/cs
 is a server used by
 .IR dial (2)
@@ -142,12 +192,12 @@ supplies the name of the data base file to use,
 default
 .BR /lib/ndb/local .
 .TP
+.B -n
+causes cs to do nothing but set the system name.
+.TP
 .B -x
 specifies the mount point of the
 network.
-.TP
-.B -n
-causes cs to do nothing but set the system name.
 .PP
 .I Ndb/csquery
 can be used to query
@@ -170,7 +220,7 @@ were successfully translated
 The
 .B -s
 flag sets exit status without printing any results.
-.PP
+.SS "Domain name service"
 .I Ndb/dns
 is a server used by
 .I ndb/cs
@@ -182,28 +232,27 @@ By default
 serves only requests written to
 .BR /net/dns .
 The options are:
+.TP -a
+sets the maximum time in seconds that an unreferenced
+domain name will remain cached.
+The default is one hour (3600).
 .TP
 .B -f
 supplies the name of the data base file to use,
 default
 .BR /lib/ndb/local .
 .TP
-.B -x
-specifies the mount point of the
-network.
-.TP
-.B -s
-also cache DNS answers in memory,
-and answer domain requests sent to UDP port 53.
-.TP
 .B -n
 whenever a zone that we serve changes, send UDP NOTIFY
-messages to any dns slaves for that zone.
+messages to any dns slaves for that zone
+(see the
+.L dnsslave
+attribute below).
 .TP
-.B -z
-whenever we receive a UDP NOTIFY message, run
-.I program
-with the domain name of the area as its argument.
+.B -N
+sets the goal for the number of domain names cached to
+.I target
+rather than the default of 4,000.
 .TP
 .B -r
 send `recursive' queries, asking the other servers
@@ -211,7 +260,20 @@ to complete lookups.
 .TP
 .B -R
 ignore the `recursive' bit on incoming requests.
-do not complete lookups on behalf of remote systems.
+Do not complete lookups on behalf of remote systems.
+.TP
+.B -s
+also cache DNS answers in memory,
+and answer domain requests sent to UDP port 53.
+.TP
+.B -x
+specifies the mount point of the
+network.
+.TP
+.B -z
+whenever we receive a UDP NOTIFY message, run
+.I program
+with the domain name of the area as its argument.
 .PD
 .PP
 When the
@@ -221,24 +283,23 @@ option is specified, the servers used come from the
 attribute in the database.  For example, to specify a set of dns servers that
 will resolve requests for systems on the network
 .IR mh-net :
+.IP
 .EX
-
 ipnet=mh-net ip=135.104.0.0 ipmask=255.255.0.0
 	dns=ns1.cs.bell-labs.com
 	dns=ns2.cs.bell-labs.com
 dom=ns1.cs.bell-labs.com ip=135.104.1.11
 dom=ns2.cs.bell-labs.com ip=135.104.1.12
 .EE
-.PP
+.LP
 The server for a domain is indicated by a database entry containing
 both a
 .I dom
 and a
 .I ns
 attribute.
-For example, the entry for the Internet root is:
+.IP
 .EX
-
 dom=
 	ns=A.ROOT-SERVERS.NET
 	ns=B.ROOT-SERVERS.NET
@@ -247,6 +308,7 @@ dom=A.ROOT-SERVERS.NET ip=198.41.0.4
 dom=B.ROOT-SERVERS.NET ip=128.9.0.107
 dom=C.ROOT-SERVERS.NET ip=192.33.4.12
 .EE
+.LP
 The last three lines provide a mapping for the
 server names to their ip addresses.  This is only
 a hint and will be superseded from whatever is learned
@@ -258,8 +320,8 @@ adding an
 .B soa=
 attribute to the root entry.
 For example, the Bell Labs CS research domain is:
+.IP
 .EX
-
 dom=cs.bell-labs.com soa=
 	refresh=3600 ttl=3600
 	ns=plan9.bell-labs.com
@@ -270,8 +332,8 @@ dom=cs.bell-labs.com soa=
 	mx=plan9.bell-labs.com pref=10
 	dnsslave=nslocum.cs.bell-labs.com
 	dnsslave=vex.cs.bell-labs.com
-
 .EE
+.LP
 Here, the
 .B mb
 entry is the mail address of the person responsible for the
@@ -299,14 +361,15 @@ goes with an IP address) by adding an
 attribute to the entry defining the root of the reverse space.
 For example, to provide reverse lookup for all addresses in
 starting with 135.104 you must have a record like:
+.IP
 .EX
-
 dom=104.135.in-addr.arpa soa=
 	refresh=3600 ttl=3600
 	ns=plan9.bell-labs.com
 	ns=ns1.cs.bell-labs.com
 	ns=ns2.cs.bell-labs.com
 .EE
+.LP
 Notice the form of the reverse address, i.e., it's the bytes of the
 address range you are serving reversed and with
 .B .in-addr.arpa
@@ -315,10 +378,11 @@ appended.  This is a standard form for a domain name in an IPv4 PTR record.
 If such an entry exists in the database, reverse addresses will
 automatically be generated from any IP addresses in the database
 that are under this root.  For example
+.IP
 .EX
-
 dom=ns1.cs.bell-labs.com ip=135.104.1.11
 .EE
+.LP
 will automatically create both forward and reverse entries for
 .B ns1.cs.bell-labs.com .
 Unlike other DNS servers, there's no way to generate
@@ -328,14 +392,14 @@ Delegation of a further subtree to another set of name servers
 is indicated by an
 .B soa=delegated
 attribute.
+.IP
 .EX
-
 dom=bignose.cs.research.bell-labs.com
 	soa=delegated
 	ns=anna.cs.research.bell-labs.com
 	ns=dj.cs.research.bell-labs.com
-
 .EE
+.LP
 Nameservers within the delegated domain (as in this example)
 must have their IP addresses listed elsewhere in
 .I ndb
@@ -343,12 +407,12 @@ files.
 .PP
 Wild-carded domain names can also be used.
 For example, to specify a mail forwarder for all Bell Labs research systems:
+.IP
 .EX
-
 dom=*.research.bell-labs.com
 	mx=research.bell-labs.com
-
 .EE
+.LP
 `Cname' aliases may be established by adding a
 .B cname
 attribute giving the real domain name;
@@ -359,11 +423,11 @@ attribute is the alias.
 the aliases may have no other attributes than
 .B dom
 and are daily further restricted in their use by new RFCs.
+.IP
 .EX
-
 cname=anna.cs.research.bell-labs.com dom=www.cs.research.bell-labs.com
-
 .EE
+.LP
 .I Ndb/dnsquery
 can be used to query
 .I ndb/dns
@@ -422,6 +486,13 @@ uses the
 interface and the database file
 .BR /lib/ndb/local.
 The
+.B -f
+option supplies the name of the data base file to use.
+The
+.B -r
+option is the same as for
+.IR ndb/dns .
+The
 .B -x
 option directs
 .I dnsdebug
@@ -429,46 +500,7 @@ to use the
 .B /net.alt
 interface and
 .B /lib/ndb/external
-file.
-The
-.B -r
-option is the same as for
-.IR ndb/dns .
-.PP
-.I Ndb/mkdb
-is used in concert with
-.IR awk (1)
-scripts to convert
-uucp systems files and IP host files
-into database files.
-It is very specific to the situation at Murray Hill.
-.PP
-When the database files change underfoot,
-.I ndb/cs
-and
-.I ndb/dns
-track them properly.  Nonetheless, to keep the database searches efficient
-it is necessary to run
-.I ndb/mkhash
-whenever the files are modified.
-It may be profitable to control this by a frequent
-.IR cron (8)
-job.
-.PP
-.I Ndb/mkhosts
-generates a BSD style 
-.BR hosts ,
-.BR hosts.txt ,
-and
-.B hosts.equiv
-files from an ndb data base file specified on the
-command line (default
-.BR /lib/ndb/local ).
-For local reasons the files are called
-.BR hosts.1127 ,
-.BR astro.txt ,
-and
-.BR hosts.equiv .
+database file.
 .SH EXAMPLES
 .EX
 % ndb/query sys helix
@@ -513,7 +545,7 @@ gets mounted
 .SH SOURCE
 .B /sys/src/cmd/ndb
 .SH SEE ALSO
-.IR ndb (2)
+.IR ndb (2),
 .IR ndb (6)
 .SH BUGS
 .I Ndb

@@ -11,11 +11,12 @@
 enum
 {
 	Maxrequest=		1024,
-	Ncache=			8,
 	Maxpath=		128,
 	Maxreply=		512,
 	Maxrrr=			16,
 	Maxfdata=		8192,
+
+	Defmaxage=		60*60,		/* 1 hour */
 
 	Qdir=			0,
 	Qdns=			1,
@@ -42,9 +43,9 @@ struct Mfile
 	ushort		nrr;		/* number of rr's */
 };
 
-//
-//  active local requests
-//
+/*
+ *  active local requests
+ */
 struct Job
 {
 	Job	*next;
@@ -60,50 +61,51 @@ struct {
 	Mfile	*inuse;		/* active mfile's */
 } mfalloc;
 
-int	mfd[2];
-int	debug;
-int traceactivity;
 int	cachedb;
+int	debug;
+uchar	ipaddr[IPaddrlen];	/* my ip address */
+int	maxage = Defmaxage;
+int	mfd[2];
+int	needrefresh;
 ulong	now;
+int	resolver;
+int	sendnotifies;
 int	testing;
 char	*trace;
-int	needrefresh;
-int	resolver;
-uchar	ipaddr[IPaddrlen];	/* my ip address */
-int	maxage;
+int	traceactivity;
 char	*zonerefreshprogram;
-int	sendnotifies;
 
-void	rversion(Job*);
-void	rauth(Job*);
-void	rflush(Job*);
+char	*LOG;
+char	*dbfile;
+char	*logfile = "dns";
+char	mntpt[Maxpath];
+
+int	fillreply(Mfile*, int);
+void	freejob(Job*);
+void	io(void);
+void	mountinit(char*, char*);
+Job*	newjob(void);
 void	rattach(Job*, Mfile*);
-char*	rwalk(Job*, Mfile*);
-void	ropen(Job*, Mfile*);
-void	rcreate(Job*, Mfile*);
-void	rread(Job*, Mfile*);
-void	rwrite(Job*, Mfile*, Request*);
+void	rauth(Job*);
 void	rclunk(Job*, Mfile*);
+void	rcreate(Job*, Mfile*);
+void	rflush(Job*);
+void	ropen(Job*, Mfile*);
+void	rread(Job*, Mfile*);
 void	rremove(Job*, Mfile*);
 void	rstat(Job*, Mfile*);
+void	rversion(Job*);
+char*	rwalk(Job*, Mfile*);
+void	rwrite(Job*, Mfile*, Request*);
 void	rwstat(Job*, Mfile*);
 void	sendmsg(Job*, char*);
-void	mountinit(char*, char*);
-void	io(void);
-int	fillreply(Mfile*, int);
-Job*	newjob(void);
-void	freejob(Job*);
 void	setext(char*, int, char*);
-
-char	*logfile = "dns";
-char	*dbfile;
-char	mntpt[Maxpath];
-char	*LOG;
 
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-rRs] [-f ndb-file] [-x netmtpt]\n", argv0);
+	fprint(2, "usage: %s [-nrRst] [-a maxage] [-f ndb-file] [-N target] "
+		"[-x netmtpt] [-z refreshprog]\n", argv0);
 	exits("usage");
 }
 
@@ -111,30 +113,29 @@ void
 main(int argc, char *argv[])
 {
 	int	serve;
-	char	servefile[Maxpath];
-	char	ext[Maxpath];
-	char	*p;
+	char	servefile[Maxpath], ext[Maxpath];
 
 	serve = 0;
 	setnetmtpt(mntpt, sizeof(mntpt), nil);
 	ext[0] = 0;
 	ARGBEGIN{
+	case 'a':
+		maxage = atol(EARGF(usage()));
+		break;
 	case 'd':
 		debug = 1;
 		traceactivity = 1;
 		break;
 	case 'f':
-		p = ARGF();
-		if(p == nil)
-			usage();
-		dbfile = p;
+		dbfile = EARGF(usage());
 		break;
-	case 'x':
-		p = ARGF();
-		if(p == nil)
-			usage();
-		setnetmtpt(mntpt, sizeof(mntpt), p);
-		setext(ext, sizeof(ext), mntpt);
+	case 'n':
+		sendnotifies = 1;
+		break;
+	case 'N':
+		target = atol(EARGF(usage()));
+		if (target < 100)
+			target = 100;
 		break;
 	case 'r':
 		resolver = 1;
@@ -146,26 +147,23 @@ main(int argc, char *argv[])
 		serve = 1;	/* serve network */
 		cachedb = 1;
 		break;
-	case 'a':
-		p = ARGF();
-		if(p == nil)
-			usage();
-		maxage = atoi(p);
-		break;
 	case 't':
 		testing = 1;
 		break;
-	case 'z':
-		zonerefreshprogram = ARGF();
+	case 'x':
+		setnetmtpt(mntpt, sizeof mntpt, EARGF(usage()));
+		setext(ext, sizeof ext, mntpt);
 		break;
-	case 'n':
-		sendnotifies = 1;
+	case 'z':
+		zonerefreshprogram = EARGF(usage());
 		break;
 	}ARGEND
 	USED(argc);
 	USED(argv);
 
-if(testing) mainmem->flags |= POOL_NOREUSE;
+	if(testing)
+		mainmem->flags |= POOL_NOREUSE;
+//		mainmem->flags |= POOL_ANTAGONISM | POOL_PARANOIA;
 	rfork(RFREND|RFNOTEG);
 
 	/* start syslog before we fork */
@@ -174,11 +172,11 @@ if(testing) mainmem->flags |= POOL_NOREUSE;
 	if(myipaddr(ipaddr, mntpt) < 0)
 		sysfatal("can't read my ip address");
 
-	syslog(0, logfile, "starting dns on %I", ipaddr);
+	syslog(0, logfile, "starting dns on %I's %s", ipaddr, mntpt);
 
 	opendatabase();
 
-	snprint(servefile, sizeof(servefile), "#s/dns%s", ext);
+	snprint(servefile, sizeof servefile, "#s/dns%s", ext);
 	unmount(servefile, mntpt);
 	remove(servefile);
 	mountinit(servefile, mntpt);
@@ -198,7 +196,7 @@ if(testing) mainmem->flags |= POOL_NOREUSE;
 }
 
 /*
- *  if a mount point is specified, set the cs extention to be the mount point
+ *  if a mount point is specified, set the cs extension to be the mount point
  *  with '_'s replacing '/'s
  */
 void
@@ -230,6 +228,7 @@ mountinit(char *service, char *mntpt)
 	switch(rfork(RFFDG|RFPROC|RFNAMEG)){
 	case 0:
 		close(p[1]);
+		procsetname("main");
 		break;
 	case -1:
 		abort(); /* "fork failed\n" */;
@@ -263,14 +262,13 @@ newfid(int fid, int needunused)
 	Mfile *mf;
 
 	lock(&mfalloc);
-	for(mf = mfalloc.inuse; mf != nil; mf = mf->next){
+	for(mf = mfalloc.inuse; mf != nil; mf = mf->next)
 		if(mf->fid == fid){
 			unlock(&mfalloc);
 			if(needunused)
 				return nil;
 			return mf;
 		}
-	}
 	mf = emalloc(sizeof(*mf));
 	if(mf == nil)
 		sysfatal("out of memory");
@@ -287,16 +285,18 @@ freefid(Mfile *mf)
 	Mfile **l;
 
 	lock(&mfalloc);
-	for(l = &mfalloc.inuse; *l != nil; l = &(*l)->next){
+	for(l = &mfalloc.inuse; *l != nil; l = &(*l)->next)
 		if(*l == mf){
 			*l = mf->next;
-			if(mf->user)
+			if(mf->user) {
+				memset(mf->user, 0, sizeof *mf->user); /* cause trouble */
 				free(mf->user);
+			}
+			memset(mf, 0, sizeof *mf);	/* cause trouble */
 			free(mf);
 			unlock(&mfalloc);
 			return;
 		}
-	}
 	sysfatal("freeing unused fid");
 }
 
@@ -336,13 +336,13 @@ freejob(Job *job)
 	Job **l;
 
 	lock(&joblock);
-	for(l = &joblist; *l; l = &(*l)->next){
+	for(l = &joblist; *l; l = &(*l)->next)
 		if((*l) == job){
 			*l = job->next;
+			memset(job, 0, sizeof *job);	/* cause trouble */
 			free(job);
 			break;
 		}
-	}
 	unlock(&joblock);
 }
 
@@ -352,12 +352,11 @@ flushjob(int tag)
 	Job *job;
 
 	lock(&joblock);
-	for(job = joblist; job; job = job->next){
+	for(job = joblist; job; job = job->next)
 		if(job->request.tag == tag && job->request.type != Tflush){
 			job->flushed = 1;
 			break;
 		}
-	}
 	unlock(&joblock);
 }
 
@@ -370,6 +369,7 @@ io(void)
 	Request req;
 	Job *job;
 
+	memset(&req, 0, sizeof req);
 	/*
 	 *  a slave process is sometimes forked to wait for replies from other
 	 *  servers.  The master process returns immediately via a longjmp
@@ -377,6 +377,7 @@ io(void)
 	 */
 	if(setjmp(req.mret))
 		putactivity(0);
+	procsetname("main 9p reading loop");
 	req.isslave = 0;
 	for(;;){
 		n = read9pmsg(mfd[0], mdata, sizeof mdata);
@@ -384,6 +385,7 @@ io(void)
 			syslog(0, logfile, "error reading mntpt: %r");
 			exits(0);
 		}
+
 		job = newjob();
 		if(convM2S(mdata, n, &job->request) != n){
 			freejob(job);
@@ -394,11 +396,12 @@ io(void)
 			syslog(0, logfile, "%F", &job->request);
 
 		getactivity(&req, 0);
-		req.aborttime = now + 60;	/* don't spend more than 60 seconds */
+		req.aborttime = now + Maxreqtm;
 
 		switch(job->request.type){
 		default:
-			syslog(1, logfile, "unknown request type %d", job->request.type);
+			syslog(1, logfile, "unknown request type %d",
+				job->request.type);
 			break;
 		case Tversion:
 			rversion(job);
@@ -442,7 +445,7 @@ io(void)
 		}
 
 		freejob(job);
-	
+
 		/*
 		 *  slave processes die after replying
 		 */
@@ -450,7 +453,7 @@ io(void)
 			putactivity(0);
 			_exits(0);
 		}
-	
+
 		putactivity(0);
 	}
 }
@@ -502,16 +505,15 @@ rattach(Job *job, Mfile *mf)
 char*
 rwalk(Job *job, Mfile *mf)
 {
+	int i, nelems;
 	char *err;
 	char **elems;
-	int nelems;
-	int i;
 	Mfile *nmf;
 	Qid qid;
 
 	err = 0;
 	nmf = nil;
-	elems = job->request.wname;
+	elems  = job->request.wname;
 	nelems = job->request.nwname;
 	job->reply.nwqid = 0;
 
@@ -534,10 +536,11 @@ rwalk(Job *job, Mfile *mf)
 				err = "not a directory";
 				break;
 			}
-			if(strcmp(elems[i], "..") == 0 || strcmp(elems[i], ".") == 0){
+			if (strcmp(elems[i], "..") == 0 ||
+			    strcmp(elems[i], ".") == 0){
 				qid.type = QTDIR;
 				qid.path = Qdir;
-    Found:
+Found:
 				job->reply.wqid[i] = qid;
 				job->reply.nwqid++;
 				continue;
@@ -552,7 +555,7 @@ rwalk(Job *job, Mfile *mf)
 		}
 	}
 
-    send:
+send:
 	if(nmf != nil && (err!=nil || job->reply.nwqid<nelems))
 		freefid(nmf);
 	if(err == nil)
@@ -589,11 +592,11 @@ void
 rread(Job *job, Mfile *mf)
 {
 	int i, n, cnt;
-	long off;
-	Dir dir;
-	uchar buf[Maxfdata];
-	char *err;
 	long clock;
+	vlong off;
+	char *err;
+	uchar buf[Maxfdata];
+	Dir dir;
 
 	n = 0;
 	err = 0;
@@ -608,11 +611,8 @@ rread(Job *job, Mfile *mf)
 			dir.qid.path = Qdns;
 			dir.mode = 0666;
 			dir.length = 0;
-			dir.uid = mf->user;
-			dir.gid = mf->user;
-			dir.muid = mf->user;
-			dir.atime = clock;	/* wrong */
-			dir.mtime = clock;	/* wrong */
+			dir.uid = dir.gid = dir.muid = mf->user;
+			dir.atime = dir.mtime = clock;	/* wrong */
 			n = convD2M(&dir, buf, sizeof buf);
 		}
 		job->reply.data = (char*)buf;
@@ -620,15 +620,14 @@ rread(Job *job, Mfile *mf)
 		for(i = 1; i <= mf->nrr; i++)
 			if(mf->rr[i] > off)
 				break;
-		if(i > mf->nrr)
-			goto send;
-		if(off + cnt > mf->rr[i])
-			n = mf->rr[i] - off;
-		else
-			n = cnt;
-		job->reply.data = mf->reply + off;
+		if(i <= mf->nrr) {
+			if(off + cnt > mf->rr[i])
+				n = mf->rr[i] - off;
+			else
+				n = cnt;
+			job->reply.data = mf->reply + off;
+		}
 	}
-send:
 	job->reply.count = n;
 	sendmsg(job, err);
 }
@@ -636,11 +635,10 @@ send:
 void
 rwrite(Job *job, Mfile *mf, Request *req)
 {
-	int cnt, rooted, status;
+	int cnt, rooted, status, wantsav;
 	long n;
 	char *err, *p, *atype;
 	RR *rp, *tp, *neg;
-	int wantsav;
 
 	err = 0;
 	cnt = job->request.count;
@@ -659,16 +657,20 @@ rwrite(Job *job, Mfile *mf, Request *req)
 	/*
 	 *  special commands
 	 */
-	if(strncmp(job->request.data, "debug", 5)==0 && job->request.data[5] == 0){
+	if(strncmp(job->request.data, "debug", 5)==0 &&
+	    job->request.data[5] == 0){
 		debug ^= 1;
 		goto send;
-	} else if(strncmp(job->request.data, "dump", 4)==0 && job->request.data[4] == 0){
+	} else if(strncmp(job->request.data, "dump", 4)==0 &&
+	    job->request.data[4] == 0){
 		dndump("/lib/ndb/dnsdump");
 		goto send;
-	} else if(strncmp(job->request.data, "refresh", 7)==0 && job->request.data[7] == 0){
+	} else if(strncmp(job->request.data, "refresh", 7)==0 &&
+	    job->request.data[7] == 0){
 		needrefresh = 1;
 		goto send;
-	} else if(strncmp(job->request.data, "poolcheck", 9)==0 && job->request.data[9] == 0){
+	} else if(strncmp(job->request.data, "poolcheck", 9)==0 &&
+	    job->request.data[9] == 0){
 		poolcheck(mainmem);
 		goto send;
 	}
@@ -760,8 +762,7 @@ rwrite(Job *job, Mfile *mf, Request *req)
 		unlock(&joblock);
 		rrfreelist(rp);
 	}
-
-    send:
+send:
 	dncheck(0, 1);
 	job->reply.count = cnt;
 	sendmsg(job, err);
@@ -796,9 +797,7 @@ rstat(Job *job, Mfile *mf)
 	}
 	dir.qid = mf->qid;
 	dir.length = 0;
-	dir.uid = mf->user;
-	dir.gid = mf->user;
-	dir.muid = mf->user;
+	dir.uid = dir.gid = dir.muid = mf->user;
 	dir.atime = dir.mtime = time(0);
 	job->reply.nstat = convD2M(&dir, buf, sizeof buf);
 	job->reply.stat = buf;
@@ -823,13 +822,13 @@ sendmsg(Job *job, char *err)
 		job->reply.type = Rerror;
 		snprint(ename, sizeof(ename), "dns: %s", err);
 		job->reply.ename = ename;
-	}else{
+	}else
 		job->reply.type = job->request.type+1;
-	}
 	job->reply.tag = job->request.tag;
 	n = convS2M(&job->reply, mdata, sizeof mdata);
 	if(n == 0){
-		syslog(1, logfile, "sendmsg convS2M of %F returns 0", &job->reply);
+		syslog(1, logfile, "sendmsg convS2M of %F returns 0",
+			&job->reply);
 		abort();
 	}
 	lock(&joblock);
@@ -872,7 +871,8 @@ logsend(int id, int subid, uchar *addr, char *sname, char *rname, int type)
 	char buf[12];
 
 	syslog(0, LOG, "[%d] %d.%d: sending to %I/%s %s %s",
-		getpid(), id, subid, addr, sname, rname, rrname(type, buf, sizeof buf));
+		getpid(), id, subid, addr, sname, rname,
+		rrname(type, buf, sizeof buf));
 }
 
 RR*

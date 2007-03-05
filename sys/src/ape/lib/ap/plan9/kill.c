@@ -46,9 +46,12 @@ kill(pid_t pid, int sig)
 	if(pid < 0) {
 		sid = getpgrp();
 		mpid = getpid();
-		setpgid(mpid, -pid);
-		r = note(mpid, msg, "/proc/%d/notepg");
-		setpgid(mpid, sid);
+		if(setpgid(mpid, -pid) > 0) {
+			r = note(mpid, msg, "/proc/%d/notepg");
+			setpgid(mpid, sid);
+		} else {
+			r = -1;
+		}
 	} else if(pid == 0)
 		r = note(getpid(), msg, "/proc/%d/notepg");
 	else
