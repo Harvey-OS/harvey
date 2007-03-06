@@ -121,6 +121,8 @@ main(int argc, char *argv[])
 	ARGBEGIN{
 	case 'a':
 		maxage = atol(EARGF(usage()));
+		if (maxage <= 0)
+			maxage = Defmaxage;
 		break;
 	case 'd':
 		debug = 1;

@@ -340,10 +340,10 @@
 386/bin/ndb - 20000000775 sys sys 985743147 0
 386/bin/ndb/cs - 775 sys sys 1169612028 150911
 386/bin/ndb/csquery - 775 sys sys 1168402337 61702
-386/bin/ndb/dns - 775 sys sys 1169612029 247301
-386/bin/ndb/dnsdebug - 775 sys sys 1169612030 221780
-386/bin/ndb/dnsquery - 775 sys sys 1168402339 63870
-386/bin/ndb/dnstcp - 775 sys sys 1169612031 220748
+386/bin/ndb/dns - 775 sys sys 1173125808 254849
+386/bin/ndb/dnsdebug - 775 sys sys 1173125809 229017
+386/bin/ndb/dnsquery - 775 sys sys 1173113879 63870
+386/bin/ndb/dnstcp - 775 sys sys 1173125810 227919
 386/bin/ndb/ipquery - 775 sys sys 1169612031 96994
 386/bin/ndb/mkdb - 775 sys sys 1168402340 64211
 386/bin/ndb/mkhash - 775 sys sys 1168402340 84780
@@ -5462,7 +5462,7 @@ rc/bin/iwhois - 775 sys sys 1143979502 1637
 rc/bin/juke - 775 sys sys 1105565140 1131
 rc/bin/kill - 775 sys sys 1143389260 142
 rc/bin/kmem - 775 sys sys 1141940177 468
-rc/bin/label - 775 sys sys 945617207 34
+rc/bin/label - 775 sys sys 1173121903 113
 rc/bin/lc - 775 sys sys 945617207 24
 rc/bin/leak - 775 sys sys 1172760642 1921
 rc/bin/lookman - 775 sys sys 1017679344 686
@@ -7746,7 +7746,7 @@ sys/man/8/mkpaqfs - 664 sys sys 1018386778 892
 sys/man/8/mksacfs - 664 sys sys 964886843 710
 sys/man/8/mouse - 664 sys sys 971455511 2476
 sys/man/8/na - 664 sys sys 958527089 859
-sys/man/8/ndb - 664 sys sys 1170783426 10120
+sys/man/8/ndb - 664 sys sys 1173120870 10642
 sys/man/8/newuser - 664 sys sys 1116954242 2418
 sys/man/8/nfsserver - 664 sys sys 1163208425 3587
 sys/man/8/pcmcia - 664 sys sys 944959679 408
@@ -12421,7 +12421,7 @@ sys/src/cmd/ip/snoopy/arp.c - 664 sys sys 1128179536 1914
 sys/src/cmd/ip/snoopy/bootp.c - 664 sys sys 1139667382 3442
 sys/src/cmd/ip/snoopy/dat.h - 664 sys sys 1146318302 1933
 sys/src/cmd/ip/snoopy/dhcp.c - 664 sys sys 1138463389 8958
-sys/src/cmd/ip/snoopy/dns.c - 664 sys sys 1144956777 14815
+sys/src/cmd/ip/snoopy/dns.c - 664 sys sys 1173130870 7867
 sys/src/cmd/ip/snoopy/dump.c - 664 sys sys 1138463389 1078
 sys/src/cmd/ip/snoopy/eap.c - 664 sys sys 1128179537 3996
 sys/src/cmd/ip/snoopy/eap_identity.c - 664 sys sys 1128179537 50
@@ -12437,7 +12437,7 @@ sys/src/cmd/ip/snoopy/il.c - 664 sys sys 1139667365 2260
 sys/src/cmd/ip/snoopy/ip.c - 664 sys sys 1128179538 4300
 sys/src/cmd/ip/snoopy/ip6.c - 664 sys sys 1128179538 5371
 sys/src/cmd/ip/snoopy/main.c - 664 sys sys 1146318297 15720
-sys/src/cmd/ip/snoopy/mkfile - 664 sys sys 1144955678 889
+sys/src/cmd/ip/snoopy/mkfile - 664 sys sys 1173130906 985
 sys/src/cmd/ip/snoopy/ninep.c - 664 sys sys 1138463390 555
 sys/src/cmd/ip/snoopy/ospf.c - 664 sys sys 1138463391 7369
 sys/src/cmd/ip/snoopy/ppp.c - 664 sys sys 1128179539 10544
@@ -12664,7 +12664,7 @@ sys/src/cmd/mug.c - 664 sys sys 1157143847 24888
 sys/src/cmd/mv.c - 664 sys sys 1163029439 4682
 sys/src/cmd/ndb - 20000000775 sys sys 1080135004 0
 sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1173059857 6856
-sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1173060986 10495
+sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1173118920 10483
 sys/src/cmd/ndb/cs.c - 664 sys sys 1163208617 33080
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1014926159 1062
 sys/src/cmd/ndb/dblookup.c - 664 sys sys 1173060354 18199
@@ -12672,7 +12672,7 @@ sys/src/cmd/ndb/dn.c - 664 sys sys 1173060793 31773
 sys/src/cmd/ndb/dnarea.c - 664 sys sys 1173059947 2517
 sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1173059885 3155
 sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1173061785 16701
-sys/src/cmd/ndb/dns.c - 664 sys sys 1173061211 15603
+sys/src/cmd/ndb/dns.c - 664 sys sys 1173075040 15645
 sys/src/cmd/ndb/dns.h - 664 sys sys 1173059802 9841
 sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1173060595 8633
 sys/src/cmd/ndb/dnserver.c - 664 sys sys 1173060400 4449
@@ -15680,3 +15680,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/snoopy - 775 sys sys 1173153677 192206
