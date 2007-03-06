@@ -431,7 +431,7 @@ retry:
 		 * 235.9.104.135.in-addr.arpa cname
 		 *	235.9.104.135.in-addr.arpa from 135.104.9.235
 		 */
-		if (0 && type == Tcname && sp->p - data == 2 && len == 0) // WIN
+		if (type == Tcname && sp->p - data == 2 && len == 0)
 			return rp;
 
 		snprint(sp->errbuf, sizeof sp->errbuf,
