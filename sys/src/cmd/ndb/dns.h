@@ -137,6 +137,8 @@ enum
 	/* length of domain name hash table */
 	HTLEN= 		4*1024,
 
+	Maxpath=	128,	/* size of mntpt */
+
 	RRmagic=	0xdeadbabe,
 	DNmagic=	0xa110a110,
 
@@ -186,6 +188,7 @@ struct DN
 	char	refs;		/* for mark and sweep */
 	char	nonexistent;	/* true if we get an authoritative nx for this domain */
 	ulong	ordinal;
+	QLock	querylck;	/* permit only 1 query per domain name at a time */
 };
 
 /*
@@ -346,6 +349,7 @@ extern char	*dbfile;
 extern int	debug;
 extern Area	*delegated;
 extern char	*logfile;
+extern int	inside;
 extern int	maxage;		/* age of oldest entry in cache (secs) */
 extern char	mntpt[];
 extern int	needrefresh;
@@ -435,7 +439,7 @@ void	procsetname(char *fmt, ...);
 
 /* dnresolve.c */
 RR*	dnresolve(char*, int, int, Request*, RR**, int, int, int, int*);
-int	udpport(void);
+int	udpport(char *);
 int	mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno);
 
 /* dnserver.c */

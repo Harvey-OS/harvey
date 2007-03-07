@@ -11,7 +11,6 @@
 enum
 {
 	Maxrequest=		1024,
-	Maxpath=		128,
 	Maxreply=		512,
 	Maxrrr=			16,
 	Maxfdata=		8192,
@@ -64,6 +63,7 @@ struct {
 int	cachedb;
 int	debug;
 uchar	ipaddr[IPaddrlen];	/* my ip address */
+int	inside;
 int	maxage = Defmaxage;
 int	mfd[2];
 int	needrefresh;
@@ -116,7 +116,7 @@ main(int argc, char *argv[])
 	char	servefile[Maxpath], ext[Maxpath];
 
 	serve = 0;
-	setnetmtpt(mntpt, sizeof(mntpt), nil);
+	setnetmtpt(mntpt, sizeof mntpt, nil);
 	ext[0] = 0;
 	ARGBEGIN{
 	case 'a':
@@ -165,8 +165,10 @@ main(int argc, char *argv[])
 
 	if(testing)
 		mainmem->flags |= POOL_NOREUSE;
-//		mainmem->flags |= POOL_ANTAGONISM | POOL_PARANOIA;
+//	mainmem->flags |= POOL_ANTAGONISM | POOL_PARANOIA;	/* DEBUG */
 	rfork(RFREND|RFNOTEG);
+
+	inside = (*mntpt == '\0' || strcmp(mntpt, "/net") == 0);
 
 	/* start syslog before we fork */
 	fmtinstall('F', fcallfmt);
@@ -733,7 +735,7 @@ rwrite(Job *job, Mfile *mf, Request *req)
 		status = neg->negrcode;
 		rrfreelist(neg);
 	}
-	if(rp == 0){
+	if(rp == 0)
 		switch(status){
 		case Rname:
 			err = "name does not exist";
@@ -745,19 +747,21 @@ rwrite(Job *job, Mfile *mf, Request *req)
 			err = "resource does not exist";
 			break;
 		}
-	} else {
+	else {
 		lock(&joblock);
 		if(!job->flushed){
 			/* format data to be read later */
 			n = 0;
 			mf->nrr = 0;
 			for(tp = rp; mf->nrr < Maxrrr-1 && n < Maxreply && tp &&
-					tsame(mf->type, tp->type); tp = tp->next){
+			    tsame(mf->type, tp->type); tp = tp->next){
 				mf->rr[mf->nrr++] = n;
 				if(wantsav)
-					n += snprint(mf->reply+n, Maxreply-n, "%Q", tp);
+					n += snprint(mf->reply+n, Maxreply-n,
+						"%Q", tp);
 				else
-					n += snprint(mf->reply+n, Maxreply-n, "%R", tp);
+					n += snprint(mf->reply+n, Maxreply-n,
+						"%R", tp);
 			}
 			mf->rr[mf->nrr] = n;
 		}
