@@ -37,13 +37,20 @@ errneg(RR *rp, Scan *sp, int actual)
 static int
 errtoolong(RR *rp, Scan *sp, int actual, int nominal, char *where)
 {
+	char *p, *ep;
 	char ptype[64];
 
-	snprint(sp->errbuf, sizeof sp->errbuf,
-		"%s%s %s RR: wrong length (actual %d, nominal %d): %R",
-		where? where: "", where? ":": "",
-		rrname(rp? rp->type: -1, ptype, sizeof ptype),
-		actual, nominal, rp);
+	p =  sp->errbuf;
+	ep = sp->errbuf + sizeof sp->errbuf - 1;
+	if (where)
+		p = seprint(p, ep, "%s: ", where);
+	if (rp)
+		p = seprint(p, ep, "type %s RR: ",
+			rrname(rp->type, ptype, sizeof ptype));
+	p = seprint(p, ep, "wrong length (actual %d, nominal %d)",
+		actual, nominal);
+	if (rp)
+		seprint(p, ep, ": %R", rp);
 	sp->err = sp->errbuf;
 	return 0;
 }
@@ -59,7 +66,7 @@ gchar(RR *rp, Scan *sp)
 	if(sp->err)
 		return 0;
 	if(sp->ep - sp->p < 1)
-		return errtoolong(rp, sp, sp->ep - sp->p, 1, nil);
+		return errtoolong(rp, sp, sp->ep - sp->p, 1, "gchar");
 	x = sp->p[0];
 	sp->p += 1;
 	return x;
@@ -72,7 +79,7 @@ gshort(RR *rp, Scan *sp)
 	if(sp->err)
 		return 0;
 	if(sp->ep - sp->p < 2)
-		return errtoolong(rp, sp, sp->ep - sp->p, 2, nil);
+		return errtoolong(rp, sp, sp->ep - sp->p, 2, "gshort");
 	x = sp->p[0]<<8 | sp->p[1];
 	sp->p += 2;
 	return x;
@@ -85,7 +92,7 @@ glong(RR *rp, Scan *sp)
 	if(sp->err)
 		return 0;
 	if(sp->ep - sp->p < 4)
-		return errtoolong(rp, sp, sp->ep - sp->p, 4, nil);
+		return errtoolong(rp, sp, sp->ep - sp->p, 4, "glong");
 	x = sp->p[0]<<24 | sp->p[1]<<16 | sp->p[2]<<8 | sp->p[3];
 	sp->p += 4;
 	return x;
@@ -102,7 +109,7 @@ gv4addr(RR *rp, Scan *sp)
 	if(sp->err)
 		return 0;
 	if(sp->ep - sp->p < 4)
-		return (DN*)errtoolong(rp, sp, sp->ep - sp->p, 4, nil);
+		return (DN*)errtoolong(rp, sp, sp->ep - sp->p, 4, "gv4addr");
 	snprint(addr, sizeof(addr), "%V", sp->p);
 	sp->p += 4;
 
@@ -116,7 +123,8 @@ gv6addr(RR *rp, Scan *sp)
 	if(sp->err)
 		return 0;
 	if(sp->ep - sp->p < IPaddrlen)
-		return (DN*)errtoolong(rp, sp, sp->ep - sp->p, IPaddrlen, nil);
+		return (DN*)errtoolong(rp, sp, sp->ep - sp->p, IPaddrlen,
+			"gv6addr");
 	snprint(addr, sizeof(addr), "%I", sp->p);
 	sp->p += IPaddrlen;
 

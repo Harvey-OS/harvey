@@ -39,8 +39,9 @@ char*	ndbgetvalue(Ndb *db, Ndbs *s, char *attr, char *val,
 		char *rattr, Ndbtuple **tp)
 .PP
 .B
-char*	csgetvalue(char *netroot, char *attr, char *val, char *rattr,
-		Ndbtuple **tp)
+char*	csgetvalue(char *netroot, char *attr, char *val,
+.B
+		char *rattr, Ndbtuple **tp)
 .PP
 .B
 char*	ipattr(char *name)
@@ -54,9 +55,9 @@ Ndbtuple*	ndbipinfo(Ndb *db, char *attr, char *val, char **attrs,
 .B		int nattr)
 .PP
 .B
-Ndbtuple*	csipinfo(char *netroot, char *attr, char *val, char **attrs,
+Ndbtuple*	csipinfo(char *netroot, char *attr, char *val,
 .br
-.B		int nattr)
+.B		char **attrs, int nattr)
 .PP
 .B
 ulong	ndbhash(char *val, int hlen)
@@ -203,7 +204,7 @@ If
 .I tp
 is non nil,
 .I *tp
-will point to the entry.  Otherwise the entry will be freeed.
+will point to the entry.  Otherwise the entry will be freed.
 .PP
 .I Csgetvalue
 is like
@@ -258,13 +259,13 @@ attribute/value pair,
 .IR attr = val .
 .I Ndbipinfo
 returns a list of tuples whose attributes match the
-attributes in the 
+attributes in the
 .I n
 element array
 .IR attrs .
 For example, consider the following database entries describing a network,
 a subnetwork, and a system.
-.PP
+.IP
 .EX
 ipnet=big ip=10.0.0.0
 	dns=dns.big.com
@@ -276,9 +277,9 @@ ip=10.1.1.4 dom=x.big.com
 .EE
 .PP
 Calling
-.PP
+.IP
 .EX
-   ndbipinfo(db, "dom", "x.big.com", ["bootf" "smtp" "dns"], 3)
+ndbipinfo(db, "dom", "x.big.com", ["bootf" "smtp" "dns"], 3)
 .EE
 .PP
 will return the tuples
@@ -319,9 +320,9 @@ mounted at
 It returns a linked list of
 .I Ndbtuple's
 representing a single database entry.
-The tuples are logicly arranged into lines using the
+The tuples are logically arranged into lines using the
 .B line
-fieldin the structure.
+field in the structure.
 The possible
 .IR type 's
 of query are and the attributes on each returned tuple line is:
@@ -346,7 +347,7 @@ must be an
 .SM ASCII
 IP address.  Returns reverse name
 .RI ( ptr )
-and domain name 
+and domain name
 .RI ( dom )
 .TP
 .B cname
@@ -379,7 +380,7 @@ and name server
 .RI ( ns )
 .PP
 .I Ndbfindattr
-searches 
+searches
 .I entry
 for the tuple
 with attribute
@@ -400,13 +401,12 @@ and
 .I ndbparse
 and provide its own search routines.  The
 .I ndbchanged
-routine can be used by the application to periodicly
+routine can be used by the application to periodically
 check for changes.  It returns zero
 if none of the files comprising the database have
 changes and non-zero if they have.
 .PP
-Finally, a number of routines are provided for manipulating
-tuples.
+Finally, a number of routines are provided for manipulating tuples.
 .PP
 .I Ndbdiscard
 removes attr/val pair
@@ -447,12 +447,12 @@ end up on the same line.
 is freed.
 .PP
 .I Ndbsetmalloctag
-sets the malloc tag 
+sets the malloc tag
 (see
 .I setmalloctag
 in
 .IR malloc (2))
-of each tuple in the list 
+of each tuple in the list
 .I t
 to
 .IR tag .
@@ -461,7 +461,7 @@ to
 .SH SOURCE
 .B /sys/src/libndb
 .SH SEE ALSO
-.IR ndb (6)
+.IR ndb (6),
 .IR ndb (8)
 .SH DIAGNOSTICS
 .IR Ndbgetvalue ,

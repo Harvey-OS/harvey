@@ -73,11 +73,11 @@ opendatabase(void)
 RR*
 dblookup(char *name, int class, int type, int auth, int ttl)
 {
-	RR *rp, *tp;
-	char buf[256];
-	char *wild, *cp;
-	DN *dp, *ndp;
 	int err;
+	char *wild, *cp;
+	char buf[256];
+	RR *rp, *tp;
+	DN *dp, *ndp;
 	static int parallel;
 	static int parfd[2];
 	static char token[1];

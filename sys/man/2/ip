@@ -233,35 +233,47 @@ are used to store 16-bit, 32-bit, and 64-bit integers, respectively, into IP big
 .I nhgetl
 and
 .I nhgetv
-convert big-endian 2, 4 and 8 byte quantities into integers (or uvlongs).
+convert big-endian 2, 4 and 8 byte quantities into integers (or
+.IR uvlong s).
 .PP
 .I Pctlbsum
 returns the one's complement checksum used in IP protocols, typically invoked as
+.IP
 .EX
 hnputs(hdr->cksum, ~ptclbsum(data, len) & 0xffff);
 .EE
 .PP
-A number of standard IP addresses in V6 format are also defined.  They
-are:
-.IP \f5IPv4bcast
+A number of standard IP addresses in V6 format are also defined.  They are:
+.TF IPv4allrouter
+.TP
+.B IPv4bcast
 the V4 broadcast address
-.IP \f5IPv4allsys
+.TP
+.B IPv4allsys
 the V4 all systems multicast address
-.IP \f5IPv4allrouter
+.TP
+.B IPv4allrouter
 the V4 all routers multicast address
-.IP \f5IPallbits
+.TP
+.B IPallbits
 the V6 all bits on address
-.IP \f5IPnoaddr
+.TP
+.B IPnoaddr
 the V6 null address, all zeros
-.IP \f5v4prefix
+.TP
+.B v4prefix
 the IP V6 prefix to all embedded V4 addresses
+.PD
 .PP
 .I Readipifc
 returns information about
-a particular interface  (\fIindex\fP >= 0)
-or all IP interfaces (\fIindex\fP < 0)
-configured under a
-mount point
+a particular interface
+.RI ( index
+>= 0)
+or all IP interfaces
+.RI ( index
+< 0)
+configured under a mount point
 .IR net ,
 default
 .BR /net .
@@ -348,4 +360,5 @@ point to point.
 .SH SOURCE
 .B /sys/src/libip
 .SH SEE ALSO
-.IR print (2)
+.IR print (2),
+.IR ip (3)

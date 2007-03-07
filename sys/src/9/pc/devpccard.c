@@ -536,7 +536,7 @@ devpccardlink(void)
 
 	/* Find all CardBus controllers */
 	pci = nil;
-	intl = (uchar)-1;
+	intl = 0xff;
 	while ((pci = pcimatch(pci, 0, 0)) != nil) {
 		ulong baddr;
 		Cardbus *cb;
@@ -630,7 +630,7 @@ devpccardlink(void)
 			pcicfgw8(cb->pci, 0xD4, 0xCA);
 		}
 
-		if (intl != 0xFF && intl != pci->intl)
+		if (intl != 0xff && intl != pci->intl)
 			intrenable(pci->intl, cbinterrupt, cb, pci->tbdf, "cardbus");
 		intl = pci->intl;
 
