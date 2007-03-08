@@ -46,7 +46,7 @@ enum
 	Overrun=	1<<5,
 };
 
-Uartregs *uart3regs = UART3REGS;
+Uartregs *uart3regs = (Uartregs*)UART3REGS;
 
 
 /*

@@ -132,7 +132,6 @@ ne2000pnp(Ether* edev)
 static int
 ne2000reset(Ether* edev)
 {
-	static int first;
 	ushort buf[16];
 	ulong port;
 	Dp8390 *dp8390;
@@ -198,11 +197,14 @@ ne2000reset(Ether* edev)
 	 * initialisation has been tried, but that wouldn't be
 	 * enough, there are other ethernet boards which could
 	 * match.
+	 * Parallels has buf[0x0E] == 0x00 whereas real hardware
+	 * usually has 0x57.
 	 */
 	dp8390reset(edev);
 	memset(buf, 0, sizeof(buf));
 	dp8390read(dp8390, buf, 0, sizeof(buf));
-	if((buf[0x0E] & 0xFF) != 0x57 || (buf[0x0F] & 0xFF) != 0x57){
+	i = buf[0x0E] & 0xFF;
+	if((i != 0x00 && i != 0x57) || (buf[0x0F] & 0xFF) != 0x57){
 		iofree(edev->port);
 		free(edev->ctlr);
 		return -1;

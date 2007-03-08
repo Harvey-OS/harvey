@@ -349,7 +349,6 @@ extern char	*dbfile;
 extern int	debug;
 extern Area	*delegated;
 extern char	*logfile;
-extern int	inside;
 extern int	maxage;		/* age of oldest entry in cache (secs) */
 extern char	mntpt[];
 extern int	needrefresh;
