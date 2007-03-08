@@ -453,6 +453,36 @@ TEXT again32kzero(SB), $0
 	RET
 
 /*
+ * BIOS32.
+ */
+TEXT bios32call(SB), $0
+	MOVL	ci+0(FP), BP
+	MOVL	0(BP), AX
+	MOVL	4(BP), BX
+	MOVL	8(BP), CX
+	MOVL	12(BP), DX
+	MOVL	16(BP), SI
+	MOVL	20(BP), DI
+	PUSHL	BP
+
+	MOVL	12(SP), BP			/* ptr */
+	BYTE $0xFF; BYTE $0x5D; BYTE $0x00	/* CALL FAR 0(BP) */
+
+	POPL	BP
+	MOVL	DI, 20(BP)
+	MOVL	SI, 16(BP)
+	MOVL	DX, 12(BP)
+	MOVL	CX, 8(BP)
+	MOVL	BX, 4(BP)
+	MOVL	AX, 0(BP)
+
+	XORL	AX, AX
+	JCC	_bios32xxret
+	INCL	AX
+
+_bios32xxret:
+	RET
+
 /*
  * Port I/O.
  *	in[bsl]		input a byte|short|long

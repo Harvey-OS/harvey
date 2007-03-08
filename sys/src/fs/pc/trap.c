@@ -163,6 +163,7 @@ trapinit(void)
 	outb(Int1aux, Int1vec);		/* ICW2 - interrupt vector offset */
 	outb(Int1aux, 0x02);		/* ICW3 - I am a slave on level 2 */
 	outb(Int1aux, 0x01);		/* ICW4 - 8086 mode, not buffered */
+	outb(Int1aux, 0xFF);
 
 	/*
 	 *  pass #2 8259 interrupts to #1
@@ -173,7 +174,9 @@ trapinit(void)
 	/*
 	 * Set Ocw3 to return the ISR when ctl read.
 	 */
+	inb(Int0ctl);
 	outb(Int0ctl, Ocw3|0x03);
+	inb(Int1ctl);
 	outb(Int1ctl, Ocw3|0x03);
 
 	/*

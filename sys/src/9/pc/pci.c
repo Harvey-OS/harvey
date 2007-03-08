@@ -66,10 +66,15 @@ static Pcidev* pciroot;
 static Pcidev* pcilist;
 static Pcidev* pcitail;
 static int nobios, nopcirouting;
+static BIOS32si* pcibiossi;
 
-static int pcicfgrw32(int, int, int, int);
-static int pcicfgrw16(int, int, int, int);
-static int pcicfgrw8(int, int, int, int);
+static int pcicfgrw8raw(int, int, int, int);
+static int pcicfgrw16raw(int, int, int, int);
+static int pcicfgrw32raw(int, int, int, int);
+
+static int (*pcicfgrw8)(int, int, int, int) = pcicfgrw8raw;
+static int (*pcicfgrw16)(int, int, int, int) = pcicfgrw16raw;
+static int (*pcicfgrw32)(int, int, int, int) = pcicfgrw32raw;
 
 static char* bustypes[] = {
 	"CBUSI",
@@ -176,6 +181,9 @@ pcibusmap(Pcidev *root, ulong *pmema, ulong *pioa, int wrreg)
 	int ntb, i, size, rno, hole;
 	ulong v, mema, ioa, sioa, smema, base, limit;
 	Pcisiz *table, *tptr, *mtb, *itb;
+
+	if(!nobios)
+		return;
 
 	ioa = *pioa;
 	mema = *pmema;
@@ -761,6 +769,108 @@ pcirouting(void)
 
 static void pcireservemem(void);
 
+static int
+pcicfgrw8bios(int tbdf, int rno, int data, int read)
+{
+	BIOS32ci ci;
+
+	if(pcibiossi == nil)
+		return -1;
+
+	memset(&ci, 0, sizeof(BIOS32ci));
+	ci.ebx = (BUSBNO(tbdf)<<8)|(BUSDNO(tbdf)<<3)|BUSFNO(tbdf);
+	ci.edi = rno;
+	if(read){
+		ci.eax = 0xB108;
+		if(!bios32ci(pcibiossi, &ci)/* && !(ci.eax & 0xFF)*/)
+			return ci.ecx & 0xFF;
+	}
+	else{
+		ci.eax = 0xB10B;
+		ci.ecx = data & 0xFF;
+		if(!bios32ci(pcibiossi, &ci)/* && !(ci.eax & 0xFF)*/)
+			return 0;
+	}
+
+	return -1;
+}
+
+static int
+pcicfgrw16bios(int tbdf, int rno, int data, int read)
+{
+	BIOS32ci ci;
+
+	if(pcibiossi == nil)
+		return -1;
+
+	memset(&ci, 0, sizeof(BIOS32ci));
+	ci.ebx = (BUSBNO(tbdf)<<8)|(BUSDNO(tbdf)<<3)|BUSFNO(tbdf);
+	ci.edi = rno;
+	if(read){
+		ci.eax = 0xB109;
+		if(!bios32ci(pcibiossi, &ci)/* && !(ci.eax & 0xFF)*/)
+			return ci.ecx & 0xFFFF;
+	}
+	else{
+		ci.eax = 0xB10C;
+		ci.ecx = data & 0xFFFF;
+		if(!bios32ci(pcibiossi, &ci)/* && !(ci.eax & 0xFF)*/)
+			return 0;
+	}
+
+	return -1;
+}
+
+static int
+pcicfgrw32bios(int tbdf, int rno, int data, int read)
+{
+	BIOS32ci ci;
+
+	if(pcibiossi == nil)
+		return -1;
+
+	memset(&ci, 0, sizeof(BIOS32ci));
+	ci.ebx = (BUSBNO(tbdf)<<8)|(BUSDNO(tbdf)<<3)|BUSFNO(tbdf);
+	ci.edi = rno;
+	if(read){
+		ci.eax = 0xB10A;
+		if(!bios32ci(pcibiossi, &ci)/* && !(ci.eax & 0xFF)*/)
+			return ci.ecx;
+	}
+	else{
+		ci.eax = 0xB10D;
+		ci.ecx = data;
+		if(!bios32ci(pcibiossi, &ci)/* && !(ci.eax & 0xFF)*/)
+			return 0;
+	}
+
+	return -1;
+}
+
+static BIOS32si*
+pcibiosinit(void)
+{
+	BIOS32ci ci;
+	BIOS32si *si;
+
+	if((si = bios32open("$PCI")) == nil)
+		return nil;
+
+	memset(&ci, 0, sizeof(BIOS32ci));
+	ci.eax = 0xB101;
+	if(bios32ci(si, &ci) || ci.edx != ((' '<<24)|('I'<<16)|('C'<<8)|'P')){
+		free(si);
+		return nil;
+	}
+	if(ci.eax & 0x01)
+		pcimaxdno = 31;
+	else
+		pcimaxdno = 15;
+	pcimaxbno = ci.ecx & 0xff;
+
+	return si;
+}
+
 void
 pcibussize(Pcidev *root, ulong *msize, ulong *iosize)
 {
@@ -829,8 +939,14 @@ pcicfginit(void)
 		}
 	}
 	
-	if(pcicfgmode < 0)
-		goto out;
+	if(pcicfgmode < 0 || pcibios) {
+		if((pcibiossi = pcibiosinit()) == nil)
+			goto out;
+		pcicfgrw8 = pcicfgrw8bios;
+		pcicfgrw16 = pcicfgrw16bios;
+		pcicfgrw32 = pcicfgrw32bios;
+		pcicfgmode = 3;
+	}
 
 	fmtinstall('T', tbdffmt);
 
@@ -925,7 +1041,7 @@ pcireservemem(void)
 }
 
 static int
-pcicfgrw8(int tbdf, int rno, int data, int read)
+pcicfgrw8raw(int tbdf, int rno, int data, int read)
 {
 	int o, type, x;
 
@@ -982,7 +1098,7 @@ pcicfgw8(Pcidev* pcidev, int rno, int data)
 }
 
 static int
-pcicfgrw16(int tbdf, int rno, int data, int read)
+pcicfgrw16raw(int tbdf, int rno, int data, int read)
 {
 	int o, type, x;
 
@@ -1039,7 +1155,7 @@ pcicfgw16(Pcidev* pcidev, int rno, int data)
 }
 
 static int
-pcicfgrw32(int tbdf, int rno, int data, int read)
+pcicfgrw32raw(int tbdf, int rno, int data, int read)
 {
 	int type, x;
 

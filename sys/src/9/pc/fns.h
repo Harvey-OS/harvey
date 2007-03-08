@@ -3,6 +3,10 @@
 void	aamloop(int);
 Dirtab*	addarchfile(char*, int, long(*)(Chan*,void*,long,vlong), long(*)(Chan*,void*,long,vlong));
 void	archinit(void);
+int	bios32call(BIOS32ci*, u16int[3]);
+int	bios32ci(BIOS32si*, BIOS32ci*);
+void	bios32close(BIOS32si*);
+BIOS32si* bios32open(char*);
 void	bootargs(void*);
 ulong	cankaddr(ulong);
 void	clockintr(Ureg*, void*);

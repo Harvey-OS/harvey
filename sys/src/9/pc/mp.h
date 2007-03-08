@@ -214,7 +214,7 @@ extern void ioapicrdtw(Apic*, int, int, int);
 extern void lapicclock(Ureg*, void*);
 extern int lapiceoi(int);
 extern void lapicerror(Ureg*, void*);
-extern void lapicicrw(int, int);
+extern void lapicicrw(ulong, ulong);
 extern void lapicinit(Apic*);
 extern void lapicintroff(void);
 extern void lapicintron(void);
