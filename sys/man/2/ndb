@@ -18,7 +18,7 @@ Ndb*	ndbopen(char *file)
 Ndb*	ndbcat(Ndb *db1, Ndb *db2)
 .PP
 .B
-Ndb*	ndbchanged(Ndb *db)
+int	ndbchanged(Ndb *db)
 .PP
 .B
 int	ndbreopen(Ndb *db)
@@ -105,14 +105,13 @@ If
 is zero, all network database files are opened.
 .PP
 .I Ndbcat
-concatenates two open databases.  Either argument may be
-nil.
+concatenates two open databases.  Either argument may be nil.
 .PP
 .I Ndbreopen
-checks if the database files associated with
+throws out any cached information
+for the database files associated with
 .I db
-have changed and if so throws out any cached information and reopens
-the files.
+and reopens the files.
 .PP
 .I Ndbclose
 closes any database files associated with

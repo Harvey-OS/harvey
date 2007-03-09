@@ -12,7 +12,7 @@ struct Scan
 
 	char	*err;
 	char	errbuf[256];	/* hold a formatted error sometimes */
-	int	errflags;	/* outgoing reply flags */
+	int	rcode;		/* outgoing response codes (reply flags) */
 };
 
 #define NAME(x)		gname(x, rp, sp)
@@ -290,8 +290,8 @@ mstypehack(Scan *sp, int type, char *where)
 		syslog(0, "dns",
 			"%s: byte-swapped type field in ptr rr from win2k",
 			where);
-		if (sp->errflags == 0)
-			sp->errflags = Rformat;
+		if (sp->rcode == 0)
+			sp->rcode = Rformat;
 	}
 }
 
@@ -335,7 +335,7 @@ retry:
 			sp->base, sp->p, sp->ep, len);	/* DEBUG */
 		errtoolong(rp, sp, sp->ep - sp->p, len, "convM2RR");
 	}
-	if(sp->err || sp->errflags){
+	if(sp->err || sp->rcode){
 		rrfree(rp);
 		return 0;
 	}
@@ -464,7 +464,7 @@ convM2Q(Scan *sp)
 	NAME(dname);
 	USHORT(type);
 	USHORT(class);
-	if(sp->err || sp->errflags)
+	if(sp->err || sp->rcode)
 		return 0;
 
 	mstypehack(sp, type, "convM2Q");
@@ -480,7 +480,7 @@ rrloop(Scan *sp, char *what, int count, int quest)
 	int i;
 	RR *first, *rp, **l;
 
-	if(sp->err || sp->errflags)
+	if(sp->err || sp->rcode)
 		return 0;
 	l = &first;
 	first = 0;
@@ -488,7 +488,7 @@ rrloop(Scan *sp, char *what, int count, int quest)
 		rp = quest ? convM2Q(sp) : convM2RR(sp, what);
 		if(rp == nil)
 			break;
-		if(sp->err || sp->errflags){
+		if(sp->err || sp->rcode){
 			rrfree(rp);
 			break;
 		}
@@ -500,27 +500,27 @@ rrloop(Scan *sp, char *what, int count, int quest)
 
 /*
  *  convert the next DNS from a message stream.
- *  if there are formatting errors or the like during parsing
- *  of the message, set *errp to the outgoing DNS flags (e.g., Rformat),
- *  which will abort processing and reply immediately with the outgoing flags.
+ *  if there are formatting errors or the like during parsing of the message,
+ *  set *codep to the outgoing response code (e.g., Rformat), which will
+ *  abort processing and reply immediately with the outgoing response code.
  */
 char*
-convM2DNS(uchar *buf, int len, DNSmsg *m, int *errp)
+convM2DNS(uchar *buf, int len, DNSmsg *m, int *codep)
 {
 	Scan scan;
 	Scan *sp;
 	char *err;
 	RR *rp = nil;
 
-	if (errp)
-		*errp = 0;
+	if (codep)
+		*codep = 0;
 	assert(len >= 0);
 	scan.base = buf;
 	scan.p = buf;
 	scan.ep = buf + len;
 	scan.err = nil;
 	scan.errbuf[0] = '\0';
-	scan.errflags = 0;
+	scan.rcode = 0;
 	sp = &scan;
 
 	memset(m, 0, sizeof *m);
@@ -536,7 +536,7 @@ convM2DNS(uchar *buf, int len, DNSmsg *m, int *errp)
 	m->ns = rrloop(sp, "nameservers",m->nscount, 0);
 	err = scan.err;				/* live with bad ar's */
 	m->ar = rrloop(sp, "hints",	m->arcount, 0);
-	if (errp)
-		*errp = scan.errflags;
+	if (codep)
+		*codep = scan.rcode;
 	return err;
 }

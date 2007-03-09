@@ -90,9 +90,16 @@ init.h:	initcode /sys/src/libc/9syscall/sys.h
 		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
 	 echo '};'} > init.h
 
-clock.$O faultalpha.$O:	/$objtype/include/ureg.h
-main.$O: 		/sys/src/boot/alphapc/conf.h
-sd53c8xx.$O:	sd53c8xx.i
+clock.$O:	/$objtype/include/ureg.h axp.h
+devarch.$O:	axp.h
+faultalpha.$O:	/$objtype/include/ureg.h
+fptrap.$O:	/$objtype/include/ureg.h
+kbd.$O:		/$objtype/include/ureg.h
+l.$O:		osf1pal.h
+main.$O: 	/$objtype/include/ureg.h errstr.h init.h
+mmu.$O:		/sys/src/boot/alphapc/conf.h
+sd53c8xx.$O:	/$objtype/include/ureg.h ../port/sd.h sd53c8xx.i
+trap.$O:	/$objtype/include/ureg.h ../port/error.h ../port/systab.h
 
 sd53c8xx.i:	../pc/sd53c8xx.n
 	aux/na $prereq > $target

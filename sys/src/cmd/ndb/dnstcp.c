@@ -6,6 +6,8 @@
 #include <ip.h>
 #include "dns.h"
 
+extern int inside;
+
 char	*LOG;
 int	cachedb = 1;
 char	*caller = "";
@@ -38,7 +40,7 @@ usage(void)
 void
 main(int argc, char *argv[])
 {
-	int len, errflags;
+	int len, rcode;
 	uchar buf[512];
 	char tname[32];
 	char *err, *ext = "";
@@ -72,6 +74,7 @@ main(int argc, char *argv[])
 	if(argc > 0)
 		getcaller(argv[0]);
 
+	inside = 1;
 	dninit();
 
 	snprint(mntpt, sizeof mntpt, "/net%s", ext);
@@ -97,16 +100,16 @@ main(int argc, char *argv[])
 			break;
 		getactivity(&req, 0);
 		req.aborttime = now + 15*Min;
-		errflags = 0;
+		rcode = 0;
 		memset(&reqmsg, 0, sizeof reqmsg);
-		err = convM2DNS(buf, len, &reqmsg, &errflags);
+		err = convM2DNS(buf, len, &reqmsg, &rcode);
 		if(err){
 			/* first bytes in buf are source IP addr */
 			syslog(0, logfile, "server: input error: %s from %I",
 				err, buf);
 			break;
 		}
-		if (errflags == 0)
+		if (rcode == 0)
 			if(reqmsg.qdcount < 1){
 				syslog(0, logfile,
 					"server: no questions from %I", buf);
@@ -132,7 +135,7 @@ main(int argc, char *argv[])
 			if(reqmsg.qd->type == Taxfr)
 				dnzone(&reqmsg, &repmsg, &req);
 			else {
-				dnserver(&reqmsg, &repmsg, &req, buf, errflags);
+				dnserver(&reqmsg, &repmsg, &req, buf, rcode);
 				reply(1, &repmsg, &req);
 				rrfreelist(repmsg.qd);
 				rrfreelist(repmsg.an);

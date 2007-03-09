@@ -417,10 +417,10 @@ exit(int ispanic)
 		firmware();
 
 	// on PC is just:
-	if (0) {
-		shutdown(ispanic);
-		// arch->reset();
-	}
+	//if (0) {
+	//	shutdown(ispanic);
+	//	arch->reset();
+	//}
 }
 
 void

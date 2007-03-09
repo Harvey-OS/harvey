@@ -55,7 +55,7 @@ Mach marm =
 	0x1000,		/* page size */
 	0xC0000000ULL,	/* kernel base */
 	0xC0000000ULL,	/* kernel text mask */
-	0x7FFFFFFFULL,	/* user stack top */
+	0x3FFFFFFFULL,	/* user stack top */
 	4,		/* quantization of pc */
 	4,		/* szaddr */
 	4,		/* szreg */

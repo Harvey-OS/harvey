@@ -52,7 +52,7 @@ query, ipquery, mkhash, mkdb, mkhosts, cs, csquery, dns, dnsquery, dnsdebug \- n
 .br
 .B ndb/dns
 [
-.B -nrRs
+.B -norRs
 ] [
 .B -a
 .I maxage
@@ -174,8 +174,7 @@ It finds out what networks are configured
 by looking for
 .B /net/*/clone
 when it starts.
-It can also be told about networks by writing
-to
+It can also be told about networks by writing to
 .B /net/cs
 a message of the form:
 .IP
@@ -186,6 +185,7 @@ also sets the system name in
 .B /dev/sysname
 if it can figure it out.
 The options are:
+.TF -n
 .TP
 .B -f
 supplies the name of the data base file to use,
@@ -198,6 +198,7 @@ causes cs to do nothing but set the system name.
 .B -x
 specifies the mount point of the
 network.
+.PD
 .PP
 .I Ndb/csquery
 can be used to query
@@ -231,7 +232,14 @@ By default
 .I dns
 serves only requests written to
 .BR /net/dns .
+Programs must
+.I seek
+to offset 0 before reading or writing
+.B /net/dns
+or
+.BR /net/cs .
 The options are:
+.TF -n
 .TP
 .B -a
 sets the maximum time in seconds that an unreferenced
@@ -314,10 +322,9 @@ The last three lines provide a mapping for the
 server names to their ip addresses.  This is only
 a hint and will be superseded from whatever is learned
 from servers owning the domain.
-.PP
+.SS "Authoritative Name Servers"
 You can also serve a subtree of the domain name space from the local
-database.  You indicate subtrees that you'ld like to serve by
-adding an
+database.  You indicate subtrees that you would like to serve by adding an
 .B soa=
 attribute to the root entry.
 For example, the Bell Labs CS research domain is:
@@ -355,7 +362,7 @@ when the domain changes.  The notification also requires
 the
 .B -n
 flag.
-.PP
+.SS "Reverse Domains"
 You can also serve reverse lookups (returning the name that
 goes with an IP address) by adding an
 .B soa=
@@ -388,7 +395,7 @@ will automatically create both forward and reverse entries for
 .B ns1.cs.bell-labs.com .
 Unlike other DNS servers, there's no way to generate
 inconsistent forward and reverse entries.
-.PP
+.SS "Delegating Name Service Authority"
 Delegation of a further subtree to another set of name servers
 is indicated by an
 .B soa=delegated
@@ -405,7 +412,7 @@ Nameservers within the delegated domain (as in this example)
 must have their IP addresses listed elsewhere in
 .I ndb
 files.
-.PP
+.SS "Wildcards, MX and CNAME records"
 Wild-carded domain names can also be used.
 For example, to specify a mail forwarder for all Bell Labs research systems:
 .IP
@@ -426,9 +433,14 @@ the aliases may have no other attributes than
 and are daily further restricted in their use by new RFCs.
 .IP
 .EX
-cname=anna.cs.research.bell-labs.com dom=www.cs.research.bell-labs.com
+cname=anna.cs.bell-labs.com dom=www.cs.bell-labs.com
 .EE
-.LP
+.PP
+makes
+.BI www. ...
+a synonym for the canonical name
+.BI anna. ... .
+.SS "DNS Queries and Debugging"
 .I Ndb/dnsquery
 can be used to query
 .I ndb/dns

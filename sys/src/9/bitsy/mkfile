@@ -109,15 +109,20 @@ init.h:	../port/initcode.c init9.s
 	 echo '};'} > init.h
 
 clock.$O:	/$objtype/include/ureg.h
-
-devether.$O: ../port/netif.h
-wavelan.$O: wavelan.c wavelan.h ../pc/wavelan.h
-
-fpi.$O: fpi.h
-fpiarm.$O: fpi.h
-fpimem.$O: fpi.h
-
-screen.$O: gamma.h
+devether.$O:	/$objtype/include/ureg.h ../port/netif.h
+devpcmcia.$O:	/$objtype/include/ureg.h
+fpi.$O:		fpi.h
+fpiarm.$O:	/$objtype/include/ureg.h fpi.h
+fpimem.$O:	fpi.h
+main.$O:	/$objtype/include/ureg.h errstr.h init.h
+mmu.$O:		/$objtype/include/ureg.h
+power.$O:	/$objtype/include/ureg.h
+scu.$O:		/$objtype/include/ureg.h
+sa1110dma.$O:	/$objtype/include/ureg.h
+screen.$O:	gamma.h
+sdata.$O:	/$objtype/include/ureg.h
+trap$O:		/$objtype/include/ureg.h
+wavelan.$O:	/$objtype/include/ureg.h wavelan.c wavelan.h ../pc/wavelan.h
 
 paqdisk:V:
 	rm -fr armpaq

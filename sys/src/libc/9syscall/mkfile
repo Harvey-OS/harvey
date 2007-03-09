@@ -46,6 +46,13 @@ install:V:
 			echo ADD '$4',R29
 			echo SYSCALL
 			echo ADD '$-4',R29
+			if(~ $i seek) {		# untested so far - geoff
+				echo 'MOVW $-1,R5
+				BNE R1,R5,4(PC)
+				MOVW a+0(FP),R5
+				MOVW R1,0(R5)
+				MOVW R1,4(R5)'
+			}
 			echo RET
 		case 386
 			echo TEXT $i'(SB)', 1, '$0'
@@ -98,6 +105,13 @@ install:V:
 			echo MOVW R0, '0(FP)'
 			echo MOVW '$'$n, R0
 			echo SWI 0
+			if(~ $i seek) {
+				echo 'CMP $-1,R0
+				BNE 4(PC)
+				MOVW a+0(FP),R1
+				MOVW R0,0(R1)
+				MOVW R0,4(R1)'
+			}
 			echo RET
 		case power
 			echo TEXT $i'(SB)', 1, '$0'

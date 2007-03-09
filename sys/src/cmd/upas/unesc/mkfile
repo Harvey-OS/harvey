@@ -1,13 +1,9 @@
 </$objtype/mkfile
 
 TARG=unesc
-
 OFILES=unesc.$O\
 
 BIN=/$objtype/bin/upas
-
-CC=pcc -c
-CFLAGS=-B
 
 UPDATE=\
 	mkfile\
