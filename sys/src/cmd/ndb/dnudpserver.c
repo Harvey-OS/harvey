@@ -70,7 +70,7 @@ clientrxmit(DNSmsg *req, uchar *buf)
 void
 dnudpserver(char *mntpt)
 {
-	int fd, len, op, errflags;
+	int fd, len, op, rcode;
 	uchar buf[OUdphdrsize + Maxudp + 1024];
 	char *err;
 	char tname[32];
@@ -121,15 +121,15 @@ restart:
 		//	((OUdphdr*)buf)->raddr, ((OUdphdr*)buf)->laddr);
 		getactivity(&req, 0);
 		req.aborttime = now + Maxreqtm;
-		errflags = 0;
-		err = convM2DNS(&buf[OUdphdrsize], len, &reqmsg, &errflags);
+		rcode = 0;
+		err = convM2DNS(&buf[OUdphdrsize], len, &reqmsg, &rcode);
 		if(err){
 			/* first bytes in buf are source IP addr */
 			syslog(0, logfile, "server: input error: %s from %I",
 				err, buf);
 			continue;
 		}
-		if (errflags == 0)
+		if (rcode == 0)
 			if(reqmsg.qdcount < 1){
 				syslog(0, logfile,
 					"server: no questions from %I", buf);
@@ -166,7 +166,7 @@ restart:
 			memset(&repmsg, 0, sizeof repmsg);
 			switch(op){
 			case Oquery:
-				dnserver(&reqmsg, &repmsg, &req, buf, errflags);
+				dnserver(&reqmsg, &repmsg, &req, buf, rcode);
 				break;
 			case Onotify:
 				dnnotify(&reqmsg, &repmsg, &req);

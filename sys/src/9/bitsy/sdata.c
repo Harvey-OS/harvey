@@ -1457,7 +1457,7 @@ retry:
 
 
 static void
-atainterrupt(Ureg*, void*arg )
+atainterrupt(Ureg*, void* arg)
 {
 	Ctlr *ctlr;
 	Drive *drive;

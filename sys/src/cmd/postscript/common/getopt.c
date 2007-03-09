@@ -22,7 +22,7 @@ char **argv, *opts;
 		if (optind >= argc ||
 		   argv[optind][0] != '-' || argv[optind][1] == '\0')
 			return EOF;
-		else if (strcmp(argv[optind], "--") == NULL) {
+		else if (strcmp(argv[optind], "--") == 0) {
 			optind++;
 			return EOF;
 		}

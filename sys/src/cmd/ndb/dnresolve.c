@@ -97,8 +97,8 @@ dnresolve(char *name, int class, int type, Request *req, RR **cn, int depth,
 
 	/* try it as a canonical name if we weren't told the name didn't exist */
 	dp = dnlookup(name, class, 0);
-	if(type != Tptr && dp->nonexistent != Rname)
-		for(loops=0; rp == nil && loops < 32; loops++){
+	if(type != Tptr && dp->respcode != Rname)
+		for(loops = 0; rp == nil && loops < 32; loops++){
 			rp = dnresolve1(name, class, Tcname, req, depth, recurse);
 			if(rp == nil)
 				break;
@@ -119,8 +119,8 @@ dnresolve(char *name, int class, int type, Request *req, RR **cn, int depth,
 		}
 
 	/* distinction between not found and not good */
-	if(rp == nil && status != nil && dp->nonexistent != 0)
-		*status = dp->nonexistent;
+	if(rp == nil && status != nil && dp->respcode != 0)
+		*status = dp->respcode;
 
 	procsetname(procname);
 	free(procname);
@@ -459,7 +459,7 @@ struct Dest
 	uchar	a[IPaddrlen];	/* ip address */
 	DN	*s;		/* name server */
 	int	nx;		/* number of transmissions */
-	int	code;
+	int	code;		/* response code; used to clear dp->respcode */
 };
 
 
@@ -479,40 +479,59 @@ ipisbm(uchar *ip)
 	return 0;
 }
 
+static Ndb *db;
 static Ndbtuple *indoms, *innmsrvs, *outnmsrvs;
-static QLock readlock;
+static QLock ndblock;
+
+static void
+loaddomsrvs(Ndb *db)
+{
+	Ndbs s;
+
+	if (indoms == nil) {
+		free(ndbgetvalue(db, &s, "sys", "inside-dom", "dom", &indoms));
+		free(ndbgetvalue(db, &s, "sys", "inside-ns", "ip", &innmsrvs));
+		free(ndbgetvalue(db, &s, "sys", "outside-ns", "ip", &outnmsrvs));
+		syslog(0, LOG, "reloaded inside-dom, inside-ns, outside-ns");
+	}
+}
 
 /*
  * is this domain (or DOMAIN or Domain or dOMAIN)
  * internal to our organisation (behind our firewall)?
+ * only inside straddling servers care, everybody else gets told `yes',
+ * so they'll use mntpt for their queries.
  */
 static int
 insideaddr(char *dom)
 {
-	int domlen, vallen;
-	Ndb *db;
-	Ndbs s;
+	int domlen, vallen, rv;
 	Ndbtuple *t;
 
-	if (straddle && indoms == nil) {
-		db = ndbopen("/lib/ndb/local");
-		if (db != nil) {
-			qlock(&readlock);
-			if (indoms == nil) {	/* retest under lock */
-				free(ndbgetvalue(db, &s, "sys", "inside-dom",
-					"dom", &indoms));
-				free(ndbgetvalue(db, &s, "sys", "inside-ns",
-					"ip", &innmsrvs));
-				free(ndbgetvalue(db, &s, "sys", "outside-ns",
-					"ip", &outnmsrvs));
-			}
-			qunlock(&readlock);
-			ndbclose(db);	/* destroys *indoms, *innmsrvs? */
-		}
-	}
-	if (indoms == nil)
-		return 1;	/* no "inside" sys, try inside nameservers */
+	if (!inside || !straddle || !serve)
+		return 1;
 
+	qlock(&ndblock);
+	if (indoms == nil) {
+		db = ndbopen(nil);
+		if (db != nil)
+			loaddomsrvs(db);
+		/* leave db open so we can quickly test for changes */
+	} else if (ndbchanged(db)) {
+		ndbfree(indoms);
+		ndbfree(innmsrvs);
+		ndbfree(outnmsrvs);
+		indoms = innmsrvs = outnmsrvs = nil;
+		ndbreopen(db);
+		loaddomsrvs(db);
+	}
+
+	if (indoms == nil) {
+		qunlock(&ndblock);
+		return 1;	/* no "inside" sys, try inside nameservers */
+	}
+
+	rv = 0;
 	domlen = strlen(dom);
 	for (t = indoms; t != nil; t = t->entry) {
 		if (strcmp(t->attr, "dom") != 0)
@@ -521,10 +540,13 @@ insideaddr(char *dom)
 		if (cistrcmp(dom, t->val) == 0 ||
 		    domlen > vallen &&
 		     cistrcmp(dom + domlen - vallen, t->val) == 0 &&
-		     dom[domlen - vallen - 1] == '.')
-			return 1;
+		     dom[domlen - vallen - 1] == '.') {
+			rv = 1;
+			break;
+		}
 	}
-	return 0;
+	qunlock(&ndblock);
+	return rv;
 }
 
 static int
@@ -830,9 +852,9 @@ syslog(0, LOG, "netquery1: no servers for %s", dp->name);	// DEBUG
 			 */
 			if(m.an != nil || (m.flags & Fauth)){
 				if(m.an == nil && (m.flags & Rmask) == Rname)
-					dp->nonexistent = Rname;
+					dp->respcode = Rname;
 				else
-					dp->nonexistent = 0;
+					dp->respcode = 0;
 
 				/*
 				 *  cache any negative responses, free soarr
@@ -872,12 +894,37 @@ syslog(0, LOG, "netquery1: no servers for %s", dp->name);	// DEBUG
 	}
 
 	/* if all servers returned failure, propagate it */
-	dp->nonexistent = Rserver;
+	dp->respcode = Rserver;
 	for(p = dest; p < l; p++)
 		if(p->code != Rserver)
-			dp->nonexistent = 0;
+			dp->respcode = 0;
 
 	return 0;
+}
+
+/*
+ *  run a command with a supplied fd as standard input
+ */
+char *
+system(int fd, char *cmd)
+{
+	int pid, p, i;
+	static Waitmsg msg;
+
+	if((pid = fork()) == -1)
+		sysfatal("fork failed: %r");
+	else if(pid == 0){
+		dup(fd, 0);
+		close(fd);
+		for (i = 3; i < 200; i++)
+			close(i);		/* don't leak fds */
+		execl("/bin/rc", "rc", "-c", cmd, nil);
+		sysfatal("exec rc: %r");
+	}
+	for(p = waitpid(); p >= 0; p = waitpid())
+		if(p == pid)
+			return msg.msg;	
+	return "lost child";
 }
 
 enum { Hurry, Patient, };
@@ -888,6 +935,7 @@ udpquery(char *mntpt, DN *dp, int type, RR *nsrp, Request *reqp, int depth,
 	int patient, int inns)
 {
 	int fd, rv = 0;
+	char *msg;
 	uchar *obuf, *ibuf;
 
 	/* use alloced buffers rather than ones from the stack */
@@ -895,6 +943,17 @@ udpquery(char *mntpt, DN *dp, int type, RR *nsrp, Request *reqp, int depth,
 	obuf = emalloc(Maxudp+OUdphdrsize);
 
 	fd = udpport(mntpt);
+	if (fd < 0 && straddle && strcmp(mntpt, "/net.alt") == 0) {
+		/* HACK: remount /net.alt */
+		syslog(0, LOG, "remounting /net.alt");
+		unmount(nil, "/net.alt");
+		msg = system(open("/dev/null", ORDWR), "outside");
+		if (msg && *msg) {
+			syslog(0, LOG, "can't remount /net.alt: %s", msg);
+			sleep(2000);		/* don't spin wildly */
+		} else
+			fd = udpport(mntpt);
+	}
 	if(fd >= 0) {
 		reqp->aborttime = time(0) + (patient? Maxreqtm: Maxreqtm/2);
 		rv = netquery1(fd, dp, type, nsrp, reqp, depth,
@@ -940,18 +999,19 @@ netquery(DN *dp, int type, RR *nsrp, Request *reqp, int depth)
 	rv = 0;				/* pessimism */
 	triedin = 0;
 	/*
-	 * don't bother to query the (broken) inside nameservers for outside
-	 * addresses unless we're just a client.  if we're a server, we'd
-	 * better have a working /net.alt.
+	 * normal resolvers and servers will just use mntpt for all addresses,
+	 * even on the outside.  straddling servers will use mntpt (/net)
+	 * for inside addresses and /net.alt for outside addresses,
+	 * thus bypassing other inside nameservers.
 	 */
-	if (!serve || !inside || insideaddr(dp->name)) {
+	if (!straddle || insideaddr(dp->name)) {
 		rv = udpquery(mntpt, dp, type, nsrp, reqp, depth, Hurry,
 			(inside? Inns: Outns));
 		triedin = 1;
 	}
 
 	/*
-	 * if we're still looking and have an outside address,
+	 * if we're still looking, are inside, and have an outside domain,
 	 * try it on our outside interface, if any.
 	 */
 	if (rv == 0 && inside && !insideaddr(dp->name)) {

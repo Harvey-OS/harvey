@@ -1,0 +1,14 @@
+#!/bin/rc
+# genall - generate the APE versions of the system call C interfaces.
+#	must be invoked by mk so that the right env variables are set.
+rfork e
+SYSH=/sys/src/libc/9syscall/sys.h
+
+SYS=`{sed '/^#define._/d; s/#define.([A-Z0-9_]*).*/\1/' $SYSH}
+for(I in $SYS) {
+	i=_^$I
+	n=`{sed -n '/[ 	]'$I'[ 	]/s/.*	//p' $SYSH}
+	gencall
+}
+ar vu /$objtype/lib/ape/libap.a *.$O
+rm -f *.$O *.s

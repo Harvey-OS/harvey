@@ -68,7 +68,8 @@ opendatabase(void)
  *  shared state there.
  *
  *  e.g. for x.research.bell-labs.com, first look for a match against
- *       the x.research.bell-labs.com.  If nothing matches, try *.research.bell-labs.com.
+ *       the x.research.bell-labs.com.  If nothing matches,
+ *	 try *.research.bell-labs.com.
  */
 RR*
 dblookup(char *name, int class, int type, int auth, int ttl)
@@ -141,10 +142,10 @@ out:
 		for(tp = rp; tp; tp = tp->next)
 			tp->owner = dp;
 	else {
-		/* don't call it non-existent if it's not ours */
+		/* don't call it non-existent (etc.) if it's not ours */
 		if(err == Rname && !inmyarea(name))
 			err = Rserver;
-		dp->nonexistent = err;
+		dp->respcode = err;
 	}
 
 	unlock(&dblock);

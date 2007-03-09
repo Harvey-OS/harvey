@@ -9,7 +9,6 @@
 #include	"dat.h"
 #include	"fns.h"
 #include	"io.h"
-#include	"ureg.h"
 
 static ulong *core;
 static ulong *wind;
