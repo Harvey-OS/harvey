@@ -86,7 +86,7 @@ fils=()
 if(~ $search yes)
 for(i in $S/$sec){
 	if(/bin/test -f $i/INDEX){
-		try=`{grep -i $pat $i/INDEX | sed 's/^[^ ]* //'}
+		try=`{grep -i $pat $i/INDEX | sed 's/^[^ ]* //' | sort -u}
 		if(! ~ $#try 0)
 			fils=($fils $i/$try)
 	}

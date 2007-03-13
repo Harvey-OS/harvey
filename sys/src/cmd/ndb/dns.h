@@ -3,7 +3,7 @@ typedef struct Ndbtuple Ndbtuple;
 enum
 {
 	/* RR types; see: http://www.iana.org/assignments/dns-parameters */
-	Ta=		1,
+	Ta=			1,
 	Tns=		2,
 	Tmd=		3,
 	Tmf=		4,
@@ -63,7 +63,7 @@ enum
 	Ttsig=	250,	/* transaction signature */
 	Tixfr=	251,	/* incremental zone transfer */
 	Taxfr=	252,	/* zone transfer */
-	Tmailb=	253,	/* { Tmb, Tmg, Tmr } */
+	Tmailb=	253,	/* { Tmb, Tmg, Tmr } */	
 	Tmaila= 254,	/* obsolete */
 	Tall=	255,	/* all records */
 
@@ -137,29 +137,24 @@ enum
 	/* length of domain name hash table */
 	HTLEN= 		4*1024,
 
-	Maxpath=	128,	/* size of mntpt */
-
 	RRmagic=	0xdeadbabe,
 	DNmagic=	0xa110a110,
 
 	/* parallelism */
 	Maxactive=	32,
-
-	Maxreqtm=	60,	/* max. seconds to process a request */
 };
 
-typedef struct Area	Area;
-typedef struct Block	Block;
-typedef struct Cert	Cert;
 typedef struct DN	DN;
 typedef struct DNSmsg	DNSmsg;
-typedef struct Key	Key;
-typedef struct Null	Null;
 typedef struct RR	RR;
-typedef struct Request	Request;
 typedef struct SOA	SOA;
-typedef struct Server	Server;
+typedef struct Area	Area;
+typedef struct Request	Request;
+typedef struct Key	Key;
+typedef struct Cert	Cert;
 typedef struct Sig	Sig;
+typedef struct Null	Null;
+typedef struct Server	Server;
 typedef struct Txt	Txt;
 
 /*
@@ -186,46 +181,46 @@ struct DN
 	ulong	lookuptime;	/* last time we tried to get a better value */
 	ushort	class;		/* RR class */
 	char	refs;		/* for mark and sweep */
-	uchar	respcode;	/* response code */
-/* was:	char	nonexistent; /* true if we get an authoritative nx for this domain */
+	char	nonexistent;	/* true if we get an authoritative nx for this domain */
 	ulong	ordinal;
-	QLock	querylck;	/* permit only 1 query per domain name at a time */
 };
 
 /*
  *  security info
  */
-struct Block
-{
-	int	dlen;
-	uchar	*data;
-};
 struct Key
 {
 	int	flags;
 	int	proto;
 	int	alg;
-	Block;
+	int	dlen;
+	uchar	*data;
 };
 struct Cert
 {
 	int	type;
 	int	tag;
 	int	alg;
-	Block;
+	int	dlen;
+	uchar	*data;
 };
 struct Sig
 {
-	Cert;
+	int	type;
+	int	alg;
 	int	labels;
 	ulong	ttl;
 	ulong	exp;
 	ulong	incep;
+	int	tag;
 	DN	*signer;
+	int	dlen;
+	uchar	*data;
 };
 struct Null
 {
-	Block;
+	int	dlen;
+	uchar	*data;
 };
 
 /*
@@ -245,28 +240,28 @@ struct RR
 	RR	*next;
 	ulong	magic;
 	DN	*owner;		/* domain that owns this resource record */
+	uchar	negative;	/* this is a cached negative response */
 	uintptr	pc;
 	ulong	ttl;		/* time to live to be passed on */
 	ulong	expire;		/* time this entry expires locally */
-	ulong	marker;		/* used locally when scanning rrlists */
 	ushort	type;		/* RR type */
-	ushort	query;		/* query type is in response to */
-	uchar	auth;		/* flag: authoritative */
-	uchar	db;		/* flag: from database */
-	uchar	cached;		/* flag: rr in cache */
-	uchar	negative;	/* flag: this is a cached negative response */
-
-	union {			/* discriminated how? negative & type? */
+	ushort	query;		/* query tyis is in response to */
+	uchar	auth;		/* authoritative */
+	uchar	db;		/* from database */
+	uchar	cached;		/* rr in cache */
+	ulong	marker;		/* used locally when scanning rrlists */
+	union {
 		DN	*negsoaowner;	/* soa for cached negative response */
 		DN	*host;	/* hostname - soa, cname, mb, md, mf, mx, ns */
 		DN	*cpu;	/* cpu type - hinfo */
 		DN	*mb;	/* mailbox - mg, minfo */
-		DN	*ip;	/* ip address - a */
+		DN	*ip;	/* ip addrss - a */
 		DN	*rp;	/* rp arg - rp */
+		int	cruftlen;
 		ulong	arg0;
 	};
-	union {			/* discriminated how? negative & type? */
-		int	negrcode; /* response code for cached negative response */
+	union {
+		int	negrcode;	/* response code for cached negative response */
 		DN	*rmb;	/* responsible maibox - minfo, soa, rp */
 		DN	*ptr;	/* pointer to domain name - ptr */
 		DN	*os;	/* operating system - hinfo */
@@ -274,7 +269,7 @@ struct RR
 		ulong	local;	/* ns served from local database - ns */
 		ulong	arg1;
 	};
-	union {			/* discriminated by type */
+	union {
 		SOA	*soa;	/* soa timers - soa */
 		Key	*key;
 		Cert	*cert;
@@ -294,16 +289,15 @@ struct Server
 };
 
 /*
- *  timers for a start of authenticated record.  all ulongs are in seconds.
+ *  timers for a start of authenticated record
  */
 struct SOA
 {
-	ulong	serial;		/* zone serial # */
-	ulong	refresh;	/* zone refresh interval */
-	ulong	retry;		/* zone retry interval */
-	ulong	expire;		/* time to expiration */
-	ulong	minttl;		/* min. time to live for any entry */
-
+	ulong	serial;		/* zone serial # (sec) - soa */
+	ulong	refresh;	/* zone refresh interval (sec) - soa */
+	ulong	retry;		/* zone retry interval (sec) - soa */
+	ulong	expire;		/* time to expiration (sec) - soa */
+	ulong	minttl;		/* minimum time to live for any entry (sec) - soa */
 	Server	*slaves;	/* slave servers */
 };
 
@@ -329,12 +323,12 @@ struct DNSmsg
  */
 struct Area
 {
-	Area	*next;
+	Area		*next;
 
-	int	len;		/* strlen(area->soarr->owner->name) */
-	RR	*soarr;		/* soa defining this area */
-	int	neednotify;
-	int	needrefresh;
+	int		len;		/* strlen(area->soarr->owner->name) */
+	RR		*soarr;		/* soa defining this area */
+	int		neednotify;
+	int		needrefresh;
 };
 
 enum
@@ -345,114 +339,114 @@ enum
 	OKneg,
 };
 
+/* dn.c */
+extern char	*rrtname[];
+extern char	*rname[];
+extern char	*opname[];
+extern void	db2cache(int);
+extern void	dninit(void);
+extern DN*	dnlookup(char*, int, int);
+extern void	dnage(DN*);
+extern void	dnageall(int);
+extern void	dnagedb(void);
+extern void	dnauthdb(void);
+extern void	dnget(void);
+extern void	dnpurge(void);
+extern void	dnput(void);
+extern Area*	inmyarea(char*);
+extern void	rrattach(RR*, int);
+extern RR*	rralloc(int);
+extern void	rrfree(RR*);
+extern void	rrfreelist(RR*);
+extern RR*	rrlookup(DN*, int, int);
+extern RR*	rrcat(RR**, RR*);
+extern RR**	rrcopy(RR*, RR**);
+extern RR*	rrremneg(RR**);
+extern RR*	rrremtype(RR**, int);
+extern int	rrfmt(Fmt*);
+extern int	rravfmt(Fmt*);
+extern int	rrsupported(int);
+extern int	rrtype(char*);
+extern char*	rrname(int, char*, int);
+extern int	tsame(int, int);
+extern void	dndump(char*);
+extern int	getactivity(Request*, int);
+extern void	putactivity(int);
+extern void	abort(); /* char*, ... */;
+extern void	warning(char*, ...);
+extern void	slave(Request*);
+extern void	dncheck(void*, int);
+extern void	unique(RR*);
+extern int	subsume(char*, char*);
+extern RR*	randomize(RR*);
+extern void*	emalloc(int);
+extern char*	estrdup(char*);
+extern void	dnptr(uchar*, uchar*, char*, int, int);
+extern void	addserver(Server**, char*);
+extern Server*	copyserverlist(Server*);
+extern void	freeserverlist(Server*);
+
+/* dnarea.c */
+extern void	refresh_areas(Area*);
+extern void	freearea(Area**);
+extern void	addarea(DN *dp, RR *rp, Ndbtuple *t);
+
+/* dblookup.c */
+extern RR*	dblookup(char*, int, int, int, int);
+extern RR*	dbinaddr(DN*, int);
+extern int	baddelegation(RR*, RR*, uchar*);
+extern RR*	dnsservers(int);
+extern RR*	domainlist(int);
+extern int	opendatabase(void);
+
+/* dns.c */
+extern char*	walkup(char*);
+extern RR*	getdnsservers(int);
+extern void	logreply(int, uchar*, DNSmsg*);
+extern void	logsend(int, int, uchar*, char*, char*, int);
+
+/* dnresolve.c */
+extern RR*	dnresolve(char*, int, int, Request*, RR**, int, int, int, int*);
+extern int	udpport(void);
+extern int	mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno);
+
+/* dnserver.c */
+extern void	dnserver(DNSmsg*, DNSmsg*, Request*);
+extern void	dnudpserver(char*);
+extern void	dntcpserver(char*);
+
+/* dnnotify.c */
+extern void	dnnotify(DNSmsg*, DNSmsg*, Request*);
+extern void	notifyproc(void);
+
+/* convDNS2M.c */
+extern int	convDNS2M(DNSmsg*, uchar*, int);
+
+/* convM2DNS.c */
+extern char*	convM2DNS(uchar*, int, DNSmsg*);
+
+/* malloc.c */
+extern void	mallocsanity(void*);
+extern void	lasthist(void*, int, ulong);
+
+extern int debug;
+extern int traceactivity;
+extern char	*trace;
+extern int	testing;	/* test cache whenever removing a DN */
 extern int	cachedb;
-extern char	*dbfile;
-extern int	debug;
-extern Area	*delegated;
-extern char	*logfile;
-extern int	maxage;		/* age of oldest entry in cache (secs) */
-extern char	mntpt[];
 extern int	needrefresh;
+extern char	*dbfile;
+extern char	mntpt[];
+extern char	*logfile;
+extern int	resolver;
 extern int	norecursion;
+extern int	maxage;		/* age of oldest entry in cache (secs) */
+extern char	*zonerefreshprogram;
+extern int	sendnotifies;
 extern ulong	now;		/* time base */
 extern Area	*owned;
-extern int	resolver;
-extern int	sendnotifies;
-extern ulong	target;
-extern int	testing;	/* test cache whenever removing a DN */
-extern char	*trace;
-extern int	traceactivity;
-extern char	*zonerefreshprogram;
+extern Area	*delegated;
 
 #pragma	varargck	type	"R"	RR*
 #pragma	varargck	type	"Q"	RR*
 
-
-/* dn.c */
-extern char	*rrtname[];
-extern char	*rname[];
-extern unsigned	nrname;
-extern char	*opname[];
-
-void	db2cache(int);
-void	dninit(void);
-DN*	dnlookup(char*, int, int);
-void	dnage(DN*);
-void	dnageall(int);
-void	dnagedb(void);
-void	dnauthdb(void);
-void	dnget(void);
-void	dnpurge(void);
-void	dnput(void);
-Area*	inmyarea(char*);
-void	rrattach(RR*, int);
-RR*	rralloc(int);
-void	rrfree(RR*);
-void	rrfreelist(RR*);
-RR*	rrlookup(DN*, int, int);
-RR*	rrcat(RR**, RR*);
-RR**	rrcopy(RR*, RR**);
-RR*	rrremneg(RR**);
-RR*	rrremtype(RR**, int);
-int	rrfmt(Fmt*);
-int	rravfmt(Fmt*);
-int	rrsupported(int);
-int	rrtype(char*);
-char*	rrname(int, char*, int);
-int	tsame(int, int);
-void	dndump(char*);
-int	getactivity(Request*, int);
-void	putactivity(int);
-void	abort(); /* char*, ... */;
-void	warning(char*, ...);
-void	slave(Request*);
-void	dncheck(void*, int);
-void	unique(RR*);
-int	subsume(char*, char*);
-RR*	randomize(RR*);
-void*	emalloc(int);
-char*	estrdup(char*);
-void	dnptr(uchar*, uchar*, char*, int, int);
-void	addserver(Server**, char*);
-Server*	copyserverlist(Server*);
-void	freeserverlist(Server*);
-
-/* dnarea.c */
-void	refresh_areas(Area*);
-void	freearea(Area**);
-void	addarea(DN *dp, RR *rp, Ndbtuple *t);
-
-/* dblookup.c */
-RR*	dblookup(char*, int, int, int, int);
-RR*	dbinaddr(DN*, int);
-int	baddelegation(RR*, RR*, uchar*);
-RR*	dnsservers(int);
-RR*	domainlist(int);
-int	opendatabase(void);
-
-/* dns.c */
-char*	walkup(char*);
-RR*	getdnsservers(int);
-void	logreply(int, uchar*, DNSmsg*);
-void	logsend(int, int, uchar*, char*, char*, int);
-void	procsetname(char *fmt, ...);
-
-/* dnresolve.c */
-RR*	dnresolve(char*, int, int, Request*, RR**, int, int, int, int*);
-int	udpport(char *);
-int	mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno);
-
-/* dnserver.c */
-void	dnserver(DNSmsg*, DNSmsg*, Request*, uchar *, int);
-void	dnudpserver(char*);
-void	dntcpserver(char*);
-
-/* dnnotify.c */
-void	dnnotify(DNSmsg*, DNSmsg*, Request*);
-void	notifyproc(void);
-
-/* convDNS2M.c */
-int	convDNS2M(DNSmsg*, uchar*, int);
-
-/* convM2DNS.c */
-char*	convM2DNS(uchar*, int, DNSmsg*, int*);

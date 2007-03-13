@@ -353,17 +353,23 @@ dolisten(char *proto, char *dir, int ctl, char *srvdir, char *dialstr)
 }
 
 /*
- * look in the service directory for the service
+ * look in the service directory for the service.
+ * if the shell script or program is zero-length, ignore it,
+ * thus providing a way to disable a service with a bind.
  */
 int 
 findserv(char *proto, char *dir, Service *s, char *srvdir)
 {
+	int rv;
+	Dir *d;
+
 	if(!getserv(proto, dir, s))
 		return 0;
-	sprint(s->prog, "%s/%s", srvdir, s->serv);
-	if(access(s->prog, AEXIST) >= 0)
-		return 1;
-	return 0;
+	snprint(s->prog, sizeof s->prog, "%s/%s", srvdir, s->serv);
+	d = dirstat(s->prog);
+	rv = d && d->length > 0;
+	free(d);
+	return rv;
 }
 
 /*
@@ -396,7 +402,7 @@ getserv(char *proto, char *dir, Service *s)
 	 */
 	if(strlen(serv) +strlen(proto) >= NAMELEN || utfrune(serv, L'/') || *serv == '.')
 		return 0;
-	sprint(s->serv, "%s%s", proto, serv);
+	snprint(s->serv, sizeof s->serv, "%s%s", proto, serv);
 
 	return 1;
 }
@@ -438,7 +444,7 @@ newcall(int fd, char *proto, char *dir, Service *s)
 			syslog(0, listenlog, "%s call for %s on chan %s", proto, s->serv, dir);
 	}
 
-	sprint(data, "%s/data", dir);
+	snprint(data, sizeof data, "%s/data", dir);
 	bind(data, "/dev/cons", MREPL);
 	dup(fd, 0);
 	dup(fd, 1);

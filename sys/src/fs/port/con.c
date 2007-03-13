@@ -428,24 +428,25 @@ cmd_date(int argc, char *argv[])
 
 	ct = time();
 	arg = argv[1];
+	t = number(arg+1, 0, 10);
 	switch(*arg) {
 	default:
 		t = number(arg, -1, 10);
 		if(t <= 0)
 			goto out;
+		/* fall through */
+	case '=':
 		ct = t;
 		break;
 	case '+':
-		t = number(arg+1, 0, 10);
 		ct += t;
 		break;
 	case '-':
-		t = number(arg+1, 0, 10);
 		ct -= t;
+		break;
 	}
 	settime(ct);
 	setrtc(ct);
-
 out:
 	prdate();
 }
@@ -455,13 +456,11 @@ cmd_fstat(int argc, char *argv[])
 {
 	int i;
 
-	for(i=1; i<argc; i++) {
-		if(walkto(argv[i])) {
+	for(i=1; i<argc; i++)
+		if(walkto(argv[i]))
 			print("cant stat %s\n", argv[i]);
-			continue;
-		}
-		con_fstat(FID2);
-	}
+		else
+			con_fstat(FID2);
 }
 
 void
@@ -820,7 +819,7 @@ installcmds(void)
 	cmd_install("check", "[options]", cmd_check);
 	cmd_install("clri", "[file ...] -- purge files/dirs", cmd_clri);
 	cmd_install("create", "path uid gid perm [lad] -- make a file/dir", cmd_create);
-	cmd_install("date", "[[+-]seconds] -- print/set date", cmd_date);
+	cmd_install("date", "[[=+-]seconds] -- print/set date", cmd_date);
 	cmd_install("disallow", "-- enable permission checking", cmd_disallow);
 	cmd_install("duallow", "uid -- duallow", cmd_duallow);
 	cmd_install("flag", "-- print set flags", cmd_flag);
@@ -888,11 +887,10 @@ number(char *arg, int def, int base)
 	int c, sign, any;
 	vlong n;
 
-	if(arg == 0)
+	if(arg == nil)
 		return def;
 
-	sign = 0;
-	any = 0;
+	sign = any = 0;
 	n = 0;
 
 	c = *arg;
@@ -911,8 +909,7 @@ number(char *arg, int def, int base)
 		n *= base;
 		if(c >= 'a' && c <= 'f')
 			n += c - 'a' + 10;
-		else
-		if(c >= 'A' && c <= 'F')
+		else if(c >= 'A' && c <= 'F')
 			n += c - 'A' + 10;
 		else
 			n += c - '0';

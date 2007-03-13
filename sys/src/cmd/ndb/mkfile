@@ -57,8 +57,6 @@ push: $O.dns $O.dnsdebug $O.dnstcp
 	unmount /n/divisadero
 
 cs.safeinstall: $O.cs
-	if(test -e $BIN/ooocs)
-		mv $BIN/ooocs $BIN/oooocs
 	if(test -e $BIN/oocs)
 		mv $BIN/oocs $BIN/ooocs
 	if(test -e $BIN/ocs)
@@ -67,8 +65,6 @@ cs.safeinstall: $O.cs
 	cp $O.cs $BIN/cs
 
 dns.safeinstall: $O.dns
-	if(test -e $BIN/ooodns)
-		mv $BIN/ooodns $BIN/oooodns
 	if(test -e $BIN/oodns)
 		mv $BIN/oodns $BIN/ooodns
 	if(test -e $BIN/odns)

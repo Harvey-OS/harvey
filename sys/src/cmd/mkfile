@@ -15,11 +15,20 @@ NOMK=$NOTSYS|$BUGGERED|$OUTOFDATE
 
 cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
 DIRS=`{ls -l | sed '/^d/!d; s/.* //; /^('$NOMK')$/d'}
+APEDIRS=awk bzip2 compress cvs eqn grap gs links-ape lp pic postscript spin \
+	tex troff
 
 none:VQ:
 	echo usage: mk cmds, dirs, all, install, installall, '$O'.cmd, cmd.install, or cmd.installall
 
 cmds:V:	$PROGS
+
+ape:V: $APE
+	for(i in $APEDIRS) @{
+		cd $i
+		echo mk $i
+		mk $MKFLAGS all
+	}
 
 dirs:V:
 	for(i in cc $DIRS) @{

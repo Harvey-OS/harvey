@@ -27,7 +27,7 @@ listens on a network for inbound calls to local services.
 .I Net
 is the network protocol on which to listen, by default
 .BR /net/il .
-The services available are executable files in
+The services available are executable, non-empty files in
 .I srvdir
 or
 .IR trustsrvdir .

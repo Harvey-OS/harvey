@@ -9,16 +9,22 @@ void
 lock(Lock *l)
 {
 	int i;
+	ulong caller;
 
+	caller = getcallerpc(&l);
 	/*
 	 * Try the fast grab first
 	 */
 loop:
-    	if(tas(l) == 0)
+    	if(tas(l) == 0) {
+		l->pc = caller;
 		return;
+	}
 	for(i = 0; i < 1000000; i++) {
-    		if(tas(l) == 0)
+    		if(tas(l) == 0) {
+			l->pc = caller;
 			return;
+		}
 		/* If we are spl low resched */
 		if(getstatus() & IFLAG)
 			sched();
@@ -26,7 +32,7 @@ loop:
 	l->sbsem = 0;
 
 	print("lock loop 0x%lux called by 0x%lux held by pc 0x%lux\n", (ulong)l,
-		getcallerpc(&l), l->pc);
+		caller, l->pc);
 	goto loop;
 }
 

@@ -584,6 +584,7 @@ multisync=1280x1024i
 multisync=1376x1024
 	include=1376x1024
 
+
 #
 # Dell VS17X
 #
@@ -979,6 +980,15 @@ sm753DF=1024x768
 	shs=1072
 	vrs=769 vre=772 vt=808
 	hsync=+ vsync=+
+
+# Samsung SyncMaster 931BW
+sm931bw=1440x900
+	videobw=130
+	defaultclock=60
+	shb=1520 ehb=1672 ht=1904
+	shs=1520
+	vrs=903 vre=909 vt=934
+	hsync=-	vsync=+
 
 #
 # Sony CPD-1304
