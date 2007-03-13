@@ -5,7 +5,8 @@
 #include <ip.h>
 #include "dns.h"
 
-Area *owned, *delegated;
+Area *owned;
+Area *delegated;
 
 /*
  *  true if a name is in our area
@@ -24,19 +25,18 @@ inmyarea(char *name)
 			if(len == s->len || name[len - s->len - 1] == '.')
 				break;
 	}
-	if(s == nil)
-		return nil;
+	if(s == 0)
+		return 0;
 
-	/* name is in area `s' */
 	for(d = delegated; d; d = d->next){
 		if(d->len > len)
 			continue;
 		if(cistrcmp(d->soarr->owner->name, name + len - d->len) == 0)
 			if(len == d->len || name[len - d->len - 1] == '.')
-				return nil; /* name is in a delegated subarea */
+				return 0;
 	}
 
-	return s;	/* name is in area `s' and not in a delegated subarea */
+	return s;
 }
 
 /*
@@ -46,17 +46,12 @@ inmyarea(char *name)
 void
 addarea(DN *dp, RR *rp, Ndbtuple *t)
 {
-	Area *s;
-	Area **l;
+	Area **l, *s;
 
 	if(t->val[0])
 		l = &delegated;
 	else
 		l = &owned;
-
-	for (s = *l; s != nil; s = s->next)
-		if (strcmp(dp->name, s->soarr->owner->name) == 0)
-			return;		/* we've already got one */
 
 	/*
 	 *  The area contains a copy of the soa rr that created it.
@@ -72,8 +67,7 @@ addarea(DN *dp, RR *rp, Ndbtuple *t)
 	s->neednotify = 1;
 	s->needrefresh = 0;
 
-	syslog(0, logfile, "new area %s %s", dp->name,
-		l == &delegated? "delegated": "owned");
+syslog(0, logfile, "new area %s", dp->name);
 
 	s->next = *l;
 	*l = s;
@@ -87,7 +81,6 @@ freearea(Area **l)
 	while(s = *l){
 		*l = s->next;
 		rrfree(s->soarr);
-		memset(s, 0, sizeof *s);	/* cause trouble */
 		free(s);
 	}
 }
@@ -112,21 +105,26 @@ refresh_areas(Area *s)
 			continue;
 		}
 
-		pid = fork();
-		if (pid == -1) {
-			sleep(1000);	/* don't try it again immediately */
-			continue;
+		switch(pid = fork()){
+		case -1:
+			break;
+		case 0:
+			execl(zonerefreshprogram, "zonerefresh", s->soarr->owner->name, nil);
+			exits(0);
+			break;
+		default:
+			for(;;){
+				w = wait();
+				if(w == nil)
+					break;
+				if(w->pid == pid){
+					if(w->msg == nil || *w->msg == 0)
+						s->needrefresh = 0;
+					free(w);
+					break;
+				}
+				free(w);
+			}
 		}
-		if (pid == 0){
-			execl(zonerefreshprogram, "zonerefresh",
-				s->soarr->owner->name, nil);
-			exits("exec zonerefresh failed");
-		}
-		while ((w = wait()) != nil && w->pid != pid)
-			free(w);
-		if (w && w->pid == pid)
-			if(w->msg == nil || *w->msg == '\0')
-				s->needrefresh = 0;
-		free(w);
 	}
 }

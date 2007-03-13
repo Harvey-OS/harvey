@@ -1,0 +1,48 @@
+.TH FSHALT 8
+.SH NAME
+fshalt, reboot \- halt any local file systems and optionally reboot the system
+.SH SYNOPSIS
+.B fshalt
+[
+.B -r
+]
+.br
+.B reboot
+.SH DESCRIPTION
+.I Fshalt
+syncs all local
+.IR fossil (4),
+.IR venti (8),
+and
+.IR kfs (4)
+servers,
+then halts all local
+.IR fossil
+and
+.IR kfs
+servers.
+If given
+.BR -r ,
+.I fshalt
+will then reboot the machine.
+The halting and rebooting is done by copying all necessary
+commands into a
+.IR ramfs (4)
+file system and changing directory there before attempting to halt
+file systems,
+so this will work even on standalone machines with their roots on
+local file systems.
+.PP
+.I Reboot
+restarts the machine it is invoked on.
+.SH SOURCE
+.B /rc/bin/fshalt
+.br
+.B /rc/bin/reboot
+.SH SEE ALSO
+.IR cons (3),
+.IR reboot (8)
+.SH BUGS
+On standalone machines, it will be impossible to do anything
+after invoking bare
+.LR fshalt .

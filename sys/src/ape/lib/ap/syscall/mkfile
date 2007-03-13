@@ -4,7 +4,9 @@ NPROC=1
 install:V: genall gencall
 	genall
 
-gencall:D: /sys/src/libc/9syscall/mkfile
+# ugh. sources's build process can't hack absolute path names.
+# we're in /sys/src/ape/lib/ap/syscall.
+gencall:D: ../../../../libc/9syscall/mkfile	# /sys/src/libc/9syscall/mkfile
 	{
 		echo '#!/bin/rc'
 		sed -n -e 's/seek/_SEEK/g' -e '/switch/,/\$AS /p' $prereq

@@ -183,11 +183,12 @@ static	struct
 	short	dayle;
 } daytab[] =
 {
-	87,	999,	90,	303,
+	107,	~(ushort)0>>1, 66, 310,
+	87,	106,	90,	303,
 	76,	86,	119,	303,
 	75,	75,	58,	303,
 	74,	74,	5,	333,
-	0,	73,	119,	303,
+	-1,	73,	119,	303,
 };
 
 static
@@ -221,7 +222,14 @@ localtime(Timet tim, Tm *ct)
 	copyt = tim - conf.minuteswest*60L;
 	gmtime(copyt, ct);
 	dayno = ct->yday;
-	for(i=0;; i++)
+
+	/* enforce sane bounds for daytab */
+	if (ct->year < -1) /* 1 jan 1970 00:00 GMT can be 31 dec 1969 locally */
+		ct->year = -1;
+	else if (ct->year > 60000)
+		ct->year = 60000;
+
+	for(i = 0; ; i++)
 		if(ct->year >= daytab[i].yrfrom &&
 		   ct->year <= daytab[i].yrto) {
 			daylbegin = succsunday(ct, daytab[i].daylb);
@@ -229,8 +237,8 @@ localtime(Timet tim, Tm *ct)
 			break;
 		}
 	if(conf.dsttime &&
-	    (dayno>daylbegin || (dayno==daylbegin && ct->hour>=2)) &&
-	    (dayno<daylend || (dayno==daylend && ct->hour<1))) {
+	    (dayno>daylbegin || (dayno==daylbegin && ct->hour >= 2)) &&
+	    (dayno<daylend   || (dayno==daylend   && ct->hour < 1))) {
 		copyt += 60L*60L;
 		gmtime(copyt, ct);
 		ct->isdst++;

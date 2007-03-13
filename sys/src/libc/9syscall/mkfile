@@ -8,12 +8,7 @@ install:V:
 		n=`{sed -n '/[ 	]'$I'[ 	]/s/.*	//p' sys.h}
 		if(~ $i exits) i=_exits
 		{switch($objtype){
-		case 68000
-			echo TEXT $i'(SB)', 1, '$0'
-			echo MOVL '$'$n, R0
-			echo TRAP '$0'
-			echo RTS
-		case 68020
+		case 68000 68020
 			echo TEXT $i'(SB)', 1, '$0'
 			echo MOVL '$'$n, R0
 			echo TRAP '$0'

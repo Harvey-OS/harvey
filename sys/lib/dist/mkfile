@@ -157,6 +157,7 @@ worldwritable-mail:V:
 9-export:V: 9.tar.gz
 	9fs sources
 	cp 9.tar.gz /n/sources/extra/9.tgz
+	chmod +t    /n/sources/extra/9.tgz
 
 plan9.tar.bz2:V:
 	@{
@@ -176,3 +177,4 @@ plan9.tar.bz2:V:
 plan9-export:V: plan9.tar.bz2
 	9fs sources
 	mv plan9.tar.bz2 /n/sources/extra/plan9.tar.bz2
+	chmod +t	 /n/sources/extra/plan9.tar.bz2

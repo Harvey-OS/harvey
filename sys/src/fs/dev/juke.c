@@ -326,6 +326,7 @@ devtojuke(Device *d, Device *top)
 			/* FALL THROUGH */
 		case Devwren:
 		case Devide:
+		case Devmarvsata:
 			return nil;
 
 		case Devcw:

@@ -160,7 +160,7 @@ ndbchanged(Ndb *db)
 	Dir *d;
 
 	for(ndb = db; ndb != nil; ndb = ndb->next){
-		d = dirfstat(Bfildes(&db->b));
+		d = dirfstat(Bfildes(&ndb->b));
 		if(d == nil)
 			continue;
 		if(ndb->qid.path != d->qid.path

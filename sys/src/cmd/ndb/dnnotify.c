@@ -39,14 +39,16 @@ syslog(0, logfile, "notification for %s", repp->qd->owner->name);
 syslog(0, logfile, "serial old %lud new %lud", a->soarr->soa->serial, repp->qd->soa->serial);
 
 	/* do nothing if it didn't change */
-	if(a->soarr->soa->serial != repp->qd->soa->serial)
-		a->needrefresh = 1;
+	if(a->soarr->soa->serial== repp->qd->soa->serial)
+		return;
+
+	a->needrefresh = 1;
 }
 
 static void
 ding(void*, char *msg)
 {
-	if(strstr(msg, "alarm") != nil)
+	if(strstr(msg, "alarm"))
 		noted(NCONT);
 	else
 		noted(NDFLT);
@@ -57,10 +59,11 @@ static void
 send_notify(char *slave, RR *soa, Request *req)
 {
 	int i, len, n, reqno, status, fd;
-	char *err;
-	uchar ibuf[Maxudp+OUdphdrsize], obuf[Maxudp+OUdphdrsize];
+	uchar obuf[Maxudp+OUdphdrsize];
+	uchar ibuf[Maxudp+OUdphdrsize];
 	RR *rp;
 	OUdphdr *up = (OUdphdr*)obuf;
+	char *err;
 	DNSmsg repmsg;
 
 	/* create the request */
@@ -68,9 +71,9 @@ send_notify(char *slave, RR *soa, Request *req)
 	n = mkreq(soa->owner, Cin, obuf, Fauth | Onotify, reqno);
 
 	/* get an address */
-	if(strcmp(ipattr(slave), "ip") == 0)
+	if(strcmp(ipattr(slave), "ip") == 0) {
 		parseip(up->raddr, slave);
-	else {
+	} else {
 		rp = dnresolve(slave, Cin, Ta, req, nil, 0, 1, 1, &status);
 		if(rp == nil)
 			return;
@@ -78,7 +81,7 @@ send_notify(char *slave, RR *soa, Request *req)
 		rrfree(rp);
 	}
 
-	fd = udpport(nil);
+	fd = udpport();
 	if(fd < 0)
 		return;
 
@@ -95,13 +98,13 @@ syslog(0, logfile, "sending %d byte notify to %s/%I.%d about %s", n, slave, up->
 		alarm(0);
 		if(len <= OUdphdrsize)
 			continue;
-		memset(&repmsg, 0, sizeof repmsg);
-		err = convM2DNS(&ibuf[OUdphdrsize], len, &repmsg, nil);
+		err = convM2DNS(&ibuf[OUdphdrsize], len, &repmsg);
 		if(err != nil)
 			continue;
 		if(repmsg.id == reqno && (repmsg.flags & Omask) == Onotify)
 			break;
 	}
+
 	close(fd);
 }
 
@@ -144,9 +147,7 @@ notifyproc(void)
 		return;
 	}
 
-	procsetname("notify slaves");
-	memset(&req, 0, sizeof req);
-	req.isslave = 1;	/* don't fork off subprocesses */
+	req.isslave = 1;	/* son't fork off subprocesses */
 
 	for(;;){
 		getactivity(&req, 0);
