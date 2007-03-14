@@ -1,9 +1,9 @@
-// ARM7500 support
+// ARM support
 
 defn acidinit()			// Called after all the init modules are loaded
 {
 	bplist = {};
-	bpfmt = 'b';
+	bpfmt = 'X';
 
 	srcpath = {
 		"./",
@@ -18,17 +18,17 @@ defn acidinit()			// Called after all the init modules are loaded
 
 defn linkreg(addr)
 {
-	return 0;
+	return *R14;
 }
 
 defn stk()				// trace
 {
-	_stk(*PC, *SP, 0, 0);
+	_stk(*PC, *SP, linkreg(0), 0);
 }
 
 defn lstk()				// trace with locals
 {
-	_stk(*PC, *SP, 0, 1);
+	_stk(*PC, *SP, linkreg(0), 1);
 }
 
 defn gpr()			// print general purpose registers
@@ -48,7 +48,24 @@ defn regs()				// print all registers
 
 defn pstop(pid)
 {
-	return 0;
+	local l;
+	local pc;
+
+	pc = *PC;
+
+	print(pid,": ", reason(*TYPE), "\t");
+	print(fmt(pc, 'a'), "\t", fmt(pc, 'i'), "\n");
+
+	if notes then {
+		if notes[0] != "sys: breakpoint" then {
+			print("Notes pending:\n");
+			l = notes;
+			while l do {
+				print("\t", head l, "\n");
+				l = tail l;
+			}
+		}
+	}
 }
 
 aggr Ureg
@@ -95,10 +112,5 @@ Ureg(addr) {
 	print("	psr	", addr.psr, "\n");
 	print("	pc	", addr.pc, "\n");
 };
-
-defn acornmap()
-{
-	map({"text", _startup, end, 0x20});
-}
 
 print("/sys/lib/acid/arm");

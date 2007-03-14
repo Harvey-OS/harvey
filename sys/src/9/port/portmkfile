@@ -37,6 +37,8 @@ clean:V:
 %.clean:V:
 	rm -f $stem.c [9bz]$stem [9bz]$stem.gz boot$stem.* *.acid
 
+%.$O:	/$objtype/include/u.h ../port/lib.h mem.h dat.h fns.h io.h ../port/error.h ../port/portdat.h ../port/portfns.h
+
 ../port/systab.h:	/sys/src/libc/9syscall/sys.h ../port/mksystab
 	rc ../port/mksystab > ../port/systab.h
 
@@ -54,6 +56,27 @@ errstr.h:	../port/mkerrstr ../port/error.h
 
 %.db:		main.$O
 	$CC -s$stem main.c | dbfmt > $stem.db
+
+alloc.$O:	/sys/include/pool.h
+devmnt.$O:	/sys/include/fcall.h
+proc.$O:	errstr.h
+devroot.$O:	errstr.h
+trap.$O:	/$objtype/include/ureg.h
+devproc.$O:	/$objtype/include/ureg.h
+main.$O:	init.h
+trap.$O:	../port/systab.h
+devpipe.$O:	../port/netif.h
+netif.$O:	../port/netif.h
+devuart.$O:	../port/netif.h
+devmouse.$O:	screen.h
+devdraw.$O:	screen.h
+screen.$O:	screen.h
+latin1.$O:	../port/latin1.h
+thwack.$O:	../port/thwack.h
+unthwack.$O:	../port/thwack.h
+devsdp.$O:	../port/thwack.h
+devproc.$O sysproc.$O:	/sys/include/tos.h
+devproc.$O edf.$O proc.$O: /sys/include/trace.h
 
 boot$CONF.out: $CONF print.$O $BOOTDIR/boot.c $BOOTLIB
 	$BOOTDIR/mkboot $CONF > boot$CONF.c

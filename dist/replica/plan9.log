@@ -47872,3 +47872,12 @@
 1173754806 20 c 386/bin/fossil/fossil - 775 sys sys 1173754557 364538
 1173754806 21 c 386/lib/ape/libap.a - 664 sys sys 1173754584 819938
 1173756606 0 c rc/bin/man - 775 sys sys 1173755398 2504
+1173763806 0 c sys/src/cmd/aux/listen.c - 664 sys sys 1173762441 9291
+1173789006 0 c sys/lib/acid/arm - 664 sys sys 1173788243 2090
+1173789006 1 c sys/src/9/alphapc/mmu.c - 664 sys sys 1173788325 5218
+1173789006 2 c sys/src/9/bitsy/fpiarm.c - 664 sys sys 1173788243 9402
+1173789006 3 c sys/src/9/mtx/mkfile - 664 sys sys 1173788325 1612
+1173789006 4 c sys/src/9/mtx/mmu.c - 664 sys sys 1173788325 4695
+1173789006 5 c sys/src/9/port/portmkfile - 664 sys sys 1173788325 2069
+1173789006 6 c sys/src/libmach/5obj.c - 664 sys sys 1173788325 2268
+1173814206 0 c 386/bin/aux/listen - 775 sys sys 1173813638 109045
