@@ -1,5 +1,5 @@
 /*
- * 5obj.c - identify and parse a arm object file
+ * 5obj.c - identify and parse an arm object file
  */
 #include <u.h>
 #include <libc.h>

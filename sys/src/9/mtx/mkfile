@@ -79,9 +79,12 @@ install:V: $p$CONF
 <../port/portmkfile
 <|../port/mkbootrules $CONF
 
-clock.$O devether.$O main.$O trap.$O:	/$objtype/include/ureg.h
+clock.$O:	/$objtype/include/ureg.h
+devether.$O:	/$objtype/include/ureg.h
+main.$O:	/$objtype/include/ureg.h errstr.h init.h
+trap.$O:	/$objtype/include/ureg.h
 
-$ETHER: 			etherif.h ../port/netif.h
+$ETHER: 	etherif.h ../port/netif.h
 
 init.h:	initcode /sys/src/libc/9syscall/sys.h
 	$AS initcode

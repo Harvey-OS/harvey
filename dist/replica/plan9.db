@@ -108,7 +108,7 @@
 386/bin/aux/hardcopy - 775 sys sys 1020319063 1699
 386/bin/aux/isvmware - 775 sys sys 1032486791 23997
 386/bin/aux/lines - 775 sys sys 1168402281 60716
-386/bin/aux/listen - 775 sys sys 1173754552 108570
+386/bin/aux/listen - 775 sys sys 1173813638 109045
 386/bin/aux/listen1 - 775 sys sys 1168402281 94721
 386/bin/aux/lpdaemon - 775 sys sys 1173754553 170710
 386/bin/aux/lpdsend - 775 sys sys 1173754553 157339
@@ -6058,7 +6058,7 @@ sys/lib/acid/68020 - 664 sys sys 944955985 2487
 sys/lib/acid/acme - 664 sys sys 969499632 2291
 sys/lib/acid/alef - 664 sys sys 944955985 2293
 sys/lib/acid/alpha - 664 sys sys 944955985 4849
-sys/lib/acid/arm - 664 sys sys 984696197 1842
+sys/lib/acid/arm - 664 sys sys 1173788243 2090
 sys/lib/acid/coverage - 664 sys sys 944955985 1746
 sys/lib/acid/kernel - 664 sys sys 1134390252 6399
 sys/lib/acid/leak - 664 sys sys 1141940182 3022
@@ -7822,7 +7822,7 @@ sys/src/9/alphapc/mem.h - 664 sys sys 1137179967 2312
 sys/src/9/alphapc/memmove.s - 664 sys sys 1015012786 2936
 sys/src/9/alphapc/memset.s - 664 sys sys 1015012786 844
 sys/src/9/alphapc/mkfile - 664 sys sys 1173412020 1973
-sys/src/9/alphapc/mmu.c - 664 sys sys 1173386681 5219
+sys/src/9/alphapc/mmu.c - 664 sys sys 1173788325 5218
 sys/src/9/alphapc/osf1pal.h - 664 sys sys 1137179966 1471
 sys/src/9/alphapc/pci.c - 664 sys sys 1039753420 7868
 sys/src/9/alphapc/screen.h - 664 sys sys 1147108286 3923
@@ -7847,7 +7847,7 @@ sys/src/9/bitsy/etherwavelan.c - 664 sys sys 1071245513 870
 sys/src/9/bitsy/fns.h - 664 sys sys 1171761416 3086
 sys/src/9/bitsy/fpi.c - 664 sys sys 1017695513 5248
 sys/src/9/bitsy/fpi.h - 664 sys sys 1017695513 1679
-sys/src/9/bitsy/fpiarm.c - 664 sys sys 1017695513 9328
+sys/src/9/bitsy/fpiarm.c - 664 sys sys 1173788243 9402
 sys/src/9/bitsy/fpimem.c - 664 sys sys 1017695513 2229
 sys/src/9/bitsy/gamma.c - 664 sys sys 1017695513 646
 sys/src/9/bitsy/gamma.h - 664 sys sys 1017695514 540718
@@ -7950,8 +7950,8 @@ sys/src/9/mtx/kbd.c - 664 sys sys 1018721286 8358
 sys/src/9/mtx/l.s - 664 sys sys 1143129840 11000
 sys/src/9/mtx/main.c - 664 sys sys 1131289814 8307
 sys/src/9/mtx/mem.h - 664 sys sys 1026848200 5959
-sys/src/9/mtx/mkfile - 664 sys sys 1072972534 1520
-sys/src/9/mtx/mmu.c - 664 sys sys 1169491806 4666
+sys/src/9/mtx/mkfile - 664 sys sys 1173788325 1612
+sys/src/9/mtx/mmu.c - 664 sys sys 1173788325 4695
 sys/src/9/mtx/mtx - 664 sys sys 1056336297 416
 sys/src/9/mtx/mtxcpu - 664 sys sys 1039753442 421
 sys/src/9/mtx/pci.c - 664 sys sys 1087657434 16662
@@ -8159,7 +8159,7 @@ sys/src/9/port/pgrp.c - 664 sys sys 1138458260 4760
 sys/src/9/port/portclock.c - 664 sys sys 1146746630 4276
 sys/src/9/port/portdat.h - 664 sys sys 1155995676 22703
 sys/src/9/port/portfns.h - 664 sys sys 1146746630 11059
-sys/src/9/port/portmkfile - 664 sys sys 1173368230 1387
+sys/src/9/port/portmkfile - 664 sys sys 1173788325 2069
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
 sys/src/9/port/proc.c - 664 sys sys 1166244036 28770
 sys/src/9/port/qio.c - 664 sys sys 1070287837 23562
@@ -9681,7 +9681,7 @@ sys/src/cmd/aux/gps/mkfile - 664 sys sys 1108397331 219
 sys/src/cmd/aux/gps/util.c - 664 sys sys 1107448815 2795
 sys/src/cmd/aux/lines.c - 664 sys sys 1015008782 546
 sys/src/cmd/aux/lis - 775 sys sys 944960794 45
-sys/src/cmd/aux/listen.c - 664 sys sys 1173736994 8997
+sys/src/cmd/aux/listen.c - 664 sys sys 1173762441 9291
 sys/src/cmd/aux/listen1.c - 664 sys sys 1143759349 2005
 sys/src/cmd/aux/mkfile - 664 sys sys 1147022848 1021
 sys/src/cmd/aux/mklatinkbd.c - 664 sys sys 953253425 3813
@@ -15259,7 +15259,7 @@ sys/src/libmach/2db.c - 664 sys sys 1143696097 61333
 sys/src/libmach/2obj.c - 664 sys sys 1148106911 2393
 sys/src/libmach/5.c - 664 sys sys 1173387335 1564
 sys/src/libmach/5db.c - 664 sys sys 1143696172 21599
-sys/src/libmach/5obj.c - 664 sys sys 1148106911 2267
+sys/src/libmach/5obj.c - 664 sys sys 1173788325 2268
 sys/src/libmach/6.c - 664 sys sys 1138471019 3482
 sys/src/libmach/6c - 20000000775 sys sys 1123100867 0
 sys/src/libmach/6c/6.out.h - 664 sys sys 1114459480 7984

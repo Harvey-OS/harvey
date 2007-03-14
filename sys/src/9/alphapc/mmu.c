@@ -297,4 +297,3 @@ cankaddr(ulong pa)
 		return 0;
 	return kzero - pa;
 }
-
