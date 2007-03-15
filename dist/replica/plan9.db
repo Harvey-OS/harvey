@@ -13148,7 +13148,6 @@ sys/src/cmd/replica/avl.c - 664 sys sys 1068497830 6242
 sys/src/cmd/replica/compactdb.c - 664 sys sys 1018323475 652
 sys/src/cmd/replica/db.c - 664 sys sys 1019340165 2989
 sys/src/cmd/replica/mkfile - 664 sys sys 1032060527 647
-sys/src/cmd/replica/proto.c - 664 sys sys 1081202238 8724
 sys/src/cmd/replica/revdump.c - 664 sys sys 1018321112 651
 sys/src/cmd/replica/revproto.c - 664 sys sys 1081202241 8932
 sys/src/cmd/replica/updatedb.c - 664 sys sys 1068497831 3045
