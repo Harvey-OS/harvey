@@ -124,7 +124,11 @@ enum {					/* Om */
 enum {					/* Lmw */
 	Lmwsz		= 2*1024,	/* Local Memory Window Size */
 
-	Sr		= 0x3800,	/* Send Ring (accessed via Lmw) */
+	/*
+	 * legal values are 0x3800 iff Nsr is 128, 0x3000 iff Nsr is 256,
+	 * or 0x2000 iff Nsr is 512.
+	 */
+	Sr		= 0x2000,	/* Send Ring (accessed via Lmw) */
 };
 
 enum {					/* Link */
@@ -223,13 +227,17 @@ typedef struct Gib {			/* General Information Block */
 	Host64	rsp;			/* Refresh Stats */
 } Gib;
 
+/*
+ * these sizes are all fixed in the card,
+ * except for Nsr, which has only 3 valid sizes.
+ */
 enum {					/* Host/NIC Interface ring sizes */
 	Ner		= 256,		/* event ring */
 	Ncr		= 64,		/* command ring */
-	Nsr		= 512,		/* send ring */
+	Nsr		= 512,		/* send ring: 128, 256 or 512 */
 	Nrsr		= 512,		/* receive standard ring */
 	Nrjr		= 256,		/* receive jumbo ring */
-	Nrmr		= 1024,		/* receive mini ring */
+	Nrmr		= 1024,		/* receive mini ring, optional */
 	Nrrr		= 2048,		/* receive return ring */
 };
 
@@ -243,7 +251,7 @@ enum {
 };
 
 typedef struct Ctlr Ctlr;
-typedef struct Ctlr {
+struct Ctlr {
 	int	port;
 	Pcidev*	pcidev;
 	Ctlr*	next;
@@ -286,7 +294,7 @@ typedef struct Ctlr {
 	int	st;			/* Stat Ticks */
 	int	smcbd;			/* Send Max. Coalesced BDs */
 	int	rmcbd;			/* Receive Max. Coalesced BDs */
-} Ctlr;
+};
 
 static Ctlr* ctlrhead;
 static Ctlr* ctlrtail;
@@ -552,39 +560,46 @@ ga620replenish(Ctlr* ctlr)
 static void
 ga620event(Ether *edev, int eci, int epi)
 {
-	int event;
-	ulong gls, fls;
+	unsigned event, code;
 	Ctlr *ctlr;
 
 	ctlr = edev->ctlr;
 	while(eci != epi){
 		event = ctlr->er[eci].event;
+		code = (event >> 12) & ((1<<12)-1);
 		switch(event>>24){
 		case 0x01:		/* firmware operational */
+			/* host stack (us) is up.  3rd arg of 2 means down. */
 			ga620command(ctlr, 0x01, 0x01, 0x00);
+			/*
+			 * link negotiation: any speed is okay.
+			 * 3rd arg of 1 selects gigabit only; 2 10/100 only.
+			 */
 			ga620command(ctlr, 0x0B, 0x00, 0x00);
-print("ga620: %8.8uX: %8.8uX\n", ctlr->port, event);
+			print("#l%d: ga620: port %8.8uX: event %8.8uX\n",
+				edev->ctlrno, ctlr->port, event);
 			break;
 		case 0x04:		/* statistics updated */
 			break;
 		case 0x06:		/* link state changed */
-print("ga620: %8.8uX: %8.8uX %8.8uX %8.8uX\n",
-    ctlr->port, event, csr32r(ctlr, Gls), csr32r(ctlr, Fls));
-			gls = csr32r(ctlr, Gls);
-			fls = csr32r(ctlr, Fls);
-			if ((gls&(Le|L1000MB)) == (Le|L1000MB))
+			switch (code) {
+			case 1:
 				edev->mbps = 1000;
-			else if ((fls&(Le|L100MB)) == (Le|L100MB))
-				edev->mbps = 100;
-			else if ((fls&(Le|L10MB)) == (Le|L10MB))
-				edev->mbps = 10;
-			else
 				break;
-			print("#l%d: %dMbps\n", edev->ctlrno, edev->mbps);
+			case 2:
+				print("#l%d: link down\n", edev->ctlrno);
+				break;
+			case 3:
+				edev->mbps = 100;	/* it's 10 or 100 */
+				break;
+			}
+			if (code != 2)
+				print("#l%d: %dMbps link up\n",
+					edev->ctlrno, edev->mbps);
 			break;
 		case 0x07:		/* event error */
 		default:
-			print("er[%d] = %8.8uX\n", eci, event);
+			print("ga620: er[%d] = %8.8uX\n", eci, event);
 			break;
 		}
 		eci = NEXT(eci, Ner);
@@ -1175,10 +1190,23 @@ ga620pci(void)
 	}
 }
 
-/* multicast may already be on, so we don't need to do anything */
 static void
-ga620multicast(void*, uchar*, int)
+ga620promiscuous(void *arg, int on)
 {
+	Ether *ether = arg;
+
+	/* 3rd arg: 1 enables, 2 disables */
+	ga620command(ether->ctlr, 0xa, (on? 1: 2), 0);
+}
+
+static void
+ga620multicast(void *arg, uchar *addr, int on)
+{
+	Ether *ether = arg;
+
+	USED(addr);
+	/* 3rd arg: 1 enables, 2 disables */
+	ga620command(ether->ctlr, 0xe, (on? 1: 2), 0);
 }
 
 static int
@@ -1232,7 +1260,7 @@ ga620pnp(Ether* edev)
 	edev->ctl = ga620ctl;
 
 	edev->arg = edev;
-	edev->promiscuous = nil;
+	edev->promiscuous = ga620promiscuous;
 	edev->multicast = ga620multicast;
 	edev->shutdown = ga620shutdown;
 
