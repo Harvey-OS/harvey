@@ -834,7 +834,7 @@ jinit(Juke *w, Device *d, int o)
 		if(p < 0 || p >= w->nside)
 			panic("jinit partition %Z\n", d);
 		w->side[p].ord = o;
-
+		/* FALL THROUGH */
 	case Devworm:
 		if(d->private) {
 			print("juke platter private pointer set %p\n",

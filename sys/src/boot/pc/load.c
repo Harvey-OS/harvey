@@ -434,7 +434,7 @@ cistrncmp(char *a, char *b, int n)
 	return 0;
 }
 
-#define PSTART		(12*1024*1024)
+#define PSTART		( 8*1024*1024)
 #define PEND		(16*1024*1024)
 
 ulong palloc = PSTART;

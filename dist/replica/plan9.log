@@ -47884,3 +47884,12 @@
 1173907806 0 d sys/src/cmd/replica/proto.c - 664 sys sys 1081202238 0
 1173994206 0 c sys/man/8/plan9.ini - 664 sys sys 1173993823 22729
 1174019406 0 c sys/src/9/pc/etherga620.c - 664 sys sys 1174018926 29784
+1174021207 0 c sys/src/9/pc/etherga620.c - 664 sys sys 1174020176 29882
+1174078807 0 c sys/src/boot/pc/ether.c - 664 sys sys 1174077249 5326
+1174078807 1 c sys/src/boot/pc/etherif.h - 664 sys sys 1174077279 1338
+1174078807 2 c sys/src/boot/pc/load.c - 664 sys sys 1174077194 9288
+1174078807 3 c sys/src/boot/pc/mkfile - 664 sys sys 1174077157 3132
+1174080606 0 a sys/src/boot/pc/etherga620.c - 664 sys sys 1174080071 26933
+1174080606 1 a sys/src/boot/pc/etherga620fw.h - 664 sys sys 1174080072 222295
+1174082406 0 c sys/src/fs/dev/juke.c - 664 sys sys 1174081264 22925
+1174082406 1 c sys/src/fs/port/devsd.c - 664 sys sys 1174081262 15110
