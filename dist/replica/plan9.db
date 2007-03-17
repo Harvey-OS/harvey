@@ -7999,7 +7999,7 @@ sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
 sys/src/9/pc/etherdp83820.c - 664 sys sys 1160069116 29352
 sys/src/9/pc/etherec2t.c - 664 sys sys 1135784135 4092
 sys/src/9/pc/etherelnk3.c - 664 sys sys 1158012427 48807
-sys/src/9/pc/etherga620.c - 664 sys sys 1174018926 29784
+sys/src/9/pc/etherga620.c - 664 sys sys 1174020176 29882
 sys/src/9/pc/etherga620fw.h - 664 sys sys 1026847642 222295
 sys/src/9/pc/etherif.h - 664 sys sys 1088178711 961
 sys/src/9/pc/etherigbe.c - 664 sys sys 1168306113 44967
@@ -9049,7 +9049,7 @@ sys/src/boot/pc/dosboot.c - 664 sys sys 1097716791 11240
 sys/src/boot/pc/dosfs.h - 664 sys sys 1032215924 1467
 sys/src/boot/pc/eoffs - 664 sys sys 1015007950 0
 sys/src/boot/pc/error.h - 664 sys sys 1015007950 3081
-sys/src/boot/pc/ether.c - 664 sys sys 1112382847 5090
+sys/src/boot/pc/ether.c - 664 sys sys 1174077249 5326
 sys/src/boot/pc/ether2000.c - 664 sys sys 1015007950 2609
 sys/src/boot/pc/ether2114x.c - 664 sys sys 1144977462 38028
 sys/src/boot/pc/ether589.c - 664 sys sys 1144961189 4624
@@ -9064,7 +9064,9 @@ sys/src/boot/pc/ether8390.h - 664 sys sys 1015007951 1392
 sys/src/boot/pc/etherec2t.c - 664 sys sys 1015007951 3598
 sys/src/boot/pc/etherelnk3.c - 664 sys sys 1158012439 44736
 sys/src/boot/pc/etherelnk3x.c - 664 sys sys 1015007951 24989
-sys/src/boot/pc/etherif.h - 664 sys sys 1107882190 1255
+sys/src/boot/pc/etherga620.c - 664 sys sys 1174080071 26933
+sys/src/boot/pc/etherga620fw.h - 664 sys sys 1174080072 222295
+sys/src/boot/pc/etherif.h - 664 sys sys 1174077279 1338
 sys/src/boot/pc/etherigbe.c - 664 sys sys 1140710606 40769
 sys/src/boot/pc/ethermii.c - 664 sys sys 1103641771 4413
 sys/src/boot/pc/ethermii.h - 664 sys sys 1071175087 3259
@@ -9081,11 +9083,11 @@ sys/src/boot/pc/kfs.h - 664 sys sys 1032215924 861
 sys/src/boot/pc/kfsboot.c - 664 sys sys 1032215914 4788
 sys/src/boot/pc/l.s - 664 sys sys 1130887225 18115
 sys/src/boot/pc/lib.h - 664 sys sys 1135487939 2796
-sys/src/boot/pc/load.c - 664 sys sys 1171784377 9288
+sys/src/boot/pc/load.c - 664 sys sys 1174077194 9288
 sys/src/boot/pc/mbr.s - 664 sys sys 1015007953 6234
 sys/src/boot/pc/mem.h - 664 sys sys 1130887225 3371
 sys/src/boot/pc/memory.c - 664 sys sys 1019533021 10272
-sys/src/boot/pc/mkfile - 664 sys sys 1145035359 3116
+sys/src/boot/pc/mkfile - 664 sys sys 1174077157 3132
 sys/src/boot/pc/noether.c - 664 sys sys 1094674488 358
 sys/src/boot/pc/part.c - 664 sys sys 1114697151 7153
 sys/src/boot/pc/pbs.s - 664 sys sys 1143465387 8291
@@ -14373,7 +14375,7 @@ sys/src/fs/dev - 20000000775 sys sys 1140168396 0
 sys/src/fs/dev/apc.c - 664 sys sys 1140167918 14910
 sys/src/fs/dev/cw.c - 664 sys sys 1097712558 43252
 sys/src/fs/dev/fworm.c - 664 sys sys 1140167912 1845
-sys/src/fs/dev/juke.c - 664 sys sys 1173736142 22905
+sys/src/fs/dev/juke.c - 664 sys sys 1174081264 22925
 sys/src/fs/dev/mkfile - 664 sys sys 1015109974 132
 sys/src/fs/dev/mworm.c - 664 sys sys 1140167915 4264
 sys/src/fs/dev/wren.c - 664 sys sys 1140167916 2392
@@ -14474,7 +14476,7 @@ sys/src/fs/port/console.c - 664 sys sys 1101627646 4886
 sys/src/fs/port/data.c - 664 sys sys 1140167986 4510
 sys/src/fs/port/dentry.c - 664 sys sys 1098156404 6345
 sys/src/fs/port/devcons.c - 664 sys sys 1157942528 4896
-sys/src/fs/port/devsd.c - 664 sys sys 1151371646 15110
+sys/src/fs/port/devsd.c - 664 sys sys 1174081262 15110
 sys/src/fs/port/fcmd.c - 664 sys sys 1146785267 1255
 sys/src/fs/port/fs.h - 664 sys sys 1140168001 682
 sys/src/fs/port/iobuf.c - 664 sys sys 1140167988 4956

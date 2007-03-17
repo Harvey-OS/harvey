@@ -24,6 +24,8 @@ extern int rtl8139pnp(Ether*);
 extern int rtl8169pnp(Ether*);
 extern int ether83815reset(Ether*);
 extern int rhinepnp(Ether*);
+extern int ga620pnp(Ether*);
+//extern int dp83820pnp(Ether*);
 
 struct {
 	char	*type;
@@ -48,6 +50,9 @@ struct {
 	{ "RTL8169", rtl8169pnp, 0, },
 	{ "83815", ether83815reset, 0, },
 	{ "rhine", rhinepnp, 0, },
+	{ "GA620", ga620pnp, 0, },
+//	{ "83820",   dp83820pnp, 0, },
+//	{ "dp83820", dp83820pnp, 0, },
 
 	{ 0, }
 };
@@ -90,7 +95,7 @@ etherinit(void)
 					continue;
 			}
 
-			ctlr->state = 1;
+			ctlr->state = 1;		/* card found */
 			mask |= 1<<ctlrno;
 			if(ctlr->irq == 2)
 				ctlr->irq = 9;
@@ -150,8 +155,8 @@ attach(int ctlrno)
 		return 0;
 
 	ctlr = &ether[ctlrno];
-	if(ctlr->state == 1){
-		ctlr->state = 2;
+	if(ctlr->state == 1){		/* card found? */
+		ctlr->state = 2;	/* attaching */
 		(*ctlr->attach)(ctlr);
 	}
 
@@ -167,7 +172,7 @@ xetherdetach(void)
 	x = splhi();
 	for(ctlrno = 0; ctlrno < MaxEther; ctlrno++){
 		ctlr = &ether[ctlrno];
-		if(ctlr->detach && ctlr->state != 0)
+		if(ctlr->detach && ctlr->state != 0)	/* found | attaching? */
 			ctlr->detach(ctlr);
 	}
 	splx(x);
