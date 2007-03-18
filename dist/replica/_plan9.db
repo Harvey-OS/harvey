@@ -1,8 +1,8 @@
 386 - 20000000775 sys sys 1010957353 0
 386/9load - 775 sys sys 1171784718 220040
-386/9loaddebug - 775 sys sys 1171917619 316230
+386/9loaddebug - 775 sys sys 1174186577 401944
 386/9loadlite - 775 sys sys 1171784720 137116
-386/9loadlitedebug - 775 sys sys 1171917620 202506
+386/9loadlitedebug - 775 sys sys 1174186577 202506
 386/9pc - 775 sys sys 1161230890 1924142
 386/9pc.gz - 664 sys sys 1161232307 821176
 386/9pccpu - 775 sys sys 1161230955 1636008
@@ -14012,7 +14012,7 @@ sys/src/cmd/upas/common/sys.h - 664 sys sys 1055699577 2223
 sys/src/cmd/upas/filterkit - 20000000775 sys sys 1063854806 0
 sys/src/cmd/upas/filterkit/dat.h - 664 sys sys 1018549520 107
 sys/src/cmd/upas/filterkit/deliver.c - 664 sys sys 1135083942 1070
-sys/src/cmd/upas/filterkit/list.c - 664 sys sys 1135083949 4754
+sys/src/cmd/upas/filterkit/list.c - 664 sys sys 1174155504 4945
 sys/src/cmd/upas/filterkit/mkfile - 664 sys sys 1048645255 264
 sys/src/cmd/upas/filterkit/pipefrom.sample - 775 sys sys 1041184939 380
 sys/src/cmd/upas/filterkit/pipeto.sample - 664 sys sys 1045505695 1765

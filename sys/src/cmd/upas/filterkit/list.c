@@ -55,7 +55,7 @@ mklower(char *p)
 static String*
 simplify(char *addr)
 {
-	int dots;
+	int dots, dotlim;
 	char *p, *at;
 	String *s;
 
@@ -68,7 +68,7 @@ simplify(char *addr)
 		return s;
 	}
 
-	/* copy up to the '@' sign */
+	/* copy up to, and including, the '@' sign */
 	at++;
 	s = s_copy("~");
 	for(p = addr; p < at; p++){
@@ -77,20 +77,26 @@ simplify(char *addr)
 		s_putc(s, *p);
 	}
 
-	/* just any address matching the two most significant domain elements */
+	/*
+	 * just any address matching the two most significant domain elements,
+	 * except for .uk, which needs three.
+	 */
 	s_append(s, "(.*\\.)?");
-	p = addr+strlen(addr);
+	p = addr+strlen(addr);			/* point at NUL */
+	if (p[-1] == '.')
+		*--p = '\0';
+	if (p - addr > 3 && strcmp(".uk", p - 3) == 0)
+		dotlim = 3;
+	else
+		dotlim = 2;
 	dots = 0;
-	for(; p > at; p--){
-		if(*p != '.')
-			continue;
-		if(dots++ > 0){
+	while(--p > at)
+		if(*p == '.' && ++dots >= dotlim){
 			p++;
 			break;
 		}
-	}
 	for(; *p; p++){
-		if(strchr(".*+?(|)\\[]^$", *p) != 0)
+		if(strchr(".*+?(|)\\[]^$", *p) != nil)
 			s_putc(s, '\\');
 		s_putc(s, *p);
 	}
@@ -285,7 +291,7 @@ add(char *pp, int argc, char **argv)
 		s_free(s);
 	}
 	close(fd);
-	return nil;	
+	return nil;
 }
 
 void
