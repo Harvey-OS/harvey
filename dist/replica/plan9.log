@@ -47893,3 +47893,6 @@
 1174080606 1 a sys/src/boot/pc/etherga620fw.h - 664 sys sys 1174080072 222295
 1174082406 0 c sys/src/fs/dev/juke.c - 664 sys sys 1174081264 22925
 1174082406 1 c sys/src/fs/port/devsd.c - 664 sys sys 1174081262 15110
+1174156206 0 c sys/src/cmd/upas/filterkit/list.c - 664 sys sys 1174155504 4945
+1174186806 0 c 386/9loaddebug - 775 sys sys 1174186577 401944
+1174186806 1 c 386/9loadlitedebug - 775 sys sys 1174186577 202506
