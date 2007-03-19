@@ -280,12 +280,29 @@ smbbuffergetstrn(SmbBuffer *b, ushort size, char **sp)
 int
 smbbuffergetstr(SmbBuffer *b, ulong flags, char **sp)
 {
+	int c;
+	char *p;
 	uchar *np;
-	USED(flags);
+
 	np = memchr(b->buf + b->rn, 0, b->wn - b->rn);
 	if (np == nil)
 		return 0;
 	*sp = strdup((char *)b->buf + b->rn);
+	for (p = *sp; *p != 0; p++) {
+		c = *p;
+		if (c >= 'a' && c <= 'z' && (flags & SMB_STRING_UPCASE))
+			*p = toupper(c);
+		else if (c == '/' && (flags & SMB_STRING_REVPATH))
+			*p = '\\';
+		else if (c == '\\' && (flags & SMB_STRING_PATH))
+			*p = '/';
+		else if (smbglobals.convertspace){
+			if (c == 0xa0 && (flags & SMB_STRING_REVPATH))
+				*p = ' ';
+			else if (c == ' ' && (flags & SMB_STRING_PATH))
+				*p = 0xa0;
+		}
+	}
 	b->rn = np - b->buf + 1;
 	return 1;
 }

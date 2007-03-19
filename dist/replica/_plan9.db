@@ -5769,7 +5769,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1173736758 264000
+sys/games/lib/fortunes - 664 sys sys 1174242183 264068
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -15687,3 +15687,6 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+sys/src/cmd/aquarela/smbbuffer.c - 664 sys sys 1174276975 10158
+sys/src/cmd/aquarela/smbservice.c - 664 sys sys 1174276975 2392
+sys/src/cmd/aquarela/smbtrans2query.c - 664 sys sys 1174276975 8262
