@@ -50,8 +50,9 @@ query(SmbSession *s, char *cmdname, char *filename, ushort infolevel, vlong cbo,
 			|| !smbbufferputl(s->transaction.out.data, 0))	// alignment
 			return SmbProcessResultMisc;
 		fnlfixupoffset = smbbufferwriteoffset(s->transaction.out.data);
-		if (!smbbufferputstring(s->transaction.out.data, &s->peerinfo, SMB_STRING_REVPATH, filename)
-			|| !smbbufferfixuprelativel(s->transaction.out.data, fnlfixupoffset))
+		if (!smbbufferputl(s->transaction.out.data, 0)
+		|| !smbbufferputstring(s->transaction.out.data, &s->peerinfo, SMB_STRING_REVPATH, filename)
+		|| !smbbufferfixuprelativel(s->transaction.out.data, fnlfixupoffset))
 			return SmbProcessResultMisc;
 		break;
 	case SMB_QUERY_FILE_STANDARD_INFO:

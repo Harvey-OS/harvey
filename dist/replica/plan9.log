@@ -47896,3 +47896,7 @@
 1174156206 0 c sys/src/cmd/upas/filterkit/list.c - 664 sys sys 1174155504 4945
 1174186806 0 c 386/9loaddebug - 775 sys sys 1174186577 401944
 1174186806 1 c 386/9loadlitedebug - 775 sys sys 1174186577 202506
+1174242606 0 c sys/games/lib/fortunes - 664 sys sys 1174242183 264068
+1174278606 0 c sys/src/cmd/aquarela/smbbuffer.c - 664 sys sys 1174276975 10158
+1174278606 1 c sys/src/cmd/aquarela/smbservice.c - 664 sys sys 1174276975 2392
+1174278606 2 c sys/src/cmd/aquarela/smbtrans2query.c - 664 sys sys 1174276975 8262

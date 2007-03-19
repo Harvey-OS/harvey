@@ -58,10 +58,11 @@ SmbService *
 smbservicefind(SmbSession *s, char *uncpath, char *servicetype, uchar *errclassp, ushort *errorp)
 {
 	char *p, *q;
-	if (uncpath[0] == '/' && uncpath[1] == '/') {
+	if ((uncpath[0] == '/' && uncpath[1] == '/')
+	||  (uncpath[0] == '\\' && uncpath[1] == '\\')) {
 		/* check that the server name matches mine */
 		p = uncpath + 2;
-		q = strchr(p, '/');
+		q = strchr(p, uncpath[0]);
 		if (q == nil)
 			goto bad;
 		*q++ = 0;
