@@ -37,7 +37,7 @@
 386/bin/ape/stty - 775 sys sys 1148500571 41080
 386/bin/ape/tar - 775 sys sys 1168402264 62184
 386/bin/ape/uname - 775 sys sys 1173754552 134895
-386/bin/aquarela - 775 sys sys 1169612017 332788
+386/bin/aquarela - 775 sys sys 1174332054 333082
 386/bin/ar - 775 sys sys 1168402265 113774
 386/bin/archfs - 775 sys sys 1168402265 147070
 386/bin/ascii - 775 sys sys 1168402265 64884
@@ -179,7 +179,7 @@
 386/bin/cfs - 775 sys sys 1172808057 131665
 386/bin/chgrp - 775 sys sys 1168402294 59522
 386/bin/chmod - 775 sys sys 1168402294 62518
-386/bin/cifscmd - 775 sys sys 1169612022 343611
+386/bin/cifscmd - 775 sys sys 1174332056 343905
 386/bin/cleanname - 775 sys sys 1168402295 58541
 386/bin/clock - 775 sys sys 1168402296 158688
 386/bin/cmp - 775 sys sys 1157597609 40658

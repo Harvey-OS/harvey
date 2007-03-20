@@ -47900,3 +47900,5 @@
 1174278606 0 c sys/src/cmd/aquarela/smbbuffer.c - 664 sys sys 1174276975 10158
 1174278606 1 c sys/src/cmd/aquarela/smbservice.c - 664 sys sys 1174276975 2392
 1174278606 2 c sys/src/cmd/aquarela/smbtrans2query.c - 664 sys sys 1174276975 8262
+1174332606 0 c 386/bin/aquarela - 775 sys sys 1174332054 333082
+1174332606 1 c 386/bin/cifscmd - 775 sys sys 1174332056 343905
