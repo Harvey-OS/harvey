@@ -37,7 +37,7 @@
 386/bin/ape/stty - 775 sys sys 1148500571 41080
 386/bin/ape/tar - 775 sys sys 1168402264 62184
 386/bin/ape/uname - 775 sys sys 1173754552 134895
-386/bin/aquarela - 775 sys sys 1169612017 332788
+386/bin/aquarela - 775 sys sys 1174332054 333082
 386/bin/ar - 775 sys sys 1168402265 113774
 386/bin/archfs - 775 sys sys 1168402265 147070
 386/bin/ascii - 775 sys sys 1168402265 64884
@@ -179,7 +179,7 @@
 386/bin/cfs - 775 sys sys 1172808057 131665
 386/bin/chgrp - 775 sys sys 1168402294 59522
 386/bin/chmod - 775 sys sys 1168402294 62518
-386/bin/cifscmd - 775 sys sys 1169612022 343611
+386/bin/cifscmd - 775 sys sys 1174332056 343905
 386/bin/cleanname - 775 sys sys 1168402295 58541
 386/bin/clock - 775 sys sys 1168402296 158688
 386/bin/cmp - 775 sys sys 1157597609 40658
@@ -9389,7 +9389,7 @@ sys/src/cmd/aquarela/netbios.h - 664 sys sys 1135892110 5967
 sys/src/cmd/aquarela/smb.h - 664 sys sys 1135892110 9492
 sys/src/cmd/aquarela/smballoc.c - 664 sys sys 1135892110 508
 sys/src/cmd/aquarela/smbbrowse.c - 664 sys sys 1135892110 1473
-sys/src/cmd/aquarela/smbbuffer.c - 664 sys sys 1143670679 9728
+sys/src/cmd/aquarela/smbbuffer.c - 664 sys sys 1174276975 10158
 sys/src/cmd/aquarela/smbclientopen.c - 664 sys sys 1135892110 1428
 sys/src/cmd/aquarela/smbcomclose.c - 664 sys sys 1135892110 578
 sys/src/cmd/aquarela/smbcomcreatedir.c - 664 sys sys 1135892110 692
@@ -9428,13 +9428,13 @@ sys/src/cmd/aquarela/smbrap2.c - 664 sys sys 1135892114 11628
 sys/src/cmd/aquarela/smbrap2client.c - 664 sys sys 1135892114 3082
 sys/src/cmd/aquarela/smbrep.c - 664 sys sys 1135892114 1033
 sys/src/cmd/aquarela/smbresponse.c - 664 sys sys 1135892114 2820
-sys/src/cmd/aquarela/smbservice.c - 664 sys sys 1135892114 2335
+sys/src/cmd/aquarela/smbservice.c - 664 sys sys 1174276975 2392
 sys/src/cmd/aquarela/smbsharedfile.c - 664 sys sys 1135892114 6006
 sys/src/cmd/aquarela/smbstring.c - 664 sys sys 1135892114 4152
 sys/src/cmd/aquarela/smbtime.c - 664 sys sys 1135892114 1232
 sys/src/cmd/aquarela/smbtrans2client.c - 664 sys sys 1135892114 3726
 sys/src/cmd/aquarela/smbtrans2find.c - 664 sys sys 1135892115 9041
-sys/src/cmd/aquarela/smbtrans2query.c - 664 sys sys 1135892115 8215
+sys/src/cmd/aquarela/smbtrans2query.c - 664 sys sys 1174276975 8262
 sys/src/cmd/aquarela/smbtrans2set.c - 664 sys sys 1155362132 2510
 sys/src/cmd/aquarela/smbtransaction.c - 664 sys sys 1135892115 16684
 sys/src/cmd/aquarela/smbtree.c - 664 sys sys 1135892115 1314
@@ -15687,6 +15687,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-sys/src/cmd/aquarela/smbbuffer.c - 664 sys sys 1174276975 10158
-sys/src/cmd/aquarela/smbservice.c - 664 sys sys 1174276975 2392
-sys/src/cmd/aquarela/smbtrans2query.c - 664 sys sys 1174276975 8262
