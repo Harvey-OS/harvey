@@ -7587,7 +7587,7 @@ sys/man/3/dup - 664 sys sys 1015024778 1099
 sys/man/3/env - 664 sys sys 1015024778 1409
 sys/man/3/ether - 664 sys sys 984709635 2563
 sys/man/3/floppy - 664 sys sys 954378905 881
-sys/man/3/fs - 664 sys sys 1165622643 2702
+sys/man/3/fs - 664 sys sys 1174447885 2890
 sys/man/3/i82365 - 664 sys sys 954378906 884
 sys/man/3/ip - 664 sys sys 1169599032 22614
 sys/man/3/kbmap - 664 sys sys 1131110122 1732
@@ -7962,7 +7962,7 @@ sys/src/9/mtx/uarti8250.c - 664 sys sys 1018721288 11590
 sys/src/9/pc - 20000000775 sys sys 1161233143 0
 sys/src/9/pc/a100p.cp - 444 sys sys 1159735144 21984
 sys/src/9/pc/apbootstrap.s - 664 sys sys 1131293655 3037
-sys/src/9/pc/apic.c - 664 sys sys 1173288116 8927
+sys/src/9/pc/apic.c - 664 sys sys 1174415344 8991
 sys/src/9/pc/apm.c - 664 sys sys 1131290210 3723
 sys/src/9/pc/apmjump.s - 664 sys sys 1032058947 1527
 sys/src/9/pc/archmp.c - 664 sys sys 1131290214 2357
@@ -15687,3 +15687,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+sys/man/3/fs - 664 sys sys 1174450141 2894
