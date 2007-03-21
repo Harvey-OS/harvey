@@ -38,7 +38,7 @@ arguments are interpreted in the name space of the writer.
 .BI mirror " new files" \fR...
 The device
 .I new
-corresponds to a RAID 1 mirroring of
+corresponds to a RAID-1-like mirroring of
 .IR files .
 Writes to
 .BI new
@@ -136,6 +136,7 @@ Save the configuration:
 .EX
 cp /dev/fs/ctl /dev/fd0disk
 .EE
+.LP
 To load the configuration automatically at boot time,
 add this to
 .IR plan9.ini :
@@ -144,9 +145,15 @@ add this to
 fsconfig=/dev/fd0disk
 .EE
 .SH "SEE ALSO"
+.IR dd (1),
 .IR kfs (4),
 .IR fs (8),
 .IR plan9.ini (8),
+.IR prep (8),
 .IR venti (8)
 .SH SOURCE
 .B /sys/src/9/port/devfs.c
+.SH BUGS
+Mirrors are RAID-like but not RAID.
+There is no fancy recovery mechanism and
+no automatic initial copying from a master drive to its mirror drives.
