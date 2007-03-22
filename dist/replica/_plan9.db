@@ -7587,7 +7587,7 @@ sys/man/3/dup - 664 sys sys 1015024778 1099
 sys/man/3/env - 664 sys sys 1015024778 1409
 sys/man/3/ether - 664 sys sys 984709635 2563
 sys/man/3/floppy - 664 sys sys 954378905 881
-sys/man/3/fs - 664 sys sys 1174447885 2890
+sys/man/3/fs - 664 sys sys 1174450141 2894
 sys/man/3/i82365 - 664 sys sys 954378906 884
 sys/man/3/ip - 664 sys sys 1169599032 22614
 sys/man/3/kbmap - 664 sys sys 1131110122 1732
@@ -12427,7 +12427,7 @@ sys/src/cmd/ip/snoopy/arp.c - 664 sys sys 1128179536 1914
 sys/src/cmd/ip/snoopy/bootp.c - 664 sys sys 1139667382 3442
 sys/src/cmd/ip/snoopy/dat.h - 664 sys sys 1146318302 1933
 sys/src/cmd/ip/snoopy/dhcp.c - 664 sys sys 1138463389 8958
-sys/src/cmd/ip/snoopy/dns.c - 664 sys sys 1173130870 7867
+sys/src/cmd/ip/snoopy/dns.c - 664 sys sys 1144956382 14815
 sys/src/cmd/ip/snoopy/dump.c - 664 sys sys 1138463389 1078
 sys/src/cmd/ip/snoopy/eap.c - 664 sys sys 1128179537 3996
 sys/src/cmd/ip/snoopy/eap_identity.c - 664 sys sys 1128179537 50
@@ -12443,7 +12443,7 @@ sys/src/cmd/ip/snoopy/il.c - 664 sys sys 1139667365 2260
 sys/src/cmd/ip/snoopy/ip.c - 664 sys sys 1128179538 4300
 sys/src/cmd/ip/snoopy/ip6.c - 664 sys sys 1128179538 5371
 sys/src/cmd/ip/snoopy/main.c - 664 sys sys 1146318297 15720
-sys/src/cmd/ip/snoopy/mkfile - 664 sys sys 1173130906 985
+sys/src/cmd/ip/snoopy/mkfile - 664 sys sys 1144954564 889
 sys/src/cmd/ip/snoopy/ninep.c - 664 sys sys 1138463390 555
 sys/src/cmd/ip/snoopy/ospf.c - 664 sys sys 1138463391 7369
 sys/src/cmd/ip/snoopy/ppp.c - 664 sys sys 1128179539 10544
@@ -15687,4 +15687,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-sys/man/3/fs - 664 sys sys 1174450141 2894

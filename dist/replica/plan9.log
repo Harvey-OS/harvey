@@ -47905,3 +47905,5 @@
 1174415407 0 c sys/src/9/pc/apic.c - 664 sys sys 1174415344 8991
 1174449606 0 c sys/man/3/fs - 664 sys sys 1174447885 2890
 1174451407 0 c sys/man/3/fs - 664 sys sys 1174450141 2894
+1174530606 0 c sys/src/cmd/ip/snoopy/dns.c - 664 sys sys 1144956382 14815
+1174530606 1 c sys/src/cmd/ip/snoopy/mkfile - 664 sys sys 1144954564 889
