@@ -7965,7 +7965,7 @@ sys/src/9/pc/apbootstrap.s - 664 sys sys 1131293655 3037
 sys/src/9/pc/apic.c - 664 sys sys 1174415344 8991
 sys/src/9/pc/apm.c - 664 sys sys 1131290210 3723
 sys/src/9/pc/apmjump.s - 664 sys sys 1032058947 1527
-sys/src/9/pc/archmp.c - 664 sys sys 1131290214 2357
+sys/src/9/pc/archmp.c - 664 sys sys 1174614168 2407
 sys/src/9/pc/audio.h - 664 sys sys 1015014513 343
 sys/src/9/pc/bios32.c - 664 sys sys 1173287378 3029
 sys/src/9/pc/cga.c - 664 sys sys 1015014513 1843
@@ -8003,6 +8003,9 @@ sys/src/9/pc/etherga620.c - 664 sys sys 1174020176 29882
 sys/src/9/pc/etherga620fw.h - 664 sys sys 1026847642 222295
 sys/src/9/pc/etherif.h - 664 sys sys 1088178711 961
 sys/src/9/pc/etherigbe.c - 664 sys sys 1168306113 44967
+sys/src/9/pc/etherm10g.c - 664 sys sys 1174595240 27681
+sys/src/9/pc/etherm10g2k.i - 664 sys sys 1174590427 957485
+sys/src/9/pc/etherm10g4k.i - 664 sys sys 1174590430 926959
 sys/src/9/pc/ethermii.c - 664 sys sys 1168306129 4651
 sys/src/9/pc/ethermii.h - 664 sys sys 1086873891 3258
 sys/src/9/pc/etherrhine.c - 664 sys sys 1081706478 13799
@@ -14440,6 +14443,9 @@ sys/src/fs/pc/etherga620fw.h - 664 sys sys 1032126775 222295
 sys/src/fs/pc/etherif.c - 664 sys sys 1157938488 6605
 sys/src/fs/pc/etherif.h - 664 sys sys 1015110057 730
 sys/src/fs/pc/etherigbe.c - 664 sys sys 1141208695 46676
+sys/src/fs/pc/etherm10g.c - 664 sys sys 1174594317 25743
+sys/src/fs/pc/etherm10g2k.i - 664 sys sys 1174590598 36
+sys/src/fs/pc/etherm10g4k.i - 664 sys sys 1174590598 36
 sys/src/fs/pc/ethermii.c - 664 sys sys 1140167954 4689
 sys/src/fs/pc/ethermii.h - 664 sys sys 1140167955 3259
 sys/src/fs/pc/floppy.c - 664 sys sys 1097579636 14022

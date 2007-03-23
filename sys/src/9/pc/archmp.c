@@ -71,11 +71,12 @@ PCArch archmp = {
 static int
 identify(void)
 {
+	char *cp;
 	PCMP *pcmp;
 	uchar *p, sum;
 	ulong length;
 
-	if(getconf("*nomp"))
+	if((cp = getconf("*nomp")) != nil && strtol(cp, 0, 0) != 0)
 		return 1;
 
 	/*

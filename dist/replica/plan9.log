@@ -47907,3 +47907,11 @@
 1174451407 0 c sys/man/3/fs - 664 sys sys 1174450141 2894
 1174530606 0 c sys/src/cmd/ip/snoopy/dns.c - 664 sys sys 1144956382 14815
 1174530606 1 c sys/src/cmd/ip/snoopy/mkfile - 664 sys sys 1144954564 889
+1174591805 0 a sys/src/9/pc/etherm10g2k.i - 664 sys sys 1174590427 957485
+1174591805 1 a sys/src/9/pc/etherm10g4k.i - 664 sys sys 1174590430 926959
+1174591805 2 a sys/src/fs/pc/etherm10g.c - 664 sys sys 1174590540 25749
+1174591805 3 a sys/src/fs/pc/etherm10g2k.i - 664 sys sys 1174590598 36
+1174591805 4 a sys/src/fs/pc/etherm10g4k.i - 664 sys sys 1174590598 36
+1174595406 0 a sys/src/9/pc/etherm10g.c - 664 sys sys 1174595240 27681
+1174595406 1 c sys/src/fs/pc/etherm10g.c - 664 sys sys 1174594317 25743
+1174615207 0 c sys/src/9/pc/archmp.c - 664 sys sys 1174614168 2407
