@@ -263,6 +263,26 @@ sets the goal for the number of domain names cached to
 .I target
 rather than the default of 8,000.
 .TP
+.B -o
+used with
+.BR -s ,
+.B -o
+causes
+.I dns
+to assume that it straddles inside and outside networks
+and that the outside network is mounted on
+.BR /net.alt .
+Queries for inside addresses will be sent via
+.B /net/udp
+and those for outside addresses via
+.BR /net.alt/udp .
+This makes
+.I dns
+suitable for serving non-Plan-9 systems in an organization with
+firewalls, DNS proxies, etc.,
+particularly if they don't work very well.
+See `Straddling Server' below for details.
+.TP
 .B -r
 send `recursive' queries, asking the other servers
 to complete lookups.
@@ -440,6 +460,56 @@ makes
 .BI www. ...
 a synonym for the canonical name
 .BI anna. ... .
+.SS "Straddling Server"
+Many companies have an inside network
+protected from outside access with firewalls.
+They usually provide internal `root' DNS servers
+(of varying reliability and correctness)
+that serve internal domains and pass on DNS queries for
+outside domains to the outside, relaying the results
+back and caching them for future use.
+Some companies don't even let DNS queries nor replies through
+their firewalls at all, in either direction.
+.PP
+In such a situation, running
+.B "dns -so"
+on a machine that imports access to the outside network via
+.B /net.alt
+from a machine that straddles the firewalls,
+or that straddles the firewalls itself,
+will let internal machines query such a machine
+and receive answers from outside nameservers for outside addresses
+and inside nameservers for inside addresses, giving the appearance
+of a unified domain name space,
+while bypassing the corporate DNS proxies or firewalls.
+This is different from running
+.B "dns -s"
+and
+.B "dns -sRx /net.alt -f /lib/ndb/external"
+on the same machine,
+which keeps the inside and outside namespaces entirely separate.
+.PP
+Under
+.BR -o ,
+several
+.I sys
+names are significant:
+.BR inside-dom ,
+.BR inside-ns ,
+and
+.BR outside-ns .
+.I Inside-dom
+should contain a series of
+.B dom
+pairs naming domains internal to the organization.
+.I Inside-ns
+should contain a series of
+.B ip
+pairs naming the internal DNS `root' servers.
+.I Outside-ns
+should contain a series of
+.B ip
+pairs naming the external DNS servers to consult.
 .SS "DNS Queries and Debugging"
 .I Ndb/dnsquery
 can be used to query

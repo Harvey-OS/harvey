@@ -6,8 +6,6 @@
 static int	udpannounce(char*);
 static void	reply(int, uchar*, DNSmsg*, Request*);
 
-extern char *logfile;
-
 static void
 ding(void *x, char *msg)
 {
@@ -40,10 +38,10 @@ clientrxmit(DNSmsg *req, uchar *buf)
 	OUdphdr *uh;
 
 	uh = (OUdphdr *)buf;
-	empty = 0;
+	empty = nil;
 	for(p = inprog; p < &inprog[Maxactive]; p++){
 		if(p->inuse == 0){
-			if(empty == 0)
+			if(empty == nil)
 				empty = p;
 			continue;
 		}
@@ -51,10 +49,10 @@ clientrxmit(DNSmsg *req, uchar *buf)
 		if(req->qd->owner == p->owner)
 		if(req->qd->type == p->type)
 		if(memcmp(uh, &p->uh, OUdphdrsize) == 0)
-			return 0;
+			return nil;
 	}
-	if(empty == 0)
-		return 0;	/* shouldn't happen - see slave() and definition of Maxactive */
+	if(empty == nil)
+		return nil; /* shouldn't happen: see slave() & Maxactive def'n */
 
 	empty->id = req->id;
 	empty->owner = req->qd->owner;
@@ -70,13 +68,13 @@ clientrxmit(DNSmsg *req, uchar *buf)
 void
 dnudpserver(char *mntpt)
 {
-	int fd, len, op;
-	Request req;
-	DNSmsg reqmsg, repmsg;
+	int fd, len, op, rcode;
 	uchar buf[OUdphdrsize + Maxudp + 1024];
 	char *err;
-	Inprogress *p;
 	char tname[32];
+	Request req;
+	DNSmsg reqmsg, repmsg;
+	Inprogress *p;
 	OUdphdr *uh;
 
 	/* fork sharing text, data, and bss with parent */
@@ -92,67 +90,78 @@ dnudpserver(char *mntpt)
 	fd = -1;
 	notify(ding);
 restart:
+	procsetname("udp server announcing");
 	if(fd >= 0)
 		close(fd);
 	while((fd = udpannounce(mntpt)) < 0)
 		sleep(5000);
+
+	procsetname("udp server loop");
+	memset(&req, 0, sizeof req);
 	if(setjmp(req.mret))
 		putactivity(0);
 	req.isslave = 0;
+	req.id = 0;
+	req.aborttime = 0;
 
 	/* loop on requests */
 	for(;; putactivity(0)){
-		memset(&repmsg, 0, sizeof(repmsg));
-		memset(&reqmsg, 0, sizeof(reqmsg));
+		memset(&repmsg, 0, sizeof repmsg);
+		memset(&reqmsg, 0, sizeof reqmsg);
 		alarm(60*1000);
-		len = read(fd, buf, sizeof(buf));
+		len = read(fd, buf, sizeof buf);
 		alarm(0);
 		if(len <= OUdphdrsize)
 			goto restart;
 		uh = (OUdphdr*)buf;
 		len -= OUdphdrsize;
+		// dnslog("read received UDP from %I to %I",
+		//	((OUdphdr*)buf)->raddr, ((OUdphdr*)buf)->laddr);
 		getactivity(&req, 0);
-		req.aborttime = now + 30;	/* don't spend more than 30 seconds */
-		err = convM2DNS(&buf[OUdphdrsize], len, &reqmsg);
+		req.aborttime = now + Maxreqtm;
+		rcode = 0;
+		err = convM2DNS(&buf[OUdphdrsize], len, &reqmsg, &rcode);
 		if(err){
-			syslog(0, logfile, "server: input error: %s from %I", err, buf);
+			/* first bytes in buf are source IP addr */
+			dnslog("server: input error: %s from %I", err, buf);
 			continue;
 		}
-		if(reqmsg.qdcount < 1){
-			syslog(0, logfile, "server: no questions from %I", buf);
-			goto freereq;
-		}
-		if(reqmsg.flags & Fresp){
-			syslog(0, logfile, "server: reply not request from %I", buf);
-			goto freereq;
-		}
+		if (rcode == 0)
+			if(reqmsg.qdcount < 1){
+				dnslog("server: no questions from %I", buf);
+				goto freereq;
+			} else if(reqmsg.flags & Fresp){
+				dnslog("server: reply not request from %I", buf);
+				goto freereq;
+			}
 		op = reqmsg.flags & Omask;
 		if(op != Oquery && op != Onotify){
-			syslog(0, logfile, "server: op %d from %I", reqmsg.flags & Omask, buf);
+			dnslog("server: op %d from %I",
+				reqmsg.flags & Omask, buf);
 			goto freereq;
 		}
 
 		if(debug || (trace && subsume(trace, reqmsg.qd->owner->name))){
-			syslog(0, logfile, "%d: serve (%I/%d) %d %s %s",
-				req.id, buf, ((uh->rport[0])<<8)+uh->rport[1],
+			dnslog("%d: serve (%I/%d) %d %s %s",
+				req.id, buf, uh->rport[0]<<8 | uh->rport[1],
 				reqmsg.id,
 				reqmsg.qd->owner->name,
 				rrname(reqmsg.qd->type, tname, sizeof tname));
 		}
 
 		p = clientrxmit(&reqmsg, buf);
-		if(p == 0){
+		if(p == nil){
 			if(debug)
-				syslog(0, logfile, "%d: duplicate", req.id);
+				dnslog("%d: duplicate", req.id);
 			goto freereq;
 		}
 
 		/* loop through each question */
 		while(reqmsg.qd){
-			memset(&repmsg, 0, sizeof(repmsg));
+			memset(&repmsg, 0, sizeof repmsg);
 			switch(op){
 			case Oquery:
-				dnserver(&reqmsg, &repmsg, &req);
+				dnserver(&reqmsg, &repmsg, &req, buf, rcode);
 				break;
 			case Onotify:
 				dnnotify(&reqmsg, &repmsg, &req);
@@ -166,7 +175,6 @@ restart:
 		}
 
 		p->inuse = 0;
-
 freereq:
 		rrfreelist(reqmsg.qd);
 		rrfreelist(reqmsg.an);
@@ -177,7 +185,6 @@ freereq:
 			putactivity(0);
 			_exits(0);
 		}
-
 	}
 }
 
@@ -190,10 +197,9 @@ static char *ohmsg = "oldheaders";
 static int
 udpannounce(char *mntpt)
 {
-	static int whined;
 	int data, ctl;
-	char dir[64];
-	char datafile[64+6];
+	char dir[64], datafile[64+6];
+	static int whined;
 
 	/* get a udp port */
 	sprint(datafile, "%s/udp!*!dns", mntpt);
@@ -207,7 +213,7 @@ udpannounce(char *mntpt)
 
 	/* turn on header style interface */
 	if(write(ctl, hmsg, strlen(hmsg)) , 0)
-		abort(); /* hmsg */;
+		abort();			/* hmsg */
 	write(ctl, ohmsg, strlen(ohmsg));
 	data = open(datafile, ORDWR);
 	if(data < 0){
@@ -229,24 +235,25 @@ reply(int fd, uchar *buf, DNSmsg *rep, Request *reqp)
 	RR *rp;
 
 	if(debug || (trace && subsume(trace, rep->qd->owner->name)))
-		syslog(0, logfile, "%d: reply (%I/%d) %d %s %s an %R ns %R ar %R",
-			reqp->id, buf, ((buf[4])<<8)+buf[5],
+		dnslog("%d: reply (%I/%d) %d %s %s qd %R an %R ns %R ar %R",
+			reqp->id, buf, buf[4]<<8 | buf[5],
 			rep->id, rep->qd->owner->name,
-			rrname(rep->qd->type, tname, sizeof tname), rep->an, rep->ns, rep->ar);
+			rrname(rep->qd->type, tname, sizeof tname),
+			rep->qd, rep->an, rep->ns, rep->ar);
 
 	len = convDNS2M(rep, &buf[OUdphdrsize], Maxudp);
 	if(len <= 0){
-		syslog(0, logfile, "error converting reply: %s %d", rep->qd->owner->name,
-			rep->qd->type);
+		dnslog("error converting reply: %s %d",
+			rep->qd->owner->name, rep->qd->type);
 		for(rp = rep->an; rp; rp = rp->next)
-			syslog(0, logfile, "an %R", rp);
+			dnslog("an %R", rp);
 		for(rp = rep->ns; rp; rp = rp->next)
-			syslog(0, logfile, "ns %R", rp);
+			dnslog("ns %R", rp);
 		for(rp = rep->ar; rp; rp = rp->next)
-			syslog(0, logfile, "ar %R", rp);
+			dnslog("ar %R", rp);
 		return;
 	}
 	len += OUdphdrsize;
 	if(write(fd, buf, len) != len)
-		syslog(0, logfile, "error sending reply: %r");
+		dnslog("error sending reply: %r");
 }

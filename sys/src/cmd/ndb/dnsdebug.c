@@ -6,40 +6,42 @@
 #include <ndb.h>
 #include "dns.h"
 
-enum
-{
+enum {
 	Maxrequest=		128,
-	Ncache=			8,
-	Maxpath=		128,
-	Maxreply=		512,
-	Maxrrr=			16,
 };
+
+Cfg cfg;
 
 static char *servername;
 static RR *serverrr;
 static RR *serveraddrs;
 
+char	*dbfile;
 int	debug;
-int	cachedb;
+uchar	ipaddr[IPaddrlen];	/* my ip address */
+char	*logfile = "dnsdebug";
+int	maxage  = 60*60;
+char	mntpt[Maxpath];
+int	needrefresh;
 ulong	now;
 int	testing;
-int traceactivity;
 char	*trace;
-int	needrefresh;
-int	resolver;
-uchar	ipaddr[IPaddrlen];	/* my ip address */
-int	maxage;
-char	*logfile = "dns";
-char	*dbfile;
-char	mntpt[Maxpath];
+int	traceactivity;
 char	*zonerefreshprogram;
 
-int prettyrrfmt(Fmt*);
-void preloadserveraddrs(void);
-void squirrelserveraddrs(void);
-int setserver(char*);
-void doquery(char*, char*);
-void docmd(int, char**);
+void	docmd(int, char**);
+void	doquery(char*, char*);
+void	preloadserveraddrs(void);
+int	prettyrrfmt(Fmt*);
+int	setserver(char*);
+void	squirrelserveraddrs(void);
+
+void
+usage(void)
+{
+	fprint(2, "%s: [-rx] [-f db-file]\n", argv0);
+	exits("usage");
+}
 
 void
 main(int argc, char *argv[])
@@ -50,28 +52,31 @@ main(int argc, char *argv[])
 	char *f[4];
 
 	strcpy(mntpt, "/net");
+	cfg.inside = 1;
 
 	ARGBEGIN{
+	case 'f':
+		dbfile = EARGF(usage());
+		break;
 	case 'r':
-		resolver = 1;
+		cfg.resolver = 1;
 		break;
 	case 'x':
 		dbfile = "/lib/ndb/external";
 		strcpy(mntpt, "/net.alt");
 		break;
-	case 'f':
-		dbfile = ARGF();
-		break;
+	default:
+		usage();
 	}ARGEND
 
-	now = time(0);
+	now = time(nil);
 	dninit();
 	fmtinstall('R', prettyrrfmt);
 	if(myipaddr(ipaddr, mntpt) < 0)
 		sysfatal("can't read my ip address");
 	opendatabase();
 
-	if(resolver)
+	if(cfg.resolver)
 		squirrelserveraddrs();
 
 	debug = 1;
@@ -85,14 +90,10 @@ main(int argc, char *argv[])
 	for(print("> "); p = Brdline(&in, '\n'); print("> ")){
 		p[Blinelen(&in)-1] = 0;
 		n = tokenize(p, f, 3);
-		if(n<1)
-			continue;
-
-		/* flush the cache */
-		dnpurge();
-
-		docmd(n, f);
-
+		if(n>=1) {
+			dnpurge();		/* flush the cache */
+			docmd(n, f);
+		}
 	}
 	exits(0);
 }
@@ -138,7 +139,7 @@ prettyrrfmt(Fmt *f)
 	p = buf;
 	e = buf + sizeof(buf);
 	p = seprint(p, e, "%-32.32s %-15.15s %-5.5s", rp->owner->name,
-		longtime(rp->db ? rp->ttl : (rp->ttl-now)),
+		longtime(rp->db? rp->ttl: (rp->ttl - now)),
 		rrname(rp->type, buf, sizeof buf));
 
 	if(rp->negative){
@@ -155,29 +156,37 @@ prettyrrfmt(Fmt *f)
 	case Tmd:
 	case Tmf:
 	case Tns:
-		seprint(p, e, "\t%s", rp->host->name);
+		seprint(p, e, "\t%s", (rp->host? rp->host->name: ""));
 		break;
 	case Tmg:
 	case Tmr:
-		seprint(p, e, "\t%s", rp->mb->name);
+		seprint(p, e, "\t%s", (rp->mb? rp->mb->name: ""));
 		break;
 	case Tminfo:
-		seprint(p, e, "\t%s %s", rp->mb->name, rp->rmb->name);
+		seprint(p, e, "\t%s %s", (rp->mb? rp->mb->name: ""),
+			(rp->rmb? rp->rmb->name: ""));
 		break;
 	case Tmx:
-		seprint(p, e, "\t%lud %s", rp->pref, rp->host->name);
+		seprint(p, e, "\t%lud %s", rp->pref,
+			(rp->host? rp->host->name: ""));
 		break;
 	case Ta:
 	case Taaaa:
-		seprint(p, e, "\t%s", rp->ip->name);
+		seprint(p, e, "\t%s", (rp->ip? rp->ip->name: ""));
 		break;
 	case Tptr:
-		seprint(p, e, "\t%s", rp->ptr->name);
+		seprint(p, e, "\t%s", (rp->ptr? rp->ptr->name: ""));
 		break;
 	case Tsoa:
-		seprint(p, e, "\t%s %s %lud %lud %lud %lud %lud", rp->host->name,
-			rp->rmb->name, rp->soa->serial, rp->soa->refresh, rp->soa->retry,
+		seprint(p, e, "\t%s %s %lud %lud %lud %lud %lud",
+			rp->host->name, rp->rmb->name, rp->soa->serial,
+			rp->soa->refresh, rp->soa->retry,
 			rp->soa->expire, rp->soa->minttl);
+		break;
+	case Tsrv:
+		seprint(p, e, "\t%ud %ud %ud %s",
+			rp->srv->pri, rp->srv->weight, rp->srv->port,
+			rp->srv->target->name);
 		break;
 	case Tnull:
 		seprint(p, e, "\t%.*H", rp->null->dlen, rp->null->data);
@@ -196,14 +205,13 @@ prettyrrfmt(Fmt *f)
 		break;
 	case Tsig:
 		seprint(p, e, "\t%d %d %d %lud %lud %lud %d %s",
-			rp->sig->type, rp->sig->alg, rp->sig->labels, rp->sig->ttl,
-			rp->sig->exp, rp->sig->incep, rp->sig->tag, rp->sig->signer->name);
+			rp->sig->type, rp->sig->alg, rp->sig->labels,
+			rp->sig->ttl, rp->sig->exp, rp->sig->incep,
+			rp->sig->tag, rp->sig->signer->name);
 		break;
 	case Tcert:
 		seprint(p, e, "\t%d %d %d",
 			rp->sig->type, rp->sig->tag, rp->sig->alg);
-		break;
-	default:
 		break;
 	}
 out:
@@ -224,8 +232,7 @@ void
 logreply(int id, uchar *addr, DNSmsg *mp)
 {
 	RR *rp;
-	char buf[12];
-	char resp[32];
+	char buf[12], resp[32];
 
 	switch(mp->flags & Rmask){
 	case Rok:
@@ -252,14 +259,14 @@ logreply(int id, uchar *addr, DNSmsg *mp)
 	}
 
 	print("%d: rcvd %s from %I (%s%s%s%s%s)\n", id, resp, addr,
-		mp->flags & Fauth ? "authoritative" : "",
-		mp->flags & Ftrunc ? " truncated" : "",
-		mp->flags & Frecurse ? " recurse" : "",
-		mp->flags & Fcanrec ? " can_recurse" : "",
-		mp->flags & (Fauth|Rname) == (Fauth|Rname) ?
-		" nx" : "");
+		mp->flags & Fauth? "authoritative": "",
+		mp->flags & Ftrunc? " truncated": "",
+		mp->flags & Frecurse? " recurse": "",
+		mp->flags & Fcanrec? " can_recurse": "",
+		(mp->flags & (Fauth|Rmask)) == (Fauth|Rname)? " nx": "");
 	for(rp = mp->qd; rp != nil; rp = rp->next)
-		print("\tQ:    %s %s\n", rp->owner->name, rrname(rp->type, buf, sizeof buf));
+		print("\tQ:    %s %s\n", rp->owner->name,
+			rrname(rp->type, buf, sizeof buf));
 	logsection("Ans:  ", mp->an);
 	logsection("Auth: ", mp->ns);
 	logsection("Hint: ", mp->ar);
@@ -296,7 +303,7 @@ squirrelserveraddrs(void)
 	Request req;
 
 	/* look up the resolver address first */
-	resolver = 0;
+	cfg.resolver = 0;
 	debug = 0;
 	if(serveraddrs)
 		rrfreelist(serveraddrs);
@@ -312,12 +319,12 @@ squirrelserveraddrs(void)
 			continue;
 		}
 		req.isslave = 1;
-		req.aborttime = now + 60;	/* don't spend more than 60 seconds */
+		req.aborttime = now + Maxreqtm*2;	/* be patient */
 		*l = dnresolve(rp->host->name, Cin, Ta, &req, 0, 0, Recurse, 0, 0);
 		while(*l != nil)
 			l = &(*l)->next;
 	}
-	resolver = 1;
+	cfg.resolver = 1;
 	debug = 1;
 }
 
@@ -325,7 +332,7 @@ void
 preloadserveraddrs(void)
 {
 	RR *rp, **l, *first;
-	
+
 	l = &first;
 	for(rp = serveraddrs; rp != nil; rp = rp->next){
 		rrcopy(rp, l);
@@ -339,7 +346,7 @@ setserver(char *server)
 	if(servername != nil){
 		free(servername);
 		servername = nil;
-		resolver = 0;
+		cfg.resolver = 0;
 	}
 	if(server == nil || *server == 0)
 		return 0;
@@ -347,33 +354,30 @@ setserver(char *server)
 	squirrelserveraddrs();
 	if(serveraddrs == nil){
 		print("can't resolve %s\n", servername);
-		resolver = 0;
-	} else {
-		resolver = 1;
-	}
-	return resolver ? 0 : -1;
+		cfg.resolver = 0;
+	} else
+		cfg.resolver = 1;
+	return cfg.resolver? 0: -1;
 }
 
 void
 doquery(char *name, char *tstr)
 {
-	Request req;
-	RR *rr, *rp;
-	int len, type;
+	int len, type, rooted;
 	char *p, *np;
-	int rooted;
 	char buf[1024];
+	RR *rr, *rp;
+	Request req;
 
-	if(resolver)
+	if(cfg.resolver)
 		preloadserveraddrs();
 
 	/* default to an "ip" request if alpha, "ptr" if numeric */
-	if(tstr == nil || *tstr == 0) {
+	if(tstr == nil || *tstr == 0)
 		if(strcmp(ipattr(name), "ip") == 0)
 			tstr = "ptr";
 		else
 			tstr = "ip";
-	}
 
 	/* if name end in '.', remove it */
 	len = strlen(name);
@@ -414,9 +418,10 @@ doquery(char *name, char *tstr)
 		return;
 	}
 
+	memset(&req, 0, sizeof req);
 	getactivity(&req, 0);
 	req.isslave = 1;
-	req.aborttime = now + 60;	/* don't spend more than 60 seconds */
+	req.aborttime = now + Maxreqtm*2;	/* be patient */
 	rr = dnresolve(buf, Cin, type, &req, 0, 0, Recurse, rooted, 0);
 	if(rr){
 		print("----------------------------\n");
@@ -435,8 +440,7 @@ docmd(int n, char **f)
 	int tmpsrv;
 	char *name, *type;
 
-	name = nil;
-	type = nil;
+	name = type = nil;
 	tmpsrv = 0;
 
 	if(*f[0] == '@') {
@@ -452,7 +456,7 @@ docmd(int n, char **f)
 			tmpsrv = 1;
 			break;
 		}
-	} else {
+	} else
 		switch(n){
 		case 2:
 			type = f[1];
@@ -461,7 +465,6 @@ docmd(int n, char **f)
 			name = f[0];
 			break;
 		}
-	}
 
 	if(name == nil)
 		return;

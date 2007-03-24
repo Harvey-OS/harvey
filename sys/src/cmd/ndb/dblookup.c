@@ -6,32 +6,38 @@
 #include "dns.h"
 
 static Ndb *db;
-
-static RR*	dblookup1(char*, int, int, int);
-static RR*	addrrr(Ndbtuple*, Ndbtuple*);
-static RR*	nsrr(Ndbtuple*, Ndbtuple*);
-static RR*	cnamerr(Ndbtuple*, Ndbtuple*);
-static RR*	mxrr(Ndbtuple*, Ndbtuple*);
-static RR*	soarr(Ndbtuple*, Ndbtuple*);
-static RR*	ptrrr(Ndbtuple*, Ndbtuple*);
-static Ndbtuple* look(Ndbtuple*, Ndbtuple*, char*);
-static RR*	doaxfr(Ndb*, char*);
-static RR*	nullrr(Ndbtuple *entry, Ndbtuple *pair);
-static RR*	txtrr(Ndbtuple *entry, Ndbtuple *pair);
 static Lock	dblock;
+
+static RR*	addrrr(Ndbtuple*, Ndbtuple*);
+static RR*	cnamerr(Ndbtuple*, Ndbtuple*);
 static void	createptrs(void);
+static RR*	dblookup1(char*, int, int, int);
+static RR*	doaxfr(Ndb*, char*);
+static Ndbtuple*look(Ndbtuple*, Ndbtuple*, char*);
+static RR*	mxrr(Ndbtuple*, Ndbtuple*);
+static RR*	nsrr(Ndbtuple*, Ndbtuple*);
+static RR*	nullrr(Ndbtuple*, Ndbtuple*);
+static RR*	ptrrr(Ndbtuple*, Ndbtuple*);
+static RR*	soarr(Ndbtuple*, Ndbtuple*);
+static RR*	srvrr(Ndbtuple*, Ndbtuple*);
+static RR*	txtrr(Ndbtuple*, Ndbtuple*);
 
 static int	implemented[Tall] =
 {
 	[Ta]		1,
-	[Tns]		1,
-	[Tsoa]		1,
-	[Tmx]		1,
-	[Tptr]		1,
+	[Taaaa]		1,
 	[Tcname]	1,
+	[Tmx]		1,
+	[Tns]		1,
 	[Tnull]		1,
+	[Tptr]		1,
+	[Tsoa]		1,
+	[Tsrv]		1,
 	[Ttxt]		1,
 };
+
+/* straddle server configuration */
+static Ndbtuple *indoms, *innmsrvs, *outnmsrvs;
 
 static void
 nstrcpy(char *to, char *from, int len)
@@ -43,20 +49,23 @@ nstrcpy(char *to, char *from, int len)
 int
 opendatabase(void)
 {
-	char buf[256];
-	Ndb *xdb;
+	char netdbnm[256];
+	Ndb *xdb, *netdb;
 
-	if(db == nil){
-		snprint(buf, sizeof(buf), "%s/ndb", mntpt);
-		xdb = ndbopen(dbfile);
-		if(xdb != nil)
-			xdb->nohash = 1;
-		db = ndbcat(ndbopen(buf), xdb);
-	}
-	if(db == nil)
-		return -1;
-	else
+	if (db)
 		return 0;
+
+	xdb = ndbopen(dbfile);		/* /lib/ndb */
+	if(xdb)
+		xdb->nohash = 1;	/* seems odd */
+
+	snprint(netdbnm, sizeof netdbnm, "%s/ndb", mntpt);
+	netdb = ndbopen(netdbnm);	/* /net/ndb */
+//	if(netdb)
+//		netdb->nohash = 1;	/* cs does this; seems right */
+
+	db = ndbcat(netdb, xdb);	/* both */
+	return db? 0: -1;
 }
 
 /*
@@ -68,16 +77,17 @@ opendatabase(void)
  *  shared state there.
  *
  *  e.g. for x.research.bell-labs.com, first look for a match against
- *       the x.research.bell-labs.com.  If nothing matches, try *.research.bell-labs.com.
+ *       the x.research.bell-labs.com.  If nothing matches,
+ *	 try *.research.bell-labs.com.
  */
 RR*
 dblookup(char *name, int class, int type, int auth, int ttl)
 {
-	RR *rp, *tp;
-	char buf[256];
-	char *wild, *cp;
-	DN *dp, *ndp;
 	int err;
+	char *wild, *cp;
+	char buf[256];
+	RR *rp, *tp;
+	DN *dp, *ndp;
 	static int parallel;
 	static int parfd[2];
 	static char token[1];
@@ -89,23 +99,25 @@ dblookup(char *name, int class, int type, int auth, int ttl)
 	err = Rname;
 
 	if(type == Tall){
-		rp = 0;
+		rp = nil;
 		for (type = Ta; type < Tall; type++)
 			if(implemented[type])
 				rrcat(&rp, dblookup(name, class, type, auth, ttl));
 		return rp;
 	}
 
+	rp = nil;
+
 	lock(&dblock);
 	dp = dnlookup(name, class, 1);
+
 	if(opendatabase() < 0)
 		goto out;
 	if(dp->rr)
 		err = 0;
 
 	/* first try the given name */
-	rp = 0;
-	if(cachedb)
+	if(cfg.cachedb)
 		rp = rrlookup(dp, type, NOneg);
 	else
 		rp = dblookup1(name, type, auth, ttl);
@@ -115,7 +127,7 @@ dblookup(char *name, int class, int type, int auth, int ttl)
 	/* try lower case version */
 	for(cp = name; *cp; cp++)
 		*cp = tolower(*cp);
-	if(cachedb)
+	if(cfg.cachedb)
 		rp = rrlookup(dp, type, NOneg);
 	else
 		rp = dblookup1(name, type, auth, ttl);
@@ -124,11 +136,11 @@ dblookup(char *name, int class, int type, int auth, int ttl)
 
 	/* walk the domain name trying the wildcard '*' at each position */
 	for(wild = strchr(name, '.'); wild; wild = strchr(wild+1, '.')){
-		snprint(buf, sizeof(buf), "*%s", wild);
+		snprint(buf, sizeof buf, "*%s", wild);
 		ndp = dnlookup(buf, class, 1);
 		if(ndp->rr)
 			err = 0;
-		if(cachedb)
+		if(cfg.cachedb)
 			rp = rrlookup(ndp, type, NOneg);
 		else
 			rp = dblookup1(buf, type, auth, ttl);
@@ -137,18 +149,28 @@ dblookup(char *name, int class, int type, int auth, int ttl)
 	}
 out:
 	/* add owner to uncached records */
-	if(rp){
+	if(rp)
 		for(tp = rp; tp; tp = tp->next)
 			tp->owner = dp;
-	} else {
+	else {
 		/* don't call it non-existent if it's not ours */
-		if(err == Rname && !inmyarea(name))
+		if(err == Rname && !inmyarea(name)) {
+//			dnslog("dblookup setting Rserver for %s", name);
 			err = Rserver;
-		dp->nonexistent = err;
+		}
+		dp->respcode = err;
 	}
 
 	unlock(&dblock);
 	return rp;
+}
+
+static ulong
+intval(Ndbtuple *entry, Ndbtuple *pair, char *attr, ulong def)
+{
+	Ndbtuple *t = look(entry, pair, attr);
+
+	return (t? strtoul(t->val, 0, 10): def);
 }
 
 /*
@@ -166,7 +188,7 @@ dblookup1(char *name, int type, int auth, int ttl)
 	RR *(*f)(Ndbtuple*, Ndbtuple*);
 	int found, x;
 
-	dp = 0;
+	dp = nil;
 	switch(type){
 	case Tptr:
 		attr = "ptr";
@@ -188,6 +210,10 @@ dblookup1(char *name, int type, int auth, int ttl)
 		attr = "soa";
 		f = soarr;
 		break;
+	case Tsrv:
+		attr = "srv";
+		f = srvrr;
+		break;
 	case Tmx:
 		attr = "mx";
 		f = mxrr;
@@ -200,21 +226,25 @@ dblookup1(char *name, int type, int auth, int ttl)
 	case Tixfr:
 		return doaxfr(db, name);
 	default:
+//		dnslog("dnlookup1(%s) bad type", name);
 		return nil;
 	}
 
 	/*
 	 *  find a matching entry in the database
 	 */
+	t = nil;
 	free(ndbgetvalue(db, &s, "dom", name, attr, &t));
 
 	/*
 	 *  hack for local names
 	 */
-	if(t == 0 && strchr(name, '.') == 0)
+	if(t == nil && strchr(name, '.') == nil)
 		free(ndbgetvalue(db, &s, "sys", name, attr, &t));
-	if(t == 0)
+	if(t == nil) {
+//		dnslog("dnlookup1(%s) name not found", name);
 		return nil;
+	}
 
 	/* search whole entry for default domain name */
 	strncpy(dname, name, sizeof dname);
@@ -225,12 +255,9 @@ dblookup1(char *name, int type, int auth, int ttl)
 		}
 
 	/* ttl is maximum of soa minttl and entry's ttl ala rfc883 */
-	nt = look(t, s.t, "ttl");
-	if(nt){
-		x = atoi(nt->val);
-		if(x > ttl)
-			ttl = x;
-	}
+	x = intval(t, s.t, "ttl", 0);
+	if(x > ttl)
+		ttl = x;
 
 	/* default ttl is one day */
 	if(ttl < 0)
@@ -255,7 +282,7 @@ dblookup1(char *name, int type, int auth, int ttl)
 			rp->db = 1;
 			if(ttl)
 				rp->ttl = ttl;
-			if(dp == 0)
+			if(dp == nil)
 				dp = dnlookup(dname, Cin, 1);
 			rp->owner = dp;
 			*l = rp;
@@ -275,7 +302,7 @@ dblookup1(char *name, int type, int auth, int ttl)
 			if(ttl)
 				rp->ttl = ttl;
 			rp->auth = auth;
-			if(dp == 0)
+			if(dp == nil)
 				dp = dnlookup(dname, Cin, 1);
 			rp->owner = dp;
 			*l = rp;
@@ -283,6 +310,7 @@ dblookup1(char *name, int type, int auth, int ttl)
 		}
 	ndbfree(t);
 
+//	dnslog("dnlookup1(%s) -> %#p", name, list);
 	return list;
 }
 
@@ -364,15 +392,11 @@ cnamerr(Ndbtuple *entry, Ndbtuple *pair)
 static RR*
 mxrr(Ndbtuple *entry, Ndbtuple *pair)
 {
-	RR * rp;
+	RR *rp;
 
 	rp = rralloc(Tmx);
 	rp->host = dnlookup(pair->val, Cin, 1);
-	pair = look(entry, pair, "pref");
-	if(pair)
-		rp->pref = atoi(pair->val);
-	else
-		rp->pref = 1;
+	rp->pref = intval(entry, pair, "pref", 1);
 	return rp;
 }
 static RR*
@@ -412,28 +436,15 @@ soarr(Ndbtuple *entry, Ndbtuple *pair)
 	for(ndb = db; ndb; ndb = ndb->next)
 		if(ndb->mtime > rp->soa->serial)
 			rp->soa->serial = ndb->mtime;
-	rp->soa->refresh = Day;
-	rp->soa->retry = Hour;
-	rp->soa->expire = Day;
-	rp->soa->minttl = Day;
-	t = look(entry, pair, "retry");
-	if(t)
-		rp->soa->retry = atoi(t->val);
-	t = look(entry, pair, "expire");
-	if(t)
-		rp->soa->expire = atoi(t->val);
-	t = look(entry, pair, "ttl");
-	if(t)
-		rp->soa->minttl = atoi(t->val);
-	t = look(entry, pair, "refresh");
-	if(t)
-		rp->soa->refresh = atoi(t->val);
-	t = look(entry, pair, "serial");
-	if(t)
-		rp->soa->serial = strtoul(t->val, 0, 10);
+
+	rp->soa->retry  = intval(entry, pair, "retry", Hour);
+	rp->soa->expire = intval(entry, pair, "expire", Day);
+	rp->soa->minttl = intval(entry, pair, "ttl", Day);
+	rp->soa->refresh = intval(entry, pair, "refresh", Day);
+	rp->soa->serial = intval(entry, pair, "serial", rp->soa->serial);
 
 	ns = look(entry, pair, "ns");
-	if(ns == 0)
+	if(ns == nil)
 		ns = look(entry, pair, "dom");
 	rp->host = dnlookup(ns->val, Cin, 1);
 
@@ -445,30 +456,43 @@ soarr(Ndbtuple *entry, Ndbtuple *pair)
 	mb = look(entry, pair, "mbox");
 	if(mb == nil)
 		mb = look(entry, pair, "mb");
-	if(mb){
+	if(mb)
 		if(strchr(mb->val, '.')) {
 			p = strchr(mb->val, '@');
 			if(p != nil)
 				*p = '.';
 			rp->rmb = dnlookup(mb->val, Cin, 1);
 		} else {
-			snprint(mailbox, sizeof(mailbox), "%s.%s",
+			snprint(mailbox, sizeof mailbox, "%s.%s",
 				mb->val, ns->val);
 			rp->rmb = dnlookup(mailbox, Cin, 1);
 		}
-	} else {
-		snprint(mailbox, sizeof(mailbox), "postmaster.%s",
-			ns->val);
+	else {
+		snprint(mailbox, sizeof mailbox, "postmaster.%s", ns->val);
 		rp->rmb = dnlookup(mailbox, Cin, 1);
 	}
 
-	/*  hang dns slaves off of the soa.  this is 
+	/*
+	 *  hang dns slaves off of the soa.  this is
 	 *  for managing the area.
 	 */
 	for(t = entry; t != nil; t = t->entry)
 		if(strcmp(t->attr, "dnsslave") == 0)
 			addserver(&rp->soa->slaves, t->val);
-			
+
+	return rp;
+}
+
+static RR*
+srvrr(Ndbtuple *entry, Ndbtuple *pair)
+{
+	RR *rp;
+
+	rp = rralloc(Tsrv);
+	rp->srv->target = dnlookup(pair->val, Cin, 1);
+	rp->srv->pri    = intval(entry, pair, "pri", 0);
+	rp->srv->weight = intval(entry, pair, "weight", 0);
+	rp->srv->port   = intval(entry, pair, "port", 0);
 	return rp;
 }
 
@@ -525,11 +549,10 @@ dbfile2area(Ndb *db)
 	Ndbtuple *t;
 
 	if(debug)
-		syslog(0, logfile, "rereading %s", db->file);
+		dnslog("rereading %s", db->file);
 	Bseek(&db->b, 0, 0);
-	while(t = ndbparse(db)){
+	while(t = ndbparse(db))
 		ndbfree(t);
-	}
 }
 
 /*
@@ -539,36 +562,31 @@ static void
 dbpair2cache(DN *dp, Ndbtuple *entry, Ndbtuple *pair)
 {
 	RR *rp;
-	Ndbtuple *t;
 	static ulong ord;
 
 	rp = 0;
 	if(cistrcmp(pair->attr, "ip") == 0){
 		dp->ordinal = ord++;
 		rp = addrrr(entry, pair);
-	} else 	if(cistrcmp(pair->attr, "ns") == 0){
+	} else 	if(cistrcmp(pair->attr, "ns") == 0)
 		rp = nsrr(entry, pair);
-	} else if(cistrcmp(pair->attr, "soa") == 0){
+	else if(cistrcmp(pair->attr, "soa") == 0) {
 		rp = soarr(entry, pair);
 		addarea(dp, rp, pair);
-	} else if(cistrcmp(pair->attr, "mx") == 0){
+	} else if(cistrcmp(pair->attr, "mx") == 0)
 		rp = mxrr(entry, pair);
-	} else if(cistrcmp(pair->attr, "cname") == 0){
+	else if(cistrcmp(pair->attr, "cname") == 0)
 		rp = cnamerr(entry, pair);
-	} else if(cistrcmp(pair->attr, "nullrr") == 0){
+	else if(cistrcmp(pair->attr, "nullrr") == 0)
 		rp = nullrr(entry, pair);
-	} else if(cistrcmp(pair->attr, "txtrr") == 0){
+	else if(cistrcmp(pair->attr, "txtrr") == 0)
 		rp = txtrr(entry, pair);
-	}
-
-	if(rp == 0)
+	if(rp == nil)
 		return;
 
 	rp->owner = dp;
 	rp->db = 1;
-	t = look(entry, pair, "ttl");
-	if(t)
-		rp->ttl = atoi(t->val);
+	rp->ttl = intval(entry, pair, "ttl", rp->ttl);
 	rrattach(rp, 0);
 }
 static void
@@ -577,7 +595,7 @@ dbtuple2cache(Ndbtuple *t)
 	Ndbtuple *et, *nt;
 	DN *dp;
 
-	for(et = t; et; et = et->entry){
+	for(et = t; et; et = et->entry)
 		if(strcmp(et->attr, "dom") == 0){
 			dp = dnlookup(et->val, Cin, 1);
 
@@ -594,7 +612,6 @@ dbtuple2cache(Ndbtuple *t)
 				nt->ptr = 0;
 			}
 		}
-	}
 }
 static void
 dbfile2cache(Ndb *db)
@@ -602,21 +619,44 @@ dbfile2cache(Ndb *db)
 	Ndbtuple *t;
 
 	if(debug)
-		syslog(0, logfile, "rereading %s", db->file);
+		dnslog("rereading %s", db->file);
 	Bseek(&db->b, 0, 0);
 	while(t = ndbparse(db)){
 		dbtuple2cache(t);
 		ndbfree(t);
 	}
 }
+
+/* called with dblock held */
+static void
+loaddomsrvs(void)
+{
+	Ndbs s;
+
+	if (!cfg.inside || !cfg.straddle || !cfg.serve)
+		return;
+	if (indoms) {
+		ndbfree(indoms);
+		ndbfree(innmsrvs);
+		ndbfree(outnmsrvs);
+		indoms = innmsrvs = outnmsrvs = nil;
+	}
+	if (db == nil)
+		opendatabase();
+	free(ndbgetvalue(db, &s, "sys", "inside-dom", "dom", &indoms));
+	free(ndbgetvalue(db, &s, "sys", "inside-ns",  "ip",  &innmsrvs));
+	free(ndbgetvalue(db, &s, "sys", "outside-ns", "ip",  &outnmsrvs));
+	dnslog("[%d] ndb changed: reloaded inside-dom, inside-ns, outside-ns",
+		getpid());
+}
+
 void
 db2cache(int doit)
 {
+	ulong youngest, temp;
 	Ndb *ndb;
 	Dir *d;
-	ulong youngest, temp;
-	static ulong lastcheck;
-	static ulong lastyoungest;
+	static ulong lastcheck, lastyoungest;
 
 	/* no faster than once every 2 minutes */
 	if(now < lastcheck + 2*Min && !doit)
@@ -641,45 +681,46 @@ db2cache(int doit)
 	for(;;){
 		lastcheck = now;
 		youngest = 0;
-		for(ndb = db; ndb; ndb = ndb->next){
-			/* the dirfstat avoids walking the mount table each time */
+		for(ndb = db; ndb; ndb = ndb->next)
+			/* dirfstat avoids walking the mount table each time */
 			if((d = dirfstat(Bfildes(&ndb->b))) != nil ||
 			   (d = dirstat(ndb->file)) != nil){
-				temp = d->mtime;		/* ulong vs int crap */
+				temp = d->mtime;	/* ulong vs int crap */
 				if(temp > youngest)
 					youngest = temp;
 				free(d);
 			}
-		}
 		if(!doit && youngest == lastyoungest)
 			break;
-	
+
 		/* forget our area definition */
 		freearea(&owned);
 		freearea(&delegated);
-	
+
 		/* reopen all the files (to get oldest for time stamp) */
 		for(ndb = db; ndb; ndb = ndb->next)
 			ndbreopen(ndb);
 
-		if(cachedb){
+		/* reload straddle-server configuration */
+		loaddomsrvs();
+
+		if(cfg.cachedb){
 			/* mark all db records as timed out */
 			dnagedb();
-	
+
 			/* read in new entries */
 			for(ndb = db; ndb; ndb = ndb->next)
 				dbfile2cache(ndb);
-	
-			/* mark as authentic anything in our domain */
+
+			/* mark as authoritative anything in our domain */
 			dnauthdb();
-	
+
 			/* remove old entries */
 			dnageall(1);
-		} else {
+		} else
 			/* read all the soa's to get database defaults */
 			for(ndb = db; ndb; ndb = ndb->next)
 				dbfile2area(ndb);
-		}
 
 		doit = 0;
 		lastyoungest = youngest;
@@ -703,7 +744,7 @@ lookupinfo(char *attr)
 
 	snprint(buf, sizeof buf, "%I", ipaddr);
 	a[0] = attr;
-	
+
 	lock(&dblock);
 	if(opendatabase() < 0){
 		unlock(&dblock);
@@ -714,7 +755,7 @@ lookupinfo(char *attr)
 	return t;
 }
 
-char *localservers = "local#dns#servers";
+char *localservers =	  "local#dns#servers";
 char *localserverprefix = "local#dns#server";
 
 /*
@@ -740,7 +781,8 @@ baddelegation(RR *rp, RR *nsrp, uchar *addr)
 		if(rp->owner != nsrp->owner)
 		if(subsume(rp->owner->name, nsrp->owner->name) &&
 		   strcmp(nsrp->owner->name, localservers) != 0){
-			syslog(0, logfile, "delegation loop %R -> %R from %I", nsrp, rp, addr);
+			dnslog("delegation loop %R -> %R from %I",
+				nsrp, rp, addr);
 			return 1;
 		}
 
@@ -749,7 +791,8 @@ baddelegation(RR *rp, RR *nsrp, uchar *addr)
 			if(rp->host && cistrcmp(rp->host->name, nt->val) == 0)
 				break;
 		if(nt != nil && !inmyarea(rp->owner->name)){
-			syslog(0, logfile, "bad delegation %R from %I", rp, addr);
+			dnslog("bad delegation %R from %I",
+				rp, addr);
 			return 1;
 		}
 	}
@@ -766,7 +809,7 @@ addlocaldnsserver(DN *dp, int class, char *ipaddr, int i)
 
 	/* ns record for name server, make up an impossible name */
 	rp = rralloc(Tns);
-	snprint(buf, sizeof(buf), "%s%d", localserverprefix, i);
+	snprint(buf, sizeof buf, "%s%d", localserverprefix, i);
 	nsdp = dnlookup(buf, class, 1);
 	rp->host = nsdp;
 	rp->owner = dp;
@@ -792,12 +835,12 @@ addlocaldnsserver(DN *dp, int class, char *ipaddr, int i)
 RR*
 dnsservers(int class)
 {
+	int i, n;
+	char *p, *buf;
+	char *args[5];
 	Ndbtuple *t, *nt;
 	RR *nsrp;
 	DN *dp;
-	char *p;
-	int i, n;
-	char *buf, *args[5];
 
 	dp = dnlookup(localservers, class, 1);
 	nsrp = rrlookup(dp, Tns, NOneg);
@@ -880,12 +923,10 @@ static void
 createptrs(void)
 {
 	int len, dlen, n;
-	Area *s;
+	char buf[Domlen+1], ipa[48];
 	char *f[40];
-	char buf[Domlen+1];
-	uchar net[IPaddrlen];
-	uchar mask[IPaddrlen];
-	char ipa[48];
+	uchar net[IPaddrlen], mask[IPaddrlen];
+	Area *s;
 	Ndbtuple *t, *nt;
 
 	dlen = strlen(v4ptrdom);
@@ -897,8 +938,8 @@ createptrs(void)
 			continue;
 
 		/* get mask and net value */
-		strncpy(buf, s->soarr->owner->name, sizeof(buf));
-		buf[sizeof(buf)-1] = 0;
+		strncpy(buf, s->soarr->owner->name, sizeof buf);
+		buf[sizeof buf-1] = 0;
 		n = getfields(buf, f, nelem(f), 0, ".");
 		memset(mask, 0xff, IPaddrlen);
 		ipmove(net, v4prefix);
@@ -928,10 +969,10 @@ createptrs(void)
 			net[IPv4off+3] = atoi(f[0]);
 			sprint(ipa, "%I", net);
 			t = ndbipinfo(db, "ip", ipa, attribs, 1);
-			if(t == nil) /* could be a reverse with no forward */
+			if(t == nil)	/* could be a reverse with no forward */
 				continue;
 			nt = look(t, t, "ipmask");
-			if(nt == nil){	/* we're confused */
+			if(nt == nil){		/* we're confused */
 				ndbfree(t);
 				continue;
 			}
@@ -942,7 +983,82 @@ createptrs(void)
 			continue;
 		}
 
-		/* go through all domain entries looking for RR's in this network and create ptrs */
+		/*
+		 * go through all domain entries looking for RR's
+		 * in this network and create ptrs
+		 */
 		dnptr(net, mask, s->soarr->owner->name, 6-n, 0);
 	}
+}
+
+/*
+ * is this domain (or DOMAIN or Domain or dOMAIN)
+ * internal to our organisation (behind our firewall)?
+ * only inside straddling servers care, everybody else gets told `yes',
+ * so they'll use mntpt for their queries.
+ */
+int
+insideaddr(char *dom)
+{
+	int domlen, vallen, rv;
+	Ndbtuple *t;
+
+	if (!cfg.inside || !cfg.straddle || !cfg.serve)
+		return 1;
+
+	lock(&dblock);
+	if (indoms == nil)
+		loaddomsrvs();
+	if (indoms == nil) {
+		unlock(&dblock);
+		return 1;	/* no "inside" sys, try inside nameservers */
+	}
+
+	rv = 0;
+	domlen = strlen(dom);
+	for (t = indoms; t != nil; t = t->entry) {
+		if (strcmp(t->attr, "dom") != 0)
+			continue;
+		vallen = strlen(t->val);
+		if (cistrcmp(dom, t->val) == 0 ||
+		    domlen > vallen &&
+		     cistrcmp(dom + domlen - vallen, t->val) == 0 &&
+		     dom[domlen - vallen - 1] == '.') {
+			rv = 1;
+			break;
+		}
+	}
+	unlock(&dblock);
+	return rv;
+}
+
+int
+insidens(uchar *ip)
+{
+	uchar ipa[IPaddrlen];
+	Ndbtuple *t;
+
+	for (t = innmsrvs; t != nil; t = t->entry)
+		if (strcmp(t->attr, "ip") == 0) {
+			parseip(ipa, t->val);
+			if (memcmp(ipa, ip, sizeof ipa) == 0)
+				return 1;
+		}
+	return 0;
+}
+
+uchar *
+outsidens(int n)
+{
+	int i;
+	Ndbtuple *t;
+	static uchar ipa[IPaddrlen];
+
+	i = 0;
+	for (t = outnmsrvs; t != nil; t = t->entry)
+		if (strcmp(t->attr, "ip") == 0 && i++ == n) {
+			parseip(ipa, t->val);
+			return ipa;
+		}
+	return nil;
 }
