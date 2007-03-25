@@ -1,10 +1,14 @@
-.TH CPURC 8 
+.TH CPURC 8
 .SH NAME
-cpurc, termrc \- boot script
+cpurc, cpurc.local, termrc, termrc.local \- boot scripts
 .SH SYNOPSIS
 .B cpurc
+.br
+.B cpurc.local
 .PP
 .B termrc
+.br
+.B termrc.local
 .SH DESCRIPTION
 After the kernel boots, it execs
 .B /boot
@@ -39,27 +43,44 @@ was executed and
 to a value suitable for parallel compilation in
 .IR mk (1).
 .PP
-These files should be edited by local installations
-to reflect the configuration of their systems.
 If an executable file
-.B /sys/lib/sysconfig/termrc/$sysname
+.B /bin/termrc.local
+exists,
+.I termrc
+will execute it.
+If an executable file
+.B /cfg/$sysname/termrc
 exists for the machine named
 .BR $sysname ,
 .I termrc
-will execute it as its last act.
+will execute it next.
 This action is suppressed, as is automatic initialization of the mouse and
 VGA on a PC, if the user is
 .BR none .
+These files should be edited by local installations
+to reflect the configuration of their systems.
+.PP
+On CPU servers, read
+.L cpurc
+for
+.L termrc
+in the previous paragraph.
 .SH FILES
-.TF /sys/lib/sysconfig/termrc
+.TF /cfg/$sysname/termrc
 .TP
-.B /sys/lib/sysconfig/termrc
-machine-specific configuration scripts for
-.IR termrc .
+.B /cfg/$sysname/cpurc
+machine-specific boot script for
+.I cpurc
+.TP
+.B /cfg/$sysname/termrc
+machine-specific boot script for
+.I termrc
 .SH SOURCE
-.B /rc/bin/cpurc
+.B /rc/bin/*rc
 .br
-.B /rc/bin/termrc
+.B /rc/bin/*rc.local
+.br
+.B /cfg/$sysname/*rc
 .SH "SEE ALSO"
 .IR srv (4),
 .IR namespace (6),

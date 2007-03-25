@@ -284,16 +284,23 @@ particularly if they don't work very well.
 See `Straddling Server' below for details.
 .TP
 .B -r
+act as a resolver only:
 send `recursive' queries, asking the other servers
 to complete lookups.
+If present,
+.B /env/DNSSERVER
+must be a space-separated list of such DNS servers' IP addresses,
+otherwise optional
+.IR ndb (6)
+.B @dns
+attributes name DNS servers to forward queries to.
 .TP
 .B -R
 ignore the `recursive' bit on incoming requests.
 Do not complete lookups on behalf of remote systems.
 .TP
 .B -s
-also cache DNS answers in memory,
-and answer domain requests sent to UDP port 53.
+also answer domain requests sent to UDP port 53.
 .TP
 .B -x
 specifies the mount point of the
@@ -600,6 +607,9 @@ plan9.bell-labs.com ip	204.178.31.2
 .EE
 .SH FILES
 .TF /lib/ndb/local.*xxx
+.TP
+.B /env/DNSSERVER
+resolver's DNS servers' IP addresses.
 .TP
 .B /lib/ndb/local
 first database file searched

@@ -730,7 +730,7 @@ db2cache(int doit)
 	unlock(&dblock);
 }
 
-extern uchar	ipaddr[IPaddrlen];
+extern uchar	ipaddr[IPaddrlen];	/* my ip address */
 
 /*
  *  get all my xxx
@@ -847,7 +847,7 @@ dnsservers(int class)
 	if(nsrp != nil)
 		return nsrp;
 
-	p = getenv("DNSSERVER");
+	p = getenv("DNSSERVER");		/* list of ip addresses */
 	if(p != nil){
 		buf = estrdup(p);
 		n = tokenize(buf, args, nelem(args));
@@ -855,7 +855,7 @@ dnsservers(int class)
 			addlocaldnsserver(dp, class, args[i], i);
 		free(buf);
 	} else {
-		t = lookupinfo("@dns");
+		t = lookupinfo("@dns");		/* @dns=ip1 @dns=ip2 ... */
 		if(t == nil)
 			return nil;
 		i = 0;

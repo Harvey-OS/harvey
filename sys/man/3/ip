@@ -587,6 +587,7 @@ struct Udphdr
 	uchar	rport[2];	/* remote port */
 	uchar	lport[2];	/* local port */
 };
+.EE
 .TP
 .B oldheaders
 .EX
