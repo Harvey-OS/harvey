@@ -1,6 +1,6 @@
 .TH LISTEN 8
 .SH NAME
-listen, listen1, il7, il9, il19, il565, il566, il17007, il17008, il17009, il17013, il17031, tcp7, tcp9, tcp19, tcp21, tcp23, tcp25, tcp53, tcp110, tcp113, tcp143, tcp513, tcp515, tcp564, tcp565, tcp566, tcp567, tcp993, tcp17007, tcp17009, tcp17013 \- listen for calls on a network device
+listen, listen1, il7, il9, il19, il565, il566, il17007, il17008, il17009, il17013, il17031, tcp7, tcp9, tcp19, tcp21, tcp22, tcp23, tcp25, tcp53, tcp110, tcp113, tcp143, tcp513, tcp515, tcp564, tcp565, tcp566, tcp567, tcp993, tcp1723, tcp17007, tcp17009, tcp17010, tcp17013 \- listen for calls on a network device
 .SH SYNOPSIS
 .B aux/listen
 .RB [ -q ]
@@ -86,10 +86,15 @@ like 17007, but serves the root of the tree, forgoing the negotiation for which 
 .B il17009 tcp17009
 remote execution.
 .TP
-.B "il17013 tcp17013"
+.B "tcp17010"
 server for
 .IR cpu (1)
 command.
+.TP
+.B "il17013 tcp17013"
+server for old
+.IR cpu (1)
+command for compatibility with old clients.
 .TP
 .B il17031
 server for
@@ -101,9 +106,9 @@ report the address of the incoming call.
 .B tcp21
 FTP daemon
 .TP
-.B tcp515
-LP daemon; see
-.IR lp (8).
+.B tcp22
+.B ssh
+`secure shell' encrypted terminal connection or file transfer.
 .TP
 .B tcp23
 .B telnet
@@ -115,6 +120,10 @@ mail delivery.
 .B tcp513
 .B rlogin
 terminal connection.
+.TP
+.B tcp515
+LP daemon; see
+.IR lp (8).
 .TP
 .B il7 tcp7
 echo any bytes received (bit mirror)
@@ -138,6 +147,9 @@ port (always reports
 .TP
 .B tcp567
 Plan 9 ticket service.
+.TP
+.B tcp1723
+PPTP (point-to-point tunnelling protocol) service.
 .PD
 .PP
 The following services are available in

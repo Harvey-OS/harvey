@@ -7589,7 +7589,7 @@ sys/man/3/ether - 664 sys sys 984709635 2563
 sys/man/3/floppy - 664 sys sys 954378905 881
 sys/man/3/fs - 664 sys sys 1174450141 2894
 sys/man/3/i82365 - 664 sys sys 954378906 884
-sys/man/3/ip - 664 sys sys 1169599032 22614
+sys/man/3/ip - 664 sys sys 1174771711 22618
 sys/man/3/kbmap - 664 sys sys 1131110122 1732
 sys/man/3/kprof - 664 sys sys 1018029972 1377
 sys/man/3/loopback - 664 sys sys 964662153 1995
@@ -7690,7 +7690,7 @@ sys/man/6/mnihongo - 664 sys sys 1158064572 716
 sys/man/6/mpictures - 664 sys sys 944959678 2899
 sys/man/6/ms - 664 sys sys 958249504 6815
 sys/man/6/namespace - 664 sys sys 1048637182 1576
-sys/man/6/ndb - 664 sys sys 1174688660 6670
+sys/man/6/ndb - 664 sys sys 1174770884 6755
 sys/man/6/plot - 664 sys sys 944959679 6739
 sys/man/6/plumb - 664 sys sys 969499892 10918
 sys/man/6/regexp - 664 sys sys 954089523 2050
@@ -7724,7 +7724,7 @@ sys/man/8/apm - 664 sys sys 1017679308 1811
 sys/man/8/auth - 664 sys sys 1163208463 4227
 sys/man/8/boot - 664 sys sys 1165623055 8357
 sys/man/8/booting - 664 sys sys 1015024984 4136
-sys/man/8/cpurc - 664 sys sys 971455510 1275
+sys/man/8/cpurc - 664 sys sys 1174792133 1541
 sys/man/8/cron - 664 sys sys 1063858596 1867
 sys/man/8/dhcpd - 664 sys sys 1172959497 5572
 sys/man/8/disksim - 664 sys sys 1144150487 1476
@@ -7740,7 +7740,7 @@ sys/man/8/init - 664 sys sys 944959679 1430
 sys/man/8/ipconfig - 664 sys sys 1159419702 6170
 sys/man/8/ipserv - 664 sys sys 1095862383 4375
 sys/man/8/kfscmd - 664 sys sys 1068569797 4515
-sys/man/8/listen - 664 sys sys 1173736981 3562
+sys/man/8/listen - 664 sys sys 1174792129 3826
 sys/man/8/lp - 664 sys sys 954614702 2491
 sys/man/8/mk9660 - 664 sys sys 1104430379 3946
 sys/man/8/mkfs - 664 sys sys 1163208436 3414
@@ -7748,7 +7748,7 @@ sys/man/8/mkpaqfs - 664 sys sys 1018386778 892
 sys/man/8/mksacfs - 664 sys sys 964886843 710
 sys/man/8/mouse - 664 sys sys 971455511 2476
 sys/man/8/na - 664 sys sys 958527089 859
-sys/man/8/ndb - 664 sys sys 1174626196 12927
+sys/man/8/ndb - 664 sys sys 1174774024 13164
 sys/man/8/newuser - 664 sys sys 1116954242 2418
 sys/man/8/nfsserver - 664 sys sys 1163208425 3587
 sys/man/8/pcmcia - 664 sys sys 944959679 408
@@ -12676,7 +12676,7 @@ sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1174690184 6801
 sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1174690173 10779
 sys/src/cmd/ndb/cs.c - 664 sys sys 1163208159 33080
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1174626119 1073
-sys/src/cmd/ndb/dblookup.c - 664 sys sys 1174690228 20863
+sys/src/cmd/ndb/dblookup.c - 664 sys sys 1174792290 20940
 sys/src/cmd/ndb/dn.c - 664 sys sys 1174690061 32609
 sys/src/cmd/ndb/dnarea.c - 664 sys sys 1174626121 2505
 sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1174626121 3122
