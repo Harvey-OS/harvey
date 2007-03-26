@@ -447,6 +447,9 @@
 .tlNot for use or disclosure outside the
 .tlBell System except under written agreement. \}
 ..
+.\" end of macros
+.
+.\" choose page dimensions
 .nr)s 0
 .ift .if \ns .nr )s 1
 .nr)t 0
@@ -464,7 +467,12 @@
 .ift \{.ds R ®
 .dsS \s\n()S
 ..\}
-.ifn \{.nr )L 1000i
+.ifn \{.if \nL<=0 .nr )L 11i
+.ie \{
+.nr )L \nLu
+.\" Changed the above from .nr )L 1000i
+.\" (doesn't work for invocation outside of man) [sape]
+.nr V 0\}
 .nrLL 6.5i
 .nr)O .463i
 .if '\*(.T'think' \{.nrLL 80n
@@ -480,6 +488,7 @@
 .nrLL 82n
 .nr)L 84v
 .rmul \}
+.
 .nr)p 0 1
 .ds]I \\\\n(]
 .ds]R \\\\n()
@@ -506,10 +515,13 @@
 .if\n()t \{.ie \nd .ds ]W \*(]m \nd, 20\ny
 .el.ds ]W \*(]m \n(dy, 20\n(yr
 ..\}
+.
+.\" set page dimensions
 .pl\n()Lu
 .ll\n(LLu
 .lt\n(LLu
 .po\n()Ou
+.
 .ift .tr \``\''
 .}f
 .if\n()s .nr :m 3.5v

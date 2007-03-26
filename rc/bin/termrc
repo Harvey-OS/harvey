@@ -56,13 +56,8 @@ case *' indigo'*
 case NCR* 'AT&TNSX'* generic* _MP_* 'alpha apc'*
 	for(i in H w f t m v L S P U '$' Σ κ)
 		/bin/bind -a '#'^$i /dev >/dev/null >[2=1]
-	for(disk in /dev/sd??) {
-		if(test -f $disk/data && test -f $disk/ctl)
-			disk/fdisk -p $disk/data >$disk/ctl >[2]/dev/null
-		for(part in $disk/plan9*)
-			if(test -f $part)
-				disk/prep -p $part >$disk/ctl >[2]/dev/null
-	}
+
+	diskparts
 
 	if(! ~ `{cat /dev/user} none)
 		aux/vmware

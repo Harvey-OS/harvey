@@ -1,0 +1,8 @@
+This is Ken's optical-jukebox fileserver, expanded to 64-bit disk
+addresses and quadruple indirect blocks, then ported to user mode.
+
+The APC UPS shut-down code has been moved into a separate command,
+watchapc.
+
+To customise, set RBUFSIZE and choose 32bit.h or 64bit.h in dat.h, and
+tweak localconfinit(), fsprotocol[] and startsb[] in conf.c.
