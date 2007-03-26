@@ -2,134 +2,190 @@
 # Tries to determine what type of file you are printing and do the correct
 # thing with it.
 # It currently knows about images, troff intermediate, and ascii files.
-TMPFILE=/tmp/lp$pid
-fn sigexit { rm -f $TMPFILE; }
-if (! ~ $DEBUG '') flag x +
-if (~ $LPCLASS *nohead*) NOHEAD=1
-if (~ $LPCLASS *duplex*) DUPLEX=1
-cat >$TMPFILE
-FILETYPE=`{file $TMPFILE}
-switch ($FILETYPE(2)) {
-case troff;
+rfork e
+temp=/tmp/lp$pid
+fn sigexit { rm -f $temp }
+proc=$LPLIB/process
+
+if (! ~ $DEBUG '')
+	flag x +
+if (~ $LPCLASS *nohead*)
+	NOHEAD=1
+if (~ $LPCLASS *duplex*)
+	DUPLEX=1
+cat >$temp
+
+type=`{file $temp}
+switch ($type(2)) {
+case troff
 	switch ($LPCLASS) {
-	case *Latin1* *post* *opost*;	switch ($FILETYPE(5)) {
-					# Latin1 is for compatibility with old research UNIX systems, doesn't work on Plan 9
-					case Latin1 post; tcs -s -f utf -t latin1 < $TMPFILE |$LPLIB/process/dpost
+	case *Latin1* *post* *opost*
+		switch ($type(5)) {
+		# Latin1 is for compatibility with old research UNIX systems,
+		# doesn't work on Plan 9
+		case Latin1 post
+			tcs -s -f utf -t latin1 <$temp | $proc/dpost
+		case UTF
+			$proc/tr2post <$temp
+		}
+	case *gs!* *gsijs!*
+		switch ($type(5)) {
+		# Latin1 is for compatibility with old research UNIX systems,
+		# doesn't work on Plan 9
+		case Latin1 post
+			tcs -s -f utf -t latin1 <$temp | $proc/dpost |
+				$proc/gspipe
 
-					case UTF; $LPLIB/process/tr2post < $TMPFILE
-					}
-
-	case *gs!* *gsijs!*;	switch ($FILETYPE(5)) {
-					# Latin1 is for compatibility with old research UNIX systems, doesn't work on Plan 9
-					case Latin1 post; tcs -s -f utf -t latin1 < $TMPFILE |$LPLIB/process/dpost |$LPLIB/process/gspipe
-
-					case UTF; $LPLIB/process/tr2post < $TMPFILE |$LPLIB/process/gspipe
-					}
-
-	case *;		echo $FILETYPE(2) -T$FILETYPE(5) output is improper for $LPDEST >[1=2]
+		case UTF
+			$proc/tr2post <$temp | $proc/gspipe
+		}
+	case *
+		echo $type(2) -T$type(5) output is improper for $LPDEST >[1=2]
 	}
-case special;
-	switch ($FILETYPE(4)) {
-	case '#b';		switch ($LPCLASS) {
-				case *post*;	$LPLIB/process/p9bitpost < $TMPFILE
-				case *gs!*;	$LPLIB/process/p9bitpost < $TMPFILE |$LPLIB/process/gspipe
-				case *gsijs!*;	$LPLIB/process/p9bitpost < $TMPFILE |$LPLIB/process/gspipeijs
-				}
-
-	case *;		echo $FILETYPE file is improper for $LPDEST >[1=2]
+case special
+	switch ($type(4)) {
+	case '#b'
+		switch ($LPCLASS) {
+		case *post*
+			$proc/p9bitpost <$temp
+		case *gs!*
+			$proc/p9bitpost <$temp | $proc/gspipe
+		case *gsijs!*
+			$proc/p9bitpost <$temp | $proc/gspipeijs
+		}
+	case *
+		echo $type file is improper for $LPDEST >[1=2]
 	}
-case Compressed plan old;	# type is really 'Compressed image' or 'plan 9 image' 
-				# or 'old plan 9 image'
+case Compressed plan old
+	# type is really 'Compressed image' or 'plan 9 image' or
+	# 'old plan 9 image'
 	switch ($LPCLASS) {
-	case *post*;	$LPLIB/process/p9bitpost < $TMPFILE
-	case *gs!*;	$LPLIB/process/p9bitpost < $TMPFILE |$LPLIB/process/gspipe
-	case *gsijs!*;	$LPLIB/process/p9bitpost < $TMPFILE |$LPLIB/process/gspipeijs
+	case *post*
+		$proc/p9bitpost <$temp
+	case *gs!*
+		$proc/p9bitpost <$temp | $proc/gspipe
+	case *gsijs!*
+		$proc/p9bitpost <$temp | $proc/gspipeijs
 	}
-case jpeg;
+case jpeg
 	switch ($LPCLASS) {
-	case *post*;	$LPLIB/process/jpgpost < $TMPFILE
-	case *gs!*;	$LPLIB/process/jpgpost < $TMPFILE |$LPLIB/process/gspipe
-	case *gsijs!*;	$LPLIB/process/jpgpost < $TMPFILE |$LPLIB/process/gspipeijs
+	case *post*
+		$proc/jpgpost <$temp
+	case *gs!*
+		$proc/jpgpost <$temp | $proc/gspipe
+	case *gsijs!*
+		$proc/jpgpost <$temp | $proc/gspipeijs
 	}
-
-case GIF;
+case GIF
 	switch ($LPCLASS) {
-	case *post*;	$LPLIB/process/gifpost < $TMPFILE
-	case *gs!*;	$LPLIB/process/gifpost < $TMPFILE |$LPLIB/process/gspipe
-	case *gsijs!*;	$LPLIB/process/gifpost < $TMPFILE |$LPLIB/process/gspipeijs
+	case *post*
+		$proc/gifpost <$temp
+	case *gs!*
+		$proc/gifpost <$temp | $proc/gspipe
+	case *gsijs!*
+		$proc/gifpost <$temp | $proc/gspipeijs
 	}
-
 case ccitt-g31;
 	switch ($LPCLASS) {
-	case *post*;	$LPLIB/process/g3post < $TMPFILE
-	case *gs!*;	$LPLIB/process/g3post < $TMPFILE |$LPLIB/process/gspipe
-	case *gsijs!*;	$LPLIB/process/g3post < $TMPFILE |$LPLIB/process/gspipeijs
+	case *post*
+		$proc/g3post <$temp
+	case *gs!*
+		$proc/g3post <$temp | $proc/gspipe
+	case *gsijs!*
+		$proc/g3post <$temp | $proc/gspipeijs
 	}
-
-# bitmap for research UNIX compatibility, does not work on Plan 9.
-case bitmap;
+case bitmap
+	# bitmap for research UNIX compatibility, does not work on Plan 9.
 	switch ($LPCLASS) {
-	case *post*;	$LPLIB/process/bpost < $TMPFILE
-	case *mhcc*;	$LPLIB/process/bpost < $TMPFILE | $LPLIB/process/mhcc
-	case *;		echo $FILETYPE(2) file is improper for $LPDEST >[1=2]
+	case *post*
+		$proc/bpost <$temp
+	case *mhcc*
+		$proc/bpost <$temp | $proc/mhcc
+	case *
+		echo $type(2) file is improper for $LPDEST >[1=2]
 	}
-case tex;
-	mv $TMPFILE $TMPFILE.dvi
-	TMPFILE=$TMPFILE.dvi
+case tex
+	mv $temp $temp.dvi
+	temp=$temp.dvi
 	switch ($LPCLASS) {
-	case *post*;	$LPLIB/process/dvipost $TMPFILE
-	case *gs!*;	$LPLIB/process/dvipost $TMPFILE |$LPLIB/process/gspipe
-	case *gsijs!*;	$LPLIB/process/dvipost $TMPFILE |$LPLIB/process/gspipeijs
-	case *;		echo $FILETYPE(2) file is improper for $LPDEST >[1=2]
+	case *post*
+		$proc/dvipost $temp
+	case *gs!*
+		$proc/dvipost $temp | $proc/gspipe
+	case *gsijs!*
+		$proc/dvipost $temp | $proc/gspipeijs
+	case *
+		echo $type(2) file is improper for $LPDEST >[1=2]
 	}
-case postscript;
+case postscript
 	switch ($LPCLASS) {
-	case *post*;		$LPLIB/process/post < $TMPFILE
-	case *gs!*;		$LPLIB/process/post < $TMPFILE |$LPLIB/process/gspipe
-	case *gsijs!*;		$LPLIB/process/post < $TMPFILE |$LPLIB/process/gspipeijs
-	case *;			echo $FILETYPE(2) file is improper for $LPDEST >[1=2]
+	case *post*
+		$proc/post <$temp
+	case *gs!*
+		$proc/post <$temp | $proc/gspipe
+	case *gsijs!*
+		$proc/post <$temp | $proc/gspipeijs
+	case *
+		echo $type(2) file is improper for $LPDEST >[1=2]
 	}
-case HPJCL;
+case HPJCL
 	switch ($LPCLASS) {
-	case *HPJCL*;		$LPLIB/process/noproc < $TMPFILE
-	case *;			echo $FILETYPE(2) file is improper for $LPDEST >[1=2]
+	case *HPJCL*
+		$proc/noproc <$temp
+	case *
+		echo $type(2) file is improper for $LPDEST >[1=2]
 	}
-case daisy;
+case daisy
 	switch ($LPDEST) {
-	case *;		echo $FILETYPE(2) file is improper for $LPDEST >[1=2]
+	case *
+		echo $type(2) file is improper for $LPDEST >[1=2]
 	}
-case English short extended alef limbo [Aa]scii assembler c latin rc sh as mail email message/rfc822;
+case tiff
 	switch ($LPCLASS) {
-	case *post*;	$LPLIB/process/ppost < $TMPFILE
-	case *gs!*;	$LPLIB/process/ppost < $TMPFILE |$LPLIB/process/gspipe
-	case *gsijs!*;	$LPLIB/process/ppost < $TMPFILE |$LPLIB/process/gspipeijs
-	case *canon*;	$LPLIB/process/can $* < $TMPFILE
-	case *;		echo Unrecognized class of line printer for $LPDEST >[1=2]
+	case *post*
+		$proc/tiffpost $temp
+	case *gs!*
+		$proc/tiffpost $temp | $proc/gspipe
+	case *gsijs!*
+		$proc/tiffpost $temp | $proc/gspipeijs
+	case *
+		echo Unrecognized class of line printer for $LPDEST >[1=2]
 	}
-
-case tiff;
+case PDF
 	switch ($LPCLASS) {
-	case *post*;	$LPLIB/process/tiffpost $TMPFILE
-	case *gs!*;	$LPLIB/process/tiffpost $TMPFILE |$LPLIB/process/gspipe
-	case *gsijs!*;	$LPLIB/process/tiffpost $TMPFILE |$LPLIB/process/gspipeijs
-	case *;		echo Unrecognized class of line printer for $LPDEST >[1=2]
+	case *post*
+		$proc/pdfpost $temp
+	case *gs!*
+		$proc/pdfgs $temp
+	case *gsijs!*
+		$proc/pdfgsijs $temp
+	case *
+		echo Unrecognized class of line printer for $LPDEST >[1=2]
 	}
-case PDF;
-	switch ($LPCLASS) {
-	case *post*;	$LPLIB/process/pdfpost $TMPFILE
-	case *gs!*;	$LPLIB/process/pdfgs $TMPFILE
-	case *gsijs!*;	$LPLIB/process/pdfgsijs $TMPFILE
-	case *;		echo Unrecognized class of line printer for $LPDEST >[1=2]
-	}
-case empty;
+case empty
 	echo file is empty >[1=2]
-case cannot;
+case cannot
 	echo cannot open file >[1=2]
-case *;
-	echo $FILETYPE(2) file is improper for $LPDEST >[1=2]
+case English short extended alef limbo [Aa]scii assembler c latin rc sh \
+    as mail email message/rfc822 manual
+	switch ($LPCLASS) {
+	case *post*
+		$proc/ppost <$temp
+	case *gs!*
+		$proc/ppost <$temp | $proc/gspipe
+	case *gsijs!*
+		$proc/ppost <$temp | $proc/gspipeijs
+	case *canon*
+		$proc/can $* <$temp
+	case *
+		echo Unrecognized class of line printer for $LPDEST >[1=2]
+	}
+case *
+	echo $type(2) file is improper for $LPDEST >[1=2]
 }
+
 wait
 rv=$status
-rm -f $TMPFILE
-#exit $status
+rm -f $temp
+# exit $rv
 exit

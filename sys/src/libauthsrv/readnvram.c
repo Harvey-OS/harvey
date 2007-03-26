@@ -266,8 +266,8 @@ readnvram(Nvrsafe *safep, int flag)
 					sizeof safe->authid);
 			readcons("authdom", nil, 0, safe->authdom,
 					sizeof safe->authdom);
-			readcons("secstore key (or fs config)", nil, 1,
-					safe->config, sizeof safe->config);
+			readcons("secstore key", nil, 1, safe->config,
+					sizeof safe->config);
 			for(;;){
 				if(readcons("password", nil, 1, in, sizeof in)
 				    == nil)

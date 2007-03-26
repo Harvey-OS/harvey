@@ -1,0 +1,8 @@
+first:V: all
+
+all default clean install installall safeinstall safeinstallall:V:
+	cd cwfs && mk $target
+emelie.%:V:
+	cd emelie && mk $stem
+fs64.%:V:
+	cd fs64 && mk $stem

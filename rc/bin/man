@@ -21,7 +21,9 @@ fn roff {
 		Nflag=-Tutf
 	}
 	if not {
-		Nflag=-N
+		Nflag='-N'
+		Lflag='-rL1000i'
+		# setting L changes page length to infinity (sed script removes empty lines)
 		if (grep -s '^\.2C' $2)
 			postproc=col
 	}
@@ -32,17 +34,17 @@ fn roff {
 	{echo -n $FONTS; cat $2 </dev/null} |
 		switch($#preproc) {
 		case 0
-			troff $Nflag -$MAN 
+			troff $Nflag $Lflag -$MAN 
 		case 1
-			$preproc | troff $Nflag -$MAN
+			$preproc | troff $Nflag $Lflag -$MAN
 		case 2
-			$preproc(1) | $preproc(2) | troff $Nflag -$MAN
+			$preproc(1) | $preproc(2) | troff $Nflag $Lflag -$MAN
 		case 3
 			$preproc(1) | $preproc(2) | $preproc(3) |
-				troff $Nflag -$MAN
+				troff $Nflag $Lflag -$MAN
 		case *
 			$preproc(1) | $preproc(2) | $preproc(3) |
-				$preproc(4) | troff $Nflag -$MAN
+				$preproc(4) | troff $Nflag $Lflag -$MAN
 		} | $postproc
 }
 
