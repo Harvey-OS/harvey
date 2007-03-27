@@ -207,7 +207,11 @@ Waitfor(int pid, int)
 	Waitmsg *w;
 	char errbuf[ERRMAX];
 
+	if(pid >= 0 && !havewaitpid(pid))
+		return 0;
+
 	while((w = wait()) != nil){
+		delwaitpid(w->pid);
 		if(w->pid==pid){
 			setstatus(w->msg);
 			free(w);
@@ -592,4 +596,44 @@ void*
 Malloc(ulong n)
 {
 	return malloc(n);
+}
+
+int *waitpids;
+int nwaitpids;
+
+void
+addwaitpid(int pid)
+{
+	waitpids = realloc(waitpids, (nwaitpids+1)*sizeof waitpids[0]);
+	if(waitpids == 0)
+		panic("Can't realloc %d waitpids", nwaitpids+1);
+	waitpids[nwaitpids++] = pid;
+}
+
+void
+delwaitpid(int pid)
+{
+	int r, w;
+	
+	for(r=w=0; r<nwaitpids; r++)
+		if(waitpids[r] != pid)
+			waitpids[w++] = waitpids[r];
+	nwaitpids = w;
+}
+
+void
+clearwaitpids(void)
+{
+	nwaitpids = 0;
+}
+
+int
+havewaitpid(int pid)
+{
+	int i;
+
+	for(i=0; i<nwaitpids; i++)
+		if(waitpids[i] == pid)
+			return 1;
+	return 0;
 }

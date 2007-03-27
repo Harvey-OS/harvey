@@ -185,8 +185,9 @@ struct DN
 	RR	*rr;		/* resource records off this name */
 	ulong	referenced;	/* time last referenced */
 	ulong	lookuptime;	/* last time we tried to get a better value */
+	/* refs was `char' but we've seen refs > 120, so go whole hog */
+	ulong	refs;		/* for mark and sweep */
 	ushort	class;		/* RR class */
-	char	refs;		/* for mark and sweep */
 	uchar	respcode;	/* response code */
 /* was:	char	nonexistent; /* true if we get an authoritative nx for this domain */
 	ulong	ordinal;

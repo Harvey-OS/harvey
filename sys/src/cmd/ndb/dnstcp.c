@@ -38,9 +38,9 @@ void
 main(int argc, char *argv[])
 {
 	int len, rcode;
-	uchar buf[512];
 	char tname[32];
 	char *err, *ext = "";
+	uchar buf[512], callip[IPaddrlen];
 	Request req;
 	DNSmsg reqmsg, repmsg;
 
@@ -79,6 +79,8 @@ main(int argc, char *argv[])
 	if(myipaddr(ipaddr, mntpt) < 0)
 		sysfatal("can't read my ip address");
 	dnslog("dnstcp call from %s to %I", caller, ipaddr);
+	memset(callip, 0, sizeof callip);
+	parseip(callip, caller);
 
 	db2cache(1);
 
@@ -102,23 +104,20 @@ main(int argc, char *argv[])
 		memset(&reqmsg, 0, sizeof reqmsg);
 		err = convM2DNS(buf, len, &reqmsg, &rcode);
 		if(err){
-			/* first bytes in buf are source IP addr */
-			dnslog("server: input error: %s from %I",
-				err, buf);
+			dnslog("server: input error: %s from %s", err, caller);
 			break;
 		}
 		if (rcode == 0)
 			if(reqmsg.qdcount < 1){
-				dnslog(
-					"server: no questions from %I", buf);
+				dnslog("server: no questions from %s", caller);
 				break;
 			} else if(reqmsg.flags & Fresp){
-				dnslog(
-				    "server: reply not request from %I", buf);
+				dnslog("server: reply not request from %s",
+					caller);
 				break;
 			} else if((reqmsg.flags & Omask) != Oquery){
-				dnslog("server: op %d from %I",
-					reqmsg.flags & Omask, buf);
+				dnslog("server: op %d from %s",
+					reqmsg.flags & Omask, caller);
 				break;
 			}
 		if(debug)
@@ -132,7 +131,7 @@ main(int argc, char *argv[])
 			if(reqmsg.qd->type == Taxfr)
 				dnzone(&reqmsg, &repmsg, &req);
 			else {
-				dnserver(&reqmsg, &repmsg, &req, buf, rcode);
+				dnserver(&reqmsg, &repmsg, &req, callip, rcode);
 				reply(1, &repmsg, &req);
 				rrfreelist(repmsg.qd);
 				rrfreelist(repmsg.an);

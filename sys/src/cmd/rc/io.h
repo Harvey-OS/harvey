@@ -1,6 +1,5 @@
 #define	EOF	(-1)
 #define	NBUF	512
-typedef struct io io;
 struct io{
 	int fd;
 	char *bufp, *ebuf, *strp, buf[NBUF];

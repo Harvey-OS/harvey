@@ -1460,7 +1460,7 @@ fs_wstat(Chan* chan, Fcall* f, Fcall*, char* strs)
 	 * .qid.path, .qid.vers and .muid are checked for validity but
 	 * any attempt to change them is an error.
 	 * .qid.type/.mode, .mtime, .name, .length, .uid and .gid can
-	 * possibly be changed.
+	 * possibly be changed (and .muid iff wstatallow).
 	 *
 	 * 'Op' flags there are changed fields, i.e. it's not a no-op.
 	 * 'Tsync' flags all fields are defaulted.
@@ -1479,14 +1479,6 @@ fs_wstat(Chan* chan, Fcall* f, Fcall*, char* strs)
 	if(dir.qid.vers != ~0){
 		if(dir.qid.vers != file->qid.vers){
 			error = Ewstatv;
-			goto out;
-		}
-		tsync = 0;
-	}
-	if(dir.muid != nil && *dir.muid != '\0'){
-		muid = strtouid(dir.muid);
-		if(muid != d->muid && !wstatallow){
-			error = Ewstatm;
 			goto out;
 		}
 		tsync = 0;
@@ -1669,6 +1661,18 @@ fs_wstat(Chan* chan, Fcall* f, Fcall*, char* strs)
 		tsync = 0;
 	} else
 		uid = d->uid;
+	if(dir.muid != nil && *dir.muid != '\0'){
+		muid = strtouid(dir.muid);
+		if(muid != d->muid){
+			if(!wstatallow){
+				error = Ewstatm;
+				goto out;
+			}
+			op = 1;
+		}
+		tsync = 0;
+	} else
+		muid = d->muid;
 
 	/*
 	 * Check for permission to change group, must be
@@ -1701,6 +1705,7 @@ fs_wstat(Chan* chan, Fcall* f, Fcall*, char* strs)
 			strncpy(d->name, dir.name, sizeof(d->name));
 		d->uid = uid;
 		d->gid = gid;
+		d->muid = muid;
 	}
 	if(!tsync)
 		accessdir(p, d, FREAD, file->uid);
