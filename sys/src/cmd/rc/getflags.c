@@ -9,7 +9,7 @@ char cmdline[NCMDLINE+1];
 char *cmdname;
 static char *flagarg="";
 static void reverse(char**, char**);
-static scanflag(int, char*);
+static int scanflag(int, char*);
 static void errn(char*, int);
 static void errs(char*);
 static void errc(int);
@@ -92,7 +92,7 @@ reverse(char **p, char **q)
 	for(;p<q;p++,--q){ t=*p; *p=*q; *q = t; }
 }
 
-static
+static int
 scanflag(int c, char *f)
 {
 	int fc, count;

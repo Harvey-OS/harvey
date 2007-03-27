@@ -1105,11 +1105,12 @@ netquery(DN *dp, int type, RR *nsrp, Request *reqp, int depth)
 	if(depth > 12)			/* in a recursive loop? */
 		return 0;
 
-	slave(reqp);			/* might fork */
-	/* if so, parent process longjmped to req->mret; we're child slave */
-	if (!reqp->isslave)
-		dnslog("[%d] netquery: slave returned with reqp->isslave==0",
-			getpid());
+	slave(reqp);
+	/*
+	 * slave might have forked.  if so, the parent process longjmped to
+	 * req->mret; we're usually the child slave, but if there are too
+	 * many children already, we're still the same process.
+	 */
 
 	/* don't lock before call to slave so only children can block */
 	lock = reqp->isslave != 0;

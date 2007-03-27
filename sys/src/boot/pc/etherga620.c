@@ -325,9 +325,11 @@ ga620command(Ctlr* ctlr, int cmd, int flags, int index)
 static void
 ga620attach(Ether* edev)
 {
+	int i;
+
 	if (edev->mbps == 0) {
-		print("waiting for link...");
-		while (edev->mbps == 0) {
+		print("ga620: waiting for link...");
+		for (i = 0; i < 30 && edev->mbps == 0; i++) {
 			print(".");
 			delay(1000);
 		}

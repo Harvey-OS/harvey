@@ -9,6 +9,7 @@
 /*
  * Search through the following code to see if we're just going to exit.
  */
+int
 exitnext(void){
 	union code *c=&runq->code[runq->pc];
 	while(c->f==Xpopredir) c++;
@@ -396,18 +397,18 @@ execflag(void)
 	char *letter, *val;
 	switch(count(runq->argv->words)){
 	case 2:
-		setstatus(flag[runq->argv->words->next->word[0]]?"":"flag not set");
+		setstatus(flag[(uchar)runq->argv->words->next->word[0]]?"":"flag not set");
 		break;
 	case 3:
 		letter = runq->argv->words->next->word;
 		val = runq->argv->words->next->next->word;
 		if(strlen(letter)==1){
 			if(strcmp(val, "+")==0){
-				flag[letter[0]] = flagset;
+				flag[(uchar)letter[0]] = flagset;
 				break;
 			}
 			if(strcmp(val, "-")==0){
-				flag[letter[0]] = 0;
+				flag[(uchar)letter[0]] = 0;
 				break;
 			}
 		}

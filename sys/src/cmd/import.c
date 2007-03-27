@@ -24,6 +24,7 @@ char		*aan = "/bin/aan";
 AuthInfo 	*ai;
 int		debug;
 int		doauth = 1;
+int		timedout;
 
 int	connect(char*, char*, int);
 int	passive(void);
@@ -192,7 +193,7 @@ main(int argc, char **argv)
 		if(fd < 0)
 			sysfatal("can't establish ssl connection: %r");
 	}
-	else if (filterp) 
+	else if (filterp)
 		fd = filter(fd, filterp, argv[0]);
 
 	if(srvpost){
@@ -214,6 +215,7 @@ main(int argc, char **argv)
 void
 catcher(void*, char *msg)
 {
+	timedout = 1;
 	if(strcmp(msg, "alarm") == 0)
 		noted(NCONT);
 	noted(NDFLT);
@@ -254,7 +256,7 @@ old9p(int fd)
 		close(fd);
 		close(p[0]);
 	}
-	return p[1];	
+	return p[1];
 }
 
 int
@@ -273,8 +275,9 @@ connect(char *system, char *tree, int oldserver)
 			authp = "p9sk2";
 		else
 			authp = "p9any";
-	
-		ai = auth_proxy(fd, auth_getkey, "proto=%q role=client %s", authp, keyspec);
+
+		ai = auth_proxy(fd, auth_getkey, "proto=%q role=client %s",
+			authp, keyspec);
 		if(ai == nil)
 			sysfatal("%r: %s", system);
 	}
@@ -287,6 +290,8 @@ connect(char *system, char *tree, int oldserver)
 
 	n = read(fd, buf, sizeof buf - 1);
 	if(n!=2 || buf[0]!='O' || buf[1]!='K'){
+		if (timedout)
+			sysfatal("timed out connecting to %s", na);
 		buf[sizeof buf - 1] = '\0';
 		sysfatal("bad remote tree: %s", buf);
 	}
@@ -336,7 +341,7 @@ filter(int fd, char *cmd, char *host)
 	char newport[256], buf[256], *s;
 	char *argv[16], *file, *pbuf;
 
-	if ((len = read(fd, newport, sizeof newport - 1)) < 0) 
+	if ((len = read(fd, newport, sizeof newport - 1)) < 0)
 		sysfatal("filter: cannot write port; %r\n");
 	newport[len] = '\0';
 
@@ -347,7 +352,7 @@ filter(int fd, char *cmd, char *host)
 	pbuf = strrchr(buf, '!');
 	strecpy(pbuf, buf+sizeof buf, s);
 
-	if(debug) 
+	if(debug)
 		fprint(2, "filter: remote port %s\n", newport);
 
 	argc = tokenize(cmd, argv, nelem(argv)-2);
@@ -377,7 +382,7 @@ filter(int fd, char *cmd, char *host)
 		close(fd);
 		close(p[0]);
 	}
-	return p[1];	
+	return p[1];
 }
 
 static void
