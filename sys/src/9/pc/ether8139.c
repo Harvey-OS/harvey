@@ -643,8 +643,10 @@ rtl8139match(Ether* edev, int id)
 		}
 
 		ctlr->port = port;
-		if(rtl8139reset(ctlr))
+		if(rtl8139reset(ctlr)) {
+			iofree(port);
 			continue;
+		}
 		pcisetbme(p);
 
 		ctlr->active = 1;
