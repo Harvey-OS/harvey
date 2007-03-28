@@ -37,7 +37,7 @@ mconfinit(void)
 	}
 	mconf.memsize = size;
 	mbp = mconf.bank;
-	mbp->base = 0x40000000;			/* fake addresses */
+	mbp->base = 0x10000000;			/* fake addresses */
 	mbp->limit = mbp->base + size;
 	mbp++;
 

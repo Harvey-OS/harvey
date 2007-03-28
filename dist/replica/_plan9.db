@@ -192,7 +192,7 @@
 386/bin/cpp - 775 sys sys 1168402297 150459
 386/bin/cpu - 775 sys sys 1168402297 139484
 386/bin/crop - 775 sys sys 1168402298 116374
-386/bin/cwfs - 775 sys sys 1174964426 366681
+386/bin/cwfs - 775 sys sys 1175023297 366681
 386/bin/date - 775 sys sys 1148500618 43311
 386/bin/db - 775 sys sys 1172203054 346003
 386/bin/dc - 775 sys sys 1168402299 99260
@@ -344,7 +344,7 @@
 386/bin/ndb/dns - 775 sys sys 1174964429 277544
 386/bin/ndb/dnsdebug - 775 sys sys 1174964430 252008
 386/bin/ndb/dnsquery - 775 sys sys 1174704818 64417
-386/bin/ndb/dnstcp - 775 sys sys 1174964431 250380
+386/bin/ndb/dnstcp - 775 sys sys 1175023298 250427
 386/bin/ndb/ipquery - 775 sys sys 1169612031 96994
 386/bin/ndb/mkdb - 775 sys sys 1168402340 64211
 386/bin/ndb/mkhash - 775 sys sys 1168402340 84780
@@ -7992,7 +7992,7 @@ sys/src/9/pc/ether2114x.c - 664 sys sys 1145359795 41693
 sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
 sys/src/9/pc/ether79c970.c - 664 sys sys 1160070602 14088
 sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
-sys/src/9/pc/ether8139.c - 664 sys sys 1160066369 18561
+sys/src/9/pc/ether8139.c - 664 sys sys 1175019929 18584
 sys/src/9/pc/ether8169.c - 664 sys sys 1172259757 25466
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1131290377 32294
 sys/src/9/pc/ether82557.c - 664 sys sys 1153082663 30197
@@ -10008,7 +10008,7 @@ sys/src/cmd/cwfs/malloc.c - 664 sys sys 1174281557 2360
 sys/src/cmd/cwfs/mkfile - 664 sys sys 1174941889 201
 sys/src/cmd/cwfs/mworm.c - 664 sys sys 1174370308 4311
 sys/src/cmd/cwfs/net.c - 664 sys sys 1174521421 9939
-sys/src/cmd/cwfs/pc.c - 664 sys sys 1174716747 1718
+sys/src/cmd/cwfs/pc.c - 664 sys sys 1174976414 1718
 sys/src/cmd/cwfs/portdat.h - 664 sys sys 1174716952 15241
 sys/src/cmd/cwfs/portfns.h - 664 sys sys 1174798778 6701
 sys/src/cmd/cwfs/portmkfile - 664 sys sys 1174798711 791
