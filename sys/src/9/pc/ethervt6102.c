@@ -925,7 +925,7 @@ vt6102pci(void)
 
 	p = nil;
 	while(p = pcimatch(p, 0, 0)){
-		if(p->ccrb != 0x02 || p->ccru != 0)
+		if(p->ccrb != Pcibcnet || p->ccru != Pciscether)
 			continue;
 
 		switch((p->did<<16)|p->vid){
@@ -950,12 +950,14 @@ vt6102pci(void)
 		ctlr->cls = cls*4;
 		if(ctlr->cls < sizeof(Ds)){
 			print("vt6102: cls %d < sizeof(Ds)\n", ctlr->cls);
+			iofree(port);
 			free(ctlr);
 			continue;
 		}
 		ctlr->tft = Ctft64;
 
 		if(vt6102reset(ctlr)){
+			iofree(port);
 			free(ctlr);
 			continue;
 		}

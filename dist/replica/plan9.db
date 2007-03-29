@@ -1,6 +1,6 @@
 386 - 20000000775 sys sys 1010957353 0
 386/9load - 775 sys sys 1171784718 220040
-386/9loaddebug - 775 sys sys 1174186577 401944
+386/9loaddebug - 775 sys sys 1175111768 401962
 386/9loadlite - 775 sys sys 1171784720 137116
 386/9loadlitedebug - 775 sys sys 1174186577 202506
 386/9pc - 775 sys sys 1161230890 1924142
@@ -5771,7 +5771,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1174242183 264068
+sys/games/lib/fortunes - 664 sys sys 1175084846 264123
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -7068,7 +7068,7 @@ sys/lib/tmac/mmt - 664 sys sys 964454718 40915
 sys/lib/tmac/name.sed - 664 sys sys 944956202 62
 sys/lib/tmac/sendcover - 775 sys sys 944956202 50
 sys/lib/tmac/strings.mm - 664 sys sys 964455723 2146
-sys/lib/tmac/tmac.an - 664 sys sys 1174885603 8441
+sys/lib/tmac/tmac.an - 664 sys sys 1175141775 8441
 sys/lib/tmac/tmac.anhtml - 664 sys sys 984696197 105
 sys/lib/tmac/tmac.antimes - 664 sys sys 964454718 7809
 sys/lib/tmac/tmac.bits - 664 sys sys 944956202 1089
@@ -8015,7 +8015,7 @@ sys/src/9/pc/etherrhine.c - 664 sys sys 1081706478 13799
 sys/src/9/pc/ethersink.c - 664 sys sys 1048644103 1076
 sys/src/9/pc/ethersmc.c - 664 sys sys 1162951986 15116
 sys/src/9/pc/ethervgbe.c - 664 sys sys 1160066496 26838
-sys/src/9/pc/ethervt6102.c - 664 sys sys 1131907459 22286
+sys/src/9/pc/ethervt6102.c - 664 sys sys 1175105554 22333
 sys/src/9/pc/etherwavelan.c - 664 sys sys 1131290380 3747
 sys/src/9/pc/floppy.h - 664 sys sys 1055700609 3835
 sys/src/9/pc/fns.h - 664 sys sys 1173287378 4719
