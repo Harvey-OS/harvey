@@ -467,8 +467,8 @@
 .ift \{.ds R ®
 .dsS \s\n()S
 ..\}
-.ifn \{.if \nL<=0 .nr )L 11i
-.ie \{\c
+.ifn \{.ie \nL<=0 .nr )L 11i
+.el \{\c
 .nr )L \nLu
 .\" Changed the above from .nr )L 1000i
 .\" (doesn't work for invocation outside of man) [sape]
