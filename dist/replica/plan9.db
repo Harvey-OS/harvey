@@ -7589,7 +7589,7 @@ sys/man/3/dup - 664 sys sys 1015024778 1099
 sys/man/3/env - 664 sys sys 1015024778 1409
 sys/man/3/ether - 664 sys sys 984709635 2563
 sys/man/3/floppy - 664 sys sys 954378905 881
-sys/man/3/fs - 664 sys sys 1174450141 2894
+sys/man/3/fs - 664 sys sys 1175145095 3147
 sys/man/3/i82365 - 664 sys sys 954378906 884
 sys/man/3/ip - 664 sys sys 1174771711 22618
 sys/man/3/kbmap - 664 sys sys 1131110122 1732
@@ -8114,7 +8114,7 @@ sys/src/9/port/devcons.c - 664 sys sys 1168304164 23127
 sys/src/9/port/devdraw.c - 664 sys sys 1147023550 44447
 sys/src/9/port/devdup.c - 664 sys sys 1014931172 2332
 sys/src/9/port/devenv.c - 664 sys sys 1169498893 7015
-sys/src/9/port/devfs.c - 664 sys sys 1158979963 10897
+sys/src/9/port/devfs.c - 664 sys sys 1175146085 11517
 sys/src/9/port/devkbmap.c - 664 sys sys 1130763846 3064
 sys/src/9/port/devkprof.c - 664 sys sys 1014931173 3111
 sys/src/9/port/devloopback.c - 664 sys sys 1138458368 14579
