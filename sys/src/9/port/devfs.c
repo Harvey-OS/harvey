@@ -1,9 +1,8 @@
 /*
  * File system devices.
- * '#k'.
  * Follows device config in Ken's file server.
- * Builds mirrors, device cats, interleaving, and partition of devices out of
- * other (inner) devices.
+ * Builds mirrors, concatenations, interleavings, and partitions
+ * of devices out of other (inner) devices.
  */
 
 #include "u.h"
@@ -20,23 +19,24 @@ enum {
 	Fcat,			/* catenation of others */
 	Finter,			/* interleaving of others */
 	Fpart,			/* part of others */
+	Fclear,			/* start over */
 
 	Blksize	= 8*1024,	/* for Finter only */
-	Maxconf	= 1024,		/* max length for config */
-
-	Ndevs	= 64,
-	Nfsdevs = 2*Ndevs,
 
 	Qtop	= 0,		/* top dir (contains "fs") */
-	Qdir	= 1,		/* actual dir */
-	Qctl	= 2,		/* ctl file */
-	Qfirst	= 3,		/* first fs file */
+	Qdir,			/* actual dir */
+	Qctl,			/* ctl file */
+	Qfirst,			/* first fs file */
+
+	/* tunable parameters */
+	Maxconf	= 4*1024,	/* max length for config */
+	Ndevs	= 32,		/* max. inner devs per command */
+	Nfsdevs = 128,		/* max. created devs, total */
 };
 
 #define	Cfgstr	"fsdev:\n"
 
 typedef struct Fsdev Fsdev;
-
 struct Fsdev
 {
 	int	type;
@@ -49,9 +49,11 @@ struct Fsdev
 	vlong	isize[Ndevs];	/* sizes for inner devices */
 };
 
+extern Dev fsdevtab;		/* forward */
+
 /*
- * Once configured, a fsdev is never removed. The name of those
- * configured is never nil. We have no locks here.
+ * Once configured, a fsdev is never removed.  The name of those
+ * configured is never nil.  We have no locks here.
  */
 static Fsdev	fsdev[Nfsdevs];
 
@@ -64,6 +66,7 @@ static Cmdtab configs[] = {
 	Fcat,	"cat",		0,
 	Finter,	"inter",	0,
 	Fpart,	"part",		5,
+	Fclear,	"clear",	1,	
 };
 
 static char	confstr[Maxconf];
@@ -101,15 +104,15 @@ devalloc(void)
 static void
 setdsize(Fsdev* mp)
 {
-	uchar	buf[128];	/* old DIRLEN plus a little should be plenty */
 	int	i;
+	long	l;
+	uchar	buf[128];	/* old DIRLEN plus a little should be plenty */
 	Chan	*mc;
 	Dir	d;
-	long	l;
 
 	if (mp->type != Fpart){
 		mp->start= 0;
-		mp->size = 0LL;
+		mp->size = 0;
 	}
 	for (i = 0; i < mp->ndevs; i++){
 		mc = mp->idev[i];
@@ -118,7 +121,7 @@ setdsize(Fsdev* mp)
 		mp->isize[i] = d.length;
 		switch(mp->type){
 		case Fmirror:
-			if (mp->size == 0LL || mp->size > d.length)
+			if (mp->size == 0 || mp->size > d.length)
 				mp->size = d.length;
 			break;
 		case Fcat:
@@ -126,7 +129,7 @@ setdsize(Fsdev* mp)
 			break;
 		case Finter:
 			/* truncate to multiple of Blksize */
-			d.length = (d.length & ~(Blksize-1));
+			d.length &= ~(Blksize-1);
 			mp->isize[i] = d.length;
 			mp->size += d.length;
 			break;
@@ -164,22 +167,24 @@ mpshut(Fsdev *mp)
 static void
 mconfig(char* a, long n)	/* "name idev0 idev1" */
 {
-	static	QLock	lck;
+	int	i;
+	vlong	size, start;
+	char	*c, *oldc;
 	Cmdbuf	*cb;
 	Cmdtab	*ct;
 	Fsdev	*mp;
-	int	i;
-	char	*oldc;
-	char	*c;
-	vlong	size, start;
+	static	QLock	lck;
 
 	size = 0;
 	start = 0;
 	if (confstr[0] == 0)
-		seprint(confstr, confstr+sizeof(confstr), Cfgstr);
+		seprint(confstr, confstr + sizeof confstr, Cfgstr);
 	mp = nil;
 	cb = nil;
 	oldc = confstr + strlen(confstr);
+	if (*a == '\0' || *a == '#' || *a == '\n')
+		return;
+
 	qlock(&lck);
 	if (waserror()){
 		*oldc = 0;
@@ -190,32 +195,55 @@ mconfig(char* a, long n)	/* "name idev0 idev1" */
 			free(cb);
 		nexterror();
 	}
+
 	cb = parsecmd(a, n);
 	c = oldc;
 	for (i = 0; i < cb->nf; i++)
-		c = seprint(c, confstr+sizeof(confstr), "%s ", cb->f[i]);
-	*(c-1) = '\n';
+		c = seprint(c, confstr + sizeof confstr, "%s ", cb->f[i]);
+	if (c > confstr)
+		c[-1] = '\n';
 	ct = lookupcmd(cb, configs, nelem(configs));
-	cb->f++;		/* skip command */
+	cb->f++;			/* skip command */
 	cb->nf--;
-	if (ct->index == Fpart){
-		size = strtoll(cb->f[3], nil, 10);
-		cb->nf--;
+	if (cb->nf < 0)			/* nothing to see here, move along */
+		ct->index = -1;
+	switch (ct->index) {
+	case Fpart:
+		if (cb->nf < 4)
+			error("too few fields in fs config");
 		start = strtoll(cb->f[2], nil, 10);
-		cb->nf--;
+		size =  strtoll(cb->f[3], nil, 10);
+		cb->nf -= 2;
+		break;
+	case Fclear:
+		for (mp = fsdev; mp < fsdev + nelem(fsdev); mp++)
+			mpshut(mp);
+		*confstr = '\0';
+		/* FALL THROUGH */
+	case -1:
+		poperror();
+		qunlock(&lck);
+		free(cb);
+		return;
 	}
+	if (cb->nf < 2)
+		error("too few fields in fs config");
+
+	/* reject name if already in use */
 	for (i = 0; i < nelem(fsdev); i++)
 		if (fsdev[i].name != nil && strcmp(fsdev[i].name, cb->f[0])==0)
 			error(Eexist);
+
 	if (cb->nf - 1 > Ndevs)
 		error("too many devices; fix me, increase Ndevs");
 	for (i = 0; i < cb->nf; i++)
 		validname(cb->f[i], (i != 0));
+
 	mp = devalloc();
 	mp->type = ct->index;
 	if (mp->type == Fpart){
-		mp->size = size;
 		mp->start = start;
+		mp->size = size;
 	}
 	kstrdup(&mp->name, cb->f[0]);
 	for (i = 1; i < cb->nf; i++){
@@ -226,21 +254,18 @@ mconfig(char* a, long n)	/* "name idev0 idev1" */
 		mp->ndevs++;
 	}
 	setdsize(mp);
-	poperror();
 	configed = 1;
+
+	poperror();
 	qunlock(&lck);
 	free(cb);
-
 }
 
 static void
 rdconf(void)
 {
-	int	mustrd;
-	char	*s;
-	char	*c;
-	char	*p;
-	char	*e;
+	int mustrd;
+	char *c, *e, *p, *s;
 	Chan *cc;
 	Chan **ccp;
 
@@ -264,13 +289,13 @@ rdconf(void)
 		nexterror();
 	}
 	*ccp = namec(s, Aopen, OREAD, 0);
-	devtab[(*ccp)->type]->read(*ccp, confstr, sizeof(confstr), 0);
+	devtab[(*ccp)->type]->read(*ccp, confstr, sizeof confstr, 0);
 	cclose(*ccp);
 	*ccp = nil;
 	if (strncmp(confstr, Cfgstr, strlen(Cfgstr)) != 0)
 		error("Bad config, first line must be: 'fsdev:\\n'");
 	kstrdup(&c, confstr + strlen(Cfgstr));
-	memset(confstr, 0, sizeof(confstr));
+	memset(confstr, 0, sizeof confstr);
 	for (p = c; p != nil && *p != 0; p = e){
 		e = strchr(p, '\n');
 		if (e == nil)
@@ -334,7 +359,7 @@ static Chan*
 mattach(char *spec)
 {
 	*confstr = 0;
-	return devattach(L'k', spec);
+	return devattach(fsdevtab.dc, spec);
 }
 
 static Walkqid*
@@ -353,7 +378,7 @@ mstat(Chan *c, uchar *db, int n)
 	int	p;
 
 	p = c->qid.path;
-	memset(&d, 0, sizeof(d));
+	memset(&d, 0, sizeof d);
 	switch(p){
 	case Qtop:
 		devdir(c, tqid, "#k", 0, eve, DMDIR|0775, &d);
@@ -432,20 +457,19 @@ static long
 interio(Fsdev *mp, int isread, void *a, long n, vlong off)
 {
 	int	i;
-	Chan*	mc;
-	long	l, wl, wsz;
+	long	boff, res, l, wl, wsz;
 	vlong	woff, blk, mblk;
-	long	boff, res;
+	Chan*	mc;
 
 	blk  = off / Blksize;
 	boff = off % Blksize;
 	wsz  = Blksize - boff;
 	res = n;
 	while(n > 0){
+		mblk = blk / mp->ndevs;
 		i    = blk % mp->ndevs;
 		mc   = mp->idev[i];
-		mblk = blk / mp->ndevs;
-		woff = mblk * Blksize + boff;
+		woff = mblk*Blksize + boff;
 		if (n > wsz)
 			l = wsz;
 		else
@@ -469,10 +493,9 @@ static long
 mread(Chan *c, void *a, long n, vlong off)
 {
 	int	i;
-	Fsdev	*mp;
+	long	l, res;
 	Chan	*mc;
-	long	l;
-	long	res;
+	Fsdev	*mp;
 
 	if (c->qid.type & QTDIR)
 		return devdirread(c, a, n, 0, 0, mgen);
@@ -530,10 +553,10 @@ mread(Chan *c, void *a, long n, vlong off)
 static long
 mwrite(Chan *c, void *a, long n, vlong off)
 {
-	Fsdev	*mp;
-	long	l, res;
 	int	i;
+	long	l, res;
 	Chan	*mc;
+	Fsdev	*mp;
 
 	if (c->qid.type & QTDIR)
 		error(Eperm);
@@ -552,7 +575,7 @@ mwrite(Chan *c, void *a, long n, vlong off)
 	res = n;
 	switch(mp->type){
 	case Fmirror:
-		for (i = mp->ndevs-1; i >=0; i--){
+		for (i = mp->ndevs - 1; i >= 0; i--){
 			mc = mp->idev[i];
 			l = devtab[mc->type]->write(mc, a, n, off);
 			if (l < res)
