@@ -1,8 +1,8 @@
 386 - 20000000775 sys sys 1010957353 0
 386/9load - 775 sys sys 1171784718 220040
-386/9loaddebug - 775 sys sys 1175111768 401962
+386/9loaddebug - 775 sys sys 1175311076 402159
 386/9loadlite - 775 sys sys 1171784720 137116
-386/9loadlitedebug - 775 sys sys 1174186577 202506
+386/9loadlitedebug - 775 sys sys 1175311076 202588
 386/9pc - 775 sys sys 1161230890 1924142
 386/9pc.gz - 664 sys sys 1161232307 821176
 386/9pccpu - 775 sys sys 1161230955 1636008
@@ -7999,7 +7999,7 @@ sys/src/9/pc/ether82557.c - 664 sys sys 1153082663 30197
 sys/src/9/pc/ether83815.c - 664 sys sys 1172259521 26346
 sys/src/9/pc/ether8390.c - 664 sys sys 1131290377 17702
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
-sys/src/9/pc/etherdp83820.c - 664 sys sys 1160069116 29352
+sys/src/9/pc/etherdp83820.c - 664 sys sys 1175292818 29621
 sys/src/9/pc/etherec2t.c - 664 sys sys 1135784135 4092
 sys/src/9/pc/etherelnk3.c - 664 sys sys 1158012427 48807
 sys/src/9/pc/etherga620.c - 664 sys sys 1174020176 29882
@@ -9070,7 +9070,7 @@ sys/src/boot/pc/ether8390.h - 664 sys sys 1015007951 1392
 sys/src/boot/pc/etherec2t.c - 664 sys sys 1015007951 3598
 sys/src/boot/pc/etherelnk3.c - 664 sys sys 1158012439 44736
 sys/src/boot/pc/etherelnk3x.c - 664 sys sys 1015007951 24989
-sys/src/boot/pc/etherga620.c - 664 sys sys 1174944362 26969
+sys/src/boot/pc/etherga620.c - 664 sys sys 1175289484 27168
 sys/src/boot/pc/etherga620fw.h - 664 sys sys 1174080072 222295
 sys/src/boot/pc/etherif.h - 664 sys sys 1174077279 1338
 sys/src/boot/pc/etherigbe.c - 664 sys sys 1140710606 40769
@@ -9089,7 +9089,7 @@ sys/src/boot/pc/kfs.h - 664 sys sys 1032215924 861
 sys/src/boot/pc/kfsboot.c - 664 sys sys 1032215914 4788
 sys/src/boot/pc/l.s - 664 sys sys 1130887225 18115
 sys/src/boot/pc/lib.h - 664 sys sys 1135487939 2796
-sys/src/boot/pc/load.c - 664 sys sys 1174077194 9288
+sys/src/boot/pc/load.c - 664 sys sys 1175289729 9410
 sys/src/boot/pc/mbr.s - 664 sys sys 1015007953 6234
 sys/src/boot/pc/mem.h - 664 sys sys 1130887225 3371
 sys/src/boot/pc/memory.c - 664 sys sys 1019533021 10272
