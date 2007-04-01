@@ -8002,7 +8002,7 @@ sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
 sys/src/9/pc/etherdp83820.c - 664 sys sys 1175292818 29621
 sys/src/9/pc/etherec2t.c - 664 sys sys 1135784135 4092
 sys/src/9/pc/etherelnk3.c - 664 sys sys 1158012427 48807
-sys/src/9/pc/etherga620.c - 664 sys sys 1174020176 29882
+sys/src/9/pc/etherga620.c - 664 sys sys 1175322931 29912
 sys/src/9/pc/etherga620fw.h - 664 sys sys 1026847642 222295
 sys/src/9/pc/etherif.h - 664 sys sys 1088178711 961
 sys/src/9/pc/etherigbe.c - 664 sys sys 1168306113 44967
@@ -14098,11 +14098,11 @@ sys/src/cmd/upas/filterkit/readaddrs.c - 664 sys sys 1143759341 1331
 sys/src/cmd/upas/filterkit/token.c - 664 sys sys 1162952184 1319
 sys/src/cmd/upas/fs - 20000000775 sys sys 1143946985 0
 sys/src/cmd/upas/fs/dat.h - 664 sys sys 1143929916 4189
-sys/src/cmd/upas/fs/fs.c - 664 sys sys 1165967907 26929
+sys/src/cmd/upas/fs/fs.c - 664 sys sys 1175322795 26929
 sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1165967944 16484
 sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1165967884 27070
 sys/src/cmd/upas/fs/mkfile - 664 sys sys 1047490336 321
-sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1165967878 7480
+sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1175322803 7498
 sys/src/cmd/upas/fs/pop3.c - 664 sys sys 1133988332 13024
 sys/src/cmd/upas/fs/readdir.c - 664 sys sys 944961331 203
 sys/src/cmd/upas/fs/rfc2047-test - 664 sys sys 1143946985 1146
