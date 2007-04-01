@@ -33,9 +33,9 @@ ulong	path;		// incremented for each new file
 Fid	*fids;
 int	mfd[2];
 char	user[Elemlen];
-int	messagesize = 4*1024*IOHDRSZ;
-uchar	mdata[8*1024*IOHDRSZ];
-uchar	mbuf[8*1024*IOHDRSZ];
+int	messagesize = 4*1024+IOHDRSZ;
+uchar	mdata[8*1024+IOHDRSZ];
+uchar	mbuf[8*1024+IOHDRSZ];
 Fcall	thdr;
 Fcall	rhdr;
 int	fflg;
