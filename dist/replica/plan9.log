@@ -48108,3 +48108,4 @@
 1175324417 0 c sys/src/9/pc/etherga620.c - 664 sys sys 1175322931 29912
 1175324417 1 c sys/src/cmd/upas/fs/fs.c - 664 sys sys 1175322795 26929
 1175324417 2 c sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1175322803 7498
+1175407297 0 c sys/man/1/prof - 664 sys sys 1175407194 3594
