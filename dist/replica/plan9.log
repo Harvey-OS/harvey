@@ -48109,3 +48109,7 @@
 1175324417 1 c sys/src/cmd/upas/fs/fs.c - 664 sys sys 1175322795 26929
 1175324417 2 c sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1175322803 7498
 1175407297 0 c sys/man/1/prof - 664 sys sys 1175407194 3594
+1175565606 0 c sys/src/9/pc/pci.c - 664 sys sys 1175564101 29261
+1175565606 1 c sys/src/9/pc/sdata.c - 664 sys sys 1175564140 52809
+1175565606 2 c sys/src/boot/pc/pci.c - 664 sys sys 1175564218 20545
+1175565606 3 c sys/src/boot/pc/sdata.c - 664 sys sys 1175564193 38846

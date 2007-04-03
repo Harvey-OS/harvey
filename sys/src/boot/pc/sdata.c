@@ -1465,6 +1465,7 @@ atapnp(void)
 		case (0x4D69<<16)|0x105A:	/* Promise Ultra/133 TX2 */
 		case (0x3373<<16)|0x105A:	/* Promise 20378 RAID */
 		case (0x3149<<16)|0x1106:	/* VIA VT8237 SATA/RAID */
+		case (0x4379<<16)|0x1002:	/* ATI 4379 SATA*/
 		case (0x3112<<16)|0x1095:	/* SiL 3112 SATA (DMA busted?) */
 		case (0x3114<<16)|0x1095:	/* SiL 3114 SATA/RAID */
 			pi = 0x85;

@@ -8045,7 +8045,7 @@ sys/src/9/pc/pcdisk - 664 sys sys 1161302470 1495
 sys/src/9/pc/pcf - 664 sys sys 1161302469 1553
 sys/src/9/pc/pcfl - 664 sys sys 1161302470 1587
 sys/src/9/pc/pcflop - 664 sys sys 1158061762 1513
-sys/src/9/pc/pci.c - 664 sys sys 1173287378 29216
+sys/src/9/pc/pci.c - 664 sys sys 1175564101 29261
 sys/src/9/pc/pcmciamodem.c - 664 sys sys 1099761153 1586
 sys/src/9/pc/pcmkfile - 664 sys sys 1109303822 101
 sys/src/9/pc/piix4smbus.c - 664 sys sys 1091129037 5230
@@ -8059,7 +8059,7 @@ sys/src/9/pc/screen.c - 664 sys sys 1136336092 13971
 sys/src/9/pc/screen.h - 664 sys sys 1147023549 4256
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1170456695 55276
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
-sys/src/9/pc/sdata.c - 664 sys sys 1167774860 52718
+sys/src/9/pc/sdata.c - 664 sys sys 1175564140 52809
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1167774867 25865
 sys/src/9/pc/sdmylex.c - 664 sys sys 1171321627 28237
 sys/src/9/pc/sdscsi.c - 664 sys sys 1158889425 7241
@@ -9102,13 +9102,13 @@ sys/src/boot/pc/pbsdisk.s - 664 sys sys 1017854325 6371
 sys/src/boot/pc/pbsdisklba - 775 sys sys 1015007954 509
 sys/src/boot/pc/pbsdisklba.s - 664 sys sys 1015007954 6022
 sys/src/boot/pc/pbslba.s - 664 sys sys 1143465392 8158
-sys/src/boot/pc/pci.c - 664 sys sys 1161067268 20500
+sys/src/boot/pc/pci.c - 664 sys sys 1175564218 20545
 sys/src/boot/pc/print.c - 664 sys sys 1094674483 219
 sys/src/boot/pc/queue.c - 664 sys sys 1015007954 566
 sys/src/boot/pc/sd.h - 664 sys sys 1153333456 2244
 sys/src/boot/pc/sd53c8xx.c - 664 sys sys 1144961191 52127
 sys/src/boot/pc/sd53c8xx.i - 664 sys sys 1015007955 27245
-sys/src/boot/pc/sdata.c - 664 sys sys 1161230053 38799
+sys/src/boot/pc/sdata.c - 664 sys sys 1175564193 38846
 sys/src/boot/pc/sdmylex.c - 664 sys sys 1171783051 28694
 sys/src/boot/pc/sdscsi.c - 664 sys sys 1144961224 7006
 sys/src/boot/pc/trap.c - 664 sys sys 1144961191 7499
