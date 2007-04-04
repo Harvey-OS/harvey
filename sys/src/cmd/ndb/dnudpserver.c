@@ -232,7 +232,6 @@ reply(int fd, uchar *buf, DNSmsg *rep, Request *reqp)
 {
 	int len;
 	char tname[32];
-	RR *rp;
 
 	if(debug || (trace && subsume(trace, rep->qd->owner->name)))
 		dnslog("%d: reply (%I/%d) %d %s %s qd %R an %R ns %R ar %R",
@@ -242,17 +241,6 @@ reply(int fd, uchar *buf, DNSmsg *rep, Request *reqp)
 			rep->qd, rep->an, rep->ns, rep->ar);
 
 	len = convDNS2M(rep, &buf[OUdphdrsize], Maxudp);
-	if(len <= 0){
-		dnslog("error converting reply: %s %d",
-			rep->qd->owner->name, rep->qd->type);
-		for(rp = rep->an; rp; rp = rp->next)
-			dnslog("an %R", rp);
-		for(rp = rep->ns; rp; rp = rp->next)
-			dnslog("ns %R", rp);
-		for(rp = rep->ar; rp; rp = rp->next)
-			dnslog("ar %R", rp);
-		return;
-	}
 	len += OUdphdrsize;
 	if(write(fd, buf, len) != len)
 		dnslog("error sending reply: %r");

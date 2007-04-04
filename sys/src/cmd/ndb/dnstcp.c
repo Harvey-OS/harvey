@@ -191,14 +191,12 @@ reply(int fd, DNSmsg *rep, Request *req)
 
 
 	len = convDNS2M(rep, buf+2, sizeof(buf) - 2);
-	if(len <= 0)
-		abort();	/* "dnserver: converting reply" */
 	buf[0] = len>>8;
 	buf[1] = len;
 	rv = write(fd, buf, len+2);
 	if(rv != len+2){
-		dnslog("[%d] sending reply: %d instead of %d",
-			getpid(), rv, len+2);
+		dnslog("[%d] sending reply: %d instead of %d", getpid(), rv,
+			len+2);
 		exits(0);
 	}
 }
