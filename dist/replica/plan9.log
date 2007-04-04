@@ -48113,3 +48113,13 @@
 1175565606 1 c sys/src/9/pc/sdata.c - 664 sys sys 1175564140 52809
 1175565606 2 c sys/src/boot/pc/pci.c - 664 sys sys 1175564218 20545
 1175565606 3 c sys/src/boot/pc/sdata.c - 664 sys sys 1175564193 38846
+1175643005 0 c sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1175642286 6881
+1175643005 1 c sys/src/cmd/ndb/dn.c - 664 sys sys 1175642250 32545
+1175643005 2 c sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1175642403 26242
+1175643005 3 c sys/src/cmd/ndb/dns.c - 664 sys sys 1175642266 15906
+1175643005 4 c sys/src/cmd/ndb/dns.h - 664 sys sys 1175642258 10561
+1175643005 5 c sys/src/cmd/ndb/dnstcp.c - 664 sys sys 1175642311 7419
+1175643005 6 c sys/src/cmd/ndb/dnudpserver.c - 664 sys sys 1175642323 5188
+1175655606 0 c 386/bin/ndb/dns - 775 sys sys 1175655233 277472
+1175655606 1 c 386/bin/ndb/dnsdebug - 775 sys sys 1175655234 252202
+1175655606 2 c 386/bin/ndb/dnstcp - 775 sys sys 1175655235 250598

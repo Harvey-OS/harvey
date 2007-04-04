@@ -15,7 +15,7 @@ enum
 	Maxrrr=			16,
 	Maxfdata=		8192,
 
-	Defmaxage=		60*60,		/* 1 hour */
+	Defmaxage=		3*60*60,	/* tune; was 1 hour */
 
 	Qdir=			0,
 	Qdns=			1,

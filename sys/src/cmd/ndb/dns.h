@@ -142,10 +142,11 @@ enum
 	RRmagic=	0xdeadbabe,
 	DNmagic=	0xa110a110,
 
-	/* parallelism */
-	Maxactive=	32,
+	/* parallelism: tune; was 32 */
+	Maxactive=	64,
 
-	Maxreqtm=	60,	/* max. seconds to process a request */
+	/* tune; was 60 */
+	Maxreqtm=	30,	/* max. seconds to process a request */
 };
 
 typedef struct Area	Area;

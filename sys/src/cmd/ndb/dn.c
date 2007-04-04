@@ -488,7 +488,7 @@ getactivity(Request *req, int recursive)
 	 */
 	while(!recursive && dnvars.mutex){
 		unlock(&dnvars);
-		sleep(100);			/* was 200 */
+		sleep(100);			/* tune; was 200 */
 		lock(&dnvars);
 	}
 	rv = ++dnvars.active;
@@ -525,7 +525,7 @@ putactivity(int recursive)
 	dnvars.mutex = 1;
 	while(dnvars.active > 0){
 		unlock(&dnvars);
-		sleep(100);		/* was 100 */
+		sleep(100);		/* tune; was 100 */
 		lock(&dnvars);
 	}
 	unlock(&dnvars);
