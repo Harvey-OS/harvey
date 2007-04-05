@@ -120,12 +120,15 @@ restart:
 		getactivity(&req, 0);
 		req.aborttime = now + Maxreqtm;
 		rcode = 0;
+
 		err = convM2DNS(&buf[OUdphdrsize], len, &reqmsg, &rcode);
 		if(err){
 			/* first bytes in buf are source IP addr */
 			dnslog("server: input error: %s from %I", err, buf);
+			free(err);
 			continue;
 		}
+
 		if (rcode == 0)
 			if(reqmsg.qdcount < 1){
 				dnslog("server: no questions from %I", buf);

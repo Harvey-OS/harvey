@@ -274,8 +274,13 @@ and that the outside network is mounted on
 .BR /net.alt .
 Queries for inside addresses will be sent via
 .B /net/udp
+(or
+.B /net/tcp
+in response to truncated replies)
 and those for outside addresses via
-.BR /net.alt/udp .
+.B /net.alt/udp
+(or
+.BR /net.alt/tcp ).
 This makes
 .I dns
 suitable for serving non-Plan-9 systems in an organization with
@@ -546,7 +551,7 @@ for you.
 is like
 .I ndb/dnsquery
 but bypasses the local server.
-It communicates via UDP with the domain name servers
+It communicates via UDP (and sometimes TCP) with the domain name servers
 in the same way that the local resolver would and displays
 all packets received.
 The query can be specified on the command line or

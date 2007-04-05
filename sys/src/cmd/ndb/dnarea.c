@@ -72,8 +72,9 @@ addarea(DN *dp, RR *rp, Ndbtuple *t)
 	s->neednotify = 1;
 	s->needrefresh = 0;
 
-	dnslog("new area %s %s", dp->name,
-		l == &delegated? "delegated": "owned");
+	if (debug)
+		dnslog("new area %s %s", dp->name,
+			l == &delegated? "delegated": "owned");
 
 	s->next = *l;
 	*l = s;
