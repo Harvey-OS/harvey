@@ -97,8 +97,10 @@ dnslog("sending %d byte notify to %s/%I.%d about %s", n, slave, up->raddr, nhget
 			continue;
 		memset(&repmsg, 0, sizeof repmsg);
 		err = convM2DNS(&ibuf[OUdphdrsize], len, &repmsg, nil);
-		if(err != nil)
+		if(err != nil) {
+			free(err);
 			continue;
+		}
 		if(repmsg.id == reqno && (repmsg.flags & Omask) == Onotify)
 			break;
 	}

@@ -515,7 +515,7 @@ convM2DNS(uchar *buf, int len, DNSmsg *m, int *codep)
 {
 	Scan scan;
 	Scan *sp;
-	char *err;
+	char *err = nil;
 	RR *rp = nil;
 
 	if (codep)
@@ -536,11 +536,14 @@ convM2DNS(uchar *buf, int len, DNSmsg *m, int *codep)
 	USHORT(m->ancount);
 	USHORT(m->nscount);
 	USHORT(m->arcount);
+//	if (mp->flags & Ftrunc)
+//		dnslog("truncated reply, len %d from %I", len, ibuf);
 
 	m->qd = rrloop(sp, "questions",	m->qdcount, 1);
 	m->an = rrloop(sp, "answers",	m->ancount, 0);
 	m->ns = rrloop(sp, "nameservers",m->nscount, 0);
-	err = scan.err;				/* live with bad ar's */
+	if (scan.err)
+		err = strdup(scan.err);		/* live with bad ar's */
 	m->ar = rrloop(sp, "hints",	m->arcount, 0);
 	if (codep)
 		*codep = scan.rcode;
