@@ -87,7 +87,8 @@ send_notify(char *slave, RR *soa, Request *req)
 	/* send 3 times or until we get anything back */
 	n += OUdphdrsize;
 	for(i = 0; i < 3; i++){
-dnslog("sending %d byte notify to %s/%I.%d about %s", n, slave, up->raddr, nhgets(up->rport), soa->owner->name);
+		dnslog("sending %d byte notify to %s/%I.%d about %s", n, slave,
+			up->raddr, nhgets(up->rport), soa->owner->name);
 		if(write(fd, obuf, n) != n)
 			break;
 		alarm(2*1000);

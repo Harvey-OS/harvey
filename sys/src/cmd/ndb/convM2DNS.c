@@ -13,6 +13,7 @@ struct Scan
 	char	*err;
 	char	errbuf[256];	/* hold a formatted error sometimes */
 	int	rcode;		/* outgoing response codes (reply flags) */
+	int	stop;		/* flag: stop processing */
 };
 
 #define NAME(x)		gname(x, rp, sp)
@@ -35,7 +36,7 @@ errneg(RR *rp, Scan *sp, int actual)
 }
 
 static int
-errtoolong(RR *rp, Scan *sp, int actual, int nominal, char *where)
+errtoolong(RR *rp, Scan *sp, int remain, int need, char *where)
 {
 	char *p, *ep;
 	char ptype[64];
@@ -47,8 +48,7 @@ errtoolong(RR *rp, Scan *sp, int actual, int nominal, char *where)
 	if (rp)
 		p = seprint(p, ep, "type %s RR: ",
 			rrname(rp->type, ptype, sizeof ptype));
-	p = seprint(p, ep, "wrong length (actual %d, nominal %d)",
-		actual, nominal);
+	p = seprint(p, ep, "%d bytes needed; %d remain", need, remain);
 	if (rp)
 		seprint(p, ep, ": %R", rp);
 	sp->err = sp->errbuf;
@@ -226,14 +226,54 @@ gname(char *to, RR *rp, Scan *sp)
 	uchar *p;
 
 	tostart = to;
-	if(sp->err)
+	if(sp->err || sp->stop)
 		goto err;
 	pointer = 0;
 	p = sp->p;
 	toend = to + Domlen;
-	for(len = 0; *p && p < sp->ep; len += pointer ? 0 : (n+1)){
-		if((*p & 0xc0) == 0xc0){
-			/* pointer to other spot in message */
+	for(len = 0; *p && p < sp->ep; len += (pointer? 0: n+1)) {
+		n = 0;
+		switch (*p & 0300) {
+		case 0:			/* normal label */
+			if (p < sp->ep)
+				n = *p++ & 077;		/* pick up length */
+			if(len + n < Domlen - 1){
+				if(n > toend - to){
+					errtoolong(rp, sp, toend - to, n,
+						"name too long");
+					goto err;
+//					/* try to compensate and continue */
+//					n = toend - to - 1;
+//					if (n < 0)
+//						n = 0;
+				}
+				memmove(to, p, n);
+				to += n;
+			}
+			p += n;
+			if(*p){
+				if(to >= toend){
+					errtoolong(rp, sp, toend - to, 2,
+				     "more name components but no bytes left");
+					goto err;
+				}
+				*to++ = '.';
+			}
+			break;
+		case 0100:		/* edns extended label type, rfc 2671 */
+			/*
+			 * treat it like an EOF for now; it seems to be at
+			 * the end of a long tcp reply.
+			 */
+			// sp->err = "edns extended label present";
+			dnslog("edns label first byte 0%o = '%c'", *p, *p);
+			sp->stop = 1;
+			goto err;
+			break;
+		case 0200:		/* reserved */
+			sp->err = "reserved-use label present";
+			goto err;
+		case 0300:		/* pointer to other spot in message */
 			if(pointer++ > 10){
 				sp->err = "pointer loop";
 				goto err;
@@ -245,27 +285,7 @@ gname(char *to, RR *rp, Scan *sp)
 				goto err;
 			}
 			n = 0;
-			continue;
-		}
-		n = 0;
-		if (p < sp->ep)
-			n = *p++;
-		if(len + n < Domlen - 1){
-			if(n > toend - to){
-				errtoolong(rp, sp, toend - to, n, "gname 1");
-				goto err;
-			}
-			memmove(to, p, n);
-			to += n;
-		}
-		p += n;
-		if(*p){
-			if(to >= toend){
-				errtoolong(rp, sp, to-tostart, toend-tostart,
-					"gname 2");
-				goto err;
-			}
-			*to++ = '.';
+			break;
 		}
 	}
 	*to = 0;
@@ -330,12 +350,9 @@ retry:
 	 */
 	if (sp->ep - sp->p < len &&
 	   !(strcmp(what, "hints") == 0 ||
-	     sp->p == sp->ep + 1 && strcmp(what, "answers") == 0)) {
-		dnslog("%s sp: base %#p p %#p ep %#p len %d", what,
-			sp->base, sp->p, sp->ep, len);
+	     sp->p == sp->ep + 1 && strcmp(what, "answers") == 0))
 		errtoolong(rp, sp, sp->ep - sp->p, len, "convM2RR");
-	}
-	if(sp->err || sp->rcode){
+	if(sp->err || sp->rcode || sp->stop){
 		rrfree(rp);
 		return 0;
 	}
@@ -445,15 +462,17 @@ retry:
 		 * 235.9.104.135.in-addr.arpa cname
 		 *	235.9.104.135.in-addr.arpa from 135.104.9.235
 		 */
-		if (type == Tcname && sp->p - data == 2 && len == 0)
+		if (type == Tcname && sp->p - data == 2 && len == 0) {
+			// dnslog("convM2RR: got %R", rp);
 			return rp;
-
-		snprint(sp->errbuf, sizeof sp->errbuf,
-			"bad %s RR len (actual %lud != len %d): %R",
-			rrname(type, ptype, sizeof ptype),
-			sp->p - data, len, rp);
-		sp->err = sp->errbuf;
+		}
+		if (len > sp->p - data)
+			dnslog("bad %s RR len (%d bytes nominal, %lud actual): %R",
+				rrname(type, ptype, sizeof ptype), len,
+				sp->p - data, rp);
+		// sp->p = data + len;
 	}
+	// dnslog("convM2RR: got %R", rp);
 	return rp;
 }
 
@@ -470,7 +489,7 @@ convM2Q(Scan *sp)
 	NAME(dname);
 	USHORT(type);
 	USHORT(class);
-	if(sp->err || sp->rcode)
+	if(sp->err || sp->rcode || sp->stop)
 		return nil;
 
 	mstypehack(sp, type, "convM2Q");
@@ -486,7 +505,7 @@ rrloop(Scan *sp, char *what, int count, int quest)
 	int i;
 	RR *first, *rp, **l;
 
-	if(sp->err || sp->rcode)
+	if(sp->err || sp->rcode || sp->stop)
 		return nil;
 	l = &first;
 	first = nil;
@@ -494,7 +513,7 @@ rrloop(Scan *sp, char *what, int count, int quest)
 		rp = quest? convM2Q(sp): convM2RR(sp, what);
 		if(rp == nil)
 			break;
-		if(sp->err || sp->rcode){
+		if(sp->err || sp->rcode || sp->stop){
 			rrfree(rp);
 			break;
 		}
@@ -521,12 +540,12 @@ convM2DNS(uchar *buf, int len, DNSmsg *m, int *codep)
 	if (codep)
 		*codep = 0;
 	assert(len >= 0);
+	memset(&scan, 0, sizeof scan);
 	scan.base = buf;
 	scan.p = buf;
 	scan.ep = buf + len;
 	scan.err = nil;
 	scan.errbuf[0] = '\0';
-	scan.rcode = 0;
 	sp = &scan;
 
 	memset(m, 0, sizeof *m);
@@ -542,9 +561,13 @@ convM2DNS(uchar *buf, int len, DNSmsg *m, int *codep)
 	m->qd = rrloop(sp, "questions",	m->qdcount, 1);
 	m->an = rrloop(sp, "answers",	m->ancount, 0);
 	m->ns = rrloop(sp, "nameservers",m->nscount, 0);
+	if (scan.stop)
+		scan.err = nil;
 	if (scan.err)
 		err = strdup(scan.err);		/* live with bad ar's */
 	m->ar = rrloop(sp, "hints",	m->arcount, 0);
+	if (scan.stop)
+		scan.rcode = 0;
 	if (codep)
 		*codep = scan.rcode;
 	return err;

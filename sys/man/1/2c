@@ -340,14 +340,23 @@ and other such routines.
 \-
 A
 .B #pragma
-of the form
+with any of the following forms:
 .EX
     #pragma incomplete \fItype\fP
+    #pragma incomplete struct \fItag\fP
+    #pragma incomplete union \fItag\fP
 .EE
-tells the compiler that
+where
 .I type
+is a
+.BR typedef 'd
+name for a structure or union type, and
+.I tag
+is a structure or union tag,
+tells the compiler that
+the corresponding type
 should have its signature calculated as an incomplete type
-even when it is fully defined.
+even if it is subsequently fully defined.
 This allows the type signature mechanism to work in the presence
 of opaque types declared in header files, with their full definitions
 visible only to the code which manipulates them.

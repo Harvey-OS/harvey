@@ -19,7 +19,7 @@ struct Dict
 	} x[Ndict];
 	int	n;		/* size of dictionary */
 	uchar	*start;		/* start of packed message */
-	char	buf[4*1024];	/* buffer for unpacked names */
+	char	buf[16*1024];	/* buffer for unpacked names (was 4k) */
 	char	*ep;		/* first free char in buf */
 };
 
@@ -170,6 +170,8 @@ pname(uchar *p, uchar *ep, char *np, Dict *dp)
 			cp++;		/* point past '.' */
 		}
 		if(ep-p < i+1)
+			return ep+1;
+		if (i > Labellen)
 			return ep+1;
 		*p++ = i;		/* count of chars in label */
 		memmove(p, np, i);

@@ -40,7 +40,7 @@ main(int argc, char *argv[])
 	int len, rcode;
 	char tname[32];
 	char *err, *ext = "";
-	uchar buf[512], callip[IPaddrlen];
+	uchar buf[64*1024], callip[IPaddrlen];
 	Request req;
 	DNSmsg reqmsg, repmsg;
 
@@ -173,7 +173,7 @@ reply(int fd, DNSmsg *rep, Request *req)
 {
 	int len, rv;
 	char tname[32];
-	uchar buf[4096];
+	uchar buf[64*1024];
 	RR *rp;
 
 	if(debug){
