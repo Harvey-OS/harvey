@@ -445,18 +445,48 @@ void
 pragincomplete(void)
 {
 	Sym *s;
+	Type *t;
+	int istag, w, et;
 
+	istag = 0;
 	s = getsym();
-	if(s){
-		if(strcmp(s->name, "_off_") == 0)
-			debug['T'] = 0;
-		else if(strcmp(s->name, "_on_") == 0)
-			debug['T'] = 1;
-		else if(s->type == T)
-			diag(Z, "unknown type %s in pragma incomplete", s->name);
-		else
-			s->type->garb |= GINCOMPLETE;
+	if(s == nil)
+		goto out;
+	et = 0;
+	w = s->lexical;
+	if(w == LSTRUCT)
+		et = TSTRUCT;
+	else if(w == LUNION)
+		et = TUNION;
+	if(et != 0){
+		s = getsym();
+		if(s == nil){
+			yyerror("missing struct/union tag in pragma incomplete");
+			goto out;
+		}
+		if(s->lexical != LNAME && s->lexical != LTYPE){
+			yyerror("invalid struct/union tag: %s", s->name);
+			goto out;
+		}
+		dotag(s, et, 0);
+		istag = 1;
+	}else if(strcmp(s->name, "_off_") == 0){
+		debug['T'] = 0;
+		goto out;
+	}else if(strcmp(s->name, "_on_") == 0){
+		debug['T'] = 1;
+		goto out;
 	}
+	t = s->type;
+	if(istag)
+		t = s->suetag;
+	if(t == T)
+		yyerror("unknown type %s in pragma incomplete", s->name);
+	else if(!typesu[t->etype])
+		yyerror("not struct/union type in pragma incomplete: %s", s->name);
+	else
+		t->garb |= GINCOMPLETE;
+out:
 	while(getnsc() != '\n')
 		;
 	if(debug['f'])

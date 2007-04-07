@@ -62,8 +62,7 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uchar *srcip, int rcode)
 	myarea = inmyarea(repp->qd->owner->name);
 	if(myarea != nil) {
 		if(repp->qd->type == Tixfr || repp->qd->type == Taxfr){
-			dnslog(
-			    "server: unsupported xfr request %s for %s from %I",
+			dnslog("server: unsupported xfr request %s for %s from %I",
 				rrname(repp->qd->type, tname, sizeof tname),
 				repp->qd->owner->name, srcip);
 			repp->flags = Runimplimented | Fresp | recursionflag |

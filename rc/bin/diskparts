@@ -1,6 +1,10 @@
 #!/bin/rc
-# set up any /dev/sd partitions
+# set up any disk partitions
 rfork e
+if (! test -e /dev/sdctl)
+	bind -a '#S' /dev
+
+# set up any /dev/sd partitions
 for(disk in /dev/sd[0-9A-Zabd-z]*) {
 	if(test -f $disk/data && test -f $disk/ctl)
 		disk/fdisk -p $disk/data >$disk/ctl >[2]/dev/null
@@ -9,6 +13,9 @@ for(disk in /dev/sd[0-9A-Zabd-z]*) {
 			disk/prep -p $part >$disk/ctl >[2]/dev/null
 }
 
+sysname=`{cat /dev/sysname}
+
 # set up any fs(3) partitions
-if (test -r	/cfg/$sysname/fsconfig)
-	read -m /cfg/$sysname/fsconfig >/dev/fs/ctl
+if (test -e /env/sysname)
+	if (test -r /cfg/$sysname/fsconfig && test -w /dev/fs/ctl)
+		read -m /cfg/$sysname/fsconfig >/dev/fs/ctl

@@ -575,6 +575,8 @@ dbpair2cache(DN *dp, Ndbtuple *entry, Ndbtuple *pair)
 		addarea(dp, rp, pair);
 	} else if(cistrcmp(pair->attr, "mx") == 0)
 		rp = mxrr(entry, pair);
+	else if(cistrcmp(pair->attr, "srv") == 0)
+		rp = srvrr(entry, pair);
 	else if(cistrcmp(pair->attr, "cname") == 0)
 		rp = cnamerr(entry, pair);
 	else if(cistrcmp(pair->attr, "nullrr") == 0)

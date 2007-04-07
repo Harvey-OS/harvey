@@ -108,6 +108,7 @@ restart:
 	for(;; putactivity(0)){
 		memset(&repmsg, 0, sizeof repmsg);
 		memset(&reqmsg, 0, sizeof reqmsg);
+
 		alarm(60*1000);
 		len = read(fd, buf, sizeof buf);
 		alarm(0);
@@ -115,6 +116,7 @@ restart:
 			goto restart;
 		uh = (OUdphdr*)buf;
 		len -= OUdphdrsize;
+
 		// dnslog("read received UDP from %I to %I",
 		//	((OUdphdr*)buf)->raddr, ((OUdphdr*)buf)->laddr);
 		getactivity(&req, 0);
@@ -139,8 +141,8 @@ restart:
 			}
 		op = reqmsg.flags & Omask;
 		if(op != Oquery && op != Onotify){
-			dnslog("server: op %d from %I",
-				reqmsg.flags & Omask, buf);
+			dnslog("server: op %d from %I", reqmsg.flags & Omask,
+				buf);
 			goto freereq;
 		}
 

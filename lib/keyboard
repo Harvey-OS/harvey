@@ -392,6 +392,9 @@
 2020  dg          †	dagger
 2021  dd          ‡	double dagger
 2022  bu          •	bullet
+2024  1.          ․ one dot leader
+2025  2.          ‥ two dot leader
+2026  3.          … horizontal ellipsis
 203D  !? ?!       ‽	interrobang
 2070  s0          ⁰	superscript digit zero
 2071  s1          ⁱ	superscript digit one

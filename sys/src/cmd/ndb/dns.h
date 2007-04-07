@@ -115,9 +115,8 @@ enum
 	Fcanrec=	1<<7,	/* server can recurse */
 
 	Domlen=		256,	/* max domain name length (with NULL) */
-	Labellen=	256,	/* max domain label length (with NULL) */
+	Labellen=	64,	/* max domain label length (with NULL) */
 	Strlen=		256,	/* max string length (with NULL) */
-	Iplen=		32,	/* max ascii ip address length (with NULL) */
 
 	/* time to live values (in seconds) */
 	Min=		60,
@@ -266,16 +265,16 @@ struct RR
 		DN	*mb;	/* mailbox - mg, minfo */
 		DN	*ip;	/* ip address - a */
 		DN	*rp;	/* rp arg - rp */
-		ulong	arg0;
+		uintptr	arg0;	/* arg[01] are compared to find dups in dn.c */
 	};
 	union {			/* discriminated how? negative & type? */
-		int	negrcode; /* response code for cached negative response */
+		int	negrcode; /* response code for cached negative resp. */
 		DN	*rmb;	/* responsible maibox - minfo, soa, rp */
 		DN	*ptr;	/* pointer to domain name - ptr */
 		DN	*os;	/* operating system - hinfo */
 		ulong	pref;	/* preference value - mx */
 		ulong	local;	/* ns served from local database - ns */
-		ulong	arg1;
+		uintptr	arg1;	/* arg[01] are compared to find dups in dn.c */
 	};
 	union {			/* discriminated by type */
 		SOA	*soa;	/* soa timers - soa */
@@ -321,6 +320,12 @@ struct Srv
 	ushort	weight;
 	ushort	port;
 	DN	*target;
+};
+
+struct Rrlist
+{
+	int	count;
+	RR	*rrs;
 };
 
 /*

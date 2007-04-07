@@ -89,8 +89,8 @@ int	threadsetgrp(int group)
 int	threadpid(int id)
 .XX
 int	threadint(int id)
-int	threadintgrp(int group)
-int	threadkill(int id)
+void	threadintgrp(int group)
+void	threadkill(int id)
 int	threadkillgrp(int group)
 .XX
 void	threadsetname(char *name)

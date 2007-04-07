@@ -11,8 +11,8 @@
 enum
 {
 	Maxrequest=		1024,
-	Maxreply=		512,
-	Maxrrr=			16,
+	Maxreply=		8192,		/* was 512 */
+	Maxrrr=			32,		/* was 16 */
 	Maxfdata=		8192,
 
 	Defmaxage=		3*60*60,	/* tune; was 1 hour */
@@ -163,6 +163,7 @@ main(int argc, char *argv[])
 
 	if(testing)
 		mainmem->flags |= POOL_NOREUSE | POOL_ANTAGONISM;
+	// mainmem->flags |= POOL_ANTAGONISM;
 	rfork(RFREND|RFNOTEG);
 
 	cfg.inside = (*mntpt == '\0' || strcmp(mntpt, "/net") == 0);
@@ -170,6 +171,7 @@ main(int argc, char *argv[])
 	/* start syslog before we fork */
 	fmtinstall('F', fcallfmt);
 	dninit();
+	/* this really shouldn't be fatal */
 	if(myipaddr(ipaddr, mntpt) < 0)
 		sysfatal("can't read my ip address");
 	dnslog("starting %s%sdns %s%son %I's %s",
