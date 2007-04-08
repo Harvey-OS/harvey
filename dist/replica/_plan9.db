@@ -341,10 +341,10 @@
 386/bin/ndb - 20000000775 sys sys 985743147 0
 386/bin/ndb/cs - 775 sys sys 1169612028 150911
 386/bin/ndb/csquery - 775 sys sys 1168402337 61702
-386/bin/ndb/dns - 775 sys sys 1175913060 277796
-386/bin/ndb/dnsdebug - 775 sys sys 1175913061 252479
+386/bin/ndb/dns - 775 sys sys 1175972560 287154
+386/bin/ndb/dnsdebug - 775 sys sys 1175972561 262013
 386/bin/ndb/dnsquery - 775 sys sys 1174704818 64417
-386/bin/ndb/dnstcp - 775 sys sys 1175913061 250908
+386/bin/ndb/dnstcp - 775 sys sys 1175972561 260477
 386/bin/ndb/ipquery - 775 sys sys 1169612031 96994
 386/bin/ndb/mkdb - 775 sys sys 1168402340 64211
 386/bin/ndb/mkhash - 775 sys sys 1168402340 84780
@@ -569,7 +569,7 @@
 386/lib/libndb.a - 664 sys sys 1168402370 64470
 386/lib/libplumb.a - 664 sys sys 1168402370 19408
 386/lib/libregexp.a - 664 sys sys 1168402370 37438
-386/lib/libscribble.a - 664 sys sys 1175914132 107650
+386/lib/libscribble.a - 664 sys sys 1175972562 107238
 386/lib/libsec.a - 664 sys sys 1168402372 646724
 386/lib/libstdio.a - 664 sys sys 1168402373 125926
 386/lib/libsunrpc.a - 664 sys sys 1168402374 353266
@@ -5446,7 +5446,7 @@ rc/bin/delkey - 775 sys sys 1109429137 643
 rc/bin/dial - 20000000775 sys sys 1059180057 0
 rc/bin/diffy - 775 sys sys 1140694870 277
 rc/bin/dircp - 775 sys sys 1169490692 234
-rc/bin/diskparts - 775 sys sys 1175868412 547
+rc/bin/diskparts - 775 sys sys 1175926636 536
 rc/bin/doc2ps - 775 sys sys 1069793831 244
 rc/bin/doc2txt - 775 sys sys 1025197880 563
 rc/bin/doctype - 775 sys sys 1162921755 1727
@@ -8843,7 +8843,7 @@ sys/src/ape/lib/ap/stdio/vsnprintf.c - 664 sys sys 1134052382 267
 sys/src/ape/lib/ap/stdio/vsprintf.c - 664 sys sys 1134052382 254
 sys/src/ape/lib/ap/syscall - 20000000775 sys sys 1039727535 0
 sys/src/ape/lib/ap/syscall/genall - 775 sys sys 1173737406 520
-sys/src/ape/lib/ap/syscall/mkfile - 664 sys sys 1173737407 489
+sys/src/ape/lib/ap/syscall/mkfile - 664 sys sys 1175915050 499
 sys/src/ape/lib/bsd - 20000000775 sys sys 1063858406 0
 sys/src/ape/lib/bsd/_sock_ingetaddr.c - 664 sys sys 1014921994 836
 sys/src/ape/lib/bsd/_sock_ipattr.c - 664 sys sys 1014921994 577
@@ -12754,17 +12754,17 @@ sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1175901582 11659
 sys/src/cmd/ndb/cs.c - 664 sys sys 1163208159 33080
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1174626119 1073
 sys/src/cmd/ndb/dblookup.c - 664 sys sys 1175901604 21010
-sys/src/cmd/ndb/dn.c - 664 sys sys 1175642250 32545
+sys/src/cmd/ndb/dn.c - 664 sys sys 1175925585 32939
 sys/src/cmd/ndb/dnarea.c - 664 sys sys 1175664421 2519
 sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1175901450 3147
-sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1175642403 26242
+sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1175927771 29811
 sys/src/cmd/ndb/dns.c - 664 sys sys 1175901186 16013
 sys/src/cmd/ndb/dns.h - 664 sys sys 1175901645 10640
 sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1174690026 8779
 sys/src/cmd/ndb/dnserver.c - 664 sys sys 1175901160 4392
 sys/src/cmd/ndb/dnsquery.c - 664 sys sys 1174626126 2435
 sys/src/cmd/ndb/dnstcp.c - 664 sys sys 1175901148 7440
-sys/src/cmd/ndb/dnudpserver.c - 664 sys sys 1175901459 5206
+sys/src/cmd/ndb/dnudpserver.c - 664 sys sys 1175925609 5251
 sys/src/cmd/ndb/ipquery.c - 664 sys sys 1124711423 773
 sys/src/cmd/ndb/mkdb.c - 664 sys sys 957402054 2886
 sys/src/cmd/ndb/mkfile - 664 sys sys 1174623575 1984
@@ -15768,4 +15768,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-sys/src/ape/lib/ap/syscall/mkfile - 664 sys sys 1175915050 499
