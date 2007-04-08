@@ -48169,3 +48169,11 @@
 1175914806 5 c 386/lib/libscribble.a - 664 sys sys 1175914132 107650
 1175914806 6 c sys/src/libscribble/scribbleimpl.h - 664 sys sys 1175914239 13093
 1175916605 0 c sys/src/ape/lib/ap/syscall/mkfile - 664 sys sys 1175915050 499
+1175925606 0 c sys/src/cmd/ndb/dn.c - 664 sys sys 1175925585 32939
+1175925606 1 c sys/src/cmd/ndb/dnudpserver.c - 664 sys sys 1175925609 5251
+1175927405 0 c rc/bin/diskparts - 775 sys sys 1175926636 536
+1175929206 0 c sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1175927771 29811
+1175974205 0 c 386/bin/ndb/dns - 775 sys sys 1175972560 287154
+1175974205 1 c 386/bin/ndb/dnsdebug - 775 sys sys 1175972561 262013
+1175974205 2 c 386/bin/ndb/dnstcp - 775 sys sys 1175972561 260477
+1175974205 3 c 386/lib/libscribble.a - 664 sys sys 1175972562 107238

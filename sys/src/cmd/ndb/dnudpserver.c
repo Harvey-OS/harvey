@@ -146,13 +146,11 @@ restart:
 			goto freereq;
 		}
 
-		if(debug || (trace && subsume(trace, reqmsg.qd->owner->name))){
+		if(debug || (trace && subsume(trace, reqmsg.qd->owner->name)))
 			dnslog("%d: serve (%I/%d) %d %s %s",
 				req.id, buf, uh->rport[0]<<8 | uh->rport[1],
-				reqmsg.id,
-				reqmsg.qd->owner->name,
+				reqmsg.id, reqmsg.qd->owner->name,
 				rrname(reqmsg.qd->type, tname, sizeof tname));
-		}
 
 		p = clientrxmit(&reqmsg, buf);
 		if(p == nil){
@@ -172,6 +170,7 @@ restart:
 				dnnotify(&reqmsg, &repmsg, &req);
 				break;
 			}
+			/* send reply on fd to address in buf's udp hdr */
 			reply(fd, buf, &repmsg, &req);
 			rrfreelist(repmsg.qd);
 			rrfreelist(repmsg.an);
