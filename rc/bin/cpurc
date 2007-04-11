@@ -22,8 +22,23 @@ NPROC = `{wc -l </dev/sysstat}
 
 prompt=($sysname^'# ' '	')
 
-# pick a timeserver closer to you when you can or we'll get clogged
-aux/timesync plan9.bell-labs.com
+# site specific startup
+if(test -e /rc/bin/cpurc.local)
+	. /rc/bin/cpurc.local
+
+# cpu specific startup
+if(test -e /cfg/$sysname/cpurc)
+	. /cfg/$sysname/cpurc
+
+# if we're not a server, start a dns resolver
+if(! test -e /srv/dns)
+	ndb/dns -r
+
+# start up internet if we don't already have an address
+if(! grep u /net/ipselftab | grep -sv 127.0.0.1)
+	ip/ipconfig
+if(! grep -s 127.0.0.1 /net/ipselftab)
+	ip/ipconfig loopback /dev/null 127.1
 
 # uncomment the following for booting other systems
 #ip/dhcpd
@@ -43,6 +58,25 @@ aux/timesync plan9.bell-labs.com
 #	mv /rc/bin/service/tcp567 /rc/bin/service/_tcp567
 # }
 
-# services available to networks
-aux/listen -q -t /rc/bin/service.auth -d /rc/bin/service il
-aux/listen -q -t /rc/bin/service.auth -d /rc/bin/service tcp
+# start listeners if it hasn't already been done (dicey check)
+if(! netstat -n | grep -s 'tcp.*Listen.* (7|9|21|22|23|25|110|113|565|993|17007|17009|17010) .*')
+	aux/listen -q tcp
+#if(! netstat -n | grep -v 17008 | grep -s il.*Listen)
+#	aux/listen -q il
+
+if(! ps|grep -s timesync) {
+	# pick a timeserver closer to you when you can or we'll get clogged
+	aux/timesync plan9.bell-labs.com
+	if (test -e '#r/rtc') @ {
+		sleep 10			# let timesync correct the time
+		awk '{print $1}' /dev/time >'#r/rtc'	# fix hw clock
+	} &
+}
+
+# cpu specific startup
+#if(test -e /cfg/$sysname/cpustart)
+#	. /cfg/$sysname/cpustart
+
+#echo `{date} $sysname >>/sys/log/boot
+
+exit ''

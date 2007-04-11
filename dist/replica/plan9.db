@@ -5195,7 +5195,7 @@ lib/keyboard - 664 sys sys 1175869935 26173
 lib/mammals - 664 sys sys 944943772 27760
 lib/map - 20000000775 sys sys 1161442423 0
 lib/map/README - 664 sys sys 1161442423 105
-lib/namespace - 664 sys sys 1157899562 593
+lib/namespace - 664 sys sys 1176262168 619
 lib/namespace.ftp - 664 sys sys 1020313578 373
 lib/namespace.httpd - 664 sys sys 984695868 1209
 lib/ndb - 20000000775 sys sys 1065569740 0
@@ -5441,7 +5441,7 @@ rc/bin/b: - 775 sys sys 1015089510 204
 rc/bin/broke - 775 sys sys 1143389260 142
 rc/bin/bundle - 775 sys sys 945617206 173
 rc/bin/c: - 775 sys sys 1015089511 86
-rc/bin/cpurc - 775 sys sys 1123380857 1306
+rc/bin/cpurc - 775 sys sys 1176262038 2142
 rc/bin/delkey - 775 sys sys 1109429137 643
 rc/bin/dial - 20000000775 sys sys 1059180057 0
 rc/bin/diffy - 775 sys sys 1140694870 277
@@ -5772,7 +5772,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1175084846 264123
+sys/games/lib/fortunes - 664 sys sys 1176226787 264469
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
