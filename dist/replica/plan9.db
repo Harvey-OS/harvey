@@ -5441,7 +5441,7 @@ rc/bin/b: - 775 sys sys 1015089510 204
 rc/bin/broke - 775 sys sys 1143389260 142
 rc/bin/bundle - 775 sys sys 945617206 173
 rc/bin/c: - 775 sys sys 1015089511 86
-rc/bin/cpurc - 775 sys sys 1176262038 2142
+rc/bin/cpurc - 775 sys sys 1176314252 2069
 rc/bin/delkey - 775 sys sys 1109429137 643
 rc/bin/dial - 20000000775 sys sys 1059180057 0
 rc/bin/diffy - 775 sys sys 1140694870 277
