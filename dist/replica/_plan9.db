@@ -5195,7 +5195,7 @@ lib/keyboard - 664 sys sys 1175869935 26173
 lib/mammals - 664 sys sys 944943772 27760
 lib/map - 20000000775 sys sys 1161442423 0
 lib/map/README - 664 sys sys 1161442423 105
-lib/namespace - 664 sys sys 1157899562 593
+lib/namespace - 664 sys sys 1176262168 619
 lib/namespace.ftp - 664 sys sys 1020313578 373
 lib/namespace.httpd - 664 sys sys 984695868 1209
 lib/ndb - 20000000775 sys sys 1065569740 0
@@ -5441,7 +5441,7 @@ rc/bin/b: - 775 sys sys 1015089510 204
 rc/bin/broke - 775 sys sys 1143389260 142
 rc/bin/bundle - 775 sys sys 945617206 173
 rc/bin/c: - 775 sys sys 1015089511 86
-rc/bin/cpurc - 775 sys sys 1123380857 1306
+rc/bin/cpurc - 775 sys sys 1176314252 2069
 rc/bin/delkey - 775 sys sys 1109429137 643
 rc/bin/dial - 20000000775 sys sys 1059180057 0
 rc/bin/diffy - 775 sys sys 1140694870 277
@@ -15768,5 +15768,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-lib/namespace - 664 sys sys 1176262168 619
-rc/bin/cpurc - 775 sys sys 1176262038 2142

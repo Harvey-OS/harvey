@@ -65,8 +65,7 @@ if(! netstat -n | grep -s 'tcp.*Listen.* (7|9|21|22|23|25|110|113|565|993|17007|
 #	aux/listen -q il
 
 if(! ps|grep -s timesync) {
-	# pick a timeserver closer to you when you can or we'll get clogged
-	aux/timesync plan9.bell-labs.com
+	aux/timesync -n pool.ntp.org
 	if (test -e '#r/rtc') @ {
 		sleep 10			# let timesync correct the time
 		awk '{print $1}' /dev/time >'#r/rtc'	# fix hw clock
