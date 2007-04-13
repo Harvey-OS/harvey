@@ -1,10 +1,10 @@
 #pragma src "/sys/src/libscribble"
 #pragma lib "libscribble.a"
 
+#pragma incomplete struct graffiti
+
 typedef struct Scribble Scribble;
 typedef struct graffiti Graffiti;
-
-#pragma incomplete Graffiti
 
 typedef struct pen_point {
 	Point;

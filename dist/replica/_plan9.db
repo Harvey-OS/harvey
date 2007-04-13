@@ -63,7 +63,7 @@
 386/bin/auth/none - 775 sys sys 1168402270 89249
 386/bin/auth/pemdecode - 775 sys sys 1168402271 61715
 386/bin/auth/pemencode - 775 sys sys 1168402271 60113
-386/bin/auth/printnetkey - 775 sys sys 1148500581 40434
+386/bin/auth/printnetkey - 775 sys sys 1176432130 40485
 386/bin/auth/rsa2csr - 775 sys sys 1168402271 180983
 386/bin/auth/rsa2pub - 775 sys sys 1168402272 143900
 386/bin/auth/rsa2ssh - 775 sys sys 1168402272 139217
@@ -145,7 +145,7 @@
 386/bin/aux/stub - 775 sys sys 1168402287 141090
 386/bin/aux/tcpostio - 775 sys sys 1094040084 200808
 386/bin/aux/text2post - 775 sys sys 1104121986 78336
-386/bin/aux/timesync - 775 sys sys 1169612021 128694
+386/bin/aux/timesync - 775 sys sys 1176404754 128784
 386/bin/aux/tr2post - 775 sys sys 1104121987 176578
 386/bin/aux/trampoline - 775 sys sys 1168402288 84145
 386/bin/aux/typepasswd - 775 sys sys 1168402288 69738
@@ -528,7 +528,7 @@
 386/include/ape/math.h - 664 sys sys 1087406385 2123
 386/include/ape/stdarg.h - 664 sys sys 944946040 276
 386/include/ape/ureg.h - 664 sys sys 944946041 812
-386/include/u.h - 664 sys sys 1168306831 1510
+386/include/u.h - 664 sys sys 1176424884 1528
 386/include/ureg.h - 664 sys sys 944946012 523
 386/init - 775 sys sys 1168402360 101418
 386/ld.com - 775 sys sys 1171784723 73464
@@ -546,11 +546,11 @@
 386/lib/ape/libv.a - 664 sys sys 1143777858 19668
 386/lib/lib9p.a - 664 sys sys 1172780592 91012
 386/lib/libString.a - 664 sys sys 1168402362 22126
-386/lib/libauth.a - 664 sys sys 1171743876 58570
+386/lib/libauth.a - 664 sys sys 1176432131 58582
 386/lib/libauthsrv.a - 664 sys sys 1174964431 35790
 386/lib/libbin.a - 664 sys sys 1168402363 2534
 386/lib/libbio.a - 664 sys sys 1168402363 25980
-386/lib/libc.a - 664 sys sys 1168402364 503128
+386/lib/libc.a - 664 sys sys 1176432132 503120
 386/lib/libcomplete.a - 664 sys sys 1168402364 6372
 386/lib/libcontrol.a - 664 sys sys 1168402365 274388
 386/lib/libdisk.a - 664 sys sys 1168402365 42368
@@ -558,8 +558,8 @@
 386/lib/libflate.a - 664 sys sys 1168402366 76726
 386/lib/libframe.a - 664 sys sys 1168402366 66398
 386/lib/libgeometry.a - 664 sys sys 1168402366 50470
-386/lib/libhtml.a - 664 sys sys 1168402366 229152
-386/lib/libhttpd.a - 664 sys sys 1168402367 99458
+386/lib/libhtml.a - 664 sys sys 1176432132 229152
+386/lib/libhttpd.a - 664 sys sys 1176432133 99482
 386/lib/libip.a - 664 sys sys 1169612032 35672
 386/lib/libl.a - 664 sys sys 1168402367 5372
 386/lib/libmach.a - 664 sys sys 1173410637 785440
@@ -571,9 +571,9 @@
 386/lib/libregexp.a - 664 sys sys 1168402370 37438
 386/lib/libscribble.a - 664 sys sys 1175972562 107238
 386/lib/libsec.a - 664 sys sys 1168402372 646724
-386/lib/libstdio.a - 664 sys sys 1168402373 125926
-386/lib/libsunrpc.a - 664 sys sys 1168402374 353266
-386/lib/libthread.a - 664 sys sys 1168402374 71932
+386/lib/libstdio.a - 664 sys sys 1176432133 126062
+386/lib/libsunrpc.a - 664 sys sys 1176432134 353266
+386/lib/libthread.a - 664 sys sys 1176432134 71932
 386/lib/libventi.a - 664 sys sys 1168402374 97858
 386/mbr - 775 sys sys 1131317338 407
 386/mkfile - 664 sys sys 948141303 46
@@ -587,7 +587,7 @@
 68000/bin/games - 20000000775 sys sys 1110524968 0
 68000/bin/venti - 20000000775 sys sys 1020896374 0
 68000/include - 20000000775 sys sys 1042604326 0
-68000/include/u.h - 664 sys sys 1115924096 1466
+68000/include/u.h - 664 sys sys 1176424884 1513
 68000/include/ureg.h - 664 sys sys 944946363 436
 68000/lib - 20000000775 sys sys 1020896374 0
 68000/mkfile - 664 sys sys 948141303 52
@@ -614,7 +614,7 @@
 68020/include/ape/ureg.h - 664 sys sys 944946347 741
 68020/include/dac.h - 664 sys sys 944946363 154
 68020/include/lbp.h - 664 sys sys 944946363 76
-68020/include/u.h - 664 sys sys 1115924096 1467
+68020/include/u.h - 664 sys sys 1176424884 1514
 68020/include/ureg.h - 664 sys sys 944946363 436
 68020/lib - 20000000775 sys sys 1039727909 0
 68020/lib/ape - 20000000775 sys sys 1020896374 0
@@ -830,7 +830,7 @@ alpha/include/ape/float.h - 664 sys sys 969656988 1674
 alpha/include/ape/math.h - 664 sys sys 1078495286 2176
 alpha/include/ape/stdarg.h - 664 sys sys 958591172 413
 alpha/include/ape/ureg.h - 664 sys sys 944946346 1241
-alpha/include/u.h - 664 sys sys 1115924096 1567
+alpha/include/u.h - 664 sys sys 1176432505 1625
 alpha/include/ureg.h - 664 sys sys 944946362 644
 alpha/lib - 20000000775 sys sys 1039727908 0
 alpha/lib/ape - 20000000775 sys sys 1020896373 0
@@ -838,7 +838,7 @@ alpha/mkfile - 664 sys sys 948141303 46
 amd64 - 20000000775 sys sys 1123100700 0
 amd64/bin - 20000000775 sys sys 1114458475 0
 amd64/include - 20000000775 sys sys 1123100704 0
-amd64/include/u.h - 664 sys sys 1135487949 1698
+amd64/include/u.h - 664 sys sys 1176424884 1722
 amd64/include/ureg.h - 664 sys sys 1114458660 454
 amd64/lib - 20000000775 sys sys 1114458490 0
 amd64/mkfile - 664 sys sys 1114458599 46
@@ -866,7 +866,7 @@ arm/include/ape/float.h - 664 sys sys 985642226 1643
 arm/include/ape/math.h - 664 sys sys 1078495287 2176
 arm/include/ape/stdarg.h - 664 sys sys 985642227 276
 arm/include/ape/ureg.h - 664 sys sys 985642227 617
-arm/include/u.h - 664 sys sys 1115924096 1450
+arm/include/u.h - 664 sys sys 1176424884 1497
 arm/include/ureg.h - 664 sys sys 971095234 341
 arm/lib - 20000000775 sys sys 1039727909 0
 arm/lib/ape - 20000000775 sys sys 1020896375 0
@@ -5307,7 +5307,7 @@ mips/include/ape/math.h - 664 sys sys 1078495287 2176
 mips/include/ape/stdarg.h - 664 sys sys 944946346 324
 mips/include/ape/ureg.h - 664 sys sys 944946346 991
 mips/include/mips2ureg.h - 664 sys sys 952879416 886
-mips/include/u.h - 664 sys sys 1115924096 1456
+mips/include/u.h - 664 sys sys 1176424885 1503
 mips/include/ureg.h - 664 sys sys 944946362 550
 mips/lib - 20000000775 sys sys 1039727908 0
 mips/lib/ape - 20000000775 sys sys 1020896373 0
@@ -5404,7 +5404,7 @@ power/include/ape/float.h - 664 sys sys 969656988 1608
 power/include/ape/math.h - 664 sys sys 1078495287 2176
 power/include/ape/stdarg.h - 664 sys sys 944946355 324
 power/include/ape/ureg.h - 664 sys sys 944946362 1025
-power/include/u.h - 664 sys sys 1158071170 2826
+power/include/u.h - 664 sys sys 1176424885 2844
 power/include/ureg.h - 664 sys sys 1032057837 997
 power/lib - 20000000775 sys sys 1039727909 0
 power/lib/ape - 20000000775 sys sys 1020896376 0
@@ -5502,7 +5502,7 @@ rc/bin/pc/personalize - 775 sys sys 959698938 99
 rc/bin/pc/setup.9fat - 775 sys sys 960857447 546
 rc/bin/pc/setup.disk - 775 sys sys 960857447 579
 rc/bin/pc/update - 775 sys sys 960235807 468
-rc/bin/pci - 775 sys sys 1127400818 752
+rc/bin/pci - 775 sys sys 1176379952 821
 rc/bin/pdf2ps - 775 sys sys 1032054728 827
 rc/bin/postscript - 20000000775 sys sys 1020896376 0
 rc/bin/printfont - 775 sys sys 945617208 2851
@@ -5562,7 +5562,7 @@ rc/bin/start - 775 sys sys 945617209 120
 rc/bin/stock - 775 sys sys 1143126371 292
 rc/bin/stop - 775 sys sys 945617209 110
 rc/bin/tel - 775 sys sys 1161209756 128
-rc/bin/termrc - 775 sys sys 1174850048 2434
+rc/bin/termrc - 775 sys sys 1176432928 2436
 rc/bin/thesaurus - 775 sys sys 1068054167 246
 rc/bin/tlsclienttunnel - 775 sys sys 1024375633 153
 rc/bin/tlssrvtunnel - 775 sys sys 1024375634 175
@@ -5607,7 +5607,7 @@ sparc/include/ape/float.h - 664 sys sys 969656988 1624
 sparc/include/ape/math.h - 664 sys sys 1078495288 2176
 sparc/include/ape/stdarg.h - 664 sys sys 944946348 324
 sparc/include/ape/ureg.h - 664 sys sys 944946348 1048
-sparc/include/u.h - 664 sys sys 1115924096 1454
+sparc/include/u.h - 664 sys sys 1176424885 1501
 sparc/include/ureg.h - 664 sys sys 944946363 599
 sparc/lib - 20000000775 sys sys 1039727909 0
 sparc/lib/ape - 20000000775 sys sys 1020896374 0
@@ -5615,7 +5615,7 @@ sparc/mkfile - 664 sys sys 948141304 52
 sparc64 - 20000000775 sys sys 1123100767 0
 sparc64/bin - 20000000775 sys sys 1114458528 0
 sparc64/include - 20000000775 sys sys 1123100764 0
-sparc64/include/u.h - 664 sys sys 1115924096 1454
+sparc64/include/u.h - 664 sys sys 1176424885 1501
 sparc64/include/ureg.h - 664 sys sys 1114458675 719
 sparc64/lib - 20000000775 sys sys 1114458535 0
 sparc64/mkfile - 664 sys sys 1114458667 46
@@ -6047,7 +6047,7 @@ sys/include/pool.h - 664 sys sys 1102093074 1219
 sys/include/rdbg.h - 664 sys sys 1014929066 95
 sys/include/realtime.h - 664 sys sys 1037669237 869
 sys/include/regexp.h - 664 sys sys 1014929066 1308
-sys/include/scribble.h - 664 sys sys 1091904419 708
+sys/include/scribble.h - 664 sys sys 1176432918 715
 sys/include/stdio.h - 664 sys sys 1121977155 4208
 sys/include/sunrpc.h - 664 sys sys 1046367129 7219
 sys/include/thread.h - 664 sys sys 1138463280 3616
@@ -8046,7 +8046,7 @@ sys/src/9/pc/pcdisk - 664 sys sys 1161302470 1495
 sys/src/9/pc/pcf - 664 sys sys 1161302469 1553
 sys/src/9/pc/pcfl - 664 sys sys 1161302470 1587
 sys/src/9/pc/pcflop - 664 sys sys 1158061762 1513
-sys/src/9/pc/pci.c - 664 sys sys 1175564101 29261
+sys/src/9/pc/pci.c - 664 sys sys 1176379998 29317
 sys/src/9/pc/pcmciamodem.c - 664 sys sys 1099761153 1586
 sys/src/9/pc/pcmkfile - 664 sys sys 1109303822 101
 sys/src/9/pc/piix4smbus.c - 664 sys sys 1091129037 5230
@@ -9103,7 +9103,7 @@ sys/src/boot/pc/pbsdisk.s - 664 sys sys 1017854325 6371
 sys/src/boot/pc/pbsdisklba - 775 sys sys 1015007954 509
 sys/src/boot/pc/pbsdisklba.s - 664 sys sys 1015007954 6022
 sys/src/boot/pc/pbslba.s - 664 sys sys 1143465392 8158
-sys/src/boot/pc/pci.c - 664 sys sys 1175564218 20545
+sys/src/boot/pc/pci.c - 664 sys sys 1176379998 20605
 sys/src/boot/pc/print.c - 664 sys sys 1094674483 219
 sys/src/boot/pc/queue.c - 664 sys sys 1015007954 566
 sys/src/boot/pc/sd.h - 664 sys sys 1153333456 2244
@@ -9538,7 +9538,7 @@ sys/src/cmd/auth/lib/readn.c - 664 sys sys 1155994851 264
 sys/src/cmd/auth/lib/readwrite.c - 664 sys sys 1155994851 1441
 sys/src/cmd/auth/lib/wrbio.c - 664 sys sys 1015008430 755
 sys/src/cmd/auth/login.c - 664 sys sys 1140272942 4002
-sys/src/cmd/auth/mkfile - 664 sys sys 1132503359 1799
+sys/src/cmd/auth/mkfile - 664 sys sys 1176422844 1793
 sys/src/cmd/auth/netkey.c - 664 sys sys 1155994849 758
 sys/src/cmd/auth/newns.c - 664 sys sys 1128540497 962
 sys/src/cmd/auth/none.c - 664 sys sys 1116769155 774
@@ -9716,7 +9716,7 @@ sys/src/cmd/aux/reboot.c - 664 sys sys 1162419091 1533
 sys/src/cmd/aux/searchfs.c - 664 sys sys 1143759348 18163
 sys/src/cmd/aux/statusbar.c - 664 sys sys 1138460096 6066
 sys/src/cmd/aux/stub.c - 664 sys sys 1098196222 2723
-sys/src/cmd/aux/timesync.c - 664 sys sys 1107448970 25758
+sys/src/cmd/aux/timesync.c - 664 sys sys 1176356334 25852
 sys/src/cmd/aux/trampoline.c - 664 sys sys 1126104850 3790
 sys/src/cmd/aux/typepasswd.c - 664 sys sys 1143759348 1749
 sys/src/cmd/aux/unlock - 664 sys sys 944960793 0

@@ -64,9 +64,9 @@ typedef	char*	va_list;
 	USED(list)
 #define va_arg(list, mode)\
 	((sizeof(mode) == 1)?\
-		((mode*)(list += 8))[-8]:\
+		((list += 8), (mode*)list)[-8]:\
 	(sizeof(mode) == 2)?\
-		((mode*)(list += 8))[-4]:\
+		((list += 8), (mode*)list)[-4]:\
 	(sizeof(mode) == 4)?\
-		((mode*)(list += 8))[-2]:\
-		((mode*)(list += sizeof(mode)))[-1])
+		((list += 8), (mode*)list)[-2]:\
+		((list += sizeof(mode)), (mode*)list)[-1])
