@@ -51,6 +51,9 @@ cd '#$/pci' && grep . *ctl | sed '
 	s/:	01/:	disk 01/
 	s/:	02/:	net  02/
 	s/:	03/:	vid  03/
+	s/:	06/:	brg  06/
+	s/:	0c\.03/:	usb 0c.03/
+	s/:	0c\.05/:	smb 0c.05/
 	s/:	([0-9])/:	---  \1/
 ' | $filter
 

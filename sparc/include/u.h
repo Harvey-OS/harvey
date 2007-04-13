@@ -7,6 +7,7 @@ typedef	signed char	schar;
 typedef	long long	vlong;
 typedef	unsigned long long uvlong;
 typedef unsigned long	uintptr;
+typedef unsigned long	usize;
 typedef	ushort		Rune;
 typedef 	union FPdbleword FPdbleword;
 typedef long	jmp_buf[2];
@@ -58,7 +59,7 @@ typedef	char*	va_list;
 	USED(list)
 #define va_arg(list, mode)\
 	((sizeof(mode) == 1)?\
-		((mode*)(list += 4))[-1]:\
+		((list += 4), (mode*)list)[-1]:\
 	(sizeof(mode) == 2)?\
-		((mode*)(list += 4))[-1]:\
-		((mode*)(list += sizeof(mode)))[-1])
+		((list += 4), (mode*)list)[-1]:\
+		((list += sizeof(mode)), (mode*)list)[-1])

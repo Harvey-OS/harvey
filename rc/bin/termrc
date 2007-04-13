@@ -7,7 +7,7 @@ fileserver=kfs
 cpu=CPU
 # replace FACEDOM with the local domain to be used in the faces database
 facedom=FACEDOM
-TIMESYNCARGS=-rLa1000000
+TIMESYNCARGS=(-rLa1000000)
 NDBFILE=/lib/ndb/local
 
 if(test -e /rc/bin/termrc.local)
