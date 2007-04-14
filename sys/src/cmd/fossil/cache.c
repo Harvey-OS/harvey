@@ -462,7 +462,7 @@ _cacheLocalLookup(Cache *c, int part, u32int addr, u32int vers,
 			return nil;
 		case BioReadError:
 			blockPut(b);
-			vtSetError("i/o error block 0x%.8ux", addr);
+			vtSetError("error reading block 0x%.8ux", addr);
 			return nil;
 		}
 	}
@@ -577,7 +577,7 @@ fprint(2, "_cacheLocal want epoch %ud got %ud\n", epoch, b->l.epoch);
 		case BioReadError:
 			blockSetIOState(b, BioEmpty);
 			blockPut(b);
-			vtSetError("i/o error block 0x%.8ux", addr);
+			vtSetError("error reading block 0x%.8ux", addr);
 			return nil;
 		}
 	}
@@ -681,7 +681,9 @@ if(0)fprint(2, "cacheGlobal %V %d\n", score, type);
 		if(n < 0 || !vtSha1Check(score, b->data, n)){
 			blockSetIOState(b, BioVentiError);
 			blockPut(b);
-			vtSetError("venti i/o error block %V: %r", score);
+			vtSetError(
+			"venti error reading block %V or wrong score: %r",
+				score);
 			return nil;
 		}
 		vtZeroExtend(vtType[type], b->data, n, c->size);
@@ -691,11 +693,11 @@ if(0)fprint(2, "cacheGlobal %V %d\n", score, type);
 		return b;
 	case BioVentiError:
 		blockPut(b);
-		vtSetError("venti i/o error block %V", score);
+		vtSetError("venti i/o error or wrong score, block %V", score);
 		return nil;
 	case BioReadError:
 		blockPut(b);
-		vtSetError("i/o error block %V", b->score);
+		vtSetError("error reading block %V", b->score);
 		return nil;
 	}
 	/* NOT REACHED */

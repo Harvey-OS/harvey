@@ -1,0 +1,13 @@
+#!/bin/rc
+# local terminal startup
+
+# used only by upas, as default return domain appended to all unqualified
+# return addresses, even local ones
+site=plan9
+# replace FILESERVER with the name of your file server
+# here we start with kfs, your local disk file system
+fileserver=kfs
+# replace FACEDOM with the local domain to be used in the faces database
+facedom=FACEDOM
+# replace CPU with the name of your cpu server
+cpu=CPU

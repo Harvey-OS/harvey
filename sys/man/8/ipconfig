@@ -3,7 +3,7 @@
 ipconfig, rip \- Internet configuration and routing
 .SH SYNOPSIS
 .B ip/ipconfig
-.RB [ -NDGPOdnpr ]
+.RB [ -DGNOPdnpr ]
 .RB [ -b
 .IR baud ]
 .RB [ -c
@@ -20,6 +20,8 @@ ipconfig, rip \- Internet configuration and routing
 .IR dhcpoption ]
 .I type
 .I device
+.br
+.ti +0.5i
 .RI [ verb ]
 .RI [ local-addr ]
 .RI [ mask ]
@@ -69,6 +71,7 @@ the device can be any byte stream device.
 The verb (default
 .IR add )
 determines the action performed.  The verbs are:
+.TF remove
 .TP
 .B add
 if the device is not bound to the IP stack, bind it.
@@ -81,16 +84,14 @@ remove the address from the device interface.
 .B unbind
 unbind the device interface and all its addresses from the
 IP stack.
+.PD
 .PP
 The options are:
+.TF M
+.PD
 .TP
 .B D
 turn on debugging.
-.TP
-.B N
-look in /lib/ndb for the IP parameters.  This only works if the
-interface is an ethernet.  It uses the ethernet address to find
-a matching entry.
 .TP
 .B G
 use only generic DHCP options.  Without this option,
@@ -101,6 +102,13 @@ and also requests vendor specific options 128 and 129 which we
 interpret as the Plan 9 file server and auth server.
 Replies to these options contain a list of IP addresses for possible
 file servers and auth servers.
+.TP
+.B N
+look in
+.B /lib/ndb
+for the IP parameters.  This only works if the
+interface is an ethernet.  It uses the ethernet address to find
+a matching entry.
 .TP
 .B p
 write configuration information to
@@ -163,22 +171,25 @@ to the list of paramters requested of the DHCP server.  The
 result will appear in
 .B /net/ndb
 should this be the first interface.  The known options are:
-.EX
-  ipmask, timeoff, ipgw, time, name, dns, log, cookie,
-  lpr, impress, rl, sys, bflen, dumpfile, dom, swap,
-  rootpath, extpath, ipforward, nonlocal, policyfilter,
-  maxdatagram, ttl, pathtimeout, pathplateau, mtu,
-  subnetslocal, baddr, discovermask, supplymask,
-  discoverrouter, rs, staticroutes, trailerencap,
-  arptimeout, etherencap, tcpttl, tcpka, tcpkag,
-  nisdomain, ni, ntp, netbiosns, netbiosdds,
-  netbiostype, netbiosscope, xfont, xdispmanager,
-  nisplusdomain, nisplus, homeagent, smtp, pop3, nntp,
-  www, finger, irc, st, stdar, ipaddr, lease,
-  overload, type, serverid, params, message, maxmsg,
-  renewaltime, rebindingtime, vendorclass, clientid,
-  tftp, bootfile
-.EE
+.TP 0.5i
+\&
+.ft CW
+ipmask, timeoff, ipgw, time, name, dns, log, cookie,
+lpr, impress, rl, sys, bflen, dumpfile, dom, swap,
+rootpath, extpath, ipforward, nonlocal, policyfilter,
+maxdatagram, ttl, pathtimeout, pathplateau, mtu,
+subnetslocal, baddr, discovermask, supplymask,
+discoverrouter, rs, staticroutes, trailerencap,
+arptimeout, etherencap, tcpttl, tcpka, tcpkag,
+nisdomain, ni, ntp, netbiosns, netbiosdds,
+netbiostype, netbiosscope, xfont, xdispmanager,
+nisplusdomain, nisplus, homeagent, smtp, pop3, nntp,
+www, finger, irc, st, stdar, ipaddr, lease,
+overload, type, serverid, params, message, maxmsg,
+renewaltime, rebindingtime, vendorclass, clientid,
+tftp, bootfile
+.PD
+.LP
 The options
 .BR ipmask ,
 .BR ipgw ,
@@ -187,12 +198,13 @@ The options
 and
 .B ntp
 are always requested.
+.TF M
+.PD
 .TP
 .B O
 addresses specified on the command line override those obtained
 via DHCP.
 A command line address of 0 implies no override.
-.PD
 .PP
 If DHCP is requested, a process is forked
 off to renew the lease before it

@@ -63,7 +63,7 @@ struct Ipifc
 };
 
 /*
- *  user level udp headers with cntrol message "oldheaders".
+ *  user level udp headers with control message "oldheaders".
  *  this is now considered obsolete.
  */
 enum 
@@ -74,14 +74,14 @@ enum
 typedef struct OUdphdr OUdphdr;
 struct OUdphdr
 {
-	uchar	raddr[IPaddrlen];	/* remote address and port */
-	uchar	laddr[IPaddrlen];	/* local address and port */
-	uchar	rport[2];
-	uchar	lport[2];
+	uchar	raddr[IPaddrlen];	/* V6 remote address */
+	uchar	laddr[IPaddrlen];	/* V6 local address */
+	uchar	rport[2];		/* remote port */
+	uchar	lport[2];		/* local port */
 };
 
 /*
- *  user level udp headers with cntrol message "headers"
+ *  user level udp headers with control message "headers"
  */
 enum 
 {
@@ -91,11 +91,10 @@ enum
 typedef struct Udphdr Udphdr;
 struct Udphdr
 {
-	uchar	raddr[IPaddrlen];	/* remote address */
-	uchar	laddr[IPaddrlen];	/* local address */
-	uchar	ifcaddr[IPaddrlen];	/* address of ifc message was received from
-					   (only useful on reception) */
-	uchar	rport[2];		/* remove port */
+	uchar	raddr[IPaddrlen];	/* V6 remote address */
+	uchar	laddr[IPaddrlen];	/* V6 local address */
+	uchar	ifcaddr[IPaddrlen];	/* V6 ifc addr msg was received on */
+	uchar	rport[2];		/* remote port */
 	uchar	lport[2];		/* local port */
 };
 
