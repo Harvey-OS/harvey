@@ -1,13 +1,6 @@
 #!/bin/rc
-echo -n cpu > /env/service
+# cpu server start up
 date > /env/boottime
-
-# replace FILESERVER with the name of your file server
-# here we start with kfs, your local disk file system
-fileserver=kfs
-
-# replace FACEDOM with the local domain to be used in the faces database
-facedom=FACEDOM
 
 # mount points
 mntgen -s slashn && chmod 666 /srv/slashn
@@ -15,18 +8,21 @@ mntgen -s slashn && chmod 666 /srv/slashn
 # name translation, cs sets /dev/sysname
 ndb/cs
 sysname=`{cat /dev/sysname}
-ndb/dns -r
 
 # parallelism for mk
 NPROC = `{wc -l </dev/sysstat}
 
 prompt=($sysname^'# ' '	')
 
-# site specific startup
+# site-specific startup
 if(test -e /rc/bin/cpurc.local)
 	. /rc/bin/cpurc.local
 
-# cpu specific startup
+# cpu-specific startup such as
+# ip/ipconfig ether /dev/ether0 ip gw ...
+# ndb/dns -s
+# ip/dhcpd
+# ip/tftpd
 if(test -e /cfg/$sysname/cpurc)
 	. /cfg/$sysname/cpurc
 
@@ -39,10 +35,6 @@ if(! grep u /net/ipselftab | grep -sv 127.0.0.1)
 	ip/ipconfig
 if(! grep -s 127.0.0.1 /net/ipselftab)
 	ip/ipconfig loopback /dev/null 127.1
-
-# uncomment the following for booting other systems
-#ip/dhcpd
-#ip/tftpd
 
 # If you are on an auth server, start these before listening:
 #
@@ -61,8 +53,9 @@ if(! grep -s 127.0.0.1 /net/ipselftab)
 # start listeners if it hasn't already been done (dicey check)
 if(! netstat -n | grep -s 'tcp.*Listen.* (7|9|21|22|23|25|110|113|565|993|17007|17009|17010) .*')
 	aux/listen -q tcp
-#if(! netstat -n | grep -v 17008 | grep -s il.*Listen)
-#	aux/listen -q il
+# we don't use IL, maybe you do
+if(! netstat -n | grep -v 17008 | grep -s il.*Listen)
+	aux/listen -q il
 
 if(! ps|grep -s timesync) {
 	aux/timesync -n pool.ntp.org
@@ -72,10 +65,10 @@ if(! ps|grep -s timesync) {
 	} &
 }
 
-# cpu specific startup
-#if(test -e /cfg/$sysname/cpustart)
-#	. /cfg/$sysname/cpustart
+# cpu-specific late startup
+if(test -e /cfg/$sysname/cpustart)
+	. /cfg/$sysname/cpustart
 
-#echo `{date} $sysname >>/sys/log/boot
+# echo `{date} $sysname >>/sys/log/boot
 
 exit ''

@@ -141,7 +141,7 @@ failure(Auth *s, char *why)
 	int i;
 
 if(*why)print("authentication failed: %s: %s\n", phasename[s->phase], why);
-	srand((ulong)s + time(nil));
+	srand((uintptr)s + time(nil));
 	for(i = 0; i < CHALLEN; i++)
 		s->tr.chal[i] = nrand(256);
 	s->uid = -1;

@@ -108,6 +108,11 @@ initmouse(char *file, Image *i)
 		return nil;
 	}
 	t = malloc(strlen(file)+16);
+	if (t == nil) {
+		close(mc->mfd);
+		free(mc);
+		return nil;
+	}
 	strcpy(t, file);
 	sl = utfrrune(t, '/');
 	if(sl)

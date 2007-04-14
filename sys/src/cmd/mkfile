@@ -123,16 +123,17 @@ $O.cj:	cj.$O
 	update $stem.c /386/bin/$stem
 
 compilers:V:
-	@{
-		cd cc
-		mk clean
-		mk installall
-		mk clean
-	}
 	for(i in ?c)
-	if(! ~ $i cc rc) @{
-		cd $i;
-		mk clean
-		mk installall
-		mk clean
-	}
+		if(! ~ $i cc rc) @{
+			cd $i
+			mk clean
+			objtype=$cputype mk install
+			mk clean
+		}
+	for(i in ?c)
+		if(! ~ $i cc rc) @{
+			cd $i
+			mk clean
+			mk installall
+			mk clean
+		}

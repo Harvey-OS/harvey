@@ -116,7 +116,7 @@ filep(Chan *cp, ulong fid, int flag)
 	if(fid == NOFID)
 		return 0;
 
-	h = (long)cp + fid;
+	h = (long)(uintptr)cp + fid;
 	if(h < 0)
 		h = ~h;
 	h %= nelem(flist);
@@ -201,7 +201,7 @@ freefp(File *fp)
 	if(!fp || !(cp = fp->cp))
 		return;
 
-	h = (long)cp + fp->fid;
+	h = (long)(uintptr)cp + fp->fid;
 	if(h < 0)
 		h = ~h;
 	h %= nelem(flist);
