@@ -8114,7 +8114,7 @@ sys/src/9/port/dev.c - 664 sys sys 1146151714 8177
 sys/src/9/port/devaudio.c - 664 sys sys 1170456648 21199
 sys/src/9/port/devbridge.c - 664 sys sys 1055688301 24308
 sys/src/9/port/devcap.c - 664 sys sys 1168304142 4128
-sys/src/9/port/devcons.c - 664 sys sys 1168304164 23127
+sys/src/9/port/devcons.c - 664 sys sys 1176658321 22943
 sys/src/9/port/devdraw.c - 664 sys sys 1147023550 44447
 sys/src/9/port/devdup.c - 664 sys sys 1014931172 2332
 sys/src/9/port/devenv.c - 664 sys sys 1169498893 7015
@@ -8171,7 +8171,7 @@ sys/src/9/port/portdat.h - 664 sys sys 1155995676 22703
 sys/src/9/port/portfns.h - 664 sys sys 1146746630 11059
 sys/src/9/port/portmkfile - 664 sys sys 1173788325 2069
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
-sys/src/9/port/proc.c - 664 sys sys 1166244036 28770
+sys/src/9/port/proc.c - 664 sys sys 1176658321 28742
 sys/src/9/port/qio.c - 664 sys sys 1070287837 23562
 sys/src/9/port/qlock.c - 664 sys sys 1139666988 3200
 sys/src/9/port/rdb.c - 664 sys sys 1018721202 1698
