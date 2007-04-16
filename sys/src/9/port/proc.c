@@ -7,7 +7,6 @@
 #include	"edf.h"
 #include	<trace.h>
 
-int	coopsched;
 int	schedgain = 30;	/* units in seconds */
 int	nrdy;
 Ref	noteidalloc;
@@ -504,7 +503,7 @@ runproc(void)
 	start = perfticks();
 
 	/* cooperative scheduling until the clock ticks */
-	if(coopsched && (p=m->readied) && p->mach==0 && p->state==Ready
+	if((p=m->readied) && p->mach==0 && p->state==Ready
 	&& runq[Nrq-1].head == nil && runq[Nrq-2].head == nil){
 		skipscheds++;
 		rq = &runq[p->priority];
