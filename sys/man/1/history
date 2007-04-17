@@ -53,7 +53,8 @@ The
 option causes
 .IR diff (1)
 .B -n
-to be run for each adjacent pair of dump files, while
+to be run for each adjacent pair of dump files.
+Adding
 .B -b
 runs
 .IR diff
@@ -79,7 +80,6 @@ Finally, the
 option
 sets the starting (most recent) date for the output.
 .SH EXAMPLES
-.PP
 Check how often a user has been logged in.
 .IP
 .EX

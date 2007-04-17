@@ -319,7 +319,7 @@ squirrelserveraddrs(void)
 			continue;
 		}
 		req.isslave = 1;
-		req.aborttime = now + Maxreqtm*2;	/* be patient */
+		req.aborttime = now + Maxreqtm;
 		*l = dnresolve(rp->host->name, Cin, Ta, &req, 0, 0, Recurse, 0, 0);
 		while(*l != nil)
 			l = &(*l)->next;
@@ -421,7 +421,7 @@ doquery(char *name, char *tstr)
 	memset(&req, 0, sizeof req);
 	getactivity(&req, 0);
 	req.isslave = 1;
-	req.aborttime = now + Maxreqtm*2;	/* be patient */
+	req.aborttime = now + Maxreqtm;
 	rr = dnresolve(buf, Cin, type, &req, 0, 0, Recurse, rooted, 0);
 	if(rr){
 		print("----------------------------\n");
