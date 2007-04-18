@@ -341,10 +341,10 @@
 386/bin/ndb - 20000000775 sys sys 985743147 0
 386/bin/ndb/cs - 775 sys sys 1176488417 150835
 386/bin/ndb/csquery - 775 sys sys 1176488418 61652
-386/bin/ndb/dns - 775 sys sys 1175972560 287154
-386/bin/ndb/dnsdebug - 775 sys sys 1176752973 261943
+386/bin/ndb/dns - 775 sys sys 1176866482 286892
+386/bin/ndb/dnsdebug - 775 sys sys 1176866483 261751
 386/bin/ndb/dnsquery - 775 sys sys 1174704818 64417
-386/bin/ndb/dnstcp - 775 sys sys 1175972561 260477
+386/bin/ndb/dnstcp - 775 sys sys 1176866483 260215
 386/bin/ndb/ipquery - 775 sys sys 1176488418 96918
 386/bin/ndb/mkdb - 775 sys sys 1168402340 64211
 386/bin/ndb/mkhash - 775 sys sys 1176488418 84704
@@ -471,7 +471,7 @@
 386/bin/upas/runq - 775 sys sys 1176520509 114236
 386/bin/upas/scanmail - 775 sys sys 1176520510 129604
 386/bin/upas/send - 775 sys sys 1176520510 193434
-386/bin/upas/smtp - 775 sys sys 1176520511 275966
+386/bin/upas/smtp - 775 sys sys 1176866484 276173
 386/bin/upas/smtpd - 775 sys sys 1176520511 332397
 386/bin/upas/spam - 775 sys sys 1064598366 36
 386/bin/upas/testscan - 775 sys sys 1176520512 83863
@@ -1399,7 +1399,7 @@ lib/face/48x48x4/x/xigh.1 - 664 sys sys 1142019024 1204
 lib/face/48x48x4/y - 20000000775 sys sys 1020895714 0
 lib/face/48x48x4/z - 20000000775 sys sys 1020895714 0
 lib/face/48x48x8 - 20000000775 sys sys 1123100641 0
-lib/face/48x48x8/.dict - 664 sys sys 1176753287 3931
+lib/face/48x48x8/.dict - 664 sys sys 1176834010 4026
 lib/face/48x48x8/Z - 20000000775 sys sys 1020895714 0
 lib/face/48x48x8/a - 20000000775 sys sys 1056983599 0
 lib/face/48x48x8/a/alcortes.1 - 664 sys sys 1176753392 976
@@ -1421,6 +1421,7 @@ lib/face/48x48x8/c/comcast.1 - 664 sys sys 1057025679 6972
 lib/face/48x48x8/d - 20000000775 sys sys 1118196820 0
 lib/face/48x48x8/d/daiello.1 - 664 sys sys 1176753392 902
 lib/face/48x48x8/d/dancross.1 - 664 sys sys 1057029244 1580
+lib/face/48x48x8/d/devon.1 - 664 sys sys 1176834003 1487
 lib/face/48x48x8/d/dlewis.1 - 664 sys sys 1118196820 2364
 lib/face/48x48x8/e - 20000000775 sys sys 1155331573 0
 lib/face/48x48x8/e/ericvh.2 - 664 sys sys 1155331573 1049
@@ -5471,7 +5472,7 @@ rc/bin/broke - 775 sys sys 1143389260 142
 rc/bin/bundle - 775 sys sys 945617206 173
 rc/bin/c: - 775 sys sys 1015089511 86
 rc/bin/cpurc - 775 sys sys 1176444833 1884
-rc/bin/cpurc.local - 775 sys sys 1176502011 448
+rc/bin/cpurc.local - 775 sys sys 1176827268 367
 rc/bin/delkey - 775 sys sys 1109429137 643
 rc/bin/dial - 20000000775 sys sys 1059180057 0
 rc/bin/diffy - 775 sys sys 1140694870 277
@@ -5592,7 +5593,7 @@ rc/bin/start - 775 sys sys 945617209 120
 rc/bin/stock - 775 sys sys 1143126371 292
 rc/bin/stop - 775 sys sys 945617209 110
 rc/bin/tel - 775 sys sys 1161209756 128
-rc/bin/termrc - 775 sys sys 1176444113 1665
+rc/bin/termrc - 775 sys sys 1176830829 1692
 rc/bin/termrc.local - 775 sys sys 1176500067 425
 rc/bin/thesaurus - 775 sys sys 1068054167 246
 rc/bin/tlsclienttunnel - 775 sys sys 1024375633 153
@@ -7944,7 +7945,7 @@ sys/src/9/ip/esp.c - 664 sys sys 1047260561 17084
 sys/src/9/ip/ethermedium.c - 664 sys sys 1115565973 15592
 sys/src/9/ip/gre.c - 664 sys sys 1115566178 5069
 sys/src/9/ip/icmp.c - 664 sys sys 1134390100 9496
-sys/src/9/ip/icmp6.c - 664 sys sys 1134498903 18054
+sys/src/9/ip/icmp6.c - 664 sys sys 1176844023 17914
 sys/src/9/ip/igmp.c - 664 sys sys 1055700768 5175
 sys/src/9/ip/il.c - 664 sys sys 1134498903 27226
 sys/src/9/ip/inferno.c - 664 sys sys 1022588098 517
@@ -7955,7 +7956,7 @@ sys/src/9/ip/ipifc.c - 664 sys sys 1168305861 34233
 sys/src/9/ip/ipmux.c - 664 sys sys 1047260566 15362
 sys/src/9/ip/iproute.c - 664 sys sys 1168305878 14778
 sys/src/9/ip/ipv6.c - 664 sys sys 1047951328 14433
-sys/src/9/ip/ipv6.h - 664 sys sys 1169493796 4314
+sys/src/9/ip/ipv6.h - 664 sys sys 1176844019 4087
 sys/src/9/ip/loopbackmedium.c - 664 sys sys 1055701769 1671
 sys/src/9/ip/netdevmedium.c - 664 sys sys 1045063517 2675
 sys/src/9/ip/netlog.c - 664 sys sys 1026847568 4003
@@ -12789,7 +12790,7 @@ sys/src/cmd/ndb/dblookup.c - 664 sys sys 1175901604 21010
 sys/src/cmd/ndb/dn.c - 664 sys sys 1175925585 32939
 sys/src/cmd/ndb/dnarea.c - 664 sys sys 1175664421 2519
 sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1175901450 3147
-sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1175927771 29811
+sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1176837575 30062
 sys/src/cmd/ndb/dns.c - 664 sys sys 1175901186 16013
 sys/src/cmd/ndb/dns.h - 664 sys sys 1175901645 10640
 sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1176746985 8741
@@ -14203,7 +14204,7 @@ sys/src/cmd/upas/send/tryit - 664 sys sys 944961322 584
 sys/src/cmd/upas/smtp - 20000000775 sys sys 1067741333 0
 sys/src/cmd/upas/smtp/greylist.c - 664 sys sys 1161209057 6546
 sys/src/cmd/upas/smtp/mkfile - 664 sys sys 1108910002 801
-sys/src/cmd/upas/smtp/mxdial.c - 664 sys sys 1131293478 6420
+sys/src/cmd/upas/smtp/mxdial.c - 664 sys sys 1176837561 6567
 sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417
 sys/src/cmd/upas/smtp/rmtdns.c - 664 sys sys 1015013150 1069
 sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1143759341 20123
