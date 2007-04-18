@@ -79,14 +79,13 @@ callmx(DS *ds, char *dest, char *domain)
 	}
 
 	/* refuse to honor loopback addresses given by dns */
-	for(i = 0; i < nmx; i++){
+	for(i = 0; i < nmx; i++)
 		if(strcmp(mx[i].ip, "127.0.0.1") == 0){
 			if(debug)
 				fprint(2, "mxlookup returns loopback\n");
 			werrstr("illegal: domain lists 127.0.0.1 as mail server");
 			return -1;
 		}
-	}
 
 	/* sort by preference */
 	if(nmx > 1)
@@ -123,9 +122,9 @@ mxlookup(DS *ds, char *domain)
 	/* just in case we find no domain name */
 	strcpy(domain, ds->host);
 
-	if(ds->netdir){
+	if(ds->netdir)
 		n = mxlookup1(ds, domain);
-	} else {
+	else {
 		ds->netdir = "/net";
 		n = mxlookup1(ds, domain);
 		if(n == 0) {
@@ -140,10 +139,10 @@ mxlookup(DS *ds, char *domain)
 static int
 mxlookup1(DS *ds, char *domain)
 {
-	char buf[1024];
-	char dnsname[Maxstring];
-	char *fields[4];
 	int i, n, fd, nmx;
+	long oalarm;
+	char buf[1024], dnsname[Maxstring];
+	char *fields[4];
 
 	snprint(dnsname, sizeof dnsname, "%s/dns", ds->netdir);
 
@@ -152,10 +151,17 @@ mxlookup1(DS *ds, char *domain)
 		return 0;
 
 	nmx = 0;
-	snprint(buf, sizeof(buf), "%s mx", ds->host);
+	snprint(buf, sizeof buf, "%s mx", ds->host);
 	if(debug)
 		fprint(2, "sending %s '%s'\n", dnsname, buf);
+	/*
+	 * don't hang indefinitely in the write to /net/dns.
+	 */
+	atnotify(timeout, 1);
+	oalarm = alarm(60*1000);
 	n = write(fd, buf, strlen(buf));
+	alarm(oalarm);
+	atnotify(timeout, 0);
 	if(n < 0){
 		rerrstr(buf, sizeof buf);
 		if(debug)
@@ -170,7 +176,7 @@ mxlookup1(DS *ds, char *domain)
 		 *  get any mx entries
 		 */
 		seek(fd, 0, 0);
-		while(nmx < Nmx && (n = read(fd, buf, sizeof(buf)-1)) > 0){
+		while(nmx < Nmx && (n = read(fd, buf, sizeof buf-1)) > 0){
 			buf[n] = 0;
 			if(debug)
 				fprint(2, "dns mx: %s\n", buf);
@@ -227,7 +233,7 @@ mxlookup1(DS *ds, char *domain)
 		mx[i] = mx[nmx];
 		i--;
 	}
-	return nmx;		
+	return nmx;
 }
 
 static int
@@ -291,7 +297,7 @@ expand_meta(DS *ds)
 		return;
 	}
 
-	snprint(buf, sizeof(buf), "!ipinfo %s", ds->host+1);	// +1 to skip $
+	snprint(buf, sizeof buf, "!ipinfo %s", ds->host+1);	// +1 to skip $
 	if(write(fd, buf, strlen(buf)) <= 0){
 		if(debug)
 			fprint(2, "write %s: %r\n", cs);
