@@ -1770,9 +1770,9 @@ ipinfoquery(Mfile *mf, char **list, int n)
 	 */
 	nresolve = 0;
 	for(i = 0; i < n; i++)
-		if(*list[i] == '@'){
+		if(*list[i] == '@'){		/* @attr=val ? */
 			list[i]++;
-			resolve[i] = 1;
+			resolve[i] = 1;		/* we'll resolve it */
 			nresolve++;
 		} else
 			resolve[i] = 0;

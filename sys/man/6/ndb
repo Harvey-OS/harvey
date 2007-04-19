@@ -241,9 +241,6 @@ pairs.
 .B dns
 a DNS server to use (for DNS and DHCP)
 .TP
-.B @dns
-a DNS server to forward queries to when running as a resolver (for DNS)
-.TP
 .B ntp
 an NTP server to use (for DHCP)
 .TP
