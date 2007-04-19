@@ -297,7 +297,7 @@ If present,
 must be a space-separated list of such DNS servers' IP addresses,
 otherwise optional
 .IR ndb (6)
-.B @dns
+.B dns
 attributes name DNS servers to forward queries to.
 .TP
 .B -R

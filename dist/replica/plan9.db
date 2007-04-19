@@ -7555,7 +7555,7 @@ sys/man/2/mouse - 664 sys sys 1140900146 4952
 sys/man/2/mp - 664 sys sys 1140106703 10762
 sys/man/2/muldiv - 664 sys sys 984709633 639
 sys/man/2/nan - 664 sys sys 975084242 937
-sys/man/2/ndb - 664 sys sys 1173401633 9573
+sys/man/2/ndb - 664 sys sys 1176932123 9743
 sys/man/2/notify - 664 sys sys 1032058674 6376
 sys/man/2/object - 664 sys sys 944959695 3864
 sys/man/2/open - 664 sys sys 1015091524 3404
@@ -7726,7 +7726,7 @@ sys/man/6/mnihongo - 664 sys sys 1158064572 716
 sys/man/6/mpictures - 664 sys sys 944959678 2899
 sys/man/6/ms - 664 sys sys 958249504 6815
 sys/man/6/namespace - 664 sys sys 1048637182 1576
-sys/man/6/ndb - 664 sys sys 1174770884 6755
+sys/man/6/ndb - 664 sys sys 1176932139 6671
 sys/man/6/plot - 664 sys sys 944959679 6739
 sys/man/6/plumb - 664 sys sys 969499892 10918
 sys/man/6/regexp - 664 sys sys 954089523 2050
@@ -7784,7 +7784,7 @@ sys/man/8/mkpaqfs - 664 sys sys 1018386778 892
 sys/man/8/mksacfs - 664 sys sys 964886843 710
 sys/man/8/mouse - 664 sys sys 971455511 2476
 sys/man/8/na - 664 sys sys 958527089 859
-sys/man/8/ndb - 664 sys sys 1175725007 13255
+sys/man/8/ndb - 664 sys sys 1176932150 13254
 sys/man/8/newuser - 664 sys sys 1116954242 2418
 sys/man/8/nfsserver - 664 sys sys 1163208425 3587
 sys/man/8/pcmcia - 664 sys sys 944959679 408
@@ -7945,17 +7945,17 @@ sys/src/9/ip/esp.c - 664 sys sys 1047260561 17084
 sys/src/9/ip/ethermedium.c - 664 sys sys 1115565973 15592
 sys/src/9/ip/gre.c - 664 sys sys 1115566178 5069
 sys/src/9/ip/icmp.c - 664 sys sys 1134390100 9496
-sys/src/9/ip/icmp6.c - 664 sys sys 1176844023 17914
+sys/src/9/ip/icmp6.c - 664 sys sys 1176937812 17893
 sys/src/9/ip/igmp.c - 664 sys sys 1055700768 5175
 sys/src/9/ip/il.c - 664 sys sys 1134498903 27226
 sys/src/9/ip/inferno.c - 664 sys sys 1022588098 517
 sys/src/9/ip/ip.c - 664 sys sys 1101906449 15285
 sys/src/9/ip/ip.h - 664 sys sys 1162907930 15760
 sys/src/9/ip/ipaux.c - 664 sys sys 1079538100 12862
-sys/src/9/ip/ipifc.c - 664 sys sys 1168305861 34233
+sys/src/9/ip/ipifc.c - 664 sys sys 1176937940 33863
 sys/src/9/ip/ipmux.c - 664 sys sys 1047260566 15362
 sys/src/9/ip/iproute.c - 664 sys sys 1168305878 14778
-sys/src/9/ip/ipv6.c - 664 sys sys 1047951328 14433
+sys/src/9/ip/ipv6.c - 664 sys sys 1176938017 14297
 sys/src/9/ip/ipv6.h - 664 sys sys 1176844019 4087
 sys/src/9/ip/loopbackmedium.c - 664 sys sys 1055701769 1671
 sys/src/9/ip/netdevmedium.c - 664 sys sys 1045063517 2675
@@ -12508,6 +12508,7 @@ sys/src/cmd/ip/imap4d/nodes.c - 664 sys sys 1015013077 3173
 sys/src/cmd/ip/imap4d/search.c - 664 sys sys 1015013077 4520
 sys/src/cmd/ip/imap4d/store.c - 664 sys sys 1066317059 1910
 sys/src/cmd/ip/imap4d/utils.c - 664 sys sys 1168894057 2587
+sys/src/cmd/ip/ipconfig - 20000000775 sys sys 1176933436 0
 sys/src/cmd/ip/ipconfig.c - 664 sys sys 1176502464 35429
 sys/src/cmd/ip/measure.c - 664 sys sys 944961011 3733
 sys/src/cmd/ip/mkfile - 664 sys sys 1169163575 1250
@@ -12784,7 +12785,7 @@ sys/src/cmd/mv.c - 664 sys sys 1163029439 4682
 sys/src/cmd/ndb - 20000000775 sys sys 1080135004 0
 sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1175901489 6927
 sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1175901582 11659
-sys/src/cmd/ndb/cs.c - 664 sys sys 1163208159 33080
+sys/src/cmd/ndb/cs.c - 664 sys sys 1176931848 33123
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1174626119 1073
 sys/src/cmd/ndb/dblookup.c - 664 sys sys 1175901604 21010
 sys/src/cmd/ndb/dn.c - 664 sys sys 1175925585 32939
@@ -15540,7 +15541,7 @@ sys/src/libndb/ndbgetipaddr.c - 664 sys sys 1144174489 876
 sys/src/libndb/ndbgetval.c - 664 sys sys 1144174490 1348
 sys/src/libndb/ndbhash.c - 664 sys sys 1144174490 5276
 sys/src/libndb/ndbhf.h - 664 sys sys 1015013485 746
-sys/src/libndb/ndbipinfo.c - 664 sys sys 1157899101 5127
+sys/src/libndb/ndbipinfo.c - 664 sys sys 1176931776 5181
 sys/src/libndb/ndblookval.c - 664 sys sys 1078839929 791
 sys/src/libndb/ndbopen.c - 664 sys sys 1173737251 2717
 sys/src/libndb/ndbparse.c - 664 sys sys 1144174490 1207

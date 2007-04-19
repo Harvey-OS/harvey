@@ -262,6 +262,15 @@ attributes in the
 .I n
 element array
 .IR attrs .
+If any
+.I attrs
+begin with
+.LR @ ,
+the
+.L @
+is excluded from the attribute name,
+but causes any corresponding value returned
+to be a resolved IP address(es), not a name.
 For example, consider the following database entries describing a network,
 a subnetwork, and a system.
 .IP
