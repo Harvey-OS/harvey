@@ -145,30 +145,28 @@ Block*		ip4reassemble(IP*, int, Block*, Ip4hdr*);
 void		ipfragfree4(IP*, Fragment4*);
 Fragment4*	ipfragallo4(IP*);
 
-
 void
 ip_init_6(Fs *f)
 {
 	v6params *v6p;
 
 	v6p = smalloc(sizeof(v6params));
-	
-	v6p->rp.mflag		= 0;		// default not managed
+
+	v6p->rp.mflag		= 0;		/* default not managed */
 	v6p->rp.oflag		= 0;
-	v6p->rp.maxraint	= 600000;	// millisecs
+	v6p->rp.maxraint	= 600000;	/* millisecs */
 	v6p->rp.minraint	= 200000;
-	v6p->rp.linkmtu		= 0;		// no mtu sent
+	v6p->rp.linkmtu		= 0;		/* no mtu sent */
 	v6p->rp.reachtime	= 0;
 	v6p->rp.rxmitra		= 0;
 	v6p->rp.ttl		= MAXTTL;
-	v6p->rp.routerlt	= 3*(v6p->rp.maxraint);	
+	v6p->rp.routerlt	= 3 * v6p->rp.maxraint;
 
-	v6p->hp.rxmithost	= 1000;		// v6 RETRANS_TIMER
+	v6p->hp.rxmithost	= 1000;		/* v6 RETRANS_TIMER */
 
 	v6p->cdrouter 		= -1;
 
 	f->v6p			= v6p;
-
 }
 
 void
@@ -217,7 +215,7 @@ iprouting(Fs *f, int on)
 	if(f->ip->iprouting==0)
 		f->ip->stats[Forwarding] = 2;
 	else
-		f->ip->stats[Forwarding] = 1;	
+		f->ip->stats[Forwarding] = 1;
 }
 
 int
@@ -362,7 +360,7 @@ if((eh->frag[0] & (IP_DF>>8)) && !gating) print("%V: DF set\n", eh->dst);
 			seglen = dlen - fragoff;
 			hnputs(feh->frag, fragoff>>3);
 		}
-		else	
+		else
 			hnputs(feh->frag, (fragoff>>3)|IP_MF);
 
 		hnputs(feh->length, seglen + IP4HDR);
@@ -387,7 +385,7 @@ if((eh->frag[0] & (IP_DF>>8)) && !gating) print("%V: DF set\n", eh->dst);
 			chunk -= blklen;
 			if(xp->rp == xp->wp)
 				xp = xp->next;
-		} 
+		}
 
 		feh->cksum[0] = 0;
 		feh->cksum[1] = 0;
@@ -723,7 +721,7 @@ ip4reassemble(IP *ip, int offset, Block *bp, Ip4hdr *ih)
 			hnputs(ih->length, len);
 			qunlock(&ip->fraglock4);
 			ip->stats[ReasmOKs]++;
-			return bl;		
+			return bl;
 		}
 		pktposn += BKFG(bl)->flen;
 	}

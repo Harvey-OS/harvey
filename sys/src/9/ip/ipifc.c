@@ -415,12 +415,12 @@ ipifcadd(Ipifc *ifc, char **argv, int argc, int tentative, Iplifc *lifcp)
 		if(ipcmp(lifc->local, ip) == 0) {
 			if(lifc->tentative != tentative)
 				lifc->tentative = tentative;
-			if(lifcp != nil) {
-				lifc->onlink = lifcp->onlink;
+			if(lifcp) {
+				lifc->onlink   = lifcp->onlink;
 				lifc->autoflag = lifcp->autoflag;
-				lifc->validlt = lifcp->validlt;
-				lifc->preflt = lifcp->preflt;
-				lifc->origint = lifcp->origint;
+				lifc->validlt  = lifcp->validlt;
+				lifc->preflt   = lifcp->preflt;
+				lifc->origint  = lifcp->origint;
 			}
 			goto out;
 		}
@@ -432,18 +432,16 @@ ipifcadd(Ipifc *ifc, char **argv, int argc, int tentative, Iplifc *lifcp)
 	ipmove(lifc->remote, rem);
 	ipmove(lifc->net, net);
 	lifc->tentative = tentative;
-	if(lifcp != nil) {
-		lifc->onlink = lifcp->onlink;
+	if(lifcp) {
+		lifc->onlink   = lifcp->onlink;
 		lifc->autoflag = lifcp->autoflag;
-		lifc->validlt = lifcp->validlt;
-		lifc->preflt = lifcp->preflt;
-		lifc->origint = lifcp->origint;
+		lifc->validlt  = lifcp->validlt;
+		lifc->preflt   = lifcp->preflt;
+		lifc->origint  = lifcp->origint;
 	} else {		/* default values */
-		lifc->onlink = 1;
-		lifc->autoflag = 1;
-		lifc->validlt = ~0L;
-		lifc->preflt = ~0L;
-		lifc->origint = NOW / 1000;
+		lifc->onlink   = lifc->autoflag = 1;
+		lifc->validlt  = lifc->preflt = ~0L;
+		lifc->origint  = NOW / 1000;
 	}
 	lifc->next = nil;
 
@@ -687,7 +685,7 @@ ipifcconnect(Conv* c, char **argv, int argc)
 }
 
 char*
-ipifcsetpar6(Ipifc *ifc, char **argv, int argc)
+ipifcra6(Ipifc *ifc, char **argv, int argc)
 {
 	int i, argsleft, vmax = ifc->rp.maxraint, vmin = ifc->rp.minraint;
 
@@ -736,20 +734,6 @@ ipifcsetpar6(Ipifc *ifc, char **argv, int argc)
 	return nil;
 }
 
-char*
-ipifcsendra6(Ipifc *ifc, char **argv, int argc)
-{
-	ifc->sendra6 = ((argc > 1? atoi(argv[1]): 0) != 0);
-	return nil;
-}
-
-char*
-ipifcrecvra6(Ipifc *ifc, char **argv, int argc)
-{
-	ifc->recvra6 = ((argc > 1? atoi(argv[1]): 0) != 0);
-	return nil;
-}
-
 /*
  *  non-standard control messages.
  *  called with c->car locked.
@@ -780,15 +764,12 @@ ipifcctl(Conv* c, char**argv, int argc)
 	} else if(strcmp(argv[0], "iprouting") == 0){
 		iprouting(c->p->f, (argc > 1? atoi(argv[1]): 1));
 		return nil;
-	} else if(strcmp(argv[0], "addpref6") == 0)
-		return ipifcaddpref6(ifc, argv, argc);
-	else if(strcmp(argv[0], "setpar6") == 0)
-		return ipifcsetpar6(ifc, argv, argc);
-	else if(strcmp(argv[0], "sendra6") == 0)
-		return ipifcsendra6(ifc, argv, argc);
-	else if(strcmp(argv[0], "recvra6") == 0)
-		return ipifcrecvra6(ifc, argv, argc);
-	return "unsupported ctl";
+	} else if(strcmp(argv[0], "add6") == 0)
+		return ipifcadd6(ifc, argv, argc);
+	else if(strcmp(argv[0], "ra6") == 0)
+		return ipifcra6(ifc, argv, argc);
+	else
+		return "unsupported ctl";
 }
 
 int
@@ -1583,7 +1564,7 @@ enum {
 };
 
 char*
-ipifcaddpref6(Ipifc *ifc, char**argv, int argc)
+ipifcadd6(Ipifc *ifc, char**argv, int argc)
 {
 	int plen = 64;
 	long origint = NOW / 1000, preflt = ~0L, validlt = ~0L;
@@ -1620,17 +1601,16 @@ ipifcaddpref6(Ipifc *ifc, char**argv, int argc)
 		return Ebadarg;
 
 	lifc = smalloc(sizeof(Iplifc));
-	lifc->onlink = (onlink!=0);
-	lifc->autoflag = (autoflag!=0);
+	lifc->onlink = (onlink != 0);
+	lifc->autoflag = (autoflag != 0);
 	lifc->validlt = validlt;
 	lifc->preflt = preflt;
 	lifc->origint = origint;
 
-	if(ifc->m->pref2addr)
-		ifc->m->pref2addr(prefix, ifc->mac);
-	else
+	/* issue "add" ctl msg for v6 link-local addr and prefix len */
+	if(!ifc->m->pref2addr)
 		return Ebadarg;
-
+	ifc->m->pref2addr(prefix, ifc->mac);	/* mac → v6 link-local addr */
 	sprint(addr, "%I", prefix);
 	sprint(preflen, "/%d", plen);
 	params[0] = "add";

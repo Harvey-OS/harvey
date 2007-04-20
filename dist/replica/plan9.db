@@ -49,7 +49,7 @@
 386/bin/auth/changeuser - 775 sys sys 1168402267 97488
 386/bin/auth/convkeys - 775 sys sys 1174964423 88664
 386/bin/auth/convkeys2 - 775 sys sys 1174964423 88723
-386/bin/auth/cron - 775 sys sys 1168402268 144754
+386/bin/auth/cron - 775 sys sys 1177012403 145052
 386/bin/auth/debug - 775 sys sys 1168402268 101566
 386/bin/auth/disable - 775 sys sys 1020319057 146
 386/bin/auth/enable - 775 sys sys 1020319057 134
@@ -7624,7 +7624,7 @@ sys/man/3/ether - 664 sys sys 984709635 2563
 sys/man/3/floppy - 664 sys sys 954378905 881
 sys/man/3/fs - 664 sys sys 1175145095 3147
 sys/man/3/i82365 - 664 sys sys 954378906 884
-sys/man/3/ip - 664 sys sys 1174771711 22618
+sys/man/3/ip - 664 sys sys 1176959517 24540
 sys/man/3/kbmap - 664 sys sys 1131110122 1732
 sys/man/3/kprof - 664 sys sys 1018029972 1377
 sys/man/3/loopback - 664 sys sys 964662153 1995
@@ -7949,10 +7949,10 @@ sys/src/9/ip/icmp6.c - 664 sys sys 1176937812 17893
 sys/src/9/ip/igmp.c - 664 sys sys 1055700768 5175
 sys/src/9/ip/il.c - 664 sys sys 1134498903 27226
 sys/src/9/ip/inferno.c - 664 sys sys 1022588098 517
-sys/src/9/ip/ip.c - 664 sys sys 1101906449 15285
-sys/src/9/ip/ip.h - 664 sys sys 1162907930 15760
+sys/src/9/ip/ip.c - 664 sys sys 1176957040 15288
+sys/src/9/ip/ip.h - 664 sys sys 1176957139 15982
 sys/src/9/ip/ipaux.c - 664 sys sys 1079538100 12862
-sys/src/9/ip/ipifc.c - 664 sys sys 1176937940 33863
+sys/src/9/ip/ipifc.c - 664 sys sys 1176957160 33517
 sys/src/9/ip/ipmux.c - 664 sys sys 1047260566 15362
 sys/src/9/ip/iproute.c - 664 sys sys 1168305878 14778
 sys/src/9/ip/ipv6.c - 664 sys sys 1176938017 14297
@@ -9526,7 +9526,7 @@ sys/src/cmd/auth/changeuser.c - 664 sys sys 1155994851 2949
 sys/src/cmd/auth/convbio.c - 664 sys sys 1015008432 2212
 sys/src/cmd/auth/convkeys.c - 664 sys sys 1155994849 2387
 sys/src/cmd/auth/convkeys2.c - 664 sys sys 1155994849 2444
-sys/src/cmd/auth/cron.c - 664 sys sys 1168307786 12266
+sys/src/cmd/auth/cron.c - 664 sys sys 1177004942 12306
 sys/src/cmd/auth/debug.c - 664 sys sys 1143694911 7325
 sys/src/cmd/auth/disable - 775 sys sys 1015008431 146
 sys/src/cmd/auth/enable - 775 sys sys 1015008430 134

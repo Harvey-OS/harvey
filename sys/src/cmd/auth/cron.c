@@ -84,6 +84,20 @@ sleepuntil(ulong tm)
 		return 0;
 }
 
+#pragma varargck	argpos clog 1
+
+static void
+clog(char *fmt, ...)
+{
+	char msg[256];
+	va_list arg;
+
+	va_start(arg, fmt);
+	vseprint(msg, msg + sizeof msg, fmt, arg);
+	va_end(arg);
+	syslog(0, CRONLOG, msg);
+}
+
 void
 main(int argc, char *argv[])
 {
@@ -138,10 +152,10 @@ main(int argc, char *argv[])
 		 * just execute one day's jobs.
 		 */
 		if (now < last) {
-			syslog(0, CRONLOG, "time went backward");
+			clog("time went backward");
 			last = now;
 		} else if (now - last > Day) {
-			syslog(0, CRONLOG, "time advanced more than a day");
+			clog("time advanced more than a day");
 			last = now - Day;
 		}
 		now = minute(now);
@@ -261,8 +275,7 @@ readjobs(char *file, User *user)
 		if(*savec == '#' || *savec == '\0')
 			continue;
 		if(strlen(savec) > 1024){
-			syslog(0, CRONLOG, "%s: line %d: line too long",
-				user->name, line);
+			clog("%s: line %d: line too long", user->name, line);
 			continue;
 		}
 		j = emalloc(sizeof *j);
@@ -277,8 +290,7 @@ readjobs(char *file, User *user)
 			j->next = jobs;
 			jobs = j;
 		}else{
-			syslog(0, CRONLOG, "%s: line %d: syntax error",
-				user->name, line);
+			clog("%s: line %d: syntax error", user->name, line);
 			free(j);
 		}
 	}
@@ -356,7 +368,7 @@ getname(char **namep)
 	*p = '\0';
 	*namep = strdup(buf);
 	if(*namep == 0){
-		syslog(0, CRONLOG, "internal error: strdup failure");
+		clog("internal error: strdup failure");
 		_exits(0);
 	}
 	while(*savec == ' ' || *savec == '\t')
@@ -492,13 +504,30 @@ rexec(User *user, Job *j)
 	case 0:
 		break;
 	case -1:
-		syslog(0, CRONLOG, "can't fork a job for %s: %r\n", user->name);
+		clog("can't fork a job for %s: %r\n", user->name);
 	default:
 		return;
 	}
 
 	if(!mkcmd(j->cmd, buf, sizeof buf)){
-		syslog(0, CRONLOG, "internal error: cmd buffer overflow");
+		clog("internal error: cmd buffer overflow");
+		_exits(0);
+	}
+
+	/*
+	 * local call, auth, cmd with no i/o
+	 */
+	if(strcmp(j->host, "local") == 0){
+		if(becomeuser(user->name) < 0){
+			clog("%s: can't change uid for %s on %s: %r",
+				user->name, j->cmd, j->host);
+			_exits(0);
+		}
+		putenv("service", "rx");
+		clog("%s: ran '%s' on %s", user->name, j->cmd, j->host);
+		execl("/bin/rc", "rc", "-lc", buf, nil);
+		clog("%s: exec failed for %s on %s: %r",
+			user->name, j->cmd, j->host);
 		_exits(0);
 	}
 
@@ -506,45 +535,32 @@ rexec(User *user, Job *j)
 	 * remote call, auth, cmd with no i/o
 	 * give it 2 min to complete
 	 */
-	if(strcmp(j->host, "local") == 0){
-		if(becomeuser(user->name) < 0){
-			syslog(0, CRONLOG, "%s: can't change uid for %s on %s: %r", user->name, j->cmd, j->host);
-			_exits(0);
-		}
-syslog(0, CRONLOG, "%s: ran '%s' on %s", user->name, j->cmd, j->host);
-		execl("/bin/rc", "rc", "-c", buf, nil);
-		syslog(0, CRONLOG, "%s: exec failed for %s on %s: %r",
-			user->name, j->cmd, j->host);
-		_exits(0);
-	}
-
 	alarm(2*Minute*1000);
 	fd = call(j->host);
 	if(fd < 0){
 		if(fd == -2)
-			syslog(0, CRONLOG, "%s: dangerous host %s",
-				user->name, j->host);
-		syslog(0, CRONLOG, "%s: can't call %s: %r", user->name, j->host);
+			clog("%s: dangerous host %s", user->name, j->host);
+		clog("%s: can't call %s: %r", user->name, j->host);
 		_exits(0);
 	}
-syslog(0, CRONLOG, "%s: called %s on %s", user->name, j->cmd, j->host);
+	clog("%s: called %s on %s", user->name, j->cmd, j->host);
 	if(becomeuser(user->name) < 0){
-		syslog(0, CRONLOG, "%s: can't change uid for %s on %s: %r",
+		clog("%s: can't change uid for %s on %s: %r",
 			user->name, j->cmd, j->host);
 		_exits(0);
 	}
 	ai = auth_proxy(fd, nil, "proto=p9any role=client");
 	if(ai == nil){
-		syslog(0, CRONLOG, "%s: can't authenticate for %s on %s: %r",
+		clog("%s: can't authenticate for %s on %s: %r",
 			user->name, j->cmd, j->host);
 		_exits(0);
 	}
-syslog(0, CRONLOG, "%s: authenticated %s on %s", user->name, j->cmd, j->host);
+	clog("%s: authenticated %s on %s", user->name, j->cmd, j->host);
 	write(fd, buf, strlen(buf)+1);
 	write(fd, buf, 0);
 	while((n = read(fd, buf, sizeof(buf)-1)) > 0){
 		buf[n] = 0;
-		syslog(0, CRONLOG, "%s: %s\n", j->cmd, buf);
+		clog("%s: %s\n", j->cmd, buf);
 	}
 	_exits(0);
 }
@@ -660,6 +676,7 @@ becomeuser(char *new)
 {
 	char *cap;
 	int rv;
+
 	cap = mkcap(getuser(), new);
 	if(cap == nil)
 		return -1;
