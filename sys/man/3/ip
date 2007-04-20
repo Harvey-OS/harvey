@@ -94,7 +94,8 @@ alters aspects of the interface.
 The possible
 .I ctl
 messages are:
-.TF "bind loopback"
+.\" .TF "bind loopback"
+.TF "bind netdev"
 .PD
 .TP
 .BI "bind ether " path
@@ -135,7 +136,15 @@ written to it will be looped back.
 Disassociate the physical device from an IP interface.
 .TP
 .BI add\  "local mask remote mtu " proxy
-Add a local IP address to the interface.  The
+.PD 0
+.TP
+.BI try\  "local mask remote mtu " proxy
+.PD
+Add a local IP address to the interface.
+.I try
+adds the local address as a tentative address
+if it's an IPv6 address.
+The
 .IR mask ,
 .IR remote ,
 .IR mtu ,
@@ -185,6 +194,88 @@ on this interface as a local address.
 Remove the multicast address
 .I addr
 from this interface.
+.TP
+.BI "add6 " "v6addr pfx-len [onlink auto validlt preflt]"
+Add the local IPv6 address
+.I v6addr
+with prefix length
+.I pfx-len
+to this interface.
+See RFC 2461 §6.2.1 for more detail.
+The remaining arguments are optional:
+.RS
+.TF onlink
+.TP
+.I onlink
+flag: address is `on-link'
+.TP
+.I auto
+flag: autonomous
+.TP
+.I validlt
+valid life-time in seconds
+.TP
+.I preflt
+preferred life-time in seconds
+.RE
+.PD
+.TP
+.BI "ra6 " "keyword value ..."
+Set IPv6 router advertisement (RA) parameter
+.IR keyword 's
+.IR value .
+Known
+.IR keyword s
+and the meanings of their values follow.
+See RFC 2461 §6.2.1 for more detail.
+Flags are true iff non-zero.
+.RS
+.TF minraint
+.TP
+.B recvra
+flag: receive and process RAs.
+.TP
+.B sendra
+flag: generate and send RAs.
+.TP
+.B mflag
+flag: ``Managed address configuration'',
+goes into RAs.
+.TP
+.B oflag
+flag: ``Other stateful configuration'',
+goes into RAs.
+.TP
+.B maxraint
+``maximum time allowed between sending unsolicited multicast''
+RAs from the interface, in ms.
+.TP
+.B minraint
+``minimum time allowed between sending unsolicited multicast''
+RAs from the interface, in ms.
+.TP
+.B linkmtu
+``value to be placed in MTU options sent by the router.''
+Zero indicates none.
+.TP
+.B reachtime
+sets the Reachable Time field in RAs sent by the router.
+``Zero means unspecified (by this router).''
+.TP
+.B rxmitra
+sets the Retrans Timer field in RAs sent by the router.
+``Zero means unspecified (by this router).''
+.TP
+.B ttl
+default value of the Cur Hop Limit field in RAs sent by the router.
+Should be set to the ``current diameter of the Internet.''
+``Zero means unspecified (by this router).''
+.TP
+.B routerlt
+sets the Router Lifetime field of RAs sent from the interface, in ms.
+Zero means the router is not to be used as a default router.
+.PD
+.RE
 .PP
 Reading the interface's
 .I status

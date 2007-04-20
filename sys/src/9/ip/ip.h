@@ -188,19 +188,19 @@ struct Iplink
 	int	ref;
 };
 
-/* rfc 2461, pp.40--43. */
+/* rfc 2461, pp.40—43. */
 
 /* default values, one per stack */
 struct Routerparams {
-	int	mflag;
-	int	oflag;
-	int 	maxraint;
-	int	minraint;
-	int	linkmtu;
-	int	reachtime;
-	int	rxmitra;
-	int	ttl;
-	int	routerlt;	
+	int	mflag;		/* flag: managed address configuration */
+	int	oflag;		/* flag: other stateful configuration */
+	int 	maxraint;	/* max. router adv interval (ms) */
+	int	minraint;	/* min. router adv interval (ms) */
+	int	linkmtu;	/* mtu options */
+	int	reachtime;	/* reachable time */
+	int	rxmitra;	/* retransmit interval */
+	int	ttl;		/* cur hop count limit */
+	int	routerlt;	/* router lifetime */
 };
 
 struct Hostparams {
@@ -210,7 +210,7 @@ struct Hostparams {
 struct Ipifc
 {
 	RWlock;
-	
+
 	Conv	*conv;		/* link to its conversation structure */
 	char	dev[64];	/* device we're attached to */
 	Medium	*m;		/* Media pointer */
@@ -234,9 +234,9 @@ struct Ipifc
 	ulong	in, out;	/* message statistics */
 	ulong	inerr, outerr;	/* ... */
 
-	uchar	sendra6;	/* == 1 => send router advs on this ifc	*/
-	uchar	recvra6;	/* == 1 => recv router advs on this ifc */
-	Routerparams rp;	/* router parameters as in RFC 2461, pp.40--43. 
+	uchar	sendra6;	/* flag: send router advs on this ifc */
+	uchar	recvra6;	/* flag: recv router advs on this ifc */
+	Routerparams rp;	/* router parameters as in RFC 2461, pp.40—43.
 					used only if node is router */
 };
 
@@ -361,7 +361,7 @@ struct v6params
 	Routerparams	rp;		/* v6 params, one copy per node now */
 	Hostparams	hp;
 	v6router	v6rlist[3];	/* max 3 default routers, currently */
-	int		cdrouter;	/* uses only v6rlist[cdrouter] if   */ 
+	int		cdrouter;	/* uses only v6rlist[cdrouter] if   */
 					/* cdrouter >= 0. */
 };
 
@@ -379,7 +379,7 @@ char*	Fsstdannounce(Conv*, char**, int);
 char*	Fsstdbind(Conv*, char**, int);
 ulong	scalednconv(void);
 void	closeconv(Conv*);
-/* 
+/*
  *  logging
  */
 enum
@@ -605,8 +605,7 @@ extern void	ipifcaddmulti(Conv *c, uchar *ma, uchar *ia);
 extern char*	ipifcrem(Ipifc *ifc, char **argv, int argc);
 extern char*	ipifcadd(Ipifc *ifc, char **argv, int argc, int tentative, Iplifc *lifcp);
 extern long	ipselftabread(Fs*, char *a, ulong offset, int n);
-extern char*	ipifcaddpref6(Ipifc *ifc, char**argv, int argc);
-extern void	ipsendra6(Fs *f, int on);
+extern char*	ipifcadd6(Ipifc *ifc, char**argv, int argc);
 /*
  *  ip.c
  */
