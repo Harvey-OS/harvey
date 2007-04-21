@@ -1,0 +1,23 @@
+</$objtype/mkfile
+
+TARG=ipconfig\
+
+OFILES=\
+	main.$O\
+	ipv6.$O\
+	ppp.$O\
+
+HFILES=\
+	../dhcp.h\
+	../icmp.h\
+	ipconfig.h\
+	/sys/src/9/ip/ipv6.h\
+
+BIN=/$objtype/bin/ip
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+
+</sys/src/cmd/mkone

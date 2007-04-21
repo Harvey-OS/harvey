@@ -48430,3 +48430,17 @@
 1176960606 0 c sys/man/3/ip - 664 sys sys 1176959517 24540
 1177005616 0 c sys/src/cmd/auth/cron.c - 664 sys sys 1177004942 12306
 1177012806 0 c 386/bin/auth/cron - 775 sys sys 1177012403 145052
+1177093806 0 c sys/man/8/ipconfig - 664 sys sys 1177092354 7421
+1177093806 1 a sys/src/cmd/ip/ipconfig/ipconfig.h - 664 sys sys 1177092388 5536
+1177093806 2 a sys/src/cmd/ip/ipconfig/ipv6.c - 664 sys sys 1177092388 19783
+1177093806 3 a sys/src/cmd/ip/ipconfig/main.c - 664 sys sys 1177092388 37908
+1177093806 4 a sys/src/cmd/ip/ipconfig/mkfile - 664 sys sys 1177092388 236
+1177093806 5 a sys/src/cmd/ip/ipconfig/ppp.c - 664 sys sys 1177092388 1128
+1177093806 6 d sys/src/cmd/ip/ipconfig.c - 664 sys sys 1176502464 0
+1177101006 0 a rc/bin/ipv6on - 775 sys sys 1177099714 1872
+1177101006 1 c sys/man/6/ndb - 664 sys sys 1177100292 6745
+1177101006 2 c sys/man/8/ipconfig - 664 sys sys 1177100280 7984
+1177101006 3 c sys/src/cmd/ip/dhcp.h - 664 sys sys 1177099797 3420
+1177101006 4 a sys/src/cmd/ip/linklocal.c - 664 sys sys 1177099730 867
+1177101006 5 c sys/src/cmd/ip/mkfile - 664 sys sys 1177099797 1271
+1177101006 6 d 386/bin/ip/gizzard - 775 sys sys 1081480408 0
