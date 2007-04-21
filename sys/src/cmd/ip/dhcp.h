@@ -1,4 +1,4 @@
-
+/* Dynamic Host Configuration Protocol / BOOTP */
 enum
 {
 	OfferTimeout=	60,		/* when an offer times out */
@@ -21,7 +21,7 @@ enum
 	/* bootp flags */
 	Fbroadcast=	1<<15,
 
-	/* dhcp types */
+	/* dhcp v4 types */
 	Discover=	1,
 	Offer=		2,
 	Request=	3,
@@ -74,7 +74,7 @@ enum
 	OBtcpka=		38,
 	OBtcpkag=		39,
 	OBnisdomain=		40,
-	OBniserver=		41,	
+	OBniserver=		41,
 	OBntpserver=		42,
 	OBvendorinfo=		43,	/* 0x2b */
 	OBnetbiosns=		44,
@@ -95,7 +95,7 @@ enum
 	OBstserver=		75,
 	OBstdaserver=		76,
 
-	/* dhcp options */
+	/* dhcp v4 options */
 	ODipaddr=		50,	/* 0x32 */
 	ODlease=		51,
 	ODoverload=		52,
@@ -112,12 +112,12 @@ enum
 	ODbootfile=		67,
 
 	/* plan9 vendor info options */
-	OP9fs=			128,	// plan9 file servers
-	OP9auth=		129,	// plan9 auth servers
+	OP9fs=			128,	/* plan9 file servers */
+	OP9auth=		129,	/* plan9 auth servers */
 };
 
 /* a lease that never expires */
-#define Lforever	0xffffffffU
+#define Lforever	~0UL
 
 /* dhcp states */
 enum {
@@ -127,7 +127,7 @@ enum {
 	Sbound,
 	Srenewing,
 	Srebinding,
-};	
+};
 
 typedef struct Bootp	Bootp;
 struct Bootp

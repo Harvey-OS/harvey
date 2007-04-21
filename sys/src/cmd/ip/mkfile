@@ -6,6 +6,7 @@ TARG = 	dhcpclient\
 	hogports\
 	httpfile\
 	ipconfig\
+	linklocal\
 	ping\
 	pppoe\
 	pptp\
@@ -20,7 +21,7 @@ TARG = 	dhcpclient\
 	traceroute\
 	udpecho\
 
-DIRS=ftpfs dhcpd httpd ppp imap4d snoopy
+DIRS=ftpfs dhcpd httpd ipconfig ppp imap4d snoopy
 
 BIN=/$objtype/bin/ip
 HFILES=dhcp.h arp.h glob.h icmp.h telnet.h
