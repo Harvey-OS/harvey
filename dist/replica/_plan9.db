@@ -5492,7 +5492,7 @@ rc/bin/ipconf/lra - 775 sys sys 1058791152 1558
 rc/bin/ipconf/outside - 775 sys sys 1058790951 550
 rc/bin/ipconf/theworld - 775 sys sys 1058790940 1212
 rc/bin/ipso - 775 sys sys 1079377794 2838
-rc/bin/ipv6on - 775 sys sys 1177099714 1872
+rc/bin/ipv6on - 775 sys sys 1177128625 1899
 rc/bin/iwhois - 775 sys sys 1143979502 1637
 rc/bin/juke - 775 sys sys 1105565140 1131
 rc/bin/kill - 775 sys sys 1143389260 142
@@ -6062,7 +6062,7 @@ sys/include/flate.h - 664 sys sys 1014929063 1245
 sys/include/frame.h - 664 sys sys 1147706379 2682
 sys/include/geometry.h - 664 sys sys 1014929063 2632
 sys/include/html.h - 664 sys sys 1128662123 15232
-sys/include/httpd.h - 664 sys sys 1091904418 5771
+sys/include/httpd.h - 664 sys sys 1177187803 5794
 sys/include/ip.h - 664 sys sys 1176499323 2978
 sys/include/keyboard.h - 664 sys sys 1131637696 865
 sys/include/libc.h - 664 sys sys 1168306860 19851
@@ -7101,7 +7101,7 @@ sys/lib/tmac/mmt - 664 sys sys 964454718 40915
 sys/lib/tmac/name.sed - 664 sys sys 944956202 62
 sys/lib/tmac/sendcover - 775 sys sys 944956202 50
 sys/lib/tmac/strings.mm - 664 sys sys 964455723 2146
-sys/lib/tmac/tmac.an - 664 sys sys 1175141775 8441
+sys/lib/tmac/tmac.an - 664 sys sys 1177190095 8342
 sys/lib/tmac/tmac.anhtml - 664 sys sys 984696197 105
 sys/lib/tmac/tmac.antimes - 664 sys sys 964454718 7809
 sys/lib/tmac/tmac.bits - 664 sys sys 944956202 1089
@@ -15338,14 +15338,14 @@ sys/src/libhttpd/date.c - 664 sys sys 1045502928 3507
 sys/src/libhttpd/escape.h - 664 sys sys 1014930784 2728
 sys/src/libhttpd/fail.c - 664 sys sys 1014930784 2794
 sys/src/libhttpd/gethead.c - 664 sys sys 1127766499 737
-sys/src/libhttpd/hio.c - 664 sys sys 1079372798 7482
+sys/src/libhttpd/hio.c - 664 sys sys 1177184789 7540
 sys/src/libhttpd/httpfmt.c - 664 sys sys 1014930784 472
 sys/src/libhttpd/httpunesc.c - 664 sys sys 1014930784 888
 sys/src/libhttpd/lower.c - 664 sys sys 1014930784 226
 sys/src/libhttpd/mkfile - 664 sys sys 1035389778 421
 sys/src/libhttpd/okheaders.c - 664 sys sys 1014930784 433
 sys/src/libhttpd/parse.c - 664 sys sys 1143695434 18934
-sys/src/libhttpd/parsereq.c - 664 sys sys 1152982850 5041
+sys/src/libhttpd/parsereq.c - 664 sys sys 1177187800 5112
 sys/src/libhttpd/query.c - 664 sys sys 1014930785 712
 sys/src/libhttpd/redirected.c - 664 sys sys 1014930785 1555
 sys/src/libhttpd/unallowed.c - 664 sys sys 1014930785 980

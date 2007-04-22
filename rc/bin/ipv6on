@@ -41,7 +41,7 @@ fn nonnil {	# name ip
 #
 if (! ip/ipconfig -6 $xdir ether $netdir/ether?)
 	exit 'ipconfig -6 failed'
-ip/ipconfig ra6 recvra 1
+ip/ipconfig $xdir ether $netdir/ether? ra6 recvra 1
 
 mev6=`{ndb/query -f $ndbf sys $sysname ipv6}
 mev4=`{ndb/query -f $ndbf sys $sysname ip}
