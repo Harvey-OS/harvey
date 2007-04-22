@@ -48444,3 +48444,8 @@
 1177101006 4 a sys/src/cmd/ip/linklocal.c - 664 sys sys 1177099730 867
 1177101006 5 c sys/src/cmd/ip/mkfile - 664 sys sys 1177099797 1271
 1177101006 6 d 386/bin/ip/gizzard - 775 sys sys 1081480408 0
+1177129805 0 c rc/bin/ipv6on - 775 sys sys 1177128625 1899
+1177185605 0 c sys/src/libhttpd/hio.c - 664 sys sys 1177184789 7540
+1177189206 0 c sys/include/httpd.h - 664 sys sys 1177187803 5794
+1177189206 1 c sys/src/libhttpd/parsereq.c - 664 sys sys 1177187800 5112
+1177191006 0 c sys/lib/tmac/tmac.an - 664 sys sys 1177190095 8342
