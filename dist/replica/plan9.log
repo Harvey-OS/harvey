@@ -48449,3 +48449,15 @@
 1177189206 0 c sys/include/httpd.h - 664 sys sys 1177187803 5794
 1177189206 1 c sys/src/libhttpd/parsereq.c - 664 sys sys 1177187800 5112
 1177191006 0 c sys/lib/tmac/tmac.an - 664 sys sys 1177190095 8342
+1177252206 0 c 386/lib/libhttpd.a - 664 sys sys 1177251586 99734
+1177259406 0 c sys/games/lib/fortunes - 664 sys sys 1177258701 264583
+1177284607 0 c 386/bin/ip/httpd/httpd - 775 sys sys 1177283318 296231
+1177284607 1 c 386/bin/ip/httpd/imagemap - 775 sys sys 1177283318 117347
+1177284607 2 c 386/bin/ip/httpd/man2html - 775 sys sys 1177283319 125905
+1177284607 3 c 386/bin/ip/httpd/netlib_find - 775 sys sys 1177283319 118195
+1177284607 4 c 386/bin/ip/httpd/netlib_history - 775 sys sys 1177283319 116993
+1177284607 5 c 386/bin/ip/httpd/save - 775 sys sys 1177283320 133789
+1177284607 6 c 386/bin/ip/httpd/webls - 775 sys sys 1177283320 133863
+1177284607 7 c 386/bin/ip/httpd/wikipost - 775 sys sys 1177283321 115228
+1177284607 8 c 386/bin/ip/ipconfig - 775 sys sys 1177283321 158920
+1177284607 9 c 386/lib/libhttpd.a - 664 sys sys 1177283321 99734
