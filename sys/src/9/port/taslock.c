@@ -145,9 +145,6 @@ ilock(Lock *l)
 			panic("corrupt ilock %p pc=%luX m=%p isilock=%d", 
 				l, l->pc, l->m, l->isilock);
 		}
-		if(l->m == MACHP(m->machno))
-			panic("ilock: deadlock on cpu%d pc=%luX lockpc=%luX\n", 
-				m->machno, pc, l->pc);
 		for(;;){
 			lockstats.inglare++;
 			splx(x);
