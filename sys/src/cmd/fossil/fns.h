@@ -1,5 +1,5 @@
 Source* sourceRoot(Fs*, u32int, int);
-Source* sourceOpen(Source*, ulong, int);
+Source* sourceOpen(Source*, ulong, int, int);
 Source* sourceCreate(Source*, int, int, u32int);
 Block* sourceBlock(Source*, ulong, int);
 Block* _sourceBlock(Source*, ulong, int, int, ulong);

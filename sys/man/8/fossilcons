@@ -219,10 +219,11 @@ con /srv/fscons
 .I name
 ]
 .B epoch
-[
+[[
 .B -ry
 ]
 .I n
+]
 .PP
 [
 .B fsys
@@ -907,6 +908,9 @@ and reclaim the disk space they occupy.
 (The high epoch number is always the epoch of the currently
 active file system.)
 .PP
+With no argument
+.I epoch
+reports the current low and high epoch numbers.
 The command
 ``\fLepoch\fI n''\fR
 is used to propose changing the low epoch to

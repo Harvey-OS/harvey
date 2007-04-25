@@ -48461,3 +48461,16 @@
 1177284607 7 c 386/bin/ip/httpd/wikipost - 775 sys sys 1177283321 115228
 1177284607 8 c 386/bin/ip/ipconfig - 775 sys sys 1177283321 158920
 1177284607 9 c 386/lib/libhttpd.a - 664 sys sys 1177283321 99734
+1177444807 0 c sys/man/8/fossilcons - 664 sys sys 1177432029 18368
+1177444807 1 c sys/src/9/pc/sdmv50xx.c - 664 sys sys 1177393607 33810
+1177444807 2 c sys/src/9/port/taslock.c - 664 sys sys 1177343190 4418
+1177444807 3 c sys/src/cmd/fossil/9fsys.c - 664 sys sys 1177432002 33485
+1177444807 4 c sys/src/cmd/fossil/check.c - 664 sys sys 1177432003 17448
+1177444807 5 c sys/src/cmd/fossil/dat.h - 664 sys sys 1177432005 7655
+1177444807 6 c sys/src/cmd/fossil/file.c - 664 sys sys 1177432003 30146
+1177444807 7 c sys/src/cmd/fossil/fns.h - 664 sys sys 1177432005 3233
+1177444807 8 c sys/src/cmd/fossil/fs.c - 664 sys sys 1177432004 21598
+1177444807 9 c sys/src/cmd/fossil/source.c - 664 sys sys 1177432004 20301
+1177461006 0 c 386/bin/fossil/flchk - 775 sys sys 1177460372 239289
+1177461006 1 c 386/bin/fossil/flfmt - 775 sys sys 1177460373 247308
+1177461006 2 c 386/bin/fossil/fossil - 775 sys sys 1177460374 364762
