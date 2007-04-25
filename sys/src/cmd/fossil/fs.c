@@ -983,6 +983,7 @@ snapEvent(void *v)
 	u32int now, min;
 	Tm tm;
 	int need;
+	u32int snaplife;
 
 	s = v;
 
@@ -1026,8 +1027,10 @@ snapEvent(void *v)
 	/*
 	 * Snapshot cleanup happens every snaplife or every day.
 	 */
-	if(s->snapLife != ~0
-	&& (s->lastCleanup+s->snapLife < now || s->lastCleanup+24*60 < now)){
+	snaplife = s->snapLife;
+	if(snaplife == ~0)
+		snaplife = 24*60;
+	if(s->lastCleanup+snaplife < now){
 		fsSnapshotCleanup(s->fs, s->snapLife);
 		s->lastCleanup = now;
 	}

@@ -1009,6 +1009,10 @@ fsysEpoch(Fsys* fsys, int argc, char* argv[])
 
 	vtRLock(fs->elk);
 	consPrint("\tlow %ud hi %ud\n", fs->elo, fs->ehi);
+	if(low == ~(u32int)0){
+		vtRUnlock(fs->elk);
+		return 1;
+	}
 	n = fsysEsearch(fsys->fs, "/archive", low);
 	n += fsysEsearch(fsys->fs, "/snapshot", low);
 	consPrint("\t%d snapshot%s found with epoch < %ud\n", n, n==1 ? "" : "s", low);

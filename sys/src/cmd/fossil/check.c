@@ -412,7 +412,7 @@ openSource(Fsck *chk, Source *s, char *name, uchar *bm, u32int offset,
 	}
 	setBit(bm, offset);
 
-	r = sourceOpen(s, offset, OReadOnly);
+	r = sourceOpen(s, offset, OReadOnly, 0);
 	if(r == nil){
 		warn(chk, "could not open source: %s -> %d: %R", name, offset);
 		goto Err;
@@ -690,7 +690,7 @@ if(0)		fprint(2, "source %V:%d block %d addr %d\n", source->score,
 	for(o=0; o<nb; o++){
 		if(getBit(bm, o))
 			continue;
-		r = sourceOpen(source, o, OReadOnly);
+		r = sourceOpen(source, o, OReadOnly, 0);
 		if(r == nil)
 			continue;
 		warn(chk, "non referenced entry in source %s[%d]", name, o);
@@ -717,8 +717,8 @@ checkDirs(Fsck *chk)
 	Source *r, *mr;
 
 	sourceLock(chk->fs->source, OReadOnly);
-	r = sourceOpen(chk->fs->source, 0, OReadOnly);
-	mr = sourceOpen(chk->fs->source, 1, OReadOnly);
+	r = sourceOpen(chk->fs->source, 0, OReadOnly, 0);
+	mr = sourceOpen(chk->fs->source, 1, OReadOnly, 0);
 	sourceUnlock(chk->fs->source);
 	chkDir(chk, "", r, mr);
 
