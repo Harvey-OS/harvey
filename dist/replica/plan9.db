@@ -20,7 +20,7 @@
 386/bin/9660srv - 775 sys sys 1168402261 104975
 386/bin/aan - 775 sys sys 1168402261 131298
 386/bin/acid - 775 sys sys 1172808055 401961
-386/bin/acme - 775 sys sys 1176520474 432232
+386/bin/acme - 775 sys sys 1177557986 432228
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1173754547 134719
 386/bin/ape/cc - 775 sys sys 1168402263 70642
@@ -302,7 +302,8 @@
 386/bin/ip/httpd/wikipost - 775 sys sys 1177283321 115228
 386/bin/ip/httpfile - 775 sys sys 1168402324 284262
 386/bin/ip/imap4d - 775 sys sys 1169265834 238152
-386/bin/ip/ipconfig - 775 sys sys 1177283321 158920
+386/bin/ip/ipconfig - 775 sys sys 1177557987 158902
+386/bin/ip/linklocal - 775 sys sys 1177530964 42790
 386/bin/ip/ping - 775 sys sys 1175887160 84684
 386/bin/ip/ppp - 775 sys sys 1169612026 220423
 386/bin/ip/pppoe - 775 sys sys 1168402326 77787
@@ -501,7 +502,7 @@
 386/bin/venti/read - 775 sys sys 1176520519 102876
 386/bin/venti/sync - 775 sys sys 1176520519 102021
 386/bin/venti/syncindex - 775 sys sys 1176520519 169644
-386/bin/venti/venti - 775 sys sys 1176520520 245622
+386/bin/venti/venti - 775 sys sys 1177530965 246337
 386/bin/venti/verifyarena - 775 sys sys 1176520520 104147
 386/bin/venti/wrarena - 775 sys sys 1176520521 176248
 386/bin/venti/write - 775 sys sys 1176520521 102825
@@ -9395,7 +9396,7 @@ sys/src/cmd/acme/fsys.c - 664 sys sys 1111171699 13097
 sys/src/cmd/acme/look.c - 664 sys sys 1166822365 14203
 sys/src/cmd/acme/mkfile - 664 sys sys 1058463682 543
 sys/src/cmd/acme/regx.c - 664 sys sys 1014926094 16057
-sys/src/cmd/acme/rows.c - 664 sys sys 1166887151 14708
+sys/src/cmd/acme/rows.c - 664 sys sys 1177527677 14708
 sys/src/cmd/acme/scrl.c - 664 sys sys 1111119426 2875
 sys/src/cmd/acme/text.c - 664 sys sys 1136064450 27870
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
@@ -12511,12 +12512,12 @@ sys/src/cmd/ip/imap4d/utils.c - 664 sys sys 1168894057 2587
 sys/src/cmd/ip/ipconfig - 20000000775 sys sys 1176933436 0
 sys/src/cmd/ip/ipconfig/ipconfig.h - 664 sys sys 1177092388 5536
 sys/src/cmd/ip/ipconfig/ipv6.c - 664 sys sys 1177092388 19783
-sys/src/cmd/ip/ipconfig/main.c - 664 sys sys 1177092388 37908
+sys/src/cmd/ip/ipconfig/main.c - 664 sys sys 1177541727 37984
 sys/src/cmd/ip/ipconfig/mkfile - 664 sys sys 1177092388 236
 sys/src/cmd/ip/ipconfig/ppp.c - 664 sys sys 1177092388 1128
 sys/src/cmd/ip/linklocal.c - 664 sys sys 1177099730 867
 sys/src/cmd/ip/measure.c - 664 sys sys 944961011 3733
-sys/src/cmd/ip/mkfile - 664 sys sys 1177099797 1271
+sys/src/cmd/ip/mkfile - 664 sys sys 1177479927 1260
 sys/src/cmd/ip/ping.c - 664 sys sys 1175868270 9699
 sys/src/cmd/ip/ppp - 20000000775 sys sys 1065963823 0
 sys/src/cmd/ip/ppp/block.c - 664 sys sys 1015090266 5353

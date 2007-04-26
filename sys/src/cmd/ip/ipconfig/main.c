@@ -242,9 +242,12 @@ parsenorm(int argc, char **argv)
 			usage();
 		/* fall through */
 	case 2:
-		if (strcmp(argv[1], "0") != 0 &&
-		    parseipmask(conf.mask, argv[1]) == -1)
-			usage();
+		/*
+		 * can't test for parseipmask()==-1 cuz 255.255.255.255
+		 * looks like that.
+		 */
+		if (strcmp(argv[1], "0") != 0)
+			parseipmask(conf.mask, argv[1]);
 		/* fall through */
 	case 1:
 		 if (parseip(conf.laddr, argv[0]) == -1)
@@ -378,7 +381,7 @@ parseargs(int argc, char **argv)
 
 	/* get optional medium and device */
 	if (argc > 0){
-		verb = parseverb(argv[0]);
+		verb = parseverb(*argv);
 		switch(verb){
 		case Vether:
 		case Vgbe:
@@ -397,8 +400,7 @@ parseargs(int argc, char **argv)
 
 	/* get optional verb */
 	if (argc > 0){
-		verb = parseverb(*argv++);
-		argc--;
+		verb = parseverb(*argv);
 		switch(verb){
 		case Vether:
 		case Vgbe:
@@ -410,6 +412,8 @@ parseargs(int argc, char **argv)
 		case Vunbind:
 		case Vaddpref6:
 		case Vra6:
+			argv++;
+			argc--;
 			action = verb;
 			break;
 		}

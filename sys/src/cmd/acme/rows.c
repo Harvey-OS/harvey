@@ -153,8 +153,6 @@ rowdragcol(Row *row, Column *c, int)
 	error("can't find column");
 
   Found:
-	if(i == 0)
-		return;
 	p = mouse->xy;
 	if((abs(p.x-op.x)<5 && abs(p.y-op.y)<5))
 		return;
@@ -171,6 +169,8 @@ rowdragcol(Row *row, Column *c, int)
 		colmousebut(c);
 		return;
 	}
+	if(i == 0)
+		return;
 	d = row->col[i-1];
 	if(p.x < d->r.min.x+80+Scrollwid)
 		p.x = d->r.min.x+80+Scrollwid;
