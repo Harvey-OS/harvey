@@ -100,3 +100,102 @@ done:
 	smbbufferfree(&b);
 	return pr;
 }
+
+SmbProcessResult
+smbtrans2setpathinformation(SmbSession *s, SmbHeader *h)
+{
+	char *fullpath, *path;
+	SmbTree *t;
+	ushort infolevel;
+	SmbBuffer *b;
+	SmbProcessResult pr;
+	ushort atime, adate, mtime, mdate;
+	ulong attr;
+	ulong mode;
+	ulong size;
+	uvlong length;
+
+	t = smbidmapfind(s->tidmap, h->tid);
+	if (t == nil) {
+		smbseterror(s, ERRSRV, ERRinvtid);
+		pr = SmbProcessResultError;
+		goto done;
+	}
+	b = smbbufferinit(s->transaction.in.parameters, s->transaction.in.parameters, s->transaction.in.tpcount);
+	path = nil;
+	if (!smbbuffergets(b, &infolevel) || !smbbuffergetbytes(b, nil, 4)
+		|| !smbbuffergetstring(b, h, SMB_STRING_PATH, &path)) {
+	misc:
+		pr = SmbProcessResultMisc;
+		goto done;
+	}
+
+	fullpath = nil;
+	smbstringprint(&fullpath, "%s%s", t->serv->path, path);
+
+	translogprint(s->transaction.in.setup[0], "path %s\n", path);
+	translogprint(s->transaction.in.setup[0], "infolevel 0x%.4ux\n", infolevel);
+	translogprint(s->transaction.in.setup[0], "fullpath %s\n", fullpath);
+
+	switch (infolevel) {
+	case SMB_INFO_STANDARD:
+		if (s->transaction.in.tdcount < 6 * 4 + 2 * 2)
+			goto misc;
+		adate = smbnhgets(s->transaction.in.data + 6);
+		atime = smbnhgets(s->transaction.in.data + 4);
+		mdate = smbnhgets(s->transaction.in.data + 10);
+		mtime = smbnhgets(s->transaction.in.data + 8);
+		size = smbnhgetl(s->transaction.in.data + 12);
+		attr = smbnhgets(s->transaction.in.data + 20);
+		if (attr) {
+			Dir *od = dirstat(fullpath);
+			if (od == nil)
+				goto noaccess;
+			mode = smbdosattr2plan9wstatmode(od->mode, attr);
+			free(od);
+		}
+		else
+			mode = 0xffffffff;
+		translogprint(s->transaction.in.setup[0], "mode 0%od\n", mode);
+
+		if (size)
+			length = size;
+		else
+			length = ~0LL;
+	
+		translogprint(s->transaction.in.setup[0], "size %lld\n", size);
+		translogprint(s->transaction.in.setup[0], "adate %d atime %d", adate, atime);
+		translogprint(s->transaction.in.setup[0], "mdate %d mtime %d\n", mdate, mtime);
+
+		if (size || adate || atime || mdate || mtime || mode != 0xffffffff) {
+			Dir d;
+			memset(&d, 0xff, sizeof(d));
+			d.name = d.uid = d.gid = d.muid = nil;
+			if (adate || atime)
+				d.atime = smbdatetime2plan9time(adate, atime, s->tzoff);
+			if (mdate || mtime)
+				d.mtime = smbdatetime2plan9time(mdate, mtime, s->tzoff);
+			d.mode = mode;
+			d.length = size;
+			if (dirwstat(fullpath, &d) < 0) {
+			noaccess:
+				smbseterror(s, ERRDOS, ERRnoaccess);
+				pr = SmbProcessResultError;
+				goto done;
+			}
+		}
+		if (!smbbufferputs(s->transaction.out.parameters, 0))
+			goto misc;
+		pr = SmbProcessResultReply;
+		break;
+
+	default:
+		smblogprint(-1, "smbtrans2setpathinformation: infolevel 0x%.4ux not implemented\n", infolevel);
+		smbseterror(s, ERRDOS, ERRunknownlevel);
+		pr = SmbProcessResultError;
+		break;
+	}
+done:
+	smbbufferfree(&b);
+	return pr;
+}

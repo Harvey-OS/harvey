@@ -18,6 +18,13 @@ query(SmbSession *s, char *cmdname, char *filename, ushort infolevel, vlong cbo,
 		ntatime = smbplan9time2time(d->atime);
 		ntmtime = smbplan9time2time(d->mtime);
 		dosmode = smbplan9mode2dosattr(d->mode);
+
+		translogprint(s->transaction.in.setup[0], "SMB_QUERY_FILE_BASIC_INFO\n");
+		translogprint(s->transaction.in.setup[0], "REPLY:\n");
+		translogprint(s->transaction.in.setup[0], "atime=%s", ctime(d->atime));
+		translogprint(s->transaction.in.setup[0], "atime=%s", ctime(d->mtime));
+		translogprint(s->transaction.in.setup[0], "mode=0%o -> dosmode=0x%x\n", d->mode, dosmode);
+
 		if (!smbbufferputv(s->transaction.out.data, ntmtime)
 			|| !smbbufferputv(s->transaction.out.data, ntatime)
 			|| !smbbufferputv(s->transaction.out.data, ntmtime)
@@ -31,6 +38,15 @@ query(SmbSession *s, char *cmdname, char *filename, ushort infolevel, vlong cbo,
 		ntmtime = smbplan9time2time(d->mtime);
 		dosmode = smbplan9mode2dosattr(d->mode);
 		allocsize = (d->length + (1 << smbglobals.l2allocationsize) - 1) & ~((1 << smbglobals.l2allocationsize) - 1);
+
+		translogprint(s->transaction.in.setup[0], "SMB_QUERY_FILE_ALL_INFO\n");
+		translogprint(s->transaction.in.setup[0], "REPLY:\n");
+		translogprint(s->transaction.in.setup[0], "atime=%s", ctime(d->atime));
+		translogprint(s->transaction.in.setup[0], "atime=%s", ctime(d->mtime));
+		translogprint(s->transaction.in.setup[0], "mode=0%o -> dosmode=0x%x\n", d->mode, dosmode);
+		translogprint(s->transaction.in.setup[0], "allocsize=%d\n", allocsize);
+		translogprint(s->transaction.in.setup[0], "isdir=%d\n", (d->mode & DMDIR) != 0);
+
 		if (!smbbufferputv(s->transaction.out.data, ntmtime)
 			|| !smbbufferputv(s->transaction.out.data, ntatime)
 			|| !smbbufferputv(s->transaction.out.data, ntmtime)
@@ -51,11 +67,16 @@ query(SmbSession *s, char *cmdname, char *filename, ushort infolevel, vlong cbo,
 			return SmbProcessResultMisc;
 		fnlfixupoffset = smbbufferwriteoffset(s->transaction.out.data);
 		if (!smbbufferputl(s->transaction.out.data, 0)
-		|| !smbbufferputstring(s->transaction.out.data, &s->peerinfo, SMB_STRING_REVPATH, filename)
-		|| !smbbufferfixuprelativel(s->transaction.out.data, fnlfixupoffset))
+		    || !smbbufferputstring(s->transaction.out.data, &s->peerinfo, SMB_STRING_REVPATH, filename)
+		    || !smbbufferfixuprelativel(s->transaction.out.data, fnlfixupoffset))
 			return SmbProcessResultMisc;
 		break;
 	case SMB_QUERY_FILE_STANDARD_INFO:
+		translogprint(s->transaction.in.setup[0], "SMB_QUERY_FILE_STANDARD_INFO\n");
+		translogprint(s->transaction.in.setup[0], "REPLY:\n");
+		translogprint(s->transaction.in.setup[0], "length=%lld", d->length);
+		translogprint(s->transaction.in.setup[0], "isdir=%d\n", (d->qid.type & QTDIR) != 0);
+
 		if (!smbbufferputv(s->transaction.out.data, smbl2roundupvlong(d->length, smbglobals.l2allocationsize))
 			|| !smbbufferputv(s->transaction.out.data, d->length)
 			|| !smbbufferputl(s->transaction.out.data, 1)
@@ -64,15 +85,21 @@ query(SmbSession *s, char *cmdname, char *filename, ushort infolevel, vlong cbo,
 			return SmbProcessResultMisc;
 		break;
 	case SMB_QUERY_FILE_EA_INFO:
+		translogprint(s->transaction.in.setup[0], "SMB_QUERY_FILE_EA_INFO\n");
+		translogprint(s->transaction.in.setup[0], "REPLY:\n");
+		translogprint(s->transaction.in.setup[0], "ea_len=0\n");
 		if (!smbbufferputl(s->transaction.out.data, 0))
 			return SmbProcessResultMisc;
 		break;
 	case SMB_QUERY_FILE_STREAM_INFO:
+		translogprint(s->transaction.in.setup[0], "SMB_QUERY_FILE_STREAM_INFO\n");
+		translogprint(s->transaction.in.setup[0], "REPLY: failed\n");
 		/* don't do it, never will */
 		goto unknownlevel;
 	default:
 		smblogprint(-1, "smbtrans2query%sinformation: infolevel 0x%.4ux not implemented\n", cmdname, infolevel);
 	unknownlevel:
+		translogprint(s->transaction.in.setup[0], "[not supported]\n");
 		smbseterror(s, ERRDOS, ERRunknownlevel);
 		return SmbProcessResultError;
 	}
@@ -102,11 +129,11 @@ smbtrans2querypathinformation(SmbSession *s, SmbHeader *h)
 		pr = SmbProcessResultMisc;
 		goto done;
 	}
-	smblogprintif(smbglobals.log.query, "infolevel 0x%.4ux\n", infolevel);
-	smblogprintif(smbglobals.log.query, "path %s\n", path);
+	translogprint(s->transaction.in.setup[0], "infolevel 0x%.4ux\n", infolevel);
+	translogprint(s->transaction.in.setup[0], "path %s\n", path);
 	fullpath = nil;
 	smbstringprint(&fullpath, "%s%s", t->serv->path, path);
-	smblogprintif(smbglobals.log.query, "fullpath %s\n", fullpath);
+	translogprint(s->transaction.in.setup[0], "fullpath %s\n", fullpath);
 	d = dirstat(fullpath);
 	pr = query(s, "path", path, infolevel, 0, d);
 	free(d);
@@ -139,8 +166,8 @@ smbtrans2queryfileinformation(SmbSession *s, SmbHeader *h)
 		pr = SmbProcessResultMisc;
 		goto done;
 	}
-	smblogprintif(smbglobals.log.query, "fid 0x%.4ux\n", fid);
-	smblogprintif(smbglobals.log.query, "infolevel 0x%.4ux\n", infolevel);
+	translogprint(s->transaction.in.setup[0], "fid 0x%.4ux\n", fid);
+	translogprint(s->transaction.in.setup[0], "infolevel 0x%.4ux\n", infolevel);
 	f = smbidmapfind(s->fidmap, fid);
 	if (f == nil) {
 		smbseterror(s, ERRDOS, ERRbadfid);
@@ -180,6 +207,7 @@ smbtrans2queryfsinformation(SmbSession *s, SmbHeader *h)
 	pr = SmbProcessResultReply;
 	switch (infolevel) {
 	case SMB_INFO_ALLOCATION:
+		translogprint(s->transaction.in.setup[0], "SMB_INFO_ALLOCATION\n");
 		if (!smbbufferputl(s->transaction.out.data, 0)
 			|| !smbbufferputl(s->transaction.out.data, 1 << (smbglobals.l2allocationsize - smbglobals.l2sectorsize))
 			|| !smbbufferputl(s->transaction.out.data, 0xffffffff)
@@ -188,11 +216,13 @@ smbtrans2queryfsinformation(SmbSession *s, SmbHeader *h)
 			goto misc;
 		break;
 	case SMB_INFO_VOLUME:
+		translogprint(s->transaction.in.setup[0], "SMB_INFO_VOLUME\n");
 		if (!smbbufferputl(s->transaction.out.data, 0xdeadbeef)
 			|| !smbbufferputstring(s->transaction.out.data, &s->peerinfo, 0, t->serv->name))
 			goto misc;
 		break;
 	case SMB_QUERY_FS_VOLUME_INFO:
+		translogprint(s->transaction.in.setup[0], "SMB_QUERY_FS_VOLUME_INFO\n");
 		if (!smbbufferputv(s->transaction.out.data, 0)
 			|| !smbbufferputl(s->transaction.out.data, 0xdeadbeef))
 			goto misc;
@@ -207,6 +237,7 @@ smbtrans2queryfsinformation(SmbSession *s, SmbHeader *h)
 			goto misc;
 		break;
 	case SMB_QUERY_FS_SIZE_INFO:
+		translogprint(s->transaction.in.setup[0], "SMB_QUERY_FS_SIZE_INFO\n");
 		if (!smbbufferputv(s->transaction.out.data, 0xffffffffffffffffLL)
 			|| !smbbufferputv(s->transaction.out.data, 0xffffffffffffffffLL)
 			|| !smbbufferputl(s->transaction.out.data, 1 << (smbglobals.l2allocationsize - smbglobals.l2sectorsize))
@@ -214,7 +245,7 @@ smbtrans2queryfsinformation(SmbSession *s, SmbHeader *h)
 			goto misc;
 		break;
 	case SMB_QUERY_FS_ATTRIBUTE_INFO:
-//print("doing attribute info\n");
+		translogprint(s->transaction.in.setup[0], "SMB_QUERY_FS_ATTRIBUTE_INFO\n");
 		if (!smbbufferputl(s->transaction.out.data, 3)
 			|| !smbbufferputl(s->transaction.out.data, 255))
 			goto misc;
@@ -223,7 +254,6 @@ smbtrans2queryfsinformation(SmbSession *s, SmbHeader *h)
 			|| !smbbufferputstring(s->transaction.out.data, &s->peerinfo, SMB_STRING_UNTERMINATED, smbglobals.serverinfo.nativelanman)
 			|| !smbbufferfixuprelativel(s->transaction.out.data, fixup))
 			goto misc;
-//print("done attribute info\n");
 		break;
 	default:
 		smblogprint(-1, "smbtrans2queryfsinformation: infolevel 0x%.4ux not implemented\n", infolevel);

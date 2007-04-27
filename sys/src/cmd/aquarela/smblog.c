@@ -45,6 +45,18 @@ smblogvprint(int cmd, char *fmt, va_list ap)
 int
 smblogprint(int cmd, char *fmt, ...)
 {
+	if (cmd < 0 || smbtrans2optable[cmd].debug) {
+		va_list ap;
+		va_start(ap, fmt);
+		smblogvprint(cmd, fmt, ap);
+		va_end(ap);
+	}
+	return 0;
+}
+
+int
+translogprint(int cmd, char *fmt, ...)
+{
 	if (cmd < 0 || smboptable[cmd].debug) {
 		va_list ap;
 		va_start(ap, fmt);

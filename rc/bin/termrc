@@ -3,44 +3,63 @@
 TIMESYNCARGS=(-rLa1000000)
 NDBFILE=/lib/ndb/local
 
-if(test -e /rc/bin/termrc.local)
-	. /rc/bin/termrc.local
-
 mntgen -s slashn && chmod 666 /srv/slashn
-
-# cs sets sysname
-ndb/cs -f $NDBFILE
-sysname=`{cat /dev/sysname}
-
-# start IP on the LAN.  It's commented out to avoid a long timeout
-# on startup waiting for DHCP.
-#
-# If your system has DHCP
-#
-#if(! test -e /net/ipifc/0/ctl)
-#	ip/ipconfig >/dev/null >[2=1]
-#
-# Otherwise use
-#
-#if(! test -e /net/ipifc/0/ctl)
-#	ip/ipconfig -g your-gateway ether /net/ether0 your-ip-address your-subnet-mask >/dev/null >[2=1]
-
-if(test -e /net/ipifc/0/ctl)
-	ndb/dns -rf $NDBFILE
-
-if(! ps|grep -s timesync)
-	aux/timesync $TIMESYNCARGS
 
 # bind all likely devices (#S was bound in boot)
 for(i in f t m v L P U '$' Σ κ)
 	/bin/bind -a '#'^$i /dev >/dev/null >[2=1]
 
+# set up any partitions
 diskparts
 
-# watch this space
+# start up local swapping
+disk=`{ls /dev/sd*/swap >[2]/dev/null}
+if (! ~ $#disk 0)
+	swap $disk(1) >/dev/null >[2=1]
+rm /env/disk
 
+if(test -e /rc/bin/termrc.local)
+	. /rc/bin/termrc.local
+
+# cs sets sysname (termrc.local may already have started it so check)
+if(! test -e /srv/cs)
+	ndb/cs -f $NDBFILE
+sysname=`{cat /dev/sysname}
+
+# machine specific startup (e.g., for devices not probed)
+if(test -e /cfg/$sysname/termrc)
+	. /cfg/$sysname/termrc
+
+# start IP on the LAN, if not already configured.  diskless terminals
+# are already configured by now.  It's commented out to avoid a long timeout
+# on startup waiting for DHCP.
+#
+# If your site provides DHCP service,
+#
+#if(! test -e /net/ipifc/0/ctl)
+#	ip/ipconfig
+#
+# Otherwise, see /cfg/$sysname/termrc (/cfg/example/termrc is an example).
+
+# start dns if we have an internet
+if(test -e /net/ipifc/0/ctl && ! test -e /srv/dns)
+	ndb/dns -r
+
+# start timesync if it isn't running and we weren't told not to
+if(! ps|grep -s timesync)
+	if(! ~ $TIMESYNCARGS '')
+		aux/timesync $TIMESYNCARGS
+
+# add the loop-back device
+if(grep -s loopback /dev/drivers)
+	ip/ipconfig loopback /dev/null 127.1
+
+# set things up for vmware
 if(! ~ `{cat /dev/user} none)
-	aux/vmware
+	if(test -e /bin/aux/vmware)
+		aux/vmware
+
+# query user if terminal isn't adequately configured yet
 if(~ $mouseport ask){
 	echo -n 'mouseport is (ps2, ps2intellimouse, 0, 1, 2)[ps2]: '
 	mouseport=`{read}
@@ -71,9 +90,3 @@ if(test -f /dev/mousectl){
 			pipefile -dr /bin/aux/accupoint /dev/mouse
 	}
 }
-
-# start up local swapping
-disk=`{ls /dev/sd*/swap >[2]/dev/null}
-if (! ~ $#disk 0)
-	swap $disk(1) >/dev/null >[2=1]
-rm /env/disk

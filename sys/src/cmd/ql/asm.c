@@ -299,11 +299,21 @@ asmb(void)
 		lput(1L);			/* version = CURRENT */
 		lput(entryvalue() & ~KMASK);	/* entry vaddr */
 		lput(52L);			/* offset to first phdr */
-		lput(0L);			/* offset to first shdr */
-		lput(0L);			/* flags = PPC */
-		lput((52L<<16)|32L);		/* Ehdr & Phdr sizes*/
-		lput((3L<<16)|0L);		/* # Phdrs & Shdr size */
-		lput((0L<<16)|0L);		/* # Shdrs & shdr string size */
+
+		if(debug['S']){
+			lput(HEADR+textsize+datsize+symsize);	/* offset to first shdr */
+			lput(0L);		/* flags = PPC */
+			lput((52L<<16)|32L);	/* Ehdr & Phdr sizes*/
+			lput((3L<<16)|40L);	/* # Phdrs & Shdr size */
+			lput((3L<<16)|2L);	/* # Shdrs & shdr string size */
+		}
+		else{
+			lput(0L);
+			lput(0L);		/* flags = PPC */
+			lput((52L<<16)|32L);	/* Ehdr & Phdr sizes*/
+			lput((3L<<16)|0L);	/* # Phdrs & Shdr size */
+			lput((3L<<16)|0L);	/* # Shdrs & shdr string size */
+		}
 
 		lput(1L);			/* text - type = PT_LOAD */
 		lput(HEADR);			/* file offset */
@@ -331,6 +341,56 @@ asmb(void)
 		lput(lcsize);			/* line number size */
 		lput(0x04L);			/* protections = R */
 		lput(0x04L);			/* alignment code?? */
+		cflush();
+
+		if(!debug['S'])
+			break;
+
+		seek(cout, HEADR+textsize+datsize+symsize, 0);
+		lput(1);			/* Section name (string tbl index) */
+		lput(1);			/* Section type */
+		lput(2|4);			/* Section flags */
+		lput(INITTEXT & ~KMASK);	/* Section virtual addr at execution */
+		lput(HEADR);			/* Section file offset */
+		lput(textsize);			/* Section size in bytes */
+		lput(0);			/* Link to another section */
+		lput(0);			/* Additional section information */
+		lput(0x10000L);			/* Section alignment */
+		lput(0);			/* Entry size if section holds table */
+
+		lput(7);			/* Section name (string tbl index) */
+		lput(1);			/* Section type */
+		lput(2|1);			/* Section flags */
+		lput(INITDAT & ~KMASK);		/* Section virtual addr at execution */
+		lput(HEADR+textsize);		/* Section file offset */
+		lput(datsize);			/* Section size in bytes */
+		lput(0);			/* Link to another section */
+		lput(0);			/* Additional section information */
+		lput(0x10000L);			/* Section alignment */
+		lput(0);			/* Entry size if section holds table */
+
+		/* string section header */
+		lput(12);			/* Section name (string tbl index) */
+		lput(3);			/* Section type */
+		lput(1 << 5);			/* Section flags */
+		lput(0);			/* Section virtual addr at execution */
+		lput(HEADR+textsize+datsize+symsize+3*40);	/* Section file offset */
+		lput(14);			/* Section size in bytes */
+		lput(0);			/* Link to another section */
+		lput(0);			/* Additional section information */
+		lput(1);			/* Section alignment */
+		lput(0);			/* Entry size if section holds table */
+
+		/* string table */
+		cput(0);
+		strnput(".text", 5);
+		cput(0);
+		strnput(".data", 5);
+		cput(0);
+		strnput(".strtab", 7);
+		cput(0);
+		cput(0);
+
 		break;
 	}
 	cflush();

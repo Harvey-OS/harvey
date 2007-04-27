@@ -56,7 +56,7 @@ main(int argc, char **argv)
 	if(s_read_line(&in, firstline) == nil)
 		sysfatal("reading input: %r");
 
-	/* read up to the first 128k of the message.  more is redculous. 
+	/* read up to the first 128k of the message.  more is ridiculous. 
 	     Not if word documents are distributed.  Upped it to 2MB (pb) */
 	if(s_read(&in, msg, 2*1024*1024) <= 0)
 		sysfatal("reading input: %r");
@@ -89,7 +89,7 @@ main(int argc, char **argv)
 		free(w);
 	}
 
-	/* if the mailbox exits, cat the mail to the end of it */
+	/* if the mailbox exists, cat the mail to the end of it */
 	appendtoarchive(listname, firstline, msg);
 	exits(0);
 }
@@ -123,7 +123,7 @@ printmsg(int fd, String *msg, char *replyto, char *listname)
 	write(fd, cp, s_len(msg) - (cp - s_to_c(msg)));
 }
 
-/* if the mailbox exits, cat the mail to the end of it */
+/* if the mailbox exists, cat the mail to the end of it */
 void
 appendtoarchive(char* listname, String *firstline, String *msg)
 {
