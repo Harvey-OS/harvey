@@ -29,10 +29,12 @@ openfile(SmbSession *s, SmbTree *t, char *path, ushort mode, ushort attr, ushort
 	char *fullpath = nil;
 	int diropen = 0;
 
+//smblogprint(-1, "%s A %r", path);
 	p9mode = (mode >> SMB_OPEN_MODE_ACCESS_SHIFT) & SMB_OPEN_MODE_ACCESS_MASK;	
 	share = (mode >> SMB_OPEN_MODE_SHARE_SHIFT) & SMB_OPEN_MODE_SHARE_MASK;	
 	if (share == SMB_OPEN_MODE_SHARE_COMPATIBILITY) {
 	badshare:
+//smblogprint(-1, "%s SMB_OPEN_MODE_SHARE_COMPATIBILITY", path);
 		smbseterror(s, ERRDOS, ERRbadshare);
 		goto done;
 	}
@@ -114,6 +116,7 @@ openfile(SmbSession *s, SmbTree *t, char *path, ushort mode, ushort attr, ushort
 			}
 		}
 	}
+//smblogprint(-1, "%s D %r", fullpath);
 	if (!diropen && fd < 0) {
 		smbseterror(s, ERRSRV, ERRaccess);
 		goto done;
@@ -136,6 +139,7 @@ openfile(SmbSession *s, SmbTree *t, char *path, ushort mode, ushort attr, ushort
 	if (s->fidmap == nil)
 		s->fidmap = smbidmapnew();
 	*fidp = smbidmapadd(s->fidmap, f);
+//smblogprint(h->command, "REPLY:\n t->id=0x%ux fid=%d path=%s\n", t->id, *fidp, path);
 	smblogprintif(smbglobals.log.fids, "openfile: 0x%.4ux/0x%.4ux %s\n", t->id, *fidp, path);
 	if (actionp)
 		*actionp = action;
@@ -354,6 +358,82 @@ done:
 	return pr;
 }
 
+
+/*
+   smb_com      SMBcreate       smb_com      SMBcreate
+   smb_wct      3               smb_wct      1
+   smb_vwv[0]   attribute       smb_vwv[0]   file handle
+   smb_vwv[1]   time low        smb_bcc      0
+   smb_vwv[2]   time high
+   smb_bcc      min = 2
+   smb_buf[]    ASCII -- 04
+                file pathname
+*/
+
+SmbProcessResult
+smbcomcreate(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
+{
+	int ofun, attr, mode;
+	long createtime;
+	char *path;
+	uchar fmt;
+	SmbFile *f;
+	SmbTree *t;
+	ushort fid;
+	SmbProcessResult pr;
+
+	path = nil;
+	if (!smbcheckwordcount("comcreate", h, 3))
+		return SmbProcessResultFormat;
+
+	smblogprint(h->command, "tid=%d\n", h->tid);
+	attr = smbnhgets(pdata); pdata += 2;
+	createtime = smbnhgetl(pdata);
+	if (!smbbuffergetb(b, &fmt) || fmt != 0x04 || 
+	    !smbbuffergetstring(b, h, SMB_STRING_PATH, &path)){
+		pr = SmbProcessResultError;
+		goto done;
+	}
+
+	smbloglock();
+	smblogprint(h->command, "path %s\n", path);
+	smblogprint(h->command, "attr 0x%.4ux", attr);
+	smblogprintattr(h->command, attr);
+	smblogprint(h->command, "\n");
+	smblogprint(h->command, "createtime 0x%.8lux\n", createtime);
+	smblogunlock();
+
+	t = smbidmapfind(s->tidmap, h->tid);
+	if (t == nil) {
+		pr = SmbProcessResultError;
+		goto done;
+	}
+
+	mode = (ORDWR<<SMB_OPEN_MODE_ACCESS_SHIFT) | // SFS: FIXME: should be OWRITE?
+		(SMB_OPEN_MODE_SHARE_EXCLUSIVE<<SMB_OPEN_MODE_SHARE_SHIFT);
+	ofun = SMB_OFUN_NOEXIST_CREATE|(SMB_OFUN_EXIST_FAIL<<SMB_OFUN_EXIST_SHIFT);
+	f = openfile(s, t, path, mode, attr, ofun, SMB_CO_FILE, 0, &fid, nil, nil);
+	if (f == nil) {
+		pr = SmbProcessResultError;
+		goto done;
+	}
+
+	h->wordcount = 1;		// SFS: FIXME: unsure of this constant, maybe should be 3
+	if (!smbbufferputheader(s->response, h, &s->peerinfo)
+		|| !smbbufferputs(s->response, fid)
+		|| !smbbufferputs(s->response, 0)){	// bytecount 0
+		pr = SmbProcessResultMisc;
+		goto done;
+	}
+	pr = SmbProcessResultReply;
+	goto done;
+
+done:
+	free(path);
+	return pr;
+}
+
+
 typedef struct SmbSblut {
 	char *s;
 	ulong mask;
@@ -513,11 +593,25 @@ smbcomntcreateandx(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
 		goto unimp;
 	}
 
-	if (desiredaccess & SMB_DA_GENERIC_MASK) {
-		smblogprint(-1, "smbcomntcreateandx: generic bits in desiredaccess not implemented\n");
-		goto unimp;
-	}
-
+	if (desiredaccess & SMB_DA_GENERIC_MASK)
+		switch (desiredaccess & SMB_DA_GENERIC_MASK){
+		case SMB_DA_GENERIC_READ_ACCESS:
+			p9mode = OREAD;
+			break;
+		case SMB_DA_GENERIC_WRITE_ACCESS:
+			p9mode = OWRITE;
+			break;
+		case SMB_DA_GENERIC_ALL_ACCESS:
+			p9mode = ORDWR;
+			break;
+		case SMB_DA_GENERIC_EXECUTE_ACCESS:
+			p9mode = OEXEC;
+			break;
+		default:
+			p9mode = OREAD;
+			break;
+		}
+	else
 	if (desiredaccess & SMB_DA_SPECIFIC_READ_DATA)
 		if (desiredaccess & (SMB_DA_SPECIFIC_WRITE_DATA | SMB_DA_SPECIFIC_APPEND_DATA))
 			p9mode = ORDWR;

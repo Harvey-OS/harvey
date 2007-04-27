@@ -11,7 +11,7 @@ getaddr(Node *p)
 	return nil;
 }
 
-/* send messae adding our own reply-to and precedence */
+/* send message adding our own reply-to and precedence */
 void
 getaddrs(void)
 {
@@ -177,7 +177,7 @@ sendnotification(char *addr, char *listname, int rem)
 		close(pfd[0]);
 		fprint(pfd[1], "From: %s-owner\n\n", listname);
 		if(rem)
-			fprint(pfd[1], "You have removed from the %s mailing list\n", listname);
+			fprint(pfd[1], "You have been removed from the %s mailing list\n", listname);
 		else{
 			fprint(pfd[1], "You have been added to the %s mailing list\n", listname);
 			fprint(pfd[1], "To be removed, send an email to %s-owner containing\n",

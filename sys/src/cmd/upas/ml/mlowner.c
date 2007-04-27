@@ -40,7 +40,7 @@ main(int argc, char **argv)
 	if(s_read_line(&in, msg) == nil)
 		sysfatal("reading input: %r");
 
-	/* read up to the first 128k of the message.  more is redculous */
+	/* read up to the first 128k of the message.  more is ridiculous */
 	if(s_read(&in, s_restart(msg), 128*1024) <= 0)
 		sysfatal("reading input: %r");
 

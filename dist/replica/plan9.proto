@@ -53,6 +53,8 @@ sparc64	- sys sys
 # everything else is owned by sys
 acme	- sys sys
 	+	- sys sys
+cfg	- sys sys
+	+	- sys sys
 cron	d777 sys sys
 	upas	- upas sys
 		+	- upas sys
