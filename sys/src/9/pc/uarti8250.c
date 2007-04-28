@@ -563,7 +563,7 @@ i8250enable(Uart* uart, int ie)
 	 * the transmitter is really empty.
 	 * Also, reading the Iir outwith i8250interrupt()
 	 * can be dangerous, but this should only happen
-	 * once, before interrupts are enabled.
+	 * once before interrupts are enabled.
 	 */
 	ilock(ctlr);
 	if(!ctlr->checkfifo){

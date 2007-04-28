@@ -90,3 +90,7 @@ if(test -f /dev/mousectl){
 			pipefile -dr /bin/aux/accupoint /dev/mouse
 	}
 }
+
+usbstart
+if (test -f /dev/apm)
+	aux/apm
