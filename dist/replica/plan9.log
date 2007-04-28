@@ -48507,3 +48507,11 @@
 1177630205 0 c cfg/example/termrc - 775 sys sys 1177628544 195
 1177630205 1 m cfg/example/termrc - 775 sys sys 1177628544 195
 1177630205 2 c rc/bin/termrc - 775 sys sys 1177629021 2240
+1177677007 0 c sys/src/9/pc/uarti8250.c - 664 sys sys 1177676872 13957
+1177702207 0 a sys/src/cmd/scuzz/mo.words - 664 sys sys 1177702138 1262
+1177702207 1 c sys/src/cmd/scuzz/scsireq.h - 664 sys sys 1177702200 6958
+1177702207 2 c sys/src/cmd/scuzz/scuzz.c - 664 sys sys 1177702170 38155
+1177702207 3 c sys/src/cmd/scuzz/sense.c - 664 sys sys 1177702138 5680
+1177704005 0 c sys/src/cmd/scuzz/scsireq.c - 664 sys sys 1177702327 13464
+1177707605 0 c rc/bin/termrc - 775 sys sys 1177705963 2281
+1177731006 0 c 386/bin/scuzz - 775 sys sys 1177730506 115274

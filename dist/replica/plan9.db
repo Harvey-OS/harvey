@@ -397,7 +397,7 @@
 386/bin/sam - 775 sys sys 1168633586 159364
 386/bin/scat - 775 sys sys 1176520494 284766
 386/bin/scp - 775 sys sys 1176520495 152584
-386/bin/scuzz - 775 sys sys 1176520495 113699
+386/bin/scuzz - 775 sys sys 1177730506 115274
 386/bin/sed - 775 sys sys 1168402348 89763
 386/bin/seq - 775 sys sys 1162241047 38441
 386/bin/sha1sum - 775 sys sys 1168402348 61366
@@ -5597,7 +5597,7 @@ rc/bin/start - 775 sys sys 945617209 120
 rc/bin/stock - 775 sys sys 1143126371 292
 rc/bin/stop - 775 sys sys 945617209 110
 rc/bin/tel - 775 sys sys 1161209756 128
-rc/bin/termrc - 775 sys sys 1177629021 2240
+rc/bin/termrc - 775 sys sys 1177705963 2281
 rc/bin/termrc.local - 775 sys sys 1176500067 425
 rc/bin/thesaurus - 775 sys sys 1068054167 246
 rc/bin/tlsclienttunnel - 775 sys sys 1024375633 153
@@ -8102,7 +8102,7 @@ sys/src/9/pc/sdmylex.c - 664 sys sys 1171321627 28237
 sys/src/9/pc/sdscsi.c - 664 sys sys 1158889425 7241
 sys/src/9/pc/trap.c - 664 sys sys 1168306369 21848
 sys/src/9/pc/uartaxp.c - 664 sys sys 1166247784 18879
-sys/src/9/pc/uarti8250.c - 664 sys sys 1102820421 13958
+sys/src/9/pc/uarti8250.c - 664 sys sys 1177676872 13957
 sys/src/9/pc/uartisa.c - 664 sys sys 1127126907 1777
 sys/src/9/pc/uartpci.c - 664 sys sys 1162859151 3617
 sys/src/9/pc/usb.h - 664 sys sys 1165555430 4257
@@ -13356,10 +13356,11 @@ sys/src/cmd/scuzz/cdaudio.c - 664 sys sys 944961085 2821
 sys/src/cmd/scuzz/cdr.c - 664 sys sys 944961084 3849
 sys/src/cmd/scuzz/changer.c - 664 sys sys 944961084 1137
 sys/src/cmd/scuzz/mkfile - 664 sys sys 1032060571 231
-sys/src/cmd/scuzz/scsireq.c - 664 sys sys 1168308290 13609
-sys/src/cmd/scuzz/scsireq.h - 664 sys sys 1168308261 6011
-sys/src/cmd/scuzz/scuzz.c - 664 sys sys 1158891727 38135
-sys/src/cmd/scuzz/sense.c - 664 sys sys 969510790 3901
+sys/src/cmd/scuzz/mo.words - 664 sys sys 1177702138 1262
+sys/src/cmd/scuzz/scsireq.c - 664 sys sys 1177702327 13464
+sys/src/cmd/scuzz/scsireq.h - 664 sys sys 1177702200 6958
+sys/src/cmd/scuzz/scuzz.c - 664 sys sys 1177702170 38155
+sys/src/cmd/scuzz/sense.c - 664 sys sys 1177702138 5680
 sys/src/cmd/sed.c - 664 sys sys 1100962924 27001
 sys/src/cmd/seq.c - 664 sys sys 1161442158 1691
 sys/src/cmd/sh.C - 664 sys sys 1055701754 10303

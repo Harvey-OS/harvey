@@ -29,9 +29,10 @@ typedef struct {
 	int	status;			/* returned status */
 	uchar	sense[MaxDirData];	/* returned sense data */
 	uchar	inquiry[MaxDirData];	/* returned inquiry data */
+	int	readblock;		/* flag: read a block since open */
 } ScsiReq;
 
-enum {					/* flags */
+enum {					/* software flags */
 	Fopen		= 0x0001,	/* open */
 	Fseqdev		= 0x0002,	/* sequential-access device */
 	Fwritten	= 0x0004,	/* device written */
@@ -120,6 +121,34 @@ enum {					/* SCSI command codes */
 	ScmdReportKey	= 0xA4,		/* read dvd key */
 	ScmdSendKey	= 0xA3,		/* write dvd key */
 };
+
+enum {
+	/* sense data byte 0 */
+	Sd0valid	= 0x80,		/* valid sense data present */
+
+	/* sense data byte 2 */
+	/* incorrect-length indicator, difference in bytes 3—6 */
+	Sd2ili		= 0x20,
+	Sd2eom		= 0x40,		/* end of medium (tape) */
+	Sd2filemark	= 0x80,		/* at a filemark (tape) */
+
+	/* command byte 1 */
+	Cmd1fixed	= 1,		/* use fixed-length blocks */
+	Cmd1sili	= 2,		/* don't set Sd2ili */
+
+	/* limit of block #s in 24-bit ccbs */
+	Max24off	= (1<<21) - 1,	/* 2⁲ⁱ - 1 */
+
+	/* mode pages */
+	Allmodepages = 0x3F,
+};
+
+/* p arguments should be of type uchar* */
+#define GETBELONG(p) ((ulong)(p)[0]<<24 | (ulong)(p)[1]<<16 | (p)[2]<<8 | (p)[3])
+#define PUTBELONG(p, ul) ((p)[0] = (ul)>>24, (p)[1] = (ul)>>16, \
+			  (p)[2] = (ul)>>8,  (p)[3] = (ul))
+#define GETBE24(p)	((ulong)(p)[0]<<16 | (p)[1]<<8 | (p)[2])
+#define PUTBE24(p, ul)	((p)[0] = (ul)>>16, (p)[1] = (ul)>>8, (p)[2] = (ul))
 
 extern long SRready(ScsiReq*);
 extern long SRrewind(ScsiReq*);
