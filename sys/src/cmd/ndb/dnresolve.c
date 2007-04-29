@@ -232,7 +232,7 @@ static void
 queryinit(Query *qp, DN *dp, int type, Request *req)
 {
 	memset(qp, 0, sizeof *qp);
-	qp->udpfd = -1;
+	qp->udpfd = qp->tcpfd = qp->tcpctlfd = -1;
 	qp->dp = dp;
 	qp->type = type;
 	qp->req = req;
@@ -246,6 +246,22 @@ queryck(Query *qp)
 {
 	assert(qp);
 	assert(qp->magic == Querymagic);
+}
+
+static void
+querydestroy(Query *qp)
+{
+	queryck(qp);
+	if (qp->udpfd > 0)
+		close(qp->udpfd);
+	if (qp->tcpfd > 0)
+		close(qp->tcpfd);
+	if (qp->tcpctlfd > 0) {
+		hangup(qp->tcpctlfd);
+		close(qp->tcpctlfd);
+	}
+	memset(qp, 0, sizeof *qp);	/* prevent accidents */
+	qp->udpfd = qp->tcpfd = qp->tcpctlfd = -1;
 }
 
 static void
@@ -322,8 +338,7 @@ dnresolve1(char *name, int class, int type, Request *req, int depth,
 			query.nsrp = nsrp;
 			if(netquery(&query, depth+1)){
 				rrfreelist(nsrp);
-				/* prevent accidents */
-				memset(&query, 0, sizeof query);
+				querydestroy(&query);
 				return rrlookup(dp, type, OKneg);
 			}
 			rrfreelist(nsrp);
@@ -343,8 +358,7 @@ dnresolve1(char *name, int class, int type, Request *req, int depth,
 		if(dbnsrp && dbnsrp->local){
 			rp = dblookup(name, class, type, 1, dbnsrp->ttl);
 			rrfreelist(dbnsrp);
-			/* prevent accidents */
-			memset(&query, 0, sizeof query);
+			querydestroy(&query);
 			return rp;
 		}
 
@@ -377,8 +391,7 @@ dnresolve1(char *name, int class, int type, Request *req, int depth,
 			query.nsrp = nsrp;
 			if(netquery(&query, depth+1)){
 				rrfreelist(nsrp);
-				/* prevent accidents */
-				memset(&query, 0, sizeof query);
+				querydestroy(&query);
 				return rrlookup(dp, type, OKneg);
 			}
 			rrfreelist(nsrp);
@@ -392,14 +405,13 @@ dnresolve1(char *name, int class, int type, Request *req, int depth,
 			if(netquery(&query, depth+1)){
 				/* we got an answer */
 				rrfreelist(dbnsrp);
-				/* prevent accidents */
-				memset(&query, 0, sizeof query);
+				querydestroy(&query);
 				return rrlookup(dp, type, NOneg);
 			}
 			rrfreelist(dbnsrp);
 		}
 	}
-	memset(&query, 0, sizeof query);	/* prevent accidents */
+	querydestroy(&query);
 
 	/* settle for a non-authoritative answer */
 	rp = rrlookup(dp, type, OKneg);
@@ -524,13 +536,21 @@ readnet(Query *qp, int medium, uchar *ibuf, ulong endtime, uchar **replyp,
 	/* timed read of reply */
 	alarm((endtime - time(nil)) * 1000);
 	reply = ibuf;
+	len = -1;			/* pessimism */
+	memset(srcip, 0, IPaddrlen);
 	if (medium == Udp) {
-		len = read(qp->udpfd, ibuf, OUdphdrsize+Maxudpin);
-		len -= OUdphdrsize;
-		memmove(srcip, ibuf, IPaddrlen);
-		reply += OUdphdrsize;
+		if (qp->udpfd <= 0) 
+			dnslog("readnet: qp->udpfd closed");
+		else {
+			len = read(qp->udpfd, ibuf, OUdphdrsize+Maxudpin);
+			if (len >= IPaddrlen)
+				memmove(srcip, ibuf, IPaddrlen);
+			if (len >= OUdphdrsize) {
+				len   -= OUdphdrsize;
+				reply += OUdphdrsize;
+			}
+		}
 	} else {
-		len = -1;			/* pessimism */
 		if (!qp->tcpset)
 			dnslog("readnet: tcp params not set");
 		fd = qp->tcpfd;
@@ -820,9 +840,14 @@ mydnsquery(Query *qp, int medium, uchar *udppkt, int len)
 	queryck(qp);
 	switch (medium) {
 	case Udp:
-		if(write(qp->udpfd, udppkt, len+OUdphdrsize) != len+OUdphdrsize)
-			warning("sending udp msg %r");
-		rv = 0;
+		if (qp->udpfd <= 0)
+			dnslog("mydnsquery: qp->udpfd closed");
+		else {
+			if (write(qp->udpfd, udppkt, len+OUdphdrsize) !=
+			    len+OUdphdrsize)
+				warning("sending udp msg %r");
+			rv = 0;
+		}
 		break;
 	case Tcp:
 		/* send via TCP & keep fd around for reply */
@@ -871,8 +896,6 @@ xmitquery(Query *qp, int medium, int depth, uchar *obuf, int inns, int len)
 	Dest *p;
 
 	queryck(qp);
-//	dnslog("xmitquery xmit loop: now %ld aborttime %ld", time(nil),
-//		qp->req->aborttime);
 	if(time(nil) >= qp->req->aborttime)
 		return -1;
 
@@ -897,7 +920,8 @@ xmitquery(Query *qp, int medium, int depth, uchar *obuf, int inns, int len)
 				if (setdestoutns(qp->curdest, n) < 0)
 					break;
 		} else {
-			dnslog("xmitquery: %s: no nameservers", qp->dp->name);
+			/* it's probably just a bogus domain, don't log it */
+			// dnslog("xmitquery: %s: no nameservers", qp->dp->name);
 			return -1;
 		}
 
@@ -1039,7 +1063,7 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 
 //	qlock(&qp->dp->querylck);
 	rrfreelist(tp);
-	memset(&nquery, 0, sizeof nquery); /* prevent accidents */
+	querydestroy(&nquery);
 	return rv;
 }
 
@@ -1051,25 +1075,22 @@ static int
 tcpquery(Query *qp, DNSmsg *mp, int depth, uchar *ibuf, uchar *obuf, int len,
 	int waitsecs, int inns, ushort req)
 {
+	int rv = 0;
 	ulong endtime;
 
 	endtime = time(nil) + waitsecs;
 	if(endtime > qp->req->aborttime)
 		endtime = qp->req->aborttime;
 
+	dnslog("%s: udp reply truncated; retrying query via tcp to %I",
+		qp->dp->name, qp->tcpip);
+
 	qlock(&qp->tcplock);
 	memmove(obuf, ibuf, IPaddrlen);		/* send back to respondent */
 	/* sets qp->tcpip from obuf's udp header */
-	if (xmitquery(qp, Tcp, depth, obuf, inns, len) < 0) {
-		qunlock(&qp->tcplock);
-		return -1;
-	}
-	dnslog("%s: udp reply truncated; retrying query via tcp to %I",
-		qp->dp->name, qp->tcpip);
-	if (readreply(qp, Tcp, req, ibuf, mp, endtime) < 0) {
-		qunlock(&qp->tcplock);
-		return -1;
-	}
+	if (xmitquery(qp, Tcp, depth, obuf, inns, len) < 0 ||
+	    readreply(qp, Tcp, req, ibuf, mp, endtime) < 0)
+		rv = -1;
 	if (qp->tcpfd > 0) {
 		hangup(qp->tcpctlfd);
 		close(qp->tcpctlfd);
@@ -1077,10 +1098,7 @@ tcpquery(Query *qp, DNSmsg *mp, int depth, uchar *ibuf, uchar *obuf, int len,
 	}
 	qp->tcpfd = qp->tcpctlfd = -1;
 	qunlock(&qp->tcplock);
-
-//	dnslog("%s: %s answer by tcp", qp->dp->name,
-//		(mp->an? "got": "didn't get"));
-	return 0;
+	return rv;
 }
 
 /*
@@ -1352,6 +1370,6 @@ seerootns(void)
 	queryinit(&query, dnlookup(root, Cin, 1), Tns, &req);
 	query.nsrp = dblookup(root, Cin, Tns, 0, 0);
 	rv = netquery(&query, 0);
-	memset(&query, 0, sizeof query);	/* prevent accidents */
+	querydestroy(&query);
 	return rv;
 }

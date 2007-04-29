@@ -287,7 +287,7 @@ upref(DN *dp)
  *  about 1780 names, so 4000 is not a lot.
  */
 enum {
-	Deftarget = 8000,
+	Deftarget = 6000,
 };
 
 ulong target = Deftarget;
