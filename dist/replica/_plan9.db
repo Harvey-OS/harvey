@@ -397,7 +397,7 @@
 386/bin/sam - 775 sys sys 1168633586 159364
 386/bin/scat - 775 sys sys 1176520494 284766
 386/bin/scp - 775 sys sys 1176520495 152584
-386/bin/scuzz - 775 sys sys 1176520495 113699
+386/bin/scuzz - 775 sys sys 1177730506 115274
 386/bin/sed - 775 sys sys 1168402348 89763
 386/bin/seq - 775 sys sys 1162241047 38441
 386/bin/sha1sum - 775 sys sys 1168402348 61366
@@ -5480,7 +5480,7 @@ rc/bin/delkey - 775 sys sys 1109429137 643
 rc/bin/dial - 20000000775 sys sys 1059180057 0
 rc/bin/diffy - 775 sys sys 1140694870 277
 rc/bin/dircp - 775 sys sys 1169490692 234
-rc/bin/diskparts - 775 sys sys 1176151301 559
+rc/bin/diskparts - 775 sys sys 1177742148 605
 rc/bin/doc2ps - 775 sys sys 1069793831 244
 rc/bin/doc2txt - 775 sys sys 1025197880 563
 rc/bin/doctype - 775 sys sys 1162921755 1727
@@ -5488,7 +5488,7 @@ rc/bin/dosmnt - 775 sys sys 1109288224 303
 rc/bin/eject - 775 sys sys 945617207 123
 rc/bin/fax - 775 sys sys 1127394677 2385
 rc/bin/fedex - 775 sys sys 1060187356 1244
-rc/bin/fshalt - 775 sys sys 1173737783 1652
+rc/bin/fshalt - 775 sys sys 1177742142 1658
 rc/bin/homespool - 775 sys sys 945617207 339
 rc/bin/ipconf - 20000000775 sys sys 1058791152 0
 rc/bin/ipconf/inside - 775 sys sys 1058790955 427
@@ -7730,7 +7730,7 @@ sys/man/6/mnihongo - 664 sys sys 1158064572 716
 sys/man/6/mpictures - 664 sys sys 944959678 2899
 sys/man/6/ms - 664 sys sys 958249504 6815
 sys/man/6/namespace - 664 sys sys 1048637182 1576
-sys/man/6/ndb - 664 sys sys 1177100292 6745
+sys/man/6/ndb - 664 sys sys 1177742177 6776
 sys/man/6/plot - 664 sys sys 944959679 6739
 sys/man/6/plumb - 664 sys sys 969499892 10918
 sys/man/6/regexp - 664 sys sys 954089523 2050
@@ -12797,11 +12797,11 @@ sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1175901582 11659
 sys/src/cmd/ndb/cs.c - 664 sys sys 1176931848 33123
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1174626119 1073
 sys/src/cmd/ndb/dblookup.c - 664 sys sys 1175901604 21010
-sys/src/cmd/ndb/dn.c - 664 sys sys 1175925585 32939
+sys/src/cmd/ndb/dn.c - 664 sys sys 1177811830 32939
 sys/src/cmd/ndb/dnarea.c - 664 sys sys 1175664421 2519
 sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1175901450 3147
 sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1176837575 30062
-sys/src/cmd/ndb/dns.c - 664 sys sys 1175901186 16013
+sys/src/cmd/ndb/dns.c - 664 sys sys 1177811831 16021
 sys/src/cmd/ndb/dns.h - 664 sys sys 1175901645 10640
 sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1176746985 8741
 sys/src/cmd/ndb/dnserver.c - 664 sys sys 1175901160 4392
@@ -15812,4 +15812,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/scuzz - 775 sys sys 1177730506 115274
+386/bin/ndb/dns - 775 sys sys 1177816951 286892

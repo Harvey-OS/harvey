@@ -23,7 +23,7 @@ f=`{ls /srv/fscons*>[2]/dev/null}
 k=`{ls /srv/kfs*cmd >[2]/dev/null|sort -r}
 
 echo -n syncing...
-for(i in $f){
+for(i in $f) @ {
 	echo -n $i...
 	{
 		echo
@@ -68,7 +68,7 @@ bind /tmp /bin
 fn x {
 	echo
 	echo -n halting...
-	for(i in $f){
+	for(i in $f) @ {
 		echo -n $i...
 		{
 			echo fsys all halt

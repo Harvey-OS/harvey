@@ -16,6 +16,8 @@ for(disk in /dev/sd[0-9A-Zabd-z]*) {
 sysname=`{cat /dev/sysname}
 
 # set up any fs(3) partitions
+if (! test -e /dev/fs/ctl)
+	bind -a '#k' /dev
 if (~ $#sysname 1 && ! ~ $sysname '' &&
     test -r /cfg/$sysname/fsconfig && test -w /dev/fs/ctl)
 	read -m /cfg/$sysname/fsconfig >/dev/fs/ctl
