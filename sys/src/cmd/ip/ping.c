@@ -549,8 +549,8 @@ main(int argc, char **argv)
 		msglen = proto->icmphdrsz;
 	if(msglen < 64)
 		msglen = 64;
-	if(msglen >= 65*1024)
-		msglen = 65*1024-1;
+	if(msglen >= 64*1024)
+		msglen = 64*1024-1;
 	if(interval <= 0 && !flood)
 		interval = SLEEPMS;
 

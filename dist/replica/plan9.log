@@ -48525,3 +48525,11 @@
 1177876816 0 c 386/bin/ndb/dns - 775 sys sys 1177876681 287094
 1177876816 1 c 386/bin/ndb/dnsdebug - 775 sys sys 1177876681 261953
 1177876816 2 c 386/bin/ndb/dnstcp - 775 sys sys 1177876682 260417
+1178053206 0 c sys/src/cmd/ip/ipconfig/ipconfig.h - 664 sys sys 1178051838 5666
+1178053206 1 c sys/src/cmd/ip/ipconfig/ipv6.c - 664 sys sys 1178051839 19588
+1178053206 2 c sys/src/cmd/ip/ipconfig/main.c - 664 sys sys 1178051838 37982
+1178056806 0 c sys/src/cmd/ip/ping.c - 664 sys sys 1178055342 9699
+1178058606 0 c sys/src/9/ip/udp.c - 664 sys sys 1178057621 13132
+1178058606 1 c sys/src/9/port/qlock.c - 664 sys sys 1178057654 3300
+1178076606 0 c 386/bin/ip/ipconfig - 775 sys sys 1178076139 158720
+1178076606 1 c 386/bin/ip/ping - 775 sys sys 1178076139 84614

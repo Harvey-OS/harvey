@@ -171,25 +171,24 @@ ipv62smcast(uchar *smcast, uchar *a)
 }
 
 void
-v6paraminit(void)
+v6paraminit(Conf *cf)
 {
-	conf.sendra = conf.recvra = 0;
-	conf.mflag = 0;
-	conf.oflag = 0;
-	conf.maxraint = MAX_INIT_RTR_ADVERT_INTVL;
-	conf.minraint = MAX_INIT_RTR_ADVERT_INTVL / 4;
-	conf.linkmtu = 1500;
-	conf.reachtime = REACHABLE_TIME;
-	conf.rxmitra = RETRANS_TIMER;
-	conf.ttl = MAXTTL;
+	cf->sendra = cf->recvra = 0;
+	cf->mflag = 0;
+	cf->oflag = 0;
+	cf->maxraint = MAX_INIT_RTR_ADVERT_INTVL;
+	cf->minraint = MAX_INIT_RTR_ADVERT_INTVL / 4;
+	cf->linkmtu = 1500;
+	cf->reachtime = REACHABLE_TIME;
+	cf->rxmitra = RETRANS_TIMER;
+	cf->ttl = MAXTTL;
 
-	conf.routerlt = 0;
-	conf.force = 0;
+	cf->routerlt = 0;
 
-	conf.prefixlen = 64;
-	conf.onlink = 0;
-	conf.autoflag = 0;
-	conf.validlt = conf.preflt = ~0L;
+	cf->prefixlen = 64;
+	cf->onlink = 0;
+	cf->autoflag = 0;
+	cf->validlt = cf->preflt = ~0L;
 }
 
 static char*
@@ -483,10 +482,57 @@ recvrarouter(uchar buf[], int pktlen)
 /* host receiving a router advertisement calls this */
 
 static void
+ewrite(int fd, char *str)
+{
+	int n;
+
+	n = strlen(str);
+	if (write(fd, str, n) != n)
+		ralog("write(%s) failed: %r", str);
+}
+
+static void
+issuebasera6(Conf *cf)
+{
+	char *cfg;
+
+	cfg = smprint("ra6 mflag %d oflag %d reachtime %d rxmitra %d "
+		"ttl %d routerlt %d",
+		cf->mflag, cf->oflag, cf->reachtime, cf->rxmitra,
+		cf->ttl, cf->routerlt);
+	ewrite(cf->cfd, cfg);
+	free(cfg);
+}
+
+static void
+issuerara6(Conf *cf)
+{
+	char *cfg;
+
+	cfg = smprint("ra6 sendra %d recvra %d maxraint %d minraint %d "
+		"linkmtu %d",
+		cf->sendra, cf->recvra, cf->maxraint, cf->minraint,
+		cf->linkmtu);
+	ewrite(cf->cfd, cfg);
+	free(cfg);
+}
+
+static void
+issueadd6(Conf *cf)
+{
+	char *cfg;
+
+	cfg = smprint("add6 %I %d %d %d %lud %lud", cf->v6pref, cf->prefixlen,
+		cf->onlink, cf->autoflag, cf->validlt, cf->preflt);
+	ewrite(cf->cfd, cfg);
+	free(cfg);
+}
+
+static void
 recvrahost(uchar buf[], int pktlen)
 {
 	int arpfd, m, n;
-	char abuf[100], configcmd[256];
+	char abuf[100];
 	uchar optype;
 	Lladdropt *llao;
 	Mtuopt *mtuo;
@@ -494,8 +540,7 @@ recvrahost(uchar buf[], int pktlen)
 	Routeradv *ra;
 
 	ra = (Routeradv*)buf;
-	memmove(conf.v6gaddr, ra->src, IPaddrlen);
-	conf.force = 0;
+//	memmove(conf.v6gaddr, ra->src, IPaddrlen);
 	conf.ttl = ra->cttl;
 	conf.mflag = (MFMASK & ra->mor);
 	conf.oflag = (OCMASK & ra->mor);
@@ -503,11 +548,10 @@ recvrahost(uchar buf[], int pktlen)
 	conf.reachtime = nhgetl(ra->rchbltime);
 	conf.rxmitra =   nhgetl(ra->rxmtimer);
 
-	n = snprint(configcmd, sizeof configcmd, "%s %I %d %d %d %d %d %d %d",
-		"gate6", conf.v6gaddr, conf.force, conf.ttl, conf.mflag,
-		conf.oflag, conf.routerlt, conf.reachtime, conf.rxmitra);
-	if (write(conf.cfd, configcmd, n) < 0)
-		ralog("write (%s) failed", configcmd);
+	// issueadd6(&conf);	// for conf.v6gaddr?
+	if (fprint(conf.cfd, "ra6 recvra 1") < 0)
+		ralog("write(ra6 recvra 1) failed: %r");
+	issuebasera6(&conf);
 
 	m = sizeof *ra;
 	while (pktlen - m > 0) {
@@ -570,13 +614,7 @@ recvrahost(uchar buf[], int pktlen)
 			conf.autoflag = ((prfo->lar & AFMASK) != 0);
 			conf.validlt = nhgetl(prfo->validlt);
 			conf.preflt =  nhgetl(prfo->preflt);
-			n = snprint(configcmd, sizeof configcmd,
-				"%s %I %d %d %d %uld %uld",
-				"addpref6", conf.v6pref, conf.prefixlen,
-				conf.onlink, conf.autoflag,
-				conf.validlt, conf.preflt);
-			if (write(conf.cfd, configcmd, n) < 0)
-				ralog("write (%s) failed", configcmd);
+			issueadd6(&conf);
 			break;
 		default:
 			m += 8 * buf[m+1];
@@ -866,7 +904,7 @@ sendra6(void)
 }
 
 void
-ra6(void)
+startra6(void)
 {
 	static char routeon[] = "iprouting 1";
 
@@ -885,11 +923,8 @@ ra6(void)
 }
 
 void
-dov6stuff(int what)
+doipv6(int what)
 {
-	char buf[256];
-	int n;
-
 	nip = nipifcs(conf.mpoint);
 	if(!noconfig){
 		lookforip(conf.mpoint);
@@ -900,25 +935,14 @@ dov6stuff(int what)
 	switch (what) {
 	default:
 		fprint(2, "%s: unknown IPv6 verb\n", argv0);
-		break;
+		exits("usage");
 	case Vaddpref6:
-		n = snprint(buf, sizeof buf, "addpref6 %I %d %d %d %uld %uld",
-			conf.v6pref, conf.prefixlen, conf.onlink, conf.autoflag,
-			conf.validlt, conf.preflt);
-		if (write(conf.cfd, buf, n) < n)
-			fprint(2, "%s: write (%s) failed\n", argv0, buf);
+		issueadd6(&conf);
 		break;
 	case Vra6:
-		n = snprint(buf, sizeof buf,
-			"ra6 sendra %d recvra %d mflag %d oflag %d"
-			" maxraint %d minraint %d linkmtu %d reachtime %d"
-			" rxmitra %d ttl %d routerlt %d",
-			conf.sendra, conf.recvra, conf.mflag, conf.oflag,
-			conf.maxraint, conf.minraint, conf.linkmtu,
-			conf.reachtime, conf.rxmitra, conf.ttl, conf.routerlt);
-		if (write(conf.cfd, buf, n) < n)
-			fprint(2, "%s: write (%s) failed\n", argv0, buf);
-		ra6();
+		issuebasera6(&conf);
+		issuerara6(&conf);
+		startra6();
 		break;
 	}
 }

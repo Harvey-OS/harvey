@@ -47,9 +47,9 @@ struct Conf
 	 */
 
 	/* solicitation specific - XXX add support for IPv6 leases */
-	ulong	solicit_retries;
+//	ulong	solicit_retries;
 
-	/* router related */
+	/* router-advertisement related */
 	uchar	sendra;
 	uchar	recvra;
 	uchar	mflag;
@@ -60,19 +60,17 @@ struct Conf
 	int	reachtime;	/* 3,600,000 msec, default 0 */
 	int	rxmitra;	/* default 0 */
 	int	ttl;		/* default 0 (unspecified) */
-
-	/* def gateway params */
+	/* default gateway params */
 	uchar	v6gaddr[IPaddrlen];
 	int	routerlt;	/* router life time */
-	int	force;
 
 	/* prefix related */
 	uchar	v6pref[IPaddrlen];
 	int	prefixlen;
-	uchar	onlink;
-	uchar	autoflag;
-	ulong	validlt;
-	ulong	preflt;
+	uchar	onlink;		/* flag: address is `on-link' */
+	uchar	autoflag;	/* flag: autonomous */
+	ulong	validlt;	/* valid lifetime (seconds) */
+	ulong	preflt;		/* preferred lifetime (seconds) */
 };
 
 struct Ctl
@@ -142,11 +140,11 @@ void	writendb(char*, int, int);
  * IPv6
  */
 
-void	dov6stuff(int);
+void	doipv6(int);
 int	ipconfig6(int);
 void	recvra6(void);
 void	sendra6(void);
-void	v6paraminit(void);
+void	v6paraminit(Conf *);
 
 typedef struct Headers Headers;
 typedef struct Ip4hdr  Ip4hdr;
