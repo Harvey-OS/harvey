@@ -68,6 +68,9 @@ qunlock(QLock *q)
 	Proc *p;
 
 	lock(&q->use);
+	if (q->locked == 0)
+		print("qunlock called with qlock not held, from %#p\n",
+			getcallerpc(&q));
 	p = q->head;
 	if(p){
 		q->head = p->qnext;

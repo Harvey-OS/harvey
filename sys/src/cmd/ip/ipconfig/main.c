@@ -164,7 +164,7 @@ char *verbs[] = {
 [Vgbe]		"gbe",
 [Vppp]		"ppp",
 [Vloopback]	"loopback",
-[Vaddpref6]	"addpref6",
+[Vaddpref6]	"add6",
 [Vra6]		"ra6",
 };
 
@@ -352,7 +352,7 @@ init(void)
 		conf.cputype = "386";
 
 	ctll = &firstctl;
-	v6paraminit();
+	v6paraminit(&conf);
 
 	/* init set of requested dhcp parameters with the default */
 	nrequested = sizeof defrequested;
@@ -529,7 +529,7 @@ main(int argc, char **argv)
 		break;
 	case Vaddpref6:
 	case Vra6:
-		dov6stuff(action);
+		doipv6(action);
 		break;
 	}
 	exits(0);
