@@ -581,8 +581,14 @@ passcmd(char *response)
 		ch->resp = response;
 		ch->nresp = strlen(response);
 		ai = auth_response(ch);
-		if(ai == nil)
+		if(ai == nil) {
+			static long delay = 100;
+
+			sleep(delay);		/* deter password-guessers */
+			if (delay < 60*1000)
+				delay *= 2;
 			return reply("530 Not logged in: %r");
+		}
 		if(auth_chuid(ai, nil) < 0)
 			return reply("530 Not logged in: %r");
 		auth_freechal(ch);
