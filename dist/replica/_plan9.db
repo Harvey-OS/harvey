@@ -288,7 +288,7 @@
 386/bin/ip/dhcpclient - 775 sys sys 1168402317 94377
 386/bin/ip/dhcpd - 775 sys sys 1176488415 151225
 386/bin/ip/dhcpleases - 775 sys sys 1169612024 86533
-386/bin/ip/ftpd - 775 sys sys 1169612025 170706
+386/bin/ip/ftpd - 775 sys sys 1178135892 170692
 386/bin/ip/gping - 775 sys sys 1168402319 183451
 386/bin/ip/hogports - 775 sys sys 1148500655 42914
 386/bin/ip/httpd - 20000000775 sys sys 1068385801 0
@@ -302,9 +302,9 @@
 386/bin/ip/httpd/wikipost - 775 sys sys 1177283321 115228
 386/bin/ip/httpfile - 775 sys sys 1168402324 284262
 386/bin/ip/imap4d - 775 sys sys 1169265834 238152
-386/bin/ip/ipconfig - 775 sys sys 1177557987 158902
+386/bin/ip/ipconfig - 775 sys sys 1178076139 158720
 386/bin/ip/linklocal - 775 sys sys 1177530964 42790
-386/bin/ip/ping - 775 sys sys 1175887160 84684
+386/bin/ip/ping - 775 sys sys 1178076139 84614
 386/bin/ip/ppp - 775 sys sys 1169612026 220423
 386/bin/ip/pppoe - 775 sys sys 1168402326 77787
 386/bin/ip/pptp - 775 sys sys 1169612026 127215
@@ -12457,7 +12457,7 @@ sys/src/cmd/ip/dhcpd/ping.c - 664 sys sys 1169162185 1163
 sys/src/cmd/ip/dhcpd/testlook.c - 664 sys sys 950389140 4640
 sys/src/cmd/ip/dhcpd/testlookup.c - 664 sys sys 950389140 3195
 sys/src/cmd/ip/dhcpd/testping.c - 664 sys sys 950389141 352
-sys/src/cmd/ip/ftpd.c - 664 sys sys 1143759344 33045
+sys/src/cmd/ip/ftpd.c - 664 sys sys 1178127705 33168
 sys/src/cmd/ip/ftpfs - 20000000775 sys sys 1048312051 0
 sys/src/cmd/ip/ftpfs/file.c - 664 sys sys 1014925642 4208
 sys/src/cmd/ip/ftpfs/ftpfs.c - 664 sys sys 1116737713 13860
@@ -15812,5 +15812,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/ip/ipconfig - 775 sys sys 1178076139 158720
-386/bin/ip/ping - 775 sys sys 1178076139 84614
