@@ -1402,7 +1402,7 @@ lib/face/48x48x4/x/xigh.1 - 664 sys sys 1142019024 1204
 lib/face/48x48x4/y - 20000000775 sys sys 1020895714 0
 lib/face/48x48x4/z - 20000000775 sys sys 1020895714 0
 lib/face/48x48x8 - 20000000775 sys sys 1123100641 0
-lib/face/48x48x8/.dict - 664 sys sys 1176834010 4026
+lib/face/48x48x8/.dict - 664 sys sys 1178172651 4056
 lib/face/48x48x8/Z - 20000000775 sys sys 1020895714 0
 lib/face/48x48x8/a - 20000000775 sys sys 1056983599 0
 lib/face/48x48x8/a/alcortes.1 - 664 sys sys 1176753392 976
@@ -5481,6 +5481,7 @@ rc/bin/dial - 20000000775 sys sys 1059180057 0
 rc/bin/diffy - 775 sys sys 1140694870 277
 rc/bin/dircp - 775 sys sys 1169490692 234
 rc/bin/diskparts - 775 sys sys 1177742148 605
+rc/bin/dmaon - 775 sys sys 1178214935 213
 rc/bin/doc2ps - 775 sys sys 1069793831 244
 rc/bin/doc2txt - 775 sys sys 1025197880 563
 rc/bin/doctype - 775 sys sys 1162921755 1727
@@ -5808,7 +5809,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1177258701 264583
+sys/games/lib/fortunes - 664 sys sys 1178172623 264652
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -7311,7 +7312,7 @@ sys/man/1/0intro - 664 sys sys 1101668050 9625
 sys/man/1/2a - 664 sys sys 1158281866 1196
 sys/man/1/2c - 664 sys sys 1175892134 9440
 sys/man/1/2l - 664 sys sys 1158281887 4376
-sys/man/1/INDEX - 664 sys sys 1141357442 3040
+sys/man/1/INDEX - 664 sys sys 1178249214 3131
 sys/man/1/INDEX.html - 664 sys sys 1141352366 16517
 sys/man/1/acid - 664 sys sys 1134233059 9730
 sys/man/1/acme - 664 sys sys 1169932614 18550
@@ -7471,7 +7472,7 @@ sys/man/2/9p - 664 sys sys 1175867369 15852
 sys/man/2/9pcmdbuf - 664 sys sys 1165622380 2076
 sys/man/2/9pfid - 664 sys sys 1106072437 3663
 sys/man/2/9pfile - 664 sys sys 1048637158 4408
-sys/man/2/INDEX - 664 sys sys 1141357442 20441
+sys/man/2/INDEX - 664 sys sys 1178249215 20532
 sys/man/2/INDEX.html - 664 sys sys 1141352366 27454
 sys/man/2/abort - 664 sys sys 944959693 331
 sys/man/2/abs - 664 sys sys 944959693 461
@@ -7650,14 +7651,14 @@ sys/man/3/usb - 664 sys sys 1167774741 7052
 sys/man/3/vga - 664 sys sys 1131301005 4957
 sys/man/4 - 20000000775 sys sys 1128556957 0
 sys/man/4/0intro - 664 sys sys 944959699 472
-sys/man/4/INDEX - 664 sys sys 1141357442 1018
+sys/man/4/INDEX - 664 sys sys 1178249215 1026
 sys/man/4/INDEX.html - 664 sys sys 1141352366 5045
 sys/man/4/acme - 664 sys sys 1142172883 10392
 sys/man/4/archfs - 664 sys sys 960000712 533
 sys/man/4/cdfs - 664 sys sys 1026846913 3638
 sys/man/4/cfs - 664 sys sys 1172762903 1813
 sys/man/4/consolefs - 664 sys sys 1144424854 4245
-sys/man/4/cwfs - 664 sys sys 1174799917 6329
+sys/man/4/cwfs - 664 sys sys 1178224996 6225
 sys/man/4/dossrv - 664 sys sys 1168307403 4334
 sys/man/4/execnet - 664 sys sys 1019866708 1069
 sys/man/4/exportfs - 664 sys sys 1145881912 4655
@@ -7711,7 +7712,7 @@ sys/man/5/version - 664 sys sys 1015024830 2657
 sys/man/5/walk - 664 sys sys 1015024830 3622
 sys/man/6 - 20000000775 sys sys 1158064572 0
 sys/man/6/0intro - 664 sys sys 944959678 179
-sys/man/6/INDEX - 664 sys sys 1141357442 485
+sys/man/6/INDEX - 664 sys sys 1178249215 503
 sys/man/6/INDEX.html - 664 sys sys 1141352366 3298
 sys/man/6/a.out - 664 sys sys 1015024888 7155
 sys/man/6/ar - 664 sys sys 944959678 2092
@@ -7756,7 +7757,7 @@ sys/man/8 - 20000000775 sys sys 1162240005 0
 sys/man/8/0intro - 664 sys sys 944959679 247
 sys/man/8/9load - 664 sys sys 1094676489 9170
 sys/man/8/9pcon - 664 sys sys 1145881850 2234
-sys/man/8/INDEX - 664 sys sys 1141357442 2768
+sys/man/8/INDEX - 664 sys sys 1178249215 2888
 sys/man/8/INDEX.html - 664 sys sys 1141352367 8470
 sys/man/8/aan - 664 sys sys 1045501064 1670
 sys/man/8/aliasmail - 664 sys sys 1170818958 1350
@@ -7956,7 +7957,7 @@ sys/src/9/ip/inferno.c - 664 sys sys 1022588098 517
 sys/src/9/ip/ip.c - 664 sys sys 1176957040 15288
 sys/src/9/ip/ip.h - 664 sys sys 1176957139 15982
 sys/src/9/ip/ipaux.c - 664 sys sys 1079538100 12862
-sys/src/9/ip/ipifc.c - 664 sys sys 1176957160 33517
+sys/src/9/ip/ipifc.c - 664 sys sys 1178172609 33638
 sys/src/9/ip/ipmux.c - 664 sys sys 1047260566 15362
 sys/src/9/ip/iproute.c - 664 sys sys 1168305878 14778
 sys/src/9/ip/ipv6.c - 664 sys sys 1176938017 14297

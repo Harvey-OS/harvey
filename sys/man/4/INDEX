@@ -8,6 +8,7 @@ cfs cfs
 C consolefs
 clog consolefs
 consolefs consolefs
+cwfs cwfs
 9660srv dossrv
 9fat: dossrv
 a: dossrv
@@ -70,7 +71,7 @@ upasfs upasfs
 usb usb
 usbaudio usb
 usbmouse usb
-usbprinter usb
+usbprint usb
 usbd usbd
 vacfs vacfs
 webcookies webcookies
