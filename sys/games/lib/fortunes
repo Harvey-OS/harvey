@@ -4176,3 +4176,6 @@ Remember to drink responsibly during this St. Patrick's Day season.
 File under POPULAR: Male Vocal - Syd Barrett LP sleeve
 N = C + {fb (cm) . fb (tc)} + fb (Ts) + fc . ta, where N=force in Newtons required to break the cooked bacon, fb=function of the bacon type, fc=function of the condiment/filling effect, Ts=serving temperature, tc=cooking time, ta=time or duration of application of condiment/filling, cm=cooking method, C=Newtons required to break uncooked bacon
 #define v6addrcurr(lifc) (( (lifc)->origint + (lifc)->preflt >= (NOW/10^3) ) || ( (lifc)->preflt == 0xffffffff ))
+It seems that subjective C is more popular than objective C - brucee
+Eta aquarid  meeteeor shouwer - astro -k
+The program 'apt-get' is currently not installed.  You can install it by typing: apt-get install apt  - ubuntu linux

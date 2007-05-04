@@ -21,9 +21,10 @@ status auth
 wrkey auth
 boot boot
 booting booting
-checkarenas checkarenas
 cpurc cpurc
+cpurc.local cpurc
 termrc cpurc
+termrc.local cpurc
 cron cron
 dhcpd dhcpd
 dhcpleases dhcpd
@@ -35,6 +36,8 @@ fossilcons fossilcons
 exsort fs
 fs fs
 fsconfig fsconfig
+fshalt fshalt
+reboot fshalt
 getflags getflags
 usage getflags
 gpsevermore gpsfs
@@ -47,6 +50,8 @@ save httpd
 webls httpd
 init init
 ipconfig ipconfig
+ipv6on ipconfig
+linklocal ipconfig
 rip ipconfig
 ftpd ipserv
 ipserv ipserv
@@ -72,9 +77,12 @@ tcp113 listen
 tcp143 listen
 tcp17007 listen
 tcp17009 listen
+tcp17010 listen
 tcp17013 listen
+tcp1723 listen
 tcp19 listen
 tcp21 listen
+tcp22 listen
 tcp23 listen
 tcp25 listen
 tcp513 listen

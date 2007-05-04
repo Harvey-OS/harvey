@@ -6,6 +6,7 @@ dirread9p 9p
 emalloc9p 9p
 erealloc9p 9p
 estrdup9p 9p
+listensrv 9p
 postfd 9p
 postmountsrv 9p
 readbuf 9p
@@ -13,6 +14,7 @@ readstr 9p
 respond 9p
 responderror 9p
 srv 9p
+threadlistensrv 9p
 threadpostmountsrv 9p
 9pcmdbuf 9pcmdbuf
 Cmdbuf 9pcmdbuf
@@ -1142,6 +1144,7 @@ runestrstr runestrcat
 recognize scribble
 scribble scribble
 scribblealloc scribble
+closescsi scsi
 openscsi scsi
 scsi scsi
 scsicmd scsi
@@ -1163,6 +1166,8 @@ segdetach segattach
 segfree segattach
 segbrk segbrk
 segflush segflush
+semacquire semacquire
+semrelease semacquire
 longjmp setjmp
 notejmp setjmp
 setjmp setjmp
