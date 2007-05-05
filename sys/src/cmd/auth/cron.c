@@ -616,7 +616,7 @@ static int caphashfd;
 void
 initcap(void)
 {
-	caphashfd = open("#¤/caphash", OWRITE);
+	caphashfd = open("#¤/caphash", OCEXEC|OWRITE);
 	if(caphashfd < 0)
 		fprint(2, "%s: opening #¤/caphash: %r", argv0);
 }

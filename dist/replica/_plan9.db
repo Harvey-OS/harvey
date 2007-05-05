@@ -49,7 +49,7 @@
 386/bin/auth/changeuser - 775 sys sys 1168402267 97488
 386/bin/auth/convkeys - 775 sys sys 1174964423 88664
 386/bin/auth/convkeys2 - 775 sys sys 1174964423 88723
-386/bin/auth/cron - 775 sys sys 1177012403 145052
+386/bin/auth/cron - 775 sys sys 1178316322 145108
 386/bin/auth/debug - 775 sys sys 1168402268 101566
 386/bin/auth/disable - 775 sys sys 1020319057 146
 386/bin/auth/enable - 775 sys sys 1020319057 134
@@ -5809,7 +5809,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1178172623 264652
+sys/games/lib/fortunes - 664 sys sys 1178249993 264810
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -7312,7 +7312,7 @@ sys/man/1/0intro - 664 sys sys 1101668050 9625
 sys/man/1/2a - 664 sys sys 1158281866 1196
 sys/man/1/2c - 664 sys sys 1175892134 9440
 sys/man/1/2l - 664 sys sys 1158281887 4376
-sys/man/1/INDEX - 664 sys sys 1141357442 3040
+sys/man/1/INDEX - 664 sys sys 1178249214 3131
 sys/man/1/INDEX.html - 664 sys sys 1141352366 16517
 sys/man/1/acid - 664 sys sys 1134233059 9730
 sys/man/1/acme - 664 sys sys 1169932614 18550
@@ -7472,7 +7472,7 @@ sys/man/2/9p - 664 sys sys 1175867369 15852
 sys/man/2/9pcmdbuf - 664 sys sys 1165622380 2076
 sys/man/2/9pfid - 664 sys sys 1106072437 3663
 sys/man/2/9pfile - 664 sys sys 1048637158 4408
-sys/man/2/INDEX - 664 sys sys 1141357442 20441
+sys/man/2/INDEX - 664 sys sys 1178249215 20532
 sys/man/2/INDEX.html - 664 sys sys 1141352366 27454
 sys/man/2/abort - 664 sys sys 944959693 331
 sys/man/2/abs - 664 sys sys 944959693 461
@@ -7651,7 +7651,7 @@ sys/man/3/usb - 664 sys sys 1167774741 7052
 sys/man/3/vga - 664 sys sys 1131301005 4957
 sys/man/4 - 20000000775 sys sys 1128556957 0
 sys/man/4/0intro - 664 sys sys 944959699 472
-sys/man/4/INDEX - 664 sys sys 1141357442 1018
+sys/man/4/INDEX - 664 sys sys 1178249215 1026
 sys/man/4/INDEX.html - 664 sys sys 1141352366 5045
 sys/man/4/acme - 664 sys sys 1142172883 10392
 sys/man/4/archfs - 664 sys sys 960000712 533
@@ -7712,7 +7712,7 @@ sys/man/5/version - 664 sys sys 1015024830 2657
 sys/man/5/walk - 664 sys sys 1015024830 3622
 sys/man/6 - 20000000775 sys sys 1158064572 0
 sys/man/6/0intro - 664 sys sys 944959678 179
-sys/man/6/INDEX - 664 sys sys 1141357442 485
+sys/man/6/INDEX - 664 sys sys 1178249215 503
 sys/man/6/INDEX.html - 664 sys sys 1141352366 3298
 sys/man/6/a.out - 664 sys sys 1015024888 7155
 sys/man/6/ar - 664 sys sys 944959678 2092
@@ -7757,7 +7757,7 @@ sys/man/8 - 20000000775 sys sys 1162240005 0
 sys/man/8/0intro - 664 sys sys 944959679 247
 sys/man/8/9load - 664 sys sys 1094676489 9170
 sys/man/8/9pcon - 664 sys sys 1145881850 2234
-sys/man/8/INDEX - 664 sys sys 1141357442 2768
+sys/man/8/INDEX - 664 sys sys 1178249215 2888
 sys/man/8/INDEX.html - 664 sys sys 1141352367 8470
 sys/man/8/aan - 664 sys sys 1045501064 1670
 sys/man/8/aliasmail - 664 sys sys 1170818958 1350
@@ -8147,7 +8147,7 @@ sys/src/9/port/debugalloc.c - 664 sys sys 1014931171 10402
 sys/src/9/port/dev.c - 664 sys sys 1146151714 8177
 sys/src/9/port/devaudio.c - 664 sys sys 1170456648 21199
 sys/src/9/port/devbridge.c - 664 sys sys 1055688301 24308
-sys/src/9/port/devcap.c - 664 sys sys 1168304142 4128
+sys/src/9/port/devcap.c - 664 sys sys 1178320320 4160
 sys/src/9/port/devcons.c - 664 sys sys 1176658321 22943
 sys/src/9/port/devdraw.c - 664 sys sys 1147023550 44447
 sys/src/9/port/devdup.c - 664 sys sys 1014931172 2332
@@ -9531,7 +9531,7 @@ sys/src/cmd/auth/changeuser.c - 664 sys sys 1155994851 2949
 sys/src/cmd/auth/convbio.c - 664 sys sys 1015008432 2212
 sys/src/cmd/auth/convkeys.c - 664 sys sys 1155994849 2387
 sys/src/cmd/auth/convkeys2.c - 664 sys sys 1155994849 2444
-sys/src/cmd/auth/cron.c - 664 sys sys 1177004942 12306
+sys/src/cmd/auth/cron.c - 664 sys sys 1178316322 12313
 sys/src/cmd/auth/debug.c - 664 sys sys 1143694911 7325
 sys/src/cmd/auth/disable - 775 sys sys 1015008431 146
 sys/src/cmd/auth/enable - 775 sys sys 1015008430 134
@@ -9972,7 +9972,7 @@ sys/src/cmd/cp.c - 664 sys sys 1021580000 2928
 sys/src/cmd/cpp - 20000000775 sys sys 1039727553 0
 sys/src/cmd/cpp/cpp.c - 664 sys sys 1097900425 6211
 sys/src/cmd/cpp/cpp.h - 664 sys sys 1144691586 4707
-sys/src/cmd/cpp/eval.c - 664 sys sys 1014925275 9892
+sys/src/cmd/cpp/eval.c - 664 sys sys 1178313120 9886
 sys/src/cmd/cpp/hideset.c - 664 sys sys 944960879 1936
 sys/src/cmd/cpp/include.c - 664 sys sys 959299274 2845
 sys/src/cmd/cpp/lex.c - 664 sys sys 1166823021 13582
@@ -15813,8 +15813,5 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-sys/man/1/INDEX - 664 sys sys 1178249214 3131
-sys/man/2/INDEX - 664 sys sys 1178249215 20532
-sys/man/4/INDEX - 664 sys sys 1178249215 1026
-sys/man/6/INDEX - 664 sys sys 1178249215 503
-sys/man/8/INDEX - 664 sys sys 1178249215 2888
+386/bin/cpp - 775 sys sys 1178335350 150392
+386/bin/auth/cron - 775 sys sys 1178335349 145052
