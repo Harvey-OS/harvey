@@ -49,7 +49,7 @@
 386/bin/auth/changeuser - 775 sys sys 1168402267 97488
 386/bin/auth/convkeys - 775 sys sys 1174964423 88664
 386/bin/auth/convkeys2 - 775 sys sys 1174964423 88723
-386/bin/auth/cron - 775 sys sys 1177012403 145052
+386/bin/auth/cron - 775 sys sys 1178335349 145052
 386/bin/auth/debug - 775 sys sys 1168402268 101566
 386/bin/auth/disable - 775 sys sys 1020319057 146
 386/bin/auth/enable - 775 sys sys 1020319057 134
@@ -189,7 +189,7 @@
 386/bin/compress - 775 sys sys 1173754554 166944
 386/bin/con - 775 sys sys 1168402297 78486
 386/bin/cp - 775 sys sys 1168402297 63454
-386/bin/cpp - 775 sys sys 1168402297 150459
+386/bin/cpp - 775 sys sys 1178335350 150392
 386/bin/cpu - 775 sys sys 1168402297 139484
 386/bin/crop - 775 sys sys 1168402298 116374
 386/bin/cwfs - 775 sys sys 1176520479 366611
@@ -5809,7 +5809,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1178172623 264652
+sys/games/lib/fortunes - 664 sys sys 1178249993 264810
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -8147,7 +8147,7 @@ sys/src/9/port/debugalloc.c - 664 sys sys 1014931171 10402
 sys/src/9/port/dev.c - 664 sys sys 1146151714 8177
 sys/src/9/port/devaudio.c - 664 sys sys 1170456648 21199
 sys/src/9/port/devbridge.c - 664 sys sys 1055688301 24308
-sys/src/9/port/devcap.c - 664 sys sys 1168304142 4128
+sys/src/9/port/devcap.c - 664 sys sys 1178320320 4160
 sys/src/9/port/devcons.c - 664 sys sys 1176658321 22943
 sys/src/9/port/devdraw.c - 664 sys sys 1147023550 44447
 sys/src/9/port/devdup.c - 664 sys sys 1014931172 2332
@@ -9531,7 +9531,7 @@ sys/src/cmd/auth/changeuser.c - 664 sys sys 1155994851 2949
 sys/src/cmd/auth/convbio.c - 664 sys sys 1015008432 2212
 sys/src/cmd/auth/convkeys.c - 664 sys sys 1155994849 2387
 sys/src/cmd/auth/convkeys2.c - 664 sys sys 1155994849 2444
-sys/src/cmd/auth/cron.c - 664 sys sys 1177004942 12306
+sys/src/cmd/auth/cron.c - 664 sys sys 1178316322 12313
 sys/src/cmd/auth/debug.c - 664 sys sys 1143694911 7325
 sys/src/cmd/auth/disable - 775 sys sys 1015008431 146
 sys/src/cmd/auth/enable - 775 sys sys 1015008430 134
@@ -9972,7 +9972,7 @@ sys/src/cmd/cp.c - 664 sys sys 1021580000 2928
 sys/src/cmd/cpp - 20000000775 sys sys 1039727553 0
 sys/src/cmd/cpp/cpp.c - 664 sys sys 1097900425 6211
 sys/src/cmd/cpp/cpp.h - 664 sys sys 1144691586 4707
-sys/src/cmd/cpp/eval.c - 664 sys sys 1014925275 9892
+sys/src/cmd/cpp/eval.c - 664 sys sys 1178313120 9886
 sys/src/cmd/cpp/hideset.c - 664 sys sys 944960879 1936
 sys/src/cmd/cpp/include.c - 664 sys sys 959299274 2845
 sys/src/cmd/cpp/lex.c - 664 sys sys 1166823021 13582

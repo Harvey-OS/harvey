@@ -205,6 +205,8 @@ capwrite(Chan *c, void *va, long n, vlong)
 
 	switch((ulong)c->qid.path){
 	case Qhash:
+		if(!iseve())
+			error(Eperm);
 		if(n < Hashlen)
 			error(Eshort);
 		memmove(hash, va, Hashlen);
