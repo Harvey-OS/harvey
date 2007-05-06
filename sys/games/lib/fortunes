@@ -4179,3 +4179,4 @@ N = C + {fb (cm) . fb (tc)} + fb (Ts) + fc . ta, where N=force in Newtons requir
 It seems that subjective C is more popular than objective C - brucee
 Eta aquarid  meeteeor shouwer - astro -k
 The program 'apt-get' is currently not installed.  You can install it by typing: apt-get install apt  - ubuntu linux
+Subject: Re: [9fans] speaking of kenc... can you imagine a c compiler that does not translate to asm first? or can you imagine porting a c compiler when you dont have an assembler? -- Rogelio Serrano

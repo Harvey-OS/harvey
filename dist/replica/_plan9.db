@@ -49,7 +49,7 @@
 386/bin/auth/changeuser - 775 sys sys 1168402267 97488
 386/bin/auth/convkeys - 775 sys sys 1174964423 88664
 386/bin/auth/convkeys2 - 775 sys sys 1174964423 88723
-386/bin/auth/cron - 775 sys sys 1178316322 145108
+386/bin/auth/cron - 775 sys sys 1178335349 145052
 386/bin/auth/debug - 775 sys sys 1168402268 101566
 386/bin/auth/disable - 775 sys sys 1020319057 146
 386/bin/auth/enable - 775 sys sys 1020319057 134
@@ -189,7 +189,7 @@
 386/bin/compress - 775 sys sys 1173754554 166944
 386/bin/con - 775 sys sys 1168402297 78486
 386/bin/cp - 775 sys sys 1168402297 63454
-386/bin/cpp - 775 sys sys 1168402297 150459
+386/bin/cpp - 775 sys sys 1178335350 150392
 386/bin/cpu - 775 sys sys 1168402297 139484
 386/bin/crop - 775 sys sys 1168402298 116374
 386/bin/cwfs - 775 sys sys 1176520479 366611
@@ -5480,7 +5480,7 @@ rc/bin/delkey - 775 sys sys 1109429137 643
 rc/bin/dial - 20000000775 sys sys 1059180057 0
 rc/bin/diffy - 775 sys sys 1140694870 277
 rc/bin/dircp - 775 sys sys 1169490692 234
-rc/bin/diskparts - 775 sys sys 1177742148 605
+rc/bin/diskparts - 775 sys sys 1178399618 624
 rc/bin/dmaon - 775 sys sys 1178214935 213
 rc/bin/doc2ps - 775 sys sys 1069793831 244
 rc/bin/doc2txt - 775 sys sys 1025197880 563
@@ -5809,7 +5809,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1178249993 264810
+sys/games/lib/fortunes - 664 sys sys 1178418339 265010
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -13360,7 +13360,7 @@ sys/src/cmd/scuzz/mkfile - 664 sys sys 1032060571 231
 sys/src/cmd/scuzz/mo.words - 664 sys sys 1177702138 1262
 sys/src/cmd/scuzz/scsireq.c - 664 sys sys 1177702327 13464
 sys/src/cmd/scuzz/scsireq.h - 664 sys sys 1177702200 6958
-sys/src/cmd/scuzz/scuzz.c - 664 sys sys 1177702170 38155
+sys/src/cmd/scuzz/scuzz.c - 664 sys sys 1178401100 37903
 sys/src/cmd/scuzz/sense.c - 664 sys sys 1177702138 5680
 sys/src/cmd/sed.c - 664 sys sys 1100962924 27001
 sys/src/cmd/seq.c - 664 sys sys 1161442158 1691
@@ -15813,5 +15813,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/cpp - 775 sys sys 1178335350 150392
-386/bin/auth/cron - 775 sys sys 1178335349 145052
+386/bin/scuzz - 775 sys sys 1178422014 115094
