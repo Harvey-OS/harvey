@@ -397,7 +397,7 @@
 386/bin/sam - 775 sys sys 1168633586 159364
 386/bin/scat - 775 sys sys 1176520494 284766
 386/bin/scp - 775 sys sys 1176520495 152584
-386/bin/scuzz - 775 sys sys 1177730506 115274
+386/bin/scuzz - 775 sys sys 1178422014 115094
 386/bin/sed - 775 sys sys 1168402348 89763
 386/bin/seq - 775 sys sys 1162241047 38441
 386/bin/sha1sum - 775 sys sys 1168402348 61366
@@ -5480,7 +5480,7 @@ rc/bin/delkey - 775 sys sys 1109429137 643
 rc/bin/dial - 20000000775 sys sys 1059180057 0
 rc/bin/diffy - 775 sys sys 1140694870 277
 rc/bin/dircp - 775 sys sys 1169490692 234
-rc/bin/diskparts - 775 sys sys 1177742148 605
+rc/bin/diskparts - 775 sys sys 1178399618 624
 rc/bin/dmaon - 775 sys sys 1178214935 213
 rc/bin/doc2ps - 775 sys sys 1069793831 244
 rc/bin/doc2txt - 775 sys sys 1025197880 563
@@ -5809,7 +5809,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1178249993 264810
+sys/games/lib/fortunes - 664 sys sys 1178418339 265010
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -13360,7 +13360,7 @@ sys/src/cmd/scuzz/mkfile - 664 sys sys 1032060571 231
 sys/src/cmd/scuzz/mo.words - 664 sys sys 1177702138 1262
 sys/src/cmd/scuzz/scsireq.c - 664 sys sys 1177702327 13464
 sys/src/cmd/scuzz/scsireq.h - 664 sys sys 1177702200 6958
-sys/src/cmd/scuzz/scuzz.c - 664 sys sys 1177702170 38155
+sys/src/cmd/scuzz/scuzz.c - 664 sys sys 1178401100 37903
 sys/src/cmd/scuzz/sense.c - 664 sys sys 1177702138 5680
 sys/src/cmd/sed.c - 664 sys sys 1100962924 27001
 sys/src/cmd/seq.c - 664 sys sys 1161442158 1691
