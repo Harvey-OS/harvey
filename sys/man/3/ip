@@ -665,7 +665,10 @@ If, after an
 one of the following messages is written to
 .BR ctl ,
 then all messages sent to the announced port
-are received on the announced connection prefixed with the given structure.
+are received on the announced connection prefixed
+with the corresponding structure,
+declared in
+.BR <ip.h> .
 .TP
 .B headers
 .EX
@@ -693,7 +696,7 @@ struct OUdphdr
 .EE
 .PP
 .L oldheaders
-is now considered obsolete and should not be used in new programs.
+is now seriously obsolete and will vanish soon.
 .PP
 Before a write, a user must prefix a similar structure to each message.
 The system overrides the user specified local port with the announced
@@ -1077,9 +1080,10 @@ header length errors
 .in -0.25i
 .EE
 .SH "SEE ALSO"
-.IR listen (8),
 .IR dial (2),
-.IR ndb (6)
+.IR ip (2),
+.IR ndb (6),
+.IR listen (8)
 .SH SOURCE
 .B /sys/src/9/ip
 .SH BUGS

@@ -3,25 +3,25 @@
 #include <ip.h>
 #include "dhcp.h"
 
-void	usage(void);
 void	bootpdump(uchar *p, int n);
-int	openlisten(char*);
 void	dhcpinit(void);
-uchar	*optadd(uchar*, int, void*, int);
-uchar	*optaddbyte(uchar*, int, int);
-uchar	*optaddulong(uchar*, int, ulong);
+void	dhcprecv(void);
+void	dhcpsend(int);
+void	myfatal(char *fmt, ...);
+int	openlisten(char*);
 uchar	*optaddaddr(uchar*, int, uchar*);
+uchar	*optaddbyte(uchar*, int, int);
+uchar	*optadd(uchar*, int, void*, int);
+uchar	*optaddulong(uchar*, int, ulong);
 uchar	*optget(Bootp*, int, int);
+int	optgetaddr(Bootp*, int, uchar*);
 int	optgetbyte(Bootp*, int);
 ulong	optgetulong(Bootp*, int);
-int	optgetaddr(Bootp*, int, uchar*);
-void	dhcpsend(int);
-void	dhcprecv(void);
-void	timerthread(void*);
-void	stdinthread(void*);
 Bootp	*parse(uchar*, int);
+void	stdinthread(void*);
 ulong	thread(void(*f)(void*), void *a);
-void	myfatal(char *fmt, ...);
+void	timerthread(void*);
+void	usage(void);
 
 struct {
 	QLock	lk;
@@ -63,14 +63,14 @@ main(int argc, char *argv[])
 	fmtinstall('V', eipfmt);
 
 	dhcpinit();
-	
+
 	rfork(RFNOTEG|RFREND);
 
 	thread(timerthread, 0);
 	thread(stdinthread, 0);
 
 	qlock(&dhcp.lk);
-	dhcp.starttime = time(0);	
+	dhcp.starttime = time(0);
 	dhcp.fd = openlisten(net);
 	dhcpsend(Discover);
 	dhcp.state = Sselecting;
@@ -92,11 +92,11 @@ main(int argc, char *argv[])
 	for(;;) {
 //fprint(2, "got lease for %d\n", dhcp.lease);
 		qunlock(&dhcp.lk);
-		sleep(dhcp.lease*500);		// wait half of lease time
+		sleep(dhcp.lease*500);	/* wait half of lease time */
 		qlock(&dhcp.lk);
 
 //fprint(2, "try renue\n", dhcp.lease);
-		dhcp.starttime = time(0);	
+		dhcp.starttime = time(0);
 		dhcp.fd = openlisten(net);
 		dhcp.xid = time(0)*getpid();
 		dhcpsend(Request);
@@ -130,7 +130,7 @@ timerthread(void*)
 			qunlock(&dhcp.lk);
 			continue;
 		}
-	
+
 		switch(dhcp.state) {
 		default:
 			myfatal("timerthread: unknown state %d", dhcp.state);
@@ -178,7 +178,7 @@ stdinthread(void*)
 {
 	uchar buf[100];
 	int n;
-	
+
 	for(;;) {
 		n = read(0, buf, sizeof(buf));
 		if(n <= 0)
@@ -219,19 +219,19 @@ dhcpinit(void)
 void
 dhcpsend(int type)
 {
-	Bootp bp;
-	OUdphdr *up;
-	uchar *p;
 	int n;
+	uchar *p;
+	Bootp bp;
+	Udphdr *up;
 
-	memset(&bp, 0, sizeof(bp));
-	up = (OUdphdr*)bp.udphdr;
+	memset(&bp, 0, sizeof bp);
+	up = (Udphdr*)bp.udphdr;
 
 	hnputs(up->rport, 67);
 	bp.op = Bootrequest;
 	hnputl(bp.xid, dhcp.xid);
-	hnputs(bp.secs, time(0)-dhcp.starttime);
-	hnputs(bp.flags, Fbroadcast);	// reply must be broadcast
+	hnputs(bp.secs, time(0) - dhcp.starttime);
+	hnputs(bp.flags, Fbroadcast);		/* reply must be broadcast */
 	memmove(bp.optmagic, optmagic, 4);
 	p = bp.optdata;
 	p = optaddbyte(p, ODtype, type);
@@ -240,20 +240,20 @@ dhcpsend(int type)
 	default:
 		myfatal("dhcpsend: unknown message type: %d", type);
 	case Discover:
-		ipmove(up->raddr, IPv4bcast);	// broadcast
+		ipmove(up->raddr, IPv4bcast);	/* broadcast */
 		break;
 	case Request:
 		if(dhcp.state == Sbound || dhcp.state == Srenewing)
 			ipmove(up->raddr, dhcp.server);
 		else
-			ipmove(up->raddr, IPv4bcast);	// broadcast
+			ipmove(up->raddr, IPv4bcast);	/* broadcast */
 		p = optaddulong(p, ODlease, dhcp.lease);
 		if(dhcp.state == Sselecting || dhcp.state == Srequesting) {
-			p = optaddaddr(p, ODipaddr, dhcp.client);	// mistake??
+			p = optaddaddr(p, ODipaddr, dhcp.client);	/* mistake?? */
 			p = optaddaddr(p, ODserverid, dhcp.server);
 		} else
 			v6tov4(bp.ciaddr, dhcp.client);
-		break;	
+		break;
 	case Release:
 		ipmove(up->raddr, dhcp.server);
 		v6tov4(bp.ciaddr, dhcp.client);
@@ -290,7 +290,7 @@ dhcprecv(void)
 	if(bp == 0)
 		return;
 
-if(0) {
+if(1) {
 fprint(2, "recved\n");
 bootpdump(buf, n);
 }
@@ -318,7 +318,7 @@ bootpdump(buf, n);
 		ipmove(dhcp.mask, mask);
 		memmove(dhcp.sname, bp->sname, sizeof(dhcp.sname));
 		dhcp.sname[sizeof(dhcp.sname)-1] = 0;
-	
+
 		dhcpsend(Request);
 		dhcp.state = Srequesting;
 		dhcp.resend = 0;
@@ -349,35 +349,30 @@ bootpdump(buf, n);
 int
 openlisten(char *net)
 {
-	int fd, cfd;
-	char data[128];
-	char devdir[40];
-	int n;
+	int n, fd, cfd;
+	char data[128], devdir[40];
 
 //	sprint(data, "%s/udp!*!bootpc", net);
 	sprint(data, "%s/udp!*!68", net);
-	for(n=0;;n++) {
+	for(n = 0; ; n++) {
 		cfd = announce(data, devdir);
 		if(cfd >= 0)
 			break;
 		/* might be another client - wait and try again */
-		fprint(2, "dhcpclient: can't announce: %r");
+		fprint(2, "dhcpclient: can't announce %s: %r", data);
 		sleep(1000);
-		if(n>10)
+		if(n > 10)
 			myfatal("can't announce: giving up: %r");
 	}
 
 	if(fprint(cfd, "headers") < 0)
 		myfatal("can't set header mode: %r");
-	fprint(cfd, "oldheaders");
 
 	sprint(data, "%s/data", devdir);
-
 	fd = open(data, ORDWR);
 	if(fd < 0)
-		myfatal("open udp data: %r");
+		myfatal("open %s: %r", data);
 	close(cfd);
-
 	return fd;
 }
 
@@ -490,7 +485,8 @@ parse(uchar *p, int n)
 	}
 
 	if(dhcp.xid != nhgetl(bp->xid)) {
-		fprint(2, "dhcpclient: parse: bad xid: got %ux expected %lux\n", nhgetl(bp->xid), dhcp.xid);
+		fprint(2, "dhcpclient: parse: bad xid: got %ux expected %lux\n",
+			nhgetl(bp->xid), dhcp.xid);
 		return 0;
 	}
 
@@ -507,7 +503,8 @@ parse(uchar *p, int n)
 		return 0;
 	}
 	if(memcmp(optmagic, p, 4) != 0) {
-		fprint(2, "dhcpclient: parse: bad opt magic %ux %ux %ux %ux\n", p[0], p[1], p[2], p[3]);
+		fprint(2, "dhcpclient: parse: bad opt magic %ux %ux %ux %ux\n",
+			p[0], p[1], p[2], p[3]);
 		return 0;
 	}
 	p += 4;
@@ -530,7 +527,7 @@ parse(uchar *p, int n)
 			return 0;
 		}
 		p += len;
-		n -= len;		
+		n -= len;
 	}
 
 	/* fix up nonstandard packets */
@@ -543,22 +540,24 @@ parse(uchar *p, int n)
 void
 bootpdump(uchar *p, int n)
 {
-	Bootp *bp;
-	OUdphdr *up;
 	int len, i, code;
+	Bootp *bp;
+	Udphdr *up;
 
 	bp = (Bootp*)p;
-	up = (OUdphdr*)bp->udphdr;
+	up = (Udphdr*)bp->udphdr;
 
 	if(n < bp->optmagic - p) {
 		fprint(2, "dhcpclient: short bootp packet");
 		return;
 	}
 
-	fprint(2, "laddr=%I lport=%d raddr=%I rport=%d\n", up->laddr, nhgets(up->lport),
-			up->raddr, nhgets(up->rport));
-	fprint(2, "op=%d htype=%d hlen=%d hops=%d\n", bp->op, bp->htype, bp->hlen, bp->hops);
-	fprint(2, "xid=%ux secs=%d flags=%ux\n", nhgetl(bp->xid), nhgets(bp->secs), nhgets(bp->flags));
+	fprint(2, "laddr=%I lport=%d raddr=%I rport=%d\n", up->laddr,
+		nhgets(up->lport), up->raddr, nhgets(up->rport));
+	fprint(2, "op=%d htype=%d hlen=%d hops=%d\n", bp->op, bp->htype,
+		bp->hlen, bp->hops);
+	fprint(2, "xid=%ux secs=%d flags=%ux\n", nhgetl(bp->xid),
+		nhgets(bp->secs), nhgets(bp->flags));
 	fprint(2, "ciaddr=%V yiaddr=%V siaddr=%V giaddr=%V\n",
 		bp->ciaddr, bp->yiaddr, bp->siaddr, bp->giaddr);
 	fprint(2, "chaddr=");
@@ -567,14 +566,15 @@ bootpdump(uchar *p, int n)
 	fprint(2, "\n");
 	fprint(2, "sname=%s\n", bp->sname);
 	fprint(2, "file = %s\n", bp->file);
-	
+
 	n -= bp->optmagic - p;
 	p = bp->optmagic;
 
 	if(n < 4)
 		return;
 	if(memcmp(optmagic, p, 4) != 0)
-		fprint(2, "dhcpclient: bad opt magic %ux %ux %ux %ux\n", p[0], p[1], p[2], p[3]);
+		fprint(2, "dhcpclient: bad opt magic %ux %ux %ux %ux\n",
+			p[0], p[1], p[2], p[3]);
 	p += 4;
 	n -= 4;
 
@@ -608,7 +608,7 @@ bootpdump(uchar *p, int n)
 			for(i = 0; i<len; i++)
 				fprint(2, "%ux ", p[i]);
 			fprint(2, "\n");
-			break;	
+			break;
 		case ODlease:
 			fprint(2, "lease=%d\n", nhgetl(p));
 			break;
@@ -623,7 +623,7 @@ bootpdump(uchar *p, int n)
 			break;
 		}
 		p += len;
-		n -= len;		
+		n -= len;
 	}
 }
 
@@ -631,13 +631,14 @@ ulong
 thread(void(*f)(void*), void *a)
 {
 	int pid;
-	pid=rfork(RFNOWAIT|RFMEM|RFPROC);
+
+	pid = rfork(RFNOWAIT|RFMEM|RFPROC);
 	if(pid < 0)
 		myfatal("rfork failed: %r");
 	if(pid != 0)
 		return pid;
 	(*f)(a);
-	return 0; // never reaches here
+	return 0;	/* never reaches here */
 }
 
 void

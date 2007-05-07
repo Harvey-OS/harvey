@@ -446,7 +446,6 @@ walkup(char *name)
  *  into "headers" mode.
  */
 static char *hmsg = "headers";
-static char *ohmsg = "oldheaders";
 
 int
 udpport(char *mtpt)
@@ -468,7 +467,6 @@ udpport(char *mtpt)
 		warning(hmsg);
 		return -1;
 	}
-	write(ctl, ohmsg, strlen(ohmsg));
 
 	/* grab the data file */
 	snprint(ds, sizeof ds, "%s/data", adir);
@@ -485,7 +483,7 @@ mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno)
 {
 	DNSmsg m;
 	int len;
-	OUdphdr *uh = (OUdphdr*)buf;
+	Udphdr *uh = (Udphdr*)buf;
 
 	/* stuff port number into output buffer */
 	memset(uh, 0, sizeof *uh);
@@ -498,7 +496,7 @@ mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno)
 	m.qd = rralloc(type);
 	m.qd->owner = dp;
 	m.qd->type = type;
-	len = convDNS2M(&m, &buf[OUdphdrsize], Maxudp);
+	len = convDNS2M(&m, &buf[Udphdrsize], Maxudp);
 	rrfree(m.qd);
 	return len;
 }
@@ -542,12 +540,12 @@ readnet(Query *qp, int medium, uchar *ibuf, ulong endtime, uchar **replyp,
 		if (qp->udpfd <= 0) 
 			dnslog("readnet: qp->udpfd closed");
 		else {
-			len = read(qp->udpfd, ibuf, OUdphdrsize+Maxudpin);
+			len = read(qp->udpfd, ibuf, Udphdrsize+Maxudpin);
 			if (len >= IPaddrlen)
 				memmove(srcip, ibuf, IPaddrlen);
-			if (len >= OUdphdrsize) {
-				len   -= OUdphdrsize;
-				reply += OUdphdrsize;
+			if (len >= Udphdrsize) {
+				len   -= Udphdrsize;
+				reply += Udphdrsize;
 			}
 		}
 	} else {
@@ -843,8 +841,8 @@ mydnsquery(Query *qp, int medium, uchar *udppkt, int len)
 		if (qp->udpfd <= 0)
 			dnslog("mydnsquery: qp->udpfd closed");
 		else {
-			if (write(qp->udpfd, udppkt, len+OUdphdrsize) !=
-			    len+OUdphdrsize)
+			if (write(qp->udpfd, udppkt, len+Udphdrsize) !=
+			    len+Udphdrsize)
 				warning("sending udp msg %r");
 			rv = 0;
 		}
@@ -873,7 +871,7 @@ mydnsquery(Query *qp, int medium, uchar *udppkt, int len)
 			belen[0] = len >> 8;
 			belen[1] = len;
 			if (write(qp->tcpfd, belen, 2) != 2 ||
-			    write(qp->tcpfd, udppkt + OUdphdrsize, len) != len)
+			    write(qp->tcpfd, udppkt + Udphdrsize, len) != len)
 				warning("sending tcp msg %r");
 		}
 		free(domain);
@@ -1237,9 +1235,9 @@ udpquery(Query *qp, char *mntpt, int depth, int patient, int inns)
 	static ulong lastmount;
 
 	/* use alloced buffers rather than ones from the stack */
-	// ibuf = emalloc(Maxudpin+OUdphdrsize);
+	// ibuf = emalloc(Maxudpin+Udphdrsize);
 	ibuf = emalloc(64*1024);		/* max. tcp reply size */
-	obuf = emalloc(Maxudp+OUdphdrsize);
+	obuf = emalloc(Maxudp+Udphdrsize);
 
 	fd = udpport(mntpt);
 	while (fd < 0 && cfg.straddle && strcmp(mntpt, "/net.alt") == 0) {

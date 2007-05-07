@@ -58,9 +58,9 @@ send_notify(char *slave, RR *soa, Request *req)
 {
 	int i, len, n, reqno, status, fd;
 	char *err;
-	uchar ibuf[Maxudp+OUdphdrsize], obuf[Maxudp+OUdphdrsize];
+	uchar ibuf[Maxudp+Udphdrsize], obuf[Maxudp+Udphdrsize];
 	RR *rp;
-	OUdphdr *up = (OUdphdr*)obuf;
+	Udphdr *up = (Udphdr*)obuf;
 	DNSmsg repmsg;
 
 	/* create the request */
@@ -85,7 +85,7 @@ send_notify(char *slave, RR *soa, Request *req)
 	notify(ding);
 
 	/* send 3 times or until we get anything back */
-	n += OUdphdrsize;
+	n += Udphdrsize;
 	for(i = 0; i < 3; i++){
 		dnslog("sending %d byte notify to %s/%I.%d about %s", n, slave,
 			up->raddr, nhgets(up->rport), soa->owner->name);
@@ -94,10 +94,10 @@ send_notify(char *slave, RR *soa, Request *req)
 		alarm(2*1000);
 		len = read(fd, ibuf, sizeof ibuf);
 		alarm(0);
-		if(len <= OUdphdrsize)
+		if(len <= Udphdrsize)
 			continue;
 		memset(&repmsg, 0, sizeof repmsg);
-		err = convM2DNS(&ibuf[OUdphdrsize], len, &repmsg, nil);
+		err = convM2DNS(&ibuf[Udphdrsize], len, &repmsg, nil);
 		if(err != nil) {
 			free(err);
 			continue;

@@ -7,23 +7,24 @@
 typedef struct SunMsgUdp SunMsgUdp;
 struct SunMsgUdp
 {
-	SunMsg msg;
-	Udphdr udp;
+	SunMsg	msg;
+	Udphdr	udp;
 };
 
 typedef struct Arg Arg;
 struct Arg
 {
-	SunSrv *srv;
-	Channel *creply;
-	Channel *csync;
-	int fd;
+	SunSrv	*srv;
+	Channel	*creply;
+	Channel	*csync;
+	int 	fd;
 };
 
 enum
 {
 	UdpMaxRead = 65536+Udphdrsize
 };
+
 static void
 sunUdpRead(void *v)
 {
@@ -87,7 +88,6 @@ sunSrvUdp(SunSrv *srv, char *address)
 		close(acfd);
 		return -1;
 	}
-	write(acfd, "oldheaders", 10);
 	snprint(data, sizeof data, "%s/data", adir);
 	if((fd = open(data, ORDWR)) < 0){
 		werrstr("open %s: %r", data);
@@ -100,7 +100,7 @@ sunSrvUdp(SunSrv *srv, char *address)
 	arg->fd = fd;
 	arg->srv = srv;
 	arg->creply = chancreate(sizeof(SunMsg*), 10);
-	arg->csync = chancreate(sizeof(void*), 10);
+	arg->csync =  chancreate(sizeof(void*), 10);
 
 	proccreate(sunUdpRead, arg, SunStackSize);
 	proccreate(sunUdpWrite, arg, SunStackSize);
