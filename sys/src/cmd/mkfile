@@ -7,9 +7,9 @@ PROGS=${TARG:%=$O.%}
 LDFLAGS=
 YFLAGS=-d
 
-NOTSYS=sml|dup
-BUGGERED=gc|lmlvideo|dwb|unix|perl|celp|mosml|ovac|vfs|aviation|_vnc|postscript|nventi|cvsold|cvs
-OUTOFDATE=old|ssls
+NOTSYS=sml|dup|.+\..+
+BUGGERED=unix|postscript
+OUTOFDATE=old
 
 NOMK=$NOTSYS|$BUGGERED|$OUTOFDATE
 

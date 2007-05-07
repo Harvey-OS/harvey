@@ -397,7 +397,7 @@
 386/bin/sam - 775 sys sys 1168633586 159364
 386/bin/scat - 775 sys sys 1176520494 284766
 386/bin/scp - 775 sys sys 1176520495 152584
-386/bin/scuzz - 775 sys sys 1177730506 115274
+386/bin/scuzz - 775 sys sys 1178422014 115094
 386/bin/sed - 775 sys sys 1168402348 89763
 386/bin/seq - 775 sys sys 1162241047 38441
 386/bin/sha1sum - 775 sys sys 1168402348 61366
@@ -7629,7 +7629,7 @@ sys/man/3/ether - 664 sys sys 984709635 2563
 sys/man/3/floppy - 664 sys sys 954378905 881
 sys/man/3/fs - 664 sys sys 1175145095 3147
 sys/man/3/i82365 - 664 sys sys 954378906 884
-sys/man/3/ip - 664 sys sys 1176959517 24540
+sys/man/3/ip - 664 sys sys 1178484285 24566
 sys/man/3/kbmap - 664 sys sys 1131110122 1732
 sys/man/3/kprof - 664 sys sys 1018029972 1377
 sys/man/3/loopback - 664 sys sys 964662153 1995
@@ -9350,7 +9350,7 @@ sys/src/cmd/9nfs/dat.h - 664 sys sys 1146061147 4432
 sys/src/cmd/9nfs/fns.h - 664 sys sys 1146061148 1927
 sys/src/cmd/9nfs/listalloc.c - 664 sys sys 1131657407 297
 sys/src/cmd/9nfs/mkfile - 664 sys sys 1071498518 640
-sys/src/cmd/9nfs/mport.c - 664 sys sys 1050715069 3779
+sys/src/cmd/9nfs/mport.c - 664 sys sys 1178482676 3749
 sys/src/cmd/9nfs/nametest.c - 664 sys sys 1015090372 1723
 sys/src/cmd/9nfs/nfs.c - 664 sys sys 1131293679 9526
 sys/src/cmd/9nfs/nfs.h - 664 sys sys 1015090372 642
@@ -9360,7 +9360,7 @@ sys/src/cmd/9nfs/pcnfsd.c - 664 sys sys 1146061148 4068
 sys/src/cmd/9nfs/portmapper.c - 664 sys sys 1146061148 3273
 sys/src/cmd/9nfs/rpc.c - 664 sys sys 1017337815 5293
 sys/src/cmd/9nfs/rpc.h - 664 sys sys 1017337815 1996
-sys/src/cmd/9nfs/server.c - 664 sys sys 1146061148 11275
+sys/src/cmd/9nfs/server.c - 664 sys sys 1178482676 11229
 sys/src/cmd/9nfs/string.c - 664 sys sys 1017337815 1659
 sys/src/cmd/9nfs/strparse.c - 664 sys sys 1015090373 506
 sys/src/cmd/9nfs/system.c - 664 sys sys 1017337815 437
@@ -9754,7 +9754,7 @@ sys/src/cmd/aux/reboot.c - 664 sys sys 1162419091 1533
 sys/src/cmd/aux/searchfs.c - 664 sys sys 1143759348 18163
 sys/src/cmd/aux/statusbar.c - 664 sys sys 1138460096 6066
 sys/src/cmd/aux/stub.c - 664 sys sys 1098196222 2723
-sys/src/cmd/aux/timesync.c - 664 sys sys 1176356334 25852
+sys/src/cmd/aux/timesync.c - 664 sys sys 1178482886 25828
 sys/src/cmd/aux/trampoline.c - 664 sys sys 1126104850 3790
 sys/src/cmd/aux/typepasswd.c - 664 sys sys 1143759348 1749
 sys/src/cmd/aux/unlock - 664 sys sys 944960793 0
@@ -12445,12 +12445,12 @@ sys/src/cmd/iostats/statfs.h - 664 sys sys 1140099908 2626
 sys/src/cmd/iostats/statsrv.c - 664 sys sys 1166824341 10773
 sys/src/cmd/ip - 20000000775 sys sys 1128605981 0
 sys/src/cmd/ip/arp.h - 664 sys sys 944961005 751
-sys/src/cmd/ip/dhcp.h - 664 sys sys 1177099797 3420
-sys/src/cmd/ip/dhcpclient.c - 664 sys sys 1050714660 11978
+sys/src/cmd/ip/dhcp.h - 664 sys sys 1178483074 3419
+sys/src/cmd/ip/dhcpclient.c - 664 sys sys 1178482836 11969
 sys/src/cmd/ip/dhcpd - 20000000775 sys sys 1063897571 0
 sys/src/cmd/ip/dhcpd/dat.h - 664 sys sys 1084471353 2522
 sys/src/cmd/ip/dhcpd/db.c - 664 sys sys 1143670612 7466
-sys/src/cmd/ip/dhcpd/dhcpd.c - 664 sys sys 1172959216 33339
+sys/src/cmd/ip/dhcpd/dhcpd.c - 664 sys sys 1178482946 33301
 sys/src/cmd/ip/dhcpd/dhcpleases.c - 664 sys sys 1032655001 779
 sys/src/cmd/ip/dhcpd/mkfile - 664 sys sys 1169162185 443
 sys/src/cmd/ip/dhcpd/ndb.c - 664 sys sys 1172959226 6235
@@ -12516,7 +12516,7 @@ sys/src/cmd/ip/imap4d/utils.c - 664 sys sys 1168894057 2587
 sys/src/cmd/ip/ipconfig - 20000000775 sys sys 1176933436 0
 sys/src/cmd/ip/ipconfig/ipconfig.h - 664 sys sys 1178051838 5666
 sys/src/cmd/ip/ipconfig/ipv6.c - 664 sys sys 1178051839 19588
-sys/src/cmd/ip/ipconfig/main.c - 664 sys sys 1178051838 37982
+sys/src/cmd/ip/ipconfig/main.c - 664 sys sys 1178483060 37952
 sys/src/cmd/ip/ipconfig/mkfile - 664 sys sys 1177092388 236
 sys/src/cmd/ip/ipconfig/ppp.c - 664 sys sys 1177092388 1128
 sys/src/cmd/ip/linklocal.c - 664 sys sys 1177099730 867
@@ -12544,7 +12544,7 @@ sys/src/cmd/ip/pptp.c - 664 sys sys 1143759344 16573
 sys/src/cmd/ip/pptpd.c - 664 sys sys 1135487970 23548
 sys/src/cmd/ip/rarpd.c - 664 sys sys 1084470989 3389
 sys/src/cmd/ip/rexexec.c - 664 sys sys 1121977160 742
-sys/src/cmd/ip/rip.c - 664 sys sys 1143759344 12432
+sys/src/cmd/ip/rip.c - 664 sys sys 1178482790 12383
 sys/src/cmd/ip/rlogind.c - 664 sys sys 1121977161 757
 sys/src/cmd/ip/snoopy - 20000000775 sys sys 1144955676 0
 sys/src/cmd/ip/snoopy/arp.c - 664 sys sys 1128179536 1914
@@ -12590,7 +12590,7 @@ sys/src/cmd/ip/telnet.h - 664 sys sys 1015090250 5902
 sys/src/cmd/ip/telnetd.c - 664 sys sys 1135487948 11772
 sys/src/cmd/ip/tftpd.c - 664 sys sys 1106943821 7646
 sys/src/cmd/ip/traceroute.c - 664 sys sys 1169162086 8637
-sys/src/cmd/ip/udpecho.c - 664 sys sys 1050714674 855
+sys/src/cmd/ip/udpecho.c - 664 sys sys 1178483004 789
 sys/src/cmd/join.c - 664 sys sys 1158251357 7550
 sys/src/cmd/jpg - 20000000775 sys sys 1132458749 0
 sys/src/cmd/jpg/bmp.c - 664 sys sys 1108852826 4222
@@ -12781,7 +12781,7 @@ sys/src/cmd/mk/var.c - 664 sys sys 1131289510 530
 sys/src/cmd/mk/varsub.c - 664 sys sys 1174930010 4297
 sys/src/cmd/mk/word.c - 664 sys sys 1174930010 2709
 sys/src/cmd/mkdir.c - 664 sys sys 1082593106 1026
-sys/src/cmd/mkfile - 664 sys sys 1176520958 2674
+sys/src/cmd/mkfile - 664 sys sys 1178487482 2603
 sys/src/cmd/mklib - 664 sys sys 1101213349 618
 sys/src/cmd/mkmany - 664 sys sys 1123818681 1304
 sys/src/cmd/mkone - 664 sys sys 1123943673 910
@@ -15727,7 +15727,7 @@ sys/src/libsunrpc/prog.c - 664 sys sys 1046367120 1704
 sys/src/libsunrpc/rpc.c - 664 sys sys 1045589225 9235
 sys/src/libsunrpc/server.c - 664 sys sys 1048645438 5237
 sys/src/libsunrpc/suncall.c - 664 sys sys 1046367121 257
-sys/src/libsunrpc/udp.c - 664 sys sys 1050717777 2193
+sys/src/libsunrpc/udp.c - 664 sys sys 1178482539 2164
 sys/src/libthread - 20000000775 sys sys 1127405454 0
 sys/src/libthread/386.c - 664 sys sys 1014928156 448
 sys/src/libthread/alpha.c - 664 sys sys 1014928156 664
@@ -15813,4 +15813,16 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/scuzz - 775 sys sys 1178422014 115094
+386/bin/aux/nfsserver - 775 sys sys 1178508497 185834
+386/bin/aux/pcnfsd - 775 sys sys 1178508497 129734
+386/bin/aux/portmapper - 775 sys sys 1178508497 128815
+386/bin/aux/timesync - 775 sys sys 1178508498 128678
+386/bin/ip/dhcpclient - 775 sys sys 1178508498 94390
+386/bin/ip/dhcpd - 775 sys sys 1178508499 151191
+386/bin/ip/ipconfig - 775 sys sys 1178508499 158686
+386/bin/ip/rip - 775 sys sys 1178508500 91306
+386/bin/ip/udpecho - 775 sys sys 1178508500 43095
+386/lib/libsunrpc.a - 664 sys sys 1178508502 353148
+sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1178508075 3140
+sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1178508075 30139
+sys/src/cmd/ndb/dnudpserver.c - 664 sys sys 1178508075 5166

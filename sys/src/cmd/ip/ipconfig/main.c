@@ -1024,7 +1024,7 @@ dhcpsend(int type)
 	uchar *p;
 	int n;
 	uchar vendor[64];
-	OUdphdr *up = (OUdphdr*)bp.udphdr;
+	Udphdr *up = (Udphdr*)bp.udphdr;
 
 	memset(&bp, 0, sizeof bp);
 
@@ -1290,12 +1290,11 @@ openlisten(void)
 
 	if(fprint(cfd, "headers") < 0)
 		sysfatal("can't set header mode: %r");
-	fprint(cfd, "oldheaders");
 
 	sprint(data, "%s/data", devdir);
 	fd = open(data, ORDWR);
 	if(fd < 0)
-		sysfatal("open udp data: %r");
+		sysfatal("open %s: %r", data);
 	close(cfd);
 	return fd;
 }

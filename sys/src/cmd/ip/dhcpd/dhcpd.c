@@ -14,7 +14,7 @@ struct Req
 {
 	int	fd;			/* for reply */
 	Bootp	*bp;
-	OUdphdr	*up;
+	Udphdr	*up;
 	uchar	*e;			/* end of received message */
 	uchar	*p;			/* options pointer */
 	uchar	*max;			/* max end of reply */
@@ -299,7 +299,7 @@ main(int argc, char **argv)
 		memset(&r, 0, sizeof(r));
 		r.fd = fd;
 		n = readlast(r.fd, r.buf, sizeof(r.buf));
-		if(n < OUdphdrsize)
+		if(n < Udphdrsize)
 			fatal(1, "error reading requests");
 		start = nsec()/1000;
 		op = optbuf;
@@ -320,8 +320,8 @@ proto(Req *rp, int n)
 
 	rp->e = rp->buf + n;
 	rp->bp = (Bootp*)rp->buf;
-	rp->up = (OUdphdr*)rp->buf;
-	rp->max = rp->buf + OUdphdrsize + MINSUPPORTED - IPUDPHDRSIZE;
+	rp->up = (Udphdr*)rp->buf;
+	rp->max = rp->buf + Udphdrsize + MINSUPPORTED - IPUDPHDRSIZE;
 	rp->p = rp->bp->optdata;
 	v4tov6(rp->giaddr, rp->bp->giaddr);
 	v4tov6(rp->ciaddr, rp->bp->ciaddr);
@@ -708,7 +708,7 @@ sendoffer(Req *rp, uchar *ip, int offer)
 	int n;
 	ushort flags;
 	Bootp *bp;
-	OUdphdr *up;
+	Udphdr *up;
 
 	bp = rp->bp;
 	up = rp->up;
@@ -768,7 +768,7 @@ sendack(Req *rp, uchar *ip, int offer, int sendlease)
 	int n;
 	ushort flags;
 	Bootp *bp;
-	OUdphdr *up;
+	Udphdr *up;
 
 	bp = rp->bp;
 	up = rp->up;
@@ -828,7 +828,7 @@ sendnak(Req *rp, char *msg)
 {
 	int n;
 	Bootp *bp;
-	OUdphdr *up;
+	Udphdr *up;
 
 	bp = rp->bp;
 	up = rp->up;
@@ -881,7 +881,7 @@ bootp(Req *rp)
 {
 	int n;
 	Bootp *bp;
-	OUdphdr *up;
+	Udphdr *up;
 	ushort flags;
 	Iplifc *lifc;
 	Info *iip;
@@ -1067,7 +1067,7 @@ parseoptions(Req *rp)
 		case ODmaxmsg:
 			c = nhgets(o);
 			c -= 28;
-			c += OUdphdrsize;
+			c += Udphdrsize;
 			if(c > 0)
 				rp->max = rp->buf + c;
 			break;
@@ -1274,10 +1274,8 @@ openlisten(char *net)
 		fatal(1, "can't announce");
 	if(fprint(cfd, "headers") < 0)
 		fatal(1, "can't set header mode");
-	fprint(cfd, "oldheaders");
 
 	sprint(data, "%s/data", devdir);
-
 	fd = open(data, ORDWR);
 	if(fd < 0)
 		fatal(1, "open udp data");
