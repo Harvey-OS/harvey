@@ -23,6 +23,17 @@ erealloc(void *v, ulong sz)
 	return v;
 }
 
+char*
+estrdup(char* s)
+{
+	char *r;
+
+	r = strdup(s);
+	if(r == nil)
+		sysfatal("strdup fails\n");
+	return r;
+}
+
 typedef struct Block Block;
 typedef struct Data Data;
 struct Block {
@@ -30,6 +41,8 @@ struct Block {
 	ulong size;
 	ulong w0;
 	ulong w1;
+	char *s0;
+	char *s1;
 	int mark;
 	int free;
 	Data *d;
@@ -202,6 +215,13 @@ main(int argc, char **argv)
 			block[nblock].size = strtoul(f[2], nil, 0);
 			block[nblock].w0 = strtoul(f[3], nil, 0);
 			block[nblock].w1 = strtoul(f[4], nil, 0);
+			if (nf >= 7) {
+				block[nblock].s0 = estrdup(f[5]);
+				block[nblock].s1 = estrdup(f[6]);
+			} else {
+				block[nblock].s0 = "";
+				block[nblock].s1 = "";
+			}
 			block[nblock].mark = 0;
 			block[nblock].d = 0;
 			block[nblock].free = strcmp(f[0], "free") == 0;
@@ -296,7 +316,7 @@ main(int argc, char **argv)
 		eb = block+nblock;
 		for(b=block; b<eb; b++)
 			if(b->mark == 0 && !b->free)
-				Bprint(&bio, "block 0x%.8lux 0x%.8lux 0x%.8lux 0x%.8lux\n", b->addr, b->size, b->w0, b->w1);
+				Bprint(&bio, "block 0x%.8lux 0x%.8lux 0x%.8lux 0x%.8lux %s %s\n", b->addr, b->size, b->w0, b->w1, b->s0, b->s1);
 	}
 	Bterm(&bio);
 }

@@ -143,7 +143,7 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 	ep = &ether->f[Ntypes];
 
 	multi = pkt->d[0] & 1;
-	/* check for valid multcast addresses */
+	/* check for valid multicast addresses */
 	if(multi && memcmp(pkt->d, ether->bcast, sizeof(pkt->d)) && ether->prom == 0){
 		if(!activemulti(ether, pkt->d, sizeof(pkt->d))){
 			if(fromwire){
