@@ -168,6 +168,16 @@ to be connected to the local Ethernet.
 .BI remove\  "local mask"
 Remove a local IP address from an interface.
 .TP
+.BI addmulti\  addr
+Treat the multicast
+.I addr
+on this interface as a local address.
+.TP
+.BI remmulti\  addr
+Remove the multicast address
+.I addr
+from this interface.
+.TP
 .BI mtu\  n
 Set the maximum transfer unit for this device to
 .IR n .
@@ -185,15 +195,29 @@ is missing or non-zero) or disallow
 is 0) forwarding packets between this interface and
 others.
 .TP
-.BI addmulti\  addr
-Treat the multicast
-.I addr
-on this interface as a local address.
+.B bridge
+Enable bridging (see
+.IR bridge (3)).
 .TP
-.BI remmulti\  addr
-Remove the multicast address
-.I addr
-from this interface.
+.B promiscuous
+Set the interface into promiscuous mode,
+which makes it accept all incoming packets,
+whether addressed to it or not.
+.TP
+.BI "connect " type
+marks the Ethernet packet
+.I type
+as being in use, if not already in use
+on this interface.
+A
+.I type
+of -1 means `all' but appears to be a no-op.
+.TP
+.B scanbs
+Make the wireless interface scan for base stations.
+.TP
+.B headersonly
+Set the interface to pass only packet headers, not data too.
 .TP
 .BI "add6 " "v6addr pfx-len [onlink auto validlt preflt]"
 Add the local IPv6 address
@@ -949,7 +973,7 @@ monitoring.
 .PP
 Reading
 .B /net/ipifc/stats
-returns a list of 19 tagged and new line separated fields representing:
+returns a list of 19 tagged and newline-separated fields representing:
 .EX
 .ft 1
 .2C
@@ -981,7 +1005,7 @@ fragments created
 .PP
 Reading
 .B /net/icmp/stats
-returns a list of 25 tagged and new line separated fields representing:
+returns a list of 25 tagged and newline-separated fields representing:
 .EX
 .ft 1
 .2C
@@ -1018,7 +1042,7 @@ address mask replies sent
 .PP
 Reading
 .B /net/tcp/stats
-returns a list of 11 tagged and new line separated fields representing:
+returns a list of 11 tagged and newline-separated fields representing:
 .EX
 .ft 1
 .2C
@@ -1040,7 +1064,7 @@ transmission failures
 .PP
 Reading
 .B /net/udp/stats
-returns a list of 4 tagged and new line separated fields representing:
+returns a list of 4 tagged and newline-separated fields representing:
 .EX
 .ft 1
 .2C
@@ -1055,7 +1079,7 @@ datagrams sent
 .PP
 Reading
 .B /net/il/stats
-returns a list of 7 tagged and new line separated fields representing:
+returns a list of 7 tagged and newline-separated fields representing:
 .EX
 .ft 1
 .2C
