@@ -3,27 +3,42 @@
 ether \- Ethernet device
 .SH SYNOPSIS
 .nf
-.B bind -a #l /net
+.B bind -a #l\fIn\fP /net
 
 .BI /net/ether n /clone
+.BI /net/ether n /addr
+.BI /net/ether n /ifstats
+.BI /net/ether n /stats
 .BI /net/ether n /[0-7]
 .BI /net/ether n /[0-7]/data
 .BI /net/ether n /[0-7]/ctl
 .BI /net/ether n /[0-7]/ifstats
 .BI /net/ether n /[0-7]/stats
 .BI /net/ether n /[0-7]/type
-
 .fi
 .SH DESCRIPTION
 The Ethernet interface,
 .BI /net/ether n\f1,
 is a directory
 containing subdirectories, one for each distinct Ethernet packet type,
-and a
-.B clone
-file.
+and
+.BR clone ,
+.BR addr ,
+.BR ifstats ,
+and
+.B stats
+files.
+.B stats
+and
+.B ifstats
+are the same as in the subdirectories (see below).
+Reading
+.B addr
+returns the MAC address of this interface in hex with no punctuation
+and no trailing newline.
 The number
 .I n
+(optional in the bind)
 is the device number of the card, permitting multiple cards to be used on a single machine.
 .PP
 Each directory contains files to control the associated connection,

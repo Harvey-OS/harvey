@@ -187,7 +187,7 @@ to a 6-byte Ethernet address starting at
 .IR eaddr .
 .I Myetheraddr
 reads the Ethernet address string from file
-.IB dev /1/stats
+.IB dev /addr
 and parses it into
 .IR eaddr .
 Both routines return a negative number on errors.
