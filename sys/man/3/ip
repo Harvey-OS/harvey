@@ -686,7 +686,7 @@ However, many-to-one semantics is also possible.
 .PP
 If, after an
 .BR announce ,
-one of the following messages is written to
+the following message is written to
 .BR ctl ,
 then all messages sent to the announced port
 are received on the announced connection prefixed
@@ -706,21 +706,6 @@ struct Udphdr
 	uchar	lport[2];	/* local port */
 };
 .EE
-.TP
-.B oldheaders
-.EX
-typedef struct OUdphdr OUdphdr;
-struct OUdphdr
-{
-	uchar	raddr[16];	/* V6 remote address and port */
-	uchar	laddr[16];	/* V6 local address and port */
-	uchar	rport[2];	/* remote port */
-	uchar	lport[2];	/* local port */
-};
-.EE
-.PP
-.L oldheaders
-is now seriously obsolete and will vanish soon.
 .PP
 Before a write, a user must prefix a similar structure to each message.
 The system overrides the user specified local port with the announced
