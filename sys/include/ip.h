@@ -63,24 +63,6 @@ struct Ipifc
 };
 
 /*
- *  user level udp headers with control message "oldheaders".
- *  this is now considered obsolete.
- */
-enum 
-{
-	OUdphdrsize=	36,	/* size of a OUdphdr */
-};
-
-typedef struct OUdphdr OUdphdr;
-struct OUdphdr
-{
-	uchar	raddr[IPaddrlen];	/* V6 remote address */
-	uchar	laddr[IPaddrlen];	/* V6 local address */
-	uchar	rport[2];		/* remote port */
-	uchar	lport[2];		/* local port */
-};
-
-/*
  *  user level udp headers with control message "headers"
  */
 enum 
