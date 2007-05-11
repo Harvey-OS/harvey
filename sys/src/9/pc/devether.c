@@ -4,6 +4,7 @@
 #include "dat.h"
 #include "fns.h"
 #include "io.h"
+#include "pool.h"
 #include "ureg.h"
 #include "../port/error.h"
 #include "../port/netif.h"
@@ -262,7 +263,7 @@ etherwrite(Chan* chan, void* buf, long n, vlong)
 		free(cb);
 		if(ether->ctl!=nil)
 			return ether->ctl(ether,buf,n);
-			
+
 		error(Ebadctl);
 	}
 
@@ -358,7 +359,8 @@ parseether(uchar *to, char *from)
 static Ether*
 etherprobe(int cardno, int ctlrno)
 {
-	int i;
+	int i, lg;
+	ulong mb, bsz;
 	Ether *ether;
 	char buf[128], name[32];
 
@@ -425,20 +427,25 @@ etherprobe(int cardno, int ctlrno)
 	sprint(buf+i, "\n");
 	print(buf);
 
-	if(ether->mbps >= 1000){
-		netifinit(ether, name, Ntypes, 512*1024);
-		if(ether->oq == 0)
-			ether->oq = qopen(512*1024, Qmsg, 0, 0);
-	}else if(ether->mbps >= 100){
-		netifinit(ether, name, Ntypes, 256*1024);
-		if(ether->oq == 0)
-			ether->oq = qopen(256*1024, Qmsg, 0, 0);
-	}else{
-		netifinit(ether, name, Ntypes, 128*1024);
-		if(ether->oq == 0)
-			ether->oq = qopen(128*1024, Qmsg, 0, 0);
+	/* compute log10(ether->mbps) into lg */
+	for(lg = 0, mb = ether->mbps; mb >= 10; lg++)
+		mb /= 10;
+	if (lg > 0)
+		lg--;
+	if (lg > 14)			/* 2^(14+17) = 2⁳ⁱ */
+		lg = 14;
+	/* allocate larger output queues for higher-speed interfaces */
+	bsz = 1UL << (lg + 17);		/* 2ⁱ⁷ = 128K, bsz = 2ⁿ × 128K */
+	while (bsz > mainmem->maxsize && bsz >= 128*1024)
+		bsz /= 2;
+
+	netifinit(ether, name, Ntypes, bsz);
+	while (ether->oq == nil && bsz >= 128*1024) {
+		bsz /= 2;
+		ether->oq = qopen(bsz, Qmsg, 0, 0);
+		ether->limit = bsz;
 	}
-	if(ether->oq == 0)
+	if(ether->oq == nil)
 		panic("etherreset %s", name);
 	ether->alen = Eaddrlen;
 	memmove(ether->addr, ether->ea, Eaddrlen);

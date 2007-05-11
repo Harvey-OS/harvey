@@ -217,7 +217,7 @@ udpkick(void *x, Block *bp)
 		rport = nhgets(bp->rp);
 		bp->rp += 2+2;			/* Ignore local port */
 		break;
-	case 6:
+	case 6:					/* OBS */
 		/* get user specified addresses */
 		bp = pullupblock(bp, UDP_USEAD6);
 		if(bp == nil)
@@ -244,9 +244,9 @@ udpkick(void *x, Block *bp)
 		else
 			version = 6;
 	} else {
-		if( (memcmp(c->raddr, v4prefix, IPv4off) == 0 &&
-			memcmp(c->laddr, v4prefix, IPv4off) == 0)
-			|| ipcmp(c->raddr, IPnoaddr) == 0)
+		if((memcmp(c->raddr, v4prefix, IPv4off) == 0 &&
+		    memcmp(c->laddr, v4prefix, IPv4off) == 0) ||
+		    ipcmp(c->raddr, IPnoaddr) == 0)
 			version = 4;
 		else
 			version = 6;
@@ -507,7 +507,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 		hnputs(p, rport); p += 2;
 		hnputs(p, lport);
 		break;
-	case 6:
+	case 6:					/* OBS */
 		/* pass the src address */
 		bp = padblock(bp, UDP_USEAD6);
 		p = bp->rp;
@@ -541,11 +541,15 @@ udpctl(Conv *c, char **f, int n)
 
 	ucb = (Udpcb*)c->ptcl;
 	if(n == 1){
-		if(strcmp(f[0], "oldheaders") == 0){
+		if(strcmp(f[0], "oldheaders") == 0){	/* OBS */
 			ucb->headers = 6;
+			if (up)
+				print("program %s wrote `oldheaders' to udp "
+					"ctl file; fix or recompile it\n",
+					up->text);
 			return nil;
 		} else if(strcmp(f[0], "headers") == 0){
-			ucb->headers = 7;
+			ucb->headers = 7;	/* new headers format */
 			return nil;
 		}
 	}

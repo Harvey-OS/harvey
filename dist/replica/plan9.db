@@ -53,7 +53,7 @@
 386/bin/auth/debug - 775 sys sys 1168402268 101566
 386/bin/auth/disable - 775 sys sys 1020319057 146
 386/bin/auth/enable - 775 sys sys 1020319057 134
-386/bin/auth/factotum - 775 sys sys 1178568247 321180
+386/bin/auth/factotum - 775 sys sys 1178853707 321175
 386/bin/auth/fgui - 775 sys sys 1176520475 218973
 386/bin/auth/guard.srv - 775 sys sys 1178568248 143650
 386/bin/auth/iam - 775 sys sys 1085076981 50791
@@ -305,7 +305,7 @@
 386/bin/ip/ipconfig - 775 sys sys 1178654264 156933
 386/bin/ip/linklocal - 775 sys sys 1177530964 42790
 386/bin/ip/ping - 775 sys sys 1178568288 83220
-386/bin/ip/ppp - 775 sys sys 1178568289 218961
+386/bin/ip/ppp - 775 sys sys 1178826954 218964
 386/bin/ip/pppoe - 775 sys sys 1168402326 77787
 386/bin/ip/pptp - 775 sys sys 1169612026 127215
 386/bin/ip/pptpd - 775 sys sys 1178568289 124670
@@ -440,7 +440,7 @@
 386/bin/tprof - 775 sys sys 1172203056 297762
 386/bin/tr - 775 sys sys 1168402355 62088
 386/bin/trace - 775 sys sys 1178568308 180414
-386/bin/troff - 775 sys sys 1176520503 360243
+386/bin/troff - 775 sys sys 1178853709 361158
 386/bin/troff2html - 775 sys sys 1178568308 84524
 386/bin/tweak - 775 sys sys 1168402356 193256
 386/bin/unicode - 775 sys sys 1168402356 62747
@@ -482,7 +482,7 @@
 386/bin/usb - 20000000775 sys sys 1019538890 0
 386/bin/usb/usbaudio - 775 sys sys 1178568318 188012
 386/bin/usb/usbd - 775 sys sys 1176520513 130769
-386/bin/usb/usbmouse - 775 sys sys 1176520514 109605
+386/bin/usb/usbmouse - 775 sys sys 1178853709 109673
 386/bin/usb/usbprinter - 775 sys sys 1089408719 222
 386/bin/vac - 775 sys sys 1178568318 169885
 386/bin/vacfs - 775 sys sys 1178568319 174693
@@ -561,19 +561,19 @@
 386/lib/libgeometry.a - 664 sys sys 1168402366 50470
 386/lib/libhtml.a - 664 sys sys 1176432132 229152
 386/lib/libhttpd.a - 664 sys sys 1177283321 99734
-386/lib/libip.a - 664 sys sys 1178654265 34710
+386/lib/libip.a - 664 sys sys 1178826954 34710
 386/lib/libl.a - 664 sys sys 1168402367 5372
 386/lib/libmach.a - 664 sys sys 1173410637 785440
 386/lib/libmemdraw.a - 664 sys sys 1168402369 284092
 386/lib/libmemlayer.a - 664 sys sys 1168402369 47360
 386/lib/libmp.a - 664 sys sys 1176520528 79978
-386/lib/libndb.a - 664 sys sys 1176520529 64470
+386/lib/libndb.a - 664 sys sys 1178826955 64470
 386/lib/libplumb.a - 664 sys sys 1168402370 19408
 386/lib/libregexp.a - 664 sys sys 1168402370 37438
 386/lib/libscribble.a - 664 sys sys 1175972562 107238
 386/lib/libsec.a - 664 sys sys 1176520530 646724
 386/lib/libstdio.a - 664 sys sys 1176432133 126062
-386/lib/libsunrpc.a - 664 sys sys 1178508502 353148
+386/lib/libsunrpc.a - 664 sys sys 1178826956 353148
 386/lib/libthread.a - 664 sys sys 1176432134 71932
 386/lib/libventi.a - 664 sys sys 1168402374 97858
 386/mbr - 775 sys sys 1131317338 407
@@ -6068,7 +6068,7 @@ sys/include/frame.h - 664 sys sys 1147706379 2682
 sys/include/geometry.h - 664 sys sys 1014929063 2632
 sys/include/html.h - 664 sys sys 1128662123 15232
 sys/include/httpd.h - 664 sys sys 1177187803 5794
-sys/include/ip.h - 664 sys sys 1176499323 2978
+sys/include/ip.h - 664 sys sys 1178768502 2597
 sys/include/keyboard.h - 664 sys sys 1131637696 865
 sys/include/libc.h - 664 sys sys 1168306860 19851
 sys/include/libsec.h - 664 sys sys 1124709121 9345
@@ -7630,7 +7630,7 @@ sys/man/3/ether - 664 sys sys 1178597986 2890
 sys/man/3/floppy - 664 sys sys 954378905 881
 sys/man/3/fs - 664 sys sys 1175145095 3147
 sys/man/3/i82365 - 664 sys sys 954378906 884
-sys/man/3/ip - 664 sys sys 1178575371 25066
+sys/man/3/ip - 664 sys sys 1178768702 24744
 sys/man/3/kbmap - 664 sys sys 1131110122 1732
 sys/man/3/kprof - 664 sys sys 1018029972 1377
 sys/man/3/loopback - 664 sys sys 964662153 1995
@@ -7972,7 +7972,7 @@ sys/src/9/ip/ptclbsum.c - 664 sys sys 1022588099 1243
 sys/src/9/ip/rudp.c - 664 sys sys 1055700790 21415
 sys/src/9/ip/tcp.c - 664 sys sys 1170031827 65877
 sys/src/9/ip/tripmedium.c - 664 sys sys 1045063515 7136
-sys/src/9/ip/udp.c - 664 sys sys 1178057621 13132
+sys/src/9/ip/udp.c - 664 sys sys 1178817924 13317
 sys/src/9/mkfile - 664 sys sys 1063857477 205
 sys/src/9/mtx - 20000000775 sys sys 1123676466 0
 sys/src/9/mtx/clock.c - 664 sys sys 1032053278 1293
@@ -8003,6 +8003,7 @@ sys/src/9/mtx/trap.c - 664 sys sys 1105030157 15882
 sys/src/9/mtx/uarti8250.c - 664 sys sys 1018721288 11590
 sys/src/9/pc - 20000000775 sys sys 1161233143 0
 sys/src/9/pc/a100p.cp - 444 sys sys 1159735144 21984
+sys/src/9/pc/ahci.h - 664 sys sys 1178833481 6297
 sys/src/9/pc/apbootstrap.s - 664 sys sys 1131293655 3037
 sys/src/9/pc/apic.c - 664 sys sys 1174415344 8991
 sys/src/9/pc/apm.c - 664 sys sys 1131290210 3723
@@ -8013,7 +8014,7 @@ sys/src/9/pc/bios32.c - 664 sys sys 1173287378 3029
 sys/src/9/pc/cga.c - 664 sys sys 1015014513 1843
 sys/src/9/pc/dat.h - 664 sys sys 1173289271 6917
 sys/src/9/pc/devarch.c - 664 sys sys 1168315311 19342
-sys/src/9/pc/devether.c - 664 sys sys 1178548254 10316
+sys/src/9/pc/devether.c - 664 sys sys 1178823613 10489
 sys/src/9/pc/devfloppy.c - 664 sys sys 1142958305 20139
 sys/src/9/pc/devi82365.c - 664 sys sys 1146318335 20504
 sys/src/9/pc/devlm78.c - 664 sys sys 1128255048 6291
@@ -8098,6 +8099,7 @@ sys/src/9/pc/screen.c - 664 sys sys 1136336092 13971
 sys/src/9/pc/screen.h - 664 sys sys 1147023549 4256
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1170456695 55276
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
+sys/src/9/pc/sd63xxesb.c - 664 sys sys 1178836359 35774
 sys/src/9/pc/sdata.c - 664 sys sys 1175564140 52809
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1177393607 33810
 sys/src/9/pc/sdmylex.c - 664 sys sys 1171321627 28237
@@ -8196,14 +8198,14 @@ sys/src/9/port/mkrootall - 775 sys sys 1055954696 386
 sys/src/9/port/mkrootc - 775 sys sys 1055954695 717
 sys/src/9/port/mksystab - 664 sys sys 1014931176 783
 sys/src/9/port/mul64fract.c - 664 sys sys 1071671674 867
-sys/src/9/port/netif.c - 664 sys sys 1170456606 13474
+sys/src/9/port/netif.c - 664 sys sys 1178831077 13474
 sys/src/9/port/netif.h - 664 sys sys 1066514947 2975
 sys/src/9/port/page.c - 664 sys sys 1131636090 11128
 sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
 sys/src/9/port/pgrp.c - 664 sys sys 1138458260 4760
 sys/src/9/port/portclock.c - 664 sys sys 1146746630 4276
 sys/src/9/port/portdat.h - 664 sys sys 1155995676 22703
-sys/src/9/port/portfns.h - 664 sys sys 1146746630 11059
+sys/src/9/port/portfns.h - 664 sys sys 1178831066 11059
 sys/src/9/port/portmkfile - 664 sys sys 1173788325 2069
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
 sys/src/9/port/proc.c - 664 sys sys 1176658321 28742
@@ -9554,7 +9556,7 @@ sys/src/cmd/auth/factotum/rpc.c - 664 sys sys 1107633794 11167
 sys/src/cmd/auth/factotum/rsa.c - 664 sys sys 1107706104 3416
 sys/src/cmd/auth/factotum/secstore.c - 664 sys sys 1140272941 14955
 sys/src/cmd/auth/factotum/sshrsa.c - 664 sys sys 1107633793 3416
-sys/src/cmd/auth/factotum/util.c - 664 sys sys 1143694878 18460
+sys/src/cmd/auth/factotum/util.c - 664 sys sys 1178832638 18451
 sys/src/cmd/auth/factotum/wep.c - 664 sys sys 1107706104 2140
 sys/src/cmd/auth/guard.srv.c - 664 sys sys 1172776773 2873
 sys/src/cmd/auth/iam.c - 664 sys sys 1015008430 841
@@ -12533,7 +12535,7 @@ sys/src/cmd/ip/ppp/dotest - 775 sys sys 944961006 152
 sys/src/cmd/ip/ppp/ipaux.c - 664 sys sys 1125529107 2328
 sys/src/cmd/ip/ppp/mkfile - 664 sys sys 1063897576 352
 sys/src/cmd/ip/ppp/mppc.c - 664 sys sys 1015090267 16624
-sys/src/cmd/ip/ppp/ppp.c - 664 sys sys 1143759338 59898
+sys/src/cmd/ip/ppp/ppp.c - 664 sys sys 1178810697 59924
 sys/src/cmd/ip/ppp/ppp.h - 664 sys sys 1091904423 8284
 sys/src/cmd/ip/ppp/testppp.c - 664 sys sys 1045505281 3011
 sys/src/cmd/ip/ppp/thw.c - 664 sys sys 1015090268 5962
@@ -13593,7 +13595,7 @@ sys/src/cmd/troff/n4.c - 664 sys sys 984718893 12310
 sys/src/cmd/troff/n5.c - 664 sys sys 944961293 14261
 sys/src/cmd/troff/n6.c - 664 sys sys 944961294 4862
 sys/src/cmd/troff/n7.c - 664 sys sys 944961294 12476
-sys/src/cmd/troff/n8.c - 664 sys sys 944961294 10197
+sys/src/cmd/troff/n8.c - 664 sys sys 1178823422 10250
 sys/src/cmd/troff/n9.c - 664 sys sys 944961294 9076
 sys/src/cmd/troff/ni.c - 664 sys sys 944961294 8492
 sys/src/cmd/troff/suftab.c - 664 sys sys 944961294 19337
@@ -14251,7 +14253,7 @@ sys/src/cmd/usb/lib/usb.h - 664 sys sys 1165044715 7066
 sys/src/cmd/usb/lib/util.c - 664 sys sys 1091204978 523
 sys/src/cmd/usb/misc - 20000000775 sys sys 1091282306 0
 sys/src/cmd/usb/misc/mkfile - 664 sys sys 1167255850 374
-sys/src/cmd/usb/misc/usbmouse.c - 664 sys sys 1163722035 3603
+sys/src/cmd/usb/misc/usbmouse.c - 664 sys sys 1178824856 3755
 sys/src/cmd/usb/misc/usbprint - 775 sys sys 1167253831 314
 sys/src/cmd/usb/misc/usbprobe - 775 sys sys 1167253836 173
 sys/src/cmd/usb/mkfile - 664 sys sys 1091327562 354

@@ -278,7 +278,7 @@ failure(Fsstate *s, char *fmt, ...)
 		snprint(e, sizeof e, fmt, arg);
 		va_end(arg);
 		strecpy(s->err, s->err+sizeof(s->err), e);
-		errstr(e, sizeof e);
+		werrstr(e);
 	}
 	flog("%d: failure %s", s->seqnum, s->err);
 	return RpcFailure;

@@ -1024,6 +1024,8 @@ dropoption(Pstate *p, Lcpopt *o)
 	unsigned n = o->type;
 
 	switch(n){
+		case Oipaddr:
+			break;
 		case Oipdns:
 			p->optmask &= ~Fipdns;
 			break;
