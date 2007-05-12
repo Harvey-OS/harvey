@@ -45,6 +45,8 @@ mips	- sys sys
 	+	- sys sys
 power	- sys sys
 	+	- sys sys
+power64	- sys sys
+	+	- sys sys
 sparc	- sys sys
 	+	- sys sys
 sparc64	- sys sys

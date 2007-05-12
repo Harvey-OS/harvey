@@ -58,6 +58,7 @@ ETHER=\
 	ether8003.$O\
 	ether8139.$O\
 	ether8169.$O\
+	ether82563.$O\
 	ether82557.$O\
 	ether83815.$O\
 	ether8390.$O\
@@ -67,6 +68,7 @@ ETHER=\
 	etherigbe.$O\
 	ethermii.$O\
 	etherrhine.$O\
+	etherdp83820.$O\
 
 BCOM=\
 	bcom.$O\

@@ -14,6 +14,7 @@ extern int ether2114xreset(Ether*);
 extern int elnk3reset(Ether*);
 extern int i82557reset(Ether*);
 extern int igbepnp(Ether *);
+extern int i82563pnp(Ether *);
 extern int elnk3reset(Ether*);
 extern int ether589reset(Ether*);
 extern int ne2000reset(Ether*);
@@ -25,7 +26,7 @@ extern int rtl8169pnp(Ether*);
 extern int ether83815reset(Ether*);
 extern int rhinepnp(Ether*);
 extern int ga620pnp(Ether*);
-//extern int dp83820pnp(Ether*);
+extern int dp83820pnp(Ether*);
 
 struct {
 	char	*type;
@@ -36,6 +37,7 @@ struct {
 	{ "2114x", ether2114xreset, 0, },
 	{ "i82557", i82557reset, 0, },
 	{ "igbe",  igbepnp, 0, },
+	{ "i82563",i82563pnp, 0, },
 	{ "elnk3", elnk3reset, 0, },
 	{ "3C509", elnk3reset, 0, },
 	{ "3C575", elnk3reset, 0, },
@@ -51,8 +53,8 @@ struct {
 	{ "83815", ether83815reset, 0, },
 	{ "rhine", rhinepnp, 0, },
 	{ "GA620", ga620pnp, 0, },
-//	{ "83820",   dp83820pnp, 0, },
-//	{ "dp83820", dp83820pnp, 0, },
+	{ "83820",   dp83820pnp, 0, },
+	{ "dp83820", dp83820pnp, 0, },
 
 	{ 0, }
 };

@@ -4,7 +4,8 @@
 #include <mach.h>
 
 /*
- * PowerPC-specific debugger interface
+ * PowerPC-specific debugger interface,
+ * including 64-bit modes
  *	forsyth@terzarima.net
  */
 
@@ -128,6 +129,8 @@ typedef struct {
 	uchar	lk;		/* bit 31 */
 	uchar	mb;		/* bits 21-25 */
 	uchar	me;		/* bits 26-30 */
+	uchar	xmbe;		/* bits 26,21-25: mb[5] || mb[0:4], also xme */
+	uchar	xsh;		/* bits 30,16-20: sh[5] || sh[0:4] */
 	uchar	nb;		/* bits 16-20 */
 	uchar	op;		/* bits 0-5 */
 	uchar	oe;		/* bit 21 */
@@ -143,11 +146,12 @@ typedef struct {
 	uchar	to;		/* bits 6-10 */
 	uchar	imm;		/* bits 16-19 */
 	ushort	xo;		/* bits 21-30, 22-30, 26-30, or 30 (beware) */
-	long	immediate;
+	uvlong	imm64;
 	long w0;
 	long w1;
 	uvlong	addr;		/* pc of instruction */
 	short	target;
+	short	m64;		/* 64-bit mode */
 	char	*curr;		/* current fill level in output buffer */
 	char	*end;		/* end of buffer */
 	int 	size;		/* number of longs in instr */
@@ -178,6 +182,7 @@ decode(uvlong pc, Instr *i)
 		werrstr("can't read instruction: %r");
 		return -1;
 	}
+	i->m64 = asstype == APOWER64;
 	i->aa = IB(w, 30);
 	i->crba = IBF(w, 11, 15);
 	i->crbb = IBF(w, 16, 20);
@@ -203,6 +208,7 @@ decode(uvlong pc, Instr *i)
 	i->lk = IB(w, 31);
 	i->mb = IBF(w, 21, 25);
 	i->me = IBF(w, 26, 30);
+	i->xmbe = (IB(w,26)<<5) | i->mb;
 	i->nb = IBF(w, 16, 20);
 	i->op = IBF(w, 0, 5);
 	i->oe = IB(w, 21);
@@ -211,13 +217,20 @@ decode(uvlong pc, Instr *i)
 	i->rc = IB(w, 31);
 	i->rs = IBF(w, 6, 10);	/* also rd */
 	i->sh = IBF(w, 16, 20);
+	i->xsh = (IB(w, 30)<<5) | i->sh;
 	i->spr = IBF(w, 11, 20);
 	i->to = IBF(w, 6, 10);
 	i->imm = IBF(w, 16, 19);
 	i->xo = IBF(w, 21, 30);		/* bits 21-30, 22-30, 26-30, or 30 (beware) */
-	i->immediate = i->simm;
+	if(i->op == 58){	/* class of 64-bit loads */
+		i->xo = i->simm & 3;
+		i->simm &= ~3;
+	}
+	i->imm64 = i->simm;
 	if(i->op == 15)
-		i->immediate <<= 16;
+		i->imm64 <<= 16;
+	else if(i->op == 25 || i->op == 27 || i->op == 29)
+		i->imm64 = (uvlong)(i->uimm<<16);
 	i->w0 = w;
 	i->target = -1;
 	i->addr = pc;
@@ -234,12 +247,15 @@ mkinstr(uvlong pc, Instr *i)
 		return -1;
 	/*
 	 * combine ADDIS/ORI (CAU/ORIL) into MOVW
+	 * also ORIS/ORIL for unsigned in 64-bit mode
 	 */
-	if (i->op == 15 && i->ra==0) {
+	if ((i->op == 15 || i->op == 25) && i->ra==0) {
 		if(decode(pc+4, &x) < 0)
 			return -1;
 		if (x.op == 24 && x.rs == x.ra && x.ra == i->rd) {
-			i->immediate |= (x.immediate & 0xFFFF);
+			i->imm64 |= (x.imm64 & 0xFFFF);
+			if(i->op != 15)
+				i->imm64 &= 0xFFFFFFFFUL;
 			i->w1 = x.w0;
 			i->target = x.rd;
 			i->size++;
@@ -257,7 +273,7 @@ plocal(Instr *i)
 
 	if (!findsym(i->addr, CTEXT, &s) || !findlocal(&s, FRAMENAME, &s))
 		return -1;
-	offset = s.value - i->immediate;
+	offset = s.value - i->imm64;
 	if (offset > 0) {
 		if(getauto(&s, offset, CAUTO, &s)) {
 			bprint(i, "%s+%lld(SP)", s.name, s.value);
@@ -306,12 +322,12 @@ address(Instr *i)
 {
 	if (i->ra == REGSP && plocal(i) >= 0)
 		return;
-	if (i->ra == REGSB && mach->sb && pglobal(i, mach->sb+i->immediate, 0, "(SB)") >= 0)
+	if (i->ra == REGSB && mach->sb && pglobal(i, mach->sb+i->imm64, 0, "(SB)") >= 0)
 		return;
 	if(i->simm < 0)
 		bprint(i, "-%x(R%d)", -i->simm, i->ra);
 	else
-		bprint(i, "%lux(R%d)", i->immediate, i->ra);
+		bprint(i, "%llux(R%d)", i->imm64, i->ra);
 }
 
 static	char	*tcrbits[] = {"LT", "GT", "EQ", "VS"};
@@ -383,7 +399,7 @@ addis(Opcode *o, Instr *i)
 {
 	long v;
 
-	v = i->immediate;
+	v = i->imm64;
 	if (i->op==15 && i->ra == 0)
 		bprint(i, "MOVW\t$%lux,R%d", v, i->rd);
 	else if (i->op==15 && i->ra == REGSB) {
@@ -485,7 +501,8 @@ dcb(Opcode *o, Instr *i)
 static void
 lw(Opcode *o, Instr *i, char r)
 {
-	bprint(i, "%s\t", o->mnemonic);
+	format(o->mnemonic, i, 0);
+	bprint(i, "\t");
 	address(i);
 	bprint(i, ",%c%d", r, i->rd);
 }
@@ -512,7 +529,7 @@ sw(Opcode *o, Instr *i, char r)
 	m = o->mnemonic;
 	if (i->rs == REGSP) {
 		if (findsym(i->addr, CTEXT, &s) && findlocal(&s, FRAMENAME, &s)) {
-			offset = s.value-i->immediate;
+			offset = s.value-i->imm64;
 			if (offset > 0 && getauto(&s, offset, CAUTO, &s)) {
 				bprint(i, "%s\t%c%d,%s-%d(SP)", m, r, i->rd,
 					s.name, offset);
@@ -671,12 +688,16 @@ static	char	ldop[] = "%l,R%d";
 static	char	stop[] = "R%d,%l";
 static	char	fldop[] = "%l,F%d";
 static	char	fstop[] = "F%d,%l";
+static	char	rldc[] = "R%b,R%s,$%E,R%a";
 static	char	rlim[] = "R%b,R%s,$%z,R%a";
 static	char	rlimi[] = "$%k,R%s,$%z,R%a";
+static	char	rldi[] = "$%e,R%s,$%E,R%a";
 
 #define	OEM	IBF(~0,22,30)
 #define	FP4	IBF(~0,26,30)
 #define	ALL	(~0)
+#define	RLDC	0xF
+#define	RLDI	0xE
 /*
 notes:
 	10-26: crfD = rD>>2; rD&3 mbz
@@ -684,8 +705,6 @@ notes:
 */
 
 static Opcode opcodes[] = {
-	{31,	360,	OEM,	"ABS%V%C",	0,	ir2},	/* POWER */
-
 	{31,	266,	OEM,	"ADD%V%C",	add,	ir3},
 	{31,	 10,	OEM,	"ADDC%V%C",	add,	ir3},
 	{31,	138,	OEM,	"ADDE%V%C",	add,	ir3},
@@ -706,14 +725,13 @@ static Opcode opcodes[] = {
 	{19,	528,	ALL,	"BC%L",		branch,	"%d,%a,(CTR)"},
 	{19,	16,	ALL,	"BC%L",		branch,	"%d,%a,(LR)"},
 
-	{31,	531,	ALL,	"CLCS",		gen,	ir2},	/* POWER */
-
 	{31,	0,	ALL,	"CMP",		0,	icmp3},
 	{11,	0,	0,	"CMP",		0,	"R%a,%i,%D"},
 	{31,	32,	ALL,	"CMPU",		0,	icmp3},
 	{10,	0,	0,	"CMPU",		0,	"R%a,%I,%D"},
 
-	{31,	26,	ALL,	"CNTLZ%C",	gencc,	ir2},
+	{31,	58,	ALL,	"CNTLZD%C",	gencc,	ir2},	/* 64 */
+	{31,	26,	ALL,	"CNTLZ%W%C",	gencc,	ir2},
 
 	{19,	257,	ALL,	"CRAND",	gen,	cr3op},
 	{19,	129,	ALL,	"CRANDN",	gen,	cr3op},
@@ -733,13 +751,10 @@ static Opcode opcodes[] = {
 	{31,	454,	ALL,	"DCCCI",	dcb,	0},
 	{31,	966,	ALL,	"ICCCI",	dcb,	0},
 
-	{31,	331,	OEM,	"DIV%V%C",	qdiv,	ir3},	/* POWER */
-	{31,	363,	OEM,	"DIVS%V%C",	qdiv,	ir3},	/* POWER */
+	{31,	489,	OEM,	"DIVD%V%C",	qdiv,	ir3},	/* 64 */
+	{31,	457,	OEM,	"DIVDU%V%C",	qdiv,	ir3},	/* 64 */
 	{31,	491,	OEM,	"DIVW%V%C",	qdiv,	ir3},
 	{31,	459,	OEM,	"DIVWU%V%C",	qdiv,	ir3},
-
-	{31,	264,	OEM,	"DOZ%V%C",	gencc,	ir3r},	/* POWER */
-	{9,	0,	0,	"DOZ",		gen,	ir2i},	/* POWER */
 
 	{31,	310,	ALL,	"ECIWX",	ldx,	0},
 	{31,	438,	ALL,	"ECOWX",	stx,	0},
@@ -749,12 +764,16 @@ static Opcode opcodes[] = {
 
 	{31,	954,	ALL,	"EXTSB%C",	gencc,	il2},
 	{31,	922,	ALL,	"EXTSH%C",	gencc,	il2},
+	{31,	986,	ALL,	"EXTSW%C",	gencc,	il2},	/* 64 */
 
 	{63,	264,	ALL,	"FABS%C",	gencc,	fp2},
 	{63,	21,	ALL,	"FADD%C",	gencc,	fp3},
 	{59,	21,	ALL,	"FADDS%C",	gencc,	fp3},
 	{63,	32,	ALL,	"FCMPO",	gen,	fpcmp},
 	{63,	0,	ALL,	"FCMPU",	gen,	fpcmp},
+	{63,	846,	ALL,	"FCFID%C",	gencc,	fp2},	/* 64 */
+	{63,	814,	ALL,	"FCTID%C",	gencc,	fp2},	/* 64 */
+	{63,	815,	ALL,	"FCTIDZ%C",	gencc,	fp2},	/* 64 */
 	{63,	14,	ALL,	"FCTIW%C",	gencc,	fp2},
 	{63,	15,	ALL,	"FCTIWZ%C",	gencc,	fp2},
 	{63,	18,	ALL,	"FDIV%C",	gencc,	fp3},
@@ -772,11 +791,16 @@ static Opcode opcodes[] = {
 	{59,	31,	FP4,	"FNMADDS%C",	gencc,	fp4},
 	{63,	30,	FP4,	"FNMSUB%C",	gencc,	fp4},
 	{59,	30,	FP4,	"FNMSUBS%C",	gencc,	fp4},
+	{59,	24,	ALL,	"FRES%C",	gencc,	fp2},	/* optional */
 	{63,	12,	ALL,	"FRSP%C",	gencc,	fp2},
+	{63,	26,	ALL,	"FRSQRTE%C",	gencc,	fp2},	/* optional */
+	{63,	23,	FP4,	"FSEL%CC",	gencc,	fp4},	/* optional */
+	{63,	22,	ALL,	"FSQRT%C",	gencc,	fp2},	/* optional */
+	{59,	22,	ALL,	"FSQRTS%C",	gencc,	fp2},	/* optional */
 	{63,	20,	FP4,	"FSUB%C",	gencc,	fp3},
 	{59,	20,	FP4,	"FSUBS%C",	gencc,	fp3},
 
-	{31,	982,	ALL,	"ICBI",		dcb,	0},
+	{31,	982,	ALL,	"ICBI",		dcb,	0},	/* optional */
 	{19,	150,	ALL,	"ISYNC",	gen,	0},
 
 	{34,	0,	0,	"MOVBZ",	load,	ldop},
@@ -801,18 +825,26 @@ static Opcode opcodes[] = {
 	{31,	311,	ALL,	"MOVHZU",	ldx,	0},
 	{31,	279,	ALL,	"MOVHZ",	ldx,	0},
 	{46,	0,	0,	"MOVMW",	load,	ldop},
-	{31,	277,	ALL,	"LSCBX%C",	ldx,	0},	/* POWER */
 	{31,	597,	ALL,	"LSW",		gen,	"(R%a),$%n,R%d"},
 	{31,	533,	ALL,	"LSW",		ldx,	0},
 	{31,	20,	ALL,	"LWAR",		ldx,	0},
-	{31,	534,	ALL,	"MOVWBR",	ldx,	0},
-	{32,	0,	0,	"MOVW",		load,	ldop},
-	{33,	0,	0,	"MOVWU",	load,	ldop},
-	{31,	55,	ALL,	"MOVWU",	ldx,	0},
-	{31,	23,	ALL,	"MOVW",		ldx,	0},
+	{31,	84,	ALL,	"LWARD",	ldx,	0},	/* 64 */
 
-	{31,	29,	ALL,	"MASKG%C",	gencc,	"R%s:R%b,R%d"},	/* POWER */
-	{31,	541,	ALL,	"MASKIR%C",	gencc,	"R%s,R%b,R%a"},	/* POWER */
+	{58,	0,	ALL,	"MOVD",		load,	ldop},	/* 64 */
+	{58,	1,	ALL,	"MOVDU",	load,	ldop},	/* 64 */
+	{31,	53,	ALL,	"MOVDU",	ldx,	0},	/* 64 */
+	{31,	21,	ALL,	"MOVD",		ldx,	0},	/* 64 */
+
+	{31,	534,	ALL,	"MOVWBR",	ldx,	0},
+
+	{58,	2,	ALL,	"MOVW",		load,	ldop},	/* 64 (lwa) */
+	{31,	373,	ALL,	"MOVWU",	ldx,	0},	/* 64 */
+	{31,	341,	ALL,	"MOVW",		ldx,	0},	/* 64 */
+
+	{32,	0,	0,	"MOVW%Z",	load,	ldop},
+	{33,	0,	0,	"MOVW%ZU",	load,	ldop},
+	{31,	55,	ALL,	"MOVW%ZU",	ldx,	0},
+	{31,	23,	ALL,	"MOVW%Z",	ldx,	0},
 
 	{19,	0,	ALL,	"MOVFL",	gen,	"%S,%D"},
 	{63,	64,	ALL,	"MOVCRFS",	gen,	"%S,%D"},
@@ -832,18 +864,20 @@ static Opcode opcodes[] = {
 	{63,	711,	ALL,	"MOVFL%C",	gencc,	"F%b,%M,FPSCR"},	/* mtfsf */
 	{63,	134,	ALL,	"MOVFL%C",	gencc,	"%K,%D"},
 	{31,	146,	ALL,	"MOVW",		gen,	"R%s,MSR"},
+	{31,	178,	ALL,	"MOVD",		gen,	"R%s,MSR"},
 	{31,	467,	ALL,	"MOVW",		gen,	"R%s,%P"},
 	{31,	210,	ALL,	"MOVW",		gen,	"R%s,SEG(%a)"},
 	{31,	242,	ALL,	"MOVW",		gen,	"R%s,SEG(R%b)"},
 
-	{31,	107,	OEM,	"MUL%V%C",	gencc,	ir3},	/* POWER */
-	{31,	75,	ALL,	"MULHW%C",	gencc,	ir3},	/* POWER */
-	{31,	11,	ALL,	"MULHWU%C",	gencc,	ir3},	/* POWER */
+	{31,	73,	ALL,	"MULHD%C",	gencc,	ir3},
+	{31,	9,	ALL,	"MULHDU%C",	gencc,	ir3},
+	{31,	233,	OEM,	"MULLD%V%C",	gencc,	ir3},
 
+	{31,	75,	ALL,	"MULHW%C",	gencc,	ir3},
+	{31,	11,	ALL,	"MULHWU%C",	gencc,	ir3},
 	{31,	235,	OEM,	"MULLW%V%C",	gencc,	ir3},
-	{7,	0,	0,	"MULLW",	qdiv,	"%i,R%a,R%d"},
 
-	{31,	488,	OEM,	"NABS%V%C",	neg,	ir2},	/* POWER */
+	{7,	0,	0,	"MULLW",	qdiv,	"%i,R%a,R%d"},
 
 	{31,	476,	ALL,	"NAND%C",	gencc,	il3},
 	{31,	104,	OEM,	"NEG%V%C",	neg,	ir2},
@@ -856,38 +890,28 @@ static Opcode opcodes[] = {
 	{19,	50,	ALL,	"RFI",		gen,	0},
 	{19,	51,	ALL,	"RFCI",		gen,	0},
 
-	{22,	0,	0,	"RLMI%C",	gencc,	rlim},	/* POWER */
+	{30,	8,	RLDC,	"RLDCL%C",	gencc,	rldc},	/* 64 */
+	{30,	9,	RLDC,	"RLDCR%C",	gencc,	rldc},	/* 64 */
+	{30,	0,	RLDI,	"RLDCL%C",	gencc,	rldi},	/* 64 */
+	{30,	1<<1, RLDI,	"RLDCR%C",	gencc,	rldi},	/* 64 */
+	{30,	2<<1, RLDI,	"RLDC%C",	gencc,	rldi},	/* 64 */
+	{30,	3<<1, RLDI,	"RLDMI%C",	gencc,	rldi},	/* 64 */
+
 	{20,	0,	0,	"RLWMI%C",	gencc,	rlimi},
 	{21,	0,	0,	"RLWNM%C",	gencc,	rlimi},
 	{23,	0,	0,	"RLWNM%C",	gencc,	rlim},
 
-	{31,	537,	ALL,	"RRIB%C",	gencc,	il3},	/* POWER */
-
 	{17,	1,	ALL,	"SYSCALL",	gen,	0},
 
-	{31,	153,	ALL,	"SLE%C",	shift,	il3},	/* POWER */
-	{31,	217,	ALL,	"SLEQ%C",	shift,	il3},	/* POWER */
-	{31,	184,	ALL,	"SLQ%C",	shifti,	il3s},	/* POWER */
-	{31,	248,	ALL,	"SLLQ%C",	shifti,	il3s},	/* POWER */
-	{31,	216,	ALL,	"SLLQ%C",	shift,	il3},	/* POWER */
-	{31,	152,	ALL,	"SLQ%C",	shift,	il3},	/* POWER */
-
+	{31,	27,	ALL,	"SLD%C",	shift,	il3},	/* 64 */
 	{31,	24,	ALL,	"SLW%C",	shift,	il3},
 
-	{31,	920,	ALL,	"SRAQ%C",	shift,	il3},	/* POWER */
-	{31,	952,	ALL,	"SRAQ%C",	shifti,	il3s},	/* POWER */
-
+	{31,	794,	ALL,	"SRAD%C",	shift,	il3},	/* 64 */
+	{31,	413,	ALL,	"SRAD%C",	shifti,	il3s},	/* 64 */
 	{31,	792,	ALL,	"SRAW%C",	shift,	il3},
 	{31,	824,	ALL,	"SRAW%C",	shifti,	il3s},
 
-	{31,	665,	ALL,	"SRE%C",	shift,	il3},	/* POWER */
-	{31,	921,	ALL,	"SREA%C",	shift,	il3},	/* POWER */
-	{31,	729,	ALL,	"SREQ%C",	shift,	il3},	/* POWER */
-	{31,	696,	ALL,	"SRQ%C",	shifti,	il3s},	/* POWER */
-	{31,	760,	ALL,	"SRLQ%C",	shifti,	il3s},	/* POWER */
-	{31,	728,	ALL,	"SRLQ%C",	shift,	il3},	/* POWER */
-	{31,	664,	ALL,	"SRQ%C",	shift,	il3},	/* POWER */
-
+	{31,	539,	ALL,	"SRD%C",	shift,	il3},	/* 64 */
 	{31,	536,	ALL,	"SRW%C",	shift,	il3},
 
 	{38,	0,	0,	"MOVB",		store,	stop},
@@ -913,9 +937,21 @@ static Opcode opcodes[] = {
 	{36,	0,	0,	"MOVW",		store,	stop},
 	{31,	662,	ALL,	"MOVWBR",	stx,	0},
 	{31,	150,	ALL,	"STWCCC",	stx,	0},
+	{31,	214,	ALL,	"STDCCC",	stx,	0},	/* 64 */
 	{37,	0,	0,	"MOVWU",	store,	stop},
 	{31,	183,	ALL,	"MOVWU",	stx,	0},
 	{31,	151,	ALL,	"MOVW",		stx,	0},
+
+	{62,	0,	0,	"MOVD%U",	store,	stop},	/* 64 */
+	{31,	149,	ALL,	"MOVD",		stx,	0,},	/* 64 */
+	{31,	181,	ALL,	"MOVDU",	stx,	0},	/* 64 */
+
+	{31,	498,	ALL,	"SLBIA",	gen,	0},	/* 64 */
+	{31,	434,	ALL,	"SLBIE",	gen,	"R%b"},	/* 64 */
+	{31,	466,	ALL,	"SLBIEX",	gen,	"R%b"},	/* 64 */
+	{31,	915,	ALL,	"SLBMFEE",	gen,	"R%b,R%d"},	/* 64 */
+	{31,	851,	ALL,	"SLBMFEV",	gen,	"R%b,R%d"},	/* 64 */
+	{31,	402,	ALL,	"SLBMTE",	gen,	"R%s,R%b"},	/* 64 */
 
 	{31,	40,	OEM,	"SUB%V%C",	sub,	ir3},
 	{31,	8,	OEM,	"SUBC%V%C",	sub,	ir3},
@@ -924,11 +960,15 @@ static Opcode opcodes[] = {
 	{31,	232,	OEM,	"SUBME%V%C",	sub,	ir2},
 	{31,	200,	OEM,	"SUBZE%V%C",	sub,	ir2},
 
-	{31,	598,	ALL,	"SYNC",		gen,	0},
-	{31,	370,	ALL,	"TLBIA",	gen,	0},
-	{31,	306,	ALL,	"TLBIE",	gen,	"R%b"},
-	{31,	1010,	ALL,	"TLBLI",	gen,	"R%b"},
-	{31,	978,	ALL,	"TLBLD",	gen,	"R%b"},
+	{31,	598,	ALL,	"SYNC",		gen,	0},	/* TO DO: there's a parameter buried in there */
+	{2,	0,	0,	"TD",		gen,	"%d,R%a,%i"},	/* 64 */
+	{31,	370,	ALL,	"TLBIA",	gen,	0},	/* optional */
+	{31,	306,	ALL,	"TLBIE",	gen,	"R%b"},	/* optional */
+	{31,	274,	ALL,	"TLBIEL",	gen,	"R%b"},	/* optional */
+	{31,	1010,	ALL,	"TLBLI",	gen,	"R%b"},	/* optional */
+	{31,	978,	ALL,	"TLBLD",	gen,	"R%b"},	/* optional */
+	{31,	566,	ALL,	"TLBSYNC",	gen,	0},	/* optional */
+	{31,	68,	ALL,	"TD",		gen,	"%d,R%a,R%b"},	/* 64 */
 	{31,	4,	ALL,	"TW",		gen,	"%d,R%a,R%b"},
 	{3,	0,	0,	"TW",		gen,	"%d,R%a,%i"},
 
@@ -995,11 +1035,31 @@ static	Spr	sprname[] = {
 	{0,0},
 };
 
+static int
+shmask(uvlong *m)
+{
+	int i;
+
+	for(i=0; i<63; i++)
+		if(*m & ((uvlong)1<<i))
+			break;
+	if(i > 63)
+		return 0;
+	if(*m & ~((uvlong)1<<i)){	/* more than one bit: do multiples of bytes */
+		i = (i/8)*8;
+		if(i == 0)
+			return 0;
+	}
+	*m >>= i;
+	return i;
+}
+
 static void
 format(char *mnemonic, Instr *i, char *f)
 {
 	int n, s;
 	ulong mask;
+	uvlong vmask;
 
 	if (mnemonic)
 		format(0, i, mnemonic);
@@ -1013,15 +1073,6 @@ format(char *mnemonic, Instr *i, char *f)
 			continue;
 		}
 		switch (*++f) {
-		case 'V':
-			if(i->oe)
-				bprint(i, "V");
-			break;
-
-		case 'C':
-			if(i->rc)
-				bprint(i, "CC");
-			break;
 
 		case 'a':
 			bprint(i, "%d", i->ra);
@@ -1040,13 +1091,9 @@ format(char *mnemonic, Instr *i, char *f)
 			bprint(i, "%d", i->rd);
 			break;
 
-		case 'S':
-			if(i->ra & 3)
-				bprint(i, "CR(INVAL:%d)", i->ra);
-			else if(i->op == 63)
-				bprint(i, "FPSCR(%d)", i->crfs);
-			else
-				bprint(i, "CR(%d)", i->crfs);
+		case 'C':
+			if(i->rc)
+				bprint(i, "CC");
 			break;
 
 		case 'D':
@@ -1058,11 +1105,29 @@ format(char *mnemonic, Instr *i, char *f)
 				bprint(i, "CR(%d)", i->crfd);
 			break;
 
-		case 'l':
-			if(i->simm < 0)
-				bprint(i, "-%x(R%d)", -i->simm, i->ra);
+		case 'e':
+			bprint(i, "%d", i->xsh);
+			break;
+
+		case 'E':
+			switch(IBF(i->w0,27,30)){	/* low bit is top bit of shift in rldiX cases */
+			case 8:	i->mb = i->xmbe; i->me = 63; break;	/* rldcl */
+			case 9:	i->mb = 0; i->me = i->xmbe; break;	/* rldcr */
+			case 4: case 5:
+					i->mb = i->xmbe; i->me = 63-i->xsh; break;	/* rldic */
+			case 0: case 1:
+					i->mb = i->xmbe; i->me = 63; break;	/* rldicl */
+			case 2: case 3:
+					i->mb = 0; i->me = i->xmbe; break;	/* rldicr */
+			case 6: case 7:
+					i->mb = i->xmbe; i->me = 63-i->xsh; break;	/* rldimi */
+			}
+			vmask = (~(uvlong)0>>i->mb) & (~(uvlong)0<<(63-i->me));
+			s = shmask(&vmask);
+			if(s)
+				bprint(i, "(%llux<<%d)", vmask, s);
 			else
-				bprint(i, "%x(R%d)", i->simm, i->ra);
+				bprint(i, "%llux", vmask);
 			break;
 
 		case 'i':
@@ -1073,8 +1138,50 @@ format(char *mnemonic, Instr *i, char *f)
 			bprint(i, "$%ux", i->uimm);
 			break;
 
-		case 'w':
-			bprint(i, "[%lux]", i->w0);
+		case 'j':
+			if(i->aa)
+				pglobal(i, i->li, 1, "(SB)");
+			else
+				pglobal(i, i->addr+i->li, 1, "");
+			break;
+
+		case 'J':
+			if(i->aa)
+				pglobal(i, i->bd, 1, "(SB)");
+			else
+				pglobal(i, i->addr+i->bd, 1, "");
+			break;
+
+		case 'k':
+			bprint(i, "%d", i->sh);
+			break;
+
+		case 'K':
+			bprint(i, "$%x", i->imm);
+			break;
+
+		case 'L':
+			if(i->lk)
+				bprint(i, "L");
+			break;
+
+		case 'l':
+			if(i->simm < 0)
+				bprint(i, "-%x(R%d)", -i->simm, i->ra);
+			else
+				bprint(i, "%x(R%d)", i->simm, i->ra);
+			break;
+
+		case 'm':
+			bprint(i, "%ux", i->crm);
+			break;
+
+		case 'M':
+			bprint(i, "%ux", i->fm);
+			break;
+
+		case 'n':
+			bprint(i, "%d", i->nb==0? 32: i->nb);	/* eg, pg 10-103 */
 			break;
 
 		case 'P':
@@ -1096,16 +1203,37 @@ format(char *mnemonic, Instr *i, char *f)
 			bprint(i, "%d", n);
 			break;
 
-		case 'n':
-			bprint(i, "%d", i->nb==0? 32: i->nb);	/* eg, pg 10-103 */
+		case 'S':
+			if(i->ra & 3)
+				bprint(i, "CR(INVAL:%d)", i->ra);
+			else if(i->op == 63)
+				bprint(i, "FPSCR(%d)", i->crfs);
+			else
+				bprint(i, "CR(%d)", i->crfs);
 			break;
 
-		case 'm':
-			bprint(i, "%ux", i->crm);
+		case 'U':
+			if(i->rc)
+				bprint(i, "U");
 			break;
 
-		case 'M':
-			bprint(i, "%ux", i->fm);
+		case 'V':
+			if(i->oe)
+				bprint(i, "V");
+			break;
+
+		case 'w':
+			bprint(i, "[%lux]", i->w0);
+			break;
+
+		case 'W':
+			if(i->m64)
+				bprint(i, "W");
+			break;
+
+		case 'Z':
+			if(i->m64)
+				bprint(i, "Z");
 			break;
 
 		case 'z':
@@ -1114,33 +1242,6 @@ format(char *mnemonic, Instr *i, char *f)
 			else
 				mask = ~(((ulong)~0L>>(i->me+1)) & (~0L<<(31-(i->mb-1))));
 			bprint(i, "%lux", mask);
-			break;
-
-		case 'k':
-			bprint(i, "%d", i->sh);
-			break;
-
-		case 'K':
-			bprint(i, "$%x", i->imm);
-			break;
-
-		case 'L':
-			if(i->lk)
-				bprint(i, "L");
-			break;
-
-		case 'j':
-			if(i->aa)
-				pglobal(i, i->li, 1, "(SB)");
-			else
-				pglobal(i, i->addr+i->li, 1, "");
-			break;
-
-		case 'J':
-			if(i->aa)
-				pglobal(i, i->bd, 1, "(SB)");
-			else
-				pglobal(i, i->addr+i->bd, 1, "");
 			break;
 
 		case '\0':

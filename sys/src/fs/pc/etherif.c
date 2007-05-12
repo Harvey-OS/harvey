@@ -12,6 +12,7 @@ extern int ether21140reset(Ether*);
 extern int etherelnk3reset(Ether*);
 extern int etheri82557reset(Ether*);
 extern int igbepnp(Ether *);
+extern int i82563reset(Ether *);
 extern int dp83815reset(Ether*);
 extern int dp83820pnp(Ether*);
 extern int rtl8139pnp(Ether*);
@@ -32,6 +33,7 @@ static struct
 	{ "ga620",	etherga620reset, },
 	{ "i82557",	etheri82557reset, },
 	{ "igbe",	igbepnp, },
+	{ "i82563",	i82563reset, },
 	{ "rtl8139",	rtl8139pnp, },
 	{ "rtl8169",	rtl8169pnp, },
 	{ 0, },

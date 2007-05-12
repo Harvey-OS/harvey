@@ -66,6 +66,7 @@ extern	Mach	mi386;
 extern	Mach	mamd64;
 extern	Mach	marm;
 extern	Mach	mpower;
+extern	Mach	mpower64;
 extern	Mach	malpha;
 
 ExecTable exectab[] =
@@ -196,6 +197,15 @@ ExecTable exectab[] =
 		sizeof(Exec),
 		beswal,
 		common },
+	{ T_MAGIC,			/* power64 9.out & boot image */
+		"power64 plan 9 executable",
+		"power64 plan 9 dlm",
+		FPOWER64,
+		1,
+		&mpower64,
+		sizeof(Exec)+8,
+		nil,
+		commonllp64 },
 	{ ELF_MAG,			/* any elf32 */
 		"elf executable",
 		nil,
