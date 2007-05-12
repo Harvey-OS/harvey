@@ -163,7 +163,7 @@ sdgetunit(SDev* sdev, int subno)
 	 * successfully accessed.
 	 */
 	qlock(&sdqlock);
-	index = sdev->index+subno;
+	index = sdev->index + subno;
 	unit = sdunit[index];
 	if(unit == nil){
 		if((unit = malloc(sizeof(SDunit))) == nil){
@@ -207,8 +207,8 @@ sdindex2unit(int index)
 	 * successfully accessed.
 	 */
 	for(sdev = sdlist; sdev != nil; sdev = sdev->next)
-		if(index >= sdev->index && index < sdev->index+sdev->nunit)
-			return sdgetunit(sdev, index-sdev->index);
+		if(index >= sdev->index && index < sdev->index + sdev->nunit)
+			return sdgetunit(sdev, index - sdev->index);
 	return nil;
 }
 

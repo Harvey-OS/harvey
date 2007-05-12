@@ -17,7 +17,7 @@ struct machtab
 };
 
 extern	Mach		mmips, msparc, m68020, mi386, mamd64,
-			marm, mmips2be, mmips2le, mpower, malpha, msparc64;
+			marm, mmips2be, mmips2le, mpower, mpower64, malpha, msparc64;
 extern	Machdata	mipsmach, sparcmach, m68020mach, i386mach,
 			armmach, mipsmach2le, powermach, alphamach, sparc64mach;
 
@@ -105,6 +105,12 @@ Machtab	machines[] =
 		FPOWERB,
 		APOWER,
 		&mpower,
+		&powermach,	},
+	{	"power64",			/*PowerPC*/
+		FPOWER64,
+		FPOWER64B,
+		APOWER64,
+		&mpower64,
 		&powermach,	},
 	{	"alpha",			/*Alpha*/
 		FALPHA,

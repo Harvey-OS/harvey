@@ -25,6 +25,7 @@ int	_is2(char*),		/* in [$OS].c */
 	_is6(char*),
 	_is7(char*),
 	_is8(char*),
+	_is9(char*),
 	_isk(char*),
 	_isq(char*),
 	_isv(char*),
@@ -34,6 +35,7 @@ int	_is2(char*),		/* in [$OS].c */
 	_read6(Biobuf*, Prog*),
 	_read7(Biobuf*, Prog*),
 	_read8(Biobuf*, Prog*),
+	_read9(Biobuf*, Prog*),
 	_readk(Biobuf*, Prog*),
 	_readq(Biobuf*, Prog*),
 	_readv(Biobuf*, Prog*),
@@ -60,6 +62,7 @@ static Obj	obj[] =
 	[ObjPower]	"power .q",	_isq, _readq,
 	[ObjMips]	"mips .v",	_isv, _readv,
 	[ObjSparc64]	"sparc64 .u",	_isu, _readu,
+	[ObjPower64]	"power64 .9",	_is9, _read9,
 	[Maxobjtype]	0, 0
 };
 

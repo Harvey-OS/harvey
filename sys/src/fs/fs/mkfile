@@ -74,6 +74,7 @@ ETHER=\
 	ether8139.$O\
 	ether8169.$O\
 	ether82557.$O\
+	ether82563.$O\
 	ether83815.$O\
 	etherdp83820.$O\
 	etherelnk3.$O\

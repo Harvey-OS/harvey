@@ -14,7 +14,8 @@
  *		sparc64,
  *		mips2 (R4000)
  *		arm
- *		power pc
+ *		powerpc,
+ *		powerpc64
  *		alpha
  */
 enum
@@ -34,6 +35,7 @@ enum
 	NMIPS,
 	MSPARC64,
 	MAMD64,
+	MPOWER64,
 				/* types of executables */
 	FNONE = 0,		/* unidentified */
 	FMIPS,			/* v.out */
@@ -61,6 +63,8 @@ enum
 	FSPARC64,		/* u.out */
 	FAMD64,			/* 6.out */
 	FAMD64B,		/* 6.out bootable */
+	FPOWER64,		/* 9.out */
+	FPOWER64B,		/* 9.out bootable */
 
 	ANONE = 0,		/* dissembler types */
 	AMIPS,
@@ -77,6 +81,7 @@ enum
 	AALPHA,
 	ASPARC64,
 	AAMD64,
+	APOWER64,
 				/* object file types */
 	Obj68020 = 0,		/* .2 */
 	ObjSparc,		/* .k */
@@ -93,6 +98,7 @@ enum
 	ObjSparc64,		/* .u */
 	ObjAmd64,		/* .6 */
 	ObjSpim,		/* .0 */
+	ObjPower64,		/* .9 */
 	Maxobjtype,
 
 	CNONE  = 0,		/* symbol table classes */

@@ -31,7 +31,7 @@ enum {
 
 	/* old stuff carried forward */
 	NCtlr=		8,
-	NCtlrdrv=	2,		/* fixed by hardware */
+	NCtlrdrv=	2,		/* fixed by hardware for pata */
 	NDrive=		NCtlr*NCtlrdrv,
 	Maxxfer=	16*1024,	/* maximum transfer size/cmd */
 
@@ -2612,8 +2612,8 @@ ataxfer(Drive *dp, int inout, Devsize start, long bytes)
 		return -1;
 	}
 	if (unit->dev != sdevs[driveno/NCtlrdrv])
-		panic("ataxfer: sdunits[%d].dev=%p is wrong controller (want %p)",
-			driveno, unit->dev, sdevs + driveno/NCtlrdrv);
+		panic("ataxfer: sdunits[%d].dev=%#p is wrong controller (want %#p)",
+			driveno, unit->dev, sdevs[driveno/NCtlrdrv]);
 	if (unit->subno != driveno%NCtlrdrv)
 		panic("ataxfer: sdunits[%d].subno is %d, not %d",
 			driveno, unit->subno, driveno%NCtlrdrv);
