@@ -2,36 +2,31 @@
 .SH NAME
 marshal \- formatting and sending mail
 .SH SYNOPSIS
-.PP
 .B upas/marshal
-[
-.B -t
-.I mime-type
-]
 [
 .B -[aA]
 .I attachment
-]
-[
-.B -s
-.I subject
-]
-[
+] [
 .B -C
 .I copyaddr
-]
-[
+] [
+.B -nrx#
+] [
 .B -R
 .I reply-msg
-[
-.B -nrx#
-]
-[
+] [
+.B -s
+.I subject
+] [
+.B -t
+.I mime-type
+] [
 .I mailaddr ...
 ]
 .SH DESCRIPTION
 .I Marshal
-builds a mail message from standard input and passes it
+builds a mail message from standard input and passes it,
+if the body is non-empty,
 for transmission or delivery to
 .BI /mail/box/ username /pipefrom
 if it exists, otherwise to
@@ -86,20 +81,6 @@ but the message disposition is marked as
 directing any mail reader to display the attachment
 (if it can) when the mail message is read.
 .TP
-.BI -t type
-sets the content type for the attachments from
-all subsequent
-.B -a
-and
-.B -A
-options.
-.TP
-.BI -s subject
-adds a
-.B Subject:
-header line to the message if one does not
-already exist.
-.TP
 .BI -C copyaddr
 adds a
 .B Cc:
@@ -108,6 +89,16 @@ header with
 and also adds
 .I copyaddr
 as a recipient.
+.TP
+.BI -n
+intentionally no standard input
+.TP
+.B -#xr
+are all passed as command line options to the
+.I send
+that
+.I marshal
+invokes.
 .TP
 .BI -R replymsg
 tells marshal what message this one is in reply to.
@@ -127,15 +118,19 @@ environment variable.  Thus,
 can alter the message to somehow match
 the reply to the message it is replying to.
 .TP
-.BI -n
-intentionally no standard input
+.BI -s subject
+adds a
+.B Subject:
+header line to the message if one does not
+already exist.
 .TP
-.B -#xr
-are all passed as command line options to the
-.I send
-that
-.I marshal
-invokes.
+.BI -t type
+sets the content type for the attachments from
+all subsequent
+.B -a
+and
+.B -A
+options.
 .PD
 .PP
 .I Marshal
@@ -152,7 +147,9 @@ can be overriden using the environment variable
 Its value will become both the envelope
 and
 .B From:
-mailbox name.  For example:
+mailbox name.
+For example:
+.IP
 .EX
 upasname=natasha@kremvax.com upas/mail boris@squirrel.com
 .EE
@@ -174,4 +171,3 @@ upasname=natasha@kremvax.com upas/mail boris@squirrel.com
 .IR send (8),
 .IR smtp (8),
 .IR upasfs (4)
-
