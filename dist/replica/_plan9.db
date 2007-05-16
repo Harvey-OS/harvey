@@ -302,7 +302,7 @@
 386/bin/ip/httpd/wikipost - 775 sys sys 1178568286 113828
 386/bin/ip/httpfile - 775 sys sys 1178568287 283924
 386/bin/ip/imap4d - 775 sys sys 1178568288 236690
-386/bin/ip/ipconfig - 775 sys sys 1178654264 156933
+386/bin/ip/ipconfig - 775 sys sys 1179259380 157017
 386/bin/ip/linklocal - 775 sys sys 1177530964 42790
 386/bin/ip/ping - 775 sys sys 1178568288 83220
 386/bin/ip/ppp - 775 sys sys 1178826954 218964
@@ -7661,7 +7661,7 @@ sys/man/4 - 20000000775 sys sys 1128556957 0
 sys/man/4/0intro - 664 sys sys 944959699 472
 sys/man/4/INDEX - 664 sys sys 1178249215 1026
 sys/man/4/INDEX.html - 664 sys sys 1141352366 5045
-sys/man/4/acme - 664 sys sys 1142172883 10392
+sys/man/4/acme - 664 sys sys 1179239864 10433
 sys/man/4/archfs - 664 sys sys 960000712 533
 sys/man/4/cdfs - 664 sys sys 1026846913 3638
 sys/man/4/cfs - 664 sys sys 1172762903 1813
@@ -12529,7 +12529,7 @@ sys/src/cmd/ip/imap4d/utils.c - 664 sys sys 1168894057 2587
 sys/src/cmd/ip/ipconfig - 20000000775 sys sys 1176933436 0
 sys/src/cmd/ip/ipconfig/ipconfig.h - 664 sys sys 1178051838 5666
 sys/src/cmd/ip/ipconfig/ipv6.c - 664 sys sys 1178051839 19588
-sys/src/cmd/ip/ipconfig/main.c - 664 sys sys 1178483060 37952
+sys/src/cmd/ip/ipconfig/main.c - 664 sys sys 1179231088 38062
 sys/src/cmd/ip/ipconfig/mkfile - 664 sys sys 1177092388 236
 sys/src/cmd/ip/ipconfig/ppp.c - 664 sys sys 1177092388 1128
 sys/src/cmd/ip/linklocal.c - 664 sys sys 1177099730 867
