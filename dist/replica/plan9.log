@@ -48867,3 +48867,6 @@
 1179088207 0 c sys/man/1/marshal - 664 sys sys 1179087317 3176
 1179088207 1 c sys/src/cmd/upas/marshal/marshal.c - 664 sys sys 1179087968 34023
 1179113406 0 c 386/bin/upas/marshal - 775 sys sys 1179113026 132974
+1179232266 0 c sys/src/cmd/ip/ipconfig/main.c - 664 sys sys 1179231088 38062
+1179241268 0 c sys/man/4/acme - 664 sys sys 1179239864 10433
+1179261066 0 c 386/bin/ip/ipconfig - 775 sys sys 1179259380 157017
