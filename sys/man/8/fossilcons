@@ -142,6 +142,8 @@ con /srv/fscons
 .I data
 ]]
 .PP
+.in +1i
+.ti -1i
 [
 .B fsys
 .I name
@@ -161,10 +163,7 @@ con /srv/fscons
 .B clre
 ] [
 .B clrp
-]
-.br
-\h'1.5i'
-[
+] [
 .B fix
 ] [
 .B venti

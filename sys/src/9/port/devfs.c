@@ -28,6 +28,9 @@ enum {
 	Qctl,			/* ctl file */
 	Qfirst,			/* first fs file */
 
+	Iswrite = 0,
+	Isread,
+
 	/* tunable parameters */
 	Maxconf	= 4*1024,	/* max length for config */
 	Ndevs	= 32,		/* max. inner devs per command */
@@ -36,17 +39,23 @@ enum {
 
 #define	Cfgstr	"fsdev:\n"
 
+typedef struct Inner Inner;
+struct Inner
+{
+	char	*iname;		/* inner device name */
+	vlong	isize;		/* size of inner device */
+	Chan	*idev;		/* inner device */
+};
+
 typedef struct Fsdev Fsdev;
 struct Fsdev
 {
 	int	type;
 	char	*name;		/* name for this fsdev */
+	vlong	size;		/* min(inner[X].isize) */
 	vlong	start;		/* start address (for Fpart) */
-	vlong	size;		/* min(idev sizes) */
 	int	ndevs;		/* number of inner devices */
-	char	*iname[Ndevs];	/* inner device names */
-	Chan	*idev[Ndevs];	/* inner devices */
-	vlong	isize[Ndevs];	/* sizes for inner devices */
+	Inner	inner[Ndevs];
 };
 
 extern Dev fsdevtab;		/* forward */
@@ -107,18 +116,18 @@ setdsize(Fsdev* mp)
 	int	i;
 	long	l;
 	uchar	buf[128];	/* old DIRLEN plus a little should be plenty */
-	Chan	*mc;
 	Dir	d;
+	Inner	*in;
 
 	if (mp->type != Fpart){
 		mp->start= 0;
 		mp->size = 0;
 	}
 	for (i = 0; i < mp->ndevs; i++){
-		mc = mp->idev[i];
-		l = devtab[mc->type]->stat(mc, buf, sizeof(buf));
+		in = &mp->inner[i];
+		l = devtab[in->idev->type]->stat(in->idev, buf, sizeof buf);
 		convM2D(buf, l, &d, nil);
-		mp->isize[i] = d.length;
+		in->isize = d.length;
 		switch(mp->type){
 		case Fmirror:
 			if (mp->size == 0 || mp->size > d.length)
@@ -130,7 +139,7 @@ setdsize(Fsdev* mp)
 		case Finter:
 			/* truncate to multiple of Blksize */
 			d.length &= ~(Blksize-1);
-			mp->isize[i] = d.length;
+			in->isize = d.length;
 			mp->size += d.length;
 			break;
 		case Fpart:
@@ -155,12 +164,12 @@ mpshut(Fsdev *mp)
 	if (nm)
 		free(nm);
 	for (i = 0; i < mp->ndevs; i++){
-		if (mp->idev[i] != nil)
-			cclose(mp->idev[i]);
-		if (mp->iname[i])
-			free(mp->iname[i]);
+		if (mp->inner[i].idev != nil)
+			cclose(mp->inner[i].idev);
+		if (mp->inner[i].iname)
+			free(mp->inner[i].iname);
 	}
-	memset(mp, 0, sizeof(*mp));
+	memset(mp, 0, sizeof *mp);
 }
 
 
@@ -173,6 +182,7 @@ mconfig(char* a, long n)	/* "name idev0 idev1" */
 	Cmdbuf	*cb;
 	Cmdtab	*ct;
 	Fsdev	*mp;
+	Inner	*inprv;
 	static	QLock	lck;
 
 	size = 0;
@@ -235,7 +245,7 @@ mconfig(char* a, long n)	/* "name idev0 idev1" */
 			error(Eexist);
 
 	if (cb->nf - 1 > Ndevs)
-		error("too many devices; fix me, increase Ndevs");
+		error("too many devices; fix #k: increase Ndevs");
 	for (i = 0; i < cb->nf; i++)
 		validname(cb->f[i], (i != 0));
 
@@ -247,9 +257,10 @@ mconfig(char* a, long n)	/* "name idev0 idev1" */
 	}
 	kstrdup(&mp->name, cb->f[0]);
 	for (i = 1; i < cb->nf; i++){
-		kstrdup(&mp->iname[i-1], cb->f[i]);
-		mp->idev[i-1] = namec(mp->iname[i-1], Aopen, ORDWR, 0);
-		if (mp->idev[i-1] == nil)
+		inprv = &mp->inner[i-1];
+		kstrdup(&inprv->iname, cb->f[i]);
+		inprv->idev = namec(inprv->iname, Aopen, ORDWR, 0);
+		if (inprv->idev == nil)
 			error(Egreg);
 		mp->ndevs++;
 	}
@@ -293,7 +304,7 @@ rdconf(void)
 	cclose(*ccp);
 	*ccp = nil;
 	if (strncmp(confstr, Cfgstr, strlen(Cfgstr)) != 0)
-		error("Bad config, first line must be: 'fsdev:\\n'");
+		error("bad #k config, first line must be: 'fsdev:\\n'");
 	kstrdup(&c, confstr + strlen(Cfgstr));
 	memset(confstr, 0, sizeof confstr);
 	for (p = c; p != nil && *p != 0; p = e){
@@ -418,33 +429,62 @@ mclose(Chan*)
 	/* that's easy */
 }
 
+
+static long
+io(Fsdev *mp, Inner *in, int isread, void *a, long l, vlong off)
+{
+	long wl;
+	Chan *mc = in->idev;
+
+	if (waserror()) {
+		print("#k: %s byte %,lld (of %s): %s error: %s\n",
+			in->iname, off, mp->name, (isread? "read": "write"),
+			(up && up->errstr? up->errstr: ""));
+		nexterror();
+	}
+	if (isread) {
+		wl = devtab[mc->type]->read(mc, a, l, off);
+		if (wl != l) {
+			print("#k: %s byte %,lld (of %s): short read\n",
+				in->iname, off, mp->name);
+			nexterror();
+		}
+	} else {
+		wl = devtab[mc->type]->write(mc, a, l, off);
+		if (wl != l) {
+			print("#k: %s byte %,lld (of %s): write error\n",
+				in->iname, off, mp->name);
+			nexterror();
+		}
+	}
+	poperror();
+	return wl;
+}
+
 static long
 catio(Fsdev *mp, int isread, void *a, long n, vlong off)
 {
 	int	i;
-	Chan*	mc;
 	long	l, wl, res;
+	Inner	*in;
 
 	// print("catio %d %p %ld %lld\n", isread, a, n, off);
 	res = n;
 	for (i = 0; n >= 0 && i < mp->ndevs ; i++){
-		mc = mp->idev[i];
-		if (off > mp->isize[i]){
-			off -= mp->isize[i];
-			continue;
+		in = &mp->inner[i];
+		if (off > in->isize){
+			off -= in->isize;
+			continue;		/* not there yet */
 		}
-		if (off + n > mp->isize[i])
-			l = mp->isize[i] - off;
+		if (off + n > in->isize)
+			l = in->isize - off;
 		else
 			l = n;
 		// print("\tdev %d %p %ld %lld\n", i, a, l, off);
 
-		if (isread)
-			wl = devtab[mc->type]->read(mc, a, l, off);
-		else
-			wl = devtab[mc->type]->write(mc, a, l, off);
-		if (wl != l)
-			error("#k: write failed");
+		wl = io(mp, in, isread, a, l, off);
+		assert(wl == l);
+
 		a = (char*)a + l;
 		off = 0;
 		n -= l;
@@ -459,7 +499,7 @@ interio(Fsdev *mp, int isread, void *a, long n, vlong off)
 	int	i;
 	long	boff, res, l, wl, wsz;
 	vlong	woff, blk, mblk;
-	Chan*	mc;
+	Inner	*in;
 
 	blk  = off / Blksize;
 	boff = off % Blksize;
@@ -468,18 +508,17 @@ interio(Fsdev *mp, int isread, void *a, long n, vlong off)
 	while(n > 0){
 		mblk = blk / mp->ndevs;
 		i    = blk % mp->ndevs;
-		mc   = mp->idev[i];
 		woff = mblk*Blksize + boff;
 		if (n > wsz)
 			l = wsz;
 		else
 			l = n;
-		if (isread)
-			wl = devtab[mc->type]->read(mc, a, l, woff);
-		else
-			wl = devtab[mc->type]->write(mc, a, l, woff);
+
+		in = &mp->inner[i];
+		wl = io(mp, in, isread, a, l, woff);
 		if (wl != l || l == 0)
 			error(Eio);
+
 		a = (char*)a + l;
 		n -= l;
 		blk++;
@@ -494,8 +533,8 @@ mread(Chan *c, void *a, long n, vlong off)
 {
 	int	i;
 	long	l, res;
-	Chan	*mc;
 	Fsdev	*mp;
+	Inner	*in;
 
 	if (c->qid.type & QTDIR)
 		return devdirread(c, a, n, 0, 0, mgen);
@@ -513,38 +552,33 @@ mread(Chan *c, void *a, long n, vlong off)
 
 	res = -1;
 	switch(mp->type){
+	case Fcat:
+		res = catio(mp, Isread, a, n, off);
+		break;
+	case Finter:
+		res = interio(mp, Isread, a, n, off);
+		break;
+	case Fpart:
+		in = &mp->inner[0];
+		res = io(mp, in, Isread, a, n, mp->start + off);
+		assert(res == n);
+		break;
 	case Fmirror:
 		for (i = 0; i < mp->ndevs; i++){
-			mc = mp->idev[i];
 			if (waserror()){
-				/*
-				 * if a read fails we let the user know and try
-				 * another device.
-				 */
-				print("#k: mread: (%llx %d): %s\n",
-					c->qid.path, i, up->errstr);
+				poperror();
 				continue;
 			}
-			l = devtab[mc->type]->read(mc, a, n, off);
+			in = &mp->inner[i];
+			l = io(mp, in, Isread, a, n, off);
 			poperror();
 			if (l >= 0){
 				res = l;
-				break;
+				break;		/* read a good copy */
 			}
 		}
-		if (i == mp->ndevs)
-			error(Eio);
-		break;
-	case Fcat:
-		res = catio(mp, 1, a, n, off);
-		break;
-	case Finter:
-		res = interio(mp, 1, a, n, off);
-		break;
-	case Fpart:
-		off += mp->start;
-		mc = mp->idev[0];
-		res = devtab[mc->type]->read(mc, a, n, off);
+		if (i == mp->ndevs) /* no mirror had a good copy of the block? */
+			error(Eio);	/* RRRT! RRRT!  RAID failure! */
 		break;
 	}
 	return res;
@@ -553,10 +587,10 @@ mread(Chan *c, void *a, long n, vlong off)
 static long
 mwrite(Chan *c, void *a, long n, vlong off)
 {
-	int	i;
+	int	i, allbad;
 	long	l, res;
-	Chan	*mc;
 	Fsdev	*mp;
+	Inner	*in;
 
 	if (c->qid.type & QTDIR)
 		error(Eperm);
@@ -574,26 +608,34 @@ mwrite(Chan *c, void *a, long n, vlong off)
 		return 0;
 	res = n;
 	switch(mp->type){
-	case Fmirror:
-		for (i = mp->ndevs - 1; i >= 0; i--){
-			mc = mp->idev[i];
-			l = devtab[mc->type]->write(mc, a, n, off);
-			if (l < res)
-				res = l;
-		}
-		break;
 	case Fcat:
-		res = catio(mp, 0, a, n, off);
+		res = catio(mp, Iswrite, a, n, off);
 		break;
 	case Finter:
-		res = interio(mp, 0, a, n, off);
+		res = interio(mp, Iswrite, a, n, off);
 		break;
 	case Fpart:
-		mc = mp->idev[0];
-		off += mp->start;
-		l = devtab[mc->type]->write(mc, a, n, off);
-		if (l < res)
-			res = l;
+		in = &mp->inner[0];
+		res = io(mp, in, Iswrite, a, n, mp->start + off);
+		if (res > n)
+			res = n;
+		break;
+	case Fmirror:
+		allbad = 1;
+		for (i = mp->ndevs - 1; i >= 0; i--){
+			if (waserror()){
+				poperror();
+				continue;
+			}
+			in = &mp->inner[i];
+			l = io(mp, in, Iswrite, a, n, off);
+			poperror();
+			if (res > l)
+				res = l;	/* shortest OK write */
+			allbad = 0;		/* wrote a good copy */
+		}
+		if (allbad)	/* no mirror took a good copy of the block? */
+			error(Eio);	/* RRRT! RRRT!  RAID failure! */
 		break;
 	}
 	return res;
