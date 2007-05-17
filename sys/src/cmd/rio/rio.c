@@ -306,11 +306,14 @@ int
 shutdown(void *, char *msg)
 {
 	int i;
-
+	static Lock shutdownlk;
+	
 	killprocs();
 	for(i=0; oknotes[i]; i++)
-		if(strncmp(oknotes[i], msg, strlen(oknotes[i])) == 0)
+		if(strncmp(oknotes[i], msg, strlen(oknotes[i])) == 0){
+			lock(&shutdownlk);	/* only one can threadexitsall */
 			threadexitsall(msg);
+		}
 	fprint(2, "rio %d: abort: %s\n", getpid(), msg);
 	abort();
 	exits(msg);

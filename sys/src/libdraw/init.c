@@ -12,6 +12,9 @@ Screen	*_screen;
 
 int		debuglockdisplay = 0;
 
+static void _closedisplay(Display*, int);
+
+/* note handler */
 static void
 drawshutdown(void)
 {
@@ -20,7 +23,7 @@ drawshutdown(void)
 	d = display;
 	if(d){
 		display = nil;
-		closedisplay(d);
+		_closedisplay(d, 1);
 	}
 }
 
@@ -335,6 +338,12 @@ initdisplay(char *dev, char *win, void(*error)(Display*, char*))
 void
 closedisplay(Display *disp)
 {
+	_closedisplay(disp, 0);
+}
+
+static void
+_closedisplay(Display *disp, int isshutdown)
+{
 	int fd;
 	char buf[128];
 
@@ -350,6 +359,15 @@ closedisplay(Display *disp)
 			close(fd);
 		}
 	}
+
+	/*
+	 * if we're shutting down, don't free all the resources.
+	 * if other procs are getting shot down by notes too,
+	 * one might get shot down while holding the malloc lock.
+	 * just let the kernel clean things up when we exit.
+	 */
+	if(isshutdown)
+		return;
 
 	free(disp->devdir);
 	free(disp->windir);

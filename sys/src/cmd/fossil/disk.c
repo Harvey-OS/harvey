@@ -162,7 +162,7 @@ diskWriteRaw(Disk *disk, int part, u32int addr, uchar *buf)
 	start = partStart(disk, part);
 	end = partEnd(disk, part);
 
-	if(addr >= end-start){
+	if(addr >= end - start){
 		vtSetError(EBadAddr);
 		return 0;
 	}
@@ -318,7 +318,7 @@ diskThread(void *a)
 //if(nio >= 10000){
 //fprint(2, "disk: io=%d at %.3fms\n", nio, t*1e-6/nio);
 //nio = 0;
-//t = 0.;
+//t = 0;
 //}
 			if(disk->die != nil)
 				goto Done;
@@ -350,17 +350,23 @@ if(0)fprint(2, "fossil: diskThread: %d:%d %x\n", getpid(), b->part, b->addr);
 			abort();
 		case BioReading:
 			if(!diskReadRaw(disk, b->part, b->addr, b->data)){
-fprint(2, "fossil: diskReadRaw failed: %s: score %V: part=%s addr=%ud: %r\n",
-disk2file(disk), b->score, partname[b->part], b->addr);
+				fprint(2, "fossil: diskReadRaw failed: %s: "
+					"score %V: part=%s block %ud: %r\n",
+					disk2file(disk), b->score,
+					partname[b->part], b->addr);
 				blockSetIOState(b, BioReadError);
 			}else
 				blockSetIOState(b, BioClean);
 			break;
 		case BioWriting:
 			p = blockRollback(b, buf);
+			/* NB: ctime result ends with a newline */
 			if(!diskWriteRaw(disk, b->part, b->addr, p)){
-fprint(2, "fossil: diskWriteRaw failed: %s: %V: date=%s part=%s addr=%ud: %r\n",
-disk2file(disk), b->score, ctime(times(0)), partname[b->part], b->addr);
+				fprint(2, "fossil: diskWriteRaw failed: %s: "
+				    "score %V: date %s part=%s block %ud: %r\n",
+					disk2file(disk), b->score,
+					ctime(time(0)),
+					partname[b->part], b->addr);
 				break;
 			}
 			if(p != buf)
