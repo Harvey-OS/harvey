@@ -273,6 +273,7 @@ fidClunk(Fid* fid)
 	vtUnlock(fid->con->fidlock);
 
 	if(fid->ref > 0){
+		/* not reached - fidUnHash requires ref == 0 */
 		fidUnlock(fid);
 		return;
 	}

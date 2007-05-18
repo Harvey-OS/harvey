@@ -42,6 +42,7 @@ remote machine, with authority of the user of
 to perform work for the local machine using the
 .IR exportfs (4)
 service.
+The default port used is TCP 17007.
 If
 .I mountpoint
 is omitted
@@ -51,6 +52,8 @@ uses the name of the remote
 as the local mount point.
 .PP
 The options are:
+.TF "-s namexxx"
+.PD
 .TP
 .B -a -b -c -C
 Control the construction of union directories, as in
@@ -189,9 +192,10 @@ to restart
 .B /sys/src/cmd/import.c
 .SH SEE ALSO
 .IR bind (1),
-.IR aan (8),
 .IR ssl (3),
 .IR exportfs (4),
+.IR srv (4),
+.IR aan (8),
 .IR listen (8),
 .B cs
 in

@@ -523,6 +523,8 @@ cinema
 #
 xga=1024x768
 	include=1024x768
+xga=1280x1024
+	include=1280x1024
 xga
 	alias=svga
 
@@ -980,6 +982,13 @@ sm753DF=1024x768
 	shs=1072
 	vrs=769 vre=772 vt=808
 	hsync=+ vsync=+
+
+# Samsung SyncMaster 793v
+sm793v=1280x1024
+	videobw=110
+	defaultclock=108.00
+	shb=1328 ehb=1440 ht=1688
+	vrs=1025 vre=1028 vt=1066
 
 # Samsung SyncMaster 931BW
 sm931bw=1440x900
