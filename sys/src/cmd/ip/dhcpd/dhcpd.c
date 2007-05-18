@@ -321,6 +321,8 @@ proto(Req *rp, int n)
 	rp->e = rp->buf + n;
 	rp->bp = (Bootp*)rp->buf;
 	rp->up = (Udphdr*)rp->buf;
+	if (ipcmp(rp->up->laddr, IPv4bcast) == 0)
+		ipmove(rp->up->laddr, rp->up->ifcaddr);
 	rp->max = rp->buf + Udphdrsize + MINSUPPORTED - IPUDPHDRSIZE;
 	rp->p = rp->bp->optdata;
 	v4tov6(rp->giaddr, rp->bp->giaddr);

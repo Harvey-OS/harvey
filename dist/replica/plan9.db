@@ -53,14 +53,14 @@
 386/bin/auth/debug - 775 sys sys 1168402268 101566
 386/bin/auth/disable - 775 sys sys 1020319057 146
 386/bin/auth/enable - 775 sys sys 1020319057 134
-386/bin/auth/factotum - 775 sys sys 1179372069 321229
+386/bin/auth/factotum - 775 sys sys 1179432184 321266
 386/bin/auth/fgui - 775 sys sys 1179372070 219091
 386/bin/auth/guard.srv - 775 sys sys 1178568248 143650
 386/bin/auth/iam - 775 sys sys 1085076981 50791
 386/bin/auth/keyfs - 775 sys sys 1178568248 115094
 386/bin/auth/login - 775 sys sys 1179372070 104816
 386/bin/auth/newns - 775 sys sys 1179372070 90035
-386/bin/auth/none - 775 sys sys 1179372070 89318
+386/bin/auth/none - 775 sys sys 1179432184 89808
 386/bin/auth/pemdecode - 775 sys sys 1168402271 61715
 386/bin/auth/pemencode - 775 sys sys 1168402271 60113
 386/bin/auth/printnetkey - 775 sys sys 1176432130 40485
@@ -286,7 +286,7 @@
 386/bin/iostats - 775 sys sys 1178568280 98906
 386/bin/ip - 20000000775 sys sys 1016920851 0
 386/bin/ip/dhcpclient - 775 sys sys 1178568281 92992
-386/bin/ip/dhcpd - 775 sys sys 1178568281 149797
+386/bin/ip/dhcpd - 775 sys sys 1179458669 149879
 386/bin/ip/dhcpleases - 775 sys sys 1178568281 85069
 386/bin/ip/ftpd - 775 sys sys 1179372092 170567
 386/bin/ip/gping - 775 sys sys 1179372093 182147
@@ -5262,7 +5262,7 @@ lib/tftpd - 20000000775 sys sys 1020895767 0
 lib/unicode - 664 sys sys 958440028 223312
 lib/unicode.notice - 664 sys sys 958504386 1398
 lib/units - 664 sys sys 1071415518 9997
-lib/vgadb - 664 sys sys 1173737426 30457
+lib/vgadb - 664 sys sys 1179427249 30622
 lib/video.specs - 664 sys sys 1175869533 2942
 lib/volcanoes - 664 sys sys 944944024 119831
 lib/words - 664 sys sys 1014923442 247097
@@ -5816,7 +5816,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1178418339 265010
+sys/games/lib/fortunes - 664 sys sys 1179445990 265143
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -6108,7 +6108,7 @@ sys/lib/acid/alpha - 664 sys sys 944955985 4849
 sys/lib/acid/arm - 664 sys sys 1173788243 2090
 sys/lib/acid/coverage - 664 sys sys 944955985 1746
 sys/lib/acid/kernel - 664 sys sys 1134390252 6399
-sys/lib/acid/leak - 664 sys sys 1141940182 3022
+sys/lib/acid/leak - 664 sys sys 1179405289 3022
 sys/lib/acid/mips - 664 sys sys 944955985 5472
 sys/lib/acid/network - 664 sys sys 1020313817 2499
 sys/lib/acid/pool - 664 sys sys 1063858105 4898
@@ -7676,7 +7676,7 @@ sys/man/4/fossil - 664 sys sys 1165622806 9590
 sys/man/4/fs - 664 sys sys 1019058716 3387
 sys/man/4/ftpfs - 664 sys sys 1112563349 4410
 sys/man/4/httpfile - 664 sys sys 1128556957 1233
-sys/man/4/import - 664 sys sys 1165622806 3202
+sys/man/4/import - 664 sys sys 1179442944 3272
 sys/man/4/iostats - 664 sys sys 1105574383 1621
 sys/man/4/keyfs - 664 sys sys 1116594919 5048
 sys/man/4/kfs - 664 sys sys 1102088374 2164
@@ -7693,7 +7693,7 @@ sys/man/4/rdbfs - 664 sys sys 944959699 1123
 sys/man/4/rio - 664 sys sys 1023206844 8660
 sys/man/4/sacfs - 664 sys sys 964886843 907
 sys/man/4/snap - 664 sys sys 1169092032 1908
-sys/man/4/srv - 664 sys sys 1162907929 4685
+sys/man/4/srv - 664 sys sys 1179442921 4764
 sys/man/4/tapefs - 664 sys sys 1140965924 1861
 sys/man/4/telco - 664 sys sys 1015024814 4359
 sys/man/4/u9fs - 664 sys sys 1043769139 4748
@@ -9560,7 +9560,7 @@ sys/src/cmd/auth/factotum/log.c - 664 sys sys 1046655068 1781
 sys/src/cmd/auth/factotum/mkfile - 664 sys sys 1140694893 497
 sys/src/cmd/auth/factotum/p9any.c - 664 sys sys 1107706103 8484
 sys/src/cmd/auth/factotum/p9cr.c - 664 sys sys 1171690104 6721
-sys/src/cmd/auth/factotum/p9sk1.c - 664 sys sys 1171690098 9802
+sys/src/cmd/auth/factotum/p9sk1.c - 664 sys sys 1179405289 9834
 sys/src/cmd/auth/factotum/pass.c - 664 sys sys 1107706104 1514
 sys/src/cmd/auth/factotum/rpc.c - 664 sys sys 1107633794 11167
 sys/src/cmd/auth/factotum/rsa.c - 664 sys sys 1107706104 3416
@@ -9592,7 +9592,7 @@ sys/src/cmd/auth/login.c - 664 sys sys 1140272942 4002
 sys/src/cmd/auth/mkfile - 664 sys sys 1176422844 1793
 sys/src/cmd/auth/netkey.c - 664 sys sys 1155994849 758
 sys/src/cmd/auth/newns.c - 664 sys sys 1179368218 979
-sys/src/cmd/auth/none.c - 664 sys sys 1116769155 774
+sys/src/cmd/auth/none.c - 664 sys sys 1179405289 970
 sys/src/cmd/auth/passwd.c - 664 sys sys 1155994849 2786
 sys/src/cmd/auth/pemdecode.c - 664 sys sys 1084330528 947
 sys/src/cmd/auth/pemencode.c - 664 sys sys 1048614963 998
@@ -10312,7 +10312,7 @@ sys/src/cmd/fossil/9.h - 664 sys sys 1138465941 4438
 sys/src/cmd/fossil/9auth.c - 664 sys sys 1168308062 3960
 sys/src/cmd/fossil/9dir.c - 664 sys sys 1085333382 2219
 sys/src/cmd/fossil/9excl.c - 664 sys sys 1042005502 1887
-sys/src/cmd/fossil/9fid.c - 664 sys sys 1045600016 5521
+sys/src/cmd/fossil/9fid.c - 664 sys sys 1179405289 5571
 sys/src/cmd/fossil/9fsys.c - 664 sys sys 1177432002 33485
 sys/src/cmd/fossil/9lstn.c - 664 sys sys 1147355153 3038
 sys/src/cmd/fossil/9p.c - 664 sys sys 1140010159 22931
@@ -12463,7 +12463,7 @@ sys/src/cmd/ip/dhcpclient.c - 664 sys sys 1178482836 11969
 sys/src/cmd/ip/dhcpd - 20000000775 sys sys 1063897571 0
 sys/src/cmd/ip/dhcpd/dat.h - 664 sys sys 1084471353 2522
 sys/src/cmd/ip/dhcpd/db.c - 664 sys sys 1143670612 7466
-sys/src/cmd/ip/dhcpd/dhcpd.c - 664 sys sys 1178482946 33301
+sys/src/cmd/ip/dhcpd/dhcpd.c - 664 sys sys 1179429075 33386
 sys/src/cmd/ip/dhcpd/dhcpleases.c - 664 sys sys 1032655001 779
 sys/src/cmd/ip/dhcpd/mkfile - 664 sys sys 1169162185 443
 sys/src/cmd/ip/dhcpd/ndb.c - 664 sys sys 1172959226 6235

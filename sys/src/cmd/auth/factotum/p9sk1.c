@@ -273,9 +273,9 @@ p9skwrite(Fsstate *fss, void *a, uint n)
 
 		convM2T(tbuf, &s->t, (char*)s->key->priv);
 		if(s->t.num != AuthTc){
-			if(s->key->successes == 0)
+			if(s->key->successes == 0 && !s->speakfor)
 				disablekey(s->key);
-			if(askforkeys){
+			if(askforkeys && !s->speakfor){
 				snprint(fss->keyinfo, sizeof fss->keyinfo,
 					"%A %s", attr, p9sk1.keyprompt);
 				_freeattr(attr);

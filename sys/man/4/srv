@@ -212,6 +212,8 @@ that performs a version translation on the 9P messages on the underlying connect
 Some of its options are the same as those of
 .IR srv ;
 the special ones are:
+.TF "-u userxx"
+.PD
 .TP
 .B -d
 Enable debugging
@@ -311,9 +313,12 @@ and
 .br
 .B /rc/bin/srvssh
 .br
+.B /sys/src/cmd/srvold9p
 .SH "SEE ALSO"
 .IR bind (1),
 .IR dial (2),
 .IR srv (3),
+.IR exportfs (4),
+.IR import (4),
 .IR ftpfs (4),
 .IR u9fs (4)
