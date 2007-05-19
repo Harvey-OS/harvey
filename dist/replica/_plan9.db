@@ -286,7 +286,7 @@
 386/bin/iostats - 775 sys sys 1178568280 98906
 386/bin/ip - 20000000775 sys sys 1016920851 0
 386/bin/ip/dhcpclient - 775 sys sys 1178568281 92992
-386/bin/ip/dhcpd - 775 sys sys 1178568281 149797
+386/bin/ip/dhcpd - 775 sys sys 1179458669 149879
 386/bin/ip/dhcpleases - 775 sys sys 1178568281 85069
 386/bin/ip/ftpd - 775 sys sys 1179372092 170567
 386/bin/ip/gping - 775 sys sys 1179372093 182147
@@ -920,7 +920,7 @@ lib/dict - 20000000775 sys sys 1100894426 0
 lib/dict/README.pgw - 664 sys sys 1063660179 147
 lib/dict/README.roget - 664 sys sys 1100894426 105
 lib/face - 20000000775 sys sys 1142177403 0
-lib/face/.machinelist - 664 sys sys 1124711522 87
+lib/face/.machinelist - 664 sys sys 1179510563 463
 lib/face/48x48x1 - 20000000775 sys sys 1123100640 0
 lib/face/48x48x1/.dict - 664 sys sys 1142017686 10346
 lib/face/48x48x1/a - 20000000775 sys sys 1123100687 0
@@ -1402,7 +1402,7 @@ lib/face/48x48x4/x/xigh.1 - 664 sys sys 1142019024 1204
 lib/face/48x48x4/y - 20000000775 sys sys 1020895714 0
 lib/face/48x48x4/z - 20000000775 sys sys 1020895714 0
 lib/face/48x48x8 - 20000000775 sys sys 1123100641 0
-lib/face/48x48x8/.dict - 664 sys sys 1178172651 4056
+lib/face/48x48x8/.dict - 664 sys sys 1179510586 4082
 lib/face/48x48x8/Z - 20000000775 sys sys 1020895714 0
 lib/face/48x48x8/a - 20000000775 sys sys 1056983599 0
 lib/face/48x48x8/a/alcortes.1 - 664 sys sys 1176753392 976
@@ -1417,6 +1417,7 @@ lib/face/48x48x8/b/brucee.1 - 664 sys sys 1056982181 1512
 lib/face/48x48x8/b/brucee.2 - 664 sys sys 1176753392 1094
 lib/face/48x48x8/c - 20000000775 sys sys 1161061276 0
 lib/face/48x48x8/c/carlp.1 - 664 sys sys 1176753392 946
+lib/face/48x48x8/c/cbc.ca.1 - 664 sys sys 1179510622 1012
 lib/face/48x48x8/c/cespedes.1 - 664 sys sys 1176753392 957
 lib/face/48x48x8/c/chesky.1 - 664 sys sys 1161120611 1929
 lib/face/48x48x8/c/chrislocke.1 - 664 sys sys 1057005038 1613
@@ -7778,7 +7779,7 @@ sys/man/8/cron - 664 sys sys 1063858596 1867
 sys/man/8/dhcpd - 664 sys sys 1172959497 5572
 sys/man/8/disksim - 664 sys sys 1144150487 1476
 sys/man/8/drawterm - 664 sys sys 1135901219 1741
-sys/man/8/fossilcons - 664 sys sys 1179296666 18371
+sys/man/8/fossilcons - 664 sys sys 1179519561 18230
 sys/man/8/fs - 664 sys sys 1172956177 15086
 sys/man/8/fsconfig - 664 sys sys 1172956534 8878
 sys/man/8/fshalt - 664 sys sys 1173737264 862
@@ -7958,7 +7959,7 @@ sys/src/9/ip/esp.c - 664 sys sys 1047260561 17084
 sys/src/9/ip/ethermedium.c - 664 sys sys 1115565973 15592
 sys/src/9/ip/gre.c - 664 sys sys 1115566178 5069
 sys/src/9/ip/icmp.c - 664 sys sys 1134390100 9496
-sys/src/9/ip/icmp6.c - 664 sys sys 1176937812 17893
+sys/src/9/ip/icmp6.c - 664 sys sys 1179511008 18019
 sys/src/9/ip/igmp.c - 664 sys sys 1055700768 5175
 sys/src/9/ip/il.c - 664 sys sys 1134498903 27226
 sys/src/9/ip/inferno.c - 664 sys sys 1022588098 517
@@ -7968,7 +7969,7 @@ sys/src/9/ip/ipaux.c - 664 sys sys 1079538100 12862
 sys/src/9/ip/ipifc.c - 664 sys sys 1178172609 33638
 sys/src/9/ip/ipmux.c - 664 sys sys 1047260566 15362
 sys/src/9/ip/iproute.c - 664 sys sys 1168305878 14778
-sys/src/9/ip/ipv6.c - 664 sys sys 1176938017 14297
+sys/src/9/ip/ipv6.c - 664 sys sys 1179511010 14506
 sys/src/9/ip/ipv6.h - 664 sys sys 1176844019 4087
 sys/src/9/ip/loopbackmedium.c - 664 sys sys 1055701769 1671
 sys/src/9/ip/netdevmedium.c - 664 sys sys 1045063517 2675
@@ -15587,9 +15588,9 @@ sys/src/libregexp/regaux.c - 664 sys sys 944961751 2069
 sys/src/libregexp/regcomp.c - 664 sys sys 944961751 9572
 sys/src/libregexp/regcomp.h - 664 sys sys 1041196492 1986
 sys/src/libregexp/regerror.c - 664 sys sys 944961751 210
-sys/src/libregexp/regexec.c - 664 sys sys 1058129054 4975
+sys/src/libregexp/regexec.c - 664 sys sys 1179507091 4977
 sys/src/libregexp/regsub.c - 664 sys sys 988225293 1133
-sys/src/libregexp/rregexec.c - 664 sys sys 1058129062 4671
+sys/src/libregexp/rregexec.c - 664 sys sys 1179507092 4676
 sys/src/libregexp/rregsub.c - 664 sys sys 988225293 1156
 sys/src/libscribble - 20000000775 sys sys 1039727698 0
 sys/src/libscribble/graffiti.c - 664 sys sys 1116769753 7344
@@ -15769,7 +15770,7 @@ sys/src/libthread/ioreadn.c - 664 sys sys 1030537988 342
 sys/src/libthread/iosleep.c - 664 sys sys 1044429929 240
 sys/src/libthread/iowrite.c - 664 sys sys 1030537963 342
 sys/src/libthread/kill.c - 664 sys sys 1014928157 1336
-sys/src/libthread/lib.c - 664 sys sys 1014928158 709
+sys/src/libthread/lib.c - 664 sys sys 1179510703 711
 sys/src/libthread/main.c - 664 sys sys 1135487954 3150
 sys/src/libthread/mips.c - 664 sys sys 1014928158 583
 sys/src/libthread/mkfile - 664 sys sys 1127405452 1012
@@ -15831,4 +15832,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/ip/dhcpd - 775 sys sys 1179458669 149879

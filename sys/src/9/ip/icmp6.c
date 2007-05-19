@@ -311,13 +311,16 @@ goticmpkt6(Proto *icmp, Block *bp, int muxkey)
 }
 
 static Block *
-mkechoreply6(Block *bp)
+mkechoreply6(Block *bp, Ipifc *ifc)
 {
 	uchar addr[IPaddrlen];
 	IPICMP *p = (IPICMP *)(bp->rp);
 
 	ipmove(addr, p->src);
-	ipmove(p->src, p->dst);
+	if(!isv6mcast(p->dst))
+		ipmove(p->src, p->dst);
+	else if (!ipv6anylocal(ifc, p->src))
+		return nil;
 	ipmove(p->dst, addr);
 	p->type = EchoReplyV6;
 	set_cksum(bp);
@@ -721,7 +724,9 @@ icmpiput6(Proto *icmp, Ipifc *ipifc, Block *bp)
 
 	switch(p->type) {
 	case EchoRequestV6:
-		r = mkechoreply6(bp);
+		r = mkechoreply6(bp, ipifc);
+		if(r == nil)
+			goto raise;
 		ipriv->out[EchoReply]++;
 		ipoput6(icmp->f, r, 0, MAXTTL, DFLTTOS, nil);
 		break;

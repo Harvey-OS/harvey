@@ -15,7 +15,7 @@ _threadmalloc(long size, int z)
 		sysfatal("Malloc of size %ld failed: %r\n", size);
 	setmalloctag(m, getcallerpc(&size));
 	totalmalloc += size;
-	if (size > 1000000) {
+	if (size > 100000000) {
 		fprint(2, "Malloc of size %ld, total %ld\n", size, totalmalloc);
 		abort();
 	}

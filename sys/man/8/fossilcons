@@ -788,15 +788,6 @@ A subsequent
 will identify the abandoned storage so it can be reclaimed with
 .I bfree
 commands.
-The
-.I perm
-is formatted as described in the
-.I stat
-command ;
-creating files or directories with the
-snapshot
-.RB ( s )
-bit set is not allowed.
 .PP
 .I Clrp
 zeros a pointer in a disk block.
@@ -1086,6 +1077,7 @@ S	\fRMS-DOS system bit
 U	\fRsetuid
 Y	\fRsticky
 .EE
+.PP
 The bits denoted by capital letters are included
 to support non-Plan 9 systems.
 They are not made visible by the 9P protocol.
