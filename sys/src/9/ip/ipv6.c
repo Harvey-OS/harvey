@@ -381,6 +381,15 @@ ipiput6(Fs *f, Ipifc *ifc, Block *bp)
 			freeb(bp);
 			return;
 		}
+
+		/* don't forward to link-local destinations */
+		if(islinklocal(h->dst) ||
+		   (isv6mcast(h->dst) && (h->dst[1]&0xF) <= Link_local_scop)){
+			ip->stats[OutDiscards]++;
+			freeblist(bp);
+			return;
+		}
+			
 		/* don't forward to source's network */
 		sr = v6lookup(f, h->src, nil);
 		r  = v6lookup(f, h->dst, nil);

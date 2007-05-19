@@ -49007,3 +49007,12 @@
 1179442823 1 c sys/man/4/srv - 664 sys sys 1179442921 4764
 1179446422 0 c sys/games/lib/fortunes - 664 sys sys 1179445990 265143
 1179459022 0 c 386/bin/ip/dhcpd - 775 sys sys 1179458669 149879
+1179507622 0 c sys/src/libregexp/regexec.c - 664 sys sys 1179507091 4977
+1179507622 1 c sys/src/libregexp/rregexec.c - 664 sys sys 1179507092 4676
+1179511222 0 c lib/face/.machinelist - 664 sys sys 1179510563 463
+1179511222 1 c lib/face/48x48x8/.dict - 664 sys sys 1179510586 4082
+1179511222 2 a lib/face/48x48x8/c/cbc.ca.1 - 664 sys sys 1179510622 1012
+1179511222 3 c sys/src/9/ip/icmp6.c - 664 sys sys 1179511008 18019
+1179511222 4 c sys/src/9/ip/ipv6.c - 664 sys sys 1179511010 14506
+1179511222 5 c sys/src/libthread/lib.c - 664 sys sys 1179510703 711
+1179520221 0 c sys/man/8/fossilcons - 664 sys sys 1179519561 18230
