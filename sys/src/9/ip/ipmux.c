@@ -549,7 +549,7 @@ ipmuxremove(Ipmux **l, Ipmux *f)
 
 /*
  *  connection request is a semi separated list of filters
- *  e.g. proto=17;dat[0:4]=11aa22bb;ifc=135.104.9.2&255.255.255.0
+ *  e.g. proto=17;data[0:4]=11aa22bb;ifc=135.104.9.2&255.255.255.0
  *
  *  there's no protection against overlapping specs.
  */

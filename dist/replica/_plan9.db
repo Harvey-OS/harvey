@@ -7638,7 +7638,7 @@ sys/man/3/ether - 664 sys sys 1178597986 2890
 sys/man/3/floppy - 664 sys sys 954378905 881
 sys/man/3/fs - 664 sys sys 1175145095 3147
 sys/man/3/i82365 - 664 sys sys 954378906 884
-sys/man/3/ip - 664 sys sys 1178768702 24744
+sys/man/3/ip - 664 sys sys 1179708346 24886
 sys/man/3/kbmap - 664 sys sys 1131110122 1732
 sys/man/3/kprof - 664 sys sys 1018029972 1377
 sys/man/3/loopback - 664 sys sys 964662153 1995
@@ -7966,8 +7966,8 @@ sys/src/9/ip/inferno.c - 664 sys sys 1022588098 517
 sys/src/9/ip/ip.c - 664 sys sys 1176957040 15288
 sys/src/9/ip/ip.h - 664 sys sys 1176957139 15982
 sys/src/9/ip/ipaux.c - 664 sys sys 1079538100 12862
-sys/src/9/ip/ipifc.c - 664 sys sys 1178172609 33638
-sys/src/9/ip/ipmux.c - 664 sys sys 1047260566 15362
+sys/src/9/ip/ipifc.c - 664 sys sys 1179700017 34199
+sys/src/9/ip/ipmux.c - 664 sys sys 1179708314 15363
 sys/src/9/ip/iproute.c - 664 sys sys 1168305878 14778
 sys/src/9/ip/ipv6.c - 664 sys sys 1179511010 14506
 sys/src/9/ip/ipv6.h - 664 sys sys 1176844019 4087

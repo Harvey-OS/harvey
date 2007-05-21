@@ -1131,19 +1131,28 @@ enum {
 int
 v6addrtype(uchar *addr)
 {
+	int scope;
+
 	if(isv6global(addr))
 		return globalv6;
-	if(islinklocal(addr))
+	else if(islinklocal(addr))
 		return linklocalv6;
-	if(isv6mcast(addr))
-		return multicastv6;
-	if(issitelocal(addr))
+	else if(isv6mcast(addr)){
+		scope = addr[1] & 0xF;
+		if (scope <= Link_local_scop)
+			return linklocalv6;
+		else if (scope <= Site_local_scop)
+			return sitelocalv6;
+		else
+			return globalv6;
+	} else if(issitelocal(addr))
 		return sitelocalv6;
-	return unknownv6;
+	else
+		return unknownv6;
 }
 
-#define v6addrcurr(lifc) ((lifc)->origint + (lifc)->preflt >= NOW/1000 || \
-				(lifc)->preflt == ~0L)
+#define v6addrcurr(lifc) ((lifc)->preflt == ~0L || \
+			(lifc)->origint + (lifc)->preflt >= NOW/1000)
 
 static void
 findprimaryipv6(Fs *f, uchar *local)
@@ -1207,6 +1216,7 @@ void
 findlocalip(Fs *f, uchar *local, uchar *remote)
 {
 	int version, atype = unspecifiedv6, atypel = unknownv6;
+	int atyper, deprecated;
 	uchar gate[IPaddrlen], gnet[IPaddrlen];
 	Ipifc *ifc;
 	Iplifc *lifc;
@@ -1227,9 +1237,9 @@ findlocalip(Fs *f, uchar *local, uchar *remote)
 			ipmove(local, v6Unspecified);
 		}
 
-		/* find ifc address closest to the gateway to use */
 		switch(version) {
 		case V4:
+			/* find ifc address closest to the gateway to use */
 			for(lifc = ifc->lifc; lifc; lifc = lifc->next){
 				maskip(gate, lifc->mask, gnet);
 				if(ipcmp(gnet, lifc->net) == 0){
@@ -1239,18 +1249,29 @@ findlocalip(Fs *f, uchar *local, uchar *remote)
 			}
 			break;
 		case V6:
+			/* find ifc address with scope matching the destination */
+			atyper = v6addrtype(remote);
+			deprecated = 0;
 			for(lifc = ifc->lifc; lifc; lifc = lifc->next){
 				atypel = v6addrtype(lifc->local);
-				maskip(gate, lifc->mask, gnet);
-				if (ipcmp(gnet, lifc->net) == 0 &&
-				    atypel > atype && v6addrcurr(lifc)) {
+				/* prefer appropriate scope */
+				if(atypel > atype && atype < atyper ||
+				   atypel < atype && atype > atyper){
 					ipmove(local, lifc->local);
+					deprecated = !v6addrcurr(lifc);
 					atype = atypel;
-					if(atype == globalv6)
-						break;
+				} else if(atypel == atype){
+					/* avoid deprecated addresses */
+					if(deprecated && v6addrcurr(lifc)){
+						ipmove(local, lifc->local);
+						atype = atypel;
+						deprecated = 0;
+					}
 				}
+				if(atype == atyper && !deprecated)
+					goto out;
 			}
-			if(atype > unspecifiedv6)
+			if(atype >= atyper)
 				goto out;
 			break;
 		default:
