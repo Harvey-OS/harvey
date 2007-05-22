@@ -1,0 +1,141 @@
+.TH ECP 1
+.SH NAME
+ecp \- fast copy, handling errors
+.SH SYNOPSIS
+.in +.5i
+.ti -.5i
+.B ecp
+[
+.B \-bcprvZ
+] [
+.B \-B
+.I block-size
+] [
+.B \-e
+.I max-errors
+] [
+.B \-i
+.I issect
+] [
+.B \-o
+.I ossect
+] [
+.B \-s
+.I sector-size
+]
+.I sectors
+.I input
+.I output
+.SH DESCRIPTION
+.I Ecp
+copies
+.I sectors
+disk sectors of the specified
+.I input
+file to the specified
+.I output
+file.
+.I Ecp
+copies multiple sectors (a `block') at a time for speed.
+When
+.I ecp
+encounters an I/O error,
+it transfers the current block again,
+assuming the file is seekable,
+one sector at a time,
+prints the sector number(s) of the error(s),
+and continues copying.
+.PP
+Options are:
+.TP 4
+.B \-b
+reblock
+.IR input
+on short reads;
+this was used mainly when reading a pipe on standard input
+on 4.2+BSD systems.
+.TP
+.B \-B
+sets the block size (16,384 bytes by default) to
+.IR block-size .
+.TP
+.B \-c
+ask for confirmation on
+.B /dev/cons
+before starting the copy.
+.TP
+.B \-e
+sets a maximum number of consecutive I/O errors to permit
+at the beginning of the copy before quitting to
+.IR max-errors .
+Lots of consecutive errors may indicate a deeper problem,
+such as missing media.
+By default there is no limit.
+.TP
+.B \-i
+seeks to sector
+.I issect
+(assuming zero-origin)
+before beginning input.
+.TP
+.B \-o
+seeks to sector
+.I ossect
+(assuming zero-origin)
+before beginning output.
+.TP
+.B \-p
+print reassuring progress reports;
+helpful mainly when dealing with cranky hardware.
+.TP
+.B \-r
+copy sector groups in reverse order,
+assuming the files are seekable;
+this is most useful when
+.I input
+and
+.I output
+overlap.
+.TP
+.B \-s
+sets the sector size (512 bytes by default) to
+.IR sector-size .
+.TP
+.B \-v
+verify the copy by rereading the
+.I input
+and
+.I output
+files after copying all sectors.
+This is intended to force the disk to deliver the actual
+data written on it rather than some cached copy.
+The locations of any differences are printed.
+.TP
+.B \-Z
+`Swizzle' the input: stir the bits around in some fashion.
+Intended for diagnosing bad disks by copying a disk to itself
+a few times with swizzling on (to defeat caching in operating systems
+or disk controllers).
+.SH "SEE ALSO"
+.I fcp
+in
+.IR cp (1),
+.IR dd (1),
+.IR dup (3)
+.SH BUGS
+.BR \-i ,
+.BR \-o ,
+.BR \-r ,
+.B \-v
+and error retries only work on devices capable of seeking.
+.PP
+The set of options reflects decades of experience
+dealing with troublesome hardware.
+.PP
+If the input file is a tape and
+the last record on the tape before a file mark is less than
+.I blocksize
+bytes long,
+then
+.I ecp
+will read through past the file mark and into the next file.

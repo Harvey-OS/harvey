@@ -11,9 +11,9 @@ enum {
 
 static char *encprotos[] = {
 	[Encnone] =	"clear",
-	[Encssl] =		"ssl",
-	[Enctls] = 		"tls",
-				nil,
+	[Encssl] =	"ssl",
+	[Enctls] = 	"tls",
+			nil,
 };
 
 char		*keyspec = "";
@@ -35,6 +35,31 @@ void	usage(void);
 int	filter(int, char *, char *);
 
 static void	mksecret(char *, uchar *);
+
+/*
+ * based on libthread's threadsetname, but drags in less library code.
+ * actually just sets the arguments displayed.
+ */
+void
+procsetname(char *fmt, ...)
+{
+	int fd;
+	char *cmdname;
+	char buf[128];
+	va_list arg;
+
+	va_start(arg, fmt);
+	cmdname = vsmprint(fmt, arg);
+	va_end(arg);
+	if (cmdname == nil)
+		return;
+	snprint(buf, sizeof buf, "#p/%d/args", getpid());
+	if((fd = open(buf, OWRITE)) >= 0){
+		write(fd, cmdname, strlen(cmdname)+1);
+		close(fd);
+	}
+	free(cmdname);
+}
 
 void
 post(char *name, char *envname, int srvfd)
@@ -66,12 +91,10 @@ lookup(char *s, char *l[])
 void
 main(int argc, char **argv)
 {
-	char *mntpt;
-	int fd, mntflags;
-	int oldserver;
-	char *srvpost, srvfile[64];
-	int backwards = 0;
+	char *mntpt, *srvpost, srvfile[64];
+	int backwards = 0, fd, mntflags, oldserver;
 
+	quotefmtinstall();
 	srvpost = nil;
 	oldserver = 0;
 	mntflags = MREPL;
@@ -160,7 +183,8 @@ main(int argc, char **argv)
 		fd = connect(argv[0], argv[1], oldserver);
 
 	if (!oldserver)
-		fprint(fd, "impo %s %s\n", filterp? "aan": "nofilter", encprotos[encproto]);
+		fprint(fd, "impo %s %s\n", filterp? "aan": "nofilter",
+			encprotos[encproto]);
 
 	if (encproto != Encnone && ealgs && ai) {
 		uchar key[16];
@@ -189,6 +213,7 @@ main(int argc, char **argv)
 			fd = filter(fd, filterp, argv[0]);
 
 		/* set up encryption */
+		procsetname("pushssl");
 		fd = pushssl(fd, ealgs, fromclientsecret, fromserversecret, nil);
 		if(fd < 0)
 			sysfatal("can't establish ssl connection: %r");
@@ -201,6 +226,7 @@ main(int argc, char **argv)
 		remove(srvfile);
 		post(srvfile, srvpost, fd);
 	}
+	procsetname("mount on %s", mntpt);
 	if(mount(fd, -1, mntpt, mntflags, "") < 0)
 		sysfatal("can't mount %s: %r", argv[1]);
 	alarm(0);
@@ -226,6 +252,7 @@ old9p(int fd)
 {
 	int p[2];
 
+	procsetname("old9p");
 	if(pipe(p) < 0)
 		sysfatal("pipe: %r");
 
@@ -267,6 +294,7 @@ connect(char *system, char *tree, int oldserver)
 	char *authp;
 
 	na = netmkaddr(system, 0, "exportfs");
+	procsetname("dial %s", na);
 	if((fd = dial(na, 0, dir, 0)) < 0)
 		sysfatal("can't dial %s: %r", system);
 
@@ -276,18 +304,22 @@ connect(char *system, char *tree, int oldserver)
 		else
 			authp = "p9any";
 
+		procsetname("auth_proxy auth_getkey proto=%q role=client %s",
+			authp, keyspec);
 		ai = auth_proxy(fd, auth_getkey, "proto=%q role=client %s",
 			authp, keyspec);
 		if(ai == nil)
 			sysfatal("%r: %s", system);
 	}
 
+	procsetname("writing tree name %s", tree);
 	n = write(fd, tree, strlen(tree));
 	if(n < 0)
 		sysfatal("can't write tree: %r");
 
 	strcpy(buf, "can't read tree");
 
+	procsetname("awaiting OK for %s", tree);
 	n = read(fd, buf, sizeof buf - 1);
 	if(n!=2 || buf[0]!='O' || buf[1]!='K'){
 		if (timedout)
@@ -310,6 +342,7 @@ passive(void)
 	 * Ignore doauth==0 on purpose.  Is it useful here?
 	 */
 
+	procsetname("auth_proxy auth_getkey proto=p9any role=server");
 	ai = auth_proxy(0, auth_getkey, "proto=p9any role=server");
 	if(ai == nil)
 		sysfatal("auth_proxy: %r");
@@ -329,7 +362,8 @@ passive(void)
 void
 usage(void)
 {
-	fprint(2, "usage: import [-abcC] [-A] [-E clear|ssl|tls] [-e 'crypt auth'|clear] [-k keypattern] [-p] host remotefs [mountpoint]\n");
+	fprint(2, "usage: import [-abcC] [-A] [-E clear|ssl|tls] "
+"[-e 'crypt auth'|clear] [-k keypattern] [-p] host remotefs [mountpoint]\n");
 	exits("usage");
 }
 

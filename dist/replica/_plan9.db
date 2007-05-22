@@ -221,8 +221,9 @@
 386/bin/disk/prep - 775 sys sys 1168402303 96167
 386/bin/disk/sacfs - 775 sys sys 1020319075 79882
 386/bin/dossrv - 775 sys sys 1178568267 136537
-386/bin/du - 775 sys sys 1168402304 74244
+386/bin/du - 775 sys sys 1179777650 76275
 386/bin/echo - 775 sys sys 1168402304 57592
+386/bin/ecp - 775 sys sys 1179777651 72588
 386/bin/ed - 775 sys sys 1179548024 93463
 386/bin/eqn - 775 sys sys 1173754555 244858
 386/bin/execnet - 775 sys sys 1179548024 176802
@@ -282,9 +283,10 @@
 386/bin/ico - 775 sys sys 1179372092 162180
 386/bin/iconv - 775 sys sys 1168402316 113629
 386/bin/idiff - 775 sys sys 1168402317 76342
-386/bin/import - 775 sys sys 1179372092 101830
+386/bin/import - 775 sys sys 1179777651 102499
 386/bin/iostats - 775 sys sys 1178568280 98906
 386/bin/ip - 20000000775 sys sys 1016920851 0
+386/bin/ip/6in4 - 775 sys sys 1179777651 88513
 386/bin/ip/dhcpclient - 775 sys sys 1178568281 92992
 386/bin/ip/dhcpd - 775 sys sys 1179458669 149879
 386/bin/ip/dhcpleases - 775 sys sys 1178568281 85069
@@ -5482,7 +5484,7 @@ rc/bin/b: - 775 sys sys 1015089510 204
 rc/bin/broke - 775 sys sys 1143389260 142
 rc/bin/bundle - 775 sys sys 945617206 173
 rc/bin/c: - 775 sys sys 1015089511 86
-rc/bin/cpurc - 775 sys sys 1176444833 1884
+rc/bin/cpurc - 775 sys sys 1179769494 2009
 rc/bin/cpurc.local - 775 sys sys 1176827268 367
 rc/bin/delkey - 775 sys sys 1109429137 643
 rc/bin/dial - 20000000775 sys sys 1059180057 0
@@ -5606,7 +5608,7 @@ rc/bin/start - 775 sys sys 945617209 120
 rc/bin/stock - 775 sys sys 1143126371 292
 rc/bin/stop - 775 sys sys 945617209 110
 rc/bin/tel - 775 sys sys 1161209756 128
-rc/bin/termrc - 775 sys sys 1177705963 2281
+rc/bin/termrc - 775 sys sys 1179769653 2479
 rc/bin/termrc.local - 775 sys sys 1176500067 425
 rc/bin/thesaurus - 775 sys sys 1068054167 246
 rc/bin/tlsclienttunnel - 775 sys sys 1024375633 153
@@ -7358,8 +7360,9 @@ sys/man/1/deroff - 664 sys sys 1113743324 1826
 sys/man/1/diff - 664 sys sys 1140694865 3089
 sys/man/1/doc2txt - 664 sys sys 1166761437 2304
 sys/man/1/doctype - 664 sys sys 1113743325 860
-sys/man/1/du - 664 sys sys 1134556965 1358
+sys/man/1/du - 664 sys sys 1179726832 2281
 sys/man/1/echo - 664 sys sys 1079969656 430
+sys/man/1/ecp - 664 sys sys 1179725473 2576
 sys/man/1/ed - 664 sys sys 961259286 13916
 sys/man/1/emacs - 664 sys sys 944959673 199
 sys/man/1/eqn - 664 sys sys 1134592617 5655
@@ -7764,6 +7767,7 @@ sys/man/7/playlistfs - 664 sys sys 1103794042 3831
 sys/man/7/scat - 664 sys sys 970069855 8904
 sys/man/8 - 20000000775 sys sys 1162240005 0
 sys/man/8/0intro - 664 sys sys 944959679 247
+sys/man/8/6in4 - 664 sys sys 1179779762 1655
 sys/man/8/9load - 664 sys sys 1094676489 9170
 sys/man/8/9pcon - 664 sys sys 1145881850 2234
 sys/man/8/INDEX - 664 sys sys 1178249215 2888
@@ -8164,7 +8168,7 @@ sys/src/9/port/devcons.c - 664 sys sys 1176658321 22943
 sys/src/9/port/devdraw.c - 664 sys sys 1147023550 44447
 sys/src/9/port/devdup.c - 664 sys sys 1014931172 2332
 sys/src/9/port/devenv.c - 664 sys sys 1169498893 7015
-sys/src/9/port/devfs.c - 664 sys sys 1179356387 12406
+sys/src/9/port/devfs.c - 664 sys sys 1179726929 12395
 sys/src/9/port/devkbmap.c - 664 sys sys 1130763846 3064
 sys/src/9/port/devkprof.c - 664 sys sys 1014931173 3111
 sys/src/9/port/devloopback.c - 664 sys sys 1138458368 14579
@@ -10224,8 +10228,9 @@ sys/src/cmd/dossrv/lock.c - 664 sys sys 954305577 504
 sys/src/cmd/dossrv/mkfile - 664 sys sys 1032057270 310
 sys/src/cmd/dossrv/xfile.c - 664 sys sys 1017679315 4391
 sys/src/cmd/dossrv/xfssrv.c - 664 sys sys 1018323479 3397
-sys/src/cmd/du.c - 664 sys sys 1134659785 3421
+sys/src/cmd/du.c - 664 sys sys 1179726818 5425
 sys/src/cmd/echo.c - 664 sys sys 1081736344 581
+sys/src/cmd/ecp.c - 664 sys sys 1179725473 14664
 sys/src/cmd/ed.c - 664 sys sys 1143695286 21933
 sys/src/cmd/eqn - 20000000775 sys sys 1055698950 0
 sys/src/cmd/eqn/diacrit.c - 664 sys sys 944960989 2302
@@ -12450,7 +12455,7 @@ sys/src/cmd/htmlroff/t9.c - 664 sys sys 1138396082 47
 sys/src/cmd/htmlroff/util.c - 664 sys sys 1138458817 1625
 sys/src/cmd/iconv.c - 664 sys sys 1039753035 1801
 sys/src/cmd/idiff.c - 664 sys sys 1014926695 6896
-sys/src/cmd/import.c - 664 sys sys 1174944074 7118
+sys/src/cmd/import.c - 664 sys sys 1179763017 7949
 sys/src/cmd/init.c - 664 sys sys 1121977160 4462
 sys/src/cmd/iostats - 20000000775 sys sys 1055699098 0
 sys/src/cmd/iostats/iostats.c - 664 sys sys 1140099908 10209
@@ -12458,6 +12463,7 @@ sys/src/cmd/iostats/mkfile - 664 sys sys 1014925727 122
 sys/src/cmd/iostats/statfs.h - 664 sys sys 1140099908 2626
 sys/src/cmd/iostats/statsrv.c - 664 sys sys 1166824341 10773
 sys/src/cmd/ip - 20000000775 sys sys 1128605981 0
+sys/src/cmd/ip/6in4.c - 664 sys sys 1179783180 7341
 sys/src/cmd/ip/arp.h - 664 sys sys 944961005 751
 sys/src/cmd/ip/dhcp.h - 664 sys sys 1178483074 3419
 sys/src/cmd/ip/dhcpclient.c - 664 sys sys 1178482836 11969
@@ -12603,7 +12609,7 @@ sys/src/cmd/ip/telnet.c - 664 sys sys 1162416789 8621
 sys/src/cmd/ip/telnet.h - 664 sys sys 1015090250 5902
 sys/src/cmd/ip/telnetd.c - 664 sys sys 1135487948 11772
 sys/src/cmd/ip/tftpd.c - 664 sys sys 1106943821 7646
-sys/src/cmd/ip/traceroute.c - 664 sys sys 1169162086 8637
+sys/src/cmd/ip/traceroute.c - 664 sys sys 1179779560 8645
 sys/src/cmd/ip/udpecho.c - 664 sys sys 1178483004 789
 sys/src/cmd/join.c - 664 sys sys 1158251357 7550
 sys/src/cmd/jpg - 20000000775 sys sys 1132458749 0
@@ -15832,3 +15838,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/ip/traceroute - 775 sys sys 1179804021 72750

@@ -4,13 +4,14 @@ du \- disk usage
 .SH SYNOPSIS
 .B du
 [
-.B -afnqstu
-]
-[
+.B -aefhnqstu
+] [
 .B -b
 .I size
-]
-[
+] [
+.B -p
+.I SI-prefix
+] [
 .I file ...
 ]
 .SH DESCRIPTION
@@ -19,7 +20,7 @@ gives the number of Kbytes allocated to data blocks
 of named
 .I files
 and, recursively, of files in named directories.
-It assumes storage is quantized in units of 1024 bytes (Kbytes) by default. 
+It assumes storage is quantized in units of 1024 bytes (Kbytes) by default.
 Other values can be set by the
 .B -b
 option;
@@ -42,8 +43,7 @@ Normally counts are printed only for contained directories.
 .PP
 The
 .B -f
-option ignores errors,
-otherwise it stops on the first error.
+option suppresses the printing of warning messages.
 .PP
 The
 .B -n
@@ -66,15 +66,72 @@ The
 option prints, in the format of
 .B du
 .BR -n ,
-the QID of
+the QID path of
 each file rather than the size.
 .PP
-Finally, the
+The
 .B -s
 option causes
 .I du
 to descend the hierarchy as always, but to print only a summary line
 for each
 .IR file .
+.PP
+The
+.B -e
+option causes
+.I du
+to print values (sizes, times or QID paths)
+in `scientific notation' via
+.IR print (2)'s
+.BR %g .
+.PP
+The
+.B -h
+option causes
+.I du
+to print values (sizes, times or QID paths)
+in scientific notation,
+scaled to less than 1024, and with a suitable SI prefix
+(e.g.,
+.L G
+for binary gigabytes).
+.PP
+The
+.B -p
+option causes
+.I du
+to print values (sizes, times or QID paths)
+in units of
+.IR SI-prefix .
+Case is ignored when looking up
+.IR SI-prefix .
+An empty
+.IR SI-prefix
+corresponds to a scale factor of 1 (e.g., print sizes in bytes).
+.\" .PP
+.\" The
+.\" .B -r
+.\" option causes
+.\" .I du
+.\" to read and discard every byte of every file encountered.
+.SH EXAMPLES
+Print the size of
+.L /tmp
+in fractional binary gigabytes:
+.IP
+.EX
+% du -sepg /tmp
+\&.6960154	/tmp
+.EE
+.LP
+Print the size of
+.L /tmp
+in bytes and in scientific notation:
+.IP
+.EX
+% du -sep '' /tmp
+7.473408e+08	/tmp
+.EE
 .SH SOURCE
 .B /sys/src/cmd/du.c
