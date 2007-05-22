@@ -12,8 +12,6 @@ sysname=`{cat /dev/sysname}
 # parallelism for mk
 NPROC = `{wc -l </dev/sysstat}
 
-prompt=($sysname^'# ' '	')
-
 # site-specific startup
 if(test -e /rc/bin/cpurc.local)
 	. /rc/bin/cpurc.local
@@ -23,6 +21,14 @@ if(test -e /rc/bin/cpurc.local)
 # ndb/dns -s
 # ip/dhcpd
 # ip/tftpd
+
+if (~ $#sysname 0 || ~ $sysname '') {
+	sysname = helix			# default
+	echo -n $sysname >/dev/sysname
+}
+prompt=($sysname^'# ' '	')
+
+# cpu-specific startup
 if(test -e /cfg/$sysname/cpurc)
 	. /cfg/$sysname/cpurc
 

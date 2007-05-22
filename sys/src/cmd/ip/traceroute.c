@@ -364,7 +364,7 @@ main(int argc, char **argv)
 		ttl = atoi(EARGF(usage()));
 		break;
 	case 'x':
-		net = ARGF();
+		net = EARGF(usage());
 		break;
 	default:
 		usage();

@@ -1,0 +1,88 @@
+.TH 6IN4 8
+.SH NAME
+6in4 - configure and run automatic or manual 6to4 tunnel of IPv6 through IPv4
+.SH SYNOPSIS
+.B ip/6in4
+[
+.B -ag
+] [
+.B -x
+.I netmtpt
+]
+.IB local6[ / mask]
+[
+.I remote4
+[
+.I remote6
+] ]
+.B &
+.SH DESCRIPTION
+.I 6in4
+sets up and maintains a tunnel of IPv6 traffic through an IPv4 connection.
+.I Local6
+and
+.I mask
+define the IPv6 address and subnet of the near end of the tunnel
+.RI ( mask
+defaults to
+.L /128
+for a single-host
+tunnel),
+.I remote4
+is the IPv4 address of the far end of the tunnel
+(must be given explicitly for a configured tunnel, or
+defaults to the anycast address 192.88.99.1 for
+.IR 6to4 ),
+and
+.I remote6
+is the IPv6 address of the far end of the tunnel
+(used as the point-to-point destination for routing, and
+defaults to a link-local address constructed from
+.IR remote4 ).
+.PP
+Supply
+.B -g
+to use the tunnel as the default route for global IPv6 addresses.
+.B -x
+uses the network mounted at
+.I netmtpt
+instead of
+.LR /net .
+.SH EXAMPLES
+If your public IPv6 address is
+.LR 1.2.3.4,
+you can start a 6to4 tunnel simply with
+.IP
+.EX
+6in4 -g 2002:0102:0304::1/48
+.EE
+.PP
+If you use a tunnel broker at address
+.LR 5.6.7.8 , configured to
+give you a
+.L /64
+subnet with address
+.LR 2001:1122:3344:5566:: ,
+you can start the tunnel with
+.IP
+.EX
+6in4 -g 2001:1122:3344:5566::/64 5.6.7.8
+.EE
+.SH FILES
+.B /net/ipmux
+.SH SEE ALSO
+.I ipmux
+in
+.IR ip (3)
+.br
+.B /lib/rfc/rfc3056
+.br
+.B /lib/rfc/rfc3068
+.SH BUGS
+Needs a kernel with an
+.I ipmux
+driver.
+.PP
+The tunnel client filters addresses fairly conservatively in both directions.
+However it's not watertight,
+and may be flakey in other ways so don't put too much trust in it.

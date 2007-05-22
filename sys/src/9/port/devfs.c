@@ -445,16 +445,16 @@ io(Fsdev *mp, Inner *in, int isread, void *a, long l, vlong off)
 	if (isread) {
 		wl = devtab[mc->type]->read(mc, a, l, off);
 		if (wl != l) {
-			print("#k: %s byte %,lld (of %s): short read\n",
-				in->iname, off, mp->name);
-			nexterror();
+//			print("#k: %s byte %,lld (of %s): short read\n",
+//				in->iname, off, mp->name);
+			error("#k: short read");
 		}
 	} else {
 		wl = devtab[mc->type]->write(mc, a, l, off);
 		if (wl != l) {
-			print("#k: %s byte %,lld (of %s): write error\n",
-				in->iname, off, mp->name);
-			nexterror();
+//			print("#k: %s byte %,lld (of %s): write error\n",
+//				in->iname, off, mp->name);
+			error("#k: write error");
 		}
 	}
 	poperror();
@@ -565,10 +565,8 @@ mread(Chan *c, void *a, long n, vlong off)
 		break;
 	case Fmirror:
 		for (i = 0; i < mp->ndevs; i++){
-			if (waserror()){
-				poperror();
+			if (waserror())
 				continue;
-			}
 			in = &mp->inner[i];
 			l = io(mp, in, Isread, a, n, off);
 			poperror();
@@ -623,10 +621,8 @@ mwrite(Chan *c, void *a, long n, vlong off)
 	case Fmirror:
 		allbad = 1;
 		for (i = mp->ndevs - 1; i >= 0; i--){
-			if (waserror()){
-				poperror();
+			if (waserror())
 				continue;
-			}
 			in = &mp->inner[i];
 			l = io(mp, in, Iswrite, a, n, off);
 			poperror();

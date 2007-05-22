@@ -18,6 +18,8 @@ if (! ~ $#disk 0)
 	swap $disk(1) >/dev/null >[2=1]
 rm /env/disk
 
+# we do this before we have a name.  we may need to do network
+# setup so that we can get a name.
 if(test -e /rc/bin/termrc.local)
 	. /rc/bin/termrc.local
 
@@ -25,6 +27,10 @@ if(test -e /rc/bin/termrc.local)
 if(! test -e /srv/cs)
 	ndb/cs -f $NDBFILE
 sysname=`{cat /dev/sysname}
+if (~ $#sysname 0 || ~ $sysname '') {
+	sysname = gnot			# default
+	echo -n $sysname >/dev/sysname
+}
 
 # machine specific startup (e.g., for devices not probed)
 if(test -e /cfg/$sysname/termrc)
