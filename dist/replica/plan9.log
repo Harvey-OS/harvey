@@ -49100,3 +49100,8 @@
 1179781224 2 c sys/src/cmd/ip/traceroute.c - 664 sys sys 1179779560 8645
 1179783024 0 c sys/src/cmd/ip/6in4.c - 664 sys sys 1179783180 7341
 1179804623 0 c 386/bin/ip/traceroute - 775 sys sys 1179804021 72750
+1179946824 0 c sys/src/cmd/upas/common/appendfiletombox.c - 664 sys sys 1179946114 2563
+1179952222 0 c sys/src/9/port/devfs.c - 664 sys sys 1179951300 12209
+1179957623 0 c sys/games/lib/fortunes - 664 sys sys 1179957238 265482
+1179977422 0 c 386/bin/upas/deliver - 775 sys sys 1179976975 99212
+1179977422 1 c 386/bin/upas/nedmail - 775 sys sys 1179976975 156013
