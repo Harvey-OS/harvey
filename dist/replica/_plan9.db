@@ -455,7 +455,7 @@
 386/bin/upas/addhash - 775 sys sys 1178568309 70721
 386/bin/upas/aliasmail - 775 sys sys 1178568309 104105
 386/bin/upas/bayes - 775 sys sys 1178568309 73372
-386/bin/upas/deliver - 775 sys sys 1178568310 99134
+386/bin/upas/deliver - 775 sys sys 1179976975 99212
 386/bin/upas/filter - 775 sys sys 1179548034 146753
 386/bin/upas/fs - 775 sys sys 1178568311 331725
 386/bin/upas/isspam - 775 sys sys 1064598349 38
@@ -466,7 +466,7 @@
 386/bin/upas/mlowner - 775 sys sys 1177617496 92263
 386/bin/upas/msgcat - 775 sys sys 1064598353 38
 386/bin/upas/msgtok - 775 sys sys 1176520508 76758
-386/bin/upas/nedmail - 775 sys sys 1179548035 155935
+386/bin/upas/nedmail - 775 sys sys 1179976975 156013
 386/bin/upas/pop3 - 775 sys sys 1179372109 261615
 386/bin/upas/qer - 775 sys sys 1178568313 99195
 386/bin/upas/ratfs - 775 sys sys 1178568314 110177
@@ -15838,5 +15838,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/upas/deliver - 775 sys sys 1179976975 99212
-386/bin/upas/nedmail - 775 sys sys 1179976975 156013
