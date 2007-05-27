@@ -237,9 +237,9 @@
 386/bin/fortune - 775 sys sys 1168402308 67356
 386/bin/fossil - 20000000775 sys sys 1042005470 0
 386/bin/fossil/conf - 775 sys sys 1085077052 1506
-386/bin/fossil/flchk - 775 sys sys 1179372086 237132
-386/bin/fossil/flfmt - 775 sys sys 1179372087 245153
-386/bin/fossil/fossil - 775 sys sys 1179372087 363789
+386/bin/fossil/flchk - 775 sys sys 1180209225 237116
+386/bin/fossil/flfmt - 775 sys sys 1180209226 245137
+386/bin/fossil/fossil - 775 sys sys 1180209226 363773
 386/bin/fossil/last - 775 sys sys 1168402310 63550
 386/bin/freq - 775 sys sys 1168402310 62040
 386/bin/fs - 20000000775 sys sys 954380769 0
@@ -10334,7 +10334,7 @@ sys/src/cmd/fossil/archive.c - 664 sys sys 1087005594 10230
 sys/src/cmd/fossil/build - 664 sys sys 1042005505 449
 sys/src/cmd/fossil/buildsh - 775 sys sys 1042005505 561
 sys/src/cmd/fossil/bwatch.c - 664 sys sys 1042005505 6754
-sys/src/cmd/fossil/cache.c - 664 sys sys 1176500208 43930
+sys/src/cmd/fossil/cache.c - 664 sys sys 1180158132 43913
 sys/src/cmd/fossil/check.c - 664 sys sys 1177432003 17448
 sys/src/cmd/fossil/conf.rc - 775 sys sys 1084333190 1416
 sys/src/cmd/fossil/dat.h - 664 sys sys 1177432005 7655

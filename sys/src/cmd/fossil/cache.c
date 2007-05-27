@@ -1607,7 +1607,6 @@ blistAlloc(Block *b)
 		 * (The flush thread never blocks waiting for a block,
 		 * so it can't deadlock like we can.)
 		 */
-		vtLock(c->lk);
 		while(c->blfree == nil){
 			vtWakeup(c->flush);
 			vtSleep(c->blrend);
