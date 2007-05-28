@@ -260,8 +260,11 @@ mconfig(char* a, long n)	/* "name idev0 idev1" */
 		inprv = &mp->inner[i-1];
 		kstrdup(&inprv->iname, cb->f[i]);
 		inprv->idev = namec(inprv->iname, Aopen, ORDWR, 0);
-		if (inprv->idev == nil)
+		if (inprv->idev == nil) {
+			free(mp->name);
+			mp->name = nil;		/* free mp */
 			error(Egreg);
+		}
 		mp->ndevs++;
 	}
 	setdsize(mp);
@@ -412,11 +415,12 @@ mstat(Chan *c, uchar *db, int n)
 static Chan*
 mopen(Chan *c, int omode)
 {
+//	TODO: call devopen()?
 	if((c->qid.type & QTDIR) && omode != OREAD)
 		error(Eperm);
-	if (omode & OTRUNC)
-		omode &= ~OTRUNC;
-	c->mode = openmode(omode);
+//	if (c->flag & COPEN)
+//		return c;
+	c->mode = openmode(omode & ~OTRUNC);
 	c->flag |= COPEN;
 	c->offset = 0;
 	return c;
@@ -436,7 +440,7 @@ io(Fsdev *mp, Inner *in, int isread, void *a, long l, vlong off)
 	Chan *mc = in->idev;
 
 	if (waserror()) {
-		print("#k: %s byte %,lld count %ld (of #k/%s): %s error: %s\n",
+		print("#k: %s: byte %,lld count %ld (of #k/%s): %s error: %s\n",
 			in->iname, off, l, mp->name, (isread? "read": "write"),
 			(up && up->errstr? up->errstr: ""));
 		nexterror();
@@ -524,7 +528,7 @@ interio(Fsdev *mp, int isread, void *a, long n, vlong off)
 static long
 mread(Chan *c, void *a, long n, vlong off)
 {
-	int	i;
+	int	i, retry;
 	long	l, res;
 	Fsdev	*mp;
 	Inner	*in;
@@ -557,19 +561,36 @@ mread(Chan *c, void *a, long n, vlong off)
 		assert(res == n);
 		break;
 	case Fmirror:
-		for (i = 0; i < mp->ndevs; i++){
-			if (waserror())
-				continue;
-			in = &mp->inner[i];
-			l = io(mp, in, Isread, a, n, off);
-			poperror();
-			if (l >= 0){
-				res = l;
-				break;		/* read a good copy */
+		retry = 0;
+		do {
+			if (retry > 0) {
+				print("#k/%s: retry %d read for byte %,lld "
+					"count %ld: %s\n", mp->name, retry, off,
+					n, (up && up->errstr? up->errstr: ""));
+				tsleep(&up->sleep, return0, 0, 2000);
 			}
-		}
-		if (i == mp->ndevs) /* no mirror had a good copy of the block? */
-			error(Eio);	/* RRRT! RRRT!  RAID failure! */
+			for (i = 0; i < mp->ndevs; i++){
+				if (waserror())
+					continue;
+				in = &mp->inner[i];
+				l = io(mp, in, Isread, a, n, off);
+				poperror();
+				if (l >= 0){
+					res = l;
+					break;		/* read a good copy */
+				}
+			}
+		} while (i == mp->ndevs && ++retry < 2);
+		if (i == mp->ndevs) {
+			/* no mirror had a good copy of the block */
+			print("#k/%s: byte %,lld count %ld: CAN'T READ "
+				"from mirror: %s\n", mp->name, off, n,
+				(up && up->errstr? up->errstr: ""));
+			error(Eio);
+		} else if (retry > 0)
+			print("#k/%s: byte %,lld count %ld: retry read OK "
+				"from mirror: %s\n", mp->name, off, n,
+				(up && up->errstr? up->errstr: ""));
 		break;
 	}
 	return res;
@@ -578,7 +599,7 @@ mread(Chan *c, void *a, long n, vlong off)
 static long
 mwrite(Chan *c, void *a, long n, vlong off)
 {
-	int	i, allbad;
+	int	i, allbad, retry;
 	long	l, res;
 	Fsdev	*mp;
 	Inner	*in;
@@ -612,19 +633,37 @@ mwrite(Chan *c, void *a, long n, vlong off)
 			res = n;
 		break;
 	case Fmirror:
-		allbad = 1;
-		for (i = mp->ndevs - 1; i >= 0; i--){
-			if (waserror())
-				continue;
-			in = &mp->inner[i];
-			l = io(mp, in, Iswrite, a, n, off);
-			poperror();
-			if (res > l)
-				res = l;	/* shortest OK write */
-			allbad = 0;		/* wrote a good copy */
-		}
-		if (allbad)	/* no mirror took a good copy of the block? */
-			error(Eio);	/* RRRT! RRRT!  RAID failure! */
+		retry = 0;
+		do {
+			if (retry > 0) {
+				print("#k/%s: retry %d write for byte %,lld "
+					"count %ld: %s\n", mp->name, retry, off,
+					n, (up && up->errstr? up->errstr: ""));
+				tsleep(&up->sleep, return0, 0, 2000);
+			}
+			allbad = 1;
+			for (i = mp->ndevs - 1; i >= 0; i--){
+				if (waserror())
+					continue;
+				in = &mp->inner[i];
+				l = io(mp, in, Iswrite, a, n, off);
+				poperror();
+				if (res > l)
+					res = l;	/* shortest OK write */
+				allbad = 0;		/* wrote a good copy */
+			}
+		} while (allbad && ++retry < 2);
+		if (allbad) {
+			/* no mirror took a good copy of the block */
+			print("#k/%s: byte %,lld count %ld: CAN'T WRITE "
+				"to mirror: %s\n", mp->name, off, n,
+				(up && up->errstr? up->errstr: ""));
+			error(Eio);
+		} else if (retry > 0)
+			print("#k/%s: byte %,lld count %ld: retry wrote OK "
+				"to mirror: %s\n", mp->name, off, n,
+				(up && up->errstr? up->errstr: ""));
+
 		break;
 	}
 	return res;
