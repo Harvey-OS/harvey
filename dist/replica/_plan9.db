@@ -71,9 +71,9 @@
 386/bin/auth/rsafill - 775 sys sys 1168402273 143968
 386/bin/auth/rsagen - 775 sys sys 1178568249 151953
 386/bin/auth/secretpem - 775 sys sys 1045537944 118526
-386/bin/auth/secstore - 775 sys sys 1178568249 194983
-386/bin/auth/secstored - 775 sys sys 1178568250 196571
-386/bin/auth/secuser - 775 sys sys 1178568250 151765
+386/bin/auth/secstore - 775 sys sys 1180468712 195983
+386/bin/auth/secstored - 775 sys sys 1180468713 197571
+386/bin/auth/secuser - 775 sys sys 1180468714 152765
 386/bin/auth/status - 775 sys sys 1020319060 738
 386/bin/auth/uniq - 775 sys sys 1168402275 63314
 386/bin/auth/warning - 775 sys sys 1179372071 99970
@@ -9618,7 +9618,7 @@ sys/src/cmd/auth/secstore/aescbc.c - 664 sys sys 1143465912 4063
 sys/src/cmd/auth/secstore/dirls.c - 664 sys sys 1062277640 1842
 sys/src/cmd/auth/secstore/mkfile - 664 sys sys 1106577499 836
 sys/src/cmd/auth/secstore/pak.c - 664 sys sys 1140272943 9314
-sys/src/cmd/auth/secstore/password.c - 664 sys sys 1106577427 2929
+sys/src/cmd/auth/secstore/password.c - 664 sys sys 1180417351 3038
 sys/src/cmd/auth/secstore/secchk.c - 664 sys sys 1172776633 565
 sys/src/cmd/auth/secstore/secstore.c - 664 sys sys 1143465894 12678
 sys/src/cmd/auth/secstore/secstore.h - 664 sys sys 1106575526 859

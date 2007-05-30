@@ -49110,3 +49110,7 @@
 1180209622 1 c 386/bin/fossil/flfmt - 775 sys sys 1180209226 245137
 1180209622 2 c 386/bin/fossil/fossil - 775 sys sys 1180209226 363773
 1180251038 0 c sys/src/9/port/devfs.c - 664 sys sys 1180249924 13409
+1180418423 0 c sys/src/cmd/auth/secstore/password.c - 664 sys sys 1180417351 3038
+1180468823 0 c 386/bin/auth/secstore - 775 sys sys 1180468712 195983
+1180468823 1 c 386/bin/auth/secstored - 775 sys sys 1180468713 197571
+1180468823 2 c 386/bin/auth/secuser - 775 sys sys 1180468714 152765
