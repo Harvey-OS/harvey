@@ -437,7 +437,8 @@ main(int argc, char **argv)
 		}
 		if(notranslate == 1 || dodnsquery(&ds, hop, dom) < 0)
 			dom[0] = 0;
-		print("%-18.18s %8ld %8ld %8ld %s\n", hop, lo, sum/tries, hi, dom);
+		/* don't truncate: ipv6 addresses can be quite long */
+		print("%-18s %8ld %8ld %8ld %s\n", hop, lo, sum/tries, hi, dom);
 		if(buckets)
 			histogram(t, tries, buckets, lo, hi);
 		if(done)
