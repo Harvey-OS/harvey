@@ -35,7 +35,8 @@ for(i in $f) @ {
 }
 
 echo -n venti...
-venti/sync >[2]/dev/null
+venti/sync >[2]/dev/null &
+sleep 30
 
 for (i in $k){
 	echo -n $i... 

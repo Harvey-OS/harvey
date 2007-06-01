@@ -5499,7 +5499,7 @@ rc/bin/dosmnt - 775 sys sys 1109288224 303
 rc/bin/eject - 775 sys sys 945617207 123
 rc/bin/fax - 775 sys sys 1127394677 2385
 rc/bin/fedex - 775 sys sys 1060187356 1244
-rc/bin/fshalt - 775 sys sys 1177742142 1658
+rc/bin/fshalt - 775 sys sys 1180592582 1669
 rc/bin/homespool - 775 sys sys 945617207 339
 rc/bin/ipconf - 20000000775 sys sys 1058791152 0
 rc/bin/ipconf/inside - 775 sys sys 1058790955 427
@@ -7767,7 +7767,7 @@ sys/man/7/playlistfs - 664 sys sys 1103794042 3831
 sys/man/7/scat - 664 sys sys 970069855 8904
 sys/man/8 - 20000000775 sys sys 1162240005 0
 sys/man/8/0intro - 664 sys sys 944959679 247
-sys/man/8/6in4 - 664 sys sys 1179779762 1655
+sys/man/8/6in4 - 664 sys sys 1180653391 1850
 sys/man/8/9load - 664 sys sys 1094676489 9170
 sys/man/8/9pcon - 664 sys sys 1145881850 2234
 sys/man/8/INDEX - 664 sys sys 1178249215 2888
@@ -8168,7 +8168,7 @@ sys/src/9/port/devcons.c - 664 sys sys 1176658321 22943
 sys/src/9/port/devdraw.c - 664 sys sys 1147023550 44447
 sys/src/9/port/devdup.c - 664 sys sys 1014931172 2332
 sys/src/9/port/devenv.c - 664 sys sys 1169498893 7015
-sys/src/9/port/devfs.c - 664 sys sys 1180249924 13409
+sys/src/9/port/devfs.c - 664 sys sys 1180592541 13499
 sys/src/9/port/devkbmap.c - 664 sys sys 1130763846 3064
 sys/src/9/port/devkprof.c - 664 sys sys 1014931173 3111
 sys/src/9/port/devloopback.c - 664 sys sys 1138458368 14579
@@ -12463,7 +12463,7 @@ sys/src/cmd/iostats/mkfile - 664 sys sys 1014925727 122
 sys/src/cmd/iostats/statfs.h - 664 sys sys 1140099908 2626
 sys/src/cmd/iostats/statsrv.c - 664 sys sys 1166824341 10773
 sys/src/cmd/ip - 20000000775 sys sys 1128605981 0
-sys/src/cmd/ip/6in4.c - 664 sys sys 1179783180 7341
+sys/src/cmd/ip/6in4.c - 664 sys sys 1180652319 7570
 sys/src/cmd/ip/arp.h - 664 sys sys 944961005 751
 sys/src/cmd/ip/dhcp.h - 664 sys sys 1178483074 3419
 sys/src/cmd/ip/dhcpclient.c - 664 sys sys 1178482836 11969
@@ -12609,7 +12609,7 @@ sys/src/cmd/ip/telnet.c - 664 sys sys 1162416789 8621
 sys/src/cmd/ip/telnet.h - 664 sys sys 1015090250 5902
 sys/src/cmd/ip/telnetd.c - 664 sys sys 1135487948 11772
 sys/src/cmd/ip/tftpd.c - 664 sys sys 1106943821 7646
-sys/src/cmd/ip/traceroute.c - 664 sys sys 1179779560 8645
+sys/src/cmd/ip/traceroute.c - 664 sys sys 1180651317 8699
 sys/src/cmd/ip/udpecho.c - 664 sys sys 1178483004 789
 sys/src/cmd/join.c - 664 sys sys 1158251357 7550
 sys/src/cmd/jpg - 20000000775 sys sys 1132458749 0
@@ -15838,3 +15838,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/ip/traceroute - 775 sys sys 1180668259 72750
