@@ -5245,6 +5245,8 @@ lib/ndb/local.complicated - 664 sys sys 1105461604 2976
 lib/ndb/nfs - 664 sys sys 954036707 113
 lib/news - 20000000775 sys sys 1020895764 0
 lib/pci - 664 sys sys 1160617172 206912
+lib/rfc - 20000000775 sys sys 1180723363 0
+lib/rfc/grabrfc - 775 sys sys 1180724499 804
 lib/sky - 20000000775 sys sys 1079376081 0
 lib/sky/abell.scat - 444 sys sys 954015738 86784
 lib/sky/bayer.scat - 444 sys sys 954015738 12136
@@ -7767,7 +7769,7 @@ sys/man/7/playlistfs - 664 sys sys 1103794042 3831
 sys/man/7/scat - 664 sys sys 970069855 8904
 sys/man/8 - 20000000775 sys sys 1162240005 0
 sys/man/8/0intro - 664 sys sys 944959679 247
-sys/man/8/6in4 - 664 sys sys 1180653391 1850
+sys/man/8/6in4 - 664 sys sys 1180719862 1850
 sys/man/8/9load - 664 sys sys 1094676489 9170
 sys/man/8/9pcon - 664 sys sys 1145881850 2234
 sys/man/8/INDEX - 664 sys sys 1178249215 2888
