@@ -10,11 +10,11 @@
 .I netmtpt
 ] [
 .IB local6[ / mask]
-] [
+[
 .I remote4
 [
 .I remote6
-] ]
+] ] ]
 .B &
 .SH DESCRIPTION
 .I 6in4
