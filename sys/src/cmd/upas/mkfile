@@ -89,10 +89,9 @@ setup:V:
 	chmod 775 /mail
 	mkdir /mail/lib
 	chmod 775 /mail/lib
-	mkdir /mail/queue
-	mkdir /mail/box
-	mkdir /mail/tmp
+	mkdir	  /mail/queue /mail/box /mail/tmp
 	chmod 777 /mail/queue /mail/box /mail/tmp
+	chmod +t  /mail/queue /mail/tmp
 	mkdir /mail/ml
 	chmod 775 /mail/ml
 	cp misc/rewrite misc/qmail misc/remotemail misc/namefiles /mail/lib

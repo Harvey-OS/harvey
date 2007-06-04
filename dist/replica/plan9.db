@@ -480,7 +480,7 @@
 386/bin/upas/token - 775 sys sys 1178568317 76393
 386/bin/upas/unesc - 775 sys sys 1176520512 60137
 386/bin/upas/unspam - 775 sys sys 1064598367 38
-386/bin/upas/vf - 775 sys sys 1178568317 95923
+386/bin/upas/vf - 775 sys sys 1180900507 97407
 386/bin/usb - 20000000775 sys sys 1019538890 0
 386/bin/usb/usbaudio - 775 sys sys 1179548037 188012
 386/bin/usb/usbd - 775 sys sys 1179548037 130769
@@ -5314,7 +5314,7 @@ mail/lib/smtpd.conf - 664 upas upas 961114164 536
 mail/lib/spam.rc - 775 upas upas 1063950954 400
 mail/lib/unspam.rc - 775 upas upas 1063950954 400
 mail/lib/validateaddress - 775 upas upas 1098803974 48
-mail/lib/validateattachment - 775 upas upas 1128571809 1144
+mail/lib/validateattachment - 775 upas upas 1180857656 1209
 mail/lib/validatesender - 775 upas upas 1106233741 1128
 mail/lib/white.starter - 664 upas upas 1067739606 326
 mail/queue - 20000000777 upas upas 953302652 0
@@ -14192,7 +14192,7 @@ sys/src/cmd/upas/misc/omail.rc - 775 sys sys 944961318 197
 sys/src/cmd/upas/misc/qmail - 775 sys sys 944961318 119
 sys/src/cmd/upas/misc/remotemail - 775 sys sys 954266541 113
 sys/src/cmd/upas/misc/rewrite - 664 sys sys 954264578 661
-sys/src/cmd/upas/mkfile - 664 sys sys 1130423810 1916
+sys/src/cmd/upas/mkfile - 664 sys sys 1180844442 1937
 sys/src/cmd/upas/ml - 20000000775 sys sys 1064589605 0
 sys/src/cmd/upas/ml/common.c - 664 sys sys 1177589087 3379
 sys/src/cmd/upas/ml/dat.h - 664 sys sys 1015096762 517
@@ -14252,7 +14252,7 @@ sys/src/cmd/upas/unesc/mkfile - 664 sys sys 1173383407 142
 sys/src/cmd/upas/unesc/unesc.c - 664 sys sys 1173383408 969
 sys/src/cmd/upas/vf - 20000000775 sys sys 1064589607 0
 sys/src/cmd/upas/vf/mkfile - 664 sys sys 1064393881 241
-sys/src/cmd/upas/vf/vf.c - 664 sys sys 1143759341 20030
+sys/src/cmd/upas/vf/vf.c - 664 sys sys 1180857236 20273
 sys/src/cmd/usb - 20000000775 sys sys 1091205029 0
 sys/src/cmd/usb/audio - 20000000775 sys sys 1091204980 0
 sys/src/cmd/usb/audio/audiofs.c - 664 sys sys 1172903208 18518

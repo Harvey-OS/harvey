@@ -41,12 +41,12 @@ static void	writeheader(Part *p, int);
 
 enum
 {
-	// encodings
+	/* encodings */
 	Enone=	0,
 	Ebase64,
 	Equoted,
 
-	// disposition possibilities
+	/* disposition possibilities */
 	Dnone=	0,
 	Dinline,
 	Dfile,
@@ -156,10 +156,13 @@ main(int argc, char **argv)
 }
 
 void
-refuse(void)
+refuse(char *reason)
 {
-	postnote(PNGROUP, getpid(), "mail refused: we don't accept executable attachments");
-	exits("mail refused: we don't accept executable attachments");
+	static char msg[] =
+		"mail refused: we don't accept executable attachments";
+
+	postnote(PNGROUP, getpid(), smprint("%s: %s", msg, reason));
+	exits(msg);
 }
 
 
@@ -208,7 +211,7 @@ part(Part *pp)
 			passnotheader();
 			return part(p);
 		} else {
-			/* 
+			/*
 			 * This is the meat.  This may be an executable.
 			 * if so, wrap it and change its type
 			 */
@@ -216,11 +219,12 @@ part(Part *pp)
 				if(p->badfile == 2){
 					if(savefile != nil)
 						save(p, savefile);
-					syslog(0, "vf", "vf rejected %s %s", p->type?s_to_c(p->type):"?",
+					syslog(0, "vf", "vf rejected %s %s",
+						p->type? s_to_c(p->type): "?",
 						p->filename?s_to_c(p->filename):"?");
 					fprint(2, "The mail contained an executable attachment.\n");
 					fprint(2, "We refuse all mail containing such.\n");
-					refuse();
+					refuse(nil);
 				}
 				np = problemchild(p);
 				if(np != p)
@@ -384,7 +388,7 @@ save(Part *p, char *file)
 	Bprint(&out, "\n");
 	Bterm(&out);
 	close(fd);
-	
+
 	memset(&out, 0, sizeof out);
 	Binit(&out, 1, OWRITE);
 	return 0;
@@ -396,28 +400,30 @@ save(Part *p, char *file)
 static char*
 savetmp(Part *p)
 {
-	char buf[40], *name;
+	char *buf, *name;
 	int fd;
-	
-	strcpy(buf, "/tmp/vf.XXXXXXXXXXX");
+
+	buf = smprint("%s/vf.XXXXXXXXXXX", UPASTMP);
 	name = mktemp(buf);
 	if((fd = create(name, OWRITE|OEXCL, 0666)) < 0){
-		fprint(2, "error creating temporary file: %r\n");
-		refuse();
+		fprint(2, "%s: error creating temporary file: %r\n", argv0);
+		refuse("can't create temporary file");
 	}
+	free(buf);
 	close(fd);
 	if(save(p, name) < 0){
-		fprint(2, "error saving temporary file: %r\n");
-		refuse();
+		fprint(2, "%s: error saving temporary file: %r\n", argv0);
+		refuse("can't write temporary file");
 	}
 	if(p->tmpbuf){
-		fprint(2, "error in savetmp: already have tmp file!\n");
-		refuse();
+		fprint(2, "%s: error in savetmp: already have tmp file!\n",
+			argv0);
+		refuse("already have temporary file");
 	}
 	p->tmpbuf = Bopen(name, OREAD|ORCLOSE);
 	if(p->tmpbuf == nil){
-		fprint(2, "error reading tempoary file: %r\n");
-		refuse();
+		fprint(2, "%s: error reading temporary file: %r\n", argv0);
+		refuse("error reading temporary file");
 	}
 	Bseek(p->tmpbuf, bodyoff, 0);
 	return strdup(name);
@@ -432,10 +438,10 @@ runchecker(Part *p)
 	int pid;
 	char *name;
 	Waitmsg *w;
-	
+
 	if(access("/mail/lib/validateattachment", AEXEC) < 0)
 		return 0;
-	
+
 	name = savetmp(p);
 	fprint(2, "run checker %s\n", name);
 	switch(pid = fork()){
@@ -463,7 +469,7 @@ runchecker(Part *p)
 		name = s_to_c(p->filename);
 	if(strstr(w->msg, "discard")){
 		syslog(0, "mail", "vf validateattachment rejected %s", name);
-		refuse();
+		refuse("rejected by validateattachment");
 	}
 	if(strstr(w->msg, "accept")){
 		syslog(0, "mail", "vf validateattachment accepted %s", name);
@@ -588,7 +594,7 @@ isattribute(char **pp, char *attr)
 }
 
 /*
- *  parse content type header 
+ *  parse content type header
  */
 static void
 ctype(Part *p, Hdef *h, char *cp)
@@ -602,7 +608,7 @@ ctype(Part *p, Hdef *h, char *cp)
 	cp = getstring(cp, p->type, 1);
 	if(badtype(s_to_c(p->type)))
 		p->badtype = 1;
-	
+
 	while(*cp){
 		if(isattribute(&cp, "boundary")){
 			s = s_new();
@@ -624,13 +630,13 @@ ctype(Part *p, Hdef *h, char *cp)
 				p->charset = s_new();
 			cp = getstring(cp, s_reset(p->charset), 0);
 		}
-		
+
 		cp = skiptosemi(cp);
 	}
 }
 
 /*
- *  parse content encoding header 
+ *  parse content encoding header
  */
 static void
 cencoding(Part *m, Hdef *h, char *p)
@@ -644,7 +650,7 @@ cencoding(Part *m, Hdef *h, char *p)
 }
 
 /*
- *  parse content disposition header 
+ *  parse content disposition header
  */
 static void
 cdisposition(Part *p, Hdef *h, char *cp)
@@ -957,7 +963,7 @@ tokenconvert(String *t)
 	e = token+len-2;
 	token += 2;
 
-	// bail if we don't understand the character set
+	/* bail if we don't understand the character set */
 	for(i = 0; i < nelem(charsets); i++)
 		if(cistrncmp(charsets[i].name, token, charsets[i].len) == 0)
 		if(token[charsets[i].len] == '?'){
@@ -967,11 +973,11 @@ tokenconvert(String *t)
 	if(i >= nelem(charsets))
 		goto err;
 
-	// bail if it doesn't fit 
+	/* bail if it doesn't fit */
 	if(strlen(token) > sizeof(decoded)-1)
 		goto err;
 
-	// bail if we don't understand the encoding
+	/* bail if we don't understand the encoding */
 	if(cistrncmp(token, "b?", 2) == 0){
 		token += 2;
 		len = dec64((uchar*)decoded, sizeof(decoded), token, e-token);
@@ -1003,7 +1009,7 @@ err:
 }
 
 /*
- *  decode quoted 
+ *  decode quoted
  */
 enum
 {
@@ -1090,7 +1096,7 @@ decquoted(char *out, char *in, char *e)
 	if(in < e)
 		p = decquotedline(p, in, e-1);
 
-	// make sure we end with a new line
+	/* make sure we end with a new line */
 	if(*(p-1) != '\n'){
 		*p++ = '\n';
 		*p = 0;
