@@ -293,13 +293,13 @@ vgactl(Cmdbuf *cb)
 	case CMsize:
 
 		x = strtoul(cb->f[1], &p, 0);
-		if(x == 0 || x > 2048)
+		if(x == 0 || x > 10240)
 			error(Ebadarg);
 		if(*p)
 			p++;
 
 		y = strtoul(p, &p, 0);
-		if(y == 0 || y > 2048)
+		if(y == 0 || y > 10240)
 			error(Ebadarg);
 		if(*p)
 			p++;
