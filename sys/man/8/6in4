@@ -15,7 +15,6 @@
 [
 .I remote6
 ] ] ]
-.B &
 .SH DESCRIPTION
 .I 6in4
 sets up and maintains a tunnel of IPv6 traffic through an IPv4 connection.
@@ -54,6 +53,10 @@ are the hexadecimal equivalents of the bytes
 .IB a . b . c .\c
 .I d
 in this host's primary IPv4 address.
+.PP
+.I 6in4
+forks a pair of background processes to copy packets to and from
+the tunnel.
 .PP
 Supply
 .B -g

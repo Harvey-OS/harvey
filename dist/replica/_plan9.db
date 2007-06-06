@@ -5821,7 +5821,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1179957238 265482
+sys/games/lib/fortunes - 664 sys sys 1181057665 265556
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -7435,7 +7435,7 @@ sys/man/1/rio - 664 sys sys 1155362586 14707
 sys/man/1/rm - 664 sys sys 944959673 515
 sys/man/1/rwd - 664 sys sys 1042469992 2958
 sys/man/1/sam - 664 sys sys 1113743327 18295
-sys/man/1/secstore - 664 sys sys 1113743328 3772
+sys/man/1/secstore - 664 sys sys 1181069036 3770
 sys/man/1/sed - 664 sys sys 944959674 6884
 sys/man/1/seq - 664 sys sys 1063855680 1131
 sys/man/1/size - 664 sys sys 944959674 393
@@ -7769,7 +7769,7 @@ sys/man/7/playlistfs - 664 sys sys 1103794042 3831
 sys/man/7/scat - 664 sys sys 970069855 8904
 sys/man/8 - 20000000775 sys sys 1162240005 0
 sys/man/8/0intro - 664 sys sys 944959679 247
-sys/man/8/6in4 - 664 sys sys 1180719862 1850
+sys/man/8/6in4 - 664 sys sys 1181070628 1934
 sys/man/8/9load - 664 sys sys 1094676489 9170
 sys/man/8/9pcon - 664 sys sys 1145881850 2234
 sys/man/8/INDEX - 664 sys sys 1178249215 2888
@@ -8039,7 +8039,7 @@ sys/src/9/pc/devpccard.c - 664 sys sys 1173225108 39296
 sys/src/9/pc/devrtc.c - 664 sys sys 1015014515 7167
 sys/src/9/pc/devtv.c - 664 sys sys 1131290299 45676
 sys/src/9/pc/devusb.c - 664 sys sys 1168305372 18752
-sys/src/9/pc/devvga.c - 664 sys sys 1131290315 9332
+sys/src/9/pc/devvga.c - 664 sys sys 1181083003 9334
 sys/src/9/pc/dma.c - 664 sys sys 1142966373 5332
 sys/src/9/pc/ether2000.c - 664 sys sys 1173287379 4901
 sys/src/9/pc/ether2114x.c - 664 sys sys 1145359795 41693
@@ -9622,7 +9622,7 @@ sys/src/cmd/auth/secstore/mkfile - 664 sys sys 1106577499 836
 sys/src/cmd/auth/secstore/pak.c - 664 sys sys 1140272943 9314
 sys/src/cmd/auth/secstore/password.c - 664 sys sys 1180417351 3038
 sys/src/cmd/auth/secstore/secchk.c - 664 sys sys 1172776633 565
-sys/src/cmd/auth/secstore/secstore.c - 664 sys sys 1143465894 12678
+sys/src/cmd/auth/secstore/secstore.c - 664 sys sys 1181068567 12637
 sys/src/cmd/auth/secstore/secstore.h - 664 sys sys 1106575526 859
 sys/src/cmd/auth/secstore/secstored.c - 664 sys sys 1140272944 8087
 sys/src/cmd/auth/secstore/secuser.c - 664 sys sys 1143465899 5136
@@ -12465,7 +12465,7 @@ sys/src/cmd/iostats/mkfile - 664 sys sys 1014925727 122
 sys/src/cmd/iostats/statfs.h - 664 sys sys 1140099908 2626
 sys/src/cmd/iostats/statsrv.c - 664 sys sys 1166824341 10773
 sys/src/cmd/ip - 20000000775 sys sys 1128605981 0
-sys/src/cmd/ip/6in4.c - 664 sys sys 1180652319 7570
+sys/src/cmd/ip/6in4.c - 664 sys sys 1181070455 7744
 sys/src/cmd/ip/arp.h - 664 sys sys 944961005 751
 sys/src/cmd/ip/dhcp.h - 664 sys sys 1178483074 3419
 sys/src/cmd/ip/dhcpclient.c - 664 sys sys 1178482836 11969
@@ -15840,3 +15840,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/auth/secstore - 775 sys sys 1181100215 195887

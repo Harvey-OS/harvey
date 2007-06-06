@@ -1,4 +1,4 @@
-/* network login client */
+/* secstore - network login client */
 #include <u.h>
 #include <libc.h>
 #include <mp.h>
@@ -6,12 +6,13 @@
 #include <authsrv.h>
 #include "SConn.h"
 #include "secstore.h"
+
 enum{ CHK = 16, MAXFILES = 100 };
 
 typedef struct AuthConn{
-	SConn *conn;
-	char pass[64];
-	int passlen;
+	SConn	*conn;
+	char	pass[64];
+	int	passlen;
 } AuthConn;
 
 int verbose;
@@ -20,21 +21,21 @@ Nvrsafe nvr;
 void
 usage(void)
 {
-	fprint(2, "usage: secstore [-cin] [-g getfile] [-p putfile] [-r rmfile] [-s tcp!server!5356] [-u user] [-v]\n");
+	fprint(2, "usage: secstore [-cinv] [-[gG] getfile] [-p putfile] "
+		"[-r rmfile] [-s tcp!server!5356] [-u user]\n");
 	exits("usage");
 }
 
 static int
 getfile(SConn *conn, char *gf, uchar **buf, ulong *buflen, uchar *key, int nkey)
 {
-	int fd = -1;
-	int i, n, nr, nw, len;
+	int fd = -1, i, n, nr, nw, len;
 	char s[Maxmsg+1];
 	uchar skey[SHA1dlen], ib[Maxmsg+CHK], *ibr, *ibw, *bufw, *bufe;
 	AESstate aes;
 	DigestState *sha;
 
-	if(strchr(gf, '/')){
+	if(strchr(gf, '/') != nil){
 		fprint(2, "secstore: simple filenames, not paths like %s\n", gf);
 		return -1;
 	}
@@ -79,14 +80,16 @@ getfile(SConn *conn, char *gf, uchar **buf, ulong *buflen, uchar *key, int nkey)
 			if(buf == nil)
 				write(1, s, n);
 			else
-				memmove((*buf)+i, s, n);
+				memmove(*buf + i, s, n);
 		}
 		return 0;
 	}
 
-	/* conn is already encrypted against wiretappers, 
-		but gf is also encrypted against server breakin. */
-	if(buf == nil && (fd =create(gf, OWRITE, 0600)) < 0){
+	/*
+	 * conn is already encrypted against wiretappers, but gf is also
+	 * encrypted against server breakin.
+	 */
+	if(buf == nil && (fd = create(gf, OWRITE, 0600)) < 0){
 		fprint(2, "secstore: can't open %s: %r\n", gf);
 		return -1;
 	}
@@ -100,7 +103,7 @@ getfile(SConn *conn, char *gf, uchar **buf, ulong *buflen, uchar *key, int nkey)
 		}
 		nr += n;
 		ibw += n;
-		if(!aes.setup){ /* first time, read 16 byte IV */
+		if(!aes.setup){		/* first time, read 16 byte IV */
 			if(n < AESbsize){
 				fprint(2, "secstore: no IV in file\n");
 				return -1;
@@ -110,10 +113,10 @@ getfile(SConn *conn, char *gf, uchar **buf, ulong *buflen, uchar *key, int nkey)
 			setupAESstate(&aes, skey, AESbsize, ibr);
 			memset(skey, 0, sizeof skey);
 			ibr += AESbsize;
-			n -= AESbsize;
+			n   -= AESbsize;
 		}
 		aesCBCdecrypt(ibw-n, n, &aes);
-		n = ibw-ibr-CHK;
+		n = ibw - ibr - CHK;
 		if(n > 0){
 			if(buf == nil){
 				nw = write(fd, ibr, n);
@@ -122,7 +125,7 @@ getfile(SConn *conn, char *gf, uchar **buf, ulong *buflen, uchar *key, int nkey)
 					return -1;
 				}
 			}else{
-				assert(bufw+n <= bufe);
+				assert(bufw + n <= bufe);
 				memmove(bufw, ibr, n);
 				bufw += n;
 			}
@@ -135,26 +138,28 @@ getfile(SConn *conn, char *gf, uchar **buf, ulong *buflen, uchar *key, int nkey)
 	if(buf == nil)
 		close(fd);
 	n = ibw-ibr;
-	if((n != CHK) || (memcmp(ib, "XXXXXXXXXXXXXXXX", CHK) != 0)){
+	if(n != CHK || memcmp(ib, "XXXXXXXXXXXXXXXX", CHK) != 0){
 		fprint(2, "secstore: decrypted file failed to authenticate!\n");
 		return -1;
 	}
 	return 0;
 }
 
-// This sends a file to the secstore disk that can, in an emergency, be
-// decrypted by the program aescbc.c.
+/*
+ * This sends a file to the secstore disk that can, in an emergency, be
+ * decrypted by the program aescbc.c.
+ */
 static int
 putfile(SConn *conn, char *pf, uchar *buf, ulong len, uchar *key, int nkey)
 {
 	int i, n, fd, ivo, bufi, done;
 	char s[Maxmsg];
-	uchar  skey[SHA1dlen], b[CHK+Maxmsg], IV[AESbsize];
+	uchar skey[SHA1dlen], b[CHK+Maxmsg], IV[AESbsize];
 	AESstate aes;
 	DigestState *sha;
 
 	/* create initialization vector */
-	srand(time(0));  /* doesn't need to be unpredictable */
+	srand(time(0));			/* doesn't need to be unpredictable */
 	for(i=0; i<AESbsize; i++)
 		IV[i] = 0xff & rand();
 	sha = sha1((uchar*)"aescbc file", 11, nil, nil);
@@ -173,9 +178,8 @@ putfile(SConn *conn, char *pf, uchar *buf, ulong len, uchar *key, int nkey)
 		}
 		len = seek(fd, 0, 2);
 		seek(fd, 0, 0);
-	} else {
+	} else
 		fd = -1;
-	}
 	if(len > MAXFILESIZE){
 		fprint(2, "secstore: implausible filesize %ld for %s\n",
 			len, pf);
@@ -183,7 +187,7 @@ putfile(SConn *conn, char *pf, uchar *buf, ulong len, uchar *key, int nkey)
 	}
 
 	/* send file size */
-	snprint(s, Maxmsg, "%ld", len+AESbsize+CHK);
+	snprint(s, Maxmsg, "%ld", len + AESbsize + CHK);
 	conn->write(conn, (uchar*)s, strlen(s));
 
 	/* send IV and file+XXXXX in Maxmsg chunks */
@@ -199,16 +203,16 @@ putfile(SConn *conn, char *pf, uchar *buf, ulong len, uchar *key, int nkey)
 				return -1;
 			}
 		}else{
-			if((n = len - bufi) > Maxmsg-ivo)	
+			if((n = len - bufi) > Maxmsg-ivo)
 				n = Maxmsg-ivo;
 			memcpy(b+ivo, buf+bufi, n);
 			bufi += n;
 		}
 		n += ivo;
 		ivo = 0;
-		if(n < Maxmsg){ /* EOF on input; append XX... */
+		if(n < Maxmsg){		/* EOF on input; append XX... */
 			memset(b+n, 'X', CHK);
-			n += CHK; // might push n>Maxmsg
+			n += CHK;	/* might push n>Maxmsg */
 			done = 1;
 		}
 		aesCBCencrypt(b, n, &aes);
@@ -233,7 +237,7 @@ removefile(SConn *conn, char *rf)
 {
 	char buf[Maxmsg];
 
-	if(strchr(rf, '/')){
+	if(strchr(rf, '/') != nil){
 		fprint(2, "secstore: simple filenames, not paths like %s\n", rf);
 		return -1;
 	}
@@ -254,10 +258,11 @@ cmd(AuthConn *c, char **gf, int *Gflag, char **pf, char **rf)
 	while(*gf != nil){
 		if(verbose)
 			fprint(2, "get %s\n", *gf);
-		if(getfile(c->conn, *gf, *Gflag ? &memfile : nil, &len, (uchar*)c->pass, c->passlen) < 0)
+		if(getfile(c->conn, *gf, *Gflag? &memfile: nil, &len,
+		    (uchar*)c->pass, c->passlen) < 0)
 			goto Out;
 		if(*Gflag){
-			// write one line at a time, as required by /mnt/factotum/ctl
+			/* write 1 line at a time, as required by /mnt/factotum/ctl */
 			memcur = memfile;
 			while(len>0){
 				memnext = (uchar*)strchr((char*)memcur, '\n');
@@ -301,17 +306,16 @@ Out:
 static int
 chpasswd(AuthConn *c, char *id)
 {
-	ulong len;
 	int rv = -1, newpasslen = 0;
-	mpint *H, *Hi;
+	ulong len;
 	uchar *memfile;
-	char *newpass, *passck;
-	char *list, *cur, *next, *hexHi;
+	char *newpass, *passck, *list, *cur, *next, *hexHi;
 	char *f[8], prompt[128];
+	mpint *H, *Hi;
 
 	H = mpnew(0);
 	Hi = mpnew(0);
-	// changing our password is vulnerable to connection failure
+	/* changing our password is vulnerable to connection failure */
 	for(;;){
 		snprint(prompt, sizeof(prompt), "new password for %s: ", id);
 		newpass = getpassm(prompt);
@@ -355,11 +359,13 @@ chpasswd(AuthConn *c, char *id)
 		if(tokenize(cur, f, nelem(f))< 1)
 			break;
 		fprint(2, "secstore: reencrypting '%s'\n", f[0]);
-		if(getfile(c->conn, f[0], &memfile, &len, (uchar*)c->pass, c->passlen) < 0){
+		if(getfile(c->conn, f[0], &memfile, &len, (uchar*)c->pass,
+		    c->passlen) < 0){
 			fprint(2, "secstore: getfile of '%s' failed\n", f[0]);
 			continue;
 		}
-		if(putfile(c->conn, f[0], memfile, len, (uchar*)newpass, newpasslen) < 0)
+		if(putfile(c->conn, f[0], memfile, len, (uchar*)newpass,
+		    newpasslen) < 0)
 			fprint(2, "secstore: putfile of '%s' failed\n", f[0]);
 		free(memfile);
 	}
@@ -379,9 +385,9 @@ Out:
 static AuthConn*
 login(char *id, char *dest, int pass_stdin, int pass_nvram)
 {
-	AuthConn *c;
 	int fd, n, ntry = 0;
 	char *S, *PINSTA = nil, *nl, s[Maxmsg+1], *pass;
+	AuthConn *c;
 
 	if(dest == nil)
 		sysfatal("tried to login with nil dest");
@@ -392,7 +398,7 @@ login(char *id, char *dest, int pass_stdin, int pass_nvram)
 		strecpy(c->pass, c->pass+sizeof c->pass, nvr.config);
 	}
 	if(pass_stdin){
-		n = readn(0, s, Maxmsg-2);  // so len(PINSTA)<Maxmsg-3
+		n = readn(0, s, Maxmsg-2);	/* so len(PINSTA)<Maxmsg-3 */
 		if(n < 1)
 			exits("no password on standard input");
 		s[n] = 0;
@@ -440,7 +446,7 @@ login(char *id, char *dest, int pass_stdin, int pass_nvram)
 			exits("invalid password on standard input");
 		if(pass_nvram)
 			exits("invalid password in nvram");
-		// and let user try retyping the password
+		/* and let user try retyping the password */
 		if(ntry==3)
 			fprint(2, "Enter an empty password to quit.\n");
 	}
@@ -454,15 +460,16 @@ login(char *id, char *dest, int pass_stdin, int pass_nvram)
 	}
 	if(strcmp(s, "STA") == 0){
 		long sn;
+
 		if(pass_stdin){
 			if(PINSTA)
-				strncpy(s+3, PINSTA, (sizeof s)-3);
+				strncpy(s+3, PINSTA, sizeof s - 3);
 			else
 				exits("missing PIN+SecureID on standard input");
 			free(PINSTA);
 		}else{
 			pass = getpassm("STA PIN+SecureID: ");
-			strncpy(s+3, pass, (sizeof s)-4);
+			strncpy(s+3, pass, sizeof s - 4);
 			memset(pass, 0, strlen(pass));
 			free(pass);
 		}
@@ -481,13 +488,13 @@ login(char *id, char *dest, int pass_stdin, int pass_nvram)
 	return c;
 }
 
-int
+void
 main(int argc, char **argv)
 {
 	int chpass = 0, pass_stdin = 0, pass_nvram = 0, rc;
 	int ngfile = 0, npfile = 0, nrfile = 0, Gflag[MAXFILES+1];
-	char *gfile[MAXFILES], *pfile[MAXFILES], *rfile[MAXFILES];
 	char *serve, *tcpserve, *user;
+	char *gfile[MAXFILES], *pfile[MAXFILES], *rfile[MAXFILES];
 	AuthConn *c;
 
 	serve = "$auth";
@@ -504,9 +511,7 @@ main(int argc, char **argv)
 	case 'g':
 		if(ngfile >= MAXFILES)
 			exits("too many gfiles");
-		gfile[ngfile++] = ARGF();
-		if(gfile[ngfile-1] == nil)
-			usage();
+		gfile[ngfile++] = EARGF(usage());
 		break;
 	case 'i':
 		pass_stdin = 1;
@@ -517,16 +522,12 @@ main(int argc, char **argv)
 	case 'p':
 		if(npfile >= MAXFILES)
 			exits("too many pfiles");
-		pfile[npfile++] = ARGF();
-		if(pfile[npfile-1] == nil)
-			usage();
+		pfile[npfile++] = EARGF(usage());
 		break;
 	case 'r':
 		if(nrfile >= MAXFILES)
 			exits("too many rfiles");
-		rfile[nrfile++] = ARGF();
-		if(rfile[nrfile-1] == nil)
-			usage();
+		rfile[nrfile++] = EARGF(usage());
 		break;
 	case 's':
 		serve = EARGF(usage());
@@ -553,7 +554,7 @@ main(int argc, char **argv)
 		exits("usage");
 	}
 
-	rc = strlen(serve)+sizeof("tcp!!99990");
+	rc = strlen(serve) + sizeof "tcp!!99990";
 	tcpserve = emalloc(rc);
 	if(strchr(serve,'!'))
 		strcpy(tcpserve, serve);
@@ -570,5 +571,4 @@ main(int argc, char **argv)
 	if(rc < 0)
 		sysfatal("secstore cmd failed");
 	exits("");
-	return 0;
 }

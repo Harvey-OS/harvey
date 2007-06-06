@@ -49130,3 +49130,10 @@
 1180857641 0 c sys/src/cmd/upas/vf/vf.c - 664 sys sys 1180857236 20273
 1180859423 0 c mail/lib/validateattachment - 775 upas upas 1180857656 1209
 1180900822 0 c 386/bin/upas/vf - 775 sys sys 1180900507 97407
+1181059209 0 c sys/games/lib/fortunes - 664 sys sys 1181057665 265556
+1181070023 0 c sys/man/1/secstore - 664 sys sys 1181069036 3770
+1181070023 1 c sys/src/cmd/auth/secstore/secstore.c - 664 sys sys 1181068567 12637
+1181071824 0 c sys/man/8/6in4 - 664 sys sys 1181070628 1934
+1181071824 1 c sys/src/cmd/ip/6in4.c - 664 sys sys 1181070455 7744
+1181084422 0 c sys/src/9/pc/devvga.c - 664 sys sys 1181083003 9334
+1181100623 0 c 386/bin/auth/secstore - 775 sys sys 1181100215 195887

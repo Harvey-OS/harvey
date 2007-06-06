@@ -164,15 +164,25 @@ main(int argc, char **argv)
 			sysfatal("can't set default global route: %r");
 	}
 
-	switch (rfork(RFPROC|RFNOWAIT|RFMEM)) {
+	/* run the tunnel copying in the background */
+	switch (rfork(RFPROC|RFNOWAIT|RFMEM|RFNOTEG)) {
+	default:
+		exits(nil);
+	case 0:
+		break;
 	case -1:
 		sysfatal("rfork");
-	case 0:
-		ip2tunnel(ifc, tunnel);
-		break;
+	}
+
+	switch (rfork(RFPROC|RFNOWAIT|RFMEM)) {
 	default:
 		tunnel2ip(tunnel, ifc);
 		break;
+	case 0:
+		ip2tunnel(ifc, tunnel);
+		break;
+	case -1:
+		sysfatal("rfork");
 	}
 	exits("tunnel gone");
 }
