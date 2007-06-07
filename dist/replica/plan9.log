@@ -49137,3 +49137,11 @@
 1181071824 1 c sys/src/cmd/ip/6in4.c - 664 sys sys 1181070455 7744
 1181084422 0 c sys/src/9/pc/devvga.c - 664 sys sys 1181083003 9334
 1181100623 0 c 386/bin/auth/secstore - 775 sys sys 1181100215 195887
+1181156423 0 c sys/src/9/pc/ahci.h - 664 sys sys 1181155864 6287
+1181161823 0 c sys/src/9/pc/ethermii.c - 664 sys sys 1181160689 4668
+1181161823 1 c sys/src/9/pc/sd63xxesb.c - 664 sys sys 1181160430 35976
+1181167223 0 c sys/man/8/plan9.ini - 664 sys sys 1181166067 23043
+1181169023 0 c sys/man/2/thread - 664 sys sys 1181168564 11712
+1181169023 1 c sys/man/8/plan9.ini - 664 sys sys 1181167491 23243
+1181170824 0 c sys/man/8/plan9.ini - 664 sys sys 1181169193 23242
+1181172622 0 c sys/games/lib/fortunes - 664 sys sys 1181172615 265729

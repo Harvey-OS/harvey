@@ -15,7 +15,7 @@ enum{
 	Ewp	= 1<<6,		/* write protect */
 	Eicrc	= 1<<7,		/* interface crc error */
 
-	Efatal	= Eidnf|Eicrc,	/* must sw reset. */
+	Efatal	= Eidnf|Eicrc,	/* must sw reset */
 };
 
 /* ata status */
@@ -55,7 +55,7 @@ enum{
 	Hsalp	= 1<<26,	/* aggressive link pm */
 	Hsal	= 1<<25,	/* activity led */
 	Hsclo	= 1<<24,	/* command-list override */
-	Hiss	= 1<<20,	/* for interface speed. */
+	Hiss	= 1<<20,	/* for interface speed */
 //	Hsnzo	= 1<<19,
 	Hsam	= 1<<18,	/* ahci-mode only */
 	Hspm	= 1<<17,	/* port multiplier */
@@ -66,7 +66,7 @@ enum{
 	Hncs	= 1<<8,		/* n command slots */
 	Hcccs	= 1<<7,		/* coal */
 	Hems	= 1<<6,		/* enclosure mgmt. */
-	Hsxs	= 1<<5,		/* external sata. */
+	Hsxs	= 1<<5,		/* external sata */
 	Hnp	= 1<<0,		/* n ports */
 };
 
@@ -81,9 +81,9 @@ typedef struct{
 	u32int	cap;
 	u32int	ghc;
 	u32int	isr;
-	u32int	pi;	/* ports implemented */
+	u32int	pi;		/* ports implemented */
 	u32int	ver;
-	u32int	ccc;	/* coaleasing control */
+	u32int	ccc;		/* coaleasing control */
 	u32int	cccports;
 	u32int	emloc;
 	u32int	emctl;
@@ -96,7 +96,7 @@ enum{
 	Ahbds	= 1<<28,	/* hba error (parity error) */
 	Aifs	= 1<<27,	/* interface fatal  §6.1.2 */
 	Ainfs	= 1<<26,	/* interface error (recovered) */
-	Aofs	= 1<<24,	/* too many bytes from disk. */
+	Aofs	= 1<<24,	/* too many bytes from disk */
 	Aipms	= 1<<23,	/* incorrect prt mul status */
 	Aprcs	= 1<<22,	/* PhyRdy change status Pxserr.diag.n */
 	Adpms	= 1<<7,		/* mechanical presence status */
@@ -106,10 +106,10 @@ enum{
 	Asdbs	= 1<<3,		/* set device bits fis received w/ i bit set */
 	Adss	= 1<<2,		/* dma setup */
 	Apio	= 1<<1,		/* pio setup fis */
-	Adhrs	= 1<<0,		/* device to host register fis. */
+	Adhrs	= 1<<0,		/* device to host register fis */
 
 	IEM	= Acpds|Atfes|Ahbds|Ahbfs|Ahbds|Aifs|Ainfs|Aprcs|Apcs|Adps|
-		  Aufs|Asdbs|Adss|Adhrs,
+			Aufs|Asdbs|Adss|Adhrs,
 	Ifatal	= Atfes|Ahbfs|Ahbds|Aifs,
 };
 
@@ -135,8 +135,8 @@ enum{
 	ErrI	= 1<<0,		/* recovered data integrety */
 
 	ErrAll	= ErrE|ErrP|ErrC|ErrT|ErrM|ErrI,
-	SerrAll	= SerrX|SerrF|SerrT|SerrS|SerrH|SerrC|SerrD|SerrB|SerrW|SerrI|
-		  SerrN|ErrAll,
+	SerrAll	= SerrX|SerrF|SerrT|SerrS|SerrH|SerrC|SerrD|SerrB|SerrW|
+			SerrI|SerrN|ErrAll,
 	SerrBad	= 0x7f<<19,
 };
 
@@ -157,10 +157,10 @@ enum{
 	Afr	= 1<<14,	/* fis running */
 	Ampss	= 1<<13,	/* mechanical presence switch state */
 	Accs	= 1<<8,		/* current command slot 12:08 */
-	Afre	= 1<<4,		/* fis enable receive. */
+	Afre	= 1<<4,		/* fis enable receive */
 	Aclo	= 1<<3,		/* command list override */
-	Apod	= 1<<2,		/* power on device (needs cold-pres. detect) */
-	Asud	= 1<<1,		/* spin-up device;  requires ss capability. */
+	Apod	= 1<<2,		/* power on dev (requires cold-pres. detect) */
+	Asud	= 1<<1,		/* spin-up device;  requires ss capability */
 	Ast	= 1<<0,		/* start */
 
 	Arun	= Ast|Acr|Afre|Afr,
@@ -170,7 +170,7 @@ enum{
 enum{
 	Aipm	= 1<<8,		/* interface power mgmt. 3=off */
 	Aspd	= 1<<4,
-	Adet	= 1<<0,		/* device detcection. */
+	Adet	= 1<<0,		/* device detection */
 };
 
 #define	sstatus	scr0
@@ -181,7 +181,7 @@ enum{
 typedef struct{
 	u32int	list;		/* PxCLB must be 1kb aligned. */
 	u32int	listhi;
-	u32int	fis;		/* 256-byte aligned. */
+	u32int	fis;		/* 256-byte aligned */
 	u32int	fishi;
 	u32int	isr;
 	u32int	ie;		/* interrupt enable */
