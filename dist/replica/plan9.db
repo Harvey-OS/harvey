@@ -5821,7 +5821,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1181057665 265556
+sys/games/lib/fortunes - 664 sys sys 1181172615 265729
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -7621,7 +7621,7 @@ sys/man/2/string - 664 sys sys 1055701090 5306
 sys/man/2/stringsize - 664 sys sys 952627482 1409
 sys/man/2/subfont - 664 sys sys 956345937 5140
 sys/man/2/symbol - 664 sys sys 950892874 9423
-sys/man/2/thread - 664 sys sys 1175868879 11642
+sys/man/2/thread - 664 sys sys 1181168564 11712
 sys/man/2/time - 664 sys sys 1015091527 739
 sys/man/2/tmpfile - 664 sys sys 1048637161 1157
 sys/man/2/wait - 664 sys sys 1163004064 2525
@@ -7810,7 +7810,7 @@ sys/man/8/nfsserver - 664 sys sys 1163208425 3587
 sys/man/8/pcmcia - 664 sys sys 944959679 408
 sys/man/8/pem - 664 sys sys 1060263669 1189
 sys/man/8/ping - 664 sys sys 1169105315 3650
-sys/man/8/plan9.ini - 664 sys sys 1173993823 22729
+sys/man/8/plan9.ini - 664 sys sys 1181169193 23242
 sys/man/8/pop3 - 664 sys sys 1063854676 2720
 sys/man/8/ppp - 664 sys sys 1125530075 4414
 sys/man/8/prep - 664 sys sys 1152729153 14013
@@ -8017,7 +8017,7 @@ sys/src/9/mtx/trap.c - 664 sys sys 1105030157 15882
 sys/src/9/mtx/uarti8250.c - 664 sys sys 1018721288 11590
 sys/src/9/pc - 20000000775 sys sys 1161233143 0
 sys/src/9/pc/a100p.cp - 444 sys sys 1159735144 21984
-sys/src/9/pc/ahci.h - 664 sys sys 1178833481 6297
+sys/src/9/pc/ahci.h - 664 sys sys 1181155864 6287
 sys/src/9/pc/apbootstrap.s - 664 sys sys 1131293655 3037
 sys/src/9/pc/apic.c - 664 sys sys 1174415344 8991
 sys/src/9/pc/apm.c - 664 sys sys 1131290210 3723
@@ -8064,7 +8064,7 @@ sys/src/9/pc/etherigbe.c - 664 sys sys 1168306113 44967
 sys/src/9/pc/etherm10g.c - 664 sys sys 1174595240 27681
 sys/src/9/pc/etherm10g2k.i - 664 sys sys 1174590427 957485
 sys/src/9/pc/etherm10g4k.i - 664 sys sys 1174590430 926959
-sys/src/9/pc/ethermii.c - 664 sys sys 1168306129 4651
+sys/src/9/pc/ethermii.c - 664 sys sys 1181160689 4668
 sys/src/9/pc/ethermii.h - 664 sys sys 1086873891 3258
 sys/src/9/pc/etherrhine.c - 664 sys sys 1081706478 13799
 sys/src/9/pc/ethersink.c - 664 sys sys 1048644103 1076
@@ -8114,7 +8114,7 @@ sys/src/9/pc/screen.c - 664 sys sys 1136336092 13971
 sys/src/9/pc/screen.h - 664 sys sys 1147023549 4256
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1170456695 55276
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
-sys/src/9/pc/sd63xxesb.c - 664 sys sys 1178836359 35774
+sys/src/9/pc/sd63xxesb.c - 664 sys sys 1181160430 35976
 sys/src/9/pc/sdata.c - 664 sys sys 1175564140 52809
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1177393607 33810
 sys/src/9/pc/sdmylex.c - 664 sys sys 1171321627 28237

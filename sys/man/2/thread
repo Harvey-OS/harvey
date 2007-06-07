@@ -569,6 +569,10 @@ functions for debugging threaded programs.
 .PP
 .B /sys/src/libthread/example.c
 contains a full example program.
+.PP
+.B /mnt/temp
+is used as a place to create pipes by
+.IR procexec .
 .SH SOURCE
 .B /sys/src/libthread
 .SH SEE ALSO
