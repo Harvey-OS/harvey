@@ -6083,7 +6083,7 @@ sys/include/httpd.h - 664 sys sys 1177187803 5794
 sys/include/ip.h - 664 sys sys 1178768502 2597
 sys/include/keyboard.h - 664 sys sys 1131637696 865
 sys/include/libc.h - 664 sys sys 1168306860 19851
-sys/include/libsec.h - 664 sys sys 1124709121 9345
+sys/include/libsec.h - 664 sys sys 1181273373 8263
 sys/include/mach.h - 664 sys sys 1178892102 8758
 sys/include/memdraw.h - 664 sys sys 1091904419 5645
 sys/include/memlayer.h - 664 sys sys 1051031022 1851
@@ -7491,7 +7491,7 @@ sys/man/2/abort - 664 sys sys 944959693 331
 sys/man/2/abs - 664 sys sys 944959693 461
 sys/man/2/access - 664 sys sys 1046657167 1102
 sys/man/2/addpt - 664 sys sys 958249501 2964
-sys/man/2/aes - 664 sys sys 1032058672 997
+sys/man/2/aes - 664 sys sys 1181273382 1028
 sys/man/2/allocimage - 664 sys sys 1046787977 7304
 sys/man/2/arg - 664 sys sys 1139744263 2184
 sys/man/2/arith3 - 664 sys sys 1162102967 4393
@@ -7667,7 +7667,7 @@ sys/man/4 - 20000000775 sys sys 1128556957 0
 sys/man/4/0intro - 664 sys sys 944959699 472
 sys/man/4/INDEX - 664 sys sys 1178249215 1026
 sys/man/4/INDEX.html - 664 sys sys 1141352366 5045
-sys/man/4/acme - 664 sys sys 1179239864 10433
+sys/man/4/acme - 664 sys sys 1181238729 10435
 sys/man/4/archfs - 664 sys sys 960000712 533
 sys/man/4/cdfs - 664 sys sys 1026846913 3638
 sys/man/4/cfs - 664 sys sys 1172762903 1813
@@ -7800,7 +7800,7 @@ sys/man/8/listen - 664 sys sys 1174792129 3826
 sys/man/8/lp - 664 sys sys 954614702 2491
 sys/man/8/mk9660 - 664 sys sys 1104430379 3946
 sys/man/8/mkfs - 664 sys sys 1163208436 3414
-sys/man/8/mkpaqfs - 664 sys sys 1018386778 892
+sys/man/8/mkpaqfs - 664 sys sys 1181261121 890
 sys/man/8/mksacfs - 664 sys sys 964886843 710
 sys/man/8/mouse - 664 sys sys 971455511 2476
 sys/man/8/na - 664 sys sys 958527089 859
@@ -7810,7 +7810,7 @@ sys/man/8/nfsserver - 664 sys sys 1163208425 3587
 sys/man/8/pcmcia - 664 sys sys 944959679 408
 sys/man/8/pem - 664 sys sys 1060263669 1189
 sys/man/8/ping - 664 sys sys 1169105315 3650
-sys/man/8/plan9.ini - 664 sys sys 1181169193 23242
+sys/man/8/plan9.ini - 664 sys sys 1181239022 23242
 sys/man/8/pop3 - 664 sys sys 1063854676 2720
 sys/man/8/ppp - 664 sys sys 1125530075 4414
 sys/man/8/prep - 664 sys sys 1152729153 14013
@@ -7984,7 +7984,7 @@ sys/src/9/ip/nullmedium.c - 664 sys sys 1086406910 492
 sys/src/9/ip/pktmedium.c - 664 sys sys 1084331746 1314
 sys/src/9/ip/ptclbsum.c - 664 sys sys 1022588099 1243
 sys/src/9/ip/rudp.c - 664 sys sys 1055700790 21415
-sys/src/9/ip/tcp.c - 664 sys sys 1170031827 65877
+sys/src/9/ip/tcp.c - 664 sys sys 1181238163 65894
 sys/src/9/ip/tripmedium.c - 664 sys sys 1045063515 7136
 sys/src/9/ip/udp.c - 664 sys sys 1178817924 13317
 sys/src/9/mkfile - 664 sys sys 1063857477 205

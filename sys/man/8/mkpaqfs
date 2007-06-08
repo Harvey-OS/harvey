@@ -23,7 +23,7 @@ copies files from the file tree
 .I source
 (default
 .BR . )
-to a the
+to the
 .IR paqfs (4)
 file system archive
 .IR file .
