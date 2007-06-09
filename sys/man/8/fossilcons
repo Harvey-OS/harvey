@@ -49,6 +49,8 @@ con /srv/fscons
 .I nproc
 ]
 .PP
+.B printconfig
+.PP
 .B srv
 [
 .B -APWdp
@@ -436,6 +438,14 @@ The
 and
 .B -p
 options set the two variables.
+.PP
+.I Printconfig
+prints the
+.B config
+line for each configured file system
+and prints the
+.B venti
+line, if any, used to configure this file server.
 .PP
 .I Srv
 behaves like listen but uses
