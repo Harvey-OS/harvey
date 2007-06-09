@@ -1,12 +1,10 @@
 .TH AUTH 8
 .SH NAME
-changeuser, wrkey, convkeys, convkeys2, printnetkey, status, authsrv, guard.srv, login, disable, enable \- maintain authentication databases
+changeuser, convkeys, convkeys2, printnetkey, status, enable, disable, authsrv, guard.srv, wrkey, login, none \- maintain authentication databases
 .SH SYNOPSIS
 .B auth/changeuser
 .RB [ -np ]
 .I user
-.PP
-.B auth/wrkey
 .PP
 .B auth/convkeys
 .RB [ -p ]
@@ -32,10 +30,19 @@ changeuser, wrkey, convkeys, convkeys2, printnetkey, status, authsrv, guard.srv,
 .PP
 .B auth/guard.srv
 .PP
+.B auth/wrkey
+.PP
 .B auth/login
 .I user
 .PP
 .B auth/none
+[
+.B -n
+.I namespace
+]
+.I command
+.I arg
+\&...
 .SH DESCRIPTION
 These administrative commands run only on the authentication server.
 .IR Changeuser
@@ -105,10 +112,6 @@ appends it to the file
 or
 .BR /adm/keys.who .
 .PP
-.I Wrkey
-prompts for a machine key, host owner, and host domain and stores them in
-local non-volatile RAM.
-.PP
 .I Convkeys
 re-encrypts the key file
 .IR keyfile .
@@ -117,8 +120,7 @@ Without the
 .B -p
 option
 .I convkeys
-uses the key stored in
-.B /dev/keys
+uses the key stored in NVRAM
 to decrypt the file, and encrypts it using the new key.
 By default, 
 .I convkeys
@@ -169,22 +171,40 @@ described in
 is similar.  It is called whenever a foreign (e.g. Unix) system wants
 to do a SecureNet challenge/response authentication.
 .PP
+The remaining commands need not be run on an authentication server.
+.PP
+.I Wrkey
+prompts for a machine key, host owner, and host domain and stores them in
+local non-volatile RAM.
+.PP
 .I Login
 allows a user to change his authenticated id to
 .IR user .
 .I Login
 sets up a new namespace from
-.B /lib/namespace
-and exec's
+.BR /lib/namespace ,
+starts a
+.IR factotum (4)
+under the new id and
+.IR exec s
 .IR rc (1)
 under the new id.
 .PP
 .I None
 sets up a new namespace from
-.B /lib/namespace
-and exec's its arguments
-under the new id.  It's
-an easy way to run a command as none.
+.I namespace
+(default
+.BR /lib/namespace )
+as the user
+.I none
+and
+.IR exec s
+its arguments under the new id.
+If there are no arguments, it
+.IR exec s
+.BR /bin/rc .
+It's an easy way to run a command as
+.IR none .
 .SH FILES
 .TF /sys/lib/httppasswords
 .TP
@@ -203,5 +223,10 @@ List of realms and passwords for HTTP access.
 .SH SOURCE
 .B /sys/src/cmd/auth
 .SH "SEE ALSO"
+.I readnvram
+in
+.IR authsrv (2),
 .IR keyfs (4),
 .IR securenet (8)
+.SH BUGS
+Only CPU kernels permit changing userid.

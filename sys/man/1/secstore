@@ -24,11 +24,13 @@ aescbc, ipso, secstore \- secstore commands
 .PP
 .B auth/aescbc
 -e
+[ -in ]
 .I <cleartext
 .I >ciphertext
 .br
 .B auth/aescbc
 -d
+[ -in ]
 .I <ciphertext
 .I >cleartext
 .PP
@@ -185,8 +187,20 @@ Also with
 newly created files are ignored.
 .PP
 .I Aescbc
-encrypts and decrypts using AES (Rijndael) in cipher
-block chaining (CBC) mode.
+encrypts (under
+.LR -e )
+and decrypts (under
+.LR -d )
+using AES (Rijndael) in cipher block chaining (CBC) mode.
+Options
+.L i
+and
+.L n
+are as per
+.IR secstore ,
+except that
+.L i
+reads from file descriptor 3.
 .SH SOURCE
 .B /rc/bin/ipso
 .br
