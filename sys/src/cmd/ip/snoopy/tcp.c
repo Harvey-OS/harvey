@@ -39,7 +39,7 @@ enum
 	Osd,
 };
 
-static Field p_fields[] = 
+static Field p_fields[] =
 {
 	{"s",		Fnum,	Os,	"source port",	} ,
 	{"d",		Fnum,	Od,	"dest port",	} ,
@@ -50,7 +50,7 @@ static Field p_fields[] =
 
 static Mux p_mux[] =
 {
-	{"dns",	53, },
+	{"dns",		53, },
 	{"ninep",	17007, },	/* exportfs */
 	{"ninep",	564, },		/* 9fs */
 	{"ninep",	17005, },	/* ocpu */
@@ -97,7 +97,7 @@ p_filter(Filter *f, Msg *m)
 		return 0;
 
 	h = (Hdr*)m->ps;
-	m->ps += ((NetS(h->flag)>>10)&0x3f);
+	m->ps += (NetS(h->flag)>>10) & 0x3f;
 
 	switch(f->subop){
 	case Os:
@@ -147,10 +147,9 @@ flags(int f)
 static int
 p_seprint(Msg *m)
 {
-	Hdr *h;
-	int dport, sport;
-	int len, flag, optlen;
+	int dport, sport, len, flag, optlen;
 	uchar *optr;
+	Hdr *h;
 
 	if(m->pe - m->ps < TCPLEN)
 		return -1;
@@ -158,7 +157,7 @@ p_seprint(Msg *m)
 
 	/* get tcp header length */
 	flag = NetS(h->flag);
-	len = (flag>>10)&~3;
+	len = (flag>>10) & ~3;
 	flag &= 0x3ff;
 	m->ps += len;
 
@@ -192,20 +191,23 @@ p_seprint(Msg *m)
 			break;
 		switch(*optr) {
 		case MSSOPT:
-			m->p = seprint(m->p, m->e, " opt%d=(mss %ud)", optlen, nhgets(optr+2));
+			m->p = seprint(m->p, m->e, " opt%d=(mss %ud)",
+				optlen, nhgets(optr+2));
 			break;
 		case WSOPT:
-			m->p = seprint(m->p, m->e, " opt%d=(wscale %ud)", optlen, *(optr+2));
+			m->p = seprint(m->p, m->e, " opt%d=(wscale %ud)",
+				optlen, *(optr+2));
 			break;
 		default:
-			m->p = seprint(m->p, m->e, " opt%d=(%ud %.*H)", optlen, *optr, optlen-2,optr+2);
+			m->p = seprint(m->p, m->e, " opt%d=(%ud %.*H)",
+				optlen, *optr, optlen-2, optr+2);
 		}
 		len -= optlen;
 		optr += optlen;
 	}
 
 	if(Cflag){
-		// editing in progress by ehg
+		/* editing was in progress by ehg */
 	}
 	return 0;
 }

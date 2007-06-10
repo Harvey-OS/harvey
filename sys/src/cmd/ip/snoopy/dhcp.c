@@ -61,7 +61,7 @@ enum
 	OBtcpka=		38,
 	OBtcpkag=		39,
 	OBnisdomain=		40,
-	OBniserver=		41,	
+	OBniserver=		41,
 	OBntpserver=		42,
 	OBvendorinfo=		43,	/* 0x2b */
 	OBnetbiosns=		44,
@@ -99,8 +99,8 @@ enum
 	ODbootfile=		67,
 
 	/* plan9 vendor info options */
-	OP9fs=			128,	// plan9 file servers
-	OP9auth=		129,	// plan9 auth servers
+	OP9fs=			128,	/* plan9 file servers */
+	OP9auth=		129,	/* plan9 auth servers */
 };
 
 /*
@@ -119,7 +119,7 @@ phex(char *p, char *e, char *tag, uchar *o, int n)
 	p = seprint(p, e, "%s=", tag);
 
 	for(; p+2 < e && n > 0; n--){
-		*p++ = hex(*o>>4);
+		*p++ = hex(*o >> 4);
 		*p++ = hex(*o & 0xf);
 		o++;
 	}
@@ -145,7 +145,7 @@ pint(char *p, char *e, char *tag, uchar *o, int n)
 
 	x = *(char*)o++;
 	for(; n > 1; n--)
-		x = (x<<8)|*o++;
+		x = x<<8 | *o++;
 	return seprint(p, e, "%s=%d", tag, x);
 }
 
@@ -156,7 +156,7 @@ puint(char *p, char *e, char *tag, uchar *o, int n)
 
 	x = *o++;
 	for(; n > 1; n--)
-		x = (x<<8)|*o++;
+		x = x<<8 | *o++;
 	return seprint(p, e, "%s=%ud", tag, x);
 }
 
@@ -226,7 +226,7 @@ p_seprint(Msg *m)
 		ps += n;
 		if(ps > m->pe)
 			break;
-		
+
 		switch(code){
 		case ODipaddr:	/* requested ip address */
 			p = pserver(p, e, "ipaddr", o, n);
@@ -467,4 +467,3 @@ Proto dhcp =
 	nil,
 	defaultframer,
 };
-

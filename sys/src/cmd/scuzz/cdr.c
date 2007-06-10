@@ -162,7 +162,7 @@ SRwtrack(ScsiReq *rp, void *buf, long nbytes, uchar track, uchar mode)
 	uchar cmd[10];
 	long m, n;
 
-	if((nbytes % rp->lbsize) || nbytes > MaxIOsize){
+	if((nbytes % rp->lbsize) || nbytes > maxiosize){
 		rp->status = Status_BADARG;
 		return -1;
 	}
