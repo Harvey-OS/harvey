@@ -6,11 +6,12 @@
 
 typedef struct Hdr	Hdr;
 struct Hdr {
-	uchar d[6];
-	uchar s[6];
-	uchar type[2];
-	char data[1500];
+	uchar	d[6];
+	uchar	s[6];
+	uchar	type[2];
+	char	data[1500];
 };
+
 #define	ETHERMINTU	60	/* minimum transmit size */
 #define	ETHERMAXTU	1514	/* maximum transmit size */
 #define ETHERHDRSIZE	14	/* size of an ethernet header */
@@ -24,18 +25,20 @@ static Mux p_mux[] =
 	{"pppoe_disc",	0x8863, },
 	{"pppoe_sess",	0x8864, },
 	{"eapol",	0x888e, },
+	{"aoe",		0x88a2, } ,
+	{"cec",		0xbcbc, } ,
 	{0}
 };
 
 enum
 {
-	Os,	// source
-	Od,	// destination
-	Oa,	// source or destination
-	Ot,	// type
+	Os,	/* source */
+	Od,	/* destination */
+	Oa,	/* source or destination */
+	Ot,	/* type */
 };
 
-static Field p_fields[] = 
+static Field p_fields[] =
 {
 	{"s",	Fether,	Os,	"source address",	} ,
 	{"d",	Fether,	Od,	"destination address",	} ,
@@ -77,9 +80,9 @@ p_filter(Filter *f, Msg *m)
 
 	switch(f->subop){
 	case Os:
-		return !memcmp(h->s, f->a, 6);
+		return memcmp(h->s, f->a, 6) == 0;
 	case Od:
-		return !memcmp(h->d, f->a, 6);
+		return memcmp(h->d, f->a, 6) == 0;
 	case Oa:
 		return memcmp(h->s, f->a, 6) == 0 || memcmp(h->d, f->a, 6) == 0;
 	case Ot:
@@ -91,9 +94,9 @@ p_filter(Filter *f, Msg *m)
 static int
 p_seprint(Msg *m)
 {
-	Hdr *h;
-	uint t;
 	int len;
+	uint t;
+	Hdr *h;
 
 	len = m->pe - m->ps;
 	if(len < ETHERHDRSIZE)

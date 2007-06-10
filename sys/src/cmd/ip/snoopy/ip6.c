@@ -126,13 +126,13 @@ static Mux p_mux[] =
 
 enum
 {
-	Os,	// source
-	Od,	// destination
-	Osd,	// source or destination
-	Ot,	// type
+	Os,	/* source */
+	Od,	/* destination */
+	Osd,	/* source or destination */
+	Ot,	/* type */
 };
 
-static Field p_fields[] = 
+static Field p_fields[] =
 {
 	{"s",	Fv6ip,	Os,	"source address",	} ,
 	{"d",	Fv6ip,	Od,	"destination address",	} ,
@@ -167,17 +167,16 @@ v6hdrlen(Hdr *h)
 	int pktlen = IP6HDR + NetS(h->length);
 	uchar nexthdr = h->proto;
 	uchar *pkt = (uchar*) h;
-	
+
 	pkt += len;
 	plen = len;
 
-	while ( (nexthdr == HBH_HDR) || (nexthdr == ROUT_HDR) ||
-		(nexthdr == FRAG_HDR) || (nexthdr == DEST_HDR) ) {
-
+	while (nexthdr == HBH_HDR || nexthdr == ROUT_HDR ||
+	    nexthdr == FRAG_HDR || nexthdr == DEST_HDR) {
 		if (nexthdr == FRAG_HDR)
 			len = FRAG_HSZ;
-		else 
-			len = ( ((int) *(pkt+1)) + 1) * 8;
+		else
+			len = ((int)*(pkt+1) + 1) * 8;
 
 		if (plen + len > pktlen)
 			return -1;
@@ -206,11 +205,12 @@ p_filter(Filter *f, Msg *m)
 		m->ps += hlen;
 	switch(f->subop){
 	case Os:
-		return !memcmp(h->src, f->a, IPaddrlen);
+		return memcmp(h->src, f->a, IPaddrlen) == 0;
 	case Od:
-		return !memcmp(h->dst, f->a, IPaddrlen);
+		return memcmp(h->dst, f->a, IPaddrlen) == 0;
 	case Osd:
-		return !memcmp(h->src, f->a, IPaddrlen) || !memcmp(h->dst, f->a, IPaddrlen);
+		return memcmp(h->src, f->a, IPaddrlen) == 0 ||
+			memcmp(h->dst, f->a, IPaddrlen) == 0;
 	case Ot:
 		return h->proto == f->ulv;
 	}
@@ -220,36 +220,31 @@ p_filter(Filter *f, Msg *m)
 static int
 v6hdr_seprint(Msg *m)
 {
-	int len = IP6HDR;
+	int plen, len = IP6HDR;
 	uchar *pkt = m->ps;
-	Hdr *h = (Hdr *) pkt;
+	Hdr *h = (Hdr *)pkt;
 	int pktlen = IP6HDR + NetS(h->length);
 	uchar nexthdr = h->proto;
-	int plen;
-	
+
 	pkt += len;
 	plen = len;
 
-	while ( (nexthdr == HBH_HDR) || (nexthdr == ROUT_HDR) ||
-		(nexthdr == FRAG_HDR) || (nexthdr == DEST_HDR) ) {
-
+	while (nexthdr == HBH_HDR || nexthdr == ROUT_HDR ||
+	    nexthdr == FRAG_HDR || nexthdr == DEST_HDR) {
 		switch (nexthdr) {
 		case FRAG_HDR:
-			m->p = seprint(m->p, m->e, "\n	  xthdr=frag id=%d offset=%d pr=%d more=%d res1=%d res2=%d",
-					NetL(pkt+4),
-					NetS(pkt+2) & ~7,
-					(int) (*pkt),
-					(int) (*(pkt+3) & 0x1),
-					(int) *(pkt+1),
-					(int) (*(pkt+3) & 0x6)
-				);
+			m->p = seprint(m->p, m->e, "\n	  xthdr=frag id=%d "
+				"offset=%d pr=%d more=%d res1=%d res2=%d",
+				NetL(pkt+4), NetS(pkt+2) & ~7, (int)*pkt,
+				(int)(*(pkt+3) & 0x1), (int)*(pkt+1),
+				(int)(*(pkt+3) & 0x6));
 			len = FRAG_HSZ;
 			break;
 
 		case HBH_HDR:
 		case ROUT_HDR:
 		case DEST_HDR:
-			len = ( ((int) *(pkt+1)) + 1) * 8;
+			len = ((int)*(pkt+1) + 1) * 8;
 			break;
 		}
 
@@ -265,14 +260,13 @@ v6hdr_seprint(Msg *m)
 
 	m->ps = pkt;
 	return 1;
-
 }
 
 static int
 p_seprint(Msg *m)
 {
-	Hdr *h;
 	int len;
+	Hdr *h;
 
 	if(m->pe - m->ps < IP6HDR)
 		return -1;
@@ -286,14 +280,8 @@ p_seprint(Msg *m)
 		m->pe = m->ps + len;
 
 	m->p = seprint(m->p, m->e, "s=%I d=%I ttl=%3d pr=%d ln=%d",
-			h->src, h->dst,
-			h->ttl,
-			h->proto,
-			NetS(h->length)
-			);
-
+		h->src, h->dst, h->ttl, h->proto, NetS(h->length));
 	v6hdr_seprint(m);
-
 	return 0;
 }
 

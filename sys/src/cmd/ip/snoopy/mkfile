@@ -2,8 +2,12 @@
 
 TARG=snoopy
 PROTOS=\
+	aoe\
+	aoeata\
+	aoecmd\
 	arp\
 	bootp\
+	cec\
 	dhcp\
 	dns\
 	dump\

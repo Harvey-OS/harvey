@@ -4,6 +4,15 @@
 
 #include "scsireq.h"
 
+enum {					/* fundamental constants/defaults */
+	/*
+	 * default & maximum `maximum i/o size'; overridden by -m.
+	 * limits kernel memory consumption.
+	 * 240K is exabyte maximum block size.
+	 */
+	MaxIOsize	= 240*1024,
+};
+
 #define MIN(a, b)	((a) < (b) ? (a): (b))
 
 static char rwbuf[MaxIOsize];
@@ -1937,4 +1946,13 @@ main(int argc, char *argv[])
 		Bflush(&bout);
 	}
 	exits(0);
+}
+
+/* USB mass storage fake */
+long
+umsrequest(Umsc *umsc, ScsiPtr *cmd, ScsiPtr *data, int *status)
+{
+	USED(umsc, data, cmd);
+	*status = STharderr;
+	return -1;
 }

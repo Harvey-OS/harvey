@@ -6,24 +6,24 @@
 
 typedef struct Hdr Hdr;
 struct Hdr {
-	uchar	hdr;		// RTP header
-	uchar	marker;	// Payload and marker
-	uchar	seq[2];	// Sequence number
-	uchar	ts[4];		// Time stamp
-	uchar	ssrc[4];	// Synchronization source identifier
+	uchar	hdr;		/* RTP header */
+	uchar	marker;		/* Payload and marker */
+	uchar	seq[2];		/* Sequence number */
+	uchar	ts[4];		/* Time stamp */
+	uchar	ssrc[4];	/* Synchronization source identifier */
 };
 
 enum{
-	RTPLEN = 12,		// Minimum size of an RTP header
+	RTPLEN = 12,		/* Minimum size of an RTP header */
 };
 
 static int
 p_seprint(Msg *m)
 {
-	Hdr*h;
+	int cc, i;
 	ushort seq;
 	ulong ssrc, ts;
-	int cc, i;
+	Hdr*h;
 
 	if(m->pe - m->ps < RTPLEN)
 		return -1;
@@ -40,10 +40,9 @@ p_seprint(Msg *m)
 	ssrc = NetL(h->ssrc);
 
 	m->p = seprint(m->p, m->e, "version=%d x=%d cc=%d seq=%d ts=%ld ssrc=%ulx",
-				(h->hdr >> 6) & 3, (h->hdr >> 4) & 1, cc, seq, ts, ssrc);
+		(h->hdr >> 6) & 3, (h->hdr >> 4) & 1, cc, seq, ts, ssrc);
 	for(i = 0; i < cc; i++){
-		m->p = seprint(m->p, m->e, " csrc[%d]=%d",
-				i, NetL(m->ps));
+		m->p = seprint(m->p, m->e, " csrc[%d]=%d", i, NetL(m->ps));
 		m->ps += 4;
 	}
 	m->pr = nil;

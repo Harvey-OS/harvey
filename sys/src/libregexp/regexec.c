@@ -133,7 +133,7 @@ regexec1(Reprog *progp,	/* program to run */
 					break;
 				case OR:
 					/* evaluate right choice later */
-					if(_renewthread(tlp, inst->right, ms, &tlp->se) == tle)
+					if(_renewthread(tl, inst->right, ms, &tlp->se) == tle)
 						return -1;
 					/* efficiency: advance and re-evaluate */
 					continue;

@@ -11,7 +11,6 @@ enum {
 	Debug = 0,
 };
 
-extern long maxiosize;
 /*
  * exabyte tape drives, at least old ones like the 8200 and 8505,
  * are dumb: you have to read the exact block size on the tape,
@@ -69,7 +68,10 @@ SRreqsense(ScsiReq *rp)
 	cmd[0] = ScmdRsense;
 	cmd[4] = sizeof(req.sense);
 	memset(&req, 0, sizeof(req));
+	if(rp->flags&Fusb)
+		req.flags |= Fusb;
 	req.fd = rp->fd;
+	req.umsc = rp->umsc;
 	req.cmd.p = cmd;
 	req.cmd.count = sizeof cmd;
 	req.data.p = rp->sense;
@@ -255,6 +257,7 @@ SRseek(ScsiReq *rp, long offset, int type)
 	uchar cmd[10];
 
 	switch(type){
+
 	case 0:
 		break;
 
@@ -263,6 +266,7 @@ SRseek(ScsiReq *rp, long offset, int type)
 		if(offset >= 0)
 			break;
 		/*FALLTHROUGH*/
+
 	default:
 		rp->status = Status_BADARG;
 		return -1;
@@ -333,6 +337,7 @@ SRinquiry(ScsiReq *rp)
 	cmd[4] = sizeof rp->inquiry;
 	rp->cmd.p = cmd;
 	rp->cmd.count = sizeof cmd;
+	memset(rp->inquiry, 0, sizeof rp->inquiry);
 	rp->data.p = rp->inquiry;
 	rp->data.count = sizeof rp->inquiry;
 	rp->data.write = 0;
@@ -508,7 +513,10 @@ SRrequest(ScsiReq *rp)
 	int status;
 
 retry:
-	n = request(rp->fd, &rp->cmd, &rp->data, &status);
+	if(rp->flags&Fusb)
+		n = umsrequest(rp->umsc, &rp->cmd, &rp->data, &status);
+	else
+		n = request(rp->fd, &rp->cmd, &rp->data, &status);
 	switch(rp->status = status){
 
 	case STok:
@@ -614,17 +622,16 @@ seqdevopen(ScsiReq *rp)
 static int
 wormdevopen(ScsiReq *rp)
 {
+	long status;
 	uchar list[MaxDirData];
-	long status, blen;
 
 	if (SRstart(rp, 1) == -1 ||
 	    (status = SRmodesense10(rp, Allmodepages, list, sizeof list)) == -1)
 		return -1;
 	/* nbytes = list[0]<<8 | list[1]; */
 
-	/* # of bytes of block descriptors of 8 bytes each */
-	blen = list[6]<<8 | list[7];
-	if(blen < 8)			/* not even 1 block descriptor? */
+	/* # of bytes of block descriptors of 8 bytes each; not even 1? */
+	if((list[6]<<8 | list[7]) < 8)
 		rp->lbsize = 2048;
 	else
 		/* last 3 bytes of block 0 descriptor */

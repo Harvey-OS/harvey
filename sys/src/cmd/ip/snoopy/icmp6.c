@@ -20,17 +20,18 @@ enum
 enum
 {
 	Ot,	/* type */
-	Op,	/* next protocol */};
+	Op,	/* next protocol */
+};
 
-static Field p_fields[] = 
+static Field p_fields[] =
 {
 	{"t",		Fnum,	Ot,	"type",	} ,
 	{0}
 };
 
 enum
-{	
-	// ICMPv6 types
+{
+	/* ICMPv6 types */
 	EchoReply	= 0,
 	UnreachableV6	= 1,
 	PacketTooBigV6	= 2,
@@ -114,7 +115,7 @@ static char *parpcode[] =
 [2]	"unrecognized IPv6 option encountered",
 [3]	"icmp par prob: unknown code",
 };
-enum 
+enum
 {
 	sll	= 1,
 	tll	= 2,
@@ -123,7 +124,7 @@ enum
 	mtu	= 5,
 };
 
-static char *icmp6opts[256] = 
+static char *icmp6opts[256] =
 {
 [0]	"unknown opt",
 [1]	"sll_addr",
@@ -206,8 +207,9 @@ opt_seprint(Msg *m)
 
 		case sll:
 		case tll:
-			if ((pktsz < osz) || (osz != 8)) { 
-				p = seprint(p, e, "\n	  option=%s bad size=%d", opt, osz);
+			if (pktsz < osz || osz != 8) {
+				p = seprint(p, e, "\n	  option=%s bad size=%d",
+					opt, osz);
 				m->pr = &dump;
 				return p;
 			}
@@ -217,30 +219,34 @@ opt_seprint(Msg *m)
 			break;
 
 		case pref:
-			if ((pktsz < osz) || (osz != 32)) { 
-				p = seprint(p, e, "\n	  option=%s: bad size=%d", opt, osz);
+			if ((pktsz < osz) || (osz != 32)) {
+				p = seprint(p, e, "\n	  option=%s: bad size=%d",
+					opt, osz);
 				m->pr = &dump;
 				return p;
 			}
 
-			p = seprint(p, e, "\n	  option=%s pref=%I preflen=%3.3d lflag=%1.1d aflag=%1.1d unused1=%1.1d validlt=%d preflt=%d unused2=%1.1d",
+			p = seprint(p, e, "\n	  option=%s pref=%I "
+				"preflen=%3.3d lflag=%1.1d aflag=%1.1d "
+				"unused1=%1.1d validlt=%d preflt=%d unused2=%1.1d",
 				opt,
 				a+16,
 				(int) (*(a+2)),
-				(*(a+3) & (1 << 7))!=0,
-				(*(a+3) & (1 << 6))!=0,
+				(*(a+3) & (1 << 7)) != 0,
+				(*(a+3) & (1 << 6)) != 0,
 				(*(a+3) & 63) != 0,
 				NetL(a+4),
 				NetL(a+8),
 				NetL(a+12)!=0);
 
 			pktsz -= osz;
-			a += osz;			
+			a += osz;
 			break;
 
 		case redir:
-			if (pktsz < osz) { 
-				p = seprint(p, e, "\n	  option=%s: bad size=%d", opt, osz);
+			if (pktsz < osz) {
+				p = seprint(p, e, "\n	  option=%s: bad size=%d",
+					opt, osz);
 				m->pr = &dump;
 				return p;
 			}
@@ -248,16 +254,18 @@ opt_seprint(Msg *m)
 			p = seprint(p, e, "\n	  option=%s len %d", opt, osz);
 			a += osz;
 			m->ps = a;
-			return p;			
+			return p;
 
 		case mtu:
-			if ((pktsz < osz) || (osz != 8)) { 
-				p = seprint(p, e, "\n	  option=%s: bad size=%d", opt, osz);
+			if (pktsz < osz || osz != 8) {
+				p = seprint(p, e, "\n	  option=%s: bad size=%d",
+					opt, osz);
 				m->pr = &dump;
 				return p;
 			}
 
-			p = seprint(p, e, "\n	  option=%s unused=%1.1d mtu=%d", opt, NetL(a+2)!=0, NetL(a+4));
+			p = seprint(p, e, "\n	  option=%s unused=%1.1d mtu=%d",
+				opt, NetL(a+2) != 0, NetL(a+4));
 			pktsz -= osz;
 			a += osz;
 			break;
@@ -271,13 +279,13 @@ opt_seprint(Msg *m)
 static int
 p_seprint(Msg *m)
 {
-	Hdr *h;
+	int i;
+//	ushort cksum2, cksum;
 	char *tn;
 	char *p = m->p;
 	char *e = m->e;
-	int i;
 	uchar *a;
-//	ushort cksum2, cksum;
+	Hdr *h;
 
 	h = (Hdr*)m->ps;
 	m->ps += ICMP6LEN;
@@ -295,7 +303,7 @@ p_seprint(Msg *m)
 		p = seprint(p, e, "t=%s c=%d ck=%4.4ux", tn,
 			h->code, (ushort)NetS(h->cksum));
 
-	/*
+/*
 	if(Cflag){
 		cksum = NetS(h->cksum);
 		h->cksum[0] = 0;
@@ -304,7 +312,7 @@ p_seprint(Msg *m)
 		if(cksum != cksum2)
 			p = seprint(p,e, " !ck=%4.4ux", cksum2);
 	}
-	*/
+ */
 
 	switch(h->type){
 
@@ -315,7 +323,8 @@ p_seprint(Msg *m)
 			i = nelem(unreachcode)-1;
 		else
 			i = h->code;
-		p = seprint(p, e, " code=%s unused=%1.1d ", unreachcode[i], NetL(a)!=0);
+		p = seprint(p, e, " code=%s unused=%1.1d ", unreachcode[i],
+			NetL(a) != 0);
 		break;
 
 	case PacketTooBigV6:
@@ -331,7 +340,8 @@ p_seprint(Msg *m)
 			i = nelem(timexcode)-1;
 		else
 			i = h->code;
-		p = seprint(p, e, " code=%s unused=%1.1d ", timexcode[i], NetL(a)!=0);
+		p = seprint(p, e, " code=%s unused=%1.1d ", timexcode[i],
+			NetL(a) != 0);
 		break;
 
 	case ParamProblemV6:
@@ -361,7 +371,8 @@ p_seprint(Msg *m)
 	case RouterAdvert:
 		m->ps += 12;
 		m->pr = nil;
-		m->p = seprint(p, e, " hoplim=%3.3d mflag=%1.1d oflag=%1.1d unused=%1.1d routerlt=%8.8d reachtime=%d rxmtimer=%d",
+		m->p = seprint(p, e, " hoplim=%3.3d mflag=%1.1d oflag=%1.1d "
+			"unused=%1.1d routerlt=%8.8d reachtime=%d rxmtimer=%d",
 			(int) *a,
 			(*(a+1) & (1 << 7)) != 0,
 			(*(a+1) & (1 << 6)) != 0,
@@ -375,7 +386,7 @@ p_seprint(Msg *m)
 	case NbrSolicit:
 		m->ps += 20;
 		m->pr = nil;
-		m->p = seprint(p, e, " unused=%1.1d targ %I", NetL(a)!=0, a+4);
+		m->p = seprint(p, e, " unused=%1.1d targ %I", NetL(a) != 0, a+4);
 		p = opt_seprint(m);
 		break;
 
@@ -393,7 +404,8 @@ p_seprint(Msg *m)
 	case RedirectV6:
 		m->ps += 36;
 		m->pr = &ip6;
-		m->p = seprint(p, e, " unused=%1.1d targ=%I dest=%I", NetL(a)!=0, a+4, a+20);
+		m->p = seprint(p, e, " unused=%1.1d targ=%I dest=%I",
+			NetL(a) != 0, a+4, a+20);
 		p = opt_seprint(m);
 		break;
 
@@ -401,8 +413,7 @@ p_seprint(Msg *m)
 	case TimestampReply:
 		m->ps += 12;
 		p = seprint(p, e, " orig=%ud rcv=%ux xmt=%ux",
-			NetL(h->data), NetL(h->data+4),
-			NetL(h->data+8));
+			NetL(h->data), NetL(h->data+4), NetL(h->data+8));
 		m->pr = nil;
 		break;
 
