@@ -62,8 +62,6 @@ cmd		: error
 			{ noop(); }
 		| 'q' 'u' 'i' 't' CRLF
 			{ quit(); }
-		| 't' 'u' 'r' 'n' CRLF
-			{ turn(); }
 		| 's' 't' 'a' 'r' 't' 't' 'l' 's' CRLF
 			{ starttls(); }
 		| 'a' 'u' 't' 'h' spaces name spaces string CRLF
@@ -71,7 +69,7 @@ cmd		: error
 		| 'a' 'u' 't' 'h' spaces name CRLF
 			{ auth($6.s, nil); }
 		| CRLF
-			{ reply("501 illegal command or bad syntax\r\n"); }
+			{ reply("500 5.5.1 illegal command or bad syntax\r\n"); }
 		;
 path		: '<' '>'			={ $$ = anonymous(); }
 		| '<' mailbox '>'		={ $$ = $2; }
@@ -147,7 +145,7 @@ dotnum		: snum '.' snum '.' snum '.' snum ={ $$ = cat(&$1, &$2, &$3, &$4, &$5, &
 number		: d		={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
 		| number d	={ $$ = cat(&$1, &$2, 0, 0, 0 ,0, 0); }
 		;
-snum		: number		={ if(atoi(s_to_c($1.s)) > 255) print("bad snum\n"); } 
+snum		: number		={ if(atoi(s_to_c($1.s)) > 255) print("bad snum\n"); }
 		;
 spaces		: SPACE		={ $$ = $1; }
 		| SPACE	spaces	={ $$ = $1; }
@@ -173,7 +171,7 @@ a		: 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i'
 d		: '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
 		;
 c		: a | d | notspecial
-		;		
+		;
 q		: a | d | special1 | notspecial | SPACE
 		;
 x		: a | d | special | notspecial | SPACE
