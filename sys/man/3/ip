@@ -309,7 +309,7 @@ has 9 white-space-separated fields: device, mtu, local address,
 mask, remote or network address, packets in, packets out, input errors,
 output errors.  Each subsequent line contains all but the device and mtu.
 See
-.B readipifc
+.I readipifc
 in
 .IR ip (2).
 .SS "Routing
@@ -491,7 +491,7 @@ low level error messages and to implement
 IL provides a reliable datagram service for communication
 between Plan 9 machines but is now deprecated.
 GRE is a general encapsulation protocol.
-ESP is the encapsulation protocol for IPSEC.
+ESP is the encapsulation protocol for IPsec.
 .PP
 Each protocol is a subdirectory of the IP stack.
 The top level directory of each protocol contains a
@@ -942,8 +942,8 @@ IP mask.  In the case of
 .B iph
 and
 .BR proto ,
-both value and mask are strings of 2 character hexadecimal digits representing
-8 bit values.
+both value and mask are strings of 2 hexadecimal digits representing
+8-bit values.
 .PP
 A packet is delivered to only one filter.
 The filters are merged into a single comparison tree.

@@ -31,6 +31,9 @@
 #include "ethermii.h"
 
 enum {
+	Debug = 0,		/* mostly for X60 debugging */
+};
+enum {
 	i82542     = (0x1000<<16)|0x8086,
 	i82543gc   = (0x1004<<16)|0x8086,
 	i82544ei   = (0x1008<<16)|0x8086,
@@ -42,6 +45,7 @@ enum {
 	i82541gi   = (0x1076<<16)|0x8086,
 	i82546gb   = (0x1079<<16)|0x8086,
 	i82541pi   = (0x107c<<16)|0x8086,
+	i82573pl   = (0x109a<<16)|0x8086,
 };
 
 /* compatibility with cpu kernels */
@@ -726,7 +730,7 @@ igbeinterrupt(Ureg*, void* arg)
 		 */
 		if(icr & (Rxseq|Lsc)){
 			/*
-			 * More here...
+			 * should be more here...
 			 */
 		}
 
@@ -851,6 +855,7 @@ igbeinit(Ether* edev)
 	case i82546gb:
 	case i82546eb:
 	case i82547gi:
+	case i82573pl:
 		csr32w(ctlr, Radv, 64);
 		break;
 	}
@@ -893,6 +898,7 @@ igbeinit(Ether* edev)
 	case i82546gb:
 	case i82546eb:
 	case i82547gi:
+	case i82573pl:
 		r = 8;
 		break;
 	}
@@ -931,6 +937,7 @@ igbeinit(Ether* edev)
 	case i82546gb:
 	case i82546eb:
 	case i82541gi:
+	case i82573pl:
 		r = csr32r(ctlr, Txdctl);
 		r &= ~WthreshMASK;
 		r |= Gran|(4<<WthreshSHIFT);
@@ -1162,6 +1169,7 @@ igbemii(Ctlr* ctlr)
 	case i82541pi:
 	case i82546gb:
 	case i82546eb:
+	case i82573pl:
 		ctrl &= ~(Frcdplx|Frcspd);
 		csr32w(ctlr, Ctrl, ctrl);
 		ctlr->mii->mir = igbemiimir;
@@ -1180,7 +1188,10 @@ igbemii(Ctlr* ctlr)
 		ctlr->mii = nil;
 		return -1;
 	}
-	print("oui %X phyno %d\n", phy->oui, phy->phyno);
+	if (Debug)
+		print("oui %X phyno %d\n", phy->oui, phy->phyno);
+	else
+		USED(phy);
 
 	/*
 	 * 8254X-specific PHY registers not in 802.3:
@@ -1326,6 +1337,7 @@ at93c46r(Ctlr* ctlr)
 	case i82547gi:
 	case i82546gb:
 	case i82546eb:
+//	case i82573pl:
 		areq = 1;
 		csr32w(ctlr, Eecd, eecd|Areq);
 		for(i = 0; i < 1000; i++){
@@ -1356,13 +1368,14 @@ at93c46r(Ctlr* ctlr)
 		at93c46io(ctlr, "sic", 0);
 		ctlr->eeprom[addr] = data;
 		sum += data;
-
-		if(addr && ((addr & 0x07) == 0))
-			print("\n");
-		print(" %4.4ux", data);
+		if (Debug) {
+			if(addr && ((addr & 0x07) == 0))
+				print("\n");
+			print(" %4.4ux", data);
+		}
 	}
-	print("\n");
-
+	if (Debug)
+		print("\n");
 release:
 	if(areq)
 		csr32w(ctlr, Eecd, eecd & ~Areq);
@@ -1406,6 +1419,7 @@ detach(Ctlr *ctlr)
 	case i82547gi:
 	case i82546gb:
 	case i82546eb:
+	case i82573pl:
 		r = csr32r(ctlr, Manc);
 		r &= ~Arpen;
 		csr32w(ctlr, Manc, r);
@@ -1454,14 +1468,19 @@ igbereset(Ctlr* ctlr)
 	 * There are 16 addresses. The first should be the MAC address.
 	 * The others are cleared and not marked valid (MS bit of Rah).
 	 */
-	if ((ctlr->id == i82546gb || ctlr->id == i82546eb) && BUSFNO(ctlr->pcidev->tbdf) == 1)
-		ctlr->eeprom[Ea+2] += 0x100;	// second interface
+	if ((ctlr->id == i82546gb || ctlr->id == i82546eb) &&
+	    BUSFNO(ctlr->pcidev->tbdf) == 1)
+		ctlr->eeprom[Ea+2] += 0x100;		/* second interface */
 	for(i = Ea; i < Eaddrlen/2; i++){
-if(i == Ea && ctlr->id == i82541gi && ctlr->eeprom[i] == 0xFFFF)
-    ctlr->eeprom[i] = 0xD000;
-		ctlr->ra[2*i] = ctlr->eeprom[i];
+		if(i == Ea && ctlr->id == i82541gi && ctlr->eeprom[i] == 0xFFFF)
+			ctlr->eeprom[i] = 0xD000;
+		ctlr->ra[2*i]   = ctlr->eeprom[i];
 		ctlr->ra[2*i+1] = ctlr->eeprom[i]>>8;
 	}
+	/* set mac address of second port */
+	r = csr32r(ctlr, Status)>>2;
+	ctlr->ra[5] += r & 3;		/* ea ctlr[1] = ea ctlr[0]+1 */
+
 	r = (ctlr->ra[3]<<24)|(ctlr->ra[2]<<16)|(ctlr->ra[1]<<8)|ctlr->ra[0];
 	csr32w(ctlr, Ral, r);
 	r = 0x80000000|(ctlr->ra[5]<<8)|ctlr->ra[4];
@@ -1547,7 +1566,7 @@ if(i == Ea && ctlr->id == i82541gi && ctlr->eeprom[i] == 0xFFFF)
 
 	ilock(&ctlr->imlock);
 	csr32w(ctlr, Imc, ~0);
-	ctlr->im = Lsc;
+	ctlr->im = 0;		/* was = Lsc, which hangs some controllers */
 	csr32w(ctlr, Ims, ctlr->im);
 	iunlock(&ctlr->imlock);
 
@@ -1594,6 +1613,7 @@ igbepci(void)
 		case i82541pi:
 		case i82546gb:
 		case i82546eb:
+		case i82573pl:
 			break;
 		}
 
@@ -1641,12 +1661,14 @@ igbepci(void)
 		ctlr->id = (p->did<<16)|p->vid;
 		ctlr->cls = cls*4;
 		ctlr->nic = KADDR(ctlr->port);
-print("status0 %8.8uX\n", csr32r(ctlr, Status));
+		if (Debug)
+			print("status0 %8.8uX\n", csr32r(ctlr, Status));
 		if(igbereset(ctlr)){
 			free(ctlr);
 			continue;
 		}
-print("status1 %8.8uX\n", csr32r(ctlr, Status));
+		if (Debug)
+			print("status1 %8.8uX\n", csr32r(ctlr, Status));
 		pcisetbme(p);
 
 		if(ctlrhead != nil)

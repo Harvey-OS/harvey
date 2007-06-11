@@ -40,12 +40,13 @@ char	*tlscert;
 List	senders;
 List	rcvers;
 
-char pipbuf[ERRMAX];
+char	pipbuf[ERRMAX];
 char	*piperror;
-int	pipemsg(int*);
-String*	startcmd(void);
-int	rejectcheck(void);
+
 String*	mailerpath(char*);
+int	pipemsg(int*);
+int	rejectcheck(void);
+String*	startcmd(void);
 
 static int
 catchalarm(void *a, char *msg)
@@ -57,7 +58,8 @@ catchalarm(void *a, char *msg)
 	/* log alarms but continue */
 	if(strstr(msg, "alarm")){
 		if(senders.first && rcvers.first)
-			syslog(0, "smtpd", "note: %s->%s: %s", s_to_c(senders.first->p),
+			syslog(0, "smtpd", "note: %s->%s: %s",
+				s_to_c(senders.first->p),
 				s_to_c(rcvers.first->p), msg);
 		else
 			syslog(0, "smtpd", "note: %s", msg);
@@ -71,7 +73,7 @@ catchalarm(void *a, char *msg)
 	return rv;
 }
 
-	/* override string error functions to do something reasonable */
+/* override string error functions to do something reasonable */
 void
 s_error(char *f, char *status)
 {
@@ -80,30 +82,41 @@ s_error(char *f, char *status)
 	errbuf[0] = 0;
 	rerrstr(errbuf, sizeof(errbuf));
 	if(f && *f)
-		reply("452 out of memory %s: %s\r\n", f, errbuf);
+		reply("452 4.3.0 out of memory %s: %s\r\n", f, errbuf);
 	else
-		reply("452 out of memory %s\r\n", errbuf);
+		reply("452 4.3.0 out of memory %s\r\n", errbuf);
 	syslog(0, "smtpd", "++Malloc failure %s [%s]", him, nci->rsys);
 	exits(status);
+}
+
+static void
+usage(void)
+{
+	fprint(2,
+	  "usage: smtpd [-adDfghprs] [-c cert] [-k ip] [-m mailer] [-n net]\n");
+	exits("usage");
 }
 
 void
 main(int argc, char **argv)
 {
-	char *p, buf[1024];
 	char *netdir;
+	char buf[1024];
 
 	netdir = nil;
 	quotefmtinstall();
 	ARGBEGIN{
+	case 'a':
+		authenticate = 1;
+		break;
+	case 'c':
+		tlscert = EARGF(usage());
+		break;
 	case 'D':
 		Dflag++;
 		break;
 	case 'd':
 		debug++;
-		break;
-	case 'n':				/* log peer ip address */
-		netdir = ARGF();
 		break;
 	case 'f':				/* disallow relaying */
 		fflag = 1;
@@ -112,17 +125,19 @@ main(int argc, char **argv)
 		gflag = 1;
 		break;
 	case 'h':				/* default domain name */
-		dom = ARGF();
+		dom = EARGF(usage());
 		break;
 	case 'k':				/* prohibited ip address */
-		p = ARGF();
-		if (p)
-			addbadguy(p);
+		addbadguy(EARGF(usage()));
 		break;
 	case 'm':				/* set mail command */
-		p = ARGF();
-		if(p)
-			mailer = mailerpath(p);
+		mailer = mailerpath(EARGF(usage()));
+		break;
+	case 'n':				/* log peer ip address */
+		netdir = EARGF(usage());
+		break;
+	case 'p':
+		passwordinclear = 1;
 		break;
 	case 'r':
 		rflag = 1;			/* verify sender's domain */
@@ -130,22 +145,13 @@ main(int argc, char **argv)
 	case 's':				/* save blocked messages */
 		sflag = 1;
 		break;
-	case 'a':
-		authenticate = 1;
-		break;
-	case 'p':
-		passwordinclear = 1;
-		break;
-	case 'c':
-		tlscert = ARGF();
-		break;
 	case 't':
-		fprint(2, "%s: the -t option is no longer supported, see -c\n", argv0);
+		fprint(2, "%s: the -t option is no longer supported, see -c\n",
+			argv0);
 		tlscert = "/sys/lib/ssl/smtpd-cert.pem";
 		break;
 	default:
-		fprint(2, "usage: smtpd [-dfhrs] [-n net] [-c cert]\n");
-		exits("usage");
+		usage();
 	}ARGEND;
 
 	nci = getnetconninfo(netdir, 0);
@@ -175,7 +181,8 @@ main(int argc, char **argv)
 		dom = me;
 	sayhi();
 	parseinit();
-		/* allow 45 minutes to parse the header */
+
+	/* allow 45 minutes to parse the header */
 	atnotify(catchalarm, 1);
 	alarm(45*60*1000);
 	zzparse();
@@ -185,8 +192,7 @@ main(int argc, char **argv)
 void
 listfree(List *l)
 {
-	Link *lp;
-	Link *next;
+	Link *lp, *next;
 
 	for(lp = l->first; lp; lp = next){
 		next = lp->next;
@@ -201,7 +207,7 @@ listadd(List *l, String *path)
 {
 	Link *lp;
 
-	lp = (Link *)malloc(sizeof(Link));
+	lp = (Link *)malloc(sizeof *lp);
 	lp->p = path;
 	lp->next = 0;
 
@@ -213,17 +219,19 @@ listadd(List *l, String *path)
 }
 
 #define	SIZE	4096
+
 int
 reply(char *fmt, ...)
 {
+	int n;
 	char buf[SIZE], *out;
 	va_list arg;
-	int n;
 
 	va_start(arg, fmt);
 	out = vseprint(buf, buf+SIZE, fmt, arg);
 	va_end(arg);
-	n = (long)(out-buf);
+
+	n = (long)(out - buf);
 	if(debug) {
 		seek(2, 0, 2);
 		write(2, buf, n);
@@ -243,26 +251,29 @@ reset(void)
 		logged = 0;
 		filterstate = ACCEPT;
 	}
-	reply("250 ok\r\n");
+	reply("250 2.0.0 ok\r\n");
 }
 
 void
 sayhi(void)
 {
-	reply("220 %s SMTP\r\n", dom);
+	reply("220 %s ESMTP\r\n", dom);
 }
 
 void
 hello(String *himp, int extended)
 {
 	char **mynames;
+	char *ldot, *rdot;
 
 	him = s_to_c(himp);
-	syslog(0, "smtpd", "%s from %s as %s", extended ? "ehlo" : "helo", nci->rsys, him);
+	syslog(0, "smtpd", "%s from %s as %s", extended? "ehlo": "helo",
+		nci->rsys, him);
 	if(rejectcheck())
 		return;
 
-	if(strchr(him, '.') && nci && !trusted && fflag && strcmp(nci->rsys, nci->lsys) != 0){
+	if (strchr(him, '.') && nci && !trusted && fflag &&
+	    strcmp(nci->rsys, nci->lsys) != 0){
 		/*
 		 * We don't care if he lies about who he is, but it is
 		 * not okay to pretend to be us.  Many viruses do this,
@@ -270,29 +281,60 @@ hello(String *himp, int extended)
 		 */
 		if(strcmp(him, dom) == 0)
 			goto Liarliar;
-		for(mynames=sysnames_read(); mynames && *mynames; mynames++){
+		for(mynames = sysnames_read(); mynames && *mynames; mynames++){
 			if(cistrcmp(*mynames, him) == 0){
-			Liarliar:
-				syslog(0, "smtpd", "Hung up on %s; claimed to be %s",
+Liarliar:
+				syslog(0, "smtpd",
+					"Hung up on %s; claimed to be %s",
 					nci->rsys, him);
-				reply("554 Liar!\r\n");
+				reply("554 5.7.0 Liar!\r\n");
 				exits("client pretended to be us");
 				return;
 			}
 		}
 	}
+
 	/*
-	 * it is never acceptable to claim to be "localhost",
-	 * "localhost.localdomain" or "localhost.example.com"; only spammers
-	 * do this.  it is also unacceptable to claim any string that doesn't
-	 * look like a domain name (e.g., has at least one dot in it), but
+	 * it is unacceptable to claim any string that doesn't look like
+	 * a domain name (e.g., has at least one dot in it), but
 	 * Microsoft mail client software gets this wrong, so let trusted
-	 * (local) clients get it wrong.
+	 * (local) clients omit the dot.
 	 */
-	if (!trusted && strchr(him, '.') == nil ||
-	    strcmp(him, "localhost.localdomain") == 0 ||
-	    strcmp(him, "localhost.example.com") == 0)
+	rdot = strrchr(him, '.');
+	if (rdot && rdot[1] == '\0') {
+		*rdot = '\0';			/* clobber trailing dot */
+		rdot = strrchr(him, '.');	/* try again */
+	}
+	if (!trusted && rdot == nil)
 		goto Liarliar;
+	/*
+	 * Reject obviously bogus domains and those reserved by RFC 2606.
+	 */
+	if (rdot == nil)
+		rdot = him;
+	else
+		rdot++;
+	if (cistrcmp(rdot, "localdomain") == 0 ||
+	    cistrcmp(rdot, "localhost") == 0 ||
+	    cistrcmp(rdot, "example") == 0 ||
+	    cistrcmp(rdot, "invalid") == 0 ||
+	    cistrcmp(rdot, "test") == 0)
+		goto Liarliar;			/* bad top-level domain */
+	/* check second-level RFC 2606 domains: example\.(com|net|org) */
+	if (rdot != him)
+		*--rdot = '\0';
+	ldot = strrchr(him, '.');
+	if (rdot != him)
+		*rdot = '.';
+	if (ldot == nil)
+		ldot = him;
+	else
+		ldot++;
+	if (cistrcmp(ldot, "example.com") == 0 ||
+	    cistrcmp(ldot, "example.net") == 0 ||
+	    cistrcmp(ldot, "example.org") == 0)
+		goto Liarliar;
+
 	/*
 	 * similarly, if the claimed domain is not an address-literal,
 	 * require at least one letter, which there will be in
@@ -316,9 +358,10 @@ hello(String *himp, int extended)
 		sleep(15*1000);
 	reply("250%c%s you are %s\r\n", extended ? '-' : ' ', dom, him);
 	if (extended) {
+		reply("250-ENHANCEDSTATUSCODES\r\n");	/* RFCs 2034 and 3463 */
 		if(tlscert != nil)
 			reply("250-STARTTLS\r\n");
-		if (passwordinclear)		
+		if (passwordinclear)
 			reply("250 AUTH CRAM-MD5 PLAIN LOGIN\r\n");
 		else
 			reply("250 AUTH CRAM-MD5\r\n");
@@ -335,7 +378,7 @@ sender(String *path)
 		return;
 	if (authenticate && !authenticated) {
 		rejectcount++;
-		reply("530 Authentication required\r\n");
+		reply("530 5.7.0 Authentication required\r\n");
 		return;
 	}
 	if(him == 0 || *him == 0){
@@ -356,19 +399,22 @@ sender(String *path)
 	}
 	if(shellchars(s_to_c(path))){
 		rejectcount++;
-		reply("503 Bad character in sender address %s.\r\n", s_to_c(path));
+		reply("501 5.1.3 Bad character in sender address %s.\r\n",
+			s_to_c(path));
 		return;
 	}
 
 	/*
 	 * if the last sender address resulted in a rejection because the sending
-	 * domain didn't exist and this sender has the same domain, reject immediately.
+	 * domain didn't exist and this sender has the same domain, reject
+	 * immediately.
 	 */
 	if(lastsender){
 		if (strncmp(lastsender, s_to_c(path), strlen(lastsender)) == 0){
 			filterstate = REFUSED;
 			rejectcount++;
-			reply("554 Sender domain must exist: %s\r\n", s_to_c(path));
+			reply("554 5.1.8 Sender domain must exist: %s\r\n",
+				s_to_c(path));
 			return;
 		}
 		free(lastsender);	/* different sender domain */
@@ -382,7 +428,7 @@ sender(String *path)
 
 	logged = 0;
 	listadd(&senders, path);
-	reply("250 sender is %s\r\n", s_to_c(path));
+	reply("250 2.0.0 sender is %s\r\n", s_to_c(path));
 }
 
 enum { Rcpt, Domain, Ntoks };
@@ -521,45 +567,39 @@ receiver(String *path)
 		syslog(0, "smtpd",
 		 "Disallowed %s (%s/%s) to blocked, unknown or invalid name %s",
 			sender, him, nci->rsys, s_to_c(path));
-		reply("550 %s ... user unknown\r\n", s_to_c(path));
+		reply("550 5.1.1 %s ... user unknown\r\n", s_to_c(path));
 		return;
 	}
 	rcpt = s_to_c(path);
 	if (!senderok(rcpt)) {
 		rejectcount++;
 		syslog(0, "smtpd", "Disallowed sending IP of %s (%s/%s) to %s",
-				sender, him, nci->rsys, rcpt);
-		reply("550 %s ... sending system not allowed\r\n", rcpt);
+			sender, him, nci->rsys, rcpt);
+		reply("550 5.7.1 %s ... sending system not allowed\r\n", rcpt);
 		return;
 	}
 
 	logged = 0;
-		/* forwarding() can modify 'path' on loopback request */
-	if(filterstate == ACCEPT && (fflag && !authenticated) && forwarding(path)) {
+
+	/* forwarding() can modify 'path' on loopback request */
+	if(filterstate == ACCEPT && fflag && !authenticated && forwarding(path)) {
 		syslog(0, "smtpd", "Bad Forward %s (%s/%s) (%s)",
 			s_to_c(senders.last->p), him, nci->rsys, s_to_c(path));
 		rejectcount++;
-		reply("550 we don't relay.  send to your-path@[] for loopback.\r\n");
+		reply("550 5.7.1 we don't relay.  send to your-path@[] for "
+			"loopback.\r\n");
 		return;
 	}
 	listadd(&rcvers, path);
-	reply("250 receiver is %s\r\n", s_to_c(path));
+	reply("250 2.0.0 receiver is %s\r\n", s_to_c(path));
 }
 
 void
 quit(void)
 {
-	reply("221 Successful termination\r\n");
+	reply("221 2.0.0 Successful termination\r\n");
 	close(0);
 	exits(0);
-}
-
-void
-turn(void)
-{
-	if(rejectcheck())
-		return;
-	reply("502 TURN unimplemented\r\n");
 }
 
 void
@@ -567,7 +607,7 @@ noop(void)
 {
 	if(rejectcheck())
 		return;
-	reply("250 Stop wasting my time!\r\n");
+	reply("250 2.0.0 Nothing to see here. Move along ...\r\n");
 }
 
 void
@@ -577,7 +617,7 @@ help(String *cmd)
 		return;
 	if(cmd)
 		s_free(cmd);
-	reply("250 Read rfc821 and stop wasting my time\r\n");
+	reply("250 2.0.0 See http://www.ietf.org/rfc/rfc2821\r\n");
 }
 
 void
@@ -589,7 +629,7 @@ verify(String *path)
 	if(rejectcheck())
 		return;
 	if(shellchars(s_to_c(path))){
-		reply("503 Bad character in address %s.\r\n", s_to_c(path));
+		reply("503 5.1.3 Bad character in address %s.\r\n", s_to_c(path));
 		return;
 	}
 	av[0] = s_to_c(mailer);
@@ -599,22 +639,22 @@ verify(String *path)
 
 	pp = noshell_proc_start(av, (stream *)0, outstream(),  (stream *)0, 1, 0);
 	if (pp == 0) {
-		reply("450 We're busy right now, try later\r\n");
+		reply("450 4.3.2 We're busy right now, try later\r\n");
 		return;
 	}
 
 	p = Brdline(pp->std[1]->fp, '\n');
 	if(p == 0){
-		reply("550 String does not match anything.\r\n");
+		reply("550 5.1.0 String does not match anything.\r\n");
 	} else {
 		p[Blinelen(pp->std[1]->fp)-1] = 0;
 		if(strchr(p, ':'))
-			reply("550 String does not match anything.\r\n");
+			reply("550 5.1.0  String does not match anything.\r\n");
 		else{
 			q = strrchr(p, '!');
 			if(q)
 				p = q+1;
-			reply("250 %s <%s@%s>\r\n", s_to_c(path), p, dom);
+			reply("250 2.0.0 %s <%s@%s>\r\n", s_to_c(path), p, dom);
 		}
 	}
 	proc_wait(pp);
@@ -727,10 +767,10 @@ String*
 startcmd(void)
 {
 	int n;
-	Link *l;
-	char **av;
-	String *cmd;
 	char *filename;
+	char **av;
+	Link *l;
+	String *cmd;
 
 	/*
 	 *  ignore the filterstate if the all the receivers prefer it.
@@ -751,32 +791,37 @@ startcmd(void)
 	case DIALUP:
 		logmsg("Dialup");
 		rejectcount++;
-		reply("554 We don't accept mail from dial-up ports.\r\n");
+		reply("554 5.7.1 We don't accept mail from dial-up ports.\r\n");
 		/*
-		 * we could exit here, because we're never going to accept mail from this
-		 * ip address, but it's unclear that RFC821 allows that.  Instead we set
-		 * the hardreject flag and go stupid.
+		 * we could exit here, because we're never going to accept mail
+		 * from this ip address, but it's unclear that RFC821 allows
+		 * that.  Instead we set the hardreject flag and go stupid.
 		 */
 		hardreject = 1;
 		return 0;
 	case DENIED:
 		logmsg("Denied");
 		rejectcount++;
-		reply("554-We don't accept mail from %s.\r\n", s_to_c(senders.last->p));
-		reply("554 Contact postmaster@%s for more information.\r\n", dom);
+		reply("554-5.7.1 We don't accept mail from %s.\r\n",
+			s_to_c(senders.last->p));
+		reply("554 5.7.1 Contact postmaster@%s for more information.\r\n",
+			dom);
 		return 0;
 	case REFUSED:
 		logmsg("Refused");
 		rejectcount++;
-		reply("554 Sender domain must exist: %s\r\n", s_to_c(senders.last->p));
+		reply("554 5.7.1 Sender domain must exist: %s\r\n",
+			s_to_c(senders.last->p));
 		return 0;
 	default:
 	case NONE:
 		logmsg("Confused");
 		rejectcount++;
-		reply("554-We have had an internal mailer error classifying your message.\r\n");
-		reply("554-Filterstate is %d\r\n", filterstate);
-		reply("554 Contact postmaster@%s for more information.\r\n", dom);
+		reply("554-5.7.0 We have had an internal mailer error "
+			"classifying your message.\r\n");
+		reply("554-5.7.0 Filterstate is %d\r\n", filterstate);
+		reply("554 5.7.0 Contact postmaster@%s for more information.\r\n",
+			dom);
 		return 0;
 	case ACCEPT:
 	case TRUSTED:
@@ -794,14 +839,14 @@ startcmd(void)
 		n = 3;
 		for(l = rcvers.first; l; l = l->next)
 			n++;
-		av = malloc(n*sizeof(char*));
+		av = malloc(n * sizeof(char*));
 		if(av == nil){
-			reply("450 We're busy right now, try later\n");
+			reply("450 4.3.2 We're busy right now, try later\r\n");
 			s_free(cmd);
 			return 0;
 		}
 
-			n = 0;
+		n = 0;
 		av[n++] = s_to_c(cmd);
 		av[n++] = "-r";
 		for(l = rcvers.first; l; l = l->next)
@@ -810,12 +855,13 @@ startcmd(void)
 		/*
 		 *  start mail process
 		 */
-		pp = noshell_proc_start(av, instream(), outstream(), outstream(), 0, 0);
+		pp = noshell_proc_start(av, instream(), outstream(),
+			outstream(), 0, 0);
 		free(av);
 		break;
 	}
 	if(pp == 0) {
-		reply("450 We're busy right now, try later\n");
+		reply("450 4.3.2 We're busy right now, try later\r\n");
 		s_free(cmd);
 		return 0;
 	}
@@ -857,7 +903,7 @@ getaddr(Node *p)
 }
 
 /*
- *  add waring headers of the form
+ *  add warning headers of the form
  *	X-warning: <reason>
  *  for any headers that looked like they might be forged.
  *
@@ -872,26 +918,28 @@ forgedheaderwarnings(void)
 	nbytes = 0;
 
 	/* warn about envelope sender */
-	if(strcmp(s_to_c(senders.last->p), "/dev/null") != 0 && masquerade(senders.last->p, nil))
-		nbytes += Bprint(pp->std[0]->fp, "X-warning: suspect envelope domain\n");
+	if(strcmp(s_to_c(senders.last->p), "/dev/null") != 0 &&
+	    masquerade(senders.last->p, nil))
+		nbytes += Bprint(pp->std[0]->fp,
+			"X-warning: suspect envelope domain\n");
 
 	/*
-	 *  check Sender: field.  If it's OK, ignore the others because this is an
-	 *  exploded mailing list.
+	 *  check Sender: field.  If it's OK, ignore the others because this
+	 *  is an exploded mailing list.
 	 */
-	for(f = firstfield; f; f = f->next){
-		if(f->node->c == SENDER){
+	for(f = firstfield; f; f = f->next)
+		if(f->node->c == SENDER)
 			if(masquerade(getaddr(f->node), him))
-				nbytes += Bprint(pp->std[0]->fp, "X-warning: suspect Sender: domain\n");
+				nbytes += Bprint(pp->std[0]->fp,
+					"X-warning: suspect Sender: domain\n");
 			else
 				return nbytes;
-		}
-	}
 
 	/* check From: */
 	for(f = firstfield; f; f = f->next){
 		if(f->node->c == FROM && masquerade(getaddr(f->node), him))
-			nbytes += Bprint(pp->std[0]->fp, "X-warning: suspect From: domain\n");
+			nbytes += Bprint(pp->std[0]->fp,
+				"X-warning: suspect From: domain\n");
 	}
 	return nbytes;
 }
@@ -906,15 +954,12 @@ forgedheaderwarnings(void)
 int
 pipemsg(int *byteswritten)
 {
-	int status;
+	int n, nbytes, sawdot, status;
 	char *cp;
-	String *line;
-	String *hdr;
-	int n, nbytes;
-	int sawdot;
 	Field *f;
-	Node *p;
 	Link *l;
+	Node *p;
+	String *hdr, *line;
 
 	pipesig(&status);	/* set status to 1 on write to closed pipe */
 	sawdot = 0;
@@ -925,7 +970,7 @@ pipemsg(int *byteswritten)
 	 */
 	nbytes = 0;
 	nbytes += Bprint(pp->std[0]->fp, "From %s %s remote from \n",
-			s_to_c(senders.first->p), thedate());
+		s_to_c(senders.first->p), thedate());
 
 	/*
 	 *  add our own Received: stamp
@@ -978,7 +1023,8 @@ pipemsg(int *byteswritten)
 		if(senders.last == nil)
 			Bprint(pp->std[0]->fp, "From: /dev/null@%s\n", him);
 		else
-			Bprint(pp->std[0]->fp, "From: %s\n", s_to_c(senders.last->p));
+			Bprint(pp->std[0]->fp, "From: %s\n",
+				s_to_c(senders.last->p));
 	}
 	if(destination == 0){
 		Bprint(pp->std[0]->fp, "To: ");
@@ -1009,7 +1055,8 @@ pipemsg(int *byteswritten)
 	}
 
 	/* write anything we read following the header */
-	if(status == 0 && Bwrite(pp->std[0]->fp, cp, s_to_c(hdr) + s_len(hdr) - cp) < 0){
+	if(status == 0 &&
+	    Bwrite(pp->std[0]->fp, cp, s_to_c(hdr) + s_len(hdr) - cp) < 0){
 		piperror = "write error 2";
 		status = 1;
 	}
@@ -1063,8 +1110,8 @@ pipemsg(int *byteswritten)
 char*
 firstline(char *x)
 {
-	static char buf[128];
 	char *p;
+	static char buf[128];
 
 	strncpy(buf, x, sizeof(buf));
 	buf[sizeof(buf)-1] = 0;
@@ -1077,16 +1124,16 @@ firstline(char *x)
 int
 sendermxcheck(void)
 {
-	char *cp, *senddom, *user;
-	char *who;
 	int pid;
+	char *cp, *senddom, *user, *who;
 	Waitmsg *w;
 
 	who = s_to_c(senders.first->p);
 	if(strcmp(who, "/dev/null") == 0){
 		/* /dev/null can only send to one rcpt at a time */
 		if(rcvers.first != rcvers.last){
-			werrstr("rejected: /dev/null sending to multiple recipients");
+			werrstr("rejected: /dev/null sending to multiple "
+				"recipients");
 			return -1;
 		}
 		return 0;
@@ -1113,7 +1160,7 @@ sendermxcheck(void)
 		 * Could add an option with the remote IP address
 		 * to allow validatesender to implement SPF eventually.
 		 */
-		execl("/mail/lib/validatesender", "validatesender", 
+		execl("/mail/lib/validatesender", "validatesender",
 			"-n", nci->root, senddom, user, nil);
 		_exits("exec validatesender: %r");
 	default:
@@ -1127,7 +1174,8 @@ sendermxcheck(void)
 		return -1;
 	}
 	if(w->pid != pid){
-		werrstr("deferred: wait returned wrong pid %d != %d", w->pid, pid);
+		werrstr("deferred: wait returned wrong pid %d != %d",
+			w->pid, pid);
 		free(w);
 		return -1;
 	}
@@ -1150,35 +1198,34 @@ sendermxcheck(void)
 void
 data(void)
 {
-	String *cmd;
-	String *err;
 	int status, nbytes;
 	char *cp, *ep;
 	char errx[ERRMAX];
 	Link *l;
+	String *cmd, *err;
 
 	if(rejectcheck())
 		return;
 	if(senders.last == 0){
-		reply("503 Data without MAIL FROM:\r\n");
+		reply("503 2.5.2 Data without MAIL FROM:\r\n");
 		rejectcount++;
 		return;
 	}
 	if(rcvers.last == 0){
-		reply("503 Data without RCPT TO:\r\n");
+		reply("503 2.5.2 Data without RCPT TO:\r\n");
 		rejectcount++;
 		return;
 	}
 	if(!trusted && sendermxcheck()){
 		rerrstr(errx, sizeof errx);
 		if(strncmp(errx, "rejected:", 9) == 0)
-			reply("554 %s\r\n", errx);
+			reply("554 5.7.1 %s\r\n", errx);
 		else
-			reply("450 %s\r\n", errx);
+			reply("450 4.7.0 %s\r\n", errx);
 		for(l=rcvers.first; l; l=l->next)
 			syslog(0, "smtpd", "[%s/%s] %s -> %s sendercheck: %s",
-					him, nci->rsys, s_to_c(senders.first->p), 
-					s_to_c(l->p), errx);
+				him, nci->rsys, s_to_c(senders.first->p),
+				s_to_c(l->p), errx);
 		rejectcount++;
 		return;
 	}
@@ -1219,25 +1266,31 @@ data(void)
 	 */
 	if(status){
 		int code;
+		char *ecode;
 
 		if(strstr(s_to_c(err), "mail refused")){
-			syslog(0, "smtpd", "++[%s/%s] %s %s refused: %s", him, nci->rsys,
-				s_to_c(senders.first->p), s_to_c(cmd), firstline(s_to_c(err)));
+			syslog(0, "smtpd", "++[%s/%s] %s %s refused: %s",
+				him, nci->rsys, s_to_c(senders.first->p),
+				s_to_c(cmd), firstline(s_to_c(err)));
 			code = 554;
+			ecode = "5.0.0";
 		} else {
-			syslog(0, "smtpd", "++[%s/%s] %s %s %s%s%sreturned %#q %s", him, nci->rsys,
-				s_to_c(senders.first->p), s_to_c(cmd), 
-				piperror ? "error during pipemsg: " : "",
-				piperror ? piperror : "",
-				piperror ? "; " : "",
+			syslog(0, "smtpd", "++[%s/%s] %s %s %s%s%sreturned %#q %s",
+				him, nci->rsys,
+				s_to_c(senders.first->p), s_to_c(cmd),
+				piperror? "error during pipemsg: ": "",
+				piperror? piperror: "",
+				piperror? "; ": "",
 				pp->waitmsg->msg, firstline(s_to_c(err)));
 			code = 450;
+			ecode = "4.0.0";
 		}
 		for(cp = s_to_c(err); ep = strchr(cp, '\n'); cp = ep){
 			*ep++ = 0;
-			reply("%d-%s\r\n", code, cp);
+			reply("%d-%s %s\r\n", code, ecode, cp);
 		}
-		reply("%d mail process terminated abnormally\r\n", code);
+		reply("%d %s mail process terminated abnormally\r\n",
+			code, ecode);
 	} else {
 		/*
 		 * if a message appeared on stderr, despite good status,
@@ -1250,12 +1303,13 @@ data(void)
 				s_to_c(mailer), s_to_c(err));
 
 		if(filterstate == BLOCKED)
-			reply("554 we believe this is spam.  we don't accept it.\r\n");
-		else
-		if(filterstate == DELAY)
-			reply("554 There will be a delay in delivery of this message.\r\n");
+			reply("554 5.7.1 we believe this is spam.  "
+				"we don't accept it.\r\n");
+		else if(filterstate == DELAY)
+			reply("450 4.3.0 There will be a delay in delivery "
+				"of this message.\r\n");
 		else {
-			reply("250 sent\r\n");
+			reply("250 2.5.0 sent\r\n");
 			logcall(nbytes);
 		}
 	}
@@ -1279,15 +1333,14 @@ data(void)
 int
 rejectcheck(void)
 {
-
 	if(rejectcount > MAXREJECTS){
 		syslog(0, "smtpd", "Rejected (%s/%s)", him, nci->rsys);
-		reply("554 too many errors.  transaction failed.\r\n");
+		reply("554 5.5.0 too many errors.  transaction failed.\r\n");
 		exits("errcount");
 	}
 	if(hardreject){
 		rejectcount++;
-		reply("554 We don't accept mail from dial-up ports.\r\n");
+		reply("554 5.7.1 We don't accept mail from dial-up ports.\r\n");
 	}
 	return hardreject;
 }
@@ -1314,8 +1367,9 @@ mailerpath(char *p)
 String *
 s_dec64(String *sin)
 {
-	String *sout;
 	int lin, lout;
+	String *sout;
+
 	lin = s_len(sin);
 
 	/*
@@ -1338,12 +1392,12 @@ s_dec64(String *sin)
 void
 starttls(void)
 {
-	uchar *cert;
 	int certlen, fd;
+	uchar *cert;
 	TLSconn *conn;
 
 	if (tlscert == nil) {
-		reply("454 TLS not available\r\n");
+		reply("500 5.5.1 illegal command or bad syntax\r\n");
 		return;
 	}
 	conn = mallocz(sizeof *conn, 1);
@@ -1351,10 +1405,10 @@ starttls(void)
 	if (conn == nil || cert == nil) {
 		if (conn != nil)
 			free(conn);
-		reply("454 TLS not available\r\n");
+		reply("454 4.7.5 TLS not available\r\n");
 		return;
 	}
-	reply("220 Go ahead make my day\r\n");
+	reply("220 2.0.0 Go ahead make my day\r\n");
 	conn->cert = cert;
 	conn->certlen = certlen;
 	fd = tlsServer(Bfildes(&bin), conn);
@@ -1379,14 +1433,11 @@ starttls(void)
 void
 auth(String *mech, String *resp)
 {
-	Chalstate *chs = nil;
+	char *user, *pass, *scratch = nil;
 	AuthInfo *ai = nil;
-	String *s_resp1_64 = nil;
-	String *s_resp2_64 = nil;
-	String *s_resp1 = nil;
+	Chalstate *chs = nil;
+	String *s_resp1_64 = nil, *s_resp2_64 = nil, *s_resp1 = nil;
 	String *s_resp2 = nil;
-	char *scratch = nil;
-	char *user, *pass;
 
 	if (rejectcheck())
 		goto bomb_out;
@@ -1397,28 +1448,27 @@ auth(String *mech, String *resp)
 	if (authenticated) {
 	bad_sequence:
 		rejectcount++;
-		reply("503 Bad sequence of commands\r\n");
+		reply("503 5.5.2 Bad sequence of commands\r\n");
 		goto bomb_out;
 	}
 	if (cistrcmp(s_to_c(mech), "plain") == 0) {
-
 		if (!passwordinclear) {
 			rejectcount++;
-			reply("538 Encryption required for requested authentication mechanism\r\n");
+			reply("538 5.7.1 Encryption required for requested "
+				"authentication mechanism\r\n");
 			goto bomb_out;
 		}
 		s_resp1_64 = resp;
 		if (s_resp1_64 == nil) {
 			reply("334 \r\n");
 			s_resp1_64 = s_new();
-			if (getcrnl(s_resp1_64, &bin) <= 0) {
+			if (getcrnl(s_resp1_64, &bin) <= 0)
 				goto bad_sequence;
-			}
 		}
 		s_resp1 = s_dec64(s_resp1_64);
 		if (s_resp1 == nil) {
 			rejectcount++;
-			reply("501 Cannot decode base64\r\n");
+			reply("501 5.5.4 Cannot decode base64\r\n");
 			goto bomb_out;
 		}
 		memset(s_to_c(s_resp1_64), 'X', s_len(s_resp1_64));
@@ -1430,10 +1480,10 @@ auth(String *mech, String *resp)
 		goto windup;
 	}
 	else if (cistrcmp(s_to_c(mech), "login") == 0) {
-
 		if (!passwordinclear) {
 			rejectcount++;
-			reply("538 Encryption required for requested authentication mechanism\r\n");
+			reply("538 5.7.1 Encryption required for requested "
+				"authentication mechanism\r\n");
 			goto bomb_out;
 		}
 		if (resp == nil) {
@@ -1451,34 +1501,34 @@ auth(String *mech, String *resp)
 		memset(s_to_c(s_resp2_64), 'X', s_len(s_resp2_64));
 		if (s_resp1 == nil || s_resp2 == nil) {
 			rejectcount++;
-			reply("501 Cannot decode base64\r\n");
+			reply("501 5.5.4 Cannot decode base64\r\n");
 			goto bomb_out;
 		}
 		ai = auth_userpasswd(s_to_c(s_resp1), s_to_c(s_resp2));
 		authenticated = ai != nil;
 		memset(s_to_c(s_resp2), 'X', s_len(s_resp2));
-	windup:
+windup:
 		if (authenticated)
-			reply("235 Authentication successful\r\n");
+			reply("235 2.0.0 Authentication successful\r\n");
 		else {
 			rejectcount++;
-			reply("535 Authentication failed\r\n");
+			reply("535 5.7.1 Authentication failed\r\n");
 		}
 		goto bomb_out;
 	}
 	else if (cistrcmp(s_to_c(mech), "cram-md5") == 0) {
-		char *resp;
 		int chal64n;
-		char *t;
+		char *resp, *t;
 
 		chs = auth_challenge("proto=cram role=server");
 		if (chs == nil) {
 			rejectcount++;
-			reply("501 Couldn't get CRAM-MD5 challenge\r\n");
+			reply("501 5.7.5 Couldn't get CRAM-MD5 challenge\r\n");
 			goto bomb_out;
 		}
 		scratch = malloc(chs->nchal * 2 + 1);
-		chal64n = enc64(scratch, chs->nchal * 2, (uchar *)chs->chal, chs->nchal);
+		chal64n = enc64(scratch, chs->nchal * 2, (uchar *)chs->chal,
+			chs->nchal);
 		scratch[chal64n] = 0;
 		reply("334 %s\r\n", scratch);
 		s_resp1_64 = s_new();
@@ -1487,7 +1537,7 @@ auth(String *mech, String *resp)
 		s_resp1 = s_dec64(s_resp1_64);
 		if (s_resp1 == nil) {
 			rejectcount++;
-			reply("501 Cannot decode base64\r\n");
+			reply("501 5.5.4 Cannot decode base64\r\n");
 			goto bomb_out;
 		}
 		/* should be of form <user><space><response> */
@@ -1495,7 +1545,7 @@ auth(String *mech, String *resp)
 		t = strchr(resp, ' ');
 		if (t == nil) {
 			rejectcount++;
-			reply("501 Poorly formed CRAM-MD5 response\r\n");
+			reply("501 5.5.4 Poorly formed CRAM-MD5 response\r\n");
 			goto bomb_out;
 		}
 		*t++ = 0;
@@ -1507,7 +1557,7 @@ auth(String *mech, String *resp)
 		goto windup;
 	}
 	rejectcount++;
-	reply("501 Unrecognised authentication type %s\r\n", s_to_c(mech));
+	reply("501 5.5.1 Unrecognised authentication type %s\r\n", s_to_c(mech));
 bomb_out:
 	if (ai)
 		auth_freeAI(ai);
