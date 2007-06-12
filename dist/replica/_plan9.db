@@ -11,7 +11,7 @@
 386/9pcdisk.gz - 664 sys sys 1179368425 915678
 386/9pcf - 775 sys sys 1179368431 2482812
 386/9pcf.gz - 664 sys sys 1179368434 1072144
-386/9pxeload - 775 sys sys 1171784719 220040
+386/9pxeload - 775 sys sys 1181578963 313860
 386/_9pcdisk.gz - 664 sys sys 1039764191 695837
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1168402260 116604
@@ -474,7 +474,7 @@
 386/bin/upas/scanmail - 775 sys sys 1181507271 128207
 386/bin/upas/send - 775 sys sys 1181507272 192174
 386/bin/upas/smtp - 775 sys sys 1178568316 274783
-386/bin/upas/smtpd - 775 sys sys 1179372110 331146
+386/bin/upas/smtpd - 775 sys sys 1181540422 331887
 386/bin/upas/spam - 775 sys sys 1064598366 36
 386/bin/upas/testscan - 775 sys sys 1181507272 83858
 386/bin/upas/token - 775 sys sys 1178568317 76393
@@ -14804,7 +14804,7 @@ sys/src/libauthsrv/mkfile - 664 sys sys 1035389776 409
 sys/src/libauthsrv/nvcsum.c - 664 sys sys 1015091654 192
 sys/src/libauthsrv/opasstokey.c - 664 sys sys 1015091654 448
 sys/src/libauthsrv/passtokey.c - 664 sys sys 1143695654 488
-sys/src/libauthsrv/readnvram.c - 664 sys sys 1174807437 10155
+sys/src/libauthsrv/readnvram.c - 664 sys sys 1181596613 10196
 sys/src/libbin - 20000000775 sys sys 1045502972 0
 sys/src/libbin/bin.c - 664 sys sys 1135487932 1829
 sys/src/libbin/mkfile - 664 sys sys 1035389776 197

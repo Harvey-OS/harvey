@@ -148,6 +148,8 @@ findnvram(Nvrwhere *locp)
 		/* accept device and device!file */
 		i = gettokens(nvrfile, v, nelem(v), "!");
 		fd = open(v[0], ORDWR);
+		if (fd < 0)
+			fd = open(v[0], OREAD);
 		safelen = sizeof(Nvrsafe);
 		if(strstr(v[0], "/9fat") == nil)
 			safeoff = 0;
