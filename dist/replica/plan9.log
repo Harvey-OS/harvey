@@ -49223,3 +49223,6 @@
 1181514645 0 c sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1181513473 32835
 1181516439 0 c sys/src/boot/pc/etherigbe.c - 664 sys sys 1181515261 41262
 1181518243 0 c sys/src/boot/pc/ether82563.c - 664 sys sys 1181517000 25452
+1181541622 0 c 386/bin/upas/smtpd - 775 sys sys 1181540422 331887
+1181579422 0 c 386/9pxeload - 775 sys sys 1181578963 313860
+1181597423 0 c sys/src/libauthsrv/readnvram.c - 664 sys sys 1181596613 10196
