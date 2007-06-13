@@ -122,23 +122,11 @@ cpumain(int argc, char **argv)
 	if(system == nil)
 		system = "anna.cs.bell-labs.com";
 	ARGBEGIN{
-	case 'o':
-		authserver = "plan9.bell-labs.com";
-		system = "plan9.bell-labs.com";
-		break;
 	case 'a':
 		authserver = EARGF(usage());
 		break;
 	case 'c':
 		system = EARGF(usage());
-		break;
-	case 'd':
-		dbg++;
-		break;
-	case 'e':
-		ealgs = EARGF(usage());
-		if(*ealgs == 0 || strcmp(ealgs, "clear") == 0)
-			ealgs = nil;
 		break;
 	case 'C':
 		cflag++;
@@ -149,14 +137,26 @@ cpumain(int argc, char **argv)
 			strcat(cmd, p);
 		}
 		break;
+	case 'd':
+		dbg++;
+		break;
+	case 'e':
+		ealgs = EARGF(usage());
+		if(*ealgs == 0 || strcmp(ealgs, "clear") == 0)
+			ealgs = nil;
+		break;
 	case 'k':
 		keyspec = EARGF(usage());
 		break;
-	case 'u':
-		user = EARGF(usage());
+	case 'o':
+		authserver = "plan9.bell-labs.com";
+		system = "plan9.bell-labs.com";
 		break;
 	case 's':
 		secstoreserver = EARGF(usage());
+		break;
+	case 'u':
+		user = EARGF(usage());
 		break;
 	default:
 		usage();
