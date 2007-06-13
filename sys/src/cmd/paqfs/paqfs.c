@@ -67,6 +67,7 @@ Paq 	*root, *rootfile;
 Block 	*cache;
 ulong 	cacheage;
 Biobuf	*bin;
+int	qflag;
 
 Fid *	newfid(int);
 void	paqstat(PaqDir*, char*);
@@ -140,21 +141,42 @@ char	Edirtoobig[] = 	"directory entry too big";
 
 int debug;
 
+#pragma varargck	type	"V"	uchar*
+
+static int
+sha1fmt(Fmt *f)
+{
+	int i;
+	uchar *v;
+
+	v = va_arg(f->args, uchar*);
+	if(v == nil){
+		fmtprint(f, "*");
+	}
+	else{
+		for(i = 0; i < SHA1dlen; i++)
+			fmtprint(f, "%2.2ux", v[i]);
+	}
+
+	return 0;
+}
+
 void
 main(int argc, char *argv[])
 {
-	char *defmnt, *p;
 	int pfd[2];
 	int fd;
 	int stdio = 0;
 	int verify = 0;
+	char buf[64], *defmnt, *p, *service;
+
+	fmtinstall('V', sha1fmt);
 
 	defmnt = "/n/paq";
+	service = "paqfs";
 	ARGBEGIN{
 	case 'c':
-		p = ARGF();
-		if(p == nil)
-			usage();
+		p = EARGF(usage());
 		cachesize = atoi(p);
 		break;
 	case 'a':
@@ -176,19 +198,22 @@ main(int argc, char *argv[])
 		defmnt = nil;
 		break;
 	case 'm':
-		defmnt = ARGF();
-		if(defmnt == nil)
-			usage();
+		defmnt = EARGF(usage());
 		break;
 	case 'M':
-		p = ARGF();
-		if(p == nil)
-			usage();
+		p = EARGF(usage());
 		mesgsize = atoi(p);
 		if(mesgsize < 512)
 			mesgsize = 512;
 		if(mesgsize > 128*1024)
 			mesgsize = 128*1024;
+		break;
+	case 'S':
+		defmnt = 0;
+		service = EARGF(usage());
+		break;
+	case 'q':
+		qflag = 1;
 		break;
 	default:
 		usage();
@@ -203,9 +228,10 @@ main(int argc, char *argv[])
 		if(pipe(pfd) < 0)
 			sysfatal("pipe failed");
 		if(defmnt == 0){
-			fd = create("#s/paqfs", OWRITE, 0666);
+			snprint(buf, sizeof buf, "#s/%s", service);
+			fd = create(buf, OWRITE, 0666);
 			if(fd < 0)
-				sysfatal("create of /srv/paqfs failed");
+				sysfatal("create %s: %r", buf);
 			if(fprint(fd, "%d", pfd[0]) < 0)
 				sysfatal("writing /srv/paqfs");
 		}
@@ -868,11 +894,10 @@ init(char *file, int verify)
 	readTrailer(&tlr, file, ds);
 
 	/* asctime includes a newline - yuk */
-	fprint(2, "%s: %s", hdr.label, asctime(gmtime(hdr.time)));
-	fprint(2, "fingerprint: ");
-	for(i=0; i<20; i++)
-		fprint(2, "%.2x", tlr.sha1[i]);
-	fprint(2, "\n");
+	if(!qflag){
+		fprint(2, "%s: %s", hdr.label, asctime(gmtime(hdr.time)));
+		fprint(2, "fingerprint: %V\n", tlr.sha1);
+	}
 
 	cache = emallocz(cachesize*sizeof(Block));
 	p = emalloc(cachesize*blocksize);
@@ -1012,7 +1037,7 @@ void
 readTrailer(PaqTrailer *tlr, char *name, DigestState *ds)
 {
 	uchar buf[TrailerSize];
-	uchar digest[20];
+	uchar digest[SHA1dlen];
 
 	if(Bread(bin, buf, TrailerSize) < TrailerSize)
 		sysfatal("could not read trailer: %s: %r", name);
@@ -1020,8 +1045,8 @@ readTrailer(PaqTrailer *tlr, char *name, DigestState *ds)
 	if(tlr->magic != TrailerMagic)
 		sysfatal("bad trailer magic: %s", name);
 	if(ds) {
-		sha1(buf, TrailerSize-20, digest, ds);
-		if(memcmp(digest, tlr->sha1, 20) != 0)
+		sha1(buf, TrailerSize-SHA1dlen, digest, ds);
+		if(memcmp(digest, tlr->sha1, SHA1dlen) != 0)
 			sysfatal("bad sha1 digest: %s", name);
 	}
 }
@@ -1125,7 +1150,7 @@ getTrailer(uchar *p, PaqTrailer *t)
 {
 	t->magic = getl(p);
 	t->root = getl(p+4);
-	memmove(t->sha1, p+8, 20);
+	memmove(t->sha1, p+8, SHA1dlen);
 }
 
 void

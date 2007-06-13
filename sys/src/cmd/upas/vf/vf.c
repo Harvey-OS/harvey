@@ -158,11 +158,13 @@ main(int argc, char **argv)
 void
 refuse(char *reason)
 {
+	char *full;
 	static char msg[] =
 		"mail refused: we don't accept executable attachments";
 
-	postnote(PNGROUP, getpid(), smprint("%s: %s", msg, reason));
-	exits(msg);
+	full = smprint("%s: %s", msg, reason);
+	postnote(PNGROUP, getpid(), full);
+	exits(full);
 }
 
 
@@ -365,6 +367,7 @@ passbody(Part *p, int dobound)
  *  save the message somewhere
  */
 static vlong bodyoff;	/* clumsy hack */
+
 static int
 save(Part *p, char *file)
 {
@@ -447,7 +450,8 @@ runchecker(Part *p)
 		sysfatal("fork: %r");
 	case 0:
 		dup(2, 1);
-		execl("/mail/lib/validateattachment", "validateattachment", name, nil);
+		execl("/mail/lib/validateattachment", "validateattachment",
+			name, nil);
 		_exits("exec failed");
 	}
 
@@ -463,8 +467,10 @@ runchecker(Part *p)
 		syslog(0, "mail", "vf wrong pid %d != %d", w->pid, pid);
 		return 0;
 	}
-	if(p->filename)
-		name = s_to_c(p->filename);
+	if(p->filename) {
+		free(name);
+		name = strdup(s_to_c(p->filename));
+	}
 	if(strstr(w->msg, "discard")){
 		syslog(0, "mail", "vf validateattachment rejected %s", name);
 		refuse("rejected by validateattachment");
@@ -474,6 +480,7 @@ runchecker(Part *p)
 		return 1;
 	}
 	free(w);
+	free(name);
 	return 0;
 }
 

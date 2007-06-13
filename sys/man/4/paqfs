@@ -18,6 +18,10 @@ paqfs  \- compressed read-only file system
 .B -M
 .I mesgsize
 ]
+[
+.B -S
+.I srvname
+]
 .I paqfile
 .SH DESCRIPTION
 .I Paqfs
@@ -32,7 +36,7 @@ a small persistent storage device, such as a flash ROM.
 It does not authenticate its clients and assumes each group
 has a single member with the same name.
 .PP
-Option to 
+Options to 
 .I paqfs
 are:
 .TP
@@ -41,6 +45,10 @@ The number of file system blocks to cache in memory. The default is 20 blocks.
 .TP
 .B -d
 Output various debugging information to
+.IR stderr .
+.TP
+.B -q
+Suppress the output of the archive creation date and fingerprint to
 .IR stderr .
 .TP
 .B -i
@@ -54,9 +62,17 @@ The location to mount the file system. The default is
 The maximum 9P message size. The default is sufficient for 8K byte read message.
 .TP
 .B -s
-Post the 9P channel on #s/paqfs rather than
+Post the 9P channel on
+.BR #s/\fIsrvname\fR ,
+default
+.BR #s/paqfs ,
+rather than
 mounting it on
 .IR mtpt .
+Use
+.BI -S " srvname
+to change the default.
+
 .TP
 .B -v
 Verify the integrity of the
