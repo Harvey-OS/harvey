@@ -81,7 +81,7 @@ main(int argc, char *argv[])
 
 	servdir = 0;
 	trustdir = 0;
-	proto = "il";
+	proto = "tcp";
 	quiet = 0;
 	argv0 = argv[0];
 	cpu = getenv("cputype");
