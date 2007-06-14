@@ -1,6 +1,6 @@
 .TH LISTEN 8
 .SH NAME
-listen, listen1, il7, il9, il19, il565, il566, il17007, il17008, il17009, il17013, il17031, tcp7, tcp9, tcp19, tcp21, tcp22, tcp23, tcp25, tcp53, tcp110, tcp113, tcp143, tcp513, tcp515, tcp564, tcp565, tcp566, tcp567, tcp993, tcp1723, tcp17007, tcp17009, tcp17010, tcp17013 \- listen for calls on a network device
+listen, listen1, tcp7, tcp9, tcp19, tcp21, tcp22, tcp23, tcp25, tcp53, tcp110, tcp113, tcp143, tcp513, tcp515, tcp564, tcp565, tcp566, tcp567, tcp993, tcp1723, tcp17007, tcp17009, tcp17010, tcp17013 \- listen for calls on a network device
 .SH SYNOPSIS
 .B aux/listen
 .RB [ -q ]
@@ -26,7 +26,7 @@ listen, listen1, il7, il9, il19, il565, il566, il17007, il17008, il17009, il1701
 listens on a network for inbound calls to local services.
 .I Net
 is the network protocol on which to listen, by default
-.BR /net/il .
+.BR /net/tcp .
 The services available are executable, non-empty files in
 .I srvdir
 or
@@ -65,13 +65,13 @@ an inbound call on the TCP network for port 565 executes service
 .PP
 The following services are available in
 .BR /bin/service .
-.TF il17005\ tcp17005
+.TF \ tcp00000
 .TP
-.B il19 tcp19
+.B tcp19
 .B chargen
 service.
 .TP
-.B il17007 tcp17007
+.B tcp17007
 serve a piece of the name space using the Plan 9 file system protocol,
 with authentication (typically used by
 .IR cpu (1)).
@@ -83,7 +83,7 @@ systems to see Plan 9 files).
 .B il17008
 like 17007, but serves the root of the tree, forgoing the negotiation for which subtree to serve.
 .TP
-.B il17009 tcp17009
+.B tcp17009
 remote execution.
 .TP
 .B "tcp17010"
@@ -91,16 +91,12 @@ server for
 .IR cpu (1)
 command.
 .TP
-.B "il17013 tcp17013"
+.B "tcp17013"
 server for old
 .IR cpu (1)
 command for compatibility with old clients.
 .TP
-.B il17031
-server for
-.IR ramfs (4).
-.TP
-.B il565 tcp565
+.B tcp565
 report the address of the incoming call.
 .TP
 .B tcp21
@@ -125,10 +121,10 @@ terminal connection.
 LP daemon; see
 .IR lp (8).
 .TP
-.B il7 tcp7
+.B tcp7
 echo any bytes received (bit mirror)
 .TP
-.B il9 tcp9
+.B tcp9
 consume any bytes received (bit bucket)
 .TP
 .B tcp53
@@ -154,7 +150,7 @@ PPTP (point-to-point tunnelling protocol) service.
 .PP
 The following services are available in
 .BR /bin/service.auth .
-.TF il565\ tcp565
+.TF \ tcp00000
 .TP
 .B tcp566
 check a SecureNet box.

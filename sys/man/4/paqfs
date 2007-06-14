@@ -43,23 +43,23 @@ are:
 .BI -c " cachesize
 The number of file system blocks to cache in memory. The default is 20 blocks.
 .TP
+.BI -M " mesgsize
+The maximum 9P message size. The default is sufficient for 8K byte read message.
+.TP
 .B -d
 Output various debugging information to
-.IR stderr .
-.TP
-.B -q
-Suppress the output of the archive creation date and fingerprint to
 .IR stderr .
 .TP
 .B -i
 Use file descriptors 0 and 1 as the 9P communication channel rather than create a pipe.
 .TP
+.B -q
+Suppress the output of the archive creation date and fingerprint to
+.IR stderr .
+.TP
 .BI -m " mtpt
 The location to mount the file system. The default is
 .BR /n/paq .
-.TP
-.BI -M " mesgsize
-The maximum 9P message size. The default is sufficient for 8K byte read message.
 .TP
 .B -s
 Post the 9P channel on
@@ -69,10 +69,20 @@ default
 rather than
 mounting it on
 .IR mtpt .
-Use
-.BI -S " srvname
-to change the default.
-
+.TP
+.B -S
+The name to post in
+.BR #s .
+The default is
+.BR paqfs .
+.TP
+.B -p
+Both post the 9P channel in
+.B #s
+and
+mount the
+.I paqfile
+in to the filesystem.
 .TP
 .B -v
 Verify the integrity of the

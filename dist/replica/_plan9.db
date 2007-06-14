@@ -361,7 +361,7 @@
 386/bin/ns - 775 sys sys 1168402343 65492
 386/bin/p - 775 sys sys 1168402343 65220
 386/bin/page - 775 sys sys 1179372100 234230
-386/bin/paqfs - 775 sys sys 1168402343 107781
+386/bin/paqfs - 775 sys sys 1181764592 108714
 386/bin/passwd - 775 sys sys 1168402344 84333
 386/bin/pbd - 775 sys sys 1085077087 4661
 386/bin/pcc - 775 sys sys 1168402344 68241
@@ -480,7 +480,7 @@
 386/bin/upas/token - 775 sys sys 1178568317 76393
 386/bin/upas/unesc - 775 sys sys 1176520512 60137
 386/bin/upas/unspam - 775 sys sys 1064598367 38
-386/bin/upas/vf - 775 sys sys 1181359437 97389
+386/bin/upas/vf - 775 sys sys 1181704900 97444
 386/bin/usb - 20000000775 sys sys 1019538890 0
 386/bin/usb/usbaudio - 775 sys sys 1179548037 188012
 386/bin/usb/usbd - 775 sys sys 1179548037 130769
@@ -7691,7 +7691,7 @@ sys/man/4/mntgen - 664 sys sys 1043680799 473
 sys/man/4/namespace - 664 sys sys 1161060792 6920
 sys/man/4/nfs - 664 sys sys 1140447003 4475
 sys/man/4/nntpfs - 664 sys sys 1032632346 2771
-sys/man/4/paqfs - 664 sys sys 1181701436 1736
+sys/man/4/paqfs - 664 sys sys 1181749508 1848
 sys/man/4/plumber - 664 sys sys 944959699 2748
 sys/man/4/ramfs - 664 sys sys 1168307208 1642
 sys/man/4/ratfs - 664 sys sys 1157898800 3276
@@ -9748,7 +9748,7 @@ sys/src/cmd/aux/gps/mkfile - 664 sys sys 1108397331 219
 sys/src/cmd/aux/gps/util.c - 664 sys sys 1107448815 2795
 sys/src/cmd/aux/lines.c - 664 sys sys 1015008782 546
 sys/src/cmd/aux/lis - 775 sys sys 944960794 45
-sys/src/cmd/aux/listen.c - 664 sys sys 1173762441 9291
+sys/src/cmd/aux/listen.c - 664 sys sys 1181789265 9292
 sys/src/cmd/aux/listen1.c - 664 sys sys 1143759349 2005
 sys/src/cmd/aux/mkfile - 664 sys sys 1147022848 1021
 sys/src/cmd/aux/mklatinkbd.c - 664 sys sys 953253425 3813
@@ -12865,7 +12865,7 @@ sys/src/cmd/page/view.c - 664 sys sys 1136377361 22893
 sys/src/cmd/paqfs - 20000000775 sys sys 1039727564 0
 sys/src/cmd/paqfs/mkfile - 664 sys sys 1032060366 228
 sys/src/cmd/paqfs/mkpaqfs.c - 664 sys sys 1072729575 8836
-sys/src/cmd/paqfs/paqfs.c - 664 sys sys 1181701442 19936
+sys/src/cmd/paqfs/paqfs.c - 664 sys sys 1181749507 19998
 sys/src/cmd/paqfs/paqfs.h - 664 sys sys 1072729575 1016
 sys/src/cmd/pbd.c - 664 sys sys 944961351 247
 sys/src/cmd/pcc.c - 664 sys sys 1146137351 6016
@@ -15844,4 +15844,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/upas/vf - 775 sys sys 1181704900 97444
+sys/man/8/listen - 664 sys sys 1181790503 3658
