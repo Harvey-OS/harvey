@@ -4,9 +4,8 @@ srv, srvold9p, 9fs, srvssh \- start network file service
 .SH SYNOPSIS
 .B srv
 [
-.B -abceCmnq
-]
-[
+.B -abcCemnq
+] [
 .B -s
 .I seconds
 ]
@@ -43,18 +42,23 @@ srv, srvold9p, 9fs, srvssh \- start network file service
 .RI [ net !] system
 .RI [ mountpoint ]
 .PP
+.in +0.5i
+.ti -0.5i
 .B srvold9p
 [
-.B -abcCd
+.B -abcCdF
+] [
+.B -p
+.I servicename
+] [
+.B -s
+|
+.B -m
+.I mountpoint
 ] [
 .B -u
 .I user
 ] [
-.B -s
-| [
-.B -m
-.I mountpoint
-] ] [
 .B -x
 .I command
 |
@@ -63,16 +67,17 @@ srv, srvold9p, 9fs, srvssh \- start network file service
 |
 .B -f
 .I file
-] [
-.B -F
-] [
-.B -p
-.I servicename
 ]
+.br
+.in -0.5i
 .SH DESCRIPTION
 .I Srv
 dials the given machine and initializes the connection to serve the
 9P protocol.
+By default, it connects to the
+.L 9fs
+(9P)
+service, which for TCP is port 564.
 It then creates in
 .B /srv
 a file named
@@ -110,13 +115,13 @@ The
 .BR C ,
 and
 .B n
-flags are used to control the mount flag as in
+options are used to control the mount flags as in
 .I mount
 (see
 .IR bind (1)).
 The
 .B e
-flag causes
+option causes
 .I srv
 to treat
 .I system
@@ -124,7 +129,7 @@ as a shell command to be executed rather than
 an address to be dialed.
 The
 .B s
-flag causes
+option causes
 .I srv
 to sleep for the specified number of seconds
 after establishing the connection
@@ -137,7 +142,7 @@ The specified
 must serve 9P.  Usually
 .I service
 can be omitted; when calling some
-non-Plan 9 systems, a
+non-Plan-9 systems, a
 .I service
 such as
 .B u9fs
@@ -212,11 +217,21 @@ that performs a version translation on the 9P messages on the underlying connect
 Some of its options are the same as those of
 .IR srv ;
 the special ones are:
-.TF "-u userxx"
+.TF "-x commandxx"
 .PD
 .TP
 .B -d
-Enable debugging
+Enable debugging.
+.TP
+.B -F
+Insert a special (internal) filter process to the connection to maintain
+message boundaries; usually only needed on TCP connections.
+.TP
+.BI -p\  servicename
+Post the service under
+.IR srv (3)
+as
+.BI /srv/ servicename\f1.
 .TP
 .BI -u\  user
 When connecting to the remote server, log in as
@@ -248,16 +263,6 @@ Use
 (typically an existing
 .IR srv (3)
 file) as the connection.
-.TP
-.B -F
-Insert a special (internal) filter process to the connection to maintain
-message boundaries; usually only needed on TCP connections.
-.TP
-.BI -p\  servicename
-Post the service under
-.IR srv (3)
-as
-.BI /srv/ servicename\f1.
 .PP
 .I Srvold9p
 is run automatically when a
@@ -296,8 +301,6 @@ started via
 .EX
 srvssh unix
 .EE
-.SH NOTE
-The TCP port used for 9P is 564.
 .SH FILES
 .TF /srv/*
 .TP
@@ -316,9 +319,20 @@ and
 .B /sys/src/cmd/srvold9p
 .SH "SEE ALSO"
 .IR bind (1),
+.IR auth (2),
 .IR dial (2),
 .IR srv (3),
 .IR exportfs (4),
 .IR import (4),
 .IR ftpfs (4),
 .IR u9fs (4)
+.SH BUGS
+.I Srv
+does not explicitly report failures of
+.I auth_proxy
+(see
+.IR auth (2));
+.I mount
+(see
+.IR bind (1))
+does.

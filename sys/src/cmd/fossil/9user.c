@@ -221,13 +221,10 @@ _groupRemMember(Ubox* box, User* g, char* member)
 		g->group = nil;
 		break;
 	default:
-		while(i < g->ngroup){
+		for(; i < g->ngroup; i++)
 			g->group[i] = g->group[i+1];
-			i++;
-		}
-		/*FALLTHROUGH*/
-	case 1:
-		g->group = vtMemRealloc(g->group, (g->ngroup)*sizeof(char*));
+		g->group[i] = nil;		/* prevent accidents */
+		g->group = vtMemRealloc(g->group, g->ngroup * sizeof(char*));
 		break;
 	}
 

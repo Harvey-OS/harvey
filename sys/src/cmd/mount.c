@@ -17,6 +17,8 @@ amount0(int fd, char *mntpt, int flags, char *aname, char *keyspec)
 		ai = auth_proxy(afd, amount_getkey, "proto=p9any role=client %s", keyspec);
 		if(ai != nil)
 			auth_freeAI(ai);
+		else
+			fprint(2, "%s: auth_proxy: %r\n", argv0);
 	}
 	rv = mount(fd, afd, mntpt, flags, aname);
 	if(afd >= 0)

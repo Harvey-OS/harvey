@@ -108,7 +108,7 @@
 386/bin/aux/hardcopy - 775 sys sys 1020319063 1699
 386/bin/aux/isvmware - 775 sys sys 1032486791 23997
 386/bin/aux/lines - 775 sys sys 1168402281 60716
-386/bin/aux/listen - 775 sys sys 1179372073 107720
+386/bin/aux/listen - 775 sys sys 1181851031 107720
 386/bin/aux/listen1 - 775 sys sys 1179372074 94790
 386/bin/aux/lpdaemon - 775 sys sys 1173754553 170710
 386/bin/aux/lpdsend - 775 sys sys 1173754553 157339
@@ -239,7 +239,7 @@
 386/bin/fossil/conf - 775 sys sys 1085077052 1506
 386/bin/fossil/flchk - 775 sys sys 1180209225 237116
 386/bin/fossil/flfmt - 775 sys sys 1180209226 245137
-386/bin/fossil/fossil - 775 sys sys 1180209226 363773
+386/bin/fossil/fossil - 775 sys sys 1181851033 363780
 386/bin/fossil/last - 775 sys sys 1168402310 63550
 386/bin/freq - 775 sys sys 1168402310 62040
 386/bin/fs - 20000000775 sys sys 954380769 0
@@ -335,7 +335,7 @@
 386/bin/mkdir - 775 sys sys 1168402334 61205
 386/bin/mkpaqfs - 775 sys sys 1178568292 93268
 386/bin/mntgen - 775 sys sys 1179372098 144046
-386/bin/mount - 775 sys sys 1179372098 73326
+386/bin/mount - 775 sys sys 1181877817 73380
 386/bin/ms2html - 775 sys sys 1178568293 102703
 386/bin/mtime - 775 sys sys 1168402336 59376
 386/bin/mug - 775 sys sys 1179372099 176427
@@ -7699,7 +7699,7 @@ sys/man/4/rdbfs - 664 sys sys 944959699 1123
 sys/man/4/rio - 664 sys sys 1023206844 8660
 sys/man/4/sacfs - 664 sys sys 964886843 907
 sys/man/4/snap - 664 sys sys 1169092032 1908
-sys/man/4/srv - 664 sys sys 1179442921 4764
+sys/man/4/srv - 664 sys sys 1181849407 4970
 sys/man/4/tapefs - 664 sys sys 1140965924 1861
 sys/man/4/telco - 664 sys sys 1015024814 4359
 sys/man/4/u9fs - 664 sys sys 1043769139 4748
@@ -7939,7 +7939,7 @@ sys/src/9/bitsy/wavelan.h - 664 sys sys 1037029076 27
 sys/src/9/boot - 20000000775 sys sys 1161222920 0
 sys/src/9/boot/aux.c - 664 sys sys 1168305725 2586
 sys/src/9/boot/boot.c - 664 sys sys 1146746630 6013
-sys/src/9/boot/boot.h - 664 sys sys 1063857659 1785
+sys/src/9/boot/boot.h - 664 sys sys 1181823402 1722
 sys/src/9/boot/bootauth.c - 664 sys sys 1131289783 1160
 sys/src/9/boot/bootcache.c - 664 sys sys 1171955975 1608
 sys/src/9/boot/bootip.c - 664 sys sys 1072972133 3418
@@ -10327,7 +10327,7 @@ sys/src/cmd/fossil/9p.c - 664 sys sys 1140010159 22931
 sys/src/cmd/fossil/9ping.c - 664 sys sys 1042005503 1563
 sys/src/cmd/fossil/9proc.c - 664 sys sys 1138469518 15148
 sys/src/cmd/fossil/9srv.c - 664 sys sys 1138465941 3956
-sys/src/cmd/fossil/9user.c - 664 sys sys 1140110621 17266
+sys/src/cmd/fossil/9user.c - 664 sys sys 1181842829 17277
 sys/src/cmd/fossil/Ccli.c - 664 sys sys 1042005504 1624
 sys/src/cmd/fossil/Ccmd.c - 664 sys sys 1138465941 7985
 sys/src/cmd/fossil/Ccons.c - 664 sys sys 1055703737 6620
@@ -12813,7 +12813,7 @@ sys/src/cmd/mkmany - 664 sys sys 1123818681 1304
 sys/src/cmd/mkone - 664 sys sys 1123943673 910
 sys/src/cmd/mksyslib - 664 sys sys 1134390137 665
 sys/src/cmd/mntgen.c - 664 sys sys 1106410349 3630
-sys/src/cmd/mount.c - 664 sys sys 1138061862 1633
+sys/src/cmd/mount.c - 664 sys sys 1181847483 1685
 sys/src/cmd/ms2html.c - 664 sys sys 1166823350 41013
 sys/src/cmd/mtime.c - 664 sys sys 1036172302 450
 sys/src/cmd/mug.c - 664 sys sys 1157143847 24888
