@@ -49263,3 +49263,13 @@
 1181941223 0 c sys/src/cmd/pic/linegen.c - 664 sys sys 1181939996 5634
 1181941223 1 c sys/src/cmd/pic/misc.c - 664 sys sys 1181939986 9002
 1181964623 0 c 386/bin/pic - 775 sys sys 1181964075 308633
+1182191423 0 c sys/src/cmd/9nfs/nfsmount.c - 664 sys sys 1182190701 6447
+1182193223 0 c sys/man/8/kfscmd - 664 sys sys 1182192559 4514
+1182193223 1 c sys/src/cmd/auth/factotum/util.c - 664 sys sys 1182192267 18452
+1182193223 2 c sys/src/cmd/disk/kfs/con.c - 664 sys sys 1182192569 12768
+1182193223 3 c sys/src/cmd/disk/kfs/main.c - 664 sys sys 1182192646 9506
+1182193223 4 c sys/src/cmd/scat/header.c - 664 sys sys 1182191590 5982
+1182223823 0 c 386/bin/scat - 775 sys sys 1182223286 284918
+1182223823 1 c 386/bin/auth/factotum - 775 sys sys 1182223284 321299
+1182223823 2 c 386/bin/aux/nfsserver - 775 sys sys 1182223285 184719
+1182223823 3 c 386/bin/disk/kfs - 775 sys sys 1182223285 248673

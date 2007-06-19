@@ -317,9 +317,9 @@ netserve(char *netaddr)
 	char adir[2*NAMELEN], ldir[2*NAMELEN];
 	Chan *netchan;
 
-	if(access("/net/il/clone", 0) < 0)
+	if(access("/net/tcp/clone", 0) < 0)
 		bind("#I", "/net", MAFTER);
-	if(access("/net.alt/il/clone", 0) < 0)
+	if(access("/net.alt/tcp/clone", 0) < 0)
 		bind("#I1", "/net.alt", MAFTER);
 
 	afd = announce(netaddr, adir);

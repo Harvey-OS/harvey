@@ -7795,7 +7795,7 @@ sys/man/8/httpd - 664 sys sys 1165623004 6865
 sys/man/8/init - 664 sys sys 944959679 1430
 sys/man/8/ipconfig - 664 sys sys 1177100280 7984
 sys/man/8/ipserv - 664 sys sys 1095862383 4375
-sys/man/8/kfscmd - 664 sys sys 1068569797 4515
+sys/man/8/kfscmd - 664 sys sys 1182192559 4514
 sys/man/8/listen - 664 sys sys 1181790503 3658
 sys/man/8/lp - 664 sys sys 954614702 2491
 sys/man/8/mk9660 - 664 sys sys 1104430379 3946
@@ -9374,7 +9374,7 @@ sys/src/cmd/9nfs/mport.c - 664 sys sys 1178482676 3749
 sys/src/cmd/9nfs/nametest.c - 664 sys sys 1015090372 1723
 sys/src/cmd/9nfs/nfs.c - 664 sys sys 1131293679 9526
 sys/src/cmd/9nfs/nfs.h - 664 sys sys 1015090372 642
-sys/src/cmd/9nfs/nfsmount.c - 664 sys sys 1146061149 6270
+sys/src/cmd/9nfs/nfsmount.c - 664 sys sys 1182190701 6447
 sys/src/cmd/9nfs/nfsserver.c - 664 sys sys 1146061148 15831
 sys/src/cmd/9nfs/pcnfsd.c - 664 sys sys 1146061148 4068
 sys/src/cmd/9nfs/portmapper.c - 664 sys sys 1146061148 3273
@@ -9573,7 +9573,7 @@ sys/src/cmd/auth/factotum/rpc.c - 664 sys sys 1107633794 11167
 sys/src/cmd/auth/factotum/rsa.c - 664 sys sys 1107706104 3416
 sys/src/cmd/auth/factotum/secstore.c - 664 sys sys 1140272941 14955
 sys/src/cmd/auth/factotum/sshrsa.c - 664 sys sys 1107633793 3416
-sys/src/cmd/auth/factotum/util.c - 664 sys sys 1178832638 18451
+sys/src/cmd/auth/factotum/util.c - 664 sys sys 1182192267 18452
 sys/src/cmd/auth/factotum/wep.c - 664 sys sys 1107706104 2140
 sys/src/cmd/auth/guard.srv.c - 664 sys sys 1172776773 2873
 sys/src/cmd/auth/iam.c - 664 sys sys 1015008430 841
@@ -10171,7 +10171,7 @@ sys/src/cmd/disk/kfs/9p2.c - 664 sys sys 1091904427 34519
 sys/src/cmd/disk/kfs/all.h - 664 sys sys 1091904426 126
 sys/src/cmd/disk/kfs/auth.c - 664 sys sys 1037136028 2137
 sys/src/cmd/disk/kfs/chk.c - 664 sys sys 1068569643 10339
-sys/src/cmd/disk/kfs/con.c - 664 sys sys 1143759347 12759
+sys/src/cmd/disk/kfs/con.c - 664 sys sys 1182192569 12768
 sys/src/cmd/disk/kfs/console.c - 664 sys sys 1017679313 5501
 sys/src/cmd/disk/kfs/dat.c - 664 sys sys 1015009188 2290
 sys/src/cmd/disk/kfs/dat.h - 664 sys sys 1022008485 3591
@@ -10182,7 +10182,7 @@ sys/src/cmd/disk/kfs/errno.h - 664 sys sys 1015009189 1317
 sys/src/cmd/disk/kfs/fns.h - 664 sys sys 1019058719 1010
 sys/src/cmd/disk/kfs/ialloc.c - 664 sys sys 944960883 103
 sys/src/cmd/disk/kfs/iobuf.c - 664 sys sys 1015009189 3769
-sys/src/cmd/disk/kfs/main.c - 664 sys sys 1143759347 9504
+sys/src/cmd/disk/kfs/main.c - 664 sys sys 1182192646 9506
 sys/src/cmd/disk/kfs/misc.c - 664 sys sys 1015009189 1182
 sys/src/cmd/disk/kfs/mkfile - 664 sys sys 1065916865 717
 sys/src/cmd/disk/kfs/ofcallfmt.c - 664 sys sys 1134305454 4681
@@ -13364,7 +13364,7 @@ sys/src/cmd/scat/bitinput.c - 664 sys sys 944961465 1358
 sys/src/cmd/scat/desc.c - 664 sys sys 944961465 7022
 sys/src/cmd/scat/display.c - 664 sys sys 1135487935 1479
 sys/src/cmd/scat/dssread.c - 664 sys sys 964307378 2205
-sys/src/cmd/scat/header.c - 664 sys sys 1121977163 5917
+sys/src/cmd/scat/header.c - 664 sys sys 1182191590 5982
 sys/src/cmd/scat/hinv.c - 664 sys sys 964307378 4447
 sys/src/cmd/scat/image.c - 664 sys sys 964307378 3197
 sys/src/cmd/scat/mkfile - 664 sys sys 964307378 326
@@ -15844,3 +15844,7 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/scat - 775 sys sys 1182223286 284918
+386/bin/auth/factotum - 775 sys sys 1182223284 321299
+386/bin/aux/nfsserver - 775 sys sys 1182223285 184719
+386/bin/disk/kfs - 775 sys sys 1182223285 248673

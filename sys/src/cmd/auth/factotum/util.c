@@ -44,13 +44,13 @@ _authdial(char *net, char *authdom)
 	 * remote authentication domain too.
 	 */
 
-	/* use the auth sever passed to us as an arg */
+	/* use the auth server passed to us as an arg */
 	if(authaddr == nil)
 		return -1;
-	fd = dial(netmkaddr(authaddr, "il", "566"), 0, 0, 0);
+	fd = dial(netmkaddr(authaddr, "tcp", "567"), 0, 0, 0);
 	if(fd >= 0)
 		return fd;
-	return dial(netmkaddr(authaddr, "tcp", "567"), 0, 0, 0);
+	return dial(netmkaddr(authaddr, "il", "566"), 0, 0, 0);
 }
 
 int
