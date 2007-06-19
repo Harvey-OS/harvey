@@ -22,7 +22,7 @@ Procmap mntproc[] = {
 };
 
 long		starttime;
-static int		noauth;
+static int	noauth;
 char *		config;
 Session *	head;
 Session *	tail;
@@ -37,6 +37,13 @@ mnttimer(long now)
 		fidtimer(s, now);
 }
 
+static void
+usage(void)
+{
+	sysfatal("usage: %s %s [-ns] [-a dialstring] [-c uidmap] [-f srvfile] "
+		"[-T staletime]", argv0, commonopts);
+}
+
 void
 mntinit(int argc, char **argv)
 {
@@ -49,35 +56,35 @@ mntinit(int argc, char **argv)
 	ARGBEGIN{
 	case 'a':
 		++tries;
-		srvinit(-1, 0, ARGF());
+		srvinit(-1, 0, EARGF(usage()));
+		break;
+	case 'c':
+		config = EARGF(usage());
 		break;
 	case 'f':
 		++tries;
-		srvinit(-1, ARGF(), 0);
+		srvinit(-1, EARGF(usage()), 0);
+		break;
+	case 'n':
+		++noauth;
 		break;
 	case 's':
 		++tries;
 		srvinit(1, 0, 0);
 		break;
-	case 'n':
-		++noauth;
-		break;
-	case 'c':
-		config = ARGF();
-		break;
 	case 'T':
-		staletime = atoi(ARGF());
+		staletime = atoi(EARGF(usage()));
 		break;
 	default:
 		if(argopt(ARGC()) < 0)
-			sysfatal(
-"usage: %s %s [-ns] [-a dialstring] [-f srvfile] [-c uidmap] [-T staletime]",
+			sysfatal("usage: %s %s [-ns] [-a dialstring] "
+				"[-c uidmap] [-f srvfile] [-T staletime]",
 				argv0, commonopts);
 		break;
 	}ARGEND
 noauth=1;	/* ZZZ */
 	if(tries == 0 && head == 0)
-		srvinit(-1, 0, "il!bootes");
+		srvinit(-1, 0, "tcp!fs");
 	if(head == 0)
 		panic("can't initialize services");
 	readunixidmaps(config);
@@ -315,7 +322,7 @@ xfroot(char *name, int n)
 	for(s=head; s; s=s->next){
 		if(strncmp(name, s->service, n) == 0)
 			return s->root;
-		p = strrchr(s->service, '!');	/* for -a il!foo */
+		p = strrchr(s->service, '!');	/* for -a tcp!foo */
 		if(p && strncmp(name, p+1, n) == 0)
 			return s->root;
 		p = strrchr(s->service, '/');	/* for -a /srv/foo */

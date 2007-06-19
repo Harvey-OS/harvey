@@ -553,7 +553,7 @@ cmd_listen(void)
 	char addr[NAMELEN];
 
 	if(skipbl(0))
-		strcpy(addr, "il!*!17008");
+		strcpy(addr, "tcp!*!564");	/* 9fs */
 	else
 		cname(addr);
 

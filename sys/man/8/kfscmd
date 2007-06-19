@@ -178,7 +178,7 @@ write all of the blocks that are touched.
 Start a listener to serve the network at 
 .IR address ,
 default
-.BR il!*!17008 .
+.BR tcp!*!564 .
 This feature is intended to facilitate small networks of a couple
 machines in the situation when convenience is more
 important than performance.

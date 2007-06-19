@@ -3,6 +3,8 @@
 #include	<bio.h>
 #include	"sky.h"
 
+#define JUKEFS "tcp!jukefs"	/* dial string for jukebox; was il!jukefs */
+
 struct
 {
 	char	name[9];
@@ -255,16 +257,16 @@ loop:
 	/*
 	 * start nfs jukebox server
 	 */
-	s1 = open("/srv/il!jukefs", ORDWR);
+	s1 = open("/srv/" JUKEFS, ORDWR);
 	if(s1 < 0) {
 		if(fork() == 0) {
-			execl("/bin/srv", "srv", "-q", "il!jukefs", nil);
+			execl("/bin/srv", "srv", "-q", JUKEFS, nil);
 			exits(0);
 		}
 		waitpid();
-		s1 = open("/srv/il!jukefs", ORDWR);
+		s1 = open("/srv/" JUKEFS, ORDWR);
 		if(s1 < 0) {
-			Bprint(&bout, "can't open /srv/il!jukefs: %r\n");
+			Bprint(&bout, "can't open /srv/%s: %r\n", JUKEFS);
 			goto out;
 		}
 	}
@@ -274,7 +276,7 @@ loop:
 	 */
 	if(mount(s1, -1, "/n/njuke", 0, "") < 0) {
 		close(s1);
-		Bprint(&bout, "\"mount /srv/il!jukefs /n/juke\" failed: %r\n");
+		Bprint(&bout, "\"mount /srv/%s /n/juke\" failed: %r\n", JUKEFS);
 		goto out;
 	}
 
@@ -303,7 +305,7 @@ loop:
 		if(count == 0) {
 			// do it again so /n/njuke is in 9660's namespace
 			remove("/srv/9660");
-			remove("/srv/il!jukefs");
+			remove("/srv/" JUKEFS);
 			count = 1;
 			goto loop;
 		}
