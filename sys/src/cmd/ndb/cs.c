@@ -62,9 +62,9 @@ struct Mlist
 };
 
 
-//
-//  active requests
-//
+/*
+ *  active requests
+ */
 struct Job
 {
 	Job	*next;
@@ -150,8 +150,8 @@ struct Network
 
 enum
 {
-	Nilfast,
 	Ntcp,
+//	Nilfast,
 	Nil,
 	Nudp,
 	Nicmp,
@@ -161,11 +161,13 @@ enum
 };
 
 /*
- *  net doesn't apply to (r)udp, icmp(v6), or telco (for speed)
+ *  net doesn't apply to (r)udp, icmp(v6), or telco (for speed).
+ *  there should be no gaps in this table, as a zero entry terminates
+ *  the "net!" search.
  */
 Network network[] = {
 [Ntcp]		{ "tcp",	iplookup,	iptrans,	0, 0 },
-[Nilfast]	{ "il",		iplookup,	iptrans,	0, 1 },
+// [Nilfast]	{ "il",		iplookup,	iptrans,	0, 1 },
 [Nil]		{ "il",		iplookup,	iptrans,	0, 0 },
 [Nudp]		{ "udp",	iplookup,	iptrans,	1, 0 },
 [Nicmp]		{ "icmp",	iplookup,	iptrans,	1, 0 },
@@ -435,8 +437,8 @@ io(void)
 		mf = newfid(job->request.fid);
 		if(debug)
 			syslog(0, logfile, "%F", &job->request);
-	
-	
+
+
 		switch(job->request.type){
 		default:
 			syslog(1, logfile, "unknown request type %d", job->request.type);
@@ -982,7 +984,7 @@ ipid(void)
 		/*
 		 *  the /net/ndb contains what the network
 		 *  figured out from DHCP.  use that name if
-		 *  there is one. 
+		 *  there is one.
 		 */
 		if(mysysname == 0 && netdb != nil){
 			ndbreopen(netdb);
@@ -1023,7 +1025,7 @@ ipid(void)
 		/* nothing else worked, use the ip address */
 		if(mysysname == 0 && isvalidip(ipa))
 			mysysname = strdup(ipaddr);
-					
+
 
 		/* set /dev/sysname if we now know it */
 		if(mysysname){
@@ -1151,7 +1153,7 @@ lookup(Mfile *mf)
 	if(mf->net == nil)
 		return 0;	/* must have been a genquery */
 
-	if(strcmp(mf->net, "net") == 0){ 
+	if(strcmp(mf->net, "net") == 0){
 		/*
 		 *  go through set of default nets
 		 */
@@ -1259,7 +1261,7 @@ ipserv(Network *np, char *name, char *buf, int blen)
 			{}
 		else if(isalpha(*p) || *p == '-' || *p == '$')
 			alpha = 1;
-		else 
+		else
 			return 0;
 	}
 	t = nil;
@@ -1296,7 +1298,7 @@ ipserv(Network *np, char *name, char *buf, int blen)
 int
 ipattrlookup(Ndb *db, char *ipa, char *attr, char *val, int vlen)
 {
-	
+
 	Ndbtuple *t, *nt;
 	char *alist[2];
 
@@ -1413,7 +1415,7 @@ iplookup(Network *np, char *host, char *serv, int nolookup)
 	 */
 	lock(&ipifclock);
 	for(ifc = ipifcs; ifc != nil; ifc = ifc->next){
-		for(lifc = ifc->lifc; lifc != nil; lifc = lifc->next){ 
+		for(lifc = ifc->lifc; lifc != nil; lifc = lifc->next){
 			maskip(lifc->ip, lifc->mask, net);
 			for(nt = t; nt; nt = nt->entry){
 				if(strcmp(nt->attr, "ip") != 0)
@@ -1460,7 +1462,7 @@ iptrans(Ndbtuple *t, Network *np, char *serv, char *rem, int hack)
 			mntpt, np->net, ts, x);
 	else
 		snprint(reply, sizeof(reply), "%s/%s/clone %s!%s%s%s",
-			mntpt, np->net, t->val, ts, x, hack?"!fasttimeout":"");
+			mntpt, np->net, t->val, ts, x, hack? "!fasttimeout": "");
 
 	return strdup(reply);
 }
