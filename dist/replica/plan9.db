@@ -341,7 +341,7 @@
 386/bin/mug - 775 sys sys 1179372099 176427
 386/bin/mv - 775 sys sys 1168402336 66629
 386/bin/ndb - 20000000775 sys sys 985743147 0
-386/bin/ndb/cs - 775 sys sys 1178654265 149084
+386/bin/ndb/cs - 775 sys sys 1182283129 149052
 386/bin/ndb/csquery - 775 sys sys 1176488418 61652
 386/bin/ndb/dns - 775 sys sys 1178568294 285534
 386/bin/ndb/dnsdebug - 775 sys sys 1178568295 260477
@@ -12821,7 +12821,7 @@ sys/src/cmd/mv.c - 664 sys sys 1163029439 4682
 sys/src/cmd/ndb - 20000000775 sys sys 1080135004 0
 sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1175901489 6927
 sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1175901582 11659
-sys/src/cmd/ndb/cs.c - 664 sys sys 1176931848 33123
+sys/src/cmd/ndb/cs.c - 664 sys sys 1182275681 33213
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1174626119 1073
 sys/src/cmd/ndb/dblookup.c - 664 sys sys 1175901604 21010
 sys/src/cmd/ndb/dn.c - 664 sys sys 1177811830 32939
