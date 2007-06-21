@@ -92,6 +92,7 @@ is one of
 .BR mach64xx ,
 .BR mga2164w ,
 .BR neomagic ,
+.BR nvidia ,
 .BR s3 ,
 and
 .BR t2r4 .
@@ -119,6 +120,7 @@ is one of
 .BR mach64xxhwgc ,
 .BR mga2164whwgc ,
 .BR neomagichwgc ,
+.BR nvidiahwgc ,
 .BR rgb524hwgc ,
 .BR s3hwgc ,
 .BR t2r4hwgc ,
