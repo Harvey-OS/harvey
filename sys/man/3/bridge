@@ -1,6 +1,6 @@
-.TH BRIDGE 3 
+.TH BRIDGE 3
 .SH NAME
-bridge \- IPv4 network bridge
+bridge \- IPv4 Ethernet bridge
 .SH SYNOPSIS
 .nf
 .B bind -a #B\fIb\fP /net
@@ -9,7 +9,7 @@ bridge \- IPv4 network bridge
 .B /net/bridge\fIb\fP/cache
 .B /net/bridge\fIb\fP/log
 .B /net/bridge\fIb\fP/stats
-.BI /net/bridge\fIb\fP/ n 
+.BI /net/bridge\fIb\fP/ n
 .BI /net/bridge\fIb\fP/ n /ctl
 .BI /net/bridge\fIb\fP/ n /local
 .BI /net/bridge\fIb\fP/ n /status
@@ -18,7 +18,8 @@ bridge \- IPv4 network bridge
 The
 .I bridge
 device implements bridging of IPv4 packets
-amongst network interfaces.
+amongst Ethernet interfaces.
+The number
 .I b
 in the bind is optional and selects a particular bridge
 (default 0).
@@ -53,19 +54,32 @@ messages are:
 .TF cacheflush
 .PD
 .TP
-.BI "bind ether " "name ownhash path [path2]"
+.BI "bind ether " "name ownhash path"
 Treat the device mounted at
 .I path
+(e.g.,
+.LR /net/ether0 )
 as an Ethernet medium carrying IPv4 and ARP packets
 and associate it with this bridge (forward its packets to the
 other interfaces associated with this bridge).
+.I Ownhash
+is an `owner hash'.
 .TP
-.BI "bind tunnel " "name ownhash path [path2]"
+.BI "bind tunnel " "name ownhash path path2
 Treat the device mounted at
 .I path
-as a network tunnel carrying IPv4 and ARP packets
-and associate it with this bridge (forward its packets to the
+as a network tunnel carrying IPv4 and ARP packets,
+the device mounted at
+.I path2
+as an Ethernet medium carrying IPv4 and ARP packets
+and associate them with this bridge
+(forward its packets to the
 other interfaces associated with this bridge).
+Read packets from the
+.I path
+interface and write them to the
+.I path2
+interface.
 .TP
 .BI "unbind " "type address [ownhash]"
 Disassociate the interface associated with
@@ -84,7 +98,7 @@ Clear the cache of (IP addresses, destination MAC address, port) tuples.
 Set the
 .I delay0
 and
-.I delayn 
+.I delayn
 parameters.
 .I delay0
 is the constant microsecond delay per packet
@@ -98,7 +112,7 @@ Set bridge
 The only known option is
 .LR tcpmss ,
 which limits the TCP Maximum Segment Size of
-packets passing through to 1300 bytes.
+TCPv4 packets passing through to 1300 bytes.
 .TP
 .BI "clear " option
 Clear bridge
@@ -143,4 +157,4 @@ echo 'bind ether inner 0 /net/ether1' >/net/bridge0/ctl
 .SH SOURCE
 .B /sys/src/9/port/devbridge.c
 .SH BUGS
-Doesn't work with IPv6.
+Doesn't understand IPv6.
