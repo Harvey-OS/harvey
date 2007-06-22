@@ -7436,7 +7436,7 @@ sys/man/1/rm - 664 sys sys 944959673 515
 sys/man/1/rwd - 664 sys sys 1042469992 2958
 sys/man/1/sam - 664 sys sys 1113743327 18295
 sys/man/1/secstore - 664 sys sys 1181275322 3913
-sys/man/1/sed - 664 sys sys 944959674 6884
+sys/man/1/sed - 664 sys sys 1182458430 6921
 sys/man/1/seq - 664 sys sys 1063855680 1131
 sys/man/1/size - 664 sys sys 944959674 393
 sys/man/1/sleep - 664 sys sys 1167774352 420
@@ -9812,7 +9812,7 @@ sys/src/cmd/aux/vga/mga4xx.c - 664 sys sys 1158594482 36898
 sys/src/cmd/aux/vga/mkfile - 664 sys sys 1115734903 927
 sys/src/cmd/aux/vga/neomagic.c - 664 sys sys 1104430499 8975
 sys/src/cmd/aux/vga/notes.txt - 664 sys sys 1028334647 14376
-sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1166796095 33178
+sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1182462658 32347
 sys/src/cmd/aux/vga/palette.c - 664 sys sys 1014925010 2201
 sys/src/cmd/aux/vga/pci.c - 664 sys sys 1014925011 8659
 sys/src/cmd/aux/vga/pci.h - 664 sys sys 1014925011 3290
@@ -13388,7 +13388,7 @@ sys/src/cmd/scuzz/scsireq.c - 664 sys sys 1181436637 13594
 sys/src/cmd/scuzz/scsireq.h - 664 sys sys 1181435455 6692
 sys/src/cmd/scuzz/scuzz.c - 664 sys sys 1181436627 38286
 sys/src/cmd/scuzz/sense.c - 664 sys sys 1177702138 5680
-sys/src/cmd/sed.c - 664 sys sys 1100962924 27001
+sys/src/cmd/sed.c - 664 sys sys 1182465504 26844
 sys/src/cmd/seq.c - 664 sys sys 1161442158 1691
 sys/src/cmd/sh.C - 664 sys sys 1055701754 10303
 sys/src/cmd/sha1sum.c - 664 sys sys 1014926229 1017
@@ -15844,3 +15844,5 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/sed - 775 sys sys 1182482483 90481
+386/bin/aux/vga - 775 sys sys 1182482483 334774

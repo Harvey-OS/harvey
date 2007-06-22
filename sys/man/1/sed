@@ -35,7 +35,7 @@ If there is just one
 .B -e
 option and no
 .BR -f 's,
-the flag
+the option
 .B -e
 may be omitted.
 The
@@ -48,14 +48,14 @@ causes all substitutions to be global, as if suffixed
 A script consists of editing commands, one per line,
 of the following form:
 .IP
-[\fIaddress\fR [\fL,\fI address\fR] ] \fIfunction\fR [\fIargument\fR ...]
+[\fIaddress\fR [\fL,\fI address\fR] ] \fIfunction\fR [\fIargument\fR ...] [\fL;\fP]
 .PP
 In normal operation
 .I sed
 cyclically copies a line of input into a
 .I pattern space
 (unless there is something left after
-a 
+a
 .L D
 command),
 applies in sequence
@@ -70,7 +70,7 @@ and deletes the pattern space.
 An
 .I address
 is either a decimal number that counts
-input lines cumulatively across files, a 
+input lines cumulatively across files, a
 .L $
 that
 addresses the last line of input, or a context address,
@@ -99,19 +99,19 @@ Thereafter the process is repeated, looking again for the
 first address.
 .PP
 Editing commands can be applied to non-selected pattern
-spaces by use of the negation function 
+spaces by use of the negation function
 .L !
 (below).
 .PP
 An argument denoted
 .I text
 consists of one or more lines,
-all but the last of which end with 
+all but the last of which end with
 .L \e
 to hide the
 newline.
 Backslashes in text are treated like backslashes
-in the replacement string of an 
+in the replacement string of an
 .L s
 command,
 and may be used to protect initial blanks and tabs
@@ -143,7 +143,7 @@ on the output before
 reading the next input line.
 .TP
 .BI b " label"
-Branch to the 
+Branch to the
 .B :
 command bearing the
 .IR label .
@@ -230,7 +230,7 @@ Substitute the
 string for instances of the
 .I regular-expression
 in the pattern space.
-Any character may be used instead of 
+Any character may be used instead of
 .LR / .
 For a fuller description see
 .IR regexp (6).
@@ -258,13 +258,13 @@ was made.
 .TP
 .BI t " label"
 Test.
-Branch to the 
+Branch to the
 .L :
 command bearing the
 .I label
 if any
 substitutions have been made since the most recent
-reading of an input line or execution of a 
+reading of an input line or execution of a
 .LR t .
 If
 .I label
@@ -299,18 +299,22 @@ Apply the
 .I function
 (or group, if
 .I function
-is 
+is
 .LR { )
 only to lines
 .I not
 selected by the address(es).
 .TP
+.B #
+Comment.
+Ignore the rest of the line.
+.TP
 .BI : " label"
 This command does nothing; it bears a
 .I label
-for 
+for
 .B b
-and 
+and
 .B t
 commands to branch to.
 .TP
@@ -318,7 +322,7 @@ commands to branch to.
 Place the current line number on the standard output as a line.
 .TP
 .B {
-Execute the following commands through a matching 
+Execute the following commands through a matching
 .L }
 only when the pattern space is selected.
 .TP
@@ -334,21 +338,21 @@ Print the first 10 lines of the file.
 Delete empty lines from standard input.
 .TP
 .B sed 's/UNIX/& system/g'
-Replace every instance of 
+Replace every instance of
 .L UNIX
 by
 .LR "UNIX system" .
 .PP
 .EX
 sed 's/ *$//	\fRdrop trailing blanks\fP
-/^$/d			\fRdrop empty lines\fP
+/^$/d		\fRdrop empty lines\fP
 s/  */\e		\fRreplace blanks by newlines\fP
 /g
 /^$/d' chapter*
 .EE
 .ns
 .IP
-Print the files 
+Print the files
 .BR chapter1 ,
 .BR chapter2 ,
 etc. one word to a line.
@@ -356,7 +360,7 @@ etc. one word to a line.
 .EX
 nroff -ms manuscript | sed '
 ${
-	/^$/p		\fRif last line of file is empty, print it\fP
+	/^$/p	\fRif last line of file is empty, print it\fP
 }
 //N			\fRif current line is empty, append next line\fP
 /^\en$/D'		\fRif two lines are empty, delete the first\fP
@@ -368,10 +372,10 @@ formatted manuscript.
 .SH SOURCE
 .B /sys/src/cmd/sed.c
 .SH SEE ALSO
-.IR ed (1), 
-.IR grep (1), 
-.IR awk (1), 
-.IR lex (1), 
+.IR ed (1),
+.IR grep (1),
+.IR awk (1),
+.IR lex (1),
 .IR sam (1),
 .IR regexp (6)
 .br
@@ -380,6 +384,6 @@ L. E. McMahon,
 Unix Research System Programmer's Manual, Volume 2.
 .SH BUGS
 If input is from a pipe, buffering may consume
-characters beyond a line on which a 
+characters beyond a line on which a
 .L q
 command is executed.
