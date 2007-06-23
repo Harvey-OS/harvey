@@ -141,11 +141,11 @@ enum
 	RRmagic=	0xdeadbabe,
 	DNmagic=	0xa110a110,
 
-	/* parallelism: tune; was 32 */
-	Maxactive=	64,
+	/* parallelism: tune; was 32; allow lots*/
+	Maxactive=	250,
 
-	/* tune; was 60 */
-	Maxreqtm=	30,	/* max. seconds to process a request */
+	/* tune; was 60; keep short */
+	Maxreqtm=	20,	/* max. seconds to process a request */
 };
 
 typedef struct Area	Area;
@@ -187,10 +187,11 @@ struct DN
 	ulong	lookuptime;	/* last time we tried to get a better value */
 	/* refs was `char' but we've seen refs > 120, so go whole hog */
 	ulong	refs;		/* for mark and sweep */
+	ulong	ordinal;
 	ushort	class;		/* RR class */
+	uchar	keep;		/* flag: never age this name */
 	uchar	respcode;	/* response code */
 /* was:	char	nonexistent; /* true if we get an authoritative nx for this domain */
-	ulong	ordinal;
 	QLock	querylck;	/* permit only 1 query per domain name at a time */
 };
 
@@ -362,10 +363,29 @@ typedef struct Cfg Cfg;
 struct Cfg {
 	int	cachedb;
 	int	resolver;
-	int	serve;
+	int	justforw;	/* flag: pure resolver, just forward queries */
+	int	serve;		/* flag: serve udp queries */
 	int	inside;
 	int	straddle;
 };
+
+/* (udp) query stats */
+typedef struct {
+	QLock;
+	ulong	slavehiwat;	/* procs */
+	ulong	qrecvd;		/* query counts */
+	ulong	qsent;
+	/* reply times by count */
+	ulong	under1s;
+	ulong	under5s;
+	ulong	tmout;
+	ulong	tmoutcname;
+	ulong	tmoutv6;
+
+	ulong	answinmem;	/* count: answer in memory */
+} Stats;
+
+Stats stats;
 
 enum
 {
@@ -410,6 +430,7 @@ void	db2cache(int);
 void	dnage(DN*);
 void	dnageall(int);
 void	dnagedb(void);
+void	dnagenever(void);
 void	dnauthdb(void);
 void	dncheck(void*, int);
 void	dndump(char*);
@@ -422,6 +443,7 @@ void	dnput(void);
 void	dnslog(char*, ...);
 void*	emalloc(int);
 char*	estrdup(char*);
+// void	freeanswers(DNSmsg *mp);
 void	freeserverlist(Server*);
 int	getactivity(Request*, int);
 Area*	inmyarea(char*);
