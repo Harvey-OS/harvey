@@ -266,10 +266,9 @@ gname(char *to, RR *rp, Scan *sp)
 			 * the end of a long tcp reply.
 			 */
 			// sp->err = "edns extended label present";
-			dnslog("edns label first byte 0%o = '%c'", *p, *p);
+			dnslog("edns label; first byte 0%o = '%c'", *p, *p);
 			sp->stop = 1;
 			goto err;
-			break;
 		case 0200:		/* reserved */
 			sp->err = "reserved-use label present";
 			goto err;
@@ -278,7 +277,7 @@ gname(char *to, RR *rp, Scan *sp)
 				sp->err = "pointer loop";
 				goto err;
 			}
-			off = (p[0]<<8 | p[1]) & 0x3ff;
+			off = (p[0] & 077)<<8 | p[1];
 			p = sp->base + off;
 			if(p >= sp->ep){
 				sp->err = "bad pointer";
@@ -354,7 +353,7 @@ retry:
 		errtoolong(rp, sp, sp->ep - sp->p, len, "convM2RR");
 	if(sp->err || sp->rcode || sp->stop){
 		rrfree(rp);
-		return 0;
+		return nil;
 	}
 
 	switch(type){
@@ -513,6 +512,7 @@ rrloop(Scan *sp, char *what, int count, int quest)
 		rp = quest? convM2Q(sp): convM2RR(sp, what);
 		if(rp == nil)
 			break;
+		setmalloctag(rp, getcallerpc(&sp));
 		if(sp->err || sp->rcode || sp->stop){
 			rrfree(rp);
 			break;
@@ -520,6 +520,7 @@ rrloop(Scan *sp, char *what, int count, int quest)
 		*l = rp;
 		l = &rp->next;
 	}
+//	setmalloctag(first, getcallerpc(&sp));
 	return first;
 }
 
