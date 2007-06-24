@@ -196,7 +196,7 @@ pptpctlproc(void*)
 		if(readn(ctlfd, pkt, 2) != 2)
 			myfatal("pptpread: %r");
 		len = nhgets(pkt);
-		if(len < 12)
+		if(len < 12 || len+2 >= sizeof pkt)
 			myfatal("pptpread: bad length %d", len);
 		if(readn(ctlfd, pkt+2, len-2) != len-2)
 			myfatal("pptpread: %r");
