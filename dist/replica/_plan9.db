@@ -309,7 +309,7 @@
 386/bin/ip/ping - 775 sys sys 1178568288 83220
 386/bin/ip/ppp - 775 sys sys 1179372096 219103
 386/bin/ip/pppoe - 775 sys sys 1168402326 77787
-386/bin/ip/pptp - 775 sys sys 1179548029 127145
+386/bin/ip/pptp - 775 sys sys 1182628779 127172
 386/bin/ip/pptpd - 775 sys sys 1178568289 124670
 386/bin/ip/rarpd - 775 sys sys 1178654264 111254
 386/bin/ip/rexexec - 775 sys sys 1179372096 90284
@@ -343,10 +343,10 @@
 386/bin/ndb - 20000000775 sys sys 985743147 0
 386/bin/ndb/cs - 775 sys sys 1182283129 149052
 386/bin/ndb/csquery - 775 sys sys 1176488418 61652
-386/bin/ndb/dns - 775 sys sys 1178568294 285534
-386/bin/ndb/dnsdebug - 775 sys sys 1178568295 260477
+386/bin/ndb/dns - 775 sys sys 1182569334 285743
+386/bin/ndb/dnsdebug - 775 sys sys 1182569335 260686
 386/bin/ndb/dnsquery - 775 sys sys 1174704818 64417
-386/bin/ndb/dnstcp - 775 sys sys 1178568295 258939
+386/bin/ndb/dnstcp - 775 sys sys 1182569335 259148
 386/bin/ndb/ipquery - 775 sys sys 1178568296 95524
 386/bin/ndb/mkdb - 775 sys sys 1168402340 64211
 386/bin/ndb/mkhash - 775 sys sys 1178568296 83312
@@ -408,7 +408,7 @@
 386/bin/snap - 775 sys sys 1178939753 316147
 386/bin/snapfs - 775 sys sys 1179372105 390366
 386/bin/sniffer - 775 sys sys 1038443185 99028
-386/bin/snoopy - 775 sys sys 1181507270 189844
+386/bin/snoopy - 775 sys sys 1182569336 189951
 386/bin/sort - 775 sys sys 1178568303 81057
 386/bin/spin - 775 sys sys 1176520498 760856
 386/bin/split - 775 sys sys 1181507270 75811
@@ -12562,7 +12562,7 @@ sys/src/cmd/ip/ppp/thwack.c - 664 sys sys 1015090268 8004
 sys/src/cmd/ip/ppp/thwack.h - 664 sys sys 964662210 2052
 sys/src/cmd/ip/ppp/unthwack.c - 664 sys sys 1015090268 5883
 sys/src/cmd/ip/pppoe.c - 664 sys sys 1125530113 12516
-sys/src/cmd/ip/pptp.c - 664 sys sys 1143759344 16573
+sys/src/cmd/ip/pptp.c - 664 sys sys 1182582403 16596
 sys/src/cmd/ip/pptpd.c - 664 sys sys 1135487970 23548
 sys/src/cmd/ip/rarpd.c - 664 sys sys 1084470989 3389
 sys/src/cmd/ip/rexexec.c - 664 sys sys 1121977160 742
@@ -15844,7 +15844,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/snoopy - 775 sys sys 1182569336 189951
-386/bin/ndb/dns - 775 sys sys 1182569334 285743
-386/bin/ndb/dnsdebug - 775 sys sys 1182569335 260686
-386/bin/ndb/dnstcp - 775 sys sys 1182569335 259148

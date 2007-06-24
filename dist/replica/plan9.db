@@ -309,7 +309,7 @@
 386/bin/ip/ping - 775 sys sys 1178568288 83220
 386/bin/ip/ppp - 775 sys sys 1179372096 219103
 386/bin/ip/pppoe - 775 sys sys 1168402326 77787
-386/bin/ip/pptp - 775 sys sys 1179548029 127145
+386/bin/ip/pptp - 775 sys sys 1182628779 127172
 386/bin/ip/pptpd - 775 sys sys 1178568289 124670
 386/bin/ip/rarpd - 775 sys sys 1178654264 111254
 386/bin/ip/rexexec - 775 sys sys 1179372096 90284
@@ -12562,7 +12562,7 @@ sys/src/cmd/ip/ppp/thwack.c - 664 sys sys 1015090268 8004
 sys/src/cmd/ip/ppp/thwack.h - 664 sys sys 964662210 2052
 sys/src/cmd/ip/ppp/unthwack.c - 664 sys sys 1015090268 5883
 sys/src/cmd/ip/pppoe.c - 664 sys sys 1125530113 12516
-sys/src/cmd/ip/pptp.c - 664 sys sys 1143759344 16573
+sys/src/cmd/ip/pptp.c - 664 sys sys 1182582403 16596
 sys/src/cmd/ip/pptpd.c - 664 sys sys 1135487970 23548
 sys/src/cmd/ip/rarpd.c - 664 sys sys 1084470989 3389
 sys/src/cmd/ip/rexexec.c - 664 sys sys 1121977160 742
