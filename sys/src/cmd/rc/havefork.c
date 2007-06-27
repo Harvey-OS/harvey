@@ -71,21 +71,23 @@ Xpipe(void)
 	}
 }
 
+enum { Wordmax = 8192, };
+
 /*
  * Who should wait for the exit from the fork?
  */
 void
 Xbackq(void)
 {
-	char wd[8193];
-	int c;
-	char *s, *ewd=&wd[8192], *stop;
+	int c, pid;
+	int pfd[2];
+	char wd[Wordmax + 1];
+	char *s, *ewd = &wd[Wordmax], *stop;
 	struct io *f;
 	var *ifs = vlook("ifs");
 	word *v, *nextv;
-	int pfd[2];
-	int pid;
-	stop = ifs->val?ifs->val->word:"";
+
+	stop = ifs->val? ifs->val->word: "";
 	if(pipe(pfd)<0){
 		Xerror("can't make pipe");
 		return;
@@ -116,7 +118,8 @@ Xbackq(void)
 					s = wd;
 				}
 			}
-			else *s++=c;
+			else
+				*s++=c;
 		}
 		if(s!=wd){
 			*s='\0';
@@ -140,10 +143,10 @@ void
 Xpipefd(void)
 {
 	struct thread *p = runq;
-	int pc = p->pc, pid;
-	char name[40];
+	int pc = p->pc, pid, sidefd, mainfd;
 	int pfd[2];
-	int sidefd, mainfd;
+	char name[40];
+
 	if(pipe(pfd)<0){
 		Xerror("can't get pipe");
 		return;

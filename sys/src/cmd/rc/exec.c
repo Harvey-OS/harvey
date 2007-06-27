@@ -530,6 +530,7 @@ Xcase(void)
 	word *p;
 	char *s;
 	int ok = 0;
+
 	s = list2str(runq->argv->next->words);
 	for(p = runq->argv->words;p;p = p->next){
 		if(match(s, p->word, '\0')){
@@ -550,10 +551,11 @@ conclist(word *lp, word *rp, word *tail)
 {
 	char *buf;
 	word *v;
+
 	if(lp->next || rp->next)
-		tail = conclist(lp->next==0?lp:lp->next, rp->next==0?rp:rp->next,
-			tail);
-	buf = emalloc(strlen(lp->word)+strlen(rp->word)+1);
+		tail = conclist(lp->next==0? lp: lp->next,
+			rp->next==0? rp: rp->next, tail);
+	buf = emalloc(strlen(lp->word)+strlen((char *)rp->word)+1);
 	strcpy(buf, lp->word);
 	strcat(buf, rp->word);
 	v = newword(buf, tail);
@@ -568,6 +570,7 @@ Xconc(void)
 	word *rp = runq->argv->next->words;
 	word *vp = runq->argv->next->next->words;
 	int lc = count(lp), rc = count(rp);
+
 	if(lc!=0 || rc!=0){
 		if(lc==0 || rc==0){
 			Xerror1("null list in concatenation");
@@ -588,6 +591,7 @@ void
 Xassign(void)
 {
 	var *v;
+
 	if(count(runq->argv->words)!=1){
 		Xerror1("variable name not singleton!");
 		return;
@@ -610,6 +614,7 @@ word*
 copywords(word *a, word *tail)
 {
 	word *v = 0, **end;
+
 	for(end=&v;a;a = a->next,end=&(*end)->next)
 		*end = newword(a->word, 0);
 	*end = tail;
@@ -622,6 +627,7 @@ Xdol(void)
 	word *a, *star;
 	char *s, *t;
 	int n;
+
 	if(count(runq->argv->words)!=1){
 		Xerror1("variable name not singleton!");
 		return;
@@ -629,14 +635,16 @@ Xdol(void)
 	s = runq->argv->words->word;
 	deglob(s);
 	n = 0;
-	for(t = s;'0'<=*t && *t<='9';t++) n = n*10+*t-'0';
+	for(t = s; '0'<=*t && *t<='9'; t++)
+		n = n*10 + *t - '0';
 	a = runq->argv->next->words;
 	if(n==0 || *t)
 		a = copywords(vlook(s)->val, a);
 	else{
 		star = vlook("*")->val;
 		if(star && 1<=n && n<=count(star)){
-			while(--n) star = star->next;
+			while(--n)
+				star = star->next;
 			a = newword(star->word, a);
 		}
 	}
@@ -650,6 +658,7 @@ Xqdol(void)
 	word *a, *p;
 	char *s;
 	int n;
+
 	if(count(runq->argv->words)!=1){
 		Xerror1("variable name not singleton!");
 		return;
@@ -683,16 +692,19 @@ subwords(word *val, int len, word *sub, word *a)
 {
 	int n;
 	char *s;
+
 	if(!sub)
 		return a;
 	a = subwords(val, len, sub->next, a);
 	s = sub->word;
 	deglob(s);
 	n = 0;
-	while('0'<=*s && *s<='9') n = n*10+ *s++ -'0';
+	while('0'<=*s && *s<='9')
+		n = n*10 + *s++ - '0';
 	if(n<1 || len<n)
 		return a;
-	for(;n!=1;--n) val = val->next;
+	for(; n!=1; --n)
+		val = val->next;
 	return newword(val->word, a);
 }
 
@@ -701,6 +713,7 @@ Xsub(void)
 {
 	word *a, *v;
 	char *s;
+
 	if(count(runq->argv->next->words)!=1){
 		Xerror1("variable name not singleton!");
 		return;
@@ -761,6 +774,7 @@ void
 Xunlocal(void)
 {
 	var *v = runq->local, *hid;
+
 	if(v==0)
 		panic("Xunlocal: no locals!", 0);
 	runq->local = v->next;
@@ -775,6 +789,7 @@ void
 freewords(word *w)
 {
 	word *nw;
+
 	while(w){
 		efree(w->word);
 		nw = w->next;
@@ -789,6 +804,7 @@ Xfn(void)
 	var *v;
 	word *a;
 	int end;
+
 	end = runq->code[runq->pc].i;
 	for(a = runq->argv->words;a;a = a->next){
 		v = gvlook(a->word);

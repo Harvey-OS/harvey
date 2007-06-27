@@ -2,19 +2,20 @@
 
 typedef struct Event
 {
-	int pid;
-	Job *job;
+	int	pid;
+	Job	*job;
 } Event;
 static Event *events;
 static int nevents, nrunning, nproclimit;
 
 typedef struct Process
 {
-	int pid;
-	int status;
+	int	pid;
+	int	status;
 	struct Process *b, *f;
 } Process;
 static Process *phead, *pfree;
+
 static void sched(void);
 static void pnew(int, int), pdelete(Process *);
 
@@ -69,14 +70,15 @@ sched(void)
 				if(!(n->flags&VIRTUAL))
 					touch(n->name);
 				else if(explain)
-					Bprint(&bout, "no touch of virtual '%s'\n", n->name);
+					Bprint(&bout, "no touch of virtual '%s'\n",
+						n->name);
 			}
 			n->time = time((long *)0);
 			MADESET(n, MADE);
 		}
 	} else {
 		if(DEBUG(D_EXEC))
-			fprint(1, "recipe='%s'", j->r->recipe);/**/
+			fprint(1, "recipe='%s'\n", j->r->recipe);	/**/
 		Bflush(&bout);
 		if(j->r->attr&NOMINUSE)
 			flags = 0;
@@ -86,7 +88,8 @@ sched(void)
 		usage();
 		nrunning++;
 		if(DEBUG(D_EXEC))
-			fprint(1, "pid for target %s = %d\n", wtos(j->t, ' '), events[slot].pid);
+			fprint(1, "pid for target %s = %d\n", wtos(j->t, ' '),
+				events[slot].pid);
 	}
 }
 
@@ -193,7 +196,8 @@ nproc(void)
 		fprint(1, "nprocs = %d\n", nproclimit);
 	if(nproclimit > nevents){
 		if(nevents)
-			events = (Event *)Realloc((char *)events, nproclimit*sizeof(Event));
+			events = (Event *)Realloc((char *)events,
+				nproclimit*sizeof(Event));
 		else
 			events = (Event *)Malloc(nproclimit*sizeof(Event));
 		while(nevents < nproclimit)
@@ -207,7 +211,8 @@ nextslot(void)
 	int i;
 
 	for(i = 0; i < nproclimit; i++)
-		if(events[i].pid <= 0) return i;
+		if(events[i].pid <= 0)
+			return i;
 	assert(/*out of slots!!*/ 0);
 	return 0;	/* cyntax */
 }
@@ -218,10 +223,11 @@ pidslot(int pid)
 	int i;
 
 	for(i = 0; i < nevents; i++)
-		if(events[i].pid == pid) return(i);
+		if(events[i].pid == pid)
+			return i;
 	if(DEBUG(D_EXEC))
 		fprint(2, "mk: wait returned unexpected process %d\n", pid);
-	return(-1);
+	return -1;
 }
 
 
@@ -282,7 +288,7 @@ usage(void)
 
 	time(&t);
 	if(tick)
-		tslot[nrunning] += (t-tick);
+		tslot[nrunning] += t - tick;
 	tick = t;
 }
 

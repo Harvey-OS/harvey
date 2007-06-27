@@ -1,20 +1,24 @@
 #include "rc.h"
 #include "exec.h"
 #include "fns.h"
+
 char *globname;
 struct word *globv;
+
 /*
  * delete all the GLOB marks from s, in place
  */
 
 void
-deglob(char *s)
+deglob(void *as)
 {
+	char *s = as;
 	char *t = s;
+	
 	do{
 		if(*t==GLOB)
 			t++;
-		*s++=*t;
+		*s++ = *t;
 	}while(*t++);
 }
 
@@ -30,11 +34,15 @@ globsort(word *left, word *right)
 	char **list;
 	word *a;
 	int n = 0;
-	for(a = left;a!=right;a = a->next) n++;
+
+	for(a = left;a!=right;a = a->next)
+		n++;
 	list = (char **)emalloc(n*sizeof(char *));
-	for(a = left,n = 0;a!=right;a = a->next,n++) list[n] = a->word;
+	for(a = left,n = 0;a!=right;a = a->next,n++)
+		list[n] = a->word;
 	qsort((void *)list, n, sizeof(void *), globcmp);
-	for(a = left,n = 0;a!=right;a = a->next,n++) a->word = list[n];
+	for(a = left,n = 0;a!=right;a = a->next,n++)
+		a->word = list[n];
 	efree((char *)list);
 }
 /*
@@ -43,9 +51,9 @@ globsort(word *left, word *right)
  */
 
 void
-globdir(char *p, char *namep)
+globdir(uchar *p, uchar *namep)
 {
-	char *t, *newp;
+	uchar *t, *newp;
 	int f;
 	/* scan the pattern looking for a component with a metacharacter in it */
 	if(*p=='\0'){
@@ -72,38 +80,44 @@ globdir(char *p, char *namep)
 	}
 	/* read the directory and recur for any entry that matches */
 	*namep='\0';
-	if((f = Opendir(globname[0]?globname:"."))<0) return;
-	while(*newp!='/' && *newp!='\0') newp++;
+	if((f = Opendir(globname[0]? globname: ".")) < 0)
+		return;
+	while(*newp!='/' && *newp!='\0')
+		newp++;
 	while(Readdir(f, namep, *newp=='/')){
 		if(matchfn(namep, p)){
-			for(t = namep;*t;t++);
+			for(t = namep;*t;t++)
+				;
 			globdir(newp, t);
 		}
 	}
 	Closedir(f);
 }
+
 /*
  * Push all file names matched by p on the current thread's stack.
  * If there are no matches, the list consists of p.
  */
 
 void
-glob(char *p)
+glob(void *ap)
 {
+	uchar *p = ap;
 	word *svglobv = globv;
-	int globlen = Globsize(p);
+	int globlen = Globsize(ap);
+
 	if(!globlen){
 		deglob(p);
-		globv = newword(p, globv);
+		globv = newword((char *)p, globv);
 		return;
 	}
 	globname = emalloc(globlen);
 	globname[0]='\0';
-	globdir(p, globname);
+	globdir(p, (uchar *)globname);
 	efree(globname);
 	if(svglobv==globv){
 		deglob(p);
-		globv = newword(p, globv);
+		globv = newword((char *)p, globv);
 	}
 	else
 		globsort(globv, svglobv);
@@ -113,11 +127,12 @@ glob(char *p)
  */
 
 int
-equtf(char *p, char *q)
+equtf(uchar *p, uchar *q)
 {
-	if(*p!=*q)
+	if(*p != *q)
 		return 0;
-	if(twobyte(*p)) return p[1]==q[1];
+	if(twobyte(*p))
+		return p[1]==q[1];
 	if(threebyte(*p)){
 		if(p[1]!=q[1])
 			return 0;
@@ -132,11 +147,13 @@ equtf(char *p, char *q)
  * not jumping past nuls in broken utf codes!
  */
 
-char*
-nextutf(char *p)
+uchar*
+nextutf(uchar *p)
 {
-	if(twobyte(*p)) return p[1]=='\0'?p+1:p+2;
-	if(threebyte(*p)) return p[1]=='\0'?p+1:p[2]=='\0'?p+2:p+3;
+	if(twobyte(*p))
+		return p[1]=='\0'? p+1: p+2;
+	if(threebyte(*p))
+		return p[1]=='\0'? p+1: p[2]=='\0'? p+2: p+3;
 	return p+1;
 }
 /*
@@ -144,11 +161,14 @@ nextutf(char *p)
  */
 
 int
-unicode(char *p)
+unicode(uchar *p)
 {
-	int u=*p&0xff;
-	if(twobyte(u)) return ((u&0x1f)<<6)|(p[1]&0x3f);
-	if(threebyte(u)) return (u<<12)|((p[1]&0x3f)<<6)|(p[2]&0x3f);
+	int u = *p;
+
+	if(twobyte(u))
+		return ((u&0x1f)<<6)|(p[1]&0x3f);
+	if(threebyte(u))
+		return (u<<12)|((p[1]&0x3f)<<6)|(p[2]&0x3f);
 	return u;
 }
 /*
@@ -160,18 +180,22 @@ unicode(char *p)
  */
 
 int
-matchfn(char *s, char *p)
+matchfn(void *as, void *ap)
 {
+	uchar *s = as, *p = ap;
+
 	if(s[0]=='.' && (s[1]=='\0' || s[1]=='.' && s[2]=='\0') && p[0]!='.')
 		return 0;
 	return match(s, p, '/');
 }
 
 int
-match(char *s, char *p, int stop)
+match(void *as, void *ap, int stop)
 {
 	int compl, hit, lo, hi, t, c;
-	for(;*p!=stop && *p!='\0';s = nextutf(s),p = nextutf(p)){
+	uchar *s = as, *p = ap;
+
+	for(; *p!=stop && *p!='\0'; s = nextutf(s), p = nextutf(p)){
 		if(*p!=GLOB){
 			if(!equtf(p, s)) return 0;
 		}

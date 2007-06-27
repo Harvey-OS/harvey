@@ -29,6 +29,7 @@ HFILES=rc.h\
 	io.h\
 	exec.h\
 	fns.h\
+	getflags.h\
 
 YFILES=syn.y
 

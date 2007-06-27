@@ -1267,6 +1267,32 @@ planar=1280x1024
 	hsync=+ vsync=- 
 
 #
+# Viewsonic VP201(b) at 1600x1200 
+#
+vp201
+	videobw=200
+	alias=multisync
+
+vp201=1600x1200
+	defaultclock=162
+	shb=1664 ehb=1856 ht=2160
+	vrs=1201 vre=1204 vt=1250
+	hsync=+ vsync=+
+
+#
+#	HP A1097C fixed sync (Hitachi)
+#
+a1097c=1280x1024		#	78.125 kHz / 72.005 Hz,	a bit flat since the tube is 4:3
+	clock=135
+	shb=1344 ehb=1536 ht=1728
+	vrs=1027 vre=1030 vt=1085
+
+a1097c=1360x1024		#	78.125 kHz / 72.005 Hz, 4:3 resolution
+	clock=143.4375	#	tube is rated at 135MHz, so beware.
+	shb=1428 ehb=1632 ht=1836
+	vrs=1027 vre=1030 vt=1085
+
+#
 # QVGA		320x240		Quarter Video Graphics Array
 # VGA		640x480		Video Graphics Array
 # SVGA		800x600		Super Video Graphics Array
