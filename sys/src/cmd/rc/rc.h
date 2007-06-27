@@ -38,13 +38,13 @@ typedef struct builtin builtin;
 #pragma incomplete io
 
 struct tree{
-	int type;
-	int rtype, fd0, fd1;		/* details of REDIR PIPE DUP tokens */
-	char *str;
-	int quoted;
-	int iskw;
-	tree *child[3];
-	tree *next;
+	int	type;
+	int	rtype, fd0, fd1;	/* details of REDIR PIPE DUP tokens */
+	char	*str;
+	int	quoted;
+	int	iskw;
+	tree	*child[3];
+	tree	*next;
 };
 tree *newtree(void);
 tree *token(char*, int), *klook(char*), *tree1(int, tree*);
@@ -60,14 +60,18 @@ tree *cmdtree;
  * Always call codefree(.) when deleting a reference.
  */
 union code{
-	void (*f)(void);
-	int i;
-	char *s;
+	void	(*f)(void);
+	int	i;
+	char	*s;
 };
+
 char *promptstr;
 int doprompt;
+
 #define	NTOK	8192
+
 char tok[NTOK];
+
 #define	APPEND	1
 #define	WRITE	2
 #define	READ	3
@@ -75,29 +79,37 @@ char tok[NTOK];
 #define	DUPFD	5
 #define	CLOSE	6
 #define RDWR	7
+
 struct var{
-	char *name;		/* ascii name */
-	word *val;	/* value */
-	int changed;
-	code *fn;		/* pointer to function's code vector */
-	int fnchanged;
-	int pc;			/* pc of start of function */
-	var *next;	/* next on hash or local list */
+	char	*name;		/* ascii name */
+	word	*val;		/* value */
+	int	changed;
+	code	*fn;		/* pointer to function's code vector */
+	int	fnchanged;
+	int	pc;		/* pc of start of function */
+	var	*next;		/* next on hash or local list */
 };
 var *vlook(char*), *gvlook(char*), *newvar(char*, var*);
+
 #define	NVAR	521
+
 var *gvar[NVAR];				/* hash for globals */
+
 #define	new(type)	((type *)emalloc(sizeof(type)))
-char *emalloc(long);
+
+void *emalloc(long);
 void *Malloc(ulong);
-void efree(char*);
+void efree(void *);
+
 #define	NOFILE	128		/* should come from <param.h> */
+
 struct here{
-	tree *tag;
-	char *name;
+	tree	*tag;
+	char	*name;
 	struct here *next;
 };
 int mypid;
+
 /*
  * Glob character escape in strings:
  *	In a string, GLOB must be followed by *?[ or GLOB.
@@ -114,6 +126,7 @@ int mypid;
 #define	onebyte(c)	((c&0x80)==0x00)
 #define	twobyte(c)	((c&0xe0)==0xc0)
 #define	threebyte(c)	((c&0xf0)==0xe0)
+
 char **argp;
 char **args;
 int nerror;		/* number of errors encountered during compilation */
@@ -127,7 +140,6 @@ int doprompt;		/* is it time for a prompt? */
 #define	PRD	0
 #define	PWR	1
 char Rcmain[], Fdprefix[];
-#define	register
 /*
  * How many dot commands have we executed?
  * Used to ensure that -v flag doesn't print rcmain.

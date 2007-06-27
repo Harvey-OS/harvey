@@ -312,9 +312,9 @@ char *name;
 	return -1;
 }
 Readdir(f, p, onlydirs)
-register int f;
-register char *p;
-register int onlydirs;	/* ignored, just advisory */
+int f;
+void *p;
+int onlydirs;		/* ignored, just advisory */
 {
 	struct direct *dp = readdir(dirlist[f]);
 	if(dp==0)
@@ -372,12 +372,12 @@ char *name;
 	return unlink(name);
 }
 Write(fd, buf, cnt)
-char *buf;
+void *buf;
 {
 	return write(fd, buf, cnt);
 }
 Read(fd, buf, cnt)
-char *buf;
+void *buf;
 {
 	return read(fd, buf, cnt);
 }
@@ -456,7 +456,8 @@ execumask(){		/* wrong -- should fork before writing */
 	poplist();
 }
 Memcpy(a, b, n)
-char *a, *b;
+void *a, *b;
+long n;
 {
 	memmove(a, b, n);
 }

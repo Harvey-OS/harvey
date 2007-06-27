@@ -190,15 +190,16 @@ execforkexec(void)
 
 	for(path = searchpath(runq->argv->words->word);path;path = path->next){
 		nc = strlen(path->word);
-		if(nc<sizeof(file)){
+		if(nc < sizeof file - 1){	/* 1 for / */
 			strcpy(file, path->word);
 			if(file[0]){
 				strcat(file, "/");
 				nc++;
 			}
-			if(nc+strlen(argv[1])<sizeof(file)){
+			if(nc + strlen(argv[1]) < sizeof file){
 				strcat(file, argv[1]);
-				pid = ForkExecute(file, argv+1, mapfd(0), mapfd(1), mapfd(2));
+				pid = ForkExecute(file, argv+1, mapfd(0),
+					mapfd(1), mapfd(2));
 				if(pid >= 0){
 					free(argv);
 					return pid;

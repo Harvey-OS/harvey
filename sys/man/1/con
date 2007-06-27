@@ -261,3 +261,8 @@ Also under
 .IR rx ,
 the remote standard error and standard output are combined 
 and go inseparably to the local standard output.
+.I Rx
+will consume its standard input by copying it to the remote system,
+so redirect it from
+.BR /dev/null
+if that's not what you want.
