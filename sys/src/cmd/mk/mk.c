@@ -224,8 +224,8 @@ outofdate(Node *node, Arc *arc, int eval)
 		} else
 			ret = sym->u.value;
 		return(ret-1);
-	} else if(strchr(arc->n->name, '(') && arc->n->time == 0)
-		return 1;			/* missing archive member */
+	} else if(strchr(arc->n->name, '(') && arc->n->time == 0)  /* missing archive member */
+		return 1;
 	else
 		/*
 		 * Treat equal times as out-of-date.

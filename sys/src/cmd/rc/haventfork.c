@@ -196,10 +196,9 @@ execforkexec(void)
 				strcat(file, "/");
 				nc++;
 			}
-			if(nc + strlen(argv[1]) < sizeof file){
+			if(nc+strlen(argv[1])<sizeof(file)){
 				strcat(file, argv[1]);
-				pid = ForkExecute(file, argv+1, mapfd(0),
-					mapfd(1), mapfd(2));
+				pid = ForkExecute(file, argv+1, mapfd(0), mapfd(1), mapfd(2));
 				if(pid >= 0){
 					free(argv);
 					return pid;

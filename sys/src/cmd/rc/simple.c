@@ -10,13 +10,10 @@
  * Search through the following code to see if we're just going to exit.
  */
 int
-exitnext(void)
-{
-	union code *c = &runq->code[runq->pc];
-
-	while(c->f == Xpopredir)
-		c++;
-	return c->f == Xexit;
+exitnext(void){
+	union code *c=&runq->code[runq->pc];
+	while(c->f==Xpopredir) c++;
+	return c->f==Xexit;
 }
 
 void
@@ -27,7 +24,6 @@ Xsimple(void)
 	var *v;
 	struct builtin *bp;
 	int pid;
-
 	globlist();
 	a = runq->argv->words;
 	if(a==0){
@@ -318,7 +314,6 @@ execeval(void)
 	execcmds(opencore(cmdline, len));
 	efree(cmdline);
 }
-
 union code dotcmds[14];
 
 void
@@ -434,15 +429,13 @@ execflag(void)
 }
 
 void
-execwhatis(void)	/* mildly wrong -- should fork before writing */
-{
+execwhatis(void){	/* mildly wrong -- should fork before writing */
 	word *a, *b, *path;
 	var *v;
 	struct builtin *bp;
 	char *file;
 	struct io out[1];
 	int found, sep;
-
 	a = runq->argv->words->next;
 	if(a==0){
 		Xerror1("Usage: whatis name ...");

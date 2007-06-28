@@ -12,11 +12,10 @@ pfmt(io *f, char *fmt, ...)
 {
 	va_list ap;
 	char err[ERRMAX];
-
 	va_start(ap, fmt);
 	pfmtnest++;
-	for(; *fmt; fmt++)
-		if(*fmt != '%')
+	for(;*fmt;fmt++)
+		if(*fmt!='%')
 			pchr(f, *fmt);
 		else switch(*++fmt){
 		case '\0':
@@ -66,8 +65,7 @@ pchr(io *b, int c)
 {
 	if(b->bufp==b->ebuf)
 		fullbuf(b, c);
-	else
-		*b->bufp++ = c;
+	else *b->bufp++=c;
 }
 
 int
@@ -82,11 +80,10 @@ void
 pquo(io *f, char *s)
 {
 	pchr(f, '\'');
-	for(; *s; s++)
+	for(;*s;s++)
 		if(*s=='\'')
 			pfmt(f, "''");
-		else
-			pchr(f, *s);
+		else pchr(f, *s);
 	pchr(f, '\'');
 }
 
@@ -94,14 +91,10 @@ void
 pwrd(io *f, char *s)
 {
 	char *t;
-
-	for(t = s; *t; t++)
-		if(!wordchr(*t))
-			break;
+	for(t = s;*t;t++) if(!wordchr(*t)) break;
 	if(t==s || *t)
 		pquo(f, s);
-	else
-		pstr(f, s);
+	else pstr(f, s);
 }
 
 void
@@ -112,11 +105,9 @@ pptr(io *f, void *v)
 
 	p = (uintptr)v;
 	if(sizeof(uintptr) == sizeof(uvlong) && p>>32)
-		for(n = 60; n >= 32; n -= 4)
-			pchr(f, "0123456789ABCDEF"[(p>>n)&0xF]);
+		for(n = 60;n>=32;n-=4) pchr(f, "0123456789ABCDEF"[(p>>n)&0xF]);
 
-	for(n = 28; n >= 0; n -= 4)
-		pchr(f, "0123456789ABCDEF"[(p>>n)&0xF]);
+	for(n = 28;n>=0;n-=4) pchr(f, "0123456789ABCDEF"[(p>>n)&0xF]);
 }
 
 void
@@ -124,15 +115,14 @@ pstr(io *f, char *s)
 {
 	if(s==0)
 		s="(null)";
-	while(*s)
-		pchr(f, *s++);
+	while(*s) pchr(f, *s++);
 }
 
 void
 pdec(io *f, int n)
 {
 	if(n<0){
-		n = -n;
+		n=-n;
 		if(n>=0){
 			pchr(f, '-');
 			pdec(f, n);
@@ -175,7 +165,7 @@ int
 fullbuf(io *f, int c)
 {
 	flush(f);
-	return *f->bufp++ = c;
+	return *f->bufp++=c;
 }
 
 void
@@ -200,7 +190,7 @@ flush(io *f)
 				dotrap();
 		}
 		f->bufp = f->buf;
-		f->ebuf = f->buf + NBUF;
+		f->ebuf = f->buf+NBUF;
 	}
 }
 
@@ -208,7 +198,6 @@ io*
 openfd(int fd)
 {
 	io *f = new(struct io);
-
 	f->fd = fd;
 	f->bufp = f->ebuf = f->buf;
 	f->strp = 0;
@@ -226,7 +215,6 @@ openstr(void)
 	memset(f->bufp, '\0', Stralloc+1);
 	return f;
 }
-
 /*
  * Open a corebuffer to read.  EOF occurs after reading len
  * characters from buf.
@@ -240,7 +228,7 @@ opencore(char *s, int len)
 
 	f->fd = -1 /*open("/dev/null", 0)*/;
 	f->bufp = f->strp = buf;
-	f->ebuf = buf + len;
+	f->ebuf = buf+len;
 	Memcpy(buf, s, len);
 	return f;
 }
@@ -248,18 +236,18 @@ opencore(char *s, int len)
 void
 rewind(io *io)
 {
-	if(io->fd == -1)
+	if(io->fd==-1)
 		io->bufp = io->strp;
 	else{
 		io->bufp = io->ebuf = io->buf;
-		Seek(io->fd, 0, 0);
+		Seek(io->fd, 0L, 0);
 	}
 }
 
 void
 closeio(io *io)
 {
-	if(io->fd >= 0)
+	if(io->fd>=0)
 		close(io->fd);
 	if(io->strp)
 		efree(io->strp);
@@ -270,9 +258,7 @@ int
 emptybuf(io *f)
 {
 	int n;
-
-	if(f->fd == -1 || (n = Read(f->fd, f->buf, NBUF)) <= 0)
-		return EOF;
+	if(f->fd==-1 || (n = Read(f->fd, f->buf, NBUF))<=0) return EOF;
 	f->bufp = f->buf;
 	f->ebuf = f->buf + n;
 	return *f->bufp++;

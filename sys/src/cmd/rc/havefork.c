@@ -118,8 +118,7 @@ Xbackq(void)
 					s = wd;
 				}
 			}
-			else
-				*s++=c;
+			else *s++=c;
 		}
 		if(s!=wd){
 			*s='\0';
@@ -143,10 +142,10 @@ void
 Xpipefd(void)
 {
 	struct thread *p = runq;
-	int pc = p->pc, pid, sidefd, mainfd;
-	int pfd[2];
+	int pc = p->pc, pid;
 	char name[40];
-
+	int pfd[2];
+	int sidefd, mainfd;
 	if(pipe(pfd)<0){
 		Xerror("can't get pipe");
 		return;

@@ -29,9 +29,7 @@ is also set to the answer.
 .PP
 These functions work by reading
 .BR /dev/bintime ,
-opening that file when
-.I they
-are first called.
+opening that file when they are first called.
 .SH SOURCE
 .B /sys/src/libc/9sys/time.c
 .br
