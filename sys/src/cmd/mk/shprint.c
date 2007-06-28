@@ -17,7 +17,7 @@ shprint(char *s, Envy *env, Bufblock *buf)
 		else {
 			rinsert(buf, r);
 			s += n;
-			s = copyq(s, r, buf);	/* handle quoted strings */
+			s = copyq(s, r, buf);	/*handle quoted strings*/
 		}
 	}
 	insert(buf, 0);
@@ -44,7 +44,7 @@ vexpand(char *w, Envy *env, Bufblock *buf)
 	char *s, carry, *p, *q;
 
 	assert(/*vexpand no $*/ *w == '$');
-	p = w+1;		/* skip dollar sign */
+	p = w+1;	/* skip dollar sign */
 	if(*p == '{') {
 		p++;
 		q = utfrune(p, '}');
@@ -61,7 +61,7 @@ vexpand(char *w, Envy *env, Bufblock *buf)
 	if (s) {
 		bufcpy(buf, s, strlen(s));
 		free(s);
-	} else 			/* copy name intact*/
+	} else 		/* copy name intact*/
 		bufcpy(buf, w, q-w);
 	return(q);
 }
@@ -69,8 +69,8 @@ vexpand(char *w, Envy *env, Bufblock *buf)
 void
 front(char *s)
 {
-	int i, j;
 	char *t, *q;
+	int i, j;
 	char *flds[512];
 
 	q = strdup(s);
@@ -82,8 +82,7 @@ front(char *s)
 	}
 	t = s;
 	for(j = 0; j < i; j++){
-		for(s = flds[j]; *s; *t++ = *s++)
-			;
+		for(s = flds[j]; *s; *t++ = *s++);
 		*t++ = ' ';
 	}
 	*t = 0;

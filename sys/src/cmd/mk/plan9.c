@@ -101,11 +101,10 @@ exportenv(Envy *e)
 			continue;
 		snprint(nam, sizeof nam, "/env/%s", e->name);
 		if (sy != 0 && !hasvalue) {	/* Remove from environment */
-			/*
-			 * we could remove it from the symbol table
-			 * too, but we're in the child copy, and it
-			 * would still remain in the parent's table.
-			 */
+				/* we could remove it from the symbol table
+				 * too, but we're in the child copy, and it
+				 * would still remain in the parent's table.
+				 */
 			remove(nam);
 			delword(e->values);
 			e->values = 0;		/* memory leak */
@@ -202,10 +201,12 @@ execsh(char *args, char *cmd, Bufblock *buf, Envy *e)
 		}
 		close(out[1]);
 		close(in[0]);
-		for(p = cmd + strlen(cmd); cmd < p; cmd += n){
-			n = write(in[1], cmd, p - cmd);
+		p = cmd+strlen(cmd);
+		while(cmd < p){
+			n = write(in[1], cmd, p-cmd);
 			if(n < 0)
 				break;
+			cmd += n;
 		}
 		close(in[1]);
 		_exits(0);
@@ -216,7 +217,7 @@ execsh(char *args, char *cmd, Bufblock *buf, Envy *e)
 		for(;;){
 			if (buf->current >= buf->end)
 				growbuf(buf);
-			n = read(out[0], buf->current, buf->end - buf->current);
+			n = read(out[0], buf->current, buf->end-buf->current);
 			if(n <= 0)
 				break;
 			buf->current += n;
