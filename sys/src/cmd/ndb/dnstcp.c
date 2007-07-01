@@ -17,6 +17,7 @@ int	maxage = 60*60;
 char	mntpt[Maxpath];
 int	needrefresh;
 ulong	now;
+vlong	nowns;
 int	testing;
 int	traceactivity;
 char	*zonerefreshprogram;
@@ -44,6 +45,7 @@ main(int argc, char *argv[])
 	Request req;
 	DNSmsg reqmsg, repmsg;
 
+	alarm(2*60*1000);
 	cfg.cachedb = 1;
 	ARGBEGIN{
 	case 'd':
@@ -93,11 +95,10 @@ main(int argc, char *argv[])
 	for(;; putactivity(0)){
 		now = time(nil);
 		memset(&repmsg, 0, sizeof repmsg);
-		alarm(10*60*1000);
 		len = readmsg(0, buf, sizeof buf);
-		alarm(0);
 		if(len <= 0)
 			break;
+
 		getactivity(&req, 0);
 		req.aborttime = now + 15*Min;
 		rcode = 0;
