@@ -10,6 +10,10 @@
 -  introduction to system administration
 <DD><TT> intro</TT>
 </DT>
+<DT><A HREF="/magic/man2html/8/6in4">6in4</A>
+-  configure and run automatic or manual 6to4 tunnel of IPv6 through IPv4
+<DD><TT> 6in4</TT>
+</DT>
 <DT><A HREF="/magic/man2html/8/9load">9load</A>
 -  PC bootstrap program
 <DD><TT> 9load, ld, 9pxeload</TT>
@@ -32,7 +36,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/8/auth">auth</A>
 -  maintain authentication databases
-<DD><TT> changeuser, wrkey, convkeys, convkeys2, printnetkey, status, authsrv, guard.srv, login, disable, enable</TT>
+<DD><TT> changeuser, convkeys, convkeys2, printnetkey, status, enable, disable, authsrv, guard.srv, wrkey, login, none</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/boot">boot</A>
 -  connect to the root file server
@@ -42,13 +46,9 @@
 -  bootstrapping procedures
 <DD><TT> booting</TT>
 </DT>
-<DT><A HREF="/magic/man2html/8/checkarenas">checkarenas</A>
--  check the integrity, and optionally fix, Venti arenas
-<DD><TT> checkarenas</TT>
-</DT>
 <DT><A HREF="/magic/man2html/8/cpurc">cpurc</A>
--  boot script
-<DD><TT> cpurc, termrc</TT>
+-  boot scripts
+<DD><TT> cpurc, cpurc.local, termrc, termrc.local</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/cron">cron</A>
 -  clock daemon
@@ -78,6 +78,10 @@
 -  configuring a file server
 <DD><TT> fsconfig</TT>
 </DT>
+<DT><A HREF="/magic/man2html/8/fshalt">fshalt</A>
+-  halt any local file systems and optionally reboot the system
+<DD><TT> fshalt, reboot</TT>
+</DT>
 <DT><A HREF="/magic/man2html/8/getflags">getflags</A>
 -  command-line parsing for shell scripts
 <DD><TT> getflags, usage</TT>
@@ -96,7 +100,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/8/ipconfig">ipconfig</A>
 -  Internet configuration and routing
-<DD><TT> ipconfig, rip</TT>
+<DD><TT> ipconfig, rip, linklocal, ipv6on</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/ipserv">ipserv</A>
 -  Internet remote access daemons
@@ -108,7 +112,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/8/listen">listen</A>
 -  listen for calls on a network device
-<DD><TT> listen, listen1, il7, il9, il19, il565, il566, il17007, il17008, il17009, il17013, il17031, tcp7, tcp9, tcp19, tcp21, tcp23, tcp25, tcp53, tcp110, tcp113, tcp143, tcp513, tcp515, tcp564, tcp565, tcp566, tcp567, tcp993, tcp17007, tcp17009, tcp17013</TT>
+<DD><TT> listen, listen1, tcp7, tcp9, tcp19, tcp21, tcp22, tcp23, tcp25, tcp53, tcp110, tcp113, tcp143, tcp513, tcp515, tcp564, tcp565, tcp566, tcp567, tcp993, tcp1723, tcp17007, tcp17009, tcp17010, tcp17013</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/lp">lp</A>
 -  PostScript preprocessors
@@ -140,7 +144,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/8/ndb">ndb</A>
 -  network database
-<DD><TT> query, mkhash, mkdb, cs, csquery, dns, dnsquery, ipquery, dnsdebug, mkhosts</TT>
+<DD><TT> query, ipquery, mkhash, mkdb, mkhosts, cs, csquery, dns, dnsquery, dnsdebug</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/newuser">newuser</A>
 -  adding a new user

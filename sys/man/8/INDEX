@@ -1,5 +1,6 @@
 0intro 0intro
 intro 0intro
+6in4 6in4
 9load 9load
 9pxeload 9load
 ld 9load
@@ -16,6 +17,7 @@ disable auth
 enable auth
 guard.srv auth
 login auth
+none auth
 printnetkey auth
 status auth
 wrkey auth
@@ -60,16 +62,6 @@ rlogind ipserv
 telnetd ipserv
 kfscmd kfscmd
 ksync kfscmd
-il17007 listen
-il17008 listen
-il17009 listen
-il17013 listen
-il17031 listen
-il19 listen
-il565 listen
-il566 listen
-il7 listen
-il9 listen
 listen listen
 listen1 listen
 tcp110 listen

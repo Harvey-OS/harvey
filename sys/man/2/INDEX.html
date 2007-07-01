@@ -12,7 +12,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/9p">9p</A>
 -  9P file service
-<DD><TT> Srv, dirread9p, emalloc9p, erealloc9p, estrdup9p, postfd, postmountsrv, readbuf, readstr, respond, responderror, threadpostmountsrv, srv</TT>
+<DD><TT> Srv, dirread9p, emalloc9p, erealloc9p, estrdup9p, listensrv, postfd, postmountsrv, readbuf, readstr, respond, responderror, threadlistensrv, threadpostmountsrv, srv</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/9pcmdbuf">9pcmdbuf</A>
 -  control message parsing
@@ -67,8 +67,8 @@
 <DD><TT> atof, atoi, atol, atoll, charstod, strtod, strtol, strtoll, strtoul, strtoull</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/auth">auth</A>
-- 
-<DD><TT> amount, newns, addns, login, noworld, auth_proxy, fauth_proxy, auth_allocrpc, auth_freerpc, auth_rpc, auth_getkey, amount_getkey, auth_freeAI, auth_chuid, auth_challenge, auth_response, auth_freechal, auth_respond, auth_userpasswd, auth_getuserpasswd, auth_getinfo\- routines for authenticating users</TT>
+-  routines for authenticating users
+<DD><TT> amount, newns, addns, login, noworld, auth_proxy, fauth_proxy, auth_allocrpc, auth_freerpc, auth_rpc, auth_getkey, amount_getkey, auth_freeAI, auth_chuid, auth_challenge, auth_response, auth_freechal, auth_respond, auth_userpasswd, auth_getuserpasswd, auth_getinfo</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/authsrv">authsrv</A>
 -  routines for communicating with authentication servers
@@ -324,7 +324,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/lock">lock</A>
 -  spin locks, queueing rendezvous locks, reader-writer locks, rendezvous points, and reference counts
-<DD><TT> lock, canlock, unlock, qlock, canqlock, qunlock, rlock, canrlock, runlock, wlock, canwlock, wunlock, rsleep, rwakeup, rwakeupall incref, decref</TT>
+<DD><TT> lock, canlock, unlock, qlock, canqlock, qunlock, rlock, canrlock, runlock, wlock, canwlock, wunlock, rsleep, rwakeup, rwakeupall, incref, decref</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/mach">mach</A>
 -  machine-independent access to executable files
@@ -496,7 +496,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/scsi">scsi</A>
 -  SCSI device operations
-<DD><TT> openscsi, scsiready, scsi, scsicmd, scsierror</TT>
+<DD><TT> openscsi, closescsi, scsiready, scsi, scsicmd, scsierror</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/sechash">sechash</A>
 -  cryptographically secure hashes
@@ -517,6 +517,10 @@
 <DT><A HREF="/magic/man2html/2/segflush">segflush</A>
 -  flush instruction and data caches
 <DD><TT> segflush</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/semacquire">semacquire</A>
+-  user level semaphores
+<DD><TT> semacquire, semrelease</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/setjmp">setjmp</A>
 -  non-local goto

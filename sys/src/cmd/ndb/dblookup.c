@@ -101,7 +101,8 @@ dblookup(char *name, int class, int type, int auth, int ttl)
 	if(type == Tall){
 		rp = nil;
 		for (type = Ta; type < Tall; type++)
-			if(implemented[type])
+			/* HACK: exclude Taaaa (ipv6) for speed for now */
+			if(implemented[type] && (1 || type != Taaaa))
 				rrcat(&rp, dblookup(name, class, type, auth, ttl));
 		return rp;
 	}
@@ -153,11 +154,12 @@ out:
 		for(tp = rp; tp; tp = tp->next)
 			tp->owner = dp;
 	else {
-		/* don't call it non-existent if it's not ours */
-		if(err == Rname && !inmyarea(name)) {
-//			dnslog("dblookup setting Rserver for %s", name);
+		/*
+		 * don't call it non-existent if it's not ours
+		 * (unless we're a resolver).
+		 */
+		if(err == Rname && (!inmyarea(name) || cfg.resolver))
 			err = Rserver;
-		}
 		dp->respcode = err;
 	}
 
@@ -793,8 +795,7 @@ baddelegation(RR *rp, RR *nsrp, uchar *addr)
 			if(rp->host && cistrcmp(rp->host->name, nt->val) == 0)
 				break;
 		if(nt != nil && !inmyarea(rp->owner->name)){
-			dnslog("bad delegation %R from %I",
-				rp, addr);
+			dnslog("bad delegation %R from %I", rp, addr);
 			return 1;
 		}
 	}
@@ -802,23 +803,75 @@ baddelegation(RR *rp, RR *nsrp, uchar *addr)
 	return 0;
 }
 
+static int
+myaddr(char *addr)
+{
+	char *name, *line, *sp;
+	char buf[64];
+	Biobuf *bp;
+
+	snprint(buf, sizeof buf, "%I", ipaddr);
+	if (strcmp(addr, buf) == 0) {
+		dnslog("rejecting my ip %s as local dns server", addr);
+		return 1;
+	}
+
+	name = smprint("%s/ipselftab", mntpt);
+	bp = Bopen(name, OREAD);
+	free(name);
+	if (bp != nil) {
+		while ((line = Brdline(bp, '\n')) != nil) {
+			line[Blinelen(bp) - 1] = '\0';
+			sp = strchr(line, ' ');
+			if (sp) {
+				*sp = '\0';
+				if (strcmp(addr, line) == 0) {
+					dnslog("rejecting my ip %s as local dns server",
+						addr);
+					return 1;
+				}
+			}
+		}
+		Bterm(bp);
+	}
+	return 0;
+}
+
+static char *locdns[20];
+
 static void
 addlocaldnsserver(DN *dp, int class, char *ipaddr, int i)
 {
+	int n;
 	DN *nsdp;
 	RR *rp;
 	char buf[32];
+
+	/* reject our own ip addresses so we don't query ourselves via udp */
+	if (myaddr(ipaddr))
+		return;
+
+	for (n = 0; n < i && n < nelem(locdns) && locdns[n]; n++)
+		if (strcmp(locdns[n], ipaddr) == 0) {
+			dnslog("rejecting duplicate local dns server ip %s",
+				ipaddr);
+			return;
+		}
+	if (n < nelem(locdns))
+		if (locdns[n] == nil || ++n < nelem(locdns))
+			locdns[n] = strdup(ipaddr); /* remember first few local ns */
 
 	/* ns record for name server, make up an impossible name */
 	rp = rralloc(Tns);
 	snprint(buf, sizeof buf, "%s%d", localserverprefix, i);
 	nsdp = dnlookup(buf, class, 1);
 	rp->host = nsdp;
-	rp->owner = dp;
+	rp->owner = dp;			/* e.g., local#dns#servers */
 	rp->local = 1;
 	rp->db = 1;
-	rp->ttl = 10*Min;
-	rrattach(rp, 1);
+//	rp->ttl = 10*Min;		/* seems too short */
+	rp->ttl = (1UL<<31)-1;
+	rrattach(rp, 1);		/* will not attach rrs in my area */
 
 	/* A record */
 	rp = rralloc(Ta);
@@ -826,8 +879,11 @@ addlocaldnsserver(DN *dp, int class, char *ipaddr, int i)
 	rp->owner = nsdp;
 	rp->local = 1;
 	rp->db = 1;
-	rp->ttl = 10*Min;
-	rrattach(rp, 1);
+//	rp->ttl = 10*Min;		/* seems too short */
+	rp->ttl = (1UL<<31)-1;
+	rrattach(rp, 1);		/* will not attach rrs in my area */
+
+	dnslog("added local dns server %s at %s", buf, ipaddr);
 }
 
 /*

@@ -14,6 +14,7 @@ struct Scan
 	char	errbuf[256];	/* hold a formatted error sometimes */
 	int	rcode;		/* outgoing response codes (reply flags) */
 	int	stop;		/* flag: stop processing */
+	int	trunc;		/* flag: input truncated */
 };
 
 #define NAME(x)		gname(x, rp, sp)
@@ -52,6 +53,9 @@ errtoolong(RR *rp, Scan *sp, int remain, int need, char *where)
 	if (rp)
 		seprint(p, ep, ": %R", rp);
 	sp->err = sp->errbuf;
+	/* hack to cope with servers that don't set Ftrunc when they should */
+	if (remain < Maxudp && need > Maxudp)
+		sp->trunc = 1;
 	return 0;
 }
 
@@ -556,8 +560,6 @@ convM2DNS(uchar *buf, int len, DNSmsg *m, int *codep)
 	USHORT(m->ancount);
 	USHORT(m->nscount);
 	USHORT(m->arcount);
-//	if (mp->flags & Ftrunc)
-//		dnslog("truncated reply, len %d from %I", len, ibuf);
 
 	m->qd = rrloop(sp, "questions",	m->qdcount, 1);
 	m->an = rrloop(sp, "answers",	m->ancount, 0);
@@ -567,6 +569,8 @@ convM2DNS(uchar *buf, int len, DNSmsg *m, int *codep)
 	if (scan.err)
 		err = strdup(scan.err);		/* live with bad ar's */
 	m->ar = rrloop(sp, "hints",	m->arcount, 0);
+	if (scan.trunc)
+		m->flags |= Ftrunc;
 	if (scan.stop)
 		scan.rcode = 0;
 	if (codep)

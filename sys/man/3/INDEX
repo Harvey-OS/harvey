@@ -3,6 +3,7 @@ intro 0intro
 apm apm
 arch arch
 audio audio
+bridge bridge
 cap cap
 cons cons
 draw draw

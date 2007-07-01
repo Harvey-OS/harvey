@@ -15,7 +15,7 @@ enum
 	Maxrrr=			32,		/* was 16 */
 	Maxfdata=		8192,
 
-	Defmaxage=		60*60,		/* tunable; was 1 then 3 hrs */
+	Defmaxage=		2*60*60,	/* tunable; was 1 then 3 hrs */
 
 	Qdir=			0,
 	Qdns=			1,
@@ -67,6 +67,7 @@ int	maxage = Defmaxage;
 int	mfd[2];
 int	needrefresh;
 ulong	now;
+vlong	nowns;
 int	sendnotifies;
 int	testing;
 char	*trace;
@@ -101,7 +102,7 @@ void	setext(char*, int, char*);
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-norRst] [-a maxage] [-f ndb-file] [-N target] "
+	fprint(2, "usage: %s [-FnorRst] [-a maxage] [-f ndb-file] [-N target] "
 		"[-x netmtpt] [-z refreshprog]\n", argv0);
 	exits("usage");
 }
@@ -126,13 +127,16 @@ main(int argc, char *argv[])
 	case 'f':
 		dbfile = EARGF(usage());
 		break;
+	case 'F':
+		cfg.justforw = cfg.resolver = 1;
+		break;
 	case 'n':
 		sendnotifies = 1;
 		break;
 	case 'N':
 		target = atol(EARGF(usage()));
-		if (target < 100)
-			target = 100;
+		if (target < 1000)
+			target = 1000;
 		break;
 	case 'o':
 		cfg.straddle = 1;	/* straddle inside & outside networks */
@@ -163,7 +167,7 @@ main(int argc, char *argv[])
 
 	if(testing)
 		mainmem->flags |= POOL_NOREUSE | POOL_ANTAGONISM;
-	// mainmem->flags |= POOL_ANTAGONISM;
+//	mainmem->flags |= POOL_ANTAGONISM;
 	rfork(RFREND|RFNOTEG);
 
 	cfg.inside = (*mntpt == '\0' || strcmp(mntpt, "/net") == 0);
@@ -174,22 +178,25 @@ main(int argc, char *argv[])
 	/* this really shouldn't be fatal */
 	if(myipaddr(ipaddr, mntpt) < 0)
 		sysfatal("can't read my ip address");
-	dnslog("starting %s%sdns %s%son %I's %s",
+	dnslog("starting %s%sdns %s%s%son %I's %s",
 		(cfg.straddle? "straddling ": ""),
 		(cfg.cachedb? "caching ": ""),
 		(cfg.serve?   "udp server ": ""),
+		(cfg.justforw? "forwarding-only ": ""),
 		(cfg.resolver? "resolver ": ""), ipaddr, mntpt);
 
 	opendatabase();
+	now = time(nil);		/* open time files before we fork */
+	nowns = nsec();
 
 	snprint(servefile, sizeof servefile, "#s/dns%s", ext);
 	unmount(servefile, mntpt);
 	remove(servefile);
-	mountinit(servefile, mntpt);
+	mountinit(servefile, mntpt);	/* forks */
 
-	now = time(nil);
 	srand(now*getpid());
 	db2cache(1);
+	dnagenever();
 
 	if (cfg.straddle && !seerootns())
 		dnslog("straddle server misconfigured; can't see root name servers");
@@ -715,6 +722,7 @@ rwrite(Job *job, Mfile *mf, Request *req)
 	}
 
 	/* normal request: domain [type] */
+	stats.qrecvd9p++;
 	mf->type = rrtype(atype);
 	if(mf->type < 0){
 		err = "unknown type";

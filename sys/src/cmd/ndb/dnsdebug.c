@@ -24,6 +24,7 @@ int	maxage  = 60*60;
 char	mntpt[Maxpath];
 int	needrefresh;
 ulong	now;
+vlong	nowns;
 int	testing;
 char	*trace;
 int	traceactivity;
