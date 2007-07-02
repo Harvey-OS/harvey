@@ -6665,7 +6665,7 @@ sys/lib/man - 20000000775 sys sys 1039727410 0
 sys/lib/man/checkman.awk - 664 sys sys 1017679304 6277
 sys/lib/man/colophon - 664 sys sys 956337727 545
 sys/lib/man/lookman - 20000000775 sys sys 1045538130 0
-sys/lib/man/lookman/index - 664 sys sys 1183240521 1538104
+sys/lib/man/lookman/index - 664 sys sys 1183260471 1538104
 sys/lib/man/lookman/junkwords - 664 sys sys 956337764 3059
 sys/lib/man/lookman/mkindex - 775 sys sys 1017679307 306
 sys/lib/man/mkhtmlindex - 775 sys sys 1072129593 1235
@@ -7324,7 +7324,7 @@ sys/man/1/0intro - 664 sys sys 1101668050 9625
 sys/man/1/2a - 664 sys sys 1158281866 1196
 sys/man/1/2c - 664 sys sys 1175892134 9440
 sys/man/1/2l - 664 sys sys 1158281887 4376
-sys/man/1/INDEX - 664 sys sys 1183240459 3139
+sys/man/1/INDEX - 664 sys sys 1183260468 3139
 sys/man/1/INDEX.html - 664 sys sys 1183240466 16845
 sys/man/1/acid - 664 sys sys 1134233059 9730
 sys/man/1/acme - 664 sys sys 1181880498 18540
@@ -7628,7 +7628,7 @@ sys/man/2/wait - 664 sys sys 1163004064 2525
 sys/man/2/window - 664 sys sys 950593499 5522
 sys/man/3 - 20000000775 sys sys 1123100836 0
 sys/man/3/0intro - 664 sys sys 984709634 1873
-sys/man/3/INDEX - 664 sys sys 1183240477 377
+sys/man/3/INDEX - 664 sys sys 1183260468 377
 sys/man/3/INDEX.html - 664 sys sys 1183240478 3691
 sys/man/3/apm - 664 sys sys 984709634 1625
 sys/man/3/arch - 664 sys sys 958419692 1425
@@ -7772,7 +7772,7 @@ sys/man/8/0intro - 664 sys sys 944959679 247
 sys/man/8/6in4 - 664 sys sys 1181070628 1934
 sys/man/8/9load - 664 sys sys 1094676489 9170
 sys/man/8/9pcon - 664 sys sys 1145881850 2234
-sys/man/8/INDEX - 664 sys sys 1183240486 2773
+sys/man/8/INDEX - 664 sys sys 1183260468 2773
 sys/man/8/INDEX.html - 664 sys sys 1183240488 8619
 sys/man/8/aan - 664 sys sys 1045501064 1670
 sys/man/8/aliasmail - 664 sys sys 1170818958 1350
@@ -15844,7 +15844,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-sys/lib/man/lookman/index - 664 sys sys 1183260471 1538104
-sys/man/1/INDEX - 664 sys sys 1183260468 3139
-sys/man/3/INDEX - 664 sys sys 1183260468 377
-sys/man/8/INDEX - 664 sys sys 1183260468 2773
