@@ -1,90 +1,174 @@
+/*
+ * File system for tar archives (read-only)
+ */
+
 #include <u.h>
 #include <libc.h>
 #include <auth.h>
 #include <fcall.h>
 #include "tapefs.h"
 
-/*
- * File system for tar tapes (read-only)
- */
+/* fundamental constants */
+enum {
+	Tblock = 512,
+	Namsiz = 100,
+	Maxpfx = 155,		/* from POSIX */
+	Maxname = Namsiz + 1 + Maxpfx,
+	Binsize = 0x80,		/* flag in size[0], from gnu: positive binary size */
+	Binnegsz = 0xff,	/* flag in size[0]: negative binary size */
+};
 
-#define TBLOCK	512
-#define NBLOCK	40	/* maximum blocksize */
-#define DBLOCK	20	/* default blocksize */
-#define TNAMSIZ	100
+/* POSIX link flags */
+enum {
+	LF_PLAIN1 =	'\0',
+	LF_PLAIN2 =	'0',
+	LF_LINK =	'1',
+	LF_SYMLINK1 =	'2',
+	LF_SYMLINK2 =	's',		/* 4BSD used this */
+	LF_CHR =	'3',
+	LF_BLK =	'4',
+	LF_DIR =	'5',
+	LF_FIFO =	'6',
+	LF_CONTIG =	'7',
+	/* 'A' - 'Z' are reserved for custom implementations */
+};
 
-union hblock {
-	char dummy[TBLOCK];
-	char tbuf[Maxbuf];
-	struct header {
-		char name[TNAMSIZ];
-		char mode[8];
-		char uid[8];
-		char gid[8];
-		char size[12];
-		char mtime[12];
-		char chksum[8];
-		char linkflag;
-		char linkname[TNAMSIZ];
-	} dbuf;
-} dblock;
+typedef union {
+	char	dummy[Tblock];
+	char	tbuf[Maxbuf];
+	struct Header {
+		char	name[Namsiz];
+		char	mode[8];
+		char	uid[8];
+		char	gid[8];
+		char	size[12];
+		char	mtime[12];
+		char	chksum[8];
+		char	linkflag;
+		char	linkname[Namsiz];
 
-int	tapefile;
+		/* rest are defined by POSIX's ustar format; see p1003.2b */
+		char	magic[6];	/* "ustar" */
+		char	version[2];
+		char	uname[32];
+		char	gname[32];
+		char	devmajor[8];
+		char	devminor[8];
+		char	prefix[Maxpfx]; /* if non-null, path= prefix "/" name */
+	};
+} Hdr;
+
+Hdr dblock;
+int tapefile;
+
 int	checksum(void);
+
+static int
+isustar(Hdr *hp)
+{
+	return strcmp(hp->magic, "ustar") == 0;
+}
+
+/*
+ * s is at most n bytes long, but need not be NUL-terminated.
+ * if shorter than n bytes, all bytes after the first NUL must also
+ * be NUL.
+ */
+static int
+strnlen(char *s, int n)
+{
+	return s[n - 1] != '\0'? n: strlen(s);
+}
+
+/* set fullname from header */
+static char *
+tarname(Hdr *hp)
+{
+	int pfxlen, namlen;
+	static char fullname[Maxname+1];
+
+	namlen = strnlen(hp->name, sizeof hp->name);
+	if (hp->prefix[0] == '\0' || !isustar(hp)) {	/* old-style name? */
+		memmove(fullname, hp->name, namlen);
+		fullname[namlen] = '\0';
+		return fullname;
+	}
+
+	/* posix name: name is in two pieces */
+	pfxlen = strnlen(hp->prefix, sizeof hp->prefix);
+	memmove(fullname, hp->prefix, pfxlen);
+	fullname[pfxlen] = '/';
+	memmove(fullname + pfxlen + 1, hp->name, namlen);
+	fullname[pfxlen + 1 + namlen] = '\0';
+	return fullname;
+}
 
 void
 populate(char *name)
 {
-	long blkno, isabs, chksum, linkflg;
+	long chksum, linkflg;
+	vlong blkno;
+	char *fname;
 	Fileinf f;
+	Hdr *hp;
 
 	tapefile = open(name, OREAD);
-	if (tapefile<0)
+	if (tapefile < 0)
 		error("Can't open argument file");
 	replete = 1;
-	for (blkno = 0;;) {
-		seek(tapefile, TBLOCK*blkno, 0);
-		if (read(tapefile, dblock.dummy, sizeof(dblock.dummy))<sizeof(dblock.dummy))
+	hp = &dblock;
+	for (blkno = 0; ; blkno++) {
+		seek(tapefile, Tblock*blkno, 0);
+		if (readn(tapefile, hp->dummy, sizeof hp->dummy) < sizeof hp->dummy)
 			break;
-		if (dblock.dbuf.name[0]=='\0')
+		fname = tarname(hp);
+		if (fname[0] == '\0')
 			break;
-		f.addr = blkno+1;
-		f.mode = strtoul(dblock.dbuf.mode, 0, 8);
-		f.uid = strtoul(dblock.dbuf.uid, 0, 8);
-		f.gid = strtoul(dblock.dbuf.gid, 0, 8);
-		if((uchar)dblock.dbuf.size[0] == 0x80)
-			f.size = b8byte(dblock.dbuf.size+3);
+
+		/* crack header */
+		f.addr = blkno + 1;
+		f.mode = strtoul(hp->mode, 0, 8);
+		f.uid  = strtoul(hp->uid, 0, 8);
+		f.gid  = strtoul(hp->gid, 0, 8);
+		if((uchar)hp->size[0] == 0x80)
+			f.size = b8byte(hp->size+3);
 		else
-			f.size = strtoull(dblock.dbuf.size, 0, 8);
-		f.mdate = strtoul(dblock.dbuf.mtime, 0, 8);
-		chksum = strtoul(dblock.dbuf.chksum, 0, 8);
+			f.size = strtoull(hp->size, 0, 8);
+		f.mdate = strtoul(hp->mtime, 0, 8);
+		chksum  = strtoul(hp->chksum, 0, 8);
 		/* the mode test is ugly but sometimes necessary */
-		if (dblock.dbuf.linkflag == '5'
-		|| (f.mode&0170000) == 040000
-		||  strrchr(dblock.dbuf.name, '\0')[-1] == '/'){
+		if (hp->linkflag == LF_DIR || (f.mode&0170000) == 040000 ||
+		    strrchr(fname, '\0')[-1] == '/'){
 			f.mode |= DMDIR;
 			f.size = 0;
 		}
-		f.mode &= DMDIR|0777;
-		linkflg = dblock.dbuf.linkflag=='s' || dblock.dbuf.linkflag=='1';
-		isabs = dblock.dbuf.name[0]=='/';
+		f.mode &= DMDIR | 0777;
+
+		/* make file name safe and canonical */
+		while (fname[0] == '/')		/* don't allow absolute paths */
+			++fname;
+		cleanname(fname);
+
+		/* reject links */
+		linkflg = hp->linkflag == LF_SYMLINK1 ||
+			hp->linkflag == LF_SYMLINK2 || hp->linkflag == LF_LINK;
 		if (chksum != checksum()){
-			fprint(1, "bad checksum on %.28s\n", dblock.dbuf.name);
+			fprint(2, "%s: bad checksum on %.28s at offset %lld\n",
+				argv0, fname, Tblock*blkno);
 			exits("checksum");
 		}
 		if (linkflg) {
-			/*fprint(2, "link %s->%s skipped\n", dblock.dbuf.name,
-			   dblock.dbuf.linkname);*/
+			/*fprint(2, "link %s->%s skipped\n", fname, hp->linkname);*/
 			f.size = 0;
-			blkno += 1;
-			continue;
+		} else {
+			/* accept this file */
+			f.name = fname;
+			if (f.name[0] == '\0')
+				fprint(2, "%s: null name skipped\n", argv0);
+			else
+				poppath(f, 1);
+			blkno += (f.size + Tblock - 1)/Tblock;
 		}
-		f.name = dblock.dbuf.name+isabs;
-		if (f.name[0]=='\0')
-			fprint(1, "null name skipped\n");
-		else
-			poppath(f, 1);
-		blkno += 1 + (f.size+TBLOCK-1)/TBLOCK;
 	}
 }
 
@@ -103,10 +187,14 @@ docreate(Ram *r)
 char *
 doread(Ram *r, vlong off, long cnt)
 {
-	seek(tapefile, TBLOCK*r->addr+off, 0);
-	if (cnt>sizeof(dblock.tbuf))
+	int n;
+
+	seek(tapefile, Tblock*r->addr + off, 0);
+	if (cnt > sizeof dblock.tbuf)
 		error("read too big");
-	read(tapefile, dblock.tbuf, cnt);
+	n = readn(tapefile, dblock.tbuf, cnt);
+	if (n != cnt)
+		memset(dblock.tbuf + n, 0, cnt - n);
 	return dblock.tbuf;
 }
 
@@ -130,15 +218,15 @@ dopermw(Ram *r)
 }
 
 int
-checksum()
+checksum(void)
 {
-	int i;
-	char *cp;
+	int i, n;
+	uchar *cp;
 
-	for (cp = dblock.dbuf.chksum; cp < &dblock.dbuf.chksum[sizeof(dblock.dbuf.chksum)]; cp++)
-		*cp = ' ';
+	memset(dblock.chksum, ' ', sizeof dblock.chksum);
+	cp = (uchar *)dblock.dummy;
 	i = 0;
-	for (cp = dblock.dummy; cp < &dblock.dummy[TBLOCK]; cp++)
-		i += *cp&0xff;
-	return(i);
+	for (n = Tblock; n-- > 0; )
+		i += *cp++;
+	return i;
 }

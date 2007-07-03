@@ -888,7 +888,7 @@ prefix(char *name, char *pfx)
 		return 0;
 	strcpy(clpfx, pfx);
 	cleanname(clpfx);
-	return strncmp(pfx, name, pfxlen) == 0 &&
+	return strncmp(clpfx, name, pfxlen) == 0 &&
 		(name[pfxlen] == '\0' || name[pfxlen] == '/');
 }
 
