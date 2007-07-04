@@ -223,11 +223,12 @@ dndump(char *file)
 	qunlock(&stats);
 
 	lock(&dnlock);
+	fprint(fd, "\n# domain names %lud target %lud\n", dnvars.names, target);
 	for(i = 0; i < HTLEN; i++)
 		for(dp = ht[i]; dp; dp = dp->next){
 			fprint(fd, "%s\n", dp->name);
 			for(rp = dp->rr; rp; rp = rp->next)
-				fprint(fd, "	%R %c%c %lud/%lud\n",
+				fprint(fd, "\t%R %c%c %lud/%lud\n",
 					rp, rp->auth? 'A': 'U',
 					rp->db? 'D': 'N', rp->expire, rp->ttl);
 		}
