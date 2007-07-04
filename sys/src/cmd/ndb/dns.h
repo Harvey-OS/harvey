@@ -377,7 +377,7 @@ typedef struct {
 	ulong	qrecvdudp;
 	ulong	qsent;
 	/* reply times by count */
-	ulong	under10ths[10*10+2];	/* under n*0.1 seconds, n is index */
+	ulong	under10ths[3*10+2];	/* under n*0.1 seconds, n is index */
 	ulong	tmout;
 	ulong	tmoutcname;
 	ulong	tmoutv6;
