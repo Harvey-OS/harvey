@@ -182,7 +182,7 @@ don't look for a secstore.
 .B \-S
 indicates that the agent is running on a
 CPU server.  On starting, it will attempt to get a
-.B 9psk1
+.B p9sk1
 key from NVRAM using
 .B readnvram
 (see

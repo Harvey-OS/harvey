@@ -1,6 +1,6 @@
 .TH AUTH 8
 .SH NAME
-changeuser, convkeys, convkeys2, printnetkey, status, enable, disable, authsrv, guard.srv, wrkey, login, none \- maintain authentication databases
+changeuser, convkeys, convkeys2, printnetkey, status, enable, disable, authsrv, guard.srv, wrkey, login, newns, none \- maintain or query authentication databases
 .SH SYNOPSIS
 .B auth/changeuser
 .RB [ -np ]
@@ -34,6 +34,17 @@ changeuser, convkeys, convkeys2, printnetkey, status, enable, disable, authsrv, 
 .PP
 .B auth/login
 .I user
+.PP
+.B auth/newns
+[
+.B -ad
+] [
+.B -n
+.I namespace
+]
+.I command
+.I arg
+\&...
 .PP
 .B auth/none
 [
@@ -189,6 +200,25 @@ under the new id and
 .IR exec s
 .IR rc (1)
 under the new id.
+.PP
+.I Newns
+sets up a new namespace from
+.I namespace
+(default
+.BR /lib/namespace )
+and
+.IR exec s
+its arguments.
+If there are no arguments, it
+.IR exec s
+.BR /bin/rc .
+Under
+.BR -a ,
+.I newns
+adds to the current namespace instead of constructing a new one.
+The
+.BR -d
+option enables debugging output.
 .PP
 .I None
 sets up a new namespace from
