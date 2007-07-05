@@ -22,31 +22,31 @@ _aligned:				/* is s2 now aligned? */
 
 _aloop:
 	MOVW.P	4(R1), R5		/* 4 at a time */
-	MOVW.P	4(R2), R9
+	MOVW.P	4(R2), R7
 
 	AND	R5, R3, R4
-	AND	R9, R3, R8
+	AND	R7, R3, R8
 	SUB.S	R8, R4, R0
 	BNE	_return
 	CMP	$0, R4
 	BEQ	_return
 
 	AND	R5>>8, R3, R4
-	AND	R9>>8, R3, R8
+	AND	R7>>8, R3, R8
 	SUB.S	R8, R4, R0
 	BNE	_return
 	CMP	$0, R4
 	BEQ	_return
 
 	AND	R5>>16, R3, R4
-	AND	R9>>16, R3, R8
+	AND	R7>>16, R3, R8
 	SUB.S	R8, R4, R0
 	BNE	_return
 	CMP	$0, R4
 	BEQ	_return
 
 	AND	R5>>24, R3, R4
-	AND	R9>>24, R3, R8
+	AND	R7>>24, R3, R8
 	SUB.S	R8, R4, R0
 	BNE	_return
 	CMP	$0, R4

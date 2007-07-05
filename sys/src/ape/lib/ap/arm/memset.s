@@ -25,24 +25,20 @@ _4align:				/* align on 4 */
 	B	_4align
 
 _4aligned:
-	SUB	$31, R(TOE), R(TMP)	/* do 32-byte chunks if possible */
+	SUB	$15, R(TOE), R(TMP)	/* do 16-byte chunks if possible */
 	CMP	R(TMP), R(TO)
 	BHS	_4tail
 
 	MOVW	R4, R5			/* replicate */
 	MOVW	R4, R6
 	MOVW	R4, R7
-	MOVW	R4, R8
-	MOVW	R4, R9
-	MOVW	R4, R10
-	MOVW	R4, R11
 
-_f32loop:
+_f16loop:
 	CMP	R(TMP), R(TO)
 	BHS	_4tail
 
-	MOVM.IA.W [R4-R11], (R(TO))
-	B	_f32loop
+	MOVM.IA.W [R4-R7], (R(TO))
+	B	_f16loop
 
 _4tail:
 	SUB	$3, R(TOE), R(TMP)	/* do remaining words if possible */

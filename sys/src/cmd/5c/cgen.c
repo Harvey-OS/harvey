@@ -1071,6 +1071,10 @@ copy:
 		}
 		regalloc(&nod3, &regnode, Z);
 		regalloc(&nod4, &regnode, Z);
+		if(nod3.reg > nod4.reg){
+			/* code below assumes nod3 loaded first */
+			Node t = nod3; nod3 = nod4; nod4 = t;
+		}
 		nod0 = *nodconst((1<<nod3.reg)|(1<<nod4.reg));
 		if(w == 2 && nod1.xoffset == 0)
 			gmovm(&nod1, &nod0, 0);

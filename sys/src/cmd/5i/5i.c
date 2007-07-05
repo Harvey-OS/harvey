@@ -4,6 +4,8 @@
 #include <mach.h>
 #include "arm.h"
 
+#include <tos.h>
+
 char*	file = "5.out";
 int	datasize;
 ulong	textbase;
@@ -138,12 +140,13 @@ void
 initstk(int argc, char *argv[])
 {
 	ulong size;
-	ulong sp, ap;
+	ulong sp, ap, tos;
 	int i;
 	char *p;
 
 	initmap();
-	sp = STACKTOP - 4;
+	tos = STACKTOP - sizeof(Tos)*2;	/* we'll assume twice the host's is big enough */
+	sp = tos;
 
 	/* Build exec stack */
 	size = strlen(file)+1+BY2WD+BY2WD+BY2WD;	
@@ -151,7 +154,8 @@ initstk(int argc, char *argv[])
 		size += strlen(argv[i])+BY2WD+1;
 
 	sp -= size;
-	sp &= ~3;
+	sp &= ~7;
+	reg.r[0] = tos;
 	reg.r[13] = sp;
 	reg.r[1] = STACKTOP-4;	/* Plan 9 profiling clock */
 
