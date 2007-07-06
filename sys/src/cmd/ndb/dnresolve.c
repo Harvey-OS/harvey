@@ -268,10 +268,7 @@ notestats(vlong start, int tmout, int type)
 	} else {
 		long wait10ths = NS2MS(nsec() - start) / 100;
 
-		if (wait10ths < 0)
-			dnslog("notestats: negative elapsed time of %.1f s.",
-				(double)wait10ths/10);
-		else if (wait10ths <= 0)
+		if (wait10ths <= 0)
 			stats.under10ths[0]++;
 		else if (wait10ths >= nelem(stats.under10ths))
 			stats.under10ths[nelem(stats.under10ths) - 1]++;
@@ -1166,7 +1163,6 @@ netquery1(Query *qp, int depth, uchar *ibuf, uchar *obuf, int waitsecs, int inns
 	ulong endtime;
 	char buf[12];
 	uchar srcip[IPaddrlen];
-	DNSmsg m;
 	Dest *p, *np, *dest;
 //	Dest dest[Maxdest];
 
@@ -1198,21 +1194,26 @@ netquery1(Query *qp, int depth, uchar *ibuf, uchar *obuf, int waitsecs, int inns
 			endtime = qp->req->aborttime;
 
 		for(replywaits = 0; replywaits < ndest; replywaits++){
+			DNSmsg m;
+
 			procsetname("reading %sside reply from %I for %s %s",
 				(inns? "in": "out"), obuf, qp->dp->name,
 				rrname(qp->type, buf, sizeof buf));
 
-			/* read udp answer */
+			/* read udp answer into m */
 			if (readreply(qp, Udp, req, ibuf, &m, endtime) >= 0)
 				memmove(srcip, ibuf, IPaddrlen);
-			else if (!(m.flags & Ftrunc))
+			else if (!(m.flags & Ftrunc)) {
+				freeanswers(&m);
 				break;		/* timed out on this dest */
-			else {
+			} else {
 				/* whoops, it was truncated! ask again via tcp */
 				rv = tcpquery(qp, &m, depth, ibuf, obuf, len,
-					waitsecs, inns, req);
-				if (rv < 0)
+					waitsecs, inns, req);  /* answer in m */
+				if (rv < 0) {
+					freeanswers(&m);
 					break;		/* failed via tcp too */
+				}
 				memmove(srcip, qp->tcpip, IPaddrlen);
 			}
 
@@ -1227,6 +1228,7 @@ netquery1(Query *qp, int depth, uchar *ibuf, uchar *obuf, int waitsecs, int inns
 				if(np->s == p->s)
 					p->nx = Maxtrans;
 
+			/* free or incorporate RRs in m */
 			rv = procansw(qp, &m, srcip, depth, p);
 			if (rv > 0)
 				return rv;
@@ -1379,6 +1381,10 @@ netquery(Query *qp, int depth)
 		procsetname("query lock wait for %s", qp->dp->name);
 		/*
 		 * don't make concurrent queries for this name.
+		 * dozens of processes blocking here probably indicates
+		 * an error in our dns data that causes us to not
+		 * recognise a zone (area) as one of our own, thus
+		 * causing us to query other nameservers.
 		 */
 		qlock(&qp->dp->querylck);
 	}
@@ -1441,6 +1447,7 @@ seerootns(void)
 	queryinit(&query, dnlookup(root, Cin, 1), Tns, &req);
 	query.nsrp = dblookup(root, Cin, Tns, 0, 0);
 	rv = netquery(&query, 0);
+	rrfreelist(query.nsrp);	
 	querydestroy(&query);
 	return rv;
 }

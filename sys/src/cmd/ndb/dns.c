@@ -15,7 +15,8 @@ enum
 	Maxrrr=			32,		/* was 16 */
 	Maxfdata=		8192,
 
-	Defmaxage=		2*60*60,	/* tunable; was 1 then 3 hrs */
+	/* default seconds between passes to age domain names */
+	Defmaxage=		30*60,
 
 	Qdir=			0,
 	Qdns=			1,
