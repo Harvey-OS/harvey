@@ -5,8 +5,8 @@ DIRS=gen math plan9 posix stdio syscall
 
 default:V:	all
 
-install clean nuke all:V:
-	for(i in $DIRS $objtype)@{
+install all:V:
+	for(i in $DIRS)@{
 		echo $i
 		cd $i
 		mk $MKFLAGS $target
@@ -15,3 +15,10 @@ install clean nuke all:V:
 installall:V:
 	for(objtype in $CPUS) mk $MKFLAGS install
 
+
+clean nuke:V:
+	for(i in $DIRS $CPUS)@{
+		echo $i
+		cd $i
+		mk $MKFLAGS $target
+	}

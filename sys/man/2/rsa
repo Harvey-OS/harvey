@@ -68,35 +68,37 @@ uchar*	X509req(RSApriv *priv, char *subj, int *certlen);
 .B
 char* X509verify(uchar *cert, int ncert, RSApub *pk)
 .SH DESCRIPTION
-.PP
 RSA is a public key encryption algorithm.  The owner of a key publishes
 the public part of the key:
+.IP
 .EX
-	struct RSApub
-	{
-		mpint	*n;	// modulus
-		mpint	*ek;	// exp (encryption key)
-	};
+struct RSApub
+{
+	mpint	*n;	/* modulus */
+	mpint	*ek;	/* exp (encryption key) */
+};
 .EE
+.LP
 This part can be used for encrypting data (with
 .IR rsaencrypt )
 to be sent to the owner.
 The owner decrypts (with
 .IR rsadecrypt )
 using his private key:
+.IP
 .EX
-	struct RSApriv
-	{
-		RSApub	pub;
-		mpint	*dk;	// exp (decryption key)
-	
-		// precomputed crt values
-		mpint	*p;
-		mpint	*q;
-		mpint	*kp;	// k mod p-1
-		mpint	*kq;	// k mod q-1
-		mpint	*c2;	// for converting residues to number
-	};
+struct RSApriv
+{
+	RSApub	pub;
+	mpint	*dk;	/* exp (decryption key) */
+
+	/* precomputed crt values */
+	mpint	*p;
+	mpint	*q;
+	mpint	*kp;	/* k mod p-1 */
+	mpint	*kq;	/* k mod q-1 */
+	mpint	*c2;	/* for converting residues to number */
+};
 .EE
 .PP
 Keys are generated using
@@ -158,9 +160,11 @@ and the starting and ending validity dates,
 Length of the allocated binary certificate is stored in
 .IR certlen .
 The subject line is conventionally of the form
+.IP
 .EX
-   "C=US ST=NJ L=07922 O=Lucent OU='Bell Labs' CN=Eric"
+C=US ST=NJ L=07922 O=Lucent OU='Bell Labs' CN=Eric
 .EE
+.LP
 using the quoting conventions of
 .I tokenize
 in
@@ -180,18 +184,23 @@ takes a zero terminated string,
 and decodes the PEM (privacy-enhanced mail) formatted section for
 .I type
 within it.
-If successful, it returns the decoded section and sets
+If successful, it returns
+.IR malloc ed
+storage containing the decoded section,
+which the caller must free,
+and sets
 .BI * len
-to its decoded length.  If not nil,
-.I new_s
-is set to the first character beyond the
-.I type
-section.
+to its decoded length.
 Otherwise
 .B nil
 is returned and
 .BI * len
 is undefined.
+If not nil,
+.I new_s
+is set to the first character beyond the
+.I type
+section.
 .SH SOURCE
 .B /sys/src/libsec
 .SH SEE ALSO
