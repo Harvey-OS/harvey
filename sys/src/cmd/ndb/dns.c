@@ -15,8 +15,7 @@ enum
 	Maxrrr=			32,		/* was 16 */
 	Maxfdata=		8192,
 
-	/* default seconds between passes to age domain names */
-	Defmaxage=		30*60,
+	Defmaxage=		60*60,	/* default domain name max. age */
 
 	Qdir=			0,
 	Qdns=			1,
@@ -411,6 +410,7 @@ io(void)
 
 		getactivity(&req, 0);
 		req.aborttime = now + Maxreqtm;
+		req.from = "9p";
 
 		switch(job->request.type){
 		default:

@@ -29,14 +29,15 @@ dnnotify(DNSmsg *reqp, DNSmsg *repp, Request *)
 	if(repp->qd->type != Tsoa)
 		return;
 
-dnslog("notification for %s", repp->qd->owner->name);
+	dnslog("notification for %s", repp->qd->owner->name);
 
 	/* is it something we care about? */
 	a = inmyarea(repp->qd->owner->name);
 	if(a == nil)
 		return;
 
-dnslog("serial old %lud new %lud", a->soarr->soa->serial, repp->qd->soa->serial);
+	dnslog("serial old %lud new %lud", a->soarr->soa->serial,
+		repp->qd->soa->serial);
 
 	/* do nothing if it didn't change */
 	if(a->soarr->soa->serial != repp->qd->soa->serial)
@@ -86,9 +87,10 @@ send_notify(char *slave, RR *soa, Request *req)
 
 	/* send 3 times or until we get anything back */
 	n += Udphdrsize;
-	for(i = 0; i < 3; i++){
+	for(i = 0; i < 3; i++, freeanswers(&repmsg)){
 		dnslog("sending %d byte notify to %s/%I.%d about %s", n, slave,
 			up->raddr, nhgets(up->rport), soa->owner->name);
+		memset(&repmsg, 0, sizeof repmsg);
 		if(write(fd, obuf, n) != n)
 			break;
 		alarm(2*1000);
@@ -96,7 +98,6 @@ send_notify(char *slave, RR *soa, Request *req)
 		alarm(0);
 		if(len <= Udphdrsize)
 			continue;
-		memset(&repmsg, 0, sizeof repmsg);
 		err = convM2DNS(&ibuf[Udphdrsize], len, &repmsg, nil);
 		if(err != nil) {
 			free(err);
@@ -105,6 +106,7 @@ send_notify(char *slave, RR *soa, Request *req)
 		if(repmsg.id == reqno && (repmsg.flags & Omask) == Onotify)
 			break;
 	}
+	freeanswers(&repmsg);
 	close(fd);
 }
 
@@ -133,10 +135,10 @@ void
 notifyproc(void)
 {
 	Request req;
-	static int already;
+//	static int already;
 
-	if(already)
-		return;
+//	if(already)
+//		return;
 
 	switch(rfork(RFPROC|RFNOTEG|RFMEM|RFNOWAIT)){
 	case -1:
