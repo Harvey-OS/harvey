@@ -125,6 +125,8 @@ restart:
 		//	((Udphdr*)buf)->raddr, ((Udphdr*)buf)->laddr);
 		getactivity(&req, 0);
 		req.aborttime = now + Maxreqtm;
+//		req.from = smprint("%I", ((Udphdr*)buf)->raddr);
+		req.from = smprint("%I", buf);
 		rcode = 0;
 		stats.qrecvdudp++;
 
@@ -192,6 +194,7 @@ restart:
 
 		p->inuse = 0;
 freereq:
+		free(req.from);
 		freeanswers(&reqmsg);
 		if(req.isslave){
 			putactivity(0);

@@ -6,7 +6,8 @@
 #include "dns.h"
 
 enum {
-	Minage = 10*60,
+	Minage		= 10*60,
+	Defagefreq	= 30*60,	/* age names this often (seconds) */
 };
 
 /*
@@ -125,6 +126,8 @@ char *opname[] =
 
 Lock	dnlock;
 
+static ulong agefreq = Defagefreq;
+
 static int sencodefmt(Fmt*);
 
 void
@@ -212,18 +215,20 @@ dndump(char *file)
 		return;
 
 	qlock(&stats);
-	fprint(fd, "# slave procs high-water mark\t%ld\n", stats.slavehiwat);
-	fprint(fd, "# queries received by 9p\t%ld\n", stats.qrecvd9p);
-	fprint(fd, "# queries received by udp\t%ld\n", stats.qrecvdudp);
-	fprint(fd, "# queries answered from memory\t%ld\n", stats.answinmem);
-	fprint(fd, "# queries sent by udp\t%ld\n", stats.qsent);
+	fprint(fd, "# slave procs high-water mark\t%lud\n", stats.slavehiwat);
+	fprint(fd, "# queries received by 9p\t%lud\n", stats.qrecvd9p);
+	fprint(fd, "# queries received by udp\t%lud\n", stats.qrecvdudp);
+	fprint(fd, "# queries answered from memory\t%lud\n", stats.answinmem);
+	fprint(fd, "# queries sent by udp\t%lud\n", stats.qsent);
 	for (i = 0; i < nelem(stats.under10ths); i++)
 		if (stats.under10ths[i] || i == nelem(stats.under10ths) - 1)
-			fprint(fd, "# responses arriving within %.1f s.\t%ld\n",
+			fprint(fd, "# responses arriving within %.1f s.\t%lud\n",
 				(double)(i+1)/10, stats.under10ths[i]);
-	fprint(fd, "\n# queries sent & timed-out\t%ld\n", stats.tmout);
-	fprint(fd, "# cname queries timed-out\t%ld\n", stats.tmoutcname);
-	fprint(fd, "# ipv6  queries timed-out\t%ld\n", stats.tmoutv6);
+	fprint(fd, "\n# queries sent & timed-out\t%lud\n", stats.tmout);
+	fprint(fd, "# cname queries timed-out\t%lud\n", stats.tmoutcname);
+	fprint(fd, "# ipv6  queries timed-out\t%lud\n", stats.tmoutv6);
+	fprint(fd, "\n# negative answers received\t%lud\n", stats.negans);
+	fprint(fd, "# negative answers cached\t%lud\n", stats.negcached);
 	qunlock(&stats);
 
 	lock(&dnlock);
@@ -419,7 +424,10 @@ dnageall(int doit)
 		if (dnvars.oldest < Minage)
 			dnvars.oldest = Minage;		/* don't be silly */
 	}
-	nextage = now + maxage;
+	if (agefreq > dnvars.oldest / 2)
+		nextage = now + dnvars.oldest / 2;
+	else
+		nextage = now + agefreq;
 
 	lock(&dnlock);
 
