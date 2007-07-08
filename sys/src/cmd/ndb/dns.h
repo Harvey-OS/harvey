@@ -142,11 +142,11 @@ enum
 	RRmagic=	0xdeadbabe,
 	DNmagic=	0xa110a110,
 
-	/* parallelism: tune; was 32; allow lots*/
+	/* parallelism: tune; was 32; allow lots */
 	Maxactive=	250,
 
-	/* tune; was 60; keep short */
-	Maxreqtm=	20,	/* max. seconds to process a request */
+	/* tune; was 60; keep it short */
+	Maxreqtm=	10,	/* max. seconds to process a request */
 };
 
 typedef struct Area	Area;
@@ -387,7 +387,11 @@ typedef struct {
 
 	ulong	answinmem;	/* answers in memory */
 	ulong	negans;		/* negative answers received */
-	ulong	negcached;	/* negative answers cached */
+	ulong	negserver;	/* neg ans with Rserver set */
+	ulong	negbaddeleg;	/* neg ans with bad delegations */
+	ulong	negbdnoans;	/* ⋯ and no answers */
+	ulong	negnorname;	/* neg ans with no Rname set */
+	ulong	negcached;	/* neg ans cached */
 } Stats;
 
 Stats stats;

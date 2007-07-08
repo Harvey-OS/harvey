@@ -228,6 +228,12 @@ dndump(char *file)
 	fprint(fd, "# cname queries timed-out\t%lud\n", stats.tmoutcname);
 	fprint(fd, "# ipv6  queries timed-out\t%lud\n", stats.tmoutv6);
 	fprint(fd, "\n# negative answers received\t%lud\n", stats.negans);
+	fprint(fd, "# negative answers w Rserver set\t%lud\n", stats.negserver);
+	fprint(fd, "# negative answers w bad delegation\t%lud\n",
+		stats.negbaddeleg);
+	fprint(fd, "# negative answers w bad delegation & no answers\t%lud\n",
+		stats.negbdnoans);
+	fprint(fd, "# negative answers w no Rname set\t%lud\n", stats.negnorname);
 	fprint(fd, "# negative answers cached\t%lud\n", stats.negcached);
 	qunlock(&stats);
 

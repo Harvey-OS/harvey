@@ -537,21 +537,20 @@ rrloop(Scan *sp, char *what, int count, int quest)
 char*
 convM2DNS(uchar *buf, int len, DNSmsg *m, int *codep)
 {
-	Scan scan;
-	Scan *sp;
 	char *err = nil;
 	RR *rp = nil;
+	Scan scan;
+	Scan *sp;
 
 	if (codep)
 		*codep = 0;
 	assert(len >= 0);
-	memset(&scan, 0, sizeof scan);
-	scan.base = buf;
-	scan.p = buf;
-	scan.ep = buf + len;
-	scan.err = nil;
-	scan.errbuf[0] = '\0';
 	sp = &scan;
+	memset(sp, 0, sizeof *sp);
+	sp->base = sp->p = buf;
+	sp->ep = buf + len;
+	sp->err = nil;
+	sp->errbuf[0] = '\0';
 
 	memset(m, 0, sizeof *m);
 	USHORT(m->id);
@@ -564,16 +563,16 @@ convM2DNS(uchar *buf, int len, DNSmsg *m, int *codep)
 	m->qd = rrloop(sp, "questions",	m->qdcount, 1);
 	m->an = rrloop(sp, "answers",	m->ancount, 0);
 	m->ns = rrloop(sp, "nameservers",m->nscount, 0);
-	if (scan.stop)
-		scan.err = nil;
-	if (scan.err)
-		err = strdup(scan.err);		/* live with bad ar's */
+	if (sp->stop)
+		sp->err = nil;
+	if (sp->err)
+		err = strdup(sp->err);		/* live with bad ar's */
 	m->ar = rrloop(sp, "hints",	m->arcount, 0);
-	if (scan.trunc)
+	if (sp->trunc)
 		m->flags |= Ftrunc;
-	if (scan.stop)
-		scan.rcode = 0;
+	if (sp->stop)
+		sp->rcode = 0;
 	if (codep)
-		*codep = scan.rcode;
+		*codep = sp->rcode;
 	return err;
 }
