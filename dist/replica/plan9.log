@@ -49473,3 +49473,6 @@
 1183752004 2 c sys/src/cmd/ndb/dns.c - 664 sys sys 1183750507 16257
 1183752004 3 c sys/src/cmd/ndb/dnudpserver.c - 664 sys sys 1183750487 5470
 1183757405 0 c sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1183756960 33524
+1183789804 0 c sys/src/cmd/ndb/dn.c - 664 sys sys 1183789402 36032
+1183789804 1 c sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1183789393 34012
+1183789804 2 c sys/src/cmd/ndb/dns.h - 664 sys sys 1183789361 11634

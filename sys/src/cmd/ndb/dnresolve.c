@@ -9,7 +9,8 @@
 #include "dns.h"
 
 #define NS2MS(ns) ((ns) / 1000000L)
-#define S2MS(s)   ((s) * 1000)
+#define S2MS(s)   ((s)  * 1000)
+#define MS2S(ms)  ((ms) / 1000)
 
 typedef struct Dest Dest;
 typedef struct Ipaddr Ipaddr;
@@ -144,7 +145,7 @@ dnresolve(char *name, int class, int type, Request *req, RR **cn, int depth,
 			rrfreelist(rrremneg(&rp));
 		}
 		if(drp != nil)
-			rrfree(drp);
+			rrfreelist(drp);	/* was rrfree */
 		procsetname(procname);
 		free(procname);
 		return rp;
@@ -1044,6 +1045,14 @@ qtype2lck(int qtype)		/* map query type to querylck index */
 	return 0;
 }
 
+/* is mp a cachable negative response (with Rname set)? */
+static int
+isnegrname(DNSmsg *mp)
+{
+	/* TODO: could add || cfg.justforw to RHS of && */
+	return mp->an == nil && (mp->flags & Rmask) == Rname;
+}
+
 static int
 procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 {
@@ -1058,6 +1067,7 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 
 	/* ignore any error replies */
 	if((mp->flags & Rmask) == Rserver){
+		stats.negserver++;
 		freeanswers(mp);
 		if(p != qp->curdest)
 			p->code = Rserver;
@@ -1066,7 +1076,9 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 
 	/* ignore any bad delegations */
 	if(mp->ns && baddelegation(mp->ns, qp->nsrp, srcip)){
+		stats.negbaddeleg++;
 		if(mp->an == nil){
+			stats.negbdnoans++;
 			freeanswers(mp);
 			if(p != qp->curdest)
 				p->code = Rserver;
@@ -1087,8 +1099,11 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 	if(mp->ns && !cfg.justforw){
 		ndp = mp->ns->owner;
 		rrattach(mp->ns, 0);
-	} else
+	} else {
 		ndp = nil;
+		rrfreelist(mp->ns);
+		mp->ns = nil;
+	}
 
 	/* free the question */
 	if(mp->qd) {
@@ -1102,7 +1117,7 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 	 *  A negative response now also terminates the search.
 	 */
 	if(mp->an != nil || (mp->flags & Fauth)){
-		if(mp->an == nil && (mp->flags & Rmask) == Rname)
+		if(isnegrname(mp))
 			qp->dp->respcode = Rname;
 		else
 			qp->dp->respcode = 0;
@@ -1117,7 +1132,7 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 		else
 			rrfreelist(soarr);
 		return 1;
-	} else if (mp->an == nil && (mp->flags & Rmask) == Rname) {
+	} else if (isnegrname(mp)) {
 		qp->dp->respcode = Rname;
 		/*
 		 *  cache negative response.
@@ -1127,6 +1142,7 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 		cacheneg(qp->dp, qp->type, (mp->flags & Rmask), soarr);
 		return 1;
 	}
+	stats.negnorname++;
 	rrfreelist(soarr);
 
 	/*
@@ -1319,6 +1335,18 @@ system(int fd, char *cmd)
 	return "lost child";
 }
 
+/* compute wait, weighted by probability of success, with minimum */
+static ulong
+weight(ulong ms, unsigned pcntprob)
+{
+	ulong wait;
+
+	wait = (ms * pcntprob) / 100;
+	if (wait < 1500)
+		wait = 1500;
+	return wait;
+}
+
 /*
  * in principle we could use a single descriptor for a udp port
  * to send all queries and receive all the answers to them,
@@ -1327,9 +1355,9 @@ system(int fd, char *cmd)
 static int
 udpquery(Query *qp, char *mntpt, int depth, int patient, int inns)
 {
-	int fd, rv, wait;
+	int fd, rv;
 	long now;
-	ulong pcntprob;
+	ulong pcntprob, wait, reqtm;
 	char *msg;
 	uchar *obuf, *ibuf;
 	static QLock mntlck;
@@ -1370,27 +1398,24 @@ udpquery(Query *qp, char *mntpt, int depth, int patient, int inns)
 		sysfatal("out of udp conversations");	/* we're buggered */
 	}
 
-	if (qp->type < 0 || qp->type >= nelem(likely))
-		pcntprob = 35;
-	else
-		pcntprob = likely[qp->type];
-	if (!patient)
-		pcntprob /= 2;
 	/*
-	 * Our QIP servers are busted, don't answer AAAA
-	 * and take forever to answer CNAME if there isn't one.
+	 * Our QIP servers are busted, don't answer AAAA and
+	 * take forever to answer CNAME if there isn't one.
+	 * They rarely set Rname.
 	 * make time-to-wait proportional to estimated probability of an
 	 * RR of that type existing.
 	 */
-	qp->req->aborttime = time(nil) + (Maxreqtm * pcntprob)/100;
-	if (qp->req->aborttime < time(nil) + 2)
-		qp->req->aborttime = time(nil) + 2;
-	qp->udpfd = fd;
-	wait = (15 * pcntprob) / 100;		/* for this outgoing query */
-	if (wait < 2)
-		wait = 2;
+	if (qp->type < 0 || qp->type >= nelem(likely))
+		pcntprob = 35;			/* unpopular query type */
+	else
+		pcntprob = likely[qp->type];
+	reqtm = (patient? 2*Maxreqtm: Maxreqtm);
+	/* time for a single outgoing udp query */
+	wait = weight(S2MS(reqtm)/3, pcntprob);
+	qp->req->aborttime = time(nil) + MS2S(3*wait); /* for all udp queries */
 
-	rv = netquery1(qp, depth, ibuf, obuf, wait, inns);
+	qp->udpfd = fd;
+	rv = netquery1(qp, depth, ibuf, obuf, MS2S(wait), inns);
 	close(fd);
 	qp->udpfd = -1;
 

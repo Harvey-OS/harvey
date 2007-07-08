@@ -76,7 +76,7 @@ send_notify(char *slave, RR *soa, Request *req)
 		if(rp == nil)
 			return;
 		parseip(up->raddr, rp->ip->name);
-		rrfree(rp);
+		rrfreelist(rp);		/* was rrfree */
 	}
 
 	fd = udpport(nil);
