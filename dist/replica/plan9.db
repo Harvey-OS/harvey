@@ -12819,14 +12819,14 @@ sys/src/cmd/mug.c - 664 sys sys 1157143847 24888
 sys/src/cmd/mv.c - 664 sys sys 1163029439 4682
 sys/src/cmd/ndb - 20000000775 sys sys 1080135004 0
 sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1182554015 7035
-sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1183184540 11853
+sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1183866367 11830
 sys/src/cmd/ndb/cs.c - 664 sys sys 1182275681 33213
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1174626119 1073
 sys/src/cmd/ndb/dblookup.c - 664 sys sys 1183406703 22445
 sys/src/cmd/ndb/dn.c - 664 sys sys 1183789402 36032
 sys/src/cmd/ndb/dnarea.c - 664 sys sys 1175664421 2519
-sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1183750450 3195
-sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1183789393 34012
+sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1183866408 3217
+sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1183866553 34076
 sys/src/cmd/ndb/dns.c - 664 sys sys 1183750507 16257
 sys/src/cmd/ndb/dns.h - 664 sys sys 1183789361 11634
 sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1183184428 8754
