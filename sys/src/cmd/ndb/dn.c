@@ -1009,7 +1009,7 @@ rrlookup(DN *dp, int type, int flag)
 		if(rp->db)
 		if(rp->auth)
 		if(tsame(type, rp->type)) {
-			last = rrcopy(rp, last);	/* leaks most */
+			last = rrcopy(rp, last);
 			// setmalloctag(*last, getcallerpc(&dp));
 		}
 	}
@@ -1037,7 +1037,7 @@ rrlookup(DN *dp, int type, int flag)
 		if(tsame(type, rp->type)){
 			if(flag == NOneg && rp->negative)
 				goto out;
-			last = rrcopy(rp, last);	/* leaks fewest */
+			last = rrcopy(rp, last);
 		}
 	}
 	if(first)
