@@ -49479,3 +49479,5 @@
 1183867204 0 c sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1183866367 11830
 1183867204 1 c sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1183866408 3217
 1183867204 2 c sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1183866553 34076
+1184027406 0 c sys/src/cmd/ndb/dn.c - 664 sys sys 1184026098 35996
+1184027406 1 c sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1184026119 34245
