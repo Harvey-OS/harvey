@@ -49481,3 +49481,6 @@
 1183867204 2 c sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1183866553 34076
 1184027406 0 c sys/src/cmd/ndb/dn.c - 664 sys sys 1184026098 35996
 1184027406 1 c sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1184026119 34245
+1184108403 0 c sys/src/cmd/ndb/dblookup.c - 664 sys sys 1184108014 22529
+1184108403 1 c sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1184108033 34482
+1184108403 2 c sys/src/cmd/ndb/dns.h - 664 sys sys 1184107975 11658

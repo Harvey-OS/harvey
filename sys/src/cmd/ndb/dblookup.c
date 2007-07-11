@@ -803,7 +803,7 @@ baddelegation(RR *rp, RR *nsrp, uchar *addr)
 	return 0;
 }
 
-static int
+int
 myaddr(char *addr)
 {
 	char *name, *line, *sp;
@@ -846,20 +846,24 @@ addlocaldnsserver(DN *dp, int class, char *ipaddr, int i)
 	DN *nsdp;
 	RR *rp;
 	char buf[32];
+	static QLock locdnslck;
 
 	/* reject our own ip addresses so we don't query ourselves via udp */
 	if (myaddr(ipaddr))
 		return;
 
+	qlock(&locdnslck);
 	for (n = 0; n < i && n < nelem(locdns) && locdns[n]; n++)
 		if (strcmp(locdns[n], ipaddr) == 0) {
 			dnslog("rejecting duplicate local dns server ip %s",
 				ipaddr);
+			qunlock(&locdnslck);
 			return;
 		}
 	if (n < nelem(locdns))
 		if (locdns[n] == nil || ++n < nelem(locdns))
 			locdns[n] = strdup(ipaddr); /* remember first few local ns */
+	qunlock(&locdnslck);
 
 	/* ns record for name server, make up an impossible name */
 	rp = rralloc(Tns);

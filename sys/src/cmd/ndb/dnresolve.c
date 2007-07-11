@@ -882,8 +882,17 @@ mydnsquery(Query *qp, int medium, uchar *udppkt, int len)
 	NetConnInfo *nci;
 
 	queryck(qp);
+	domain = smprint("%I", udppkt);
+	if (myaddr(domain)) {
+		dnslog("mydnsquery: trying to send to myself (%s); bzzzt",
+			domain);
+		free(domain);
+		return rv;
+	}
+
 	switch (medium) {
 	case Udp:
+		free(domain);
 		nfd = dup(qp->udpfd, -1);
 		if (nfd < 0) {
 			warning("mydnsquery: qp->udpfd %d: %r", qp->udpfd);
@@ -907,7 +916,6 @@ mydnsquery(Query *qp, int medium, uchar *udppkt, int len)
 		break;
 	case Tcp:
 		/* send via TCP & keep fd around for reply */
-		domain = smprint("%I", udppkt);
 		alarm(10*1000);
 		qp->tcpfd = rv = dial(netmkaddr(domain, "tcp", "dns"), nil,
 			conndir, &qp->tcpctlfd);
@@ -1093,6 +1101,9 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 	soarr = rrremtype(&mp->ns, Tsoa);
 
 	/* incorporate answers */
+	unique(mp->an);
+	unique(mp->ns);
+	unique(mp->ar);
 	if(mp->an)
 		rrattach(mp->an, (mp->flags & Fauth) != 0);
 	if(mp->ar)
@@ -1435,6 +1446,7 @@ netquery(Query *qp, int depth)
 	int lock, rv, triedin, inname, lcktype;
 	char buf[32];
 	RR *rp;
+	DN *dp;
 
 	if(depth > 12)			/* in a recursive loop? */
 		return 0;
@@ -1451,8 +1463,9 @@ netquery(Query *qp, int depth)
 	 * just lock at top-level invocation.
 	 */
 	lock = depth <= 1 && qp->req->isslave != 0;
+	dp = qp->dp;		/* ensure that it doesn't change underfoot */
 	if(lock) {
-		procsetname("query lock wait: %s %s from %s", qp->dp->name,
+		procsetname("query lock wait: %s %s from %s", dp->name,
 			rrname(qp->type, buf, sizeof buf), qp->req->from);
 		/*
 		 * don't make concurrent queries for this name.
@@ -1462,10 +1475,10 @@ netquery(Query *qp, int depth)
 		 * causing us to query other nameservers.
 		 */
 		lcktype = qtype2lck(qp->type);
-		qlock(&qp->dp->querylck[lcktype]);
+		qlock(&dp->querylck[lcktype]);
 	} else
 		lcktype = 0;
-	procsetname("netquery: %s", qp->dp->name);
+	procsetname("netquery: %s", dp->name);
 
 	/* prepare server RR's for incremental lookup */
 	for(rp = qp->nsrp; rp; rp = rp->next)
@@ -1480,7 +1493,7 @@ netquery(Query *qp, int depth)
 	 * for inside addresses and /net.alt for outside addresses,
 	 * thus bypassing other inside nameservers.
 	 */
-	inname = insideaddr(qp->dp->name);
+	inname = insideaddr(dp->name);
 	if (!cfg.straddle || inname) {
 		rv = udpquery(qp, mntpt, depth, Hurry, (cfg.inside? Inns: Outns));
 		triedin = 1;
@@ -1494,7 +1507,7 @@ netquery(Query *qp, int depth)
 		if (triedin)
 			dnslog(
 	   "[%d] netquery: internal nameservers failed for %s; trying external",
-				getpid(), qp->dp->name);
+				getpid(), dp->name);
 
 		/* prepare server RR's for incremental lookup */
 		for(rp = qp->nsrp; rp; rp = rp->next)
@@ -1503,10 +1516,10 @@ netquery(Query *qp, int depth)
 		rv = udpquery(qp, "/net.alt", depth, Patient, Outns);
 	}
 //	if (rv == 0)		/* could ask /net.alt/dns directly */
-//		askoutdns(qp->dp, qp->type);
+//		askoutdns(dp, qp->type);
 
 	if(lock)
-		qunlock(&qp->dp->querylck[lcktype]);
+		qunlock(&dp->querylck[lcktype]);
 	return rv;
 }
 
