@@ -1,6 +1,6 @@
 	TEXT	memccpy(SB), $0
 #define	BDNZ	BC	16,0,
-MOVW R3, s1+0(FP)
+	MOVW	R3, s1+0(FP)
 	MOVW	n+12(FP), R7
 	MOVW	s2+4(FP), R4
 	MOVBZ	c+11(FP), R5
@@ -19,5 +19,5 @@ nf:
 	MOVW	$0, R3
 	RETURN
 eq:
-	MOVW	R4, R3
+	ADD	$1, R3
 	RETURN

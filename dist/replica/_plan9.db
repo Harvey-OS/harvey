@@ -15200,7 +15200,7 @@ sys/src/libc/power/getcallerpc.s - 664 sys sys 1138463299 52
 sys/src/libc/power/getfcr.s - 664 sys sys 944961719 352
 sys/src/libc/power/main9.s - 664 sys sys 1067719057 415
 sys/src/libc/power/main9p.s - 664 sys sys 1067719058 620
-sys/src/libc/power/memccpy.s - 664 sys sys 944961719 297
+sys/src/libc/power/memccpy.s - 664 sys sys 1184168801 297
 sys/src/libc/power/memcmp.s - 664 sys sys 944961719 1493
 sys/src/libc/power/memmove.s - 664 sys sys 1032061787 2479
 sys/src/libc/power/memset.s - 664 sys sys 1032061239 1211
