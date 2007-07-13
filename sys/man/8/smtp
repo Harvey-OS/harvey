@@ -2,21 +2,22 @@
 .SH NAME
 smtp, smtpd \-  mail transport
 .SH SYNOPSIS
-.PP
+.in +0.5i
+.ti -0.5i
 .B upas/smtp
 [
-.B -dfas
-][
+.B -aAdfips
+] [
 .B -g
 .I gateway
-][
+] [
 .B -h
 .I host
-][
+] [
 .B -u
 .I user
-][
-.I .domain
+] [
+.BI . domain
 ]
 .I destaddr
 .I sender
@@ -25,19 +26,20 @@ smtp, smtpd \-  mail transport
 .B upas/smtpd
 [
 .B -adDfrg
-][
+] [
 .B -c
 .I certfile
-][
+] [
 .B -h
 .I mydom
-][
+] [
 .B -k
 .I evilipaddr
-][
+] [
 .B -n
 .I netdir
 ]
+.in -0.5i
 .SH DESCRIPTION
 .I Smtp
 sends the mail message from standard input
@@ -48,9 +50,6 @@ on the host at network address
 using the Simple Mail Transfer Protocol.
 The options are:
 .TP
-.B -d
-turn on debugging to standard error.
-.TP
 .B -a
 if the server supports PLAIN or LOGIN authentication,
 authenticate to the server using a password from
@@ -59,21 +58,14 @@ See RFCs 3207 and 2554.
 This option implies
 .BR -s .
 .TP
-.B -s
-if the server supports the ESMTP extension to use TLS encryption, turn it on for
-this session.  See RFC3207 for details.
+.B -A
+autistic server: don't wait for an SMTP greeting banner
+but immediately send a
+.L NOOP
+command to provoke the server into responding.
 .TP
-.B -u
-specify a user name to be used in authentication.  The default name is
-the current login id.
-.TP
-.B -h
-use
-.I host
-as the local system name;
-it may be fully-qualified or not.  If not
-specified, it will default to the contents of
-.BR /dev/sysname .
+.B -d
+turn on debugging to standard error.
 .TP
 .B -f
 just filter the converted message to standard
@@ -84,6 +76,34 @@ makes
 .I gateway
 the system to pass the message to if smtp can't
 find an address or MX entry for the destination system.
+.TP
+.B -h
+use
+.I host
+as the local system name;
+it may be fully-qualified or not.  If not
+specified, it will default to the contents of
+.BR /dev/sysname .
+.TP
+.B -i
+under
+.BR -a ,
+authenticate even if we can't start TLS.
+.TP
+.B -p
+ping: just verify that the users named in the
+.I rcpt-list
+are valid users at
+.IR destaddr ;
+don't send any mail.
+.TP
+.B -s
+if the server supports the ESMTP extension to use TLS encryption, turn it on for
+this session.  See RFC3207 for details.
+.TP
+.B -u
+specify a user name to be used in authentication.  The default name is
+the current login id.
 .PD
 .PP
 Finally if
@@ -136,8 +156,7 @@ first looks for the file
 .BI /mail/grey/tmp/\| local-ipaddr /\| remote-ipaddr /\| recipient.
 If it exists, the remote address is added to the whitelist.  If
 not, the file is created and the mail is rejected with a `try again'
-code.  The expectation is that spammers will not retry and that others
-will.
+code.  The expectation is that spammers will not retry and that others will.
 .TP
 .B -h
 specifies the receiving domain.  If this flag is not specified, the
