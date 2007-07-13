@@ -8,39 +8,43 @@
 static	char*	connect(char*);
 static	char*	dotls(char*);
 static	char*	doauth(char*);
-char*	hello(char*, int);
-char*	mailfrom(char*);
-char*	rcptto(char*);
-char*	data(String*, Biobuf*);
-void	quit(char*);
-int	getreply(void);
+
 void	addhostdom(String*, char*);
 String*	bangtoat(char*);
 String*	convertheader(String*);
-int	printheader(void);
-char*	domainify(char*, char*);
-void	putcrnl(char*, int);
-char*	getcrnl(String*);
-int	printdate(Node*);
-char	*rewritezone(char *);
 int	dBprint(char*, ...);
 int	dBputc(int);
+char*	data(String*, Biobuf*);
+char*	domainify(char*, char*);
 String*	fixrouteaddr(String*, Node*, Node*);
-int	ping;
-int	insecure;
+char*	getcrnl(String*);
+int	getreply(void);
+char*	hello(char*, int);
+char*	mailfrom(char*);
+int	printdate(Node*);
+int	printheader(void);
+void	putcrnl(char*, int);
+void	quit(char*);
+char*	rcptto(char*);
+char	*rewritezone(char *);
 
 #define Retry	"Retry, Temporary Failure"
 #define Giveup	"Permanent Failure"
 
-int	debug;		/* true if we're debugging */
 String	*reply;		/* last reply */
 String	*toline;
+
 int	alarmscale;
-int	last = 'n';	/* last character sent by putcrnl() */
+int	autistic;
+int	debug;		/* true if we're debugging */
 int	filter;
-int	trysecure;	/* Try to use TLS if the other side supports it */
-int	tryauth;	/* Try to authenticate, if supported */
+int	insecure;
+int	last = 'n';	/* last character sent by putcrnl() */
+int	ping;
 int	quitting;	/* when error occurs in quit */
+int	tryauth;	/* Try to authenticate, if supported */
+int	trysecure;	/* Try to use TLS if the other side supports it */
+
 char	*quitrv;	/* deferred return value when in quit */
 char	ddomain[1024];	/* domain name of destination machine */
 char	*gdomain;	/* domain name of gateway */
@@ -48,6 +52,7 @@ char	*uneaten;	/* first character after rfc822 headers */
 char	*farend;	/* system we are trying to send to */
 char	*user;		/* user we are authenticating as, if authenticating */
 char	hostdomain[256];
+
 Biobuf	bin;
 Biobuf	bout;
 Biobuf	berr;
@@ -56,8 +61,9 @@ Biobuf	bfile;
 void
 usage(void)
 {
-	fprint(2, "usage: smtp [-adips] [-uuser] [-hhost] [.domain] net!host[!service] sender rcpt-list\n");
-	exits(Giveup); 
+	fprint(2, "usage: smtp [-aAdfips] [-g gw] [-h host] [-u user] "
+		"[.domain] net!host[!service] sender rcpt-list\n");
+	exits(Giveup);
 }
 
 int
@@ -97,15 +103,11 @@ removenewline(char *p)
 void
 main(int argc, char **argv)
 {
-	char hellodomain[256];
-	char *host, *domain;
-	String *from;
-	String *fromm;
-	String *sender;
-	char *addr;
-	char *rv, *trv;
 	int i, ok, rcvrs;
+	char *addr, *rv, *trv, *host, *domain;
 	char **errs;
+	char hellodomain[256];
+	String *from, *fromm, *sender;
 
 	alarmscale = 60*1000;	/* minutes */
 	quotefmtinstall();
@@ -117,17 +119,20 @@ main(int argc, char **argv)
 		tryauth = 1;
 		trysecure = 1;
 		break;
-	case 'f':
-		filter = 1;
+	case 'A':	/* autistic: won't talk to us until we talk (Verizon) */
+		autistic = 1;
 		break;
 	case 'd':
 		debug = 1;
 		break;
+	case 'f':
+		filter = 1;
+		break;
 	case 'g':
-		gdomain = ARGF();
+		gdomain = EARGF(usage());
 		break;
 	case 'h':
-		host = ARGF();
+		host = EARGF(usage());
 		break;
 	case 'i':
 		insecure = 1;
@@ -140,7 +145,7 @@ main(int argc, char **argv)
 		trysecure = 1;
 		break;
 	case 'u':
-		user = ARGF();
+		user = EARGF(usage());
 		break;
 	default:
 		usage();
@@ -442,7 +447,15 @@ hello(char *me, int encrypted)
 	String *r;
 	char *ret, *s, *t;
 
-	if (!encrypted)
+	if (!encrypted) {
+		/*
+		 * Verizon fails to print the smtp greeting banner when it
+		 * answers a call.  Send a no-op in the hope of making it
+		 * talk.
+		 */
+		if (autistic)
+			dBprint("NOOP\r\n");
+
 		switch(getreply()){
 		case 2:
 			break;
@@ -451,6 +464,7 @@ hello(char *me, int encrypted)
 		default:
 			return Retry;
 		}
+	}
 
 	ehlo = 1;
   Again:
@@ -483,7 +497,7 @@ hello(char *me, int encrypted)
 		    (strcmp(s, "250-STARTTLS") == 0 ||
 		     strcmp(s, "250 STARTTLS") == 0)){
 			s_free(r);
-			return(dotls(me));
+			return dotls(me);
 		}
 		if(tryauth && (encrypted || insecure) &&
 		    (strncmp(s, "250 AUTH", strlen("250 AUTH")) == 0 ||
@@ -641,7 +655,7 @@ data(String *from, Biobuf *b)
 		nbytes += Bprint(&bout, "Message-ID: <%s@%s>\r\n", id, hostdomain);
 		if(debug)
 			Bprint(&berr, "Message-ID: <%s@%s>\r\n", id, hostdomain);
-	}	
+	}
 
 	if(originator==0){
 		nbytes += Bprint(&bout, "From: %s\r\n", s_to_c(fromline));
@@ -672,7 +686,7 @@ data(String *from, Biobuf *b)
 	/*
 	 *  send body
 	 */
-		
+
 	putcrnl(uneaten, buf+n - uneaten);
 	nbytes += buf+n - uneaten;
 	if(eof == 0){

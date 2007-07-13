@@ -17,9 +17,9 @@ struct Etherhdr
 };
 
 static uchar ipbroadcast[IPaddrlen] = {
-	0xff,0xff,0xff,0xff,  
-	0xff,0xff,0xff,0xff,  
-	0xff,0xff,0xff,0xff,  
+	0xff,0xff,0xff,0xff,
+	0xff,0xff,0xff,0xff,
+	0xff,0xff,0xff,0xff,
 	0xff,0xff,0xff,0xff,
 };
 
@@ -152,7 +152,7 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 			cclose(cchan6);
 		if(buf != nil)
 			free(buf);
-		nexterror(); 
+		nexterror();
 	}
 
 	/*
@@ -288,7 +288,7 @@ etherbwrite(Ipifc *ifc, Block *bp, int version, uchar *ip)
 			case V4:
 				sendarp(ifc, a);
 				break;
-			case V6: 
+			case V6:
 				resolveaddr6(ifc, a);
 				break;
 			default:
@@ -499,9 +499,7 @@ sendarp(Ipifc *ifc, Arpent *a)
 	hnputs(e->op, ARPREQUEST);
 	bp->wp += n;
 
-	n = devtab[er->achan->type]->bwrite(er->achan, bp, 0);
-	if(n < 0)
-		print("arp: send: %r\n");
+	devtab[er->achan->type]->bwrite(er->achan, bp, 0);
 }
 
 static void
@@ -537,7 +535,7 @@ resolveaddr6(Ipifc *ifc, Arpent *a)
 	a->rxtsrem--;
 	arprelease(er->f->arp, a);
 
-	if(sflag = ipv6anylocal(ifc, ipsrc)) 
+	if(sflag = ipv6anylocal(ifc, ipsrc))
 		icmpns(er->f, ipsrc, sflag, a->ip, TARG_MULTI, ifc->mac);
 }
 
@@ -576,9 +574,7 @@ sendgarp(Ipifc *ifc, uchar *ip)
 	hnputs(e->op, ARPREQUEST);
 	bp->wp += n;
 
-	n = devtab[er->achan->type]->bwrite(er->achan, bp, 0);
-	if(n < 0)
-		print("garp: send: %r\n");
+	devtab[er->achan->type]->bwrite(er->achan, bp, 0);
 }
 
 static void
@@ -592,10 +588,8 @@ recvarp(Ipifc *ifc)
 	Etherrock *er = ifc->arg;
 
 	ebp = devtab[er->achan->type]->bread(er->achan, ifc->maxtu, 0);
-	if(ebp == nil) {
-		print("arp: rcv: %r\n");
+	if(ebp == nil)
 		return;
-	}
 
 	e = (Etherarp*)ebp->rp;
 	switch(nhgets(e->op)) {
@@ -675,9 +669,7 @@ recvarp(Ipifc *ifc)
 		memmove(r->s, ifc->mac, sizeof(r->s));
 		rbp->wp += n;
 
-		n = devtab[er->achan->type]->bwrite(er->achan, rbp, 0);
-		if(n < 0)
-			print("arp: write: %r\n");
+		devtab[er->achan->type]->bwrite(er->achan, rbp, 0);
 	}
 	freeb(ebp);
 }
@@ -761,11 +753,11 @@ ethermediumlink(void)
 }
 
 
-static void 
+static void
 etherpref2addr(uchar *pref, uchar *ea)
 {
-	pref[8]  = ea[0] | 0x2;
-	pref[9]  = ea[1];
+	pref[8] = ea[0] | 0x2;
+	pref[9] = ea[1];
 	pref[10] = ea[2];
 	pref[11] = 0xFF;
 	pref[12] = 0xFE;

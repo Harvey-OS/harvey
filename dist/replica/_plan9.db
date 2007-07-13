@@ -7823,7 +7823,7 @@ sys/man/8/scuzz - 664 sys sys 1171566796 8701
 sys/man/8/secstore - 664 sys sys 1105016705 1954
 sys/man/8/securenet - 664 sys sys 954305552 3160
 sys/man/8/send - 664 sys sys 1045501634 2168
-sys/man/8/smtp - 664 sys sys 1182748396 4590
+sys/man/8/smtp - 664 sys sys 1184276342 4963
 sys/man/8/snoopy - 664 sys sys 1169851832 4442
 sys/man/8/stats - 664 sys sys 1161483511 4336
 sys/man/8/statusbar - 664 sys sys 1159419702 1254
@@ -7962,7 +7962,7 @@ sys/src/9/ip/chandial.c - 664 sys sys 1099020048 2295
 sys/src/9/ip/devip.c - 664 sys sys 1161061185 24242
 sys/src/9/ip/eipconvtest.c - 664 sys sys 1022588098 3135
 sys/src/9/ip/esp.c - 664 sys sys 1047260561 17084
-sys/src/9/ip/ethermedium.c - 664 sys sys 1182317888 15596
+sys/src/9/ip/ethermedium.c - 664 sys sys 1184244252 15419
 sys/src/9/ip/gre.c - 664 sys sys 1115566178 5069
 sys/src/9/ip/icmp.c - 664 sys sys 1134390100 9496
 sys/src/9/ip/icmp6.c - 664 sys sys 1179511008 18019
@@ -14244,7 +14244,7 @@ sys/src/cmd/upas/smtp/mkfile - 664 sys sys 1108910002 801
 sys/src/cmd/upas/smtp/mxdial.c - 664 sys sys 1176837561 6567
 sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417
 sys/src/cmd/upas/smtp/rmtdns.c - 664 sys sys 1015013150 1069
-sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1143759341 20123
+sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1184276287 20431
 sys/src/cmd/upas/smtp/smtp.h - 664 sys sys 1108827986 1270
 sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1181513473 32835
 sys/src/cmd/upas/smtp/smtpd.h - 664 sys sys 1067722781 1111
@@ -15843,3 +15843,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+sys/games/lib/fortunes - 664 sys sys 1184296157 266118
