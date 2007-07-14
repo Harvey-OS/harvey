@@ -565,7 +565,7 @@
 386/lib/libhttpd.a - 664 sys sys 1181332906 99734
 386/lib/libip.a - 664 sys sys 1178826954 34710
 386/lib/libl.a - 664 sys sys 1168402367 5372
-386/lib/libmach.a - 664 sys sys 1178939757 807390
+386/lib/libmach.a - 664 sys sys 1184380786 807390
 386/lib/libmemdraw.a - 664 sys sys 1168402369 284092
 386/lib/libmemlayer.a - 664 sys sys 1168402369 47360
 386/lib/libmp.a - 664 sys sys 1181332906 79978
@@ -7804,7 +7804,7 @@ sys/man/8/mkpaqfs - 664 sys sys 1181261121 890
 sys/man/8/mksacfs - 664 sys sys 964886843 710
 sys/man/8/mouse - 664 sys sys 971455511 2476
 sys/man/8/na - 664 sys sys 958527089 859
-sys/man/8/ndb - 664 sys sys 1176932150 13254
+sys/man/8/ndb - 664 sys sys 1184303541 13255
 sys/man/8/newuser - 664 sys sys 1116954242 2418
 sys/man/8/nfsserver - 664 sys sys 1163208425 3587
 sys/man/8/pcmcia - 664 sys sys 944959679 408
@@ -9242,7 +9242,7 @@ sys/src/cmd/5a/l.s - 664 sys sys 969512489 655
 sys/src/cmd/5a/lex.c - 664 sys sys 1089299175 11260
 sys/src/cmd/5a/mkfile - 664 sys sys 944960723 215
 sys/src/cmd/5c - 20000000775 sys sys 1039727541 0
-sys/src/cmd/5c/5.out.h - 664 sys sys 1089299174 2566
+sys/src/cmd/5c/5.out.h - 664 sys sys 1184360192 2602
 sys/src/cmd/5c/cgen.c - 664 sys sys 1183570553 19784
 sys/src/cmd/5c/enam.c - 664 sys sys 1089299175 849
 sys/src/cmd/5c/gc.h - 664 sys sys 1143759353 6146
@@ -9251,7 +9251,7 @@ sys/src/cmd/5c/mkenam - 664 sys sys 944960723 112
 sys/src/cmd/5c/mkfile - 664 sys sys 1143240319 374
 sys/src/cmd/5c/mul.c - 664 sys sys 969500849 9271
 sys/src/cmd/5c/peep.c - 664 sys sys 1143759351 24458
-sys/src/cmd/5c/reg.c - 664 sys sys 1089299174 19492
+sys/src/cmd/5c/reg.c - 664 sys sys 1184360192 19498
 sys/src/cmd/5c/sgen.c - 664 sys sys 1143241856 3066
 sys/src/cmd/5c/swt.c - 664 sys sys 1143384790 11028
 sys/src/cmd/5c/txt.c - 664 sys sys 1183570604 19423
@@ -12820,7 +12820,7 @@ sys/src/cmd/mv.c - 664 sys sys 1163029439 4682
 sys/src/cmd/ndb - 20000000775 sys sys 1080135004 0
 sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1182554015 7035
 sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1183866367 11830
-sys/src/cmd/ndb/cs.c - 664 sys sys 1182275681 33213
+sys/src/cmd/ndb/cs.c - 664 sys sys 1184303534 32981
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1174626119 1073
 sys/src/cmd/ndb/dblookup.c - 664 sys sys 1184108014 22529
 sys/src/cmd/ndb/dn.c - 664 sys sys 1184026098 35996

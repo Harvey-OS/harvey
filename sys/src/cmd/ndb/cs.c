@@ -150,31 +150,25 @@ struct Network
 
 enum
 {
-	Ntcp,
+	Ntcp = 0,
 //	Nilfast,
-	Nil,
-	Nudp,
-	Nicmp,
-	Nicmpv6,
-	Nrudp,
-	Ntelco,
+
+//	Fasttimeout = 1,
 };
 
 /*
  *  net doesn't apply to (r)udp, icmp(v6), or telco (for speed).
- *  there should be no gaps in this table, as a zero entry terminates
- *  the "net!" search.
  */
 Network network[] = {
-[Ntcp]		{ "tcp",	iplookup,	iptrans,	0, 0 },
-// [Nilfast]	{ "il",		iplookup,	iptrans,	0, 1 },
-[Nil]		{ "il",		iplookup,	iptrans,	0, 0 },
-[Nudp]		{ "udp",	iplookup,	iptrans,	1, 0 },
-[Nicmp]		{ "icmp",	iplookup,	iptrans,	1, 0 },
-[Nicmpv6]	{ "icmpv6",	iplookup,	iptrans,	1, 0 },
-[Nrudp]		{ "rudp",	iplookup,	iptrans,	1, 0 },
-[Ntelco]	{ "telco",	telcolookup,	telcotrans,	1, 0 },
-		{ 0 },
+[Ntcp]	{ "tcp",	iplookup,	iptrans,	0, 0 },
+// [Nilfast]{ "il",	iplookup,	iptrans,	0, Fasttimeout },
+	{ "il",		iplookup,	iptrans,	0, 0 },
+	{ "udp",	iplookup,	iptrans,	1, 0 },
+	{ "icmp",	iplookup,	iptrans,	1, 0 },
+	{ "icmpv6",	iplookup,	iptrans,	1, 0 },
+	{ "rudp",	iplookup,	iptrans,	1, 0 },
+	{ "telco",	telcolookup,	telcotrans,	1, 0 },
+	{ 0 },
 };
 
 Lock ipifclock;
@@ -198,17 +192,15 @@ nstrcpy(char *to, char *from, int len)
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-d] [-f ndb-file] [-x netmtpt] [-n]\n", argv0);
+	fprint(2, "usage: %s [-dn] [-f ndb-file] [-x netmtpt]\n", argv0);
 	exits("usage");
 }
 
 void
 main(int argc, char *argv[])
 {
-	char servefile[Maxpath];
 	int justsetname;
-	char *p;
-	char ext[Maxpath];
+	char ext[Maxpath], servefile[Maxpath];
 
 	justsetname = 0;
 	setnetmtpt(mntpt, sizeof(mntpt), nil);
@@ -218,20 +210,14 @@ main(int argc, char *argv[])
 		debug = 1;
 		break;
 	case 'f':
-		p = ARGF();
-		if(p == nil)
-			usage();
-		dbfile = p;
-		break;
-	case 'x':
-		p = ARGF();
-		if(p == nil)
-			usage();
-		setnetmtpt(mntpt, sizeof(mntpt), p);
-		setext(ext, sizeof(ext), mntpt);
+		dbfile = EARGF(usage());
 		break;
 	case 'n':
 		justsetname = 1;
+		break;
+	case 'x':
+		setnetmtpt(mntpt, sizeof(mntpt), EARGF(usage()));
+		setext(ext, sizeof(ext), mntpt);
 		break;
 	}ARGEND
 	USED(argc);

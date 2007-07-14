@@ -1117,15 +1117,15 @@ long
 RtoB(int r)
 {
 
-	if(r < 2 || r >= REGTMP)
-		return 0;
-	return 1L << r;
+	if(r >= REGMIN && r <= REGMAX)
+		return 1L << r;
+	return 0;
 }
 
 int
 BtoR(long b)
 {
-	b &= 0x07fcL;
+	b &= 0x01fcL;
 	if(b == 0)
 		return 0;
 	return bitno(b);
