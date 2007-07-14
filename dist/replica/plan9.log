@@ -49489,3 +49489,8 @@
 1184277604 0 c sys/man/8/smtp - 664 sys sys 1184276342 4963
 1184277604 1 c sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1184276287 20431
 1184297411 0 c sys/games/lib/fortunes - 664 sys sys 1184296157 266118
+1184304610 0 c sys/man/8/ndb - 664 sys sys 1184303541 13255
+1184304610 1 c sys/src/cmd/ndb/cs.c - 664 sys sys 1184303534 32981
+1184360411 0 c sys/src/cmd/5c/5.out.h - 664 sys sys 1184360192 2602
+1184360411 1 c sys/src/cmd/5c/reg.c - 664 sys sys 1184360192 19498
+1184382004 0 c 386/lib/libmach.a - 664 sys sys 1184380786 807390

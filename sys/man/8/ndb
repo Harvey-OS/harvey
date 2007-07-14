@@ -217,7 +217,7 @@ are specified,
 .I ndb/csquery
 prints their translations and immediately exits.
 The exit status will be nil only if all addresses 
-were successfully translated
+were successfully translated.
 The
 .B -s
 flag sets exit status without printing any results.
