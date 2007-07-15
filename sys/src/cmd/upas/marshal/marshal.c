@@ -176,6 +176,15 @@ fatal(char *fmt, ...)
 	exits(buf);
 }
 
+static void
+bwritesfree(Biobuf *bp, String **str)
+{
+	if(Bwrite(bp, s_to_c(*str), s_len(*str)) != s_len(*str))
+		fatal("write error");
+	s_free(*str);
+	*str = nil;
+}
+
 void
 main(int argc, char **argv)
 {
@@ -278,10 +287,8 @@ main(int argc, char **argv)
 	if(!eightflag){
 		to = expand(argc, argv);
 		cc = expand(ccargc, ccargv);
-	} else {
-		to = nil;
-		cc = nil;
-	}
+	} else
+		to = cc = nil;
 
 	flags = 0;
 	headersrv = Nomessage;
@@ -325,29 +332,18 @@ main(int argc, char **argv)
 	if(Binit(&out, fd, OWRITE) < 0)
 		fatal("can't Binit 1: %r");
 
-	if(!nflag){
-		if(Bwrite(&out, s_to_c(hdrstring), s_len(hdrstring)) !=
-		    s_len(hdrstring))
-			fatal("write error");
-		s_free(hdrstring);
-		hdrstring = nil;
+	if(!nflag)
+		bwritesfree(&out, &hdrstring);
 
-		/* read user's standard headers */
-		file = s_new();
-		mboxpath("headers", user, file, 0);
-		b = Bopen(s_to_c(file), OREAD);
-		if(b != nil){
-			switch(readheaders(b, &flags, &hdrstring, nil, 0)){
-			case Error:			/* error */
-				fatal("reading");
-			}
-			Bterm(b);
-			if(Bwrite(&out, s_to_c(hdrstring), s_len(hdrstring)) !=
-			    s_len(hdrstring))
-				fatal("write error");
-			s_free(hdrstring);
-			hdrstring = nil;
-		}
+	/* read user's standard headers */
+	file = s_new();
+	mboxpath("headers", user, file, 0);
+	b = Bopen(s_to_c(file), OREAD);
+	if(b != nil){
+		if (readheaders(b, &flags, &hdrstring, nil, 0) == Error)
+			fatal("reading");
+		Bterm(b);
+		bwritesfree(&out, &hdrstring);
 	}
 
 	/* add any headers we need */

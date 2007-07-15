@@ -36,16 +36,19 @@ char *sys_errlist[] = {
 	"No such system call",
 	"Not a directory",
 	"Directory not empty",
-	"Notty",
-	"Nxio",
+	"Inappropriate ioctl",
+	"No such device or address",
 	"Permission denied",
 	"Broken pipe",
 	"Read-only file system",
-	"Spipe",
-	"Srch",
+	"Illegal seek",
+	"No such process",
 	"Cross-device link",
+
+	/* bsd networking software */
 	"Not a socket",
-	"Protocol not supported",
+	"Protocol not supported",	/* EPROTONOSUPPORT, EPROTOTYPE */
+/*	"Protocol wrong type for socket",	/* EPROTOTYPE */
 	"Connection refused",
 	"Address family not supported",
 	"No buffers",
@@ -55,6 +58,7 @@ char *sys_errlist[] = {
 	"Message size",
 	"Protocol option not supported",
 	"Socket option not supported",
+	"Protocol family not supported",	/* EPFNOSUPPORT */
 	"Address not available",
 	"Network down",
 	"Network unreachable",
@@ -66,8 +70,10 @@ char *sys_errlist[] = {
 	"Too many references",
 	"Timed out",
 	"Host down",
-	"Hout unreachable",
-	"Unknown error",
+	"Host unreachable",
+	"Unknown error",		/* EGREG */
+
+	/* These added in 1003.1b-1993 */
 	"Operation canceled",
 	"Operation in progress"
 };

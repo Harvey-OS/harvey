@@ -99,8 +99,8 @@ struct	linger {
 #define	AF_ROUTE	17		/* Internal Routing Protocol */
 #define	AF_LINK		18		/* Link layer interface */
 #define	pseudo_AF_XTP	19		/* eXpress Transfer Protocol (no AF) */
-
-#define	AF_MAX		20
+#define AF_INET6	24		/* IP version 6 */
+#define	AF_MAX		30
 
 /*
  * Structure used by kernel to store most
@@ -144,6 +144,7 @@ struct sockproto {
 #define	PF_ROUTE	AF_ROUTE
 #define	PF_LINK		AF_LINK
 #define	PF_XTP		pseudo_AF_XTP	/* really just proto family, no AF */
+#define	PF_INET6	AF_INET6
 
 #define	PF_MAX		AF_MAX
 

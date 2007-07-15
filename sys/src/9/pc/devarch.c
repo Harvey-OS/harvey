@@ -22,9 +22,9 @@ static struct
 	Lock;
 	IOMap	*m;
 	IOMap	*free;
-	IOMap	maps[32];		// some initial free maps
+	IOMap	maps[32];	/* some initial free maps */
 
-	QLock	ql;			// lock for reading map
+	QLock	ql;		/* lock for reading map */
 } iomap;
 
 enum {
@@ -110,9 +110,9 @@ ioinit(void)
 	/*
 	 * This is necessary to make the IBM X20 boot.
 	 * Have not tracked down the reason.
+	 * i82557 is at 0x1000, the dummy entry is needed for swappable devs.
 	 */
-	ioalloc(0x0fff, 1, 0, "dummy");	// i82557 is at 0x1000, the dummy
-					// entry is needed for swappable devs.
+	ioalloc(0x0fff, 1, 0, "dummy");
 
 	if ((excluded = getconf("ioexclude")) != nil) {
 		char *s;
@@ -140,9 +140,11 @@ ioinit(void)
 
 }
 
-// Reserve a range to be ioalloced later. 
-// This is in particular useful for exchangable cards, such
-// as pcmcia and cardbus cards.
+/*
+ * Reserve a range to be ioalloced later.
+ * This is in particular useful for exchangable cards, such
+ * as pcmcia and cardbus cards.
+ */
 int
 ioreserve(int, int size, int align, char *tag)
 {
@@ -150,7 +152,7 @@ ioreserve(int, int size, int align, char *tag)
 	int i, port;
 
 	lock(&iomap);
-	// find a free port above 0x400 and below 0x1000
+	/* find a free port above 0x400 and below 0x1000 */
 	port = 0x400;
 	for(l = &iomap.m; *l; l = &(*l)->next){
 		m = *l;
@@ -188,10 +190,10 @@ ioreserve(int, int size, int align, char *tag)
 	return m->start;
 }
 
-//
-//	alloc some io port space and remember who it was
-//	alloced to.  if port < 0, find a free region.
-//
+/*
+ *	alloc some io port space and remember who it was
+ *	alloced to.  if port < 0, find a free region.
+ */
 int
 ioalloc(int port, int size, int align, char *tag)
 {
@@ -200,7 +202,7 @@ ioalloc(int port, int size, int align, char *tag)
 
 	lock(&iomap);
 	if(port < 0){
-		// find a free port above 0x400 and below 0x1000
+		/* find a free port above 0x400 and below 0x1000 */
 		port = 0x400;
 		for(l = &iomap.m; *l; l = &(*l)->next){
 			m = *l;
@@ -218,12 +220,12 @@ ioalloc(int port, int size, int align, char *tag)
 			return -1;
 		}
 	} else {
-		// Only 64KB I/O space on the x86.
+		/* Only 64KB I/O space on the x86. */
 		if((port+size) > 0x10000){
 			unlock(&iomap);
 			return -1;
 		}
-		// see if the space clashes with previously allocated ports
+		/* see if the space clashes with previously allocated ports */
 		for(l = &iomap.m; *l; l = &(*l)->next){
 			m = *l;
 			if(m->end <= port)
@@ -288,7 +290,7 @@ iounused(int start, int end)
 	for(m = iomap.m; m; m = m->next){
 		if(start >= m->start && start < m->end
 		|| start <= m->start && end > m->start)
-			return 0; 
+			return 0;
 	}
 	return 1;
 }
@@ -504,7 +506,7 @@ static int
 cmpswap386(long *addr, long old, long new)
 {
 	int r, s;
-	
+
 	s = splhi();
 	if(r = (*addr == old))
 		*addr = new;
@@ -699,7 +701,7 @@ cpuidentify(void)
 		tab = x86sis;
 	else
 		tab = x86intel;
-	
+
 	family = X86FAMILY(m->cpuidax);
 	model = X86MODEL(m->cpuidax);
 	for(t=tab; t->name; t++)
@@ -745,13 +747,13 @@ cpuidentify(void)
 				rdmsr(0x01, &mct);
 			}
 		}
-	
+
 		/*
 		 * Detect whether the chip supports the global bit
 		 * in page directory and page table entries.  When set
 		 * in a particular entry, it means ``don't bother removing
-		 * this from the TLB when CR3 changes.''  
-		 * 
+		 * this from the TLB when CR3 changes.''
+		 *
 		 * We flag all kernel pages with this bit.  Doing so lessens the
 		 * overhead of switching processes on bare hardware,
 		 * even more so on VMware.  See mmu.c:/^memglobal.
@@ -792,7 +794,7 @@ archctlread(Chan*, void *a, long nn, vlong offset)
 {
 	char buf[256];
 	int n;
-	
+
 	n = snprint(buf, sizeof buf, "cpu %s %lud%s\n",
 		cputype->name, (ulong)(m->cpuhz+999999)/1000000,
 		m->havepge ? " pge" : "");

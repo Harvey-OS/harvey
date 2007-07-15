@@ -51,7 +51,7 @@ enum
 	StatusChange =	1<<1,	/* write 1 to clear */
 	DevicePresent =	1<<0,
 
-	NFRAME = 	1024,
+	NFRAME = 	1024,		/* must be power of 2 for xspanalloc */
 	FRAMESIZE=	NFRAME*sizeof(ulong), /* fixed by hardware; aligned to same */
 
 	Vf =		1<<2,	/* TD only */
@@ -605,7 +605,7 @@ queueqh(Ctlr *ctlr, QH *qh)
 {
 	QH *q;
 
-	// See if it's already queued
+	/* See if it's already queued */
 	for (q = ctlr->recvq->next; q; q = q->hlink)
 		if (q == qh)
 			return;
@@ -1410,15 +1410,16 @@ scanpci(void)
 			continue;
 		}
 		if(io == 0) {
-			print("usbuhci: failed to map registers\n");
+			print("usbuhci: %x/%x failed to map registers\n",
+				p->vid, p->did);
 			continue;
 		}
 		if(ioalloc(io, p->mem[4].size, 0, "usbuhci") < 0){
-			print("usbuhci: port %d in use\n", io);
+			print("usbuhci: port %#ux in use\n", io);
 			continue;
 		}
 		if(p->intl == 0xFF || p->intl == 0) {
-			print("usbuhci: no irq assigned for port %d\n", io);
+			print("usbuhci: no irq assigned for port %#ux\n", io);
 			continue;
 		}
 

@@ -8,7 +8,7 @@
  * version (from The Labs) of a driver written by Coraid, Inc.
  * The original copyright notice appears at the end of this file.
  */
- 
+
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
@@ -25,7 +25,7 @@
 
 enum{
 	NCtlr		= 4,
-	NCtlrdrv		= 8,
+	NCtlrdrv	= 8,
 	NDrive		= NCtlr*NCtlrdrv,
 
 	Read 		= 0,
@@ -53,13 +53,13 @@ enum {
 	ATAbusy 	= (1<<7),
 	ATAabort	= (1<<2),
 	ATAobs		= (1<<1 | 1<<2 | 1<<4),
-	ATAeIEN	= (1<<1),
+	ATAeIEN		= (1<<1),
 	ATAsrst		= (1<<2),
 	ATAhob		= (1<<7),
 	ATAbad		= (ATAbusy|ATAdf|ATAdrq|ATAerr),
 
 	SFdone 		= (1<<0),
-	SFerror 		= (1<<1),
+	SFerror 	= (1<<1),
 
 	SRBident 	= 0,
 	SRBread,
@@ -70,7 +70,7 @@ enum {
 	SRBdatain,
 	SRBdataout,
 
-	RQread		= 1,			/* data coming IN from device */
+	RQread		= 1,		/* data coming IN from device */
 
 	PRDeot		= (1<<15),
 
@@ -79,17 +79,17 @@ enum {
 	ePrtDataErr	= (1<<0),
 	ePrtPRDErr	= (1<<1),
 	eDevErr		= (1<<2),
-	eDevDis		= (1<<3),	
-	eDevCon	= (1<<4),
+	eDevDis		= (1<<3),
+	eDevCon		= (1<<4),
 	eOverrun	= (1<<5),
 	eUnderrun	= (1<<6),
-	eSelfDis		= (1<<8),
+	eSelfDis	= (1<<8),
 	ePrtCRQBErr	= (1<<9),
 	ePrtCRPBErr	= (1<<10),
 	ePrtIntErr	= (1<<11),
 	eIORdyErr	= (1<<12),
 
-	// flags for sata 2 version
+	/* flags for sata 2 version */
 	eSelfDis2	= (1<<7),
 	SerrInt		= (1<<5),
 
@@ -97,7 +97,7 @@ enum {
 
 	eEnEDMA	= (1<<0),
 	eDsEDMA 	= (1<<1),
-	eAtaRst 		= (1<<2),
+	eAtaRst 	= (1<<2),
 
 	/* Interrupt mask for errors we care about */
 	IEM		= (eDevDis | eDevCon | eSelfDis),
@@ -119,7 +119,7 @@ enum {
 	Dedma		= (1<<3),	/* device in edma mode */
 	Dpiowant	= (1<<4),	/* some wants to use the pio mode */
 
-	// phyerrata magic crap
+	/* phyerrata magic crap */
 	Mpreamp	= 0x7e0,
 	Dpreamp	= 0x720,
 
@@ -150,8 +150,10 @@ typedef struct Rx Rx;
 typedef struct Srb Srb;
 typedef struct Tx Tx;
 
-// there are 4 drives per chip.  thus an 8-port
-// card has two chips.
+/*
+ * there are 4 drives per chip.  thus an 8-port
+ * card has two chips.
+ */
 struct Chip
 {
 	Arb	*arb;
@@ -182,10 +184,10 @@ struct Drive
 	int	state;
 	int	flag;
 	uvlong	sectors;
-	ulong	pm2;		// phymode 2 init state
-	ulong	intick;		// check for hung westerdigital drives.
+	ulong	pm2;		/* phymode 2 init state */
+	ulong	intick;		/* check for hung western digital drives. */
 	int	wait;
-	int	mode;		// DMautoneg, satai or sataii.
+	int	mode;		/* DMautoneg, satai or sataii. */
 
 	char	serial[20+1];
 	char	firmware[8+1];
@@ -201,7 +203,7 @@ struct Drive
 
 	Srb	*srbhead;
 	Srb	*srbtail;
-	int	driveno;		// ctlr*NCtlrdrv + unit
+	int	driveno;	/* ctlr*NCtlrdrv + unit */
 };
 
 struct Ctlr
@@ -264,7 +266,7 @@ struct Bridge			/* memory-mapped per-Drive registers */
 	char	fill2[0x34];
 	ulong	phymode;
 	char	fill3[0x88];
-};				// most be 0x100 hex in length
+};				/* length must be 0x100 */
 
 struct Arb			/* memory-mapped per-Chip registers */
 {
@@ -385,7 +387,7 @@ idmove(char *p, ushort *a, int n)
 {
 	char *op;
 	int i;
-	
+
 	op = p;
 	for(i=0; i<n/2; i++){
 		*p++ = a[i]>>8;
@@ -398,7 +400,7 @@ idmove(char *p, ushort *a, int n)
 /*
  * Request buffers.
  */
-struct 
+struct
 {
 	Lock;
 	Srb *freechain;
@@ -409,7 +411,7 @@ static Srb*
 allocsrb(void)
 {
 	Srb *p;
-	
+
 	ilock(&srblist);
 	if((p = srblist.freechain) == nil){
 		srblist.nalloc++;
@@ -447,7 +449,7 @@ satawait(uchar *p, uchar mask, uchar v, int ms)
 /*
  * Drive initialization
  */
-// unmask in the pci registers err done
+/* unmask in the pci registers err done */
 static void
 unmask(ulong *mmio, int port, int coal)
 {
@@ -556,13 +558,15 @@ resetdisk(Drive *d)
 	d->sectors = 0;
 	d->unit->sectors = 0;
 	if (d->ctlr->type == 2) {
-		// without bit 8 we can boot without disks, but
-		// inserted disks will never appear.  :-X
+		/*
+		 * without bit 8 we can boot without disks, but
+		 * inserted disks will never appear.  :-X
+		 */
 		n = d->edma->sataconfig;
 		n &= 0xff;
 		n |= 0x9b1100;
 		d->edma->sataconfig = n;
-		n = d->edma->sataconfig;	//flush
+		n = d->edma->sataconfig;	/* flush */
 		USED(n);
 	}
 	d->edma->ctl = eDsEDMA;
@@ -840,7 +844,7 @@ iecdecode(ulong cause)
 }
 
 enum{
-	Cerror	= ePrtDataErr|ePrtPRDErr|eDevErr|eSelfDis2|ePrtCRPBErr|ePrtIntErr,
+	Cerror = ePrtDataErr|ePrtPRDErr|eDevErr|eSelfDis2|ePrtCRPBErr|ePrtIntErr,
 };
 
 static void
@@ -853,7 +857,7 @@ updatedrive(Drive *d)
 
 	edma = d->edma;
 	if((edma->ctl&eEnEDMA) == 0){
-		// FEr SATA#4 40xx
+		/* FEr SATA#4 40xx */
 		x = d->edma->cmdstat;
 		USED(x);
 	}
@@ -1016,7 +1020,7 @@ completesrb(Drive *d)
 		}
 	}
 }
-			
+
 static int
 srbdone(void *v)
 {
@@ -1045,7 +1049,7 @@ mv50interrupt(Ureg*, void *a)
 		if(cause & (3<<(i*2+i/4))){
 			drive = &ctlr->drive[i];
 			if(drive->edma == 0)
-				continue;	// not ready yet.
+				continue;	/* not ready yet. */
 			ilock(drive);
 			updatedrive(drive);
 			while(ctlr->chip[i/4].arb->ic & (0x0101 << (i%4))){
@@ -1090,7 +1094,7 @@ checkdrive(Drive *d, int i)
 		dprint("%s: status: %08lx -> %08lx: %s\n", name, olds[i], s, diskstates[d->state]);
 		olds[i] = s;
 	}
-	// westerndigitalhung(d);
+	/* westerndigitalhung(d); */
 	switch(d->state){
 	case Dnew:
 	case Dmissing:
@@ -1119,7 +1123,7 @@ checkdrive(Drive *d, int i)
 	case Dready:
 		if(s != 0)
 			break;
-		iprint("%s: pulled: st=%08ulx\n", name, s); // never happens
+		iprint("%s: pulled: st=%08ulx\n", name, s);	/* never happens */
 	case Dreset:
 	case Derror:
 		dprint("%s reset: mode %d\n", name, d->mode);
@@ -1207,7 +1211,7 @@ mv50pnp(void)
 		}
 		ctlr->rid = p->rid;
 
-		// avert thine eyes!  (what does this do?)
+		/* avert thine eyes!  (what does this do?) */
 		mem[0x104f0/4] = 0;
 		ctlr->type = (p->did >> 12) & 3;
 		if(ctlr->type == 1){
@@ -1348,12 +1352,12 @@ mv50verify(SDunit *unit)
 
 	/*
 	 * If ctlr->type == 1, then the drives spin up whenever
-	 * the controller feels like it; if ctlr->type != 1, then 
+	 * the controller feels like it; if ctlr->type != 1, then
 	 * they spin up as a result of configdrive.
-	 * 
+	 *
 	 * If there is a drive in the slot, give it 1.5s to spin up
 	 * before returning.  There is a noticeable drag on the
-	 * power supply when spinning up fifteen drives 
+	 * power supply when spinning up fifteen drives
 	 * all at once (like in the Coraid enclosures).
 	 */
 	if(ctlr->type != 1 && i == 0){
@@ -1476,9 +1480,9 @@ static char*
 rdregs(char *p, char *e, void *base, Regs *r, int n, char *prefix)
 {
 	int i;
-	
+
 	for(i=0; i<n; i++)
-		p = seprint(p, e, "%s%s%-19s %.8ux\n", 
+		p = seprint(p, e, "%s%s%-19s %.8ux\n",
 			prefix ? prefix : "", prefix ? ": " : "",
 			r[i].name, *(u32int*)((uchar*)base+r[i].offset));
 	return p;
@@ -1505,11 +1509,11 @@ mv50rctl(SDunit *unit, char *p, int l)
 	char *e, *op;
 	Ctlr *ctlr;
 	Drive *drive;
-	
+
 	if((ctlr = unit->dev->ctlr) == nil)
 		return 0;
 	drive = &ctlr->drive[unit->subno];
-	
+
 	e = p+l;
 	op = p;
 	if(drive->state == Dready){
@@ -1520,7 +1524,7 @@ mv50rctl(SDunit *unit, char *p, int l)
 		p = seprint(p, e, "no disk present\n");
 	p = seprint(p, e, "geometry %llud 512\n", drive->sectors);
 	p = rdinfo(p, e, drive->info);
-	
+
 	p = rdregs(p, e, drive->chip->arb, regsarb, nelem(regsarb), nil);
 	p = rdregs(p, e, drive->bridge, regsbridge, nelem(regsbridge), nil);
 	p = rdregs(p, e, drive->edma, regsedma, nelem(regsedma), nil);
@@ -1533,7 +1537,7 @@ mv50wctl(SDunit *unit, Cmdbuf *cb)
 {
 	Ctlr *ctlr;
 	Drive *drive;
-	
+
 	USED(unit);
 	if(strcmp(cb->f[0], "reset") == 0){
 		ctlr = unit->dev->ctlr;
@@ -1552,7 +1556,7 @@ mv50rtopctl(SDev *sdev, char *p, char *e)
 {
 	char name[10];
 	Ctlr *ctlr;
-	
+
 	ctlr = sdev->ctlr;
 	if(ctlr == nil)
 		return p;
@@ -1563,7 +1567,7 @@ mv50rtopctl(SDev *sdev, char *p, char *e)
 	p = rdregs(p, e, ctlr->chip[0].arb, regsarb, nelem(regsarb), name);
 	p = rdregs(p, e, &ctlr->chip[0].arb->bridge[0], regsbridge, nelem(regsbridge), name);
 	p = rdregs(p, e, &ctlr->chip[0].edma[0], regsedma, nelem(regsedma), name);
-	
+
 	return p;
 }
 
@@ -1680,7 +1684,7 @@ retry:
 		freesrb(srb);
 		if(flag == 0){
 	tryagain:		if(++try == 10){
-				print("%s: bad disk\n", drive->unit->name); 
+				print("%s: bad disk\n", drive->unit->name);
 				return SDeio;
 			}
 			dprint("%s: retry\n", drive->unit->name);
@@ -1723,7 +1727,7 @@ SDifc sdmv50xxifc = {
 };
 
 /*
- * The original driver on which this one is based came with the 
+ * The original driver on which this one is based came with the
  * following notice:
  *
  * Copyright 2005
@@ -1732,19 +1736,19 @@ SDifc sdmv50xxifc = {
  * This software is provided `as-is,' without any express or implied
  * warranty.  In no event will the author be held liable for any damages
  * arising from the use of this software.
- * 
+ *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
- * 
+ *
  * 1.  The origin of this software must not be misrepresented; you must
  * not claim that you wrote the original software.  If you use this
  * software in a product, an acknowledgment in the product documentation
  * would be appreciated but is not required.
- * 
+ *
  * 2.  Altered source versions must be plainly marked as such, and must
  * not be misrepresented as being the original software.
- * 
+ *
  * 3.  This notice may not be removed or altered from any source
  * distribution.
  */

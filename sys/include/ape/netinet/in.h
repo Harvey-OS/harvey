@@ -97,6 +97,7 @@ struct in_addr {
 
 #define	INADDR_ANY		(unsigned long)0x00000000
 #define	INADDR_BROADCAST	(unsigned long)0xffffffff	/* must be masked */
+#define INADDR_NONE		(unsigned long)0xffffffff	/* -1 return */
 
 #define	IN_LOOPBACKNET		127			/* official! */
 

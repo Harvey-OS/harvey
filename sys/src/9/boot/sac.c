@@ -2,8 +2,10 @@
 #include <libc.h>
 #include <../boot/boot.h>
 
-// HACK - take over from boot since file system is not
-// available on a pipe
+/*
+ * HACK - take over from boot since file system is not
+ * available on a pipe
+ */
 
 void
 configsac(Method *mp)
@@ -21,7 +23,7 @@ configsac(Method *mp)
 	if(bind("#C", "/", MAFTER) < 0)
 		fatal("bind /");
 
-	// fixed sysname - enables correct namespace file
+	/* fixed sysname - enables correct namespace file */
 	fd = open("#c/sysname", OWRITE);
 	if(fd < 0)
 		fatal("open sysname");
@@ -43,6 +45,6 @@ configsac(Method *mp)
 int
 connectsac(void)
 {
-	// does not get here
+	/* does not get here */
 	return -1;
 }

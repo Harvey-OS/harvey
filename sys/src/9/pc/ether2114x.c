@@ -975,8 +975,8 @@ typephymode(Ctlr* ctlr, uchar* block, int wait)
 	phyx = block[2];
 	ctlr->curphyad = ctlr->phy[phyx];
 
-	ctlr->csr6 = 0;//Sc|Mbo|Hbd|Ps|Ca|TrMODE|Sb;
-	//csr32w(ctlr, 6, ctlr->csr6);
+	ctlr->csr6 = 0;		/* Sc|Mbo|Hbd|Ps|Ca|TrMODE|Sb; */
+	// csr32w(ctlr, 6, ctlr->csr6);
 	if(typephylink(ctlr, block))
 		return 0;
 
@@ -997,8 +997,8 @@ typephymode(Ctlr* ctlr, uchar* block, int wait)
 	type5block(ctlr, &block[3]);
 	debug("\n");
 
-	ctlr->csr6 = 0;//Sc|Mbo|Hbd|Ps|Ca|TrMODE|Sb;
-	//csr32w(ctlr, 6, ctlr->csr6);
+	ctlr->csr6 = 0;		/* Sc|Mbo|Hbd|Ps|Ca|TrMODE|Sb; */
+	// csr32w(ctlr, 6, ctlr->csr6);
 	if(typephylink(ctlr, block))
 		return 0;
 

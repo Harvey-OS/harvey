@@ -79,27 +79,27 @@ char Enotconfigured[] = "device not configured";
 #define HOST_MEM_MODE_V             		0xC0000000
 #define HOST_MEM_MODE_NORMAL     		HOST_YUV_APERTURE_UPPER 
 
-static Chan *ovl_chan;	/* Channel of controlling process */
+static Chan *ovl_chan;		/* Channel of controlling process */
 static int ovl_width;		/* Width of input overlay buffer */
 static int ovl_height;		/* Height of input overlay buffer */
-static int ovl_format;	/* Overlay format */
+static int ovl_format;		/* Overlay format */
 static ulong ovl_fib;		/* Frame in bytes */
 
 enum {
-	 VTGTB1S1        = 0x01,            //  Asic description for VTB1S1 and GTB1S1.
-	 VT4GTIIC        	= 0x3A,            // asic descr for VT4 and RAGE IIC
-	 GTB1U1          	= 0x19,            //  Asic description for GTB1U1.
-	 GTB1S2          	= 0x41,            //  Asic description for GTB1S2.
-	 GTB2U1          	= 0x1A,
-	 GTB2U2          	= 0x5A,
-	 GTB2U3          	= 0x9A,
-	 GTIIIC1U1       	= 0x1B,            // 3D RAGE PRO asic descrp.
-	 GTIIIC1U2       	= 0x5B,            // 3D RAGE PRO asic descrp.
-	 GTIIIC2U1       	= 0x1C,            // 3D RAGE PRO asic descrp.
-	 GTIIIC2U2       	= 0x5C,           // 3D RAGE PRO asic descrp.
-	 GTIIIC2U3       	= 0x7C,            // 3D RAGE PRO asic descrp.
-	 GTBC            	= 0x3A,            // 3D RAGE IIC asic descrp.
-	 LTPRO           	= 0x9C,            // 3D RAGE LT PRO
+	 VTGTB1S1	= 0x01, /* Asic description for VTB1S1 and GTB1S1. */
+	 VT4GTIIC	= 0x3A,		/* asic descr for VT4 and RAGE IIC */
+	 GTB1U1		= 0x19,		/* Asic description for GTB1U1. */
+	 GTB1S2		= 0x41,		/* Asic description for GTB1S2. */
+	 GTB2U1		= 0x1A,
+	 GTB2U2		= 0x5A,
+	 GTB2U3		= 0x9A,
+	 GTIIIC1U1	= 0x1B,		/* 3D RAGE PRO asic descrp. */
+	 GTIIIC1U2	= 0x5B,		/* 3D RAGE PRO asic descrp. */
+	 GTIIIC2U1	= 0x1C,		/* 3D RAGE PRO asic descrp. */
+	 GTIIIC2U2	= 0x5C,		/* 3D RAGE PRO asic descrp. */
+	 GTIIIC2U3	= 0x7C,		/* 3D RAGE PRO asic descrp. */
+	 GTBC		= 0x3A,		/* 3D RAGE IIC asic descrp. */
+	 LTPRO		= 0x9C,		/* 3D RAGE LT PRO */
 };
 
 /*
@@ -108,9 +108,9 @@ enum {
 typedef struct Mach64types Mach64types;
 struct Mach64types {
 	ushort 	m64_id;			/* Chip ID */
-	int 		m64_vtgt;		/* Is this a VT or GT chipset? */
+	int 	m64_vtgt;		/* Is this a VT or GT chipset? */
 	ulong	m64_ovlclock;		/* Max. overlay clock frequency */
-	int		m64_pro;			/* Is this a PRO? */
+	int	m64_pro;		/* Is this a PRO? */
 };
 
 static ulong mach64refclock;
@@ -121,24 +121,24 @@ static ulong mach64overlay;		/* Overlay buffer */
 static Mach64types mach64s[] = {
 	('C'<<8)|'T',	0,	1350000, /*?*/	0,	/* 4354: CT */
 	('E'<<8)|'T',	0,	1350000, /*?*/	0,	/* 4554: ET */
-	('G'<<8)|'B',	1,	1250000,		1, 	/* 4742: 264GT PRO */
-	('G'<<8)|'D',	1,	1250000,		1, 	/* 4744: 264GT PRO */
-	('G'<<8)|'I',	1,	1250000,		1, 	/* 4749: 264GT PRO */
-	('G'<<8)|'M',	0,	1350000,		0,	/* 474D: Rage XL */
-	('G'<<8)|'P',	1,	1250000,		1, 	/* 4750: 264GT PRO */
-	('G'<<8)|'Q',	1,	1250000,		1,	/* 4751: 264GT PRO */
-	('G'<<8)|'R',	1,	1250000,		1,	/* 4752: */
+	('G'<<8)|'B',	1,	1250000,	1, 	/* 4742: 264GT PRO */
+	('G'<<8)|'D',	1,	1250000,	1, 	/* 4744: 264GT PRO */
+	('G'<<8)|'I',	1,	1250000,	1, 	/* 4749: 264GT PRO */
+	('G'<<8)|'M',	0,	1350000,	0,	/* 474D: Rage XL */
+	('G'<<8)|'P',	1,	1250000,	1, 	/* 4750: 264GT PRO */
+	('G'<<8)|'Q',	1,	1250000,	1,	/* 4751: 264GT PRO */
+	('G'<<8)|'R',	1,	1250000,	1,	/* 4752: */
 	('G'<<8)|'T',	1,	800000,		0,	/* 4754: 264GT[B] */
-	('G'<<8)|'U',	1,	1000000,		0,	/* 4755: 264GT DVD */
-	('G'<<8)|'V',	1,	1000000,		0,	/* 4756: Rage2C */
-	('G'<<8)|'Z',	1,	1000000,		0,	/* 475A: Rage2C */
+	('G'<<8)|'U',	1,	1000000,	0,	/* 4755: 264GT DVD */
+	('G'<<8)|'V',	1,	1000000,	0,	/* 4756: Rage2C */
+	('G'<<8)|'Z',	1,	1000000,	0,	/* 475A: Rage2C */
 	('V'<<8)|'T',	1,	800000,		0,	/* 5654: 264VT/GT/VTB */
 	('V'<<8)|'U',	1,	800000,		0,	/* 5655: 264VT3 */
-	('V'<<8)|'V',	1,	1000000,		0,	/* 5656: 264VT4 */
-	('L'<<8)|'B',	0,	1350000,		1,	/* 4C42: Rage LTPro AGP */
-	('L'<<8)|'I',		0,	1350000,		0,	/* 4C49: Rage LTPro AGP */
-	('L'<<8)|'M',	0,	1350000,		0,	/* 4C4D: Rage Mobility */
-	('L'<<8)|'P',	0,	1350000,		1,	/* 4C50: 264LT PRO */
+	('V'<<8)|'V',	1,	1000000,	0,	/* 5656: 264VT4 */
+	('L'<<8)|'B',	0,	1350000,	1,	/* 4C42: Rage LTPro AGP */
+	('L'<<8)|'I',	0,	1350000,	0,	/* 4C49: Rage LTPro AGP */
+	('L'<<8)|'M',	0,	1350000,	0,	/* 4C4D: Rage Mobility */
+	('L'<<8)|'P',	0,	1350000,	1,	/* 4C50: 264LT PRO */
 };
 
 

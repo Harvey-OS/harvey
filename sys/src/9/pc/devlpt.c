@@ -100,7 +100,7 @@ lptattach(char *spec)
 		if(ioalloc(lptbase[i-1], 3, 0, name) < 0)
 			error("lpt port space in use");
 		lptallocd[i-1] = 1;
-		// Detect ECP - if found, put into PS/2 mode to suit style of driver
+		/* Detect ECP - if found, put into PS/2 mode to suit style of driver */
 		ecr = lptbase[i-1] + 0x402;
 		if ((inb(ecr) & 3) == 1) {
 			outb(ecr, 0x34);

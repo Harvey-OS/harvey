@@ -1763,8 +1763,9 @@ igbereset(Ctlr* ctlr)
 	 * There are 16 addresses. The first should be the MAC address.
 	 * The others are cleared and not marked valid (MS bit of Rah).
 	 */
-	if ((ctlr->id == i82546gb || ctlr->id == i82546eb) && BUSFNO(ctlr->pcidev->tbdf) == 1)
-		ctlr->eeprom[Ea+2] += 0x100;	// second interface
+	if ((ctlr->id == i82546gb || ctlr->id == i82546eb) &&
+	    BUSFNO(ctlr->pcidev->tbdf) == 1)
+		ctlr->eeprom[Ea+2] += 0x100;		/* second interface */
 	for(i = Ea; i < Eaddrlen/2; i++){
 if(i == Ea && ctlr->id == i82541gi && ctlr->eeprom[i] == 0xFFFF)
     ctlr->eeprom[i] = 0xD000;
