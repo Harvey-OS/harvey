@@ -936,9 +936,9 @@ updatedrive(Drive *d)
 		}
 		pr = 0;
 	}
-//	if(p->task & 1 && last != cause)
-//		dprint("err ca %ux serr %ux task %ux sstat %ux\n",
-//			cause, serr, p->task, p->sstatus);
+	if(0 && p->task & 1 && last != cause)
+		dprint("err ca %ux serr %ux task %ux sstat %ux\n",
+			cause, serr, p->task, p->sstatus);
 
 	if(pr)
 		dprint("%s: upd %ux ta %ux\n", name, cause, p->task);

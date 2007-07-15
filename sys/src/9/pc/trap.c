@@ -282,7 +282,7 @@ intrtime(Mach*, int vno)
 	if(up == nil && m->perf.inidle > diff)
 		m->perf.inidle -= diff;
 
-	diff /= m->cpumhz*100;	// quantum = 100µsec
+	diff /= m->cpumhz*100;		/* quantum = 100µsec */
 	if(diff >= Ntimevec)
 		diff = Ntimevec-1;
 	intrtimes[vno][diff]++;

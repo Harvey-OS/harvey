@@ -296,8 +296,10 @@ udpkick(void *x, Block *bp)
 		if(bp == nil)
 			return;
 
-		// using the v6 ip header to create pseudo header 
-		// first then reset it to the normal ip header
+		/*
+		 * using the v6 ip header to create pseudo header 
+		 * first then reset it to the normal ip header
+		 */
 		uh6 = (Udp6hdr *)(bp->rp);
 		memset(uh6, 0, 8);
 		ptcllen = dlen + UDP_UDPHDR_SZ;

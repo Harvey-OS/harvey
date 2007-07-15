@@ -1,5 +1,5 @@
 /*
-  * Driver for Bt848 TV tuner.  
+  * Driver for Bt848 TV tuner.
   *
   */
 #include	"u.h"
@@ -36,16 +36,16 @@ enum {
 	Numring = 16,
 
 	ntsc_rawpixels = 910,
-	ntsc_sqpixels = 780,					// Including blanking & inactive
+	ntsc_sqpixels = 780,		/* Including blanking & inactive */
 	ntsc_hactive = 640,
 	ntsc_vactive = 480,
-	ntsc_clkx1delay = 135,				// Clock ticks.
+	ntsc_clkx1delay = 135,		/* Clock ticks. */
 	ntsc_clkx1hactive = 754,
-	ntsc_vdelay = 26,					// # of scan lines.
+	ntsc_vdelay = 26,		/* # of scan lines. */
 	ntsc_vscale = 0,
 
 	i2c_nostop = 1 << 5,
-	i2c_nos1b = 1 << 4,
+	i2c_nos1b  = 1 << 4,
 	i2c_timing = 7 << 4,
 	i2c_bt848w3b = 1 << 2,
 	i2c_bt848scl = 1 << 1,
@@ -53,13 +53,13 @@ enum {
 	i2c_scl = i2c_bt848scl,
 	i2c_sda = i2c_bt848sda,
 
-	i2c_miroproee = 0x80,				// MIRO PRO EEPROM
+	i2c_miroproee = 0x80,		/* MIRO PRO EEPROM */
 	i2c_tea6300 = 0x80,
 	i2c_tda8425 = 0x82,
 	i2c_tda9840 = 0x84,
 	i2c_tda9850 = 0xb6,
-	i2c_haupee = 0xa0,					// Hauppage EEPROM
-	i2c_stbee = 0xae,					// STB EEPROM
+	i2c_haupee = 0xa0,		/* Hauppage EEPROM */
+	i2c_stbee = 0xae,		/* STB EEPROM */
 	i2c_msp3400 = 0x80,
 
 	i2c_timeout = 1000,
@@ -69,33 +69,33 @@ enum {
 	Bt848_miro,
 	Bt878_hauppauge,
 
-	// Bit fields.
-	iform_muxsel1 = 3 << 5,				// 004
-	iform_muxsel0 = 2 << 5,	
+	/* Bit fields. */
+	iform_muxsel1 = 3 << 5,		/* 004 */
+	iform_muxsel0 = 2 << 5,
 	iform_xtselmask = 3 << 3,
 	iform_xtauto = 3 << 3,
 	iform_formatmask = 7 << 0,
 	iform_ntsc = 1 << 0,
 
-	control_ldec = 1 << 5,				// 02C
-	contrast_100percent = 0xd8,			// 030
+	control_ldec = 1 << 5,		/* 02C */
+	contrast_100percent = 0xd8,	/* 030 */
 
-	vscale_interlaced = 1 << 5,			// 04C
+	vscale_interlaced = 1 << 5,	/* 04C */
 
-	adelay_ntsc = 104,					// 060
-	bdelay_ntsc = 93,					// 064
-	adc_crush = 1 << 0,					// 068
+	adelay_ntsc = 104,		/* 060 */
+	bdelay_ntsc = 93,		/* 064 */
+	adc_crush = 1 << 0,		/* 068 */
 
-	colorfmt_rgb16 = (2 << 4) | (2 << 0),	// 0D4
-	colorfmt_YCbCr422 = (8 << 4) | (8 << 0),
-	colorfmt_YCbCr411 = (9 << 4) | (9 << 0),
-	colorctl_gamma = 1 << 4,			// 0D8
-	capctl_fullframe = 1 << 4,				// 0DC
-	capctl_captureodd = 1 << 1,
+	colorfmt_rgb16 = 2 << 4 | 2 << 0,	/* 0D4 */
+	colorfmt_YCbCr422 = 8 << 4 | 8 << 0,
+	colorfmt_YCbCr411 = 9 << 4 | 9 << 0,
+	colorctl_gamma     = 1 << 4,	/* 0D8 */
+	capctl_fullframe   = 1 << 4,	/* 0DC */
+	capctl_captureodd  = 1 << 1,
 	capctl_captureeven = 1 << 0,
-	vbipacksize = 0x190,				// 0E0
+	vbipacksize = 0x190,		/* 0E0 */
 
-	intstat_riscstatshift = 28,				// 100
+	intstat_riscstatshift = 28,	/* 100 */
 	intstat_i2crack = 1 << 25,
 	intstat_scerr = 1 << 19,
 	intstat_ocerr = 1 << 18,
@@ -106,27 +106,27 @@ enum {
 	intstat_ftrgt = 1 << 13,
 	intstat_fbus = 1 << 12,
 	intstat_risci = 1 << 11,
-	intstat_i2cdone = 1 << 8,	
+	intstat_i2cdone = 1 << 8,
 	intstat_vpress = 1 << 5,
 	intstat_hlock = 1 << 4,
 	intstat_vsync = 1 << 1,
 	intstat_fmtchg = 1 << 0,
-	intmask_etbf = 1 << 23,				// 104
+	intmask_etbf = 1 << 23,		/* 104 */
 
-	gpiodmactl_apwrdn = 1 << 26,			// 10C
-	gpiodmactl_daes2 = 1 << 13,		
+	gpiodmactl_apwrdn = 1 << 26,	/* 10C */
+	gpiodmactl_daes2 = 1 << 13,
 	gpiodmactl_daiomda = 1 << 6,
 	gpiodmactl_pltp23_16 = 2 << 6,
-	gpiodmactl_pltp23_0 = 0 << 6,	
+	gpiodmactl_pltp23_0 = 0 << 6,
 	gpiodmactl_pltp1_16 = 2 << 4,
 	gpiodmactl_pltp1_0 = 0 << 4,
 	gpiodmactl_acapenable = 1 << 4,
-	gpiodmactl_pktp_32 = 3 << 2,		
-	gpiodmactl_pktp_0 = 0 << 2,		
+	gpiodmactl_pktp_32 = 3 << 2,
+	gpiodmactl_pktp_0 = 0 << 2,
 	gpiodmactl_riscenable = 1 << 1,
-	gpiodmactl_fifoenable = 1 << 0,	
+	gpiodmactl_fifoenable = 1 << 0,
 
-	// RISC instructions and parameters.
+	/* RISC instructions and parameters. */
 	fifo_vre = 0x4,
 	fifo_vro = 0xc,
 	fifo_fm1 = 0x6,
@@ -155,7 +155,7 @@ enum {
 	AudioIntern,
 	AudioOff,
 	AudioOn,
-	
+
 	asel_tv = 0,
 	asel_radio,
 	asel_mic,
@@ -166,7 +166,7 @@ enum {
 	msp_dem = 0x10,
 	msp_bbp = 0x12,
 
-	// Altera definitions.
+	/* Altera definitions. */
 	gpio_altera_data = 1 << 0,
 	gpio_altera_clock = 1 << 20,
 	gpio_altera_nconfig = 1 << 23,
@@ -247,94 +247,94 @@ enum {
 
 typedef struct Variant Variant;
 struct Variant {
-	ushort		vid;
-	ushort		did;
-	char			*name;
+	ushort	vid;
+	ushort	did;
+	char	*name;
 };
 
 typedef struct Bt848 Bt848;
 struct Bt848 {
-	ulong	devstat;		// 000
-	ulong	iform;		// 004
-	ulong	tdec;			// 008
-	ulong	ecrop;		// 00C
-	ulong	evdelaylo;		// 010
-	ulong	evactivelo;	// 014
-	ulong	ehdelaylo;		// 018
-	ulong	ehactivelo;	// 01C
-	ulong	ehscalehi;		// 020
-	ulong	ehscalelo;		// 024
-	ulong	bright;		// 028
-	ulong	econtrol;		// 02C
-	ulong	contrastlo;	// 030
-	ulong	satulo;		// 034
-	ulong	satvlo;		// 038
-	ulong	hue;			// 03C
-	ulong	escloop;		// 040
-	ulong	pad0;		// 044
-	ulong	oform;		// 048
-	ulong	evscalehi;		// 04C
-	ulong	evscalelo;		// 050
-	ulong	test;			// 054
-	ulong	pad1[2];		// 058-05C
-	ulong	adelay;		// 060
-	ulong	bdelay;		// 064
-	ulong	adc;			// 068
-	ulong	evtc;			// 06C
-	ulong	pad2[3];		// 070-078
-	ulong	sreset;		// 07C
-	ulong	tglb;			// 080
-	ulong	tgctrl;		// 084
-	ulong	pad3;		// 088
-	ulong	ocrop;		// 08C
-	ulong	ovdelaylo;		// 090
-	ulong	ovactivelo;	// 094
-	ulong	ohdelaylo;	// 098
-	ulong	ohactivelo;	// 09C
-	ulong	ohscalehi;		// 0A0
-	ulong	ohscalelo;		// 0A4
-	ulong	pad4;		// 0A8
-	ulong	ocontrol;		// 0AC
-	ulong	pad5[4];		// 0B0-0BC
-	ulong	oscloop;		// 0C0
-	ulong	pad6[2];		// 0C4-0C8
-	ulong	ovscalehi;		// 0CC
-	ulong	ovscalelo;		// 0D0
-	ulong	colorfmt;		// 0D4
-	ulong	colorctl;		// 0D8
-	ulong	capctl;		// 0DC
-	ulong	vbipacksize;	// 0E0
-	ulong	vbipackdel;	// 0E4
-	ulong	fcap;			// 0E8
-	ulong	ovtc;			// 0EC
-	ulong	pllflo;		// 0F0
-	ulong	pllfhi;		// 0F4
-	ulong	pllxci;		// 0F8
-	ulong	dvsif;		// 0FC
-	ulong	intstat;		// 100
-	ulong	intmask;		// 104
-	ulong	pad7;		// 108
-	ulong	gpiodmactl;	// 10C
-	ulong	i2c;			// 110
-	ulong	riscstrtadd;	// 114
-	ulong	gpioouten;	// 118
-	ulong	gpioreginp;	// 11C
-	ulong	risccount;		// 120
-	ulong	pad8[55];		// 124-1FC	
-	ulong	gpiodata[64];	// 200-2FC
+	ulong	devstat;	/* 000 */
+	ulong	iform;		/* 004 */
+	ulong	tdec;		/* 008 */
+	ulong	ecrop;		/* 00C */
+	ulong	evdelaylo;	/* 010 */
+	ulong	evactivelo;	/* 014 */
+	ulong	ehdelaylo;	/* 018 */
+	ulong	ehactivelo;	/* 01C */
+	ulong	ehscalehi;	/* 020 */
+	ulong	ehscalelo;	/* 024 */
+	ulong	bright;		/* 028 */
+	ulong	econtrol;	/* 02C */
+	ulong	contrastlo;	/* 030 */
+	ulong	satulo;		/* 034 */
+	ulong	satvlo;		/* 038 */
+	ulong	hue;		/* 03C */
+	ulong	escloop;	/* 040 */
+	ulong	pad0;		/* 044 */
+	ulong	oform;		/* 048 */
+	ulong	evscalehi;	/* 04C */
+	ulong	evscalelo;	/* 050 */
+	ulong	test;		/* 054 */
+	ulong	pad1[2];	/* 058-05C */
+	ulong	adelay;		/* 060 */
+	ulong	bdelay;		/* 064 */
+	ulong	adc;		/* 068 */
+	ulong	evtc;		/* 06C */
+	ulong	pad2[3];	/* 070-078 */
+	ulong	sreset;		/* 07C */
+	ulong	tglb;		/* 080 */
+	ulong	tgctrl;		/* 084 */
+	ulong	pad3;		/* 088 */
+	ulong	ocrop;		/* 08C */
+	ulong	ovdelaylo;	/* 090 */
+	ulong	ovactivelo;	/* 094 */
+	ulong	ohdelaylo;	/* 098 */
+	ulong	ohactivelo;	/* 09C */
+	ulong	ohscalehi;	/* 0A0 */
+	ulong	ohscalelo;	/* 0A4 */
+	ulong	pad4;		/* 0A8 */
+	ulong	ocontrol;	/* 0AC */
+	ulong	pad5[4];	/* 0B0-0BC */
+	ulong	oscloop;	/* 0C0 */
+	ulong	pad6[2];	/* 0C4-0C8 */
+	ulong	ovscalehi;	/* 0CC */
+	ulong	ovscalelo;	/* 0D0 */
+	ulong	colorfmt;	/* 0D4 */
+	ulong	colorctl;	/* 0D8 */
+	ulong	capctl;		/* 0DC */
+	ulong	vbipacksize;	/* 0E0 */
+	ulong	vbipackdel;	/* 0E4 */
+	ulong	fcap;		/* 0E8 */
+	ulong	ovtc;		/* 0EC */
+	ulong	pllflo;		/* 0F0 */
+	ulong	pllfhi;		/* 0F4 */
+	ulong	pllxci;		/* 0F8 */
+	ulong	dvsif;		/* 0FC */
+	ulong	intstat;	/* 100 */
+	ulong	intmask;	/* 104 */
+	ulong	pad7;		/* 108 */
+	ulong	gpiodmactl;	/* 10C */
+	ulong	i2c;		/* 110 */
+	ulong	riscstrtadd;	/* 114 */
+	ulong	gpioouten;	/* 118 */
+	ulong	gpioreginp;	/* 11C */
+	ulong	risccount;	/* 120 */
+	ulong	pad8[55];	/* 124-1FC */
+	ulong	gpiodata[64];	/* 200-2FC */
 };
 
 #define packetlen	i2c
 
 typedef struct Tuner Tuner;
 struct Tuner {
-	char		*name;
-  	ushort	freq_vhfh;	// Start frequency
-	ushort	freq_uhf;  
+	char	*name;
+  	ushort	freq_vhfh;	/* Start frequency */
+	ushort	freq_uhf;
 	uchar	VHF_L;
 	uchar	VHF_H;
 	uchar	UHF;
-	uchar	cfg; 
+	uchar	cfg;
 	ushort	offs;
 };
 
@@ -350,38 +350,38 @@ struct Tv {
 	Lock;
 	Rendez;
 	Bt848	*bt848;
-	Bt848	*bt878;			// Really only audio control registers
+	Bt848	*bt878;		/* Really only audio control registers */
 	Variant	*variant;
 	Tuner	*tuner;
 	Pcidev	*pci;
 	uchar	i2ctuneraddr;
-	uchar	i2ccmd;			// I2C command
-	int		board;			// What board is this?
-	ulong	cfmt;			// Current color format.
-	int		channel;			// Current channel
-	Ref		fref;				// Copying images?
-	int		nframes;			// Number of frames to capture.
-	Frame	*frames;			// DMA program
-	int		lvframe;			// Last video frame DMAed
-	uchar	*amux;			// Audio multiplexer.
-	int		nablocks;			// Number of audio blocks allocated
-	int		absize;			// Audio block size
-	int		narblocks;		// Number of audio blocks received
-	ulong	*arisc;			// Audio risc bloc
-	uchar	*abuf;			// Audio data buffers
-	char		ainfo[128];
+	uchar	i2ccmd;		/* I2C command */
+	int	board;		/* What board is this? */
+	ulong	cfmt;		/* Current color format. */
+	int	channel;	/* Current channel */
+	Ref	fref;		/* Copying images? */
+	int	nframes;	/* Number of frames to capture. */
+	Frame	*frames;	/* DMA program */
+	int	lvframe;	/* Last video frame DMAed */
+	uchar	*amux;		/* Audio multiplexer. */
+	int	nablocks;	/* Number of audio blocks allocated */
+	int	absize;		/* Audio block size */
+	int	narblocks;	/* Number of audio blocks received */
+	ulong	*arisc;		/* Audio risc bloc */
+	uchar	*abuf;		/* Audio data buffers */
+	char	ainfo[128];
 
-	// WinTV/PVR stuff.
-	int		msp;	
-	Lock		kfirlock;
-	ulong	i2cstate;			// Last i2c state.
-	int		gpiostate;			// Current GPIO state
-	ulong	alterareg;			// Last used altera register
-	ulong	alteraclock;		// Used to clock the altera
-	int		asrate;			// Audio sample rate
-	uchar	aleft, aright;		// Left and right audio volume
+	/* WinTV/PVR stuff. */
+	int	msp;
+	Lock	kfirlock;
+	ulong	i2cstate;	/* Last i2c state. */
+	int	gpiostate;	/* Current GPIO state */
+	ulong	alterareg;	/* Last used altera register */
+	ulong	alteraclock;	/* Used to clock the altera */
+	int	asrate;		/* Audio sample rate */
+	uchar	aleft, aright;	/* Left and right audio volume */
 	ulong	kfirclock;
-	Ref		aref;				// Copying audio?
+	Ref	aref;		/* Copying audio? */
 };
 
 enum {
@@ -401,55 +401,55 @@ enum {
 };
 
 static Tuner tuners[] = {
-        {"Temic PAL", Freqmultiplier * 140.25, Freqmultiplier * 463.25, 
+        {"Temic PAL", Freqmultiplier * 140.25, Freqmultiplier * 463.25,
 		0x02, 0x04, 0x01, 0x8e, 623 },
-	{"Philips PAL_I", Freqmultiplier * 140.25, Freqmultiplier * 463.25, 
+	{"Philips PAL_I", Freqmultiplier * 140.25, Freqmultiplier * 463.25,
 		0xa0, 0x90, 0x30, 0x8e, 623 },
-	{"Philips NTSC",  Freqmultiplier * 157.25, Freqmultiplier * 451.25, 
+	{"Philips NTSC",  Freqmultiplier * 157.25, Freqmultiplier * 451.25,
 		0xA0, 0x90, 0x30, 0x8e, 732 },
-	{"Philips SECAM", Freqmultiplier * 168.25, Freqmultiplier * 447.25, 
+	{"Philips SECAM", Freqmultiplier * 168.25, Freqmultiplier * 447.25,
 		0xA7, 0x97, 0x37, 0x8e, 623 },
-	{"NoTuner", 0, 0, 
+	{"NoTuner", 0, 0,
 		0x00, 0x00, 0x00, 0x00, 0 },
-	{"Philips PAL", Freqmultiplier * 168.25, Freqmultiplier * 447.25, 
+	{"Philips PAL", Freqmultiplier * 168.25, Freqmultiplier * 447.25,
 		0xA0, 0x90, 0x30, 0x8e, 623 },
-	{"Temic NTSC", Freqmultiplier * 157.25, Freqmultiplier * 463.25, 
+	{"Temic NTSC", Freqmultiplier * 157.25, Freqmultiplier * 463.25,
 		0x02, 0x04, 0x01, 0x8e, 732 },
-	{"TEMIC PAL_I", Freqmultiplier * 170.00, Freqmultiplier * 450.00, 
+	{"TEMIC PAL_I", Freqmultiplier * 170.00, Freqmultiplier * 450.00,
 		0x02, 0x04, 0x01, 0x8e, 623 },
-	{"Temic 4036 FY5 NTSC", Freqmultiplier * 157.25, Freqmultiplier * 463.25, 
+	{"Temic 4036 FY5 NTSC", Freqmultiplier * 157.25, Freqmultiplier * 463.25,
 		0xa0, 0x90, 0x30, 0x8e, 732 },
-	{"Alps TSBH1", Freqmultiplier * 137.25, Freqmultiplier * 385.25, 
+	{"Alps TSBH1", Freqmultiplier * 137.25, Freqmultiplier * 385.25,
 		0x01, 0x02, 0x08, 0x8e, 732 },
-	{"Alps TSBE1", Freqmultiplier * 137.25, Freqmultiplier * 385.25, 
+	{"Alps TSBE1", Freqmultiplier * 137.25, Freqmultiplier * 385.25,
 		0x01, 0x02, 0x08, 0x8e, 732 },
 };
 
 static int hp_tuners[] = {
-	Notuner,  
-        	Notuner,    
-        	Notuner,  
-        	Notuner,  
-        	Notuner,    
-        	PhilipsNTSC,  
-        	Notuner,   
-        	Notuner,    
-        	PhilipsPAL,   
-        	PhilipsSECAM, 
-        	PhilipsNTSC,
-        	PhilipsPALI, 
-        	Notuner,        
-        	Notuner,    
-        	TemicPAL,     
-        	TemicPALI,   
-        	Notuner,        
-        	PhilipsSECAM, 
-        	PhilipsNTSC, 
-        	PhilipsPALI, 
-        	Notuner,     
-        	PhilipsPAL, 
-        	Notuner,       
-        	PhilipsNTSC,
+	Notuner,
+	Notuner,
+	Notuner,
+	Notuner,
+	Notuner,
+	PhilipsNTSC,
+	Notuner,
+	Notuner,
+	PhilipsPAL,
+	PhilipsSECAM,
+	PhilipsNTSC,
+	PhilipsPALI,
+	Notuner,
+	Notuner,
+	TemicPAL,
+	TemicPALI,
+	Notuner,
+	PhilipsSECAM,
+	PhilipsNTSC,
+	PhilipsPALI,
+	Notuner,
+	PhilipsPAL,
+	Notuner,
+	PhilipsNTSC,
 };
 
 enum {
@@ -465,20 +465,20 @@ enum {
 };
 
 static Cmdtab tvctlmsg[] = {
-	CMvstart,			"vstart",			2,
-	CMastart,			"astart",			5,
-	CMastop,			"astop",			1,
-	CMvgastart,		"vgastart",		3,
-	CMvstop,			"vstop",			1,
-	CMchannel,		"channel",			3,
-	CMcolormode,		"colormode",		2,
-	CMvolume,		"volume",			3,
-	CMmute,			"mute",			1,
+	CMvstart,	"vstart",	2,
+	CMastart,	"astart",	5,
+	CMastop,	"astop",	1,
+	CMvgastart,	"vgastart",	3,
+	CMvstop,	"vstop",	1,
+	CMchannel,	"channel",	3,
+	CMcolormode,	"colormode",	2,
+	CMvolume,	"volume",	3,
+	CMmute,		"mute",		1,
 };
 
 static Variant variant[] = {
-{	Brooktree_vid,	Brooktree_848_did,	"Brooktree 848 TV tuner",	},
-{	Brooktree_vid,	Brooktree_878_did,	"Brooktree 878 TV tuner",	},
+	{ Brooktree_vid, Brooktree_848_did, "Brooktree 848 TV tuner", },
+	{ Brooktree_vid, Brooktree_878_did, "Brooktree 878 TV tuner", },
 };
 
 static char *boards[] = {
@@ -497,7 +497,7 @@ static ushort Adspstereorates[] = {
 static uchar miroamux[] = { 2, 0, 0, 0, 10, 0 };
 static uchar hauppaugeamux[] = { 0, 1, 2, 3, 4, 0 };
 static char *nicamstate[] = {
-	"analog", "???", "digital", "bad digital receiption" 
+	"analog", "???", "digital", "bad digital receiption"
 };
 
 
@@ -530,7 +530,7 @@ tvinit(void)
 	Pcidev *pci;
 	ulong intmask;
 
-	// Test for a triton memory controller.
+	/* Test for a triton memory controller. */
 	intmask = 0;
 	if (pcimatch(nil, Intel_vid, Intel_82437_did))
 		intmask = intmask_etbf;
@@ -562,10 +562,10 @@ tvinit(void)
 			panic("#V: Cannot allocate memory for Bt848");
 		bt848 = tv->bt848;
 
-		// i2c stuff.
+		/* i2c stuff. */
 		if (pci->did >= 878)
 			tv->i2ccmd = 0x83;
-		else 
+		else
 			tv->i2ccmd = i2c_timing | i2c_bt848scl | i2c_bt848sda;
 
 		t = 0;
@@ -586,11 +586,11 @@ tvinit(void)
 					sizeof hp_tuners / sizeof hp_tuners[0], ee[9]);
 			t = hp_tuners[ee[9]];
 
-			// Initialize the audio channel.
+			/* Initialize the audio channel. */
 			if ((pci878 = pcimatch(nil, Brooktree_vid, 0x878)) == nil)
 				panic("#V: Unsupported Hauppage board");
 
-			tv->bt878 = bt878 = 
+			tv->bt878 = bt878 =
 				(Bt848 *)vmap(pci878->mem[0].bar & ~0x0F, 4 * K);
 			if (bt878 == nil)
 				panic("#V: Cannot allocate memory for the Bt878");
@@ -601,8 +601,8 @@ tvinit(void)
 
 			bt878->gpiodmactl = 0;
 			bt878->intstat = (ulong)-1;
-			intrenable(pci878->intl, (void (*)(Ureg *, void *))tvinterrupt, 
-					tv, pci878->tbdf, "tv");	
+			intrenable(pci878->intl, (void (*)(Ureg *, void *))tvinterrupt,
+					tv, pci878->tbdf, "tv");
 
 			tv->amux = hauppaugeamux;
 		}
@@ -624,7 +624,7 @@ tvinit(void)
 		if (t >= nelem(tuners))
 			t = 4;
 		tv->tuner = &tuners[t];
-		tv->i2ctuneraddr = 
+		tv->i2ctuneraddr =
 			i2cread(tv, 0xc1, &v)? 0xc0:
 			i2cread(tv, 0xc3, &v)? 0xc2:
 			i2cread(tv, 0xc5, &v)? 0xc4:
@@ -656,11 +656,11 @@ tvinit(void)
 		bt848->ehdelaylo = bt848->ohdelaylo = hdelay & 0xff;
 		bt848->evactivelo = bt848->ovactivelo = ntsc_vactive & 0xff;
 		bt848->evdelaylo = bt848->ovdelaylo = ntsc_vdelay & 0xff;
-		bt848->ecrop = bt848->ocrop = 
+		bt848->ecrop = bt848->ocrop =
 			((ntsc_hactive >> 8) & 0x03) |
 			((hdelay >> 6) & 0x0C) |
 	        		((ntsc_vactive >> 4) & 0x30) |
-			((ntsc_vdelay >> 2) & 0xC0);	
+			((ntsc_vdelay >> 2) & 0xC0);
 
 		bt848->colorctl = colorctl_gamma;
 		bt848->capctl = 0;
@@ -673,8 +673,8 @@ tvinit(void)
 		bt848->econtrol = bt848->ocontrol = control_ldec;
 		bt848->escloop = bt848->oscloop = 0;
 		bt848->intstat = (ulong)-1;
-		bt848->intmask = intmask | 
-			intstat_vsync | intstat_scerr | intstat_risci | intstat_ocerr | 
+		bt848->intmask = intmask |
+			intstat_vsync | intstat_scerr | intstat_risci | intstat_ocerr |
 			intstat_vpress | intstat_fmtchg;
 
 
@@ -683,12 +683,12 @@ tvinit(void)
 			gpiowrite(tv, ~0xfff, tv->amux[AudioRadio]);
 		}
 
-		print("#V%ld: %s (rev %d) (%s/%s) intl %d\n", 
-				tv - tvs, tv->variant->name, pci->rid, boards[tv->board],
-				tv->tuner->name, pci->intl);
+		print("#V%ld: %s (rev %d) (%s/%s) intl %d\n",
+			tv - tvs, tv->variant->name, pci->rid, boards[tv->board],
+			tv->tuner->name, pci->intl);
 
-		intrenable(pci->intl, (void (*)(Ureg *, void *))tvinterrupt, 
-				tv, pci->tbdf, "tv");	
+		intrenable(pci->intl, (void (*)(Ureg *, void *))tvinterrupt,
+			tv, pci->tbdf, "tv");
 	}
 }
 
@@ -699,8 +699,8 @@ tvattach(char *spec)
 }
 
 #define TYPE(q)		((int)((q).path & 0xff))
-#define DEV(q)			((int)(((q).path >> 8) & 0xff))
-#define QID(d, t)		((((d) & 0xff) << 8) | (t))
+#define DEV(q)		((int)(((q).path >> 8) & 0xff))
+#define QID(d, t)	((((d) & 0xff) << 8) | (t))
 
 static int
 tv1gen(Chan *c, int i, Dir *dp)
@@ -745,7 +745,7 @@ tvgen(Chan *c, char *, Dirtab *, int, int i, Dir *dp)
 
 		if (i >= ntvs)
 			return -1;
-	
+
 		mkqid(&qid, QID(i, Qsubdir), 0, QTDIR);
 		snprint(up->genbuf, sizeof(up->genbuf), "tv%d", i);
 		devdir(c, qid, up->genbuf, 0, eve, 0555, dp);
@@ -758,9 +758,9 @@ tvgen(Chan *c, char *, Dirtab *, int, int i, Dir *dp)
 			devdir(c, qid, up->genbuf, 0, eve, 0555, dp);
 			return 1;
 		}
-		
+
 		return tv1gen(c, i + Qsubbase, dp);
-	
+
 	case Qvdata:
 	case Qadata:
 	case Qctl:
@@ -787,7 +787,7 @@ tvstat(Chan *c, uchar *db, int n)
 static Chan*
 tvopen(Chan *c, int omode)
 {
-	if (omode != OREAD && 
+	if (omode != OREAD &&
 		TYPE(c->qid) != Qctl && TYPE(c->qid) != Qvdata)
 		error(Eperm);
 
@@ -811,14 +811,15 @@ tvopen(Chan *c, int omode)
 
 static void
 tvclose(Chan *)
-{}
+{
+}
 
 static int
 audioblock(void *)
 {
 	return 1;
 }
-	
+
 static long
 tvread(Chan *c, void *a, long n, vlong offset)
 {
@@ -841,7 +842,7 @@ tvread(Chan *c, void *a, long n, vlong offset)
 		tv = &tvs[DEV(c->qid)];
 		bpf = ntsc_hactive * ntsc_vactive * getbitspp(tv) / 8;
 
-		if (offset >= bpf) 
+		if (offset >= bpf)
 			return 0;
 
 		nb = n;
@@ -879,8 +880,8 @@ tvread(Chan *c, void *a, long n, vlong offset)
 		nbytes = tv->absize - boffs;
 
 		incref(&tv->aref);
-		while (1) {
-			tvablock = tv->narblocks;	// Current tv block.
+		for (;;) {
+			tvablock = tv->narblocks;	/* Current tv block. */
 
 			if (uablock == 0)
 				uablock = tvablock - 1;
@@ -896,14 +897,14 @@ tvread(Chan *c, void *a, long n, vlong offset)
 		}
 
 		print("uablock %ld, bnum %ld, boffs %d, nbytes %d, tvablock %ld\n",
-				uablock, bnum, boffs, nbytes, tvablock);
+			uablock, bnum, boffs, nbytes, tvablock);
 		src = tv->abuf + ((uablock + bnum) % tv->nablocks) * tv->absize;
-		print("copying from %.8ulX (abuf %.8ulX), nbytes %d (block %ld.%ld)\n", 
-				src + boffs, tv->abuf, nbytes, uablock, bnum);
+		print("copying from %.8ulX (abuf %.8ulX), nbytes %d (block %ld.%ld)\n",
+			src + boffs, tv->abuf, nbytes, uablock, bnum);
 
 		memmove(a, src + boffs, nbytes);
 		decref(&tv->aref);
-		
+
 		uablock += (boffs + nbytes) % tv->absize;
 		c->aux = (void*)uablock;
 
@@ -914,13 +915,12 @@ tvread(Chan *c, void *a, long n, vlong offset)
 		char str[128];
 
 		tv = &tvs[DEV(c->qid)];
-		snprint(str, sizeof str, "%dx%dx%d %s channel %d %s\n", 
-				ntsc_hactive, ntsc_vactive, getbitspp(tv),
-				getcolormode(tv->cfmt), tv->channel,
-				tv->ainfo);
+		snprint(str, sizeof str, "%dx%dx%d %s channel %d %s\n",
+			ntsc_hactive, ntsc_vactive, getbitspp(tv),
+			getcolormode(tv->cfmt), tv->channel, tv->ainfo);
 		return readstr(offset, a, strlen(str) + 1, str);
 	}
-		
+
 	case Qregs:
 		if (offset == 0) {
 			Bt848 *bt848;
@@ -932,19 +932,20 @@ tvread(Chan *c, void *a, long n, vlong offset)
 			e = regs + sizeof(regs);
 			p = regs;
 			for (i = 0; i < 0x300 >> 2; i++)
-				p = seprint(p, e, "%.3X %.8ulX\n", i << 2, ((ulong *)bt848)[i]);
+				p = seprint(p, e, "%.3X %.8ulX\n", i << 2,
+					((ulong *)bt848)[i]);
 			if (tv->bt878) {
 				bt848 = tv->bt878;
 
 				for (i = 0; i < 0x300 >> 2; i++)
-					p = seprint(p, e, "%.3X %.8ulX\n", 
-							i << 2, ((ulong *)bt848)[i]);
+					p = seprint(p, e, "%.3X %.8ulX\n",
+						i << 2, ((ulong *)bt848)[i]);
 			}
-			
+
 			regslen = p - regs;
 		}
 
-		if (offset >= regslen) 
+		if (offset >= regslen)
 			return 0;
 		if (offset + n > regslen)
 			n = regslen - offset;
@@ -976,14 +977,14 @@ tvwrite(Chan *c, void *a, long n, vlong)
 		ct = lookupcmd(cb, tvctlmsg, nelem(tvctlmsg));
 		switch (ct->index) {
 		case CMvstart:
-			vstart(tv, (int)strtol(cb->f[1], (char **)nil, 0), 
-					ntsc_hactive, ntsc_vactive, ntsc_hactive);
+			vstart(tv, (int)strtol(cb->f[1], (char **)nil, 0),
+				ntsc_hactive, ntsc_vactive, ntsc_hactive);
 			break;
 
 		case CMastart:
 			astart(tv, cb->f[1], (uint)strtol(cb->f[2], (char **)nil, 0),
-					(uint)strtol(cb->f[3], (char **)nil, 0),
-					(uint)strtol(cb->f[4], (char **)nil, 0));
+				(uint)strtol(cb->f[3], (char **)nil, 0),
+				(uint)strtol(cb->f[4], (char **)nil, 0));
 			break;
 
 		case CMastop:
@@ -992,7 +993,7 @@ tvwrite(Chan *c, void *a, long n, vlong)
 
 		case CMvgastart:
 			vgastart(tv, strtoul(cb->f[1], (char **)nil, 0),
-					(int)strtoul(cb->f[2], (char **)nil, 0));
+				(int)strtoul(cb->f[2], (char **)nil, 0));
 			break;
 
 		case CMvstop:
@@ -1000,7 +1001,7 @@ tvwrite(Chan *c, void *a, long n, vlong)
 			break;
 
 		case CMchannel:
-			frequency(tv, (int)strtol(cb->f[1], (char **)nil, 0), 
+			frequency(tv, (int)strtol(cb->f[1], (char **)nil, 0),
 				(int)strtol(cb->f[2], (char **)nil, 0));
 			break;
 
@@ -1012,8 +1013,8 @@ tvwrite(Chan *c, void *a, long n, vlong)
 			if (!tv->msp)
 				error("#V: No volume control");
 
-			mspvolume(tv, 0, (int)strtol(cb->f[1], (char **)nil, 0), 
-						(int)strtol(cb->f[2], (char **)nil, 0));
+			mspvolume(tv, 0, (int)strtol(cb->f[1], (char **)nil, 0),
+				(int)strtol(cb->f[2], (char **)nil, 0));
 			break;
 
 		case CMmute:
@@ -1057,10 +1058,9 @@ Dev tvdevtab = {
 static void
 tvinterrupt(Ureg *, Tv *tv)
 {
-	Bt848 *bt848 = tv->bt848,
-		*bt878 = tv->bt878;
+	Bt848 *bt848 = tv->bt848, *bt878 = tv->bt878;
 
-	while (1) {
+	for (;;) {
 		ulong vstat, astat;
 		uchar fnum;
 
@@ -1077,7 +1077,7 @@ tvinterrupt(Ureg *, Tv *tv)
 			break;
 
 		if (astat)
-		print("vstat %.8luX, astat %.8luX\n", vstat, astat);
+			print("vstat %.8luX, astat %.8luX\n", vstat, astat);
 
 		bt848->intstat = vstat;
 		if (bt878)
@@ -1092,14 +1092,13 @@ tvinterrupt(Ureg *, Tv *tv)
 //			iprint("int: vpress\n");
 			vstat &= ~intstat_vpress;
 		}
-		
-		if ((vstat & intstat_vsync) == intstat_vsync) {
+
+		if ((vstat & intstat_vsync) == intstat_vsync)
 			vstat &= ~intstat_vsync;
-		}
 
 		if ((vstat & intstat_scerr) == intstat_scerr) {
 			iprint("int: scerr\n");
-			bt848->gpiodmactl &= 
+			bt848->gpiodmactl &=
 				~(gpiodmactl_riscenable|gpiodmactl_fifoenable);
 			bt848->gpiodmactl |= gpiodmactl_fifoenable;
 			bt848->gpiodmactl |= gpiodmactl_riscenable;
@@ -1110,7 +1109,7 @@ tvinterrupt(Ureg *, Tv *tv)
 			tv->lvframe = fnum;
 			vstat &= ~intstat_risci;
 		}
-			
+
 		if ((vstat & intstat_ocerr) == intstat_ocerr) {
 			iprint("int: ocerr\n");
 			vstat &= ~intstat_ocerr;
@@ -1134,12 +1133,12 @@ tvinterrupt(Ureg *, Tv *tv)
 
 		if ((astat & intstat_fdsr) == intstat_fdsr) {
 			iprint("int: (a) fdsr\n");
-			bt848->gpiodmactl &= 
-				~(gpiodmactl_acapenable | 
+			bt848->gpiodmactl &=
+				~(gpiodmactl_acapenable |
 					gpiodmactl_riscenable | gpiodmactl_fifoenable);
 			astat &= ~intstat_fdsr;
 		}
-			
+
 		if (astat)
 			iprint("int: (a) ignored interrupts %.8ulX\n", astat);
 	}
@@ -1147,7 +1146,7 @@ tvinterrupt(Ureg *, Tv *tv)
 
 static int
 i2cread(Tv *tv, uchar off, uchar *v)
-{	
+{
 	Bt848 *bt848 = tv->bt848;
 	ulong intstat;
 	int i;
@@ -1238,8 +1237,8 @@ riscpacked(ulong pa, int fnum, int w, int h, int stride, ulong **lastjmp)
 		*p++ = pa + (i * 2 + 1) * stride;
 	}
 
-	// reset status.  you really need two instructions ;-(.
-	*p++ = riscjmp | (0xf << risclabelshift_reset); 	
+	/* reset status.  you really need two instructions ;-(. */
+	*p++ = riscjmp | (0xf << risclabelshift_reset);
 	*p++ = PADDR(p);
 	*p++ = riscjmp | riscirq | (fnum << risclabelshift_set);
 	*lastjmp = p;
@@ -1265,7 +1264,7 @@ riscplanar411(ulong pa, int fnum, int w, int h, ulong **lastjmp)
 	Ch = h >> 1;
 	Cbbase = Ybase + Yw * h;
 	Crbase = Cbbase + Cw * Ch;
- 
+
 	*p++ = riscsync | riscsync_resync | riscsync_vre;
 	*p++ = 0;
 
@@ -1274,9 +1273,9 @@ riscplanar411(ulong pa, int fnum, int w, int h, ulong **lastjmp)
 
 	for (i = 0; i != h / 2; i++) {
 		*p++ = riscwrite123 | Yw | riscwrite_sol | riscwrite_eol;
-		*p++ = (Cw << 16) | Cw;	
+		*p++ = (Cw << 16) | Cw;
 		*p++ = (ulong)(Ybase + i * 2 * Yw);
-		*p++ = (ulong)(Cbbase + i * Cw);		// Do not interlace
+		*p++ = (ulong)(Cbbase + i * Cw);	/* Do not interlace */
 		*p++ = (ulong)(Crbase + i * Cw);
 	}
 
@@ -1288,12 +1287,12 @@ riscplanar411(ulong pa, int fnum, int w, int h, ulong **lastjmp)
 
 	for (i = 0; i != h / 2; i++) {
 		*p++ = riscwrite1s23 | Yw | riscwrite_sol | riscwrite_eol;
-		*p++ = (Cw << 16) | Cw;	
+		*p++ = (Cw << 16) | Cw;
 		*p++ = (ulong)(Ybase + (i * 2 + 1) * Yw);
 	}
 
-	// reset status.  you really need two instructions ;-(.
-	*p++ = riscjmp | (0xf << risclabelshift_reset); 	
+	/* reset status.  you really need two instructions ;-(. */
+	*p++ = riscjmp | (0xf << risclabelshift_reset);
 	*p++ = PADDR(p);
 	*p++ = riscjmp | riscirq | (fnum << risclabelshift_set);
 	*lastjmp = p;
@@ -1327,7 +1326,7 @@ riscplanar422(ulong pa, int fnum, int w, int h, ulong **lastjmp)
 
 	for (i = 0; i != h / 2; i++) {
 		*p++ = riscwrite123 | Yw | riscwrite_sol | riscwrite_eol;
-		*p++ = (Cw << 16) | Cw;	
+		*p++ = (Cw << 16) | Cw;
 		*p++ = (ulong)(Ybase + i * 2 * Yw);
 		*p++ = (ulong)(Cbbase + i * 2 * Cw);
 		*p++ = (ulong)(Crbase + i * 2 * Cw);
@@ -1341,14 +1340,14 @@ riscplanar422(ulong pa, int fnum, int w, int h, ulong **lastjmp)
 
 	for (i = 0; i != h / 2; i++) {
 		*p++ = riscwrite123 | Yw | riscwrite_sol | riscwrite_eol;
-		*p++ = (Cw << 16) | Cw;	
+		*p++ = (Cw << 16) | Cw;
 		*p++ = (ulong)(Ybase + (i * 2 + 1) * Yw);
 		*p++ = (ulong)(Cbbase + (i * 2 + 1) * Cw);
 		*p++ = (ulong)(Crbase + (i * 2 + 1) * Cw);
 	}
 
-	// reset status.  you really need two instructions ;-(.
-	*p++ = riscjmp | (0xf << risclabelshift_reset); 	
+	/* reset status.  you really need two instructions ;-(. */
+	*p++ = riscjmp | (0xf << risclabelshift_reset);
 	*p++ = PADDR(p);
 	*p++ = riscjmp | riscirq | (fnum << risclabelshift_set);
 	*lastjmp = p;
@@ -1367,11 +1366,11 @@ riscaudio(ulong pa, int nblocks, int bsize)
 
 	*p++ = riscsync|riscsync_fm1;
 	*p++ = 0;
-	
+
 	for (i = 0; i != nblocks; i++) {
 		*p++ = riscwrite | riscwrite_sol | riscwrite_eol | bsize | riscirq |
-				((i & 0xf) << risclabelshift_set) | 
-				((~i & 0xf) << risclabelshift_reset);
+			((i & 0xf) << risclabelshift_set) |
+			((~i & 0xf) << risclabelshift_reset);
 		*p++ = pa + i * bsize;
 	}
 
@@ -1404,7 +1403,7 @@ vactivate(Tv *tv, Frame *frames, int nframes)
 	bt848->capctl |= capctl_captureodd|capctl_captureeven;
 	bt848->gpiodmactl |= gpiodmactl_fifoenable;
 	bt848->gpiodmactl |= gpiodmactl_riscenable;
-	
+
 	iunlock(tv);
 }
 
@@ -1420,7 +1419,7 @@ vstart(Tv *tv, int nframes, int w, int h, int stride)
 	bitspp = getbitspp(tv);
 	bpf = w * h * bitspp / 8;
 
-	// Add one as a spare.
+	/* Add one as a spare. */
 	frames = (Frame *)malloc(nframes * sizeof(Frame));
 	assert(frames);
 	if (waserror()) {
@@ -1435,20 +1434,19 @@ vstart(Tv *tv, int nframes, int w, int h, int stride)
 	for (i = 0; i != nframes; i++) {
 		if ((frames[i].fbase = (uchar *)malloc(bpf)) == nil)
 			error(Enomem);
-		
+
 		switch (tv->cfmt) {
 		case colorfmt_YCbCr422:
-			frames[i].fstart = riscplanar422(PADDR(frames[i].fbase), i, 
-									 w, h, &frames[i].fjmp);
+			frames[i].fstart = riscplanar422(PADDR(frames[i].fbase),				i, w, h, &frames[i].fjmp);
 			break;
 		case colorfmt_YCbCr411:
-			frames[i].fstart = riscplanar411(PADDR(frames[i].fbase), i, 
-									 w, h, &frames[i].fjmp);
+			frames[i].fstart = riscplanar411(PADDR(frames[i].fbase),
+				i, w, h, &frames[i].fjmp);
 			break;
 		case colorfmt_rgb16:
-			frames[i].fstart = riscpacked(PADDR(frames[i].fbase), i, 
-								     w * bitspp / 8, h, stride * bitspp / 8, 
-								     &frames[i].fjmp);
+			frames[i].fstart = riscpacked(PADDR(frames[i].fbase), i,
+				w * bitspp / 8, h, stride * bitspp / 8,
+				&frames[i].fjmp);
 			break;
 		default:
 			panic("vstart: Unsupport colorformat\n");
@@ -1456,8 +1454,8 @@ vstart(Tv *tv, int nframes, int w, int h, int stride)
 	}
 
 	for (i = 0; i != nframes; i++)
-		*frames[i].fjmp = 
-			PADDR((i == nframes - 1)? frames[0].fstart: frames[i + 1].fstart);
+		*frames[i].fjmp = PADDR(i == nframes - 1? frames[0].fstart:
+			frames[i + 1].fstart);
 
 	vactivate(tv, frames, nframes);
 }
@@ -1477,11 +1475,11 @@ astart(Tv *tv, char *input, uint rate, uint nab, uint nasz)
 	selector = 0;
 	if (!strcmp(input, "tv"))
 		selector = asel_tv;
-	else 	if (!strcmp(input, "radio"))
+	else if (!strcmp(input, "radio"))
 		selector = asel_radio;
-	else 	if (!strcmp(input, "mic"))
+	else if (!strcmp(input, "mic"))
 		selector = asel_mic;
-	else 	if (!strcmp(input, "smxc"))
+	else if (!strcmp(input, "smxc"))
 		selector = asel_smxc;
 	else
 		error("#V: Invalid input");
@@ -1501,17 +1499,16 @@ astart(Tv *tv, char *input, uint rate, uint nab, uint nasz)
 		error(Einuse);
 	}
 
-	tv->arisc = arisc;	
+	tv->arisc = arisc;
 	tv->abuf = abuf;
 	tv->nablocks = nab;
 	tv->absize = nasz;
 
 	bt878->riscstrtadd = PADDR(tv->arisc);
 	bt878->packetlen = (nab << 16) | nasz;
-	bt878->intmask = 
-				intstat_scerr | intstat_ocerr | intstat_risci | 
-				intstat_pabort | intstat_riperr | intstat_pperr | 
-				intstat_fdsr | intstat_ftrgt | intstat_fbus;
+	bt878->intmask = intstat_scerr | intstat_ocerr | intstat_risci |
+			intstat_pabort | intstat_riperr | intstat_pperr |
+			intstat_fdsr | intstat_ftrgt | intstat_fbus;
 
 	/* Assume analog, 16bpp */
 	for (s = 0; s < 16; s++)
@@ -1524,10 +1521,10 @@ astart(Tv *tv, char *input, uint rate, uint nab, uint nasz)
 	print("astart: sampleshift %d, decimation %d\n", s, d);
 
 	tv->narblocks = 0;
-	bt878->gpiodmactl = gpiodmactl_fifoenable | 
-			gpiodmactl_riscenable | gpiodmactl_acapenable |
-			gpiodmactl_daes2 | /* gpiodmactl_apwrdn | */
-			gpiodmactl_daiomda | (d << 8) | (9 << 28) | (selector << 24);
+	bt878->gpiodmactl = gpiodmactl_fifoenable |
+		gpiodmactl_riscenable | gpiodmactl_acapenable |
+		gpiodmactl_daes2 |		/* gpiodmactl_apwrdn | */
+		gpiodmactl_daiomda | d << 8 | 9 << 28 | selector << 24;
 	print("dmactl %.8ulX\n", bt878->gpiodmactl);
 	iunlock(tv);
 }
@@ -1568,9 +1565,8 @@ vgastart(Tv *tv, ulong pa, int stride)
 	}
 
 	frame->fbase = nil;
-	frame->fstart = riscpacked(pa, 0, ntsc_hactive * getbitspp(tv) / 8, 
-						   ntsc_vactive, stride * getbitspp(tv) / 8, 
-						   &frame->fjmp);
+	frame->fstart = riscpacked(pa, 0, ntsc_hactive * getbitspp(tv) / 8,
+		ntsc_vactive, stride * getbitspp(tv) / 8, &frame->fjmp);
 	*frame->fjmp = PADDR(frame->fstart);
 
 	vactivate(tv, frame, 1);
@@ -1603,8 +1599,7 @@ vstop(Tv *tv)
 	iunlock(tv);
 }
 
-static long
-hrcfreq[] = {	/* HRC CATV frequencies */
+static long hrcfreq[] = {		/* HRC CATV frequencies */
 	    0,  7200,  5400,  6000,  6600,  7800,  8400, 17400,
 	18000, 18600, 19200, 19800, 20400, 21000, 12000, 12600,
 	13200, 13800, 14400, 15000, 15600, 16200, 16800, 21600,
@@ -1639,15 +1634,15 @@ frequency(Tv *tv, int channel, int finetune)
 	if (freq < tuner->freq_vhfh)
 		cfg = tuner->VHF_L;
 	else if (freq < tuner->freq_uhf)
-		cfg =  tuner->VHF_H;
+		cfg = tuner->VHF_H;
 	else
 		cfg = tuner->UHF;
 
 	div = (freq + tuner->offs + finetune) & 0x7fff;
-	
+
 	if (!i2cwrite(tv, tv->i2ctuneraddr, (div >> 8) & 0x7f, div, 1))
 		error(Eio);
-	
+
 	if (!i2cwrite(tv, tv->i2ctuneraddr, tuner->cfg, cfg, 1))
 		error(Eio);
 
@@ -1657,13 +1652,13 @@ frequency(Tv *tv, int channel, int finetune)
 }
 
 static struct {
-	char *cmode;
-	ulong realmode;
-	ulong cbits;
+	char	*cmode;
+	ulong	realmode;
+	ulong	cbits;
 } colormodes[] = {
-{	"RGB16",		colorfmt_rgb16,		colorfmt_rgb16,		},
-{	"YCbCr422",	colorfmt_YCbCr422,	colorfmt_YCbCr422,	},
-{	"YCbCr411",	colorfmt_YCbCr411,	colorfmt_YCbCr422,	},
+	{ "RGB16",	colorfmt_rgb16,		colorfmt_rgb16, },
+	{ "YCbCr422",	colorfmt_YCbCr422,	colorfmt_YCbCr422, },
+	{ "YCbCr411",	colorfmt_YCbCr411,	colorfmt_YCbCr422, },
 };
 
 static void
@@ -1694,7 +1689,7 @@ getbitspp(Tv *tv)
 		return 12;
 	default:
 		error("getbitspp: Unsupport color format\n");
-	}	
+	}
 	return -1;
 }
 
@@ -1710,7 +1705,7 @@ getcolormode(ulong cmode)
 		return (cmode == colorfmt_YCbCr422)? "YCbCr422": "YCbCr411";
 	default:
 		error("getcolormode: Unsupport color format\n");
-	}	
+	}
 	return nil;
 }
 
@@ -1803,7 +1798,7 @@ i2c_rd8(Tv *tv, int lastbyte)
 			d |= 1;
 		i2c_set(tv, 0, 1);
 	}
-	
+
 	i2c_bit(tv, lastbyte? 1: 0);
 	return d;
 }
@@ -1862,8 +1857,8 @@ mspread(Tv *tv, uchar sub, ushort reg, ushort *data)
 	for (i = 0; i != 3; i++) {
 		i2c_start(tv);
 		if (!i2c_wr8(tv, b[0], 2000) ||
-			!i2c_wr8(tv, b[1] | 1, 0) || 
-			!i2c_wr8(tv, b[2], 0) || 
+			!i2c_wr8(tv, b[1] | 1, 0) ||
+			!i2c_wr8(tv, b[2], 0) ||
 			!i2c_wr8(tv, b[3], 0)) {
 
 			i2c_stop(tv);
@@ -1875,12 +1870,11 @@ mspread(Tv *tv, uchar sub, ushort reg, ushort *data)
 		i2c_start(tv);
 
 		if (!i2c_wr8(tv, b[0] | 1, 2000)) {
-
 			i2c_stop(tv);
 			continue;
 		}
-		
-		*data = i2c_rd8(tv, 0) << 8;
+
+		*data  = i2c_rd8(tv, 0) << 8;
 		*data |= i2c_rd8(tv, 1);
 		i2c_stop(tv);
 		return 1;
@@ -1926,7 +1920,7 @@ mspreset(Tv *tv)
 		return 0;
 	}
 
-	print("#V: MSP34%dg ROM %.d, %d.%d\n", 
+	print("#V: MSP34%dg ROM %.d, %d.%d\n",
 		(uchar)(p >> 8), (uchar)p, (uchar)(v >> 8), (uchar)v);
 
 	tv->msp = 1;
@@ -1954,7 +1948,7 @@ mspvolume(Tv *tv, int mute, int l, int r)
 
 	mspwrite(tv, msp_bbp, 0, v << 8);
 	mspwrite(tv, msp_bbp, 7, v? 0x4000: 0);
-	mspwrite(tv, msp_bbp, 1, b << 8);	
+	mspwrite(tv, msp_bbp, 1, b << 8);
 }
 
 static char *
@@ -1982,7 +1976,7 @@ mspaformat(int f)
 	}
 	return "unknown format";
 }
-	
+
 
 static void
 msptune(Tv *tv)
@@ -2024,8 +2018,8 @@ msptune(Tv *tv)
 
 	nicam = ((s >> 4) & 2) | ((s >> 9) & 1);
 	snprint(tv->ainfo, sizeof tv->ainfo, "%s %s %s",
-			mspaformat(d), (s & (1 << 6))? "stereo": "mono",
-			nicamstate[nicam]);
+		mspaformat(d), (s & (1 << 6))? "stereo": "mono",
+		nicamstate[nicam]);
 }
 
 static void
@@ -2037,9 +2031,8 @@ i2cscan(Tv *tv)
 		i2c_start(tv);
 		ack = i2c_wr8(tv, i, 0);
 		i2c_stop(tv);
-		if (ack) {
+		if (ack)
 			print("i2c device @%.2uX\n", i);
-		}
 	}
 
 	for (i = 0xf0; i != 0xff; i++) {
@@ -2147,7 +2140,7 @@ kfirloadu(Tv *tv, uchar *u, int ulen)
 	bt848->gpiodata[0] |= gpio_altera_nconfig;
 	microdelay(10);
 
-	// Download the microcode
+	/* Download the microcode */
 	for (i = 0; i != ulen; i++)
 		for (j = 0; j != 8; j++) {
 			bt848->gpiodata[0] &= ~(gpio_altera_clock|gpio_altera_data);
@@ -2159,7 +2152,7 @@ kfirloadu(Tv *tv, uchar *u, int ulen)
 	bt848->gpiodata[0] &= ~gpio_altera_clock;
 	microdelay(100);
 
-	// Initialize.
+	/* Initialize. */
 	for (i = 0; i != 30; i++) {
 		bt848->gpiodata[0] &= ~gpio_altera_clock;
 		bt848->gpiodata[0] |= gpio_altera_clock;
@@ -2190,7 +2183,7 @@ kfirreset(Tv *tv)
 static int
 kfirinitialize(Tv *tv)
 {
-	// Initialize parameters?
+	/* Initialize parameters? */
 
 	tv->gpiostate = Gpioinit;
 	tv->alterareg = -1;
@@ -2199,4 +2192,3 @@ kfirinitialize(Tv *tv)
 	kfirreset(tv);
 	return 1;
 }
-

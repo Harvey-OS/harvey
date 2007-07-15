@@ -841,13 +841,13 @@ dp83820interrupt(Ureg*, void* arg)
 					bp->wp += cmdsts & SizeMASK;
 					etheriq(edev, bp, 1);
 				}
-				//else if(!(cmdsts & Ok)){
-				//	iprint("dp83820: rx %8.8uX:", cmdsts);
-				//	bp = desc->bp;
-				//	for(i = 0; i < 20; i++)
-				//		iprint(" %2.2uX", bp->rp[i]);
-				//	iprint("\n");
-				//}
+				else if(0 && !(cmdsts & Ok)){
+					iprint("dp83820: rx %8.8uX:", cmdsts);
+					bp = desc->bp;
+					for(i = 0; i < 20; i++)
+						iprint(" %2.2uX", bp->rp[i]);
+					iprint("\n");
+				}
 				dp83820rballoc(desc);
 
 				x = NEXT(x, ctlr->nrd);
@@ -1124,11 +1124,11 @@ dp83820reset(Ctlr* ctlr)
 	 * it hasn't?
 	 */
 #else
-	//r = csr32r(ctlr, Cfg);
-	//r &= ~(Mode1000|T64addren|Data64en|M64addren);
-	//csr32w(ctlr, Cfg, r);
-	//csr32w(ctlr, Cfg, 0x2000);
-#endif /* notdef */
+	// r = csr32r(ctlr, Cfg);
+	// r &= ~(Mode1000|T64addren|Data64en|M64addren);
+	// csr32w(ctlr, Cfg, r);
+	// csr32w(ctlr, Cfg, 0x2000);
+#endif						/* notdef */
 	ctlr->cfg = csr32r(ctlr, Cfg);
 print("cfg %8.8uX pcicfg %8.8uX\n", ctlr->cfg, pcicfgr32(ctlr->pcidev, PciPCR));
 	ctlr->cfg &= ~(T64addren|Data64en|M64addren);

@@ -24,8 +24,8 @@ authentication(int cpuflag)
 	av[ac++] = "factotum";
 	if(getenv("debugfactotum"))
 		av[ac++] = "-p";
-//av[ac++] = "-d";	//debug traces
-//av[ac++] = "-D";	//9p messages
+//	av[ac++] = "-d";		/* debug traces */
+//	av[ac++] = "-D";		/* 9p messages */
 	if(cpuflag)
 		av[ac++] = "-S";
 	else

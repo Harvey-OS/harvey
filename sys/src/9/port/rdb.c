@@ -57,11 +57,10 @@ static void
 talkrdb(Ureg *ureg)
 {
 	uchar *a;
-	char *p;
-	char *req;
+	char *p, *req;
 
-	serialoq = nil;	// turn off serial console
-	kprintoq = nil;	// turn off /dev/kprint if active
+	serialoq = nil;		/* turn off serial console */
+	kprintoq = nil;		/* turn off /dev/kprint if active */
 //	scrprint("Plan 9 debugger\n");
 	iprint("Edebugger reset\n");
 	for(;;){
@@ -70,7 +69,8 @@ talkrdb(Ureg *ureg)
 		case 'r':
 			a = addr(req+1, ureg, nil);
 			DBG("read %p\n", a);
-			iprint("R%.8lux %.2ux %.2ux %.2ux %.2ux\n", strtoul(req+1, 0, 16), a[0], a[1], a[2], a[3]);
+			iprint("R%.8lux %.2ux %.2ux %.2ux %.2ux\n",
+				strtoul(req+1, 0, 16), a[0], a[1], a[2], a[3]);
 			break;
 
 		case 'w':

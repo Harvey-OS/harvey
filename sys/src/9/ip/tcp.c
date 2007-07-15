@@ -608,7 +608,7 @@ timerstate(Tcppriv *priv, Tcptimer *t, int newstate)
 {
 	if(newstate != TcptimerON){
 		if(t->state == TcptimerON){
-			// unchain
+			/* unchain */
 			if(priv->timers == t){
 				priv->timers = t->next;
 				if(t->prev != nil)
@@ -622,7 +622,7 @@ timerstate(Tcppriv *priv, Tcptimer *t, int newstate)
 		}
 	} else {
 		if(t->state != TcptimerON){
-			// chain
+			/* chain */
 			if(t->prev != nil || t->next != nil)
 				panic("timerstate2");
 			t->prev = nil;
@@ -2888,8 +2888,10 @@ addreseq(Tcpctl *tcb, Tcppriv *tpriv, Tcp *seg, Block *bp, ushort length)
 			}
 		}
 
-		// delete entire reassembly queue; wait for retransmit.
-		// - should we be smarter and only delete the tail?
+		/*
+		 * delete entire reassembly queue; wait for retransmit.
+		 * - should we be smarter and only delete the tail?
+		 */
 		for(rp = tcb->reseq; rp != nil; rp = rp1){
 			rp1 = rp->next;
 			freeblist(rp->bp);

@@ -49,7 +49,7 @@ extern int errno;
 /* bsd networking software */
 #define ENOTSOCK	36
 #define EPROTONOSUPPORT	37
-#define EPROTOTYPE 37
+#define EPROTOTYPE	37	/* two names for 37 */
 #define ECONNREFUSED	38
 #define EAFNOSUPPORT	39
 #define ENOBUFS		40

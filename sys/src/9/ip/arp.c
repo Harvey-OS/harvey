@@ -94,7 +94,7 @@ newarp6(Arp *arp, uchar *ip, Ipifc *ifc, int addrxt)
 			xp = next;
 		}
 	}
-	else {	// queue icmp unreachable for rxmitproc later on, w/o arp lock
+	else { /* queue icmp unreachable for rxmitproc later on, w/o arp lock */
 		if(xp){
 			if(arp->dropl == nil) 
 				arp->dropf = xp;
@@ -436,7 +436,7 @@ arpwrite(Fs *fs, char *s, int len)
 			}
 		}
 		memset(arp->hash, 0, sizeof(arp->hash));
-// clear all pkts on these lists (rxmt, dropf/l)
+		/* clear all pkts on these lists (rxmt, dropf/l) */
 		arp->rxmt = nil;
 		arp->dropf = nil;
 		arp->dropl = nil;
@@ -573,11 +573,11 @@ rxmitsols(Arp *arp)
 	a = arp->rxmt;
 	if(a==nil){
 		nrxt = 0;
-		goto dodrops; 		//return nrxt;
+		goto dodrops; 		/* return nrxt; */
 	}
 	nrxt = a->rtime - NOW;
 	if(nrxt > 3*ReTransTimer/4) 
-		goto dodrops; 		//return nrxt;
+		goto dodrops; 		/* return nrxt; */
 
 	for(; a; a = a->nextrxt){
 		ifc = a->ifc;

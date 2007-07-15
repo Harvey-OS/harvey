@@ -39,10 +39,10 @@ enum {
 	LegacyAddr = 0x3e0,
 	NUMEVENTS = 10,
 
-	TI1131xSC = 0x80,		// system control
-		TI122X_SC_INTRTIE	= 1 << 29,
-	TI12xxIM = 0x8c,		//
-	TI1131xCC = 0x91,		// card control
+	TI1131xSC = 0x80,		/* system control */
+		TI122X_SC_INTRTIE = 1 << 29,
+	TI12xxIM = 0x8c,		/*  */
+	TI1131xCC = 0x91,		/* card control */
 		TI113X_CC_RIENB = 1 << 7,
 		TI113X_CC_ZVENABLE = 1 << 6,
 		TI113X_CC_PCI_IRQ_ENA = 1 << 5,
@@ -50,7 +50,7 @@ enum {
 		TI113X_CC_PCI_CSC = 1 << 3,
 		TI113X_CC_SPKROUTEN = 1 << 1,
 		TI113X_CC_IFG = 1 << 0,
-	TI1131xDC = 0x92,		// device control
+	TI1131xDC = 0x92,		/* device control */
 };
 
 typedef struct Variant Variant;
@@ -559,8 +559,10 @@ devpccardlink(void)
 		cb->variant = &variant[i];
 
 		if (pci->vid != TI_vid) {
-			// Gross hack, needs a fix.  Inherit the mappings from 9load
-			// for the TIs (pb)
+			/*
+			 * Gross hack, needs a fix.  Inherit the mappings from
+			 * 9load for the TIs (pb)
+			 */
 			pcicfgw32(pci, PciCBMBR0, 0xffffffff);
 			pcicfgw32(pci, PciCBMLR0, 0);
 			pcicfgw32(pci, PciCBMBR1, 0xffffffff);
@@ -571,7 +573,7 @@ devpccardlink(void)
 			pcicfgw32(pci, PciCBILR1, 0);
 		}
 
-		// Set up PCI bus numbers if needed.
+		/* Set up PCI bus numbers if needed. */
 		if (pcicfgr8(pci, PciSBN) == 0) {
 			static int busbase = 0x20;
 
@@ -580,7 +582,7 @@ devpccardlink(void)
 			busbase += 3;
 		}
 
-		// Patch up intl if needed.
+		/* Patch up intl if needed. */
 		if ((pin = pcicfgr8(pci, PciINTP)) != 0 &&
 		    (pci->intl == 0xff || pci->intl == 0)) {
 			pci->intl = pciipin(nil, pin);
@@ -590,33 +592,33 @@ devpccardlink(void)
 				print("#Y%ld: No interrupt?\n", cb - cbslots);
 		}
 
-		// Don't you love standards!
+		/* Don't you love standards! */
 		if (pci->vid == TI_vid) {
 			if (pci->did <= TI_1131_did) {
 				uchar cc;
 
 				cc = pcicfgr8(pci, TI1131xCC);
 				cc &= ~(TI113X_CC_PCI_IRQ_ENA |
-						TI113X_CC_PCI_IREQ |
-						TI113X_CC_PCI_CSC |
-						TI113X_CC_ZVENABLE);
+					TI113X_CC_PCI_IREQ |
+					TI113X_CC_PCI_CSC |
+					TI113X_CC_ZVENABLE);
 				cc |= TI113X_CC_PCI_IRQ_ENA |
-						TI113X_CC_PCI_IREQ |
-						TI113X_CC_SPKROUTEN;
+					TI113X_CC_PCI_IREQ |
+					TI113X_CC_SPKROUTEN;
 				pcicfgw8(pci, TI1131xCC, cc);
 
-				// PCI interrupts only
+				/* PCI interrupts only */
 				pcicfgw8(pci, TI1131xDC,
-						pcicfgr8(pci, TI1131xDC) & ~6);
+					pcicfgr8(pci, TI1131xDC) & ~6);
 
-				// CSC ints to PCI bus.
+				/* CSC ints to PCI bus. */
 				wrreg(cb, Rigc, rdreg(cb, Rigc) | 0x10);
 			}
 			else if (pci->did == TI_1250_did) {
 				print("No support yet for the TI_1250_did, prod pb\n");
 			}
 			else if (pci->did == TI_1420_did) {
-				// Disable Vcc protection
+				/* Disable Vcc protection */
 				pcicfgw32(cb->pci, 0x80,
 					pcicfgr32(cb->pci, 0x80) | (1 << 21));
 			}
@@ -677,7 +679,7 @@ devpccardlink(void)
 			engine(cb, CardPowered);
 
 		/* Ack and enable interrupts on all events */
-		//cb->regs[SocketEvent] = cb->regs[SocketEvent];
+		// cb->regs[SocketEvent] = cb->regs[SocketEvent];
 		cb->regs[SocketMask] |= 0xF;
 		wrreg(cb, Rcscic, 0xC);
 	}
@@ -1017,8 +1019,8 @@ pccard_pcmspecial(char *idstr, ISAConf *isa)
 	}
 
 	if (i == nslots) {
-		//if(DEBUG)
-		//	print("#Y: %s not found\n", idstr);
+		if(0 && DEBUG)
+			print("#Y: %s not found\n", idstr);
 		return -1;
 	}
 

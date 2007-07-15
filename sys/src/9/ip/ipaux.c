@@ -99,7 +99,7 @@ uchar v6linklocalmask[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
-int v6llpreflen = 8;	// link-local prefix length
+int v6llpreflen = 8;	/* link-local prefix length */
 uchar v6sitelocal[IPaddrlen] = {
 	0xfe, 0xc0, 0, 0,
 	0, 0, 0, 0,
@@ -112,7 +112,7 @@ uchar v6sitelocalmask[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
-int v6slpreflen = 6;	// site-local prefix length
+int v6slpreflen = 6;	/* site-local prefix length */
 uchar v6glunicast[IPaddrlen] = {
 	0x08, 0, 0, 0,
 	0, 0, 0, 0,
@@ -131,7 +131,7 @@ uchar v6multicastmask[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
-int v6mcpreflen = 1;	// multicast prefix length
+int v6mcpreflen = 1;	/* multicast prefix length */
 uchar v6allnodesN[IPaddrlen] = {
 	0xff, 0x01, 0, 0,
 	0, 0, 0, 0,
@@ -144,7 +144,7 @@ uchar v6allnodesNmask[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
-int v6aNpreflen = 2;	// all nodes (N) prefix
+int v6aNpreflen = 2;	/* all nodes (N) prefix */
 uchar v6allnodesL[IPaddrlen] = {
 	0xff, 0x02, 0, 0,
 	0, 0, 0, 0,
@@ -157,7 +157,7 @@ uchar v6allnodesLmask[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0
 };
-int v6aLpreflen = 2;	// all nodes (L) prefix
+int v6aLpreflen = 2;	/* all nodes (L) prefix */
 uchar v6allroutersN[IPaddrlen] = {
 	0xff, 0x01, 0, 0,
 	0, 0, 0, 0,
@@ -683,7 +683,7 @@ iphtlook(Ipht *ht, uchar *sa, ushort sp, uchar *da, ushort dp)
 			return c;
 		}
 	}
-	
+
 	/* match local address and port */
 	hv = iphash(IPnoaddr, 0, da, dp);
 	for(h = ht->tab[hv]; h != nil; h = h->next){
@@ -695,7 +695,7 @@ iphtlook(Ipht *ht, uchar *sa, ushort sp, uchar *da, ushort dp)
 			return c;
 		}
 	}
-	
+
 	/* match just port */
 	hv = iphash(IPnoaddr, 0, IPnoaddr, dp);
 	for(h = ht->tab[hv]; h != nil; h = h->next){
@@ -707,7 +707,7 @@ iphtlook(Ipht *ht, uchar *sa, ushort sp, uchar *da, ushort dp)
 			return c;
 		}
 	}
-	
+
 	/* match local address */
 	hv = iphash(IPnoaddr, 0, da, 0);
 	for(h = ht->tab[hv]; h != nil; h = h->next){
@@ -719,7 +719,7 @@ iphtlook(Ipht *ht, uchar *sa, ushort sp, uchar *da, ushort dp)
 			return c;
 		}
 	}
-	
+
 	/* look for something that matches anything */
 	hv = iphash(IPnoaddr, 0, IPnoaddr, 0);
 	for(h = ht->tab[hv]; h != nil; h = h->next){
