@@ -706,7 +706,7 @@ swcursorinit(void)
 	swimg = allocmemimage(Rect(0,0,16,16), GREY8);
 	swimg1 = allocmemimage(Rect(0,0,16,16), GREY1);
 	if(swback==nil || swmask==nil || swmask1==nil || swimg==nil || swimg1 == nil){
-		print("software cursor: allocmemimage: %r");
+		print("software cursor: allocmemimage fails");
 		return;
 	}
 
