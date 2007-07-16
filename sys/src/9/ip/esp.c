@@ -379,9 +379,9 @@ print("esp: bad auth %I -> %I!%ld\n", raddr, laddr, spi);
 	}
 	if(!ecb->cipher(ecb, bp->rp+EsphdrSize, payload)) {
 		qunlock(c);
-print("esp: cipher failed %I -> %I!%ld: %r\n", raddr, laddr, spi);
-		netlog(f, Logesp, "esp: cipher failed %I -> %I!%d: %r\n", raddr,
-			laddr, spi);
+print("esp: cipher failed %I -> %I!%ld: %s\n", raddr, laddr, spi, up->errstr);
+		netlog(f, Logesp, "esp: cipher failed %I -> %I!%d: %s\n", raddr,
+			laddr, spi, up->errstr);
 		freeb(bp);
 		return;
 	}
