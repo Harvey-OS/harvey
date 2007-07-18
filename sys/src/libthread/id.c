@@ -21,7 +21,7 @@ threadpid(int id)
 	if (id == 0)
 		return _threadgetproc()->pid;
 	lock(&_threadpq.lock);
-	for (p = _threadpq.head; p->next; p = p->next){
+	for (p = _threadpq.head; p; p = p->next){
 		lock(&p->lock);
 		for (t = p->threads.head; t; t = t->nextt)
 			if (t->id == id){
