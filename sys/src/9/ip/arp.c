@@ -640,7 +640,7 @@ dodrops:
 
 	for(; xp; xp = next){
 		next = xp->list;
-		icmphostunr(f, ifc, xp, icmp6_adr_unreach, 1);
+		icmphostunr(f, ifc, xp, Icmp6_adr_unreach, 1);
 	}
 
 	return nrxt;

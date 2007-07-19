@@ -1034,7 +1034,7 @@ ilsendctl(Conv *ipc, Ilhdr *inih, int type, ulong id, ulong ack, int ilspec)
 		hnputs(ih->ilsum, ptclcsum(bp, IL_IPSIZE, IL_HDRSIZE));
 
 if(ipc==nil)
-	panic("ipc is nil caller is %.8lux", getcallerpc(&ipc));
+	panic("ipc is nil caller is %#p", getcallerpc(&ipc));
 if(ipc->p==nil)
 	panic("ipc->p is nil");
 

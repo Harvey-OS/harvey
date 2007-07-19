@@ -374,7 +374,7 @@ rudpkick(void *x)
 		rport = nhgets(bp->rp);
 		bp->rp += 2+2;			/* Ignore local port */
 		break;
-	case 6:
+	case 6:					/* OBS */
 		/* get user specified addresses */
 		bp = pullupblock(bp, UDP_USEAD6);
 		if(bp == nil)
@@ -417,7 +417,7 @@ rudpkick(void *x)
 	uh->frag[1] = 0;
 	hnputs(uh->udpplen, ptcllen);
 	switch(ucb->headers){
-	case 6:
+	case 6:					/* OBS */
 	case 7:
 		v6tov4(uh->udpdst, raddr);
 		hnputs(uh->udpdport, rport);
@@ -578,7 +578,7 @@ rudpiput(Proto *rudp, Ipifc *ifc, Block *bp)
 		hnputs(p, rport); p += 2;
 		hnputs(p, lport);
 		break;
-	case 6:
+	case 6:					/* OBS */
 		/* pass the src address */
 		bp = padblock(bp, UDP_USEAD6);
 		p = bp->rp;
@@ -630,9 +630,9 @@ rudpctl(Conv *c, char **f, int n)
 		return rudpunknown;
 
 	if(strcmp(f[0], "headers++4") == 0){
-		ucb->headers = 7;
+		ucb->headers = 7;		/* new headers format */
 		return nil;
-	} else if(strcmp(f[0], "headers") == 0){
+	} else if(strcmp(f[0], "headers") == 0){	/* OBS */
 		ucb->headers = 6;
 		return nil;
 	} else if(strcmp(f[0], "hangup") == 0){
@@ -645,7 +645,7 @@ rudpctl(Conv *c, char **f, int n)
 		qunlock(ucb);
 		return nil;
 	} else if(strcmp(f[0], "randdrop") == 0){
-		x = 10;		/* default is 10% */
+		x = 10;			/* default is 10% */
 		if(n > 1)
 			x = atoi(f[1]);
 		if(x > 100 || x < 0)
