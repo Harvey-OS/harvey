@@ -66,21 +66,19 @@ A directory containing mount points for applications.
 A directory containing mount points for file trees imported from
 remote systems.
 .TP
-.B /29000
-.TP
 .B /386
 .TP
 .B /68000
 .TP
 .B /68020
 .TP
-.B /960
-.TP
 .B /alpha
 .TP
 .B /arm
 .TP
 .B /mips
+.TP
+.B /power
 .TP
 .B /sparc
 Each CPU architecture supported by Plan 9 has a directory in the root containing
@@ -125,7 +123,7 @@ The files in
 .B /386
 beginning with a
 .B 9
-are binaries of the operating system.
+are binaries of the operating system or its bootstrap loader.
 .TP
 .B /386/mkfile
 Selected by
@@ -183,6 +181,16 @@ Bitmap font files.
 .B /lib/font/hershey
 Vector font files.
 .TP
+.B /lib/rfc
+Directory of Internet `Requests For Comments',
+ranging from trivia to specifications.
+.TP
+.B /lib/rfc/grabrfc
+Maintains RFC collection; usually run from
+.IR cron
+(see
+.IR auth (8)).
+.TP
 .B /sys
 System software.
 .TP
@@ -236,6 +244,9 @@ Source to the operating system for file servers.
 .TP
 .B /sys/src/lib*
 Source to the libraries.
+.TP
+.B /usr
+A directory containing home directories of users.
 .TP
 .B /mail
 Directory of electronic mail; see

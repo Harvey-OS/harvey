@@ -238,15 +238,15 @@ udpkick(void *x, Block *bp)
 	}
 
 	if(ucb->headers) {
-		if(memcmp(laddr, v4prefix, IPv4off) == 0 ||
-		    ipcmp(laddr, IPnoaddr) == 0)
+		if(memcmp(laddr, v4prefix, IPv4off) == 0
+		|| ipcmp(laddr, IPnoaddr) == 0)
 			version = 4;
 		else
 			version = 6;
 	} else {
-		if((memcmp(c->raddr, v4prefix, IPv4off) == 0 &&
-		    memcmp(c->laddr, v4prefix, IPv4off) == 0) ||
-		    ipcmp(c->raddr, IPnoaddr) == 0)
+		if( (memcmp(c->raddr, v4prefix, IPv4off) == 0 &&
+			memcmp(c->laddr, v4prefix, IPv4off) == 0)
+			|| ipcmp(c->raddr, IPnoaddr) == 0)
 			version = 4;
 		else
 			version = 6;
@@ -432,7 +432,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 			icmpnoconv(f, bp);
 			break;
 		case V6:
-			icmphostunr(f, ifc, bp, icmp6_port_unreach, 0);
+			icmphostunr(f, ifc, bp, Icmp6_port_unreach, 0);
 			break;
 		default:
 			panic("udpiput2: version %d", version);

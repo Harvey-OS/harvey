@@ -3,7 +3,7 @@ PORTFILES=`{../port/mkfilelist ../port}
 	$CC $CFLAGS -I. ../port/$stem1.c
 
 IPFILES=`{../port/mkfilelist ../ip}
-^($IPFILES)\.$O:R:	'../ip/\1.c' ../ip/ip.h
+^($IPFILES)\.$O:R:	'../ip/\1.c' ../ip/ip.h ../ip/ipv6.h
 	$CC $CFLAGS -I. ../ip/$stem1.c
 
 %.$O:	%.s

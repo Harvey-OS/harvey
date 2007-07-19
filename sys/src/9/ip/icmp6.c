@@ -159,12 +159,14 @@ static char *statnames6[Nstats6] =
 
 static char *unreachcode[] =
 {
-[icmp6_no_route]	"no route to destination",
-[icmp6_ad_prohib]	"comm with destination administratively prohibited",
-[icmp6_unassigned]	"icmp unreachable: unassigned error code (2)",
-[icmp6_adr_unreach]	"address unreachable",
-[icmp6_port_unreach]	"port unreachable",
-[icmp6_unkn_code]	"icmp unreachable: unknown code",
+[Icmp6_no_route]	"no route to destination",
+[Icmp6_ad_prohib]	"comm with destination administratively prohibited",
+[Icmp6_out_src_scope]	"beyond scope of source address",
+[Icmp6_adr_unreach]	"address unreachable",
+[Icmp6_port_unreach]	"port unreachable",
+[Icmp6_gress_src_fail]	"source address failed ingress/egress policy",
+[Icmp6_rej_route]	"reject route to destination",
+[Icmp6_unknown]		"icmp unreachable: unknown code",
 };
 
 static void icmpkick6(void *x, Block *bp);
@@ -688,12 +690,12 @@ targettype(Fs *f, Ipifc *ifc, uchar *target)
 	rlock(ifc);
 	if(ipproxyifc(f, ifc, target)) {
 		runlock(ifc);
-		return t_uniproxy;
+		return Tuniproxy;
 	}
 
 	for(lifc = ifc->lifc; lifc; lifc = lifc->next)
 		if(ipcmp(lifc->local, target) == 0) {
-			t = (lifc->tentative)? t_unitent: t_unirany;
+			t = (lifc->tentative)? Tunitent: Tunirany;
 			runlock(ifc);
 			return t;
 		}
@@ -732,8 +734,8 @@ icmpiput6(Proto *icmp, Ipifc *ipifc, Block *bp)
 		break;
 
 	case UnreachableV6:
-		if(p->code > 4)
-			msg = unreachcode[icmp6_unkn_code];
+		if(p->code >= nelem(unreachcode))
+			msg = unreachcode[Icmp6_unknown];
 		else
 			msg = unreachcode[p->code];
 
@@ -789,11 +791,11 @@ icmpiput6(Proto *icmp, Ipifc *ipifc, Block *bp)
 		np = (Ndpkt*) p;
 		pktflags = 0;
 		switch (targettype(icmp->f, ipifc, np->target)) {
-		case t_unirany:
+		case Tunirany:
 			pktflags |= Oflag;
 			/* fall through */
 
-		case t_uniproxy:
+		case Tuniproxy:
 			if(ipcmp(np->src, v6Unspecified) != 0) {
 				arpenter(icmp->f, V6, np->src, np->lnaddr,
 					8*np->olen-2, 0);
@@ -808,7 +810,7 @@ icmpiput6(Proto *icmp, Ipifc *ipifc, Block *bp)
 				freeblist(bp);
 			break;
 
-		case t_unitent:
+		case Tunitent:
 			/* not clear what needs to be done. send up
 			 * an icmp mesg saying don't use this address? */
 		default:

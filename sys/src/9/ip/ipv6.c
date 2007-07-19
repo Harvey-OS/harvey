@@ -195,7 +195,8 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 		sr = v6lookup(f, eh->src, nil);
 		if(sr && (sr->type & Runi))
 			ifc = sr->ifc;
-	} else
+	}
+	else
 		gate = r->v6.gate;
 
 	if(!gating)
@@ -532,15 +533,17 @@ unfraglen(Block *bp, uchar *nexthdr, int setfh)
 	ufl = IP6HDR;
 	p += ufl;
 
-	for(;;)
+	for(;;) {
 		if(*nexthdr == HBH || *nexthdr == RH) {
 			*nexthdr = *p;
 			hs = ((int)*(p+1) + 1) * 8;
 			ufl += hs;
 			q = p;
 			p += hs;
-		} else
+		}
+		else
 			break;
+	}
 
 	if(*nexthdr == FH)
 		*q = *p;

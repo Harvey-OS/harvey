@@ -1,17 +1,28 @@
-#ifndef MIN
-#define MIN(a, b) ((a) <= (b)? (a): (b))
-#endif
-
-/* rfc 3513 defines the address prefices */
+/*
+ * Internet Protocol Version 6
+ *
+ * rfc2460 defines the protocol, rfc2461 neighbour discovery, and
+ * rfc2462 address autoconfiguration.  rfc4443 defines ICMP; was rfc2463.
+ * rfc4291 defines the address architecture (including prefices), was rfc3513.
+ * rfc4007 defines the scoped address architecture.
+ *
+ * global unicast is anything but unspecified (::), loopback (::1),
+ * multicast (ff00::/8), and link-local unicast (fe80::/10).
+ *
+ * site-local (fec0::/10) is now deprecated, originally by rfc3879.
+ *
+ * Unique Local IPv6 Unicast Addresses are defined by rfc4193.
+ * prefix is fc00::/7, scope is global, routing is limited to roughly a site.
+ */
 #define isv6mcast(addr)	  ((addr)[0] == 0xff)
 #define islinklocal(addr) ((addr)[0] == 0xfe && ((addr)[1] & 0xc0) == 0x80)
-#define issitelocal(addr) ((addr)[0] == 0xfe && ((addr)[1] & 0xc0) == 0xc0)
-#define isv6global(addr) (((addr)[0] & 0xe0) == 0x20)
 
 #define optexsts(np)	(nhgets((np)->ploadlen) > 24)
 #define issmcast(addr)	(memcmp((addr), v6solicitednode, 13) == 0)
 
-/* from RFC 2460 */
+#ifndef MIN
+#define MIN(a, b) ((a) <= (b)? (a): (b))
+#endif
 
 enum {				/* Header Types */
 	HBH		= 0,	/* hop-by-hop multicast routing protocol */
@@ -42,25 +53,27 @@ enum {				/* Header Types */
 enum {
 	/* multicast flags and scopes */
 
-	Well_known_flg	= 0,
-	Transient_flg	= 1,
+//	Well_known_flg	= 0,
+//	Transient_flg	= 1,
 
-	Node_local_scop	= 1,
+//	Interface_local_scop = 1,
 	Link_local_scop	= 2,
-	Site_local_scop	= 5,
-	Org_local_scop	= 8,
+//	Site_local_scop	= 5,
+//	Org_local_scop	= 8,
 	Global_scop	= 14,
 
 	/* various prefix lengths */
 	SOLN_PREF_LEN	= 13,
 
-	/* icmpv6 unreach codes */
-	icmp6_no_route		= 0,
-	icmp6_ad_prohib		= 1,
-	icmp6_unassigned	= 2,
-	icmp6_adr_unreach	= 3,
-	icmp6_port_unreach	= 4,
-	icmp6_unkn_code		= 5,
+	/* icmpv6 unreachability codes */
+	Icmp6_no_route		= 0,
+	Icmp6_ad_prohib		= 1,
+	Icmp6_out_src_scope	= 2,
+	Icmp6_adr_unreach	= 3,
+	Icmp6_port_unreach	= 4,
+	Icmp6_gress_src_fail	= 5,
+	Icmp6_rej_route		= 6,
+	Icmp6_unknown		= 7,  /* our own invention for internal use */
 
 	/* various flags & constants */
 	v6MINTU		= 1280,
@@ -82,9 +95,9 @@ enum {
 	TARG_UNI	= 2,
 	TARG_MULTI	= 3,
 
-	t_unitent	= 1,
-	t_uniproxy	= 2,
-	t_unirany	= 3,
+	Tunitent	= 1,
+	Tuniproxy	= 2,
+	Tunirany	= 3,
 
 	/* Router constants (all times in milliseconds) */
 	MAX_INIT_RTR_ADVERT_INTVL = 16000,
@@ -155,14 +168,11 @@ extern uchar v6loopback[IPaddrlen];
 extern uchar v6loopbackmask[IPaddrlen];
 extern uchar v6linklocal[IPaddrlen];
 extern uchar v6linklocalmask[IPaddrlen];
-extern uchar v6sitelocal[IPaddrlen];
-extern uchar v6sitelocalmask[IPaddrlen];
 extern uchar v6glunicast[IPaddrlen];
 extern uchar v6multicast[IPaddrlen];
 extern uchar v6multicastmask[IPaddrlen];
 
 extern int v6llpreflen;
-extern int v6slpreflen;
 extern int v6lbpreflen;
 extern int v6mcpreflen;
 extern int v6snpreflen;
