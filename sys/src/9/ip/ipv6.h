@@ -99,26 +99,9 @@ enum {
 	Tuniproxy	= 2,
 	Tunirany	= 3,
 
-	/* Router constants (all times in milliseconds) */
-	MAX_INIT_RTR_ADVERT_INTVL = 16000,
-	MAX_INIT_RTR_ADVERTS	= 3,
-	MAX_FINAL_RTR_ADVERTS	= 3,
-	MIN_DELAY_BETWEEN_RAS	= 3000,
-	MAX_RA_DELAY_TIME	= 500,
-
-	/* Host constants */
-	MAX_RTR_SOLICIT_DELAY	= 1000,
-	RTR_SOLICIT_INTVL	= 4000,
-	MAX_RTR_SOLICITS	= 3,
-
 	/* Node constants */
 	MAX_MULTICAST_SOLICIT	= 3,
-	MAX_UNICAST_SOLICIT	= 3,
-	MAX_ANYCAST_DELAY_TIME	= 1000,
-	MAX_NEIGHBOR_ADVERT	= 3,
-	REACHABLE_TIME		= 30000,
 	RETRANS_TIMER		= 1000,
-	DELAY_FIRST_PROBE_TIME	= 5000,
 };
 
 typedef struct Ip6hdr	Ip6hdr;

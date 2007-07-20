@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <bio.h>
 #include <ndb.h>
+#include <ip.h>
 #include "icmp.h"
 
 enum{
@@ -179,6 +180,7 @@ udpprobe(int cfd, int dfd, char *dest, int interval)
 #define MSG "traceroute probe"
 #define MAGIC 0xdead
 
+/* ICMPv4 only */
 static int
 icmpprobe(int cfd, int dfd, char *dest, int interval)
 {
@@ -202,7 +204,7 @@ icmpprobe(int cfd, int dfd, char *dest, int interval)
 		strcpy((char*)ip->data, MSG);
 		ip->seq[0] = MAGIC;
 		ip->seq[1] = MAGIC>>8;
-		len = ICMP_IPSIZE+ICMP_HDRSIZE+sizeof(MSG);
+		len = IPV4HDR_LEN+ICMP_HDRSIZE+sizeof(MSG);
 
 		/* send a request */
 		if(write(dfd, buf, len) < len)

@@ -27,36 +27,36 @@ struct Req
 };
 
 typedef struct {
+	int	version;
 	char	*net;
+	int	echocmd;
 	int	echoreply;
-	unsigned icmphdrsz;
-	int	(*getttl)(void *v);
-	int	(*getseq)(void *v);
-	void	(*putseq)(void *v, ushort seq);
-	int	(*gettype)(void *v);
-	void	(*settype)(void *v);
-	int	(*getcode)(void *v);
-	void	(*setcode)(void *v);
+	unsigned iphdrsz;
+
 	void	(*prreply)(Req *r, void *v);
 	void	(*prlost)(ushort seq, void *v);
 } Proto;
+
 
 Req	*first;		/* request list */
 Req	*last;		/* ... */
 Lock	listlock;
 
 char *argv0;
-int debug;
-int quiet;
-int lostonly;
-int lostmsgs;
-int rcvdmsgs;
-int done;
-int rint;
-vlong sum;
-ushort firstseq;
+
 int addresses;
+int debug;
+int done;
 int flood;
+int lostmsgs;
+int lostonly;
+int quiet;
+int rcvdmsgs;
+int rint;
+ushort firstseq;
+vlong sum;
+
+static char *network, *target;
 
 void lost(Req*, void*);
 void reply(Req*, void*);
@@ -82,100 +82,12 @@ catch(void *a, char *msg)
 		noted(NDFLT);
 }
 
-
-static int
-getttl4(void *v)
-{
-	return ((Icmp *)v)->ttl;
-}
-
-static int
-getttl6(void *v)
-{
-	return ((Icmp6 *)v)->ttl;
-}
-
-static int
-getseq4(void *v)
-{
-	return nhgets(((Icmp *)v)->seq);
-}
-
-static int
-getseq6(void *v)
-{
-	Icmp6 *ip6 = v;
-
-	return ip6->seq[1]<<8 | ip6->seq[0];
-}
-
-static void
-putseq4(void *v, ushort seq)
-{
-	hnputs(((Icmp *)v)->seq, seq);
-}
-
-static void
-putseq6(void *v, ushort seq)
-{
-	((Icmp6 *)v)->seq[0] = seq;
-	((Icmp6 *)v)->seq[1] = seq>>8;
-}
-
-static int
-gettype4(void *v)
-{
-	return ((Icmp *)v)->type;
-}
-
-static int
-gettype6(void *v)
-{
-	return ((Icmp6 *)v)->type;
-}
-
-static void
-settype4(void *v)
-{
-	((Icmp *)v)->type = EchoRequest;
-}
-
-static void
-settype6(void *v)
-{
-	((Icmp6 *)v)->type = EchoRequestV6;
-}
-
-static int
-getcode4(void *v)
-{
-	return ((Icmp *)v)->code;
-}
-
-static int
-getcode6(void *v)
-{
-	return ((Icmp6 *)v)->code;
-}
-
-static void
-setcode4(void *v)
-{
-	((Icmp *)v)->code = 0;
-}
-
-static void
-setcode6(void *v)
-{
-	((Icmp6 *)v)->code = 0;
-}
-
 static void
 prlost4(ushort seq, void *v)
 {
 	Icmp *ip4 = v;
 
-	print("lost %ud: %V->%V\n", seq, ip4->src, ip4->dst);
+	print("lost %ud: %V -> %V\n", seq, ip4->src, ip4->dst);
 }
 
 static void
@@ -183,7 +95,7 @@ prlost6(ushort seq, void *v)
 {
 	Icmp6 *ip6 = v;
 
-	print("lost %ud: %I->%I\n", seq, ip6->src, ip6->dst);
+	print("lost %ud: %I -> %I\n", seq, ip6->src, ip6->dst);
 }
 
 static void
@@ -191,7 +103,7 @@ prreply4(Req *r, void *v)
 {
 	Icmp *ip4 = v;
 
-	print("%ud: %V->%V rtt %lld µs, avg rtt %lld µs, ttl = %d\n",
+	print("%ud: %V -> %V rtt %lld µs, avg rtt %lld µs, ttl = %d\n",
 		r->seq - firstseq, ip4->src, ip4->dst, r->rtt, sum/rcvdmsgs,
 		r->ttl);
 }
@@ -199,50 +111,47 @@ prreply4(Req *r, void *v)
 static void
 prreply6(Req *r, void *v)
 {
-	Icmp *ip6 = v;
+	Icmp6 *ip6 = v;
 
-	print("%ud: %I->%I rtt %lld µs, avg rtt %lld µs, ttl = %d\n",
+	print("%ud: %I -> %I rtt %lld µs, avg rtt %lld µs, ttl = %d\n",
 		r->seq - firstseq, ip6->src, ip6->dst, r->rtt, sum/rcvdmsgs,
 		r->ttl);
 }
 
 static Proto v4pr = {
-	"icmp",
-	EchoReply,
-	sizeof(Icmp),
-	getttl4,
-	getseq4,
-	putseq4,
-	gettype4,
-	settype4,
-	getcode4,
-	setcode4,
-	prreply4,
-	prlost4,
+	4,		"icmp",
+	EchoRequest,	EchoReply,
+	IPV4HDR_LEN,
+	prreply4,	prlost4,
 };
 static Proto v6pr = {
-	"icmpv6",
-	EchoReplyV6,
-	sizeof(Icmp6),
-	getttl6,
-	getseq6,
-	putseq6,
-	gettype6,
-	settype6,
-	getcode6,
-	setcode6,
-	prreply6,
-	prlost6,
+	6,		"icmpv6",
+	EchoRequestV6,	EchoReplyV6,
+	IPV6HDR_LEN,
+	prreply6,	prlost6,
 };
 
 static Proto *proto = &v4pr;
 
 
+Icmphdr *
+geticmp(void *v)
+{
+	char *p = v;
+
+	p += proto->iphdrsz;
+	return (Icmphdr *)p;
+}
+
 void
 clean(ushort seq, vlong now, void *v)
 {
+	int ttl;
 	Req **l, *r;
 
+	ttl = 0;
+	if (v)
+		ttl = proto->version == 4? ((Icmp *)v)->ttl: ((Icmp6 *)v)->ttl;
 	lock(&listlock);
 	last = nil;
 	for(l = &first; *l; ){
@@ -250,7 +159,7 @@ clean(ushort seq, vlong now, void *v)
 
 		if(v && r->seq == seq){
 			r->rtt = now-r->time;
-			r->ttl = (*proto->getttl)(v);
+			r->ttl = ttl;
 			reply(r, v);
 		}
 
@@ -258,7 +167,7 @@ clean(ushort seq, vlong now, void *v)
 			*l = r->next;
 			r->rtt = now-r->time;
 			if(v)
-				r->ttl = (*proto->getttl)(v);
+				r->ttl = ttl;
 			if(r->replied == 0)
 				lost(r, v);
 			free(r);
@@ -270,21 +179,79 @@ clean(ushort seq, vlong now, void *v)
 	unlock(&listlock);
 }
 
+static uchar loopbacknet[IPaddrlen] = {
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0xff, 0xff,
+	127, 0, 0, 0
+};
+static uchar loopbackmask[IPaddrlen] = {
+	0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff,
+	0xff, 0xff, 0xff, 0xff,
+	0xff, 0, 0, 0
+};
+
+/*
+ * find first ip addr suitable for proto and
+ * that isn't the friggin loopback address
+ * unless there are no others.
+ */
+static int
+myipvnaddr(uchar *ip, Proto *proto, char *net)
+{
+	int ipisv4, wantv4;
+	Ipifc *nifc;
+	Iplifc *lifc;
+	uchar mynet[IPaddrlen];
+	static Ipifc *ifc;
+	
+	wantv4 = proto->version == 4;
+	ifc = readipifc(net, ifc, -1);
+	for(nifc = ifc; nifc; nifc = nifc->next)
+		for(lifc = nifc->lifc; lifc; lifc = lifc->next){
+			maskip(lifc->ip, loopbackmask, mynet);
+			if(ipcmp(mynet, loopbacknet) == 0)
+				continue;
+			ipisv4 = isv4(lifc->ip) != 0;
+			if(ipcmp(lifc->ip, IPnoaddr) != 0 && wantv4 == ipisv4){
+				ipmove(ip, lifc->ip);
+				return 0;
+			}
+		}
+	ipmove(ip, IPnoaddr);
+	return -1;
+}
+
 void
 sender(int fd, int msglen, int interval, int n)
 {
 	int i, extra;
 	ushort seq;
 	char buf[64*1024+512];
+	uchar me[IPaddrlen], mev4[IPv4addrlen];
+	Icmphdr *icmp;
 	Req *r;
 
 	srand(time(0));
 	firstseq = seq = rand();
 
-	for(i = proto->icmphdrsz; i < msglen; i++)
+	icmp = geticmp(buf);
+	memset(buf, 0, proto->iphdrsz + ICMP_HDRSIZE);
+	for(i = proto->iphdrsz + ICMP_HDRSIZE; i < msglen; i++)
 		buf[i] = i;
-	(*proto->settype)(buf);
-	(*proto->setcode)(buf);
+	icmp->type = proto->echocmd;
+	icmp->code = 0;
+
+	/* arguably the kernel should fill in the right src addr. */
+	myipvnaddr(me, proto, network);
+	if (proto->version == 4) {
+		v6tov4(mev4, me);
+		memmove(((Icmp *)buf)->src, mev4, IPv4addrlen);
+	} else
+		ipmove(((Ip6hdr *)buf)->src, me);
+	if (addresses)
+		print("\t%I -> %s\n", me, target);
 
 	for(i = 0; i < n; i++){
 		if(i != 0){
@@ -294,7 +261,7 @@ sender(int fd, int msglen, int interval, int n)
 		r = malloc(sizeof *r);
 		if (r == nil)
 			continue;
-		(*proto->putseq)(buf, seq);
+		hnputs(icmp->seq, seq);
 		r->seq = seq;
 		r->next = nil;
 		r->replied = 0;
@@ -323,6 +290,7 @@ rcvr(int fd, int msglen, int interval, int nmsg)
 	ushort x;
 	vlong now;
 	uchar buf[64*1024+512];
+	Icmphdr *icmp;
 	Req *r;
 
 	sum = 0;
@@ -339,18 +307,18 @@ rcvr(int fd, int msglen, int interval, int nmsg)
 			print("bad len %d/%d\n", n, msglen);
 			continue;
 		}
+		icmp = geticmp(buf);
 		munged = 0;
-		for(i = proto->icmphdrsz; i < msglen; i++)
+		for(i = proto->iphdrsz + ICMP_HDRSIZE; i < msglen; i++)
 			if(buf[i] != (uchar)i)
 				munged++;
 		if(munged)
 			print("corrupted reply\n");
-		x = (*proto->getseq)(buf);
-		if((*proto->gettype)(buf) != proto->echoreply ||
-		   (*proto->getcode)(buf) != 0) {
-			print("bad sequence/code/type %d/%d/%d\n",
-				(*proto->gettype)(buf), (*proto->getcode)(buf),
-				x);
+		x = nhgets(icmp->seq);
+		if(icmp->type != proto->echoreply || icmp->code != 0) {
+			print("bad type/code/sequence %d/%d/%d (want %d/%d/%d)\n",
+				icmp->type, icmp->code, x,
+				proto->echoreply, 0, x);
 			continue;
 		}
 		clean(x, now, buf);
@@ -451,6 +419,9 @@ _dial_string_parse(char *str, DS *ds)
 	}
 }
 
+/* end excerpt from /sys/src/libc/9sys/dial.c */
+
+/* side effect: sets network & target */
 static int
 isv4name(char *name)
 {
@@ -469,6 +440,7 @@ isv4name(char *name)
 		else {
 			*pr++ = '\0';
 			root = ds.netdir;
+			network = strdup(root);
 		}
 		if (strcmp(pr, v4pr.net) == 0)
 			return 1;
@@ -477,6 +449,8 @@ isv4name(char *name)
 	}
 
 	/* if it's a literal, it's obvious from syntax which proto it is */
+	free(target);
+	target = strdup(ds.rem);
 	if (isdottedquad(ds.rem))
 		return 1;
 	else if (isv6lit(ds.rem))
@@ -545,8 +519,8 @@ main(int argc, char **argv)
 		break;
 	} ARGEND;
 
-	if(msglen < proto->icmphdrsz)
-		msglen = proto->icmphdrsz;
+	if(msglen < proto->iphdrsz + ICMP_HDRSIZE)
+		msglen = proto->iphdrsz + ICMP_HDRSIZE;
 	if(msglen < 64)
 		msglen = 64;
 	if(msglen >= 64*1024)

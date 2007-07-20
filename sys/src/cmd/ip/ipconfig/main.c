@@ -7,9 +7,6 @@
 #include <bio.h>
 #include <ndb.h>
 #include "../dhcp.h"
-typedef struct Block Block;
-typedef struct Fs Fs;
-#include "/sys/src/9/ip/ipv6.h"
 #include "ipconfig.h"
 
 #define DEBUG if(debug)print
@@ -201,6 +198,7 @@ uchar*	optadd(uchar*, int, void*, int);
 uchar*	optaddulong(uchar*, int, ulong);
 uchar*	optaddvec(uchar*, int, uchar*, int);
 int	optgetaddrs(uchar*, int, uchar*, int);
+int	optgetp9addrs(uchar*, int, uchar*, int);
 int	optgetaddr(uchar*, int, uchar*);
 int	optgetbyte(uchar*, int);
 int	optgetstr(uchar*, int, char*, int);
@@ -222,10 +220,10 @@ void	writendb(char*, int, int);
 void
 usage(void)
 {
-	fprint(2,
-"usage: %s [-6dDGnNOpPruX][-x mtpt][-m mtu][-b baud][-g gw][-h host][-c ctl]*"
-	" [-o dhcpopt] type dev [verb] [laddr [mask [raddr [fs [auth]]]]]\n",
-		argv0);
+	fprint(2, "usage: %s [-6dDGnNOpPruX][-b baud][-c ctl]* [-g gw]"
+		"[-h host][-m mtu]\n"
+		"\t[-x mtpt][-o dhcpopt] type dev [verb] [laddr [mask "
+		"[raddr [fs [auth]]]]]\n", argv0);
 	exits("usage");
 }
 
@@ -523,6 +521,7 @@ main(int argc, char **argv)
 	default:
 		usage();
 	} ARGEND;
+	argv0 = "ipconfig";		/* boot invokes us as tcp? */
 
 	action = parseargs(argc, argv);
 	switch(action){
@@ -583,13 +582,14 @@ doadd(int retry)
 		if (ip6cfg(ipv6auto) < 0)
 			sysfatal("can't automatically start IPv6 on %s",
 				conf.dev);
-		return;
+//		return;
 	} else if (validip(conf.laddr) && !isv4(conf.laddr)) {
 		if (ip6cfg(0) < 0)
 			sysfatal("can't start IPv6 on %s, address %I",
 				conf.dev, conf.laddr);
-		return;
+//		return;
 	}
+
 	if(!validip(conf.laddr) && !ppp)
 		if(dondbconfig)
 			ndbconfig();
@@ -1246,23 +1246,31 @@ dhcprecv(void)
 		/* get anything else we asked for */
 		getoptions(bp->optdata);
 
-		/* get plan9 specific options */
+		/* get plan9-specific options */
 		n = optgetvec(bp->optdata, OBvendorinfo, vopts, sizeof vopts-1);
 		if(n > 0 && parseoptions(vopts, n) == 0){
 			if(validip(conf.fs) && Oflag)
 				n = 1;
-			else
-				n = optgetaddrs(vopts, OP9fs, conf.fs, 2);
+			else {
+//				n = optgetp9addrs(vopts, OP9fs, conf.fs, 2);
+//				if (n == 0)
+					n = optgetaddrs(vopts, OP9fs,
+						conf.fs, 2);
+			}
 			for(i = 0; i < n; i++)
 				DEBUG("fs=%I ", conf.fs + i*IPaddrlen);
+
 			if(validip(conf.auth) && Oflag)
 				n = 1;
-			else
-				n = optgetaddrs(vopts, OP9auth, conf.auth, 2);
+			else {
+//				n = optgetp9addrs(vopts, OP9auth, conf.auth, 2);
+//				if (n == 0)
+					n = optgetaddrs(vopts, OP9auth,
+						conf.auth, 2);
+			}
 			for(i = 0; i < n; i++)
 				DEBUG("auth=%I ", conf.auth + i*IPaddrlen);
 		}
-
 		conf.lease = lease;
 		conf.state = Sbound;
 		DEBUG("server=%I sname=%s\n", conf.server, conf.sname);
@@ -1365,6 +1373,7 @@ optaddstr(uchar *p, int op, char *v)
 	return p+2+n;
 }
 
+/* parse p, looking for option `op'; return ptr to opt, store length via np */
 uchar*
 optget(uchar *p, int op, int *np)
 {
@@ -1439,6 +1448,24 @@ optgetaddrs(uchar *p, int op, uchar *ip, int n)
 		len = n;
 	for(i = 0; i < len; i++)
 		v4tov6(&ip[i*IPaddrlen], &p[i*IPv4addrlen]);
+	return i;
+}
+
+int
+optgetp9addrs(uchar *ap, int op, uchar *ip, int n)
+{
+	int len, i, slen;
+	char *p;
+
+	p = (char *)optget(ap, op, &len);
+	if(p == nil)
+		return 0;
+	for (i = 0; i < n && len > 0; i++) {
+		slen = strlen(p) + 1;
+		parseip(&ip[i*IPaddrlen], p);
+		p += slen;
+		len -= slen;
+	}
 	return i;
 }
 
@@ -1572,6 +1599,7 @@ writendb(char *s, int n, int append)
 		fd = open(file, OWRITE|OTRUNC);
 	write(fd, s, n);
 	close(fd);
+write(1, s, n);		/* DEBUG */
 }
 
 /* put server addresses into the ndb entry */

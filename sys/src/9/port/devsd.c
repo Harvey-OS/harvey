@@ -136,7 +136,7 @@ sdaddpart(SDunit* unit, char* name, ulong start, ulong end)
 }
 
 static void
-sddelpart(SDunit* unit,  char* name)
+sddelpart(SDunit* unit, char* name)
 {
 	int i;
 	SDpart *pp;
@@ -397,7 +397,7 @@ sd2gen(Chan* c, int i, Dir* dp)
 	switch(i){
 	case Qctl:
 		mkqid(&q, QID(DEV(c->qid), UNIT(c->qid), PART(c->qid), Qctl),
-			   unit->vers, QTFILE);
+			unit->vers, QTFILE);
 		perm = &unit->ctlperm;
 		if(emptystr(perm->user)){
 			kstrdup(&perm->user, eve);
@@ -409,7 +409,7 @@ sd2gen(Chan* c, int i, Dir* dp)
 
 	case Qraw:
 		mkqid(&q, QID(DEV(c->qid), UNIT(c->qid), PART(c->qid), Qraw),
-			   unit->vers, QTFILE);
+			unit->vers, QTFILE);
 		perm = &unit->rawperm;
 		if(emptystr(perm->user)){
 			kstrdup(&perm->user, eve);
@@ -423,7 +423,7 @@ sd2gen(Chan* c, int i, Dir* dp)
 		pp = &unit->part[PART(c->qid)];
 		l = (pp->end - pp->start) * (vlong)unit->secsize;
 		mkqid(&q, QID(DEV(c->qid), UNIT(c->qid), PART(c->qid), Qpart),
-			   unit->vers+pp->vers, QTFILE);
+			unit->vers+pp->vers, QTFILE);
 		if(emptystr(pp->user))
 			kstrdup(&pp->user, eve);
 		devdir(c, q, pp->name, l, pp->user, pp->perm, dp);
@@ -556,7 +556,7 @@ sdgen(Chan* c, char*, Dirtab*, int, int s, Dir* dp)
 		}
 		l = (pp->end - pp->start) * (vlong)unit->secsize;
 		mkqid(&q, QID(DEV(c->qid), UNIT(c->qid), i, Qpart),
-			    unit->vers+pp->vers, QTFILE);
+			unit->vers+pp->vers, QTFILE);
 		if(emptystr(pp->user))
 			kstrdup(&pp->user, eve);
 		devdir(c, q, pp->name, l, pp->user, pp->perm, dp);
@@ -881,6 +881,7 @@ sdsetsense(SDreq *r, int status, int key, int asc, int ascq)
 	unit->sense[12] = asc;
 	unit->sense[13] = ascq;
 
+	r->status = status;
 	if(status == SDcheck && !(r->flags & SDnosense)){
 		/* request sense case from sdfakescsi */
 		len = sizeof unit->sense;
