@@ -7,6 +7,7 @@ enum
 	IPv4addrlen=	4,
 	IPv4off=	12,
 	IPllen=		4,
+	IPV4HDR_LEN=	20,
 };
 
 /*
@@ -60,6 +61,67 @@ struct Ipifc
 	ulong	errin;
 	ulong	errout;
 	Ipv6rp	rp;
+};
+
+#define ISIPV6MCAST(addr)	((addr)[0] == 0xff)
+#define ISIPV6LINKLOCAL(addr) ((addr)[0] == 0xfe && ((addr)[1] & 0xc0) == 0x80)
+
+/*
+ * ipv6 constants
+ * `ra' is `router advertisement', `rs' is `router solicitation'.
+ * `na' is `neighbour advertisement'.
+ */
+enum {
+	IPV6HDR_LEN	= 40,
+
+	/* option types */
+	V6opt_srclladdr	= 1,
+	V6opt_targlladdr= 2,
+	V6opt_pfxinfo	= 3,
+	V6opt_redirhdr	= 4,
+	V6opt_mtu	= 5,
+
+	/* Router constants (all times in ms.) */
+	Maxv6initraintvl= 16000,
+	Maxv6initras	= 3,
+	Maxv6finalras	= 3,
+	Minv6interradelay= 3000,
+	Maxv6radelay	= 500,
+
+	/* Host constants */
+	Maxv6rsdelay	= 1000,
+	V6rsintvl	= 4000,
+	Maxv6rss	= 3,
+
+	/* Node constants */
+	Maxv6mcastrss	= 3,
+	Maxv6unicastrss	= 3,
+	Maxv6anycastdelay= 1000,
+	Maxv6na		= 3,
+	V6reachabletime	= 30000,
+	V6retranstimer	= 1000,
+	V6initprobedelay= 5000,
+};
+
+/* V6 header on the wire */
+typedef struct Ip6hdr Ip6hdr;
+struct Ip6hdr {
+	uchar	vcf[4];		/* version:4, traffic class:8, flow label:20 */
+	uchar	ploadlen[2];	/* payload length: packet length - 40 */
+	uchar	proto;		/* next header type */
+	uchar	ttl;		/* hop limit */
+	uchar	src[IPaddrlen];	/* source address */
+	uchar	dst[IPaddrlen];	/* destination address */
+};
+
+/*
+ *  user-level icmpv6 with control message "headers"
+ */
+typedef struct Icmp6hdr Icmp6hdr;
+struct Icmp6hdr {
+	uchar	unused[8];
+	uchar	laddr[IPaddrlen];	/* local address */
+	uchar	raddr[IPaddrlen];	/* remote address */
 };
 
 /*

@@ -38,8 +38,18 @@ enum
 
 	Maxtype6	= 137,
 
-	ICMP_IPSIZE	= 20,
 	ICMP_HDRSIZE	= 8,
+};
+
+/* the icmp payload has the same format in v4 and v6 */
+typedef struct Icmphdr Icmphdr;
+struct Icmphdr {
+	uchar	type;
+	uchar	code;
+	uchar	cksum[2];
+	uchar	icmpid[2];
+	uchar	seq[2];
+	uchar	data[1];
 };
 
 typedef struct Icmp Icmp;
@@ -56,28 +66,12 @@ struct Icmp
 	uchar	src[4];		/* Ip source */
 	uchar	dst[4];		/* Ip destination */
 
-	uchar	type;
-	uchar	code;
-	uchar	cksum[2];
-	uchar	icmpid[2];
-	uchar	seq[2];
-	uchar	data[1];
+	Icmphdr;
 };
 
 typedef struct Icmp6 Icmp6;
 struct Icmp6
 {
-	uchar	vcf[4];
-	uchar	ploadlen[2];
-	uchar	proto;
-	uchar	ttl;
-	uchar	src[16];		/* Ip source */
-	uchar	dst[16];		/* Ip destination */
-
-	uchar	type;
-	uchar	code;
-	uchar	cksum[2];
-	uchar	icmpid[2];
-	uchar	seq[2];
-	uchar	data[1];
+	Ip6hdr;
+	Icmphdr;
 };

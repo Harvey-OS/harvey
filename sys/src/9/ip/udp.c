@@ -40,7 +40,7 @@ struct Udp4hdr
 	uchar	length[2];	/* packet length */
 	uchar	id[2];		/* Identification */
 	uchar	frag[2];	/* Fragment information */
-	uchar	Unused;	
+	uchar	Unused;
 	uchar	udpproto;	/* Protocol */
 	uchar	udpplen[2];	/* Header plus data length */
 	uchar	udpsrc[IPv4addrlen];	/* Ip source */
@@ -285,7 +285,7 @@ udpkick(void *x, Block *bp)
 		hnputs(uh4->udplen, ptcllen);
 		uh4->udpcksum[0] = 0;
 		uh4->udpcksum[1] = 0;
-		hnputs(uh4->udpcksum, 
+		hnputs(uh4->udpcksum,
 		       ptclcsum(bp, UDP4_PHDR_OFF, dlen+UDP_UDPHDR_SZ+UDP4_PHDR_SZ));
 		uh4->vihl = IP_VER4;
 		ipoput4(f, bp, 0, c->ttl, c->tos, rc);
@@ -297,7 +297,7 @@ udpkick(void *x, Block *bp)
 			return;
 
 		/*
-		 * using the v6 ip header to create pseudo header 
+		 * using the v6 ip header to create pseudo header
 		 * first then reset it to the normal ip header
 		 */
 		uh6 = (Udp6hdr *)(bp->rp);
@@ -322,7 +322,7 @@ udpkick(void *x, Block *bp)
 		hnputs(uh6->udplen, ptcllen);
 		uh6->udpcksum[0] = 0;
 		uh6->udpcksum[1] = 0;
-		hnputs(uh6->udpcksum, 
+		hnputs(uh6->udpcksum,
 		       ptclcsum(bp, UDP6_PHDR_OFF, dlen+UDP_UDPHDR_SZ+UDP6_PHDR_SZ));
 		memset(uh6, 0, 8);
 		uh6->viclfl[0] = IP_VER6;
@@ -360,7 +360,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 	uh4 = (Udp4hdr*)(bp->rp);
 	version = ((uh4->vihl&0xF0)==IP_VER6) ? 6 : 4;
 
-	/* Put back pseudo header for checksum 
+	/* Put back pseudo header for checksum
 	 * (remember old values for icmpnoconv()) */
 	switch(version) {
 	case V4:

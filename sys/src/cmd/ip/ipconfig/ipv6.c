@@ -6,9 +6,6 @@
 #include <libc.h>
 #include <bio.h>
 #include <ip.h>
-typedef struct Block Block;
-typedef struct Fs Fs;
-#include "/sys/src/9/ip/ipv6.h"
 #include "ipconfig.h"
 #include "../icmp.h"
 
@@ -61,11 +58,11 @@ char *icmpmsg6[Maxtype6+1] =
 static char *icmp6opts[] =
 {
 [0]		"unknown opt",
-[SRC_LLADDR]	"sll_addr",
-[TARGET_LLADDR]	"tll_addr",
-[PREFIX_INFO]	"pref_opt",
-[REDIR_HEADER]	"redirect",
-[MTU_OPTION]	"mtu_opt",
+[V6opt_srclladdr]	"sll_addr",
+[V6opt_targlladdr]	"tll_addr",
+[V6opt_pfxinfo]	"pref_opt",
+[V6opt_redirhdr]	"redirect",
+[V6opt_mtu]	"mtu_opt",
 };
 
 uchar v6allroutersL[IPaddrlen] = {
@@ -87,6 +84,13 @@ uchar v6Unspecified[IPaddrlen] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0
+};
+
+uchar v6loopback[IPaddrlen] = {
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 0,
+	0, 0, 0, 1
 };
 
 uchar v6glunicast[IPaddrlen] = {
@@ -176,11 +180,11 @@ v6paraminit(Conf *cf)
 	cf->sendra = cf->recvra = 0;
 	cf->mflag = 0;
 	cf->oflag = 0;
-	cf->maxraint = MAX_INIT_RTR_ADVERT_INTVL;
-	cf->minraint = MAX_INIT_RTR_ADVERT_INTVL / 4;
+	cf->maxraint = Maxv6initraintvl;
+	cf->minraint = Maxv6initraintvl / 4;
 	cf->linkmtu = 1500;
-	cf->reachtime = REACHABLE_TIME;
-	cf->rxmitra = RETRANS_TIMER;
+	cf->reachtime = V6reachabletime;
+	cf->rxmitra = V6retranstimer;
 	cf->ttl = MAXTTL;
 
 	cf->routerlt = 0;
@@ -206,15 +210,15 @@ opt_seprint(uchar *ps, uchar *pe, char *sps, char *spe)
 		switch (otype) {
 		default:
 			return seprint(p, e, " option=%s ", icmp6opts[otype]);
-		case SRC_LLADDR:
-		case TARGET_LLADDR:
+		case V6opt_srclladdr:
+		case V6opt_targlladdr:
 			if (pktsz < osz || osz != 8)
 				return seprint(p, e, " option=%s bad size=%d",
 					icmp6opts[otype], osz);
 			p = seprint(p, e, " option=%s maddr=%E",
 				icmp6opts[otype], a+2);
 			break;
-		case PREFIX_INFO:
+		case V6opt_pfxinfo:
 			if (pktsz < osz || osz != 32)
 				return seprint(p, e, " option=%s: bad size=%d",
 					icmp6opts[otype], osz);
@@ -557,7 +561,7 @@ recvrahost(uchar buf[], int pktlen)
 	while (pktlen - m > 0) {
 		optype = buf[m];
 		switch (optype) {
-		case SRC_LLADDR:
+		case V6opt_srclladdr:
 			llao = (Lladdropt *)&buf[m];
 			m += 8 * buf[m+1];
 			if (llao->len != 1) {
@@ -589,18 +593,18 @@ recvrahost(uchar buf[], int pktlen)
 					conf.mpoint);
 			close(arpfd);
 			break;
-		case TARGET_LLADDR:
-		case REDIR_HEADER:
+		case V6opt_targlladdr:
+		case V6opt_redirhdr:
 			m += 8 * buf[m+1];
 			ralog("ignoring unexpected optype %s in Routeradv",
 				icmp6opts[optype]);
 			break;
-		case MTU_OPTION:
+		case V6opt_mtu:
 			mtuo = (Mtuopt*)&buf[m];
 			m += 8 * mtuo->len;
 			conf.linkmtu = nhgetl(mtuo->mtu);
 			break;
-		case PREFIX_INFO:
+		case V6opt_pfxinfo:
 			prfo = (Prefixopt*)&buf[m];
 			m += 8 * prfo->len;
 			if (prfo->len != 4) {
@@ -638,7 +642,7 @@ recvra6(void)
 		sysfatal("can't open icmp_ra connection: %r");
 
 	notify(catch);
-	sendrscnt = MAX_RTR_SOLICITS;
+	sendrscnt = Maxv6rss;
 
 	switch(rfork(RFPROC|RFMEM|RFFDG|RFNOWAIT|RFNOTEG)){
 	case -1:
@@ -659,14 +663,14 @@ recvra6(void)
 					if (recvra6on(conf.mpoint, myifc) ==
 					    IsHostRecv)
 						sendrs(fd);
-					sleepfor = RTR_SOLICIT_INTVL+nrand(100);
+					sleepfor = V6rsintvl+nrand(100);
 				}
 				if (sendrscnt == 0) {
 					sendrscnt--;
 					sleepfor = 0;
 					ralog(
 				"recvra6: no router advs after %d sols on %s",
-						 MAX_RTR_SOLICITS, conf.dev);
+						 Maxv6rss, conf.dev);
 				}
 				continue;
 			}
@@ -713,7 +717,7 @@ recvrs(uchar *buf, int pktlen, uchar *sol)
 
 	if (optsz != sizeof *llao)
 		return 0;
-	if (buf[n] != SRC_LLADDR || 8*buf[n+1] != sizeof *llao) {
+	if (buf[n] != V6opt_srclladdr || 8*buf[n+1] != sizeof *llao) {
 		ralog("rs opt err %s", abuf);
 		return -1;
 	}
@@ -783,7 +787,10 @@ sendra(int fd, uchar *dst, int rlt)
 	for (lifc = (ifc? ifc->lifc: nil); lifc; lifc = nlifc) {
 		nlifc = lifc->next;
 		prfo = (Prefixopt *)(buf + pktsz);
-		if (isv6global(lifc->ip)) {
+		/* global unicast address? */
+		if (!ISIPV6LINKLOCAL(lifc->ip) && !ISIPV6MCAST(lifc->ip) &&
+		    memcmp(lifc->ip, IPnoaddr, IPaddrlen) != 0 &&
+		    memcmp(lifc->ip, v6loopback, IPaddrlen) != 0) {
 			memmove(prfo->pref, lifc->net, IPaddrlen);
 
 			/* hack to find prefix length */
@@ -793,7 +800,7 @@ sendra(int fd, uchar *dst, int rlt)
 			if (prfo->plen == 0)
 				continue;
 
-			prfo->type = PREFIX_INFO;
+			prfo->type = V6opt_pfxinfo;
 			prfo->len = 4;
 			prfo->lar = AFMASK;
 			hnputl(prfo->validlt, lifc->validlt);
@@ -806,7 +813,7 @@ sendra(int fd, uchar *dst, int rlt)
 	 * link layer address option
 	 */
 	llao = (Lladdropt *)(buf + pktsz);
-	llao->type = SRC_LLADDR;
+	llao->type = V6opt_srclladdr;
 	llao->len = 1;
 	memmove(llao->lladdr, macaddr, sizeof macaddr);
 	pktsz += sizeof *llao;
@@ -834,8 +841,8 @@ sendra6(void)
 		sysfatal("can't open icmp_rs connection: %r");
 
 	notify(catch);
-	sendracnt = MAX_INIT_RTR_ADVERTS;
-	nquitmsgs = MAX_FINAL_RTR_ADVERTS;
+	sendracnt = Maxv6initras;
+	nquitmsgs = Maxv6finalras;
 
 	switch(rfork(RFPROC|RFMEM|RFFDG|RFNOWAIT|RFNOTEG)){
 	case -1:
@@ -863,7 +870,7 @@ sendra6(void)
 				if (nquitmsgs > 0) {
 					sendra(fd, v6allnodesL, 0);
 					nquitmsgs--;
-					sleepfor = MIN_DELAY_BETWEEN_RAS +
+					sleepfor = Minv6interradelay +
 						nrand(10);
 					continue;
 				} else {
@@ -871,7 +878,7 @@ sendra6(void)
 					exits(0);
 				}
 
-			nquitmsgs = MAX_FINAL_RTR_ADVERTS;
+			nquitmsgs = Maxv6finalras;
 
 			if (n <= 0) {		/* no router solicitations */
 				if (sendracnt > 0)
@@ -883,10 +890,10 @@ sendra6(void)
 				dstknown = recvrs(buf, n, dst);
 				ctime = time(0);
 
-				if (ctime - lastra < MIN_DELAY_BETWEEN_RAS) {
+				if (ctime - lastra < Minv6interradelay) {
 					/* too close, skip */
 					sleepfor = lastra +
-						MIN_DELAY_BETWEEN_RAS +
+						Minv6interradelay +
 						nrand(10) - ctime;
 					continue;
 				}

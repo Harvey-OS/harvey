@@ -4,9 +4,6 @@
 #include <bio.h>
 #include <ndb.h>
 #include "../dhcp.h"
-typedef struct Block Block;
-typedef struct Fs Fs;
-#include "/sys/src/9/ip/ipv6.h"
 #include "ipconfig.h"
 
 void

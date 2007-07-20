@@ -188,8 +188,6 @@ main(int argc, char **argv)
 }
 
 typedef struct Iphdr Iphdr;
-typedef struct Ip6hdr Ip6hdr;
-
 struct Iphdr
 {
 	uchar	vihl;		/* Version and header length */
@@ -202,15 +200,6 @@ struct Iphdr
 	uchar	cksum[2];	/* Header checksum */
 	uchar	src[4];		/* Ip source (uchar ordering unimportant) */
 	uchar	dst[4];		/* Ip destination (uchar ordering unimportant) */
-};
-
-struct	Ip6hdr {
-	uchar	vcf[4];		/* version:4, traffic class:8, flow label:20 */
-	uchar	ploadlen[2];	/* payload length: packet length - 40 */
-	uchar	proto;		/* next header type */
-	uchar	ttl;		/* hop limit */
-	uchar	src[IPaddrlen];
-	uchar	dst[IPaddrlen];
 };
 
 #define STFHDR (sizeof(Iphdr))

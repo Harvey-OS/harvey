@@ -8,8 +8,6 @@
 #include <ndb.h>
 #include "dat.h"
 
-static void check72(Info *iip);
-
 Ndb *db;
 char *ndbfile;
 
@@ -202,8 +200,6 @@ lookup(Bootp *bp, Info *iip, Info *riip)
 		if(lookupip(ciaddr, iip, 0) < 0)
 			return -1;	/* don't know anything about it */
 
-check72(iip);
-
 		if(!samenet(riip->ipaddr, iip)){
 			warning(0, "%I not on %I", ciaddr, riip->ipnet);
 			return -1;
@@ -300,19 +296,4 @@ lookupname(char *val, Ndbtuple *t)
 			strcpy(val, nt->val);
 			break;
 		}
-}
-
-uchar slash120[IPaddrlen] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-				0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0 };
-uchar net72[IPaddrlen] = { 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
-				0x0, 0x0, 0xff, 0xff, 135, 104, 72, 0 };
-
-static void
-check72(Info *iip)
-{
-	uchar net[IPaddrlen];
-
-	maskip(iip->ipaddr, slash120, net);
-	if(ipcmp(net, net72) == 0)
-		syslog(0, blog, "check72 %I %M gw %I", iip->ipaddr, iip->ipmask, iip->gwip);
 }

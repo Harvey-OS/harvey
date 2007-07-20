@@ -56,7 +56,7 @@ new IP networks or implementing firewalls or proxy
 services.
 .PP
 All addresses used are 16-byte IPv6 addresses.
-We implement IPv4 and IPv6.
+The IP device implements IPv4 and IPv6.
 IPv4 addresses are a subset of the IPv6 addresses and both standard
 .SM ASCII
 formats are accepted.
@@ -353,6 +353,8 @@ indicate what routing protocol originated the route.
 Writing to
 .B /net/iproute
 changes the route table.  The messages are:
+.TF "tag str"
+.PD
 .TP
 .B flush
 Remove all routes.
@@ -373,14 +375,17 @@ Remove a route with a matching target and mask.
 The file
 .B /net/arp
 controls information about address resolution.
-The kernel automatically updates the ARP information for Ethernet
-interfaces.
+The kernel automatically updates the v4 ARP and v6 Neighbour Discovery
+information for Ethernet interfaces.
 When read, the file returns one line per address containing the
 type of medium, the status of the entry (OK, WAIT), the IP
 address, and the medium address.
 Writing to
 .B /net/arp
-administers the ARP information.  The control messages are:
+administers the ARP information.
+The control messages are:
+.TF "del addr"
+.PD
 .TP
 .B flush
 Remove all entries.
@@ -402,6 +407,8 @@ update the table on other systems.
 .PP
 Currently, the only medium type is
 .BR ether .
+.br
+.ne 3
 .SS "Debugging and stack information
 .PP
 If any process is holding
@@ -657,6 +664,8 @@ ends.
 TCP
 .B ctl
 files support the following additional messages:
+.TF keepaliven
+.PD
 .TP
 .B hangup
 close down a TCP connection
@@ -743,12 +752,14 @@ RUDP is a reliable datagram protocol based on UDP.
 Packets are delivered in order.
 RUDP does not support
 .BR listen .
-One must use either
+One must write either
 .B connect
 or
 .B announce
 followed immediately by
-.BR headers .
+.B headers
+to
+.BR ctl .
 .PP
 Unlike IL or TCP, the reboot of one end of a connection does
 not force a closing of the connection.  Communications will
@@ -756,7 +767,7 @@ resume when the rebooted machine resumes talking.  Any unacknowledged
 packets queued before the reboot will be lost.  A reboot can
 be detected by reading the
 .B err
-file.  It will have the message
+file.  It will contain the message
 .IP
 .BI hangup\  address ! port
 .PP
@@ -772,10 +783,52 @@ all queued messages are dropped, an error is queued to the
 file, and the conversation resumes.
 .SS ICMP
 .PP
-ICMP is a datagram protocol used to exchange control requests and
+ICMP is a datagram protocol for IPv4 used to exchange control requests and
 their responses with other machines' IP implementations.
 ICMP is primarily a kernel-to-kernel protocol, but it is possible
-to generate `echo request' packets from user programs.
+to generate `echo request' and read `echo reply' packets from user programs.
+.SS ICMPV6
+ICMPv6 is the IPv6 equivalent of ICMP.
+If, after an
+.BR announce ,
+the following message is written to
+.BR ctl ,
+then before a write,
+a user must prefix each message with a corresponding structure,
+declared in
+.BR <ip.h> .
+.TP
+.B headers
+.EX
+/*
+ *  user level icmpv6 with control message "headers"
+ */
+typedef struct Icmp6hdr Icmp6hdr;
+struct Icmp6hdr {
+	uchar	unused[8];
+	uchar	laddr[IPaddrlen];	/* local address */
+	uchar	raddr[IPaddrlen];	/* remote address */
+};
+.EE
+.PP
+In this case (writing
+.L headers
+to the
+.I ctl
+file),
+no
+.I listen
+nor
+.I accept
+is needed;
+otherwise,
+the usual sequence of
+.IR announce ,
+.IR listen ,
+.I accept
+must be executed before performing I/O on the corresponding
+.I data
+file.
 .SS IL
 .PP
 IL is a reliable point-to-point datagram protocol.  Like TCP, IL delivers datagrams
@@ -809,6 +862,8 @@ On write, the kernel fills in the
 .B eproto
 field with the port number specified
 in the connect message.
+.br
+.ne 3
 .SS ESP
 .PP
 ESP is the Encapsulating Security Payload (RFC 1827).
@@ -961,12 +1016,15 @@ older > younger
 So far this has just been used to implement a version of
 OSPF in Inferno
 and 6to4 tunnelling.
+.br
+.ne 5
 .SS Statistics
 .PP
 The
 .B stats
-files are read only and contain statistics useful to network
-monitoring.
+files are read only and contain statistics useful to network monitoring.
+.br
+.ne 14
 .PP
 Reading
 .B /net/ipifc/stats
@@ -999,10 +1057,12 @@ fragments created
 .1C
 .ft
 .EE
+.br
+.ne 16
 .PP
 Reading
 .B /net/icmp/stats
-returns a list of 25 tagged and newline-separated fields representing:
+returns a list of 26 tagged and newline-separated fields representing:
 .EX
 .ft 1
 .2C
@@ -1076,7 +1136,7 @@ datagrams sent
 .PP
 Reading
 .B /net/il/stats
-returns a list of 7 tagged and newline-separated fields representing:
+returns a list of 6 tagged and newline-separated fields representing:
 .EX
 .ft 1
 .2C
@@ -1105,6 +1165,18 @@ header length errors
 .IR ip (2),
 .IR ndb (6),
 .IR listen (8)
+.br
+.PD 0
+.TF /lib/rfc/rfc2822
+.TP
+.B /lib/rfc/rfc2460
+IPv6
+.TP
+.B /lib/rfc/rfc4291
+IPv6 address architecture
+.TP
+.B /lib/rfc/rfc4443
+ICMPv6
 .SH SOURCE
 .B /sys/src/9/ip
 .SH BUGS
