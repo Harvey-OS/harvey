@@ -240,6 +240,7 @@ rudpstate(Conv *c, char *state, int n)
 	qlock(ucb);
 	for(r = ucb->r; r; r = r->next)
 		m += snprint(state+m, n-m, " %I/%ld", r->addr, UNACKED(r));
+	m += snprint(state+m, n-m, "\n");
 	qunlock(ucb);
 	return m;
 }
