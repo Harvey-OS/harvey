@@ -63,8 +63,8 @@ struct Icmp
 	uchar	ttl;		/* Time to live */
 	uchar	proto;		/* Protocol */
 	uchar	ipcksum[2];	/* Header checksum */
-	uchar	src[4];		/* Ip source */
-	uchar	dst[4];		/* Ip destination */
+	uchar	src[4];		/* Ipv4 source */
+	uchar	dst[4];		/* Ipv4 destination */
 
 	Icmphdr;
 };

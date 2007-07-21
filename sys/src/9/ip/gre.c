@@ -99,7 +99,7 @@ static int
 grestate(Conv *c, char *state, int n)
 {
 	USED(c);
-	return snprint(state, n, "%s", "Datagram");
+	return snprint(state, n, "%s\n", "Datagram");
 }
 
 static char*
