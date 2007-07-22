@@ -337,7 +337,7 @@ preloadserveraddrs(void)
 	l = &first;
 	for(rp = serveraddrs; rp != nil; rp = rp->next){
 		rrcopy(rp, l);
-		rrattach(first, 1);
+		rrattach(first, Authoritative);
 	}
 }
 

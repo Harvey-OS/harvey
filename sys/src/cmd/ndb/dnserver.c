@@ -115,6 +115,8 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uchar *srcip, int rcode)
 				break;
 			}
 
+			if (strncmp(nsdp->name, "local#", 6) == 0)
+				dnslog("returning %s as nameserver", nsdp->name);
 			repp->ns = dblookup(cp, repp->qd->owner->class, Tns, 0, 0);
 			if(repp->ns)
 				break;
@@ -172,8 +174,10 @@ doextquery(DNSmsg *mp, Request *req, int recurse)
 	rp = dnresolve(name, Cin, type, req, &mp->an, 0, recurse, 1, 0);
 
 	/* don't return soa hints as answers, it's wrong */
-	if(rp && rp->db && !rp->auth && rp->type == Tsoa)
+	if(rp && rp->db && !rp->auth && rp->type == Tsoa) {
 		rrfreelist(rp);
+		rp = nil;
+	}
 
 	/* don't let negative cached entries escape */
 	neg = rrremneg(&rp);
@@ -195,6 +199,8 @@ hint(RR **last, RR *rp)
 		hp = rrlookup(rp->host, Ta, NOneg);
 		if(hp == nil)
 			hp = dblookup(rp->host->name, Cin, Ta, 0, 0);
+		if (hp && strncmp(hp->owner->name, "local#", 6) == 0)
+			dnslog("returning %s as hint", hp->owner->name);
 		rrcat(last, hp);
 		break;
 	}

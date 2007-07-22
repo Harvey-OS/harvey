@@ -6,7 +6,7 @@ int	eof;		/* send an eof if true */
 int	crtonl;		/* convert all received \r to \n */
 int	returns;	/* strip \r on reception */
 char	*note = "die: yankee dog";
-char	*ruser;
+char	*ruser;		/* for BSD authentication */
 char *key;
 
 void	rex(int, char*, char*);
@@ -59,7 +59,7 @@ main(int argc, char *argv[])
 	host = argv[0];
 	args = buildargs(&argv[1]);
 
-	/* try erexexec p9any then dial again with p9sk2 */
+	/* try rexexec p9any then dial again with p9sk2 */
 	fd = call(0, host, "rexexec", &addr);
 	if(fd >= 0)
 		rex(fd, args, "p9any");

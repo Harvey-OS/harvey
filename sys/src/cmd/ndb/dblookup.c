@@ -591,7 +591,7 @@ dbpair2cache(DN *dp, Ndbtuple *entry, Ndbtuple *pair)
 	rp->owner = dp;
 	rp->db = 1;
 	rp->ttl = intval(entry, pair, "ttl", rp->ttl);
-	rrattach(rp, 0);
+	rrattach(rp, Notauthoritative);
 }
 static void
 dbtuple2cache(Ndbtuple *t)
@@ -875,7 +875,7 @@ addlocaldnsserver(DN *dp, int class, char *ipaddr, int i)
 	rp->db = 1;
 //	rp->ttl = 10*Min;		/* seems too short */
 	rp->ttl = (1UL<<31)-1;
-	rrattach(rp, 1);		/* will not attach rrs in my area */
+	rrattach(rp, Authoritative);	/* will not attach rrs in my area */
 
 	/* A record */
 	rp = rralloc(Ta);
@@ -885,7 +885,7 @@ addlocaldnsserver(DN *dp, int class, char *ipaddr, int i)
 	rp->db = 1;
 //	rp->ttl = 10*Min;		/* seems too short */
 	rp->ttl = (1UL<<31)-1;
-	rrattach(rp, 1);		/* will not attach rrs in my area */
+	rrattach(rp, Authoritative);	/* will not attach rrs in my area */
 
 	dnslog("added local dns server %s at %s", buf, ipaddr);
 }
@@ -942,7 +942,7 @@ addlocaldnsdomain(DN *dp, int class, char *domain)
 	rp->owner = dp;
 	rp->db = 1;
 	rp->ttl = 10*Min;
-	rrattach(rp, 1);
+	rrattach(rp, Authoritative);
 }
 
 /*
@@ -980,6 +980,7 @@ char *attribs[] = {
 
 /*
  *  create ptrs that are in our areas
+ *  TODO: generate v6 ptr rrs.  rfc3596
  */
 static void
 createptrs(void)
@@ -1006,25 +1007,25 @@ createptrs(void)
 		memset(mask, 0xff, IPaddrlen);
 		ipmove(net, v4prefix);
 		switch(n){
-		case 3: /* /8 */
+		case 3:			/* /8 */
 			net[IPv4off] = atoi(f[0]);
 			mask[IPv4off+1] = 0;
 			mask[IPv4off+2] = 0;
 			mask[IPv4off+3] = 0;
 			break;
-		case 4: /* /16 */
+		case 4:			/* /16 */
 			net[IPv4off] = atoi(f[1]);
 			net[IPv4off+1] = atoi(f[0]);
 			mask[IPv4off+2] = 0;
 			mask[IPv4off+3] = 0;
 			break;
-		case 5: /* /24 */
+		case 5:			/* /24 */
 			net[IPv4off] = atoi(f[2]);
 			net[IPv4off+1] = atoi(f[1]);
 			net[IPv4off+2] = atoi(f[0]);
 			mask[IPv4off+3] = 0;
 			break;
-		case 6:	/* rfc2317 */
+		case 6:			/* rfc2317 */
 			net[IPv4off] = atoi(f[3]);
 			net[IPv4off+1] = atoi(f[2]);
 			net[IPv4off+2] = atoi(f[1]);
