@@ -49646,3 +49646,15 @@
 1184947204 4 c sys/src/9/ip/udp.c - 664 sys sys 1184946959 13316
 1184952604 0 c sys/src/cmd/ip/icmp.h - 664 sys sys 1184951372 1461
 1184965204 0 c 386/9loaddebug - 775 sys sys 1184963933 417075
+1184992204 0 c sys/src/cmd/ndb/dblookup.c - 664 sys sys 1184990885 22626
+1184992204 1 c sys/src/cmd/ndb/dn.c - 664 sys sys 1184990893 36087
+1184992204 2 c sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1184990924 34536
+1184992204 3 c sys/src/cmd/ndb/dns.h - 664 sys sys 1184990871 11692
+1184992204 4 c sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1184990937 8766
+1184992204 5 c sys/src/cmd/ndb/dnserver.c - 664 sys sys 1184990866 4627
+1185049804 0 c 386/bin/ndb/dns - 775 sys sys 1185048646 291749
+1185049804 1 c 386/bin/ndb/dnsdebug - 775 sys sys 1185048647 266617
+1185049804 2 c 386/bin/ndb/dnstcp - 775 sys sys 1185048648 265056
+1185067804 0 c sys/man/1/con - 664 sys sys 1185067107 4865
+1185067804 1 c sys/src/cmd/con/con.c - 664 sys sys 1185066485 15264
+1185067804 2 c sys/src/cmd/rx.c - 664 sys sys 1185066370 4411

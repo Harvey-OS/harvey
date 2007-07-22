@@ -20,7 +20,7 @@ int	strip;		/* strip off parity bits */
 char firsterr[2*ERRMAX];
 char transerr[2*ERRMAX];
 int limited;
-char *remuser;
+char *remuser;		/* for BSD rlogin authentication */
 int verbose;
 int baud;
 int notkbd;

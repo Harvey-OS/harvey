@@ -134,7 +134,7 @@ dnresolve(char *name, int class, int type, Request *req, RR **cn, int depth,
 	 *  hack for systems that don't have resolve search
 	 *  lists.  Just look up the simple name in the database.
 	 */
-	if(!rooted && strchr(name, '.') == 0){
+	if(!rooted && strchr(name, '.') == nil){
 		rp = nil;
 		drp = domainlist(class);
 		for(nrp = drp; rp == nil && nrp != nil; nrp = nrp->next){
@@ -568,7 +568,7 @@ readnet(Query *qp, int medium, uchar *ibuf, ulong endtime, uchar **replyp,
 	len = -1;			/* pessimism */
 	memset(srcip, 0, IPaddrlen);
 	if (medium == Udp)
-		if (qp->udpfd <= 0) 
+		if (qp->udpfd <= 0)
 			dnslog("readnet: qp->udpfd closed");
 		else {
 			alarm(ms);
@@ -840,7 +840,7 @@ cacheneg(DN *dp, int type, int rcode, RR *soarr)
 		ttl = 5*Min;
 
 	/* add soa and negative RR to the database */
-	rrattach(soarr, 1);
+	rrattach(soarr, Authoritative);
 
 	rp = rralloc(type);
 	rp->owner = dp;
@@ -848,7 +848,7 @@ cacheneg(DN *dp, int type, int rcode, RR *soarr)
 	rp->negsoaowner = soaowner;
 	rp->negrcode = rcode;
 	rp->ttl = ttl;
-	rrattach(rp, 1);
+	rrattach(rp, Authoritative);
 }
 
 static int
@@ -1107,10 +1107,10 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 	if(mp->an)
 		rrattach(mp->an, (mp->flags & Fauth) != 0);
 	if(mp->ar)
-		rrattach(mp->ar, 0);
+		rrattach(mp->ar, Notauthoritative);
 	if(mp->ns && !cfg.justforw){
 		ndp = mp->ns->owner;
-		rrattach(mp->ns, 0);
+		rrattach(mp->ns, Notauthoritative);
 	} else {
 		ndp = nil;
 		rrfreelist(mp->ns);
@@ -1538,7 +1538,7 @@ seerootns(void)
 	queryinit(&query, dnlookup(root, Cin, 1), Tns, &req);
 	query.nsrp = dblookup(root, Cin, Tns, 0, 0);
 	rv = netquery(&query, 0);
-	rrfreelist(query.nsrp);	
+	rrfreelist(query.nsrp);
 	querydestroy(&query);
 	return rv;
 }

@@ -147,6 +147,9 @@ enum
 
 	/* tune; was 60; keep it short */
 	Maxreqtm=	10,	/* max. seconds to process a request */
+
+	Notauthoritative = 0,
+	Authoritative,
 };
 
 typedef struct Area	Area;
@@ -262,7 +265,7 @@ struct RR
 	uchar	cached;		/* flag: rr in cache */
 	uchar	negative;	/* flag: this is a cached negative response */
 
-	union {			/* discriminated how? negative & type? */
+	union {			/* discriminated by negative & type */
 		DN	*negsoaowner;	/* soa for cached negative response */
 		DN	*host;	/* hostname - soa, cname, mb, md, mf, mx, ns */
 		DN	*cpu;	/* cpu type - hinfo */
@@ -271,7 +274,7 @@ struct RR
 		DN	*rp;	/* rp arg - rp */
 		uintptr	arg0;	/* arg[01] are compared to find dups in dn.c */
 	};
-	union {			/* discriminated how? negative & type? */
+	union {			/* discriminated by negative & type */
 		int	negrcode; /* response code for cached negative resp. */
 		DN	*rmb;	/* responsible maibox - minfo, soa, rp */
 		DN	*ptr;	/* pointer to domain name - ptr */
