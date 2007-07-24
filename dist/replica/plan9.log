@@ -49658,3 +49658,5 @@
 1185067804 0 c sys/man/1/con - 664 sys sys 1185067107 4865
 1185067804 1 c sys/src/cmd/con/con.c - 664 sys sys 1185066485 15264
 1185067804 2 c sys/src/cmd/rx.c - 664 sys sys 1185066370 4411
+1185213604 0 c sys/src/cmd/ip/ipconfig/ipv6.c - 664 sys sys 1185212228 19732
+1185220805 0 c 386/bin/ip/ipconfig - 775 sys sys 1185220569 157387
