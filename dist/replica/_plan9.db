@@ -303,7 +303,7 @@
 386/bin/ip/httpd/wikipost - 775 sys sys 1178568286 113828
 386/bin/ip/httpfile - 775 sys sys 1184731238 283966
 386/bin/ip/imap4d - 775 sys sys 1179372095 236829
-386/bin/ip/ipconfig - 775 sys sys 1184901769 157384
+386/bin/ip/ipconfig - 775 sys sys 1185220569 157387
 386/bin/ip/linklocal - 775 sys sys 1177530964 42790
 386/bin/ip/ping - 775 sys sys 1184901770 82522
 386/bin/ip/ppp - 775 sys sys 1179372096 219103
@@ -12534,7 +12534,7 @@ sys/src/cmd/ip/imap4d/store.c - 664 sys sys 1066317059 1910
 sys/src/cmd/ip/imap4d/utils.c - 664 sys sys 1168894057 2587
 sys/src/cmd/ip/ipconfig - 20000000775 sys sys 1176933436 0
 sys/src/cmd/ip/ipconfig/ipconfig.h - 664 sys sys 1184880748 5635
-sys/src/cmd/ip/ipconfig/ipv6.c - 664 sys sys 1184880748 19731
+sys/src/cmd/ip/ipconfig/ipv6.c - 664 sys sys 1185212228 19732
 sys/src/cmd/ip/ipconfig/main.c - 664 sys sys 1184880913 38660
 sys/src/cmd/ip/ipconfig/mkfile - 664 sys sys 1184880750 233
 sys/src/cmd/ip/ipconfig/ppp.c - 664 sys sys 1184880751 1046

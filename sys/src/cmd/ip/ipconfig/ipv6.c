@@ -57,12 +57,12 @@ char *icmpmsg6[Maxtype6+1] =
 
 static char *icmp6opts[] =
 {
-[0]		"unknown opt",
+[0]			"unknown option",
 [V6opt_srclladdr]	"sll_addr",
 [V6opt_targlladdr]	"tll_addr",
-[V6opt_pfxinfo]	"pref_opt",
+[V6opt_pfxinfo]		"pref_opt",
 [V6opt_redirhdr]	"redirect",
-[V6opt_mtu]	"mtu_opt",
+[V6opt_mtu]		"mtu_opt",
 };
 
 uchar v6allroutersL[IPaddrlen] = {
@@ -608,7 +608,7 @@ recvrahost(uchar buf[], int pktlen)
 			prfo = (Prefixopt*)&buf[m];
 			m += 8 * prfo->len;
 			if (prfo->len != 4) {
-				ralog("illegal len(%d) for prefix option",
+				ralog("illegal len (%d) for prefix option",
 					prfo->len);
 				return;
 			}
@@ -622,7 +622,7 @@ recvrahost(uchar buf[], int pktlen)
 			break;
 		default:
 			m += 8 * buf[m+1];
-			ralog("ignoring optype %s in Routeradv", icmp6opts[0]);
+			ralog("ignoring optype %d in Routeradv", optype);
 			break;
 		}
 	}
