@@ -394,28 +394,44 @@ when the domain changes.  The notification also requires
 the
 .B -n
 flag.
+.
 .SS "Reverse Domains"
 You can also serve reverse lookups (returning the name that
 goes with an IP address) by adding an
 .B soa=
 attribute to the entry defining the root of the reverse space.
+.PP
 For example, to provide reverse lookup for all addresses in
-starting with 135.104 you must have a record like:
+starting with
+.L 135.104
+or
+.LR fd00:: ,
+.I ndb
+must contain a record like:
 .IP
 .EX
 dom=104.135.in-addr.arpa soa=
+	dom=d.f.ip6.arpa soa=	# special case, rfc 4193
 	refresh=3600 ttl=3600
 	ns=plan9.bell-labs.com
 	ns=ns1.cs.bell-labs.com
 	ns=ns2.cs.bell-labs.com
 .EE
 .LP
-Notice the form of the reverse address, i.e., it's the bytes of the
-address range you are serving reversed and with
-.B .in-addr.arpa
-appended.  This is a standard form for a domain name in an IPv4 PTR record.
+Notice the form of the reverse address.
+For IPv4, it's the bytes of the address range you are serving reversed
+and expressed in decimal, and with
+.L .in-addr.arpa
+appended.
+For IPv6, it's the nibbles (4-bit fields) of the address range you are serving
+reversed and expressed in hexadecimal, and with
+.L .ip6.arpa
+appended.
+These are the standard forms for a domain name in a PTR record.
 .PP
-If such an entry exists in the database, reverse addresses will
+If such an
+.B soa
+entry exists in the database, reverse addresses will
 automatically be generated from any IP addresses in the database
 that are under this root.  For example
 .IP
@@ -427,6 +443,7 @@ will automatically create both forward and reverse entries for
 .B ns1.cs.bell-labs.com .
 Unlike other DNS servers, there's no way to generate
 inconsistent forward and reverse entries.
+.
 .SS "Delegating Name Service Authority"
 Delegation of a further subtree to another set of name servers
 is indicated by an
@@ -444,6 +461,7 @@ Nameservers within the delegated domain (as in this example)
 must have their IP addresses listed elsewhere in
 .I ndb
 files.
+.
 .SS "Wildcards, MX and CNAME records"
 Wild-carded domain names can also be used.
 For example, to specify a mail forwarder for all Bell Labs research systems:
@@ -536,6 +554,7 @@ where
 .I request-type
 can be
 .BR ip ,
+.BR ipv6 ,
 .BR mx ,
 .BR ns ,
 .BR cname ,
@@ -545,7 +564,7 @@ In the case of the inverse query type,
 .I dnsquery
 will reverse the ip address and tack on the
 .B .in-addr.arpa
-for you.
+if necessary.
 .PP
 .I Ndb/dnsdebug
 is like

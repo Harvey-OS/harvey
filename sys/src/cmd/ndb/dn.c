@@ -1817,18 +1817,21 @@ mkptr(DN *dp, char *ptr, ulong ttl)
 	return rp;
 }
 
+void	bytes2nibbles(uchar *nibbles, uchar *bytes, int nbytes);
+
 /*
  *  look for all ip addresses in this network and make
  *  pointer records for them.
- *  TODO: v6 ptr algorithm (nibble.nibble.....ip6.arpa), rfc3596
  */
 void
-dnptr(uchar *net, uchar *mask, char *dom, int bytes, int ttl)
+dnptr(uchar *net, uchar *mask, char *dom, int forwtype, int subdoms, int ttl)
 {
-	int i, j;
+	int i, j, len;
 	char *p, *e;
 	char ptr[Domlen];
+	uchar *ipp;
 	uchar ip[IPaddrlen], nnet[IPaddrlen];
+	uchar nibip[IPaddrlen*2];
 	DN *dp;
 	RR *rp, *nrp, *first, **l;
 
@@ -1837,17 +1840,28 @@ dnptr(uchar *net, uchar *mask, char *dom, int bytes, int ttl)
 	for(i = 0; i < HTLEN; i++)
 		for(dp = ht[i]; dp; dp = dp->next)
 			for(rp = dp->rr; rp; rp = rp->next){
-				if(rp->type != Ta || rp->negative)
+				if(rp->type != forwtype || rp->negative)
 					continue;
 				parseip(ip, rp->ip->name);
 				maskip(ip, mask, nnet);
 				if(ipcmp(net, nnet) != 0)
 					continue;
+
+				ipp = ip;
+				len = IPaddrlen;
+				if (forwtype == Taaaa) {
+					bytes2nibbles(nibip, ip, IPaddrlen);
+					ipp = nibip;
+					len = 2*IPaddrlen;
+				}
+
 				p = ptr;
 				e = ptr+sizeof(ptr);
-				for(j = IPaddrlen-1; j >= IPaddrlen-bytes; j--)
-					p = seprint(p, e, "%d.", ip[j]);
+				for(j = len - 1; j >= len - subdoms; j--)
+					p = seprint(p, e, (forwtype == Ta?
+						"%d.": "%x."), ipp[j]);
 				seprint(p, e, "%s", dom);
+
 				nrp = mkptr(dp, ptr, ttl);
 				*l = nrp;
 				l = &nrp->next;
