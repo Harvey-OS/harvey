@@ -494,6 +494,7 @@ srvrr(Ndbtuple *entry, Ndbtuple *pair)
 	rp->srv->target = dnlookup(pair->val, Cin, 1);
 	rp->srv->pri    = intval(entry, pair, "pri", 0);
 	rp->srv->weight = intval(entry, pair, "weight", 0);
+	/* TODO: translate service name to port # */
 	rp->srv->port   = intval(entry, pair, "port", 0);
 	return rp;
 }
@@ -738,13 +739,14 @@ extern uchar	ipaddr[IPaddrlen];	/* my ip address */
 
 /*
  *  get all my xxx
+ *  caller ndbfrees the result
  */
 Ndbtuple*
 lookupinfo(char *attr)
 {
 	char buf[64];
 	char *a[2];
-	static Ndbtuple *t;
+	Ndbtuple *t;
 
 	snprint(buf, sizeof buf, "%I", ipaddr);
 	a[0] = attr;
@@ -979,13 +981,13 @@ char *attribs[] = {
 };
 
 /*
- *  create ptrs that are in our areas
- *  TODO: generate v6 ptr rrs.  rfc3596
+ *  create ptrs that are in our v4 areas
  */
 static void
-createptrs(void)
+createv4ptrs(void)
 {
 	int len, dlen, n;
+	char *dom;
 	char buf[Domlen+1], ipa[48];
 	char *f[40];
 	uchar net[IPaddrlen], mask[IPaddrlen];
@@ -994,15 +996,16 @@ createptrs(void)
 
 	dlen = strlen(v4ptrdom);
 	for(s = owned; s; s = s->next){
-		len = strlen(s->soarr->owner->name);
-		if(len <= dlen)
-			continue;
-		if(cistrcmp(s->soarr->owner->name+len-dlen, v4ptrdom) != 0)
+		dom = s->soarr->owner->name;
+		len = strlen(dom);
+		if((len <= dlen || cistrcmp(dom+len-dlen, v4ptrdom) != 0) &&
+		    cistrcmp(dom, v4ptrdom+1) != 0)
 			continue;
 
 		/* get mask and net value */
-		strncpy(buf, s->soarr->owner->name, sizeof buf);
+		strncpy(buf, dom, sizeof buf);
 		buf[sizeof buf-1] = 0;
+		/* buf contains something like 178.204.in-addr.arpa (n==4) */
 		n = getfields(buf, f, nelem(f), 0, ".");
 		memset(mask, 0xff, IPaddrlen);
 		ipmove(net, v4prefix);
@@ -1049,10 +1052,102 @@ createptrs(void)
 
 		/*
 		 * go through all domain entries looking for RR's
-		 * in this network and create ptrs
+		 * in this network and create ptrs.
+		 * +2 for ".in-addr.arpa".
 		 */
-		dnptr(net, mask, s->soarr->owner->name, 6-n, 0);
+		dnptr(net, mask, dom, Ta, 4+2-n, 0);
 	}
+}
+
+enum {
+	Nibwidth = 4,
+	Nibmask = (1<<Nibwidth) - 1,
+	V6maxrevdomdepth = 128 / Nibwidth,	/* bits / bits-per-nibble */
+};
+
+/* convert bytes to nibbles, big-endian */
+void
+bytes2nibbles(uchar *nibbles, uchar *bytes, int nbytes)
+{
+	while (nbytes-- > 0) {
+		*nibbles++ = *bytes >> Nibwidth;
+		*nibbles++ = *bytes++ & Nibmask;
+	}
+}
+
+void
+nibbles2bytes(uchar *bytes, uchar *nibbles, int nnibs)
+{
+	for (; nnibs >= 2; nnibs -= 2) {
+		*bytes++ = nibbles[0] << Nibwidth | (nibbles[1]&Nibmask);
+		nibbles += 2;
+	}
+	if (nnibs > 0)
+		*bytes = nibbles[0] << Nibwidth;
+}
+
+/*
+ *  create ptrs that are in our v6 areas.  see rfc3596
+ */
+static void
+createv6ptrs(void)
+{
+	int len, dlen, i, n, pfxnibs;
+	char *dom;
+	char buf[Domlen+1];
+	char *f[40];
+	uchar net[IPaddrlen], mask[IPaddrlen];
+	uchar nibnet[IPaddrlen*2], nibmask[IPaddrlen*2];
+	Area *s;
+
+	dlen = strlen(v6ptrdom);
+	for(s = owned; s; s = s->next){
+		dom = s->soarr->owner->name;
+		len = strlen(dom);
+		if((len <= dlen || cistrcmp(dom+len-dlen, v6ptrdom) != 0) &&
+		    cistrcmp(dom, v6ptrdom+1) != 0)
+			continue;
+
+		/* get mask and net value */
+		strncpy(buf, dom, sizeof buf);
+		buf[sizeof buf-1] = 0;
+		/* buf contains something like 2.0.0.2.ip6.arpa (n==6) */
+		n = getfields(buf, f, nelem(f), 0, ".");
+		pfxnibs = n - 2;
+		if (pfxnibs < 0 || pfxnibs > V6maxrevdomdepth)
+			continue;
+
+		memset(net, 0, IPaddrlen);
+		memset(mask, 0xff, IPaddrlen);
+		bytes2nibbles(nibnet, net, IPaddrlen);
+		bytes2nibbles(nibmask, mask, IPaddrlen);
+
+		/* copy prefix of f, in reverse order, to start of net. */
+		for (i = 0; i < pfxnibs; i++)
+			nibnet[i] = strtol(f[pfxnibs - 1 - i], nil, 16);
+		/* zero nibbles of mask after prefix in net */
+		memset(nibmask + pfxnibs, 0, V6maxrevdomdepth - pfxnibs);
+
+		nibbles2bytes(net, nibnet, 2*IPaddrlen);
+		nibbles2bytes(mask, nibmask, 2*IPaddrlen);
+
+		/*
+		 * go through all domain entries looking for RR's
+		 * in this network and create ptrs.
+		 * +2 for .ip6.arpa.
+		 */
+		dnptr(net, mask, dom, Taaaa, V6maxrevdomdepth - pfxnibs, 0);
+	}
+}
+
+/*
+ *  create ptrs that are in our areas
+ */
+static void
+createptrs(void)
+{
+	createv4ptrs();
+	createv6ptrs();
 }
 
 /*

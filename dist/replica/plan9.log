@@ -49660,3 +49660,14 @@
 1185067804 2 c sys/src/cmd/rx.c - 664 sys sys 1185066370 4411
 1185213604 0 c sys/src/cmd/ip/ipconfig/ipv6.c - 664 sys sys 1185212228 19732
 1185220805 0 c 386/bin/ip/ipconfig - 775 sys sys 1185220569 157387
+1185285604 0 c sys/src/9/ip/tcp.c - 664 sys sys 1185283974 65958
+1185316204 0 c sys/man/8/ndb - 664 sys sys 1185315934 13539
+1185316204 1 c sys/src/cmd/ndb/dblookup.c - 664 sys sys 1185315186 24885
+1185316204 2 c sys/src/cmd/ndb/dn.c - 664 sys sys 1185315217 36335
+1185316204 3 c sys/src/cmd/ndb/dns.h - 664 sys sys 1185315217 11703
+1185316204 4 c sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1185315248 8805
+1185316204 5 c sys/src/cmd/ndb/dnsquery.c - 664 sys sys 1185315254 2507
+1185334203 0 c 386/bin/ndb/dns - 775 sys sys 1185334135 293921
+1185334203 1 c 386/bin/ndb/dnsdebug - 775 sys sys 1185334136 269375
+1185334203 2 c 386/bin/ndb/dnsquery - 775 sys sys 1185334136 64350
+1185334203 3 c 386/bin/ndb/dnstcp - 775 sys sys 1185334137 267228

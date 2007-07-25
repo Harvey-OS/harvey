@@ -270,7 +270,7 @@ struct RR
 		DN	*host;	/* hostname - soa, cname, mb, md, mf, mx, ns */
 		DN	*cpu;	/* cpu type - hinfo */
 		DN	*mb;	/* mailbox - mg, minfo */
-		DN	*ip;	/* ip address - a */
+		DN	*ip;	/* ip address - a, aaaa */
 		DN	*rp;	/* rp arg - rp */
 		uintptr	arg0;	/* arg[01] are compared to find dups in dn.c */
 	};
@@ -450,7 +450,7 @@ void	dndump(char*);
 void	dnget(void);
 void	dninit(void);
 DN*	dnlookup(char*, int, int);
-void	dnptr(uchar*, uchar*, char*, int, int);
+void	dnptr(uchar*, uchar*, char*, int, int, int);
 void	dnpurge(void);
 void	dnput(void);
 void	dnslog(char*, ...);
