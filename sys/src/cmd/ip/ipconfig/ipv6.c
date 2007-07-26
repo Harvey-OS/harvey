@@ -1,5 +1,7 @@
 /*
  * ipconfig for IPv6
+ *	RS means Router Solicitation
+ *	RA means Router Advertisement
  */
 
 #include <u.h>
@@ -58,11 +60,11 @@ char *icmpmsg6[Maxtype6+1] =
 static char *icmp6opts[] =
 {
 [0]			"unknown option",
-[V6opt_srclladdr]	"sll_addr",
-[V6opt_targlladdr]	"tll_addr",
-[V6opt_pfxinfo]		"pref_opt",
-[V6opt_redirhdr]	"redirect",
-[V6opt_mtu]		"mtu_opt",
+[V6nd_srclladdr]	"sll_addr",
+[V6nd_targlladdr]	"tll_addr",
+[V6nd_pfxinfo]		"pref_opt",
+[V6nd_redirhdr]		"redirect",
+[V6nd_mtu]		"mtu_opt",
 };
 
 uchar v6allroutersL[IPaddrlen] = {
@@ -210,15 +212,15 @@ opt_seprint(uchar *ps, uchar *pe, char *sps, char *spe)
 		switch (otype) {
 		default:
 			return seprint(p, e, " option=%s ", icmp6opts[otype]);
-		case V6opt_srclladdr:
-		case V6opt_targlladdr:
+		case V6nd_srclladdr:
+		case V6nd_targlladdr:
 			if (pktsz < osz || osz != 8)
 				return seprint(p, e, " option=%s bad size=%d",
 					icmp6opts[otype], osz);
 			p = seprint(p, e, " option=%s maddr=%E",
 				icmp6opts[otype], a+2);
 			break;
-		case V6opt_pfxinfo:
+		case V6nd_pfxinfo:
 			if (pktsz < osz || osz != 32)
 				return seprint(p, e, " option=%s: bad size=%d",
 					icmp6opts[otype], osz);
@@ -393,7 +395,7 @@ ip6cfg(int autoconf)
 	}
 
 	if(write(conf.cfd, buf, n) < 0){
-		fprint(2, "%s: write(%s): %r\n", argv0, buf);
+		warning("write(%s): %r", buf);
 		return -1;
 	}
 
@@ -406,7 +408,7 @@ ip6cfg(int autoconf)
 	snprint(buf, sizeof buf, "%s/arp", conf.mpoint);
 	bp = Bopen(buf, OREAD);
 	if (bp == 0) {
-		fprint(2, "%s: couldn't open %s/arp: %r\n", argv0, conf.mpoint);
+		warning("couldn't open %s: %r", buf);
 		return -1;
 	}
 
@@ -414,7 +416,7 @@ ip6cfg(int autoconf)
 	while(p = Brdline(bp, '\n')){
 		p[Blinelen(bp)-1] = 0;
 		if(cistrstr(p, buf) != 0) {
-			fprint(2, "%s: found dup entry in arp cache\n", argv0);
+			warning("found dup entry in arp cache");
 			dupfound = 1;
 			break;
 		}
@@ -561,7 +563,7 @@ recvrahost(uchar buf[], int pktlen)
 	while (pktlen - m > 0) {
 		optype = buf[m];
 		switch (optype) {
-		case V6opt_srclladdr:
+		case V6nd_srclladdr:
 			llao = (Lladdropt *)&buf[m];
 			m += 8 * buf[m+1];
 			if (llao->len != 1) {
@@ -593,18 +595,18 @@ recvrahost(uchar buf[], int pktlen)
 					conf.mpoint);
 			close(arpfd);
 			break;
-		case V6opt_targlladdr:
-		case V6opt_redirhdr:
+		case V6nd_targlladdr:
+		case V6nd_redirhdr:
 			m += 8 * buf[m+1];
 			ralog("ignoring unexpected optype %s in Routeradv",
 				icmp6opts[optype]);
 			break;
-		case V6opt_mtu:
+		case V6nd_mtu:
 			mtuo = (Mtuopt*)&buf[m];
 			m += 8 * mtuo->len;
 			conf.linkmtu = nhgetl(mtuo->mtu);
 			break;
-		case V6opt_pfxinfo:
+		case V6nd_pfxinfo:
 			prfo = (Prefixopt*)&buf[m];
 			m += 8 * prfo->len;
 			if (prfo->len != 4) {
@@ -717,7 +719,7 @@ recvrs(uchar *buf, int pktlen, uchar *sol)
 
 	if (optsz != sizeof *llao)
 		return 0;
-	if (buf[n] != V6opt_srclladdr || 8*buf[n+1] != sizeof *llao) {
+	if (buf[n] != V6nd_srclladdr || 8*buf[n+1] != sizeof *llao) {
 		ralog("rs opt err %s", abuf);
 		return -1;
 	}
@@ -800,7 +802,7 @@ sendra(int fd, uchar *dst, int rlt)
 			if (prfo->plen == 0)
 				continue;
 
-			prfo->type = V6opt_pfxinfo;
+			prfo->type = V6nd_pfxinfo;
 			prfo->len = 4;
 			prfo->lar = AFMASK;
 			hnputl(prfo->validlt, lifc->validlt);
@@ -813,7 +815,7 @@ sendra(int fd, uchar *dst, int rlt)
 	 * link layer address option
 	 */
 	llao = (Lladdropt *)(buf + pktsz);
-	llao->type = V6opt_srclladdr;
+	llao->type = V6nd_srclladdr;
 	llao->len = 1;
 	memmove(llao->lladdr, macaddr, sizeof macaddr);
 	pktsz += sizeof *llao;
@@ -880,13 +882,13 @@ sendra6(void)
 
 			nquitmsgs = Maxv6finalras;
 
-			if (n <= 0) {		/* no router solicitations */
+			if (n <= 0) {			/* no RS */
 				if (sendracnt > 0)
 					sendracnt--;
 				sleepfor = ifc->rp.minraint +
 					nrand(ifc->rp.maxraint + 1 -
 						ifc->rp.minraint);
-			} else {		/* respond to router solicit'n */
+			} else {			/* respond to RS */
 				dstknown = recvrs(buf, n, dst);
 				ctime = time(0);
 
@@ -920,7 +922,7 @@ startra6(void)
 
 	if (conf.sendra > 0) {
 		if (write(conf.cfd, routeon, sizeof routeon - 1) < 0) {
-			fprint(2, "%s: write (iprouting 1) failed\n", argv0);
+			warning("write (iprouting 1) failed: %r");
 			return;
 		}
 		sendra6();
@@ -941,8 +943,7 @@ doipv6(int what)
 
 	switch (what) {
 	default:
-		fprint(2, "%s: unknown IPv6 verb\n", argv0);
-		exits("usage");
+		sysfatal("unknown IPv6 verb");
 	case Vaddpref6:
 		issueadd6(&conf);
 		break;

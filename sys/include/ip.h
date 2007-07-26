@@ -74,12 +74,21 @@ struct Ipifc
 enum {
 	IPV6HDR_LEN	= 40,
 
-	/* option types */
-	V6opt_srclladdr	= 1,
-	V6opt_targlladdr= 2,
-	V6opt_pfxinfo	= 3,
-	V6opt_redirhdr	= 4,
-	V6opt_mtu	= 5,
+	/* neighbour discovery option types */
+	V6nd_srclladdr	= 1,
+	V6nd_targlladdr	= 2,
+	V6nd_pfxinfo	= 3,
+	V6nd_redirhdr	= 4,
+	V6nd_mtu	= 5,
+	/* new since rfc2461; see iana.org/assignments/icmpv6-parameters */
+	V6nd_home	= 8,
+	V6nd_srcaddrs	= 9,		/* rfc3122 */
+	V6nd_ip		= 17,
+	/* /lib/rfc/drafts/draft-jeong-dnsop-ipv6-dns-discovery-12.txt */
+	V6nd_rdns	= 25,
+	/* plan 9 extensions */
+	V6nd_9fs	= 250,
+	V6nd_9auth	= 251,
 
 	/* Router constants (all times in ms.) */
 	Maxv6initraintvl= 16000,

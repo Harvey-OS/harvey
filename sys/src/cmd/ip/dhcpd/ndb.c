@@ -73,7 +73,7 @@ lookupip(uchar *ipaddr, Info *iip, int gate)
 	if(db == 0)
 		db = ndbopen(ndbfile);
 	if(db == 0){
-		fprint(2, "can't open db\n");
+		warning(1, "can't open db");
 		return -1;
 	}
 
@@ -188,7 +188,7 @@ lookup(Bootp *bp, Info *iip, Info *riip)
 	if(db == 0)
 		db = ndbopen(ndbfile);
 	if(db == 0){
-		fprint(2, "can't open db\n");
+		warning(1, "can't open db");
 		return -1;
 	}
 
