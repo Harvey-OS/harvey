@@ -1,6 +1,6 @@
 386 - 20000000775 sys sys 1010957353 0
 386/9load - 775 sys sys 1171784718 220040
-386/9loaddebug - 775 sys sys 1184963933 417075
+386/9loaddebug - 775 sys sys 1185396304 417075
 386/9loadlite - 775 sys sys 1171784720 137116
 386/9loadlitedebug - 775 sys sys 1176581010 202587
 386/9pc - 775 sys sys 1179368409 1935757
@@ -287,7 +287,7 @@
 386/bin/ip - 20000000775 sys sys 1016920851 0
 386/bin/ip/6in4 - 775 sys sys 1179777651 88513
 386/bin/ip/dhcpclient - 775 sys sys 1178568281 92992
-386/bin/ip/dhcpd - 775 sys sys 1184901769 149586
+386/bin/ip/dhcpd - 775 sys sys 1185420496 149586
 386/bin/ip/dhcpleases - 775 sys sys 1178568281 85069
 386/bin/ip/ftpd - 775 sys sys 1181507267 170562
 386/bin/ip/gping - 775 sys sys 1179372093 182147
@@ -303,7 +303,7 @@
 386/bin/ip/httpd/wikipost - 775 sys sys 1178568286 113828
 386/bin/ip/httpfile - 775 sys sys 1184731238 283966
 386/bin/ip/imap4d - 775 sys sys 1179372095 236829
-386/bin/ip/ipconfig - 775 sys sys 1185220569 157387
+386/bin/ip/ipconfig - 775 sys sys 1185420496 157540
 386/bin/ip/linklocal - 775 sys sys 1177530964 42790
 386/bin/ip/ping - 775 sys sys 1184901770 82522
 386/bin/ip/ppp - 775 sys sys 1179372096 219103
@@ -562,19 +562,19 @@
 386/lib/libgeometry.a - 664 sys sys 1168402366 50470
 386/lib/libhtml.a - 664 sys sys 1184529911 229152
 386/lib/libhttpd.a - 664 sys sys 1181332906 99734
-386/lib/libip.a - 664 sys sys 1184901770 34710
+386/lib/libip.a - 664 sys sys 1185420496 34710
 386/lib/libl.a - 664 sys sys 1168402367 5372
 386/lib/libmach.a - 664 sys sys 1184380786 807390
 386/lib/libmemdraw.a - 664 sys sys 1168402369 284092
 386/lib/libmemlayer.a - 664 sys sys 1168402369 47360
 386/lib/libmp.a - 664 sys sys 1181332906 79978
-386/lib/libndb.a - 664 sys sys 1184901770 64470
+386/lib/libndb.a - 664 sys sys 1185420497 64470
 386/lib/libplumb.a - 664 sys sys 1168402370 19408
 386/lib/libregexp.a - 664 sys sys 1181507273 37290
 386/lib/libscribble.a - 664 sys sys 1175972562 107238
 386/lib/libsec.a - 664 sys sys 1181332908 646724
 386/lib/libstdio.a - 664 sys sys 1176432133 126062
-386/lib/libsunrpc.a - 664 sys sys 1184901771 353148
+386/lib/libsunrpc.a - 664 sys sys 1185420498 353148
 386/lib/libthread.a - 664 sys sys 1184731247 71918
 386/lib/libventi.a - 664 sys sys 1181332909 97858
 386/mbr - 775 sys sys 1131317338 407
@@ -6079,7 +6079,7 @@ sys/include/frame.h - 664 sys sys 1147706379 2682
 sys/include/geometry.h - 664 sys sys 1014929063 2632
 sys/include/html.h - 664 sys sys 1184472600 15622
 sys/include/httpd.h - 664 sys sys 1177187803 5794
-sys/include/ip.h - 664 sys sys 1184885967 4027
+sys/include/ip.h - 664 sys sys 1185389848 4324
 sys/include/keyboard.h - 664 sys sys 1131637696 865
 sys/include/libc.h - 664 sys sys 1168306860 19851
 sys/include/libsec.h - 664 sys sys 1181273373 8263
@@ -7642,7 +7642,7 @@ sys/man/3/ether - 664 sys sys 1178597986 2890
 sys/man/3/floppy - 664 sys sys 954378905 881
 sys/man/3/fs - 664 sys sys 1175145095 3147
 sys/man/3/i82365 - 664 sys sys 954378906 884
-sys/man/3/ip - 664 sys sys 1184886992 25934
+sys/man/3/ip - 664 sys sys 1185396805 25985
 sys/man/3/kbmap - 664 sys sys 1131110122 1732
 sys/man/3/kprof - 664 sys sys 1018029972 1377
 sys/man/3/loopback - 664 sys sys 964662153 1995
@@ -7974,7 +7974,7 @@ sys/src/9/ip/ipifc.c - 664 sys sys 1184794851 34006
 sys/src/9/ip/ipmux.c - 664 sys sys 1179708314 15363
 sys/src/9/ip/iproute.c - 664 sys sys 1168305878 14778
 sys/src/9/ip/ipv6.c - 664 sys sys 1184794860 14514
-sys/src/9/ip/ipv6.h - 664 sys sys 1184881241 4114
+sys/src/9/ip/ipv6.h - 664 sys sys 1185389900 4422
 sys/src/9/ip/loopbackmedium.c - 664 sys sys 1055701769 1671
 sys/src/9/ip/netdevmedium.c - 664 sys sys 1045063517 2675
 sys/src/9/ip/netlog.c - 664 sys sys 1184794933 4004
@@ -12472,7 +12472,7 @@ sys/src/cmd/ip/dhcpd/db.c - 664 sys sys 1143670612 7466
 sys/src/cmd/ip/dhcpd/dhcpd.c - 664 sys sys 1179429075 33386
 sys/src/cmd/ip/dhcpd/dhcpleases.c - 664 sys sys 1032655001 779
 sys/src/cmd/ip/dhcpd/mkfile - 664 sys sys 1169162185 443
-sys/src/cmd/ip/dhcpd/ndb.c - 664 sys sys 1184887309 5741
+sys/src/cmd/ip/dhcpd/ndb.c - 664 sys sys 1185389947 5739
 sys/src/cmd/ip/dhcpd/ping.c - 664 sys sys 1184887281 1177
 sys/src/cmd/ip/dhcpd/testlook.c - 664 sys sys 950389140 4640
 sys/src/cmd/ip/dhcpd/testlookup.c - 664 sys sys 950389140 3195
@@ -12533,9 +12533,9 @@ sys/src/cmd/ip/imap4d/search.c - 664 sys sys 1015013077 4520
 sys/src/cmd/ip/imap4d/store.c - 664 sys sys 1066317059 1910
 sys/src/cmd/ip/imap4d/utils.c - 664 sys sys 1168894057 2587
 sys/src/cmd/ip/ipconfig - 20000000775 sys sys 1176933436 0
-sys/src/cmd/ip/ipconfig/ipconfig.h - 664 sys sys 1184880748 5635
-sys/src/cmd/ip/ipconfig/ipv6.c - 664 sys sys 1185212228 19732
-sys/src/cmd/ip/ipconfig/main.c - 664 sys sys 1184880913 38660
+sys/src/cmd/ip/ipconfig/ipconfig.h - 664 sys sys 1185390045 5683
+sys/src/cmd/ip/ipconfig/ipv6.c - 664 sys sys 1185390096 19652
+sys/src/cmd/ip/ipconfig/main.c - 664 sys sys 1185390323 38954
 sys/src/cmd/ip/ipconfig/mkfile - 664 sys sys 1184880750 233
 sys/src/cmd/ip/ipconfig/ppp.c - 664 sys sys 1184880751 1046
 sys/src/cmd/ip/linklocal.c - 664 sys sys 1177099730 867

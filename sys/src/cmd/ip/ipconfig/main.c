@@ -141,6 +141,7 @@ int	beprimary = -1;
 Conf	conf;
 int	debug;
 int	dodhcp;
+int	dolog;
 int	dondbconfig = 0;
 int	dupl_disc = 1;		/* flag: V6 duplicate neighbor discovery */
 Ctl	*firstctl, **ctll;
@@ -154,6 +155,8 @@ int	nodhcpwatch;
 char 	optmagic[4] = { 0x63, 0x82, 0x53, 0x63 };
 int	plan9 = 1;
 int	sendhostname;
+
+static char logfile[] = "ipconfig";
 
 char *verbs[] = {
 [Vadd]		"add",
@@ -225,6 +228,21 @@ usage(void)
 		"\t[-x mtpt][-o dhcpopt] type dev [verb] [laddr [mask "
 		"[raddr [fs [auth]]]]]\n", argv0);
 	exits("usage");
+}
+
+void
+warning(char *fmt, ...)
+{
+	char buf[1024];
+	va_list arg;
+
+	va_start(arg, fmt);
+	vseprint(buf, buf + sizeof buf, fmt, arg);
+	va_end(arg);
+	if (dolog)
+		syslog(0, logfile, "%s", buf);
+	else
+		fprint(2, "%s: %s\n", argv0, buf);
 }
 
 static void
@@ -936,6 +954,7 @@ dhcpwatch(int needconfig)
 		break;
 	}
 
+	dolog = 1;
 	procsetname("dhcpwatch");
 	/* keep trying to renew the lease */
 	for(;;){
@@ -1599,7 +1618,8 @@ writendb(char *s, int n, int append)
 		fd = open(file, OWRITE|OTRUNC);
 	write(fd, s, n);
 	close(fd);
-write(1, s, n);		/* DEBUG */
+	if (debug)
+		write(1, s, n);
 }
 
 /* put server addresses into the ndb entry */

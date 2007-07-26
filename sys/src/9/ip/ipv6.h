@@ -84,11 +84,21 @@ enum {
 
 	/* option types */
 
+	/* neighbour discovery */
 	SRC_LLADDR	= 1,
 	TARGET_LLADDR	= 2,
 	PREFIX_INFO	= 3,
 	REDIR_HEADER	= 4,
 	MTU_OPTION	= 5,
+	/* new since rfc2461; see iana.org/assignments/icmpv6-parameters */
+	V6nd_home	= 8,
+	V6nd_srcaddrs	= 9,		/* rfc3122 */
+	V6nd_ip		= 17,
+	/* /lib/rfc/drafts/draft-jeong-dnsop-ipv6-dns-discovery-12.txt */
+	V6nd_rdns	= 25,
+	/* plan 9 extensions */
+	V6nd_9fs	= 250,
+	V6nd_9auth	= 251,
 
 	SRC_UNSPEC	= 0,
 	SRC_UNI		= 1,

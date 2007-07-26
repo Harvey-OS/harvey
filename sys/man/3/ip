@@ -478,6 +478,7 @@ three white-space-separated fields: IP address, usage count,
 and flags.  The usage count is the number of interfaces to which
 the address applies.  The flags are the same as for routing
 entries.
+Note that the `IPv4 route' flag will never be set.
 .br
 .ne 3
 .SS "Protocol directories
