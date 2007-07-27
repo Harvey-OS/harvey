@@ -7969,12 +7969,12 @@ sys/src/9/ip/il.c - 664 sys sys 1184946959 27225
 sys/src/9/ip/inferno.c - 664 sys sys 1022588098 517
 sys/src/9/ip/ip.c - 664 sys sys 1176957040 15288
 sys/src/9/ip/ip.h - 664 sys sys 1184794803 15981
-sys/src/9/ip/ipaux.c - 664 sys sys 1184794816 12516
+sys/src/9/ip/ipaux.c - 664 sys sys 1185486678 12341
 sys/src/9/ip/ipifc.c - 664 sys sys 1184794851 34006
 sys/src/9/ip/ipmux.c - 664 sys sys 1179708314 15363
 sys/src/9/ip/iproute.c - 664 sys sys 1168305878 14778
 sys/src/9/ip/ipv6.c - 664 sys sys 1184794860 14514
-sys/src/9/ip/ipv6.h - 664 sys sys 1185389900 4422
+sys/src/9/ip/ipv6.h - 664 sys sys 1185486283 4322
 sys/src/9/ip/loopbackmedium.c - 664 sys sys 1055701769 1671
 sys/src/9/ip/netdevmedium.c - 664 sys sys 1045063517 2675
 sys/src/9/ip/netlog.c - 664 sys sys 1184794933 4004
@@ -8044,8 +8044,8 @@ sys/src/9/pc/ether2114x.c - 664 sys sys 1184468570 41707
 sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
 sys/src/9/pc/ether79c970.c - 664 sys sys 1160070602 14088
 sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
-sys/src/9/pc/ether8139.c - 664 sys sys 1175019929 18584
-sys/src/9/pc/ether8169.c - 664 sys sys 1172259757 25466
+sys/src/9/pc/ether8139.c - 664 sys sys 1185490762 18594
+sys/src/9/pc/ether8169.c - 664 sys sys 1185490910 25476
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1131290377 32294
 sys/src/9/pc/ether82557.c - 664 sys sys 1153082663 30197
 sys/src/9/pc/ether82563.c - 664 sys sys 1178932992 32729
@@ -8098,7 +8098,7 @@ sys/src/9/pc/pcdisk - 664 sys sys 1161302470 1495
 sys/src/9/pc/pcf - 664 sys sys 1161302469 1553
 sys/src/9/pc/pcfl - 664 sys sys 1161302470 1587
 sys/src/9/pc/pcflop - 664 sys sys 1158061762 1513
-sys/src/9/pc/pci.c - 664 sys sys 1184468036 29418
+sys/src/9/pc/pci.c - 664 sys sys 1185452613 29418
 sys/src/9/pc/pcmciamodem.c - 664 sys sys 1099761153 1586
 sys/src/9/pc/pcmkfile - 664 sys sys 1109303822 101
 sys/src/9/pc/piix4smbus.c - 664 sys sys 1184467714 5324
