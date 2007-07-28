@@ -472,7 +472,7 @@
 386/bin/upas/runq - 775 sys sys 1178568314 112842
 386/bin/upas/scanmail - 775 sys sys 1181507271 128207
 386/bin/upas/send - 775 sys sys 1181507272 192174
-386/bin/upas/smtp - 775 sys sys 1184529906 275100
+386/bin/upas/smtp - 775 sys sys 1185566684 275107
 386/bin/upas/smtpd - 775 sys sys 1181540422 331887
 386/bin/upas/spam - 775 sys sys 1064598366 36
 386/bin/upas/testscan - 775 sys sys 1181507272 83858
@@ -7642,7 +7642,7 @@ sys/man/3/ether - 664 sys sys 1178597986 2890
 sys/man/3/floppy - 664 sys sys 954378905 881
 sys/man/3/fs - 664 sys sys 1175145095 3147
 sys/man/3/i82365 - 664 sys sys 954378906 884
-sys/man/3/ip - 664 sys sys 1185396805 25985
+sys/man/3/ip - 664 sys sys 1185565401 26009
 sys/man/3/kbmap - 664 sys sys 1131110122 1732
 sys/man/3/kprof - 664 sys sys 1018029972 1377
 sys/man/3/loopback - 664 sys sys 964662153 1995
@@ -8044,10 +8044,10 @@ sys/src/9/pc/ether2114x.c - 664 sys sys 1184468570 41707
 sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
 sys/src/9/pc/ether79c970.c - 664 sys sys 1160070602 14088
 sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
-sys/src/9/pc/ether8139.c - 664 sys sys 1185490762 18594
-sys/src/9/pc/ether8169.c - 664 sys sys 1185490910 25476
+sys/src/9/pc/ether8139.c - 664 sys sys 1185509068 18584
+sys/src/9/pc/ether8169.c - 664 sys sys 1185509068 25466
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1131290377 32294
-sys/src/9/pc/ether82557.c - 664 sys sys 1153082663 30197
+sys/src/9/pc/ether82557.c - 664 sys sys 1185509068 30197
 sys/src/9/pc/ether82563.c - 664 sys sys 1178932992 32729
 sys/src/9/pc/ether83815.c - 664 sys sys 1172259521 26346
 sys/src/9/pc/ether8390.c - 664 sys sys 1131290377 17702
@@ -12462,7 +12462,7 @@ sys/src/cmd/iostats/mkfile - 664 sys sys 1014925727 122
 sys/src/cmd/iostats/statfs.h - 664 sys sys 1140099908 2626
 sys/src/cmd/iostats/statsrv.c - 664 sys sys 1166824341 10773
 sys/src/cmd/ip - 20000000775 sys sys 1128605981 0
-sys/src/cmd/ip/6in4.c - 664 sys sys 1184878450 7455
+sys/src/cmd/ip/6in4.c - 664 sys sys 1185564832 7472
 sys/src/cmd/ip/arp.h - 664 sys sys 944961005 751
 sys/src/cmd/ip/dhcp.h - 664 sys sys 1184880651 3419
 sys/src/cmd/ip/dhcpclient.c - 664 sys sys 1178482836 11969
@@ -14242,7 +14242,7 @@ sys/src/cmd/upas/smtp/mkfile - 664 sys sys 1108910002 801
 sys/src/cmd/upas/smtp/mxdial.c - 664 sys sys 1176837561 6567
 sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417
 sys/src/cmd/upas/smtp/rmtdns.c - 664 sys sys 1015013150 1069
-sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1184276287 20431
+sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1185515675 20528
 sys/src/cmd/upas/smtp/smtp.h - 664 sys sys 1108827986 1270
 sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1181513473 32835
 sys/src/cmd/upas/smtp/smtpd.h - 664 sys sys 1067722781 1111
