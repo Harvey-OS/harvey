@@ -453,9 +453,11 @@ hello(char *me, int encrypted)
 		 * answers a call.  Send a no-op in the hope of making it
 		 * talk.
 		 */
-		if (autistic)
+		if (autistic) {
 			dBprint("NOOP\r\n");
-
+			getreply();	/* consume the smtp greeting */
+			/* next reply will be response to noop */
+		}
 		switch(getreply()){
 		case 2:
 			break;

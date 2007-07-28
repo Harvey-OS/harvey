@@ -168,14 +168,14 @@ to be connected to the local Ethernet.
 .BI remove\  "local mask"
 Remove a local IP address from an interface.
 .TP
-.BI addmulti\  addr
+.BI addmulti\  Media-addr
 Treat the multicast
-.I addr
+.I Media-addr
 on this interface as a local address.
 .TP
-.BI remmulti\  addr
+.BI remmulti\  Media-addr
 Remove the multicast address
-.I addr
+.I Media-addr
 from this interface.
 .TP
 .BI mtu\  n
