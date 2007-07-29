@@ -8044,8 +8044,8 @@ sys/src/9/pc/ether2114x.c - 664 sys sys 1184468570 41707
 sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
 sys/src/9/pc/ether79c970.c - 664 sys sys 1160070602 14088
 sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
-sys/src/9/pc/ether8139.c - 664 sys sys 1185509068 18584
-sys/src/9/pc/ether8169.c - 664 sys sys 1185509068 25466
+sys/src/9/pc/ether8139.c - 664 sys sys 1185650567 19974
+sys/src/9/pc/ether8169.c - 664 sys sys 1185650568 26932
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1131290377 32294
 sys/src/9/pc/ether82557.c - 664 sys sys 1185509068 30197
 sys/src/9/pc/ether82563.c - 664 sys sys 1178932992 32729
@@ -8055,7 +8055,7 @@ sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
 sys/src/9/pc/etherdp83820.c - 664 sys sys 1184468435 29621
 sys/src/9/pc/etherec2t.c - 664 sys sys 1135784135 4092
 sys/src/9/pc/etherelnk3.c - 664 sys sys 1158012427 48807
-sys/src/9/pc/etherga620.c - 664 sys sys 1175322931 29912
+sys/src/9/pc/etherga620.c - 664 sys sys 1185652495 29895
 sys/src/9/pc/etherga620fw.h - 664 sys sys 1026847642 222295
 sys/src/9/pc/etherif.h - 664 sys sys 1088178711 961
 sys/src/9/pc/etherigbe.c - 664 sys sys 1184468343 44976
@@ -8149,7 +8149,7 @@ sys/src/9/pc/vgatvp3026.c - 664 sys sys 1131290603 3956
 sys/src/9/pc/vgavesa.c - 664 sys sys 1131402428 2396
 sys/src/9/pc/vgavmware.c - 664 sys sys 1131290604 5840
 sys/src/9/pc/vgax.c - 664 sys sys 1131290604 1671
-sys/src/9/pc/wavelan.c - 664 sys sys 1146151713 27760
+sys/src/9/pc/wavelan.c - 664 sys sys 1185652512 27841
 sys/src/9/pc/wavelan.h - 664 sys sys 1107448246 6169
 sys/src/9/port - 20000000775 sys sys 1161222882 0
 sys/src/9/port/alarm.c - 664 sys sys 1134042902 1425

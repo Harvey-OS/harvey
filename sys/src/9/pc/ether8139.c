@@ -187,6 +187,10 @@ typedef struct Ctlr {
 	Lock	ilock;			/* init */
 	void*	alloc;			/* base of per-Ctlr allocated data */
 
+	int	pcie;			/* flag: pci-express device? */
+
+	uvlong	mchash;			/* multicast hash */
+
 	int	rcr;			/* receive configuration register */
 	uchar*	rbstart;		/* receive buffer */
 	int	rblen;			/* receive buffer length */
@@ -204,6 +208,7 @@ typedef struct Ctlr {
 	int	dis;			/* disconnect counter */
 	int	fcsc;			/* false carrier sense counter */
 	int	rec;			/* RX_ER counter */
+	uint	mcast;
 } Ctlr;
 
 static Ctlr* ctlrhead;
@@ -234,10 +239,67 @@ rtl8139promiscuous(void* arg, int on)
 	iunlock(&ctlr->ilock);
 }
 
-static void
-rtl8139multicast(void* arg, uchar*, int)
+enum {
+	/* everyone else uses 0x04c11db7, but they both produce the same crc */
+	Etherpolybe = 0x04c11db6,
+	Bytemask = (1<<8) - 1,
+};
+
+static ulong
+ethercrcbe(uchar *addr, long len)
 {
-	rtl8139promiscuous(arg, 1);
+	int i, j;
+	ulong c, crc, carry;
+
+	crc = ~0UL;
+	for (i = 0; i < len; i++) {
+		c = addr[i];
+		for (j = 0; j < 8; j++) {
+			carry = ((crc & (1UL << 31))? 1: 0) ^ (c & 1);
+			crc <<= 1;
+			c >>= 1;
+			if (carry)
+				crc = (crc ^ Etherpolybe) | carry;
+		}
+	}
+	return crc;
+}
+
+static ulong
+swabl(ulong l)
+{
+	return l>>24 | (l>>8) & (Bytemask<<8) |
+		(l<<8) & (Bytemask<<16) | l<<24;
+}
+
+static void
+rtl8139multicast(void* ether, uchar *eaddr, int add)
+{
+	Ether *edev;
+	Ctlr *ctlr;
+
+	if (!add)
+		return;	/* ok to keep receiving on old mcast addrs */
+
+	edev = ether;
+	ctlr = edev->ctlr;
+	ilock(&ctlr->ilock);
+
+	ctlr->mchash |= 1ULL << (ethercrcbe(eaddr, Eaddrlen) >> 26);
+
+	ctlr->rcr |= Am;
+	csr32w(ctlr, Rcr, ctlr->rcr);
+
+	/* pci-e variants reverse the order of the hash byte registers */
+	if (0 && ctlr->pcie) {
+		csr32w(ctlr, Mar0,   swabl(ctlr->mchash>>32));
+		csr32w(ctlr, Mar0+4, swabl(ctlr->mchash));
+	} else {
+		csr32w(ctlr, Mar0,   ctlr->mchash);
+		csr32w(ctlr, Mar0+4, ctlr->mchash>>32);
+	}
+
+	iunlock(&ctlr->ilock);
 }
 
 static long
@@ -250,6 +312,7 @@ rtl8139ifstat(Ether* edev, void* a, long n, ulong offset)
 	ctlr = edev->ctlr;
 	p = malloc(READSTR);
 	l = snprint(p, READSTR, "rcr %#8.8ux\n", ctlr->rcr);
+	l += snprint(p+l, READSTR-l, "multicast %ud\n", ctlr->mcast);
 	l += snprint(p+l, READSTR-l, "ierrs %d\n", ctlr->ierrs);
 	l += snprint(p+l, READSTR-l, "etxth %d\n", ctlr->etxth);
 	l += snprint(p+l, READSTR-l, "taligned %d\n", ctlr->taligned);
@@ -345,7 +408,7 @@ rtl8139init(Ether* edev)
 	alloc += ctlr->rblen+16;
 	memset(ctlr->rbstart, 0, ctlr->rblen+16);
 	csr32w(ctlr, Rbstart, PCIWADDR(ctlr->rbstart));
-	ctlr->rcr = Rxfth256|Rblen|Mrxdmaunlimited|Ab|Apm;
+	ctlr->rcr = Rxfth256|Rblen|Mrxdmaunlimited|Ab|Am|Apm;
 
 	/*
 	 * Transmitter.
@@ -374,6 +437,9 @@ rtl8139init(Ether* edev)
 	csr8w(ctlr, Cr, Te|Re);
 	csr32w(ctlr, Tcr, Mtxdma2048);
 	csr32w(ctlr, Rcr, ctlr->rcr);
+	csr32w(ctlr, Mar0,   0);
+	csr32w(ctlr, Mar0+4, 0);
+	ctlr->mchash = 0;
 
 	iunlock(&ctlr->ilock);
 }
@@ -498,6 +564,8 @@ rtl8139receive(Ether* edev)
 		capr = (capr+4) % ctlr->rblen;
 		p = ctlr->rbstart+capr;
 		capr = (capr+length) % ctlr->rblen;
+		if(status & Mar)
+			ctlr->mcast++;
 
 		if((bp = iallocb(length)) != nil){
 			if(p+length >= ctlr->rbstart+ctlr->rblen){
