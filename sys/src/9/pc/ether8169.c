@@ -236,10 +236,10 @@ struct Dtcc {
 };
 
 enum {						/* Variants */
-	Rtl8100e	= (0x8136<<16)|0x10EC,	/* RTL810[01]E ? */
+	Rtl8100e	= (0x8136<<16)|0x10EC,	/* RTL810[01]E: pci -e */
 	Rtl8169c	= (0x0116<<16)|0x16EC,	/* RTL8169C+ (USR997902) */
 	Rtl8169sc	= (0x8167<<16)|0x10EC,	/* RTL8169SC */
-	Rtl8168b	= (0x8168<<16)|0x10EC,	/* RTL8168B */
+	Rtl8168b	= (0x8168<<16)|0x10EC,	/* RTL8168B: pci-e */
 	Rtl8169		= (0x8169<<16)|0x10EC,	/* RTL8169 */
 };
 
@@ -257,6 +257,9 @@ typedef struct Ctlr {
 	int	pciv;			/*  */
 	int	macv;			/* MAC version */
 	int	phyv;			/* PHY version */
+	int	pcie;			/* flag: pci-express device? */
+
+	uvlong	mchash;			/* multicast hash */
 
 	Mii*	mii;
 
@@ -297,6 +300,7 @@ typedef struct Ctlr {
 	uint	rdu;
 	uint	punlc;
 	uint	fovw;
+	uint	mcast;
 } Ctlr;
 
 static Ctlr* rtl8169ctlrhead;
@@ -414,10 +418,67 @@ rtl8169promiscuous(void* arg, int on)
 	iunlock(&ctlr->ilock);
 }
 
-static void
-rtl8169multicast(void* arg, uchar*, int)
+enum {
+	/* everyone else uses 0x04c11db7, but they both produce the same crc */
+	Etherpolybe = 0x04c11db6,
+	Bytemask = (1<<8) - 1,
+};
+
+static ulong
+ethercrcbe(uchar *addr, long len)
 {
-	rtl8169promiscuous(arg, 1);
+	int i, j;
+	ulong c, crc, carry;
+
+	crc = ~0UL;
+	for (i = 0; i < len; i++) {
+		c = addr[i];
+		for (j = 0; j < 8; j++) {
+			carry = ((crc & (1UL << 31))? 1: 0) ^ (c & 1);
+			crc <<= 1;
+			c >>= 1;
+			if (carry)
+				crc = (crc ^ Etherpolybe) | carry;
+		}
+	}
+	return crc;
+}
+
+static ulong
+swabl(ulong l)
+{
+	return l>>24 | (l>>8) & (Bytemask<<8) |
+		(l<<8) & (Bytemask<<16) | l<<24;
+}
+
+static void
+rtl8169multicast(void* ether, uchar *eaddr, int add)
+{
+	Ether *edev;
+	Ctlr *ctlr;
+
+	if (!add)
+		return;	/* ok to keep receiving on old mcast addrs */
+
+	edev = ether;
+	ctlr = edev->ctlr;
+	ilock(&ctlr->ilock);
+
+	ctlr->mchash |= 1ULL << (ethercrcbe(eaddr, Eaddrlen) >> 26);
+
+	ctlr->rcr |= Am;
+	csr32w(ctlr, Rcr, ctlr->rcr);
+
+	/* pci-e variants reverse the order of the hash byte registers */
+	if (ctlr->pcie) {
+		csr32w(ctlr, Mar0,   swabl(ctlr->mchash>>32));
+		csr32w(ctlr, Mar0+4, swabl(ctlr->mchash));
+	} else {
+		csr32w(ctlr, Mar0,   ctlr->mchash);
+		csr32w(ctlr, Mar0+4, ctlr->mchash>>32);
+	}
+
+	iunlock(&ctlr->ilock);
 }
 
 static long
@@ -491,6 +552,7 @@ rtl8169ifstat(Ether* edev, void* a, long n, ulong offset)
 
 	l += snprint(p+l, READSTR-l, "tcr: %#8.8ux\n", ctlr->tcr);
 	l += snprint(p+l, READSTR-l, "rcr: %#8.8ux\n", ctlr->rcr);
+	l += snprint(p+l, READSTR-l, "multicast: %ud\n", ctlr->mcast);
 
 	if(ctlr->mii != nil && ctlr->mii->curphy != nil){
 		l += snprint(p+l, READSTR, "phy:   ");
@@ -621,7 +683,7 @@ rtl8169init(Ether* edev)
 		}
 	}
 	rtl8169replenish(ctlr);
-	ctlr->rcr = Rxfthnone|Mrxdmaunlimited|Ab|Apm;
+	ctlr->rcr = Rxfthnone|Mrxdmaunlimited|Ab|Am|Apm;
 
 	/*
 	 * Mtps is in units of 128 except for the RTL8169
@@ -683,6 +745,9 @@ rtl8169init(Ether* edev)
 		csr8w(ctlr, Cr, Te|Re);
 		csr32w(ctlr, Tcr, Ifg1|Ifg0|Mtxdmaunlimited);
 		csr32w(ctlr, Rcr, ctlr->rcr);
+		csr32w(ctlr, Mar0,   0);
+		csr32w(ctlr, Mar0+4, 0);
+		ctlr->mchash = 0;
 	case Rtl8169sc:
 	case Rtl8168b:
 		break;
@@ -902,6 +967,8 @@ rtl8169receive(Ether* edev)
 
 			if(control & Fovf)
 				ctlr->fovf++;
+			if(control & Mar)
+				ctlr->mcast++;
 
 			switch(control & (Pid1|Pid0)){
 			default:
@@ -999,20 +1066,23 @@ rtl8169pci(void)
 {
 	Pcidev *p;
 	Ctlr *ctlr;
-	int i, port;
+	int i, port, pcie;
 
 	p = nil;
 	while(p = pcimatch(p, 0, 0)){
 		if(p->ccrb != 0x02 || p->ccru != 0)
 			continue;
 
+		pcie = 0;
 		switch(i = ((p->did<<16)|p->vid)){
 		default:
 			continue;
 		case Rtl8100e:			/* RTL810[01]E ? */
+		case Rtl8168b:			/* RTL8168B */
+			pcie = 1;
+			break;
 		case Rtl8169c:			/* RTL8169C */
 		case Rtl8169sc:			/* RTL8169SC */
-		case Rtl8168b:			/* RTL8168B */
 		case Rtl8169:			/* RTL8169 */
 			break;
 		case (0xC107<<16)|0x1259:	/* Corega CG-LAPCIGT */
@@ -1030,6 +1100,7 @@ rtl8169pci(void)
 		ctlr->port = port;
 		ctlr->pcidev = p;
 		ctlr->pciv = i;
+		ctlr->pcie = pcie;
 
 		if(pcigetpms(p) > 0){
 			pcisetpms(p, 0);

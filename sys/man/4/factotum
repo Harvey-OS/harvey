@@ -597,7 +597,7 @@ attribute with value
 .B client
 or
 .BR server ,
-and enough other attibutes to uniquely identify a key to use.
+and enough other attributes to uniquely identify a key to use.
 A
 .B start
 RPC is required before any others.    The possible replies are:
