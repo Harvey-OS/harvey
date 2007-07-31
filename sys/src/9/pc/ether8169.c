@@ -841,7 +841,7 @@ rtl8169attach(Ether* edev)
 	/*
 	 * Wait for link to be ready.
 	 */
-	for(timeo = 0; timeo < 350; timeo++){
+	for(timeo = 0; timeo < 35; timeo++){
 		if(miistatus(ctlr->mii) == 0)
 			break;
 		delay(100);		/* print fewer miistatus messages */
