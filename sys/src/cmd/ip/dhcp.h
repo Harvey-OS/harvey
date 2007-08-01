@@ -45,7 +45,7 @@ enum
 	OBlprserver=		9,
 	OBimpressserver=	10,
 	OBrlserver=		11,
-	OBhostname=		12,	/* 0xc0 */
+	OBhostname=		12,	/* 0x0c */
 	OBbflen=		13,
 	OBdumpfile=		14,
 	OBdomainname=		15,
@@ -111,9 +111,17 @@ enum
 	ODtftpserver=		66,
 	ODbootfile=		67,
 
-	/* plan9 vendor info options */
-	OP9fs=			128,	/* plan9 file servers */
-	OP9auth=		129,	/* plan9 auth servers */
+	/* plan9 vendor info options, v4 addresses only (deprecated) */
+	OP9fsv4=		128,	/* plan9 file servers */
+	OP9authv4=		129,	/* plan9 auth servers */
+
+	/* plan9 vendor info options, textual addresses, thus v4 or v6 */
+	OP9fs=			130,	/* plan9 file servers */
+	OP9auth=		131,	/* plan9 auth servers */
+	OP9ipaddr=		132,	/* client's address */
+	OP9ipmask=		133,	/* client's subnet mask */
+	OP9ipgw=		134,	/* client's gateway */
+/*	OP9dns=			135,	/* dns servers */
 };
 
 /* a lease that never expires */

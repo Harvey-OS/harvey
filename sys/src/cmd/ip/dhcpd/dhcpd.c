@@ -9,6 +9,10 @@
  *	ala rfc2131
  */
 
+enum {
+	Maxloglen = 1024,
+};
+
 typedef struct Req Req;
 struct Req
 {
@@ -61,6 +65,8 @@ int	minlease = MinLease;
 int	staticlease = StaticLease;
 
 ulong	start;
+
+static int v6opts;
 
 /* option magic */
 char plan9opt[4] = { 'p', '9', ' ', ' ' };
@@ -170,6 +176,7 @@ void	longopt(Req*, int, long);
 void	maskopt(Req*, int, uchar*);
 void	miscoptions(Req*, uchar*);
 int	openlisten(char *net);
+void	p9addrsopt(Req *rp, int t, uchar **ip, int i);
 void	parseoptions(Req*);
 void	proto(Req*, int);
 void	rcvdecline(Req*);
@@ -220,6 +227,9 @@ main(int argc, char **argv)
 	fmtinstall('V', eipfmt);
 	fmtinstall('M', eipfmt);
 	ARGBEGIN {
+	case '6':
+		v6opts = 1;
+		break;
 	case 'd':
 		debug = 1;
 		break;
@@ -283,7 +293,8 @@ main(int argc, char **argv)
 	strcpy(mysysname, readsysname());
 
 	/* put process in background */
-	if(!debug) switch(rfork(RFNOTEG|RFPROC|RFFDG)) {
+	if(!debug)
+	switch(rfork(RFNOTEG|RFPROC|RFFDG)) {
 	case -1:
 		fatal(1, "fork");
 	case 0:
@@ -488,7 +499,9 @@ rcvrequest(Req *rp)
 		/* check for hard assignment */
 		if(rp->staticbinding){
 			if(forme(rp->server))
-				sendack(rp, rp->ii.ipaddr, (staticlease > minlease? staticlease: minlease), 1);
+				sendack(rp, rp->ii.ipaddr,
+					(staticlease > minlease? staticlease:
+					minlease), 1);
 			else
 				warning(0, "!Request(%s via %I): for server %I not me",
 					rp->id, rp->gii.ipaddr, rp->server);
@@ -545,7 +558,8 @@ rcvrequest(Req *rp)
 					rp->id, rp->gii.ipaddr, rp->ip, rp->bp->chaddr);
 				sendnak(rp, "not valid");
 			}
-			sendack(rp, rp->ii.ipaddr, (staticlease > minlease? staticlease: minlease), 1);
+			sendack(rp, rp->ii.ipaddr, (staticlease > minlease?
+				staticlease: minlease), 1);
 			return;
 		}
 
@@ -558,7 +572,7 @@ rcvrequest(Req *rp)
 		}
 		b = iptobinding(rp->ip, 0);
 		if(b == nil){
-			warning(0, "!Request(%s via %I): no binding for %I for",
+			warning(0, "!Request(%s via %I): no binding for %I",
 				rp->id, rp->gii.ipaddr, rp->ip);
 			return;
 		}
@@ -587,7 +601,8 @@ rcvrequest(Req *rp)
 					rp->id, rp->gii.ipaddr, rp->ciaddr);
 				sendnak(rp, "not valid");
 			}
-			sendack(rp, rp->ii.ipaddr, (staticlease > minlease? staticlease: minlease), 1);
+			sendack(rp, rp->ii.ipaddr, (staticlease > minlease?
+				staticlease: minlease), 1);
 			return;
 		}
 
@@ -918,11 +933,11 @@ bootp(Req *rp)
 
 	/* ignore if we don't know what file to load */
 	if(*bp->file == 0){
-		if(rp->genrequest && *iip->bootf2)	/* if not plan 9 and we have an alternate file... */
+		if(rp->genrequest && *iip->bootf2) /* if not plan 9 & have alternate file... */
 			strncpy(bp->file, iip->bootf2, sizeof(bp->file));
 		else if(*iip->bootf)
 			strncpy(bp->file, iip->bootf, sizeof(bp->file));
-		else if(*bp->sname)		/* if we were asked, respond no matter what */
+		else if(*bp->sname) /* if we were asked, respond no matter what */
 			bp->file[0] = '\0';
 		else {
 			warning(0, "no bootfile for %I", iip->ipaddr);
@@ -1110,14 +1125,12 @@ remrequested(Req *rp, int opt)
 void
 miscoptions(Req *rp, uchar *ip)
 {
-	char *p;
-	int i, j;
-	uchar *addrs[2];
-	uchar x[2*IPaddrlen];
-	uchar vopts[64];
+	int i, j, na;
+	uchar x[2*IPaddrlen], vopts[Maxoptlen];
 	uchar *op, *omax;
+	uchar *addrs[2];
+	char *p;
 	char *attr[100], **a;
-	int na;
 	Ndbtuple *t;
 
 	addrs[0] = x;
@@ -1243,18 +1256,24 @@ miscoptions(Req *rp, uchar *ip)
 	/* add plan9 specific options */
 	if(strncmp((char*)rp->vendorclass, "plan9_", 6) == 0
 	|| strncmp((char*)rp->vendorclass, "p9-", 3) == 0){
-	/* point to temporary area */
+		/* point to temporary area */
 		op = rp->p;
 		omax = rp->max;
+		/* stash encoded options in vopts */
 		rp->p = vopts;
 		rp->max = vopts + sizeof(vopts) - 1;
 
-		j = lookupserver("fs", addrs, t);
-		addrsopt(rp, OP9fs, addrs, j);
-		j = lookupserver("auth", addrs, t);
-		addrsopt(rp, OP9auth, addrs, j);
+		/* emit old v4 addresses first to make sure that they fit */
+		addrsopt(rp, OP9fsv4, addrs, lookupserver("fs", addrs, t));
+		addrsopt(rp, OP9authv4, addrs, lookupserver("auth", addrs, t));
 
-	/* point back */
+		p9addrsopt(rp, OP9fs, addrs, lookupserver("fs", addrs, t));
+		p9addrsopt(rp, OP9auth, addrs, lookupserver("auth", addrs, t));
+		p9addrsopt(rp, OP9ipaddr, addrs, lookupserver("ip", addrs, t));
+		p9addrsopt(rp, OP9ipmask, addrs, lookupserver("ipmask", addrs, t));
+		p9addrsopt(rp, OP9ipgw, addrs, lookupserver("ipgw", addrs, t));
+
+		/* point back to packet, encapsulate vopts into packet */
 		j = rp->p - vopts;
 		rp->p = op;
 		rp->max = omax;
@@ -1287,7 +1306,7 @@ openlisten(char *net)
 void
 fatal(int syserr, char *fmt, ...)
 {
-	char buf[ERRMAX];
+	char buf[Maxloglen];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -1300,10 +1319,10 @@ fatal(int syserr, char *fmt, ...)
 	exits(buf);
 }
 
-extern void
+void
 warning(int syserr, char *fmt, ...)
 {
-	char buf[256];
+	char buf[Maxloglen];
 	va_list arg;
 
 	va_start(arg, fmt);
@@ -1370,6 +1389,11 @@ addropt(Req *rp, int t, uchar *ip)
 {
 	if(rp->p + 6 > rp->max)
 		return;
+	if (!isv4(ip)) {
+		if (debug)
+			warning(0, "not a v4 %s server: %I", optname[t], ip);
+		return;
+	}
 	*rp->p++ = t;
 	*rp->p++ = 4;
 	memmove(rp->p, ip+IPv4off, 4);
@@ -1394,14 +1418,29 @@ maskopt(Req *rp, int t, uchar *ip)
 void
 addrsopt(Req *rp, int t, uchar **ip, int i)
 {
+	int v4s, n;
+
 	if(i <= 0)
 		return;
 	if(rp->p + 2 + 4*i > rp->max)
 		return;
+	v4s = 0;
+	for(n = i; n-- > 0; )
+		if (isv4(ip[n]))
+			v4s++;
+	if (v4s <= 0) {
+		if (debug)
+			warning(0, "no v4 %s servers", optname[t]);
+		return;
+	}
 	*rp->p++ = t;
-	*rp->p++ = 4*i;
-	op = seprint(op, oe, "%s(", optname[t]);
+	*rp->p++ = 4*v4s;
+	op = seprint(op, oe, " %s(", optname[t]);
 	while(i-- > 0){
+		if (!isv4(*ip)) {
+			op = seprint(op, oe, " skipping %I ", *ip);
+			continue;
+		}
 		v6tov4(rp->p, *ip);
 		rp->p += 4;
 		op = seprint(op, oe, "%I", *ip);
@@ -1410,6 +1449,40 @@ addrsopt(Req *rp, int t, uchar **ip, int i)
 			op = seprint(op, oe, " ");
 	}
 	op = seprint(op, oe, ")");
+}
+
+void
+p9addrsopt(Req *rp, int t, uchar **ip, int i)
+{
+	char *pkt, *payload;
+
+	if(i <= 0 || !v6opts)
+		return;
+	pkt = (char *)rp->p;
+	*pkt++ = t;			/* option */
+	pkt++;				/* fill in payload length below */
+	payload = pkt;
+	*pkt++ = i;			/* plan 9 address count */
+	op = seprint(op, oe, " %s(", optname[t]);
+	while(i-- > 0){
+		pkt = seprint(pkt, (char *)rp->max, "%I", *ip);
+		if ((uchar *)pkt+1 >= rp->max) {
+			op = seprint(op, oe, "<out of mem1>)");
+			return;
+		}
+		pkt++;			/* leave NUL as terminator */
+		op = seprint(op, oe, "%I", *ip);
+		ip++;
+		if(i > 0)
+			op = seprint(op, oe, " ");
+	}
+	if ((uchar *)pkt - rp->p > 0377) {
+		op = seprint(op, oe, "<out of mem2>)");
+		return;
+	}
+	op = seprint(op, oe, ")");
+	rp->p[1] = pkt - payload;	/* payload length */
+	rp->p = (uchar *)pkt;
 }
 
 void
@@ -1455,8 +1528,10 @@ vectoropt(Req *rp, int t, uchar *v, int n)
 {
 	int i;
 
-	if(n > 255)
+	if(n > 255) {
 		n = 255;
+		op = seprint(op, oe, "vectoropt len %d > 255 ", n);
+	}
 	if(rp->p+n+2 > rp->max)
 		return;
 	*rp->p++ = t;
@@ -1466,9 +1541,10 @@ vectoropt(Req *rp, int t, uchar *v, int n)
 
 	op = seprint(op, oe, "%s(", optname[t]);
 	if(n > 0)
-		op = seprint(op, oe, "%ud", 0);
+		op = seprint(op, oe, "%ud", v[0]);
 	for(i = 1; i < n; i++)
 		op = seprint(op, oe, " %ud", v[i]);
+	op = seprint(op, oe, ")");
 }
 
 int
@@ -1506,7 +1582,6 @@ arpenter(uchar *ip, uchar *ether)
 	int f;
 	char buf[256];
 
-	/* brazil */
 	sprint(buf, "%s/arp", net);
 	f = open(buf, OWRITE);
 	if(f < 0){
@@ -1579,9 +1654,10 @@ logdhcpout(Req *rp, char *type)
 /*
  *  if we get behind, it's useless to try answering since the sender
  *  will probably have retransmitted with a differnt sequence number.
- *  So dump all the last message in the queue.
+ *  So dump all but the last message in the queue.
  */
-void ding(void*, char *msg)
+void
+ding(void*, char *msg)
 {
 	if(strstr(msg, "alarm"))
 		noted(NCONT);

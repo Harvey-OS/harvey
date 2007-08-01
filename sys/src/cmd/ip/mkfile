@@ -1,6 +1,7 @@
 </$objtype/mkfile
 
-TARG = 	dhcpclient\
+TARG = 	6in4\
+	dhcpclient\
 	ftpd\
 	gping\
 	hogports\

@@ -17,7 +17,7 @@ catch(void *a, char *msg)
 
 /*
  *  make sure noone is using the address
- *  IPv4 only
+ *  TODO: ipv6 ping
  */
 int
 icmpecho(uchar *a)
@@ -30,7 +30,8 @@ icmpecho(uchar *a)
 	int rv;
 
 	rv = 0;
-
+	if (!isv4(a))
+		return 0;
 	sprint(buf, "%I", a);
 	fd = dial(netmkaddr(buf, "icmp", "1"), 0, 0, 0);
 	if(fd < 0){
