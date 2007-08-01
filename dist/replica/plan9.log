@@ -49702,3 +49702,14 @@
 1185652808 1 c sys/src/9/pc/wavelan.c - 664 sys sys 1185652512 27841
 1185681605 0 c sys/man/4/factotum - 664 sys sys 1185680600 14842
 1185813005 0 c sys/src/9/pc/ether8169.c - 664 sys sys 1185812348 26931
+1185921004 0 c sys/src/cmd/ip/dhcp.h - 664 sys sys 1184696111 3764
+1185921004 1 c sys/src/cmd/ip/dhcpd/dhcpd.c - 664 sys sys 1185920348 35144
+1185921004 2 c sys/src/cmd/ip/dhcpd/ndb.c - 664 sys sys 1185920230 5799
+1185921004 3 c sys/src/cmd/ip/dhcpd/ping.c - 664 sys sys 1185920220 1209
+1185921004 4 c sys/src/cmd/ip/mkfile - 664 sys sys 1185920805 1267
+1185922804 0 c sys/src/cmd/ip/dhcpd/dhcpd.c - 664 sys sys 1185922538 35209
+1185922804 1 c sys/src/cmd/ip/ipconfig/ipconfig.h - 664 sys sys 1185922303 5738
+1185924604 0 a sys/log/ipconfig - 10000000666 sys sys 1185923302 0
+1185924604 1 a sys/log/v6routeradv - 10000000666 sys sys 1185923299 0
+1185924604 2 c sys/src/cmd/ip/ipconfig/ipv6.c - 664 sys sys 1185923430 20620
+1185924604 3 c sys/src/cmd/ip/ipconfig/main.c - 664 sys sys 1185923495 39912

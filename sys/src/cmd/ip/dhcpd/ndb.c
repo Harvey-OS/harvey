@@ -197,9 +197,11 @@ lookup(Bootp *bp, Info *iip, Info *riip)
 	/* client knows its address? */
 	v4tov6(ciaddr, bp->ciaddr);
 	if(validip(ciaddr)){
-		if(lookupip(ciaddr, iip, 0) < 0)
+		if(lookupip(ciaddr, iip, 0) < 0) {
+			if (debug)
+				warning(0, "don't know %I", ciaddr);
 			return -1;	/* don't know anything about it */
-
+		}
 		if(!samenet(riip->ipaddr, iip)){
 			warning(0, "%I not on %I", ciaddr, riip->ipnet);
 			return -1;

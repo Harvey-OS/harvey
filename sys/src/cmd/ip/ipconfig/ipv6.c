@@ -60,11 +60,17 @@ char *icmpmsg6[Maxtype6+1] =
 static char *icmp6opts[] =
 {
 [0]			"unknown option",
-[V6nd_srclladdr]	"sll_addr",
-[V6nd_targlladdr]	"tll_addr",
-[V6nd_pfxinfo]		"pref_opt",
+[V6nd_srclladdr]	"srcll_addr",
+[V6nd_targlladdr]	"targll_addr",
+[V6nd_pfxinfo]		"prefix",
 [V6nd_redirhdr]		"redirect",
-[V6nd_mtu]		"mtu_opt",
+[V6nd_mtu]		"mtu",
+[V6nd_home]		"home",
+[V6nd_srcaddrs]		"src_addrs",
+[V6nd_ip]		"ip",
+[V6nd_rdns]		"rdns",
+[V6nd_9fs]		"9fs",
+[V6nd_9auth]		"9auth",
 };
 
 uchar v6allroutersL[IPaddrlen] = {
@@ -197,6 +203,18 @@ v6paraminit(Conf *cf)
 	cf->validlt = cf->preflt = ~0L;
 }
 
+static char *
+optname(unsigned opt)
+{
+	static char buf[32];
+
+	if (opt >= nelem(icmp6opts) || icmp6opts[opt] == nil) {
+		snprint(buf, sizeof buf, "unknown option %d", opt);
+		return buf;
+	} else
+		return icmp6opts[opt];
+}
+
 static char*
 opt_seprint(uchar *ps, uchar *pe, char *sps, char *spe)
 {
@@ -211,24 +229,24 @@ opt_seprint(uchar *ps, uchar *pe, char *sps, char *spe)
 
 		switch (otype) {
 		default:
-			return seprint(p, e, " option=%s ", icmp6opts[otype]);
+			return seprint(p, e, " option=%s ", optname(otype));
 		case V6nd_srclladdr:
 		case V6nd_targlladdr:
 			if (pktsz < osz || osz != 8)
 				return seprint(p, e, " option=%s bad size=%d",
-					icmp6opts[otype], osz);
-			p = seprint(p, e, " option=%s maddr=%E",
-				icmp6opts[otype], a+2);
+					optname(otype), osz);
+			p = seprint(p, e, " option=%s maddr=%E", optname(otype),
+				a+2);
 			break;
 		case V6nd_pfxinfo:
 			if (pktsz < osz || osz != 32)
 				return seprint(p, e, " option=%s: bad size=%d",
-					icmp6opts[otype], osz);
+					optname(otype), osz);
 
 			p = seprint(p, e, " option=%s pref=%I preflen=%3.3d"
 				" lflag=%1.1d aflag=%1.1d unused1=%1.1d"
 				" validlt=%ud preflt=%ud unused2=%1.1d",
-				icmp6opts[otype], a+16, (int)(*(a+2)),
+				optname(otype), a+16, (int)(*(a+2)),
 				(*(a+3) & (1 << 7)) != 0,
 				(*(a+3) & (1 << 6)) != 0,
 				(*(a+3) & 63) != 0,
@@ -454,6 +472,7 @@ recvra6on(char *net, int conn)
 		return IsHostNoRecv;
 }
 
+/* send icmpv6 router solicitation to multicast address for all routers */
 static void
 sendrs(int fd)
 {
@@ -468,6 +487,9 @@ sendrs(int fd)
 
 	if(write(fd, rs, sizeof buff) < sizeof buff)
 		ralog("sendrs: write failed, pkt size %d", sizeof buff);
+	else
+		ralog("sendrs: sent solicitation to %I from %I on %s",
+			rs->dst, rs->src, conf.dev);
 }
 
 /*
@@ -544,6 +566,7 @@ recvrahost(uchar buf[], int pktlen)
 	Mtuopt *mtuo;
 	Prefixopt *prfo;
 	Routeradv *ra;
+	static int first = 1;
 
 	ra = (Routeradv*)buf;
 //	memmove(conf.v6gaddr, ra->src, IPaddrlen);
@@ -554,7 +577,7 @@ recvrahost(uchar buf[], int pktlen)
 	conf.reachtime = nhgetl(ra->rchbltime);
 	conf.rxmitra =   nhgetl(ra->rxmtimer);
 
-	// issueadd6(&conf);	// for conf.v6gaddr?
+//	issueadd6(&conf);		/* for conf.v6gaddr? */
 	if (fprint(conf.cfd, "ra6 recvra 1") < 0)
 		ralog("write(ra6 recvra 1) failed: %r");
 	issuebasera6(&conf);
@@ -567,24 +590,21 @@ recvrahost(uchar buf[], int pktlen)
 			llao = (Lladdropt *)&buf[m];
 			m += 8 * buf[m+1];
 			if (llao->len != 1) {
-				ralog(
-	"recvrahost: illegal len(%d) for source link layer address option",
-					llao->len);
+				ralog("recvrahost: illegal len (%d) for source "
+					"link layer address option", llao->len);
 				return;
 			}
-			if (memcmp(ra->src, v6linklocal, 2) != 0) {
-				ralog(
-			"recvrahost: non-linklocal src addr for router adv %I",
-					ra->src);
+			if (!ISIPV6LINKLOCAL(ra->src)) {
+				ralog("recvrahost: non-link-local src addr for "
+					"router adv %I", ra->src);
 				return;
 			}
 
 			snprint(abuf, sizeof abuf, "%s/arp", conf.mpoint);
 			arpfd = open(abuf, OWRITE);
 			if (arpfd < 0) {
-				ralog(
-				"recvrahost: couldn't open %s/arp to write: %r",
-					conf.mpoint);
+				ralog("recvrahost: couldn't open %s to write: %r",
+					abuf);
 				return;
 			}
 
@@ -598,8 +618,8 @@ recvrahost(uchar buf[], int pktlen)
 		case V6nd_targlladdr:
 		case V6nd_redirhdr:
 			m += 8 * buf[m+1];
-			ralog("ignoring unexpected optype %s in Routeradv",
-				icmp6opts[optype]);
+			ralog("ignoring unexpected option type `%s' in Routeradv",
+				optname(optype));
 			break;
 		case V6nd_mtu:
 			mtuo = (Mtuopt*)&buf[m];
@@ -621,6 +641,15 @@ recvrahost(uchar buf[], int pktlen)
 			conf.validlt = nhgetl(prfo->validlt);
 			conf.preflt =  nhgetl(prfo->preflt);
 			issueadd6(&conf);
+			if (first) {
+				first = 0;
+				ralog("got initial RA from %I on %s; pfx %I",
+					ra->src, conf.dev, prfo->pref);
+			}
+			break;
+		case V6nd_srcaddrs:
+			/* netsbd sends this, so quietly ignore it for now */
+			m += 8 * buf[m+1];
 			break;
 		default:
 			m += 8 * buf[m+1];
@@ -631,7 +660,7 @@ recvrahost(uchar buf[], int pktlen)
 }
 
 /*
- * daemon to receive router adverisements
+ * daemon to receive router advertisements from routers
  */
 void
 recvra6(void)
@@ -639,6 +668,7 @@ recvra6(void)
 	int fd, cfd, n, sendrscnt, sleepfor;
 	uchar buf[4096];
 
+	/* TODO: why not v6allroutersL? */
 	fd = dialicmp(v6allnodesL, ICMP6_RA, &cfd);
 	if (fd < 0)
 		sysfatal("can't open icmp_ra connection: %r");
@@ -652,57 +682,64 @@ recvra6(void)
 	default:
 		return;
 	case 0:
-		procsetname("recvra6 on %s", conf.dev);
-		ralog("recvra6 on %s", conf.dev);
-		sleepfor = nrand(10);
-		for (;;) {
-			alarm(sleepfor);
-			n = read(fd, buf, sizeof buf);
-			alarm(0);
-			if (n <= 0) {
-				if (sendrscnt > 0) {
-					sendrscnt--;
-					if (recvra6on(conf.mpoint, myifc) ==
-					    IsHostRecv)
-						sendrs(fd);
-					sleepfor = V6rsintvl+nrand(100);
-				}
-				if (sendrscnt == 0) {
-					sendrscnt--;
-					sleepfor = 0;
-					ralog(
-				"recvra6: no router advs after %d sols on %s",
-						 Maxv6rss, conf.dev);
-				}
-				continue;
-			}
+		break;
+	}
 
-			sleepfor = 0;
-			switch (recvra6on(conf.mpoint, myifc)) {
-			case IsRouter:
-				recvrarouter(buf, n);
-				break;
-			case IsHostRecv:
-				recvrahost(buf, n);
-				break;
-			case IsHostNoRecv:
-				ralog("recvra6: recvra off, quitting");
-				close(fd);
-				exits(0);
-			default:
-				ralog(
-				"recvra6: unable to read router status on %s",
-					conf.dev);
-				break;
+	procsetname("recvra6 on %s", conf.dev);
+	ralog("recvra6 on %s", conf.dev);
+	sleepfor = jitter();
+	for (;;) {
+		/*
+		 * We only get 3 (Maxv6rss) tries, so make sure we
+		 * wait long enough to be certain that at least one RA
+		 * will be transmitted.
+		 */
+		if (sleepfor < 7000)
+			sleepfor = 7000;
+		alarm(sleepfor);
+		n = read(fd, buf, sizeof buf);
+		alarm(0);
+		if (n <= 0) {
+			if (sendrscnt > 0) {
+				sendrscnt--;
+				if (recvra6on(conf.mpoint, myifc) == IsHostRecv)
+					sendrs(fd);
+				sleepfor = V6rsintvl + nrand(100);
 			}
+			if (sendrscnt == 0) {
+				sendrscnt--;
+				sleepfor = 0;
+				ralog("recvra6: no router advs after %d sols on %s",
+					Maxv6rss, conf.dev);
+			}
+			continue;
+		}
+
+		sleepfor = 0;
+		sendrscnt = -1;		/* got at least initial ra; no whining */
+		switch (recvra6on(conf.mpoint, myifc)) {
+		case IsRouter:
+			recvrarouter(buf, n);
+			break;
+		case IsHostRecv:
+			recvrahost(buf, n);
+			break;
+		case IsHostNoRecv:
+			ralog("recvra6: recvra off, quitting on %s", conf.dev);
+			close(fd);
+			exits(0);
+		default:
+			ralog("recvra6: unable to read router status on %s",
+				conf.dev);
+			break;
 		}
 	}
 }
 
 /*
  * return -1 -- error, reading/writing some file,
- *         0 -- no arptable updates
- *         1 -- successful arptable update
+ *         0 -- no arp table updates
+ *         1 -- successful arp table update
  */
 int
 recvrs(uchar *buf, int pktlen, uchar *sol)
@@ -792,7 +829,8 @@ sendra(int fd, uchar *dst, int rlt)
 		/* global unicast address? */
 		if (!ISIPV6LINKLOCAL(lifc->ip) && !ISIPV6MCAST(lifc->ip) &&
 		    memcmp(lifc->ip, IPnoaddr, IPaddrlen) != 0 &&
-		    memcmp(lifc->ip, v6loopback, IPaddrlen) != 0) {
+		    memcmp(lifc->ip, v6loopback, IPaddrlen) != 0 &&
+		    !isv4(lifc->ip)) {
 			memmove(prfo->pref, lifc->net, IPaddrlen);
 
 			/* hack to find prefix length */
@@ -822,19 +860,19 @@ sendra(int fd, uchar *dst, int rlt)
 
 	pkt2str(buf+40, buf+pktsz, abuf, abuf+1024);
 	if(write(fd, buf, pktsz) < pktsz)
-		ralog("ra wr fail %s", abuf);
-	else
-		ralog("ra wr succ %s", abuf);
+		ralog("sendra fail %s: %r", abuf);
+	else if (debug)
+		ralog("sendra succ %s", abuf);
 }
 
 /*
- * daemon to send router advertisements
+ * daemon to send router advertisements to hosts
  */
 void
 sendra6(void)
 {
 	int fd, cfd, n, dstknown = 0, sendracnt, sleepfor, nquitmsgs;
-	long lastra, ctime;
+	long lastra, now;
 	uchar buf[4096], dst[IPaddrlen];
 	Ipifc *ifc = nil;
 
@@ -852,63 +890,61 @@ sendra6(void)
 	default:
 		return;
 	case 0:
-		procsetname("sendra6 on %s", conf.dev);
-		ralog("sendra6 on %s", conf.dev);
-		sleepfor = nrand(10);
-		for (;;) {
-			lastra = time(0);
-			alarm(sleepfor);
-			n = read(fd, buf, sizeof buf);
-			alarm(0);
+		break;
+	}
 
-			ifc = readipifc(conf.mpoint, ifc, myifc);
-			if (ifc == nil) {
-				ralog("sendra6: unable to read router pars on %s",
-					conf.mpoint);
+	procsetname("sendra6 on %s", conf.dev);
+	ralog("sendra6 on %s", conf.dev);
+	sleepfor = jitter();
+	for (;;) {
+		lastra = time(0);
+		if (sleepfor < 0)
+			sleepfor = 0;
+		alarm(sleepfor);
+		n = read(fd, buf, sizeof buf);
+		alarm(0);
+
+		ifc = readipifc(conf.mpoint, ifc, myifc);
+		if (ifc == nil) {
+			ralog("sendra6: can't read router params on %s",
+				conf.mpoint);
+			continue;
+		}
+
+		if (ifc->sendra6 <= 0)
+			if (nquitmsgs > 0) {
+				sendra(fd, v6allnodesL, 0);
+				nquitmsgs--;
+				sleepfor = Minv6interradelay + jitter();
+				continue;
+			} else {
+				ralog("sendra6: sendra off, quitting on %s",
+					conf.dev);
+				exits(0);
+			}
+
+		nquitmsgs = Maxv6finalras;
+
+		if (n <= 0) {			/* no RS */
+			if (sendracnt > 0)
+				sendracnt--;
+		} else {			/* respond to RS */
+			dstknown = recvrs(buf, n, dst);
+			now = time(0);
+
+			if (now - lastra < Minv6interradelay) {
+				/* too close, skip */
+				sleepfor = lastra + Minv6interradelay +
+					jitter() - now;
 				continue;
 			}
-
-			if (ifc->sendra6 <= 0)
-				if (nquitmsgs > 0) {
-					sendra(fd, v6allnodesL, 0);
-					nquitmsgs--;
-					sleepfor = Minv6interradelay +
-						nrand(10);
-					continue;
-				} else {
-					ralog("sendra6: quitting");
-					exits(0);
-				}
-
-			nquitmsgs = Maxv6finalras;
-
-			if (n <= 0) {			/* no RS */
-				if (sendracnt > 0)
-					sendracnt--;
-				sleepfor = ifc->rp.minraint +
-					nrand(ifc->rp.maxraint + 1 -
-						ifc->rp.minraint);
-			} else {			/* respond to RS */
-				dstknown = recvrs(buf, n, dst);
-				ctime = time(0);
-
-				if (ctime - lastra < Minv6interradelay) {
-					/* too close, skip */
-					sleepfor = lastra +
-						Minv6interradelay +
-						nrand(10) - ctime;
-					continue;
-				}
-				sleepfor = ifc->rp.minraint +
-					nrand(ifc->rp.maxraint + 1 -
-						ifc->rp.minraint);
-				sleep(nrand(10));
-			}
-			if (dstknown > 0)
-				sendra(fd, dst, 1);
-			else
-				sendra(fd, v6allnodesL, 1);
+			sleep(jitter());
 		}
+		sleepfor = randint(ifc->rp.minraint, ifc->rp.maxraint);
+		if (dstknown > 0)
+			sendra(fd, dst, 1);
+		else
+			sendra(fd, v6allnodesL, 1);
 	}
 }
 
@@ -950,6 +986,7 @@ doipv6(int what)
 	case Vra6:
 		issuebasera6(&conf);
 		issuerara6(&conf);
+		dolog = 1;
 		startra6();
 		break;
 	}

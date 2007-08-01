@@ -9,7 +9,7 @@
 #include "../dhcp.h"
 #include "ipconfig.h"
 
-#define DEBUG if(debug)print
+#define DEBUG if(debug)warning
 
 /* possible verbs */
 enum
@@ -219,7 +219,6 @@ void	usage(void);
 int	validip(uchar*);
 void	writendb(char*, int, int);
 
-/* TODO: verify against code & ipconfig(8) */
 void
 usage(void)
 {
@@ -303,8 +302,7 @@ parse6pref(int argc, char **argv)
 		parseip(conf.v6pref, argv[0]);
 		break;
 	}
-	if (1)
-		print("pref %I len %d\n", conf.v6pref, conf.prefixlen);
+	DEBUG("parse6pref: pref %I len %d", conf.v6pref, conf.prefixlen);
 }
 
 /* parse router advertisement (keyword, value) pairs */
@@ -344,7 +342,7 @@ parse6ra(int argc, char **argv)
 		else if (strcmp(kw, "routerlt") == 0)
 			conf.routerlt = atoi(val);
 		else {
-			fprint(2, "%s: bad ra6 keyword %s\n", argv0, kw);
+			warning("bad ra6 keyword %s", kw);
 			usage();
 		}
 		i += 2;
@@ -567,7 +565,7 @@ havendb(char *net)
 	char buf[128];
 
 	snprint(buf, sizeof buf, "%s/ndb", net);
-	if((d = dirstat("/net/ndb")) == nil)
+	if((d = dirstat(buf)) == nil)
 		return 0;
 	if(d->length == 0){
 		free(d);
@@ -627,8 +625,7 @@ doadd(int retry)
 
 	if(!validip(conf.laddr))
 		if(retry && dodhcp && !noconfig){
-			fprint(2, "%s: couldn't determine ip address, retrying\n",
-				argv0);
+			warning("couldn't determine ip address, retrying");
 			dhcpwatch(1);
 			return;
 		} else
@@ -675,13 +672,12 @@ doremove(void)
 				conf.mpoint, nifc->index);
 			cfd = open(file, ORDWR);
 			if(cfd < 0){
-				fprint(2, "%s: can't open %s: %r\n",
-					argv0, conf.mpoint);
+				warning("can't open %s: %r", conf.mpoint);
 				continue;
 			}
 			if(fprint(cfd, "remove %I %M", lifc->ip, lifc->mask) < 0)
-				fprint(2, "%s: can't remove %I %M from %s: %r\n",
-					argv0, lifc->ip, lifc->mask, file);
+				warning("can't remove %I %M from %s: %r",
+					lifc->ip, lifc->mask, file);
 		}
 	}
 }
@@ -700,13 +696,11 @@ dounbind(void)
 				conf.mpoint, nifc->index);
 			cfd = open(file, ORDWR);
 			if(cfd < 0){
-				fprint(2, "%s: can't open %s: %r\n",
-					argv0, conf.mpoint);
+				warning("can't open %s: %r", conf.mpoint);
 				break;
 			}
 			if(fprint(cfd, "unbind") < 0)
-				fprint(2, "%s: can't unbind from %s: %r\n",
-					argv0, file);
+				warning("can't unbind from %s: %r", file);
 			break;
 		}
 	}
@@ -803,14 +797,13 @@ binddevice(void)
 
 		/* specify medium as ethernet, bind the interface to it */
 		if(fprint(conf.cfd, "bind %s %s", conf.type, conf.dev) < 0)
-			sysfatal("binding device: %r");
+			sysfatal("%s: bind %s %s: %r", buf, conf.type, conf.dev);
 	} else {
 		/* open the old interface */
 		snprint(buf, sizeof buf, "%s/ipifc/%d/ctl", conf.mpoint, myifc);
 		conf.cfd = open(buf, ORDWR);
 		if(conf.cfd < 0)
-			sysfatal("opening %s/ipifc/%d/ctl: %r",
-				conf.mpoint, myifc);
+			sysfatal("open %s: %r", buf);
 	}
 
 }
@@ -839,7 +832,7 @@ ip4cfg(void)
 	}
 
 	if(write(conf.cfd, buf, n) < 0){
-		fprint(2, "ipconfig: write(%s): %r\n", buf);
+		warning("write(%s): %r", buf);
 		return -1;
 	}
 
@@ -858,7 +851,7 @@ ipunconfig(void)
 
 	if(!validip(conf.laddr))
 		return;
-	DEBUG("couldn't renew IP lease, releasing %I\n", conf.laddr);
+	DEBUG("couldn't renew IP lease, releasing %I", conf.laddr);
 	n = sprint(buf, "remove");
 	n += snprint(buf+n, sizeof buf-n, " %I", conf.laddr);
 
@@ -954,7 +947,7 @@ dhcpwatch(int needconfig)
 		break;
 	}
 
-	dolog = 1;
+	dolog = 1;			/* log, don't print */
 	procsetname("dhcpwatch");
 	/* keep trying to renew the lease */
 	for(;;){
@@ -1132,7 +1125,7 @@ dhcpsend(int type)
 	 *  is truncated.
 	 */
 	if(write(conf.fd, &bp, sizeof bp) != sizeof bp)
-		fprint(2, "dhcpsend: write failed: %r\n");
+		warning("dhcpsend: write failed: %r");
 }
 
 void
@@ -1141,7 +1134,7 @@ dhcprecv(void)
 	int i, n, type;
 	ulong lease;
 	char err[ERRMAX];
-	uchar buf[8000], vopts[256];
+	uchar buf[8000], vopts[256], taddr[IPaddrlen];
 	Bootp *bp;
 
 	alarm(1000);
@@ -1151,27 +1144,27 @@ dhcprecv(void)
 	if(n < 0){
 		errstr(err, sizeof err);
 		if(strstr(err, "interrupt") == nil)
-			fprint(2, "ipconfig: bad read: %s\n", err);
+			warning("dhcprecv: bad read: %s", err);
 		else
-			DEBUG("read timed out\n");
+			DEBUG("dhcprecv: read timed out");
 		return;
 	}
 
 	bp = parsebootp(buf, n);
 	if(bp == 0) {
-		DEBUG("parsebootp failed: dropping packet\n");
+		DEBUG("parsebootp failed: dropping packet");
 		return;
 	}
 
 	type = optgetbyte(bp->optdata, ODtype);
 	switch(type) {
 	default:
-		fprint(2, "%s: unknown type: %d\n", argv0, type);
+		warning("dhcprecv: unknown type: %d", type);
 		break;
 	case Offer:
 		DEBUG("got offer from %V ", bp->siaddr);
 		if(conf.state != Sselecting){
-			DEBUG("\n");
+//			DEBUG("");
 			break;
 		}
 		lease = optgetulong(bp->optdata, ODlease);
@@ -1180,21 +1173,19 @@ dhcprecv(void)
 			 * The All_Aboard NAT package from Internet Share
 			 * doesn't give a lease time, so we have to assume one.
 			 */
-			fprint(2, "%s: Offer with %lud lease, using %d\n",
-				argv0, lease, MinLease);
+			warning("Offer with %lud lease, using %d", lease, MinLease);
 			lease = MinLease;
 		}
 		DEBUG("lease=%lud ", lease);
 		if(!optgetaddr(bp->optdata, ODserverid, conf.server)) {
-			fprint(2, "%s: Offer from server with invalid serverid\n",
-				argv0);
+			warning("Offer from server with invalid serverid");
 			break;
 		}
 
 		v4tov6(conf.laddr, bp->yiaddr);
 		memmove(conf.sname, bp->sname, sizeof conf.sname);
 		conf.sname[sizeof conf.sname-1] = 0;
-		DEBUG("server=%I sname=%s\n", conf.server, conf.sname);
+		DEBUG("server=%I sname=%s", conf.server, conf.sname);
 		conf.offered = lease;
 		conf.state = Srequesting;
 		dhcpsend(Request);
@@ -1214,8 +1205,7 @@ dhcprecv(void)
 			 * The All_Aboard NAT package from Internet Share
 			 * doesn't give a lease time, so we have to assume one.
 			 */
-			fprint(2, "%s: Ack with %lud lease, using %d\n",
-				argv0, lease, MinLease);
+			warning("Ack with %lud lease, using %d", lease, MinLease);
 			lease = MinLease;
 		}
 		DEBUG("lease=%lud ", lease);
@@ -1271,9 +1261,9 @@ dhcprecv(void)
 			if(validip(conf.fs) && Oflag)
 				n = 1;
 			else {
-//				n = optgetp9addrs(vopts, OP9fs, conf.fs, 2);
-//				if (n == 0)
-					n = optgetaddrs(vopts, OP9fs,
+				n = optgetp9addrs(vopts, OP9fs, conf.fs, 2);
+				if (n == 0)
+					n = optgetaddrs(vopts, OP9fsv4,
 						conf.fs, 2);
 			}
 			for(i = 0; i < n; i++)
@@ -1282,23 +1272,50 @@ dhcprecv(void)
 			if(validip(conf.auth) && Oflag)
 				n = 1;
 			else {
-//				n = optgetp9addrs(vopts, OP9auth, conf.auth, 2);
-//				if (n == 0)
-					n = optgetaddrs(vopts, OP9auth,
+				n = optgetp9addrs(vopts, OP9auth, conf.auth, 2);
+				if (n == 0)
+					n = optgetaddrs(vopts, OP9authv4,
 						conf.auth, 2);
 			}
 			for(i = 0; i < n; i++)
 				DEBUG("auth=%I ", conf.auth + i*IPaddrlen);
+
+			n = optgetp9addrs(vopts, OP9ipaddr, taddr, 1);
+			if (n > 0)
+				memmove(conf.laddr, taddr, IPaddrlen);
+			n = optgetp9addrs(vopts, OP9ipmask, taddr, 1);
+			if (n > 0)
+				memmove(conf.mask, taddr, IPaddrlen);
+			n = optgetp9addrs(vopts, OP9ipgw, taddr, 1);
+			if (n > 0)
+				memmove(conf.gaddr, taddr, IPaddrlen);
+			DEBUG("new ipaddr=%I new ipmask=%M new ipgw=%I",
+				conf.laddr, conf.mask, conf.gaddr);
 		}
 		conf.lease = lease;
 		conf.state = Sbound;
-		DEBUG("server=%I sname=%s\n", conf.server, conf.sname);
+		DEBUG("server=%I sname=%s", conf.server, conf.sname);
 		break;
 	case Nak:
 		conf.state = Sinit;
-		fprint(2, "%s: recved dhcpnak on %s\n", argv0, conf.mpoint);
+		warning("recved dhcpnak on %s", conf.mpoint);
 		break;
 	}
+}
+
+/* return pseudo-random integer in range low...(hi-1) */
+ulong
+randint(ulong low, ulong hi)
+{
+	if (hi < low)
+		return low;
+	return low + nrand(hi - low);
+}
+
+long
+jitter(void)		/* compute small pseudo-random delay in ms */
+{
+	return randint(0, 10*1000);
 }
 
 int
@@ -1317,8 +1334,8 @@ openlisten(void)
 			sysfatal("can't announce for dhcp: %r");
 
 		/* might be another client - wait and try again */
-		fprint(2, "%s: can't announce: %r\n", argv0);
-		sleep((nrand(10)+1)*1000);
+		warning("can't announce %s: %r", data);
+		sleep(jitter());
 		if(n > 10)
 			return -1;
 	}
@@ -1392,7 +1409,11 @@ optaddstr(uchar *p, int op, char *v)
 	return p+2+n;
 }
 
-/* parse p, looking for option `op'; return ptr to opt, store length via np */
+/*
+ * parse p, looking for option `op'.  if non-nil, np points to minimum length.
+ * return nil if option is too small, else ptr to opt, and
+ * store actual length via np if non-nil.
+ */
 uchar*
 optget(uchar *p, int op, int *np)
 {
@@ -1407,8 +1428,9 @@ optget(uchar *p, int op, int *np)
 			continue;
 		}
 		if(np != nil){
-			if(*np > len)
+			if(*np > len) {
 				return 0;
+			}
 			*np = len;
 		}
 		return p;
@@ -1453,6 +1475,7 @@ optgetaddr(uchar *p, int op, uchar *ip)
 	return 1;
 }
 
+/* expect at most n addresses; ip[] only has room for that many */
 int
 optgetaddrs(uchar *p, int op, uchar *ip, int n)
 {
@@ -1470,22 +1493,27 @@ optgetaddrs(uchar *p, int op, uchar *ip, int n)
 	return i;
 }
 
+/* expect at most n addresses; ip[] only has room for that many */
 int
 optgetp9addrs(uchar *ap, int op, uchar *ip, int n)
 {
-	int len, i, slen;
+	int len, i, slen, addrs;
 	char *p;
 
+	len = 1;			/* minimum bytes needed */
 	p = (char *)optget(ap, op, &len);
 	if(p == nil)
 		return 0;
-	for (i = 0; i < n && len > 0; i++) {
+	addrs = *p++;			/* first byte is address count */
+	for (i = 0; i < n  && i < addrs && len > 0; i++) {
 		slen = strlen(p) + 1;
 		parseip(&ip[i*IPaddrlen], p);
+		DEBUG("got plan 9 option %d addr %I (%s)",
+			op, &ip[i*IPaddrlen], p);
 		p += slen;
 		len -= slen;
 	}
-	return i;
+	return addrs;
 }
 
 int
@@ -1537,25 +1565,25 @@ parseoptions(uchar *p, int n)
 		if(code == OBpad)
 			continue;
 		if(n == 0) {
-			fprint(2,
-		"%s: parse: bad option: 0x%ux: truncated: opt length = %d\n",
-				argv0, code, nin);
+			warning("parseoptions: bad option: 0x%ux: truncated: "
+				"opt length = %d", code, nin);
 			return -1;
 		}
 
 		len = *p++;
 		n--;
+		DEBUG("parseoptions: %s(%d) len %d, bytes left %d",
+			option[code].name, code, len, n);
 		if(len > n) {
-			fprint(2,
-		"%s: parse: bad option: 0x%ux: %d > %d: opt length = %d\n",
-				argv0, code, len, n, nin);
+			warning("parseoptions: bad option: 0x%ux: %d > %d: "
+				"opt length = %d", code, len, n, nin);
 			return -1;
 		}
 		p += len;
 		n -= len;
 	}
 
-	/* make sure packet ends with an OBend all the optget code */
+	/* make sure packet ends with an OBend after all the optget code */
 	*p = OBend;
 	return 0;
 }
@@ -1572,7 +1600,7 @@ parsebootp(uchar *p, int n)
 
 	bp = (Bootp*)p;
 	if(n < bp->optmagic - p) {
-		fprint(2, "%s: parse: short bootp packet\n", argv0);
+		warning("parsebootp: short bootp packet");
 		return nil;
 	}
 
@@ -1580,7 +1608,7 @@ parsebootp(uchar *p, int n)
 		return nil;
 
 	if(bp->op != Bootreply) {
-		fprint(2, "%s: parse: bad op\n", argv0);
+		warning("parsebootp: bad op %d", bp->op);
 		return nil;
 	}
 
@@ -1588,16 +1616,17 @@ parsebootp(uchar *p, int n)
 	p = bp->optmagic;
 
 	if(n < 4) {
-		fprint(2, "%s: parse: not option data\n", argv0);
+		warning("parsebootp: no option data");
 		return nil;
 	}
 	if(memcmp(optmagic, p, 4) != 0) {
-		fprint(2, "%s: parse: bad opt magic %ux %ux %ux %ux\n", argv0,
+		warning("parsebootp: bad opt magic %ux %ux %ux %ux",
 			p[0], p[1], p[2], p[3]);
 		return nil;
 	}
 	p += 4;
 	n -= 4;
+	DEBUG("parsebootp: new packet");
 	if(parseoptions(p, n) < 0)
 		return nil;
 	return bp;
@@ -1618,8 +1647,6 @@ writendb(char *s, int n, int append)
 		fd = open(file, OWRITE|OTRUNC);
 	write(fd, s, n);
 	close(fd);
-	if (debug)
-		write(1, s, n);
 }
 
 /* put server addresses into the ndb entry */
@@ -1879,6 +1906,7 @@ optgetx(uchar *p, uchar opt)
 	case Tvec:
 		n = optgetvec(p, opt, vec, sizeof vec);
 		if(n > 0)
+			/* what's %H?  it's not installed */
 			s = smprint("%s=%.*H", o->name, n, vec);
 		break;
 	}
