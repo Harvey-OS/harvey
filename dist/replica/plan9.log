@@ -49713,3 +49713,6 @@
 1185924604 1 a sys/log/v6routeradv - 10000000666 sys sys 1185923299 0
 1185924604 2 c sys/src/cmd/ip/ipconfig/ipv6.c - 664 sys sys 1185923430 20620
 1185924604 3 c sys/src/cmd/ip/ipconfig/main.c - 664 sys sys 1185923495 39912
+1185994807 0 c sys/src/9/port/devbridge.c - 664 sys sys 1185994684 24171
+1185998407 0 c sys/man/3/ip - 664 sys sys 1185997698 26031
+1186011007 0 c sys/src/9/ip/esp.c - 664 sys sys 1186010386 17349
