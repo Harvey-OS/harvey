@@ -112,8 +112,6 @@ struct Port
 
 	Chan	*data[2];	// channel to data
 
-	int	mcast;		// send multi cast packets
-
 	Proc	*readp;		// read proc
 	
 	// the following uniquely identifies the port
@@ -331,8 +329,8 @@ bridgeread(Chan *c, void *a, long n, vlong off)
 		qunlock(b);
 		return n;
 	case Qbctl:
-		snprint(buf, sizeof(buf), "%s tcpmss\ndelay %ld %ld\n", b->tcpmss ? "set" : "clear",
-			b->delay0, b->delayn);
+		snprint(buf, sizeof(buf), "%s tcpmss\ndelay %ld %ld\n",
+			b->tcpmss ? "set" : "clear", b->delay0, b->delayn);
 		n = readstr(off, a, n, buf);
 		return n;
 	case Qcache:
@@ -827,8 +825,7 @@ ethermultiwrite(Bridge *b, Block *bp, Port *port)
 	Port *oport;
 	Block *bp2;
 	Etherpkt *ep;
-	int i, mcast, bcast;
-	static uchar bcastaddr[Eaddrlen] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+	int i, mcast;
 
 	if(waserror()) {
 		if(bp)
@@ -837,18 +834,16 @@ ethermultiwrite(Bridge *b, Block *bp, Port *port)
 	}
 	
 	ep = (Etherpkt*)bp->rp;
-	mcast = ep->d[0] & 1;
-	if(mcast)
-		bcast = memcmp(ep->d, bcastaddr, Eaddrlen) == 0;
-	else
-		bcast = 0;
+	mcast = ep->d[0] & 1;		/* multicast bit of ethernet address */
 
 	oport = nil;
 	for(i=0; i<b->nport; i++) {
 		if(i == port->id || b->port[i] == nil)
 			continue;
-		if(mcast && !bcast && !b->port[i]->mcast)
-			continue;
+		/*
+		 * we need to forward multicast packets for ipv6,
+		 * so always do it.
+		 */
 		if(mcast)
 			b->port[i]->outmulti++;
 		else
@@ -1020,8 +1015,8 @@ if(0)print("devbridge: etherread: blocklen = %d\n", blocklen(bp));
 		}
 
 		if(ep->d[0] & 1) {
-			log(b, Logmcast, "mulitcast: port=%d src=%E dst=%E type=%#.4ux\n",
-				port->id, ep->s, ep->d, (ep->type[0]<<8)|ep->type[1] );
+			log(b, Logmcast, "multicast: port=%d src=%E dst=%E type=%#.4ux\n",
+				port->id, ep->s, ep->d, ep->type[0]<<8|ep->type[1]);
 			port->inmulti++;
 			bp2 = bp; bp = nil;
 			ethermultiwrite(b, bp2, port);

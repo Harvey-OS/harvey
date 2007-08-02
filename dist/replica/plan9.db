@@ -7644,7 +7644,7 @@ sys/man/3/ether - 664 sys sys 1178597986 2890
 sys/man/3/floppy - 664 sys sys 954378905 881
 sys/man/3/fs - 664 sys sys 1175145095 3147
 sys/man/3/i82365 - 664 sys sys 954378906 884
-sys/man/3/ip - 664 sys sys 1185565401 26009
+sys/man/3/ip - 664 sys sys 1185997698 26031
 sys/man/3/kbmap - 664 sys sys 1131110122 1732
 sys/man/3/kprof - 664 sys sys 1018029972 1377
 sys/man/3/loopback - 664 sys sys 964662153 1995
@@ -7961,7 +7961,7 @@ sys/src/9/ip/arp.c - 664 sys sys 1184794688 11234
 sys/src/9/ip/chandial.c - 664 sys sys 1099020048 2295
 sys/src/9/ip/devip.c - 664 sys sys 1161061185 24242
 sys/src/9/ip/eipconvtest.c - 664 sys sys 1022588098 3135
-sys/src/9/ip/esp.c - 664 sys sys 1184521732 17108
+sys/src/9/ip/esp.c - 664 sys sys 1186010386 17349
 sys/src/9/ip/ethermedium.c - 664 sys sys 1184244252 15419
 sys/src/9/ip/gre.c - 664 sys sys 1184946959 5071
 sys/src/9/ip/icmp.c - 664 sys sys 1184946959 9498
@@ -8164,7 +8164,7 @@ sys/src/9/port/cis.c - 664 sys sys 1099761153 9248
 sys/src/9/port/debugalloc.c - 664 sys sys 1014931171 10402
 sys/src/9/port/dev.c - 664 sys sys 1146151714 8177
 sys/src/9/port/devaudio.c - 664 sys sys 1170456648 21199
-sys/src/9/port/devbridge.c - 664 sys sys 1055688301 24308
+sys/src/9/port/devbridge.c - 664 sys sys 1185994684 24171
 sys/src/9/port/devcap.c - 664 sys sys 1178886040 4141
 sys/src/9/port/devcons.c - 664 sys sys 1176658321 22943
 sys/src/9/port/devdraw.c - 664 sys sys 1147023550 44447

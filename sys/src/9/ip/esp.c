@@ -1,3 +1,7 @@
+/*
+ * Encapsulating Security Payload for IPsec for IPv4, rfc1827.
+ * TODO: update to match rfc4303 and thus IPv6.
+ */
 #include	"u.h"
 #include	"../port/lib.h"
 #include	"mem.h"
@@ -6,7 +10,6 @@
 #include	"../port/error.h"
 
 #include	"ip.h"
-
 #include	"libsec.h"
 
 typedef struct Esphdr Esphdr;
@@ -22,21 +25,21 @@ typedef struct Esprc4 Esprc4;
 enum
 {
 	IP_ESPPROTO	= 50,
-	EsphdrSize	= 28,	// includes IP header
-	IphdrSize	= 20,	// options have been striped
-	EsptailSize	= 2,	// does not include pad or auth data
-	UserhdrSize	= 4,	// user visable header size - if enabled
+	EsphdrSize	= 28,	/* includes IPv4 header */
+	IphdrSize	= 20,	/* IPv4: options have been stripped */
+	EsptailSize	= 2,	/* does not include pad or auth data */
+	UserhdrSize	= 4,	/* user-visible header size - if enabled */
 };
 
 struct Esphdr
 {
-	/* ip header */
+	/* ipv4 header */
 	uchar	vihl;		/* Version and header length */
 	uchar	tos;		/* Type of service */
 	uchar	length[2];	/* packet length */
 	uchar	id[2];		/* Identification */
 	uchar	frag[2];	/* Fragment information */
-	uchar	Unused;	
+	uchar	Unused;
 	uchar	espproto;	/* Protocol */
 	uchar	espplen[2];	/* Header plus data length */
 	uchar	espsrc[4];	/* Ip source */
@@ -56,7 +59,7 @@ struct Esptail
 /* header as seen by the user */
 struct Userhdr
 {
-	uchar	nexthdr;	// next protocol
+	uchar	nexthdr;	/* next protocol */
 	uchar	unused[3];
 };
 
@@ -72,18 +75,18 @@ struct Esppriv
 struct Espcb
 {
 	int	incoming;
-	int	header;		// user user level header
+	int	header;		/* user user level header */
 	ulong	spi;
-	ulong	seq;		// last seq sent
-	ulong	window;		// for replay attacks
+	ulong	seq;		/* last seq sent */
+	ulong	window;		/* for replay attacks */
 	char	*espalg;
-	void	*espstate;	// other state for esp
-	int	espivlen;	// in bytes
+	void	*espstate;	/* other state for esp */
+	int	espivlen;	/* in bytes */
 	int	espblklen;
 	int	(*cipher)(Espcb*, uchar *buf, int len);
 	char	*ahalg;
-	void	*ahstate;	// other state for esp
-	int	ahlen;		// auth data length in bytes
+	void	*ahstate;	/* other state for esp */
+	int	ahlen;		/* auth data length in bytes */
 	int	ahblklen;
 	int	(*auth)(Espcb*, uchar *buf, int len, uchar *hash);
 };
@@ -91,24 +94,24 @@ struct Espcb
 struct Algorithm
 {
 	char 	*name;
-	int	keylen;		// in bits
+	int	keylen;		/* in bits */
 	void	(*init)(Espcb*, char* name, uchar *key, int keylen);
 };
 
 
 enum {
-	RC4forward	= 10*1024*1024,	// maximum skip forward
-	RC4back = 100*1024,		// maximum look back
+	RC4forward= 10*1024*1024,	/* maximum skip forward */
+	RC4back = 100*1024,	/* maximum look back */
 };
 
 struct Esprc4
 {
-	ulong cseq;	// current byte sequence number
+	ulong	cseq;		/* current byte sequence number */
 	RC4state current;
 
-	int ovalid;	// old is valid
-	ulong lgseq; // last good sequence
-	ulong oseq;	// old byte sequence number
+	int	ovalid;		/* old is valid */
+	ulong	lgseq;		/* last good sequence */
+	ulong	oseq;		/* old byte sequence number */
 	RC4state old;
 };
 
@@ -229,10 +232,7 @@ espkick(void *x)
 	Userhdr *uh;
 	Espcb *ecb;
 	Block *bp;
-	int nexthdr;
-	int payload;
-	int pad;
-	int align;
+	int nexthdr, payload, pad, align;
 	uchar *auth;
 
 	bp = qget(c->wq);
@@ -253,7 +253,7 @@ espkick(void *x)
 		nexthdr = uh->nexthdr;
 		bp->rp += UserhdrSize;
 	} else {
-		nexthdr = 0;  // what should this be?
+		nexthdr = 0;	/* what should this be? */
 	}
 
 	payload = BLEN(bp) + ecb->espivlen;
@@ -279,14 +279,14 @@ espkick(void *x)
 	eh = (Esphdr *)(bp->rp);
 	et = (Esptail*)(bp->rp + EsphdrSize + payload + pad);
 
-	// fill in tail
+	/* fill in tail */
 	et->pad = pad;
 	et->nexthdr = nexthdr;
 
 	ecb->cipher(ecb, bp->rp+EsphdrSize, payload+pad+EsptailSize);
 	auth = bp->rp + EsphdrSize + payload + pad + EsptailSize;
 
-	// fill in head
+	/* fill in head */
 	eh->vihl = IP_VER4;
 	hnputl(eh->espspi, ecb->spi);
 	hnputl(eh->espseq, ++ecb->seq);
@@ -296,10 +296,11 @@ espkick(void *x)
 	eh->frag[0] = 0;
 	eh->frag[1] = 0;
 
-	ecb->auth(ecb, bp->rp+IphdrSize, (EsphdrSize-IphdrSize)+payload+pad+EsptailSize, auth);
+	ecb->auth(ecb, bp->rp + IphdrSize, (EsphdrSize - IphdrSize) +
+		payload + pad + EsptailSize, auth);
 
 	qunlock(c);
-	//print("esp: pass down: %uld\n", BLEN(bp));
+	/* print("esp: pass down: %uld\n", BLEN(bp)); */
 	ipoput4(c->p->f, bp, 0, c->ttl, c->tos, c);
 }
 
@@ -346,7 +347,7 @@ espiput(Proto *esp, Ipifc*, Block *bp)
 	qunlock(esp);
 
 	ecb = c->ptcl;
-	// too hard to do decryption/authentication on block lists
+	/* too hard to do decryption/authentication on block lists */
 	if(bp->next)
 		bp = concatblock(bp);
 
@@ -372,8 +373,8 @@ print("esp: bad auth %I -> %I!%ld\n", raddr, laddr, spi);
 	payload = BLEN(bp)-EsphdrSize-ecb->ahlen;
 	if(payload<=0 || payload%4 != 0 || payload%ecb->espblklen!=0) {
 		qunlock(c);
-		netlog(f, Logesp, "esp: bad length %I -> %I!%d payload=%d BLEN=%d\n", raddr,
-			laddr, spi, payload, BLEN(bp));
+		netlog(f, Logesp, "esp: bad length %I -> %I!%d payload=%d BLEN=%d\n",
+			raddr, laddr, spi, payload, BLEN(bp));
 		freeb(bp);
 		return;
 	}
@@ -392,17 +393,17 @@ print("esp: cipher failed %I -> %I!%ld: %s\n", raddr, laddr, spi, up->errstr);
 	nexthdr = et->nexthdr;
 	if(payload <= 0) {
 		qunlock(c);
-		netlog(f, Logesp, "esp: short packet after decrypt %I -> %I!%d\n", raddr,
-			laddr, spi);
+		netlog(f, Logesp, "esp: short packet after decrypt %I -> %I!%d\n",
+			raddr, laddr, spi);
 		freeb(bp);
 		return;
 	}
 
-	// trim packet
+	/* trim packet */
 	bp->rp += EsphdrSize + ecb->espivlen;
 	bp->wp = bp->rp + payload;
 	if(ecb->header) {
-		// assume UserhdrSize < EsphdrSize
+		/* assume UserhdrSize < EsphdrSize */
 		bp->rp -= UserhdrSize;
 		uh = (Userhdr*)bp->rp;
 		memset(uh, 0, UserhdrSize);
@@ -414,7 +415,7 @@ print("esp: cipher failed %I -> %I!%ld: %s\n", raddr, laddr, spi, up->errstr);
 			laddr, spi);
 		freeblist(bp);
 	}else {
-//print("esp: pass up: %uld\n", BLEN(bp));
+//		print("esp: pass up: %uld\n", BLEN(bp));
 		qpass(c->rq, bp);
 	}
 
@@ -520,8 +521,7 @@ static char *
 setalg(Espcb *ecb, char **f, int n, Algorithm *alg)
 {
 	uchar *key;
-	int i, nbyte, nchar;
-	int c;
+	int c, i, nbyte, nchar;
 
 	if(n < 2)
 		return "bad format";
@@ -630,7 +630,7 @@ shaahinit(Espcb *ecb, char *name, uchar *key, int klen)
 {
 	if(klen != 128)
 		panic("shaahinit: bad keylen");
-	klen >>= 8;	// convert to bytes
+	klen >>= 8;		/* convert to bytes */
 
 	ecb->ahalg = name;
 	ecb->ahblklen = 1;
@@ -681,8 +681,7 @@ md5ahinit(Espcb *ecb, char *name, uchar *key, int klen)
 {
 	if(klen != 128)
 		panic("md5ahinit: bad keylen");
-	klen >>= 3;	// convert to bytes
-
+	klen >>= 3;		/* convert to bytes */
 
 	ecb->ahalg = name;
 	ecb->ahblklen = 1;
@@ -726,15 +725,14 @@ descipher(Espcb *ecb, uchar *p, int n)
 	}
 	return 1;
 }
-	
+
 static void
 desespinit(Espcb *ecb, char *name, uchar *k, int n)
 {
-	uchar key[8];
-	uchar ivec[8];
+	uchar key[8], ivec[8];
 	int i;
-	
-	// bits to bytes
+
+	/* bits to bytes */
 	n = (n+7)>>3;
 	if(n > 8)
 		n = 8;
@@ -776,8 +774,7 @@ rc4cipher(Espcb *ecb, uchar *p, int n)
 					esprc4->ovalid = 0;
 			}
 		} else if(d > 0) {
-print("missing packet: %uld %ld\n", seq, d);
-			// this link is hosed
+print("esp rc4cipher: missing packet: %uld %ld\n", seq, d); /* this link is hosed */
 			if(d > RC4forward) {
 				strcpy(up->errstr, "rc4cipher: skipped too much");
 				return 0;
@@ -786,13 +783,14 @@ print("missing packet: %uld %ld\n", seq, d);
 			if(!esprc4->ovalid) {
 				esprc4->ovalid = 1;
 				esprc4->oseq = esprc4->cseq;
-				memmove(&esprc4->old, &esprc4->current, sizeof(RC4state));
+				memmove(&esprc4->old, &esprc4->current,
+					sizeof(RC4state));
 			}
 			rc4skip(&esprc4->current, d);
 			rc4(&esprc4->current, p, n);
 			esprc4->cseq = seq+n;
 		} else {
-print("reordered packet: %uld %ld\n", seq, d);
+print("esp rc4cipher: reordered packet: %uld %ld\n", seq, d);
 			dd = seq - esprc4->oseq;
 			if(!esprc4->ovalid || -d > RC4back || dd < 0) {
 				strcpy(up->errstr, "rc4cipher: too far back");
@@ -804,7 +802,7 @@ print("reordered packet: %uld %ld\n", seq, d);
 			return 1;
 		}
 
-		// move old state up
+		/* move old state up */
 		if(esprc4->ovalid) {
 			dd = esprc4->cseq - RC4back - esprc4->oseq;
 			if(dd > 0) {
@@ -824,10 +822,10 @@ print("reordered packet: %uld %ld\n", seq, d);
 
 static void
 rc4espinit(Espcb *ecb, char *name, uchar *k, int n)
-{	
+{
 	Esprc4 *esprc4;
 
-	// bits to bytes
+	/* bits to bytes */
 	n = (n+7)>>3;
 	esprc4 = smalloc(sizeof(Esprc4));
 	memset(esprc4, 0, sizeof(Esprc4));
@@ -838,7 +836,7 @@ rc4espinit(Espcb *ecb, char *name, uchar *k, int n)
 	ecb->cipher = rc4cipher;
 	ecb->espstate = esprc4;
 }
-	
+
 void
 espinit(Fs *fs)
 {
