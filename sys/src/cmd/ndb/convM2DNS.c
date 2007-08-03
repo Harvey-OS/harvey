@@ -246,10 +246,6 @@ gname(char *to, RR *rp, Scan *sp)
 					errtoolong(rp, sp, toend - to, n,
 						"name too long");
 					goto err;
-//					/* try to compensate and continue */
-//					n = toend - to - 1;
-//					if (n < 0)
-//						n = 0;
 				}
 				memmove(to, p, n);
 				to += n;
@@ -269,7 +265,6 @@ gname(char *to, RR *rp, Scan *sp)
 			 * treat it like an EOF for now; it seems to be at
 			 * the end of a long tcp reply.
 			 */
-			// sp->err = "edns extended label present";
 			dnslog("edns label; first byte 0%o = '%c'", *p, *p);
 			sp->stop = 1;
 			goto err;

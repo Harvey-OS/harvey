@@ -99,8 +99,8 @@ enum
 	ODbootfile=		67,
 
 	/* plan9 vendor info options */
-	OP9fs=			128,	/* plan9 file servers */
-	OP9auth=		129,	/* plan9 auth servers */
+	OP9fsv4=		128,	/* plan9 file servers */
+	OP9authv4=		129,	/* plan9 auth servers */
 };
 
 /*

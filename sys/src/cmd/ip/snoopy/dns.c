@@ -360,7 +360,7 @@ dnslog(char *fmt, ...)			/* don't log */
 }
 
 /*************************************************
- * Everything below here is copied from /sys/src/cmd/ndb/dns.c
+ * Everything below here is copied from /sys/src/cmd/ndb/dn.c
  * without modification and can be recopied to update.
  */
 
@@ -395,6 +395,7 @@ rrfreelist(RR *rp)
 		rrfree(rp);
 	}
 }
+
 void
 freeserverlist(Server *s)
 {
@@ -418,22 +419,32 @@ rralloc(int type)
 	rp->magic = RRmagic;
 	rp->pc = getcallerpc(&type);
 	rp->type = type;
+	setmalloctag(rp, rp->pc);
 	switch(type){
 	case Tsoa:
 		rp->soa = emalloc(sizeof(*rp->soa));
 		rp->soa->slaves = nil;
+		setmalloctag(rp->soa, rp->pc);
+		break;
+	case Tsrv:
+		rp->srv = emalloc(sizeof(*rp->srv));
+		setmalloctag(rp->srv, rp->pc);
 		break;
 	case Tkey:
 		rp->key = emalloc(sizeof(*rp->key));
+		setmalloctag(rp->key, rp->pc);
 		break;
 	case Tcert:
 		rp->cert = emalloc(sizeof(*rp->cert));
+		setmalloctag(rp->cert, rp->pc);
 		break;
 	case Tsig:
 		rp->sig = emalloc(sizeof(*rp->sig));
+		setmalloctag(rp->sig, rp->pc);
 		break;
 	case Tnull:
 		rp->null = emalloc(sizeof(*rp->null));
+		setmalloctag(rp->null, rp->pc);
 		break;
 	}
 	rp->ttl = 0;
@@ -459,28 +470,37 @@ rrfree(RR *rp)
 	if(dp){
 		assert(dp->magic == DNmagic);
 		for(nrp = dp->rr; nrp; nrp = nrp->next)
-			assert(nrp != rp); /* "rrfree of live rr" */;
+			assert(nrp != rp);	/* "rrfree of live rr" */
 	}
 
 	switch(rp->type){
 	case Tsoa:
 		freeserverlist(rp->soa->slaves);
+		memset(rp->soa, 0, sizeof *rp->soa);	/* cause trouble */
 		free(rp->soa);
+		break;
+	case Tsrv:
+		memset(rp->srv, 0, sizeof *rp->srv);	/* cause trouble */
+		free(rp->srv);
 		break;
 	case Tkey:
 		free(rp->key->data);
+		memset(rp->key, 0, sizeof *rp->key);	/* cause trouble */
 		free(rp->key);
 		break;
 	case Tcert:
 		free(rp->cert->data);
+		memset(rp->cert, 0, sizeof *rp->cert);	/* cause trouble */
 		free(rp->cert);
 		break;
 	case Tsig:
 		free(rp->sig->data);
+		memset(rp->sig, 0, sizeof *rp->sig);	/* cause trouble */
 		free(rp->sig);
 		break;
 	case Tnull:
 		free(rp->null->data);
+		memset(rp->null, 0, sizeof *rp->null);	/* cause trouble */
 		free(rp->null);
 		break;
 	case Ttxt:
@@ -488,11 +508,13 @@ rrfree(RR *rp)
 			t = rp->txt;
 			rp->txt = t->next;
 			free(t->p);
+			memset(t, 0, sizeof *t);	/* cause trouble */
 			free(t);
 		}
 		break;
 	}
 
 	rp->magic = ~rp->magic;
+	memset(rp, 0, sizeof *rp);		/* cause trouble */
 	free(rp);
 }

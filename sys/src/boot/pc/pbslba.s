@@ -24,6 +24,7 @@
  * FAT directory entry.
  */
 #define Dname		0x00
+#define Dnamesz	0x0B
 #define Dext		0x08
 #define Dattr		0x0B
 #define Dtime		0x16
@@ -125,7 +126,7 @@ TEXT _nxt(SB), $0
 
 					/* rCX contains 0x0001 */
 	SBPWI(0x0010, Xdap+0)		/* reserved + packet size */
-	SBPWI(rCX, Xdap+2)		/* reserved + # of blocks to transfer */
+	SBPW(rCX, Xdap+2)		/* reserved + # of blocks to transfer */
 
 	DEC(rCX)
 	SBPW(rCX, Xdap+12)
@@ -147,7 +148,7 @@ _jmp00:
 _cmp00:
 	PUSHR(rDI)			/* save for later if it matches */
 	LWI(bootfile(SB), rSI)
-	LWI(Dattr, rCX)
+	LWI(Dnamesz, rCX)
 	REP
 	CMPSB
 	POPR(rDI)
