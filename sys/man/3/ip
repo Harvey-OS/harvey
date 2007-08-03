@@ -832,7 +832,8 @@ must be executed before performing I/O on the corresponding
 file.
 .SS IL
 .PP
-IL is a reliable point-to-point datagram protocol.  Like TCP, IL delivers datagrams
+IL is a reliable point-to-point datagram protocol that runs over IPv4.
+Like TCP, IL delivers datagrams
 reliably and in order. Also like TCP, a connection is
 determined by the address and port numbers of the two ends.
 Like UDP, each read and write transfers a single datagram.
@@ -867,7 +868,9 @@ in the connect message.
 .ne 3
 .SS ESP
 .PP
-ESP is the Encapsulating Security Payload (RFC 1827).
+ESP is the Encapsulating Security Payload (RFC 1827, obsoleted by RFC 4303)
+for IPsec (RFC 4301).
+We currently implement ESP only over IPv4.
 It is used to set up an encrypted tunnel between machines.
 Like GRE, ESP has no port numbers.  Instead, the
 port number in the
@@ -1185,3 +1188,5 @@ ICMPv6
 .I Ipmux
 has not been heavily used and should be considered experimental.
 It may disappear in favor of a more traditional packet filter in the future.
+.PP
+Too much of this machinery has not yet been updated for IPv6.

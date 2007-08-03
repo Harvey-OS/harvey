@@ -1864,7 +1864,6 @@ static Variant variant[] = {
 { SYM_1011_DID,   0xff, "SYM53C1010",	Burst128, 16, 64, Prefetch|LocalRAM|BigFifo|Wide|Ultra|Ultra2 },
 };
 
-#define offsetof(s, t) ((ulong)&((s *)0)->t)
 
 static int
 xfunc(Controller *c, enum na_external x, unsigned long *v)

@@ -310,7 +310,7 @@ dnage(DN *dp)
  *  about 1780 names.
  */
 enum {
-	Deftarget = 3000,
+	Deftarget = 4000,
 };
 
 ulong target = Deftarget;
@@ -763,132 +763,6 @@ rrattach(RR *rp, int auth)
 	unlock(&dnlock);
 }
 
-/*
- *  allocate a resource record of a given type
- */
-RR*
-rralloc(int type)
-{
-	RR *rp;
-
-	rp = emalloc(sizeof(*rp));
-	rp->magic = RRmagic;
-	rp->pc = getcallerpc(&type);
-	rp->type = type;
-	setmalloctag(rp, rp->pc);
-	switch(type){
-	case Tsoa:
-		rp->soa = emalloc(sizeof(*rp->soa));
-		rp->soa->slaves = nil;
-		setmalloctag(rp->soa, rp->pc);
-		break;
-	case Tsrv:
-		rp->srv = emalloc(sizeof(*rp->srv));
-		setmalloctag(rp->srv, rp->pc);
-		break;
-	case Tkey:
-		rp->key = emalloc(sizeof(*rp->key));
-		setmalloctag(rp->key, rp->pc);
-		break;
-	case Tcert:
-		rp->cert = emalloc(sizeof(*rp->cert));
-		setmalloctag(rp->cert, rp->pc);
-		break;
-	case Tsig:
-		rp->sig = emalloc(sizeof(*rp->sig));
-		setmalloctag(rp->sig, rp->pc);
-		break;
-	case Tnull:
-		rp->null = emalloc(sizeof(*rp->null));
-		setmalloctag(rp->null, rp->pc);
-		break;
-	}
-	rp->ttl = 0;
-	rp->expire = 0;
-	rp->next = 0;
-	return rp;
-}
-
-/*
- *  free a resource record and any related structs
- */
-void
-rrfree(RR *rp)
-{
-	DN *dp;
-	RR *nrp;
-	Txt *t;
-
-	assert(rp->magic = RRmagic);
-	assert(!rp->cached);
-
-	dp = rp->owner;
-	if(dp){
-		assert(dp->magic == DNmagic);
-		for(nrp = dp->rr; nrp; nrp = nrp->next)
-			assert(nrp != rp);	/* "rrfree of live rr" */
-	}
-
-	switch(rp->type){
-	case Tsoa:
-		freeserverlist(rp->soa->slaves);
-		memset(rp->soa, 0, sizeof *rp->soa);	/* cause trouble */
-		free(rp->soa);
-		break;
-	case Tsrv:
-		memset(rp->srv, 0, sizeof *rp->srv);	/* cause trouble */
-		free(rp->srv);
-		break;
-	case Tkey:
-		free(rp->key->data);
-		memset(rp->key, 0, sizeof *rp->key);	/* cause trouble */
-		free(rp->key);
-		break;
-	case Tcert:
-		free(rp->cert->data);
-		memset(rp->cert, 0, sizeof *rp->cert);	/* cause trouble */
-		free(rp->cert);
-		break;
-	case Tsig:
-		free(rp->sig->data);
-		memset(rp->sig, 0, sizeof *rp->sig);	/* cause trouble */
-		free(rp->sig);
-		break;
-	case Tnull:
-		free(rp->null->data);
-		memset(rp->null, 0, sizeof *rp->null);	/* cause trouble */
-		free(rp->null);
-		break;
-	case Ttxt:
-		while(rp->txt != nil){
-			t = rp->txt;
-			rp->txt = t->next;
-			free(t->p);
-			memset(t, 0, sizeof *t);	/* cause trouble */
-			free(t);
-		}
-		break;
-	}
-
-	rp->magic = ~rp->magic;
-	memset(rp, 0, sizeof *rp);		/* cause trouble */
-	free(rp);
-}
-
-/*
- *  free a list of resource records and any related structs
- */
-void
-rrfreelist(RR *rp)
-{
-	RR *next;
-
-	for(; rp; rp = next){
-		next = rp->next;
-		rrfree(rp);
-	}
-}
-
 RR**
 rrcopy(RR *rp, RR **last)
 {
@@ -1077,24 +951,6 @@ rrtype(char *atype)
 	if(strcmp(atype, "any") == 0)
 		return Tall;
 	return atoi(atype);
-}
-
-/*
- *  convert an integer RR type to it's ascii name
- */
-char*
-rrname(int type, char *buf, int len)
-{
-	char *t;
-
-	t = nil;
-	if(type >= 0 && type <= Tall)
-		t = rrtname[type];
-	if(t==nil){
-		snprint(buf, len, "%d", type);
-		t = buf;
-	}
-	return t;
 }
 
 /*
@@ -1875,17 +1731,6 @@ dnptr(uchar *net, uchar *mask, char *dom, int forwtype, int subdoms, int ttl)
 }
 
 void
-freeserverlist(Server *s)
-{
-	Server *next;
-
-	for(; s != nil; s = next){
-		next = s->next;
-		free(s);
-	}
-}
-
-void
 addserver(Server **l, char *name)
 {
 	Server *s;
@@ -1909,4 +1754,162 @@ copyserverlist(Server *s)
 	for(ns = nil; s != nil; s = s->next)
 		addserver(&ns, s->name);
 	return ns;
+}
+
+
+/* from here down is copied to ip/snoopy/dns.c periodically to update it */
+
+/*
+ *  convert an integer RR type to it's ascii name
+ */
+char*
+rrname(int type, char *buf, int len)
+{
+	char *t;
+
+	t = nil;
+	if(type >= 0 && type <= Tall)
+		t = rrtname[type];
+	if(t==nil){
+		snprint(buf, len, "%d", type);
+		t = buf;
+	}
+	return t;
+}
+
+/*
+ *  free a list of resource records and any related structs
+ */
+void
+rrfreelist(RR *rp)
+{
+	RR *next;
+
+	for(; rp; rp = next){
+		next = rp->next;
+		rrfree(rp);
+	}
+}
+
+void
+freeserverlist(Server *s)
+{
+	Server *next;
+
+	for(; s != nil; s = next){
+		next = s->next;
+		free(s);
+	}
+}
+
+/*
+ *  allocate a resource record of a given type
+ */
+RR*
+rralloc(int type)
+{
+	RR *rp;
+
+	rp = emalloc(sizeof(*rp));
+	rp->magic = RRmagic;
+	rp->pc = getcallerpc(&type);
+	rp->type = type;
+	setmalloctag(rp, rp->pc);
+	switch(type){
+	case Tsoa:
+		rp->soa = emalloc(sizeof(*rp->soa));
+		rp->soa->slaves = nil;
+		setmalloctag(rp->soa, rp->pc);
+		break;
+	case Tsrv:
+		rp->srv = emalloc(sizeof(*rp->srv));
+		setmalloctag(rp->srv, rp->pc);
+		break;
+	case Tkey:
+		rp->key = emalloc(sizeof(*rp->key));
+		setmalloctag(rp->key, rp->pc);
+		break;
+	case Tcert:
+		rp->cert = emalloc(sizeof(*rp->cert));
+		setmalloctag(rp->cert, rp->pc);
+		break;
+	case Tsig:
+		rp->sig = emalloc(sizeof(*rp->sig));
+		setmalloctag(rp->sig, rp->pc);
+		break;
+	case Tnull:
+		rp->null = emalloc(sizeof(*rp->null));
+		setmalloctag(rp->null, rp->pc);
+		break;
+	}
+	rp->ttl = 0;
+	rp->expire = 0;
+	rp->next = 0;
+	return rp;
+}
+
+/*
+ *  free a resource record and any related structs
+ */
+void
+rrfree(RR *rp)
+{
+	DN *dp;
+	RR *nrp;
+	Txt *t;
+
+	assert(rp->magic = RRmagic);
+	assert(!rp->cached);
+
+	dp = rp->owner;
+	if(dp){
+		assert(dp->magic == DNmagic);
+		for(nrp = dp->rr; nrp; nrp = nrp->next)
+			assert(nrp != rp);	/* "rrfree of live rr" */
+	}
+
+	switch(rp->type){
+	case Tsoa:
+		freeserverlist(rp->soa->slaves);
+		memset(rp->soa, 0, sizeof *rp->soa);	/* cause trouble */
+		free(rp->soa);
+		break;
+	case Tsrv:
+		memset(rp->srv, 0, sizeof *rp->srv);	/* cause trouble */
+		free(rp->srv);
+		break;
+	case Tkey:
+		free(rp->key->data);
+		memset(rp->key, 0, sizeof *rp->key);	/* cause trouble */
+		free(rp->key);
+		break;
+	case Tcert:
+		free(rp->cert->data);
+		memset(rp->cert, 0, sizeof *rp->cert);	/* cause trouble */
+		free(rp->cert);
+		break;
+	case Tsig:
+		free(rp->sig->data);
+		memset(rp->sig, 0, sizeof *rp->sig);	/* cause trouble */
+		free(rp->sig);
+		break;
+	case Tnull:
+		free(rp->null->data);
+		memset(rp->null, 0, sizeof *rp->null);	/* cause trouble */
+		free(rp->null);
+		break;
+	case Ttxt:
+		while(rp->txt != nil){
+			t = rp->txt;
+			rp->txt = t->next;
+			free(t->p);
+			memset(t, 0, sizeof *t);	/* cause trouble */
+			free(t);
+		}
+		break;
+	}
+
+	rp->magic = ~rp->magic;
+	memset(rp, 0, sizeof *rp);		/* cause trouble */
+	free(rp);
 }
