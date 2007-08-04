@@ -18,6 +18,7 @@
 .SH DESCRIPTION
 .I 6in4
 sets up and maintains a tunnel of IPv6 traffic through an IPv4 connection.
+.PP
 .I Local6
 and
 .I mask
@@ -26,23 +27,15 @@ define the IPv6 address and subnet of the near end of the tunnel
 defaults to
 .L /128
 for a single-host
-tunnel),
-.I remote4
-is the IPv4 address of the far end of the tunnel
-(must be given explicitly for a configured tunnel, or
-defaults to the anycast address 192.88.99.1 for
-.IR 6to4 ),
-and
-.I remote6
-is the IPv6 address of the far end of the tunnel
-(used as the point-to-point destination for routing, and
-defaults to a link-local address constructed from
-.IR remote4 ).
+tunnel).
 If
 .I local6
-is missing,
+is missing or
+.LR - ,
 it defaults to
-.BI 2002: aabb : ccdd ::1/48 ,
+.IP
+.BI 2002: aabb : ccdd ::1/48
+.PP
 where
 .IR aa ,
 .IR bb ,
@@ -54,24 +47,53 @@ are the hexadecimal equivalents of the bytes
 .I d
 in this host's primary IPv4 address.
 .PP
+.I Remote4
+is the IPv4 address of the far end of the tunnel
+(must be given explicitly for a configured tunnel, or
+defaults to the anycast address 192.88.99.1 for
+.IR 6to4 ).
+.PP
+.I Remote6
+is the IPv6 address of the far end of the tunnel
+(used as the point-to-point destination for routing, and
+defaults to a link-local address constructed from
+.IR remote4 ).
+.PP
 .I 6in4
 forks a pair of background processes to copy packets to and from
 the tunnel.
 .PP
-Supply
+Options are:
+.TF -x
+.PD 0
+.TP
+.B -a
+permit any remote IPv4 address as the far end of a tunnel.
+This is likely to be useful for the server side of a tunnel.
+.TP
 .B -g
-to use the tunnel as the default route for global IPv6 addresses.
+use the tunnel as the default route for global IPv6 addresses
+.TP
 .B -x
-uses the network mounted at
+use the network mounted at
 .I netmtpt
 instead of
 .LR /net .
+.PD
 .SH EXAMPLES
 If your primary IPv4 address is public,
 you can start a 6to4 tunnel simply with
 .IP
 .EX
-6in4 -g
+ip/6in4 -g
+.EE
+.PP
+Similarly, you can start a server for
+.I 6to4
+tunnels with
+.IP
+.EX
+ip/6in4 -ag
 .EE
 .PP
 If you use a tunnel broker at address
@@ -83,11 +105,19 @@ subnet with address
 you can start the tunnel with
 .IP
 .EX
-6in4 -g 2001:1122:3344:5566::/64 5.6.7.8
+ip/6in4 -g 2001:1122:3344:5566::/64 5.6.7.8
 .EE
 .SH FILES
+.TF /net/ipmux
+.PD 0
+.TP
 .B /net/ipmux
+access to IPv6-in-IPv4 packets
+.TP
+.B /net/ipifc
+packet interface to IPv6 network
 .SH SEE ALSO
+.IR bridge (3),
 .I ipmux
 in
 .IR ip (3)
