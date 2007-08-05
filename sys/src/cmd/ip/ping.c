@@ -194,8 +194,8 @@ static uchar loopbackmask[IPaddrlen] = {
 
 /*
  * find first ip addr suitable for proto and
- * that isn't the friggin loopback address
- * unless there are no others.
+ * that isn't the friggin loopback address.
+ * deprecate link-local and multicast addresses.
  */
 static int
 myipvnaddr(uchar *ip, Proto *proto, char *net)
@@ -203,9 +203,10 @@ myipvnaddr(uchar *ip, Proto *proto, char *net)
 	int ipisv4, wantv4;
 	Ipifc *nifc;
 	Iplifc *lifc;
-	uchar mynet[IPaddrlen];
+	uchar mynet[IPaddrlen], linklocal[IPaddrlen];
 	static Ipifc *ifc;
-	
+
+	ipmove(linklocal, IPnoaddr);
 	wantv4 = proto->version == 4;
 	ifc = readipifc(net, ifc, -1);
 	for(nifc = ifc; nifc; nifc = nifc->next)
@@ -213,14 +214,19 @@ myipvnaddr(uchar *ip, Proto *proto, char *net)
 			maskip(lifc->ip, loopbackmask, mynet);
 			if(ipcmp(mynet, loopbacknet) == 0)
 				continue;
+			if(ISIPV6MCAST(lifc->ip) || ISIPV6LINKLOCAL(lifc->ip)) {
+				ipmove(linklocal, lifc->ip);
+				continue;
+			}
 			ipisv4 = isv4(lifc->ip) != 0;
 			if(ipcmp(lifc->ip, IPnoaddr) != 0 && wantv4 == ipisv4){
 				ipmove(ip, lifc->ip);
 				return 0;
 			}
 		}
-	ipmove(ip, IPnoaddr);
-	return -1;
+	/* no global unicast addrs found, fall back to link-local, if any */
+	ipmove(ip, linklocal);
+	return ipcmp(ip, IPnoaddr) == 0? -1: 0;
 }
 
 void
@@ -542,7 +548,7 @@ main(int argc, char **argv)
 		exits("dialing");
 	}
 
-	if (!quiet)	
+	if (!quiet)
 		print("sending %d %d byte messages %d ms apart to %s\n",
 			nmsg, msglen, interval, ds);
 

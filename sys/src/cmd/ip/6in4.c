@@ -118,8 +118,6 @@ procargs(int argc, char **argv)
 	if (argc >= 1) {
 		parseip(remote6, *argv++);
 		argc--;
-		if (isv4(remote4))
-			usage();
 	} else {
 		remote6[0] = 0xFE;		/* link local */
 		remote6[1] = 0x80;
