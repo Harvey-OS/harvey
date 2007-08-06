@@ -1,6 +1,6 @@
 #!/bin/rc
-# ipv6on [netdir ndbfile [gwv4]] - configure an interface for v6,
-#	once v4 is configured.
+# ipv6on [netdir ndbfile [gwv4]] - configure an interface for ipv6,
+#	once ipv4 is configured.
 if (! ~ $#* 0 2 3) {
 	echo usage: $0 '[netdir ndbfile [gw-v4-name]]' >[1=2]
 	exit usage
@@ -29,10 +29,14 @@ if not {
 	xdir=(-x $netdir)
 }
 
-fn nonnil {	# name ip
-	if (~ $#2 0) {
+fn nonnil {		# variable
+	if (~ $#$1 0) {
 		echo no ip for $1
 		exit no-ip
+	}
+	if (! ~ $#$1 1) {
+		echo multiple ips for $1
+		exit multiple-ips
 	}
 }
 
@@ -44,11 +48,13 @@ if (! ip/ipconfig -6 $xdir ether $netdir/ether?)
 ip/ipconfig $xdir ether $netdir/ether? ra6 recvra 1
 
 mev6=`{ndb/query -f $ndbf sys $sysname ipv6}
-mev4=`{ndb/query -f $ndbf sys $sysname ip}
+if (~ $#sysname 0 || ~ $sysname '')
+	mev6=`{ndb/query -f $ndbf sys $sysname ip | grep :}
+# mev4=`{ndb/query -f $ndbf sys $sysname ip | grep -v :}
 
 # for testing
 mylnk=`{ip/linklocal `{cat $netdir/ether?/addr}}
-nonnil mylnk $mylnk
+nonnil mylnk
 
 if (~ $#gw 1) {
 	if (~ $gw [0-9]*.[0-9]*.[0-9]*.[0-9]*)
@@ -58,18 +64,18 @@ if (~ $#gw 1) {
 	gwv6=`{ndb/query -f $ndbf sys $gw ipv6}
 
 	if (! ~ $#gwv4 0) {
-		echo ping gw $gwv4...
+		# echo ping gw $gwv4...
 		# load arp cache with gw mac
 		ip/ping -qn 3 $netdir/icmp!$gwv4 >/dev/null >[2=1] &
-		sleep 3					# wait for ping
+		sleep 1					# wait for ping
 
 		gweth=`{grep '* '^$gwv4^' ' $netdir/arp | awk '{print $4}' }
-		nonnil gweth $gweth
+		nonnil gweth
 		gwlnk=`{ip/linklocal $gweth}
-		nonnil gwlnk $gwlnk
+		nonnil gwlnk
 	}
 }
-nonnil mev6 $mev6
+nonnil mev6
 #
 # configure my global v6 addresses
 #
@@ -79,7 +85,7 @@ ip/ipconfig $xdir loopback /dev/null	add $mev6 /128
 if (~ $#gw 1) {
 	if (~ $#gwv6 0 || ~ $gwv6 '')
 		gwv6=`{ip/linklocal $gweth}
-	nonnil gwv6 $gwv6
+	nonnil gwv6
 	#
 	# add default v6 route to v6 addr of v4 gw
 	#
