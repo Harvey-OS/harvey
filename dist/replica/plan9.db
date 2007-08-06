@@ -1,8 +1,8 @@
 386 - 20000000775 sys sys 1010957353 0
 386/9load - 775 sys sys 1181763625 313856
-386/9loaddebug - 775 sys sys 1185396304 417075
+386/9loaddebug - 775 sys sys 1186291382 417075
 386/9loadlite - 775 sys sys 1176519517 137148
-386/9loadlitedebug - 775 sys sys 1176581010 202587
+386/9loadlitedebug - 775 sys sys 1186291382 202587
 386/9pc - 775 sys sys 1186023393 1937795
 386/9pc.gz - 664 sys sys 1186023393 829787
 386/9pccpu - 775 sys sys 1186023409 1657423
@@ -277,7 +277,7 @@
 386/bin/history - 775 sys sys 1178568279 74241
 386/bin/hoc - 775 sys sys 1172808058 100101
 386/bin/html2ms - 775 sys sys 1168402315 66321
-386/bin/htmlfmt - 775 sys sys 1181507267 163401
+386/bin/htmlfmt - 775 sys sys 1186370974 163412
 386/bin/htmlroff - 775 sys sys 1178568280 146978
 386/bin/ico - 775 sys sys 1179372092 162180
 386/bin/iconv - 775 sys sys 1168402316 113629
@@ -560,7 +560,7 @@
 386/lib/libflate.a - 664 sys sys 1168402366 76726
 386/lib/libframe.a - 664 sys sys 1184529910 66398
 386/lib/libgeometry.a - 664 sys sys 1168402366 50470
-386/lib/libhtml.a - 664 sys sys 1184529911 229152
+386/lib/libhtml.a - 664 sys sys 1186370975 229202
 386/lib/libhttpd.a - 664 sys sys 1181332906 99734
 386/lib/libip.a - 664 sys sys 1185420496 34710
 386/lib/libl.a - 664 sys sys 1168402367 5372
@@ -5469,6 +5469,7 @@ rc/bin/ape - 20000000775 sys sys 1155362042 0
 rc/bin/ape/ar89 - 775 sys sys 1139744263 240
 rc/bin/ape/c89 - 775 sys sys 945617285 39
 rc/bin/ape/chown - 775 sys sys 945617285 43
+rc/bin/ape/dircp - 775 sys sys 1186289076 186
 rc/bin/ape/false - 775 sys sys 945617285 17
 rc/bin/ape/grep - 775 sys sys 1023738308 60
 rc/bin/ape/install - 775 sys sys 1015089725 572
@@ -5490,7 +5491,7 @@ rc/bin/cpurc.local - 775 sys sys 1176827268 367
 rc/bin/delkey - 775 sys sys 1109429137 643
 rc/bin/dial - 20000000775 sys sys 1059180057 0
 rc/bin/diffy - 775 sys sys 1140694870 277
-rc/bin/dircp - 775 sys sys 1186179147 246
+rc/bin/dircp - 775 sys sys 1186289104 181
 rc/bin/diskparts - 775 sys sys 1178399618 624
 rc/bin/dmaon - 775 sys sys 1178214935 213
 rc/bin/doc2ps - 775 sys sys 1069793831 244
@@ -5508,7 +5509,7 @@ rc/bin/ipconf/lra - 775 sys sys 1058791152 1558
 rc/bin/ipconf/outside - 775 sys sys 1058790951 550
 rc/bin/ipconf/theworld - 775 sys sys 1058790940 1212
 rc/bin/ipso - 775 sys sys 1079377794 2838
-rc/bin/ipv6on - 775 sys sys 1177128625 1899
+rc/bin/ipv6on - 775 sys sys 1186362803 2047
 rc/bin/iwhois - 775 sys sys 1143979502 1637
 rc/bin/juke - 775 sys sys 1105565140 1131
 rc/bin/kill - 775 sys sys 1143389260 142
@@ -7645,7 +7646,7 @@ sys/man/3/ether - 664 sys sys 1178597986 2890
 sys/man/3/floppy - 664 sys sys 954378905 881
 sys/man/3/fs - 664 sys sys 1175145095 3147
 sys/man/3/i82365 - 664 sys sys 954378906 884
-sys/man/3/ip - 664 sys sys 1186036896 26203
+sys/man/3/ip - 664 sys sys 1186348061 26244
 sys/man/3/kbmap - 664 sys sys 1131110122 1732
 sys/man/3/kprof - 664 sys sys 1018029972 1377
 sys/man/3/loopback - 664 sys sys 964662153 1995
@@ -8018,7 +8019,7 @@ sys/src/9/mtx/trap.c - 664 sys sys 1105030157 15882
 sys/src/9/mtx/uarti8250.c - 664 sys sys 1018721288 11590
 sys/src/9/pc - 20000000775 sys sys 1161233143 0
 sys/src/9/pc/a100p.cp - 444 sys sys 1159735144 21984
-sys/src/9/pc/ahci.h - 664 sys sys 1181155864 6287
+sys/src/9/pc/ahci.h - 664 sys sys 1186366009 6314
 sys/src/9/pc/apbootstrap.s - 664 sys sys 1131293655 3037
 sys/src/9/pc/apic.c - 664 sys sys 1174415344 8991
 sys/src/9/pc/apm.c - 664 sys sys 1131290210 3723
@@ -8116,11 +8117,11 @@ sys/src/9/pc/screen.h - 664 sys sys 1147023549 4256
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1170456695 55276
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
 sys/src/9/pc/sd63xxesb.c - 664 sys sys 1184467400 35975
-sys/src/9/pc/sdata.c - 664 sys sys 1175564140 52809
+sys/src/9/pc/sdata.c - 664 sys sys 1186361525 52991
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1184467229 33837
 sys/src/9/pc/sdmylex.c - 664 sys sys 1171321627 28237
 sys/src/9/pc/sdscsi.c - 664 sys sys 1158889425 7241
-sys/src/9/pc/trap.c - 664 sys sys 1184466909 21852
+sys/src/9/pc/trap.c - 664 sys sys 1186361997 21898
 sys/src/9/pc/uartaxp.c - 664 sys sys 1166247784 18879
 sys/src/9/pc/uarti8250.c - 664 sys sys 1177676872 13957
 sys/src/9/pc/uartisa.c - 664 sys sys 1127126907 1777
@@ -9091,6 +9092,7 @@ sys/src/boot/bitsy/uart.c - 664 sys sys 1173299930 1495
 sys/src/boot/mkfile - 664 sys sys 1173300033 192
 sys/src/boot/pc - 20000000775 sys sys 1144961189 0
 sys/src/boot/pc/8250.c - 664 sys sys 1015007947 5727
+sys/src/boot/pc/ahci.h - 664 sys sys 1186366104 6318
 sys/src/boot/pc/alarm.c - 664 sys sys 1015007947 1668
 sys/src/boot/pc/apm.c - 664 sys sys 1015007947 289
 sys/src/boot/pc/bcom.c - 664 sys sys 1032215919 6421
@@ -9168,6 +9170,7 @@ sys/src/boot/pc/queue.c - 664 sys sys 1015007954 566
 sys/src/boot/pc/sd.h - 664 sys sys 1153333456 2244
 sys/src/boot/pc/sd53c8xx.c - 664 sys sys 1186031515 52082
 sys/src/boot/pc/sd53c8xx.i - 664 sys sys 1015007955 27245
+sys/src/boot/pc/sd63xxesb.c - 664 sys sys 1186368565 26990
 sys/src/boot/pc/sdata.c - 664 sys sys 1175564193 38846
 sys/src/boot/pc/sdmylex.c - 664 sys sys 1171783051 28694
 sys/src/boot/pc/sdscsi.c - 664 sys sys 1144961224 7006
@@ -15360,7 +15363,7 @@ sys/src/libgeometry/tstack.c - 664 sys sys 944961726 4716
 sys/src/libhtml - 20000000775 sys sys 1039727689 0
 sys/src/libhtml/build.c - 664 sys sys 1166796404 94558
 sys/src/libhtml/impl.h - 664 sys sys 1166796404 4598
-sys/src/libhtml/lex.c - 664 sys sys 1166796404 28136
+sys/src/libhtml/lex.c - 664 sys sys 1186360650 28187
 sys/src/libhtml/mkfile - 664 sys sys 1035389778 246
 sys/src/libhtml/strinttab.c - 664 sys sys 1016902547 1285
 sys/src/libhtml/utils.c - 664 sys sys 1166796403 9579
