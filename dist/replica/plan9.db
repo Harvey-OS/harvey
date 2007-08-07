@@ -7986,7 +7986,7 @@ sys/src/9/ip/nullmedium.c - 664 sys sys 1086406910 492
 sys/src/9/ip/pktmedium.c - 664 sys sys 1084331746 1314
 sys/src/9/ip/ptclbsum.c - 664 sys sys 1022588099 1243
 sys/src/9/ip/rudp.c - 664 sys sys 1184946959 21529
-sys/src/9/ip/tcp.c - 664 sys sys 1185283974 65958
+sys/src/9/ip/tcp.c - 664 sys sys 1186406232 65963
 sys/src/9/ip/tripmedium.c - 664 sys sys 1045063515 7136
 sys/src/9/ip/udp.c - 664 sys sys 1184946959 13316
 sys/src/9/mkfile - 664 sys sys 1063857477 205

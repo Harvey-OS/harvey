@@ -277,7 +277,7 @@
 386/bin/history - 775 sys sys 1178568279 74241
 386/bin/hoc - 775 sys sys 1172808058 100101
 386/bin/html2ms - 775 sys sys 1168402315 66321
-386/bin/htmlfmt - 775 sys sys 1181507267 163401
+386/bin/htmlfmt - 775 sys sys 1186370974 163412
 386/bin/htmlroff - 775 sys sys 1178568280 146978
 386/bin/ico - 775 sys sys 1179372092 162180
 386/bin/iconv - 775 sys sys 1168402316 113629
@@ -560,7 +560,7 @@
 386/lib/libflate.a - 664 sys sys 1168402366 76726
 386/lib/libframe.a - 664 sys sys 1184529910 66398
 386/lib/libgeometry.a - 664 sys sys 1168402366 50470
-386/lib/libhtml.a - 664 sys sys 1184529911 229152
+386/lib/libhtml.a - 664 sys sys 1186370975 229202
 386/lib/libhttpd.a - 664 sys sys 1181332906 99734
 386/lib/libip.a - 664 sys sys 1185420496 34710
 386/lib/libl.a - 664 sys sys 1168402367 5372
@@ -7986,7 +7986,7 @@ sys/src/9/ip/nullmedium.c - 664 sys sys 1086406910 492
 sys/src/9/ip/pktmedium.c - 664 sys sys 1084331746 1314
 sys/src/9/ip/ptclbsum.c - 664 sys sys 1022588099 1243
 sys/src/9/ip/rudp.c - 664 sys sys 1184946959 21529
-sys/src/9/ip/tcp.c - 664 sys sys 1185283974 65958
+sys/src/9/ip/tcp.c - 664 sys sys 1186406232 65963
 sys/src/9/ip/tripmedium.c - 664 sys sys 1045063515 7136
 sys/src/9/ip/udp.c - 664 sys sys 1184946959 13316
 sys/src/9/mkfile - 664 sys sys 1063857477 205
@@ -15847,5 +15847,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/htmlfmt - 775 sys sys 1186370974 163412
-386/lib/libhtml.a - 664 sys sys 1186370975 229202
