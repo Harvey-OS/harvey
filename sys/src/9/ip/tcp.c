@@ -770,7 +770,7 @@ tcpmtu(Proto *tcp, uchar *addr, int version, int *scale)
 	if(ifc != nil){
 		if(ifc->mbps > 1000)
 			*scale = HaveWS | 4;
-		if(ifc->mbps > 100)
+		else if(ifc->mbps > 100)
 			*scale = HaveWS | 3;
 		else if(ifc->mbps > 10)
 			*scale = HaveWS | 1;
