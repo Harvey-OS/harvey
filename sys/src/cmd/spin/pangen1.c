@@ -10,11 +10,7 @@
 /* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 #include "spin.h"
-#ifdef PC
-#include "y_tab.h"
-#else
 #include "y.tab.h"
-#endif
 #include "pangen1.h"
 #include "pangen3.h"
 
@@ -372,40 +368,53 @@ dolocal(FILE *ofd, char *pre, int dowhat, int p, char *s)
 	Symbol *sp;
 	char buf[64], buf2[128], buf3[128];
 
-	for (j = 0; j < 8; j++)
-	for (h = 0; h <= 1; h++)
-	for (walk = all_names; walk; walk = walk->next)
-	{	sp = walk->entry;
-		if (sp->context
-		&& !sp->owner
-		&&  sp->type == Types[j]
-		&&  ((h == 0 && sp->nel == 1) || (h == 1 && sp->nel > 1))
-		&&  strcmp(s, sp->context->name) == 0)
-		{	switch (dowhat) {
-			case LOGV:
-				if (sp->type == CHAN
-				&&  verbose == 0)
-					break;
-				sprintf(buf, "%s%s:", pre, s);
-				{ sprintf(buf2, "\", ((P%d *)pptr(h))->", p);
-				  sprintf(buf3, ");\n");
+	if (dowhat == INIV)
+	{	/* initialize in order of declaration */
+		for (walk = all_names; walk; walk = walk->next)
+		{	sp = walk->entry;
+			if (sp->context
+			&& !sp->owner
+			&&  strcmp(s, sp->context->name) == 0)
+			{	checktype(sp, s); /* fall through */
+				if (!(sp->hidden&16))
+				{	sprintf(buf, "((P%d *)pptr(h))->", p);
+					do_var(ofd, dowhat, buf, sp, "", " = ", ";\n");
 				}
-				do_var(ofd, dowhat, "", sp, buf, buf2, buf3);
-				break;
-			case INIV:
-				checktype(sp, s); /* fall through */
-				if (sp->hidden&16) { k++; break; }
-			case PUTV:
-				sprintf(buf, "((P%d *)pptr(h))->", p);
-				do_var(ofd, dowhat, buf, sp, "", " = ", ";\n");
 				k++;
-				break;
-			}
-			if (strcmp(s, ":never:") == 0)
-			{	printf("error: %s defines local %s\n",
-					s, sp->name);
-				nr_errs++;
-	}	}	}
+		}	}
+	} else
+	{	for (j = 0; j < 8; j++)
+		for (h = 0; h <= 1; h++)
+		for (walk = all_names; walk; walk = walk->next)
+		{	sp = walk->entry;
+			if (sp->context
+			&& !sp->owner
+			&&  sp->type == Types[j]
+			&&  ((h == 0 && sp->nel == 1) || (h == 1 && sp->nel > 1))
+			&&  strcmp(s, sp->context->name) == 0)
+			{	switch (dowhat) {
+				case LOGV:
+					if (sp->type == CHAN
+					&&  verbose == 0)
+						break;
+					sprintf(buf, "%s%s:", pre, s);
+					{ sprintf(buf2, "\", ((P%d *)pptr(h))->", p);
+					  sprintf(buf3, ");\n");
+					}
+					do_var(ofd, dowhat, "", sp, buf, buf2, buf3);
+					break;
+				case PUTV:
+					sprintf(buf, "((P%d *)pptr(h))->", p);
+					do_var(ofd, dowhat, buf, sp, "", " = ", ";\n");
+					k++;
+					break;
+				}
+				if (strcmp(s, ":never:") == 0)
+				{	printf("error: %s defines local %s\n",
+						s, sp->name);
+					nr_errs++;
+	}	}	}	}
+
 	return k;
 }
 
@@ -472,12 +481,17 @@ c_var(FILE *fd, char *pref, Symbol *sp)
 	case UNSIGNED:
 		sputtype(buf, sp->type);
 		if (sp->nel == 1)
-		fprintf(fd, "\tprintf(\"\t%s %s:\t%%d\\n\", %s%s);\n",
-			buf, sp->name, pref, sp->name);
-		else
-		for (i = 0; i < sp->nel; i++)
-		fprintf(fd, "\tprintf(\"\t%s %s[%d]:\t%%d\\n\", %s%s[%d]);\n",
-			buf, sp->name, i, pref, sp->name, i);
+		{	fprintf(fd, "\tprintf(\"\t%s %s:\t%%d\\n\", %s%s);\n",
+				buf, sp->name, pref, sp->name);
+		} else
+		{	fprintf(fd, "\t{\tint l_in;\n");
+			fprintf(fd, "\t\tfor (l_in = 0; l_in < %d; l_in++)\n", sp->nel);
+			fprintf(fd, "\t\t{\n");
+			fprintf(fd, "\t\t\tprintf(\"\t%s %s[%%d]:\t%%d\\n\", l_in, %s%s[l_in]);\n",
+						buf, sp->name, pref, sp->name);
+			fprintf(fd, "\t\t}\n");
+			fprintf(fd, "\t}\n");
+		}
 		break;
 	case CHAN:
 		if (sp->nel == 1)
@@ -499,6 +513,28 @@ c_var(FILE *fd, char *pref, Symbol *sp)
 	}
 }
 
+int
+c_splurge_any(ProcList *p)
+{	Ordered *walk;
+	Symbol *sp;
+
+	if (strcmp(p->n->name, ":never:") != 0
+	&&  strcmp(p->n->name, ":trace:") != 0
+	&&  strcmp(p->n->name, ":notrace:") != 0)
+	for (walk = all_names; walk; walk = walk->next)
+	{	sp = walk->entry;
+		if (!sp->context
+		||  sp->type == 0
+		||  strcmp(sp->context->name, p->n->name) != 0
+		||  sp->owner || (sp->hidden&1)
+		|| (sp->type == MTYPE && ismtype(sp->name)))
+			continue;
+
+		return 1;
+	}
+	return 0;
+}
+
 void
 c_splurge(FILE *fd, ProcList *p)
 {	Ordered *walk;
@@ -511,6 +547,7 @@ c_splurge(FILE *fd, ProcList *p)
 	for (walk = all_names; walk; walk = walk->next)
 	{	sp = walk->entry;
 		if (!sp->context
+		||  sp->type == 0
 		||  strcmp(sp->context->name, p->n->name) != 0
 		||  sp->owner || (sp->hidden&1)
 		|| (sp->type == MTYPE && ismtype(sp->name)))
@@ -548,7 +585,13 @@ c_wrapper(FILE *fd)	/* allow pan.c to print out global sv entries */
 	{	fprintf(fd, "	case %d:\n", p->tn);
 		fprintf(fd, "	\tprintf(\"local vars proc %%d (%s):\\n\", pid);\n",
 			p->n->name);
-		c_splurge(fd, p);
+		if (c_splurge_any(p))
+		{	fprintf(fd, "	\tprintf(\"local vars proc %%d (%s):\\n\", pid);\n",
+				p->n->name);
+			c_splurge(fd, p);
+		} else
+		{	fprintf(fd, "	\t/* none */\n");
+		}
 		fprintf(fd, "	\tbreak;\n");
 	}
 	fprintf(fd, "	}\n}\n");
@@ -648,16 +691,31 @@ do_var(FILE *ofd, int dowhat, char *s, Symbol *sp,
 				do_init(ofd, sp);
 			fprintf(ofd, "%s", ter);
 		} else
-		for (i = 0; i < sp->nel; i++)
-		{	fprintf(ofd, "\t\t%s%s%s[%d]%s",
-				pre, s, sp->name, i, sep);
-			if (dowhat == LOGV)
-				fprintf(ofd, "%s%s[%d]",
-					s, sp->name, i);
-			else
-				do_init(ofd, sp);
-			fprintf(ofd, "%s", ter);
-		}
+		{	if (sp->ini && sp->ini->ntyp == CHAN)
+			{	for (i = 0; i < sp->nel; i++)
+				{	fprintf(ofd, "\t\t%s%s%s[%d]%s",
+						pre, s, sp->name, i, sep);
+					if (dowhat == LOGV)
+						fprintf(ofd, "%s%s[%d]",
+							s, sp->name, i);
+					else
+						do_init(ofd, sp);
+					fprintf(ofd, "%s", ter);
+				}
+			} else
+			{	fprintf(ofd, "\t{\tint l_in;\n");
+				fprintf(ofd, "\t\tfor (l_in = 0; l_in < %d; l_in++)\n", sp->nel);
+				fprintf(ofd, "\t\t{\n");
+				fprintf(ofd, "\t\t\t%s%s%s[l_in]%s",
+						pre, s, sp->name, sep);
+				if (dowhat == LOGV)
+					fprintf(ofd, "%s%s[l_in]", s, sp->name);
+				else
+					putstmnt(ofd, sp->ini, 0);
+				fprintf(ofd, "%s", ter);
+				fprintf(ofd, "\t\t}\n");
+				fprintf(ofd, "\t}\n");
+		}	}
 		break;
 	}
 }
@@ -753,7 +811,7 @@ tc_predef_np(void)
 {	int i = nrRdy;	/* 1+ highest proctype nr */
 
 	fprintf(th, "#define _NP_	%d\n", i);
-	if (separate == 2) fprintf(th, "extern ");
+/*	if (separate == 2) fprintf(th, "extern ");	*/
 	fprintf(th, "uchar reached%d[3];  /* np_ */\n", i);
 
 	fprintf(th, "#define nstates%d	3 /* np_ */\n", i);
@@ -861,7 +919,7 @@ huntstart(Element *f)
 	Element *elast = (Element *) 0;
 	int cnt = 0;
 
-	while (elast != e && cnt++ < 20)	/* new 4.0.8 */
+	while (elast != e && cnt++ < 200)	/* new 4.0.8 */
 	{	elast = e;
 		if (e->n)
 		{	if (e->n->ntyp == '.' && e->nxt)
@@ -870,7 +928,7 @@ huntstart(Element *f)
 				e = e->sub->this->frst;
 	}	}
 
-	if (cnt >= 20 || !e)
+	if (cnt >= 200 || !e)
 		fatal("confusing control structure", (char *) 0);
 	return e;
 }
@@ -881,7 +939,7 @@ huntele(Element *f, int o, int stopat)
 	int cnt=0; /* a precaution against loops */
 
 	if (e)
-	for (cnt = 0; cnt < 20 && e->n; cnt++)
+	for (cnt = 0; cnt < 200 && e->n; cnt++)
 	{
 		if (e->seqno == stopat)
 			break;
@@ -910,7 +968,7 @@ huntele(Element *f, int o, int stopat)
 			return e;
 		e = g;
 	}
-	if (cnt >= 20 || !e)
+	if (cnt >= 200 || !e)
 		fatal("confusing control structure", (char *) 0);
 	return e;
 }

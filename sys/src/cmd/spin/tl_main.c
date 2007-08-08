@@ -39,6 +39,23 @@ tl_Getchar(void)
 }
 
 void
+tl_balanced(void)
+{	int i;
+	int k = 0;
+
+	for (i = 0; i < hasuform; i++)
+	{	if (uform[i] == '(')
+		{	k++;
+		} else if (uform[i] == ')')
+		{	k--;
+	}	}
+	if (k != 0)
+	{	tl_errs++;
+		tl_yyerror("parentheses not balanced");
+	}
+}
+
+void
 put_uform(void)
 {
 	fprintf(tl_out, "%s", uform);
@@ -96,7 +113,11 @@ nogood:		printf("usage:\tspin [-v] [-n] -f formula\n");
 		printf("	-n normalize tl formula and exit\n");
 		exit(1);
 	}
-	tl_parse();
+	tl_balanced();
+
+	if (tl_errs == 0)
+		tl_parse();
+
 	if (tl_verbose) tl_stats();
 	return tl_errs;
 }

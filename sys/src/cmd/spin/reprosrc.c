@@ -11,11 +11,7 @@
 
 #include <stdio.h>
 #include "spin.h"
-#ifdef PC
-#include "y_tab.h"
-#else
 #include "y.tab.h"
-#endif
 
 static int indent = 1;
 

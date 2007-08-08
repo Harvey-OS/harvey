@@ -12,11 +12,7 @@
 #include "spin.h"
 #include <sys/types.h>
 #include <sys/stat.h>
-#ifdef PC
-#include "y_tab.h"
-#else
 #include "y.tab.h"
-#endif
 
 extern RunList	*run, *X;
 extern Element	*Al_El;
@@ -45,7 +41,12 @@ whichproc(int p)
 
 static int
 newer(char *f1, char *f2)
-{	struct stat x, y;
+{
+#if defined(WIN32) || defined(WIN64)
+	struct _stat x, y;
+#else
+	struct stat x, y;
+#endif
 
 	if (stat(f1, (struct stat *)&x) < 0) return 0;
 	if (stat(f2, (struct stat *)&y) < 0) return 1;
@@ -222,7 +223,9 @@ okay:
 				}
 				og = g;
 			} while (g && g != dothis->nxt);
-			X->pc = g?huntele(g, 0, -1):g;
+			if (X != NULL)
+			{	X->pc = g?huntele(g, 0, -1):g;
+			}
 		} else
 		{
 keepgoing:		if (dothis->merge_start)
@@ -230,8 +233,10 @@ keepgoing:		if (dothis->merge_start)
 			else
 				a = dothis->merge;
 
-			X->pc = eval_sub(dothis);
-			if (X->pc) X->pc = huntele(X->pc, 0, a);
+			if (X != NULL)
+			{	X->pc = eval_sub(dothis);
+				if (X->pc) X->pc = huntele(X->pc, 0, a);
+			}
 
 			if (depth >= jumpsteps
 			&& ((verbose&32) || ((verbose&4) && not_claim())))	/* -v or -p */
@@ -247,20 +252,20 @@ keepgoing:		if (dothis->merge_start)
 					if (a && (verbose&32))
 					printf("\t<merge %d now @%d>",
 						dothis->merge,
-						X->pc?X->pc->seqno:-1);
+						(X && X->pc)?X->pc->seqno:-1);
 					printf("\n");
 				}
 				if (verbose&1) dumpglobals();
 				if (verbose&2) dumplocal(X);
 				if (xspin) printf("\n");
 
-				if (!X->pc)
+				if (X && !X->pc)
 				{	X->pc = dothis;
 					printf("\ttransition failed\n");
 					a = 0;	/* avoid inf loop */
 				}
 			}
-			if (a && X->pc && X->pc->seqno != a)
+			if (a && X && X->pc && X->pc->seqno != a)
 			{	dothis = X->pc;
 				goto keepgoing;
 		}	}

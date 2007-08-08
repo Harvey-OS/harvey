@@ -15,7 +15,7 @@
 #include "tl.h"
 
 extern int	tl_yylex(void);
-extern int	tl_verbose;
+extern int	tl_verbose, tl_errs;
 
 int	tl_yychar = 0;
 YYSTYPE	tl_yylval;
@@ -390,6 +390,11 @@ tl_parse(void)
 	{	printf("formula: ");
 		dump(n);
 		printf("\n");
+	}
+	if (tl_Getchar() != -1)
+	{	tl_yyerror("syntax error");
+		tl_errs++;
+		return;
 	}
 	trans(n);
 }

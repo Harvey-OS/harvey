@@ -10,11 +10,7 @@
 /* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 #include "spin.h"
-#ifdef PC
-#include "y_tab.h"
-#else
 #include "y.tab.h"
-#endif
 
 typedef struct UType {
 	Symbol *nm;	/* name of the type */

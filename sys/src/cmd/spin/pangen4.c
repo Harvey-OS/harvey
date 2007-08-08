@@ -10,11 +10,7 @@
 /* Send all bug-reports and/or questions to: bugs@spinroot.com            */
 
 #include "spin.h"
-#ifdef PC
-#include "y_tab.h"
-#else
 #include "y.tab.h"
-#endif
 
 extern FILE	*tc, *tb;
 extern Queue	*qtab;

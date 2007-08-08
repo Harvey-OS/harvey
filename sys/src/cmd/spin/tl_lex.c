@@ -28,7 +28,7 @@ static void
 tl_getword(int first, int (*tst)(int))
 {	int i=0; char c;
 
-	yytext[i++]= (char ) first;
+	yytext[i++] = (char ) first;
 	while (tst(c = tl_Getchar()))
 		yytext[i++] = c;
 	yytext[i] = '\0';

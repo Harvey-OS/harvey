@@ -11,11 +11,7 @@
 
 #include "spin.h"
 #include "version.h"
-#ifdef PC
-#include "y_tab.h"
-#else
 #include "y.tab.h"
-#endif
 #include "pangen2.h"
 #include "pangen4.h"
 #include "pangen5.h"
@@ -186,15 +182,15 @@ gensrc(void)
 	fprintf(th, "#define uint	unsigned int\n");
 	fprintf(th, "#endif\n");
 
-	if (sizeof(long) > 4)	/* 64 bit machine */
+	if (sizeof(void *) > 4)	/* 64 bit machine */
 	{	fprintf(th, "#ifndef HASH32\n");
 		fprintf(th, "#define HASH64\n");
 		fprintf(th, "#endif\n");
 	}
-
+#if 0
 	if (sizeof(long)==sizeof(int))
 		fprintf(th, "#define long	int\n");
-
+#endif
 	if (separate == 1 && !claimproc)
 	{	Symbol *n = (Symbol *) emalloc(sizeof(Symbol));
 		Sequence *s = (Sequence *) emalloc(sizeof(Sequence));
@@ -314,6 +310,8 @@ doless:
 
 	if (separate != 2)
 		ntimes(tc, 0, 1, Preamble);
+	else
+		fprintf(tc, "extern int verbose; extern long depth;\n");
 
 	fprintf(tc, "#ifndef NOBOUNDCHECK\n");
 	fprintf(tc, "#define Index(x, y)\tBoundcheck(x, y, II, tt, t)\n");
@@ -408,6 +406,7 @@ doless:
 	for (p = rdy; p; p = p->nxt)
 		putproc(p);
 
+
 	if (separate != 2)
 	{	fprintf(th, "struct {\n");
 		fprintf(th, "	int tp; short *src;\n");
@@ -417,6 +416,9 @@ doless:
 				p->tn, p->tn);
 		fprintf(th, "	{ 0, (short *) 0 }\n");
 		fprintf(th, "};\n");
+		fprintf(th, "short *frm_st0;\n");	/* records src states for transitions in never claim */
+	} else
+	{	fprintf(th, "extern short *frm_st0;\n");
 	}
 
 	gencodetable(th);
@@ -472,8 +474,12 @@ doless:
 		fprintf(th, "#define REVERSE_MOVES\t\"pan_t.b\"\n");
 		fprintf(th, "#define TRANSITIONS\t\"pan_t.t\"\n");
 		fprintf(tc, "extern int Maxbody;\n");
+		fprintf(tc, "#if VECTORSZ>32000\n");
 		fprintf(tc, "extern int proc_offset[];\n");
-		fprintf(tc, "extern int proc_skip[];\n");
+		fprintf(tc, "#else\n");
+		fprintf(tc, "extern short proc_offset[];\n");
+		fprintf(tc, "#endif\n");
+		fprintf(tc, "extern uchar proc_skip[];\n");
 		fprintf(tc, "extern uchar *reached[];\n");
 		fprintf(tc, "extern uchar *accpstate[];\n");
 		fprintf(tc, "extern uchar *progstate[];\n");
@@ -714,7 +720,12 @@ putproc(ProcList *p)
 	if (Pid == claimnr
 	&&  separate == 1)
 	{	fprintf(th, "extern uchar reached%d[];\n", Pid);
+#if 0
 		fprintf(th, "extern short nstates%d;\n", Pid);
+#else
+		fprintf(th, "\n#define nstates%d	%d\t/* %s */\n",
+			Pid, p->s->maxel, p->n->name);
+#endif
 		fprintf(th, "extern short src_ln%d[];\n", Pid);
 		fprintf(th, "extern S_F_MAP src_file%d[];\n", Pid);
 		fprintf(th, "#define endstate%d	%d\n",
@@ -731,7 +742,7 @@ putproc(ProcList *p)
 
 	AllGlobal = (p->prov)?1:0;	/* process has provided clause */
 
-	fprintf(th, "\nshort nstates%d=%d;\t/* %s */\n",
+	fprintf(th, "\n#define nstates%d	%d\t/* %s */\n",
 		Pid, p->s->maxel, p->n->name);
 	if (Pid == claimnr)
 	fprintf(th, "#define nstates_claim	nstates%d\n", Pid);
@@ -826,7 +837,8 @@ hidden(Lextok *n)
 static int
 getNid(Lextok *n)
 {
-	if (n->sym->type == STRUCT
+	if (n->sym
+	&&  n->sym->type == STRUCT
 	&&  n->rgt && n->rgt->lft)
 		return getNid(n->rgt->lft);
 
@@ -1470,6 +1482,22 @@ case_cache(Element *e, int a)
 	memset(CnT, 0, sizeof(CnT));
 	YZmax = YZcnt = 0;
 
+/* NEW 4.2.6 */
+	if (Pid == claimnr)
+	{
+		fprintf(tm, "\n#if defined(VERI) && !defined(NP)\n\t\t");
+		fprintf(tm, "{	static int reported%d = 0;\n\t\t", e->seqno);
+		/* source state changes in retrans and must be looked up in frm_st0[t->forw] */
+		fprintf(tm, "	if (verbose && !reported%d)\n\t\t", e->seqno);
+		fprintf(tm, "	{	printf(\"depth %%d: Claim reached state %%d (line %%d)\\n\",\n\t\t");
+		fprintf(tm, "			depth, frm_st0[t->forw], src_claim[%d]);\n\t\t", e->seqno);
+		fprintf(tm, "		reported%d = 1;\n\t\t", e->seqno);
+		fprintf(tm, "		fflush(stdout);\n\t\t");
+		fprintf(tm, "}	}\n");
+		fprintf(tm, "#endif\n\t\t");
+	}
+/* end */
+
 	/* the src xrefs have the numbers in e->seqno builtin */
 	fprintf(tm, "reached[%d][%d] = 1;\n\t\t", Pid, e->seqno);
 
@@ -1838,7 +1866,9 @@ find_target(Element *e)
 		break;
 	case BREAK:
 		if (e->nxt)
-		f = find_target(huntele(e->nxt, e->status, -1));
+		{	f = find_target(huntele(e->nxt, e->status, -1));
+			break;	/* 4.3.0 -- was missing */
+		}
 		/* else fall through */
 	default:
 		f = e;
@@ -1867,13 +1897,19 @@ scan_seq(Sequence *s)
 		||  has_global(f->n))
 			return 1;
 		if (f->n->ntyp == GOTO)	/* may reach other atomic */
-		{	g = target(f);
+		{
+#if 0
+			/* if jumping from an atomic without globals into
+			 * one with globals, this does the wrong thing
+			 * example by Claus Traulsen, 22 June 2007
+			 */
+			g = target(f);
 			if (g
 			&& !(f->status & L_ATOM)
 			&& !(g->status & (ATOM|L_ATOM)))
-			{	fprintf(tt, "	/* goto mark-down, ");
-				fprintf(tt, "line %d - %d */\n",
-					f->n->ln, (g->n)?g->n->ln:0);
+#endif
+			{	fprintf(tt, "	/* mark-down line %d */\n",
+					f->n->ln);
 				return 1; /* assume worst case */
 		}	}
 		for (h = f->sub; h; h = h->nxt)
@@ -2055,9 +2091,10 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		for (v = now->lft, i = 0; v; v = v->rgt, i++)
 		{	cat2(", ", v->lft);
 		}
+		check_param_count(i, now);
 
 		if (i > Npars)
-		{	printf("	%d parameters used, %d expected\n", i, Npars);
+		{	printf("\t%d parameters used, max %d expected\n", i, Npars);
 			fatal("too many parameters in run %s(...)",
 			now->sym->name);
 		}
@@ -2703,7 +2740,11 @@ putstmnt(FILE *fd, Lextok *now, int m)
 	case C_EXPR:
 		fprintf(fd, "(");
 		plunk_expr(fd, now->sym->name);
+#if 1
+		fprintf(fd, ")");
+#else
 		fprintf(fd, ") /* %s */ ", now->sym->name);
+#endif
 		break;
 
 	case C_CODE:
@@ -2943,4 +2984,13 @@ count_runs(Lextok *n)
 		fatal("more than one run operator in expression", "");
 	if (runcount == 1 && opcount > 1)
 		fatal("use of run operator in compound expression", "");
+}
+
+void
+any_runs(Lextok *n)
+{
+	runcount = opcount = 0;
+	do_count(n, 0);
+	if (runcount >= 1)
+		fatal("run operator used in invalid context", "");
 }

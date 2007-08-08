@@ -15,8 +15,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#ifndef PC
-#endif
 
 typedef struct Lextok {
 	unsigned short	ntyp;	/* node type */
@@ -53,7 +51,7 @@ typedef struct Symbol {
 				   1=hide, 2=show,
 				   4=bit-equiv,   8=byte-equiv,
 				  16=formal par, 32=inline par,
-				  64=treat as if local
+				  64=treat as if local; 128=read at least once
 				 */
 	unsigned char	colnr;	/* for use with xspin during simulation */
 	int	nbits;		/* optional width specifier */
@@ -319,6 +317,7 @@ void	c_track(Symbol *, Symbol *, Symbol *);
 void	c_var(FILE *, char *, Symbol *);
 void	c_wrapper(FILE *);
 void	chanaccess(void);
+void	check_param_count(int, Lextok *);
 void	checkrun(Symbol *, int);
 void	comment(FILE *, Lextok *, int);
 void	cross_dsteps(Lextok *, Lextok *);

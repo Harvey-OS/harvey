@@ -8,7 +8,7 @@ fn sigexit sigint sighup sigterm{
 	rm -f $t1 $t2
 	exit 1
 }
-*=`{echo $*|tr A-Z a-z|tr -dc 'a-z0-9_ \012'}	# fold case, delete funny chars
+*=`{echo $*|tr A-Z a-z|tr -dc 'a-z0-9_. \012'}	# fold case, delete funny chars
 if(~ $#* 0){
 	echo Usage: lookman key ... >/fd/2
 	exit 1
