@@ -1,6 +1,6 @@
 .TH SPIN 1
 .SH NAME
-spin \- verification tool for models of concurrent systems
+spin - verification tool for models of concurrent systems
 .SH SYNOPSIS
 .B spin
 .B -a
@@ -93,7 +93,8 @@ is a tool for analyzing the logical consistency of
 asynchronous systems, specifically distributed software
 amd communication protocols.
 A verification model of the system is first specified
-in a guarded command language called Promela.
+in a guarded command language called
+.IR Promela .
 This specification language, described in the reference,
 allows for the modeling of dynamic creation of
 asynchronous processes,
@@ -103,18 +104,15 @@ It also allows for a concise specification of logical
 correctness requirements, including, but not restricted
 to requirements expressed in linear temporal logic.
 .PP
-Given a Promela model
-stored in
-.I file ,
+Given a Promela model stored in
+.IR file ,
 .I spin
 can perform interactive, guided, or random simulations
 of the system's execution.
 It can also generate a C program that performs an exhaustive
 or approximate verification of the correctness requirements
 for the system.
-.PP
-The basic command options are:
-.\"----------------------a----------------
+.
 .TP
 .B -a
 Generate a verifier (model checker) for the specification.
@@ -127,20 +125,19 @@ The online
 .I spin
 manuals (see below) contain
 the details on compilation and use of the verifiers.
-.\"--------------------------c------------
+.
 .TP
 .B -c
 Produce an ASCII approximation of a message sequence
-chart for a random or guided (when combined with 
+chart for a random or guided (when combined with
 .BR -t )
-simulation run. 
-See also option
+simulation run. See also option
 .BR -M .
-.\"--------------------------d------------
+.
 .TP
-.BI -d
+.B -d
 Produce symbol table information for the model specified in
-.I file .
+.IR file .
 For each Promela object this information includes the type, name and
 number of elements (if declared as an array), the initial
 value (if a data object) or size (if a message channel), the
@@ -149,24 +146,28 @@ a variable or as a parameter.  For message channels, the data types
 of the message fields are listed.
 For structure variables, the third field defines the
 name of the structure declaration that contains the variable.
-.\"--------------------------f------------
+.
 .TP
-.B "-f \f2ltl\f1"
+.BI -f " ltl"
 Translate the LTL formula
 .I ltl
-into a never claim.
+into a
+.I never
+claim.
 .br
 This option reads a formula in LTL syntax from the second argument
-and translates it into Promela syntax (a never claim, which is Promela's
+and translates it into Promela syntax (a
+.I never
+claim, which is Promela's
 equivalent of a Büchi Automaton).
-The LTL operators are written: 
+The LTL operators are written:
 .B []
 (always),
 .B <>
 (eventually),
 and
 .B U
-(strong until).  There is no 
+(strong until).  There is no
 .B X
 (next) operator, to secure
 compatibility with the partial order reduction rules that are
@@ -175,14 +176,16 @@ If the formula contains spaces, it should be quoted to form a
 single argument to the
 .I spin
 command.
-.\"--------------------------F------------
+.
 .TP
-.B "-F \f2file\f1"
+.BI -F " file"
 Translate the LTL formula stored in
 .I file
-into a never claim.
+into a
+.I never
+claim.
 .br
-This behaves identical to option
+This behaves identically to option
 .B -f
 but will read the formula from the
 .I file
@@ -196,64 +199,63 @@ the use of option
 Option
 .B -F
 is meant to solve those problems.)
-.\"--------------------------i------------
+.
 .TP
 .B -i
 Perform an interactive simulation, prompting the user at
 every execution step that requires a nondeterministic choice
 to be made.  The simulation proceeds without user intervention
 when execution is deterministic.
-.\"--------------------------M------------
+.
 .TP
 .B -M
 Produce a message sequence chart in Postscript form for a
 random simulation or a guided simulation
-(when combined with 
+(when combined with
 .BR -t ),
 for the model in
-.I file ,
+.IR file ,
 and write the result into
-.I file.ps .
+.IR file.ps .
 See also option
 .BR -c .
-.\"--------------------------m------------
+.
 .TP
 .B -m
 Changes the semantics of send events.
 Ordinarily, a send action will be (blocked) if the
 target message buffer is full.
 With this option a message sent to a full buffer is lost.
-.\"--------------------------n------------
+.
 .TP
-.B "-n\f2N"
+.BI -n N
 Set the seed for a random simulation to the integer value
-.I N .
+.IR N .
 There is no space between the
 .B -n
 and the integer
 .IR N .
-.\"--------------------------t------------
+.
 .TP
 .B -t
 Perform a guided simulation, following the error trail that
 was produces by an earlier verification run, see the online manuals
 for the details on verification.
-.\"--------------------------V------------
+.
 .TP
 .B -V
 Prints the
 .I spin
 version number and exits.
-.\"--------------------------.------------
-.PD
+.
 .PP
-With only a filename as an argument and no option flags,
+With only a filename as an argument and no options,
 .I spin
 performs a random simulation of the model specified in
 the file (standard input is the default if the filename is omitted).
 If option
 .B -i
-is added, the simulation is 
+is added, the simulation is
 .IR interactive ,
 or if option
 .B -t
@@ -262,21 +264,20 @@ is added, the simulation is
 .PP
 The simulation normally does not generate output, except what is generated
 explicitly by the user within the model with
-.B printf
+.I printf
 statements, and some details about the final state that is
 reached after the simulation completes.
 The group of options
-.B -bglprsv
+.B -bglmprsv
 sets the desired level of information that the user wants
 about a random, guided, or interactive simulation run.
 Every line of output normally contains a reference to the source
 line in the specification that generated it.
-The options are:
-.\"--------------------------bglprsv------------
+.
 .TP
 .B -b
 Suppress the execution of
-.B printf
+.I printf
 statements within the model.
 .TP
 .B -g
@@ -302,30 +303,29 @@ the message type and the message channel number and name.
 Show all message-send events.
 .TP
 .B -v
-Verbose mode, add some more detail, and generat more
+Verbose mode, add some more detail, and generate more
 hints and warnings about the model.
-.PD
 .SH SOURCE
 .B /sys/src/cmd/spin
 .SH SEE ALSO
+.in +4
+.ti -4
+.BR http://spinroot.com :
+.BR GettingStarted.pdf ,
+.BR Roadmap.pdf ,
+.BR Manual.pdf ,
+.BR WhatsNew.pdf ,
+.B Exercises.pdf
+.br
+.in -4
 G.J. Holzmann,
 .IR "Design and Validation of Computer Protocols" ,
 Prentice Hall, 1991.
 .br
-\(em, ``Design and validation of protocols: a tutorial,''
-.I "Computer Networks and ISDN Systems" ,
+—, `Design and validation of protocols: a tutorial,'
+.IR "Computer Networks and ISDN Systems" ,
 Vol. 25, No. 9, 1993, pp. 981-1017.
 .br
-\(em, ``The model checker
-.SM SPIN\c
-\&,''
-.I "IEEE Trans. on Software Engineering" ,
+—, `The model checker Spin,'
+.IR "IEEE Trans. on SE" ,
 Vol, 23, No. 5, May 1997.
-.br
-\(em, ``Using
-.SM SPIN\c
-\&,''
-this manual.
-.PP
-.B http://spinroot.com/
-

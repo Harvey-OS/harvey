@@ -11,11 +11,7 @@
 
 #include <stdlib.h>
 #include "spin.h"
-#ifdef PC
-#include "y_tab.h"
-#else
 #include "y.tab.h"
-#endif
 
 #define MAXINL	16	/* max recursion depth inline fcts */
 #define MAXPAR	32	/* max params to an inline call */
@@ -542,7 +538,7 @@ c_add_stack(FILE *fd)
 		cnt++;
 	}
 
-	if (cnt == 0) fprintf(fd, "4"); /* can't happen */
+	if (cnt == 0) fprintf(fd, "WS"); /* can't happen */
 	fprintf(fd, "];\n");
 }
 
@@ -614,7 +610,7 @@ c_add_def(FILE *fd)	/* 3 - called in plunk_c_fcts() */
 	}
 
 	if (has_stack)
-	{	fprintf(fd, "void\nc_stack(char *p_t_r)\n{\n");
+	{	fprintf(fd, "void\nc_stack(uchar *p_t_r)\n{\n");
 		fprintf(fd, "#ifdef VERBOSE\n");
 		fprintf(fd, "	printf(\"c_stack %%u\\n\", p_t_r);\n");
 		fprintf(fd, "#endif\n");
@@ -632,7 +628,7 @@ c_add_def(FILE *fd)	/* 3 - called in plunk_c_fcts() */
 		fprintf(fd, "}\n\n");
 	}
 
-	fprintf(fd, "void\nc_update(char *p_t_r)\n{\n");
+	fprintf(fd, "void\nc_update(uchar *p_t_r)\n{\n");
 	fprintf(fd, "#ifdef VERBOSE\n");
 	fprintf(fd, "	printf(\"c_update %%u\\n\", p_t_r);\n");
 	fprintf(fd, "#endif\n");
@@ -662,7 +658,7 @@ c_add_def(FILE *fd)	/* 3 - called in plunk_c_fcts() */
 	fprintf(fd, "}\n");
 
 	if (has_stack)
-	{	fprintf(fd, "void\nc_unstack(char *p_t_r)\n{\n");
+	{	fprintf(fd, "void\nc_unstack(uchar *p_t_r)\n{\n");
 		fprintf(fd, "#ifdef VERBOSE\n");
 		fprintf(fd, "	printf(\"c_unstack %%u\\n\", p_t_r);\n");
 		fprintf(fd, "#endif\n");
@@ -677,7 +673,7 @@ c_add_def(FILE *fd)	/* 3 - called in plunk_c_fcts() */
 		fprintf(fd, "}\n");
 	}
 
-	fprintf(fd, "void\nc_revert(char *p_t_r)\n{\n");
+	fprintf(fd, "void\nc_revert(uchar *p_t_r)\n{\n");
 	fprintf(fd, "#ifdef VERBOSE\n");
 	fprintf(fd, "	printf(\"c_revert %%u\\n\", p_t_r);\n");
 	fprintf(fd, "#endif\n");
@@ -1358,7 +1354,29 @@ yylex(void)
 		{	sprintf(yytext, "'%c'", yylval->val);
 			strcat(IArg_cont[IArgno], yytext);
 		} else
-		{	strcat(IArg_cont[IArgno], yytext);
+		{
+			switch (c) {
+			case SEP:	strcpy(yytext, "::"); break;
+			case SEMI:	strcpy(yytext, ";"); break;
+			case DECR:	strcpy(yytext, "--"); break;
+			case INCR: 	strcpy(yytext, "++"); break;
+			case LSHIFT:	strcpy(yytext, "<<"); break;
+			case RSHIFT:	strcpy(yytext, ">>"); break;
+			case LE:	strcpy(yytext, "<="); break;
+			case LT:	strcpy(yytext, "<"); break;
+			case GE:	strcpy(yytext, ">="); break;
+			case GT:	strcpy(yytext, ">"); break;
+			case EQ:	strcpy(yytext, "=="); break;
+			case ASGN:	strcpy(yytext, "="); break;
+			case NE:	strcpy(yytext, "!="); break;
+			case R_RCV:	strcpy(yytext, "??"); break;
+			case RCV:	strcpy(yytext, "?"); break;
+			case O_SND:	strcpy(yytext, "!!"); break;
+			case SND:	strcpy(yytext, "!"); break;
+			case AND: 	strcpy(yytext, "&&"); break;
+			case OR:	strcpy(yytext, "||"); break;
+			}
+			strcat(IArg_cont[IArgno], yytext);
 		}
 	}
 

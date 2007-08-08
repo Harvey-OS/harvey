@@ -27,7 +27,7 @@ static char *Dfa[] = {
 	"#define ushort	unsigned short",
 	"",
 	"#define TWIDTH		256",
-	"#define HASH(y,n)	(n)*(((int)y))",
+	"#define HASH(y,n)	(n)*(((long)y))",
 	"#define INRANGE(e,h)	((h>=e->From && h<=e->To)||(e->s==1 && e->S==h))",
 	"",
 	"extern char	*emalloc(unsigned long);	/* imported routine  */",

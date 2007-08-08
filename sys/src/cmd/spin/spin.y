@@ -21,6 +21,8 @@ extern  int	u_sync, u_async, dumptab;
 extern	short	has_sorted, has_random, has_enabled, has_pcvalue, has_np;
 extern	short	has_code, has_state, has_io;
 extern	void	count_runs(Lextok *);
+extern	void	no_internals(Lextok *);
+extern	void	any_runs(Lextok *);
 extern	void	validref(Lextok *, Lextok *);
 extern	char	yytext[];
 
@@ -375,7 +377,7 @@ sfld	: /* empty */		{ $$ = ZN; }
 stmnt	: Special		{ $$ = $1; }
 	| Stmnt			{ $$ = $1;
 				  if (inEventMap)
-				   fatal("not an event", (char *)0);
+				   non_fatal("not an event", (char *)0);
 				}
 	;
 
@@ -388,6 +390,7 @@ Special : varref RCV		{ Expand_Ok++; }
 	  margs			{ Expand_Ok--; has_io++;
 				  $$ = nn($1, 's', $1, $4);
 				  $$->val=0; trackchanuse($4, ZN, 'S');
+				  any_runs($4);
 				}
 	| IF options FI 	{ $$ = nn($1, IF, ZN, ZN);
         			  $$->sl = $2->sl;
@@ -422,11 +425,13 @@ Special : varref RCV		{ Expand_Ok++; }
 Stmnt	: varref ASGN expr	{ $$ = nn($1, ASGN, $1, $3);
 				  trackvar($1, $3);
 				  nochan_manip($1, $3, 0);
+				  no_internals($1);
 				}
 	| varref INCR		{ $$ = nn(ZN,CONST, ZN, ZN); $$->val = 1;
 				  $$ = nn(ZN,  '+', $1, $$);
 				  $$ = nn($1, ASGN, $1, $$);
 				  trackvar($1, $1);
+				  no_internals($1);
 				  if ($1->sym->type == CHAN)
 				   fatal("arithmetic on chan", (char *)0);
 				}
@@ -434,6 +439,7 @@ Stmnt	: varref ASGN expr	{ $$ = nn($1, ASGN, $1, $3);
 				  $$ = nn(ZN,  '-', $1, $$);
 				  $$ = nn($1, ASGN, $1, $$);
 				  trackvar($1, $1);
+				  no_internals($1);
 				  if ($1->sym->type == CHAN)
 				   fatal("arithmetic on chan id's", (char *)0);
 				}
@@ -466,6 +472,7 @@ Stmnt	: varref ASGN expr	{ $$ = nn($1, ASGN, $1, $3);
 				  $$ = nn($1, 's', $1, $4);
 				  $$->val = has_sorted = 1;
 				  trackchanuse($4, ZN, 'S');
+				  any_runs($4);
 				}
 	| full_expr		{ $$ = nn(ZN, 'c', $1, ZN); count_runs($$); }
 	| ELSE  		{ $$ = nn(ZN,ELSE,ZN,ZN);

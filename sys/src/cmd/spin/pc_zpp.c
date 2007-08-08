@@ -376,9 +376,9 @@ static struct Directives {
 	{ 6, "define",	 do_define,	1 },
 	{ 4, "else",	 do_else,	0 },
 	{ 5, "endif",	 do_endif,	0 },
-	{ 2, "if",	 do_if,		0 },
 	{ 5, "ifdef",	 do_ifdef,	0 },
 	{ 6, "ifndef",   do_ifndef,	0 },
+	{ 2, "if",	 do_if,		0 },
 	{ 7, "include",  do_include,	1 },
 	{ 8, "undefine", do_undefine,	1 },
 };
@@ -390,7 +390,7 @@ process(char *q, int lno, char *fnm)
 	for (p = q; *p; p++)
 		if (*p != ' ' && *p != '\t')
 			break;
-	for (i = 0; i < sizeof(s)/sizeof(struct Directives); i++)
+	for (i = 0; i < (int) (sizeof(s)/sizeof(struct Directives)); i++)
 		if (!strncmp(s[i].directive, p, s[i].len))
 		{	if (s[i].interp
 			&&  !printing[if_depth])
