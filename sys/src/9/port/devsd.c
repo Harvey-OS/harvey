@@ -73,7 +73,7 @@ enum {
 
 
 static void
-sdaddpart(SDunit* unit, char* name, ulong start, ulong end)
+sdaddpart(SDunit* unit, char* name, uvlong start, uvlong end)
 {
 	SDpart *pp;
 	int i, partno;
@@ -177,7 +177,7 @@ static int
 sdinitpart(SDunit* unit)
 {
 	int nf;
-	ulong start, end;
+	uvlong start, end;
 	char *f[4], *p, *q, buf[10];
 
 	if(unit->sectors > 0){
@@ -219,8 +219,8 @@ sdinitpart(SDunit* unit)
 			if(nf < 3)
 				continue;
 
-			start = strtoul(f[1], 0, 0);
-			end = strtoul(f[2], 0, 0);
+			start = strtoull(f[1], 0, 0);
+			end = strtoull(f[2], 0, 0);
 			if(!waserror()){
 				sdaddpart(unit, f[0], start, end);
 				poperror();
@@ -378,11 +378,20 @@ sdadddevs(SDev *sdev)
 	}
 }
 
+// void
+// sdrmdevs(SDev *sdev)
+// {
+// 	char buf[2];
+//
+// 	snprint(buf, sizeof buf, "%c", sdev->idno);
+// 	unconfigure(buf);
+// }
+
 static int
 sd2gen(Chan* c, int i, Dir* dp)
 {
 	Qid q;
-	vlong l;
+	uvlong l;
 	SDpart *pp;
 	SDperm *perm;
 	SDunit *unit;
@@ -421,7 +430,7 @@ sd2gen(Chan* c, int i, Dir* dp)
 
 	case Qpart:
 		pp = &unit->part[PART(c->qid)];
-		l = (pp->end - pp->start) * (vlong)unit->secsize;
+		l = (pp->end - pp->start) * unit->secsize;
 		mkqid(&q, QID(DEV(c->qid), UNIT(c->qid), PART(c->qid), Qpart),
 			unit->vers+pp->vers, QTFILE);
 		if(emptystr(pp->user))
@@ -453,7 +462,7 @@ static int
 sdgen(Chan* c, char*, Dirtab*, int, int s, Dir* dp)
 {
 	Qid q;
-	vlong l;
+	uvlong l;
 	int i, r;
 	SDpart *pp;
 	SDunit *unit;
@@ -554,7 +563,7 @@ sdgen(Chan* c, char*, Dirtab*, int, int s, Dir* dp)
 			decref(&sdev->r);
 			return 0;
 		}
-		l = (pp->end - pp->start) * (vlong)unit->secsize;
+		l = (pp->end - pp->start) * unit->secsize;
 		mkqid(&q, QID(DEV(c->qid), UNIT(c->qid), i, Qpart),
 			unit->vers+pp->vers, QTFILE);
 		if(emptystr(pp->user))
@@ -707,7 +716,7 @@ sdclose(Chan* c)
 }
 
 static long
-sdbio(Chan* c, int write, char* a, long len, vlong off)
+sdbio(Chan* c, int write, char* a, long len, uvlong off)
 {
 	int nchange;
 	long l;
@@ -715,7 +724,8 @@ sdbio(Chan* c, int write, char* a, long len, vlong off)
 	SDpart *pp;
 	SDunit *unit;
 	SDev *sdev;
-	ulong bno, max, nb, offset;
+	ulong max, nb, offset;
+	uvlong bno;
 
 	sdev = sdgetdev(DEV(c->qid));
 	if(sdev == nil){
@@ -1053,6 +1063,8 @@ sdfakescsi(SDreq *r, void *info, int ilen)
 
 	case 0x28:	/* read */
 	case 0x2A:	/* write */
+	case 0x88:	/* read16 */
+	case 0x8a:	/* write16 */
 		return SDnostatus;
 	}
 }
@@ -1114,13 +1126,13 @@ sdread(Chan *c, void *a, long n, vlong off)
 		if(unit->sectors){
 			if(unit->dev->ifc->rctl == nil)
 				l += snprint(p+l, m-l,
-					"geometry %lud %ld\n",
+					"geometry %llud %lud\n",
 					unit->sectors, unit->secsize);
 			pp = unit->part;
 			for(i = 0; i < unit->npart; i++){
 				if(pp->valid)
 					l += snprint(p+l, m-l,
-						"part %s %lud %lud\n",
+						"part %s %llud %llud\n",
 						pp->name, pp->start, pp->end);
 				pp++;
 			}
@@ -1172,7 +1184,7 @@ sdwrite(Chan* c, void* a, long n, vlong off)
 {
 	char *f0;
 	int i;
-	ulong end, start;
+	uvlong end, start;
 	Cmdbuf *cb;
 	SDifc *ifc;
 	SDreq *req;
@@ -1266,8 +1278,8 @@ sdwrite(Chan* c, void* a, long n, vlong off)
 				error(Ebadctl);
 			if(unit->sectors == 0 && !sdinitpart(unit))
 				error(Eio);
-			start = strtoul(cb->f[2], 0, 0);
-			end = strtoul(cb->f[3], 0, 0);
+			start = strtoull(cb->f[2], 0, 0);
+			end = strtoull(cb->f[3], 0, 0);
 			sdaddpart(unit, cb->f[1], start, end);
 		}
 		else if(strcmp(cb->f[0], "delpart") == 0){
@@ -1631,4 +1643,3 @@ legacytopctl(Cmdbuf *cb)
 		error(Ebadarg);
 	sdconfig(cd.on, cd.spec, &cd.cf);
 }
-

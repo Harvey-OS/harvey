@@ -57,7 +57,7 @@ scsiverify(SDunit* unit)
 		return 0;
 	}
 	memmove(unit->inquiry, inquiry, r->dlen);
-	free(inquiry); 
+	free(inquiry);
 
 	SET(status);
 	for(i = 0; i < 3; i++){
@@ -208,20 +208,13 @@ scsionline(SDunit* unit)
 		r->data = p;
 		r->dlen = 8;
 		r->flags = 0;
-	
+
 		r->status = ~0;
 		switch(scsirio(r)){
 		default:
 			break;
 		case 0:
 			unit->sectors = (p[0]<<24)|(p[1]<<16)|(p[2]<<8)|p[3];
-			if(unit->sectors == 0)
-				continue;
-			/*
-			 * Read-capacity returns the LBA of the last sector,
-			 * therefore the number of sectors must be incremented.
-			 */
-			unit->sectors++;
 			unit->secsize = (p[4]<<24)|(p[5]<<16)|(p[6]<<8)|p[7];
 
 			/*
@@ -231,6 +224,16 @@ scsionline(SDunit* unit)
 			 */
 			if(unit->secsize == 2352)
 				unit->secsize = 2048;
+			/*
+			 * Devices with removable media may return 0 sectors
+			 * when they have empty media (e.g. sata dvd writers);
+			 * if so, keep the count zero.
+			 *
+			 * Read-capacity returns the LBA of the last sector,
+			 * therefore the number of sectors must be incremented.
+			 */
+			if(unit->sectors != 0)
+				unit->sectors++;
 			ok = 1;
 			break;
 		case 1:
@@ -300,8 +303,60 @@ scsiexec(SDunit* unit, int write, uchar* cmd, int clen, void* data, int* dlen)
 	return status;
 }
 
+static void
+scsifmt10(SDreq *r, int write, int lun, ulong nb, uvlong bno)
+{
+	uchar *c;
+
+	c = r->cmd;
+	if(write == 0)
+		c[0] = 0x28;
+	else
+		c[0] = 0x2A;
+	c[1] = lun<<5;
+	c[2] = bno>>24;
+	c[3] = bno>>16;
+	c[4] = bno>>8;
+	c[5] = bno;
+	c[6] = 0;
+	c[7] = nb>>8;
+	c[8] = nb;
+	c[9] = 0;
+
+	r->clen = 10;
+}
+
+static void
+scsifmt16(SDreq *r, int write, int lun, ulong nb, uvlong bno)
+{
+	uchar *c;
+
+	c = r->cmd;
+	if(write == 0)
+		c[0] = 0x88;
+	else
+		c[0] = 0x8A;
+	c[1] = lun<<5;		/* so wrong */
+	c[2] = bno>>56;
+	c[3] = bno>>48;
+	c[4] = bno>>40;
+	c[5] = bno>>32;
+	c[6] = bno>>24;
+	c[7] = bno>>16;
+	c[8] = bno>>8;
+	c[9] = bno;
+	c[10] = nb>>24;
+	c[11] = nb>>16;
+	c[12] = nb>>8;
+	c[13] = nb;
+	c[14] = 0;
+	c[15] = 0;
+
+	r->clen = 16;
+}
+
 long
-scsibio(SDunit* unit, int lun, int write, void* data, long nb, long bno)
+scsibio(SDunit* unit, int lun, int write, void* data, long nb, uvlong bno)
 {
 	SDreq *r;
 	long rlen;
@@ -312,20 +367,10 @@ scsibio(SDunit* unit, int lun, int write, void* data, long nb, long bno)
 	r->lun = lun;
 again:
 	r->write = write;
-	if(write == 0)
-		r->cmd[0] = 0x28;
+	if(bno >= (1ULL<<32))
+		scsifmt16(r, write, lun, nb, bno);
 	else
-		r->cmd[0] = 0x2A;
-	r->cmd[1] = (lun<<5);
-	r->cmd[2] = bno>>24;
-	r->cmd[3] = bno>>16;
-	r->cmd[4] = bno>>8;
-	r->cmd[5] = bno;
-	r->cmd[6] = 0;
-	r->cmd[7] = nb>>8;
-	r->cmd[8] = nb;
-	r->cmd[9] = 0;
-	r->clen = 10;
+		scsifmt10(r, write, lun, nb, bno);
 	r->data = data;
 	r->dlen = nb*unit->secsize;
 	r->flags = 0;
@@ -346,7 +391,7 @@ again:
 		default:
 			break;
 		case 0x01:		/* recovered error */
-			print("%s: recovered error at sector %ld\n",
+			print("%s: recovered error at sector %llud\n",
 				unit->name, bno);
 			rlen = r->rlen;
 			break;

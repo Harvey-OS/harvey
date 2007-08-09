@@ -49898,3 +49898,16 @@
 1186527604 28 c sys/src/cmd/spin/vars.c - 664 sys sys 1186525921 8374
 1186527604 29 c sys/src/cmd/spin/version.h - 664 sys sys 1186525921 53
 1186529404 0 c rc/bin/lookman - 775 sys sys 1186528516 687
+1186545604 0 c 386/bin/spin - 775 sys sys 1186543935 769291
+1186599604 0 c sys/src/cmd/auth/cron.c - 664 sys sys 1186599442 12315
+1186615805 0 c sys/src/9/pc/sdscsi.c - 664 sys sys 1186615791 7381
+1186615805 1 c sys/src/cmd/dd.c - 664 sys sys 1186615580 11885
+1186619405 0 c sys/src/9/pc/sdscsi.c - 664 sys sys 1186618532 7957
+1186619405 1 c sys/src/9/port/devsd.c - 664 sys sys 1186618574 31315
+1186619405 2 c sys/src/9/port/sd.h - 664 sys sys 1186618553 2499
+1186619405 3 c sys/src/cmd/mount.c - 664 sys sys 1186618412 1685
+1186621205 0 c sys/src/boot/pc/load.c - 664 sys sys 1186619888 9469
+1186621205 1 c sys/src/boot/pc/mkfile - 664 sys sys 1186619876 3181
+1186630203 0 c 386/bin/dd - 775 sys sys 1186629980 46060
+1186630203 1 c 386/bin/mount - 775 sys sys 1186629980 73380
+1186630203 2 c 386/bin/auth/cron - 775 sys sys 1186629980 143801
