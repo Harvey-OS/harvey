@@ -618,7 +618,7 @@ initcap(void)
 {
 	caphashfd = open("#¤/caphash", OCEXEC|OWRITE);
 	if(caphashfd < 0)
-		fprint(2, "%s: opening #¤/caphash: %r", argv0);
+		fprint(2, "%s: opening #¤/caphash: %r\n", argv0);
 }
 
 /*

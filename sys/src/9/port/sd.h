@@ -15,8 +15,8 @@ struct SDperm {
 };
 
 struct SDpart {
-	ulong	start;
-	ulong	end;
+	uvlong	start;
+	uvlong	end;
 	SDperm;
 	int	valid;
 	ulong	vers;
@@ -30,7 +30,7 @@ struct SDunit {
 	SDperm;
 
 	QLock	ctl;
-	ulong	sectors;
+	uvlong	sectors;
 	ulong	secsize;
 	SDpart*	part;			/* nil or array of size npart */
 	int	npart;
@@ -44,9 +44,9 @@ struct SDunit {
 	SDperm	rawperm;
 };
 
-/* 
+/*
  * Each controller is represented by a SDev.
- */ 
+ */
 struct SDev {
 	Ref	r;			/* Number of callers using device */
 	SDifc*	ifc;			/* pnp/legacy */
@@ -77,7 +77,7 @@ struct SDifc {
 	int	(*rctl)(SDunit*, char*, int);
 	int	(*wctl)(SDunit*, Cmdbuf*);
 
-	long	(*bio)(SDunit*, int, int, void*, long, long);
+	long	(*bio)(SDunit*, int, int, void*, long, uvlong);
 	SDev*	(*probe)(DevConf*);
 	void	(*clear)(SDev*);
 	char*	(*rtopctl)(SDev*, char*, char*);
@@ -133,5 +133,5 @@ extern int sdfakescsi(SDreq*, void*, int);
 /* sdscsi.c */
 extern int scsiverify(SDunit*);
 extern int scsionline(SDunit*);
-extern long scsibio(SDunit*, int, int, void*, long, long);
+extern long scsibio(SDunit*, int, int, void*, long, uvlong);
 extern SDev* scsiid(SDev*, SDifc*);
