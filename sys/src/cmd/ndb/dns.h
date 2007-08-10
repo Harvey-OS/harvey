@@ -491,6 +491,7 @@ void	addarea(DN *dp, RR *rp, Ndbtuple *t);
 int	baddelegation(RR*, RR*, uchar*);
 RR*	dbinaddr(DN*, int);
 RR*	dblookup(char*, int, int, int, int);
+void	dnforceage(void);
 RR*	dnsservers(int);
 RR*	domainlist(int);
 int	insideaddr(char *dom);

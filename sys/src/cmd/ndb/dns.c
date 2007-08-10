@@ -691,6 +691,16 @@ rwrite(Job *job, Mfile *mf, Request *req)
 	} else if(strcmp(job->request.data, "poolcheck")==0){
 		poolcheck(mainmem);
 		goto send;
+	} else if(strncmp(job->request.data, "target", 6)==0){
+		target = atol(job->request.data + 6);
+		dnslog("target set to %ld", target);
+		goto send;
+	} else if(strcmp(job->request.data, "age")==0){
+		dnslog("dump, age & dump forced");
+		dndump("/lib/ndb/dnsdump1");
+		dnforceage();
+		dndump("/lib/ndb/dnsdump2");
+		goto send;
 	}
 
 	/*

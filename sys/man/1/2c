@@ -400,7 +400,10 @@ and the other operators generate in-line code
 .I uvlong-expression
 .I divison-or-modulus
 .BI "(1<<" constant )
-will turn into in-line bit operations).
+will turn into in-line bit operations,
+as is done for shorter
+.I unsigned
+expressions).
 .SH EXAMPLE
 For the 68020, produce a program
 .B prog

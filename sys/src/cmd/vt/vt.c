@@ -920,7 +920,7 @@ setattr(int argc, int *argv)
 		case 35:	/* purple */
 		case 36:	/* cyan */
 		case 37:	/* white */
-			fgcolor = colors[argv[i]-30];
+			fgcolor = (nocolor? fgdefault: colors[argv[i]-30]);
 			break;
 		case 39:
 			fgcolor = fgdefault;
@@ -933,7 +933,7 @@ setattr(int argc, int *argv)
 		case 45:	/* purple */
 		case 46:	/* cyan */
 		case 47:	/* white */
-			bgcolor = colors[argv[i]-40];
+			bgcolor = (nocolor? bgdefault: colors[argv[i]-40]);
 			break;
 		case 49:
 			bgcolor = bgdefault;

@@ -1617,7 +1617,7 @@ atarctl(SDunit* unit, char* p, int l)
 			drive->rwm, drive->rwmctl);
 	n += snprint(p+n, l-n, "\n");
 	if(unit->sectors){
-		n += snprint(p+n, l-n, "geometry %ld %ld",
+		n += snprint(p+n, l-n, "geometry %llud %ld",
 			unit->sectors, unit->secsize);
 		if(drive->pkt == 0)
 			n += snprint(p+n, l-n, " %d %d %d",
@@ -1931,7 +1931,7 @@ ataonline(SDunit* unit)
 }
 
 static long
-atabio(SDunit* unit, int lun, int write, void* data, long nb, long bno)
+atabio(SDunit* unit, int lun, int write, void* data, long nb, uvlong bno)
 {
 	SDreq *r;
 	long rlen;
