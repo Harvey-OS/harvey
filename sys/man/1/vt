@@ -4,34 +4,55 @@ vt \- emulate a VT-100 or VT-220 terminal
 .SH SYNOPSIS
 .B vt
 [
-.B -2asx
+.B -2abcx
 ]
 [
 .B -f
 .I font
+] [
+.B -l
+.I log
 ]
 .SH DESCRIPTION
 .I Vt
-replaces a rio window with a fresh instance of the shell
-.IR rc (1)
+replaces a
+.I rio
+window with a fresh instance of the shell,
+.IR rc (1),
 running within an emulation of a DEC VT-100 terminal.
-The
-.BR -2 ,
-.B -a
-and
-.B -x
-options change
+To exit
+.IR vt ,
+exit the
+.B rc
+it starts.
+.SS Options
+.TF m
+.TP
+.B 2
+.TP
+.B a
+.TP
+.B x
+change
 .I vt
 to emulate a VT-220, ANSI, or XTerm terminal respectively.
-.PP
-The
-.B -s
-option changes the color scheme to black text on a white background.
-.PP
-The
-.B -f
-option sets the font.
-.PP
+.TP
+.B b
+changes the color scheme to white text on a black background,
+but potentially with colors from escape sequences.
+.TP
+.B c
+changes the color scheme to monochrome (no colors).
+.TP
+.B f
+sets the
+.IR font .
+.TP
+.B l
+names a
+.I log
+file for the session.
+.SS Menus
 The right button has a menu with the following entries to provide
 the sort of character processing expected by non-Plan 9 systems:
 .TF cooked
@@ -99,17 +120,11 @@ Make new lines visible as they appear at the bottom.
 When the page fills, pause and wait for a character to be typed before proceeding.
 The down arrow key advances a page without sending the character to the host.
 .PD
-.PP
-To exit
-.IR vt ,
-exit the
-.B rc
-it starts.
 .SH SOURCE
 .B /sys/src/cmd/vt
 .SH BUGS
-.PP
-This program is used only for communicating with foreign systems, so it is not
+This program is used only for communicating with foreign systems,
+so it is not
 as rich an emulation as its equivalent in other environments.
 .PP
 Use care in setting raw and newline modes when connecting to Unix systems

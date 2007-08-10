@@ -39,7 +39,7 @@ gzip, gunzip, bzip2, bunzip2, compress, uncompress, zip, unzip \- compress and e
 ]
 .PP
 .B zip
-.RB [ -vD [ 1-9 ]]
+.RB [ -avD [ 1-9 ]]
 .RB [ -f
 .IR zipfile ]
 .I file
@@ -131,6 +131,10 @@ If the process fails, the faulty output files are removed.
 .PP
 The options are:
 .TP 0.6i
+.B -a
+Automaticialy creates directories as needed, needed for zip files
+created by broken implementations which omit directories.
+.TP
 .B -c
 Write to standard output rather than creating an output file.
 .TP

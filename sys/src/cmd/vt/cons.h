@@ -81,6 +81,7 @@ extern Image *bgdefault;
 extern Image *fgdefault;
 
 extern int cursoron;
+extern int nocolor;
 
 extern void curson(int);
 extern void cursoff(void);

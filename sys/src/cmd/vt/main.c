@@ -91,17 +91,23 @@ int	CW;
 Consstate *cs;
 Mouse	mouse;
 
+int	debug;
+int	nocolor;
+int	logfd = -1;
 int	outfd = -1;
 Biobuf	*snarffp = 0;
 
 char	*host_buf;
-char	*hostp;			/* input from host */
+char	*hostp;				/* input from host */
 int	host_bsize = 2*BSIZE;
 int	hostlength;			/* amount of input from host */
 char	echo_input[BSIZE];
-char	*echop = echo_input;	/* characters to echo, after canon */
+char	*echop = echo_input;		/* characters to echo, after canon */
 char	sendbuf[BSIZE];	/* hope you can't type ahead more than BSIZE chars */
 char	*sendp = sendbuf;
+
+char *term;
+struct funckey *fk;
 
 /* functions */
 void	initialize(int, char **);
@@ -117,11 +123,7 @@ void	resize(void);
 void	send_interrupt(void);
 int	alnum(int);
 void	escapedump(int,uchar *,int);
-char *term;
-struct funckey *fk;
 
-int	debug;
-int	logfd = -1;
 void
 main(int argc, char **argv)
 {
@@ -132,14 +134,14 @@ main(int argc, char **argv)
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-2s] [-l logfile]\n", argv0);
+	fprint(2, "usage: %s [-2abcx] [-f font] [-l logfile]\n", argv0);
 	exits("usage");
 }
 
 void
 initialize(int argc, char **argv)
 {
-	int i;
+	int i, blkbg;
 	char *fontname, *p;
 
 	rfork(RFNAMEG|RFNOTEG);
@@ -147,27 +149,37 @@ initialize(int argc, char **argv)
 	fontname = nil;
 	term = "vt100";
 	fk = vt100fk;
+	blkbg = nocolor = 0;
 	ARGBEGIN{
-	case 'f':
-		fontname = EARGF(usage());
+	case '2':
+		term = "vt220";
+		fk = vt220fk;
 		break;
 	case 'a':
 		term = "ansi";
 		fk = ansifk;
 		break;
-	case '2':
-		term = "vt220";
-		fk = vt220fk;
+	case 'b':
+		blkbg = 1;		/* e.g., for linux colored output */
 		break;
-	case 'x':
-		fk = xtermfk;
-		term = "xterm";
+	case 'c':
+		nocolor = 1;
+		break;
+	case 'f':
+		fontname = EARGF(usage());
 		break;
 	case 'l':
 		p = EARGF(usage());
 		logfd = create(p, OWRITE, 0666);
 		if(logfd < 0)
 			sysfatal("could not create log file: %s: %r", p);
+		break;
+	case 'x':
+		fk = xtermfk;
+		term = "xterm";
+		break;
+	default:
+		usage();
 		break;
 	}ARGEND;
 
@@ -179,6 +191,7 @@ initialize(int argc, char **argv)
 		fprint(2, "%s: initdraw failed: %r\n", term);
 		exits("initdraw");
 	}
+	werrstr("");		/* clear spurious error messages */
 	ebegin(Ehost);
 
 	histp = hist;
@@ -194,12 +207,14 @@ initialize(int argc, char **argv)
 	cursback = allocimage(display, Rect(0, 0, CW+1, NS+1), screen->chan, 0, DNofill);
 
 	for(i=0; i<8; i++){
-		colors[i] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, rgbacolors[i]);
-		hicolors[i] = allocimage(display, Rect(0,0,1,1), screen->chan, 1, rgbahicolors[i]);
+		colors[i] = allocimage(display, Rect(0,0,1,1), screen->chan, 1,
+			rgbacolors[i]);
+		hicolors[i] = allocimage(display, Rect(0,0,1,1), screen->chan, 1,
+			rgbahicolors[i]);
 	}
 
-	bgdefault = display->white;
-	fgdefault = display->black;
+	bgdefault = (blkbg? display->black: display->white);
+	fgdefault = (blkbg? display->white: display->black);
 	bgcolor = bgdefault;
 	fgcolor = fgdefault;
 
@@ -565,6 +580,7 @@ resize(void)
 	exportsize();
 	clear(screen->r);
 	resize_flag = 0;
+	werrstr("");		/* clear spurious error messages */
 }
 
 void
@@ -583,7 +599,8 @@ setdim(int ht, int wid)
 			Pt((xmax+1)*CW+2*XMARGIN+2*INSET,
 				(ymax+1)*NS+2*YMARGIN+2*INSET));
 	fd = open("/dev/wctl", OWRITE);
-	if(fd < 0 || fprint(fd, "resize -dx %d -dy %d\n", Dx(r)+2*Borderwidth, Dy(r)+2*Borderwidth) < 0){
+	if(fd < 0 || fprint(fd, "resize -dx %d -dy %d\n", Dx(r)+2*Borderwidth,
+	    Dy(r)+2*Borderwidth) < 0){
 		border(screen, r, INSET, bordercol, ZP);
 		exportsize();
 	}

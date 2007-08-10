@@ -47,6 +47,7 @@ static	int	wbad;
 static	ulong	wlen;
 static	jmp_buf	zjmp;
 static	jmp_buf	seekjmp;
+static	int	autodir;
 
 static void
 usage(void)
@@ -65,6 +66,9 @@ main(int argc, char *argv[])
 	stream = 0;
 	zfile = nil;
 	ARGBEGIN{
+	case 'a':
+		autodir++;
+		break;
 	case 'D':
 		debug++;
 		break;
@@ -338,6 +342,55 @@ sunzip(Biobuf *bin)
 	}
 }
 
+static int mkdirs(char *);
+
+/*
+ * if any directories leading up to path don't exist, create them.
+ * modifies but restores path.
+ */
+static int
+mkpdirs(char *path)
+{
+	int rv = 0;
+	char *sl = strrchr(path, '/');
+print("%s\n", path);
+	if (sl != nil) {
+		*sl = '\0';
+		rv = mkdirs(path);
+		*sl = '/';
+	}
+	return rv;
+}
+
+/*
+ * if path or any directories leading up to it don't exist, create them.
+ * modifies but restores path.
+ */
+static int
+mkdirs(char *path)
+{
+	int fd;
+
+	if (access(path, AEXIST) >= 0)
+		return 0;
+
+	/* make presumed-missing intermediate directories */
+	if (mkpdirs(path) < 0)
+		return -1;
+
+	/* make final directory */
+	fd = create(path, OREAD, 0755|DMDIR);
+	if (fd < 0)
+		/*
+		 * we may have lost a race; if the directory now exists,
+		 * it's okay.
+		 */
+		return access(path, AEXIST) < 0? -1: 0;
+	close(fd);
+	return 0;
+}
+
+
 /*
  * extracts a single entry from a zip file
  * czh is the optional corresponding central directory entry
@@ -395,6 +448,8 @@ unzipEntry(Biobuf *bin, ZipHead *czh)
 				free(d);
 			}
 		}else if(ok){
+			if(autodir)
+				mkpdirs(zh.file);
 			fd = create(zh.file, OWRITE, 0664);
 			if(fd < 0){
 				fprint(2, "unzip: can't create %s: %r\n", zh.file);
