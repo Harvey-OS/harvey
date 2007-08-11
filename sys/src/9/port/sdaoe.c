@@ -379,7 +379,7 @@ pnpprobe(SDev *sd)
 
 	for(j = 0;; j += 200){
 		if(j > 8000){
-			print("pnpprobe: %s: %s\n", probef[i-1], up->errstr);
+			print("#æ: pnpprobe: %s: %s\n", probef[i-1], up->errstr);
 			return 0;
 		}
 		if(waserror()){
@@ -390,7 +390,7 @@ pnpprobe(SDev *sd)
 		poperror();
 		break;
 	}
-	print("æ: pnpprobe establishes %sin %dms\n", probef[i-1], j);
+	print("#æ: pnpprobe establishes %sin %dms\n", probef[i-1], j);
 	return sd->ctlr;
 }
 
