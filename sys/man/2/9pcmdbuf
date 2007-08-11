@@ -48,6 +48,8 @@ using
 It returns a
 .B Cmdbuf
 structure holding pointers to each field in the message.
+It is the caller's responsibility to
+free this structure when it is no longer needed.
 .PP
 .I Lookupcmd
 walks through the array

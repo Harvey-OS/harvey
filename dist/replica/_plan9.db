@@ -1,8 +1,8 @@
 386 - 20000000775 sys sys 1010957353 0
 386/9load - 775 sys sys 1181763625 313856
-386/9loaddebug - 775 sys sys 1186291382 417075
+386/9loaddebug - 775 sys sys 1186776564 435045
 386/9loadlite - 775 sys sys 1176519517 137148
-386/9loadlitedebug - 775 sys sys 1186291382 202587
+386/9loadlitedebug - 775 sys sys 1186776564 220555
 386/9pc - 775 sys sys 1186023393 1937795
 386/9pc.gz - 664 sys sys 1186023393 829787
 386/9pccpu - 775 sys sys 1186023409 1657423
@@ -342,10 +342,10 @@
 386/bin/ndb - 20000000775 sys sys 985743147 0
 386/bin/ndb/cs - 775 sys sys 1184529902 149014
 386/bin/ndb/csquery - 775 sys sys 1176488418 61652
-386/bin/ndb/dns - 775 sys sys 1186112229 293921
-386/bin/ndb/dnsdebug - 775 sys sys 1186112230 269375
+386/bin/ndb/dns - 775 sys sys 1186716659 294300
+386/bin/ndb/dnsdebug - 775 sys sys 1186716660 269466
 386/bin/ndb/dnsquery - 775 sys sys 1185334136 64350
-386/bin/ndb/dnstcp - 775 sys sys 1186112231 267228
+386/bin/ndb/dnstcp - 775 sys sys 1186716661 267315
 386/bin/ndb/ipquery - 775 sys sys 1178568296 95524
 386/bin/ndb/mkdb - 775 sys sys 1168402340 64211
 386/bin/ndb/mkhash - 775 sys sys 1178568296 83312
@@ -449,7 +449,7 @@
 386/bin/units - 775 sys sys 1168402357 75478
 386/bin/unlnfs - 775 sys sys 1168402357 71590
 386/bin/unmount - 775 sys sys 1148500700 36646
-386/bin/unzip - 775 sys sys 1168402357 90215
+386/bin/unzip - 775 sys sys 1186776392 91093
 386/bin/upas - 20000000775 sys sys 1016857390 0
 386/bin/upas/addhash - 775 sys sys 1178568309 70721
 386/bin/upas/aliasmail - 775 sys sys 1178568309 104105
@@ -509,7 +509,7 @@
 386/bin/venti/write - 775 sys sys 1176520521 102825
 386/bin/vncs - 775 sys sys 1179372111 471469
 386/bin/vncv - 775 sys sys 1179372113 518914
-386/bin/vt - 775 sys sys 1179372113 176626
+386/bin/vt - 775 sys sys 1186716661 176851
 386/bin/vtdump - 775 sys sys 1178568328 160252
 386/bin/wc - 775 sys sys 1148500701 41191
 386/bin/webcookies - 775 sys sys 1179372114 166178
@@ -7385,7 +7385,7 @@ sys/man/1/graph - 664 sys sys 1148227125 3061
 sys/man/1/grep - 664 sys sys 1139690020 2257
 sys/man/1/gs - 664 sys sys 1032054727 6906
 sys/man/1/gview - 664 sys sys 1136378273 4361
-sys/man/1/gzip - 664 sys sys 1157681393 3830
+sys/man/1/gzip - 664 sys sys 1186715466 3965
 sys/man/1/hget - 664 sys sys 1141313152 1482
 sys/man/1/history - 664 sys sys 1176744024 1706
 sys/man/1/hoc - 664 sys sys 1136378274 2357
@@ -7485,7 +7485,7 @@ sys/man/1/yesterday - 664 sys sys 1148760984 2640
 sys/man/2 - 20000000775 sys sys 1143130045 0
 sys/man/2/0intro - 664 sys sys 1115941566 11660
 sys/man/2/9p - 664 sys sys 1175867369 15852
-sys/man/2/9pcmdbuf - 664 sys sys 1165622380 2076
+sys/man/2/9pcmdbuf - 664 sys sys 1186721809 2162
 sys/man/2/9pfid - 664 sys sys 1106072437 3663
 sys/man/2/9pfile - 664 sys sys 1048637158 4408
 sys/man/2/INDEX - 664 sys sys 1183240469 20532
@@ -7660,7 +7660,7 @@ sys/man/3/proc - 664 sys sys 1138458595 12062
 sys/man/3/root - 664 sys sys 1046958450 632
 sys/man/3/rtc - 664 sys sys 954378857 667
 sys/man/3/sd - 664 sys sys 1176502187 5678
-sys/man/3/sdaoe - 664 sys sys 1186714215 1312
+sys/man/3/sdaoe - 664 sys sys 1186723542 1310
 sys/man/3/segment - 664 sys sys 1017423721 2378
 sys/man/3/srv - 664 sys sys 958419690 1470
 sys/man/3/ssl - 664 sys sys 1018386776 3413
@@ -8168,7 +8168,7 @@ sys/src/9/port/chan.c - 664 sys sys 1146151714 34773
 sys/src/9/port/cis.c - 664 sys sys 1099761153 9248
 sys/src/9/port/debugalloc.c - 664 sys sys 1014931171 10402
 sys/src/9/port/dev.c - 664 sys sys 1146151714 8177
-sys/src/9/port/devaoe.c - 664 sys sys 1186714271 41116
+sys/src/9/port/devaoe.c - 664 sys sys 1186772629 41313
 sys/src/9/port/devaudio.c - 664 sys sys 1170456648 21199
 sys/src/9/port/devbridge.c - 664 sys sys 1185994684 24171
 sys/src/9/port/devcap.c - 664 sys sys 1178886040 4141
@@ -8235,7 +8235,7 @@ sys/src/9/port/qlock.c - 664 sys sys 1178057654 3300
 sys/src/9/port/rdb.c - 664 sys sys 1184465938 1704
 sys/src/9/port/rebootcmd.c - 664 sys sys 1015278340 1561
 sys/src/9/port/sd.h - 664 sys sys 1186618553 2499
-sys/src/9/port/sdaoe.c - 664 sys sys 1186714271 9977
+sys/src/9/port/sdaoe.c - 664 sys sys 1186772635 9983
 sys/src/9/port/segment.c - 664 sys sys 1170456581 14052
 sys/src/9/port/semaphore.p - 664 sys sys 1143129797 2424
 sys/src/9/port/swap.c - 664 sys sys 1138028310 7019
@@ -12413,7 +12413,7 @@ sys/src/cmd/gzip/gunzip.c - 664 sys sys 1143759345 6037
 sys/src/cmd/gzip/gzip.c - 664 sys sys 1135487934 3655
 sys/src/cmd/gzip/gzip.h - 664 sys sys 954778718 1058
 sys/src/cmd/gzip/mkfile - 664 sys sys 1124884920 124
-sys/src/cmd/gzip/unzip.c - 664 sys sys 1143759338 13800
+sys/src/cmd/gzip/unzip.c - 664 sys sys 1186715467 14731
 sys/src/cmd/gzip/zip.c - 664 sys sys 1135487935 7063
 sys/src/cmd/gzip/zip.h - 664 sys sys 954778719 1428
 sys/src/cmd/hget.c - 664 sys sys 1161442159 25962
@@ -15852,5 +15852,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-sys/man/1/gzip - 664 sys sys 1186715466 3965
-sys/src/cmd/gzip/unzip.c - 664 sys sys 1186715467 14731
