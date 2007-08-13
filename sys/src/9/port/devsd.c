@@ -1634,12 +1634,10 @@ legacytopctl(Cmdbuf *cb)
 		if(j == nelem(options))
 			error(Ebadarg);
 	}
-	if(cd.on < 0)
+	/* this has been rewritten to accomodate sdaoe */
+	if(cd.on < 0 || cd.spec == 0)
 		error(Ebadarg);
-	if(cd.on
-	&& (cd.spec == 0 || cd.cf.nports == 0 || cd.cf.intnum == 0 || cd.cf.type == nil))
-		error(Ebadarg);
-	if(!cd.on && cd.spec == 0)
+	if(cd.on && cd.cf.type == nil)
 		error(Ebadarg);
 	sdconfig(cd.on, cd.spec, &cd.cf);
 }

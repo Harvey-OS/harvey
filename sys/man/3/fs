@@ -156,6 +156,7 @@ fsconfig=/dev/fd0disk
 in
 .IR cat (1),
 .IR dd (1),
+.IR sd (3),
 .IR kfs (4),
 .IR fs (8),
 .IR plan9.ini (8),

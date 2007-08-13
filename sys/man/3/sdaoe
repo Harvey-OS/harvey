@@ -4,7 +4,7 @@ sdaoe \- ATA-over-Ethernet (AoE) storage device interface
 .SH SYNOPSIS
 .nf
 .B bind -a #S /dev
-.BI "echo config switch on spec " l " type aoe/aoe/" shelf\fB.\fPslot " >/dev/sdctl"
+.BI "echo config switch on spec " l " type aoe//dev/aoe/" shelf\fB.\fPslot " >/dev/sdctl"
 
 .BI /dev/sd l 0/ctl
 .BI /dev/sd l 0/raw
@@ -19,13 +19,14 @@ The default first letter for AoE devices is
 .LR e .
 Each
 .B sdaoe
-device must be configured explicitly. To configure target
+device must be configured explicitly.
+To configure target
 .B 42.0
 on
 .BR sde0 :
 .IP
 .EX
-echo config switch on spec e type aoe/aoe/42.0 >/dev/sdctl
+echo config switch on spec e type aoe//dev/aoe/42.0 >/dev/sdctl
 .EE
 .PP
 To turn this device off,
