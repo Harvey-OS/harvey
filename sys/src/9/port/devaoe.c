@@ -740,7 +740,7 @@ unitgen(Chan *c, ulong type, Dir *dp)
 	Qid q;
 
 	d = unit2dev(UNIT(c->qid));
-	perm = 0666;
+	perm = 0644;
 	size = 0;
 	vers = d->vers;
 	t = QTFILE;
@@ -753,6 +753,7 @@ unitgen(Chan *c, ulong type, Dir *dp)
 		break;
 	case Qdata:
 		p = "data";
+		perm = 0640;
 		if(UP(d))
 			size = d->bsize;
 		break;
@@ -1128,9 +1129,13 @@ rw(Aoedev *d, int write, uchar *db, long len, uvlong off)
 	enum { Srbsz = 1<<18, };
 	Srb *srb;
 
+	/*
+	 * it would be good if we could relax this, to match all other
+	 * disk drivers in Plan 9.
+	 */
 	if((off|len) & (Aoesectsz-1))
 		error("offset and length must be sector multiple.\n");
-	if(off > d->bsize)
+	if(off > d->bsize || len == 0)
 		return 0;
 	if(off + len > d->bsize)
 		len = d->bsize - off;
@@ -1213,7 +1218,7 @@ pstat(Aoedev *d, char *db, int len, int off)
 	p = seprint(p, e,
 		"state: %s\n"	"nopen: %d\n"	"nout: %d\n"
 		"nmaxout: %d\n"	"nframes: %d\n"	"maxbcnt: %d\n"
-		"fw: %d\n"
+		"fw: %.4ux\n"
 		"model: %s\n"	"serial: %s\n"	"firmware: %s\n",
 		state,		d->nopen,	d->nout,
 		d->maxout, 	d->nframes,	d->maxbcnt,

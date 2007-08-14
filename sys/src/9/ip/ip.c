@@ -7,7 +7,6 @@
 
 #include	"ip.h"
 
-typedef struct Ip4hdr		Ip4hdr;
 typedef struct IP		IP;
 typedef struct Fragment4	Fragment4;
 typedef struct Fragment6	Fragment6;
@@ -15,8 +14,6 @@ typedef struct Ipfrag		Ipfrag;
 
 enum
 {
-	IP4HDR		= 20,		/* sizeof(Ip4hdr) */
-	IP6HDR		= 40,		/* sizeof(Ip6hdr) */
 	IP_HLEN4	= 0x05,		/* Header length in words */
 	IP_DF		= 0x4000,	/* Don't fragment */
 	IP_MF		= 0x2000,	/* More fragments */
@@ -25,20 +22,6 @@ enum
 };
 
 #define BLKIPVER(xp)	(((Ip4hdr*)((xp)->rp))->vihl&0xF0)
-
-struct Ip4hdr
-{
-	uchar	vihl;		/* Version and header length */
-	uchar	tos;		/* Type of service */
-	uchar	length[2];	/* packet length */
-	uchar	id[2];		/* ip->identification */
-	uchar	frag[2];	/* Fragment information */
-	uchar	ttl;      	/* Time to live */
-	uchar	proto;		/* Protocol */
-	uchar	cksum[2];	/* Header checksum */
-	uchar	src[4];		/* IP source */
-	uchar	dst[4];		/* IP destination */
-};
 
 /* MIB II counters */
 enum
@@ -460,7 +443,7 @@ ipiput4(Fs *f, Ipifc *ifc, Block *bp)
 			freeblist(bp);
 			return;
 		}
-	  /* If this is not routed strip off the options */
+		/* If this is not routed strip off the options */
 		if(notforme == 0) {
 			olen = nhgets(h->length);
 			dp = bp->rp + (hl - (IP_HLEN4<<2));

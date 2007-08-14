@@ -51,6 +51,7 @@ enum
 	V6=		6,
 	IP_VER4= 	0x40,
 	IP_VER6=	0x60,
+	IP4HDR=		20,		/* sizeof(Ip4hdr) */
 
 	/* 2^Lroot trees in the root table */
 	Lroot=		10,
@@ -65,6 +66,22 @@ enum
 	Announced=	2,
 	Connecting=	3,
 	Connected=	4,
+};
+
+/* on the wire packet header */
+typedef struct Ip4hdr		Ip4hdr;
+struct Ip4hdr
+{
+	uchar	vihl;		/* Version and header length */
+	uchar	tos;		/* Type of service */
+	uchar	length[2];	/* packet length */
+	uchar	id[2];		/* ip->identification */
+	uchar	frag[2];	/* Fragment information */
+	uchar	ttl;      	/* Time to live */
+	uchar	proto;		/* Protocol */
+	uchar	cksum[2];	/* Header checksum */
+	uchar	src[4];		/* IP source */
+	uchar	dst[4];		/* IP destination */
 };
 
 /*

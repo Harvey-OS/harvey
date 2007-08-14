@@ -10,8 +10,6 @@
 
 enum
 {
-	IP4HDR		= 20,		/* sizeof(Ip4hdr) */
-	IP6HDR		= 40,		/* sizeof(Ip6hdr) */
 	IP_HLEN4	= 0x05,		/* Header length in words */
 	IP_DF		= 0x4000,	/* Don't fragment */
 	IP_MF		= 0x2000,	/* More fragments */
@@ -167,8 +165,8 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 			netlog(f, Logip, "short gated packet\n");
 			goto free;
 		}
-		if(chunk + IPV6HDR_LEN < len)
-			len = chunk + IPV6HDR_LEN;
+		if(chunk + IP6HDR < len)
+			len = chunk + IP6HDR;
 	}
 
 	if(len >= IP_MAX){
@@ -221,7 +219,7 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 	/* If we dont need to fragment just send it */
 	medialen = ifc->maxtu - ifc->m->hsize;
 	if(len <= medialen) {
-		hnputs(eh->ploadlen, len-IPV6HDR_LEN);
+		hnputs(eh->ploadlen, len - IP6HDR);
 		ifc->m->bwrite(ifc, bp, V6, gate);
 		runlock(ifc);
 		poperror();

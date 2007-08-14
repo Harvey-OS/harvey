@@ -24,7 +24,7 @@ enum {
 
 enum {
 	Aoetype	= 0x88a2,
-	Aoesectsz = 512,			/* assumed sector size */
+	Aoesectsz = 512,			/* standard sector size */
 	Aoever	= 1,
 
 	AFerr	= 1<<2,

@@ -1,3 +1,6 @@
+/*
+ * IP packet filter
+ */
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
@@ -6,19 +9,13 @@
 #include "../port/error.h"
 
 #include "ip.h"
-#define DPRINT if(0)print
+#include "ipv6.h"
 
 typedef struct Ipmuxrock  Ipmuxrock;
 typedef struct Ipmux      Ipmux;
-typedef struct Ip4hdr     Ip4hdr;
-typedef struct Ip6hdr     Ip6hdr;
 
-enum
-{
-	IPHDR		= 20,		/* sizeof(Ip4hdr) */
-};
-
-struct Ip4hdr
+typedef struct Myip4hdr Myip4hdr;
+struct Myip4hdr
 {
 	uchar	vihl;		/* Version and header length */
 	uchar	tos;		/* Type of service */
@@ -30,20 +27,10 @@ struct Ip4hdr
 	uchar	cksum[2];	/* Header checksum */
 	uchar	src[4];		/* IP source */
 	uchar	dst[4];		/* IP destination */
+
 	uchar	data[1];	/* start of data */
 };
-Ip4hdr *ipoff = 0;
-
-struct Ip6hdr
-{
-	uchar vcf[4];		/* version, class label, and flow label */ 
-	uchar ploadlen[2];	/* payload length */
-	uchar proto;		/* next header, i.e. proto */
-	uchar ttl;		/* hop limit, i.e. ttl */
-	uchar src[16];		/* IP source */
-	uchar dst[16];		/* IP destination */
-};
-
+Myip4hdr *ipoff = 0;
 
 enum
 {
@@ -177,7 +164,7 @@ parseop(char **pp)
 			return nil;
 		p++;
 		off = strtoul(p, &p, 0);
-		if(off < 0 || off > (64-IPHDR))
+		if(off < 0 || off > (64-IP4HDR))
 			return nil;
 		p = skipwhite(p);
 		if(*p != ':')
@@ -657,19 +644,15 @@ ipmuxkick(void *x)
 {
 	Conv *c = x;
 	Block *bp;
-	struct Ip6hdr *ih6;
 
 	bp = qget(c->wq);
-	if(bp == nil)
-		return;
-	else {
-		Ip4hdr *ih4 = (Ip4hdr*)(bp->rp);
-		if((ih4->vihl)&0xF0 != 0x60)
+	if(bp != nil) {
+		Myip4hdr *ih4 = (Myip4hdr*)(bp->rp);
+
+		if((ih4->vihl & 0xF0) != IP_VER6)
 			ipoput4(c->p->f, bp, 0, ih4->ttl, ih4->tos, nil);
-		else {
-			ih6 = (struct Ip6hdr*)ih4;
-			ipoput6(c->p->f, bp, 0, ih6->ttl, 0, nil);
-		}
+		else
+			ipoput6(c->p->f, bp, 0, ((Ip6hdr*)ih4)->ttl, 0, nil);
 	}
 }
 
@@ -681,10 +664,10 @@ ipmuxiput(Proto *p, Ipifc *ifc, Block *bp)
 	uchar *m, *h, *v, *e, *ve, *hp;
 	Conv *c;
 	Ipmux *mux;
-	Ip4hdr *ip;
+	Myip4hdr *ip;
 	Ip6hdr *ip6;
 
-	ip = (Ip4hdr*)bp->rp;
+	ip = (Myip4hdr*)bp->rp;
 	hl = (ip->vihl&0x0F)<<2;
 
 	if(p->priv == nil)
@@ -771,8 +754,8 @@ yes:
 
 nomatch:
 	/* doesn't match any filter, hand it to the specific protocol handler */
-	ip = (Ip4hdr*)bp->rp;
-	if((ip->vihl&0xF0)==0x40) {
+	ip = (Myip4hdr*)bp->rp;
+	if((ip->vihl & 0xF0) == IP_VER4) {
 		p = f->t2p[ip->proto];
 	} else {
 		ip6 = (Ip6hdr*)bp->rp;
