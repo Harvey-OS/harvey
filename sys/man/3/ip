@@ -44,9 +44,12 @@ ip \- network protocols over IP
 .1C
 .fi
 .SH DESCRIPTION
-The IP device provides the interface to Internet protocol stacks.
+The
+.I ip
+device provides the interface to Internet Protocol stacks.
 .I Spec
 is an integer from 0 to 15 identifying a stack.
+Each stack implements IPv4 and IPv6.
 Each stack is independent of all others:
 the only information transfer between them is via programs that
 mount multiple stacks.
@@ -56,7 +59,6 @@ new IP networks or implementing firewalls or proxy
 services.
 .PP
 All addresses used are 16-byte IPv6 addresses.
-The IP device implements IPv4 and IPv6.
 IPv4 addresses are a subset of the IPv6 addresses and both standard
 .SM ASCII
 formats are accepted.
@@ -65,8 +67,8 @@ In binary representation, all v4 addresses start with the 12 bytes, in hex:
 .EX
 00 00 00 00 00 00 00 00 00 00 ff ff
 .EE
+.
 .SS "Configuring interfaces
-.PP
 Each stack may have multiple interfaces and each interface
 may have multiple addresses.
 The
@@ -108,7 +110,7 @@ The kernel will
 .IR path !0x800
 and
 .IR path !0x806
-and use the two connections for IP and
+and use the two connections for IPv4 and
 ARP respectively.
 .TP
 .B "bind pkt
@@ -312,8 +314,8 @@ See
 .I readipifc
 in
 .IR ip (2).
+.
 .SS "Routing
-.PP
 The file
 .I iproute
 controls information about IP routing.
@@ -324,7 +326,8 @@ tag, and interface number.
 The entry used for routing an IP packet is the one with
 the longest mask for which destination address ANDed with
 target mask equals the target address.
-The one character flags are:
+The one-character flags are:
+.TF m
 .TP
 .B 4
 IPv4 route
@@ -346,6 +349,7 @@ multicast route
 .TP
 .B p
 point-to-point route
+.PD
 .PP
 The tag is an arbitrary, up to 4 character, string.  It is normally used to
 indicate what routing protocol originated the route.
@@ -370,8 +374,8 @@ same target and mask, replace it.
 .TP
 .BI remove\  "target mask"
 Remove a route with a matching target and mask.
+.
 .SS "Address resolution
-.PP
 The file
 .B /net/arp
 controls information about address resolution.
@@ -409,8 +413,8 @@ Currently, the only medium type is
 .BR ether .
 .br
 .ne 3
+.
 .SS "Debugging and stack information
-.PP
 If any process is holding
 .B /net/log
 open, the IP stack queues debugging information to it.
@@ -421,8 +425,9 @@ about bad packets.
 .PP
 Writing to
 .B /net/log
-controls debugging.  The control messages
-are:
+controls debugging.  The control messages are:
+.TF "clear addr"
+.PD
 .TP
 .BI set\  arglist
 .I Arglist
@@ -481,8 +486,8 @@ entries.
 Note that the `IPv4 route' flag will never be set.
 .br
 .ne 3
+.
 .SS "Protocol directories
-.PP
 The
 .I ip
 device
@@ -547,13 +552,13 @@ file (see
 to receive incoming calls.
 .PP
 The following control messages are supported:
-.TF "bind X"
+.TF announceX
 .PD
 .TP
-.BI connect\  ipaddress ! port "!r " local
-Establish a connection to the remote address
-.I ipaddress
-and remote port
+.BI connect\  ip-address ! port "!r " local
+Establish a connection to the remote
+.I ip-address
+and
 .IR port .
 If
 .I local
@@ -656,8 +661,8 @@ This procedure will accept all calls for the
 given protocol.
 See
 .IR dial (2).
+.
 .SS TCP
-.PP
 TCP connections are reliable point-to-point byte streams; there are no
 message delimiters.
 A connection is determined by the address and port numbers of the two
@@ -676,8 +681,8 @@ turn on keep alive messages.
 .IR N ,
 if given, is the milliseconds between keepalives
 (default 30000).
+.
 .SS UDP
-.PP
 UDP connections carry unreliable and unordered datagrams.  A read from
 .B data
 will return the next datagram, discarding anything
@@ -696,15 +701,16 @@ However, many-to-one semantics is also possible.
 .PP
 If, after an
 .BR announce ,
-the following message is written to
+the message
+.L headers
+is written to
 .BR ctl ,
 then all messages sent to the announced port
 are received on the announced connection prefixed
 with the corresponding structure,
 declared in
-.BR <ip.h> .
-.TP
-.B headers
+.BR <ip.h> :
+.IP
 .EX
 typedef struct Udphdr Udphdr;
 struct Udphdr
@@ -729,8 +735,6 @@ read.
 .PP
 In this case (writing
 .L headers
-or
-.L noheaders
 to the
 .I ctl
 file),
@@ -747,8 +751,8 @@ the usual sequence of
 must be executed before performing I/O on the corresponding
 .I data
 file.
+.
 .SS RUDP
-.PP
 RUDP is a reliable datagram protocol based on UDP.
 Packets are delivered in order.
 RUDP does not support
@@ -782,24 +786,26 @@ is treated like a reboot:
 all queued messages are dropped, an error is queued to the
 .B err
 file, and the conversation resumes.
+.
 .SS ICMP
-.PP
 ICMP is a datagram protocol for IPv4 used to exchange control requests and
 their responses with other machines' IP implementations.
 ICMP is primarily a kernel-to-kernel protocol, but it is possible
 to generate `echo request' and read `echo reply' packets from user programs.
+.
 .SS ICMPV6
 ICMPv6 is the IPv6 equivalent of ICMP.
 If, after an
 .BR announce ,
-the following message is written to
+the message
+.L headers
+is written to
 .BR ctl ,
 then before a write,
 a user must prefix each message with a corresponding structure,
 declared in
-.BR <ip.h> .
-.TP
-.B headers
+.BR <ip.h> :
+.IP
 .EX
 /*
  *  user level icmpv6 with control message "headers"
@@ -830,8 +836,8 @@ the usual sequence of
 must be executed before performing I/O on the corresponding
 .I data
 file.
+.
 .SS IL
-.PP
 IL is a reliable point-to-point datagram protocol that runs over IPv4.
 Like TCP, IL delivers datagrams
 reliably and in order. Also like TCP, a connection is
@@ -845,11 +851,12 @@ It is no longer necessary, except to communicate with old standalone
 .IR fs (4)
 file servers.
 Its use is now deprecated.
+.
 .SS GRE
-.PP
 GRE is the encapsulation protocol used by PPTP.
 The kernel implements just enough of the protocol
 to multiplex it.
+Our implementation encapsulates in IPv4, per RFC 1702.
 .B Announce
 is not allowed in GRE, only
 .BR connect .
@@ -866,12 +873,11 @@ field with the port number specified
 in the connect message.
 .br
 .ne 3
+.
 .SS ESP
-.PP
 ESP is the Encapsulating Security Payload (RFC 1827, obsoleted by RFC 4303)
 for IPsec (RFC 4301).
-We currently implement ESP only over IPv4 and
-only tunnel mode, not transport mode.
+We currently implement only tunnel mode, not transport mode.
 It is used to set up an encrypted tunnel between machines.
 Like GRE, ESP has no port numbers.  Instead, the
 port number in the
@@ -899,8 +905,11 @@ as the key.
 Possible algorithms are:
 .BR null ,
 .BR des_56_cbc ,
+and eventually
+.BR des3_cbc ,
+.BR aes_128_cbc ,
 and
-.BR rc4_128 .
+.BR aes_ctr .
 .TP
 .BI ah\  "alg secret
 Use the hash algorithm,
@@ -911,8 +920,9 @@ as the key for generating the MAC.
 Possible algorithms are:
 .BR null ,
 .BR hmac_sha1_96 ,
-and
-.BR hmac_md5_96 .
+.BR hmac_md5_96 ,
+and eventually
+.BR aes_xcbc_mac_96 .
 .TP
 .B header
 Turn on header mode.  Every buffer read from
@@ -924,13 +934,13 @@ are ignored.
 .TP
 .B noheader
 Turn off header mode.
+.
 .SS "IP packet filter
-.PP
 The directory
 .B /net/ipmux
 looks like another protocol directory.
-It is a packet filter built on top of IP
-(currently IPv4 only).  Each numbered
+It is a packet filter built on top of IP.
+Each numbered
 subdirectory represents a different filter.
 The connect messages written to the
 .I ctl
@@ -943,7 +953,7 @@ file are routed to an interface and transmitted.
 A filter is a semicolon-separated list of
 relations.  Each relation describes a portion
 of a packet to match.  The possible relations are:
-.TF "ifc=expr"
+.TF "iph[n:m]=expr"
 .PD
 .TP
 .BI proto= n
@@ -1024,13 +1034,13 @@ OSPF in Inferno
 and 6to4 tunnelling.
 .br
 .ne 5
+.
 .SS Statistics
-.PP
 The
 .B stats
 files are read only and contain statistics useful to network monitoring.
 .br
-.ne 14
+.ne 12
 .PP
 Reading
 .B /net/ipifc/stats
@@ -1189,5 +1199,3 @@ ICMPv6
 .I Ipmux
 has not been heavily used and should be considered experimental.
 It may disappear in favor of a more traditional packet filter in the future.
-.PP
-Too much of this machinery has not yet been updated for IPv6.

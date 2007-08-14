@@ -184,7 +184,7 @@ set_cksum(Block *bp)
 	IPICMP *p = (IPICMP *)(bp->rp);
 
 	hnputl(p->vcf, 0);  	/* borrow IP header as pseudoheader */
-	hnputs(p->ploadlen, blocklen(bp)-IPV6HDR_LEN);
+	hnputs(p->ploadlen, blocklen(bp) - IP6HDR);
 	p->proto = 0;
 	p->ttl = ICMPv6;	/* ttl gets set later */
 	hnputs(p->cksum, 0);
@@ -564,7 +564,7 @@ valid(Proto *icmp, Ipifc *ifc, Block *bp, Icmppriv6 *ipriv)
 	}
 
 	iplen = nhgets(p->ploadlen);
-	if(iplen > n-IPV6HDR_LEN || (iplen % 1)) {
+	if(iplen > n - IP6HDR || (iplen % 1) != 0) {
 		ipriv->stats[LenErrs6]++;
 		netlog(icmp->f, Logicmp, "icmp length %d\n", iplen);
 		goto err;
@@ -580,7 +580,7 @@ valid(Proto *icmp, Ipifc *ifc, Block *bp, Icmppriv6 *ipriv)
 	ttl = p->ttl;
 	p->ttl = p->proto;
 	p->proto = 0;
-	if(ptclcsum(bp, 0, iplen + IPV6HDR_LEN)) {
+	if(ptclcsum(bp, 0, iplen + IP6HDR)) {
 		ipriv->stats[CsumErrs6]++;
 		netlog(icmp->f, Logicmp, "icmp checksum error\n");
 		goto err;

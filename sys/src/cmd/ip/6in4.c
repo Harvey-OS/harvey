@@ -254,6 +254,31 @@ main(int argc, char **argv)
 }
 
 /*
+ * based on libthread's threadsetname, but drags in less library code.
+ * actually just sets the arguments displayed.
+ */
+void
+procsetname(char *fmt, ...)
+{
+	int fd;
+	char *cmdname;
+	char buf[128];
+	va_list arg;
+
+	va_start(arg, fmt);
+	cmdname = vsmprint(fmt, arg);
+	va_end(arg);
+	if (cmdname == nil)
+		return;
+	snprint(buf, sizeof buf, "#p/%d/args", getpid());
+	if((fd = open(buf, OWRITE)) >= 0){
+		write(fd, cmdname, strlen(cmdname)+1);
+		close(fd);
+	}
+	free(cmdname);
+}
+
+/*
  * encapsulate v6 packets from the packet interface in v4 ones
  * and send them into the tunnel.
  */
@@ -265,9 +290,14 @@ ip2tunnel(int in, int out)
 	Iphdr *op;
 	Ip6hdr *ip;
 
+	if (anysender)
+		procsetname("v6 %I -> tunnel", local6);
+	else
+		procsetname("v6 %I -> tunnel %I %I", local6, remote4, remote6);
+
 	/* populate v4 header */
 	op = (Iphdr*)buf;
-	op->vihl = 0x45;		/* v4, hdr is 5 longs? */
+	op->vihl = IP_VER4 | 5;		/* hdr is 5 longs? */
 	memcpy(op->src, myip + IPv4off, sizeof op->src);
 	op->proto = IP_IPV6PROTO;
 	op->ttl = 100;
@@ -276,7 +306,7 @@ ip2tunnel(int in, int out)
 	while ((n = read(in, buf + STFHDR, sizeof buf - STFHDR)) > 0) {
 		/* if not IPV6, drop it */
 		ip = (Ip6hdr*)(buf + STFHDR);
-		if ((ip->vcf[0]&0xF0) != 0x60)
+		if ((ip->vcf[0] & 0xF0) != IP_VER6)
 			continue;
 
 		/* check length: drop if too short, trim if too long */
@@ -294,6 +324,8 @@ ip2tunnel(int in, int out)
 			continue;
 		}
 
+		if (debug > 1)
+			fprint(2, "v6 to tunnel %I -> %I\n", ip->src, ip->dst);
 		/* send 6to4 packets directly to ipv4 target */
 		if ((ip->dst[0]<<8 | ip->dst[1]) == V6to4pfx)
 			memcpy(op->dst, ip->dst+2, sizeof op->dst);
@@ -322,6 +354,11 @@ tunnel2ip(int in, int out)
 	Ip6hdr *op;
 	Iphdr *ip;
 
+	if (anysender)
+		procsetname("tunnel -> v6 %I", local6);
+	else
+		procsetname("tunnel %I %I -> v6 %I", remote4, remote6, local6);
+
 	for (;;) {
 		/* get a packet from the tunnel */
 		n = read(in, buf, sizeof buf);
@@ -333,7 +370,7 @@ tunnel2ip(int in, int out)
 		}
 
 		/* if not IPv4 nor IPv4 protocol IPv6, drop it */
-		if ((ip->vihl&0xF0) != 0x40 || ip->proto != IP_IPV6PROTO)
+		if ((ip->vihl & 0xF0) != IP_VER4 || ip->proto != IP_IPV6PROTO)
 			continue;
 
 		/* check length: drop if too short, trim if too long */
@@ -356,6 +393,8 @@ tunnel2ip(int in, int out)
 				op->src, op->dst);
 			continue;
 		}
+		if (debug > 1)
+			fprint(2, "tunnel to v6 %I -> %I\n", op->src, op->dst);
 
 		/* pass V6 packet to the interface */
 		if (write(out, op, n) != n) {

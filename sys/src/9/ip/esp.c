@@ -18,15 +18,15 @@ typedef struct Userhdr Userhdr;
 typedef struct Esppriv Esppriv;
 typedef struct Espcb Espcb;
 typedef struct Algorithm Algorithm;
-typedef struct Esprc4 Esprc4;
+// typedef struct Esprc4 Esprc4;
 
 #define DPRINT if(0)print
 
 enum
 {
-	IP_ESPPROTO	= 50,
-	EsphdrSize	= 28,	/* includes IPv4 header */
-	IphdrSize	= 20,	/* IPv4: options have been stripped */
+	IP_ESPPROTO	= 50,	/* IP v4 and v6 protocol number */
+	EsphdrSize	= IP4HDR + 8,
+
 	EsptailSize	= 2,	/* does not include pad or auth data */
 	UserhdrSize	= 4,	/* user-visible header size - if enabled */
 };
@@ -104,6 +104,7 @@ enum {
 	RC4back = 100*1024,	/* maximum look back */
 };
 
+#ifdef notdef
 struct Esprc4
 {
 	ulong	cseq;		/* current byte sequence number */
@@ -114,30 +115,37 @@ struct Esprc4
 	ulong	oseq;		/* old byte sequence number */
 	RC4state old;
 };
+#endif
 
 static	Conv* convlookup(Proto *esp, ulong spi);
 static	char *setalg(Espcb *ecb, char **f, int n, Algorithm *alg);
+static	void espkick(void *x);
+
 static	void nullespinit(Espcb*, char*, uchar *key, int keylen);
+static	void desespinit(Espcb *ecb, char *name, uchar *k, int n);
+// static void rc4espinit(Espcb *ecb, char *name, uchar *k, int n);
+
 static	void nullahinit(Espcb*, char*, uchar *key, int keylen);
 static	void shaahinit(Espcb*, char*, uchar *key, int keylen);
 static	void md5ahinit(Espcb*, char*, uchar *key, int keylen);
-static	void desespinit(Espcb *ecb, char *name, uchar *k, int n);
-static	void rc4espinit(Espcb *ecb, char *name, uchar *k, int n);
-static	void espkick(void *x);
 
 static Algorithm espalg[] =
 {
 	"null",			0,	nullespinit,
-	"des_56_cbc",		64,	desespinit,
-	"rc4_128",		128,	rc4espinit,
+//	"des3_cbc",		192,	des3espinit,	/* rfc2451 */
+//	"aes_128_cbc",		128,	aescbcespinit,	/* rfc3602 */
+//	"aes_ctr",		128,	aesctrespinit,	/* rfc3686 */
+	"des_56_cbc",		64,	desespinit,	/* rfc2405, deprecated */
+//	"rc4_128",		128,	rc4espinit,	/* gone in rfc4305 */
 	nil,			0,	nil,
 };
 
 static Algorithm ahalg[] =
 {
 	"null",			0,	nullahinit,
-	"hmac_sha1_96",		128,	shaahinit,
-	"hmac_md5_96",		128,	md5ahinit,
+	"hmac_sha1_96",		128,	shaahinit,	/* rfc2404 */
+//	"aes_xcbc_mac_96",	128,	aesahinit,	/* rfc3566 */
+	"hmac_md5_96",		128,	md5ahinit,	/* rfc2403 */
 	nil,			0,	nil,
 };
 
@@ -258,6 +266,7 @@ espkick(void *x)
 
 	payload = BLEN(bp) + ecb->espivlen;
 
+/* adapt to v6 */
 	/* Make space to fit ip header */
 	bp = padblock(bp, EsphdrSize + ecb->espivlen);
 
@@ -296,12 +305,13 @@ espkick(void *x)
 	eh->frag[0] = 0;
 	eh->frag[1] = 0;
 
-	ecb->auth(ecb, bp->rp + IphdrSize, (EsphdrSize - IphdrSize) +
+	ecb->auth(ecb, bp->rp + IP4HDR, (EsphdrSize - IP4HDR) +
 		payload + pad + EsptailSize, auth);
 
 	qunlock(c);
 	/* print("esp: pass down: %uld\n", BLEN(bp)); */
 	ipoput4(c->p->f, bp, 0, c->ttl, c->tos, c);
+/* end adapt to v6 */
 }
 
 void
@@ -326,10 +336,12 @@ espiput(Proto *esp, Ipifc*, Block *bp)
 		return;
 	}
 
+/* adapt to v6 */
 	eh = (Esphdr*)(bp->rp);
 	spi = nhgetl(eh->espspi);
 	v4tov6(raddr, eh->espsrc);
 	v4tov6(laddr, eh->espdst);
+/* end adapt to v6 */
 
 	qlock(esp);
 	/* Look for a conversation structure for this port */
@@ -351,6 +363,7 @@ espiput(Proto *esp, Ipifc*, Block *bp)
 	if(bp->next)
 		bp = concatblock(bp);
 
+/* adapt to v6 */
 	if(BLEN(bp) < EsphdrSize + ecb->espivlen + EsptailSize + ecb->ahlen) {
 		qunlock(c);
 		netlog(f, Logesp, "esp: short block %I -> %I!%d\n", raddr,
@@ -409,6 +422,7 @@ print("esp: cipher failed %I -> %I!%ld: %s\n", raddr, laddr, spi, up->errstr);
 		memset(uh, 0, UserhdrSize);
 		uh->nexthdr = nexthdr;
 	}
+/* end adapt to v6 */
 
 	if(qfull(c->rq)){
 		netlog(f, Logesp, "esp: qfull %I -> %I.%uld\n", raddr,
@@ -748,6 +762,7 @@ desespinit(Espcb *ecb, char *name, uchar *k, int n)
 	setupDESstate(ecb->espstate, key, ivec);
 }
 
+#ifdef notdef
 static int
 rc4cipher(Espcb *ecb, uchar *p, int n)
 {
@@ -836,6 +851,7 @@ rc4espinit(Espcb *ecb, char *name, uchar *k, int n)
 	ecb->cipher = rc4cipher;
 	ecb->espstate = esprc4;
 }
+#endif
 
 void
 espinit(Fs *fs)

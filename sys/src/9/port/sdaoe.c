@@ -452,7 +452,7 @@ aoeonline(SDunit *u)
 		c->mediachange = 0;
 		u->sectors = c->sectors;
 		u->secsize = Aoesectsz;
-	} else if(devtab[c->c->type]->read(c->c, 0, 0, 0) == 0)
+	} else
 		r = 1;
 
 	return r;

@@ -1,3 +1,6 @@
+/*
+ * Generic Routing Encapsulation over IPv4, rfc1702
+ */
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
@@ -6,8 +9,6 @@
 #include "../port/error.h"
 
 #include "ip.h"
-
-#define DPRINT if(0)print
 
 enum
 {

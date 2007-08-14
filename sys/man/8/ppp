@@ -1,6 +1,6 @@
 .TH PPP 8
 .SH NAME
-ppp, pppoe, pptp, pptpd \- point to point protocol
+ppp, pppoe, pptp, pptpd \- point-to-point protocol
 .SH SYNOPSIS
 .B ip/ppp
 [
@@ -93,7 +93,8 @@ ppp, pppoe, pptp, pptpd \- point to point protocol
 ]
 .I tcp-dir
 .SH DESCRIPTION
-The Point to Point Protocol is used to encapsulate Internet Protocol packets
+The Point-to-Point Protocol is used to encapsulate Internet Protocol packets
+in IPv4 packets
 for transfer over serial lines or other protocol connections.
 .I Ppp
 can run either as a client or, with the
