@@ -236,9 +236,9 @@
 386/bin/fortune - 775 sys sys 1168402308 67356
 386/bin/fossil - 20000000775 sys sys 1042005470 0
 386/bin/fossil/conf - 775 sys sys 1085077052 1506
-386/bin/fossil/flchk - 775 sys sys 1180209225 237116
-386/bin/fossil/flfmt - 775 sys sys 1180209226 245137
-386/bin/fossil/fossil - 775 sys sys 1181851033 363780
+386/bin/fossil/flchk - 775 sys sys 1187147720 237381
+386/bin/fossil/flfmt - 775 sys sys 1187147721 245386
+386/bin/fossil/fossil - 775 sys sys 1187147721 364045
 386/bin/fossil/last - 775 sys sys 1168402310 63550
 386/bin/freq - 775 sys sys 1168402310 62040
 386/bin/fs - 20000000775 sys sys 954380769 0
@@ -1403,7 +1403,7 @@ lib/face/48x48x4/x/xigh.1 - 664 sys sys 1142019024 1204
 lib/face/48x48x4/y - 20000000775 sys sys 1020895714 0
 lib/face/48x48x4/z - 20000000775 sys sys 1020895714 0
 lib/face/48x48x8 - 20000000775 sys sys 1123100641 0
-lib/face/48x48x8/.dict - 664 sys sys 1179510586 4082
+lib/face/48x48x8/.dict - 664 sys sys 1187107503 4193
 lib/face/48x48x8/Z - 20000000775 sys sys 1020895714 0
 lib/face/48x48x8/a - 20000000775 sys sys 1056983599 0
 lib/face/48x48x8/a/alcortes.1 - 664 sys sys 1176753392 976
@@ -1447,6 +1447,7 @@ lib/face/48x48x8/j - 20000000775 sys sys 1020895714 0
 lib/face/48x48x8/j/jmehat.1 - 664 sys sys 1176753392 837
 lib/face/48x48x8/k - 20000000775 sys sys 1123100691 0
 lib/face/48x48x8/k/karen.1 - 664 sys sys 1057005135 1608
+lib/face/48x48x8/k/kix.1 - 664 sys sys 1187107466 779
 lib/face/48x48x8/k/kris.1 - 664 sys sys 1060142993 2364
 lib/face/48x48x8/l - 20000000775 sys sys 1059678230 0
 lib/face/48x48x8/l/lionkov.1 - 664 sys sys 1176753392 924
@@ -7790,7 +7791,7 @@ sys/man/8/cron - 664 sys sys 1063858596 1867
 sys/man/8/dhcpd - 664 sys sys 1172959497 5572
 sys/man/8/disksim - 664 sys sys 1144150487 1476
 sys/man/8/drawterm - 664 sys sys 1181675938 1921
-sys/man/8/fossilcons - 664 sys sys 1181331315 18400
+sys/man/8/fossilcons - 664 sys sys 1187134504 18542
 sys/man/8/fs - 664 sys sys 1172956177 15086
 sys/man/8/fsconfig - 664 sys sys 1172956534 8878
 sys/man/8/fshalt - 664 sys sys 1173737264 862
@@ -7965,7 +7966,7 @@ sys/src/9/ip/arp.c - 664 sys sys 1184794688 11234
 sys/src/9/ip/chandial.c - 664 sys sys 1099020048 2295
 sys/src/9/ip/devip.c - 664 sys sys 1161061185 24242
 sys/src/9/ip/eipconvtest.c - 664 sys sys 1022588098 3135
-sys/src/9/ip/esp.c - 664 sys sys 1187037502 17754
+sys/src/9/ip/esp.c - 664 sys sys 1187064283 19158
 sys/src/9/ip/ethermedium.c - 664 sys sys 1184244252 15419
 sys/src/9/ip/gre.c - 664 sys sys 1187045851 5103
 sys/src/9/ip/icmp.c - 664 sys sys 1184946959 9498
@@ -10345,7 +10346,7 @@ sys/src/cmd/fossil/build - 664 sys sys 1042005505 449
 sys/src/cmd/fossil/buildsh - 775 sys sys 1042005505 561
 sys/src/cmd/fossil/bwatch.c - 664 sys sys 1042005505 6754
 sys/src/cmd/fossil/cache.c - 664 sys sys 1180158132 43913
-sys/src/cmd/fossil/check.c - 664 sys sys 1177432003 17448
+sys/src/cmd/fossil/check.c - 664 sys sys 1187136398 17470
 sys/src/cmd/fossil/conf.rc - 775 sys sys 1084333190 1416
 sys/src/cmd/fossil/dat.h - 664 sys sys 1177432005 7655
 sys/src/cmd/fossil/deadlock - 775 sys sys 1042005506 413
@@ -10370,9 +10371,9 @@ sys/src/cmd/fossil/invariants - 664 sys sys 1042005509 4073
 sys/src/cmd/fossil/last.c - 664 sys sys 1087005593 812
 sys/src/cmd/fossil/mkfile - 664 sys sys 1139667242 2640
 sys/src/cmd/fossil/nobwatch.c - 664 sys sys 1042005509 329
-sys/src/cmd/fossil/pack.c - 664 sys sys 1061530726 4682
+sys/src/cmd/fossil/pack.c - 664 sys sys 1187136436 4710
 sys/src/cmd/fossil/periodic.c - 664 sys sys 1061530726 1087
-sys/src/cmd/fossil/source.c - 664 sys sys 1177432004 20301
+sys/src/cmd/fossil/source.c - 664 sys sys 1187135867 20578
 sys/src/cmd/fossil/srcload.c - 664 sys sys 1042005510 4178
 sys/src/cmd/fossil/stdinc.h - 664 sys sys 1042005510 155
 sys/src/cmd/fossil/trunc.c - 664 sys sys 1042005511 280
