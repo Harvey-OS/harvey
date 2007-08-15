@@ -1,6 +1,7 @@
 /*
  * Encapsulating Security Payload for IPsec for IPv4, rfc1827.
- * TODO: update to match rfc4303 and thus IPv6.
+ *	currently only implements tunnel mode.
+ * TODO: update to match rfc4303.
  */
 #include	"u.h"
 #include	"../port/lib.h"
@@ -10,28 +11,39 @@
 #include	"../port/error.h"
 
 #include	"ip.h"
+#include	"ipv6.h"
 #include	"libsec.h"
 
 typedef struct Esphdr Esphdr;
+typedef struct Esp4hdr Esp4hdr;
+typedef struct Esp6hdr Esp6hdr;
 typedef struct Esptail Esptail;
 typedef struct Userhdr Userhdr;
 typedef struct Esppriv Esppriv;
 typedef struct Espcb Espcb;
 typedef struct Algorithm Algorithm;
-// typedef struct Esprc4 Esprc4;
-
-#define DPRINT if(0)print
 
 enum
 {
 	IP_ESPPROTO	= 50,	/* IP v4 and v6 protocol number */
-	EsphdrSize	= IP4HDR + 8,
+	Esp4hdrlen	= IP4HDR + 8,
+	Esp6hdrlen	= IP6HDR + 8,
 
-	EsptailSize	= 2,	/* does not include pad or auth data */
-	UserhdrSize	= 4,	/* user-visible header size - if enabled */
+	Esptaillen	= 2,	/* does not include pad or auth data */
+	Userhdrlen	= 4,	/* user-visible header size - if enabled */
 };
 
 struct Esphdr
+{
+	uchar	espspi[4];	/* Security parameter index */
+	uchar	espseq[4];	/* Sequence number */
+};
+
+/*
+ * tunnel-mode layout:		IP | ESP | TCP/UDP | user data.
+ * transport-mode layout is:	ESP | IP | TCP/UDP | user data.
+ */
+struct Esp4hdr
 {
 	/* ipv4 header */
 	uchar	vihl;		/* Version and header length */
@@ -45,9 +57,14 @@ struct Esphdr
 	uchar	espsrc[4];	/* Ip source */
 	uchar	espdst[4];	/* Ip destination */
 
-	/* esp header */
-	uchar	espspi[4];	/* Security parameter index */
-	uchar	espseq[4];	/* Sequence number */
+	Esphdr;
+};
+
+/* tunnel-mode layout */
+struct Esp6hdr
+{
+	Ip6hdr;
+	Esphdr;
 };
 
 struct Esptail
@@ -98,32 +115,12 @@ struct Algorithm
 	void	(*init)(Espcb*, char* name, uchar *key, int keylen);
 };
 
-
-enum {
-	RC4forward= 10*1024*1024,	/* maximum skip forward */
-	RC4back = 100*1024,	/* maximum look back */
-};
-
-#ifdef notdef
-struct Esprc4
-{
-	ulong	cseq;		/* current byte sequence number */
-	RC4state current;
-
-	int	ovalid;		/* old is valid */
-	ulong	lgseq;		/* last good sequence */
-	ulong	oseq;		/* old byte sequence number */
-	RC4state old;
-};
-#endif
-
 static	Conv* convlookup(Proto *esp, ulong spi);
 static	char *setalg(Espcb *ecb, char **f, int n, Algorithm *alg);
 static	void espkick(void *x);
 
 static	void nullespinit(Espcb*, char*, uchar *key, int keylen);
 static	void desespinit(Espcb *ecb, char *name, uchar *k, int n);
-// static void rc4espinit(Espcb *ecb, char *name, uchar *k, int n);
 
 static	void nullahinit(Espcb*, char*, uchar *key, int keylen);
 static	void shaahinit(Espcb*, char*, uchar *key, int keylen);
@@ -231,17 +228,33 @@ espclose(Conv *c)
 	memset(ecb, 0, sizeof(Espcb));
 }
 
+static int
+ipvers(Conv *c)
+{
+	if((memcmp(c->raddr, v4prefix, IPv4off) == 0 &&
+	    memcmp(c->laddr, v4prefix, IPv4off) == 0) ||
+	    ipcmp(c->raddr, IPnoaddr) == 0)
+		return V4;
+	else
+		return V6;
+}
+
 static void
 espkick(void *x)
 {
 	Conv *c = x;
-	Esphdr *eh;
+	Esp4hdr *eh4;
+	Esp6hdr *eh6;
 	Esptail *et;
 	Userhdr *uh;
 	Espcb *ecb;
 	Block *bp;
-	int nexthdr, payload, pad, align;
+	int nexthdr, payload, pad, align, version, hdrlen, iphdrlen;
 	uchar *auth;
+
+	version = ipvers(c);
+	iphdrlen = version == V4? IP4HDR: IP6HDR;
+	hdrlen =   version == V4? Esp4hdrlen: Esp6hdrlen;
 
 	bp = qget(c->wq);
 	if(bp == nil)
@@ -252,96 +265,124 @@ espkick(void *x)
 
 	if(ecb->header) {
 		/* make sure the message has a User header */
-		bp = pullupblock(bp, UserhdrSize);
+		bp = pullupblock(bp, Userhdrlen);
 		if(bp == nil) {
 			qunlock(c);
 			return;
 		}
 		uh = (Userhdr*)bp->rp;
 		nexthdr = uh->nexthdr;
-		bp->rp += UserhdrSize;
+		bp->rp += Userhdrlen;
 	} else {
 		nexthdr = 0;	/* what should this be? */
 	}
 
 	payload = BLEN(bp) + ecb->espivlen;
 
-/* adapt to v6 */
 	/* Make space to fit ip header */
-	bp = padblock(bp, EsphdrSize + ecb->espivlen);
+	bp = padblock(bp, hdrlen + ecb->espivlen);
 
 	align = 4;
 	if(ecb->espblklen > align)
 		align = ecb->espblklen;
 	if(align % ecb->ahblklen != 0)
 		panic("espkick: ahblklen is important after all");
-	pad = (align-1) - (payload + EsptailSize-1)%align;
+	pad = (align-1) - (payload + Esptaillen-1)%align;
 
 	/*
 	 * Make space for tail
 	 * this is done by calling padblock with a negative size
 	 * Padblock does not change bp->wp!
 	 */
-	bp = padblock(bp, -(pad+EsptailSize+ecb->ahlen));
-	bp->wp += pad+EsptailSize+ecb->ahlen;
+	bp = padblock(bp, -(pad+Esptaillen+ecb->ahlen));
+	bp->wp += pad+Esptaillen+ecb->ahlen;
 
-	eh = (Esphdr *)(bp->rp);
-	et = (Esptail*)(bp->rp + EsphdrSize + payload + pad);
+	eh4 = (Esp4hdr *)bp->rp;
+	eh6 = (Esp6hdr *)bp->rp;
+	et = (Esptail*)(bp->rp + hdrlen + payload + pad);
 
 	/* fill in tail */
 	et->pad = pad;
 	et->nexthdr = nexthdr;
 
-	ecb->cipher(ecb, bp->rp+EsphdrSize, payload+pad+EsptailSize);
-	auth = bp->rp + EsphdrSize + payload + pad + EsptailSize;
+	ecb->cipher(ecb, bp->rp + hdrlen, payload + pad + Esptaillen);
+	auth = bp->rp + hdrlen + payload + pad + Esptaillen;
 
 	/* fill in head */
-	eh->vihl = IP_VER4;
-	hnputl(eh->espspi, ecb->spi);
-	hnputl(eh->espseq, ++ecb->seq);
-	v6tov4(eh->espsrc, c->laddr);
-	v6tov4(eh->espdst, c->raddr);
-	eh->espproto = IP_ESPPROTO;
-	eh->frag[0] = 0;
-	eh->frag[1] = 0;
+	if (version == V4) {
+		eh4->vihl = IP_VER4;
+		hnputl(eh4->espspi, ecb->spi);
+		hnputl(eh4->espseq, ++ecb->seq);
+		v6tov4(eh4->espsrc, c->laddr);
+		v6tov4(eh4->espdst, c->raddr);
+		eh4->espproto = IP_ESPPROTO;
+		eh4->frag[0] = 0;
+		eh4->frag[1] = 0;
+	} else {
+		eh6->vcf[0] = IP_VER6;
+		hnputl(eh6->espspi, ecb->spi);
+		hnputl(eh6->espseq, ++ecb->seq);
+		ipmove(eh6->src, c->laddr);
+		ipmove(eh6->dst, c->raddr);
+		eh6->proto = IP_ESPPROTO;
+	}
 
-	ecb->auth(ecb, bp->rp + IP4HDR, (EsphdrSize - IP4HDR) +
-		payload + pad + EsptailSize, auth);
+	ecb->auth(ecb, bp->rp + iphdrlen, (hdrlen - iphdrlen) +
+		payload + pad + Esptaillen, auth);
 
 	qunlock(c);
 	/* print("esp: pass down: %uld\n", BLEN(bp)); */
-	ipoput4(c->p->f, bp, 0, c->ttl, c->tos, c);
-/* end adapt to v6 */
+	if (version == V4)
+		ipoput4(c->p->f, bp, 0, c->ttl, c->tos, c);
+	else
+		ipoput6(c->p->f, bp, 0, c->ttl, c->tos, c);
 }
 
 void
 espiput(Proto *esp, Ipifc*, Block *bp)
 {
-	Esphdr *eh;
+	Esp4hdr *eh4;
+	Esp6hdr *eh6;
 	Esptail *et;
 	Userhdr *uh;
 	Conv *c;
 	Espcb *ecb;
 	uchar raddr[IPaddrlen], laddr[IPaddrlen];
 	Fs *f;
-	uchar *auth;
+	uchar *auth, *espspi;
 	ulong spi;
-	int payload, nexthdr;
+	int payload, nexthdr, version, hdrlen;
 
 	f = esp->f;
+	if (bp == nil || BLEN(bp) == 0) {
+		/* get enough to identify the IP version */
+		bp = pullupblock(bp, IP4HDR);
+		if(bp == nil) {
+			netlog(f, Logesp, "esp: short packet\n");
+			return;
+		}
+	}
+	eh4 = (Esp4hdr*)bp->rp;
+	version = ((eh4->vihl & 0xf0) == IP_VER4? V4: V6);
+	hdrlen = version == V4? Esp4hdrlen: Esp6hdrlen;
 
-	bp = pullupblock(bp, EsphdrSize+EsptailSize);
+	bp = pullupblock(bp, hdrlen + Esptaillen);
 	if(bp == nil) {
 		netlog(f, Logesp, "esp: short packet\n");
 		return;
 	}
 
-/* adapt to v6 */
-	eh = (Esphdr*)(bp->rp);
-	spi = nhgetl(eh->espspi);
-	v4tov6(raddr, eh->espsrc);
-	v4tov6(laddr, eh->espdst);
-/* end adapt to v6 */
+	if (version == V4) {
+		eh4 = (Esp4hdr*)bp->rp;
+		spi = nhgetl(eh4->espspi);
+		v4tov6(raddr, eh4->espsrc);
+		v4tov6(laddr, eh4->espdst);
+	} else {
+		eh6 = (Esp6hdr*)bp->rp;
+		spi = nhgetl(eh6->espspi);
+		ipmove(raddr, eh6->src);
+		ipmove(laddr, eh6->dst);
+	}
 
 	qlock(esp);
 	/* Look for a conversation structure for this port */
@@ -363,8 +404,7 @@ espiput(Proto *esp, Ipifc*, Block *bp)
 	if(bp->next)
 		bp = concatblock(bp);
 
-/* adapt to v6 */
-	if(BLEN(bp) < EsphdrSize + ecb->espivlen + EsptailSize + ecb->ahlen) {
+	if(BLEN(bp) < hdrlen + ecb->espivlen + Esptaillen + ecb->ahlen) {
 		qunlock(c);
 		netlog(f, Logesp, "esp: short block %I -> %I!%d\n", raddr,
 			laddr, spi);
@@ -372,9 +412,10 @@ espiput(Proto *esp, Ipifc*, Block *bp)
 		return;
 	}
 
-	eh = (Esphdr*)(bp->rp);
 	auth = bp->wp - ecb->ahlen;
-	if(!ecb->auth(ecb, eh->espspi, auth-eh->espspi, auth)) {
+	espspi = version == V4? ((Esp4hdr*)bp->rp)->espspi:
+				((Esp6hdr*)bp->rp)->espspi;
+	if(!ecb->auth(ecb, espspi, auth - espspi, auth)) {
 		qunlock(c);
 print("esp: bad auth %I -> %I!%ld\n", raddr, laddr, spi);
 		netlog(f, Logesp, "esp: bad auth %I -> %I!%d\n", raddr,
@@ -383,15 +424,15 @@ print("esp: bad auth %I -> %I!%ld\n", raddr, laddr, spi);
 		return;
 	}
 
-	payload = BLEN(bp)-EsphdrSize-ecb->ahlen;
-	if(payload<=0 || payload%4 != 0 || payload%ecb->espblklen!=0) {
+	payload = BLEN(bp) - hdrlen - ecb->ahlen;
+	if(payload <= 0 || payload % 4 != 0 || payload % ecb->espblklen != 0) {
 		qunlock(c);
 		netlog(f, Logesp, "esp: bad length %I -> %I!%d payload=%d BLEN=%d\n",
 			raddr, laddr, spi, payload, BLEN(bp));
 		freeb(bp);
 		return;
 	}
-	if(!ecb->cipher(ecb, bp->rp+EsphdrSize, payload)) {
+	if(!ecb->cipher(ecb, bp->rp + hdrlen, payload)) {
 		qunlock(c);
 print("esp: cipher failed %I -> %I!%ld: %s\n", raddr, laddr, spi, up->errstr);
 		netlog(f, Logesp, "esp: cipher failed %I -> %I!%d: %s\n", raddr,
@@ -400,8 +441,8 @@ print("esp: cipher failed %I -> %I!%ld: %s\n", raddr, laddr, spi, up->errstr);
 		return;
 	}
 
-	payload -= EsptailSize;
-	et = (Esptail*)(bp->rp + EsphdrSize + payload);
+	payload -= Esptaillen;
+	et = (Esptail*)(bp->rp + hdrlen + payload);
 	payload -= et->pad + ecb->espivlen;
 	nexthdr = et->nexthdr;
 	if(payload <= 0) {
@@ -413,16 +454,15 @@ print("esp: cipher failed %I -> %I!%ld: %s\n", raddr, laddr, spi, up->errstr);
 	}
 
 	/* trim packet */
-	bp->rp += EsphdrSize + ecb->espivlen;
+	bp->rp += hdrlen + ecb->espivlen;
 	bp->wp = bp->rp + payload;
 	if(ecb->header) {
-		/* assume UserhdrSize < EsphdrSize */
-		bp->rp -= UserhdrSize;
+		/* assume Userhdrlen < Esp4hdrlen < Esp6hdrlen */
+		bp->rp -= Userhdrlen;
 		uh = (Userhdr*)bp->rp;
-		memset(uh, 0, UserhdrSize);
+		memset(uh, 0, Userhdrlen);
 		uh->nexthdr = nexthdr;
 	}
-/* end adapt to v6 */
 
 	if(qfull(c->rq)){
 		netlog(f, Logesp, "esp: qfull %I -> %I.%uld\n", raddr,
@@ -458,11 +498,11 @@ espctl(Conv *c, char **f, int n)
 void
 espadvise(Proto *esp, Block *bp, char *msg)
 {
-	Esphdr *h;
+	Esp4hdr *h;
 	Conv *c;
 	ulong spi;
 
-	h = (Esphdr*)(bp->rp);
+	h = (Esp4hdr*)(bp->rp);
 
 	spi = nhgets(h->espspi);
 	qlock(esp);
@@ -762,7 +802,53 @@ desespinit(Espcb *ecb, char *name, uchar *k, int n)
 	setupDESstate(ecb->espstate, key, ivec);
 }
 
+void
+espinit(Fs *fs)
+{
+	Proto *esp;
+
+	esp = smalloc(sizeof(Proto));
+	esp->priv = smalloc(sizeof(Esppriv));
+	esp->name = "esp";
+	esp->connect = espconnect;
+	esp->announce = nil;
+	esp->ctl = espctl;
+	esp->state = espstate;
+	esp->create = espcreate;
+	esp->close = espclose;
+	esp->rcv = espiput;
+	esp->advise = espadvise;
+	esp->stats = espstats;
+	esp->local = esplocal;
+	esp->remote = espremote;
+	esp->ipproto = IP_ESPPROTO;
+	esp->nc = Nchans;
+	esp->ptclsize = sizeof(Espcb);
+
+	Fsproto(fs, esp);
+}
+
+
 #ifdef notdef
+enum {
+	RC4forward= 10*1024*1024,	/* maximum skip forward */
+	RC4back = 100*1024,	/* maximum look back */
+};
+
+typedef struct Esprc4 Esprc4;
+struct Esprc4
+{
+	ulong	cseq;		/* current byte sequence number */
+	RC4state current;
+
+	int	ovalid;		/* old is valid */
+	ulong	lgseq;		/* last good sequence */
+	ulong	oseq;		/* old byte sequence number */
+	RC4state old;
+};
+
+static void rc4espinit(Espcb *ecb, char *name, uchar *k, int n);
+
 static int
 rc4cipher(Espcb *ecb, uchar *p, int n)
 {
@@ -852,29 +938,3 @@ rc4espinit(Espcb *ecb, char *name, uchar *k, int n)
 	ecb->espstate = esprc4;
 }
 #endif
-
-void
-espinit(Fs *fs)
-{
-	Proto *esp;
-
-	esp = smalloc(sizeof(Proto));
-	esp->priv = smalloc(sizeof(Esppriv));
-	esp->name = "esp";
-	esp->connect = espconnect;
-	esp->announce = nil;
-	esp->ctl = espctl;
-	esp->state = espstate;
-	esp->create = espcreate;
-	esp->close = espclose;
-	esp->rcv = espiput;
-	esp->advise = espadvise;
-	esp->stats = espstats;
-	esp->local = esplocal;
-	esp->remote = espremote;
-	esp->ipproto = IP_ESPPROTO;
-	esp->nc = Nchans;
-	esp->ptclsize = sizeof(Espcb);
-
-	Fsproto(fs, esp);
-}

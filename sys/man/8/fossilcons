@@ -894,6 +894,14 @@ and
 .B l
 mode prefixes
 set the append-only, directory, and lock bits.
+The
+.I perm
+is formatted as described in the
+.I stat
+command;
+creating files or directories with the
+.BR snapshot (s)
+bit set is not allowed.
 .PP
 .I Df
 prints the amount of used disk space in the write buffer.

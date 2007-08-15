@@ -115,7 +115,7 @@ checkEpoch(Fsck *chk, u32int epoch)
 
 	for(a=0; a<chk->nblocks; a++){
 		if(!readLabel(chk->cache, &l, (a+chk->hint)%chk->nblocks)){
-			error(chk, "could not read label for addr %.8#ux", a);
+			error(chk, "could not read label for addr 0x%.8#ux", a);
 			continue;
 		}
 		if(l.tag == RootTag && l.epoch == epoch)
@@ -130,7 +130,7 @@ checkEpoch(Fsck *chk, u32int epoch)
 	a = (a+chk->hint)%chk->nblocks;
 	b = cacheLocalData(chk->cache, a, BtDir, RootTag, OReadOnly, 0);
 	if(b == nil){
-		error(chk, "could not read root block %.8#ux: %R", a);
+		error(chk, "could not read root block 0x%.8#ux: %R", a);
 		return;
 	}
 
@@ -145,7 +145,7 @@ checkEpoch(Fsck *chk, u32int epoch)
 	 * just a convenience to help the search.
 	 */
 	if(!entryUnpack(&e, b->data, 0)){
-		error(chk, "could not unpack root block %.8#ux: %R", a);
+		error(chk, "could not unpack root block 0x%.8#ux: %R", a);
 		blockPut(b);
 		return;
 	}
@@ -359,7 +359,7 @@ checkLeak(Fsck *chk)
 
 	for(a = 0; a < chk->nblocks; a++){
 		if(!readLabel(chk->cache, &l, a)){
-			error(chk, "could not read label: addr %ux %d %d: %R",
+			error(chk, "could not read label: addr 0x%ux %d %d: %R",
 				a, l.type, l.state);
 			continue;
 		}
@@ -374,11 +374,12 @@ checkLeak(Fsck *chk)
 		if(l.state&BsClosed)
 			continue;
 		nlost++;
-		// warn(chk, "unreachable block: addr %ux type %d tag %ux state %s epoch %ud close %ud",
-		// 	a, l.type, l.tag, bsStr(l.state), l.epoch, l.epochClose);
+//		warn(chk, "unreachable block: addr 0x%ux type %d tag 0x%ux "
+//			"state %s epoch %ud close %ud", a, l.type, l.tag,
+//			bsStr(l.state), l.epoch, l.epochClose);
 		b = cacheLocal(chk->cache, PartData, a, OReadOnly);
 		if(b == nil){
-			error(chk, "could not read block %#.8ux", a);
+			error(chk, "could not read block 0x%#.8ux", a);
 			continue;
 		}
 		chk->close(chk, b, 0);
@@ -388,7 +389,7 @@ checkLeak(Fsck *chk)
 	}
 	chk->print("fsys blocks: total=%ud used=%ud(%.1f%%) free=%ud(%.1f%%) lost=%ud(%.1f%%)\n",
 		chk->nblocks,
-		chk->nblocks-nfree-nlost,
+		chk->nblocks - nfree-nlost,
 		100.*(chk->nblocks - nfree - nlost)/chk->nblocks,
 		nfree, 100.*nfree/chk->nblocks,
 		nlost, 100.*nlost/chk->nblocks);

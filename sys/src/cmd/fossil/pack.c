@@ -73,16 +73,15 @@ labelUnpack(Label *l, uchar *p, int i)
 	l->tag = U32GET(p+10);
 
 	if(l->type > BtMax){
-	Bad:
+Bad:
 		vtSetError(EBadLabel);
-fprint(2, "labelUnpack %.2ux %.2ux %.8ux %.8ux %.8ux\n",
-	l->state, l->type, l->epoch, l->epochClose, l->tag);
+		fprint(2, "%s: labelUnpack: bad label: 0x%.2ux 0x%.2ux 0x%.8ux "
+			"0x%.8ux 0x%.8ux\n", argv0, l->state, l->type, l->epoch,
+			l->epochClose, l->tag);
 		return 0;
 	}
 	if(l->state != BsBad && l->state != BsFree){
-		if(!(l->state&BsAlloc))
-			goto Bad;
-		if(l->state&~BsMask)
+		if(!(l->state&BsAlloc) || l->state & ~BsMask)
 			goto Bad;
 		if(l->state&BsClosed){
 			if(l->epochClose == ~(u32int)0)
