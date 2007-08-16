@@ -14,8 +14,10 @@ readfile(char *name)
 	fd = open(name, OREAD);
 	if(fd < 0)
 		return nil;
-	if((d = dirfstat(fd)) == nil)
+	if((d = dirfstat(fd)) == nil) {
+		close(fd);
 		return nil;
+	}
 	s = malloc(d->length + 1);
 	if(s == nil || readn(fd, s, d->length) != d->length){
 		free(s);
@@ -37,7 +39,7 @@ readcert(char *filename, int *pcertlen)
 
 	pem = readfile(filename);
 	if(pem == nil){
-		werrstr("can't read %s", filename);
+		werrstr("can't read %s: %r", filename);
 		return nil;
 	}
 	binary = decodePEM(pem, "CERTIFICATE", pcertlen, nil);
@@ -53,14 +55,12 @@ PEMChain *
 readcertchain(char *filename)
 {
 	char *chfile;
-	PEMChain *chp;
 
 	chfile = readfile(filename);
 	if (chfile == nil) {
-		werrstr("can't read %s", filename);
+		werrstr("can't read %s: %r", filename);
 		return nil;
 	}
-	chp = decodepemchain(chfile, "CERTIFICATE");
-	return chp;
+	return decodepemchain(chfile, "CERTIFICATE");
 }
 

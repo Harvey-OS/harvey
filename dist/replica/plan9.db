@@ -293,7 +293,7 @@
 386/bin/ip/gping - 775 sys sys 1179372093 182147
 386/bin/ip/hogports - 775 sys sys 1148500655 42914
 386/bin/ip/httpd - 20000000775 sys sys 1068385801 0
-386/bin/ip/httpd/httpd - 775 sys sys 1179372094 294970
+386/bin/ip/httpd/httpd - 775 sys sys 1187234320 294990
 386/bin/ip/httpd/imagemap - 775 sys sys 1178568284 115949
 386/bin/ip/httpd/man2html - 775 sys sys 1178568284 124503
 386/bin/ip/httpd/netlib_find - 775 sys sys 1178568285 116797
@@ -432,7 +432,7 @@
 386/bin/test - 775 sys sys 1178568306 68701
 386/bin/time - 775 sys sys 1168402352 61618
 386/bin/tlsclient - 775 sys sys 1178568306 197411
-386/bin/tlssrv - 775 sys sys 1178568307 197771
+386/bin/tlssrv - 775 sys sys 1187234321 197791
 386/bin/togif - 775 sys sys 1179372106 190268
 386/bin/toico - 775 sys sys 1179372107 124047
 386/bin/topng - 775 sys sys 1178568307 137219
@@ -466,14 +466,14 @@
 386/bin/upas/msgcat - 775 sys sys 1064598353 38
 386/bin/upas/msgtok - 775 sys sys 1176520508 76758
 386/bin/upas/nedmail - 775 sys sys 1181507271 156007
-386/bin/upas/pop3 - 775 sys sys 1179372109 261615
+386/bin/upas/pop3 - 775 sys sys 1187234321 261635
 386/bin/upas/qer - 775 sys sys 1178568313 99195
 386/bin/upas/ratfs - 775 sys sys 1178568314 110177
 386/bin/upas/runq - 775 sys sys 1178568314 112842
 386/bin/upas/scanmail - 775 sys sys 1181507271 128207
 386/bin/upas/send - 775 sys sys 1181507272 192174
 386/bin/upas/smtp - 775 sys sys 1185566684 275107
-386/bin/upas/smtpd - 775 sys sys 1181540422 331887
+386/bin/upas/smtpd - 775 sys sys 1187234322 331907
 386/bin/upas/spam - 775 sys sys 1064598366 36
 386/bin/upas/testscan - 775 sys sys 1181507272 83858
 386/bin/upas/token - 775 sys sys 1178568317 76393
@@ -507,7 +507,7 @@
 386/bin/venti/verifyarena - 775 sys sys 1178568325 102747
 386/bin/venti/wrarena - 775 sys sys 1178568325 174848
 386/bin/venti/write - 775 sys sys 1176520521 102825
-386/bin/vncs - 775 sys sys 1179372111 471469
+386/bin/vncs - 775 sys sys 1187234324 471489
 386/bin/vncv - 775 sys sys 1179372113 518914
 386/bin/vt - 775 sys sys 1186716661 176851
 386/bin/vtdump - 775 sys sys 1178568328 160252
@@ -572,7 +572,7 @@
 386/lib/libplumb.a - 664 sys sys 1168402370 19408
 386/lib/libregexp.a - 664 sys sys 1181507273 37290
 386/lib/libscribble.a - 664 sys sys 1175972562 107238
-386/lib/libsec.a - 664 sys sys 1181332908 646724
+386/lib/libsec.a - 664 sys sys 1187234325 646784
 386/lib/libstdio.a - 664 sys sys 1176432133 126062
 386/lib/libsunrpc.a - 664 sys sys 1187061209 353148
 386/lib/libthread.a - 664 sys sys 1184731247 71918
@@ -876,6 +876,7 @@ arm/lib/ape - 20000000775 sys sys 1020896375 0
 arm/mkfile - 664 sys sys 948141303 46
 cfg - 20000000775 sys sys 1177628278 0
 cfg/example - 20000000775 sys sys 1177628283 0
+cfg/example/cpurc - 775 sys sys 1187226177 266
 cfg/example/termrc - 775 sys sys 1177628544 195
 cron - 20000000777 sys sys 1039727915 0
 cron/upas - 20000000775 upas sys 1039727915 0
@@ -5487,7 +5488,7 @@ rc/bin/b: - 775 sys sys 1015089510 204
 rc/bin/broke - 775 sys sys 1143389260 142
 rc/bin/bundle - 775 sys sys 945617206 173
 rc/bin/c: - 775 sys sys 1015089511 86
-rc/bin/cpurc - 775 sys sys 1179769494 2009
+rc/bin/cpurc - 775 sys sys 1187226871 1901
 rc/bin/cpurc.local - 775 sys sys 1176827268 367
 rc/bin/delkey - 775 sys sys 1109429137 643
 rc/bin/dial - 20000000775 sys sys 1059180057 0
@@ -6196,7 +6197,7 @@ sys/lib/dist/cmd/touchfs.c - 664 sys sys 1018469727 1120
 sys/lib/dist/cmd/unbflz.c - 664 sys sys 1018469727 1688
 sys/lib/dist/logcompress.awk - 664 sys sys 1068558028 298
 sys/lib/dist/logtime.awk - 664 sys sys 1019526213 38
-sys/lib/dist/mkfile - 664 sys sys 1173736647 5154
+sys/lib/dist/mkfile - 664 sys sys 1187231219 5377
 sys/lib/dist/pc - 20000000775 sys sys 1147022870 0
 sys/lib/dist/pc/cd0.proto - 664 sys sys 1114358485 7
 sys/lib/dist/pc/empty - 20000000775 sys sys 1020895854 0
@@ -7518,7 +7519,7 @@ sys/man/2/cputime - 664 sys sys 1015091518 713
 sys/man/2/ctime - 664 sys sys 954378853 2547
 sys/man/2/ctype - 664 sys sys 1079535676 2611
 sys/man/2/debugger - 664 sys sys 944959696 8629
-sys/man/2/des - 664 sys sys 1032058673 3517
+sys/man/2/des - 664 sys sys 1187231239 3505
 sys/man/2/dial - 664 sys sys 1175725019 6594
 sys/man/2/dirread - 664 sys sys 1015091519 1901
 sys/man/2/disk - 664 sys sys 1015091519 3188
@@ -7591,7 +7592,7 @@ sys/man/2/print - 664 sys sys 1115941566 8852
 sys/man/2/privalloc - 664 sys sys 984709633 651
 sys/man/2/proto - 664 sys sys 969499889 2948
 sys/man/2/pushssl - 664 sys sys 958249503 1032
-sys/man/2/pushtls - 664 sys sys 1124711123 5618
+sys/man/2/pushtls - 664 sys sys 1187210621 6020
 sys/man/2/qball - 664 sys sys 1162102671 1996
 sys/man/2/qsort - 664 sys sys 944959694 763
 sys/man/2/quaternion - 664 sys sys 1162102619 3417
@@ -7786,7 +7787,7 @@ sys/man/8/apm - 664 sys sys 1017679308 1811
 sys/man/8/auth - 664 sys sys 1183580530 4981
 sys/man/8/boot - 664 sys sys 1165623055 8357
 sys/man/8/booting - 664 sys sys 1015024984 4136
-sys/man/8/cpurc - 664 sys sys 1174792133 1541
+sys/man/8/cpurc - 664 sys sys 1187227584 1522
 sys/man/8/cron - 664 sys sys 1063858596 1867
 sys/man/8/dhcpd - 664 sys sys 1172959497 5572
 sys/man/8/disksim - 664 sys sys 1144150487 1476
@@ -15678,7 +15679,7 @@ sys/src/libsec/port/primetest.c - 664 sys sys 984710523 2486
 sys/src/libsec/port/prng.c - 664 sys sys 984710523 187
 sys/src/libsec/port/probably_prime.c - 664 sys sys 984710523 1567
 sys/src/libsec/port/rc4.c - 664 sys sys 1015013580 1415
-sys/src/libsec/port/readcert.c - 664 sys sys 1084318870 1026
+sys/src/libsec/port/readcert.c - 664 sys sys 1187210612 1024
 sys/src/libsec/port/reduce - 664 sys sys 984710524 306
 sys/src/libsec/port/rsaalloc.c - 664 sys sys 984710524 657
 sys/src/libsec/port/rsadecrypt.c - 664 sys sys 984710524 749

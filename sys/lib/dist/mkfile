@@ -1,6 +1,7 @@
 # /sys/lib/dist/mkfile
 d=/n/sources/plan9
 dist=/sys/lib/dist
+# import /sys/lib/dist/web.protect from outside
 x=`{9fs sources; 9fs fsother; import -c tcp!204.178.31.2!666 $dist/web.protect}
 
 cd:V: /n/fsother/dist/plan9.iso
@@ -26,8 +27,13 @@ contrib-cd:V:	/n/fsother/dist/contrib.iso.bz2
 	echo 'CD:' $title
 	disk/mk9660 -9cj -v $title -s $d -b bootdisk.img $target
 
+# try not to clobber downloads in progress
 $dist/web.protect/%.iso.bz2:	/n/fsother/dist/%.iso.bz2
-	cp $prereq $target
+	cp $prereq $target.new
+	chmod +t $target.new		# don't waste venti on it
+	if (test -e $target)
+		mv $target $target.old
+	mv $target.new $target
 
 scan:V:
 	test -d /n/fsother/dist		# make sure fsother was mounted above
@@ -54,7 +60,10 @@ odump:V:
 		-p /sys/lib/sysconfig/proto/allproto /n/fsother/dist/distdump.iso
 
 cd.install:V:
-	if(~ $sysname achille){ echo; echo; echo '*** run this on a real machine, like olive.'; exit bad }
+	if(~ $sysname achille){
+		echo; echo; echo '*** run this on a real machine, like olive.'
+		exit bad
+	}
 	bzip2 -9 < /n/fsother/dist/plan9.iso >web.protect/nplan9.iso.bz2
 
 D.install:V:
@@ -65,7 +74,10 @@ D.install:V:
 	cp $D$dist/pc/9loaddebug $dist/web.protect/n9loaddebug
 
 reallyinstall:V:
-	if(! ~ $sysname achille){ echo; echo; echo '*** this needs to run on achille.'; exit bad }
+	if(! ~ $sysname achille){
+		echo; echo; echo '*** this needs to run on achille.'
+		exit bad
+	}
 	cd web.protect
 	for (i in plan9.iso.bz2 disk 9loaddebug vmware.zip)
 		if(test -f n$i){

@@ -54,8 +54,8 @@ exists for the machine named
 .BR $sysname ,
 .I termrc
 will execute it next.
-This action is suppressed, as is automatic initialization of the mouse and
-VGA on a PC, if the user is
+Automatic initialization of the mouse and
+VGA on a PC is suppressed, if the user is
 .BR none .
 These files should be edited by local installations
 to reflect the configuration of their systems.
