@@ -1,0 +1,12 @@
+#!/bin/rc
+# cpu-specific startup
+
+# Since booting from venti could have started loopback,
+# don't test for existing interfaces, just use ipconfig.
+# ip/ipconfig -g your-gateway ether /net/ether0 your-ip-address your-subnet-mask
+
+# ndb/dns -s
+
+# ip/dhcpd
+# ip/tftpd
+

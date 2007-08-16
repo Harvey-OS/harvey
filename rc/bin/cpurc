@@ -16,12 +16,6 @@ NPROC = `{wc -l </dev/sysstat}
 if(test -e /rc/bin/cpurc.local)
 	. /rc/bin/cpurc.local
 
-# cpu-specific startup such as
-# ip/ipconfig ether /dev/ether0 ip gw ...
-# ndb/dns -s
-# ip/dhcpd
-# ip/tftpd
-
 if (~ $#sysname 0 || ~ $sysname '') {
 	sysname = helix			# default
 	echo -n $sysname >/dev/sysname
@@ -49,7 +43,7 @@ if(! grep -s 127.0.0.1 /net/ipselftab)
 #
 # also rename some files:
 #
-# if(! test -e /rc/bin/service.auth/il566){
+# if(! test -e /rc/bin/service.auth/tcp567){
 #	mv /rc/bin/service.auth/authsrv.il566 /rc/bin/service.auth/il566
 #	mv /rc/bin/service.auth/authsrv.tcp567 /rc/bin/service.auth/tcp567
 #	mv /rc/bin/service/il566 /rc/bin/service/_il566

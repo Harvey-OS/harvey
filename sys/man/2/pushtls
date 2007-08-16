@@ -6,36 +6,36 @@ pushtls, tlsClient, tlsServer, initThumbprints, freeThumbprints, okThumbprint, r
 .br
 .B #include <libc.h>
 .PP
+.nf
 .B
-int			pushtls(int fd, char *hashalg, char *encalg,
-.br
+int	pushtls(int fd, char *hashalg, char *encalg,
 .B
-				int isclient, char *secret, char *dir)
+		int isclient, char *secret, char *dir)
 .PP
+.nf
 .B #include <mp.h>
-.br
 .B #include <libsec.h>
 .PP
 .B
-int			tlsClient(int fd, TLSconn *conn)
+int	tlsClient(int fd, TLSconn *conn)
 .PP
 .B
-int			tlsServer(int fd, TLSconn *conn)
+int	tlsServer(int fd, TLSconn *conn)
 .PP
 .B
-uchar		*readcert(char *filename, int *pcertlen)
+uchar *readcert(char *filename, int *pcertlen)
 .PP
 .B
-PEMchain	*readcertchain(char *filename)
+PEMchain *readcertchain(char *filename)
 .PP
 .B
-Thumbprint*	initThumbprints(char *ok, char *crl)
+Thumbprint *initThumbprints(char *ok, char *crl)
 .PP
 .B
-void			freeThumbprints(Thumbprint *table)
+void	freeThumbprints(Thumbprint *table)
 .PP
 .B
-int			okThumbprint(uchar *hash, Thumbprint *table)
+int	okThumbprint(uchar *hash, Thumbprint *table)
 .SH DESCRIPTION
 Transport Layer Security (TLS) comprises a record layer protocol,
 doing message digesting and encrypting in the kernel,
@@ -80,28 +80,31 @@ If
 is non-zero, the path name of the connection directory is copied into
 .IR dir .
 This path name is guaranteed to be less than 40 bytes long.
-.PP
+.SS Certificates
+.\" and other horseshit
 Alternatively, call
 .I tlsClient
 to speak the full handshake protocol,
 negotiate the algorithms and secrets,
 and return a new data file descriptor for the data channel.
 .I Conn
-points to a (caller-allocated) struct
+points to a (caller-allocated) struct:
+.IP
 .EX
-   typedef struct TLSconn{
-      char dir[40];     // OUT    connection directory
-      uchar *cert;      // IN/OUT certificate
-      uchar *sessionID; // IN/OUT session ID
-      int certlen, sessionIDlen;
-      void (*trace)(char*fmt, ...);
-      PEMChain *chain;
-      char *sessionType;  // opt IN  session type
-      uchar *sessionKey;  // opt IN/OUT session key
-      int sessionKeylen;  // opt IN  session key length
-      char *sessionConst; // opt IN  session constant
-   } TLSconn;
+typedef struct TLSconn {
+	char	dir[40];		/* OUT    connection directory */
+	uchar *cert;		/* IN/OUT certificate */
+	uchar *sessionID;	/* IN/OUT session ID */
+	int	certlen, sessionIDlen;
+	void	(*trace)(char*fmt, ...);
+	PEMChain *chain;
+	char	*sessionType;	/* opt IN  session type */
+	uchar *sessionKey;	/* opt IN/OUT session key */
+	int	sessionKeylen;	/* opt IN  session key length */
+	char	*sessionConst;	/* opt IN  session constant */
+} TLSconn;
 .EE
+.PP
 defined in
 .IR tls.h .
 On input, the caller can provide options such as
@@ -153,18 +156,44 @@ The caller must initialize
 .IB conn ->cert \fR,
 usually by calling
 .I readcert
-to read the certificate out of a file.
+to read and decode the PEM-encoded certificate from
+.IR filename ,
+return a pointer to
+.IR malloc ed
+storage containing the certificate,
+and store its length through
+.IR pcertlen .
 The private key corresponding to
 .I cert.pem
 should have been previously loaded into factotum.
 (See
 .IR rsa (8)
 for more about key generation.)
-
-By setting
+.PP
+.I Readcertchain
+will read a PEM-encoded chain of certificates from
+.I filename
+and return a pointer to a linked list of
+.IR malloc ed
+.B PEMChain
+structures, defined in
+.IR tls.h :
+.IP
 .EX
-   conn->chain = readcertchain("intermediate-certs.pem");
+typedef struct PEMChain PEMChain;
+struct PEMChain {
+	PEMChain*next;
+	uchar *pem;
+	int	pemlen;
+};
 .EE
+.LP
+By setting
+.IP
+.EX
+conn->chain = readcertchain("intermediate-certs.pem");
+.EE
+.LP
 the server can present extra certificate evidence
 to establish the chain of trust to a root authority
 known to the client.
@@ -174,27 +203,29 @@ is not required for the ongoing conversation and may
 be freed by the application whenever convenient.
 .SH EXAMPLES
 Start the client half of TLS and check the remote certificate:
-.PP
+.IP
 .EX
-    uchar hash[SHA1dlen];
-    conn = (TLSconn*)mallocz(sizeof *conn, 1);
-    fd = tlsClient(fd, conn);
-    sha1(conn->cert, conn->certlen, hash, nil);
-    if(!okThumbprint(hash,table))
-        exits("suspect server");
-    \fI...application begins...\fP
+uchar hash[SHA1dlen];
+
+conn = (TLSconn*)mallocz(sizeof *conn, 1);
+fd = tlsClient(fd, conn);
+sha1(conn->cert, conn->certlen, hash, nil);
+if(!okThumbprint(hash,table))
+	exits("suspect server");
+\fI...application begins...\fP
 .EE
 .PP
 Run the server side:
-.PP
+.IP
 .EX
-    fd = accept(lcfd, ldir);
-    conn = (TLSconn*)mallocz(sizeof *conn, 1);
-    conn->cert = readcert("cert.pem", &conn->certlen);
-    fd = tlsServer(fd, conn);
-    \fI...application begins...\fP
+fd = accept(lcfd, ldir);
+conn = (TLSconn*)mallocz(sizeof *conn, 1);
+conn->cert = readcert("cert.pem", &conn->certlen);
+fd = tlsServer(fd, conn);
+\fI...application begins...\fP
 .EE
 .SH FILES
+.TF /sys/lib/tls
 .TP 
 .B /sys/lib/tls
 thumbprints of trusted services
@@ -211,13 +242,13 @@ PEM certificate files
 .IR factotum (4),
 .IR thumbprint (6)
 .SH DIAGNOSTICS
-return \-1 on failure.
+Return \-1 on failure.
 .SH BUGS
-.PP
 Client certificates and client sessionIDs are not yet
 implemented.
 .PP
 Note that in the TLS protocol
 .I sessionID
 itself is public;  it is used as a pointer to
-secrets stored in factotum.
+secrets stored in
+.IR factotum .
