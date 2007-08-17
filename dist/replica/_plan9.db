@@ -293,7 +293,7 @@
 386/bin/ip/gping - 775 sys sys 1179372093 182147
 386/bin/ip/hogports - 775 sys sys 1148500655 42914
 386/bin/ip/httpd - 20000000775 sys sys 1068385801 0
-386/bin/ip/httpd/httpd - 775 sys sys 1179372094 294970
+386/bin/ip/httpd/httpd - 775 sys sys 1187234320 294990
 386/bin/ip/httpd/imagemap - 775 sys sys 1178568284 115949
 386/bin/ip/httpd/man2html - 775 sys sys 1178568284 124503
 386/bin/ip/httpd/netlib_find - 775 sys sys 1178568285 116797
@@ -432,7 +432,7 @@
 386/bin/test - 775 sys sys 1178568306 68701
 386/bin/time - 775 sys sys 1168402352 61618
 386/bin/tlsclient - 775 sys sys 1178568306 197411
-386/bin/tlssrv - 775 sys sys 1178568307 197771
+386/bin/tlssrv - 775 sys sys 1187234321 197791
 386/bin/togif - 775 sys sys 1179372106 190268
 386/bin/toico - 775 sys sys 1179372107 124047
 386/bin/topng - 775 sys sys 1178568307 137219
@@ -466,14 +466,14 @@
 386/bin/upas/msgcat - 775 sys sys 1064598353 38
 386/bin/upas/msgtok - 775 sys sys 1176520508 76758
 386/bin/upas/nedmail - 775 sys sys 1181507271 156007
-386/bin/upas/pop3 - 775 sys sys 1179372109 261615
+386/bin/upas/pop3 - 775 sys sys 1187234321 261635
 386/bin/upas/qer - 775 sys sys 1178568313 99195
 386/bin/upas/ratfs - 775 sys sys 1178568314 110177
 386/bin/upas/runq - 775 sys sys 1178568314 112842
 386/bin/upas/scanmail - 775 sys sys 1181507271 128207
 386/bin/upas/send - 775 sys sys 1181507272 192174
 386/bin/upas/smtp - 775 sys sys 1185566684 275107
-386/bin/upas/smtpd - 775 sys sys 1181540422 331887
+386/bin/upas/smtpd - 775 sys sys 1187234322 331907
 386/bin/upas/spam - 775 sys sys 1064598366 36
 386/bin/upas/testscan - 775 sys sys 1181507272 83858
 386/bin/upas/token - 775 sys sys 1178568317 76393
@@ -507,7 +507,7 @@
 386/bin/venti/verifyarena - 775 sys sys 1178568325 102747
 386/bin/venti/wrarena - 775 sys sys 1178568325 174848
 386/bin/venti/write - 775 sys sys 1176520521 102825
-386/bin/vncs - 775 sys sys 1179372111 471469
+386/bin/vncs - 775 sys sys 1187234324 471489
 386/bin/vncv - 775 sys sys 1179372113 518914
 386/bin/vt - 775 sys sys 1186716661 176851
 386/bin/vtdump - 775 sys sys 1178568328 160252
@@ -572,7 +572,7 @@
 386/lib/libplumb.a - 664 sys sys 1168402370 19408
 386/lib/libregexp.a - 664 sys sys 1181507273 37290
 386/lib/libscribble.a - 664 sys sys 1175972562 107238
-386/lib/libsec.a - 664 sys sys 1181332908 646724
+386/lib/libsec.a - 664 sys sys 1187234325 646784
 386/lib/libstdio.a - 664 sys sys 1176432133 126062
 386/lib/libsunrpc.a - 664 sys sys 1187061209 353148
 386/lib/libthread.a - 664 sys sys 1184731247 71918
@@ -5823,7 +5823,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1186059829 266217
+sys/games/lib/fortunes - 664 sys sys 1187314856 266328
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -8170,7 +8170,7 @@ sys/src/9/port/chan.c - 664 sys sys 1146151714 34773
 sys/src/9/port/cis.c - 664 sys sys 1099761153 9248
 sys/src/9/port/debugalloc.c - 664 sys sys 1014931171 10402
 sys/src/9/port/dev.c - 664 sys sys 1146151714 8177
-sys/src/9/port/devaoe.c - 664 sys sys 1187061517 41444
+sys/src/9/port/devaoe.c - 664 sys sys 1187282168 41343
 sys/src/9/port/devaudio.c - 664 sys sys 1170456648 21199
 sys/src/9/port/devbridge.c - 664 sys sys 1185994684 24171
 sys/src/9/port/devcap.c - 664 sys sys 1178886040 4141
@@ -15854,9 +15854,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/vncs - 775 sys sys 1187234324 471489
-386/bin/ip/httpd/httpd - 775 sys sys 1187234320 294990
-386/bin/tlssrv - 775 sys sys 1187234321 197791
-386/bin/upas/pop3 - 775 sys sys 1187234321 261635
-386/bin/upas/smtpd - 775 sys sys 1187234322 331907
-386/lib/libsec.a - 664 sys sys 1187234325 646784
+386/9loaddebug - 775 sys sys 1187321104 435045
