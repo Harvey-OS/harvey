@@ -4190,3 +4190,4 @@ Science is what we understand well enough to explain to a computer.  Art is ever
 process `sysctl' is using deprecated sysctl (syscall) net.ipv6.neigh.eth1.base_reachable_time; Use net.ipv6.neigh.eth1.base_reachable_time_ms instead.
 There is absolutely no warranty for GDB.  Type "show warranty" for details.
 Th' canny man keeps his money in sheep - or he keeps it in th' First Presbyterian Bank o' Scotland
+ttcp-r: 3689238521928343900000000000000 bytes in 41.02 real seconds = 87829643931512629000000000.00 KB/sec +++

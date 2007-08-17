@@ -1129,10 +1129,6 @@ rw(Aoedev *d, int write, uchar *db, long len, uvlong off)
 	enum { Srbsz = 1<<18, };
 	Srb *srb;
 
-	/*
-	 * it would be good if we could relax this, to match all other
-	 * disk drivers in Plan 9.
-	 */
 	if((off|len) & (Aoesectsz-1))
 		error("offset and length must be sector multiple.\n");
 	if(off > d->bsize || len == 0)
