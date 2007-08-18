@@ -572,7 +572,7 @@
 386/lib/libplumb.a - 664 sys sys 1168402370 19408
 386/lib/libregexp.a - 664 sys sys 1181507273 37290
 386/lib/libscribble.a - 664 sys sys 1175972562 107238
-386/lib/libsec.a - 664 sys sys 1187234325 646784
+386/lib/libsec.a - 664 sys sys 1187380500 646784
 386/lib/libstdio.a - 664 sys sys 1176432133 126062
 386/lib/libsunrpc.a - 664 sys sys 1187061209 353148
 386/lib/libthread.a - 664 sys sys 1184731247 71918
@@ -5823,7 +5823,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1187314856 266328
+sys/games/lib/fortunes - 664 sys sys 1187359457 266564
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -15638,7 +15638,7 @@ sys/src/libsec/mips/mkfile - 664 sys sys 1032061452 227
 sys/src/libsec/mips/sha1block.s - 664 sys sys 985124884 4143
 sys/src/libsec/mkfile - 664 sys sys 1134426497 554
 sys/src/libsec/port - 20000000775 sys sys 1123099027 0
-sys/src/libsec/port/aes.c - 664 sys sys 1016731561 64104
+sys/src/libsec/port/aes.c - 664 sys sys 1187327457 63962
 sys/src/libsec/port/blowfish.c - 664 sys sys 1016466467 19676
 sys/src/libsec/port/decodepem.c - 664 sys sys 1084318869 1831
 sys/src/libsec/port/des.c - 664 sys sys 1015013579 17496
