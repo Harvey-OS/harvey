@@ -64,10 +64,12 @@ yylex(void)
 	char *p;
 	int c;
 
-	if(yylp == nil || *yylp == 0)
+	if(yylp == nil)
 		return 0;
 	while(isspace(*yylp))
 		yylp++;
+	if(*yylp == 0)
+		return 0;
 
 	yylval = newfilter();
 

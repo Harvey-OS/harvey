@@ -271,7 +271,7 @@ protecting the
 is the same
 .B QLock
 used for the 
-.B Rendez ;
+.BR Rendez ;
 this ensures that wakeups are not missed.
 .SH SOURCE
 .B /sys/src/libc/port/lock.c

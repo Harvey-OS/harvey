@@ -134,7 +134,7 @@ and recreates the namespace using the file
 (default
 .BR /lib/nnamespace ).
 It uses
-.I auth_userpassword
+.I auth_userpasswd
 and
 .IR auth_chuid .
 .PP

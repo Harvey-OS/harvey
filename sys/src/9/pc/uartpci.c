@@ -10,8 +10,11 @@ extern PhysUart i8250physuart;
 extern PhysUart pciphysuart;
 extern void* i8250alloc(int, int, int);
 
+static Uart *perlehead, *perletail;
+
 static Uart*
-uartpci(int ctlrno, Pcidev* p, int barno, int n, int freq, char* name)
+uartpci(int ctlrno, Pcidev* p, int barno, int n, int freq, char* name,
+	int iosize)
 {
 	int i, io;
 	void *ctlr;
@@ -26,10 +29,9 @@ uartpci(int ctlrno, Pcidev* p, int barno, int n, int freq, char* name)
 	}
 
 	head = uart = malloc(sizeof(Uart)*n);
-
 	for(i = 0; i < n; i++){
 		ctlr = i8250alloc(io, p->intl, p->tbdf);
-		io += 8;
+		io += iosize;
 		if(ctlr == nil)
 			continue;
 
@@ -43,7 +45,40 @@ uartpci(int ctlrno, Pcidev* p, int barno, int n, int freq, char* name)
 		uart++;
 	}
 
+	if (head) {
+		if(perlehead != nil)
+			perletail->next = head;
+		else
+			perlehead = head;
+		for(perletail = head; perletail->next != nil;
+		    perletail = perletail->next)
+			;
+	}
 	return head;
+}
+
+static Uart *
+ultraport16si(Pcidev *p, int ctlrno, ulong freq)
+{
+	int io, i;
+	char *name;
+	Uart *uart;
+
+	name = "Ultraport16si";			/* 16L788 UARTs */
+	io = p->mem[4].bar & ~1;
+	if (ioalloc(io, p->mem[4].size, 0, name) < 0) {
+		print("uartpci: can't get IO space to set %s to rs-232\n", name);
+		return nil;
+	}
+	for (i = 0; i < 16; i++) {
+		outb(io, i << 4);
+		outb(io, (i << 4) + 1);	/* set to RS232 mode  (Don't ask!) */
+	}
+
+	uart = uartpci(ctlrno, p, 2, 8, freq, name, 16);
+	if(uart)
+		uart = uartpci(ctlrno, p, 3, 8, freq, name, 16);
+	return uart;
 }
 
 static Uart*
@@ -51,8 +86,9 @@ uartpcipnp(void)
 {
 	Pcidev *p;
 	char *name;
-	int ctlrno, n, subid;
-	Uart *head, *tail, *uart;
+	int ctlrno, subid;
+	ulong freq;
+	Uart *uart;
 
 	/*
 	 * Loop through all PCI devices looking for simple serial
@@ -60,20 +96,23 @@ uartpcipnp(void)
 	 * are familiar. All suitable devices are configured to
 	 * simply point to the generic i8250 driver.
 	 */
-	head = tail = nil;
+	perlehead = perletail = nil;
 	ctlrno = 0;
 	for(p = pcimatch(nil, 0, 0); p != nil; p = pcimatch(p, 0, 0)){
 		if(p->ccrb != 0x07 || p->ccru > 2)
 			continue;
 
-		switch((p->did<<16)|p->vid){
+		switch(p->did<<16 | p->vid){
 		default:
 			continue;
 		case (0x9835<<16)|0x9710:	/* StarTech PCI2S550 */
-			uart = uartpci(ctlrno, p, 0, 1, 1843200, "PCI2S550-0");
+			uart = uartpci(ctlrno, p, 0, 1, 1843200, "PCI2S550-0", 8);
 			if(uart == nil)
 				continue;
-			uart->next = uartpci(ctlrno, p, 1, 1, 1843200, "PCI2S550-1");
+			uart->next = uartpci(ctlrno, p, 1, 1, 1843200,
+				"PCI2S550-1", 8);
+			if(uart->next == nil)
+				continue;
 			break;
 		case (0x950A<<16)|0x1415:	/* Oxford Semi OX16PCI954 */
 			/*
@@ -88,9 +127,8 @@ uartpcipnp(void)
 			default:
 				continue;
 			case (0x2000<<16)|0x131F:/* SIIG CyberSerial PCIe */
-				uart = uartpci(ctlrno, p, 0, 1, 18432000, "CyberSerial-1S");
-					if(uart == nil)
-						continue;
+				uart = uartpci(ctlrno, p, 0, 1, 18432000,
+					"CyberSerial-1S", 8);
 				break;
 			}
 			break;
@@ -104,42 +142,37 @@ uartpcipnp(void)
 			 */
 			subid = pcicfgr16(p, PciSVID);
 			subid |= pcicfgr16(p, PciSID)<<16;
+			freq = 7372800;
 			switch(subid){
 			default:
 				continue;
 			case (0x0011<<16)|0x12E0:	/* Perle PCI-Fast16 */
-				n = 16;
 				name = "PCI-Fast16";
+				uart = uartpci(ctlrno, p, 2, 16, freq, name, 8);
 				break;
 			case (0x0021<<16)|0x12E0:	/* Perle PCI-Fast8 */
-				n = 8;
 				name = "PCI-Fast8";
+				uart = uartpci(ctlrno, p, 2, 8, freq, name, 8);
 				break;
 			case (0x0031<<16)|0x12E0:	/* Perle PCI-Fast4 */
-				n = 4;
 				name = "PCI-Fast4";
+				uart = uartpci(ctlrno, p, 2, 4, freq, name, 8);
 				break;
 			case (0x0021<<16)|0x155F:	/* Perle Ultraport8 */
-				n = 8;
 				name = "Ultraport8";	/* 16C754 UARTs */
+				uart = uartpci(ctlrno, p, 2, 8, freq, name, 8);
+				break;
+			case (0x0241<<16)|0x155F:	/* Perle Ultraport16 */
+				uart = ultraport16si(p, ctlrno, 4 * freq);
 				break;
 			}
-			uart = uartpci(ctlrno, p, 2, n, 7372800, name);
-			if(uart == nil)
-				continue;
 			break;
 		}
-
-		if(head != nil)
-			tail->next = uart;
-		else
-			head = uart;
-		for(tail = uart; tail->next != nil; tail = tail->next)
-			;
-		ctlrno++;
+		if(uart)
+			ctlrno++;
 	}
 
-	return head;
+	return perlehead;
 }
 
 PhysUart pciphysuart = {
