@@ -407,7 +407,7 @@
 386/bin/snap - 775 sys sys 1178939753 316147
 386/bin/snapfs - 775 sys sys 1179372105 390366
 386/bin/sniffer - 775 sys sys 1038443185 99028
-386/bin/snoopy - 775 sys sys 1186112232 190558
+386/bin/snoopy - 775 sys sys 1187639427 190560
 386/bin/sort - 775 sys sys 1178568303 81057
 386/bin/spin - 775 sys sys 1186543935 769291
 386/bin/split - 775 sys sys 1181507270 75811
@@ -7502,7 +7502,7 @@ sys/man/2/arg - 664 sys sys 1139744263 2184
 sys/man/2/arith3 - 664 sys sys 1162102967 4393
 sys/man/2/assert - 664 sys sys 1102868467 377
 sys/man/2/atof - 664 sys sys 1171668702 2778
-sys/man/2/auth - 664 sys sys 1171094909 7540
+sys/man/2/auth - 664 sys sys 1187643286 7538
 sys/man/2/authsrv - 664 sys sys 1171690308 4505
 sys/man/2/bin - 664 sys sys 985023077 1880
 sys/man/2/bind - 664 sys sys 1015091518 4685
@@ -7566,7 +7566,7 @@ sys/man/2/iounit - 664 sys sys 1015091523 1001
 sys/man/2/ip - 664 sys sys 1178598000 7246
 sys/man/2/isalpharune - 664 sys sys 1015091523 1059
 sys/man/2/keyboard - 664 sys sys 950892860 2065
-sys/man/2/lock - 664 sys sys 1174844415 5704
+sys/man/2/lock - 664 sys sys 1187644134 5705
 sys/man/2/mach - 664 sys sys 1080179298 7995
 sys/man/2/malloc - 664 sys sys 1102093069 4763
 sys/man/2/matrix - 664 sys sys 950892861 6090
@@ -7626,7 +7626,7 @@ sys/man/2/string - 664 sys sys 1055701090 5306
 sys/man/2/stringsize - 664 sys sys 952627482 1409
 sys/man/2/subfont - 664 sys sys 956345937 5140
 sys/man/2/symbol - 664 sys sys 950892874 9423
-sys/man/2/thread - 664 sys sys 1181168564 11712
+sys/man/2/thread - 664 sys sys 1187645645 11918
 sys/man/2/time - 664 sys sys 1182980757 736
 sys/man/2/tmpfile - 664 sys sys 1048637161 1157
 sys/man/2/wait - 664 sys sys 1163004064 2525
@@ -7989,7 +7989,7 @@ sys/src/9/ip/netlog.c - 664 sys sys 1184794933 4004
 sys/src/9/ip/nullmedium.c - 664 sys sys 1086406910 492
 sys/src/9/ip/pktmedium.c - 664 sys sys 1084331746 1314
 sys/src/9/ip/ptclbsum.c - 664 sys sys 1022588099 1243
-sys/src/9/ip/rudp.c - 664 sys sys 1184946959 21529
+sys/src/9/ip/rudp.c - 664 sys sys 1187631835 21591
 sys/src/9/ip/tcp.c - 664 sys sys 1186406232 65963
 sys/src/9/ip/tripmedium.c - 664 sys sys 1045063515 7136
 sys/src/9/ip/udp.c - 664 sys sys 1184946959 13316
@@ -12594,7 +12594,7 @@ sys/src/cmd/ip/snoopy/eap_identity.c - 664 sys sys 1128179537 50
 sys/src/cmd/ip/snoopy/eapol.c - 664 sys sys 1128179537 1890
 sys/src/cmd/ip/snoopy/eapol_key.c - 664 sys sys 1128179537 2025
 sys/src/cmd/ip/snoopy/ether.c - 664 sys sys 1181425746 2077
-sys/src/cmd/ip/snoopy/filter.y - 664 sys sys 1138463389 1739
+sys/src/cmd/ip/snoopy/filter.y - 664 sys sys 1187631889 1753
 sys/src/cmd/ip/snoopy/gre.c - 664 sys sys 1139667373 3327
 sys/src/cmd/ip/snoopy/hdlc.c - 664 sys sys 1128179537 4285
 sys/src/cmd/ip/snoopy/icmp.c - 664 sys sys 1148279205 2970
