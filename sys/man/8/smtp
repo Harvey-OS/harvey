@@ -22,7 +22,10 @@ smtp, smtpd \-  mail transport
 .I destaddr
 .I sender
 .I rcpt-list
+.in -0.5i
 .PP
+.in +0.5i
+.ti -0.5i
 .B upas/smtpd
 [
 .B -adDfrg
@@ -35,6 +38,9 @@ smtp, smtpd \-  mail transport
 ] [
 .B -k
 .I evilipaddr
+] [
+.B -m
+.I mailer
 ] [
 .B -n
 .I netdir
@@ -49,6 +55,8 @@ on the host at network address
 .I address 
 using the Simple Mail Transfer Protocol.
 The options are:
+.TF -
+.PD
 .TP
 .B -a
 if the server supports PLAIN or LOGIN authentication,
@@ -110,6 +118,7 @@ Finally if
 .I .domain
 is given, it is appended to the end of any unqualified system names
 in the envelope or header.
+.
 .PP
 .I Smtpd
 receives a message using the Simple Mail Transfer Protocol.
@@ -121,6 +130,8 @@ and
 protocols is supported; authenticated connections are permitted to relay.
 .PP
 The options are:
+.TF -
+.PD
 .TP
 .B -a
 requires that all clients authenticate to be able to send mail.
@@ -153,7 +164,12 @@ itself.
 Whenever a message is received and the sender's address isn't on the whitelist,
 .I smtpd
 first looks for the file
-.BI /mail/grey/tmp/\| local-ipaddr /\| remote-ipaddr /\| recipient.
+.BI /mail\%/grey\%/tmp\%/\| local\% /\| remote\% /\| recipient\fP,
+where
+.I local
+and
+.I remote
+are IP addresses of the local and remote systems, respectively.
 If it exists, the remote address is added to the whitelist.  If
 not, the file is created and the mail is rejected with a `try again'
 code.  The expectation is that spammers will not retry and that others will.
@@ -174,6 +190,15 @@ it is intended to lessen the effects of denial of
 service attacks or broken mailers which continually
 connect.  The connections are not logged and the
 remote system is not notified via the protocol.
+.TP
+.B -m
+set the
+.I mailer
+to which
+.I smtpd
+passes a received message.
+The default is
+.BR /bin/upas/send .
 .TP
 .B -n
 specifies the name of the network directory assigned to the incoming connection.

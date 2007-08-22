@@ -187,8 +187,6 @@ connectlocalfossil(void)
 	if(stat("/boot/fossil", statbuf, sizeof statbuf) < 0)
 		return -1;
 
-	bind("#k", "/dev", MAFTER);
-
 	/* look for fossil partition */
 	dev = disk ? disk : bootdisk;
 	snprint(partition, sizeof partition, "%sfossil", dev);
@@ -273,6 +271,8 @@ connectlocal(void)
 	if(bind("#p", "/proc", MREPL) < 0)
 		fatal("bind #p");
 	bind("#S", "/dev", MAFTER);
+	bind("#k", "/dev", MAFTER);
+	bind("#æ", "/dev", MAFTER);
 
 	if((fd = connectlocalfossil()) < 0)
 	if((fd = connectlocalkfs()) < 0)

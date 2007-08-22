@@ -10,11 +10,7 @@
 
 enum
 {
-	IP_HLEN4	= 0x05,		/* Header length in words */
-	IP_DF		= 0x4000,	/* Don't fragment */
-	IP_MF		= 0x2000,	/* More fragments */
 	IP6FHDR		= 8, 		/* sizeof(Fraghdr6) */
-	IP_MAX		= 32*1024,	/* Maximum Internet packet size */
 };
 
 #define IPV6CLASS(hdr)	(((hdr)->vcf[0]&0x0F)<<2 | ((hdr)->vcf[1]&0xF0)>>2)
@@ -154,7 +150,8 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 
 	tentative = iptentative(f, eh->src);
 	if(tentative){
-		netlog(f, Logip, "reject tx of packet with tentative src address\n");
+		netlog(f, Logip, "reject tx of packet with tentative src address %I\n",
+			eh->src);
 		goto free;
 	}
 
@@ -170,7 +167,6 @@ ipoput6(Fs *f, Block *bp, int gating, int ttl, int tos, Conv *c)
 	}
 
 	if(len >= IP_MAX){
-//		print("len > IP_MAX, free\n");
 		ip->stats[OutDiscards]++;
 		netlog(f, Logip, "exceeded ip max size %I\n", eh->dst);
 		goto free;

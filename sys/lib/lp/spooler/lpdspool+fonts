@@ -1,0 +1,16 @@
+#!/bin/rc
+
+if (! ~ $DEBUG '') flag x +
+
+if (~ $#* 0) *='/fd/0'
+
+for (j in $*) {
+	if (~ $j '/fd/0' || test -f $j) {
+		@{bind -b $LPLIB/process /bin; $LPPROC} < $j | 
+		aux/download -f -H/sys/lib/postscript/font -mfontmap -plw+ |
+		/$cputype/bin/aux/lpdsend -d$OUTDEV -tf -H$LPMACHID -P$LPUSERID $DEST_HOST >[2]$LPLOGDIR/$LPDEST^.st
+	}
+	if not {
+		echo $j cannot be opened >[1=2]
+	}
+}

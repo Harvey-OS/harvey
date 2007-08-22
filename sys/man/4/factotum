@@ -349,7 +349,7 @@ For example, the TLS and SSH host keys on a server
 often have an attribute
 .B owner=*
 to allow any user (and in particular,
-.L none )
+.LR none )
 to run the TLS or SSH server-side protocol.
 .PP
 Any key may have a

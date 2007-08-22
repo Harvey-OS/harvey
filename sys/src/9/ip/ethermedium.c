@@ -5,6 +5,7 @@
 #include "fns.h"
 #include "../port/error.h"
 
+#include "../port/netif.h"
 #include "ip.h"
 #include "ipv6.h"
 
@@ -93,9 +94,6 @@ struct Etherrock
  */
 enum
 {
-	ETARP		= 0x0806,
-	ETIP4		= 0x0800,
-	ETIP6		= 0x86DD,
 	ARPREQUEST	= 1,
 	ARPREPLY	= 2,
 };
@@ -156,12 +154,12 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 	}
 
 	/*
-	 *  open ipv4 converstation
+	 *  open ipv4 conversation
 	 *
 	 *  the dial will fail if the type is already open on
 	 *  this device.
 	 */
-	snprint(addr, sizeof(addr), "%s!0x800", argv[2]);
+	snprint(addr, sizeof(addr), "%s!0x800", argv[2]);	/* ETIP4 */
 	mchan4 = chandial(addr, nil, dir, &cchan4);
 
 	/*
@@ -200,7 +198,7 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 	/*
  	 *  open arp conversation
 	 */
-	snprint(addr, sizeof(addr), "%s!0x806", argv[2]);
+	snprint(addr, sizeof(addr), "%s!0x806", argv[2]);	/* ETARP */
 	achan = chandial(addr, nil, nil, nil);
 
 	/*
@@ -209,7 +207,7 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 	 *  the dial will fail if the type is already open on
 	 *  this device.
 	 */
-	snprint(addr, sizeof(addr), "%s!0x86DD", argv[2]);
+	snprint(addr, sizeof(addr), "%s!0x86DD", argv[2]);	/* ETIP6 */
 	mchan6 = chandial(addr, nil, dir, &cchan6);
 
 	/*

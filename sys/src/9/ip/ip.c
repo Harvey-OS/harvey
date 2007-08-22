@@ -12,15 +12,6 @@ typedef struct Fragment4	Fragment4;
 typedef struct Fragment6	Fragment6;
 typedef struct Ipfrag		Ipfrag;
 
-enum
-{
-	IP_HLEN4	= 0x05,		/* Header length in words */
-	IP_DF		= 0x4000,	/* Don't fragment */
-	IP_MF		= 0x2000,	/* More fragments */
-	IP6FHDR		= 8, 		/* sizeof(Fraghdr6) */
-	IP_MAX		= 64*1024,	/* Maximum Internet packet size */
-};
-
 #define BLKIPVER(xp)	(((Ip4hdr*)((xp)->rp))->vihl&0xF0)
 
 /* MIB II counters */

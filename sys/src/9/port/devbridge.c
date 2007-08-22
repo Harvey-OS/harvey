@@ -1,8 +1,12 @@
+/*
+ * IPv4 Ethernet bridge
+ */
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
+#include "../ip/ip.h"
 #include "../port/netif.h"
 #include "../port/error.h"
 
@@ -36,7 +40,7 @@ enum
 	CacheSize=	(CacheHash+CacheLook-1),
 	CacheTimeout=	5*60,		// timeout for cache entry in seconds
 
-	TcpMssMax = 1300,			// max desirable Tcp MSS value
+	TcpMssMax = 1300,		// max desirable Tcp MSS value
 	TunnelMtu = 1400,
 };
 
@@ -82,7 +86,7 @@ struct Centry
 {
 	uchar	d[Eaddrlen];
 	int	port;
-	long	expire;		// entry expires this number of seconds after bootime
+	long	expire;		// entry expires this many seconds after bootime
 	long	src;
 	long	dst;
 };
@@ -98,7 +102,7 @@ struct Bridge
 	ulong	copy;
 	long	delay0;		// constant microsecond delay per packet
 	long	delayn;		// microsecond delay per byte
-	int tcpmss;		// modify tcpmss value
+	int	tcpmss;		// modify tcpmss value
 
 	Log;
 };
@@ -128,17 +132,12 @@ struct Port
 	int	out;		// number of packets read
 	int	outmulti;	// multicast or broadcast
 	int	outunknown;	// unknown address
-	int outfrag;	// fragmented the packet
+	int	outfrag;	// fragmented the packet
 	int	nentry;		// number of cache entries for this port
 };
 
 enum {
-	IP_VER		= 0x40,		/* Using IP version 4 */
-	IP_HLEN		= 0x05,		/* Header length in characters */
-	IP_DF		= 0x4000,	/* Don't fragment */
-	IP_MF		= 0x2000,	/* More fragments */
-	IP_MAX		= (32*1024),	/* Maximum Internet packet size */
-	IP_TCPPROTO = 6,
+	IP_TCPPROTO	= 6,
 	EOLOPT		= 0,
 	NOOPOPT		= 1,
 	MSSOPT		= 2,
@@ -198,6 +197,7 @@ bridgeinit(void)
 {
 	int i;
 	Dirtab *dt;
+
 	// setup dirtab with non directory entries
 	for(i=0; i<nelem(bridgedirtab); i++) {
 		dt = bridgedirtab + i;
@@ -222,7 +222,6 @@ bridgeattach(char* spec)
 	c = devattach('B', spec);
 	mkqid(&c->qid, QID(0, Qtopdir), 0, QTDIR);
 	c->dev = dev;
-
 	return c;
 }
 
@@ -310,7 +309,9 @@ bridgeread(Chan *c, void *a, long n, vlong off)
 		else {
 			i = 0;
 			switch(port->type) {
-			default: panic("bridgeread: unknown port type: %d", port->type);
+			default:
+				panic("bridgeread: unknown port type: %d",
+					port->type);
 			case Tether:
 				i += snprint(buf+i, sizeof(buf)-i, "ether %s: ", port->name);
 				break;
@@ -318,11 +319,13 @@ bridgeread(Chan *c, void *a, long n, vlong off)
 				i += snprint(buf+i, sizeof(buf)-i, "tunnel %s: ", port->name);
 				break;
 			}
-			ingood = port->in-port->inmulti-port->inunknown;
-			outgood = port->out-port->outmulti-port->outunknown;
-			i += snprint(buf+i, sizeof(buf)-i, "in=%d(%d:%d:%d) out=%d(%d:%d:%d:%d)\n",
+			ingood = port->in - port->inmulti - port->inunknown;
+			outgood = port->out - port->outmulti - port->outunknown;
+			i += snprint(buf+i, sizeof(buf)-i,
+				"in=%d(%d:%d:%d) out=%d(%d:%d:%d:%d)\n",
 				port->in, ingood, port->inmulti, port->inunknown,
-				port->out, outgood, port->outmulti, port->outunknown, port->outfrag);
+				port->out, outgood, port->outmulti,
+				port->outunknown, port->outfrag);
 			USED(i);
 		}
 		n = readstr(off, a, n, buf);
@@ -359,8 +362,7 @@ bridgewrite(Chan *c, void *a, long n, vlong off)
 {
 	Bridge *b = bridgetab + c->dev;
 	Cmdbuf *cb;
-	char *arg0;
-	char *p;
+	char *arg0, *p;
 	
 	USED(off);
 	switch(TYPE(c->qid)) {
@@ -442,7 +444,7 @@ bridgegen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
 
 	switch(type) {
 	default:
-		// non directory entries end up here
+		/* non-directory entries end up here */
 		if(c->qid.type & QTDIR)
 			panic("bridgegen: unexpected directory");	
 		if(s != 0)
@@ -482,7 +484,7 @@ bridgegen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
 	}
 }
 
-// also in netif.c
+// parse mac address; also in netif.c
 static int
 parseaddr(uchar *to, char *from, int alen)
 {
@@ -511,14 +513,12 @@ static void
 portbind(Bridge *b, int argc, char *argv[])
 {
 	Port *port;
-	char path[8*KNAMELEN];
-	char buf[100];
-	char *dev, *dev2=nil, *p;
 	Chan *ctl;
-	int type=0, i, n;
-	char *usage = "usage: bind ether|tunnel name ownhash dev [dev2]";
-	char name[KNAMELEN];
+	int type = 0, i, n;
 	ulong ownhash;
+	char *dev, *dev2 = nil, *p;
+	char buf[100], name[KNAMELEN], path[8*KNAMELEN];
+	static char usage[] = "usage: bind ether|tunnel name ownhash dev [dev2]";
 
 	memset(name, 0, KNAMELEN);
 	if(argc < 4)
@@ -544,9 +544,8 @@ portbind(Bridge *b, int argc, char *argv[])
 	dev = argv[3];
 	for(i=0; i<b->nport; i++) {
 		port = b->port[i];
-		if(port != nil)
-		if(port->type == type)
-		if(memcmp(port->name, name, KNAMELEN) == 0)
+		if(port != nil && port->type == type &&
+		    memcmp(port->name, name, KNAMELEN) == 0)
 			error("port in use");
 	}
 	for(i=0; i<Maxport; i++)
@@ -566,7 +565,8 @@ portbind(Bridge *b, int argc, char *argv[])
 	port->type = type;
 	memmove(port->name, name, KNAMELEN);
 	switch(port->type) {
-	default: panic("portbind: unknown port type: %d", type);
+	default:
+		panic("portbind: unknown port type: %d", type);
 	case Tether:
 		snprint(path, sizeof(path), "%s/clone", dev);
 		ctl = namec(path, Aopen, ORDWR, 0);
@@ -609,7 +609,7 @@ portbind(Bridge *b, int argc, char *argv[])
 
 	poperror();
 
-	// commited to binding port
+	/* committed to binding port */
 	b->port[port->id] = port;
 	port->bridge = b;
 	if(b->nport <= port->id)
@@ -624,11 +624,11 @@ portbind(Bridge *b, int argc, char *argv[])
 static void
 portunbind(Bridge *b, int argc, char *argv[])
 {
-	Port *port=nil;
-	int type=0, i;
-	char *usage = "usage: unbind ether|tunnel addr [ownhash]";
+	int type = 0, i;
 	char name[KNAMELEN];
 	ulong ownhash;
+	Port *port = nil;
+	static char usage[] = "usage: unbind ether|tunnel addr [ownhash]";
 
 	memset(name, 0, KNAMELEN);
 	if(argc < 2 || argc > 3)
@@ -651,9 +651,8 @@ portunbind(Bridge *b, int argc, char *argv[])
 		ownhash = 0;
 	for(i=0; i<b->nport; i++) {
 		port = b->port[i];
-		if(port != nil)
-		if(port->type == type)
-		if(memcmp(port->name, name, KNAMELEN) == 0)
+		if(port != nil && port->type == type &&
+		    memcmp(port->name, name, KNAMELEN) == 0)
 			break;
 	}
 	if(i == b->nport)
@@ -877,31 +876,29 @@ ethermultiwrite(Bridge *b, Block *bp, Port *port)
 static void
 tcpmsshack(Etherpkt *epkt, int n)
 {
-	int hl;
+	int hl, optlen;
 	Iphdr *iphdr;
 	Tcphdr *tcphdr;
-	ulong mss;
-	ulong cksum;
-	int optlen;
+	ulong mss, cksum;
 	uchar *optr;
 
-	// check it is an ip packet
-	if(nhgets(epkt->type) != 0x800)
+	/* ignore non-ipv4 packets */
+	if(nhgets(epkt->type) != ETIP4)
 		return;
 	iphdr = (Iphdr*)(epkt->data);
 	n -= ETHERHDRSIZE;
 	if(n < IPHDR)
 		return;
 
-	// check it is ok IP packet
-	if(iphdr->vihl != (IP_VER|IP_HLEN)) {
+	/* ignore bad packets */
+	if(iphdr->vihl != (IP_VER4|IP_HLEN4)) {
 		hl = (iphdr->vihl&0xF)<<2;
-		if((iphdr->vihl&0xF0) != IP_VER || hl < (IP_HLEN<<2))
+		if((iphdr->vihl&0xF0) != IP_VER4 || hl < (IP_HLEN4<<2))
 			return;
 	} else
-		hl = IP_HLEN<<2;
+		hl = IP_HLEN4<<2;
 
-	// check TCP
+	/* ignore non-tcp packets */
 	if(iphdr->proto != IP_TCPPROTO)
 		return;
 	n -= hl;
@@ -916,7 +913,7 @@ tcpmsshack(Etherpkt *epkt, int n)
 		return;
 
 	// check for MSS option
-	optr = (uchar*)(tcphdr) + sizeof(Tcphdr);
+	optr = (uchar*)tcphdr + sizeof(Tcphdr);
 	n = hl - sizeof(Tcphdr);
 	for(;;) {
 		if(n <= 0 || *optr == EOLOPT)
@@ -979,19 +976,23 @@ etherread(void *a)
 		// release lock to read - error means it is time to quit
 		qunlock(b);
 		if(waserror()) {
-print("etherread read error: %s\n", up->errstr);
+			print("etherread read error: %s\n", up->errstr);
 			qlock(b);
 			break;
 		}
-if(0)print("devbridge: etherread: reading\n");
-		bp = devtab[port->data[0]->type]->bread(port->data[0], ETHERMAXTU, 0);
-if(0)print("devbridge: etherread: blocklen = %d\n", blocklen(bp));
+		if(0)
+			print("devbridge: etherread: reading\n");
+		bp = devtab[port->data[0]->type]->bread(port->data[0],
+			ETHERMAXTU, 0);
+		if(0)
+			print("devbridge: etherread: blocklen = %d\n",
+				blocklen(bp));
 		poperror();
 		qlock(b);
 		if(bp == nil || port->closed)
 			break;
 		if(waserror()) {
-//print("etherread bridge error\n");
+//			print("etherread bridge error\n");
 			if(bp)
 				freeb(bp);
 			continue;
@@ -1038,7 +1039,7 @@ if(0)print("devbridge: etherread: blocklen = %d\n", blocklen(bp));
 		if(bp)
 			freeb(bp);
 	}
-//print("etherread: trying to exit\n");
+//	print("etherread: trying to exit\n");
 	port->readp = nil;
 	portfree(port);
 	qunlock(b);
@@ -1053,24 +1054,18 @@ fragment(Etherpkt *epkt, int n)
 	if(n <= TunnelMtu)
 		return 0;
 
-	// check it is an ip packet
-	if(nhgets(epkt->type) != 0x800)
+	/* ignore non-ipv4 packets */
+	if(nhgets(epkt->type) != ETIP4)
 		return 0;
 	iphdr = (Iphdr*)(epkt->data);
 	n -= ETHERHDRSIZE;
-	if(n < IPHDR)
-		return 0;
-
-	// check it is ok IP packet - I don't handle IP options for the momment
-	if(iphdr->vihl != (IP_VER|IP_HLEN))
-		return 0;
-
-	// check for don't fragment
-	if(iphdr->frag[0] & (IP_DF>>8))
-		return 0;
-
-	// check for short block
-	if(nhgets(iphdr->length) > n)
+	/*
+	 * ignore: IP runt packets, bad packets (I don't handle IP
+	 * options for the moment), packets with don't-fragment set,
+	 * and short blocks.
+	 */
+	if(n < IPHDR || iphdr->vihl != (IP_VER4|IP_HLEN4) ||
+	    iphdr->frag[0] & (IP_DF>>8) || nhgets(iphdr->length) > n)
 		return 0;
 
 	return 1;
@@ -1115,7 +1110,9 @@ etherwrite(Port *port, Block *bp)
 	}
 	xp->rp += offset;
 	
-if(0) print("seglen=%d, dlen=%d, mf=%x, frag=%d\n", seglen, dlen, mf, frag);
+	if(0)
+		print("seglen=%d, dlen=%d, mf=%x, frag=%d\n",
+			seglen, dlen, mf, frag);
 	for(fragoff = 0; fragoff < dlen; fragoff += seglen) {
 		nb = allocb(ETHERHDRSIZE+IPHDR+seglen);
 		
@@ -1152,7 +1149,7 @@ if(0) print("seglen=%d, dlen=%d, mf=%x, frag=%d\n", seglen, dlen, mf, frag);
 		feh->cksum[1] = 0;
 		hnputs(feh->cksum, ipcsum(&feh->vihl));
 	
-		// don't generate small packets
+		/* don't generate small packets */
 		if(BLEN(nb) < ETHERMINTU)
 			nb->wp = nb->rp + ETHERMINTU;
 		devtab[port->data[1]->type]->bwrite(port->data[1], nb, 0);
