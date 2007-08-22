@@ -51,7 +51,11 @@ enum
 	V6=		6,
 	IP_VER4= 	0x40,
 	IP_VER6=	0x60,
+	IP_HLEN4=	5,		/* v4: Header length in words */
+	IP_DF=		0x4000,		/* v4: Don't fragment */
+	IP_MF=		0x2000,		/* v4: More fragments */
 	IP4HDR=		20,		/* sizeof(Ip4hdr) */
+	IP_MAX=		64*1024,	/* Max. Internet packet size, v4 & v6 */
 
 	/* 2^Lroot trees in the root table */
 	Lroot=		10,

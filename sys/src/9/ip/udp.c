@@ -421,7 +421,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 
 	c = iphtlook(&upriv->ht, raddr, rport, laddr, lport);
 	if(c == nil){
-		/* no converstation found */
+		/* no conversation found */
 		upriv->ustats.udpNoPorts++;
 		qunlock(udp);
 		netlog(f, Logudp, "udp: no conv %I!%d -> %I!%d\n", raddr, rport,

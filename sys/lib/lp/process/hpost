@@ -35,9 +35,13 @@ FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
 	facedom=`{awk '{ if(match("'$LPMACHID'", $1)) {print $2; exit}}' /lib/face/.machinelist}
 	if (~ $#facedom 0) facedom=$LPMACHID
 
-	facefile=`{awk '/^'$facedom'\/'$LPUSERID' /{print $2}' /lib/face/48x48x4/.dict}
-	facedepth=4
+	facefile=`{awk '/^'$facedom'\/'$LPUSERID' /{print $2}' /lib/face/48x48x8/.dict}
+	facedepth=8
 
+	if (~ $#facefile 0) {
+		facefile=`{awk '/^'$facedom'\/'$LPUSERID' /{print $2}' /lib/face/48x48x4/.dict}
+		facedepth=4
+	}
 	if (~ $#facefile 0) {
 		facefile=`{awk '/^'$facedom'\/'$LPUSERID' /{print $2}' /lib/face/48x48x2/.dict}
 		facedepth=2
@@ -61,10 +65,11 @@ FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
 			face=`{cat $facefile |
 				sed -e 's/0x//g' -e 's/, *//g' |
 				tr 0123456789abcdef fedcba9876543210 };
-		case 4
+		case 4 8
 			face=`{iconv -u -c k4 $facefile |
 				dd -bs 60 -skip 1 >[2]/dev/null |
 				xd -b | sed 's/^[^ ]+ //;s/ //g'  }
+			facedepth=8
 		}
 	}
 }
