@@ -7955,6 +7955,7 @@ sys/src/9/boot/bootmkfile - 664 sys sys 1091732792 404
 sys/src/9/boot/doauthenticate.c - 664 sys sys 1015012529 2300
 sys/src/9/boot/embed.c - 664 sys sys 1039763720 1191
 sys/src/9/boot/getpasswd.c - 664 sys sys 957373373 654
+sys/src/9/boot/libboot.a8 - 664 sys sys 1187758148 64878
 sys/src/9/boot/local.c - 664 sys sys 1187735779 5648
 sys/src/9/boot/mkboot - 775 sys sys 1171608307 1935
 sys/src/9/boot/nopsession.c - 664 sys sys 957373374 843
@@ -8069,8 +8070,6 @@ sys/src/9/pc/etherga620fw.h - 664 sys sys 1026847642 222295
 sys/src/9/pc/etherif.h - 664 sys sys 1088178711 961
 sys/src/9/pc/etherigbe.c - 664 sys sys 1184468343 44976
 sys/src/9/pc/etherm10g.c - 664 sys sys 1174595240 27681
-sys/src/9/pc/etherm10g2k.i - 664 sys sys 1174590427 957485
-sys/src/9/pc/etherm10g4k.i - 664 sys sys 1174590430 926959
 sys/src/9/pc/ethermii.c - 664 sys sys 1181160689 4668
 sys/src/9/pc/ethermii.h - 664 sys sys 1086873891 3258
 sys/src/9/pc/etherrhine.c - 664 sys sys 1081706478 13799
@@ -8171,7 +8170,7 @@ sys/src/9/port/chan.c - 664 sys sys 1146151714 34773
 sys/src/9/port/cis.c - 664 sys sys 1099761153 9248
 sys/src/9/port/debugalloc.c - 664 sys sys 1014931171 10402
 sys/src/9/port/dev.c - 664 sys sys 1146151714 8177
-sys/src/9/port/devaoe.c - 664 sys sys 1187282168 41343
+sys/src/9/port/devaoe.c - 664 sys sys 1187760674 42003
 sys/src/9/port/devaudio.c - 664 sys sys 1170456648 21199
 sys/src/9/port/devbridge.c - 664 sys sys 1187735844 24076
 sys/src/9/port/devcap.c - 664 sys sys 1178886040 4141
