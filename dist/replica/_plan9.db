@@ -7799,7 +7799,7 @@ sys/man/8/fsconfig - 664 sys sys 1172956534 8878
 sys/man/8/fshalt - 664 sys sys 1173737264 862
 sys/man/8/getflags - 664 sys sys 1159419702 1713
 sys/man/8/gpsfs - 664 sys sys 1165623047 4918
-sys/man/8/httpd - 664 sys sys 1165623004 6865
+sys/man/8/httpd - 664 sys sys 1187893163 6866
 sys/man/8/init - 664 sys sys 944959679 1430
 sys/man/8/ipconfig - 664 sys sys 1177100280 7984
 sys/man/8/ipserv - 664 sys sys 1095862383 4375
@@ -9434,7 +9434,7 @@ sys/src/cmd/acme/rows.c - 664 sys sys 1177527677 14708
 sys/src/cmd/acme/scrl.c - 664 sys sys 1111119426 2875
 sys/src/cmd/acme/text.c - 664 sys sys 1136064450 27870
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
-sys/src/cmd/acme/util.c - 664 sys sys 1107154483 7984
+sys/src/cmd/acme/util.c - 664 sys sys 1187899854 7994
 sys/src/cmd/acme/wind.c - 664 sys sys 1122526112 11233
 sys/src/cmd/acme/xfid.c - 664 sys sys 1125314186 19766
 sys/src/cmd/aquarela - 20000000775 sys sys 1135892145 0
@@ -15854,3 +15854,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/acme - 775 sys sys 1187925279 431027

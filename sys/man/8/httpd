@@ -151,7 +151,7 @@ looks for a file in the same directory called
 .BR .httplogin .
 If the file exists, the directory is considered
 locked and the client must specify a user name
-and password machine a pair in the file.
+and password matching a pair in the file.
 .B .httplogin
 contains a list of space or newline separated tokens, each
 possibly delimited by single quotes.  The first
