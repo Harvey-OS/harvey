@@ -50030,3 +50030,6 @@
 1187758805 1 d sys/src/9/pc/etherm10g4k.i - 664 sys sys 1174590430 0
 1187758805 2 d sys/src/9/pc/etherm10g2k.i - 664 sys sys 1174590427 0
 1187762404 0 c sys/src/9/port/devaoe.c - 664 sys sys 1187760674 42003
+1187893804 0 c sys/man/8/httpd - 664 sys sys 1187893163 6866
+1187901004 0 c sys/src/cmd/acme/util.c - 664 sys sys 1187899854 7994
+1187926203 0 c 386/bin/acme - 775 sys sys 1187925279 431027
