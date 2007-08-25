@@ -7,13 +7,13 @@
 static char*	readfile(char*);
 
 /*
- * these should be done better; see the reponse codes in /lib/rfc/rfc2616 for
+ * these should be done better; see the response codes in /lib/rfc/rfc2616 for
  * more info on what should be included.
  */
 #define UNAUTHED	"You are not authorized to see this area.\n"
 
 /*
- * check for authorization for some parts of the server tree
+ * check for authorization for some parts of the server tree.
  * the user name supplied with the authorization request is ignored;
  * instead, we authenticate as the realm's user.
  *
