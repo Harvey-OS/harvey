@@ -19,7 +19,7 @@
 386/bin/9660srv - 775 sys sys 1168402261 104975
 386/bin/aan - 775 sys sys 1184731221 129822
 386/bin/acid - 775 sys sys 1181507261 405141
-386/bin/acme - 775 sys sys 1184731226 431013
+386/bin/acme - 775 sys sys 1187925279 431027
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1173754547 134719
 386/bin/ape/cc - 775 sys sys 1168402263 70642
@@ -12503,7 +12503,7 @@ sys/src/cmd/ip/gping.c - 664 sys sys 1169165326 19784
 sys/src/cmd/ip/hogports.c - 664 sys sys 1118623129 989
 sys/src/cmd/ip/httpd - 20000000775 sys sys 1083771060 0
 sys/src/cmd/ip/httpd/anonymous.c - 664 sys sys 984773807 195
-sys/src/cmd/ip/httpd/authorize.c - 664 sys sys 1145023291 2403
+sys/src/cmd/ip/httpd/authorize.c - 664 sys sys 1187936238 2405
 sys/src/cmd/ip/httpd/classify.c - 664 sys sys 1078840017 9665
 sys/src/cmd/ip/httpd/content.c - 664 sys sys 1015090170 3140
 sys/src/cmd/ip/httpd/emem.c - 664 sys sys 984773807 278
@@ -15854,4 +15854,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/acme - 775 sys sys 1187925279 431027
