@@ -10,19 +10,19 @@ setupAESstate, aesCBCencrypt, aesCBCdecrypt - advanced encryption standard (rijn
 .br
 .B #include <libsec.h>
 .PP
+.in +0.5i
+.ti -0.5i
 .B
 void	setupAESstate(AESstate *s, uchar key[], int keybytes, uchar *ivec)
 .PP
 .B
-void	aesCBCencrypt(uchar*, int, AESstate*)
+void	aesCBCencrypt(uchar *p, int len, AESstate *s)
 .PP
 .B
-void	aesCBCdecrypt(uchar*, int, AESstate*)
-.PP
+void	aesCBCdecrypt(uchar *p, int len, AESstate *s)
 .SH DESCRIPTION
-.PP
 DES is being replaced by Rijndael, also known as AES, as the preferred
-block ciper.
+block cipher.
 .IR setupAESstate ,
 .IR aesCBCencrypt ,
 and

@@ -13,7 +13,7 @@ telnetd, rlogind, rexexec, ftpd \- Internet remote access daemons
 .B ip/rexexec
 .PP
 .B ip/ftpd
-.RB [ -eadp ]
+.RB [ -aAde ]
 .RB [ -n
 .IR namepace-file ]
 .PP
@@ -149,16 +149,20 @@ The options are:
 .TP
 .B a
 allow anonymous access
-.TP
-.B n
-the namespace for anonymous users (default
-.BR /lib/namespace.ftp )
+.B A
+allow
+.I only
+anonymous access
 .TP
 .B d
 write debugging output to standard error
 .TP
 .B e
 treat any user as anonymous
+.TP
+.B n
+the namespace for anonymous users (default
+.BR /lib/namespace.ftp )
 .PP
 To preserve intended protections in shared file trees,
 any directory containing a file
