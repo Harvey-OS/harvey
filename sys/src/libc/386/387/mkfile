@@ -6,7 +6,6 @@ OFILES=\
 	atan.$O\
 	tan.$O\
 	atan2.$O\
-	sqrt.$O\
 	exp.$O\
 	asin.$O\
 	log.$O\

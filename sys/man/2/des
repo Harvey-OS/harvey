@@ -20,34 +20,36 @@ void	block_cipher(ulong *schedule, uchar *data, int decrypting)
 void	setupDESstate(DESstate *s, uchar key[8], uchar *ivec)
 .PP
 .B
-void	desCBCencrypt(uchar*, int, DESstate*)
+void	desCBCencrypt(uchar *p, int len, DESstate *s)
 .PP
 .B
-void	desCBCdecrypt(uchar*, int, DESstate*)
+void	desCBCdecrypt(uchar *p, int len, DESstate *s)
 .PP
 .B
-void	desECBencrypt(uchar*, int, DESstate*)
+void	desECBencrypt(uchar *p, int len, DESstate *s)
 .PP
 .B
-void	desECBdecrypt(uchar*, int, DESstate*)
+void	desECBdecrypt(uchar *p, int len, DESstate *s)
 .PP
+.in +0.5i
+.ti -0.5i
 .B
-void	triple_block_cipher(ulong keys[3][32], uchar*, int)
+void	triple_block_cipher(ulong expanded_key[3][32], uchar text[8], int ende)
 .PP
 .B
 void	setupDES3state(DES3state *s, uchar key[3][8], uchar *ivec)
 .PP
 .B
-void	des3CBCencrypt(uchar*, int, DES3state*)
+void	des3CBCencrypt(uchar *p, int len, DES3state *s)
 .PP
 .B
-void	des3CBCdecrypt(uchar*, int, DES3state*)
+void	des3CBCdecrypt(uchar *p, int len, DES3state *s)
 .PP
 .B
-void	des3ECBencrypt(uchar*, int, DES3state*)
+void	des3ECBencrypt(uchar *p, int len, DES3state *s)
 .PP
 .B
-void	des3ECBdecrypt(uchar*, int, DES3state*)
+void	des3ECBdecrypt(uchar *p, int len, DES3state *s)
 .PP
 .B
 void	key_setup(uchar[7], ulong[32])
