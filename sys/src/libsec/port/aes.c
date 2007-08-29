@@ -123,6 +123,22 @@ aesCBCdecrypt(uchar *p, int len, AESstate *s)
 	}
 }
 
+AEShstate*
+aes(uchar *p, ulong len, uchar *digest, AEShstate *s)
+{
+	USED(p, len, digest, s);
+	return nil;		/* TODO: compute aes hash for ipsec */
+}
+
+DigestState*
+hmac_aes(uchar *p, ulong len, uchar *key, ulong klen, uchar *digest,
+	DigestState *s)
+{
+	return hmac_x(p, len, key, klen, digest, s, aes, AESdlen);
+}
+
+
+
 /*
  * this function has been changed for plan 9.
  * Expand the cipher key into the encryption and decryption key schedules.
@@ -177,6 +193,7 @@ rijndaelKeySetup(u32 erk[/* 4*(Nr + 1) */], u32 drk[/* 4*(Nr + 1) */],
 	}
 	return Nr;
 }
+
 
 /*
 Te0[x] = S [x].[02, 01, 01, 03];
@@ -861,17 +878,10 @@ static const u32 rcon[] = {
 	/* for 128-bit blocks, Rijndael never uses more than 10 rcon values */
 };
 
-#define SWAP(x) (_lrotl(x, 8) & 0x00ff00ff | _lrotr(x, 8) & 0xff00ff00)
-
-#ifdef _MSC_VER
-#define GETU32(p) SWAP(*((u32 *)(p)))
-#define PUTU32(ct, st) { *((u32 *)(ct)) = SWAP((st)); }
-#else
 #define GETU32(pt) (((u32)(pt)[0]<<24) ^ ((u32)(pt)[1]<<16) ^ \
-			((u32)(pt)[2]<<8) ^ ((u32)(pt)[3]))
+		    ((u32)(pt)[2]<< 8) ^ ((u32)(pt)[3]))
 #define PUTU32(ct, st) { (ct)[0] = (u8)((st)>>24); (ct)[1] = (u8)((st)>>16); \
 			 (ct)[2] = (u8)((st)>> 8); (ct)[3] = (u8)(st); }
-#endif
 
 /*
  * Expand the cipher key into the encryption key schedule.

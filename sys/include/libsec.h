@@ -127,7 +127,10 @@ enum
 {
 	SHA1dlen=	20,	/* SHA digest length */
 	MD4dlen=	16,	/* MD4 digest length */
-	MD5dlen=	16	/* MD5 digest length */
+	MD5dlen=	16,	/* MD5 digest length */
+	AESdlen=	16,	/* TODO: see rfc */
+
+	Hmacblksz	= 64,	/* in bytes; from rfc2104 */
 };
 
 typedef struct DigestState DigestState;
@@ -144,12 +147,19 @@ typedef struct DigestState SHAstate;	/* obsolete name */
 typedef struct DigestState SHA1state;
 typedef struct DigestState MD5state;
 typedef struct DigestState MD4state;
+typedef struct DigestState AEShstate;
 
 DigestState*	md4(uchar*, ulong, uchar*, DigestState*);
 DigestState*	md5(uchar*, ulong, uchar*, DigestState*);
 DigestState*	sha1(uchar*, ulong, uchar*, DigestState*);
+DigestState*	aes(uchar*, ulong, uchar*, DigestState*);
+DigestState*	hmac_x(uchar *p, ulong len, uchar *key, ulong klen,
+			uchar *digest, DigestState *s,
+			DigestState*(*x)(uchar*, ulong, uchar*, DigestState*),
+			int xlen);
 DigestState*	hmac_md5(uchar*, ulong, uchar*, ulong, uchar*, DigestState*);
 DigestState*	hmac_sha1(uchar*, ulong, uchar*, ulong, uchar*, DigestState*);
+DigestState*	hmac_aes(uchar*, ulong, uchar*, ulong, uchar*, DigestState*);
 char*		md5pickle(MD5state*);
 MD5state*	md5unpickle(char*);
 char*		sha1pickle(SHA1state*);
