@@ -1,6 +1,6 @@
 .TH DES 2
 .SH NAME
-setupDESstate, des_key_setup, block_cipher, desCBCencrypt, desCBCdecrypt, desECBencrypt, desECBdecrypt, des3CBCencrypt, des3CBCdecrypt, des3ECBencrypt, des3ECBdecrypt, key_setup, des56to64, des64to56, setupDES3state, triple_block_cipher,  - single and triple digital encryption standard
+setupDESstate, des_key_setup, block_cipher, desCBCencrypt, desCBCdecrypt, desECBencrypt, desECBdecrypt, des3CBCencrypt, des3CBCdecrypt, des3ECBencrypt, des3ECBdecrypt, key_setup, des56to64, des64to56, setupDES3state, triple_block_cipher  - single and triple digital encryption standard
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -60,10 +60,9 @@ void	des56to64(uchar *k56, uchar *k64)
 .B
 void	des64to56(uchar *k64, uchar *k56)
 .SH DESCRIPTION
-.PP
 The Digital Encryption Standard (DES)
-is a shared key or symmetric encryption using either
-a 56 bit key for single DES or three 56 bit keys for triple des.
+is a shared-key or symmetric encryption algorithm using either
+a 56-bit key for single DES or three 56-bit keys for triple DES.
 The keys are encoded into 64 bits where every eight bit
 is parity. 
 .PP
@@ -89,7 +88,7 @@ state.
 .I SetupDESstate
 sets up the
 .B DESstate
-structure using the key and an 8 byte initialization vector.
+structure using the key and an 8-byte initialization vector.
 .PP
 Electronic code book, using
 .I desECBencrypt
@@ -112,21 +111,19 @@ multiple buffers.  However, all buffers except the last must
 be a multiple of 8 bytes to ensure successful decryption of
 the stream.
 .PP
-There are equivalent triple DES functions for each of the
+There are equivalent triple-DES (DES3-EDE) functions for each of the
 DES functions.
 .PP
-In the past Plan 9 used a 56 bit or 7 byte
+In the past, Plan 9 used a 56-bit or 7-byte
 format for DES keys.  To be compatible with the rest
 of the world, we've abandoned this format.
-There are two functions:
+There are two functions,
 .I des56to64
 and
-.I des64to56
+.IR des64to56 ,
 to convert back and forth between the two formats.
-Also a key schedule can be set up from the 7 byte format
-using
+Also a key schedule can be set up from the 7-byte format using
 .IR key_setup .
-.PP
 .SH SOURCE
 .B /sys/src/libsec
 .SH SEE ALSO
@@ -140,3 +137,13 @@ using
 .IR sechash (2),
 .IR prime (2),
 .IR rand (2)
+.br
+.IR "Breaking DES" ,
+Electronic Frontier Foundation,
+O'Reilly, 1998
+.SH BUGS
+Single DES can be realistically broken by brute-force;
+its 56-bit key is just too short.
+It should not be used in new code, which should probably use
+.IR aes (2)
+instead, or at least triple DES.
