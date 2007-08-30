@@ -30,6 +30,7 @@
  *	-v		verbose printing
  *	-w		print warnings
  *	-X		abort on error
+ *	-.		Inhibit search for includes in source directory
  */
 
 void
@@ -241,6 +242,10 @@ compile(char *file, char **defs, int ndef)
 			close(fd[1]);
 			av[0] = CPP;
 			i = 1;
+			if(debug['.']){
+				sprint(opt, "-.");
+				av[i++] = strdup(opt);
+			}
 			if(debug['+']) {
 				sprint(opt, "-+");
 				av[i++] = strdup(opt);
