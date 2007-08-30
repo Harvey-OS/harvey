@@ -24,20 +24,7 @@
 # scripts to remove some local dependencies (e.g. calling outside and the
 # cpu call to thresher, alpha to make mips.h, alpha.h).
 #
-# If you get weird floating point errors, the culprit is usually the
-# halftone code, which converts double to uint, something 8c handles
-# incorrectly (treats as double to int).  Look in src/gshtscr.c for a line like
-# 
-# 	sample = (ht_sample_t)((value+1) * max_ht_sample);
-# 
-# and change it to one of:
-#
-# 	sample = (int)(vlong)((value+1) * max_ht_sample);
-#	sample = (ht_sample_t)(value * max_ht_sample) + max_ht_sample;
-#
-# depending on your preference.
-#
-# Also, recent versions of src/gxshade1.c cause the compiler to run out
+# Recent versions of src/gxshade1.c cause the compiler to run out
 # of registers.  Brucee is looking into this.  In the meantime, use this
 # replacement:
 #
@@ -61,9 +48,16 @@
 #	}
 #	
 # (the original includes the /3 in the big expressions).
+#
+# src/gxshade6.c also needs editing to remove use of the
+# vlong , operator on some architectures.
+#
+# you may need to change this line in gs/src/gshtscr.c:
+# //      sample = (int) (value * max_ht_sample) + max_ht_sample;
+# to
+# 	sample = (vlong)(value * max_ht_sample) + max_ht_sample;
 
 </$objtype/mkfile
-CPUS=386 mips alpha arm power
 
 BIN=/$objtype/bin
 

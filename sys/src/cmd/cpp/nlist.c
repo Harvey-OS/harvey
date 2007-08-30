@@ -63,6 +63,7 @@ setup(int argc, char **argv)
 	static Token deftoken[1] = {{ NAME, 0, 0, 0, 7, (uchar*)"defined" }};
 	static Tokenrow deftr = { deftoken, deftoken, deftoken+1, 1 };
 	int debuginclude = 0;
+	int nodot = 0;
 	char xx[2] = { 0, 0};
 
 	for (kp=kwtab; kp->kw; kp++) {
@@ -148,6 +149,9 @@ setup(int argc, char **argv)
 		case 'P':
 			nolineinfo++;
 			break;
+		case '.':
+			nodot++;
+			break;
 		default:
 			xx[0] = ARGC();
 			error(FATAL, "Unknown argument '%s'", xx);
@@ -176,6 +180,8 @@ setup(int argc, char **argv)
 		setobjname(fp);
 	includelist[NINCLUDE-1].always = 0;
 	includelist[NINCLUDE-1].file = dp;
+	if(nodot)
+		includelist[NINCLUDE-1].deleted = 1;
 	setsource(fp, fd, NULL);
 	if (debuginclude) {
 		for (i=0; i<NINCLUDE; i++)

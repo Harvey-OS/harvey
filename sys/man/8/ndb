@@ -4,12 +4,17 @@ query, ipquery, mkhash, mkdb, mkhosts, cs, csquery, dns, dnsquery, dnsdebug \- n
 .SH SYNOPSIS
 .B ndb/query
 [
+.B -am
+] [
 .B -f
 .I dbfile
 ]
 .I "attr value"
 [
 .I rattr
+.\" [
+.\" .I reps
+.\" ]
 ]
 .br
 .B ndb/ipquery
@@ -93,19 +98,37 @@ network programs such as
 .IR con (1),
 etc.
 .PP
-.I Ndb/query 
-searches the database for an attribute of type
+.I Ndb/query
+searches the database
+.I dbfile
+.RB ( /lib/ndb/local
+by default)
+for an attribute of type
 .I attr
 and value
 .IR value .
 If
 .I rattr
-is not specified, all entries matched by the search are returned.
-If 
+is not specified, all entries matched by the search are printed.
+If
 .I rattr
 is specified, the value of the first pair with attribute
 .I rattr
-of all the matched entries is returned.
+of all the matched entries normally is printed.
+Under
+.B -m
+and
+.IR rattr ,
+the values of all pairs with a
+.I rattr
+attribute within the first matching entry are printed.
+Under
+.B -a
+and
+.IR rattr ,
+all values of pairs with a
+.I rattr
+attribute within all entries are printed.
 .PP
 .I Ndb/ipquery
 uses
@@ -126,7 +149,7 @@ creates a hash file for all entries with attribute
 .I attr
 in database file
 .IR file .
-The hash files are used by 
+The hash files are used by
 .I ndb/query
 and by the ndb library routines.
 .PP
@@ -151,7 +174,7 @@ It may be profitable to control this by a frequent
 job.
 .PP
 .I Ndb/mkhosts
-generates a BSD style 
+generates a BSD style
 .BR hosts ,
 .BR hosts.txt ,
 and
@@ -201,11 +224,11 @@ network.
 .PD
 .PP
 .I Ndb/csquery
-can be used to query
+queries
 .I ndb/cs
 to see how it resolves addresses.
 .I Ndb/csquery
-prompts for addresses and prints out what
+prompts for addresses and prints what
 .I ndb/cs
 returns.
 .I Server
@@ -216,16 +239,18 @@ If any
 are specified,
 .I ndb/csquery
 prints their translations and immediately exits.
-The exit status will be nil only if all addresses 
+The exit status will be nil only if all addresses
 were successfully translated.
 The
 .B -s
 flag sets exit status without printing any results.
+.br
+.ne 4
 .SS "Domain name service"
 .I Ndb/dns
-is a server used by
+serves
 .I ndb/cs
-and by remote systems to translate Internet domain names.
+and remote systems by translating Internet domain names.
 .I Ndb/dns
 is started at boot time.
 By default
@@ -616,18 +641,36 @@ interface and
 .B /lib/ndb/external
 database file.
 .SH EXAMPLES
+Look up
+.B helix
+in
+.IR ndb .
+.IP
 .EX
 % ndb/query sys helix
 sys=helix dom=helix.research.bell-labs.com bootf=/mips/9powerboot
 	ip=135.104.117.31 ether=080069020427
-	proto=il 
+	proto=il
+.EE
+.LP
+Look up
+.B plan9.bell-labs.com
+and its IP address in the DNS.
+.IP
+.EX
 % ndb/dnsquery
 > plan9.bell-labs.com ip
 plan9.bell-labs.com ip	204.178.31.2
 > 204.178.31.2 ptr
 2.31.178.204.in-addr.arpa ptr	plan9.bell-labs.com
 2.31.178.204.in-addr.arpa ptr	ampl.com
-> 
+>
+.EE
+.LP
+Print the names of all systems that boot via PXE.
+.IP
+.EX
+% ndb/query -a bootf /386/9pxeload sys
 .EE
 .SH FILES
 .TF /lib/ndb/local.*xxx
@@ -666,5 +709,5 @@ gets mounted
 .IR ndb (6)
 .SH BUGS
 .I Ndb
-databases are case-sensitive; 
+databases are case-sensitive;
 ethernet addresses must be in lower-case hexadecimal.

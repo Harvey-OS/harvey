@@ -682,7 +682,6 @@ image_line_to_clip(gx_device_pdf *pdev, byte *base, int x0, int x1, int y0, int 
 	pprintld2(pdev->strm, "%ld %ld l h\n", xx, y1);
 	c += 4;
     }
-    return c;
 }
 
 private int

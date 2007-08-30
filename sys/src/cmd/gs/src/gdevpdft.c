@@ -349,7 +349,6 @@ gdev_pdf_create_compositor(gx_device *dev,
 	    default :
 		return_error(gs_error_unregistered); /* Must not happen. */
 	}
-	return 0;
     }
     return psdf_create_compositor(dev, pcdev, pct, pis, memory);
 }

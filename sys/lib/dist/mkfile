@@ -2,21 +2,21 @@
 d=/n/sources/plan9
 dist=/sys/lib/dist
 # import /sys/lib/dist/web.protect from outside
-x=`{9fs sources; 9fs fsother; import -c tcp!204.178.31.2!666 $dist/web.protect}
+x=`{9fs sources; 9fs other; import -c tcp!204.178.31.2!666 $dist/web.protect}
 
-cd:V: /n/fsother/dist/plan9.iso
+cd:V: /n/other/dist/plan9.iso
 
-ncd:V: /n/fsother/dist/plan9-new.iso.bz2
+ncd:V: /n/other/dist/plan9-new.iso.bz2
 
-ncd-dist:V: /n/fsother/dist/plan9-new.iso.bz2
+ncd-dist:V: /n/other/dist/plan9-new.iso.bz2
 	mk $dist/web.protect/plan9-new.iso.bz2
 
-cd-dist:V: /n/fsother/dist/plan9.iso.bz2
+cd-dist:V: /n/other/dist/plan9.iso.bz2
 	mk $dist/web.protect/plan9.iso.bz2
 
-contrib-cd:V:	/n/fsother/dist/contrib.iso.bz2
+contrib-cd:V:	/n/other/dist/contrib.iso.bz2
 
-/n/fsother/dist/%.iso:D: /n/sources/plan9/dist/replica/plan9.log
+/n/other/dist/%.iso:D: /n/sources/plan9/dist/replica/plan9.log
 	@{cd pc; mk cddisk; cd ..}
 	rm -f $target
 	bind pc/cddisk cdstub/bootdisk.img
@@ -28,7 +28,7 @@ contrib-cd:V:	/n/fsother/dist/contrib.iso.bz2
 	disk/mk9660 -9cj -v $title -s $d -b bootdisk.img $target
 
 # try not to clobber downloads in progress
-$dist/web.protect/%.iso.bz2:	/n/fsother/dist/%.iso.bz2
+$dist/web.protect/%.iso.bz2:	/n/other/dist/%.iso.bz2
 	cp $prereq $target.new
 	chmod +t $target.new		# don't waste venti on it
 	if (test -e $target)
@@ -36,7 +36,7 @@ $dist/web.protect/%.iso.bz2:	/n/fsother/dist/%.iso.bz2
 	mv $target.new $target
 
 scan:V:
-	test -d /n/fsother/dist		# make sure fsother was mounted above
+	test -d /n/other/dist		# make sure other was mounted above
 	test -d $d
 	test -d $dist/web.protect
 	replica/scan $dist/sources.replica <scan.lock
@@ -57,14 +57,14 @@ compresslog:V:
 
 odump:V:
 	disk/dump9660 -9cj -v 'Plan 9 4e Dumps' -s $d \
-		-p /sys/lib/sysconfig/proto/allproto /n/fsother/dist/distdump.iso
+		-p /sys/lib/sysconfig/proto/allproto /n/other/dist/distdump.iso
 
 cd.install:V:
 	if(~ $sysname achille){
 		echo; echo; echo '*** run this on a real machine, like olive.'
 		exit bad
 	}
-	bzip2 -9 < /n/fsother/dist/plan9.iso >web.protect/nplan9.iso.bz2
+	bzip2 -9 < /n/other/dist/plan9.iso >web.protect/nplan9.iso.bz2
 
 D.install:V:
 	D=/n/roro/usr/rob/testplan9
@@ -89,7 +89,7 @@ reallyinstall:V:
 dump:V:
 	rm -f /srv/9660.xxx
 	9660srv 9660.xxx
-	mount /srv/9660.xxx /n/kremvax /n/fsother/dist/plan9.iso
+	mount /srv/9660.xxx /n/kremvax /n/other/dist/plan9.iso
 	now=`{mtime $dist/web.protect/plan9.iso.bz2 | awk '{print $1}'}
 	ls -l /rls/plan9/4e.iso
 	disk/dump9660 -9cj -s /n/kremvax -n $now /rls/plan9/4e.iso
@@ -97,17 +97,17 @@ dump:V:
 	rm /srv/9660.xxx
 
 reencode:V:
-	rm -f /n/fsother/dist/nplan9.iso
+	rm -f /n/other/dist/nplan9.iso
 	rm -f /srv/9660.xxx
 	9660srv 9660.xxx
-	mount /srv/9660.xxx /n/kremvax /n/fsother/dist/plan9.iso
+	mount /srv/9660.xxx /n/kremvax /n/other/dist/plan9.iso
 	disk/mk9660 -9cj -v 'Plan 9 4th Edition' -s /n/kremvax \
-		-b bootdisk.img /n/fsother/dist/nplan9.iso
+		-b bootdisk.img /n/other/dist/nplan9.iso
 	rm /srv/9660.xxx
 
-/n/fsother/dist/%.iso.bz2:D: /n/fsother/dist/%.iso
+/n/other/dist/%.iso.bz2:D: /n/other/dist/%.iso
 	@ {
-		cd /n/fsother/dist
+		cd /n/other/dist
 		bzip2 -9 <$stem.iso >n$stem.iso.bz2 &&
 		{
 			if (test -e $stem.iso.bz2)
@@ -119,7 +119,7 @@ reencode:V:
 			$stem.iso.bz2 >>/usr/web/plan9checksums.txt
 	}
 
-/n/fsother/dist/contrib.iso:DV:
+/n/other/dist/contrib.iso:DV:
 	rm -f $target
 	disk/mk9660 -9cj -v 'Plan 9 Extras' -s /n/sources \
 		-p ./contrib.proto $target
@@ -152,6 +152,7 @@ worldwritable-mail:V:
 	9fs boot
 	test -e /n/boot/sys
 	/usr/rsc/bin/$cputype/lsr -t -d /n/boot/sys /n/boot/lib |
+		grep -v /lib/audio/ |		# give us a break
 		awk '$2 ~ /[2367][^2367].$/' |
 		datemail 'non-group-writable files on fs' 9trouble
 	status=''

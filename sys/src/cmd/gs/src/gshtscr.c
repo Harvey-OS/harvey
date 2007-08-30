@@ -604,7 +604,8 @@ gs_screen_next(gs_screen_enum * penum, floatp value)
 
 	if (value < -1.0 || value > 1.0)
 	    return_error(gs_error_rangecheck);
-	sample = (int) (value * max_ht_sample) + max_ht_sample;
+	sample = (long long)(value * max_ht_sample) + max_ht_sample;
+//	sample = (ht_sample_t)((value+1) * max_ht_sample);
 #ifdef DEBUG
 	if (gs_debug_c('H')) {
 	    gs_point pt;

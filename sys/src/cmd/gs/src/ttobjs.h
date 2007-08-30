@@ -589,7 +589,7 @@ typedef struct _TExecution_Context TExecution_Context;
     PLong            cvt;
 
     Int              storeSize; /* The storage area is now part of the */
-    PLong            storage;   /* instance                            */
+    PStorage            storage;   /* instance                            */
 
   };
 
