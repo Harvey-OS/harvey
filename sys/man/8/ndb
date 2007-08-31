@@ -650,7 +650,6 @@ in
 % ndb/query sys helix
 sys=helix dom=helix.research.bell-labs.com bootf=/mips/9powerboot
 	ip=135.104.117.31 ether=080069020427
-	proto=il
 .EE
 .LP
 Look up

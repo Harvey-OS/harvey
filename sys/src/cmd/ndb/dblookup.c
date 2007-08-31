@@ -5,6 +5,14 @@
 #include <ip.h>
 #include "dns.h"
 
+enum {
+	Nibwidth = 4,
+	Nibmask = (1<<Nibwidth) - 1,
+	V6maxrevdomdepth = 128 / Nibwidth,	/* bits / bits-per-nibble */
+
+	Ptrttl = 300,		/* ttl for generated ptr records; was 0 */
+};
+
 static Ndb *db;
 static Lock	dblock;
 
@@ -1063,15 +1071,9 @@ createv4ptrs(void)
 		 * in this network and create ptrs.
 		 * +2 for ".in-addr.arpa".
 		 */
-		dnptr(net, mask, dom, Ta, 4+2-n, 0);
+		dnptr(net, mask, dom, Ta, 4+2-n, Ptrttl);
 	}
 }
-
-enum {
-	Nibwidth = 4,
-	Nibmask = (1<<Nibwidth) - 1,
-	V6maxrevdomdepth = 128 / Nibwidth,	/* bits / bits-per-nibble */
-};
 
 /* convert bytes to nibbles, big-endian */
 void
@@ -1144,7 +1146,7 @@ createv6ptrs(void)
 		 * in this network and create ptrs.
 		 * +2 for .ip6.arpa.
 		 */
-		dnptr(net, mask, dom, Taaaa, V6maxrevdomdepth - pfxnibs, 0);
+		dnptr(net, mask, dom, Taaaa, V6maxrevdomdepth - pfxnibs, Ptrttl);
 	}
 }
 

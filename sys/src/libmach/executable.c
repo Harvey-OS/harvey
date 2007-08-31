@@ -631,6 +631,10 @@ elfdotout(int fd, Fhdr *fp, ExecHdr *hp)
 		mach = &mamd64;
 		fp->type = FAMD64;
 		break;
+	case ARM:
+		mach = &marm;
+		fp->type = FARM;
+		break;
 	default:
 		return 0;
 	}

@@ -54,7 +54,9 @@ fsconfig \- configuring a file server
 .PP
 .B end
 .SH DESCRIPTION
-When a file server's configuration has not been set,
+When an
+.IR fs (4)
+file server's configuration has not been set,
 or by explicit request early in the server's initialization (see
 .IR fs (8)),
 the server enters `config mode'.  The commands described here

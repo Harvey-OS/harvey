@@ -1,3 +1,7 @@
+enum {
+	Maxbustedmx = 100,
+};
+
 typedef struct Node Node;
 typedef struct Field Field;
 typedef Node *Nodeptr;
@@ -38,7 +42,9 @@ extern Node	*udate;
 extern int	originator;
 extern int	destination;
 extern int	date;
+extern int	debug;
 extern int	messageid;
+extern char	*bustedmxs[Maxbustedmx];
 
 Node*	anonymous(Node*);
 Node*	address(Node*);

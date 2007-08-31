@@ -4,8 +4,7 @@
 int
 rmtdns(char *net, char *path)
 {
-
-	int fd, n, r;
+	int fd, n, nb, r;
 	char *domain, *cp, buf[1024];
 
 	if(net == 0 || path == 0)
@@ -19,33 +18,31 @@ rmtdns(char *net, char *path)
 	} else
 		n = strlen(domain);
 
-	if(*domain == '[' && domain[n-1] == ']'){	/* accept [nnn.nnn.nnn.nnn] */
+	if(*domain == '[' && domain[n-1] == ']'){ /* accept [nnn.nnn.nnn.nnn] */
 		domain[n-1] = 0;
 		r = strcmp(ipattr(domain+1), "ip");
 		domain[n-1] = ']';
 	} else
-		r = strcmp(ipattr(domain), "ip");	/* accept nnn.nnn.nnn.nnn */
-
+		r = strcmp(ipattr(domain), "ip"); /* accept nnn.nnn.nnn.nnn */
 	if(r == 0){
 		free(domain);
 		return 0;
 	}
 
-	snprint(buf, sizeof(buf), "%s/dns", net);
-
+	snprint(buf, sizeof buf, "%s/dns", net);
 	fd = open(buf, ORDWR);			/* look up all others */
 	if(fd < 0){				/* dns screw up - can't check */
 		free(domain);
 		return 0;
 	}
 
-	n = snprint(buf, sizeof(buf), "%s all", domain);
+	n = snprint(buf, sizeof buf, "%s all", domain);
 	free(domain);
 	seek(fd, 0, 0);
-	n = write(fd, buf, n);
+	nb = write(fd, buf, n);
 	close(fd);
-	if(n < 0){
-		rerrstr(buf, sizeof(buf));
+	if(nb != n){
+		rerrstr(buf, sizeof buf);
 		if (strcmp(buf, "dns: name does not exist") == 0)
 			return -1;
 	}
@@ -53,6 +50,10 @@ rmtdns(char *net, char *path)
 }
 
 /*
-void main(int, char *argv[]){ print("return = %d\n", rmtdns("/net.alt/tcp/109", argv[1]));}
-
+void
+main(int, char *argv[])
+{
+	print("return = %d\n", rmtdns("/net.alt", argv[1]));
+	exits(0);
+}
 */

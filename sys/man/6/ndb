@@ -217,11 +217,8 @@ a TCP service name
 .B udp
 a UDP service name
 .TP
-.B il
-an IL service name
-.TP
 .B port
-a TCP, UDP, or IL port number
+a TCP or UDP port number
 .TP
 .B restricted
 a TCP service that can be called only by ports numbered
@@ -231,11 +228,11 @@ less that 1024
 a protocol supported by a host.
 The pair
 .B proto=il
-is needed by
+was needed by
 .I cs
 (see
 .IR ndb (8))
-in tuples for hosts that support the IL protocol
+in tuples for hosts that supported the IL protocol
 .TP
 .B dnsdomain
 a domain name that
@@ -311,7 +308,6 @@ sys=spindle
 	dom=spindle.research.bell-labs.com
 	bootf=/mips/9powerboot
 	ip=135.104.117.32 ether=080069020677
-	proto=il
 .EE
 .LP
 Entries for the network

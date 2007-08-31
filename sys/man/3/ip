@@ -25,7 +25,6 @@ ip \- network protocols over IP
 .B /net/gre
 .B /net/icmp
 .B /net/icmpv6
-.B /net/il
 .B /net/ipmux
 .B /net/rudp
 .B /net/tcp
@@ -437,7 +436,6 @@ The possible items are:
 .BR ip ,
 .BR fs ,
 .BR tcp ,
-.BR il ,
 .BR icmp ,
 .BR udb ,
 .BR compress ,
@@ -492,19 +490,18 @@ The
 .I ip
 device
 supports IP as well as several protocols that run over it:
-TCP, UDP, RUDP, ICMP, IL, GRE, and ESP.
+TCP, UDP, RUDP, ICMP, GRE, and ESP.
 TCP and UDP provide the standard Internet
 protocols for reliable stream and unreliable datagram
 communication.
-RUDP is a locally developed reliable datagram protocol based on
-UDP.
+RUDP is a locally-developed reliable datagram protocol based on UDP.
 ICMP is IP's catch-all control protocol used to send
 low level error messages and to implement
 .IR ping (8).
-IL provides a reliable datagram service for communication
-between Plan 9 machines but is now deprecated.
 GRE is a general encapsulation protocol.
 ESP is the encapsulation protocol for IPsec.
+IL provided a reliable datagram service for communication
+between Plan 9 machines over IPv4, but is no longer part of the system.
 .PP
 Each protocol is a subdirectory of the IP stack.
 The top level directory of each protocol contains a
@@ -753,20 +750,21 @@ must be executed before performing I/O on the corresponding
 file.
 .
 .SS RUDP
-RUDP is a reliable datagram protocol based on UDP.
+RUDP is a reliable datagram protocol based on UDP,
+currently only for IPv4.
 Packets are delivered in order.
 RUDP does not support
 .BR listen .
 One must write either
-.B connect
+.L connect
 or
-.B announce
+.L announce
 followed immediately by
-.B headers
+.L headers
 to
 .BR ctl .
 .PP
-Unlike IL or TCP, the reboot of one end of a connection does
+Unlike TCP, the reboot of one end of a connection does
 not force a closing of the connection.  Communications will
 resume when the rebooted machine resumes talking.  Any unacknowledged
 packets queued before the reboot will be lost.  A reboot can
@@ -837,21 +835,6 @@ must be executed before performing I/O on the corresponding
 .I data
 file.
 .
-.SS IL
-IL is a reliable point-to-point datagram protocol that runs over IPv4.
-Like TCP, IL delivers datagrams
-reliably and in order. Also like TCP, a connection is
-determined by the address and port numbers of the two ends.
-Like UDP, each read and write transfers a single datagram.
-.PP
-IL is efficient for LANs but doesn't have the
-congestion control features needed for use through
-the Internet.
-It is no longer necessary, except to communicate with old standalone
-.IR fs (4)
-file servers.
-Its use is now deprecated.
-.
 .SS GRE
 GRE is the encapsulation protocol used by PPTP.
 The kernel implements just enough of the protocol
@@ -905,8 +888,8 @@ as the key.
 Possible algorithms are:
 .BR null ,
 .BR des_56_cbc ,
-and eventually
 .BR des3_cbc ,
+and eventually
 .BR aes_128_cbc ,
 and
 .BR aes_ctr .
@@ -1146,23 +1129,6 @@ datagrams received
 datagrams received for bad ports
 malformed datagrams received
 datagrams sent
-.in -0.25i
-.1C
-.EE
-.PP
-Reading
-.B /net/il/stats
-returns a list of 6 tagged and newline-separated fields representing:
-.EX
-.ft 1
-.2C
-.in +0.25i
-checksum errors
-header length errors
-out of order messages
-retransmitted messages
-duplicate messages
-duplicate bytes
 .in -0.25i
 .1C
 .EE

@@ -15,17 +15,17 @@ struct Mx
 	char ip[24];
 	int pref;
 };
-static Mx mx[Nmx];
 
+char	*bustedmxs[Maxbustedmx];
 Ndb *db;
-extern int debug;
 
 static int	mxlookup(DS*, char*);
 static int	mxlookup1(DS*, char*);
 static int	compar(void*, void*);
 static int	callmx(DS*, char*, char*);
 static void expand_meta(DS *ds);
-extern int	cistrcmp(char*, char*);
+
+static Mx mx[Nmx];
 
 int
 mxdial(char *addr, char *ddomain, char *gdomain)
@@ -46,6 +46,17 @@ mxdial(char *addr, char *ddomain, char *gdomain)
 		fd = dial(netmkaddr(gdomain, 0, "smtp"), 0, 0, 0);
 
 	return fd;
+}
+
+static int
+busted(char *mx)
+{
+	char **bmp;
+
+	for (bmp = bustedmxs; *bmp != nil; bmp++)
+		if (strcmp(mx, *bmp) == 0)
+			return 1;
+	return 0;
 }
 
 static int
@@ -93,6 +104,12 @@ callmx(DS *ds, char *dest, char *domain)
 
 	/* dial each one in turn */
 	for(i = 0; i < nmx; i++){
+		if (busted(mx[i].host)) {
+			if (debug)
+				fprint(2, "mxdial skipping busted mx %s\n",
+					mx[i].host);
+			continue;
+		}
 		snprint(addr, sizeof(addr), "%s/%s!%s!%s", ds->netdir, ds->proto,
 			mx[i].host, ds->service);
 		if(debug)

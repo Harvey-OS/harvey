@@ -58,11 +58,13 @@ Biobuf	bout;
 Biobuf	berr;
 Biobuf	bfile;
 
+static int bustedmx;
+
 void
 usage(void)
 {
-	fprint(2, "usage: smtp [-aAdfips] [-g gw] [-h host] [-u user] "
-		"[.domain] net!host[!service] sender rcpt-list\n");
+	fprint(2, "usage: smtp [-aAdfips] [-b busted-mx] [-g gw] [-h host] "
+		"[-u user] [.domain] net!host[!service] sender rcpt-list\n");
 	exits(Giveup);
 }
 
@@ -121,6 +123,11 @@ main(int argc, char **argv)
 		break;
 	case 'A':	/* autistic: won't talk to us until we talk (Verizon) */
 		autistic = 1;
+		break;
+	case 'b':
+		if (bustedmx >= Maxbustedmx)
+			sysfatal("more than %d busted mxs given", Maxbustedmx);
+		bustedmxs[bustedmx++] = EARGF(usage());
 		break;
 	case 'd':
 		debug = 1;
