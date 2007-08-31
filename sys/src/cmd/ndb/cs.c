@@ -143,31 +143,26 @@ struct Network
 	char		*net;
 	Ndbtuple	*(*lookup)(Network*, char*, char*, int);
 	char		*(*trans)(Ndbtuple*, Network*, char*, char*, int);
-	int		considered;
-	int		fasttimeouthack;
+	int		considered;		/* flag: ignored for "net!"? */
+	int		fasttimeouthack;	/* flag. was for IL */
 	Network		*next;
 };
 
 enum
 {
 	Ntcp = 0,
-//	Nilfast,
-
-//	Fasttimeout = 1,
 };
 
 /*
  *  net doesn't apply to (r)udp, icmp(v6), or telco (for speed).
  */
 Network network[] = {
-[Ntcp]	{ "tcp",	iplookup,	iptrans,	0, 0 },
-// [Nilfast]{ "il",	iplookup,	iptrans,	0, Fasttimeout },
-	{ "il",		iplookup,	iptrans,	0, 0 },
-	{ "udp",	iplookup,	iptrans,	1, 0 },
-	{ "icmp",	iplookup,	iptrans,	1, 0 },
-	{ "icmpv6",	iplookup,	iptrans,	1, 0 },
-	{ "rudp",	iplookup,	iptrans,	1, 0 },
-	{ "telco",	telcolookup,	telcotrans,	1, 0 },
+[Ntcp]	{ "tcp",	iplookup,	iptrans,	0 },
+	{ "udp",	iplookup,	iptrans,	1 },
+	{ "icmp",	iplookup,	iptrans,	1 },
+	{ "icmpv6",	iplookup,	iptrans,	1 },
+	{ "rudp",	iplookup,	iptrans,	1 },
+	{ "telco",	telcolookup,	telcotrans,	1 },
 	{ 0 },
 };
 

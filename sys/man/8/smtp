@@ -8,6 +8,9 @@ smtp, smtpd \-  mail transport
 [
 .B -aAdfips
 ] [
+.B -b
+.I busted-mx
+] ... [
 .B -g
 .I gateway
 ] [
@@ -71,6 +74,12 @@ autistic server: don't wait for an SMTP greeting banner
 but immediately send a
 .L NOOP
 command to provoke the server into responding.
+.TP
+.B -b
+ignore
+.I busted-mx
+when trying MX hosts.
+May be repeated.
 .TP
 .B -d
 turn on debugging to standard error.

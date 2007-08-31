@@ -1,6 +1,6 @@
 .TH LISTEN 8
 .SH NAME
-listen, listen1, tcp7, tcp9, tcp19, tcp21, tcp22, tcp23, tcp25, tcp53, tcp110, tcp113, tcp143, tcp513, tcp515, tcp564, tcp565, tcp566, tcp567, tcp993, tcp1723, tcp17007, tcp17009, tcp17010, tcp17013 \- listen for calls on a network device
+listen, listen1, tcp7, tcp9, tcp19, tcp21, tcp22, tcp23, tcp25, tcp53, tcp110, tcp113, tcp143, tcp513, tcp515, tcp564, tcp565, tcp566, tcp567, tcp993, tcp1723, tcp17007, tcp17008, tcp17009, tcp17010, tcp17013 \- listen for calls on a network device
 .SH SYNOPSIS
 .B aux/listen
 .RB [ -q ]
@@ -80,18 +80,22 @@ with authentication (typically used by
 like 17007, without authentication (used by Unix
 systems to see Plan 9 files).
 .TP
-.B il17008
-like 17007, but serves the root of the tree, forgoing the negotiation for which subtree to serve.
+.B tcp17008
+like
+.BR tcp17007 ,
+but serves the root of the tree,
+forgoing the negotiation for which subtree to serve.
 .TP
 .B tcp17009
+.I rx
 remote execution.
 .TP
-.B "tcp17010"
+.B tcp17010
 server for
 .IR cpu (1)
 command.
 .TP
-.B "tcp17013"
+.B tcp17013
 server for old
 .IR cpu (1)
 command for compatibility with old clients.
@@ -103,7 +107,7 @@ report the address of the incoming call.
 FTP daemon
 .TP
 .B tcp22
-.B ssh
+.IR ssh (1)
 `secure shell' encrypted terminal connection or file transfer.
 .TP
 .B tcp23
@@ -142,7 +146,7 @@ port (always reports
 .BR none ).
 .TP
 .B tcp567
-Plan 9 ticket service.
+Plan 9 authentication-ticket service.
 .TP
 .B tcp1723
 PPTP (point-to-point tunnelling protocol) service.
@@ -153,10 +157,7 @@ The following services are available in
 .TF \ tcp00000
 .TP
 .B tcp566
-check a SecureNet box.
-.TP
-.B il566
-authentication requests.
+validate a SecureNet box.
 .TP
 .B tcp993
 Secure IMAP4rev1 port.

@@ -4,13 +4,12 @@ fs \- file server, dump
 .SH SYNOPSIS
 .I none
 .SH DESCRIPTION
-The file server is the main file system for
-Plan 9.
-It is a stand-alone system that runs on
+The file server was the main file system for Plan 9.
+It was a stand-alone system that ran on
 a separate computer.
-It serves the Plan 9 protocol via the IL/IP
+It served the Plan 9 protocol via the IL/IP
 protocols on Ethernets.
-The name of the main file server at Murray Hill is
+The name of the main file server at Murray Hill was
 .BR emelie .
 .PP
 The file server normally requires all users except
@@ -134,6 +133,7 @@ mount -c /srv/boot /n/emelieother other
 .B /sys/src/fs
 .SH SEE ALSO
 .IR yesterday (1),
+.IR cwfs (4),
 .IR srv (4),
 .IR fs (8)
 .br
@@ -146,3 +146,5 @@ December, 1991
 For the moment, the file server serves both the old (third edition) and new (fourth
 edition) versions of 9P, deciding which to serve by sniffing the first packet on each
 connection.
+.PP
+Required IL, thus now deprecated.

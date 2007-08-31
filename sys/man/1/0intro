@@ -295,8 +295,7 @@ to the desired number of spaces per tab.
 Machine names may be prefixed by the network name,
 here
 .BR tcp ;
-.B il
-for the Plan 9 Internet protocol and
+and
 .B net
 for the system default.
 .PP
