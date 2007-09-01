@@ -96,7 +96,6 @@ misc
 	vgavmware	+cur
 
 ip
-	il
 	tcp
 	udp
 	ipifc
@@ -108,7 +107,6 @@ port
 
 boot boot #S/sdC0/
 	tcp
-	il
 	local
 
 bootdir

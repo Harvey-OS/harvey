@@ -27,7 +27,6 @@ misc
 	uarti8250
 
 ip
-	il
 	tcp
 	udp
 	ipifc
@@ -38,7 +37,6 @@ port
 	int cpuserver = 0;
 
 boot
-	il
 
 bootdir
 	bootmtx.out boot
