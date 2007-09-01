@@ -60,7 +60,6 @@ misc
 	sdmylex		pci sdscsi
 
 ip
-	il
 	tcp
 	udp
 	ipifc
@@ -76,7 +75,6 @@ port
 
 boot cpu
 	tcp
-	il
 
 bootdir
 	bootpccpu.out boot

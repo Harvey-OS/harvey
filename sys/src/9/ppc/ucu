@@ -27,7 +27,6 @@ misc
 	msaturn
 
 ip
-	il
 	tcp
 	udp
 	ipifc
@@ -38,7 +37,6 @@ port
 	int cpuserver = 1;
 
 boot cpu
-	il
 	tcp
 
 bootdir

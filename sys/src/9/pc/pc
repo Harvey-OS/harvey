@@ -99,7 +99,6 @@ misc
 	vgavmware	+cur
 
 ip
-	il
 	tcp
 	udp
 	ipifc
@@ -112,7 +111,6 @@ port
 
 boot
 	tcp
-	il
 
 bootdir
 	bootpc.out boot

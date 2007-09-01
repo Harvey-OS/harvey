@@ -22,7 +22,6 @@ dev
 	sd
 
 ip
-	il
 	tcp
 	udp
 	ipifc
