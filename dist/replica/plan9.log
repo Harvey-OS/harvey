@@ -52361,3 +52361,15 @@
 1188583203 167 d sys/src/9/ip/il.c - 664 sys sys 1184946959 0
 1188594004 0 c 386/9loaddebug - 775 sys sys 1188593351 435045
 1188594004 1 c 386/9loadlitedebug - 775 sys sys 1188593356 220555
+1188682204 0 c rc/bin/iwhois - 775 sys sys 1188680875 1721
+1188684004 0 c rc/bin/iwhois - 775 sys sys 1188682646 1792
+1188689404 0 c sys/src/cmd/auth/secstore/SConn.h - 664 sys sys 1188688678 960
+1188694804 0 c sys/src/cmd/auth/secstore/SConn.h - 664 sys sys 1188694756 952
+1188694804 1 c sys/src/cmd/auth/secstore/secstore.h - 664 sys sys 1188694756 881
+1188696604 0 c sys/src/cmd/auth/secstore/secstore.c - 664 sys sys 1188695265 12518
+1188696604 1 c sys/src/cmd/auth/secstore/secstored.c - 664 sys sys 1188695492 8000
+1188696604 2 c sys/src/cmd/auth/secstore/util.c - 664 sys sys 1188695121 1818
+1188703805 0 c 386/bin/auth/aescbc - 775 sys sys 1188702764 140221
+1188703805 1 c 386/bin/auth/secstore - 775 sys sys 1188702769 192724
+1188703805 2 c 386/bin/auth/secstored - 775 sys sys 1188702773 197480
+1188703805 3 c 386/bin/auth/secuser - 775 sys sys 1188702776 149443

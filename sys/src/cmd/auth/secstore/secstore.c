@@ -35,13 +35,9 @@ getfile(SConn *conn, char *gf, uchar **buf, ulong *buflen, uchar *key, int nkey)
 	AESstate aes;
 	DigestState *sha;
 
-	if(strchr(gf, '/') != nil){
-		fprint(2, "secstore: simple filenames, not paths like %s\n", gf);
-		return -1;
-	}
 	memset(&aes, 0, sizeof aes);
 
-	snprint(s, Maxmsg, "GET %s\n", gf);
+	snprint(s, Maxmsg, "GET %s", gf);
 	conn->write(conn, (uchar*)s, strlen(s));
 
 	/* get file size */
@@ -167,7 +163,7 @@ putfile(SConn *conn, char *pf, uchar *buf, ulong len, uchar *key, int nkey)
 	setupAESstate(&aes, skey, AESbsize, IV);
 	memset(skey, 0, sizeof skey);
 
-	snprint(s, Maxmsg, "PUT %s\n", pf);
+	snprint(s, Maxmsg, "PUT %s", pf);
 	conn->write(conn, (uchar*)s, strlen(s));
 
 	if(buf == nil){
@@ -242,7 +238,7 @@ removefile(SConn *conn, char *rf)
 		return -1;
 	}
 
-	snprint(buf, Maxmsg, "RM %s\n", rf);
+	snprint(buf, Maxmsg, "RM %s", rf);
 	conn->write(conn, (uchar*)buf, strlen(buf));
 
 	return 0;

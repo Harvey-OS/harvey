@@ -1,3 +1,4 @@
+/* secstored - secure store daemon */
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
@@ -7,7 +8,7 @@
 #include "SConn.h"
 #include "secstore.h"
 
-char* secureidcheck(char *, char *);   // from /sys/src/cmd/auth/
+char* secureidcheck(char *, char *);	/* from /sys/src/cmd/auth/ */
 extern char* dirls(char *path);
 
 int verbose;
@@ -16,14 +17,15 @@ Ndb *db;
 static void
 usage(void)
 {
-	fprint(2, "usage: secstored [-R] [-S servername] [-s tcp!*!5356] [-v] [-x netmtpt]\n");
+	fprint(2, "usage: secstored [-R] [-S servername] [-s tcp!*!5356] "
+		"[-v] [-x netmtpt]\n");
 	exits("usage");
 }
 
 static int
 getdir(SConn *conn, char *id)
 {
-	char *ls, *s; 
+	char *ls, *s;
 	uchar *msg;
 	int n, len;
 
@@ -70,14 +72,14 @@ getfile(SConn *conn, char *id, char *gf)
 	snprint(s, Maxmsg, "%s/store/%s/%s", SECSTORE_DIR, id, gf);
 	gd = open(s, OREAD);
 	if(gd < 0){
-		syslog(0, LOG, "can't open %s: %r\n", s);
+		syslog(0, LOG, "can't open %s: %r", s);
 		free(s);
 		conn->write(conn, (uchar*)"-1", 2);
 		return -1;
 	}
 	st = dirfstat(gd);
 	if(st == nil){
-		syslog(0, LOG, "can't stat %s: %r\n", s);
+		syslog(0, LOG, "can't stat %s: %r", s);
 		free(s);
 		conn->write(conn, (uchar*)"-1", 2);
 		return -1;
@@ -86,13 +88,13 @@ getfile(SConn *conn, char *id, char *gf)
 	len = st->length;
 	free(st);
 	if(mode & DMDIR) {
-		syslog(0, LOG, "%s should be a plain file, not a directory\n", s);
+		syslog(0, LOG, "%s should be a plain file, not a directory", s);
 		free(s);
 		conn->write(conn, (uchar*)"-1", 2);
 		return -1;
 	}
 	if(len < 0 || len > MAXFILESIZE){
-		syslog(0, LOG, "implausible filesize %d for %s\n", len, gf);
+		syslog(0, LOG, "implausible filesize %d for %s", len, gf);
 		free(s);
 		conn->write(conn, (uchar*)"-3", 2);
 		return -1;
@@ -104,7 +106,7 @@ getfile(SConn *conn, char *id, char *gf)
 	while(len > 0){
 		n = read(gd, s, Maxmsg);
 		if(n <= 0){
-			syslog(0, LOG, "read error on %s: %r\n", gf);
+			syslog(0, LOG, "read error on %s: %r", gf);
 			free(s);
 			return -1;
 		}
@@ -126,23 +128,18 @@ putfile(SConn *conn, char *id, char *pf)
 	/* get file size */
 	n = readstr(conn, s);
 	if(n < 0){
-		syslog(0, LOG, "remote: %s: %r\n", s);
+		syslog(0, LOG, "remote: %s: %r", s);
 		return -1;
 	}
 	len = atoi(s);
 	if(len == -1){
-		syslog(0, LOG, "remote file %s does not exist\n", pf);
+		syslog(0, LOG, "remote file %s does not exist", pf);
 		return -1;
 	}else if(len < 0 || len > MAXFILESIZE){
-		syslog(0, LOG, "implausible filesize %ld for %s\n", len, pf);
+		syslog(0, LOG, "implausible filesize %ld for %s", len, pf);
 		return -1;
 	}
 
-	/* get file in Maxmsg chunks */
-	if(strchr(pf,'/') != nil || strcmp(pf,"..")==0){
-		syslog(0, LOG, "no slashes allowed: %s\n", pf);
-		return -1;
-	}
 	snprint(s, Maxmsg, "%s/store/%s/%s", SECSTORE_DIR, id, pf);
 	pd = create(s, OWRITE, 0660);
 	if(pd < 0){
@@ -152,7 +149,7 @@ putfile(SConn *conn, char *id, char *pf)
 	while(len > 0){
 		n = conn->read(conn, (uchar*)s, Maxmsg);
 		if(n <= 0){
-			syslog(0, LOG, "empty file chunk\n");
+			syslog(0, LOG, "empty file chunk");
 			return -1;
 		}
 		nw = write(pd, s, n);
@@ -222,7 +219,7 @@ static int
 dologin(int fd, char *S, int forceSTA)
 {
 	int i, n, rv;
-	char *file, *mess;
+	char *file, *mess, *nl;
 	char msg[Maxmsg+1];
 	PW *pw;
 	SConn *conn;
@@ -230,7 +227,7 @@ dologin(int fd, char *S, int forceSTA)
 	pw = nil;
 	rv = -1;
 
-	// collect the first message
+	/* collect the first message */
 	if((conn = newSConn(fd)) == nil)
 		return -1;
 	if(readstr(conn, msg) < 0){
@@ -239,7 +236,7 @@ dologin(int fd, char *S, int forceSTA)
 		goto Out;
 	}
 
-	// authenticate
+	/* authenticate */
 	if(PAKserver(conn, S, msg, &pw) < 0){
 		if(pw != nil)
 			syslog(0, LOG, "secstore denied for %s", pw->id);
@@ -260,8 +257,10 @@ dologin(int fd, char *S, int forceSTA)
 	conn->write(conn, (uchar*)"OK", 2);
 	syslog(0, LOG, "AUTH %s", pw->id);
 
-	// perform operations as asked
+	/* perform operations as asked */
 	while((n = readstr(conn, msg)) > 0){
+		if(nl = strchr(msg, '\n'))
+			*nl = 0;
 		syslog(0, LOG, "[%s] %s", pw->id, msg);
 
 		if(strncmp(msg, "GET ", 4) == 0){
@@ -306,7 +305,7 @@ dologin(int fd, char *S, int forceSTA)
 
 	}
 	if(n <= 0)
-		syslog(0, LOG, "%s closed connection without saying goodbye\n", pw->id);
+		syslog(0, LOG, "%s closed connection without saying goodbye", pw->id);
 
 Out:
 	freePW(pw);
@@ -321,9 +320,8 @@ void
 main(int argc, char **argv)
 {
 	int afd, dfd, lcfd, forceSTA = 0;
-	char adir[40], ldir[40], *remote;
-	char *serve = "tcp!*!5356", *p, aserve[128], net[128];
-	char *S = "secstore";
+	char aserve[128], net[128], adir[40], ldir[40];
+	char *remote, *serve = "tcp!*!5356", *S = "secstore";
 	Ndb *db2;
 
 	setnetmtpt(net, sizeof(net), nil);
@@ -338,10 +336,7 @@ main(int argc, char **argv)
 		S = EARGF(usage());
 		break;
 	case 'x':
-		p = ARGF();
-		if(p == nil)
-			usage();
-		setnetmtpt(net, sizeof(net), p);
+		setnetmtpt(net, sizeof(net), EARGF(usage()));
 		break;
 	case 'v':
 		verbose++;
@@ -374,7 +369,10 @@ main(int argc, char **argv)
 			close(lcfd);
 			break;
 		case 0:
-			// "/lib/ndb/common.radius does not exist" if db set before fork
+			/*
+			 * "/lib/ndb/common.radius does not exist"
+			 * if db set before fork.
+			 */
 			db = ndbopen("/lib/ndb/auth");
 			if(db == 0)
 				syslog(0, LOG, "no /lib/ndb/auth");
@@ -384,7 +382,7 @@ main(int argc, char **argv)
 			db = ndbcat(db, db2);
 			if((dfd = accept(lcfd, ldir)) < 0)
 				exits("can't accept");
-			alarm(30*60*1000); 	// 30 min
+			alarm(30*60*1000);		/* 30 min */
 			remote = remoteIP(ldir);
 			syslog(0, LOG, "secstore from %s", remote);
 			free(remote);
@@ -396,4 +394,3 @@ main(int argc, char **argv)
 		}
 	}
 }
-

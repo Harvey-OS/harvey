@@ -9,6 +9,7 @@ void *
 emalloc(ulong n)
 {
 	void *p = malloc(n);
+
 	if(p == nil)
 		sysfatal("emalloc");
 	memset(p, 0, n);
@@ -36,9 +37,9 @@ getpassm(char *prompt)
 {
 	char *p, line[4096];
 	int n, nr;
-	static int cons, consctl;  // closing and reopening fails in ssh environment
+	static int cons, consctl; /* closing & reopening fails in ssh environment */
 
-	if(cons == 0){ // first time
+	if(cons == 0){			/* first time? */
 		cons = open("/dev/cons", ORDWR);
 		if(cons < 0)
 			sysfatal("couldn't open cons");
@@ -70,7 +71,7 @@ getpassm(char *prompt)
 				nr--;
 				p--;
 			}
-		}else if(*p == 21){		/* cntrl-u */
+		}else if(*p == ('u' & 037)){		/* cntrl-u */
 			fprint(cons, "\n%s", prompt);
 			nr = 0;
 			p = line;
@@ -86,19 +87,24 @@ getpassm(char *prompt)
 	}
 }
 
+static char *
+illegal(char *f)
+{
+	syslog(0, LOG, "illegal name: %s", f);
+	return nil;
+}
+
 char *
 validatefile(char *f)
 {
-	char *nl;
+	char *p;
 
-	if(f==nil || *f==0)
+	if(f == nil || *f == '\0')
 		return nil;
-	if(nl = strchr(f, '\n'))
-		*nl = 0;
-	if(strchr(f,'/') != nil || strcmp(f,"..")==0 || strlen(f) >= 300){
-		syslog(0, LOG, "no slashes allowed: %s\n", f);
-		return nil;
-	}
+	if(strcmp(f, "..") == 0 || strlen(f) >= 250)
+		return illegal(f);
+	for(p = f; *p; p++)
+		if(*p < 040 || *p == '/')
+			return illegal(f);
 	return f;
 }
-

@@ -47,6 +47,9 @@ case *.in
 case *.cn
 	machine=whois.cnnic.net.cn
 	fn boilerplate { cat $* }
+case [0-9]*.[0-9]*.[0-9]*.[0-9]*
+	machine=whois.arin.net
+	fn boilerplate { cat $* }
 case *
 	machine=whois.internic.net	# alternate: whois.networksolutions.com
 	fn boilerplate { cat $* }
@@ -56,7 +59,10 @@ fn sigexit {
 	rm -f $file
 }
 echo $person | telnet -nr tcp!$machine!whois > $file
-x=`{ sed -n 's/.*Whois Server: (.*)/\1/p' $file }
+x=`{ sed -n '
+	s/.*Whois Server: (.*)/\1/p
+	s;.*ReferralServer: whois://(.*);\1;p
+	' $file }
 switch($x){
 case ''
 	;			# e.g., for .ca
@@ -64,6 +70,7 @@ case *' '*
 	echo $0: buggery: $x >[1=2]
 	exit botch
 case *
+	# chase the referral chain
 	echo $person | telnet -nr tcp!$x!whois > $file
 }
 boilerplate $file
