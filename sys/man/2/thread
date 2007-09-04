@@ -118,14 +118,13 @@ int	nbsendp(Channel *c, void *v)
 int	nbsendul(Channel *c, ulong v)
 int	chanprint(Channel *c, char *fmt, ...)
 .XX
-int	procexecl(Channel *cpid, char *file, ...)
-int	procexec(Channel *cpid, char *file, char *args[])
+void	procexecl(Channel *cpid, char *file, ...)
+void	procexec(Channel *cpid, char *file, char *args[])
 Channel*	threadwaitchan(void)
 .XX
 int	threadnotify(int (*f)(void*, char*), int in)
 .EE
 .SH DESCRIPTION
-.PP
 The thread library provides parallel programming support similar to that
 of the languages
 Alef and Newsqueak.
