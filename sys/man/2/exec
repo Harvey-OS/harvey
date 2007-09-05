@@ -8,10 +8,10 @@ exec, execl, _privates, _nprivates, _tos \- execute a file
 .PP
 .nf
 .B
-int exec(char *name, char* argv[])
+void* exec(char *name, char* argv[])
 .PP
 .B
-int execl(char *name, ...)
+void* execl(char *name, ...)
 .PP
 .B
 void	**_privates;
@@ -168,7 +168,7 @@ of
 followed by a terminating null pointer; and
 the return register (e.g.
 .B R0
-on the 68020) contains the address of the clock.
+on the 68020) contains the address of the clock information.
 .SH SOURCE
 .B /sys/src/libc/9syscall
 .br
@@ -180,7 +180,7 @@ on the 68020) contains the address of the clock.
 .SH DIAGNOSTICS
 If these functions fail, they return and set
 .IR errstr .
-There can be no return from a successful
+There can be no return to the calling process from a successful
 .I exec
 or
 .IR execl ;

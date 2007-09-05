@@ -52374,3 +52374,7 @@
 1188703805 2 c 386/bin/auth/secstored - 775 sys sys 1188702773 197480
 1188703805 3 c 386/bin/auth/secuser - 775 sys sys 1188702776 149443
 1188842404 0 c sys/man/2/thread - 664 sys sys 1188841215 11916
+1188923403 0 c sys/src/9/port/sysfile.c - 664 sys sys 1188922869 22120
+1188923403 1 c sys/src/9/port/sysproc.c - 664 sys sys 1188922870 21419
+1188955804 0 c sys/man/2/exec - 664 sys sys 1188955837 4230
+1188957605 0 c sys/src/cmd/aux/na/na.y - 775 sys sys 1188957547 25129
