@@ -7532,7 +7532,7 @@ sys/man/2/encode - 664 sys sys 1071289168 1572
 sys/man/2/encrypt - 664 sys sys 951229670 1885
 sys/man/2/errstr - 664 sys sys 1080218022 1705
 sys/man/2/event - 664 sys sys 1015091520 7512
-sys/man/2/exec - 664 sys sys 1139838662 4191
+sys/man/2/exec - 664 sys sys 1188955837 4230
 sys/man/2/exits - 664 sys sys 944959695 1652
 sys/man/2/exp - 664 sys sys 944959694 935
 sys/man/2/fauth - 664 sys sys 1017251164 1222
@@ -8240,8 +8240,8 @@ sys/src/9/port/sdaoe.c - 664 sys sys 1187034227 9934
 sys/src/9/port/segment.c - 664 sys sys 1170456581 14052
 sys/src/9/port/semaphore.p - 664 sys sys 1143129797 2424
 sys/src/9/port/swap.c - 664 sys sys 1138028310 7019
-sys/src/9/port/sysfile.c - 664 sys sys 1141940070 22192
-sys/src/9/port/sysproc.c - 664 sys sys 1143289632 21534
+sys/src/9/port/sysfile.c - 664 sys sys 1188922869 22120
+sys/src/9/port/sysproc.c - 664 sys sys 1188922870 21419
 sys/src/9/port/systab.h - 664 sys sys 1161222889 3204
 sys/src/9/port/taslock.c - 664 sys sys 1177343190 4418
 sys/src/9/port/thwack.c - 664 sys sys 1057323394 7253
@@ -9773,7 +9773,7 @@ sys/src/cmd/aux/mswordstrings.c - 664 sys sys 952201344 5767
 sys/src/cmd/aux/na - 20000000775 sys sys 1039727550 0
 sys/src/cmd/aux/na/mkfile - 664 sys sys 955036627 121
 sys/src/cmd/aux/na/na.h - 775 sys sys 955036627 267
-sys/src/cmd/aux/na/na.y - 775 sys sys 1015008889 25158
+sys/src/cmd/aux/na/na.y - 775 sys sys 1188957547 25129
 sys/src/cmd/aux/nfsmount.c - 664 sys sys 1045589268 6202
 sys/src/cmd/aux/olefs.c - 664 sys sys 1071245775 9853
 sys/src/cmd/aux/pcmcia.c - 664 sys sys 1099761153 9213

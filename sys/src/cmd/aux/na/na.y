@@ -924,11 +924,9 @@ preprocess(char *in, FILE *out)
 		argv[ncppopts + 2] = "-N";
 		argv[ncppopts + 3] = in;
 		argv[ncppopts + 4] = 0;
-		if (exec("/bin/cpp", argv) < 0) {
-			fprintf(stderr, "failed to exec cpp (%R)\n");
-			exits("exec");
-		}
-		exits("");
+		exec("/bin/cpp", argv);
+		fprintf(stderr, "failed to exec cpp (%R)\n");
+		exits("exec");
 	}
 	w = wait();
 	free(w);
