@@ -2,45 +2,44 @@
 
 LIB=/$objtype/lib/libventi.a
 
-SYS=plan9
-
 OFILES=\
+	cache.$O\
 	client.$O\
+	conn.$O\
+	dial.$O\
 	debug.$O\
-	errfmt.$O\
-	fatal.$O\
-	pack.$O\
+	dtype.$O\
+	entry.$O\
+	fcall.$O\
+	fcallfmt.$O\
+	file.$O\
+	hangup.$O\
+	log.$O\
+	mem.$O\
 	packet.$O\
 	parsescore.$O\
-	readfully.$O\
+	queue.$O\
+	root.$O\
 	rpc.$O\
 	scorefmt.$O\
+	send.$O\
 	server.$O\
+	srvhello.$O\
 	strdup.$O\
+	string.$O\
+	time.$O\
+	version.$O\
 	zero.$O\
-	$SYS-io.$O\
-	$SYS-sha1.$O\
-	$SYS-thread.$O\
+	zeroscore.$O\
 
 HFILES=\
-	packet.h\
-	session.h\
-
-UPDATE=\
-	mkfile\
-	$HFILES\
-	${OFILES:%.$O=%.c}\
-	${LIB:/$objtype/%=/386/%}\
-
-CFLAGS=$CFLAGS
+	/sys/include/venti.h\
 
 </sys/src/cmd/mksyslib
 
-$O.vttest: vttest.$O $OFILES
-	$LD $LDFLAGS -o $target $prereq
+send.$O: queue.h
+server.$O: queue.h
+queue.$O: queue.h
 
-acid:	$HFILES packet.c
-	$CC $INC -a packet.c > acid || rm acid
+CFLAGS=$CFLAGS -I.
 
-test: $O.vttest
-	$O.vttest

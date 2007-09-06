@@ -1,264 +1,215 @@
 #include <u.h>
 #include <libc.h>
 #include <venti.h>
-#include "session.h"
+#include <thread.h>
+#include "queue.h"
 
-static char EAuthState[] = "bad authentication state";
-static char ENotServer[] = "not a server session";
-static char EVersion[] = "incorrect version number";
-static char EProtocolBotch[] = "venti protocol botch";
-
-VtSession *
-vtServerAlloc(VtServerVtbl *vtbl)
+enum
 {
-	VtSession *z = vtAlloc();
-	z->vtbl = vtMemAlloc(sizeof(VtServerVtbl));
-	*z->vtbl = *vtbl;
-	return z;
+	STACK = 8192
+};
+
+typedef struct VtSconn VtSconn;
+struct VtSconn
+{
+	int ctl;
+	int ref;
+	QLock lk;
+	char dir[NETPATHLEN];
+	VtSrv *srv;
+	VtConn *c;
+};
+
+struct VtSrv
+{
+	int afd;
+	int dead;
+	char adir[NETPATHLEN];
+	Queue *q;	/* Queue(VtReq*) */
+};
+
+static void listenproc(void*);
+static void connproc(void*);
+
+static void
+scincref(VtSconn *sc)
+{
+	qlock(&sc->lk);
+	sc->ref++;
+	qunlock(&sc->lk);
 }
 
-static int
-srvHello(VtSession *z, char *version, char *uid, int , uchar *, int , uchar *, int )
+static void
+scdecref(VtSconn *sc)
 {
-	vtLock(z->lk);
-	if(z->auth.state != VtAuthHello) {
-		vtSetError(EAuthState);
-		goto Err;
+	qlock(&sc->lk);
+	if(--sc->ref > 0){
+		qunlock(&sc->lk);
+		return;
 	}
-	if(strcmp(version, vtGetVersion(z)) != 0) {
-		vtSetError(EVersion);
-		goto Err;
-	}
-	vtMemFree(z->uid);
-	z->uid = vtStrDup(uid);
-	z->auth.state = VtAuthOK;
-	vtUnlock(z->lk);
-	return 1;
-Err:
-	z->auth.state = VtAuthFailed;
-	vtUnlock(z->lk);
-	return 0;
+	if(sc->c)
+		vtfreeconn(sc->c);
+	vtfree(sc);
 }
 
-
-static int
-dispatchHello(VtSession *z, Packet **pkt)
+VtSrv*
+vtlisten(char *addr)
 {
-	char *version, *uid;
-	uchar *crypto, *codec;
-	uchar buf[10];
-	int ncrypto, ncodec, cryptoStrength;
-	int ret;
+	VtSrv *s;
+
+	s = vtmallocz(sizeof(VtSrv));
+	s->afd = announce(addr, s->adir);
+	if(s->afd < 0){
+		free(s);
+		return nil;
+	}
+	s->q = _vtqalloc();
+	proccreate(listenproc, s, STACK);
+	return s;
+}
+
+static void
+listenproc(void *v)
+{
+	int ctl;
+	char dir[NETPATHLEN];
+	VtSrv *srv;
+	VtSconn *sc;
+
+	srv = v;
+	for(;;){
+		ctl = listen(srv->adir, dir);
+		if(ctl < 0){
+			srv->dead = 1;
+			break;
+		}
+		sc = vtmallocz(sizeof(VtSconn));
+		sc->ref = 1;
+		sc->ctl = ctl;
+		sc->srv = srv;
+		strcpy(sc->dir, dir);
+		proccreate(connproc, sc, STACK);
+	}
+
+	/* hangup */
+}
+
+static void
+connproc(void *v)
+{
+	VtSconn *sc;
+	VtConn *c;
 	Packet *p;
+	VtReq *r;
+	int fd;
+static int first=1;
 
-	p = *pkt;
-
-	version = nil;	
-	uid = nil;
-	crypto = nil;
-	codec = nil;
-
-	ret = 0;
-	if(!vtGetString(p, &version))
-		goto Err;
-	if(!vtGetString(p, &uid))
-		goto Err;
-	if(!packetConsume(p, buf, 2))
-		goto Err;
-	cryptoStrength = buf[0];
-	ncrypto = buf[1];
-	crypto = vtMemAlloc(ncrypto);
-	if(!packetConsume(p, crypto, ncrypto))
-		goto Err;
-
-	if(!packetConsume(p, buf, 1))
-		goto Err;
-	ncodec = buf[0];
-	codec = vtMemAlloc(ncodec);
-	if(!packetConsume(p, codec, ncodec))
-		goto Err;
-
-	if(packetSize(p) != 0) {
-		vtSetError(EProtocolBotch);
-		goto Err;
+if(first && chattyventi){
+	first=0;
+	fmtinstall('F', vtfcallfmt);
+}
+	r = nil;
+	sc = v;
+	sc->c = nil;
+	if(0) fprint(2, "new call %s on %d\n", sc->dir, sc->ctl);
+	fd = accept(sc->ctl, sc->dir);
+	close(sc->ctl);
+	if(fd < 0){
+		fprint(2, "accept %s: %r\n", sc->dir);
+		goto out;
 	}
-	if(!srvHello(z, version, uid, cryptoStrength, crypto, ncrypto, codec, ncodec)) {
-		packetFree(p);
-		*pkt = nil;
-	} else {
-		if(!vtAddString(p, vtGetSid(z)))
-			goto Err;
-		buf[0] = vtGetCrypto(z);
-		buf[1] = vtGetCodec(z);
-		packetAppend(p, buf, 2);
+
+	c = vtconn(fd, fd);
+	sc->c = c;
+	if(vtversion(c) < 0){
+		fprint(2, "vtversion %s: %r\n", sc->dir);
+		goto out;
 	}
-	ret = 1;
-Err:
-	vtMemFree(version);
-	vtMemFree(uid);
-	vtMemFree(crypto);
-	vtMemFree(codec);
-	return ret;
+	if(vtsrvhello(c) < 0){
+		fprint(2, "vtsrvhello %s: %r\n", sc->dir);
+		goto out;
+	}
+
+	if(0) fprint(2, "new proc %s\n", sc->dir);
+	proccreate(vtsendproc, c, STACK);
+	qlock(&c->lk);
+	while(!c->writeq)
+		rsleep(&c->rpcfork);
+	qunlock(&c->lk);
+
+	while((p = vtrecv(c)) != nil){
+		r = vtmallocz(sizeof(VtReq));
+		if(vtfcallunpack(&r->tx, p) < 0){
+			vtlog(VtServerLog, "<font size=-1>%T %s:</font> recv bad packet %p: %r<br>\n", c->addr, p);
+			fprint(2, "bad packet on %s: %r\n", sc->dir);
+			packetfree(p);
+			continue;
+		}
+		vtlog(VtServerLog, "<font size=-1>%T %s:</font> recv packet %p (%F)<br>\n", c->addr, p, &r->tx);
+		if(chattyventi)
+			fprint(2, "%s <- %F\n", argv0, &r->tx);
+		packetfree(p);
+		if(r->tx.msgtype == VtTgoodbye)
+			break;
+		r->rx.tag = r->tx.tag;
+		r->sc = sc;
+		scincref(sc);
+		if(_vtqsend(sc->srv->q, r) < 0){
+			scdecref(sc);
+			fprint(2, "hungup queue\n");
+			break;
+		}
+		r = nil;
+	}
+
+	if(0) fprint(2, "eof on %s\n", sc->dir);
+
+out:
+	if(r){
+		vtfcallclear(&r->tx);
+		vtfree(r);
+	}
+	if(0) fprint(2, "freed %s\n", sc->dir);
+	scdecref(sc);
+	return;
 }
 
-static int
-dispatchRead(VtSession *z, Packet **pkt)
+VtReq*
+vtgetreq(VtSrv *srv)
 {
-	Packet *p;
-	int type, n;
-	uchar score[VtScoreSize], buf[4];
-
-	p = *pkt;
-	if(!packetConsume(p, score, VtScoreSize))
-		return 0;
-	if(!packetConsume(p, buf, 4))
-		return 0;
-	type = buf[0];
-	n = (buf[2]<<8) | buf[3];
-	if(packetSize(p) != 0) {
-		vtSetError(EProtocolBotch);
-		return 0;
-	}
-	packetFree(p);
-	*pkt = (*z->vtbl->read)(z, score, type, n);
-	return 1;
-}
-
-static int
-dispatchWrite(VtSession *z, Packet **pkt)
-{
-	Packet *p;
-	int type;
-	uchar score[VtScoreSize], buf[4];
-
-	p = *pkt;
-	if(!packetConsume(p, buf, 4))
-		return 0;
-	type = buf[0];
-	if(!(z->vtbl->write)(z, score, type, p)) {
-		*pkt = 0;
-	} else {
-		*pkt = packetAlloc();
-		packetAppend(*pkt, score, VtScoreSize);
-	}
-	return 1;
-}
-
-static int
-dispatchSync(VtSession *z, Packet **pkt)
-{
-	(z->vtbl->sync)(z);
-	if(packetSize(*pkt) != 0) {
-		vtSetError(EProtocolBotch);
-		return 0;
-	}
-	return 1;
-}
-
-int
-vtExport(VtSession *z)
-{
-	Packet *p;
-	uchar buf[10], *hdr;
-	int op, tid, clean;
-
-	if(z->vtbl == nil) {
-		vtSetError(ENotServer);
-		return 0;
-	}
-
-	/* fork off slave */
-	switch(rfork(RFNOWAIT|RFMEM|RFPROC)){
-	case -1:
-		vtOSError();
-		return 0;
-	case 0:
-		break;
-	default:
-		return 1;
-	}
-
+	VtReq *r;
 	
-	p = nil;
-	clean = 0;
-	vtAttach();
-	if(!vtConnect(z, nil))
-		goto Exit;
+	r = _vtqrecv(srv->q);
+	vtlog(VtServerLog, "<font size=-1>%T %s:</font> vtgetreq %F<br>\n", ((VtSconn*)r->sc)->c->addr, &r->tx);
+	return r;
+}
 
-	vtDebug(z, "server connected!\n");
-if(0)	vtSetDebug(z, 1);
+void
+vtrespond(VtReq *r)
+{
+	Packet *p;
+	VtSconn *sc;
 
-	for(;;) {
-		p = vtRecvPacket(z);
-		if(p == nil) {
-			break;
-		}
-		vtDebug(z, "server recv: ");
-		vtDebugMesg(z, p, "\n");
-
-		if(!packetConsume(p, buf, 2)) {
-			vtSetError(EProtocolBotch);
-			break;
-		}
-		op = buf[0];
-		tid = buf[1];
-		switch(op) {
-		default:
-			vtSetError(EProtocolBotch);
-			goto Exit;
-		case VtQPing:
-			break;
-		case VtQGoodbye:
-			clean = 1;
-			goto Exit;
-		case VtQHello:
-			if(!dispatchHello(z, &p))
-				goto Exit;
-			break;
-		case VtQRead:
-			if(!dispatchRead(z, &p))
-				goto Exit;
-			break;
-		case VtQWrite:
-			if(!dispatchWrite(z, &p))
-				goto Exit;
-			break;
-		case VtQSync:
-			if(!dispatchSync(z, &p))
-				goto Exit;
-			break;
-		}
-		if(p != nil) {
-			hdr = packetHeader(p, 2);
-			hdr[0] = op+1;
-			hdr[1] = tid;
-		} else {
-			p = packetAlloc();
-			hdr = packetHeader(p, 2);
-			hdr[0] = VtRError;
-			hdr[1] = tid;
-			if(!vtAddString(p, vtGetError()))
-				goto Exit;
-		}
-
-		vtDebug(z, "server send: ");
-		vtDebugMesg(z, p, "\n");
-
-		if(!vtSendPacket(z, p)) {
-			p = nil;
-			goto Exit;
-		}
+	sc = r->sc;
+	if(r->rx.tag != r->tx.tag)
+		abort();
+	if(r->rx.msgtype != r->tx.msgtype+1 && r->rx.msgtype != VtRerror)
+		abort();
+	if(chattyventi)
+		fprint(2, "%s -> %F\n", argv0, &r->rx);
+	if((p = vtfcallpack(&r->rx)) == nil){
+		vtlog(VtServerLog, "%s: vtfcallpack %F: %r<br>\n", sc->c->addr, &r->rx);
+		fprint(2, "fcallpack on %s: %r\n", sc->dir);
+		packetfree(p);
+		vtfcallclear(&r->rx);
+		return;
 	}
-Exit:
-	if(p != nil)
-		packetFree(p);
-	if(z->vtbl->closing)
-		z->vtbl->closing(z, clean);
-	vtClose(z);
-	vtFree(z);
-	vtDetach();
-
-	exits(0);
-	return 0;	/* never gets here */
+	vtlog(VtServerLog, "<font size=-1>%T %s:</font> send packet %p (%F)<br>\n", sc->c->addr, p, &r->rx);
+	if(vtsend(sc->c, p) < 0)
+		fprint(2, "vtsend %F: %r\n", &r->rx);
+	scdecref(sc);
+	vtfcallclear(&r->tx);
+	vtfcallclear(&r->rx);
+	vtfree(r);
 }
 

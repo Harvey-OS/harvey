@@ -1,102 +1,74 @@
-#include "stdinc.h"
-#include "dat.h"
-#include "fns.h"
-
-char *host;
+#include <u.h>
+#include <libc.h>
+#include <venti.h>
+#include <libsec.h>
+#include <thread.h>
 
 void
 usage(void)
 {
-	fprint(2, "usage: read [-h host] score [type]\n");
-	exits("usage");
+	fprint(2, "usage: read [-h host] [-t type] score\n");
+	threadexitsall("usage");
 }
 
-int
-parseScore(uchar *score, char *buf, int n)
-{
-	int i, c;
-
-	memset(score, 0, VtScoreSize);
-
-	if(n < VtScoreSize*2)
-		return 0;
-	for(i=0; i<VtScoreSize*2; i++) {
-		if(buf[i] >= '0' && buf[i] <= '9')
-			c = buf[i] - '0';
-		else if(buf[i] >= 'a' && buf[i] <= 'f')
-			c = buf[i] - 'a' + 10;
-		else if(buf[i] >= 'A' && buf[i] <= 'F')
-			c = buf[i] - 'A' + 10;
-		else {
-			return 0;
-		}
-
-		if((i & 1) == 0)
-			c <<= 4;
-
-		score[i>>1] |= c;
-	}
-	return 1;
-}
-
-int
-main(int argc, char *argv[])
+void
+threadmain(int argc, char *argv[])
 {
 	int type, n;
 	uchar score[VtScoreSize];
 	uchar *buf;
-	VtSession *z;
+	VtConn *z;
+	char *host;
 
+	fmtinstall('F', vtfcallfmt);
+	fmtinstall('V', vtscorefmt);
+
+	host = nil;
+	type = -1;
 	ARGBEGIN{
 	case 'h':
 		host = EARGF(usage());
+		break;
+	case 't':
+		type = atoi(EARGF(usage()));
 		break;
 	default:
 		usage();
 		break;
 	}ARGEND
 
-	if(argc != 1 && argc != 2)
+	if(argc != 1)
 		usage();
 
-	vtAttach();
+	if(vtparsescore(argv[0], nil, score) < 0)
+		sysfatal("could not parse score '%s': %r", argv[0]);
 
-	fmtinstall('V', vtScoreFmt);
-	fmtinstall('R', vtErrFmt);
+	buf = vtmallocz(VtMaxLumpSize);
 
-	if(!parseScore(score, argv[0], strlen(argv[0])))
-		vtFatal("could not parse score: %s", vtGetError());
-
-	buf = vtMemAllocZ(VtMaxLumpSize);
-
-	z = vtDial(host, 0);
+	z = vtdial(host);
 	if(z == nil)
-		vtFatal("could not connect to server: %R");
+		sysfatal("could not connect to server: %r");
 
-	if(!vtConnect(z, 0))
-		sysfatal("vtConnect: %r");
+	if(vtconnect(z) < 0)
+		sysfatal("vtconnect: %r");
 
-	if(argc == 1){
+	if(type == -1){
 		n = -1;
 		for(type=0; type<VtMaxType; type++){
-			n = vtRead(z, score, type, buf, VtMaxLumpSize);
+			n = vtread(z, score, type, buf, VtMaxLumpSize);
 			if(n >= 0){
 				fprint(2, "venti/read%s%s %V %d\n", host ? " -h" : "", host ? host : "",
 					score, type);
 				break;
 			}
 		}
-	}else{
-		type = atoi(argv[1]);
-		n = vtRead(z, score, type, buf, VtMaxLumpSize);
-	}
-	vtClose(z);
-	if(n < 0)
-		vtFatal("could not read block: %s", vtGetError());
-	if(write(1, buf, n) != n)
-		vtFatal("write: %r");
+	}else
+		n = vtread(z, score, type, buf, VtMaxLumpSize);
 
-	vtDetach();
-	exits(0);
-	return 0;	/* shut up compiler */
+	vthangup(z);
+	if(n < 0)
+		sysfatal("could not read block: %r");
+	if(write(1, buf, n) != n)
+		sysfatal("write: %r");
+	threadexitsall(0);
 }

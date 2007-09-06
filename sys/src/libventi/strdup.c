@@ -3,7 +3,7 @@
 #include <venti.h>
 
 char*
-vtStrDup(char *s)
+vtstrdup(char *s)
 {
 	int n;
 	char *ss;
@@ -11,7 +11,7 @@ vtStrDup(char *s)
 	if(s == nil)
 		return nil;
 	n = strlen(s) + 1;
-	ss = vtMemAlloc(n);
+	ss = vtmalloc(n);
 	memmove(ss, s, n);
 	return ss;
 }
