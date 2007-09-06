@@ -37,7 +37,7 @@ LIBOFILES=${LIBFILES:%=%.$O}
 LIB=libfs.a.$O
 
 HFILES=\
-	/sys/include/venti.h\
+	/sys/include/oventi.h\
 	stdinc.h\
 	vac.h\
 	dat.h\

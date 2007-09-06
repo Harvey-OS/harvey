@@ -24,6 +24,7 @@ LIBS=\
 	libmemlayer\
 	libmp\
 	libndb\
+	liboventi\
 	libplumb\
 	libregexp\
 	libscribble\

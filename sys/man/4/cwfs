@@ -74,6 +74,9 @@ The device name is in the usual
 notation of
 .IR fsconfig (8).
 The replacement can be the name of an existing file
+(which
+.I cwfs
+will not grow)
 or another such device name.
 For example, the file
 .RS

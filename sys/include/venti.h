@@ -1,260 +1,192 @@
-#pragma	lib	"libventi.a"
-#pragma	src	"/sys/src/libventi"
+#pragma lib "libventi.a"
+#pragma src "/sys/src/libventi"
 
-typedef struct VtSession	VtSession;
-typedef struct VtSha1		VtSha1;
-typedef struct Packet		Packet;
-typedef struct VtLock 		VtLock;
-typedef struct VtRendez		VtRendez;
-typedef struct VtRoot		VtRoot;
-typedef struct VtEntry		VtEntry;
-typedef struct VtServerVtbl	VtServerVtbl;
 
-#pragma incomplete VtSession
-#pragma incomplete VtSha1
+/* XXX should be own library? */
+/*
+ * Packets
+ */
+enum
+{
+	MaxFragSize = 9*1024
+};
+
+typedef struct Packet Packet;
 #pragma incomplete Packet
-#pragma incomplete VtLock
-#pragma incomplete VtRendez
 
-enum {
-	VtScoreSize	= 20, /* Venti */
+Packet*	packetalloc(void);
+void	packetappend(Packet*, uchar *buf, int n);
+uint	packetasize(Packet*);
+int	packetcmp(Packet*, Packet*);
+int	packetcompact(Packet*);
+void	packetconcat(Packet*, Packet*);
+int	packetconsume(Packet*, uchar *buf, int n);
+int	packetcopy(Packet*, uchar *buf, int offset, int n);
+Packet*	packetdup(Packet*, int offset, int n);
+Packet*	packetforeign(uchar *buf, int n, void (*free)(void *a), void *a);
+int	packetfragments(Packet*, IOchunk*, int nio, int offset);
+void	packetfree(Packet*);
+uchar*	packetheader(Packet*, int n);
+uchar*	packetpeek(Packet*, uchar *buf, int offset, int n);
+void	packetprefix(Packet*, uchar *buf, int n);
+void	packetsha1(Packet*, uchar sha1[20]);
+uint	packetsize(Packet*);
+Packet*	packetsplit(Packet*, int n);
+void	packetstats(void);
+uchar*	packettrailer(Packet*, int n);
+int	packettrim(Packet*, int offset, int n);
+
+/* XXX should be own library? */
+/*
+ * Logging
+ */
+typedef struct VtLog VtLog;
+typedef struct VtLogChunk VtLogChunk;
+
+struct VtLog
+{
+	VtLog	*next;		/* in hash table */
+	char	*name;
+	VtLogChunk *chunk;
+	uint	nchunk;
+	VtLogChunk *w;
+	QLock	lk;
+	int	ref;
+};
+
+struct VtLogChunk
+{
+	char	*p;
+	char	*ep;
+	char	*wp;
+};
+
+VtLog*	vtlogopen(char *name, uint size);
+void	vtlogprint(VtLog *log, char *fmt, ...);
+void	vtlog(char *name, char *fmt, ...);
+void	vtlogclose(VtLog*);
+void	vtlogremove(char *name);
+char**	vtlognames(int*);
+void	vtlogdump(int fd, VtLog*);
+
+/* XXX begin actual venti.h */
+
+typedef struct VtFcall VtFcall;
+typedef struct VtConn VtConn;
+typedef struct VtEntry VtEntry;
+typedef struct VtRoot VtRoot;
+
+/*
+ * Fundamental constants.
+ */
+enum
+{
+	VtScoreSize	= 20,
+	VtMaxStringSize = 1024,
 	VtMaxLumpSize	= 56*1024,
-	VtPointerDepth	= 7,	
-	VtEntrySize	= 40,
-	VtRootSize 	= 300,
-	VtMaxStringSize	= 1000,
-	VtAuthSize 	= 1024,  /* size of auth group - in bits - must be multiple of 8 */
-	MaxFragSize 	= 9*1024,
-	VtMaxFileSize	= (1ULL<<48) - 1,
-	VtRootVersion	= 2,
+	VtPointerDepth	= 7
+};
+#define VtMaxFileSize ((1ULL<<48)-1)
+
+
+/* 
+ * Strings in packets.
+ */
+int vtputstring(Packet*, char*);
+int vtgetstring(Packet*, char**);
+
+/*
+ * Block types.
+ * 
+ * The initial Venti protocol had a much
+ * less regular list of block types.
+ * VtToDiskType converts from new to old.
+ */
+enum
+{
+	VtDataType	= 0<<3,
+	/* VtDataType+1, ... */
+	VtDirType	= 1<<3,
+	/* VtDirType+1, ... */
+	VtRootType	= 2<<3,
+	VtMaxType,
+	VtCorruptType = 0xFF,
+
+	VtTypeDepthMask = 7,
+	VtTypeBaseMask = ~VtTypeDepthMask
 };
 
-/* crypto strengths */
-enum {
-	VtCryptoStrengthNone,
-	VtCryptoStrengthAuth,
-	VtCryptoStrengthWeak,
-	VtCryptoStrengthStrong,
+/* convert to/from on-disk type numbers */
+uint vttodisktype(uint);
+uint vtfromdisktype(uint);
+
+/*
+ * VtEntry describes a Venti stream
+ *
+ * The _ enums are only used on the wire.
+ * They are not present in the VtEntry structure
+ * and should not be used by client programs.
+ * (The info is in the type field.)
+ */
+enum
+{
+	VtEntryActive = 1<<0,		/* entry is in use */
+	_VtEntryDir = 1<<1,		/* a directory */
+	_VtEntryDepthShift = 2,		/* shift for pointer depth */
+	_VtEntryDepthMask = 7<<2,	/* mask for pointer depth */
+	VtEntryLocal = 1<<5		/* for local storage only */
+};
+enum
+{
+	VtEntrySize = 40
+};
+struct VtEntry
+{
+	ulong	gen;			/* generation number */
+	ushort	psize;			/* pointer block size */
+	ushort	dsize;			/* data block size */
+	uchar	type;
+	uchar	flags;
+	uvlong	size;
+	uchar	score[VtScoreSize];
 };
 
-/* crypto suites */
-enum {
-	VtCryptoNone,
-	VtCryptoSSL3,
-	VtCryptoTLS1,
+void vtentrypack(VtEntry*, uchar*, int index);
+int vtentryunpack(VtEntry*, uchar*, int index);
 
-	VtCryptoMax
+struct VtRoot
+{
+	char	name[128];
+	char	type[128];
+	uchar	score[VtScoreSize];	/* to a Dir block */
+	ushort	blocksize;		/* maximum block size */
+	uchar	prev[VtScoreSize];	/* last root block */
 };
 
-/* codecs */
-enum {
-	VtCodecNone,
-
-	VtCodecDeflate,
-	VtCodecThwack,
-
-	VtCodecMax
+enum
+{
+	VtRootSize = 300,
+	VtRootVersion = 2
 };
 
-/* Lump Types */
-enum {
-	VtErrType,		/* illegal */
+void vtrootpack(VtRoot*, uchar*);
+int vtrootunpack(VtRoot*, uchar*);
 
-	VtRootType,
-	VtDirType,
-	VtPointerType0,
-	VtPointerType1,
-	VtPointerType2,
-	VtPointerType3,
-	VtPointerType4,
-	VtPointerType5,
-	VtPointerType6,
-	VtPointerType7,		/* not used */
-	VtPointerType8,		/* not used */
-	VtPointerType9,		/* not used */
-	VtDataType,
+/*
+ * score of zero length block
+ */
+extern uchar vtzeroscore[VtScoreSize];
 
-	VtMaxType
-};
+/*
+ * zero extend and truncate blocks
+ */
+void vtzeroextend(int type, uchar *buf, uint n, uint nn);
+uint vtzerotruncate(int type, uchar *buf, uint n);
 
-/* Dir Entry flags */
-enum {
-	VtEntryActive = (1<<0),		/* entry is in use */
-	VtEntryDir = (1<<1),		/* a directory */
-	VtEntryDepthShift = 2,		/* shift for pointer depth */
-	VtEntryDepthMask = (0x7<<2),	/* mask for pointer depth */
-	VtEntryLocal = (1<<5),		/* used for local storage: should not be set for Venti blocks */
-	VtEntryNoArchive = (1<<6),	/* used for local storage: should not be set for Venti blocks */
-};
-
-struct VtRoot {
-	ushort version;
-	char name[128];
-	char type[128];
-	uchar score[VtScoreSize];	/* to a Dir block */
-	ushort blockSize;		/* maximum block size */
-	uchar prev[VtScoreSize];	/* last root block */
-};
-
-struct VtEntry {
-	ulong gen;			/* generation number */
-	ushort psize;			/* pointer block size */
-	ushort dsize;			/* data block size */
-	uchar depth;			/* unpacked from flags */
-	uchar flags;
-	uvlong size;
-	uchar score[VtScoreSize];
-};
-
-struct VtServerVtbl {
-	Packet *(*read)(VtSession*, uchar score[VtScoreSize], int type, int n);
-	int (*write)(VtSession*, uchar score[VtScoreSize], int type, Packet *p);
-	void (*closing)(VtSession*, int clean);
-	void (*sync)(VtSession*);
-};
-
-/* versions */
-enum {
-	/* experimental versions */
-	VtVersion01 = 1,
-	VtVersion02,
-};
-
-/* score of zero length block */
-extern uchar vtZeroScore[VtScoreSize];	
-
-/* both sides */
-void vtAttach(void);
-void vtDetach(void);
-void vtClose(VtSession *s);
-void vtFree(VtSession *s);
-char *vtGetUid(VtSession *s);
-char *vtGetSid(VtSession *s);
-int vtSetDebug(VtSession *s, int);
-int vtGetDebug(VtSession *s);
-int vtSetFd(VtSession *s, int fd);
-int vtGetFd(VtSession *s);
-int vtConnect(VtSession *s, char *password);
-int vtSetCryptoStrength(VtSession *s, int);
-int vtGetCryptoStrength(VtSession *s);
-int vtSetCompression(VtSession *s, int);
-int vtGetCompression(VtSession *s);
-int vtGetCrypto(VtSession *s);
-int vtGetCodec(VtSession *s);
-char *vtGetVersion(VtSession *s);
-char *vtGetError(void);
-int vtErrFmt(Fmt *fmt);
-void vtDebug(VtSession*, char *, ...);
-void vtDebugMesg(VtSession *z, Packet *p, char *s);
-
-/* internal */
-VtSession *vtAlloc(void);
-void vtReset(VtSession*);
-int vtAddString(Packet*, char*);
-int vtGetString(Packet*, char**);
-int vtSendPacket(VtSession*, Packet*);
-Packet *vtRecvPacket(VtSession*);
-void vtDisconnect(VtSession*, int);
-int vtHello(VtSession*);
-
-/* client side */
-VtSession *vtClientAlloc(void);
-VtSession *vtDial(char *server, int canfail);
-int vtRedial(VtSession*, char *server);
-VtSession *vtStdioServer(char *server);
-int vtPing(VtSession *s);
-int vtSetUid(VtSession*, char *uid);
-int vtRead(VtSession*, uchar score[VtScoreSize], int type, uchar *buf, int n);
-int vtWrite(VtSession*, uchar score[VtScoreSize], int type, uchar *buf, int n);
-Packet *vtReadPacket(VtSession*, uchar score[VtScoreSize], int type, int n);
-int vtWritePacket(VtSession*, uchar score[VtScoreSize], int type, Packet *p);
-int vtSync(VtSession *s);
-
-int vtZeroExtend(int type, uchar *buf, int n, int nn);
-int vtZeroTruncate(int type, uchar *buf, int n);
-int vtParseScore(char*, uint, uchar[VtScoreSize]);
-
-void vtRootPack(VtRoot*, uchar*);
-int vtRootUnpack(VtRoot*, uchar*);
-void vtEntryPack(VtEntry*, uchar*, int index);
-int vtEntryUnpack(VtEntry*, uchar*, int index);
-
-/* server side */
-VtSession *vtServerAlloc(VtServerVtbl*);
-int vtSetSid(VtSession *s, char *sid);
-int vtExport(VtSession *s);
-
-/* sha1 */
-VtSha1* vtSha1Alloc(void);
-void vtSha1Free(VtSha1*);
-void vtSha1Init(VtSha1*);
-void vtSha1Update(VtSha1*, uchar *, int n);
-void vtSha1Final(VtSha1*, uchar sha1[VtScoreSize]);
-void vtSha1(uchar score[VtScoreSize], uchar *, int);
-int vtSha1Check(uchar score[VtScoreSize], uchar *, int);
-int vtScoreFmt(Fmt *fmt);
-
-/* Packet */
-Packet *packetAlloc(void);
-void packetFree(Packet*);
-Packet *packetForeign(uchar *buf, int n, void (*free)(void *a), void *a);
-Packet *packetDup(Packet*, int offset, int n);
-Packet *packetSplit(Packet*, int n);
-int packetConsume(Packet*, uchar *buf, int n);
-int packetTrim(Packet*, int offset, int n);
-uchar *packetHeader(Packet*, int n);
-uchar *packetTrailer(Packet*, int n);
-int packetPrefix(Packet*, uchar *buf, int n);
-int packetAppend(Packet*, uchar *buf, int n);
-int packetConcat(Packet*, Packet*);
-uchar *packetPeek(Packet*, uchar *buf, int offset, int n);
-int packetCopy(Packet*, uchar *buf, int offset, int n);
-int packetFragments(Packet*, IOchunk*, int nio, int offset);
-int packetSize(Packet*);
-int packetAllocatedSize(Packet*);
-void packetSha1(Packet*, uchar sha1[VtScoreSize]);
-int packetCompact(Packet*);
-int packetCmp(Packet*, Packet*);
-void packetStats(void);
-
-/* portability stuff - should be a seperate library */
-
-void vtMemFree(void *);
-void *vtMemAlloc(int);
-void *vtMemAllocZ(int);
-void *vtMemRealloc(void *p, int);
-void *vtMemBrk(int n);
-char *vtStrDup(char *);
-void vtFatal(char *, ...);
-char *vtGetError(void);
-char *vtSetError(char *, ...);
-char *vtOSError(void);
-
-/* locking/threads */
-int vtThread(void (*f)(void*), void *rock);
-void vtThreadSetName(char*);
-
-VtLock *vtLockAlloc(void);
-/* void vtLockInit(VtLock**); */
-void vtLock(VtLock*);
-int vtCanLock(VtLock*);
-void vtRLock(VtLock*);
-int vtCanRLock(VtLock*);
-void vtUnlock(VtLock*);
-void vtRUnlock(VtLock*);
-void vtLockFree(VtLock*);
-
-VtRendez *vtRendezAlloc(VtLock*);
-void vtRendezFree(VtRendez*);
-int vtSleep(VtRendez*);
-int vtWakeup(VtRendez*);
-int vtWakeupAll(VtRendez*);
-
-/* fd functions - really network (socket) functions */
-void vtFdClose(int);
-int vtFdRead(int, uchar*, int);
-int vtFdReadFully(int, uchar*, int);
-int vtFdWrite(int, uchar*, int);
+/*
+ * parse score: mungs s
+ */
+int vtparsescore(char *s, char **prefix, uchar[VtScoreSize]);
 
 /*
  * formatting
@@ -262,10 +194,303 @@ int vtFdWrite(int, uchar*, int);
  * the width and precision arguments, and all flags
  *
  * V	a venti score
- * R	venti error
  */
-#pragma	varargck	type	"V"		uchar*
-#pragma	varargck	type	"R"		void
+#pragma	varargck	type	"V"	uchar*
+#pragma	varargck	type	"F"	VtFcall*
+#pragma	varargck	type	"T"	void
+#pragma	varargck	type	"lT"	void
 
-#pragma	varargck	argpos	vtSetError	1
+int vtscorefmt(Fmt*);
 
+/*
+ * error-checking malloc et al.
+ */
+void	vtfree(void *);
+void*	vtmalloc(int);
+void*	vtmallocz(int);
+void*	vtrealloc(void *p, int);
+void*	vtbrk(int n);
+char*	vtstrdup(char *);
+
+/*
+ * Venti protocol
+ */
+
+/*
+ * Crypto strengths
+ */
+enum
+{
+	VtCryptoStrengthNone,
+	VtCryptoStrengthAuth,
+	VtCryptoStrengthWeak,
+	VtCryptoStrengthStrong
+};
+
+/*
+ * Crypto suites
+ */
+enum
+{
+	VtCryptoNone,
+	VtCryptoSSL3,
+	VtCryptoTLS1,
+	VtCryptoMax
+};
+
+/* 
+ * Codecs
+ */
+enum
+{
+	VtCodecNone,
+	VtCodecDeflate,
+	VtCodecThwack,
+	VtCodecMax
+};
+
+enum
+{
+	VtRerror	= 1,
+	VtTping		= 2,
+	VtRping,
+	VtThello	= 4,
+	VtRhello,
+	VtTgoodbye	= 6,
+	VtRgoodbye,	/* not used */
+	VtTauth0	= 8,
+	VtRauth0,
+	VtTauth1	= 10,
+	VtRauth1,
+	VtTread		= 12,
+	VtRread,
+	VtTwrite	= 14,
+	VtRwrite,
+	VtTsync		= 16,
+	VtRsync,
+
+	VtTmax
+};
+
+struct VtFcall
+{
+	uchar	msgtype;
+	uchar	tag;
+
+	char	*error;		/* Rerror */
+
+	char	*version;	/* Thello */
+	char	*uid;		/* Thello */
+	uchar	strength;	/* Thello */
+	uchar	*crypto;	/* Thello */
+	uint	ncrypto;	/* Thello */
+	uchar	*codec;		/* Thello */
+	uint	ncodec;		/* Thello */
+	char	*sid;		/* Rhello */
+	uchar	rcrypto;	/* Rhello */
+	uchar	rcodec;		/* Rhello */
+	uchar	*auth;		/* TauthX, RauthX */
+	uint	nauth;		/* TauthX, RauthX */
+	uchar	score[VtScoreSize];	/* Tread, Rwrite */
+	uchar	blocktype;	/* Tread, Twrite */
+	ushort	count;		/* Tread */
+	Packet	*data;		/* Rread, Twrite */
+};
+
+Packet*	vtfcallpack(VtFcall*);
+int	vtfcallunpack(VtFcall*, Packet*);
+void	vtfcallclear(VtFcall*);
+int	vtfcallfmt(Fmt*);
+
+enum
+{
+	VtStateAlloc,
+	VtStateConnected,
+	VtStateClosed
+};
+
+struct VtConn
+{
+	QLock	lk;
+	QLock	inlk;
+	QLock	outlk;
+	int	debug;
+	int	infd;
+	int	outfd;
+	int	muxer;
+	void	*writeq;
+	void	*readq;
+	int	state;
+	void	*wait[256];
+	uint	ntag;
+	uint	nsleep;
+	Packet	*part;
+	Rendez	tagrend;
+	Rendez	rpcfork;
+	char	*version;
+	char	*uid;
+	char	*sid;
+	char	addr[256];	/* address of other side */
+};
+
+VtConn*	vtconn(int infd, int outfd);
+VtConn*	vtdial(char*);
+void	vtfreeconn(VtConn*);
+int	vtsend(VtConn*, Packet*);
+Packet*	vtrecv(VtConn*);
+int	vtversion(VtConn* z);
+void	vtdebug(VtConn* z, char*, ...);
+void	vthangup(VtConn* z);
+int	vtgoodbye(VtConn* z);
+
+/* #pragma varargck argpos vtdebug 2 */
+
+/* server */
+typedef struct VtSrv VtSrv;
+#pragma incomplete VtSrv
+typedef struct VtReq VtReq;
+struct VtReq
+{
+	VtFcall	tx;
+	VtFcall	rx;
+/* private */
+	VtSrv	*srv;
+	void	*sc;
+};
+
+int	vtsrvhello(VtConn*);
+VtSrv*	vtlisten(char *addr);
+VtReq*	vtgetreq(VtSrv*);
+void	vtrespond(VtReq*);
+
+/* client */
+Packet*	vtrpc(VtConn*, Packet*);
+Packet*	_vtrpc(VtConn*, Packet*, VtFcall*);
+void	vtrecvproc(void*);	/* VtConn */
+void	vtsendproc(void*);	/* VtConn */
+
+int	vtconnect(VtConn*);
+int	vthello(VtConn*);
+int	vtread(VtConn*, uchar score[VtScoreSize], uint type, uchar *buf, int n);
+int	vtwrite(VtConn*, uchar score[VtScoreSize], uint type, uchar *buf, int n);
+Packet*	vtreadpacket(VtConn*, uchar score[VtScoreSize], uint type, int n);
+int	vtwritepacket(VtConn*, uchar score[VtScoreSize], uint type, Packet *p);
+int	vtsync(VtConn*);
+int	vtping(VtConn*);
+
+/*
+ * Data blocks and block cache.
+ */
+enum
+{
+	NilBlock = ~0
+};
+
+typedef struct VtBlock VtBlock;
+typedef struct VtCache VtCache;
+#pragma incomplete VtCache
+
+struct VtBlock
+{
+	VtCache	*c;
+	QLock	lk;
+
+	uchar	*data;
+	uchar	score[VtScoreSize];
+	uchar	type;			/* BtXXX */
+
+	/* internal to cache */
+	int	nlock;
+	int	iostate;
+	int	ref;
+	u32int	heap;
+	VtBlock	*next;
+	VtBlock	**prev;
+	u32int	used;
+	u32int	used2;
+	u32int	addr;
+	uintptr	pc;
+};
+
+u32int	vtglobaltolocal(uchar[VtScoreSize]);
+void	vtlocaltoglobal(u32int, uchar[VtScoreSize]);
+
+VtCache*vtcachealloc(VtConn*, int blocksize, ulong nblocks);
+void	vtcachefree(VtCache*);
+VtBlock*vtcachelocal(VtCache*, u32int addr, int type);
+VtBlock*vtcacheglobal(VtCache*, uchar[VtScoreSize], int type);
+VtBlock*vtcacheallocblock(VtCache*, int type);
+void	vtcachesetwrite(VtCache*,
+	int(*)(VtConn*, uchar[VtScoreSize], uint, uchar*, int));
+void	vtblockput(VtBlock*);
+u32int	vtcacheblocksize(VtCache*);
+int	vtblockwrite(VtBlock*);
+VtBlock*vtblockcopy(VtBlock*);
+void	vtblockduplock(VtBlock*);
+
+extern int vtcachencopy, vtcachenread, vtcachenwrite;
+extern int vttracelevel;
+
+/*
+ * Hash tree file tree.
+ */
+typedef struct VtFile VtFile;
+struct VtFile
+{
+	QLock	lk;
+	int	ref;
+	int	local;
+	VtBlock	*b;			/* block containing this file */
+	uchar	score[VtScoreSize];	/* score of block containing this file */
+
+/* immutable */
+	VtCache	*c;
+	int	mode;
+	u32int	gen;
+	int	dsize;
+	int	psize;
+	int	dir;
+	VtFile	*parent;
+	int	epb;			/* entries per block in parent */
+	u32int	offset; 		/* entry offset in parent */
+};
+
+enum
+{
+	VtOREAD,
+	VtOWRITE,
+	VtORDWR
+};
+
+VtBlock*vtfileblock(VtFile*, u32int, int mode);
+int	vtfileblockscore(VtFile*, u32int, uchar[VtScoreSize]);
+void	vtfileclose(VtFile*);
+VtFile*	_vtfilecreate(VtFile*, int offset, int psize, int dsize, int dir);
+VtFile*	vtfilecreate(VtFile*, int psize, int dsize, int dir);
+VtFile*	vtfilecreateroot(VtCache*, int psize, int dsize, int type);
+int	vtfileflush(VtFile*);
+int	vtfileflushbefore(VtFile*, u64int);
+u32int	vtfilegetdirsize(VtFile*);
+int	vtfilegetentry(VtFile*, VtEntry*);
+uvlong	vtfilegetsize(VtFile*);
+void	vtfileincref(VtFile*);
+int	vtfilelock2(VtFile*, VtFile*, int);
+int	vtfilelock(VtFile*, int);
+VtFile*	vtfileopen(VtFile*, u32int, int);
+VtFile*	vtfileopenroot(VtCache*, VtEntry*);
+long	vtfileread(VtFile*, void*, long, vlong);
+int	vtfileremove(VtFile*);
+int	vtfilesetdirsize(VtFile*, u32int);
+int	vtfilesetentry(VtFile*, VtEntry*);
+int	vtfilesetsize(VtFile*, u64int);
+int	vtfiletruncate(VtFile*);
+void	vtfileunlock(VtFile*);
+long	vtfilewrite(VtFile*, void*, long, vlong);
+
+int	vttimefmt(Fmt*);
+
+extern int chattyventi;
+extern int ventidoublechecksha1;
+extern int ventilogging;
+
+extern char *VtServerLog;

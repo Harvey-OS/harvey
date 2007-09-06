@@ -73,8 +73,10 @@ vfsOpen(VtSession *z, char *file, int readOnly, long ncache)
 		return nil;
 
 	n = vtRead(z, score, VtRootType, buf, VtRootSize);
-	if(n < 0)
+	if(n < 0){
+		fprint(2, "cannot read %V: %r\n", score);
 		return nil;
+	}
 	if(n != VtRootSize) {
 		vtSetError("vtRead on root too short");
 		return nil;

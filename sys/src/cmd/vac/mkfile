@@ -11,7 +11,7 @@ LIBFILES=\
 LIB=${LIBFILES:%=%.$O}
 
 HFILES=\
-	/sys/include/venti.h\
+	/sys/include/oventi.h\
 	stdinc.h\
 	error.h\
 	vac.h\
