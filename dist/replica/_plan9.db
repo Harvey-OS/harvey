@@ -191,7 +191,7 @@
 386/bin/cpp - 775 sys sys 1188446882 149057
 386/bin/cpu - 775 sys sys 1188446885 139216
 386/bin/crop - 775 sys sys 1168402298 116374
-386/bin/cwfs - 775 sys sys 1189033352 365605
+386/bin/cwfs - 775 sys sys 1189048120 365605
 386/bin/date - 775 sys sys 1178568265 41845
 386/bin/db - 775 sys sys 1188499570 349188
 386/bin/dc - 775 sys sys 1168402299 99260
@@ -569,7 +569,7 @@
 386/lib/libmemlayer.a - 664 sys sys 1168402369 47360
 386/lib/libmp.a - 664 sys sys 1188447454 79978
 386/lib/libndb.a - 664 sys sys 1187061208 64470
-386/lib/liboventi.a - 664 sys sys 1188621781 99062
+386/lib/liboventi.a - 664 sys sys 1189108544 97910
 386/lib/libplumb.a - 664 sys sys 1168402370 19408
 386/lib/libregexp.a - 664 sys sys 1181507273 37290
 386/lib/libscribble.a - 664 sys sys 1175972562 107238
@@ -577,7 +577,7 @@
 386/lib/libstdio.a - 664 sys sys 1176432133 126062
 386/lib/libsunrpc.a - 664 sys sys 1187061209 353148
 386/lib/libthread.a - 664 sys sys 1184731247 71918
-386/lib/libventi.a - 664 sys sys 1188621843 191156
+386/lib/libventi.a - 664 sys sys 1189048123 189448
 386/mbr - 775 sys sys 1131317338 407
 386/mkfile - 664 sys sys 948141303 46
 386/pbs - 775 sys sys 1143465402 495
@@ -9468,7 +9468,7 @@ sys/src/cmd/aquarela/nb.c - 664 sys sys 1135892109 538
 sys/src/cmd/aquarela/nbdgram.c - 664 sys sys 1135892109 4364
 sys/src/cmd/aquarela/nbdgramconv.c - 664 sys sys 1135892109 2339
 sys/src/cmd/aquarela/nbdgramdump.c - 664 sys sys 1135892109 506
-sys/src/cmd/aquarela/nblistener.c - 664 sys sys 1135892109 738
+sys/src/cmd/aquarela/nblistener.c - 664 sys sys 1189049390 687
 sys/src/cmd/aquarela/nbname.c - 664 sys sys 1135892109 5457
 sys/src/cmd/aquarela/nbns.c - 664 sys sys 1135892109 2747
 sys/src/cmd/aquarela/nbnsconv.c - 664 sys sys 1135892109 6257
@@ -10344,10 +10344,10 @@ sys/src/cmd/fossil/9.h - 664 sys sys 1138465941 4438
 sys/src/cmd/fossil/9auth.c - 664 sys sys 1168308062 3960
 sys/src/cmd/fossil/9dir.c - 664 sys sys 1085333382 2219
 sys/src/cmd/fossil/9excl.c - 664 sys sys 1042005502 1887
-sys/src/cmd/fossil/9fid.c - 664 sys sys 1179405289 5571
+sys/src/cmd/fossil/9fid.c - 664 sys sys 1189110070 5584
 sys/src/cmd/fossil/9fsys.c - 664 sys sys 1177432002 33485
 sys/src/cmd/fossil/9lstn.c - 664 sys sys 1147355153 3038
-sys/src/cmd/fossil/9p.c - 664 sys sys 1140010159 22931
+sys/src/cmd/fossil/9p.c - 664 sys sys 1189110070 22957
 sys/src/cmd/fossil/9ping.c - 664 sys sys 1042005503 1563
 sys/src/cmd/fossil/9proc.c - 664 sys sys 1138469518 15148
 sys/src/cmd/fossil/9srv.c - 664 sys sys 1138465941 3956
@@ -15714,7 +15714,7 @@ sys/src/libventi/time.c - 664 sys sys 1177189442 497
 sys/src/libventi/version.c - 664 sys sys 1177189442 2174
 sys/src/libventi/zero.c - 664 sys sys 1177189442 899
 sys/src/libventi/zeroscore.c - 664 sys sys 1177189442 248
-sys/src/mkfile - 664 sys sys 1110437421 1005
+sys/src/mkfile - 664 sys sys 1189049203 1017
 sys/src/mkfile.proto - 664 sys sys 1105121349 265
 tmp - 20000000555 sys sys 1020896384 0
 usr - 20000000775 sys sys 953406542 0
@@ -15736,7 +15736,6 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/cwfs - 775 sys sys 1189048120 365605
-386/lib/libventi.a - 664 sys sys 1189048123 189448
-sys/src/cmd/aquarela/nblistener.c - 664 sys sys 1189049390 687
-sys/src/mkfile - 664 sys sys 1189049203 1017
+386/bin/fossil/flchk - 775 sys sys 1189134784 238377
+386/bin/fossil/flfmt - 775 sys sys 1189134789 246382
+386/bin/fossil/fossil - 775 sys sys 1189134796 365084
