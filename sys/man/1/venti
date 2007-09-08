@@ -28,15 +28,19 @@ read, write, copy \- simple Venti clients
 .br
 .B venti/copy
 [
-.B -fir
+.\" .B -fir
+.B -fq
 ]
-[
-.B -t
-.I type
-]
+.\" [
+.\" .B -t
+.\" .I type
+.\" ]
 .I srchost
 .I dsthost
 .I score
+[
+.I type
+]
 .SH DESCRIPTION
 Venti is a SHA1-addressed block storage server.
 See 
@@ -107,6 +111,11 @@ to run in `fast' mode,
 assuming that if a block already exists on the
 destination Venti server, all its children also
 exist and need not be checked.
+The
+.B -q
+option suppresses complaints about blocks already on the destination server.
+.
+.ig
 .PP
 The
 .B -i
@@ -135,8 +144,11 @@ option is given,
 replaces pointers to unreadable blocks with
 pointers to the zero block.
 It writes the new root score to standard output.
+..
 .SH SOURCE
 .B /sys/src/cmd/venti
+.br
+.B /sys/src/cmd/oventi
 .SH SEE ALSO
 .IR vac (1),
 .IR venti (2),
@@ -147,12 +159,14 @@ It writes the new root score to standard output.
 .IR venti-fmt (8)
 .SH BUGS
 Currently
-.I venti/copy
+.I nventi 's
+.I copy
 doesn't seem to copy the block corresponding to
 .IR score
-and possibly others, so use
-.I venti/copy
-for now.
+and possibly others, so the
+.I copy
+described here is from the original
+.IR venti .
 .PP
 There should be programs to read and write
 venti files and directories.

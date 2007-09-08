@@ -497,7 +497,7 @@ hset(Aoedev *d, Frame *f, Aoehdr *h, int cmd)
 		frameerror(d, f, Etimedout);
 		return -1;
 	}
-	memmove(h->dst, l->eatab + Eaddrlen*i, Eaddrlen);
+	memmove(h->dst, l->eatab[i], Eaddrlen);
 	memmove(h->src, l->nl->ea, sizeof h->src);
 	hnputs(h->type, Aoetype);
 	h->verflag = Aoever << 4;
