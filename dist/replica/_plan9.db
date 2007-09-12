@@ -10346,7 +10346,7 @@ sys/src/cmd/fmt.c - 664 sys sys 1137603598 4078
 sys/src/cmd/fortune.c - 664 sys sys 1072729222 1779
 sys/src/cmd/fossil - 20000000775 sys sys 1087005595 0
 sys/src/cmd/fossil/9.h - 664 sys sys 1138465941 4438
-sys/src/cmd/fossil/9auth.c - 664 sys sys 1168308062 3960
+sys/src/cmd/fossil/9auth.c - 664 sys sys 1189552651 3972
 sys/src/cmd/fossil/9dir.c - 664 sys sys 1085333382 2219
 sys/src/cmd/fossil/9excl.c - 664 sys sys 1042005502 1887
 sys/src/cmd/fossil/9fid.c - 664 sys sys 1189110070 5584
@@ -10368,7 +10368,7 @@ sys/src/cmd/fossil/bwatch.c - 664 sys sys 1042005505 6754
 sys/src/cmd/fossil/cache.c - 664 sys sys 1180158132 43913
 sys/src/cmd/fossil/check.c - 664 sys sys 1187136398 17470
 sys/src/cmd/fossil/conf.rc - 775 sys sys 1084333190 1416
-sys/src/cmd/fossil/dat.h - 664 sys sys 1177432005 7655
+sys/src/cmd/fossil/dat.h - 664 sys sys 1189552944 7822
 sys/src/cmd/fossil/deadlock - 775 sys sys 1042005506 413
 sys/src/cmd/fossil/disk.c - 664 sys sys 1179296683 6993
 sys/src/cmd/fossil/dump.c - 664 sys sys 1042005506 1340
@@ -10381,13 +10381,13 @@ sys/src/cmd/fossil/flfmt.c - 664 sys sys 1080586881 10753
 sys/src/cmd/fossil/flfmt9660.c - 664 sys sys 1132451844 12318
 sys/src/cmd/fossil/flfmt9660.h - 664 sys sys 1072830621 134
 sys/src/cmd/fossil/flproto - 664 sys sys 1173736837 222
-sys/src/cmd/fossil/fns.h - 664 sys sys 1177432005 3233
+sys/src/cmd/fossil/fns.h - 664 sys sys 1189552875 3262
 sys/src/cmd/fossil/fossil-acid - 664 sys sys 1139667278 4365
 sys/src/cmd/fossil/fossil.c - 664 sys sys 1077896345 2435
 sys/src/cmd/fossil/fs.c - 664 sys sys 1177432004 21598
-sys/src/cmd/fossil/fs.h - 664 sys sys 1139667269 1581
+sys/src/cmd/fossil/fs.h - 664 sys sys 1189552775 1606
 sys/src/cmd/fossil/history - 664 sys sys 1055703793 1400
-sys/src/cmd/fossil/invariants - 664 sys sys 1042005509 4073
+sys/src/cmd/fossil/invariants - 664 sys sys 1189552808 4073
 sys/src/cmd/fossil/last.c - 664 sys sys 1087005593 812
 sys/src/cmd/fossil/mkfile - 664 sys sys 1189020178 2641
 sys/src/cmd/fossil/nobwatch.c - 664 sys sys 1042005509 329

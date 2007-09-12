@@ -52735,3 +52735,8 @@
 1189366204 19 c 386/bin/venti/verifyarena - 775 sys sys 1189363307 154989
 1189366204 20 c 386/bin/venti/wrarena - 775 sys sys 1189363308 281565
 1189366204 21 c 386/bin/venti/write - 775 sys sys 1189363310 151645
+1189553403 0 c sys/src/cmd/fossil/9auth.c - 664 sys sys 1189552651 3972
+1189553403 1 c sys/src/cmd/fossil/dat.h - 664 sys sys 1189552944 7822
+1189553403 2 c sys/src/cmd/fossil/fns.h - 664 sys sys 1189552875 3262
+1189553403 3 c sys/src/cmd/fossil/fs.h - 664 sys sys 1189552775 1606
+1189553403 4 c sys/src/cmd/fossil/invariants - 664 sys sys 1189552808 4073

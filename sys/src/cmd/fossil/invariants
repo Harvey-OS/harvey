@@ -3,7 +3,7 @@ delim $#
 .EN
 .NH 3
 Invariants
-.HP
+.LP
 Reclamation is tricky enough to warrant explicit statement
 of the invariants that are needed and the reasons they are true.
 This section will use the notation
