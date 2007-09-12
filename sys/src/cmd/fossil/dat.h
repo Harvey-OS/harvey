@@ -20,10 +20,15 @@ typedef struct WalkPtr WalkPtr;
 #pragma incomplete Periodic
 #pragma incomplete Snap
 
-/* tuneable parameters - probably should not be constants */
+/* tunable parameters - probably should not be constants */
 enum {
-	BytesPerEntry = 100,	/* estimate of bytes per dir entries - determines number of index entries in the block */
-	FullPercentage = 80,	/* don't allocate in block if more than this percentage full */
+	/*
+	 * estimate of bytes per dir entries - determines number
+	 * of index entries in the block
+	 */
+	BytesPerEntry = 100,
+	/* don't allocate in block if more than this percentage full */
+	FullPercentage = 80,
 	FlushSize = 200,	/* number of blocks to flush */
 	DirtyPercentage = 50,	/* maximum percentage of dirty blocks */
 };
@@ -66,14 +71,14 @@ struct Super {
 
 
 struct Fs {
-	Arch *arch;		/* immutable */
-	Cache *cache;		/* immutable */
-	int mode;		/* immutable */
-	int blockSize;		/* immutable */
+	Arch	*arch;		/* immutable */
+	Cache	*cache;		/* immutable */
+	int	mode;		/* immutable */
+	int	blockSize;	/* immutable */
 	VtSession *z;		/* immutable */
-	Snap *snap;	/* immutable */
+	Snap	*snap;		/* immutable */
 
-	Periodic *metaFlush;	/* periodically flushes meta data cached in files */
+	Periodic *metaFlush; /* periodically flushes metadata cached in files */
 
 	/*
 	 * epoch lock.
@@ -83,14 +88,14 @@ struct Fs {
 	 * Deletion and creation of snapshots occurs under a write lock of elk,
 	 * ensuring no file operations are occurring concurrently.
 	 */
-	VtLock *elk;		/* epoch lock */
-	u32int ehi;		/* epoch high */
-	u32int elo;		/* epoch low */
+	VtLock	*elk;		/* epoch lock */
+	u32int	ehi;		/* epoch high */
+	u32int	elo;		/* epoch low */
 
-	int halted;		/* epoch lock is held to halt (console initiated) */
+	int	halted;	/* epoch lock is held to halt (console initiated) */
 
-	Source *source;		/* immutable: root of sources */
-	File *file;		/* immutable: root of files */
+	Source	*source;	/* immutable: root of sources */
+	File	*file;		/* immutable: root of files */
 };
 
 /*
@@ -98,30 +103,35 @@ struct Fs {
  * there are extra fields when stored locally
  */
 struct Entry {
-	u32int gen;			/* generation number */
-	ushort psize;			/* pointer block size */
-	ushort dsize;			/* data block size */
-	uchar depth;			/* unpacked from flags */
-	uchar flags;
-	uvlong size;
-	uchar score[VtScoreSize];
-	u32int tag;			/* tag for local blocks: zero if stored on Venti */
-	u32int snap;			/* non zero -> entering snapshot of given epoch */
-	uchar archive;			/* archive this snapshot: only valid for snap != 0 */
+	u32int	gen;			/* generation number */
+	ushort	psize;			/* pointer block size */
+	ushort	dsize;			/* data block size */
+	uchar	depth;			/* unpacked from flags */
+	uchar	flags;
+	uvlong	size;
+	uchar	score[VtScoreSize];
+	u32int	tag;	/* tag for local blocks: zero if stored on Venti */
+	u32int	snap;	/* non-zero -> entering snapshot of given epoch */
+	uchar	archive; /* archive this snapshot: only valid for snap != 0 */
 };
 
+/*
+ * This is called a `stream' in the fossil paper.  There used to be Sinks too.
+ * We believe that Sources and Files are one-to-one.
+ */
 struct Source {
-	Fs *fs;		/* immutable */
-	int mode;	/* immutable */
-	int issnapshot;	/* immutable */
-	u32int gen;	/* immutable */
-	int dsize;	/* immutable */
-	int dir;	/* immutable */
+	Fs	*fs;		/* immutable */
+	int	mode;		/* immutable */
+	int	issnapshot;	/* immutable */
+	u32int	gen;		/* immutable */
+	int	dsize;		/* immutable */
+	int	dir;		/* immutable */
 
-	Source *parent;	/* immutable */
+	Source	*parent;	/* immutable */
+	File	*file;		/* immutable */
 
-	VtLock *lk;
-	int ref;
+	VtLock	*lk;
+	int	ref;
 	/*
 	 * epoch for the source
 	 * for ReadWrite sources, epoch is used to lazily notice
@@ -131,13 +141,13 @@ struct Source {
 	 * sources that have become invalid because they belong to an old
 	 * snapshot.
 	 */
-	u32int epoch;
-	Block *b;			/* block containing this source */
-	uchar score[VtScoreSize];	/* score of block containing this source */
-	u32int scoreEpoch;	/* epoch of block containing this source */
-	int epb;			/* immutable: entries per block in parent */
-	u32int tag;			/* immutable: tag of parent */
-	u32int offset; 			/* immutable: entry offset in parent */
+	u32int	epoch;
+	Block	*b;		/* block containing this source */
+	uchar	score[VtScoreSize]; /* score of block containing this source */
+	u32int	scoreEpoch;	/* epoch of block containing this source */
+	int	epb;		/* immutable: entries per block in parent */
+	u32int	tag;		/* immutable: tag of parent */
+	u32int	offset; 	/* immutable: entry offset in parent */
 };
 
 
@@ -156,11 +166,11 @@ struct Header {
  * and to enable an interface that supports unget.
  */
 struct DirEntryEnum {
-	File *file;
+	File	*file;
 
-	u32int boff; 	/* block offset */
+	u32int	boff; 		/* block offset */
 
-	int i, n;
+	int	i, n;
 	DirEntry *buf;
 };
 
@@ -171,9 +181,9 @@ enum {
 
 	/* bit fields */
 	BsAlloc = 1<<0,	/* block is in use */
-	BsCopied = 1<<1,	/* block has been copied (usually in preparation for unlink) */
+	BsCopied = 1<<1,/* block has been copied (usually in preparation for unlink) */
 	BsVenti = 1<<2,	/* block has been stored on Venti */
-	BsClosed = 1<<3,	/* block has been unlinked on disk from active file system */
+	BsClosed = 1<<3,/* block has been unlinked on disk from active file system */
 	BsMask = BsAlloc|BsCopied|BsVenti|BsClosed,
 };
 
@@ -212,17 +222,17 @@ struct Label {
 };
 
 struct Block {
-	Cache *c;
-	int ref;
-	int nlock;
+	Cache	*c;
+	int	ref;
+	int	nlock;
 	uintptr	pc;		/* pc that fetched this block from the cache */
 
-	VtLock *lk;
+	VtLock	*lk;
 
 	int 	part;
 	u32int	addr;
 	uchar	score[VtScoreSize];	/* score */
-	Label l;
+	Label	l;
 
 	uchar	*dmap;
 
@@ -237,7 +247,7 @@ struct Block {
 
 	u32int	vers;			/* version of dirty flag */
 
-	BList	*uhead;			/* blocks to unlink when this block is written */
+	BList	*uhead;	/* blocks to unlink when this block is written */
 	BList	*utail;
 
 	/* block ordering for cache -> disk */
@@ -251,13 +261,13 @@ struct Block {
 /* tree walker, for gc and archiver */
 struct WalkPtr
 {
-	uchar *data;
-	int isEntry;
-	int n;
-	int m;
-	Entry e;
-	uchar type;
-	u32int tag;
+	uchar	*data;
+	int	isEntry;
+	int	n;
+	int	m;
+	Entry	e;
+	uchar	type;
+	u32int	tag;
 };
 
 enum

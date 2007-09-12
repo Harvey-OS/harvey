@@ -61,7 +61,7 @@ authWrite(Fid* afid, void* data, int count)
 }
 
 int
-authCheck(Fcall* t, Fid* fid, Fs* fsys)
+authCheck(Fcall* t, Fid* fid, Fsys* fsys)
 {
 	Con *con;
 	Fid *afid;
@@ -112,7 +112,8 @@ authCheck(Fcall* t, Fid* fid, Fs* fsys)
 	}
 
 	if((afid = fidGet(con, t->afid, 0)) == nil){
-		consPrint("attach %s as %s: bad afid\n", fsysGetName(fsys), fid->uname);
+		consPrint("attach %s as %s: bad afid\n",
+			fsysGetName(fsys), fid->uname);
 		vtSetError("bad authentication fid");
 		return 0;
 	}
@@ -122,15 +123,16 @@ authCheck(Fcall* t, Fid* fid, Fs* fsys)
 	 * check uname and aname match.
 	 */
 	if(!(afid->qid.type & QTAUTH)){
-		consPrint("attach %s as %s: afid not an auth file\n", fsysGetName(fsys),
-			fid->uname);
+		consPrint("attach %s as %s: afid not an auth file\n",
+			fsysGetName(fsys), fid->uname);
 		fidPut(afid);
 		vtSetError("bad authentication fid");
 		return 0;
 	}
 	if(strcmp(afid->uname, fid->uname) != 0 || afid->fsys != fsys){
-		consPrint("attach %s as %s: afid is for %s as %s\n", fsysGetName(fsys),
-			fid->uname, fsysGetName(afid->fsys), afid->uname);
+		consPrint("attach %s as %s: afid is for %s as %s\n",
+			fsysGetName(fsys), fid->uname,
+			fsysGetName(afid->fsys), afid->uname);
 		fidPut(afid);
 		vtSetError("attach/auth mismatch");
 		return 0;
@@ -140,7 +142,8 @@ authCheck(Fcall* t, Fid* fid, Fs* fsys)
 	if(afid->cuname == nil){
 		if(authRead(afid, buf, 0) != 0 || afid->cuname == nil){
 			vtUnlock(afid->alock);
-			consPrint("attach %s as %s: %R\n", fsysGetName(fsys), fid->uname);
+			consPrint("attach %s as %s: %R\n",
+				fsysGetName(fsys), fid->uname);
 			fidPut(afid);
 			vtSetError("fossil authCheck: auth protocol not finished");
 			return 0;
@@ -150,8 +153,8 @@ authCheck(Fcall* t, Fid* fid, Fs* fsys)
 
 	assert(fid->uid == nil);
 	if((fid->uid = uidByUname(afid->cuname)) == nil){
-		consPrint("attach %s as %s: unknown cuname %s\n", fsysGetName(fsys),
-			fid->uname, afid->cuname);
+		consPrint("attach %s as %s: unknown cuname %s\n",
+			fsysGetName(fsys), fid->uname, afid->cuname);
 		fidPut(afid);
 		vtSetError("unknown user");
 		return 0;
