@@ -55,8 +55,8 @@ struct Con {
 	char*	name;
 	uchar*	data;			/* max, not negotiated */
 	int	isconsole;		/* immutable */
-	int	flags;		/* immutable */
-	char		remote[128];	/* immutable */
+	int	flags;			/* immutable */
+	char	remote[128];		/* immutable */
 	VtLock*	lock;
 	int	state;
 	int	fd;
@@ -229,6 +229,7 @@ extern int cliAddCmd(char*, int (*)(int, char*[]));
 extern int cliError(char*, ...);
 extern int cliInit(void);
 extern int cliExec(char*);
+#pragma	varargck	argpos	cliError	1
 
 /*
  * Ccmd.c
@@ -249,6 +250,7 @@ extern int consWrite(char*, int);
  */
 extern int consPrint(char*, ...);
 extern int consVPrint(char*, va_list);
+#pragma	varargck	argpos	consPrint	1
 
 /*
  * fossil.c

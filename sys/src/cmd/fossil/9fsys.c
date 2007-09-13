@@ -1,7 +1,6 @@
 #include "stdinc.h"
 #include "dat.h"
 #include "fns.h"
-
 #include "9.h"
 
 typedef struct Fsys Fsys;
@@ -9,7 +8,7 @@ typedef struct Fsys Fsys;
 struct Fsys {
 	VtLock* lock;
 
-	char*	name;
+	char*	name;		/* copy here & Fs to ease error reporting */
 	char*	dev;
 	char*	venti;
 
@@ -82,7 +81,8 @@ cmdPrintConfig(int argc, char* argv[])
 	for(fsys = sbox.head; fsys != nil; fsys = fsys->next){
 		consPrint("\tfsys %s config %s\n", fsys->name, fsys->dev);
 		if(fsys->venti && fsys->venti[0])
-			consPrint("\tfsys %s venti %q\n", fsys->name, fsys->venti);
+			consPrint("\tfsys %s venti %q\n", fsys->name,
+				fsys->venti);
 	}
 	vtRUnlock(sbox.lock);
 	return 1;
@@ -754,7 +754,7 @@ fsysBfree(Fsys* fsys, int argc, char* argv[])
 	while(argc > 0){
 		addr = strtoul(argv[0], &p, 0);
 		if(*p != '\0'){
-			consPrint("bad address - '%s'\n", addr);
+			consPrint("bad address - '%ud'\n", addr);
 			/* syntax error; let's stop */
 			vtRUnlock(fs->elk);
 			return 0;
@@ -803,7 +803,7 @@ fsysDf(Fsys *fsys, int argc, char* argv[])
 
 	fs = fsys->fs;
 	cacheCountUsed(fs->cache, fs->elo, &used, &tot, &bsize);
-	consPrint("\t%s: %,llud used + %,llud free = %,llud (%ud%% used)\n",
+	consPrint("\t%s: %,llud used + %,llud free = %,llud (%llud%% used)\n",
 		fsys->name, used*(vlong)bsize, (tot-used)*(vlong)bsize,
 		tot*(vlong)bsize, used*100LL/tot);
 	return 1;
@@ -1150,11 +1150,11 @@ fsysStat(Fsys* fsys, int argc, char* argv[])
 	vtRLock(fsys->fs->elk);
 	for(i=0; i<argc; i++){
 		if((f = fileOpen(fsys->fs, argv[i])) == nil){
-			consPrint("%s: %R\n");
+			consPrint("%s: %R\n", argv[i]);
 			continue;
 		}
 		if(!fileGetDir(f, &de)){
-			consPrint("%s: %R\n");
+			consPrint("%s: %R\n", argv[i]);
 			fileDecRef(f);
 			continue;
 		}
@@ -1534,6 +1534,7 @@ fsysOpen(char* name, int argc, char* argv[])
 		fsysPut(fsys);
 		return 0;
 	}
+	fsys->fs->name = fsys->name;	/* for better error messages */
 	fsys->noauth = noauth;
 	fsys->noperm = noperm;
 	fsys->wstatallow = wstatallow;

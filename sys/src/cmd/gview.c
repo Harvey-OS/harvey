@@ -117,6 +117,7 @@ Cursor	bullseye =
 	}
 };
 
+/* Wait for a mouse click and return 0 for failue if not button but (curs can be 0) */
 int get_1click(int but, Mouse* m, Cursor* curs)
 {
 	if (curs)
@@ -126,6 +127,26 @@ int get_1click(int but, Mouse* m, Cursor* curs)
 	if (curs)
 		esetcursor(0);
 	return (m->buttons==Button_bit(but));
+}
+
+
+/* Wait for a mouse click or keyboard event from the string of expected characters.  Return
+   the character code or -1 for a button-but mouse event or 0 for wrong button.
+*/
+int get_click_or_kbd(int but, Mouse* m, const char* expected)
+{
+	Event ev;
+	ulong expbits[4], ty;
+	expbits[0] = expbits[1] = expbits[2] = expbits[3];
+	for (; *expected!=0; expected++)
+		expbits[((*expected)>>5)&3] |= 1 << (*expected&31);
+	do ty = eread(Emouse|Ekeyboard, &ev);
+	while ((ty&Emouse) ? ev.mouse.buttons==0
+		: (ev.kbdc&~127) || !(expbits[(ev.kbdc>>5)&3] & (1<<(ev.kbdc&31))) );
+	if (ty&Ekeyboard)
+		return ev.kbdc;
+	*m = ev.mouse;
+	return (ev.mouse.buttons==Button_bit(but)) ? -1 : 0;
 }
 
 
@@ -163,40 +184,53 @@ enum {	DOrange=0xffaa00FF, Dgray=0xbbbbbbFF, DDkgreen=0x009900FF,
 		DCyan, DMagenta, DWhite */
 };
 
+
+typedef struct thick_color {
+	int thick;			/* use 1+2*thick pixel wide lines */
+	Image* clr;			/* Color to use when drawing this */
+} thick_color;
+
+
 typedef struct color_ref {
 	ulong c;			/* RGBA pixel color */
 	char* nam;			/* ASCII name (matched to input, used in output)*/
+	int nam1;			/* single-letter version of color name */
 	Image* im;			/* replicated solid-color image */
 } color_ref;
 
 color_ref clrtab[] = {
-	DRed,		"Red",		0,
-	DPink,		"Pink",		0,
-	DDkred,		"Dkred",	0,
-	DOrange,	"Orange",	0,
-	DYellow,	"Yellow",	0,
-	DDkyellow,	"Dkyellow",	0,
-	DGreen,		"Green",	0,
-	DDkgreen,	"Dkgreen",	0,
-	DCyan,		"Cyan",		0,
-	DBlue,		"Blue",		0,
-	DLtblue,	"Ltblue",	0,
-	DMagenta,	"Magenta",	0,
-	DViolet,	"Violet",	0,
-	Dgray,		"Gray",		0,
-	DBlack,		"Black",	0,
-	DWhite,		"White",	0,
-	DNofill,	0,		0	/* DNofill means "end of data" */
+	DRed,		"Red",		'R', 0,
+	DPink,		"Pink",		'P', 0,
+	DDkred,		"Dkred",	'r', 0,
+	DOrange,	"Orange",	'O', 0,
+	DYellow,	"Yellow",	'Y', 0,
+	DDkyellow,	"Dkyellow",	'y', 0,
+	DGreen,		"Green",	'G', 0,
+	DDkgreen,	"Dkgreen",	'g', 0,
+	DCyan,		"Cyan",		'C', 0,
+	DBlue,		"Blue",		'B', 0,
+	DLtblue,	"Ltblue",	'b', 0,
+	DMagenta,	"Magenta",	'M', 0,
+	DViolet,	"Violet",	'V', 0,
+	Dgray,		"Gray",		'A', 0,
+	DBlack,		"Black",	'K', 0,
+	DWhite,		"White",	'W', 0,
+	DNofill,	0,		0,   0	/* DNofill means "end of data" */
 };
+
+short nam1_idx[128];			/* the clrtab[] index for each nam1, else -1 */
 
 
 void  init_clrtab(void)
 {
 	int i;
 	Rectangle r = Rect(0,0,1,1);
-	for (i=0; clrtab[i].c!=DNofill; i++)
+	memset(&nam1_idx[0], -1, sizeof(nam1_idx));
+	for (i=0; clrtab[i].c!=DNofill; i++) {
 		clrtab[i].im = allocimage(display, r, CMAP8, 1, clrtab[i].c);
 		/* should check for 0 result? */
+		nam1_idx[clrtab[i].nam1] = i;
+	}
 }
 
 
@@ -218,58 +252,117 @@ int clr_id(int clr)
 	return i;
 }
 
+
 #define clr_im(clr)	clrtab[clr_id(clr)].im
+#define is_Multi  -2			/* dummy clrtab[] less than -1 */
 
 
-/* This decides what color to use for a polyline based on the label it has in the
-   input file.  Whichever color name comes first is the winner, otherwise return black.
-*/
-Image* nam2clr(const char* nam, int *idxdest)
+thick_color* tc_default(thick_color *buf)
 {
-	char *c, *cbest=nam;
+	buf[0].thick = 1;
+	buf[1].clr = clr_im(DBlack);
+	buf[1].thick = 0;
+	return buf;
+}
+
+
+/* Return an allocated array that describes the color letters (clrtab[].nam1 values,
+   optionally prefixed by 'T') in the string that starts at c0 and ends just before
+   fin.  The first entry is a dummy whose thick field tells how many data entries follow.
+   If buf!=0, it should point to an array of length 2 that is to hold the output
+   (truncated to a dummy and one data entry).  The error indication is 1 data entry
+   of default color and thickness; e.g., "Multi(xxbadxx)" in a label prevents gview
+   from recognizing anything that follows.
+*/
+thick_color* parse_color_chars(const char* c0, const char* fin, thick_color *buf)
+{
+	thick_color* tc;		/* Pending return value */
+	int i, j, n=fin-c0;		/* n is an upper bound on how many data members */
+	const char* c;
+	for (c=c0; c<fin-1; c++)
+		if (*c=='T')
+			n--;
+	if (buf==0)
+		tc = (thick_color*) malloc((n+1)*sizeof(thick_color));
+	else {tc=buf; n=1;}
+	i = 0;
+	for (c=c0; c<fin && i<n; c++) {
+		tc[++i].thick = 0;
+		if (*c=='T')
+			if (++c==fin)
+				return tc_default(tc);
+			else tc[i].thick=1;
+		j = (*c&~127) ? -1 : nam1_idx[*c];
+		if (j < 0)
+			return tc_default(tc);
+		tc[i].clr = clrtab[j].im;
+	}
+	tc[0].thick = i;
+	return tc;
+}
+
+
+/* Decide what color and thickness to use for a polyline based on the label it has in the
+   input file.  The winner is whichever color name comes first, or otherwise black; and
+   thickness is determined by the presence of "Thick" in the string.  Place the result
+   in *r1 and return 0 unless a Multi(...) spec is found, in which case the result is
+   an allocated array of alternative color and thickness values.  A nonzero idxdest
+   requests the clrtab[] index in *idxdest and no allocated array.
+*/
+thick_color* nam2thclr(const char* nam, thick_color *r1, int *idxdest)
+{
+	char *c, *cbest=0, *rp=0;
 	int i, ibest=-1;
-	if (*nam!=0)
+	thick_color* tc = 0;
+	thick_color buf[2];
+	if (*nam!=0) {
+		c = strstr(nam, "Multi(");
+		if (c!=0 && (rp=strchr(c+6,')'))!=0)
+			{ibest=is_Multi; cbest=c;}
 		for (i=0; clrtab[i].nam!=0; i++) {
 			c = strstr(nam,clrtab[i].nam);
-			if (c!=0 && (ibest<0 || c<cbest))
+			if (c!=0 && (ibest==-1 || c<cbest))
 				{ibest=i; cbest=c;}
 		}
+	}
+	if (ibest==is_Multi) {
+		tc = parse_color_chars(cbest+6, rp, (idxdest==0 ? 0 : &buf[0]));
+		ibest = clrim_id(tc[1].clr);
+	}
 	if (idxdest!=0)
 		*idxdest = (ibest<0) ? clr_id(DBlack) : ibest;
-	return (ibest<0) ? clr_im(DBlack) : clrtab[ibest].im;
-}
-
-/* A polyline is initial drawn in thick mode iff its label in the file contains "Thick" */
-int nam2thick(const char* nam)
-{
-	return strstr(nam,"Thick")==0 ? 0 : 1;
+	r1->clr = (ibest<0) ? clr_im(DBlack) : clrtab[ibest].im;
+	r1->thick = (tc!=0) ? tc[1].thick : (strstr(nam,"Thick")==0 ? 0 : 1);
+	return tc;
 }
 
 
-/* Alter string nam so that nam2thick() and nam2clr() agree with th and clr, using
+/* Alter string nam so that nam2thick() and nam2clr() agree with *tc, using
    buf[] (a buffer of length bufn) to store the result if it differs from nam.
    We go to great pains to perform this alteration in a manner that will seem natural
    to the user, i.e., we try removing a suitably isolated color name before inserting
    a new one.
 */
-char* nam_with_thclr(char* nam, int th, Image* clr, char* buf, int bufn)
+char* nam_with_thclr(char* nam, const thick_color *tc, char* buf, int bufn)
 {
-	int clr0i, th0=nam2thick(nam);
-	Image* clr0 = nam2clr(nam, &clr0i);
+	thick_color c0;
+	int clr0i;
+	nam2thclr(nam, &c0, &clr0i);
 	char *clr0s;
-	if (th0==th && clr0==clr)
+	if (c0.thick==tc->thick && c0.clr==tc->clr)
 		return nam;
 	clr0s = clrtab[clr0i].nam;
 	if (strlen(nam)<bufn) strcpy(buf,nam);
 	else {strncpy(buf,nam,bufn); buf[bufn-1]='\0';}
-	if (clr0 != clr)
+	if (c0.clr != tc->clr)
 		remove_substr(buf, clr0s);
-	if (th0 > th)
+	if (c0.thick > tc->thick)
 		while (remove_substr(buf, "Thick"))
 			/* do nothing */;
-	if (nam2clr(buf,0) != clr)
-		str_insert(buf, clrtab[clrim_id(clr)].nam, bufn);
-	if (th0 < th)
+	nam2thclr(nam, &c0, &clr0i);
+	if (c0.clr != tc->clr)
+		str_insert(buf, clrtab[clrim_id(tc->clr)].nam, bufn);
+	if (c0.thick < tc->thick)
 		str_insert(buf, "Thick", bufn);
 	return buf;
 }
@@ -340,8 +433,8 @@ typedef struct fpolygon {
 	int n;				/* p[] has n elements: p[0..n] */
 	frectangle bb;			/* bounding box */
 	char* nam;			/* name of this polygon (malloc'ed) */
-	int thick;			/* use 1+2*thick pixel wide lines */
-	Image* clr;			/* Color to use when drawing this */
+	thick_color c;			/* the current color and line thickness */
+	thick_color* ct;		/* 0 or malloc'ed color schemes, ct[1..ct->thick] */
 	struct fpolygon* link;
 } fpolygon;
 
@@ -361,13 +454,20 @@ fpolygons univ = {			/* everything there is to display */
 };
 
 
+void free_fp_etc(fpolygon* fp)
+{
+	if (fp->ct != 0)
+		free(fp->ct);
+	free(fp->p);
+	free(fp);
+}
+
+
 void set_default_clrs(fpolygons* fps, fpolygon* fpstop)
 {
 	fpolygon* fp;
-	for (fp=fps->p; fp!=0 && fp!=fpstop; fp=fp->link) {
-		fp->clr = nam2clr(fp->nam,0);
-		fp->thick = nam2thick(fp->nam);
-	}
+	for (fp=fps->p; fp!=0 && fp!=fpstop; fp=fp->link)
+		fp->ct = nam2thclr(fp->nam, &fp->c, 0);
 }
 
 
@@ -696,28 +796,29 @@ int is_valid_label(char* lab)
 */
 fpolygon* rd_fpoly(FILE* fin, int *lineno)
 {
-	char buf[256], junk[2];
+	char buf[4096], junk[2];
 	fpoint q;
 	fpolygon* fp;
 	int allocn;
-	if (!fgets(buf,256,fin))
+	if (!fgets(buf,4096,fin))
 		return 0;
 	(*lineno)++;
 	if (sscanf(buf,"%lg%lg%1s",&q.x,&q.y,junk) != 2)
 		return 0;
 	fp = malloc(sizeof(fpolygon));
-	allocn = 16;
+	allocn = 4;
 	fp->p = malloc(allocn*sizeof(fpoint));
 	fp->p[0] = q;
 	fp->n = 0;
 	fp->nam = "";
-	fp->thick = 0;
-	fp->clr = clr_im(DBlack);
-	while (fgets(buf,256,fin)) {
+	fp->c.thick = 0;
+	fp->c.clr = clr_im(DBlack);
+	fp->ct = 0;
+	while (fgets(buf,4096,fin)) {
 		(*lineno)++;
 		if (sscanf(buf,"%lg%lg%1s",&q.x,&q.y,junk) != 2) {
 			if (!is_valid_label(buf))
-				{free(fp->p); free(fp); return 0;}
+				{free_fp_etc(fp); return 0;}
 			fp->nam = (buf[0]=='"') ? buf+1 : buf;
 			break;
 		}
@@ -784,7 +885,7 @@ void wr_fpoly(FILE* fout, const fpolygon* fp)
 	int i;
 	for (i=0; i<=fp->n; i++)
 		fprintf(fout,"%.12g\t%.12g\n", fp->p[i].x, fp->p[i].y);
-	fprintf(fout,"\"%s\"\n", nam_with_thclr(fp->nam, fp->thick, fp->clr, buf, 256));
+	fprintf(fout,"\"%s\"\n", nam_with_thclr(fp->nam, &fp->c, buf, 256));
 }
 
 void wr_fpolys(FILE* fout, fpolygons* fps)
@@ -1447,7 +1548,7 @@ void draw_1fpoly(const fpolygon* fp, const transform* tr, Image* clr,
 	fpoint *p0=fp->p, *pn=fp->p+fp->n;
 	double l1, l2;
 	if (p0==pn && fcontains(udisp,*p0))
-		{draw_fpts(p0, 0, tr, fp->thick, clr); return;}
+		{draw_fpts(p0, 0, tr, fp->c.thick, clr); return;}
 	while ((l1=out_length(p0,pn,*udisp,slant)) < pn-p0) {
 		fpoint p0sav;
 		int i1 = (int) l1;
@@ -1456,7 +1557,7 @@ void draw_1fpoly(const fpolygon* fp, const transform* tr, Image* clr,
 		p0[0].x += l1*(p0[1].x - p0[0].x);
 		p0[0].y += l1*(p0[1].y - p0[0].y);
 		l2 = in_length(p0, pn, *udisp, slant);
-		draw_fpts(p0, l2, tr, fp->thick, clr);
+		draw_fpts(p0, l2, tr, fp->c.thick, clr);
 		*p0 = p0sav;
 		p0 += (l2>0) ? ((int) ceil(l2)) : 1;
 	}
@@ -1495,7 +1596,7 @@ void eresized(int new)
 	slant = get_clip_data(&univ, &clipr);
 	for (fp=univ.p; fp!=0; fp=fp->link)
 		if (fintersects(&clipr, &fp->bb, slant))
-			draw_1fpoly(fp, &tr, fp->clr, &clipr, slant);
+			draw_1fpoly(fp, &tr, fp->c.clr, &clipr, slant);
 	reselect(0);
 	if (mv_bkgd!=0 && mv_bkgd->repl==0) {
 		freeimage(mv_bkgd);
@@ -1544,27 +1645,45 @@ void all_set_clr(fpolygons* fps, Image* clr)
 {
 	fpolygon* p;
 	for (p=fps->p; p!=0; p=p->link)
-		p->clr = clr;
+		p->c.clr = clr;
+}
+	
+
+void all_set_scheme(fpolygons* fps, int scheme)
+{
+	fpolygon* p;
+	for (p=fps->p; p!=0; p=p->link)
+		if (p->ct!=0 && scheme <= p->ct[0].thick)
+			p->c = p->ct[scheme];
 }
 	
 
 void do_recolor(int but, Mouse* m, int alluniv)
 {
-	int nclr = clr_id(DWhite);
+	int sel, clkk, nclr = clr_id(DWhite);
 	int dy = draw_palette(nclr);
 	Image* clr;
-	if (!get_1click(but, m, 0)) {
+	clkk = get_click_or_kbd(but, m, "123456789abcdefghijklmnopqrstuvwxyz");
+	if (clkk < 0) {
+		clr = palette_color(m->xy, dy, nclr);
+		if (clr != 0) {
+			if (alluniv)
+				all_set_clr(&univ, clr);
+			else cur_sel.fp->c.clr = clr;
+		}
 		eresized(0);
-		return;
-	}
-	clr = palette_color(m->xy, dy, nclr);
-	if (clr != 0) {
+		lift_button(but, m, Never);
+	} else if (clkk > 0) {
+		sel = ('0'<clkk&&clkk<='9') ? 0 : 10+(clkk-'a')*10;
+		while (!('0'<=clkk&&clkk<='9'))
+			clkk = ekbd();
+		sel += clkk-'0';
 		if (alluniv)
-			all_set_clr(&univ, clr);
-		else	cur_sel.fp->clr = clr;
+			all_set_scheme(&univ, sel);
+		else if (sel <= cur_sel.fp->ct[0].thick)
+			cur_sel.fp->c = cur_sel.fp->ct[sel];
 	}
 	eresized(0);
-	lift_button(but, m, Never);
 }
 
 
@@ -1574,7 +1693,7 @@ void prepare_mv(const fpolygon* fp)
 {
 	Rectangle r = screen->r;
 	Image* scr0;
-	int dt = 1 + fp->thick;
+	int dt = 1 + fp->c.thick;
 	r.min.x+=lft_border-dt;  r.min.y+=top_border-dt;
 	r.max.x-=rt_border-dt;   r.max.y-=bot_border-dt;
 	if (mv_bkgd!=0 && mv_bkgd->repl==0)
@@ -1631,13 +1750,13 @@ fpoint do_move(int but, Mouse* m)
 	double tsav = cur_sel.t;
 	unselect(&tr);
 	do {	latest_mouse(but, m);
-		(fp->thick)++;		/* line() DISAGREES WITH ITSELF */
+		(fp->c.thick)++;		/* line() DISAGREES WITH ITSELF */
 		draw_fpoly(fp, &tr, mv_bkgd);
-		(fp->thick)--;
+		(fp->c.thick)--;
 		do_untransform(&loc, &tr, &m->xy);
 		move_fp(fp, loc.x-cur_sel.p.x, loc.y-cur_sel.p.y);
 		cur_sel.p = loc;
-		draw_fpoly(fp, &tr, fp->clr);
+		draw_fpoly(fp, &tr, fp->c.clr);
 	} while (m->buttons & bbit);
 	cur_sel.t = tsav;
 	reselect(&tr);
@@ -1669,13 +1788,13 @@ double do_rotate(int but, Mouse* m)
 	double theta0 = dir_angle(&m->xy, &tr);
 	double th, theta = theta0;
 	do {	latest_mouse(but, m);
-		(fp->thick)++;		/* line() DISAGREES WITH ITSELF */
+		(fp->c.thick)++;		/* line() DISAGREES WITH ITSELF */
 		draw_fpoly(fp, &tr, mv_bkgd);
-		(fp->thick)--;
+		(fp->c.thick)--;
 		th = dir_angle(&m->xy, &tr);
 		rotate_fp(fp, cur_sel.p, th-theta);
 		theta = th;
-		draw_fpoly(fp, &tr, fp->clr);
+		draw_fpoly(fp, &tr, fp->c.clr);
 	} while (m->buttons & bbit);
 	unselect(&tr);
 	cur_sel = prev_sel;
@@ -1725,11 +1844,11 @@ void init_e_menu(void)
 	e_items[Edelete] = "delete";
 	e_items[Erotate] = "rotate";
 	e_items[Eoptions-cantmv] = 0;
-	e_items[Ethick] = (cur_sel.fp->thick >0) ? "thin" : "thick";
+	e_items[Ethick] = (cur_sel.fp->c.thick >0) ? "thin" : "thick";
 	if (unact!=0)
 		switch (unact->typ) {
 		case Erecolor: u="uncolor"; break;
-		case Ethick: u=(unact->fp->thick==0) ? "unthin" : "unthicken";
+		case Ethick: u=(unact->fp->c.thick==0) ? "unthin" : "unthicken";
 			break;
 		case Edelete: u="undelete"; break;
 		case Emove: u="unmove"; break;
@@ -1748,7 +1867,7 @@ void do_emenu(int but, Mouse* m)
 	h = emenuhit(but, m, &e_menu);
 	switch(h) {
 	case Ethick: unact = save_act(unact, h);
-		cur_sel.fp->thick ^= 1;
+		cur_sel.fp->c.thick ^= 1;
 		eresized(0);
 		break;
 	case Edelete: unact = save_act(unact, h);
@@ -1780,8 +1899,8 @@ e_action* save_act(e_action* a0, e_index typ)
 	e_action* a = malloc(sizeof(e_action));
 	a->link = a0;
 	a->pt.x = a->pt.y = 0.0;
-	a->amt = cur_sel.fp->thick;
-	a->clr = cur_sel.fp->clr;
+	a->amt = cur_sel.fp->c.thick;
+	a->clr = cur_sel.fp->c.clr;
 	a->fp = cur_sel.fp;
 	a->typ = typ;
 	return a;
@@ -1812,10 +1931,10 @@ e_action* do_undo(e_action* a0)		/* pop off an e_action and (un)do it */
 	if (a==0)
 		return 0;
 	switch(a->typ) {
-	case Ethick: a->fp->thick = a->amt;
+	case Ethick: a->fp->c.thick = a->amt;
 		eresized(0);
 		break;
-	case Erecolor: a->fp->clr = a->clr;
+	case Erecolor: a->fp->c.clr = a->clr;
 		eresized(0);
 		break;
 	case Edelete: 
@@ -1945,8 +2064,12 @@ void doevent(void)
 			do_emenu(2, &ev.mouse);
 		else if (ev.mouse.buttons & But3)
 			do_mmenu(3, &ev.mouse);
+	} else if (etype & Ekeyboard) {
+		if (ev.kbdc=='\n' && cur_sel.t>=0 && logfil!=0) {
+			fprintf(logfil,"%s\n", cur_sel.fp->nam);
+			fflush(logfil);
+		}
 	}
-	/* no need to check (etype & Ekeyboard)--there are no keyboard commands */
 }
 
 

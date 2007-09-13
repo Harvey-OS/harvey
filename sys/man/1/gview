@@ -87,13 +87,18 @@ There is a
 .I recolor
 command on button 3 that lets you select a color and change everything
 to have that color, and a similar command on button 2 that only affects
-the selected polyline.  The
+the selected polyline.  If the input file uses the
+.B Multi(...)
+feature explained below, either flavor of
+.I recolor
+allows you to type a digit in lieu of selecting a color.
+.PP
+The
 .I thick
 or
 .I thin
 command on button 2 changes the thickness of the selected polyline
 and there is also an undo command for such edits.
-.PP
 Finally, button 3 has commands to
 .I read
 a new input file and display it on top of everything else,
@@ -116,6 +121,12 @@ on a line by itself.  The label at the end of the last polyline is
 optional.   It is not legal to have two consecutive labels, since that
 would denote a zero-vertex polyline and each polyline must have at least
 one vertex. (One-vertex polylines are useful for scatter plots.)
+Under the
+.B -l
+option, a newline causes the selected polyline's label to appear in
+the log file (where it could be seen by invoking
+.B tail -f
+in another window).
 
 If the label after a polyline contains the word
 .B "Thick"
@@ -137,6 +148,35 @@ or a color name
 .BR Black ,
 .BR White ),
 whichever color name comes first will be used to color the polyline.
+Alternatively, labels can contain
+.B Multi
+followed by single-letter versions of these names:
+.BR (R ,
+.BR P ,
+.BR r ,
+.BR O ,
+.BR Y ,
+.BR y ,
+.BR G ,
+.BR g ,
+.BR C ,
+.BR B ,
+.BR b ,
+.BR M ,
+.BR V ,
+.BR A ,
+.BR K ,
+.BR W ,
+each optionally preceded by
+.BR T ).
+Then
+.I recolor
+followed by a nonzero digit
+.I n
+selects the
+.IR n th
+alternative for each polyline.
+
 .SH EXAMPLE
 To see a graph of the function
 .IR y = sin( x )/ x ,
@@ -149,9 +189,16 @@ awk 'BEGIN{for(x=.1;x<500;x+=.1)print x,sin(x)/x}' | gview
 .SH SOURCE
 .B /sys/src/cmd/gview.c
 .SH SEE ALSO
-.IR awk (1)
+.IR awk (1),
+.IR tail (1)
 .SH BUGS
 The user interface for the
 .I slant
 command is counter-intuitive.  Perhaps it would be better to have a scheme
 for sweeping out a parallelogram.
+.PP
+The
+.B -p
+option makes the interactive point selection feature behave strangely, and
+is unnecessary since extra blank lines in the input achieve essentially the
+same effect.

@@ -131,6 +131,12 @@ struct	Opthdr {
 	uchar	len;
 };
 
+/*
+ * Beware routing header type 0 (loose source routing); see
+ * http://www.secdev.org/conf/IPv6_RH_security-csw07.pdf.
+ * Type 1 is unused.  Type 2 is for MIPv6 (mobile IPv6) filtering
+ * against type 0 header.
+ */
 struct	Routinghdr {
 	uchar	nexthdr;
 	uchar	len;
