@@ -13,6 +13,8 @@ usage(void)
 	exits("usage");
 }
 
+#pragma	varargck	argpos	flprint	1
+
 static int
 flprint(char *fmt, ...)
 {

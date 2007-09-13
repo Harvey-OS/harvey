@@ -67,15 +67,15 @@ main(int argc, char *argv[])
 	srand(0);
 
 	r = fs->source;
-dump(r, 0, 0);
+	dump(r, 0, 0);
 
 	fprint(2, "count = %d\n", count(r, 1));
 	for(i=0; i<num; i++)
 		new(r, 0, 0);
 
 	for(i=0; i<iter; i++){
-if(i % 10000 == 0)
-stats(r);
+		if(i % 10000 == 0)
+			stats(r);
 		new(r, 0, 0);
 		delete(r);
 	}
@@ -85,7 +85,7 @@ stats(r);
 	fprint(2, "count = %d\n", count(r, 1));
 //	cacheCheck(c);
 
-fprint(2, "deleting\n");
+	fprint(2, "deleting\n");
 	for(i=0; i<num; i++)
 		delete(r);
 //	dump(r, 0, 0);
@@ -94,9 +94,7 @@ fprint(2, "deleting\n");
 	fprint(2, "total time = %ld\n", time(0)-t);
 	
 	fsClose(fs);
-
 	vtDetach();
-
 	exits(0);
 }
 
@@ -210,7 +208,8 @@ dump(Source *s, int ident, ulong entry)
 		return;
 	}
 
-	Bprint(bout, "%4lud: gen %4ud depth %d tag=%x score=%V", entry, e.gen, e.depth, e.tag, e.score);
+	Bprint(bout, "%4lud: gen %4ud depth %d tag=%x score=%V",
+		entry, e.gen, e.depth, e.tag, e.score);
 	if(!s->dir){
 		Bprint(bout, " data size: %llud\n", e.size);
 		return;

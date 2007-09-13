@@ -34,7 +34,7 @@ LIBFILES=\
 
 LIBCFILES=${LIBFILES:%=%.c}
 LIBOFILES=${LIBFILES:%=%.$O}
-LIB=libfs.a.$O
+LIB=libfs.a$O
 
 HFILES=\
 	/sys/include/oventi.h\
@@ -61,8 +61,6 @@ test:V: all
 	slay 8.flfmt | rc
 	slay 8.fossil | rc
 	unmount /n/fossil || status=''
-	9fs emelieother
-	bind -c /n/emelieother/rsc/tmp /tmp
 	{syscall seek 1 6400000000 0; echo} >>/tmp/fossil
 	8.flfmt -y /tmp/fossil
 	8.conf -w /tmp/fossil flproto
@@ -85,7 +83,6 @@ test:V: all
 	echo check >>/srv/test.fscons
 	echo check >>/srv/test.fscons
 	echo check >>/srv/test.fscons
-	
 
 #	cp /env/timezone /n/fossil/tmp
 #	cp /lib/words /n/fossil/tmp

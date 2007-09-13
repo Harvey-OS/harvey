@@ -4193,3 +4193,5 @@ Th' canny man keeps his money in sheep - or he keeps it in th' First Presbyteria
 ttcp-r: 3689238521928343900000000000000 bytes in 41.02 real seconds = 87829643931512629000000000.00 KB/sec +++
 By the time you finish reading this article, you will be able to take advantage of the coolest file system feature to be implemented since the symbolic link.  - CLI Magic: Use Extended Attributes for better file management By Ryan Paul
 Intel Pentium 4 2.0Hz processor - TigerDirect catalogue
+You are roughly 2^90 times more likely to win a U.S. state lottery *and* be struck by lightning simultaneously than you are to encounter [an accidental SHA1 collision] in your file system.  - J. Black
+prelink - prelink ELF shared libraries and binaries to speed up startup time

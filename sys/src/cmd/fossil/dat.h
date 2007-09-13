@@ -77,6 +77,8 @@ struct Fs {
 	int	blockSize;	/* immutable */
 	VtSession *z;		/* immutable */
 	Snap	*snap;		/* immutable */
+	/* immutable; copy here & Fsys to ease error reporting */
+	char	*name;
 
 	Periodic *metaFlush; /* periodically flushes metadata cached in files */
 
@@ -128,7 +130,7 @@ struct Source {
 	int	dir;		/* immutable */
 
 	Source	*parent;	/* immutable */
-	File	*file;		/* immutable */
+	File	*file;		/* immutable; point back */
 
 	VtLock	*lk;
 	int	ref;
