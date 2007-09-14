@@ -451,9 +451,10 @@ dirtydblock(DBlock *b, int dirty)
 {
 	int odirty;
 	Part *p;
+	static int bitched;
 
-
-	trace(TraceBlock, "dirtydblock enter %s 0x%llux %d from 0x%lux", b->part->name, b->addr, dirty, getcallerpc(&b));
+	trace(TraceBlock, "dirtydblock enter %s 0x%llux %d from 0x%lux",
+		b->part->name, b->addr, dirty, getcallerpc(&b));
 	assert(b->ref != 0);
 	assert(b->mode==ORDWR || b->mode==OWRITE);
 
@@ -468,6 +469,9 @@ dirtydblock(DBlock *b, int dirty)
 		trace(TraceBlock, "dirtydblock allocwriteproc %s", p->name);
 		/* XXX hope this doesn't fail! */
 		p->writechan = chancreate(sizeof(DBlock*), dcache.nblocks);
+		if (p->writechan == nil && bitched++ == 0)
+			fprint(2, "%s: dirtydblock: couldn't create writechan\n",
+				argv0);
 		vtproc(writeproc, p);
 	}
 	qlock(&dcache.lock);
@@ -800,20 +804,22 @@ flushproc(void *v)
 		trace(TraceProc, "writeblocks t=%lud", (ulong)(nsec()/1000)-t0);
 		i = 0;
 		for(j=1; j<DirtyMax; j++){
-			trace(TraceProc, "writeblocks.%d t=%lud", j, (ulong)(nsec()/1000)-t0);
+			trace(TraceProc, "writeblocks.%d t=%lud",
+				j, (ulong)(nsec()/1000)-t0);
 			i += parallelwrites(write+i, write+n, j);
 		}
 		if(i != n){
 			fprint(2, "in flushproc i=%d n=%d\n", i, n);
 			for(i=0; i<n; i++)
-				fprint(2, "\tblock %d: dirty=%d\n", i, write[i]->dirty);
+				fprint(2, "\tblock %d: dirty=%d\n",
+					i, write[i]->dirty);
 			abort();
 		}
 
-/* XXX
-* the locking here is suspect.  what if a block is redirtied
-* after the write happens?  we'll still decrement dcache.ndirty here.
-*/
+/*
+ * XXX the locking here is suspect.  what if a block is redirtied
+ * after the write happens?  we'll still decrement dcache.ndirty here.
+ */
 		trace(TraceProc, "undirty.%d t=%lud", j, (ulong)(nsec()/1000)-t0);
 		qlock(&dcache.lock);
 		dcache.diskstate = as;
@@ -850,7 +856,8 @@ writeproc(void *v)
 		trace(TraceProc, "writepart %s 0x%llux", p->name, b->addr);
 		diskaccess(0);
 		if(writepart(p, b->addr, b->data, b->size) < 0)
-			fprint(2, "write error: %r\n"); /* XXX details! */
+			fprint(2, "%s: writeproc: part %s addr 0x%llux: write error: %r\n",
+				argv0, p->name, b->addr);
 		addstat(StatApartWrite, 1);
 		addstat(StatApartWriteBytes, b->size);
 		b->dirty = 0;

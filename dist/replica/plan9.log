@@ -52770,3 +52770,8 @@
 1189652404 1 c 386/bin/fossil/flchk - 775 sys sys 1189651283 238380
 1189652404 2 c 386/bin/fossil/flfmt - 775 sys sys 1189651287 246385
 1189652404 3 c 386/bin/fossil/fossil - 775 sys sys 1189651294 365129
+1189657804 0 c sys/src/cmd/cc/dcl.c - 664 sys sys 1143695250 27003
+1189701004 0 c sys/src/cmd/exportfs/exportfs.c - 664 sys sys 1189701138 16416
+1189738804 0 c sys/src/cmd/venti/srv/dcache.c - 664 sys sys 1189738448 18608
+1189738804 1 c sys/src/cmd/venti/srv/fixarenas.c - 664 sys sys 1189738460 40533
+1189738804 2 c sys/src/cmd/venti/srv/icachewrite.c - 664 sys sys 1189738523 7785

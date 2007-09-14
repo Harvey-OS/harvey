@@ -55,13 +55,15 @@ nextchunk(Index *ix, ISect *is, IEntry **pie, u64int *paddr, uint *pnbuf)
 
 	bsize = 1<<is->blocklog;
 	iefirst = *pie;
-	addr = is->blockbase + ((u64int)(hashbits(iefirst->score, 32) / ix->div - is->start) << is->blocklog);
+	addr = is->blockbase + ((u64int)(hashbits(iefirst->score, 32) /
+		ix->div - is->start) << is->blocklog);
 	nbuf = 0;
-	for(l=&iefirst->nextdirty; (ie=*l)!=nil; l=&(*l)->nextdirty){
-		naddr = is->blockbase + ((u64int)(hashbits(ie->score, 32) / ix->div - is->start) << is->blocklog);
+	for(l = &iefirst->nextdirty; (ie = *l) != nil; l = &(*l)->nextdirty){
+		naddr = is->blockbase + ((u64int)(hashbits(ie->score, 32) /
+			ix->div - is->start) << is->blocklog);
 		if(naddr - addr >= Bufsize)
 			break;
-		nbuf = naddr-addr;
+		nbuf = naddr - addr;
 	}
 	nbuf += bsize;
 
@@ -89,16 +91,17 @@ icachewritesect(Index *ix, ISect *is, u8int *buf)
 	else
 		hi = is->stop * ix->div - 1;
 
-	trace(TraceProc, "icachewritesect enter %ud %ud %llud", lo, hi, iwrite.as.aa);
+	trace(TraceProc, "icachewritesect enter %ud %ud %llud",
+		lo, hi, iwrite.as.aa);
 
 	iedirty = icachedirty(lo, hi, iwrite.as.aa);
 	iedirty = iesort(iedirty);
-	bsize = 1<<is->blocklog;
+	bsize = 1 << is->blocklog;
 	err = 0;
 
 	while(iedirty){
 		disksched();
-		while((t=icachesleeptime) == SleepForever){
+		while((t = icachesleeptime) == SleepForever){
 			sleep(1000);
 			disksched();
 		}
@@ -108,10 +111,11 @@ icachewritesect(Index *ix, ISect *is, u8int *buf)
 		trace(TraceProc, "icachewritesect nextchunk");
 		chunk = nextchunk(ix, is, &iedirty, &addr, &nbuf);
 
-		trace(TraceProc, "icachewritesect readpart 0x%llux+0x%ux", addr, nbuf);
+		trace(TraceProc, "icachewritesect readpart 0x%llux+0x%ux",
+			addr, nbuf);
 		if(readpart(is->part, addr, buf, nbuf) < 0){
-			/* XXX more details here */
-			fprint(2, "icachewriteproc readpart: %r\n");
+			fprint(2, "%s: part %s addr 0x%llux: icachewritesect "
+				"readpart: %r\n", argv0, is->part->name, addr);
 			err  = -1;
 			continue;
 		}
@@ -120,31 +124,35 @@ icachewritesect(Index *ix, ISect *is, u8int *buf)
 		addstat(StatIsectRead, 1);
 
 		for(l=&chunk; (ie=*l)!=nil; l=&ie->nextdirty){
-		again:
-			naddr = is->blockbase + ((u64int)(hashbits(ie->score, 32) / ix->div - is->start) << is->blocklog);
+again:
+			naddr = is->blockbase + ((u64int)(hashbits(ie->score,
+				32) / ix->div - is->start) << is->blocklog);
 			off = naddr - addr;
 			if(off+bsize > nbuf){
-				fprint(2, "whoops! addr=0x%llux nbuf=%ud addr+nbuf=0x%llux naddr=0x%llux\n",
-					addr, nbuf, addr+nbuf, naddr);
+				fprint(2, "%s: whoops! addr=0x%llux nbuf=%ud "
+					"addr+nbuf=0x%llux naddr=0x%llux\n",
+					argv0, addr, nbuf, addr+nbuf, naddr);
 				assert(off+bsize <= nbuf);
 			}
 			unpackibucket(&ib, buf+off, is->bucketmagic);
 			if(okibucket(&ib, is) < 0){
-				fprint(2, "bad bucket XXX\n");
+				fprint(2, "%s: bad bucket XXX\n", argv0);
 				goto skipit;
 			}
-			trace(TraceProc, "icachewritesect add %V at 0x%llux", ie->score, naddr);
+			trace(TraceProc, "icachewritesect add %V at 0x%llux",
+				ie->score, naddr);
 			h = bucklook(ie->score, ie->ia.type, ib.data, ib.n);
 			if(h & 1){
 				h ^= 1;
 				packientry(ie, &ib.data[h]);
 			}else if(ib.n < is->buckmax){
-				memmove(&ib.data[h+IEntrySize], &ib.data[h], ib.n*IEntrySize - h);
+				memmove(&ib.data[h + IEntrySize], &ib.data[h],
+					ib.n*IEntrySize - h);
 				ib.n++;
 				packientry(ie, &ib.data[h]);
 			}else{
-				fprint(2, "bucket overflow XXX\n");
-			skipit:
+				fprint(2, "%s: bucket overflow XXX\n", argv0);
+skipit:
 				err = -1;
 				*l = ie->nextdirty;
 				ie = *l;
@@ -154,8 +162,8 @@ icachewritesect(Index *ix, ISect *is, u8int *buf)
 					break;
 			}
 			packibucket(&ib, buf+off, is->bucketmagic);
-			/* XXX
-			 * This is not quite right - it's good that we 
+			/*
+			 * XXX This is not quite right - it's good that we 
 			 * update the cached block (if any) here, but
 			 * since the block doesn't get written until writepart
 			 * below, we also need to make sure that the cache 
@@ -175,10 +183,10 @@ icachewritesect(Index *ix, ISect *is, u8int *buf)
 		diskaccess(1);
 
 		trace(TraceProc, "icachewritesect writepart", addr, nbuf);
-		if(writepart(is->part, addr, buf, nbuf) < 0 || flushpart(is->part) < 0){
-			/* XXX more details here */
-			fprint(2, "icachewriteproc writepart: %r\n");
-			err = -1;
+		if(writepart(is->part, addr, buf, nbuf) < 0 ||
+		    flushpart(is->part) < 0){
+			fprint(2, "%s: part %s addr 0x%llux: icachewritesect "
+				"writepart: %r\n", argv0, is->part->name, addr);
 			continue;
 		}
 		addstat(StatIsectWriteBytes, nbuf);

@@ -266,10 +266,10 @@ main(int argc, char **argv)
 	if (readn(netfd, &initial, sizeof(ulong)) < sizeof(ulong))
 		fatal("can't read initial string: %r\n");
 
-	if (!strncmp((char *)&initial, "impo", sizeof(ulong))) {
+	if (strncmp((char *)&initial, "impo", sizeof(ulong)) == 0) {
 		char buf[128], *p, *args[3];
 
-		// New import.  Read import's parameters...
+		/* New import.  Read import's parameters... */
 		initial = 0;
 
 		p = buf;
@@ -289,16 +289,16 @@ main(int argc, char **argv)
 		if (tokenize(buf, args, nelem(args)) != 2)
 			fatal("impo arguments invalid: impo%s...\n", buf);
 
-		if (!strcmp(args[0], "aan"))
+		if (strcmp(args[0], "aan") == 0)
 			filterp = aanfilter;
-		else if (strcmp(args[0], "nofilter"))
+		else if (strcmp(args[0], "nofilter") != 0)
 			fatal("import filter argument unsupported: %s\n", args[0]);
 
-		if (!strcmp(args[1], "ssl"))
+		if (strcmp(args[1], "ssl") == 0)
 			encproto = Encssl;
-		else if (!strcmp(args[1], "tls"))
+		else if (strcmp(args[1], "tls") == 0)
 			encproto = Enctls;
-		else if (strcmp(args[1], "clear"))
+		else if (strcmp(args[1], "clear") != 0)
 			fatal("import encryption proto unsupported: %s\n", args[1]);
 
 		if (encproto == Enctls)
@@ -374,9 +374,11 @@ main(int argc, char **argv)
 	}
 }
 
-// WARNING: Replace this with the original version as soon as all 
-// _old_ imports have been replaced with negotiating imports.  Also
-// cpu relies on this (which needs to be fixed!) -- pb.
+/*
+ * WARNING: Replace this with the original version as soon as all 
+ * _old_ imports have been replaced with negotiating imports.  Also
+ * cpu relies on this (which needs to be fixed!) -- pb.
+ */
 static int
 localread9pmsg(int fd, void *abuf, uint n, ulong *initial)
 {
@@ -854,7 +856,7 @@ filter(int fd, char *cmd)
 	int p[2], lfd, len, nb, argc;
 	char newport[128], buf[128], devdir[40], *s, *file, *argv[16];
 
-	// Get a free port and post it to the client.
+	/* Get a free port and post it to the client. */
 	if (announce(anstring, devdir) < 0)
 		sysfatal("filter: Cannot announce %s: %r\n", anstring);
 
