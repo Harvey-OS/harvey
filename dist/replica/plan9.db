@@ -9959,7 +9959,7 @@ sys/src/cmd/cc/com.c - 664 sys sys 1168702346 22212
 sys/src/cmd/cc/com64.c - 664 sys sys 1143240308 10001
 sys/src/cmd/cc/compat - 664 sys sys 1014925177 684
 sys/src/cmd/cc/compat.c - 664 sys sys 1132451523 454
-sys/src/cmd/cc/dcl.c - 664 sys sys 1189631756 27067
+sys/src/cmd/cc/dcl.c - 664 sys sys 1143695250 27003
 sys/src/cmd/cc/dpchk.c - 664 sys sys 1175892134 7760
 sys/src/cmd/cc/funct.c - 664 sys sys 984718510 6167
 sys/src/cmd/cc/lex.c - 664 sys sys 1188413849 24667
@@ -10300,7 +10300,7 @@ sys/src/cmd/execnet/main.c - 664 sys sys 1019861330 657
 sys/src/cmd/execnet/mkfile - 664 sys sys 1032059543 208
 sys/src/cmd/execnet/note.c - 664 sys sys 1019855740 2315
 sys/src/cmd/exportfs - 20000000775 sys sys 1066825703 0
-sys/src/cmd/exportfs/exportfs.c - 664 sys sys 1164133573 16377
+sys/src/cmd/exportfs/exportfs.c - 664 sys sys 1189701138 16416
 sys/src/cmd/exportfs/exportfs.h - 664 sys sys 1135487971 2809
 sys/src/cmd/exportfs/exportsrv.c - 664 sys sys 1135488028 11946
 sys/src/cmd/exportfs/mkfile - 664 sys sys 1066825703 194
@@ -14323,11 +14323,11 @@ sys/src/cmd/venti/srv/conf.rc - 775 sys sys 1189304120 1416
 sys/src/cmd/venti/srv/config.c - 664 sys sys 1178160303 5566
 sys/src/cmd/venti/srv/conv.c - 664 sys sys 1178160303 14052
 sys/src/cmd/venti/srv/dat.h - 664 sys sys 1178160303 19018
-sys/src/cmd/venti/srv/dcache.c - 664 sys sys 1178160304 18409
+sys/src/cmd/venti/srv/dcache.c - 664 sys sys 1189738448 18608
 sys/src/cmd/venti/srv/disksched.c - 664 sys sys 1142736352 2125
 sys/src/cmd/venti/srv/dump.c - 664 sys sys 1142736352 1642
 sys/src/cmd/venti/srv/findscore.c - 664 sys sys 1179863768 2195
-sys/src/cmd/venti/srv/fixarenas.c - 664 sys sys 1178160904 40515
+sys/src/cmd/venti/srv/fixarenas.c - 664 sys sys 1189738460 40533
 sys/src/cmd/venti/srv/fixarenas0.c - 664 sys sys 1142736352 36271
 sys/src/cmd/venti/srv/fmtarenas.c - 664 sys sys 1177189436 2702
 sys/src/cmd/venti/srv/fmtbloom.c - 664 sys sys 1142736352 2293
@@ -14338,7 +14338,7 @@ sys/src/cmd/venti/srv/graph.c - 664 sys sys 1177189436 4190
 sys/src/cmd/venti/srv/hdisk.c - 664 sys sys 1177189437 16510
 sys/src/cmd/venti/srv/httpd.c - 664 sys sys 1177189437 22784
 sys/src/cmd/venti/srv/icache.c - 664 sys sys 1186114652 8778
-sys/src/cmd/venti/srv/icachewrite.c - 664 sys sys 1178160304 7655
+sys/src/cmd/venti/srv/icachewrite.c - 664 sys sys 1189738523 7785
 sys/src/cmd/venti/srv/ifile.c - 664 sys sys 1189307036 2592
 sys/src/cmd/venti/srv/index.c - 664 sys sys 1178160304 17239
 sys/src/cmd/venti/srv/index2.c - 664 sys sys 1142736354 21620

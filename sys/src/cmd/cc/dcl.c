@@ -975,8 +975,6 @@ rsametype(Type *t1, Type *t2, int n, int f)
 				snap(t1);
 			if(t2->link == T)
 				snap(t2);
-			if(t1 != t2 && t1->link == T && t2->link == T)
-				return 0;
 			t1 = t1->link;
 			t2 = t2->link;
 			for(;;) {
