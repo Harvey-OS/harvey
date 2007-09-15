@@ -891,7 +891,7 @@ dist - 20000000775 sys sys 1127243723 0
 dist/replica - 20000000775 sys sys 1166743907 0
 dist/replica/cd - 664 sys sys 1149084099 922
 dist/replica/kfs - 664 sys sys 1019527929 237
-dist/replica/network - 775 sys sys 1139499513 956
+dist/replica/network - 775 sys sys 1189810597 1038
 dist/replica/plan9.proto - 664 sys sys 1178910941 2871
 env - 20000000775 sys sys 1104813586 0
 fd - 20000000775 sys sys 1020896384 0
