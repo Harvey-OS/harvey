@@ -10,21 +10,27 @@ fn servermount {
 }
 fn serverupdate { status='' }
 
-if ( ! test -e /srv/boot && ! test -e /srv/kfs ) {
+if (! test -e /srv/boot && ! test -e /srv/kfs) {
 	echo 'error: neither /srv/boot nor /srv/kfs present; make sure you are running on the file server'
 	exit '/srv/boot or /srv/kfs not present'
 }
 
 if (test -e /srv/fscons) {
-	if ( ! test -w /srv/fscons ) { 
-		echo 'error: no write access to /srv/fscons, make sure you are the host owner' 
-		exit 'no write access to /srv/fscons'
+	if (! test -w /srv/fscons) {
+		echo 'error: no write access to /srv/fscons, make sure you are the host owner'
+		echo 'mounting /srv/boot on /n/boot'
+		mount -c /srv/boot /n/boot
 	}
 
-	fn clientmount { echo 'srv -AWP replica'>>/srv/fscons;  mount -c /srv/replica /n/boot }
+	fn clientmount {
+		if (test -w /srv/fscons)
+			echo 'srv -AWP replica' >>/srv/fscons
+		if (test -e /srv/replica)
+			mount -c /srv/replica /n/boot
+	}
 	c=/n/boot/dist/replica
 	clientroot=/n/boot
-} 
+}
 if not {
 	fn clientmount { 9fs kfs }
 	c=/n/kfs/dist/replica
