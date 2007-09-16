@@ -10,33 +10,33 @@ fn servermount {
 }
 fn serverupdate { status='' }
 
-if (! test -e /srv/boot && ! test -e /srv/kfs) {
-	echo 'error: neither /srv/boot nor /srv/kfs present; make sure you are running on the file server'
-	exit '/srv/boot or /srv/kfs not present'
-}
-
-if (test -e /srv/fscons) {
-	if (! test -w /srv/fscons) {
-		echo 'error: no write access to /srv/fscons, make sure you are the host owner'
-		echo 'mounting /srv/boot on /n/boot'
+fn clientmount {
+	unmount /n/boot >[2]/dev/null
+	if(test -e /srv/fscons){
+		if(! test -e /srv/replica){
+			echo 'srv -AWP replica' >>/srv/fscons >[2]/dev/null ||
+				echo 'warning: could not write to /srv/fscons' >[1=2]
+		}
+		if(! mount -c /srv/replica /n/boot)
+			echo 'warning: cannot mount /srv/replica' >[1=2]
+		status=''
+	}
+	if not if(test -e /srv/kfs){
+		mount -c /srv/kfs /n/boot
+		status=''
+	}
+	if(! test -d /n/boot/dist/replica){
+		echo 'warning: could not mount /srv/replica or /srv/kfs; using /srv/boot' >[1=2]
 		mount -c /srv/boot /n/boot
 	}
-
-	fn clientmount {
-		if (test -w /srv/fscons)
-			echo 'srv -AWP replica' >>/srv/fscons
-		if (test -e /srv/replica)
-			mount -c /srv/replica /n/boot
+	if(! test -d /n/boot/dist/replica){
+		echo 'could not mount client root' >[1=2]
+		exit 'no /dist/replica'
 	}
-	c=/n/boot/dist/replica
-	clientroot=/n/boot
+	status=''
 }
-if not {
-	fn clientmount { 9fs kfs }
-	c=/n/kfs/dist/replica
-	clientroot=/n/kfs
-}
-
+c=/n/boot/dist/replica
+clientroot=/n/boot
 clientdb=$c/client/plan9.db
 clientexclude=(dist/replica/client)
 clientlog=$c/client/plan9.log
