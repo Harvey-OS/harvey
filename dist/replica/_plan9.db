@@ -5521,7 +5521,7 @@ rc/bin/ipv6on - 775 sys sys 1186362803 2047
 rc/bin/iwhois - 775 sys sys 1188682646 1792
 rc/bin/juke - 775 sys sys 1105565140 1131
 rc/bin/kill - 775 sys sys 1143389260 142
-rc/bin/kmem - 775 sys sys 1141940177 468
+rc/bin/kmem - 775 sys sys 1190076660 544
 rc/bin/label - 775 sys sys 1173737765 189
 rc/bin/lc - 775 sys sys 945617207 24
 rc/bin/leak - 775 sys sys 1172760642 1921
@@ -5625,6 +5625,7 @@ rc/bin/tlsclienttunnel - 775 sys sys 1024375633 153
 rc/bin/tlssrvtunnel - 775 sys sys 1024375634 175
 rc/bin/troff2gif - 775 sys sys 1127410278 164
 rc/bin/troff2png - 775 sys sys 1138456827 228
+rc/bin/umem - 775 sys sys 1190076661 547
 rc/bin/uncompress - 775 sys sys 1158798931 30
 rc/bin/ups - 775 sys sys 1091021981 806
 rc/bin/uptime - 775 sys sys 1074730712 234
@@ -7407,7 +7408,7 @@ sys/man/1/jpg - 664 sys sys 1166760721 4841
 sys/man/1/kbmap - 664 sys sys 1159419894 846
 sys/man/1/kill - 664 sys sys 1018369246 1193
 sys/man/1/ktrace - 664 sys sys 957920006 1330
-sys/man/1/leak - 664 sys sys 1172760642 4097
+sys/man/1/leak - 664 sys sys 1190076657 4373
 sys/man/1/lens - 664 sys sys 1130425868 1272
 sys/man/1/lex - 664 sys sys 1113743328 1520
 sys/man/1/look - 664 sys sys 1113743326 1357
@@ -7484,7 +7485,7 @@ sys/man/1/uniq - 664 sys sys 944959674 995
 sys/man/1/units - 664 sys sys 1113743326 2046
 sys/man/1/uptime - 664 sys sys 1074733782 380
 sys/man/1/vac - 664 sys sys 1162102172 3244
-sys/man/1/venti - 664 sys sys 1189183078 2647
+sys/man/1/venti - 664 sys sys 1190066650 2655
 sys/man/1/vi - 664 sys sys 1101668051 2904
 sys/man/1/vnc - 664 sys sys 1158063994 4313
 sys/man/1/vt - 664 sys sys 1186695303 2424
@@ -14327,7 +14328,7 @@ sys/src/cmd/venti/srv/dcache.c - 664 sys sys 1189738448 18608
 sys/src/cmd/venti/srv/disksched.c - 664 sys sys 1142736352 2125
 sys/src/cmd/venti/srv/dump.c - 664 sys sys 1142736352 1642
 sys/src/cmd/venti/srv/findscore.c - 664 sys sys 1179863768 2195
-sys/src/cmd/venti/srv/fixarenas.c - 664 sys sys 1189738460 40533
+sys/src/cmd/venti/srv/fixarenas.c - 664 sys sys 1190076775 40524
 sys/src/cmd/venti/srv/fixarenas0.c - 664 sys sys 1142736352 36271
 sys/src/cmd/venti/srv/fmtarenas.c - 664 sys sys 1177189436 2702
 sys/src/cmd/venti/srv/fmtbloom.c - 664 sys sys 1142736352 2293
@@ -14338,7 +14339,7 @@ sys/src/cmd/venti/srv/graph.c - 664 sys sys 1177189436 4190
 sys/src/cmd/venti/srv/hdisk.c - 664 sys sys 1177189437 16510
 sys/src/cmd/venti/srv/httpd.c - 664 sys sys 1177189437 22784
 sys/src/cmd/venti/srv/icache.c - 664 sys sys 1186114652 8778
-sys/src/cmd/venti/srv/icachewrite.c - 664 sys sys 1189738523 7785
+sys/src/cmd/venti/srv/icachewrite.c - 664 sys sys 1190076776 7787
 sys/src/cmd/venti/srv/ifile.c - 664 sys sys 1189307036 2592
 sys/src/cmd/venti/srv/index.c - 664 sys sys 1178160304 17239
 sys/src/cmd/venti/srv/index2.c - 664 sys sys 1142736354 21620

@@ -1,6 +1,6 @@
 .TH LEAK 1
 .SH NAME
-leak, kmem \- help find memory leaks
+leak, kmem, umem \- help find memory leaks
 .SH SYNOPSIS
 .B leak
 [
@@ -23,6 +23,12 @@ leak, kmem \- help find memory leaks
 .B kmem
 [
 .I kernel
+]
+.PP
+.B umem
+.I pid
+[
+.I textfile
 ]
 .SH DESCRIPTION
 .I Leak
@@ -143,11 +149,21 @@ processes, and is only necessary
 when inspecting processes started
 from stripped binaries.
 .PP
-.I Kmem
-prints a summary of all allocated blocks in the running kernel.
-Each line of the summary gives
-the count and total size of blocks allocated at an allocation point.
+.I Umem
+prints a summary of all allocated blocks in the process with id
+.IR pid .
+Each line of the summary gives the count and total size of 
+blocks allocated at an allocation point.
 The list is sorted by count in decreasing order.
+.I Umem
+prints summarizes all allocations, not just 
+memory leaks, but it is faster and requires less memory than 
+.I leak .
+.PP
+.I Kmem
+is like
+.I umem
+but prints a summary for the running kernel.
 .SH EXAMPLES
 List lost blocks in 
 .IR 8.out .
@@ -189,6 +205,8 @@ first by count and then by total size:
 .B /rc/bin/leak
 .br
 .B /rc/bin/kmem
+.br
+.B /rc/bin/umem
 .SH SEE ALSO
 .IR getcallerpc (2),
 .I setmalloctag
@@ -206,6 +224,7 @@ allocator,
 .I leak
 will not work on APE programs.
 .PP
-It's not speedy, and
+.I Leak
+is not speedy, and
 .I acidleak
 can consume more memory than the process(es) being examined.
