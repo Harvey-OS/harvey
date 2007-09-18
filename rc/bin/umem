@@ -1,15 +1,17 @@
 #!/bin/rc
-# kmem [kernel] - print summary of allocate blocks in running kernel
+# umem pid [binary] - print summary of allocate blocks in a running process
 rfork e
-if(! ~ $#* 0 1){
-	echo 'usage: kmem [kernel]' >[1=2]
+if(! ~ $#* 1 2){
+	echo 'usage: umem pid [binary]' >[1=2]
 	exit usage
 }
 
-if(~ $#* 1)
-	binary=$1
+p=$1
+binary=()
+if(~ $#* 2)
+	binary=$2
 
-echo 'kinit(); blocksummary()' | acid -k -lkernel -lpool -lleak $pid $binary | awk '
+echo 'blocksummary()' | acid -lpool -lleak $p $binary | awk '
 	$1 == "block" {
 		addr=$6
 		size=$3

@@ -148,7 +148,7 @@ It writes the new root score to standard output.
 .SH SOURCE
 .B /sys/src/cmd/venti
 .br
-.B /sys/src/cmd/oventi
+.B /sys/src/cmd/oventi/copy.c
 .SH SEE ALSO
 .IR vac (1),
 .IR venti (2),
@@ -159,7 +159,7 @@ It writes the new root score to standard output.
 .IR venti-fmt (8)
 .SH BUGS
 Currently
-.I nventi 's
+.IR nventi 's
 .I copy
 doesn't seem to copy the block corresponding to
 .IR score

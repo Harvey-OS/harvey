@@ -45,6 +45,16 @@ initicachewrite(void)
 	vtproc(delaykickroundproc, &iwrite.round);
 }
 
+static u64int
+ie2diskaddr(Index *ix, ISect *is, IEntry *ie)
+{
+	u64int bucket, addr;
+
+	bucket = hashbits(ie->score, 32)/ix->div;
+	addr = is->blockbase + ((bucket - is->start) << is->blocklog);
+	return addr;
+}
+
 static IEntry*
 nextchunk(Index *ix, ISect *is, IEntry **pie, u64int *paddr, uint *pnbuf)
 {
@@ -55,12 +65,10 @@ nextchunk(Index *ix, ISect *is, IEntry **pie, u64int *paddr, uint *pnbuf)
 
 	bsize = 1<<is->blocklog;
 	iefirst = *pie;
-	addr = is->blockbase + ((u64int)(hashbits(iefirst->score, 32) /
-		ix->div - is->start) << is->blocklog);
+	addr = ie2diskaddr(ix, is, iefirst);
 	nbuf = 0;
 	for(l = &iefirst->nextdirty; (ie = *l) != nil; l = &(*l)->nextdirty){
-		naddr = is->blockbase + ((u64int)(hashbits(ie->score, 32) /
-			ix->div - is->start) << is->blocklog);
+		naddr = ie2diskaddr(ix, is, ie);
 		if(naddr - addr >= Bufsize)
 			break;
 		nbuf = naddr - addr;
@@ -125,8 +133,7 @@ icachewritesect(Index *ix, ISect *is, u8int *buf)
 
 		for(l=&chunk; (ie=*l)!=nil; l=&ie->nextdirty){
 again:
-			naddr = is->blockbase + ((u64int)(hashbits(ie->score,
-				32) / ix->div - is->start) << is->blocklog);
+			naddr = ie2diskaddr(ix, is, ie);
 			off = naddr - addr;
 			if(off+bsize > nbuf){
 				fprint(2, "%s: whoops! addr=0x%llux nbuf=%ud "

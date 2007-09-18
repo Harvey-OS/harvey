@@ -52777,3 +52777,9 @@
 1189738804 2 c sys/src/cmd/venti/srv/icachewrite.c - 664 sys sys 1189738523 7785
 1189810805 0 c dist/replica/network - 775 sys sys 1189810597 1038
 1189904404 0 c dist/replica/network - 775 sys sys 1189903604 1075
+1190066599 0 c sys/man/1/venti - 664 sys sys 1190066650 2655
+1190077204 0 c rc/bin/kmem - 775 sys sys 1190076660 544
+1190077204 1 a rc/bin/umem - 775 sys sys 1190076661 547
+1190077204 2 c sys/man/1/leak - 664 sys sys 1190076657 4373
+1190077204 3 c sys/src/cmd/venti/srv/fixarenas.c - 664 sys sys 1190076775 40524
+1190077204 4 c sys/src/cmd/venti/srv/icachewrite.c - 664 sys sys 1190076776 7787
