@@ -377,6 +377,11 @@ found:
 	if(b->heap != TWID32)
 		fixheap(b->heap, b);
 
+	if((mode == ORDWR || mode == OWRITE) && part->writechan == nil){
+		trace(TraceBlock, "getdblock allocwriteproc %s", part->name);
+		part->writechan = chancreate(sizeof(DBlock*), dcache.nblocks);
+		vtproc(writeproc, part);
+	}
 	qunlock(&dcache.lock);
 
 	trace(TraceBlock, "getdblock lock");
@@ -450,8 +455,6 @@ void
 dirtydblock(DBlock *b, int dirty)
 {
 	int odirty;
-	Part *p;
-	static int bitched;
 
 	trace(TraceBlock, "dirtydblock enter %s 0x%llux %d from 0x%lux",
 		b->part->name, b->addr, dirty, getcallerpc(&b));
@@ -464,16 +467,6 @@ dirtydblock(DBlock *b, int dirty)
 	else
 		b->dirty = dirty;
 
-	p = b->part;
-	if(p->writechan == nil){
-		trace(TraceBlock, "dirtydblock allocwriteproc %s", p->name);
-		/* XXX hope this doesn't fail! */
-		p->writechan = chancreate(sizeof(DBlock*), dcache.nblocks);
-		if (p->writechan == nil && bitched++ == 0)
-			fprint(2, "%s: dirtydblock: couldn't create writechan\n",
-				argv0);
-		vtproc(writeproc, p);
-	}
 	qlock(&dcache.lock);
 	if(!odirty){
 		dcache.ndirty++;
@@ -783,13 +776,13 @@ flushproc(void *v)
 		waitforkick(&dcache.round);
 
 		trace(TraceWork, "start");
+		t0 = nsec()/1000;
+		trace(TraceProc, "build t=%lud", (ulong)(nsec()/1000)-t0);
+
 		qlock(&dcache.lock);
 		as = dcache.state;
 		qunlock(&dcache.lock);
 
-		t0 = nsec()/1000;
-
-		trace(TraceProc, "build t=%lud", (ulong)(nsec()/1000)-t0);
 		write = dcache.write;
 		n = 0;
 		for(i=0; i<dcache.nblocks; i++){
@@ -816,10 +809,14 @@ flushproc(void *v)
 			abort();
 		}
 
-/*
- * XXX the locking here is suspect.  what if a block is redirtied
- * after the write happens?  we'll still decrement dcache.ndirty here.
- */
+		/*
+		 * b->dirty is protected by b->lock while ndirty is protected
+		 * by dcache.lock, so the --ndirty below is the delayed one
+		 * from clearing b->dirty in the write proc.  It may happen
+		 * that some other proc has come along and redirtied b since
+		 * the write.  That's okay, it just means that ndirty may be
+		 * one too high until we catch up and do the decrement.
+		 */
 		trace(TraceProc, "undirty.%d t=%lud", j, (ulong)(nsec()/1000)-t0);
 		qlock(&dcache.lock);
 		dcache.diskstate = as;
