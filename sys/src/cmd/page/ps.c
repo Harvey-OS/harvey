@@ -198,7 +198,7 @@ initps(Biobuf *b, int argc, char **argv, uchar *buf, int nbuf)
 Keepreading:
 	while(p = Brdline(b, eol)) {
 		if(p[0] == '%')
-			if(chatty) fprint(2, "ps %.*s\n", utfnlen(p, Blinelen(b)-1), p);
+			if(chatty > 1) fprint(2, "ps %.*s\n", utfnlen(p, Blinelen(b)-1), p);
 		if(npage == mpage) {
 			mpage *= 2;
 			page = erealloc(page, mpage*sizeof(*page));

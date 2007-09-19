@@ -169,11 +169,18 @@ timefmt(Fmt *fmt)
 {
 	static uvlong t0;
 	uvlong t;
+	Tm tm;
 
-	if(t0 == 0)
-		t0 = nsec();
-	t = nsec()-t0;
-	return fmtprint(fmt, "T+%d.%04d", (uint)(t/1000000000), (uint)(t%1000000000)/100000);
+	if(fmt->flags&FmtSharp){
+		if(t0 == 0)
+			t0 = nsec();
+		t = nsec()-t0;
+		return fmtprint(fmt, "T+%d.%04d", (uint)(t/1000000000), (uint)(t%1000000000)/100000);
+	}else{
+		tm = *localtime(time(0));
+		return fmtprint(fmt, "%04d/%02d%02d %02d:%02d:%02d",
+			1900+tm.year, tm.mon+1, tm.mday, tm.hour, tm.min, tm.sec);
+	}
 }
 
 void
