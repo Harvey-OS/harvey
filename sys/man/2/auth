@@ -132,7 +132,7 @@ changes the user id of the process
 and recreates the namespace using the file
 .I namespace
 (default
-.BR /lib/nnamespace ).
+.BR /lib/namespace ).
 It uses
 .I auth_userpasswd
 and

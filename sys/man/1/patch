@@ -44,6 +44,7 @@ and is stored in
 creates a new patch consisting of the changes to
 the listed files, reading
 a description of the patch from standard input.
+Please provide some context and justification for the change.
 The
 .I email
 address, if not

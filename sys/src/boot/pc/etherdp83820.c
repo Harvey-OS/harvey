@@ -952,8 +952,9 @@ dp83820interrupt(Ureg*, void* arg)
 			dp83820cfg(ctlr);
 			isr &= ~Phy;
 		}
-// TODO fix		if(isr)
-// TODO fix			iprint("dp83820: isr %8.8uX\n", isr);
+// TODO fix	if(isr)
+// TODO fix		iprint("dp83820: isr %8.8uX\n", isr);
+		USED(isr);
 	}
 }
 

@@ -152,7 +152,7 @@ telnet /net.alt/tcp!ucbvax
 .PP
 Suppose that the machine
 .B moscvax
-is has access to a private file server containing public web pages
+has access to a private file server containing public web pages
 that need to be served by the less-trusted server
 .BR webvax .
 .B Webvax

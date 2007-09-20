@@ -5830,7 +5830,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1189631972 266898
+sys/games/lib/fortunes - 664 sys sys 1190238331 266990
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -6703,7 +6703,7 @@ sys/lib/man/trademarks - 664 sys sys 958527089 1838
 sys/lib/mimetype - 664 sys sys 1168305580 6313
 sys/lib/newuser - 775 sys sys 1112362340 1226
 sys/lib/plumb - 20000000775 sys sys 1039727360 0
-sys/lib/plumb/basic - 664 sys sys 1155363394 2879
+sys/lib/plumb/basic - 664 sys sys 1190228595 2889
 sys/lib/plumb/fileaddr - 664 sys sys 944957365 88
 sys/lib/postscript - 20000000775 sys sys 1039727391 0
 sys/lib/postscript/afm - 20000000775 sys sys 1020895803 0
@@ -7431,7 +7431,7 @@ sys/man/1/ns - 664 sys sys 1163208505 895
 sys/man/1/p - 664 sys sys 944959673 504
 sys/man/1/page - 664 sys sys 1087829646 5839
 sys/man/1/passwd - 664 sys sys 1181277007 1532
-sys/man/1/patch - 664 sys sys 1145023250 2375
+sys/man/1/patch - 664 sys sys 1190245640 2437
 sys/man/1/pcc - 664 sys sys 1015024740 3478
 sys/man/1/pic - 664 sys sys 1022625353 8229
 sys/man/1/pipefile - 664 sys sys 984709628 1861
@@ -7513,7 +7513,7 @@ sys/man/2/arg - 664 sys sys 1139744263 2184
 sys/man/2/arith3 - 664 sys sys 1162102967 4393
 sys/man/2/assert - 664 sys sys 1102868467 377
 sys/man/2/atof - 664 sys sys 1171668702 2778
-sys/man/2/auth - 664 sys sys 1187643286 7538
+sys/man/2/auth - 664 sys sys 1190243345 7537
 sys/man/2/authsrv - 664 sys sys 1171690308 4505
 sys/man/2/bin - 664 sys sys 985023077 1880
 sys/man/2/bind - 664 sys sys 1015091518 4685
@@ -7703,14 +7703,14 @@ sys/man/4/consolefs - 664 sys sys 1144424854 4245
 sys/man/4/cwfs - 664 sys sys 1189029640 6255
 sys/man/4/dossrv - 664 sys sys 1168307403 4334
 sys/man/4/execnet - 664 sys sys 1019866708 1069
-sys/man/4/exportfs - 664 sys sys 1189182220 4657
+sys/man/4/exportfs - 664 sys sys 1190243304 4655
 sys/man/4/ext2srv - 664 sys sys 1055692986 2409
 sys/man/4/factotum - 664 sys sys 1187721636 14843
 sys/man/4/fossil - 664 sys sys 1186820346 9592
 sys/man/4/fs - 664 sys sys 1188531555 3441
 sys/man/4/ftpfs - 664 sys sys 1112563349 4410
 sys/man/4/httpfile - 664 sys sys 1128556957 1233
-sys/man/4/import - 664 sys sys 1179442944 3272
+sys/man/4/import - 664 sys sys 1190243339 3269
 sys/man/4/iostats - 664 sys sys 1105574383 1621
 sys/man/4/keyfs - 664 sys sys 1116594919 5048
 sys/man/4/kfs - 664 sys sys 1102088374 2164
@@ -7825,7 +7825,7 @@ sys/man/8/init - 664 sys sys 944959679 1430
 sys/man/8/ipconfig - 664 sys sys 1177100280 7984
 sys/man/8/ipserv - 664 sys sys 1188191285 4411
 sys/man/8/kfscmd - 664 sys sys 1182192559 4514
-sys/man/8/listen - 664 sys sys 1188520111 3664
+sys/man/8/listen - 664 sys sys 1190243316 3735
 sys/man/8/lp - 664 sys sys 954614702 2491
 sys/man/8/mk9660 - 664 sys sys 1104430379 3946
 sys/man/8/mkfs - 664 sys sys 1186179498 3427
@@ -7839,7 +7839,7 @@ sys/man/8/nfsserver - 664 sys sys 1163208425 3587
 sys/man/8/pcmcia - 664 sys sys 944959679 408
 sys/man/8/pem - 664 sys sys 1060263669 1189
 sys/man/8/ping - 664 sys sys 1169105315 3650
-sys/man/8/plan9.ini - 664 sys sys 1181239022 23242
+sys/man/8/plan9.ini - 664 sys sys 1190241912 23835
 sys/man/8/pop3 - 664 sys sys 1063854676 2720
 sys/man/8/ppp - 664 sys sys 1187046045 4430
 sys/man/8/prep - 664 sys sys 1152729153 14013
@@ -8079,7 +8079,7 @@ sys/src/9/pc/ether8139.c - 664 sys sys 1185650567 19974
 sys/src/9/pc/ether8169.c - 664 sys sys 1185812348 26931
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1131290377 32294
 sys/src/9/pc/ether82557.c - 664 sys sys 1185509068 30197
-sys/src/9/pc/ether82563.c - 664 sys sys 1178932992 32729
+sys/src/9/pc/ether82563.c - 664 sys sys 1190235476 35505
 sys/src/9/pc/ether83815.c - 664 sys sys 1172259521 26346
 sys/src/9/pc/ether8390.c - 664 sys sys 1131290377 17702
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
@@ -8141,7 +8141,7 @@ sys/src/9/pc/screen.c - 664 sys sys 1184522395 13973
 sys/src/9/pc/screen.h - 664 sys sys 1147023549 4256
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1170456695 55276
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
-sys/src/9/pc/sd63xxesb.c - 664 sys sys 1184467400 35975
+sys/src/9/pc/sd63xxesb.c - 664 sys sys 1190229767 36207
 sys/src/9/pc/sdata.c - 664 sys sys 1186361525 52991
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1184467229 33837
 sys/src/9/pc/sdmylex.c - 664 sys sys 1189229947 28395
@@ -8150,7 +8150,7 @@ sys/src/9/pc/trap.c - 664 sys sys 1186361997 21898
 sys/src/9/pc/uartaxp.c - 664 sys sys 1166247784 18879
 sys/src/9/pc/uarti8250.c - 664 sys sys 1177676872 13957
 sys/src/9/pc/uartisa.c - 664 sys sys 1127126907 1777
-sys/src/9/pc/uartpci.c - 664 sys sys 1187668457 4534
+sys/src/9/pc/uartpci.c - 664 sys sys 1190235592 4685
 sys/src/9/pc/usb.h - 664 sys sys 1165555430 4257
 sys/src/9/pc/usbuhci.c - 664 sys sys 1184466791 31205
 sys/src/9/pc/vga.c - 664 sys sys 1131290595 5148
@@ -9156,7 +9156,7 @@ sys/src/boot/pc/ether82563.c - 664 sys sys 1181517000 25452
 sys/src/boot/pc/ether83815.c - 664 sys sys 1144961190 21993
 sys/src/boot/pc/ether8390.c - 664 sys sys 1112382847 16209
 sys/src/boot/pc/ether8390.h - 664 sys sys 1015007951 1392
-sys/src/boot/pc/etherdp83820.c - 664 sys sys 1178926667 28729
+sys/src/boot/pc/etherdp83820.c - 664 sys sys 1190221155 28740
 sys/src/boot/pc/etherec2t.c - 664 sys sys 1015007951 3598
 sys/src/boot/pc/etherelnk3.c - 664 sys sys 1158012439 44736
 sys/src/boot/pc/etherelnk3x.c - 664 sys sys 1015007951 24989
@@ -12378,7 +12378,7 @@ sys/src/cmd/hoc/tests.a - 664 sys sys 944961000 1782
 sys/src/cmd/html2ms.c - 664 sys sys 1014926694 10030
 sys/src/cmd/htmlfmt - 20000000775 sys sys 1060876449 0
 sys/src/cmd/htmlfmt/dat.h - 664 sys sys 1034015651 845
-sys/src/cmd/htmlfmt/html.c - 664 sys sys 1060876449 6032
+sys/src/cmd/htmlfmt/html.c - 664 sys sys 1190228833 6040
 sys/src/cmd/htmlfmt/main.c - 664 sys sys 1034015651 1108
 sys/src/cmd/htmlfmt/mkfile - 664 sys sys 1034015650 297
 sys/src/cmd/htmlfmt/util.c - 664 sys sys 1015364025 1765

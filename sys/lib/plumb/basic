@@ -35,7 +35,7 @@ plumb start window rc -c '''echo % mail '''$0'; mail '$0
 # image files go to page
 type is text
 data matches '[a-zA-Z¡-￿0-9_\-./]+'
-data matches '([a-zA-Z¡-￿0-9_\-./]+)\.(jpe?g|JPE?G|gif|GIF|tiff?|TIFF?|ppm|PPM|bit|BIT|png|PNG|pgm|PGM|bmp|BMP)'
+data matches '([a-zA-Z¡-￿0-9_\-./]+)\.(jpe?g|JPE?G|gif|GIF|tiff?|TIFF?|ppm|PPM|bit|BIT|png|PNG|pgm|PGM|bmp|BMP|yuv|YUV)'
 arg isfile	$0
 plumb to image
 plumb client page -wi
@@ -51,7 +51,7 @@ plumb start page -w $file
 
 # existing files, possibly tagged by line number, go to editor
 type is text
-data matches '([.a-zA-Z¡-￿0-9_/\-]*[a-zA-Z¡-￿0-9_/\-])('$addr')?'
+data matches '([.a-zA-Z¡-￿0-9_/+\-]*[a-zA-Z¡-￿0-9_/+\-])('$addr')?'
 arg isfile	$1
 data set	$file
 attr add	addr=$3

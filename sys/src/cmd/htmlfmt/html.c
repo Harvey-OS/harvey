@@ -7,7 +7,9 @@
 #include <ctype.h>
 #include "dat.h"
 
-char urlexpr[] = "^(https?|ftp|file|gopher|mailto|news|nntp|telnet|wais|prospero)://([a-zA-Z0-9_@\\-]+([.:][a-zA-Z0-9_@\\-]+)*)";
+char urlexpr[] =
+	"^(https?|ftp|file|gopher|mailto|news|nntp|telnet|wais|prospero)"
+	"://([a-zA-Z0-9_@\\-]+([.:][a-zA-Z0-9_@\\-]+)*)";
 Reprog	*urlprog;
 
 int inword = 0;
@@ -52,7 +54,7 @@ runetobyte(Rune *r, int n)
 }
 
 int
-closingpunct(int c)
+closingpunct(char c)
 {
 	return strchr(".,:;'\")]}>!?", c) != nil;
 }
@@ -66,13 +68,13 @@ emitword(Bytes *b, Rune *r, int nr)
 	if(nr == 0)
 		return;
 	s = smprint("%.*S", nr, r);
-	space = (b->n>0) && !isspace(b->b[b->n-1]) && !closingpunct(r[0]);
-	if(col>0 && col+space+nr > width){
+	space = b->n > 0 && !isspace(b->b[b->n-1]) && !closingpunct(*s);
+	if(col > 0 && col+space+nr > width){
 		growbytes(b, "\n", 1);
 		space = 0;
 		col = 0;
 	}
-	if(space && col>0){
+	if(space && col > 0){
 		growbytes(b, " ", 1);
 		col++;
 	}
