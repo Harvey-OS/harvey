@@ -43,11 +43,6 @@ tree are executed on the remote server and the results returned.  This
 gives the appearance of exporting a name space from a remote machine
 into a local file tree.
 .PP
-.I Exportfs
-creates a new name space for each connection, using
-.B /lib/namespace
-by default (see
-.IR namespace (6)).
 The options are:
 .TP
 .PD
@@ -66,6 +61,11 @@ protocol before running the regular
 session; used when 
 .I exportfs
 is invoked to handle an incoming network connection.
+.I Exportfs
+creates a new name space for each connection, using
+.B /lib/namespace
+by default (see
+.IR namespace (6)).
 .TP
 .B -B \fIaddress
 Dial
@@ -249,6 +249,6 @@ cd /n/spy; ls
 .br
 .B /sys/src/cmd/srvfs.c
 .SH SEE ALSO
-.IR aan (8),
 .IR import (4),
-.IR exportfs (4)
+.IR aan (8),
+.IR listen (8)

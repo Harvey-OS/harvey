@@ -58,13 +58,13 @@ uartpci(int ctlrno, Pcidev* p, int barno, int n, int freq, char* name,
 }
 
 static Uart *
-ultraport16si(Pcidev *p, int ctlrno, ulong freq)
+ultraport16si(int ctlrno, Pcidev *p, ulong freq)
 {
 	int io, i;
 	char *name;
 	Uart *uart;
 
-	name = "Ultraport16si";			/* 16L788 UARTs */
+	name = "Ultraport16si";		/* 16L788 UARTs */
 	io = p->mem[4].bar & ~1;
 	if (ioalloc(io, p->mem[4].size, 0, name) < 0) {
 		print("uartpci: can't get IO space to set %s to rs-232\n", name);
@@ -162,8 +162,13 @@ uartpcipnp(void)
 				name = "Ultraport8";	/* 16C754 UARTs */
 				uart = uartpci(ctlrno, p, 2, 8, freq, name, 8);
 				break;
+			case (0x0041<<16)|0x155F:	/* Perle Ultraport16 */
+				name = "Ultraport16";
+				uart = uartpci(ctlrno, p, 2, 16, 2 * freq,
+					name, 8);
+				break;
 			case (0x0241<<16)|0x155F:	/* Perle Ultraport16 */
-				uart = ultraport16si(p, ctlrno, 4 * freq);
+				uart = ultraport16si(ctlrno, p, 4 * freq);
 				break;
 			}
 			break;

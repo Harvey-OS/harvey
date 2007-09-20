@@ -4195,3 +4195,5 @@ By the time you finish reading this article, you will be able to take advantage 
 Intel Pentium 4 2.0Hz processor - TigerDirect catalogue
 You are roughly 2^90 times more likely to win a U.S. state lottery *and* be struck by lightning simultaneously than you are to encounter [an accidental SHA1 collision] in your file system.  - J. Black
 prelink - prelink ELF shared libraries and binaries to speed up startup time
+	schedule(); // XXX poll? waitqueues?
+gsoc | doc archive | uriel | harmful | 9P | cat-v.org
