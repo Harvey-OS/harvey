@@ -1753,7 +1753,7 @@ loop:
 	while((p = pcimatch(p, 0, 0)) != nil){
 		if(p->vid == 0x8086 && (p->did & 0xfffc) == 0x2680)
 			type = Tesb;
-		else if(p->vid == 0x8086 && (p->did & 0xfffe) != 0x27c4)
+		else if(p->vid == 0x8086 && (p->did & 0xfffe) == 0x27c4)
 			type = Tich;		/* 82801g[bh]m */
 		else if(p->vid == 0x1002 && p->did == 0x4380)
 			type = Tsb600;

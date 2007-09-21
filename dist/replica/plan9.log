@@ -52810,3 +52810,8 @@
 1190244604 2 c sys/man/4/import - 664 sys sys 1190243339 3269
 1190244604 3 c sys/man/8/listen - 664 sys sys 1190243316 3735
 1190246404 0 c sys/man/1/patch - 664 sys sys 1190245640 2437
+1190269804 0 c sys/src/9/pc/dat.h - 664 sys sys 1190268414 7549
+1190269804 1 c sys/src/9/pc/fns.h - 664 sys sys 1190268439 4738
+1190269804 2 c sys/src/9/pc/l.s - 664 sys sys 1190268443 29347
+1190307604 0 d sys/src/cmd/venti/srv/fixarenas0.c - 664 sys sys 1142736352 0
+1190314043 0 c sys/src/9/pc/sd63xxesb.c - 664 sys sys 1190313935 36207

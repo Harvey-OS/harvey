@@ -92,6 +92,7 @@ void	mb386(void);
 void	mb586(void);
 void	meminit(void);
 void	memorysummary(void);
+void	mfence(void);
 #define mmuflushtlb(pdb) putcr3(pdb)
 void	mmuinit(void);
 ulong*	mmuwalk(ulong*, ulong, int, int);

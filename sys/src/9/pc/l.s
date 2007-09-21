@@ -872,6 +872,24 @@ TEXT mb586(SB), $0
 	CPUID
 	RET
 
+TEXT sfence(SB), $0
+	BYTE $0x0f
+	BYTE $0xae
+	BYTE $0xf8
+	RET
+
+TEXT lfence(SB), $0
+	BYTE $0x0f
+	BYTE $0xae
+	BYTE $0xe8
+	RET
+
+TEXT mfence(SB), $0
+	BYTE $0x0f
+	BYTE $0xae
+	BYTE $0xf0
+	RET
+
 TEXT xchgw(SB), $0
 	MOVL	v+4(FP), AX
 	MOVL	p+0(FP), BX
