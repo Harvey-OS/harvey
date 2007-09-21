@@ -17,6 +17,7 @@ typedef struct Page	Page;
 typedef struct PMMU	PMMU;
 typedef struct Proc	Proc;
 typedef struct Segdesc	Segdesc;
+typedef vlong		Tval;
 typedef struct Ureg	Ureg;
 typedef struct Vctl	Vctl;
 
@@ -268,6 +269,26 @@ struct PCArch
 	void	(*clockenable)(void);
 	uvlong	(*fastclock)(uvlong*);
 	void	(*timerset)(uvlong);
+};
+
+/* cpuid instruction result register bits */
+enum {
+	/* dx */
+	Fpuonchip = 1<<0,
+//	Pse	= 1<<3,		/* page size extensions */
+	Tsc	= 1<<4,		/* time-stamp counter */
+	Cpumsr	= 1<<5,		/* model-specific registers, rdmsr/wrmsr */
+	Pae	= 1<<6,		/* physical-addr extensions */
+	Mce	= 1<<7,		/* machine-check exception */
+	Cmpxchg8b = 1<<8,
+	Cpuapic	= 1<<9,
+	Mtrr	= 1<<12,	/* memory-type range regs.  */
+	Pge	= 1<<13,	/* page global extension */
+//	Pse2	= 1<<17,	/* more page size extensions */
+	Clflush = 1<<19,
+	Mmx	= 1<<23,
+	Sse	= 1<<25,	/* thus sfence instr. */
+	Sse2	= 1<<26,	/* thus mfence & lfence instr.s */
 };
 
 /*
