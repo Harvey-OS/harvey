@@ -191,7 +191,7 @@
 386/bin/cpp - 775 sys sys 1188446882 149057
 386/bin/cpu - 775 sys sys 1188446885 139216
 386/bin/crop - 775 sys sys 1168402298 116374
-386/bin/cwfs - 775 sys sys 1189048120 365605
+386/bin/cwfs - 775 sys sys 1190401259 365500
 386/bin/date - 775 sys sys 1178568265 41845
 386/bin/db - 775 sys sys 1188499570 349188
 386/bin/dc - 775 sys sys 1168402299 99260
@@ -5830,7 +5830,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1190238331 266990
+sys/games/lib/fortunes - 664 sys sys 1190428693 267065
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -10060,7 +10060,7 @@ sys/src/cmd/cwfs/choline/mkfile - 664 sys sys 1171519759 26
 sys/src/cmd/cwfs/con.c - 664 sys sys 1174717615 15713
 sys/src/cmd/cwfs/config.c - 664 sys sys 1174717895 20243
 sys/src/cmd/cwfs/console.c - 664 sys sys 1174716894 4671
-sys/src/cmd/cwfs/cw.c - 664 sys sys 1174716894 42798
+sys/src/cmd/cwfs/cw.c - 664 sys sys 1190350112 42914
 sys/src/cmd/cwfs/cwfs - 20000000775 sys sys 1174799195 0
 sys/src/cmd/cwfs/cwfs/conf.c - 664 sys sys 1171485877 452
 sys/src/cmd/cwfs/cwfs/dat.h - 664 sys sys 1171485890 796
@@ -14319,7 +14319,6 @@ sys/src/cmd/venti/srv/checkarenas.c - 664 sys sys 1177189435 2313
 sys/src/cmd/venti/srv/checkindex.c - 664 sys sys 1179342633 5978
 sys/src/cmd/venti/srv/clump.c - 664 sys sys 1177189435 5329
 sys/src/cmd/venti/srv/clumpstats.c - 664 sys sys 1142736351 2234
-sys/src/cmd/venti/srv/cmparena.c - 664 sys sys 1142736351 5471
 sys/src/cmd/venti/srv/cmparenas.c - 664 sys sys 1177189435 7215
 sys/src/cmd/venti/srv/conf.rc - 775 sys sys 1189304120 1416
 sys/src/cmd/venti/srv/config.c - 664 sys sys 1178160303 5566
@@ -14342,7 +14341,6 @@ sys/src/cmd/venti/srv/icache.c - 664 sys sys 1186114652 8778
 sys/src/cmd/venti/srv/icachewrite.c - 664 sys sys 1190076776 7787
 sys/src/cmd/venti/srv/ifile.c - 664 sys sys 1189307036 2592
 sys/src/cmd/venti/srv/index.c - 664 sys sys 1178160304 17239
-sys/src/cmd/venti/srv/index2.c - 664 sys sys 1142736354 21620
 sys/src/cmd/venti/srv/lump.c - 664 sys sys 1177189437 5799
 sys/src/cmd/venti/srv/lumpcache.c - 664 sys sys 1177189437 8811
 sys/src/cmd/venti/srv/lumpqueue.c - 664 sys sys 1142736354 2722
