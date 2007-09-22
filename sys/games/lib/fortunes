@@ -4197,3 +4197,4 @@ You are roughly 2^90 times more likely to win a U.S. state lottery *and* be stru
 prelink - prelink ELF shared libraries and binaries to speed up startup time
 	schedule(); // XXX poll? waitqueues?
 gsoc | doc archive | uriel | harmful | 9P | cat-v.org
+/*FIXME: what about parameter checking: context, etc? have a macro too? */
