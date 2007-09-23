@@ -51,7 +51,7 @@ types:
 and so on.
 .SS "Files and Directories
 Venti accepts blocks up to 56 kilobytes in size.  
-By covention, Venti clients use hash trees of blocks to
+By convention, Venti clients use hash trees of blocks to
 represent arbitrary-size data
 .IR files .
 The data to be stored is split into fixed-size
@@ -77,14 +77,14 @@ In this
 manner, arbitrary trees of files can be constructed
 and stored.
 .PP
-Scores passed between programs coventionally refer
+Scores passed between programs conventionally refer
 to
 .B VtRoot
 blocks, which contain descriptive information
 as well as the score of a directory block containing a small number
 of directory entries.
 .PP
-Coventionally, programs do not mix data and directory entries
+Conventionally, programs do not mix data and directory entries
 in the same file.  Instead, they keep two separate files, one with
 directory entries and one with metadata referencing those
 entries by position.
@@ -125,7 +125,7 @@ blocks.)
 .SS "Zero Truncation
 To avoid storing the same short data blocks padded with
 differing numbers of zeros, Venti clients working with fixed-size
-blocks coventionally
+blocks conventionally
 `zero truncate' the blocks before writing them to the server.
 For example, if a 1024-byte data block contains the 
 11-byte string 
@@ -144,7 +144,7 @@ blocks),
 trailing zero scores are removed
 instead of trailing zero bytes.
 .PP
-Because of the truncation covention,
+Because of the truncation convention,
 any file consisting entirely of zero bytes,
 no matter what its length, will be represented by the zero score:
 the data blocks contain all zeros and are thus truncated
@@ -156,7 +156,7 @@ A Venti session begins when a
 .I client
 connects to the network address served by a Venti
 .IR server ;
-the coventional address is 
+the conventional address is 
 .BI tcp! server !venti
 (the
 .B venti

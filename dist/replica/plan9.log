@@ -52820,3 +52820,6 @@
 1190406604 0 d sys/src/cmd/venti/srv/index2.c - 664 sys sys 1142736354 0
 1190406604 1 d sys/src/cmd/venti/srv/cmparena.c - 664 sys sys 1142736351 0
 1190430004 0 c sys/games/lib/fortunes - 664 sys sys 1190428693 267065
+1190444405 0 c sys/src/9/port/devfs.c - 664 sys sys 1190443411 13857
+1190505604 0 c sys/man/6/venti - 664 sys sys 1190504984 10701
+1190505604 1 c sys/man/8/venti - 664 sys sys 1190504986 12190
