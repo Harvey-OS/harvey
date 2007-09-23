@@ -216,13 +216,13 @@ should be split unevenly, with more (say, two thirds)
 going to the block cache.
 .SS Network
 The venti server announces two network services, one 
-(coventionally TCP port 
+(conventionally TCP port 
 .BR venti ,
 17034) serving
 the venti protocol as described in
 .IR venti (6),
 and one serving HTTP
-(coventionally TCP port 
+(conventionally TCP port 
 .BR venti ,
 80).
 .PP
