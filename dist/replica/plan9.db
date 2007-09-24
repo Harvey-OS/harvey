@@ -9954,7 +9954,7 @@ sys/src/cmd/cc - 20000000775 sys sys 1143289118 0
 sys/src/cmd/cc/acid.c - 664 sys sys 944960808 5314
 sys/src/cmd/cc/bits.c - 664 sys sys 944960873 850
 sys/src/cmd/cc/c99 - 664 sys sys 1144690029 1302
-sys/src/cmd/cc/cc.h - 664 sys sys 1143759338 12233
+sys/src/cmd/cc/cc.h - 664 sys sys 1143753524 12233
 sys/src/cmd/cc/cc.y - 664 sys sys 1143220759 16160
 sys/src/cmd/cc/com.c - 664 sys sys 1168702346 22212
 sys/src/cmd/cc/com64.c - 664 sys sys 1143240308 10001
