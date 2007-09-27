@@ -14,6 +14,7 @@ dev
 	tls
 	cap
 	kprof
+	fs
 
 	ether		netif
 	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
@@ -23,7 +24,6 @@ dev
 	vga
 
 	sd
-	fs
 	floppy		dma
 
 	uart
@@ -52,6 +52,9 @@ ip
 	ipifc
 	icmp
 	icmp6
+	gre
+	ipmux
+	esp
 
 port
 	int cpuserver = 1;

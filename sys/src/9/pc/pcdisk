@@ -14,6 +14,7 @@ dev
 	tls
 	cap
 	kprof
+	fs
 
 	ether		netif
 	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
@@ -31,6 +32,7 @@ dev
 	i82365		cis
 	uart
 	usb
+	aoe
 
 link
 	realmode
@@ -45,6 +47,7 @@ link
 	ether8139
 	ether8169	pci ethermii
 	ether82543gc	pci
+	ether82563	pci
 	ether82557	pci
 	ether83815	pci
 	etherec2t	ether8390
@@ -68,6 +71,7 @@ misc
 	sdata		pci sdscsi
 	sd53c8xx		pci sdscsi
 	sdmylex		pci sdscsi
+	sdaoe
 
 	uarti8250
 	uartpci		pci
@@ -101,12 +105,17 @@ ip
 	ipifc
 	icmp
 	icmp6
+	gre
+	ipmux
+	esp
+#	il
 
 port
 	int cpuserver = 0;
 
 boot boot #S/sdC0/
 	tcp
+#	il
 	local
 
 bootdir

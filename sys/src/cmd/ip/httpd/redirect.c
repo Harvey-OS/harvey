@@ -21,7 +21,7 @@ static Redir *redirtab[HASHSIZE];
 static Redir *vhosttab[HASHSIZE];
 static char emptystring[1];
 
-static int 
+static int
 hashasu(char *key, int n)
 {
         ulong h;
@@ -50,7 +50,7 @@ insert(Redir **tab, char *pat, char *repl)
 
 static void
 cleartab(Redir **tab)
-{	
+{
 	Redir *t;
 	int i;
 
@@ -94,9 +94,10 @@ redirectinit(void)
 			if(strncmp(field[0], "http://", STRLEN("http://")) == 0 &&
 					strncmp(field[1], "http://", STRLEN("http://")) != 0){
 				host = field[0]+STRLEN("http://");
-				s = strpbrk(host, "/:");
+				s = strpbrk(host, "/");
 				if(s)
-					*s = 0;  /* chop trailing slash or portnumber */
+					*s = 0;  /* chop trailing slash */
+
 				insert(vhosttab, estrdup(host), estrdup(field[1]));
 			}else{
 				insert(redirtab, estrdup(field[0]), estrdup(field[1]));

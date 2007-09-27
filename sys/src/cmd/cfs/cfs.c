@@ -17,7 +17,7 @@ enum
 };
 
 /* maximum length of a file */
-#define MAXLEN 0x7fffffffffffffffLL
+enum { MAXLEN = ~0ULL >> 1 };
 
 typedef struct Mfile Mfile;
 typedef struct Ram Ram;
@@ -31,7 +31,7 @@ struct Mfile
 
 Mfile	mfile[Nfid];
 Icache	ic;
-int	debug, statson;
+int	debug, statson, noauth, openserver;
 
 struct P9fs
 {
@@ -119,22 +119,17 @@ char *mname[]={
 void
 usage(void)
 {
-	fprint(2, "usage:\tcfs -s [-krd] [-f partition]\n");
-	fprint(2, "\tcfs [-krd] [-f partition] [-a netaddr] [mt-pt]\n");
+	fprint(2, "usage:\tcfs -s [-dknrS] [-f partition]\n");
+	fprint(2, "\tcfs [-a netaddr | -F srv] [-dknrS] [-f partition] [mntpt]\n");
 	exits("usage");
 }
 
 void
 main(int argc, char *argv[])
 {
-	int std;
-	int format;
-	char *part;
-	char *server;
-	char *mtpt;
-
-	int chkid;
-	NetConnInfo * snci;
+	int std, format, chkid;
+	char *part, *server, *mtpt;
+	NetConnInfo *snci;
 
 	std = 0;
 	format = 0;
@@ -147,23 +142,30 @@ main(int argc, char *argv[])
 	case 'a':
 		server = EARGF(usage());
 		break;
+	case 'd':
+		debug = 1;
+		break;
+	case 'f':
+		part = EARGF(usage());
+		break;
+	case 'F':
+		server = EARGF(usage());
+		openserver = 1;
+		break;
+	case 'k':
+		chkid = 0;
+		break;
+	case 'n':
+		noauth = 1;
+		break;
+	case 'r':
+		format = 1;
+		break;
 	case 'S':
 		statson = 1;
 		break;
 	case 's':
 		std = 1;
-		break;
-	case 'r':
-		format = 1;
-		break;
-	case 'f':
-		part = EARGF(usage());
-		break;
-	case 'd':
-		debug = 1;
-		break;
-	case 'k':
-		chkid = 0;
 		break;
 	default:
 		usage();
@@ -234,14 +236,19 @@ cachesetup(int format, char *name, char *partition)
 void
 mountinit(char *server, char *mountpoint)
 {
+	int err;
 	int p[2];
 
 	/*
 	 *  grab a channel and call up the file server
 	 */
-	s.fd[0] = s.fd[1] = dial(netmkaddr(server, 0, "9fs"), 0, 0, 0);
+	if (openserver)
+		s.fd[0] = open(server, ORDWR);
+	else
+		s.fd[0] = dial(netmkaddr(server, 0, "9fs"), 0, 0, 0);
 	if(s.fd[0] < 0)
-		error("opening data");
+		error("opening data: %r");
+	s.fd[1] = s.fd[0];
 
 	/*
  	 *  mount onto name space
@@ -252,8 +259,12 @@ mountinit(char *server, char *mountpoint)
 	case 0:
 		break;
 	default:
-		if(amount(p[1], mountpoint, MREPL|MCREATE, "") < 0)
-			error("mount failed");
+		if (noauth)
+			err = mount(p[1], -1, mountpoint, MREPL|MCREATE, "");
+		else
+			err = amount(p[1], mountpoint, MREPL|MCREATE, "");
+		if (err < 0)
+			error("mount failed: %r");
 		exits(0);
 	case -1:
 		error("fork failed\n");
@@ -636,7 +647,7 @@ void
 rstat(Mfile *mf)
 {
 	Dir d;
-	
+
 	if(statson && ctltest(mf)){
 		genstats();
 		d.qid = ctlqid;

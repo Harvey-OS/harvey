@@ -55,8 +55,8 @@ struct HContent
 	HContent	*next;
 	char		*generic;
 	char		*specific;
-	float		q;			/* desirability of this kind of file */
-	int		mxb;			/* max uchars until worthless */
+	float		q;		/* desirability of this kind of file */
+	int		mxb;		/* max uchars until worthless */
 };
 
 struct HContents
@@ -126,15 +126,15 @@ enum
 };
 
 struct Hio {
-	Hio		*hh;			/* next lower layer Hio, or nil if reads from fd */
-	int		fd;			/* associated file descriptor */
-	ulong		seek;			/* of start */
-	uchar		state;			/* state of the file */
-	uchar		xferenc;		/* chunked transfer encoding state */
-	uchar		*pos;			/* current position in the buffer */
-	uchar		*stop;			/* last character active in the buffer */
-	uchar		*start;			/* start of data buffer */
-	ulong		bodylen;		/* remaining length of message body */
+	Hio		*hh; /* next lower layer Hio, or nil if reads from fd */
+	int		fd;		/* associated file descriptor */
+	ulong		seek;		/* of start */
+	uchar		state;		/* state of the file */
+	uchar		xferenc;	/* chunked transfer encoding state */
+	uchar		*pos;		/* current position in the buffer */
+	uchar		*stop;		/* last character active in the buffer */
+	uchar		*start;		/* start of data buffer */
+	ulong		bodylen;	/* remaining length of message body */
 	uchar		buf[Hsize+32];
 };
 
@@ -149,7 +149,7 @@ struct HttpReq
 	char		*search;
 	int		vermaj;
 	int		vermin;
-	HSPairs	*searchpairs;
+	HSPairs		*searchpairs;
 };
 
 /*
@@ -157,34 +157,35 @@ struct HttpReq
  */
 struct HttpHead
 {
-	int		closeit;		/* http1.1 close connection after this request? */
-	uchar		persist;		/* http/1.1 requests a persistent connection */
+	int	closeit;	/* http1.1 close connection after this request? */
+	uchar	persist;	/* http/1.1 requests a persistent connection */
 
-	uchar		expectcont;		/* expect a 100-continue */
-	uchar		expectother;		/* expect anything else; should reject with ExpectFail */
-	ulong		contlen;		/* if != ~0UL, length of included message body */
-	HFields		*transenc;		/* if present, encoding of included message body */
-	char		*client;
-	char		*host;
-	HContent	*okencode;
-	HContent	*oklang;
-	HContent	*oktype;
-	HContent	*okchar;
-	ulong		ifmodsince;
-	ulong		ifunmodsince;
-	ulong		ifrangedate;
-	HETag		*ifmatch;
-	HETag		*ifnomatch;
-	HETag		*ifrangeetag;
-	HRange		*range;
-	char		*authuser;		/* authorization info */
-	char		*authpass;
+	uchar	expectcont;	/* expect a 100-continue */
+	uchar	expectother; /* expect anything else; should reject with ExpectFail */
+	ulong	contlen;	/* if != ~0UL, length of included message body */
+	HFields	*transenc;  /* if present, encoding of included message body */
+	char	*client;
+	char	*host;
+	HContent *okencode;
+	HContent *oklang;
+	HContent *oktype;
+	HContent *okchar;
+	ulong	ifmodsince;
+	ulong	ifunmodsince;
+	ulong	ifrangedate;
+	HETag	*ifmatch;
+	HETag	*ifnomatch;
+	HETag	*ifrangeetag;
+	HRange	*range;
+	char	*authuser;		/* authorization info */
+	char	*authpass;
+	HSPairs	*cookie;	/* if present, list of cookies */
 
 	/*
 	 * experimental headers
 	 */
-	int		fresh_thresh;
-	int		fresh_have;
+	int	fresh_thresh;
+	int	fresh_have;
 };
 
 /*
@@ -192,21 +193,21 @@ struct HttpHead
  */
 struct HConnect
 {
-	void		*private;		/* for the library clients */
-	void		(*replog)(HConnect*, char*, ...);	/* called when reply sent */
+	void	*private;		/* for the library clients */
+	void	(*replog)(HConnect*, char*, ...); /* called when reply sent */
 
-	HttpReq		req;
-	HttpHead	head;
+	HttpReq	req;
+	HttpHead head;
 
-	Bin		*bin;
+	Bin	*bin;
 
-	ulong		reqtime;		/* time at start of request */
-	char		xferbuf[HBufSize];	/* buffer for making up or transferring data */
-	uchar		header[HBufSize + 2];	/* room for \n\0 */
-	uchar		*hpos;
-	uchar		*hstop;
-	Hio		hin;
-	Hio		hout;
+	ulong	reqtime;		/* time at start of request */
+	char	xferbuf[HBufSize]; /* buffer for making up or transferring data */
+	uchar	header[HBufSize + 2];	/* room for \n\0 */
+	uchar	*hpos;
+	uchar	*hstop;
+	Hio	hin;
+	Hio	hout;
 };
 
 /*

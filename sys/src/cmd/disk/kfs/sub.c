@@ -356,6 +356,7 @@ newqid(Device dev)
 	sb->qidgen++;
 	qid.path = sb->qidgen;
 	qid.vers = 0;
+	qid.type = 0;
 	putbuf(p);
 	return qid;
 }
