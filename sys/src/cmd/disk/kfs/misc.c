@@ -84,8 +84,3 @@ print(char *fmt, ...)
 	return n;
 }
 
-void
-perror(char *msg)
-{
-	fprint(2, "%s", msg);
-}

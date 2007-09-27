@@ -1,2 +1,2 @@
 #!/bin/rc
-mail -x $1 | grep -vs '^unknown user'
+mail -x $1 | grep -vs '^unknown user|^Invalid address'

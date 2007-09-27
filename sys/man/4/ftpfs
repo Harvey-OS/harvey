@@ -49,7 +49,7 @@ will ask
 for a key matching the pattern
 .IP
 .EX
-proto=pass service=ftp server=\fIsystem\fP user? !password? \fIkeyspec\fP 
+proto=pass service=ftp server=\fIsystem\fP user? !password? \fIkeyspec\fP
 .EE
 .PP
 (If
@@ -119,11 +119,11 @@ FTP SYST command.  However, in some cases the server doesn't implement
 the SYST command.  The
 .B -o
 option will force the case by specifying the name of the operating
-system.  Known system types are are:
-.BR Unix ,
-.BR Sun ,
-.BR Tops ,
-.BR Plan9
+system.  Known system types are:
+.BR UNIX ,
+.BR SUN ,
+.BR TOPS ,
+.BR Plan9 ,
 .BR VM ,
 .BR VMS ,
 .BR MVS ,
@@ -171,7 +171,6 @@ ftpfs -a yourname@yourmachine export.lcs.mit.edu
 .SH "SEE ALSO"
 .IR bind (2)
 .SH BUGS
-.PP
 Symbolic links on remote Unix systems will always have mode 0777
 and a length of 8.
 .PP
@@ -188,9 +187,29 @@ directory by writing or removing a file.
 Otherwise, remote
 changes to the directory that occur after the directory has
 been cached might not be immediately visible.
+Attempting to walk to
+.IB directory /.flush.ftpfs
+will flush
+.I directory
+from the cache, thus forcing
+.I ftpfs
+to re-read it.
 .PP
 There is no way to issue the appropriate commands to handle special synthetic
 FTP file types such as directories
 that automatically return a
 .B tar
 of their contents.
+.PP
+.I Ftpfs
+makes copies in
+.B /tmp
+of files being transferred,
+so its effects might not be immediate.
+If there is enough main memory, you might want to run
+.IR ramfs (4)
+first.
+.PP
+Filenames containing spaces will confuse
+.I ftpfs
+(and other FTP clients).

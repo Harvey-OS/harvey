@@ -1,6 +1,6 @@
 386 - 20000000775 sys sys 1010957353 0
 386/9load - 775 sys sys 1186619808 326380
-386/9loaddebug - 775 sys sys 1186619810 434889
+386/9loaddebug - 775 sys sys 1190838375 435057
 386/9loadlite - 775 sys sys 1186619809 149672
 386/9loadlitedebug - 775 sys sys 1186619811 220399
 386/9pc - 775 sys sys 1189053434 2038499
@@ -36,7 +36,7 @@
 386/bin/ape/stty - 775 sys sys 1148500571 41080
 386/bin/ape/tar - 775 sys sys 1168402264 62184
 386/bin/ape/uname - 775 sys sys 1173754552 134895
-386/bin/aquarela - 775 sys sys 1184731228 337738
+386/bin/aquarela - 775 sys sys 1190785976 337715
 386/bin/ar - 775 sys sys 1178939751 114363
 386/bin/archfs - 775 sys sys 1179372067 146788
 386/bin/ascii - 775 sys sys 1168402265 64884
@@ -178,7 +178,7 @@
 386/bin/cfs - 775 sys sys 1179372081 130255
 386/bin/chgrp - 775 sys sys 1168402294 59522
 386/bin/chmod - 775 sys sys 1168402294 62518
-386/bin/cifscmd - 775 sys sys 1184731236 348576
+386/bin/cifscmd - 775 sys sys 1190785982 348553
 386/bin/cleanname - 775 sys sys 1168402295 58541
 386/bin/clock - 775 sys sys 1179372082 157340
 386/bin/cmp - 775 sys sys 1157597609 40658
@@ -1493,6 +1493,7 @@ lib/face/48x48x8/s/st.1 - 664 sys sys 1172265601 629
 lib/face/48x48x8/s/stevesimon.1 - 664 sys sys 1056982262 1598
 lib/face/48x48x8/s/stevesimon.2 - 664 sys sys 1176753394 954
 lib/face/48x48x8/t - 20000000775 sys sys 1078950263 0
+lib/face/48x48x8/t/tg.1 - 664 sys sys 1190850704 1208
 lib/face/48x48x8/t/tiit.1 - 664 sys sys 1078950263 2061
 lib/face/48x48x8/u - 20000000775 sys sys 1079022090 0
 lib/face/48x48x8/u/unknown.ar - 664 sys sys 1078952024 349
@@ -5320,7 +5321,7 @@ mail/lib/setup.bayes - 775 upas upas 1071065627 468
 mail/lib/smtpd.conf - 664 upas upas 961114164 536
 mail/lib/spam.rc - 775 upas upas 1063950954 400
 mail/lib/unspam.rc - 775 upas upas 1063950954 400
-mail/lib/validateaddress - 775 upas upas 1098803974 48
+mail/lib/validateaddress - 775 upas upas 1190821143 65
 mail/lib/validateattachment - 775 upas upas 1180857656 1209
 mail/lib/validatesender - 775 upas upas 1106233741 1128
 mail/lib/white.starter - 664 upas upas 1067739606 326
@@ -6088,7 +6089,7 @@ sys/include/flate.h - 664 sys sys 1014929063 1245
 sys/include/frame.h - 664 sys sys 1147706379 2682
 sys/include/geometry.h - 664 sys sys 1014929063 2632
 sys/include/html.h - 664 sys sys 1184472600 15622
-sys/include/httpd.h - 664 sys sys 1177187803 5794
+sys/include/httpd.h - 664 sys sys 1190835025 5800
 sys/include/ip.h - 664 sys sys 1187047442 4383
 sys/include/keyboard.h - 664 sys sys 1131637696 865
 sys/include/libc.h - 664 sys sys 1168306860 19851
@@ -7404,7 +7405,7 @@ sys/man/1/hoc - 664 sys sys 1136378274 2357
 sys/man/1/htmlroff - 664 sys sys 1138396051 1831
 sys/man/1/idiff - 664 sys sys 1113743324 914
 sys/man/1/join - 664 sys sys 1113743324 2561
-sys/man/1/jpg - 664 sys sys 1166760721 4841
+sys/man/1/jpg - 664 sys sys 1190833701 5143
 sys/man/1/kbmap - 664 sys sys 1159419894 846
 sys/man/1/kill - 664 sys sys 1018369246 1193
 sys/man/1/ktrace - 664 sys sys 957920006 1330
@@ -7431,7 +7432,7 @@ sys/man/1/ns - 664 sys sys 1163208505 895
 sys/man/1/p - 664 sys sys 944959673 504
 sys/man/1/page - 664 sys sys 1087829646 5839
 sys/man/1/passwd - 664 sys sys 1181277007 1532
-sys/man/1/patch - 664 sys sys 1190245640 2437
+sys/man/1/patch - 664 sys sys 1190830651 2566
 sys/man/1/pcc - 664 sys sys 1015024740 3478
 sys/man/1/pic - 664 sys sys 1022625353 8229
 sys/man/1/pipefile - 664 sys sys 984709628 1861
@@ -7528,7 +7529,7 @@ sys/man/2/complete - 664 sys sys 1076276513 2396
 sys/man/2/control - 664 sys sys 1123676381 42778
 sys/man/2/cputime - 664 sys sys 1015091518 713
 sys/man/2/ctime - 664 sys sys 954378853 2547
-sys/man/2/ctype - 664 sys sys 1079535676 2611
+sys/man/2/ctype - 664 sys sys 1190847978 2610
 sys/man/2/debugger - 664 sys sys 944959696 8629
 sys/man/2/des - 664 sys sys 1188278025 3901
 sys/man/2/dial - 664 sys sys 1175725019 6594
@@ -7698,7 +7699,7 @@ sys/man/4/INDEX.html - 664 sys sys 1183240481 5147
 sys/man/4/acme - 664 sys sys 1181238729 10435
 sys/man/4/archfs - 664 sys sys 960000712 533
 sys/man/4/cdfs - 664 sys sys 1026846913 3638
-sys/man/4/cfs - 664 sys sys 1172762903 1813
+sys/man/4/cfs - 664 sys sys 1190855816 2132
 sys/man/4/consolefs - 664 sys sys 1144424854 4245
 sys/man/4/cwfs - 664 sys sys 1189029640 6255
 sys/man/4/dossrv - 664 sys sys 1168307403 4334
@@ -7708,7 +7709,7 @@ sys/man/4/ext2srv - 664 sys sys 1055692986 2409
 sys/man/4/factotum - 664 sys sys 1187721636 14843
 sys/man/4/fossil - 664 sys sys 1186820346 9592
 sys/man/4/fs - 664 sys sys 1188531555 3441
-sys/man/4/ftpfs - 664 sys sys 1112563349 4410
+sys/man/4/ftpfs - 664 sys sys 1190842826 4788
 sys/man/4/httpfile - 664 sys sys 1128556957 1233
 sys/man/4/import - 664 sys sys 1190243339 3269
 sys/man/4/iostats - 664 sys sys 1105574383 1621
@@ -8091,6 +8092,8 @@ sys/src/9/pc/etherga620fw.h - 664 sys sys 1026847642 222295
 sys/src/9/pc/etherif.h - 664 sys sys 1088178711 961
 sys/src/9/pc/etherigbe.c - 664 sys sys 1184468343 44976
 sys/src/9/pc/etherm10g.c - 664 sys sys 1174595240 27681
+sys/src/9/pc/etherm10g2k.i - 664 sys sys 1174590360 957485
+sys/src/9/pc/etherm10g4k.i - 664 sys sys 1174590362 926959
 sys/src/9/pc/ethermii.c - 664 sys sys 1181160689 4668
 sys/src/9/pc/ethermii.h - 664 sys sys 1086873891 3258
 sys/src/9/pc/etherrhine.c - 664 sys sys 1081706478 13799
@@ -8118,15 +8121,15 @@ sys/src/9/pc/mouse.c - 664 sys sys 1098479254 7057
 sys/src/9/pc/mp.c - 664 sys sys 1162388126 17349
 sys/src/9/pc/mp.h - 664 sys sys 1173288116 6799
 sys/src/9/pc/nv_dma.h - 664 sys sys 1081384508 12943
-sys/src/9/pc/pc - 664 sys sys 1188582378 1444
-sys/src/9/pc/pcauth - 664 sys sys 1188582378 707
-sys/src/9/pc/pccd - 664 sys sys 1188582378 1458
-sys/src/9/pc/pccpu - 664 sys sys 1188582378 917
-sys/src/9/pc/pccpuf - 664 sys sys 1188582378 1524
-sys/src/9/pc/pcdisk - 664 sys sys 1188582378 1487
-sys/src/9/pc/pcf - 664 sys sys 1188582378 1545
+sys/src/9/pc/pc - 664 sys sys 1190853434 1521
+sys/src/9/pc/pcauth - 664 sys sys 1179696163 724
+sys/src/9/pc/pccd - 664 sys sys 1190853542 1493
+sys/src/9/pc/pccpu - 664 sys sys 1190853631 1008
+sys/src/9/pc/pccpuf - 664 sys sys 1190853647 1586
+sys/src/9/pc/pcdisk - 664 sys sys 1190853723 1546
+sys/src/9/pc/pcf - 664 sys sys 1181616886 1582
 sys/src/9/pc/pcfl - 664 sys sys 1188582378 1579
-sys/src/9/pc/pcflop - 664 sys sys 1188582378 1509
+sys/src/9/pc/pcflop - 664 sys sys 1190853787 1540
 sys/src/9/pc/pci.c - 664 sys sys 1185452613 29418
 sys/src/9/pc/pcmciamodem.c - 664 sys sys 1099761153 1586
 sys/src/9/pc/pcmkfile - 664 sys sys 1109303822 101
@@ -8140,6 +8143,7 @@ sys/src/9/pc/rebootcode.s - 664 sys sys 1015014522 988
 sys/src/9/pc/screen.c - 664 sys sys 1184522395 13973
 sys/src/9/pc/screen.h - 664 sys sys 1147023549 4256
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1170456695 55276
+sys/src/9/pc/sd53c8xx.i - 664 sys sys 1128547230 28453
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
 sys/src/9/pc/sd63xxesb.c - 664 sys sys 1190313935 36207
 sys/src/9/pc/sdata.c - 664 sys sys 1186361525 52991
@@ -8148,6 +8152,7 @@ sys/src/9/pc/sdmylex.c - 664 sys sys 1189229947 28395
 sys/src/9/pc/sdscsi.c - 664 sys sys 1186618532 7957
 sys/src/9/pc/trap.c - 664 sys sys 1186361997 21898
 sys/src/9/pc/uartaxp.c - 664 sys sys 1166247784 18879
+sys/src/9/pc/uartaxp.i - 664 sys sys 1155243528 111326
 sys/src/9/pc/uarti8250.c - 664 sys sys 1177676872 13957
 sys/src/9/pc/uartisa.c - 664 sys sys 1127126907 1777
 sys/src/9/pc/uartpci.c - 664 sys sys 1190235592 4685
@@ -9608,7 +9613,7 @@ sys/src/cmd/auth/factotum/util.c - 664 sys sys 1182192267 18452
 sys/src/cmd/auth/factotum/wep.c - 664 sys sys 1107706104 2140
 sys/src/cmd/auth/guard.srv.c - 664 sys sys 1172776773 2873
 sys/src/cmd/auth/iam.c - 664 sys sys 1015008430 841
-sys/src/cmd/auth/keyfs.c - 664 sys sys 1140272942 17633
+sys/src/cmd/auth/keyfs.c - 664 sys sys 1190849063 19129
 sys/src/cmd/auth/lib - 20000000775 sys sys 1045504996 0
 sys/src/cmd/auth/lib/error.c - 664 sys sys 1155994850 318
 sys/src/cmd/auth/lib/fs.c - 664 sys sys 1015008430 228
@@ -9986,7 +9991,7 @@ sys/src/cmd/cfs - 20000000775 sys sys 1045505024 0
 sys/src/cmd/cfs/bcache.c - 664 sys sys 1172123361 2964
 sys/src/cmd/cfs/bcache.h - 664 sys sys 1014925220 797
 sys/src/cmd/cfs/cformat.h - 664 sys sys 1172762903 1386
-sys/src/cmd/cfs/cfs.c - 664 sys sys 1172801081 17100
+sys/src/cmd/cfs/cfs.c - 664 sys sys 1190855301 17379
 sys/src/cmd/cfs/disk.c - 664 sys sys 1172801077 6106
 sys/src/cmd/cfs/disk.h - 664 sys sys 1172762904 482
 sys/src/cmd/cfs/file.c - 664 sys sys 1172123358 5088
@@ -10214,14 +10219,14 @@ sys/src/cmd/disk/kfs/fns.h - 664 sys sys 1019058719 1010
 sys/src/cmd/disk/kfs/ialloc.c - 664 sys sys 944960883 103
 sys/src/cmd/disk/kfs/iobuf.c - 664 sys sys 1015009189 3769
 sys/src/cmd/disk/kfs/main.c - 664 sys sys 1182192646 9506
-sys/src/cmd/disk/kfs/misc.c - 664 sys sys 1015009189 1182
+sys/src/cmd/disk/kfs/misc.c - 664 sys sys 1190834110 1132
 sys/src/cmd/disk/kfs/mkfile - 664 sys sys 1065916865 717
 sys/src/cmd/disk/kfs/ofcallfmt.c - 664 sys sys 1134305454 4681
 sys/src/cmd/disk/kfs/portdat.h - 664 sys sys 1082221137 6055
 sys/src/cmd/disk/kfs/portfns.h - 664 sys sys 1020313861 2804
 sys/src/cmd/disk/kfs/porttime.c - 664 sys sys 1015009190 3922
 sys/src/cmd/disk/kfs/print.c - 664 sys sys 944960882 3573
-sys/src/cmd/disk/kfs/sub.c - 664 sys sys 1022008488 10804
+sys/src/cmd/disk/kfs/sub.c - 664 sys sys 1190834108 10819
 sys/src/cmd/disk/kfs/uid.c - 664 sys sys 1143759347 6779
 sys/src/cmd/disk/kfscmd.c - 664 sys sys 1015009135 1109
 sys/src/cmd/disk/mbr.c - 664 sys sys 1080218150 4325
@@ -12463,7 +12468,7 @@ sys/src/cmd/ip/httpd/man2html.c - 664 sys sys 1139667314 9069
 sys/src/cmd/ip/httpd/mkfile - 664 sys sys 1123902339 1353
 sys/src/cmd/ip/httpd/netlib_find.c - 664 sys sys 1015090172 6247
 sys/src/cmd/ip/httpd/netlib_history.c - 664 sys sys 1121977160 4748
-sys/src/cmd/ip/httpd/redirect.c - 664 sys sys 1042522766 2978
+sys/src/cmd/ip/httpd/redirect.c - 664 sys sys 1190834585 2962
 sys/src/cmd/ip/httpd/save.c - 664 sys sys 1015090172 3175
 sys/src/cmd/ip/httpd/sendfd.c - 664 sys sys 1129202621 12264
 sys/src/cmd/ip/httpd/webls.c - 664 sys sys 1120737502 7658
@@ -12593,7 +12598,7 @@ sys/src/cmd/jpg/readgif.c - 664 sys sys 1143220941 10472
 sys/src/cmd/jpg/readjpg.c - 664 sys sys 1032060302 33009
 sys/src/cmd/jpg/readpng.c - 664 sys sys 1108852825 10117
 sys/src/cmd/jpg/readppm.c - 664 sys sys 1108851603 3645
-sys/src/cmd/jpg/readyuv.c - 664 sys sys 1175869532 4090
+sys/src/cmd/jpg/readyuv.c - 664 sys sys 1190832519 4180
 sys/src/cmd/jpg/rgbrgbv.c - 664 sys sys 984718829 1236
 sys/src/cmd/jpg/rgbycc.c - 664 sys sys 944961292 2486
 sys/src/cmd/jpg/togif.c - 664 sys sys 944961292 2828
@@ -15222,7 +15227,7 @@ sys/src/libhttpd/httpunesc.c - 664 sys sys 1014930784 888
 sys/src/libhttpd/lower.c - 664 sys sys 1014930784 226
 sys/src/libhttpd/mkfile - 664 sys sys 1035389778 421
 sys/src/libhttpd/okheaders.c - 664 sys sys 1014930784 433
-sys/src/libhttpd/parse.c - 664 sys sys 1143695434 18934
+sys/src/libhttpd/parse.c - 664 sys sys 1190835951 19361
 sys/src/libhttpd/parsereq.c - 664 sys sys 1177187800 5112
 sys/src/libhttpd/query.c - 664 sys sys 1014930785 712
 sys/src/libhttpd/redirected.c - 664 sys sys 1014930785 1555
@@ -15742,3 +15747,17 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/cfs - 775 sys sys 1190863294 130565
+386/bin/venti/venti - 775 sys sys 1190863339 459617
+386/bin/auth/keyfs - 775 sys sys 1190863289 116576
+386/bin/disk/kfs - 775 sys sys 1190863302 248673
+386/bin/ip/httpd/httpd - 775 sys sys 1190863308 295398
+386/bin/ip/httpd/imagemap - 775 sys sys 1190863311 116312
+386/bin/ip/httpd/man2html - 775 sys sys 1190863314 124866
+386/bin/ip/httpd/netlib_find - 775 sys sys 1190863316 117160
+386/bin/ip/httpd/netlib_history - 775 sys sys 1190863320 115952
+386/bin/ip/httpd/save - 775 sys sys 1190863324 132756
+386/bin/ip/httpd/webls - 775 sys sys 1190863326 132821
+386/bin/ip/httpd/wikipost - 775 sys sys 1190863330 114191
+386/bin/yuv - 775 sys sys 1190863342 154657
+386/lib/libhttpd.a - 664 sys sys 1190863344 100872

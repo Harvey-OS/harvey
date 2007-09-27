@@ -27,6 +27,7 @@ dev
 
 	sd
 	floppy		dma
+	aoe
 
 	uart
 	usb
@@ -43,14 +44,17 @@ link
 	ether8139	pci
 	ether8169	pci ethermii
 	ether82543gc	pci
+	ether82563	pci
 	ether82557	pci
 	ether83815	pci
+	etherdp83820	pci
 	etherec2t	ether8390
 	etherelnk3	pci
 	etherga620	pci
 	etherigbe	pci ethermii
 	ethervgbe	pci ethermii
 	ethervt6102	pci ethermii
+#	etherm10g	pci
 	ethersink
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
@@ -68,6 +72,7 @@ misc
 	sdata		pci sdscsi
 	sd53c8xx	pci sdscsi
 	sdmylex		pci sdscsi
+	sdaoe
 
 	vga3dfx		+cur
 	vgaark2000pv	+cur

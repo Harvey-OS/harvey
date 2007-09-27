@@ -156,5 +156,5 @@ for the tables.
 .IR isalpharune (2)
 .SH BUGS
 These macros are
-.SM ASCII \c
+.SM ASCII\c
 -centric.

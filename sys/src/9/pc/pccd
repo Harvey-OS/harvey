@@ -44,8 +44,9 @@ link
 	ether79c970	pci
 	ether8003	ether8390
 	ether8139	pci
-	ether8169	pci
+	ether8169	pci ethermii
 	ether82543gc	pci
+	ether82563	pci
 	ether82557	pci
 	ether83815	pci
 	etherdp83820	pci
@@ -102,12 +103,14 @@ ip
 	ipifc
 	icmp
 	icmp6
+#	il
 
 port
 	int cpuserver = 0;
 
 boot boot #S/sdD0/data
 	tcp
+#	il
 	local
 
 bootdir
