@@ -88,7 +88,7 @@ HFILES=\
 	fns.h\
 	io.h\
 
-CFLAGS=-FVw -I.
+CFLAGS=-FTVw -I.
 
 all:V:	$TARG
 

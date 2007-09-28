@@ -34,8 +34,8 @@
 #define CPU0PTE		0x80003000		/* bootstrap processor PTE's for 0-4MB */
 #define MACHADDR	0x80004000		/* as seen by current processor */
 #define CPU0MACH	0x80005000		/* Mach for bootstrap processor */
-#define	MACHSIZE	(BY2PG*8)	/* stack size */
-
+#define BIOSXCHG	0x80006000		/* To exchange data with the BIOS */
+#define	MACHSIZE	(BY2PG*8)		/* stack size */
 
 /*
  *  Address spaces

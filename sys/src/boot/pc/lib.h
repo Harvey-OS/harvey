@@ -7,17 +7,17 @@
 /*
  * mem routines
  */
-extern	void*	memccpy(void*, void*, int, long);
-extern	void*	memset(void*, int, long);
-extern	int	memcmp(void*, void*, long);
-extern	void*	memmove(void*, void*, long);
-extern	void*	memchr(void*, int, long);
+extern	void*	memccpy(void*, void*, int, ulong);
+extern	void*	memset(void*, int, ulong);
+extern	int	memcmp(void*, void*, ulong);
+extern	void*	memmove(void*, void*, ulong);
+extern	void*	memchr(void*, int, ulong);
 
 /*
  * string routines
  */
 extern	char*	strcat(char*, char*);
-extern	char*	strchr(char*, char);
+extern	char*	strchr(char*, int);
 extern	int	strcmp(char*, char*);
 extern	char*	strcpy(char*, char*);
 extern	char*	strncat(char*, char*, long);
