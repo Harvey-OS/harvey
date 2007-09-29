@@ -106,7 +106,7 @@ Qid	mkqid(User*, ulong);
 int	dostat(User*, ulong, void*, int);
 int	newkeys(void);
 void	warning(void);
-int	wierdfmt(Fmt *f);
+int	weirdfmt(Fmt *f);
 
 char	*Auth(Fid*), *Attach(Fid*), *Version(Fid*),
 	*Flush(Fid*), *Walk(Fid*),
@@ -142,7 +142,7 @@ main(int argc, char *argv[])
 	char *mntpt;
 	int p[2];
 
-	fmtinstall('W', wierdfmt);
+	fmtinstall('W', weirdfmt);
 	mntpt = "/mnt/keys";
 	ARGBEGIN{
 	case 'm':
@@ -795,7 +795,7 @@ writeusers(void)
 }
 
 int
-wierdfmt(Fmt *f)
+weirdfmt(Fmt *f)
 {
 	char *s, buf[ANAMELEN*4 + 1];
 	int i, j, n;

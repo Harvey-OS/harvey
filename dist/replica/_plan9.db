@@ -8204,7 +8204,7 @@ sys/src/9/port/devcons.c - 664 sys sys 1176658321 22943
 sys/src/9/port/devdraw.c - 664 sys sys 1147023550 44447
 sys/src/9/port/devdup.c - 664 sys sys 1014931172 2332
 sys/src/9/port/devenv.c - 664 sys sys 1169498893 7015
-sys/src/9/port/devfs.c - 664 sys sys 1190443411 13857
+sys/src/9/port/devfs.c - 664 sys sys 1191008235 14697
 sys/src/9/port/devkbmap.c - 664 sys sys 1130763846 3064
 sys/src/9/port/devkprof.c - 664 sys sys 1014931173 3111
 sys/src/9/port/devloopback.c - 664 sys sys 1138458368 14579
@@ -9614,7 +9614,7 @@ sys/src/cmd/auth/factotum/util.c - 664 sys sys 1182192267 18452
 sys/src/cmd/auth/factotum/wep.c - 664 sys sys 1107706104 2140
 sys/src/cmd/auth/guard.srv.c - 664 sys sys 1172776773 2873
 sys/src/cmd/auth/iam.c - 664 sys sys 1015008430 841
-sys/src/cmd/auth/keyfs.c - 664 sys sys 1190849063 19129
+sys/src/cmd/auth/keyfs.c - 664 sys sys 1191007186 19129
 sys/src/cmd/auth/lib - 20000000775 sys sys 1045504996 0
 sys/src/cmd/auth/lib/error.c - 664 sys sys 1155994850 318
 sys/src/cmd/auth/lib/fs.c - 664 sys sys 1015008430 228
@@ -15732,3 +15732,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/auth/keyfs - 775 sys sys 1191035876 116576

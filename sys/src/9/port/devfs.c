@@ -31,6 +31,9 @@ enum {
 	Iswrite = 0,
 	Isread,
 
+	Optional = 0,
+	Mustexist,
+
 	/* tunable parameters */
 	Maxconf	= 4*1024,	/* max length for config */
 	Ndevs	= 32,		/* max. inner devs per command */
@@ -66,11 +69,12 @@ extern Dev fsdevtab;		/* forward */
  * Once configured, a fsdev is never removed.  The name of those
  * configured is never nil.  We have no locks here.
  */
-static Fsdev	fsdev[Nfsdevs];
+static Fsdev fsdev[Nfsdevs];	/* internal representation of config */
+static char confstr[Maxconf];	/* textual configuration */
 
-static Qid	tqid = {Qtop, 0, QTDIR};
-static Qid	dqid = {Qdir, 0, QTDIR};
-static Qid	cqid = {Qctl, 0, 0};
+static Qid tqid = {Qtop, 0, QTDIR};
+static Qid dqid = {Qdir, 0, QTDIR};
+static Qid cqid = {Qctl, 0, 0};
 
 static Cmdtab configs[] = {
 	Fmirror,"mirror",	0,
@@ -79,10 +83,6 @@ static Cmdtab configs[] = {
 	Fpart,	"part",		5,
 	Fclear,	"clear",	1,	
 };
-
-static char	confstr[Maxconf];
-static int	configed;
-
 
 static Fsdev*
 path2dev(int i, int mustexist)
@@ -175,8 +175,12 @@ mpshut(Fsdev *mp)
 }
 
 
+/*
+ * process a single line of configuration,
+ * often of the form "name idev0 idev1".
+ */
 static void
-mconfig(char* a, long n)	/* "name idev0 idev1" */
+mconfig(char* a, long n)
 {
 	int	i;
 	vlong	size, start;
@@ -185,17 +189,20 @@ mconfig(char* a, long n)	/* "name idev0 idev1" */
 	Cmdtab	*ct;
 	Fsdev	*mp;
 	Inner	*inprv;
-	static	QLock	lck;
+	static QLock lck;
+
+	/* ignore comments & empty lines */
+	if (*a == '\0' || *a == '#' || *a == '\n')
+		return;
 
 	size = 0;
 	start = 0;
+	/* insert header if config is empty */
 	if (confstr[0] == 0)
 		seprint(confstr, confstr + sizeof confstr, Cfgstr);
 	mp = nil;
 	cb = nil;
 	oldc = confstr + strlen(confstr);
-	if (*a == '\0' || *a == '#' || *a == '\n')
-		return;
 
 	qlock(&lck);
 	if (waserror()){
@@ -208,12 +215,17 @@ mconfig(char* a, long n)	/* "name idev0 idev1" */
 		nexterror();
 	}
 
+	/* append this command after parsing to confstr */
 	cb = parsecmd(a, n);
 	c = oldc;
 	for (i = 0; i < cb->nf; i++)
-		c = seprint(c, confstr + sizeof confstr, "%s ", cb->f[i]);
-	if (c > confstr)
+		c = seprint(c, confstr + sizeof confstr - 1, "%s ", cb->f[i]);
+	if (c > oldc) {
 		c[-1] = '\n';
+		c[0]  = '\0';
+	}
+
+	/* lookup command, execute special cases */
 	ct = lookupcmd(cb, configs, nelem(configs));
 	cb->f++;			/* skip command */
 	cb->nf--;
@@ -228,6 +240,7 @@ mconfig(char* a, long n)	/* "name idev0 idev1" */
 		cb->nf -= 2;
 		break;
 	case Fclear:
+		/* clear both internal & textual representations of config */
 		for (mp = fsdev; mp < fsdev + nelem(fsdev); mp++)
 			mpshut(mp);
 		*confstr = '\0';
@@ -240,17 +253,17 @@ mconfig(char* a, long n)	/* "name idev0 idev1" */
 	}
 	if (cb->nf < 2)
 		error("too few fields in fs config");
+	else if (cb->nf - 1 > Ndevs)
+		error("too many devices; fix #k: increase Ndevs");
 
-	/* reject name if already in use */
+	/* reject new name if already in use, validate old ones */
 	for (i = 0; i < nelem(fsdev); i++)
 		if (fsdev[i].name != nil && strcmp(fsdev[i].name, cb->f[0])==0)
 			error(Eexist);
-
-	if (cb->nf - 1 > Ndevs)
-		error("too many devices; fix #k: increase Ndevs");
 	for (i = 0; i < cb->nf; i++)
 		validname(cb->f[i], (i != 0));
 
+	/* populate new Fsdev with parsed command */
 	mp = devalloc();
 	mp->type = ct->index;
 	if (mp->type == Fpart){
@@ -270,7 +283,6 @@ mconfig(char* a, long n)	/* "name idev0 idev1" */
 		mp->ndevs++;
 	}
 	setdsize(mp);
-	configed = 1;
 
 	poperror();
 	qunlock(&lck);
@@ -283,45 +295,54 @@ rdconf(void)
 	int mustrd;
 	char *c, *e, *p, *s;
 	Chan *cc;
-	Chan **ccp;
+	static int configed;
 
+	/* only read config file once */
+	if (configed)
+		return;
+	configed = 1;
+
+	/* identify the config file */
 	s = getconf("fsconfig");
 	if (s == nil){
 		mustrd = 0;
 		s = "/dev/sdC0/fscfg";
 	} else
 		mustrd = 1;
-	ccp = &cc;
-	*ccp = nil;
+
+	/* read it */
+	cc = nil;
 	c = nil;
 	if (waserror()){
-		configed = 1;
-		if (*ccp != nil)
-			cclose(*ccp);
+		if (cc != nil)
+			cclose(cc);
 		if (c)
 			free(c);
 		if (!mustrd)
 			return;
 		nexterror();
 	}
-	*ccp = namec(s, Aopen, OREAD, 0);
-	devtab[(*ccp)->type]->read(*ccp, confstr, sizeof confstr, 0);
-	cclose(*ccp);
-	*ccp = nil;
+	cc = namec(s, Aopen, OREAD, 0);
+	devtab[cc->type]->read(cc, confstr, sizeof confstr, 0);
+	cclose(cc);
+	cc = nil;
+
+	/* validate, copy and erase config; mconfig will repopulate confstr */
 	if (strncmp(confstr, Cfgstr, strlen(Cfgstr)) != 0)
 		error("bad #k config, first line must be: 'fsdev:\\n'");
 	kstrdup(&c, confstr + strlen(Cfgstr));
 	memset(confstr, 0, sizeof confstr);
-	for (p = c; p != nil && *p != 0; p = e){
+
+	/* process config copy one line at a time */
+	for (p = c; p != nil && *p != '\0'; p = e){
 		e = strchr(p, '\n');
 		if (e == nil)
 			e = p + strlen(p);
-		if (e == p) {
+		else
 			e++;
-			continue;
-		}
 		mconfig(p, e - p);
 	}
+	USED(cc);		/* until now, can be used in waserror clause */
 	poperror();
 }
 
@@ -363,7 +384,7 @@ mgen(Chan *c, char*, Dirtab*, int, int i, Dir *dp)
 	qid.path = Qfirst + i;
 	qid.vers = 0;
 	qid.type = 0;
-	mp = path2dev(i, 0);
+	mp = path2dev(i, Optional);
 	if (mp == nil)
 		return -1;
 	kstrcpy(up->genbuf, mp->name, sizeof(up->genbuf));
@@ -380,8 +401,7 @@ mattach(char *spec)
 static Walkqid*
 mwalk(Chan *c, Chan *nc, char **name, int nname)
 {
-	if (!configed)
-		rdconf();
+	rdconf();
 	return devwalk(c, nc, name, nname, 0, 0, mgen);
 }
 
@@ -405,7 +425,7 @@ mstat(Chan *c, uchar *db, int n)
 		devdir(c, cqid, "ctl", 0, eve, 0664, &d);
 		break;
 	default:
-		mp = path2dev(p - Qfirst, 1);
+		mp = path2dev(p - Qfirst, Mustexist);
 		devdir(c, c->qid, mp->name, mp->size, eve, 0664, &d);
 	}
 	n = convD2M(&d, db, n);
@@ -537,10 +557,15 @@ mread(Chan *c, void *a, long n, vlong off)
 
 	if (c->qid.type & QTDIR)
 		return devdirread(c, a, n, 0, 0, mgen);
-	if (c->qid.path == Qctl)
-		return readstr((long)off, a, n, confstr + strlen(Cfgstr));
+	if (c->qid.path == Qctl) {
+		i = strlen(Cfgstr);
+		if (strlen(confstr) >= i)	/* skip header if present */
+			return readstr((long)off, a, n, confstr + i);
+		else
+			return readstr((long)off, a, n, confstr);
+	}
 	i = c->qid.path - Qfirst;
-	mp = path2dev(i, 1);
+	mp = path2dev(i, Mustexist);
 
 	if (off >= mp->size)
 		return 0;
@@ -616,7 +641,7 @@ mwrite(Chan *c, void *a, long n, vlong off)
 		mconfig(a, n);
 		return n;
 	}
-	mp = path2dev(c->qid.path - Qfirst, 1);
+	mp = path2dev(c->qid.path - Qfirst, Mustexist);
 
 	if (off >= mp->size)
 		return 0;
