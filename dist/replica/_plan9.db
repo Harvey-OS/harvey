@@ -56,7 +56,7 @@
 386/bin/auth/fgui - 775 sys sys 1184731229 219079
 386/bin/auth/guard.srv - 775 sys sys 1188446841 144638
 386/bin/auth/iam - 775 sys sys 1085076981 50791
-386/bin/auth/keyfs - 775 sys sys 1190863289 116576
+386/bin/auth/keyfs - 775 sys sys 1191035876 116576
 386/bin/auth/login - 775 sys sys 1179372070 104816
 386/bin/auth/newns - 775 sys sys 1179372070 90035
 386/bin/auth/none - 775 sys sys 1179432184 89808
@@ -15732,4 +15732,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/auth/keyfs - 775 sys sys 1191035876 116576
