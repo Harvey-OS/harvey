@@ -12824,7 +12824,7 @@ sys/src/cmd/oventi/venti.conf - 664 sys sys 1019867537 397
 sys/src/cmd/oventi/wrtape - 775 sys sys 1019678881 555
 sys/src/cmd/p.c - 664 sys sys 1121977162 1504
 sys/src/cmd/page - 20000000775 sys sys 1045606937 0
-sys/src/cmd/page/cache.c - 664 sys sys 1190093304 3114
+sys/src/cmd/page/cache.c - 664 sys sys 1191178341 3160
 sys/src/cmd/page/filter.c - 664 sys sys 1069793856 2166
 sys/src/cmd/page/gfx.c - 664 sys sys 1084470500 6894
 sys/src/cmd/page/gs.c - 664 sys sys 1137459165 6553
@@ -12837,7 +12837,7 @@ sys/src/cmd/page/pdfprolog.ps - 664 sys sys 1137459166 519
 sys/src/cmd/page/ps.c - 664 sys sys 1190093304 9191
 sys/src/cmd/page/rotate.c - 664 sys sys 1136377361 10435
 sys/src/cmd/page/util.c - 664 sys sys 944961364 2090
-sys/src/cmd/page/view.c - 664 sys sys 1190093303 22159
+sys/src/cmd/page/view.c - 664 sys sys 1190093181 22159
 sys/src/cmd/paqfs - 20000000775 sys sys 1039727564 0
 sys/src/cmd/paqfs/mkfile - 664 sys sys 1032060366 228
 sys/src/cmd/paqfs/mkpaqfs.c - 664 sys sys 1072729575 8836
@@ -15732,3 +15732,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/page - 775 sys sys 1191208765 236255

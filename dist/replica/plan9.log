@@ -52918,3 +52918,6 @@
 1191007805 0 c sys/src/cmd/auth/keyfs.c - 664 sys sys 1191007186 19129
 1191009605 0 c sys/src/9/port/devfs.c - 664 sys sys 1191008235 14697
 1191036604 0 c 386/bin/auth/keyfs - 775 sys sys 1191035876 116576
+1191178804 0 c sys/src/cmd/page/cache.c - 664 sys sys 1191178341 3160
+1191178804 1 c sys/src/cmd/page/view.c - 664 sys sys 1190093181 22159
+1191209404 0 c 386/bin/page - 775 sys sys 1191208765 236255

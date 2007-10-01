@@ -151,6 +151,9 @@ cachedpage(Document *doc, int angle, int page)
 	Image *im;
 	int ra;
 	
+	if(doc->npage < 1)
+		return display->white;
+
 	im = _cachedpage(doc, angle, page, "");
 	if(im == nil)
 		return nil;
