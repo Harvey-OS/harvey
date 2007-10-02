@@ -3,6 +3,7 @@ typedef struct AMap		AMap;
 typedef struct AMapN		AMapN;
 typedef struct Arena		Arena;
 typedef struct AState	AState;
+typedef struct ArenaCIG	ArenaCIG;
 typedef struct ArenaHead	ArenaHead;
 typedef struct ArenaPart	ArenaPart;
 typedef struct ArenaTail	ArenaTail;
@@ -14,7 +15,6 @@ typedef struct Graph Graph;
 typedef struct IAddr		IAddr;
 typedef struct IBucket		IBucket;
 typedef struct IEStream		IEStream;
-#pragma incomplete IEStream
 typedef struct IEntry		IEntry;
 typedef struct IFile		IFile;
 typedef struct ISect		ISect;
@@ -29,8 +29,10 @@ typedef struct ZBlock		ZBlock;
 typedef struct Round	Round;
 typedef struct Bloom	Bloom;
 
-#define TWID32	((u32int)~(u32int)0)
-#define TWID64	((u64int)~(u64int)0)
+#pragma incomplete IEStream
+
+#define	TWID32	((u32int)~(u32int)0)
+#define	TWID64	((u64int)~(u64int)0)
 #define	TWID8	((u8int)~(u8int)0)
 
 enum
@@ -45,7 +47,6 @@ enum
 	IndexBase		= 1024*1024,	/* initial address to use in an index */
 	MaxIo			= 64*1024,	/* max size of a single read or write operation */
 	ICacheBits		= 16,		/* default bits for indexing icache */
-	ICacheDepth		= 4,		/* default depth of an icache hash chain */
 	MaxAMap			= 2*1024,	/* max. allowed arenas in an address mapping; must be < 32*1024 */
 
 	/*
@@ -148,6 +149,8 @@ enum
 	DirtyArenaCib,
 	DirtyArenaTrailer,
 	DirtyMax,
+	
+	ArenaCIGSize = 10*1024,	// about 0.5 MB worth of IEntry.
 
 	VentiZZZZZZZZ
 };
@@ -372,6 +375,14 @@ struct Arena
 	u32int		ctime;			/* first time a block was written */
 	u32int		wtime;			/* last time a block was written */
 	u32int		clumpmagic;
+	
+	ArenaCIG	*cig;
+	int	ncig;
+};
+
+struct ArenaCIG
+{
+	u64int	offset;  // from arena base
 };
 
 /*
@@ -455,6 +466,8 @@ struct Index
 	AMap		*smap;			/* mapping of buckets to index sections */
 	int		narenas;
 	AMap		*amap;			/* mapping from index addesses to arenas */
+	
+	QLock	writing;
 };
 
 /*
@@ -506,14 +519,20 @@ struct IAddr
  */
 struct IEntry
 {
-	u8int		score[VtScoreSize];
-	IEntry		*next;			/* next in hash chain */
-	IEntry		*nextdirty; 		/* next in dirty chain */
-	u32int		wtime;			/* last write time */
-	u16int		train;			/* relative train containing the most recent ref; 0 if no ref, 1 if in same car */
-	u8int		rac;			/* read ahead count */
-	u8int		dirty;		/* is dirty */
-	IAddr		ia;
+	/* on disk data - 32 bytes*/
+	u8int	score[VtScoreSize];
+	IAddr	ia;
+	
+	IEntry	*nexthash;
+	IEntry	*nextdirty;
+	IEntry	*next;
+	IEntry	*prev;
+	u8int	state;
+};
+enum {
+	IEClean = 0,
+	IEDirty = 1,
+	IESummary = 2,
 };
 
 /*
@@ -608,6 +627,9 @@ enum
 	StatIcacheFlush,
 	StatIcacheStall,
 	StatIcacheReadTime,
+	StatIcacheLookup,
+	StatScacheHit,
+	StatScachePrefetch,
 
 	StatBloomHit,
 	StatBloomMiss,
@@ -629,6 +651,9 @@ enum
 
 	StatSumRead,
 	StatSumReadBytes,
+	
+	StatCigLoad,
+	StatCigLoadTime,
 
 	NStat
 };
@@ -729,3 +754,4 @@ extern	ulong	stattime;
 #pragma varargck type "V" uchar*
 #define ODIRECT 0
 #endif
+

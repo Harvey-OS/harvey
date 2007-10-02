@@ -110,7 +110,7 @@ static	int	lexbase64(Hlex*);
 static	ulong	digtoul(char *s, char **e);
 
 /*
- * flush an clean up junk from a request
+ * flush and clean up junk from a request
  */
 void
 hreqcleanup(HConnect *c)
@@ -753,7 +753,7 @@ lexbase64(Hlex *h)
 	lex1(h, 1);
 
 	while((c = getc(h)) >= 0){
-		if(!(isascii(c) && isalnum(c) || c == '+' || c == '/')){
+		if(!isalnum(c) && c != '+' && c != '/'){
 			ungetc(h);
 			break;
 		}

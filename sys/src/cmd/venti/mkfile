@@ -2,6 +2,7 @@
 
 TARG=\
 	read\
+	ro\
 	sync\
 	write\
 
@@ -18,6 +19,8 @@ extra:V: $O.devnull $O.mkroot $O.randtest $O.readlist $O.ro $O.root
 all:V:		srv.all.dir
 install:V:	srv.install.dir
 installall:V:	srv.installall.dir
+safeinstall:V:	srv.safeinstall.dir
+safeinstallall:V: srv.safeinstallall.dir
 clean:V:	srv.clean.dir
 nuke:V:		srv.nuke.dir
 

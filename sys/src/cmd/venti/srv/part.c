@@ -168,85 +168,47 @@ enum {
 	Maxxfer = 64*1024,	/* for NCR SCSI controllers; was 128K */
 };
 
-/*
- * Read/write some amount of data between a block device or file and a memory buffer.
- *
- * Most Unix systems require that when accessing a block device directly,
- * the buffer, offset, and count are all multiples of the device block size,
- * making this a lot more complicated than it otherwise would be.
- * 
- * Most of our callers will make things easy on us, but for some callers it's best
- * if we just do the work here, with only one place to get it right (hopefully).
- * 
- * If everything is aligned properly, prwb will try to do big transfers in the main 
- * body of the loop: up to MaxIo bytes at a time.  If everything isn't aligned properly,
- * we work one block at a time.
- */
-#undef min
-#define min(a, b) ((a) < (b) ? (a) : (b))
-static int
-prwb(char *name, int fd, int isread, u64int offset, void *vbuf, u32int count, u32int blocksize)
-{
-	char *op;
-	u8int *buf, *freetmp, *dst;
-	u32int icount, opsize;
-	int r;
-
-	USED(blocksize);
-	icount = count;
-	buf = vbuf;
-	op = isread ? "read" : "write";
-	dst = buf;
-	freetmp = nil;
-	while(count > 0){
-		opsize = min(count, Maxxfer /* blocksize */);
-		if(isread)
-			r = pread(fd, dst, opsize, offset);
-		else
-			r = pwrite(fd, dst, opsize, offset);
-		if(r <= 0)
-			goto Error;
-		offset += r;
-		count -= r;
-		dst += r;
-		if(r != opsize)
-			goto Error;
-	}
-	return icount;
-
-Error:
-	seterr(EAdmin, "%s %s offset 0x%llux count %ud buf %p returned %d: %r",
-		op, name, offset, opsize, dst, r);
-	if(freetmp)
-		free(freetmp);
-	return -1;
-}
+static int reopen(Part*);
 
 int
-rwpart(Part *part, int isread, u64int offset, u8int *buf, u32int count)
+rwpart(Part *part, int isread, u64int offset0, u8int *buf0, u32int count0)
 {
+	u32int count, opsize;
 	int n;
-	u32int blocksize;
+	u8int *buf;
+	u64int offset;
 
 	trace(TraceDisk, "%s %s %ud at 0x%llx", 
-		isread ? "read" : "write", part->name, count, offset);
-	if(offset >= part->size || offset+count > part->size){
+		isread ? "read" : "write", part->name, count0, offset0);
+	if(offset0 >= part->size || offset0+count0 > part->size){
 		seterr(EStrange, "out of bounds %s offset 0x%llux count %ud to partition %s size 0x%llux",
-			isread ? "read" : "write", offset, count, part->name,
+			isread ? "read" : "write", offset0, count0, part->name,
 			part->size);
 		return -1;
 	}
 
-	blocksize = part->fsblocksize;
-	if(blocksize == 0)
-		blocksize = part->blocksize;
-	if(blocksize == 0)
-		blocksize = 4096;
+	buf = buf0;
+	count = count0;
+	offset = offset0;
+	while(count > 0){
+		opsize = count;
+		if(opsize > Maxxfer)
+			opsize = Maxxfer;
+		if(isread)
+			n = pread(part->fd, buf, opsize, offset);
+		else
+			n = pwrite(part->fd, buf, opsize, offset);
+		if(n <= 0){
+			seterr(EAdmin, "%s %s offset 0x%llux count %ud buf %p returned %d: %r",
+				isread ? "read" : "write", part->filename, offset, opsize, buf, n);
+			return -1;
+		}
+		offset += n;
+		count -= n;
+		buf += n;
+	}
 
-	n = prwb(part->filename, part->fd, isread, part->offset+offset,
-		buf, count, blocksize);
-
-	return n;
+	return count0;
 }
 
 int
@@ -285,4 +247,3 @@ readfile(char *name)
 	freepart(p);
 	return b;
 }
-

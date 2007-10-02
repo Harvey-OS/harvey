@@ -18,7 +18,7 @@ enum {
 	Fmirror,		/* mirror of others */
 	Fcat,			/* catenation of others */
 	Finter,			/* interleaving of others */
-	Fpart,			/* part of others */
+	Fpart,			/* part of other */
 	Fclear,			/* start over */
 
 	Blksize	= 8*1024,	/* for Finter only */
@@ -81,7 +81,7 @@ static Cmdtab configs[] = {
 	Fcat,	"cat",		0,
 	Finter,	"inter",	0,
 	Fpart,	"part",		5,
-	Fclear,	"clear",	1,	
+	Fclear,	"clear",	1,
 };
 
 static Fsdev*
@@ -117,42 +117,55 @@ setdsize(Fsdev* mp)
 {
 	int	i;
 	long	l;
+	vlong	inlen;
 	uchar	buf[128];	/* old DIRLEN plus a little should be plenty */
 	Dir	d;
 	Inner	*in;
 
 	if (mp->type != Fpart){
-		mp->start= 0;
-		mp->size = 0;
+		mp->start = 0;
+		mp->size  = 0;
 	}
 	for (i = 0; i < mp->ndevs; i++){
 		in = &mp->inner[i];
 		l = devtab[in->idev->type]->stat(in->idev, buf, sizeof buf);
 		convM2D(buf, l, &d, nil);
-		in->isize = d.length;
+		inlen = d.length;
+		in->isize = inlen;
 		switch(mp->type){
-		case Fmirror:
-			if (mp->size == 0 || mp->size > d.length)
-				mp->size = d.length;
-			break;
-		case Fcat:
-			mp->size += d.length;
-			break;
 		case Finter:
 			/* truncate to multiple of Blksize */
-			d.length &= ~(Blksize-1);
-			in->isize = d.length;
-			mp->size += d.length;
+			inlen &= ~(Blksize-1);
+			in->isize = inlen;
+			/* fall through */
+		case Fmirror:
+			/* use size of smallest inner device */
+			if (mp->size == 0 || mp->size > inlen)
+				mp->size = inlen;
+			break;
+		case Fcat:
+			mp->size += inlen;
 			break;
 		case Fpart:
 			/* should raise errors here? */
-			if (mp->start > d.length)
-				mp->start = d.length;
-			if (d.length < mp->start + mp->size)
-				mp->size = d.length - mp->start;
+			if (mp->start > inlen) {
+				print("#k/%s: partition start truncated from "
+					"%lld to %lld bytes\n", mp->name,
+					mp->start, inlen);
+				mp->start = inlen;	/* empty partition */
+			}
+			/* truncate partition to keep it within inner device */
+			if (inlen < mp->start + mp->size) {
+				print("#k/%s: partition truncated from "
+					"%lld to %lld bytes\n", mp->name,
+					mp->size, inlen - mp->start);
+				mp->size = inlen - mp->start;
+			}
 			break;
 		}
 	}
+	if(mp->type == Finter)
+		mp->size *= mp->ndevs;
 }
 
 static void
@@ -177,7 +190,7 @@ mpshut(Fsdev *mp)
 
 /*
  * process a single line of configuration,
- * often of the form "name idev0 idev1".
+ * often of the form "cmd newname idev0 idev1".
  */
 static void
 mconfig(char* a, long n)
@@ -271,17 +284,19 @@ mconfig(char* a, long n)
 		mp->size = size;
 	}
 	kstrdup(&mp->name, cb->f[0]);
+	if (waserror()){
+		mpshut(mp);
+		nexterror();
+	}
 	for (i = 1; i < cb->nf; i++){
 		inprv = &mp->inner[i-1];
 		kstrdup(&inprv->iname, cb->f[i]);
 		inprv->idev = namec(inprv->iname, Aopen, ORDWR, 0);
-		if (inprv->idev == nil) {
-			free(mp->name);
-			mp->name = nil;		/* free mp */
+		if (inprv->idev == nil)
 			error(Egreg);
-		}
 		mp->ndevs++;
 	}
+	poperror();
 	setdsize(mp);
 
 	poperror();
@@ -467,31 +482,27 @@ io(Fsdev *mp, Inner *in, int isread, void *a, long l, vlong off)
 			(up && up->errstr? up->errstr: ""));
 		nexterror();
 	}
-	if (isread) {
+	if (isread)
 		wl = devtab[mc->type]->read(mc, a, l, off);
-		if (wl != l)
-			error("#k: short read");
-	} else {
+	else
 		wl = devtab[mc->type]->write(mc, a, l, off);
-		if (wl != l)
-			error("#k: write error");
-	}
 	poperror();
 	return wl;
 }
 
+/* NB: a transfer could span multiple inner devices */
 static long
 catio(Fsdev *mp, int isread, void *a, long n, vlong off)
 {
 	int	i;
-	long	l, wl, res;
+	long	l, res;
 	Inner	*in;
 
 	// print("catio %d %p %ld %lld\n", isread, a, n, off);
 	res = n;
-	for (i = 0; n >= 0 && i < mp->ndevs ; i++){
+	for (i = 0; n > 0 && i < mp->ndevs; i++){
 		in = &mp->inner[i];
-		if (off > in->isize){
+		if (off >= in->isize){
 			off -= in->isize;
 			continue;		/* not there yet */
 		}
@@ -501,8 +512,8 @@ catio(Fsdev *mp, int isread, void *a, long n, vlong off)
 			l = n;
 		// print("\tdev %d %p %ld %lld\n", i, a, l, off);
 
-		wl = io(mp, in, isread, a, l, off);
-		assert(wl == l);
+		if (io(mp, in, isread, a, l, off) != l)
+			error(Eio);
 
 		a = (char*)a + l;
 		off = 0;
@@ -518,7 +529,6 @@ interio(Fsdev *mp, int isread, void *a, long n, vlong off)
 	int	i;
 	long	boff, res, l, wl, wsz;
 	vlong	woff, blk, mblk;
-	Inner	*in;
 
 	blk  = off / Blksize;
 	boff = off % Blksize;
@@ -533,16 +543,15 @@ interio(Fsdev *mp, int isread, void *a, long n, vlong off)
 		else
 			l = n;
 
-		in = &mp->inner[i];
-		wl = io(mp, in, isread, a, l, woff);
-		if (wl != l || l == 0)
+		wl = io(mp, &mp->inner[i], isread, a, l, woff);
+		if (wl != l)
 			error(Eio);
 
-		a = (char*)a + l;
-		n -= l;
 		blk++;
 		boff = 0;
 		wsz = Blksize;
+		a = (char*)a + l;
+		n -= l;
 	}
 	return res;
 }
@@ -553,7 +562,6 @@ mread(Chan *c, void *a, long n, vlong off)
 	int	i, retry;
 	long	l, res;
 	Fsdev	*mp;
-	Inner	*in;
 
 	if (c->qid.type & QTDIR)
 		return devdirread(c, a, n, 0, 0, mgen);
@@ -583,9 +591,7 @@ mread(Chan *c, void *a, long n, vlong off)
 		res = interio(mp, Isread, a, n, off);
 		break;
 	case Fpart:
-		in = &mp->inner[0];
-		res = io(mp, in, Isread, a, n, mp->start + off);
-		assert(res == n);
+		res = io(mp, &mp->inner[0], Isread, a, n, mp->start + off);
 		break;
 	case Fmirror:
 		retry = 0;
@@ -603,8 +609,7 @@ mread(Chan *c, void *a, long n, vlong off)
 			for (i = 0; i < mp->ndevs; i++){
 				if (waserror())
 					continue;
-				in = &mp->inner[i];
-				l = io(mp, in, Isread, a, n, off);
+				l = io(mp, &mp->inner[i], Isread, a, n, off);
 				poperror();
 				if (l >= 0){
 					res = l;
@@ -612,7 +617,7 @@ mread(Chan *c, void *a, long n, vlong off)
 				}
 			}
 		} while (i == mp->ndevs && ++retry <= Maxretries);
-		if (i == mp->ndevs) {
+		if (retry > Maxretries) {
 			/* no mirror had a good copy of the block */
 			print("#k/%s: byte %,lld count %ld: CAN'T READ "
 				"from mirror: %s\n", mp->name, off, n,
@@ -633,7 +638,6 @@ mwrite(Chan *c, void *a, long n, vlong off)
 	int	i, allbad, anybad, retry;
 	long	l, res;
 	Fsdev	*mp;
-	Inner	*in;
 
 	if (c->qid.type & QTDIR)
 		error(Eperm);
@@ -658,10 +662,9 @@ mwrite(Chan *c, void *a, long n, vlong off)
 		res = interio(mp, Iswrite, a, n, off);
 		break;
 	case Fpart:
-		in = &mp->inner[0];
-		res = io(mp, in, Iswrite, a, n, mp->start + off);
-		if (res > n)
-			res = n;
+		res = io(mp, &mp->inner[0], Iswrite, a, n, mp->start + off);
+		if (res != n)
+			error(Eio);
 		break;
 	case Fmirror:
 		retry = 0;
@@ -683,12 +686,9 @@ mwrite(Chan *c, void *a, long n, vlong off)
 					anybad = 1;
 					continue;
 				}
-				in = &mp->inner[i];
-				l = io(mp, in, Iswrite, a, n, off);
+				l = io(mp, &mp->inner[i], Iswrite, a, n, off);
 				poperror();
-				if (res > l)
-					res = l;	/* shortest OK write */
-				if (l == n)
+				if (l == n) 
 					allbad = 0;	/* wrote a good copy */
 				else
 					anybad = 1;
