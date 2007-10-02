@@ -16,6 +16,7 @@ static int	loadarena(Arena *arena);
 static CIBlock	*getcib(Arena *arena, int clump, int writing, CIBlock *rock);
 static void	putcib(Arena *arena, CIBlock *cib);
 static void	sumproc(void *);
+static void loadcig(Arena *arena);
 
 static QLock	sumlock;
 static Rendez	sumwait;
@@ -65,7 +66,7 @@ initarena(Part *part, u64int base, u64int size, u32int blocksize)
 	}
 
 	if(arena->diskstats.sealed && scorecmp(zeroscore, arena->score)==0)
-		backsumarena(arena);
+		sealarena(arena);
 
 	return arena;
 }
@@ -137,14 +138,23 @@ readclumpinfos(Arena *arena, int clump, ClumpInfo *cis, int n)
 	CIBlock *cib, r;
 	int i;
 
-	for(i = 0; i < n; i++){
+	/*
+	 * because the clump blocks are laid out
+	 * in reverse order at the end of the arena,
+	 * it can be a few percent faster to read
+	 * the clumps backwards, which reads the
+	 * disk blocks forwards.
+	 */
+	for(i = n-1; i >= 0; i--){
 		cib = getcib(arena, clump + i, 0, &r);
-		if(cib == nil)
-			break;
+		if(cib == nil){
+			n = i;
+			continue;
+		}
 		unpackclumpinfo(&cis[i], &cib->data->data[cib->offset]);
 		putcib(arena, cib);
 	}
-	return i;
+	return n;
 }
 
 /*
@@ -283,13 +293,12 @@ ZZZ question: should this distinguish between an arena
 filling up and real errors writing the clump?
  */
 u64int
-writeaclump(Arena *arena, Clump *c, u8int *clbuf, u64int start, u64int *pa)
+writeaclump(Arena *arena, Clump *c, u8int *clbuf)
 {
 	DBlock *b;
 	u64int a, aa;
 	u32int clump, n, nn, m, off, blocksize;
 	int ok;
-	AState as;
 
 	n = c->info.size + ClumpSize + U32Size;
 	qlock(&arena->lock);
@@ -299,10 +308,6 @@ writeaclump(Arena *arena, Clump *c, u8int *clbuf, u64int start, u64int *pa)
 		if(!arena->memstats.sealed){
 			logerr(EOk, "seal memstats %s", arena->name);
 			arena->memstats.sealed = 1;
-			as.arena = arena;
-			as.aa = start+aa;
-			as.stats = arena->memstats;
-			setdcachestate(&as);
 		}
 		qunlock(&arena->lock);
 		return TWID64;
@@ -349,7 +354,28 @@ writeaclump(Arena *arena, Clump *c, u8int *clbuf, u64int start, u64int *pa)
 	if(c->info.size < c->info.uncsize)
 		arena->memstats.cclumps++;
 
-	clump = arena->memstats.clumps++;
+	clump = arena->memstats.clumps;
+	if(clump % ArenaCIGSize == 0){
+		if(arena->cig == nil){
+			loadcig(arena);
+			if(arena->cig == nil)
+				goto NoCIG;
+		}
+		/* add aa as start of next cig */
+		if(clump/ArenaCIGSize != arena->ncig){
+			fprint(2, "bad arena cig computation %s: writing clump %d but %d cigs\n",
+				arena->name, clump, arena->ncig);
+			arena->ncig = -1;
+			vtfree(arena->cig);
+			arena->cig = nil;
+			goto NoCIG;
+		}
+		arena->cig = vtrealloc(arena->cig, (arena->ncig+1)*sizeof arena->cig[0]);
+		arena->cig[arena->ncig++].offset = aa;
+	}
+NoCIG:
+	arena->memstats.clumps++;
+
 	if(arena->memstats.clumps == 0)
 		sysfatal("clumps wrapped");
 	arena->wtime = now();
@@ -359,14 +385,6 @@ writeaclump(Arena *arena, Clump *c, u8int *clbuf, u64int start, u64int *pa)
 	writeclumpinfo(arena, clump, &c->info);
 	wbarena(arena);
 
-	/* set up for call to setdcachestate */
-	as.arena = arena;
-	as.aa = start+arena->memstats.used;
-	as.stats = arena->memstats;
-
-	/* update this before calling setdcachestate so it cannot be behind dcache.diskstate */
-	*pa = start+aa;
-	setdcachestate(&as);
 	qunlock(&arena->lock);
 
 	return aa;
@@ -415,6 +433,7 @@ setatailstate(AState *as)
 	/*
 	 * Look up as->arena to find index.
 	 */
+	needmainindex();	/* OS X linker */
 	ix = mainindex;
 	for(i=0; i<ix->narenas; i++)
 		if(ix->arenas[i] == as->arena)
@@ -515,6 +534,7 @@ sumarena(Arena *arena)
 	/*
 	 * read & sum all blocks except the last one
 	 */
+	flushdcache();
 	memset(&s, 0, sizeof s);
 	b = alloczblock(bs, 0, arena->part->blocksize);
 	e = arena->base + arena->size;
@@ -550,24 +570,19 @@ ReadErr:
 	sha1(b->data, bs-VtScoreSize, nil, &s);
 	sha1(zeroscore, VtScoreSize, nil, &s);
 	sha1(nil, 0, score, &s);
-
+	
 	/*
 	 * check for no checksum or the same
-	 *
-	 * the writepart is okay because we flushed the dcache in sealarena
 	 */
-	if(scorecmp(score, &b->data[bs - VtScoreSize]) != 0){
-		if(scorecmp(zeroscore, &b->data[bs - VtScoreSize]) != 0)
-			logerr(EOk, "overwriting mismatched checksums for arena=%s, found=%V calculated=%V",
-				arena->name, &b->data[bs - VtScoreSize], score);
-		scorecp(&b->data[bs - VtScoreSize], score);
-		if(writepart(arena->part, e, b->data, bs) < 0)
-			logerr(EOk, "sumarena can't write sum for %s: %r", arena->name);
-	}
+	if(scorecmp(score, &b->data[bs - VtScoreSize]) != 0
+	&& scorecmp(zeroscore, &b->data[bs - VtScoreSize]) != 0)
+		logerr(EOk, "overwriting mismatched checksums for arena=%s, found=%V calculated=%V",
+			arena->name, &b->data[bs - VtScoreSize], score);
 	freezblock(b);
 
 	qlock(&arena->lock);
 	scorecp(arena->score, score);
+	wbarena(arena);
 	qunlock(&arena->lock);
 }
 
@@ -586,6 +601,7 @@ wbarena(Arena *arena)
 	}
 	dirtydblock(b, DirtyArenaTrailer);
 	bad = okarena(arena)<0 || packarena(arena, b->data)<0;
+	scorecp(b->data + arena->blocksize - VtScoreSize, arena->score);
 	putdblock(b);
 	if(bad)
 		return -1;
@@ -753,4 +769,158 @@ putcib(Arena *arena, CIBlock *cib)
 
 	putdblock(cib->data);
 	cib->data = nil;
+}
+
+
+/*
+ * For index entry readahead purposes, the arenas are 
+ * broken into smaller subpieces, called clump info groups
+ * or cigs.  Each cig has ArenaCIGSize clumps (ArenaCIGSize
+ * is chosen to make the index entries take up about half
+ * a megabyte).  The index entries do not contain enough
+ * information to determine what the clump index is for
+ * a given address in an arena.  That info is needed both for
+ * figuring out which clump group an address belongs to 
+ * and for prefetching a clump group's index entries from
+ * the arena table of contents.  The first time clump groups
+ * are accessed, we scan the entire arena table of contents
+ * (which might be 10s of megabytes), recording the data 
+ * offset of each clump group.
+ */
+
+/* 
+ * load clump info group information by scanning entire toc.
+ */
+static void
+loadcig(Arena *arena)
+{
+	u32int i, j, ncig, nci;
+	ArenaCIG *cig;
+	ClumpInfo *ci;
+	u64int offset;
+	int ms;
+
+	if(arena->cig || arena->ncig < 0)
+		return;
+
+//	fprint(2, "loadcig %s\n", arena->name);
+	
+	ncig = (arena->memstats.clumps+ArenaCIGSize-1) / ArenaCIGSize;
+	if(ncig == 0){
+		arena->cig = vtmalloc(1);
+		arena->ncig = 0;
+		return;
+	}
+
+	ms = msec();
+	cig = vtmalloc(ncig*sizeof cig[0]);
+	ci = vtmalloc(ArenaCIGSize*sizeof ci[0]);
+	offset = 0;
+	for(i=0; i<ncig; i++){
+		nci = readclumpinfos(arena, i*ArenaCIGSize, ci, ArenaCIGSize);
+		cig[i].offset = offset;
+		for(j=0; j<nci; j++)
+			offset += ClumpSize + ci[j].size;
+		if(nci < ArenaCIGSize){
+			if(i != ncig-1){
+				vtfree(ci);
+				vtfree(cig);
+				arena->ncig = -1;
+				fprint(2, "loadcig %s: got %ud cigs, expected %ud\n", arena->name, i+1, ncig);
+				goto out;
+			}
+		}
+	}
+	vtfree(ci);
+	
+	arena->ncig = ncig;
+	arena->cig = cig;
+
+out:
+	ms = msec() - ms;
+	addstat2(StatCigLoad, 1, StatCigLoadTime, ms);
+}
+
+/*
+ * convert arena address into arena group + data boundaries.
+ */
+int
+arenatog(Arena *arena, u64int addr, u64int *gstart, u64int *glimit, int *g)
+{
+	int r, l, m;
+
+	qlock(&arena->lock);
+	if(arena->cig == nil)
+		loadcig(arena);
+	if(arena->cig == nil || arena->ncig == 0){
+		qunlock(&arena->lock);
+		return -1;
+	}
+
+	l = 1;
+	r = arena->ncig - 1;
+	while(l <= r){
+		m = (r + l) / 2;
+		if(arena->cig[m].offset <= addr)
+			l = m + 1;
+		else
+			r = m - 1;
+	}
+	l--;
+
+	*g = l;
+	*gstart = arena->cig[l].offset;
+	if(l+1 < arena->ncig)
+		*glimit = arena->cig[l+1].offset;
+	else
+		*glimit = arena->memstats.used;
+	qunlock(&arena->lock);
+	return 0;
+}
+
+/*
+ * load the clump info for group g into the index entries.
+ */
+int
+asumload(Arena *arena, int g, IEntry *entries, int nentries)
+{
+	int i, base, limit;
+	u64int addr;
+	ClumpInfo ci;
+	IEntry *ie;
+
+	if(nentries < ArenaCIGSize){
+		fprint(2, "asking for too few entries\n");
+		return -1;
+	}
+	
+	qlock(&arena->lock);
+	if(arena->cig == nil)
+		loadcig(arena);
+	if(arena->cig == nil || arena->ncig == 0 || g >= arena->ncig){
+		qunlock(&arena->lock);
+		return -1;
+	}
+	
+	addr = 0;
+	base = g*ArenaCIGSize;
+	limit = base + ArenaCIGSize;
+	if(base > arena->memstats.clumps)
+		base = arena->memstats.clumps;
+	ie = entries;
+	for(i=base; i<limit; i++){
+		if(readclumpinfo(arena, i, &ci) < 0)
+			break;
+		if(ci.type != VtCorruptType){
+			scorecp(ie->score, ci.score);
+			ie->ia.type = ci.type;
+			ie->ia.size = ci.uncsize;
+			ie->ia.blocks = (ci.size + ClumpSize + (1<<ABlockLog) - 1) >> ABlockLog;
+			ie->ia.addr = addr;
+			ie++;
+		}
+		addr += ClumpSize + ci.size;
+	}
+	qunlock(&arena->lock);
+	return ie - entries;
 }

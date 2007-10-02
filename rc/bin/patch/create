@@ -64,9 +64,8 @@ for(i in $*){
 	if not
 		echo warning: new file $i not on sources >[1=2]
 	echo $i $uniq >>$d/files
-	xchmod ug+rw $d/*
-	xchmod a+r $d/*
 }
+@{cd $d && xchmod ug+rw * && xchmod a+r *}
 
 if(~ `{cat /proc/$pid/fd | awk 'NR==2{print $NF}'} */dev/cons && test -w /dev/consctl){
 	>/dev/consctl {

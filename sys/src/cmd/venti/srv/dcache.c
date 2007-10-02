@@ -55,15 +55,6 @@ struct DCache
 	u8int		*mem;			/* memory for all block descriptors */
 	int		ndirty;			/* number of dirty blocks */
 	int		maxdirty;		/* max. number of dirty blocks */
-	Channel	*ra;
-	u8int		*rabuf;
-	u32int		ramax;
-	u32int		rasize;
-	u64int		raaddr;
-	Part		*rapart;
-
-	AState	diskstate;
-	AState	state;
 };
 
 typedef struct Ra Ra;
@@ -82,7 +73,6 @@ static void	delheap(DBlock *db);
 static void	fixheap(int i, DBlock *b);
 static void	flushproc(void*);
 static void	writeproc(void*);
-static void raproc(void*);
 
 void
 initdcache(u32int mem)
@@ -109,7 +99,6 @@ initdcache(u32int mem)
 	dcache.blocks = MKNZ(DBlock, nblocks);
 	dcache.write = MKNZ(DBlock*, nblocks);
 	dcache.mem = MKNZ(u8int, (nblocks+1+128) * blocksize);
-	dcache.ra = chancreate(sizeof(Ra), 0);
 
 	last = nil;
 	p = (u8int*)(((ulong)dcache.mem+blocksize-1)&~(ulong)(blocksize-1));
@@ -121,10 +110,6 @@ initdcache(u32int mem)
 		b->next = last;
 		last = b;
 	}
-	dcache.rabuf = &p[i*blocksize];
-	dcache.ramax = 128*blocksize;
-	dcache.raaddr = 0;
-	dcache.rapart = nil;
 
 	dcache.free = last;
 	dcache.nheap = 0;
@@ -133,136 +118,6 @@ initdcache(u32int mem)
 
 	vtproc(flushproc, nil);
 	vtproc(delaykickroundproc, &dcache.round);
-	vtproc(raproc, nil);
-}
-
-void
-setdcachestate(AState *a)
-{
-	trace(TraceBlock, "setdcachestate %s 0x%llux clumps %d", a->arena ? a->arena->name : nil, a->aa, a->stats.clumps);
-	qlock(&dcache.lock);
-	dcache.state = *a;
-	qunlock(&dcache.lock);
-}
-
-AState
-diskstate(void)
-{
-	AState a;
-
-	qlock(&dcache.lock);
-	a = dcache.diskstate;
-	qunlock(&dcache.lock);
-	return a;
-}
-
-static void
-raproc(void *v)
-{
-	Ra ra;
-	DBlock *b;
-
-	USED(v);
-	while(recv(dcache.ra, &ra) == 1){
-		if(ra.part->size <= ra.addr)
-			continue;
-		b = _getdblock(ra.part, ra.addr, OREAD, 2);
-		putdblock(b);
-	}
-}
-
-/*
- * We do readahead a whole arena at a time now,
- * so dreadahead is a no-op.  The original implementation
- * is in unused_dreadahead below.
- */
-void
-dreadahead(Part *part, u64int addr, int miss)
-{
-	USED(part);
-	USED(addr);
-	USED(miss);
-}
-
-void
-unused_dreadahead(Part *part, u64int addr, int miss)
-{
-	Ra ra;
-	static struct {
-		Part *part;
-		u64int addr;
-	} lastmiss;
-	static struct {
-		Part *part;
-		u64int addr;
-		int dir;
-	} lastra;
-
-	if(miss){
-		if(lastmiss.part==part && lastmiss.addr==addr-dcache.size){
-		XRa:
-			lastra.part = part;
-			lastra.dir = addr-lastmiss.addr;
-			lastra.addr = addr+lastra.dir;
-			ra.part = part;
-			ra.addr = lastra.addr;
-			nbsend(dcache.ra, &ra);
-		}else if(lastmiss.part==part && lastmiss.addr==addr+dcache.size){
-			addr -= dcache.size;
-			goto XRa;
-		}
-	}else{
-		if(lastra.part==part && lastra.addr==addr){
-			lastra.addr += lastra.dir;
-			ra.part = part;
-			ra.addr = lastra.addr;
-			nbsend(dcache.ra, &ra);
-		}
-	}
-
-	if(miss){
-		lastmiss.part = part;
-		lastmiss.addr = addr;
-	}
-}
-
-int
-rareadpart(Part *part, u64int addr, u8int *buf, uint n, int load)
-{
-	uint nn;
-	static RWLock ralock;
-
-	rlock(&ralock);
-	if(dcache.rapart==part && dcache.raaddr <= addr && addr+n <= dcache.raaddr+dcache.rasize){
-		memmove(buf, dcache.rabuf+(addr-dcache.raaddr), n);
-		runlock(&ralock);
-		return 0;
-	}
-	if(load != 2 || addr >= part->size){	/* addr >= part->size: let readpart do the error */	
-		runlock(&ralock);
-		diskaccess(0);
-		return readpart(part, addr, buf, n);
-	}
-
-	runlock(&ralock);
-	wlock(&ralock);
-fprint(2, "raread %s %llx\n", part->name, addr);
-	nn = dcache.ramax;
-	if(addr+nn > part->size)
-		nn = part->size - addr;
-	diskaccess(0);
-	if(readpart(part, addr, dcache.rabuf, nn) < 0){
-		wunlock(&ralock);
-		return -1;
-	}
-	memmove(buf, dcache.rabuf, n);	
-	dcache.rapart = part;
-	dcache.rasize = nn;
-	dcache.raaddr = addr;
-	wunlock(&ralock);
-
-	addstat(StatApartReadBytes, nn-n);
-	return 0;
 }
 
 static u32int
@@ -313,16 +168,8 @@ _getdblock(Part *part, u64int addr, int mode, int load)
 again:
 	for(b = dcache.heads[h]; b != nil; b = b->next){
 		if(b->part == part && b->addr == addr){
-			/*
-			qlock(&stats.lock);
-			stats.pchit++;
-			qunlock(&stats.lock);
-			*/
-			if(load){
+			if(load)
 				addstat(StatDcacheHit, 1);
-				if(load != 2 && mode != OWRITE)
-					dreadahead(part, b->addr, 0);
-			}
 			goto found;
 		}
 	}
@@ -367,8 +214,6 @@ ZZZ this is not reasonable
 	b->addr = addr;
 	b->part = part;
 	b->size = 0;
-	if(load != 2 && mode != OWRITE)
-		dreadahead(part, b->addr, 1);
 
 found:
 	b->ref++;
@@ -405,7 +250,8 @@ found:
 				memset(&b->data[b->size], 0, size - b->size);
 			else{
 				trace(TraceBlock, "getdblock readpart %s 0x%llux", part->name, addr);
-				if(rareadpart(part, addr + b->size, &b->data[b->size], size - b->size, load) < 0){
+				diskaccess(0);
+				if(readpart(part, addr + b->size, &b->data[b->size], size - b->size) < 0){
 					b->mode = ORDWR;	/* so putdblock wunlocks */
 					putdblock(b);
 					return nil;
@@ -768,7 +614,6 @@ flushproc(void *v)
 	int i, j, n;
 	ulong t0;
 	DBlock *b, **write;
-	AState as;
 
 	USED(v);
 	threadsetname("flushproc");
@@ -778,10 +623,6 @@ flushproc(void *v)
 		trace(TraceWork, "start");
 		t0 = nsec()/1000;
 		trace(TraceProc, "build t=%lud", (ulong)(nsec()/1000)-t0);
-
-		qlock(&dcache.lock);
-		as = dcache.state;
-		qunlock(&dcache.lock);
 
 		write = dcache.write;
 		n = 0;
@@ -819,7 +660,6 @@ flushproc(void *v)
 		 */
 		trace(TraceProc, "undirty.%d t=%lud", j, (ulong)(nsec()/1000)-t0);
 		qlock(&dcache.lock);
-		dcache.diskstate = as;
 		for(i=0; i<n; i++){
 			b = write[i];
 			--dcache.ndirty;

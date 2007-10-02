@@ -565,11 +565,11 @@ darena(Hio *hout, Arena *arena)
 	if(scorecmp(zeroscore, arena->score) != 0)
 		hprint(hout, "\tscore=%V\n", arena->score);
 
-	hprint(hout, "\tmem: clumps=%d compressed clumps=%d data=%,lld compressed data=%,lld storage=%,lld\n",
+	hprint(hout, "\twritten: clumps=%d compressed clumps=%d data=%,lld compressed data=%,lld storage=%,lld\n",
 		arena->memstats.clumps, arena->memstats.cclumps, arena->memstats.uncsize,
 		arena->memstats.used - arena->memstats.clumps * ClumpSize,
 		arena->memstats.used + arena->memstats.clumps * ClumpInfoSize);
-	hprint(hout, "\tdisk: clumps=%d compressed clumps=%d data=%,lld compressed data=%,lld storage=%,lld\n",
+	hprint(hout, "\tindexed: clumps=%d compressed clumps=%d data=%,lld compressed data=%,lld storage=%,lld\n",
 		arena->diskstats.clumps, arena->diskstats.cclumps, arena->diskstats.uncsize,
 		arena->diskstats.used - arena->diskstats.clumps * ClumpSize,
 		arena->diskstats.used + arena->diskstats.clumps * ClumpInfoSize);
@@ -895,7 +895,7 @@ static char* graphname[] =
 
 	"icachehit",
 	"icachemiss",
-	"icachelookup",
+	"icacheread",
 	"icachewrite",
 	"icachefill",
 	"icacheprefetch",
@@ -904,6 +904,9 @@ static char* graphname[] =
 	"icacheflush",
 	"icachestall",
 	"icachelookuptime",
+	"icachelookup",
+	"scachehit",
+	"scacheprefetch",
 
 	"bloomhit",
 	"bloommiss",
@@ -925,6 +928,9 @@ static char* graphname[] =
 
 	"sumread",
 	"sumreadbyte",
+	
+	"cigload",
+	"cigloadtime",
 };
 
 static int

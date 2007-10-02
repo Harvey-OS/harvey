@@ -106,9 +106,6 @@ threadmain(int argc, char *argv[])
 	if(configfile == nil)
 		configfile = "venti.conf";
 
-	if(initarenasum() < 0)
-		fprint(2, "warning: can't initialize arena summing process: %r");
-
 	fprint(2, "conf...");
 	if(initventi(configfile, &config) < 0)
 		sysfatal("can't init server: %r");
@@ -146,13 +143,7 @@ threadmain(int argc, char *argv[])
 		mem, mem / (8 * 1024));
 	initlumpcache(mem, mem / (8 * 1024));
 
-	icmem = u64log2(icmem / (sizeof(IEntry)+sizeof(IEntry*)) / ICacheDepth);
-	if(icmem < 4)
-		icmem = 4;
-	if(0) fprint(2, "initialize %d bytes of index cache for %d index entries\n",
-		(sizeof(IEntry)+sizeof(IEntry*)) * (1 << icmem) * ICacheDepth,
-		(1 << icmem) * ICacheDepth);
-	initicache(icmem, ICacheDepth);
+	initicache(icmem);
 	initicachewrite();
 
 	/*
@@ -170,7 +161,7 @@ threadmain(int argc, char *argv[])
 		startbloomproc(mainindex->bloom);
 
 	fprint(2, "sync...");
-	if(!readonly && syncindex(mainindex, 1, 0, 0) < 0)
+	if(!readonly && syncindex(mainindex) < 0)
 		sysfatal("can't sync server: %r");
 
 	if(!readonly && queuewrites){
@@ -181,6 +172,9 @@ threadmain(int argc, char *argv[])
 			queuewrites = 0;
 		}
 	}
+
+	if(initarenasum() < 0)
+		fprint(2, "warning: can't initialize arena summing process: %r");
 
 	fprint(2, "announce %s...", vaddr);
 	ventisrv = vtlisten(vaddr);
