@@ -75,7 +75,7 @@ Exclusive with
 .BR -a .
 .TP
 .B k
-Keep cache contents even if they might have come from a different server.
+keep cache contents even if they might have come from a different server.
 .I Cfs
 will obey
 .B -r
@@ -84,7 +84,7 @@ even if
 is given.
 .TP
 .B n
-Mount remote file server without authentication;
+mount the remote file server without authentication;
 often useful with
 .BR -F .
 .TP

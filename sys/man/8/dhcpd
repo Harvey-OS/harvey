@@ -16,7 +16,7 @@ dhcpd, dhcpleases, rarpd, tftpd \- Internet booting
 [
 .I address
 .I n
-]*
+] ...
 .PP
 .B ip/dhcpleases
 .PP

@@ -5,61 +5,123 @@
 
 #include "mahjongg.h"
 
-int
-freeup(int d, Point p)
+
+/*
+ * mark tiles that partially obscure the given tile.
+ * relies on Depth*Dxy <= Tilex/2
+ */
+void
+markabove(int d, int x, int y)
 {
-	/* are we blocked from above? */
-	if(d == Depth -1 || (level.board[d+1][p.x][p.y].which == 0 &&
-			level.board[d+1][p.x+1][p.y].which == 0 &&
-			level.board[d+1][p.x][p.y+1].which == 0 &&
-			level.board[d+1][p.x+1][p.y+1].which == 0))
-		return 1;
-	
-	return 0;
-}
+	int dx, dy;
 
-int
-freeleft(int d, Point p)
-{
-
-	/* blocked from the left? */
-	if(p.x == 0 || (level.board[d][p.x-1][p.y].which == 0 &&
-		level.board[d][p.x-1][p.y+1].which == 0)) 
-		return 1;
-
-	return 0;
-}
-
-int
-freeright(int d, Point p)
-{		
-	if(p.x == Lx-2 || (level.board[d][p.x+2][p.y].which == 0 &&
-		level.board[d][p.x+2][p.y+1].which == 0))
-		return 1;
-
-	return 0;
-}
-
-int
-isfree(int d, Point p)
-{
-	return (freeleft(d, p) || freeright(d, p)) && freeup(d, p);
+	for(d++; d < Depth; d++)
+		for(dx = -1; dx <= 2; dx++)
+			for(dy = -1; dy <= 2; dy++)
+				if(x+dx < Lx && x+dx >= 0 &&
+				    y+dy < Ly && y+dy >= 0)
+					level.board[d][x+dx][y+dy].redraw = 1;
 }
 
 void
-clearbrick(int d, Point p)
+markbelow(int d, int x, int y)
 {
-	level.board[d][p.x][p.y].which = 0;
-	level.board[d][p.x+1][p.y].which = 0;
-	level.board[d][p.x][p.y+1].which = 0;
-	level.board[d][p.x+1][p.y+1].which = 0;
+	int dx, dy;
+
+	for(d--; d >= 0; d--)
+		for(dx = -2; dx <= 1; dx++)
+			for(dy = -2; dy <= 1; dy++)
+				if(x+dx < Lx && x+dx >= 0 &&
+				    y+dy < Ly && y+dy >= 0)
+					level.board[d][x+dx][y+dy].redraw = 1;
+}
+
+Rectangle
+tilerect(Click c)
+{
+	Point p;
+	Rectangle r;
+
+	p = Pt(c.x*(Facex/2)-(c.d*TileDxy), c.y*(Facey/2)-(c.d*TileDxy));
+	r = Rpt(p, addpt(p, Pt(Facex, Facey)));
+	return rectaddpt(r, Pt(Depth*TileDxy, Depth*TileDxy));
+}
+
+void
+clearbrick(Click c)
+{
+	Rectangle r;
+
+	level.hist[--level.remaining] = c;
+
+	level.board[c.d][c.x][c.y].which = None;
+	level.board[c.d][c.x+1][c.y].which = None;
+	level.board[c.d][c.x][c.y+1].which = None;
+	level.board[c.d][c.x+1][c.y+1].which = None;
+
+	r = tilerect(c);
+	draw(img, r, background, nil, r.min);
+
+	markabove(c.d, c.x, c.y);
+	markbelow(c.d, c.x, c.y);
+}
+
+void
+drawbrick(Click c)
+{
+	Rectangle r;
+
+	r = tilerect(c);
+	draw(img, r, tileset, nil, level.board[c.d][c.x][c.y].start);
+
+	if(level.board[c.d][c.x][c.y].clicked)
+		draw(img, r, selected, nil, ZP);
+
+	if(eqcl(level.l, c))
+		border(img, r, 2, litbrdr, level.board[c.d][c.x][c.y].start);
+
+	/* looks better without borders, uncomment to check it out with'em */
+//	r = Rpt(r.min, addpt(r.min, Pt(Tilex, Tiley)));
+//	draw(img, r, brdr, nil, ZP);
+}
+
+void
+redrawlevel(int all)
+{
+	Brick *b;
+	int d, x, y;
+
+	for(d = 0; d < Depth; d++)
+		for(y = 0; y < Ly; y++)
+			for(x = 0; x < Lx; x++) {
+				b = &level.board[d][x][y];
+				if(b->which == TL && (all || b->redraw)) {
+					drawbrick(Cl(d,x,y));
+					markabove(d,x,y);
+				}
+				b->redraw = 0;
+			}
+
+	draw(screen, screen->r, img, nil, ZP);
+	flushimage(display, 1);
+}
+
+void
+updatelevel(void)
+{
+	redrawlevel(0);
+}
+
+void
+drawlevel(void)
+{
+	draw(img, img->r, background, nil, ZP);
+	redrawlevel(1);
 }
 
 void
 resize(Point p)
 {
-	/* resize to the size of the current level */
-
 	int fd;
 
 	fd = open("/dev/wctl", OWRITE);
@@ -67,124 +129,52 @@ resize(Point p)
 		fprint(fd, "resize -dx %d -dy %d", p.x, p.y);
 		close(fd);
 	}
-
-}
-
-void
-drawbrick(int d, int x, int y)
-{
-	Point p;
-	Rectangle r;
-
-	p = Pt(x*(Facex/2)-(d*TileDxy), y*(Facey/2)-(d*TileDxy));
-	r = Rpt(p, addpt(p, Pt(Facex, Facey)));
-	r = rectaddpt(r, Pt(Depth*TileDxy, Depth*TileDxy));
-	draw(img, r, tileset, nil, level.board[d][x][y].start);
-
-	if(level.board[d][x][y].clicked)
-		draw(img, r, selected, nil, ZP);
-
-	if(level.l.d == d && eqpt(level.l.p, Pt(x, y)))
-		border(img, r, 2, litbrdr, level.board[d][x][y].start);
-
-	/* looks better without borders, uncomment to check it out with'em */
-//	r = Rpt(r.min, addpt(r.min, Pt(Tilex, Tiley)));
-//	draw(img, r, brdr, nil, ZP);
-}
-
-
-void
-drawlevel(void)
-{
-	int d, x, y;
-
-	draw(img, img->r, background, nil, ZP);
-
-	for(d = 0; d < Depth; d++)
-		for(y = 0; y < Ly; y++)
-			for(x = 0; x < Lx; x++)
-				if(level.board[d][x][y].which == 1) 
-					drawbrick(d, x, y);
-
-	draw(screen, screen->r, img, nil, ZP);
-	flushimage(display, 1);
-}
-
-Brick *
-bmatch(int d, Point p)
-{
-	int x, y;
-	int ld = d;
-
-	do {
-		for(y = 0; y < Ly; y++)
-			for(x = 0; x < Lx; x++)
-				if(level.board[ld][x][y].which == 1 && isfree(ld, Pt(x, y)) && !eqpt(Pt(x, y), p) && 
-					level.board[d][p.x][p.y].type == level.board[ld][x][y].type)
-			
-					return &level.board[ld][x][y];
-
-	} while(--ld >= 0);
-
-	return nil;
-}
-
-int
-canmove(void)
-{
-	int d, x, y;
-
-	for(d = Depth - 1; d >= 0; d--) 
-		for(y = 0; y < Ly; y++) 
-			for(x = 0; x < Lx; x++) 
-				if(level.board[d][x][y].which == 1 && isfree(d, Pt(x, y)))
-					if(bmatch(d, Pt(x, y)) != nil)
-						return 1;
-	return 0;
 }
 
 void
 hint(void)
 {
-	Brick *b = nil;
 	int d = 0, x = 0, y = 0;
+	Brick *b = nil;
 
 	if(level.c.d != -1) {
-		if((b = bmatch(level.c.d, level.c.p)) != nil) {
+		if((b = bmatch(level.c)) != nil) {
 			d = level.c.d;
-			x = level.c.p.x;
-			y = level.c.p.y;
+			x = level.c.x;
+			y = level.c.y;
 		}
-	} else {
-		for(d = Depth - 1; d >= 0; d--) 
-			for(y = 0; y < Ly; y++) 
-				for(x = 0; x < Lx; x++) 
-					if(level.board[d][x][y].which == 1 && isfree(d, Pt(x, y)))
-						if((b = bmatch(d, Pt(x, y))) != nil)
-							goto Matched;
-	}
-
+	} else 
+		for(d = Depth - 1; d >= 0; d--)
+			for(y = 0; y < Ly; y++)
+				for(x = 0; x < Lx; x++)
+					if(level.board[d][x][y].which == TL &&
+					    isfree(Cl(d,x,y)) &&
+					    (b = bmatch(Cl(d,x,y))) != nil)
+						goto Matched;
 Matched:
-	if(b != nil) {
-		level.board[d][x][y].clicked = 1;
-		b->clicked = 1;
-		drawlevel();
-		sleep(500);
-		if(level.c.d == -1)
-			level.board[d][x][y].clicked = 0;
-		b->clicked = 0;
-		drawlevel();
-		sleep(500);
-		level.board[d][x][y].clicked = 1;
-		b->clicked = 1;
-		drawlevel();
-		sleep(500);
-		if(level.c.d == -1)
-			level.board[d][x][y].clicked = 0;
-		b->clicked = 0;
-		drawlevel();
-	}
-
+	if (b == nil)
+		return;
+	level.board[d][x][y].clicked = 1;
+	b->clicked = 1;
+	b->redraw = 1;
+	updatelevel();
+	sleep(500);
+	if(level.c.d == -1)
+		level.board[d][x][y].clicked = 0;
+	b->clicked = 0;
+	b->redraw = 1;
+	updatelevel();
+	sleep(500);
+	level.board[d][x][y].clicked = 1;
+	b->clicked = 1;
+	b->redraw = 1;
+	updatelevel();
+	sleep(500);
+	if(level.c.d == -1)
+		level.board[d][x][y].clicked = 0;
+	b->clicked = 0;
+	b->redraw = 1;
+	updatelevel();
 }
 
 void
@@ -196,182 +186,150 @@ done(void)
 	flushimage(display, 1);
 }
 
+Click
+findclick(Point coord)
+{
+	Click c;
+
+	for(c.d = Depth - 1; c.d >= 0; c.d--) {
+		c.x = (coord.x + TileDxy*c.d)/(Facex/2);
+		c.y = (coord.y + TileDxy*c.d)/(Facey/2);
+		switch(level.board[c.d][c.x][c.y].which) {
+		case None:
+			break;
+		case TL:
+			return c;
+		case TR:
+			c.x = c.x - 1;
+			return c;
+		case BR:
+			c.x = c.x - 1;
+			c.y = c.y - 1;
+			return c;
+		case BL:
+			c.y = c.y - 1;
+			return c;
+		}
+	}
+	return NC;
+}
 
 void
 clicked(Point coord)
 {
-	Point p;
-	int d;
+	Click c;
+	Brick *b, *bc;
 
-	/* ugly on purpose */
+	c = findclick(coord);
+	if (c.d == -1)
+		return;
 
-	for(d = Depth - 1; d >= 0; d--) {
-		p = Pt((coord.x + TileDxy*d)/(Facex/2), (coord.y + TileDxy*d)/(Facey/2));
-		switch(level.board[d][p.x][p.y].which) {
-		case 0:
-			break;
-		case 1:
-			goto Found;
-		case 2:
-			p = Pt(p.x-1, p.y);
-			goto Found;
-		case 3:
-			p = Pt(p.x-1, p.y-1);
-			goto Found;
-		case 4:
-			p = Pt(p.x, p.y-1);
-			goto Found;
-		}
-	}
-
-	return;
-
-Found:
-	if(freeup(d, p) && (freeleft(d, p) || freeright(d, p))) {
+	b = &level.board[c.d][c.x][c.y];
+	if(isfree(c)) {
 		if(level.c.d == -1) {
-			level.c.d = d;
-			level.c.p = p;
-			level.board[d][p.x][p.y].clicked = 1;
-		} else if(!eqpt(p, level.c.p) && 
-			(level.board[d][p.x][p.y].type == level.board[level.c.d][level.c.p.x][level.c.p.y].type)) {
-
-			clearbrick(d, p);
-			clearbrick(level.c.d, level.c.p);
-
-			level.c.d = -1;
-			level.c.p = Pt(0, 0);
-
-			level.remaining -= 2;
+			level.c = c;
+			b->clicked = 1;
+			b->redraw = 1;
+		} else if(eqcl(c, level.c)) {
+			level.c = NC;
+			b->clicked = 0;
+			b->redraw = 1;
 		} else {
-			level.board[d][p.x][p.y].clicked = 0;
-			level.board[level.c.d][level.c.p.x][level.c.p.y].clicked = 0;
-			level.c.d = -1;
-			level.c.p = Pt(0, 0);
-		} 
-		drawlevel();
+			bc = &level.board[level.c.d][level.c.x][level.c.y];
+			if(b->type == bc->type) {
+				clearbrick(c);
+				bc->clicked = 0;
+				clearbrick(level.c);
+				level.c = NC;
+			} else {
+				bc->clicked = 0;
+				bc->redraw = 1;
+				b->clicked = 1;
+				b->redraw = 1;
+				level.c = c;
+			}
+		}
+		updatelevel();
 		if(!canmove())
 			done();
 	}
 }
 
 void
-light(Point coord)
+undo(void)
 {
-	Point p;
-	int d;
+	int i, j, d, x, y;
 
-	/* ugly on purpose */
-
-	for(d = Depth - 1; d >= 0; d--) {
-		p = Pt((coord.x + TileDxy*d)/(Facex/2), (coord.y + TileDxy*d)/(Facey/2));
-		switch(level.board[d][p.x][p.y].which) {
-		case 0:
-			break;
-		case 1:
-			goto Found;
-		case 2:
-			p = Pt(p.x-1, p.y);
-			goto Found;
-		case 3:
-			p = Pt(p.x-1, p.y-1);
-			goto Found;
-		case 4:
-			p = Pt(p.x, p.y-1);
-			goto Found;
-		}
-	}
-
-	return;
-
-Found:
-	if(level.l.d == d && eqpt(level.l.p, p))
+	if(level.remaining >= Tiles)
 		return;
 
-	if(freeup(d, p) && (freeleft(d, p) || freeright(d, p))) {
-		Point tmpp;
-		int tmpd;
-
-		tmpd = level.l.d;
-		tmpp = level.l.p;
-
-		level.l.d = d;
-		level.l.p = p;
-		drawbrick(d, p.x, p.y);
-
-		/* clean up the previously lit brick */
-		if(tmpd != -1 && level.board[tmpd][tmpp.x][tmpp.y].which == 1) 
-			drawbrick(tmpd, tmpp.x, tmpp.y);
-			
-		draw(screen, screen->r, img, nil, ZP);
-		flushimage(display, 1);
-	} else if(level.l.d != -1) {
-		d = level.l.d;
-		p = level.l.p;
-		level.l.d = -1;
-		level.l.p = Pt(0, 0);
-
-		if(level.board[d][p.x][p.y].which == 1) {
-			drawbrick(d, p.x, p.y);
-			draw(screen, screen->r, img, nil, ZP);
-			flushimage(display, 1);
-		}
+	for(i=1; i<=2; i++) {
+		j = level.remaining++;
+		d = level.hist[j].d;
+		x = level.hist[j].x;
+		y = level.hist[j].y;
+		level.board[d][x][y].which = TL;
+		level.board[d][x+1][y].which = TR;
+		level.board[d][x+1][y+1].which = BR;
+		level.board[d][x][y+1].which = BL;
+		level.board[d][x][y].redraw = 1;
 	}
+	updatelevel();
 }
 
-/* below only for testing */
-
-Point
-pmatch(int d, Point p)
+void
+deselect(void)
 {
-	int x, y;
-	int ld = d;
+	Brick *b;
 
-	do {
-		for(y = 0; y < Ly; y++)
-			for(x = 0; x < Lx; x++)
-				if(level.board[ld][x][y].which == 1 && isfree(ld, Pt(x, y)) && !eqpt(Pt(x, y), p) && 
-					level.board[d][p.x][p.y].type == level.board[ld][x][y].type)
-			
-					return Pt(x, y);
-
-	} while(--ld >= 0);
-
-	return Pt(-1, -1);
+	if(level.c.d == -1)
+		return;
+	b = &level.board[level.c.d][level.c.x][level.c.y];
+	level.c = NC;
+	b->clicked = 0;
+	b->redraw = 1;
+	updatelevel();
 }
 
-int
-dmatch(int d, Point p)
+void
+light(Point coord)
 {
-	int x, y;
-	int ld = d;
+	Click c = findclick(coord);
+	if (c.d == -1)
+		return;
 
-	do {
-		for(y = 0; y < Ly; y++)
-			for(x = 0; x < Lx; x++)
-				if(level.board[ld][x][y].which == 1 && isfree(ld, Pt(x, y)) && !eqpt(Pt(x, y), p) && 
-					level.board[d][p.x][p.y].type == level.board[ld][x][y].type)
-			
-					return ld;
+	if(eqcl(level.l, c))
+		return;
 
-	} while(--ld >= 0);
+	if (level.l.d != -1) {
+		level.board[level.l.d][level.l.x][level.l.y].redraw = 1;
+		level.l = NC;
+	}
 
-	return -1;
+	if(isfree(c)) {
+		level.l = c;
+		level.board[c.d][c.x][c.y].redraw = 1;
+	}
+
+	updatelevel();
 }
 
 void
 clearlevel(void)
 {
-	int d, x, y;
+	Click c, cm;
 
-	for(d = Depth - 1; d >= 0; d--) 
-		for(y = 0; y < Ly; y++) 
-			for(x = 0; x < Lx; x++) 
-				if(level.board[d][x][y].which == 1 && isfree(d, Pt(x, y)))
-					if(bmatch(d, Pt(x, y)) != nil) {
-						clearbrick(dmatch(d, Pt(x, y)), pmatch(d, Pt(x, y)));
-						clearbrick(d, Pt(x, y));
-						level.remaining -= 2;
-						drawlevel();
+	for(c.d = Depth - 1; c.d >= 0; c.d--)
+		for(c.y = 0; c.y < Ly; c.y++)
+			for(c.x = 0; c.x < Lx; c.x++)
+				if(level.board[c.d][c.x][c.y].which == TL &&
+				    isfree(c)) {
+					cm = cmatch(c, c.d);
+					if(cm.d != -1) {
+						clearbrick(cm);
+						clearbrick(c);
+						updatelevel();
 						clearlevel();
 					}
+				}
 }

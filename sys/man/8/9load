@@ -119,7 +119,7 @@ loads the
 .I bootfile
 at the entry address specified by the header,
 usually
-.BR 0x80100020 .
+.BR 0xF0100020 .
 After loading, control is passed to the entry location.
 .PP
 Finally,
@@ -255,7 +255,7 @@ or
 .IR plan9.ini (8))
 on a partition named
 .B dos
-or 
+or
 .BR 9fat .
 If one is found, searching stops and the file is read into memory
 at physical address 0x1200
@@ -354,14 +354,14 @@ for the
 .IR bootfile .
 This is used by
 .IR sd (3)
-to initialize partitions so that 
+to initialize partitions so that
 .IR kfs (4)
 file systems can be mounted as the root file system.
 A more extensive partitioning is typically done by
 .I fdisk
 and
 .I prep
-as part of 
+as part of
 .I termrc
 or
 .I cpurc
@@ -380,7 +380,7 @@ When loaded from a PBS (rather than from
 .I 9load
 must be contiguously allocated on
 the disk.
-See 
+See
 .IR dossrv (4)
 for information on ensuring this.
 .PP
@@ -419,7 +419,6 @@ the contents are obtained and used as a
 .IR plan9.ini (8),
 .IR prep (8)
 .SH BUGS
-.PP
 Much of the work done by
 .B 9load
 is duplicated by the loaded kernel.
