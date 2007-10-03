@@ -6,6 +6,7 @@ OFILES=\
 	mahjongg.$O\
 	graphics.$O\
 	level.$O\
+	logic.$O\
 
 
 HFILES=mahjongg.h\

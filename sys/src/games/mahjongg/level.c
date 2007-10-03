@@ -16,9 +16,9 @@ consumeline(Biobuf *b)
 int
 parse(char *layout)
 {
-	Biobuf *b;
 	int x = 0, y = 0, depth = 0;
 	char c;
+	Biobuf *b;
 
 	b = Bopen(layout, OREAD);
 	if(b == nil) {
@@ -62,7 +62,7 @@ indextype(int type)
 {
 	int t;
 
-	if(type < 108) 	
+	if(type < 108)
 		t = (type/36)*Facey * 9 + ((type%36)/4)*Facex;
 	else if(type < 112)
 		t = Seasons;
@@ -81,28 +81,26 @@ Point
 indexpt(int type)
 {
 	Point p;
-	
-	/* the first 108 bricks are 4 of each, 36 per line:
+
+	/*
+	 * the first 108 bricks are 4 of each, 36 per line:
 	 * 	x = (index%36)/4
 	 *	y = (index)/36
 	 * then multiply by the size of a single tile.
 	 * the next 4 are the seasons, so x = index%4...
-	 *
 	 * and so on...
 	 */
-		
-	if(type < 108) {
-		p = Pt(((type%36)/4)*Facex, (type/36)*Facey);
-	} else if(type < 112) {
-		p = Pt((type%4)*Facex, 3*Facey);
-	} else if(type < 128) {
-		p = Pt((((type+12)%36)/4)*Facex, 3*Facey);
-	} else if(type < 132) {
-		p = Pt(((type+4)%4)*Facex, 4*Facey);
-	} else {
-		p = Pt((((type+28)%36)/4)*Facex, 4*Facey);
-	}
 
+	if(type < 108)
+		p = Pt(((type%36)/4)*Facex, (type/36)*Facey);
+	else if(type < 112)
+		p = Pt((type%4)*Facex, 3*Facey);
+	else if(type < 128)
+		p = Pt((((type+12)%36)/4)*Facex, 3*Facey);
+	else if(type < 132)
+		p = Pt(((type+4)%4)*Facex, 4*Facey);
+	else
+		p = Pt((((type+28)%36)/4)*Facex, 4*Facey);
 	return p;
 }
 
@@ -110,9 +108,9 @@ indexpt(int type)
 void
 generate(uint seed)
 {
-	Point p;
 	int x, y, d, n;
 	int order[144];
+	Point p;
 
 	srand(seed);
 
@@ -125,7 +123,7 @@ generate(uint seed)
 		order[x] = order[y];
 		order[y] = n;
 	}
-	
+
 	n = 0;
 	for(d = 0; d < Depth; d++)
 		for(y = 0; y < Ly; y++)
@@ -141,12 +139,11 @@ generate(uint seed)
 				}
 
 	if(n != orig.remaining)
-		fprint(2, "level improperly generated: %d elements, should have %d\n", n, orig.remaining);
+		fprint(2, "level improperly generated: %d elements, "
+			"should have %d\n", n, orig.remaining);
 
-	orig.c.d = -1;
-	orig.c.p = Pt(0, 0);
-	orig.l.d = -1;
-	orig.l.p = Pt(0, 0);
+	orig.c = NC;
+	orig.l = NC;
 	orig.done = 0;
 	level = orig;
 }

@@ -123,6 +123,12 @@ quit,
 .LR H
 gives a hint, either trying to match the currently selected tile, or if no tile is
 selected finding out the first available tile.
+.LR U
+and
+.LR Bksp
+undo the last move,
+.LR C
+tries to solve the level.
 .TP
 .B sokoban
 Guide Glenda through a room full of walls, pebbles and holes to put

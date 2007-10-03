@@ -2,23 +2,25 @@
 #include <libc.h>
 #include <draw.h>
 #include <event.h>
-
+#include <stdio.h>
 #include "mahjongg.h"
 
-char *Border = "/sys/games/lib/mahjongg/images/border.bit";
-char *Mask = "/sys/games/lib/mahjongg/images/mask.bit";
-char *Gameover = "/sys/games/lib/mahjongg/images/gameover.bit";
+#define MJDIR "/sys/games/lib/mahjongg/"
 
-char *deftileset = "/sys/games/lib/mahjongg/tilesets/default.tileset";
-char *defbackgr = "/sys/games/lib/mahjongg/backgrounds/default.bit";
-char *deflayout = "/sys/games/lib/mahjongg/layouts/default.layout";
+char *Border	= MJDIR "images/border.bit";
+char *Mask	= MJDIR "images/mask.bit";
+char *Gameover	= MJDIR "images/gameover.bit";
+
+char *deftileset= MJDIR "tilesets/default.tileset";
+char *defbackgr = MJDIR "backgrounds/default.bit";
+char *deflayout = MJDIR "layouts/default.layout";
+
 ulong defchan;
-
 int trace;
 
-
-char *buttons[] = 
+char *buttons[] =
 {
+	"deselect",
 	"new",
 	"restart",
 	"resize",
@@ -26,15 +28,15 @@ char *buttons[] =
 	0
 };
 
-Menu menu = 
+Menu menu =
 {
 	buttons
 };
 
 void
-usage(char *progname)
+usage(void)
 {
-	fprint(2, "usage: %s [-b background] [-l layout] [-t tileset] [-c] [-f]\n", progname);
+	fprint(2, "usage: %s [-cf] [-b bg] [-l layout] [-t tileset]\n", argv0);
 	exits("usage");
 }
 
@@ -46,7 +48,6 @@ eallocimage(Rectangle r, int repl, uint chan, uint color)
 	tmp = allocimage(display, r, chan, repl, color);
 	if(tmp == nil)
 		sysfatal("cannot allocate buffer image: %r");
-
 	return tmp;
 }
 
@@ -65,19 +66,20 @@ eloadfile(char *path)
 	if(img == nil)
 		sysfatal("cannot load image: %r");
 	close(fd);
-	
+
 	return img;
 }
-
 
 void
 allocimages(void)
 {
 	Rectangle one = Rect(0, 0, 1, 1);
-	
+
 	selected = eallocimage(one, 1, RGBA32, setalpha(DPalebluegreen, 0x5f));
 	litbrdr = eallocimage(one, 1, RGBA32, DGreen);
-	img = eallocimage(Rect(0, 0, Sizex, Sizey), 0, defchan ? defchan : screen->chan, DBlack);
+	img = eallocimage(Rect(0, 0, Sizex, Sizey), 0,
+		defchan? defchan: screen->chan, DBlack);
+	textcol = eallocimage(one, 1, RGBA32, DWhite);
 
 	background = eloadfile(defbackgr);
 	replclipr(background, 1, img->r);
@@ -93,40 +95,40 @@ eresized(int new)
 {
 	if(new && getwindow(display, Refnone) < 0)
 		sysfatal("can't reattach to window");
-	
 	drawlevel();
 }
 
-void 
+void
 main(int argc, char **argv)
 {
+	int clickety = 0;
 	Mouse m;
 	Event e;
-	int clickety = 0;
+	Point origin = Pt(Bord, Bord);
 
 	ARGBEGIN{
-	case 'h':
-		usage(argv0);
-	case 'f':
-		trace = 1;
-		break;
 	case 'b':
-		defbackgr = EARGF(usage(argv0));
-		break;
-	case 'l':
-		deflayout = EARGF(usage(argv0));
-		break;
-	case 't':
-		deftileset = EARGF(usage(argv0));
+		defbackgr = EARGF(usage());
 		break;
 	case 'c':
 		defchan = RGBA32;
 		break;
+	case 'f':
+		trace = 1;
+		break;
+	case 'l':
+		deflayout = EARGF(usage());
+		break;
+	case 't':
+		deftileset = EARGF(usage());
+		break;
+	default:
+		usage();
 	}ARGEND
 
-	if(argc > 0) 
-		usage(argv0);
-		
+	if(argc > 0)
+		usage();
+
 	if(! parse(deflayout)) {
 		fprint(2, "usage: %s [levelfile]\n", argv[0]);
 		exits("usage");
@@ -137,6 +139,8 @@ main(int argc, char **argv)
 	einit(Emouse|Ekeyboard);
 
 	allocimages();
+
+	/* resize to the size of the current level */
 	resize(img->r.max);
 
 	generate(time(0));
@@ -152,12 +156,14 @@ main(int argc, char **argv)
 					break;
 				if(!clickety && level.remaining > 0) {
 					clickety = 1;
-					clicked(subpt(m.xy, addpt(screen->r.min, Pt(30, 30))));
+					clicked(subpt(m.xy, addpt(screen->r.min,
+						origin)));
 				}
 			} else {
 				clickety = 0;
 				if(trace)
-					light(subpt(m.xy, addpt(screen->r.min, Pt(30, 30))));
+					light(subpt(m.xy, addpt(screen->r.min,
+						origin)));
 			}
 			if(m.buttons&2) {
 				/* nothing here for the moment */
@@ -165,17 +171,20 @@ main(int argc, char **argv)
 			if(m.buttons&4)
 				switch(emenuhit(3, &m, &menu)) {
 				case 0:
+					deselect();
+					break;
+				case 1:
 					generate(time(0));
 					drawlevel();
 					break;
-				case 1:
+				case 2:
 					level = orig;
 					drawlevel();
 					break;
-				case 2:
+				case 3:
 					resize(img->r.max);
 					break;
-				case 3:
+				case 4:
 					exits(nil);
 				}
 			break;
@@ -194,18 +203,30 @@ main(int argc, char **argv)
 			case 'N':
 				/* new */
 				generate(time(0));
+				drawlevel();
 				break;
 			case 'r':
 			case 'R':
 				level = orig;
+				drawlevel();
 				break;
 			case 'c':
 			case 'C':
-				clearlevel();
+				if(!level.done) {
+					clearlevel();
+					done();
+				}
+				break;
+			case 8:
+			case 'u':
+			case 'U':
+				if(level.done) {
+					level.done = 0;
+					drawlevel();
+				}
+				undo();
 				break;
 			}
-			if(! level.done)
-				drawlevel();
 			break;
 		}
 	}

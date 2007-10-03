@@ -258,7 +258,7 @@
 386/bin/games/juggle - 775 sys sys 1179372089 125804
 386/bin/games/jukebox - 775 sys sys 1105589128 264821
 386/bin/games/jukefs - 775 sys sys 1105589129 165320
-386/bin/games/mahjongg - 775 sys sys 1179372089 165271
+386/bin/games/mahjongg - 775 sys sys 1191381911 165242
 386/bin/games/memo - 775 sys sys 1179372089 156656
 386/bin/games/playlistfs - 775 sys sys 1105589129 148484
 386/bin/games/sokoban - 775 sys sys 1179372090 165514
@@ -409,7 +409,7 @@
 386/bin/snap - 775 sys sys 1188530194 316182
 386/bin/snapfs - 775 sys sys 1188530202 390401
 386/bin/sniffer - 775 sys sys 1038443185 99028
-386/bin/snoopy - 775 sys sys 1187639427 190560
+386/bin/snoopy - 775 sys sys 1191381914 194808
 386/bin/sort - 775 sys sys 1178568303 81057
 386/bin/spin - 775 sys sys 1186543935 769291
 386/bin/split - 775 sys sys 1181507270 75811
@@ -7393,7 +7393,7 @@ sys/man/1/filter - 664 sys sys 1159419912 6143
 sys/man/1/fmt - 664 sys sys 1070032221 1557
 sys/man/1/fortune - 664 sys sys 944959673 449
 sys/man/1/freq - 664 sys sys 1136378272 735
-sys/man/1/games - 664 sys sys 1137080360 5373
+sys/man/1/games - 664 sys sys 1191356354 5444
 sys/man/1/grap - 664 sys sys 944959675 6417
 sys/man/1/graph - 664 sys sys 1148227125 3061
 sys/man/1/grep - 664 sys sys 1139690020 2257
@@ -7598,7 +7598,7 @@ sys/man/2/open - 664 sys sys 1015091524 3404
 sys/man/2/perror - 664 sys sys 944959696 1881
 sys/man/2/pipe - 664 sys sys 950892864 1587
 sys/man/2/plumb - 664 sys sys 1015091524 4816
-sys/man/2/pool - 664 sys sys 1162102403 8574
+sys/man/2/pool - 664 sys sys 1191360187 8577
 sys/man/2/postnote - 664 sys sys 944959695 790
 sys/man/2/prime - 664 sys sys 1165622556 1961
 sys/man/2/print - 664 sys sys 1115941566 8852
@@ -7700,7 +7700,7 @@ sys/man/4/INDEX.html - 664 sys sys 1183240481 5147
 sys/man/4/acme - 664 sys sys 1181238729 10435
 sys/man/4/archfs - 664 sys sys 960000712 533
 sys/man/4/cdfs - 664 sys sys 1026846913 3638
-sys/man/4/cfs - 664 sys sys 1190855816 2132
+sys/man/4/cfs - 664 sys sys 1191355900 2136
 sys/man/4/consolefs - 664 sys sys 1144424854 4245
 sys/man/4/cwfs - 664 sys sys 1189029640 6255
 sys/man/4/dossrv - 664 sys sys 1168307403 4334
@@ -7801,7 +7801,7 @@ sys/man/7/scat - 664 sys sys 970069855 8904
 sys/man/8 - 20000000775 sys sys 1162240005 0
 sys/man/8/0intro - 664 sys sys 944959679 247
 sys/man/8/6in4 - 664 sys sys 1186182195 2330
-sys/man/8/9load - 664 sys sys 1094676489 9170
+sys/man/8/9load - 664 sys sys 1191355906 9162
 sys/man/8/9pcon - 664 sys sys 1145881850 2234
 sys/man/8/INDEX - 664 sys sys 1183260468 2773
 sys/man/8/INDEX.html - 664 sys sys 1183240488 8619
@@ -7813,7 +7813,7 @@ sys/man/8/boot - 664 sys sys 1188515985 8331
 sys/man/8/booting - 664 sys sys 1015024984 4136
 sys/man/8/cpurc - 664 sys sys 1187227584 1522
 sys/man/8/cron - 664 sys sys 1063858596 1867
-sys/man/8/dhcpd - 664 sys sys 1172959497 5572
+sys/man/8/dhcpd - 664 sys sys 1191306105 5575
 sys/man/8/disksim - 664 sys sys 1144150487 1476
 sys/man/8/drawterm - 664 sys sys 1181675938 1921
 sys/man/8/fossilcons - 664 sys sys 1187134504 18542
@@ -8111,7 +8111,7 @@ sys/src/9/pc/i8259.c - 664 sys sys 1131290399 4586
 sys/src/9/pc/init9.c - 664 sys sys 1040002518 94
 sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
 sys/src/9/pc/io.h - 664 sys sys 1165555523 9406
-sys/src/9/pc/kbd.c - 664 sys sys 1132574883 12365
+sys/src/9/pc/kbd.c - 664 sys sys 1191355133 12339
 sys/src/9/pc/l.s - 664 sys sys 1190268443 29347
 sys/src/9/pc/main.c - 664 sys sys 1168306227 15337
 sys/src/9/pc/mem.h - 664 sys sys 1137622431 5203
@@ -12555,7 +12555,7 @@ sys/src/cmd/ip/snoopy/icmp6.c - 664 sys sys 1181425765 7771
 sys/src/cmd/ip/snoopy/il.c - 664 sys sys 1139667365 2260
 sys/src/cmd/ip/snoopy/ip.c - 664 sys sys 1181425781 4292
 sys/src/cmd/ip/snoopy/ip6.c - 664 sys sys 1181425803 5329
-sys/src/cmd/ip/snoopy/main.c - 664 sys sys 1146318297 15720
+sys/src/cmd/ip/snoopy/main.c - 664 sys sys 1191350326 16160
 sys/src/cmd/ip/snoopy/mkfile - 664 sys sys 1181425645 1015
 sys/src/cmd/ip/snoopy/ninep.c - 664 sys sys 1138463390 555
 sys/src/cmd/ip/snoopy/ospf.c - 664 sys sys 1138463391 7369
@@ -14505,11 +14505,12 @@ sys/src/games/catclock.c - 664 sys sys 1108184106 10354
 sys/src/games/eyes.p - 664 sys sys 1108184106 1128
 sys/src/games/juggle.c - 664 sys sys 1118153689 4471
 sys/src/games/mahjongg - 20000000775 sys sys 1123098896 0
-sys/src/games/mahjongg/graphics.c - 664 sys sys 1137080359 7054
-sys/src/games/mahjongg/level.c - 664 sys sys 1137080360 2560
-sys/src/games/mahjongg/mahjongg.c - 664 sys sys 1137080360 3631
-sys/src/games/mahjongg/mahjongg.h - 664 sys sys 1137080360 1687
-sys/src/games/mahjongg/mkfile - 664 sys sys 1095792293 230
+sys/src/games/mahjongg/graphics.c - 664 sys sys 1191355576 5749
+sys/src/games/mahjongg/level.c - 664 sys sys 1191355577 2490
+sys/src/games/mahjongg/logic.c - 664 sys sys 1191354594 1720
+sys/src/games/mahjongg/mahjongg.c - 664 sys sys 1191355577 3869
+sys/src/games/mahjongg/mahjongg.h - 664 sys sys 1191355577 2092
+sys/src/games/mahjongg/mkfile - 664 sys sys 1191354593 241
 sys/src/games/memo.c - 664 sys sys 1130853201 6471
 sys/src/games/mkfile - 664 sys sys 1140203009 595
 sys/src/games/music - 20000000775 sys sys 1103793915 0
