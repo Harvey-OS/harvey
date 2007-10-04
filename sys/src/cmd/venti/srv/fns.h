@@ -59,6 +59,7 @@ vlong	hargint(HConnect*, char*, vlong);
 int		hdebug(HConnect*);
 int		hdisk(HConnect*);
 int		hnotfound(HConnect*);
+int		hproc(HConnect*);
 int		hsethtml(HConnect*);
 int		hsettext(HConnect*);
 int		httpdinit(char *address, char *webroot);

@@ -23,7 +23,8 @@ while(! ~ $#* 0){
 	allcname=($allcname $cname)
 	cp $file $tmp
 	t=`{file $tmp}
-	if(~ $"t *executable*)
+	# do not strip venti - it uses its own symbols
+	if(~ $"t *executable* && ! ~ $name venti)
 		strip $tmp
 	aux/data2s $cname < $tmp
 }

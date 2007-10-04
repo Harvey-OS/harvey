@@ -69,6 +69,7 @@ httpdinit(char *address, char *dir)
 	httpdobj("/emptydcache", hdcacheempty);
 	httpdobj("/disk", hdisk);
 	httpdobj("/debug", hdebug);
+	httpdobj("/proc/", hproc);
 
 	if(vtproc(listenproc, address) < 0)
 		return -1;
