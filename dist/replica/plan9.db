@@ -509,7 +509,7 @@
 386/bin/venti/ro - 775 sys sys 1191273722 161694
 386/bin/venti/sync - 775 sys sys 1190716753 153672
 386/bin/venti/syncindex - 775 sys sys 1191273727 267127
-386/bin/venti/venti - 775 sys sys 1191273735 459037
+386/bin/venti/venti - 775 sys sys 1191442426 705674
 386/bin/venti/verifyarena - 775 sys sys 1191273738 166940
 386/bin/venti/wrarena - 775 sys sys 1191273743 284205
 386/bin/venti/write - 775 sys sys 1190716792 155215
@@ -8244,7 +8244,7 @@ sys/src/9/port/mkextract - 775 sys sys 1039753334 435
 sys/src/9/port/mkfile - 664 sys sys 1063856960 350
 sys/src/9/port/mkfilelist - 775 sys sys 1124890427 266
 sys/src/9/port/mkroot - 775 sys sys 1039753334 235
-sys/src/9/port/mkrootall - 775 sys sys 1055954696 386
+sys/src/9/port/mkrootall - 775 sys sys 1191430540 453
 sys/src/9/port/mkrootc - 775 sys sys 1055954695 717
 sys/src/9/port/mksystab - 664 sys sys 1014931176 783
 sys/src/9/port/mul64fract.c - 664 sys sys 1071671674 867
@@ -9150,7 +9150,7 @@ sys/src/boot/pc/dosboot.c - 664 sys sys 1097716791 11240
 sys/src/boot/pc/dosfs.h - 664 sys sys 1032215924 1467
 sys/src/boot/pc/eoffs - 664 sys sys 1015007950 0
 sys/src/boot/pc/error.h - 664 sys sys 1015007950 3081
-sys/src/boot/pc/ether.c - 664 sys sys 1178926685 5380
+sys/src/boot/pc/ether.c - 664 sys sys 1191446356 5411
 sys/src/boot/pc/ether2000.c - 664 sys sys 1015007950 2609
 sys/src/boot/pc/ether2114x.c - 664 sys sys 1144977462 38028
 sys/src/boot/pc/ether589.c - 664 sys sys 1144961189 4624
@@ -9170,7 +9170,7 @@ sys/src/boot/pc/etherelnk3x.c - 664 sys sys 1015007951 24989
 sys/src/boot/pc/etherga620.c - 664 sys sys 1175289484 27168
 sys/src/boot/pc/etherga620fw.h - 664 sys sys 1174080072 222295
 sys/src/boot/pc/etherif.h - 664 sys sys 1174077279 1338
-sys/src/boot/pc/etherigbe.c - 664 sys sys 1181675291 41434
+sys/src/boot/pc/etherigbe.c - 664 sys sys 1191446222 41284
 sys/src/boot/pc/ethermii.c - 664 sys sys 1103641771 4413
 sys/src/boot/pc/ethermii.h - 664 sys sys 1071175087 3259
 sys/src/boot/pc/etherrhine.c - 664 sys sys 1144961190 12383
@@ -14340,10 +14340,11 @@ sys/src/cmd/venti/srv/fmtarenas.c - 664 sys sys 1177189436 2702
 sys/src/cmd/venti/srv/fmtbloom.c - 664 sys sys 1142736352 2293
 sys/src/cmd/venti/srv/fmtindex.c - 664 sys sys 1178160304 2599
 sys/src/cmd/venti/srv/fmtisect.c - 664 sys sys 1177189436 1454
-sys/src/cmd/venti/srv/fns.h - 664 sys sys 1191257308 9208
+sys/src/cmd/venti/srv/fns.h - 664 sys sys 1191430752 9231
 sys/src/cmd/venti/srv/graph.c - 664 sys sys 1177189436 4190
 sys/src/cmd/venti/srv/hdisk.c - 664 sys sys 1191257294 16482
-sys/src/cmd/venti/srv/httpd.c - 664 sys sys 1191257304 22869
+sys/src/cmd/venti/srv/hproc.c - 664 sys sys 1191430754 10333
+sys/src/cmd/venti/srv/httpd.c - 664 sys sys 1191430753 22897
 sys/src/cmd/venti/srv/icache.c - 664 sys sys 1191257303 10676
 sys/src/cmd/venti/srv/icachewrite.c - 664 sys sys 1191257310 7528
 sys/src/cmd/venti/srv/ifile.c - 664 sys sys 1189307036 2592
@@ -14352,7 +14353,7 @@ sys/src/cmd/venti/srv/lump.c - 664 sys sys 1191257295 4947
 sys/src/cmd/venti/srv/lumpcache.c - 664 sys sys 1177189437 8811
 sys/src/cmd/venti/srv/lumpqueue.c - 664 sys sys 1142736354 2722
 sys/src/cmd/venti/srv/mirrorarenas.c - 664 sys sys 1191257291 10802
-sys/src/cmd/venti/srv/mkfile - 664 sys sys 1189304068 1243
+sys/src/cmd/venti/srv/mkfile - 664 sys sys 1191430751 1300
 sys/src/cmd/venti/srv/part.c - 664 sys sys 1191217317 4500
 sys/src/cmd/venti/srv/png.c - 664 sys sys 1142736354 3729
 sys/src/cmd/venti/srv/printarena.c - 664 sys sys 1177189438 2673

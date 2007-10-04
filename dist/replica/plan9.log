@@ -52993,3 +52993,11 @@
 1191360604 0 c sys/man/2/pool - 664 sys sys 1191360187 8577
 1191382203 0 c 386/bin/games/mahjongg - 775 sys sys 1191381911 165242
 1191382203 1 c 386/bin/snoopy - 775 sys sys 1191381914 194808
+1191430805 0 c sys/src/9/port/mkrootall - 775 sys sys 1191430540 453
+1191430805 1 c sys/src/cmd/venti/srv/fns.h - 664 sys sys 1191430752 9231
+1191430805 2 a sys/src/cmd/venti/srv/hproc.c - 664 sys sys 1191430754 10333
+1191430805 3 c sys/src/cmd/venti/srv/httpd.c - 664 sys sys 1191430753 22897
+1191430805 4 c sys/src/cmd/venti/srv/mkfile - 664 sys sys 1191430751 1300
+1191443404 0 c 386/bin/venti/venti - 775 sys sys 1191442426 705674
+1191447003 0 c sys/src/boot/pc/ether.c - 664 sys sys 1191446356 5411
+1191447003 1 c sys/src/boot/pc/etherigbe.c - 664 sys sys 1191446222 41284

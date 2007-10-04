@@ -46,7 +46,6 @@ enum {
 	i82541gi2  = (0x1077<<16)|0x8086,
 	i82546gb   = (0x1079<<16)|0x8086,
 	i82541pi   = (0x107c<<16)|0x8086,
-	i82573pl   = (0x109a<<16)|0x8086,
 };
 
 /* compatibility with cpu kernels */
@@ -857,7 +856,6 @@ igbeinit(Ether* edev)
 	case i82546gb:
 	case i82546eb:
 	case i82547gi:
-	case i82573pl:
 		csr32w(ctlr, Radv, 64);
 		break;
 	}
@@ -901,7 +899,6 @@ igbeinit(Ether* edev)
 	case i82546gb:
 	case i82546eb:
 	case i82547gi:
-	case i82573pl:
 		r = 8;
 		break;
 	}
@@ -941,7 +938,6 @@ igbeinit(Ether* edev)
 	case i82546eb:
 	case i82541gi:
 	case i82541gi2:
-	case i82573pl:
 		r = csr32r(ctlr, Txdctl);
 		r &= ~WthreshMASK;
 		r |= Gran|(4<<WthreshSHIFT);
@@ -1174,7 +1170,6 @@ igbemii(Ctlr* ctlr)
 	case i82541pi:
 	case i82546gb:
 	case i82546eb:
-	case i82573pl:
 		ctrl &= ~(Frcdplx|Frcspd);
 		csr32w(ctlr, Ctrl, ctrl);
 		ctlr->mii->mir = igbemiimir;
@@ -1344,7 +1339,6 @@ at93c46r(Ctlr* ctlr)
 	case i82547gi:
 	case i82546gb:
 	case i82546eb:
-//	case i82573pl:
 		areq = 1;
 		csr32w(ctlr, Eecd, eecd|Areq);
 		for(i = 0; i < 1000; i++){
@@ -1427,7 +1421,6 @@ detach(Ctlr *ctlr)
 	case i82547gi:
 	case i82546gb:
 	case i82546eb:
-	case i82573pl:
 		r = csr32r(ctlr, Manc);
 		r &= ~Arpen;
 		csr32w(ctlr, Manc, r);
@@ -1622,7 +1615,6 @@ igbepci(void)
 		case i82541pi:
 		case i82546gb:
 		case i82546eb:
-		case i82573pl:
 			break;
 		}
 
