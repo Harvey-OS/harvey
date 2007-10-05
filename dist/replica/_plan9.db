@@ -1,6 +1,6 @@
 386 - 20000000775 sys sys 1010957353 0
 386/9load - 775 sys sys 1186619808 326380
-386/9loaddebug - 775 sys sys 1190923617 435057
+386/9loaddebug - 775 sys sys 1191469884 435027
 386/9loadlite - 775 sys sys 1186619809 149672
 386/9loadlitedebug - 775 sys sys 1190923620 220555
 386/9pc - 775 sys sys 1189053434 2038499
@@ -55,7 +55,6 @@
 386/bin/auth/factotum - 775 sys sys 1188446836 321587
 386/bin/auth/fgui - 775 sys sys 1184731229 219079
 386/bin/auth/guard.srv - 775 sys sys 1188446841 144638
-386/bin/auth/iam - 775 sys sys 1085076981 50791
 386/bin/auth/keyfs - 775 sys sys 1191035876 116576
 386/bin/auth/login - 775 sys sys 1179372070 104816
 386/bin/auth/newns - 775 sys sys 1179372070 90035
@@ -147,7 +146,6 @@
 386/bin/aux/timesync - 775 sys sys 1179372078 128466
 386/bin/aux/tr2post - 775 sys sys 1104121987 176578
 386/bin/aux/trampoline - 775 sys sys 1178568259 82677
-386/bin/aux/typepasswd - 775 sys sys 1168402288 69738
 386/bin/aux/usage - 775 sys sys 1168402288 59809
 386/bin/aux/vga - 775 sys sys 1182482483 334774
 386/bin/aux/vmmousepoll - 775 sys sys 1032480572 41434
@@ -231,7 +229,7 @@
 386/bin/faces - 775 sys sys 1181507266 193265
 386/bin/factor - 775 sys sys 1168402307 61699
 386/bin/fcp - 775 sys sys 1168402307 82433
-386/bin/file - 775 sys sys 1188530150 128160
+386/bin/file - 775 sys sys 1191528973 128646
 386/bin/fmt - 775 sys sys 1168402307 65567
 386/bin/fortune - 775 sys sys 1168402308 67356
 386/bin/fossil - 20000000775 sys sys 1042005470 0
@@ -7432,7 +7430,7 @@ sys/man/1/nm - 664 sys sys 1148106943 1601
 sys/man/1/ns - 664 sys sys 1163208505 895
 sys/man/1/p - 664 sys sys 944959673 504
 sys/man/1/page - 664 sys sys 1087829646 5839
-sys/man/1/passwd - 664 sys sys 1181277007 1532
+sys/man/1/passwd - 664 sys sys 1191473503 1543
 sys/man/1/patch - 664 sys sys 1190830651 2566
 sys/man/1/pcc - 664 sys sys 1015024740 3478
 sys/man/1/pic - 664 sys sys 1022625353 8229
@@ -7684,7 +7682,7 @@ sys/man/3/pnp - 664 sys sys 1088560895 4547
 sys/man/3/proc - 664 sys sys 1138458595 12062
 sys/man/3/root - 664 sys sys 1046958450 632
 sys/man/3/rtc - 664 sys sys 954378857 667
-sys/man/3/sd - 664 sys sys 1176502187 5678
+sys/man/3/sd - 664 sys sys 1191480432 5659
 sys/man/3/sdaoe - 664 sys sys 1186965881 1320
 sys/man/3/segment - 664 sys sys 1017423721 2378
 sys/man/3/srv - 664 sys sys 958419690 1470
@@ -7808,7 +7806,7 @@ sys/man/8/INDEX.html - 664 sys sys 1183240488 8619
 sys/man/8/aan - 664 sys sys 1045501064 1670
 sys/man/8/aliasmail - 664 sys sys 1170818958 1350
 sys/man/8/apm - 664 sys sys 1017679308 1811
-sys/man/8/auth - 664 sys sys 1183580530 4981
+sys/man/8/auth - 664 sys sys 1191472798 4996
 sys/man/8/boot - 664 sys sys 1188515985 8331
 sys/man/8/booting - 664 sys sys 1015024984 4136
 sys/man/8/cpurc - 664 sys sys 1187227584 1522
@@ -7837,7 +7835,7 @@ sys/man/8/mouse - 664 sys sys 971455511 2476
 sys/man/8/na - 664 sys sys 958527089 859
 sys/man/8/ndb - 664 sys sys 1188515390 14031
 sys/man/8/newuser - 664 sys sys 1116954242 2418
-sys/man/8/nfsserver - 664 sys sys 1163208425 3587
+sys/man/8/nfsserver - 664 sys sys 1191524525 3576
 sys/man/8/pcmcia - 664 sys sys 944959679 408
 sys/man/8/pem - 664 sys sys 1060263669 1189
 sys/man/8/ping - 664 sys sys 1169105315 3650
@@ -8048,7 +8046,7 @@ sys/src/9/mtx/trap.c - 664 sys sys 1105030157 15882
 sys/src/9/mtx/uarti8250.c - 664 sys sys 1018721288 11590
 sys/src/9/pc - 20000000775 sys sys 1161233143 0
 sys/src/9/pc/a100p.cp - 444 sys sys 1159735144 21984
-sys/src/9/pc/ahci.h - 664 sys sys 1186366009 6314
+sys/src/9/pc/ahci.h - 664 sys sys 1191538081 6316
 sys/src/9/pc/apbootstrap.s - 664 sys sys 1131293655 3037
 sys/src/9/pc/apic.c - 664 sys sys 1174415344 8991
 sys/src/9/pc/apm.c - 664 sys sys 1131290210 3723
@@ -8132,7 +8130,7 @@ sys/src/9/pc/pcf - 664 sys sys 1181616886 1582
 sys/src/9/pc/pcfl - 664 sys sys 1188582378 1579
 sys/src/9/pc/pcflop - 664 sys sys 1190853787 1540
 sys/src/9/pc/pci.c - 664 sys sys 1185452613 29418
-sys/src/9/pc/pcmciamodem.c - 664 sys sys 1099761153 1586
+sys/src/9/pc/pcmciamodem.c - 664 sys sys 1191476436 1591
 sys/src/9/pc/pcmkfile - 664 sys sys 1109303822 101
 sys/src/9/pc/piix4smbus.c - 664 sys sys 1184467714 5324
 sys/src/9/pc/plan9l.s - 664 sys sys 1015014521 910
@@ -8146,7 +8144,7 @@ sys/src/9/pc/screen.h - 664 sys sys 1147023549 4256
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1170456695 55276
 sys/src/9/pc/sd53c8xx.i - 664 sys sys 1128547230 28453
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
-sys/src/9/pc/sd63xxesb.c - 664 sys sys 1190313935 36207
+sys/src/9/pc/sd63xxesb.c - 664 sys sys 1191481587 36230
 sys/src/9/pc/sdata.c - 664 sys sys 1186361525 52991
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1184467229 33837
 sys/src/9/pc/sdmylex.c - 664 sys sys 1189229947 28395
@@ -9400,25 +9398,25 @@ sys/src/cmd/9660srv/xfile.c - 664 sys sys 1113742177 2736
 sys/src/cmd/9nfs - 20000000775 sys sys 1071498519 0
 sys/src/cmd/9nfs/9auth.c - 664 sys sys 1017337812 1454
 sys/src/cmd/9nfs/9p.c - 664 sys sys 1083772192 3365
-sys/src/cmd/9nfs/all.h - 664 sys sys 1017337813 322
+sys/src/cmd/9nfs/all.h - 664 sys sys 1191523800 338
 sys/src/cmd/9nfs/auth.c - 664 sys sys 1017337813 424
 sys/src/cmd/9nfs/authhostowner.c - 664 sys sys 1071498519 4190
 sys/src/cmd/9nfs/chat.c - 664 sys sys 1017337813 2096
-sys/src/cmd/9nfs/dat.h - 664 sys sys 1146061147 4432
+sys/src/cmd/9nfs/dat.h - 664 sys sys 1191523808 4510
 sys/src/cmd/9nfs/fns.h - 664 sys sys 1146061148 1927
 sys/src/cmd/9nfs/listalloc.c - 664 sys sys 1131657407 297
 sys/src/cmd/9nfs/mkfile - 664 sys sys 1071498518 640
-sys/src/cmd/9nfs/mport.c - 664 sys sys 1178482676 3749
+sys/src/cmd/9nfs/mport.c - 664 sys sys 1191523814 3720
 sys/src/cmd/9nfs/nametest.c - 664 sys sys 1015090372 1723
 sys/src/cmd/9nfs/nfs.c - 664 sys sys 1131293679 9526
 sys/src/cmd/9nfs/nfs.h - 664 sys sys 1015090372 642
-sys/src/cmd/9nfs/nfsmount.c - 664 sys sys 1182190701 6447
+sys/src/cmd/9nfs/nfsmount.c - 664 sys sys 1191523847 6447
 sys/src/cmd/9nfs/nfsserver.c - 664 sys sys 1146061148 15831
 sys/src/cmd/9nfs/pcnfsd.c - 664 sys sys 1146061148 4068
-sys/src/cmd/9nfs/portmapper.c - 664 sys sys 1146061148 3273
-sys/src/cmd/9nfs/rpc.c - 664 sys sys 1017337815 5293
+sys/src/cmd/9nfs/portmapper.c - 664 sys sys 1191523856 3306
+sys/src/cmd/9nfs/rpc.c - 664 sys sys 1191523822 5647
 sys/src/cmd/9nfs/rpc.h - 664 sys sys 1017337815 1996
-sys/src/cmd/9nfs/server.c - 664 sys sys 1178482676 11229
+sys/src/cmd/9nfs/server.c - 664 sys sys 1191523839 11320
 sys/src/cmd/9nfs/string.c - 664 sys sys 1017337815 1659
 sys/src/cmd/9nfs/strparse.c - 664 sys sys 1015090373 506
 sys/src/cmd/9nfs/system.c - 664 sys sys 1017337815 437
@@ -9614,7 +9612,6 @@ sys/src/cmd/auth/factotum/sshrsa.c - 664 sys sys 1107633793 3416
 sys/src/cmd/auth/factotum/util.c - 664 sys sys 1182192267 18452
 sys/src/cmd/auth/factotum/wep.c - 664 sys sys 1107706104 2140
 sys/src/cmd/auth/guard.srv.c - 664 sys sys 1172776773 2873
-sys/src/cmd/auth/iam.c - 664 sys sys 1015008430 841
 sys/src/cmd/auth/keyfs.c - 664 sys sys 1191007186 19129
 sys/src/cmd/auth/lib - 20000000775 sys sys 1045504996 0
 sys/src/cmd/auth/lib/error.c - 664 sys sys 1155994850 318
@@ -9788,7 +9785,7 @@ sys/src/cmd/aux/lines.c - 664 sys sys 1015008782 546
 sys/src/cmd/aux/lis - 775 sys sys 944960794 45
 sys/src/cmd/aux/listen.c - 664 sys sys 1181789265 9292
 sys/src/cmd/aux/listen1.c - 664 sys sys 1143759349 2005
-sys/src/cmd/aux/mkfile - 664 sys sys 1147022848 1021
+sys/src/cmd/aux/mkfile - 664 sys sys 1191473306 1008
 sys/src/cmd/aux/mklatinkbd.c - 664 sys sys 953253425 3813
 sys/src/cmd/aux/mnihongo - 20000000775 sys sys 1039727550 0
 sys/src/cmd/aux/mnihongo/README - 664 sys sys 944960789 475
@@ -9814,7 +9811,6 @@ sys/src/cmd/aux/statusbar.c - 664 sys sys 1138460096 6066
 sys/src/cmd/aux/stub.c - 664 sys sys 1098196222 2723
 sys/src/cmd/aux/timesync.c - 664 sys sys 1178482886 25828
 sys/src/cmd/aux/trampoline.c - 664 sys sys 1126104850 3790
-sys/src/cmd/aux/typepasswd.c - 664 sys sys 1143759348 1749
 sys/src/cmd/aux/unlock - 664 sys sys 944960793 0
 sys/src/cmd/aux/usage.c - 664 sys sys 1139744276 1095
 sys/src/cmd/aux/vga - 20000000775 sys sys 1115734902 0
@@ -10350,7 +10346,7 @@ sys/src/cmd/fax/receiverc - 775 sys sys 944960990 581
 sys/src/cmd/fax/send.c - 664 sys sys 944960990 923
 sys/src/cmd/fax/subr.c - 664 sys sys 1015090401 1245
 sys/src/cmd/fcp.c - 664 sys sys 1136651872 3799
-sys/src/cmd/file.c - 664 sys sys 1172764226 28088
+sys/src/cmd/file.c - 664 sys sys 1191472670 28522
 sys/src/cmd/fmt.c - 664 sys sys 1137603598 4078
 sys/src/cmd/fortune.c - 664 sys sys 1072729222 1779
 sys/src/cmd/fossil - 20000000775 sys sys 1087005595 0

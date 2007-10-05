@@ -13,9 +13,9 @@
 #include "../port/sd.h"
 #include "ahci.h"
 
-#define	dprint(...)	if(debug == 1)	iprint(__VA_ARGS__); else USED(debug)
-#define	idprint(...)	if(prid == 1)	print(__VA_ARGS__);  else USED(prid)
-#define	aprint(...)	if(datapi == 1)	iprint(__VA_ARGS__); else USED(datapi)
+#define	dprint(...)	if(debug)	iprint(__VA_ARGS__); else USED(debug)
+#define	idprint(...)	if(prid)	print(__VA_ARGS__);  else USED(prid)
+#define	aprint(...)	if(datapi)	iprint(__VA_ARGS__); else USED(datapi)
 
 enum {
 	NCtlr	= 4,
@@ -123,9 +123,9 @@ typedef struct {
 	int	driveno;	/* ctlr*NCtlrdrv + unit */
 	/* controller port # != driveno when not all ports are enabled */
 	int	portno;
-}Drive;
+} Drive;
 
-struct Ctlr{
+struct Ctlr {
 	Lock;
 
 	int	type;
@@ -220,7 +220,7 @@ ahciclear(void *v)
 	Asleep *s;
 
 	s = v;
-	return (s->p->ci&s->i) == 0;
+	return (s->p->ci & s->i) == 0;
 }
 
 static void
@@ -256,7 +256,7 @@ nop(Aportc *pc)
 	Actab *t;
 	Alist *l;
 
-	if((pc->m->feat&Dnop) == 0)
+	if((pc->m->feat & Dnop) == 0)
 		return -1;
 
 	t = pc->m->ctab;
@@ -816,18 +816,20 @@ countbits(ulong u)
 }
 
 static int
-ahciconf(Ctlr *c)
+ahciconf(Ctlr *ctlr)
 {
 	Ahba *h;
 	u32int u;
 
-	h = c->hba = (Ahba*)c->mmio;
+	h = ctlr->hba = (Ahba*)ctlr->mmio;
 	u = h->cap;
 
 	if((u&Hsam) == 0)
 		h->ghc |= Hae;
 
-	print("ahci hba sss %d; ncs %d; coal %d; mports %d; led %d; clo %d; ems %d;\n",
+	print("#S/sd%c: ahci: port %#p: hba sss %d; ncs %d; coal %d; "
+		"mports %d; led %d; clo %d; ems %d;\n",
+		ctlr->sdev->idno, h,
 		(u>>27) & 1, (u>>8) & 0x1f, (u>>7) & 1, u & 0x1f, (u>>25) & 1,
 		(u>>24) & 1, (u>>6) & 1);
 	return countbits(h->pi);
@@ -1777,6 +1779,10 @@ loop:
 		c->lmmio = (ulong*)c->mmio;
 		c->pci = p;
 		c->type = type;
+		s->ifc = &sd63xxesbifc;
+		s->idno = 'E' + niactlr;
+		s->ctlr = c;
+		c->sdev = s;
 		if(Intel(c->type) && p->did != 0x2681)
 			iasetupahci(c);
 		nunit = ahciconf(c);
@@ -1787,16 +1793,11 @@ loop:
 			vunmap(c->mmio, p->mem[0].size);
 			continue;
 		}
+		s->nunit = nunit;
 
 		i = (c->hba->cap >> 21) & 1;
-		print("%s: sata-%s ports with %d ports\n",
+		print("#S/sd%c: %s: sata-%s with %d ports\n", s->idno,
 			tname[c->type], "I\0II" + i*2, nunit);
-		s->ifc = &sd63xxesbifc;
-		s->ctlr = c;
-		s->nunit = nunit;
-		s->idno = 'E';
-		c->sdev = s;
-		c->ndrive = nunit;
 
 		/* map the drives -- they don't all need to be enabled. */
 		memset(c->rawdrive, 0, sizeof c->rawdrive);
@@ -1828,6 +1829,7 @@ loop:
 		}
 
 		niadrive += nunit;
+		niactlr++;
 		if(head)
 			tail->next = s;
 		else
@@ -1847,13 +1849,11 @@ static char* smarttab[] = {
 static char *
 pflag(char *s, char *e, uchar f)
 {
-	uchar i, m;
+	uchar i;
 
-	for(i = 0; i < 8; i++){
-		m = 1 << i;
-		if(f & m)
+	for(i = 0; i < 8; i++)
+		if(f & (1 << i))
 			s = seprint(s, e, "%s ", flagname[i]);
-	}
 	return seprint(s, e, "\n");
 }
 
@@ -2113,10 +2113,7 @@ iawtopctl(SDev *, Cmdbuf *cmd)
 		*v ^= 1;
 		break;
 	case 2:
-		if(strcmp(f[1], "on") == 0)
-			*v = 1;
-		else
-			*v = 0;
+		*v = (strcmp(f[1], "on") == 0);
 		break;
 	}
 	return 0;

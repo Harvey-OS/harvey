@@ -188,9 +188,9 @@ int	(*call[])(void) =
 	islimbo,	/* limbo source */
 	isc,		/* c & alef compiler key words */
 	isas,		/* assembler key words */
-	ismung,		/* entropy compressed/encrypted */
 	isp9font,	/* plan 9 font */
 	isp9bit,	/* plan 9 image (as from /dev/window) */
+	ismung,		/* entropy compressed/encrypted */
 	isenglish,	/* char frequency English */
 	isrtf,		/* rich text format */
 	ismsdos,	/* msdos exe (virus file attachement) */
@@ -278,7 +278,7 @@ int
 fullrune1(char *p, int n)
 {
 	int c;
-	
+
 	if(n >= 1) {
 		c = *(uchar*)p;
 		if(c < 0x80)
@@ -298,7 +298,7 @@ chartorune1(Rune1 *rune, char *str)
 {
 	int c, c1, c2, c3, n;
 	Rune r;
-	
+
 	c = *(uchar*)str;
 	if(c < 0xF0){
 		r = 0;
@@ -775,7 +775,6 @@ struct	FILE_STRING
 	"%PDF",			"PDF",				4,	"application/pdf",
 	"<html>\n",		"HTML file",			7,	"text/html",
 	"<HTML>\n",		"HTML file",			7,	"text/html",
-	"compressed\n",		"Compressed image or subfont",	11,	"application/octet-stream",
 	"\111\111\052\000",	"tiff",				4,	"image/tiff",
 	"\115\115\000\052",	"tiff",				4,	"image/tiff",
 	"\377\330\377\340",	"jpeg",				4,	"image/jpeg",
@@ -839,7 +838,7 @@ struct offstr
 	ulong	off;
 	struct FILE_STRING;
 } offstrs[] = {
-	32*1024, "\001CD001\001",	"ISO9660 CD image",	7,	OCTET,	
+	32*1024, "\001CD001\001",	"ISO9660 CD image",	7,	OCTET,
 	0, 0, 0, 0, 0
 };
 
@@ -1227,75 +1226,85 @@ depthof(char *s, int *newp)
 	*newp = 1;
 	d = 0;
 	while(s<es && *s!=' '){
-		s++;	/* skip letter */
+		s++;			/* skip letter */
 		d += strtoul(s, &s, 10);
 	}
 
-	switch(d){
-	case 32:
-	case 24:
-	case 16:
-	case 8:
+	if(d % 8 == 0 || 8 % d == 0)
 		return d;
-	}
-	return -1;
+	else
+		return -1;
 }
 
 int
 isp9bit(void)
 {
-	int dep, lox, loy, hix, hiy, px, new;
+	int dep, lox, loy, hix, hiy, px, new, cmpr;
 	ulong t;
 	long len;
 	char *newlabel;
+	uchar *cp;
 
+	cp = buf;
+	cmpr = 0;
 	newlabel = "old ";
 
-	dep = depthof((char*)buf + 0*P9BITLEN, &new);
+	if(memcmp(cp, "compressed\n", 11) == 0) {
+		cmpr = 1;
+		cp = buf + 11;
+	}
+
+	dep = depthof((char*)cp + 0*P9BITLEN, &new);
 	if(new)
 		newlabel = "";
-	lox = p9bitnum(buf + 1*P9BITLEN);
-	loy = p9bitnum(buf + 2*P9BITLEN);
-	hix = p9bitnum(buf + 3*P9BITLEN);
-	hiy = p9bitnum(buf + 4*P9BITLEN);
+	lox = p9bitnum(cp + 1*P9BITLEN);
+	loy = p9bitnum(cp + 2*P9BITLEN);
+	hix = p9bitnum(cp + 3*P9BITLEN);
+	hiy = p9bitnum(cp + 4*P9BITLEN);
 	if(dep < 0 || lox < 0 || loy < 0 || hix < 0 || hiy < 0)
 		return 0;
 
 	if(dep < 8){
-		px = 8/dep;	/* pixels per byte */
+		px = 8/dep;		/* pixels per byte */
 		/* set l to number of bytes of data per scan line */
 		if(lox >= 0)
 			len = (hix+px-1)/px - lox/px;
-		else{	/* make positive before divide */
+		else{			/* make positive before divide */
 			t = (-lox)+px-1;
 			t = (t/px)*px;
 			len = (t+hix+px-1)/px;
 		}
 	}else
 		len = (hix-lox)*dep/8;
-	len *= (hiy-loy);		/* col length */
-	len += 5*P9BITLEN;		/* size of initial ascii */
+	len *= hiy - loy;		/* col length */
+	len += 5 * P9BITLEN;		/* size of initial ascii */
 
 	/*
+	 * for compressed images, don't look any further. otherwise:
 	 * for image file, length is non-zero and must match calculation above
 	 * for /dev/window and /dev/screen the length is always zero
 	 * for subfont, the subfont header should follow immediately.
 	 */
+	if (cmpr) {
+		print(mime ? OCTET : "Compressed %splan 9 image or subfont, depth %d\n",
+			newlabel, dep);
+		return 1;
+	}
 	if (len != 0 && mbuf->length == 0) {
-		print("%splan 9 image\n", newlabel);
+		print(mime ? OCTET : "%splan 9 image, depth %d\n", newlabel, dep);
 		return 1;
 	}
 	if (mbuf->length == len) {
-		print("%splan 9 image\n", newlabel);
+		print(mime ? OCTET : "%splan 9 image, depth %d\n", newlabel, dep);
 		return 1;
 	}
 	/* Ghostscript sometimes produces a little extra on the end */
 	if (mbuf->length < len+P9BITLEN) {
-		print("%splan 9 image\n", newlabel);
+		print(mime ? OCTET : "%splan 9 image, depth %d\n", newlabel, dep);
 		return 1;
 	}
 	if (p9subfont(buf+len)) {
-		print("%ssubfont file\n", newlabel);
+		print(mime ? OCTET : "%ssubfont file, depth %d\n", newlabel, dep);
 		return 1;
 	}
 	return 0;
@@ -1306,7 +1315,7 @@ p9subfont(uchar *p)
 {
 	int n, h, a;
 
-		/* if image too big, assume it's a subfont */
+	/* if image too big, assume it's a subfont */
 	if (p+3*P9BITLEN > buf+sizeof(buf))
 		return 1;
 
@@ -1442,6 +1451,7 @@ iself(void)
 
 	if (memcmp(buf, "\x7fELF", 4) == 0){
 		if (!mime){
+			int isdifend = 0;
 			int n = (buf[19] << 8) | buf[18];
 			char *p = "unknown";
 			char *t = "unknown";
@@ -1450,11 +1460,16 @@ iself(void)
 				p = cpu[n];
 			else {
 				/* try the other byte order */
+				isdifend = 1;
 				n = (buf[18] << 8) | buf[19];
 				if (n > 0 && n < nelem(cpu) && cpu[n])
 					p = cpu[n];
 			}
-			n = buf[16];
+			if(isdifend)
+				n = (buf[16]<< 8) | buf[17];
+			else
+				n = (buf[17]<< 8) | buf[16];
+
 			if(n>0 && n < nelem(type) && type[n])
 				t = type[n];
 			print("%s ELF %s\n", p, t);

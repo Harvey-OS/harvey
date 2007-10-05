@@ -67,7 +67,8 @@ pcmciamodemlink(void)
 			if(usingcom2)
 				com2used = 1;
 			if(ioalloc(isa.port, 8, 0, modems[j]) < 0)
-				print("%s port %lux already in use\n", modems[j], isa.port);
+				print("%s port %lux already in use\n",
+					modems[j], isa.port);
 			print("%s in pcmcia slot %d port 0x%lux irq %d\n",
 				modems[j], slot, isa.port, isa.irq);
 		}

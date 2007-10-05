@@ -325,7 +325,7 @@ xfroot(char *name, int n)
 		p = strrchr(s->service, '!');	/* for -a tcp!foo */
 		if(p && strncmp(name, p+1, n) == 0)
 			return s->root;
-		p = strrchr(s->service, '/');	/* for -a /srv/foo */
+		p = strrchr(s->service, '/');	/* for -f /srv/foo */
 		if(p && strncmp(name, p+1, n) == 0)
 			return s->root;
 	}

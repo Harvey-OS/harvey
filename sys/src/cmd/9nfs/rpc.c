@@ -6,24 +6,26 @@
 #define SKIPLONG	p += 4
 #define	PTR(x, n)	r->x = (void *)(p); p += ROUNDUP(n)
 
-uchar v4prefix[12] = {
-	0, 0, 0, 0,
-	0, 0, 0, 0,
-	0, 0, 0xff, 0xff,
-};
-
 int
 rpcM2S(void *ap, Rpccall *r, int n)
 {
-	uchar *p = ap;
 	int k;
+	uchar *p;
+	Udphdr *up;
 
-	p += 12;
+	/* copy IPv4 header fields from Udphdr */
+	up = ap;
+	p = &up->raddr[IPaddrlen - IPv4addrlen];
 	LONG(host);
-	p += 12;
+	USED(p);
+	p = &up->laddr[IPaddrlen - IPv4addrlen];
 	LONG(lhost);
+	USED(p);
+	/* ignore up->ifcaddr */
+	p = up->rport;
 	SHORT(port);
 	SHORT(lport);
+
 	LONG(xid);
 	LONG(mtype);
 	switch(r->mtype){
@@ -143,16 +145,24 @@ string2S(void *arg, String *r)
 int
 rpcS2M(Rpccall *r, int ndata, void *ap)
 {
-	uchar *p = ap;
+	uchar *p;
+	Udphdr *up;
 
-	memmove(p, v4prefix, 12);
-	p += 12;
+	/* copy header fields to Udphdr */
+	up = ap;
+	memmove(up->raddr, v4prefix, IPaddrlen);
+	p = &up->raddr[IPaddrlen - IPv4addrlen];
 	LONG(host);
-	memmove(p, v4prefix, 12);
-	p += 12;
+	USED(p);
+	memmove(up->laddr, v4prefix, IPaddrlen);
+	p = &up->laddr[IPaddrlen - IPv4addrlen];
 	LONG(lhost);
+	USED(p);
+	memmove(up->ifcaddr, IPnoaddr, sizeof up->ifcaddr);
+	p = up->rport;
 	SHORT(port);
 	SHORT(lport);
+
 	LONG(xid);
 	LONG(mtype);
 	switch(r->mtype){
