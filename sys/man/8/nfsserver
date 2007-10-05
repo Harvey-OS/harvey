@@ -1,6 +1,6 @@
 .TH NFSSERVER 8
 .SH NAME
-nfsserver, portmapper, pcnfsd, 9auth \- NFS service
+nfsserver, portmapper, pcnfsd \- NFS service
 .SH SYNOPSIS
 .B aux/nfsserver
 [
@@ -108,10 +108,10 @@ Listen for incoming TCP calls, rather than UDP calls.
 .PP
 NFS clients must be in the Plan 9
 .B /lib/ndb
-database.  
-The machine name is deduced from the IP address via 
+database.
+The machine name is deduced from the IP address via
 .BR ndb/query .
-The machine name specified in the NFS Unix credentials 
+The machine name specified in the NFS Unix credentials
 is completely ignored.
 .PP
 .I Pcnfsd

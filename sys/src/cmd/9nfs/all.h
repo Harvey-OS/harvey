@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <ip.h>
 #include <bio.h>
 #include <auth.h>
 #include <authsrv.h>

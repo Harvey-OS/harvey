@@ -24,7 +24,7 @@ void
 main(int argc, char **argv)
 {
 	char addr[64], dir[64], name[128];
-	char buf[32], *p;
+	char buf[33], *p;
 	uchar *dataptr, *argptr;
 	int i, fd, n, remport;
 
@@ -38,6 +38,7 @@ main(int argc, char **argv)
 	}ARGEND
 	if(argc != 1)
 		exits("usage");
+
 	snprint(addr, sizeof addr, "udp!%s!111", argv[0]);
 	r.data = dial(addr, 0, dir, &r.ctl);
 	if(r.data < 0){
@@ -56,7 +57,7 @@ main(int argc, char **argv)
 		fprint(2, "can't open %s: %r\n", name);
 		exits("remote");
 	}
-	n = read(fd, buf, sizeof buf);
+	n = read(fd, buf, sizeof buf-1);
 	if(n < 0){
 		fprint(2, "can't read %s: %r\n", name);
 		exits("remote");
@@ -116,15 +117,11 @@ main(int argc, char **argv)
 	i = rpccall(&r, dataptr-(uchar*)r.cmd.args);
 	fprint(2, "export: %d bytes returned\n", i);
 	argptr = r.reply.results;
-	for(;;){
-		if(GLONG() == 0)
-			break;
+	while (GLONG() != 0) {
 		n = GLONG();
 		p = GPTR(n);
 		print("%.*s\n", utfnlen(p, n), p);
-		for(;;){
-			if(GLONG() == 0)
-				break;
+		while (GLONG() != 0) {
 			n = GLONG();
 			p = GPTR(n);
 			print("\t%.*s\n", utfnlen(p, n), p);

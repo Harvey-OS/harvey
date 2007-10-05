@@ -1,4 +1,4 @@
-.TH SD 3 
+.TH SD 3
 .SH NAME
 sd \- storage device interface
 .SH SYNOPSIS
@@ -12,7 +12,6 @@ sd \- storage device interface
 \&...
 .fi
 .SH DESCRIPTION
-.PP
 The storage device interface serves a two-level directory
 giving access to multiple storage units,
 typically ATA(PI) or SCSI discs.
@@ -135,7 +134,7 @@ inquiry KENWOOD CD-ROM UCR-421  208E10/20/99  7.39  2 M0
 config 85C0 capabilities 0F00 dma 00550004 dmactl 00000000
 geometry 242725 2352
 part data 0 242725
-% 
+%
 .EE
 .PP
 The use of DMA and multi-sector read/write commands may be
@@ -216,12 +215,14 @@ is a known controller type such as
 .B ata
 or
 .BR scsi .
-Writing `\fIctlletter message\fR' to
+Writing `\c
+.BI sd "ctlletter message\fR'
+to
 .B /dev/sdctl
 passes
 .I message
 to
-.IR ctlletter 's
+.BI sd ctlletter\fR's
 .B wtopctl
 function with an
 .B sdev
@@ -239,8 +240,6 @@ or
 .SH SEE ALSO
 .IR scuzz (8)
 .SH BUGS
-Still in development.
-.PP
 LUNs (logical unit numbers) are not implemented.
 For (S)ATA drives,
 LUNs are not merely ignored but are actively

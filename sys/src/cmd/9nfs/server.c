@@ -1,6 +1,5 @@
 #include "all.h"
 #include <ndb.h>
-#include <ip.h>
 
 static int	alarmflag;
 
@@ -144,7 +143,8 @@ tcpserver(int myport, Progmap *progmap)
 		if(actl < 0){
 			actl = announce(ds, adir);
 			if(actl < 0){
-				clog("%s: listening to tcp port %d\n", argv0, myport);
+				clog("%s: listening to tcp port %d\n",
+					argv0, myport);
 				clog("announcing: %r");
 				break;
 			}
@@ -169,12 +169,12 @@ tcpserver(int myport, Progmap *progmap)
 			if(data < 0)
 				exits(0);
 
+			/* pretend it's udp; fill in Udphdr */
 			getendpoints((Udphdr*)buf, ldir);
 
-			for(;;){
-				if(servemsg(data, readtcp, writetcp, myport, progmap) < 0)
-					break;
-			}
+			while (servemsg(data, readtcp, writetcp, myport,
+			    progmap) >= 0)
+				continue;
 			close(data);
 			exits(0);
 		}
@@ -328,6 +328,7 @@ getendpoint(char *dir, char *file, uchar *addr, uchar *port)
 	hnputs(port, n);
 }
 
+/* set Udhphdr values from protocol dir local & remote files */
 static void
 getendpoints(Udphdr *ep, char *dir)
 {

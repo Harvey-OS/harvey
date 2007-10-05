@@ -246,13 +246,14 @@ RADIUS server id's.
 List of users in the Plan 9 database.
 .TP
 .B /adm/netkeys.who
-List of users in  the SecureNet database.
+List of users in the SecureNet database.
 .TP
 .B /sys/lib/httppasswords
 List of realms and passwords for HTTP access.
 .SH SOURCE
 .B /sys/src/cmd/auth
 .SH "SEE ALSO"
+.IR passwd (1),
 .I readnvram
 in
 .IR authsrv (2),

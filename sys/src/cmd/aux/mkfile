@@ -33,7 +33,6 @@ TARG=\
 	stub\
 	timesync\
 	trampoline\
-	typepasswd\
 	usage\
 	write\
 	zerotrunc\

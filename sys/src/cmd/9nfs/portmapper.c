@@ -1,7 +1,9 @@
+/*
+ * sunrpc portmapper
+ */
 #include "all.h"
 
 typedef struct Portmap	Portmap;
-
 struct Portmap
 {
 	int	prog;
@@ -11,8 +13,8 @@ struct Portmap
 };
 
 Portmap map[] = {
-	100003, 2, IPPROTO_UDP, 2049,	/* nfs */
-//	100003, 3, IPPROTO_UDP, 2049,	/* nfs */
+	100003, 2, IPPROTO_UDP, 2049,	/* nfs v2 */
+//	100003, 3, IPPROTO_UDP, 2049,	/* nfs v3 */
 	100005, 1, IPPROTO_UDP, 2049,	/* mount */
 	150001, 2, IPPROTO_UDP, 1111,	/* pcnfsd v2 */
 	150001, 1, IPPROTO_UDP, 1111,	/* pcnfsd v1 */
