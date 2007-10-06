@@ -1,0 +1,26 @@
+#!/bin/rc
+
+home=/mail
+files=`{news -n}
+>$home/lib/newstime
+switch($#files){
+case 0
+case *
+	subscribers=`{cat /sys/lib/subscribers}
+	for(i in $subscribers)
+		touch /usr/$i/lib/newstime
+	for(file in $files){
+		switch($file){
+		case news:
+			;
+		case *
+			upasname=`{ls -m /lib/news/$file|sed 's/\[(.*)\]'.*/\1/}
+			{
+				echo 'subject: plan9 news: '^$file
+				echo 'to: news-readers'
+				echo
+				news $file
+			} | mail $subscribers
+		}
+	}
+}

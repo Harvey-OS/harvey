@@ -121,13 +121,13 @@
 386/bin/aux/mswordstrings - 775 sys sys 1168402283 65541
 386/bin/aux/na - 775 sys sys 1189023884 154372
 386/bin/aux/nfsmount - 775 sys sys 1184731233 233217
-386/bin/aux/nfsserver - 775 sys sys 1182223285 184719
+386/bin/aux/nfsserver - 775 sys sys 1191555133 185867
 386/bin/aux/olefs - 775 sys sys 1179372075 148111
 386/bin/aux/p9bitpost - 775 sys sys 1104121982 127974
 386/bin/aux/pcmcia - 775 sys sys 1148500601 46940
-386/bin/aux/pcnfsd - 775 sys sys 1181507263 128327
+386/bin/aux/pcnfsd - 775 sys sys 1191555138 129331
 386/bin/aux/portmap - 775 sys sys 1184731233 142735
-386/bin/aux/portmapper - 775 sys sys 1181507264 127406
+386/bin/aux/portmapper - 775 sys sys 1191555142 128410
 386/bin/aux/postgif - 775 sys sys 1087442507 175380
 386/bin/aux/postprint - 775 sys sys 1087442507 160041
 386/bin/aux/postreverse - 775 sys sys 1087442508 164726
@@ -885,7 +885,7 @@ cfg/example/cpurc - 775 sys sys 1187226177 266
 cfg/example/termrc - 775 sys sys 1177628544 195
 cron - 20000000777 sys sys 1039727915 0
 cron/upas - 20000000775 upas sys 1039727915 0
-cron/upas/cron - 664 upas sys 1144683680 222
+cron/upas/cron - 664 upas sys 1191622540 284
 dist - 20000000775 sys sys 1127243723 0
 dist/replica - 20000000775 sys sys 1166743907 0
 dist/replica/cd - 664 sys sys 1149084099 922
@@ -5303,6 +5303,7 @@ mail/lib/isspam.rc - 775 upas upas 1063950954 600
 mail/lib/justqmail - 775 upas upas 960055415 100
 mail/lib/kickqueue - 775 upas upas 960106166 89
 mail/lib/lazyqmail - 775 upas upas 999900927 116
+mail/lib/mailnews - 775 upas upas 1191622324 440
 mail/lib/msgcat.rc - 775 upas upas 1064322955 678
 mail/lib/namefiles - 664 upas upas 960222586 63
 mail/lib/names.local - 664 upas upas 960222620 92
@@ -7833,7 +7834,7 @@ sys/man/8/mkpaqfs - 664 sys sys 1181261121 890
 sys/man/8/mksacfs - 664 sys sys 964886843 710
 sys/man/8/mouse - 664 sys sys 971455511 2476
 sys/man/8/na - 664 sys sys 958527089 859
-sys/man/8/ndb - 664 sys sys 1188515390 14031
+sys/man/8/ndb - 664 sys sys 1191613971 14611
 sys/man/8/newuser - 664 sys sys 1116954242 2418
 sys/man/8/nfsserver - 664 sys sys 1191524525 3576
 sys/man/8/pcmcia - 664 sys sys 944959679 408
