@@ -468,6 +468,33 @@ will automatically create both forward and reverse entries for
 .B ns1.cs.bell-labs.com .
 Unlike other DNS servers, there's no way to generate
 inconsistent forward and reverse entries.
+.SS "Classless reverse delegation"
+Following RFC 2317, it is possible to serve reverse DNS data
+for IPv4 subnets smaller than /24.
+Declare the non-/24 subnet, the reverse domain and the individual
+reverse entries.
+.PP
+For example,
+this is how to serve RFC-2317
+.B ptr
+records for
+.L 65.14.39.130
+and
+.L 65.14.39.131
+in the subnet
+.LR 65.14.39.128/123 .
+.IP
+.EX
+ipnet=our-t1 ip=65.14.39.128 ipmask=/123
+
+dom=128.39.14.65.in-addr.arpa soa=
+	refresh=3600 ttl=3600
+	ns=ns1.our-domain.com
+	ns=ns2.our-domain.com
+
+dom=130.128.39.14.65.in-addr.arpa
+dom=131.128.39.14.65.in-addr.arpa
+.EE
 .
 .SS "Delegating Name Service Authority"
 Delegation of a further subtree to another set of name servers

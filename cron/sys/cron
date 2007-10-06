@@ -1,11 +1,5 @@
 # sys crontab
 
-# grab new rfcs and drafts
-#30 9 * * *	local	/lib/rfc/grabrfc
-
-# save archive vacs after nightly dump; leave plenty of time for it to finish
-#30 6 * * *	fs	cd /sys/log && grep 'archive vac:[0-9a-f]+$' fs >>fs.archive
-
 # keep backup of key info
 #45 * * * *	p9auth	cd /adm && mk -f /cfg/p9auth/mkfile.adm
 
@@ -14,3 +8,9 @@
 
 # look at the wiki changes
 #30 5 * * *	local	cd /sys/lib/dist && yesterday.wiki >yesterday.out >[2=1]
+
+# save archive vacs after nightly dump; leave plenty of time for it to finish
+#30 6 * * *	fs	cd /sys/log && grep 'archive vac:[0-9a-f]+$' fs >>fs.archive
+
+# grab new rfcs and drafts
+#30 9 * * *	local	/lib/rfc/grabrfc
