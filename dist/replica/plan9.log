@@ -53031,3 +53031,5 @@
 1191614404 0 c sys/man/8/ndb - 664 sys sys 1191613971 14611
 1191623405 0 a mail/lib/mailnews - 775 upas upas 1191622324 440
 1191623405 1 c cron/upas/cron - 664 upas sys 1191622540 284
+1191690003 0 c sys/games/lib/fortunes - 664 sys sys 1191689955 267133
+1191704405 0 c sys/games/lib/fortunes - 664 sys sys 1191703593 267174
