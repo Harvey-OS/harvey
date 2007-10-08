@@ -7867,7 +7867,7 @@ sys/man/8/update - 664 sys sys 961259288 2336
 sys/man/8/venti - 664 sys sys 1190504986 12190
 sys/man/8/venti-backup - 664 sys sys 1188620038 2102
 sys/man/8/venti-fmt - 664 sys sys 1188620038 8626
-sys/man/8/vga - 664 sys sys 1141660952 3856
+sys/man/8/vga - 664 sys sys 1191737663 4129
 sys/man/fonts - 664 sys sys 944959700 218
 sys/man/index.html - 664 sys sys 1019918444 1859
 sys/man/mkfile - 664 sys sys 1018974173 2264
@@ -9841,7 +9841,7 @@ sys/src/cmd/aux/vga/io.c - 664 sys sys 1131110425 6329
 sys/src/cmd/aux/vga/mach32.c - 664 sys sys 1014925009 6004
 sys/src/cmd/aux/vga/mach64.c - 664 sys sys 1014925009 8279
 sys/src/cmd/aux/vga/mach64xx.c - 664 sys sys 1097900455 30266
-sys/src/cmd/aux/vga/main.c - 664 sys sys 1158594481 9765
+sys/src/cmd/aux/vga/main.c - 664 sys sys 1191737144 9892
 sys/src/cmd/aux/vga/mga2164w.c - 664 sys sys 1135487945 13173
 sys/src/cmd/aux/vga/mga4xx.c - 664 sys sys 1158594482 36898
 sys/src/cmd/aux/vga/mkfile - 664 sys sys 1115734903 927
@@ -14180,7 +14180,7 @@ sys/src/cmd/upas/ml/mlmgr.c - 664 sys sys 1045505888 2332
 sys/src/cmd/upas/ml/mlowner.c - 664 sys sys 1177589086 1143
 sys/src/cmd/upas/ned - 20000000775 sys sys 1062073146 0
 sys/src/cmd/upas/ned/mkfile - 664 sys sys 1060041738 233
-sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1143759341 44533
+sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1191814356 44531
 sys/src/cmd/upas/pop3 - 20000000775 sys sys 1064589604 0
 sys/src/cmd/upas/pop3/mkfile - 664 sys sys 1064589604 186
 sys/src/cmd/upas/pop3/pop3.c - 664 sys sys 1115039848 14327
