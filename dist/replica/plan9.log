@@ -53033,3 +53033,6 @@
 1191623405 1 c cron/upas/cron - 664 upas sys 1191622540 284
 1191690003 0 c sys/games/lib/fortunes - 664 sys sys 1191689955 267133
 1191704405 0 c sys/games/lib/fortunes - 664 sys sys 1191703593 267174
+1191736807 0 c sys/src/cmd/aux/vga/main.c - 664 sys sys 1191737144 9892
+1191738605 0 c sys/man/8/vga - 664 sys sys 1191737663 4129
+1191814205 0 c sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1191814356 44531

@@ -1308,7 +1308,7 @@ printpart(String *s, char *part)
 	fd = open(s_to_c(path), OREAD);
 	s_free(path);
 	if(fd < 0){
-		fprint(2, "!message dissappeared\n");
+		fprint(2, "!message disappeared\n");
 		return 0;
 	}
 	tot = 0;
@@ -1453,7 +1453,7 @@ printpartindented(String *s, char *part, char *indent)
 	b = Bopen(s_to_c(path), OREAD);
 	s_free(path);
 	if(b == nil){
-		fprint(2, "!message dissappeared\n");
+		fprint(2, "!message disappeared\n");
 		return;
 	}
 	while((p = Brdline(b, '\n')) != nil){

@@ -251,19 +251,22 @@ main(int argc, char** argv)
 
 	/*
 	 * Try to identify the VGA card and grab
-	 * registers. Print them out if requested.
+	 * registers.  Print them out if requested.
+	 * If monitor=vesa or our vga controller can't be found
+	 * in vgadb, try vesa modes; failing that, try vga.
 	 */
-	if(strcmp(type, "vesa") == 0
-		|| dbctlr(dbname, vga) == 0 || vga->ctlr == 0)
-	if(dbvesa(vga) == 0 || vga->ctlr == 0){
-		Bprint(&stdout, "%s: controller not in %s, not vesa\n", argv0, dbname);
-		dumpbios(256);
-		type = "vga";
-		vsize = psize = "640x480x1";
-		virtual = 0;
-		vga->ctlr = &generic;
-		vga->link = &generic;
-	}
+	if(strcmp(type, "vesa") == 0 || dbctlr(dbname, vga) == 0 ||
+	    vga->ctlr == 0)
+		if(dbvesa(vga) == 0 || vga->ctlr == 0){
+			Bprint(&stdout, "%s: controller not in %s, not vesa\n",
+				argv0, dbname);
+			dumpbios(256);
+			type = "vga";
+			vsize = psize = "640x480x1";
+			virtual = 0;
+			vga->ctlr = &generic;
+			vga->link = &generic;
+		}
 
 	trace("main->snarf\n");
 	for(ctlr = vga->link; ctlr; ctlr = ctlr->link){

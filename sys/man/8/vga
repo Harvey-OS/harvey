@@ -92,7 +92,7 @@ print a trace of the functions called.
 .B -V
 print a verbose trace of the functions called.
 .TP
-.B -x " file"
+.BI -x " file"
 use 
 .I file
 as the VGA database rather than
@@ -137,6 +137,10 @@ Using the monitor name
 instructs
 .I vga
 to use VESA BIOS calls to configure the display.
+Also, if our VGA controller can't be found in
+.IR vgadb ,
+.I vga
+will try the VESA calls.
 There are no entries for the
 .B vesa
 monitor in 
@@ -211,3 +215,11 @@ new VGA controller or monitor setting.
 It is useful in such cases to have
 the above command for setting the controller to a known state
 at your fingertips.
+.PP
+Due to the current implementation of access to the PC's
+`real mode',
+the VESA BIOS calls will only work on
+uniprocessors or on multiprocessors with
+.B *nomp=1
+in
+.IR plan9.ini .
