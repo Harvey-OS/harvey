@@ -63,6 +63,7 @@ misc
 	sd53c8xx	pci sdscsi
 	sdmv50xx	pci sdscsi
 	sdmylex		pci sdscsi
+	sdiahci		pci sdscsi
 
 ip
 	tcp
