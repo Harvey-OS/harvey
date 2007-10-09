@@ -16,6 +16,7 @@
 #define	dprint(...)	if(debug)	iprint(__VA_ARGS__); else USED(debug)
 #define	idprint(...)	if(prid)	print(__VA_ARGS__);  else USED(prid)
 #define	aprint(...)	if(datapi)	iprint(__VA_ARGS__); else USED(datapi)
+#define Tname(c)	tname[(c)->type]
 
 enum {
 	NCtlr	= 4,
@@ -70,7 +71,7 @@ static char *diskstates[Dlast] = {
 	"portreset",
 };
 
-extern SDifc sd63xxesbifc;
+extern SDifc sdiahciifc;
 typedef struct Ctlr Ctlr;
 
 enum {
@@ -151,7 +152,7 @@ static	int	niadrive;
 
 static	int	debug;
 static	int	prid = 1;
-static	int	datapi = 0;
+static	int	datapi;
 
 static char stab[] = {
 [0]	'i', 'm',
@@ -751,6 +752,24 @@ setupfis(Afis *f)
 	f->devicebits = (u32int*)(f->base + 0x58);
 }
 
+static void
+ahciwakeup(Aport *p)
+{
+	ushort s;
+
+	s = p->sstatus;
+	if((s & 0xF00) != 0x600)
+		return;
+	if((s & 7) != 1){		/* not (device, no phy) */
+		iprint("ahci: slumbering drive unwakeable %ux\n", s);
+		return;
+	}
+	p->sctl = 3*Aipm | 0*Aspd | Adet;
+	delay(1);
+	p->sctl &= ~7;
+//	iprint("ahci: wake %ux -> %ux\n", s, p->sstatus);
+}
+
 static int
 ahciconfigdrive(Ahba *h, Aportc *c, int mode)
 {
@@ -767,6 +786,7 @@ ahciconfigdrive(Ahba *h, Aportc *c, int mode)
 	}
 
 	if(p->sstatus & 3 && h->cap & Hsss){
+		/* device connected & staggered spin-up */
 		dprint("configdrive:  spinning up ... [%ux]\n", p->sstatus);
 		p->cmd |= Apod|Asud;
 		asleep(1400);
@@ -779,6 +799,9 @@ ahciconfigdrive(Ahba *h, Aportc *c, int mode)
 	p->fis = PCIWADDR(m->fis.base);
 	p->fishi = 0;
 	p->cmd |= Afre|Ast;
+
+	if((p->sstatus & 0xF0F) == 0x601) /* drive coming up in slumbering? */
+		ahciwakeup(p);
 
 	/* disable power managment sequence from book. */
 	p->sctl = (3*Aipm) | (mode*Aspd) | 0*Adet;
@@ -828,7 +851,7 @@ ahciconf(Ctlr *ctlr)
 		h->ghc |= Hae;
 
 	print("#S/sd%c: ahci: port %#p: hba sss %d; ncs %d; coal %d; "
-		"mports %d; led %d; clo %d; ems %d;\n",
+		"mports %d; led %d; clo %d; ems %d\n",
 		ctlr->sdev->idno, h,
 		(u>>27) & 1, (u>>8) & 0x1f, (u>>7) & 1, u & 0x1f, (u>>25) & 1,
 		(u>>24) & 1, (u>>6) & 1);
@@ -955,27 +978,30 @@ updatedrive(Drive *d)
 		}
 		pr = 0;
 	}
-	if(0 && p->task & 1 && last != cause)
+	if(p->task & 1 && last != cause)
 		dprint("err ca %ux serr %ux task %ux sstat %ux\n",
 			cause, serr, p->task, p->sstatus);
-
 	if(pr)
 		dprint("%s: upd %ux ta %ux\n", name, cause, p->task);
+
 	if(cause & (Aprcs|Aifs)){
 		s0 = d->state;
 		switch(p->sstatus & 7){
-		case 0:
+		case 0:				/* no device */
 			d->state = Dmissing;
 			break;
-		case 1:
-			d->state = Derror;
+		case 1:				/* device but no phy comm. */
+			if((p->sstatus & 0xF00) == 0x600)
+				d->state = Dnew; /* slumbering */
+			else
+				d->state = Derror;
 			break;
-		case 3:
+		case 3:				/* device & phy comm. estab. */
 			/* power mgnt crap for suprise removal */
 			p->ie |= Aprcs|Apcs;	/* is this required? */
 			d->state = Dreset;
 			break;
-		case 4:
+		case 4:				/* phy off-line */
 			d->state = Doffline;
 			break;
 		}
@@ -1004,18 +1030,23 @@ pstatus(Drive *d, ulong s)
 	 * likely my fault.  serror is maybe cleared at the wrong time.
 	 */
 	switch(s){
-	case 0:
+	case 0:			/* no device */
 		d->state = Dmissing;
+		break;
+	case 1:			/* device but no phy. comm. */
 		break;
 	case 2:			/* should this be missing?  need testcase. */
 		dprint("pstatus 2\n");
 		/* fallthrough */
-	case 3:
+	case 3:			/* device & phy. comm. */
 		d->wait = 0;
 		d->state = Dnew;
 		break;
-	case 4:
+	case 4:			/* offline */
 		d->state = Doffline;
+		break;
+	case 6:			/* ? not sure this makes sense. TODO */
+		d->state = Dnew;
 		break;
 	}
 }
@@ -1042,7 +1073,7 @@ resetdisk(Drive *d)
 	stat = p->sstatus & 7;
 	state = (p->cmd>>28) & 0xf;
 	dprint("resetdisk: icc %ux  det %d sdet %d\n", state, det, stat);
-	if(stat != 3){
+	if(stat != 3){		/* device absent or phy not communicating? */
 		ilock(d);
 		d->state = Dportreset;
 		iunlock(d);
@@ -1183,12 +1214,15 @@ checkdrive(Drive *d, int i)
 	case Dmissing:
 	case Dnew:
 		switch(s & 0x107){
-		case 0:
-		case 1:
+		case 1:		/* no device (pm), device but no phy. comm. */
+			ahciwakeup(d->port);
+			/* fall through */
+		case 0:		/* no device */
 			break;
 		default:
 			dprint("%s: unknown status %04ux\n", name, s);
-		case 0x100:
+			/* fall through */
+		case 0x100:		/* active, no device */
 			if(++d->wait&Mphywait)
 				break;
 reset:
@@ -1204,13 +1238,13 @@ reset:
 			resetdisk(d);
 			ilock(d);
 			break;
-		case 0x103:
+		case 0x103:		/* active, device, phy. comm. */
 			if((++d->wait&Midwait) == 0){
 				dprint("%s: slow reset %04ux task=%ux; %d\n",
 					name, s, d->port->task, d->wait);
 				goto reset;
 			}
-			s = d->port->task&0xff;
+			s = (uchar)d->port->task;
 			if(s == 0x7f || ((d->port->sig >> 16) != 0xeb14 &&
 			    (s & ~0x17) != (1<<6)))
 				break;
@@ -1236,12 +1270,13 @@ reset:
 portreset:
 		if(d->wait++ & 0xff && (s & 0x100) == 0)
 			break;
+		/* device is active */
 		dprint("%s: portreset [%s]: mode %d; status %04ux\n",
 			name, diskstates[d->state], d->mode, s);
 		d->portm.flag |= Ferror;
 		clearci(d->port);
 		wakeup(&d->portm);
-		if((s & 7) == 0){
+		if((s & 7) == 0){	/* no device */
 			d->state = Dmissing;
 			break;
 		}
@@ -1311,21 +1346,25 @@ static int
 iaenable(SDev *s)
 {
 	char name[32];
-	static int once;
 	Ctlr *c;
+	static int once;
 
 	c = s->ctlr;
 	ilock(c);
 	if(!c->enabled) {
-		if(once++ == 0)
+		if(once == 0) {
+			once = 1;
 			kproc("iasata", satakproc, 0);
+		}
+		if(c->ndrive == 0)
+			panic("iaenable: zero s->ctlr->ndrive");
 		pcisetbme(c->pci);
 		snprint(name, sizeof name, "%s (%s)", s->name, s->ifc->name);
 		intrenable(c->pci->intl, iainterrupt, c, c->pci->tbdf, name);
 		/* supposed to squelch leftover interrupts here. */
 		ahcienable(c->hba);
+		c->enabled = 1;
 	}
-	c->enabled = 1;
 	iunlock(c);
 	return 1;
 }
@@ -1500,9 +1539,9 @@ waitready(Drive *d)
 		t = d->port->task;
 		iunlock(d);
 		if((s & 0x100) == 0)
-			return -1;
+			return -1;	/* not active */
 		if(d->state == Dready && (s & 7) == 3)
-			return 0;
+			return 0;	/* ready, present & phy. comm. */
 		if((i+1) % 30 == 0)
 			print("%s: waitready: [%s] task=%ux sstat=%ux\n",
 				d->unit->name, diskstates[d->state], t, s);
@@ -1761,6 +1800,8 @@ loop:
 			type = Tsb600;
 		else
 			continue;
+		if (p->mem[Abar].bar == 0)
+			continue;
 		if(niactlr == NCtlr){
 			print("%spnp: too many controllers\n", tname[type]);
 			break;
@@ -1770,19 +1811,21 @@ loop:
 		memset(c, 0, sizeof *c);
 		memset(s, 0, sizeof *s);
 		io = p->mem[Abar].bar & ~0xf;
-		c->mmio = vmap(io, p->mem[0].size);
+		c->mmio = vmap(io, p->mem[Abar].size);
 		if(c->mmio == 0){
 			print("%s: address 0x%luX in use did=%x\n",
-				tname[type], io, p->did);
+				Tname(c), io, p->did);
 			continue;
 		}
 		c->lmmio = (ulong*)c->mmio;
 		c->pci = p;
 		c->type = type;
-		s->ifc = &sd63xxesbifc;
+
+		s->ifc = &sdiahciifc;
 		s->idno = 'E' + niactlr;
 		s->ctlr = c;
 		c->sdev = s;
+
 		if(Intel(c->type) && p->did != 0x2681)
 			iasetupahci(c);
 		nunit = ahciconf(c);
@@ -1790,14 +1833,14 @@ loop:
 		if(Intel(c->type) && iaahcimode(p) == -1)
 			break;
 		if(nunit < 1){
-			vunmap(c->mmio, p->mem[0].size);
+			vunmap(c->mmio, p->mem[Abar].size);
 			continue;
 		}
-		s->nunit = nunit;
+		c->ndrive = s->nunit = nunit;
 
 		i = (c->hba->cap >> 21) & 1;
 		print("#S/sd%c: %s: sata-%s with %d ports\n", s->idno,
-			tname[c->type], "I\0II" + i*2, nunit);
+			Tname(c), "I\0II" + i*2, nunit);
 
 		/* map the drives -- they don't all need to be enabled. */
 		memset(c->rawdrive, 0, sizeof c->rawdrive);
@@ -1820,7 +1863,7 @@ loop:
 		for(i = 0; i < n; i++)
 			if(ahciidle(c->drive[i]->port) == -1){
 				dprint("%s: port %d wedged; abort\n",
-					tname[c->type], i);
+					Tname(c), i);
 				goto loop;
 			}
 		for(i = 0; i < n; i++){
@@ -1952,7 +1995,8 @@ forcestate(Drive *d, char *state)
 	d->state = i;
 	if(i == Dnull){
 		d->mediachange = 1;
-		d->unit->sectors = 0;		/* force disk to disappear. */
+		if(d->unit)
+			d->unit->sectors = 0;	/* force disk to disappear. */
 	}
 	iunlock(d);
 }
@@ -2047,45 +2091,42 @@ portr(char *p, char *e, uint x)
 	return p;
 }
 
-#define has(x, s) if(u & (x)) p = seprint(p, e, (s))
-
+/* must emit exactly one line per controller (sd(3)) */
 static char*
-iartopctl(SDev *s, char *p, char *e)
+iartopctl(SDev *sdev, char *p, char *e)
 {
-	u32int u;
-	char name[10], pr[25];
-	Ahba *h;
-	Ctlr *c;
+	u32int cap;
+	char pr[25];
+	Ahba *hba;
+	Ctlr *ctlr;
 
-	c = s->ctlr;
+#define has(x, str) if(cap & (x)) p = seprint(p, e, "%s ", (str))
 
-	snprint(name, sizeof name, "sd%c", s->idno);
-	p = seprint(p, e, "%s ahci ", name);
-	u = c->hba->cap;
-	has(Hs64a, "64a ");
-	has(Hsncq, "ncq ");
-	has(Hssntf, "ntf ");
-	has(Hsmps, "mps ");
-	has(Hsss, "ss ");
-	has(Hsalp, "alp ");
-	has(Hsal, "led ");
-	has(Hsclo, "clo ");
-	has(Hsam, "am ");
-	has(Hspm, "pm ");
-	has(Hssc, "slum ");
-	has(Hpsc, "pslum ");
-	has(Hcccs, "coal ");
-	has(Hems, "ems ");
-	has(Hsxs, "sxs ");
-	p = seprint(p, e, "\n");
-
-	p = seprint(p, e, "%s iss %d ncs %d np %d\n", name, (u>>20) & 0xf,
-		(u>>8) & 0x1f, 1 + (u & 0x1f));
-	h = c->hba;
-	portr(pr, pr + sizeof pr, h->pi);
-	p = seprint(p, e, "%s ghc %ux isr %ux pi %ux %s ver %ux\n",
-		name, h->ghc, h->isr, h->pi, pr, h->ver);
-	return p;
+	ctlr = sdev->ctlr;
+	hba = ctlr->hba;
+	p = seprint(p, e, "sd%c ahci port %#p: ", sdev->idno, hba);
+	cap = hba->cap;
+	has(Hs64a, "64a");
+	has(Hsalp, "alp");
+	has(Hsam, "am");
+	has(Hsclo, "clo");
+	has(Hcccs, "coal");
+	has(Hems, "ems");
+	has(Hsal, "led");
+	has(Hsmps, "mps");
+	has(Hsncq, "ncq");
+	has(Hssntf, "ntf");
+	has(Hspm, "pm");
+	has(Hpsc, "pslum");
+	has(Hssc, "slum");
+	has(Hsss, "ss");
+	has(Hsxs, "sxs");
+	portr(pr, pr + sizeof pr, hba->pi);
+	return seprint(p, e,
+		"iss %d ncs %d np %d; ghc %ux isr %ux pi %ux %s ver %ux\n",
+		(cap>>20) & 0xf, (cap>>8) & 0x1f, 1 + (cap & 0x1f),
+		hba->ghc, hba->isr, hba->pi, pr, hba->ver);
+#undef has
 }
 
 static int
@@ -2119,7 +2160,7 @@ iawtopctl(SDev *, Cmdbuf *cmd)
 	return 0;
 }
 
-SDifc sd63xxesbifc = {
+SDifc sdiahciifc = {
 	"iahci",
 
 	iapnp,

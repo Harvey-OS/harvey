@@ -107,6 +107,7 @@ archmp.$O mp.$O:		apbootstrap.h
 apic.$O archmp.$O mp.$O:	mp.h
 $SDEV:				../port/sd.h
 sd53c8xx.$O:			sd53c8xx.i
+sdiahci.$O:			ahci.h
 main.$O:			init.h reboot.h
 wavelan.$O:			wavelan.c ../pc/wavelan.c ../pc/wavelan.h
 etherwavelan.$O:		etherwavelan.c ../pc/wavelan.h

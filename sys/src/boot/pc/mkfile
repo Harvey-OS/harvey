@@ -46,7 +46,7 @@ LOAD=\
 	sdata.$O\
 	sdmylex.$O\
 	sd53c8xx.$O\
-	sd63xxesb.$O\
+	sdiahci.$O\
 	sdscsi.$O\
 
 ETHER=\

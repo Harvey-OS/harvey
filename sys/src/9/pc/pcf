@@ -72,6 +72,7 @@ misc
 	sdata		pci sdscsi
 	sd53c8xx	pci sdscsi
 	sdmylex		pci sdscsi
+	sdiahci		pci sdscsi
 
 	uarti8250
 	uartpci		pci

@@ -57,7 +57,7 @@ static char *diskstates[Dlast] = {
 	"portreset",
 };
 
-extern SDifc sd63xxesbifc;
+extern SDifc sdiahciifc;
 typedef struct Ctlr Ctlr;
 
 enum {
@@ -633,6 +633,7 @@ ahciconf(Ctlr *c)
 {
 	u32int u;
 	Ahba *h;
+	static int count;
 
 	h = c->hba = (Ahba*)c->mmio;
 	u = h->cap;
@@ -640,7 +641,8 @@ ahciconf(Ctlr *c)
 	if((u&Hsam) == 0)
 		h->ghc |= Hae;
 
-	print("ahci hba sss %d; ncs %d; coal %d; mports %d; led %d; clo %d; ems %d;\n",
+	print("ahci%d port %#p: hba sss %d; ncs %d; coal %d; mports %d; "
+		"led %d; clo %d; ems %d;\n", count++, h,
 		(u>>27) & 1, (u>>8) & 0x1f, (u>>7) & 1,	u & 0x1f, (u>>25) & 1,
 		(u>>24) & 1, (u>>6) & 1);
 	return countbits(h->pi);
@@ -1106,12 +1108,14 @@ iaenable(SDev *s)
 	c = s->ctlr;
 	ilock(c);
 	if(!c->enabled) {
+		if(c->ndrive == 0)
+			panic("iaenable: zero s->ctlr->ndrive");
 		pcisetbme(c->pci);
 		setvec(c->irq + VectorPIC, iainterrupt, c);
 		/* supposed to squelch leftover interrupts here. */
 		ahcienable(c->hba);
+		c->enabled = 1;
 	}
-	c->enabled = 1;
 	iunlock(c);
 	return 1;
 }
@@ -1508,11 +1512,11 @@ iapnp(void)
 	SDev *head, *tail, *s;
 	static int done;
 
-	if(done++)
+	if(done)
 		return nil;
+	done = 1;
 	p = nil;
-	head = nil;
-	tail = nil;
+	head = tail = nil;
 loop:
 	while((p = pcimatch(p, 0x8086, 0)) != nil){
 		if((p->did & 0xfffc) != 0x2680 &&	/* esb */
@@ -1527,7 +1531,9 @@ loop:
 		memset(c, 0, sizeof *c);
 		memset(s, 0, sizeof *s);
 		io = p->mem[Abar].bar & ~0xf;
-		c->mmio = (uchar*)upamalloc(io, p->mem[0].size, 0);
+		if (io == 0)
+			continue;
+		c->mmio = (uchar*)upamalloc(io, p->mem[Abar].size, 0);
 		if(c->mmio == 0){
 			print("iapnp: address 0x%luX in use did=%x\n", io, p->did);
 			continue;
@@ -1541,14 +1547,14 @@ loop:
 		if(iaahcimode(p) == -1)
 			break;
 		if(nunit < 1){
-//			vunmap(c->mmio, p->mem[0].size);
+//			vunmap(c->mmio, p->mem[Abar].size);
 			continue;
 		}
 		niactlr++;
 		i = (c->hba->cap>>21) & 1;
 		print("intel 63[12]xesb: sata-%s ports with %d ports\n",
 			"I\0II" + i*2, nunit);
-		s->ifc = &sd63xxesbifc;
+		s->ifc = &sdiahciifc;
 		s->ctlr = c;
 		s->nunit = nunit;
 		s->idno = 'E';
@@ -1602,7 +1608,7 @@ iaid(SDev* sdev)
 	int i;
 
 	for(; sdev; sdev = sdev->next){
-		if(sdev->ifc != &sd63xxesbifc)
+		if(sdev->ifc != &sdiahciifc)
 			continue;
 		c = sdev->ctlr;
 		for(i = 0; i < NCtlr; i++)
@@ -1612,7 +1618,7 @@ iaid(SDev* sdev)
 	return nil;
 }
 
-SDifc sd63xxesbifc = {
+SDifc sdiahciifc = {
 	"iahci",
 
 	iapnp,
