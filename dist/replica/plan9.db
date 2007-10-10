@@ -1,8 +1,8 @@
 386 - 20000000775 sys sys 1010957353 0
 386/9load - 775 sys sys 1191886962 330276
-386/9loaddebug - 775 sys sys 1191886968 440560
+386/9loaddebug - 775 sys sys 1191962479 435156
 386/9loadlite - 775 sys sys 1191886972 153588
-386/9loadlitedebug - 775 sys sys 1191886976 226088
+386/9loadlitedebug - 775 sys sys 1191962483 220684
 386/9pc - 775 sys sys 1189053434 2038499
 386/9pc.gz - 664 sys sys 1189053435 865376
 386/9pccpu - 775 sys sys 1189053453 1705749
@@ -7826,7 +7826,7 @@ sys/man/8/init - 664 sys sys 944959679 1430
 sys/man/8/ipconfig - 664 sys sys 1177100280 7984
 sys/man/8/ipserv - 664 sys sys 1188191285 4411
 sys/man/8/kfscmd - 664 sys sys 1182192559 4514
-sys/man/8/listen - 664 sys sys 1190243316 3735
+sys/man/8/listen - 664 sys sys 1191965641 4032
 sys/man/8/lp - 664 sys sys 954614702 2491
 sys/man/8/mk9660 - 664 sys sys 1104430379 3946
 sys/man/8/mkfs - 664 sys sys 1186179498 3427
@@ -8056,7 +8056,7 @@ sys/src/9/pc/archmp.c - 664 sys sys 1174614168 2407
 sys/src/9/pc/audio.h - 664 sys sys 1015014513 343
 sys/src/9/pc/bios32.c - 664 sys sys 1173287378 3029
 sys/src/9/pc/cga.c - 664 sys sys 1015014513 1843
-sys/src/9/pc/dat.h - 664 sys sys 1190268414 7549
+sys/src/9/pc/dat.h - 664 sys sys 1190268296 7549
 sys/src/9/pc/devarch.c - 664 sys sys 1191886206 19667
 sys/src/9/pc/devether.c - 664 sys sys 1178823613 10489
 sys/src/9/pc/devfloppy.c - 664 sys sys 1142958305 20139
