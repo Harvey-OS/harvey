@@ -75,7 +75,6 @@ enum {
 	Rtmax		= Ms2tk(320),
 	Rtmin		= Ms2tk(20),
 	Srbtimeout	= 45*HZ,
-	Deadtk		= 120*HZ,
 
 	Dbcnt		= 1024,
 
@@ -238,10 +237,8 @@ static struct {
 } netlinks;
 
 extern Dev 	aoedevtab;
-
 static Ref 	units;
 static Ref	drivevers;
-
 static int	debug;
 static int	autodiscover	= 1;
 static int	rediscover;
@@ -622,7 +619,7 @@ loop:
 			a = (Aoeata*)f->hdr;
 			if(a->scnt > Dbcnt / Aoesectsz &&
 			   ++f->nl->lostjumbo > (d->nframes << 1)){
-				ea = f->nl->ea + 6*f->eaidx;
+				ea = f->dl->eatab[f->eaidx];
 				eventlog("%æ: jumbo failure on %s:%E; lba%lld\n",
 					d, f->nl->path, ea, f->lba);
 				d->maxbcnt = Dbcnt;
@@ -1329,9 +1326,8 @@ topctlread(Chan *, void *db, int len, int off)
 		p = seprint(p, e, "if%d path: %s\n", i, n->path);
 		p = seprint(p, e, "if%d ea: %E\n", i, n->ea);
 		p = seprint(p, e, "if%d flag: ", i); p = pflag(p, e, n->flag);
-		/* dunno %b */
-//		p = seprint(p, e, "if%d lostjumbo: %b\n", i, n->lostjumbo);
-//		p = seprint(p, e, "if%d datamtu: %b\n", i, n->datamtu);
+		p = seprint(p, e, "if%d lostjumbo: %d\n", i, n->lostjumbo);
+		p = seprint(p, e, "if%d datamtu: %d\n", i, n->datamtu);
 	}
 
 	if(p - s < len)
@@ -1388,9 +1384,14 @@ configwrite(Aoedev *d, void *db, long len)
 	}
 	for (;;) {
 		qlock(d);
+		if(waserror()){
+			qunlock(d);
+			nexterror();
+		}
 		f = freeframe(d);
 		if(f != nil)
 			break;
+		poperror();
 		qunlock(d);
 		if(waserror())
 			nexterror();

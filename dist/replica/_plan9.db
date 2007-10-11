@@ -8080,7 +8080,7 @@ sys/src/9/pc/ether8139.c - 664 sys sys 1185650567 19974
 sys/src/9/pc/ether8169.c - 664 sys sys 1185812348 26931
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1131290377 32294
 sys/src/9/pc/ether82557.c - 664 sys sys 1191886292 30411
-sys/src/9/pc/ether82563.c - 664 sys sys 1190235476 35505
+sys/src/9/pc/ether82563.c - 664 sys sys 1192047088 34689
 sys/src/9/pc/ether83815.c - 664 sys sys 1172259521 26346
 sys/src/9/pc/ether8390.c - 664 sys sys 1131290377 17702
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
@@ -8196,7 +8196,7 @@ sys/src/9/port/chan.c - 664 sys sys 1146151714 34773
 sys/src/9/port/cis.c - 664 sys sys 1099761153 9248
 sys/src/9/port/debugalloc.c - 664 sys sys 1014931171 10402
 sys/src/9/port/dev.c - 664 sys sys 1146151714 8177
-sys/src/9/port/devaoe.c - 664 sys sys 1189187154 41993
+sys/src/9/port/devaoe.c - 664 sys sys 1192044589 42018
 sys/src/9/port/devaudio.c - 664 sys sys 1170456648 21199
 sys/src/9/port/devbridge.c - 664 sys sys 1187735844 24076
 sys/src/9/port/devcap.c - 664 sys sys 1178886040 4141
