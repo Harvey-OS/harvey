@@ -123,9 +123,9 @@ enum {					/* Ctrl */
 	Slu		= 1<<6,		/* Set Link Up */
 	SspeedMASK	= 3<<8,		/* Speed Selection */
 	SspeedSHIFT	= 8,
-	Sspeed10	= 0x0000,	/* 10Mb/s */
-	Sspeed100	= 0x0100,	/* 100Mb/s */
-	Sspeed1000	= 0x0200,	/* 1000Mb/s */
+	Sspeed10	= 0x00000000,	/* 10Mb/s */
+	Sspeed100	= 0x00000100,	/* 100Mb/s */
+	Sspeed1000	= 0x00000200,	/* 1000Mb/s */
 	Frcspd		= 1<<11,	/* Force Speed */
 	Frcdplx		= 1<<12,	/* Force Duplex */
 	SwdpinsloMASK	= 0x003C0000,	/* Software Defined Pins - lo nibble */
@@ -144,36 +144,13 @@ enum {					/* Status */
 	Lanid		= 3<<2,		/* mask for Lan ID.
 	Txoff		= 1<<4,		/* Transmission Paused */
 	Tbimode		= 1<<5,		/* TBI Mode Indication */
-	SpeedMASK	= 0x00C0,
-	Speed10		= 0x0000,	/* 10Mb/s */
-	Speed100	= 0x0040,	/* 100Mb/s */
-	Speed1000	= 0x0080,	/* 1000Mb/s */
 	Phyra		= 1<<10,	/* PHY Reset Asserted */
 	GIOme		= 1<<19,	/* GIO Master Enable Status */
 };
 
-enum {					/* Ctrl and Status */
-	Fd		= 0x0001,	/* Full-Duplex */
-	AsdvMASK	= 0x0300,
-	Asdv10		= 0x0000,	/* 10Mb/s */
-	Asdv100		= 0x0100,	/* 100Mb/s */
-	Asdv1000	= 0x0200,	/* 1000Mb/s */
-};
-
-enum {					/* Eec */
-	Sk		= 1<<0,		/* Clock input to the EEPROM */
-	Cs		= 1<<1,		/* Chip Select */
-	Di		= 1<<2,		/* Data Input to the EEPROM */
-	Do		= 1<<3,		/* Data Output from the EEPROM */
-	Areq		= 1<<6,		/* EEPROM Access Request */
-	Agnt		= 1<<7,		/* EEPROM Access Grant */
-};
-
 enum {					/* Eerd */
-	Ee_start	= 1<<0,		/* Start Read */
-	Ee_done		= 1<<1,		/* Read done */
-	Ee_addr		= 0xfff8<<2,	/* Read address [15:2] */
-	Ee_data		= 0xffff<<16,	/* Read Data; Data returned from eeprom/nvm */
+	EEstart		= 1<<0,		/* Start Read */
+	EEdone		= 1<<1,		/* Read done */
 };
 
 enum {					/* Ctrlext */
@@ -194,7 +171,7 @@ enum {					/* EEPROM content offsets */
 };
 
 enum {					/* Mdic */
-	MDIdMASK	= 0xFFFF,	/* Data */
+	MDIdMASK	= 0x0000FFFF,	/* Data */
 	MDIdSHIFT	= 0,
 	MDIrMASK	= 0x001F0000,	/* PHY Register Address */
 	MDIrSHIFT	= 16,
@@ -216,58 +193,58 @@ enum {					/* Mdic secondary status register */
 };
 
 enum {					/* Icr, Ics, Ims, Imc */
-	Txdw		= 0x0001,	/* Transmit Descriptor Written Back */
-	Txqe		= 0x0002,	/* Transmit Queue Empty */
-	Lsc		= 0x0004,	/* Link Status Change */
-	Rxseq		= 0x0008,	/* Receive Sequence Error */
-	Rxdmt0		= 0x0010,	/* Rdesc Minimum Threshold Reached */
-	Rxo		= 0x0040,	/* Receiver Overrun */
-	Rxt0		= 0x0080,	/* Receiver Timer Interrupt */
-	Mdac		= 0x0200,	/* MDIO Access Completed */
-	Rxcfg		= 0x0400,	/* Receiving /C/ ordered sets */
-	Gpi0		= 0x0800,	/* General Purpose Interrupts */
-	Gpi1		= 0x1000,
-	Gpi2		= 0x2000,
-	Gpi3		= 0x4000,
+	Txdw		= 0x00000001,	/* Transmit Descriptor Written Back */
+	Txqe		= 0x00000002,	/* Transmit Queue Empty */
+	Lsc		= 0x00000004,	/* Link Status Change */
+	Rxseq		= 0x00000008,	/* Receive Sequence Error */
+	Rxdmt0		= 0x00000010,	/* Rdesc Minimum Threshold Reached */
+	Rxo		= 0x00000040,	/* Receiver Overrun */
+	Rxt0		= 0x00000080,	/* Receiver Timer Interrupt */
+	Mdac		= 0x00000200,	/* MDIO Access Completed */
+	Rxcfg		= 0x00000400,	/* Receiving /C/ ordered sets */
+	Gpi0		= 0x00000800,	/* General Purpose Interrupts */
+	Gpi1		= 0x00001000,
+	Gpi2		= 0x00002000,
+	Gpi3		= 0x00004000,
 	Ack		= 0x00020000,	/* Receive ACK frame */
 };
 
 enum {					/* Txcw */
-	TxcwFd		= 0x0020,	/* Full Duplex */
-	TxcwHd		= 0x0040,	/* Half Duplex */
-	TxcwPauseMASK	= 0x0180,	/* Pause */
+	TxcwFd		= 0x00000020,	/* Full Duplex */
+	TxcwHd		= 0x00000040,	/* Half Duplex */
+	TxcwPauseMASK	= 0x00000180,	/* Pause */
 	TxcwPauseSHIFT	= 7,
 	TxcwPs		= 1<<TxcwPauseSHIFT,	/* Pause Supported */
 	TxcwAs		= 2<<TxcwPauseSHIFT,	/* Asymmetric FC desired */
-	TxcwRfiMASK	= 0x3000,	/* Remote Fault Indication */
+	TxcwRfiMASK	= 0x00003000,	/* Remote Fault Indication */
 	TxcwRfiSHIFT	= 12,
-	TxcwNpr		= 0x8000,	/* Next Page Request */
+	TxcwNpr		= 0x00008000,	/* Next Page Request */
 	TxcwConfig	= 0x40000000,	/* Transmit COnfig Control */
 	TxcwAne		= 0x80000000,	/* Auto-Negotiation Enable */
 };
 
 enum {					/* Rctl */
-	Rrst		= 0x0001,	/* Receiver Software Reset */
-	Ren		= 0x0002,	/* Receiver Enable */
-	Sbp		= 0x0004,	/* Store Bad Packets */
-	Upe		= 0x0008,	/* Unicast Promiscuous Enable */
-	Mpe		= 0x0010,	/* Multicast Promiscuous Enable */
-	Lpe		= 0x0020,	/* Long Packet Reception Enable */
-	LbmMASK		= 0x00C0,	/* Loopback Mode */
-	LbmOFF		= 0x0000,	/* No Loopback */
-	LbmTBI		= 0x0040,	/* TBI Loopback */
-	LbmMII		= 0x0080,	/* GMII/MII Loopback */
-	LbmXCVR		= 0x00C0,	/* Transceiver Loopback */
-	RdtmsMASK	= 0x0300,	/* Rdesc Minimum Threshold Size */
-	RdtmsHALF	= 0x0000,	/* Threshold is 1/2 Rdlen */
-	RdtmsQUARTER	= 0x0100,	/* Threshold is 1/4 Rdlen */
-	RdtmsEIGHTH	= 0x0200,	/* Threshold is 1/8 Rdlen */
-	MoMASK		= 0x3000,	/* Multicast Offset */
-	Bam		= 0x8000,	/* Broadcast Accept Mode */
+	Rrst		= 0x00000001,	/* Receiver Software Reset */
+	Ren		= 0x00000002,	/* Receiver Enable */
+	Sbp		= 0x00000004,	/* Store Bad Packets */
+	Upe		= 0x00000008,	/* Unicast Promiscuous Enable */
+	Mpe		= 0x00000010,	/* Multicast Promiscuous Enable */
+	Lpe		= 0x00000020,	/* Long Packet Reception Enable */
+	LbmMASK		= 0x000000C0,	/* Loopback Mode */
+	LbmOFF		= 0x00000000,	/* No Loopback */
+	LbmTBI		= 0x00000040,	/* TBI Loopback */
+	LbmMII		= 0x00000080,	/* GMII/MII Loopback */
+	LbmXCVR		= 0x000000C0,	/* Transceiver Loopback */
+	RdtmsMASK	= 0x00000300,	/* Rdesc Minimum Threshold Size */
+	RdtmsHALF	= 0x00000000,	/* Threshold is 1/2 Rdlen */
+	RdtmsQUARTER	= 0x00000100,	/* Threshold is 1/4 Rdlen */
+	RdtmsEIGHTH	= 0x00000200,	/* Threshold is 1/8 Rdlen */
+	MoMASK		= 0x00003000,	/* Multicast Offset */
+	Bam		= 0x00008000,	/* Broadcast Accept Mode */
 	BsizeMASK	= 0x00030000,	/* Receive Buffer Size */
 	Bsize16384	= 0x00010000,	/* Bsex = 1 */
 	Bsize8192	= 0x00020000, 	/* Bsex = 1 */
-	Bsize2048	= 0x0000,
+	Bsize2048	= 0x00000000,
 	Bsize1024	= 0x00010000,
 	Bsize512	= 0x00020000,
 	Bsize256	= 0x00030000,
@@ -282,11 +259,11 @@ enum {					/* Rctl */
 };
 
 enum {					/* Tctl */
-	Trst		= 0x0001,	/* Transmitter Software Reset */
-	Ten		= 0x0002,	/* Transmit Enable */
-	Psp		= 0x0008,	/* Pad Short Packets */
+	Trst		= 0x00000001,	/* Transmitter Software Reset */
+	Ten		= 0x00000002,	/* Transmit Enable */
+	Psp		= 0x00000008,	/* Pad Short Packets */
 	Mulr		= 0x10000000,	/* Allow multiple concurrent requests */
-	CtMASK		= 0x0FF0,	/* Collision Threshold */
+	CtMASK		= 0x00000FF0,	/* Collision Threshold */
 	CtSHIFT		= 4,
 	ColdMASK	= 0x003FF000,	/* Collision Distance */
 	ColdSHIFT	= 12,
@@ -297,9 +274,9 @@ enum {					/* Tctl */
 };
 
 enum {					/* [RT]xdctl */
-	PthreshMASK	= 0x003F,	/* Prefetch Threshold */
+	PthreshMASK	= 0x0000003F,	/* Prefetch Threshold */
 	PthreshSHIFT	= 0,
-	HthreshMASK	= 0x3F00,	/* Host Threshold */
+	HthreshMASK	= 0x00003F00,	/* Host Threshold */
 	HthreshSHIFT	= 8,
 	WthreshMASK	= 0x003F0000,	/* Writeback Threshold */
 	WthreshSHIFT	= 16,
@@ -357,7 +334,7 @@ typedef struct {			/* Transmit Descriptor */
 enum {					/* Tdesc control */
 	LenMASK		= 0x000FFFFF,	/* Data/Packet Length Field */
 	LenSHIFT	= 0,
-	DtypeCD		= 0x0000,	/* Data Type 'Context Descriptor' */
+	DtypeCD		= 0x00000000,	/* Data Type 'Context Descriptor' */
 	DtypeDD		= 0x00100000,	/* Data Type 'Data Descriptor' */
 	PtypeTCP	= 0x01000000,	/* TCP/UDP Packet Type (CD) */
 	Teop		= 0x01000000,	/* End of Packet (DD) */
@@ -419,7 +396,6 @@ struct Ctlr {
 	int	active;
 	int	started;
 	int	type;
-	int	cls;
 	ushort	eeprom[0x40];
 
 	QLock	alock;			/* attach */
@@ -427,7 +403,7 @@ struct Ctlr {
 	int	nrd;
 	int	ntd;
 	int	nrb;			/* how many this Ctlr has in the pool */
-	unsigned rbsz;
+	unsigned rbsz;			/* unsigned for % and / by 1024 */
 
 	int	*nic;
 	Lock	imlock;
@@ -471,7 +447,6 @@ struct Ctlr {
 	int	tdh;			/* transmit descriptor head */
 	int	tdt;			/* transmit descriptor tail */
 
-	int	txcw;
 	int	fcrtl;
 	int	fcrth;
 
@@ -802,7 +777,7 @@ i82563txinit(Ctlr* ctlr)
 //		csr32w(ctlr, Tarc0, csr32r(ctlr, Tarc0) | 7<<24); /* yb sez? */
 }
 
-#define Next(x, m) (((x)+1) & (m))
+#define Next(x, m)	(((x)+1) & (m))
 
 static int
 i82563cleanup(Ctlr *c)
@@ -919,7 +894,8 @@ i82563rxinit(Ctlr* ctlr)
 
 	if(ctlr->type == i82573)
 		csr32w(ctlr, Ert, 1024/8);
-	else if(ctlr->type == i82566)
+
+	if(ctlr->type == i82566)
 		csr32w(ctlr, Pbs, 16);
 
 	csr32w(ctlr, Rdbal, PCIWADDR(ctlr->rdba));
@@ -996,6 +972,7 @@ i82563rproc(void* arg)
 			if (bp = ctlr->rb[rdh]) {
 				if((rd->status & Reop) && rd->errors == 0){
 					bp->wp += rd->length;
+					bp->lim = bp->wp;	/* lie like a dog. */
 					if(!(rd->status & Ixsm)){
 						ctlr->ixsm++;
 						if(rd->status & Ipcs){
@@ -1016,7 +993,6 @@ i82563rproc(void* arg)
 						}
 						bp->checksum = rd->checksum;
 						bp->flag |= Bpktck;
-						bp->lim = bp->wp;	/* lie like a dog. */
 					}
 					etheriq(edev, bp, 1);
 				} else
@@ -1057,7 +1033,7 @@ phyread(Ctlr *c, int reg)
 	}
 	if((phy & (MDIe|MDIready)) != MDIready)
 		return ~0;
-	return (ushort)phy;
+	return phy & 0xffff;
 }
 
 static uint
@@ -1152,14 +1128,13 @@ i82563attach(Ether* edev)
 
 	ctlr->nrd = Nrd;
 	ctlr->ntd = Ntd;
-	ctlr->alloc = mallocz(ctlr->nrd*sizeof(Rd) + ctlr->ntd*sizeof(Td) + 255,
-		1);
+	ctlr->alloc = malloc(ctlr->nrd*sizeof(Rd)+ctlr->ntd*sizeof(Td) + 255);
 	if(ctlr->alloc == nil){
 		qunlock(&ctlr->alock);
 		return;
 	}
 	ctlr->rdba = (Rd*)ROUNDUP((ulong)ctlr->alloc, 256);
-	ctlr->tdba = (Td*)(ctlr->rdba+ ctlr->nrd);
+	ctlr->tdba = (Td*)(ctlr->rdba + ctlr->nrd);
 
 	ctlr->rb = malloc(ctlr->nrd * sizeof(Block*));
 	ctlr->tb = malloc(ctlr->ntd * sizeof(Block*));
@@ -1188,13 +1163,13 @@ i82563attach(Ether* edev)
 		freeb(bp);
 	}
 
-	snprint(name, KNAMELEN, "#l%dlproc", edev->ctlrno);
+	snprint(name, sizeof name, "#l%dl", edev->ctlrno);
 	kproc(name, i82563lproc, edev);
 
-	snprint(name, KNAMELEN, "#l%drproc", edev->ctlrno);
+	snprint(name, sizeof name, "#l%dr", edev->ctlrno);
 	kproc(name, i82563rproc, edev);
 
-	snprint(name, KNAMELEN, "#l%dtproc", edev->ctlrno);
+	snprint(name, sizeof name, "#l%dt", edev->ctlrno);
 	kproc(name, i82563tproc, edev);
 
 	i82563txinit(ctlr);
@@ -1252,7 +1227,7 @@ i82563detach(Ctlr* ctlr)
 	    ctlr->type == i82572)){
 		ctlr->pba = csr32r(ctlr, Pba);
 		r = ctlr->pba >> 16;
-		r += (ushort)ctlr->pba;
+		r += ctlr->pba & 0xffff;
 		r >>= 1;
 		csr32w(ctlr, Pba, r);
 	} else if(ctlr->type == i82573 && ctlr->rbsz > 1514)
@@ -1319,8 +1294,8 @@ i82563shutdown(Ether* ether)
 static ushort
 eeread(Ctlr* ctlr, int adr)
 {
-	csr32w(ctlr, Eerd, Ee_start | adr << 2);
-	while ((csr32r(ctlr, Eerd) & Ee_done) == 0)
+	csr32w(ctlr, Eerd, EEstart | adr << 2);
+	while ((csr32r(ctlr, Eerd) & EEdone) == 0)
 		;
 	return csr32r(ctlr, Eerd) >> 16;
 }
@@ -1341,7 +1316,7 @@ eeload(Ctlr* ctlr)
 }
 
 static int
-i82563reset(Ctlr* ctlr)
+i82563reset(Ctlr *ctlr)
 {
 	int i, r;
 
@@ -1383,7 +1358,7 @@ i82563reset(Ctlr* ctlr)
 static void
 i82563pci(void)
 {
-	int cls, type;
+	int type;
 	ulong io;
 	void *mem;
 	Pcidev *p;
@@ -1424,26 +1399,11 @@ i82563pci(void)
 				p->mem[0].bar);
 			continue;
 		}
-		cls = pcicfgr8(p, PciCLS);
-		switch(cls){
-			default:
-				print("%s: unexpected CLS %d\n",
-					tname[type], cls*4);
-				break;
-			case 0x00:
-			case 0xFF:
-				print("%s: unusable CLS\n", tname[type]);
-				continue;
-			case 0x08:
-			case 0x10:
-				break;
-		}
 		ctlr = malloc(sizeof(Ctlr));
 		ctlr->port = io;
 		ctlr->pcidev = p;
 		ctlr->type = type;
 		ctlr->rbsz = rbtab[type];
-		ctlr->cls = cls*4;
 		ctlr->nic = mem;
 
 		if(i82563reset(ctlr)){
@@ -1549,11 +1509,11 @@ i82573pnp(Ether *e)
 void
 ether82563link(void)
 {
-	addethercard("igbepcie", anypnp);
 	/* recognise lots of model numbers for debugging assistance */
 	addethercard("i82563", i82563pnp);
 	addethercard("i82566", i82566pnp);
 	addethercard("i82571", i82571pnp);
 	addethercard("i82572", i82572pnp);
 	addethercard("i82573", i82573pnp);
+	addethercard("igbepcie", anypnp);
 }
