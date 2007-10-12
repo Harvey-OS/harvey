@@ -41,7 +41,10 @@ on
 .I mountpoint
 (default
 .BR /n/ftp )
-to provide access to files on the remote machine.
+to provide access via FTP to files on the remote machine.
+.I Ftpfs
+attempts to use FTP's `passive' mode
+but falls back to using `active' mode if that fails.
 If required by the remote machine,
 .I ftpfs
 will ask
