@@ -1,6 +1,11 @@
 #!/bin/rc
-
+# patch/diff [-w] patch-name
 rfork e
+dopts=(-c)
+if (~ $1 -w) {
+	dopts=($dopts $1)
+	shift
+}
 if(! ~ $#* 1){
 	echo 'usage: patch/diff patch-name' >[1=2]
 	exit usage
@@ -25,6 +30,6 @@ if(! patch/okay .){
 d=/n/sources/patch/$1
 fn xxx {
 	echo $1
-	diff -c $2.orig $d/$2 | sed 's/^/	/'
+	diff $dopts $2.orig $d/$2 | sed 's/^/	/'
 }
-cat files | sed 's/^/xxx /' |rc
+cat files | sed 's/^/xxx /' | rc

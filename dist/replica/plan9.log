@@ -53072,3 +53072,5 @@
 1192044605 0 c sys/src/9/port/devaoe.c - 664 sys sys 1192044589 42018
 1192048204 0 c sys/src/9/pc/ether82563.c - 664 sys sys 1192047088 34689
 1192156204 0 c sys/man/4/ftpfs - 664 sys sys 1192155958 4895
+1192305605 0 c rc/bin/patch/diff - 775 sys sys 1192305220 561
+1192305605 1 c sys/games/lib/fortunes - 664 sys sys 1192305216 267301
