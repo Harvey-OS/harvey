@@ -12,7 +12,7 @@ spell, sprog \- find spelling errors
 ]
 \&...
 .PP
-.B sprog
+.B aux/sprog
 [
 .I options
 ]
@@ -43,7 +43,7 @@ Print all words not literally in the spelling list, with
 derivations.
 .TP
 .B -x
-Print, marked with
+Print on standard error, marked with
 .LR = ,
 every stem as it is looked up in the spelling list,
 along with its affix classes.

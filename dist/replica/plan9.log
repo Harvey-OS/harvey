@@ -53074,3 +53074,5 @@
 1192156204 0 c sys/man/4/ftpfs - 664 sys sys 1192155958 4895
 1192305605 0 c rc/bin/patch/diff - 775 sys sys 1192305220 561
 1192305605 1 c sys/games/lib/fortunes - 664 sys sys 1192305216 267301
+1192564804 0 c sys/src/9/port/devmouse.c - 664 sys sys 1192564555 13904
+1192579205 0 c sys/man/1/spell - 664 sys sys 1192579418 1898

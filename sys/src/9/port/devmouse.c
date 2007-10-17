@@ -78,6 +78,7 @@ Cursor		curs;
 
 void	Cursortocursor(Cursor*);
 int	mousechanged(void*);
+
 static void mouseclock(void);
 static void xkbdmouse(int);
 
@@ -102,7 +103,10 @@ static uchar buttonmap[8] = {
 };
 static int mouseswap;
 static int scrollswap;
-extern	Memimage*	gscreen;
+static ulong mousetime;
+
+extern Memimage* gscreen;
+extern ulong kerndate;
 
 static void
 mousereset(void)
@@ -123,6 +127,17 @@ mousefromkbd(int buttons)
 	mousetrack(0, 0, 0, TK2MS(MACHP(0)->ticks));
 }
 
+static int
+mousedevgen(Chan *c, char *name, Dirtab *tab, int ntab, int i, Dir *dp)
+{
+	int rc;
+
+	rc = devgen(c, name, tab, ntab, i, dp);
+	if(rc != -1)
+		dp->atime = mousetime;
+	return rc;
+}
+
 static void
 mouseinit(void)
 {
@@ -133,6 +148,7 @@ mouseinit(void)
 	Cursortocursor(&arrow);
 	cursoron(1);
 	kbdmouse = mousefromkbd;
+	mousetime = seconds();
 }
 
 static Chan*
@@ -148,6 +164,10 @@ mousewalk(Chan *c, Chan *nc, char **name, int nname)
 {
 	Walkqid *wq;
 
+	/*
+	 * We use devgen() and not mousedevgen() here
+	 * see "Ugly problem" in dev.c/devwalk()
+	 */
 	wq = devwalk(c, nc, name, nname, mousedir, nelem(mousedir), devgen);
 	if(wq != nil && wq->clone != c && wq->clone != nil && (wq->clone->qid.type&QTDIR)==0)
 		incref(&mouse);
@@ -157,7 +177,7 @@ mousewalk(Chan *c, Chan *nc, char **name, int nname)
 static int
 mousestat(Chan *c, uchar *db, int n)
 {
-	return devstat(c, db, n, mousedir, nelem(mousedir), devgen);
+	return devstat(c, db, n, mousedir, nelem(mousedir), mousedevgen);
 }
 
 static Chan*
@@ -243,7 +263,7 @@ mouseread(Chan *c, void *va, long n, vlong off)
 	p = va;
 	switch((ulong)c->qid.path){
 	case Qdir:
-		return devdirread(c, va, n, mousedir, nelem(mousedir), devgen);
+		return devdirread(c, va, n, mousedir, nelem(mousedir), mousedevgen);
 
 	case Qcursor:
 		if(offset != 0)
@@ -264,9 +284,10 @@ mouseread(Chan *c, void *va, long n, vlong off)
 			sleep(&mouse.r, mousechanged, 0);
 
 		mouse.qfull = 0;
+		mousetime = seconds();
 
 		/*
-		 * No lock of the indicies is necessary here, because ri is only
+		 * No lock of the indices is necessary here, because ri is only
 		 * updated by us, and there is only one mouse reader
 		 * at a time.  I suppose that more than one process
 		 * could try to read the fd at one time, but such behavior
@@ -280,7 +301,7 @@ mouseread(Chan *c, void *va, long n, vlong off)
 		} else {
 			while(!canlock(&cursor))
 				tsleep(&up->sleep, return0, 0, TK2MS(1));
-	
+
 			m = mouse.Mousestate;
 			unlock(&cursor);
 		}
@@ -444,7 +465,7 @@ mousewrite(Chan *c, void *va, long n, vlong)
 			msec = TK2MS(MACHP(0)->ticks);
 		mousetrack(pt.x, pt.y, b, msec);
 		return n;
-		
+
 	case Qmouse:
 		if(n > sizeof buf-1)
 			n = sizeof buf -1;
@@ -620,7 +641,7 @@ m3mouseputc(Queue*, int c)
 	int dx, dy, newbuttons;
 	static ulong lasttick;
 	ulong m;
-	
+
 	/* Resynchronize in stream with timing. */
 	m = MACHP(0)->ticks;
 	if(TK2SEC(m - lasttick) > 2)
@@ -674,7 +695,7 @@ m5mouseputc(Queue*, int c)
 	static int nb;
 	static ulong lasttick;
 	ulong m;
-	
+
 	/* Resynchronize in stream with timing. */
 	m = MACHP(0)->ticks;
 	if(TK2SEC(m - lasttick) > 2)
@@ -686,7 +707,7 @@ m5mouseputc(Queue*, int c)
 		schar dx,dy,newbuttons;
 		dx = msg[1] | (msg[0] & 0x3) << 6;
 		dy = msg[2] | (msg[0] & 0xc) << 4;
-		newbuttons = 
+		newbuttons =
 			(msg[0] & 0x10) >> (mouseshifted ? 3 : 2)
 			| (msg[0] & 0x20) >> 5
 			| ( msg[3] == 0x10 ? 0x02 :
@@ -712,7 +733,7 @@ mouseputc(Queue*, int c)
 	int dx, dy, newbuttons;
 	static ulong lasttick;
 	ulong m;
-	
+
 	/* Resynchronize in stream with timing. */
 	m = MACHP(0)->ticks;
 	if(TK2SEC(m - lasttick) > 2)
@@ -737,7 +758,7 @@ mouseputc(Queue*, int c)
 int
 mousechanged(void*)
 {
-	return mouse.lastcounter != mouse.counter || 
+	return mouse.lastcounter != mouse.counter ||
 		mouse.lastresize != mouse.resize;
 }
 

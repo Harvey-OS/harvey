@@ -7457,7 +7457,7 @@ sys/man/1/seq - 664 sys sys 1063855680 1131
 sys/man/1/size - 664 sys sys 944959674 393
 sys/man/1/sleep - 664 sys sys 1167774352 420
 sys/man/1/sort - 664 sys sys 1113743328 4719
-sys/man/1/spell - 664 sys sys 1113743329 1876
+sys/man/1/spell - 664 sys sys 1192579418 1898
 sys/man/1/spin - 664 sys sys 1186525444 6685
 sys/man/1/split - 664 sys sys 1038183072 1171
 sys/man/1/src - 664 sys sys 954266293 1138
@@ -8210,7 +8210,7 @@ sys/src/9/port/devkprof.c - 664 sys sys 1014931173 3111
 sys/src/9/port/devloopback.c - 664 sys sys 1138458368 14579
 sys/src/9/port/devmnt.c - 664 sys sys 1134659798 20918
 sys/src/9/port/devmntstats.c - 664 sys sys 1014931173 4039
-sys/src/9/port/devmouse.c - 664 sys sys 1130848303 13517
+sys/src/9/port/devmouse.c - 664 sys sys 1192564555 13904
 sys/src/9/port/devpipe.c - 664 sys sys 1077055016 5825
 sys/src/9/port/devpnp.c - 664 sys sys 1088560907 13624
 sys/src/9/port/devproc.c - 664 sys sys 1168304324 28543
