@@ -1,3 +1,6 @@
+/*
+ * deliver recipient fromfile mbox - append stdin to mbox with locking & logging
+ */
 #include "dat.h"
 #include "common.h"
 
@@ -11,12 +14,11 @@ usage(void)
 void
 main(int argc, char **argv)
 {
-	int fd;
+	int bytes, fd;
 	char now[30];
-	Addr *a;
 	char *deliveredto;
+	Addr *a;
 	Mlock *l;
-	int bytes;
 
 	ARGBEGIN{
 	}ARGEND;

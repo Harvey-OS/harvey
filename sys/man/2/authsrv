@@ -53,7 +53,6 @@ int	_asgetticket(int fd, char *trbuf, char *tbuf);
 .B
 int	_asrdresp(int fd, char *buf, int len);
 .SH DESCRIPTION
-.PP
 .I Authdial
 dials an authentication server over the
 network rooted at
@@ -78,6 +77,9 @@ the former having precedence,
 and which also contains an
 .B auth
 attribute.
+If it finds neither, it tries
+.BI p9auth. ad
+in DNS as the authentication server.
 The string dialed is then
 .I netroot\fP!\fIserver\fP!ticket
 where

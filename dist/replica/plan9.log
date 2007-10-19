@@ -53076,3 +53076,16 @@
 1192305605 1 c sys/games/lib/fortunes - 664 sys sys 1192305216 267301
 1192564804 0 c sys/src/9/port/devmouse.c - 664 sys sys 1192564555 13904
 1192579205 0 c sys/man/1/spell - 664 sys sys 1192579418 1898
+1192737604 0 c sys/man/2/authsrv - 664 sys sys 1192737581 4583
+1192737604 1 c sys/src/libauthsrv/authdial.c - 664 sys sys 1192737014 850
+1192741205 0 c sys/man/1/troff - 664 sys sys 1192741278 3713
+1192743004 0 c rc/bin/fshalt - 775 sys sys 1192741344 1862
+1192743004 1 a rc/bin/addpsfonts - 775 sys sys 1192741348 293
+1192743004 2 a rc/bin/dpost - 755 sys sys 1192741346 220
+1192743004 3 c sys/man/1/troff - 664 sys sys 1192741763 3659
+1192743004 4 c sys/man/2/bio - 664 sys sys 1192742374 6648
+1192743004 5 c sys/src/cmd/upas/filterkit/deliver.c - 664 sys sys 1192743256 1153
+1192762803 0 c 386/bin/passwd - 775 sys sys 1192762788 85264
+1192762803 1 c 386/bin/auth/debug - 775 sys sys 1192762780 102504
+1192762803 2 c 386/bin/auth/factotum - 775 sys sys 1192762786 321861
+1192762803 3 c 386/lib/libauthsrv.a - 664 sys sys 1192762788 36198

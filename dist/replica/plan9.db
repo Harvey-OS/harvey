@@ -49,10 +49,10 @@
 386/bin/auth/convkeys - 775 sys sys 1188446822 87298
 386/bin/auth/convkeys2 - 775 sys sys 1188446825 87357
 386/bin/auth/cron - 775 sys sys 1188446828 140446
-386/bin/auth/debug - 775 sys sys 1168402268 101566
+386/bin/auth/debug - 775 sys sys 1192762780 102504
 386/bin/auth/disable - 775 sys sys 1020319057 146
 386/bin/auth/enable - 775 sys sys 1020319057 134
-386/bin/auth/factotum - 775 sys sys 1188446836 321587
+386/bin/auth/factotum - 775 sys sys 1192762786 321861
 386/bin/auth/fgui - 775 sys sys 1184731229 219079
 386/bin/auth/guard.srv - 775 sys sys 1188446841 144638
 386/bin/auth/keyfs - 775 sys sys 1191035876 116576
@@ -361,7 +361,7 @@
 386/bin/p - 775 sys sys 1168402343 65220
 386/bin/page - 775 sys sys 1191208765 236255
 386/bin/paqfs - 775 sys sys 1188447270 109707
-386/bin/passwd - 775 sys sys 1168402344 84333
+386/bin/passwd - 775 sys sys 1192762788 85264
 386/bin/pbd - 775 sys sys 1085077087 4661
 386/bin/pcc - 775 sys sys 1168402344 68241
 386/bin/pic - 775 sys sys 1184529905 308725
@@ -553,7 +553,7 @@
 386/lib/lib9p.a - 664 sys sys 1184529909 91012
 386/lib/libString.a - 664 sys sys 1168402362 22126
 386/lib/libauth.a - 664 sys sys 1179372118 58864
-386/lib/libauthsrv.a - 664 sys sys 1188447437 36076
+386/lib/libauthsrv.a - 664 sys sys 1192762788 36198
 386/lib/libbin.a - 664 sys sys 1168402363 2534
 386/lib/libbio.a - 664 sys sys 1168402363 25980
 386/lib/libc.a - 664 sys sys 1188447448 502352
@@ -5473,6 +5473,7 @@ rc/bin/B - 775 sys sys 945617206 645
 rc/bin/C - 775 sys sys 1169492077 980
 rc/bin/Kill - 775 sys sys 1018637942 115
 rc/bin/a: - 775 sys sys 1063856406 255
+rc/bin/addpsfonts - 775 sys sys 1192741348 293
 rc/bin/ap - 775 sys sys 1175869448 645
 rc/bin/ape - 20000000775 sys sys 1155362042 0
 rc/bin/ape/ar89 - 775 sys sys 1139744263 240
@@ -5507,10 +5508,11 @@ rc/bin/doc2ps - 775 sys sys 1069793831 244
 rc/bin/doc2txt - 775 sys sys 1025197880 563
 rc/bin/doctype - 775 sys sys 1162921755 1727
 rc/bin/dosmnt - 775 sys sys 1109288224 303
+rc/bin/dpost - 755 sys sys 1192741346 220
 rc/bin/eject - 775 sys sys 945617207 123
 rc/bin/fax - 775 sys sys 1127394677 2385
 rc/bin/fedex - 775 sys sys 1060187356 1244
-rc/bin/fshalt - 775 sys sys 1180592582 1669
+rc/bin/fshalt - 775 sys sys 1192741344 1862
 rc/bin/homespool - 775 sys sys 945617207 339
 rc/bin/ipconf - 20000000775 sys sys 1058791152 0
 rc/bin/ipconf/inside - 775 sys sys 1058790955 427
@@ -7479,7 +7481,7 @@ sys/man/1/time - 664 sys sys 944959673 380
 sys/man/1/touch - 664 sys sys 1018369246 461
 sys/man/1/tr - 664 sys sys 944959675 1730
 sys/man/1/trace - 664 sys sys 1159419931 1499
-sys/man/1/troff - 664 sys sys 944959675 3102
+sys/man/1/troff - 664 sys sys 1192741763 3659
 sys/man/1/troff2html - 664 sys sys 1113743328 1924
 sys/man/1/tweak - 664 sys sys 957920008 4762
 sys/man/1/uniq - 664 sys sys 944959674 995
@@ -7515,10 +7517,10 @@ sys/man/2/arith3 - 664 sys sys 1162102967 4393
 sys/man/2/assert - 664 sys sys 1102868467 377
 sys/man/2/atof - 664 sys sys 1171668702 2778
 sys/man/2/auth - 664 sys sys 1190243345 7537
-sys/man/2/authsrv - 664 sys sys 1171690308 4505
+sys/man/2/authsrv - 664 sys sys 1192737581 4583
 sys/man/2/bin - 664 sys sys 985023077 1880
 sys/man/2/bind - 664 sys sys 1015091518 4685
-sys/man/2/bio - 664 sys sys 1151854125 6546
+sys/man/2/bio - 664 sys sys 1192742374 6648
 sys/man/2/blowfish - 664 sys sys 1032058672 1280
 sys/man/2/brk - 664 sys sys 944959694 1179
 sys/man/2/cachechars - 664 sys sys 1082222350 7061
@@ -14134,7 +14136,7 @@ sys/src/cmd/upas/common/process.c - 664 sys sys 1098803900 3012
 sys/src/cmd/upas/common/sys.h - 664 sys sys 1055699577 2223
 sys/src/cmd/upas/filterkit - 20000000775 sys sys 1063854806 0
 sys/src/cmd/upas/filterkit/dat.h - 664 sys sys 1018549520 107
-sys/src/cmd/upas/filterkit/deliver.c - 664 sys sys 1135083942 1070
+sys/src/cmd/upas/filterkit/deliver.c - 664 sys sys 1192743256 1153
 sys/src/cmd/upas/filterkit/list.c - 664 sys sys 1174155504 4945
 sys/src/cmd/upas/filterkit/mkfile - 664 sys sys 1048645255 264
 sys/src/cmd/upas/filterkit/pipefrom.sample - 775 sys sys 1041184939 380
@@ -14642,7 +14644,7 @@ sys/src/libauth/noworld.c - 664 sys sys 1014929318 779
 sys/src/libauthsrv - 20000000775 sys sys 1055718668 0
 sys/src/libauthsrv/_asgetticket.c - 664 sys sys 1015091652 280
 sys/src/libauthsrv/_asrdresp.c - 664 sys sys 1015091652 874
-sys/src/libauthsrv/authdial.c - 664 sys sys 1078840018 687
+sys/src/libauthsrv/authdial.c - 664 sys sys 1192737014 850
 sys/src/libauthsrv/convA2M.c - 664 sys sys 1015091652 501
 sys/src/libauthsrv/convM2A.c - 664 sys sys 1015091652 470
 sys/src/libauthsrv/convM2PR.c - 664 sys sys 1015091653 610

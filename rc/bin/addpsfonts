@@ -1,0 +1,7 @@
+#!/bin/rc
+# addpsfonts [file]... - add postscript fonts named in %%DocumentFonts comments
+#	of postscript input
+echo %!PS-Adobe-2.0
+# rsc recommends adding -r/sys/lib/postscript/font/lw+,
+# but i haven't seen the benefit yet.
+exec aux/download -f -H/sys/lib/postscript/font -mfontmap -plw+ $*

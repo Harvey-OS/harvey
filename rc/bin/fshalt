@@ -15,6 +15,10 @@ case *
 path=(/bin)
 builtin cd /
 
+# start venti flushing
+venti/sync -h localhost >[2]/dev/null &
+venti/sync  >[2]/dev/null &
+
 unmount /mnt/consoles >[2]/dev/null
 kill consolefs | rc			# don't compete with /mnt/consoles
 sleep 1
@@ -27,15 +31,18 @@ for(i in $f) @ {
 	echo -n $i...
 	{
 		echo
-		dial/drain
+		dial/drain &
+		sleep 2
 		echo fsys all sync
 		if(! dial/expect -t 120 ': ')
 			echo -n 'not synced...' > /dev/cons
 	} < $i >> $i
 }
 
+# flush the last bit of possible fossil traffic
 echo -n venti...
-venti/sync >[2]/dev/null &
+venti/sync -h localhost >[2]/dev/null &
+venti/sync  >[2]/dev/null &
 sleep 30
 
 for (i in $k){
