@@ -343,6 +343,13 @@ At the cost of allocating a buffer,
 .I Brdstr
 sidesteps these issues.
 .PP
+Only the low byte of
+.IR Brdstr 's
+.I delim
+is examined, so
+.I delim
+cannot be an arbitrary rune.
+.PP
 The data returned by
 .I Brdline
 may be overwritten by calls to any other

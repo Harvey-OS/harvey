@@ -1,12 +1,19 @@
 .TH TROFF 1
 .SH NAME
-troff, nroff \- text formatting and typesetting
+troff, nroff, dpost \- text formatting and typesetting
 .SH SYNOPSIS
 .B troff
 [
 .I option ...
 ]
 [
+.I file ...
+]
+.PP
+.B dpost
+[
+.B -f
+] [
 .I file ...
 ]
 .PP
@@ -22,10 +29,32 @@ troff, nroff \- text formatting and typesetting
 formats text in the named
 .I files
 for
-printing on a typesetter.
+printing on a typesetter,
+emitting a textual intermediate format called
+`typesetter-independent
+.I troff
+output',
+understood by programs such as
+.IR proof (1)
+and
+.IR lp (1),
+but also by a
+.I troff
+post-processor named
+.IR dpost ,
+which emits corresponding Postscript.
+Under
+.BR -f ,
+.I dpost
+also emits Postscript font definitions as needed.
 .I Nroff
-does the same, but produces output suitable
-for typewriter-like devices.
+does the same as
+.IR troff ,
+but produces output suitable
+for typewriter-like devices,
+usually without further post-processing,
+but see
+.IR col (1).
 .PP
 If no
 .I file
@@ -43,7 +72,7 @@ Print pages in the comma-separated
 of numbers and ranges.
 A range
 .IB N - M
-means 
+means
 .I N
 through
 .IR M ;
@@ -110,7 +139,7 @@ Regular PostScript printers
 .PD0
 .TP
 .B -T202
-Mergenthaler Linotron 202 
+Mergenthaler Linotron 202
 .RE
 .PD
 .TP "\w'\fL-m\f2name 'u"
@@ -175,21 +204,31 @@ font width tables for
 .I troff
 .SH SOURCE
 .B /sys/src/cmd/troff
+.br
+.B /rc/bin/dpost
+.br
+.ne 3
 .SH "SEE ALSO"
 .IR lp (1),
 .IR proof (1),
-.IR eqn (1), 
-.IR tbl (1), 
-.IR pic (1), 
+.IR page (1),
+.IR eqn (1),
+.IR tbl (1),
+.IR pic (1),
 .IR grap (1),
-.IR doctype (1), 
+.IR doctype (1),
 .IR ms (6),
 .IR image (6),
 .IR tex (1),
-.IR deroff (1)
+.IR deroff (1),
+.IR col (1)
 .br
 J. F. Ossanna and B. W. Kernighan,
 ``Troff User's Manual''
+.br
+B. W. Kernighan,
+``A Typesetter-Independent TROFF'',
+CSTR #97
 .br
 B. W. Kernighan,
 ``A TROFF Tutorial'',
