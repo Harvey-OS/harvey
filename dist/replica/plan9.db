@@ -454,7 +454,7 @@
 386/bin/upas/addhash - 775 sys sys 1178568309 70721
 386/bin/upas/aliasmail - 775 sys sys 1178568309 104105
 386/bin/upas/bayes - 775 sys sys 1178568309 73372
-386/bin/upas/deliver - 775 sys sys 1179976975 99212
+386/bin/upas/deliver - 775 sys sys 1192823253 99212
 386/bin/upas/filter - 775 sys sys 1181507270 146747
 386/bin/upas/fs - 775 sys sys 1188447307 331763
 386/bin/upas/isspam - 775 sys sys 1064598349 38
@@ -1409,7 +1409,7 @@ lib/face/48x48x4/x/xigh.1 - 664 sys sys 1142019024 1204
 lib/face/48x48x4/y - 20000000775 sys sys 1020895714 0
 lib/face/48x48x4/z - 20000000775 sys sys 1020895714 0
 lib/face/48x48x8 - 20000000775 sys sys 1123100641 0
-lib/face/48x48x8/.dict - 664 sys sys 1187107503 4193
+lib/face/48x48x8/.dict - 664 sys sys 1192767500 4266
 lib/face/48x48x8/Z - 20000000775 sys sys 1020895714 0
 lib/face/48x48x8/a - 20000000775 sys sys 1056983599 0
 lib/face/48x48x8/a/alcortes.1 - 664 sys sys 1176753392 976
@@ -1527,6 +1527,7 @@ lib/face/48x48x8/u/unknown.my - 664 sys sys 1078952024 396
 lib/face/48x48x8/u/unknown.nl - 664 sys sys 1078952024 368
 lib/face/48x48x8/u/unknown.no - 664 sys sys 1078952024 369
 lib/face/48x48x8/u/unknown.nz - 664 sys sys 1078952024 442
+lib/face/48x48x8/u/unknown.pl - 664 sys sys 1192767483 338
 lib/face/48x48x8/u/unknown.pt - 664 sys sys 1078952024 409
 lib/face/48x48x8/u/unknown.ru - 664 sys sys 1078952024 335
 lib/face/48x48x8/u/unknown.se - 664 sys sys 1078952024 355
@@ -5508,7 +5509,7 @@ rc/bin/doc2ps - 775 sys sys 1069793831 244
 rc/bin/doc2txt - 775 sys sys 1025197880 563
 rc/bin/doctype - 775 sys sys 1162921755 1727
 rc/bin/dosmnt - 775 sys sys 1109288224 303
-rc/bin/dpost - 755 sys sys 1192741346 220
+rc/bin/dpost - 775 sys sys 1192741346 220
 rc/bin/eject - 775 sys sys 945617207 123
 rc/bin/fax - 775 sys sys 1127394677 2385
 rc/bin/fedex - 775 sys sys 1060187356 1244
