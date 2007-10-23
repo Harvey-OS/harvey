@@ -671,13 +671,37 @@ files support the following additional messages:
 .PD
 .TP
 .B hangup
-close down a TCP connection
+close down this TCP connection
 .TP
 .BI keepalive \ n
 turn on keep alive messages.
 .IR N ,
 if given, is the milliseconds between keepalives
 (default 30000).
+.TP
+.BI checksum \ n
+emit TCP checksums of zero if
+.I n
+is zero; otherwise, and by default,
+TCP checksums are computed and sent normally.
+.TP
+.BI tcpporthogdefense \ onoff
+.I onoff
+of
+.L on
+enables the TCP port-hog defense for all TCP connections;
+.I onoff
+of
+.L off
+disables it.
+The defense is a solution to hijacked systems staking out ports
+as a form of denial-of-service attack.
+To avoid stateless TCP conversation hogs,
+.I ip
+picks a TCP sequence number at random for keepalives.
+If that number gets acked by the other end,
+.I ip
+shuts down the connection.
 .
 .SS UDP
 UDP connections carry unreliable and unordered datagrams.  A read from

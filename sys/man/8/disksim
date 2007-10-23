@@ -28,9 +28,17 @@ presents an in-memory disk in the manner of the
 device on
 .IB mtpt / diskname
 (default
-.B /dev/sdXX ).
+.BR /dev/sdXX ).
 The disk is initialized to zeros;
 non-zeroed blocks written to the disk are kept in memory.
+.PP
+When setting disk geometry with the
+.B geometry
+control message,
+the arguments are
+sectors, sector size, cylinders, heads, and sectors per track.
+The last three may be zero for LBA disk simulations,
+but must be present.
 .PP
 The
 .B -f
