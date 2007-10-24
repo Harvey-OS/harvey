@@ -802,6 +802,13 @@ struct	FILE_STRING
 	".nr",			"troff input",		3,	"text/troff",
 	".tr",			"troff input",		3,	"text/troff",
 	"vac:",			"venti score",		4,	"text/plain",
+	"-----BEGIN CERTIFICATE-----\n",
+				"pem certificate",	3,	"text/plain",
+	"-----BEGIN TRUSTED CERTIFICATE-----\n",
+				"pem trusted certificate", 3,	"text/plain",
+	"-----BEGIN X509 CERTIFICATE-----\n",
+				"pem x.509 certificate", 3,	"text/plain",
+	"subject=/C=",		"pem certificate with header", 3, "text/plain",
 	0,0,0,0
 };
 

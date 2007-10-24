@@ -1,6 +1,6 @@
 .TH SECHASH 2
 .SH NAME
-md4, md5, sha1, aes, hmac_md5, hmac_sha1, hmac_aes, md5pickle, md5unpickle, sha1pickle, sha1unpickle \- cryptographically secure hashes
+md4, md5, sha1, aes, hmac_x, hmac_md5, hmac_sha1, hmac_aes, md5pickle, md5unpickle, sha1pickle, sha1unpickle \- cryptographically secure hashes
 .SH SYNOPSIS
 .de Ti
 .in +0.5i
@@ -81,7 +81,7 @@ differ only in the length of the resulting digest
 and in the security of the hash.  Usage for each is the same.
 The first call to the routine should have
 .B nil
-as the 
+as the
 .I state
 parameter.  This call returns a state which can be used to chain
 subsequent calls.
@@ -95,8 +95,9 @@ This last call will free the state and copy the result into
 The constants
 .IR MD4dlen ,
 .IR MD5dlen ,
+.IR SHA1dlen ,
 and
-.I SHA1dlen
+.I AESdlen
 define the lengths of the digests.
 .PP
 .IR Hmac_md5 ,

@@ -35,6 +35,7 @@ LOAD=\
 	boot.$O\
 	cis.$O\
 	conf.$O\
+	devbios.$O\
 	devi82365.$O\
 	devpccard.$O\
 	devsd.$O\

@@ -1,14 +1,10 @@
 .TH 9LOAD 8
 .SH NAME
-9load, ld, 9pxeload \- PC bootstrap program
+9load, 9pxeload, ld \- PC bootstrap program
 .SH SYNOPSIS
 .I "(Under MS-DOS)
 .br
-[
-.I drive
-:][
-.I path
-.RB ] ld
+.RI [ drive\f(CW:\fP ][ path ] ld
 [
 .I 9load
 ]
@@ -26,6 +22,11 @@ if DOS is running.
 .I 9load
 is run automatically by the boot procedures described below;
 it cannot be run directly by hand.
+.I 9pxeload
+is a version of
+.I 9load
+that can be booted using the PXE download
+found in some ethernet card BIOSes.
 There are three bootstrap sequences:
 .IP \-
 BIOS, MBR, disk partition PBS,
@@ -60,9 +61,10 @@ and then only if the machine's BIOS supports
 linear block addressing (LBA) mode for disk transfers.
 .PP
 When booting from floppy or hard disk, the BIOS loads the
-first sector of the medium at location 0x7C00.  In the
-case of a floppy, this is the PBS.  In the case of a hard
-disk it it the master boot record (MBR).
+first sector of the medium at location
+.BR 0x7C00 .
+In the case of a floppy, this is the PBS.
+In the case of a hard disk, it is the master boot record (MBR).
 The MBR copies itself to address
 .BR 0x600 ,
 finds the active partition and loads its PBS at address
@@ -112,22 +114,15 @@ and
 are compiled from the same source.
 .PP
 .I 9load
-begins execution at address
+begins execution at virtual address
 .B 0x80010000
 (64K) and
 loads the
 .I bootfile
 at the entry address specified by the header,
-usually
+usually virtual
 .BR 0xF0100020 .
 After loading, control is passed to the entry location.
-.PP
-Finally,
-.I 9pxeload
-is a version of
-.I 9load
-that can be booted using the PXE download
-found on some ethernet card BIOSs.
 .PP
 In summary,
 Plan 9 can be booted on a PC three different ways:
@@ -146,7 +141,7 @@ to install the appropriate files and bootstrap sectors
 or by using a PXE capable BIOS to boot
 .I 9pxeload
 directly over the ethernet.
-.PP
+.SS Bootfile
 The
 .IR bootfile ,
 which may be compressed with
@@ -182,6 +177,7 @@ Supported
 .I devices
 are
 .TF \fLethern
+.PD
 .TP
 .BI fd n
 An MS-DOS floppy disk.
@@ -231,16 +227,52 @@ FAT file system for configuration.
 By convention, this partition is called
 .BR 9fat .
 There is no default partition or pathname.
-.PD
-.PP
+.TP
+.B bios0
+(Not in
+.IR 9pxeload .)
+.I 9load
+reads the first LBA device
+in the BIOS's list of devices to try to boot from,
+using the BIOS INT 13 calls also used by
+.IR pbslba .
+It currently does not understand any form of partition table;
+see the EXAMPLES in
+.IR prep (8)
+for how to format such a device.
+This is mostly useful for booting from USB devices so far.
+.SS Kernel loading
 When
 .I 9load
-starts running at physical address 0x10000,
+starts running at physical address
+.BR 0x10000 ,
 it switches to 32-bit mode.
 It then double maps the first 16Mb of physical memory to
-virtual addresses 0 and 0x80000000.
-Physical memory from 0x300000 upwards is used as data
-space.
+virtual addresses
+.B 0
+and
+.BR 0x80000000 .
+Physical memory from
+.B 0x300000
+upwards is used as data space.
+.PP
+.I 9pxeload
+differs slightly in operation from
+.IR 9load .
+It is initially loaded by the PXE BIOS at physical address
+.BR 0x7C00 .
+Only devices which can be automatically configured,
+e.g. most PCI ethernet adapters,
+will be recognised.
+If the file
+.BI /cfg/pxe/ XXXXXXXXXXXX
+can be located via a DHCP server,
+where
+.I XXXXXXXXXXXX
+is the MAC address of a recognised ethernet adapter,
+the contents are obtained and used as a
+.IR plan9.ini .
+.PP
 Next, in order to find configuration information,
 .I 9load
 searches all units on devices
@@ -258,7 +290,8 @@ on a partition named
 or
 .BR 9fat .
 If one is found, searching stops and the file is read into memory
-at physical address 0x1200
+at physical address
+.B 0x1200
 where it can be found later by any loaded
 .IR bootfile .
 Some options in
@@ -342,7 +375,7 @@ a
 in response to the
 .L "Boot from:
 prompt.
-.PP
+.SS Other facilities and caveats
 .I 9load
 parses the master boot record and Plan 9 partition tables
 (see
@@ -355,6 +388,8 @@ for the
 This is used by
 .IR sd (3)
 to initialize partitions so that
+.IR fossil (4)
+or
 .IR kfs (4)
 file systems can be mounted as the root file system.
 A more extensive partitioning is typically done by
@@ -383,36 +418,16 @@ the disk.
 See
 .IR dossrv (4)
 for information on ensuring this.
-.PP
-.I 9pxeload
-differs slightly in operation from
-.IR 9load .
-It is initially loaded by the PXE BIOS at physical address 0x7C00.
-Only devices which can be automatically configured,
-e.g. most PCI ethernet adapters,
-will be recognised.
-If the file
-.IB /cfg/pxe/ XXXXXXXXXXXX
-can be located via a DHCP server,
-where
-.B XXXXXXXXXXXX
-is the MAC address of a recognised ethernet adapter,
-the contents are obtained and used as a
-.IR plan9.ini .
 .SH FILES
-.RI [ drive :]
-[
-.I path
-.RB ] 9load
+.RI [ drive\f(CW:\fP ][ path ]\c
+.B 9load
 .br
-.RI [ drive :]
-[
-.I path
-.RB ] ld
+.RI [ drive\f(CW:\fP ][ path ]\c
+.B ld
 .br
-.IB "FAT filesystem" :\eplan9\eplan9.ini
+.IB "FAT-filesystem" :\eplan9\eplan9.ini
 .br
-.IB "FAT filesystem" :\eplan9.ini
+.IB "FAT-filesystem" :\eplan9.ini
 .SH SOURCE
 .B /sys/src/boot/pc
 .SH "SEE ALSO"
@@ -438,3 +453,7 @@ obtains the information normally found in a disc
 file,
 and thereby the kernel to load and boot,
 is not ideal and may change in the future.
+.PP
+The
+.B bios
+device should understand partition tables, if present.

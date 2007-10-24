@@ -1,0 +1,21 @@
+</$objtype/mkfile
+
+TARG=disk
+LIBDIR=../lib
+HFILES = /sys/src/cmd/scuzz/scsireq.h $LIBDIR/usb.h
+OFILES = disk.$O scsireq.$O
+LIB=$LIBDIR/usb.a$O
+
+BIN=/$objtype/bin/usb
+
+</sys/src/cmd/mkone
+
+CFLAGS=-I$LIBDIR -I/sys/src/cmd/scuzz $CFLAGS
+
+$LIB:
+	cd $LIBDIR
+	mk install
+	mk clean
+
+scsireq.$O: /sys/src/cmd/scuzz/scsireq.c
+	$CC $CFLAGS /sys/src/cmd/scuzz/scsireq.c

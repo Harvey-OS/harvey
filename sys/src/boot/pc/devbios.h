@@ -1,3 +1,5 @@
+typedef uvlong Devbytes, Devsects;
+
 typedef struct Biosdrive Biosdrive;	/* 1 drive -> ndevs */
 typedef struct Biosdev Biosdev;
 
@@ -5,8 +7,8 @@ struct Biosdrive {
 	int	ndevs;
 };
 struct Biosdev {
-	uvlong	size;
-	uvlong	offset;
+	Devbytes size;
+	Devbytes offset;
 	uchar	id;
 	char	type;
 };

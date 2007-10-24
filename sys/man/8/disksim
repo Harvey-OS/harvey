@@ -47,7 +47,7 @@ option causes
 to use
 .I file
 as the initial contents of the disk rather than a zeroed image.
-Changes made to the disk are written back to 
+Changes made to the disk are written back to
 .I file
 unless the
 .B -r
