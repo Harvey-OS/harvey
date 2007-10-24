@@ -7625,7 +7625,7 @@ sys/man/2/rune - 664 sys sys 1143079849 3086
 sys/man/2/runestrcat - 664 sys sys 969499889 1086
 sys/man/2/scribble - 664 sys sys 985638584 3847
 sys/man/2/scsi - 664 sys sys 1170885103 3203
-sys/man/2/sechash - 664 sys sys 1188328413 3537
+sys/man/2/sechash - 664 sys sys 1193174822 3558
 sys/man/2/seek - 664 sys sys 944959696 671
 sys/man/2/segattach - 664 sys sys 1135487945 4166
 sys/man/2/segbrk - 664 sys sys 1165622575 1211
@@ -7674,7 +7674,7 @@ sys/man/3/ether - 664 sys sys 1178597986 2890
 sys/man/3/floppy - 664 sys sys 954378905 881
 sys/man/3/fs - 664 sys sys 1186946771 3159
 sys/man/3/i82365 - 664 sys sys 954378906 884
-sys/man/3/ip - 664 sys sys 1188581755 25468
+sys/man/3/ip - 664 sys sys 1193163728 26241
 sys/man/3/kbmap - 664 sys sys 1131110122 1732
 sys/man/3/kprof - 664 sys sys 1018029972 1377
 sys/man/3/loopback - 664 sys sys 964662153 1995
@@ -7803,7 +7803,7 @@ sys/man/7/scat - 664 sys sys 970069855 8904
 sys/man/8 - 20000000775 sys sys 1162240005 0
 sys/man/8/0intro - 664 sys sys 944959679 247
 sys/man/8/6in4 - 664 sys sys 1186182195 2330
-sys/man/8/9load - 664 sys sys 1191355906 9162
+sys/man/8/9load - 664 sys sys 1193175486 9717
 sys/man/8/9pcon - 664 sys sys 1145881850 2234
 sys/man/8/INDEX - 664 sys sys 1183260468 2773
 sys/man/8/INDEX.html - 664 sys sys 1183240488 8619
@@ -7816,7 +7816,7 @@ sys/man/8/booting - 664 sys sys 1015024984 4136
 sys/man/8/cpurc - 664 sys sys 1187227584 1522
 sys/man/8/cron - 664 sys sys 1063858596 1867
 sys/man/8/dhcpd - 664 sys sys 1191306105 5575
-sys/man/8/disksim - 664 sys sys 1193091432 1701
+sys/man/8/disksim - 664 sys sys 1193174817 1700
 sys/man/8/drawterm - 664 sys sys 1181675938 1921
 sys/man/8/fossilcons - 664 sys sys 1187134504 18542
 sys/man/8/fs - 664 sys sys 1172956177 15086
@@ -7846,7 +7846,7 @@ sys/man/8/ping - 664 sys sys 1169105315 3650
 sys/man/8/plan9.ini - 664 sys sys 1190241912 23835
 sys/man/8/pop3 - 664 sys sys 1063854676 2720
 sys/man/8/ppp - 664 sys sys 1187046045 4430
-sys/man/8/prep - 664 sys sys 1152729153 14013
+sys/man/8/prep - 664 sys sys 1193181551 14162
 sys/man/8/qer - 664 sys sys 1067723129 4909
 sys/man/8/reboot - 664 sys sys 1162423006 443
 sys/man/8/replica - 664 sys sys 1138479158 6383
@@ -9141,7 +9141,8 @@ sys/src/boot/pc/clock.c - 664 sys sys 1103641772 6425
 sys/src/boot/pc/conf.c - 664 sys sys 1094674484 10217
 sys/src/boot/pc/console.c - 664 sys sys 1094674483 3388
 sys/src/boot/pc/dat.h - 664 sys sys 1190921443 3637
-sys/src/boot/pc/devbios.h - 664 sys sys 1190921600 453
+sys/src/boot/pc/devbios.c - 664 sys sys 1193171393 9376
+sys/src/boot/pc/devbios.h - 664 sys sys 1193167027 493
 sys/src/boot/pc/devfloppy.c - 664 sys sys 1032215913 15505
 sys/src/boot/pc/devfloppy.h - 664 sys sys 1032409559 4081
 sys/src/boot/pc/devi82365.c - 664 sys sys 1144961189 15051
@@ -9176,7 +9177,7 @@ sys/src/boot/pc/etherigbe.c - 664 sys sys 1191446222 41284
 sys/src/boot/pc/ethermii.c - 664 sys sys 1103641771 4413
 sys/src/boot/pc/ethermii.h - 664 sys sys 1071175087 3259
 sys/src/boot/pc/etherrhine.c - 664 sys sys 1144961190 12383
-sys/src/boot/pc/fns.h - 664 sys sys 1153333456 4667
+sys/src/boot/pc/fns.h - 664 sys sys 1193171343 4880
 sys/src/boot/pc/fs.c - 664 sys sys 1094674483 1509
 sys/src/boot/pc/fs.h - 664 sys sys 1094674488 653
 sys/src/boot/pc/ilock.c - 664 sys sys 1015007952 303
@@ -9186,13 +9187,13 @@ sys/src/boot/pc/ip.h - 664 sys sys 1094674489 2461
 sys/src/boot/pc/kbd.c - 664 sys sys 1015007952 10188
 sys/src/boot/pc/kfs.h - 664 sys sys 1032215924 861
 sys/src/boot/pc/kfsboot.c - 664 sys sys 1032215914 4788
-sys/src/boot/pc/l.s - 664 sys sys 1130887225 18115
+sys/src/boot/pc/l.s - 664 sys sys 1193167045 18213
 sys/src/boot/pc/lib.h - 664 sys sys 1190921452 2847
-sys/src/boot/pc/load.c - 664 sys sys 1191886855 9463
+sys/src/boot/pc/load.c - 664 sys sys 1193171385 9602
 sys/src/boot/pc/mbr.s - 664 sys sys 1015007953 6234
 sys/src/boot/pc/mem.h - 664 sys sys 1190921475 3437
 sys/src/boot/pc/memory.c - 664 sys sys 1019533021 10272
-sys/src/boot/pc/mkfile - 664 sys sys 1191886702 3180
+sys/src/boot/pc/mkfile - 664 sys sys 1193171361 3193
 sys/src/boot/pc/noether.c - 664 sys sys 1094674488 358
 sys/src/boot/pc/part.c - 664 sys sys 1114697151 7153
 sys/src/boot/pc/pbs.s - 664 sys sys 1143465387 8291
@@ -9211,7 +9212,7 @@ sys/src/boot/pc/sdata.c - 664 sys sys 1175564193 38846
 sys/src/boot/pc/sdiahci.c - 664 sys sys 1191886818 27133
 sys/src/boot/pc/sdmylex.c - 664 sys sys 1171783051 28694
 sys/src/boot/pc/sdscsi.c - 664 sys sys 1144961224 7006
-sys/src/boot/pc/trap.c - 664 sys sys 1144961191 7499
+sys/src/boot/pc/trap.c - 664 sys sys 1193167011 7497
 sys/src/boot/pc/ureg.h - 664 sys sys 1015007955 550
 sys/src/boot/pc/x16.h - 664 sys sys 1015007955 5265
 sys/src/cmd - 20000000775 sys sys 1157679436 0
@@ -10350,7 +10351,7 @@ sys/src/cmd/fax/receiverc - 775 sys sys 944960990 581
 sys/src/cmd/fax/send.c - 664 sys sys 944960990 923
 sys/src/cmd/fax/subr.c - 664 sys sys 1015090401 1245
 sys/src/cmd/fcp.c - 664 sys sys 1136651872 3799
-sys/src/cmd/file.c - 664 sys sys 1191472670 28522
+sys/src/cmd/file.c - 664 sys sys 1193181267 28836
 sys/src/cmd/fmt.c - 664 sys sys 1137603598 4078
 sys/src/cmd/fortune.c - 664 sys sys 1072729222 1779
 sys/src/cmd/fossil - 20000000775 sys sys 1087005595 0
@@ -14243,6 +14244,9 @@ sys/src/cmd/usb/audio/usbaudio.c - 664 sys sys 1172764045 10358
 sys/src/cmd/usb/audio/usbaudio.h - 664 sys sys 1140695062 1889
 sys/src/cmd/usb/audio/usbaudioctl.c - 664 sys sys 1172764044 18825
 sys/src/cmd/usb/audio/usbaudioctl.h - 664 sys sys 1140695062 618
+sys/src/cmd/usb/disk - 20000000775 sys sys 1193181450 0
+sys/src/cmd/usb/disk/disk.c - 664 sys sys 1193181450 19997
+sys/src/cmd/usb/disk/mkfile - 664 sys sys 1193181450 359
 sys/src/cmd/usb/lib - 20000000775 sys sys 1091204979 0
 sys/src/cmd/usb/lib/device.c - 664 sys sys 1168308464 3284
 sys/src/cmd/usb/lib/dump.c - 664 sys sys 1168308417 13122
@@ -14256,7 +14260,7 @@ sys/src/cmd/usb/misc/mkfile - 664 sys sys 1167255850 374
 sys/src/cmd/usb/misc/usbmouse.c - 664 sys sys 1178824856 3755
 sys/src/cmd/usb/misc/usbprint - 775 sys sys 1167253831 314
 sys/src/cmd/usb/misc/usbprobe - 775 sys sys 1167253836 173
-sys/src/cmd/usb/mkfile - 664 sys sys 1091327562 354
+sys/src/cmd/usb/mkfile - 664 sys sys 1193181446 361
 sys/src/cmd/usb/usbd - 20000000775 sys sys 1091204979 0
 sys/src/cmd/usb/usbd/dat.h - 664 sys sys 1091204979 675
 sys/src/cmd/usb/usbd/fns.h - 664 sys sys 1091204979 495

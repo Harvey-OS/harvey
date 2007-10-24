@@ -4,6 +4,7 @@ DIRS=\
 	lib\
 	usbd\
 	audio\
+	disk\
 	misc\
 
 UPDATE=\

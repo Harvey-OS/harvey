@@ -4,7 +4,7 @@
 #include "dat.h"
 #include "fns.h"
 #include "io.h"
-
+#include "sd.h"
 #include "fs.h"
 
 /*
@@ -62,6 +62,14 @@ Type types[] = {
 		diskparts,
 		diskinis,
 	},
+	{	Tbios,
+		Fini|Ffs,
+		biosinit, biosinitdev,
+		biosgetfspart, nil, biosboot,
+		biosprintdevs,
+		diskparts,
+		diskinis,
+	},
 	{	Tnil,
 		0,
 		nil, nil, nil, nil, nil, nil,
@@ -71,8 +79,6 @@ Type types[] = {
 		nil,
 	},
 };
-
-#include "sd.h"
 
 extern SDifc sdataifc;
 extern SDifc sdiahciifc;
@@ -91,9 +97,9 @@ extern SDifc sdmylexifc;
 extern SDifc sd53c8xxifc;
 SDifc* sdifc[] = {
 	&sdataifc,
+	&sdiahciifc,
 	&sdmylexifc,
 	&sd53c8xxifc,
-	&sdiahciifc,
 	nil,
 };
 
@@ -279,6 +285,7 @@ static char *typenm[] = {
 	[Tsd]		"Tsd",
 	[Tether]	"Tether",
 	[Tcd]		"Tcd",
+	[Tbios]		"Tbios",
 };
 
 void
@@ -326,7 +333,7 @@ main(void)
 	probe(Tany, Fnone, Dany);
 	tried = 0;
 	mode = Mauto;
-	
+
 	p = getconf("bootfile");
 
 	if(p != 0) {
@@ -406,7 +413,7 @@ cistrcmp(char *a, char *b)
 	for(;;){
 		ac = *a++;
 		bc = *b++;
-	
+
 		if(ac >= 'A' && ac <= 'Z')
 			ac = 'a' + (ac - 'A');
 		if(bc >= 'A' && bc <= 'Z')
@@ -568,7 +575,7 @@ warp9(ulong entry)
 		sddetach();
 
 	consdrain();
-	
+
 	splhi();
 	trapdisable();
 

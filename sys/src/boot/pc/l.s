@@ -837,6 +837,10 @@ TEXT hello(SB), $0
 	BYTE $'B'; BYTE $'e'; BYTE $'l'; BYTE $'l';
 	BYTE $' '; BYTE $'L'; BYTE $'a'; BYTE $'b';
 	BYTE $'s'; 
+#ifdef PXE
+	BYTE $' '; BYTE $'b'; BYTE $'y'; BYTE $' ';
+	BYTE $'P'; BYTE $'X'; BYTE $'E';
+#endif
 	BYTE $'\r';
 	BYTE $'\n';
 	BYTE $'\z';
@@ -1001,6 +1005,7 @@ TEXT now16real(SB), $0
 
 TEXT realmodeintrinst(SB), $0
 	INT $0x00
+
 
 	/* save the registers after the call */
 

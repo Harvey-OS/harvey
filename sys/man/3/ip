@@ -667,7 +667,7 @@ ends.
 TCP
 .B ctl
 files support the following additional messages:
-.TF keepaliven
+.TF checksumnn
 .PD
 .TP
 .B hangup
@@ -702,6 +702,12 @@ picks a TCP sequence number at random for keepalives.
 If that number gets acked by the other end,
 .I ip
 shuts down the connection.
+Some firewalls,
+notably ones that perform stateful inspection,
+discard such out-of-specification keepalives,
+so connections through such firewalls
+will be killed after five minutes
+by the lack of keepalives.
 .
 .SS UDP
 UDP connections carry unreliable and unordered datagrams.  A read from

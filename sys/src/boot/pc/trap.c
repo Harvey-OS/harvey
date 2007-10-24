@@ -315,13 +315,14 @@ trap(Ureg *ur)
 	} while(h);
 }
 
+extern void realmode0(void);	/* in l.s */
+
+extern int realmodeintr;
+extern Ureg realmoderegs;
+
 void
 realmode(int intr, Ureg *ureg)
 {
-	extern void realmode0(void);	/* in l.s */
-	extern int realmodeintr;
-	extern Ureg realmoderegs;
-
 	realmoderegs = *ureg;
 	realmodeintr = intr;
 	trapdisable();

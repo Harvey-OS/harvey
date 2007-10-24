@@ -11,7 +11,7 @@ prep, fdisk, format, mbr \- prepare hard and floppy diskettes, flashes
 .I name
 ]...
 [
-.B -s 
+.B -s
 .I sectorsize
 ]
 .I plan9partition
@@ -31,7 +31,7 @@ prep, fdisk, format, mbr \- prepare hard and floppy diskettes, flashes
 .B -dfvx
 ]
 [
-.B -b 
+.B -b
 .I bootblock
 ]
 [
@@ -100,10 +100,10 @@ The Plan 9 partition often contains a number of
 conventionally named subpartitions.
 They include:
 .TF arenas
-.TP 
+.TP
 .B 9fat
 A small FAT file system used to hold
-configuration information 
+configuration information
 (such as
 .B plan9.ini
 and
@@ -156,7 +156,7 @@ A non-archived
 file system.
 .TP
 .B swap
-A 
+A
 .IR swap (8)
 swap partition.
 .PD
@@ -164,7 +164,7 @@ swap partition.
 .I Fdisk
 edits the PC partition table and is usually
 invoked with a disk like
-.B /dev/sdC0/data 
+.B /dev/sdC0/data
 as its argument, while
 .I prep
 edits the Plan 9 partition table
@@ -199,7 +199,7 @@ will mark the new partition active.
 flag takes the name of a partition to create.
 (See the list above for partition names.)
 It can be repeated to specify a list of partitions to create.
-If the disk is currently unpartitioned, 
+If the disk is currently unpartitioned,
 .I prep
 will create the named partitions on the disk,
 attempting to use the entire disk in a sensible manner.
@@ -210,12 +210,12 @@ Start with a blank disk, ignoring any extant partition table.
 .TP
 .B -p
 Print a sequence of commands that when sent to the disk device's
-.B ctl 
-file 
+.B ctl
+file
 will bring the partition
 table information kept by
-the 
-.IR sd (3) 
+the
+.IR sd (3)
 driver up to date.
 Then exit.
 .I Prep
@@ -223,7 +223,7 @@ will check to see if it is being called with a disk partition
 (rather than an entire disk) as its argument; if so, it
 will translate the printed sectors by the partition's offset
 within the disk.
-Since 
+Since
 .I fdisk
 operates on a table of unnamed partitions,
 it assigns names based on the partition type
@@ -240,16 +240,16 @@ and resolves collisions by appending a numbered suffix.
 .BR dos.2 ).
 .TP
 .B -r
-In the absence of the 
+In the absence of the
 .B -p
 and
 .B -w
-flags, 
+flags,
 .I prep
 and
 .I fdisk
 enter an interactive partition editor;
-the 
+the
 .B -r
 flag runs the editor in read-only mode.
 .TP
@@ -355,22 +355,22 @@ is set to one past the last disk sector.
 When evaluating
 .IR end ,
 .B $
-is set to the maximum value that 
+is set to the maximum value that
 .I end
 can take on without running off the disk
 or into another partition.
 Finally, the expression
 .IB n %
-evaluates to 
+evaluates to
 .RI ( n × disksize )/100.
-As an example, 
+As an example,
 .B a
 .B .
 .B .+20%
 creates a new partition starting at
 .B .
 that takes up a fifth of the disk,
-and 
+and
 .B a
 .B 1000
 .B $
@@ -400,13 +400,13 @@ Unpartitioned regions are also listed.
 The table consists of a number of lines containing
 partition name, beginning and ending sectors,
 and total size.
-A 
+A
 .B '
 is prefixed to the names of partitions
 whose entries have been modified but not written to disk.
 .I Fdisk
 adds to the end of each line a textual partition type,
-and places a 
+and places a
 .B *
 next to the name of the active partition
 (see the
@@ -455,7 +455,7 @@ Print the names of empty slots in the partition table, i.e., the
 valid names to use when creating a new partition.
 .TP
 .BI t " \fR[\fI type \fR]
-Set the partition type.  If it is not given, 
+Set the partition type.  If it is not given,
 .I fdisk
 will display a list of choices and then prompt for it.
 .PD
@@ -464,7 +464,7 @@ will display a list of choices and then prompt for it.
 prepares for use the floppy diskette or hard disk partition in the file named
 .IR disk ,
 for example
-.B /dev/fd0disk 
+.B /dev/fd0disk
 or
 .BR /dev/sdC0/9fat .
 The options are:
@@ -502,15 +502,15 @@ fixed disk
 The default when
 .I disk
 is a floppy drive is the highest possible on the device.
-When 
+When
 .I disk
 is a regular file, the default is
 .BR 3½HD .
-When 
+When
 .I disk
 is an
 .IR sd (3)
-device, the default is 
+device, the default is
 .BR hard .
 .RE
 .TP
@@ -540,7 +540,7 @@ add a
 when creating the FAT file system.
 .TP
 .BI -r
-mark the first 
+mark the first
 .I nresrv
 sectors of the partition as ``reserved''.
 Since the first sector always contains the
@@ -550,7 +550,7 @@ the
 sectors starting at sector 1 as ``reserved''.
 When formatting the
 .B 9fat
-partition, 
+partition,
 .B -r
 .B 2
 should be used to jump over the partition table sector.
@@ -569,17 +569,17 @@ If a file is named
 it will be created with the
 .B SYSTEM
 attribute set so that
-.IR dossrv (4) 
+.IR dossrv (4)
 keeps it contiguous when modifying it.
 .PP
 .I Format
 checks for a number of common mistakes; in particular,
-it will refuse to format a 
+it will refuse to format a
 .B 9fat
-partition unless 
+partition unless
 .B -r
-is specified with 
-.I nresrv 
+is specified with
+.I nresrv
 larger than two.
 It also refuses to format a raw
 .IR sd (3)
@@ -603,9 +603,9 @@ to make the disk a boot disk.
 It gets loaded by the BIOS at 0x7C00,
 reads the first sector of the
 root directory into address 0x7E00, and looks for
-a directory entry named 
+a directory entry named
 .BR 9LOAD .
-If it finds such an entry, 
+If it finds such an entry,
 it uses
 single sector reads to load the file into address 0x10000 and then
 jumps to the loaded file image.
@@ -624,7 +624,7 @@ contains more than one sector of `boot block',
 the rest will be copied into the first track of the
 disk, if it fits.
 This boot block should not be confused with the
-boot block used by 
+boot block used by
 .IR format ,
 which goes in sector 0 of a partition.
 Typically, the boot block in the master boot record
@@ -638,9 +638,9 @@ which then loads the operating system.
 If MS-DOS or Windows 9[58] is already installed
 on your hard disk, the master boot record
 already has a suitable boot block.
-Otherwise, 
+Otherwise,
 .B /386/mbr
-is an appropriate 
+is an appropriate
 .IR mbrfile .
 It detects and uses LBA addressing when available
 from the BIOS (the same could not
@@ -690,6 +690,14 @@ disk/format -b /386/pbslba -d -r 2 /dev/sdC0/9fat \e
 	/386/9load /386/9pcf /tmp/plan9.ini
 .EE
 .PP
+Create a bootable USB disk or flash-memory device to be loaded
+via the BIOS:
+.IP
+.EX
+usb/disk
+disk/format -b /386/pbslba -df /n/disk/0/data \e
+	/386/9load /386/9pcf.gz /tmp/plan9.ini
+.EE
 .SH SOURCE
 .B /sys/src/cmd/disk/prep
 .br
