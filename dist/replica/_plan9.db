@@ -1,8 +1,8 @@
 386 - 20000000775 sys sys 1010957353 0
 386/9load - 775 sys sys 1191886962 330276
-386/9loaddebug - 775 sys sys 1191962479 435156
+386/9loaddebug - 775 sys sys 1193198599 439897
 386/9loadlite - 775 sys sys 1191886972 153588
-386/9loadlitedebug - 775 sys sys 1191962483 220684
+386/9loadlitedebug - 775 sys sys 1193198603 225425
 386/9pc - 775 sys sys 1189053434 2038499
 386/9pc.gz - 664 sys sys 1189053435 865376
 386/9pccpu - 775 sys sys 1189053453 1705749
@@ -229,7 +229,7 @@
 386/bin/faces - 775 sys sys 1181507266 193265
 386/bin/factor - 775 sys sys 1168402307 61699
 386/bin/fcp - 775 sys sys 1168402307 82433
-386/bin/file - 775 sys sys 1191528973 128646
+386/bin/file - 775 sys sys 1193198589 128958
 386/bin/fmt - 775 sys sys 1168402307 65567
 386/bin/fortune - 775 sys sys 1168402308 67356
 386/bin/fossil - 20000000775 sys sys 1042005470 0
@@ -481,6 +481,7 @@
 386/bin/upas/unspam - 775 sys sys 1064598367 38
 386/bin/upas/vf - 775 sys sys 1181704900 97444
 386/bin/usb - 20000000775 sys sys 1019538890 0
+386/bin/usb/disk - 775 sys sys 1193197083 186944
 386/bin/usb/usbaudio - 775 sys sys 1184731243 188000
 386/bin/usb/usbd - 775 sys sys 1184731243 130757
 386/bin/usb/usbmouse - 775 sys sys 1184731244 109661
@@ -7738,6 +7739,7 @@ sys/man/4/u9fs - 664 sys sys 1043769139 4748
 sys/man/4/upasfs - 664 sys sys 1034348505 6212
 sys/man/4/usb - 664 sys sys 1172764045 4682
 sys/man/4/usbd - 664 sys sys 1164149441 712
+sys/man/4/usbdisk - 664 sys sys 1193264908 2800
 sys/man/4/vacfs - 664 sys sys 1084333062 1545
 sys/man/4/webcookies - 664 sys sys 1019828742 3525
 sys/man/4/webfs - 664 sys sys 1124711926 6518
@@ -7840,6 +7842,7 @@ sys/man/8/na - 664 sys sys 958527089 859
 sys/man/8/ndb - 664 sys sys 1191867910 14502
 sys/man/8/newuser - 664 sys sys 1116954242 2418
 sys/man/8/nfsserver - 664 sys sys 1191524525 3576
+sys/man/8/partfs - 664 sys sys 1193264932 851
 sys/man/8/pcmcia - 664 sys sys 944959679 408
 sys/man/8/pem - 664 sys sys 1060263669 1189
 sys/man/8/ping - 664 sys sys 1169105315 3650
@@ -10234,8 +10237,9 @@ sys/src/cmd/disk/kfs/uid.c - 664 sys sys 1143759347 6779
 sys/src/cmd/disk/kfscmd.c - 664 sys sys 1015009135 1109
 sys/src/cmd/disk/mbr.c - 664 sys sys 1080218150 4325
 sys/src/cmd/disk/mkext.c - 664 sys sys 1166823931 5805
-sys/src/cmd/disk/mkfile - 664 sys sys 1022385851 500
+sys/src/cmd/disk/mkfile - 664 sys sys 1193264991 509
 sys/src/cmd/disk/mkfs.c - 664 sys sys 1108000852 14697
+sys/src/cmd/disk/partfs.c - 664 sys sys 1193279294 9714
 sys/src/cmd/disk/prep - 20000000775 sys sys 1055692957 0
 sys/src/cmd/disk/prep/calc.y - 664 sys sys 1135487935 2406
 sys/src/cmd/disk/prep/edit.c - 664 sys sys 1017854327 9714
@@ -15739,3 +15743,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/disk/partfs - 775 sys sys 1193282249 149872

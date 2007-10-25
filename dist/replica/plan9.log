@@ -53113,3 +53113,16 @@
 1193182203 3 a sys/src/cmd/usb/disk/mkfile - 664 sys sys 1193181450 359
 1193182203 4 c sys/src/cmd/usb/mkfile - 664 sys sys 1193181446 361
 1193182203 5 c sys/src/cmd/file.c - 664 sys sys 1193181267 28836
+1193198402 0 a 386/bin/usb/disk - 775 sys sys 1193197083 186944
+1193198402 1 c 386/bin/file - 775 sys sys 1193197079 128958
+1193200204 0 c 386/9loaddebug - 775 sys sys 1193198599 439897
+1193200204 1 c 386/9loadlitedebug - 775 sys sys 1193198603 225425
+1193200204 2 c 386/bin/file - 775 sys sys 1193198589 128958
+1193265004 0 a sys/man/4/usbdisk - 664 sys sys 1193264908 2800
+1193265004 1 a sys/man/8/partfs - 664 sys sys 1193264932 851
+1193265004 2 c sys/src/cmd/disk/mkfile - 664 sys sys 1193264991 509
+1193265004 3 a sys/src/cmd/disk/partfs.c - 664 sys sys 1193264961 9509
+1193268603 0 c sys/src/cmd/disk/partfs.c - 664 sys sys 1193268602 9594
+1193272204 0 c sys/src/cmd/disk/partfs.c - 664 sys sys 1193271505 9718
+1193279405 0 c sys/src/cmd/disk/partfs.c - 664 sys sys 1193279294 9714
+1193283004 0 a 386/bin/disk/partfs - 775 sys sys 1193282249 149872
