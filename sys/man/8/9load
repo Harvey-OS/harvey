@@ -232,7 +232,8 @@ There is no default partition or pathname.
 (Not in
 .IR 9pxeload .)
 .I 9load
-reads the first LBA device
+loads from a FAT file system on
+the first LBA device
 in the BIOS's list of devices to try to boot from,
 using the BIOS INT 13 calls also used by
 .IR pbslba .
@@ -241,6 +242,16 @@ see the EXAMPLES in
 .IR prep (8)
 for how to format such a device.
 This is mostly useful for booting from USB devices so far.
+.TP
+.B sdB0
+(Not in
+.IR 9pxeload .)
+A special case of
+.BI sd Cn
+that uses
+.B bios0
+to read from a FAT file system.
+Partitions are understood.
 .SS Kernel loading
 When
 .I 9load
@@ -453,7 +464,3 @@ obtains the information normally found in a disc
 file,
 and thereby the kernel to load and boot,
 is not ideal and may change in the future.
-.PP
-The
-.B bios
-device should understand partition tables, if present.

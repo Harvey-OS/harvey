@@ -29,20 +29,13 @@ static char *etherinis[] = {
 	0
 };
 
+/* ordering: devbios must be called before devsd calls sdbios */
 Type types[] = {
 	{	Tfloppy,
 		Fini|Ffs,
 		floppyinit, floppyinitdev,
 		floppygetfspart, 0, floppyboot,
 		floppyprintdevs,
-		diskparts,
-		diskinis,
-	},
-	{	Tcd,
-		Fini|Ffs,
-		cdinit, sdinitdev,
-		sdgetfspart, sdaddconf, sdboot,
-		sdprintdevs,
 		diskparts,
 		diskinis,
 	},
@@ -54,19 +47,27 @@ Type types[] = {
 		etherparts,
 		etherinis,
 	},
-	{	Tsd,
-		Fini|Ffs,
-		sdinit, sdinitdev,
-		sdgetfspart, sdaddconf, sdboot,
-		sdprintdevs,
-		diskparts,
-		diskinis,
-	},
 	{	Tbios,
 		Fini|Ffs,
 		biosinit, biosinitdev,
 		biosgetfspart, nil, biosboot,
 		biosprintdevs,
+		diskparts,
+		diskinis,
+	},
+	{	Tcd,
+		Fini|Ffs,
+		cdinit, sdinitdev,
+		sdgetfspart, sdaddconf, sdboot,
+		sdprintdevs,
+		diskparts,
+		diskinis,
+	},
+	{	Tsd,
+		Fini|Ffs,
+		sdinit, sdinitdev,
+		sdgetfspart, sdaddconf, sdboot,
+		sdprintdevs,
 		diskparts,
 		diskinis,
 	},
@@ -82,12 +83,16 @@ Type types[] = {
 
 extern SDifc sdataifc;
 extern SDifc sdiahciifc;
+extern SDifc sdaoeifc;
+extern SDifc sdbiosifc;
 
 #ifdef NOSCSI
 
 SDifc* sdifc[] = {
 	&sdataifc,
 	&sdiahciifc,
+	&sdbiosifc,
+	&sdaoeifc,
 	nil,
 };
 
@@ -95,11 +100,14 @@ SDifc* sdifc[] = {
 
 extern SDifc sdmylexifc;
 extern SDifc sd53c8xxifc;
+
 SDifc* sdifc[] = {
 	&sdataifc,
 	&sdiahciifc,
 	&sdmylexifc,
 	&sd53c8xxifc,
+	&sdbiosifc,
+	&sdaoeifc,
 	nil,
 };
 

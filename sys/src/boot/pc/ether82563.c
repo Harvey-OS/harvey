@@ -598,11 +598,9 @@ toringbuf(Ether *ether, Block *bp)
 		rb->len = BLEN(bp);
 		memmove(rb->pkt, bp->rp, rb->len);
 		rb->owner = Host;
-//		print("#l%d: toringbuf: %d %p\n", ether->ctlrno, ether->ri,
-//			ether);
 		ether->ri = NEXT(ether->ri, ether->nrb);
-	}else
-		print("#l%d: toringbuf: dropping packets @ %d\n",
+	} else if (debug)
+		print("#l%d: toringbuf: dropping packets @ ri %d\n",
 			ether->ctlrno, ether->ri);
 }
 
