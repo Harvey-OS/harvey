@@ -49,6 +49,8 @@ LOAD=\
 	sd53c8xx.$O\
 	sdiahci.$O\
 	sdscsi.$O\
+	sdaoe.$O\
+	sdbios.$O\
 
 ETHER=\
 	bootp.$O\
@@ -88,6 +90,7 @@ HFILES=\
 	dat.h\
 	fns.h\
 	io.h\
+	aoe.h\
 
 CFLAGS=-FTVw -I.
 

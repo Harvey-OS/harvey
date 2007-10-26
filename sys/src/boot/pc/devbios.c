@@ -1,8 +1,5 @@
 /*
  * boot driver for BIOS devices
- *
- * BUGS:
- *	doesn't understand disk partitions at all; convert to sdbios.c?
  */
 #include <u.h>
 #include "lib.h"

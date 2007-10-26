@@ -28,6 +28,12 @@ etherrxpkt(int, Etherpkt*, int)
 }
 
 int
+ethertxpkt(int, Etherpkt*, int, int)
+{
+	return -1;
+}
+
+int
 bootpboot(int, char*, Boot*)
 {
 	return -1;
