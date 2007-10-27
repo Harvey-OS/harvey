@@ -3,7 +3,7 @@
 /*
  * BUG: Doesn't do leap years in full glory,
  * or calendar changes. In 2038 the sign bit
- * will be needed in clock_t, but we say it
+ * will be needed in time_t, but we say it
  * can't be represented.
  */
 static int
@@ -38,14 +38,14 @@ reduce(int *v, int *next, int mult)
 	while(*v < 0){
 		*v += mult;
 		oldnext = *next;
-		*next--;
+		--*next;
 		if(!(*next < oldnext))
 			return 0;
 	}
 	while(*v >= mult){
 		*v -= mult;
 		oldnext = *next;
-		*next++;
+		++*next;
 		if(!(*next > oldnext))
 			return 0;
 	}
@@ -73,7 +73,7 @@ mktime(struct tm *t)
 	     reduce(&t->tm_min, &t->tm_hour, 60) &&
 	     reduce(&t->tm_hour, &t->tm_mday, 24) &&
 	     reduce(&t->tm_mon, &t->tm_year, 12)))
-		return (clock_t)-1;
+		return -1;
 	while(t->tm_mday < 1){
 		if(--t->tm_mon == -1){
 			t->tm_mon = 11;
@@ -96,11 +96,11 @@ mktime(struct tm *t)
 	if(t->tm_year < 70){
 		for(i=t->tm_year; i<70; i++)
 			if((a -= dysize(i)*86400L) < 0)
-				return (clock_t)-1;
+				return -1;
 	}else if(t->tm_year > 70){
 		for(i=70; i<t->tm_year; i++)
 			if((a += dysize(i)*86400L) < 0)
-				return (clock_t)-1;
+				return -1;
 	}
 	/*
 	 * Now a is number of seconds past Jan 1 1970.

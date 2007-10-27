@@ -4,11 +4,11 @@ partfs \- serve file, with partitions
 .SH SYNOPSIS
 .B disk/partfs
 [
-.B -r
+.B -Dr
 ]
 [
-.B -f
-.I file
+.B -d
+.I diskname
 ]
 [
 .B -m
@@ -18,13 +18,11 @@ partfs \- serve file, with partitions
 .B -s
 .I srvname
 ]
-[
-.I diskname
-]
+.I diskimage
 .SH DESCRIPTION
 .I Partfs
-presents
-.I file
+presents the file
+.I diskimage
 in the manner of
 .IR sd (3)
 on
@@ -32,7 +30,7 @@ on
 (default
 .BR /dev/sdXX ).
 Changes made to the disk are written through to
-.I file
+.I diskimage
 unless the
 .B -r
 option is given.
@@ -54,7 +52,7 @@ Partition a USB flash device:
 .IP
 .EX
 usb/disk
-disk/partfs -f /n/disk/0/data
+disk/partfs /n/disk/0/data
 disk/mbr /dev/sdXX/data
 disk/fdisk -baw /dev/sdXX/data
 disk/prep /dev/sdXX/plan9
