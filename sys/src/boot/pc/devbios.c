@@ -22,7 +22,6 @@ enum {
 	CF = 1,
 	Flopid = 0,			/* first floppy */
 	Baseid = 0x80,			/* first disk */
-	Sectsize = 512,
 
 	/* bios calls: int 13 disk services */
 	Biosinit	= 0,		/* initialise disk & floppy ctlrs */
@@ -48,9 +47,42 @@ struct Biosdrive {
 struct Biosdev {
 	Devbytes size;
 	Devbytes offset;
-	uchar	id;
+	uchar	id;			/* drive number; e.g., 0x80 */
 	char	type;
+	ushort	sectsz;
 };
+
+typedef struct Extread {
+	uchar	size;
+	uchar	unused1;
+	uchar	nsects;
+	uchar	unused2;
+	ulong	addr;		/* segment:offset */
+	uvlong	stsect;		/* starting sector */
+} Extread;
+typedef struct Edrvparam {
+	/* from edd 1.1 spec */
+	ushort	size;			/* max. buffer size */
+	ushort	flags;
+	ulong	physcyls;
+	ulong	physheads;
+	ulong	phystracksects;
+	uvlong	physsects;
+	ushort	sectsz;
+	void	*dpte;			/* ~0ull: invalid */
+
+	/* remainder from edd 3.0 spec */
+	ushort	key;			/* 0xbedd if present */
+	uchar	dpilen;
+	uchar	unused1;
+	ushort	unused2;
+	char	bustype[4];		/* "PCI" or "ISA" */
+	char	ifctype[8]; /* "ATA", "ATAPI", "SCSI", "USB", "1394", "FIBRE" */
+	uvlong	ifcpath;
+	uvlong	devpath;
+	uchar	unused3;
+	uchar	dpicksum;
+} Edrvparam;
 
 void	realmode(int intr, Ureg *ureg);		/* from trap.c */
 
@@ -59,8 +91,8 @@ static Biosdrive bdrive;
 static Ureg regs;
 
 static int	dreset(uchar drive);
-static Devbytes	extgetsize(uchar drive);
-static Devbytes	getsize(uchar drive, char *type);
+static Devbytes	extgetsize(Biosdev *);
+static Devsects	getsize(uchar drive, char *type);
 static int	islba(uchar drive);
 
 static int
@@ -96,7 +128,7 @@ biosinit(void)
 	mask = lastbit = 0;
 
 	/* 9pxeload can't use bios int 13 calls; they wedge the machine */
-	if (pxe)
+	if (pxe || getconf("*nobiosload") != nil)
 		return mask;
 	for (devid = 0; devid < (1 << 8) && bdrive.ndevs < Maxdevs; devid++) {
 		lba = islba(devid);
@@ -109,15 +141,16 @@ biosinit(void)
 			devid--;
 			continue;
 		}
-		size = extgetsize(devid);
-		print("bios%d: drive 0x%ux: %llud bytes, type %d\n",
-			bdrive.ndevs, devid, size, type);
 		lastbit = 1 << bdrive.ndevs;
 		mask |= lastbit;
-		bdp = &bdev[bdrive.ndevs++];
+		bdp = &bdev[bdrive.ndevs];
 		bdp->id = devid;
 		bdp->type = type;
+		size = extgetsize(bdp);
 		bdp->size = size;
+		print("bios%d: drive 0x%ux: %llud bytes, type %d\n",
+			bdrive.ndevs, devid, size, type);
+		bdrive.ndevs++;
 	}
 	/*
 	 * bioses seem to only be able to read from drive number 0x80
@@ -171,34 +204,19 @@ biosboot(int dev, char *file, Boot *b)
 	return fsboot(fs, file, b);
 }
 
-// void
-// biosprintbootdevs(int dev)
-// {
-// 	print(" bios%d: %ux, %lld", dev, bdev[dev].id, bdev[dev].size);
-// }
-
-typedef struct Extread {
-	uchar	size;
-	uchar	unused1;
-	uchar	nsects;
-	uchar	unused2;
-	ulong	addr;		/* segment:offset */
-	uvlong	stsect;		/* starting sector */
-} Extread;
-
 /* read n bytes at sector offset into a from drive id */
 long
-sectread(void *a, long n, Devsects offset, uchar id)
+sectread(Biosdev *bdp, void *a, long n, Devsects offset)
 {
 	uchar *biosparam, *cp;
 	Extread *erp;
 
-	if(n < 0 || n > Sectsize)
+	if(n < 0 || n > bdp->sectsz)
 		return -1;
 	if(Debug)
-		memset((uchar *)BIOSXCHG, 'r', Sectsize); /* preclean the buffer. */
+		memset((uchar *)BIOSXCHG, 'r', bdp->sectsz); /* preclean the buffer. */
 
-	biosdiskcall(&regs, Biosdrvrdy, 0, id, 0);
+	biosdiskcall(&regs, Biosdrvrdy, 0, bdp->id, 0);
 
 	/* space for a BIG sector, just in case... */
 	biosparam = (uchar *)BIOSXCHG + 2*1024;
@@ -210,9 +228,9 @@ sectread(void *a, long n, Devsects offset, uchar id)
 	erp->nsects = 1;
 	erp->addr = PADDR(BIOSXCHG);
 	erp->stsect = offset;
-	if (biosdiskcall(&regs, Biosrdsect, 0, id, PADDR(erp)) < 0) {
-		print("sectread: bios failed to read %ld @ off %lld from %ux\n",
-			n, offset, id);
+	if (biosdiskcall(&regs, Biosrdsect, 0, bdp->id, PADDR(erp)) < 0) {
+		print("sectread: bios failed to read %ld @ sector %lld of 0x%ux\n",
+			n, offset, bdp->id);
 		return -1;
 	}
 
@@ -241,20 +259,19 @@ print("\n");
 static int
 islba(uchar drive)
 {
-	if (biosdiskcall(&regs, Biosckext, 0x55aa, drive, 0) < 0) {
-//		print("islba: failed\n");
+	if (biosdiskcall(&regs, Biosckext, 0x55aa, drive, 0) < 0)
 		return 0;
-	}
 	if(regs.bx != 0xaa55){
 		print("islba: buggy bios\n");
 		return 0;
 	}
 	if (Debug)
-		print("islba: drive %ux extensions version %d.%d cx 0x%lux\n",
+		print("islba: drive 0x%ux extensions version %d.%d cx 0x%lux\n",
 			drive, (uchar)(regs.ax >> 8),
 			(uchar)regs.ax, regs.cx); /* cx: 4=edd, 1=use dap */
 	if(!(regs.cx & 1)){
-		print("islba: drive %ux: no dap bit in extensions cx\n", drive);
+		print("islba: drive 0x%ux: no dap bit in extensions cx\n",
+			drive);
 		return 0;
 	}
 //	dreset(drive);		/* pbslba does this, but it wedges here */
@@ -265,56 +282,30 @@ islba(uchar drive)
  * works so so... some floppies are 0x80+x when they shouldn't be,
  * and report lba even if they cannot...
  */
-static Devbytes
-getsize(uchar drive, char *typep)
+static Devsects
+getsize(uchar id, char *typep)
 {
 	int dtype;
-	Devsects size;
 
-	if (biosdiskcall(&regs, Biosdrvtype, 0x55aa, drive, 0) < 0)
+	if (biosdiskcall(&regs, Biosdrvtype, 0x55aa, id, 0) < 0)
 		return 0;
 
 	dtype = (ushort)regs.ax >> 8;
-	size = (ushort)regs.cx | regs.dx << 16;
 	if(dtype == Typenone){
-		print("no such device %ux of type %ux\n", drive, dtype);
+		print("no such device 0x%ux of type %d\n", id, dtype);
+		return 0;
+	}
+	if(dtype != Typedisk){
+		print("non-disk device 0x%ux of type %d\n", id, dtype);
 		return 0;
 	}
 	*typep = dtype;
-	if(dtype != Typedisk){
-		print("non-disk device %ux of type %ux\n", drive, dtype);
-		return 0;
-	}
-	return (Devbytes)size * Sectsize; /* size is in sectors; return bytes */
+	return (ushort)regs.cx | regs.dx << 16;
 }
-
-typedef struct Edrvparam {
-	/* from edd 1.1 spec */
-	ushort	size;			/* max. buffer size */
-	ushort	flags;
-	ulong	physcyls;
-	ulong	physheads;
-	ulong	phystracksects;
-	uvlong	physsects;
-	ushort	sectsz;
-	void	*dpte;			/* ~0ull: invalid */
-
-	/* remainder from edd 3.0 spec */
-	ushort	key;			/* 0xbedd if present */
-	uchar	dpilen;
-	uchar	unused1;
-	ushort	unused2;
-	char	bustype[4];		/* "PCI" or "ISA" */
-	char	ifctype[8]; /* "ATA", "ATAPI", "SCSI", "USB", "1394", "FIBRE" */
-	uvlong	ifcpath;
-	uvlong	devpath;
-	uchar	unused3;
-	uchar	dpicksum;
-} Edrvparam;
 
 /* extended get size */
 static Devbytes
-extgetsize(uchar drive)
+extgetsize(Biosdev *bdp)
 {
 	Edrvparam *edp;
 
@@ -322,17 +313,21 @@ extgetsize(uchar drive)
 	memset(edp, 0, sizeof *edp);
 	edp->size = sizeof *edp;
 	edp->dpilen = 36;
-	if (biosdiskcall(&regs, Biosedrvparam, 0, drive, PADDR(edp)) < 0) {
-//		print("extgetsize: Biosedrvparam failed\n");
+	if (biosdiskcall(&regs, Biosedrvparam, 0, bdp->id, PADDR(edp)) < 0)
 		return 0;
-	}
 	if(Debug) {
-		print("extgetsize: drive %ux info flags 0x%ux",
-			drive, edp->flags);
+		print("extgetsize: drive 0x%ux info flags 0x%ux",
+			bdp->id, edp->flags);
 		if (edp->key == 0xbedd)
 			print(" %s %s", edp->bustype, edp->ifctype);
 		print("\n");
 	}
+	if (edp->sectsz <= 0) {
+		print("extgetsize: drive 0x%ux: non-positive sector size\n",
+			bdp->id);
+		edp->sectsz = 1;		/* don't divide by zero */
+	}
+	bdp->sectsz = edp->sectsz;
 	return edp->physsects * edp->sectsz;
 }
 
@@ -342,7 +337,6 @@ biosread(Fs *fs, void *a, long n)
 	int want, got, part;
 	long totnr, stuck;
 	Devbytes offset;
-	uchar id;
 	Biosdev *bdp;
 
 	if(fs->dev > bdrive.ndevs)
@@ -350,17 +344,16 @@ biosread(Fs *fs, void *a, long n)
 	if (n <= 0)
 		return n;
 	bdp = &bdev[fs->dev];
-	id = bdp->id;
 	offset = bdp->offset;
 	stuck = 0;
 	for (totnr = 0; totnr < n && stuck < 4; totnr += got) {
-		want = Sectsize;
+		want = bdp->sectsz;
 		if (totnr + want > n)
 			want = n - totnr;
 		if(Debug)
-			print("bios%d, read: %ld @ off %lld, want: %d, id: %ux\n",
-				fs->dev, n, offset, want, id);
-		part = offset % Sectsize;
+			print("bios%d, read: %ld @ off %lld, want: %d, id: 0x%ux\n",
+				fs->dev, n, offset, want, bdp->id);
+		part = offset % bdp->sectsz;
 		if (part != 0) {	/* back up to start of sector */
 			offset -= part;
 			totnr  -= part;
@@ -373,15 +366,16 @@ biosread(Fs *fs, void *a, long n)
 			print("biosread: negative offset %lld\n", offset);
 			return -1;
 		}
-		got = sectread((char *)a + totnr, want, offset/Sectsize, id);
+		got = sectread(bdp, (char *)a + totnr, want, offset/bdp->sectsz);
 		if(got <= 0){
-			print("biosread: failed to read %ld @ off %lld of %ux, "
-				"want %d got %d\n", n, offset, id, want, got);
+//			print("biosread: failed to read %ld @ off %lld of 0x%ux, "
+//				"want %d got %d\n",
+//				n, offset, bdp->id, want, got);
 			return -1;
 		}
 		offset += got;
 		bdp->offset = offset;
-		if (got < Sectsize)
+		if (got < bdp->sectsz)
 			stuck++;	/* we'll have to re-read this sector */
 		else
 			stuck = 0;
