@@ -130,7 +130,8 @@ biospnp(void)
 {
 	SDev *sdev;
 
-	if (pxe)
+	/* 9pxeload can't use bios int 13 calls; they wedge the machine */
+	if (pxe || getconf("*nobiosload") != nil)
 		return nil;
 	if((sdev = malloc(sizeof(SDev))) != nil) {
 		sdev->ifc = &sdbiosifc;

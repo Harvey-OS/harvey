@@ -1512,7 +1512,7 @@ iapnp(void)
 	SDev *head, *tail, *s;
 	static int done;
 
-	if(done)
+	if (done || getconf("*noahciload") != nil)
 		return nil;
 	done = 1;
 	p = nil;
