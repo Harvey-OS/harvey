@@ -512,7 +512,11 @@ loop:
 	bp = getbuf(dev, a, Bmod);
 	memset(bp->iobuf, 0, RBUFSIZE);
 	settag(bp, tag, qid);
-	if(tag == Tind1 || tag == Tind2 || tag == Tdir)
+	if(tag == Tind1 || tag == Tind2 ||
+#ifndef COMPAT32
+	    tag == Tind3 || tag == Tind4 ||  /* add more Tind tags here ... */
+#endif
+	    tag == Tdir)
 		bp->flags |= Bimm;
 	putbuf(bp);
 	putbuf(p);

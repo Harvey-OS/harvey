@@ -223,8 +223,6 @@ void reset(void)		/* done at each "graph ..." statement */
 
 void opentemp(void)
 {
-	if (tfd != NULL)
-		fclose(tfd);
 	if (tfd != stdout) {
 		if (tfd != NULL)
 			fclose(tfd);
