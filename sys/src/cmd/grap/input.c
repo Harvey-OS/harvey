@@ -454,7 +454,7 @@ void eprint(void)	/* try to print context around error */
 		if (isprint(*p))
 			putc(*p, stderr);
 	fprintf(stderr, " >>> ");
-	for (; p < q; p++)
+	for (; p < ep; p++)
 		if (isprint(*p))
 			putc(*p, stderr);
 	fprintf(stderr, " <<< ");

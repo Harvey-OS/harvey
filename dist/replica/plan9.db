@@ -1,8 +1,8 @@
 386 - 20000000775 sys sys 1010957353 0
-386/9load - 775 sys sys 1193603518 337132
-386/9loaddebug - 775 sys sys 1193603527 450713
-386/9loadlite - 775 sys sys 1193603532 160432
-386/9loadlitedebug - 775 sys sys 1193603540 236256
+386/9load - 775 sys sys 1193687665 337132
+386/9loaddebug - 775 sys sys 1193687675 450713
+386/9loadlite - 775 sys sys 1193687678 160432
+386/9loadlitedebug - 775 sys sys 1193687682 236256
 386/9pc - 775 sys sys 1192646200 2054406
 386/9pc.gz - 664 sys sys 1192646200 873537
 386/9pccpu - 775 sys sys 1191889923 1749481
@@ -11,7 +11,7 @@
 386/9pcdisk.gz - 664 sys sys 1192741561 973813
 386/9pcf - 775 sys sys 1191889940 2874011
 386/9pcf.gz - 664 sys sys 1191889940 1230163
-386/9pxeload - 775 sys sys 1193603555 337136
+386/9pxeload - 775 sys sys 1193687689 337136
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1168402260 116604
 386/bin/8c - 775 sys sys 1190520740 367214
@@ -173,6 +173,7 @@
 386/bin/cat - 775 sys sys 1148500611 37482
 386/bin/cb - 775 sys sys 1168402293 77628
 386/bin/cdfs - 775 sys sys 1179372081 166023
+386/bin/cec - 775 sys sys 1193714267 75896
 386/bin/cfs - 775 sys sys 1190863294 130565
 386/bin/chgrp - 775 sys sys 1168402294 59522
 386/bin/chmod - 775 sys sys 1168402294 62518
@@ -205,7 +206,7 @@
 386/bin/disk - 20000000775 sys sys 984788664 0
 386/bin/disk/dump9660 - 775 sys sys 1188446897 152095
 386/bin/disk/exsort - 775 sys sys 1168402301 60455
-386/bin/disk/fdisk - 775 sys sys 1168402301 104096
+386/bin/disk/fdisk - 775 sys sys 1193714268 104619
 386/bin/disk/format - 775 sys sys 1178568266 89440
 386/bin/disk/kfs - 775 sys sys 1190863302 248673
 386/bin/disk/kfscmd - 775 sys sys 1148500626 38257
@@ -216,7 +217,7 @@
 386/bin/disk/mkfs - 775 sys sys 1168402303 87969
 386/bin/disk/mksacfs - 775 sys sys 1020319074 71451
 386/bin/disk/partfs - 775 sys sys 1193426743 149859
-386/bin/disk/prep - 775 sys sys 1168402303 96167
+386/bin/disk/prep - 775 sys sys 1193714270 96195
 386/bin/disk/sacfs - 775 sys sys 1020319075 79882
 386/bin/dossrv - 775 sys sys 1178568267 136537
 386/bin/du - 775 sys sys 1179777650 76275
@@ -264,7 +265,7 @@
 386/bin/games/sudoku - 775 sys sys 1179372090 171015
 386/bin/getmap - 775 sys sys 1168402311 65423
 386/bin/gif - 775 sys sys 1179372091 158603
-386/bin/grap - 775 sys sys 1184529901 282814
+386/bin/grap - 775 sys sys 1193686113 282795
 386/bin/graph - 775 sys sys 1168402312 129250
 386/bin/grep - 775 sys sys 1168402312 79569
 386/bin/gs - 775 sys sys 1188447224 13278980
@@ -7817,6 +7818,7 @@ sys/man/8/apm - 664 sys sys 1017679308 1811
 sys/man/8/auth - 664 sys sys 1191472798 4996
 sys/man/8/boot - 664 sys sys 1188515985 8331
 sys/man/8/booting - 664 sys sys 1015024984 4136
+sys/man/8/cec - 644 sys sys 1193683685 1929
 sys/man/8/cpurc - 664 sys sys 1187227584 1522
 sys/man/8/cron - 664 sys sys 1063858596 1867
 sys/man/8/dhcpd - 664 sys sys 1191306105 5575
@@ -9195,7 +9197,7 @@ sys/src/boot/pc/kfs.h - 664 sys sys 1032215924 861
 sys/src/boot/pc/kfsboot.c - 664 sys sys 1032215914 4788
 sys/src/boot/pc/l.s - 664 sys sys 1193167045 18213
 sys/src/boot/pc/lib.h - 664 sys sys 1190921452 2847
-sys/src/boot/pc/load.c - 664 sys sys 1193607906 9806
+sys/src/boot/pc/load.c - 664 sys sys 1193687652 9808
 sys/src/boot/pc/mbr.s - 664 sys sys 1015007953 6234
 sys/src/boot/pc/mem.h - 664 sys sys 1190921475 3437
 sys/src/boot/pc/memory.c - 664 sys sys 1019533021 10272
@@ -9998,6 +10000,15 @@ sys/src/cmd/cdfs/fns.h - 664 sys sys 969542122 297
 sys/src/cmd/cdfs/main.c - 664 sys sys 1017679316 11040
 sys/src/cmd/cdfs/mkfile - 664 sys sys 959922196 182
 sys/src/cmd/cdfs/mmc.c - 664 sys sys 1146318348 17198
+sys/src/cmd/cec - 20000000775 sys sys 1193683647 0
+sys/src/cmd/cec/LICENSE - 644 sys sys 1186248056 1554
+sys/src/cmd/cec/Protocol - 664 sys sys 1186248056 2881
+sys/src/cmd/cec/cec.c - 644 sys sys 1193683596 6829
+sys/src/cmd/cec/cec.h - 644 sys sys 1193681095 537
+sys/src/cmd/cec/mkfile - 644 sys sys 1193683556 131
+sys/src/cmd/cec/mux.c - 664 sys sys 1193683306 1641
+sys/src/cmd/cec/plan9.c - 644 sys sys 1193683385 1408
+sys/src/cmd/cec/utils.c - 644 sys sys 1193681177 676
 sys/src/cmd/cfs - 20000000775 sys sys 1045505024 0
 sys/src/cmd/cfs/bcache.c - 664 sys sys 1172123361 2964
 sys/src/cmd/cfs/bcache.h - 664 sys sys 1014925220 797
@@ -10119,7 +10130,7 @@ sys/src/cmd/cwfs/portdat.h - 664 sys sys 1174716952 15241
 sys/src/cmd/cwfs/portfns.h - 664 sys sys 1174798778 6701
 sys/src/cmd/cwfs/portmkfile - 664 sys sys 1174798711 791
 sys/src/cmd/cwfs/scsi.c - 664 sys sys 1174282908 8865
-sys/src/cmd/cwfs/sub.c - 664 sys sys 1176500092 24371
+sys/src/cmd/cwfs/sub.c - 664 sys sys 1193717342 24472
 sys/src/cmd/cwfs/time.c - 664 sys sys 1171500176 1696
 sys/src/cmd/cwfs/uidgid.c - 664 sys sys 1174717700 9421
 sys/src/cmd/cwfs/wren.c - 664 sys sys 1174458303 2737
@@ -10249,9 +10260,9 @@ sys/src/cmd/disk/prep - 20000000775 sys sys 1055692957 0
 sys/src/cmd/disk/prep/calc.y - 664 sys sys 1135487935 2406
 sys/src/cmd/disk/prep/edit.c - 664 sys sys 1017854327 9714
 sys/src/cmd/disk/prep/edit.h - 664 sys sys 1015009215 994
-sys/src/cmd/disk/prep/fdisk.c - 664 sys sys 1126623191 21983
+sys/src/cmd/disk/prep/fdisk.c - 664 sys sys 1193693218 22265
 sys/src/cmd/disk/prep/mkfile - 664 sys sys 1022450200 250
-sys/src/cmd/disk/prep/prep.c - 664 sys sys 1126278202 10098
+sys/src/cmd/disk/prep/prep.c - 664 sys sys 1193692640 10170
 sys/src/cmd/disk/rd9660.c - 664 sys sys 1021579990 7446
 sys/src/cmd/disk/sacfs - 20000000775 sys sys 1039727556 0
 sys/src/cmd/disk/sacfs/mkfile - 664 sys sys 964815354 204
@@ -10430,13 +10441,13 @@ sys/src/cmd/grap/frame.c - 664 sys sys 944960999 1572
 sys/src/cmd/grap/grap.h - 664 sys sys 944960999 6090
 sys/src/cmd/grap/grap.y - 664 sys sys 944960999 9292
 sys/src/cmd/grap/grapl.lx - 664 sys sys 944960999 4871
-sys/src/cmd/grap/input.c - 664 sys sys 944960999 11416
+sys/src/cmd/grap/input.c - 664 sys sys 1193674137 11417
 sys/src/cmd/grap/label.c - 664 sys sys 944960999 3043
 sys/src/cmd/grap/main.c - 664 sys sys 944960999 3399
 sys/src/cmd/grap/misc.c - 664 sys sys 944960999 5081
 sys/src/cmd/grap/mkfile - 664 sys sys 944960999 456
 sys/src/cmd/grap/plot.c - 664 sys sys 944960999 2783
-sys/src/cmd/grap/print.c - 664 sys sys 944960999 5254
+sys/src/cmd/grap/print.c - 664 sys sys 1193674141 5221
 sys/src/cmd/grap/ticks.c - 664 sys sys 944960999 10887
 sys/src/cmd/graph - 20000000775 sys sys 1039727559 0
 sys/src/cmd/graph/graph.c - 664 sys sys 1148227144 13164

@@ -1,0 +1,98 @@
+.TH CEC 8
+.SH NAME
+cec \- Coraid Ethernet Console
+.SH SYNOPSIS
+.B cec
+[
+.B -d
+] [
+.B -s
+.I shelf
+] [
+.B -e
+.I esc
+]
+.I interface
+.SH DESCRIPTION
+The
+.I cec
+command uses raw Ethernet frames to connect to a CEC
+server for console access.  All clients share the same session.  Coraid
+appliances are currently the only CEC servers.
+.PP
+A
+.I cec
+process starts by probing the specified network interface
+(e.g.,
+.LR /net/ether0 )
+for available CEC servers.  If the shelf address of the server is
+specified with the
+.B -s
+flag, the connection will
+proceed immediately upon discovery of the first CEC server
+with this shelf address.  Otherwise, a selection prompt
+will be displayed showing the discovered CEC servers
+available for communication.  If no servers are discovered,
+.I cec
+exits.
+.IP
+.EX
+0 5 003048865f1e shelf5
+[#qp]:
+.EE
+.LP
+The selection prompt accepts
+.TP
+.I number
+Connect to server
+.I number
+(from the first column),
+.TP
+.B p
+Probe the interface again, and
+.TP
+.B q
+Quit.
+.PP
+Note the selection number is not the shelf address but the
+.IR cec -generated
+ID number printed in the leftmost column.
+.PP
+Once connected to a CEC server, entering the escape sequence
+will drop the user into an escape prompt where the user may
+type
+.L q
+to quit the connection,
+.L i
+to send the escape sequence
+across the connection, or
+.L .
+to continue the connection.
+The escape sequence is printed on connection.
+.PP
+If the
+.B -s
+option is used,
+.I cec
+will exit upon closing the connection.
+Otherwise,
+.I cec
+will return to the selection prompt upon connection close.
+.SS Options
+.TP 1i
+.B -d
+Output debugging information.
+.TP
+.BI -s " shelf"
+Connect to the server at shelf address
+.IR shelf .
+.TP
+.BI -e " esc"
+Set the escape caracter to
+.BI control -
+.IR esc .
+The default setting is
+.BR control -\e.
+.SH BUGS
+The CEC protocol should be integrated with the console server.
+The arbitration between the keyboard and network is suboptimal.

@@ -205,7 +205,7 @@ boot(Medium *mp, char *file)
 	}
 
 	sprint(BOOTLINE, "%s!%s", mp->name, file);
-	print("booting %s!%s", mp->name, file);
+	print("booting %s!%s\n", mp->name, file);
 	return (*mp->type->boot)(mp->dev, file, &b);
 }
 

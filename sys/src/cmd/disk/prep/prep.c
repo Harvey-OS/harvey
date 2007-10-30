@@ -50,14 +50,15 @@ Edit edit = {
 typedef struct Auto Auto;
 struct Auto
 {
-	char *name;
+	char	*name;
 	uvlong	min;
 	uvlong	max;
-	uint weight;
+	uint	weight;
 	uchar	alloc;
 	uvlong	size;
 };
 
+#define TB (1024LL*GB)
 #define GB (1024*1024*1024)
 #define MB (1024*1024)
 #define KB (1024)
@@ -205,7 +206,10 @@ cmdsum(Edit *edit, Part *p, vlong a, vlong b)
 	name = p ? p->name : "empty";
 
 	sz = (b-a)*edit->disk->secsize;
-	if(sz >= 1*GB){
+	if(sz >= 1*TB){
+		suf = "TB";
+		div = TB;
+	}else if(sz >= 1*GB){
 		suf = "GB";
 		div = GB;
 	}else if(sz >= 1*MB){
@@ -288,8 +292,8 @@ static void
 rdpart(Edit *edit)
 {
 	int i, nline, nf, waserr;
-	char *line[128];
 	vlong a, b;
+	char *line[128];
 	char *f[5];
 	char *err;
 	Disk *disk;

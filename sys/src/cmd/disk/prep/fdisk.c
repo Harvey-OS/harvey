@@ -14,7 +14,7 @@ enum {
 	Mpart = 64,
 };
 
-static void rdpart(Edit*, ulong, ulong);
+static void rdpart(Edit*, uvlong, uvlong);
 static void findmbr(Edit*);
 static void autopart(Edit*);
 static void wrpart(Edit*);
@@ -381,7 +381,7 @@ Error:
 }
 
 static Dospart*
-mkpart(char *name, int primary, u32int lba, u32int size, Tentry *t)
+mkpart(char *name, int primary, vlong lba, vlong size, Tentry *t)
 {
 	static int n;
 	Dospart *p;
@@ -405,7 +405,11 @@ mkpart(char *name, int primary, u32int lba, u32int size, Tentry *t)
 	p->ctlstart = lba;
 	p->ctlend = lba+size;
 	p->lba = lba;
+	if (p->lba != lba)
+		fprint(2, "%s: start of partition (%lld) won't fit in MBR table\n", argv0, lba);
 	p->size = size;
+	if (p->size != size)
+		fprint(2, "%s: size of partition (%lld) won't fit in MBR table\n", argv0, size);
 	p->primary = primary;
 	return p;
 }
@@ -473,7 +477,7 @@ recover(Edit *edit)
  * from the disk into the part array.
  */
 static void
-rdpart(Edit *edit, ulong lba, ulong xbase)
+rdpart(Edit *edit, uvlong lba, uvlong xbase)
 {
 	char *err;
 	Table table;
@@ -736,6 +740,7 @@ cmdokname(Edit*, char *name)
 	return nil;
 }
 
+#define TB (1024LL*GB)
 #define GB (1024*1024*1024)
 #define MB (1024*1024)
 #define KB (1024)
@@ -759,7 +764,10 @@ cmdsum(Edit *edit, Part *vp, vlong a, vlong b)
 	ty = p ? typestr0(p->type) : "";
 
 	sz = (b-a)*edit->disk->secsize*sec2cyl;
-	if(sz >= 1*GB){
+	if(sz >= 1*TB){
+		suf = "TB";
+		div = TB;
+	}else if(sz >= 1*GB){
 		suf = "GB";
 		div = GB;
 	}else if(sz >= 1*MB){
