@@ -1,12 +1,12 @@
 </$objtype/mkfile
 
 TARG=\
+	copy\
 	read\
 	ro\
 	sync\
 	write\
 
-#	copy\
 
 BIN=/$objtype/bin/venti
 
@@ -14,7 +14,7 @@ BIN=/$objtype/bin/venti
 
 CFLAGS=$CFLAGS -I.
 
-extra:V: $O.devnull $O.mkroot $O.randtest $O.readlist $O.ro $O.root
+extra:V: $O.devnull $O.mkroot $O.randtest $O.readlist $O.root
 
 all:V:		srv.all.dir
 install:V:	srv.install.dir
