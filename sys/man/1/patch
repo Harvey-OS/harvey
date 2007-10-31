@@ -42,9 +42,9 @@ and is stored in
 .PP
 .I Patch/create
 creates a new patch consisting of the changes to
-the listed files, reading
-a description of the patch from standard input.
-Please provide an explanation of what the change is supposed to do,
+the listed files from the distribution, reading
+a description of the patch from standard input:
+please provide an explanation of what the change is supposed to do,
 some context, and a rationale for the change.
 Test data or pointers to same to verify that the fix works are also welcome.
 The

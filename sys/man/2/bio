@@ -147,7 +147,7 @@ up to and including the first
 .I delim
 character.
 The delimiter character at the end of the line is
-not altered.
+not altered, thus the returned string probably won't be NUL-terminated.
 .I Brdline
 returns a pointer to the start of the line or
 .L 0

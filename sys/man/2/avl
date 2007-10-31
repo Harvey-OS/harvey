@@ -1,0 +1,92 @@
+.TH AVL 2
+.SH NAME
+mkavltree, insertavl, lookupavl, deleteavl, avlwalk, avlnext, avlprev, endwalk - AVL tree routines
+.SH SYNOPSIS
+.EX
+#include <u.h>
+#include <libc.h>
+#include <bio.h>
+#include <avl.h>
+
+typedef struct Avl	Avl;
+struct Avl
+{
+	Avl	*p;		/* parent */
+	Avl	*n[2];		/* children */
+	int	bal;		/* balance bits */
+};
+
+Avl	*avlnext(Avlwalk *walk);
+Avl	*avlprev(Avlwalk *walk);
+Avlwalk	*avlwalk(Avltree *tree);
+void	deleteavl(Avltree *tree, Avl *key, Avl **oldp);
+void	endwalk(Avlwalk *walk);
+void	insertavl(Avltree *tree, Avl *new, Avl **oldp);
+Avl	*lookupavl(Avltree *tree, Avl *key);
+Avltree	*mkavltree(int(*cmp)(Avl*, Avl*));
+.EE
+.SH DESCRIPTION
+An AVL tree is a self-balancing binary search tree.
+These routines allow creation and maintenance of in-memory AVL trees.
+.PP
+An empty AVL tree is created by calling
+.I mkavltree
+with a comparison function as argument.
+This function should take two pointers to
+.B Avl
+objects and return -1, 0 or 1 as the first is
+respectively less than,
+equal to, or greater than,
+the second.
+.I Insertavl
+adds a
+.I new
+tree node into
+.IR tree .
+If
+.I oldp
+is non-nil upon return,
+it points to storage for an old node
+with the same key that may now be freed.
+.I Lookupavl
+returns the
+.I tree
+node with
+.IR key .
+.I Deleteavl
+removes the node with
+.I key
+from
+.IR tree .
+.I oldp
+is handled as per
+.IR insertavl .
+.PP
+.I Avlwalk
+returns a pointer to a newly-allocated
+.B Avlwalk
+object.
+.I Endwalk
+frees such an object.
+.I Avlnext
+and
+.I avlprev
+walk the tree associated with
+.IR walk ,
+returning the next
+(respectively, previous)
+tree node in the comparison order
+defined by the comparison function
+associated with the tree associated with
+.IR walk .
+.SH SOURCE
+.B /sys/src/libavl
+.SH SEE ALSO
+G. M. Adelson-Velsky,
+E. M. Landis,
+``An algorithm for the organization of information'',
+Soviet Mathematics, Vol. 3, pp. 1256—1263.
+.SH DIAGNOSTICS
+Functions returning pointers return
+.B nil
+on error.

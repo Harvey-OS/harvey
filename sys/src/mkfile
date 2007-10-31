@@ -5,6 +5,7 @@ LIBS=\
 	libString\
 	libauth\
 	libauthsrv\
+	libavl\
 	libbin\
 	libbio\
 	libc\
