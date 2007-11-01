@@ -53242,3 +53242,10 @@
 1193790605 7 c sys/src/cmd/venti/srv/utils.c - 664 sys sys 1193791159 3751
 1193790605 8 c sys/src/cmd/venti/srv/wrarena.c - 664 sys sys 1193789638 4563
 1193792404 0 c adm/timezone/Australia_West - 664 adm adm 1193791016 130
+1193853605 0 c sys/games/lib/fortunes - 664 sys sys 1193852802 267533
+1193855404 0 c sys/src/cmd/venti/srv/hproc.c - 664 sys sys 1193855451 10662
+1193862605 0 c sys/man/2/avl - 664 sys sys 1193861693 2447
+1193866205 0 c sys/lib/dist/pc/plan9.ini - 664 sys sys 1193864577 250
+1193866205 1 c sys/lib/dist/pc/plan9.ini.cd - 664 sys sys 1193864518 383
+1193866205 2 c sys/man/4/usbdisk - 664 sys sys 1193865997 2801
+1193873404 0 c sys/src/9/ip/tcp.c - 664 sys sys 1193872007 65959

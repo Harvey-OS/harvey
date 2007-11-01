@@ -2,20 +2,21 @@
 .SH NAME
 mkavltree, insertavl, lookupavl, deleteavl, avlwalk, avlnext, avlprev, endwalk - AVL tree routines
 .SH SYNOPSIS
+.\" .ta 0.75i 1.5i 2.25i 3i 3.75i 4.5i
+.ta 0.7i +0.7i +0.7i +0.7i +0.7i +0.7i +0.7i
 .EX
 #include <u.h>
 #include <libc.h>
-#include <bio.h>
 #include <avl.h>
-
-typedef struct Avl	Avl;
+.sp 0.3v
+typedef struct Avl Avl;
 struct Avl
 {
 	Avl	*p;		/* parent */
 	Avl	*n[2];		/* children */
 	int	bal;		/* balance bits */
 };
-
+.sp 0.3v
 Avl	*avlnext(Avlwalk *walk);
 Avl	*avlprev(Avlwalk *walk);
 Avlwalk	*avlwalk(Avltree *tree);
@@ -51,13 +52,19 @@ with the same key that may now be freed.
 .I Lookupavl
 returns the
 .I tree
-node with
-.IR key .
+node that matches
+.I key
+by
+.IR tree 's
+comparison function,
+or
+.B nil
+if none.
 .I Deleteavl
-removes the node with
+removes the node matching
 .I key
 from
-.IR tree .
+.IR tree ;
 .I oldp
 is handled as per
 .IR insertavl .
@@ -79,6 +86,26 @@ tree node in the comparison order
 defined by the comparison function
 associated with the tree associated with
 .IR walk .
+.SH EXAMPLES
+Intended usage seems to be to make an anonymous
+.B Avl
+the first member of the application's tree-node structure,
+then pass these routines tree-node pointers instead of
+.BR Avl* s.
+.IP
+.EX
+typedef struct Node {
+	Avl;
+	uchar	score[VtScoreSize];
+	int	type;
+} Node;
+.sp 0.3v
+Avltree *tree;
+Avl *res;
+Node *np;
+\fI\&...\fP
+	res = lookupavl(tree, np);
+.EE
 .SH SOURCE
 .B /sys/src/libavl
 .SH SEE ALSO

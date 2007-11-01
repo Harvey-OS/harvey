@@ -153,6 +153,6 @@ so one can invoke
 .IR dossrv (4)
 directly.
 .PP
-USB 1.0 flash disks I/O rates are slow and variable.
+USB 1.0 flash disks' I/O rates are slow and variable.
 Reading and writing in large units (e.g., 4KB) seems to be faster
 by an order of magnitude when transferring large volumes of data.

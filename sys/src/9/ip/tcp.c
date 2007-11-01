@@ -356,8 +356,8 @@ struct Tcppriv
  *  of DoS attack.
  *
  *  To avoid stateless Conv hogs, we pick a sequence number at random.  If
- *  it that number gets acked by the other end, we shut down the connection.
- *  Look for tcpporthogedefense in the code.
+ *  that number gets acked by the other end, we shut down the connection.
+ *  Look for tcpporthogdefense in the code.
  */
 int tcpporthogdefense = 0;
 
