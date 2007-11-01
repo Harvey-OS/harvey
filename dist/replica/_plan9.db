@@ -5836,7 +5836,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1192305216 267301
+sys/games/lib/fortunes - 664 sys sys 1193852802 267533
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -6277,9 +6277,9 @@ sys/lib/dist/pc/inst/watchfd - 775 sys sys 1127670125 362
 sys/lib/dist/pc/inst/xxx - 775 sys sys 1018469719 160
 sys/lib/dist/pc/mkfile - 664 sys sys 1168307754 2210
 sys/lib/dist/pc/multi - 20000000775 sys sys 1147022870 0
-sys/lib/dist/pc/plan9.ini - 664 sys sys 1142177575 236
+sys/lib/dist/pc/plan9.ini - 664 sys sys 1193864577 250
 sys/lib/dist/pc/plan9.ini.blank - 664 sys sys 1018469720 512
-sys/lib/dist/pc/plan9.ini.cd - 664 sys sys 1132452554 369
+sys/lib/dist/pc/plan9.ini.cd - 664 sys sys 1193864518 383
 sys/lib/dist/pc/plan9.ini.vmware - 664 sys sys 1045500078 168
 sys/lib/dist/pc/proto - 664 sys sys 1169484200 5564
 sys/lib/dist/pc/sub - 20000000775 sys sys 1063856127 0
@@ -7522,7 +7522,7 @@ sys/man/2/assert - 664 sys sys 1102868467 377
 sys/man/2/atof - 664 sys sys 1171668702 2778
 sys/man/2/auth - 664 sys sys 1190243345 7537
 sys/man/2/authsrv - 664 sys sys 1192737581 4583
-sys/man/2/avl - 664 sys sys 1193785216 1936
+sys/man/2/avl - 664 sys sys 1193861693 2447
 sys/man/2/bin - 664 sys sys 985023077 1880
 sys/man/2/bind - 664 sys sys 1015091518 4685
 sys/man/2/bio - 664 sys sys 1193790665 6707
@@ -7742,7 +7742,7 @@ sys/man/4/u9fs - 664 sys sys 1043769139 4748
 sys/man/4/upasfs - 664 sys sys 1034348505 6212
 sys/man/4/usb - 664 sys sys 1172764045 4682
 sys/man/4/usbd - 664 sys sys 1164149441 712
-sys/man/4/usbdisk - 664 sys sys 1193264908 2800
+sys/man/4/usbdisk - 664 sys sys 1193865997 2801
 sys/man/4/vacfs - 664 sys sys 1084333062 1545
 sys/man/4/webcookies - 664 sys sys 1019828742 3525
 sys/man/4/webfs - 664 sys sys 1124711926 6518
@@ -8024,7 +8024,7 @@ sys/src/9/ip/nullmedium.c - 664 sys sys 1086406910 492
 sys/src/9/ip/pktmedium.c - 664 sys sys 1084331746 1314
 sys/src/9/ip/ptclbsum.c - 664 sys sys 1022588099 1243
 sys/src/9/ip/rudp.c - 664 sys sys 1187735906 21590
-sys/src/9/ip/tcp.c - 664 sys sys 1186406232 65963
+sys/src/9/ip/tcp.c - 664 sys sys 1193872007 65959
 sys/src/9/ip/tripmedium.c - 664 sys sys 1045063515 7136
 sys/src/9/ip/udp.c - 664 sys sys 1187735914 13315
 sys/src/9/mkfile - 664 sys sys 1063857477 205
@@ -14353,7 +14353,7 @@ sys/src/cmd/venti/srv/fmtisect.c - 664 sys sys 1177189436 1454
 sys/src/cmd/venti/srv/fns.h - 664 sys sys 1191430752 9231
 sys/src/cmd/venti/srv/graph.c - 664 sys sys 1177189436 4190
 sys/src/cmd/venti/srv/hdisk.c - 664 sys sys 1191257294 16482
-sys/src/cmd/venti/srv/hproc.c - 664 sys sys 1191430754 10333
+sys/src/cmd/venti/srv/hproc.c - 664 sys sys 1193855451 10662
 sys/src/cmd/venti/srv/httpd.c - 664 sys sys 1191430753 22897
 sys/src/cmd/venti/srv/icache.c - 664 sys sys 1193791133 10679
 sys/src/cmd/venti/srv/icachewrite.c - 664 sys sys 1193791073 7532
