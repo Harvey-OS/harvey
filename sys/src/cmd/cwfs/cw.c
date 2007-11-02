@@ -585,7 +585,10 @@ cwio(Device *dev, Off addr, void *buf, int opcode)
 			cw->cdev, (Wideoff)a1);
 		return Cerror;
 	}
-	a2 += c - b->entry;
+	if (oldcachefmt)
+		a2 += c - b->entry;
+	else
+		a2 += (c - b->entry) * h->msize;
 
 	state = c->state;
 	switch(opcode) {

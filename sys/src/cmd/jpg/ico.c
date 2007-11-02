@@ -439,7 +439,7 @@ main(int argc, char **argv)
 {
 	Biobuf in;
 	Icon *icon;
-	int fd;
+	int num, fd;
 	Rectangle r;
 	Event e;
 
@@ -474,10 +474,11 @@ main(int argc, char **argv)
 
 	einit(Emouse|Ekeyboard);
 
+	num = 0;
 	r.min = Pt(4, 4);
 	for(icon = h.first; icon != nil; icon = icon->next){
 		if(Bgeticon(&in, icon) < 0){
-			fprint(2, "bad rectangle: %r\n");
+			fprint(2, "%s: read fail: %r\n", argv0);
 			continue;
 		}
 		if(debug)
@@ -486,7 +487,11 @@ main(int argc, char **argv)
 		r.max = addpt(r.min, Pt(icon->w, icon->h));
 		icon->r = r;
 		r.min.x += r.max.x;
+		num++;
 	}
+
+	if(num == 0)
+		exits("no images");
 	eresized(0);
 
 	for(;;)

@@ -154,9 +154,9 @@ biosinit(void)
 	}
 	/*
 	 * bioses seem to only be able to read from drive number 0x80
-	 * and certainly can't read from the highest drive number, even if
-	 * there is only one.  attempting to read from the last drive number
-	 * yields a hung machine or a two-minute pause.
+	 * and certainly can't read from the highest drive number when we
+	 * call them, even if there is only one.  attempting to read from
+	 * the last drive number yields a hung machine or a two-minute pause.
 	 */
 	if (bdrive.ndevs > 0) {
 		if (bdrive.ndevs == 1)
@@ -269,13 +269,7 @@ islba(uchar drive)
 		print("islba: drive 0x%ux extensions version %d.%d cx 0x%lux\n",
 			drive, (uchar)(regs.ax >> 8),
 			(uchar)regs.ax, regs.cx); /* cx: 4=edd, 1=use dap */
-	if(!(regs.cx & 1)){
-		print("islba: drive 0x%ux: no dap bit in extensions cx\n",
-			drive);
-		return 0;
-	}
-//	dreset(drive);		/* pbslba does this, but it wedges here */
-	return 1;
+	return regs.cx & 1;		/* dap bit */
 }
 
 /*

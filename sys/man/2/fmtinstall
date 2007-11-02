@@ -24,7 +24,7 @@ struct Fmt{
 	int		prec;
 	ulong	flags;
 };
-
+.sp 0.3v
 enum{
 	FmtWidth	= 1,
 	FmtLeft		= FmtWidth << 1,
@@ -38,14 +38,14 @@ enum{
 	FmtLong		= FmtShort << 1,
 	FmtVLong	= FmtLong << 1,
 	FmtComma	= FmtVLong << 1,
-
+.sp 0.3v
 	FmtFlag		= FmtComma << 1
 };
 .fi
 .PP
 .B
 .ta \w'\fLchar* 'u
-
+.sp 0.3v
 .PP
 .B
 int	fmtfdinit(Fmt *f, int fd, char *buf, int nbuf);
@@ -64,7 +64,7 @@ int	runefmtstrinit(Fmt *f);
 .PP
 .B
 Rune*	runefmtstrflush(Fmt *f);
-
+.sp 0.3v
 .PP
 .B
 int	fmtinstall(int c, int (*fn)(Fmt*));
@@ -315,14 +315,15 @@ system calls to produce its output.
 .IP
 .EX
 .ta 6n +6n +6n +6n +6n +6n +6n +6n +6n
-#pragma	varargck	argpos	error	1
-
-void fatal(char *fmt, ...)
+#pragma	varargck	argpos	fatal	1
+.sp 0.3v
+void
+fatal(char *fmt, ...)
 {
 	Fmt f;
 	char buf[64];
 	va_list arg;
-
+.sp 0.3v
 	fmtfdinit(&f, 1, buf, sizeof buf);
 	fmtprint(&f, "fatal: ");
 	va_start(arg, fmt);
@@ -337,26 +338,25 @@ void fatal(char *fmt, ...)
 This example adds a verb to print complex numbers.
 .IP
 .EX
-typedef
-struct {
+typedef struct {
 	double	r, i;
 } Complex;
-
+.sp 0.3v
 #pragma	varargck	type	"X"	Complex
-
+.sp 0.3v
 int
 Xfmt(Fmt *f)
 {
 	Complex c;
-
+.sp 0.3v
 	c = va_arg(f->args, Complex);
 	return fmtprint(f, "(%g,%g)", c.r, c.i);
 }
-
+.sp 0.3v
 main(...)
 {
 	Complex x = (Complex){ 1.5, -2.3 };
-
+.sp 0.3v
 	fmtinstall('X', Xfmt);
 	print("x = %X\en", x);
 }
@@ -370,4 +370,3 @@ main(...)
 .SH DIAGNOSTICS
 These routines return negative numbers or nil for errors and set
 .IR errstr .
-.SH BUGS
