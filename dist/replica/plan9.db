@@ -1,8 +1,8 @@
 386 - 20000000775 sys sys 1010957353 0
-386/9load - 775 sys sys 1193687665 337132
-386/9loaddebug - 775 sys sys 1193687675 450713
-386/9loadlite - 775 sys sys 1193687678 160432
-386/9loadlitedebug - 775 sys sys 1193687682 236256
+386/9load - 775 sys sys 1193957727 337044
+386/9loaddebug - 775 sys sys 1193957738 450621
+386/9loadlite - 775 sys sys 1193957743 160348
+386/9loadlitedebug - 775 sys sys 1193957750 236164
 386/9pc - 775 sys sys 1192646200 2054406
 386/9pc.gz - 664 sys sys 1192646200 873537
 386/9pccpu - 775 sys sys 1191889923 1749481
@@ -11,7 +11,7 @@
 386/9pcdisk.gz - 664 sys sys 1192741561 973813
 386/9pcf - 775 sys sys 1191889940 2874011
 386/9pcf.gz - 664 sys sys 1191889940 1230163
-386/9pxeload - 775 sys sys 1193687689 337136
+386/9pxeload - 775 sys sys 1193957758 337052
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1168402260 116604
 386/bin/8c - 775 sys sys 1190520740 367214
@@ -7559,7 +7559,7 @@ sys/man/2/fd2path - 664 sys sys 957920009 1280
 sys/man/2/fgetc - 664 sys sys 1048637163 3983
 sys/man/2/flate - 664 sys sys 1018386775 4147
 sys/man/2/floor - 664 sys sys 944959697 737
-sys/man/2/fmtinstall - 664 sys sys 1034952837 7862
+sys/man/2/fmtinstall - 664 sys sys 1193939299 7941
 sys/man/2/fopen - 664 sys sys 1048637159 7770
 sys/man/2/fork - 664 sys sys 1018386775 3764
 sys/man/2/fprintf - 664 sys sys 1048637160 9726
@@ -9149,7 +9149,7 @@ sys/src/boot/pc/clock.c - 664 sys sys 1103641772 6425
 sys/src/boot/pc/conf.c - 664 sys sys 1094674484 10217
 sys/src/boot/pc/console.c - 664 sys sys 1094674483 3388
 sys/src/boot/pc/dat.h - 664 sys sys 1190921443 3637
-sys/src/boot/pc/devbios.c - 664 sys sys 1193607862 9299
+sys/src/boot/pc/devbios.c - 664 sys sys 1193956078 9172
 sys/src/boot/pc/devbios.h - 664 sys sys 1193167027 493
 sys/src/boot/pc/devfloppy.c - 664 sys sys 1032215913 15505
 sys/src/boot/pc/devfloppy.h - 664 sys sys 1032409559 4081
@@ -10087,7 +10087,7 @@ sys/src/cmd/cwfs/choline/mkfile - 664 sys sys 1171519759 26
 sys/src/cmd/cwfs/con.c - 664 sys sys 1174717615 15713
 sys/src/cmd/cwfs/config.c - 664 sys sys 1174717895 20243
 sys/src/cmd/cwfs/console.c - 664 sys sys 1174716894 4671
-sys/src/cmd/cwfs/cw.c - 664 sys sys 1190350112 42914
+sys/src/cmd/cwfs/cw.c - 664 sys sys 1193962091 42974
 sys/src/cmd/cwfs/cwfs - 20000000775 sys sys 1174799195 0
 sys/src/cmd/cwfs/cwfs/conf.c - 664 sys sys 1171485877 452
 sys/src/cmd/cwfs/cwfs/dat.h - 664 sys sys 1171485890 796
@@ -12606,7 +12606,7 @@ sys/src/cmd/jpg/bmp.c - 664 sys sys 1108852826 4222
 sys/src/cmd/jpg/bmp.h - 664 sys sys 1105455271 1034
 sys/src/cmd/jpg/close.c - 664 sys sys 944961292 1930
 sys/src/cmd/jpg/gif.c - 664 sys sys 1045505400 8844
-sys/src/cmd/jpg/ico.c - 664 sys sys 1143759343 8806
+sys/src/cmd/jpg/ico.c - 664 sys sys 1193938850 8874
 sys/src/cmd/jpg/imagefile.h - 664 sys sys 988225303 2246
 sys/src/cmd/jpg/jpegdump.c - 664 sys sys 1018802871 7161
 sys/src/cmd/jpg/jpg.c - 664 sys sys 1108938203 7411
