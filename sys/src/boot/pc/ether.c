@@ -53,6 +53,7 @@ struct {
 	{ "RTL8169", rtl8169pnp, 0, },
 	{ "83815", ether83815reset, 0, },
 	{ "rhine", rhinepnp, 0, },
+	{ "vt6102", rhinepnp, 0, },
 	{ "GA620", ga620pnp, 0, },
 	{ "83820",   dp83820pnp, 0, },
 	{ "dp83820", dp83820pnp, 0, },

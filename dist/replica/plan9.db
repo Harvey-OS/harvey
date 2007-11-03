@@ -1,8 +1,8 @@
 386 - 20000000775 sys sys 1010957353 0
-386/9load - 775 sys sys 1193957727 337044
-386/9loaddebug - 775 sys sys 1193957738 450621
-386/9loadlite - 775 sys sys 1193957743 160348
-386/9loadlitedebug - 775 sys sys 1193957750 236164
+386/9load - 775 sys sys 1194033350 337348
+386/9loaddebug - 775 sys sys 1194033361 451023
+386/9loadlite - 775 sys sys 1194033365 160632
+386/9loadlitedebug - 775 sys sys 1194033370 236546
 386/9pc - 775 sys sys 1192646200 2054406
 386/9pc.gz - 664 sys sys 1192646200 873537
 386/9pccpu - 775 sys sys 1191889923 1749481
@@ -11,7 +11,7 @@
 386/9pcdisk.gz - 664 sys sys 1192741561 973813
 386/9pcf - 775 sys sys 1191889940 2874011
 386/9pcf.gz - 664 sys sys 1191889940 1230163
-386/9pxeload - 775 sys sys 1193957758 337052
+386/9pxeload - 775 sys sys 1194033375 337356
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1168402260 116604
 386/bin/8c - 775 sys sys 1190520740 367214
@@ -5836,7 +5836,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1193852802 267533
+sys/games/lib/fortunes - 664 sys sys 1194013944 267571
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -6277,9 +6277,9 @@ sys/lib/dist/pc/inst/watchfd - 775 sys sys 1127670125 362
 sys/lib/dist/pc/inst/xxx - 775 sys sys 1018469719 160
 sys/lib/dist/pc/mkfile - 664 sys sys 1168307754 2210
 sys/lib/dist/pc/multi - 20000000775 sys sys 1147022870 0
-sys/lib/dist/pc/plan9.ini - 664 sys sys 1193864577 250
+sys/lib/dist/pc/plan9.ini - 664 sys sys 1194032589 585
 sys/lib/dist/pc/plan9.ini.blank - 664 sys sys 1018469720 512
-sys/lib/dist/pc/plan9.ini.cd - 664 sys sys 1193864518 383
+sys/lib/dist/pc/plan9.ini.cd - 664 sys sys 1194032364 562
 sys/lib/dist/pc/plan9.ini.vmware - 664 sys sys 1045500078 168
 sys/lib/dist/pc/proto - 664 sys sys 1169484200 5564
 sys/lib/dist/pc/sub - 20000000775 sys sys 1063856127 0
@@ -9161,7 +9161,7 @@ sys/src/boot/pc/dosboot.c - 664 sys sys 1097716791 11240
 sys/src/boot/pc/dosfs.h - 664 sys sys 1032215924 1467
 sys/src/boot/pc/eoffs - 664 sys sys 1015007950 0
 sys/src/boot/pc/error.h - 664 sys sys 1015007950 3081
-sys/src/boot/pc/ether.c - 664 sys sys 1191446356 5411
+sys/src/boot/pc/ether.c - 664 sys sys 1194025450 5440
 sys/src/boot/pc/ether2000.c - 664 sys sys 1015007950 2609
 sys/src/boot/pc/ether2114x.c - 664 sys sys 1144977462 38028
 sys/src/boot/pc/ether589.c - 664 sys sys 1144961189 4624
@@ -9197,7 +9197,7 @@ sys/src/boot/pc/kfs.h - 664 sys sys 1032215924 861
 sys/src/boot/pc/kfsboot.c - 664 sys sys 1032215914 4788
 sys/src/boot/pc/l.s - 664 sys sys 1193167045 18213
 sys/src/boot/pc/lib.h - 664 sys sys 1190921452 2847
-sys/src/boot/pc/load.c - 664 sys sys 1193687652 9808
+sys/src/boot/pc/load.c - 664 sys sys 1194033271 10278
 sys/src/boot/pc/mbr.s - 664 sys sys 1015007953 6234
 sys/src/boot/pc/mem.h - 664 sys sys 1190921475 3437
 sys/src/boot/pc/memory.c - 664 sys sys 1019533021 10272
