@@ -81,6 +81,23 @@ Type types[] = {
 	},
 };
 
+static char *typenm[] = {
+	[Tnil]		"nil",
+	[Tfloppy]	"floppy",
+	[Tsd]		"sd",
+	[Tether]	"ether",
+	[Tcd]		"cd",
+	[Tbios]		"bios",
+};
+
+static char *
+typename(int type)
+{
+	if (type < 0 || type >= nelem(typenm) || typenm[type] == nil)
+		return "**gok**";
+	return typenm[type];
+}
+
 extern SDifc sdataifc;
 extern SDifc sdiahciifc;
 extern SDifc sdaoeifc;
@@ -163,6 +180,8 @@ int scsi0port;
 char *defaultpartition;
 int iniread;
 
+static int debugload;
+
 static Medium*
 parse(char *line, char **file)
 {
@@ -243,7 +262,8 @@ probe(int type, int flag, int dev)
 					return mp;
 			}
 		}
-
+		if (debugload)
+			print("probing %s...", typename(tp->type));
 		if((tp->flag & Fprobe) == 0){
 			tp->flag |= Fprobe;
 			tp->mask = (*tp->init)();
@@ -288,15 +308,6 @@ probe(int type, int flag, int dev)
 	return 0;
 }
 
-static char *typenm[] = {
-	[Tnil]		"nil",
-	[Tfloppy]	"Tfloppy",
-	[Tsd]		"Tsd",
-	[Tether]	"Tether",
-	[Tcd]		"Tcd",
-	[Tbios]		"Tbios",
-};
-
 void
 main(void)
 {
@@ -318,6 +329,7 @@ main(void)
 		panic("i'm too big\n");
 
 	readlsconf();
+	/* find and read plan9.ini, setting configuration variables */
 	for(tp = types; tp->type != Tnil; tp++){
 		if(!pxe && tp->type == Tether)
 			continue;
@@ -329,8 +341,10 @@ main(void)
 	}
 	apminit();
 
+	debugload = getconf("*debugload") != nil;
 	if((p = getconf("console")) != nil)
 		consinit(p, getconf("baud"));
+
 	devpccardlink();
 	devi82365link();
 
@@ -340,6 +354,8 @@ main(void)
 	 * have boot devices for parse.
 	 */
 	probe(Tany, Fnone, Dany);
+	if (debugload)
+		print("end disk probe\n");
 	tried = 0;
 	mode = Mauto;
 
@@ -366,10 +382,14 @@ done:
 			flag &= ~Fbootp;
 		if((mp = probe(Tany, flag, Dany)) && mp->type->type != Tfloppy)
 			boot(mp, "");
+		if (debugload)
+			print("end auto probe\n");
 	}
 
 	def[0] = 0;
 	probe(Tany, Fnone, Dany);
+	if (debugload)
+		print("end final probe\n");
 	if(p = getconf("bootdef"))
 		strcpy(def, p);
 
