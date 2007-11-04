@@ -86,6 +86,9 @@ typedef struct Edrvparam {
 
 void	realmode(int intr, Ureg *ureg);		/* from trap.c */
 
+int onlybios0;
+int biosinited;
+
 static Biosdev bdev[Maxdevs];
 static Biosdrive bdrive;
 static Ureg regs;
@@ -124,11 +127,14 @@ biosinit(void)
 	Devbytes size;
 	char type;
 	Biosdev *bdp;
+	static int beenhere;
 
 	mask = lastbit = 0;
-
+	if (beenhere)
+		return mask;
+	beenhere = 1;
 	/* 9pxeload can't use bios int 13 calls; they wedge the machine */
-	if (pxe || getconf("*nobiosload") != nil)
+	if (pxe || getconf("*nobiosload") != nil || onlybios0 || !biosinited)
 		return mask;
 	for (devid = 0; devid < (1 << 8) && bdrive.ndevs < Maxdevs; devid++) {
 		lba = islba(devid);
@@ -159,9 +165,12 @@ biosinit(void)
 	 * the last drive number yields a hung machine or a two-minute pause.
 	 */
 	if (bdrive.ndevs > 0) {
-		if (bdrive.ndevs == 1)
+		if (bdrive.ndevs == 1) {
 			print("biosinit: sorry, only one bios drive; "
 				"can't read last one\n");
+			onlybios0 = 1;
+		} else
+			biosinited = 1;
 		bdrive.ndevs--;	/* omit last drive number; it can't be read */
 		mask &= ~lastbit;
 	}

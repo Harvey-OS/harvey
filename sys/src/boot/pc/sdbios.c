@@ -18,17 +18,20 @@ long	biosread(Fs *, void *, long);
 vlong	biosseek(Fs *fs, vlong off);
 
 extern SDifc sdbiosifc;
+extern int onlybios0, biosinited;
 
 int
 biosverify(SDunit* )
 {
+	if (onlybios0 || !biosinited)
+		return 0;
 	return 1;
 }
 
 int
 biosonline(SDunit* unit)
 {
-	if (!unit)
+	if (onlybios0 || !biosinited || !unit)
 		return 0;
 	unit->sectors = 1UL << 30;	/* a bunch */
 	unit->secsize = 512;		/* conventional */
@@ -44,6 +47,8 @@ biosrio(SDreq* r)
 	uchar *p;
 	Fs fs;			/* just for fs->dev, which is zero */
 
+	if (onlybios0 || !biosinited)
+		return SDeio;
 	/*
 	 * Most SCSI commands can be passed unchanged except for
 	 * the padding on the end. The few which require munging
@@ -131,7 +136,7 @@ biospnp(void)
 	SDev *sdev;
 
 	/* 9pxeload can't use bios int 13 calls; they wedge the machine */
-	if (pxe || getconf("*nobiosload") != nil)
+	if (pxe || getconf("*nobiosload") != nil || onlybios0 || !biosinited)
 		return nil;
 	if((sdev = malloc(sizeof(SDev))) != nil) {
 		sdev->ifc = &sdbiosifc;
