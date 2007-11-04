@@ -331,7 +331,8 @@ main(void)
 	readlsconf();
 	/* find and read plan9.ini, setting configuration variables */
 	for(tp = types; tp->type != Tnil; tp++){
-		if(!pxe && tp->type == Tether)
+		/* skip bios until we have read plan9.ini */
+		if(!pxe && tp->type == Tether || tp->type == Tbios)
 			continue;
 		if((mp = probe(tp->type, Fini, Dany)) && (mp->flag & Fini)){
 			print("using %s!%s!%s\n", mp->name, mp->part, mp->ini);
