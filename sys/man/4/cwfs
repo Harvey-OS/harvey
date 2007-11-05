@@ -4,7 +4,7 @@ cwfs \- cached-worm file server, dump
 .SH SYNOPSIS
 .B cwfs
 [
-.B -f
+.B -cf
 ] [
 .B -a
 .I announce-string
@@ -57,6 +57,23 @@ announce on
 .I announce-string
 instead of
 .LR tcp!*!9fs .
+.TP
+.B -c
+use a newer, faster, and incompatible cache-device layout.
+To convert an old file system's cache to the new layout,
+dump the file system, note the last superblock number,
+halt
+.IR cwfs ,
+restart
+.I cwfs
+with
+.BR -cf ,
+.I recover
+the file system, and start
+.I cwfs
+with
+.B -c
+thereafter.
 .TP
 .B -f
 enter the file server's configuration mode

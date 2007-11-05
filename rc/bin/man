@@ -68,13 +68,13 @@ while(~ $d 0) {
 	}
 	if not
 		switch($1) {
-		case -t ; cmd=t ; shift
-		case -n ; cmd=n ; shift
-		case -p ; cmd=p ; shift
-		case -P ; cmd=P ; shift
-		case -w ; cmd=w ; shift
 		case -b ; cmd=b ; shift
+		case -n ; cmd=n ; shift
+		case -P ; cmd=P ; shift
+		case -p ; cmd=p ; shift
 		case -S ; search=no ; shift
+		case -t ; cmd=t ; shift
+		case -w ; cmd=w ; shift
 		case * ; d=1
 		}
 }

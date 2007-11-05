@@ -13,6 +13,7 @@ vtStrDup(char *s)
 	n = strlen(s) + 1;
 	ss = vtMemAlloc(n);
 	memmove(ss, s, n);
+	setmalloctag(ss, getcallerpc(&s));
 	return ss;
 }
 

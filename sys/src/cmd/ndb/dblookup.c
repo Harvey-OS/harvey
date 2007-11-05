@@ -505,11 +505,11 @@ srvrr(Ndbtuple *entry, Ndbtuple *pair)
 	RR *rp;
 
 	rp = rralloc(Tsrv);
-	rp->srv->target = dnlookup(pair->val, Cin, 1);
-	rp->srv->pri    = intval(entry, pair, "pri", 0);
+	rp->host = dnlookup(pair->val, Cin, 1);
+	rp->srv->pri = intval(entry, pair, "pri", 0);
 	rp->srv->weight = intval(entry, pair, "weight", 0);
 	/* TODO: translate service name to port # */
-	rp->srv->port   = intval(entry, pair, "port", 0);
+	rp->port = intval(entry, pair, "port", 0);
 	return rp;
 }
 
@@ -819,7 +819,6 @@ baddelegation(RR *rp, RR *nsrp, uchar *addr)
 			if(rp->host && cistrcmp(rp->host->name, nt->val) == 0)
 				break;
 		if(nt != nil && !inmyarea(rp->owner->name)){
-			dnslog("bad delegation %R from %I", rp, addr);
 			return 1;
 		}
 	}
@@ -960,7 +959,7 @@ addlocaldnsdomain(DN *dp, int class, char *domain)
 {
 	RR *rp;
 
-	/* A record */
+	/* ptr record */
 	rp = rralloc(Tptr);
 	rp->ptr = dnlookup(domain, class, 1);
 	rp->owner = dp;
@@ -1050,7 +1049,7 @@ createv4ptrs(void)
 			net[IPv4off+2] = atoi(f[0]);
 			mask[IPv4off+3] = 0;
 			break;
-		case 6:			/* rfc2317 */
+		case 6:		/* rfc2317: classless in-addr.arpa delegation */
 			net[IPv4off] = atoi(f[3]);
 			net[IPv4off+1] = atoi(f[2]);
 			net[IPv4off+2] = atoi(f[1]);

@@ -79,7 +79,7 @@ static void
 usage(void)
 {
 	fprint(2, "Usage: %s [-c] [-d] [-m maxto] dialstring|handle\n", progname);
-	exits(nil);
+	exits("usage");
 }
 
 static int

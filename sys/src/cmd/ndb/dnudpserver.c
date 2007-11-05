@@ -72,14 +72,14 @@ clientrxmit(DNSmsg *req, uchar *buf)
 void
 dnudpserver(char *mntpt)
 {
-	int fd, len, op, rcode;
-	uchar buf[Udphdrsize + Maxudp + 1024];
-	char *err;
-	char tname[32];
-	Request req;
-	DNSmsg reqmsg, repmsg;
-	Inprogress *p;
-	Udphdr *uh;
+	volatile int fd, len, op, rcode;
+	char *volatile err;
+	volatile char tname[32];
+	volatile uchar buf[Udphdrsize + Maxudp + 1024];
+	volatile DNSmsg reqmsg, repmsg;
+	Inprogress *volatile p;
+	volatile Request req;
+	Udphdr *volatile uh;
 
 	/* fork sharing text, data, and bss with parent */
 	switch(rfork(RFPROC|RFNOTEG|RFMEM|RFNOWAIT)){

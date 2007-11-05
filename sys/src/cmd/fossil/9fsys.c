@@ -1383,7 +1383,8 @@ fsysCheck(Fsys *fsys, int argc, char *argv[])
 		}
 		blockPut(b);
 		if(super.current != NilBlock){
-			consPrint("cannot check fs while archiver is running; wait for it to finish\n");
+			consPrint("cannot check fs while archiver is running; "
+				"wait for it to finish\n");
 			goto Out;
 		}
 	}

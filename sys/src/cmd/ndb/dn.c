@@ -140,6 +140,7 @@ Lock	dnlock;
 
 static ulong agefreq = Defagefreq;
 
+static int rrequiv(RR *r1, RR *r2);
 static int sencodefmt(Fmt*);
 
 void
@@ -212,6 +213,33 @@ dnlookup(char *name, int class, int enter)
 	return dp;
 }
 
+static int
+rrsame(RR *rr1, RR *rr2)
+{
+	return rr1 == rr2 || rr2 && rrequiv(rr1, rr2) &&
+		rr1->db == rr2->db && rr1->auth == rr2->auth;
+}
+
+static int
+rronlist(RR *rp, RR *lp)
+{
+	for(; lp; lp = lp->next)
+		if (rrsame(lp, rp)) {
+			dnslog("adding duplicate %R to list of %R", rp, lp);
+			return 1;
+		}
+	return 0;
+}
+
+static void
+ckrronlist(RR *rp, RR *lp)
+{
+	if (rronlist(rp, lp)) {
+		dnslog("adding duplicate %R to list of %R", rp, lp);
+		abort();
+	}
+}
+
 /*
  *  dump the cache
  */
@@ -254,10 +282,13 @@ dndump(char *file)
 	for(i = 0; i < HTLEN; i++)
 		for(dp = ht[i]; dp; dp = dp->next){
 			fprint(fd, "%s\n", dp->name);
-			for(rp = dp->rr; rp; rp = rp->next)
+			for(rp = dp->rr; rp; rp = rp->next) {
 				fprint(fd, "\t%R %c%c %lud/%lud\n",
 					rp, rp->auth? 'A': 'U',
 					rp->db? 'D': 'N', rp->expire, rp->ttl);
+				if (rronlist(rp, rp->next))
+					fprint(fd, "*** duplicate:\n");
+			}
 		}
 	unlock(&dnlock);
 	close(fd);
@@ -287,6 +318,15 @@ dnpurge(void)
 	unlock(&dnlock);
 }
 
+/* delete rp from *l, free rp */
+static void
+rrdelete(RR **l, RR *rp)
+{
+	*l = rp->next;
+	rp->cached = 0;		/* avoid blowing an assertion in rrfree */
+	rrfree(rp);
+}
+
 /*
  *  check the age of resource records, free any that have timed out
  */
@@ -305,14 +345,10 @@ dnage(DN *dp)
 	for(rp = dp->rr; rp; rp = next){
 		assert(rp->magic == RRmagic && rp->cached);
 		next = rp->next;
-		if(!rp->db)
-		if(rp->expire < now || diff > dnvars.oldest){
-			*l = next;
-			rp->cached = 0;
-			rrfree(rp);
-			continue;
-		}
-		l = &rp->next;
+		if(!rp->db && (rp->expire < now || diff > dnvars.oldest))
+			rrdelete(l, rp);
+		else
+			l = &rp->next;
 	}
 }
 
@@ -351,6 +387,7 @@ dnagenever(void)
 				case Tmf:
 				case Tns:
 				case Tmx:
+				case Tsrv:
 					MARK(rp->host);
 					break;
 				case Tmg:
@@ -376,9 +413,6 @@ dnagenever(void)
 					MARK(rp->host);
 					MARK(rp->rmb);
 					break;
-				case Tsrv:
-					MARK(rp->srv->target);
-					break;
 				}
 			}
 		}
@@ -402,7 +436,7 @@ void
 dnageall(int doit)
 {
 	DN *dp, **l;
-	int i, n;
+	int i;
 	RR *rp;
 	static ulong nextage;
 
@@ -454,6 +488,7 @@ dnageall(int doit)
 				case Tmf:
 				case Tns:
 				case Tmx:
+				case Tsrv:
 					REF(rp->host);
 					break;
 				case Tmg:
@@ -479,9 +514,6 @@ dnageall(int doit)
 					REF(rp->host);
 					REF(rp->rmb);
 					break;
-				case Tsrv:
-					REF(rp->srv->target);
-					break;
 				}
 			}
 
@@ -493,12 +525,6 @@ dnageall(int doit)
 				assert(dp->magic == DNmagic);
 				*l = dp->next;
 
-				for (n = 0; n < Maxlcks; n++)
-					if (canqlock(&dp->querylck[n]))
-						qunlock(&dp->querylck[n]);
-					else
-						dnslog("dnageall: %s querylck[%d] held when freeing",
-							dp->name, n);
 				if(dp->name)
 					free(dp->name);
 				dp->magic = ~dp->magic;
@@ -653,6 +679,7 @@ putactivity(int recursive)
  *	- Chain all RR's of the same type adjacent to one another
  *	- chain authoritative RR's ahead of non-authoritative ones
  *	- remove any expired RR's
+ *  If new is a stale duplicate, rrfree it.
  *  Must be called with dnlock held.
  */
 static void
@@ -689,49 +716,47 @@ rrattach1(RR *new, int auth)
 	 *  negative entries replace positive entries
 	 *  positive entries replace negative entries
 	 *  newer entries replace older entries with the same fields
+	 *
+	 *  look farther ahead than just the next entry when looking
+	 *  for duplicates; RRs of a given type can have different rdata
+	 *  fields (e.g. multiple NS servers).
 	 */
-	for(rp = *l; rp; rp = *l){
+	while ((rp = *l) != nil){
 		assert(rp->magic == RRmagic && rp->cached);
 		if(rp->type != new->type)
 			break;
 
 		if(rp->db == new->db && rp->auth == new->auth){
 			/* negative drives out positive and vice versa */
-			if(rp->negative != new->negative){
-				*l = rp->next;
-				rp->cached = 0;
-				rrfree(rp);
-				continue;
+			if(rp->negative != new->negative) {
+				rrdelete(l, rp);
+				continue;		/* *l == rp->next */
 			}
-
 			/* all things equal, pick the newer one */
-			if(rp->arg0 == new->arg0 && rp->arg1 == new->arg1 &&
-			    (rp->type != Tsrv || rp->srv == new->srv)){
+			else if(rp->arg0 == new->arg0 && rp->arg1 == new->arg1){
 				/* new drives out old */
-				if (new->ttl > rp->ttl ||
-				    new->expire > rp->expire){
-					*l = rp->next;
-					rp->cached = 0;
-					rrfree(rp);
-					continue;
-				} else {
+				if (new->ttl <= rp->ttl &&
+				    new->expire <= rp->expire) {
 					rrfree(new);
 					return;
 				}
+				rrdelete(l, rp);
+				continue;		/* *l == rp->next */
 			}
-
-			/*  Hack for pointer records.  This makes sure
+			/*
+			 *  Hack for pointer records.  This makes sure
 			 *  the ordering in the list reflects the ordering
 			 *  received or read from the database
 			 */
-			if(rp->type == Tptr)
-				if(!rp->negative && !new->negative
-				&& rp->ptr->ordinal > new->ptr->ordinal)
-					break;
+			else if(rp->type == Tptr &&
+			    !rp->negative && !new->negative &&
+			    rp->ptr->ordinal > new->ptr->ordinal)
+				break;
 		}
 		l = &rp->next;
 	}
 
+	ckrronlist(new, *l);
 	/*
 	 *  add to chain
 	 */
@@ -742,6 +767,9 @@ rrattach1(RR *new, int auth)
 
 /*
  *  Attach a list of resource records to a domain name.
+ *  May rrfree any stale duplicate RRs; dismembers the list.
+ *  Upon return, every RR in the list will have been rrfree-d
+ *  or attached to its domain name.
  *  See rrattach1 for properties preserved.
  */
 void
@@ -981,7 +1009,15 @@ tsame(int t1, int t2)
 RR*
 rrcat(RR **start, RR *rp)
 {
+	RR *olp, *nlp;
 	RR **last;
+
+	/* check for duplicates */
+	for (olp = *start; 0 && olp; olp = olp->next)
+		for (nlp = rp; nlp; nlp = nlp->next)
+			if (rrsame(nlp, olp))
+				dnslog("rrcat: duplicate RR: %R", nlp);
+	USED(olp);
 
 	last = start;
 	while(*last != nil)
@@ -1124,7 +1160,7 @@ rrfmt(Fmt *f)
 		srv = rp->srv;
 		fmtprint(&fstr, "\t%ud %ud %ud %s",
 			(srv? srv->pri: 0), (srv? srv->weight: 0),
-			(srv? srv->port: 0), (srv? dnname(srv->target): ""));
+			rp->port, dnname(rp->host));
 		break;
 	case Tnull:
 		if (rp->null == nil)
@@ -1250,7 +1286,7 @@ rravfmt(Fmt *f)
 		srv = rp->srv;
 		fmtprint(&fstr, " pri=%ud weight=%ud port=%ud target=%s",
 			(srv? srv->pri: 0), (srv? srv->weight: 0),
-			(srv? srv->port: 0), (srv? dnname(srv->target): ""));
+			rp->port, dnname(rp->host));
 		break;
 	case Tnull:
 		if (rp->null == nil)
@@ -1440,6 +1476,8 @@ dncheck(void *p, int dolock)
 				assert(rp->magic == RRmagic);
 				assert(rp->cached);
 				assert(rp->owner == dp);
+				/* also check for duplicate rrs */
+				ckrronlist(rp, rp->next);
 			}
 		}
 	if(dolock)
@@ -1452,8 +1490,7 @@ rrequiv(RR *r1, RR *r2)
 	return r1->owner == r2->owner
 		&& r1->type == r2->type
 		&& r1->arg0 == r2->arg0
-		&& r1->arg1 == r2->arg1
-		&& (r1->type != Tsrv || r1->srv == r2->srv);
+		&& r1->arg1 == r2->arg1;
 }
 
 void
@@ -1524,7 +1561,7 @@ randomize(RR *rp)
 		rp = x->next;
 		x->next = nil;
 
-		if(n&1 && x->type == Tns /* && rrisslug(x) */ ){
+		if(n&1){
 			/* add to tail */
 			if(last == nil)
 				first = x;

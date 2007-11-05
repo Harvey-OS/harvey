@@ -155,39 +155,39 @@ dnresolve(char *name, int class, int type, Request *req, RR **cn, int depth,
 	 *  try the name directly
 	 */
 	rp = dnresolve1(name, class, type, req, depth, recurse);
-	if(rp) {
-		procsetname(procname);
-		free(procname);
-		return randomize(rp);
-	}
+	if(rp == nil) {
+		/*
+		 * try it as a canonical name if we weren't told
+		 * that the name didn't exist
+		 */
+		dp = dnlookup(name, class, 0);
+		if(type != Tptr && dp->respcode != Rname)
+			for(loops = 0; rp == nil && loops < 32; loops++){
+				rp = dnresolve1(name, class, Tcname, req,
+					depth, recurse);
+				if(rp == nil)
+					break;
 
-	/* try it as a canonical name if we weren't told the name didn't exist */
-	dp = dnlookup(name, class, 0);
-	if(type != Tptr && dp->respcode != Rname)
-		for(loops = 0; rp == nil && loops < 32; loops++){
-			rp = dnresolve1(name, class, Tcname, req, depth, recurse);
-			if(rp == nil)
-				break;
+				if(rp->negative){
+					rrfreelist(rp);
+					rp = nil;
+					break;
+				}
 
-			if(rp->negative){
-				rrfreelist(rp);
-				rp = nil;
-				break;
+				name = rp->host->name;
+				if(cn)
+					rrcat(cn, rp);
+				else
+					rrfreelist(rp);
+
+				rp = dnresolve1(name, class, type, req,
+					depth, recurse);
 			}
 
-			name = rp->host->name;
-			if(cn)
-				rrcat(cn, rp);
-			else
-				rrfreelist(rp);
-
-			rp = dnresolve1(name, class, type, req, depth, recurse);
-		}
-
-	/* distinction between not found and not good */
-	if(rp == nil && status != nil && dp->respcode != 0)
-		*status = dp->respcode;
-
+		/* distinction between not found and not good */
+		if(rp == nil && status != nil && dp->respcode != 0)
+			*status = dp->respcode;
+	}
 	procsetname(procname);
 	free(procname);
 	return randomize(rp);
@@ -1443,11 +1443,14 @@ udpquery(Query *qp, char *mntpt, int depth, int patient, int inns)
 static int
 netquery(Query *qp, int depth)
 {
-	int lock, rv, triedin, inname, lcktype;
-	char buf[32];
+	int lock, rv, triedin, inname, cnt;
+//	char buf[32];
 	RR *rp;
 	DN *dp;
+	Querylck *qlp;
+	static int whined;
 
+	rv = 0;				/* pessimism */
 	if(depth > 12)			/* in a recursive loop? */
 		return 0;
 
@@ -1462,11 +1465,12 @@ netquery(Query *qp, int depth)
 	 * don't lock before call to slave so only children can block.
 	 * just lock at top-level invocation.
 	 */
-	lock = depth <= 1 && qp->req->isslave != 0;
+	lock = depth <= 1 && qp->req->isslave;
 	dp = qp->dp;		/* ensure that it doesn't change underfoot */
+	qlp = nil;
 	if(lock) {
-		procsetname("query lock wait: %s %s from %s", dp->name,
-			rrname(qp->type, buf, sizeof buf), qp->req->from);
+//		procsetname("query lock wait: %s %s from %s", dp->name,
+//			rrname(qp->type, buf, sizeof buf), qp->req->from);
 		/*
 		 * don't make concurrent queries for this name.
 		 * dozens of processes blocking here probably indicates
@@ -1474,17 +1478,29 @@ netquery(Query *qp, int depth)
 		 * recognise a zone (area) as one of our own, thus
 		 * causing us to query other nameservers.
 		 */
-		lcktype = qtype2lck(qp->type);
-		qlock(&dp->querylck[lcktype]);
-	} else
-		lcktype = 0;
+		qlp = &dp->querylck[qtype2lck(qp->type)];
+		incref(qlp);
+		qlock(qlp);
+		cnt = qlp->Ref.ref;
+		qunlock(qlp);
+		if (cnt > 10) {
+			decref(qlp);
+			if (!whined) {
+				whined = 1;
+				dnslog("too many outstanding queries for %s; "
+					"dropping this one; "
+					"no further logging of drops",
+					dp->name);
+			}
+			return 0;
+		}
+	}
 	procsetname("netquery: %s", dp->name);
 
 	/* prepare server RR's for incremental lookup */
 	for(rp = qp->nsrp; rp; rp = rp->next)
 		rp->marker = 0;
 
-	rv = 0;				/* pessimism */
 	triedin = 0;
 
 	/*
@@ -1518,8 +1534,8 @@ netquery(Query *qp, int depth)
 //	if (rv == 0)		/* could ask /net.alt/dns directly */
 //		askoutdns(dp, qp->type);
 
-	if(lock)
-		qunlock(&dp->querylck[lcktype]);
+	if(lock && qlp)
+		decref(qlp);
 	return rv;
 }
 

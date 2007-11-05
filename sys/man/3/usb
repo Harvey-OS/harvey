@@ -17,8 +17,9 @@ usb \- USB Host Controller Interface
 \&...
 .fi
 .SH DESCRIPTION
-The Universal Serial Bus is a popular bus for connecting slow and medium speed
-devices, such as mice, keyboards, printers, and scanners to a PC.  It is
+The Universal Serial Bus is a complex yet popular bus
+for connecting devices, such as mice, keyboards, printers, scanners,
+and (eventually with USB 2) disks to a PC.  It is
 a four-wire tree-shaped bus that provides both communication and (limited)
 power to devices.  Branching points in the tree are provided by devices
 called
@@ -34,12 +35,13 @@ Hubs are passive in the sense that they do not poll the devices attached
 to them.  The host polls those devices and the hubs merely route the
 messages.
 .PP
+Devices may be added to or removed from the bus at any time.
 When a device is attached, the host queries it to determine its type
 and its speed.  The querying process is standardized.  The first level
 of querying is the same for all devices, the next is somewhat specialized
 for particular classes of devices (such as mice, keyboards, or audio devices).
 Specialization continues as subclasses and subsubclasses are explored.
-.PP
+.SS Discovery
 For each connected device there is a directory in
 .BI #U/usb n\fR.
 Reading
@@ -63,7 +65,7 @@ proto 2,
 (proto 1 would be the keyboard).
 USB class, subclass and proto codes can be found on
 .BR www.usb.org .
-.PP
+.SS Device Control
 The control interface for each device is
 .I "``endpoint 0''"
 and is named
@@ -154,7 +156,7 @@ If the configuration is successful, a file named
 is created which can be read and/or written depending on
 configuration.  Configuration is not allowed when the data endpoint
 is open.
-.PP
+.SS Isochronous Streams
 Forward
 .I seek
 operations on isochronous endpoints
