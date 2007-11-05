@@ -120,7 +120,10 @@ packet interface to IPv6 network
 .IR bridge (3),
 .I ipmux
 in
-.IR ip (3)
+.IR ip (3),
+.I linklocal
+in
+.IR ipconfig (8)
 .br
 .B /lib/rfc/rfc3056
 .br

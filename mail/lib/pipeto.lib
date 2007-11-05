@@ -120,6 +120,17 @@ fn isvirus {
 		status='not this virus'
 }
 
+fn hasgifattachment {
+	gif=no
+	if(grep -s '\.gif' $D/2/mimeheader >[2]/dev/null){
+		gif=yes
+	}
+	if(~ $gif yes)
+		status=''
+	if not
+		status='not this gif'
+}
+
 # bayesian spam filter.  alternative to token.  see /mail/lib/setup.bayes
 fn isspam {
 	for(i in _prof.mbox _prof.spam _bounced){

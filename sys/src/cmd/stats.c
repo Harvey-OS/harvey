@@ -32,7 +32,7 @@ enum
 	Maxmem,
 	Swap,
 	Maxswap,
-	
+
 	/* /dev/sysstats */
 	Procno	= 0,
 	Context,
@@ -470,7 +470,7 @@ filter(int fd)
 		close(fd);
 		close(p[0]);
 	}
-	return p[1];	
+	return p[1];
 }
 
 /*
@@ -530,14 +530,14 @@ old9p(int fd)
 		close(fd);
 		close(p[0]);
 	}
-	return p[1];	
+	return p[1];
 }
 
 
 /*
  * exportfs
  */
-int 
+int
 connectexportfs(char *addr)
 {
 	char buf[ERRMAX], dir[256], *na;
@@ -1361,6 +1361,8 @@ main(int argc, char *argv[])
 		parity = 1-parity;
 		for(i=0; i<nmach*ngraph; i++){
 			graph[i].newvalue(graph[i].mach, &v, &vmax, 0);
+			if (v > 1000000)
+				v = 1000000;	/* cap absurd values */
 			graph[i].update(&graph[i], v, vmax);
 		}
 		flushimage(display, 1);

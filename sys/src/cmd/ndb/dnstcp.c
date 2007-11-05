@@ -38,12 +38,12 @@ usage(void)
 void
 main(int argc, char *argv[])
 {
-	int len, rcode;
-	char tname[32];
-	char *err, *ext = "";
-	uchar buf[64*1024], callip[IPaddrlen];
-	Request req;
-	DNSmsg reqmsg, repmsg;
+	volatile int len, rcode;
+	volatile char tname[32];
+	char *volatile err, *volatile ext = "";
+	volatile uchar buf[64*1024], callip[IPaddrlen];
+	volatile DNSmsg reqmsg, repmsg;
+	volatile Request req;
 
 	alarm(2*60*1000);
 	cfg.cachedb = 1;

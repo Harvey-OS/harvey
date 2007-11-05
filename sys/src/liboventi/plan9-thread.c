@@ -202,6 +202,7 @@ vtRendezAlloc(VtLock *p)
 
 	q = vtMemAllocZ(sizeof(VtRendez));
 	q->lk = p;
+	setmalloctag(q, getcallerpc(&p));
 	return q;
 }
 

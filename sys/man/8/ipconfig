@@ -45,6 +45,10 @@ ipconfig, rip, linklocal, ipv6on \- Internet configuration and routing
 .IR netmtpt ]
 .PP
 .B ip/linklocal
+[
+.B -t
+.I ipv4
+]
 .I mac
 \&...
 .PP
@@ -297,6 +301,15 @@ turn on (voluminous) debugging.
 prints the IPv6 link-local address corresponding to the given
 .I mac
 address.
+Given
+.BR -t ,
+.I linklocal
+instead prints the
+.I 6to4
+EUI-64-based IPv6 address corresponding to
+.I ipv4
+and
+.IR mac .
 .PP
 .I Ipv6on
 uses the network database at
@@ -369,5 +382,9 @@ ip/ipconfig ra6 recvra 1
 .IR ip (3),
 .IR loopback (3),
 .IR ndb (6),
+.IR 6in4 (8),
 .IR dhcpd (8),
 .IR ppp (8)
+.br
+.B /lib/rfc/rfc2373
+for IPv6's modified EUI-64

@@ -282,38 +282,38 @@ enum
 
 struct Fsck
 {
-/* filled in by caller */
-	int printblocks;
-	int useventi;
-	int flags;
-	int printdirs;
-	int printfiles;
-	int walksnapshots;
-	int walkfs;
-	Fs *fs;
-	int (*print)(char*, ...);
-	void (*clre)(Fsck*, Block*, int);
-	void (*clrp)(Fsck*, Block*, int);
-	void (*close)(Fsck*, Block*, u32int);
-	void (*clri)(Fsck*, char*, MetaBlock*, int, Block*);
+	/* filled in by caller */
+	int	printblocks;
+	int	useventi;
+	int	flags;
+	int	printdirs;
+	int	printfiles;
+	int	walksnapshots;
+	int	walkfs;
+	Fs	*fs;
+	int	(*print)(char*, ...);
+	void	(*clre)(Fsck*, Block*, int);
+	void	(*clrp)(Fsck*, Block*, int);
+	void	(*close)(Fsck*, Block*, u32int);
+	void	(*clri)(Fsck*, char*, MetaBlock*, int, Block*);
 
-/* used internally */
-	Cache *cache;
-	uchar *amap;	/* all blocks seen so far */
-	uchar *emap;	/* all blocks seen in this epoch */
-	uchar *xmap;	/* all blocks in this epoch with parents in this epoch */
-	uchar *errmap;	/* blocks with errors */
-	uchar *smap;	/* walked sources */
-	int nblocks;
-	int bsize;
-	int walkdepth;
-	u32int hint;	/* where the next root probably is */
-	int nseen;
-	int quantum;
-	int nclre;
-	int nclrp;
-	int nclose;
-	int nclri;
+	/* used internally */
+	Cache	*cache;
+	uchar	*amap;	/* all blocks seen so far */
+	uchar	*emap;	/* all blocks seen in this epoch */
+	uchar	*xmap;	/* all blocks in this epoch with parents in this epoch */
+	uchar	*errmap;	/* blocks with errors */
+	uchar	*smap;		/* walked sources */
+	int	nblocks;
+	int	bsize;
+	int	walkdepth;
+	u32int	hint;		/* where the next root probably is */
+	int	nseen;
+	int	quantum;
+	int	nclre;
+	int	nclrp;
+	int	nclose;
+	int	nclri;
 };
 
 /* disk partitions; keep in sync with partname[] in disk.c */

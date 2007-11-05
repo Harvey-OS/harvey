@@ -1,3 +1,6 @@
+/*
+ * ppp - point-to-point protocol, rfc1331
+ */
 #include <u.h>
 #include <libc.h>
 #include <auth.h>
@@ -1024,24 +1027,24 @@ dropoption(Pstate *p, Lcpopt *o)
 	unsigned n = o->type;
 
 	switch(n){
-		case Oipaddr:
-			break;
-		case Oipdns:
-			p->optmask &= ~Fipdns;
-			break;
-		case Oipwins:
-			p->optmask &= ~Fipwins;
-			break;
-		case Oipdns2:
-			p->optmask &= ~Fipdns2;
-			break;
-		case Oipwins2:
-			p->optmask &= ~Fipwins2;
-			break;
-		default:
-			if(o->type < 8*sizeof(p->optmask))
-				p->optmask &= ~(1<<o->type);
-			break;
+	case Oipaddr:
+		break;
+	case Oipdns:
+		p->optmask &= ~Fipdns;
+		break;
+	case Oipwins:
+		p->optmask &= ~Fipwins;
+		break;
+	case Oipdns2:
+		p->optmask &= ~Fipdns2;
+		break;
+	case Oipwins2:
+		p->optmask &= ~Fipwins2;
+		break;
+	default:
+		if(o->type < 8*sizeof(p->optmask))
+			p->optmask &= ~(1<<o->type);
+		break;
 	}
 }
 

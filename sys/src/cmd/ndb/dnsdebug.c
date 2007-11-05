@@ -186,8 +186,7 @@ prettyrrfmt(Fmt *f)
 		break;
 	case Tsrv:
 		seprint(p, e, "\t%ud %ud %ud %s",
-			rp->srv->pri, rp->srv->weight, rp->srv->port,
-			rp->srv->target->name);
+			rp->srv->pri, rp->srv->weight, rp->port, rp->host->name);
 		break;
 	case Tnull:
 		seprint(p, e, "\t%.*H", rp->null->dlen, rp->null->data);

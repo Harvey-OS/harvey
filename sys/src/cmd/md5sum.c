@@ -28,6 +28,10 @@ sum(int fd, char *name)
 	s = md5(nil, 0, nil, nil);
 	while((n = read(fd, buf, sizeof buf)) > 0)
 		md5(buf, n, nil, s);
+	if(n < 0){
+		fprint(2, "reading %s: %r\n", name ? name : "stdin");
+		return;
+	}
 	md5(nil, 0, digest, s);
 	if(name == nil)
 		print("%M\n", digest);
