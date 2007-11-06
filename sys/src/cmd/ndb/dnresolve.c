@@ -1248,6 +1248,8 @@ queryns(Query *qp, int depth, uchar *ibuf, uchar *obuf, int waitsecs, int inns)
 	dest = emalloc(Maxdest * sizeof *dest);	/* dest can't be on stack */
 	for (p = dest; p < dest + Maxdest; p++)
 		destinit(p);
+	/* this dest array is local to this call of queryns() */
+	free(qp->dest);
 	qp->curdest = qp->dest = dest;
 
 	/*
@@ -1303,8 +1305,11 @@ queryns(Query *qp, int depth, uchar *ibuf, uchar *obuf, int waitsecs, int inns)
 
 			/* free or incorporate RRs in m */
 			rv = procansw(qp, &m, srcip, depth, p);
-			if (rv > 0)
+			if (rv > 0) {
+				free(qp->dest);
+				qp->dest = qp->curdest = nil; /* prevent accidents */
 				return rv;
+			}
 		}
 	}
 

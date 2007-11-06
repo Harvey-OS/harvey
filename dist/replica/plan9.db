@@ -9197,7 +9197,7 @@ sys/src/boot/pc/kfs.h - 664 sys sys 1032215924 861
 sys/src/boot/pc/kfsboot.c - 664 sys sys 1032215914 4788
 sys/src/boot/pc/l.s - 664 sys sys 1193167045 18213
 sys/src/boot/pc/lib.h - 664 sys sys 1190921452 2847
-sys/src/boot/pc/load.c - 664 sys sys 1194143072 10346
+sys/src/boot/pc/load.c - 664 sys sys 1194295338 10407
 sys/src/boot/pc/mbr.s - 664 sys sys 1015007953 6234
 sys/src/boot/pc/mem.h - 664 sys sys 1190921475 3437
 sys/src/boot/pc/memory.c - 664 sys sys 1019533021 10272
@@ -12810,7 +12810,7 @@ sys/src/cmd/ndb/dblookup.c - 664 sys sys 1194216346 25229
 sys/src/cmd/ndb/dn.c - 664 sys sys 1194216512 37395
 sys/src/cmd/ndb/dnarea.c - 664 sys sys 1175664421 2519
 sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1183866408 3217
-sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1194216513 34801
+sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1194321818 34961
 sys/src/cmd/ndb/dns.c - 664 sys sys 1194216588 16627
 sys/src/cmd/ndb/dns.h - 664 sys sys 1194216527 11889
 sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1194216583 8790
