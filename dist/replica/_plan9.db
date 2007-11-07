@@ -5836,7 +5836,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1194013944 267571
+sys/games/lib/fortunes - 664 sys sys 1194368267 267646
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -9139,7 +9139,7 @@ sys/src/boot/pc/ahci.h - 664 sys sys 1186366104 6318
 sys/src/boot/pc/alarm.c - 664 sys sys 1015007947 1668
 sys/src/boot/pc/aoe.h - 664 sys sys 1193336543 826
 sys/src/boot/pc/apm.c - 664 sys sys 1015007947 289
-sys/src/boot/pc/bcom.c - 664 sys sys 1032215919 6421
+sys/src/boot/pc/bcom.c - 664 sys sys 1194380248 6462
 sys/src/boot/pc/boot.c - 664 sys sys 1130887226 8421
 sys/src/boot/pc/bootld.c - 664 sys sys 1015007948 1801
 sys/src/boot/pc/bootp.c - 664 sys sys 1168307225 12478
