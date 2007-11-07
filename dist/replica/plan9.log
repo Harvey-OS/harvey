@@ -53327,3 +53327,5 @@
 1194219005 4 c 386/9pxeload - 775 sys sys 1194218358 337612
 1194296404 0 c sys/src/boot/pc/load.c - 664 sys sys 1194295338 10407
 1194321605 0 c sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1194321818 34961
+1194368404 0 c sys/games/lib/fortunes - 664 sys sys 1194368267 267646
+1194381004 0 c sys/src/boot/pc/bcom.c - 664 sys sys 1194380248 6462
