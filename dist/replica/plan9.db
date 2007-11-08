@@ -7668,7 +7668,7 @@ sys/man/3/aoe - 664 sys sys 1186713784 6420
 sys/man/3/apm - 664 sys sys 984709634 1625
 sys/man/3/arch - 664 sys sys 958419692 1425
 sys/man/3/audio - 664 sys sys 1133880494 2933
-sys/man/3/bridge - 664 sys sys 1182317237 3151
+sys/man/3/bridge - 664 sys sys 1194478365 3370
 sys/man/3/cap - 664 sys sys 1032632323 2137
 sys/man/3/cons - 664 sys sys 1133880397 8972
 sys/man/3/draw - 664 sys sys 1040457030 13813
@@ -7678,7 +7678,7 @@ sys/man/3/ether - 664 sys sys 1178597986 2890
 sys/man/3/floppy - 664 sys sys 954378905 881
 sys/man/3/fs - 664 sys sys 1186946771 3159
 sys/man/3/i82365 - 664 sys sys 954378906 884
-sys/man/3/ip - 664 sys sys 1193163728 26241
+sys/man/3/ip - 664 sys sys 1194478359 26321
 sys/man/3/kbmap - 664 sys sys 1131110122 1732
 sys/man/3/kprof - 664 sys sys 1018029972 1377
 sys/man/3/loopback - 664 sys sys 964662153 1995

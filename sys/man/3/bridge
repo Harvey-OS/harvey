@@ -92,7 +92,7 @@ or
 .LR tunnel .
 .TP
 .B cacheflush
-Clear the cache of (IP addresses, destination MAC address, port) tuples.
+Clear the cache of (destination MAC address, port) tuples.
 .TP
 .BI "delay " "delay0 delayn"
 Set the
@@ -129,8 +129,19 @@ and will block at end of file awaiting new data.
 .PP
 Reading the
 .B cache
-file prints the cache of (IP addresses, destination MAC address, port) tuples,
+file prints the cache of (destination MAC address, port) tuples,
 one entry per line.
+The format is:
+the destination MAC (e.g., Ethernet) address in hex,
+port number,
+count of packets from this address,
+count of packets to this address,
+expiry time in seconds since the epoch,
+and
+.L e
+for expired entries or
+.L v
+for valid entries.
 .PP
 In a connection subdirectory,
 .B ctl
