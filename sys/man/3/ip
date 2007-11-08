@@ -1,6 +1,6 @@
 .TH IP 3
 .SH NAME
-ip \- network protocols over IP
+ip, esp, gre, icmp, icmpv6, ipmux, rudp, tcp, udp \- network protocols over IP
 .SH SYNOPSIS
 .nf
 .2C
@@ -1175,6 +1175,8 @@ header length errors
 .SH "SEE ALSO"
 .IR dial (2),
 .IR ip (2),
+.IR bridge (3),
+.\" .IR ike (4),
 .IR ndb (6),
 .IR listen (8)
 .br
