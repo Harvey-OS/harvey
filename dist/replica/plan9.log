@@ -53331,3 +53331,8 @@
 1194381004 0 c sys/src/boot/pc/bcom.c - 664 sys sys 1194380248 6462
 1194480004 0 c sys/man/3/bridge - 664 sys sys 1194478365 3370
 1194480004 1 c sys/man/3/ip - 664 sys sys 1194478359 26321
+1194557404 0 c sys/src/9/pc/devarch.c - 664 sys sys 1194556823 19867
+1194557404 1 c sys/src/9/pc/ethervt6102.c - 664 sys sys 1194556833 22388
+1194557404 2 c sys/src/boot/pc/clock.c - 664 sys sys 1194556585 6622
+1194557404 3 c sys/src/boot/pc/etherrhine.c - 664 sys sys 1194556608 12640
+1194557404 4 c sys/src/boot/pc/io.h - 664 sys sys 1194556593 8134

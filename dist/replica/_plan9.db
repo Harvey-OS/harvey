@@ -8067,7 +8067,7 @@ sys/src/9/pc/audio.h - 664 sys sys 1015014513 343
 sys/src/9/pc/bios32.c - 664 sys sys 1173287378 3029
 sys/src/9/pc/cga.c - 664 sys sys 1015014513 1843
 sys/src/9/pc/dat.h - 664 sys sys 1190268296 7549
-sys/src/9/pc/devarch.c - 664 sys sys 1191886206 19667
+sys/src/9/pc/devarch.c - 664 sys sys 1194556823 19867
 sys/src/9/pc/devether.c - 664 sys sys 1178823613 10489
 sys/src/9/pc/devfloppy.c - 664 sys sys 1142958305 20139
 sys/src/9/pc/devi82365.c - 664 sys sys 1146318335 20504
@@ -8110,7 +8110,7 @@ sys/src/9/pc/etherrhine.c - 664 sys sys 1081706478 13799
 sys/src/9/pc/ethersink.c - 664 sys sys 1048644103 1076
 sys/src/9/pc/ethersmc.c - 664 sys sys 1162951986 15116
 sys/src/9/pc/ethervgbe.c - 664 sys sys 1160066496 26838
-sys/src/9/pc/ethervt6102.c - 664 sys sys 1175105554 22333
+sys/src/9/pc/ethervt6102.c - 664 sys sys 1194556833 22388
 sys/src/9/pc/etherwavelan.c - 664 sys sys 1131290380 3747
 sys/src/9/pc/floppy.h - 664 sys sys 1055700609 3835
 sys/src/9/pc/fns.h - 664 sys sys 1190268439 4738
@@ -9145,7 +9145,7 @@ sys/src/boot/pc/bootld.c - 664 sys sys 1015007948 1801
 sys/src/boot/pc/bootp.c - 664 sys sys 1168307225 12478
 sys/src/boot/pc/cga.c - 664 sys sys 1015007948 1362
 sys/src/boot/pc/cis.c - 664 sys sys 1144961189 9232
-sys/src/boot/pc/clock.c - 664 sys sys 1103641772 6425
+sys/src/boot/pc/clock.c - 664 sys sys 1194556585 6622
 sys/src/boot/pc/conf.c - 664 sys sys 1094674484 10217
 sys/src/boot/pc/console.c - 664 sys sys 1094674483 3388
 sys/src/boot/pc/dat.h - 664 sys sys 1190921443 3637
@@ -9184,13 +9184,13 @@ sys/src/boot/pc/etherif.h - 664 sys sys 1174077279 1338
 sys/src/boot/pc/etherigbe.c - 664 sys sys 1191446222 41284
 sys/src/boot/pc/ethermii.c - 664 sys sys 1103641771 4413
 sys/src/boot/pc/ethermii.h - 664 sys sys 1071175087 3259
-sys/src/boot/pc/etherrhine.c - 664 sys sys 1144961190 12383
+sys/src/boot/pc/etherrhine.c - 664 sys sys 1194556608 12640
 sys/src/boot/pc/fns.h - 664 sys sys 1193171343 4880
 sys/src/boot/pc/fs.c - 664 sys sys 1094674483 1509
 sys/src/boot/pc/fs.h - 664 sys sys 1094674488 653
 sys/src/boot/pc/ilock.c - 664 sys sys 1015007952 303
 sys/src/boot/pc/inflate.c - 664 sys sys 1021579984 2802
-sys/src/boot/pc/io.h - 664 sys sys 1144961190 6821
+sys/src/boot/pc/io.h - 664 sys sys 1194556593 8134
 sys/src/boot/pc/ip.h - 664 sys sys 1094674489 2461
 sys/src/boot/pc/kbd.c - 664 sys sys 1015007952 10188
 sys/src/boot/pc/kfs.h - 664 sys sys 1032215924 861
