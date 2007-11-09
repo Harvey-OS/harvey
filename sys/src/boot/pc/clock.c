@@ -115,10 +115,13 @@ static X86type x86amd[] =
 	{ 5,	1,	23,	"AMD-K5", },	/* guesswork */
 	{ 5,	2,	23,	"AMD-K5", },	/* guesswork */
 	{ 5,	3,	23,	"AMD-K5", },	/* guesswork */
+	{ 5,	4,	23,	"AMD Geode GX1", },	/* guesswork */
+	{ 5,	5,	23,	"AMD Geode GX2", },	/* guesswork */
 	{ 5,	6,	11,	"AMD-K6", },	/* trial and error */
 	{ 5,	7,	11,	"AMD-K6", },	/* trial and error */
 	{ 5,	8,	11,	"AMD-K6-2", },	/* trial and error */
 	{ 5,	9,	11,	"AMD-K6-III", },/* trial and error */
+	{ 5,	0xa,	23,	"AMD Geode LX", },	/* guesswork */
 
 	{ 6,	1,	11,	"AMD-Athlon", },/* trial and error */
 	{ 6,	2,	11,	"AMD-Athlon", },/* trial and error */
@@ -164,7 +167,8 @@ cpuidentify(void)
 	int cpuidax, cpuiddx;
 
 	cpuid(cpuidid, &cpuidax, &cpuiddx);
-	if(strncmp(cpuidid, "AuthenticAMD", 12) == 0)
+	if(strncmp(cpuidid, "AuthenticAMD", 12) == 0 ||
+	   strncmp(cpuidid, "Geode by NSC", 12) == 0)
 		t = x86amd;
 	else
 		t = x86intel;
