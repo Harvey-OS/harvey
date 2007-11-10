@@ -1,8 +1,8 @@
 386 - 20000000775 sys sys 1010957353 0
-386/9load - 775 sys sys 1194218336 337604
-386/9loaddebug - 775 sys sys 1194218345 451365
-386/9loadlite - 775 sys sys 1194218348 160884
-386/9loadlitedebug - 775 sys sys 1194218352 236888
+386/9load - 775 sys sys 1194656609 337588
+386/9loaddebug - 775 sys sys 1194656621 451256
+386/9loadlite - 775 sys sys 1194656625 161052
+386/9loadlitedebug - 775 sys sys 1194656629 237051
 386/9pc - 775 sys sys 1192646200 2054406
 386/9pc.gz - 664 sys sys 1192646200 873537
 386/9pccpu - 775 sys sys 1191889923 1749481
@@ -11,7 +11,7 @@
 386/9pcdisk.gz - 664 sys sys 1192741561 973813
 386/9pcf - 775 sys sys 1191889940 2874011
 386/9pcf.gz - 664 sys sys 1191889940 1230163
-386/9pxeload - 775 sys sys 1194218358 337612
+386/9pxeload - 775 sys sys 1194656635 337592
 386/bin - 20000000775 sys sys 1018897690 0
 386/bin/8a - 775 sys sys 1168402260 116604
 386/bin/8c - 775 sys sys 1190520740 367214
@@ -8106,7 +8106,6 @@ sys/src/9/pc/etherm10g2k.i - 664 sys sys 1174590360 957485
 sys/src/9/pc/etherm10g4k.i - 664 sys sys 1174590362 926959
 sys/src/9/pc/ethermii.c - 664 sys sys 1181160689 4668
 sys/src/9/pc/ethermii.h - 664 sys sys 1086873891 3258
-sys/src/9/pc/etherrhine.c - 664 sys sys 1081706478 13799
 sys/src/9/pc/ethersink.c - 664 sys sys 1048644103 1076
 sys/src/9/pc/ethersmc.c - 664 sys sys 1162951986 15116
 sys/src/9/pc/ethervgbe.c - 664 sys sys 1160066496 26838
@@ -9142,7 +9141,7 @@ sys/src/boot/pc/apm.c - 664 sys sys 1015007947 289
 sys/src/boot/pc/bcom.c - 664 sys sys 1194380248 6462
 sys/src/boot/pc/boot.c - 664 sys sys 1130887226 8421
 sys/src/boot/pc/bootld.c - 664 sys sys 1015007948 1801
-sys/src/boot/pc/bootp.c - 664 sys sys 1168307225 12478
+sys/src/boot/pc/bootp.c - 664 sys sys 1194650469 12624
 sys/src/boot/pc/cga.c - 664 sys sys 1015007948 1362
 sys/src/boot/pc/cis.c - 664 sys sys 1144961189 9232
 sys/src/boot/pc/clock.c - 664 sys sys 1194556585 6622
@@ -9184,7 +9183,7 @@ sys/src/boot/pc/etherif.h - 664 sys sys 1174077279 1338
 sys/src/boot/pc/etherigbe.c - 664 sys sys 1191446222 41284
 sys/src/boot/pc/ethermii.c - 664 sys sys 1103641771 4413
 sys/src/boot/pc/ethermii.h - 664 sys sys 1071175087 3259
-sys/src/boot/pc/etherrhine.c - 664 sys sys 1194556608 12640
+sys/src/boot/pc/etherrhine.c - 664 sys sys 1194655423 12729
 sys/src/boot/pc/fns.h - 664 sys sys 1193171343 4880
 sys/src/boot/pc/fs.c - 664 sys sys 1094674483 1509
 sys/src/boot/pc/fs.h - 664 sys sys 1094674488 653
@@ -9197,7 +9196,7 @@ sys/src/boot/pc/kfs.h - 664 sys sys 1032215924 861
 sys/src/boot/pc/kfsboot.c - 664 sys sys 1032215914 4788
 sys/src/boot/pc/l.s - 664 sys sys 1193167045 18213
 sys/src/boot/pc/lib.h - 664 sys sys 1190921452 2847
-sys/src/boot/pc/load.c - 664 sys sys 1194295338 10407
+sys/src/boot/pc/load.c - 664 sys sys 1194649778 10526
 sys/src/boot/pc/mbr.s - 664 sys sys 1015007953 6234
 sys/src/boot/pc/mem.h - 664 sys sys 1190921475 3437
 sys/src/boot/pc/memory.c - 664 sys sys 1019533021 10272
@@ -15235,7 +15234,7 @@ sys/src/libhttpd - 20000000775 sys sys 1045502928 0
 sys/src/libhttpd/alloc.c - 664 sys sys 1014930783 600
 sys/src/libhttpd/checkcontent.c - 664 sys sys 1014930783 771
 sys/src/libhttpd/date.c - 664 sys sys 1045502928 3507
-sys/src/libhttpd/escape.h - 664 sys sys 1014930784 2728
+sys/src/libhttpd/escape.h - 664 sys sys 1194635555 2800
 sys/src/libhttpd/fail.c - 664 sys sys 1014930784 2794
 sys/src/libhttpd/gethead.c - 664 sys sys 1127766499 737
 sys/src/libhttpd/hio.c - 664 sys sys 1177184789 7540
