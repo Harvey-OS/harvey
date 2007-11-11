@@ -8205,7 +8205,7 @@ sys/src/9/port/chan.c - 664 sys sys 1146151714 34773
 sys/src/9/port/cis.c - 664 sys sys 1099761153 9248
 sys/src/9/port/debugalloc.c - 664 sys sys 1014931171 10402
 sys/src/9/port/dev.c - 664 sys sys 1146151714 8177
-sys/src/9/port/devaoe.c - 664 sys sys 1192044589 42018
+sys/src/9/port/devaoe.c - 664 sys sys 1194752565 41987
 sys/src/9/port/devaudio.c - 664 sys sys 1170456648 21199
 sys/src/9/port/devbridge.c - 664 sys sys 1187735844 24076
 sys/src/9/port/devcap.c - 664 sys sys 1178886040 4141
@@ -8272,7 +8272,7 @@ sys/src/9/port/qlock.c - 664 sys sys 1178057654 3300
 sys/src/9/port/rdb.c - 664 sys sys 1184465938 1704
 sys/src/9/port/rebootcmd.c - 664 sys sys 1015278340 1561
 sys/src/9/port/sd.h - 664 sys sys 1186618553 2499
-sys/src/9/port/sdaoe.c - 664 sys sys 1187034227 9934
+sys/src/9/port/sdaoe.c - 664 sys sys 1194752512 9922
 sys/src/9/port/segment.c - 664 sys sys 1170456581 14052
 sys/src/9/port/semaphore.p - 664 sys sys 1143129797 2424
 sys/src/9/port/swap.c - 664 sys sys 1138028310 7019
