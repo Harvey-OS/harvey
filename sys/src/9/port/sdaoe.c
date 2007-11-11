@@ -178,8 +178,7 @@ aoeidentify(Ctlr *d, SDunit *u)
 		if(c)
 			cclose(c);
 		iprint("aoeidentify: %s\n", up->errstr);
-		qunlock(d);
-		return -1;
+		nexterror();
 	}
 
 	uprint("%s/ident", d->path);

@@ -470,6 +470,8 @@ pickdevlink(Aoedev *d)
 static int
 pickea(Devlink *l)
 {
+	if(l == 0)
+		return -1;
 	if(l->nea == 0)
 		return -1;
 	return l->eaidx++ % l->nea;
@@ -483,10 +485,8 @@ hset(Aoedev *d, Frame *f, Aoehdr *h, int cmd)
 
 	l = pickdevlink(d);
 	i = pickea(l);
-	if(l == 0 || i == -1 /* || (d->flag&Dup) == 0 */ ){
-		eventlog("%æ: resend fails. no netlink/no ea\n", d);
-		d->flag &= ~Dup;
-		frameerror(d, f, Enotup);
+	if(i == -1){
+		downdev(d, "resend fails; no netlink/ea");
 		return -1;
 	}
 	if(f->srb && Ticks-f->srb->ticksent > Srbtimeout){
@@ -530,7 +530,10 @@ resend(Aoedev *d, Frame *f)
 	a->scnt = n / Aoesectsz;
 	f->dl->resent++;
 	f->dl->npkt++;
+	if(waserror())
+		return -1;
 	devtab[f->nl->dc->type]->bwrite(f->nl->dc, allocfb(f), 0);
+	poperror();
 	return 0;
 }
 
@@ -1272,8 +1275,6 @@ devlinkread(Chan *c, void *db, int len, int off)
 	Devlink *l;
 
 	d = unit2dev(UNIT(c->qid));
-	if(d->vers != c->qid.vers)
-		error(Echange);
 	i = L(c->qid);
 	if(i >= d->ndl)
 		return 0;
@@ -1901,7 +1902,7 @@ qcfgrsp(Block *b, Netlink *nl)
 
 	cmd = ch->verccmd & 0xf;
 	if(cmd != 0){
-		eventlog("cfgrsp: bad command %d", cmd);
+		eventlog("aoe%d.%d: cfgrsp: bad command %d\n", major, ch->minor, cmd);
 		return;
 	}
 	n = nhgets(ch->bufcnt);
@@ -1919,6 +1920,7 @@ qcfgrsp(Block *b, Netlink *nl)
 	if(waserror()){
 		qunlock(d);
 		eventlog("%æ: %s\n", d, up->errstr);
+		nexterror();
 	}
 
 	l = newdevlink(d, nl, ch);		/* add this interface. */
