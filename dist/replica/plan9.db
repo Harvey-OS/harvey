@@ -8100,7 +8100,7 @@ sys/src/9/pc/etherelnk3.c - 664 sys sys 1158012427 48807
 sys/src/9/pc/etherga620.c - 664 sys sys 1185652495 29895
 sys/src/9/pc/etherga620fw.h - 664 sys sys 1026847642 222295
 sys/src/9/pc/etherif.h - 664 sys sys 1088178711 961
-sys/src/9/pc/etherigbe.c - 664 sys sys 1191886283 45422
+sys/src/9/pc/etherigbe.c - 664 sys sys 1194796690 45327
 sys/src/9/pc/etherm10g.c - 664 sys sys 1174595240 27681
 sys/src/9/pc/etherm10g2k.i - 664 sys sys 1174590360 957485
 sys/src/9/pc/etherm10g4k.i - 664 sys sys 1174590362 926959
@@ -9180,7 +9180,7 @@ sys/src/boot/pc/etherelnk3x.c - 664 sys sys 1015007951 24989
 sys/src/boot/pc/etherga620.c - 664 sys sys 1175289484 27168
 sys/src/boot/pc/etherga620fw.h - 664 sys sys 1174080072 222295
 sys/src/boot/pc/etherif.h - 664 sys sys 1174077279 1338
-sys/src/boot/pc/etherigbe.c - 664 sys sys 1191446222 41284
+sys/src/boot/pc/etherigbe.c - 664 sys sys 1194796683 41188
 sys/src/boot/pc/ethermii.c - 664 sys sys 1103641771 4413
 sys/src/boot/pc/ethermii.h - 664 sys sys 1071175087 3259
 sys/src/boot/pc/etherrhine.c - 664 sys sys 1194655423 12729

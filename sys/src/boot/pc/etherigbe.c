@@ -1473,8 +1473,6 @@ igbereset(Ctlr* ctlr)
 	    BUSFNO(ctlr->pcidev->tbdf) == 1)
 		ctlr->eeprom[Ea+2] += 0x100;		/* second interface */
 	for(i = Ea; i < Eaddrlen/2; i++){
-		if(i == Ea && ctlr->id == i82541gi && ctlr->eeprom[i] == 0xFFFF)
-			ctlr->eeprom[i] = 0xD000;
 		ctlr->ra[2*i]   = ctlr->eeprom[i];
 		ctlr->ra[2*i+1] = ctlr->eeprom[i]>>8;
 	}

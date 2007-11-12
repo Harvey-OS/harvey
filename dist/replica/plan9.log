@@ -53350,3 +53350,5 @@
 1194658204 5 d sys/src/9/pc/etherrhine.c - 664 sys sys 1081706478 0
 1194753604 0 c sys/src/9/port/devaoe.c - 664 sys sys 1194752565 41987
 1194753604 1 c sys/src/9/port/sdaoe.c - 664 sys sys 1194752512 9922
+1194796805 0 c sys/src/9/pc/etherigbe.c - 664 sys sys 1194796690 45327
+1194796805 1 c sys/src/boot/pc/etherigbe.c - 664 sys sys 1194796683 41188
