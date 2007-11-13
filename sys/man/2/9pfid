@@ -51,8 +51,8 @@ Fidpool*	allocfidpool(void (*destroy)(Fid*))
 void	freefidpool(Fidpool *p)
 Fid*	allocfid(Fidpool *p, ulong fid)
 Fid*	lookupfid(Fidpool *p, ulong fid)
+Fid*	removefid(Fidpool *p, ulong fid);
 void	closefid(Fid *f)
-void	removefid(Fid *f)
 .fi
 .PP
 .ft L
@@ -62,8 +62,8 @@ Reqpool*	allocreqpool(void (*destroy)(Req*))
 void	freereqpool(Reqpool *p)
 Req*	allocreq(Reqpool *p, ulong tag)
 Req*	lookupreq(Reqpool *p, ulong tag)
+Req*	removereq(Reqpool *p, ulong tag);
 void	closereq(Req *f)
-void	removereq(Req *r)
 .fi
 .SH DESCRIPTION
 These routines provide management of 
@@ -176,7 +176,7 @@ regarding the
 element.
 .I Removefid
 is equivalent to
-.I closefid
+.I lookupfid
 but also removes the
 .B Fid
 from the pool.
