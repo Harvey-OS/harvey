@@ -53354,3 +53354,9 @@
 1194796805 1 c sys/src/boot/pc/etherigbe.c - 664 sys sys 1194796683 41188
 1194906629 0 c sys/man/2/9pfid - 664 sys sys 1194905671 3696
 1194913805 0 c sys/src/9/port/devaoe.c - 664 sys sys 1194913595 42084
+1194937204 0 c sys/man/2/9pfile - 664 sys sys 1194935570 4409
+1194996604 0 c sys/src/cmd/ndb/dn.c - 664 sys sys 1194996325 37423
+1194996604 1 c sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1194996355 3265
+1194996604 2 c sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1194996432 35393
+1194996604 3 c sys/src/cmd/ndb/dns.c - 664 sys sys 1194996490 17499
+1194996604 4 c sys/src/cmd/ndb/dnudpserver.c - 664 sys sys 1194996502 5612

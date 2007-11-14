@@ -48,9 +48,9 @@ static void
 ding(void*, char *msg)
 {
 	if(strstr(msg, "alarm") != nil)
-		noted(NCONT);
+		noted(NCONT);		/* resume with system call error */
 	else
-		noted(NDFLT);
+		noted(NDFLT);		/* die */
 }
 
 /* notify a slave that an area has changed. */

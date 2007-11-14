@@ -26,6 +26,7 @@ typedef struct Job	Job;
 typedef struct Network	Network;
 
 int vers;		/* incremented each clone/attach */
+volatile int stop;
 
 struct Mfile
 {
@@ -110,7 +111,8 @@ usage(void)
 void
 main(int argc, char *argv[])
 {
-	char	servefile[Maxpath], ext[Maxpath];
+	int kid, pid;
+	char servefile[Maxpath], ext[Maxpath];
 
 	setnetmtpt(mntpt, sizeof mntpt, nil);
 	ext[0] = 0;
@@ -167,7 +169,6 @@ main(int argc, char *argv[])
 
 	if(testing)
 		mainmem->flags |= POOL_NOREUSE | POOL_ANTAGONISM;
-//	mainmem->flags |= POOL_ANTAGONISM;
 	rfork(RFREND|RFNOTEG);
 
 	cfg.inside = (*mntpt == '\0' || strcmp(mntpt, "/net") == 0);
@@ -192,7 +193,7 @@ main(int argc, char *argv[])
 	snprint(servefile, sizeof servefile, "#s/dns%s", ext);
 	unmount(servefile, mntpt);
 	remove(servefile);
-	mountinit(servefile, mntpt);	/* forks */
+	mountinit(servefile, mntpt);	/* forks, parent exits */
 
 	srand(now*getpid());
 	db2cache(1);
@@ -200,14 +201,32 @@ main(int argc, char *argv[])
 
 	if (cfg.straddle && !seerootns())
 		dnslog("straddle server misconfigured; can't see root name servers");
-	if(cfg.serve)
-		dnudpserver(mntpt);
-	if(sendnotifies)
-		notifyproc();
-
-	io();
-	dnslog("io returned, exiting");
-	exits(0);
+	/*
+	 * fork without sharing heap.
+	 * parent waits around for child to die, then forks & restarts.
+	 * child may spawn udp server, notify procs, etc.; when it gets too
+	 * big, it kills itself and any children.
+	 * /srv/dns and /net/dns remain open and valid.
+	 */
+	for (;;) {
+		kid = rfork(RFPROC|RFFDG|RFNOTEG);
+		switch (kid) {
+		case -1:
+			sysfatal("fork failed: %r");
+		case 0:
+			if(cfg.serve)
+				dnudpserver(mntpt);
+			if(sendnotifies)
+				notifyproc();
+			io();
+			_exits("restart");
+		default:
+			while ((pid = waitpid()) != kid && pid != -1)
+				continue;
+			break;
+		}
+		dnslog("dns restarting");
+	}
 }
 
 /*
@@ -240,14 +259,15 @@ mountinit(char *service, char *mntpt)
 
 	if(pipe(p) < 0)
 		abort(); /* "pipe failed" */;
+	/* copy namespace to avoid a deadlock */
 	switch(rfork(RFFDG|RFPROC|RFNAMEG)){
-	case 0:
+	case 0:			/* child: hang around and (re)start main proc */
 		close(p[1]);
-		procsetname("main");
+		procsetname("restarter");
 		break;
 	case -1:
 		abort(); /* "fork failed\n" */;
-	default:
+	default:		/* parent: make /srv/dns, mount it, exit */
 		close(p[0]);
 
 		/*
@@ -289,6 +309,7 @@ newfid(int fid, int needunused)
 		sysfatal("out of memory");
 	mf->fid = fid;
 	mf->next = mfalloc.inuse;
+	mf->user = estrdup("dummy");
 	mfalloc.inuse = mf;
 	unlock(&mfalloc);
 	return mf;
@@ -392,7 +413,8 @@ io(void)
 		putactivity(0);
 	procsetname("main 9p reading loop");
 	req.isslave = 0;
-	for(;;){
+	stop = 0;
+	while(!stop){
 		n = read9pmsg(mfd[0], mdata, sizeof mdata);
 		if(n<=0){
 			dnslog("error reading mntpt: %r");
@@ -469,6 +491,9 @@ io(void)
 
 		putactivity(0);
 	}
+	/* kill any udp server, notifier, etc. processes */
+	postnote(PNGROUP, getpid(), "die");
+	sleep(1000);
 }
 
 void
@@ -690,6 +715,9 @@ rwrite(Job *job, Mfile *mf, Request *req)
 		goto send;
 	} else if(strcmp(job->request.data, "poolcheck")==0){
 		poolcheck(mainmem);
+		goto send;
+	} else if(strcmp(job->request.data, "restart")==0){
+		stop = 1;
 		goto send;
 	} else if(strncmp(job->request.data, "target", 6)==0){
 		target = atol(job->request.data + 6);

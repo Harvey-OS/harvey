@@ -47,7 +47,7 @@ int	removefile(File *file)
 void	closefile(File *file)
 File*	walkfile(File *dir, char *path)
 Readdir*	opendirfile(File *dir)
-long	readdirfile(Readdir *rdir, char *buf, long n)
+long	readdirfile(Readdir *rdir, uchar *buf, long n)
 void	closedirfile(Readdir *rdir)
 int	hasperm(File *file, char *uid, int p)
 .fi
