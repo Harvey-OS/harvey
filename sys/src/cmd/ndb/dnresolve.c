@@ -43,6 +43,11 @@ struct Dest
 	ulong	magic;
 };
 
+/*
+ * Query has a QLock in it, thus it can't be an automatic
+ * variable, since each process would see a separate copy
+ * of the lock on its stack.
+ */
 struct Query {
 	DN	*dp;		/* domain */
 	int	type;		/* and type to look up */
@@ -168,7 +173,8 @@ dnresolve(char *name, int class, int type, Request *req, RR **cn, int depth,
 				if(rp == nil)
 					break;
 
-				if(rp->negative){
+				/* rp->host == nil shouldn't happen, but does */
+				if(rp->negative || rp->host == nil){
 					rrfreelist(rp);
 					rp = nil;
 					break;
@@ -288,72 +294,11 @@ noteinmem(void)
 }
 
 static RR*
-dnresolve1(char *name, int class, int type, Request *req, int depth,
-	int recurse)
+issuequery(Query *qp, RR *rp, char *name, int class, int depth, int recurse)
 {
 	char *cp;
-	Area *area;
-	DN *dp, *nsdp;
-	RR *rp, *nsrp, *dbnsrp;
-	Query query;
-
-	if(debug)
-		dnslog("[%d] dnresolve1 %s %d %d", getpid(), name, type, class);
-
-	/* only class Cin implemented so far */
-	if(class != Cin)
-		return nil;
-
-	dp = dnlookup(name, class, 1);
-
-	/*
-	 *  Try the cache first
-	 */
-	rp = rrlookup(dp, type, OKneg);
-	if(rp)
-		if(rp->db){
-			/* unauthoritative db entries are hints */
-			if(rp->auth) {
-				noteinmem();
-				return rp;
-			}
-		} else
-			/* cached entry must still be valid */
-			if(rp->ttl > now)
-				/* but Tall entries are special */
-				if(type != Tall || rp->query == Tall) {
-					noteinmem();
-					return rp;
-				}
-
-	rrfreelist(rp);
-
-	/*
-	 * try the cache for a canonical name. if found punt
-	 * since we'll find it during the canonical name search
-	 * in dnresolve().
-	 */
-	if(type != Tcname){
-		rp = rrlookup(dp, Tcname, NOneg);
-		rrfreelist(rp);
-		if(rp)
-			return nil;
-	}
-
-	/*
-	 * if the domain name is within an area of ours,
-	 * we should have found its data in memory by now.
-	 */
-	area = inmyarea(dp->name);
-	if (area || strncmp(dp->name, "local#", 6) == 0) {
-//		char buf[32];
-
-//		dnslog("%s %s: no data in area %s", dp->name,
-//			rrname(type, buf, sizeof buf), area->soarr->owner->name);
-		return nil;
-	}
-
-	queryinit(&query, dp, type, req);
+	DN *nsdp;
+	RR *nsrp, *dbnsrp;
 
 	/*
 	 *  if we're running as just a resolver, query our
@@ -362,11 +307,10 @@ dnresolve1(char *name, int class, int type, Request *req, int depth,
 	if(cfg.resolver){
 		nsrp = randomize(getdnsservers(class));
 		if(nsrp != nil) {
-			query.nsrp = nsrp;
-			if(netquery(&query, depth+1)){
+			qp->nsrp = nsrp;
+			if(netquery(qp, depth+1)){
 				rrfreelist(nsrp);
-				querydestroy(&query);
-				return rrlookup(dp, type, OKneg);
+				return rrlookup(qp->dp, qp->type, OKneg);
 			}
 			rrfreelist(nsrp);
 		}
@@ -383,9 +327,8 @@ dnresolve1(char *name, int class, int type, Request *req, int depth,
 		 */
 		dbnsrp = randomize(dblookup(cp, class, Tns, 0, 0));
 		if(dbnsrp && dbnsrp->local){
-			rp = dblookup(name, class, type, 1, dbnsrp->ttl);
+			rp = dblookup(name, class, qp->type, 1, dbnsrp->ttl);
 			rrfreelist(dbnsrp);
-			querydestroy(&query);
 			return rp;
 		}
 
@@ -415,11 +358,10 @@ dnresolve1(char *name, int class, int type, Request *req, int depth,
 			rrfreelist(dbnsrp);
 
 			/* query the name servers found in cache */
-			query.nsrp = nsrp;
-			if(netquery(&query, depth+1)){
+			qp->nsrp = nsrp;
+			if(netquery(qp, depth+1)){
 				rrfreelist(nsrp);
-				querydestroy(&query);
-				return rrlookup(dp, type, OKneg);
+				return rrlookup(qp->dp, qp->type, OKneg);
 			}
 			rrfreelist(nsrp);
 			continue;
@@ -428,17 +370,89 @@ dnresolve1(char *name, int class, int type, Request *req, int depth,
 		/* use ns from db */
 		if(dbnsrp){
 			/* try the name servers found in db */
-			query.nsrp = dbnsrp;
-			if(netquery(&query, depth+1)){
+			qp->nsrp = dbnsrp;
+			if(netquery(qp, depth+1)){
 				/* we got an answer */
 				rrfreelist(dbnsrp);
-				querydestroy(&query);
-				return rrlookup(dp, type, NOneg);
+				return rrlookup(qp->dp, qp->type, NOneg);
 			}
 			rrfreelist(dbnsrp);
 		}
 	}
-	querydestroy(&query);
+	return rp;
+}
+
+static RR*
+dnresolve1(char *name, int class, int type, Request *req, int depth,
+	int recurse)
+{
+	Area *area;
+	DN *dp;
+	RR *rp;
+	Query *qp;
+
+	if(debug)
+		dnslog("[%d] dnresolve1 %s %d %d", getpid(), name, type, class);
+
+	/* only class Cin implemented so far */
+	if(class != Cin)
+		return nil;
+
+	dp = dnlookup(name, class, 1);
+
+	/*
+	 *  Try the cache first
+	 */
+	rp = rrlookup(dp, type, OKneg);
+	if(rp)
+		if(rp->db){
+			/* unauthoritative db entries are hints */
+			if(rp->auth) {
+				noteinmem();
+				return rp;
+			}
+		} else
+			/* cached entry must still be valid */
+			if(rp->ttl > now)
+				/* but Tall entries are special */
+				if(type != Tall || rp->query == Tall) {
+					noteinmem();
+					return rp;
+				}
+	rrfreelist(rp);
+
+	/*
+	 * try the cache for a canonical name. if found punt
+	 * since we'll find it during the canonical name search
+	 * in dnresolve().
+	 */
+	if(type != Tcname){
+		rp = rrlookup(dp, Tcname, NOneg);
+		rrfreelist(rp);
+		if(rp)
+			return nil;
+	}
+
+	/*
+	 * if the domain name is within an area of ours,
+	 * we should have found its data in memory by now.
+	 */
+	area = inmyarea(dp->name);
+	if (area || strncmp(dp->name, "local#", 6) == 0) {
+//		char buf[32];
+
+//		dnslog("%s %s: no data in area %s", dp->name,
+//			rrname(type, buf, sizeof buf), area->soarr->owner->name);
+		return nil;
+	}
+
+	qp = emalloc(sizeof *qp);
+	queryinit(qp, dp, type, req);
+	rp = issuequery(qp, rp, name, class, depth, recurse);
+	querydestroy(qp);
+	free(qp);
+	if(rp)
+		return rp;
 
 	/* settle for a non-authoritative answer */
 	rp = rrlookup(dp, type, OKneg);
@@ -530,13 +544,12 @@ mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno)
 
 /* for alarms in readreply */
 static void
-ding(void *x, char *msg)
+ding(void*, char *msg)
 {
-	USED(x);
-	if(strcmp(msg, "alarm") == 0)
-		noted(NCONT);
+	if(strstr(msg, "alarm") != nil)
+		noted(NCONT);		/* resume with system call error */
 	else
-		noted(NDFLT);
+		noted(NDFLT);		/* die */
 }
 
 void
@@ -1068,7 +1081,7 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 //	int lcktype;
 	char buf[32];
 	DN *ndp;
-	Query nquery;
+	Query *nqp;
 	RR *tp, *soarr;
 
 	if (mp->an == nil)
@@ -1179,13 +1192,15 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 //	lcktype = qtype2lck(qp->type);
 //	qunlock(&qp->dp->querylck[lcktype]);
 
-	queryinit(&nquery, qp->dp, qp->type, qp->req);
-	nquery.nsrp = tp;
-	rv = netquery(&nquery, depth+1);
+	nqp = emalloc(sizeof *nqp);
+	queryinit(nqp, qp->dp, qp->type, qp->req);
+	nqp->nsrp = tp;
+	rv = netquery(nqp, depth+1);
 
 //	qlock(&qp->dp->querylck[lcktype]);
 	rrfreelist(tp);
-	querydestroy(&nquery);
+	querydestroy(nqp);
+	free(nqp);
 	return rv;
 }
 
@@ -1550,16 +1565,20 @@ seerootns(void)
 	int rv;
 	char root[] = "";
 	Request req;
-	Query query;
+	Query *qp;
 
 	memset(&req, 0, sizeof req);
 	req.isslave = 1;
 	req.aborttime = now + Maxreqtm;
 	req.from = "internal";
-	queryinit(&query, dnlookup(root, Cin, 1), Tns, &req);
-	query.nsrp = dblookup(root, Cin, Tns, 0, 0);
-	rv = netquery(&query, 0);
-	rrfreelist(query.nsrp);
-	querydestroy(&query);
+	qp = emalloc(sizeof *qp);
+	queryinit(qp, dnlookup(root, Cin, 1), Tns, &req);
+
+	qp->nsrp = dblookup(root, Cin, Tns, 0, 0);
+	rv = netquery(qp, 0);
+
+	rrfreelist(qp->nsrp);
+	querydestroy(qp);
+	free(qp);
 	return rv;
 }
