@@ -52,7 +52,7 @@ fn awk3 {
 }
 
 # hget 'http://www.fedex.com/cgi-bin/track_it?airbill_list='$1'&kurrent_airbill='$1'&language=english&cntry_code=us&state=0' |
-hget 'http://www.fedex.com/cgi-bin/tracking?action=track&language=english&cntry_code=us&initial=x&mps=y&tracknumbers='$1 |
+hget 'http://www.fedex.com/Tracking?action=track&language=english&cntry_code=us&initial=x&mps=y&tracknumbers='$1 |
 	htmlfmt >/tmp/fedex.$pid
 sed -n '/Tracking number/,/^$/p' /tmp/fedex.$pid | awk2
 echo

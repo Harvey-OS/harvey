@@ -5513,7 +5513,7 @@ rc/bin/dosmnt - 775 sys sys 1109288224 303
 rc/bin/dpost - 775 sys sys 1192741346 220
 rc/bin/eject - 775 sys sys 945617207 123
 rc/bin/fax - 775 sys sys 1127394677 2385
-rc/bin/fedex - 775 sys sys 1060187356 1244
+rc/bin/fedex - 775 sys sys 1195162568 1236
 rc/bin/fshalt - 775 sys sys 1192741344 1862
 rc/bin/homespool - 775 sys sys 945617207 339
 rc/bin/ipconf - 20000000775 sys sys 1058791152 0
@@ -5836,7 +5836,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1194368267 267646
+sys/games/lib/fortunes - 664 sys sys 1195163116 267897
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -9663,7 +9663,7 @@ sys/src/cmd/auth/rsa2x509.c - 664 sys sys 1048614964 794
 sys/src/cmd/auth/rsafill.c - 664 sys sys 1048614963 747
 sys/src/cmd/auth/rsagen.c - 664 sys sys 1048614963 992
 sys/src/cmd/auth/secstore - 20000000775 sys sys 1106575527 0
-sys/src/cmd/auth/secstore/SConn.c - 664 sys sys 1064789003 4419
+sys/src/cmd/auth/secstore/SConn.c - 664 sys sys 1195162288 4429
 sys/src/cmd/auth/secstore/SConn.h - 664 sys sys 1188694756 952
 sys/src/cmd/auth/secstore/aescbc.c - 664 sys sys 1143465912 4063
 sys/src/cmd/auth/secstore/dirls.c - 664 sys sys 1062277640 1842
