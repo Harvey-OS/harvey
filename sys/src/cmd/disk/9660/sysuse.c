@@ -535,7 +535,7 @@ CputrripTF(Cdimg *cd, Direc *d, int type, int dowrite)
 }
 
 
-#define NONPXMODES  (DMDIR & DMAPPEND & DMEXCL & DMMOUNT)
+#define NONPXMODES  (DMDIR | DMAPPEND | DMEXCL | DMMOUNT)
 #define POSIXMODEMASK (0177777)
 #ifndef S_IFMT
 #define S_IFMT  (0170000)
