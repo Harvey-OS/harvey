@@ -53363,3 +53363,4 @@
 1195162203 0 c sys/src/cmd/auth/secstore/SConn.c - 664 sys sys 1195162288 4429
 1195164004 0 c rc/bin/fedex - 775 sys sys 1195162568 1236
 1195164004 1 c sys/games/lib/fortunes - 664 sys sys 1195163116 267897
+1195282805 0 c sys/src/cmd/disk/9660/sysuse.c - 664 sys sys 1195281485 13953
