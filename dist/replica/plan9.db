@@ -9223,7 +9223,7 @@ sys/src/boot/pc/sdmylex.c - 664 sys sys 1171783051 28694
 sys/src/boot/pc/sdscsi.c - 664 sys sys 1144961224 7006
 sys/src/boot/pc/trap.c - 664 sys sys 1193167011 7497
 sys/src/boot/pc/ureg.h - 664 sys sys 1015007955 550
-sys/src/boot/pc/x16.h - 664 sys sys 1015007955 5265
+sys/src/boot/pc/x16.h - 664 sys sys 1195507126 5264
 sys/src/cmd - 20000000775 sys sys 1157679436 0
 sys/src/cmd/1a - 20000000775 sys sys 1039727676 0
 sys/src/cmd/1a/a.h - 664 sys sys 944961467 3081
