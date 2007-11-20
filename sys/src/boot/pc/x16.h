@@ -147,7 +147,7 @@
 #define PUSHI(i)	BYTE $0x68; WORD $i;	/* i -> --(rSP) */
 #define POPA		BYTE $0x61
 #define POPR(r)		BYTE $(0x58|r)		/* (rSP++) -> r */
-#define POPS(rS)	BYTE $$(0x07|((rS)<<3))	/* (rSP++) -> r */
+#define POPS(rS)	BYTE $(0x07|((rS)<<3))	/* (rSP++) -> r */
 #define NOP		BYTE $0x90		/* nop */
 
 #define LGDT(gdtptr)	BYTE $0x0F;		/* LGDT */			\
