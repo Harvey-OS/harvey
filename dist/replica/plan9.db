@@ -7707,7 +7707,7 @@ sys/man/4/acme - 664 sys sys 1181238729 10435
 sys/man/4/archfs - 664 sys sys 960000712 533
 sys/man/4/cdfs - 664 sys sys 1026846913 3638
 sys/man/4/cfs - 664 sys sys 1191355900 2136
-sys/man/4/consolefs - 664 sys sys 1144424854 4245
+sys/man/4/consolefs - 664 sys sys 1195678039 4389
 sys/man/4/cwfs - 664 sys sys 1194214611 6553
 sys/man/4/dossrv - 664 sys sys 1168307403 4334
 sys/man/4/execnet - 664 sys sys 1019866708 1069
