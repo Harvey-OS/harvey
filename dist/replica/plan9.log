@@ -53366,3 +53366,4 @@
 1195282805 0 c sys/src/cmd/disk/9660/sysuse.c - 664 sys sys 1195281485 13953
 1195507804 0 c sys/src/boot/pc/x16.h - 664 sys sys 1195507126 5264
 1195587005 0 c sys/src/9/port/chan.c - 664 sys sys 1195585806 34962
+1195678804 0 c sys/man/4/consolefs - 664 sys sys 1195678039 4389

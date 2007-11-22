@@ -93,6 +93,13 @@ The
 .I speed=x
 attribute/value pair specifies a bit rate for the
 console.  The default is 9600 baud.
+The
+.I openondemand=
+attribute causes the console device
+.RI ( dev )
+to be opened only when the corresponding
+.IB mntpt / console
+file is open.
 .PP
 Access to the console is controlled by the
 .I uid
