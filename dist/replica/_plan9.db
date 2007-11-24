@@ -888,7 +888,7 @@ cron - 20000000777 sys sys 1039727915 0
 cron/upas - 20000000775 upas sys 1039727915 0
 cron/upas/cron - 664 upas sys 1191622540 284
 dist - 20000000775 sys sys 1127243723 0
-dist/replica - 20000000775 sys sys 1166743907 0
+dist/replica - 20000000775 sys sys 1195853927 0
 dist/replica/cd - 664 sys sys 1149084099 922
 dist/replica/kfs - 664 sys sys 1019527929 237
 dist/replica/network - 775 sys sys 1189903604 1075
@@ -15515,7 +15515,7 @@ sys/src/libsec/mips/md5block.s - 664 sys sys 985124884 7204
 sys/src/libsec/mips/mkfile - 664 sys sys 1032061452 227
 sys/src/libsec/mips/sha1block.s - 664 sys sys 985124884 4143
 sys/src/libsec/mkfile - 664 sys sys 1134426497 554
-sys/src/libsec/port - 20000000775 sys sys 1123099027 0
+sys/src/libsec/port - 20000000775 sys sys 1188251126 0
 sys/src/libsec/port/aes.c - 664 sys sys 1188328427 64086
 sys/src/libsec/port/blowfish.c - 664 sys sys 1016466467 19676
 sys/src/libsec/port/decodepem.c - 664 sys sys 1084318869 1831
