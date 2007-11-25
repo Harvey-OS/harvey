@@ -1,6 +1,6 @@
 </$objtype/mkfile
 
-DIRS=9 ap bsd draw fmt l net regexp utf v
+DIRS=`{ls -l | sed '/^d/!d; s/.* //; /\./d'}
 
 none:V:
 	echo mk all, install, installall, clean, or nuke
