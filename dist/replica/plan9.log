@@ -55709,3 +55709,4 @@
 1195857003 1168 a dist/replica/cd - 664 sys sys 1149084099 922
 1195857003 1169 a dist/replica/network - 775 sys sys 1189903604 1075
 1195857003 1170 a dist/replica/plan9.proto - 664 sys sys 1178910941 2871
+1195965004 0 c sys/src/cmd/acme/look.c - 664 sys sys 1195964468 14203
