@@ -9043,7 +9043,7 @@ sys/src/ape/lib/l/mkfile - 664 sys sys 1014921994 180
 sys/src/ape/lib/l/reject.c - 664 sys sys 1014921994 985
 sys/src/ape/lib/l/yyless.c - 664 sys sys 1014921994 387
 sys/src/ape/lib/l/yywrap.c - 664 sys sys 1014921994 70
-sys/src/ape/lib/mkfile - 664 sys sys 1070330862 203
+sys/src/ape/lib/mkfile - 664 sys sys 1195965345 206
 sys/src/ape/lib/net - 20000000775 sys sys 1039727536 0
 sys/src/ape/lib/net/announce.c - 664 sys sys 1014921993 3549
 sys/src/ape/lib/net/dial.c - 664 sys sys 1014921993 2411
@@ -9467,7 +9467,7 @@ sys/src/cmd/acme/exec.c - 664 sys sys 1181880498 28938
 sys/src/cmd/acme/file.c - 664 sys sys 1044626079 5717
 sys/src/cmd/acme/fns.h - 664 sys sys 1107154481 2916
 sys/src/cmd/acme/fsys.c - 664 sys sys 1111171699 13097
-sys/src/cmd/acme/look.c - 664 sys sys 1166822365 14203
+sys/src/cmd/acme/look.c - 664 sys sys 1195964468 14203
 sys/src/cmd/acme/mkfile - 664 sys sys 1058463682 543
 sys/src/cmd/acme/regx.c - 664 sys sys 1181417695 16113
 sys/src/cmd/acme/rows.c - 664 sys sys 1177527677 14708
@@ -15747,4 +15747,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-sys/src/cmd/acme/look.c - 664 sys sys 1195964468 14203
