@@ -1,6 +1,6 @@
 .TH NDB 8
 .SH NAME
-query, ipquery, mkhash, mkdb, mkhosts, cs, csquery, dns, dnsquery, dnsdebug \- network database
+query, ipquery, mkhash, mkdb, mkhosts, cs, csquery, dns, dnstcp, dnsquery, dnsdebug \- network database
 .SH SYNOPSIS
 .B ndb/query
 [
@@ -73,6 +73,19 @@ query, ipquery, mkhash, mkdb, mkhosts, cs, csquery, dns, dnsquery, dnsdebug \- n
 ] [
 .B -z
 .I program
+]
+.br
+.B ndb/dnstcp
+[
+.B -rR
+] [
+.B -f
+.I dbfile
+] [
+.B -x
+.I netmtpt
+] [
+.I conn-dir
 ]
 .br
 .B ndb/dnsquery
@@ -584,6 +597,31 @@ pairs naming the internal DNS `root' servers.
 should contain a series of
 .B ip
 pairs naming the external DNS servers to consult.
+.SS "Zone Transfers and TCP"
+.I Dnstcp
+is invoked,
+usually from
+.BR /rc/bin/service/tcp53 ,
+to answer DNS queries with long answers via TCP,
+notably to transfer a zone within the database
+.I dbfile
+(default
+.BR /lib/ndb/local )
+to its invoker on the network at
+.I netmtpt
+(default
+.BR /net ).
+Standard input will be read for DNS requests and the DNS answers
+will appear on standard output.
+Recursion is disabled by
+.BR -R ;
+acting as a pure resolver is enabled by
+.BR -r .
+If
+.I conn-dir
+is provided, it is assumed to be a directory within
+.IB netmtpt /tcp
+and is used to find the caller's address.
 .SS "DNS Queries and Debugging"
 .I Ndb/dnsquery
 can be used to query
@@ -670,6 +708,8 @@ in
 sys=helix dom=helix.research.bell-labs.com bootf=/mips/9powerboot
 	ip=135.104.117.31 ether=080069020427
 .EE
+.br
+.ne 8
 .LP
 Look up
 .B plan9.bell-labs.com
