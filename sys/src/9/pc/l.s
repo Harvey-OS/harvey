@@ -53,15 +53,19 @@ TEXT _multibootheader(SB), $0
 	LONG	$0				/* depth */
 
 /*
- * In protected mode with paging turned off and segment registers setup to linear map all memory.
- * Entered via a jump to PADDR(entry), the physical address of the virtual kernel entry point of KADDR(entry)
- * Make the basic page tables for processor 0. Four pages are needed for the basic set:
- * a page directory, a page table for mapping the first 4MB of physical memory to KZERO,
- * and virtual and physical pages for mapping the Mach structure.
+ * In protected mode with paging turned off and segment registers setup
+ * to linear map all memory. Entered via a jump to PADDR(entry),
+ * the physical address of the virtual kernel entry point of KADDR(entry).
+ * Make the basic page tables for processor 0. Six pages are needed for
+ * the basic set:
+ *	a page directory;
+ *	page tables for mapping the first 8MB of physical memory to KZERO;
+ *	a page for the GDT;
+ *	virtual and physical pages for mapping the Mach structure.
  * The remaining PTEs will be allocated later when memory is sized.
- * An identity mmu map is also needed for the switch to virtual mode.  This
- * identity mapping is removed once the MMU is going and the JMP has been made
- * to virtual memory.
+ * An identity mmu map is also needed for the switch to virtual mode.
+ * This identity mapping is removed once the MMU is going and the JMP has
+ * been made to virtual memory.
  */
 TEXT _startPADDR(SB), $0
 	CLI					/* make sure interrupts are off */
@@ -144,6 +148,11 @@ TEXT mode32bit(SB), $0
 	MOVL	$(PTEWRITE|PTEVALID), BX	/* page permissions */
 	ORL	BX, (AX)
 
+	ADDL	$4, AX
+	MOVL	$PADDR(CPU0PTE1), (AX)		/* PTE's for KZERO+4MB */
+	MOVL	$(PTEWRITE|PTEVALID), BX	/* page permissions */
+	ORL	BX, (AX)
+
 	MOVL	$PADDR(CPU0PTE), AX		/* first page of page table */
 	MOVL	$1024, CX			/* 1024 pages in 4MB */
 _setpte:
@@ -151,6 +160,14 @@ _setpte:
 	ADDL	$(1<<PGSHIFT), BX
 	ADDL	$4, AX
 	LOOP	_setpte
+
+	MOVL	$PADDR(CPU0PTE1), AX		/* second page of page table */
+	MOVL	$1024, CX			/* 1024 pages in 4MB */
+_setpte1:
+	MOVL	BX, (AX)
+	ADDL	$(1<<PGSHIFT), BX
+	ADDL	$4, AX
+	LOOP	_setpte1
 
 	MOVL	$PADDR(CPU0PTE), AX
 	ADDL	$PTO(MACHADDR), AX		/* page table entry offset for MACHADDR */

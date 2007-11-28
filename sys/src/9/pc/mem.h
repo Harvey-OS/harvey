@@ -63,10 +63,12 @@
 #define	MACHADDR	(KZERO+0x15000)		/* as seen by current processor */
 #define	CPU0MACH	(KZERO+0x16000)		/* Mach for bootstrap processor */
 #define	MACHSIZE	BY2PG
+#define CPU0PTE1	(KZERO+0x17000)		/* bootstrap processor PTE's for 4MB-8MB */
+#define CPU0END		(CPU0PTE1+BY2PG)
 /*
- * N.B.  ramscan knows that CPU0MACH+BY2PG is the end of reserved data
+ * N.B.  ramscan knows that CPU0END is the end of reserved data
  * N.B.  _startPADDR knows that CPU0PDB is the first reserved page
- * and that there are 5 of them.
+ * and that there are 6 of them.
  */
 
 /*

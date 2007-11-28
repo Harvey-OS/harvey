@@ -120,7 +120,7 @@ dupread(Chan *c, void *va, long n, vlong offset)
 static long
 dupwrite(Chan*, void*, long, vlong)
 {
-	panic("dupwrite");
+	error(Eperm);
 	return 0;		/* not reached */
 }
 

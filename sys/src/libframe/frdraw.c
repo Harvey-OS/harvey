@@ -6,7 +6,7 @@
 #include <frame.h>
 
 void
-_frredraw(Frame *f, Point pt, Image *text, Image *back)
+_frdrawtext(Frame *f, Point pt, Image *text, Image *back)
 {
 	Frbox *b;
 	int nb;
@@ -15,7 +15,7 @@ _frredraw(Frame *f, Point pt, Image *text, Image *back)
 	for(nb=0,b=f->box; nb<f->nbox; nb++, b++){
 		_frcklinewrap(f, &pt, b);
 		if(b->nrune >= 0){
-			stringbg(f->b, pt, text, ZP, f->font, (char *)b->ptr, back, ZP);
+			stringbg(f->b, pt, text, ZP, f->font, (char*)b->ptr, back, ZP);
 		}
 		pt.x += b->wid;
 	}
@@ -57,7 +57,7 @@ frdrawsel(Frame *f, Point pt, ulong p0, ulong p1, int issel)
 	frdrawsel0(f, pt, p0, p1, back, text);
 }
 
-void
+Point
 frdrawsel0(Frame *f, Point pt, ulong p0, ulong p1, Image *back, Image *text)
 {
 	Frbox *b;
@@ -78,7 +78,7 @@ frdrawsel0(Frame *f, Point pt, ulong p0, ulong p1, Image *back, Image *text)
 		if(p >= p0){
 			qt = pt;
 			_frcklinewrap(f, &pt, b);
-			// fill in the end of a wrapped line
+			/* fill in the end of a wrapped line */
 			if(pt.y > qt.y)
 				draw(f->b, Rect(qt.x, qt.y, f->r.max.x, pt.y), back, nil, qt);
 		}
@@ -115,6 +115,29 @@ frdrawsel0(Frame *f, Point pt, ulong p0, ulong p1, Image *back, Image *text)
 		if(pt.y > qt.y)
 			draw(f->b, Rect(qt.x, qt.y, f->r.max.x, pt.y), back, nil, qt);
 	}
+	return pt;
+}
+
+void
+frredraw(Frame *f)
+{
+	int ticked;
+	Point pt;
+
+	if(f->p0 == f->p1){
+		ticked = f->ticked;
+		if(ticked)
+			frtick(f, frptofchar(f, f->p0), 0);
+		frdrawsel0(f, frptofchar(f, 0), 0, f->nchars, f->cols[BACK], f->cols[TEXT]);
+		if(ticked)
+			frtick(f, frptofchar(f, f->p0), 1);
+		return;
+	}
+
+	pt = frptofchar(f, 0);
+	pt = frdrawsel0(f, pt, 0, f->p0, f->cols[BACK], f->cols[TEXT]);
+	pt = frdrawsel0(f, pt, f->p0, f->p1, f->cols[HIGH], f->cols[HTEXT]);
+	pt = frdrawsel0(f, pt, f->p1, f->nchars, f->cols[BACK], f->cols[TEXT]);
 }
 
 void
