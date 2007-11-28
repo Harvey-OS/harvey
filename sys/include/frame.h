@@ -58,7 +58,7 @@ void	frinsert(Frame*, Rune*, Rune*, ulong);
 void	frselect(Frame*, Mousectl*);
 void	frselectpaint(Frame*, Point, Point, Image*);
 void	frdrawsel(Frame*, Point, ulong, ulong, int);
-void	frdrawsel0(Frame*, Point, ulong, ulong, Image*, Image*);
+Point frdrawsel0(Frame*, Point, ulong, ulong, Image*, Image*);
 void	frinit(Frame*, Rectangle, Font*, Image*, Image**);
 void	frsetrects(Frame*, Rectangle, Image*);
 void	frclear(Frame*, int);
@@ -80,13 +80,14 @@ void	_fradvance(Frame*, Point*, Frbox*);
 int	_frnewwid(Frame*, Point, Frbox*);
 int	_frnewwid0(Frame*, Point, Frbox*);
 void	_frclean(Frame*, Point, int, int);
-void	_frredraw(Frame*, Point, Image*, Image*);
+void	_frdrawtext(Frame*, Point, Image*, Image*);
 void	_fraddbox(Frame*, int, int);
 Point	_frptofcharptb(Frame*, ulong, Point, int);
 Point	_frptofcharnb(Frame*, ulong, int);
 int	_frstrlen(Frame*, int);
 void	frtick(Frame*, Point, int);
 void	frinittick(Frame*);
+void	frredraw(Frame*);
 
 #define	NRUNE(b)	((b)->nrune<0? 1 : (b)->nrune)
 #define	NBYTE(b)	strlen((char*)(b)->ptr)

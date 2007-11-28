@@ -1,0 +1,65 @@
+</$objtype/mkfile
+
+TARG=mp3enc
+OFILES=\
+	VbrTag.$O\
+	bitstream.$O\
+	encoder.$O\
+	fft.$O\
+	get_audio.$O\
+	id3tag.$O\
+	lame.$O\
+	lametime.$O\
+	main.$O\
+	mpglib_interface.$O\
+	newmdct.$O\
+	parse.$O\
+	pcm.$O\
+	portableio.$O\
+	psymodel.$O\
+	quantize.$O\
+	quantize_pvt.$O\
+	reservoir.$O\
+	set_get.$O\
+	tables.$O\
+	takehiro.$O\
+	timestatus.$O\
+	tools.$O\
+	util.$O\
+	vbrquantize.$O\
+	version.$O\
+	vorbis_interface.$O\
+
+BIN=/$objtype/bin/games
+# need a way to ignore this on non-386en
+LIB=/$objtype/lib/lib387.a
+</sys/src/cmd/mkone
+
+CC=pcc
+CFLAGS=\
+	-I.\
+	-D_POSIX_SOURCE\
+	-DSTDC_HEADERS\
+	-DUSE_LAYER_1\
+	-DUSE_LAYER_2\
+	-D'CHAR_BIT=8'\
+	-D'SIZEOF_DOUBLE=8'\
+	-D'SIZEOF_FLOAT=4'\
+	-D'SIZEOF_INT=4'\
+	-D'SIZEOF_LONG=4'\
+	-D'SIZEOF_LONG_DOUBLE=8'\
+	-D'SIZEOF_LONG_LONG=8'\
+	-D'SIZEOF_SHORT=2'\
+	-D'SIZEOF_UNSIGNED_INT=4'\
+	-D'SIZEOF_UNSIGNED_LONG=4'\
+	-D'SIZEOF_UNSIGNED_LONG_LONG=8'\
+	-D'SIZEOF_UNSIGNED_SHORT=2'\
+	-+ -c
+LDFLAGS= # -p
+
+testcase.new.mp3: testcase.wav $O.out
+	$O.out --nores -h testcase.wav testcase.new.mp3
+
+test:V: testcase.new.mp3
+	cmp -l testcase.new.mp3 testcase.mp3 | wc -l
+	rm testcase.new.mp3

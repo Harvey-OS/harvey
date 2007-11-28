@@ -1,6 +1,9 @@
 /*
  * Size memory and create the kernel page-tables on the fly while doing so.
  * Called from main(), this code should only be run by the bootstrap processor.
+ *
+ * MemMin is what the bootstrap code in l.s has already mapped;
+ * MemMax is the limit of physical memory to scan.
  */
 #include "u.h"
 #include "../port/lib.h"
@@ -21,10 +24,8 @@ enum {
 
 	KB		= 1024,
 
-	MemMinMB	= 4,		/* minimum physical memory (<=4MB) */
-	MemMaxMB	= 3*1024+768,	/* maximum physical memory to check */
-
-	NMemBase	= 10,
+	MemMin		= 8*MB,
+	MemMax		= (3*1024+768)*MB,
 };
 
 typedef struct Map Map;
@@ -331,14 +332,16 @@ lowraminit(void)
 	 * bootstrap processor MMU information and the limit is obtained from
 	 * the BIOS data area.
 	 */
-	x = PADDR(CPU0MACH+BY2PG);
+	x = PADDR(CPU0END);
 	bda = (uchar*)KADDR(0x400);
 	n = ((bda[0x14]<<8)|bda[0x13])*KB-x;
 	mapfree(&rmapram, x, n);
 	memset(KADDR(x), 0, n);			/* keep us honest */
 
 	x = PADDR(PGROUND((ulong)end));
-	pa = MemMinMB*MB;
+	pa = MemMin;
+	if(x > pa)
+		panic("kernel too big");
 	mapfree(&rmapram, x, pa-x);
 	memset(KADDR(x), 0, pa-x);		/* keep us honest */
 }
@@ -351,11 +354,11 @@ ramscan(ulong maxmem)
 
 	/*
 	 * The bootstrap code has has created a prototype page
-	 * table which maps the first MemMinMB of physical memory to KZERO.
+	 * table which maps the first MemMin of physical memory to KZERO.
 	 * The page directory is at m->pdb and the first page of
 	 * free memory is after the per-processor MMU information.
 	 */
-	pa = MemMinMB*MB;
+	pa = MemMin;
 
 	/*
 	 * Check if the extended memory size can be obtained from the CMOS.
@@ -368,7 +371,7 @@ ramscan(ulong maxmem)
 	if(maxmem == 0){
 		x = (nvramread(0x18)<<8)|nvramread(0x17);
 		if(x == 0 || x >= (63*KB))
-			maxpa = MemMaxMB*MB;
+			maxpa = MemMax;
 		else
 			maxpa = MB+x*KB;
 		if(maxpa < 24*MB)
@@ -378,7 +381,7 @@ ramscan(ulong maxmem)
 	maxkpa = (u32int)-KZERO;	/* 2^32 - KZERO */
 
 	/*
-	 * March up memory from MemMinMB to maxpa 1MB at a time,
+	 * March up memory from MemMin to maxpa 1MB at a time,
 	 * mapping the first page and checking the page can
 	 * be written and read correctly. The page tables are created here
 	 * on the fly, allocating from low memory as necessary.
@@ -391,11 +394,11 @@ ramscan(ulong maxmem)
 	
 	/*
 	 * Can't map memory to KADDR(pa) when we're walking because
-	 * can only use KADDR for relatively low addresses.  Instead,
-	 * map each 4MB we scan to the virtual address range 4MB-8MB
-	 * while we are scanning.
+	 * can only use KADDR for relatively low addresses.
+	 * Instead, map each 4MB we scan to the virtual address range
+	 * MemMin->MemMin+4MB while we are scanning.
 	 */
-	vbase = 4*MB;
+	vbase = MemMin;
 	while(pa < maxpa){
 		/*
 		 * Map the page. Use mapalloc(&rmapram, ...) to make
@@ -562,18 +565,18 @@ map(ulong base, ulong len, int type)
 	ulong *table, flags, maxkpa;
 	
 	/*
-	 * Split any call crossing 4*MB to make below simpler.
+	 * Split any call crossing MemMin to make below simpler.
 	 */
-	if(base < 4*MB && len > 4*MB-base){
-		n = 4*MB - base;
+	if(base < MemMin && len > MemMin-base){
+		n = MemMin - base;
 		map(base, n, type);
-		map(4*MB, len-n, type);
+		map(MemMin, len-n, type);
 	}
 	
 	/*
-	 * Let lowraminit and umbscan hash out the low 4MB.
+	 * Let lowraminit and umbscan hash out the low MemMin.
 	 */
-	if(base < 4*MB)
+	if(base < MemMin)
 		return;
 
 	/*
@@ -586,14 +589,14 @@ map(ulong base, ulong len, int type)
 	}
 	
 	/*
-	 * Memory below CPU0MACH is reserved for the kernel
+	 * Memory below CPU0END is reserved for the kernel
 	 * and already mapped.
 	 */
-	if(base < PADDR(CPU0MACH)+BY2PG){
-		n = PADDR(CPU0MACH)+BY2PG - base;
+	if(base < PADDR(CPU0END)){
+		n = PADDR(CPU0END) - base;
 		if(len <= n)
 			return;
-		map(PADDR(CPU0MACH), len-n, type);
+		map(PADDR(CPU0END), len-n, type);
 		return;
 	}
 	
@@ -637,10 +640,10 @@ map(ulong base, ulong len, int type)
 	}
 	
 	/*
-	 * bottom 4MB is already mapped - just twiddle flags.
+	 * bottom MemMin is already mapped - just twiddle flags.
 	 * (not currently used - see above)
 	 */
-	if(base < 4*MB){
+	if(base < MemMin){
 		table = KADDR(PPN(m->pdb[PDX(base)]));
 		e = base+len;
 		base = PPN(base);
