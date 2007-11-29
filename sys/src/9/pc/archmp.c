@@ -43,7 +43,7 @@ mpsearch(void)
 	 */
 	bda = KADDR(0x400);
 	if((p = (bda[0x0F]<<8)|bda[0x0E])){
-		if(mp = mpscan(KADDR(p), 1024))
+		if(mp = mpscan(KADDR(p<<4), 1024))
 			return mp;
 	}
 	else{

@@ -1,0 +1,224 @@
+.TH MP3DEC 1
+.SH NAME
+mp3dec \- play audio MPEG 1.0/2.0 file (layers 1, 2 and 3)
+.SH SYNOPSIS
+.B mp3dec
+[
+.B \-0124cmqsvy
+] [
+.BI \-a " dev"
+] [
+.BI \-b " size"
+] [
+.BI \-d " n"
+] [
+.BI \-f " factor"
+] [
+.BI \-g " gain"
+] [
+.BI \-h " n"
+] [
+.BI \-k " num"
+] [
+.BI \-n " num"
+] [
+.B -o
+.B [shl]
+] [
+.BI \-p " proxy"
+] [
+.BI \-r " rate"
+]
+.IR file " ...
+.SH DESCRIPTION
+.I Mp3dec
+reads one or more
+.IR file s
+(which may be URLs)
+and, by default, plays them on the audio device.
+The output format is raw (headerless) linear PCM audio data,
+16-bit, stereo, in host byte order.
+.IR File
+is assumed to contain a valid MPEG-1/2 audio layer-1, -2 or -3 bit stream.
+Any name starting with
+.L http://
+is recognized as a URL.
+.LP
+Interrupting
+.I mp3dec
+will skip to the next argument
+.IR file .
+Two interrupts within a second will terminate
+.IR mp3dec .
+.LP
+Options are:
+.TF "-f fact"
+.TP
+.B "-0 -1"
+Decode only channel 0 (left) or channel 1 (right),
+respectively.  These options are available for stereo MPEG streams only.
+.TP
+.B "-2 -4"
+Down-sample with ratio 2:1 (22 kHz) or 4:1 (11 kHz),
+respectively.
+Saves some CPU cycles, but the 4:1 ratio, at least, sounds ugly.
+.TP
+.BI "-a " dev
+Specify the audio device to use.  The default is
+.BR /dev/audio .
+Use this option if you have multiple audio devices and
+the default is not what you want.
+.TP
+.BI "-b " size
+Use an audio output buffer of
+.I size
+Kbytes.  This is useful to work around short periods of heavy
+system activity, which would normally cause the audio output
+to be interrupted.
+You should specify a buffer size of at least 1024
+(i.e. 1 Mb, which equals about 6 seconds of audio data) or more;
+less than about 300 does not make much sense.  The default is 0,
+which turns buffering off.
+.TP
+.B -c
+Check for filter range violations, and report them for each frame
+if any occur.
+.TP
+.BI "-d " n
+Only play every
+.IR n 'th
+frame.  This will cause the MPEG stream to be played
+.I n
+times faster, which can be used for special
+effects.  Can also be combined with the
+.B -h
+option to play 3 out of 4 frames etc.
+Sound quality will be poor.
+.TP
+.BI "-f " factor
+Change scale factor (default: 32768).
+.TP
+.BI "-g " gain
+Set audio hardware output gain (default: don't change).
+.TP
+.BI "-h " n
+Play each frame
+.I n
+times.  This will cause the MPEG stream
+to be played at
+.RI 1/ n 'th
+speed
+.RI ( n
+times slower), which can be
+used for special effects.  Can also be combined with the
+.B -d
+option to double every third frame or things like that.
+Sound quality will be poor.
+.TP
+.BI "-k " num
+Skip the first
+.I num
+frames.  By default the decoding starts at the first frame.
+.TP
+.B -m
+Mix both channels.
+This option is available for stereo MPEG layer-3 streams only.  It takes less
+CPU time than full stereo decoding.
+.TP
+.BI "-n " num
+Decode only
+.I num
+frames.  By default the complete stream is decoded.
+.TP
+.B -o
+Direct audio output to the speaker
+.RB ( s ),
+headphones
+.RB ( h ),
+or line-out
+.RB ( l ).
+.TP
+.BI "-p " proxy
+The specified
+.I proxy
+will be used for HTTP requests.  It
+should be specified as a full URL (``http://host.domain:port/''),
+but the
+.L http://
+prefix, the port number and the trailing
+slash are optional (the default port is 80).  Specifying
+.B none
+means not to use any proxy.
+In the absence of
+.BR -p ,
+.I mp3dec
+looks for environment variables named
+.BR MP3_HTTP_PROXY ,
+.BR http_proxy ,
+and
+.BR HTTP_PROXY ,
+in that order.
+.TP
+.B -q
+Quiet: suppress diagnostic messages.
+.TP
+.BI "-r " rate
+Set sample rate (default: automatic).  You may want to
+change this if you need a constant bitrate independent of the MPEG stream rate.
+.I Mp3dec
+automagically converts the rate.
+You should then combine this with \-\-stereo or \-\-mono.
+.TP
+.B -s
+Write the decoded audio samples to standard output.
+.TP
+.BI "-u " auth
+HTTP authentication to use when fetching files via HTTP.
+The format used is
+.IB user : password.
+.TP
+.B -v
+Increase the verbosity level
+(e.g., prints the frame numbers during decoding).
+.TP
+.B -y
+Try to resync and continue decoding if an error occurs in
+the input file.  Also try to recover from certain broken
+headers.  Useful if you have a broken MPEG file, on which
+.I mp3dec
+normally gives up saying `Illegal header'.  Be careful:
+Broken locations in MPEG files might cause sharp, loud pops or
+clicks, which might damage your speakers if played too loud.
+.TP
+.B \-z
+Shuffle play: randomly shuffles the argument files.
+.TP
+.B -Z
+Fully random play.
+.TP
+.B --stereo
+Force stereo output.
+.TP
+.B --reopen
+Forces reopening the audio device after every song.
+.TP
+.B --8bit
+Forces 8-bit output.
+.SH BUGS
+It's another GNU behemoth, lightly tamed.
+.PP
+It's slow.
+.PP
+MPEG-2 Layers 1 and 2 are not tested and may not work.
+Free-format streams are not supported.
+No CRC error checking is performed.
+.SH SOURCE
+.B /sys/src/games/mp3dec
+.SH "SEE ALSO"
+.IR mp3enc (1),
+.IR juke (7),
+.IR playlistfs (7)
+.br
+.B http://www.sfs.nphil.uni-tuebingen.de/~hipp/mpg123.html
+.br
+.B http://ftp.tu-clausthal.de/pub/unix/audio/mpg123

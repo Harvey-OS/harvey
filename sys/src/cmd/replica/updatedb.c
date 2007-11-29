@@ -97,6 +97,39 @@ walk(char *new, char *old, Dir *xd, void*)
 }
 
 void
+warn(char *msg, void*)
+{
+	char *p;
+
+	fprint(2, "warning: %s\n", msg);
+
+	/* find the %r in "can't open foo: %r" */
+	p = strstr(msg, ": ");
+	if(p)
+		p += 2;
+
+	/*
+	 * if the error is about a remote server failing,
+	 * then there's no point in continuing to look
+	 * for changes -- we'll think everything got deleted!
+	 *
+	 * actual errors i see are:
+	 *	"i/o on hungup channel" for a local hangup
+	 *	"i/o on hungup channel" for a timeout (yank the network wire)
+	 *	"'/n/sources/plan9' Hangup" for a remote hangup
+	 * the rest is paranoia.
+	 */
+	if(p){
+		if(cistrstr(p, "hungup") || cistrstr(p, "Hangup")
+		|| cistrstr(p, "rpc error")
+		|| cistrstr(p, "shut down")
+		|| cistrstr(p, "i/o")
+		|| cistrstr(p, "connection"))
+			sysfatal("suspected network or i/o error - bailing out");
+	}
+}
+
+void
 usage(void)
 {
 	fprint(2, "usage: replica/updatedb [-c] [-p proto] [-r root] [-t now n] [-u uid] [-x path]... db [paths]\n");
@@ -151,7 +184,7 @@ main(int argc, char **argv)
 	nmatch = argc-1;
 
 	db = opendb(argv[0]);
-	if(rdproto(proto, root, walk, nil, nil) < 0)
+	if(rdproto(proto, root, walk, warn, nil) < 0)
 		sysfatal("rdproto: %r");
 
 	if(!changesonly){

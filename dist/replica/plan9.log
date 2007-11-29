@@ -17492,3 +17492,9 @@
 1196213404 3 c sys/src/libframe/frinsert.c - 664 sys sys 1196212625 6722
 1196220604 0 c 386/bin/games/mp3enc - 775 sys sys 1196220182 530357
 1196224204 0 m 386/bin/games/mp3dec - 775 sys sys 1196207154 355822
+1196227804 0 a sys/man/1/mp3dec - 664 sys sys 1196227746 4987
+1196227804 1 c sys/src/games/mkfile - 664 sys sys 1196228150 621
+1196263808 0 c sys/src/9/pc/archmp.c - 664 sys sys 1196264189 2410
+1196265604 0 c lib/face/48x48x8/.dict - 664 sys sys 1196265401 4295
+1196265604 1 c sys/src/9/pc/archmp.c - 664 sys sys 1196264189 2410
+1196274605 0 c sys/src/cmd/replica/updatedb.c - 664 sys sys 1196273470 3837
