@@ -260,7 +260,7 @@
 386/bin/games/jukefs - 775 sys sys 1105589129 165320
 386/bin/games/mahjongg - 775 sys sys 1191381911 165242
 386/bin/games/memo - 775 sys sys 1179372089 156656
-386/bin/games/mp3dec - 755 sys sys 1196207154 355822
+386/bin/games/mp3dec - 775 sys sys 1196207154 355822
 386/bin/games/mp3enc - 775 sys sys 1196220182 530357
 386/bin/games/playlistfs - 775 sys sys 1105589129 148484
 386/bin/games/sokoban - 775 sys sys 1179372090 165514
@@ -1412,7 +1412,7 @@ lib/face/48x48x4/x/xigh.1 - 664 sys sys 1142019024 1204
 lib/face/48x48x4/y - 20000000775 sys sys 1020895714 0
 lib/face/48x48x4/z - 20000000775 sys sys 1020895714 0
 lib/face/48x48x8 - 20000000775 sys sys 1123100641 0
-lib/face/48x48x8/.dict - 664 sys sys 1192767500 4266
+lib/face/48x48x8/.dict - 664 sys sys 1196265401 4295
 lib/face/48x48x8/Z - 20000000775 sys sys 1020895714 0
 lib/face/48x48x8/a - 20000000775 sys sys 1056983599 0
 lib/face/48x48x8/a/alcortes.1 - 664 sys sys 1176753392 976
@@ -7430,6 +7430,7 @@ sys/man/1/mc - 664 sys sys 1113743326 552
 sys/man/1/mk - 664 sys sys 1113743328 13198
 sys/man/1/mkdir - 664 sys sys 1082593141 717
 sys/man/1/mlmgr - 664 sys sys 1116513886 2542
+sys/man/1/mp3dec - 664 sys sys 1196227746 4987
 sys/man/1/mp3enc - 664 sys sys 1196208904 3236
 sys/man/1/ms2html - 664 sys sys 1138458899 1252
 sys/man/1/mug - 664 sys sys 1158800370 1424
@@ -8065,7 +8066,7 @@ sys/src/9/pc/apbootstrap.s - 664 sys sys 1131293655 3037
 sys/src/9/pc/apic.c - 664 sys sys 1174415344 8991
 sys/src/9/pc/apm.c - 664 sys sys 1131290210 3723
 sys/src/9/pc/apmjump.s - 664 sys sys 1032058947 1527
-sys/src/9/pc/archmp.c - 664 sys sys 1174614168 2407
+sys/src/9/pc/archmp.c - 664 sys sys 1196264189 2410
 sys/src/9/pc/audio.h - 664 sys sys 1015014513 343
 sys/src/9/pc/bios32.c - 664 sys sys 1173287378 3029
 sys/src/9/pc/cga.c - 664 sys sys 1015014513 1843
@@ -13286,7 +13287,7 @@ sys/src/cmd/replica/db.c - 664 sys sys 1019340165 2989
 sys/src/cmd/replica/mkfile - 664 sys sys 1032060527 647
 sys/src/cmd/replica/revdump.c - 664 sys sys 1018321112 651
 sys/src/cmd/replica/revproto.c - 664 sys sys 1081202241 8932
-sys/src/cmd/replica/updatedb.c - 664 sys sys 1068497831 3045
+sys/src/cmd/replica/updatedb.c - 664 sys sys 1196273470 3837
 sys/src/cmd/replica/util.c - 664 sys sys 1022274716 1997
 sys/src/cmd/resample.c - 664 sys sys 1039753039 6268
 sys/src/cmd/rio - 20000000775 sys sys 1080134231 0
@@ -14525,7 +14526,7 @@ sys/src/games/mahjongg/mahjongg.c - 664 sys sys 1191355577 3869
 sys/src/games/mahjongg/mahjongg.h - 664 sys sys 1191355577 2092
 sys/src/games/mahjongg/mkfile - 664 sys sys 1191354593 241
 sys/src/games/memo.c - 664 sys sys 1130853201 6471
-sys/src/games/mkfile - 664 sys sys 1140203009 595
+sys/src/games/mkfile - 664 sys sys 1196228150 621
 sys/src/games/mp3dec - 20000000775 sys sys 1196207939 0
 sys/src/games/mp3dec/audio.c - 664 sys sys 956186249 5802
 sys/src/games/mp3dec/audio.h - 664 sys sys 956186249 2275
@@ -15848,4 +15849,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/games/mp3dec - 775 sys sys 1196207154 355822
