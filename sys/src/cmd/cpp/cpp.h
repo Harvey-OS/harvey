@@ -33,6 +33,8 @@ enum kwtype { KIF, KIFDEF, KIFNDEF, KELIF, KELSE, KENDIF, KINCLUDE, KDEFINE,
 #define	EOFC	0xFD		/* sentinel for end of input file */
 #define	XPWS	1		/* token flag: white space to assure token sep. */
 
+enum { Notinmacro, Inmacro };
+
 typedef struct token {
 	unsigned char	type;
 	unsigned char 	flag;
@@ -109,11 +111,11 @@ void	dodefine(Tokenrow *);
 void	doadefine(Tokenrow *, int);
 void	doinclude(Tokenrow *);
 void	doif(Tokenrow *, enum kwtype);
-void	expand(Tokenrow *, Nlist *);
+void	expand(Tokenrow *, Nlist *, int);
 void	builtin(Tokenrow *, int);
 int	gatherargs(Tokenrow *, Tokenrow **, int, int *);
 void	substargs(Nlist *, Tokenrow *, Tokenrow **);
-void	expandrow(Tokenrow *, char *);
+void	expandrow(Tokenrow *, char *, int);
 void	maketokenrow(int, Tokenrow *);
 Tokenrow *copytokenrow(Tokenrow *, Tokenrow *);
 Token	*growtokenrow(Tokenrow *);

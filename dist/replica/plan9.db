@@ -5252,7 +5252,7 @@ lib/ndb/consoledb - 664 sys sys 960222421 95
 lib/ndb/dhcp - 20000000775 sys sys 1020895764 0
 lib/ndb/dnsdump - 664 sys sys 1032057649 61
 lib/ndb/local - 664 sys sys 1077723747 292
-lib/ndb/local.complicated - 664 sys sys 1188534891 2946
+lib/ndb/local.complicated - 664 sys sys 1196401790 2980
 lib/ndb/nfs - 664 sys sys 954036707 113
 lib/news - 20000000775 sys sys 1020895764 0
 lib/pci - 664 sys sys 1160617172 206912
@@ -7828,6 +7828,7 @@ sys/man/8/cec - 664 sys sys 1193683685 1929
 sys/man/8/cpurc - 664 sys sys 1187227584 1522
 sys/man/8/cron - 664 sys sys 1063858596 1867
 sys/man/8/dhcpd - 664 sys sys 1191306105 5575
+sys/man/8/diskparts - 664 sys sys 1196454103 696
 sys/man/8/disksim - 664 sys sys 1193174817 1700
 sys/man/8/drawterm - 664 sys sys 1181675938 1921
 sys/man/8/fossilcons - 664 sys sys 1187134504 18542
@@ -10053,13 +10054,13 @@ sys/src/cmd/con/xmr.c - 664 sys sys 1143759347 2872
 sys/src/cmd/con/xms.c - 664 sys sys 1022049386 3530
 sys/src/cmd/cp.c - 664 sys sys 1021580000 2928
 sys/src/cmd/cpp - 20000000775 sys sys 1039727553 0
-sys/src/cmd/cpp/cpp.c - 664 sys sys 1097900425 6211
-sys/src/cmd/cpp/cpp.h - 664 sys sys 1144691586 4707
-sys/src/cmd/cpp/eval.c - 664 sys sys 1178313120 9886
+sys/src/cmd/cpp/cpp.c - 664 sys sys 1196458745 6235
+sys/src/cmd/cpp/cpp.h - 664 sys sys 1196458746 4748
+sys/src/cmd/cpp/eval.c - 664 sys sys 1196458908 9898
 sys/src/cmd/cpp/hideset.c - 664 sys sys 944960879 1936
-sys/src/cmd/cpp/include.c - 664 sys sys 959299274 2845
+sys/src/cmd/cpp/include.c - 664 sys sys 1196458932 2857
 sys/src/cmd/cpp/lex.c - 664 sys sys 1166823021 13582
-sys/src/cmd/cpp/macro.c - 664 sys sys 1144691586 11287
+sys/src/cmd/cpp/macro.c - 664 sys sys 1196458858 11352
 sys/src/cmd/cpp/mkfile - 664 sys sys 944960879 178
 sys/src/cmd/cpp/nlist.c - 664 sys sys 1188413849 4745
 sys/src/cmd/cpp/test.c - 664 sys sys 944960879 47

@@ -116,7 +116,7 @@ eval(Tokenrow *trp, int kw)
 	}
 	ntok = trp->tp - trp->bp;
 	kwdefined->val = KDEFINED;	/* activate special meaning of defined */
-	expandrow(trp, "<if>");
+	expandrow(trp, "<if>", Notinmacro);
 	kwdefined->val = NAME;
 	vp = vals;
 	op = ops;
