@@ -138,7 +138,7 @@ syntax:
  * Flag is NULL if more input can be gathered.
  */
 void
-expandrow(Tokenrow *trp, char *flag)
+expandrow(Tokenrow *trp, char *flag, int inmacro)
 {
 	Token *tp;
 	Nlist *np;
@@ -170,7 +170,7 @@ expandrow(Tokenrow *trp, char *flag)
 		if (np->flag&ISMAC)
 			builtin(trp, np->val);
 		else {
-			expand(trp, np);
+			expand(trp, np, inmacro);
 		}
 		tp = trp->tp;
 	}
@@ -184,7 +184,7 @@ expandrow(Tokenrow *trp, char *flag)
  * (ordinarily the beginning of the expansion)
  */
 void
-expand(Tokenrow *trp, Nlist *np)
+expand(Tokenrow *trp, Nlist *np, int inmacro)
 {
 	Tokenrow ntr;
 	int ntokc, narg, i;
@@ -214,7 +214,8 @@ expand(Tokenrow *trp, Nlist *np)
 			dofree(atr[i]);
 		}
 	}
-	doconcat(&ntr);				/* execute ## operators */
+	if(!inmacro)
+		doconcat(&ntr);				/* execute ## operators */
 	hs = newhideset(trp->tp->hideset, np);
 	for (tp=ntr.bp; tp<ntr.lp; tp++) {	/* distribute hidesets */
 		if (tp->type==NAME) {
@@ -359,7 +360,7 @@ substargs(Nlist *np, Tokenrow *rtr, Tokenrow **atr)
 				insertrow(rtr, 1, atr[argno]);
 			else {
 				copytokenrow(&tatr, atr[argno]);
-				expandrow(&tatr, "<macro>");
+				expandrow(&tatr, "<macro>", Inmacro);
 				insertrow(rtr, 1, &tatr);
 				dofree(tatr.bp);
 			}
@@ -452,7 +453,7 @@ stringify(Tokenrow *vp)
 			error(ERROR, "Stringified macro arg is too long");
 			break;
 		}
-		if (tp->wslen && (tp->flag&XPWS)==0)
+		if (tp->wslen /* && (tp->flag&XPWS)==0 */)
 			*sp++ = ' ';
 		for (i=0, cp=tp->t; i<tp->len; i++) {	
 			if (instring && (*cp=='"' || *cp=='\\'))

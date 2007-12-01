@@ -1,0 +1,44 @@
+.TH DISKPARTS 8
+.SH NAME
+diskparts, dmaon \- prepare disks for use
+.SH SYNOPSIS
+.B diskparts
+.br
+.B dmaon
+.SH DESCRIPTION
+.I Diskparts
+configures FDISK and Plan 9 partitions on any disks named
+.BR /dev/sd* ,
+then configures
+.IR fs (3)
+by copying
+.BR /cfg/$sysname/fsconfig ,
+if present, to
+.BR /dev/fs/ctl ,
+if present,
+one line at a time.
+If
+.B #S
+or
+.B #k
+are not bound to
+.B /dev
+yet, they are first bound after the current contents.
+.PP
+.I Dmaon
+enables
+.SM DMA
+for all attached
+.SM IDE
+devices that claim to support it.
+.SH FILES
+.TF /dev/sd[C-H]?/ctl
+.TP
+.B /dev/sd[C-H]?/ctl
+storage interface control files for IDE devices
+.PD
+.SH SOURCE
+.B /rc/bin
+.SH SEE ALSO
+.IR sd (3),
+.IR partfs (8)
