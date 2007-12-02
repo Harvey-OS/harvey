@@ -1,0 +1,8 @@
+#!/bin/rc
+# list all usb devices
+rfork e
+for (id in /dev/usb[0-9]*/[0-9]*/status)
+	if (test -e $id) {
+		echo $id | sed 's;/status$;:	;' | tr -d '\12'
+		grep '^[A-Z]' $id
+	}

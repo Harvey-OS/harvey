@@ -487,7 +487,8 @@
 386/bin/usb/usbaudio - 775 sys sys 1184731243 188000
 386/bin/usb/usbd - 775 sys sys 1184731243 130757
 386/bin/usb/usbmouse - 775 sys sys 1184731244 109661
-386/bin/usb/usbprinter - 775 sys sys 1089408719 222
+386/bin/usb/usbprint - 775 sys sys 1196537245 314
+386/bin/usb/usbprobe - 775 sys sys 1196537245 173
 386/bin/vac - 775 sys sys 1189146367 170972
 386/bin/vacfs - 775 sys sys 1189146374 175780
 386/bin/venti - 20000000775 sys sys 947360466 0
@@ -6214,7 +6215,7 @@ sys/lib/dist/cmd/touchfs.c - 664 sys sys 1018469727 1120
 sys/lib/dist/cmd/unbflz.c - 664 sys sys 1018469727 1688
 sys/lib/dist/logcompress.awk - 664 sys sys 1068558028 298
 sys/lib/dist/logtime.awk - 664 sys sys 1019526213 38
-sys/lib/dist/mkfile - 664 sys sys 1188441860 5380
+sys/lib/dist/mkfile - 664 sys sys 1196547774 5490
 sys/lib/dist/pc - 20000000775 sys sys 1147022870 0
 sys/lib/dist/pc/cd0.proto - 664 sys sys 1114358485 7
 sys/lib/dist/pc/empty - 20000000775 sys sys 1020895854 0
@@ -7395,7 +7396,7 @@ sys/man/1/eqn - 664 sys sys 1134592617 5655
 sys/man/1/expect - 664 sys sys 1165622338 3018
 sys/man/1/faces - 664 sys sys 1113743326 2395
 sys/man/1/factor - 664 sys sys 1135084026 1015
-sys/man/1/fedex - 664 sys sys 1196368212 399
+sys/man/1/fedex - 664 sys sys 1196533426 528
 sys/man/1/file - 664 sys sys 1157143697 1481
 sys/man/1/filter - 664 sys sys 1159419912 6143
 sys/man/1/fmt - 664 sys sys 1070032221 1557
@@ -14557,7 +14558,7 @@ sys/src/games/mp3dec/l2tables.h - 664 sys sys 956186252 8305
 sys/src/games/mp3dec/layer1.c - 664 sys sys 956186252 3764
 sys/src/games/mp3dec/layer2.c - 664 sys sys 956186252 8602
 sys/src/games/mp3dec/layer3.c - 664 sys sys 956186252 50154
-sys/src/games/mp3dec/mkfile - 664 sys sys 956257007 824
+sys/src/games/mp3dec/mkfile - 664 sys sys 1196544425 839
 sys/src/games/mp3dec/mpg123.c - 664 sys sys 956186253 33082
 sys/src/games/mp3dec/mpg123.h - 664 sys sys 956256699 9852
 sys/src/games/mp3dec/readers.c - 664 sys sys 956186253 9684
@@ -14594,7 +14595,7 @@ sys/src/games/mp3enc/machine.h - 664 sys sys 986804078 3561
 sys/src/games/mp3enc/main.c - 664 sys sys 1187996179 7153
 sys/src/games/mp3enc/main.h - 664 sys sys 986804326 1552
 sys/src/games/mp3enc/memory.h - 664 sys sys 986804049 40
-sys/src/games/mp3enc/mkfile - 664 sys sys 1188011539 1108
+sys/src/games/mp3enc/mkfile - 664 sys sys 1196544606 1086
 sys/src/games/mp3enc/mpglib_interface.c - 664 sys sys 986804078 4606
 sys/src/games/mp3enc/newmdct.c - 664 sys sys 986804078 32298
 sys/src/games/mp3enc/newmdct.h - 664 sys sys 986804078 1017
