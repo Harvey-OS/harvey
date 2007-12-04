@@ -61,6 +61,7 @@ all:V: $O.out
 
 clean:V:
 	rm -f *.[$OS] [$OS].out
+nuke:V: clean
 
 install:V:	$O.out
 	cp $O.out /$objtype/bin/games/mp3dec
