@@ -30,9 +30,14 @@ etherattach(char* spec)
 		error(Enodev);
 
 	chan = devattach('l', spec);
+	if(waserror()){
+		chanfree(chan);
+		nexterror();
+	}
 	chan->dev = ctlrno;
 	if(etherxx[ctlrno]->attach)
 		etherxx[ctlrno]->attach(etherxx[ctlrno]);
+	poperror();
 	return chan;
 }
 
@@ -251,7 +256,7 @@ etherwrite(Chan* chan, void* buf, long n, vlong)
 		if(nn >= 0)
 			return nn;
 		cb = parsecmd(buf, n);
-		if(strcmp(cb->f[0], "nonblocking") == 0){
+		if(cb->f[0] && strcmp(cb->f[0], "nonblocking") == 0){
 			if(cb->nf <= 1)
 				onoff = 1;
 			else

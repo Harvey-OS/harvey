@@ -52,3 +52,8 @@ installall:V:
 	for(objtype in $CPUS)
 		mk $MKFLAGS install
 	mk rcinstall
+
+clean:V:
+	;
+nuke:V: clean
+	;

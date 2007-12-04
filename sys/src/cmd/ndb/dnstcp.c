@@ -31,7 +31,7 @@ static void	refreshmain(char*);
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-rR] [-f ndb-file] [-x netmtpt]\n", argv0);
+	fprint(2, "usage: %s [-rR] [-f ndb-file] [-x netmtpt] [conndir]\n", argv0);
 	exits("usage");
 }
 
