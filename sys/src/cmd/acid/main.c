@@ -279,7 +279,7 @@ readtext(char *s)
 		print("%s: (error) syminit: %r\n", argv0);
 		return;
 	}
-	print("%s:%s\n\n", s, fhdr.name);
+	print("%s:%s\n", s, fhdr.name);
 
 	if(mach->sbreg && lookup(0, mach->sbreg, &sym)) {
 		mach->sb = sym.value;

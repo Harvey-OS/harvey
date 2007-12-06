@@ -1,0 +1,136 @@
+.TH AQUARELA 1
+.SH NAME
+aquarela \- Microsoft\(tm Windows filesystem server
+.SH SYNOPSIS
+.B aquarela
+[
+.B -d
+.I option
+] [
+.B -n
+] [
+.B -p 
+] [
+.B -u
+.I 0|1
+] [
+.B -w
+.I name 
+]
+.SH DESCRIPTION
+.I Aquarela
+listens on port 455, 137, and optionally 129 for incoming
+Microsoft file-sharing protocol (also known as
+.SM SMB
+or
+.SM CIFS\c
+) requests for files and fulfills these from its namespace.
+.PP
+.I Aquarela's
+authentication uses the Inferno/pop secret held by the auth server.
+Transcoding is performed between spaces and non-breaking spaces to accommodate 
+fileservers other than fossil.
+Debug and log messages are appended to
+.L /sys/log/aquarela
+if it exists.
+By default the share 
+.B /
+is offered, which represents the root of the local Plan 9 filesystem.
+If a different name is requested by the client, then
+.I 9fs
+(see
+.IR srv (4))
+is invoked to attach that filesystem, which is then exported instead.
+.PP
+The options are:
+.TP
+.B -d
+.I option
+Enable one of many possible debugging options; see below 
+.TP
+.B -n
+Enable vestigial NetBios support, a NetBios listener is started
+to answer name queries, to register the the local host with the Local
+Master Browser for the chosen workgroup. 
+.I Aquarela
+can not not act as a Local Master Browser, so relies on the existence
+of an external one on the network, e.g. Samba's 
+.IR nmbd .
+This option is required to make the local machine appear in
+.I Windows
+machines
+.IR "Network Neighbourhood" ,
+however Windows machines do not need this if they map a drive directly
+to the Plan 9 systems
+.SM IP
+address.
+.TP
+.B -p
+Sends log messages to standard output, as well as to the log file.
+.TP
+.B -u
+.I 0|1
+Enable or disable Unicode support; since there is no code page support,
+the server actually sends
+.SM UTF
+if this is disabled 
+.TP
+.B -w
+.I name
+Sets the workgroup (or primary domain) to name.
+The default is
+.SM PLAN9 
+.SS "DEBUG OPTIONS"
+.TF allcmds
+.TP
+.B allcmds
+All
+.SM SMB
+requests and responses 
+.TP
+.B tids
+Connection and disconnection of clients to shares 
+.TP
+.B sids
+Creation and deletion of search ids 
+.TP
+.B fids
+Creation and deletion of file ids 
+.TP
+.B rap2
+RAP calls 
+.TP
+.B find 
+Trans2 find commands 
+.TP
+.B query
+Trans2 query commands 
+.TP
+.B sharedfiles
+All files opened 
+.TP
+.B poolparanoia 
+Draconian error checking in memory allocator 
+.TP
+.B sessions
+Connections and disconnections to the server 
+.TP
+.B rep
+Regular expression conversions 
+.TP
+.B locks
+Locking activity 
+.TP
+.B any-smb-name
+If the debug option matches the symbolic name of a 
+.SM SMB
+request or transaction2 sub-request 
+(e.g.
+.SM SMB_COM_SESSION_SETUP_ANDX
+or
+.SM SMB_TRANS2_FIND_FIRST2\c
+) logging is enabled for just that message type. 
+.TP
+.B 0xnn
+A 2 digit hex constant enables debugging of the message with this
+numeric id.

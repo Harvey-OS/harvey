@@ -84,7 +84,7 @@ execute(Node *n)
 	switch(n->op) {
 	default:
 		expr(n, &res);
-		if(ret || (res.type == TLIST && res.l == 0))
+		if(ret || (res.type == TLIST && res.l == 0 && n->op != OADD))
 			break;
 		prnt->right = &res;
 		expr(prnt, &xx);
