@@ -358,6 +358,9 @@ enum	as
 	AREMDUV,
 	AREMDUVCC,
 
+	/* more 64-bit operations */
+	AHRFID,
+
 	ALAST
 };
 

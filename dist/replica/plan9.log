@@ -18125,3 +18125,8 @@
 1196895604 2 c sys/src/cmd/acid/expr.c - 664 sys sys 1196895295 15497
 1196895604 3 c sys/src/cmd/acid/main.c - 664 sys sys 1196895291 8547
 1196915404 0 c 386/bin/acid - 775 sys sys 1196914668 405249
+1196958607 0 c sys/lib/dist/mkfile - 664 sys sys 1196959057 5493
+1196958607 1 c sys/src/libmach/9c/9.out.h - 664 sys sys 1196959035 4709
+1196960404 0 c sys/lib/dist/mkfile - 664 sys sys 1196959057 5493
+1196960404 1 c sys/src/libmach/9c/9.out.h - 664 sys sys 1196959035 4709
+1196973005 0 c 386/lib/libmach.a - 664 sys sys 1196972899 807480

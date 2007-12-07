@@ -1,0 +1,50 @@
+#!/bin/rc
+
+if(~ $fscons '')
+	fscons=fscons
+if(~ $replica '')
+	replica=replica
+
+s=/n/dist/dist/replica
+serverroot=/n/dist
+serverlog=$s/plan9binary.log
+serverproto=$s/plan9binary.proto
+fn servermount {
+	9fs sources
+	bind /n/sources/plan9 /n/dist
+}
+fn serverupdate { status='' }
+
+if ( ! test -e /srv/boot && ! test -e /srv/kfs ) {
+	echo 'error: neither /srv/boot nor /srv/kfs present; make sure you are running on the file server'
+	exit '/srv/boot or /srv/kfs not present'
+}
+
+if (test -e /srv/$fscons) {
+	if ( ! test -w /srv/$fscons ) { 
+		echo 'error: no write access to /srv/'^$fscons^', make sure you are the host owner' 
+		exit 'no write access to /srv/fscons'
+	}
+
+	fn clientmount {
+		if(! test -e /srv/$replica){
+			echo 'srv -AWP '^$replica >>/srv/$fscons
+			sleep 5
+		}
+		mount -c /srv/$replica /n/boot
+	}
+	c=/n/boot/dist/replica
+	clientroot=/n/boot
+} 
+if not {
+	fn clientmount { 9fs kfs }
+	c=/n/kfs/dist/replica
+	clientroot=/n/kfs
+}
+
+clientdb=$c/client/plan9binary.db
+clientexclude=(dist/replica/client)
+clientlog=$c/client/plan9binary.log
+clientproto=$c/plan9binary.proto
+
+applyopt=(-u -T$c/client/plan9binary.time)

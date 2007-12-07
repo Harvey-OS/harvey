@@ -45,7 +45,7 @@ compresslog:V:
 	{
 	awk -f logcompress.awk $d/dist/replica/plan9.log |
 		awk -f logtime.awk -v 't='^`{date -n} >/tmp/plan9.log
-	rm $d/dist/replica/plan9.new.log
+	rm -f $d/dist/replica/plan9.new.log
 	cp /tmp/plan9.log $d/dist/replica/plan9.new.log &&
 		mv $d/dist/replica/plan9.new.log $d/dist/replica/plan9.log
 	} <scan.lock
