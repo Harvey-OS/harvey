@@ -160,6 +160,11 @@ sys	- sys sys
 	man	- sys sys
 		+	- sys sys
 	src	- sys sys
+		cmd	- sys sys
+			mkfile
+			mklib
+			mkmany
+			mkone
 		mkfile
 		mkfile.proto
 tmp	- sys sys
