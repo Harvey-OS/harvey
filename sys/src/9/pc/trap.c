@@ -361,7 +361,7 @@ trap(Ureg* ureg)
 				preempted();
 		}
 	}
-	else if(vno <= nelem(excname) && user){
+	else if(vno < nelem(excname) && user){
 		spllo();
 		sprint(buf, "sys: trap: %s", excname[vno]);
 		postnote(up, 1, buf, NDebug);

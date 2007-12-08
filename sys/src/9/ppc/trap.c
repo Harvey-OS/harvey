@@ -283,7 +283,7 @@ trap(Ureg *ureg)
 		panic(s);
 		break;
 	default:
-		if(ecode <= nelem(excname) && user){
+		if(ecode < nelem(excname) && user){
 			spllo();
 			sprint(buf, "sys: trap: %s", excname[ecode]);
 			postnote(up, 1, buf, NDebug);
