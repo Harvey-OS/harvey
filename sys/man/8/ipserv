@@ -2,7 +2,6 @@
 .SH NAME
 telnetd, rlogind, rexexec, ftpd \- Internet remote access daemons
 .SH SYNOPSIS
-.PP
 .B ip/telnetd
 .RB [ -adnptN ]
 .RB [ -u
@@ -28,7 +27,7 @@ started from scripts in
 .I Telnetd
 allows login from a remote client.
 There are three types of login:
-.TF anonymous
+.TF anonymo
 .TP
 .I normal
 Normal users log in by encrypting and returning a
@@ -47,7 +46,7 @@ defines the namespace.
 Users in group
 .B noworld
 in
-.BR /adm/users 
+.BR /adm/users
 authenticate with a password in the clear.
 .B /lib/namespace.noworld
 defines the namespace.
@@ -56,12 +55,13 @@ defines the namespace.
 User
 .B none
 requires no authentication.
-.B /lib/namespace 
+.B /lib/namespace
 defines the namespace.
 .PD
 .PP
-The options are:
-.TP
+.IR Telnetd 's
+options are:
+.TP 4
 .B a
 allow anonymous login by
 .B none
@@ -109,7 +109,7 @@ remote machines.
 As for
 .IR telnetd ,
 there are three types of login:
-.TF anonymous
+.TF anonymo
 .TP
 .I normal
 Normal users authenticate
@@ -145,8 +145,9 @@ below
 .BR /incoming .
 .PD
 .PP
-The options are:
-.TP
+.IR Ftpd 's
+options are:
+.TP 4
 .B a
 allow anonymous access
 .B A
@@ -172,52 +173,6 @@ is locked by
 see
 .IR httpd (8).
 .PP
-.I Imap4d
-provides access to a user's mailboxes via the IMAP4rev1 protocol.
-Only files rooted in
-.BI /mail/box/ username /
-are accessible.
-The list of subscribed mailboxes is contained in
-.BI /mail/box/ username /imap.subscribed ,
-and initially contains only
-.BR INBOX ,
-IMAP's name for the user's mailbox.
-A shadow file,
-.IB mailbox .imp ,
-is created for each mailbox examined.
-.PP
-The options are:
-.TP
-.B a
-Assume the user is already authenticated.
-By default, the user must authenticate using
-CRAM-MD5 or
-.IR securenet (8)
-challenge/response authentication.
-.TP
-.B p
-Allow login authentication.  This option
-should only be enabled for servers using
-an encrypted connection, such as SSL,
-and when enabled, all non-encrypted connections should be disallowed.
-.I Imap4d
-does not enforce this policy.
-.TP
-.B s
-The server's name.
-If none is provided,
-.B cs
-(see
-.IR ndb (8))
-is queried or
-.B /env/sysname
-is used.
-.TP
-.B d
-The local mail domain.
-Defaults to the server
-.B /env/site
-in the mail server's domain.
 .SH FILES
 .B /lib/namepace
 .br
@@ -226,12 +181,6 @@ in the mail server's domain.
 .B /lib/namespace.world
 .br
 .B /lib/namespace.ftp
-.br
-.BI /mail/box/ username / mailbox
-.br
-.BI /mail/box/ username / mailbox .imp
-.br
-.BI /mail/box/ username /imap.subscribed
 .SH SOURCE
 .B /sys/src/cmd/ip/telnetd.c
 .br
@@ -240,8 +189,6 @@ in the mail server's domain.
 .B /sys/src/cmd/ip/rexexec.c
 .br
 .B /sys/src/cmd/ip/ftpd.c
-.br
-.B /sys/src/cmd/ip/imap4d/
-.br
 .SH "SEE ALSO"
-.IR ftpfs (4)
+.IR ftpfs (4),
+.IP pop3 (8)
