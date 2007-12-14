@@ -409,7 +409,7 @@
 386/bin/snap - 775 sys sys 1188530194 316182
 386/bin/snapfs - 775 sys sys 1188530202 390401
 386/bin/sniffer - 775 sys sys 1038443185 99028
-386/bin/snoopy - 775 sys sys 1196742526 194911
+386/bin/snoopy - 775 sys sys 1197579415 195288
 386/bin/sort - 775 sys sys 1178568303 81057
 386/bin/spin - 775 sys sys 1186543935 769291
 386/bin/split - 775 sys sys 1181507270 75811
@@ -730,7 +730,7 @@ acme/news/src/util.c - 664 sys sys 1015097408 1385
 acme/news/src/win.c - 664 sys sys 1015097408 5174
 acme/news/src/win.h - 664 sys sys 1015011247 1655
 acme/wiki - 20000000775 sys sys 1039727915 0
-acme/wiki/guide - 444 sys sys 1038243508 98
+acme/wiki/guide - 444 sys sys 1197570947 59
 acme/wiki/src - 20000000775 sys sys 1039727915 0
 acme/wiki/src/awiki.h - 664 sys sys 1125314888 2172
 acme/wiki/src/main.c - 664 sys sys 1018387015 848
@@ -7841,8 +7841,8 @@ sys/man/8/getflags - 664 sys sys 1196638947 1713
 sys/man/8/gpsfs - 664 sys sys 1196638947 4918
 sys/man/8/httpd - 664 sys sys 1196638947 6866
 sys/man/8/init - 664 sys sys 1196638947 1430
-sys/man/8/ipconfig - 664 sys sys 1196638947 8187
-sys/man/8/ipserv - 664 sys sys 1196638947 4411
+sys/man/8/ipconfig - 664 sys sys 1197574322 8207
+sys/man/8/ipserv - 664 sys sys 1197574309 3268
 sys/man/8/kfscmd - 664 sys sys 1196638947 4514
 sys/man/8/listen - 664 sys sys 1196638947 4032
 sys/man/8/lp - 664 sys sys 1196638947 2491
@@ -7860,7 +7860,7 @@ sys/man/8/pcmcia - 664 sys sys 1196638947 408
 sys/man/8/pem - 664 sys sys 1196638947 1189
 sys/man/8/ping - 664 sys sys 1196638947 3650
 sys/man/8/plan9.ini - 664 sys sys 1196638947 23835
-sys/man/8/pop3 - 664 sys sys 1196638948 2720
+sys/man/8/pop3 - 664 sys sys 1197574309 3122
 sys/man/8/ppp - 664 sys sys 1196638948 4430
 sys/man/8/prep - 664 sys sys 1196638948 14201
 sys/man/8/qer - 664 sys sys 1196638948 4909
@@ -7883,7 +7883,7 @@ sys/man/8/tlssrv - 664 sys sys 1196638948 2589
 sys/man/8/trampoline - 664 sys sys 1196638948 1199
 sys/man/8/udpecho - 664 sys sys 1196638948 303
 sys/man/8/update - 664 sys sys 1196638948 2336
-sys/man/8/venti - 664 sys sys 1196638948 12190
+sys/man/8/venti - 664 sys sys 1197570117 12190
 sys/man/8/venti-backup - 664 sys sys 1196638948 2102
 sys/man/8/venti-fmt - 664 sys sys 1196638948 8626
 sys/man/8/vga - 664 sys sys 1196638948 4129
@@ -12565,7 +12565,7 @@ sys/src/cmd/ip/snoopy/aoeata.c - 664 sys sys 1181426199 1852
 sys/src/cmd/ip/snoopy/aoecmd.c - 664 sys sys 1181426199 1152
 sys/src/cmd/ip/snoopy/arp.c - 664 sys sys 1128179536 1914
 sys/src/cmd/ip/snoopy/bootp.c - 664 sys sys 1139667382 3442
-sys/src/cmd/ip/snoopy/cec.c - 664 sys sys 1181426201 1476
+sys/src/cmd/ip/snoopy/cec.c - 664 sys sys 1197570703 1507
 sys/src/cmd/ip/snoopy/dat.h - 664 sys sys 1146318302 1933
 sys/src/cmd/ip/snoopy/dhcp.c - 664 sys sys 1186081890 8965
 sys/src/cmd/ip/snoopy/dns.c - 664 sys sys 1186081910 8710

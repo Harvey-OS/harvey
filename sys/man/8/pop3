@@ -1,6 +1,6 @@
 .TH POP3 8
 .SH NAME
-pop3, imap4d \-  mail servers
+pop3, imap4d \- Internet mail servers
 .SH SYNOPSIS
 .PP
 .B upas/pop3
@@ -27,11 +27,17 @@ pop3, imap4d \-  mail servers
 .RB [ -s
 .IR servername ]
 .SH DESCRIPTION
+These programs support remote access to mail across the Internet.
+All expect the network connection to be standard input, output, and error.
+They are normally started from scripts in
+.B /rc/bin/service
+(see
+.IR listen (8)).
 .PP
 .I Pop3
 provides access to a user's mailboxes via the POP3 protocol.
 The options are:
-.TP
+.TP 4
 .B -d
 create
 .I debugfile
@@ -74,8 +80,9 @@ A shadow file,
 .IB mailbox .imp ,
 is created for each mailbox examined.
 .PP
-The options are:
-.TP
+.IR Imap4d 's
+options are:
+.TP 4
 .B a
 Assume the user is already authenticated.
 By default, the user must authenticate using
@@ -122,13 +129,19 @@ secret held by
 .IR keyfs (4)
 running on the authentication server.
 .SH FILES
+.TF /mail/box/username/imap.subscrib
 .TP
 .B /sys/log/imap4d
-\- debugging output
+debugging output
+.TP
+.BI /mail/box/ username / mailbox
+.TP
+.BI /mail/box/ username / mailbox .imp
+.TP
+.BI /mail/box/ username /imap.subscribed
 .SH SOURCE
-.TP
 .B /sys/src/cmd/upas/pop3
-.TP
+.br
 .B /sys/src/cmd/ip/imap4d
 .SH "SEE ALSO"
 .IR aliasmail (8),

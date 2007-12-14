@@ -40,7 +40,7 @@ venti \- archival storage server
 Venti
 is a SHA1-addressed archival storage server.
 See 
-.IR venti (8)
+.IR venti (6)
 for a full introduction to the system.
 This page documents the structure and operation of the server.
 .PP

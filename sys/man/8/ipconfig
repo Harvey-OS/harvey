@@ -47,7 +47,7 @@ ipconfig, rip, linklocal, ipv6on \- Internet configuration and routing
 .B ip/linklocal
 [
 .B -t
-.I ipv4
+.I gwipv4
 ]
 .I mac
 \&...
@@ -307,9 +307,11 @@ Given
 instead prints the
 .I 6to4
 EUI-64-based IPv6 address corresponding to
-.I ipv4
+.I mac
 and
-.IR mac .
+.I 6to4
+gateway
+.IR gwipv4 .
 .PP
 .I Ipv6on
 uses the network database at
