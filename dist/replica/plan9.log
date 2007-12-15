@@ -18143,3 +18143,11 @@
 1197574206 1 c sys/man/8/ipserv - 664 sys sys 1197574309 3268
 1197574206 2 c sys/man/8/pop3 - 664 sys sys 1197574309 3122
 1197579605 0 c 386/bin/snoopy - 775 sys sys 1197579415 195288
+1197657004 0 c sys/lib/acid/386 - 664 sys sys 1197656621 3173
+1197657004 1 c sys/src/cmd/acid/main.c - 664 sys sys 1197656636 8647
+1197666003 0 c 386/bin/acid - 775 sys sys 1197665698 405309
+1197673204 0 c sys/games/lib/fortunes - 664 sys sys 1197673161 267929
+1197673204 1 c sys/src/cmd/aquarela/alarm.c - 664 sys sys 1197673331 2170
+1197673204 2 c sys/src/cmd/disk/prep/fdisk.c - 664 sys sys 1197673079 22324
+1197673204 3 c sys/src/cmd/ip/linklocal.c - 664 sys sys 1197673397 1751
+1197673204 4 c sys/src/libdraw/font.c - 664 sys sys 1197673270 7648

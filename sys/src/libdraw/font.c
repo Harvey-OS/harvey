@@ -355,6 +355,8 @@ fontresize(Font *f, int wid, int ncache, int depth)
 	ret = 0;
 	if(depth <= 0)
 		depth = 1;
+	if(wid <= 0)
+		wid = 1;
 
 	d = f->display;
 	if(d == nil)

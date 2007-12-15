@@ -18,6 +18,7 @@ static	int attachfiles(char*, int);
 int	xfmt(Fmt*);
 int	isnumeric(char*);
 void	die(void);
+void	loadmoduleobjtype(void);
 
 void
 usage(void)
@@ -110,6 +111,8 @@ main(int argc, char *argv[])
 		varreg();		/* use default register set on error */
 
 	loadmodule("/sys/lib/acid/port");
+	loadmoduleobjtype();
+
 	for(i = 0; i < nlm; i++) {
 		if(access(lm[i], AREAD) >= 0)
 			loadmodule(lm[i]);
@@ -194,15 +197,22 @@ die(void)
 }
 
 void
+loadmoduleobjtype(void)
+{
+	char *buf;
+
+	buf = smprint("/sys/lib/acid/%s", mach->name);
+	loadmodule(buf);
+	free(buf);
+}
+
+void
 userinit(void)
 {
 	Lsym *l;
 	Node *n;
 	char *buf, *p;
 
-	buf = smprint("/sys/lib/acid/%s", mach->name);
-	loadmodule(buf);
-	free(buf);
 	p = getenv("home");
 	if(p != 0) {
 		buf = smprint("%s/lib/acid", p);
