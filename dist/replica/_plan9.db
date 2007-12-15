@@ -18,7 +18,7 @@
 386/bin/8l - 775 sys sys 1148500567 115711
 386/bin/9660srv - 775 sys sys 1168402261 104975
 386/bin/aan - 775 sys sys 1196742429 129831
-386/bin/acid - 775 sys sys 1196914668 405249
+386/bin/acid - 775 sys sys 1197665698 405309
 386/bin/acme - 775 sys sys 1196742437 431741
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1173754547 134719
@@ -5839,7 +5839,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1195163116 267897
+sys/games/lib/fortunes - 664 sys sys 1197673161 267929
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -6125,7 +6125,7 @@ sys/include/trace.h - 664 sys sys 1138460022 640
 sys/include/venti.h - 664 sys sys 1188621741 9941
 sys/lib - 20000000775 sys sys 1105564897 0
 sys/lib/acid - 20000000775 sys sys 1114524607 0
-sys/lib/acid/386 - 664 sys sys 1168035402 3188
+sys/lib/acid/386 - 664 sys sys 1197656621 3173
 sys/lib/acid/68020 - 664 sys sys 944955985 2487
 sys/lib/acid/acme - 664 sys sys 969499632 2291
 sys/lib/acid/alef - 664 sys sys 944955985 2293
@@ -9456,7 +9456,7 @@ sys/src/cmd/acid/exec.c - 664 sys sys 1196895288 8400
 sys/src/cmd/acid/expr.c - 664 sys sys 1196895295 15497
 sys/src/cmd/acid/lex.c - 664 sys sys 1131289460 7963
 sys/src/cmd/acid/list.c - 664 sys sys 1131289462 3680
-sys/src/cmd/acid/main.c - 664 sys sys 1196895291 8547
+sys/src/cmd/acid/main.c - 664 sys sys 1197656636 8647
 sys/src/cmd/acid/mkfile - 664 sys sys 1046199006 366
 sys/src/cmd/acid/print.c - 664 sys sys 1131289462 6831
 sys/src/cmd/acid/proc.c - 664 sys sys 1143223273 4333
@@ -9489,7 +9489,7 @@ sys/src/cmd/acme/xfid.c - 664 sys sys 1125314186 19766
 sys/src/cmd/aquarela - 20000000775 sys sys 1135892145 0
 sys/src/cmd/aquarela/COPYRIGHT - 664 sys sys 1135892145 43
 sys/src/cmd/aquarela/addname.c - 664 sys sys 1135892108 1281
-sys/src/cmd/aquarela/alarm.c - 664 sys sys 1135892108 2194
+sys/src/cmd/aquarela/alarm.c - 664 sys sys 1197673331 2170
 sys/src/cmd/aquarela/alloc.c - 664 sys sys 1135892108 245
 sys/src/cmd/aquarela/aquarela.c - 664 sys sys 1136651999 7027
 sys/src/cmd/aquarela/cifscmd.c - 664 sys sys 1135892108 4430
@@ -10268,7 +10268,7 @@ sys/src/cmd/disk/prep - 20000000775 sys sys 1055692957 0
 sys/src/cmd/disk/prep/calc.y - 664 sys sys 1135487935 2406
 sys/src/cmd/disk/prep/edit.c - 664 sys sys 1017854327 9714
 sys/src/cmd/disk/prep/edit.h - 664 sys sys 1015009215 994
-sys/src/cmd/disk/prep/fdisk.c - 664 sys sys 1193693218 22265
+sys/src/cmd/disk/prep/fdisk.c - 664 sys sys 1197673079 22324
 sys/src/cmd/disk/prep/mkfile - 664 sys sys 1022450200 250
 sys/src/cmd/disk/prep/prep.c - 664 sys sys 1193692640 10170
 sys/src/cmd/disk/rd9660.c - 664 sys sys 1021579990 7446
@@ -12532,7 +12532,7 @@ sys/src/cmd/ip/ipconfig/ipv6.c - 664 sys sys 1185923430 20620
 sys/src/cmd/ip/ipconfig/main.c - 664 sys sys 1185923495 39912
 sys/src/cmd/ip/ipconfig/mkfile - 664 sys sys 1184880750 233
 sys/src/cmd/ip/ipconfig/ppp.c - 664 sys sys 1184880751 1046
-sys/src/cmd/ip/linklocal.c - 664 sys sys 1177099730 867
+sys/src/cmd/ip/linklocal.c - 664 sys sys 1197673397 1751
 sys/src/cmd/ip/measure.c - 664 sys sys 944961011 3733
 sys/src/cmd/ip/mkfile - 664 sys sys 1185920805 1267
 sys/src/cmd/ip/ping.c - 664 sys sys 1186208356 10518
@@ -15258,7 +15258,7 @@ sys/src/libdraw/ellipse.c - 664 sys sys 1040442971 1936
 sys/src/libdraw/emenuhit.c - 664 sys sys 1014927874 7136
 sys/src/libdraw/event.c - 664 sys sys 1143695460 8960
 sys/src/libdraw/fmt.c - 664 sys sys 1070344369 270
-sys/src/libdraw/font.c - 664 sys sys 1115916587 7623
+sys/src/libdraw/font.c - 664 sys sys 1197673270 7648
 sys/src/libdraw/freesubfont.c - 664 sys sys 984709664 259
 sys/src/libdraw/getdefont.c - 664 sys sys 1135547941 1108
 sys/src/libdraw/getrect.c - 664 sys sys 1014927875 3046

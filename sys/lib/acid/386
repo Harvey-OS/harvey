@@ -111,28 +111,28 @@ defn pstop(pid)
 
 aggr Ureg
 {
-	'U' 0 di;
-	'U' 4 si;
-	'U' 8 bp;
-	'U' 12 nsp;
-	'U' 16 bx;
-	'U' 20 dx;
-	'U' 24 cx;
-	'U' 28 ax;
-	'U' 32 gs;
-	'U' 36 fs;
-	'U' 40 es;
-	'U' 44 ds;
-	'U' 48 trap;
-	'U' 52 ecode;
-	'U' 56 pc;
-	'U' 60 cs;
-	'U' 64 flags;
+	'X' 0 di;
+	'X' 4 si;
+	'X' 8 bp;
+	'X' 12 nsp;
+	'X' 16 bx;
+	'X' 20 dx;
+	'X' 24 cx;
+	'X' 28 ax;
+	'X' 32 gs;
+	'X' 36 fs;
+	'X' 40 es;
+	'X' 44 ds;
+	'X' 48 trap;
+	'X' 52 ecode;
+	'X' 56 pc;
+	'X' 60 cs;
+	'X' 64 flags;
 	{
-	'U' 68 usp;
-	'U' 68 sp;
+	'X' 68 usp;
+	'X' 68 sp;
 	};
-	'U' 72 ss;
+	'X' 72 ss;
 };
 
 defn
@@ -156,7 +156,6 @@ Ureg(addr) {
 	print("	cs	", addr.cs, "\n");
 	print("	flags	", addr.flags, "\n");
 	print("	sp	", addr.sp, "\n");
-	print("}\n");
 	print("	ss	", addr.ss, "\n");
 };
 sizeofUreg = 76;
