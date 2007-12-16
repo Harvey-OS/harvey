@@ -228,7 +228,8 @@ pullupblock(Block *bp, int n)
 		} else {
 			/* shouldn't happen but why crash if it does */
 			if(i < 0){
-				print("pullup negative length packet\n");
+				print("pullup negative length packet, called from 0x%p\n",
+					getcallerpc(&bp));
 				i = 0;
 			}
 			memmove(bp->wp, nbp->rp, i);
@@ -574,9 +575,10 @@ qpass(Queue *q, Block *b)
 		return -1;
 	}
 	if(q->state & Qclosed){
+		len = BALLOC(b);
 		freeblist(b);
 		iunlock(q);
-		return BALLOC(b);
+		return len;
 	}
 
 	/* add buffer to queue */
