@@ -141,7 +141,7 @@ enum {					/* Ctrl */
 
 enum {					/* Status */
 	Lu		= 1<<1,		/* Link Up */
-	Lanid		= 3<<2,		/* mask for Lan ID.
+	Lanid		= 3<<2,		/* mask for Lan ID. */
 	Txoff		= 1<<4,		/* Transmission Paused */
 	Tbimode		= 1<<5,		/* TBI Mode Indication */
 	Phyra		= 1<<10,	/* PHY Reset Asserted */
@@ -1332,8 +1332,9 @@ i82563reset(Ctlr *ctlr)
 		ctlr->ra[2*i]   = ctlr->eeprom[i];
 		ctlr->ra[2*i+1] = ctlr->eeprom[i] >> 8;
 	}
-	r = csr32r(ctlr, Status) >> 2;
-	ctlr->ra[5] += r & 3;		/* ea ctlr[1] = ea ctlr[0] + 1 */
+	r = (csr32r(ctlr, Status) & Lanid) >> 2;
+	ctlr->ra[5] += r;		/* ea ctlr[1] = ea ctlr[0]+1 */
+
 	r = ctlr->ra[3]<<24 | ctlr->ra[2]<<16 | ctlr->ra[1]<<8 | ctlr->ra[0];
 	csr32w(ctlr, Ral, r);
 	r = 0x80000000 | ctlr->ra[5]<<8 | ctlr->ra[4];
