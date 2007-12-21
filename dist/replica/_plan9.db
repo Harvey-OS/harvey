@@ -36,7 +36,7 @@
 386/bin/ape/stty - 775 sys sys 1148500571 41080
 386/bin/ape/tar - 775 sys sys 1168402264 62184
 386/bin/ape/uname - 775 sys sys 1173754552 134895
-386/bin/aquarela - 775 sys sys 1197732624 337700
+386/bin/aquarela - 775 sys sys 1198183082 337692
 386/bin/ar - 775 sys sys 1178939751 114363
 386/bin/archfs - 775 sys sys 1179372067 146788
 386/bin/ascii - 775 sys sys 1168402265 64884
@@ -260,7 +260,7 @@
 386/bin/games/jukefs - 775 sys sys 1196742485 164538
 386/bin/games/mahjongg - 775 sys sys 1197732724 165258
 386/bin/games/memo - 775 sys sys 1197732727 156672
-386/bin/games/mp3dec - 775 sys sys 1196207154 355822
+386/bin/games/mp3dec - 775 sys sys 1198183090 388585
 386/bin/games/mp3enc - 775 sys sys 1196220182 530357
 386/bin/games/playlistfs - 775 sys sys 1196742488 148960
 386/bin/games/sokoban - 775 sys sys 1197732730 165530
@@ -6099,7 +6099,7 @@ sys/include/frame.h - 664 sys sys 1196212617 2708
 sys/include/geometry.h - 664 sys sys 1014929063 2632
 sys/include/html.h - 664 sys sys 1184472600 15622
 sys/include/httpd.h - 664 sys sys 1190835025 5800
-sys/include/ip.h - 664 sys sys 1187047442 4383
+sys/include/ip.h - 664 sys sys 1198184776 4401
 sys/include/keyboard.h - 664 sys sys 1131637696 865
 sys/include/libc.h - 664 sys sys 1168306860 19851
 sys/include/libsec.h - 664 sys sys 1188328413 8684
@@ -7354,7 +7354,6 @@ sys/man/1/INDEX.html - 664 sys sys 1196638934 16845
 sys/man/1/acid - 664 sys sys 1196638934 9730
 sys/man/1/acme - 664 sys sys 1196638934 18540
 sys/man/1/ap - 664 sys sys 1196638934 364
-sys/man/1/aquarela - 664 sys sys 1196895084 2770
 sys/man/1/ar - 664 sys sys 1196638934 3153
 sys/man/1/ascii - 664 sys sys 1196638934 2726
 sys/man/1/awk - 664 sys sys 1196638934 10881
@@ -7505,6 +7504,7 @@ sys/man/1/vi - 664 sys sys 1196638936 2904
 sys/man/1/vnc - 664 sys sys 1196638933 4313
 sys/man/1/vt - 664 sys sys 1196638936 2424
 sys/man/1/wc - 664 sys sys 1196638936 908
+sys/man/1/weather - 664 sys sys 1198157689 640
 sys/man/1/who - 664 sys sys 1196638933 332
 sys/man/1/winwatch - 664 sys sys 1196638936 708
 sys/man/1/xd - 664 sys sys 1196638933 1517
@@ -7823,6 +7823,7 @@ sys/man/8/INDEX.html - 664 sys sys 1196638946 8619
 sys/man/8/aan - 664 sys sys 1196638946 1670
 sys/man/8/aliasmail - 664 sys sys 1196638946 1350
 sys/man/8/apm - 664 sys sys 1196638946 1811
+sys/man/8/aquarela - 664 sys sys 1198159132 3798
 sys/man/8/auth - 664 sys sys 1196638946 4996
 sys/man/8/boot - 664 sys sys 1196638946 8331
 sys/man/8/booting - 664 sys sys 1196638946 4136
@@ -8743,7 +8744,7 @@ sys/src/ape/lib/ap/plan9/9write.c - 664 sys sys 1014921986 171
 sys/src/ape/lib/ap/plan9/_buf.c - 664 sys sys 1087406385 9922
 sys/src/ape/lib/ap/plan9/_dirconv.c - 664 sys sys 1014921985 1419
 sys/src/ape/lib/ap/plan9/_envsetup.c - 664 sys sys 1048644333 2198
-sys/src/ape/lib/ap/plan9/_errno.c - 664 sys sys 1014921985 3909
+sys/src/ape/lib/ap/plan9/_errno.c - 664 sys sys 1198158066 3899
 sys/src/ape/lib/ap/plan9/_exit.c - 664 sys sys 1014921983 875
 sys/src/ape/lib/ap/plan9/_fcall.c - 664 sys sys 1014921983 6036
 sys/src/ape/lib/ap/plan9/_fdinfo.c - 664 sys sys 1038237526 2883
@@ -9491,7 +9492,7 @@ sys/src/cmd/aquarela/COPYRIGHT - 664 sys sys 1135892145 43
 sys/src/cmd/aquarela/addname.c - 664 sys sys 1135892108 1281
 sys/src/cmd/aquarela/alarm.c - 664 sys sys 1197673331 2170
 sys/src/cmd/aquarela/alloc.c - 664 sys sys 1135892108 245
-sys/src/cmd/aquarela/aquarela.c - 664 sys sys 1136651999 7027
+sys/src/cmd/aquarela/aquarela.c - 664 sys sys 1198159137 7017
 sys/src/cmd/aquarela/cifscmd.c - 664 sys sys 1135892108 4430
 sys/src/cmd/aquarela/client.c - 664 sys sys 1135892108 2724
 sys/src/cmd/aquarela/dump.c - 664 sys sys 1135892108 2864
@@ -10379,7 +10380,7 @@ sys/src/cmd/fax/receiverc - 775 sys sys 944960990 581
 sys/src/cmd/fax/send.c - 664 sys sys 944960990 923
 sys/src/cmd/fax/subr.c - 664 sys sys 1015090401 1245
 sys/src/cmd/fcp.c - 664 sys sys 1136651872 3799
-sys/src/cmd/file.c - 664 sys sys 1193181267 28836
+sys/src/cmd/file.c - 664 sys sys 1198189467 28953
 sys/src/cmd/fmt.c - 664 sys sys 1137603598 4078
 sys/src/cmd/fortune.c - 664 sys sys 1072729222 1779
 sys/src/cmd/fossil - 20000000775 sys sys 1087005595 0
@@ -12456,7 +12457,7 @@ sys/src/cmd/iostats/mkfile - 664 sys sys 1014925727 122
 sys/src/cmd/iostats/statfs.h - 664 sys sys 1140099908 2626
 sys/src/cmd/iostats/statsrv.c - 664 sys sys 1166824341 10773
 sys/src/cmd/ip - 20000000775 sys sys 1128605981 0
-sys/src/cmd/ip/6in4.c - 664 sys sys 1187047430 9714
+sys/src/cmd/ip/6in4.c - 664 sys sys 1198185057 9743
 sys/src/cmd/ip/arp.h - 664 sys sys 944961005 751
 sys/src/cmd/ip/dhcp.h - 664 sys sys 1184696111 3764
 sys/src/cmd/ip/dhcpclient.c - 664 sys sys 1178482836 11969
@@ -12467,7 +12468,7 @@ sys/src/cmd/ip/dhcpd/dhcpd.c - 664 sys sys 1185922538 35209
 sys/src/cmd/ip/dhcpd/dhcpleases.c - 664 sys sys 1032655001 779
 sys/src/cmd/ip/dhcpd/mkfile - 664 sys sys 1169162185 443
 sys/src/cmd/ip/dhcpd/ndb.c - 664 sys sys 1185920230 5799
-sys/src/cmd/ip/dhcpd/ping.c - 664 sys sys 1185920220 1209
+sys/src/cmd/ip/dhcpd/ping.c - 664 sys sys 1198186463 1225
 sys/src/cmd/ip/dhcpd/testlook.c - 664 sys sys 950389140 4640
 sys/src/cmd/ip/dhcpd/testlookup.c - 664 sys sys 950389140 3195
 sys/src/cmd/ip/dhcpd/testping.c - 664 sys sys 950389141 352
@@ -12480,7 +12481,7 @@ sys/src/cmd/ip/ftpfs/mkfile - 664 sys sys 1048312050 173
 sys/src/cmd/ip/ftpfs/proto.c - 664 sys sys 1124935667 30337
 sys/src/cmd/ip/glob.c - 664 sys sys 1101155057 3290
 sys/src/cmd/ip/glob.h - 664 sys sys 1101155058 308
-sys/src/cmd/ip/gping.c - 664 sys sys 1169165326 19784
+sys/src/cmd/ip/gping.c - 664 sys sys 1198188401 19930
 sys/src/cmd/ip/hogports.c - 664 sys sys 1118623129 989
 sys/src/cmd/ip/httpd - 20000000775 sys sys 1083771060 0
 sys/src/cmd/ip/httpd/anonymous.c - 664 sys sys 984773807 195
@@ -12505,7 +12506,7 @@ sys/src/cmd/ip/httpd/webls.c - 664 sys sys 1120737502 7658
 sys/src/cmd/ip/httpd/webls.denied - 664 sys sys 1064887847 3
 sys/src/cmd/ip/httpd/wikipost.c - 664 sys sys 1083771074 5913
 sys/src/cmd/ip/httpfile.c - 664 sys sys 1128556975 10037
-sys/src/cmd/ip/icmp.h - 664 sys sys 1184951372 1461
+sys/src/cmd/ip/icmp.h - 664 sys sys 1198189398 1501
 sys/src/cmd/ip/imap4d - 20000000775 sys sys 1066325859 0
 sys/src/cmd/ip/imap4d/auth.c - 664 sys sys 1015013075 3510
 sys/src/cmd/ip/imap4d/copy.c - 664 sys sys 1062298855 4597
@@ -12527,15 +12528,15 @@ sys/src/cmd/ip/imap4d/search.c - 664 sys sys 1015013077 4520
 sys/src/cmd/ip/imap4d/store.c - 664 sys sys 1066317059 1910
 sys/src/cmd/ip/imap4d/utils.c - 664 sys sys 1168894057 2587
 sys/src/cmd/ip/ipconfig - 20000000775 sys sys 1176933436 0
-sys/src/cmd/ip/ipconfig/ipconfig.h - 664 sys sys 1185922303 5738
-sys/src/cmd/ip/ipconfig/ipv6.c - 664 sys sys 1185923430 20620
+sys/src/cmd/ip/ipconfig/ipconfig.h - 664 sys sys 1198189129 5311
+sys/src/cmd/ip/ipconfig/ipv6.c - 664 sys sys 1198189135 20619
 sys/src/cmd/ip/ipconfig/main.c - 664 sys sys 1185923495 39912
 sys/src/cmd/ip/ipconfig/mkfile - 664 sys sys 1184880750 233
 sys/src/cmd/ip/ipconfig/ppp.c - 664 sys sys 1184880751 1046
 sys/src/cmd/ip/linklocal.c - 664 sys sys 1197673397 1751
 sys/src/cmd/ip/measure.c - 664 sys sys 944961011 3733
 sys/src/cmd/ip/mkfile - 664 sys sys 1185920805 1267
-sys/src/cmd/ip/ping.c - 664 sys sys 1186208356 10518
+sys/src/cmd/ip/ping.c - 664 sys sys 1198188930 10554
 sys/src/cmd/ip/ppp - 20000000775 sys sys 1065963823 0
 sys/src/cmd/ip/ppp/block.c - 664 sys sys 1015090266 5353
 sys/src/cmd/ip/ppp/compress.c - 664 sys sys 1072729513 11774
@@ -12606,7 +12607,7 @@ sys/src/cmd/ip/telnet.c - 664 sys sys 1162416789 8621
 sys/src/cmd/ip/telnet.h - 664 sys sys 1015090250 5902
 sys/src/cmd/ip/telnetd.c - 664 sys sys 1135487948 11772
 sys/src/cmd/ip/tftpd.c - 664 sys sys 1106943821 7646
-sys/src/cmd/ip/traceroute.c - 664 sys sys 1184887073 8733
+sys/src/cmd/ip/traceroute.c - 664 sys sys 1198186109 8747
 sys/src/cmd/ip/udpecho.c - 664 sys sys 1178483004 789
 sys/src/cmd/join.c - 664 sys sys 1158251357 7550
 sys/src/cmd/jpg - 20000000775 sys sys 1132458749 0

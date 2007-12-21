@@ -1,0 +1,226 @@
+.TH AQUARELA 8
+.SH NAME
+aquarela \- CIFS server
+.SH SYNOPSIS
+.B aquarela
+[
+.B -np
+]
+[
+.B -d
+.I debug
+]
+[
+.B -u
+.I N
+]
+[
+.B -w
+.I workgroup 
+]
+.SH DESCRIPTION
+.I Aquarela
+provides
+.SM CIFS
+(once known as
+.SM SMB\c
+)
+access to Plan 9 file servers.
+It announces and subsequently listens on
+.B tcp!*!445
+for connections to the individual file hierarchies called ``shares'' by
+.SM CIFS\c .
+Users are authenticated with their Inferno/\c
+.SM POP
+password.
+Each session is managed by a process running as the authenticated user.
+Two persistent processes handle listening, session setup, and housekeeping.
+.PP
+An
+.I aquarela
+.SM CIFS
+share corresponds to a directory under
+.BR /n .
+A client request for a specific share, say,
+.BR share ,
+causes
+.I aquarela
+to serve
+.B /n/share.
+If that path is not already a mountpoint, a
+.IR 9fs (4)
+connection to the file server
+.B share
+is attempted.
+If connection succeeds, a file hierarchy rooted at
+.B /n/share
+is finally presented to the client.
+The client request fails otherwise.
+Requests for the protocol equivalent of
+.B /
+are satisfied with a one-level directory containing only the default share,
+.BR local.
+.PP
+The options are:
+.TP
+.BI -u " N
+Send Unicode.
+For
+.IR N ,
+.B 1
+enables,
+.B 0
+disables Unicoding of file names and metadata.
+There is no code page support, so
+.I aquarela
+emits
+.SM UTF
+if
+.I N
+is
+.BR 0 .
+.TP
+.BI -w " workgroup
+Set
+.I workgroup
+(or ``primary domain'') of server.
+Default
+.BR PLAN9 .
+.TP
+.B -n
+Enable limited
+.SM NETBIOS
+service.
+.I Aquarela
+will register with the ``master browser'' for
+.I workgroup
+and listen on
+.B tcp!*!139
+for name resolution queries.
+This works only in tandem with a complete
+.SM NETBIOS
+master name server, like that provided by
+.SM UNIX
+.IR nmbd (8).
+.SM NETBIOS
+is not required for
+.SM CIFS
+file service.
+.PD
+.SH EXAMPLE
+To start a
+.SM CIFS
+server on system
+.B plan9
+as a member of
+.BR WORKGROUP :
+.IP
+.EX
+aquarela -u 1 -w WORKGROUP &
+.EE
+.PP
+To make 
+.BR plan9 's 
+.B dump
+filesystem available as drive
+.B Y:
+on a Windows machine:
+.IP
+.EX
+net use Y: \\\\plan9.example.com\\dump
+.EE
+.SH FILES
+.TP
+.B /n/local
+Default
+.SM CIFS
+share
+.TP
+.B /sys/log/aquarela
+Log file, if it exists
+.PD
+.SH SOURCE
+.B /sys/src/cmd/aquarela
+.SH SEE ALSO
+.IR 9fs (4),
+.IR UTF (6)
+.SH DIAGNOSTICS
+Log messages are appended to
+.B /sys/log/aquarela
+if it exists. The
+.B -p
+option prints them on standard output as well.
+The
+.B -d
+option adds verbose output about
+.I debug
+to the log messages, where
+.I debug
+is one of:
+.TF any-smb-name
+.TP
+.B allcmds
+All
+.SM CIFS
+requests and responses.
+.TP
+.B tids
+Connections and disconnections per-share.
+.TP
+.B sids
+Creation and deletion of search ids.
+.TP
+.B fids
+Creation and deletion of file ids.
+.TP
+.B rap2
+.SM RAP
+calls.
+.TP
+.B find 
+Transaction2 find commands.
+.TP
+.B query
+Transaction2 query commands.
+.TP
+.B sharedfiles
+All files opened.
+.TP
+.B poolparanoia 
+Draconian error checking in memory allocator.
+.TP
+.B sessions
+Connections and disconnections on server.
+.TP
+.B rep
+Regular expression conversions.
+.TP
+.B locks
+Locking activity.
+.TP
+.I any-smb-name
+Debug only
+.B SMB_
+requests or
+.B transaction2
+sub-requests
+(e.g.,
+.B SMB_COM_SESSION_SETUP_ANDX
+or
+.BR SMB_TRANS2_FIND_FIRST2 )
+matching symbolic name
+.I any-smb-name. 
+.TP
+.BI 0x nn
+Debug only messages with this hexadecimal id.
+.PD
+.SH BUGS
+The first login attempt from a given Windows login session often fails erroneously - try again.
+The server disk space reported by some clients is inaccurate.
+Some clients can't rename directories.
+Write attempts without sufficient permissions fail (correctly), but appear on client to temporarily succeed.
+.PP
+The multitude of diagnostics both in the program and in this manual page reflect the in-progress nature of the code.
+.PP
+This program should probably be named
+.IR cifsserver .

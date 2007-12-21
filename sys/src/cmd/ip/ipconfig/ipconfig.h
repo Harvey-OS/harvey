@@ -195,8 +195,6 @@ enum {
 
 enum {
 	MAXTTL		= 255,
-	IP4_VER		= 0x40,
-	IP6_VER		= 0x60,
 	D64HLEN		= IPV6HDR_LEN - IPV4HDR_LEN,
 	IP_MAX		= 32*1024,
 };
@@ -204,19 +202,6 @@ enum {
 struct Headers {
 	uchar	dst[IPaddrlen];
 	uchar	src[IPaddrlen];
-};
-
-struct Ip4hdr{
-	uchar	vihl;		/* Version and header length */
-	uchar	tos;		/* Type of service */
-	uchar	length[2];	/* packet length */
-	uchar	id[2];		/* ip->identification */
-	uchar	frag[2];	/* Fragment information */
-	uchar	ttl;		/* Time to live */
-	uchar	proto;		/* Protocol */
-	uchar	cksum[2];	/* Header checksum */
-	uchar	src[4];		/* IP source */
-	uchar	dst[4];		/* IP destination */
 };
 
 struct Routersol {

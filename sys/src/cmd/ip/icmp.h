@@ -41,19 +41,8 @@ enum
 	ICMP_HDRSIZE	= 8,
 };
 
-/* the icmp payload has the same format in v4 and v6 */
-typedef struct Icmphdr Icmphdr;
-struct Icmphdr {
-	uchar	type;
-	uchar	code;
-	uchar	cksum[2];
-	uchar	icmpid[2];
-	uchar	seq[2];
-	uchar	data[1];
-};
-
-typedef struct Icmp Icmp;
-struct Icmp
+typedef struct Ip4hdr Ip4hdr;
+struct Ip4hdr
 {
 	uchar	vihl;		/* Version and header length */
 	uchar	tos;		/* Type of service */
@@ -66,12 +55,20 @@ struct Icmp
 	uchar	src[4];		/* Ipv4 source */
 	uchar	dst[4];		/* Ipv4 destination */
 
-	Icmphdr;
+	uchar	data[];
 };
 
-typedef struct Icmp6 Icmp6;
-struct Icmp6
-{
-	Ip6hdr;
-	Icmphdr;
+// #define IP4HDRSZ offsetof(Ip4hdr, data[0])
+
+/* the icmp payload has the same format in v4 and v6 */
+typedef struct Icmphdr Icmphdr;
+struct Icmphdr {
+	uchar	type;
+	uchar	code;
+	uchar	cksum[2];
+	uchar	icmpid[2];
+	uchar	seq[2];
+	uchar	data[];
 };
+
+// #define ICMPHDRSZ offsetof(Icmphdr, data[0])

@@ -25,9 +25,10 @@ struct Iphdr
 	uchar	cksum[2];	/* Header checksum */
 	uchar	src[4];		/* Ip source (uchar ordering unimportant) */
 	uchar	dst[4];		/* Ip destination (uchar ordering unimportant) */
+	uchar	payload[];
 };
 
-#define STFHDR sizeof(Iphdr)
+#define STFHDR offsetof(Iphdr, payload[0])
 
 int anysender;
 int gateway;
@@ -310,7 +311,7 @@ ip2tunnel(int in, int out)
 			continue;
 
 		/* check length: drop if too short, trim if too long */
-		m = nhgets(ip->ploadlen) + sizeof(Ip6hdr);
+		m = nhgets(ip->ploadlen) + IPV6HDR_LEN;
 		if (m > n)
 			continue;
 		if (m < n)

@@ -81,7 +81,7 @@ static struct errmap {
 	{EIO,		"phase error -- cannot happen"},
 	{EEXIST,	"create -- file exists"},
 	{EINVAL,	"create -- . and .. illegal names"},
-	{ENOTEMPTY,	"remove -- directory not empty"},
+	{ENOTEMPTY,	"directory not empty"},
 	{EINVAL,	"attach -- privileged user"},
 	{EPERM,		"wstat -- not owner"},
 	{EPERM,		"wstat -- not in group"},
