@@ -22,12 +22,10 @@ catch(void *a, char *msg)
 int
 icmpecho(uchar *a)
 {
-	int fd;
-	char buf[512];
-	Icmp *ip;
-	int i, n, len;
+	int fd, i, n, len, rv;
 	ushort sseq, x;
-	int rv;
+	char buf[512];
+	Icmphdr *ip;
 
 	rv = 0;
 	if (!isv4(a))
@@ -40,7 +38,7 @@ icmpecho(uchar *a)
 
 	sseq = getpid()*time(0);
 
-	ip = (Icmp*)buf;
+	ip = (Icmphdr *)(buf + IPV4HDR_LEN);
 	notify(catch);
 	for(i = 0; i < 3; i++){
 		ip->type = EchoRequest;
@@ -48,7 +46,7 @@ icmpecho(uchar *a)
 		strcpy((char*)ip->data, MSG);
 		ip->seq[0] = sseq;
 		ip->seq[1] = sseq>>8;
-		len = IPV4HDR_LEN+ICMP_HDRSIZE+sizeof(MSG);
+		len = IPV4HDR_LEN + ICMP_HDRSIZE + sizeof(MSG);
 
 		/* send a request */
 		if(write(fd, buf, len) < len)
@@ -62,11 +60,9 @@ icmpecho(uchar *a)
 			continue;
 
 		/* an answer to our echo request? */
-		x = (ip->seq[1]<<8)|ip->seq[0];
-		if(n >= len)
-		if(ip->type == EchoReply)
-		if(x == sseq)
-		if(strcmp((char*)ip->data, MSG) == 0){
+		x = (ip->seq[1]<<8) | ip->seq[0];
+		if(n >= len && ip->type == EchoReply && x == sseq &&
+		    strcmp((char*)ip->data, MSG) == 0){
 			rv = 1;
 			break;
 		}

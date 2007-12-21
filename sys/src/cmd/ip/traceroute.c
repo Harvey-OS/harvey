@@ -185,10 +185,8 @@ static int
 icmpprobe(int cfd, int dfd, char *dest, int interval)
 {
 	int x, i, n, len, rv;
-	char buf[512];
-	Icmp *ip;
-	char msg[Maxstring];
-	char err[Maxstring];
+	char buf[512], err[Maxstring], msg[Maxstring];
+	Icmphdr *ip;
 
 	seek(cfd, 0, 0);
 	n = snprint(msg, sizeof msg, "connect %s", dest);
@@ -196,7 +194,7 @@ icmpprobe(int cfd, int dfd, char *dest, int interval)
 		return -1;
 
 	rv = -1;
-	ip = (Icmp*)buf;
+	ip = (Icmphdr *)(buf + IPV4HDR_LEN);
 	for(i = 0; i < 3; i++){
 		alarm(interval/3);
 		ip->type = EchoRequest;
@@ -204,7 +202,7 @@ icmpprobe(int cfd, int dfd, char *dest, int interval)
 		strcpy((char*)ip->data, MSG);
 		ip->seq[0] = MAGIC;
 		ip->seq[1] = MAGIC>>8;
-		len = IPV4HDR_LEN+ICMP_HDRSIZE+sizeof(MSG);
+		len = IPV4HDR_LEN + ICMP_HDRSIZE + sizeof(MSG);
 
 		/* send a request */
 		if(write(dfd, buf, len) < len)
@@ -222,11 +220,9 @@ icmpprobe(int cfd, int dfd, char *dest, int interval)
 			werrstr(err);
 			continue;
 		}
-		x = (ip->seq[1]<<8)|ip->seq[0];
-		if(n >= len)
-		if(ip->type == EchoReply)
-		if(x == MAGIC)
-		if(strcmp((char*)ip->data, MSG) == 0){
+		x = (ip->seq[1]<<8) | ip->seq[0];
+		if(n >= len && ip->type == EchoReply && x == MAGIC &&
+		    strcmp((char*)ip->data, MSG) == 0){
 			rv = 0;
 			break;
 		}

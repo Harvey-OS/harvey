@@ -85,7 +85,7 @@ catch(void *a, char *msg)
 static void
 prlost4(ushort seq, void *v)
 {
-	Icmp *ip4 = v;
+	Ip4hdr *ip4 = v;
 
 	print("lost %ud: %V -> %V\n", seq, ip4->src, ip4->dst);
 }
@@ -93,7 +93,7 @@ prlost4(ushort seq, void *v)
 static void
 prlost6(ushort seq, void *v)
 {
-	Icmp6 *ip6 = v;
+	Ip6hdr *ip6 = v;
 
 	print("lost %ud: %I -> %I\n", seq, ip6->src, ip6->dst);
 }
@@ -101,7 +101,7 @@ prlost6(ushort seq, void *v)
 static void
 prreply4(Req *r, void *v)
 {
-	Icmp *ip4 = v;
+	Ip4hdr *ip4 = v;
 
 	print("%ud: %V -> %V rtt %lld µs, avg rtt %lld µs, ttl = %d\n",
 		r->seq - firstseq, ip4->src, ip4->dst, r->rtt, sum/rcvdmsgs,
@@ -111,7 +111,7 @@ prreply4(Req *r, void *v)
 static void
 prreply6(Req *r, void *v)
 {
-	Icmp6 *ip6 = v;
+	Ip6hdr *ip6 = v;
 
 	print("%ud: %I -> %I rtt %lld µs, avg rtt %lld µs, ttl = %d\n",
 		r->seq - firstseq, ip6->src, ip6->dst, r->rtt, sum/rcvdmsgs,
@@ -139,8 +139,7 @@ geticmp(void *v)
 {
 	char *p = v;
 
-	p += proto->iphdrsz;
-	return (Icmphdr *)p;
+	return (Icmphdr *)(p + proto->iphdrsz);
 }
 
 void
@@ -150,8 +149,12 @@ clean(ushort seq, vlong now, void *v)
 	Req **l, *r;
 
 	ttl = 0;
-	if (v)
-		ttl = proto->version == 4? ((Icmp *)v)->ttl: ((Icmp6 *)v)->ttl;
+	if (v) {
+		if (proto->version == 4)
+			ttl = ((Ip4hdr *)v)->ttl;
+		else
+			ttl = ((Ip6hdr *)v)->ttl;
+	}
 	lock(&listlock);
 	last = nil;
 	for(l = &first; *l; ){
@@ -253,7 +256,7 @@ sender(int fd, int msglen, int interval, int n)
 	myipvnaddr(me, proto, network);
 	if (proto->version == 4) {
 		v6tov4(mev4, me);
-		memmove(((Icmp *)buf)->src, mev4, IPv4addrlen);
+		memmove(((Ip4hdr *)buf)->src, mev4, IPv4addrlen);
 	} else
 		ipmove(((Ip6hdr *)buf)->src, me);
 	if (addresses)

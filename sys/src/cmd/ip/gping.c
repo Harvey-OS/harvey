@@ -47,7 +47,7 @@ struct Req
 {
 	int	seq;	/* sequence number */
 	vlong	time;	/* time sent */
-	int	rtt;
+//	int	rtt;
 	Req	*next;
 };
 
@@ -477,22 +477,22 @@ pingclean(Machine *m, ushort seq, vlong now, int)
 	}
 }
 
+/* IPv4 only */
 void
 pingsend(Machine *m)
 {
-	char buf[128];
-	Icmp *ip;
 	int i;
+	char buf[128], err[ERRMAX];
+	Icmphdr *ip;
 	Req *r;
-	char err[ERRMAX];
 
-	ip = (Icmp*)buf;
-
+	ip = (Icmphdr *)(buf + IPV4HDR_LEN);
+	memset(buf, 0, sizeof buf);
 	r = malloc(sizeof *r);
 	if(r == nil)
 		return;
 
-	for(i = 32; i < 64; i++)
+	for(i = 32; i < MSGLEN; i++)
 		buf[i] = i;
 	ip->type = EchoRequest;
 	ip->code = 0;
@@ -509,7 +509,7 @@ pingsend(Machine *m)
 	m->last = r;
 	r->time = nsec();
 	unlock(m);
-	if(write(m->pingfd, ip, MSGLEN) < MSGLEN){
+	if(write(m->pingfd, buf, MSGLEN) < MSGLEN){
 		errstr(err, sizeof err);
 		if(strstr(err, "unreach")||strstr(err, "exceed"))
 			m->unreachable++;
@@ -517,17 +517,20 @@ pingsend(Machine *m)
 	m->seq++;
 }
 
+/* IPv4 only */
 void
 pingrcv(void *arg)
 {
-	uchar buf[512];
-	Icmp *ip;
-	ushort x;
 	int i, n, fd;
+	uchar buf[512];
+	ushort x;
 	vlong now;
+	Icmphdr *ip;
+	Ip4hdr *ip4;
 	Machine *m = arg;
 
-	ip = (Icmp*)buf;
+	ip4 = (Ip4hdr *)buf;
+	ip = (Icmphdr *)(buf + IPV4HDR_LEN);
 	fd = dup(m->pingfd, -1);
 	for(;;){
 		n = read(fd, buf, sizeof(buf));
@@ -541,11 +544,11 @@ pingrcv(void *arg)
 		for(i = 32; i < MSGLEN; i++)
 			if(buf[i] != (i&0xff))
 				continue;
-		x = (ip->seq[1]<<8)|ip->seq[0];
+		x = (ip->seq[1]<<8) | ip->seq[0];
 		if(ip->type != EchoReply || ip->code != 0)
 			continue;
 		lock(m);
-		pingclean(m, x, now, ip->ttl);
+		pingclean(m, x, now, ip4->ttl);
 		unlock(m);
 	}
 }

@@ -176,7 +176,7 @@ cifsaccept(SmbCifsSession *s, SMBCIFSWRITEFN **writep)
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-d debug-opt] [-n] [-p] [-u 1|0] [-w workgroup]\n", argv0);
+	fprint(2, "usage: %s [-np] [-d debug] [-u N] [-w workgroup]\n", argv0);
 	threadexitsall("usage");
 }
 

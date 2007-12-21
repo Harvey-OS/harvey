@@ -1,0 +1,35 @@
+.TH WEATHER 1
+.SH NAME
+weather \- print weather report
+.SH SYNOPSIS
+.B weather
+[
+.I air
+]  [
+.I st
+]
+.SH DESCRIPTION
+.I Weather
+prints the local conditions and seven-day forecast most recently reported at the
+.SM US
+airport with the three-letter location identifier
+.IR air .
+Given a two-letter
+.SM US
+state abbreviation
+.I st
+instead,
+.I weather
+prints a table of
+.I air
+location identifiers known for
+.IR st .
+.PP
+The arguments are mutually exclusive and case-insensitive.
+If neither is given,
+.I air
+defaults to location identifier
+.BR ewr ,
+designating the Newark, NJ, airport near Bell Labs, Murray Hill.
+.SH SOURCE
+.B /rc/bin/weather
