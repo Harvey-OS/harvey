@@ -18219,3 +18219,7 @@
 1198213204 7 c 386/lib/libndb.a - 664 sys sys 1198211713 64470
 1198213204 8 c 386/lib/libsunrpc.a - 664 sys sys 1198211722 353148
 1198245608 0 c sys/man/1/doc2txt - 664 sys sys 1198243815 2518
+1199291404 0 c sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1199290669 32518
+1199302204 0 a rc/bin/usbfat: - 775 sys sys 1199300762 712
+1199305806 0 c sys/src/cmd/fossil/fossil-acid - 664 sys sys 1199304805 4367
+1199307604 0 c 386/bin/aux/vga - 775 sys sys 1199305865 334943

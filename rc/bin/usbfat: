@@ -1,0 +1,40 @@
+#!/bin/rc
+# usbfat: [-f] [disk [mtpt]] - mount a USB disk's MS FAT file system
+rfork e
+opts=()
+while (! ~ $#* 0 && ~ $1 -*) {
+	switch ($1) {
+	case -f
+		opts=($opts $1)
+	case -*
+		echo usage: $0 '[-f] [disk [mtpt]]' >[1=2]
+		exit usage
+	}
+	shift
+}
+disk = /n/disk/0/data
+mtpt = /n/usb
+
+switch ($#*) {
+case 0
+	;
+case 1
+	disk = $1
+case 2
+	disk = $1
+	mtpt = $2
+case *
+	echo usage: $0 '[-f] [disk [mtpt]]' >[1=2]
+	exit usage
+}
+
+if (! test -e $disk)
+	usb/disk $opts
+blk = `{disk/fdisk -p $disk | awk '/^part dos / {print $3}'}
+if (~ $#blk 0 || ! ~ $blk [0-9]*) {
+	echo $0: no fdisk dos partition found... >[1=2]
+	dossrv -f $disk usbfat.$user
+}
+if not
+	dossrv -f $disk:$blk usbfat.$user
+mount -c /srv/usbfat.$user $mtpt

@@ -8,8 +8,8 @@ rc("cd /sys/src/cmd/fossil; mk disk.acid");
 include("/sys/src/cmd/fossil/disk.acid");
 rc("cd /sys/src/cmd/fossil; mk fs.acid");
 include("/sys/src/cmd/fossil/fs.acid");
-rc("cd /sys/src/libventi; mk plan9-thread.acid");
-include("/sys/src/libventi/plan9-thread.acid");
+rc("cd /sys/src/liboventi; mk plan9-thread.acid");
+include("/sys/src/liboventi/plan9-thread.acid");
 
 // make a list of pids from a list of Thread structures
 defn _threadlist(t)

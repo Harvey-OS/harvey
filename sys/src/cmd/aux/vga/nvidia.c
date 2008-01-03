@@ -289,7 +289,10 @@ snarf(Vga* vga, Ctlr* ctlr)
 	case 0x0144:
 	case 0x0146:
 	case 0x0148:
+	case 0x01D7:
 		nv->islcd = 1;
+		break;
+	default:
 		break;
 	}
 
@@ -341,14 +344,14 @@ snarf(Vga* vga, Ctlr* ctlr)
 
 	nv->vpll = nv->pramdac[0x508/4];
 	if (nv->twoheads)
-		nv->vpll2  = nv->pramdac[0x520/4];
+		nv->vpll2 = nv->pramdac[0x520/4];
 	if (nv->twostagepll) {
-		nv->vpllB  = nv->pramdac[0x578/4];
+		nv->vpllB = nv->pramdac[0x578/4];
 		nv->vpll2B = nv->pramdac[0x57C/4];
 	}
-	nv->pllsel  = nv->pramdac[0x50C/4];
+	nv->pllsel = nv->pramdac[0x50C/4];
 	nv->general = nv->pramdac[0x600/4];
-	nv->scale   = nv->pramdac[0x848/4];
+	nv->scale = nv->pramdac[0x848/4];
 	nv->config = nv->pfb[0x200/4];
 
 	if (nv->pixel & 0x80)
@@ -366,13 +369,17 @@ snarf(Vga* vga, Ctlr* ctlr)
 			nv->dither = nv->pramdac[0x0528/4];
 		else if (nv->twoheads)
 			nv->dither = nv->pramdac[0x083C/4];
+		if(nv->islcd){
+			nv->timingH = vgaxi(Crtx, 0x53);
+			nv->timingV = vgaxi(Crtx, 0x54);
+		}
 	}
 
 	/*
 	 * DFP.
 	 */
 	if (nv->islcd) {
-		nv->fpwidth  = nv->pramdac[0x0820/4] + 1;
+		nv->fpwidth = nv->pramdac[0x0820/4] + 1;
 		nv->fpheight = nv->pramdac[0x0800/4] + 1;
 		nv->crtcsync = nv->pramdac[0x0828/4];
 	}
@@ -497,8 +504,8 @@ init(Vga* vga, Ctlr* ctlr)
 		nv->general = 0x00001100;
 	else
 		nv->general = 0x00000100;
-	//if (mode->z != 8)
-	//	nv->general |= 0x00000030;
+	if (0 && mode->z != 8)
+		nv->general |= 0x00000030;
 
 	if (mode->x < 1280)
 		nv->repaint1 = 0x04;
@@ -508,6 +515,9 @@ init(Vga* vga, Ctlr* ctlr)
 	vga->attribute[0x10] &= ~0x40;
 	vga->attribute[0x11] = Pblack;
 	vga->crt[0x14] = 0;
+
+	if(1 && vga->f[0] != VgaFreq0 && vga->f[1] != VgaFreq1)
+		vga->misc |= 0x08;
 
 	/* set vert blanking to cover full overscan */
 
@@ -619,7 +629,7 @@ init(Vga* vga, Ctlr* ctlr)
 	nv->interlace = 0xFF;
 	if (nv->twoheads) {
 		nv->head |= 0x00001000;
-		nv->head2 |= ~0x00001000;
+		nv->head2 &= ~0x00001000;
 		nv->crtcowner = 0;
 		if((nv->did & 0x0ff0) == 0x0110)
 			nv->dither &= ~0x00010000;
@@ -683,7 +693,7 @@ load(Vga* vga, Ctlr* ctlr)
 	}
 
 	if (nv->arch >= 40) {
-		nv->pramin[0]      = 0x80000010;
+		nv->pramin[0] = 0x80000010;
 		nv->pramin[0x0001] = 0x00101202;
 		nv->pramin[0x0002] = 0x80000011;
 		nv->pramin[0x0003] = 0x00101204;
@@ -869,10 +879,10 @@ load(Vga* vga, Ctlr* ctlr)
 				nv->pgraph[0x0610/4] = 0x00be3c5f;
 
 
-				tmp = nv->pgraph[0x1540] & 0xff;
+				tmp = nv->pmc[0x1540/4] & 0xff;
 				for(i = 0; tmp && !(tmp & 1); tmp >>= 1, i++)
 					;
-				nv->pgraph[0x5000] = i;
+				nv->pgraph[0x5000/4] = i;
 
 				if ((nv->did & 0xfff0) == 0x0040) {
 					nv->pgraph[0x09b0/4] = 0x83280fff;
@@ -1113,13 +1123,13 @@ load(Vga* vga, Ctlr* ctlr)
 		nv->pramdac[0x00000848/4] = nv->scale;
 		nv->pramdac[0x00000828/4] = nv->crtcsync;
 	} else {
-		nv->pramdac[0x0000050C/4] = nv->pllsel;
-		nv->pramdac[0x00000508/4] = nv->vpll;
+		nv->pramdac[0x50C/4] = nv->pllsel;
+		nv->pramdac[0x508/4] = nv->vpll;
 		if (nv->twoheads)
-			nv->pramdac[0x00000520/4] = nv->vpll2;
+			nv->pramdac[0x520/4] = nv->vpll2;
 		if (nv->twostagepll) {
-			nv->pramdac[0x00000578/4] = nv->vpllB;
-			nv->pramdac[0x0000057C/4] = nv->vpll2B;
+			nv->pramdac[0x578/4] = nv->vpllB;
+			nv->pramdac[0x57C/4] = nv->vpll2B;
 		}
 	}
 	nv->pramdac[0x00000600/4] = nv->general;
