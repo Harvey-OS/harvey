@@ -147,7 +147,7 @@
 386/bin/aux/tr2post - 775 sys sys 1104121987 176578
 386/bin/aux/trampoline - 775 sys sys 1178568259 82677
 386/bin/aux/usage - 775 sys sys 1168402288 59809
-386/bin/aux/vga - 775 sys sys 1182482483 334774
+386/bin/aux/vga - 775 sys sys 1199305865 334943
 386/bin/aux/vmmousepoll - 775 sys sys 1032480572 41434
 386/bin/aux/vmware - 775 sys sys 1049428256 453
 386/bin/aux/vmwarefs - 775 sys sys 1095563640 99117
@@ -5637,6 +5637,7 @@ rc/bin/umem - 775 sys sys 1190076661 547
 rc/bin/uncompress - 775 sys sys 1158798931 30
 rc/bin/ups - 775 sys sys 1091021981 806
 rc/bin/uptime - 775 sys sys 1074730712 234
+rc/bin/usbfat: - 775 sys sys 1199300762 712
 rc/bin/usbstart - 775 sys sys 1044894155 81
 rc/bin/usps - 775 sys sys 1016826030 450
 rc/bin/vwhois - 775 sys sys 1106409971 445
@@ -9870,7 +9871,7 @@ sys/src/cmd/aux/vga/mga4xx.c - 664 sys sys 1158594482 36898
 sys/src/cmd/aux/vga/mkfile - 664 sys sys 1115734903 927
 sys/src/cmd/aux/vga/neomagic.c - 664 sys sys 1104430499 8975
 sys/src/cmd/aux/vga/notes.txt - 664 sys sys 1028334647 14376
-sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1182462658 32347
+sys/src/cmd/aux/vga/nvidia.c - 664 sys sys 1199290669 32518
 sys/src/cmd/aux/vga/palette.c - 664 sys sys 1014925010 2201
 sys/src/cmd/aux/vga/pci.c - 664 sys sys 1014925011 8659
 sys/src/cmd/aux/vga/pci.h - 664 sys sys 1014925011 3290
@@ -10421,7 +10422,7 @@ sys/src/cmd/fossil/flfmt9660.c - 664 sys sys 1132451844 12318
 sys/src/cmd/fossil/flfmt9660.h - 664 sys sys 1072830621 134
 sys/src/cmd/fossil/flproto - 664 sys sys 1173736837 222
 sys/src/cmd/fossil/fns.h - 664 sys sys 1189552875 3262
-sys/src/cmd/fossil/fossil-acid - 664 sys sys 1139667278 4365
+sys/src/cmd/fossil/fossil-acid - 664 sys sys 1199304805 4367
 sys/src/cmd/fossil/fossil.c - 664 sys sys 1077896345 2435
 sys/src/cmd/fossil/fs.c - 664 sys sys 1177432004 21598
 sys/src/cmd/fossil/fs.h - 664 sys sys 1189552775 1606
