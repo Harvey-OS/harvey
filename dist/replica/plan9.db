@@ -19,7 +19,7 @@
 386/bin/9660srv - 775 sys sys 1168402261 104975
 386/bin/aan - 775 sys sys 1196742429 129831
 386/bin/acid - 775 sys sys 1197665698 405309
-386/bin/acme - 775 sys sys 1197732610 431757
+386/bin/acme - 775 sys sys 1199420871 431785
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1173754547 134719
 386/bin/ape/cc - 775 sys sys 1168402263 70642
@@ -9470,7 +9470,7 @@ sys/src/cmd/acme/buff.c - 664 sys sys 1014926092 5573
 sys/src/cmd/acme/cols.c - 664 sys sys 1111119425 11229
 sys/src/cmd/acme/dat.h - 664 sys sys 1111606459 11106
 sys/src/cmd/acme/disk.c - 664 sys sys 1014926093 2151
-sys/src/cmd/acme/ecmd.c - 664 sys sys 1111606460 24205
+sys/src/cmd/acme/ecmd.c - 664 sys sys 1199391526 24298
 sys/src/cmd/acme/edit.c - 664 sys sys 1124993578 12019
 sys/src/cmd/acme/edit.h - 664 sys sys 1124993577 2369
 sys/src/cmd/acme/elog.c - 664 sys sys 1111607796 7294
