@@ -224,6 +224,19 @@ _sddetach(void)
 	}
 }
 
+static void
+sddump(void)
+{
+	SDev *sdev;
+
+	print("sdevs:\n");
+	for(sdev = sdlist; sdev != nil; sdev = sdev->next){
+		print("sdev %c index %d nunit %d: ",
+			sdev->idno, sdev->index, sdev->nunit);
+		print("\n");
+	}
+}
+
 static int
 _sdinit(void)
 {
@@ -253,7 +266,6 @@ _sdinit(void)
 		tail->index = sdnunit;
 		sdnunit += tail->nunit;
 	}
-
 	/*
 	 * Legacy and option code goes here. This will be hard...
 	 */
@@ -274,6 +286,8 @@ _sdinit(void)
 		if(sdifc[i]->id)
 			sdifc[i]->id(sdlist);
 	}
+	if (0)
+		sddump();
 
 	m = 0;
 	cdmask = sdmask = 0;

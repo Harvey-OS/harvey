@@ -18225,3 +18225,8 @@
 1199307604 0 c 386/bin/aux/vga - 775 sys sys 1199305865 334943
 1199392205 0 c sys/src/cmd/acme/ecmd.c - 664 sys sys 1199391526 24298
 1199421004 0 c 386/bin/acme - 775 sys sys 1199420871 431785
+1199473228 0 c sys/man/1/date - 664 sys sys 1199473136 996
+1199487633 0 c sys/src/boot/pc/devsd.c - 664 sys sys 1199487336 11528
+1199487633 1 c sys/src/boot/pc/sdiahci.c - 664 sys sys 1199487196 27325
+1199491232 0 c sys/src/boot/pc/devsd.c - 664 sys sys 1199490748 11497
+1199493030 0 c sys/src/boot/pc/sdiahci.c - 664 sys sys 1199493064 27056
