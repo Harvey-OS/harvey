@@ -18230,3 +18230,10 @@
 1199487633 1 c sys/src/boot/pc/sdiahci.c - 664 sys sys 1199487196 27325
 1199491232 0 c sys/src/boot/pc/devsd.c - 664 sys sys 1199490748 11497
 1199493030 0 c sys/src/boot/pc/sdiahci.c - 664 sys sys 1199493064 27056
+1199725206 0 c sys/src/cmd/aux/cddb.c - 664 sys sys 1199724334 4707
+1199727004 0 c sys/src/cmd/aux/cddb.c - 664 sys sys 1199724334 4707
+1199741404 0 c sys/src/cmd/ndb/dn.c - 664 sys sys 1199740043 37481
+1199766605 0 c 386/bin/aux/cddb - 775 sys sys 1199766029 72478
+1199766605 1 c 386/bin/ndb/dns - 775 sys sys 1199766036 296379
+1199766605 2 c 386/bin/ndb/dnsdebug - 775 sys sys 1199766042 270540
+1199766605 3 c 386/bin/ndb/dnstcp - 775 sys sys 1199766049 268421

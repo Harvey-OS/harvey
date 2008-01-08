@@ -154,6 +154,7 @@ cddbfilltoc(Toc *t)
 		categ = f[1];
 		id = f[2];
 		break;
+	case 210:	/* exact matches */
 	case 211:	/* close matches */
 		if((p = Brdline(&bin, '\n')) == nil)
 			goto died;
