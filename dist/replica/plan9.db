@@ -86,7 +86,7 @@
 386/bin/aux/antiword - 775 sys sys 1070288096 511478
 386/bin/aux/apm - 775 sys sys 1184731231 179071
 386/bin/aux/astarld - 775 sys sys 1168402277 64918
-386/bin/aux/cddb - 775 sys sys 1168402277 72541
+386/bin/aux/cddb - 775 sys sys 1199766029 72478
 386/bin/aux/clog - 775 sys sys 1178568252 65225
 386/bin/aux/consolefs - 775 sys sys 1184731231 154795
 386/bin/aux/conswdir - 775 sys sys 1062080411 38855
@@ -344,10 +344,10 @@
 386/bin/ndb - 20000000775 sys sys 985743147 0
 386/bin/ndb/cs - 775 sys sys 1188530160 148982
 386/bin/ndb/csquery - 775 sys sys 1176488418 61652
-386/bin/ndb/dns - 775 sys sys 1196742502 296310
-386/bin/ndb/dnsdebug - 775 sys sys 1196742508 270471
+386/bin/ndb/dns - 775 sys sys 1199766036 296379
+386/bin/ndb/dnsdebug - 775 sys sys 1199766042 270540
 386/bin/ndb/dnsquery - 775 sys sys 1185334136 64350
-386/bin/ndb/dnstcp - 775 sys sys 1196742512 268352
+386/bin/ndb/dnstcp - 775 sys sys 1199766049 268421
 386/bin/ndb/ipquery - 775 sys sys 1178568296 95524
 386/bin/ndb/mkdb - 775 sys sys 1168402340 64211
 386/bin/ndb/mkhash - 775 sys sys 1178568296 83312
@@ -9774,7 +9774,7 @@ sys/src/cmd/aux/antiword/xmalloc.c - 664 sys sys 1137261474 2501
 sys/src/cmd/aux/antiword/xml.c - 664 sys sys 1137261474 34115
 sys/src/cmd/aux/apm.c - 664 sys sys 1130423972 20275
 sys/src/cmd/aux/astarld.c - 664 sys sys 1015008684 4638
-sys/src/cmd/aux/cddb.c - 664 sys sys 1159664477 4676
+sys/src/cmd/aux/cddb.c - 664 sys sys 1199724334 4707
 sys/src/cmd/aux/clog.c - 664 sys sys 1014925109 1000
 sys/src/cmd/aux/consolefs.c - 664 sys sys 1150201588 21201
 sys/src/cmd/aux/conswdir.c - 664 sys sys 1168307860 2583
@@ -12817,7 +12817,7 @@ sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1194216290 11959
 sys/src/cmd/ndb/cs.c - 664 sys sys 1188515063 32892
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1174626119 1073
 sys/src/cmd/ndb/dblookup.c - 664 sys sys 1194216346 25229
-sys/src/cmd/ndb/dn.c - 664 sys sys 1194996325 37423
+sys/src/cmd/ndb/dn.c - 664 sys sys 1199740043 37481
 sys/src/cmd/ndb/dnarea.c - 664 sys sys 1175664421 2519
 sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1194996355 3265
 sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1194996432 35393
