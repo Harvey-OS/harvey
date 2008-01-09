@@ -86,7 +86,7 @@
 386/bin/aux/antiword - 775 sys sys 1070288096 511478
 386/bin/aux/apm - 775 sys sys 1184731231 179071
 386/bin/aux/astarld - 775 sys sys 1168402277 64918
-386/bin/aux/cddb - 775 sys sys 1168402277 72541
+386/bin/aux/cddb - 775 sys sys 1199766029 72478
 386/bin/aux/clog - 775 sys sys 1178568252 65225
 386/bin/aux/consolefs - 775 sys sys 1184731231 154795
 386/bin/aux/conswdir - 775 sys sys 1062080411 38855
@@ -344,10 +344,10 @@
 386/bin/ndb - 20000000775 sys sys 985743147 0
 386/bin/ndb/cs - 775 sys sys 1188530160 148982
 386/bin/ndb/csquery - 775 sys sys 1176488418 61652
-386/bin/ndb/dns - 775 sys sys 1196742502 296310
-386/bin/ndb/dnsdebug - 775 sys sys 1196742508 270471
+386/bin/ndb/dns - 775 sys sys 1199766036 296379
+386/bin/ndb/dnsdebug - 775 sys sys 1199766042 270540
 386/bin/ndb/dnsquery - 775 sys sys 1185334136 64350
-386/bin/ndb/dnstcp - 775 sys sys 1196742512 268352
+386/bin/ndb/dnstcp - 775 sys sys 1199766049 268421
 386/bin/ndb/ipquery - 775 sys sys 1178568296 95524
 386/bin/ndb/mkdb - 775 sys sys 1168402340 64211
 386/bin/ndb/mkhash - 775 sys sys 1178568296 83312
@@ -8166,7 +8166,7 @@ sys/src/9/pc/sd53c8xx.c - 664 sys sys 1170456695 55276
 sys/src/9/pc/sd53c8xx.i - 664 sys sys 1128547230 28453
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
 sys/src/9/pc/sdata.c - 664 sys sys 1186361525 52991
-sys/src/9/pc/sdiahci.c - 664 sys sys 1191889849 37571
+sys/src/9/pc/sdiahci.c - 664 sys sys 1199838426 38374
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1184467229 33837
 sys/src/9/pc/sdmylex.c - 664 sys sys 1189229947 28395
 sys/src/9/pc/sdscsi.c - 664 sys sys 1186618532 7957
@@ -9180,7 +9180,7 @@ sys/src/boot/pc/ether8003.c - 664 sys sys 1015007950 6446
 sys/src/boot/pc/ether8139.c - 664 sys sys 1121393459 14823
 sys/src/boot/pc/ether8169.c - 664 sys sys 1156429147 21582
 sys/src/boot/pc/ether82557.c - 664 sys sys 1140802406 19090
-sys/src/boot/pc/ether82563.c - 664 sys sys 1198011456 25413
+sys/src/boot/pc/ether82563.c - 664 sys sys 1199772483 25481
 sys/src/boot/pc/ether83815.c - 664 sys sys 1144961190 21993
 sys/src/boot/pc/ether8390.c - 664 sys sys 1112382847 16209
 sys/src/boot/pc/ether8390.h - 664 sys sys 1015007951 1392
@@ -9229,7 +9229,7 @@ sys/src/boot/pc/sd53c8xx.i - 664 sys sys 1015007955 27245
 sys/src/boot/pc/sdaoe.c - 664 sys sys 1193341405 11270
 sys/src/boot/pc/sdata.c - 664 sys sys 1175564193 38846
 sys/src/boot/pc/sdbios.c - 664 sys sys 1194145651 3282
-sys/src/boot/pc/sdiahci.c - 664 sys sys 1199493064 27056
+sys/src/boot/pc/sdiahci.c - 664 sys sys 1199773527 28014
 sys/src/boot/pc/sdmylex.c - 664 sys sys 1171783051 28694
 sys/src/boot/pc/sdscsi.c - 664 sys sys 1144961224 7006
 sys/src/boot/pc/trap.c - 664 sys sys 1193167011 7497
@@ -15856,7 +15856,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/aux/cddb - 775 sys sys 1199766029 72478
-386/bin/ndb/dns - 775 sys sys 1199766036 296379
-386/bin/ndb/dnsdebug - 775 sys sys 1199766042 270540
-386/bin/ndb/dnstcp - 775 sys sys 1199766049 268421
