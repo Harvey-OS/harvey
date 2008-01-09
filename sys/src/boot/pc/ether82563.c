@@ -382,7 +382,7 @@ enum {
 	Ntdesc		= 128,		/* multiple of 8 */
 };
 
-enum{
+enum {
 	i82563,
 	i82571,
 	i82573,
@@ -855,10 +855,12 @@ i82563pci(void)
 	while(p = pcimatch(p, 0x8086, 0)){
 		switch(p->did){
 		case 0x1096:
+		case 0x10ba:
 			type = i82563;
 			break;
-		case 0x108c:
-		case 0x109a:
+		case 0x108b:		/*  e */
+		case 0x108c:		/*  e (iamt) */
+		case 0x109a:		/*  l */
 			type = i82573;
 			break;
 		default:

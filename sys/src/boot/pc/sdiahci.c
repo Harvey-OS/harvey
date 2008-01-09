@@ -14,11 +14,7 @@
 #include "sd.h"
 #include "ahci.h"
 
-/*
- * the dprint delay seems to be necessary to make drive detection work.
- * so if we don't print, we must sleep.
- */
-#define	dprint(...)	if(debug == 1)	print(__VA_ARGS__); else delay(100)
+#define	dprint(...)	if(debug == 1)	print(__VA_ARGS__); else USED(debug)
 #define	idprint(...)	if(prid == 1)	print(__VA_ARGS__); else USED(prid)
 #define	aprint(...)	if(datapi == 1)	print(__VA_ARGS__); else USED(datapi)
 
@@ -541,6 +537,24 @@ setupfis(Afis *f)
 	f->devicebits = (u32int*)(f->base + 0x58);
 }
 
+static void
+ahciwakeup(Aport *p)
+{
+	ushort s;
+
+	s = p->sstatus;
+	if((s & 0x700) != 0x600)
+		return;
+	if((s & 7) != 1){
+		print("ahci: slumbering drive unwakeable %ux\n", s);
+		return;
+	}
+	p->sctl = 3*Aipm | 0*Aspd | Adet;
+	delay(1);
+	p->sctl &= ~7;
+//	iprint("ahci: wake %ux -> %ux\n", s, p->sstatus);
+}
+
 static int
 ahciconfigdrive(Ahba *h, Aportc *c, int mode)
 {
@@ -569,6 +583,9 @@ ahciconfigdrive(Ahba *h, Aportc *c, int mode)
 	p->fis = PCIWADDR(m->fis.base);
 	p->fishi = 0;
 	p->cmd |= Afre | Ast;
+
+	if((p->sstatus & 0x707) == 0x601) /* drive coming up in slumbering? */
+		ahciwakeup(p);
 
 	/* disable power managment sequence from book. */
 	p->sctl = (3*Aipm) | (mode*Aspd) | (0*Adet);
@@ -754,7 +771,10 @@ updatedrive(Drive *d)
 			d->state = Dmissing;
 			break;
 		case 1:
-			d->state = Derror;
+			if((p->sstatus & 0x700) == 0x600)
+				d->state = Dnew;
+			else
+				d->state = Derror;
 			break;
 		case 3:
 			/* power mgnt crap for surprise removal */
@@ -798,6 +818,9 @@ pstatus(Drive *d, ulong s)
 		break;
 	case 4:
 		d->state = Doffline;
+		break;
+	case 6:
+		d->state = Dnew;
 		break;
 	}
 }
@@ -962,13 +985,13 @@ checkdrive(Drive *d, int i)
 	westerndigitalhung(d);
 	switch(d->state){
 	case Dnull:
-	case Dready:
 		break;
 	case Dmissing:
 	case Dnew:
 		switch(s & 0x107){
+		case 1:
+			ahciwakeup(d->port);
 		case 0:
-//		case 1:
 			break;
 		default:
 			dprint("%s: unknown status %04ux\n", name, s);
@@ -988,12 +1011,9 @@ reset:
 			resetdisk(d);
 			ilock(d);
 			break;
-		case 1:
-			if (d->state != Dnew)
-				break;
 		case 0x103:
 			if((++d->wait&Midwait) == 0){
-				dprint("%s: slow reset %04ux task=%ux; %d\n",
+				dprint("%s: slow reset %#ux task=%#ux; %d\n",
 					name, s, d->port->task, d->wait);
 				goto reset;
 			}
@@ -1012,7 +1032,7 @@ reset:
 			break;
 	case Derror:
 	case Dreset:
-		dprint("%s: reset [%s]: mode %d; status %04ux\n",
+		dprint("%s: reset [%s]: mode %d; status %#ux\n",
 			name, diskstates[d->state], d->mode, s);
 		iunlock(d);
 		resetdisk(d);
@@ -1067,6 +1087,7 @@ iainterrupt(Ureg*, void *a)
 static int
 iaverify(SDunit *u)
 {
+	int i;
 	Ctlr *c;
 	Drive *d;
 
@@ -1077,7 +1098,24 @@ iaverify(SDunit *u)
 	d->unit = u;
 	iunlock(d);
 	iunlock(c);
-	checkdrive(d, d->driveno);
+	for(i = 0; i < 10; i++){
+		checkdrive(d, d->driveno);
+		switch(d->state){
+		case Dmissing:
+			if(i < 4 || d->port->sstatus & 0x733)
+				break;
+			/* fall through */
+		case Dnull:
+		case Dready:
+		case Doffline:
+			print("sdiahci: drive %d in state %s after %d resets\n",
+				d->driveno, diskstates[d->state], i);
+			return 1;
+		}
+		delay(100);
+	}
+	print("sdiahci: drive %d won't come up; in state %s after %d resets\n",
+		d->driveno, diskstates[d->state], i);
 	return 1;
 }
 
@@ -1502,6 +1540,10 @@ loop:
 			type = Tesb;
 		else if(p->vid == 0x8086 && (p->did & 0xfffe) == 0x27c4)
 			type = Tich;		/* 82801g[bh]m */
+		else if(p->vid == 0x8086 && (p->did & 0xfeff) == 0x2829)
+			type = Tich;		/* ich8 */
+		else if(p->vid == 0x8086 && (p->did & 0xfffe) == 0x2922)
+			type = Tich;		/* ich8 */
 		else if(p->vid == 0x1002 && p->did == 0x4380)
 			type = Tsb600;
 		else
@@ -1557,7 +1599,7 @@ loop:
 			d->ctlr = c;
 			if((c->hba->pi & (1<<i)) == 0)
 				continue;
-			d->state = Dnew;
+//			d->state = Dnew;
 			d->port = (Aport*)(c->mmio + 0x80*i + 0x100);
 			d->portc.p = d->port;
 			d->portc.m = &d->portm;
@@ -1566,7 +1608,7 @@ loop:
 		}
 		for(i = 0; i < n; i++)
 			if(ahciidle(c->drive[i]->port) == -1){
-				dprint("%s: port %d wedged; abort\n",
+				print("%s: port %d wedged; abort\n",
 					tname[c->type], i);
 				goto loop;
 			}

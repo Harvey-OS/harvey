@@ -15,7 +15,7 @@
 
 #define	dprint(...)	if(debug)	iprint(__VA_ARGS__); else USED(debug)
 #define	idprint(...)	if(prid)	print(__VA_ARGS__);  else USED(prid)
-#define	aprint(...)	if(datapi)	iprint(__VA_ARGS__); else USED(datapi)
+#define	aprint(...)	if(datapi)	print(__VA_ARGS__);  else USED(datapi)
 #define Tname(c)	tname[(c)->type]
 
 enum {
@@ -111,6 +111,7 @@ typedef struct {
 
 	uvlong	sectors;
 	ulong	intick;
+	ulong	lastseen;
 	int	wait;
 	uchar	mode;	/* DMautoneg, satai or sataii. */
 	uchar	active;
@@ -439,7 +440,7 @@ smartrs(Aportc *pc)
 }
 
 static int
-flushcache(Aportc *pc)
+ahciflushcache(Aportc *pc)
 {
 	uchar *c, llba;
 	Actab *t;
@@ -463,7 +464,7 @@ flushcache(Aportc *pc)
 	l->ctabhi = 0;
 
 	if(ahciwait(pc, 60000) == -1 || pc->p->task & (1|32)){
-		dprint("flushcache fail %ux\n", pc->p->task);
+		dprint("ahciflushcache fail %ux\n", pc->p->task);
 //		preg( pc->m->fis.r, 20);
 		return -1;
 	}
@@ -1085,6 +1086,7 @@ resetdisk(Drive *d)
 		d->portm.flag |= Ferror;
 	clearci(p);			/* satisfy sleep condition. */
 	wakeup(&d->portm);
+	d->state = Derror;
 	iunlock(d);
 
 	qlock(&d->portm);
@@ -1146,10 +1148,14 @@ newdrive(Drive *d)
 		s = "L";
 	idprint("%s: %sLBA %,lld sectors\n", d->unit->name, s, d->sectors);
 	idprint("  %s %s %s %s\n", d->model, d->firmware, d->serial,
-		d->mediachange?"[mediachange]":"");
+		d->mediachange? "[mediachange]": "");
 	return 0;
 
 lose:
+	idprint("%s: can't be initialized\n", d->unit->name);
+	ilock(d);
+	d->state = Dnull;
+	iunlock(d);
 	qunlock(c->m);
 	return -1;
 }
@@ -1165,7 +1171,7 @@ static void
 westerndigitalhung(Drive *d)
 {
 	if((d->portm.feat&Datapi) == 0 && d->active &&
-	    TK2MS(MACHP(0)->ticks-d->intick) > 5000){
+	    TK2MS(MACHP(0)->ticks - d->intick) > 5000){
 		dprint("%s: drive hung; resetting [%ux] ci=%x\n",
 			d->unit->name, d->port->task, d->port->ci);
 		d->state = Dreset;
@@ -1200,6 +1206,8 @@ checkdrive(Drive *d, int i)
 	ilock(d);
 	name = d->unit->name;
 	s = d->port->sstatus;
+	if(s)
+		d->lastseen = MACHP(0)->ticks;
 	if(s != olds[i]){
 		dprint("%s: status: %04ux -> %04ux: %s\n",
 			name, olds[i], s, diskstates[d->state]);
@@ -1339,6 +1347,7 @@ iaverify(SDunit *u)
 	d->unit = u;
 	iunlock(d);
 	iunlock(c);
+	checkdrive(d, d->driveno);
 	return 1;
 }
 
@@ -1531,27 +1540,55 @@ ahcibuildpkt(Aportm *m, SDreq *r, void *data, int n)
 static int
 waitready(Drive *d)
 {
-	u32int s, t, i;
+	u32int s, i, δ;
 
-	for(i = 0; i < 120; i++){
+	for(i = 0; i < 15000; i += 250){
+		if(d->state == Dreset || d->state == Dportreset ||
+		    d->state == Dnew)
+			return 1;
+		δ = MACHP(0)->ticks - d->lastseen;
+		if(d->state == Dnull || δ > 10*1000)
+			return -1;
 		ilock(d);
 		s = d->port->sstatus;
-		t = d->port->task;
 		iunlock(d);
-		if((s & 0x100) == 0)
-			return -1;	/* not active */
+		if((s & 0x700) == 0 && δ > 1500)
+			return -1;	/* no detect */
 		if(d->state == Dready && (s & 7) == 3)
 			return 0;	/* ready, present & phy. comm. */
-		if((i+1) % 30 == 0)
-			print("%s: waitready: [%s] task=%ux sstat=%ux\n",
-				d->unit->name, diskstates[d->state], t, s);
-		esleep(1000);
+		esleep(250);
 	}
 	print("%s: not responding; offline\n", d->unit->name);
 	ilock(d);
 	d->state = Doffline;
 	iunlock(d);
 	return -1;
+}
+
+static int
+lockready(Drive *d)
+{
+	int i;
+
+	qlock(&d->portm);
+	while ((i = waitready(d)) == 1) {
+		qunlock(&d->portm);
+		esleep(1);
+		qlock(&d->portm);
+	}
+	return i;
+}
+
+static int
+flushcache(Drive *d)
+{
+	int i;
+
+	i = -1;
+	if(lockready(d) == 0)
+		i = ahciflushcache(&d->portc);
+	qunlock(&d->portm);
+	return i;
 }
 
 static int
@@ -1577,14 +1614,22 @@ iariopkt(SDreq *r, Drive *d)
 
 	try = 0;
 retry:
-	if(waitready(d) == -1)
-		return SDeio;
 	data = r->data;
 	n = count;
 	if(n > max)
 		n = max;
 	d->active++;
 	ahcibuildpkt(&d->portm, r, data, n);
+	switch(waitready(d)){
+	case -1:
+		qunlock(&d->portm);
+		return SDeio;
+	case 1:
+		qunlock(&d->portm);
+		esleep(1);
+		goto retry;
+	}
+
 	ilock(d);
 	d->portm.flag = 0;
 	iunlock(d);
@@ -1605,9 +1650,10 @@ retry:
 	iunlock(d);
 
 	if(task & (Efatal<<8) || task & (ASbsy|ASdrq) && d->state == Dready){
-		d->port->ci = 0;		/* @? */
+		d->port->ci = 0;		/* clearci? */
 		ahcirecover(&d->portc);
 		task = d->port->task;
+		flag &= ~Fdone;		/* either an error or do-over */
 	}
 	d->active--;
 	qunlock(&d->portm);
@@ -1617,12 +1663,12 @@ retry:
 			r->status = SDcheck;
 			return SDcheck;
 		}
-		iprint("%s: retry\n", name);
-		esleep(1000);
+		print("%s: retry\n", name);
 		goto retry;
 	}
 	if(flag & Ferror){
-		iprint("%s: i/o error %ux\n", name, task);
+		if((task&Eidnf) == 0)
+			print("%s: i/o error %ux\n", name, task);
 		r->status = SDcheck;
 		return SDcheck;
 	}
@@ -1657,10 +1703,7 @@ iario(SDreq *r)
 	p = d->port;
 
 	if(r->cmd[0] == 0x35 || r->cmd[0] == 0x91){
-		qlock(&d->portm);
-		i = flushcache(&d->portc);
-		qunlock(&d->portm);
-		if(i == 0)
+		if(flushcache(d) == 0)
 			return sdsetsense(r, SDok, 0, 0, 0);
 		return sdsetsense(r, SDcheck, 3, 0xc, 2);
 	}
@@ -1686,8 +1729,6 @@ iario(SDreq *r)
 
 	try = 0;
 retry:
-	if(waitready(d) == -1)
-		return SDeio;
 	data = r->data;
 	while(count > 0){
 		n = count;
@@ -1695,6 +1736,15 @@ retry:
 			n = max;
 		d->active++;
 		ahcibuild(&d->portm, cmd, data, n, lba);
+		switch(waitready(d)){
+		case -1:
+			qunlock(&d->portm);
+			return SDeio;
+		case 1:
+			qunlock(&d->portm);
+			esleep(1);
+			goto retry;
+		}
 		ilock(d);
 		d->portm.flag = 0;
 		iunlock(d);
@@ -1729,7 +1779,6 @@ retry:
 				return SDeio;
 			}
 			iprint("%s: retry %lld\n", name, lba);
-			esleep(1000);
 			goto retry;
 		}
 		if(flag & Ferror){
@@ -1857,8 +1906,8 @@ loop:
 			d->portc.p = d->port;
 			d->portc.m = &d->portm;
 			d->driveno = n++;
-			c->drive[i] = d;
-			iadrive[d->driveno] = d;
+			c->drive[d->driveno] = d;
+			iadrive[niadrive + d->driveno] = d;
 		}
 		for(i = 0; i < n; i++)
 			if(ahciidle(c->drive[i]->port) == -1){
@@ -1945,10 +1994,9 @@ runflushcache(Drive *d)
 	long t0;
 
 	t0 = MACHP(0)->ticks;
-	qlock(&d->portm);
-	flushcache(&d->portc);
-	qunlock(&d->portm);
-	dprint("flush in %ldms\n", TK2MS(MACHP(0)->ticks-t0));
+	if(flushcache(d) != 0)
+		error(Eio);
+	dprint("flush in %ldms\n", MACHP(0)->ticks - t0);
 }
 
 static void
@@ -1974,7 +2022,8 @@ runsmartable(Drive *d, int i)
 		d->smartrs = 0;
 		nexterror();
 	}
-	qlock(&d->portm);
+	if(lockready(d) == -1)
+		error(Eio);
 	d->smartrs = smart(&d->portc, i);
 	d->portm.smart = 0;
 	qunlock(&d->portm);
@@ -2008,6 +2057,7 @@ iawctl(SDunit *u, Cmdbuf *cmd)
 	char **f;
 	Ctlr *c;
 	Drive *d;
+	uint i;
 
 	c = u->dev->ctlr;
 	d = c->drive[u->subno];
@@ -2016,8 +2066,6 @@ iawctl(SDunit *u, Cmdbuf *cmd)
 	if(strcmp(f[0], "flushcache") == 0)
 		runflushcache(d);
 	else if(strcmp(f[0], "identify") ==  0){
-		uint i;
-
 		i = strtoul(f[1]? f[1]: "0", 0, 0);
 		if(i > 0xff)
 			i = 0;
@@ -2026,14 +2074,15 @@ iawctl(SDunit *u, Cmdbuf *cmd)
 		forcemode(d, f[1]? f[1]: "satai");
 	else if(strcmp(f[0], "nop") == 0){
 		if((d->portm.feat & Dnop) == 0){
-			cmderror(cmd, "nop command not supported");
+			cmderror(cmd, "no drive support");
 			return -1;
 		}
 		if(waserror()){
 			qunlock(&d->portm);
 			nexterror();
 		}
-		qlock(&d->portm);
+		if(lockready(d) == -1)
+			error(Eio);
 		nop(&d->portc);
 		qunlock(&d->portm);
 		poperror();
@@ -2049,7 +2098,8 @@ iawctl(SDunit *u, Cmdbuf *cmd)
 			d->smartrs = 0;
 			nexterror();
 		}
-		qlock(&d->portm);
+		if(lockready(d) == -1)
+			error(Eio);
 		d->portm.smart = 2 + smartrs(&d->portc);
 		qunlock(&d->portm);
 		poperror();
