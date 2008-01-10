@@ -1484,7 +1484,7 @@ rdregs(char *p, char *e, void *base, Regs *r, int n, char *prefix)
 	for(i=0; i<n; i++)
 		p = seprint(p, e, "%s%s%-19s %.8ux\n",
 			prefix ? prefix : "", prefix ? ": " : "",
-			r[i].name, *(u32int*)((uchar*)base+r[i].offset));
+			r[i].name, *(ulong *)((uchar*)base+r[i].offset));
 	return p;
 }
 
@@ -1683,7 +1683,8 @@ retry:
 		flag = srb->flag;
 		freesrb(srb);
 		if(flag == 0){
-	tryagain:		if(++try == 10){
+tryagain:
+			if(++try == 10){
 				print("%s: bad disk\n", drive->unit->name);
 				return SDeio;
 			}

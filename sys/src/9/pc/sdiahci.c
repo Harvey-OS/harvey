@@ -198,7 +198,7 @@ preg(uchar *reg, int n)
 static void
 dreg(char *s, Aport *p)
 {
-	dprint("%stask=%ux; cmd=%ux; ci=%ux; is=%ux\n", s, p->task, p->cmd,
+	dprint("%stask=%lux; cmd=%lux; ci=%lux; is=%lux\n", s, p->task, p->cmd,
 		p->ci, p->isr);
 }
 
@@ -348,7 +348,7 @@ asleep(int ms)
 static int
 ahciportreset(Aportc *c)
 {
-	u32int *cmd, i;
+	ulong *cmd, i;
 	Aport *p;
 
 	p = c->p;
@@ -394,7 +394,7 @@ smart(Aportc *pc, int n)
 	l->ctabhi = 0;
 
 	if(ahciwait(pc, 1000) == -1 || pc->p->task & (1|32)){
-		dprint("smart fail %ux\n", pc->p->task);
+		dprint("smart fail %lux\n", pc->p->task);
 //		preg(pc->m->fis.r, 20);
 		return -1;
 	}
@@ -430,7 +430,7 @@ smartrs(Aportc *pc)
 
 	c = pc->m->fis.r;
 	if(ahciwait(pc, 1000) == -1 || pc->p->task & (1|32)){
-		dprint("smart fail %ux\n", pc->p->task);
+		dprint("smart fail %lux\n", pc->p->task);
 		preg(c, 20);
 		return -1;
 	}
@@ -464,7 +464,7 @@ ahciflushcache(Aportc *pc)
 	l->ctabhi = 0;
 
 	if(ahciwait(pc, 60000) == -1 || pc->p->task & (1|32)){
-		dprint("ahciflushcache fail %ux\n", pc->p->task);
+		dprint("ahciflushcache fail %lux\n", pc->p->task);
 //		preg( pc->m->fis.r, 20);
 		return -1;
 	}
@@ -483,10 +483,10 @@ gbit16(void *a)
 	return j;
 }
 
-static u32int
+static ulong
 gbit32(void *a)
 {
-	u32int j;
+	ulong j;
 	uchar *i;
 
 	i = a;
@@ -587,7 +587,7 @@ ahciidentify(Aportc *pc, ushort *id)
 static int
 ahciquiet(Aport *a)
 {
-	u32int *p, i;
+	ulong *p, i;
 
 	p = &a->cmd;
 	*p &= ~Ast;
@@ -612,7 +612,7 @@ stop:
 	return -1;
 stop1:
 	/* extra check */
-	dprint("clo clear %x\n", a->task);
+	dprint("clo clear %lx\n", a->task);
 	if(a->task & ASbsy)
 		return -1;
 	*p |= Ast;
@@ -678,7 +678,7 @@ ahcicomreset(Aportc *pc)
 static int
 ahciidle(Aport *port)
 {
-	u32int *p, i, r;
+	ulong *p, i, r;
 
 	p = &port->cmd;
 	if((*p & Arun) == 0)
@@ -708,7 +708,7 @@ stop:
  *	- remainder is handled by configdisk.
  *	- ahcirecover is a quick recovery from a failed command.
  */
-int
+static int
 ahciswreset(Aportc *pc)
 {
 	int i;
@@ -722,7 +722,7 @@ ahciswreset(Aportc *pc)
 	return 0;
 }
 
-int
+static int
 ahcirecover(Aportc *pc)
 {
 	ahciswreset(pc);
@@ -750,7 +750,7 @@ setupfis(Afis *f)
 	f->p = f->base + 0x20;
 	f->r = f->base + 0x40;
 	f->u = f->base + 0x60;
-	f->devicebits = (u32int*)(f->base + 0x58);
+	f->devicebits = (ulong*)(f->base + 0x58);
 }
 
 static void
@@ -788,7 +788,7 @@ ahciconfigdrive(Ahba *h, Aportc *c, int mode)
 
 	if(p->sstatus & 3 && h->cap & Hsss){
 		/* device connected & staggered spin-up */
-		dprint("configdrive:  spinning up ... [%ux]\n", p->sstatus);
+		dprint("configdrive:  spinning up ... [%lux]\n", p->sstatus);
 		p->cmd |= Apod|Asud;
 		asleep(1400);
 	}
@@ -843,7 +843,7 @@ static int
 ahciconf(Ctlr *ctlr)
 {
 	Ahba *h;
-	u32int u;
+	ulong u;
 
 	h = ctlr->hba = (Ahba*)ctlr->mmio;
 	u = h->cap;
@@ -851,8 +851,8 @@ ahciconf(Ctlr *ctlr)
 	if((u&Hsam) == 0)
 		h->ghc |= Hae;
 
-	print("#S/sd%c: ahci: port %#p: hba sss %d; ncs %d; coal %d; "
-		"mports %d; led %d; clo %d; ems %d\n",
+	print("#S/sd%c: ahci: port %#p: hba sss %ld; ncs %ld; coal %ld; "
+		"mports %ld; led %ld; clo %ld; ems %ld\n",
 		ctlr->sdev->idno, h,
 		(u>>27) & 1, (u>>8) & 0x1f, (u>>7) & 1, u & 0x1f, (u>>25) & 1,
 		(u>>24) & 1, (u>>6) & 1);
@@ -897,7 +897,7 @@ idmove(char *p, ushort *a, int n)
 static int
 identify(Drive *d)
 {
-	u16int *id;
+	ushort *id;
 	vlong osectors, s;
 	uchar oserial[21];
 	SDunit *u;
@@ -945,10 +945,10 @@ clearci(Aport *p)
 static void
 updatedrive(Drive *d)
 {
-	u32int cause, serr, s0, pr, ewake;
+	ulong cause, serr, s0, pr, ewake;
 	char *name;
 	Aport *p;
-	static u32int last;
+	static ulong last;
 
 	pr = 1;
 	ewake = 0;
@@ -972,7 +972,7 @@ updatedrive(Drive *d)
 	}
 	if(cause & Adhrs){
 		if(p->task & 33){
-			dprint("Adhrs cause = %ux; serr = %ux; task=%ux\n",
+			dprint("Adhrs cause = %lux; serr = %lux; task=%lux\n",
 				cause, serr, p->task);
 			d->portm.flag |= Ferror;
 			ewake = 1;
@@ -980,10 +980,10 @@ updatedrive(Drive *d)
 		pr = 0;
 	}
 	if(p->task & 1 && last != cause)
-		dprint("err ca %ux serr %ux task %ux sstat %ux\n",
+		dprint("err ca %lux serr %lux task %lux sstat %lux\n",
 			cause, serr, p->task, p->sstatus);
 	if(pr)
-		dprint("%s: upd %ux ta %ux\n", name, cause, p->task);
+		dprint("%s: upd %lux ta %lux\n", name, cause, p->task);
 
 	if(cause & (Aprcs|Aifs)){
 		s0 = d->state;
@@ -1006,7 +1006,7 @@ updatedrive(Drive *d)
 			d->state = Doffline;
 			break;
 		}
-		dprint("%s: %s → %s [Apcrs] %ux\n", name, diskstates[s0],
+		dprint("%s: %s → %s [Apcrs] %lux\n", name, diskstates[s0],
 			diskstates[d->state], p->sstatus);
 		/* print pulled message here. */
 		if(s0 == Dready && d->state != Dready)
@@ -1172,7 +1172,7 @@ westerndigitalhung(Drive *d)
 {
 	if((d->portm.feat&Datapi) == 0 && d->active &&
 	    TK2MS(MACHP(0)->ticks - d->intick) > 5000){
-		dprint("%s: drive hung; resetting [%ux] ci=%x\n",
+		dprint("%s: drive hung; resetting [%lux] ci=%lx\n",
 			d->unit->name, d->port->task, d->port->ci);
 		d->state = Dreset;
 	}
@@ -1192,7 +1192,7 @@ doportreset(Drive *d)
 	else
 		i = 0;
 	qunlock(&d->portm);
-	dprint("portreset → %s  [task %ux]\n",
+	dprint("portreset → %s  [task %lux]\n",
 		diskstates[d->state], d->port->task);
 	return i;
 }
@@ -1248,7 +1248,7 @@ reset:
 			break;
 		case 0x103:		/* active, device, phy. comm. */
 			if((++d->wait&Midwait) == 0){
-				dprint("%s: slow reset %04ux task=%ux; %d\n",
+				dprint("%s: slow reset %04ux task=%lux; %d\n",
 					name, s, d->port->task, d->wait);
 				goto reset;
 			}
@@ -1540,7 +1540,7 @@ ahcibuildpkt(Aportm *m, SDreq *r, void *data, int n)
 static int
 waitready(Drive *d)
 {
-	u32int s, i, δ;
+	ulong s, i, δ;
 
 	for(i = 0; i < 15000; i += 250){
 		if(d->state == Dreset || d->state == Dportreset ||
@@ -1981,8 +1981,8 @@ iarctl(SDunit *u, char *p, int l)
 	}else
 		p = seprint(p, e, "no disk present [%s]\n", diskstates[d->state]);
 	serrstr(o->serror, buf, buf + sizeof buf - 1);
-	p = seprint(p, e, "reg\ttask %ux cmd %ux serr %ux %s ci %ux is %ux; "
-		"sig %ux sstatus %04x\n", o->task, o->cmd, o->serror, buf,
+	p = seprint(p, e, "reg\ttask %lux cmd %lux serr %lux %s ci %lux is %lux; "
+		"sig %lux sstatus %04lux\n", o->task, o->cmd, o->serror, buf,
 		o->ci, o->isr, o->sig, o->sstatus);
 	p = seprint(p, e, "geometry %llud 512\n", d->sectors);
 	return p - op;
@@ -2145,7 +2145,7 @@ portr(char *p, char *e, uint x)
 static char*
 iartopctl(SDev *sdev, char *p, char *e)
 {
-	u32int cap;
+	ulong cap;
 	char pr[25];
 	Ahba *hba;
 	Ctlr *ctlr;
@@ -2173,7 +2173,7 @@ iartopctl(SDev *sdev, char *p, char *e)
 	has(Hsxs, "sxs");
 	portr(pr, pr + sizeof pr, hba->pi);
 	return seprint(p, e,
-		"iss %d ncs %d np %d; ghc %ux isr %ux pi %ux %s ver %ux\n",
+		"iss %ld ncs %ld np %ld; ghc %lux isr %lux pi %lux %s ver %lux\n",
 		(cap>>20) & 0xf, (cap>>8) & 0x1f, 1 + (cap & 0x1f),
 		hba->ghc, hba->isr, hba->pi, pr, hba->ver);
 #undef has

@@ -18,13 +18,13 @@ cdboot=yes
 nobootprompt=local!/boot/bzroot
 bootfile=sdD0!cdboot!9pcflop.gz
 *nobiosload=1
-*noahciload=1
+#*noahciload=1
 
 [cdboot]
 bootargs=local!#S/sdD0/data
 bootfile=sdD0!cdboot!9pccd.gz
 *nobiosload=1
-*noahciload=1
+#*noahciload=1
 
 [debug]
 bootargs=local!#S/sdD0/data

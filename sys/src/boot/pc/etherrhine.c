@@ -491,7 +491,8 @@ reset(Ctlr* ctlr)
 	/*
 	 * Soft reset the controller.
 	 */
-	csr16w(ctlr, Cr, Reset);
+	csr16w(ctlr, Cr, Stop);
+	csr16w(ctlr, Cr, Stop|Reset);
 	for(timeo = 0; timeo < 10000; timeo++){
 		if(!(csr16r(ctlr, Cr) & Reset))
 			break;

@@ -1724,10 +1724,10 @@ gbit16(void *a)
 	return i[1] << 8 | i[0];
 }
 
-static u32int
+static ulong
 gbit32(void *a)
 {
-	u32int j;
+	ulong j;
 	uchar *i;
 
 	i = a;

@@ -1,6 +1,6 @@
 /*
  * bootstrap driver for
- * Intel RS-82543GC Gigabit Ethernet Controller
+ * Intel RS-82543GC Gigabit Ethernet PCI Controllers
  * as found on the Intel PRO/1000[FT] Server Adapter.
  * The older non-[FT] cards use the 82542 (LSI L2A1157) chip; no attempt
  * is made to handle the older chip although it should be possible.
@@ -143,10 +143,15 @@ enum {					/* Ctrl */
 	Vme		= 0x40000000,	/* VLAN Mode Enable */
 };
 
+/*
+ * can't find Tckok nor Rbcok in any Intel docs,
+ * but even 82543gc docs define Lanid.
+ */
 enum {					/* Status */
 	Lu		= 0x00000002,	/* Link Up */
-	Tckok		= 0x00000004,	/* Transmit clock is running */
-	Rbcok		= 0x00000008,	/* Receive clock is running */
+	Lanid		= 0x0000000C,	/* mask for Lan ID. (function id) */
+//	Tckok		= 0x00000004,	/* Transmit clock is running */
+//	Rbcok		= 0x00000008,	/* Receive clock is running */
 	Txoff		= 0x00000010,	/* Transmission Paused */
 	Tbimode		= 0x00000020,	/* TBI Mode Indication */
 	SpeedMASK	= 0x000000C0,
@@ -1476,10 +1481,11 @@ igbereset(Ctlr* ctlr)
 		ctlr->ra[2*i]   = ctlr->eeprom[i];
 		ctlr->ra[2*i+1] = ctlr->eeprom[i]>>8;
 	}
-	/* set mac address of second port */
-	r = csr32r(ctlr, Status)>>2;
-	ctlr->ra[5] += r & 3;		/* ea ctlr[1] = ea ctlr[0]+1 */
-
+	/* lan id seems to vary on 82543gc; don't use it */
+	if (ctlr->id != i82543gc) {
+		r = (csr32r(ctlr, Status) & Lanid) >> 2;
+		ctlr->ra[5] += r;		/* ea ctlr[1] = ea ctlr[0]+1 */
+	}
 	r = (ctlr->ra[3]<<24)|(ctlr->ra[2]<<16)|(ctlr->ra[1]<<8)|ctlr->ra[0];
 	csr32w(ctlr, Ral, r);
 	r = 0x80000000|(ctlr->ra[5]<<8)|ctlr->ra[4];
