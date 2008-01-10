@@ -183,7 +183,7 @@ preg(uchar *reg, int n)
 static void
 dreg(char *s, Aport *p)
 {
-	dprint("%stask=%ux; cmd=%ux; ci=%ux; is=%ux\n",
+	dprint("%stask=%lux; cmd=%lux; ci=%lux; is=%lux\n",
 		s, p->task, p->cmd, p->ci, p->isr);
 }
 
@@ -297,7 +297,7 @@ asleep(int ms)
 static int
 ahciportreset(Aportc *c)
 {
-	u32int *cmd, i;
+	ulong *cmd, i;
 	Aport *p;
 
 	p = c->p;
@@ -323,10 +323,10 @@ gbit16(void *a)
 	return i[1]<<8 | i[0];
 }
 
-static u32int
+static ulong
 gbit32(void *a)
 {
-	u32int j;
+	ulong j;
 	uchar *i;
 
 	i = a;
@@ -427,7 +427,7 @@ ahciidentify(Aportc *pc, ushort *id)
 static int
 ahciquiet(Aport *a)
 {
-	u32int *p, i;
+	ulong *p, i;
 
 	p = &a->cmd;
 	*p &= ~Ast;
@@ -452,7 +452,7 @@ stop:
 	return -1;
 stop1:
 	/* extra check */
-	dprint("clo clear %x\n", a->task);
+	dprint("clo clear %lx\n", a->task);
 	if(a->task & ASbsy)
 		return -1;
 	*p |= Ast;
@@ -462,7 +462,7 @@ stop1:
 static int
 ahciidle(Aport *port)
 {
-	u32int *p, i, r;
+	ulong *p, i, r;
 
 	p = &port->cmd;
 	if((*p & Arun) == 0)
@@ -534,7 +534,7 @@ setupfis(Afis *f)
 	f->p = f->base + 0x20;
 	f->r = f->base + 0x40;
 	f->u = f->base + 0x60;
-	f->devicebits = (u32int*)(f->base + 0x58);
+	f->devicebits = (ulong*)(f->base + 0x58);
 }
 
 static void
@@ -571,7 +571,7 @@ ahciconfigdrive(Ahba *h, Aportc *c, int mode)
 	}
 
 	if(p->sstatus & 3 && h->cap & Hsss){
-		dprint("configdrive:  spinning up ... [%ux]\n", p->sstatus);
+		dprint("configdrive:  spinning up ... [%lux]\n", p->sstatus);
 		p->cmd |= Apod|Asud;
 		asleep(1400);
 	}
@@ -625,7 +625,7 @@ countbits(ulong u)
 static int
 ahciconf(Ctlr *c)
 {
-	u32int u;
+	ulong u;
 	Ahba *h;
 	static int count;
 
@@ -635,8 +635,8 @@ ahciconf(Ctlr *c)
 	if((u & Hsam) == 0)
 		h->ghc |= Hae;
 
-	print("ahci%d port %#p: hba sss %d; ncs %d; coal %d; mports %d; "
-		"led %d; clo %d; ems %d;\n", count++, h,
+	print("ahci%d port %#p: hba sss %ld; ncs %ld; coal %ld; mports %ld; "
+		"led %ld; clo %ld; ems %ld;\n", count++, h,
 		(u>>27) & 1, (u>>8) & 0x1f, (u>>7) & 1,	u & 0x1f, (u>>25) & 1,
 		(u>>24) & 1, (u>>6) & 1);
 	return countbits(h->pi);
@@ -679,7 +679,7 @@ idmove(char *p, ushort *a, int n)
 static int
 identify(Drive *d)
 {
-	u16int *id;
+	ushort *id;
 	vlong osectors, s;
 	uchar oserial[21];
 	SDunit *u;
@@ -728,10 +728,10 @@ clearci(Aport *p)
 static void
 updatedrive(Drive *d)
 {
-	u32int cause, serr, s0, pr, ewake;
+	ulong cause, serr, s0, pr, ewake;
 	char *name;
 	Aport *p;
-	static u32int last;
+	static ulong last;
 
 	pr = 1;
 	ewake = 0;
@@ -754,7 +754,7 @@ updatedrive(Drive *d)
 	}
 	if(cause & Adhrs){
 		if(p->task & (32|1)){
-			dprint("Adhrs cause = %ux; serr = %ux; task=%ux\n",
+			dprint("Adhrs cause = %lux; serr = %lux; task=%lux\n",
 				cause, serr, p->task);
 			d->portm.flag |= Ferror;
 			ewake = 1;
@@ -763,7 +763,7 @@ updatedrive(Drive *d)
 	}
 
 	if(pr)
-		dprint("%s: upd %ux ta %ux\n", name, cause, p->task);
+		dprint("%s: upd %lux ta %lux\n", name, cause, p->task);
 	if(cause & (Aprcs|Aifs)){
 		s0 = d->state;
 		switch(p->sstatus & 7){
@@ -785,7 +785,7 @@ updatedrive(Drive *d)
 			d->state = Doffline;
 			break;
 		}
-		dprint("%s: %s → %s [Apcrs] %ux\n", name, diskstates[s0],
+		dprint("%s: %s → %s [Apcrs] %lux\n", name, diskstates[s0],
 			diskstates[d->state], p->sstatus);
 		if(s0 == Dready && d->state != Dready)
 			idprint("%s: pulled\n", name);
@@ -942,8 +942,8 @@ westerndigitalhung(Drive *d)
 {
 	if((d->portm.feat & Datapi) == 0 && d->active &&
 	    TK2MS(m->ticks - d->intick) > 5000){
-		dprint("%s: drive hung; resetting [%ux] ci=%x\n", d->unit->name,
-			d->port->task, d->port->ci);
+		dprint("%s: drive hung; resetting [%lux] ci=%lx\n",
+			d->unit->name, d->port->task, d->port->ci);
 		d->state = Dreset;
 	}
 }
@@ -962,7 +962,7 @@ doportreset(Drive *d)
 	else
 		i = 0;
 	qunlock(&d->portm);
-	dprint("portreset → %s  [task %ux]\n", diskstates[d->state],
+	dprint("portreset → %s  [task %lux]\n", diskstates[d->state],
 		d->port->task);
 	return i;
 }
@@ -1013,7 +1013,7 @@ reset:
 			break;
 		case 0x103:
 			if((++d->wait&Midwait) == 0){
-				dprint("%s: slow reset %#ux task=%#ux; %d\n",
+				dprint("%s: slow reset %#ux task=%#lux; %d\n",
 					name, s, d->port->task, d->wait);
 				goto reset;
 			}
@@ -1299,7 +1299,7 @@ ahcibuildpkt(Aportm *m, SDreq *r, void *data, int n)
 static int
 waitready(Drive *d)
 {
-	u32int s, t, i;
+	ulong s, t, i;
 
 	for(i = 0; i < 120; i++){
 		ilock(d);
@@ -1311,7 +1311,7 @@ waitready(Drive *d)
 		if(d->state == Dready && (s & 7) == 3)
 			return 0;
 		if((i + 1) % 30 == 0)
-			print("%s: waitready: [%s] task=%ux sstat=%ux\n",
+			print("%s: waitready: [%s] task=%lux sstat=%lux\n",
 				d->unit->name, diskstates[d->state], t, s);
 		esleep(1000);
 	}
