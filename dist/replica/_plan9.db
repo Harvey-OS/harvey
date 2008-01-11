@@ -14502,7 +14502,7 @@ sys/src/cmd/webfs/webget.c - 664 sys sys 1124711795 1589
 sys/src/cmd/webfsget.c - 664 sys sys 1141913846 1597
 sys/src/cmd/wikifs - 20000000775 sys sys 1045503591 0
 sys/src/cmd/wikifs/fs.c - 664 sys sys 1157169486 14459
-sys/src/cmd/wikifs/io.c - 664 sys sys 1157169580 11896
+sys/src/cmd/wikifs/io.c - 664 sys sys 1199991690 11909
 sys/src/cmd/wikifs/lookup.c - 664 sys sys 1018211093 182
 sys/src/cmd/wikifs/map.c - 664 sys sys 1018211093 109
 sys/src/cmd/wikifs/mkfile - 664 sys sys 1045503591 468
@@ -15856,3 +15856,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/wikifs - 775 sys sys 1200025151 203038

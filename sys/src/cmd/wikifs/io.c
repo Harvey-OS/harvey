@@ -118,7 +118,7 @@ getlock(char *lock)
 			break;
 		sleep(1000/10);
 	}
-	werrstr("couldn't acquire lock");
+	werrstr("couldn't acquire lock %s: %r", lock);
 	return -1;
 }
 
