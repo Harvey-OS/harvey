@@ -523,7 +523,7 @@
 386/bin/webcookies - 775 sys sys 1179372114 166178
 386/bin/webfs - 775 sys sys 1188447436 360410
 386/bin/webfsget - 775 sys sys 1148500702 39177
-386/bin/wikifs - 775 sys sys 1179372115 203019
+386/bin/wikifs - 775 sys sys 1200025151 203038
 386/bin/winwatch - 775 sys sys 1197732853 155336
 386/bin/x.echo - 775 sys sys 1168402359 57592
 386/bin/xd - 775 sys sys 1168402359 64279
@@ -14502,7 +14502,7 @@ sys/src/cmd/webfs/webget.c - 664 sys sys 1124711795 1589
 sys/src/cmd/webfsget.c - 664 sys sys 1141913846 1597
 sys/src/cmd/wikifs - 20000000775 sys sys 1045503591 0
 sys/src/cmd/wikifs/fs.c - 664 sys sys 1157169486 14459
-sys/src/cmd/wikifs/io.c - 664 sys sys 1157169580 11896
+sys/src/cmd/wikifs/io.c - 664 sys sys 1199991690 11909
 sys/src/cmd/wikifs/lookup.c - 664 sys sys 1018211093 182
 sys/src/cmd/wikifs/map.c - 664 sys sys 1018211093 109
 sys/src/cmd/wikifs/mkfile - 664 sys sys 1045503591 468
