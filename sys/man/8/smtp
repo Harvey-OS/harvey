@@ -179,9 +179,11 @@ where
 and
 .I remote
 are IP addresses of the local and remote systems, respectively.
-If it exists, the remote address is added to the whitelist.  If
-not, the file is created and the mail is rejected with a `try again'
-code.  The expectation is that spammers will not retry and that others will.
+If it exists and was created more than a few minutes go,
+the remote address is added to the whitelist.
+If not, the file is created and the mail is rejected with a `try again' code.
+The expectation is that spammers will not retry for more than a few minutes
+and that others will.
 .TP
 .B -h
 specifies the receiving domain.  If this flag is not specified, the
