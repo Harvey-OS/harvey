@@ -22,6 +22,7 @@ typedef struct {
  */
 enum {
 	Nonspammax = 14*60*60,  /* must call back within this time if real */
+	Nonspammin = 5*60,	/* must wait this long to retry */
 };
 static char whitelist[] = "/mail/grey/whitelist";
 
@@ -187,7 +188,7 @@ recentcall(Greysts *gsp)
 	if (!gsp->existed)
 		return 0;
 	/* reject immediate call-back; spammers are doing that now */
-	return delay >= 30 && delay <= Nonspammax;
+	return delay >= Nonspammin && delay <= Nonspammax;
 }
 
 /*

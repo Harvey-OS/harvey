@@ -475,7 +475,7 @@
 386/bin/upas/scanmail - 775 sys sys 1181507271 128207
 386/bin/upas/send - 775 sys sys 1181507272 192174
 386/bin/upas/smtp - 775 sys sys 1188530218 275629
-386/bin/upas/smtpd - 775 sys sys 1196742536 332035
+386/bin/upas/smtpd - 775 sys sys 1200111584 332038
 386/bin/upas/spam - 775 sys sys 1064598366 36
 386/bin/upas/testscan - 775 sys sys 1181507272 83858
 386/bin/upas/token - 775 sys sys 1188447329 73042
@@ -7874,7 +7874,7 @@ sys/man/8/scuzz - 664 sys sys 1196638948 8701
 sys/man/8/secstore - 664 sys sys 1196638948 1954
 sys/man/8/securenet - 664 sys sys 1196638948 3160
 sys/man/8/send - 664 sys sys 1196638948 2168
-sys/man/8/smtp - 664 sys sys 1196638948 5332
+sys/man/8/smtp - 664 sys sys 1200091729 5401
 sys/man/8/snoopy - 664 sys sys 1196638948 4442
 sys/man/8/stats - 664 sys sys 1196638948 4336
 sys/man/8/statusbar - 664 sys sys 1196638948 1254
@@ -14234,7 +14234,7 @@ sys/src/cmd/upas/send/skipequiv.c - 664 sys sys 944961322 1747
 sys/src/cmd/upas/send/translate.c - 664 sys sys 944961322 804
 sys/src/cmd/upas/send/tryit - 664 sys sys 944961322 584
 sys/src/cmd/upas/smtp - 20000000775 sys sys 1067741333 0
-sys/src/cmd/upas/smtp/greylist.c - 664 sys sys 1161209057 6546
+sys/src/cmd/upas/smtp/greylist.c - 664 sys sys 1200091418 6609
 sys/src/cmd/upas/smtp/mkfile - 664 sys sys 1108910002 801
 sys/src/cmd/upas/smtp/mxdial.c - 664 sys sys 1188509395 6813
 sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417

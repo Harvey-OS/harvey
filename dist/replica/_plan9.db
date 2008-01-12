@@ -523,7 +523,7 @@
 386/bin/webcookies - 775 sys sys 1179372114 166178
 386/bin/webfs - 775 sys sys 1188447436 360410
 386/bin/webfsget - 775 sys sys 1148500702 39177
-386/bin/wikifs - 775 sys sys 1179372115 203019
+386/bin/wikifs - 775 sys sys 1200025151 203038
 386/bin/winwatch - 775 sys sys 1197732853 155336
 386/bin/x.echo - 775 sys sys 1168402359 57592
 386/bin/xd - 775 sys sys 1168402359 64279
@@ -7874,7 +7874,7 @@ sys/man/8/scuzz - 664 sys sys 1196638948 8701
 sys/man/8/secstore - 664 sys sys 1196638948 1954
 sys/man/8/securenet - 664 sys sys 1196638948 3160
 sys/man/8/send - 664 sys sys 1196638948 2168
-sys/man/8/smtp - 664 sys sys 1196638948 5332
+sys/man/8/smtp - 664 sys sys 1200091729 5401
 sys/man/8/snoopy - 664 sys sys 1196638948 4442
 sys/man/8/stats - 664 sys sys 1196638948 4336
 sys/man/8/statusbar - 664 sys sys 1196638948 1254
@@ -14234,7 +14234,7 @@ sys/src/cmd/upas/send/skipequiv.c - 664 sys sys 944961322 1747
 sys/src/cmd/upas/send/translate.c - 664 sys sys 944961322 804
 sys/src/cmd/upas/send/tryit - 664 sys sys 944961322 584
 sys/src/cmd/upas/smtp - 20000000775 sys sys 1067741333 0
-sys/src/cmd/upas/smtp/greylist.c - 664 sys sys 1161209057 6546
+sys/src/cmd/upas/smtp/greylist.c - 664 sys sys 1200091418 6609
 sys/src/cmd/upas/smtp/mkfile - 664 sys sys 1108910002 801
 sys/src/cmd/upas/smtp/mxdial.c - 664 sys sys 1188509395 6813
 sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417
@@ -15856,4 +15856,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/wikifs - 775 sys sys 1200025151 203038
+386/bin/upas/smtpd - 775 sys sys 1200111584 332038
