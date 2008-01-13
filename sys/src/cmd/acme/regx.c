@@ -666,7 +666,7 @@ rxexecute(Text *t, Rune *r, uint startp, uint eof, Rangeset *rp)
 				break;
 			case OR:
 				/* evaluate right choice later */
-				if(addinst(tl, inst->right, &tlp->se))
+				if(addinst(tlp, inst->right, &tlp->se))
 				if(++ntl >= NLIST)
 					goto Overflow;
 				/* efficiency: advance and re-evaluate */

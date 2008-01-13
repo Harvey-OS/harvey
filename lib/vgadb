@@ -975,6 +975,12 @@ sm17GLsi=1024x768						# 70Hz, 57.2KHz
 	vrs=771 vre=777 vt=806
 	hsync=- vsync=-
 
+# Samsung SyncMaster 240T
+sm240t=1920x1200
+	clock=193.15
+	shb=2048 ehb=2256 ht=2592
+	vrs=1201 vre=1204 vt=1242
+
 # Samsung SyncMaster 753DF
 sm753DF=1024x768
 	defaultclock=94.5
@@ -1291,6 +1297,22 @@ a1097c=1360x1024		#	78.125 kHz / 72.005 Hz, 4:3 resolution
 	clock=143.4375	#	tube is rated at 135MHz, so beware.
 	shb=1428 ehb=1632 ht=1836
 	vrs=1027 vre=1030 vt=1085
+
+
+#
+# Dell 176FP LCD monitor
+#
+176fp=1024x768	# 60Hz
+	clock=65
+	shb=1024 ehb=1344 ht=1344
+	vrs=771 vre=777 vt=806
+	hsync=- vsync=-
+176fp=1280x1024	# 60 Hz
+	clock=108
+	shb=1280 ehb=1688 ht=1688
+	vrs=1025 vre=1028 vt=1066
+	hsync=+ vsync=+
+
 
 #
 # QVGA		320x240		Quarter Video Graphics Array

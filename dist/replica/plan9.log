@@ -18278,3 +18278,8 @@
 1200092405 0 c sys/man/8/smtp - 664 sys sys 1200091729 5401
 1200092405 1 c sys/src/cmd/upas/smtp/greylist.c - 664 sys sys 1200091418 6609
 1200112204 0 c 386/bin/upas/smtpd - 775 sys sys 1200111584 332038
+1200171604 0 c lib/vgadb - 664 sys sys 1200170799 31502
+1200171604 1 c sys/src/libregexp/regexec.c - 664 sys sys 1200170872 4977
+1200171604 2 c sys/src/libregexp/rregexec.c - 664 sys sys 1200170858 4676
+1200173403 0 c sys/src/cmd/acme/regx.c - 664 sys sys 1200172925 16114
+1200173403 1 c sys/src/cmd/sam/regexp.c - 664 sys sys 1200172847 15447
