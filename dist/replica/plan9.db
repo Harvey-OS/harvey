@@ -5279,7 +5279,7 @@ lib/tftpd - 20000000775 sys sys 1020895767 0
 lib/unicode - 664 sys sys 958440028 223312
 lib/unicode.notice - 664 sys sys 958504386 1398
 lib/units - 664 sys sys 1071415518 9997
-lib/vgadb - 664 sys sys 1182876665 31152
+lib/vgadb - 664 sys sys 1200170799 31502
 lib/video.specs - 664 sys sys 1175869533 2942
 lib/volcanoes - 664 sys sys 944944024 119831
 lib/words - 664 sys sys 1014923442 247097
@@ -9480,7 +9480,7 @@ sys/src/cmd/acme/fns.h - 664 sys sys 1107154481 2916
 sys/src/cmd/acme/fsys.c - 664 sys sys 1111171699 13097
 sys/src/cmd/acme/look.c - 664 sys sys 1195964468 14203
 sys/src/cmd/acme/mkfile - 664 sys sys 1058463682 543
-sys/src/cmd/acme/regx.c - 664 sys sys 1181417695 16113
+sys/src/cmd/acme/regx.c - 664 sys sys 1200172925 16114
 sys/src/cmd/acme/rows.c - 664 sys sys 1177527677 14708
 sys/src/cmd/acme/scrl.c - 664 sys sys 1111119426 2875
 sys/src/cmd/acme/text.c - 664 sys sys 1136064450 27870
@@ -13331,7 +13331,7 @@ sys/src/cmd/sam/multi.c - 664 sys sys 1132448976 1844
 sys/src/cmd/sam/parse.h - 664 sys sys 1130423794 1934
 sys/src/cmd/sam/plan9.c - 664 sys sys 1112535044 2303
 sys/src/cmd/sam/rasp.c - 664 sys sys 1168617775 5817
-sys/src/cmd/sam/regexp.c - 664 sys sys 1181417688 15446
+sys/src/cmd/sam/regexp.c - 664 sys sys 1200172847 15447
 sys/src/cmd/sam/sam.c - 664 sys sys 1133885145 12016
 sys/src/cmd/sam/sam.h - 664 sys sys 1168617774 9418
 sys/src/cmd/sam/shell.c - 664 sys sys 1121977163 3143
@@ -15597,9 +15597,9 @@ sys/src/libregexp/regaux.c - 664 sys sys 944961751 2069
 sys/src/libregexp/regcomp.c - 664 sys sys 944961751 9572
 sys/src/libregexp/regcomp.h - 664 sys sys 1041196492 1986
 sys/src/libregexp/regerror.c - 664 sys sys 944961751 210
-sys/src/libregexp/regexec.c - 664 sys sys 1181417679 4976
+sys/src/libregexp/regexec.c - 664 sys sys 1200170872 4977
 sys/src/libregexp/regsub.c - 664 sys sys 988225293 1133
-sys/src/libregexp/rregexec.c - 664 sys sys 1181417679 4675
+sys/src/libregexp/rregexec.c - 664 sys sys 1200170858 4676
 sys/src/libregexp/rregsub.c - 664 sys sys 988225293 1156
 sys/src/libscribble - 20000000775 sys sys 1039727698 0
 sys/src/libscribble/graffiti.c - 664 sys sys 1116769753 7344
