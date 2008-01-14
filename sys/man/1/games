@@ -1,6 +1,6 @@
 .TH GAMES 1
 .SH NAME
-4s, 5s, juggle, mahjongg, sokoban, sudoku \- time wasters
+4s, 5s, juggle, mahjongg, memo, sokoban, sudoku \- time wasters
 .SH SYNOPSIS
 .B games/4s
 .br
@@ -32,6 +32,11 @@
 ] [
 .B -l
 .I layout
+]
+.br
+.B games/memo
+[
+.B -h
 ]
 .br
 .B games/sokoban
@@ -130,6 +135,19 @@ undo the last move,
 .LR C
 tries to solve the level.
 .TP
+.B memo
+Remove all tiles from the board.
+At first, pictures of various Bell Labs employees, Lucent Technologies' logo, and Glenda will appear.
+Memorize the sequence, then click to hide them and begin.
+Use the mouse to select two tiles.
+If they are the same, the tiles will disappear, otherwise the tiles will flip back and you will get a chance to try again.
+Button 3 generates a memu allowing you to restart, switch between easy and hard modes, and exit.
+The
+.B -h
+option sets the game to hard mode.
+Once the game has been completed, a message pops up with how long it took to win.
+Use the button 3 menu to choose a mode, or click to play again.
+.TP
 .B sokoban
 Guide Glenda through a room full of walls, pebbles and holes to put
 the pebbles in.  Your goal is to arrange all pebbles into holes by
@@ -227,6 +245,10 @@ and
 .B /sys/games/lib/mahjongg/*
 image sprites, levels and backgrounds used by
 .I mahjongg
+.TP
+.B /lib/face/*
+tiles for
+.I memo
 .TP
 .B /sys/games/lib/sokoban/*
 image sprites and levels used by
