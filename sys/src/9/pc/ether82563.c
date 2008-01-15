@@ -366,8 +366,8 @@ typedef struct {
 enum {
 	/* 16 and 32-bit flash registers for ich flash parts */
 	Bfpr	= 0x00/4,		/* flash base 0:12; lim 16:28 */
-	Fsts	= 0x04/2,		/* flash status; Hsfs */
-	Fctl	= 0x06/2,		/* flash control */
+	Fsts	= 0x04/2,		/* flash status;  Hsfsts */
+	Fctl	= 0x06/2,		/* flash control; Hsfctl */
 	Faddr	= 0x08/4,		/* flash address to r/w */
 	Fdata	= 0x10/4,		/* data @ address */
 
@@ -727,10 +727,17 @@ i82563multicast(void* arg, uchar* addr, int on)
 	if(ctlr->type == i82566)
 		x &= 31;
 	bit = ((addr[5] & 1)<<4)|(addr[4]>>4);
+	/*
+	 * multiple ether addresses can hash to the same filter bit,
+	 * so it's never safe to clear a filter bit.
+	 * if we want to clear filter bits, we need to keep track of
+	 * all the multicast addresses in use, clear all the filter bits,
+	 * then set the ones corresponding to in-use addresses.
+	 */
 	if(on)
 		ctlr->mta[x] |= 1<<bit;
-	else
-		ctlr->mta[x] &= ~(1<<bit);
+//	else
+//		ctlr->mta[x] &= ~(1<<bit);
 
 	csr32w(ctlr, Mta+x*4, ctlr->mta[x]);
 }

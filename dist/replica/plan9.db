@@ -8101,7 +8101,7 @@ sys/src/9/pc/ether8139.c - 664 sys sys 1185650567 19974
 sys/src/9/pc/ether8169.c - 664 sys sys 1185812348 26931
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1131290377 32294
 sys/src/9/pc/ether82557.c - 664 sys sys 1191886292 30411
-sys/src/9/pc/ether82563.c - 664 sys sys 1199920348 36758
+sys/src/9/pc/ether82563.c - 664 sys sys 1200342471 37076
 sys/src/9/pc/ether83815.c - 664 sys sys 1172259521 26346
 sys/src/9/pc/ether8390.c - 664 sys sys 1131290377 17702
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
@@ -8166,7 +8166,7 @@ sys/src/9/pc/sd53c8xx.c - 664 sys sys 1170456695 55276
 sys/src/9/pc/sd53c8xx.i - 664 sys sys 1128547230 28453
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
 sys/src/9/pc/sdata.c - 664 sys sys 1186361525 52991
-sys/src/9/pc/sdiahci.c - 664 sys sys 1199915722 38422
+sys/src/9/pc/sdiahci.c - 664 sys sys 1200348596 38496
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1199910989 33838
 sys/src/9/pc/sdmylex.c - 664 sys sys 1189229947 28395
 sys/src/9/pc/sdscsi.c - 664 sys sys 1186618532 7957
@@ -9229,7 +9229,7 @@ sys/src/boot/pc/sd53c8xx.i - 664 sys sys 1015007955 27245
 sys/src/boot/pc/sdaoe.c - 664 sys sys 1199911246 11268
 sys/src/boot/pc/sdata.c - 664 sys sys 1199911580 38891
 sys/src/boot/pc/sdbios.c - 664 sys sys 1194145651 3282
-sys/src/boot/pc/sdiahci.c - 664 sys sys 1199911456 28029
+sys/src/boot/pc/sdiahci.c - 664 sys sys 1200349145 28259
 sys/src/boot/pc/sdmylex.c - 664 sys sys 1171783051 28694
 sys/src/boot/pc/sdscsi.c - 664 sys sys 1144961224 7006
 sys/src/boot/pc/trap.c - 664 sys sys 1193167011 7497
