@@ -5840,7 +5840,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1197673161 267929
+sys/games/lib/fortunes - 664 sys sys 1200437226 268083
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -6233,7 +6233,7 @@ sys/lib/dist/pc/glenda/tmp - 20000000775 sys sys 1020895855 0
 sys/lib/dist/pc/inst - 20000000775 sys sys 1112535189 0
 sys/lib/dist/pc/inst/bootfloppy - 775 sys sys 1112361036 903
 sys/lib/dist/pc/inst/bootplan9 - 775 sys sys 1113252317 1574
-sys/lib/dist/pc/inst/bootsetup - 775 sys sys 1199896403 3638
+sys/lib/dist/pc/inst/bootsetup - 775 sys sys 1200416156 3638
 sys/lib/dist/pc/inst/bootwin9x - 775 sys sys 1112361037 2527
 sys/lib/dist/pc/inst/bootwinnt - 775 sys sys 1019240165 1041
 sys/lib/dist/pc/inst/configarch - 775 sys sys 1018640312 636
