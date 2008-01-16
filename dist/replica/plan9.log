@@ -18316,3 +18316,5 @@
 1200342605 0 c sys/src/9/pc/ether82563.c - 664 sys sys 1200342471 37076
 1200349803 0 c sys/src/9/pc/sdiahci.c - 664 sys sys 1200348596 38496
 1200349803 1 c sys/src/boot/pc/sdiahci.c - 664 sys sys 1200349145 28259
+1200416404 0 c sys/lib/dist/pc/inst/bootsetup - 775 sys sys 1200416156 3638
+1200438005 0 c sys/games/lib/fortunes - 664 sys sys 1200437226 268083
