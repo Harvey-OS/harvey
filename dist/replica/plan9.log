@@ -18318,3 +18318,5 @@
 1200349803 1 c sys/src/boot/pc/sdiahci.c - 664 sys sys 1200349145 28259
 1200416404 0 c sys/lib/dist/pc/inst/bootsetup - 775 sys sys 1200416156 3638
 1200438005 0 c sys/games/lib/fortunes - 664 sys sys 1200437226 268083
+1200515404 0 c sys/lib/dist/mkfile - 664 sys sys 1200515221 5430
+1200515404 1 a sys/lib/dist/setup - 775 sys sys 1200515222 190

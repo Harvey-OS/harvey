@@ -1,8 +1,8 @@
 # /sys/lib/dist/mkfile
 d=/n/sources/plan9
 dist=/sys/lib/dist
-# import /sys/lib/dist/web.protect from outside
-x=`{9fs sources; 9fs other; import -c tcp!204.178.31.2!666 $dist/web.protect}
+# import /sys/lib/dist/web.protect from the outside
+x=`{setup}
 
 cd:V: /n/other/dist/plan9.iso
 

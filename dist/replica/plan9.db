@@ -6216,7 +6216,7 @@ sys/lib/dist/cmd/touchfs.c - 664 sys sys 1018469727 1120
 sys/lib/dist/cmd/unbflz.c - 664 sys sys 1018469727 1688
 sys/lib/dist/logcompress.awk - 664 sys sys 1068558028 298
 sys/lib/dist/logtime.awk - 664 sys sys 1019526213 38
-sys/lib/dist/mkfile - 664 sys sys 1196959057 5493
+sys/lib/dist/mkfile - 664 sys sys 1200515221 5430
 sys/lib/dist/pc - 20000000775 sys sys 1147022870 0
 sys/lib/dist/pc/cd0.proto - 664 sys sys 1114358485 7
 sys/lib/dist/pc/empty - 20000000775 sys sys 1020895854 0
@@ -6304,6 +6304,7 @@ sys/lib/dist/pc/sub/termrc - 664 sys sys 1133187769 2466
 sys/lib/dist/pc/sub/unmount - 664 sys sys 1018469726 46
 sys/lib/dist/pc/sub/users - 664 sys sys 1018469726 103
 sys/lib/dist/pc/sub/vmware - 775 sys sys 1033073493 132
+sys/lib/dist/setup - 775 sys sys 1200515222 190
 sys/lib/eqnchar - 664 sys sys 944956052 2727
 sys/lib/fax - 20000000775 sys sys 1039727360 0
 sys/lib/fax/faxgoose - 775 sys sys 1127394686 132
