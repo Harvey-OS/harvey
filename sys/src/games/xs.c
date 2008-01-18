@@ -666,7 +666,6 @@ play(void)
 		}
 		break;
 	}
-	return 0;		/* not reached */
 }
 
 void
