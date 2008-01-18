@@ -9562,7 +9562,7 @@ sys/src/cmd/aquarela/smbtime.c - 664 sys sys 1135892114 1232
 sys/src/cmd/aquarela/smbtrans2client.c - 664 sys sys 1135892114 3726
 sys/src/cmd/aquarela/smbtrans2find.c - 664 sys sys 1135892115 9041
 sys/src/cmd/aquarela/smbtrans2query.c - 664 sys sys 1177589924 10191
-sys/src/cmd/aquarela/smbtrans2set.c - 664 sys sys 1177589925 5289
+sys/src/cmd/aquarela/smbtrans2set.c - 664 sys sys 1200604163 5299
 sys/src/cmd/aquarela/smbtransaction.c - 664 sys sys 1135892115 16684
 sys/src/cmd/aquarela/smbtree.c - 664 sys sys 1135892115 1314
 sys/src/cmd/aquarela/testconnect.c - 664 sys sys 1135892115 1533
@@ -14701,7 +14701,7 @@ sys/src/games/sudoku/levels.c - 664 sys sys 1117226433 3186
 sys/src/games/sudoku/mkfile - 664 sys sys 1117226432 218
 sys/src/games/sudoku/sudoku.c - 664 sys sys 1117636441 7809
 sys/src/games/sudoku/sudoku.h - 664 sys sys 1117226432 1159
-sys/src/games/xs.c - 664 sys sys 1128271724 17124
+sys/src/games/xs.c - 664 sys sys 1200609238 17094
 sys/src/games/xs.h - 664 sys sys 1128271724 292
 sys/src/lib9p - 20000000775 sys sys 1134337555 0
 sys/src/lib9p/auth.c - 664 sys sys 1134337555 3392

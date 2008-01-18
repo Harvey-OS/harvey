@@ -113,7 +113,7 @@ smbtrans2setpathinformation(SmbSession *s, SmbHeader *h)
 	ulong attr;
 	ulong mode;
 	ulong size;
-	uvlong length;
+//	uvlong length;
 
 	t = smbidmapfind(s->tidmap, h->tid);
 	if (t == nil) {
@@ -158,10 +158,10 @@ smbtrans2setpathinformation(SmbSession *s, SmbHeader *h)
 			mode = 0xffffffff;
 		translogprint(s->transaction.in.setup[0], "mode 0%od\n", mode);
 
-		if (size)
-			length = size;
-		else
-			length = ~0LL;
+//		if (size)
+//			length = size;
+//		else
+//			length = ~0LL;
 	
 		translogprint(s->transaction.in.setup[0], "size %lld\n", size);
 		translogprint(s->transaction.in.setup[0], "adate %d atime %d", adate, atime);

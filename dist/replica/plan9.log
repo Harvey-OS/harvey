@@ -18320,3 +18320,5 @@
 1200438005 0 c sys/games/lib/fortunes - 664 sys sys 1200437226 268083
 1200515404 0 c sys/lib/dist/mkfile - 664 sys sys 1200515221 5430
 1200515404 1 a sys/lib/dist/setup - 775 sys sys 1200515222 190
+1200605403 0 c sys/src/cmd/aquarela/smbtrans2set.c - 664 sys sys 1200604163 5299
+1200609004 0 c sys/src/games/xs.c - 664 sys sys 1200609238 17094
