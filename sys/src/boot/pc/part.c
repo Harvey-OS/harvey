@@ -89,8 +89,8 @@ oldp9part(SDunit *unit)
 		for(i = 1; i < n && unit->npart < SDnpart; i++){
 			if(getfields(line[i], field, 3, ' ') != 3)
 				break;
-			start = strtoul(field[1], 0, 0);
-			end = strtoul(field[2], 0, 0);
+			start = strtoull(field[1], 0, 0);
+			end = strtoull(field[2], 0, 0);
 			if(start >= end || end > unit->sectors)
 				break;
 			sdaddpart(unit, field[0], start, end);
@@ -103,7 +103,7 @@ p9part(SDunit *unit, char *name)
 {
 	SDpart *p;
 	char *field[4], *line[Npart+1];
-	ulong start, end;
+	uvlong start, end;
 	int i, n;
 	
 	p = sdfindpart(unit, name);
@@ -125,8 +125,8 @@ p9part(SDunit *unit, char *name)
 			break;
 		if(getfields(line[i], field, 4, ' ') != 4)
 			break;
-		start = strtoul(field[2], 0, 0);
-		end = strtoul(field[3], 0, 0);
+		start = strtoull(field[2], 0, 0);
+		end = strtoull(field[3], 0, 0);
 		if(start >= end || end > unit->sectors)
 			break;
 		sdaddpart(unit, field[1], p->start+start, p->start+end);

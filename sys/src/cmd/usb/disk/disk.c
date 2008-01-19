@@ -114,11 +114,13 @@ struct Ums {
 int exabyte, force6bytecmds;
 long starttime;
 long maxiosize = MaxIOsize;
+
 volatile int timedout;
 
 char *owner;
 
 static Ums ums;
+static int freakout;		/* flag: if true, drive freaks out if reset */
 
 extern int debug;
 
@@ -267,7 +269,8 @@ unstall(Ums *ums, int ep)
 static void
 umsreset(Ums *umsc, int doinit)
 {
-	statuscmd(umsc->setupfd, UMS_RESET_T, UMS_RESET, 0, 0, nil, 0);
+	if (!freakout)
+		statuscmd(umsc->setupfd, UMS_RESET_T, UMS_RESET, 0, 0, nil, 0);
 
 	unstall(umsc, umsc->epin|0x80);
 	unstall(umsc, umsc->epout);
@@ -407,7 +410,7 @@ findendpoints(Device *d, int *epin, int *epout)
 int
 timeoutok(void)
 {
-	if (0 /* freakout */)
+	if (freakout)
 		return 1;	/* OK; keep trying */
 	else if (1) {		/* TODO: set */
 		fprint(2,
@@ -947,7 +950,7 @@ void (*dprinter[])(Device *, int, ulong, void *b, int n) = {
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-Dd] [-m mountpoint] [-s srvname] [ctrno id]\n",
+	fprint(2, "usage: %s [-Ddf] [-m mountpoint] [-s srvname] [ctrno id]\n",
 		argv0);
 	exits("usage");
 }
@@ -966,6 +969,9 @@ main(int argc, char **argv)
 	ARGBEGIN{
 	case 'd':
 		debug = Dbginfo;
+		break;
+	case 'f':
+		freakout++;
 		break;
 	case 'm':
 		mntname = EARGF(usage());

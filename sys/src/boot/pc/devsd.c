@@ -32,13 +32,13 @@ enum {
 };
 
 void
-sdaddpart(SDunit* unit, char* name, ulong start, ulong end)
+sdaddpart(SDunit* unit, char* name, uvlong start, uvlong end)
 {
 	SDpart *pp;
 	int i, partno;
 
 	if(parttrace)
-		print("add %d %s %s %ld %ld\n", unit->npart, unit->name, name, start, end);
+		print("add %d %s %s %lld %lld\n", unit->npart, unit->name, name, start, end);
 	/*
 	 * Check name not already used
 	 * and look for a free slot.
@@ -73,7 +73,7 @@ sdaddpart(SDunit* unit, char* name, ulong start, ulong end)
 	 * Check there is a free slot and size and extent are valid.
 	 */
 	if(partno == -1 || start > end || end > unit->sectors){
-		print("cannot add %s!%s [%lud,%lud) to disk [0,%lud): %s\n",
+		print("cannot add %s!%s [%llud,%llud) to disk [0,%llud): %s\n",
 			unit->name, name, start, end, unit->sectors, 
 			partno==-1 ? "no free partitions" : "partition boundaries out of range");
 		return;

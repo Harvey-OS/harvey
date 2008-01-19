@@ -18322,3 +18322,12 @@
 1200515404 1 a sys/lib/dist/setup - 775 sys sys 1200515222 190
 1200605403 0 c sys/src/cmd/aquarela/smbtrans2set.c - 664 sys sys 1200604163 5299
 1200609004 0 c sys/src/games/xs.c - 664 sys sys 1200609238 17094
+1200632405 0 c 386/bin/aquarela - 775 sys sys 1200631754 337609
+1200632405 1 c 386/bin/cifscmd - 775 sys sys 1200631760 348455
+1200684604 0 c sys/src/cmd/auth/factotum/rsa.c - 664 sys sys 1200684904 3482
+1200688204 0 c sys/man/4/usbdisk - 664 sys sys 1200688323 2785
+1200688204 1 c sys/src/cmd/usb/disk/disk.c - 664 sys sys 1200688320 20111
+1200691803 0 c sys/src/boot/pc/devsd.c - 664 sys sys 1200690168 11504
+1200691803 1 c sys/src/boot/pc/lib.h - 664 sys sys 1200690170 2891
+1200691803 2 c sys/src/boot/pc/part.c - 664 sys sys 1200690166 7158
+1200691803 3 c sys/src/boot/pc/sd.h - 664 sys sys 1200690169 2249
