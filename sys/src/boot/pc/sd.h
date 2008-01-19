@@ -8,8 +8,8 @@ typedef struct SDreq SDreq;
 typedef struct SDunit SDunit;
 
 typedef struct SDpart {
-	ulong	start;
-	ulong	end;
+	uvlong	start;
+	uvlong	end;
 	char	name[NAMELEN];
 	char	user[NAMELEN];
 	ulong	perm;
@@ -25,7 +25,7 @@ typedef struct SDunit {
 //	Rendez	rendez;
 
 //	QLock	ctl;
-	ulong	sectors;
+	uvlong	sectors;
 	ulong	secsize;
 	SDpart*	part;
 	int	npart;			/* of valid partitions */
@@ -122,5 +122,5 @@ void tsleep(void*, int(*)(void*), void*, int);
 extern long sdbio(SDunit *unit, SDpart *pp, void *a, long len, vlong off);
 void	partition(SDunit*);
 SDpart* sdfindpart(SDunit*, char*);
-void	sdaddpart(SDunit*, char*, ulong, ulong);
+void	sdaddpart(SDunit*, char*, uvlong, uvlong);
 void*	sdmalloc(void*, ulong);

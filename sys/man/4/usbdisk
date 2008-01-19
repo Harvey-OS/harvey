@@ -4,7 +4,7 @@ usbdisk, usbfat: - serve USB mass storage devices
 .SH SYNOPSIS
 .B usb/disk
 [
-.B -dD
+.B -dDf
 ] [
 .B -m
 .I mountpoint
@@ -69,10 +69,10 @@ and yields the device geometries when read.
 The
 .B -d
 option generates debugging output.
-.\" The
-.\" .B -f
-.\" option avoids freaking out some cheap USB flash disks by not issuing
-.\" SCSI reset commands to them.
+The
+.B -f
+option avoids freaking out some cheap USB flash disks by not issuing
+UMS reset commands to them.
 The
 .B -m
 option mounts the served hierarchy on

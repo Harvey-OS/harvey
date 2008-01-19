@@ -36,7 +36,7 @@
 386/bin/ape/stty - 775 sys sys 1148500571 41080
 386/bin/ape/tar - 775 sys sys 1168402264 62184
 386/bin/ape/uname - 775 sys sys 1173754552 134895
-386/bin/aquarela - 775 sys sys 1200262725 337698
+386/bin/aquarela - 775 sys sys 1200631754 337609
 386/bin/ar - 775 sys sys 1178939751 114363
 386/bin/archfs - 775 sys sys 1179372067 146788
 386/bin/ascii - 775 sys sys 1168402265 64884
@@ -177,7 +177,7 @@
 386/bin/cfs - 775 sys sys 1190863294 130565
 386/bin/chgrp - 775 sys sys 1168402294 59522
 386/bin/chmod - 775 sys sys 1168402294 62518
-386/bin/cifscmd - 775 sys sys 1200262742 348544
+386/bin/cifscmd - 775 sys sys 1200631760 348455
 386/bin/cleanname - 775 sys sys 1168402295 58541
 386/bin/clock - 775 sys sys 1197732691 157356
 386/bin/cmp - 775 sys sys 1157597609 40658
@@ -7752,7 +7752,7 @@ sys/man/4/u9fs - 664 sys sys 1196638944 4748
 sys/man/4/upasfs - 664 sys sys 1196638944 6212
 sys/man/4/usb - 664 sys sys 1196638944 4682
 sys/man/4/usbd - 664 sys sys 1196638944 712
-sys/man/4/usbdisk - 664 sys sys 1196638944 2801
+sys/man/4/usbdisk - 664 sys sys 1200688323 2785
 sys/man/4/vacfs - 664 sys sys 1196638944 1545
 sys/man/4/webcookies - 664 sys sys 1196638944 3525
 sys/man/4/webfs - 664 sys sys 1196638944 6518
@@ -9166,7 +9166,7 @@ sys/src/boot/pc/devfloppy.c - 664 sys sys 1032215913 15505
 sys/src/boot/pc/devfloppy.h - 664 sys sys 1032409559 4081
 sys/src/boot/pc/devi82365.c - 664 sys sys 1144961189 15051
 sys/src/boot/pc/devpccard.c - 664 sys sys 1153333456 33897
-sys/src/boot/pc/devsd.c - 664 sys sys 1199490748 11497
+sys/src/boot/pc/devsd.c - 664 sys sys 1200690168 11504
 sys/src/boot/pc/dma.c - 664 sys sys 1015007949 4972
 sys/src/boot/pc/dosboot.c - 664 sys sys 1097716791 11240
 sys/src/boot/pc/dosfs.h - 664 sys sys 1032215924 1467
@@ -9207,14 +9207,14 @@ sys/src/boot/pc/kbd.c - 664 sys sys 1015007952 10188
 sys/src/boot/pc/kfs.h - 664 sys sys 1032215924 861
 sys/src/boot/pc/kfsboot.c - 664 sys sys 1032215914 4788
 sys/src/boot/pc/l.s - 664 sys sys 1193167045 18213
-sys/src/boot/pc/lib.h - 664 sys sys 1190921452 2847
+sys/src/boot/pc/lib.h - 664 sys sys 1200690170 2891
 sys/src/boot/pc/load.c - 664 sys sys 1194649778 10526
 sys/src/boot/pc/mbr.s - 664 sys sys 1015007953 6234
 sys/src/boot/pc/mem.h - 664 sys sys 1190921475 3437
 sys/src/boot/pc/memory.c - 664 sys sys 1019533021 10272
 sys/src/boot/pc/mkfile - 664 sys sys 1193359312 3224
 sys/src/boot/pc/noether.c - 664 sys sys 1193336537 416
-sys/src/boot/pc/part.c - 664 sys sys 1114697151 7153
+sys/src/boot/pc/part.c - 664 sys sys 1200690166 7158
 sys/src/boot/pc/pbs.s - 664 sys sys 1143465387 8291
 sys/src/boot/pc/pbsdisk - 775 sys sys 1017854325 509
 sys/src/boot/pc/pbsdisk.s - 664 sys sys 1017854325 6371
@@ -9224,7 +9224,7 @@ sys/src/boot/pc/pbslba.s - 664 sys sys 1186031549 8180
 sys/src/boot/pc/pci.c - 664 sys sys 1196312243 20667
 sys/src/boot/pc/print.c - 664 sys sys 1094674483 219
 sys/src/boot/pc/queue.c - 664 sys sys 1015007954 566
-sys/src/boot/pc/sd.h - 664 sys sys 1153333456 2244
+sys/src/boot/pc/sd.h - 664 sys sys 1200690169 2249
 sys/src/boot/pc/sd53c8xx.c - 664 sys sys 1186031515 52082
 sys/src/boot/pc/sd53c8xx.i - 664 sys sys 1015007955 27245
 sys/src/boot/pc/sdaoe.c - 664 sys sys 1199911246 11268
@@ -9632,7 +9632,7 @@ sys/src/cmd/auth/factotum/p9cr.c - 664 sys sys 1171690104 6721
 sys/src/cmd/auth/factotum/p9sk1.c - 664 sys sys 1179405289 9834
 sys/src/cmd/auth/factotum/pass.c - 664 sys sys 1107706104 1514
 sys/src/cmd/auth/factotum/rpc.c - 664 sys sys 1107633794 11167
-sys/src/cmd/auth/factotum/rsa.c - 664 sys sys 1107706104 3416
+sys/src/cmd/auth/factotum/rsa.c - 664 sys sys 1200684904 3482
 sys/src/cmd/auth/factotum/secstore.c - 664 sys sys 1140272941 14955
 sys/src/cmd/auth/factotum/sshrsa.c - 664 sys sys 1107633793 3416
 sys/src/cmd/auth/factotum/util.c - 664 sys sys 1182192267 18452
@@ -14262,7 +14262,7 @@ sys/src/cmd/usb/audio/usbaudio.h - 664 sys sys 1140695062 1889
 sys/src/cmd/usb/audio/usbaudioctl.c - 664 sys sys 1172764044 18825
 sys/src/cmd/usb/audio/usbaudioctl.h - 664 sys sys 1140695062 618
 sys/src/cmd/usb/disk - 20000000775 sys sys 1193181450 0
-sys/src/cmd/usb/disk/disk.c - 664 sys sys 1193181450 19997
+sys/src/cmd/usb/disk/disk.c - 664 sys sys 1200688320 20111
 sys/src/cmd/usb/disk/mkfile - 664 sys sys 1193181450 359
 sys/src/cmd/usb/lib - 20000000775 sys sys 1091204979 0
 sys/src/cmd/usb/lib/device.c - 664 sys sys 1168308464 3284
