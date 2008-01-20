@@ -793,6 +793,7 @@ int
 baddelegation(RR *rp, RR *nsrp, uchar *addr)
 {
 	Ndbtuple *nt;
+	static int whined;
 	static Ndbtuple *t;
 
 	if(t == nil)
@@ -819,6 +820,11 @@ baddelegation(RR *rp, RR *nsrp, uchar *addr)
 			if(rp->host && cistrcmp(rp->host->name, nt->val) == 0)
 				break;
 		if(nt != nil && !inmyarea(rp->owner->name)){
+			if (!whined) {
+				whined = 1;
+				dnslog("bad delegation %R from %I; "
+					"no further logging of them", rp, addr);
+			}
 			return 1;
 		}
 	}

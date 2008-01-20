@@ -18331,3 +18331,15 @@
 1200691803 1 c sys/src/boot/pc/lib.h - 664 sys sys 1200690170 2891
 1200691803 2 c sys/src/boot/pc/part.c - 664 sys sys 1200690166 7158
 1200691803 3 c sys/src/boot/pc/sd.h - 664 sys sys 1200690169 2249
+1200718805 0 c 386/bin/usb/disk - 775 sys sys 1200717250 187004
+1200718805 1 c 386/bin/auth/factotum - 775 sys sys 1200717245 321923
+1200718805 2 c sys/src/cmd/ndb/dblookup.c - 664 sys sys 1193284932 25375
+1200718805 3 c sys/src/cmd/ndb/dn.c - 664 sys sys 1200424507 37507
+1200718805 4 c sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1197930912 3278
+1200718805 5 c sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1200511964 35530
+1200718805 6 c sys/src/cmd/ndb/dns.c - 664 sys sys 1200429502 17583
+1200718805 7 c sys/src/cmd/ndb/dnserver.c - 664 sys sys 1198183920 4630
+1200718805 8 c sys/src/cmd/ndb/dnudpserver.c - 664 sys sys 1200463045 5727
+1200774603 0 c 386/bin/ndb/dns - 775 sys sys 1200774206 296663
+1200774603 1 c 386/bin/ndb/dnsdebug - 775 sys sys 1200774212 270683
+1200774603 2 c 386/bin/ndb/dnstcp - 775 sys sys 1200774217 268564

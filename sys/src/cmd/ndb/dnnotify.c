@@ -106,7 +106,8 @@ send_notify(char *slave, RR *soa, Request *req)
 		if(repmsg.id == reqno && (repmsg.flags & Omask) == Onotify)
 			break;
 	}
-	freeanswers(&repmsg);
+	if (i < 3)
+		freeanswers(&repmsg);
 	close(fd);
 }
 

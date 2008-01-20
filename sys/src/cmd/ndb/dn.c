@@ -1543,7 +1543,8 @@ randomize(RR *rp)
 
 	/* just randomize addresses, mx's and ns's */
 	for(x = rp; x; x = x->next)
-		if(x->type != Ta && x->type != Tmx && x->type != Tns)
+		if(x->type != Ta && x->type != Taaaa &&
+		    x->type != Tmx && x->type != Tns)
 			return rp;
 
 	base = rp;
