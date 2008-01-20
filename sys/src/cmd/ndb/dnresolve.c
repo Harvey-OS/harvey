@@ -50,7 +50,7 @@ struct Dest
  */
 struct Query {
 	DN	*dp;		/* domain */
-	int	type;		/* and type to look up */
+	ushort	type;		/* and type to look up */
 	Request *req;
 	RR	*nsrp;		/* name servers to consult */
 
@@ -206,6 +206,8 @@ queryinit(Query *qp, DN *dp, int type, Request *req)
 	qp->udpfd = qp->tcpfd = qp->tcpctlfd = -1;
 	qp->dp = dp;
 	qp->type = type;
+	if (qp->type != type)
+		dnslog("queryinit: bogus type %d", type);
 	qp->req = req;
 	qp->nsrp = nil;
 	qp->dest = qp->curdest = nil;
@@ -420,6 +422,7 @@ dnresolve1(char *name, int class, int type, Request *req, int depth,
 					return rp;
 				}
 	rrfreelist(rp);
+	rp = nil;
 
 	/*
 	 * try the cache for a canonical name. if found punt
@@ -537,6 +540,8 @@ mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno)
 	m.qd = rralloc(type);
 	m.qd->owner = dp;
 	m.qd->type = type;
+	if (m.qd->type != type)
+		dnslog("mkreq: bogus type %d", type);
 	len = convDNS2M(&m, &buf[Udphdrsize], Maxudp);
 	rrfree(m.qd);
 	return len;
@@ -1198,7 +1203,7 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 	rv = netquery(nqp, depth+1);
 
 //	qlock(&qp->dp->querylck[lcktype]);
-	rrfreelist(tp);
+	rrfreelist(nqp->nsrp);
 	querydestroy(nqp);
 	free(nqp);
 	return rv;
@@ -1440,7 +1445,7 @@ udpquery(Query *qp, char *mntpt, int depth, int patient, int inns)
 	 * make time-to-wait proportional to estimated probability of an
 	 * RR of that type existing.
 	 */
-	if (qp->type < 0 || qp->type >= nelem(likely))
+	if (qp->type >= nelem(likely))
 		pcntprob = 35;			/* unpopular query type */
 	else
 		pcntprob = likely[qp->type];
