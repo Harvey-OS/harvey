@@ -462,7 +462,7 @@ sdaddconf(int i)
 
 	addconf("%spart=", unit->name);
 	for(i=1, pp=&unit->part[i]; i<unit->npart; i++, pp++)	/* skip 0, which is "data" */
-		addconf("%s%s %ld %ld", i==1 ? "" : "/", pp->name,
+		addconf("%s%s %lld %lld", i==1 ? "" : "/", pp->name,
 			pp->start, pp->end);
 	addconf("\n");
 }
