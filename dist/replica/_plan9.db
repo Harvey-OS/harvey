@@ -9166,7 +9166,7 @@ sys/src/boot/pc/devfloppy.c - 664 sys sys 1032215913 15505
 sys/src/boot/pc/devfloppy.h - 664 sys sys 1032409559 4081
 sys/src/boot/pc/devi82365.c - 664 sys sys 1144961189 15051
 sys/src/boot/pc/devpccard.c - 664 sys sys 1153333456 33897
-sys/src/boot/pc/devsd.c - 664 sys sys 1200690168 11504
+sys/src/boot/pc/devsd.c - 664 sys sys 1200893250 11506
 sys/src/boot/pc/dma.c - 664 sys sys 1015007949 4972
 sys/src/boot/pc/dosboot.c - 664 sys sys 1097716791 11240
 sys/src/boot/pc/dosfs.h - 664 sys sys 1032215924 1467
@@ -9207,7 +9207,7 @@ sys/src/boot/pc/kbd.c - 664 sys sys 1015007952 10188
 sys/src/boot/pc/kfs.h - 664 sys sys 1032215924 861
 sys/src/boot/pc/kfsboot.c - 664 sys sys 1032215914 4788
 sys/src/boot/pc/l.s - 664 sys sys 1193167045 18213
-sys/src/boot/pc/lib.h - 664 sys sys 1200690170 2891
+sys/src/boot/pc/lib.h - 664 sys sys 1200893244 2925
 sys/src/boot/pc/load.c - 664 sys sys 1194649778 10526
 sys/src/boot/pc/mbr.s - 664 sys sys 1015007953 6234
 sys/src/boot/pc/mem.h - 664 sys sys 1190921475 3437
