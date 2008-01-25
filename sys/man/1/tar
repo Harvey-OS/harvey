@@ -135,7 +135,6 @@ for
 and
 .BR .tbz2 ;
 .I compress
-(not distributed)
 for
 .B .tar.Z
 and
