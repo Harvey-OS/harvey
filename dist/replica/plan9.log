@@ -18346,3 +18346,10 @@
 1200893404 0 c sys/src/boot/pc/devsd.c - 664 sys sys 1200893250 11506
 1200893404 1 c sys/src/boot/pc/lib.h - 664 sys sys 1200893244 2925
 1201217404 0 c sys/man/1/tar - 664 sys sys 1201217504 3818
+1201287605 0 c sys/src/cmd/sleep.c - 664 sys sys 1201287728 550
+1201289405 0 c sys/src/cmd/upas/smtp/greylist.c - 664 sys sys 1201288520 6935
+1201293004 0 c 386/bin/sleep - 775 sys sys 1201292693 4385
+1201296605 0 c sys/games/lib/fortunes - 664 sys sys 1201296173 268188
+1201298403 0 c sys/src/9/pc/etherigbe.c - 664 sys sys 1201296869 45773
+1201298403 1 c sys/src/9/pc/ethervt6102.c - 664 sys sys 1201296945 22600
+1201321804 0 c 386/bin/upas/smtpd - 775 sys sys 1201321515 332115

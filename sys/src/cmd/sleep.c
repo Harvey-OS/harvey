@@ -4,33 +4,33 @@
 void
 main(int argc, char *argv[])
 {
-	char *p;
-	long secs;
+	long n;
+	char *p, *q;
 
 	if(argc>1){
-		for(secs = atol(argv[1]); secs > 0; secs--)
+		for(n = strtol(argv[1], &p, 0); n > 0; n--)
 			sleep(1000);
 		/*
 		 * no floating point because it is useful to
 		 * be able to run sleep when bootstrapping
 		 * a machine.
 		 */
-		if(p = strchr(argv[1], '.')){
-			p++;
-			switch(strlen(p)){
+		if(*p++ == '.' && (n = strtol(p, &q, 10)) > 0){
+			switch(q - p){
 			case 0:
 				break;
 			case 1:
-				sleep(atoi(p)*100);
+				n *= 100;
 				break;
 			case 2:
-				sleep(atoi(p)*10);
+				n *= 10;
 				break;
 			default:
 				p[3] = 0;
-				sleep(atoi(p));
+				n = strtol(p, 0, 10);
 				break;
 			}
+			sleep(n);
 		}
 	}
 	exits(0);
