@@ -1,5 +1,5 @@
 /*
- * Intel 8254[340]NN Gigabit Ethernet Controller
+ * Intel 8254[340]NN Gigabit Ethernet PCI Controllers
  * as found on the Intel PRO/1000 series of adapters:
  *	82543GC	Intel PRO/1000 T
  *	82544EI Intel PRO/1000 XT
@@ -136,10 +136,15 @@ enum {					/* Ctrl */
 	Vme		= 0x40000000,	/* VLAN Mode Enable */
 };
 
+/*
+ * can't find Tckok nor Rbcok in any Intel docs,
+ * but even 82543gc docs define Lanid.
+ */
 enum {					/* Status */
 	Lu		= 0x00000002,	/* Link Up */
-	Tckok		= 0x00000004,	/* Transmit clock is running */
-	Rbcok		= 0x00000008,	/* Receive clock is running */
+	Lanid		= 0x0000000C,	/* mask for Lan ID. (function id) */
+//	Tckok		= 0x00000004,	/* Transmit clock is running */
+//	Rbcok		= 0x00000008,	/* Receive clock is running */
 	Txoff		= 0x00000010,	/* Transmission Paused */
 	Tbimode		= 0x00000020,	/* TBI Mode Indication */
 	LspeedMASK	= 0x000000C0,	/* Link Speed Setting */
@@ -1639,6 +1644,7 @@ at93c46r(Ctlr* ctlr)
 	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
+	case i82547ei:
 		areq = 1;
 		csr32w(ctlr, Eecd, eecd|Areq);
 		for(i = 0; i < 1000; i++){
@@ -1775,10 +1781,18 @@ igbereset(Ctlr* ctlr)
 	if ((ctlr->id == i82546gb || ctlr->id == i82546eb) &&
 	    BUSFNO(ctlr->pcidev->tbdf) == 1)
 		ctlr->eeprom[Ea+2] += 0x100;		/* second interface */
+	if(ctlr->id == i82541gi && ctlr->eeprom[Ea] == 0xFFFF)
+		ctlr->eeprom[Ea] = 0xD000;
 	for(i = Ea; i < Eaddrlen/2; i++){
 		ctlr->ra[2*i] = ctlr->eeprom[i];
 		ctlr->ra[2*i+1] = ctlr->eeprom[i]>>8;
 	}
+	/* lan id seems to vary on 82543gc; don't use it */
+	if (ctlr->id != i82543gc) {
+		r = (csr32r(ctlr, Status) & Lanid) >> 2;
+		ctlr->ra[5] += r;		/* ea ctlr[1] = ea ctlr[0]+1 */
+	}
+
 	r = (ctlr->ra[3]<<24)|(ctlr->ra[2]<<16)|(ctlr->ra[1]<<8)|ctlr->ra[0];
 	csr32w(ctlr, Ral, r);
 	r = 0x80000000|(ctlr->ra[5]<<8)|ctlr->ra[4];

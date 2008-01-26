@@ -142,6 +142,15 @@ getmtime(char *file)
 
 	if (ds != nil) {
 		mtime = ds->mtime;
+		/*
+		 * new twist: update file's mtime after reading it,
+		 * so each call resets the future time after which
+		 * we'll accept calls.  thus spammers who keep pounding
+		 * us lose, but just pausing for a few minutes and retrying
+		 * will succeed.
+		 */
+		ds->mtime = time(0);
+		dirwstat(file, ds);
 		free(ds);
 	}
 	return mtime;
@@ -156,6 +165,7 @@ tryaddgrey(char *file, Greysts *gsp)
 	if (fd >= 0) {
 		close(fd);
 		gsp->existed = 0;  /* just created; couldn't have existed */
+		gsp->mtime = time(0);
 	} else {
 		/*
 		 * why couldn't we create file? it must have existed

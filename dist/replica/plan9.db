@@ -405,7 +405,7 @@
 386/bin/seq - 775 sys sys 1162241047 38441
 386/bin/sha1sum - 775 sys sys 1196742523 62387
 386/bin/size - 775 sys sys 1188530186 79807
-386/bin/sleep - 775 sys sys 1158088708 3875
+386/bin/sleep - 775 sys sys 1201292693 4385
 386/bin/snap - 775 sys sys 1188530194 316182
 386/bin/snapfs - 775 sys sys 1188530202 390401
 386/bin/sniffer - 775 sys sys 1038443185 99028
@@ -475,7 +475,7 @@
 386/bin/upas/scanmail - 775 sys sys 1200262789 128213
 386/bin/upas/send - 775 sys sys 1200262792 192180
 386/bin/upas/smtp - 775 sys sys 1188530218 275629
-386/bin/upas/smtpd - 775 sys sys 1200111584 332038
+386/bin/upas/smtpd - 775 sys sys 1201321515 332115
 386/bin/upas/spam - 775 sys sys 1064598366 36
 386/bin/upas/testscan - 775 sys sys 1200262795 83864
 386/bin/upas/token - 775 sys sys 1188447329 73042
@@ -5840,7 +5840,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1200437226 268083
+sys/games/lib/fortunes - 664 sys sys 1201296173 268188
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -8112,7 +8112,7 @@ sys/src/9/pc/etherelnk3.c - 664 sys sys 1158012427 48807
 sys/src/9/pc/etherga620.c - 664 sys sys 1185652495 29895
 sys/src/9/pc/etherga620fw.h - 664 sys sys 1026847642 222295
 sys/src/9/pc/etherif.h - 664 sys sys 1088178711 961
-sys/src/9/pc/etherigbe.c - 664 sys sys 1194796690 45327
+sys/src/9/pc/etherigbe.c - 664 sys sys 1201296869 45773
 sys/src/9/pc/etherm10g.c - 664 sys sys 1199912528 28463
 sys/src/9/pc/etherm10g2k.i - 664 sys sys 1174590360 957485
 sys/src/9/pc/etherm10g4k.i - 664 sys sys 1174590362 926959
@@ -8121,7 +8121,7 @@ sys/src/9/pc/ethermii.h - 664 sys sys 1086873891 3258
 sys/src/9/pc/ethersink.c - 664 sys sys 1048644103 1076
 sys/src/9/pc/ethersmc.c - 664 sys sys 1162951986 15116
 sys/src/9/pc/ethervgbe.c - 664 sys sys 1160066496 26838
-sys/src/9/pc/ethervt6102.c - 664 sys sys 1194556833 22388
+sys/src/9/pc/ethervt6102.c - 664 sys sys 1201296945 22600
 sys/src/9/pc/etherwavelan.c - 664 sys sys 1131290380 3747
 sys/src/9/pc/floppy.h - 664 sys sys 1055700609 3835
 sys/src/9/pc/fns.h - 664 sys sys 1190268439 4738
@@ -13388,7 +13388,7 @@ sys/src/cmd/seq.c - 664 sys sys 1161442158 1691
 sys/src/cmd/sh.C - 664 sys sys 1055701754 10303
 sys/src/cmd/sha1sum.c - 664 sys sys 1194215428 1098
 sys/src/cmd/size.c - 664 sys sys 944961619 717
-sys/src/cmd/sleep.c - 664 sys sys 1158061645 544
+sys/src/cmd/sleep.c - 664 sys sys 1201287728 550
 sys/src/cmd/snap - 20000000775 sys sys 1039727541 0
 sys/src/cmd/snap/mkfile - 664 sys sys 1023834477 257
 sys/src/cmd/snap/read.c - 664 sys sys 1141660969 4332
@@ -14235,7 +14235,7 @@ sys/src/cmd/upas/send/skipequiv.c - 664 sys sys 944961322 1747
 sys/src/cmd/upas/send/translate.c - 664 sys sys 944961322 804
 sys/src/cmd/upas/send/tryit - 664 sys sys 944961322 584
 sys/src/cmd/upas/smtp - 20000000775 sys sys 1067741333 0
-sys/src/cmd/upas/smtp/greylist.c - 664 sys sys 1200091418 6609
+sys/src/cmd/upas/smtp/greylist.c - 664 sys sys 1201288520 6935
 sys/src/cmd/upas/smtp/mkfile - 664 sys sys 1108910002 801
 sys/src/cmd/upas/smtp/mxdial.c - 664 sys sys 1188509395 6813
 sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417

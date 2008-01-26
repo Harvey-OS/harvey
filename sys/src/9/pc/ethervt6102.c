@@ -28,6 +28,8 @@ enum {
 	Cr		= 0x08,		/* Control */
 	Isr		= 0x0C,		/* Interrupt Status */
 	Imr		= 0x0E,		/* Interrupt Mask */
+	Mcfilt0		= 0x10,		/* Multicast Filter 0 */
+	Mcfilt1		= 0x14,		/* Multicast Filter 1 */
 	Rxdaddr		= 0x18,		/* Current Rx Descriptor Address */
 	Txdaddr		= 0x1C,		/* Current Tx Descriptor Address */
 	Phyadr		= 0x6C,		/* Phy Address */
@@ -840,7 +842,8 @@ vt6102detach(Ctlr* ctlr)
 	/*
 	 * Soft reset the controller.
 	 */
-	csr16w(ctlr, Cr, Sfrst);
+	csr16w(ctlr, Cr, Stop);
+	csr16w(ctlr, Cr, Stop|Sfrst);
 	for(timeo = 0; timeo < 10000; timeo++){
 		if(!(csr16r(ctlr, Cr) & Sfrst))
 			break;
@@ -890,6 +893,8 @@ vt6102reset(Ctlr* ctlr)
 
 	r = csr8r(ctlr, Rcr) & ~(RrftMASK|Prom|Ar|Sep);
 	csr8w(ctlr, Rcr, r|Ab|Am);
+	csr32w(ctlr, Mcfilt0, ~0UL);	/* accept all multicast */
+	csr32w(ctlr, Mcfilt1, ~0UL);
 
 	r = csr8r(ctlr, Tcr) & ~(RtsfMASK|Ofset|Lb1|Lb0);
 	csr8w(ctlr, Tcr, r);
@@ -931,7 +936,7 @@ vt6102pci(void)
 		switch((p->did<<16)|p->vid){
 		default:
 			continue;
-		case (0x3053<<16)|0x1106:	/* Rhine III in Soekris */
+		case (0x3053<<16)|0x1106:	/* Rhine III vt6105m (Soekris) */
 		case (0x3065<<16)|0x1106:	/* Rhine II */
 		case (0x3106<<16)|0x1106:	/* Rhine III */
 			break;
