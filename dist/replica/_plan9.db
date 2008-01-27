@@ -475,7 +475,7 @@
 386/bin/upas/scanmail - 775 sys sys 1200262789 128213
 386/bin/upas/send - 775 sys sys 1200262792 192180
 386/bin/upas/smtp - 775 sys sys 1188530218 275629
-386/bin/upas/smtpd - 775 sys sys 1200111584 332038
+386/bin/upas/smtpd - 775 sys sys 1201321515 332115
 386/bin/upas/spam - 775 sys sys 1064598366 36
 386/bin/upas/testscan - 775 sys sys 1200262795 83864
 386/bin/upas/token - 775 sys sys 1188447329 73042
@@ -15857,4 +15857,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/upas/smtpd - 775 sys sys 1201321515 332115
