@@ -18353,3 +18353,13 @@
 1201298403 0 c sys/src/9/pc/etherigbe.c - 664 sys sys 1201296869 45773
 1201298403 1 c sys/src/9/pc/ethervt6102.c - 664 sys sys 1201296945 22600
 1201321804 0 c 386/bin/upas/smtpd - 775 sys sys 1201321515 332115
+1201500003 0 c sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1201499792 35562
+1201500003 1 c sys/src/cmd/upas/smtp/greylist.c - 664 sys sys 1201499389 6810
+1201500003 2 c sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1201499389 33282
+1201500003 3 c sys/src/cmd/upas/smtp/smtpd.h - 664 sys sys 1201499389 1134
+1201503605 0 c sys/man/8/smtp - 664 sys sys 1201502316 5493
+1201503605 1 c sys/src/cmd/upas/smtp/greylist.c - 664 sys sys 1201502212 7114
+1201552204 0 c 386/bin/ndb/dns - 775 sys sys 1201551691 296647
+1201552204 1 c 386/bin/ndb/dnsdebug - 775 sys sys 1201551695 270667
+1201552204 2 c 386/bin/ndb/dnstcp - 775 sys sys 1201551700 268548
+1201552204 3 c 386/bin/upas/smtpd - 775 sys sys 1201551707 332410
