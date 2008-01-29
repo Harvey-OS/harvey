@@ -37,6 +37,8 @@ int	authenticated;
 int	passwordinclear;
 char	*tlscert;
 
+uchar	rsysip[IPaddrlen];
+
 List	senders;
 List	rcvers;
 
@@ -105,6 +107,7 @@ main(int argc, char **argv)
 
 	netdir = nil;
 	quotefmtinstall();
+	fmtinstall('I', eipfmt);
 	ARGBEGIN{
 	case 'a':
 		authenticate = 1;
@@ -157,6 +160,7 @@ main(int argc, char **argv)
 	nci = getnetconninfo(netdir, 0);
 	if(nci == nil)
 		sysfatal("can't get remote system's address");
+	parseip(rsysip, nci->rsys);
 
 	if(mailer == nil)
 		mailer = mailerpath("send");
@@ -260,6 +264,44 @@ sayhi(void)
 	reply("220 %s ESMTP\r\n", dom);
 }
 
+/*
+ * make callers from class A networks infested by spammers
+ * wait longer.
+ */
+
+static char netaspam[256] = {
+	[58]	1,
+	[66]	1,
+	[71]	1,
+
+	[76]	1,
+	[77]	1,
+	[78]	1,
+	[79]	1,
+	[80]	1,
+	[81]	1,
+	[82]	1,
+	[83]	1,
+	[84]	1,
+	[85]	1,
+	[86]	1,
+	[87]	1,
+	[88]	1,
+	[89]	1,
+
+	[190]	1,
+	[201]	1,
+	[217]	1,
+};
+
+static int
+delaysecs(void)
+{
+	if (netaspam[rsysip[0]])
+		return 60;
+	return 15;
+}
+
 void
 hello(String *himp, int extended)
 {
@@ -355,7 +397,7 @@ Liarliar:
 		him = nci->rsys;
 
 	if(Dflag)
-		sleep(15*1000);
+		sleep(delaysecs()*1000);
 	reply("250%c%s you are %s\r\n", extended ? '-' : ' ', dom, him);
 	if (extended) {
 		reply("250-ENHANCEDSTATUSCODES\r\n");	/* RFCs 2034 and 3463 */
@@ -440,7 +482,6 @@ struct Sender {
 	char	*domain;
 };
 static Sender *sendlist, *sendlast;
-static uchar rsysip[IPaddrlen];
 
 static int
 rdsenders(void)
@@ -456,14 +497,11 @@ rdsenders(void)
 		return 1;
 	beenhere = 1;
 
-	fmtinstall('I', eipfmt);
-	parseip(rsysip, nci->rsys);
-
 	/*
 	 * we're sticking with a system-wide sender list because
 	 * per-user lists would require fully resolving recipient
 	 * addresses to determine which users they correspond to
-	 * (barring syntactic conventions).
+	 * (barring exploiting syntactic conventions).
 	 */
 	senderfile = smprint("%s/senders", UPASLIB);
 	sf = Bopen(senderfile, OREAD);
@@ -1004,13 +1042,13 @@ pipemsg(int *byteswritten)
 	}
 
 	/*
- 	 *  parse header
+	 *  parse header
 	 */
 	yyinit(s_to_c(hdr), s_len(hdr));
 	yyparse();
 
 	/*
- 	 *  Look for masquerades.  Let Sender: trump From: to allow mailing list
+	 *  Look for masquerades.  Let Sender: trump From: to allow mailing list
 	 *  forwarded messages.
 	 */
 	if(fflag)
@@ -1442,7 +1480,7 @@ auth(String *mech, String *resp)
 	if (rejectcheck())
 		goto bomb_out;
 
- 	syslog(0, "smtpd", "auth(%s, %s) from %s", s_to_c(mech),
+	syslog(0, "smtpd", "auth(%s, %s) from %s", s_to_c(mech),
 		"(protected)", him);
 
 	if (authenticated) {

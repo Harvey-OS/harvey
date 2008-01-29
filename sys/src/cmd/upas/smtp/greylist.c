@@ -36,19 +36,12 @@ onwhitelist(void)
 	int lnlen;
 	char *line, *parse, *p;
 	char input[128];
-	uchar ip[IPaddrlen], ipmasked[IPaddrlen];
+	uchar ipmasked[IPaddrlen];
 	uchar mask4[IPaddrlen], addr4[IPaddrlen];
 	uchar mask[IPaddrlen], addr[IPaddrlen], addrmasked[IPaddrlen];
 	Biobuf *wl;
-	static int beenhere;
 	static allzero[IPaddrlen];
 
-	if (!beenhere) {
-		beenhere = 1;
-		fmtinstall('I', eipfmt);
-	}
-
-	parseip(ip, nci->rsys);
 	wl = Bopen(whitelist, OREAD);
 	if (wl == nil)
 		return 1;
@@ -61,7 +54,7 @@ onwhitelist(void)
 			*p = 0;
 		if (line[0] == '#' || line[0] == 0)
 			continue;
-		
+
 		/* default mask is /32 (v4) or /128 (v6) for bare IP */
 		parse = line;
 		if (strchr(line, '/') == nil) {
@@ -78,7 +71,7 @@ onwhitelist(void)
 		v4tov6(mask, mask4);
 
 		maskip(addr, mask, addrmasked);
-		maskip(ip, mask, ipmasked);
+		maskip(rsysip, mask, ipmasked);
 		if (memcmp(ipmasked, addrmasked, IPaddrlen) == 0)
 			break;
 	}
@@ -137,9 +130,14 @@ mkdirs(char *path)
 static long
 getmtime(char *file)
 {
+	int fd;
 	long mtime = -1;
-	Dir *ds = dirstat(file);
+	Dir *ds;
 
+	fd = open(file, ORDWR);
+	if (fd < 0)
+		return mtime;
+	ds = dirfstat(fd);
 	if (ds != nil) {
 		mtime = ds->mtime;
 		/*
@@ -149,17 +147,27 @@ getmtime(char *file)
 		 * us lose, but just pausing for a few minutes and retrying
 		 * will succeed.
 		 */
-		ds->mtime = time(0);
-		dirwstat(file, ds);
+		if (0) {
+			/*
+			 * apparently none can't do this wstat
+			 * (permission denied);
+			 * more undocumented whacky none behaviour.
+			 */
+			ds->mtime = time(0);
+			if (dirfwstat(fd, ds) < 0)
+				syslog(0, "smtpd", "dirfwstat %s: %r", file);
+		}
 		free(ds);
+		write(fd, "x", 1);
 	}
+	close(fd);
 	return mtime;
 }
 
 static void
 tryaddgrey(char *file, Greysts *gsp)
 {
-	int fd = create(file, OWRITE|OEXCL, 0444|DMEXCL);
+	int fd = create(file, OWRITE|OEXCL, 0666);
 
 	gsp->created = (fd >= 0);
 	if (fd >= 0) {
@@ -245,8 +253,8 @@ isrcptrecent(char *rcpt)
 			"%s/%s was grey; adding IP to white", nci->rsys, rcpt);
 		return 1;
 	} else if (gsp->existed)
-		syslog(0, "smtpd", "call for %s/%s was seconds ago or long ago",
-			nci->rsys, rcpt);
+		syslog(0, "smtpd", "call for %s/%s was just minutes ago "
+			"or long ago", nci->rsys, rcpt);
 	else
 		syslog(0, "smtpd", "no call registered for %s/%s; registering",
 			nci->rsys, rcpt);

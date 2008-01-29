@@ -36,6 +36,7 @@ extern	char*	me;
 extern	int	trusted;
 extern	List	senders;
 extern	List	rcvers;
+extern	uchar	rsysip[];
 
 void	addbadguy(char*);
 void	auth(String *, String *);

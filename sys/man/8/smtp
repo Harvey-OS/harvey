@@ -153,8 +153,10 @@ option, the capability to start TLS will not be advertised.
 turns on debugging output to standard error.
 .TP
 .B -D
-sleeps for 15 seconds at the start of the SMTP dialogue;
+sleeps for 15 seconds usually at the start of the SMTP dialogue;
 this deters some spammers.
+Connections from Class A networks frequented by spammers will incur
+a longer delay.
 .TP
 .B -f
 prevents relaying from non-trusted networks.
