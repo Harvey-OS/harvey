@@ -61,7 +61,7 @@ _readipifc(char *file, Ipifc **l, int index)
 	char buf[4*1024];
 	char *line[32];
 	char *f[64];
-	Ipifc *ifc;
+	Ipifc *ifc, **l0;
 	Iplifc *lifc, **ll;
 
 	/* read the file */
@@ -76,11 +76,14 @@ _readipifc(char *file, Ipifc **l, int index)
 
 	if(strncmp(buf, "device", 6) != 0)
 		return _readoldipifc(buf, l, index);
-
+	/* ignore ifcs with no associated device */
+	if(strncmp(buf+6, "  ", 2) == 0)
+		return l;
 	/* allocate new interface */
 	*l = ifc = mallocz(sizeof(Ipifc), 1);
 	if(ifc == nil)
 		return l;
+	l0 = l;
 	l = &ifc->next;
 	ifc->index = index;
 
@@ -88,10 +91,14 @@ _readipifc(char *file, Ipifc **l, int index)
 
 	/* pick off device specific info(first line) */
 	n = tokenize(line[0], f, nelem(f));
+	if(n%2 != 0)
+		goto lose;
 	strncpy(ifc->dev, findfield("device", f, n), sizeof(ifc->dev));
 	ifc->dev[sizeof(ifc->dev)-1] = 0;
 	if(ifc->dev[0] == 0){
+lose:
 		free(ifc);
+		*l0 = nil;
 		return l;
 	}
 	ifc->mtu = strtoul(findfield("maxtu", f, n), nil, 10);
@@ -110,7 +117,7 @@ _readipifc(char *file, Ipifc **l, int index)
 	ifc->pktout = strtoul(findfield("pktout", f, n), nil, 10);
 	ifc->errin = strtoul(findfield("errin", f, n), nil, 10);
 	ifc->errout = strtoul(findfield("errout", f, n), nil, 10);
-	
+
 	/* now read the addresses */
 	ll = &ifc->lifc;
 	for(i = 1; i < lines; i++){
@@ -178,7 +185,7 @@ readipifc(char *net, Ipifc *ifc, int index)
 			return nil;
 		n = dirreadall(fd, &dir);
 		close(fd);
-	
+
 		for(i = 0; i < n; i++){
 			if(strcmp(dir[i].name, "clone") == 0)
 				continue;
