@@ -4,61 +4,34 @@
 #include "cons.h"
 
 /*
- *  create a shared segment.  Make is start 2 meg higher than the current
- *  end of process memory.
- */
-static void*
-share(ulong len)
-{
-	uchar *vastart;
-
-	vastart = sbrk(0);
-	if(vastart == (void*)-1)
-		return 0;
-	vastart += 2*1024*1024;
-
-	if(segattach(0, "shared", vastart, len) == (void*)-1)
-		return 0;
-	memset(vastart, 0, len);
-
-	return vastart;
-}
-
-/*
  *  bind a pipe onto consctl and keep reading it to
  *  get changes to console state.
  */
 Consstate*
 consctl(void)
 {
-	int i, n;
-	int fd;
-	int tries;
+	int i, n, fd, tries;
 	char buf[128];
 	Consstate *x;
 	char *field[10];
 
-	x = share(sizeof(Consstate));
-	if(x == 0)
-		return 0;
+	x = segattach(0, "shared", 0, sizeof *x);
+	if(x == (void*)-1)
+		sysfatal("segattach: %r");
 
 	/* a pipe to simulate consctl */
 	if(bind("#|", "/mnt/cons/consctl", MBEFORE) < 0
-	|| bind("/mnt/cons/consctl/data1", "/dev/consctl", MREPL) < 0){
-		fprint(2, "error simulating consctl\n");
-		exits("/dev/consctl");
-	}
+	|| bind("/mnt/cons/consctl/data1", "/dev/consctl", MREPL) < 0)
+		sysfatal("bind consctl: %r");
 
 	/* a pipe to simulate the /dev/cons */
 	if(bind("#|", "/mnt/cons/cons", MREPL) < 0
-	|| bind("/mnt/cons/cons/data1", "/dev/cons", MREPL) < 0){
-		fprint(2, "error simulating cons\n");
-		exits("/dev/cons");
-	}
+	|| bind("/mnt/cons/cons/data1", "/dev/cons", MREPL) < 0)
+		sysfatal("bind cons: %r");
 
 	switch(fork()){
 	case -1:
-		return 0;
+		sysfatal("fork: %r");
 	case 0:
 		break;
 	default:

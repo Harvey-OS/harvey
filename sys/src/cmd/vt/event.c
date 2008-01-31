@@ -26,10 +26,6 @@ start_host(void)
 	int	fd;
 
 	cs = consctl();
-	if(cs == 0){
-		perror("consctl");
-		exits("consctl");
-	}
 
 	switch((hostpid = rfork(RFPROC|RFNAMEG|RFFDG|RFNOTEG))) {
 	case 0:
