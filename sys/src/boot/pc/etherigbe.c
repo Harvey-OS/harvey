@@ -34,18 +34,20 @@ enum {
 	Debug = 0,		/* mostly for X60 debugging */
 };
 enum {
-	i82542     = (0x1000<<16)|0x8086,
-	i82543gc   = (0x1004<<16)|0x8086,
-	i82544ei   = (0x1008<<16)|0x8086,
-	i82540em   = (0x100E<<16)|0x8086,
-	i82546eb   = (0x1010<<16)|0x8086,
-	i82547ei   = (0x1019<<16)|0x8086,
-	i82540eplp = (0x101E<<16)|0x8086,
-	i82547gi   = (0x1075<<16)|0x8086,
-	i82541gi   = (0x1076<<16)|0x8086,
-	i82541gi2  = (0x1077<<16)|0x8086,
-	i82546gb   = (0x1079<<16)|0x8086,
-	i82541pi   = (0x107c<<16)|0x8086,
+	i82542		= (0x1000<<16)|0x8086,
+	i82543gc	= (0x1004<<16)|0x8086,
+	i82544ei	= (0x1008<<16)|0x8086,
+	i82547ei	= (0x1019<<16)|0x8086,
+	i82540em	= (0x100E<<16)|0x8086,
+	i82540eplp	= (0x101E<<16)|0x8086,
+	i82545em	= (0x100F<<16)|0x8086,
+	i82545gmc	= (0x1026<<16)|0x8086,
+	i82547gi	= (0x1075<<16)|0x8086,
+	i82541gi	= (0x1076<<16)|0x8086,
+	i82541gi2	= (0x1077<<16)|0x8086,
+	i82546gb	= (0x1079<<16)|0x8086,
+	i82541pi	= (0x107c<<16)|0x8086,
+	i82546eb	= (0x1010<<16)|0x8086,
 };
 
 /* compatibility with cpu kernels */
@@ -858,6 +860,8 @@ igbeinit(Ether* edev)
 	case i82541gi:
 	case i82541gi2:
 	case i82541pi:
+	case i82545em:
+	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
 	case i82547gi:
@@ -904,6 +908,8 @@ igbeinit(Ether* edev)
 	case i82546gb:
 	case i82546eb:
 	case i82547gi:
+	case i82545em:
+	case i82545gmc:
 		r = 8;
 		break;
 	}
@@ -939,6 +945,8 @@ igbeinit(Ether* edev)
 	case i82540eplp:
 	case i82547gi:
 	case i82541pi:
+	case i82545em:
+	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
 	case i82541gi:
@@ -1173,6 +1181,8 @@ igbemii(Ctlr* ctlr)
 	case i82541gi:
 	case i82541gi2:
 	case i82541pi:
+	case i82545em:
+	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
 		ctrl &= ~(Frcdplx|Frcspd);
@@ -1210,6 +1220,8 @@ igbemii(Ctlr* ctlr)
 	case i82541gi:
 	case i82541gi2:
 	case i82541pi:
+	case i82545em:
+	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
 		break;
@@ -1340,6 +1352,8 @@ at93c46r(Ctlr* ctlr)
 	case i82540eplp:
 	case i82541gi:
 	case i82541gi2:
+	case i82545em:
+	case i82545gmc:
 	case i82541pi:
 	case i82547gi:
 	case i82546gb:
@@ -1422,6 +1436,8 @@ detach(Ctlr *ctlr)
 	case i82540eplp:
 	case i82541gi:
 	case i82541gi2:
+	case i82545em:
+	case i82545gmc:
 	case i82541pi:
 	case i82547gi:
 	case i82546gb:
@@ -1617,6 +1633,8 @@ igbepci(void)
 		case i82541gi:
 		case i82541gi2:
 		case i82541pi:
+		case i82545em:
+		case i82545gmc:
 		case i82546gb:
 		case i82546eb:
 			break;
