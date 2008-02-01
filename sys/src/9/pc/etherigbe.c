@@ -35,6 +35,7 @@ enum {
 	i82547ei	= (0x1019<<16)|0x8086,
 	i82540em	= (0x100E<<16)|0x8086,
 	i82540eplp	= (0x101E<<16)|0x8086,
+	i82545em	= (0x100F<<16)|0x8086,
 	i82545gmc	= (0x1026<<16)|0x8086,
 	i82547gi	= (0x1075<<16)|0x8086,
 	i82541gi	= (0x1076<<16)|0x8086,
@@ -901,6 +902,7 @@ igbetxinit(Ctlr* ctlr)
 	case i82541gi:
 	case i82541gi2:
 	case i82541pi:
+	case i82545em:
 	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
@@ -938,6 +940,7 @@ igbetxinit(Ctlr* ctlr)
 	case i82540em:
 	case i82540eplp:
 	case i82547gi:
+	case i82545em:
 	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
@@ -1076,6 +1079,7 @@ igberxinit(Ctlr* ctlr)
 	case i82541gi:
 	case i82541gi2:
 	case i82541pi:
+	case i82545em:
 	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
@@ -1474,6 +1478,7 @@ igbemii(Ctlr* ctlr)
 	case i82541gi:
 	case i82541gi2:
 	case i82541pi:
+	case i82545em:
 	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
@@ -1508,6 +1513,7 @@ igbemii(Ctlr* ctlr)
 	case i82541gi:
 	case i82541gi2:
 	case i82541pi:
+	case i82545em:
 	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
@@ -1641,6 +1647,7 @@ at93c46r(Ctlr* ctlr)
 	case i82540eplp:
 	case i82541pi:
 	case i82541gi2:
+	case i82545em:
 	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
@@ -1728,6 +1735,7 @@ igbedetach(Ctlr* ctlr)
 	case i82541pi:
 	case i82547gi:
 	case i82541gi2:
+	case i82545em:
 	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
@@ -1909,6 +1917,7 @@ igbepci(void)
 		case i82547gi:
 		case i82541gi2:
 		case i82541pi:
+		case i82545em:
 		case i82545gmc:
 		case i82546gb:
 		case i82546eb:

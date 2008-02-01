@@ -7825,7 +7825,7 @@ sys/man/8/INDEX.html - 664 sys sys 1196638946 8619
 sys/man/8/aan - 664 sys sys 1196638946 1670
 sys/man/8/aliasmail - 664 sys sys 1196638946 1350
 sys/man/8/apm - 664 sys sys 1196638946 1811
-sys/man/8/aquarela - 664 sys sys 1198159132 3798
+sys/man/8/aquarela - 664 sys sys 1201804560 3612
 sys/man/8/auth - 664 sys sys 1196638946 4996
 sys/man/8/boot - 664 sys sys 1196638946 8331
 sys/man/8/booting - 664 sys sys 1196638946 4136
@@ -8112,7 +8112,7 @@ sys/src/9/pc/etherelnk3.c - 664 sys sys 1158012427 48807
 sys/src/9/pc/etherga620.c - 664 sys sys 1185652495 29895
 sys/src/9/pc/etherga620fw.h - 664 sys sys 1026847642 222295
 sys/src/9/pc/etherif.h - 664 sys sys 1088178711 961
-sys/src/9/pc/etherigbe.c - 664 sys sys 1201296869 45773
+sys/src/9/pc/etherigbe.c - 664 sys sys 1201822310 45935
 sys/src/9/pc/etherm10g.c - 664 sys sys 1199912528 28463
 sys/src/9/pc/etherm10g2k.i - 664 sys sys 1174590360 957485
 sys/src/9/pc/etherm10g4k.i - 664 sys sys 1174590362 926959
@@ -9192,7 +9192,7 @@ sys/src/boot/pc/etherelnk3x.c - 664 sys sys 1015007951 24989
 sys/src/boot/pc/etherga620.c - 664 sys sys 1175289484 27168
 sys/src/boot/pc/etherga620fw.h - 664 sys sys 1174080072 222295
 sys/src/boot/pc/etherif.h - 664 sys sys 1174077279 1338
-sys/src/boot/pc/etherigbe.c - 664 sys sys 1199911516 41407
+sys/src/boot/pc/etherigbe.c - 664 sys sys 1201822335 41718
 sys/src/boot/pc/ethermii.c - 664 sys sys 1103641771 4413
 sys/src/boot/pc/ethermii.h - 664 sys sys 1071175087 3259
 sys/src/boot/pc/etherrhine.c - 664 sys sys 1199911576 12759
