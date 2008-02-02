@@ -18395,3 +18395,8 @@
 1201806004 0 c sys/man/8/aquarela - 664 sys sys 1201804560 3612
 1201822204 0 c sys/src/9/pc/etherigbe.c - 664 sys sys 1201822310 45935
 1201822204 1 c sys/src/boot/pc/etherigbe.c - 664 sys sys 1201822335 41718
+1201890604 0 c sys/man/2/getfields - 664 sys sys 1201889839 1749
+1201926609 0 c sys/src/cmd/ndb/dblookup.c - 664 sys sys 1201927753 25262
+1201926609 1 c sys/src/cmd/ndb/dn.c - 664 sys sys 1201927830 37758
+1201926609 2 c sys/src/cmd/ndb/dns.c - 664 sys sys 1201927800 17679
+1201926609 3 c sys/src/cmd/ndb/dns.h - 664 sys sys 1201927786 11915

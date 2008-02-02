@@ -463,6 +463,7 @@ void	dnptr(uchar*, uchar*, char*, int, int, int);
 void	dnpurge(void);
 void	dnput(void);
 void	dnslog(char*, ...);
+void	dnstats(char *file);
 void*	emalloc(int);
 char*	estrdup(char*);
 void	freeanswers(DNSmsg *mp);

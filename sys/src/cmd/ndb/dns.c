@@ -713,14 +713,17 @@ rwrite(Job *job, Mfile *mf, Request *req)
 	} else if(strcmp(job->request.data, "dump")==0){
 		dndump("/lib/ndb/dnsdump");
 		goto send;
-	} else if(strcmp(job->request.data, "refresh")==0){
-		needrefresh = 1;
-		goto send;
 	} else if(strcmp(job->request.data, "poolcheck")==0){
 		poolcheck(mainmem);
 		goto send;
+	} else if(strcmp(job->request.data, "refresh")==0){
+		needrefresh = 1;
+		goto send;
 	} else if(strcmp(job->request.data, "restart")==0){
 		stop = 1;
+		goto send;
+	} else if(strcmp(job->request.data, "stats")==0){
+		dnstats("/lib/ndb/dnsstats");
 		goto send;
 	} else if(strncmp(job->request.data, "target", 6)==0){
 		target = atol(job->request.data + 6);

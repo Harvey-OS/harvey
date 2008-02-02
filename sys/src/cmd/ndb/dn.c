@@ -11,10 +11,10 @@
  *  about 1780 names.
  *
  * aging seems to corrupt the cache, so raise the trigger from 4000 until we
- * figure it out.
+ * figure it out.  trying again with 4000...
  */
 enum {
-	Deftarget = 100000,
+	Deftarget = 4000,
 };
 enum {
 	Minage		= 10*60,
@@ -224,37 +224,25 @@ static int
 rronlist(RR *rp, RR *lp)
 {
 	for(; lp; lp = lp->next)
-		if (rrsame(lp, rp)) {
-			dnslog("adding duplicate %R to list of %R", rp, lp);
+		if (rrsame(lp, rp))
 			return 1;
-		}
 	return 0;
 }
 
-static void
-ckrronlist(RR *rp, RR *lp)
-{
-	if (rronlist(rp, lp)) {
-		dnslog("adding duplicate %R to list of %R", rp, lp);
-		abort();
-	}
-}
-
 /*
- *  dump the cache
+ * dump the stats
  */
 void
-dndump(char *file)
+dnstats(char *file)
 {
-	DN *dp;
 	int i, fd;
-	RR *rp;
 
 	fd = create(file, OWRITE, 0666);
 	if(fd < 0)
 		return;
 
 	qlock(&stats);
+	fprint(fd, "# system %s\n", sysname());
 	fprint(fd, "# slave procs high-water mark\t%lud\n", stats.slavehiwat);
 	fprint(fd, "# queries received by 9p\t%lud\n", stats.qrecvd9p);
 	fprint(fd, "# queries received by udp\t%lud\n", stats.qrecvdudp);
@@ -279,6 +267,25 @@ dndump(char *file)
 
 	lock(&dnlock);
 	fprint(fd, "\n# domain names %lud target %lud\n", dnvars.names, target);
+	unlock(&dnlock);
+	close(fd);
+}
+
+/*
+ *  dump the cache
+ */
+void
+dndump(char *file)
+{
+	int i, fd;
+	DN *dp;
+	RR *rp;
+
+	fd = create(file, OWRITE, 0666);
+	if(fd < 0)
+		return;
+
+	lock(&dnlock);
 	for(i = 0; i < HTLEN; i++)
 		for(dp = ht[i]; dp; dp = dp->next){
 			fprint(fd, "%s\n", dp->name);
@@ -550,7 +557,6 @@ dnagedb(void)
 	DN *dp;
 	int i;
 	RR *rp;
-	static ulong nextage;
 
 	lock(&dnlock);
 
@@ -576,7 +582,6 @@ dnauthdb(void)
 	Area *area;
 	DN *dp;
 	RR *rp;
-	static ulong nextage;
 
 	lock(&dnlock);
 
@@ -756,7 +761,11 @@ rrattach1(RR *new, int auth)
 		l = &rp->next;
 	}
 
-	ckrronlist(new, *l);
+	if (rronlist(new, *l)) {
+		/* should not happen; duplicates were processed above */
+		dnslog("adding duplicate %R to list of %R; aborting", new, *l);
+		abort();
+	}
 	/*
 	 *  add to chain
 	 */
@@ -1478,7 +1487,11 @@ dncheck(void *p, int dolock)
 				assert(rp->cached);
 				assert(rp->owner == dp);
 				/* also check for duplicate rrs */
-				ckrronlist(rp, rp->next);
+				if (dolock && rronlist(rp, rp->next)) {
+					dnslog("%R duplicates its next chain "
+						"(%R); aborting", rp, rp->next);
+					abort();
+				}
 			}
 		}
 	if(dolock)
