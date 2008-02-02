@@ -76,16 +76,20 @@ non-zero,
 except that fields may be quoted using single quotes, in the manner
 of
 .IR rc (1).
+Any such quotes remain in the resulting
+.IR args .
 See
 .IR quote (2)
 for related quote-handling software.
 .PP
 .I Tokenize
-is
+is similar to
 .I gettokens
 with 
 .I delims
-set to \f5"\et\er\en "\fP.
+set to \f5"\et\er\en\ "\fP,
+except that quotes are interpreted but do not appear in the resulting
+.IR args .
 .SH SOURCE
 .B /sys/src/libc/port/tokenize.c
 .SH SEE ALSO

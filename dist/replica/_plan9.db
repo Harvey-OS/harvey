@@ -7581,7 +7581,7 @@ sys/man/2/genrandom - 664 sys sys 1196638940 876
 sys/man/2/getcallerpc - 664 sys sys 1196638940 666
 sys/man/2/getenv - 664 sys sys 1196638937 685
 sys/man/2/getfcr - 664 sys sys 1196638940 2713
-sys/man/2/getfields - 664 sys sys 1196638937 1605
+sys/man/2/getfields - 664 sys sys 1201889839 1749
 sys/man/2/getpid - 664 sys sys 1196638937 657
 sys/man/2/getuser - 664 sys sys 1196638937 641
 sys/man/2/getwd - 664 sys sys 1196638937 701
@@ -15856,3 +15856,7 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+sys/src/cmd/ndb/dblookup.c - 664 sys sys 1201927753 25262
+sys/src/cmd/ndb/dn.c - 664 sys sys 1201927830 37758
+sys/src/cmd/ndb/dns.c - 664 sys sys 1201927800 17679
+sys/src/cmd/ndb/dns.h - 664 sys sys 1201927786 11915
