@@ -18400,3 +18400,14 @@
 1201926609 1 c sys/src/cmd/ndb/dn.c - 664 sys sys 1201927830 37758
 1201926609 2 c sys/src/cmd/ndb/dns.c - 664 sys sys 1201927800 17679
 1201926609 3 c sys/src/cmd/ndb/dns.h - 664 sys sys 1201927786 11915
+1201928407 0 c sys/src/cmd/ndb/dblookup.c - 664 sys sys 1201927753 25262
+1201928407 1 c sys/src/cmd/ndb/dn.c - 664 sys sys 1201927830 37758
+1201928407 2 c sys/src/cmd/ndb/dns.c - 664 sys sys 1201927800 17679
+1201928407 3 c sys/src/cmd/ndb/dns.h - 664 sys sys 1201927786 11915
+1201930204 0 c sys/src/cmd/ndb/dblookup.c - 664 sys sys 1201927753 25262
+1201930204 1 c sys/src/cmd/ndb/dn.c - 664 sys sys 1201927830 37758
+1201930204 2 c sys/src/cmd/ndb/dns.c - 664 sys sys 1201927800 17679
+1201930204 3 c sys/src/cmd/ndb/dns.h - 664 sys sys 1201927786 11915
+1201986004 0 c 386/bin/ndb/dns - 775 sys sys 1201985554 297116
+1201986004 1 c 386/bin/ndb/dnsdebug - 775 sys sys 1201985560 271051
+1201986004 2 c 386/bin/ndb/dnstcp - 775 sys sys 1201985564 268932
