@@ -191,4 +191,4 @@ see
 .B /sys/src/cmd/ip/ftpd.c
 .SH "SEE ALSO"
 .IR ftpfs (4),
-.IP pop3 (8)
+.IR pop3 (8)
