@@ -111,7 +111,7 @@ struct Ums {
 	char	dev[64];
 };
 
-int exabyte, force6bytecmds;
+int exabyte, force6bytecmds, needmaxlun;
 long starttime;
 long maxiosize = MaxIOsize;
 
@@ -158,7 +158,7 @@ enum {
 	CswPhaseErr	= 2,
 };
 
-void
+int
 statuscmd(int fd, int type, int req, int value, int index, char *data,
 	int count)
 {
@@ -172,15 +172,21 @@ statuscmd(int fd, int type, int req, int value, int index, char *data,
 	PUT2(wp + 6, count);
 	if(data != nil)
 		memmove(wp + 8, data, count);
-	if(write(fd, wp, count + 8) != count + 8)
-		sysfatal("statuscmd: %r");
+	if(write(fd, wp, count + 8) != count + 8){
+		fprint(2, "%s: statuscmd: %r\n", argv0);
+		return -1;
+	}
+	return 0;
 }
 
-void
+int
 statusread(int fd, char *buf, int count)
 {
-	if(read(fd, buf, count) < 0)
-		sysfatal("statusread: %r");
+	if(read(fd, buf, count) < 0){
+		fprint(2, "%s: statusread: %r\n", argv0);
+		return -1;
+	}
+	return 0;
 }
 
 void
@@ -188,9 +194,12 @@ getmaxlun(Ums *ums)
 {
 	uchar max;
 
-	statuscmd(ums->setupfd, GET_MAX_LUN_T, GET_MAX_LUN, 0, 0, nil, 0);
-	statusread(ums->setupfd, (char *)&max, 1);
-	fprint(2, "%s: maxlun %d\n", argv0, max);		// DEBUG
+	if(needmaxlun &&
+	    statuscmd(ums->setupfd, GET_MAX_LUN_T, GET_MAX_LUN, 0, 0, nil, 0)
+	    == 0 && statusread(ums->setupfd, (char *)&max, 1) == 0)
+		fprint(2, "%s: maxlun %d\n", argv0, max);	// DEBUG
+	else
+		max = 0;
 	ums->lun = mallocz((max + 1) * sizeof *ums->lun, 1);
 	assert(ums->lun);
 	ums->maxlun = max;
@@ -412,14 +421,11 @@ timeoutok(void)
 {
 	if (freakout)
 		return 1;	/* OK; keep trying */
-	else if (1) {		/* TODO: set */
-		fprint(2,
-"%s: no response from device.  unplug and replug it and try again with -f\n",
-			argv0);
-
+	else {
+		fprint(2, "%s: no response from device.  unplug and replug "
+			"it and try again with -f\n", argv0);
 		return 0;	/* die */
 	}
-	return 1;		/* keep trying */
 }
 
 int
@@ -511,9 +517,8 @@ scanstatus(int ctlrno, int id)
 
 		if (Class(csp) == CL_STORAGE && Proto(csp) == Protobulk) {
 			if (0)
-				fprint(2,
-			"%s: /dev/usb%d/%d: bulk storage of subclass %s\n",
-					argv0, ctlrno, id,
+				fprint(2, "%s: /dev/usb%d/%d: bulk storage "
+					"of subclass %s\n", argv0, ctlrno, id,
 					subclname(Subclass(csp)));
 			switch (Subclass(csp)) {
 			case Subatapi:
@@ -950,7 +955,7 @@ void (*dprinter[])(Device *, int, ulong, void *b, int n) = {
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-Ddf] [-m mountpoint] [-s srvname] [ctrno id]\n",
+	fprint(2, "usage: %s [-Ddfl] [-m mountpoint] [-s srvname] [ctrno id]\n",
 		argv0);
 	exits("usage");
 }
@@ -972,6 +977,9 @@ main(int argc, char **argv)
 		break;
 	case 'f':
 		freakout++;
+		break;
+	case 'l':
+		needmaxlun++;
 		break;
 	case 'm':
 		mntname = EARGF(usage());

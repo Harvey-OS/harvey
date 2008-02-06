@@ -46,7 +46,7 @@ setupreq(Endpt *e, int type, int req, int value, int index, int count)
 	byte *wp, buf[8];
 	int n, i, fd;
 
-	if (e == nil)
+	if(e == nil)
 		abort();
 	fd = e->dev->setup;
 	if(fd < 0)
@@ -57,7 +57,7 @@ setupreq(Endpt *e, int type, int req, int value, int index, int count)
 	PUT2(wp+2, value);
 	PUT2(wp+4, index);
 	PUT2(wp+6, count);
-	if (debugdebug) {
+	if(debugdebug){
 		fprint(2, "out\t%d\t[8]", fd);
 		for(i=0; i<8; i++)
 			fprint(2, " %.2ux", buf[i]);

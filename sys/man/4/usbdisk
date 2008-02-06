@@ -4,7 +4,7 @@ usbdisk, usbfat: - serve USB mass storage devices
 .SH SYNOPSIS
 .B usb/disk
 [
-.B -dDf
+.B -dDfl
 ] [
 .B -m
 .I mountpoint
@@ -18,7 +18,7 @@ usbdisk, usbfat: - serve USB mass storage devices
 .LP
 .B usbfat:
 [
-.B -f
+.B -fl
 ] [
 .I disk
 [
@@ -37,7 +37,7 @@ and
 where
 .I n
 is the number of a LUN to access,
-for all LUNs of the named or found USB device.
+for all detected LUNs of the named or found USB device.
 .I Disk
 searches for a USB device with class 8 (storage),
 subclass 2 (ATAPI CD/DVD),
@@ -74,6 +74,14 @@ The
 option avoids freaking out some cheap USB flash disks by not issuing
 UMS reset commands to them.
 The
+.B -l
+option asks the device for its maximum LUN.
+By default,
+.I disk
+assumes a maximum LUN of zero, since some devices
+get upset if you ask them for their maximum LUN.
+Flash memory devices are likely to have multiple LUNs.
+The
 .B -m
 option mounts the served hierarchy on
 .I mountpoint
@@ -91,7 +99,7 @@ Access the usual preformatted FAT partition:
 .IP
 .EX
 % usb/usbd
-% usb/disk
+% usb/disk -l
 % disk/fdisk -p /n/disk/0/data
 part dos 7 31559
 % dossrv -f /n/disk/0/data:7 usbstorage
@@ -153,6 +161,6 @@ so one can invoke
 .IR dossrv (4)
 directly.
 .PP
-USB 1.0 flash disks' I/O rates are slow and variable.
+USB 1 flash disks' I/O rates are slow and variable.
 Reading and writing in large units (e.g., 4KB) seems to be faster
 by an order of magnitude when transferring large volumes of data.

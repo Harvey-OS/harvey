@@ -70,17 +70,20 @@ threadmain(int argc, char **argv)
 	case 'f':
 		dontfork=1;
 		break;
-	case 'd':
-		debug++;
+	case 'D':
+		debugdebug++;
 		break;
-	case 'v':
+	case 'd':
+		debug = atoi(EARGF(usage()));
+		break;
+	case 'V':
 		verbose = 1;
 		break;
 	}ARGEND
 	if (argc)
 		usage();
-	if (access("/dev/usb0", 0) < 0 && bind("#U", "/dev", MAFTER) < 0)
-		sysfatal("%s: can't bind #U after /dev: %r\n", argv0);
+	if (access("/dev/usb0", 0) < 0 && bind("#U", "/dev", MBEFORE) < 0)
+		sysfatal("%s: can't bind -b #U /dev: %r\n", argv0);
 
 	usbfmtinit();
 	fmtinstall('H', Hfmt);
@@ -230,6 +233,8 @@ configure(Hub *h, int port)
 	ls = (s & (1<<PORT_LOW_SPEED)) != 0;
 	devspeed(h->dev0, ls);
 	maxpkt = getmaxpkt(h->dev0);
+	if(debugdebug)
+		fprint(2, "%H.%d maxpkt: %d\n", h, port, maxpkt);
 	if(maxpkt < 0) {
 Error0:
 		portenable(h, port, 0);
