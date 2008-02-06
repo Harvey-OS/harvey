@@ -97,32 +97,33 @@ setdevclass(Device *d, int n)
 {
 	Endpt *e;
 
-	if (e = d->ep[n]) {
-		if (verbose) fprint(2, "class %d %d %#6.6lux %#4.4ux %#4.4ux\n",
-			d->nif, n, e->csp, d->vid, d->did);
-		fprint(d->ctl, "class %d %d %#6.6lux %#4.4ux %#4.4ux",
-			d->nif, n, e->csp, d->vid, d->did);
-	}
+	if((e = d->ep[n]) == nil)
+		return;
+	if (verbose) fprint(2, "class %d %d %#6.6lux %d %#4.4ux %#4.4ux\n",
+		d->nif, n, e->csp, e->maxpkt, d->vid, d->did);
+	fprint(d->ctl, "class %d %d %#6.6lux %d %#4.4ux %#4.4ux",
+		d->nif, n, e->csp, e->maxpkt, d->vid, d->did);
 }
 
 int
 describedevice(Device *d)
 {
 	DDevice *dd;
-	byte buf[1023];
+	byte buf[24];	/* length field is one byte */
 	int nr;
 
 	werrstr("");
-	if (setupreq(d->ep[0], RD2H|Rstandard|Rdevice, GET_DESCRIPTOR,
-	     DEVICE<<8|0, 0, sizeof buf) < 0) {
-		fprint(2,
-"%s: describedevice: error writing usb device request: get device descriptor: %r\n",
-			argv0);
+	if(debugdebug)
+		fprint(2, "describedevice\n");
+	if(setupreq(d->ep[0], RD2H|Rstandard|Rdevice, GET_DESCRIPTOR,
+	     DEVICE<<8|0, 0, sizeof buf) < 0){
+		fprint(2, "%s: describedevice: error writing usb device "
+			"request: get device descriptor: %r\n", argv0);
 		return -1;
 	}
-	if ((nr = setupreply(d->ep[0], buf, sizeof buf)) < DDEVLEN) {
-		fprint(2,
-"%s: describedevice: error reading usb device descriptor, got %d of %d: %r\n",
+	if((nr = setupreply(d->ep[0], buf, sizeof buf)) < 8) {
+		fprint(2, "%s: describedevice: error reading usb device "
+			"descriptor, got %d of %d: %r\n",
 			argv0, nr, DDEVLEN);
 		return -1;
 	}
@@ -135,9 +136,13 @@ describedevice(Device *d)
 		d->class = Hubclass;
 	else
 		d->class = Otherclass;
-	d->nconf = dd->bNumConfigurations;
-	d->vid = GET2(dd->idVendor);
-	d->did = GET2(dd->idProduct);
+	if(nr >= DDEVLEN){
+		d->nconf = dd->bNumConfigurations;
+		d->vid = GET2(dd->idVendor);
+		d->did = GET2(dd->idProduct);
+	}else
+		fprint(2, "%s: describedevice: short usb device descriptor\n",
+			argv0);
 	return 0;
 }
 
@@ -147,12 +152,13 @@ loadconfig(Device *d, int n)
 	byte buf[1023];
 	int nr = -1, len;
 
+	if(debugdebug)
+		fprint(2, "loadconfig\n");
 	if (setupreq(d->ep[0], RD2H|Rstandard|Rdevice, GET_DESCRIPTOR,
 	     CONFIGURATION<<8|n, 0, sizeof buf) < 0 ||
 	    (nr = setupreply(d->ep[0], buf, sizeof buf)) < 1) {
-		fprint(2,
-	"%s: error reading usb configuration descriptor: read %d bytes: %r\n",
-			argv0, nr);
+		fprint(2, "%s: error reading usb configuration descriptor: "
+			"read %d bytes: %r\n", argv0, nr);
 		return -1;
 	}
 	if (buf[1] == CONFIGURATION) {

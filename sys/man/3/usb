@@ -95,18 +95,29 @@ is
 .IP
 .B ep
 .I n
+.B ctl
+.I "mode maxpkt nbuf
+.PP
+or
+.IP
+.B ep
+.I n
 .B bulk
 .I "mode maxpkt nbuf
 .PP
 or
 .IP
 .B ep
+.I "n period mode maxpkt
+.PP
+or
+.IP
+.B ep
 .I "n period mode samplesize hz
 .PP
-The first form configures a non-real-time stream, the second an
-.I isochronous
-(real-time) stream.
-In both forms,
+There are four forms for, respectively, Control, Bulk, Interrupt and
+Isochronous traffic (see USB specs for what that means).
+In all forms,
 .I n
 is the endpoint to be configured, and
 .I mode
@@ -117,33 +128,35 @@ for read only,
 for write only, or
 .B rw
 for reading and writing.
-In the first form,
-.I maxpkt
+.I Maxpkt
 is the maximum packet size to be used (between 8 and 1023),
 and
 .I nbuf
 is the number of buffers to be allocated by the driver.
 .PP
-In the second form,
-.I period
-is the number of milliseconds between packets.  This number is usually
-dictated by the device.  It must be between 1 and 1000.
+.I Period
+is the number of milliseconds between packets (iso) or polls (interrupt).
+This number is usually dictated by the device.  It must be between 1 and 1000.
 The
 .I samplesize
 is the size in bytes of the data units making up packets, and
 .I hz
 is the number of data units transmitted or received per second.
 .PP
-The data rate is thus
+The data rate for an isochronous channel is
 .IR hz × samplesize
 bytes per second, and the number of samples in a packet
 will be 
 .RI ( period × hz )/1000,
 rounded up or down.
 Packets do not contain fractional samples.
+A 16-bit stereo 44.1 KHz audio stream will thus have 44100 4-byte samples
+per second, typically in a 1ms period.  Ove a 10 ms period, this yields 9
+packets of 176 bytes followed by a 180-byte packet (the driver figures it
+out for you).
 .PP
 The mouse, which produces 3-byte samples, is configured with
-.BR "ep 1 bulk r 3 32" :
+.BR "ep 1 ctl r 3 32" :
 endpoint 1 is configured for non-real-time read-only 3-byte messages
 and allows 32 of them to be outstanding.
 .PP
@@ -232,13 +245,13 @@ configuration.
 .br
 .B /sys/src/9/pc/devusb.c
 .br
-.B /sys/src/9/pc/usbuhci.c
+.B /sys/src/9/pc/usb[ou]hci.c
 .SH "SEE ALSO"
 .IR usb (4),
 .IR usbd (4),
 .IR plan9.ini (8)
 .SH BUGS
-OpenHCI (OHCI) and EHCI USB controllers are not yet supported.
+EHCI USB 2 controllers are not yet supported.
 .PP
 The interface for configuring endpoints is at variance with the standard.
 .PP

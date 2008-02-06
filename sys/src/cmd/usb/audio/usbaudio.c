@@ -171,8 +171,8 @@ buttonproc(void *) {
 		sysfatal("Can't open %s: %r", fname);
 
 	c = &controls[Play][Volume_control];
-	for (;;) {
-		if ((b = read(fd, buf, 1)) < 0){
+	for(;;){
+		if((b = read(fd, buf, 1)) < 0){
 			rerrstr(err, sizeof err);
 			if (strcmp(err, "interrupted") == 0){
 				if (debug & Dbginfo) fprint(2, "read interrupted\n");
@@ -180,9 +180,9 @@ buttonproc(void *) {
 			}
 			sysfatal("read %s: %r", fname);
 		}
-		if (b == 0 || buf[0] == 0){
+		if(b == 0 || buf[0] == 0){
 			continue;
-		}else if (buf[0] == 1){
+		}else if(buf[0] == 1){
 			if (c->chans == 0)
 				c->value[0] += c->step;
 			else
@@ -190,7 +190,7 @@ buttonproc(void *) {
 					if (c->chans & 1 << i)
 						c->value[i] += c->step;
 			chanprint(controlchan, "0 volume playback %A", c);
-		}else if (buf[0] == 2){
+		}else if(buf[0] == 2){
 			if (c->chans == 0)
 				c->value[0] -= c->step;
 			else
@@ -198,7 +198,7 @@ buttonproc(void *) {
 					if (c->chans & 1 << i)
 						c->value[i] -= c->step;
 			chanprint(controlchan, "0 volume playback %A", c);
-		}else if (debug & Dbginfo){
+		}else if(debug & Dbginfo){
 			fprint(2, "button");
 			for (i = 0; i < b; i++)
 				fprint(2, " %#2.2x", buf[i]);
@@ -289,7 +289,7 @@ threadmain(int argc, char **argv)
 		usage();
 	}ARGEND
 
-	switch (argc) {
+	switch(argc){
 	case 0:
 		for (ctlrno = 0; ctlrno < 16; ctlrno++) {
 			for (i = 1; i < 128; i++) {
@@ -332,7 +332,7 @@ threadmain(int argc, char **argv)
 
 	findendpoints();
 
-	if (endpt[Play] >= 0){
+	if(endpt[Play] >= 0){
 		if(verbose)
 			fprint(2, "Setting default play parameters: %d Hz, %d channels at %d bits\n",
 				defaultspeed[Play], 2, 16);
@@ -351,7 +351,7 @@ threadmain(int argc, char **argv)
 			sysfatal("Can't set play resolution\n");
 	}
 
-	if (endpt[Record] >= 0){
+	if(endpt[Record] >= 0){
 		if(verbose)
 			fprint(2, "Setting default record parameters: %d Hz, %d channels at %d bits\n",
 				defaultspeed[Record], 2, 16);
@@ -400,7 +400,7 @@ threadmain(int argc, char **argv)
 	}
 
 	if (buttonendpt > 0){
-		sprint(buf, "ep %d bulk r 1 1", buttonendpt);
+		sprint(buf, "ep %d 10 r 1", buttonendpt);
 		if (debug) fprint(2, "sending `%s' to /dev/usb/%d/ctl\n", buf, id);
 		if (write(ad->ctl, buf, strlen(buf)) > 0)
 			proccreate(buttonproc, nil, STACKSIZE);

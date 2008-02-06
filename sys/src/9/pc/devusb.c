@@ -13,10 +13,9 @@
 #include	"usb.h"
 
 static int debug = 0;
+static int debugtoggle = 0;
 
-#define Chatty	1
-#define DPRINT if(Chatty)print
-#define XPRINT if(debug)iprint
+#define XPRINT if(debug)print
 
 Usbhost*	usbhost[MaxUsb];
 
@@ -110,7 +109,7 @@ static Cmdtab usbctlmsg[] =
 	CMclass,	"class",	0,
 	CMdata,		"data",		3,
 	CMdebug,	"debug",	3,
-	CMep,		"ep",		6,
+	CMep,		"ep",		0,
 	CMmaxpkt,	"maxpkt",	3,
 	CMadjust,	"adjust",	3,
 	CMspeed,	"speed",	2,
@@ -235,7 +234,7 @@ usbnewdevice(Usbhost *uh)
 	d = nil;
 	qlock(uh);
 	if(waserror()){
-		if (d) {
+		if(d){
 			uh->dev[d->x] = nil;
 			freept(d->ep[0]);
 			free(d);
@@ -251,13 +250,13 @@ usbnewdevice(Usbhost *uh)
 			d->ref = 1;
 			d->x = i;
 			d->id = (uh->idgen << 8) | i;
+			d->speed = Fullspeed;
 			d->state = Enabled;
 			XPRINT("calling devendpt in usbnewdevice\n");
 			e = devendpt(d, 0, 1);	/* always provide ctl endpt 0 */
 			e->mode = ORDWR;
-			e->in.epmode = e->out.epmode = Ctlmode;	/* OHCI */
-			// epsetMPS(e, 64, 64);		/* OHCI; see epalloc*/
-			e->iso = 0;
+			e->epmode = Ctlmode;	/* OHCI */
+			e->epnewmode = Ctlmode;	/* OHCI */
 			e->sched = -1;
 			uh->dev[i] = d;
 			break;
@@ -381,7 +380,7 @@ usbgen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
 		return 0;
 	snprint(up->genbuf, sizeof up->genbuf, "ep%ddata", s);
 	mkqid(&q, PATH(Qep0+s, slot, bus), c->qid.vers, QTFILE);
-	switch(e->mode) {
+	switch(e->mode){
 	case OREAD:
 		perm = 0444;
 		break;
@@ -631,11 +630,11 @@ epstatus(char *s, char *se, Endpt *e, int i)
 
 	p = seprint(s, se, "%2d %#6.6lux %10lud bytes %10lud blocks\n",
 		i, e->csp, e->nbytes, e->nblocks);
-	if(e->iso){
+	if(e->epmode == Isomode){
 		p = seprint(p, se, "bufsize %6d buffered %6d",
 			e->maxpkt, e->buffered);
 		if(e->toffset)
-			p = seprint(p, se, " offset  %10lud time %19lld\n",
+			p = seprint(p, se, " offset  %10llud time %19lld\n",
 				e->toffset, e->time);
 		p = seprint(p, se, "\n");
 	}
@@ -666,9 +665,12 @@ usbread(Chan *c, void *a, long n, vlong offset)
 		if(e == nil || e->mode == OWRITE)
 			error(Egreg);
 		if(t == 0) {
-			if(e->iso)
+			if(e->epmode == Isomode)
 				error(Egreg);
- 			e->rdata01 = 1;
+			if(e->override)
+				e->override = 0;
+			else
+				e->rdata01 = 1;
 			n = uh->read(uh, e, a, n, 0LL);
 			if(e->setin){
 				e->setin = 0;
@@ -767,10 +769,23 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 		ct = lookupcmd(cb, usbctlmsg, nelem(usbctlmsg));
 		switch(ct->index){
 		case CMspeed:
-			d->ls = strtoul(cb->f[1], nil, 0) == 0;
+			XPRINT("speed %s\n", cb->f[1]);
+			if(strcmp(cb->f[1], "low") == 0)
+				d->speed = Lowspeed;
+			else if(strcmp(cb->f[1], "full") == 0)
+				d->speed = Fullspeed;
+			else if(strcmp(cb->f[1], "high") == 0)
+				d->speed = Highspeed;
+			else if(strtoul(cb->f[1], nil, 0) == 0)
+				d->speed = Lowspeed;
+			else
+				d->speed = Fullspeed;
+			for(i = 0; i < nelem(d->ep); i++)
+				if(d->ep[i])
+					uh->epmode(uh, d->ep[i]);
 			break;
 		case CMclass:
-			if (cb->nf != 4 && cb->nf != 6)
+			if (cb->nf != 5 && cb->nf != 7)
 				cmderror(cb, Ebadusbmsg);
 			/*
 			 * class #ifc ept csp
@@ -781,9 +796,9 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 			if (i < 0 || i >= nelem(d->ep) ||
 			    d->npt > nelem(d->ep) || i >= d->npt)
 				cmderror(cb, Ebadusbmsg);
-			if (cb->nf == 6) {
-				d->vid = strtoul(cb->f[4], nil, 0);
-				d->did = strtoul(cb->f[5], nil, 0);
+			if(cb->nf == 7){
+				d->vid = strtoul(cb->f[5], nil, 0);
+				d->did = strtoul(cb->f[6], nil, 0);
 			}
 			if (i == 0)
 				d->csp = strtoul(cb->f[3], nil, 0);
@@ -792,6 +807,9 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 				d->ep[i] = devendpt(d, i, 1);
 			}
 			d->ep[i]->csp = strtoul(cb->f[3], nil, 0);
+			d->ep[i]->maxpkt = strtoul(cb->f[4], nil, 0);
+			if(uh->epmaxpkt)
+				uh->epmaxpkt(uh, d->ep[i]);
 			break;
 		case CMdata:
 			i = strtoul(cb->f[1], nil, 0);
@@ -799,6 +817,7 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 				error(Ebadusbmsg);
 			e = d->ep[i];
 			e->wdata01 = e->rdata01 = strtoul(cb->f[2], nil, 0) != 0;
+			e->override = 1;
 			break;
 		case CMmaxpkt:
 			i = strtoul(cb->f[1], nil, 0);
@@ -808,13 +827,15 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 			e->maxpkt = strtoul(cb->f[2], nil, 0);
 			if(e->maxpkt > 1500)
 				e->maxpkt = 1500;
+			if(uh->epmaxpkt)
+				uh->epmaxpkt(uh, e);
 			break;
 		case CMadjust:
 			i = strtoul(cb->f[1], nil, 0);
 			if(i < 0 || i >= nelem(d->ep) || d->ep[i] == nil)
 				error(Ebadusbmsg);
 			e = d->ep[i];
-			if (e->iso == 0)
+			if(e->epmode != Isomode)
 				error(Eperm);
 			i = strtoul(cb->f[2], nil, 0);
 			/* speed may not result in change of maxpkt */
@@ -845,11 +866,13 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 			if(i < 0 || i >= nelem(d->ep) || d->ep[i] == nil)
 				error(Ebadusbmsg);
 			e = d->ep[i];
-			e->err = nil;
+			e->dir[Dirout].err = e->dir[Dirin].err = nil;
 			break;
 		case CMep:
-			/* ep n `bulk' mode maxpkt nbuf     OR
-			 * ep n period mode samplesize Hz
+			/* Ctlmode:	ep n `ctl'  mode maxpkt nbuf	OR
+			 * Bulkmode:	ep n `bulk' mode maxpkt nbuf	OR
+			 * Isomode:	ep n period mode samplesize Hz	OR
+			 * Intrmode:	ep n period mode maxpkt
 			 */
 			i = strtoul(cb->f[1], nil, 0);
 			if(i < 0 || i >= nelem(d->ep)) {
@@ -871,28 +894,70 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 				error(Eperm);
 			if(strcmp(cb->f[2], "bulk") == 0){
 				/* ep n `bulk' mode maxpkt nbuf */
-				e->iso = 0;
+				if(cb->nf != 6)
+					error("arg count");
 				i = strtoul(cb->f[4], nil, 0);
-				if(i < 8 || i > 1023)
-					i = 8;
+				if(i < 1 || i > 1023){
+					XPRINT("maxpkt: 1 <= %d < 1024\n", i);
+					error(Ebadarg);
+				}
 				e->maxpkt = i;
 				i = strtoul(cb->f[5], nil, 0);
-				if(i >= 1 && i <= 32)
-					e->nbuf = i;
-			} else {
+				if(i < 1 || i > 32){
+					XPRINT("nbuf: 1 <= %d <= 32\n", i);
+					error(Ebadarg);
+				}
+				e->nbuf = i;
+				e->epnewmode = Bulkmode;
+			}else if(strcmp(cb->f[2], "ctl") == 0){
+				/* ep n `ctl' mode maxpkt nbuf */
+				if(cb->nf != 6)
+					error("arg count");
+				i = strtoul(cb->f[4], nil, 0);
+				if(i < 8 || i > 1023){
+					XPRINT("maxpkt: 8 <= %d < 1024\n", i);
+					error(Ebadarg);
+				}
+				e->maxpkt = i;
+				i = strtoul(cb->f[5], nil, 0);
+				if(i < 1 || i > 32){
+					XPRINT("nbuf: 1 <= %d <= 32\n", i);
+					error(Ebadarg);
+				}
+				e->nbuf = i;
+				e->epnewmode = Ctlmode;
+			}else if(cb->nf == 5){
+				/* ep n period mode maxpkt */
+				i = strtoul(cb->f[2], nil, 0);
+				if(i > 0 && i <= 1000){
+					e->pollms = i;
+				}else {
+					XPRINT("pollms: 0 <= %d <= 1000\n", i);
+					error(Ebadarg);
+				}
+				i = strtoul(cb->f[4], nil, 0);
+				if(i >= 1 && i < 256){
+					e->maxpkt = i;
+				}else {
+					XPRINT("maxpkt: 0 < %d <= 8\n", i);
+					error(Ebadarg);
+				}
+				e->nbuf = 1;	/* just in case */
+				e->epnewmode = Intrmode;
+			}else if(cb->nf == 6){
 				/* ep n period mode samplesize Hz */
 				i = strtoul(cb->f[2], nil, 0);
 				if(i > 0 && i <= 1000){
 					e->pollms = i;
 				}else {
-					XPRINT("field 4: 0 <= %d <= 1000\n", i);
+					XPRINT("Hz: 0 <= %d <= 1000\n", i);
 					error(Ebadarg);
 				}
 				i = strtoul(cb->f[4], nil, 0);
 				if(i >= 1 && i <= 8){
 					e->samplesz = i;
 				}else {
-					XPRINT("field 4: 0 < %d <= 8\n", i);
+					XPRINT("samplesize: 0 < %d <= 8\n", i);
 					error(Ebadarg);
 				}
 				i = strtoul(cb->f[5], nil, 0);
@@ -901,14 +966,14 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 					e->hz = i;
 					e->remain = 0;
 				}else {
-					XPRINT("field 5: 1 < %d <= 100000 Hz\n",
-						i);
+					XPRINT("field 6: 1 < %d <= 100000 Hz\n", i);
 					error(Ebadarg);
 				}
 				e->maxpkt = (e->hz*e->pollms + 999)/1000 *
 					e->samplesz;
-				e->iso = 1;
-			}
+				e->epnewmode = Isomode;
+			}else
+				error("arg count");
 			e->mode = strcmp(cb->f[3],"r") == 0? OREAD:
 				  strcmp(cb->f[3],"w") == 0? OWRITE: ORDWR;
 			uh->epmode(uh, e);
@@ -923,14 +988,17 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 	case Qep0:	/* SETUP endpoint 0 */
 		/* should canqlock etc */
 		e = d->ep[0];
-		if(e == nil || e->iso)
+		if(e == nil || e->epmode == Isomode)
 			error(Egreg);
 		if(n < 8)
 			error(Eio);
 		nw = *(uchar*)a & RD2H;
-		e->wdata01 = 0;
+		if(e->override)
+			e->override = 0;
+		else
+			e->wdata01 = 0;
 		n = uh->write(uh, e, a, n, 0LL, uh->toksetup);
-		if(nw == 0) {	/* host to device: use IN[DATA1] to ack */
+		if(nw == 0){	/* host to device: use IN[DATA1] to ack */
 			e->rdata01 = 1;
 			nw = uh->read(uh, e, cmd, 0LL, 8);
 			if(nw != 0)

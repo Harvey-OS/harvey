@@ -26,7 +26,9 @@ enum
 {
 	/*
 	 * USB packet definitions...
- 	*/
+ 	 */
+
+	/* low nibbles are on-the-wire */
 	Utokin = 0x69,
 	Utokout = 0xE1,
 	Utoksetup = 0x2D,
@@ -51,7 +53,7 @@ enum
 	StatusChange =	1<<1,	/* write 1 to clear */
 	DevicePresent =	1<<0,
 
-	NFRAME = 	1024,		/* must be power of 2 for xspanalloc */
+	NFRAME = 	1024,	/* must be 2ⁿ for xspanalloc; max 1024 */
 	FRAMESIZE=	NFRAME*sizeof(ulong), /* fixed by hardware; aligned to same */
 
 	Vf =		1<<2,	/* TD only */
@@ -312,7 +314,7 @@ alloctde(Ctlr *ctlr, Endpt *e, int pid, int n)
 		tog = IsDATA1;
 	t->ep = e;
 	t->status = ErrLimit3 | Active | IOC;	/* or put IOC only on last? */
-	if(e->dev->ls)
+	if(e->dev->speed == Lowspeed)
 		t->status |= LowSpeed;
 	t->dev = ((n-1)<<21) | ((id&0x7FF)<<8) | pid | tog;
 	return t;
@@ -408,13 +410,14 @@ cleantd(Ctlr *ctlr, TD *t, int discard)
 		dumptd(t, 0);
 	if(t->status & Active)
 		panic("cleantd Active");
-	err = t->status & (AnyError&~NAKed);
+	err = t->status & (AnyError & ~NAKed);
 	/* TO DO: on t->status&AnyError, q->entries will not have advanced */
 	if (err) {
 		XPRINT("cleanTD: Error %8.8lux %8.8lux %8.8lux %8.8lux\n",
 			t->link, t->status, t->dev, t->buffer);
-//		print("cleanTD: Error %8.8lux %8.8lux %8.8lux %8.8lux\n",
-//			t->link, t->status, t->dev, t->buffer);
+		print("cleanTD %d/%d: Error %8.8lux %8.8lux %8.8lux %8.8lux\n",
+			t->ep->dev->x, t->ep->x,
+			t->link, t->status, t->dev, t->buffer);
 	}
 	switch(t->dev&0xFF){
 	case Utokin:
@@ -422,9 +425,9 @@ cleantd(Ctlr *ctlr, TD *t, int discard)
 		    t->ep->x!=0&&err){
 			if(t->ep != nil){
 				if(err != 0)
-					t->ep->err = err==Stalled?
-						Estalled: Eio;
-				wakeup(&t->ep->rr);   /* in case anyone cares */
+					t->ep->dir[Dirin].err = err & Stalled
+						? Estalled : Eio;
+				wakeup(&t->ep->dir[Dirin].rend);   /* in case anyone cares */
 			}
 			break;
 		}
@@ -439,7 +442,7 @@ cleantd(Ctlr *ctlr, TD *t, int discard)
 		t->ep->nbytes += n;
 		t->ep->nblocks++;
 		qpass(t->ep->rq, b);	/* TO DO: flow control */
-		wakeup(&t->ep->rr);	/* TO DO */
+		wakeup(&t->ep->dir[Dirin].rend);	/* TO DO */
 		break;
 	case Utoksetup:
 		XPRINT("cleanTD: Utoksetup %lux\n", &t->ep);
@@ -448,8 +451,8 @@ cleantd(Ctlr *ctlr, TD *t, int discard)
 		 * gives status./
 		 */
 		if(t->ep != nil) {
-			wakeup(&t->ep->wr);	/* TO DO */
-			XPRINT("cleanTD: wakeup %lux\n", &t->ep->wr);
+			wakeup(&t->ep->dir[Dirout].rend);	/* TO DO */
+			XPRINT("cleanTD: wakeup %lux\n", &t->ep->dir[Dirout].rend);
 		}
 		break;
 	case Utokout:
@@ -462,12 +465,13 @@ cleantd(Ctlr *ctlr, TD *t, int discard)
 				t->ep->nbytes += n;
 				t->ep->nblocks++;
 			}
-			if(t->ep->x!=0 && err != 0)
-				t->ep->err = err==Stalled? Estalled: Eio;
+			if(t->ep->x && err)
+				t->ep->dir[Dirout].err = err&Stalled
+					? Estalled : Eio;
 			if(--t->ep->ntd < 0)
 				panic("cleantd ntd");
-			wakeup(&t->ep->wr);	/* TO DO */
-			XPRINT("cleanTD: wakeup %lux\n", &t->ep->wr);
+			wakeup(&t->ep->dir[Dirout].rend);	/* TO DO */
+			XPRINT("cleanTD: wakeup %lux\n", &t->ep->dir[Dirout].rend);
 		}
 		iunlock(ctlr);
 		break;
@@ -636,7 +640,8 @@ qxmit(Ctlr *ctlr, Endpt *e, Block *b, int pid)
 	ilock(ctlr);
 	e->ntd++;
 	iunlock(ctlr);
-	if(e->debug) pprint("QTD: %8.8lux n=%ld\n", t, b?BLEN(b): 0);
+	if(e->debug)
+		pprint("QTD: %8.8lux n=%ld\n", t, b? BLEN(b): 0);
 	vf = 0;
 	if(e->x == 0){
 		qh = ctlr->ctlq;
@@ -703,8 +708,11 @@ schedendpt(Ctlr *ctlr, Endpt *e)
 	uchar *bp;
 	int i, id, ix, size, frnum;
 
-	if(!e->iso || e->sched >= 0)
+	/* Only for isochronous endpoints */
+	if(e->epmode != Isomode || e->sched >= 0)
 		return 0;
+
+	/* Interrupt mode should also go here */
 
 	if (e->active)
 		return -1;
@@ -766,7 +774,7 @@ unschedendpt(Ctlr *ctlr, Endpt *e)
 	Endptx *x;
 	ulong *addr;
 
-	if(!e->iso || e->sched < 0)
+	if(e->epmode != Isomode || e->sched < 0)
 		return;
 
 	x = e->private;
@@ -822,7 +830,7 @@ epopen(Usbhost *uh, Endpt *e)
 	Ctlr *ctlr;
 
 	ctlr = uh->ctlr;
-	if(e->iso && e->active)
+	if(e->epmode == Isomode && e->active)
 		error("already open");
 	if(schedendpt(ctlr, e) < 0){
 		if(e->active)
@@ -849,24 +857,27 @@ epmode(Usbhost *uh, Endpt *e)
 	Ctlr *ctlr;
 	Endptx *x;
 
+	if(e->epnewmode == e->epmode)
+		return;
 	ctlr = uh->ctlr;
 	x = e->private;
-	if(e->iso) {
-		if(x->epq != nil) {
+	if(e->epnewmode == Isomode){
+		if(x->epq != nil){
 			freeqh(ctlr, x->epq);
 			x->epq = nil;
 		}
-	} else {
+	}else{
 		/* Each bulk device gets a queue head hanging off the
 		 * bulk queue head
 		 */
-		if(x->epq == nil) {
+		if(x->epq == nil){
 			x->epq = allocqh(ctlr);
 			if(x->epq == nil)
 				panic("epbulk: allocqh");
 		}
 		queueqh(ctlr, x->epq);
 	}
+	e->epmode = e->epnewmode;
 }
 
 static	int	ioport[] = {-1, Portsc0, Portsc1};
@@ -1037,7 +1048,7 @@ cleaniso(Endpt *e, int frnum)
 			e->buffered -= (td->status + 1) & 0x3ff;
 		td->status = ErrLimit1 | Active | IsoSelect | IOC;
 	}
-	wakeup(&e->wr);
+	wakeup(&e->dir[Dirout].rend);
 }
 
 static void
@@ -1066,15 +1077,14 @@ interrupt(Ureg*, void *a)
 	}
 
 	ilock(&ctlr->activends);
-	for(e = ctlr->activends.f; e != nil; e = e->activef) {
+	for(e = ctlr->activends.f; e != nil; e = e->activef){
 		x = e->private;
-		if(!e->iso && x->epq != nil) {
-			XXPRINT("cleanq(ctlr, x->epq, 0, 0)\n");
-			cleanq(ctlr, x->epq, 0, 0);
-		}
-		if(e->iso) {
+		if(e->epmode == Isomode){
 			XXPRINT("cleaniso(e)\n");
 			cleaniso(e, frnum);
+		}else if(x->epq != nil){
+			XXPRINT("cleanq(ctlr, x->epq, 0, 0)\n");
+			cleanq(ctlr, x->epq, 0, 0);
 		}
 	}
 	iunlock(&ctlr->activends);
@@ -1095,7 +1105,7 @@ eptinput(void *arg)
 	Endpt *e;
 
 	e = arg;
-	return e->eof || e->err || qcanread(e->rq);
+	return e->eof || e->dir[Dirin].err || qcanread(e->rq);
 }
 
 static int
@@ -1132,14 +1142,14 @@ isoio(Ctlr *ctlr, Endpt *e, void *a, long n, ulong offset, int w)
 	}
 	p = a;
 	if (offset != 0 && offset != e->foffset){
-		iprint("offset %lud, foffset %lud\n", offset, e->foffset);
+		iprint("offset %lud, foffset %llud\n", offset, e->foffset);
 		/* Seek to a specific position */
 		frnum = (IN(Frnum) + 8) & 0x3ff;
 		td = x->td0 + frnum;
 		if (offset < td->offset)
 			error("ancient history");
 		while (offset > e->toffset)
-			tsleep(&e->wr, return0, 0, 500);
+			tsleep(&e->dir[Dirout].rend, return0, 0, 500);
 		/* TODO: how should this be parenthesised? */
 		while (offset >= td->offset +
 		    (((w? (td->dev>>21): td->status) + 1) & 0x7ff)){
@@ -1184,7 +1194,7 @@ isoio(Ctlr *ctlr, Endpt *e, void *a, long n, ulong offset, int w)
 				while (isoready(x) == 0){
 					isolock = 0;
 					iunlock(&ctlr->activends);
-					sleep(&e->wr, isoready, x);
+					sleep(&e->dir[Dirout].rend, isoready, x);
 					ilock(&ctlr->activends);
 					isolock = 1;
 				}
@@ -1252,13 +1262,14 @@ read(Usbhost *uh, Endpt *e, void *a, long n, vlong offset)
 	uchar *p;
 
 	ctlr = uh->ctlr;
-	if(e->iso)
+	if(e->epmode == Isomode)
 		return isoio(ctlr, e, a, n, (ulong)offset, 0);
 
 	XPRINT("qlock(%p)\n", &e->rlock);
 	qlock(&e->rlock);
 	XPRINT("got qlock(%p)\n", &e->rlock);
 	if(waserror()){
+		e->dir[Dirin].err = nil;
 		qunlock(&e->rlock);
 		eptcancel(ctlr, e);
 		nexterror();
@@ -1269,14 +1280,13 @@ read(Usbhost *uh, Endpt *e, void *a, long n, vlong offset)
 			XPRINT("e->eof\n");
 			break;
 		}
-		if(e->err)
-			error(e->err);
+		if(e->dir[Dirin].err)
+			error(e->dir[Dirin].err);
 		qrcv(ctlr, e);
-		if(!e->iso)
-			e->rdata01 ^= 1;
-		sleep(&e->rr, eptinput, e);
-		if(e->err)
-			error(e->err);
+		e->rdata01 ^= 1;
+		sleep(&e->dir[Dirin].rend, eptinput, e);
+		if(e->dir[Dirin].err)
+			error(e->dir[Dirin].err);
 		b = qget(e->rq);	/* TO DO */
 		if(b == nil) {
 			XPRINT("b == nil\n");
@@ -1301,7 +1311,7 @@ read(Usbhost *uh, Endpt *e, void *a, long n, vlong offset)
 	} while (n > 0);
 	poperror();
 	qunlock(&e->rlock);
-	return p-(uchar*)a;
+	return p - (uchar*)a;
 }
 
 static int
@@ -1320,19 +1330,20 @@ write(Usbhost *uh, Endpt *e, void *a, long n, vlong offset, int tok)
 	uchar *p;
 
 	ctlr = uh->ctlr;
-	if(e->iso)
+	if(e->epmode == Isomode)
 		return isoio(ctlr, e, a, n, (ulong)offset, 1);
 
 	p = a;
 	qlock(&e->wlock);
 	if(waserror()){
+		e->dir[Dirout].err = nil;
 		qunlock(&e->wlock);
 		eptcancel(ctlr, e);
 		nexterror();
 	}
 	do {
-		if(e->err)
-			error(e->err);
+		if(e->dir[Dirout].err)
+			error(e->dir[Dirout].err);
 		if((i = n) >= e->maxpkt)
 			i = e->maxpkt;
 		b = allocb(i);
@@ -1356,14 +1367,14 @@ write(Usbhost *uh, Endpt *e, void *a, long n, vlong offset, int tok)
 			XPRINT("qh %s: q=%p first=%p last=%p entries=%.8lux\n",
 				"writeusb sleep", qh, qh->first, qh->last,
 				qh->entries);
-			XPRINT("write: sleep %lux\n", &e->wr);
-			sleep(&e->wr, qisempty, qh);
+			XPRINT("write: sleep %lux\n", &e->dir[Dirout].rend);
+			sleep(&e->dir[Dirout].rend, qisempty, qh);
 			XPRINT("write: awake\n");
 		}
 	} while(n > 0);
 	poperror();
 	qunlock(&e->wlock);
-	return p-(uchar*)a;
+	return p - (uchar*)a;
 }
 
 static void

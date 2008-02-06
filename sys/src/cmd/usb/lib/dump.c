@@ -70,7 +70,7 @@ pdevice(Device *, int, ulong, void *b, int n)
 	if(n < DDEVLEN)
 		return;
 	d = b;
-	if (debug & Dbginfo) {
+	if(debug & Dbginfo) {
 		fprint(2, "usb (bcd)%c%c%c%c",
 				'0'+((d->bcdUSB[1]>>4)&0xf), '0'+(d->bcdUSB[1]&0xf),
 				'0'+((d->bcdUSB[0]>>4)&0xf), '0'+(d->bcdUSB[0]&0xf));
@@ -98,7 +98,7 @@ phid(Device *, int, ulong, void *b, int n)
 		return;
 	}
 	d = b;
-	if (debug & Dbginfo)
+	if(debug & Dbginfo)
 		fprint(2, "HID (bcd)%c%c%c%c country %d nhidclass %d classdtype %#x dlen %d\n",
 			'0'+((d->bcdHID[1]>>4)&0xf), '0'+(d->bcdHID[1]&0xf),
 			'0'+((d->bcdHID[0]>>4)&0xf), '0'+(d->bcdHID[0]&0xf),
@@ -414,7 +414,7 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 			c, nelem(d->config));
 		return;
 	}
-	if (debug & Dbginfo)
+	if(debug & Dbginfo)
 		fprint(2, "pdesc %d.%d [%d]\n", d->id, c, n);
 	for(; n > 2 && b[0] && b[0] <= n; b += b[0]){
 		if (debug & Dbginfo)
@@ -480,7 +480,7 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 			if(n < DENDPLEN)
 				return;
 			de = (DEndpoint *)b;
-			if (debug & Dbginfo) {
+			if(debug & Dbginfo) {
 				fprint(2, "addr %#2.2x attrib %#2.2x maxpkt %d interval %dms",
 					de->bEndpointAddress, de->bmAttributes,
 					GET2(de->wMaxPacketSize), de->bInterval);
@@ -532,20 +532,19 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 			dif->dalt[dalt]->interval = de->bInterval;
 			ep = de->bEndpointAddress & 0xf;
 			dep = d->ep[ep];
-			if (debug)
+			if(debug)
 				fprint(2, "%s: endpoint addr %d\n", argv0, ep);
-			if (dep == nil) {
+			if(dep == nil){
 				d->ep[ep] = dep = newendpt(d, ep, class);
-				dep->dir = (de->bEndpointAddress & 0x80)?
-					Ein: Eout;
-			} else if ((dep->addr&0x80) !=
+				dep->dir = de->bEndpointAddress & 0x80
+					? Ein : Eout;
+			}else if ((dep->addr&0x80) !=
 			    (de->bEndpointAddress&0x80))
 				dep->dir = Eboth;
-			else
+			else if(debug)
 				fprint(2, "%s: endpoint %d already in use!\n",
 					argv0, ep); // DEBUG
-			if(dep->maxpkt < GET2(de->wMaxPacketSize))
-				dep->maxpkt = GET2(de->wMaxPacketSize);
+			dep->maxpkt = GET2(de->wMaxPacketSize);
 			dep->addr = de->bEndpointAddress;
 			dep->type = de->bmAttributes & 0x03;
 			dep->isotype = (de->bmAttributes>>2) & 0x03;
@@ -568,7 +567,7 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 			if(f != nil) {
 				(*f)(d, c, dalt<<24 | ifc<<16 | (csp&0xffff),
 					b, b[0]);
-				if (debug & Dbginfo)
+				if(debug & Dbginfo)
 					fprint(2, "\n");
 			} else
 				if (verbose) {
@@ -578,7 +577,7 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 					for(i=1; i<b[0]; i++)
 						fprint(2, " %.2x", b[i]);
 					fprint(2, "\n");
-				} else if (debug & Dbginfo)
+				} else if(debug & Dbginfo)
 					fprint(2, "\n");
 			break;
 		}

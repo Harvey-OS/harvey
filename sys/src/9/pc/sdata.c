@@ -40,7 +40,7 @@ enum {					/* I/O ports */
 	Cylhi		= 5,		/* cylinder high */
 	Bytehi		= 5,		/* byte count hi (PACKET) */
 	Lbahi		= 5,		/* LBA<23-16>, LBA<47-40> */
-	Dh		= 6,		/* Device/Head, LBA<32-14> */
+	Dh		= 6,		/* Device/Head, LBA<27-24> */
 	Status		= 7,		/* (read) */
 	Command		= 7,		/* (write) */
 
@@ -1960,6 +1960,7 @@ atapnp(void)
 			 * This can probably be lumped in with the 768 above.
 			 */
 			/*FALLTHROUGH*/
+		case (0x209A<<16)|0x1022:	/* AMD CS5536 */
 		case (0x01BC<<16)|0x10DE:	/* nVidia nForce1 */
 		case (0x0065<<16)|0x10DE:	/* nVidia nForce2 */
 		case (0x0085<<16)|0x10DE:	/* nVidia nForce2 MCP */

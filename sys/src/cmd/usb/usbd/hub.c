@@ -127,7 +127,7 @@ hubfeature(Hub *h, int port, int feature, int on)
 void
 portenable(Hub *h, int port, int on)
 {
-	if(h->isroot) {
+	if(h->isroot){
 		if(fprint(h->portfd, "%s %d", on? "enable": "disable", port) < 0)
 			sysfatal("usbd: portenable: write error: %r");
 		return;
@@ -171,10 +171,10 @@ static struct
 statustab[] =
 {
 	{ 1<<PORT_SUSPEND,		"suspend", },
-	{ 1<<PORT_RESET,			"reset", },
+	{ 1<<PORT_RESET,		"reset", },
 	{ 1<<PORT_LOW_SPEED,		"lowspeed", },
-	{ 1<<PORT_ENABLE,			"enable", },
-	{ 1<<PORT_CONNECTION,	"present", },
+	{ 1<<PORT_ENABLE,		"enable", },
+	{ 1<<PORT_CONNECTION,		"present", },
 };
 
 int

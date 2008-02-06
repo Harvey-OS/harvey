@@ -37,17 +37,15 @@ getmaxpkt(Device *d)
 	int nr;
 
 	werrstr("");
-	if (setupreq(d->ep[0], RD2H|Rstandard|Rdevice, GET_DESCRIPTOR,
-	    DEVICE<<8|0, 0, sizeof buf) < 0) {
-		fprint(2,
-"usbd: getmaxpkt: error writing usb device request: GET_DESCRIPTOR for %D: %r\n",
-			d);
+	if(setupreq(d->ep[0], RD2H|Rstandard|Rdevice, GET_DESCRIPTOR,
+	    DEVICE<<8|0, 0, sizeof buf) < 0){
+		fprint(2, "usbd: getmaxpkt: error writing usb device request: "
+			"GET_DESCRIPTOR for %D: %r\n", d);
 		return -1;
 	}
-	if ((nr = setupreply(d->ep[0], buf, sizeof buf)) < sizeof buf) {
-		fprint(2,
-"usbd: getmaxpkt: error reading device descriptor for %D, got %d of %d: %r\n",
-			d, nr, sizeof buf);
+	if((nr = setupreply(d->ep[0], buf, sizeof buf)) < sizeof buf){
+		fprint(2, "usbd: getmaxpkt: error reading device descriptor "
+			"for %D, got %d of %d: %r\n", d, nr, sizeof buf);
 		return -1;
 	}
 	dd = (DDevice*)buf;
@@ -57,7 +55,7 @@ getmaxpkt(Device *d)
 int
 setaddress(Device *d, int id)
 {
-	if (setupreq(d->ep[0], RH2D, SET_ADDRESS, id, 0, 0) < 0) {
+	if(setupreq(d->ep[0], RH2D, SET_ADDRESS, id, 0, 0) < 0){
 		fprint(2, "usbd: set address %D <- %d failed\n", d, id);
 		return -1;
 	}

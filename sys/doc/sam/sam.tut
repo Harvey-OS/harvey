@@ -16,7 +16,7 @@
 ..
 .de WC
 .lg 0
-\%\&\\$3\f(CS\\$1\fP\&\\$2
+\%\&\\$3\f(CI\\$1\fP\&\\$2
 .lg
 ..
 .TL
@@ -170,7 +170,7 @@ To get started, we need some text to play with.
 Any text will do; try something from
 James Gosling's Emacs manual:
 .P1
-$ \f(CSsam -d
+$ \f(CIsam -d
 a
 This manual is organized in a rather haphazard manner.  The first
 several sections were written hastily in an attempt to provide a
@@ -221,7 +221,7 @@ but adds the text
 .I before
 dot.
 .P1
-.ft CS
+.ft CI
 i
 Introduction
 \&.
@@ -524,7 +524,7 @@ means
 after the end
 .R
 of dot.
-For example, if the file contains \f(CWA\f(CSAA\f(CWA\f1,
+For example, if the file contains \f(CWA\f(CIAA\f(CWA\f1,
 with dot set to the middle two
 .CW A 's
 (the slanting characters),
@@ -1130,7 +1130,7 @@ This manual is organized in a rather haphazard manner.  The first
 several sections were written hastily in an attempt to provide a
 general introduction to the commands in Emacs and to try to show
 the method in the madness that is the Emacs command structure.
-.ft CS
+.ft CI
 ,x/Emacs/{
 	=
 	+-p
@@ -1151,7 +1151,7 @@ to
 .CW vi
 and vice versa.  We can type
 .P1
-.ft CS
+.ft CI
 ,x/Emacs|vi/{
 	g/Emacs/ c/vi/
 	g/vi/ c/Emacs/
@@ -1160,7 +1160,7 @@ and vice versa.  We can type
 .P2
 or even
 .P1
-.ft CS
+.ft CI
 ,x/[a-zA-Z]+/{
 	g/Emacs/ v/....../ c/vi/
 	g/vi/ v/.../ c/Emacs/
@@ -1434,9 +1434,9 @@ with a few files;
 the easiest way to do this is to start it
 with a list of Unix file names to edit.
 .P1
-$ \f(CSecho *.ms\f(CW
+$ \f(CIecho *.ms\f(CW
 conquest.ms death.ms emacs.ms famine.ms slaughter.ms
-$ \f(CSsam -d *.ms\f(CW
+$ \f(CIsam -d *.ms\f(CW
  -. conquest.ms
 .P2
 (I'm sorry the Horsemen don't appear in liturgical order.)
@@ -1716,7 +1716,7 @@ We can use an
 .CW f
 command to identify which file the variable appears in:
 .P1
-.ft CS
+.ft CI
 X/\e.c$/ ,g/variable/ {
 	f
 	,x/variable/+-{

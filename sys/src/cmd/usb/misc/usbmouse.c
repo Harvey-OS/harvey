@@ -16,7 +16,7 @@ char *statfmt		= "/dev/usb%d/%d/status";
 char *ctlfmt		= "/dev/usb%d/%d/ctl";
 char *msefmt		= "/dev/usb%d/%d/ep%ddata";
 
-char *ctlmsgfmt		= "ep %d bulk r %d 32";
+char *ctlmsgfmt		= "ep %d 10 r %d";
 
 char ctlfile[32];
 char msefile[32];
@@ -95,7 +95,7 @@ void
 threadmain(int argc, char *argv[])
 {
 	int ctlrno, i, ep = 0;
-	char *p, *ctlstr;
+	char *p;
 	char buf[256];
 	Biobuf *f;
 
@@ -132,8 +132,11 @@ threadmain(int argc, char *argv[])
 					if (strncmp(p, "Enabled ", 8) == 0)
 						continue;
 					if (strstr(p, hbm) != nil) {
+						while(*p == ' ')
+							p++;
 						ep = atoi(p);
-						goto found;
+						if(ep)	// ep0data is no use
+							goto found;
 					}
 				}
 				Bterm(f);
@@ -155,14 +158,12 @@ found:
 	}
 
 	nbuts = (scroll? 5: 3);
-	ctlstr = smprint(ctlmsgfmt, ep, nbuts);
 	if ((ctlfd = open(ctlfile, OWRITE)) < 0)
 		sysfatal("%s: %r", ctlfile);
 	if (verbose)
-		fprint(2, "Send %s to %s\n", ctlstr, ctlfile);
-	write(ctlfd, ctlstr, strlen(ctlstr));
+		fprint(2, "Send ep %d 10 r %d to %s\n", ep, nbuts, ctlfile);
+	fprint(ctlfd, ctlmsgfmt, ep, nbuts);
 	close(ctlfd);
-	free(ctlstr);
 
 	if ((mousefd = open(msefile, OREAD)) < 0)
 		sysfatal("%s: %r", msefile);
