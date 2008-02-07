@@ -1,10 +1,10 @@
 #!/bin/rc
-# usbfat: [-f] [disk [mtpt]] - mount a USB disk's MS FAT file system
+# usbfat: [-fl] [disk [mtpt]] - mount a USB disk's MS FAT file system
 rfork e
 opts=()
 while (! ~ $#* 0 && ~ $1 -*) {
 	switch ($1) {
-	case -f
+	case -f -l
 		opts=($opts $1)
 	case -*
 		echo usage: $0 '[-f] [disk [mtpt]]' >[1=2]
