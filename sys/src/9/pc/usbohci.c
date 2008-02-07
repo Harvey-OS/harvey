@@ -1,6 +1,6 @@
 /*
  * USB Open Host Controller Interface (OHCI) driver
- * from Charles Forsyth's devohci.c, 5 Aug 2006.
+ * from devohci.c provided by Charles Forsyth, 5 Aug 2006.
  */
 #include	"u.h"
 #include	"../port/lib.h"
