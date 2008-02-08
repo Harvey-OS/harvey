@@ -553,7 +553,7 @@
 386/lib/ape/libnet.a - 664 sys sys 1143777857 16950
 386/lib/ape/libregexp.a - 664 sys sys 1143777857 47500
 386/lib/ape/libutf.a - 664 sys sys 1146156980 88500
-386/lib/ape/libv.a - 664 sys sys 1143777858 19668
+386/lib/ape/libv.a - 664 sys sys 1202357672 19334
 386/lib/lib9p.a - 664 sys sys 1184529909 91012
 386/lib/libString.a - 664 sys sys 1168402362 22126
 386/lib/libauth.a - 664 sys sys 1179372118 58864
@@ -7792,7 +7792,7 @@ sys/man/6/map - 664 sys sys 1196638945 1892
 sys/man/6/mhtml - 664 sys sys 1196638945 1714
 sys/man/6/mnihongo - 664 sys sys 1196638945 716
 sys/man/6/mpictures - 664 sys sys 1196638945 2899
-sys/man/6/ms - 664 sys sys 1202324341 6970
+sys/man/6/ms - 664 sys sys 1202404624 6966
 sys/man/6/namespace - 664 sys sys 1196638945 1576
 sys/man/6/ndb - 664 sys sys 1196638945 6735
 sys/man/6/plot - 664 sys sys 1196638945 6739
@@ -15859,4 +15859,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/lib/ape/libv.a - 664 sys sys 1202357672 19334
