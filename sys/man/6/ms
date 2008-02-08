@@ -96,7 +96,7 @@ extension, ignored except in
 \fL\&.B\fP \fIx y z\fR	no	no	Print
 .I x
 in boldface, append roman
-.IR y
+.I y
 and preface with
 .IR z ;
 if no argument switch to boldface.
@@ -108,7 +108,7 @@ if no argument switch to boldface.
 \fL\&.BI\fP \fIx y z\fR	no	no	Print
 .I x
 in bold italic, append roman
-.IR y
+.I y
 and preface with
 .IR z ;
 if no argument switch to bold italic.
@@ -124,7 +124,7 @@ in a box.
 \fL\&.CW\fP \fIx y z\fR	no	no	Constant width font for
 .IR x ,
 append roman
-.IR y
+.I y
 and preface with
 .IR z ;
 if no argument switch to constant width.
@@ -185,7 +185,7 @@ New Jersey 07733'.
 \fL\&.I\fP \fIx y z\fR	no	no	Italicize
 .IR x ,
 append roman
-.IR y
+.I y
 and preface with
 .IR z ;
 if no argument switch to italic.
