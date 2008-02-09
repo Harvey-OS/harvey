@@ -7867,7 +7867,7 @@ sys/man/8/ping - 664 sys sys 1196638947 3650
 sys/man/8/plan9.ini - 664 sys sys 1202255136 23868
 sys/man/8/pop3 - 664 sys sys 1197574309 3122
 sys/man/8/ppp - 664 sys sys 1196638948 4430
-sys/man/8/prep - 664 sys sys 1196638948 14201
+sys/man/8/prep - 664 sys sys 1202496787 14211
 sys/man/8/qer - 664 sys sys 1196638948 4909
 sys/man/8/reboot - 664 sys sys 1196638948 443
 sys/man/8/replica - 664 sys sys 1196638948 6383
@@ -8105,6 +8105,7 @@ sys/src/9/pc/ether8169.c - 664 sys sys 1185812348 26931
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1131290377 32294
 sys/src/9/pc/ether82557.c - 664 sys sys 1191886292 30411
 sys/src/9/pc/ether82563.c - 664 sys sys 1200342471 37076
+sys/src/9/pc/ether82598.c - 664 sys sys 1202489363 0
 sys/src/9/pc/ether83815.c - 664 sys sys 1172259521 26346
 sys/src/9/pc/ether8390.c - 664 sys sys 1131290377 17702
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
@@ -8115,7 +8116,7 @@ sys/src/9/pc/etherga620.c - 664 sys sys 1185652495 29895
 sys/src/9/pc/etherga620fw.h - 664 sys sys 1026847642 222295
 sys/src/9/pc/etherif.h - 664 sys sys 1088178711 961
 sys/src/9/pc/etherigbe.c - 664 sys sys 1201822310 45935
-sys/src/9/pc/etherm10g.c - 664 sys sys 1199912528 28463
+sys/src/9/pc/etherm10g.c - 664 sys sys 1202453395 28413
 sys/src/9/pc/etherm10g2k.i - 664 sys sys 1202131465 1094881
 sys/src/9/pc/etherm10g4k.i - 664 sys sys 1202131484 1065187
 sys/src/9/pc/ethermii.c - 664 sys sys 1181160689 4668
