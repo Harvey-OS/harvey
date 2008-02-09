@@ -685,7 +685,7 @@ Initialize the blank hard disk
 .EX
 disk/mbr -m /386/mbr /dev/sdC0/data
 disk/fdisk -baw /dev/sdC0/data
-disk/prep -bw -a^(9fat fs cache swap) /dev/sdC0/plan9
+disk/prep -bw -a^(9fat nvram fossil cache swap) /dev/sdC0/plan9
 disk/format -b /386/pbslba -d -r 2 /dev/sdC0/9fat \e
 	/386/9load /386/9pcf /tmp/plan9.ini
 .EE
