@@ -14278,7 +14278,7 @@ sys/src/cmd/usb/lib/usb.h - 664 sys sys 1165044715 7066
 sys/src/cmd/usb/lib/util.c - 664 sys sys 1091204978 523
 sys/src/cmd/usb/misc - 20000000775 sys sys 1091282306 0
 sys/src/cmd/usb/misc/mkfile - 664 sys sys 1167255850 374
-sys/src/cmd/usb/misc/usbmouse.c - 664 sys sys 1202255573 3768
+sys/src/cmd/usb/misc/usbmouse.c - 664 sys sys 1202702762 4804
 sys/src/cmd/usb/misc/usbprint - 775 sys sys 1167253831 314
 sys/src/cmd/usb/misc/usbprobe - 775 sys sys 1167253836 173
 sys/src/cmd/usb/mkfile - 664 sys sys 1193181446 361

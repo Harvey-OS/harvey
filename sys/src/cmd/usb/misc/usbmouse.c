@@ -6,6 +6,19 @@
 #include <libc.h>
 #include <bio.h>
 #include <thread.h>
+#include "usb.h"
+
+typedef struct {
+	int	epno;
+	int	maxpkt;
+	int	pollms;
+} Mouseinfo;
+
+void (*dprinter[])(Device *, int, ulong, void *b, int n) = {
+	[STRING] pstring,
+	[DEVICE] pdevice,
+	[HID] phid,
+};
 
 int mousefd, ctlfd, mousein;
 
@@ -16,25 +29,57 @@ char *statfmt		= "/dev/usb%d/%d/status";
 char *ctlfmt		= "/dev/usb%d/%d/ctl";
 char *msefmt		= "/dev/usb%d/%d/ep%ddata";
 
-char *ctlmsgfmt		= "ep %d 10 r %d";
+char *ctlmsgfmt		= "ep %d %d r %d";
 
 char ctlfile[32];
 char msefile[32];
 
 int verbose;
 int nofork;
+int debug;
+
 int accel;
 int scroll;
 int maxacc = 3;
-int debug;
 int nbuts;
 
 void work(void *);
 
 int
+findendpoint(int ctlr, int id, Mouseinfo *mp)
+{
+	int i;
+	Device *d;
+	Endpt *ep;
+
+	d = opendev(ctlr, id);
+	d->config[0] = emallocz(sizeof(*d->config[0]), 1);
+	if (describedevice(d) < 0 || loadconfig(d, 0) < 0) {
+		closedev(d);
+		return -1;
+	}
+	for (i = 1; i < Nendpt; i++) {
+		if ((ep = d->ep[i]) == nil)
+			continue;
+		if (ep->csp == 0x020103 && ep->type == Eintr && ep->dir != Eout) {
+			if (ep->iface == nil || ep->iface->dalt[0] == nil)
+				continue;
+			mp->epno = i;
+			mp->maxpkt = ep->maxpkt;
+			mp->pollms = ep->iface->dalt[0]->interval;
+			closedev(d);
+			return 0;
+		}
+	}
+	closedev(d);
+	return -1;
+}
+
+int
 robusthandler(void*, char *s)
 {
-	if (debug) fprint(2, "inthandler: %s\n", s);
+	if (debug)
+		fprint(2, "inthandler: %s\n", s);
 	return s && (strstr(s, "interrupted") || strstr(s, "hangup"));
 }
 
@@ -94,12 +139,16 @@ usage(void)
 void
 threadmain(int argc, char *argv[])
 {
-	int ctlrno, i, ep = 0;
+	int ctlrno, i;
 	char *p;
 	char buf[256];
 	Biobuf *f;
+	Mouseinfo mouse;
 
 	ARGBEGIN{
+	case 'd':
+		debug=1;
+		break;
 	case 's':
 		scroll=1;
 		break;
@@ -116,6 +165,8 @@ threadmain(int argc, char *argv[])
 		usage();
 	}ARGEND
 
+	memset(&mouse, 0, sizeof mouse);
+	f = nil;
 	switch (argc) {
 	case 0:
 		for (ctlrno = 0; ctlrno < 16; ctlrno++) {
@@ -132,11 +183,8 @@ threadmain(int argc, char *argv[])
 					if (strncmp(p, "Enabled ", 8) == 0)
 						continue;
 					if (strstr(p, hbm) != nil) {
-						while(*p == ' ')
-							p++;
-						ep = atoi(p);
-						if(ep)	// ep0data is no use
-							goto found;
+						Bterm(f);
+						goto found;
 					}
 				}
 				Bterm(f);
@@ -146,23 +194,30 @@ threadmain(int argc, char *argv[])
 	case 2:
 		ctlrno = atoi(argv[0]);
 		i = atoi(argv[1]);
-		ep = 1;			/* a guess */
-		if (verbose)
-			fprint(2, "assuming endpoint %d\n", ep);
 found:
+		if(findendpoint(ctlrno, i, &mouse) < 0) {
+			fprint(2, "%s: invalid usb device configuration\n",
+				argv0);
+			threadexitsall("no mouse");
+		}
 		snprint(ctlfile, sizeof ctlfile, ctlfmt, ctlrno, i);
-		snprint(msefile, sizeof msefile, msefmt, ctlrno, i, ep);
+		snprint(msefile, sizeof msefile, msefmt, ctlrno, i, mouse.epno);
 		break;
 	default:
 		usage();
 	}
+	if (f)
+		Bterm(f);
 
 	nbuts = (scroll? 5: 3);
+	if (nbuts > mouse.maxpkt)
+		nbuts = mouse.maxpkt;
 	if ((ctlfd = open(ctlfile, OWRITE)) < 0)
 		sysfatal("%s: %r", ctlfile);
 	if (verbose)
-		fprint(2, "Send ep %d 10 r %d to %s\n", ep, nbuts, ctlfile);
-	fprint(ctlfd, ctlmsgfmt, ep, nbuts);
+		fprint(2, "Send mouse.ep %d %d r %d to %s\n",
+			mouse.epno, mouse.pollms, mouse.maxpkt, ctlfile);
+	fprint(ctlfd, ctlmsgfmt, mouse.epno, mouse.pollms, mouse.maxpkt);
 	close(ctlfd);
 
 	if ((mousefd = open(msefile, OREAD)) < 0)
