@@ -18458,3 +18458,4 @@
 1202454006 0 c sys/src/9/pc/etherm10g.c - 664 sys sys 1202453395 28413
 1202490003 0 a sys/src/9/pc/ether82598.c - 664 sys sys 1202489363 0
 1202497204 0 c sys/man/8/prep - 664 sys sys 1202496787 14211
+1202704204 0 c sys/src/cmd/usb/misc/usbmouse.c - 664 sys sys 1202702762 4804
