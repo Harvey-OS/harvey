@@ -391,6 +391,8 @@ typedef struct {
 	ulong	qrecvd9p;	/* query counts */
 	ulong	qrecvdudp;
 	ulong	qsent;
+	ulong	qrecvd9prpc;	/* packet count */
+	ulong	alarms;
 	/* reply times by count */
 	ulong	under10ths[3*10+2];	/* under n*0.1 seconds, n is index */
 	ulong	tmout;

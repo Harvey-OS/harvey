@@ -13,9 +13,10 @@ static void	reply(int, uchar*, DNSmsg*, Request*);
 static void
 ding(void*, char *msg)
 {
-	if(strstr(msg, "alarm") != nil)
+	if(strstr(msg, "alarm") != nil) {
+		stats.alarms++;
 		noted(NCONT);		/* resume with system call error */
-	else
+	} else
 		noted(NDFLT);		/* die */
 }
 
@@ -104,7 +105,7 @@ restart:
 	while((fd = udpannounce(mntpt)) < 0)
 		sleep(5000);
 
-	procsetname("udp server");
+//	procsetname("udp server");
 	memset(&req, 0, sizeof req);
 	if(setjmp(req.mret))
 		putactivity(0);
@@ -114,6 +115,8 @@ restart:
 
 	/* loop on requests */
 	for(;; putactivity(0)){
+		procsetname("served %d udp; %d alarms",
+			stats.qrecvdudp, stats.alarms);
 		memset(&repmsg, 0, sizeof repmsg);
 		memset(&reqmsg, 0, sizeof reqmsg);
 

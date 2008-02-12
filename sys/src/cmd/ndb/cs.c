@@ -627,7 +627,7 @@ rread(Job *job, Mfile *mf)
 	int i, n, cnt;
 	long off, toff, clock;
 	Dir dir;
-	uchar buf[Maxfdata];
+	uchar buf[IOHDRSZ+Maxfdata];
 	char *err;
 
 	n = 0;
@@ -637,6 +637,7 @@ rread(Job *job, Mfile *mf)
 	if(mf->qid.type & QTDIR){
 		clock = time(0);
 		if(off == 0){
+			memset(&dir, 0, sizeof dir);
 			dir.name = "cs";
 			dir.qid.type = QTFILE;
 			dir.qid.vers = vers;
@@ -843,6 +844,7 @@ rstat(Job *job, Mfile *mf)
 	Dir dir;
 	uchar buf[IOHDRSZ+Maxfdata];
 
+	memset(&dir, 0, sizeof dir);
 	if(mf->qid.type & QTDIR){
 		dir.name = ".";
 		dir.mode = DMDIR|0555;
