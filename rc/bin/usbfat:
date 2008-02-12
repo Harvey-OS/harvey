@@ -4,10 +4,10 @@ rfork e
 opts=()
 while (! ~ $#* 0 && ~ $1 -*) {
 	switch ($1) {
-	case -f -l
+	case -f -l -lf -fl
 		opts=($opts $1)
 	case -*
-		echo usage: $0 '[-f] [disk [mtpt]]' >[1=2]
+		echo usage: $0 '[-fl] [disk [mtpt]]' >[1=2]
 		exit usage
 	}
 	shift
@@ -24,17 +24,19 @@ case 2
 	disk = $1
 	mtpt = $2
 case *
-	echo usage: $0 '[-f] [disk [mtpt]]' >[1=2]
+	echo usage: $0 '[-fl] [disk [mtpt]]' >[1=2]
 	exit usage
 }
 
 if (! test -e $disk)
-	usb/disk $opts
-blk = `{disk/fdisk -p $disk | awk '/^part dos / {print $3}'}
-if (~ $#blk 0 || ! ~ $blk [0-9]*) {
-	echo $0: no fdisk dos partition found... >[1=2]
-	dossrv -f $disk usbfat.$user
+	usb/disk $opts || exit 'no disk'
+if (! test -f /srv/usbfat.$user) {
+	blk = `{disk/fdisk -p $disk | awk '/^part dos / {print $3}'}
+	if (~ $#blk 0 || ! ~ $blk [0-9]*) {
+		echo $0: no fdisk dos partition found... >[1=2]
+		dossrv -f $disk usbfat.$user || exit dossrv
+	}
+	if not
+		dossrv -f $disk:$blk usbfat.$user || exit dossrv
 }
-if not
-	dossrv -f $disk:$blk usbfat.$user
 mount -c /srv/usbfat.$user $mtpt

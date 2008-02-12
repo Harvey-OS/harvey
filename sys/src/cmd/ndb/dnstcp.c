@@ -140,7 +140,7 @@ main(int argc, char *argv[])
 				rrfreelist(repmsg.ns);
 				rrfreelist(repmsg.ar);
 			}
-		rrfreelist(reqmsg.qd);
+		rrfreelist(reqmsg.qd);		/* qd will be nil */
 		rrfreelist(reqmsg.an);
 		rrfreelist(reqmsg.ns);
 		rrfreelist(reqmsg.ar);
