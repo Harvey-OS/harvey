@@ -35,37 +35,34 @@ static Classes	classname[] = {
 static	void	pflag(Flags*, uint);
 
 char *
-sclass(ulong csp)
+sclass(char *p, char *e, ulong csp)
 {
 	Classes *cs;
-	int n;
-	static char buf[64];
-	int c, s, p;
+	int c, s, pr;
 
 	c = Class(csp);
 	s = Subclass(csp);
-	p = Proto(csp);
-	if(c < 0 || c >= nelem(classname) || (cs = &classname[c])->name == nil){
-		sprint(buf, "%d.%d.%d", c, s, p);
-		return buf;
-	}
-	n = sprint(buf, "%s.", cs->name);
+	pr = Proto(csp);
+	if(c < 0 || c >= nelem(classname) || (cs = &classname[c])->name == nil)
+		return seprint(p, e, "%d.%d.%d", c, s, pr);
+	p = seprint(p, e, "%s.", cs->name);
 	if(s < 0 || s >= nelem(cs->subclass) || cs->subclass[s].name == nil)
-		sprint(buf+n, "%d.%d", s, p);
+		p = seprint(p, e, "%d.%d", s, pr);
 	else{
-		n += sprint(buf+n, "%s.", cs->subclass[s].name);
-		if(p < 0 || p >= nelem(cs->subclass[s].proto) || cs->subclass[s].proto[p] == nil)
-			sprint(buf+n, "%d", p);
+		p = seprint(p, e, "%s.", cs->subclass[s].name);
+		if(pr < 0 || pr >= nelem(cs->subclass[s].proto) || cs->subclass[s].proto[pr] == nil)
+			p = seprint(p, e, "%d", pr);
 		else
-			sprint(buf+n, "%s", cs->subclass[s].proto[p]);
+			p = seprint(p, e, "%s", cs->subclass[s].proto[pr]);
 	}
-	return buf;
+	return p;
 }
 
 void
 pdevice(Device *, int, ulong, void *b, int n)
 {
 	DDevice *d;
+	char scbuf[64];
 
 	if(n < DDEVLEN)
 		return;
@@ -74,9 +71,11 @@ pdevice(Device *, int, ulong, void *b, int n)
 		fprint(2, "usb (bcd)%c%c%c%c",
 				'0'+((d->bcdUSB[1]>>4)&0xf), '0'+(d->bcdUSB[1]&0xf),
 				'0'+((d->bcdUSB[0]>>4)&0xf), '0'+(d->bcdUSB[0]&0xf));
+		sclass(scbuf, scbuf + sizeof scbuf,
+			CSP(d->bDeviceClass, d->bDeviceSubClass, d->bDeviceProtocol)),
 		fprint(2, " class %d subclass %d proto %d [%s] max0 %d",
 			d->bDeviceClass, d->bDeviceSubClass, d->bDeviceProtocol,
-			sclass(CSP(d->bDeviceClass, d->bDeviceSubClass, d->bDeviceProtocol)),
+			scbuf,
 			d->bMaxPacketSize0);
 		fprint(2, " vendor %#x product %#x device (bcd)%c%c%c%c",
 			GET2(d->idVendor), GET2(d->idProduct),
@@ -399,16 +398,18 @@ pcs_interface(Device *, int n, ulong, void *bb, int nb)
 void
 pdesc(Device *d, int c, ulong csp, byte *b, int n)
 {
-	int class, subclass, proto, dalt = -1, i, ep, ifc = -1;
+	int class, subclass, proto, dalt, i, ep, ifc, len;
 	DConfig *dc;
 	DEndpoint *de;
 	DInterface *di;
 	Dinf *dif;
 	Endpt *dep;
 	void (*f)(Device *, int, ulong, void*, int);
+	char scbuf[64];
 
 	class = Class(csp);
-
+	dalt = -1;
+	ifc = -1;
 	if (c >= nelem(d->config)) {
 		fprint(2, "Too many interfaces (%d of %d)\n",
 			c, nelem(d->config));
@@ -416,13 +417,17 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 	}
 	if(debug & Dbginfo)
 		fprint(2, "pdesc %d.%d [%d]\n", d->id, c, n);
-	for(; n > 2 && b[0] && b[0] <= n; b += b[0]){
+	len = -1;
+	while(n > 2 && b[0] && b[0] <= n){
 		if (debug & Dbginfo)
 			fprint(2, "desc %d.%d [%d] %#2.2x: ", d->id, c, b[0], b[1]);
 		switch (b[1]) {
 		case CONFIGURATION:
-			if(b[0] < DCONFLEN)
+			if(b[0] < DCONFLEN){
+				if(debug & Dbginfo)
+					fprint(2, "short config %d < %d", b[0], DCONFLEN);
 				return;
+			}
 			dc = (DConfig*)b;
 			d->config[c]->nif = dc->bNumInterfaces;
 			d->config[c]->cval = dc->bConfigurationValue;
@@ -437,19 +442,24 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 					dc->bmAttributes, dc->MaxPower*2);
 			break;
 		case INTERFACE:
-			if(n < DINTERLEN)
+			if(n < DINTERLEN){
+				if(debug & Dbginfo)
+					fprint(2, "short interface %d < %d", b[0], DINTERLEN);
 				return;
+			}
 			di = (DInterface *)b;
 			class = di->bInterfaceClass;
 			subclass = di->bInterfaceSubClass;
 			proto = di->bInterfaceProtocol;
 			csp = CSP(class, subclass, proto);
-			if (debug & Dbginfo)
+			if(debug & Dbginfo){
+				sclass(scbuf, scbuf + sizeof scbuf, csp);
 				fprint(2, "interface %d: alt %d nept %d class %#x subclass %#x proto %d [%s] iinterface %d\n",
 					di->bInterfaceNumber,
 					di->bAlternateSetting,
 					di->bNumEndpoints, class, subclass,
-					proto, sclass(csp), di->iInterface);
+					proto, scbuf, di->iInterface);
+			}
 			if (c < 0) {
 				fprint(2, "Unexpected INTERFACE message\n");
 				return;
@@ -541,9 +551,6 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 			}else if ((dep->addr&0x80) !=
 			    (de->bEndpointAddress&0x80))
 				dep->dir = Eboth;
-			else if(debug)
-				fprint(2, "%s: endpoint %d already in use!\n",
-					argv0, ep); // DEBUG
 			dep->maxpkt = GET2(de->wMaxPacketSize);
 			dep->addr = de->bEndpointAddress;
 			dep->type = de->bmAttributes & 0x03;
@@ -564,23 +571,36 @@ pdesc(Device *d, int c, ulong csp, byte *b, int n)
 		default:
 			assert(nelem(dprinter) == 0x100);
 			f = dprinter[b[1]];
-			if(f != nil) {
+			if(f != nil){
 				(*f)(d, c, dalt<<24 | ifc<<16 | (csp&0xffff),
 					b, b[0]);
 				if(debug & Dbginfo)
 					fprint(2, "\n");
-			} else
-				if (verbose) {
+			}else
+				if(verbose){
 					int i;
 
-					fprint(2, "(unknown type)");
+					switch(b[1]){
+					case DEVICE:
+						fprint(2, "(device)");
+						break;
+					case STRING:
+						fprint(2, "(string)");
+						break;
+					default:
+						fprint(2, "(unknown type)");
+					}
 					for(i=1; i<b[0]; i++)
 						fprint(2, " %.2x", b[i]);
 					fprint(2, "\n");
-				} else if(debug & Dbginfo)
+				}else if(debug & Dbginfo)
 					fprint(2, "\n");
 			break;
 		}
-		n -= b[0];
+		len = b[0];
+		n -= len;
+		b += len;
 	}
+	if(n)
+		fprint(2, "pdesc: %d bytes left unparsed, b[0]=%d, b[-len]=%d, len=%d\n", n, b[0], b[-len], len);	
 }

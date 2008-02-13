@@ -143,6 +143,7 @@ FAT file system service
 .IR fs (3),
 .IR sd (3),
 .IR usb (3),
+.IR partfs (8),
 .IR prep (8),
 .IR scuzz (8)
 .SH BUGS

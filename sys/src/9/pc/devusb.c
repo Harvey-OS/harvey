@@ -34,6 +34,7 @@ enum
 	Qtopdir = 0,
 	Q2nd,
 	Qnew,
+	Qdebug,
 	Qport,
 	Q3rd,
 	Qctl,
@@ -68,6 +69,7 @@ enum {
 
 static Dirtab usbdir2[] = {
 	"new",		{Qnew},			0,	0666,
+	"debug",	{Qdebug},		0,	0444,
 	"port",		{Qport},		0,	0666,
 };
 
@@ -689,6 +691,11 @@ usbread(Chan *c, void *a, long n, vlong offset)
 		nexterror();
 	}
 	switch(t){
+	case Qdebug:
+		s[0] = '\0';
+		if(uh->debug)
+			uh->debug(uh, s, se);
+		break;
 	case Qport:
 		uh->portinfo(uh, s, se);
 		break;
@@ -786,7 +793,7 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 			break;
 		case CMclass:
 			if (cb->nf != 5 && cb->nf != 7)
-				cmderror(cb, Ebadusbmsg);
+				cmderror(cb, Ecmdargs);
 			/*
 			 * class #ifc ept csp
 			 * (== class subclass proto) [vendor product]
@@ -874,6 +881,8 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 			 * Isomode:	ep n period mode samplesize Hz	OR
 			 * Intrmode:	ep n period mode maxpkt
 			 */
+			if(cb->nf < 3)
+				error(Ecmdargs);
 			i = strtoul(cb->f[1], nil, 0);
 			if(i < 0 || i >= nelem(d->ep)) {
 				XPRINT("field 1: 0 <= %d < %d\n",
@@ -885,17 +894,19 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 				e = devendpt(d, i, 1);
 			}
 			qlock(uh);
+			if(e->active){
+				qunlock(uh);
+				error(Eperm);
+			}
 			if(waserror()){
 				freept(e);
 				qunlock(uh);
 				nexterror();
 			}
-			if(e->active)
-				error(Eperm);
 			if(strcmp(cb->f[2], "bulk") == 0){
 				/* ep n `bulk' mode maxpkt nbuf */
 				if(cb->nf != 6)
-					error("arg count");
+					error(Ecmdargs);
 				i = strtoul(cb->f[4], nil, 0);
 				if(i < 1 || i > 1023){
 					XPRINT("maxpkt: 1 <= %d < 1024\n", i);
@@ -912,7 +923,7 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 			}else if(strcmp(cb->f[2], "ctl") == 0){
 				/* ep n `ctl' mode maxpkt nbuf */
 				if(cb->nf != 6)
-					error("arg count");
+					error(Ecmdargs);
 				i = strtoul(cb->f[4], nil, 0);
 				if(i < 8 || i > 1023){
 					XPRINT("maxpkt: 8 <= %d < 1024\n", i);
@@ -973,7 +984,7 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 					e->samplesz;
 				e->epnewmode = Isomode;
 			}else
-				error("arg count");
+				error(Ecmdargs);
 			e->mode = strcmp(cb->f[3],"r") == 0? OREAD:
 				  strcmp(cb->f[3],"w") == 0? OWRITE: ORDWR;
 			uh->epmode(uh, e);
