@@ -30,7 +30,7 @@ void (*dprinter[])(Device *, int, ulong, void *b, int n) = {
 static void
 usage(void)
 {
-	fprint(2, "usage: usbd\n");
+	fprint(2, "usage: usbd [-DfV] [-d mask] [-u root-hub]\n");
 	threadexitsall("usage");
 }
 
@@ -42,7 +42,7 @@ work(void *a)
 	Enum *arg;
 
 	hub = a;
-	for (port = 1; port <= hub->nport; port++) {
+	for(port = 1; port <= hub->nport; port++){
 		if (debug)
 			fprint(2, "enumerate port %H.%d\n", hub, port);
 		arg = emallocz(sizeof(Enum), 1);
@@ -65,37 +65,44 @@ threadmain(int argc, char **argv)
 {
 	int i;
 	Hub *h;
+	int usbnum;
 
+	usbnum = -1;
 	ARGBEGIN{
-	case 'f':
-		dontfork=1;
+	case 'd':
+		debug = atoi(EARGF(usage()));
 		break;
 	case 'D':
 		debugdebug++;
 		break;
-	case 'd':
-		debug = atoi(EARGF(usage()));
+	case 'f':
+		dontfork = 1;
+		break;
+	case 'u':
+		usbnum = atoi(EARGF(usage()));
 		break;
 	case 'V':
 		verbose = 1;
 		break;
 	}ARGEND
-	if (argc)
+	if(argc)
 		usage();
-	if (access("/dev/usb0", 0) < 0 && bind("#U", "/dev", MBEFORE) < 0)
+	if(access("/dev/usb0", 0) < 0 && bind("#U", "/dev", MBEFORE) < 0)
 		sysfatal("%s: can't bind -b #U /dev: %r\n", argv0);
 
 	usbfmtinit();
 	fmtinstall('H', Hfmt);
 
-	/* always fork off usb[1—n] */
-	for(i=1; (h = roothub(i)) != nil; i++) {
-		incref(&busy);
-		proccreate(work, h, STACKSIZE);
+	if(usbnum < 0){
+		/* always fork off usb[1—n] */
+		for(i=1; (h = roothub(i)) != nil; i++) {
+			incref(&busy);
+			proccreate(work, h, STACKSIZE);
+		}
+		usbnum = 0;
 	}
-
 	/* usb0 might be handled in this proc */
-	if((h = roothub(0)) != nil){
+	if((h = roothub(usbnum)) != nil){
 		incref(&busy);
 		if (dontfork) {
 			work(h);
@@ -129,30 +136,30 @@ enumerate(void *v)
 	port = arg->port;
 	free(arg);
 
-	for (;;) {
-		if((portstatus(h, port) & (1<<PORT_CONNECTION)) == 0) {
+	for(;;){
+		if((portstatus(h, port) & (1<<PORT_CONNECTION)) == 0){
 			decref(&busy);
-			if (verbose)
+			if(verbose)
 				fprint(2, "usbd: %H: port %d empty\n", h, port);
-			do {
+			do{
 				yield();
-				if (debugdebug)
+				if(debugdebug)
 					fprint(2, "usbd: probing %H.%d\n",
 						h, port);
 				sleep(500);
-			} while((portstatus(h, port) & (1<<PORT_CONNECTION)) == 0);
+			}while((portstatus(h, port) & (1<<PORT_CONNECTION)) == 0);
 			incref(&busy);
 		}
 		if(verbose)
 			fprint(2, "usbd: %H: port %d attached\n", h, port);
 		d = configure(h, port);
-		if(d == nil) {
+		if(d == nil){
 			if(verbose)
 				fprint(2, "usbd: can't configure port %H.%d\n", h, port);
 			decref(&busy);
 			threadexits("configure");
 		}
-		if(d->class == Hubclass) {
+		if(d->class == Hubclass){
 			if(debug)
 				fprint(2, "usbd: %H.%d: hub %d attached\n",
 					h, port, d->id);
@@ -235,7 +242,7 @@ configure(Hub *h, int port)
 	maxpkt = getmaxpkt(h->dev0);
 	if(debugdebug)
 		fprint(2, "%H.%d maxpkt: %d\n", h, port, maxpkt);
-	if(maxpkt < 0) {
+	if(maxpkt < 0){
 Error0:
 		portenable(h, port, 0);
 		return nil;
@@ -244,7 +251,7 @@ Error0:
 	d->ls = ls;
 	d->state = Enabled;
 	d->ep[0]->maxpkt = maxpkt;
-	if(fprint(d->ctl, "maxpkt 0 %d", maxpkt) < 0) {
+	if(fprint(d->ctl, "maxpkt 0 %d", maxpkt) < 0){
 Error1:
 		closedev(d);
 		goto Error0;
@@ -257,7 +264,7 @@ Error1:
 		goto Error1;
 
 	/* read configurations 0 to n */
-	for(i=0; i<d->nconf; i++) {
+	for(i=0; i<d->nconf; i++){
 		if(d->config[i] == nil)
 			d->config[i] = mallocz(sizeof(*d->config[i]),1);
 		loadconfig(d, i);

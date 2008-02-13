@@ -36,7 +36,7 @@ opendev(int ctlrno, int id)
 	if(id == -1) {
 		sprint(name, "/dev/usb%d/new", ctlrno);
 		if((d->ctl = open(name, ORDWR)) < 0){
-		Error0:
+Error0:
 			werrstr("open %s: %r", name);
 			if(d->ctl >= 0)
 				close(d->ctl);
@@ -58,7 +58,7 @@ opendev(int ctlrno, int id)
 
 	strcpy(p, "setup");
 	if((d->setup = open(name, ORDWR)) < 0){
-	Error1:
+Error1:
 		if(d->setup >= 0)
 			close(d->setup);
 		goto Error0;

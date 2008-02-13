@@ -188,6 +188,7 @@ struct Usbhost
 	void	(*init)(Usbhost*);
 	void	(*interrupt)(Ureg*, void*);
 
+	void	(*debug)(Usbhost*, char*, char*);
 	void	(*portinfo)(Usbhost*, char*, char*);
 	void	(*portreset)(Usbhost*, int);
 	void	(*portenable)(Usbhost*, int, int);
