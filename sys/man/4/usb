@@ -1,9 +1,10 @@
 .TH USB 4
 .SH NAME
 usbmouse,
+kb,
 usbaudio,
 usbprint
-\- Universal Serial Bus user level device drivers
+\- Universal Serial Bus user-level device drivers
 .SH SYNOPSIS
 .B usb/usbmouse
 [
@@ -13,6 +14,17 @@ usbprint
 .I accel
 ] [
 .I ctrlno
+.I n
+]
+.PP
+.B usb/kb
+[
+.B -dkmn
+] [
+.B -a
+.I n
+] [
+.I ctlrno
 .I n
 ]
 .PP
@@ -45,11 +57,17 @@ Dynamic handling of device insertion and removal is currently not supported.
 .I Usbmouse
 sends mouse events from a USB mouse to
 .B /dev/mousein
-where the Plan 9 kernel processes them like other mice.
+where the Plan 9 kernel processes them like other mice, but see
+.I kb
+below.
 .PP
 Without arguments, it scans the USB status files to find a mouse
 and uses the first one it finds.  A pair of numeric arguments overrides this search
 with a specific USB controller and device.  The options are
+.TF "-a ac"
+.TP
+.BI -a " accel"
+Accelerate mouse movements.
 .TP
 .BI -f
 Run usbmouse in foreground.
@@ -59,12 +77,50 @@ Use the scrollwheel.
 .TP
 .BI -v
 Verbose mode.
+.SS Keyboards and mice
+.I Kb
+supports USB keyboards and mice either as separate USB devices
+or as a single combined USB device. Scan codes from the keyboard
+are sent to
+.B /dev/kbin
+to let the kernel process them.
+Mouse events are sent to
+.B /dev/mousein
+in the same way.
+.PP
+Without arguments it handles the keyboard and mouse devices found
+on the bus.
+Otherwise it uses the one attached to controller
+.I ctrlno
+with device number
+.IR n .
+The following options are understood:
+.TF -k
 .TP
-.BI -a " accel"
-Accelerate mouse movements.
+.B \-a
+Accelerate the mouse to level
+.I n
+(similar to the kernel mouse driver acceleration).
+.TP
+.B \-d
+Activate debug diagnostics. Repeating the flag one or more times
+increases the verbosity.
+.TP
+.B \-k
+Serve just the keyboard (and not the mouse).
+.TP
+.B \-m
+Serve just the mouse (and not the keyboard).
+.TP
+.B \-n
+Dry run. Do not send any events to the kernel for processing.
+.SS Printers
+.I Usbprint
+is a script that mounts a USB printer on
+.BR /dev/lp .
 .SS Audio devices
 .I Usbaudio
-configures and manages a usb audio device.  It implements a file system,
+configures and manages a USB audio device.  It implements a file system,
 normally mounted in
 .BI /dev ,
 but this can be changed with the
@@ -148,12 +204,7 @@ and read from
 The data format is little endian, samples ordered primarily by time and
 secondarily by channel.  Samples occupy the minimum integral number
 of bytes.  Read and write operations of arbitrary size are allowed.
-.SS Printers
-.I Usbprint
-is a script that mounts a USB printer on
-.BR /dev/lp .
 .SH EXAMPLE
-.LP
 To use a USB mouse and audio device, put the following in your profile
 (replace
 .I x
@@ -176,26 +227,33 @@ in your profile.
 .B /sys/src/cmd/usb
 .SH "SEE ALSO"
 .IR usb (3),
-.IR usbd (4)
+.IR usbd (4),
+.IR usbdisk (4)
 .SH BUGS
-Usbaudio only works for certain audio devices.
-This is the list of devices known to work with usbaudio:
-.IP
+.I Usbaudio
+only works for certain audio devices.
+This is the list of devices known to work with
+.IR usbaudio :
+.IP "" 3
 .RS
+.TF "Edirol U"
 .TP
 Xitel AN1
-Output only.  Marginally enough to drive headphones.
+Output only.
+Marginally enough to drive headphones.
 Has mute, volume, bass, treble controls.
 .TP
 Philips USB speakers, model DSS 370/17
-Usbaudio acts on the volume
+.I Usbaudio
+acts on the volume
 .L +
 and
 .L -
 buttons.
 .TP
 Edirol UA-3
-Playback and record.  Playback only at 44.1 KHz, record at 32, 44.1 or 48 KHz.
+Playback and record.
+Playback only at 44.1 KHz, record at 32, 44.1 or 48 KHz.
 Playback volume control and mute control.
 The device only has analog (slider controlled)
 input volume control.
@@ -207,7 +265,8 @@ Playback volume control and mute control
 (haven't tested recording, but I believe it'll work).
 .TP
 Xitel Pro HiFi-Link
-Playback only.  48 KHz only.
+Playback only.
+48 KHz only.
 There is a volume control but it isn't connected to the output, so does nothing.
 .TP
 Onkyo WAVIO series MA-500U

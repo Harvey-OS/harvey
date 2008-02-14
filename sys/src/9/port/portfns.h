@@ -143,7 +143,7 @@ int		ispages(void*);
 int		isphysseg(char*);
 void		ixsummary(void);
 int		kbdcr2nl(Queue*, int);
-int		kbdgetmap(int, int*, int*, Rune*);
+int		kbdgetmap(uint, int*, int*, Rune*);
 int		kbdputc(Queue*, int);
 void		kbdputmap(ushort, ushort, Rune);
 void		kickpager(void);

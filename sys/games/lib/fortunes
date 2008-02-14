@@ -4212,3 +4212,6 @@ Dear Valued Customer #88143191!
 rusty: kernel pseudo files are not the place for chit-chat
 I define UNIX as ``30 definitions of regular expressions living under one roof.''  - Don Knuth
 ADDITIONAL METAPHOR SPOILER ALERT: ``The Old Man and the Sea'' is not just about an old man and the sea.
+"it's complete cross-compilation not completely cross compilation" - Forsyth on 8c and gcc
+I claim that Mach people (and apparently FreeBSD) are incompetent idiots. Playing games with VM is bad. memory copies are _also_ bad, but quite frankly, memory copies often have _less_ downside than VM games, and bigger caches will only continue to drive that point home. - Linus Torvalds on vmsplice() versus COW
+Nothing is more hateful to wisdom than excessive cleverness - Seneca (according to Poe)

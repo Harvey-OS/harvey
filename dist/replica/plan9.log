@@ -18485,3 +18485,13 @@
 1202877003 1 c 386/bin/usb/usbaudio - 775 sys sys 1202876962 188937
 1202877003 2 c 386/bin/usb/usbd - 775 sys sys 1202876965 132270
 1202877003 3 c 386/bin/usb/usbmouse - 775 sys sys 1202876967 129429
+1202925605 0 c sys/man/8/venti-backup - 664 sys sys 1202925137 2290
+1202925605 1 c sys/src/cmd/venti/srv/rdarena.c - 664 sys sys 1202925159 1695
+1202934605 0 c 386/bin/venti/rdarena - 775 sys sys 1202933749 247159
+1202934605 1 c rc/bin/usbfat: - 775 sys sys 1202933070 827
+1202940004 0 a sys/man/3/kbin - 664 sys sys 1202938916 654
+1202940004 1 c sys/man/4/usb - 664 sys sys 1202938916 5689
+1202940004 2 c sys/src/9/pc/kbd.c - 664 sys sys 1202939524 12721
+1202940004 3 a sys/src/9/pc/devkbin.c - 664 sys sys 1202939391 1806
+1202940004 4 c sys/src/9/port/portfns.h - 664 sys sys 1202939287 11060
+1202950804 0 c sys/games/lib/fortunes - 664 sys sys 1202950617 268681

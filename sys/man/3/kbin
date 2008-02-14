@@ -1,0 +1,36 @@
+.TH KBIN 3
+.SH NAME
+kbin \- external keyboard input
+.SH SYNOPSIS
+.nf
+.B bind -a #Ι /dev
+.sp 0.3v
+.B /dev/kbin
+.fi
+.SH DESCRIPTION
+The
+.I kbin
+device is a PC driver that
+serves a one-level directory containing a single file,
+.BR kbin ,
+which can be used to send
+keyboard scan codes to the kernel.
+.PP
+.I Kbin
+is necessary for
+.IR usb (4)
+drivers that handle keyboards.
+Keyboard input
+is processed as described in
+.IR cons (3).
+The scan codes correspond to the PC keyboard used by the
+.IR cons (3)
+driver and can be translated by the
+.IR kbmap (3)
+device.
+.SH "SEE ALSO"
+.IR cons (3),
+.IR kbmap (3),
+.IR keyboard (6)
+.SH SOURCE
+.B /sys/src/9/pc/devkbin.c
