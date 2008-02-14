@@ -506,7 +506,7 @@
 386/bin/venti/fmtisect - 775 sys sys 1196742587 246038
 386/bin/venti/mirrorarenas - 775 sys sys 1196742591 255146
 386/bin/venti/printarena - 775 sys sys 1196742596 257727
-386/bin/venti/rdarena - 775 sys sys 1196742600 247114
+386/bin/venti/rdarena - 775 sys sys 1202933749 247159
 386/bin/venti/read - 775 sys sys 1190716746 154800
 386/bin/venti/ro - 775 sys sys 1191273722 161694
 386/bin/venti/sync - 775 sys sys 1190716753 153672
@@ -5639,7 +5639,7 @@ rc/bin/umem - 775 sys sys 1190076661 547
 rc/bin/uncompress - 775 sys sys 1158798931 30
 rc/bin/ups - 775 sys sys 1091021981 806
 rc/bin/uptime - 775 sys sys 1074730712 234
-rc/bin/usbfat: - 775 sys sys 1202773132 818
+rc/bin/usbfat: - 775 sys sys 1202933070 827
 rc/bin/usbstart - 775 sys sys 1044894155 81
 rc/bin/usps - 775 sys sys 1016826030 450
 rc/bin/vwhois - 775 sys sys 1106409971 445
@@ -5842,7 +5842,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1201296173 268188
+sys/games/lib/fortunes - 664 sys sys 1202950617 268681
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -7691,6 +7691,7 @@ sys/man/3/floppy - 664 sys sys 1196638941 881
 sys/man/3/fs - 664 sys sys 1196638942 3159
 sys/man/3/i82365 - 664 sys sys 1196638942 884
 sys/man/3/ip - 664 sys sys 1196638942 26321
+sys/man/3/kbin - 664 sys sys 1202938916 654
 sys/man/3/kbmap - 664 sys sys 1196638942 1732
 sys/man/3/kprof - 664 sys sys 1196638942 1377
 sys/man/3/loopback - 664 sys sys 1196638942 1995
@@ -7752,7 +7753,7 @@ sys/man/4/tapefs - 664 sys sys 1196638944 1861
 sys/man/4/telco - 664 sys sys 1196638944 4359
 sys/man/4/u9fs - 664 sys sys 1196638944 4748
 sys/man/4/upasfs - 664 sys sys 1196638944 6212
-sys/man/4/usb - 664 sys sys 1196638944 4682
+sys/man/4/usb - 664 sys sys 1202938916 5689
 sys/man/4/usbd - 664 sys sys 1202846392 1035
 sys/man/4/usbdisk - 664 sys sys 1202847388 3041
 sys/man/4/vacfs - 664 sys sys 1196638944 1545
@@ -7889,7 +7890,7 @@ sys/man/8/trampoline - 664 sys sys 1196638948 1199
 sys/man/8/udpecho - 664 sys sys 1196638948 303
 sys/man/8/update - 664 sys sys 1196638948 2336
 sys/man/8/venti - 664 sys sys 1197570117 12190
-sys/man/8/venti-backup - 664 sys sys 1196638948 2102
+sys/man/8/venti-backup - 664 sys sys 1202925137 2290
 sys/man/8/venti-fmt - 664 sys sys 1196638948 8626
 sys/man/8/vga - 664 sys sys 1196638948 4129
 sys/man/fonts - 664 sys sys 1196638948 218
@@ -8085,6 +8086,7 @@ sys/src/9/pc/devarch.c - 664 sys sys 1194556823 19867
 sys/src/9/pc/devether.c - 664 sys sys 1196687022 10567
 sys/src/9/pc/devfloppy.c - 664 sys sys 1142958305 20139
 sys/src/9/pc/devi82365.c - 664 sys sys 1146318335 20504
+sys/src/9/pc/devkbin.c - 664 sys sys 1202939391 1806
 sys/src/9/pc/devlm78.c - 664 sys sys 1128255048 6291
 sys/src/9/pc/devlml.c - 664 sys sys 1184470711 7597
 sys/src/9/pc/devlml.h - 664 sys sys 1184470164 3031
@@ -8134,7 +8136,7 @@ sys/src/9/pc/i8259.c - 664 sys sys 1131290399 4586
 sys/src/9/pc/init9.c - 664 sys sys 1040002518 94
 sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
 sys/src/9/pc/io.h - 664 sys sys 1165555523 9406
-sys/src/9/pc/kbd.c - 664 sys sys 1191355133 12339
+sys/src/9/pc/kbd.c - 664 sys sys 1202939524 12721
 sys/src/9/pc/l.s - 664 sys sys 1196193040 29691
 sys/src/9/pc/main.c - 664 sys sys 1168306227 15337
 sys/src/9/pc/mem.h - 664 sys sys 1196193040 5308
@@ -8279,7 +8281,7 @@ sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
 sys/src/9/port/pgrp.c - 664 sys sys 1138458260 4760
 sys/src/9/port/portclock.c - 664 sys sys 1189292530 4276
 sys/src/9/port/portdat.h - 664 sys sys 1155995676 22703
-sys/src/9/port/portfns.h - 664 sys sys 1178831066 11059
+sys/src/9/port/portfns.h - 664 sys sys 1202939287 11060
 sys/src/9/port/portmkfile - 664 sys sys 1184737233 2082
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
 sys/src/9/port/proc.c - 664 sys sys 1176658321 28742
@@ -14386,7 +14388,7 @@ sys/src/cmd/venti/srv/printarenapart.c - 664 sys sys 1178160304 3544
 sys/src/cmd/venti/srv/printarenas.c - 664 sys sys 1142736355 2074
 sys/src/cmd/venti/srv/printindex.c - 664 sys sys 1142736355 1746
 sys/src/cmd/venti/srv/printmap.c - 664 sys sys 1142736355 542
-sys/src/cmd/venti/srv/rdarena.c - 664 sys sys 1178161030 1637
+sys/src/cmd/venti/srv/rdarena.c - 664 sys sys 1202925159 1695
 sys/src/cmd/venti/srv/readifile.c - 664 sys sys 1177534667 411
 sys/src/cmd/venti/srv/reseal.c - 664 sys sys 1177189438 6682
 sys/src/cmd/venti/srv/round.c - 664 sys sys 1142736355 1577

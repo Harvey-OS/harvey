@@ -33,7 +33,7 @@ if (! test -e $disk)
 if (! test -f /srv/usbfat.$user) {
 	blk = `{disk/fdisk -p $disk | awk '/^part dos / {print $3}'}
 	if (~ $#blk 0 || ! ~ $blk [0-9]*) {
-		echo $0: no fdisk dos partition found... >[1=2]
+		echo $0: warning: no fdisk dos partition found... >[1=2]
 		dossrv -f $disk usbfat.$user || exit dossrv
 	}
 	if not

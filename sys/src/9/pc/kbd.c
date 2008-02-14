@@ -1,3 +1,6 @@
+/*
+ * keyboard input
+ */
 #include	"u.h"
 #include	"../port/lib.h"
 #include	"mem.h"
@@ -290,20 +293,179 @@ i8042auxcmds(uchar *cmd, int ncmd)
 	return i;
 }
 
-struct {
-	int esc1;
-	int esc2;
-	int alt;
-	int altgr;
-	int caps;
-	int ctl;
-	int num;
-	int shift;
-	int collecting;
-	int nk;
-	Rune kc[5];
-	int buttons;
-} kbscan;
+typedef struct Kbscan Kbscan;
+struct Kbscan {
+	int	esc1;
+	int	esc2;
+	int	alt;
+	int	altgr;
+	int	caps;
+	int	ctl;
+	int	num;
+	int	shift;
+	int	collecting;
+	int	nk;
+	Rune	kc[5];
+	int	buttons;
+};
+
+Kbscan kbscans[2];	/* kernel and external scan code state */
+
+/*
+ * Scan code processing
+ */
+void
+kbdputsc(int c, int external)
+{
+	int i, keyup;
+	Kbscan *kbscan;
+
+	if(external)
+		kbscan = &kbscans[1];
+	else
+		kbscan = &kbscans[0];
+
+	/*
+	 *  e0's is the first of a 2 character sequence, e1 the first
+	 *  of a 3 character sequence (on the safari)
+	 */
+	if(c == 0xe0){
+		kbscan->esc1 = 1;
+		return;
+	} else if(c == 0xe1){
+		kbscan->esc2 = 2;
+		return;
+	}
+
+	keyup = c & 0x80;
+	c &= 0x7f;
+	if(c > sizeof kbtab){
+		c |= keyup;
+		if(c != 0xFF)	/* these come fairly often: CAPSLOCK U Y */
+			print("unknown key %ux\n", c);
+		return;
+	}
+
+	if(kbscan->esc1){
+		c = kbtabesc1[c];
+		kbscan->esc1 = 0;
+	} else if(kbscan->esc2){
+		kbscan->esc2--;
+		return;
+	} else if(kbscan->shift)
+		c = kbtabshift[c];
+	else if(kbscan->altgr)
+		c = kbtabaltgr[c];
+	else if(kbscan->ctl)
+		c = kbtabctrl[c];
+	else
+		c = kbtab[c];
+
+	if(kbscan->caps && c<='z' && c>='a')
+		c += 'A' - 'a';
+
+	/*
+	 *  keyup only important for shifts
+	 */
+	if(keyup){
+		switch(c){
+		case Latin:
+			kbscan->alt = 0;
+			break;
+		case Shift:
+			kbscan->shift = 0;
+			mouseshifted = 0;
+			break;
+		case Ctrl:
+			kbscan->ctl = 0;
+			break;
+		case Altgr:
+			kbscan->altgr = 0;
+			break;
+		case Kmouse|1:
+		case Kmouse|2:
+		case Kmouse|3:
+		case Kmouse|4:
+		case Kmouse|5:
+			kbscan->buttons &= ~(1<<(c-Kmouse-1));
+			if(kbdmouse)
+				kbdmouse(kbscan->buttons);
+			break;
+		}
+		return;
+	}
+
+	/*
+ 	 *  normal character
+	 */
+	if(!(c & (Spec|KF))){
+		if(kbscan->ctl)
+			if(kbscan->alt && c == Del)
+				exit(0);
+		if(!kbscan->collecting){
+			kbdputc(kbdq, c);
+			return;
+		}
+		kbscan->kc[kbscan->nk++] = c;
+		c = latin1(kbscan->kc, kbscan->nk);
+		if(c < -1)	/* need more keystrokes */
+			return;
+		if(c != -1)	/* valid sequence */
+			kbdputc(kbdq, c);
+		else	/* dump characters */
+			for(i=0; i<kbscan->nk; i++)
+				kbdputc(kbdq, kbscan->kc[i]);
+		kbscan->nk = 0;
+		kbscan->collecting = 0;
+		return;
+	} else {
+		switch(c){
+		case Caps:
+			kbscan->caps ^= 1;
+			return;
+		case Num:
+			kbscan->num ^= 1;
+			return;
+		case Shift:
+			kbscan->shift = 1;
+			mouseshifted = 1;
+			return;
+		case Latin:
+			kbscan->alt = 1;
+			/*
+			 * VMware and Qemu use Ctl-Alt as the key combination
+			 * to make the VM give up keyboard and mouse focus.
+			 * This has the unfortunate side effect that when you
+			 * come back into focus, Plan 9 thinks you want to type
+			 * a compose sequence (you just typed alt). 
+			 *
+			 * As a clumsy hack around this, we look for ctl-alt
+			 * and don't treat it as the start of a compose sequence.
+			 */
+			if(!kbscan->ctl){
+				kbscan->collecting = 1;
+				kbscan->nk = 0;
+			}
+			return;
+		case Ctrl:
+			kbscan->ctl = 1;
+			return;
+		case Altgr:
+			kbscan->altgr = 1;
+			return;
+		case Kmouse|1:
+		case Kmouse|2:
+		case Kmouse|3:
+		case Kmouse|4:
+		case Kmouse|5:
+			kbscan->buttons |= 1<<(c-Kmouse-1);
+			if(kbdmouse)
+				kbdmouse(kbscan->buttons);
+			return;
+		}
+	}
+	kbdputc(kbdq, c);
+}
 
 /*
  *  keyboard interrupt
@@ -311,8 +473,7 @@ struct {
 static void
 i8042intr(Ureg*, void*)
 {
-	int s, c, i;
-	int keyup;
+	int s, c;
 
 	/*
 	 *  get status
@@ -335,150 +496,11 @@ i8042intr(Ureg*, void*)
 	 */
 	if(s & Minready){
 		if(auxputc != nil)
-			auxputc(c, kbscan.shift);
+			auxputc(c, kbscans[0].shift);	/* internal source */
 		return;
 	}
 
-	/*
-	 *  e0's is the first of a 2 character sequence, e1 the first
-	 *  of a 3 character sequence (on the safari)
-	 */
-	if(c == 0xe0){
-		kbscan.esc1 = 1;
-		return;
-	} else if(c == 0xe1){
-		kbscan.esc2 = 2;
-		return;
-	}
-
-	keyup = c&0x80;
-	c &= 0x7f;
-	if(c > sizeof kbtab){
-		c |= keyup;
-		if(c != 0xFF)	/* these come fairly often: CAPSLOCK U Y */
-			print("unknown key %ux\n", c);
-		return;
-	}
-
-	if(kbscan.esc1){
-		c = kbtabesc1[c];
-		kbscan.esc1 = 0;
-	} else if(kbscan.esc2){
-		kbscan.esc2--;
-		return;
-	} else if(kbscan.shift)
-		c = kbtabshift[c];
-	else if(kbscan.altgr)
-		c = kbtabaltgr[c];
-	else if(kbscan.ctl)
-		c = kbtabctrl[c];
-	else
-		c = kbtab[c];
-
-	if(kbscan.caps && c<='z' && c>='a')
-		c += 'A' - 'a';
-
-	/*
-	 *  keyup only important for shifts
-	 */
-	if(keyup){
-		switch(c){
-		case Latin:
-			kbscan.alt = 0;
-			break;
-		case Shift:
-			kbscan.shift = 0;
-			mouseshifted = 0;
-			break;
-		case Ctrl:
-			kbscan.ctl = 0;
-			break;
-		case Altgr:
-			kbscan.altgr = 0;
-			break;
-		case Kmouse|1:
-		case Kmouse|2:
-		case Kmouse|3:
-		case Kmouse|4:
-		case Kmouse|5:
-			kbscan.buttons &= ~(1<<(c-Kmouse-1));
-			if(kbdmouse)
-				kbdmouse(kbscan.buttons);
-			break;
-		}
-		return;
-	}
-
-	/*
- 	 *  normal character
-	 */
-	if(!(c & (Spec|KF))){
-		if(kbscan.ctl)
-			if(kbscan.alt && c == Del)
-				exit(0);
-		if(!kbscan.collecting){
-			kbdputc(kbdq, c);
-			return;
-		}
-		kbscan.kc[kbscan.nk++] = c;
-		c = latin1(kbscan.kc, kbscan.nk);
-		if(c < -1)	/* need more keystrokes */
-			return;
-		if(c != -1)	/* valid sequence */
-			kbdputc(kbdq, c);
-		else	/* dump characters */
-			for(i=0; i<kbscan.nk; i++)
-				kbdputc(kbdq, kbscan.kc[i]);
-		kbscan.nk = 0;
-		kbscan.collecting = 0;
-		return;
-	} else {
-		switch(c){
-		case Caps:
-			kbscan.caps ^= 1;
-			return;
-		case Num:
-			kbscan.num ^= 1;
-			return;
-		case Shift:
-			kbscan.shift = 1;
-			mouseshifted = 1;
-			return;
-		case Latin:
-			kbscan.alt = 1;
-			/*
-			 * VMware and Qemu use Ctl-Alt as the key combination
-			 * to make the VM give up keyboard and mouse focus.
-			 * This has the unfortunate side effect that when you
-			 * come back into focus, Plan 9 thinks you want to type
-			 * a compose sequence (you just typed alt). 
-			 *
-			 * As a clumsy hack around this, we look for ctl-alt
-			 * and don't treat it as the start of a compose sequence.
-			 */
-			if(!kbscan.ctl){
-				kbscan.collecting = 1;
-				kbscan.nk = 0;
-			}
-			return;
-		case Ctrl:
-			kbscan.ctl = 1;
-			return;
-		case Altgr:
-			kbscan.altgr = 1;
-			return;
-		case Kmouse|1:
-		case Kmouse|2:
-		case Kmouse|3:
-		case Kmouse|4:
-		case Kmouse|5:
-			kbscan.buttons |= 1<<(c-Kmouse-1);
-			if(kbdmouse)
-				kbdmouse(kbscan.buttons);
-			return;
-		}
-	}
-	kbdputc(kbdq, c);
+	kbdputsc(c, 0);			/* internal source */
 }
 
 void
@@ -581,12 +603,12 @@ kbdputmap(ushort m, ushort scanc, Rune r)
 }
 
 int
-kbdgetmap(int offset, int *t, int *sc, Rune *r)
+kbdgetmap(uint offset, int *t, int *sc, Rune *r)
 {
+	if ((int)offset < 0)
+		error(Ebadarg);
 	*t = offset/Nscan;
 	*sc = offset%Nscan;
-	if(*t < 0 || *sc < 0)
-		error(Ebadarg);
 	switch(*t) {
 	default:
 		return 0;
