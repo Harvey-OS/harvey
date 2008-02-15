@@ -139,7 +139,7 @@ Rune kbtabaltgr[Nscan] =
 [0x78]	No,	Up,	No,	No,	No,	No,	No,	No,
 };
 
-Rune kbtabctrl[] =
+Rune kbtabctrl[Nscan] =
 {
 [0x00]	No,	'', 	'', 	'', 	'', 	'', 	'', 	'', 
 [0x08]	'', 	'', 	'', 	'', 	'', 	'', 	'\b',	'\t',
@@ -310,7 +310,7 @@ struct Kbscan {
 };
 
 Kbscan kbscans[2];	/* kernel and external scan code state */
-
+static int kdebug;
 /*
  * Scan code processing
  */
@@ -325,6 +325,8 @@ kbdputsc(int c, int external)
 	else
 		kbscan = &kbscans[0];
 
+	if(kdebug)
+		print("sc %x ms %d\n", c, mouseshifted);
 	/*
 	 *  e0's is the first of a 2 character sequence, e1 the first
 	 *  of a 3 character sequence (on the safari)
@@ -375,6 +377,8 @@ kbdputsc(int c, int external)
 		case Shift:
 			kbscan->shift = 0;
 			mouseshifted = 0;
+if(kdebug)
+	print("shiftclr\n");
 			break;
 		case Ctrl:
 			kbscan->ctl = 0;
@@ -428,6 +432,8 @@ kbdputsc(int c, int external)
 			return;
 		case Shift:
 			kbscan->shift = 1;
+if(kdebug)
+	print("shift\n");
 			mouseshifted = 1;
 			return;
 		case Latin:
@@ -462,6 +468,12 @@ kbdputsc(int c, int external)
 			if(kbdmouse)
 				kbdmouse(kbscan->buttons);
 			return;
+		case KF|11:
+			kdebug = 1;
+			break;
+		case KF|12:
+			kdebug = 0;
+			break;
 		}
 	}
 	kbdputc(kbdq, c);

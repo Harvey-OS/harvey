@@ -18495,3 +18495,12 @@
 1202940004 3 a sys/src/9/pc/devkbin.c - 664 sys sys 1202939391 1806
 1202940004 4 c sys/src/9/port/portfns.h - 664 sys sys 1202939287 11060
 1202950804 0 c sys/games/lib/fortunes - 664 sys sys 1202950617 268681
+1203010205 0 a sys/src/cmd/usb/kb - 20000000775 sys sys 1203010067 0
+1203010205 1 a sys/src/cmd/usb/kb/hid.h - 664 sys sys 1203010066 1047
+1203010205 2 a sys/src/cmd/usb/kb/kb.c - 664 sys sys 1203010067 13451
+1203010205 3 a sys/src/cmd/usb/kb/mkfile - 664 sys sys 1203010067 260
+1203022804 0 c sys/src/9/boot/bootauth.c - 664 sys sys 1203021301 1168
+1203022804 1 c sys/src/9/boot/bootip.c - 664 sys sys 1203021335 3729
+1203022804 2 c sys/src/9/pc/kbd.c - 664 sys sys 1203021286 12940
+1203022804 3 c sys/src/cmd/usb/kb/hid.h - 664 sys sys 1203021357 1065
+1203022804 4 c sys/src/cmd/usb/kb/kb.c - 664 sys sys 1203021358 13508
