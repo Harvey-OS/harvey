@@ -7996,9 +7996,9 @@ sys/src/9/boot - 20000000775 sys sys 1161222920 0
 sys/src/9/boot/aux.c - 664 sys sys 1168305725 2586
 sys/src/9/boot/boot.c - 664 sys sys 1146746630 6013
 sys/src/9/boot/boot.h - 664 sys sys 1181823402 1722
-sys/src/9/boot/bootauth.c - 664 sys sys 1184466298 1172
+sys/src/9/boot/bootauth.c - 664 sys sys 1203021301 1168
 sys/src/9/boot/bootcache.c - 664 sys sys 1171955975 1608
-sys/src/9/boot/bootip.c - 664 sys sys 1072972133 3418
+sys/src/9/boot/bootip.c - 664 sys sys 1203021335 3729
 sys/src/9/boot/bootmkfile - 664 sys sys 1091732792 404
 sys/src/9/boot/doauthenticate.c - 664 sys sys 1015012529 2300
 sys/src/9/boot/embed.c - 664 sys sys 1039763720 1191
@@ -8136,7 +8136,7 @@ sys/src/9/pc/i8259.c - 664 sys sys 1131290399 4586
 sys/src/9/pc/init9.c - 664 sys sys 1040002518 94
 sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
 sys/src/9/pc/io.h - 664 sys sys 1165555523 9406
-sys/src/9/pc/kbd.c - 664 sys sys 1202939524 12721
+sys/src/9/pc/kbd.c - 664 sys sys 1203021286 12940
 sys/src/9/pc/l.s - 664 sys sys 1196193040 29691
 sys/src/9/pc/main.c - 664 sys sys 1168306227 15337
 sys/src/9/pc/mem.h - 664 sys sys 1196193040 5308
@@ -14270,6 +14270,10 @@ sys/src/cmd/usb/audio/usbaudioctl.h - 664 sys sys 1140695062 618
 sys/src/cmd/usb/disk - 20000000775 sys sys 1193181450 0
 sys/src/cmd/usb/disk/disk.c - 664 sys sys 1202256113 20245
 sys/src/cmd/usb/disk/mkfile - 664 sys sys 1193181450 359
+sys/src/cmd/usb/kb - 20000000775 sys sys 1203010067 0
+sys/src/cmd/usb/kb/hid.h - 664 sys sys 1203021357 1065
+sys/src/cmd/usb/kb/kb.c - 664 sys sys 1203021358 13508
+sys/src/cmd/usb/kb/mkfile - 664 sys sys 1203010067 260
 sys/src/cmd/usb/lib - 20000000775 sys sys 1091204979 0
 sys/src/cmd/usb/lib/device.c - 664 sys sys 1202846662 3549
 sys/src/cmd/usb/lib/dump.c - 664 sys sys 1202846653 13581
