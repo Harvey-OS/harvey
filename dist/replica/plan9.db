@@ -10054,7 +10054,7 @@ sys/src/cmd/compress - 20000000775 sys sys 1157679448 0
 sys/src/cmd/compress/compress.c - 664 sys sys 1159150971 31929
 sys/src/cmd/compress/mkfile - 664 sys sys 1157679443 118
 sys/src/cmd/con - 20000000775 sys sys 1046654774 0
-sys/src/cmd/con/con.c - 664 sys sys 1185066485 15264
+sys/src/cmd/con/con.c - 664 sys sys 1203451679 15318
 sys/src/cmd/con/hayes.c - 664 sys sys 1014925263 3865
 sys/src/cmd/con/mkfile - 664 sys sys 1046654774 204
 sys/src/cmd/con/rufilio.h - 664 sys sys 944960877 595
