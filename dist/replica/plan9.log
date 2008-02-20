@@ -18504,3 +18504,4 @@
 1203022804 2 c sys/src/9/pc/kbd.c - 664 sys sys 1203021286 12940
 1203022804 3 c sys/src/cmd/usb/kb/hid.h - 664 sys sys 1203021357 1065
 1203022804 4 c sys/src/cmd/usb/kb/kb.c - 664 sys sys 1203021358 13508
+1203453006 0 c sys/src/cmd/con/con.c - 664 sys sys 1203451679 15318
