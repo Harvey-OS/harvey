@@ -10,7 +10,7 @@ enum {
 	Dbgcontrol =	0x08,
 };
 
-extern int debug, debugdebug, verbose;
+extern int debug, debugdebug, usbdebug, verbose;
 
 typedef uchar byte;
 

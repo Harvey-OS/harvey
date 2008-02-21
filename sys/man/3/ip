@@ -5,7 +5,7 @@ ip, esp, gre, icmp, icmpv6, ipmux, rudp, tcp, udp \- network protocols over IP
 .nf
 .2C
 .B bind -a #I\fIspec\fP /net
-
+.sp 0.3v
 .B /net/ipifc
 .B /net/ipifc/clone
 .B /net/ipifc/stats
@@ -13,14 +13,14 @@ ip, esp, gre, icmp, icmpv6, ipmux, rudp, tcp, udp \- network protocols over IP
 .BI /net/ipifc/ n /status
 .BI /net/ipifc/ n /ctl
 \&...
-
+.sp 0.3v
 .B /net/arp
 .B /net/bootp
 .B /net/iproute
 .B /net/ipselftab
 .B /net/log
 .B /net/ndb
-
+.sp 0.3v
 .B /net/esp
 .B /net/gre
 .B /net/icmp
@@ -29,7 +29,7 @@ ip, esp, gre, icmp, icmpv6, ipmux, rudp, tcp, udp \- network protocols over IP
 .B /net/rudp
 .B /net/tcp
 .B /net/udp
-
+.sp 0.3v
 .B /net/tcp/clone
 .B /net/tcp/stats
 .BI /net/tcp/ n
@@ -814,6 +814,28 @@ is treated like a reboot:
 all queued messages are dropped, an error is queued to the
 .B err
 file, and the conversation resumes.
+.PP
+RUDP
+.I ctl
+files accept the following messages:
+.TF "randdrop percent"
+.TP
+.B headers
+Corresponds to the
+.L headers
+format of UDP.
+.TP
+.BI "hangup " "IP port"
+Drop the connection to address
+.I IP
+and
+.IR port .
+.TP
+.BI "randdrop " "[ percent ]"
+Randomly drop
+.I percent
+of outgoing packets.
+Default is 10%.
 .
 .SS ICMP
 ICMP is a datagram protocol for IPv4 used to exchange control requests and

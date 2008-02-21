@@ -26,20 +26,17 @@
 
 enum
 {
-	UDP_HDRSIZE	= 20,	/* pseudo header + udp header */
 	UDP_PHDRSIZE	= 12,	/* pseudo header */
+//	UDP_HDRSIZE	= 20,	/* pseudo header + udp header */
 	UDP_RHDRSIZE	= 36,	/* pseudo header + udp header + rudp header */
 	UDP_IPHDR	= 8,	/* ip header */
 	IP_UDPPROTO	= 254,
-	UDP_USEAD7	= 52,
-	UDP_USEAD6	= 36,
-	UDP_USEAD4	= 12,
+	UDP_USEAD7	= 52,	/* size of new ipv6 headers struct */
 
 	Rudprxms	= 200,
 	Rudptickms	= 50,
 	Rudpmaxxmit	= 10,
 	Maxunacked	= 100,
-
 };
 
 #define Hangupgen	0xffffffff	/* used only in hangup messages */
@@ -376,27 +373,10 @@ rudpkick(void *x)
 		rport = nhgets(bp->rp);
 		bp->rp += 2+2;			/* Ignore local port */
 		break;
-	case 6:					/* OBS */
-		/* get user specified addresses */
-		bp = pullupblock(bp, UDP_USEAD6);
-		if(bp == nil)
-			return;
-		ipmove(raddr, bp->rp);
-		bp->rp += IPaddrlen;
-		ipmove(laddr, bp->rp);
-		bp->rp += IPaddrlen;
-		/* pick interface closest to dest */
-		if(ipforme(f, laddr) != Runi)
-			findlocalip(f, laddr, raddr);
-		rport = nhgets(bp->rp);
-
-		bp->rp += 4;			/* Igonore local port */
-		break;
 	default:
 		ipmove(raddr, c->raddr);
 		ipmove(laddr, c->laddr);
 		rport = c->rport;
-
 		break;
 	}
 
@@ -419,7 +399,6 @@ rudpkick(void *x)
 	uh->frag[1] = 0;
 	hnputs(uh->udpplen, ptcllen);
 	switch(ucb->headers){
-	case 6:					/* OBS */
 	case 7:
 		v6tov4(uh->udpdst, raddr);
 		hnputs(uh->udpdport, rport);
@@ -580,15 +559,6 @@ rudpiput(Proto *rudp, Ipifc *ifc, Block *bp)
 		hnputs(p, rport); p += 2;
 		hnputs(p, lport);
 		break;
-	case 6:					/* OBS */
-		/* pass the src address */
-		bp = padblock(bp, UDP_USEAD6);
-		p = bp->rp;
-		ipmove(p, raddr); p += IPaddrlen;
-		ipmove(p, ipforme(f, laddr)==Runi ? laddr : ifc->lifc->local); p += IPaddrlen;
-		hnputs(p, rport); p += 2;
-		hnputs(p, lport);
-		break;
 	default:
 		/* connection oriented rudp */
 		if(ipcmp(c->raddr, IPnoaddr) == 0){
@@ -631,11 +601,8 @@ rudpctl(Conv *c, char **f, int n)
 	if(n < 1)
 		return rudpunknown;
 
-	if(strcmp(f[0], "headers++4") == 0){
+	if(strcmp(f[0], "headers") == 0){
 		ucb->headers = 7;		/* new headers format */
-		return nil;
-	} else if(strcmp(f[0], "headers") == 0){	/* OBS */
-		ucb->headers = 6;
 		return nil;
 	} else if(strcmp(f[0], "hangup") == 0){
 		if(n < 3)
