@@ -3,7 +3,7 @@
 usbmouse,
 kb,
 usbaudio,
-usbprint
+print
 \- Universal Serial Bus user-level device drivers
 .SH SYNOPSIS
 .B usb/usbmouse
@@ -45,7 +45,7 @@ usbprint
 .I n
 ]
 .PP
-.B usb/usbprint
+.B usb/print
 .SH DESCRIPTION
 These programs implement support for specific USB device classes.
 They should be run after
@@ -115,7 +115,7 @@ Serve just the mouse (and not the keyboard).
 .B \-n
 Dry run. Do not send any events to the kernel for processing.
 .SS Printers
-.I Usbprint
+.I Print
 is a script that mounts a USB printer on
 .BR /dev/lp .
 .SS Audio devices
@@ -216,7 +216,7 @@ if (test -r '#U'/usb0) {
 	usb/usbd
 	usb/usbmouse -a 2
 	usb/usbaudio -v \fIx\fP
-	usb/usbprint
+	usb/print
 }
 .EE
 .PP

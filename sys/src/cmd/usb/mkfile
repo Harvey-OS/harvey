@@ -2,10 +2,11 @@
 
 DIRS=\
 	lib\
-	usbd\
 	audio\
 	disk\
+	kb\
 	misc\
+	usbd\
 
 UPDATE=\
 	mkfile\
