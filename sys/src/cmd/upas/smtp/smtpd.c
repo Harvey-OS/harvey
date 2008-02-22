@@ -1546,9 +1546,11 @@ auth(String *mech, String *resp)
 		authenticated = ai != nil;
 		memset(s_to_c(s_resp2), 'X', s_len(s_resp2));
 windup:
-		if (authenticated)
+		if (authenticated) {
+			/* if you authenticated, we trust you despite your IP */
+			trusted = 1;
 			reply("235 2.0.0 Authentication successful\r\n");
-		else {
+		} else {
 			rejectcount++;
 			reply("535 5.7.1 Authentication failed\r\n");
 			syslog(0, "smtpd", "authentication failed: %r");

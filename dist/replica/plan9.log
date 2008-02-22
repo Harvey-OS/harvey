@@ -18529,3 +18529,4 @@
 1203568203 4 c 386/bin/usb/usbprobe - 775 sys sys 1203567409 232
 1203568203 5 c sys/src/cmd/usb/lib/usb.h - 664 sys sys 1203568227 7076
 1203568203 6 c sys/src/cmd/usb/lib/util.c - 664 sys sys 1203568227 533
+1203570003 0 c sys/man/8/smtp - 664 sys sys 1203569669 5497
