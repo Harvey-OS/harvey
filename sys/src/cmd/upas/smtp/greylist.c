@@ -1,9 +1,30 @@
+/*
+ * greylisting is the practice of making unknown callers call twice, with
+ * a pause between them, before accepting their mail and adding them to a
+ * whitelist of known callers.
+ *
+ * There's a bit of a problem with yahoo and other large sources of mail;
+ * they have a vast pool of machines that all run the same queue(s), so a
+ * 451 retry can come from a different IP address for many, many retries,
+ * and it can take ~5 hours for the same IP to call us back.  To cope
+ * better with this, we immediately accept mail from any system on the
+ * same class C subnet (IPv4 /24) as anybody on our whitelist, since the
+ * mail-sending machines tend to be clustered within a class C subnet.
+ *
+ * Various other goofballs, notably the IEEE, try to send mail just
+ * before 9 AM, then refuse to try again until after 5 PM. D'oh!
+ */
 #include "common.h"
 #include "smtpd.h"
 #include "smtp.h"
 #include <ctype.h>
 #include <ip.h>
 #include <ndb.h>
+
+enum {
+	Nonspammax = 14*60*60,  /* must call back within this time if real */
+	Nonspammin = 5*60,	/* must wait this long to retry */
+};
 
 typedef struct {
 	int	existed;	/* these two are distinct to cope with errors */
@@ -12,18 +33,6 @@ typedef struct {
 	long	mtime;		/* mod time, iff it already existed */
 } Greysts;
 
-/*
- * There's a bit of a problem with yahoo; they apparently have a vast
- * pool of machines that all run the same queue(s), so a 451 retry can
- * come from a different IP address for many, many retries, and it can
- * take ~5 hours for the same IP to call us back.  Various other goofballs,
- * notably the IEEE, try to send mail just before 9 AM, then refuse to try
- * again until after 5 PM.  Doh!
- */
-enum {
-	Nonspammax = 14*60*60,  /* must call back within this time if real */
-	Nonspammin = 5*60,	/* must wait this long to retry */
-};
 static char whitelist[] = "/mail/grey/whitelist";
 
 /*
@@ -36,11 +45,11 @@ onwhitelist(void)
 	int lnlen;
 	char *line, *parse, *p;
 	char input[128];
-	uchar ipmasked[IPaddrlen];
+	uchar *mask;
 	uchar mask4[IPaddrlen], addr4[IPaddrlen];
-	uchar mask[IPaddrlen], addr[IPaddrlen], addrmasked[IPaddrlen];
+	uchar rmask[IPaddrlen], addr[IPaddrlen];
+	uchar ipmasked[IPaddrlen], addrmasked[IPaddrlen];
 	Biobuf *wl;
-	static allzero[IPaddrlen];
 
 	wl = Bopen(whitelist, OREAD);
 	if (wl == nil)
@@ -55,24 +64,32 @@ onwhitelist(void)
 		if (line[0] == '#' || line[0] == 0)
 			continue;
 
-		/* default mask is /32 (v4) or /128 (v6) for bare IP */
+		/* default mask is /24 (v4) or /128 (v6) for bare IP */
 		parse = line;
 		if (strchr(line, '/') == nil) {
-			strecpy(input, input+sizeof input-5, line);
-			if (strchr(line, '.') != nil)
-				strcat(input, "/32");
-			else
+			strecpy(input, input + sizeof input - 5, line);
+			if (strchr(line, ':') != nil)	/* v6? */
 				strcat(input, "/128");
+			else if (strchr(line, '.') != nil)
+				strcat(input, "/24");	/* was /32 */
 			parse = input;
 		}
-		/* sorry, dave; where's parsecidr for v4 or v6? */
-		v4parsecidr(addr4, mask4, parse);
-		v4tov6(addr, addr4);
-		v4tov6(mask, mask4);
-
+		mask = rmask;
+		if (strchr(line, ':') != nil) {		/* v6? */
+			parseip(addr, parse);
+			p = strchr(parse, '/');
+			if (p != nil)
+				parseipmask(mask, p);
+			else
+				mask = IPallbits;
+		} else {
+			v4parsecidr(addr4, mask4, parse);
+			v4tov6(addr, addr4);
+			v4tov6(mask, mask4);
+		}
 		maskip(addr, mask, addrmasked);
 		maskip(rsysip, mask, ipmasked);
-		if (memcmp(ipmasked, addrmasked, IPaddrlen) == 0)
+		if (equivip6(ipmasked, addrmasked))
 			break;
 	}
 	Bterm(wl);
