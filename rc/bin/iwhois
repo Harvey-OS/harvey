@@ -1,6 +1,8 @@
 #!/bin/rc
-# iwhois domain - print registration data for domain
+# iwhois [-n] domain - print registration data for domain
 rfork e
+if (~ $#* 1 && ~ $1 -n)
+	noboiler=yes
 person=`{echo $1|sed s/@.*//}
 fn boilerplate { sed -n '/^[	 ]*[A-Za-z][A-Za-z]*:$/,$p' $* }
 
@@ -54,6 +56,8 @@ case *
 	machine=whois.internic.net	# alternate: whois.networksolutions.com
 	fn boilerplate { cat $* }
 }
+if (~ $noboiler yes)
+	fn boilerplate { cat $* }
 file=/tmp/iwhois$pid
 fn sigexit {
 	rm -f $file
