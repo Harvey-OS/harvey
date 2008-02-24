@@ -191,6 +191,31 @@ usage(void)
 	exits("usage");
 }
 
+/*
+ * based on libthread's threadsetname, but drags in less library code.
+ * actually just sets the arguments displayed.
+ */
+void
+procsetname(char *fmt, ...)
+{
+	int fd;
+	char *cmdname;
+	char buf[128];
+	va_list arg;
+
+	va_start(arg, fmt);
+	cmdname = vsmprint(fmt, arg);
+	va_end(arg);
+	if (cmdname == nil)
+		return;
+	snprint(buf, sizeof buf, "#p/%d/args", getpid());
+	if((fd = open(buf, OWRITE)) >= 0){
+		write(fd, cmdname, strlen(cmdname)+1);
+		close(fd);
+	}
+	free(cmdname);
+}
+
 void
 main(int argc, char *argv[])
 {
@@ -284,6 +309,7 @@ mountinit(char *service, char *mntpt)
 	switch(rfork(RFFDG|RFPROC|RFNAMEG)){
 	case 0:
 		close(p[1]);
+		procsetname("%s", mntpt);
 		break;
 	case -1:
 		error("fork failed\n");
@@ -627,7 +653,7 @@ rread(Job *job, Mfile *mf)
 	int i, n, cnt;
 	long off, toff, clock;
 	Dir dir;
-	uchar buf[IOHDRSZ+Maxfdata];
+	uchar buf[Maxfdata];
 	char *err;
 
 	n = 0;
@@ -1023,7 +1049,7 @@ ipid(void)
 
 /*
  *  Set up a list of default networks by looking for
- *  /net/ * /clone.
+ *  /net/^*^/clone.
  */
 void
 netinit(int background)
@@ -1527,7 +1553,7 @@ reorder(Ndbtuple *t, Ndbtuple *x)
  *  another.  parent returns to job loop.
  */
 void
-slave(void)
+slave(char *host)
 {
 	if(*isslave)
 		return;		/* we're already a slave process */
@@ -1538,6 +1564,7 @@ slave(void)
 	case 0:
 		if(debug)
 			syslog(0, logfile, "slave %d", getpid());
+		procsetname("%s", host);
 		*isslave = 1;
 		break;
 	default:
@@ -1560,7 +1587,7 @@ dnsiplookup(char *host, Ndbs *s)
 	/* save the name before starting a slave */
 	snprint(buf, sizeof(buf), "%s", host);
 
-	slave();
+	slave(host);
 
 	if(strcmp(ipattr(buf), "ip") == 0)
 		t = dnsquery(mntpt, buf, "ptr");

@@ -549,16 +549,6 @@ mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno)
 	return len;
 }
 
-/* for alarms in readreply */
-static void
-ding(void*, char *msg)
-{
-	if(strstr(msg, "alarm") != nil)
-		noted(NCONT);		/* resume with system call error */
-	else
-		noted(NDFLT);		/* die */
-}
-
 void
 freeanswers(DNSmsg *mp)
 {
@@ -647,12 +637,6 @@ readreply(Query *qp, int medium, ushort req, uchar *ibuf, DNSmsg *mp,
 	uchar *reply;
 	uchar srcip[IPaddrlen];
 	RR *rp;
-	static int first = 1;
-
-	if (first) {
-		first = 0;
-		notify(ding);
-	}
 
 	queryck(qp);
 	rv = 0;

@@ -140,8 +140,6 @@ pointers to the zero block.
 It writes the new root score to standard output.
 .SH SOURCE
 .B /sys/src/cmd/venti
-.br
-.B /sys/src/cmd/oventi/copy.c
 .SH SEE ALSO
 .IR vac (1),
 .IR venti (2),
