@@ -44,16 +44,6 @@ dnnotify(DNSmsg *reqp, DNSmsg *repp, Request *)
 		a->needrefresh = 1;
 }
 
-static void
-ding(void*, char *msg)
-{
-	if(strstr(msg, "alarm") != nil) {
-		stats.alarms++;
-		noted(NCONT);		/* resume with system call error */
-	} else
-		noted(NDFLT);		/* die */
-}
-
 /* notify a slave that an area has changed. */
 static void
 send_notify(char *slave, RR *soa, Request *req)
@@ -83,8 +73,6 @@ send_notify(char *slave, RR *soa, Request *req)
 	fd = udpport(nil);
 	if(fd < 0)
 		return;
-
-	notify(ding);
 
 	/* send 3 times or until we get anything back */
 	n += Udphdrsize;

@@ -67,6 +67,19 @@ timeout(void*, char *msg)
 	return 0;
 }
 
+long
+timedwrite(int fd, void *buf, long len, long ms)
+{
+	long n, oalarm;
+
+	atnotify(timeout, 1);
+	oalarm = alarm(ms);
+	n = write(fd, buf, len);
+	alarm(oalarm);
+	atnotify(timeout, 0);
+	return n;
+}
+
 /*
  *  take an address and return all the mx entries for it,
  *  most preferred first
@@ -157,7 +170,6 @@ static int
 mxlookup1(DS *ds, char *domain)
 {
 	int i, n, fd, nmx;
-	long oalarm;
 	char buf[1024], dnsname[Maxstring];
 	char *fields[4];
 
@@ -174,11 +186,7 @@ mxlookup1(DS *ds, char *domain)
 	/*
 	 * don't hang indefinitely in the write to /net/dns.
 	 */
-	atnotify(timeout, 1);
-	oalarm = alarm(60*1000);
-	n = write(fd, buf, strlen(buf));
-	alarm(oalarm);
-	atnotify(timeout, 0);
+	n = timedwrite(fd, buf, strlen(buf), 60*1000);
 	if(n < 0){
 		rerrstr(buf, sizeof buf);
 		if(debug)
@@ -233,7 +241,10 @@ mxlookup1(DS *ds, char *domain)
 		seek(fd, 0, 0);
 		snprint(buf, sizeof buf, "%s ip", mx[i].host);
 		mx[i].ip[0] = 0;
-		if(write(fd, buf, strlen(buf)) < 0)
+		/*
+		 * don't hang indefinitely in the write to /net/dns.
+		 */
+		if(timedwrite(fd, buf, strlen(buf), 60*1000) < 0)
 			goto no;
 		seek(fd, 0, 0);
 		if((n = read(fd, buf, sizeof buf-1)) < 0)

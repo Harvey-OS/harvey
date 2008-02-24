@@ -10,16 +10,6 @@ enum {
 static int	udpannounce(char*);
 static void	reply(int, uchar*, DNSmsg*, Request*);
 
-static void
-ding(void*, char *msg)
-{
-	if(strstr(msg, "alarm") != nil) {
-		stats.alarms++;
-		noted(NCONT);		/* resume with system call error */
-	} else
-		noted(NDFLT);		/* die */
-}
-
 typedef struct Inprogress Inprogress;
 struct Inprogress
 {
@@ -97,7 +87,6 @@ dnudpserver(char *mntpt)
 	}
 
 	fd = -1;
-	notify(ding);
 restart:
 	procsetname("udp server announcing");
 	if(fd >= 0)

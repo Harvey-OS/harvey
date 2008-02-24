@@ -75,7 +75,7 @@ dumpr(char *s, Rule *r)
 {
 	Bprint(&bout, "%s: start=%p\n", s, r);
 	for(; r; r = r->next){
-		Bprint(&bout, "\tRule %p: %s[%d] attr=%x next=%p chain=%p alltarget='%s'",
+		Bprint(&bout, "\tRule %p: %s:%d attr=%x next=%p chain=%p alltarget='%s'",
 			r, r->file, r->line, r->attr, r->next, r->chain, wtos(r->alltargets, ' '));
 		if(r->prog)
 			Bprint(&bout, " prog='%s'", r->prog);

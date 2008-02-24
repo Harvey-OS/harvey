@@ -437,7 +437,7 @@ io(void)
 			dnslog("%F", &job->request);
 
 		getactivity(&req, 0);
-		req.aborttime = now + Maxreqtm;
+		req.aborttime = time(nil) + Maxreqtm;
 		req.from = "9p";
 
 		switch(job->request.type){
@@ -639,7 +639,7 @@ rread(Job *job, Mfile *mf)
 	ulong cnt;
 	vlong off;
 	char *err;
-	uchar buf[IOHDRSZ+Maxfdata];
+	uchar buf[Maxfdata];
 	Dir dir;
 
 	n = 0;
