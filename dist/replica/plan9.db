@@ -332,7 +332,7 @@
 386/bin/ls - 775 sys sys 1178568291 81002
 386/bin/mc - 775 sys sys 1197732781 134370
 386/bin/md5sum - 775 sys sys 1196742497 62518
-386/bin/mk - 775 sys sys 1200262768 143324
+386/bin/mk - 775 sys sys 1203828447 143324
 386/bin/mkdir - 775 sys sys 1168402334 61205
 386/bin/mkpaqfs - 775 sys sys 1188447262 94261
 386/bin/mntgen - 775 sys sys 1188447266 145038
@@ -553,7 +553,7 @@
 386/lib/ape/libdraw.a - 664 sys sys 1197732871 622280
 386/lib/ape/libfmt.a - 664 sys sys 1146156980 156706
 386/lib/ape/libl.a - 664 sys sys 1143777857 9406
-386/lib/ape/libnet.a - 664 sys sys 1143777857 16950
+386/lib/ape/libnet.a - 664 sys sys 1203828448 24090
 386/lib/ape/libregexp.a - 664 sys sys 1143777857 47500
 386/lib/ape/libutf.a - 664 sys sys 1146156980 88500
 386/lib/ape/libv.a - 664 sys sys 1202357672 19334
@@ -5845,7 +5845,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1202950617 268681
+sys/games/lib/fortunes - 664 sys sys 1203873355 268816
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803

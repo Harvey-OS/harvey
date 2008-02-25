@@ -18566,3 +18566,6 @@
 1203809404 1 c sys/src/ape/lib/net/mkfile - 664 sys sys 1203808760 208
 1203809404 2 a sys/src/ape/lib/net/netmkaddr.c - 664 sys sys 1203808759 957
 1203809404 3 c sys/src/cmd/mk/rule.c - 664 sys sys 1203808956 1945
+1203829204 0 c 386/bin/mk - 775 sys sys 1203828447 143324
+1203829204 1 c 386/lib/ape/libnet.a - 664 sys sys 1203828448 24090
+1203874205 0 c sys/games/lib/fortunes - 664 sys sys 1203873355 268816
