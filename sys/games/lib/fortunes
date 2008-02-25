@@ -4215,3 +4215,4 @@ ADDITIONAL METAPHOR SPOILER ALERT: ``The Old Man and the Sea'' is not just about
 "it's complete cross-compilation not completely cross compilation" - Forsyth on 8c and gcc
 I claim that Mach people (and apparently FreeBSD) are incompetent idiots. Playing games with VM is bad. memory copies are _also_ bad, but quite frankly, memory copies often have _less_ downside than VM games, and bigger caches will only continue to drive that point home. - Linus Torvalds on vmsplice() versus COW
 Nothing is more hateful to wisdom than excessive cleverness - Seneca (according to Poe)
+Perfection is achieved, not when there is nothing more to add, but when there is nothing left to take away. - Antoine de Saint-Exupery
