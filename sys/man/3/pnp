@@ -4,15 +4,15 @@ pnp \- Plug 'n' Play ISA and PCI Interfaces
 .SH SYNOPSIS
 .nf
 .B bind -a '#$' /dev
-
+.sp 0.3v
 .BI /dev/pci/ bus\fL.\fPdev\fL.\fPfn ctl
 .BI /dev/pci/ bus\fL.\fPdev\fL.\fPfn raw
-
+.sp 0.3v
 .BI /dev/pnp/ctl
 .BI /dev/pnp/csn n ctl
 .BI /dev/pnp/csn n raw
 \&...
-
+.sp 0.3v
 .fi
 .SH DESCRIPTION
 .PP
@@ -134,6 +134,8 @@ grep '^03' /dev/pci/*ctl
 .EE
 .SH SOURCE
 .B /sys/src/9/port/devpnp.c
+.SH SEE ALSO
+.IR pci (8)
 .SH BUGS
 Access to the I/O and memory regions of a PCI device is not provided.
 .PP
