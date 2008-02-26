@@ -307,14 +307,14 @@ enum {
 	FRAMESIZE = NFRAME*sizeof(ulong), /* fixed by hardware; aligned to same */
 };
 
-static char *modename[] = {
+char *usbmode[] = {
 [Ctlmode]=	"Ctl",
 [Bulkmode] =	"Bulk",
 [Intrmode] =	"Intr",
 [Isomode] =	"Iso",
 };
 
-static char *omodename[] = {
+static char *ousbmode[] = {
 [OREAD] = "r",
 [OWRITE] = "w",
 [ORDWR] = "rw",
@@ -881,7 +881,7 @@ eptactivate(Ctlr *ub, Endpt *ep)
 			OHCIsetBulkHeadED(ub->base, epx->ed);
 			ub->base->cmdsts |= Blf;
 			XEPRINT("%d/%d: activated %s in bulk input queue\n",
-				ep->dev->x, ep->x, omodename[ep->mode]);
+				ep->dev->x, ep->x, ousbmode[ep->mode]);
 			break;
 		case Isomode:
 			if(ep->mode != OWRITE)
@@ -1359,7 +1359,7 @@ epmode(Usbhost *uh, Endpt *ep)
 	epx = ep->private;
 	ctlr = uh->ctlr;
 	XEPRINT("ohci: epmode %d/%d %s → %s\n",
-		ep->dev->x, ep->x, modename[ep->epmode], modename[ep->epnewmode]);
+		ep->dev->x, ep->x, usbmode[ep->epmode], usbmode[ep->epnewmode]);
 	reactivate = 0;
 	if(ep->epnewmode != ep->epmode)
 		if(reactivate = ep->active){
@@ -1375,7 +1375,7 @@ epmode(Usbhost *uh, Endpt *ep)
 //		ep->debug++;
 		ep->bw = ep->maxpkt*1000/ep->pollms;	/* bytes/sec */
 		XEPRINT("ohci: epmode %d/%d %s, intr: maxpkt %d, pollms %d, bw %ld\n",
-			ep->dev->x, ep->x, omodename[ep->mode],
+			ep->dev->x, ep->x, ousbmode[ep->mode],
 			ep->maxpkt, ep->pollms, ep->bw);
 		break;
 	case Isomode:
@@ -1395,7 +1395,7 @@ epmode(Usbhost *uh, Endpt *ep)
 			break;
 		}
 		XEPRINT("ohci: epmode %d/%d %s, iso: maxpkt %d, pollms %d, hz %d, samp %d\n",
-			ep->dev->x, ep->x, omodename[ep->mode],
+			ep->dev->x, ep->x, ousbmode[ep->mode],
 			ep->maxpkt, ep->pollms, ep->hz, ep->samplesz);
 		ep->bw = ep->hz * ep->samplesz;		/* bytes/sec */
 		/* Use Iso TDs: */
@@ -1696,6 +1696,64 @@ getportstatus(Ctlr *ub, int port)
 	return v;
 }
 
+/* print any interesting stuff here for debugging purposes */
+static void
+usbdebug(Usbhost *uh, char *s, char *se)
+{
+	Udev *dev;
+	Endpt *ep;
+	int n, i, j;
+
+	n = 0;
+	for(i = 0; i < MaxUsbDev; i++)
+		if(uh->dev[i])
+			n++;
+	s = seprint(s, se, "OHCI, %d devices\n", n);
+	for(i = 0; i < MaxUsbDev; i++){
+		if((dev = uh->dev[i]) == nil)
+			continue;
+		s = seprint(s, se, "dev 0x%6.6lux, %d epts\n", dev->csp, dev->npt);
+		for(j = 0; j < nelem(dev->ep); j++){
+			if((ep = dev->ep[j]) == nil)
+				continue;
+			if(ep->epmode >= 0 && ep->epmode < Nmodes)
+				s = seprint(s, se, "ept %d/%d: %s 0x%6.6lux "
+					"maxpkt %d %s\n",
+					dev->x, ep->x, usbmode[ep->epmode],
+					ep->csp, ep->maxpkt, ep->active ? "active" : "idle");
+			else{
+				s = seprint(s, se, "ept %d/%d: bad mode 0x%6.6lux\n",
+					dev->x, ep->x, ep->csp);
+				continue;
+			}
+			
+			switch(ep->epmode){
+			case Nomode:
+				break;
+			case Ctlmode:
+				break;
+			case Bulkmode:
+				break;
+			case Intrmode:
+				s = seprint(s, se, "\t%d ms\n",
+					ep->pollms);
+				break;
+			case Isomode:
+				s = seprint(s, se, "\t%d ms, remain %d, "
+					"partial %d, buffered %d, "
+					"xdone %d, xstarted %d, err %s\n",
+					ep->pollms, ep->remain, ep->partial,
+					ep->buffered,
+					ep->dir[ep->mode == OREAD].xdone,
+					ep->dir[ep->mode == OREAD].xstarted,
+					ep->dir[ep->mode == OREAD].err
+					? ep->dir[ep->mode == OREAD].err : "no");
+				break;
+			}
+		}
+	}
+}
+
 /* this is called several times every few seconds, possibly due to usbd */
 static void
 portinfo(Usbhost *uh, char *s, char *se)
@@ -1705,7 +1763,7 @@ portinfo(Usbhost *uh, char *s, char *se)
 
 	XIPRINT("ohci: portinfo from devusb\n");
 	ctlr = uh->ctlr;
-	for(i = 1; i <= 4; i++) {
+	for(i = 1; i <= ctlr->nports; i++){
 		ilock(ctlr);
 		x = getportstatus(ctlr, i);
 		iunlock(ctlr);
@@ -2276,6 +2334,7 @@ reset(Usbhost *uh)
 	uh->init = init;
 	uh->interrupt = interrupt;
 
+	uh->debug = usbdebug;
 	uh->portinfo = portinfo;
 	uh->portreset = portreset;
 	uh->portenable = portenable;

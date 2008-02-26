@@ -5261,7 +5261,7 @@ lib/ndb/local - 664 sys sys 1077723747 292
 lib/ndb/local.complicated - 664 sys sys 1196401790 2980
 lib/ndb/nfs - 664 sys sys 954036707 113
 lib/news - 20000000775 sys sys 1020895764 0
-lib/pci - 664 sys sys 1160617172 206912
+lib/pci - 664 sys sys 1203978472 219265
 lib/rfc - 20000000775 sys sys 1180723363 0
 lib/rfc/grabrfc - 775 sys sys 1180724499 804
 lib/sky - 20000000775 sys sys 1079376081 0
@@ -5571,7 +5571,7 @@ rc/bin/pc/personalize - 775 sys sys 959698938 99
 rc/bin/pc/setup.9fat - 775 sys sys 960857447 546
 rc/bin/pc/setup.disk - 775 sys sys 960857447 579
 rc/bin/pc/update - 775 sys sys 960235807 468
-rc/bin/pci - 775 sys sys 1176379952 821
+rc/bin/pci - 775 sys sys 1203980337 924
 rc/bin/pdf2ps - 775 sys sys 1032054728 827
 rc/bin/postscript - 20000000775 sys sys 1020896376 0
 rc/bin/printfont - 775 sys sys 945617208 2851
@@ -7702,7 +7702,7 @@ sys/man/3/lpt - 664 sys sys 1196638942 893
 sys/man/3/mnt - 664 sys sys 1196638942 1994
 sys/man/3/mouse - 664 sys sys 1196638942 4276
 sys/man/3/pipe - 664 sys sys 1196638942 1145
-sys/man/3/pnp - 664 sys sys 1196638942 4547
+sys/man/3/pnp - 664 sys sys 1203979528 4596
 sys/man/3/proc - 664 sys sys 1196638942 12062
 sys/man/3/root - 664 sys sys 1196638942 632
 sys/man/3/rtc - 664 sys sys 1196638942 667
@@ -7865,6 +7865,7 @@ sys/man/8/ndb - 664 sys sys 1196638947 15205
 sys/man/8/newuser - 664 sys sys 1196638947 2418
 sys/man/8/nfsserver - 664 sys sys 1196638947 3576
 sys/man/8/partfs - 664 sys sys 1196638947 869
+sys/man/8/pci - 664 sys sys 1203983723 591
 sys/man/8/pcmcia - 664 sys sys 1196638947 408
 sys/man/8/pem - 664 sys sys 1196638947 1189
 sys/man/8/ping - 664 sys sys 1196638947 3650
@@ -8110,7 +8111,7 @@ sys/src/9/pc/ether8169.c - 664 sys sys 1185812348 26931
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1131290377 32294
 sys/src/9/pc/ether82557.c - 664 sys sys 1191886292 30411
 sys/src/9/pc/ether82563.c - 664 sys sys 1200342471 37076
-sys/src/9/pc/ether82598.c - 664 sys sys 1202489363 0
+sys/src/9/pc/ether82598.c - 664 sys sys 1203982856 18364
 sys/src/9/pc/ether83815.c - 664 sys sys 1172259521 26346
 sys/src/9/pc/ether8390.c - 664 sys sys 1131290377 17702
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
@@ -8146,7 +8147,7 @@ sys/src/9/pc/mem.h - 664 sys sys 1196193040 5308
 sys/src/9/pc/memory.c - 664 sys sys 1196193039 18878
 sys/src/9/pc/mkfile - 664 sys sys 1191885521 4025
 sys/src/9/pc/mmu.c - 664 sys sys 1171688128 24591
-sys/src/9/pc/mouse.c - 664 sys sys 1098479254 7057
+sys/src/9/pc/mouse.c - 664 sys sys 1203981356 7190
 sys/src/9/pc/mp.c - 664 sys sys 1162388126 17349
 sys/src/9/pc/mp.h - 664 sys sys 1173288116 6799
 sys/src/9/pc/nv_dma.h - 664 sys sys 1081384508 12943
@@ -8186,7 +8187,7 @@ sys/src/9/pc/uarti8250.c - 664 sys sys 1177676872 13957
 sys/src/9/pc/uartisa.c - 664 sys sys 1127126907 1777
 sys/src/9/pc/uartpci.c - 664 sys sys 1190235592 4685
 sys/src/9/pc/usb.h - 664 sys sys 1202865355 4630
-sys/src/9/pc/usbohci.c - 664 sys sys 1202323008 47570
+sys/src/9/pc/usbohci.c - 664 sys sys 1203981402 49005
 sys/src/9/pc/usbuhci.c - 664 sys sys 1202252076 31839
 sys/src/9/pc/vga.c - 664 sys sys 1131290595 5148
 sys/src/9/pc/vga3dfx.c - 664 sys sys 1133218367 3833
