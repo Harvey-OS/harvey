@@ -132,7 +132,7 @@ char maptab[] = {
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-fsv] [-a accel] [ctlrno usbport]\n", argv0);
+	fprint(2, "usage: %s [-dfsv] [-a accel] [ctlrno usbport]\n", argv0);
 	threadexitsall("usage");
 }
 
@@ -146,20 +146,20 @@ threadmain(int argc, char *argv[])
 	Mouseinfo mouse;
 
 	ARGBEGIN{
+	case 'a':
+		accel = strtol(EARGF(usage()), nil, 0);
+		break;
 	case 'd':
-		debug=1;
-		break;
-	case 's':
-		scroll=1;
-		break;
-	case 'v':
-		verbose=1;
+		debug = usbdebug = 1;
 		break;
 	case 'f':
-		nofork=1;
+		nofork = 1;
 		break;
-	case 'a':
-		accel=strtol(EARGF(usage()), nil, 0);
+	case 's':
+		scroll = 1;
+		break;
+	case 'v':
+		verbose = 1;
 		break;
 	default:
 		usage();
