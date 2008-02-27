@@ -46,10 +46,10 @@
 386/bin/auth/asn12rsa - 775 sys sys 1188446816 121912
 386/bin/auth/authsrv - 775 sys sys 1201753318 165370
 386/bin/auth/changeuser - 775 sys sys 1178568246 96020
-386/bin/auth/convkeys - 775 sys sys 1203712993 87362
+386/bin/auth/convkeys - 775 sys sys 1204057806 87642
 386/bin/auth/convkeys2 - 775 sys sys 1203712994 87421
 386/bin/auth/cron - 775 sys sys 1188446828 140446
-386/bin/auth/debug - 775 sys sys 1192762780 102504
+386/bin/auth/debug - 775 sys sys 1204057810 101408
 386/bin/auth/disable - 775 sys sys 1020319057 146
 386/bin/auth/enable - 775 sys sys 1020319057 134
 386/bin/auth/factotum - 775 sys sys 1203712996 321987
@@ -458,7 +458,7 @@
 386/bin/upas/bayes - 775 sys sys 1178568309 73372
 386/bin/upas/deliver - 775 sys sys 1192823253 99212
 386/bin/upas/filter - 775 sys sys 1200262782 146753
-386/bin/upas/fs - 775 sys sys 1188447307 331763
+386/bin/upas/fs - 775 sys sys 1204057817 331512
 386/bin/upas/isspam - 775 sys sys 1064598349 38
 386/bin/upas/list - 775 sys sys 1200262783 83036
 386/bin/upas/marshal - 775 sys sys 1184529906 132936
@@ -489,7 +489,7 @@
 386/bin/usb/probe - 775 sys sys 1203567409 173
 386/bin/usb/usbaudio - 775 sys sys 1202876962 188937
 386/bin/usb/usbd - 775 sys sys 1202876965 132270
-386/bin/usb/usbmouse - 775 sys sys 1202876967 129429
+386/bin/usb/usbmouse - 775 sys sys 1204057823 129465
 386/bin/usb/usbprint - 775 sys sys 1203567409 373
 386/bin/usb/usbprobe - 775 sys sys 1203567409 232
 386/bin/vac - 775 sys sys 1196742539 171330
@@ -9621,10 +9621,10 @@ sys/src/cmd/auth/authsrv.c - 664 sys sys 1172776678 18383
 sys/src/cmd/auth/challenge.c - 664 sys sys 1015008432 980
 sys/src/cmd/auth/changeuser.c - 664 sys sys 1155994851 2949
 sys/src/cmd/auth/convbio.c - 664 sys sys 1015008432 2212
-sys/src/cmd/auth/convkeys.c - 664 sys sys 1155994849 2387
+sys/src/cmd/auth/convkeys.c - 664 sys sys 1204007234 2707
 sys/src/cmd/auth/convkeys2.c - 664 sys sys 1155994849 2444
 sys/src/cmd/auth/cron.c - 664 sys sys 1186599442 12315
-sys/src/cmd/auth/debug.c - 664 sys sys 1143694911 7325
+sys/src/cmd/auth/debug.c - 664 sys sys 1204007269 8034
 sys/src/cmd/auth/disable - 775 sys sys 1015008431 146
 sys/src/cmd/auth/enable - 775 sys sys 1015008430 134
 sys/src/cmd/auth/factotum - 20000000775 sys sys 1140694896 0
@@ -9652,7 +9652,7 @@ sys/src/cmd/auth/keyfs.c - 664 sys sys 1191007186 19129
 sys/src/cmd/auth/lib - 20000000775 sys sys 1045504996 0
 sys/src/cmd/auth/lib/error.c - 664 sys sys 1155994850 318
 sys/src/cmd/auth/lib/fs.c - 664 sys sys 1015008430 228
-sys/src/cmd/auth/lib/getauthkey.c - 664 sys sys 1155994850 451
+sys/src/cmd/auth/lib/getauthkey.c - 664 sys sys 1204007339 448
 sys/src/cmd/auth/lib/getexpiration.c - 664 sys sys 1162844529 1574
 sys/src/cmd/auth/lib/keyfmt.c - 664 sys sys 1155994850 508
 sys/src/cmd/auth/lib/log.c - 664 sys sys 1155994850 618
@@ -9667,7 +9667,7 @@ sys/src/cmd/auth/lib/readn.c - 664 sys sys 1155994851 264
 sys/src/cmd/auth/lib/readwrite.c - 664 sys sys 1155994851 1441
 sys/src/cmd/auth/lib/wrbio.c - 664 sys sys 1015008430 755
 sys/src/cmd/auth/login.c - 664 sys sys 1140272942 4002
-sys/src/cmd/auth/mkfile - 664 sys sys 1176422844 1793
+sys/src/cmd/auth/mkfile - 664 sys sys 1204007370 1772
 sys/src/cmd/auth/netkey.c - 664 sys sys 1155994849 758
 sys/src/cmd/auth/newns.c - 664 sys sys 1179368218 979
 sys/src/cmd/auth/none.c - 664 sys sys 1179405289 970
@@ -14176,7 +14176,7 @@ sys/src/cmd/upas/filterkit/token.c - 664 sys sys 1162952184 1319
 sys/src/cmd/upas/fs - 20000000775 sys sys 1143946985 0
 sys/src/cmd/upas/fs/dat.h - 664 sys sys 1143929916 4189
 sys/src/cmd/upas/fs/fs.c - 664 sys sys 1175322795 26929
-sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1165967944 16484
+sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1204007092 16319
 sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1165967884 27070
 sys/src/cmd/upas/fs/mkfile - 664 sys sys 1047490336 321
 sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1175322803 7498
@@ -14290,7 +14290,7 @@ sys/src/cmd/usb/misc - 20000000775 sys sys 1091282306 0
 sys/src/cmd/usb/misc/mkfile - 664 sys sys 1203553011 356
 sys/src/cmd/usb/misc/print - 775 sys sys 1167253831 314
 sys/src/cmd/usb/misc/probe - 775 sys sys 1167253836 173
-sys/src/cmd/usb/misc/usbmouse.c - 664 sys sys 1202702762 4804
+sys/src/cmd/usb/misc/usbmouse.c - 664 sys sys 1204006880 4826
 sys/src/cmd/usb/mkfile - 664 sys sys 1203553384 366
 sys/src/cmd/usb/usbd - 20000000775 sys sys 1091204979 0
 sys/src/cmd/usb/usbd/dat.h - 664 sys sys 1091204979 675

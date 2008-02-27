@@ -1,5 +1,6 @@
 #include <u.h>
 #include <libc.h>
+#include <ctype.h>
 #include <authsrv.h>
 #include <mp.h>
 #include <libsec.h>
@@ -22,11 +23,11 @@ main(int argc, char *argv[])
 	int fd, len;
 
 	ARGBEGIN{
-	case 'v':
-		verb = 1;
-		break;
 	case 'p':
 		usepass = 1;
+		break;
+	case 'v':
+		verb = 1;
 		break;
 	default:
 		usage();
@@ -112,6 +113,20 @@ oldCBCdecrypt(char *key7, char *p, int len)
 
 }
 
+static int
+badname(char *s)
+{
+	int n;
+	Rune r;
+
+	for (; *s != '\0'; s += n) {
+		n = chartorune(&r, s);
+		if (n == 1 && r == Runeerror)
+			return 1;
+	}
+	return 0;
+}
+
 int
 convert(char *p, char *key, int len)
 {
@@ -125,9 +140,15 @@ convert(char *p, char *key, int len)
 	}
 	len += KEYDBOFF;
 	oldCBCdecrypt(authkey, p, len);
+	for(i = KEYDBOFF; i < len; i += KEYDBLEN)
+		if (badname(&p[i])) {
+			print("bad name %.30s... - aborting\n", &p[i]);
+			return 0;
+		}
 	if(verb)
 		for(i = KEYDBOFF; i < len; i += KEYDBLEN)
 			print("%s\n", &p[i]);
+
 	randombytes((uchar*)p, 8);
 	oldCBCencrypt(key, p, len);
 	return len;

@@ -377,38 +377,6 @@ imap4login(Imap *imap)
 	return nil;
 }
 
-//
-// push tls onto a connection
-//
-int
-mypushtls(int fd)
-{
-	int p[2];
-	char buf[10];
-
-	if(pipe(p) < 0)
-		return -1;
-
-	switch(fork()){
-	case -1:
-		close(p[0]);
-		close(p[1]);
-		return -1;
-	case 0:
-		close(p[1]);
-		dup(p[0], 0);
-		dup(p[0], 1);
-		sprint(buf, "/fd/%d", fd);
-		execl("/bin/tlsrelay", "tlsrelay", "-f", buf, nil);
-		_exits(nil);
-	default:
-		break;
-	}
-	close(fd);
-	close(p[0]);
-	return p[1];
-}
-
 static char*
 imaperrstr(char *host, char *port)
 {
@@ -421,6 +389,36 @@ imaperrstr(char *host, char *port)
 	return mess;
 }
 
+static int
+starttls(Imap *imap, TLSconn *connp)
+{
+	int sfd;
+	uchar digest[SHA1dlen];
+
+	fmtinstall('H', encodefmt);
+	memset(connp, 0, sizeof *connp);
+	sfd = tlsClient(imap->fd, connp);
+	if(sfd < 0) {
+		werrstr("tlsClient: %r");
+		return -1;
+	}
+	if(connp->cert==nil || connp->certlen <= 0) {
+		close(sfd);
+		werrstr("server did not provide TLS certificate");
+		return -1;
+	}
+	sha1(connp->cert, connp->certlen, digest, nil);
+	if(!imap->thumb || !okThumbprint(digest, imap->thumb)){
+		close(sfd);
+		werrstr("server certificate %.*H not recognized",
+			SHA1dlen, digest);
+		return -1;
+	}
+	close(imap->fd);
+	imap->fd = sfd;
+	return sfd;
+}
+
 //
 // dial and handshake with the imap server
 //
@@ -428,7 +426,6 @@ static char*
 imap4dial(Imap *imap)
 {
 	char *err, *port;
-	uchar digest[SHA1dlen];
 	int sfd;
 	TLSconn conn;
 
@@ -449,21 +446,11 @@ imap4dial(Imap *imap)
 		return imaperrstr(imap->host, port);
 
 	if(imap->mustssl){
-		memset(&conn, 0, sizeof conn);
-		sfd = tlsClient(imap->fd, &conn);
-		if(sfd < 0)
-			sysfatal("tlsClient: %r");
-		if(conn.cert==nil || conn.certlen <= 0)
-			sysfatal("server did not provide TLS certificate");
-		sha1(conn.cert, conn.certlen, digest, nil);
-		if(!imap->thumb || !okThumbprint(digest, imap->thumb)){
-			fmtinstall('H', encodefmt);
-			sysfatal("server certificate %.*H not recognized", SHA1dlen, digest);
+		sfd = starttls(imap, &conn);
+		if (sfd < 0) {
+			free(conn.cert);
+			return imaperrstr(imap->host, port);
 		}
-		free(conn.cert);
-		close(imap->fd);
-		imap->fd = sfd;
-
 		if(imap->debug){
 			char fn[128];
 			int fd;

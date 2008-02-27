@@ -44,7 +44,7 @@ OTHEROFILES=\
 
 HFILES=/sys/include/auth.h /sys/include/authsrv.h authcmdlib.h
 
-LIB=lib.$O.a /$objtype/lib/libc.a
+LIB=lib.$O.a
 BIN=/$objtype/bin/auth
 CLIB=`{ls lib/*.c}
 
