@@ -5483,7 +5483,7 @@ rc/bin/B - 775 sys sys 945617206 645
 rc/bin/C - 775 sys sys 1169492077 980
 rc/bin/Kill - 775 sys sys 1018637942 115
 rc/bin/a: - 775 sys sys 1063856406 255
-rc/bin/addpsfonts - 775 sys sys 1192741348 293
+rc/bin/addpsfonts - 775 sys sys 1204141960 266
 rc/bin/ap - 775 sys sys 1175869448 645
 rc/bin/ape - 20000000775 sys sys 1155362042 0
 rc/bin/ape/ar89 - 775 sys sys 1139744263 240
