@@ -17,19 +17,21 @@
 #include "io.h"
 #include "../port/error.h"
 
-#include	"../port/sd.h"
+#include "../port/sd.h"
 
 #define dprint if(!0){}else iprint
 #define idprint if(!0){}else iprint
 #define ioprint if(!0){}else iprint
 
-enum{
+enum {
 	NCtlr		= 4,
 	NCtlrdrv	= 8,
 	NDrive		= NCtlr*NCtlrdrv,
 
 	Read 		= 0,
 	Write,
+
+	Coraiddebug	= 0,
 };
 
 enum {
@@ -160,7 +162,7 @@ struct Chip
 	Edma	*edma;
 };
 
-enum{
+enum {
 	DMautoneg,
 	DMsatai,
 	DMsataii,
@@ -356,7 +358,7 @@ struct Rx				/* command response block */
 };
 
 static Drive 	*mvsatadrive[NDrive];
-static int		nmvsatadrive;
+static int	nmvsatadrive;
 
 /*
  * Little-endian parsing for drive data.
@@ -1481,10 +1483,10 @@ rdregs(char *p, char *e, void *base, Regs *r, int n, char *prefix)
 {
 	int i;
 
-	for(i=0; i<n; i++)
-		p = seprint(p, e, "%s%s%-19s %.8ux\n",
-			prefix ? prefix : "", prefix ? ": " : "",
-			r[i].name, *(ulong *)((uchar*)base+r[i].offset));
+	for(i = 0; i < n; i++)
+		p = seprint(p, e, "%s%s%-19s %.8lux\n",
+			prefix? prefix: "", prefix? ": ": "",
+			r[i].name, *(ulong *)((uchar*)base + r[i].offset));
 	return p;
 }
 
@@ -1494,12 +1496,9 @@ rdinfo(char *p, char *e, ushort *info)
 	int i;
 
 	p = seprint(p, e, "info");
-	for(i=0; i<256; i++){
-		p = seprint(p, e, "%s%.4ux%s",
-			i%8==0 ? "\t" : "",
-			info[i],
-			i%8==7 ? "\n" : "");
-	}
+	for(i = 0; i < 256; i++)
+		p = seprint(p, e, "%s%.4ux%s", i%8 == 0? "\t": "", info[i],
+			i%8 == 7? "\n": "");
 	return p;
 }
 
@@ -1551,6 +1550,10 @@ mv50wctl(SDunit *unit, Cmdbuf *cb)
 	return -1;
 }
 
+/*
+ * sd(3): ``Reading /dev/sdctl yields information about each controller,
+ * one line per controller.''
+ */
 static char*
 mv50rtopctl(SDev *sdev, char *p, char *e)
 {
@@ -1563,11 +1566,15 @@ mv50rtopctl(SDev *sdev, char *p, char *e)
 
 	snprint(name, sizeof name, "sd%c", sdev->idno);
 	p = rdregs(p, e, ctlr->mmio, regsctlr, nelem(regsctlr), name);
-	/* info for first disk */
-	p = rdregs(p, e, ctlr->chip[0].arb, regsarb, nelem(regsarb), name);
-	p = rdregs(p, e, &ctlr->chip[0].arb->bridge[0], regsbridge, nelem(regsbridge), name);
-	p = rdregs(p, e, &ctlr->chip[0].edma[0], regsedma, nelem(regsedma), name);
-
+	if (Coraiddebug) {
+		/* info for first disk.  BUG: this shouldn't be here. */
+		p = rdregs(p, e, ctlr->chip[0].arb,
+			regsarb, nelem(regsarb), name);
+		p = rdregs(p, e, &ctlr->chip[0].arb->bridge[0],
+			regsbridge, nelem(regsbridge), name);
+		p = rdregs(p, e, &ctlr->chip[0].edma[0],
+			regsedma, nelem(regsedma), name);
+	}
 	return p;
 }
 

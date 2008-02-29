@@ -17,12 +17,14 @@ dev
 	cap
 	kprof
 	fs
+	segment
 
 	ether		netif
 	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
 
 	sd
 	floppy		dma
+	aoe
 
 	uart
 	usb
@@ -45,12 +47,13 @@ link
 	etherigbe	pci ethermii
 	ethervgbe	pci ethermii
 	ethervt6102	pci ethermii
-#	etherm10g	pci
+#	etherm10g	pci ethermii
+	ether82598	pci
 	ethersink
 	ethermedium
 	loopbackmedium
-# perhaps this is causing panics
 	usbuhci
+	usbohci
 
 misc
 	archmp		mp apic
@@ -64,6 +67,7 @@ misc
 	sdmv50xx	pci sdscsi
 	sdmylex		pci sdscsi
 	sdiahci		pci sdscsi
+	sdaoe		sdscsi
 
 ip
 	tcp

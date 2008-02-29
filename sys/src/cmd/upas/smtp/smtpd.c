@@ -177,7 +177,8 @@ main(int argc, char **argv)
 	getconf();
 	Binit(&bin, 0, OREAD);
 
-	chdir(UPASLOG);
+	if (chdir(UPASLOG) < 0)
+		syslog(0, "smtpd", "no %s: %r", UPASLOG);
 	me = sysname_read();
 	if(dom == 0 || dom[0] == 0)
 		dom = domainname_read();

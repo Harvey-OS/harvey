@@ -42,6 +42,42 @@ static char EFsysNoCurrent[] = "fsys: no current fsys";
 static char EFsysNotFound[] = "fsys: '%s' not found";
 static char EFsysNotOpen[] = "fsys: '%s' not open";
 
+static char *
+ventihost(char *host)
+{
+	if(host != nil)
+		return strdup(host);
+	host = getenv("venti");
+	if(host == nil)
+		host = strdup("$venti");
+	return host;
+}
+
+static void
+prventihost(char *host)
+{
+	char *vh;
+
+	vh = ventihost(host);
+	fprint(2, "%s: dialing venti at %s\n",
+		argv0, netmkaddr(vh, 0, "venti"));
+	free(vh);
+}
+
+static VtSession *
+myDial(char *host, int canfail)
+{
+	prventihost(host);
+	return vtDial(host, canfail);
+}
+
+static int
+myRedial(VtSession *z, char *host)
+{
+	prventihost(host);
+	return vtRedial(z, host);
+}
+
 static Fsys*
 _fsysGet(char* name)
 {
@@ -1441,7 +1477,7 @@ fsysVenti(char* name, int argc, char* argv[])
 			goto out;
 		}
 		r = 1;
-		if(!vtRedial(fsys->session, host)
+		if(!myRedial(fsys->session, host)
 		|| !vtConnect(fsys->session, 0))
 			r = 0;
 		goto out;
@@ -1451,7 +1487,7 @@ fsysVenti(char* name, int argc, char* argv[])
 	if(fsys->session)
 		vtClose(fsys->session);
 	r = 1;
-	if((fsys->session = vtDial(host, 0)) == nil
+	if((fsys->session = myDial(host, 0)) == nil
 	|| !vtConnect(fsys->session, 0))
 		r = 0;
 out:
@@ -1525,7 +1561,7 @@ fsysOpen(char* name, int argc, char* argv[])
 			host = fsys->venti;
 		else
 			host = nil;
-		fsys->session = vtDial(host, 1);
+		fsys->session = myDial(host, 1);
 		if(!vtConnect(fsys->session, nil) && !noventi)
 			fprint(2, "warning: connecting to venti: %R\n");
 	}

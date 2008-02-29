@@ -58,6 +58,12 @@ fastticks(uvlong* hz)
 	return ticks;
 }
 
+ulong
+µs(void)
+{
+	return fastticks2us(cycletimer());
+}
+
 /*  
  *  performance measurement ticks.  must be low overhead.
  *  doesn't have to count over a second.
@@ -69,7 +75,7 @@ perfticks(void)
 }
 
 void
-timerset(uvlong)
+timerset(Tval)
 {
 }
 

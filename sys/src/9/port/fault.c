@@ -55,6 +55,9 @@ faulterror(char *s, Chan *c, int freemem)
 	pexit(s, freemem);
 }
 
+void	(*checkaddr)(ulong, Segment *, Page *);
+ulong	addr2check;
+
 int
 fixfault(Segment *s, ulong addr, int read, int doputmmu)
 {
@@ -168,6 +171,8 @@ fixfault(Segment *s, ulong addr, int read, int doputmmu)
 			}
 		}
 
+		if (checkaddr && addr == addr2check)
+			(*checkaddr)(addr, s, *pg);
 		mmuphys = PPN((*pg)->pa) |PTEWRITE|PTEUNCACHED|PTEVALID;
 		(*pg)->modref = PG_MOD|PG_REF;
 		break;
@@ -322,7 +327,7 @@ okaddr(ulong addr, ulong len, int write)
 			return 1;
 		}
 	}
-	pprint("suicide: invalid address 0x%lux in sys call pc=0x%lux\n", addr, userpc());
+	pprint("suicide: invalid address 0x%lux/%lud in sys call pc=0x%lux\n", addr, len, userpc());
 	return 0;
 }
 

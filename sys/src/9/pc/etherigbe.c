@@ -1193,7 +1193,7 @@ igbeattach(Ether* edev)
 	ctlr = edev->ctlr;
 	ctlr->edev = edev;			/* point back to Ether* */
 	qlock(&ctlr->alock);
-	if(ctlr->alloc != nil){
+	if(ctlr->alloc != nil){			/* already allocated? */
 		qunlock(&ctlr->alock);
 		return;
 	}
@@ -1202,6 +1202,7 @@ igbeattach(Ether* edev)
 	ctlr->ntd = ROUND(Ntd, 8);
 	ctlr->alloc = malloc(ctlr->nrd*sizeof(Rd)+ctlr->ntd*sizeof(Td) + 127);
 	if(ctlr->alloc == nil){
+		print("igbe: can't allocate ctlr->alloc\n");
 		qunlock(&ctlr->alock);
 		return;
 	}
@@ -1210,6 +1211,11 @@ igbeattach(Ether* edev)
 
 	ctlr->rb = malloc(ctlr->nrd*sizeof(Block*));
 	ctlr->tb = malloc(ctlr->ntd*sizeof(Block*));
+	if (ctlr->rb == nil || ctlr->tb == nil) {
+		print("igbe: can't allocate ctlr->rb or ctlr->tb\n");
+		qunlock(&ctlr->alock);
+		return;
+	}
 
 	if(waserror()){
 		while(ctlr->nrb > 0){

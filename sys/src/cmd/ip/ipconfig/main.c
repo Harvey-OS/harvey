@@ -299,7 +299,8 @@ parse6pref(int argc, char **argv)
 		conf.prefixlen = atoi(argv[1]);
 		/* fall through */
 	case 1:
-		parseip(conf.v6pref, argv[0]);
+		if (parseip(conf.v6pref, argv[0]) == -1)
+			sysfatal("bad address %s", argv[0]);
 		break;
 	}
 	DEBUG("parse6pref: pref %I len %d", conf.v6pref, conf.prefixlen);
@@ -1507,7 +1508,8 @@ optgetp9addrs(uchar *ap, int op, uchar *ip, int n)
 	addrs = *p++;			/* first byte is address count */
 	for (i = 0; i < n  && i < addrs && len > 0; i++) {
 		slen = strlen(p) + 1;
-		parseip(&ip[i*IPaddrlen], p);
+		if (parseip(&ip[i*IPaddrlen], p) == -1)
+			fprint(2, "%s: bad address %s\n", argv0, p);
 		DEBUG("got plan 9 option %d addr %I (%s)",
 			op, &ip[i*IPaddrlen], p);
 		p += slen;
@@ -1719,7 +1721,8 @@ getndb(void)
 	p = strstr(buf, "ip=");
 	if(p == nil)
 		return -1;
-	parseip(conf.laddr, p+3);
+	if (parseip(conf.laddr, p+3) == -1)
+		fprint(2, "%s: bad address %s\n", argv0, p+3);
 	return 0;
 }
 
@@ -1796,7 +1799,7 @@ parseverb(char *name)
 void
 ndbconfig(void)
 {
-	int nattr, nauth = 0, ndns = 0, nfs = 0;
+	int nattr, nauth = 0, ndns = 0, nfs = 0, ok;
 	char etheraddr[32];
 	char *attrs[10];
 	Ndb *db;
@@ -1820,21 +1823,26 @@ ndbconfig(void)
 	attrs[nattr++] = "@auth";
 	attrs[nattr] = nil;
 	t = ndbipinfo(db, "ether", etheraddr, attrs, nattr);
-	for(nt = t; nt != nil; nt = nt->entry)
+	for(nt = t; nt != nil; nt = nt->entry) {
+		ok = 1;
 		if(strcmp(nt->attr, "ip") == 0)
-			parseip(conf.laddr, nt->val);
+			ok = parseip(conf.laddr, nt->val);
 		else if(strcmp(nt->attr, "ipmask") == 0)
-			parseipmask(conf.mask, nt->val);
+			parseipmask(conf.mask, nt->val);  /* could be -1 */
 		else if(strcmp(nt->attr, "ipgw") == 0)
-			parseip(conf.gaddr, nt->val);
+			ok = parseip(conf.gaddr, nt->val);
 		else if(ndns < 2 && strcmp(nt->attr, "dns") == 0)
-			parseip(conf.dns+IPaddrlen*ndns, nt->val);
+			ok = parseip(conf.dns+IPaddrlen*ndns, nt->val);
 		else if(strcmp(nt->attr, "ntp") == 0)
-			parseip(conf.ntp, nt->val);
+			ok = parseip(conf.ntp, nt->val);
 		else if(nfs < 2 && strcmp(nt->attr, "fs") == 0)
-			parseip(conf.fs+IPaddrlen*nfs, nt->val);
+			ok = parseip(conf.fs+IPaddrlen*nfs, nt->val);
 		else if(nauth < 2 && strcmp(nt->attr, "auth") == 0)
-			parseip(conf.auth+IPaddrlen*nauth, nt->val);
+			ok = parseip(conf.auth+IPaddrlen*nauth, nt->val);
+		if (!ok)
+			fprint(2, "%s: bad %s address in ndb: %s\n", argv0,
+				nt->attr, nt->val);
+	}
 	ndbfree(t);
 	if(!validip(conf.laddr))
 		sysfatal("address not found in ndb");

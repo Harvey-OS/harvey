@@ -6,9 +6,10 @@
 #include <dat.h>
 
 extern	char *binddir;
-	long now;
-	char *blog = "ipboot";
-	int minlease = MinLease;
+
+long now;
+char *blog = "ipboot";
+int minlease = MinLease;
 
 void
 main(void)
@@ -34,10 +35,11 @@ main(void)
 	b.lease = b.offer = 0;
 	now = time(0);
 	for(i = 0; i < nall; i++){
-		parseip(b.ip, all[i].name);
-		if(syncbinding(&b, 0) < 0)
+		if(parseip(b.ip, all[i].name) == -1 || syncbinding(&b, 0) < 0)
 			continue;
 		if(b.lease > now)
-			print("%I leased by %s until %s", b.ip, b.boundto, ctime(b.lease));
-	}		
+			print("%I leased by %s until %s", b.ip, b.boundto,
+				ctime(b.lease));
+	}
+	exits(0);
 }

@@ -299,6 +299,19 @@ panic(char *fmt, ...)
 	exit(1);
 }
 
+/* libmp at least contains a few calls to sysfatal; simulate with panic */
+void
+sysfatal(char *fmt, ...)
+{
+	char err[256];
+	va_list arg;
+
+	va_start(arg, fmt);
+	vseprint(err, err + sizeof err, fmt, arg);
+	va_end(arg);
+	panic("sysfatal: %s", err);
+}
+
 void
 _assert(char *fmt)
 {

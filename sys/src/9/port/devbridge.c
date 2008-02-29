@@ -189,9 +189,6 @@ static void	portfree(Port *port);
 static void	cacheflushport(Bridge *b, int port);
 static void	etherwrite(Port *port, Block *bp);
 
-extern ulong	parseip(uchar*, char*);
-extern ushort	ipcsum(uchar *addr);
-
 static void
 bridgeinit(void)
 {

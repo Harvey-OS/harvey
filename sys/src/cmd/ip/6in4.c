@@ -92,7 +92,8 @@ procargs(int argc, char **argv)
 		parseipmask(localmask, p);
 		*p = 0;
 	}
-	parseip(local6, loc6);
+	if (parseip(local6, loc6) == -1)
+		sysfatal("bad local v6 address %s", loc6);
 	if (isv4(local6))
 		usage();
 	if (argc >= 1 && argv[0][0] == '/') {
@@ -104,7 +105,8 @@ procargs(int argc, char **argv)
 
 	/* remote v4 address (defaults to anycast 6to4) */
 	if (argc >= 1) {
-		parseip(remote4, *argv++);
+		if (parseip(remote4, *argv++) == -1)
+			sysfatal("bad remote v4 address %s", argv[-1]);
 		argc--;
 		if (!isv4(remote4))
 			usage();
@@ -117,7 +119,8 @@ procargs(int argc, char **argv)
 
 	/* remote v6 address (defaults to link-local w/ v4 as interface part) */
 	if (argc >= 1) {
-		parseip(remote6, *argv++);
+		if (parseip(remote6, *argv++) == -1)
+			sysfatal("bad remote v6 address %s", argv[-1]);
 		argc--;
 	} else {
 		remote6[0] = 0xFE;		/* link local */

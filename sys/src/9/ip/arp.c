@@ -48,6 +48,7 @@ char *Ebadarp = "bad arp";
 #define haship(s) ((s)[IPaddrlen-1]%NHASH)
 
 extern int 	ReTransTimer = RETRANS_TIMER;
+
 static void 	rxmitproc(void *v);
 
 void
@@ -446,7 +447,8 @@ arpwrite(Fs *fs, char *s, int len)
 		default:
 			error(Ebadarg);
 		case 3:
-			parseip(ip, f[1]);
+			if (parseip(ip, f[1]) == -1)
+				error(Ebadip);
 			if(isv4(ip))
 				r = v4lookup(fs, ip+IPv4off, nil);
 			else
@@ -460,7 +462,8 @@ arpwrite(Fs *fs, char *s, int len)
 			m = ipfindmedium(f[1]);
 			if(m == nil)
 				error(Ebadarp);
-			parseip(ip, f[2]);
+			if (parseip(ip, f[2]) == -1)
+				error(Ebadip);
 			n = parsemac(mac, f[3], m->maclen);
 			break;
 		}
@@ -473,7 +476,8 @@ arpwrite(Fs *fs, char *s, int len)
 		if(n != 2)
 			error(Ebadarg);
 
-		parseip(ip, f[1]);
+		if (parseip(ip, f[1]) == -1)
+			error(Ebadip);
 		qlock(arp);
 
 		l = &arp->hash[haship(ip)];

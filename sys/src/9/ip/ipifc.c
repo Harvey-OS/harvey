@@ -390,19 +390,21 @@ ipifcadd(Ipifc *ifc, char **argv, int argc, int tentative, Iplifc *lifcp)
 			ifc->maxtu = mtu;
 		/* fall through */
 	case 4:
-		parseip(ip, argv[1]);
+		if (parseip(ip, argv[1]) == -1 || parseip(rem, argv[3]) == -1)
+			return Ebadip;
 		parseipmask(mask, argv[2]);
-		parseip(rem, argv[3]);
 		maskip(rem, mask, net);
 		break;
 	case 3:
-		parseip(ip, argv[1]);
+		if (parseip(ip, argv[1]) == -1)
+			return Ebadip;
 		parseipmask(mask, argv[2]);
 		maskip(ip, mask, rem);
 		maskip(rem, mask, net);
 		break;
 	case 2:
-		parseip(ip, argv[1]);
+		if (parseip(ip, argv[1]) == -1)
+			return Ebadip;
 		memmove(mask, defmask(ip), IPaddrlen);
 		maskip(ip, mask, rem);
 		maskip(rem, mask, net);
@@ -590,12 +592,14 @@ ipifcrem(Ipifc *ifc, char **argv, int argc)
 	if(argc < 3)
 		return Ebadarg;
 
-	parseip(ip, argv[1]);
+	if (parseip(ip, argv[1]) == -1)
+		return Ebadip;
 	parseipmask(mask, argv[2]);
 	if(argc < 4)
 		maskip(ip, mask, rem);
 	else
-		parseip(rem, argv[3]);
+		if (parseip(rem, argv[3]) == -1)
+			return Ebadip;
 
 	wlock(ifc);
 

@@ -1,3 +1,4 @@
+# pccpuf - pc cpu server with fossil root and maybe venti block store
 dev
 	root
 	cons
@@ -62,6 +63,7 @@ link
 	netdevmedium
 	loopbackmedium
 	usbuhci
+	usbohci
 
 misc
 	archmp		mp apic
@@ -98,7 +100,6 @@ misc
 	vgavesa
 	vgavmware	+cur
 
-
 ip
 	tcp
 	udp
@@ -121,6 +122,6 @@ bootdir
 	bootpccpuf.out boot
 	/386/bin/ip/ipconfig
 	/386/bin/auth/factotum
-	/386/bin/disk/kfs
+#	/386/bin/disk/kfs
 	/386/bin/fossil/fossil
 	/386/bin/venti/venti

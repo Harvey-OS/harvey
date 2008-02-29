@@ -986,7 +986,7 @@ ulong
  *  set next timer interrupt
  */
 void
-timerset(uvlong x)
+timerset(Tval x)
 {
 	if(doi8253set)
 		(*arch->timerset)(x);
