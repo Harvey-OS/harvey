@@ -35,20 +35,20 @@
 #define MicroFREQ	1000000ULL
 
 struct {
-	int	init;		// true if initialized
+	int	init;		/* true if initialized */
 	ulong	cnt;
 	Lock;
-	uvlong	multiplier;	// ns = off + (multiplier*ticks)>>31
-	uvlong	divider;	// ticks = (divider*(ns-off))>>31
-	uvlong	umultiplier;	// µs = (µmultiplier*ticks)>>31
-	uvlong	udivider;	// ticks = (µdivider*µs)>>31
-	vlong	hz;		// frequency of fast clock
-	vlong	last;		// last reading of fast clock
-	vlong	off;		// offset from epoch to last
-	vlong	lasttime;	// last return value from todget
-	vlong	delta;		// add 'delta' each slow clock tick from sstart to send
-	ulong	sstart;		// ...
-	ulong	send;		// ...
+	uvlong	multiplier;	/* ns = off + (multiplier*ticks)>>31 */
+	uvlong	divider;	/* ticks = (divider*(ns-off))>>31 */
+	uvlong	umultiplier;	/* µs = (µmultiplier*ticks)>>31 */
+	uvlong	udivider;	/* ticks = (µdivider*µs)>>31 */
+	vlong	hz;		/* frequency of fast clock */
+	vlong	last;		/* last reading of fast clock */
+	vlong	off;		/* offset from epoch to last */
+	vlong	lasttime;	/* last return value from todget */
+	vlong	delta;	/* add 'delta' each slow clock tick from sstart to send */
+	ulong	sstart;		/* ... */
+	ulong	send;		/* ... */
 } tod;
 
 static void todfix(void);
@@ -59,7 +59,7 @@ todinit(void)
 	if(tod.init)
 		return;
 	ilock(&tod);
-	tod.last = fastticks((uvlong*)&tod.hz);
+	tod.last = fastticks((uvlong *)&tod.hz);
 	iunlock(&tod);
 	todsetfreq(tod.hz);
 	tod.init = 1;
@@ -77,9 +77,9 @@ todsetfreq(vlong f)
 
 	/* calculate multiplier for time conversion */
 	tod.multiplier = mk64fract(TODFREQ, f);
-	tod.divider = mk64fract(f, TODFREQ);
+	tod.divider = mk64fract(f, TODFREQ) + 1;
 	tod.umultiplier = mk64fract(MicroFREQ, f);
-	tod.udivider = mk64fract(f, MicroFREQ);
+	tod.udivider = mk64fract(f, MicroFREQ) + 1;
 	iunlock(&tod);
 }
 
@@ -128,14 +128,16 @@ todget(vlong *ticksp)
 	if(!tod.init)
 		todinit();
 
-	// we don't want time to pass twixt the measuring of fastticks
-	// and grabbing tod.last.  Also none of the vlongs are atomic so
-	// we have to look at them inside the lock.
+	/*
+	 * we don't want time to pass twixt the measuring of fastticks
+	 * and grabbing tod.last.  Also none of the vlongs are atomic so
+	 * we have to look at them inside the lock.
+	 */
 	ilock(&tod);
 	tod.cnt++;
 	ticks = fastticks(nil);
 
-	// add in correction
+	/* add in correction */
 	if(tod.sstart != tod.send){
 		t = MACHP(0)->ticks;
 		if(t >= tod.send)
@@ -144,14 +146,14 @@ todget(vlong *ticksp)
 		tod.sstart = t;
 	}
 
-	// convert to epoch
+	/* convert to epoch */
 	diff = ticks - tod.last;
 	if(diff < 0)
 		diff = 0;
 	mul64fract(&x, diff, tod.multiplier);
 	x += tod.off;
 
-	// time can't go backwards
+	/* time can't go backwards */
 	if(x < tod.lasttime)
 		x = tod.lasttime;
 	else
@@ -194,16 +196,16 @@ todfix(void)
 	diff = ticks - tod.last;
 	if(diff > tod.hz){
 		ilock(&tod);
-	
-		// convert to epoch
+
+		/* convert to epoch */
 		mul64fract(&x, diff, tod.multiplier);
 if(x > 30000000000ULL) print("todfix %llud\n", x);
 		x += tod.off;
-	
-		// protect against overflows
+
+		/* protect against overflows */
 		tod.last = ticks;
 		tod.off = x;
-	
+
 		iunlock(&tod);
 	}
 }
@@ -308,6 +310,6 @@ mk64fract(uvlong to, uvlong from)
 	}
 
 	return (to/from)<<(32-shift);
-*/
-	return (to<<32)/from;
+ */
+	return (to<<32) / from;
 }

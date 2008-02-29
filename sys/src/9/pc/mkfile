@@ -65,8 +65,10 @@ LIB=\
 	/$objtype/lib/libmemlayer.a\
 	/$objtype/lib/libmemdraw.a\
 	/$objtype/lib/libdraw.a\
+	/$objtype/lib/libip.a\
 	/$objtype/lib/libc.a\
 	/$objtype/lib/libsec.a\
+	/$objtype/lib/libmp.a\
 
 ETHER=`{echo devether.c ether*.c | sed 's/\.c/.'$O'/g'}
 VGA=`{echo devvga.c screen.c vga*.c | sed 's/\.c/.'$O'/g'}
@@ -108,12 +110,14 @@ apic.$O archmp.$O mp.$O:	mp.h
 $SDEV:				../port/sd.h
 sd53c8xx.$O:			sd53c8xx.i
 sdiahci.$O:			ahci.h
+devaoe.$O sdaoe.$O:		../port/aoe.h
 main.$O:			init.h reboot.h
 wavelan.$O:			wavelan.c ../pc/wavelan.c ../pc/wavelan.h
 etherwavelan.$O:		etherwavelan.c ../pc/wavelan.h
 devusb.$O usbuhci.$O usbohci.$O: usb.h
 trap.$O:			/sys/include/tos.h
 uartaxp.$O:			uartaxp.i
+etherm10g.$O:			etherm10g2k.i etherm10g4k.i
 
 init.h:		../port/initcode.c init9.c
 	$CC ../port/initcode.c

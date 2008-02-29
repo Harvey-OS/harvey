@@ -96,39 +96,37 @@ listen137(void *)
 void
 usage(void)
 {
-	print("usage: client [-u ipaddr] name\n");
+	fprint(2, "usage: %s [-u ipaddr] name\n", argv0);
+	exits("usage");
 }
 
 void
 threadmain(int argc, char **argv)
 {
-	int i;
+	int broadcast = 1, i, listen137thread, rv;
+	char *ip;
+	uchar ipaddr[IPaddrlen], serveripaddr[IPaddrlen];
 	NbName nbname;
-	int listen137thread;
-	uchar ipaddr[IPaddrlen];
-	int rv;
-	int broadcast = 1;
-	uchar serveripaddr[IPaddrlen];
 
 	ARGBEGIN {
 	case 'u':
 		broadcast = 0;
-		parseip(serveripaddr, ARGF());
+		ip = EARGF(usage());
+		if (parseip(serveripaddr, ip) == -1)
+			sysfatal("bad ip address %s", ip);
 		break;
 	default:
 		usage();
 	} ARGEND;
 
 	if (argc == 0)
-		exits("");
+		usage();
 
 	nbmknamefromstring(nbname, argv[0]);
 
 	ipifc = readipifc("/net", nil, 0);
-	if (ipifc == nil || ipifc->lifc == nil) {
-		print("no network interface");
-		exits("");
-	}
+	if (ipifc == nil || ipifc->lifc == nil)
+		sysfatal("no network interface");
 	fmtinstall('I', eipfmt);
 	ipmove(bcastaddr, ipifc->lifc->ip);
 	for (i = 0; i < IPaddrlen; i++)

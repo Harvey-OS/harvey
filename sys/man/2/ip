@@ -12,10 +12,10 @@ eipfmt, parseip, parseipmask, v4parseip, v4parsecidr, parseether, myipaddr, myet
 int	eipfmt(Fmt*)
 .PP
 .B
-ulong	parseip(uchar *ipaddr, char *str)
+vlong	parseip(uchar *ipaddr, char *str)
 .PP
 .B
-ulong	parseipmask(uchar *ipaddr, char *str)
+vlong	parseipmask(uchar *ipaddr, char *str)
 .PP
 .B
 char*	v4parseip(uchar *ipaddr, char *str)

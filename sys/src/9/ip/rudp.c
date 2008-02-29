@@ -607,7 +607,8 @@ rudpctl(Conv *c, char **f, int n)
 	} else if(strcmp(f[0], "hangup") == 0){
 		if(n < 3)
 			return "bad syntax";
-		parseip(ip, f[1]);
+		if (parseip(ip, f[1]) == -1)
+			return Ebadip;
 		x = atoi(f[2]);
 		qlock(ucb);
 		relforget(c, ip, x, 1);

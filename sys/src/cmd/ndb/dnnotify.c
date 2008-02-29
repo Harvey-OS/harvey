@@ -60,9 +60,10 @@ send_notify(char *slave, RR *soa, Request *req)
 	n = mkreq(soa->owner, Cin, obuf, Fauth | Onotify, reqno);
 
 	/* get an address */
-	if(strcmp(ipattr(slave), "ip") == 0)
-		parseip(up->raddr, slave);
-	else {
+	if(strcmp(ipattr(slave), "ip") == 0) {
+		if (parseip(up->raddr, slave) == -1)
+			dnslog("bad address %s to notify", slave);
+	} else {
 		rp = dnresolve(slave, Cin, Ta, req, nil, 0, 1, 1, &status);
 		if(rp == nil)
 			return;

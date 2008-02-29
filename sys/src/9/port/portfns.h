@@ -328,8 +328,8 @@ void		swapinit(void);
 void		timeradd(Timer*);
 void		timerdel(Timer*);
 void		timersinit(void);
-void		timerintr(Ureg*, uvlong);
-void		timerset(uvlong);
+void		timerintr(Ureg*, Tval);
+void		timerset(Tval);
 ulong		tk2ms(ulong);
 #define		TK2MS(x) ((x)*(1000/HZ))
 uvlong		tod2fastticks(vlong);
@@ -384,7 +384,9 @@ void		hnputs(void*, ushort);
 uvlong		nhgetv(void*);
 uint		nhgetl(void*);
 ushort		nhgets(void*);
+ulong		µs(void);
 void		_xinc(long*);
 long		_xdec(long*);
+long		lcycles(void);
 
 #pragma varargck argpos iprint 1

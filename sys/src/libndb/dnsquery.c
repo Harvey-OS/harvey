@@ -22,7 +22,7 @@ dnsquery(char *net, char *val, char *type)
 	Ndbtuple *t;
 	int fd;
 
-	/* if the address is V4 or V6 null address, give up early vwhoi*/
+	/* if the address is V4 or V6 null address, give up early */
 	if(strcmp(val, "::") == 0 || strcmp(val, "0.0.0.0") == 0)
 		return nil;
 
@@ -62,6 +62,10 @@ dnsquery(char *net, char *val, char *type)
 	} else
 		t = doquery(fd, val, type);
 
+	/*
+	 * TODO: make fd static and keep it open to reduce 9P traffic
+	 * walking to /net*^/dns.
+	 */
 	close(fd);
 	ndbsetmalloctag(t, getcallerpc(&net));
 	return t;

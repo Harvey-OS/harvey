@@ -454,12 +454,12 @@ usbreset(void)
 	int cardno, ctlrno;
 	Usbhost *uh;
 
+	if(getconf("*nousbprobe"))
+		return;
+
 	for(ctlrno = 0; ctlrno < MaxUsb; ctlrno++)
 		if((uh = usbprobe(-1, ctlrno)) != nil)
 			usbhost[ctlrno] = uh;
-
-	if(getconf("*nousbprobe"))
-		return;
 
 	cardno = ctlrno = 0;
 	while(usbtypes[cardno].type != nil && ctlrno < MaxUsb){

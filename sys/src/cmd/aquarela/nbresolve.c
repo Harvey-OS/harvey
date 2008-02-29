@@ -5,11 +5,12 @@
 int
 nbnameresolve(NbName nbname, uchar *ipaddr)
 {
-	/* for now, just use dns */
-	Ndbtuple *t;
-	NbName copy;
+	ulong r, ttl;
 	char name[NETPATHLEN];
-	ulong ttl;
+	NbName copy;
+	Ndbtuple *t;
+
+	/* for now, just use dns */
 	if (nbremotenametablefind(nbname, ipaddr)) {
 //print("%B found in cache\n", nbname);
 		return 1;
@@ -24,10 +25,7 @@ nbnameresolve(NbName nbname, uchar *ipaddr)
 	t = dnsquery("/net", name, "ip");
 	if (t == nil)
 		return 0;
-	if (parseip(ipaddr, t->line->val) == 0) {
-		ndbfree(t);
-		return 0;
-	}
+	r = parseip(ipaddr, t->line->val);
 	ndbfree(t);
-	return 1;
+	return r != -1;
 }

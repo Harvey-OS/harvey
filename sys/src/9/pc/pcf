@@ -1,3 +1,4 @@
+# pcf - pc terminal with fossil root and maybe venti block store
 dev
 	root
 	cons
@@ -121,6 +122,6 @@ bootdir
 	bootpcf.out boot
 	/386/bin/ip/ipconfig
 	/386/bin/auth/factotum
-	/386/bin/disk/kfs
+#	/386/bin/disk/kfs
 	/386/bin/fossil/fossil
 	/386/bin/venti/venti

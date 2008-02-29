@@ -564,8 +564,8 @@ extern void	arpenter(Fs*, int version, uchar *ip, uchar *mac, int len, int noref
  */
 
 extern int	myetheraddr(uchar*, char*);
-extern ulong	parseip(uchar*, char*);
-extern ulong	parseipmask(uchar*, char*);
+extern vlong	parseip(uchar*, char*);
+extern vlong	parseipmask(uchar*, char*);
 extern char*	v4parseip(uchar*, char*);
 extern void	maskip(uchar *from, uchar *mask, uchar *to);
 extern int	parsemac(uchar *to, char *from, int len);

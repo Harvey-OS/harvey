@@ -303,7 +303,8 @@ main(int argc, char **argv)
 		exits(0);
 	}
 
-	chdir(TFTP);
+	if (chdir(TFTP) < 0)
+		warning(1, "can't change directory to %s", TFTP);
 	fd = openlisten(net);
 
 	for(;;){

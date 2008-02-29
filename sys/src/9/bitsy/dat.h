@@ -20,6 +20,7 @@ typedef struct Proc		Proc;
 typedef struct Uart		Uart;
 typedef struct Ureg		Ureg;
 typedef struct Vctl		Vctl;
+typedef long		Tval;
 
 #pragma incomplete Ureg
 

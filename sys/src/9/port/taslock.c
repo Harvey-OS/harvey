@@ -6,8 +6,10 @@
 #include "../port/error.h"
 #include "edf.h"
 
-uvlong maxlockcycles;
-uvlong maxilockcycles;
+long maxlockcycles;
+long maxilockcycles;
+long cumlockcycles;
+long cumilockcycles;
 ulong maxlockpc;
 ulong maxilockpc;
 
@@ -79,7 +81,7 @@ lock(Lock *l)
 		l->p = up;
 		l->isilock = 0;
 #ifdef LOCKCYCLES
-		cycles(&l->lockcycles);
+		l->lockcycles = -lcycles();
 #endif
 		return 0;
 	}
@@ -114,7 +116,7 @@ lock(Lock *l)
 			l->p = up;
 			l->isilock = 0;
 #ifdef LOCKCYCLES
-			cycles(&l->lockcycles);
+			l->lockcycles = -lcycles();
 #endif
 			return 1;
 		}
@@ -165,7 +167,7 @@ acquire:
 	l->isilock = 1;
 	l->m = MACHP(m->machno);
 #ifdef LOCKCYCLES
-	cycles(&l->lockcycles);
+	l->lockcycles = -lcycles();
 #endif
 }
 
@@ -187,7 +189,7 @@ canlock(Lock *l)
 	l->m = MACHP(m->machno);
 	l->isilock = 0;
 #ifdef LOCKCYCLES
-	cycles(&l->lockcycles);
+	l->lockcycles = -lcycles();
 #endif
 	return 1;
 }
@@ -196,9 +198,8 @@ void
 unlock(Lock *l)
 {
 #ifdef LOCKCYCLES
-	uvlong x;
-	cycles(&x);
-	l->lockcycles = x - l->lockcycles;
+	l->lockcycles += lcycles();
+	cumlockcycles += l->lockcycles;
 	if(l->lockcycles > maxlockcycles){
 		maxlockcycles = l->lockcycles;
 		maxlockpc = l->pc;
@@ -223,19 +224,23 @@ unlock(Lock *l)
 	}
 }
 
+ulong ilockpcs[0x100] = { [0xff] = 1 };
+static int n;
+
 void
 iunlock(Lock *l)
 {
 	ulong sr;
 
 #ifdef LOCKCYCLES
-	uvlong x;
-	cycles(&x);
-	l->lockcycles = x - l->lockcycles;
+	l->lockcycles += lcycles();
+	cumilockcycles += l->lockcycles;
 	if(l->lockcycles > maxilockcycles){
 		maxilockcycles = l->lockcycles;
 		maxilockpc = l->pc;
 	}
+	if(l->lockcycles > 2400)
+		ilockpcs[n++ & 0xff]  = l->pc;
 #endif
 	if(l->key == 0)
 		print("iunlock: not locked: pc %luX\n", getcallerpc(&l));

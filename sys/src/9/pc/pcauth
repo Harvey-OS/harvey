@@ -1,3 +1,4 @@
+# pcauth - pc kernel for our auth servers
 dev
 	root
 	cons
@@ -69,4 +70,4 @@ bootdir
 	/386/bin/auth/factotum
 	/386/bin/fossil/fossil
 	/386/bin/venti/venti
-	/386/bin/disk/kfs
+#	/386/bin/disk/kfs

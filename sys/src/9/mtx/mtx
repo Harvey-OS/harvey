@@ -37,6 +37,7 @@ port
 	int cpuserver = 0;
 
 boot
+	tcp
 
 bootdir
 	bootmtx.out boot

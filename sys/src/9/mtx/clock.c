@@ -58,7 +58,7 @@ clockintr(Ureg *ureg)
 }
 
 void
-timerset(uvlong)
+timerset(Tval)
 {
 }
 
@@ -93,6 +93,12 @@ fastticks(uvlong *hz)
 	if(hz)
 		*hz = HZ;
 	return m->ticks;
+}
+
+ulong
+µs(void)
+{
+	return fastticks2us(m->ticks);
 }
 
 /*  

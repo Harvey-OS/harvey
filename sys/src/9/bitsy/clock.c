@@ -42,7 +42,7 @@ static int clockinited;
 
 static void	clockintr(Ureg*, void*);
 static void	rtcintr(Ureg*, void*);
-static uvlong	when;	/* scheduled time of next interrupt */
+static Tval	when;	/* scheduled time of next interrupt */
 
 long	timeradjust;
 
@@ -138,8 +138,14 @@ fastticks(uvlong *hz)
 	return high+x;
 }
 
+ulong
+µs(void)
+{
+	return fastticks2us(fastticks(nil));
+}
+
 void
-timerset(uvlong v)
+timerset(Tval v)
 {
 	ulong next, tics;	/* Must be unsigned! */
 	static int count;
