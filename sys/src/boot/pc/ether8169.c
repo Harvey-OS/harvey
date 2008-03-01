@@ -651,6 +651,9 @@ rtl8169attach(Ether* edev)
 		ctlr->rb = malloc(Nrd*sizeof(Block*));
 		ctlr->nrd = Nrd;
 		ctlr->dtcc = xspanalloc(sizeof(Dtcc), 64, 0);
+		if (ctlr->td == nil || ctlr->tb == nil ||
+		    ctlr->rd == nil || ctlr->rb == nil || ctlr->dtcc == nil)
+			print("rtl8169attach: out of memory\n");
 		rtl8169init(edev);
 		ctlr->init = 1;
 	}
@@ -747,7 +750,6 @@ rtl8169receive(Ether* edev)
 	rdh = ctlr->rdh;
 	for(;;){
 		d = &ctlr->rd[rdh];
-	
 		if(d->control & Own)
 			break;
 
@@ -771,6 +773,10 @@ rtl8169receive(Ether* edev)
 		}
 		d->control &= Eor;
 		ctlr->nrdfree--;
+		if (!ctlr->init)
+			print("rtl8169receive: ctlr not initialised\n");
+		if (ctlr->nrd == 0)
+			print("rtl8169receive: zero ctlr->nrd\n");
 		rdh = NEXT(rdh, ctlr->nrd);
 	}
 	ctlr->rdh = rdh;

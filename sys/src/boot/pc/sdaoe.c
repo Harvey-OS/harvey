@@ -541,9 +541,11 @@ aoeverify(SDunit *u)
 	Ctlr *c;
 	SDev *s;
 
+	if (u == nil || u->dev == nil)
+		return 0;
 	s = u->dev;
 	c = s->ctlr;
-	if(c == 0){
+	if(c == nil){
 		aoepnp0();
 		if((s->ctlr = c = pnpprobe(s)) == nil)
 			return 0;
@@ -558,6 +560,8 @@ aoeonline(SDunit *u)
 	int r;
 	Ctlr *c;
 
+	if (u == nil || u->dev == nil || u->dev->ctlr == nil)
+		return 0;
 	c = u->dev->ctlr;
 	if(c->mediachange){
 		r = 2;
