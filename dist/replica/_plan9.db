@@ -7850,7 +7850,7 @@ sys/man/8/getflags - 664 sys sys 1196638947 1713
 sys/man/8/gpsfs - 664 sys sys 1196638947 4918
 sys/man/8/httpd - 664 sys sys 1196638947 6866
 sys/man/8/init - 664 sys sys 1196638947 1430
-sys/man/8/ipconfig - 664 sys sys 1197574322 8207
+sys/man/8/ipconfig - 664 sys sys 1204424262 8203
 sys/man/8/ipserv - 664 sys sys 1202161489 3268
 sys/man/8/kfscmd - 664 sys sys 1196638947 4514
 sys/man/8/listen - 664 sys sys 1196638947 4032

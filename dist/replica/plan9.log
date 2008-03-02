@@ -18699,3 +18699,4 @@
 1204322404 0 c sys/man/2/assert - 664 sys sys 1204322308 379
 1204326003 0 c sys/src/boot/pc/ether8169.c - 664 sys sys 1204324647 21870
 1204326003 1 c sys/src/boot/pc/sdaoe.c - 664 sys sys 1204324647 11381
+1204424261 0 c sys/man/8/ipconfig - 664 sys sys 1204424262 8203
