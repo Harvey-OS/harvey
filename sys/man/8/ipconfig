@@ -26,7 +26,6 @@ ipconfig, rip, linklocal, ipv6on \- Internet configuration and routing
 .I device
 ]\|]
 .RI [ verb ]
-.br
 [
 .I local
 [
