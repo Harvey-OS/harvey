@@ -18700,3 +18700,8 @@
 1204326003 0 c sys/src/boot/pc/ether8169.c - 664 sys sys 1204324647 21870
 1204326003 1 c sys/src/boot/pc/sdaoe.c - 664 sys sys 1204324647 11381
 1204424261 0 c sys/man/8/ipconfig - 664 sys sys 1204424262 8203
+1204590603 0 c sys/src/cmd/proof/font.c - 664 sys sys 1204590145 8836
+1204590603 1 c sys/src/cmd/proof/main.c - 664 sys sys 1204590214 3199
+1204590603 2 c sys/src/cmd/proof/screen.c - 664 sys sys 1204590226 6673
+1204592404 0 c sys/src/cmd/ip/ipconfig/mkfile - 664 sys sys 1204591120 575
+1204605003 0 c 386/bin/proof - 775 sys sys 1204604985 179949

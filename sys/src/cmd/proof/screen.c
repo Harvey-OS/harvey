@@ -192,9 +192,10 @@ char *pan(void)
 	return "p";
 }
 
-static char *getmousestr(void)
+static char *
+getmousestr(void)
 {
-	static char buf[20];
+	static char buf[64];
 
 	checkmouse();
 	if (last_but == 1)
@@ -213,10 +214,10 @@ static char *getmousestr(void)
 		case Again:
 			return "p";
 		case Bigger:
-			sprint(buf, "m%g", mag * 1.1);
+			snprint(buf, sizeof buf, "m%g", mag * 1.1);
 			return buf;
 		case Smaller:
-			sprint(buf, "m%g", mag / 1.1);
+			snprint(buf, sizeof buf, "m%g", mag / 1.1);
 			return buf;
 		case Pan:
 			return pan();
