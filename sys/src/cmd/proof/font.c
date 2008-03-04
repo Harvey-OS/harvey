@@ -5,7 +5,7 @@
 #include <bio.h>
 #include "proof.h"
 
-char	fname[NFONT][20];		/* font names */
+char	fname[NFONT][20];	/* font names */
 char lastload[NFONT][20];	/* last file name prefix loaded for this font */
 Font	*fonttab[NFONT][NSIZE];	/* pointers to fonts */
 int	fmap[NFONT];		/* what map to use with this font */
@@ -67,7 +67,7 @@ dochar(Rune r[])
 	Font *f;
 	Point p;
 	int fontno, fm, i;
-	char buf[10];
+	char buf[32];
 
 	fontno = curfont;
 	if((s = map(r, curfont)) == 0){		/* not on current font */
@@ -94,7 +94,7 @@ dochar(Rune r[])
 			p.x = hpos/DIV + xyoffset.x + offset.x;
 			p.y = vpos/DIV + xyoffset.y + offset.y;
 			p.y -= font->ascent;
-			sprint(buf, "%S", r);
+			snprint(buf, sizeof buf, "%S", r);
 			string(screen, p, display->black, ZP, font, buf);
 			return;
 		}
@@ -113,7 +113,7 @@ dochar(Rune r[])
 static void
 loadfont(int n, int s)
 {
-	char file[100];
+	char file[256];
 	int i, fd, t, deep;
 	static char *try[3] = {"", "times/R.", "pelm/"};
 	Subfont *f;
@@ -127,7 +127,8 @@ loadfont(int n, int s)
 		dprint(2, "size %d, i %d, mag %g\n", s, i, mag);
 		for(; i >= MINSIZE; i--){
 			/* if .font file exists, take that */
-			sprint(file, "%s/%s%d.font", libfont, try[t], i);
+			snprint(file, sizeof file, "%s/%s%d.font",
+				libfont, try[t], i);
 			ff = openfont(display, file);
 			if(ff != 0){
 				fonttab[n][s] = ff;
@@ -136,7 +137,8 @@ loadfont(int n, int s)
 			}
 			/* else look for a subfont file */
 			for (deep = log2[screen->depth]; deep >= 0; deep--){
-				sprint(file, "%s/%s%d.%d", libfont, try[t], i, deep);
+				snprint(file, sizeof file, "%s/%s%d.%d",
+					libfont, try[t], i, deep);
 				dprint(2, "trying %s for %d\n", file, i);
 				if ((fd = open(file, 0)) >= 0){
 					f = readsubfont(display, file, fd, 0);
@@ -300,7 +302,9 @@ buildtroff(char *buf)	/* map troff names into bitmap filenames */
 	fontmap[nfontmap].troffname = strdup(name);
 	fontmap[nfontmap].prefix = strdup(prefix);
 	fontmap[nfontmap].map = curmap;
-	dprint(2, "troff name %s is bitmap %s map %d in slot %d fallback %s\n", name, prefix, curmap, nfontmap, fontmap[nfontmap].fallback? fontmap[nfontmap].fallback : "<null>");
+	dprint(2, "troff name %s is bitmap %s map %d in slot %d fallback %s\n",
+		name, prefix, curmap, nfontmap, fontmap[nfontmap].fallback?
+		fontmap[nfontmap].fallback: "<null>");
 	nfontmap++;
 }
 
@@ -327,16 +331,27 @@ static char *
 map(Rune rp[], int font)	/* figure out mapping for char in this font */
 {
 	static char s[100];
-	char c[10];
+	unsigned m;
+	char c[32];
 	Link *p;
 	Rune r;
 
-	if(rp[1]==0 &&  rp[0]<QUICK)	/* fast lookup */
-		r = charmap[fmap[font]].quick[rp[0]];
-	else {	/* high-valued or compound character name */
-		sprint(c, "%S", rp);
+	if((unsigned)font >= NFONT) {
+		dprint(2, "map: font %ud >= NFONT (%d)\n", font, NFONT);
+		return 0;
+	}
+	m = fmap[font];
+	if(m >= nelem(charmap)) {
+		dprint(2, "map: fmap[font] %ud >= nelem(charmap) (%d)\n",
+			m, nelem(charmap));
+		return 0;
+	}
+	if(rp[1] == 0 && rp[0] < QUICK)		/* fast lookup */
+		r = charmap[m].quick[rp[0]];
+	else {			/* high-valued or compound character name */
+		snprint(c, sizeof c, "%S", rp);
 		r = 0;
-		for (p = charmap[fmap[font]].slow; p; p = p->next)
+		for (p = charmap[m].slow; p; p = p->next)
 			if(eq(c, p->name)){
 				r = p->val;
 				break;

@@ -11,31 +11,16 @@ double mag = DEFMAG;
 int dbg = 0;
 char *track = 0;
 Biobuf bin;
-char libfont[100] = "/lib/font/bit";
-char mapfile[100] = "MAP";
+char libfont[256] = "/lib/font/bit";
+char mapfile[256] = "MAP";
 char *mapname = "MAP";
 
 void
 usage(void)
 {
-	fprint(2, "usage: proof [-m mag] [-/ nview] [-x xoff] [-y yoff] [-M mapfile] [-F fontdir] [-dt] file...\n");
+	fprint(2, "usage: proof [-m mag] [-/ nview] [-x xoff] [-y yoff] "
+		"[-M mapfile] [-F fontdir] [-dt] file...\n");
 	exits("usage");
-}
-
-double
-getnum(char *s)
-{
-	if(s == nil)
-		usage();
-	return atof(s);
-}
-
-char*
-getstr(char *s)
-{
-	if(s == nil)
-		usage();
-	return s;
 }
 
 void
@@ -43,37 +28,37 @@ main(int argc, char *argv[])
 {
 	char c;
 	int dotrack = 0;
-	
+
 	ARGBEGIN{
+	case 'M':	/* change MAP file */
+		mapname = EARGF(usage());
+		break;
+	case 'F':	/* change /lib/font/bit directory */
+		strncpy(libfont, EARGF(usage()), sizeof libfont);
+		break;
+	case 'd':
+		dbg = 1;
+		break;
 	case 'm':	/* magnification */
-		mag = getnum(ARGF());
+		mag = atof(EARGF(usage()));
 		if (mag < 0.1 || mag > 10){
 			fprint(2, "ridiculous mag argument ignored\n");
 			mag = DEFMAG;
 		}
 		break;
-	case '/':
-		nview = getnum(ARGF());
-		if (nview < 1 || nview > MAXVIEW)
-			nview = 1;
-		break;
-	case 'x':
-		xyoffset.x += getnum(ARGF()) * 100;
-		break;
-	case 'y':
-		xyoffset.y += getnum(ARGF()) * 100;
-		break;
-	case 'M':	/* change MAP file */
-		strcpy(mapname, getstr(ARGF()));
-		break;
-	case 'F':	/* change /lib/font/bit directory */
-		strcpy(libfont, getstr(ARGF()));
-		break;
-	case 'd':
-		dbg = 1;
-		break;
 	case 't':
 		dotrack = 1;
+		break;
+	case 'x':
+		xyoffset.x += atof(EARGF(usage())) * 100;
+		break;
+	case 'y':
+		xyoffset.y += atof(EARGF(usage())) * 100;
+		break;
+	case '/':
+		nview = atof(EARGF(usage()));
+		if (nview < 1 || nview > MAXVIEW)
+			nview = 1;
 		break;
 	default:
 		usage();
@@ -89,13 +74,14 @@ main(int argc, char *argv[])
 			track = argv[0];
 	}
 	Binit(&bin, 0, OREAD);
-	sprint(mapfile, "%s/%s", libfont, mapname);
+	snprint(mapfile, sizeof mapfile, "%s/%s", libfont, mapname);
 	readmapfile(mapfile);
 	for (c = 0; c < NFONT; c++)
 		loadfontname(c, "??");
 	mapscreen();
 	clearscreen();
-	readpage(); 
+	readpage();
+	exits(0);
 }
 
 /*
@@ -104,7 +90,7 @@ main(int argc, char *argv[])
 #define	SIZE	100000	/* 8-10 pages, typically */
 
 char	bufc[SIZE];
-char	*inc = bufc;		/* where next input character goes */
+char	*inc = bufc;	/* where next input character goes */
 char	*outc = bufc;	/* next character to be read from buffer */
 int	off;		/* position of outc in total input stream */
 

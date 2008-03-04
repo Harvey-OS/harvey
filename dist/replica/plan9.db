@@ -376,7 +376,7 @@
 386/bin/pr - 775 sys sys 1178568298 76251
 386/bin/primes - 775 sys sys 1172289653 63329
 386/bin/prof - 775 sys sys 1188530184 111994
-386/bin/proof - 775 sys sys 1197732806 179174
+386/bin/proof - 775 sys sys 1204604985 179949
 386/bin/ps - 775 sys sys 1168402346 68812
 386/bin/pwd - 775 sys sys 1148500685 36932
 386/bin/ramfs - 775 sys sys 1178568298 88610
@@ -12543,7 +12543,7 @@ sys/src/cmd/ip/ipconfig - 20000000775 sys sys 1176933436 0
 sys/src/cmd/ip/ipconfig/ipconfig.h - 664 sys sys 1198189129 5311
 sys/src/cmd/ip/ipconfig/ipv6.c - 664 sys sys 1198189135 20619
 sys/src/cmd/ip/ipconfig/main.c - 664 sys sys 1204178443 40237
-sys/src/cmd/ip/ipconfig/mkfile - 664 sys sys 1184880750 233
+sys/src/cmd/ip/ipconfig/mkfile - 664 sys sys 1204591120 575
 sys/src/cmd/ip/ipconfig/ppp.c - 664 sys sys 1184880751 1046
 sys/src/cmd/ip/linklocal.c - 664 sys sys 1197673397 1751
 sys/src/cmd/ip/measure.c - 664 sys sys 944961011 3733
@@ -13196,12 +13196,12 @@ sys/src/cmd/pr.c - 664 sys sys 1168307016 11172
 sys/src/cmd/primes.c - 664 sys sys 1172257895 2471
 sys/src/cmd/prof.c - 664 sys sys 1124305301 5547
 sys/src/cmd/proof - 20000000775 sys sys 1039727677 0
-sys/src/cmd/proof/font.c - 664 sys sys 944961621 8525
+sys/src/cmd/proof/font.c - 664 sys sys 1204590145 8836
 sys/src/cmd/proof/htroff.c - 664 sys sys 955223407 10496
-sys/src/cmd/proof/main.c - 664 sys sys 955242172 3268
+sys/src/cmd/proof/main.c - 664 sys sys 1204590214 3199
 sys/src/cmd/proof/mkfile - 664 sys sys 944961622 180
 sys/src/cmd/proof/proof.h - 664 sys sys 955223407 919
-sys/src/cmd/proof/screen.c - 664 sys sys 1143759342 6646
+sys/src/cmd/proof/screen.c - 664 sys sys 1204590226 6673
 sys/src/cmd/ps.c - 664 sys sys 1144686672 2783
 sys/src/cmd/pwd.c - 664 sys sys 1067722792 287
 sys/src/cmd/qa - 20000000775 sys sys 1039727573 0
