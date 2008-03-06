@@ -153,6 +153,16 @@ case tiff
 	}
 case PDF
 	switch ($LPCLASS) {
+	case *pdf*
+#		if (~ $LPCLASS *duplex* && ~ $LPCLASS *HPJCL*)
+#			echo -n '&l1S'		# HP JCL: duplex on
+		if (~ $LPCLASS *duplex* && ~ $LPCLASS *HPJCL*) {
+			echo '%-12345X@PJL DEFAULT DUPLEX=ON'	# HP PJL
+			echo '%-12345X'
+			echo '%-12345X@PJL DEFAULT PS:MBT=ON'	# `memory boost'
+			echo '%-12345X'
+		}
+		cat $temp		# pass pdf unaltered to pdf printer
 	case *post*
 		$proc/pdfpost $temp
 	case *gs!*
