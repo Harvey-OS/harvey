@@ -18705,3 +18705,9 @@
 1204590603 2 c sys/src/cmd/proof/screen.c - 664 sys sys 1204590226 6673
 1204592404 0 c sys/src/cmd/ip/ipconfig/mkfile - 664 sys sys 1204591120 575
 1204605003 0 c 386/bin/proof - 775 sys sys 1204604985 179949
+1204698604 0 c sys/src/cmd/ip/ipconfig/main.c - 664 sys sys 1204698102 40286
+1204740004 0 c rc/bin/man - 775 sys sys 1204738776 2654
+1204750804 0 c 386/bin/ip/ipconfig - 775 sys sys 1204750828 161835
+1204761604 0 c sys/lib/lp/devices - 664 sys sys 1204761686 3846
+1204761604 1 c sys/lib/lp/process/generic - 775 sys sys 1204761143 4465
+1204761604 2 c sys/lib/lp/process/pdfgs - 775 sys sys 1204761083 1631

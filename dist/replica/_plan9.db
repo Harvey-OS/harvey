@@ -305,7 +305,7 @@
 386/bin/ip/httpd/wikipost - 775 sys sys 1191273662 114183
 386/bin/ip/httpfile - 775 sys sys 1188447244 284004
 386/bin/ip/imap4d - 775 sys sys 1188447250 236867
-386/bin/ip/ipconfig - 775 sys sys 1204292503 161825
+386/bin/ip/ipconfig - 775 sys sys 1204750828 161835
 386/bin/ip/linklocal - 775 sys sys 1204292504 46800
 386/bin/ip/ping - 775 sys sys 1204292506 94531
 386/bin/ip/ppp - 775 sys sys 1204292510 221800
@@ -5541,7 +5541,7 @@ rc/bin/leak - 775 sys sys 1172760642 1921
 rc/bin/lookman - 775 sys sys 1186528516 687
 rc/bin/lp - 775 sys sys 1162105982 5201
 rc/bin/mail - 775 sys sys 1045504003 138
-rc/bin/man - 775 sys sys 1194214975 2639
+rc/bin/man - 775 sys sys 1204738776 2654
 rc/bin/map - 775 sys sys 945617207 1576
 rc/bin/mapdemo - 775 sys sys 945617207 4075
 rc/bin/membername - 775 sys sys 945617207 89
@@ -12542,7 +12542,7 @@ sys/src/cmd/ip/imap4d/utils.c - 664 sys sys 1168894057 2587
 sys/src/cmd/ip/ipconfig - 20000000775 sys sys 1176933436 0
 sys/src/cmd/ip/ipconfig/ipconfig.h - 664 sys sys 1198189129 5311
 sys/src/cmd/ip/ipconfig/ipv6.c - 664 sys sys 1198189135 20619
-sys/src/cmd/ip/ipconfig/main.c - 664 sys sys 1204178443 40237
+sys/src/cmd/ip/ipconfig/main.c - 664 sys sys 1204698102 40286
 sys/src/cmd/ip/ipconfig/mkfile - 664 sys sys 1204591120 575
 sys/src/cmd/ip/ipconfig/ppp.c - 664 sys sys 1184880751 1046
 sys/src/cmd/ip/linklocal.c - 664 sys sys 1197673397 1751
@@ -15869,3 +15869,6 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+sys/lib/lp/devices - 664 sys sys 1204761686 3846
+sys/lib/lp/process/generic - 775 sys sys 1204761143 4465
+sys/lib/lp/process/pdfgs - 775 sys sys 1204761083 1631
