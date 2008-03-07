@@ -214,14 +214,14 @@ returns non-zero if the V6 address is in the V4 space, that is,
 if it starts with
 .BR 0:0:0:0:0:0:FFFF .
 .I V4tov6
-converts the V4 address,
+converts the 4-byte V4 address,
 .IR v4ip ,
 to a V6 address and puts the result in
 .IR v6ip .
 .I V6tov4
 converts the V6 address,
 .IR v6ip ,
-to a V4 address and puts the result in
+to a 4-byte V4 address and puts the result in
 .IR v4ip .
 .PP
 .IR Hnputs ,
