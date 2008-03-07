@@ -6635,7 +6635,7 @@ sys/lib/lp/daemon/xante - 775 sys sys 954037458 364
 sys/lib/lp/daemon/xerox - 775 sys sys 954037458 326
 sys/lib/lp/daemon/xerox-4517 - 775 sys sys 954037458 332
 sys/lib/lp/daemon/xerox-N32 - 775 sys sys 954037458 343
-sys/lib/lp/devices - 664 sys sys 1204761686 3846
+sys/lib/lp/devices - 664 sys sys 1204761747 3854
 sys/lib/lp/kill - 20000000775 sys sys 1039727405 0
 sys/lib/lp/kill/generic - 775 sys sys 954037458 638
 sys/lib/lp/kill/xerox - 775 sys sys 954037458 89
@@ -7597,7 +7597,7 @@ sys/man/2/hypot - 664 sys sys 1196638938 302
 sys/man/2/intmap - 664 sys sys 1196638940 2622
 sys/man/2/ioproc - 664 sys sys 1196638940 3060
 sys/man/2/iounit - 664 sys sys 1196638940 1001
-sys/man/2/ip - 664 sys sys 1204227918 7257
+sys/man/2/ip - 664 sys sys 1204837245 7271
 sys/man/2/isalpharune - 664 sys sys 1196638940 1059
 sys/man/2/keyboard - 664 sys sys 1196638940 2065
 sys/man/2/lock - 664 sys sys 1196638938 5705
@@ -15869,4 +15869,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-sys/lib/lp/devices - 664 sys sys 1204761747 3854
