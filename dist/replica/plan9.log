@@ -18712,3 +18712,12 @@
 1204761604 1 c sys/lib/lp/process/generic - 775 sys sys 1204761143 4465
 1204761604 2 c sys/lib/lp/process/pdfgs - 775 sys sys 1204761083 1631
 1204837204 0 c sys/man/2/ip - 664 sys sys 1204837245 7271
+1204938004 0 c sys/src/cmd/9660srv/dat.h - 664 sys sys 1204937773 2129
+1204938004 1 c sys/src/cmd/9660srv/fns.h - 664 sys sys 1204937773 429
+1204938004 2 c sys/src/cmd/9660srv/iobuf.c - 664 sys sys 1204937829 3153
+1204938004 3 c sys/src/cmd/cdfs/dat.h - 664 sys sys 1204937945 2834
+1204938004 4 c sys/src/cmd/cdfs/main.c - 664 sys sys 1204937969 11147
+1204938004 5 c sys/src/cmd/cdfs/mkfile - 664 sys sys 1204937991 153
+1204939804 0 c sys/src/cmd/cdfs/mmc.c - 664 sys sys 1204938193 20926
+1204948803 0 c 386/bin/9660srv - 775 sys sys 1204948766 104897
+1204950604 0 c sys/src/cmd/scuzz/scsireq.h - 664 sys sys 1204949623 6861

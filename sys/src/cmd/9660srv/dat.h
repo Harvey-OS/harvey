@@ -23,7 +23,7 @@ struct Iobuf
 
 struct Ioclust
 {
-	long	addr;
+	long	addr;			/* in sectors; good to 8TB */
 	Xdata*	dev;
 	Ioclust*	next;
 	Ioclust*	prev;
