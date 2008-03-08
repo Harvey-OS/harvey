@@ -10,7 +10,7 @@ OFILES=\
 HFILES=\
 	dat.h\
 	fns.h\
+	../scuzz/scsireq.h\
 
-LIB=/$objtype/lib/lib9p.a /$objtype/lib/libdisk.a
 BIN=/$objtype/bin
 </sys/src/cmd/mkone

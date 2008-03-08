@@ -16,7 +16,7 @@
 386/bin/8a - 775 sys sys 1168402260 116604
 386/bin/8c - 775 sys sys 1190520740 367214
 386/bin/8l - 775 sys sys 1148500567 115711
-386/bin/9660srv - 775 sys sys 1168402261 104975
+386/bin/9660srv - 775 sys sys 1204948766 104897
 386/bin/aan - 775 sys sys 1196742429 129831
 386/bin/acid - 775 sys sys 1200262712 405315
 386/bin/acme - 775 sys sys 1200262719 431779
@@ -9423,10 +9423,10 @@ sys/src/cmd/8l/pass.c - 664 sys sys 1095107668 13675
 sys/src/cmd/8l/span.c - 664 sys sys 1107721554 23294
 sys/src/cmd/9660srv - 20000000775 sys sys 1048644372 0
 sys/src/cmd/9660srv/9660srv.c - 664 sys sys 1132451689 17151
-sys/src/cmd/9660srv/dat.h - 664 sys sys 1091904429 2097
+sys/src/cmd/9660srv/dat.h - 664 sys sys 1204937773 2129
 sys/src/cmd/9660srv/data.c - 664 sys sys 944960735 373
-sys/src/cmd/9660srv/fns.h - 664 sys sys 1019425186 428
-sys/src/cmd/9660srv/iobuf.c - 664 sys sys 1168307362 3152
+sys/src/cmd/9660srv/fns.h - 664 sys sys 1204937773 429
+sys/src/cmd/9660srv/iobuf.c - 664 sys sys 1204937829 3153
 sys/src/cmd/9660srv/iso9660.h - 664 sys sys 1014924873 2607
 sys/src/cmd/9660srv/main.c - 664 sys sys 1168307369 9808
 sys/src/cmd/9660srv/mkfile - 664 sys sys 1048644372 238
@@ -10016,11 +10016,11 @@ sys/src/cmd/cc/sub.c - 664 sys sys 1143759345 34268
 sys/src/cmd/cc/y.tab.h - 664 sys sys 1098501521 1680
 sys/src/cmd/cdfs - 20000000775 sys sys 1039727558 0
 sys/src/cmd/cdfs/buf.c - 664 sys sys 964456822 1848
-sys/src/cmd/cdfs/dat.h - 664 sys sys 1014925665 2334
+sys/src/cmd/cdfs/dat.h - 664 sys sys 1204937945 2834
 sys/src/cmd/cdfs/fns.h - 664 sys sys 969542122 297
-sys/src/cmd/cdfs/main.c - 664 sys sys 1017679316 11040
-sys/src/cmd/cdfs/mkfile - 664 sys sys 959922196 182
-sys/src/cmd/cdfs/mmc.c - 664 sys sys 1146318348 17198
+sys/src/cmd/cdfs/main.c - 664 sys sys 1204937969 11147
+sys/src/cmd/cdfs/mkfile - 664 sys sys 1204937991 153
+sys/src/cmd/cdfs/mmc.c - 664 sys sys 1204938193 20926
 sys/src/cmd/cec - 20000000775 sys sys 1193683647 0
 sys/src/cmd/cec/LICENSE - 664 sys sys 1186248056 1554
 sys/src/cmd/cec/Protocol - 664 sys sys 1186248056 2881
@@ -15869,3 +15869,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+sys/src/cmd/scuzz/scsireq.h - 664 sys sys 1204949623 6861

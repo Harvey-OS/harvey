@@ -1,3 +1,4 @@
+/* this file is also included by usb/disk and cdfs */
 typedef struct Umsc Umsc;
 #pragma incomplete Umsc
 
@@ -103,13 +104,6 @@ enum {					/* SCSI command codes */
 	ScmdCDstatus	= 0xBD,		/* mechanism status */
 	Scmdgetconf	= 0x46,		/* get configuration */
 
-	ScmdFwaddr	= 0xE2,		/* first writeable address */
-	ScmdTreserve	= 0xE4,		/* reserve track */
-	ScmdTinfo	= 0xE5,		/* read track info */
-	ScmdTwrite	= 0xE6,		/* write track */
-	ScmdMload	= 0xE7,		/* medium load/unload */
-	ScmdFixation	= 0xE9,		/* fixation */
-
 	ScmdEInitialise	= 0x07,		/* initialise element status */
 	ScmdMMove	= 0xA5,		/* move medium */
 	ScmdEStatus	= 0xB8,		/* read element status */
@@ -119,6 +113,19 @@ enum {					/* SCSI command codes */
 	ScmdReadDVD	= 0xAD,		/* read dvd structure */
 	ScmdReportKey	= 0xA4,		/* read dvd key */
 	ScmdSendKey	= 0xA3,		/* write dvd key */
+
+	ScmdClosetracksess= 0x5B,
+	ScmdRead12	= 0xA8,
+	ScmdSetcdspeed	= 0xBB,
+	ScmdReadcd	= 0xBE,
+
+	/* vendor-specific */
+	ScmdFwaddr	= 0xE2,		/* first writeable address */
+	ScmdTreserve	= 0xE4,		/* reserve track */
+	ScmdTinfo	= 0xE5,		/* read track info */
+	ScmdTwrite	= 0xE6,		/* write track */
+	ScmdMload	= 0xE7,		/* medium load/unload */
+	ScmdFixation	= 0xE9,		/* fixation */
 };
 
 enum {
