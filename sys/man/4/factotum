@@ -440,7 +440,7 @@ The pair must remain unchanged
 .SS "Control and Key Management
 .PP
 A number of messages can be written to the control file.
-The mesages are:
+The messages are:
 .TP
 .B "key \fIattribute-value-list\fP
 add a new key.  This will replace any old key whose

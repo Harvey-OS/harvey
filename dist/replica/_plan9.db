@@ -172,7 +172,7 @@
 386/bin/calendar - 775 sys sys 1200262736 79060
 386/bin/cat - 775 sys sys 1148500611 37482
 386/bin/cb - 775 sys sys 1168402293 77628
-386/bin/cdfs - 775 sys sys 1179372081 166023
+386/bin/cdfs - 775 sys sys 1205008816 166835
 386/bin/cec - 775 sys sys 1193714267 75896
 386/bin/cfs - 775 sys sys 1190863294 130565
 386/bin/chgrp - 775 sys sys 1168402294 59522
@@ -7729,7 +7729,7 @@ sys/man/4/dossrv - 664 sys sys 1196638943 4334
 sys/man/4/execnet - 664 sys sys 1196638943 1069
 sys/man/4/exportfs - 664 sys sys 1196638943 4655
 sys/man/4/ext2srv - 664 sys sys 1196638943 2409
-sys/man/4/factotum - 664 sys sys 1196638943 14843
+sys/man/4/factotum - 664 sys sys 1205008879 14844
 sys/man/4/fossil - 664 sys sys 1196638943 9592
 sys/man/4/fs - 664 sys sys 1196638943 3441
 sys/man/4/ftpfs - 664 sys sys 1196638943 4895
@@ -7837,7 +7837,7 @@ sys/man/8/boot - 664 sys sys 1196638946 8331
 sys/man/8/booting - 664 sys sys 1196638946 4136
 sys/man/8/cec - 664 sys sys 1196638946 1929
 sys/man/8/cpurc - 664 sys sys 1196638946 1522
-sys/man/8/cron - 664 sys sys 1196638946 1867
+sys/man/8/cron - 664 sys sys 1205008447 1959
 sys/man/8/dhcpd - 664 sys sys 1196638946 5575
 sys/man/8/diskparts - 664 sys sys 1196638946 696
 sys/man/8/disksim - 664 sys sys 1196638946 1700
@@ -8264,8 +8264,8 @@ sys/src/9/port/latin1.c - 664 sys sys 1015278339 1418
 sys/src/9/port/latin1.h - 664 sys sys 1184794985 3575
 sys/src/9/port/lib.h - 664 sys sys 1131289913 6040
 sys/src/9/port/log.c - 664 sys sys 1014931175 2860
-sys/src/9/port/master - 664 sys sys 1140695116 490
-sys/src/9/port/master.local - 664 sys sys 1063856961 130
+sys/src/9/port/master - 664 sys sys 1205009260 507
+sys/src/9/port/master.local - 664 sys sys 1205009250 117
 sys/src/9/port/mkbootrules - 775 sys sys 1055700518 923
 sys/src/9/port/mkdevc - 775 sys sys 1173287346 4203
 sys/src/9/port/mkdevlist - 775 sys sys 1173287347 612
@@ -9623,7 +9623,7 @@ sys/src/cmd/auth/changeuser.c - 664 sys sys 1155994851 2949
 sys/src/cmd/auth/convbio.c - 664 sys sys 1015008432 2212
 sys/src/cmd/auth/convkeys.c - 664 sys sys 1204007234 2707
 sys/src/cmd/auth/convkeys2.c - 664 sys sys 1155994849 2444
-sys/src/cmd/auth/cron.c - 664 sys sys 1186599442 12315
+sys/src/cmd/auth/cron.c - 664 sys sys 1205008495 13189
 sys/src/cmd/auth/debug.c - 664 sys sys 1204007269 8034
 sys/src/cmd/auth/disable - 775 sys sys 1015008431 146
 sys/src/cmd/auth/enable - 775 sys sys 1015008430 134
@@ -13390,7 +13390,7 @@ sys/src/cmd/scuzz/changer.c - 664 sys sys 944961084 1137
 sys/src/cmd/scuzz/mkfile - 664 sys sys 1032060571 231
 sys/src/cmd/scuzz/mo.words - 664 sys sys 1177702138 1262
 sys/src/cmd/scuzz/scsireq.c - 664 sys sys 1181436637 13594
-sys/src/cmd/scuzz/scsireq.h - 664 sys sys 1181435455 6692
+sys/src/cmd/scuzz/scsireq.h - 664 sys sys 1204949623 6861
 sys/src/cmd/scuzz/scuzz.c - 664 sys sys 1181436627 38286
 sys/src/cmd/scuzz/sense.c - 664 sys sys 1177702138 5680
 sys/src/cmd/sed.c - 664 sys sys 1182465504 26844
@@ -15869,4 +15869,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-sys/src/cmd/scuzz/scsireq.h - 664 sys sys 1204949623 6861
+386/bin/auth/cron - 775 sys sys 1205035791 141213

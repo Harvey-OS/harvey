@@ -5,10 +5,10 @@ $	pnp
 A	audio
 A	uda1341
 B	bridge
-C	ce
 D	ssl
 E	sdp
 F	flash
+F	tinyfs
 I	ip
 K	kprof
 L	lpt
@@ -42,8 +42,11 @@ v	vga
 w	wd
 y	i82365
 y	pcmcia
+z	mntstats
 |	pipe
 ¤	cap
+æ	aoe
+Ι	kbin
 κ	kbmap
 
 α	local use
@@ -55,4 +58,3 @@ y	pcmcia
 η	local use
 θ	local use
 ι	local use
-κ	local use

@@ -114,6 +114,13 @@ Here is the job that mails system news.
 15 8-17, 21 ***	helix	/mail/lib/mailnews
 %
 .EE
+.SH FILES
+.TF /cron/lock
+.TP
+.B /cron/lock
+lock file to prevent multiple
+.IR cron s
+running
 .SH SOURCE
 .B /sys/src/cmd/auth/cron.c
 .SH "SEE ALSO"
