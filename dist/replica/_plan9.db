@@ -48,7 +48,7 @@
 386/bin/auth/changeuser - 775 sys sys 1178568246 96020
 386/bin/auth/convkeys - 775 sys sys 1204057806 87642
 386/bin/auth/convkeys2 - 775 sys sys 1203712994 87421
-386/bin/auth/cron - 775 sys sys 1188446828 140446
+386/bin/auth/cron - 775 sys sys 1205035791 141213
 386/bin/auth/debug - 775 sys sys 1204057810 101408
 386/bin/auth/disable - 775 sys sys 1020319057 146
 386/bin/auth/enable - 775 sys sys 1020319057 134
@@ -15869,4 +15869,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/auth/cron - 775 sys sys 1205035791 141213
