@@ -37,6 +37,25 @@ struct Mmcaux {
 	long	ntotbk;
 };
 
+static char *dvdtype[] = {
+	"dvd-rom",
+	"dvd-ram",
+	"dvd-r",
+	"dvd-rw",
+	"hd dvd-rom",
+	"hd dvd-ram",
+	"hd dvd-r",
+	"type 7 (unknown)",
+	"type 8 (unknown)",
+	"dvd+rw",
+	"dvd+r",
+	"type 11 (unknown)",
+	"type 12 (unknown)",
+	"dvd+rw dl",
+	"dvd+r dl",
+	"type 15 (unknown)",
+};
+
 static ulong
 bige(void *p)
 {
@@ -71,8 +90,25 @@ hexdump(void *v, int n)
 		print("\n");
 }
 
+static void
+initcdb(uchar *cdb, int len, int cmd)
+{
+	memset(cdb, 0, len);
+	cdb[0] = cmd;
+}
+
+static uchar *
+newcdb(int len, int cmd)
+{
+	uchar *cdb;
+
+	cdb = emalloc(len);
+	cdb[0] = cmd;
+	return cdb;
+}
+
 /*
- * SCSI CCBs (cmd arrays) are 6, 10, 12, 16 or 32 bytes long.
+ * SCSI CDBs (cmd arrays) are 6, 10, 12, 16 or 32 bytes long.
  * The mode sense/select commands implicitly refer to
  * a mode parameter list, which consists of an 8-byte
  * mode parameter header, followed by zero or more block
@@ -184,7 +220,7 @@ mmcsetpage10(Drive *drive, int page, void *v)
 	p[0] = 0;
 	p[1] = len - 2;
 
-	/* set up CCB */
+	/* set up CDB */
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdMselect10;
 	cmd[1] = 0x10;			/* format not vendor-specific */
@@ -273,8 +309,7 @@ mmcstatus(Drive *drive)
 {
 	uchar cmd[12];
 
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdCDstatus;			/* mechanism status */
+	initcdb(cmd, sizeof cmd, ScmdCDstatus);		/* mechanism status */
 	return scsi(drive, cmd, sizeof(cmd), nil, 0, Sread);
 }
 
@@ -284,7 +319,7 @@ mmcgetspeed(Drive *drive)
 	int n, maxread, curread, maxwrite, curwrite;
 	uchar buf[Pagesz];
 
-	n = mmcgetpage(drive, Pagcapmechsts, buf);
+	n = mmcgetpage(drive, Pagcapmechsts, buf);	/* legacy page */
 	maxread = (buf[8]<<8)|buf[9];
 	curread = (buf[14]<<8)|buf[15];
 	maxwrite = (buf[18]<<8)|buf[19];
@@ -307,7 +342,6 @@ mmcprobe(Scsi *scsi)
 	uchar buf[Pagesz];
 	int cap, n;
 
-	/* BUG: confirm mmc better! */
 	if (vflag)
 		print("mmcprobe: inquiry: %s\n", scsi->inquire);
 	drive = emalloc(sizeof(Drive));
@@ -316,6 +350,7 @@ mmcprobe(Scsi *scsi)
 	aux = emalloc(sizeof(Mmcaux));
 	drive->aux = aux;
 
+	/* BUG: confirm mmc better! */
 	/* attempt to read CD capabilities page, but it's now legacy */
 	if(mmcgetpage10(drive, Pagcapmechsts, buf) >= 0)
 		aux->pagecmdsz = 10;
@@ -326,20 +361,24 @@ mmcprobe(Scsi *scsi)
 		free(drive);
 		return nil;
 	}
-
 	cap = 0;
-	if(buf[3] & 3)		/* 2=cdrw, 1=cdr */
+	if(buf[Capwrite] & (Capcdr|Capcdrw|Capdvdr|Capdvdram) ||
+	    buf[Capmisc] & Caprw)
 		cap |= Cwrite;
-	if(buf[5] & 1)
-		cap |= Ccdda;
+	if(buf[Capmisc] & Capcdda)	/* CD-DA commands supported? */
+		cap |= Ccdda;		/* not used anywhere else */
 
 //	print("read %d max %d\n", biges(buf+14), biges(buf+8));
 //	print("write %d max %d\n", biges(buf+20), biges(buf+18));
 
 	/* cache optional page 05 (write parameter page) */
-	if((cap & Cwrite) && mmcgetpage(drive, Pagwrparams, aux->page05) >= 0)
+	if(/* (cap & Cwrite) && */
+	    mmcgetpage(drive, Pagwrparams, aux->page05) >= 0) {
 		aux->page05ok = 1;
-	else
+		cap |= Cwrite;
+		if (vflag)
+			fprint(2, "mmcprobe: got page 5, assuming writable\n");
+	} else
 		cap &= ~Cwrite;
 
 	drive->cap = cap;
@@ -375,7 +414,7 @@ mmctrackinfo(Drive *drive, int t, int i)
 	aux = drive->aux;
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdRtrackinfo;
-	cmd[1] = 1;
+	cmd[1] = 1;			/* address below is logical track # */
 	cmd[2] = t>>24;
 	cmd[3] = t>>16;
 	cmd[4] = t>>8;
@@ -385,7 +424,7 @@ mmctrackinfo(Drive *drive, int t, int i)
 	n = scsi(drive, cmd, sizeof(cmd), resp, sizeof(resp), Sread);
 	if(n < 28) {
 		if(vflag)
-			print("trackinfo %d fails n=%d %r\n", t, n);
+			print("trackinfo %d fails n=%d: %r\n", t, n);
 		return -1;
 	}
 
@@ -410,11 +449,8 @@ mmctrackinfo(Drive *drive, int t, int i)
 		type = TypeNone;
 		break;
 	case 4:		/* data track, recorded uninterrupted */
-		type = TypeData;
-		bs = BScdrom;
-		break;
 	case 5:		/* data track, recorded interrupted */
-		/* treat it as cdrom; probably dvd or bd */
+		/* treat 5 as cdrom; it's probably dvd or bd */
 		type = TypeData;
 		bs = BScdrom;
 		break;
@@ -429,7 +465,7 @@ mmctrackinfo(Drive *drive, int t, int i)
 	drive->track[i].end = beg+size;
 	drive->track[i].type = type;
 	drive->track[i].bs = bs;
-	drive->track[i].size = (vlong)(size-2)*bs;	/* -2: skip lead out */
+	drive->track[i].size = (vlong)(size-2) * bs;	/* -2: skip lead out */
 
 	if(resp[6] & (1<<6)) {
 		drive->track[i].type = TypeBlank;
@@ -438,10 +474,10 @@ mmctrackinfo(Drive *drive, int t, int i)
 
 	if(t == 0xFF)
 		aux->mmcnwa = bige(&resp[12]);
-
 	return 0;
 }
 
+/* this may fail for blank media */
 static int
 mmcreadtoc(Drive *drive, int type, int track, void *data, int nbytes)
 {
@@ -489,6 +525,108 @@ rdmsf(uchar *p)
 }
 
 static int
+getdiscinfo(Drive *drive, uchar resp[], int resplen)
+{
+	int n;
+
+	n = mmcreaddiscinfo(drive, resp, resplen);
+	if(n < 3)
+		return n;
+	if (vflag)
+		fprint(2, "read disc info succeeded\n");
+	assert((resp[2] & 0340) == 0);			/* data type 0 */
+	drive->erasable = ((resp[2] & 0x10) != 0);	/* -RW? */
+	drive->erasableset = 1;
+	return n;
+}
+
+static int
+getdvdstruct(Drive *drive)
+{
+	int n;
+	uchar cmd[12], resp[Pagesz];
+
+	initcdb(cmd, sizeof cmd, ScmdReadDVD); /* actually, read disc structure */
+	cmd[1] = 0;			/* media type: dvd */
+	cmd[7] = 0;			/* format code: physical format */
+	cmd[8] = sizeof resp >> 8;	/* allocation length */
+	cmd[9] = sizeof resp;
+	n = scsi(drive, cmd, sizeof(cmd), resp, sizeof resp, Sread);
+	if (n < 7)
+		return -1;
+	/*
+	 * resp[0..1] is resp length
+	 * (resp[4] & 0xf0) >> 4 is dvd type (disk category), MMC-6 §6.22.3.2.1
+	 */
+	if (vflag)
+		fprint(2, "dvd type is %s\n", dvdtype[(resp[4] & 0xf0) >> 4]);
+	/* write parameters mode page may suffice to compute writeok for dvd */
+	drive->erasable = drive->recordable = 0;
+	switch (resp[6] & 0xf) {		/* layer type */
+	case 0:					/* embossed data */
+		drive->blank = 0;
+		drive->blankset = 1;
+		break;
+	case 1:					/* recordable */
+		drive->recordable = 1;
+		break;
+	case 2:					/* rewritable */
+		drive->erasable = 1;
+		break;
+	default:
+		fprint(2, "%s: unknown dvd layer type %d\n",
+			argv0, resp[6] & 0xf);
+		return -1;
+	}
+	drive->erasableset = drive->recordableset = 1;
+	drive->subtype = Subtypedvd;
+	return 0;
+}
+
+static int
+getbdstruct(Drive *drive)
+{
+	int n;
+	uchar cmd[12], resp[4100];
+
+	initcdb(cmd, sizeof cmd, ScmdReadDVD); /* actually, read disc structure */
+	cmd[1] = 1;			/* media type: bd */
+	cmd[7] = 0;			/* format code: disc info */
+	cmd[8] = sizeof resp >> 8;	/* allocation length */
+	cmd[9] = sizeof resp;
+	n = scsi(drive, cmd, sizeof(cmd), resp, sizeof resp, Sread);
+	if (n < 4+8+3)
+		return -1;
+	if (vflag)
+		fprint(2, "read disc structure (bd) succeeded\n");
+	/*
+	 * resp[0..1] is resp length
+	 * resp[4+8..4+8+2] is bd type (disc type identifier):
+	 * BDO|BDW|BDR, MMC-6 §6.22.3.3.1
+	 */
+	assert(resp[4+8] == 'B' && resp[4+8+1] == 'D');
+	drive->erasable = drive->recordable = 0;
+	switch (resp[4+8+2]) {
+	case 'O':
+		drive->blank = 0;
+		drive->blankset = 1;
+		break;
+	case 'W':				/* recordable */
+		drive->recordable = 1;
+		break;
+	case 'R':				/* rewritable */
+		drive->erasable = 1;
+		break;
+	default:
+		fprint(2, "%s: unknown bd type BD%c\n", argv0, resp[4+8+2]);
+		return -1;
+	}
+	drive->erasableset = drive->recordableset = 1;
+	drive->subtype = Subtypebd;
+	return 0;
+}
+
+static int
 mmcgettoc(Drive *drive)
 {
 	uchar resp[1024];
@@ -515,12 +653,17 @@ mmcgettoc(Drive *drive)
 	drive->nameok = 0;
 	drive->nchange = drive->Scsi.nchange;
 	drive->changetime = drive->Scsi.changetime;
-	drive->writeok = 0;
+	drive->writeok = drive->erasable = drive->recordable = drive->blank = 0;
+	drive->erasableset = drive->recordableset = drive->blankset = 0;
 
 	for(i=0; i<nelem(drive->track); i++){
 		memset(&drive->track[i].mbeg, 0, sizeof(Msf));
 		memset(&drive->track[i].mend, 0, sizeof(Msf));
 	}
+
+	/*
+	 * TODO: set read ahead, MMC-6 §6.37, seems to control caching.
+	 */
 
 	/*
 	 * find number of tracks
@@ -530,29 +673,52 @@ mmcgettoc(Drive *drive)
 		 * on a blank disc in a cd-rw, use readdiscinfo
 		 * to find the track info.
 		 */
-		if(mmcreaddiscinfo(drive, resp, sizeof(resp)) < 0)
+		if(getdiscinfo(drive, resp, sizeof(resp)) < 7)
 			return -1;
+		assert((resp[2] & 0340) == 0);	/* data type 0 */
+		drive->erasable = ((resp[2] & 0x10) != 0);
+		drive->erasableset = 1;
 		if(resp[4] != 1)
 			print("multi-session disc %d\n", resp[4]);
 		first = resp[3];
 		last = resp[6];
 		if(vflag)
 			print("blank disc %d %d\n", first, last);
-		drive->writeok = 1;
+		drive->writeok = drive->blank = drive->blankset = 1;
 	} else {
 		first = resp[2];
 		last = resp[3];
 
 		if(n >= 4+8*(last-first+2)) {
-			for(i=0; i<=last-first+1; i++)	/* <=: track[last-first+1] = end */
+			/* <=: track[last-first+1] = end */
+			for(i=0; i<=last-first+1; i++)
 				drive->track[i].mbeg = rdmsf(resp+4+i*8+5);
 			for(i=0; i<last-first+1; i++)
 				drive->track[i].mend = drive->track[i+1].mbeg;
 		}
 	}
 
-	if(vflag)
+	getdvdstruct(drive);
+	getbdstruct(drive);
+
+	if (drive->subtype == Subtypenone)
+		drive->subtype = Subtypecd;	/* by default */
+	if (drive->recordable || drive->erasable)
+		drive->writeok = 1;
+//	if (drive->subtype == Subtypecd && otrack->buf->ndata == 0)
+//		otrack->buf->nblock = CDNblock;
+
+	if (vflag) {
+		fprint(2, "writeok %d", drive->writeok);
+		if (drive->blankset)
+			fprint(2, " blank %d", drive->blank);
+		if (drive->recordableset)
+			fprint(2, " recordable %d", drive->recordable);
+		if (drive->erasableset)
+			fprint(2, " erasable %d", drive->erasable);
+		fprint(2, "\n");
 		print("first %d last %d\n", first, last);
+	}
 
 	if(first == 0 && last == 0)
 		first = 1;
@@ -589,7 +755,7 @@ mmcgettoc(Drive *drive)
 			}
 		}
 
-		if((long)drive->track[0].beg < 0)	/* i've seen negative track 0's */
+		if((long)drive->track[0].beg < 0) /* i've seen negative track 0's */
 			drive->track[0].beg = 0;
 
 		tot = 0;
@@ -607,7 +773,8 @@ mmcgettoc(Drive *drive)
 				t->beg = 0;
 				t->end = 0;
 			}
-			t->size = (t->end - t->beg - 2) * (vlong)t->bs;	/* -2: skip lead out */
+			/* -2: skip lead out */
+			t->size = (t->end - t->beg - 2) * (vlong)t->bs;
 		}
 	}
 
@@ -630,35 +797,53 @@ mmcsetbs(Drive *drive, int bs)
 		return 0;			/* harmless; assume 2k */
 
 	p = aux->page05;
-	p[2] = 0x01;				/* track-at-once */
+	/*
+	 * establish defaults.
+	 * p[2] & 0xf is write type.
+	 * p[3] & 0xf is track mode.
+	 * p[4] & 0xf is data-block type.
+	 * p[8] is session format.
+	 */
+	p[2] = Wttrackonce;
 //	if(xflag)
-//		p[2] |= 0x10;			/* test-write */
-
-	switch(bs){
-	case BScdrom:
-		p[3] = (p[3] & ~0x07)|0x04;	/* data track, uninterrupted */
-		p[4] = 0x08;			/* mode 1 CD-ROM */
-		p[8] = 0;			/* session format CD-DA or CD-ROM */
+//		p[2] |= 0x10;		/* test-write */
+	p[3] &= ~0xf;
+	p[3] |= 5;			/* dvd default track mode */
+	p[4] = 0x08;			/* mode 1 CD-ROM: 2K user data */
+	p[8] = 0;			/* session format, CD-DA or -ROM (data) */
+	switch(drive->subtype) {
+	case Subtypecd:
+		p[3] = (p[3] & ~0x07)|0x04; /* data track, uninterrupted */
+		switch(bs){
+		case BScdrom:
+			break;
+		case BScdda:
+			/* 2 audio channels without pre-emphasis */
+			p[3] = (p[3] & ~0x07)|0x00;
+			p[4] = 0x00;	/* raw data */
+			break;
+		case BScdxa:
+			p[4] = 0x09;	/* mode 2: 2336 bytes user data */
+			p[8] = 0x20;	/* session format CD-ROM XA */
+			break;
+		default:
+			fprint(2, "%s: unknown CD type; bs %d\n", argv0, bs);
+			assert(0);
+		}
 		break;
-
-	case BScdda:
-		p[3] = (p[3] & ~0x07)|0x00;	/* 2 audio channels without pre-emphasis */
-		p[4] = 0x00;			/* raw data */
-		p[8] = 0;			/* session format CD-DA or CD-ROM */
+	case Subtypedvd:
+	case Subtypebd:
 		break;
-
-	case BScdxa:
-		p[3] = (p[3] & ~0x07)|0x04;	/* data track, uninterrupted */
-		p[4] = 0x09;			/* mode 2 */
-		p[8] = 0x20;			/* session format CD-ROM XA */
-		break;
-
 	default:
-		assert(0);
+		fprint(2, "%s: unknown disc sub-type %d\n",
+			argv0, drive->subtype);
+		break;
 	}
-
-	if(mmcsetpage(drive, Pagwrparams, p) < 0)
+	if(mmcsetpage(drive, Pagwrparams, p) < 0) {
+		if (vflag)
+			fprint(2, "mmcsetbs: could NOT set write parameters page\n");
 		return -1;
+	}
 	return 0;
 }
 
@@ -774,12 +959,35 @@ mmcopenrd(Drive *drive, int trackno)
 	o->track = &drive->track[trackno];
 	o->nchange = drive->nchange;
 	o->omode = OREAD;
-	o->buf = bopen(mmcread, OREAD, o->track->bs, Nblock);
+	o->buf = bopen(mmcread, OREAD, o->track->bs, BDNblock);
 	o->buf->otrack = o;
 
 	aux->nropen++;
 
 	return o;
+}
+
+static int
+format(Drive *drive)
+{
+	uchar *fmtdesc;
+	uchar cmd[6], parms[4+8];
+
+	initcdb(cmd, sizeof cmd, ScmdFormat);	/* format unit */
+	cmd[1] = 0x10 | 1;		/* format data, mmc format code */
+
+	memset(parms, 0, sizeof parms);
+	parms[1] = 2;			/* immediate return; don't wait */
+	parms[3] = 8;			/* format descriptor length */
+
+	fmtdesc = parms + 4;
+	PUTBELONG(fmtdesc, ~0ul);
+	fmtdesc[4] = 0;			/* full format */
+	PUTBE24(fmtdesc + 5, BScdrom);
+
+	if(vflag)
+		print("%lld ns: format\n", nsec());
+	return scsi(drive, cmd, sizeof(cmd), parms, sizeof parms, Swrite);
 }
 
 static long
@@ -793,6 +1001,7 @@ mmcxwrite(Otrack *o, void *v, long nblk)
 	aux = o->drive->aux;
 	aux->ntotby += nblk*o->track->bs;
 	aux->ntotbk += nblk;
+
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdExtwrite;		/* write (10) */
 	cmd[2] = aux->mmcnwa>>24;
@@ -802,7 +1011,7 @@ mmcxwrite(Otrack *o, void *v, long nblk)
 	cmd[7] = nblk>>8;
 	cmd[8] = nblk>>0;
 	if(vflag)
-		print("%lld: write %ld at 0x%lux\n", nsec(), nblk, aux->mmcnwa);
+		print("%lld ns: write %ld at 0x%lux\n", nsec(), nblk, aux->mmcnwa);
 	aux->mmcnwa += nblk;
 	return scsi(o->drive, cmd, sizeof(cmd), v, nblk*o->track->bs, Swrite);
 }
@@ -840,17 +1049,18 @@ mmccreate(Drive *drive, int type)
 		return nil;
 	}
 
+/* comment out the returns for now; it should be no big deal - geoff */
 	if(mmctrackinfo(drive, 0xFF, Maxtrack)) {	/* the invisible track */
 		werrstr("CD not writable");
-		return nil;
+//		return nil;
 	}
 	if(mmcsetbs(drive, bs) < 0) {
 		werrstr("cannot set bs mode");
-		return nil;
+//		return nil;
 	}
 	if(mmctrackinfo(drive, 0xFF, Maxtrack)) {	/* the invisible track */
 		werrstr("CD not writable 2");
-		return nil;
+//		return nil;
 	}
 
 	aux->ntotby = 0;
@@ -869,7 +1079,7 @@ mmccreate(Drive *drive, int type)
 	o->nchange = drive->nchange;
 	o->omode = OWRITE;
 	o->track = t;
-	o->buf = bopen(mmcwrite, OWRITE, bs, Nblock);
+	o->buf = bopen(mmcwrite, OWRITE, bs, BDNblock);
 	o->buf->otrack = o;
 
 	aux->nwopen++;
@@ -924,8 +1134,8 @@ mmcxclose(Drive *drive, int ts, int trackno)
 	 * ts: 1 == track, 2 == session
 	 */
 	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdClosetracksess;
-	cmd[2] = ts;
+	cmd[0] = ScmdClosetracksess;		/* fixate */
+	cmd[2] = ts;				/* close function */
 	if(ts == 1)
 		cmd[5] = trackno;
 	return scsi(drive, cmd, sizeof(cmd), cmd, 0, Snone);
@@ -944,9 +1154,10 @@ mmcfixate(Drive *drive)
 
 	drive->nchange = -1;		/* force reread toc */
 
-	/* TODO: page 5 is legacy and now read-only */
+	/* page 5 is legacy and now read-only */
 	aux = drive->aux;
 	p = aux->page05;
+	/* zero multi-session field: next session not allowed */
 	p[3] &= ~0xC0;
 	if(mmcsetpage(drive, Pagwrparams, p) < 0)
 		return -1;
@@ -963,9 +1174,10 @@ mmcsession(Drive *drive)
 
 	drive->nchange = -1;	/* force reread toc */
 
-	/* TODO: page 5 is legacy and now read-only */
+	/* page 5 is legacy and now read-only */
 	aux = drive->aux;
 	p = aux->page05;
+	/* zero multi-session field: next session not allowed */
 	p[3] &= ~0xC0;
 	if(mmcsetpage(drive, Pagwrparams, p) < 0)
 		return -1;
@@ -1014,6 +1226,8 @@ mmcctl(Drive *drive, int argc, char **argv)
 	if(argc < 1)
 		return nil;
 
+	if(strcmp(argv[0], "format") == 0)
+		return e(format(drive));
 	if(strcmp(argv[0], "blank") == 0)
 		return e(mmcblank(drive, 0));
 	if(strcmp(argv[0], "quickblank") == 0)

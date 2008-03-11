@@ -181,7 +181,7 @@
 386/bin/cleanname - 775 sys sys 1168402295 58541
 386/bin/clock - 775 sys sys 1197732691 157356
 386/bin/cmp - 775 sys sys 1157597609 40658
-386/bin/col - 775 sys sys 1172029864 64995
+386/bin/col - 775 sys sys 1205206380 63487
 386/bin/colors - 775 sys sys 1197732695 151031
 386/bin/comm - 775 sys sys 1168402296 61586
 386/bin/compress - 775 sys sys 1184529900 167036
@@ -5633,7 +5633,7 @@ rc/bin/stop - 775 sys sys 945617209 110
 rc/bin/tel - 775 sys sys 1161209756 128
 rc/bin/termrc - 775 sys sys 1179769653 2479
 rc/bin/termrc.local - 775 sys sys 1176500067 425
-rc/bin/thesaurus - 775 sys sys 1068054167 246
+rc/bin/thesaurus - 775 sys sys 1205183987 422
 rc/bin/tlsclienttunnel - 775 sys sys 1024375633 153
 rc/bin/tlssrvtunnel - 775 sys sys 1024375634 175
 rc/bin/troff2gif - 775 sys sys 1127410278 164
@@ -7721,7 +7721,7 @@ sys/man/4/INDEX - 664 sys sys 1196638942 1026
 sys/man/4/INDEX.html - 664 sys sys 1196638942 5147
 sys/man/4/acme - 664 sys sys 1196638943 10435
 sys/man/4/archfs - 664 sys sys 1196638943 533
-sys/man/4/cdfs - 664 sys sys 1196638943 3638
+sys/man/4/cdfs - 664 sys sys 1205203382 4352
 sys/man/4/cfs - 664 sys sys 1196638943 2136
 sys/man/4/consolefs - 664 sys sys 1196638943 4389
 sys/man/4/cwfs - 664 sys sys 1196638943 6553
@@ -8187,7 +8187,7 @@ sys/src/9/pc/uarti8250.c - 664 sys sys 1177676872 13957
 sys/src/9/pc/uartisa.c - 664 sys sys 1127126907 1777
 sys/src/9/pc/uartpci.c - 664 sys sys 1190235592 4685
 sys/src/9/pc/usb.h - 664 sys sys 1202865355 4630
-sys/src/9/pc/usbohci.c - 664 sys sys 1203981402 49005
+sys/src/9/pc/usbohci.c - 664 sys sys 1205184193 49042
 sys/src/9/pc/usbuhci.c - 664 sys sys 1202252076 31839
 sys/src/9/pc/vga.c - 664 sys sys 1131290595 5148
 sys/src/9/pc/vga3dfx.c - 664 sys sys 1133218367 3833
@@ -10015,12 +10015,12 @@ sys/src/cmd/cc/scon.c - 664 sys sys 1138463621 8788
 sys/src/cmd/cc/sub.c - 664 sys sys 1143759345 34268
 sys/src/cmd/cc/y.tab.h - 664 sys sys 1098501521 1680
 sys/src/cmd/cdfs - 20000000775 sys sys 1039727558 0
-sys/src/cmd/cdfs/buf.c - 664 sys sys 964456822 1848
-sys/src/cmd/cdfs/dat.h - 664 sys sys 1204937945 2834
+sys/src/cmd/cdfs/buf.c - 664 sys sys 1205203460 1851
+sys/src/cmd/cdfs/dat.h - 664 sys sys 1205203455 3753
 sys/src/cmd/cdfs/fns.h - 664 sys sys 969542122 297
-sys/src/cmd/cdfs/main.c - 664 sys sys 1204937969 11147
+sys/src/cmd/cdfs/main.c - 664 sys sys 1205203482 11360
 sys/src/cmd/cdfs/mkfile - 664 sys sys 1204937991 153
-sys/src/cmd/cdfs/mmc.c - 664 sys sys 1204938193 20926
+sys/src/cmd/cdfs/mmc.c - 664 sys sys 1205203566 26493
 sys/src/cmd/cec - 20000000775 sys sys 1193683647 0
 sys/src/cmd/cec/LICENSE - 664 sys sys 1186248056 1554
 sys/src/cmd/cec/Protocol - 664 sys sys 1186248056 2881
@@ -10051,7 +10051,7 @@ sys/src/cmd/chmod.c - 664 sys sys 1079372923 1904
 sys/src/cmd/cleanname.c - 664 sys sys 944960760 715
 sys/src/cmd/clock.c - 664 sys sys 1014925410 1881
 sys/src/cmd/cmp.c - 664 sys sys 1157581072 2491
-sys/src/cmd/col.c - 664 sys sys 1172005084 3850
+sys/src/cmd/col.c - 664 sys sys 1205188047 3850
 sys/src/cmd/colors.c - 664 sys sys 951763912 3186
 sys/src/cmd/comm.c - 664 sys sys 1093979717 2140
 sys/src/cmd/compress - 20000000775 sys sys 1157679448 0
@@ -13614,7 +13614,7 @@ sys/src/cmd/troff/ext.h - 664 sys sys 1116904533 3491
 sys/src/cmd/troff/find - 775 sys sys 944961293 15
 sys/src/cmd/troff/fns.h - 664 sys sys 944961293 7329
 sys/src/cmd/troff/hytab.c - 664 sys sys 944961293 7232
-sys/src/cmd/troff/mkfile - 664 sys sys 1019509075 1034
+sys/src/cmd/troff/mkfile - 664 sys sys 1205186908 1034
 sys/src/cmd/troff/n1.c - 664 sys sys 960145286 20246
 sys/src/cmd/troff/n10.c - 664 sys sys 944961293 11564
 sys/src/cmd/troff/n2.c - 664 sys sys 961261288 5031

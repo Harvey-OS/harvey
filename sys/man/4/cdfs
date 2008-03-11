@@ -1,13 +1,12 @@
 .TH CDFS 4
 .SH NAME
-cdfs, cddb \- CD reader and writer file system
+cdfs, cddb \- optical disc (CD, DVD, BD) reader and writer file system
 .SH SYNOPSIS
 .B cdfs
 [
 .B -d
 .I sddev
-]
-[
+] [
 .B -m
 .I mtpt
 ]
@@ -17,8 +16,7 @@ cdfs, cddb \- CD reader and writer file system
 .B aux/cddb
 [
 .B -DTt
-]
-[
+] [
 .B -s
 .I server
 ]
@@ -30,21 +28,24 @@ cdfs, cddb \- CD reader and writer file system
 .SH DESCRIPTION
 .I Cdfs
 serves a one and a half level directory
-mounted at 
+mounted at
 .I mtpt
 (default
 .BR /mnt/cd )
 that provides access to the tracks
-on CDs placed in the CD reader or writer
+on discs placed in the disc reader or writer
 named by
 .I sddev
 (default
 .BR /dev/sdD0 ,
 see
 .IR sd (3)).
+Any MMC-compliant compact disc (CD), DVD,
+or Blu-ray (BD) drive should work.
+On DVD and BD discs, access to data tracks only is implemented.
 .PP
 The top level directory contains one file
-per CD track.
+per disc track.
 The files are named
 .IR cNNN ,
 where
@@ -59,10 +60,9 @@ and
 .I NNN
 is the track number.
 .PP
-If the device is capable of writing CDs
-and contains a writable CD, the top level
-directory also contains two empty
-directories
+If the device is capable of writing discs
+and contains a writable disc, the top level
+directory also contains two empty directories
 .B wa
 and
 .BR wd .
@@ -73,44 +73,53 @@ as new audio or data tracks, regardless of name.
 At any time, any number of tracks
 may be open for reading or a single track
 may be open for writing.
-Writing a CD track is a real-time operation:
-the CD writer must be kept saturated with
+Writing a disc track is a real-time operation:
+the disc writer must be kept saturated with
 new data to avoid buffer underruns.
 To ensure this, copying from a file system
-stored on local disk is recommended.
+stored on local disk or memory is recommended.
 .PP
-To fixate a CD (close a writable CD by writing
+To fixate a disc (close a recordable disc by writing
 its permanent table of contents), simply
-remove the 
+remove the
 .B wa
 or
 .B wd
 directory.
 The directory removed selects whether
-the CD is fixated as an audio or data CD;
+the disc is fixated as an audio or data disc;
 since each track carries its own type information,
 very few readers care which fixation type was used.
+Rewritable discs do not require fixation.
 .PP
 The top level directory
-also contains a 
+also contains a
 .B ctl
 file, into which control messages
 may be echoed.
 The current control messages are:
-.TF "\fLquickblank "
+.TF "\fLquickblan"
+.TP
+.B format
+Format the rewritable disc (\c
+.B -RW
+or
+.BR -RE )
+in the drive
+before initial use.
 .TP
 .B blank
-Blank the entire rewritable CD in the drive.
+Blank the entire rewritable disc in the drive.
 .TP
 .B quickblank
 Blank only the table of contents on the rewritable
-CD in the drive.
+disc in the drive.
 .TP
 .B eject
-Eject the CD in the drive.
+Eject the disc in the drive.
 .TP
 .B ingest
-Ingest a CD into the drive.
+Ingest a disc into the drive.
 .TP
 .B speed \fIkpbs\fR
 Set the reading and writing speed to use.
@@ -131,10 +140,10 @@ or
 .B write
 .BR 8192.
 Note that most drives reset the reading and writing speed
-each time a new CD is inserted.
+each time a new disc is inserted.
 .PD
 .PP
-Reading the 
+Reading the
 .B ctl
 file yields information about the drive.
 If the drive contains an audio CD, the first line
@@ -147,31 +156,40 @@ Subsequent lines contain the current and maximum
 reading and writing speeds.
 .PD
 .PP
-.I Aux/cddb takes 4 optional arguments.
+.I Aux/cddb
+takes 4 optional arguments.
 The
-.B -s server
+.B -s
 option causes
 .I aux/cddb
-to use a different server for the query
+to use a different
+.I server
+for the query
 (default is
-.IR freedb.freedb.org ).
+.LR freedb.freedb.org ).
 The
 .B -D
 option causes the raw database response from the server to be dumped
 to standard output.
 The
-.I -t
+.B -t
 option causes the time of each track to be appended to the normal output.
-.I -T
+.B -T
 is like
-.I -t
+.B -t
 but prints a line with the total time at the end.
 .PD
-.PP
-Only MMC-compliant CD readers and writers
-are supported, but it would be easy to add
-support for early CD writers if desired.
 .SH EXAMPLE
+Backup to a BD-RW disc:
+.IP
+.EX
+9fs boot
+cdfs
+tar cbf /mnt/cd/wd/x /n/boot
+.EE
+.br
+.ne 3
+.PP
 Copy the audio tracks from a CD:
 .IP
 .EX
@@ -190,10 +208,26 @@ rm /mnt/cd/wa
 .SH SOURCE
 .B /sys/src/cmd/cdfs
 .SH SEE ALSO
+.TF "\fLhttp://www.t10.org\fP"
+.TP
+.B http://www.t10.org
+optical disc interface standards
+.PP
+.PD
 .IR sd (3),
 .I 9660srv
 (in
 .IR dossrv (4)),
 .IR mk9660 (8)
 .SH BUGS
-There should be support for DVDs.
+There are too many combinations of optical media, approximately
+the cross-product of these tuples:
+(CD DVD- DVD+ BD),
+(single-layer dual-layer),
+(ROM -R -RW).
+.PP
+Packet (incremental) writing is not yet implemented.
+.PP
+Only MMC-compliant disc readers and writers
+are supported, but it would be easy to add
+support for early CD writers if desired.

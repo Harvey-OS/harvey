@@ -381,10 +381,10 @@ fsread(Req *r)
 		r->ofcall.count = count;
 		respond(r, nil);
 	}
-	return;
 }
 
 static char *Ebadmsg = "bad cdfs control message";
+
 static char*
 writectl(void *v, long count)
 {
@@ -516,7 +516,12 @@ fsopen(Req *r)
 			return;
 		}
 
-		if(omode != OREAD || (o = drive->openrd(drive, fid->qid.path-Qtrack)) == nil) {
+		/*
+		 * allow the open with OWRITE or ORDWR if the
+		 * drive and disc are both capable?
+		 */
+		if(omode != OREAD ||
+		    (o = drive->openrd(drive, fid->qid.path-Qtrack)) == nil) {
 			respond(r, "permission denied");
 			return;
 		}
@@ -524,10 +529,9 @@ fsopen(Req *r)
 		o->nref = 1;
 		((Aux*)fid->aux)->o = o;
 		respond(r, nil);
+		break;
 	}
 }
-
-static uchar zero[BScdda];
 
 static void
 fsdestroyfid(Fid *fid)
@@ -546,6 +550,10 @@ fsdestroyfid(Fid *fid)
 	}
 }
 
+/*
+ * should it be possible on -r or -rw disc to have a mode of 0666,
+ * or do we have to use the wd/x interface?
+ */
 static void
 checktoc(Drive *drive)
 {
@@ -562,6 +570,9 @@ checktoc(Drive *drive)
 			t->mode = 0;
 		else
 			t->mode = 0444;
+		/*
+		 * set mode to 0666 if the drive and disc are both capable?
+		 */
 		sprint(t->name, "?%.3d", i);
 		switch(t->type){
 		case TypeNone:
@@ -601,14 +612,14 @@ bufwrite(Otrack *t, void *v, long n)
 Srv fs = {
 .attach=	fsattach,
 .destroyfid=	fsdestroyfid,
-.clone=	fsclone,
-.walk1=	fswalk1,
-.open=	fsopen,
-.read=	fsread,
-.write=	fswrite,
+.clone=		fsclone,
+.walk1=		fswalk1,
+.open=		fsopen,
+.read=		fsread,
+.write=		fswrite,
 .create=	fscreate,
 .remove=	fsremove,
-.stat=	fsstat,
+.stat=		fsstat,
 };
 
 void
@@ -655,16 +666,10 @@ main(int argc, char **argv)
 	if(dev == nil || mtpt == nil || argc > 0)
 		usage();
 
-	if((s = openscsi(dev)) == nil) {
-		fprint(2, "openscsi '%s': %r\n", dev);
-		exits("openscsi");
-	}
-
-	if((drive = mmcprobe(s)) == nil) {
-		fprint(2, "mmcprobe '%s': %r\n", dev);
-		exits("mmcprobe");
-	}
-
+	if((s = openscsi(dev)) == nil)
+		sysfatal("openscsi '%s': %r", dev);
+	if((drive = mmcprobe(s)) == nil)
+		sysfatal("mmcprobe '%s': %r", dev);
 	checktoc(drive);
 
 	postmountsrv(&fs, nil, mtpt, MREPL|MCREATE);
