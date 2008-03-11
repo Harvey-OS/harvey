@@ -41,7 +41,7 @@ bread(Buf *b, void *v, long n, long off)
 		noff = off - off % b->bs;
 		if(vflag)
 			fprint(2, "try refill at %ld\n", noff);
-		if((m = b->fn(b, b->data, Nblock, noff/b->bs)) <= 0)
+		if((m = b->fn(b, b->data, b->nblock, noff/b->bs)) <= 0)
 			return m;
 		b->ndata = b->bs * m;
 		b->off = noff;

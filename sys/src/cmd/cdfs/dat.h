@@ -1,12 +1,10 @@
 enum {
 	Maxtrack	= 200,
 	Ntrack		= Maxtrack+1,
-	BScdrom		= 2048,
+	BScdrom		= 2048,		/* mmc data block size */
 	BScdda		= 2352,
 	BScdxa		= 2336,
 	BSmax		= 2352,
-	Nalloc		= 12*BScdda,
-	DictBlock	= 1,
 
 	/* scsi peripheral device types */
 	TypeDA		= 0,		/* Direct Access (SBC) */
@@ -16,6 +14,13 @@ enum {
 	TypeMO		= 7,		/* rewriteable Magneto-Optical (SBC) */
 	TypeMC		= 8,		/* Medium Changer (SMC-2) */
 
+	/* MMC-3 device types */
+	Subtypenone	= 0,
+	Subtypecd,
+	Subtypedvd,
+	Subtypebd,
+
+	/* disc or track types */
 	TypeNone	= 0,
 	TypeAudio,
 	TypeAwritable,
@@ -24,7 +29,29 @@ enum {
 	TypeDisk,
 	TypeBlank,
 
-	/* Cache control bits in page 8 byte 2 */
+	/* offsets in Pagcapmechsts mode page; see MMC-3 §5.5.10 */
+	Capread		= 2,
+	Capwrite	= 3,
+	Capmisc		= 5,
+
+	/* device capabilities in Pagcapmechsts mode page */
+	Capcdr		= 1<<0,		/* bytes 2 & 3 */
+	Capcdrw		= 1<<1,
+	Captestwr	= 1<<2,
+	Capdvdrom	= 1<<3,
+	Capdvdr		= 1<<4,
+	Capdvdram	= 1<<5,
+	Capcdda		= 1<<0,		/* Capmisc bits */
+	Caprw		= 1<<2,
+
+	/* write types, MMC-6 §7.5.4.9 */
+	Wtpkt	= 0,
+	Wttrackonce,
+	Wtsessonce,
+	Wtraw,
+	Wtlayerjump,
+
+	/* Cache control bits in mode page 8 byte 2 */
 	Ccrcd	= 1<<0,		/* read cache disabled */
 	Ccmf	= 1<<1,		/* multiplication factor */
 	Ccwce	= 1<<2,		/* writeback cache enabled */
@@ -34,10 +61,13 @@ enum {
 	Ccabpf	= 1<<6,		/* abort pre-fetch */
 	Ccic	= 1<<7,		/* initiator control */
 
+	/* drive->cap bits */
 	Cwrite	= 1<<0,
 	Ccdda	= 1<<1,
 
-	Nblock = 12,
+	CDNblock = 12,		/* chosen for CD */
+	DVDNblock = 16,		/* DVD ECC block is 16 sectors */
+	BDNblock = 32,		/* BD ECC block (`cluster') is 32 sectors */
 };
 
 typedef struct Buf Buf;
@@ -63,7 +93,6 @@ struct Track
 	int	type;
 	Msf	mbeg;
 	Msf	mend;
-
 
 	/* initialized by fs */
 	char	name[32];
@@ -109,7 +138,9 @@ struct Drive
 	QLock;
 	Scsi;
 
+	/* disc characteristics */
 	int	type;
+	int	subtype;
 	int	nopen;
 	int	firsttrack;
 	int	ntrack;
@@ -117,9 +148,15 @@ struct Drive
 	int	changetime;
 	int	nameok;
 	int	writeok;
+	int	blank;
+	int	blankset;
+	int	recordable;		/* writable by burning? */
+	int	recordableset;
+	int	erasable;		/* rewritable? */
+	int	erasableset;
 
 	Track	track[Ntrack];
-	ulong	cap;
+	ulong	cap;			/* drive capabilities */
 	uchar	blkbuf[BScdda];
 
 	int	maxreadspeed;

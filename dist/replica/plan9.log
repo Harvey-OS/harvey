@@ -18728,3 +18728,13 @@
 1205010004 2 c sys/src/9/port/master - 664 sys sys 1205009260 507
 1205010004 3 c sys/src/9/port/master.local - 664 sys sys 1205009250 117
 1205037004 0 c 386/bin/auth/cron - 775 sys sys 1205035791 141213
+1205184604 0 c rc/bin/thesaurus - 775 sys sys 1205183987 422
+1205184604 1 c sys/src/9/pc/usbohci.c - 664 sys sys 1205184193 49042
+1205188204 0 c sys/src/cmd/col.c - 664 sys sys 1205188047 3850
+1205188204 1 c sys/src/cmd/troff/mkfile - 664 sys sys 1205186908 1034
+1205204404 0 c sys/man/4/cdfs - 664 sys sys 1205203382 4352
+1205204404 1 c sys/src/cmd/cdfs/buf.c - 664 sys sys 1205203460 1851
+1205204404 2 c sys/src/cmd/cdfs/dat.h - 664 sys sys 1205203455 3753
+1205204404 3 c sys/src/cmd/cdfs/main.c - 664 sys sys 1205203482 11360
+1205204404 4 c sys/src/cmd/cdfs/mmc.c - 664 sys sys 1205203566 26493
+1205208004 0 c 386/bin/col - 775 sys sys 1205206380 63487

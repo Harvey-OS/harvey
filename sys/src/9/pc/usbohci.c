@@ -1869,6 +1869,9 @@ interrupt(Ureg *, void *arg)
 		case 2:			/* Bitstuff */
 			ep->dir[dirin].err = "Bitstuff error";
 			goto error;
+		case 3:
+			ep->dir[dirin].err = "data toggle mismatch";
+			goto error;
 		case 4:			/* Stall */
 			ep->dir[dirin].err = Estalled;
 			goto error;
@@ -1888,8 +1891,7 @@ interrupt(Ureg *, void *arg)
 			wakeup(&ep->dir[dirin].rend);
 			break;
 		default:
-			panic("cc %lud unimplemented\n",
-				(ctrl >> TD_CC_SHIFT) & TD_CC_MASK);
+			panic("cc %lud unimplemented\n", cc);
 		}
 		ep->dir[dirin].queued--;
 		/* Clean up blocks used for transfers */
