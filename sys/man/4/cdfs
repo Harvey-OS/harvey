@@ -185,7 +185,7 @@ Backup to a BD-RW disc:
 .EX
 9fs boot
 cdfs
-tar cbf /mnt/cd/wd/x /n/boot
+tar cf /mnt/cd/wd/x /n/boot
 .EE
 .br
 .ne 3

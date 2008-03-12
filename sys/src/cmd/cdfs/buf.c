@@ -102,6 +102,7 @@ bwrite(Buf *b, void *v, long n)
 void
 bterm(Buf *b)
 {
+	/* DVD & BD prefer full ecc blocks (tracks), but can cope with less */
 	if(b->omode == OWRITE && b->ndata)
 		b->fn(b, b->data, (b->ndata+b->bs-1)/b->bs, b->off); 
 

@@ -18738,3 +18738,17 @@
 1205204404 3 c sys/src/cmd/cdfs/main.c - 664 sys sys 1205203482 11360
 1205204404 4 c sys/src/cmd/cdfs/mmc.c - 664 sys sys 1205203566 26493
 1205208004 0 c 386/bin/col - 775 sys sys 1205206380 63487
+1205254805 0 c sys/man/4/cdfs - 664 sys sys 1205253247 4351
+1205256604 0 c sys/src/cmd/cdfs/mmc.c - 664 sys sys 1205256625 26641
+1205262004 0 c sys/src/cmd/cdfs/main.c - 664 sys sys 1205260953 11651
+1205263804 0 c 386/bin/cdfs - 775 sys sys 1205263179 169891
+1205265603 0 c sys/src/cmd/cdfs/dat.h - 664 sys sys 1205265191 3838
+1205271004 0 c sys/src/cmd/cdfs/dat.h - 664 sys sys 1205271109 4242
+1205271004 1 c sys/src/cmd/cdfs/mmc.c - 664 sys sys 1205270965 26971
+1205272804 0 c sys/src/cmd/cdfs/buf.c - 664 sys sys 1205271166 1923
+1205281804 0 c sys/src/cmd/cdfs/dat.h - 664 sys sys 1205281336 4538
+1205281804 1 c sys/src/cmd/cdfs/main.c - 664 sys sys 1205281456 11687
+1205281804 2 c sys/src/cmd/cdfs/mmc.c - 664 sys sys 1205281492 27209
+1205289005 0 c rc/bin/dmaon - 775 sys sys 1205288448 220
+1205294404 0 c 386/bin/cdfs - 775 sys sys 1205293084 169996
+1205296204 0 c sys/src/cmd/cdfs/mmc.c - 664 sys sys 1205295078 27297
