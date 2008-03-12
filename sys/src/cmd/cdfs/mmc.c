@@ -390,8 +390,9 @@ mmcprobe(Scsi *scsi)
 	 * see SBC-2 §6.3.3 but also MMC-6 §7.6.
 	 */
 	n = mmcgetpage(drive, Pagcache, buf);
-	if (n >= 0) {
+	if (n >= 3) {
 		/* n == 255; buf[1] == 10 (10 bytes after buf[1]) */
+		buf[0] &= 077;		/* clear reserved bits, MMC-6 §7.2.3 */
 		assert(buf[0] == Pagcache);
 		assert(buf[1] >= 10);
 		buf[2] = Ccwce;
@@ -485,8 +486,9 @@ mmcreadtoc(Drive *drive, int type, int track, void *data, int nbytes)
 
 	memset(cmd, 0, sizeof(cmd));
 	cmd[0] = ScmdRTOC;
-	cmd[1] = type;
-	cmd[6] = track;
+	cmd[1] = type;				/* msf bit & reserved */
+	cmd[2] = Tocfmttoc;
+	cmd[6] = track;				/* track/session */
 	cmd[7] = nbytes>>8;
 	cmd[8] = nbytes;
 
@@ -530,8 +532,11 @@ getdiscinfo(Drive *drive, uchar resp[], int resplen)
 	int n;
 
 	n = mmcreaddiscinfo(drive, resp, resplen);
-	if(n < 3)
+	if(n < 3) {
+		if (vflag)
+			fprint(2, "read disc info failed\n");
 		return n;
+	}
 	if (vflag)
 		fprint(2, "read disc info succeeded\n");
 	assert((resp[2] & 0340) == 0);			/* data type 0 */
@@ -543,7 +548,7 @@ getdiscinfo(Drive *drive, uchar resp[], int resplen)
 static int
 getdvdstruct(Drive *drive)
 {
-	int n;
+	int n, cat;
 	uchar cmd[12], resp[Pagesz];
 
 	initcdb(cmd, sizeof cmd, ScmdReadDVD); /* actually, read disc structure */
@@ -554,32 +559,31 @@ getdvdstruct(Drive *drive)
 	n = scsi(drive, cmd, sizeof(cmd), resp, sizeof resp, Sread);
 	if (n < 7)
 		return -1;
-	/*
-	 * resp[0..1] is resp length
-	 * (resp[4] & 0xf0) >> 4 is dvd type (disk category), MMC-6 §6.22.3.2.1
-	 */
+
+//	print("dvd structure:\n");
+//	hexdump(resp, n);
+
+	/* resp[0..1] is resp length */
+	cat = (resp[4] & 0xf0) >> 4;	/* disk category, MMC-6 §6.22.3.2.1 */
 	if (vflag)
-		fprint(2, "dvd type is %s\n", dvdtype[(resp[4] & 0xf0) >> 4]);
+		fprint(2, "dvd type is %s\n", dvdtype[cat]);
 	/* write parameters mode page may suffice to compute writeok for dvd */
 	drive->erasable = drive->recordable = 0;
-	switch (resp[6] & 0xf) {		/* layer type */
-	case 0:					/* embossed data */
+	/*
+	 * the layer-type field is a *bit array*,
+	 * though an enumeration of types would make more sense,
+	 * since the types are exclusive, not orthogonal.
+	 */
+	if (resp[6] & (1<<2))			/* rewritable? */
+		drive->erasable = 1;
+	else if (resp[6] & (1<<1))		/* recordable once? */
+		drive->recordable = 1;
+	else {					/* factory-pressed disk */
 		drive->blank = 0;
 		drive->blankset = 1;
-		break;
-	case 1:					/* recordable */
-		drive->recordable = 1;
-		break;
-	case 2:					/* rewritable */
-		drive->erasable = 1;
-		break;
-	default:
-		fprint(2, "%s: unknown dvd layer type %d\n",
-			argv0, resp[6] & 0xf);
-		return -1;
 	}
 	drive->erasableset = drive->recordableset = 1;
-	drive->subtype = Subtypedvd;
+	drive->subtype = (cat >= 8? Subtypedvdplus: Subtypedvdminus);
 	return 0;
 }
 
@@ -595,26 +599,27 @@ getbdstruct(Drive *drive)
 	cmd[8] = sizeof resp >> 8;	/* allocation length */
 	cmd[9] = sizeof resp;
 	n = scsi(drive, cmd, sizeof(cmd), resp, sizeof resp, Sread);
-	if (n < 4+8+3)
+	/*
+	 * resp[0..1] is resp length.
+	 * resp[4+8..4+8+2] is bd type (disc type identifier):
+	 * BDO|BDW|BDR, MMC-6 §6.22.3.3.1.  The above command should
+	 * fail on DVD drives, but some seem to ignore media type
+	 * and return successfully, so verify that it's a BD drive.
+	 */
+	if (n < 4+8+3 || resp[4+8] != 'B' || resp[4+8+1] != 'D')
 		return -1;
 	if (vflag)
 		fprint(2, "read disc structure (bd) succeeded\n");
-	/*
-	 * resp[0..1] is resp length
-	 * resp[4+8..4+8+2] is bd type (disc type identifier):
-	 * BDO|BDW|BDR, MMC-6 §6.22.3.3.1
-	 */
-	assert(resp[4+8] == 'B' && resp[4+8+1] == 'D');
 	drive->erasable = drive->recordable = 0;
 	switch (resp[4+8+2]) {
 	case 'O':
 		drive->blank = 0;
 		drive->blankset = 1;
 		break;
-	case 'W':				/* recordable */
+	case 'R':				/* Recordable */
 		drive->recordable = 1;
 		break;
-	case 'R':				/* rewritable */
+	case 'W':				/* reWritable */
 		drive->erasable = 1;
 		break;
 	default:
@@ -668,7 +673,7 @@ mmcgettoc(Drive *drive)
 	/*
 	 * find number of tracks
 	 */
-	if((n=mmcreadtoc(drive, 0x02, 0, resp, sizeof(resp))) < 4) {
+	if((n = mmcreadtoc(drive, Msfbit, 0, resp, sizeof(resp))) < 4) {
 		/*
 		 * on a blank disc in a cd-rw, use readdiscinfo
 		 * to find the track info.
@@ -676,20 +681,20 @@ mmcgettoc(Drive *drive)
 		if(getdiscinfo(drive, resp, sizeof(resp)) < 7)
 			return -1;
 		assert((resp[2] & 0340) == 0);	/* data type 0 */
-		drive->erasable = ((resp[2] & 0x10) != 0);
-		drive->erasableset = 1;
 		if(resp[4] != 1)
 			print("multi-session disc %d\n", resp[4]);
 		first = resp[3];
 		last = resp[6];
 		if(vflag)
 			print("blank disc %d %d\n", first, last);
+		/* the assumption of blankness may be unwarranted */
 		drive->writeok = drive->blank = drive->blankset = 1;
 	} else {
 		first = resp[2];
 		last = resp[3];
 
 		if(n >= 4+8*(last-first+2)) {
+			/* resp[4 + i*8 + 2] is track # */
 			/* <=: track[last-first+1] = end */
 			for(i=0; i<=last-first+1; i++)
 				drive->track[i].mbeg = rdmsf(resp+4+i*8+5);
@@ -710,8 +715,9 @@ mmcgettoc(Drive *drive)
 
 	if (vflag) {
 		fprint(2, "writeok %d", drive->writeok);
-		if (drive->blankset)
-			fprint(2, " blank %d", drive->blank);
+		/* drive->blank is never used and hard to figure out */
+//		if (drive->blankset)
+//			fprint(2, " blank %d", drive->blank);
 		if (drive->recordableset)
 			fprint(2, " recordable %d", drive->recordable);
 		if (drive->erasableset)
@@ -742,7 +748,7 @@ mmcgettoc(Drive *drive)
 		 */
 		for(i = first; i <= last; i++) {
 			memset(resp, 0, sizeof(resp));
-			if(mmcreadtoc(drive, 0x00, i, resp, sizeof(resp)) < 0)
+			if(mmcreadtoc(drive, 0, i, resp, sizeof(resp)) < 0)
 				break;
 			t = &drive->track[i-first];
 			t->mtime = drive->changetime;
@@ -760,7 +766,8 @@ mmcgettoc(Drive *drive)
 
 		tot = 0;
 		memset(resp, 0, sizeof(resp));
-		if(mmcreadtoc(drive, 0x00, 0xAA, resp, sizeof(resp)) < 0)
+		/* 0xAA is lead-out */
+		if(mmcreadtoc(drive, 0, 0xAA, resp, sizeof(resp)) < 0)
 			print("bad\n");
 		if(resp[6])
 			tot = bige(resp+8);
@@ -804,7 +811,8 @@ mmcsetbs(Drive *drive, int bs)
 	 * p[4] & 0xf is data-block type.
 	 * p[8] is session format.
 	 */
-	p[2] = Wttrackonce;
+	p[0] &= 077;			/* clear reserved bits, MMC-6 §7.2.3 */
+	p[2] = Bufe | Wttrackonce;
 //	if(xflag)
 //		p[2] |= 0x10;		/* test-write */
 	p[3] &= ~0xf;
@@ -831,7 +839,8 @@ mmcsetbs(Drive *drive, int bs)
 			assert(0);
 		}
 		break;
-	case Subtypedvd:
+	case Subtypedvdminus:
+	case Subtypedvdplus:
 	case Subtypebd:
 		break;
 	default:
@@ -1090,6 +1099,22 @@ mmccreate(Drive *drive, int type)
 	return o;
 }
 
+/*
+ * issue some form of close track, close session or finalize disc command.
+ */
+static int
+mmcxclose(Drive *drive, int clf, int trackno)
+{
+	uchar cmd[10];
+
+	memset(cmd, 0, sizeof(cmd));
+	cmd[0] = ScmdClosetracksess;
+	cmd[2] = clf;				/* close function */
+	if(clf == Closetrack)
+		cmd[5] = trackno;
+	return scsi(drive, cmd, sizeof(cmd), cmd, 0, Snone);
+}
+
 void
 mmcsynccache(Drive *drive)
 {
@@ -1104,9 +1129,15 @@ mmcsynccache(Drive *drive)
 		print("mmcsynccache: bytes = %lld blocks = %ld, mmcnwa 0x%luX\n",
 			aux->ntotby, aux->ntotbk, aux->mmcnwa);
 	}
-/* rsc: seems not to work on some drives; 	mmcclose(1, 0xFF); */
+	/* rsc: seems not to work on some drives */
+	/* don't issue on dvd+rw */
+	if (drive->subtype != Subtypedvdplus || !drive->erasable)
+ 		mmcxclose(drive, Closetrack, 0xFF);
 }
 
+/*
+ * close the open track `o'.
+ */
 static void
 mmcclose(Otrack *o)
 {
@@ -1125,25 +1156,13 @@ mmcclose(Otrack *o)
 	free(o);
 }
 
-static int
-mmcxclose(Drive *drive, int ts, int trackno)
-{
-	uchar cmd[10];
-
-	/*
-	 * ts: 1 == track, 2 == session
-	 */
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdClosetracksess;		/* fixate */
-	cmd[2] = ts;				/* close function */
-	if(ts == 1)
-		cmd[5] = trackno;
-	return scsi(drive, cmd, sizeof(cmd), cmd, 0, Snone);
-}
-
+/*
+ * close the current session, then finalize the disc.
+ */
 static int
 mmcfixate(Drive *drive)
 {
+	int r;
 	uchar *p;
 	Mmcaux *aux;
 
@@ -1151,7 +1170,6 @@ mmcfixate(Drive *drive)
 		werrstr("not a writer");
 		return -1;
 	}
-
 	drive->nchange = -1;		/* force reread toc */
 
 	/* page 5 is legacy and now read-only */
@@ -1162,28 +1180,18 @@ mmcfixate(Drive *drive)
 	if(mmcsetpage(drive, Pagwrparams, p) < 0)
 		return -1;
 
-/* rsc: seems not to work on some drives; 	mmcclose(1, 0xFF); */
-	return mmcxclose(drive, 0x02, 0);
-}
-
-static int
-mmcsession(Drive *drive)
-{
-	uchar *p;
-	Mmcaux *aux;
-
-	drive->nchange = -1;	/* force reread toc */
-
-	/* page 5 is legacy and now read-only */
-	aux = drive->aux;
-	p = aux->page05;
-	/* zero multi-session field: next session not allowed */
-	p[3] &= ~0xC0;
-	if(mmcsetpage(drive, Pagwrparams, p) < 0)
-		return -1;
-
-/* rsc: seems not to work on some drives; 	mmcclose(1, 0xFF); */
-	return mmcxclose(drive, 0x02, 0);
+	/* rsc: seems not to work on some drives */
+	/* don't issue on dvd+rw */
+//	if (drive->subtype != Subtypedvdplus || !drive->erasable)
+//		mmcxclose(drive, Closetrack, 0xFF);
+	r = mmcxclose(drive, Closesessfinal, 0);
+	/*
+	 * Closesessfinal only closes & doesn't finalize on dvd+r and bd-r.
+	 */
+	if ((drive->subtype == Subtypedvdplus || drive->subtype == Subtypebd) &&
+	    !drive->erasable)
+		return mmcxclose(drive, Closedvdrbdfinal, 0);
+	return r;
 }
 
 static int

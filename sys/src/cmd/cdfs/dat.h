@@ -17,7 +17,8 @@ enum {
 	/* MMC-3 device types */
 	Subtypenone	= 0,
 	Subtypecd,
-	Subtypedvd,
+	Subtypedvdminus,
+	Subtypedvdplus,
 	Subtypebd,
 
 	/* disc or track types */
@@ -43,6 +44,29 @@ enum {
 	Capdvdram	= 1<<5,
 	Capcdda		= 1<<0,		/* Capmisc bits */
 	Caprw		= 1<<2,
+
+	/* Pagwrparams bits */
+	Bufe	= 1<<6,		/* buffer under-run free recording enable */
+
+	/* close track session cdb bits */
+	Closetrack	= 1,
+	Closesessfinal	= 2,	/* close session / finalize disc */
+	Closefinaldvdrw	= 3,	/* dvd-rw special: finalize */
+	/* dvd+r dl special: close session, write extended lead-out */
+	Closesessextdvdrdl = 4,
+	Closefinal30mm	= 5,	/* dvd+r special: finalize with ≥30mm radius */
+	Closedvdrbdfinal= 6,	/* dvd+r, bd-r special: finalize */
+
+	/* read toc format values */
+	Tocfmttoc	= 0,
+	Tocfmtsessnos	= 1,
+	Tocfmtqleadin	= 2,
+	Tocfmtqpma	= 3,
+	Tocfmtatip	= 4,
+	Tocfmtcdtext	= 5,
+
+	/* read toc cdb[1] bit */
+	Msfbit	= 1<<1,
 
 	/* write types, MMC-6 §7.5.4.9 */
 	Wtpkt	= 0,
@@ -103,8 +127,8 @@ struct Track
 struct DTrack
 {
 	uchar	name[32];
-	uchar	beg[4];
-	uchar	end[4];
+	uchar	beg[4];		/* msf value; only used for audio */
+	uchar	end[4];		/* msf value; only used for audio */
 	uchar	size[8];
 	uchar	magic[4];
 };
@@ -148,7 +172,7 @@ struct Drive
 	int	changetime;
 	int	nameok;
 	int	writeok;
-	int	blank;
+	int	blank;			/* (not used for anything yet) */
 	int	blankset;
 	int	recordable;		/* writable by burning? */
 	int	recordableset;

@@ -172,7 +172,7 @@
 386/bin/calendar - 775 sys sys 1200262736 79060
 386/bin/cat - 775 sys sys 1148500611 37482
 386/bin/cb - 775 sys sys 1168402293 77628
-386/bin/cdfs - 775 sys sys 1205008816 166835
+386/bin/cdfs - 775 sys sys 1205293084 169996
 386/bin/cec - 775 sys sys 1193714267 75896
 386/bin/cfs - 775 sys sys 1190863294 130565
 386/bin/chgrp - 775 sys sys 1168402294 59522
@@ -5513,7 +5513,7 @@ rc/bin/dial - 20000000775 sys sys 1059180057 0
 rc/bin/diffy - 775 sys sys 1140694870 277
 rc/bin/dircp - 775 sys sys 1186289104 181
 rc/bin/diskparts - 775 sys sys 1178399618 624
-rc/bin/dmaon - 775 sys sys 1178214935 213
+rc/bin/dmaon - 775 sys sys 1205288448 220
 rc/bin/doc2ps - 775 sys sys 1069793831 244
 rc/bin/doc2txt - 775 sys sys 1025197880 563
 rc/bin/doctype - 775 sys sys 1162921755 1727
@@ -7721,7 +7721,7 @@ sys/man/4/INDEX - 664 sys sys 1196638942 1026
 sys/man/4/INDEX.html - 664 sys sys 1196638942 5147
 sys/man/4/acme - 664 sys sys 1196638943 10435
 sys/man/4/archfs - 664 sys sys 1196638943 533
-sys/man/4/cdfs - 664 sys sys 1205203382 4352
+sys/man/4/cdfs - 664 sys sys 1205253247 4351
 sys/man/4/cfs - 664 sys sys 1196638943 2136
 sys/man/4/consolefs - 664 sys sys 1196638943 4389
 sys/man/4/cwfs - 664 sys sys 1196638943 6553
@@ -10015,12 +10015,12 @@ sys/src/cmd/cc/scon.c - 664 sys sys 1138463621 8788
 sys/src/cmd/cc/sub.c - 664 sys sys 1143759345 34268
 sys/src/cmd/cc/y.tab.h - 664 sys sys 1098501521 1680
 sys/src/cmd/cdfs - 20000000775 sys sys 1039727558 0
-sys/src/cmd/cdfs/buf.c - 664 sys sys 1205203460 1851
-sys/src/cmd/cdfs/dat.h - 664 sys sys 1205203455 3753
+sys/src/cmd/cdfs/buf.c - 664 sys sys 1205271166 1923
+sys/src/cmd/cdfs/dat.h - 664 sys sys 1205281336 4538
 sys/src/cmd/cdfs/fns.h - 664 sys sys 969542122 297
-sys/src/cmd/cdfs/main.c - 664 sys sys 1205203482 11360
+sys/src/cmd/cdfs/main.c - 664 sys sys 1205281456 11687
 sys/src/cmd/cdfs/mkfile - 664 sys sys 1204937991 153
-sys/src/cmd/cdfs/mmc.c - 664 sys sys 1205203566 26493
+sys/src/cmd/cdfs/mmc.c - 664 sys sys 1205281492 27209
 sys/src/cmd/cec - 20000000775 sys sys 1193683647 0
 sys/src/cmd/cec/LICENSE - 664 sys sys 1186248056 1554
 sys/src/cmd/cec/Protocol - 664 sys sys 1186248056 2881
@@ -15869,3 +15869,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+sys/src/cmd/cdfs/mmc.c - 664 sys sys 1205295078 27297
