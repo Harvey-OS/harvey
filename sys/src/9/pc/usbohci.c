@@ -1891,7 +1891,7 @@ interrupt(Ureg *, void *arg)
 			wakeup(&ep->dir[dirin].rend);
 			break;
 		default:
-			panic("cc %lud unimplemented\n", cc);
+			panic("cc %ud unimplemented\n", cc);
 		}
 		ep->dir[dirin].queued--;
 		/* Clean up blocks used for transfers */

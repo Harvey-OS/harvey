@@ -125,6 +125,7 @@ devshutdown(void)
 Chan*
 devattach(int tc, char *spec)
 {
+	int n;
 	Chan *c;
 	char *buf;
 
@@ -133,8 +134,9 @@ devattach(int tc, char *spec)
 	c->type = devno(tc, 0);
 	if(spec == nil)
 		spec = "";
-	buf = smalloc(4+strlen(spec)+1);
-	sprint(buf, "#%C%s", tc, spec);
+	n = 1+UTFmax+strlen(spec)+1;
+	buf = smalloc(n);
+	snprint(buf, n, "#%C%s", tc, spec);
 	c->path = newpath(buf);
 	free(buf);
 	return c;

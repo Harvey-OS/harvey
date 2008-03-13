@@ -714,13 +714,13 @@ procread(Chan *c, void *va, long n, vlong off)
 	switch(QID(c->qid)){
 	case Qargs:
 		qlock(&p->debug);
-		j = procargs(p, p->genbuf, sizeof p->genbuf);
+		j = procargs(p, up->genbuf, sizeof up->genbuf);
 		qunlock(&p->debug);
 		if(offset >= j)
 			return 0;
 		if(offset+n > j)
 			n = j-offset;
-		memmove(a, &p->genbuf[offset], n);
+		memmove(a, &up->genbuf[offset], n);
 		return n;
 
 	case Qmem:
