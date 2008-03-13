@@ -1,3 +1,4 @@
+# cs & dns mkfile
 </$objtype/mkfile
 
 TARG =	\
@@ -45,18 +46,18 @@ $O.testipinfo: testipinfo.$O ipinfo.$O
 	$LD -o $target $prereq
 
 push: $O.dns $O.dnsdebug $O.dnstcp
-	import castro / /n/castro
-	cp $O.dns /n/castro/$objtype/bin/ndb/dns
-	cp $O.dnsdebug /n/castro/$objtype/bin/ndb/dnsdebug
-	cp $O.dnstcp /n/castro/$objtype/bin/ndb/dnstcp
-	unmount /n/castro
-	import divisadero / /n/divisadero
-	cp $O.dns /n/divisadero/$objtype/bin/ndb/dns
-	cp $O.dnsdebug /n/divisadero/$objtype/bin/ndb/dnsdebug
-	cp $O.dnstcp /n/divisadero/$objtype/bin/ndb/dnstcp
-	unmount /n/divisadero
+	import lookout / /n/lookout
+	cp $O.dns /n/lookout/$objtype/bin/ndb/dns
+	cp $O.dnsdebug /n/lookout/$objtype/bin/ndb/dnsdebug
+	cp $O.dnstcp /n/lookout/$objtype/bin/ndb/dnstcp
+	unmount /n/lookout
+	import boundary / /n/boundary
+	cp $O.dns /n/boundary/$objtype/bin/ndb/dns
+	cp $O.dnsdebug /n/boundary/$objtype/bin/ndb/dnsdebug
+	cp $O.dnstcp /n/boundary/$objtype/bin/ndb/dnstcp
+	unmount /n/boundary
 
-cs.safeinstall: $O.cs
+cs.safeinstall:V: $O.cs
 	if(test -e $BIN/ooocs)
 		mv $BIN/ooocs $BIN/oooocs
 	if(test -e $BIN/oocs)
@@ -66,7 +67,7 @@ cs.safeinstall: $O.cs
 	mv $BIN/cs $BIN/ocs
 	cp $O.cs $BIN/cs
 
-dns.safeinstall: $O.dns
+dns.safeinstall:V: $O.dns
 	if(test -e $BIN/ooodns)
 		mv $BIN/ooodns $BIN/oooodns
 	if(test -e $BIN/oodns)

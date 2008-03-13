@@ -6,20 +6,20 @@ enum {
 	BScdxa		= 2336,
 	BSmax		= 2352,
 
-	/* scsi peripheral device types */
+	/* scsi peripheral device types, SPC-3 §6.4.2 */
 	TypeDA		= 0,		/* Direct Access (SBC) */
-	TypeSA		= 1,		/* Sequential Access (SSC-2) */
+	TypeSA		= 1,		/* Sequential Access (SSC) */
 	TypeWO		= 4,		/* Worm (SBC)*/
-	TypeCD		= 5,		/* CD/DVD/BD (MMC-3) */
+	TypeCD		= 5,		/* CD/DVD/BD (MMC) */
 	TypeMO		= 7,		/* rewriteable Magneto-Optical (SBC) */
-	TypeMC		= 8,		/* Medium Changer (SMC-2) */
+	TypeMC		= 8,		/* Medium Changer (SMC) */
 
-	/* MMC-3 device types */
-	Subtypenone	= 0,
-	Subtypecd,
-	Subtypedvdminus,
-	Subtypedvdplus,
-	Subtypebd,
+	/* MMC device types */
+	Mmcnone	= 0,
+	Mmccd,
+	Mmcdvdminus,
+	Mmcdvdplus,
+	Mmcbd,
 
 	/* disc or track types */
 	TypeNone	= 0,
@@ -162,14 +162,15 @@ struct Drive
 	QLock;
 	Scsi;
 
+	int	type;			/* scsi peripheral device type */
+
 	/* disc characteristics */
-	int	type;
-	int	subtype;
+	int	mmctype;
 	int	nopen;
 	int	firsttrack;
 	int	ntrack;
-	int	nchange;
-	int	changetime;
+	int	nchange;		/* compare with the members in Scsi */
+	ulong	changetime;		/* " */
 	int	nameok;
 	int	writeok;
 	int	blank;			/* (not used for anything yet) */
