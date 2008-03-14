@@ -19,18 +19,21 @@ enum
 	Pagwrparams	= 5,	/* (cd|dvd)-r(w) device write parameters */
 	Pagcache	= 8,
 	Pagcapmechsts	= 0x2a,
+
+	Invistrack	= 0xff,	/* the invisible & incomplete track */
 };
 
 static Dev mmcdev;
 
 typedef struct Mmcaux Mmcaux;
 struct Mmcaux {
+	/* drive characteristics */
 	uchar	page05[Pagesz];		/* write parameters */
 	int	page05ok;
-
 	int	pagecmdsz;
-	ulong	mmcnwa;
 
+	/* disc characteristics */
+	ulong	mmcnwa;
 	int	nropen;
 	int	nwopen;
 	vlong	ntotby;
@@ -349,6 +352,16 @@ getdevtype(Drive *drive)
 	return resp[0] & 037;
 }
 
+static int
+start(Drive *drive, int code)
+{
+	uchar cmd[6];
+
+	initcdb(cmd, sizeof cmd, ScmdStart);
+	cmd[4] = code;
+	return scsi(drive, cmd, sizeof(cmd), cmd, 0, Snone);
+}
+
 Drive*
 mmcprobe(Scsi *scsi)
 {
@@ -364,6 +377,7 @@ mmcprobe(Scsi *scsi)
 	drive->Dev = mmcdev;
 	aux = emalloc(sizeof(Mmcaux));
 	drive->aux = aux;
+	scsiready(drive);
 	drive->type = getdevtype(drive);
 	if (drive->type != TypeCD) {
 		werrstr("not an mmc device");
@@ -377,6 +391,7 @@ mmcprobe(Scsi *scsi)
 	 * (as opposed to the disc in it).
 	 */
 
+	start(drive, 1);
 	/* attempt to read CD capabilities page, but it's now legacy */
 	if(mmcgetpage10(drive, Pagcapmechsts, buf) >= 0)
 		aux->pagecmdsz = 10;
@@ -405,7 +420,7 @@ mmcprobe(Scsi *scsi)
 		aux->page05ok = 1;
 		cap |= Cwrite;
 		if (vflag)
-			fprint(2, "mmcprobe: got page 5, assuming writable\n");
+			fprint(2, "mmcprobe: got page 5, assuming drive can write\n");
 	} else
 		cap &= ~Cwrite;
 	drive->cap = cap;
@@ -430,6 +445,16 @@ mmcprobe(Scsi *scsi)
 	return drive;
 }
 
+static char *tracktype[] = {
+	"audio cdda",
+	"2 audio channels",
+	"2",
+	"3",
+	"data, recorded uninterrupted",
+	"data, recorded interrupted",
+};
+
+/* t is a track number on disc, i is an index into drive->track[] for result */
 static int
 mmctrackinfo(Drive *drive, int t, int i)
 {
@@ -463,7 +488,8 @@ mmctrackinfo(Drive *drive, int t, int i)
 //	dmode = resp[6] & 0x0F;
 
 	if(vflag)
-		print("track %d type 0x%x\n", t, tmode);
+		print("track %d type %d (%s)\n", t, tmode,
+			(tmode < nelem(tracktype)? tracktype[tmode]: "**GOK**"));
 	type = TypeNone;
 	bs = BScdda;
 	switch(tmode){
@@ -473,7 +499,8 @@ mmctrackinfo(Drive *drive, int t, int i)
 		break;
 	case 1:		/* 2 audio channels, with pre-emphasis 50/15 μs */
 		if(vflag)
-			print("audio channels with preemphasis on track %d (u%.3d)\n", t, i);
+			print("audio channels with preemphasis on track %d "
+				"(u%.3d)\n", t, i);
 		type = TypeNone;
 		break;
 	case 4:		/* data track, recorded uninterrupted */
@@ -500,7 +527,7 @@ mmctrackinfo(Drive *drive, int t, int i)
 		drive->writeok = 1;
 	}
 
-	if(t == 0xFF)
+	if(t == Invistrack)
 		aux->mmcnwa = bige(&resp[12]);
 	return 0;
 }
@@ -715,6 +742,7 @@ mmcgettoc(Drive *drive)
 {
 	int i, n, first, last;
 	uchar resp[1024];
+	Mmcaux *aux;
 
 	/*
 	 * if someone has swapped the cd,
@@ -729,8 +757,7 @@ mmcgettoc(Drive *drive)
 	}
 	/*
 	 * if the disc doesn't appear to be have been changed, and there
-	 * has been a disc in this drive, sometime since cdfs started,
-	 * there's nothing to do (the common case).
+	 * is a disc in this drive, there's nothing to do (the common case).
 	 */
 	if(drive->nchange == drive->Scsi.nchange && drive->changetime != 0)
 		return 0;
@@ -746,6 +773,10 @@ mmcgettoc(Drive *drive)
 	drive->changetime = drive->Scsi.changetime;
 	drive->writeok = drive->erasable = drive->recordable = drive->blank = 0;
 	drive->erasableset = drive->recordableset = drive->blankset = 0;
+	aux = drive->aux;
+	aux->mmcnwa = 0;
+	aux->nropen = aux->nwopen = 0;
+	aux->ntotby = aux->ntotbk = 0;
 
 	for(i=0; i<nelem(drive->track); i++){
 		memset(&drive->track[i].mbeg, 0, sizeof(Msf));
@@ -1073,8 +1104,11 @@ mmcxwrite(Otrack *o, void *v, long nblk)
 	Mmcaux *aux;
 
 	assert(o->omode == OWRITE);
-
 	aux = o->drive->aux;
+	if (aux->mmcnwa == 0 && scsiready(o->drive) < 0) {
+		werrstr("device not ready to write");
+		return -1;
+	}
 	aux->ntotby += nblk*o->track->bs;
 	aux->ntotbk += nblk;
 
@@ -1087,7 +1121,8 @@ mmcxwrite(Otrack *o, void *v, long nblk)
 	cmd[7] = nblk>>8;
 	cmd[8] = nblk>>0;
 	if(vflag)
-		print("%lld ns: write %ld at 0x%lux\n", nsec(), nblk, aux->mmcnwa);
+		print("%lld ns: write %ld at 0x%lux\n",
+			nsec(), nblk, aux->mmcnwa);
 	aux->mmcnwa += nblk;
 	return scsi(o->drive, cmd, sizeof(cmd), v, nblk*o->track->bs, Swrite);
 }
@@ -1098,10 +1133,34 @@ mmcwrite(Buf *buf, void *v, long nblk, long)
 	return mmcxwrite(buf->otrack, v, nblk);
 }
 
+static int
+getinvistrack(Drive *drive)
+{
+	int n;
+	uchar cmd[10], resp[Pagesz];
+
+	initcdb(cmd, sizeof(cmd), ScmdRtrackinfo);
+	cmd[1] = 1<<2 | 1;	/* open; address below is logical track # */
+	PUTBELONG(cmd + 2, 1);		/* find first open track */
+	cmd[7] = sizeof(resp)>>8;
+	cmd[8] = sizeof(resp);
+	n = scsi(drive, cmd, sizeof(cmd), resp, sizeof(resp), Sread);
+	if(n < 4) {
+		if(vflag)
+			print("trackinfo for invis track fails n=%d: %r\n", n);
+		return -1;
+	}
+
+	if(vflag)
+		print("getinvistrack: track #%d session #%d\n",
+			resp[2], resp[3]);
+	return resp[2];
+}
+
 static Otrack*
 mmccreate(Drive *drive, int type)
 {
-	int bs;
+	int bs, invis;
 	Mmcaux *aux;
 	Track *t;
 	Otrack *o;
@@ -1125,8 +1184,15 @@ mmccreate(Drive *drive, int type)
 		return nil;
 	}
 
-/* comment out the returns for now; it should be no big deal - geoff */
-	if(mmctrackinfo(drive, 0xFF, Maxtrack)) {	/* the invisible track */
+	invis = getinvistrack(drive);
+	if (invis < 0)
+		invis = Invistrack;
+
+	/* comment out the returns for now; it should be no big deal - geoff */
+	if(mmctrackinfo(drive, invis, Maxtrack)) {
+		if (vflag)
+			fprint(2, "mmccreate: mmctrackinfo for invis track %d"
+				" failed: %r\n", invis);
 		werrstr("CD not writable");
 //		return nil;
 	}
@@ -1134,7 +1200,10 @@ mmccreate(Drive *drive, int type)
 		werrstr("cannot set bs mode");
 //		return nil;
 	}
-	if(mmctrackinfo(drive, 0xFF, Maxtrack)) {	/* the invisible track */
+	if(mmctrackinfo(drive, invis, Maxtrack)) {
+		if (vflag)
+			fprint(2, "mmccreate: mmctrackinfo for invis track %d"
+				" (2) failed: %r\n", invis);
 		werrstr("CD not writable 2");
 //		return nil;
 	}
@@ -1186,6 +1255,7 @@ mmcxclose(Drive *drive, int clf, int trackno)
 void
 mmcsynccache(Drive *drive)
 {
+	int invis;
 	uchar cmd[10];
 	Mmcaux *aux;
 
@@ -1197,14 +1267,23 @@ mmcsynccache(Drive *drive)
 		print("mmcsynccache: bytes = %lld blocks = %ld, mmcnwa 0x%luX\n",
 			aux->ntotby, aux->ntotbk, aux->mmcnwa);
 	}
-	/* rsc: seems not to work on some drives. */
-	/* so ignore return code & don't issue on dvd+rw. */
-	if (drive->mmctype != Mmcdvdplus || !drive->erasable)
-{
-fprint(2, "closing track (not dvd+rw)...\n");
- 		mmcxclose(drive, Closetrack, 0xFF);
-fprint(2, "... done.\n");
-}
+	invis = getinvistrack(drive);
+	if (invis < 0)
+		invis = Invistrack;
+	/*
+	 * rsc: seems not to work on some drives.
+	 * so ignore return code & don't issue on dvd+rw.
+	 * try skipping it on bd too.
+	 */
+	if((drive->mmctype != Mmcdvdplus || !drive->erasable) &&
+	    drive->mmctype != Mmcbd) {
+		if (vflag)
+			fprint(2, "closing invisible track %d (not dvd+rw)...\n",
+				invis);
+ 		mmcxclose(drive, Closetrack, invis);
+		if (vflag)
+			fprint(2, "... done.\n");
+	}
 }
 
 /*
@@ -1252,24 +1331,26 @@ mmcfixate(Drive *drive)
 	/* try to set it but don't freak out if it fails */
 	mmcsetpage(drive, Pagwrparams, p);
 
-	/* rsc: seems not to work on some drives. */
-	/* so ignore return code & don't issue on dvd+rw. */
-//	if (drive->mmctype != Mmcdvdplus || !drive->erasable)
-//		mmcxclose(drive, Closetrack, 0xFF);
-fprint(2, "closing session and maybe finalizing...\n");
-	r = mmcxclose(drive, Closesessfinal, 0);
-fprint(2, "... done.\n");
-	if (r < 0)
-		return r;
+	/* skip explicit close session on bd-r */
+	if (drive->mmctype != Mmcbd || drive->erasable) {
+		if (vflag)
+			fprint(2, "closing session and maybe finalizing...\n");
+		r = mmcxclose(drive, Closesessfinal, 0);
+		if (vflag)
+			fprint(2, "... done.\n");
+		if (r < 0)
+			return r;
+	}
 	/*
 	 * Closesessfinal only closes & doesn't finalize on dvd+r and bd-r.
 	 */
 	if ((drive->mmctype == Mmcdvdplus || drive->mmctype == Mmcbd) &&
-	    !drive->erasable)
-{
-fprint(2, "finalizing dvd+r or bd-r... (won't print `done').\n");
+	    !drive->erasable) {
+		if (vflag)
+			fprint(2, "finalizing dvd+r or bd-r... "
+				"(won't print `done').\n");
 		return mmcxclose(drive, Closedvdrbdfinal, 0);
-}
+	}
 	return 0;
 }
 
@@ -1286,17 +1367,6 @@ mmcblank(Drive *drive, int quick)
 	/* cmd[1] = 0 means blank the whole disc; = 1 just the header */
 	cmd[1] = quick ? 0x01 : 0x00;
 
-	return scsi(drive, cmd, sizeof(cmd), cmd, 0, Snone);
-}
-
-static int
-start(Drive *drive, int code)
-{
-	uchar cmd[6];
-
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdStart;		/* start/stop unit */
-	cmd[4] = code;
 	return scsi(drive, cmd, sizeof(cmd), cmd, 0, Snone);
 }
 

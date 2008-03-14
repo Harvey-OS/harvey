@@ -220,13 +220,13 @@ optical disc interface standards
 .IR dossrv (4)),
 .IR mk9660 (8)
 .SH BUGS
+Packet (incremental) writing is not yet implemented.
+.PP
 There are too many combinations of optical media, approximately
 the cross-product of these tuples:
 (CD DVD- DVD+ BD),
 (single-layer dual-layer),
-(ROM -R -RW).
-.PP
-Packet (incremental) writing is not yet implemented.
+(-ROM -R -RW).
 .PP
 Only MMC-compliant disc readers and writers
 are supported, but it would be easy to add
