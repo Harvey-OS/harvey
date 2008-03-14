@@ -48,7 +48,7 @@
 386/bin/auth/changeuser - 775 sys sys 1178568246 96020
 386/bin/auth/convkeys - 775 sys sys 1204057806 87642
 386/bin/auth/convkeys2 - 775 sys sys 1203712994 87421
-386/bin/auth/cron - 775 sys sys 1205035791 141213
+386/bin/auth/cron - 775 sys sys 1205438966 141132
 386/bin/auth/debug - 775 sys sys 1204057810 101408
 386/bin/auth/disable - 775 sys sys 1020319057 146
 386/bin/auth/enable - 775 sys sys 1020319057 134
@@ -172,7 +172,7 @@
 386/bin/calendar - 775 sys sys 1200262736 79060
 386/bin/cat - 775 sys sys 1148500611 37482
 386/bin/cb - 775 sys sys 1168402293 77628
-386/bin/cdfs - 775 sys sys 1205293084 169996
+386/bin/cdfs - 775 sys sys 1205465243 171939
 386/bin/cec - 775 sys sys 1193714267 75896
 386/bin/cfs - 775 sys sys 1190863294 130565
 386/bin/chgrp - 775 sys sys 1168402294 59522
@@ -279,7 +279,7 @@
 386/bin/history - 775 sys sys 1178568279 74241
 386/bin/hoc - 775 sys sys 1172808058 100101
 386/bin/html2ms - 775 sys sys 1168402315 66321
-386/bin/htmlfmt - 775 sys sys 1200262758 163423
+386/bin/htmlfmt - 775 sys sys 1205438975 163505
 386/bin/htmlroff - 775 sys sys 1178568280 146978
 386/bin/ico - 775 sys sys 1197732756 162284
 386/bin/iconv - 775 sys sys 1168402316 113629
@@ -571,7 +571,7 @@
 386/lib/libflate.a - 664 sys sys 1168402366 76726
 386/lib/libframe.a - 664 sys sys 1184529910 66398
 386/lib/libgeometry.a - 664 sys sys 1168402366 50470
-386/lib/libhtml.a - 664 sys sys 1186370975 229202
+386/lib/libhtml.a - 664 sys sys 1205438981 229376
 386/lib/libhttpd.a - 664 sys sys 1191273745 100822
 386/lib/libip.a - 664 sys sys 1204292555 38800
 386/lib/libl.a - 664 sys sys 1168402367 5372
@@ -6103,7 +6103,7 @@ sys/include/fcall.h - 664 sys sys 1137461445 3063
 sys/include/flate.h - 664 sys sys 1014929063 1245
 sys/include/frame.h - 664 sys sys 1196212617 2708
 sys/include/geometry.h - 664 sys sys 1014929063 2632
-sys/include/html.h - 664 sys sys 1184472600 15622
+sys/include/html.h - 664 sys sys 1205384795 15653
 sys/include/httpd.h - 664 sys sys 1190835025 5800
 sys/include/ip.h - 664 sys sys 1204230308 4401
 sys/include/keyboard.h - 664 sys sys 1131637696 865
@@ -7363,7 +7363,7 @@ sys/man/1/acme - 664 sys sys 1196638934 18540
 sys/man/1/ap - 664 sys sys 1196638934 364
 sys/man/1/ar - 664 sys sys 1196638934 3153
 sys/man/1/ascii - 664 sys sys 1196638934 2726
-sys/man/1/awk - 664 sys sys 1196638934 10881
+sys/man/1/awk - 664 sys sys 1205384921 11042
 sys/man/1/basename - 664 sys sys 1196638931 535
 sys/man/1/bc - 664 sys sys 1196638934 3784
 sys/man/1/bind - 664 sys sys 1196638931 4009
@@ -7721,7 +7721,7 @@ sys/man/4/INDEX - 664 sys sys 1196638942 1026
 sys/man/4/INDEX.html - 664 sys sys 1196638942 5147
 sys/man/4/acme - 664 sys sys 1196638943 10435
 sys/man/4/archfs - 664 sys sys 1196638943 533
-sys/man/4/cdfs - 664 sys sys 1205253247 4351
+sys/man/4/cdfs - 664 sys sys 1205450230 4352
 sys/man/4/cfs - 664 sys sys 1196638943 2136
 sys/man/4/consolefs - 664 sys sys 1196638943 4389
 sys/man/4/cwfs - 664 sys sys 1196638943 6553
@@ -8187,7 +8187,7 @@ sys/src/9/pc/uarti8250.c - 664 sys sys 1177676872 13957
 sys/src/9/pc/uartisa.c - 664 sys sys 1127126907 1777
 sys/src/9/pc/uartpci.c - 664 sys sys 1190235592 4685
 sys/src/9/pc/usb.h - 664 sys sys 1202865355 4630
-sys/src/9/pc/usbohci.c - 664 sys sys 1205184193 49042
+sys/src/9/pc/usbohci.c - 664 sys sys 1205381809 49041
 sys/src/9/pc/usbuhci.c - 664 sys sys 1202252076 31839
 sys/src/9/pc/vga.c - 664 sys sys 1131290595 5148
 sys/src/9/pc/vga3dfx.c - 664 sys sys 1133218367 3833
@@ -8226,7 +8226,7 @@ sys/src/9/port/cache.c - 664 sys sys 1170456667 9285
 sys/src/9/port/chan.c - 664 sys sys 1195585806 34962
 sys/src/9/port/cis.c - 664 sys sys 1099761153 9248
 sys/src/9/port/debugalloc.c - 664 sys sys 1014931171 10402
-sys/src/9/port/dev.c - 664 sys sys 1146151714 8177
+sys/src/9/port/dev.c - 664 sys sys 1205381832 8204
 sys/src/9/port/devaoe.c - 664 sys sys 1199910511 42083
 sys/src/9/port/devaudio.c - 664 sys sys 1170456648 21199
 sys/src/9/port/devbridge.c - 664 sys sys 1204227718 24003
@@ -8244,7 +8244,7 @@ sys/src/9/port/devmntstats.c - 664 sys sys 1014931173 4039
 sys/src/9/port/devmouse.c - 664 sys sys 1192564555 13904
 sys/src/9/port/devpipe.c - 664 sys sys 1077055016 5825
 sys/src/9/port/devpnp.c - 664 sys sys 1088560907 13624
-sys/src/9/port/devproc.c - 664 sys sys 1197732969 28473
+sys/src/9/port/devproc.c - 664 sys sys 1205384114 28476
 sys/src/9/port/devroot.c - 664 sys sys 1146151714 4242
 sys/src/9/port/devsd.c - 664 sys sys 1186965855 31275
 sys/src/9/port/devsdp.c - 664 sys sys 1057323393 44800
@@ -9623,7 +9623,7 @@ sys/src/cmd/auth/changeuser.c - 664 sys sys 1155994851 2949
 sys/src/cmd/auth/convbio.c - 664 sys sys 1015008432 2212
 sys/src/cmd/auth/convkeys.c - 664 sys sys 1204007234 2707
 sys/src/cmd/auth/convkeys2.c - 664 sys sys 1155994849 2444
-sys/src/cmd/auth/cron.c - 664 sys sys 1205008495 13189
+sys/src/cmd/auth/cron.c - 664 sys sys 1205426383 13334
 sys/src/cmd/auth/debug.c - 664 sys sys 1204007269 8034
 sys/src/cmd/auth/disable - 775 sys sys 1015008431 146
 sys/src/cmd/auth/enable - 775 sys sys 1015008430 134
@@ -10016,11 +10016,11 @@ sys/src/cmd/cc/sub.c - 664 sys sys 1143759345 34268
 sys/src/cmd/cc/y.tab.h - 664 sys sys 1098501521 1680
 sys/src/cmd/cdfs - 20000000775 sys sys 1039727558 0
 sys/src/cmd/cdfs/buf.c - 664 sys sys 1205271166 1923
-sys/src/cmd/cdfs/dat.h - 664 sys sys 1205281336 4538
+sys/src/cmd/cdfs/dat.h - 664 sys sys 1205446401 4615
 sys/src/cmd/cdfs/fns.h - 664 sys sys 969542122 297
-sys/src/cmd/cdfs/main.c - 664 sys sys 1205281456 11687
+sys/src/cmd/cdfs/main.c - 664 sys sys 1205366951 11578
 sys/src/cmd/cdfs/mkfile - 664 sys sys 1204937991 153
-sys/src/cmd/cdfs/mmc.c - 664 sys sys 1205295078 27297
+sys/src/cmd/cdfs/mmc.c - 664 sys sys 1205450135 30509
 sys/src/cmd/cec - 20000000775 sys sys 1193683647 0
 sys/src/cmd/cec/LICENSE - 664 sys sys 1186248056 1554
 sys/src/cmd/cec/Protocol - 664 sys sys 1186248056 2881
@@ -12823,7 +12823,7 @@ sys/src/cmd/mtime.c - 664 sys sys 1036172302 450
 sys/src/cmd/mug.c - 664 sys sys 1157143847 24888
 sys/src/cmd/mv.c - 664 sys sys 1163029439 4682
 sys/src/cmd/ndb - 20000000775 sys sys 1080135004 0
-sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1194216289 7061
+sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1205354106 7059
 sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1194216290 11959
 sys/src/cmd/ndb/cs.c - 664 sys sys 1203747782 33495
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1174626119 1073
@@ -12841,7 +12841,7 @@ sys/src/cmd/ndb/dnstcp.c - 664 sys sys 1202761262 7535
 sys/src/cmd/ndb/dnudpserver.c - 664 sys sys 1203748560 5632
 sys/src/cmd/ndb/ipquery.c - 664 sys sys 1124711423 773
 sys/src/cmd/ndb/mkdb.c - 664 sys sys 957402054 2886
-sys/src/cmd/ndb/mkfile - 664 sys sys 1174623575 1984
+sys/src/cmd/ndb/mkfile - 664 sys sys 1205354106 2000
 sys/src/cmd/ndb/mkhash.c - 664 sys sys 1014926160 2899
 sys/src/cmd/ndb/mkhosts.c - 664 sys sys 957402054 4294
 sys/src/cmd/ndb/query.c - 664 sys sys 1188422202 1793
@@ -15347,7 +15347,7 @@ sys/src/libgeometry/quaternion.c - 664 sys sys 944961726 5707
 sys/src/libgeometry/transform.c - 664 sys sys 944961726 1995
 sys/src/libgeometry/tstack.c - 664 sys sys 944961726 4716
 sys/src/libhtml - 20000000775 sys sys 1039727689 0
-sys/src/libhtml/build.c - 664 sys sys 1166796404 94558
+sys/src/libhtml/build.c - 664 sys sys 1205384802 94657
 sys/src/libhtml/impl.h - 664 sys sys 1166796404 4598
 sys/src/libhtml/lex.c - 664 sys sys 1186360650 28187
 sys/src/libhtml/mkfile - 664 sys sys 1035389778 246

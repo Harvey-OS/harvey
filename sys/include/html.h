@@ -207,6 +207,7 @@ struct Irule
 	uchar	align;		/* alignment spec */
 	uchar	noshade;	/* if true, don't shade */
 	int	size;		/* size attr (rule height) */
+	int	color;		/* color attr */
 	Dimen	wspec;		/* width spec */
 };
 
@@ -214,7 +215,7 @@ struct Irule
 struct Iimage
 {
 	Item;			/* (with tag ==Iimagetag) */
-	Rune*	imsrc;	/* image src url */
+	Rune*	imsrc;		/* image src url */
 	int	imwidth;	/* spec width (actual, if no spec) */
 	int	imheight;	/* spec height (actual, if no spec) */
 	Rune*	altrep;		/* alternate representation, in absence of image */

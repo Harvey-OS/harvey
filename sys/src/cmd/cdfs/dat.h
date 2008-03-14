@@ -121,7 +121,7 @@ struct Track
 	/* initialized by fs */
 	char	name[32];
 	int	mode;
-	int	mtime;
+	ulong	mtime;
 };
 
 struct DTrack
@@ -166,7 +166,6 @@ struct Drive
 
 	/* disc characteristics */
 	int	mmctype;
-	int	nopen;
 	int	firsttrack;
 	int	ntrack;
 	int	nchange;		/* compare with the members in Scsi */

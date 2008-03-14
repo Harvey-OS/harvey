@@ -546,3 +546,11 @@ to force it to be treated as a string concatenate
 .br
 The scope rules for variables in functions are a botch;
 the syntax is worse.
+.br
+UTF is not always dealt with correctly
+(e.g., in the
+.I split
+function with an empty string as final argument),
+though
+.I awk
+does make an attempt to do so.

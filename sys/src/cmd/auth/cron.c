@@ -169,10 +169,14 @@ main(int argc, char *argv[])
 		exits(0);
 	}
 
-	lock = mklock("/cron/lock");
-	if (lock < 0)
-		fatal("cron already running: %r");
-	initcap();
+	initcap();		/* do this early, before cpurc removes it */
+	/*
+	 * it can take a few minutes before the file server notices that
+	 * we've rebooted.
+	 */
+//	lock = mklock("/cron/lock");
+//	if (lock < 0)
+//		fatal("cron already running: %r");
 
 	switch(fork()){
 	case -1:
@@ -277,7 +281,7 @@ readalljobs(void)
 			    !(d[i].qid.type & QTDIR))
 				continue;
 			if(strcmp(d[i].name, d[i].uid) != 0){
-				syslog(1, CRONLOG, "cron for %s owned by %s\n",
+				syslog(1, CRONLOG, "cron for %s owned by %s",
 					d[i].name, d[i].uid);
 				continue;
 			}
