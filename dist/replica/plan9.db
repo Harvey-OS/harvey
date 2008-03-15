@@ -172,7 +172,7 @@
 386/bin/calendar - 775 sys sys 1200262736 79060
 386/bin/cat - 775 sys sys 1148500611 37482
 386/bin/cb - 775 sys sys 1168402293 77628
-386/bin/cdfs - 775 sys sys 1205465243 171939
+386/bin/cdfs - 775 sys sys 1205524026 171999
 386/bin/cec - 775 sys sys 1193714267 75896
 386/bin/cfs - 775 sys sys 1190863294 130565
 386/bin/chgrp - 775 sys sys 1168402294 59522
@@ -547,10 +547,10 @@
 386/ld.com - 775 sys sys 1171784723 73464
 386/lib - 20000000775 sys sys 1016826328 0
 386/lib/ape - 20000000775 sys sys 1070519112 0
-386/lib/ape/lib9.a - 664 sys sys 1135531447 6906
+386/lib/ape/lib9.a - 664 sys sys 1205551697 7532
 386/lib/ape/libap.a - 664 sys sys 1197493060 820230
 386/lib/ape/libbsd.a - 664 sys sys 1184467169 183900
-386/lib/ape/libdraw.a - 664 sys sys 1197732871 622280
+386/lib/ape/libdraw.a - 664 sys sys 1205551709 625444
 386/lib/ape/libfmt.a - 664 sys sys 1146156980 156706
 386/lib/ape/libl.a - 664 sys sys 1143777857 9406
 386/lib/ape/libnet.a - 664 sys sys 1203828448 24090
@@ -563,7 +563,7 @@
 386/lib/libauthsrv.a - 664 sys sys 1203713023 36452
 386/lib/libbin.a - 664 sys sys 1168402363 2534
 386/lib/libbio.a - 664 sys sys 1168402363 25980
-386/lib/libc.a - 664 sys sys 1188447448 502352
+386/lib/libc.a - 664 sys sys 1205524034 502352
 386/lib/libcomplete.a - 664 sys sys 1168402364 6372
 386/lib/libcontrol.a - 664 sys sys 1184529909 274388
 386/lib/libdisk.a - 664 sys sys 1168402365 42368
@@ -6041,7 +6041,7 @@ sys/include/ape/fmt.h - 664 sys sys 1146097783 3361
 sys/include/ape/grp.h - 664 sys sys 944948759 389
 sys/include/ape/inttypes.h - 664 sys sys 1038237535 452
 sys/include/ape/keyboard.h - 664 sys sys 1146097783 115
-sys/include/ape/lib9.h - 664 sys sys 1014927764 1626
+sys/include/ape/lib9.h - 664 sys sys 1205552264 2374
 sys/include/ape/libl.h - 664 sys sys 944948760 331
 sys/include/ape/libnet.h - 664 sys sys 944948760 487
 sys/include/ape/libv.h - 664 sys sys 944948760 716
@@ -10016,11 +10016,11 @@ sys/src/cmd/cc/sub.c - 664 sys sys 1143759345 34268
 sys/src/cmd/cc/y.tab.h - 664 sys sys 1098501521 1680
 sys/src/cmd/cdfs - 20000000775 sys sys 1039727558 0
 sys/src/cmd/cdfs/buf.c - 664 sys sys 1205271166 1923
-sys/src/cmd/cdfs/dat.h - 664 sys sys 1205446401 4615
+sys/src/cmd/cdfs/dat.h - 664 sys sys 1205470094 4603
 sys/src/cmd/cdfs/fns.h - 664 sys sys 969542122 297
-sys/src/cmd/cdfs/main.c - 664 sys sys 1205366951 11578
+sys/src/cmd/cdfs/main.c - 664 sys sys 1205470095 11592
 sys/src/cmd/cdfs/mkfile - 664 sys sys 1204937991 153
-sys/src/cmd/cdfs/mmc.c - 664 sys sys 1205450135 30509
+sys/src/cmd/cdfs/mmc.c - 664 sys sys 1205470177 30641
 sys/src/cmd/cec - 20000000775 sys sys 1193683647 0
 sys/src/cmd/cec/LICENSE - 664 sys sys 1186248056 1554
 sys/src/cmd/cec/Protocol - 664 sys sys 1186248056 2881
@@ -15076,7 +15076,7 @@ sys/src/libc/port/abs.c - 664 sys sys 1014927393 146
 sys/src/libc/port/asin.c - 664 sys sys 1014927393 567
 sys/src/libc/port/atan.c - 664 sys sys 1014927393 1559
 sys/src/libc/port/atan2.c - 664 sys sys 1014927393 339
-sys/src/libc/port/atexit.c - 664 sys sys 1130424722 772
+sys/src/libc/port/atexit.c - 664 sys sys 1205497562 776
 sys/src/libc/port/atnotify.c - 664 sys sys 1014927394 780
 sys/src/libc/port/atof.c - 664 sys sys 1014927395 83
 sys/src/libc/port/atol.c - 664 sys sys 1014927395 754
