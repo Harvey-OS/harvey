@@ -547,10 +547,10 @@
 386/ld.com - 775 sys sys 1171784723 73464
 386/lib - 20000000775 sys sys 1016826328 0
 386/lib/ape - 20000000775 sys sys 1070519112 0
-386/lib/ape/lib9.a - 664 sys sys 1205551697 7532
+386/lib/ape/lib9.a - 664 sys sys 1205611022 8766
 386/lib/ape/libap.a - 664 sys sys 1197493060 820230
 386/lib/ape/libbsd.a - 664 sys sys 1184467169 183900
-386/lib/ape/libdraw.a - 664 sys sys 1205551709 625444
+386/lib/ape/libdraw.a - 664 sys sys 1205611032 631580
 386/lib/ape/libfmt.a - 664 sys sys 1146156980 156706
 386/lib/ape/libl.a - 664 sys sys 1143777857 9406
 386/lib/ape/libnet.a - 664 sys sys 1203828448 24090
