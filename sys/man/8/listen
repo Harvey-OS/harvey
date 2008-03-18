@@ -1,6 +1,6 @@
 .TH LISTEN 8
 .SH NAME
-listen, listen1, tcp7, tcp9, tcp19, tcp21, tcp22, tcp23, tcp25, tcp53, tcp110, tcp113, tcp143, tcp513, tcp515, tcp564, tcp565, tcp566, tcp567, tcp993, tcp1723, tcp17007, tcp17008, tcp17009, tcp17010, tcp17013 \- listen for calls on a network device
+listen, listen1, tcp7, tcp9, tcp19, tcp21, tcp22, tcp23, tcp25, tcp53, tcp110, tcp113, tcp143, tcp513, tcp515, tcp564, tcp565, tcp566, tcp567, tcp993, tcp995, tcp1723, tcp17007, tcp17008, tcp17009, tcp17010, tcp17013 \- listen for calls on a network device
 .SH SYNOPSIS
 .B aux/listen
 .RB [ -q ]
@@ -66,7 +66,7 @@ For example,
 an inbound call on the TCP network for port 565 executes service
 .BR tcp565 .
 .PP
-The following services are available in
+At least the following services are available in
 .BR /bin/service .
 .TF \ tcp0000
 .TP
@@ -163,22 +163,25 @@ LP daemon; see
 .B tcp565
 report the address of the incoming call.
 .TP
-.B tcp567
-Plan 9 authentication-ticket service.
+.B tcp993
+Secure IMAP4rev1 port.
+.TP
+.B tcp995
+Secure POP3 port.
 .TP
 .B tcp1723
 PPTP (point-to-point tunnelling protocol) service.
 .PD
 .PP
-The following services are available in
+At least the following services are available in
 .BR /bin/service.auth .
 .TF \ tcp0000
 .TP
 .B tcp566
 validate a SecureNet box.
 .TP
-.B tcp993
-Secure IMAP4rev1 port.
+.B tcp567
+Plan 9 authentication-ticket service.
 .PD
 .PP
 .I Listen1

@@ -53,7 +53,7 @@
 386/bin/auth/disable - 775 sys sys 1020319057 146
 386/bin/auth/enable - 775 sys sys 1020319057 134
 386/bin/auth/factotum - 775 sys sys 1203712996 321987
-386/bin/auth/fgui - 775 sys sys 1197732639 219095
+386/bin/auth/fgui - 775 sys sys 1205810533 219238
 386/bin/auth/guard.srv - 775 sys sys 1204292454 146005
 386/bin/auth/keyfs - 775 sys sys 1203712999 116640
 386/bin/auth/login - 775 sys sys 1196742440 104821
@@ -143,7 +143,7 @@
 386/bin/aux/stub - 775 sys sys 1179372078 139674
 386/bin/aux/tcpostio - 775 sys sys 1094040084 200808
 386/bin/aux/text2post - 775 sys sys 1104121986 78336
-386/bin/aux/timesync - 775 sys sys 1204292469 129649
+386/bin/aux/timesync - 775 sys sys 1205810535 129698
 386/bin/aux/tr2post - 775 sys sys 1104121987 176578
 386/bin/aux/trampoline - 775 sys sys 1178568259 82677
 386/bin/aux/usage - 775 sys sys 1168402288 59809
@@ -164,7 +164,7 @@
 386/bin/bitsy/light - 775 sys sys 1020319072 242
 386/bin/bitsy/params - 775 sys sys 1168402291 59015
 386/bin/bitsy/pencal - 775 sys sys 1179372079 117667
-386/bin/bitsy/prompter - 775 sys sys 1197732676 287242
+386/bin/bitsy/prompter - 775 sys sys 1205810540 287385
 386/bin/bmp - 775 sys sys 1179372080 158059
 386/bin/bunzip2 - 775 sys sys 1168402292 97734
 386/bin/bzip2 - 775 sys sys 1178568261 112709
@@ -275,7 +275,7 @@
 386/bin/gview - 775 sys sys 1197732752 240790
 386/bin/gzip - 775 sys sys 1178568278 83518
 386/bin/hayes - 775 sys sys 1178568278 63329
-386/bin/hget - 775 sys sys 1204292490 234834
+386/bin/hget - 775 sys sys 1205810544 234840
 386/bin/history - 775 sys sys 1178568279 74241
 386/bin/hoc - 775 sys sys 1172808058 100101
 386/bin/html2ms - 775 sys sys 1168402315 66321
@@ -565,7 +565,7 @@
 386/lib/libbio.a - 664 sys sys 1168402363 25980
 386/lib/libc.a - 664 sys sys 1205524034 502352
 386/lib/libcomplete.a - 664 sys sys 1168402364 6372
-386/lib/libcontrol.a - 664 sys sys 1184529909 274388
+386/lib/libcontrol.a - 664 sys sys 1205810549 274730
 386/lib/libdisk.a - 664 sys sys 1168402365 42368
 386/lib/libdraw.a - 664 sys sys 1197732882 375130
 386/lib/libflate.a - 664 sys sys 1168402366 76726
@@ -5593,15 +5593,13 @@ rc/bin/service - 20000000775 sys sys 1112269702 0
 rc/bin/service.auth - 20000000775 sys sys 1074801183 0
 rc/bin/service.auth/authsrv.il566 - 775 sys sys 1016832549 34
 rc/bin/service.auth/authsrv.tcp567 - 775 sys sys 1016832561 34
-rc/bin/service.auth/tcp110 - 775 sys sys 1016832647 85
-rc/bin/service.auth/tcp22 - 775 sys sys 1016832620 87
-rc/bin/service.auth/tcp995 - 775 sys sys 1030586935 128
 rc/bin/service/!il17007 - 775 sys sys 1016832393 82
 rc/bin/service/!il17008 - 775 sys sys 945617221 32
 rc/bin/service/!il17031 - 775 sys sys 945617222 25
 rc/bin/service/!tcp515 - 775 sys sys 960144427 120
 rc/bin/service/!tcp564 - 775 sys sys 1018831800 32
 rc/bin/service/startnfs - 775 sys sys 1016832368 283
+rc/bin/service/tcp110 - 775 sys sys 1016832647 85
 rc/bin/service/tcp113 - 775 sys sys 1032057986 90
 rc/bin/service/tcp143 - 775 sys sys 959192998 51
 rc/bin/service/tcp17005 - 775 sys sys 965182903 31
@@ -5612,6 +5610,7 @@ rc/bin/service/tcp17010 - 775 sys sys 1049413268 14
 rc/bin/service/tcp17013 - 775 sys sys 1016832196 14
 rc/bin/service/tcp19 - 775 sys sys 945617223 30
 rc/bin/service/tcp21 - 775 sys sys 954517722 31
+rc/bin/service/tcp22 - 775 sys sys 1016832620 87
 rc/bin/service/tcp23 - 775 sys sys 954517696 34
 rc/bin/service/tcp25 - 775 sys sys 971646231 85
 rc/bin/service/tcp513 - 775 sys sys 950893117 31
@@ -5620,6 +5619,7 @@ rc/bin/service/tcp565 - 775 sys sys 945617223 212
 rc/bin/service/tcp7 - 775 sys sys 945617224 19
 rc/bin/service/tcp9 - 775 sys sys 945617224 26
 rc/bin/service/tcp993 - 775 sys sys 1018720071 151
+rc/bin/service/tcp995 - 775 sys sys 1030586935 128
 rc/bin/service/telcodata - 775 sys sys 945617224 95
 rc/bin/service/telcofax - 775 sys sys 945617224 93
 rc/bin/sig - 775 sys sys 1082221092 530
@@ -6143,7 +6143,7 @@ sys/lib/acid/leak - 664 sys sys 1179405289 3022
 sys/lib/acid/mips - 664 sys sys 944955985 5472
 sys/lib/acid/network - 664 sys sys 1020313817 2499
 sys/lib/acid/pool - 664 sys sys 1063858105 4898
-sys/lib/acid/port - 664 sys sys 1123856142 8902
+sys/lib/acid/port - 664 sys sys 1205784839 8902
 sys/lib/acid/power - 664 sys sys 969499633 3058
 sys/lib/acid/sparc - 664 sys sys 944955986 5339
 sys/lib/acid/sparc64 - 664 sys sys 1114524607 5441
@@ -7548,7 +7548,7 @@ sys/man/2/chdir - 664 sys sys 1196638937 552
 sys/man/2/cleanname - 664 sys sys 1196638940 709
 sys/man/2/color - 664 sys sys 1196638940 1335
 sys/man/2/complete - 664 sys sys 1196638940 2396
-sys/man/2/control - 664 sys sys 1196638940 42778
+sys/man/2/control - 664 sys sys 1205791980 43639
 sys/man/2/cputime - 664 sys sys 1196638937 713
 sys/man/2/ctime - 664 sys sys 1196638937 2547
 sys/man/2/ctype - 664 sys sys 1196638937 2610
@@ -7853,7 +7853,7 @@ sys/man/8/init - 664 sys sys 1196638947 1430
 sys/man/8/ipconfig - 664 sys sys 1204424262 8203
 sys/man/8/ipserv - 664 sys sys 1202161489 3268
 sys/man/8/kfscmd - 664 sys sys 1196638947 4514
-sys/man/8/listen - 664 sys sys 1196638947 4032
+sys/man/8/listen - 664 sys sys 1205796105 4090
 sys/man/8/lp - 664 sys sys 1196638947 2491
 sys/man/8/mk9660 - 664 sys sys 1196638947 3946
 sys/man/8/mkfs - 664 sys sys 1196638947 3427
@@ -9228,9 +9228,9 @@ sys/src/boot/pc/mkfile - 664 sys sys 1193359312 3224
 sys/src/boot/pc/noether.c - 664 sys sys 1193336537 416
 sys/src/boot/pc/part.c - 664 sys sys 1200690166 7158
 sys/src/boot/pc/pbs.s - 664 sys sys 1143465387 8291
-sys/src/boot/pc/pbsdisk.s - 664 sys sys 1017854325 6371
-sys/src/boot/pc/pbsdisklba.s - 664 sys sys 1015007954 6022
+sys/src/boot/pc/pbsdebug.s - 664 sys sys 1205786244 6371
 sys/src/boot/pc/pbslba.s - 664 sys sys 1186031549 8180
+sys/src/boot/pc/pbslbadebug.s - 664 sys sys 1205786244 6021
 sys/src/boot/pc/pci.c - 664 sys sys 1196312243 20667
 sys/src/boot/pc/print.c - 664 sys sys 1094674483 219
 sys/src/boot/pc/queue.c - 664 sys sys 1015007954 566
@@ -9845,7 +9845,7 @@ sys/src/cmd/aux/reboot.c - 664 sys sys 1162419091 1533
 sys/src/cmd/aux/searchfs.c - 664 sys sys 1143759348 18163
 sys/src/cmd/aux/statusbar.c - 664 sys sys 1138460096 6066
 sys/src/cmd/aux/stub.c - 664 sys sys 1098196222 2723
-sys/src/cmd/aux/timesync.c - 664 sys sys 1178482886 25828
+sys/src/cmd/aux/timesync.c - 664 sys sys 1205784426 25953
 sys/src/cmd/aux/trampoline.c - 664 sys sys 1126104850 3790
 sys/src/cmd/aux/unlock - 664 sys sys 944960793 0
 sys/src/cmd/aux/usage.c - 664 sys sys 1139744276 1095
@@ -12412,7 +12412,7 @@ sys/src/cmd/gzip/mkfile - 664 sys sys 1124884920 124
 sys/src/cmd/gzip/unzip.c - 664 sys sys 1186715467 14731
 sys/src/cmd/gzip/zip.c - 664 sys sys 1135487935 7063
 sys/src/cmd/gzip/zip.h - 664 sys sys 954778719 1428
-sys/src/cmd/hget.c - 664 sys sys 1161442159 25962
+sys/src/cmd/hget.c - 664 sys sys 1205782148 25990
 sys/src/cmd/history.c - 664 sys sys 1136378274 6098
 sys/src/cmd/hoc - 20000000775 sys sys 1039727559 0
 sys/src/cmd/hoc/code.c - 664 sys sys 1172800014 10063
@@ -15233,7 +15233,7 @@ sys/src/libcontrol/box.c - 664 sys sys 1091982888 3308
 sys/src/libcontrol/button.c - 664 sys sys 1088784890 5223
 sys/src/libcontrol/cache.c - 664 sys sys 1015095044 2621
 sys/src/libcontrol/control.c - 664 sys sys 1088784890 15536
-sys/src/libcontrol/entry.c - 664 sys sys 1040447293 6645
+sys/src/libcontrol/entry.c - 664 sys sys 1205792344 6916
 sys/src/libcontrol/group.c - 664 sys sys 1088784890 19210
 sys/src/libcontrol/group.h - 664 sys sys 1088784890 326
 sys/src/libcontrol/keyboard.c - 664 sys sys 1040447293 10894
@@ -15869,3 +15869,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+rc/bin/doc2ps - 775 sys sys 1205813503 338
