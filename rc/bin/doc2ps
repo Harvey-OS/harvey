@@ -1,16 +1,21 @@
 #!/bin/rc
+# doc2ps [file.doc] - convert ms word document to postscript
 rfork e
-if(! ~ $#* 0 1 && ~ $1 -*){
-	echo 'usage: doc2ps file.doc' >[1=2]
+fn usage {
+	echo usage: doc2ps '[file.doc]' >[1=2]
 	exit usage
 }
-file=$1
-if(~ $#* 0){
+switch ($#*) {
+case 0
 	file=/tmp/antiword.doc.$pid
+	fn sigexit { rm $file; exit $s }
 	cat >$file
+case 1
+	if(~ $1 -*)
+		usage
+	file=$1
+case *
+	usage
 }
 aux/antiword -i0 -p letter $file 
 s=$status
-if(~ $#* 0)
-	rm -f $file
-exit $status

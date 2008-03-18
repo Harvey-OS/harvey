@@ -111,7 +111,7 @@ _start0x3E:
 
 					/* rCX contains 0x0001 */
 	SBPWI(0x0010, Xdap+0)		/* reserved + packet size */
-	SBPWI(rCX, Xdap+2)		/* reserved + # of blocks to transfer */
+	SBPW(rCX, Xdap+2)		/* reserved + # of blocks to transfer */
 
 	DEC(rCX)
 	SBPW(rCX, Xdap+12)

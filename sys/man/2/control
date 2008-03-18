@@ -47,10 +47,10 @@ resizecontrolset
 #include <keyboard.h>
 #include <mouse.h>
 #include <control.h>
-.sp 0.8
+.sp 0.3
 typedef struct Control Control;
 typedef struct Controlset Controlset;
-.sp 0.8
+.sp 0.3
 struct Control
 {
 	char		*name;
@@ -60,7 +60,7 @@ struct Control
 	Channel	*data;	/* chan(char*) to client */
 	\&...
 };
-.sp 0.8
+.sp 0.3
 struct Controlset
 {
 	\&...
@@ -70,99 +70,113 @@ struct Controlset
 	int	clicktotype;
 	\&...
 };
-.sp 0.8
+.sp 0.3
 void		initcontrols(void)
-.sp 0.8
-Controlset*	newcontrolset(Image *i,
-		Channel *kc, Channel *mc, Channel *rc)
-.sp 0.8
+.sp 0.3
+Controlset*	newcontrolset(Image *i, Channel *kc, Channel *mc, Channel *rc)
+.sp 0.3
 void		closecontrolset(Controlset *cs)
-.sp 0.8
+.sp 0.3
 int		namectlfont(Font *font, char *name)
-.sp 0.8
+.sp 0.3
 int		freectlfont(char *name)
-.sp 0.8
+.sp 0.3
 int		namectlimage(Image *image, char *name)
-.sp 0.8
+.sp 0.3
 int		freectlimage(char *name)
-.sp 0.8
+.sp 0.3
 Control*	createbox(Controlset *cs, char *name)
-.sp 0.8
+.sp 0.3
 Control*	createboxbox(Controlset *cs, char *name)
-.sp 0.8
+.sp 0.3
 Control*	createbutton(Controlset *cs, char *name)
-.sp 0.8
+.sp 0.3
 Control*	createcolumn(Controlset*, char*)
-.sp 0.8
+.sp 0.3
 Control*	createentry(Controlset *cs, char *name)
-.sp 0.8
+.sp 0.3
 Control*	createkeyboard(Controlset *cs, char *name)
-.sp 0.8
+.sp 0.3
 Control*	createlabel(Controlset *cs, char *name)
-.sp 0.8
+.sp 0.3
 Control*	createmenu(Controlset *cs, char *name)
-.sp 0.8
+.sp 0.3
 Control*	createradiobutton(Controlset *cs, char *name)
-.sp 0.8
+.sp 0.3
 Control*	createrow(Controlset*, char*)
-.sp 0.8
+.sp 0.3
 Control*	createscribble(Controlset *cs, char *name)
-.sp 0.8
+.sp 0.3
 Control*	createslider(Controlset *cs, char *name)
-.sp 0.8
+.sp 0.3
 Control*	createstack(Controlset*, char*)
-.sp 0.8
+.sp 0.3
 Control*	createtab(Controlset*, char *)
-.sp 0.8
+.sp 0.3
 Control*	createtext(Controlset *cs, char *name)
-.sp 0.8
+.sp 0.3
 Control*	createtextbutton(Controlset *cs, char *name)
-.sp 0.8
+.sp 0.3
 void		closecontrol(Control *c)
-.sp 0.8
+.sp 0.3
 int		ctlprint(Control*, char*, ...);
-.sp 0.8
+.sp 0.3
 void		ctlerror(char *fmt, ...)
-.sp 0.8
+.sp 0.3
 Control*	controlcalled(char *name)
-.sp 0.8
+.sp 0.3
 void		controlwire(Control *c, char *cname, Channel *ch)
-.sp 0.8
+.sp 0.3
 void		activate(Control *c)
-.sp 0.8
+.sp 0.3
 void		deactivate(Control *c)
-.sp 0.8
+.sp 0.3
 void		resizecontrolset(Controlset *cs)
-.sp 0.8
+.sp 0.3
 void*		ctlmalloc(uint n)
-.sp 0.8
+.sp 0.3
 void*		ctlrealloc(void *p, uint n)
-.sp 0.8
+.sp 0.3
 char*		ctlstrdup(char *s)
-.sp 0.8
-int		ctldeletequits
+.sp 0.3
+int		ctldeletequits;
 .EE
 .SH DESCRIPTION
-.PP
 This library provides a set of interactive
 controls for graphical displays: buttons, sliders, text entry boxes, and so on.
-It also provides aggregator controls: boxes, columns, rows and stacks of controls.
-A stack is a collection of colocated controls, of which one is normally visible.
+It also provides aggregator
+.BR Control s:
+boxes, columns, rows and stacks of
+.BR Control s.
+A stack is a collection of co-located
+.BR Control s,
+of which one is normally visible.
 A
-.B controlset
-collects a group of controls that share mouse and keyboard.  Each controlset
+.B Controlset
+collects a group of
+.BR Control s
+that share mouse and keyboard.  Each
+.B Controlset
 has a separate thread of control that processes keyboard and mouse events as
-well as commands to be passed on to the controls.
-Since each controlset uses a thread, programs using the control library must
+well as commands to be passed on to the
+.BR Control s.
+Since each
+.B Controlset
+uses a thread, programs using the control library must
 be linked with the thread library,
 .IR thread (2).
 .PP
-Controls are manipulated by reading and writing to the control channel,
+.BR Control s
+are manipulated by reading and writing to the control channel,
 .BR ctl ,
-of their controlset.
-Channels are defined in
+of their
+.BR Controlset .
+.BR Channel s
+are defined in
 .IR thread (2).
-Each control has two output channels:
+Each
+.B Control
+has two output channels:
 .B Event
 delivers messages about actions within the control (such as a button press) and
 .B data
@@ -177,8 +191,13 @@ the minimum and maximum sizes of each simple control can be specified.
 .B column
 and
 .B stack
-controls then use these sizes to lay out their constituent controls when called upon
-to do so.  See the description of these grouping controls for further details.
+.BR Control s
+then use these sizes to lay out their constituent
+.BR Control s
+when called upon
+to do so.  See the description of these grouping
+.BR Control s
+for further details.
 .SS "Message format
 All messages are represented as
 .SM UTF\c
@@ -188,7 +207,9 @@ Numbers are formatted in decimal, and strings are transmitted in the
 quoted form of
 .IR quote (2).
 .PP
-Messages sent to a controlset are of the form,
+Messages sent to a
+.B Controlset
+are of the form,
 .IP
 .IR sender :
 .I destination
@@ -203,7 +224,8 @@ could be set by sending the message,
 .IP
 .B "entry value 'Hello, world!'
 .PP
-to its controlset's
+to its
+.BR Controlset 's
 .B ctl
 file.
 This message contains the verb
@@ -215,7 +237,9 @@ To make it easy to write messages, the function
 .IR chanprint
 (see
 .IR thread (2))
-can be used to print formatted text to a controlset's channel.
+can be used to print formatted text to a
+.BR Controlset 's
+channel.
 .PP
 The
 .B %q
@@ -253,13 +277,13 @@ If there were a control whose name was
 that control would also be shown.
 .LP
 \f2
-Note that we are still experimenting with destination names.  One proposal is that
+Note that we are still experimenting with destination names.
+One proposal is that
 a destination of the form
 \fR"`name1 name2 ⋯ type1 type2 ⋯'\fP
 selects all controls of the named types in the control hierarchies (of columns, rows and
 stacks) whose names precede the types.
 .LP
-.sp
 Messages sent by a control on its
 .B event
 channel are of the form
@@ -273,9 +297,11 @@ is the name of the control sending the message;
 the
 .I event
 describes the event.  Its format can often be controlled by setting the
-control's
+.BR Control 's
 .IR "format string" .
-For example, when the user types a newline at a text entry control named
+For example, when the user types a newline at a text entry
+.B Control
+named
 .BR entry,
 the control sends the message
 .IP
@@ -367,15 +393,19 @@ If it is set to non-zero, the controls
 in the set will acquire `focus' by the click-to-type paradigm.
 Otherwise, focus is always given to the control under the mouse.
 .PP
-Commands for controls are sent through the controlset's
+Commands for controls are sent through the
+.BR Controlset 's
 .I ctl
 channel.
-One special command is recognized by the controlset itself:  Sending
+One special command is recognized by the
+.B Controlset
+itself:  Sending
 the string
 .B sync
 to the
 .I ctl
-channel causes tha string to be echoed to the controlset's
+channel causes tha string to be echoed to the
+.BR Controlset 's
 .I data
 channel when all commands up to the
 .I sync
@@ -462,12 +492,15 @@ After a control is created, it must be configured using the control-specific
 commands documented below.
 Commands are sent to the
 .B ctl
-channel of the controlset.
+channel of the
+.BR Controlset .
 Multiple commands may be sent in a single message; newline characters
 separate commands.
 For an example, see the implementation of
 .I resizecontrolset
-in the EXAMPLES section.
+in the
+.B EXAMPLES
+section.
 Note that newline is a separator, not a terminator; the final command
 does not need a newline.
 .PP
@@ -560,6 +593,7 @@ by mouse or keyboard action; messages to the
 file do not cause events to be generated.
 .PP
 All controls accept the following messages:
+.TF \f(CWreveal
 .TP
 .BI rect " minx miny maxx maxy
 Set the bounding rectangle for the control on the display.
@@ -577,44 +611,76 @@ Without its four arguments, this command is ignored by primitive controls
 and used by grouping controls to calculate their minimum and maximum sizes
 by examining those of their constituent members.
 If all primitive controls have been assigned a size, a single size request addressed
-to the top of a layout hierarchy will assign sizes to all grouping controls.
+to the top of a layout hierarchy will assign sizes to all grouping
+.BR Control s.
 .TP
 .B hide
 Disable drawing of the control and ignore mouse and keyboard events
 until the control is once again revealed.
-Grouping controls (\f2column\fP, \f2row\fP, and \f2stack\fP) pass the
-request down to their constituent controls.
+Grouping
+.BR Control s
+(\f2column\fP, \f2row\fP, and \f2stack\fP) pass the
+request down to their constituent
+.BR Control s.
 .TP
 .B reveal
 This is the opposite of
 .BR hide :
-the control is displayed and mouse and keyboard operations resume.
-Grouping controls (\f2column\fP, \f2row\fP, and \f2stack\fP) pass the
-request down to their constituent controls.
+the
+.B Control
+is displayed and mouse and keyboard operations resume.
+Grouping
+.BR Control s
+(\f2column\fP, \f2row\fP, and \f2stack\fP) pass the
+request down to their constituent
+.BR Control s.
 The
 .B reveal
 command for
 .I stacks
-takes an optional argument naming the control to be revealed; all
-other controls will be hidden.
+takes an optional argument naming the
+.B Control
+to be revealed; all
+other
+.BR Control s
+will be hidden.
 .TP
 .B show
-Display the control on its screen if not hidden.
-Some actions will also cause the controls to show themselves automatically
-(but never when the control is hidden).
-Grouping controls (\f2column\fP, \f2row\fP, and \f2stack\fP) pass the
-request down to their constituent controls.
+Display the
+.B Control
+on its screen if not hidden.
+Some actions will also cause the
+.BR Control s
+to show themselves automatically
+(but never when the
+.B control
+is hidden).
+Grouping
+.BR Control s
+(\f2column\fP, \f2row\fP, and \f2stack\fP) pass the
+request down to their constituent
+.BR Control s.
+.PD
 .PP
-Many messages are common between multiple controls.
+Many messages are common between multiple
+.BR Control s.
 Such messages are described in detail here to avoid repetition.
 In the individual descriptions, only the syntax is presented.
+.TF "\f(CWformat fmt"
 .TP
 .BI align " n
-Specify the alignment of (some part of) the control's display within its rectangle.
-For textual controls, the alignment specifies where the text should appear.
-For multiline text, the alignment refers to each line within its box, and only the
+Specify the alignment of (some part of) the
+.BR Control 's
+display within its rectangle.
+For textual
+.BR control s,
+the alignment specifies where the text should appear.
+For multiline text, the alignment refers to each line within its box,
+and only the
 horizontal part is honored.
-For other controls, the alignment affects the appearance of the display in
+For other
+.BR Control s,
+the alignment affects the appearance of the display in
 a reasonable way.
 The valid alignments are words with obvious interpretations:
 .BR upperleft ,
@@ -629,12 +695,17 @@ and
 .BR lowerright .
 .TP
 .BI border " n
-Inset the control (or separate constituent controls in
+Inset the
+.B Control
+(or separate constituent
+.BR Control s
+in
 .IR boxbox ,
 .I column
 and
 .I row
-controls after the next
+.BR Control s
+after the next
 .I rect
 command) within its rectangle by
 .I n
@@ -644,12 +715,16 @@ pixels, default zero.
 Paint the border of the control with the named color, default black.
 .TP
 .BI focus " n
-The control now has (if
+The
+.B Control
+now has (if
 .I n
 is non-zero) or does not have ( if
 .I n
 is zero) focus.
-Most controls ignore the message; there are plans to make them react.
+Most
+.BR Control s
+ignore the message; there are plans to make them react.
 .TP
 .BI format " fmt
 Set the format of `value' messages sent on the
@@ -657,16 +732,23 @@ Set the format of `value' messages sent on the
 channel.
 By default, the format is
 .B \&"%q: value %q"
-for string-valued controls,
+for string-valued
+.BR Control s,
 .B \&"%q: value %d"
-for integer-valued controls such as buttons,
+for integer-valued
+.B Control s
+such as buttons,
 and
 .B \&"%q: value 0x%x"
-for the keyboard and scribble controls.
+for the keyboard and scribble
+.BR Control s.
 The
 .B %q
-prints the name of the control; the rest the value.
-Any supplied format string must be type-equivalent to the default for that control. 
+prints the name of the
+.BR Control ;
+the rest the value.
+Any supplied format string must be type-equivalent to the default for that
+.BR Control . 
 .TP
 .BI image " name
 .TP
@@ -681,7 +763,9 @@ The
 .B mask
 and
 .B light
-images together specify how the control shows it is enabled:
+images together specify how the
+.B Control
+shows it is enabled:
 the
 .B light
 is printed through the
@@ -699,7 +783,9 @@ The defaults are the default
 set up by the draw library, and black.
 .TP
 .BI value " v
-Set the value of the control.  Textual images accept an arbitrary string;
+Set the value of the
+.BR Control .
+Textual images accept an arbitrary string;
 others an integral value.
 .SS Box
 A box is a trivial control that does nothing more than pass keyboard, mouse,
@@ -743,6 +829,7 @@ is 0 if the box has lost focus, 1 if it has acquired it.
 The box displays within its rectangle
 an image, under mask, with specified alignment.
 The control messages it accepts are:
+.TF "\f(CWalign a"
 .TP
 .BI align " a
 Controls the placement of the image in the rectangle (unimplemented).
@@ -764,17 +851,21 @@ Controls the placement of the image in the rectangle (unimplemented).
 .BI show
 .TP
 .BI size " minΔx minΔy maxΔx maxΔy
-.PP
+.PD
 .SS Boxbox
 A
 .B boxbox
-allows a set of controls (``boxes'')  to be displayed in rows and columns within the
+allows a set of controls (``boxes'')
+to be displayed in rows and columns within the
 rectangle of the
 .IR boxbox .
 The maximum of the minimum heights of the constituent controls determines the
 number of rows to be displayed.  The number of columns is the minimum that
-allows all controls to be displayed.  This aggregator works well for collections
+allows all
+.BR Control s
+to be displayed.  This aggregator works well for collections
 of buttons, labels, or textbuttons that all have a fixed height.
+.TF "\f(CWadd name ..."
 .TP
 .BI add " name ...
 adds the named control to the box of controls.  The display order
@@ -790,7 +881,7 @@ the layout of the result will be quite unpredictable.
 .B hide
 This command is passed on to the member controls.
 .TP
-.B image " color
+.BR image " color
 Background color displayed between member controls.
 .TP
 .B reveal
@@ -821,7 +912,7 @@ This command is passed on to the member controls.
 Show also (re)displays background and borders.
 .TP
 .BR size " \f2minΔx minΔy maxΔx maxΔy\fP
-.PP
+.PD
 .SS Button
 A button is a simple control that toggles its state when mouse button 1 is pressed on its rectangle.
 Each state change triggers an event message:
@@ -836,6 +927,7 @@ encodes the mouse buttons used to make the selection.
 The button displays an image (which may of course be a simple color)
 and illuminates in the standard way when it is `on'.
 The control messages it accepts are:
+.TF "\f(CWborder b"
 .TP
 .BI align " a
 Controls the placement of the image in the rectangle (unimplemented).
@@ -870,12 +962,13 @@ Set the button to `on' (if
 is non-zero) or `off' (if
 .I n
 is zero).
-.PP
+.PD
 .SS Column
 A column is a grouping control which lays out its members vertically,
 from top to bottom.  Currently, columns ignore mouse and keyboard
 events, but there are plans to allow dragging the borders (when they
 have non-zero width) between constituent members.
+.TF "\f(CWadd name .."
 .TP
 .BI add " name ...
 adds the named control to the column of controls.  The vertical order
@@ -890,7 +983,7 @@ Set the border between members to the width given.
 .TP
 .B hide
 .TP
-.B image " color
+.BR image " color
 Background color displayed between member controls.
 .TP
 .B reveal
@@ -932,7 +1025,7 @@ and
 .IR maxΔy .
 When called with arguments, it simply sets the minimum and maximum
 sizes to those given.
-.PP
+.PD
 .SS Entry
 The entry control manages a single line of editable text.
 When the user hits a carriage return anywhere
@@ -965,6 +1058,7 @@ The file
 defines such a font.
 .PP
 The control messages the entry control accepts are:
+.TF "\f(CWborder b"
 .TP
 .BI align " a
 Controls the placement of the text in the rectangle.
@@ -1002,6 +1096,7 @@ When it does not have focus, the cursor is not displayed.
 .TP
 .BI value " s
 Set the string displayed in the entry box.
+.PD
 .SS Keyboard
 The keyboard control implements a simulated keyboard useful on palmtop devices.
 Keystrokes, generated by mouse button 1 on the simulated keys,
@@ -1033,6 +1128,7 @@ but to aid clumsy fingers the keystroke is not generated until the key is releas
 so it is possible to slide the pointer to a different key to correct for bad aim.
 .PP
 The control messages the keyboard accepts are:
+.TF "\f(CWfont"
 .TP
 .BI border " b
 .TP
@@ -1069,11 +1165,13 @@ If neither is specified, both will be set to the default global font.
 .B show
 .TP
 .BI size " minx miny maxx maxy
+.PD
 .SS Label
 A label is like a textbutton
 .RI ( q.v. )
 that does not react, but whose value is the text it displays.
 The control messages it accepts are:
+.TF "\f(CWvalue s"
 .TP
 .BI align " a
 Controls the placement of the image in the rectangle.
@@ -1104,6 +1202,7 @@ Controls the placement of the image in the rectangle.
 The value is a string that can be modified only by sending this message to the
 .B ctl
 file.
+.PD
 .SS Menu
 A menu is a pop-up window containing a set of textual selections.
 When a selection is made, it removes itself from the screen and reports the selection
@@ -1131,6 +1230,7 @@ most programs use
 .BR Refnone .
 .PP
 The control messages accepted by a menu are:
+.TF "\f(CWwindow n"
 .TP
 .BI add " text
 Add a line of
@@ -1177,6 +1277,7 @@ instead.
 .BI window " n
 With no arguments, toggle the menu's visibility; otherwise make it visible (1) or invisible (0).
 When the selection is made, the menu will remove its window automatically.
+.PD
 .SS Radiobutton
 The radiobutton assembles a group of buttons or textbuttons into a
 single control with a numeric value.
@@ -1204,6 +1305,7 @@ buttons.
 In other words, the geometry is not maintained automatically.
 .PP
 The control messages the radiobutton accepts are:
+.TF "\f(CWadd name"
 .TP
 .BI add " name
 Add the control with the specified
@@ -1225,6 +1327,7 @@ to the radiobutton.
 .B show
 .TP
 .BI value " n
+.PD
 .SS Row
 A row groups a number of member controls left to right in a rectangle.
 Rows behave exactly like columns with the roles of
@@ -1232,6 +1335,9 @@ Rows behave exactly like columns with the roles of
 and
 .I y
 interchanged.
+.PP
+The control messages it accepts are:
+.TF "\f(CWfont"
 .TP
 .BI add " name ...
 .TP
@@ -1241,7 +1347,7 @@ interchanged.
 .TP
 .BI hide
 .TP
-.B image " color
+.BR image " color
 .TP
 .BI rect " minx miny maxx maxy
 .TP
@@ -1254,6 +1360,7 @@ interchanged.
 .BI show
 .TP
 .BR size " [ \f2minΔx minΔy maxΔx maxΔy\fP ]
+.PD
 .SS Scribble
 The scribble control provides a region in which strokes drawn with mouse button
 1 are interpreted as characters in the manner of
@@ -1262,6 +1369,7 @@ In most respects, including the format of its event messages, it is equivalent
 to a keyboard control.
 .PP
 The control messages it accepts are:
+.TF "\f(CWlinecolor \fIname\f(CW "
 .TP
 .BI align " a
 Controls the placement of the image in the rectangle (unimplemented).
@@ -1276,7 +1384,7 @@ Controls the placement of the image in the rectangle (unimplemented).
 Used to display the indicia.
 .TP
 .BI hide
-TP
+.TP
 .BI image " name
 .TP
 .BI linecolor " name
@@ -1289,9 +1397,13 @@ The color in which to draw the strokes; default black.
 .BI size " minx miny maxx maxy
 .TP
 .B show
+.PD
 .SS Stack
 A stack groups a number of member controls in the same shared rectangle.
 Only one of these controls will be visible (revealed), the others are hidden.
+.PP
+The control messages it accepts are:
+.TF "\f(CWreveal [\f2n\fP]"
 .TP
 .BI hide
 .TP
@@ -1317,6 +1429,7 @@ Without argument,
 computes the maximum of the minimum and maximum sizes of
 its constituent controls.  With arguments, it sets the size to the
 given values.
+.PD
 .SS Slider
 A slider controls an integer value by dragging the mouse with a button.
 Configured appropriately, it can serve as a scroll bar with the standard
@@ -1357,6 +1470,7 @@ is the visual representation of the
 portion of the controlled object.
 .PP
 The control messages the slider accepts are:
+.TF "\f(CWabsolute n"
 .TP
 .BI absolute " n
 If
@@ -1426,6 +1540,7 @@ downwards for vertical sliders.
 .TP
 .BI vis " n
 Set the visible area shown by the indicator.
+.PD
 .SS Tab
 A tab control combines radiobottuns with a stack of windows giving the
 appearance of tabbed controls.  Currently, the tabs are positioned at the
@@ -1433,6 +1548,7 @@ top of the stack.  The radiobutton consists of textbuttons, the stack
 can be composed of any type of control.
 .PP
 Control messages are
+.TF "\f(CWformat fmt"
 .TP
 .BI add " button control button control ...
 Adds a button to the radiobutton, and an associated control to the stack.
@@ -1471,6 +1587,7 @@ buttons and the stack below it.
 .TP
 .BI value " n
 Value must be an integer indicating which tab to bring to the top.
+.PD
 .SS Text
 A text control presents a set of lines of text.
 The text cannot be edited with the keyboard, but can be
@@ -1491,8 +1608,8 @@ either zero (unselected) or non-zero (selected).
 The non-zero value encodes the mouse buttons that were down
 when the selection occurred.
 .PP
-.PP
 The control messages the text control accepts are:
+.TF "\f(CWselectmode \fIs\fP "
 .TP
 .BI accumulate " s
 .TP
@@ -1551,7 +1668,7 @@ by the string
 .TP
 .BI reveal
 .TP
-.B scroll " n
+.BI scroll " n
 If
 .I n
 is non-zero, the text will automatically scroll so the last line is always visible
@@ -1595,6 +1712,7 @@ Scroll the text so the top visible line is number
 .BI value " s
 Delete all the text in the control and then add the single line
 .IR s .
+.PD
 .SS Textbutton
 A textbutton is a textual variant of a plain button.
 Each state change triggers an event message:
@@ -1602,6 +1720,7 @@ Each state change triggers an event message:
 .EX
 textbuttonname: value \f2n\fP
 .EE
+.LP
 where
 .I n
 encodes the mouse buttons used to make the selection.
@@ -1612,6 +1731,7 @@ is the string that appears in the button.
 It uses the image, light, mask method of indicating its state;
 moreover, the color of the text can be set to change when the button is pressed.
 The control messages it accepts are:
+.TF "\f(CWalign a"
 .TP
 .BI align " a
 Controls the placement of the text in the rectangle.
@@ -1709,17 +1829,17 @@ and copies the contents of one to the other whenever a newline is typed.
 #include <mouse.h>
 #include <keyboard.h>
 #include <control.h>
-
+.sp 0.4v
 Controlset *cs;
-
+.sp 0.4v
 int ctldeletequits = 1;
-
+.sp 0.4v
 void
 resizecontrolset(Controlset*)
 {
 	int i;
 	Rectangle r, r1, r2;
-
+.sp 0.4v
 	if(getwindow(display, Refnone) < 0)
 		sysfatal("resize failed: %r");
 	r = insetrect(screen->r, 10);
@@ -1731,7 +1851,7 @@ resizecontrolset(Controlset*)
 	chanprint(cs->ctl, "top rect %R\entop show", r1);
 	chanprint(cs->ctl, "bot rect %R\enbot show", r2);
 }
-
+.sp 0.4v
 void
 threadmain(int argc, char *argv[])
 {
@@ -1739,27 +1859,27 @@ threadmain(int argc, char *argv[])
 	Channel *c;
 	Control *top, *bot;
 	int n;
-
+.sp 0.4v
 	initdraw(0, 0, "example");
 	initcontrols();
 	cs = newcontrolset(screen, nil, nil, nil);
 	cs->clicktotype = 1;
-
+.sp 0.4v
 	top = createentry(cs, "top");
 	chanprint(cs->ctl, "top image paleyellow");
 	chanprint(cs->ctl, "top border 1");
 	bot = createentry(cs, "bot");
 	chanprint(cs->ctl, "bot image paleyellow");
 	chanprint(cs->ctl, "bot border 1");
-
+.sp 0.4v
 	c = chancreate(sizeof(char*), 0);
 	controlwire(top, "event", c);
 	controlwire(bot, "event", c);
-
+.sp 0.4v
 	activate(top);
 	activate(bot);
 	resizecontrolset(cs);
-
+.sp 0.4v
 	for(;;){
 		s = recvp(c);
 		n = tokenize(s, args, nelem(args));
@@ -1801,14 +1921,14 @@ with this:
 .EX
 	chanprint(cs->ctl, "bot format %q", "%q: top value %q");
 	chanprint(cs->ctl, "top format %q", "%q: bot value %q");
-
+.sp 0.4v
 	controlwire(top, "event", cs->ctl);
 	controlwire(bot, "event", cs->ctl);
-
+.sp 0.4v
 	activate(top);
 	activate(bot);
 	resizecontrolset(cs);
-
+.sp 0.4v
 	for(;;)
 		yield();
 	threadexitsall(nil);

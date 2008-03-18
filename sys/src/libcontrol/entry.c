@@ -286,6 +286,20 @@ entrykey(Entry *e, Rune r)
 			e->ntext--;
 		}
 		break;
+	case Kright:
+		if(e->cursor < e->ntext)
+			e->cursor++;
+		break;
+	case Kleft:
+		if(e->cursor > 0)
+			e->cursor--;
+		break;
+	case 0x01:	/* control A: beginning of line */
+		e->cursor = 0;
+		break;
+	case 0x05:	/* control E: end of line */
+		e->cursor = e->ntext;
+		break;
 	case 0x15:	/* control U: kill line */
 		e->cursor = 0;
 		e->ntext = 0;

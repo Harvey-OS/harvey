@@ -1,8 +1,14 @@
 .TH DOC2TXT 1
 .SH NAME
-doc2txt, wdoc2txt, xls2txt, olefs, mswordstrings, msexceltable \- extract printable strings from Microsoft Office documents
+doc2txt, doc2ps, wdoc2txt, xls2txt, olefs, mswordstrings, msexceltables
+\- extract printable text from Microsoft documents
 .SH SYNOPSIS
 .B doc2txt
+[
+.I file.doc
+]
+.br
+.B doc2ps
 [
 .I file.doc
 ]
@@ -25,19 +31,19 @@ doc2txt, wdoc2txt, xls2txt, olefs, mswordstrings, msexceltable \- extract printa
 .I file.doc
 .br
 .B aux/mswordstrings 
-.I /mnt/doc/WordDocument
+.IB mtpt /WordDocument
 .br
-.B aux/msexceltable
+.B aux/msexceltables
 [
 .B -aDnt
 ] [
 .B -d
 .I delim
-]
+] [
 .B -w
 .I worksheet-range
 ]
-.I /mnt/doc/Workbook
+.IB mtpt /Workbook
 .SH DESCRIPTION
 .I Doc2txt
 is an
@@ -46,9 +52,14 @@ script that uses
 .I olefs
 and
 .I mswordstrings
-to extract the printable text from the body of a Microsoft Word document and write it on the standard output.
+to extract the printable text from the body of a Microsoft Word document
+and write it on the standard output.
+.I Doc2ps
+is similar, but emits PostScript corresponding to the document.
 .I Wdoc2txt
-is similar, but uses
+is similar to
+.IR doc2txt ,
+but uses
 .IR plumb (1)
 to send the output to a new
 .IR acme (1)
@@ -59,7 +70,7 @@ performs a similar function for Microsoft Excel documents.
 Microsoft Office documents are stored in OLE (Object Linking and Embedding)
 format, which is a scaled down version of Microsoft's FAT file system.
 .I Olefs
-presents the contents of an Office document as a file system
+presents the contents of an MS Office document as a file system
 on
 .IR mtpt ,
 which defaults to
@@ -71,55 +82,65 @@ may then be used to parse the files inside, extracting
 a text stream.
 .I Msexceltables
 may be given options to control the formatting of its output.
-.TP
-.B -n
-Disables field padding to colum width.
-.TP
-.B -t
-Truncate fields to the colum width.
+.TF "\f(CW-d \fIdelim"
 .TP
 .B -a
-Attempt conversion of non-tabular sheets in the workbook. (charts).
+Attempt conversion of non-tabular sheets in the workbook (charts).
 .TP
 .BI -d " delim
-Sets the interfield delimiter to the string
+Sets the inter-field delimiter to the string
 .IR delim ,
 by default a single space.
 .TP
 .B -D
 Enables debugging output.
 .TP
-.BI -w " worksheet-spec
-Specifies which worksheets to process, by default all tabular sheets are
-output \- suspressed chart pages are always included in the sheet count.
-Arbitary lists of pages or page ranges may be given, individual pages
-are seperated by commas, sheet ranges are seperated by a minus.
+.B -n
+Disables field padding to column width.
+.TP
+.B -t
+Truncate fields to the column width.
+.TP
+.BI -w " pages
+.I Pages
+is a comma-separated list of page numbers and ranges.
+Ranges are separated by dashes.
+Limit processing to just those pages named;
+by default all tabular sheets are output.
+Suppressed chart pages are always included in the sheet count.
 .SH EXAMPLE
+Extract pieces of an MS Excel spreadsheet.
+.PD 0
+.IP
 .EX
-	aux/olefs report.xls
-	msexceltables -w 1,7,9-14,3-4 -n -d '@' /mnt/doc/Workbook
-	unmount /mnt/doc
+aux/olefs report.xls
+msexceltables -w 1,7,9-14,3-4 -n -d '@' /mnt/doc/Workbook
+unmount /mnt/doc
 .EE
+.PD
 .SH SOURCE
-.B /rc/bin/doc2txt
-.br
-.B /rc/bin/wdoc2txt
-.br
-.B /rc/bin/xls2txt
-.br
-.B /sys/src/cmd/aux/msexceltables.c
-.br
-.B /sys/src/cmd/aux/mswordstrings.c
-.br
-.B /sys/src/cmd/aux/olefs.c
+.TF "\f(CW/sys/src/cmd/aux   "
+.TP
+.B /rc/bin
+.BR doc2txt ,
+.BR doc2ps ,
+.BR wdoc2txt,
+and
+.BR xls2txt
+.TP
+.B /sys/src/cmd/aux
+the others
+.fi
+.PD
 .SH SEE ALSO
 .IR strings (1)
 .br
 ``Microsoft Word 97 Binary File Format'',
-available on line at Microsoft's developer home page.
+at Microsoft's developer (MSDN) home page.
 .br
 ``LAOLA Binary Structures'', 
-.I http://snake.cs.tu-berlin.de:8081/~schwartz/pmh 
+.B http://user.cs.tu-berlin.de/~schwartz/pmh 
 .br
 ``OpenOffice.Org's Excel Documentation'',
-.I http://sc.openoffice.org/excelfileformat.pdf
+.br
+.B http://sc.openoffice.org/excelfileformat.pdf
