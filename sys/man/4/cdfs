@@ -62,21 +62,23 @@ is the track number.
 .PP
 If the device is capable of writing discs
 and contains a writable disc, the top level
-directory also contains two empty directories
-.B wa
-and
-.BR wd .
+directory also contains an empty directory
+.B wd
+and, for CDs only,
+an empty directory
+.BR wa .
 Files created in these directories
 appear in the top level directory
-as new audio or data tracks, regardless of name.
+as new data or audio tracks, respectively, regardless of name.
 .PP
 At any time, any number of tracks
 may be open for reading or a single track
 may be open for writing.
-Writing a disc track is a real-time operation:
-the disc writer must be kept saturated with
-new data to avoid buffer underruns.
-To ensure this, copying from a file system
+Writing a disc track is a quasi-real-time operation:
+the disc writer should be kept saturated with
+new data to avoid buffer underruns,
+but modern drives will be told to cope with underruns transparently.
+To ensure saturation, copying from a file system
 stored on local disk or memory is recommended.
 .PP
 To fixate a disc (close a recordable disc by writing
