@@ -40,7 +40,7 @@ is the number of a LUN to access,
 for all detected LUNs of the named or found USB device.
 .I Disk
 searches for a USB device with class 8 (storage),
-subclass 2 (ATAPI CD/DVD),
+subclass 2 (ATAPI CD/DVD/BD),
 5 (removable, ATAPI-like) or
 6 (SCSI transparent),
 and
