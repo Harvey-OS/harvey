@@ -320,6 +320,7 @@
 386/bin/ip/tftpd - 775 sys sys 1204292520 131963
 386/bin/ip/traceroute - 775 sys sys 1198211710 72783
 386/bin/ip/udpecho - 775 sys sys 1178508500 43095
+386/bin/ip/wol - 775 sys sys 1205983484 47866
 386/bin/join - 775 sys sys 1168402330 114382
 386/bin/jpg - 775 sys sys 1179372097 174971
 386/bin/kbmap - 775 sys sys 1197732770 144079
@@ -5845,7 +5846,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1203873355 268816
+sys/games/lib/fortunes - 664 sys sys 1205934831 268872
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -7430,7 +7431,7 @@ sys/man/1/leak - 664 sys sys 1196638935 4373
 sys/man/1/lens - 664 sys sys 1196638932 1272
 sys/man/1/lex - 664 sys sys 1196638932 1520
 sys/man/1/look - 664 sys sys 1196638932 1357
-sys/man/1/lp - 664 sys sys 1196638935 3329
+sys/man/1/lp - 664 sys sys 1205952886 3350
 sys/man/1/ls - 664 sys sys 1196638932 2890
 sys/man/1/mail - 664 sys sys 1196638935 2158
 sys/man/1/man - 664 sys sys 1196638932 2006
@@ -7452,7 +7453,7 @@ sys/man/1/ns - 664 sys sys 1196638935 895
 sys/man/1/p - 664 sys sys 1196638933 504
 sys/man/1/page - 664 sys sys 1196638935 5839
 sys/man/1/passwd - 664 sys sys 1201730866 1591
-sys/man/1/patch - 664 sys sys 1196638936 2588
+sys/man/1/patch - 664 sys sys 1205952914 3356
 sys/man/1/pcc - 664 sys sys 1196638933 3478
 sys/man/1/pic - 664 sys sys 1196638933 8229
 sys/man/1/pipefile - 664 sys sys 1196638936 1861
@@ -7754,7 +7755,7 @@ sys/man/4/snap - 664 sys sys 1196638944 1908
 sys/man/4/srv - 664 sys sys 1196638944 4970
 sys/man/4/tapefs - 664 sys sys 1196638944 1861
 sys/man/4/telco - 664 sys sys 1196638944 4359
-sys/man/4/u9fs - 664 sys sys 1196638944 4748
+sys/man/4/u9fs - 664 sys sys 1205964618 5225
 sys/man/4/upasfs - 664 sys sys 1196638944 6212
 sys/man/4/usb - 664 sys sys 1203552814 5677
 sys/man/4/usbd - 664 sys sys 1202846392 1035
@@ -7805,6 +7806,7 @@ sys/man/6/regexp - 664 sys sys 1196638945 2050
 sys/man/6/rewrite - 664 sys sys 1196638945 3235
 sys/man/6/smtpd - 664 sys sys 1196638945 8178
 sys/man/6/snap - 664 sys sys 1196638945 2402
+sys/man/6/style - 664 sys sys 1205985568 2659
 sys/man/6/thumbprint - 664 sys sys 1196638945 1124
 sys/man/6/users - 664 sys sys 1196638945 1392
 sys/man/6/utf - 664 sys sys 1196638945 2430
@@ -7850,11 +7852,11 @@ sys/man/8/getflags - 664 sys sys 1196638947 1713
 sys/man/8/gpsfs - 664 sys sys 1196638947 4918
 sys/man/8/httpd - 664 sys sys 1196638947 6866
 sys/man/8/init - 664 sys sys 1196638947 1430
-sys/man/8/ipconfig - 664 sys sys 1204424262 8203
+sys/man/8/ipconfig - 664 sys sys 1205960389 8284
 sys/man/8/ipserv - 664 sys sys 1202161489 3268
 sys/man/8/kfscmd - 664 sys sys 1196638947 4514
 sys/man/8/listen - 664 sys sys 1205796105 4090
-sys/man/8/lp - 664 sys sys 1196638947 2491
+sys/man/8/lp - 664 sys sys 1205960257 2490
 sys/man/8/mk9660 - 664 sys sys 1196638947 3946
 sys/man/8/mkfs - 664 sys sys 1196638947 3427
 sys/man/8/mkpaqfs - 664 sys sys 1196638947 890
@@ -7897,6 +7899,7 @@ sys/man/8/venti - 664 sys sys 1197570117 12190
 sys/man/8/venti-backup - 664 sys sys 1202925137 2290
 sys/man/8/venti-fmt - 664 sys sys 1196638948 8626
 sys/man/8/vga - 664 sys sys 1196638948 4129
+sys/man/8/wol - 664 sys sys 1205960109 743
 sys/man/fonts - 664 sys sys 1196638948 218
 sys/man/index.html - 664 sys sys 1196638948 1859
 sys/man/mkfile - 664 sys sys 1196638948 2264
@@ -12547,7 +12550,7 @@ sys/src/cmd/ip/ipconfig/mkfile - 664 sys sys 1204591120 575
 sys/src/cmd/ip/ipconfig/ppp.c - 664 sys sys 1184880751 1046
 sys/src/cmd/ip/linklocal.c - 664 sys sys 1197673397 1751
 sys/src/cmd/ip/measure.c - 664 sys sys 944961011 3733
-sys/src/cmd/ip/mkfile - 664 sys sys 1185920805 1267
+sys/src/cmd/ip/mkfile - 664 sys sys 1205960050 1273
 sys/src/cmd/ip/ping.c - 664 sys sys 1198188930 10554
 sys/src/cmd/ip/ppp - 20000000775 sys sys 1065963823 0
 sys/src/cmd/ip/ppp/block.c - 664 sys sys 1015090266 5353
@@ -12621,6 +12624,7 @@ sys/src/cmd/ip/telnetd.c - 664 sys sys 1135487948 11772
 sys/src/cmd/ip/tftpd.c - 664 sys sys 1106943821 7646
 sys/src/cmd/ip/traceroute.c - 664 sys sys 1198186109 8747
 sys/src/cmd/ip/udpecho.c - 664 sys sys 1178483004 789
+sys/src/cmd/ip/wol.c - 664 sys sys 1205960041 1615
 sys/src/cmd/join.c - 664 sys sys 1158251357 7550
 sys/src/cmd/jpg - 20000000775 sys sys 1132458749 0
 sys/src/cmd/jpg/bmp.c - 664 sys sys 1108852826 4222
@@ -14110,7 +14114,7 @@ sys/src/cmd/unix/u9fs/fcallconv.c - 664 sys sys 1043768485 5467
 sys/src/cmd/unix/u9fs/makefile - 664 sys sys 1048969298 1064
 sys/src/cmd/unix/u9fs/oldfcall.c - 664 sys sys 1015092352 7595
 sys/src/cmd/unix/u9fs/oldfcall.h - 664 sys sys 1015092352 914
-sys/src/cmd/unix/u9fs/plan9.h - 664 sys sys 1095185027 5748
+sys/src/cmd/unix/u9fs/plan9.h - 664 sys sys 1205963190 5772
 sys/src/cmd/unix/u9fs/print.c - 664 sys sys 1095185028 1329
 sys/src/cmd/unix/u9fs/random.c - 664 sys sys 1015092352 812
 sys/src/cmd/unix/u9fs/readn.c - 664 sys sys 1015092353 220
@@ -14120,7 +14124,7 @@ sys/src/cmd/unix/u9fs/safecpy.c - 664 sys sys 1043768486 212
 sys/src/cmd/unix/u9fs/strecpy.c - 664 sys sys 1015092353 193
 sys/src/cmd/unix/u9fs/sun-inttypes.h - 664 sys sys 1039110816 441
 sys/src/cmd/unix/u9fs/tokenize.c - 664 sys sys 1015092353 602
-sys/src/cmd/unix/u9fs/u9fs.c - 664 sys sys 1095185027 30960
+sys/src/cmd/unix/u9fs/u9fs.c - 664 sys sys 1205963230 31901
 sys/src/cmd/unix/u9fs/u9fs.h - 664 sys sys 1043768488 649
 sys/src/cmd/unix/u9fs/u9fsauth.h - 664 sys sys 1015092354 126
 sys/src/cmd/unix/u9fs/utfrune.c - 664 sys sys 1015092354 387
@@ -15869,3 +15873,5 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+sys/src/9/pc/sdata.c - 664 sys sys 1205986828 53185
+sys/src/cmd/ndb/query.c - 664 sys sys 1205986702 1913

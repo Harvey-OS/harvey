@@ -1,0 +1,42 @@
+.TH WOL 8
+.SH NAME
+wol \- send wake-on-lan Ethernet packet
+.SH SYNOPSIS
+.B ip/wol
+[
+.B -v
+] [
+.B -a
+.I dialstr
+] [
+.B -c
+.I password
+]
+.I macaddr
+.SH DESCRIPTION
+.I Wol
+sends a magic wake-on-lan Ethernet packet to
+.IR dialstr
+(default
+.BR udp!255.255.255.255!0 ,
+the IPv4 broadcast address),
+intended to wake up the machine with an Ethernet interface with the MAC
+address
+.IR macaddr .
+.I Macaddr
+is not used to route the packet, but is inserted into the magic packet
+as required by the wake-on-lan protocol.
+.PP
+An optional
+.I password
+of at most six bytes can be sent.
+The option
+.B -v
+prints verbose information about the packet sent.
+.SH "SEE ALSO"
+.IR dial (2),
+.I parseether
+in
+.IR ip (2)
+.br
+.B http://en.wikipedia.org/wiki/Wake-on-LAN

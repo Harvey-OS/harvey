@@ -82,6 +82,7 @@ may be
 .BR ether ,
 .BR gbe ,
 .BR ppp ,
+.BR pkt ,
 or
 .BR loopback .
 The
@@ -89,6 +90,9 @@ The
 type is equivalent to
 .B ether
 except that it allows jumbo packets (up to ~9KB).
+The
+.B pkt
+interface passes all IP packets to and from a user program.
 For
 .B ppp
 the device can be any byte stream device.

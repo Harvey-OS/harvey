@@ -69,7 +69,7 @@ struct Fid {
 void*	emalloc(size_t);
 void*	erealloc(void*, size_t);
 char*	estrdup(char*);
-char*	estrpath(char*, char*);
+char*	estrpath(char*, char*, int);
 void	sysfatal(char*, ...);
 int	okuser(char*);
 
@@ -155,6 +155,20 @@ Auth *authmethods[] = {	/* first is default */
 };
 
 Auth *auth;
+
+/*
+ * frogs: characters not valid in plan9
+ * filenames, keep this list in sync with
+ * /sys/src/9/port/chan.c:1656
+ */
+char isfrog[256]={
+	/*NUL*/	1, 1, 1, 1, 1, 1, 1, 1,
+	/*BKS*/	1, 1, 1, 1, 1, 1, 1, 1,
+	/*DLE*/	1, 1, 1, 1, 1, 1, 1, 1,
+	/*CAN*/	1, 1, 1, 1, 1, 1, 1, 1,
+	['/']	1,
+	[0x7f]	1,
+};
 
 void
 getfcallnew(int fd, Fcall *fc, int have)
@@ -611,7 +625,10 @@ stat2qid(struct stat *st)
 	memmove(p, &st->st_ino, q-p);
 	q = q+sizeof(dev_t);
 	if(q > ep){
-/*		fprint(2, "warning: inode number + device number too big %d+%d\n", sizeof(ino_t), sizeof(dev_t)); */
+/*
+ *		fprint(2, "warning: inode number + device number too big %d+%d\n",
+ *			sizeof(ino_t), sizeof(dev_t));
+ */
 		q = ep - sizeof(dev_t);
 		if(q < p)
 			fprint(2, "warning: device number too big by itself\n");
@@ -624,11 +641,45 @@ stat2qid(struct stat *st)
 	return qid;
 }
 
+char *
+enfrog(char *src)
+{
+	char *d, *dst;
+	uchar *s;
+
+	d = dst = emalloc(strlen(src)*3 + 1);
+	for (s = (uchar *)src; *s; s++)
+		if(isfrog[*s] || *s == '\\')
+			d += sprintf(d, "\\%02x", *s);
+		else
+			*d++ = *s;
+	*d = 0;
+	return dst;
+}
+
+char *
+defrog(char *s)
+{
+	char *d, *dst, buf[3];
+
+	d = dst = emalloc(strlen(s) + 1);
+	for(; *s; s++)
+		if(*s == '\\' && strlen(s) >= 3){
+			buf[0] = *++s;			/* skip \ */
+			buf[1] = *++s;
+			buf[2] = 0;
+			*d++ = strtoul(buf, NULL, 16);
+		} else
+			*d++ = *s;
+	*d = 0;
+	return dst;
+}
+
 void
 stat2dir(char *path, struct stat *st, Dir *d)
 {
 	User *u;
-	char *q;
+	char *q, *p, *npath;
 
 	memset(d, 0, sizeof(*d));
 	d->qid = stat2qid(st);
@@ -642,9 +693,9 @@ stat2dir(char *path, struct stat *st, Dir *d)
 	d->muid = "";
 
 	if((q = strrchr(path, '/')) != nil)
-		d->name = q+1;
+		d->name = enfrog(q+1);
 	else
-		d->name = path;
+		d->name = enfrog(path);
 }
 
 void
@@ -703,7 +754,7 @@ rread(Fcall *rx, Fcall *tx)
 				fid->dirent = nil;
 				continue;
 			}
-			path = estrpath(fid->path, fid->dirent->d_name);
+			path = estrpath(fid->path, fid->dirent->d_name, 0);
 			memset(&st, 0, sizeof st);
 			if(stat(path, &st) < 0){
 				fprint(2, "dirread: stat(%s) failed: %s\n", path, strerror(errno));
@@ -938,8 +989,7 @@ rwstat(Fcall *rx, Fcall *tx)
 			seterror(tx, "whoops: can't happen in u9fs");
 			return;
 		}
-	
-		new = estrpath(dir, d.name);
+		new = estrpath(dir, d.name, 1);
 		if(strcmp(old, new) != 0 && rename(old, new) < 0){
 			if(chatty9p)
 				fprint(2, "rename(%s, %s) failed\n", old, new);
@@ -1139,7 +1189,7 @@ estrdup(char *p)
 }
 
 char*
-estrpath(char *p, char *q)
+estrpath(char *p, char *q, int frog)
 {
 	char *r, *s;
 
@@ -1152,11 +1202,16 @@ estrpath(char *p, char *q)
 		return r;
 	}
 
+	if(frog)
+		q = defrog(q);
+	else
+		q = strdup(q);
 	r = emalloc(strlen(p)+1+strlen(q)+1);
 	strcpy(r, p);
 	if(r[0]=='\0' || r[strlen(r)-1] != '/')
 		strcat(r, "/");
 	strcat(r, q);
+	free(q);
 	return r;
 }
 
@@ -1424,7 +1479,7 @@ userwalk(User *u, char **path, char *elem, Qid *qid, char **ep)
 	char *npath;
 	struct stat st;
 
-	npath = estrpath(*path, elem);
+	npath = estrpath(*path, elem, 1);
 	if(stat(npath, &st) < 0){
 		free(npath);
 		*ep = strerror(errno);
@@ -1529,7 +1584,7 @@ usercreate(Fid *fid, char *elem, int omode, long perm, char **ep)
 	m = (perm & DMDIR) ? 0777 : 0666;
 	perm = perm & (~m | (fid->st.st_mode & m));
 
-	npath = estrpath(fid->path, elem);
+	npath = estrpath(fid->path, elem, 1);
 	if(perm & DMDIR){
 		if((omode&~ORCLOSE) != OREAD){
 			*ep = Eperm;

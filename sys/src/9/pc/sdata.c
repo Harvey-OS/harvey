@@ -1955,6 +1955,9 @@ atapnp(void)
 			r = pcicfgr8(p, 0x46);
 			pcicfgw8(p, 0x46, (r & 0x0C)|0xF0);
 			/*FALLTHROUGH*/
+		case (0x7401<<16)|0x1022:	/* AMD 755 Cobra */
+		case (0x7409<<16)|0x1022:	/* AMD 756 Viper */
+		case (0x7410<<16)|0x1022:	/* AMD 766 Viper Plus */
 		case (0x7469<<16)|0x1022:	/* AMD 3111 */
 			/*
 			 * This can probably be lumped in with the 768 above.

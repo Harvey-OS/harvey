@@ -15,7 +15,7 @@ is a generalized output printing service.
 It can be used to queue files for printing,
 check a queue, or kill jobs in a queue.
 The options are:
-.TF -p\ \fIproc\fP
+.TF -d\ \fIde\fP
 .TP
 .BI -d " dest"
 Select the destination printer.
@@ -60,7 +60,7 @@ entry in
 .LR /sys/lib/lp/devices .
 .TP
 .B -k
-Kill the job(s) given as subsequent arguments instead of file names
+Kill the job(s) given as subsequent arguments, instead of file names,
 for the given destination.
 .TP
 .BI -p " proc"
@@ -88,7 +88,7 @@ before running this command.
 .PP
 The remaining options may be used to affect the output at a given device.
 These options may not be applicable to all devices.
-.TF "-p\ \fIproc\fP"
+.TF "-p\ \fIpr\fP"
 .TP
 .BI -c " n"
 Print
@@ -106,11 +106,11 @@ Suppress printing of header page.
 Select paper input tray.
 .I n
 may be a number 0-9, the word
-.I man
+.L man
 for the manual feed slot, and/or
-.I simplex
+.L simplex
 or
-.I duplex
+.L duplex
 to get single or double sided output.
 Multiple input tray options may be specified if they are
 separated by commas.
@@ -176,7 +176,9 @@ Print a file in a small font at 100 lines per page.
 lp -dstdout /dev/windows/3/window > doc.ps
 Convert an image to a postscript file.
 .SH SOURCE
+.nf
 .B /rc/bin/lp
+.B /sys/src/cmd/lp
 .SH SEE ALSO
 .IR lp (8)
 .br

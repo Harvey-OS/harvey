@@ -21,7 +21,7 @@ The list of processors follows;
 after each description is a bracketed list of
 .I lp
 options to which the processor responds:
-.TF \fIp9bitpost\fP
+.TF \fIp9bitpos\fP
 .TP
 .I dpost
 converts
