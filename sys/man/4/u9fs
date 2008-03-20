@@ -30,7 +30,7 @@ u9fs \- serve 9P from Unix
 .I U9fs
 is
 .I not
-a Plan 9 program.  Instead it is a program that 
+a Plan 9 program.  Instead it is a program that
 serves Unix files to Plan 9 machines using the 9P protocol
 (see
 .IR intro (5)).
@@ -44,26 +44,32 @@ It typically runs as user
 and multiplexes access to multiple Plan 9 clients over the single wire.
 It assumes Plan 9 uids match Unix login names,
 and changes to the corresponding Unix effective uid when processing requests.
+Characters in file and directory names unacceptable to Plan 9 are translated
+into a three-character sequence:
+.L \e
+followed by two hexadecimal digits.
 .I U9fs
 serves both 9P1 (the 9P protocol as used by
 the second and third editions of Plan 9) and 9P2000.
 .PP
 The options are:
+.TF "\f(CW-A \fIautharg"
+.PD
 .TP
 .B -D
-Write very chatty debugging output to the log file (see 
-.B -l 
+Write very chatty debugging output to the log file (see
+.B -l
 option below).
 .TP
 .B -n
-Signals that 
+Signals that
 .I u9fs
-is 
+is
 .I not
 being invoked with a network connection
 on standard input and output, and thus should
 not try to determine the remote address of the connection.
-This is useful when 
+This is useful when
 .I u9fs
 is not invoked from
 .I inetd
@@ -71,7 +77,7 @@ is not invoked from
 .TP
 .B -z
 Truncate the log file on startup.  This is useful mainly when debugging
-with 
+with
 .BR -D .
 .TP
 .BI -a " authtype
@@ -85,26 +91,27 @@ or
 The default is
 .BR rhosts ,
 which uses the
-.I ruserok 
+.I ruserok
 library call to authenticate users by entries in
 .B /etc/hosts.equiv
 or
 .BR $HOME/.rhosts .
 This default is discouraged for all but the most controlled networks.
-Specifying 
+Specifying
 .B none
 turns off authentication altogether.
-This is useful when 
+This is useful when
 .I u9fs
 is not invoked from
 .I inetd
 (see examples below, or
 .I srvssh
-in .IR srv (4)).
+in
+.IR srv (4)).
 Specifying
 .B p9any
 uses the fourth edition Plan 9 authentication mechanisms.
-The file 
+The file
 .BR /etc/u9fs.key ,
 or
 .I autharg
@@ -112,10 +119,27 @@ if specified
 (see the
 .B -A
 option),
-is consulted for the authentication data.
-The file must contain exactly three lines:
-the plaintext password, the user id, and
-the authentication domain.
+is consulted for the authentication data
+and should be suitably protected.
+This file must contain exactly three lines:
+.I secret
+(plaintext password),
+.I u9fs-user
+(user id),
+and
+.I plan9-auth.dom
+(authentication domain).
+.RS
+.LP
+Finally,
+.I factotum
+must be taught a key of the form:
+.LP
+.EX
+.B
+key proto=p9sk1 dom=\fIplan9-auth.dom\fP user=\fIu9fs-user\fP !password=\fIsecret\fP
+.EE
+.RE
 .TP
 .BI -A " autharg
 Used to specify an argument to the authentication method.
@@ -128,20 +152,19 @@ The out-of-the-box compile-time default is
 .BR /tmp/u9fs.log .
 .TP
 .BI -m " msize
-Set 
+Set
 .I msize
 for 9P2000
 (see
 .IR open (5)).
 .TP
 .BI -u " user
-Treat all attaches as coming from 
+Treat all attaches as coming from
 .IR user .
 This is useful in some cases when running without
 .IR inetd ;
 see the examples.
-.SH
-EXAMPLES
+.SH EXAMPLES
 .PP
 Plan 9 calls 9P file service
 .B 9fs
@@ -224,14 +247,19 @@ On systems where listeners cannot be started,
 .IR execnet (4)
 is useful for running
 .I u9fs
-via mechanisms like
-.IR ssh .
+via other network mechanisms; the script
+.I srvssh
+in
+.IR srv (4)
+provides this for the
+.I ssh
+protocol.
 .SH SOURCE
 .B /sys/src/cmd/unix/u9fs
 .SH DIAGNOSTICS
 Problems are reported to the
 log file specified with the
-.B -l 
+.B -l
 option (default
 .BR /tmp/u9fs.log ).
 The
@@ -247,6 +275,6 @@ flag enables chatty debugging.
 The implementation of devices is unsatisfactory.
 .LP
 Semantics like remove-on-close or the
-atomicity of 
+atomicity of
 .B wstat
 are hard to provide exactly.

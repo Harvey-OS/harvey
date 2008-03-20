@@ -62,7 +62,9 @@ typedef ushort Rune;
 
 #define nil ((void*)0)
 #define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
+#ifndef offsetof
 #define	offsetof(s, m)	(ulong)(&(((s*)0)->m))
+#endif
 #define	assert(x)	if(x);else _assert("x")
 
 extern char *argv0;
