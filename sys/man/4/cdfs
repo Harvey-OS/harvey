@@ -117,6 +117,9 @@ Blank the entire rewritable disc in the drive.
 Blank only the table of contents on the rewritable
 disc in the drive.
 .TP
+.B closetracks
+Close any open tracks on the current disc but do not finalize (fixate) the disc.
+.TP
 .B eject
 Eject the disc in the drive.
 .TP
@@ -156,6 +159,7 @@ an internet CD database
 to get a table of contents.
 Subsequent lines contain the current and maximum
 reading and writing speeds.
+Additional lines may further describe the current disc.
 .PD
 .PP
 .I Aux/cddb

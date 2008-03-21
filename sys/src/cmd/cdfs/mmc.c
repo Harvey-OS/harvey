@@ -77,6 +77,15 @@ biges(void *p)
 	return (a[0]<<8) | a[1];
 }
 
+ulong
+getnwa(Drive *drive)
+{
+	Mmcaux *aux;
+
+	aux = drive->aux;
+	return aux->mmcnwa;
+}
+
 static void
 hexdump(void *v, int n)
 {
@@ -488,7 +497,7 @@ mmctrackinfo(Drive *drive, int t, int i)
 //	dmode = resp[6] & 0x0F;
 
 	if(vflag)
-		print("track %d type %d (%s)\n", t, tmode,
+		print("track %d type %d (%s)", t, tmode,
 			(tmode < nelem(tracktype)? tracktype[tmode]: "**GOK**"));
 	type = TypeNone;
 	bs = BScdda;
@@ -522,13 +531,22 @@ mmctrackinfo(Drive *drive, int t, int i)
 	drive->track[i].bs = bs;
 	drive->track[i].size = (vlong)(size-2) * bs;	/* -2: skip lead out */
 
-	if(resp[6] & (1<<6)) {
+	if(resp[6] & (1<<6)) {			/* blank? */
 		drive->track[i].type = TypeBlank;
 		drive->writeok = 1;
 	}
 
-	if(t == Invistrack)
+	if(vflag)
+		print(" start %lud end %lud", beg, beg + size - 1);
+	/* resp[6] & (1<<7) of zero: invisible track */
+	/* t == getinvistrack(): invisible track */
+	if(t == Invistrack || resp[7] & 1) {	/* invis or nwa valid? */
 		aux->mmcnwa = bige(&resp[12]);
+		if (vflag)
+			print(" nwa %lud", aux->mmcnwa);
+	}
+	if (vflag)
+		print("\n");
 	return 0;
 }
 
@@ -621,6 +639,7 @@ getdvdstruct(Drive *drive)
 	cat = (resp[4] & 0xf0) >> 4;	/* disk category, MMC-6 §6.22.3.2.1 */
 	if (vflag)
 		fprint(2, "dvd type is %s\n", dvdtype[cat]);
+	drive->dvdtype = dvdtype[cat];
 	/* write parameters mode page may suffice to compute writeok for dvd */
 	drive->erasable = drive->recordable = 0;
 	/*
@@ -821,6 +840,7 @@ mmcgettoc(Drive *drive)
 	}
 
 	drive->mmctype = Mmcnone;
+	drive->dvdtype = nil;
 	getdvdstruct(drive);
 	getbdstruct(drive);
 	if (drive->mmctype == Mmcnone)
@@ -1237,6 +1257,7 @@ mmccreate(Drive *drive, int type)
 
 /*
  * issue some form of close track, close session or finalize disc command.
+ * see The Matrix, table 252 in MMC-6 §6.3.2.3.
  */
 static int
 mmcxclose(Drive *drive, int clf, int trackno)
@@ -1305,6 +1326,48 @@ mmcclose(Otrack *o)
 		o->drive->nchange = -1;	/* force reread toc */
 	}
 	free(o);
+}
+
+/*
+ * just close the current tracks.
+ */
+static int
+closetracks(Drive *drive)
+{
+	int r, invis;
+	uchar *p;
+	Mmcaux *aux;
+
+	if (drive->mmctype == Mmcdvdplus && drive->erasable) {
+		werrstr("dvd+rw can't close tracks without finalizing");
+		return -1;
+	}
+	if((drive->cap & Cwrite) == 0) {
+		werrstr("drive not a writer");
+		return -1;
+	}
+	drive->nchange = -1;		/* force reread toc */
+
+	/* page 5 is legacy and now read-only; see MMC-6 §7.5.4.1 */
+	aux = drive->aux;
+	p = aux->page05;
+	/*
+	 * p[3] is multi-session / fp / copy / track mode.
+	 * zero multi-session field: next session not allowed.
+	 */
+	p[3] &= ~0xC0;
+	/* try to set it but don't freak out if it fails */
+	mmcsetpage(drive, Pagwrparams, p);
+
+	invis = getinvistrack(drive);
+	if (invis < 0)
+		invis = Invistrack;
+	if (vflag)
+		fprint(2, "closing invis track %d...\n", invis);
+	r = mmcxclose(drive, Closetrack, invis);
+	if (vflag)
+		fprint(2, "... done.\n");
+	return r;
 }
 
 /*
@@ -1381,18 +1444,22 @@ e(int status)
 static char*
 mmcctl(Drive *drive, int argc, char **argv)
 {
+	char *cmd;
+
 	if(argc < 1)
 		return nil;
-
-	if(strcmp(argv[0], "format") == 0)
+	cmd = argv[0];
+	if(strcmp(cmd, "format") == 0)
 		return e(format(drive));
-	if(strcmp(argv[0], "blank") == 0)
+	if(strcmp(cmd, "blank") == 0)
 		return e(mmcblank(drive, 0));
-	if(strcmp(argv[0], "quickblank") == 0)
+	if(strcmp(cmd, "quickblank") == 0)
 		return e(mmcblank(drive, 1));
-	if(strcmp(argv[0], "eject") == 0)
+	if(strcmp(cmd, "closetracks") == 0)
+		return e(closetracks(drive));
+	if(strcmp(cmd, "eject") == 0)
 		return e(start(drive, 2));
-	if(strcmp(argv[0], "ingest") == 0)
+	if(strcmp(cmd, "ingest") == 0)
 		return e(start(drive, 3));
 	return "bad arg";
 }

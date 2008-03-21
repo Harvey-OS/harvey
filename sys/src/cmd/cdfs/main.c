@@ -15,6 +15,8 @@ struct Aux {
 	Otrack	*o;
 };
 
+ulong	getnwa(Drive *);
+
 static void checktoc(Drive*);
 
 int vflag;
@@ -111,9 +113,8 @@ fswalk1(Fid *fid, char *name, Qid *qid)
 		for(i=0; i<drive->ntrack; i++)
 			if(strcmp(drive->track[i].name, name) == 0)
 				break;
-		if(i == drive->ntrack) {
+		if(i == drive->ntrack)
 			return "file not found";
-		}
 		*qid = (Qid){Qtrack+i, 0, 0};
 		return nil;
 
@@ -291,8 +292,8 @@ diskid(Drive *d)
 	tmp = (me->m*60+me->s) - (ms->m*60+ms->s);
 
 	/*
-	 * the spec says n%0xFF rather than n&0xFF.  it's unclear which is correct.
-	 * most CDs are in the database under both entries.
+	 * the spec says n%0xFF rather than n&0xFF.  it's unclear which is
+	 * correct.  most CDs are in the database under both entries.
 	 */
 	return ((n % 0xFF) << 24 | (tmp << 8) | d->ntrack);
 }
@@ -301,33 +302,69 @@ static void
 readctl(Req *r)
 {
 	int i, isaudio;
+	char *p, *e;
 	char s[1024];
 	Msf *m;
-
-	strcpy(s, "");
 
 	isaudio = 0;
 	for(i=0; i<drive->ntrack; i++)
 		if(drive->track[i].type == TypeAudio)
 			isaudio = 1;
 
+	p = s;
+	e = s + sizeof s;
+	*p = '\0';
 	if(isaudio){
-		sprint(s, "aux/cddb query %8.8lux %d", diskid(drive), drive->ntrack);
+		p = seprint(p, e, "aux/cddb query %8.8lux %d", diskid(drive),
+			drive->ntrack);
 		for(i=0; i<drive->ntrack; i++){
 			m = &drive->track[i].mbeg;
-			sprint(s+strlen(s), " %d", (m->m*60+m->s)*75+m->f);
+			p = seprint(p, e, " %d", (m->m*60 + m->s)*75 + m->f);
 		}
 		m = &drive->track[drive->ntrack].mbeg;
-		sprint(s+strlen(s), " %d\n", m->m*60+m->s);
+		p = seprint(p, e, " %d\n", m->m*60 + m->s);
 	}
 
 	if(drive->readspeed == drive->writespeed)
-		sprint(s+strlen(s), "speed %d\n", drive->readspeed);
+		p = seprint(p, e, "speed %d\n", drive->readspeed);
 	else
-		sprint(s+strlen(s), "speed read %d write %d\n",
+		p = seprint(p, e, "speed read %d write %d\n",
 			drive->readspeed, drive->writespeed);
-	sprint(s+strlen(s), "maxspeed read %d write %d\n",
+	p = seprint(p, e, "maxspeed read %d write %d\n",
 		drive->maxreadspeed, drive->maxwritespeed);
+
+	if (drive->Scsi.changetime != 0 && drive->ntrack != 0) { /* have disc? */
+		switch (drive->mmctype) {
+		case Mmccd:
+			p = seprint(p, e, "cd-");
+			break;
+		case Mmcdvdminus:
+		case Mmcdvdplus:
+			p = seprint(p, e, "%s", drive->dvdtype);
+			break;
+		case Mmcbd:
+			p = seprint(p, e, "bd-");
+			break;
+		case Mmcnone:
+			p = seprint(p, e, "no disc");
+			break;
+		default:
+			p = seprint(p, e, "**GOK**");
+			break;
+		}
+		if (drive->mmctype != Mmcnone) {
+			if (drive->dvdtype == nil)
+				if (drive->erasable)
+					p = seprint(p, e, "rw");
+				else if (drive->recordable)
+					p = seprint(p, e, "r");
+				else
+					p = seprint(p, e, "rom");
+			p = seprint(p, e, " next writable sector %lud",
+				getnwa(drive));
+		}
+		seprint(p, e, "\n");
+	}
 	readstr(r, s);
 }
 

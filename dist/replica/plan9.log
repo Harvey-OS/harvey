@@ -18827,3 +18827,9 @@
 1205985604 0 c sys/man/6/style - 664 sys sys 1205985568 2659
 1205987404 0 c sys/src/9/pc/sdata.c - 664 sys sys 1205986828 53185
 1205987404 1 c sys/src/cmd/ndb/query.c - 664 sys sys 1205986702 1913
+1206043204 0 c 386/bin/ndb/query - 775 sys sys 1206042296 83761
+1206046804 0 c sys/src/cmd/cdfs/dat.h - 664 sys sys 1206046829 4619
+1206046804 1 c sys/src/cmd/cdfs/main.c - 664 sys sys 1206046865 12396
+1206046804 2 c sys/src/cmd/cdfs/mmc.c - 664 sys sys 1206046883 32136
+1206048605 0 c sys/man/4/cdfs - 664 sys sys 1206047086 4636
+1206070204 0 c 386/bin/cdfs - 775 sys sys 1206069507 173352

@@ -166,6 +166,7 @@ struct Drive
 
 	/* disc characteristics */
 	int	mmctype;
+	char	*dvdtype;
 	int	firsttrack;
 	int	ntrack;
 	int	nchange;		/* compare with the members in Scsi */
