@@ -172,7 +172,7 @@
 386/bin/calendar - 775 sys sys 1200262736 79060
 386/bin/cat - 775 sys sys 1148500611 37482
 386/bin/cb - 775 sys sys 1168402293 77628
-386/bin/cdfs - 775 sys sys 1205524026 171999
+386/bin/cdfs - 775 sys sys 1206069507 173352
 386/bin/cec - 775 sys sys 1193714267 75896
 386/bin/cfs - 775 sys sys 1190863294 130565
 386/bin/chgrp - 775 sys sys 1168402294 59522
@@ -353,7 +353,7 @@
 386/bin/ndb/mkdb - 775 sys sys 1168402340 64211
 386/bin/ndb/mkhash - 775 sys sys 1178568296 83312
 386/bin/ndb/mkhosts - 775 sys sys 1178568296 84355
-386/bin/ndb/query - 775 sys sys 1188447268 82960
+386/bin/ndb/query - 775 sys sys 1206042296 83761
 386/bin/netkey - 775 sys sys 1168402341 72717
 386/bin/netstat - 775 sys sys 1204292542 86477
 386/bin/news - 775 sys sys 1168402341 71956
@@ -7722,7 +7722,7 @@ sys/man/4/INDEX - 664 sys sys 1196638942 1026
 sys/man/4/INDEX.html - 664 sys sys 1196638942 5147
 sys/man/4/acme - 664 sys sys 1196638943 10435
 sys/man/4/archfs - 664 sys sys 1196638943 533
-sys/man/4/cdfs - 664 sys sys 1205857355 4480
+sys/man/4/cdfs - 664 sys sys 1206047086 4636
 sys/man/4/cfs - 664 sys sys 1196638943 2136
 sys/man/4/consolefs - 664 sys sys 1196638943 4389
 sys/man/4/cwfs - 664 sys sys 1196638943 6553
@@ -10019,11 +10019,11 @@ sys/src/cmd/cc/sub.c - 664 sys sys 1143759345 34268
 sys/src/cmd/cc/y.tab.h - 664 sys sys 1098501521 1680
 sys/src/cmd/cdfs - 20000000775 sys sys 1039727558 0
 sys/src/cmd/cdfs/buf.c - 664 sys sys 1205271166 1923
-sys/src/cmd/cdfs/dat.h - 664 sys sys 1205470094 4603
+sys/src/cmd/cdfs/dat.h - 664 sys sys 1206046829 4619
 sys/src/cmd/cdfs/fns.h - 664 sys sys 969542122 297
-sys/src/cmd/cdfs/main.c - 664 sys sys 1205470095 11592
+sys/src/cmd/cdfs/main.c - 664 sys sys 1206046865 12396
 sys/src/cmd/cdfs/mkfile - 664 sys sys 1204937991 153
-sys/src/cmd/cdfs/mmc.c - 664 sys sys 1205470177 30641
+sys/src/cmd/cdfs/mmc.c - 664 sys sys 1206046883 32136
 sys/src/cmd/cec - 20000000775 sys sys 1193683647 0
 sys/src/cmd/cec/LICENSE - 664 sys sys 1186248056 1554
 sys/src/cmd/cec/Protocol - 664 sys sys 1186248056 2881

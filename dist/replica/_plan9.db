@@ -172,7 +172,7 @@
 386/bin/calendar - 775 sys sys 1200262736 79060
 386/bin/cat - 775 sys sys 1148500611 37482
 386/bin/cb - 775 sys sys 1168402293 77628
-386/bin/cdfs - 775 sys sys 1205524026 171999
+386/bin/cdfs - 775 sys sys 1206069507 173352
 386/bin/cec - 775 sys sys 1193714267 75896
 386/bin/cfs - 775 sys sys 1190863294 130565
 386/bin/chgrp - 775 sys sys 1168402294 59522
@@ -353,7 +353,7 @@
 386/bin/ndb/mkdb - 775 sys sys 1168402340 64211
 386/bin/ndb/mkhash - 775 sys sys 1178568296 83312
 386/bin/ndb/mkhosts - 775 sys sys 1178568296 84355
-386/bin/ndb/query - 775 sys sys 1188447268 82960
+386/bin/ndb/query - 775 sys sys 1206042296 83761
 386/bin/netkey - 775 sys sys 1168402341 72717
 386/bin/netstat - 775 sys sys 1204292542 86477
 386/bin/news - 775 sys sys 1168402341 71956
@@ -7722,7 +7722,7 @@ sys/man/4/INDEX - 664 sys sys 1196638942 1026
 sys/man/4/INDEX.html - 664 sys sys 1196638942 5147
 sys/man/4/acme - 664 sys sys 1196638943 10435
 sys/man/4/archfs - 664 sys sys 1196638943 533
-sys/man/4/cdfs - 664 sys sys 1205857355 4480
+sys/man/4/cdfs - 664 sys sys 1206047086 4636
 sys/man/4/cfs - 664 sys sys 1196638943 2136
 sys/man/4/consolefs - 664 sys sys 1196638943 4389
 sys/man/4/cwfs - 664 sys sys 1196638943 6553
@@ -8178,7 +8178,7 @@ sys/src/9/pc/screen.h - 664 sys sys 1147023549 4256
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1170456695 55276
 sys/src/9/pc/sd53c8xx.i - 664 sys sys 1128547230 28453
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
-sys/src/9/pc/sdata.c - 664 sys sys 1202251523 53036
+sys/src/9/pc/sdata.c - 664 sys sys 1205986828 53185
 sys/src/9/pc/sdiahci.c - 664 sys sys 1200348596 38496
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1204232564 34031
 sys/src/9/pc/sdmylex.c - 664 sys sys 1189229947 28395
@@ -10019,11 +10019,11 @@ sys/src/cmd/cc/sub.c - 664 sys sys 1143759345 34268
 sys/src/cmd/cc/y.tab.h - 664 sys sys 1098501521 1680
 sys/src/cmd/cdfs - 20000000775 sys sys 1039727558 0
 sys/src/cmd/cdfs/buf.c - 664 sys sys 1205271166 1923
-sys/src/cmd/cdfs/dat.h - 664 sys sys 1205470094 4603
+sys/src/cmd/cdfs/dat.h - 664 sys sys 1206046829 4619
 sys/src/cmd/cdfs/fns.h - 664 sys sys 969542122 297
-sys/src/cmd/cdfs/main.c - 664 sys sys 1205470095 11592
+sys/src/cmd/cdfs/main.c - 664 sys sys 1206046865 12396
 sys/src/cmd/cdfs/mkfile - 664 sys sys 1204937991 153
-sys/src/cmd/cdfs/mmc.c - 664 sys sys 1205470177 30641
+sys/src/cmd/cdfs/mmc.c - 664 sys sys 1206046883 32136
 sys/src/cmd/cec - 20000000775 sys sys 1193683647 0
 sys/src/cmd/cec/LICENSE - 664 sys sys 1186248056 1554
 sys/src/cmd/cec/Protocol - 664 sys sys 1186248056 2881
@@ -12848,7 +12848,7 @@ sys/src/cmd/ndb/mkdb.c - 664 sys sys 957402054 2886
 sys/src/cmd/ndb/mkfile - 664 sys sys 1205354106 2000
 sys/src/cmd/ndb/mkhash.c - 664 sys sys 1014926160 2899
 sys/src/cmd/ndb/mkhosts.c - 664 sys sys 957402054 4294
-sys/src/cmd/ndb/query.c - 664 sys sys 1188422202 1793
+sys/src/cmd/ndb/query.c - 664 sys sys 1205986702 1913
 sys/src/cmd/netstat.c - 664 sys sys 1128255434 4086
 sys/src/cmd/news.c - 664 sys sys 1014926614 3778
 sys/src/cmd/nfs.c - 664 sys sys 1050068720 31096
@@ -15873,5 +15873,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-sys/src/9/pc/sdata.c - 664 sys sys 1205986828 53185
-sys/src/cmd/ndb/query.c - 664 sys sys 1205986702 1913
