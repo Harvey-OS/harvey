@@ -116,9 +116,9 @@ Blank the entire rewritable disc in the drive.
 .B quickblank
 Blank only the table of contents on the rewritable
 disc in the drive.
-.TP
-.B closetracks
-Close any open tracks on the current disc but do not finalize (fixate) the disc.
+.\" .TP
+.\" .B closetracks
+.\" Close any open tracks on the current disc but do not finalize (fixate) the disc.
 .TP
 .B eject
 Eject the disc in the drive.
@@ -226,6 +226,10 @@ optical disc interface standards
 .IR dossrv (4)),
 .IR mk9660 (8)
 .SH BUGS
+Fixating a BD-R disc records only the first track in the disc's TOC.
+Any other tracks are still there and accessible via
+.IR sd (3).
+.PP
 Packet (incremental) writing is not yet implemented.
 .PP
 There are too many combinations of optical media, approximately

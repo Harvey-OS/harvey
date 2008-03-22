@@ -204,17 +204,55 @@ fsremove(Req *r)
 	}
 }
 
+static char *
+disctype(Drive *drive)
+{
+	char *type, *rw;
+
+	switch (drive->mmctype) {
+	case Mmccd:
+		type = "cd-";
+		break;
+	case Mmcdvdminus:
+	case Mmcdvdplus:
+		type = drive->dvdtype;
+		break;
+	case Mmcbd:
+		type = "bd-";
+		break;
+	case Mmcnone:
+		type = "no disc";
+		break;
+	default:
+		type = "**GOK**";		/* traditional */
+		break;
+	}
+	rw = "";
+	if (drive->mmctype != Mmcnone && drive->dvdtype == nil)
+		if (drive->erasable)
+			rw = "rw";
+		else if (drive->recordable)
+			rw = "r";
+		else
+			rw = "rom";
+	return smprint("%s%s", type, rw);
+}
+
 int
 fillstat(ulong qid, Dir *d)
 {
+	char *ty;
 	Track *t;
+	static char buf[32];
 
 	nulldir(d);
 	d->type = L'M';
 	d->dev = 1;
 	d->length = 0;
-	d->uid = "cd";
-	d->gid = "cd";
+	ty = disctype(drive);
+	strncpy(buf, ty, sizeof buf);
+	free(ty);
+	d->uid = d->gid = buf;
 	d->muid = "";
 	d->qid = (Qid){qid, drive->nchange, 0};
 	d->atime = time(0);
@@ -302,7 +340,7 @@ static void
 readctl(Req *r)
 {
 	int i, isaudio;
-	char *p, *e;
+	char *p, *e, *ty;
 	char s[1024];
 	Msf *m;
 
@@ -334,35 +372,12 @@ readctl(Req *r)
 		drive->maxreadspeed, drive->maxwritespeed);
 
 	if (drive->Scsi.changetime != 0 && drive->ntrack != 0) { /* have disc? */
-		switch (drive->mmctype) {
-		case Mmccd:
-			p = seprint(p, e, "cd-");
-			break;
-		case Mmcdvdminus:
-		case Mmcdvdplus:
-			p = seprint(p, e, "%s", drive->dvdtype);
-			break;
-		case Mmcbd:
-			p = seprint(p, e, "bd-");
-			break;
-		case Mmcnone:
-			p = seprint(p, e, "no disc");
-			break;
-		default:
-			p = seprint(p, e, "**GOK**");
-			break;
-		}
-		if (drive->mmctype != Mmcnone) {
-			if (drive->dvdtype == nil)
-				if (drive->erasable)
-					p = seprint(p, e, "rw");
-				else if (drive->recordable)
-					p = seprint(p, e, "r");
-				else
-					p = seprint(p, e, "rom");
+		ty = disctype(drive);
+		p = seprint(p, e, "%s", ty);
+		free(ty);
+		if (drive->mmctype != Mmcnone)
 			p = seprint(p, e, " next writable sector %lud",
 				getnwa(drive));
-		}
 		seprint(p, e, "\n");
 	}
 	readstr(r, s);
@@ -590,10 +605,6 @@ fsdestroyfid(Fid *fid)
 	}
 }
 
-/*
- * should it be possible on -r or -rw disc to have a mode of 0666,
- * or do we have to use the wd/x interface?
- */
 static void
 checktoc(Drive *drive)
 {
@@ -610,9 +621,6 @@ checktoc(Drive *drive)
 			t->mode = 0;
 		else
 			t->mode = 0444;
-		/*
-		 * set mode to 0666 if the drive and disc are both capable?
-		 */
 		sprint(t->name, "?%.3d", i);
 		switch(t->type){
 		case TypeNone:
@@ -629,7 +637,7 @@ checktoc(Drive *drive)
 			t->name[0] = '\0';
 			break;
 		default:
-			print("unknown type %d\n", t->type);
+			print("unknown track type %d\n", t->type);
 			break;
 		}
 	}
