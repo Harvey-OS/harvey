@@ -455,10 +455,10 @@
 386/bin/unzip - 775 sys sys 1186776392 91093
 386/bin/upas - 20000000775 sys sys 1016857390 0
 386/bin/upas/addhash - 775 sys sys 1178568309 70721
-386/bin/upas/aliasmail - 775 sys sys 1178568309 104105
+386/bin/upas/aliasmail - 775 sys sys 1206214909 104105
 386/bin/upas/bayes - 775 sys sys 1178568309 73372
 386/bin/upas/deliver - 775 sys sys 1192823253 99212
-386/bin/upas/filter - 775 sys sys 1200262782 146753
+386/bin/upas/filter - 775 sys sys 1206214911 146753
 386/bin/upas/fs - 775 sys sys 1204057817 331512
 386/bin/upas/isspam - 775 sys sys 1064598349 38
 386/bin/upas/list - 775 sys sys 1200262783 83036
@@ -472,11 +472,11 @@
 386/bin/upas/pop3 - 775 sys sys 1188447313 261673
 386/bin/upas/qer - 775 sys sys 1178568313 99195
 386/bin/upas/ratfs - 775 sys sys 1204292548 111360
-386/bin/upas/runq - 775 sys sys 1178568314 112842
-386/bin/upas/scanmail - 775 sys sys 1200262789 128213
-386/bin/upas/send - 775 sys sys 1200262792 192180
-386/bin/upas/smtp - 775 sys sys 1203800249 275743
-386/bin/upas/smtpd - 775 sys sys 1204292554 334248
+386/bin/upas/runq - 775 sys sys 1206214913 112842
+386/bin/upas/scanmail - 775 sys sys 1206214915 128213
+386/bin/upas/send - 775 sys sys 1206214919 192180
+386/bin/upas/smtp - 775 sys sys 1206214924 275743
+386/bin/upas/smtpd - 775 sys sys 1206214930 334248
 386/bin/upas/spam - 775 sys sys 1064598366 36
 386/bin/upas/testscan - 775 sys sys 1200262795 83864
 386/bin/upas/token - 775 sys sys 1188447329 73042
@@ -7453,7 +7453,7 @@ sys/man/1/ns - 664 sys sys 1196638935 895
 sys/man/1/p - 664 sys sys 1196638933 504
 sys/man/1/page - 664 sys sys 1196638935 5839
 sys/man/1/passwd - 664 sys sys 1201730866 1591
-sys/man/1/patch - 664 sys sys 1205952914 3356
+sys/man/1/patch - 664 sys sys 1206212232 3469
 sys/man/1/pcc - 664 sys sys 1196638933 3478
 sys/man/1/pic - 664 sys sys 1196638933 8229
 sys/man/1/pipefile - 664 sys sys 1196638936 1861
@@ -8011,6 +8011,7 @@ sys/src/9/boot/bootmkfile - 664 sys sys 1091732792 404
 sys/src/9/boot/doauthenticate.c - 664 sys sys 1015012529 2300
 sys/src/9/boot/embed.c - 664 sys sys 1039763720 1191
 sys/src/9/boot/getpasswd.c - 664 sys sys 957373373 654
+sys/src/9/boot/libboot.a8 - 664 sys sys 1206213421 65094
 sys/src/9/boot/local.c - 664 sys sys 1187735779 5648
 sys/src/9/boot/mkboot - 775 sys sys 1171608307 1935
 sys/src/9/boot/nopsession.c - 664 sys sys 957373374 843
@@ -8176,7 +8177,6 @@ sys/src/9/pc/rebootcode.s - 664 sys sys 1015014522 988
 sys/src/9/pc/screen.c - 664 sys sys 1184522395 13973
 sys/src/9/pc/screen.h - 664 sys sys 1147023549 4256
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1170456695 55276
-sys/src/9/pc/sd53c8xx.i - 664 sys sys 1128547230 28453
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
 sys/src/9/pc/sdata.c - 664 sys sys 1205986828 53185
 sys/src/9/pc/sdiahci.c - 664 sys sys 1200348596 38496
@@ -8288,7 +8288,7 @@ sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
 sys/src/9/port/pgrp.c - 664 sys sys 1138458260 4760
 sys/src/9/port/portclock.c - 664 sys sys 1204230761 4274
 sys/src/9/port/portdat.h - 664 sys sys 1204229767 22759
-sys/src/9/port/portfns.h - 664 sys sys 1202935714 11095
+sys/src/9/port/portfns.h - 664 sys sys 1206225430 11095
 sys/src/9/port/portmkfile - 664 sys sys 1184737233 2082
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
 sys/src/9/port/proc.c - 664 sys sys 1176658321 28742
@@ -14157,7 +14157,7 @@ sys/src/cmd/upas/bayes/regcomp.c - 664 sys sys 1063951010 9707
 sys/src/cmd/upas/bayes/regen.c - 664 sys sys 1063951011 2452
 sys/src/cmd/upas/common - 20000000775 sys sys 1075064534 0
 sys/src/cmd/upas/common/appendfiletombox.c - 664 sys sys 1179946114 2563
-sys/src/cmd/upas/common/aux.c - 664 sys sys 1019498851 2300
+sys/src/cmd/upas/common/aux.c - 664 sys sys 1206163103 2304
 sys/src/cmd/upas/common/become.c - 664 sys sys 1015009623 430
 sys/src/cmd/upas/common/common.h - 664 sys sys 1098803897 2040
 sys/src/cmd/upas/common/config.c - 664 sys sys 944961316 254

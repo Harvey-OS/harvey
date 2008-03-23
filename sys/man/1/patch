@@ -49,6 +49,10 @@ some context, and a rationale for the change.
 Test data or pointers to same to verify that the fix works are also welcome.
 When sending a patch, follow these guidelines:
 .IP • 3
+Before preparing the patch, run
+.I replica/pull
+and base your patch on current distribution source code.
+.IP •
 If this is a bug fix, explain the bug clearly.
 Don't assume the bug is obvious from the fix.
 .IP •

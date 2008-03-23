@@ -95,7 +95,7 @@ escapespecial(String *s)
 	return ns;
 }
 
-uint
+int
 hex2uint(char x)
 {
 	if(x >= '0' && x <= '9')
@@ -113,9 +113,10 @@ hex2uint(char x)
 extern String*
 unescapespecial(String *s)
 {
+	int c;
 	String *ns;
 	char *sp;
-	uint c, n;
+	uint n;
 
 	if(strstr(s_to_c(s), escape) == 0)
 		return s;
@@ -124,7 +125,7 @@ unescapespecial(String *s)
 	ns = s_new();
 	for(sp = s_to_c(s); *sp; sp++){
 		if(strncmp(sp, escape, n) == 0){
-			c = (hex2uint(sp[n])<<4) + hex2uint(sp[n+1]);
+			c = (hex2uint(sp[n])<<4) | hex2uint(sp[n+1]);
 			if(c < 0)
 				s_putc(ns, *sp);
 			else {
