@@ -7919,9 +7919,9 @@ sys/src/9/alphapc/arch164.c - 664 sys sys 1173386682 6082
 sys/src/9/alphapc/audio.h - 664 sys sys 1015012783 349
 sys/src/9/alphapc/axp.h - 664 sys sys 1015012783 1090
 sys/src/9/alphapc/cga.c - 664 sys sys 1015012783 1814
-sys/src/9/alphapc/clock.c - 664 sys sys 1204233074 1527
+sys/src/9/alphapc/clock.c - 664 sys sys 1206317920 1527
 sys/src/9/alphapc/cycintr.c - 664 sys sys 1018721238 230
-sys/src/9/alphapc/dat.h - 664 sys sys 1169491873 5217
+sys/src/9/alphapc/dat.h - 664 sys sys 1206317920 5217
 sys/src/9/alphapc/devarch.c - 664 sys sys 1039753422 9760
 sys/src/9/alphapc/devvga.c - 664 sys sys 1131289707 7420
 sys/src/9/alphapc/dma.c - 664 sys sys 1142966373 6526
@@ -7953,8 +7953,8 @@ sys/src/9/bitsy - 20000000775 sys sys 1138505096 0
 sys/src/9/bitsy/Booting101 - 664 sys sys 1054798506 8841
 sys/src/9/bitsy/bitsy - 664 sys sys 1188582377 420
 sys/src/9/bitsy/bitsyreset.s - 664 sys sys 1017695510 2352
-sys/src/9/bitsy/clock.c - 664 sys sys 1204232953 4890
-sys/src/9/bitsy/dat.h - 664 sys sys 1204232953 5849
+sys/src/9/bitsy/clock.c - 664 sys sys 1206317920 4890
+sys/src/9/bitsy/dat.h - 664 sys sys 1206317920 5849
 sys/src/9/bitsy/defont.c - 664 sys sys 1017695511 21570
 sys/src/9/bitsy/devether.c - 664 sys sys 1178548255 10676
 sys/src/9/bitsy/devflash.c - 664 sys sys 1138500612 16830
@@ -7964,7 +7964,7 @@ sys/src/9/bitsy/devuda1341.c - 664 sys sys 1071245420 30346
 sys/src/9/bitsy/devµc.c - 664 sys sys 1068393562 8125
 sys/src/9/bitsy/etherif.h - 664 sys sys 1045501788 913
 sys/src/9/bitsy/etherwavelan.c - 664 sys sys 1071245513 870
-sys/src/9/bitsy/fns.h - 664 sys sys 1204259692 3052
+sys/src/9/bitsy/fns.h - 664 sys sys 1206317920 3052
 sys/src/9/bitsy/fpi.c - 664 sys sys 1017695513 5248
 sys/src/9/bitsy/fpi.h - 664 sys sys 1017695513 1679
 sys/src/9/bitsy/fpiarm.c - 664 sys sys 1173788243 9402
@@ -8052,9 +8052,9 @@ sys/src/9/ip/tripmedium.c - 664 sys sys 1045063515 7136
 sys/src/9/ip/udp.c - 664 sys sys 1187735914 13315
 sys/src/9/mkfile - 664 sys sys 1063857477 205
 sys/src/9/mtx - 20000000775 sys sys 1123676466 0
-sys/src/9/mtx/clock.c - 664 sys sys 1204232769 1344
+sys/src/9/mtx/clock.c - 664 sys sys 1206317920 1344
 sys/src/9/mtx/cycintr.c - 664 sys sys 1018721285 230
-sys/src/9/mtx/dat.h - 664 sys sys 1169491926 3825
+sys/src/9/mtx/dat.h - 664 sys sys 1206317920 3825
 sys/src/9/mtx/devarch.c - 664 sys sys 1018721285 6793
 sys/src/9/mtx/devether.c - 664 sys sys 1178548255 9282
 sys/src/9/mtx/devrtc.c - 664 sys sys 1018721285 6772
@@ -8089,8 +8089,8 @@ sys/src/9/pc/archmp.c - 664 sys sys 1196264189 2410
 sys/src/9/pc/audio.h - 664 sys sys 1015014513 343
 sys/src/9/pc/bios32.c - 664 sys sys 1173287378 3029
 sys/src/9/pc/cga.c - 664 sys sys 1015014513 1843
-sys/src/9/pc/dat.h - 664 sys sys 1190268296 7549
-sys/src/9/pc/devarch.c - 664 sys sys 1194555741 19865
+sys/src/9/pc/dat.h - 664 sys sys 1206317920 7549
+sys/src/9/pc/devarch.c - 664 sys sys 1206317920 19865
 sys/src/9/pc/devether.c - 664 sys sys 1196687022 10567
 sys/src/9/pc/devfloppy.c - 664 sys sys 1142958305 20139
 sys/src/9/pc/devi82365.c - 664 sys sys 1146318335 20504
@@ -8286,9 +8286,9 @@ sys/src/9/port/netif.h - 664 sys sys 1187735815 3059
 sys/src/9/port/page.c - 664 sys sys 1131636090 11128
 sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
 sys/src/9/port/pgrp.c - 664 sys sys 1138458260 4760
-sys/src/9/port/portclock.c - 664 sys sys 1204230761 4274
-sys/src/9/port/portdat.h - 664 sys sys 1204229767 22759
-sys/src/9/port/portfns.h - 664 sys sys 1206225430 11095
+sys/src/9/port/portclock.c - 664 sys sys 1206317920 4274
+sys/src/9/port/portdat.h - 664 sys sys 1206317920 22759
+sys/src/9/port/portfns.h - 664 sys sys 1206317920 11095
 sys/src/9/port/portmkfile - 664 sys sys 1184737233 2082
 sys/src/9/port/print.c - 664 sys sys 1014931178 227
 sys/src/9/port/proc.c - 664 sys sys 1176658321 28742

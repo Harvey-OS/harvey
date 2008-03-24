@@ -18850,3 +18850,15 @@
 1206216004 5 c 386/bin/upas/smtp - 775 sys sys 1206214924 275743
 1206216004 6 c 386/bin/upas/smtpd - 775 sys sys 1206214930 334248
 1206226803 0 c sys/src/9/port/portfns.h - 664 sys sys 1206225430 11095
+1206318605 0 c sys/src/9/alphapc/clock.c - 664 sys sys 1206317920 1527
+1206318605 1 c sys/src/9/alphapc/dat.h - 664 sys sys 1206317920 5217
+1206318605 2 c sys/src/9/bitsy/clock.c - 664 sys sys 1206317920 4890
+1206318605 3 c sys/src/9/bitsy/dat.h - 664 sys sys 1206317920 5849
+1206318605 4 c sys/src/9/bitsy/fns.h - 664 sys sys 1206317920 3052
+1206318605 5 c sys/src/9/mtx/clock.c - 664 sys sys 1206317920 1344
+1206318605 6 c sys/src/9/mtx/dat.h - 664 sys sys 1206317920 3825
+1206318605 7 c sys/src/9/pc/dat.h - 664 sys sys 1206317920 7549
+1206318605 8 c sys/src/9/pc/devarch.c - 664 sys sys 1206317920 19865
+1206318605 9 c sys/src/9/port/portclock.c - 664 sys sys 1206317920 4274
+1206318605 10 c sys/src/9/port/portdat.h - 664 sys sys 1206317920 22759
+1206318605 11 c sys/src/9/port/portfns.h - 664 sys sys 1206317920 11095
