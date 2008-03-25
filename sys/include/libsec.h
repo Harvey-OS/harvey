@@ -1,6 +1,7 @@
 #pragma	lib	"libsec.a"
 #pragma	src	"/sys/src/libsec"
 
+
 #ifndef _MPINT
 typedef struct mpint mpint;
 #endif
@@ -22,10 +23,12 @@ struct AESstate
 	ulong	setup;
 	int	rounds;
 	int	keybytes;
+//	uint	ctrsz;
 	uchar	key[AESmaxkey];			/* unexpanded key */
-	u32int	ekey[4*(AESmaxrounds + 1)];	/* encryption key */
-	u32int	dkey[4*(AESmaxrounds + 1)];	/* decryption key */
+	ulong	ekey[4*(AESmaxrounds + 1)];	/* encryption key */
+	ulong	dkey[4*(AESmaxrounds + 1)];	/* decryption key */
 	uchar	ivec[AESbsize];			/* initialization vector */
+//	uchar	mackey[3 * AESbsize];		/* 3 XCBC mac 96 keys */
 };
 
 void	setupAESstate(AESstate *s, uchar key[], int keybytes, uchar *ivec);
@@ -333,6 +336,7 @@ void		dsaprivfree(DSApriv*);
 DSAsig*		dsasigalloc(void);
 void		dsasigfree(DSAsig*);
 DSApub*		dsaprivtopub(DSApriv*);
+DSApriv*	asn1toDSApriv(uchar*, int);
 
 /*
  * TLS

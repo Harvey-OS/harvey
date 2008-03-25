@@ -10021,7 +10021,7 @@ sys/src/cmd/cdfs - 20000000775 sys sys 1039727558 0
 sys/src/cmd/cdfs/buf.c - 664 sys sys 1205271166 1923
 sys/src/cmd/cdfs/dat.h - 664 sys sys 1206046829 4619
 sys/src/cmd/cdfs/fns.h - 664 sys sys 969542122 297
-sys/src/cmd/cdfs/main.c - 664 sys sys 1206142363 12381
+sys/src/cmd/cdfs/main.c - 664 sys sys 1206379554 12449
 sys/src/cmd/cdfs/mkfile - 664 sys sys 1204937991 153
 sys/src/cmd/cdfs/mmc.c - 664 sys sys 1206142343 31376
 sys/src/cmd/cec - 20000000775 sys sys 1193683647 0
@@ -15873,3 +15873,7 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+sys/include/libsec.h - 664 sys sys 1206418956 8792
+sys/src/libmp/port/crttest.c - 664 sys sys 1206419360 812
+sys/src/libsec/port/tlshand.c - 664 sys sys 1206417844 54865
+sys/src/libsec/port/x509.c - 664 sys sys 1206417886 52016

@@ -204,6 +204,7 @@ fsremove(Req *r)
 	}
 }
 
+/* result is one word, so it can be used as a uid in Dir structs */
 static char *
 disctype(Drive *drive)
 {
@@ -221,7 +222,7 @@ disctype(Drive *drive)
 		type = "bd-";
 		break;
 	case Mmcnone:
-		type = "no disc";
+		type = "no-disc";
 		break;
 	default:
 		type = "**GOK**";		/* traditional */
