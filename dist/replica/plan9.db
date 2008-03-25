@@ -6109,7 +6109,7 @@ sys/include/httpd.h - 664 sys sys 1190835025 5800
 sys/include/ip.h - 664 sys sys 1204230308 4401
 sys/include/keyboard.h - 664 sys sys 1131637696 865
 sys/include/libc.h - 664 sys sys 1168306860 19851
-sys/include/libsec.h - 664 sys sys 1188328413 8684
+sys/include/libsec.h - 664 sys sys 1206418956 8792
 sys/include/mach.h - 664 sys sys 1178892102 8758
 sys/include/memdraw.h - 664 sys sys 1091904419 5645
 sys/include/memlayer.h - 664 sys sys 1051031022 1851
@@ -10021,7 +10021,7 @@ sys/src/cmd/cdfs - 20000000775 sys sys 1039727558 0
 sys/src/cmd/cdfs/buf.c - 664 sys sys 1205271166 1923
 sys/src/cmd/cdfs/dat.h - 664 sys sys 1206046829 4619
 sys/src/cmd/cdfs/fns.h - 664 sys sys 969542122 297
-sys/src/cmd/cdfs/main.c - 664 sys sys 1206142363 12381
+sys/src/cmd/cdfs/main.c - 664 sys sys 1206379554 12449
 sys/src/cmd/cdfs/mkfile - 664 sys sys 1204937991 153
 sys/src/cmd/cdfs/mmc.c - 664 sys sys 1206142343 31376
 sys/src/cmd/cec - 20000000775 sys sys 1193683647 0
@@ -15517,7 +15517,7 @@ sys/src/libmp/mkfile - 664 sys sys 1134426476 962
 sys/src/libmp/port - 20000000775 sys sys 1084469736 0
 sys/src/libmp/port/betomp.c - 664 sys sys 1127128751 617
 sys/src/libmp/port/crt.c - 664 sys sys 1014930532 2050
-sys/src/libmp/port/crttest.c - 664 sys sys 956279160 813
+sys/src/libmp/port/crttest.c - 664 sys sys 1206419360 812
 sys/src/libmp/port/dat.h - 664 sys sys 1045502198 350
 sys/src/libmp/port/letomp.c - 664 sys sys 1055700222 432
 sys/src/libmp/port/mkfile - 664 sys sys 1085667604 620
@@ -15698,8 +15698,8 @@ sys/src/libsec/port/sha1pickle.c - 664 sys sys 988225292 717
 sys/src/libsec/port/smallprimes.c - 664 sys sys 984710525 6851
 sys/src/libsec/port/smallprimetest.c - 664 sys sys 984710525 70640
 sys/src/libsec/port/thumb.c - 664 sys sys 1019832052 1891
-sys/src/libsec/port/tlshand.c - 664 sys sys 1126971523 54895
-sys/src/libsec/port/x509.c - 664 sys sys 1161441337 50831
+sys/src/libsec/port/tlshand.c - 664 sys sys 1206417844 54865
+sys/src/libsec/port/x509.c - 664 sys sys 1206417886 52016
 sys/src/libsec/power - 20000000775 sys sys 1039727694 0
 sys/src/libsec/power/mkfile - 664 sys sys 1032061453 139
 sys/src/libstdio - 20000000775 sys sys 1055700384 0

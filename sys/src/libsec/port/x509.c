@@ -577,7 +577,7 @@ int_decode(uchar** pp, uchar* pend, int count, int unsgned, int* pint)
 			err = ASN_ETOOBIG;
 		else {
 			if(!unsgned && count > 0 && count < 4 && (*p&0x80))
-				num = -1;		// set all bits, initially
+				num = -1;	/* set all bits, initially */
 			while(count--)
 				num = (num << 8)|(*p++);
 		}
@@ -1852,7 +1852,7 @@ decode_rsapubkey(Bytes* a)
 		goto errret;
 	if(!is_seq(&e, &el) || elistlen(el) != 2)
 		goto errret;
-	
+
 	l = el;
 
 	key->n = mp = asn1mpint(&el->hd);
@@ -1949,6 +1949,68 @@ errret:
 	return nil;
 }
 
+/*
+ * 	DSAPrivateKey ::= SEQUENCE{
+ *		version Version,
+ *		p INTEGER,
+ *		q INTEGER,
+ *		g INTEGER, -- alpha
+ *		pub_key INTEGER, -- key
+ *		priv_key INTEGER, -- secret
+ *	}
+ */
+static DSApriv*
+decode_dsaprivkey(Bytes* a)
+{
+	int version;
+	Elem e;
+	Elist *el;
+	mpint *mp;
+	DSApriv* key;
+
+	key = dsaprivalloc();
+	if(decode(a->data, a->len, &e) != ASN_OK)
+		goto errret;
+	if(!is_seq(&e, &el) || elistlen(el) != 6)
+		goto errret;
+version = -1;
+	if(!is_int(&el->hd, &version) || version != 0)
+{
+fprint(2, "version %d\n", version);
+		goto errret;
+}
+
+	el = el->tl;
+	key->pub.p = mp = asn1mpint(&el->hd);
+	if(mp == nil)
+		goto errret;
+
+	el = el->tl;
+	key->pub.q = mp = asn1mpint(&el->hd);
+	if(mp == nil)
+		goto errret;
+
+	el = el->tl;
+	key->pub.alpha = mp = asn1mpint(&el->hd);
+	if(mp == nil)
+		goto errret;
+
+	el = el->tl;
+	key->pub.key = mp = asn1mpint(&el->hd);
+	if(mp == nil)
+		goto errret;
+
+	el = el->tl;
+	key->secret = mp = asn1mpint(&el->hd);
+	if(mp == nil)
+		goto errret;
+
+	return key;
+errret:
+	dsaprivfree(key);
+	return nil;
+}
+
 static mpint*
 asn1mpint(Elem *e)
 {
@@ -1995,6 +2057,18 @@ asn1toRSApriv(uchar *kd, int kn)
 
 	b = makebytes(kd, kn);
 	key = decode_rsaprivkey(b);
+	freebytes(b);
+	return key;
+}
+
+DSApriv*
+asn1toDSApriv(uchar *kd, int kn)
+{
+	Bytes *b;
+	DSApriv *key;
+
+	b = makebytes(kd, kn);
+	key = decode_dsaprivkey(b);
 	freebytes(b);
 	return key;
 }
@@ -2084,7 +2158,7 @@ end:
 		free(pkcs1buf);
 	return err;
 }
-	
+
 RSApub*
 X509toRSApub(uchar *cert, int ncert, char *name, int nname)
 {
@@ -2101,7 +2175,7 @@ X509toRSApub(uchar *cert, int ncert, char *name, int nname)
 	if(name != nil && c->subject != nil){
 		e = strchr(c->subject, ',');
 		if(e != nil)
-			*e = 0;  // take just CN part of Distinguished Name
+			*e = 0;	/* take just CN part of Distinguished Name */
 		strncpy(name, c->subject, nname);
 	}
 	pk = decode_rsapubkey(c->publickey);
