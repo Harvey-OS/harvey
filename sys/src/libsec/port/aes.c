@@ -33,9 +33,10 @@
 #include <libsec.h>
 
 typedef uchar	u8;
-typedef u32int	u32;
+typedef ulong	u32;
 
 #define FULL_UNROLL
+#define const
 
 static const u32 Td0[256];
 static const u32 Td1[256];
@@ -46,8 +47,8 @@ static const u8  Te4[256];
 static int rijndaelKeySetupEnc(u32 rk[/*4*(Nr + 1)*/], const u8 cipherKey[], int keyBits);
 static int rijndaelKeySetupDec(u32 rk[/*4*(Nr + 1)*/], const u8 cipherKey[], int keyBits);
 static int rijndaelKeySetup(u32 erk[/*4*(Nr + 1)*/], u32 drk[/*4*(Nr + 1)*/], const u8 cipherKey[], int keyBits);
-static void	rijndaelEncrypt(const u32int rk[], int Nr, const uchar pt[16], uchar ct[16]);
-static void	rijndaelDecrypt(const u32int rk[], int Nr, const uchar ct[16], uchar pt[16]);
+static void	rijndaelEncrypt(const u32 rk[], int Nr, const uchar pt[16], uchar ct[16]);
+static void	rijndaelDecrypt(const u32 rk[], int Nr, const uchar ct[16], uchar pt[16]);
 
 void
 setupAESstate(AESstate *s, uchar key[], int keybytes, uchar *ivec)
