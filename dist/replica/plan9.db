@@ -176,7 +176,7 @@
 386/bin/calendar - 775 sys sys 1200262736 79060
 386/bin/cat - 775 sys sys 1148500611 37482
 386/bin/cb - 775 sys sys 1168402293 77628
-386/bin/cdfs - 775 sys sys 1206156940 173146
+386/bin/cdfs - 775 sys sys 1206559723 173155
 386/bin/cec - 775 sys sys 1193714267 75896
 386/bin/cfs - 775 sys sys 1190863294 130565
 386/bin/chgrp - 775 sys sys 1168402294 59522
@@ -12839,7 +12839,7 @@ sys/src/cmd/ndb/convDNS2M.c - 664 sys sys 1205354106 7059
 sys/src/cmd/ndb/convM2DNS.c - 664 sys sys 1194216290 11959
 sys/src/cmd/ndb/cs.c - 664 sys sys 1203747782 33495
 sys/src/cmd/ndb/csquery.c - 664 sys sys 1174626119 1073
-sys/src/cmd/ndb/dblookup.c - 664 sys sys 1201927753 25262
+sys/src/cmd/ndb/dblookup.c - 664 sys sys 1206554141 25262
 sys/src/cmd/ndb/dn.c - 664 sys sys 1203748557 37967
 sys/src/cmd/ndb/dnarea.c - 664 sys sys 1175664421 2519
 sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1204179585 3112
