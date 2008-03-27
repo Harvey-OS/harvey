@@ -785,7 +785,7 @@ char *localservers =	  "local#dns#servers";
 char *localserverprefix = "local#dns#server";
 
 /*
- *  return non-zero is this is a bad delegation
+ *  return non-zero if this is a bad delegation
  */
 int
 baddelegation(RR *rp, RR *nsrp, uchar *addr)
