@@ -16,7 +16,7 @@
 386/bin/8a - 775 sys sys 1168402260 116604
 386/bin/8c - 775 sys sys 1190520740 367214
 386/bin/8l - 775 sys sys 1148500567 115711
-386/bin/9660srv - 775 sys sys 1204948766 104897
+386/bin/9660srv - 775 sys sys 1206732240 104949
 386/bin/aan - 775 sys sys 1196742429 129831
 386/bin/acid - 775 sys sys 1200262712 405315
 386/bin/acme - 775 sys sys 1200262719 431779
@@ -492,7 +492,7 @@
 386/bin/usb/kb - 775 sys sys 1203567409 133600
 386/bin/usb/print - 775 sys sys 1203567409 314
 386/bin/usb/probe - 775 sys sys 1203567409 173
-386/bin/usb/usbaudio - 775 sys sys 1202876962 188937
+386/bin/usb/usbaudio - 775 sys sys 1206760689 189891
 386/bin/usb/usbd - 775 sys sys 1202876965 132270
 386/bin/usb/usbmouse - 775 sys sys 1204057823 129465
 386/bin/usb/usbprint - 775 sys sys 1203567409 373
@@ -7761,7 +7761,7 @@ sys/man/4/tapefs - 664 sys sys 1196638944 1861
 sys/man/4/telco - 664 sys sys 1196638944 4359
 sys/man/4/u9fs - 664 sys sys 1205964618 5225
 sys/man/4/upasfs - 664 sys sys 1196638944 6212
-sys/man/4/usb - 664 sys sys 1203552814 5677
+sys/man/4/usb - 664 sys sys 1206739773 5725
 sys/man/4/usbd - 664 sys sys 1202846392 1035
 sys/man/4/usbdisk - 664 sys sys 1205857582 3044
 sys/man/4/vacfs - 664 sys sys 1196638944 1545
@@ -8106,7 +8106,7 @@ sys/src/9/pc/devlpt.c - 664 sys sys 1184469951 4423
 sys/src/9/pc/devpccard.c - 664 sys sys 1184469910 39336
 sys/src/9/pc/devrtc.c - 664 sys sys 1015014515 7167
 sys/src/9/pc/devtv.c - 664 sys sys 1184469620 45423
-sys/src/9/pc/devusb.c - 664 sys sys 1204179902 20831
+sys/src/9/pc/devusb.c - 664 sys sys 1206740166 21073
 sys/src/9/pc/devvga.c - 664 sys sys 1181083003 9334
 sys/src/9/pc/dma.c - 664 sys sys 1142966373 5332
 sys/src/9/pc/ether2000.c - 664 sys sys 1173287379 4901
@@ -9429,7 +9429,7 @@ sys/src/cmd/8l/optab.c - 664 sys sys 1111156413 16231
 sys/src/cmd/8l/pass.c - 664 sys sys 1095107668 13675
 sys/src/cmd/8l/span.c - 664 sys sys 1107721554 23294
 sys/src/cmd/9660srv - 20000000775 sys sys 1048644372 0
-sys/src/cmd/9660srv/9660srv.c - 664 sys sys 1132451689 17151
+sys/src/cmd/9660srv/9660srv.c - 664 sys sys 1206721469 17203
 sys/src/cmd/9660srv/dat.h - 664 sys sys 1204937773 2129
 sys/src/cmd/9660srv/data.c - 664 sys sys 944960735 373
 sys/src/cmd/9660srv/fns.h - 664 sys sys 1204937773 429
@@ -14276,12 +14276,12 @@ sys/src/cmd/upas/vf/mkfile - 664 sys sys 1064393881 241
 sys/src/cmd/upas/vf/vf.c - 664 sys sys 1181681383 20307
 sys/src/cmd/usb - 20000000775 sys sys 1091205029 0
 sys/src/cmd/usb/audio - 20000000775 sys sys 1091204980 0
-sys/src/cmd/usb/audio/audiofs.c - 664 sys sys 1172903208 18518
+sys/src/cmd/usb/audio/audiofs.c - 664 sys sys 1206739707 18727
 sys/src/cmd/usb/audio/audiosub.c - 664 sys sys 1172764044 8275
 sys/src/cmd/usb/audio/mkfile - 664 sys sys 1091204980 349
-sys/src/cmd/usb/audio/usbaudio.c - 664 sys sys 1202255398 10343
-sys/src/cmd/usb/audio/usbaudio.h - 664 sys sys 1140695062 1889
-sys/src/cmd/usb/audio/usbaudioctl.c - 664 sys sys 1172764044 18825
+sys/src/cmd/usb/audio/usbaudio.c - 664 sys sys 1206739761 10505
+sys/src/cmd/usb/audio/usbaudio.h - 664 sys sys 1206739688 1907
+sys/src/cmd/usb/audio/usbaudioctl.c - 664 sys sys 1206739741 18993
 sys/src/cmd/usb/audio/usbaudioctl.h - 664 sys sys 1140695062 618
 sys/src/cmd/usb/disk - 20000000775 sys sys 1193181450 0
 sys/src/cmd/usb/disk/disk.c - 664 sys sys 1202256113 20245

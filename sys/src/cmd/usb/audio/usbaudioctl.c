@@ -140,23 +140,26 @@ setspeed(int rec, int speed)
 	char cmdbuf[32];
 	uchar buf[3];
 
+	if (rec == Record && !setrec)
+		return Undef;
 	if (curalt[rec] < 0){
 		fprint(2, "Must set channels and resolution before speed\n");
 		return Undef;
 	}
 	if (endpt[rec] < 0)
-		sysfatal("endpt[%s] not set\n", rec?"Record":"Playback");
+		sysfatal("endpt[%s] not set", rec?"Record":"Playback");
 	ep = ad->ep[endpt[rec]];
 	if (ep->iface == nil)
 		sysfatal("no interface");
 	if (curalt[rec] < 0)
-		sysfatal("curalt[%s] not set\n", rec?"Record":"Playback");
+		sysfatal("curalt[%s] not set", rec?"Record":"Playback");
 	da = ep->iface->dalt[curalt[rec]];
 	a = da->devspec;
 	if (a->caps & onefreq){
 		if (debug & Dbgcontrol)
 			fprint(2, "setspeed %d: onefreq\n", speed);
-		speed = a->freqs[0];		/* speed not settable, but packet size must still be set */
+		/* speed not settable, but packet size must still be set */
+		speed = a->freqs[0];
 	}else if (a->caps & has_contfreq){
 		if (debug & Dbgcontrol)
 			fprint(2, "setspeed %d: contfreq\n", speed);
@@ -216,7 +219,8 @@ setspeed(int rec, int speed)
 			if (buf[2] || n == 0){
 				if (debug & Dbgcontrol)
 					fprint(2, "Speed out of bounds %d (0x%x)\n", n, n);
-			}else if (n != speed && ad->vid == 0x077d && (ad->did == 0x0223 || ad->did == 0x07af)){
+			}else if (n != speed && ad->vid == 0x077d &&
+			    (ad->did == 0x0223 || ad->did == 0x07af)){
 				/* Griffin iMic responds incorrectly to sample rate inquiry */
 				if (debug & Dbgcontrol)
 					fprint(2, " reported as %d (iMic bug?);", n);
@@ -230,21 +234,23 @@ setspeed(int rec, int speed)
 		* controls[rec][Channel_control].value[0]
 		* controls[rec][Resolution_control].value[0]/8;
 	if(ps > ep->maxpkt){
-		fprint(2, "packet size %d > maximum packet size %d\n",
-			ps, ep->maxpkt);
+		fprint(2, "%s: setspeed(rec %d, speed %d): packet size %d > "
+			"maximum packet size %d\n",
+			argv0, rec, speed, ps, ep->maxpkt);
 		return Undef;
 	}
 	if (debug & Dbgcontrol)
 		fprint(2, "Configuring %s endpoint for %d Hz\n",
 				rec?"record":"playback", speed);
 	sprint(cmdbuf, "ep %d %d %c %ld %d", endpt[rec], da->interval, rec?'r':'w',
-		controls[rec][Channel_control].value[0]*controls[rec][Resolution_control].value[0]/8,
-		speed);
+		controls[rec][Channel_control].value[0] *
+		controls[rec][Resolution_control].value[0]/8, speed);
 	if (write(ad->ctl, cmdbuf, strlen(cmdbuf)) != strlen(cmdbuf)){
 		fprint(2, "writing %s to #U/usb/%d/ctl: %r\n", cmdbuf, id);
 		return Undef;
 	}
-	if (debug & Dbgcontrol) fprint(2, "sent `%s' to /dev/usb/%d/ctl\n", cmdbuf, id);
+	if (debug & Dbgcontrol)
+		fprint(2, "sent `%s' to /dev/usb/%d/ctl\n", cmdbuf, id);
 	return speed;
 }
 
@@ -262,14 +268,14 @@ getspeed(int rec, int which)
 		return Undef;
 	}
 	if (endpt[rec] < 0)
-		sysfatal("endpt[%s] not set\n", rec?"Record":"Playback");
+		sysfatal("endpt[%s] not set", rec?"Record":"Playback");
 	if(debug & Dbgcontrol)
 		fprint(2, "getspeed: endpt[%d] == %d\n", rec, endpt[rec]);
 	ep = ad->ep[endpt[rec]];
 	if (ep->iface == nil)
 		sysfatal("no interface");
 	if (curalt[rec] < 0)
-		sysfatal("curalt[%s] not set\n", rec?"Record":"Playback");
+		sysfatal("curalt[%s] not set", rec?"Record":"Playback");
 	da = ep->iface->dalt[curalt[rec]];
 	a = da->devspec;
 	if (a->caps & onefreq){
@@ -388,7 +394,7 @@ setcontrol(int rec, char *name, long *value)
 		if (debug & Dbgcontrol) fprint(2, "setcontrol: can't happen\n");
 		return -1;
 	case Speed_control:
-		if ((value[0] = setspeed(rec, value[0])) < 0)
+		if (setrec && (value[0] = setspeed(rec, value[0])) < 0)
 			return -1;
 		c->value[0] = value[0];
 		return 0;
@@ -608,7 +614,9 @@ getcontrols(void)
 	Audiocontrol *c;
 	long v[8];
 
-	for (rec = 0; rec < 2; rec++)
+	for (rec = 0; rec < 2; rec++) {
+		if (rec == Record && !setrec)
+			continue;
 		for (ctl = 0; ctl < Ncontrol; ctl++){
 			c = &controls[rec][ctl];
 			if (c->readable){
@@ -647,6 +655,7 @@ getcontrols(void)
 						rec?"Playback":"Record", controls[rec][ctl].name);
 			}
 		}
+	}
 }
 
 int

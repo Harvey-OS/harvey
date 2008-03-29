@@ -171,6 +171,7 @@ serve(void *)
 {
 	int i;
 	ulong t;
+	Dir *dir;
 
 	if(pipe(p) < 0)
 		sysfatal("pipe failed");
@@ -211,6 +212,11 @@ serve(void *)
 		sprint(audiofile, "%s/audio", mntpt);
 		if(bind(epdata, audiofile, MREPL) < 0)
 			sysfatal("bind failed");
+
+		dir = dirstat(epdata);
+		if (dir && (dir->mode & 0222) != 0222)
+			sysfatal("%s unwritable", epdata);
+		free(dir);
 	}
 	if (endpt[Record] >= 0){
 		sprint(epdata, "#U/usb%d/%d/ep%ddata", ad->ctlrno, ad->id,
@@ -559,7 +565,7 @@ flush:
 char*
 rread(Fid *f)
 {
-	int i, n, cnt, rec;
+	int i, n, cnt, rec, div;
 	vlong off;
 	char *p;
 	Audiocontrol *c;
@@ -588,27 +594,30 @@ rread(Fid *f)
 		for (rec = 0; rec < 2; rec++){
 			c = &controls[rec][Volume_control];
 			if (c->readable){
+				div = c->max - c->min;
 				i = snprint(p, n, "audio %s %ld\n",
 					rec? "in": "out", (c->min != Undef?
-					100*(c->value[0]-c->min)/(c->max-c->min):
+					100*(c->value[0]-c->min)/(div? div: 1):
 					c->value[0]));
 				p += i;
 				n -= i;
 			}
 			c = &controls[rec][Treble_control];
 			if (c->readable){
+				div = c->max - c->min;
 				i = snprint(p, n, "treb %s %ld\n",
 					rec? "in": "out", (c->min != Undef?
-					100*(c->value[0]-c->min)/(c->max-c->min):
+					100*(c->value[0]-c->min)/(div? div: 1):
 					c->value[0]));
 				p += i;
 				n -= i;
 			}
 			c = &controls[rec][Bass_control];
 			if (c->readable){
+				div = c->max - c->min;
 				i = snprint(p, n, "bass %s %ld\n",
 					rec? "in": "out", (c->min != Undef?
-					100*(c->value[0]-c->min)/(c->max-c->min):
+					100*(c->value[0]-c->min)/(div? div: 1):
 					c->value[0]));
 				p += i;
 				n -= i;
