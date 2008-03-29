@@ -30,16 +30,16 @@ print
 .PP
 .B usb/usbaudio
 [
-.B -V
-] [
-.B -v
-.I volume
+.B -pV
 ] [
 .B -m
 .I mountpoint
 ] [
 .B -s
 .I srvname
+] [
+.B -v
+.I volume
 ] [
 .I ctrlno
 .I n
@@ -121,11 +121,11 @@ is a script that mounts a USB printer on
 .SS Audio devices
 .I Usbaudio
 configures and manages a USB audio device.  It implements a file system,
-normally mounted in
+normally mounted on
 .BI /dev ,
 but this can be changed with the
 .B \-m
-flag, with files
+option, with files
 .BR volume ,
 .BR audioctl ,
 .BR audio ,
@@ -139,12 +139,15 @@ maintain backward compatibility with the soundblaster driver.
 .PP
 The
 .B \-V
-flag (verbose) causes usbaudio to print information about the device on startup.
-.PP
+option (verbose) causes usbaudio to print information about the device on startup.
 The
 .B \-s
-flag specifies a name for a file descriptor to be posted in
-.CW /srv .
+option specifies a name for a file descriptor to be posted in
+.BR /srv .
+The
+.B \-v
+options sets initial
+.IR volume .
 .PP
 Reading
 .B volume

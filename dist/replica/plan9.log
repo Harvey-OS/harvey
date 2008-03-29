@@ -18908,3 +18908,12 @@
 1206554404 0 c sys/src/cmd/ndb/dblookup.c - 664 sys sys 1206554141 25262
 1206559804 0 c 386/bin/cdfs - 775 sys sys 1206559723 173155
 1206648004 0 c sys/games/lib/fortunes - 664 sys sys 1206647893 268958
+1206721804 0 c sys/src/cmd/9660srv/9660srv.c - 664 sys sys 1206721469 17203
+1206732604 0 c 386/bin/9660srv - 775 sys sys 1206732240 104949
+1206739804 0 c sys/man/4/usb - 664 sys sys 1206739773 5725
+1206739804 1 c sys/src/cmd/usb/audio/audiofs.c - 664 sys sys 1206739707 18727
+1206739804 2 c sys/src/cmd/usb/audio/usbaudio.c - 664 sys sys 1206739761 10505
+1206739804 3 c sys/src/cmd/usb/audio/usbaudio.h - 664 sys sys 1206739688 1907
+1206739804 4 c sys/src/cmd/usb/audio/usbaudioctl.c - 664 sys sys 1206739741 18993
+1206741603 0 c sys/src/9/pc/devusb.c - 664 sys sys 1206740166 21073
+1206761403 0 c 386/bin/usb/usbaudio - 775 sys sys 1206760689 189891

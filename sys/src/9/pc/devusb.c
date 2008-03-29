@@ -27,7 +27,11 @@ static char *devstates[] = {
 	[Configured]	"Configured",
 };
 
-static	char	Ebadusbmsg[] = "invalid parameters to USB ctl message";
+static	char	Ebadusbmsg[]	= "invalid parameters to USB ctl message";
+static	char	Eeprange[]	= "usb endpoint number out of range";
+static	char	Eiso[]		= "usb endpoint in isochronous mode";
+static	char	Enousbhost[]	= "no Usbhost";
+static	char	Ewrongmode[]	= "no usb endpoint or wrong open mode";
 
 enum
 {
@@ -153,7 +157,7 @@ usbdevice(Chan *c)
 
 	bus = CTLR(c->qid);
 	if(bus >= nelem(usbhost) || (uh = usbhost[bus]) == nil) {
-		error(Egreg);
+		error(Enousbhost);
 		return nil;		/* for compiler */
 	}
 	d = usbdeviceofslot(uh, SLOT(c->qid));
@@ -665,10 +669,10 @@ usbread(Chan *c, void *a, long n, vlong offset)
 			error(Eio);
 		e = d->ep[t];
 		if(e == nil || e->mode == OWRITE)
-			error(Egreg);
+			error(Ewrongmode);
 		if(t == 0) {
 			if(e->epmode == Isomode)
-				error(Egreg);
+				error(Eiso);
 			if(e->override)
 				e->override = 0;
 			else
@@ -737,7 +741,7 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 	char cmd[50];
 
 	if(c->qid.type == QTDIR)
-		error(Egreg);
+		error(Eisdir);
 	d = usbdevice(c);
 	uh = d->uh;
 	t = TYPE(c->qid);
@@ -1000,7 +1004,7 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 		/* should canqlock etc */
 		e = d->ep[0];
 		if(e == nil || e->epmode == Isomode)
-			error(Egreg);
+			error(Eiso);
 		if(n < 8)
 			error(Eio);
 		nw = *(uchar*)a & RD2H;
@@ -1021,10 +1025,10 @@ usbwrite(Chan *c, void *a, long n, vlong offset)
 	default:	/* sends DATA[01] */
 		t -= Qep0;
 		if(t < 0 || t >= nelem(d->ep))
-			error(Egreg);
+			error(Eeprange);
 		e = d->ep[t];
 		if(e == nil || e->mode == OREAD)
-			error(Egreg);
+			error(Ewrongmode);
 		n = uh->write(uh, e, a, n, offset, uh->tokout);
 		break;
 	}

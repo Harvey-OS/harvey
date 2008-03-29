@@ -831,22 +831,24 @@ gtime(uchar *p)	/* yMdhmsz */
 {
 	long t;
 	int i, y, M, d, h, m, s, tz;
+
 	y=p[0]; M=p[1]; d=p[2];
 	h=p[3]; m=p[4]; s=p[5]; tz=p[6];
 	USED(tz);
-	if (y < 70)
+	y += 1900;
+	if (y < 1970)
 		return 0;
 	if (M < 1 || M > 12)
 		return 0;
 	if (d < 1 || d > dmsize[M-1])
-		return 0;
+		if (!(M == 2 && d == 29 && dysize(y) == 366))
+			return 0;
 	if (h > 23)
 		return 0;
 	if (m > 59)
 		return 0;
 	if (s > 59)
 		return 0;
-	y += 1900;
 	t = 0;
 	for(i=1970; i<y; i++)
 		t += dysize(i);
