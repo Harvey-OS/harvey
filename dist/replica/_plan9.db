@@ -7397,7 +7397,7 @@ sys/man/1/dd - 664 sys sys 1196638931 3346
 sys/man/1/delkey - 664 sys sys 1196638931 779
 sys/man/1/deroff - 664 sys sys 1196638931 1826
 sys/man/1/diff - 664 sys sys 1196638935 3089
-sys/man/1/doc2txt - 664 sys sys 1205815382 2628
+sys/man/1/doc2txt - 664 sys sys 1206913741 2624
 sys/man/1/doctype - 664 sys sys 1196638931 860
 sys/man/1/du - 664 sys sys 1196638931 2281
 sys/man/1/echo - 664 sys sys 1196638932 430
@@ -7553,7 +7553,7 @@ sys/man/2/chdir - 664 sys sys 1196638937 552
 sys/man/2/cleanname - 664 sys sys 1196638940 709
 sys/man/2/color - 664 sys sys 1196638940 1335
 sys/man/2/complete - 664 sys sys 1196638940 2396
-sys/man/2/control - 664 sys sys 1205791980 43639
+sys/man/2/control - 664 sys sys 1206913705 43603
 sys/man/2/cputime - 664 sys sys 1196638937 713
 sys/man/2/ctime - 664 sys sys 1196638937 2547
 sys/man/2/ctype - 664 sys sys 1196638937 2610
@@ -7712,6 +7712,7 @@ sys/man/3/proc - 664 sys sys 1196638942 12062
 sys/man/3/root - 664 sys sys 1196638942 632
 sys/man/3/rtc - 664 sys sys 1196638942 667
 sys/man/3/sd - 664 sys sys 1196638942 5659
+sys/man/3/sdahci - 664 sys sys 1206923648 3212
 sys/man/3/sdaoe - 664 sys sys 1196638942 1320
 sys/man/3/segment - 664 sys sys 1196638942 2378
 sys/man/3/srv - 664 sys sys 1196638942 1470
@@ -7759,7 +7760,7 @@ sys/man/4/snap - 664 sys sys 1196638944 1908
 sys/man/4/srv - 664 sys sys 1196638944 4970
 sys/man/4/tapefs - 664 sys sys 1196638944 1861
 sys/man/4/telco - 664 sys sys 1196638944 4359
-sys/man/4/u9fs - 664 sys sys 1205964618 5225
+sys/man/4/u9fs - 664 sys sys 1206913743 5223
 sys/man/4/upasfs - 664 sys sys 1196638944 6212
 sys/man/4/usb - 664 sys sys 1206739773 5725
 sys/man/4/usbd - 664 sys sys 1202846392 1035

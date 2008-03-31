@@ -18917,3 +18917,7 @@
 1206739804 4 c sys/src/cmd/usb/audio/usbaudioctl.c - 664 sys sys 1206739741 18993
 1206741603 0 c sys/src/9/pc/devusb.c - 664 sys sys 1206740166 21073
 1206761403 0 c 386/bin/usb/usbaudio - 775 sys sys 1206760689 189891
+1206914405 0 c sys/man/1/doc2txt - 664 sys sys 1206913741 2624
+1206914405 1 c sys/man/2/control - 664 sys sys 1206913705 43603
+1206914405 2 c sys/man/4/u9fs - 664 sys sys 1206913743 5223
+1206925204 0 a sys/man/3/sdahci - 664 sys sys 1206923648 3212
