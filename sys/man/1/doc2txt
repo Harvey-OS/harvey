@@ -82,7 +82,7 @@ may then be used to parse the files inside, extracting
 a text stream.
 .I Msexceltables
 may be given options to control the formatting of its output.
-.TF "\f(CW-d \fIdelim"
+.TF "\fL-d \fIdelim"
 .TP
 .B -a
 Attempt conversion of non-tabular sheets in the workbook (charts).
@@ -119,7 +119,7 @@ unmount /mnt/doc
 .EE
 .PD
 .SH SOURCE
-.TF "\f(CW/sys/src/cmd/aux   "
+.TF "\fL/sys/src/cmd/aux   "
 .TP
 .B /rc/bin
 .BR doc2txt ,

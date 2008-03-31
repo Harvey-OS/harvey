@@ -593,7 +593,7 @@ by mouse or keyboard action; messages to the
 file do not cause events to be generated.
 .PP
 All controls accept the following messages:
-.TF \f(CWreveal
+.TF \fLreveal
 .TP
 .BI rect " minx miny maxx maxy
 Set the bounding rectangle for the control on the display.
@@ -666,7 +666,7 @@ Many messages are common between multiple
 .BR Control s.
 Such messages are described in detail here to avoid repetition.
 In the individual descriptions, only the syntax is presented.
-.TF "\f(CWformat fmt"
+.TF "\fLformat fmt"
 .TP
 .BI align " n
 Specify the alignment of (some part of) the
@@ -829,7 +829,7 @@ is 0 if the box has lost focus, 1 if it has acquired it.
 The box displays within its rectangle
 an image, under mask, with specified alignment.
 The control messages it accepts are:
-.TF "\f(CWalign a"
+.TF "\fLalign a"
 .TP
 .BI align " a
 Controls the placement of the image in the rectangle (unimplemented).
@@ -865,7 +865,7 @@ allows all
 .BR Control s
 to be displayed.  This aggregator works well for collections
 of buttons, labels, or textbuttons that all have a fixed height.
-.TF "\f(CWadd name ..."
+.TF "\fLadd name ..."
 .TP
 .BI add " name ...
 adds the named control to the box of controls.  The display order
@@ -927,7 +927,7 @@ encodes the mouse buttons used to make the selection.
 The button displays an image (which may of course be a simple color)
 and illuminates in the standard way when it is `on'.
 The control messages it accepts are:
-.TF "\f(CWborder b"
+.TF "\fLborder b"
 .TP
 .BI align " a
 Controls the placement of the image in the rectangle (unimplemented).
@@ -968,7 +968,7 @@ A column is a grouping control which lays out its members vertically,
 from top to bottom.  Currently, columns ignore mouse and keyboard
 events, but there are plans to allow dragging the borders (when they
 have non-zero width) between constituent members.
-.TF "\f(CWadd name .."
+.TF "\fLadd name .."
 .TP
 .BI add " name ...
 adds the named control to the column of controls.  The vertical order
@@ -1058,7 +1058,7 @@ The file
 defines such a font.
 .PP
 The control messages the entry control accepts are:
-.TF "\f(CWborder b"
+.TF "\fLborder b"
 .TP
 .BI align " a
 Controls the placement of the text in the rectangle.
@@ -1128,7 +1128,7 @@ but to aid clumsy fingers the keystroke is not generated until the key is releas
 so it is possible to slide the pointer to a different key to correct for bad aim.
 .PP
 The control messages the keyboard accepts are:
-.TF "\f(CWfont"
+.TF "\fLfont"
 .TP
 .BI border " b
 .TP
@@ -1171,7 +1171,7 @@ A label is like a textbutton
 .RI ( q.v. )
 that does not react, but whose value is the text it displays.
 The control messages it accepts are:
-.TF "\f(CWvalue s"
+.TF "\fLvalue s"
 .TP
 .BI align " a
 Controls the placement of the image in the rectangle.
@@ -1230,7 +1230,7 @@ most programs use
 .BR Refnone .
 .PP
 The control messages accepted by a menu are:
-.TF "\f(CWwindow n"
+.TF "\fLwindow n"
 .TP
 .BI add " text
 Add a line of
@@ -1305,7 +1305,7 @@ buttons.
 In other words, the geometry is not maintained automatically.
 .PP
 The control messages the radiobutton accepts are:
-.TF "\f(CWadd name"
+.TF "\fLadd name"
 .TP
 .BI add " name
 Add the control with the specified
@@ -1337,7 +1337,7 @@ and
 interchanged.
 .PP
 The control messages it accepts are:
-.TF "\f(CWfont"
+.TF "\fLfont"
 .TP
 .BI add " name ...
 .TP
@@ -1369,7 +1369,7 @@ In most respects, including the format of its event messages, it is equivalent
 to a keyboard control.
 .PP
 The control messages it accepts are:
-.TF "\f(CWlinecolor \fIname\f(CW "
+.TF "\fLlinecolor \fIname\f(CW "
 .TP
 .BI align " a
 Controls the placement of the image in the rectangle (unimplemented).
@@ -1403,7 +1403,7 @@ A stack groups a number of member controls in the same shared rectangle.
 Only one of these controls will be visible (revealed), the others are hidden.
 .PP
 The control messages it accepts are:
-.TF "\f(CWreveal [\f2n\fP]"
+.TF "\fLreveal [\f2n\fP]"
 .TP
 .BI hide
 .TP
@@ -1470,7 +1470,7 @@ is the visual representation of the
 portion of the controlled object.
 .PP
 The control messages the slider accepts are:
-.TF "\f(CWabsolute n"
+.TF "\fLabsolute n"
 .TP
 .BI absolute " n
 If
@@ -1548,7 +1548,7 @@ top of the stack.  The radiobutton consists of textbuttons, the stack
 can be composed of any type of control.
 .PP
 Control messages are
-.TF "\f(CWformat fmt"
+.TF "\fLformat fmt"
 .TP
 .BI add " button control button control ...
 Adds a button to the radiobutton, and an associated control to the stack.
@@ -1609,7 +1609,7 @@ The non-zero value encodes the mouse buttons that were down
 when the selection occurred.
 .PP
 The control messages the text control accepts are:
-.TF "\f(CWselectmode \fIs\fP "
+.TF "\fLselectmode \fIs\fP "
 .TP
 .BI accumulate " s
 .TP
@@ -1731,7 +1731,7 @@ is the string that appears in the button.
 It uses the image, light, mask method of indicating its state;
 moreover, the color of the text can be set to change when the button is pressed.
 The control messages it accepts are:
-.TF "\f(CWalign a"
+.TF "\fLalign a"
 .TP
 .BI align " a
 Controls the placement of the text in the rectangle.

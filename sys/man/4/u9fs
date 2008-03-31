@@ -53,7 +53,7 @@ serves both 9P1 (the 9P protocol as used by
 the second and third editions of Plan 9) and 9P2000.
 .PP
 The options are:
-.TF "\f(CW-A \fIautharg"
+.TF "\fL-A \fIautharg"
 .PD
 .TP
 .B -D
