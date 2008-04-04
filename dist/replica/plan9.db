@@ -14365,7 +14365,7 @@ sys/src/cmd/venti/readlist.c - 664 sys sys 1177189435 1934
 sys/src/cmd/venti/ro.c - 664 sys sys 1177189435 1886
 sys/src/cmd/venti/root.c - 664 sys sys 1177189435 1329
 sys/src/cmd/venti/srv - 20000000775 sys sys 1189020012 0
-sys/src/cmd/venti/srv/arena.c - 664 sys sys 1191257299 20137
+sys/src/cmd/venti/srv/arena.c - 664 sys sys 1207253133 20156
 sys/src/cmd/venti/srv/arenas.c - 664 sys sys 1178160303 8039
 sys/src/cmd/venti/srv/bloom.c - 664 sys sys 1196369124 4445
 sys/src/cmd/venti/srv/buildbuck.c - 664 sys sys 1177189435 2837
@@ -14377,7 +14377,7 @@ sys/src/cmd/venti/srv/clumpstats.c - 664 sys sys 1142736351 2234
 sys/src/cmd/venti/srv/cmparenas.c - 664 sys sys 1177189435 7215
 sys/src/cmd/venti/srv/conf.rc - 775 sys sys 1189304120 1416
 sys/src/cmd/venti/srv/config.c - 664 sys sys 1191257289 5659
-sys/src/cmd/venti/srv/conv.c - 664 sys sys 1191257291 14072
+sys/src/cmd/venti/srv/conv.c - 664 sys sys 1207253152 15161
 sys/src/cmd/venti/srv/dat.h - 664 sys sys 1196369171 19088
 sys/src/cmd/venti/srv/dcache.c - 664 sys sys 1196369150 15782
 sys/src/cmd/venti/srv/disksched.c - 664 sys sys 1193791117 2127
@@ -14411,7 +14411,7 @@ sys/src/cmd/venti/srv/printindex.c - 664 sys sys 1142736355 1746
 sys/src/cmd/venti/srv/printmap.c - 664 sys sys 1142736355 542
 sys/src/cmd/venti/srv/rdarena.c - 664 sys sys 1202925159 1695
 sys/src/cmd/venti/srv/readifile.c - 664 sys sys 1177534667 411
-sys/src/cmd/venti/srv/reseal.c - 664 sys sys 1177189438 6682
+sys/src/cmd/venti/srv/reseal.c - 664 sys sys 1207253699 6520
 sys/src/cmd/venti/srv/round.c - 664 sys sys 1142736355 1577
 sys/src/cmd/venti/srv/score.c - 664 sys sys 1178160305 740
 sys/src/cmd/venti/srv/sortientry.c - 664 sys sys 1177189439 8325

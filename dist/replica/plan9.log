@@ -18937,3 +18937,6 @@
 1207166405 11 c 386/bin/venti/syncindex - 775 sys sys 1207166156 267073
 1207166405 12 c 386/bin/venti/venti - 775 sys sys 1207166167 705792
 1207166405 13 c 386/bin/venti/wrarena - 775 sys sys 1207166173 284042
+1207252804 0 c sys/src/cmd/venti/srv/arena.c - 664 sys sys 1207253133 20156
+1207252804 1 c sys/src/cmd/venti/srv/conv.c - 664 sys sys 1207253152 15161
+1207254604 0 c sys/src/cmd/venti/srv/reseal.c - 664 sys sys 1207253699 6520
