@@ -71,7 +71,9 @@ int setam(char*);
 void
 usage(void)
 {
-	fprint(2, "usage: cpu [-h system] [-u user] [-a authmethod] [-e 'crypt hash'] [-k keypattern] [-P patternfile] [-c cmd args ...]\n");
+	fprint(2, "usage: cpu [-h system] [-u user] [-a authmethod] "
+		"[-e 'crypt hash'] [-k keypattern] [-P patternfile] "
+		"[-c cmd arg ...]\n");
 	exits("usage");
 }
 
@@ -215,9 +217,10 @@ fatal(int syserr, char *fmt, ...)
 	va_end(arg);
 	if(syserr)
 		fmtprint(&f, ": %r");
-	fmtprint(&f, "\n");
 	str = fmtstrflush(&f);
-	write(2, str, strlen(str));
+
+	fprint(2, "%s\n", str);
+	syslog(0, "cpu", str);
 	exits(str);
 }
 

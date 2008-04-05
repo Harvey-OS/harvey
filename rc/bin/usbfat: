@@ -28,9 +28,9 @@ case *
 	exit usage
 }
 
-if (! test -e $disk)
-	usb/disk $opts || exit 'no disk'
 if (! test -f /srv/usbfat.$user) {
+	if (! test -e $disk)
+		usb/disk $opts || exit 'no disk'
 	blk = `{disk/fdisk -p $disk | awk '/^part dos / {print $3}'}
 	if (~ $#blk 0 || ! ~ $blk [0-9]*) {
 		echo $0: warning: no fdisk dos partition found... >[1=2]
