@@ -64,7 +64,7 @@ int	mute, mutestat;
 int	minlease = MinLease;
 int	staticlease = StaticLease;
 
-ulong	start;
+uvlong	start;
 
 static int v6opts;
 
@@ -199,10 +199,10 @@ void	warning(int, char*, ...);
 void
 timestamp(char *tag)
 {
-	ulong t;
+	uvlong t;
 
 	t = nsec()/1000;
-	syslog(0, blog, "%s %lud", tag, t - start);
+	syslog(0, blog, "%s %lludµs", tag, t - start);
 }
 
 void
@@ -401,7 +401,7 @@ proto(Req *rp, int n)
 		dhcp(rp);
 	else
 		bootp(rp);
-timestamp("done");
+	timestamp("done");
 }
 
 static void

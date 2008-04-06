@@ -192,7 +192,7 @@
 386/bin/con - 775 sys sys 1203482824 78416
 386/bin/cp - 775 sys sys 1168402297 63454
 386/bin/cpp - 775 sys sys 1196742451 149149
-386/bin/cpu - 775 sys sys 1196742454 139159
+386/bin/cpu - 775 sys sys 1207366109 139143
 386/bin/crop - 775 sys sys 1168402298 116374
 386/bin/cwfs - 775 sys sys 1203713012 365874
 386/bin/date - 775 sys sys 1178568265 41845
@@ -5851,7 +5851,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1206647893 268958
+sys/games/lib/fortunes - 664 sys sys 1207370998 268981
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -8190,7 +8190,7 @@ sys/src/9/pc/sdmv50xx.c - 664 sys sys 1204232564 34031
 sys/src/9/pc/sdmylex.c - 664 sys sys 1189229947 28395
 sys/src/9/pc/sdscsi.c - 664 sys sys 1186618532 7957
 sys/src/9/pc/trap.c - 664 sys sys 1197062171 21897
-sys/src/9/pc/uartaxp.c - 664 sys sys 1166247784 18879
+sys/src/9/pc/uartaxp.c - 664 sys sys 1207419955 18931
 sys/src/9/pc/uartaxp.i - 664 sys sys 1155243528 111326
 sys/src/9/pc/uarti8250.c - 664 sys sys 1177676872 13957
 sys/src/9/pc/uartisa.c - 664 sys sys 1127126907 1777
@@ -12489,7 +12489,7 @@ sys/src/cmd/ip/dhcpclient.c - 664 sys sys 1178482836 11969
 sys/src/cmd/ip/dhcpd - 20000000775 sys sys 1063897571 0
 sys/src/cmd/ip/dhcpd/dat.h - 664 sys sys 1084471353 2522
 sys/src/cmd/ip/dhcpd/db.c - 664 sys sys 1143670612 7466
-sys/src/cmd/ip/dhcpd/dhcpd.c - 664 sys sys 1204179700 35269
+sys/src/cmd/ip/dhcpd/dhcpd.c - 664 sys sys 1207419933 35276
 sys/src/cmd/ip/dhcpd/dhcpleases.c - 664 sys sys 1204179691 796
 sys/src/cmd/ip/dhcpd/mkfile - 664 sys sys 1169162185 443
 sys/src/cmd/ip/dhcpd/ndb.c - 664 sys sys 1185920230 5799
@@ -15883,4 +15883,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/cpu - 775 sys sys 1207366109 139143
