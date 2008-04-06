@@ -4218,3 +4218,4 @@ Nothing is more hateful to wisdom than excessive cleverness - Seneca (according 
 Perfection is achieved, not when there is nothing more to add, but when there is nothing left to take away. - Antoine de Saint-Exupery
   bucket = Buckets + pe; /* bucket = &(Buckets[pe]); */
 Those who can do, those who can't write and those who can't write make ezines. - Sape
+Command (m for help): 

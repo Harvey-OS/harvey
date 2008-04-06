@@ -18965,3 +18965,6 @@
 1207348204 2 a rc/bin/dontkill - 775 sys sys 1207346989 293
 1207350004 0 c rc/bin/termrc - 775 sys sys 1207348859 2548
 1207366204 0 c 386/bin/cpu - 775 sys sys 1207366109 139143
+1207371605 0 c sys/games/lib/fortunes - 664 sys sys 1207370998 268981
+1207420204 0 c sys/src/9/pc/uartaxp.c - 664 sys sys 1207419955 18931
+1207420204 1 c sys/src/cmd/ip/dhcpd/dhcpd.c - 664 sys sys 1207419933 35276
