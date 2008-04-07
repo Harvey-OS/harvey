@@ -293,7 +293,7 @@
 386/bin/ip - 20000000775 sys sys 1016920851 0
 386/bin/ip/6in4 - 775 sys sys 1204292492 93318
 386/bin/ip/dhcpclient - 775 sys sys 1178568281 92992
-386/bin/ip/dhcpd - 775 sys sys 1204292495 152881
+386/bin/ip/dhcpd - 775 sys sys 1207453634 152879
 386/bin/ip/dhcpleases - 775 sys sys 1204292497 86370
 386/bin/ip/ftpd - 775 sys sys 1204292500 172031
 386/bin/ip/gping - 775 sys sys 1198211707 182214
@@ -9858,7 +9858,7 @@ sys/src/cmd/aux/reboot.c - 664 sys sys 1162419091 1533
 sys/src/cmd/aux/searchfs.c - 664 sys sys 1143759348 18163
 sys/src/cmd/aux/statusbar.c - 664 sys sys 1138460096 6066
 sys/src/cmd/aux/stub.c - 664 sys sys 1098196222 2723
-sys/src/cmd/aux/timesync.c - 664 sys sys 1205784426 25953
+sys/src/cmd/aux/timesync.c - 664 sys sys 1207506921 25991
 sys/src/cmd/aux/trampoline.c - 664 sys sys 1126104850 3790
 sys/src/cmd/aux/unlock - 664 sys sys 944960793 0
 sys/src/cmd/aux/usage.c - 664 sys sys 1139744276 1095
@@ -12845,7 +12845,7 @@ sys/src/cmd/ndb/dblookup.c - 664 sys sys 1206554141 25262
 sys/src/cmd/ndb/dn.c - 664 sys sys 1203748557 37967
 sys/src/cmd/ndb/dnarea.c - 664 sys sys 1175664421 2519
 sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1204179585 3112
-sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1203748559 35408
+sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1207506938 35403
 sys/src/cmd/ndb/dns.c - 664 sys sys 1203745528 17970
 sys/src/cmd/ndb/dns.h - 664 sys sys 1202761152 11969
 sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1194216583 8790
