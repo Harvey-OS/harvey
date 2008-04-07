@@ -18968,3 +18968,6 @@
 1207371605 0 c sys/games/lib/fortunes - 664 sys sys 1207370998 268981
 1207420204 0 c sys/src/9/pc/uartaxp.c - 664 sys sys 1207419955 18931
 1207420204 1 c sys/src/cmd/ip/dhcpd/dhcpd.c - 664 sys sys 1207419933 35276
+1207454404 0 c 386/bin/ip/dhcpd - 775 sys sys 1207453634 152879
+1207508404 0 c sys/src/cmd/aux/timesync.c - 664 sys sys 1207506921 25991
+1207508404 1 c sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1207506938 35403

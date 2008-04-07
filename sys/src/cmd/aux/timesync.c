@@ -954,12 +954,14 @@ ntptimediff(NTPserver *ns)
 	NTPpkt ntpin, ntpout;
 	vlong dt, recvts, origts, xmitts, destts, x;
 	char dir[64];
+	static int whined;
 
 	notify(ding);
 	alarm(30*1000);	/* don't wait forever if ns->name is unreachable */
 	fd = dial(netmkaddr(ns->name, "udp", "ntp"), 0, dir, 0);
 	if(fd < 0){
-		syslog(0, logfile, "can't reach %s: %r", ns->name);
+		if (!whined++)
+			syslog(0, logfile, "can't reach %s: %r", ns->name);
 		return -1;
 	}
 	setrootid(dir);
