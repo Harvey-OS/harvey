@@ -8,6 +8,7 @@ mpsetminbits, mpnew, mpfree, mpbits, mpnorm, mpcopy, mpassign, mprand, strtomp, 
 .br
 .B #include <mp.h>
 .PP
+.ta +\w'\fLCRTpre* \fP'u
 .B
 mpint*	mpnew(int n)
 .PP
@@ -105,7 +106,10 @@ void	mpexp(mpint *b, mpint *e, mpint *m, mpint *res)
 void	mpmod(mpint *b, mpint *m, mpint *remainder)
 .PP
 .B
-void	mpdiv(mpint *dividend, mpint *divisor,  mpint *quotient, mpint *remainder)
+void	mpdiv(mpint *dividend, mpint *divisor,  mpint *quotient,
+.br
+.B
+	mpint *remainder)
 .PP
 .B
 int	mpcmp(mpint *b1, mpint *b2)
@@ -114,7 +118,10 @@ int	mpcmp(mpint *b1, mpint *b2)
 int	mpmagcmp(mpint *b1, mpint *b2)
 .PP
 .B
-void	mpextendedgcd(mpint *a, mpint *b, mpint *d, mpint *x, mpint *y)
+void	mpextendedgcd(mpint *a, mpint *b, mpint *d, mpint *x,
+.br
+.B
+	mpint *y)
 .PP
 .B
 void	mpinvert(mpint *b, mpint *m, mpint *res)
@@ -126,13 +133,22 @@ int	mpsignif(mpint *b)
 int	mplowbits0(mpint *b)
 .PP
 .B
-void	mpdigdiv(mpdigit *dividend, mpdigit divisor, mpdigit *quotient)
+void	mpdigdiv(mpdigit *dividend, mpdigit divisor,
+.br
+.B
+	mpdigit *quotient)
 .PP
 .B
-void	mpvecadd(mpdigit *a, int alen, mpdigit *b, int blen, mpdigit *sum)
+void	mpvecadd(mpdigit *a, int alen, mpdigit *b, int blen,
+.br
+.B
+	mpdigit *sum)
 .PP
 .B
-void	mpvecsub(mpdigit *a, int alen, mpdigit *b, int blen, mpdigit *diff)
+void	mpvecsub(mpdigit *a, int alen, mpdigit *b, int blen,
+.br
+.B
+	mpdigit *diff)
 .PP
 .B
 void	mpvecdigmuladd(mpdigit *b, int n, mpdigit m, mpdigit *p)
@@ -141,7 +157,10 @@ void	mpvecdigmuladd(mpdigit *b, int n, mpdigit m, mpdigit *p)
 int	mpvecdigmulsub(mpdigit *b, int n, mpdigit m, mpdigit *p)
 .PP
 .B
-void	mpvecmul(mpdigit *a, int alen, mpdigit *b, int blen, mpdigit *p)
+void	mpvecmul(mpdigit *a, int alen, mpdigit *b, int blen,
+.br
+.B
+	mpdigit *p)
 .PP
 .B
 int	mpveccmp(mpdigit *a, int alen, mpdigit *b, int blen)
@@ -163,6 +182,7 @@ void	crtresfree(CRTres *res)
 .PP
 .B
 mpint	*mpzero, *mpone, *mptwo
+.DT
 .SH DESCRIPTION
 These routines perform extended precision integer arithmetic.
 The basic type is
