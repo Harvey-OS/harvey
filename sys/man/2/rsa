@@ -23,6 +23,7 @@ X509verify \- RSA encryption algorithm
 .br
 .B #include <libsec.h>
 .PP
+.ta +\w'\fLRSApriv* \fP'u
 .B
 RSApriv*	rsagen(int nlen, int elen, int nrep)
 .PP
@@ -66,7 +67,8 @@ uchar*	X509gen(RSApriv *priv, char *subj, ulong valid[2], int *certlen);
 uchar*	X509req(RSApriv *priv, char *subj, int *certlen);
 .PP
 .B
-char* X509verify(uchar *cert, int ncert, RSApub *pk)
+char*	X509verify(uchar *cert, int ncert, RSApub *pk)
+.DT
 .SH DESCRIPTION
 RSA is a public key encryption algorithm.  The owner of a key publishes
 the public part of the key:
@@ -144,7 +146,7 @@ to convert to binary before computing the fingerprint or calling
 .IR X509toRSApub .
 For the special case of
 certificates signed by a known trusted key
-(in a single step, without certificate chains)
+(in a single step, without certificate chains),
 .I X509verify
 checks the signature on
 .IR cert .
