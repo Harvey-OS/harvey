@@ -12425,7 +12425,7 @@ sys/src/cmd/gzip/mkfile - 664 sys sys 1124884920 124
 sys/src/cmd/gzip/unzip.c - 664 sys sys 1186715467 14731
 sys/src/cmd/gzip/zip.c - 664 sys sys 1135487935 7063
 sys/src/cmd/gzip/zip.h - 664 sys sys 954778719 1428
-sys/src/cmd/hget.c - 664 sys sys 1205782148 25990
+sys/src/cmd/hget.c - 664 sys sys 1207684941 26055
 sys/src/cmd/history.c - 664 sys sys 1136378274 6098
 sys/src/cmd/hoc - 20000000775 sys sys 1039727559 0
 sys/src/cmd/hoc/code.c - 664 sys sys 1172800014 10063
@@ -15883,3 +15883,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/hget - 775 sys sys 1207711756 236502
