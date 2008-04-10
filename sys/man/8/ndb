@@ -484,8 +484,7 @@ inconsistent forward and reverse entries.
 .SS "Classless reverse delegation"
 Following RFC 2317, it is possible to serve reverse DNS data
 for IPv4 subnets smaller than /24.
-Declare the non-/24 subnet, the reverse domain and the individual
-reverse entries.
+Declare the non-/24 subnet, the reverse domain and the individual systems.
 .PP
 For example,
 this is how to serve RFC-2317
@@ -499,6 +498,7 @@ dom=128.39.14.65.in-addr.arpa soa=
 	refresh=3600 ttl=3600
 	ns=ns1.our-domain.com
 	ns=ns2.our-domain.com
+ip=65.14.39.129 dom=router.our-domain.com
 .EE
 .
 .SS "Delegating Name Service Authority"
