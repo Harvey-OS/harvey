@@ -7869,7 +7869,7 @@ sys/man/8/mkpaqfs - 664 sys sys 1196638947 890
 sys/man/8/mksacfs - 664 sys sys 1196638947 710
 sys/man/8/mouse - 664 sys sys 1196638947 2476
 sys/man/8/na - 664 sys sys 1196638947 859
-sys/man/8/ndb - 664 sys sys 1196638947 15205
+sys/man/8/ndb - 664 sys sys 1207767560 15239
 sys/man/8/newuser - 664 sys sys 1196638947 2418
 sys/man/8/nfsserver - 664 sys sys 1196638947 3576
 sys/man/8/partfs - 664 sys sys 1196638947 869
