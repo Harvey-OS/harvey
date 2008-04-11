@@ -94,10 +94,14 @@ Writing
 alters aspects of the interface.
 The possible
 .I ctl
-messages are:
-.\" .TF "bind loopback"
-.TF "bind netdev"
+messages are those described under
+.B "Protocol directories"
+below and these:
+.TF "\fLbind loopback\fR"
 .PD
+.
+.\" from devip.c
+.
 .TP
 .BI "bind ether " path
 Treat the device mounted at
@@ -132,6 +136,9 @@ to receive and transmit IP packets.
 .BI "bind loopback "
 Treat this interface as a local loopback.  Anything
 written to it will be looped back.
+.
+.\" from ipifc.c
+.
 .TP
 .B "unbind
 Disassociate the physical device from an IP interface.
@@ -169,16 +176,6 @@ to be connected to the local Ethernet.
 .BI remove\  "local mask"
 Remove a local IP address from an interface.
 .TP
-.BI addmulti\  Media-addr
-Treat the multicast
-.I Media-addr
-on this interface as a local address.
-.TP
-.BI remmulti\  Media-addr
-Remove the multicast address
-.I Media-addr
-from this interface.
-.TP
 .BI mtu\  n
 Set the maximum transfer unit for this device to
 .IR n .
@@ -195,6 +192,10 @@ is missing or non-zero) or disallow
 .RI ( n
 is 0) forwarding packets between this interface and
 others.
+.
+.\" remainder from netif.c (thus called from devether.c),
+.\" except add6 and ra6 from ipifc.c
+.
 .TP
 .B bridge
 Enable bridging (see
@@ -214,11 +215,24 @@ A
 .I type
 of -1 means `all' but appears to be a no-op.
 .TP
+.BI addmulti\  Media-addr
+Treat the multicast
+.I Media-addr
+on this interface as a local address.
+.TP
+.BI remmulti\  Media-addr
+Remove the multicast address
+.I Media-addr
+from this interface.
+.TP
 .B scanbs
 Make the wireless interface scan for base stations.
 .TP
 .B headersonly
 Set the interface to pass only packet headers, not data too.
+.
+.\" remainder from ipifc.c; tedious, so put them last
+.
 .TP
 .BI "add6 " "v6addr pfx-len [onlink auto validlt preflt]"
 Add the local IPv6 address
@@ -229,7 +243,7 @@ to this interface.
 See RFC 2461 §6.2.1 for more detail.
 The remaining arguments are optional:
 .RS
-.TF onlink
+.TF "\fIonlink\fR"
 .TP
 .I onlink
 flag: address is `on-link'
@@ -255,7 +269,7 @@ and the meanings of their values follow.
 See RFC 2461 §6.2.1 for more detail.
 Flags are true iff non-zero.
 .RS
-.TF minraint
+.TF "\fLreachtime\fR"
 .TP
 .B recvra
 flag: receive and process RAs.
@@ -356,7 +370,7 @@ indicate what routing protocol originated the route.
 Writing to
 .B /net/iproute
 changes the route table.  The messages are:
-.TF "tag str"
+.TF "\fLtag \fIstring\fR"
 .PD
 .TP
 .B flush
@@ -387,7 +401,7 @@ Writing to
 .B /net/arp
 administers the ARP information.
 The control messages are:
-.TF "del addr"
+.TF "\fLdel \fIIP-addr\fR"
 .PD
 .TP
 .B flush
@@ -425,7 +439,7 @@ about bad packets.
 Writing to
 .B /net/log
 controls debugging.  The control messages are:
-.TF "clear addr"
+.TF "\fLclear \fIarglist\fR"
 .PD
 .TP
 .BI set\  arglist
@@ -549,7 +563,7 @@ file (see
 to receive incoming calls.
 .PP
 The following control messages are supported:
-.TF announceX
+.TF "\fLremmulti \fIip\fR"
 .PD
 .TP
 .BI connect\  ip-address ! port "!r " local
@@ -604,17 +618,18 @@ This exists to support emulation
 of BSD sockets by the APE libraries (see
 .IR pcc (1))
 and is not otherwise used.
-.TP
-.BI backlog\  n
-Set the maximum number of unanswered (queued) incoming
-connections to an announced port to
-.IR n .
-By default
-.I n
-is set to five.  If more than
-.I n
-connections are pending,
-further requests for a service will be rejected.
+.\" this is gone
+.\" .TP
+.\" .BI backlog\  n
+.\" Set the maximum number of unanswered (queued) incoming
+.\" connections to an announced port to
+.\" .IR n .
+.\" By default
+.\" .I n
+.\" is set to five.  If more than
+.\" .I n
+.\" connections are pending,
+.\" further requests for a service will be rejected.
 .TP
 .BI ttl\  n
 Set the time to live IP field in outgoing packets to
@@ -623,6 +638,23 @@ Set the time to live IP field in outgoing packets to
 .BI tos\  n
 Set the service type IP field in outgoing packets to
 .IR n .
+.TP
+.B ignoreadvice
+Don't break (UDP) connections because of ICMP errors.
+.TP
+.BI addmulti\  "ifc-ip [ mcast-ip ]"
+Treat
+.I ifc-ip
+on this multicast interface as a local address.
+If
+.I mcast-ip
+is present,
+use it as the interface's multicast address.
+.TP
+.BI remmulti\  ip
+Remove the address
+.I ip
+from this multicast interface.
 .PP
 Port numbers must be in the range 1 to 32767.
 .PP
@@ -667,7 +699,7 @@ ends.
 TCP
 .B ctl
 files support the following additional messages:
-.TF checksumnn
+.TF "\fLkeepalive\fI n\fR"
 .PD
 .TP
 .B hangup
@@ -818,7 +850,7 @@ file, and the conversation resumes.
 RUDP
 .I ctl
 files accept the following messages:
-.TF "randdrop percent"
+.TF "\fLranddrop \fI[ percent ]\fR"
 .TP
 .B headers
 Corresponds to the
@@ -928,7 +960,7 @@ Received packets are checked against their MAC's,
 decrypted, and queued for reading from
 .BR data .
 The control messages are:
-.TF "alg secret"
+.TF "\fLesp \fIalg secret\fR"
 .PD
 .TP
 .BI esp\  "alg secret
@@ -988,7 +1020,7 @@ file are routed to an interface and transmitted.
 A filter is a semicolon-separated list of
 relations.  Each relation describes a portion
 of a packet to match.  The possible relations are:
-.TF "iph[n:m]=expr"
+.TF "\fLdata[\fIn\fL:\fIm\fL]=\fIexpr\fR "
 .PD
 .TP
 .BI proto= n
@@ -1203,7 +1235,7 @@ header length errors
 .IR listen (8)
 .br
 .PD 0
-.TF /lib/rfc/rfc2822
+.TF "\fL/lib/rfc/rfc2822"
 .TP
 .B /lib/rfc/rfc2460
 IPv6
