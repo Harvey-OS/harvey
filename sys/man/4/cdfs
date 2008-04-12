@@ -41,8 +41,8 @@ named by
 see
 .IR sd (3)).
 Any MMC-compliant compact disc (CD), DVD,
-or Blu-ray (BD) drive should work.
-On DVD and BD discs, access to data tracks only is implemented.
+or Blu-ray disc (BD) drive should work.
+On DVDs and BDs, access to data tracks only is implemented.
 .PP
 The top level directory contains one file
 per disc track.
@@ -186,7 +186,7 @@ is like
 but prints a line with the total time at the end.
 .PD
 .SH EXAMPLE
-Backup to a BD-RW disc:
+Backup to a BD-R disc:
 .IP
 .EX
 9fs boot
@@ -229,8 +229,7 @@ optical disc interface standards
 Fixating a BD-R disc records only the first track in the disc's TOC.
 Any other tracks are still there and accessible via
 .IR sd (3).
-.PP
-Packet (incremental) writing is not yet implemented.
+There's no need to fixate data discs, except to prevent adding new tracks.
 .PP
 There are too many combinations of optical media, approximately
 the cross-product of these tuples:
