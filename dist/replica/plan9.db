@@ -5526,7 +5526,7 @@ rc/bin/dontkill - 775 sys sys 1207346989 293
 rc/bin/dosmnt - 775 sys sys 1109288224 303
 rc/bin/dpost - 775 sys sys 1192741346 220
 rc/bin/eject - 775 sys sys 945617207 123
-rc/bin/fax - 775 sys sys 1127394677 2385
+rc/bin/fax - 775 sys sys 1208110476 2401
 rc/bin/fedex - 775 sys sys 1195162568 1236
 rc/bin/fshalt - 775 sys sys 1192741344 1862
 rc/bin/homespool - 775 sys sys 945617207 339
@@ -7760,7 +7760,7 @@ sys/man/4/sacfs - 664 sys sys 1196638944 907
 sys/man/4/snap - 664 sys sys 1196638944 1908
 sys/man/4/srv - 664 sys sys 1196638944 4970
 sys/man/4/tapefs - 664 sys sys 1196638944 1861
-sys/man/4/telco - 664 sys sys 1196638944 4359
+sys/man/4/telco - 664 sys sys 1208111302 4561
 sys/man/4/u9fs - 664 sys sys 1206913743 5223
 sys/man/4/upasfs - 664 sys sys 1196638944 6212
 sys/man/4/usb - 664 sys sys 1206739773 5725
