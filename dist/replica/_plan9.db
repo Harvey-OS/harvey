@@ -176,7 +176,7 @@
 386/bin/calendar - 775 sys sys 1200262736 79060
 386/bin/cat - 775 sys sys 1148500611 37482
 386/bin/cb - 775 sys sys 1168402293 77628
-386/bin/cdfs - 775 sys sys 1206559723 173155
+386/bin/cdfs - 775 sys sys 1208201049 173189
 386/bin/cec - 775 sys sys 1193714267 75896
 386/bin/cfs - 775 sys sys 1190863294 130565
 386/bin/chgrp - 775 sys sys 1168402294 59522
@@ -907,7 +907,7 @@ dist/replica/plan9.proto - 664 sys sys 1196638558 2871
 env - 20000000775 sys sys 1104813586 0
 fd - 20000000775 sys sys 1020896384 0
 lib - 20000000775 sys sys 1161442421 0
-lib/areacodes - 664 sys sys 1032057527 26182
+lib/areacodes - 664 sys sys 1208190057 26367
 lib/cmap - 20000000775 sys sys 1039727323 0
 lib/cmap/5.oclock.shado - 664 sys sys 954523185 3872
 lib/cmap/559.56 - 664 sys sys 954523185 3344
@@ -7859,7 +7859,7 @@ sys/man/8/gpsfs - 664 sys sys 1196638947 4918
 sys/man/8/httpd - 664 sys sys 1196638947 6866
 sys/man/8/init - 664 sys sys 1196638947 1430
 sys/man/8/ipconfig - 664 sys sys 1205960389 8284
-sys/man/8/ipserv - 664 sys sys 1202161489 3268
+sys/man/8/ipserv - 664 sys sys 1208190062 3272
 sys/man/8/kfscmd - 664 sys sys 1196638947 4514
 sys/man/8/listen - 664 sys sys 1205796105 4090
 sys/man/8/lp - 664 sys sys 1205960257 2490
@@ -10031,7 +10031,7 @@ sys/src/cmd/cdfs - 20000000775 sys sys 1039727558 0
 sys/src/cmd/cdfs/buf.c - 664 sys sys 1205271166 1923
 sys/src/cmd/cdfs/dat.h - 664 sys sys 1206046829 4619
 sys/src/cmd/cdfs/fns.h - 664 sys sys 969542122 297
-sys/src/cmd/cdfs/main.c - 664 sys sys 1206379554 12449
+sys/src/cmd/cdfs/main.c - 664 sys sys 1208195235 12480
 sys/src/cmd/cdfs/mkfile - 664 sys sys 1204937991 153
 sys/src/cmd/cdfs/mmc.c - 664 sys sys 1206476551 31404
 sys/src/cmd/cec - 20000000775 sys sys 1193683647 0
@@ -12497,7 +12497,7 @@ sys/src/cmd/ip/dhcpd/ping.c - 664 sys sys 1198186463 1225
 sys/src/cmd/ip/dhcpd/testlook.c - 664 sys sys 950389140 4640
 sys/src/cmd/ip/dhcpd/testlookup.c - 664 sys sys 950389140 3195
 sys/src/cmd/ip/dhcpd/testping.c - 664 sys sys 950389141 352
-sys/src/cmd/ip/ftpd.c - 664 sys sys 1188195412 33395
+sys/src/cmd/ip/ftpd.c - 664 sys sys 1208210293 33592
 sys/src/cmd/ip/ftpfs - 20000000775 sys sys 1048312051 0
 sys/src/cmd/ip/ftpfs/file.c - 664 sys sys 1014925642 4208
 sys/src/cmd/ip/ftpfs/ftpfs.c - 664 sys sys 1116737713 13860
@@ -15883,3 +15883,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/ip/ftpd - 775 sys sys 1208230201 172192
