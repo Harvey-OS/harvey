@@ -12,7 +12,7 @@ enum
 {
 	/* telnet control character */
 	Iac=		255,
-	
+
 	/* representation types */
 	Tascii=		0,
 	Timage=		1,
@@ -307,10 +307,10 @@ main(int argc, char **argv)
 			 *  comes out as something unrecognizable instead of
 			 *  IAC's.  Certainly a Plan 9 bug but I can't find it.
 			 *  This is a major hack to avoid the problem. -- presotto
-			 */ 
+			 */
 			i = strlen(cmd);
 			if(i > 4 && strcmp(cmd+i-4, "abor") == 0){
-				abortcmd(0);	
+				abortcmd(0);
 			} else{
 				logit("%s (%s) command not implemented", cmd, arg?arg:"");
 				reply("502 %s command not implemented", cmd);
@@ -511,6 +511,19 @@ loginuser(char *user, char *nsfile, int gotoslash)
 	return reply("230 Logged in");
 }
 
+static void
+slowdown(void)
+{
+	static ulong pause;
+
+	if (pause) {
+		sleep(pause);			/* deter guessers */
+		if (pause < (1UL << 20))
+			pause *= 2;
+	} else
+		pause = 1000;
+}
+
 /*
  *  get a user id, reply with a challenge.  The users 'anonymous'
  *  and 'ftp' are equivalent to 'none'.  The user 'none' requires
@@ -519,6 +532,8 @@ loginuser(char *user, char *nsfile, int gotoslash)
 int
 usercmd(char *name)
 {
+	slowdown();
+
 	logit("user %s %s", name, nci->rsys);
 	if(loggedin)
 		return reply("530 Already logged in as %s", user);
@@ -537,21 +552,27 @@ usercmd(char *name)
 		strcpy(user, "none");
 	else if(anon_everybody)
 		strcpy(user,"none");
-	if(strcmp(user, "*none") == 0){
+
+	if(strcmp(user, "Administrator") == 0 || strcmp(user, "admin") == 0)
+		return reply("530 go away, script kiddie");
+	else if(strcmp(user, "*none") == 0){
 		if(!anon_ok)
 			return reply("530 Not logged in: anonymous disallowed");
 		return loginuser("none", namespace, 1);
 	}
-	if(strcmp(user, "none") == 0){
+	else if(strcmp(user, "none") == 0){
 		if(!anon_ok)
 			return reply("530 Not logged in: anonymous disallowed");
 		return reply("331 Send email address as password");
 	}
-	if(anon_only)
+	else if(anon_only)
 		return reply("530 Not logged in: anonymous access only");
+
 	isnoworld = noworld(name);
 	if(isnoworld)
 		return reply("331 OK");
+
+	/* consult the auth server */
 	if(ch)
 		auth_freechal(ch);
 	if((ch = auth_challenge("proto=p9cr role=server user=%q", user)) == nil)
@@ -592,16 +613,10 @@ passcmd(char *response)
 		ch->resp = response;
 		ch->nresp = strlen(response);
 		ai = auth_response(ch);
-		if(ai == nil) {
-			static long delay = 100;
-
-			sleep(delay);		/* deter password-guessers */
-			if (delay < 60*1000)
-				delay *= 2;
+		if(ai == nil || auth_chuid(ai, nil) < 0) {
+			slowdown();
 			return reply("530 Not logged in: %r");
 		}
-		if(auth_chuid(ai, nil) < 0)
-			return reply("530 Not logged in: %r");
 		auth_freechal(ch);
 		ch = nil;
 
@@ -896,7 +911,7 @@ listfile(Biobufhdr *b, char *name, int lflag, char *dname)
 			d->length = 512;
 		} else
 			links = 1;
-		
+
 		Bprint(b, "%s %3d %-8s %-8s %7lld %s ",
 			mode2asc(d->mode), links,
 			d->uid, d->gid, d->length, ts+4);
@@ -978,7 +993,7 @@ listdir(char *name, Biobufhdr *b, int lflag, int *printname, Globlist *gl)
 		}
 		Bprint(b, "total %ulld\r\n", total/512);
 	}
-	
+
 	qsort(p, n, sizeof(Dir), dircomp);
 	for(i = 0; i < n; i++){
 		if(Rflag && (p[i].qid.type & QTDIR)){
@@ -1058,7 +1073,7 @@ list(char *arg, int lflag)
 		gl = glob(argv[i]);
 		if(gl == nil)
 			continue;
-		
+
 		printname = gl->first != nil && gl->first->next != nil;
 		maxnamelen = 8;
 

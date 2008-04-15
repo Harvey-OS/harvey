@@ -30,7 +30,7 @@
 242 -- [-5] Bahamas 
 246 -- [-4] Barbados 
 248 MI [-5] Michigan: Oakland county (split from 810 ) 
-250 BC [-8] Canada: British Columbia (see 604 ) 
+250 BC [-8] Canada: British Columbia outside of Greater Vancouver (overlay 778; see 604) 
 251 AL [-6] S Alabama: Mobile (incl Auburn/Opelika, Montgomery, Mobile and coastal areas; split from 334 , eff 6/18/01; see also 205, 256) 
 252 NC [-5] E North Carolina (Rocky Mount; split from 919 ) 
 253 WA [-8] Washington: South Tier - Tacoma, Federal Way (split from 206 , see also 425 ; overlay 564 ) 
@@ -90,7 +90,7 @@
 386 FL [-5] N central Florida: Lake City (split from 904 , perm 2/15/01, mand 11-05-01) 
 401 RI [-5] Rhode Island 
 402 NE [-6] E Nebraska: Omaha, Lincoln 
-403 AB [-7] Canada: Southern Alberta (see 780 , 867 ) 
+403 AB [-7] Canada: Southern Alberta (overlay 587; see 780, 867 ) 
 404 GA [-5] N Georgia: Atlanta and suburbs (see overlay 678 , split 770 ) 
 405 OK [-6] W Oklahoma: Oklahoma City (see 580 ) 
 406 MT [-7] Montana 
@@ -105,7 +105,7 @@
 415 CA [-8] San Francisco, California (see 650 ) 
 416 ON [-5] Canada: S Cent. Ontario: Toronto (see overlay 647 , eff 3/5/01) 
 417 MO [-6] SW Missouri: Springfield 
-418 QC [-5/-4] Canada: NE Quebec: Quebec 
+418 QC [-5/-4] Canada: NE Quebec: Quebec (overlay 581)
 419 OH [-5] NW Ohio: Toledo (see overlay 567 , perm 1/1/02) 
 420 WI [-6] Wisconsin (not sure what area / split) 
 423 TN [-5] E Tennessee: Chattanooga (see split 865 ; part of what used to be 615 ) 
@@ -167,8 +167,10 @@
 573 MO [-6] SE Missouri: excluding St Louis metro area, includes Central/East Missouri 
 574 IN [-5] N Indiana (split from 219 ) 
 580 OK [-6] W Oklahoma (rural areas outside Oklahoma City; split from 405 ) 
+581 QC [-5/-4] Canada: NE Quebec: Quebec (overlays 418; eff 2008-09-19)
 585 NY [-5] NW New York: Rochester (split from 716 ) 
 586 MI [-5] Michigan: Macomb County (split from 810 ; perm 9/22/01, mand 3/23/02) 
+587 AB [-7] Alberta (overlays 403 and 778; perm 2008-06-23, mand 2008-09-08)
 590 -- [-4] French West Indies Carribean Islands: St. Barthelemy (French), St. martin (Dutch & French) (time zones?) 
 600 -- [--] Canadian Services 
 601 MS [-6] Mississippi: Jackson area (see splits 228 , 662 ) 
@@ -259,8 +261,8 @@
 773 IL [-6] Illinois: city of Chicago, outside the loop (see 312 ; overlay 872 ) 
 774 MA [-5] Cent. Massachusetts: Framingham; Cape Cod (see split 978 , overlaid on 508 , eff 4/2/2001) 
 775 NV [-8] Nevada: Reno (all of NV except Clark County area; see 702 ) 
-778 BC [-8] Canada: British Columbia: Greater Vancouver (overlaid on 604 , per 11/3/01; see also 250) 
-780 AB [-7] Canada: Northern Alberta, north of Lacombe (see 403 ) 
+778 BC [-8] Canada: British Columbia (overlays 250 and 604) 
+780 AB [-7] Canada: Northern Alberta, north of Lacombe (overlay 587; see 403) 
 781 MA [-5] Massachusetts: Boston surburbs, to the north and west (see splits 617 , 508 ; overlay 339 ) 
 784 -- [-4] St. Vincent & Grenadines (split from 809 ) 
 785 KS [-6] N & W Kansas: Topeka (split from 913 ) 
