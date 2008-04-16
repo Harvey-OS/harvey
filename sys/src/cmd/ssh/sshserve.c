@@ -49,7 +49,7 @@ void
 usage(void)
 {
 	fprint(2, "usage: sshserve [-A authlist] [-c cipherlist] client-ip-address\n");
-	usage();
+	exits("usage");
 }
 
 void
@@ -86,6 +86,7 @@ main(int argc, char **argv)
 
 	sshlog("connect from %s", c.host);
 
+	/* limit of 768 bits in remote host key? */
 	c.serverpriv = rsagen(768, 6, 0);
 	if(c.serverpriv == nil)
 		sysfatal("rsagen failed: %r");

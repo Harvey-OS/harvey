@@ -205,10 +205,6 @@ p_seprint(Msg *m)
 		len -= optlen;
 		optr += optlen;
 	}
-
-	if(Cflag){
-		/* editing was in progress by ehg */
-	}
 	return 0;
 }
 

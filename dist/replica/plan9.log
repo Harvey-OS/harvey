@@ -18990,3 +18990,5 @@
 1208201404 0 c 386/bin/cdfs - 775 sys sys 1208201049 173189
 1208210404 0 c sys/src/cmd/ip/ftpd.c - 664 sys sys 1208210293 33592
 1208230204 0 c 386/bin/ip/ftpd - 775 sys sys 1208230201 172192
+1208298605 0 c sys/src/cmd/ssh/sshserve.c - 664 sys sys 1208297712 5824
+1208305804 0 c sys/src/cmd/ip/snoopy/tcp.c - 664 sys sys 1208305075 3580

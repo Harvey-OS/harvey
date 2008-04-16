@@ -295,7 +295,7 @@
 386/bin/ip/dhcpclient - 775 sys sys 1178568281 92992
 386/bin/ip/dhcpd - 775 sys sys 1207453634 152879
 386/bin/ip/dhcpleases - 775 sys sys 1204292497 86370
-386/bin/ip/ftpd - 775 sys sys 1204292500 172031
+386/bin/ip/ftpd - 775 sys sys 1208230201 172192
 386/bin/ip/gping - 775 sys sys 1198211707 182214
 386/bin/ip/hogports - 775 sys sys 1148500655 42914
 386/bin/ip/httpd - 20000000775 sys sys 1068385801 0
@@ -12625,7 +12625,7 @@ sys/src/cmd/ip/snoopy/rarp.c - 664 sys sys 1015090062 50
 sys/src/cmd/ip/snoopy/rc4keydesc.c - 664 sys sys 1128179539 56
 sys/src/cmd/ip/snoopy/rtcp.c - 664 sys sys 1181425819 1831
 sys/src/cmd/ip/snoopy/rtp.c - 664 sys sys 1181425828 1035
-sys/src/cmd/ip/snoopy/tcp.c - 664 sys sys 1181425728 3635
+sys/src/cmd/ip/snoopy/tcp.c - 664 sys sys 1208305075 3580
 sys/src/cmd/ip/snoopy/ttls.c - 664 sys sys 1128179540 1451
 sys/src/cmd/ip/snoopy/udp.c - 664 sys sys 1144955685 2015
 sys/src/cmd/ip/telnet.c - 664 sys sys 1162416789 8621
@@ -13505,7 +13505,7 @@ sys/src/cmd/ssh/smsg.c - 664 sys sys 1092516575 6374
 sys/src/cmd/ssh/ssh.c - 664 sys sys 1133821217 9671
 sys/src/cmd/ssh/ssh.h - 664 sys sys 1091904420 6086
 sys/src/cmd/ssh/sshnet.c - 664 sys sys 1078840016 17641
-sys/src/cmd/ssh/sshserve.c - 664 sys sys 1135487956 5772
+sys/src/cmd/ssh/sshserve.c - 664 sys sys 1208297712 5824
 sys/src/cmd/ssh/util.c - 664 sys sys 1154722953 4522
 sys/src/cmd/stats.c - 664 sys sys 1205873637 28451
 sys/src/cmd/strings.c - 664 sys sys 1167860903 1474
@@ -15883,4 +15883,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/ip/ftpd - 775 sys sys 1208230201 172192
