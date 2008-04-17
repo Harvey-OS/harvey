@@ -142,7 +142,7 @@
 386/bin/aux/searchfs - 775 sys sys 1178568258 88329
 386/bin/aux/sprog - 775 sys sys 1176520476 79503
 386/bin/aux/ssh_genkey - 775 sys sys 1045537957 194629
-386/bin/aux/sshserve - 775 sys sys 1196742449 253036
+386/bin/aux/sshserve - 775 sys sys 1208316949 253052
 386/bin/aux/statusbar - 775 sys sys 1197732659 152291
 386/bin/aux/stub - 775 sys sys 1179372078 139674
 386/bin/aux/tcpostio - 775 sys sys 1094040084 200808
@@ -366,7 +366,7 @@
 386/bin/nntpfs - 775 sys sys 1179372100 165285
 386/bin/ns - 775 sys sys 1168402343 65492
 386/bin/p - 775 sys sys 1168402343 65220
-386/bin/page - 775 sys sys 1197732795 236271
+386/bin/page - 775 sys sys 1208375716 236269
 386/bin/paqfs - 775 sys sys 1188447270 109707
 386/bin/passwd - 775 sys sys 1192762788 85264
 386/bin/pbd - 775 sys sys 1085077087 4661
@@ -414,7 +414,7 @@
 386/bin/snap - 775 sys sys 1188530194 316182
 386/bin/snapfs - 775 sys sys 1188530202 390401
 386/bin/sniffer - 775 sys sys 1038443185 99028
-386/bin/snoopy - 775 sys sys 1204292546 196534
+386/bin/snoopy - 775 sys sys 1208316953 196523
 386/bin/sort - 775 sys sys 1178568303 81057
 386/bin/spin - 775 sys sys 1186543935 769291
 386/bin/split - 775 sys sys 1200262778 75817
@@ -1555,6 +1555,7 @@ lib/face/48x48x8/u/unknown.us - 664 sys sys 1078952024 324
 lib/face/48x48x8/u/unknown.yu - 664 sys sys 1078952024 401
 lib/face/48x48x8/u/unknown.za - 664 sys sys 1078952024 487
 lib/face/48x48x8/u/uriel.2 - 664 sys sys 1176753394 987
+lib/face/48x48x8/u/usps.1 - 664 sys sys 1208359251 852
 lib/face/48x48x8/v - 20000000775 sys sys 1142017867 0
 lib/face/48x48x8/v/victor.1 - 664 sys sys 1176753394 873
 lib/face/48x48x8/v/vitanuova.1 - 664 sys sys 1142017867 1054
@@ -12880,7 +12881,7 @@ sys/src/cmd/page/pdfprolog.ps - 664 sys sys 1137459166 519
 sys/src/cmd/page/ps.c - 664 sys sys 1190093304 9191
 sys/src/cmd/page/rotate.c - 664 sys sys 1136377361 10435
 sys/src/cmd/page/util.c - 664 sys sys 944961364 2090
-sys/src/cmd/page/view.c - 664 sys sys 1190093181 22159
+sys/src/cmd/page/view.c - 664 sys sys 1208359650 22159
 sys/src/cmd/paqfs - 20000000775 sys sys 1039727564 0
 sys/src/cmd/paqfs/mkfile - 664 sys sys 1032060366 228
 sys/src/cmd/paqfs/mkpaqfs.c - 664 sys sys 1072729575 8836

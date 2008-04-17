@@ -988,11 +988,11 @@ newwin(void)
 	}else
 		pid = getpid();
 	srvfd = open(srv, ORDWR);
-	free(srv);
 	if(srvfd == -1){
 		fprint(2, "page: can't open %s: %r\n", srv);
 		wexits("no srv");
 	}
+	free(srv);
 	sprint(spec, "new -pid %d", pid);
 	if(mount(srvfd, -1, "/mnt/wsys", 0, spec) == -1){
 		fprint(2, "page: can't mount /mnt/wsys: %r (spec=%s)\n", spec);
