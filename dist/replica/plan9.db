@@ -15586,7 +15586,7 @@ sys/src/libndb/ndbgetipaddr.c - 664 sys sys 1144174489 876
 sys/src/libndb/ndbgetval.c - 664 sys sys 1144174490 1348
 sys/src/libndb/ndbhash.c - 664 sys sys 1144174490 5276
 sys/src/libndb/ndbhf.h - 664 sys sys 1015013485 746
-sys/src/libndb/ndbipinfo.c - 664 sys sys 1176931776 5181
+sys/src/libndb/ndbipinfo.c - 664 sys sys 1208488938 5259
 sys/src/libndb/ndblookval.c - 664 sys sys 1078839929 791
 sys/src/libndb/ndbopen.c - 664 sys sys 1173737251 2717
 sys/src/libndb/ndbparse.c - 664 sys sys 1144174490 1207

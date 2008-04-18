@@ -162,10 +162,9 @@ ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 	Ndbtuple *t, *nt, *f;
 	Ndbs s;
 	char *ipstr;
-	uchar net[IPaddrlen];
-	uchar ip[IPaddrlen];
-	int prefix, smallestprefix;
-	int force;
+	uchar net[IPaddrlen], ip[IPaddrlen];
+	int prefix, smallestprefix, force;
+	vlong r;
 
 	/* just in case */
 	fmtinstall('I', eipfmt);
@@ -188,7 +187,9 @@ ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 		t = ndbnew("ip", val);
 		t->line = t;
 		t->entry = nil;
-		parseip(net, val);
+		r = parseip(net, val);
+		if(r == -1)
+			ndbfree(t);
 	} else {
 		/* found one */
 		while(nt != nil){
@@ -196,8 +197,12 @@ ndbipinfo(Ndb *db, char *attr, char *val, char **alist, int n)
 			t = ndbconcatenate(t, nt);
 			nt = ndbsnext(&s, attr, val);
 		}
-		parseip(net, ipstr);
+		r = parseip(net, ipstr);
 		free(ipstr);
+	}
+	if(r < 0){
+		ndbfree(f);
+		return nil;
 	}
 	ipmove(ip, net);
 	t = filter(db, t, f);
