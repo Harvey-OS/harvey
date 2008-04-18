@@ -18997,3 +18997,4 @@
 1208359804 0 a lib/face/48x48x8/u/usps.1 - 664 sys sys 1208359251 852
 1208359804 1 c sys/src/cmd/page/view.c - 664 sys sys 1208359650 22159
 1208376004 0 c 386/bin/page - 775 sys sys 1208375716 236269
+1208489405 0 c sys/src/libndb/ndbipinfo.c - 664 sys sys 1208488938 5259
