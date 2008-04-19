@@ -1,5 +1,9 @@
 #define	VOLDESC	16	/* sector number */
 
+/*
+ * L means little-endian, M means big-endian, and LM means little-endian
+ * then again big-endian.
+ */
 typedef uchar		Byte2L[2];
 typedef uchar		Byte2M[2];
 typedef uchar		Byte4LM[4];

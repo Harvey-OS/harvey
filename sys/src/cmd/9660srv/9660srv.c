@@ -14,8 +14,8 @@ static void	iwalk(Xfile*, char*);
 static void	iopen(Xfile*, int);
 static void	icreate(Xfile*, char*, long, int);
 static long	ireaddir(Xfile*, uchar*, long, long);
-static long	iread(Xfile*, char*, long, long);
-static long	iwrite(Xfile*, char*, long, long);
+static long	iread(Xfile*, char*, vlong, long);
+static long	iwrite(Xfile*, char*, vlong, long);
 static void	iclunk(Xfile*);
 static void	iremove(Xfile*);
 static void	istat(Xfile*, Dir*);
@@ -359,11 +359,12 @@ ireaddir(Xfile *f, uchar *buf, long offset, long count)
 }
 
 static long
-iread(Xfile *f, char *buf, long offset, long count)
+iread(Xfile *f, char *buf, vlong offset, long count)
 {
+	int n, o, rcnt = 0;
+	long size;
+	vlong addr;
 	Isofile *ip = f->ptr;
-	long size, addr, o, n;
-	int rcnt = 0;
 	Iobuf *p;
 
 	size = l32(ip->d.size);
@@ -371,10 +372,10 @@ iread(Xfile *f, char *buf, long offset, long count)
 		return 0;
 	if(offset+count > size)
 		count = size - offset;
-	addr = (l32(ip->d.addr)+ip->d.attrlen)*ip->blksize + offset;
-	o = (ulong)addr % Sectorsize;
-	addr = (ulong)addr / Sectorsize;
-	/*chat("d.addr=0x%x, addr=0x%x, o=0x%x...", l32(ip->d.addr), addr, o);*/
+	addr = ((vlong)l32(ip->d.addr) + ip->d.attrlen)*ip->blksize + offset;
+	o = addr % Sectorsize;
+	addr /= Sectorsize;
+	/*chat("d.addr=%ld, addr=%lld, o=%d...", l32(ip->d.addr), addr, o);*/
 	n = Sectorsize - o;
 
 	while(count > 0){
@@ -393,7 +394,7 @@ iread(Xfile *f, char *buf, long offset, long count)
 }
 
 static long
-iwrite(Xfile *f, char *buf, long offset, long count)
+iwrite(Xfile *f, char *buf, vlong offset, long count)
 {
 	USED(f, buf, offset, count);
 	error(Eperm);
@@ -493,20 +494,21 @@ getdrec(Xfile *f, void *buf)
 {
 	Isofile *ip = f->ptr;
 	int len = 0, boff = 0;
-	long size, addr;
+	ulong size;
+	vlong addr;
 	Iobuf *p = 0;
 
 	if(!ip)
 		return -1;
 	size = l32(ip->d.size);
-	while(ip->offset<size){
+	while(ip->offset < size){
 		addr = (l32(ip->d.addr)+ip->d.attrlen)*ip->blksize + ip->offset;
-		boff = (ulong)addr % Sectorsize;
+		boff = addr % Sectorsize;
 		if(boff > Sectorsize-34){
 			ip->offset += Sectorsize-boff;
 			continue;
 		}
-		p = getbuf(f->xf->d, (ulong)addr/Sectorsize);
+		p = getbuf(f->xf->d, addr/Sectorsize);
 		len = p->iobuf[boff];
 		if(len >= 34)
 			break;
@@ -519,9 +521,8 @@ getdrec(Xfile *f, void *buf)
 		putbuf(p);
 		ip->odelta = len + (len&1);
 		ip->offset += ip->odelta;
-	}
-	if(p)
 		return 0;
+	}
 	return -1;
 }
 
