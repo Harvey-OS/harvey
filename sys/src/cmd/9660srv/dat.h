@@ -16,7 +16,7 @@ enum
 
 struct Iobuf
 {
-	Ioclust*	clust;
+	Ioclust* clust;
 	long	addr;
 	uchar*	iobuf;
 };
@@ -25,8 +25,8 @@ struct Ioclust
 {
 	long	addr;			/* in sectors; good to 8TB */
 	Xdata*	dev;
-	Ioclust*	next;
-	Ioclust*	prev;
+	Ioclust* next;
+	Ioclust* prev;
 	int	busy;
 	int	nbuf;
 	Iobuf*	buf;
@@ -54,8 +54,8 @@ struct Xfsub
 	void	(*open)(Xfile*, int);
 	void	(*create)(Xfile*, char*, long, int);
 	long	(*readdir)(Xfile*, uchar*, long, long);
-	long	(*read)(Xfile*, char*, long, long);
-	long	(*write)(Xfile*, char*, long, long);
+	long	(*read)(Xfile*, char*, vlong, long);
+	long	(*write)(Xfile*, char*, vlong, long);
 	void	(*clunk)(Xfile*);
 	void	(*remove)(Xfile*);
 	void	(*stat)(Xfile*, Dir*);

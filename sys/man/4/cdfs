@@ -1,6 +1,6 @@
 .TH CDFS 4
 .SH NAME
-cdfs, cddb \- optical disc (CD, DVD, BD) reader and writer file system
+cdfs, cddb \- optical disc (CD, DVD, BD) track reader and writer file system
 .SH SYNOPSIS
 .B cdfs
 [
