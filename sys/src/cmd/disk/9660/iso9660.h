@@ -108,12 +108,12 @@ struct Cdimg {
 	ulong iso9660pvd;
 	ulong jolietsvd;
 	ulong pathblock;
-	ulong rrcontin; /* rock ridge continuation offset */
-	ulong nulldump;	/* next dump block */
-	ulong nconform;	/* number of conform entries written already */
-	ulong bootcatptr;
+	uvlong rrcontin;	/* rock ridge continuation offset */
+	ulong nulldump;		/* next dump block */
+	ulong nconform;		/* number of conform entries written already */
+	uvlong bootcatptr;
 	ulong bootcatblock;
-	ulong bootimageptr;
+	uvlong bootimageptr;
 	Direc *bootdirec;
 	char *bootimage;
 	
@@ -158,9 +158,9 @@ struct Cdinfo {
 	char *bootimage;
 };
 
-enum {
-	Blocklen = 2048,
-};
+//enum {
+//	Blocklen = 2048,		/* unused */
+//};
 
 /*
  * This is a doubly binary tree.
@@ -321,18 +321,18 @@ void Cputdate(Cdimg*, ulong);
 void Cputdate1(Cdimg*, ulong);
 void Cread(Cdimg*, void*, int);
 void Cwflush(Cdimg*);
-void Cwseek(Cdimg*, ulong);
-ulong Cwoffset(Cdimg*);
-ulong Croffset(Cdimg*);
+void Cwseek(Cdimg*, vlong);
+uvlong Cwoffset(Cdimg*);
+uvlong Croffset(Cdimg*);
 int Cgetc(Cdimg*);
-void Crseek(Cdimg*, ulong);
+void Crseek(Cdimg*, vlong);
 char *Crdline(Cdimg*, int);
 int Clinelen(Cdimg*);
 
 /* conform.c */
 void rdconform(Cdimg*);
 char *conform(char*, int);
-void wrconform(Cdimg*, int, ulong*, ulong*);
+void wrconform(Cdimg*, int, ulong*, uvlong*);
 
 /* direc.c */
 void mkdirec(Direc*, XDir*);

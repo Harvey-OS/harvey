@@ -184,10 +184,12 @@ Creadblock(Cdimg *cd, void *buf, ulong block, ulong len)
 	assert(block != 0);	/* nothing useful there */
 
 	Bflush(&cd->bwr);
-	if(Bseek(&cd->brd, block*Blocksize, 0) != block*Blocksize)
+	if(Bseek(&cd->brd, (vlong)block * Blocksize, 0) !=
+	    (vlong)block * Blocksize)
 		sysfatal("error seeking to block %lud", block);
 	if(Bread(&cd->brd, buf, len) != len)
-		sysfatal("error reading %lud bytes at block %lud: %r %lld", len, block, Bseek(&cd->brd, 0, 2));
+		sysfatal("error reading %lud bytes at block %lud: %r %lld",
+			len, block, Bseek(&cd->brd, 0, 2));
 }
 
 int
@@ -260,7 +262,8 @@ setroot(Cdimg *cd, ulong block, ulong dloc, ulong dlen)
 {
 	assert(block != 0);
 
-	Cwseek(cd, block*Blocksize+offsetof(Cvoldesc, rootdir[0])+offsetof(Cdir, dloc[0]));
+	Cwseek(cd, (vlong)block * Blocksize + offsetof(Cvoldesc, rootdir[0]) +
+		offsetof(Cdir, dloc[0]));
 	Cputn(cd, dloc, 4);
 	Cputn(cd, dlen, 4);
 }
@@ -270,7 +273,7 @@ setvolsize(Cdimg *cd, ulong block, ulong size)
 {
 	assert(block != 0);
 
-	Cwseek(cd, block*Blocksize+offsetof(Cvoldesc, volsize[0]));
+	Cwseek(cd, (vlong)block * Blocksize + offsetof(Cvoldesc, volsize[0]));
 	Cputn(cd, size, 4);
 }
 
@@ -279,13 +282,14 @@ setpathtable(Cdimg *cd, ulong block, ulong sz, ulong lloc, ulong bloc)
 {
 	assert(block != 0);
 
-	Cwseek(cd, block*Blocksize+offsetof(Cvoldesc, pathsize[0]));
+	Cwseek(cd, (vlong)block * Blocksize + offsetof(Cvoldesc, pathsize[0]));
 	Cputn(cd, sz, 4);
 	Cputnl(cd, lloc, 4);
 	Cputnl(cd, 0, 4);
 	Cputnm(cd, bloc, 4);
 	Cputnm(cd, 0, 4);
-	assert(Cwoffset(cd) == block*Blocksize+offsetof(Cvoldesc, rootdir[0]));
+	assert(Cwoffset(cd) == (vlong)block * Blocksize +
+		offsetof(Cvoldesc, rootdir[0]));
 }
 
 
@@ -566,12 +570,12 @@ Cputdate1(Cdimg *cd, ulong ust)
 }
 
 void
-Cwseek(Cdimg *cd, ulong offset)
+Cwseek(Cdimg *cd, vlong offset)
 {
 	Bseek(&cd->bwr, offset, 0);
 }
 
-ulong
+uvlong
 Cwoffset(Cdimg *cd)
 {
 	return Boffset(&cd->bwr);
@@ -583,14 +587,14 @@ Cwflush(Cdimg *cd)
 	Bflush(&cd->bwr);
 }
 
-ulong
+uvlong
 Croffset(Cdimg *cd)
 {
 	return Boffset(&cd->brd);
 }
 
 void
-Crseek(Cdimg *cd, ulong offset)
+Crseek(Cdimg *cd, vlong offset)
 {
 	Bseek(&cd->brd, offset, 0);
 }
@@ -602,7 +606,7 @@ Cgetc(Cdimg *cd)
 
 	Cwflush(cd);
 	if((c = Bgetc(&cd->brd)) == Beof) {
-		fprint(2, "getc at %lud\n", Croffset(cd));
+		fprint(2, "getc at %llud\n", Croffset(cd));
 		assert(0);
 		//sysfatal("Bgetc: %r");
 	}

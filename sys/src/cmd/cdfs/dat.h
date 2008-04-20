@@ -124,7 +124,7 @@ struct Track
 	ulong	mtime;
 };
 
-struct DTrack
+struct DTrack			/* not used */
 {
 	uchar	name[32];
 	uchar	beg[4];		/* msf value; only used for audio */

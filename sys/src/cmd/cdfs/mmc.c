@@ -467,10 +467,10 @@ static char *tracktype[] = {
 static int
 mmctrackinfo(Drive *drive, int t, int i)
 {
-	uchar cmd[10], resp[255];
 	int n, type, bs;
-	uchar tmode;
 	ulong beg, size;
+	uchar tmode;
+	uchar cmd[10], resp[255];
 	Mmcaux *aux;
 
 	aux = drive->aux;
@@ -747,10 +747,8 @@ mmcinfertracks(Drive *drive, int first, int last)
 		t = &drive->track[i-first];
 		t->end = tot;
 		tot = t->beg;
-		if(t->end <= t->beg) {
-			t->beg = 0;
-			t->end = 0;
-		}
+		if(t->end <= t->beg)
+			t->beg = t->end = 0;
 		/* -2: skip lead out */
 		t->size = (t->end - t->beg - 2) * (vlong)t->bs;
 	}
@@ -956,13 +954,14 @@ mmcsetbs(Drive *drive, int bs)
 	return 0;
 }
 
+/* off is a block number */
 static long
 mmcread(Buf *buf, void *v, long nblock, long off)
 {
-	Drive *drive;
 	int bs;
-	uchar cmd[12];
 	long n, nn;
+	uchar cmd[12];
+	Drive *drive;
 	Otrack *o;
 
 	o = buf->otrack;
