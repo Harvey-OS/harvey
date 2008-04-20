@@ -15,7 +15,7 @@
 static long mode(Direc*, int);
 static long nlink(Direc*);
 static ulong suspdirflags(Direc*, int);
-static ulong CputsuspCE(Cdimg *cd, ulong offset);
+static ulong CputsuspCE(Cdimg *cd, vlong offset);
 static int CputsuspER(Cdimg*, int);
 static int CputsuspRR(Cdimg*, int, int);
 static int CputsuspSP(Cdimg*, int);
@@ -29,9 +29,9 @@ static int CputrripTF(Cdimg*, Direc*, int, int);
  * Patch the length field in a CE record.
  */
 static void
-setcelen(Cdimg *cd, ulong woffset, ulong len)
+setcelen(Cdimg *cd, vlong woffset, ulong len)
 {
-	ulong o;
+	vlong o;
 
 	o = Cwoffset(cd);
 	Cwseek(cd, woffset);
@@ -64,8 +64,8 @@ setcelen(Cdimg *cd, ulong woffset, ulong len)
  */
 typedef struct Cbuf Cbuf;
 struct Cbuf {
-	int len;	/* written so far, of 254-28 */
-	ulong ceoffset;
+	int	len;		/* written so far, of 254-28 */
+	uvlong	ceoffset;
 };
 
 static int
@@ -77,7 +77,7 @@ freespace(Cbuf *cp)
 static Cbuf*
 ensurespace(Cdimg *cd, int n, Cbuf *co, Cbuf *cn, int dowrite)
 {
-	ulong end;
+	uvlong end;
 
 	if(co->len+n <= 254-28) {
 		co->len += n;
@@ -120,7 +120,7 @@ ensurespace(Cdimg *cd, int n, Cbuf *co, Cbuf *cn, int dowrite)
 	 */
 	if(cd->rrcontin%Blocksize == 0
 	|| cd->rrcontin/Blocksize != (cd->rrcontin+256)/Blocksize) {
-		cd->rrcontin = cd->nextblock*Blocksize;
+		cd->rrcontin = (vlong)cd->nextblock * Blocksize;
 		cd->nextblock++;
 	}
 
@@ -174,7 +174,7 @@ Cputsysuse(Cdimg *cd, Direc *d, int dot, int dowrite, int initlen)
 {
 	char buf[256], buf0[256], *nextpath, *p, *path, *q;
 	int flags, free, m, what;
-	ulong o;
+	uvlong o;
 	Cbuf cn, co, *cp;
 
 	assert(cd != nil);
@@ -307,7 +307,8 @@ Cputsysuse(Cdimg *cd, Direc *d, int dot, int dowrite, int initlen)
 
 	if(dowrite) {
 		if(Cwoffset(cd) != o+co.len-initlen)
-			fprint(2, "offset %lud o+co.len-initlen %lud\n", Cwoffset(cd), o+co.len-initlen);
+			fprint(2, "offset %llud o+co.len-initlen %llud\n",
+				Cwoffset(cd), o+co.len-initlen);
 		assert(Cwoffset(cd) == o+co.len-initlen);
 	} else
 		assert(Cwoffset(cd) == o);
@@ -321,11 +322,12 @@ static char SUSPdesc[84] = "RRIP <more garbage here>";
 static char SUSPsrc[135] = "RRIP <more garbage here>";
 
 static ulong
-CputsuspCE(Cdimg *cd, ulong offset)
+CputsuspCE(Cdimg *cd, vlong offset)
 {
-	ulong o, x;
+	vlong o, x;
 
-	chat("writing SUSP CE record pointing to %ld, %ld\n", offset/Blocksize, offset%Blocksize);
+	chat("writing SUSP CE record pointing to %ld, %ld\n",
+		offset/Blocksize, offset%Blocksize);
 	o = Cwoffset(cd);
 	Cputc(cd, 'C');
 	Cputc(cd, 'E');

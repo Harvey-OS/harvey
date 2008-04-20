@@ -384,9 +384,9 @@ static char magic[] = "plan 9 dump cd\n";
 ulong
 Cputdumpblock(Cdimg *cd)
 {
-	ulong x;
+	uvlong x;
 
-	Cwseek(cd, cd->nextblock*Blocksize);
+	Cwseek(cd, (vlong)cd->nextblock * Blocksize);
 	x = Cwoffset(cd);
 	Cwrite(cd, magic, sizeof(magic)-1);
 	Cpadblock(cd);
@@ -466,8 +466,9 @@ readdumpconform(Cdimg *cd)
 {
 	char buf[Blocksize];
 	char *p, *q, *f[10];
-	ulong cb, nc, m, db;
 	int nf;
+	ulong cb, nc, db;
+	uvlong m;
 
 	db = hasdump(cd);
 	assert(map==nil || map->nt == 0);
@@ -493,8 +494,8 @@ readdumpconform(Cdimg *cd)
 		cb = strtoul(f[3], 0, 0);
 		nc = strtoul(f[4], 0, 0);
 
-		Crseek(cd, cb*Blocksize);
-		m = cb*Blocksize+nc;
+		Crseek(cd, (vlong)cb * Blocksize);
+		m = (vlong)cb * Blocksize + nc;
 		while(Croffset(cd) < m && (p = Crdline(cd, '\n')) != nil){
 			p[Clinelen(cd)-1] = '\0';
 			if(tokenize(p, f, 2) != 2 || (f[0][0] != 'D' && f[0][0] != 'F')

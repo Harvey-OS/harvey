@@ -86,17 +86,18 @@ writepathtable(Cdimg *cd, ulong vdblock, int size)
 {
 	int rp, wp;
 	uchar buf[Blocksize];
-	ulong bk, end, i, *len, n, rdoff, start;
+	ulong bk, i, *len, n;
+	uvlong start, end, rdoff;
 	Cdir *c;
 	Cpath p;
 
 	Creadblock(cd, buf, vdblock, Blocksize);
-	c = (Cdir*)(buf+offsetof(Cvoldesc, rootdir[0]));
+	c = (Cdir*)(buf + offsetof(Cvoldesc, rootdir[0]));
 
 	rp = 0;
 	wp = 0;
 	len = nil;
-	start = cd->nextblock*Blocksize;
+	start = (vlong)cd->nextblock * Blocksize;
 	Cwseek(cd, start);
 	Crseek(cd, start);
 	writepath(cd, c, 1, size);
@@ -112,10 +113,13 @@ writepathtable(Cdimg *cd, ulong vdblock, int size)
 		for(i=0; i<n; i++) {
 			Creadblock(cd, buf, bk+i, Blocksize);
 			c = (Cdir*)buf;
-			if(i != 0 && c->namelen == 1 && c->name[0] == '\0')	/* hit another directory; stop */
-				break;
-			while(c->len && c->namelen && (uchar*)c+c->len < buf+Blocksize) {
-				if((c->flags & 0x02) && (c->namelen > 1 || c->name[0] > '\001')) {	/* directory */
+			if(i != 0 && c->namelen == 1 && c->name[0] == '\0')
+				break;	/* hit another directory; stop */
+			while(c->len && c->namelen &&
+			    (uchar*)c + c->len < buf + Blocksize) {
+				if(c->flags & 0x02 &&
+				    (c->namelen > 1 || c->name[0] > '\001')) {
+					/* directory */
 					writepath(cd, c, rp, size);
 					len = addlength(len, little(c->dlen, 4), wp);
 					wp++;

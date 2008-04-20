@@ -27,7 +27,7 @@ rewritedot(Cdimg *cd, Direc *d)
 	writelittlebig4(c->dloc, d->block);
 	writelittlebig4(c->dlen, d->length);
 
-	Cwseek(cd, d->block*Blocksize);
+	Cwseek(cd, (vlong)d->block * Blocksize);
 	Cwrite(cd, buf, Blocksize);
 }
 
@@ -49,7 +49,7 @@ rewritedotdot(Cdimg *cd, Direc *d, Direc *dparent)
 	writelittlebig4(c->dloc, dparent->block);
 	writelittlebig4(c->dlen, dparent->length);
 
-	Cwseek(cd, d->block*Blocksize);
+	Cwseek(cd, (vlong)d->block * Blocksize);
 	Cwrite(cd, buf, Blocksize);
 }
 
@@ -91,7 +91,7 @@ writefiles(Dump *d, Cdimg *cd, Direc *direc)
 	if(blocksize && start%blocksize)
 		start += blocksize-start%blocksize;
 
-	Cwseek(cd, start*Blocksize);
+	Cwseek(cd, (vlong)start * Blocksize);
 	
 	s = md5(nil, 0, nil, nil);
 	length = 0;
@@ -153,7 +153,7 @@ _writedirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), int l
 	cd->nextblock += (l+Blocksize-1)/Blocksize;
 	next = cd->nextblock;
 
-	Cwseek(cd, start*Blocksize);
+	Cwseek(cd, (vlong)start * Blocksize);
 	ll = 0;
 	ll += put(cd, d, (level == 0) ? DTrootdot : DTdot, 1, ll);
 	ll += put(cd, nil, DTdotdot, 1, ll);
@@ -161,10 +161,10 @@ _writedirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), int l
 		ll += put(cd, &d->child[i], DTiden, 1, ll);
 	assert(ll == l);
 	Cpadblock(cd);
-	assert(Cwoffset(cd) == next*Blocksize);
+	assert(Cwoffset(cd) == (vlong)next * Blocksize);
 
 	d->block = start;
-	d->length = (next - start) * Blocksize;
+	d->length = (vlong)(next - start) * Blocksize;
 	rewritedot(cd, d);
 	rewritedotdot(cd, d, d);
 
@@ -215,7 +215,7 @@ _writedumpdirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), i
 
 	Writedir:
 		start = cd->nextblock;
-		Cwseek(cd, start*Blocksize);
+		Cwseek(cd, (vlong)start * Blocksize);
 
 		put(cd, d, (level == 0) ? DTrootdot : DTdot, 1, Cwoffset(cd));
 		put(cd, nil, DTdotdot, 1, Cwoffset(cd));
@@ -224,7 +224,7 @@ _writedumpdirs(Cdimg *cd, Direc *d, int (*put)(Cdimg*, Direc*, int, int, int), i
 		Cpadblock(cd);
 
 		d->block = start;
-		d->length = (cd->nextblock - start) * Blocksize;
+		d->length = (vlong)(cd->nextblock - start) * Blocksize;
 
 		rewritedot(cd, d);
 		rewritedotdot(cd, d, d);
@@ -303,7 +303,7 @@ static int
 genputdir(Cdimg *cd, Direc *d, int dot, int joliet, int dowrite, int offset)
 {
 	int f, n, l, lp;
-	long o;
+	vlong o;
 
 	f = 0;
 	if(dot != DTiden || (d->mode & DMDIR))
