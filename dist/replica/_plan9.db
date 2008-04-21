@@ -176,7 +176,7 @@
 386/bin/calendar - 775 sys sys 1200262736 79060
 386/bin/cat - 775 sys sys 1148500611 37482
 386/bin/cb - 775 sys sys 1168402293 77628
-386/bin/cdfs - 775 sys sys 1208576039 173203
+386/bin/cdfs - 775 sys sys 1208662151 173247
 386/bin/cec - 775 sys sys 1193714267 75896
 386/bin/cfs - 775 sys sys 1190863294 130565
 386/bin/chgrp - 775 sys sys 1168402294 59522
@@ -7542,7 +7542,7 @@ sys/man/2/arg - 664 sys sys 1196638937 2184
 sys/man/2/arith3 - 664 sys sys 1196638939 4393
 sys/man/2/assert - 664 sys sys 1204322308 379
 sys/man/2/atof - 664 sys sys 1196638937 2778
-sys/man/2/auth - 664 sys sys 1196638939 7537
+sys/man/2/auth - 664 sys sys 1208725235 7535
 sys/man/2/authsrv - 664 sys sys 1196638939 4583
 sys/man/2/avl - 664 sys sys 1196638939 2447
 sys/man/2/bin - 664 sys sys 1196638940 1880
@@ -15884,4 +15884,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/cdfs - 775 sys sys 1208662151 173247
