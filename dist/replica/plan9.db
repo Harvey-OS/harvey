@@ -15863,7 +15863,7 @@ sys/src/libventi/version.c - 664 sys sys 1177189442 2174
 sys/src/libventi/zero.c - 664 sys sys 1177189442 899
 sys/src/libventi/zeroscore.c - 664 sys sys 1177189442 248
 sys/src/mkfile - 664 sys sys 1196366544 1026
-sys/src/mkfile.proto - 664 sys sys 1105121349 265
+sys/src/mkfile.proto - 664 sys sys 1208881081 266
 tmp - 20000000555 sys sys 1020896384 0
 usr - 20000000775 sys sys 953406542 0
 usr/glenda - 20000000775 glenda glenda 953406571 0
