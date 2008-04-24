@@ -1,0 +1,149 @@
+all data is big-endian on disk.
+
+arena layout:
+
+ArenaPart (first at offset PartBlank = 256kB in the disk file)
+	magic[4] 0xA9E4A5E7
+	version[4] 3
+	blockSize[4]
+	arenaBase[4] offset of first ArenaHead structure in the disk file
+
+the ArenaMap starts at the first block at offset >= PartBlank+512 bytes.
+it is a sequence of text lines
+/*
+ * amap: n '\n' amapelem * n
+ * n: u32int
+ * amapelem: name '\t' astart '\t' asize '\n'
+ * astart, asize: u64int
+ */
+
+the astart and astop are byte offsets in the disk file.
+they are the offsets to the ArenaHead and the end of the Arena block.
+
+ArenaHead 
+[base points here in the C code]
+size bytes
+	Clumps
+	ClumpInfo blocks
+Arena
+
+Arena
+	magic[4] 0xF2A14EAD
+	version[4] 4
+	name[64]
+	clumps[4]
+	cclumps[4]
+	ctime[4]
+	wtime[4]
+	used[8]
+	uncsize[8]
+	sealed[1]
+	optional score[20]
+
+once sealed, the sha1 hash of every block from the
+ArenaHead to the Arena is checksummed, as though
+the final score in Arena were the zeroScore.  strangely,
+the tail of the Arena block (the last one) is not included in the checksum
+(i.e., the unused data after the score).
+
+clumpMax = blocksize/ClumpInfoSize = blocksize/25
+dirsize = ((clumps/clumpMax)+1) * blocksize
+want used+dirsize <= size
+want cclumps <= clumps
+want uncsize+clumps*ClumpSize+blocksize < used
+want ctime <= wtime
+
+clump info is stored packed into blocks in order.
+clump info moves forward through a block but the
+blocks themselves move backwards.  so if cm=clumpMax
+and there are two blocks worth of clumpinfo, the blocks
+look like;
+
+	[cm..2*cm-1] [0..cm-1] [Arena]
+
+with the blocks pushed right up against the Arena trailer.
+
+ArenaHead
+	magic[4] 0xD15C4EAD
+	version[4] = Arena.version
+	name[64]
+	blockSize[4]
+	size[8]
+
+Clump
+	magic[4] 0xD15CB10C (0 for an unused clump)
+	type[1]
+	size[2]
+	uncsize[2]
+	score[20]
+	encoding[1] raw=1, compress=2
+	creator[4]
+	time[4]
+
+ClumpInfo
+	type[1]
+	size[2]
+	uncsize[2]
+	score[20]
+
+the arenas are mapped into a single address space corresponding
+to the index that brings them together.  if each arena has 100M bytes
+excluding the headers and there are 4 arenas, then there's 400M of
+index address space between them.  index address space starts at 1M
+instead of 0, so the index addresses assigned to the first arena are
+1M up to 101M, then 101M to 201M, etc.
+
+of course, the assignment of addresses has nothing to do with the index,
+but that's what they're called.
+
+
+the index is split into index sections, which are put on different disks
+to get parallelism of disk heads.  each index section holds some number
+of hash buckets, each in its own disk block.  collectively the index sections
+hold ix->buckets between them. 
+
+the top 32-bits of the score is used to assign scores to buckets.
+div = ceil(2³² / ix->buckets) is the amount of 32-bit score space per bucket.
+
+to look up a block, take the top 32 bits of score and divide by div
+to get the bucket number.  then look through the index section headers
+to figure out which index section has that bucket.
+
+then load that block from the index section.  it's an IBucket.
+
+the IBucket has ib.n IEntry structures in it, sorted by score and then by type.
+do the lookup and get an IEntry.  the ia.addr will be a logical address
+that you then use to get the 
+
+ISect
+	magic[4] 0xD15C5EC7
+	version[4]
+	name[64]
+	index[64]
+	blockSize[4]
+	blockBase[4]	address in partition where bucket blocks start
+	blocks[4]
+	start[4]
+	stop[4]	stop - start <= blocks, but not necessarily ==
+
+IEntry
+	score[20]
+	wtime[4]
+	train[2]
+	ia.addr[8]		index address (see note above)
+	ia.size[2]		size of uncompressed block data
+	ia.type[1]
+	ia.blocks[1]	number of blocks of clump on disk
+
+IBucket
+	n[2]
+	next[4]	not sure; either 0 or inside [start,stop) for the ISect
+	data[n*IEntrySize]
+
+final piece: all the disk partitions start with PartBlank=256kB of unused disk
+(presumably to avoid problems with boot sectors and layout tables
+and the like).
+
+actually the last 8k of the 256k (that is, at offset 248kB) can hold
+a venti config file to help during bootstrap of the venti file server.
+
