@@ -19031,3 +19031,10 @@
 1208662204 0 c 386/bin/cdfs - 775 sys sys 1208662151 173247
 1208725204 0 c sys/man/2/auth - 664 sys sys 1208725235 7535
 1208881804 0 c sys/src/mkfile.proto - 664 sys sys 1208881081 266
+1208979003 0 c sys/games/lib/fortunes - 664 sys sys 1208978371 269327
+1208986205 0 a sys/src/cmd/venti/words - 20000000775 sys sys 1208985205 0
+1208986205 1 a sys/src/cmd/venti/words/backup.example - 775 sys sys 1045503662 521
+1208986205 2 a sys/src/cmd/venti/words/dumpvacroots - 775 sys sys 1163468045 571
+1208986205 3 a sys/src/cmd/venti/words/notes - 664 sys sys 1068500911 4032
+1208986205 4 a sys/src/cmd/venti/words/venti.conf - 664 sys sys 1019867537 397
+1208986205 5 a sys/src/cmd/venti/words/wrtape - 775 sys sys 1019678881 555

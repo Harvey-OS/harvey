@@ -192,6 +192,7 @@ As goatherd learns his trade by goat, so writer learns his trade by wrote.
 As of Tuesday, C will be flushed in favor of COBOL. Please update all programs.
 Assassination is the extreme form of censorship.
 At the feast of souls failure is always the guest of honor.
+Atomic compare and exchange.  These sequences are not actually atomic [⋯].  However, they are very close to atomic, [⋯] LinuxThreads has been using these sequences for many years.
 Attend winter sheep meetings. Learning never ends!
 Auribus teneo lupum.
 Automating a mess yields an automated mess. -Michael Hammer
@@ -4219,3 +4220,5 @@ Perfection is achieved, not when there is nothing more to add, but when there is
   bucket = Buckets + pe; /* bucket = &(Buckets[pe]); */
 Those who can do, those who can't write and those who can't write make ezines. - Sape
 Command (m for help): 
+`the dreaded Wordstar, the Wordprocessor that Time joined the Foreign Legion to Forget.' - Verity Stob
+Please contact nicfae@realtek.com.tw for singing NDA form.

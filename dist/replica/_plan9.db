@@ -5852,7 +5852,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1207370998 268981
+sys/games/lib/fortunes - 664 sys sys 1208978371 269327
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -14441,6 +14441,12 @@ sys/src/cmd/venti/srv/xml.h - 664 sys sys 1142736357 450
 sys/src/cmd/venti/srv/zblock.c - 664 sys sys 1178160305 1659
 sys/src/cmd/venti/srv/zeropart.c - 664 sys sys 1178160305 707
 sys/src/cmd/venti/sync.c - 664 sys sys 1177189440 726
+sys/src/cmd/venti/words - 20000000775 sys sys 1208985205 0
+sys/src/cmd/venti/words/backup.example - 775 sys sys 1045503662 521
+sys/src/cmd/venti/words/dumpvacroots - 775 sys sys 1163468045 571
+sys/src/cmd/venti/words/notes - 664 sys sys 1068500911 4032
+sys/src/cmd/venti/words/venti.conf - 664 sys sys 1019867537 397
+sys/src/cmd/venti/words/wrtape - 775 sys sys 1019678881 555
 sys/src/cmd/venti/write.c - 664 sys sys 1177189440 1106
 sys/src/cmd/vi - 20000000775 sys sys 1039727599 0
 sys/src/cmd/vi/bpt.c - 664 sys sys 944961341 2216
