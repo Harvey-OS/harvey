@@ -152,26 +152,19 @@ void
 main(int argc, char *argv[])
 {
 	Ram *r;
-	char *defmnt;
+	char *defmnt, *service;
 	int p[2];
 	int fd;
 	int stdio = 0;
-	char *service;
 
 	service = "ramfs";
 	defmnt = "/tmp";
 	ARGBEGIN{
-	case 'D':
-		debug = 1;
-		break;
 	case 'i':
 		defmnt = 0;
 		stdio = 1;
 		mfd[0] = 0;
 		mfd[1] = 1;
-		break;
-	case 's':
-		defmnt = 0;
 		break;
 	case 'm':
 		defmnt = EARGF(usage());
@@ -179,8 +172,14 @@ main(int argc, char *argv[])
 	case 'p':
 		private++;
 		break;
+	case 's':
+		defmnt = 0;
+		break;
 	case 'u':
 		memlim = 0;		/* unlimited memory consumption */
+		break;
+	case 'D':
+		debug = 1;
 		break;
 	case 'S':
 		defmnt = 0;
@@ -226,8 +225,10 @@ main(int argc, char *argv[])
 	r->mtime = r->atime;
 	r->name = estrdup(".");
 
-	if(debug)
+	if(debug) {
 		fmtinstall('F', fcallfmt);
+		fmtinstall('M', dirmodefmt);
+	}
 	switch(rfork(RFFDG|RFPROC|RFNAMEG|RFNOTEG)){
 	case -1:
 		error("fork");
