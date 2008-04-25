@@ -13271,7 +13271,7 @@ sys/src/cmd/ql/optab.c - 664 sys sys 1089299167 13392
 sys/src/cmd/ql/pass.c - 664 sys sys 1132450403 11861
 sys/src/cmd/ql/sched.c - 664 sys sys 1089299166 12776
 sys/src/cmd/ql/span.c - 664 sys sys 1143759342 19898
-sys/src/cmd/ramfs.c - 664 sys sys 1168307038 16020
+sys/src/cmd/ramfs.c - 664 sys sys 1209077281 16050
 sys/src/cmd/ratfs - 20000000775 sys sys 1039727600 0
 sys/src/cmd/ratfs/ctlfiles.c - 664 sys sys 1016943964 6694
 sys/src/cmd/ratfs/main.c - 664 sys sys 1016943964 6516
