@@ -14443,7 +14443,7 @@ sys/src/cmd/venti/srv/zeropart.c - 664 sys sys 1178160305 707
 sys/src/cmd/venti/sync.c - 664 sys sys 1177189440 726
 sys/src/cmd/venti/words - 20000000775 sys sys 1208985205 0
 sys/src/cmd/venti/words/backup.example - 775 sys sys 1045503662 521
-sys/src/cmd/venti/words/dumpvacroots - 775 sys sys 1163468045 571
+sys/src/cmd/venti/words/dumpvacroots - 775 sys sys 1209145281 609
 sys/src/cmd/venti/words/notes - 664 sys sys 1068500911 4032
 sys/src/cmd/venti/words/venti.conf - 664 sys sys 1019867537 397
 sys/src/cmd/venti/words/wrtape - 775 sys sys 1019678881 555
