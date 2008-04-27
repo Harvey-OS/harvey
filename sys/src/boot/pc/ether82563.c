@@ -54,6 +54,7 @@ enum {
 	Rxcw		= 0x00000180,	/* Receive Configuration Word */
 	Ledctl		= 0x00000E00,	/* LED control */
 	Pba		= 0x00001000,	/* Packet Buffer Allocation */
+	Pbs		= 0x00001008,	/* Packet Buffer Size */
 
 	/* Interrupt */
 
@@ -384,13 +385,17 @@ enum {
 
 enum {
 	i82563,
+	i82566,
 	i82571,
+	i82572,
 	i82573,
 };
 
 static char *tname[] = {
 	"i82563",
+	"i82566",
 	"i82571",
+	"i82572",
 	"i82573",
 };
 
@@ -691,6 +696,10 @@ i82563init(Ether* edev)
 	i82563replenish(ctlr);
 	csr32w(ctlr, Rdtr, 0);
 	csr32w(ctlr, Rctl, Dpf | Bsize2048 | Bam | RdtmsHALF);
+	if(ctlr->type == i82573)
+		csr32w(ctlr, Ert, 1024/8);
+	if(ctlr->type == i82566)
+		csr32w(ctlr, Pbs, 16);
 	i82563im(ctlr, Rxt0 | Rxo | Rxdmt0 | Rxseq | Ack);
 
 	csr32w(ctlr, Tctl, 0x0F<<CtSHIFT | Psp | 0x3f<<ColdSHIFT | Mulr);
@@ -755,6 +764,8 @@ detach(Ctlr *ctlr)
 	delay(10);
 
 	r = csr32r(ctlr, Ctrl);
+	if(ctlr->type == i82566)
+		r |= Phy_rst;
 	csr32w(ctlr, Ctrl, Devrst | r);
 	/* apparently needed on multi-GHz processors to avoid infinite loops */
 	delay(1);
@@ -796,7 +807,12 @@ i82563reset(Ctlr* ctlr)
 
 	detach(ctlr);
 
-	r = eeload(ctlr);
+	if(ctlr->type == i82566) {
+		// r = fload(ctlr);
+		r = 0;
+		print("i82566 not done yet\n");
+	} else
+		r = eeload(ctlr);
 	if (r != 0 && r != 0xBABA){
 		print("%s: bad EEPROM checksum - 0x%4.4ux\n", Type, r);
 		return -1;
@@ -857,6 +873,18 @@ i82563pci(void)
 		case 0x1096:
 		case 0x10ba:
 			type = i82563;
+			break;
+		case 0x1049:		/* mm */
+		case 0x104a:		/* dm */
+		case 0x104d:		/* v */
+			type = i82566;
+			break;
+		case 0x10a4:
+		case 0x105e:
+			type = i82571;
+			break;
+		case 0x10b9:		/* sic, 82572 */
+			type = i82572;
 			break;
 		case 0x108b:		/*  e */
 		case 0x108c:		/*  e (iamt) */
