@@ -157,6 +157,12 @@ STAT=$LPDLINE(9)
 KILL=$LPDLINE(10)
 DAEMON=$LPDLINE(11)
 SCHED=$LPDLINE(12)
+
+if (~ $LPCLASS *nohead*)
+	NOHEAD=1
+if (~ $LPCLASS *duplex*)
+	DUPLEX=1
+
 if (~ $#SCHED 0) SCHED=FIFO	# everyone uses FIFO
 if (~ $KILLFLAG 1)
 	switch ($KILL) {

@@ -5547,7 +5547,7 @@ rc/bin/label - 775 sys sys 1173737765 189
 rc/bin/lc - 775 sys sys 945617207 24
 rc/bin/leak - 775 sys sys 1172760642 1921
 rc/bin/lookman - 775 sys sys 1186528516 687
-rc/bin/lp - 775 sys sys 1162105982 5201
+rc/bin/lp - 775 sys sys 1209583966 5273
 rc/bin/mail - 775 sys sys 1045504003 138
 rc/bin/man - 775 sys sys 1204738776 2654
 rc/bin/map - 775 sys sys 945617207 1576
@@ -6655,7 +6655,7 @@ sys/lib/lp/process - 20000000775 sys sys 1077670465 0
 sys/lib/lp/process/dpost - 775 sys sys 1015012079 2412
 sys/lib/lp/process/dvipost - 775 sys sys 954037459 3123
 sys/lib/lp/process/g3post - 775 sys sys 954037459 2348
-sys/lib/lp/process/generic - 775 sys sys 1204761143 4465
+sys/lib/lp/process/generic - 775 sys sys 1209583971 4395
 sys/lib/lp/process/gifpost - 775 sys sys 1015012079 2317
 sys/lib/lp/process/gspipe - 775 sys sys 1015012079 434
 sys/lib/lp/process/gspipeijs - 775 sys sys 1077670465 949
@@ -12737,7 +12737,7 @@ sys/src/cmd/look.c - 664 sys sys 944961619 5994
 sys/src/cmd/lp - 20000000775 sys sys 1039727564 0
 sys/src/cmd/lp/LOCK.c - 664 sys sys 1015090023 1066
 sys/src/cmd/lp/ipcopen.c - 664 sys sys 944961017 1607
-sys/src/cmd/lp/lp.rc - 775 sys sys 1162105978 5201
+sys/src/cmd/lp/lp.rc - 775 sys sys 1209583969 5273
 sys/src/cmd/lp/lpdaemon.c - 664 sys sys 1032060412 10000
 sys/src/cmd/lp/lpdsend.c - 664 sys sys 1116770113 9583
 sys/src/cmd/lp/lpsend.c - 664 sys sys 1015090024 6180
@@ -14827,7 +14827,7 @@ sys/src/libbio/bflush.c - 664 sys sys 964455730 479
 sys/src/libbio/bgetc.c - 664 sys sys 1064846001 948
 sys/src/libbio/bgetd.c - 664 sys sys 944961707 401
 sys/src/libbio/bgetrune.c - 664 sys sys 944961707 634
-sys/src/libbio/binit.c - 664 sys sys 1125317646 1857
+sys/src/libbio/binit.c - 664 sys sys 1209580916 1961
 sys/src/libbio/boffset.c - 664 sys sys 1036478806 360
 sys/src/libbio/bprint.c - 664 sys sys 1014927637 194
 sys/src/libbio/bputc.c - 664 sys sys 956275910 245
