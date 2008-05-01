@@ -19080,3 +19080,7 @@
 1209425404 0 c sys/include/ndb.h - 664 sys sys 1209424114 4385
 1209441604 0 c 386/lib/libauthsrv.a - 664 sys sys 1209439929 36740
 1209441604 1 c 386/lib/libndb.a - 664 sys sys 1209439931 65780
+1209582009 0 c sys/src/libbio/binit.c - 664 sys sys 1209580916 1961
+1209583804 0 c sys/lib/lp/process/generic - 775 sys sys 1209583971 4395
+1209583804 1 c sys/src/cmd/lp/lp.rc - 775 sys sys 1209583969 5273
+1209585604 0 c rc/bin/lp - 775 sys sys 1209583966 5273

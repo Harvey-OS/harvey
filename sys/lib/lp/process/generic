@@ -9,10 +9,6 @@ proc=$LPLIB/process
 
 if (! ~ $DEBUG '')
 	flag x +
-if (~ $LPCLASS *nohead*)
-	NOHEAD=1
-if (~ $LPCLASS *duplex*)
-	DUPLEX=1
 cat >$temp
 
 type=`{file $temp}

@@ -103,34 +103,34 @@ Bopen(char *name, int mode)
 	default:
 		fprint(2, "Bopen: unknown mode %#x\n", mode);
 		return 0;
-
 	case OREAD:
 		f = open(name, mode);
-		if(f < 0)
-			return 0;
 		break;
-
 	case OWRITE:
 		f = create(name, mode, 0666);
-		if(f < 0)
-			return 0;
+		break;
 	}
+	if(f < 0)
+		return 0;
 	bp = malloc(sizeof(Biobuf));
 	Binits(bp, f, mode, bp->b, sizeof(bp->b));
-	bp->flag = Bmagic;
+	bp->flag = Bmagic;			/* mark bp open & malloced */
 	return bp;
 }
 
 int
 Bterm(Biobufhdr *bp)
 {
+	int r;
 
 	deinstall(bp);
-	Bflush(bp);
+	r = Bflush(bp);
 	if(bp->flag == Bmagic) {
 		bp->flag = 0;
 		close(bp->fid);
+		bp->fid = -1;			/* prevent accidents */
 		free(bp);
 	}
-	return 0;
+	/* otherwise opened with Binit(s) */
+	return r;
 }
