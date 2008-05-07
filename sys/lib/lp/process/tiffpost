@@ -1,5 +1,5 @@
 #!/bin/rc
-# convert CCITT G3 Fax format to PostScript
+# convert TIFF format to PostScript
 if (! ~ $DEBUG '') flag x +
 PATCH='%%Patch from lp'
 switch ($LPCLASS) {
@@ -78,5 +78,8 @@ if (~ $MAG [.0-9]*) MAG=-m^$MAG
 if (! ~ $LAND '') LAND=-L
 if not LAND=()
 
-fb/tiff2pic $1 | fb/3to1 rgbv | fb/pcp -tplan9 |  /$cputype/bin/aux/p9bitpost $MAG $LAND $PATCH | $LPLIB/process/hpost
-exit
+fb/tiff2pic $1 |
+	fb/3to1 rgbv |
+	fb/pcp -tplan9 |
+	/$cputype/bin/aux/p9bitpost $MAG $LAND $PATCH |
+	$LPLIB/process/hpost

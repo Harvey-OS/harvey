@@ -40,23 +40,24 @@ struct Mmcaux {
 	long	ntotbk;
 };
 
+/* these will be printed as user ids, so no spaces please */
 static char *dvdtype[] = {
 	"dvd-rom",
 	"dvd-ram",
 	"dvd-r",
 	"dvd-rw",
-	"hd dvd-rom",
-	"hd dvd-ram",
-	"hd dvd-r",
-	"type 7 (unknown)",
-	"type 8 (unknown)",
+	"hd-dvd-rom",
+	"hd-dvd-ram",
+	"hd-dvd-r",
+	"type-7-unknown",
+	"type-8-unknown",
 	"dvd+rw",
 	"dvd+r",
-	"type 11 (unknown)",
-	"type 12 (unknown)",
-	"dvd+rw dl",
-	"dvd+r dl",
-	"type 15 (unknown)",
+	"type-11-unknown",
+	"type-12-unknown",
+	"dvd+rw-dl",
+	"dvd+r-dl",
+	"type-15-unknown",
 };
 
 static ulong

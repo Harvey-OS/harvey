@@ -19336,3 +19336,11 @@
 1209616216 101 c acme/bin/386/News - 775 sys sys 1209614878 129316
 1209616216 102 c acme/bin/386/Wiki - 775 sys sys 1209614880 127893
 1209616216 103 c acme/bin/386/spout - 775 sys sys 1209614882 61782
+1210048213 0 c sys/src/cmd/cdfs/mmc.c - 664 sys sys 1210046871 31599
+1210120210 0 c sys/lib/lp/process/g3post - 775 sys sys 1210119087 2350
+1210120210 1 c sys/lib/lp/process/generic - 775 sys sys 1210119239 4568
+1210120210 2 c sys/lib/lp/process/gifpost - 775 sys sys 1210119055 2309
+1210120210 3 a sys/lib/lp/process/pngpost - 775 sys sys 1210119033 2310
+1210120210 4 c sys/lib/lp/process/ppost - 775 sys sys 1210119088 2873
+1210120210 5 c sys/lib/lp/process/tiffpost - 775 sys sys 1210119088 2333
+1210120210 6 c sys/src/cmd/file.c - 664 sys sys 1210118716 28919
