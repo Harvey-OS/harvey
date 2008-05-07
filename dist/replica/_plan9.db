@@ -6654,9 +6654,9 @@ sys/lib/lp/perm - 20000000775 sys sys 1020895848 0
 sys/lib/lp/process - 20000000775 sys sys 1077670465 0
 sys/lib/lp/process/dpost - 775 sys sys 1015012079 2412
 sys/lib/lp/process/dvipost - 775 sys sys 954037459 3123
-sys/lib/lp/process/g3post - 775 sys sys 954037459 2348
-sys/lib/lp/process/generic - 775 sys sys 1209583971 4395
-sys/lib/lp/process/gifpost - 775 sys sys 1015012079 2317
+sys/lib/lp/process/g3post - 775 sys sys 1210119087 2350
+sys/lib/lp/process/generic - 775 sys sys 1210119239 4568
+sys/lib/lp/process/gifpost - 775 sys sys 1210119055 2309
 sys/lib/lp/process/gspipe - 775 sys sys 1015012079 434
 sys/lib/lp/process/gspipeijs - 775 sys sys 1077670465 949
 sys/lib/lp/process/hpost - 775 sys sys 1187741307 3386
@@ -6666,11 +6666,12 @@ sys/lib/lp/process/p9bitpost - 775 sys sys 954037459 2436
 sys/lib/lp/process/pdfgs - 775 sys sys 1204761083 1631
 sys/lib/lp/process/pdfgsijs - 775 sys sys 1077634892 1687
 sys/lib/lp/process/pdfpost - 775 sys sys 1015012079 2100
+sys/lib/lp/process/pngpost - 775 sys sys 1210119033 2310
 sys/lib/lp/process/post - 775 sys sys 1045164703 1955
-sys/lib/lp/process/ppost - 775 sys sys 969500538 2874
+sys/lib/lp/process/ppost - 775 sys sys 1210119088 2873
 sys/lib/lp/process/psextract - 775 sys sys 1045164704 777
 sys/lib/lp/process/testpost - 775 sys sys 954037459 1940
-sys/lib/lp/process/tiffpost - 775 sys sys 1015012080 2343
+sys/lib/lp/process/tiffpost - 775 sys sys 1210119088 2333
 sys/lib/lp/process/tr2post - 775 sys sys 954037459 2478
 sys/lib/lp/sched - 20000000775 sys sys 1039727406 0
 sys/lib/lp/sched/FIFO - 775 sys sys 954037459 65
@@ -10035,7 +10036,7 @@ sys/src/cmd/cdfs/dat.h - 664 sys sys 1208632592 4636
 sys/src/cmd/cdfs/fns.h - 664 sys sys 969542122 297
 sys/src/cmd/cdfs/main.c - 664 sys sys 1208195235 12480
 sys/src/cmd/cdfs/mkfile - 664 sys sys 1204937991 153
-sys/src/cmd/cdfs/mmc.c - 664 sys sys 1208649283 31548
+sys/src/cmd/cdfs/mmc.c - 664 sys sys 1210046871 31599
 sys/src/cmd/cec - 20000000775 sys sys 1193683647 0
 sys/src/cmd/cec/LICENSE - 664 sys sys 1186248056 1554
 sys/src/cmd/cec/Protocol - 664 sys sys 1186248056 2881
@@ -10407,7 +10408,7 @@ sys/src/cmd/fax/receiverc - 775 sys sys 944960990 581
 sys/src/cmd/fax/send.c - 664 sys sys 944960990 923
 sys/src/cmd/fax/subr.c - 664 sys sys 1015090401 1245
 sys/src/cmd/fcp.c - 664 sys sys 1136651872 3799
-sys/src/cmd/file.c - 664 sys sys 1198189467 28953
+sys/src/cmd/file.c - 664 sys sys 1210118716 28919
 sys/src/cmd/fmt.c - 664 sys sys 1137603598 4078
 sys/src/cmd/fortune.c - 664 sys sys 1072729222 1779
 sys/src/cmd/fossil - 20000000775 sys sys 1087005595 0

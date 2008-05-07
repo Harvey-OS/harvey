@@ -341,8 +341,8 @@ filetype(int fd)
 			mbuf->type, mbuf->name);
 		return;
 	}
-	nbuf = read(fd, buf, sizeof(buf)-1);
-
+	/* may be reading a pipe on standard input */
+	nbuf = readn(fd, buf, sizeof(buf)-1);
 	if(nbuf < 0) {
 		print("cannot read\n");
 		return;
@@ -650,7 +650,7 @@ fileoffmagic(Fileoffmag *tab, int ntab)
 	for(i=0; i<ntab; i++) {
 		tp = tab + i;
 		seek(fd, tp->off, 0);
-		if (read(fd, buf, sizeof buf) != sizeof buf)
+		if (readn(fd, buf, sizeof buf) != sizeof buf)
 			continue;
 		x = LENDIAN(buf);
 		if((x&tp->mask) == tp->x){
@@ -865,7 +865,7 @@ isoffstr(void)
 		n = p->length;
 		if (n > sizeof buf)
 			n = sizeof buf;
-		if (read(fd, buf, n) != n)
+		if (readn(fd, buf, n) != n)
 			continue;
 		if(memcmp(buf, p->key, n) == 0) {
 			if(mime)
@@ -1292,8 +1292,8 @@ isp9bit(void)
 
 	/*
 	 * for compressed images, don't look any further. otherwise:
-	 * for image file, length is non-zero and must match calculation above
-	 * for /dev/window and /dev/screen the length is always zero
+	 * for image file, length is non-zero and must match calculation above.
+	 * for /dev/window and /dev/screen the length is always zero.
 	 * for subfont, the subfont header should follow immediately.
 	 */
 	if (cmpr) {
@@ -1301,16 +1301,12 @@ isp9bit(void)
 			newlabel, dep);
 		return 1;
 	}
-	if (len != 0 && mbuf->length == 0) {
-		print(mime ? OCTET : "%splan 9 image, depth %d\n", newlabel, dep);
-		return 1;
-	}
-	if (mbuf->length == len) {
-		print(mime ? OCTET : "%splan 9 image, depth %d\n", newlabel, dep);
-		return 1;
-	}
-	/* Ghostscript sometimes produces a little extra on the end */
-	if (mbuf->length < len+P9BITLEN) {
+	/*
+	 * mbuf->length == 0 probably indicates reading a pipe.
+	 * Ghostscript sometimes produces a little extra on the end.
+	 */
+	if (len != 0 && (mbuf->length == 0 || mbuf->length == len ||
+	    mbuf->length > len && mbuf->length < len+P9BITLEN)) {
 		print(mime ? OCTET : "%splan 9 image, depth %d\n", newlabel, dep);
 		return 1;
 	}

@@ -1,5 +1,5 @@
 #!/bin/rc
-# converts a regular text file to PostScript
+# convert PNG format to PostScript
 if (! ~ $DEBUG '') flag x +
 PATCH='%%Patch from lp'
 switch ($LPCLASS) {
@@ -68,32 +68,17 @@ if (! ~ $#DUPLEX 0) {
 %%EndFeature'
 }
 PATCH=$PATCH'
-%%EndPatch from lp
-'
+%%EndPatch from lp'
 if (! ~ $PATCH '' -P*)
-	PATCH=-P''''$PATCH'''';
-switch ($LAND) {
-case -p*;
-case ''; LAND=-pp
-case 1;	LAND=-pl
-}
-if (! ~ $COPIES '' -c*) COPIES=-c^$COPIES
-switch ($FONT) {
-case ''; FONT=-f'Courier'
-case -f*;
-case *; FONT=-f$FONT
-}
-switch ($POINT) {
-case ''; POINT=-s10
-case -s*;
-case *; POINT=-s$POINT
-}
-if (! ~ $LINES '' -l*) LINES=-l^$LINES;
-if (! ~ $MAG '' -m*) MAG=-m^$MAG;
-if (! ~ $NPAG '' -n*) NPAG=-n^$NPAG;
-if (! ~ $XOFF '' -x*) XOFF=-x`{echo $XOFF + .4|hoc};
-if not XOFF=-x.4
-if (! ~ $YOFF '' -y*) YOFF=-y^$YOFF;
-eval  /$cputype/bin/aux/text2post $FONT $XOFF $YOFF $COPIES $LINES $MAG $NPAG $POINT $LAND $OLIST $PATCH | $LPLIB/process/hpost
-# eval /$cputype/bin/aux/postprint -EUTF $FONT $XOFF $YOFF $COPIES $LINES $MAG $NPAG $POINT $LAND $OLIST $PATCH | $LPLIB/process/hpost
+	PATCH=-P$PATCH;
+
+if (~ $MAG '') MAG=1
+if (~ $MAG [.0-9]*) MAG=-m^$MAG
+
+if (! ~ $LAND '') LAND=-L
+if not LAND=()
+
+/$cputype/bin/png -9t |
+	/$cputype/bin/aux/p9bitpost $MAG $LAND $PATCH |
+	$LPLIB/process/hpost
 exit
