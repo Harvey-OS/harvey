@@ -96,7 +96,7 @@ main(int argc, char *argv[])
 			outchan = CMAP8;
 		break;
 	default:
-		fprint(2, "usage: png -39cdekrtv [file.png ...]\n");
+		fprint(2, "usage: png [-39cdekrtv] [file.png ...]\n");
 		exits("usage");
 	}ARGEND;
 
@@ -136,12 +136,12 @@ char*
 show(int fd, char *name, int outc)
 {
 	Rawimage **array, *r, *c;
-	static int inited;
-	Image *i;
-	Image *i2;
+	Image *i, *i2;
 	int j, ch, outchan;
+	long len;
 	Biobuf b;
 	char buf[32];
+	static int inited;
 
 	if(Binit(&b, fd, OREAD) < 0)
 		return nil;
@@ -212,6 +212,10 @@ show(int fd, char *name, int outc)
 	}
 	if(nineflag){
 		chantostr(buf, outchan);
+		len = (c->r.max.x - c->r.min.x) * (c->r.max.y - c->r.min.y);
+		if(c->chanlen != len)
+			fprint(2, "%s: writing %d bytes for len %ld chan %s\n",
+				argv0, c->chanlen, len, buf);
 		print("%11s %11d %11d %11d %11d ", buf,
 			c->r.min.x, c->r.min.y, c->r.max.x, c->r.max.y);
 		if(write(1, c->chans[0], c->chanlen) != c->chanlen){

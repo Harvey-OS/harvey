@@ -19344,3 +19344,7 @@
 1210120210 4 c sys/lib/lp/process/ppost - 775 sys sys 1210119088 2873
 1210120210 5 c sys/lib/lp/process/tiffpost - 775 sys sys 1210119088 2333
 1210120210 6 c sys/src/cmd/file.c - 664 sys sys 1210118716 28919
+1210132807 0 c 386/bin/cdfs - 775 sys sys 1210131848 173239
+1210132807 1 c 386/bin/file - 775 sys sys 1210131851 128896
+1210195812 0 c sys/src/cmd/jpg/png.c - 664 sys sys 1210194464 5020
+1210195812 1 c sys/src/cmd/jpg/readpng.c - 664 sys sys 1108852545 10117
