@@ -176,7 +176,7 @@
 386/bin/calendar - 775 sys sys 1209614208 79071
 386/bin/cat - 775 sys sys 1148500611 37482
 386/bin/cb - 775 sys sys 1209614209 77569
-386/bin/cdfs - 775 sys sys 1208662151 173247
+386/bin/cdfs - 775 sys sys 1210131848 173239
 386/bin/cec - 775 sys sys 1193714267 75896
 386/bin/cfs - 775 sys sys 1190863294 130565
 386/bin/chgrp - 775 sys sys 1168402294 59522
@@ -235,7 +235,7 @@
 386/bin/faces - 775 sys sys 1200262755 193287
 386/bin/factor - 775 sys sys 1209614276 61640
 386/bin/fcp - 775 sys sys 1168402307 82433
-386/bin/file - 775 sys sys 1209614278 129071
+386/bin/file - 775 sys sys 1210131851 128896
 386/bin/fmt - 775 sys sys 1209614279 65508
 386/bin/fortune - 775 sys sys 1209614281 67297
 386/bin/fossil - 20000000775 sys sys 1042005470 0
@@ -12651,12 +12651,12 @@ sys/src/cmd/jpg/jpg.c - 664 sys sys 1108938203 7411
 sys/src/cmd/jpg/mkfile - 664 sys sys 1079970080 1056
 sys/src/cmd/jpg/multichan.c - 664 sys sys 1039753047 825
 sys/src/cmd/jpg/onechan.c - 664 sys sys 1039753044 3732
-sys/src/cmd/jpg/png.c - 664 sys sys 1108939730 4834
+sys/src/cmd/jpg/png.c - 664 sys sys 1210194464 5020
 sys/src/cmd/jpg/ppm.c - 664 sys sys 1108852826 4204
 sys/src/cmd/jpg/readbmp.c - 664 sys sys 1166825626 13711
 sys/src/cmd/jpg/readgif.c - 664 sys sys 1143220941 10472
 sys/src/cmd/jpg/readjpg.c - 664 sys sys 1032060302 33009
-sys/src/cmd/jpg/readpng.c - 664 sys sys 1108852825 10117
+sys/src/cmd/jpg/readpng.c - 664 sys sys 1108852545 10117
 sys/src/cmd/jpg/readppm.c - 664 sys sys 1108851603 3645
 sys/src/cmd/jpg/readyuv.c - 664 sys sys 1190832519 4180
 sys/src/cmd/jpg/rgbrgbv.c - 664 sys sys 984718829 1236
