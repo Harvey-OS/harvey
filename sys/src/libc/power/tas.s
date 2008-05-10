@@ -1,12 +1,8 @@
 TEXT	_tas(SB), $0
-	SYNC
 	MOVW	R3, R4
 	MOVW	$0xdeaddead,R5
 tas1:
-/* taken out for the 755.  dcbf and L2 caching do not seem to get on
-    with eachother.  It seems that dcbf is desctructive in the L2 cache 
-    (also see l.s) */
-	DCBF	(R4)	
+/*	DCBF	(R4)			 fix for 603x bug */
 	SYNC
 	LWAR	(R4), R3
 	CMP	R3, $0
@@ -14,6 +10,4 @@ tas1:
 	STWCCC	R5, (R4)
 	BNE	tas1
 tas0:
-	SYNC
-	ISYNC
 	RETURN

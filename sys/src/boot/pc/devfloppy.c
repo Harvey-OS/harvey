@@ -221,9 +221,10 @@ floppyboot(int dev, char *file, Boot *b)
 {
 	Fs *fs;
 
+	/* there are no partitions on floppies */
 	if(strncmp(file, "dos!", 4) == 0)
 		file += 4;
-	else if(strchr(file, '!') || strcmp(file, "")==0) {
+	if(strchr(file, '!') != nil || strcmp(file, "") == 0) {
 		print("syntax is fd0!file\n");
 		return -1;
 	}

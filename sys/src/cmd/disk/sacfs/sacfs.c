@@ -559,7 +559,7 @@ loadblock(void *buf, uchar *offset, int blocksize)
 			n = -n;
 		n -= block;
 		if(unsac(buf, data+block, blocksize, n)<0)
-			sysfatal("unsac failed!\n");
+			sysfatal("unsac failed!");
 		memmove(cache[j].data, buf, blocksize);
 		cache[j].age = cacheage;
 		cache[j].block = block;

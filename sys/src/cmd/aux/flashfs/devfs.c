@@ -93,7 +93,7 @@ readdata(int sect, void *buff, ulong count, ulong off)
 	if(n < 0)
 		sysfatal("error reading at %lux: %r", m);
 	if(n != count)
-		sysfatal("short read at %lux, %ld instead of %lud\n", m, n, count);
+		sysfatal("short read at %lux, %ld instead of %lud", m, n, count);
 }
 
 int

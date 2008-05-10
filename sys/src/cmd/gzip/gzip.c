@@ -54,7 +54,7 @@ main(int argc, char *argv[])
 	crctab = mkcrctab(GZCRCPOLY);
 	ok = deflateinit();
 	if(ok != FlateOk)
-		sysfatal("deflateinit failed: %s\n", flateerr(ok));
+		sysfatal("deflateinit failed: %s", flateerr(ok));
 
 	if(argc == 0){
 		Binit(&bout, 1, OWRITE);

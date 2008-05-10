@@ -815,7 +815,7 @@ safecpy(char *to, char *from, int n)
 	if(n == 1)
 		return to;
 	if(from==nil)
-		sysfatal("safecpy called with from==nil, pc=%#p\n",
+		sysfatal("safecpy called with from==nil, pc=%#p",
 			getcallerpc(&to));
 	strncpy(to, from, n-1);
 	return to;

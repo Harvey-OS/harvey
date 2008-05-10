@@ -10,7 +10,7 @@ TEXT	_mainp(SB), 1, $(16 + NPRIVATES*4)
 	MOVW	$16, R4
 	MOVW	R4, _nprivates+0(SB)
 
-	BL		_profmain(SB)
+	BL	_profmain(SB)
 	MOVW	_tos(SB), R3
 	MOVW	4(R3), R4
 	MOVW	R4, 0(R3)

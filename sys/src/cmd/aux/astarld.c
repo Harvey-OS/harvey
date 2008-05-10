@@ -151,11 +151,11 @@ main(int argc, char **argv)
 		sprint(file, "#G/astar%dctl", unit);
 		cfd = open(file, ORDWR);
 		if(cfd < 0)
-			sysfatal("opening %s\n", file);
+			sysfatal("opening %s", file);
 		sprint(file, "#G/astar%dmem", unit);
 		mfd = open(file, ORDWR);
 		if(mfd < 0)
-			sysfatal("opening %s\n", file);
+			sysfatal("opening %s", file);
 	
 		if(write(cfd, "download", 8) != 8)
 			sysfatal("requesting download: %r");

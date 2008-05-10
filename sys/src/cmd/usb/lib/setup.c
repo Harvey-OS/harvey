@@ -13,7 +13,7 @@ setupcmd(Endpt *e, int type, int req, int value, int index, byte *data, int coun
 		abort();
 	fd = e->dev->setup;
 	if(fd < 0)
-		sysfatal("RSC: this used to use the global usbsetup0\n");
+		sysfatal("RSC: this used to use the global usbsetup0");
 	wp = malloc(8+count);
 	if (wp == nil) sysfatal("setupcmd: malloc");
 	wp[0] = type;
@@ -50,7 +50,7 @@ setupreq(Endpt *e, int type, int req, int value, int index, int count)
 		abort();
 	fd = e->dev->setup;
 	if(fd < 0)
-		sysfatal("RSC: this used to use the global usbsetup0\n");
+		sysfatal("RSC: this used to use the global usbsetup0");
 	wp = buf;
 	wp[0] = type;
 	wp[1] = req;
@@ -84,7 +84,7 @@ setupreply(Endpt *e, void *buf, int nb)
 
 	fd = e->dev->setup;
 	if(fd < 0)
-		sysfatal("RSC: this used to use the global usbsetup0\n");
+		sysfatal("RSC: this used to use the global usbsetup0");
 	while ((nr = read(fd, buf, nb)) < 0) {
 		rerrstr(err, sizeof err);
 		if (strcmp(err, "interrupted") != 0)

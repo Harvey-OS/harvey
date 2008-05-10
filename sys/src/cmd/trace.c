@@ -569,15 +569,15 @@ drawtrace(void)
 	assert(eventbuf);
 
 	if((logfd = open(profdev, OREAD)) < 0)
-		sysfatal("%s: Cannot open %s: %r\n", argv0, profdev);
+		sysfatal("%s: Cannot open %s: %r", argv0, profdev);
 
 	if(newwin){
 		if((wsys = getenv("wsys")) == nil)
-			sysfatal("%s: Cannot find windowing system: %r\n",
+			sysfatal("%s: Cannot find windowing system: %r",
 						argv0);
 	
 		if((wfd = open(wsys, ORDWR)) < 0)
-			sysfatal("%s: Cannot open windowing system: %r\n",
+			sysfatal("%s: Cannot open windowing system: %r",
 						argv0);
 	
 		snprint(line, sizeof(line), "new -pid %d -dx %d -dy %d",
@@ -586,27 +586,27 @@ drawtrace(void)
 		rfork(RFNAMEG);
 	
 		if(mount(wfd, -1, "/mnt/wsys", MREPL, line) < 0) 
-			sysfatal("%s: Cannot mount %s under /mnt/wsys: %r\n",
+			sysfatal("%s: Cannot mount %s under /mnt/wsys: %r",
 						argv0, line);
 	
 		if(bind("/mnt/wsys", "/dev", MBEFORE) < 0) 
-			sysfatal("%s: Cannot bind /mnt/wsys in /dev: %r\n",
+			sysfatal("%s: Cannot bind /mnt/wsys in /dev: %r",
 						argv0);
 	
 	}
 	if((wctlfd = open("/dev/wctl", OWRITE)) < 0)
-		sysfatal("%s: Cannot open /dev/wctl: %r\n", argv0);
+		sysfatal("%s: Cannot open /dev/wctl: %r", argv0);
 	if(initdraw(nil, nil, "trace") < 0)
-		sysfatal("%s: initdraw failure: %r\n", argv0);
+		sysfatal("%s: initdraw failure: %r", argv0);
 
 	Width = Dx(screen->r);
 	Height = Dy(screen->r);
 
 	if((mousectl = initmouse(nil, screen)) == nil)
-		sysfatal("%s: cannot initialize mouse: %r\n", argv0);
+		sysfatal("%s: cannot initialize mouse: %r", argv0);
 
 	if((keyboardctl = initkeyboard(nil)) == nil)
-		sysfatal("%s: cannot initialize keyboard: %r\n", argv0);
+		sysfatal("%s: cannot initialize keyboard: %r", argv0);
 
 	colinit();
 
@@ -627,7 +627,7 @@ drawtrace(void)
 
 		case 1:
 			if(getwindow(display, Refnone) < 0)
-				sysfatal("drawrt: Cannot re-attach window\n");
+				sysfatal("drawrt: Cannot re-attach window");
 			if(newwin){
 				if(Dx(screen->r) != Width || 
 					Dy(screen->r) != (ntasks * Height)){

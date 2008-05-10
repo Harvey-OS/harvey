@@ -1199,7 +1199,7 @@ msgClear(Msg *m)
 
 	switch(m->tag) {
 	default:
-		sysfatal("msgClear: unknown message type: %d\n", m->tag);
+		sysfatal("msgClear: unknown message type: %d", m->tag);
 	case HHelloRequest:
 		break;
 	case HClientHello:

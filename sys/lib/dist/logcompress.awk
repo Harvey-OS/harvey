@@ -11,5 +11,5 @@ END{
 	for(i in verb)
 		if(verb[i] == "d")
 			printf("d %s %s\n", i, data[i]) |"sort -r +1"
-	close("sort +1")
+	close("sort -r +1")
 }

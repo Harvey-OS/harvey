@@ -9,15 +9,18 @@ typedef	void*	pointer;
 #define NFATAL 1
 #define BLK sizeof(Blk)
 #define PTRSZ sizeof(int*)
+#define TBLSZ 256			/* 1<<BI2BY */
+
 #define HEADSZ 1024
 #define STKSZ 100
 #define RDSKSZ 100
-#define TBLSZ 256
 #define ARRAYST 221
 #define MAXIND 2048
+
 #define NL 1
 #define NG 2
 #define NE 3
+
 #define length(p)	((p)->wt-(p)->beg)
 #define rewind(p)	(p)->rd=(p)->beg
 #define create(p)	(p)->rd = (p)->wt = (p)->beg
@@ -48,6 +51,7 @@ typedef	void*	pointer;
 #define EMPTYSR(x)	if(stkerr !=0){Bprint(&bout,"stack empty\n");pushp(x);return(1);}
 #define error(p)	{Bprint(&bout,p); continue; }
 #define errorrt(p)	{Bprint(&bout,p); return(1); }
+
 #define LASTFUN 026
 
 typedef	struct	Blk	Blk;
@@ -2028,7 +2032,7 @@ log2(long n)
 	i=31;
 	if(n<0)
 		return(i);
-	while((n= n<<1) >0)
+	while((n <<= 1) > 0)
 		i--;
 	return i-1;
 }
@@ -2125,6 +2129,10 @@ sdump(char *s1, Blk *hptr)
 {
 	char *p;
 
+	if(hptr == nil) {
+		Bprint(&bout, "%s no block\n", s1);
+		return;
+	}
 	Bprint(&bout,"%s %lx rd %lx wt %lx beg %lx last %lx\n",
 		s1,hptr,hptr->rd,hptr->wt,hptr->beg,hptr->last);
 	p = hptr->beg;

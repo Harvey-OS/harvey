@@ -535,7 +535,7 @@ emalloc(ulong sz)
 
 	v = malloc(sz);
 	if(v == nil)
-		sysfatal("malloc %lud fails\n", sz);
+		sysfatal("malloc %lud fails", sz);
 	memset(v, 0, sz);
 	return v;
 }
@@ -545,7 +545,7 @@ estrdup(char *s)
 {
 	s = strdup(s);
 	if(s == nil)
-		sysfatal("strdup (%.10s) fails\n", s);
+		sysfatal("strdup (%.10s) fails", s);
 	return s;
 }
 

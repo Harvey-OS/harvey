@@ -102,7 +102,7 @@ adddirec(Direc *root, char *name, XDir *d)
 		*p = '\0';
 		root = walkdirec(root, name);
 		if(root == nil) {
-			sysfatal("error in proto file: no entry for /%s but /%s/%s\n", name, name, p+1);
+			sysfatal("error in proto file: no entry for /%s but /%s/%s", name, name, p+1);
 			return nil;
 		}
 		*p = '/';

@@ -7,12 +7,14 @@
 #define WUNTRACED	0x2
 
 /* macros for examining status returned */
+#ifndef WIFEXITED
 #define WIFEXITED(s)	(((s) & 0xFF) == 0)
 #define WEXITSTATUS(s)	((s>>8)&0xFF)
 #define WIFSIGNALED(s)	(((s) & 0xFF) != 0)
 #define WTERMSIG(s)	((s) & 0xFF)
 #define WIFSTOPPED(s)	(0)
 #define WSTOPSIG(s)	(0)
+#endif
 
 #ifdef __cplusplus
 extern "C" {

@@ -75,7 +75,7 @@ rdarena(Arena *arena, u64int offset)
 	e = arena->base + arena->size;
 	if(offset != ~(u64int)0) {
 		if(offset >= e - a)
-			sysfatal("bad offset %#llx >= %#llx\n", offset, e - a);
+			sysfatal("bad offset %#llx >= %#llx", offset, e - a);
 		aa = offset;
 	} else
 		aa = 0;
@@ -187,7 +187,7 @@ threadmain(int argc, char *argv[])
 		sysfatal("corrupted arena header: %r");
 
 	if(aoffset+head.size > part->size)
-		sysfatal("arena is truncated: want %llud bytes have %llud\n",
+		sysfatal("arena is truncated: want %llud bytes have %llud",
 			head.size, part->size);
 
 	partblocksize(part, head.blocksize);

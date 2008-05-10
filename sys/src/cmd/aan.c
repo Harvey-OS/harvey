@@ -153,16 +153,16 @@ threadmain(int argc, char **argv)
 	netfd = -1;
 
 	if (proccreate(fromnet, nil, Stacksize) < 0)
-		sysfatal("%s; Cannot start fromnet; %r\n", progname);
+		sysfatal("%s; Cannot start fromnet; %r", progname);
 
 	reconnect();		// Set up the initial connection.
 	synchronize();
 
 	if (proccreate(fromclient, nil, Stacksize) < 0)
-		sysfatal("%s; Cannot start fromclient; %r\n", progname);
+		sysfatal("%s; Cannot start fromclient; %r", progname);
 
 	if (proccreate(timerproc, timer, Stacksize) < 0)
-		sysfatal("%s; Cannot start timerproc; %r\n", progname);
+		sysfatal("%s; Cannot start timerproc; %r", progname);
 
 	a[Timer].c = timer;
 	a[Unsent].c = unsent;
@@ -337,7 +337,7 @@ fromnet(void*)
 		showmsg(1, "fromnet", b);
 
 		if (writen(1, b->buf, len) < 0) 
-			sysfatal("fromnet; cannot write to client; %r\n");
+			sysfatal("fromnet; cannot write to client; %r");
 	}
 	done = 1;
 }

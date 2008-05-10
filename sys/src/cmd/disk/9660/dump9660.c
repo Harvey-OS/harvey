@@ -185,7 +185,7 @@ main(int argc, char **argv)
 		if(cd->flags & CDjoliet) {
 			s = adddumpdir(&jdumproot, now, &dir);
 			if(s != dumpname)
-				sysfatal("dumpnames don't match %s %s\n", dumpname, s);
+				sysfatal("dumpnames don't match %s %s", dumpname, s);
 		}
 		dump = dumpcd(cd, &idumproot);
 		cd->nextblock = cd->nulldump+1;

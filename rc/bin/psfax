@@ -48,27 +48,28 @@ case *
 
 pages=`{echo $tmp.*|wc -w}
 
-echo -n 's/ddd/' > $script
-echo -n `{date}>> $script
-echo />> $script
-echo -n s/FFF/>> $script
-echo -n $myname >>  $script
-echo />> $script
-echo -n s/EEE/>> $script
-echo -n $user >>  $script
-echo />> $script
-echo -n s/VVV/>> $script
-echo -n $ext >>  $script
-echo />> $script
-echo -n s/TTT/>> $script
-echo -n $recip >>  $script
-echo />> $script
-echo -n s/fff/>> $script
-echo -n $telno >>  $script
-echo />> $script
-echo -n s/ppp/>> $script
-echo -n $pages >>  $script
-echo />> $script
+# use delimiters that are unlikely to be supplied in arguments
+echo -n s∮FAXddd∮	 >$script
+echo -n `{date}		>>$script
+echo ∮			>>$script
+echo -n s∮FAXFFF∮	>>$script
+echo -n $myname 	>>$script
+echo ∮			>>$script
+echo -n s∮FAXEEE∮	>>$script
+echo -n $user 		>>$script
+echo ∮			>>$script
+echo -n s∮FAXVVV∮	>>$script
+echo -n $ext 		>>$script
+echo ∮			>>$script
+echo -n s∮FAXTTT∮	>>$script
+echo -n $recip 		>>$script
+echo ∮			>>$script
+echo -n s∮FAXfff∮	>>$script
+echo -n $telno 		>>$script
+echo ∮			>>$script
+echo -n s∮FAXPPP∮	>>$script
+echo -n $pages 		>>$script
+echo ∮			>>$script
 sed -f $script /sys/lib/fax/h.ps > $header
 
 gs -dSAFER '-sDEVICE=dfaxlow' '-sOUTPUTFILE='$header'.%.3d' -dNOPAUSE -dQUIET $header quit.ps
@@ -81,7 +82,7 @@ for(i in $header.* $tmp.*){
 switch($view){
 case no
 	upas/qer $files /mail/faxoutqueue fax $user $telno < /dev/null
-	rx dinar /sys/lib/fax/faxgoose
+	rx fax /sys/lib/fax/faxgoose
 case yes
 	page $header.* $tmp.*
 }

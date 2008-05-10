@@ -142,7 +142,7 @@ evermore89(int baud)
 	case 19200:	s = putbyte(s, 0x02);	break;
 	case 38400:	s = putbyte(s, 0x03);	break;
 	default:
-		sysfatal("illegal baud rate %d\n", baud);
+		sysfatal("illegal baud rate %d", baud);
 	}
 
 	evermoresend(buf, s - buf);

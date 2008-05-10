@@ -12,7 +12,7 @@ _threadmalloc(long size, int z)
 
 	m = malloc(size);
 	if (m == nil)
-		sysfatal("Malloc of size %ld failed: %r\n", size);
+		sysfatal("Malloc of size %ld failed: %r", size);
 	setmalloctag(m, getcallerpc(&size));
 	totalmalloc += size;
 	if (size > 100000000) {

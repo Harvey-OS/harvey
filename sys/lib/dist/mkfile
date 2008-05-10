@@ -14,7 +14,8 @@ ncd-dist:V: /n/other/dist/plan9-new.iso.bz2
 cd-dist:V: /n/other/dist/plan9.iso.bz2
 	mk $dist/web.protect/plan9.iso.bz2
 
-contrib-cd:V:	/n/other/dist/contrib.iso.bz2
+contrib-cd:V: /n/other/dist/contrib.iso.bz2
+#	mk $dist/web.protect/contrib.iso.bz2
 
 /n/other/dist/%.iso:D: /n/sources/plan9/dist/replica/plan9.log
 	@{cd pc; mk cddisk; cd ..}

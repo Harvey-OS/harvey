@@ -9,7 +9,7 @@ emalloc(ulong sz)
 
 	v = malloc(sz);
 	if(v == nil)
-		sysfatal("malloc %lud fails\n", sz);
+		sysfatal("malloc %lud fails", sz);
 	memset(v, 0, sz);
 	return v;
 }
@@ -19,7 +19,7 @@ erealloc(void *v, ulong sz)
 {
 	v = realloc(v, sz);
 	if(v == nil)
-		sysfatal("realloc %lud fails\n", sz);
+		sysfatal("realloc %lud fails", sz);
 	return v;
 }
 
@@ -30,7 +30,7 @@ estrdup(char* s)
 
 	r = strdup(s);
 	if(r == nil)
-		sysfatal("strdup fails\n");
+		sysfatal("strdup fails");
 	return r;
 }
 

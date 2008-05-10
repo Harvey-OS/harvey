@@ -92,7 +92,7 @@ main(int argc, char **argv) {
 		sysfatal("#m/mousectl: %r");
 
 	if(initdraw(nil, nil, "calibrate") < 0)
-		sysfatal("initdraw: %r\n");
+		sysfatal("initdraw: %r");
 
 	wctl = -1;
 	for(ntries = 0; ntries < 3; ntries++){

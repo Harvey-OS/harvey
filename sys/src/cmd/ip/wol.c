@@ -82,7 +82,7 @@ main(int argc, char* argv[])
 	fillmac(&w, mac);
 	if(pass){
 		if(strlen(pass) > 6)
-			sysfatal("password greater than 6 bytes\n");
+			sysfatal("password greater than 6 bytes");
 		strcpy(w.pass, pass);
 	}
 	if(verbose)

@@ -55,7 +55,7 @@ main(int argc, char **argv)
 			sleep(1000);
 		}
 		if(fd < 0)
-			sysfatal("could not open %s: %r\n", out);
+			sysfatal("could not open %s: %r", out);
 	}
 		
 	Binit(&bout, fd, OWRITE);

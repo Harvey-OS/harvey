@@ -266,7 +266,7 @@ getsect(uchar *buf, int n)
 	if(Bseek(b, n*2048, 0) != n*2048 || Bread(b, buf, 2048) != 2048)
 {
 abort();
-		sysfatal("reading block at %,d: %r\n", n*2048);
+		sysfatal("reading block at %,d: %r", n*2048);
 }
 }
 

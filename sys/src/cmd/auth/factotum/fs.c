@@ -46,7 +46,8 @@ prototab[] =
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-DdkSun] [-s service] [-a authaddr] [-m mtpt]\n", argv0);
+	fprint(2, "usage: %s [-DSdknpu] [-a authaddr] [-m mtpt] [-s service]\n",
+		argv0);
 	fprint(2, "or    %s -g 'params'\n", argv0);
 	exits("usage");
 }

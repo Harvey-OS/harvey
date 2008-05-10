@@ -1365,7 +1365,7 @@ doconvert(void)
 static void
 usage(void)
 {
-	sysfatal("usage: ms2html [-q] [-b basename] [-d '$$'] [-t title]\n");
+	sysfatal("usage: ms2html [-q] [-b basename] [-d '$$'] [-t title]");
 }
 
 void

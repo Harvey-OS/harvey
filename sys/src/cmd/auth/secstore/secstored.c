@@ -358,7 +358,7 @@ main(int argc, char **argv)
 	snprint(aserve, sizeof aserve, "%s/%s", net, serve);
 	afd = announce(aserve, adir);
 	if(afd < 0)
-		sysfatal("%s: %r\n", aserve);
+		sysfatal("%s: %r", aserve);
 	syslog(0, LOG, "ANNOUNCE %s", aserve);
 	for(;;){
 		if((lcfd = listen(adir, ldir)) < 0)

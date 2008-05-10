@@ -115,7 +115,7 @@ main(int argc, char *argv[])
 		t = rtrace;
 		break;
 	case X_MAGIC:	/* att dsp 3210 */
-		sysfatal("can't ktrace %s\n", argv[0]);
+		sysfatal("can't ktrace %s", argv[0]);
 		break;
 	default:
 		fprint(2, "%s: warning: can't tell what type of stack %s uses; assuming it's %s\n",
