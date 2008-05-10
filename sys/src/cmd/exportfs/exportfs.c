@@ -302,7 +302,7 @@ main(int argc, char **argv)
 			fatal("import encryption proto unsupported: %s\n", args[1]);
 
 		if (encproto == Enctls)
-			sysfatal("%s: tls has not yet been implemented\n", argv[0]);
+			sysfatal("%s: tls has not yet been implemented", argv[0]);
 	}
 
 	if (encproto != Encnone && ealgs && ai) {
@@ -858,14 +858,14 @@ filter(int fd, char *cmd)
 
 	/* Get a free port and post it to the client. */
 	if (announce(anstring, devdir) < 0)
-		sysfatal("filter: Cannot announce %s: %r\n", anstring);
+		sysfatal("filter: Cannot announce %s: %r", anstring);
 
 	snprint(buf, sizeof(buf), "%s/local", devdir);
 	buf[sizeof buf - 1] = '\0';
 	if ((lfd = open(buf, OREAD)) < 0)
-		sysfatal("filter: Cannot open %s: %r\n", buf);
+		sysfatal("filter: Cannot open %s: %r", buf);
 	if ((len = read(lfd, newport, sizeof newport - 1)) < 0)
-		sysfatal("filter: Cannot read %s: %r\n", buf);
+		sysfatal("filter: Cannot read %s: %r", buf);
 	close(lfd);
 	newport[len] = '\0';
 

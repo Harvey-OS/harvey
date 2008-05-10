@@ -19,7 +19,6 @@ OFILES=scat.$O\
 HFILES=sky.h
 CFLAGS=$CFLAGS -I/sys/src/cmd/map
 
-LIB=/$objtype/lib/libdraw.a
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
 

@@ -61,7 +61,7 @@ process(char *ether)
 	uchar ethaddr[6], ipaddr[IPaddrlen], ipv4[IPv4addrlen];
 
 	if (parseether(ethaddr, ether) < 0)
-		sysfatal("%s: not an ether address\n", ether);
+		sysfatal("%s: not an ether address", ether);
 	if (v4_6to4) {
 		v4parseip(ipv4, v4_6to4);
 		eaip26to4(ipaddr, ethaddr, ipv4);

@@ -278,7 +278,7 @@ void
 getsect(uchar *buf, int n)
 {
 	if(Bseek(b, n*2048, 0) != n*2048 || Bread(b, buf, 2048) != 2048)
-		sysfatal("reading block %ux\n", n);
+		sysfatal("reading block %ux", n);
 }
 
 void
@@ -354,11 +354,11 @@ main(int argc, char **argv)
 	uchar root[2048], jroot[2048];
 
 	if(argc != 2)
-		sysfatal("usage: %s file\n", argv[0]);
+		sysfatal("usage: %s file", argv[0]);
 
 	b = Bopen(argv[1], OREAD);
 	if(b == nil)
-		sysfatal("bopen %r\n");
+		sysfatal("bopen %r");
 
 	fmtinstall('L', BLfmt);
 	fmtinstall('B', BLfmt);

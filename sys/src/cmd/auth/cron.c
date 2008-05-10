@@ -121,25 +121,26 @@ openlock(char *file)
 static int
 mklock(char *file)
 {
-	int fd;
+	int fd, try;
 	Dir *dir;
 
 	fd = openlock(file);
-	if (fd < 0)
-		return -1;
+	if (fd >= 0) {
+		/* make it a lock file if it wasn't */
+		dir = dirfstat(fd);
+		if (dir == nil)
+			error("%s vanished: %r", file);
+		dir->mode |= DMEXCL;
+		dir->qid.type |= QTEXCL;
+		dirfwstat(fd, dir);
+		free(dir);
 
-	/* make it a lock file if it wasn't */
-	dir = dirfstat(fd);
-	if (dir == nil)
-		error("%s vanished: %r", file);
-	dir->mode |= DMEXCL;
-	dir->qid.type |= QTEXCL;
-	dirfwstat(fd, dir);
-	free(dir);
-
-	/* reopen in case it wasn't a lock file at last open */
-	close(fd);
-	return openlock(file);
+		/* reopen in case it wasn't a lock file at last open */
+		close(fd);
+	}
+	for (try = 0; try < 65 && (fd = openlock(file)) < 0; try++)
+		sleep(10*1000);
+	return fd;
 }
 
 void
@@ -170,13 +171,6 @@ main(int argc, char *argv[])
 	}
 
 	initcap();		/* do this early, before cpurc removes it */
-	/*
-	 * it can take a few minutes before the file server notices that
-	 * we've rebooted.
-	 */
-//	lock = mklock("/cron/lock");
-//	if (lock < 0)
-//		fatal("cron already running: %r");
 
 	switch(fork()){
 	case -1:
@@ -186,6 +180,14 @@ main(int argc, char *argv[])
 	default:
 		exits(0);
 	}
+
+	/*
+	 * it can take a few minutes before the file server notices that
+	 * we've rebooted and gives up the lock.
+	 */
+	lock = mklock("/cron/lock");
+	if (lock < 0)
+		fatal("cron already running: %r");
 
 	argv0 = "cron";
 	srand(getpid()*time(0));

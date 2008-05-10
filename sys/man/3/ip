@@ -149,8 +149,10 @@ Disassociate the physical device from an IP interface.
 .BI try\  "local mask remote mtu " proxy
 .PD
 Add a local IP address to the interface.
-.I try
-adds the local address as a tentative address
+.I Try
+adds the
+.I local
+address as a tentative address
 if it's an IPv6 address.
 The
 .IR mask ,
@@ -158,14 +160,23 @@ The
 .IR mtu ,
 and
 .B proxy
-arguments are all optional.  The default mask is
-the class mask for the local address.  The default
-remote address is
+arguments are all optional.
+The default
+.I mask
+is the class mask for the local address.
+The default
+.I remote
+address is
 .I local
 ANDed with
 .IR mask .
-The default mtu is 1514 for Ethernet and 4096 for packet
-media.
+The default
+.I mtu
+(maximum transmission unit)
+is 1514 for Ethernet and 4096 for packet media.
+The
+.I mtu
+is the size in bytes of the largest packet that this interface can send.
 .IR Proxy ,
 if specified, means that this machine should answer
 ARP requests for the remote address.

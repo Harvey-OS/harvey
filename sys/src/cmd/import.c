@@ -172,7 +172,7 @@ main(int argc, char **argv)
 	}
 
 	if (encproto == Enctls)
-		sysfatal("%s: tls has not yet been implemented\n", argv[0]);
+		sysfatal("%s: tls has not yet been implemented", argv[0]);
 
 	notify(catcher);
 	alarm(60*1000);
@@ -376,11 +376,11 @@ filter(int fd, char *cmd, char *host)
 	char *argv[16], *file, *pbuf;
 
 	if ((len = read(fd, newport, sizeof newport - 1)) < 0)
-		sysfatal("filter: cannot write port; %r\n");
+		sysfatal("filter: cannot write port; %r");
 	newport[len] = '\0';
 
 	if ((s = strchr(newport, '!')) == nil)
-		sysfatal("filter: illegally formatted port %s\n", newport);
+		sysfatal("filter: illegally formatted port %s", newport);
 
 	strecpy(buf, buf+sizeof buf, netmkaddr(host, "tcp", "0"));
 	pbuf = strrchr(buf, '!');

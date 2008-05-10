@@ -88,7 +88,7 @@ threadmain(int argc, char **argv)
 	if(argc)
 		usage();
 	if(access("/dev/usb0", 0) < 0 && bind("#U", "/dev", MBEFORE) < 0)
-		sysfatal("%s: can't bind -b #U /dev: %r\n", argv0);
+		sysfatal("%s: can't bind -b #U /dev: %r", argv0);
 
 	usbfmtinit();
 	fmtinstall('H', Hfmt);

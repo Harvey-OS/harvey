@@ -79,14 +79,14 @@ main(int argc, char *argv[])
 	crctab = mkcrctab(ZCrcPoly);
 	err = deflateinit();
 	if(err != FlateOk)
-		sysfatal("deflateinit failed: %s\n", flateerr(err));
+		sysfatal("deflateinit failed: %s", flateerr(err));
 
 	if(zfile == nil)
 		fd = 1;
 	else{
 		fd = create(zfile, OWRITE, 0664);
 		if(fd < 0)
-			sysfatal("can't create %s: %r\n", zfile);
+			sysfatal("can't create %s: %r", zfile);
 	}
 	Binit(&bout, fd, OWRITE);
 

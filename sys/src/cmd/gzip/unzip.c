@@ -106,7 +106,7 @@ main(int argc, char *argv[])
 	crctab = mkcrctab(ZCrcPoly);
 	ok = inflateinit();
 	if(ok != FlateOk)
-		sysfatal("inflateinit failed: %s\n", flateerr(ok));
+		sysfatal("inflateinit failed: %s", flateerr(ok));
 
 	if(zfile == nil){
 		Binit(&bin, 0, OREAD);

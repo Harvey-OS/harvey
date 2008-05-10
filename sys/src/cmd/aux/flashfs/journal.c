@@ -73,7 +73,7 @@ now(void)
 static void
 damaged(char *mesg)
 {
-	sysfatal("damaged filesystem: %s\n", mesg);
+	sysfatal("damaged filesystem: %s", mesg);
 }
 
 static void

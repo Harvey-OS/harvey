@@ -470,6 +470,19 @@ console(Fs* fs, char *name, char *dev, int speed, int cronly, int ondemand)
 			return;
 		}
 	}
+#ifdef sapedoesntlikethis
+	/*
+	 * The code below prevents this from working.  I can't
+	 * think of scenarios where the code below actually helps
+	 *	Sape
+	 *
+	 * console=borneo dev=/dev/eia1
+	 * 	speed=9600
+	 * 	openondemand=1
+	 * console=tottie dev=/dev/eia1
+	 * 	speed=115200
+	 * 	openondemand=1
+	 */
 	for(i = 0; i < fs->ncons; i++){
 		c = fs->cons[i];
 		if(strcmp(dev, c->dev) == 0){
@@ -481,7 +494,7 @@ console(Fs* fs, char *name, char *dev, int speed, int cronly, int ondemand)
 			return;
 		}
 	}
-
+#endif
 	c = emalloc(sizeof(Console));
 	fs->cons[fs->ncons] = c;
 	fs->ncons++;

@@ -49,7 +49,7 @@ emalloc(ulong sz)
 
 	v = malloc(sz);
 	if(v == nil)
-		sysfatal("malloc %lud fails\n", sz);
+		sysfatal("malloc %lud fails", sz);
 	memset(v, 0, sz);
 	return v;
 }

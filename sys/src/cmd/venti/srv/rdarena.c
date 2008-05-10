@@ -92,5 +92,5 @@ threadmain(int argc, char *argv[])
 		}
 	}
 
-	sysfatal("couldn't find arena %s\n", aname);
+	sysfatal("couldn't find arena %s", aname);
 }

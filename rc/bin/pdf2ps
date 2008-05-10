@@ -1,5 +1,5 @@
 #!/bin/rc
-
+# pdf2ps [gs-options] [input.pdf] [output.ps] - generate PS from PDF
 rfork e
 
 fn cleanup { }

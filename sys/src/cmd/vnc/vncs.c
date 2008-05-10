@@ -176,7 +176,7 @@ main(int argc, char **argv)
 	/* start screen */
 	initcompat();
 	if(waserror())
-		sysfatal("screeninit %dx%d %s: %s\n", w, h, pixchan, up->error);
+		sysfatal("screeninit %dx%d %s: %s", w, h, pixchan, up->error);
 	if(verbose)
 		fprint(2, "geometry is %dx%d\n", w, h);
 	screeninit(w, h, pixchan);

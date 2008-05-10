@@ -108,7 +108,7 @@ readkbd(Vnc *v)
 		while(!fullrune(k, kn)){
 			kr = read(fd, k+kn, sizeof k - kn);
 			if(kr <= 0)
-				sysfatal("bad read from kbd\n");
+				sysfatal("bad read from kbd");
 			kn += kr;
 		}
 		w = chartorune(&r, k);

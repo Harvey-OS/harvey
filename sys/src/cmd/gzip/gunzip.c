@@ -73,7 +73,7 @@ main(int argc, char *argv[])
 	crctab = mkcrctab(GZCRCPOLY);
 	ok = inflateinit();
 	if(ok != FlateOk)
-		sysfatal("inflateinit failed: %s\n", flateerr(ok));
+		sysfatal("inflateinit failed: %s", flateerr(ok));
 
 	if(argc == 0){
 		Binit(&bin, 0, OREAD);

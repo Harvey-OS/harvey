@@ -41,13 +41,6 @@ if (! test -e /mnt/playlist){
 	}
 	if (! mount -b /srv/playlist.$sname /mnt >/dev/null >[2]/dev/null){
 		rm -f /srv/playlist.$sname
-		if (! test -e /sys/lib/music/classic){
-			if (! ~ $debug '0') echo connecting to choline
-			if (! test -e /n/choline/lib/audio)
-				9fs choline
-			if (! bind -a /n/choline/lib/audio /sys/lib/music)
-				exit choline
-		}
 		if (! ~ $debug '0') echo starting playlistfs
 		games/playlistfs -s $sname -d $debug
 	}

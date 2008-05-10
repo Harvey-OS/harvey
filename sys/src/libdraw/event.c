@@ -10,7 +10,7 @@ typedef struct	Ebuf Ebuf;
 struct Slave
 {
 	int	pid;
-	Ebuf	*head;		/* ueue of messages for this descriptor */
+	Ebuf	*head;		/* queue of messages for this descriptor */
 	Ebuf	*tail;
 	int	(*fn)(int, Event*, uchar*, int);
 };
@@ -31,10 +31,12 @@ static	int	logfid;
 static	int	nslave;
 static	int	parentpid;
 static	int	epipe[2];
+
 static	int	eforkslave(ulong);
 static	void	extract(void);
 static	void	ekill(void);
 static	int	enote(void *, char *);
+
 static	int	mousefd;
 static	int	cursorfd;
 

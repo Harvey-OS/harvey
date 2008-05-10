@@ -56,7 +56,7 @@ enum {
 
 	Nblock = 40,		/* maximum blocksize */
 	Dblock = 20,		/* default blocksize */
-	DEBUG = 0,
+	Debug = 0,
 };
 
 /* POSIX link flags */
@@ -126,6 +126,7 @@ typedef struct {
 #define OTHER(rdwr) (rdwr == Rd? Wr: Rd)
 
 static int debug;
+static int fixednblock;
 static int verb;
 static int posix = 1;
 static int docreate;
@@ -311,20 +312,17 @@ refill(int ar, char *bufs, int justhdr)
 	if (done)
 		return nil;
 
-	if (first)
-		seekable = seek(ar, 0, 1) >= 0;
 	blkoff = seek(ar, 0, 1);		/* note position for `tar r' */
+	if (first)
+		seekable = blkoff >= 0;
 	/* try to size non-pipe input at first read */
-	if (first && usefile) {
+	if (first && usefile && !fixednblock) {
 		n = eread(arname, ar, bufs, bytes);
 		if (n == 0)
 			sysfatal("EOF reading archive: %r");
 		i = n;
-		if (i % Tblock != 0) {
-			fprint(2, "%s: archive block size (%d) error\n",
-				argv0, i);
-			exits("blocksize");
-		}
+		if (i % Tblock != 0)
+			sysfatal("archive block size (%d) error", i);
 		i /= Tblock;
 		if (i != nblock) {
 			nblock = i;
@@ -332,7 +330,7 @@ refill(int ar, char *bufs, int justhdr)
 			endblk = (Hdr *)bufs + nblock;
 			bytes = n;
 		}
-	} else if (justhdr && seekable && nexthdr - seek(ar, 0, 1) >= bytes) {
+	} else if (justhdr && seekable && nexthdr - blkoff >= bytes) {
 		/* optimisation for huge archive members on seekable media */
 		if (seek(ar, bytes, 1) < 0)
 			sysfatal("can't seek on archive: %r");
@@ -343,7 +341,7 @@ refill(int ar, char *bufs, int justhdr)
 
 	if (n == 0)
 		sysfatal("unexpected EOF reading archive");
-	if (n%Tblock != 0)
+	if (n % Tblock != 0)
 		sysfatal("partial block read from archive");
 	if (n != bytes) {
 		done = 1;
@@ -717,7 +715,7 @@ addtreetoar(int ar, char *file, char *shortf, int fd)
 
 	if (chdir(shortf) < 0)
 		sysfatal("chdir %s: %r", file);
-	if (DEBUG)
+	if (Debug)
 		fprint(2, "chdir %s\t# %s\n", shortf, file);
 
 	for (dent = dirents; dent < dirents + n; dent++) {
@@ -738,7 +736,7 @@ addtreetoar(int ar, char *file, char *shortf, int fd)
 	 */
 	if (chdir("..") < 0)
 		sysfatal("chdir %s/..: %r", file);
-	if (DEBUG)
+	if (Debug)
 		fprint(2, "chdir ..\n");
 }
 
@@ -759,6 +757,8 @@ addtoar(int ar, char *file, char *shortf)
 		shortf = s_to_c(name);
 	}
 
+	if (Debug)
+		fprint(2, "opening %s	# %s\n", shortf, file);
 	fd = open(shortf, OREAD);
 	if (fd < 0) {
 		fprint(2, "%s: can't open %s: %r\n", argv0, file);
@@ -771,7 +771,7 @@ addtoar(int ar, char *file, char *shortf)
 		sysfatal("can't fstat %s: %r", file);
 
 	hbp = getblkz(ar);
-	isdir = !!(dir->qid.type&QTDIR);
+	isdir = (dir->qid.type & QTDIR) != 0;
 	if (mkhdr(hbp, dir, file) < 0) {
 		putbackblk(ar);
 		free(dir);

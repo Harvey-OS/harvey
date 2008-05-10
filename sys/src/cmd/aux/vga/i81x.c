@@ -111,7 +111,7 @@ i81xdclk(I81x *i81x, Vga *vga)		/* freq = MHz */
 
 	freq = vga->mode->deffrequency/1000000.0;
 	if (freq == 0)
-		sysfatal("i81xdclk: deffrequency %d becomes freq 0.0\n",
+		sysfatal("i81xdclk: deffrequency %d becomes freq 0.0",
 			vga->mode->deffrequency);
 	post = log(600.0/freq)/log(2.0);
 

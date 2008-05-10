@@ -13,6 +13,10 @@
 #include <libc.h>
 #include <disk.h>
 
+enum {
+	Readtoc	= 0x43,
+};
+
 int scsiverbose;
 
 #define codefile "/sys/lib/scsicodes"
@@ -116,7 +120,9 @@ _scsicmd(Scsi *s, uchar *cmd, int ccount, void *data, int dcount, int io, int do
 	switch(io){
 	case Sread:
 		n = read(s->rawfd, data, dcount);
-		if(n < 0 && scsiverbose)
+		/* read toc errors are frequent and not very interesting */
+		if(n < 0 && (scsiverbose == 1 ||
+		    scsiverbose == 2 && cmd[0] != Readtoc))
 			fprint(2, "dat read: %r: cmd 0x%2.2uX\n", cmd[0]);
 		break;
 	case Swrite:
@@ -239,7 +245,8 @@ scsi(Scsi *s, uchar *cmd, int ccount, void *v, int dcount, int io)
 			qunlock(s);
 			return dcount;
 		}
-		if(code == 0x28 && cmd[0] == 0x43) {	/* get info and media changed */
+		if(code == 0x28 && cmd[0] == Readtoc) {
+			/* read toc and media changed */
 			s->nchange++;
 			s->changetime = time(0);
 			continue;
@@ -247,14 +254,14 @@ scsi(Scsi *s, uchar *cmd, int ccount, void *v, int dcount, int io)
 	}
 
 	/* drive not ready, or medium not present */
-	if(cmd[0] == 0x43 && key == 2 && (code == 0x3a || code == 0x04)) {
+	if(cmd[0] == Readtoc && key == 2 && (code == 0x3a || code == 0x04)) {
 		s->changetime = 0;
 		qunlock(s);
 		return -1;
 	}
 	qunlock(s);
 
-	if(cmd[0] == 0x43 && key == 5 && code == 0x24)	/* blank media */
+	if(cmd[0] == Readtoc && key == 5 && code == 0x24) /* blank media */
 		return -1;
 
 	p = scsierror(code, sense[13]);
@@ -262,7 +269,8 @@ scsi(Scsi *s, uchar *cmd, int ccount, void *v, int dcount, int io)
 	werrstr("cmd #%.2ux: %s", cmd[0], p);
 
 	if(scsiverbose)
-		fprint(2, "scsi cmd #%.2ux: %.2ux %.2ux %.2ux: %s\n", cmd[0], key, code, sense[13], p);
+		fprint(2, "scsi cmd #%.2ux: %.2ux %.2ux %.2ux: %s\n",
+			cmd[0], key, code, sense[13], p);
 
 //	if(key == 0)
 //		return dcount;

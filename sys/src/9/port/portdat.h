@@ -135,6 +135,7 @@ enum
 
 struct Block
 {
+	long	ref;
 	Block*	next;
 	Block*	list;
 	uchar*	rp;			/* first unconsumed byte */

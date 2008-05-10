@@ -2593,10 +2593,10 @@ connect(int fd, int cfd)
 					print("response %s\n", response);
 
 				if (nb == 0)
-					sysfatal("eof on input?\n");
+					sysfatal("eof on input?");
 
 				if (cistrstr(response, _args[1]) == nil)
-					sysfatal("expected %s, got %s\n", _args[1], response);
+					sysfatal("expected %s, got %s", _args[1], response);
 			}
 			p = s;
 		}
