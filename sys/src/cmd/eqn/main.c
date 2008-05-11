@@ -4,7 +4,7 @@
 
 char *version = "version Oct 24, 1991";
 
-char	in[MAXLINE];	/* input buffer */
+char	in[MAXLINE+1];	/* input buffer */
 int	noeqn;
 char	*cmdname;
 

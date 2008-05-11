@@ -24,7 +24,7 @@ Type floppytype[] =
  { "3½QD",	512, 36, 2, 80, 0xf9, 2, },	/* invented */
  { "5¼HD",	512, 15,  2, 80, 0xf9, 1, },
  { "5¼DD",	512,  9,  2, 40, 0xfd, 2, },
- { "hard",		512,  0,  0, 0, 0xf8, 4, },
+ { "hard",	512,  0,  0, 0, 0xf8, 4, },
 };
 
 #define NTYPES (sizeof(floppytype)/sizeof(Type))
@@ -140,12 +140,13 @@ enum
 void	dosfs(int, int, Disk*, char*, int, char*[], int);
 ulong	clustalloc(int);
 void	addrname(uchar*, Dir*, char*, ulong);
-void sanitycheck(Disk*);
+void	sanitycheck(Disk*);
 
 void
 usage(void)
 {
-	fprint(2, "usage: disk/format [-df] [-b bootblock] [-c csize] [-l label] [-r nresrv] [-t type] disk [files ...]\n");
+	fprint(2, "usage: disk/format [-df] [-b bootblock] [-c csize] "
+		"[-l label] [-r nresrv] [-t type] disk [files ...]\n");
 	exits("usage");
 }
 
@@ -167,10 +168,8 @@ fatal(char *fmt, ...)
 void
 main(int argc, char **argv)
 {
-	int n, writepbs;
-	int fd;
-	char buf[512];
-	char label[11];
+	int fd, n, writepbs;
+	char buf[512], label[11];
 	char *a;
 	Disk *disk;
 
@@ -180,8 +179,12 @@ main(int argc, char **argv)
 	writepbs = 0;
 	memmove(label, "CYLINDRICAL", sizeof(label));
 	ARGBEGIN {
+	case 'b':
+		pbs = EARGF(usage());
+		writepbs = 1;
+		break;
 	case 'c':
-		clustersize = atoi(ARGF());
+		clustersize = atoi(EARGF(usage()));
 		break;
 	case 'd':
 		dos = 1;
@@ -191,7 +194,7 @@ main(int argc, char **argv)
 		fflag = 1;
 		break;
 	case 'l':
-		a = ARGF();
+		a = EARGF(usage());
 		n = strlen(a);
 		if(n > sizeof(label))
 			n = sizeof(label);
@@ -199,15 +202,11 @@ main(int argc, char **argv)
 		while(n < sizeof(label))
 			label[n++] = ' ';
 		break;
-	case 'b':
-		pbs = ARGF();
-		writepbs = 1;
-		break;
 	case 'r':
-		nresrv = atoi(ARGF());
+		nresrv = atoi(EARGF(usage()));
 		break;
 	case 't':
-		type = ARGF();
+		type = EARGF(usage());
 		break;
 	case 'v':
 		chatty++;
@@ -342,7 +341,8 @@ getdriveno(Disk *disk)
 		buf[1] = '/';
 
 	for(p=buf; *p; p++)
-		if(p[0] == 's' && p[1] == 'd' && (p[2]=='C' || p[2]=='D') && (p[3]=='0' || p[3]=='1'))
+		if(p[0] == 's' && p[1] == 'd' && (p[2]=='C' || p[2]=='D') &&
+		    (p[3]=='0' || p[3]=='1'))
 			return 0x80 + (p[2]-'C')*2 + (p[3]-'0');
 		
 	return 0x80;
@@ -351,10 +351,9 @@ getdriveno(Disk *disk)
 long
 writen(int fd, void *buf, long n)
 {
-	/* write 8k at a time, to be nice to the disk subsystem */
-	
 	long m, tot;
 
+	/* write 8k at a time, to be nice to the disk subsystem */
 	for(tot=0; tot<n; tot+=m){
 		m = n - tot;
 		if(m > 8192)
@@ -374,8 +373,7 @@ dosfs(int dofat, int dopbs, Disk *disk, char *label, int argc, char *argv[], int
 	Dir *d;
 	int i, data, newclusters, npbs, n, sysfd;
 	ulong x;
-	vlong length;
-	vlong secsize;
+	vlong length, secsize;
 
 	if(dofat == 0 && dopbs == 0)
 		return;
