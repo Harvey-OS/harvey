@@ -351,8 +351,10 @@ skipextension(Header *h)
 	if(hsize>0 && Bread(h->fd, h->buf, hsize) != hsize)
 		giferror(h, extreaderr);
 	if(!hasdata){
-		if(h->buf[hsize-1] != 0)
-			giferror(h, "ReadGIF: bad extension format");
+		/*
+		 * This code used to check h->buf[hsize-1] != 0
+		 * and giferror if so, but if !hasdata, hsize == 0.
+		 */
 		return;
 	}
 
