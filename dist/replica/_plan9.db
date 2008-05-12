@@ -211,7 +211,7 @@
 386/bin/disk/dump9660 - 775 sys sys 1210392652 156447
 386/bin/disk/exsort - 775 sys sys 1168402301 60455
 386/bin/disk/fdisk - 775 sys sys 1210392655 104646
-386/bin/disk/format - 775 sys sys 1209614254 89451
+386/bin/disk/format - 775 sys sys 1210476117 89562
 386/bin/disk/kfs - 775 sys sys 1210392660 248895
 386/bin/disk/kfscmd - 775 sys sys 1148500626 38257
 386/bin/disk/ksync - 775 sys sys 1020319074 302
@@ -228,7 +228,7 @@
 386/bin/echo - 775 sys sys 1168402304 57592
 386/bin/ecp - 775 sys sys 1179777651 72588
 386/bin/ed - 775 sys sys 1209614267 93474
-386/bin/eqn - 775 sys sys 1184529901 244950
+386/bin/eqn - 775 sys sys 1210476122 244950
 386/bin/execnet - 775 sys sys 1210392671 176948
 386/bin/exportfs - 775 sys sys 1210392675 162218
 386/bin/ext2srv - 775 sys sys 1210392679 178650
@@ -246,13 +246,13 @@
 386/bin/fossil/last - 775 sys sys 1168402310 63550
 386/bin/freq - 775 sys sys 1209614292 61981
 386/bin/fs - 20000000775 sys sys 954380769 0
-386/bin/fs/32vfs - 775 sys sys 1209614294 94168
+386/bin/fs/32vfs - 775 sys sys 1210476124 94168
 386/bin/fs/cpiofs - 775 sys sys 1209614296 92928
 386/bin/fs/tapfs - 775 sys sys 1209614297 95290
 386/bin/fs/tarfs - 775 sys sys 1209614298 96293
 386/bin/fs/tpfs - 775 sys sys 1209614300 92481
-386/bin/fs/v10fs - 775 sys sys 1209614302 94808
-386/bin/fs/v6fs - 775 sys sys 1209614304 93892
+386/bin/fs/v10fs - 775 sys sys 1210476126 94808
+386/bin/fs/v6fs - 775 sys sys 1210476128 93892
 386/bin/fs/zipfs - 775 sys sys 1209614306 108455
 386/bin/ftpfs - 775 sys sys 1210392701 274992
 386/bin/games - 20000000775 sys sys 1096298711 0
@@ -270,7 +270,7 @@
 386/bin/games/sokoban - 775 sys sys 1210392732 165699
 386/bin/games/sudoku - 775 sys sys 1210392735 171200
 386/bin/getmap - 775 sys sys 1168402311 65423
-386/bin/gif - 775 sys sys 1210392740 158772
+386/bin/gif - 775 sys sys 1210476130 158695
 386/bin/grap - 775 sys sys 1193771861 282792
 386/bin/graph - 775 sys sys 1210392743 129377
 386/bin/grep - 775 sys sys 1209614327 79510
@@ -448,7 +448,7 @@
 386/bin/tprof - 775 sys sys 1209614681 300993
 386/bin/tr - 775 sys sys 1168402355 62088
 386/bin/trace - 775 sys sys 1210392999 180686
-386/bin/troff - 775 sys sys 1178853709 361158
+386/bin/troff - 775 sys sys 1210476137 361158
 386/bin/troff2html - 775 sys sys 1209614684 84535
 386/bin/tweak - 775 sys sys 1210393003 193489
 386/bin/unicode - 775 sys sys 1209614690 62688
@@ -14729,8 +14729,8 @@ sys/src/games/sokoban/graphics.c - 664 sys sys 1095792097 1846
 sys/src/games/sokoban/level.c - 664 sys sys 1095792097 1654
 sys/src/games/sokoban/mkfile - 664 sys sys 1125976294 261
 sys/src/games/sokoban/move.c - 664 sys sys 1095792097 2671
-sys/src/games/sokoban/route.c - 664 sys sys 1125919542 4486
-sys/src/games/sokoban/sokoban.c - 664 sys sys 1125919542 6358
+sys/src/games/sokoban/route.c - 664 sys sys 1210538927 4389
+sys/src/games/sokoban/sokoban.c - 664 sys sys 1210538907 6225
 sys/src/games/sokoban/sokoban.h - 664 sys sys 1125919542 2062
 sys/src/games/sudoku - 20000000775 sys sys 1117226433 0
 sys/src/games/sudoku/game.c - 664 sys sys 1117226433 7788
@@ -15892,10 +15892,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/eqn - 775 sys sys 1210476122 244950
-386/bin/fs/32vfs - 775 sys sys 1210476124 94168
-386/bin/fs/v10fs - 775 sys sys 1210476126 94808
-386/bin/fs/v6fs - 775 sys sys 1210476128 93892
-386/bin/gif - 775 sys sys 1210476130 158695
-386/bin/disk/format - 775 sys sys 1210476117 89562
-386/bin/troff - 775 sys sys 1210476137 361158

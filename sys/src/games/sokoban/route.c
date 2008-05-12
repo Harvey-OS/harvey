@@ -73,8 +73,8 @@ isvalid(Point s, Route* r, int (*isallowed)(Point, Step*, Point*))
 		return 0;
 
 	m = s;
-	for (p=r->step; p < r->step +r->nstep; p++)
-		if (! isallowed(m, p, &m))
+	for (p = r->step; p < r->step + r->nstep; p++)
+		if (!isallowed(m, p, &m))
 			return 0;
 	return 1;
 }
@@ -84,10 +84,9 @@ newwalk(void)
 {
 	Walk *w;
 
-	w = malloc(sizeof(Walk));
-	if (w->route == nil)
+	w = mallocz(sizeof *w, 1);
+	if (w == nil)
 		sysfatal("cannot allocate walk");
-	memset(w, 0, sizeof(Walk));
 	return w;
 }
 
@@ -137,8 +136,7 @@ freeroute(Route *r)
 {
 	if (r == nil)
 		return;
-	if (r->step != nil)
-		free(r->step);
+	free(r->step);
 	free(r);
 }
 
@@ -147,12 +145,9 @@ extend(Route *rr, int dir, int count, Point dest)
 {
 	Route *r;
 
-	r = malloc(sizeof(Route));
+	r = mallocz(sizeof *r, 1);
 	if (r == nil)
 		sysfatal("cannot allocate route in extend");
-
-	memset(r, 0, sizeof(Route));
-
 	r->dest = dest;
 
 	if (count > 0) {
@@ -176,9 +171,8 @@ extend(Route *rr, int dir, int count, Point dest)
 static Step*
 laststep(Route*r)
 {
-	if (r != nil && r->nstep > 0) {
+	if (r != nil && r->nstep > 0)
 		return &r->step[r->nstep-1];
-	}
 	return nil;
 }
 
@@ -213,8 +207,7 @@ bfstrydir(Route *r, int dir, Visited *v)
 	p = dir2point(dir);
 	n = addpt(m, p);
 
-	if (ptinrect(n, Rpt(Pt(0,0), level.max)) &&
-	    v->board[n.x][n.y] == 0) {
+	if (ptinrect(n, Rpt(Pt(0,0), level.max)) && v->board[n.x][n.y] == 0) {
 		v->board[n.x][n.y] = 1;
 		switch (level.board[n.x][n.y]) {
 		case Empty:
