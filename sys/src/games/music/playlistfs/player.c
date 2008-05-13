@@ -281,9 +281,7 @@ pcmproc(void*)
 	 */
 	threadsetname("pcmproc");
 	close(srvfd[1]);
-	fd = open("/dev/audio", OWRITE);
-	if (fd < 0)
-		sysfatal("/dev/audio: %r");
+	fd = -1;
 	localstate.cmd = 0;	/* Force initial playupdate */
 	newstate.cmd = Stop;
 	newstate.off = 0;
@@ -312,6 +310,10 @@ pcmproc(void*)
 			case Pause:
 				a[1].op = CHANNOP;
 				newstate.cmd = Pause;
+				if(fd >= 0){
+					close(fd);
+					fd = -1;
+				}
 				break;
 			case Stop:
 				/* Dump all data in the buffer */
@@ -323,6 +325,10 @@ pcmproc(void*)
 						sendp(empty, b);
 				newstate.m = pb->m;
 				a[1].op = CHANRCV;
+				if(fd >= 0){
+					close(fd);
+					fd = -1;
+				}
 				break;
 			case Skip:
 				/* Dump all data in the buffer, then fall through */
@@ -363,6 +369,16 @@ pcmproc(void*)
 				sendp(spare, pb);
 				break;
 			case Play:
+				if(fd < 0 && (fd = open("/dev/audio", OWRITE)) < 0){
+					a[1].op = CHANNOP;
+					newstate.cmd = Pause;
+					pb->cmd = Error;
+					snprint(pb->data, sizeof(pb->data),
+						"/dev/audio: %r");
+					playupdate(pb->Pmsg, pb->data);
+					sendp(empty, pb);
+					break;
+				}
 				/* play out this buffer */
 				totbytes += pb->len;
 				totbuffers++;

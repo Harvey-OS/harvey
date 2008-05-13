@@ -168,7 +168,8 @@ findrule(String *addrp, int authorized)
 			continue;
 		memset(rp->subexp, 0, sizeof(rp->subexp));
 		if(debug)
-			print("matching %s aginst %s\n", s_to_c(addrp), rp->matchre->base);
+			print("matching %s against %s\n", s_to_c(addrp),
+				rp->matchre->base);
 		if(regexec(rp->program, s_to_c(addrp), rp->subexp, NSUBEXP))
 		if(s_to_c(addrp) == rp->subexp[0].sp)
 		if((s_to_c(addrp) + strlen(s_to_c(addrp))) == rp->subexp[0].ep)

@@ -307,10 +307,13 @@ isalnum(Rune c)
 	 * Hard to get absolutely right.  Use what we know about ASCII
 	 * and assume anything above the Latin control characters is
 	 * potentially an alphanumeric.
+	 *
+	 * Treat 0xA0 (non-breaking space) as a special alphanumeric
+	 * character [sape]
 	 */
 	if(c <= ' ')
 		return FALSE;
-	if(0x7F<=c && c<=0xA0)
+	if(0x7F<=c && c<0xA0)
 		return FALSE;
 	if(utfrune("!\"#$%&'()*+,-./:;<=>?@[\\]^`{|}~", c))
 		return FALSE;
