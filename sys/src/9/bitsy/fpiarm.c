@@ -442,6 +442,85 @@ fpemu(ulong pc, ulong op, Ureg *ur, FPsave *ufp)
 	}
 }
 
+void
+casemu(ulong pc, ulong op, Ureg *ur)
+{
+	ulong *rp, ro, rn, *rd;
+
+	USED(pc);
+
+	rp = (ulong*)ur;
+	ro = rp[op>>16 & 0x7];
+	rn = rp[op>>0 & 0x7];
+	rd = rp + (op>>12 & 0x7);
+	rp = (ulong*)*rd;
+	validaddr((ulong)rp, 4, 1);
+	splhi();
+	if(*rd = (*rp == ro))
+		*rp = rn;
+	spllo();
+}
+
+int ldrexvalid;
+
+void
+ldrex(ulong pc, ulong op, Ureg *ur)
+{
+	ulong *rp, *rd, *addr;
+
+	USED(pc);
+
+	rp = (ulong*)ur;
+	rd = rp + (op>>16 & 0x7);
+	addr = (ulong*)*rd;
+	validaddr((ulong)addr, 4, 0);
+	ldrexvalid = 1;
+	rp[op>>12 & 0x7] = *addr;
+	if(fpemudebug)
+		print("ldrex, r%ld = [r%ld]@0x%8.8p = 0x%8.8lux",
+			op>>12 & 0x7, op>>16 & 0x7, addr, rp[op>>12 & 0x7]);
+}
+
+void
+strex(ulong pc, ulong op, Ureg *ur)
+{
+	ulong *rp, rn, *rd, *addr;
+
+	USED(pc);
+
+	rp = (ulong*)ur;
+	rd = rp + (op>>16 & 0x7);
+	rn = rp[op>>0 & 0x7];
+	addr = (ulong*)*rd;
+	validaddr((ulong)addr, 4, 1);
+	splhi();
+	if(ldrexvalid){
+		if(fpemudebug)
+			print("strex valid, [r%ld]@0x%8.8p = r%ld = 0x%8.8lux",
+				op>>16 & 0x7, addr, op>>0 & 0x7, rn);
+		*addr = rn;
+		ldrexvalid = 0;
+		rp[op>>12 & 0x7] = 0;
+	}else{
+		if(fpemudebug)
+			print("strex invalid, r%ld = 1", op>>16 & 0x7);
+		rp[op>>12 & 0x7] = 1;
+	}
+	spllo();
+}
+
+struct {
+	ulong	opc;
+	ulong	mask;
+	void	(*f)(ulong, ulong, Ureg*);
+} specialopc[] = {
+	{ 0x01900f9f, 0x0ff00fff, ldrex },
+	{ 0x01800f90, 0x0ff00ff0, strex },
+	{ 0x0ed00100, 0x0ef08100, casemu },
+	{ 0x00000000, 0x00000000, nil }
+};
+
+
 /*
  * returns the number of FP instructions emulated
  */
@@ -450,7 +529,7 @@ fpiarm(Ureg *ur)
 {
 	ulong op, o;
 	FPsave *ufp;
-	int n;
+	int i, n;
 
 	if (up == nil)
 		panic("fpiarm not in a process");
@@ -472,10 +551,18 @@ fpiarm(Ureg *ur)
 		validaddr(ur->pc, 4, 0);
 		op = *(ulong*)(ur->pc);
 		o = (op>>24) & 0xF;
-		if(((op>>8) & 0xF) != 1 || o != 0xE && (o&~1) != 0xC)
+		if(condok(ur->psr, op>>28)){
+			for(i = 0; specialopc[i].f; i++)
+				if((op & specialopc[i].mask) == specialopc[i].opc)
+					break;
+			if(specialopc[i].f)
+				specialopc[i].f(ur->pc, op, ur);
+			else if((op & 0xF00) != 0x100 || o != 0xE && (o&~1) != 0xC)
+				break;
+			else
+				fpemu(ur->pc, op, ur, ufp);
+		}else if((op & 0xF00) != 0x100 || o != 0xE && (o&~1) != 0xC)
 			break;
-		if(condok(ur->psr, op>>28))
-			fpemu(ur->pc, op, ur, ufp);
 		ur->pc += 4;
 	}
 	if(fpemudebug) print("\n");

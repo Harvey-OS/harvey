@@ -267,7 +267,7 @@
 386/bin/games/mp3dec - 775 sys sys 1198183090 388585
 386/bin/games/mp3enc - 775 sys sys 1196220182 530357
 386/bin/games/playlistfs - 775 sys sys 1196742488 148960
-386/bin/games/sokoban - 775 sys sys 1210392732 165699
+386/bin/games/sokoban - 775 sys sys 1210563675 165646
 386/bin/games/sudoku - 775 sys sys 1210392735 171200
 386/bin/getmap - 775 sys sys 1168402311 65423
 386/bin/gif - 775 sys sys 1210476130 158695
@@ -903,12 +903,13 @@ dist - 20000000775 sys sys 1127243723 0
 dist/replica - 20000000775 sys sys 1195853927 0
 dist/replica/cd - 664 sys sys 1196638557 922
 dist/replica/kfs - 664 sys sys 1196638557 237
-dist/replica/network - 775 sys sys 1196638557 1075
+dist/replica/network - 775 sys sys 1210620438 1086
 dist/replica/plan9.proto - 664 sys sys 1196638558 2871
 env - 20000000775 sys sys 1104813586 0
 fd - 20000000775 sys sys 1020896384 0
 lib - 20000000775 sys sys 1161442421 0
 lib/areacodes - 664 sys sys 1208190057 26367
+lib/bunny.bit - 664 sys sys 1210619897 191872
 lib/cmap - 20000000775 sys sys 1039727323 0
 lib/cmap/5.oclock.shado - 664 sys sys 954523185 3872
 lib/cmap/559.56 - 664 sys sys 954523185 3344
@@ -7171,7 +7172,7 @@ sys/lib/tmac/tmac.pictures - 664 sys sys 944956203 4320
 sys/lib/tmac/tmac.psychrefs - 664 sys sys 944956203 608
 sys/lib/tmac/tmac.ptx - 664 sys sys 944956203 330
 sys/lib/tmac/tmac.rscover - 664 sys sys 944956203 2070
-sys/lib/tmac/tmac.s - 664 sys sys 1138396381 23086
+sys/lib/tmac/tmac.s - 664 sys sys 1210619960 23057
 sys/lib/tmac/tmac.scover - 664 sys sys 944956204 4616
 sys/lib/tmac/tmac.sdisp - 664 sys sys 944956204 864
 sys/lib/tmac/tmac.skeep - 664 sys sys 944956204 1346
@@ -7976,7 +7977,7 @@ sys/src/9/bitsy/etherwavelan.c - 664 sys sys 1071245513 870
 sys/src/9/bitsy/fns.h - 664 sys sys 1206317920 3052
 sys/src/9/bitsy/fpi.c - 664 sys sys 1017695513 5248
 sys/src/9/bitsy/fpi.h - 664 sys sys 1017695513 1679
-sys/src/9/bitsy/fpiarm.c - 664 sys sys 1173788243 9402
+sys/src/9/bitsy/fpiarm.c - 664 sys sys 1210622023 11058
 sys/src/9/bitsy/fpimem.c - 664 sys sys 1017695513 2229
 sys/src/9/bitsy/gamma.c - 664 sys sys 1017695513 646
 sys/src/9/bitsy/gamma.h - 664 sys sys 1017695514 540718
@@ -9508,7 +9509,7 @@ sys/src/cmd/acme/rows.c - 664 sys sys 1177527677 14708
 sys/src/cmd/acme/scrl.c - 664 sys sys 1111119426 2875
 sys/src/cmd/acme/text.c - 664 sys sys 1136064450 27870
 sys/src/cmd/acme/time.c - 664 sys sys 1014926095 1783
-sys/src/cmd/acme/util.c - 664 sys sys 1187899854 7994
+sys/src/cmd/acme/util.c - 664 sys sys 1210619998 8080
 sys/src/cmd/acme/wind.c - 664 sys sys 1122526112 11233
 sys/src/cmd/acme/xfid.c - 664 sys sys 1125314186 19766
 sys/src/cmd/aquarela - 20000000775 sys sys 1135892145 0
@@ -14256,7 +14257,7 @@ sys/src/cmd/upas/send/makefile - 664 sys sys 944961322 1247
 sys/src/cmd/upas/send/message.c - 664 sys sys 1143670612 11077
 sys/src/cmd/upas/send/mkfile - 664 sys sys 1064589602 706
 sys/src/cmd/upas/send/regtest.c - 664 sys sys 944961322 566
-sys/src/cmd/upas/send/rewrite.c - 664 sys sys 1132331205 6386
+sys/src/cmd/upas/send/rewrite.c - 664 sys sys 1210614801 6391
 sys/src/cmd/upas/send/send.h - 664 sys sys 1069366924 3265
 sys/src/cmd/upas/send/skipequiv.c - 664 sys sys 944961322 1747
 sys/src/cmd/upas/send/translate.c - 664 sys sys 944961322 804
@@ -14708,7 +14709,6 @@ sys/src/games/music/jukefs/print.h - 664 sys sys 1103793921 174
 sys/src/games/music/jukefs/search.c - 664 sys sys 1103793921 1058
 sys/src/games/music/jukefs/search.h - 664 sys sys 1103793921 101
 sys/src/games/music/jukefs/server.c - 664 sys sys 1113342063 3648
-sys/src/games/music/missing - 775 sys sys 1103793915 72
 sys/src/games/music/mkfile - 664 sys sys 1196736121 753
 sys/src/games/music/mkinc - 664 sys sys 1103793915 92
 sys/src/games/music/playlistfs - 20000000775 sys sys 1103794221 0
@@ -14717,7 +14717,7 @@ sys/src/games/music/playlistfs/fs.c - 664 sys sys 1111504109 17985
 sys/src/games/music/playlistfs/main.c - 664 sys sys 1103793922 1636
 sys/src/games/music/playlistfs/mk.dep - 664 sys sys 1103793923 594
 sys/src/games/music/playlistfs/mkfile - 664 sys sys 1103793923 187
-sys/src/games/music/playlistfs/player.c - 664 sys sys 1103793923 10228
+sys/src/games/music/playlistfs/player.c - 664 sys sys 1210620042 10541
 sys/src/games/music/playlistfs/playlist.h - 664 sys sys 1107436453 2579
 sys/src/games/music/playlistfs/playplumb.c - 664 sys sys 1103793924 280
 sys/src/games/music/playlistfs/volume.c - 664 sys sys 1103793924 2065
@@ -15018,6 +15018,7 @@ sys/src/libc/alpha/setjmp.s - 664 sys sys 944961723 271
 sys/src/libc/alpha/tas.s - 664 sys sys 944961723 196
 sys/src/libc/arm - 20000000775 sys sys 1132449120 0
 sys/src/libc/arm/argv0.s - 664 sys sys 1067719006 88
+sys/src/libc/arm/cas.s - 664 sys sys 1210620494 509
 sys/src/libc/arm/cycles.c - 664 sys sys 1067719006 71
 sys/src/libc/arm/div.s - 664 sys sys 944961713 1639
 sys/src/libc/arm/doprint.xc - 664 sys sys 944961713 8554
@@ -15027,7 +15028,7 @@ sys/src/libc/arm/main9.s - 664 sys sys 1067719007 489
 sys/src/libc/arm/main9p.s - 664 sys sys 1183607546 742
 sys/src/libc/arm/memmove.s - 664 sys sys 1183607546 4198
 sys/src/libc/arm/memset.s - 664 sys sys 1183607547 1002
-sys/src/libc/arm/mkfile - 664 sys sys 1183607636 401
+sys/src/libc/arm/mkfile - 664 sys sys 1210620494 409
 sys/src/libc/arm/notejmp.c - 664 sys sys 984709513 223
 sys/src/libc/arm/setjmp.s - 664 sys sys 984709513 367
 sys/src/libc/arm/strchr.s - 664 sys sys 984709513 841
@@ -15892,3 +15893,6 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/acme - 775 sys sys 1210648931 431948
+386/bin/games/playlistfs - 775 sys sys 1210648934 149337
+386/bin/upas/send - 775 sys sys 1210648938 192191
