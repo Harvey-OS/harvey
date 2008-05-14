@@ -19,7 +19,7 @@
 386/bin/9660srv - 775 sys sys 1208633111 105295
 386/bin/aan - 775 sys sys 1210392422 129981
 386/bin/acid - 775 sys sys 1209614047 405326
-386/bin/acme - 775 sys sys 1210392433 431948
+386/bin/acme - 775 sys sys 1210648931 431948
 386/bin/ape - 20000000775 sys sys 1016944144 0
 386/bin/ape/basename - 775 sys sys 1173754547 134719
 386/bin/ape/cc - 775 sys sys 1168402263 70642
@@ -266,7 +266,7 @@
 386/bin/games/memo - 775 sys sys 1210392726 156830
 386/bin/games/mp3dec - 775 sys sys 1198183090 388585
 386/bin/games/mp3enc - 775 sys sys 1196220182 530357
-386/bin/games/playlistfs - 775 sys sys 1196742488 148960
+386/bin/games/playlistfs - 775 sys sys 1210648934 149337
 386/bin/games/sokoban - 775 sys sys 1210563675 165646
 386/bin/games/sudoku - 775 sys sys 1210392735 171200
 386/bin/getmap - 775 sys sys 1168402311 65423
@@ -478,7 +478,7 @@
 386/bin/upas/ratfs - 775 sys sys 1209614758 111371
 386/bin/upas/runq - 775 sys sys 1209614760 112853
 386/bin/upas/scanmail - 775 sys sys 1209614764 128224
-386/bin/upas/send - 775 sys sys 1209614769 192191
+386/bin/upas/send - 775 sys sys 1210648938 192191
 386/bin/upas/smtp - 775 sys sys 1210393023 277548
 386/bin/upas/smtpd - 775 sys sys 1210393030 336053
 386/bin/upas/spam - 775 sys sys 1064598366 36
@@ -7172,7 +7172,7 @@ sys/lib/tmac/tmac.pictures - 664 sys sys 944956203 4320
 sys/lib/tmac/tmac.psychrefs - 664 sys sys 944956203 608
 sys/lib/tmac/tmac.ptx - 664 sys sys 944956203 330
 sys/lib/tmac/tmac.rscover - 664 sys sys 944956203 2070
-sys/lib/tmac/tmac.s - 664 sys sys 1210619960 23057
+sys/lib/tmac/tmac.s - 664 sys sys 1210711954 23080
 sys/lib/tmac/tmac.scover - 664 sys sys 944956204 4616
 sys/lib/tmac/tmac.sdisp - 664 sys sys 944956204 864
 sys/lib/tmac/tmac.skeep - 664 sys sys 944956204 1346
@@ -15893,6 +15893,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/acme - 775 sys sys 1210648931 431948
-386/bin/games/playlistfs - 775 sys sys 1210648934 149337
-386/bin/upas/send - 775 sys sys 1210648938 192191

@@ -833,9 +833,11 @@ Computing Science Technical Report No. \\*(MN
 .RS
 .br
 .nr v \\n(.v
+.nr i 2m
+.if \\n(.$ .nr i \\$1
+.\" .IP "" \\niu
+.LP
 .di p1
-.if \\n(.$ .IP "" \\$1
-.ie .IP "" 2m
 .nf
 .ps -\\n(XP
 .vs -\\n(XVu
@@ -852,8 +854,8 @@ Computing Science Technical Report No. \\*(MN
 .ft 1
 .di
 .br
-.sp \\n(DVu
-.br
+.\" .sp \\n(DVu
+.\" .br
 .if \\n(.$=0 .ne \\n(dnu  \" -\\n(DVu
 .nf
 .p1
