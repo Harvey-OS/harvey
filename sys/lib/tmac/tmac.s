@@ -830,14 +830,12 @@ Computing Science Technical Report No. \\*(MN
 .nr DV .5v	\" space before start of program
 .
 .de P1
-.RS
 .br
 .nr v \\n(.v
 .nr i 2m
 .if \\n(.$ .nr i \\$1
-.\" .IP "" \\niu
-.LP
 .di p1
+.in \\niu
 .nf
 .ps -\\n(XP
 .vs -\\n(XVu
@@ -854,12 +852,11 @@ Computing Science Technical Report No. \\*(MN
 .ft 1
 .di
 .br
-.\" .sp \\n(DVu
-.\" .br
+.sp \\n(DVu
+.RT
 .if \\n(.$=0 .ne \\n(dnu  \" -\\n(DVu
 .nf
 .p1
-.RE
 .sp \\n(DVu
 .RT
 ..
