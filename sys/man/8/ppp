@@ -269,6 +269,10 @@ of the received packets.  This is used for testing.
 .B /sys/src/cmd/ip/pptpd.c
 .br
 .B /sys/src/cmd/ip/pppoe.c
+.SH SEE ALSO
+.I gre
+in
+.IR ip (3)
 .SH BUGS
 .I Ppp
 should use factotum to execute

@@ -7172,7 +7172,7 @@ sys/lib/tmac/tmac.pictures - 664 sys sys 944956203 4320
 sys/lib/tmac/tmac.psychrefs - 664 sys sys 944956203 608
 sys/lib/tmac/tmac.ptx - 664 sys sys 944956203 330
 sys/lib/tmac/tmac.rscover - 664 sys sys 944956203 2070
-sys/lib/tmac/tmac.s - 664 sys sys 1210711954 23080
+sys/lib/tmac/tmac.s - 664 sys sys 1210784977 23053
 sys/lib/tmac/tmac.scover - 664 sys sys 944956204 4616
 sys/lib/tmac/tmac.sdisp - 664 sys sys 944956204 864
 sys/lib/tmac/tmac.skeep - 664 sys sys 944956204 1346
@@ -7181,7 +7181,7 @@ sys/lib/tmac/tmac.spe - 664 sys sys 964454723 2315
 sys/lib/tmac/tmac.srefs - 664 sys sys 944956204 2699
 sys/lib/tmac/tmac.twb - 664 sys sys 944956204 1878
 sys/lib/tmac/tmac.uni - 664 sys sys 944956204 1224
-sys/lib/tmac/tmac.v - 664 sys sys 955115427 7899
+sys/lib/tmac/tmac.v - 664 sys sys 1210797963 8965
 sys/lib/troff - 20000000775 sys sys 1039727363 0
 sys/lib/troff/contour - 20000000775 sys sys 1020895803 0
 sys/lib/troff/font - 20000000775 sys sys 1039727360 0
@@ -7883,7 +7883,7 @@ sys/man/8/pem - 664 sys sys 1196638947 1189
 sys/man/8/ping - 664 sys sys 1196638947 3650
 sys/man/8/plan9.ini - 664 sys sys 1202255136 23868
 sys/man/8/pop3 - 664 sys sys 1197574309 3122
-sys/man/8/ppp - 664 sys sys 1196638948 4430
+sys/man/8/ppp - 664 sys sys 1210814269 4464
 sys/man/8/prep - 664 sys sys 1202496787 14211
 sys/man/8/qer - 664 sys sys 1196638948 4909
 sys/man/8/reboot - 664 sys sys 1196638948 443
