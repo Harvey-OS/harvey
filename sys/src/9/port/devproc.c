@@ -1056,8 +1056,8 @@ procwrite(Chan *c, void *va, long n, vlong off)
 
 	case Qregs:
 		if(offset >= sizeof(Ureg))
-			return 0;
-		if(offset+n > sizeof(Ureg))
+			n = 0;
+		else if(offset+n > sizeof(Ureg))
 			n = sizeof(Ureg) - offset;
 		if(p->dbgreg == 0)
 			error(Enoreg);
@@ -1066,8 +1066,8 @@ procwrite(Chan *c, void *va, long n, vlong off)
 
 	case Qfpregs:
 		if(offset >= sizeof(FPsave))
-			return 0;
-		if(offset+n > sizeof(FPsave))
+			n = 0;
+		else if(offset+n > sizeof(FPsave))
 			n = sizeof(FPsave) - offset;
 		memmove((uchar*)&p->fpsave+offset, va, n);
 		break;
