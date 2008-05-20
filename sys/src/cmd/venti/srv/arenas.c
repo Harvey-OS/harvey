@@ -359,7 +359,8 @@ parseamap(IFile *f, AMapN *amn)
 	}
 	n = v;
 	if(n > MaxAMap){
-		seterr(ECorrupt, "illegal number of elements in %s", f->name);
+		seterr(ECorrupt, "illegal number of elements %d in %s",
+			n, f->name);
 		return -1;
 	}
 	am = MKNZ(AMap, n);
