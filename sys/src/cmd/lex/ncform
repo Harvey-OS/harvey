@@ -55,7 +55,7 @@ yylook(void){
 				}
 # endif
 			yyr = yyt;
-			if ( (int)yyt > (int)yycrank){
+			if (yyt > yycrank){
 				yyt = yyr + yych;
 				if (yyt <= yytop && yyt->verify+yysvec == yystate){
 					if(yyt->advance+yysvec == YYLERR)	/* error transitions */
@@ -65,7 +65,7 @@ yylook(void){
 					}
 				}
 # ifdef YYOPTIM
-			else if((int)yyt < (int)yycrank) {		/* r < yycrank */
+			else if(yyt < yycrank) {	/* r < yycrank */
 				yyt = yyr = yycrank+(yycrank-yyt);
 # ifdef LEXDEBUG
 				if(debug)fprintf(yyout,"compressed state\n");
@@ -156,7 +156,6 @@ yylook(void){
 		if(debug)putchar('\n');
 # endif
 		}
-	return(0);	/* shut up the compiler; i have no idea what should be returned */
 	}
 yyback(int *p, int m)
 {

@@ -6616,7 +6616,7 @@ sys/lib/kbmap/ua - 664 sys sys 1130763839 5247
 sys/lib/kbmap/uk - 664 sys sys 1130763839 55
 sys/lib/kbmap/us - 664 sys sys 1130763839 5181
 sys/lib/lex - 20000000775 sys sys 1039727360 0
-sys/lib/lex/ncform - 664 sys sys 1143759345 3995
+sys/lib/lex/ncform - 664 sys sys 1211224625 3973
 sys/lib/lp - 20000000775 sys sys 1079376189 0
 sys/lib/lp/bin - 20000000775 sys sys 1063856100 0
 sys/lib/lp/bin/UNLOCK - 775 sys sys 954037458 25
@@ -12730,7 +12730,7 @@ sys/src/cmd/lex/header.c - 664 sys sys 1032060383 3368
 sys/src/cmd/lex/ldefs.h - 664 sys sys 1135487942 4101
 sys/src/cmd/lex/lmain.c - 664 sys sys 1135921540 6076
 sys/src/cmd/lex/mkfile - 664 sys sys 1032060382 328
-sys/src/cmd/lex/ncform - 664 sys sys 1138551483 4074
+sys/src/cmd/lex/ncform - 664 sys sys 1211224619 3973
 sys/src/cmd/lex/parser.y - 664 sys sys 1136219175 14263
 sys/src/cmd/lex/sub1.c - 664 sys sys 1138551488 10162
 sys/src/cmd/lex/sub2.c - 664 sys sys 1135921541 17089
@@ -14371,7 +14371,7 @@ sys/src/cmd/venti/ro.c - 664 sys sys 1177189435 1886
 sys/src/cmd/venti/root.c - 664 sys sys 1177189435 1329
 sys/src/cmd/venti/srv - 20000000775 sys sys 1189020012 0
 sys/src/cmd/venti/srv/arena.c - 664 sys sys 1207253133 20156
-sys/src/cmd/venti/srv/arenas.c - 664 sys sys 1178160303 8039
+sys/src/cmd/venti/srv/arenas.c - 664 sys sys 1211224670 8048
 sys/src/cmd/venti/srv/bloom.c - 664 sys sys 1196369124 4445
 sys/src/cmd/venti/srv/buildbuck.c - 664 sys sys 1177189435 2837
 sys/src/cmd/venti/srv/buildindex.c - 664 sys sys 1191257306 21645
@@ -14383,7 +14383,7 @@ sys/src/cmd/venti/srv/cmparenas.c - 664 sys sys 1177189435 7215
 sys/src/cmd/venti/srv/conf.rc - 775 sys sys 1189304120 1416
 sys/src/cmd/venti/srv/config.c - 664 sys sys 1191257289 5659
 sys/src/cmd/venti/srv/conv.c - 664 sys sys 1207253152 15161
-sys/src/cmd/venti/srv/dat.h - 664 sys sys 1196369171 19088
+sys/src/cmd/venti/srv/dat.h - 664 sys sys 1211224696 19089
 sys/src/cmd/venti/srv/dcache.c - 664 sys sys 1196369150 15782
 sys/src/cmd/venti/srv/disksched.c - 664 sys sys 1193791117 2127
 sys/src/cmd/venti/srv/dump.c - 664 sys sys 1142736352 1642

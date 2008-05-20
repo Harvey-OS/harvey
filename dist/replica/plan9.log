@@ -19659,3 +19659,7 @@
 1210798803 0 c sys/lib/tmac/tmac.v - 664 sys sys 1210797963 8965
 1210815004 0 c sys/man/8/ppp - 664 sys sys 1210814269 4464
 1210984206 0 c sys/src/9/port/devproc.c - 664 sys sys 1210984256 28480
+1211225405 0 c sys/lib/lex/ncform - 664 sys sys 1211224625 3973
+1211225405 1 c sys/src/cmd/lex/ncform - 664 sys sys 1211224619 3973
+1211225405 2 c sys/src/cmd/venti/srv/arenas.c - 664 sys sys 1211224670 8048
+1211225405 3 c sys/src/cmd/venti/srv/dat.h - 664 sys sys 1211224696 19089
