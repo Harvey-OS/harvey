@@ -19663,3 +19663,17 @@
 1211225405 1 c sys/src/cmd/lex/ncform - 664 sys sys 1211224619 3973
 1211225405 2 c sys/src/cmd/venti/srv/arenas.c - 664 sys sys 1211224670 8048
 1211225405 3 c sys/src/cmd/venti/srv/dat.h - 664 sys sys 1211224696 19089
+1211256004 0 c 386/bin/venti/buildindex - 775 sys sys 1211255650 259435
+1211256004 1 c 386/bin/venti/checkarenas - 775 sys sys 1211255666 261314
+1211256004 2 c 386/bin/venti/checkindex - 775 sys sys 1211255671 256744
+1211256004 3 c 386/bin/venti/clumpstats - 775 sys sys 1211255677 245680
+1211256004 4 c 386/bin/venti/findscore - 775 sys sys 1211255684 247708
+1211256004 5 c 386/bin/venti/fmtarenas - 775 sys sys 1211255690 247949
+1211256004 6 c 386/bin/venti/fmtindex - 775 sys sys 1211255696 245947
+1211256004 7 c 386/bin/venti/fmtisect - 775 sys sys 1211255702 246299
+1211256004 8 c 386/bin/venti/mirrorarenas - 775 sys sys 1211255708 255407
+1211256004 9 c 386/bin/venti/printarena - 775 sys sys 1211255717 257988
+1211256004 10 c 386/bin/venti/rdarena - 775 sys sys 1211255724 247420
+1211256004 11 c 386/bin/venti/syncindex - 775 sys sys 1211255730 267334
+1211256004 12 c 386/bin/venti/venti - 775 sys sys 1211255746 706064
+1211256004 13 c 386/bin/venti/wrarena - 775 sys sys 1211255752 284303
