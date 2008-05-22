@@ -13656,7 +13656,7 @@ sys/src/cmd/troff2html/mkfile - 664 sys sys 1105631961 242
 sys/src/cmd/troff2html/troff2html.c - 664 sys sys 1132450028 14280
 sys/src/cmd/tweak.c - 664 sys sys 1166822151 38956
 sys/src/cmd/unicode.c - 664 sys sys 944961351 1953
-sys/src/cmd/uniq.c - 664 sys sys 944961351 2236
+sys/src/cmd/uniq.c - 664 sys sys 1211408347 2173
 sys/src/cmd/units.y - 664 sys sys 1014926801 10979
 sys/src/cmd/unix - 20000000775 sys sys 1128520305 0
 sys/src/cmd/unix/9pfreebsd - 20000000775 sys sys 1039727596 0
