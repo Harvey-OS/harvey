@@ -8186,7 +8186,7 @@ sys/src/9/pc/realmode.c - 664 sys sys 1139667044 2678
 sys/src/9/pc/rebootcode.s - 664 sys sys 1015014522 988
 sys/src/9/pc/screen.c - 664 sys sys 1184522395 13973
 sys/src/9/pc/screen.h - 664 sys sys 1147023549 4256
-sys/src/9/pc/sd53c8xx.c - 664 sys sys 1170456695 55276
+sys/src/9/pc/sd53c8xx.c - 664 sys sys 1211521147 55313
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
 sys/src/9/pc/sdata.c - 664 sys sys 1205986828 53185
 sys/src/9/pc/sdiahci.c - 664 sys sys 1200348596 38496
@@ -10033,9 +10033,9 @@ sys/src/cmd/cc/sub.c - 664 sys sys 1143759345 34268
 sys/src/cmd/cc/y.tab.h - 664 sys sys 1098501521 1680
 sys/src/cmd/cdfs - 20000000775 sys sys 1039727558 0
 sys/src/cmd/cdfs/buf.c - 664 sys sys 1205271166 1923
-sys/src/cmd/cdfs/dat.h - 664 sys sys 1208632592 4636
+sys/src/cmd/cdfs/dat.h - 664 sys sys 1211521283 5591
 sys/src/cmd/cdfs/fns.h - 664 sys sys 969542122 297
-sys/src/cmd/cdfs/main.c - 664 sys sys 1210357437 12478
+sys/src/cmd/cdfs/main.c - 664 sys sys 1211521244 12479
 sys/src/cmd/cdfs/mkfile - 664 sys sys 1204937991 153
 sys/src/cmd/cdfs/mmc.c - 664 sys sys 1210046871 31599
 sys/src/cmd/cec - 20000000775 sys sys 1193683647 0
@@ -13408,7 +13408,7 @@ sys/src/cmd/scuzz/changer.c - 664 sys sys 944961084 1137
 sys/src/cmd/scuzz/mkfile - 664 sys sys 1032060571 231
 sys/src/cmd/scuzz/mo.words - 664 sys sys 1177702138 1262
 sys/src/cmd/scuzz/scsireq.c - 664 sys sys 1181436637 13594
-sys/src/cmd/scuzz/scsireq.h - 664 sys sys 1204949623 6861
+sys/src/cmd/scuzz/scsireq.h - 664 sys sys 1211559652 6902
 sys/src/cmd/scuzz/scuzz.c - 664 sys sys 1181436627 38286
 sys/src/cmd/scuzz/sense.c - 664 sys sys 1177702138 5680
 sys/src/cmd/sed.c - 664 sys sys 1182465504 26844

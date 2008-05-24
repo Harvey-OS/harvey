@@ -94,7 +94,8 @@ enum {					/* SCSI command codes */
 	ScmdRTOC	= 0x43,		/* read TOC data */
 	ScmdRdiscinfo	= 0x51,		/* read disc information */
 	ScmdRtrackinfo	= 0x52,		/* read track information */
-	ScmdBlank	= 0xA1,		/* blank CD-RW media */
+	ScmdReserve	= 0x53,		/* reserve track */
+	ScmdBlank	= 0xA1,		/* blank *-RW media */
 
 	ScmdCDpause	= 0x4B,		/* pause/resume */
 	ScmdCDstop	= 0x4E,		/* stop play/scan */
