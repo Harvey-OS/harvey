@@ -193,7 +193,7 @@ fsremove(Req *r)
 	case Qwd:
 		if(drive->fixate(drive) < 0)
 			respond(r, geterrstr());
-// let's see if it can figure this out		drive->writeok = 0;	
+// let us see if it can figure this out:	drive->writeok = 0;	
 		else
 			respond(r, nil);
 		checktoc(drive);

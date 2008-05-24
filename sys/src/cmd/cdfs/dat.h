@@ -45,8 +45,21 @@ enum {
 	Capcdda		= 1<<0,		/* Capmisc bits */
 	Caprw		= 1<<2,
 
+	/* Pagwrparams mode page offsets */
+	Wpwrtype	= 2,		/* write type */
+	Wptrkmode,			/* track mode */
+	Wpdatblktype,
+	Wpsessfmt	= 8,
+	Wppktsz		= 10,		/* BE ulong: # user data blks/fixed pkt */
+
 	/* Pagwrparams bits */
-	Bufe	= 1<<6,		/* buffer under-run free recording enable */
+	Bufe	= 1<<6,	/* Wpwrtype: buffer under-run free recording enable */
+	/* Wptrkmode */
+	Msbits	= 3<<6,		/* multisession field */
+	Msnonext= 0<<6,		/* no next border nor session */
+	Mscdnonext= 1<<6,	/* cd special: no next session */
+	Msnext	= 3<<6,		/* next session or border allowed */
+	Fp	= 1<<5,		/* pay attention to Wppktsz */
 
 	/* close track session cdb bits */
 	Closetrack	= 1,
@@ -69,11 +82,27 @@ enum {
 	Msfbit	= 1<<1,
 
 	/* write types, MMC-6 §7.5.4.9 */
-	Wtpkt	= 0,
+	Wtpkt	= 0,		/* a.k.a. incremental */
 	Wttrackonce,
-	Wtsessonce,
+	Wtsessonce,		/* a.k.a. disc-at-once */
 	Wtraw,
 	Wtlayerjump,
+
+	/* track modes (TODO: also track types?) */
+	Tmcdda	= 0,		/* audio cdda */
+	Tm2audio,		/* 2 audio channels */
+	Tmunintr = 4,		/* data, recorded uninterrupted */
+	Tmintr,			/* data, recorded interrupted (dvd default) */
+
+	/* data block types */
+	Dbraw = 0,		/* 2352 bytes */
+	Db2kdata = 8,		/* mode 1: 2K of user data */
+	Db2336,			/* mode 2: 2336 bytes of user data */
+
+	/* session formats */
+	Sfdata	= 0,
+	Sfcdi	= 0x10,
+	Sfcdxa	= 0x20,
 
 	/* Cache control bits in mode page 8 byte 2 */
 	Ccrcd	= 1<<0,		/* read cache disabled */

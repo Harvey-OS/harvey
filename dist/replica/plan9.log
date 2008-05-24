@@ -19679,3 +19679,7 @@
 1211256004 13 c 386/bin/venti/wrarena - 775 sys sys 1211255752 284303
 1211409030 0 c sys/src/cmd/uniq.c - 664 sys sys 1211408347 2173
 1211428804 0 c 386/bin/uniq - 775 sys sys 1211428445 62434
+1211522406 0 c sys/src/9/pc/sd53c8xx.c - 664 sys sys 1211521147 55313
+1211522406 1 c sys/src/cmd/cdfs/dat.h - 664 sys sys 1211521283 5591
+1211522406 2 c sys/src/cmd/cdfs/main.c - 664 sys sys 1211521244 12479
+1211560204 0 c sys/src/cmd/scuzz/scsireq.h - 664 sys sys 1211559652 6902
