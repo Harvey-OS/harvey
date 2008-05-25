@@ -176,7 +176,7 @@
 386/bin/calendar - 775 sys sys 1209614208 79071
 386/bin/cat - 775 sys sys 1148500611 37482
 386/bin/cb - 775 sys sys 1209614209 77569
-386/bin/cdfs - 775 sys sys 1210392618 173416
+386/bin/cdfs - 775 sys sys 1211657559 174464
 386/bin/cec - 775 sys sys 1193714267 75896
 386/bin/cfs - 775 sys sys 1190863294 130565
 386/bin/chgrp - 775 sys sys 1168402294 59522
@@ -7732,7 +7732,7 @@ sys/man/4/INDEX - 664 sys sys 1196638942 1026
 sys/man/4/INDEX.html - 664 sys sys 1196638942 5147
 sys/man/4/acme - 664 sys sys 1196638943 10435
 sys/man/4/archfs - 664 sys sys 1196638943 533
-sys/man/4/cdfs - 664 sys sys 1208538134 4809
+sys/man/4/cdfs - 664 sys sys 1211605477 4940
 sys/man/4/cfs - 664 sys sys 1196638943 2136
 sys/man/4/consolefs - 664 sys sys 1196638943 4389
 sys/man/4/cwfs - 664 sys sys 1196638943 6553
@@ -10037,7 +10037,7 @@ sys/src/cmd/cdfs/dat.h - 664 sys sys 1211521283 5591
 sys/src/cmd/cdfs/fns.h - 664 sys sys 969542122 297
 sys/src/cmd/cdfs/main.c - 664 sys sys 1211521244 12479
 sys/src/cmd/cdfs/mkfile - 664 sys sys 1204937991 153
-sys/src/cmd/cdfs/mmc.c - 664 sys sys 1210046871 31599
+sys/src/cmd/cdfs/mmc.c - 664 sys sys 1211605562 33101
 sys/src/cmd/cec - 20000000775 sys sys 1193683647 0
 sys/src/cmd/cec/LICENSE - 664 sys sys 1186248056 1554
 sys/src/cmd/cec/Protocol - 664 sys sys 1186248056 2881

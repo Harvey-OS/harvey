@@ -19683,3 +19683,6 @@
 1211522406 1 c sys/src/cmd/cdfs/dat.h - 664 sys sys 1211521283 5591
 1211522406 2 c sys/src/cmd/cdfs/main.c - 664 sys sys 1211521244 12479
 1211560204 0 c sys/src/cmd/scuzz/scsireq.h - 664 sys sys 1211559652 6902
+1211605204 0 c sys/man/4/cdfs - 664 sys sys 1211605477 4940
+1211605204 1 c sys/src/cmd/cdfs/mmc.c - 664 sys sys 1211605562 33101
+1211659204 0 c 386/bin/cdfs - 775 sys sys 1211657559 174464

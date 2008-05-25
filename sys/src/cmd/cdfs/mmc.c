@@ -455,7 +455,7 @@ mmcprobe(Scsi *scsi)
 	return drive;
 }
 
-static char *tracktype[] = {
+static char *tracktype[] = {	/* indices are track modes (Tm*) */
 	"audio cdda",
 	"2 audio channels",
 	"2",
@@ -503,19 +503,19 @@ mmctrackinfo(Drive *drive, int t, int i)
 	type = TypeNone;
 	bs = BScdda;
 	switch(tmode){
-	case 0:
+	case Tmcdda:
 		type = TypeAudio;
 		bs = BScdda;
 		break;
-	case 1:		/* 2 audio channels, with pre-emphasis 50/15 μs */
+	case Tm2audio:	/* 2 audio channels, with pre-emphasis 50/15 μs */
 		if(vflag)
 			print("audio channels with preemphasis on track %d "
 				"(u%.3d)\n", t, i);
 		type = TypeNone;
 		break;
-	case 4:		/* data track, recorded uninterrupted */
-	case 5:		/* data track, recorded interrupted */
-		/* treat 5 as cdrom; it's probably dvd or bd */
+	case Tmunintr:		/* data track, recorded uninterrupted */
+	case Tmintr:		/* data track, recorded interrupted */
+		/* treat Tmintr (5) as cdrom; it's probably dvd or bd */
 		type = TypeData;
 		bs = BScdrom;
 		break;
@@ -717,7 +717,7 @@ mmcinfertracks(Drive *drive, int first, int last)
 	Track *t;
 
 	if (vflag)
-		print("inferring tracks\n");
+		fprint(2, "inferring tracks\n");
 	for(i = first; i <= last; i++) {
 		memset(resp, 0, sizeof(resp));
 		if(mmcreadtoc(drive, 0, i, resp, sizeof(resp)) < 0)
@@ -889,6 +889,13 @@ mmcgettoc(Drive *drive)
 	return 0;
 }
 
+static void
+settrkmode(uchar *p, int mode)
+{
+	p[Wptrkmode] &= ~0xf;
+	p[Wptrkmode] |= mode;
+}
+
 /*
  * this uses page 5, which is optional.
  */
@@ -905,42 +912,43 @@ mmcsetbs(Drive *drive, int bs)
 	p = aux->page05;
 	/*
 	 * establish defaults.
-	 * p[2] & 0xf is write type.
-	 * p[3] & 0xf is track mode.
-	 * p[4] & 0xf is data-block type.
-	 * p[8] is session format.
 	 */
 	p[0] &= 077;			/* clear reserved bits, MMC-6 §7.2.3 */
-	p[2] = Bufe | Wttrackonce;
-//	if(xflag)
-//		p[2] |= 0x10;		/* test-write */
-	p[3] &= ~0xf;
-	p[3] |= 5;			/* dvd default track mode */
-	p[4] = 0x08;			/* mode 1 CD-ROM: 2K user data */
-	p[8] = 0;			/* session format, CD-DA or -ROM (data) */
+	p[Wpwrtype] = Bufe | Wttrackonce;
+//	if(testonlyflag)
+//		p[Wpwrtype] |= 0x10;	/* test-write */
+	/* assume dvd values as defaults */
+	settrkmode(p, Tmintr);
+	p[Wptrkmode] |= Msnext;
+	p[Wpdatblktype] = Db2kdata;
+	p[Wpsessfmt] = Sfdata;
+
 	switch(drive->mmctype) {
+	case Mmcdvdplus:
+	case Mmcbd:
+		break;
+	case Mmcdvdminus:
+		/* dvd-r can only do disc-at-once or incremental */
+		p[Wpwrtype] = Bufe | Wtsessonce;
+		break;
 	case Mmccd:
-		p[3] = (p[3] & ~0x07)|0x04; /* data track, uninterrupted */
+		settrkmode(p, Tmunintr); /* data track, uninterrupted */
 		switch(bs){
-		case BScdrom:
-			break;
 		case BScdda:
 			/* 2 audio channels without pre-emphasis */
-			p[3] = (p[3] & ~0x07)|0x00;
-			p[4] = 0x00;	/* raw data */
+			settrkmode(p, Tmcdda);	/* TODO: should be Tm2audio? */
+			p[Wpdatblktype] = Dbraw;
+			break;
+		case BScdrom:
 			break;
 		case BScdxa:
-			p[4] = 0x09;	/* mode 2: 2336 bytes user data */
-			p[8] = 0x20;	/* session format CD-ROM XA */
+			p[Wpdatblktype] = Db2336;
+			p[Wpsessfmt] = Sfcdxa;
 			break;
 		default:
 			fprint(2, "%s: unknown CD type; bs %d\n", argv0, bs);
 			assert(0);
 		}
-		break;
-	case Mmcdvdminus:
-	case Mmcdvdplus:
-	case Mmcbd:
 		break;
 	default:
 		fprint(2, "%s: unknown disc sub-type %d\n",
@@ -1161,6 +1169,39 @@ mmcwrite(Buf *buf, void *v, long nblk, long)
 	return mmcxwrite(buf->otrack, v, nblk);
 }
 
+enum {
+	Eccblk	= 128,		/* sectors per ecc block */
+	Rsvslop	= 0,
+};
+
+static int
+reserve(Drive *drive, int track)
+{
+	ulong sz;
+	uchar cmd[10];
+
+	initcdb(cmd, sizeof cmd, ScmdReserve);
+	track -= drive->firsttrack;		/* switch to zero-origin */
+	if (track >= 0 && track < drive->ntrack)
+		/* .end is next sector past sz */
+		sz = drive->track[track].end - drive->track[track].beg - Rsvslop;
+	else {
+		sz = Eccblk;
+		fprint(2, "%s: reserve: track #%d out of range 0-%d\n",
+			argv0, track, drive->ntrack);
+	}
+	sz -= sz % Eccblk;		/* round down to ecc-block multiple */
+	if ((long)sz < 0) {
+		fprint(2, "%s: reserve: bogus size %lud\n", argv0, sz);
+		return -1;
+	}
+	cmd[1] = 0;			/* no ASRV: allocate by size not lba */
+	PUTBELONG(cmd + 2 + 3, sz);
+	if (vflag)
+		fprint(2, "reserving %ld sectors\n", sz);
+	return scsi(drive, cmd, sizeof cmd, cmd, 0, Snone);
+}
+
 static int
 getinvistrack(Drive *drive)
 {
@@ -1221,7 +1262,7 @@ mmccreate(Drive *drive, int type)
 		if (vflag)
 			fprint(2, "mmccreate: mmctrackinfo for invis track %d"
 				" failed: %r\n", invis);
-		werrstr("CD not writable");
+		werrstr("disc not writable");
 //		return nil;
 	}
 	if(mmcsetbs(drive, bs) < 0) {
@@ -1232,8 +1273,17 @@ mmccreate(Drive *drive, int type)
 		if (vflag)
 			fprint(2, "mmccreate: mmctrackinfo for invis track %d"
 				" (2) failed: %r\n", invis);
-		werrstr("CD not writable 2");
+		werrstr("disc not writable 2");
 //		return nil;
+	}
+
+	/* special hack for dvd-r: reserve the invisible track */
+	if (drive->mmctype == Mmcdvdminus && drive->writeok &&
+	    drive->recordable && reserve(drive, invis) < 0) {
+		if (vflag)
+			fprint(2, "mmcreate: reserving track %d for dvd-r "
+				"failed: %r\n", invis);
+		return nil;
 	}
 
 	aux->ntotby = 0;
@@ -1259,7 +1309,6 @@ mmccreate(Drive *drive, int type)
 
 	if(vflag)
 		print("mmcinit: nwa = 0x%luX\n", aux->mmcnwa);
-
 	return o;
 }
 
@@ -1289,8 +1338,19 @@ mmcsynccache(Drive *drive)
 	uchar cmd[10];
 	Mmcaux *aux;
 
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdSynccache;			/* flush */
+	initcdb(cmd, sizeof cmd, ScmdSynccache);
+	/*
+	 * this will take a long time to burn the remainder of a dvd-r
+	 * with a reserved track covering the whole disc.
+	 */
+	if (vflag) {
+		fprint(2, "syncing cache");
+		if (drive->mmctype == Mmcdvdminus && drive->writeok &&
+		    drive->recordable)
+			fprint(2, "; dvd-r burning rest of track reservation, "
+				"will be slow");
+		fprint(2, "\n");
+	}
 	scsi(drive, cmd, sizeof(cmd), cmd, 0, Snone);
 	if(vflag) {
 		aux = drive->aux;
@@ -1345,11 +1405,8 @@ setonesess(Drive *drive)
 	/* page 5 is legacy and now read-only; see MMC-6 §7.5.4.1 */
 	aux = drive->aux;
 	p = aux->page05;
-	/*
-	 * p[3] is multi-session / fp / copy / track mode.
-	 * zero multi-session field: next session not allowed.
-	 */
-	p[3] &= ~0xC0;
+	p[Wptrkmode] &= ~Msbits;
+	p[Wptrkmode] |= Msnonext;
 	return mmcsetpage(drive, Pagwrparams, p);
 }
 

@@ -227,9 +227,12 @@ optical disc interface standards
 .IR mk9660 (8)
 .SH BUGS
 Fixating a BD-R disc records only the first track in the disc's TOC.
-Any other tracks are still there and accessible via
+Any other tracks are still there and their data accessible via
 .IR sd (3).
 There's no need to fixate data discs, except to prevent adding new tracks.
+.PP
+Closing a just-written DVD-R track can take minutes
+while the drive burns the unused part of the track reservation.
 .PP
 There are too many combinations of optical media, approximately
 the cross-product of these tuples:
