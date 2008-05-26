@@ -9503,7 +9503,7 @@ sys/src/cmd/acme/file.c - 664 sys sys 1044626079 5717
 sys/src/cmd/acme/fns.h - 664 sys sys 1107154481 2916
 sys/src/cmd/acme/fsys.c - 664 sys sys 1111171699 13097
 sys/src/cmd/acme/look.c - 664 sys sys 1195964468 14203
-sys/src/cmd/acme/mkfile - 664 sys sys 1058463682 543
+sys/src/cmd/acme/mkfile - 664 sys sys 1211744494 545
 sys/src/cmd/acme/regx.c - 664 sys sys 1200172925 16114
 sys/src/cmd/acme/rows.c - 664 sys sys 1177527677 14708
 sys/src/cmd/acme/scrl.c - 664 sys sys 1111119426 2875
@@ -12957,7 +12957,7 @@ sys/src/cmd/plot/plot.h - 664 sys sys 944961624 1002
 sys/src/cmd/plumb - 20000000775 sys sys 1063854983 0
 sys/src/cmd/plumb/fsys.c - 664 sys sys 1014926837 18491
 sys/src/cmd/plumb/match.c - 664 sys sys 1063854983 8191
-sys/src/cmd/plumb/mkfile - 664 sys sys 1014926837 295
+sys/src/cmd/plumb/mkfile - 664 sys sys 1211744503 298
 sys/src/cmd/plumb/plumb.c - 664 sys sys 944961468 2075
 sys/src/cmd/plumb/plumber.c - 664 sys sys 1014926837 2140
 sys/src/cmd/plumb/plumber.h - 664 sys sys 1014926837 1504
@@ -13331,7 +13331,7 @@ sys/src/cmd/rio/dat.h - 664 sys sys 1097973839 6938
 sys/src/cmd/rio/data.c - 664 sys sys 1142015551 6169
 sys/src/cmd/rio/fns.h - 664 sys sys 1039133251 1065
 sys/src/cmd/rio/fsys.c - 664 sys sys 1019678647 13259
-sys/src/cmd/rio/mkfile - 664 sys sys 1111249068 431
+sys/src/cmd/rio/mkfile - 664 sys sys 1211744511 437
 sys/src/cmd/rio/rio.c - 664 sys sys 1179332602 22953
 sys/src/cmd/rio/scrl.c - 664 sys sys 1014926357 3245
 sys/src/cmd/rio/time.c - 664 sys sys 1014926357 1829
@@ -13376,7 +13376,7 @@ sys/src/cmd/samterm/io.c - 664 sys sys 1111181617 4227
 sys/src/cmd/samterm/main.c - 664 sys sys 1111181616 11442
 sys/src/cmd/samterm/menu.c - 664 sys sys 1045502822 6528
 sys/src/cmd/samterm/mesg.c - 664 sys sys 1132448977 12581
-sys/src/cmd/samterm/mkfile - 664 sys sys 1111181616 465
+sys/src/cmd/samterm/mkfile - 664 sys sys 1211744527 469
 sys/src/cmd/samterm/plan9.c - 664 sys sys 1111181617 4901
 sys/src/cmd/samterm/rasp.c - 664 sys sys 944961350 4433
 sys/src/cmd/samterm/samterm.h - 664 sys sys 1132448977 3773
