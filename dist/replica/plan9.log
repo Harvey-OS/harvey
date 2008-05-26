@@ -19686,3 +19686,7 @@
 1211605204 0 c sys/man/4/cdfs - 664 sys sys 1211605477 4940
 1211605204 1 c sys/src/cmd/cdfs/mmc.c - 664 sys sys 1211605562 33101
 1211659204 0 c 386/bin/cdfs - 775 sys sys 1211657559 174464
+1211745604 0 c sys/src/cmd/acme/mkfile - 664 sys sys 1211744494 545
+1211745604 1 c sys/src/cmd/rio/mkfile - 664 sys sys 1211744511 437
+1211745604 2 c sys/src/cmd/samterm/mkfile - 664 sys sys 1211744527 469
+1211745604 3 c sys/src/cmd/plumb/mkfile - 664 sys sys 1211744503 298

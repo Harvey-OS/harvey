@@ -2,7 +2,6 @@
 
 TARG=plumber plumb
 
-
 BIN=/$objtype/bin
 </sys/src/cmd/mkmany
 
@@ -16,5 +15,5 @@ $O.plumb:	$PLUMB
 $O.plumber:	$PLUMBER
 
 syms:V:
-	8c -a plumber.c	>syms
-	8c -aa fsys.c match.c rules.c >>syms
+	$CC -a plumber.c		> syms
+	$CC -aa fsys.c match.c rules.c	>>syms
