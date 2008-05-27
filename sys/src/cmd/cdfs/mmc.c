@@ -332,9 +332,10 @@ mmcgetspeed(Drive *drive)
 	int n, maxread, curread, maxwrite, curwrite;
 	uchar buf[Pagesz];
 
+	memset(buf, 0, 22);
 	n = mmcgetpage(drive, Pagcapmechsts, buf);	/* legacy page */
-	maxread = (buf[8]<<8)|buf[9];
-	curread = (buf[14]<<8)|buf[15];
+	maxread =   (buf[8]<<8)|buf[9];
+	curread =  (buf[14]<<8)|buf[15];
 	maxwrite = (buf[18]<<8)|buf[19];
 	curwrite = (buf[20]<<8)|buf[21];
 
@@ -543,6 +544,8 @@ mmctrackinfo(Drive *drive, int t, int i)
 	/* t == getinvistrack(): invisible track */
 	if(t == Invistrack || resp[7] & 1) {	/* invis or nwa valid? */
 		aux->mmcnwa = bige(&resp[12]);
+		if ((long)aux->mmcnwa < 0)	/* implausible? */
+			aux->mmcnwa = 0;
 		if (vflag)
 			print(" nwa %lud", aux->mmcnwa);
 	}
@@ -965,7 +968,7 @@ mmcsetbs(Drive *drive, int bs)
 
 /* off is a block number */
 static long
-mmcread(Buf *buf, void *v, long nblock, long off)
+mmcread(Buf *buf, void *v, long nblock, ulong off)
 {
 	int bs;
 	long n, nn;
@@ -1164,7 +1167,7 @@ mmcxwrite(Otrack *o, void *v, long nblk)
 }
 
 static long
-mmcwrite(Buf *buf, void *v, long nblk, long)
+mmcwrite(Buf *buf, void *v, long nblk, ulong)
 {
 	return mmcxwrite(buf->otrack, v, nblk);
 }

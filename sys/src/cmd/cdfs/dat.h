@@ -177,7 +177,7 @@ struct Dev
 {
 	Otrack*	(*openrd)(Drive *d, int trackno);
 	Otrack*	(*create)(Drive *d, int bs);
-	long	(*read)(Otrack *t, void *v, long n, long off);
+	long	(*read)(Otrack *t, void *v, long n, vlong off);
 	long	(*write)(Otrack *t, void *v, long n);
 	void	(*close)(Otrack *t);
 	int	(*gettoc)(Drive*);
@@ -225,12 +225,12 @@ struct Drive
 struct Buf
 {
 	uchar	*data;		/* buffer */
-	long	off;		/* data[0] at offset off in file */
+	vlong	off;		/* data[0] at offset off in file */
 	int	bs;		/* block size */
 	long	ndata;		/* no. valid bytes in data */
 	int	nblock;		/* total buffer size in blocks */
 	int	omode;		/* OREAD, OWRITE */
-	long	(*fn)(Buf*, void*, long, long);	/* read, write */
+	long	(*fn)(Buf*, void*, long, ulong); /* read, write */
 
 	/* used only by client */
 	Otrack	*otrack;

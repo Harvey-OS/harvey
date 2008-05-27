@@ -232,7 +232,10 @@ Any other tracks are still there and their data accessible via
 There's no need to fixate data discs, except to prevent adding new tracks.
 .PP
 Closing a just-written DVD-R track can take minutes
-while the drive burns the unused part of the track reservation.
+while the drive burns the unused part of the track reservation
+(for the whole disc).
+Thus only a single DVD-R track can be written on a DVD-R disc;
+use other media if you need more than one track per disc.
 .PP
 There are too many combinations of optical media, approximately
 the cross-product of these tuples:

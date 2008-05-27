@@ -19690,3 +19690,15 @@
 1211745604 1 c sys/src/cmd/rio/mkfile - 664 sys sys 1211744511 437
 1211745604 2 c sys/src/cmd/samterm/mkfile - 664 sys sys 1211744527 469
 1211745604 3 c sys/src/cmd/plumb/mkfile - 664 sys sys 1211744503 298
+1211779805 0 c sys/man/4/cdfs - 664 sys sys 1211778510 5082
+1211846404 0 c sys/src/cmd/cdfs/buf.c - 664 sys sys 1211844938 1967
+1211846404 1 c sys/src/cmd/cdfs/dat.h - 664 sys sys 1211844910 5594
+1211846404 2 c sys/src/cmd/cdfs/fns.h - 664 sys sys 1211844905 300
+1211846404 3 c sys/src/cmd/cdfs/main.c - 664 sys sys 1211844954 12480
+1211846404 4 c sys/src/cmd/cdfs/mmc.c - 664 sys sys 1211844950 33105
+1211848204 0 c sys/src/cmd/cdfs/dat.h - 664 sys sys 1211846577 5594
+1211850004 0 c sys/src/cmd/cdfs/buf.c - 664 sys sys 1211848647 2010
+1211850004 1 c sys/src/cmd/cdfs/fns.h - 664 sys sys 1211848622 300
+1211850004 2 c sys/src/cmd/cdfs/mmc.c - 664 sys sys 1211848670 33103
+1211855406 0 c sys/src/cmd/cdfs/main.c - 664 sys sys 1211854425 12465
+1211855406 1 c sys/src/cmd/cdfs/mmc.c - 664 sys sys 1211854436 33195
