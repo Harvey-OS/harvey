@@ -557,6 +557,7 @@ i82557pci(void)
 		case 0x103A:		/* Intel 82562 PRO/100 VE */
 		case 0x1064:		/* Intel 82562 PRO/100 VE */
 		case 0x2449:		/* Intel 82562ET */
+		case 0x27DC:		/* Intel 82801G PRO/100 VE */
 		case 0x1209:		/* Intel 82559ER */
 		case 0x1229:		/* Intel 8255[789] */
 		case 0x1030:		/* Intel 82559 InBusiness 10/100  */

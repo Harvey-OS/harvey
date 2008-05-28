@@ -334,12 +334,17 @@ mmcgetspeed(Drive *drive)
 
 	memset(buf, 0, 22);
 	n = mmcgetpage(drive, Pagcapmechsts, buf);	/* legacy page */
+	if (n < 22) {
+		if (vflag)
+			fprint(2, "no Pagcapmechsts mode page!\n");
+		return;
+	}
 	maxread =   (buf[8]<<8)|buf[9];
 	curread =  (buf[14]<<8)|buf[15];
 	maxwrite = (buf[18]<<8)|buf[19];
 	curwrite = (buf[20]<<8)|buf[21];
 
-	if(n < 22 || (maxread && maxread < 170) || (curread && curread < 170))
+	if(maxread && maxread < 170 || curread && curread < 170)
 		return;			/* bogus data */
 
 	drive->readspeed = curread;
@@ -409,7 +414,9 @@ mmcprobe(Scsi *scsi)
 	else if(mmcgetpage6(drive, Pagcapmechsts, buf) >= 0)
 		aux->pagecmdsz = 6;
 	else {
-		werrstr("can't read mode page %d", Pagcapmechsts);
+		if (vflag)
+			fprint(2, "no Pagcapmechsts mode page!\n");
+		werrstr("can't read mode page %d!", Pagcapmechsts);
 		free(aux);
 		free(drive);
 		return nil;
@@ -432,8 +439,11 @@ mmcprobe(Scsi *scsi)
 		cap |= Cwrite;
 		if (vflag)
 			fprint(2, "mmcprobe: got page 5, assuming drive can write\n");
-	} else
+	} else {
+		if (vflag)
+			fprint(2, "no Pagwrparams mode page!\n");
 		cap &= ~Cwrite;
+	}
 	drive->cap = cap;
 
 	mmcgetspeed(drive);
