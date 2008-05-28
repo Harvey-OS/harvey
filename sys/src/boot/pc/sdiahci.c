@@ -1536,10 +1536,12 @@ iapnp(void)
 	head = tail = nil;
 loop:
 	while((p = pcimatch(p, 0, 0)) != nil){
+		/* 0x27c4 is the intel 82801 in compatibility (not sata) mode */
 		if(p->vid == 0x8086 && (p->did & 0xfffc) == 0x2680)
 			type = Tesb;
-		else if(p->vid == 0x8086 && p->did == 0x27c5)
-			type = Tich;	/* 82801g[bh]m; compat mode fails */
+		else if(p->vid == 0x8086 &&
+		    (p->did == 0x27c5 || p->did == 0x27c0))
+			type = Tich;	/* 82801g[bh]m?; compat mode fails */
 		else if(p->vid == 0x8086 && (p->did & 0xfeff) == 0x2829)
 			type = Tich;		/* ich8 */
 		else if(p->vid == 0x8086 && (p->did & 0xfffe) == 0x2922)

@@ -442,7 +442,7 @@ fsread(Req *r)
 	respond(r, nil);
 }
 
-static char *Ebadmsg = "bad cdfs control message";
+static char Ebadmsg[] = "bad cdfs control message";
 
 static char*
 writectl(void *v, long count)
@@ -471,9 +471,13 @@ writectl(void *v, long count)
 					return Ebadmsg;
 				what = f[i][0];
 			}else{
-				n = strtol(f[i], &p, 0);
-				if(*p != '\0' || n <= 0)
-					return Ebadmsg;
+				if (strcmp(f[i], "best") == 0)
+					n = (1<<16) - 1;
+				else {
+					n = strtol(f[i], &p, 0);
+					if(*p != '\0' || n <= 0)
+						return Ebadmsg;
+				}
 				switch(what){
 				case 0:
 					if(r >= 0 || w >= 0)

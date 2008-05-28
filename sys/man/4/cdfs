@@ -100,7 +100,7 @@ also contains a
 file, into which control messages
 may be echoed.
 The current control messages are:
-.TF "\fLquickblan"
+.TF \fLformat
 .TP
 .B format
 Format the rewritable disc (\c
@@ -126,8 +126,21 @@ Eject the disc in the drive.
 .B ingest
 Ingest a disc into the drive.
 .TP
-.B speed \fIkpbs\fR
-Set the reading and writing speed to use.
+.B speed \fIkbps\fR
+Set the reading and writing speed to use,
+in units of 1,000-bytes-per-second.
+A value of
+.L best
+requests the optimal speed for the current drive and disc.
+CD
+.L 1x
+speed is 154;
+DVD
+.L 1x
+speed is 1350;
+BD
+.L 1x
+speed is 4608.
 Drives may round down the speed to one they support.
 To set reading and writing speeds separately,
 prefix the speeds with
