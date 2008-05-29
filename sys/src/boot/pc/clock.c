@@ -88,6 +88,7 @@ X86type x86intel[] =
 	{ 6,	0xB,	16,	"PentiumIII/Xeon", },
 	{ 0xF,	1,	16,	"P4", },	/* P4 */
 	{ 0xF,	2,	16,	"PentiumIV/Xeon", },
+	{ 0xF,	6,	16,	"PentiumIV/Xeon", },
 
 	{ 3,	-1,	32,	"386", },	/* family defaults */
 	{ 4,	-1,	22,	"486", },
@@ -197,6 +198,14 @@ cpuidentify(void)
 }
 
 void
+prcpuid(void)
+{
+	if (cputype == nil)
+		panic("prcpuid: clockinit not called");
+	print("cpu0: %dMHz %s loop %d\n", cpumhz, cputype->name, loopconst);
+}
+
+void
 clockinit(void)
 {
 	uvlong a, b, cpufreq;
@@ -208,7 +217,7 @@ clockinit(void)
 	 */
 	setvec(VectorCLOCK, clockintr, 0);
 
-	t = cpuidentify();
+	cputype = t = cpuidentify();
 
 	/*
 	 *  set clock for 1/HZ seconds

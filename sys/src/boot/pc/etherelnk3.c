@@ -1041,7 +1041,7 @@ interrupt(Ureg*, void* arg)
 		 * Panic if there are any interrupts not dealt with.
 		 */
 		if(status & interruptMask)
-			panic("#l%d: interrupt mask 0x%uX\n", ether->ctlrno, status);
+			panic("#l%d: interrupt mask 0x%uX", ether->ctlrno, status);
 
 		COMMAND(port, AcknowledgeInterrupt, interruptLatch);
 		if(ctlr->cbfn != nil)

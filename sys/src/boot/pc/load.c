@@ -312,6 +312,8 @@ probe(int type, int flag, int dev)
 	return 0;
 }
 
+void	prcpuid(void);
+
 void
 main(void)
 {
@@ -330,8 +332,9 @@ main(void)
 	consinit("0", "9600");
 	kbdinit();
 	if((ulong)&end > (KZERO|(640*1024)))
-		panic("i'm too big\n");
+		panic("i'm too big");
 
+	prcpuid();
 	readlsconf();
 	print("initial probe, to find plan9.ini...");
 	/* find and read plan9.ini, setting configuration variables */
@@ -339,7 +342,7 @@ main(void)
 		/* skip bios until we have read plan9.ini */
 		if(!pxe && tp->type == Tether || tp->type == Tbios)
 			continue;
-		if (VERBOSE)
+		if (VERBOSE || debug)
 			print("probing %s...", typename(tp->type));
 		if((mp = probe(tp->type, Fini, Dany)) && (mp->flag & Fini)){
 			print("using %s!%s!%s\n", mp->name, mp->part, mp->ini);
@@ -351,8 +354,10 @@ main(void)
 	apminit();
 
 	debugload = getconf("*debugload") != nil;
-	if((p = getconf("console")) != nil)
+	if((p = getconf("console")) != nil) {
+		consdrain();
 		consinit(p, getconf("baud"));
+	}
 
 	devpccardlink();
 	devi82365link();
@@ -512,7 +517,7 @@ ialloc(ulong n, int align)
 
 	palloc = p+n;
 	if(palloc > PEND)
-		panic("ialloc(%lud, %d) called from %#p\n",
+		panic("ialloc(%lud, %d) called from %#p",
 			n, align, getcallerpc(&n));
 	return memset((void*)(p|KZERO), 0, n);
 }
@@ -523,7 +528,7 @@ xspanalloc(ulong size, int align, ulong span)
 	ulong a, v;
 
 	if((palloc + (size+align+span)) > PEND)
-		panic("xspanalloc(%lud, %d, 0x%lux) called from %#p\n",
+		panic("xspanalloc(%lud, %d, 0x%lux) called from %#p",
 			size, align, span, getcallerpc(&size));
 
 	a = (ulong)ialloc(size+align+span, 0);
@@ -557,7 +562,7 @@ allocb(int size)
 	}
 	if(bp == 0){
 		if((palloc + (sizeof(Block)+size+64)) > PEND)
-			panic("allocb(%d) called from %#p\n",
+			panic("allocb(%d) called from %#p",
 				size, getcallerpc(&size));
 		bp = ialloc(sizeof(Block)+size+64, 0);
 		addr = (ulong)bp;
@@ -567,7 +572,7 @@ allocb(int size)
 	}
 
 	if(bp->flag)
-		panic("allocb reuse\n");
+		panic("allocb reuse");
 
 	bp->rp = bp->base;
 	bp->wp = bp->rp;

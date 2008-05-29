@@ -388,7 +388,7 @@ allocb(int size)
 	}
 
 	if(bp->flag)
-		panic("allocb reuse\n");
+		panic("allocb reuse");
 
 	bp->rp = bp->base;
 	bp->wp = bp->rp;

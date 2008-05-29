@@ -909,6 +909,10 @@ newdrive(Drive *d)
 			goto lose;
 		}
 	}
+	if (d->sectors == 0) {
+		idprint("%s: no sectors\n", d->unit->name);
+		goto lose;
+	}
 
 	ilock(d);
 	d->state = Dready;
@@ -1365,6 +1369,8 @@ retry:
 	while(ahciclear(&as) == 0)
 		;
 
+	if (d->port == nil)
+		panic("iariopkt: nil d->port");
 	ilock(d);
 	flag = d->portm.flag;
 	task = d->port->task;
@@ -1438,6 +1444,8 @@ iario(SDreq *r)
 	count = cmd[7]<<8  | cmd[8];
 	if(r->data == nil)
 		return SDok;
+	if (unit->secsize <= 0)
+		unit->secsize = 512;
 	if(r->dlen < count * unit->secsize)
 		count = r->dlen / unit->secsize;
 	max = 128;
@@ -1463,6 +1471,8 @@ iario(SDreq *r)
 		while(ahciclear(&as) == 0)
 			;
 
+		if (d->port == nil)
+			panic("iario: nil d->port");
 		ilock(d);
 		flag = d->portm.flag;
 		task = d->port->task;
@@ -1567,12 +1577,19 @@ loop:
 				tname[c->type], io, p->did);
 			continue;
 		}
+
 		/* ugly hack: get this in compatibility mode; see memory.c:271 */
+		if(p->mem[Abar].bar == 0) {
+			print("%s: did %#ux has zero bar\n", tname[c->type],
+				p->did);
+			continue;
+		}
 		if(io == 0x40000000) {
 			print("%s: did %#ux is in non-sata mode.  bar %#lux\n",
 				tname[c->type], p->did, p->mem[Abar].bar);
 			continue;
 		}
+
 		c->mmio = KADDR(io);
 		c->lmmio = (ulong*)c->mmio;
 		if(Intel(c->type) && p->did != 0x2681)

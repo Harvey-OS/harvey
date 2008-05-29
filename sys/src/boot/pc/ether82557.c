@@ -408,7 +408,7 @@ interrupt(Ureg*, void* arg)
 		}
 
 		if(status & (StatCX|StatFR|StatCNA|StatRNR|StatMDI|StatSWI))
-			panic("%s#%d: status %uX\n", ctlr->type,  ctlr->ctlrno, status);
+			panic("%s#%d: status %uX", ctlr->type,  ctlr->ctlrno, status);
 	}
 }
 

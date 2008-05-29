@@ -62,7 +62,7 @@ biosrio(SDreq* r)
 	case 0x08:			/* read */
 	case 0x28:			/* read */
 		if (r->cmd[0] == 0x08)
-			panic("biosrio: 0x08 read op\n");
+			panic("biosrio: 0x08 read op");
 		off = r->cmd[2]<<24 | r->cmd[3]<<16 | r->cmd[4]<<8 | r->cmd[5];
 		nb = r->cmd[7]<<8 | r->cmd[8];	/* often 4 */
 		USED(nb);		/* is nb*512 == r->dlen? */

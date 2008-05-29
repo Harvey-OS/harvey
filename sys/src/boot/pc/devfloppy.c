@@ -539,6 +539,8 @@ floppypos(FDrive *dp, long off)
 	int ltrack;
 	int end;
 
+	if (dp->t->bytes == 0 || dp->t->sectors == 0 || dp->t->heads == 0)
+		panic("floppypos: zero geometry");
 	lsec = off/dp->t->bytes;
 	ltrack = lsec/dp->t->sectors;
 	dp->tcyl = ltrack/dp->t->heads;
