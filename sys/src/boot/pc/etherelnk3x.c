@@ -532,7 +532,7 @@ interrupt(Ureg*, void* arg)
 		 * Panic if there are any interrupts not dealt with.
 		 */
 		if(status & interruptMask)
-			panic("elnk3#%d: interrupt mask 0x%uX\n", ether->ctlrno, status);
+			panic("elnk3#%d: interrupt mask 0x%uX", ether->ctlrno, status);
 	}
 
 	COMMAND(port, SelectRegisterWindow, w);

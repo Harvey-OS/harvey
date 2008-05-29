@@ -258,7 +258,15 @@ isdir(char *f)
 int
 isreg(char *f)
 {
-	return !isdir(f);
+	int r;
+	Dir *dir;
+
+	dir = dirstat(f);
+	if (dir == nil)
+		return 0;
+	r = (dir->mode & DMDIR) == 0;
+	free(dir);
+	return r;
 }
 
 int

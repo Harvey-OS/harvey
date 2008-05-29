@@ -18,7 +18,7 @@ kbdchar(int c)
 	c &= 0x7F;
 	if(c == 0x10)
 		warp86("\n^P\n", 0);
-	if(c == 0x12)
+	if(c == 0x12)			/* control-r? */
 		debug = !debug;
 	consiq.putc(&consiq, c);
 }
@@ -149,6 +149,7 @@ getstr(char *prompt, char *buf, int size, char *def, int timeout)
 		sprint(pbuf, "%s[default==%s]: ", prompt, def);
 	for (;;) {
 		print(pbuf);
+		consdrain();
 		len = getline(buf, size, timeout);
 		switch(len){
 		case 0:

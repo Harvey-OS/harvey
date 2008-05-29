@@ -514,6 +514,8 @@ memset(a, 0xDA, len);
 	 * (sectors, secsize) can't change once the drive has
 	 * been brought online.
 	 */
+	if (unit->secsize == 0)
+		panic("sdbio: zero sector size");
 	bno = (off/unit->secsize) + pp->start;
 	nb = ((off+len+unit->secsize-1)/unit->secsize) + pp->start - bno;
 	max = SDmaxio/unit->secsize;

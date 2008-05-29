@@ -436,7 +436,7 @@ interrupt(Ureg*, void* arg)
 		 * Anything left not catered for?
 		 */
 		if(status)
-			panic("#l%d: status %8.8uX\n", ether->ctlrno, status);
+			panic("#l%d: status %8.8uX", ether->ctlrno, status);
 	}
 }
 

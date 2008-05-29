@@ -182,6 +182,8 @@ fatwalk(Dos *dos, int n)
 	if(k >= dos->fatsize*dos->sectsize)
 		panic("getfat");
 
+	if (dos->sectsize == 0 || dos->clustsize == 0)
+		panic("fatwalk: zero sector or cluster size");
 	sect = (k/(dos->sectsize*dos->clustsize))*dos->clustsize + dos->fataddr;
 	o = k%(dos->sectsize*dos->clustsize);
 	p = getclust(dos, sect);

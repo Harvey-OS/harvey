@@ -85,7 +85,8 @@ Change the connection
 .I speed
 to one of
 .BR auto ,
-.BR satai or
+.BR satai
+or
 .BR sataii .
 .TP
 .B nop

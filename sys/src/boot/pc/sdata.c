@@ -959,6 +959,8 @@ atageniostart(Drive* drive, vlong lba)
 		s = lba & 0xFF;
 	}
 	else{
+		if (drive->s == 0 || drive->h == 0)
+			panic("atageniostart: zero s or h");
 		c = lba/(drive->s*drive->h);
 		h = ((lba/drive->s) % drive->h);
 		s = (lba % drive->s) + 1;
@@ -1150,6 +1152,8 @@ atagenio(Drive* drive, uchar* cmd, int)
 	count = (cmd[7]<<8)|cmd[8];
 	if(drive->data == nil)
 		return SDok;
+	if (drive->secsize == 0)
+		panic("atagenio: zero sector size");
 	if(drive->dlen < count*drive->secsize)
 		count = drive->dlen/drive->secsize;
 	qlock(ctlr);

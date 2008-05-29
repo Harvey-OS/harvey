@@ -350,7 +350,7 @@ mmuwalk(ulong* pdb, ulong va, int level, int create)
 
 	case 2:
 		if(*table & PTESIZE)
-			panic("mmuwalk2: va 0x%ux entry 0x%ux\n", va, *table);
+			panic("mmuwalk2: va 0x%ux entry 0x%ux", va, *table);
 		if(!(*table & PTEVALID)){
 			pa = PADDR(ialloc(BY2PG, BY2PG));
 			*table = pa|PTEWRITE|PTEVALID;
@@ -401,7 +401,7 @@ mmukmap(ulong pa, ulong va, int size)
 				 */
 				x = PPN(*table);
 				if(x != pa)
-					panic("mmukmap1: pa 0x%ux  entry 0x%ux\n",
+					panic("mmukmap1: pa 0x%ux  entry 0x%ux",
 						pa, *table);
 				x += 4*MB;
 				if(pae <= x){
@@ -424,7 +424,7 @@ mmukmap(ulong pa, ulong va, int size)
 				if(pte && *pte & PTEVALID){
 					x = PPN(*pte);
 					if(x != pa)
-						panic("mmukmap2: pa 0x%ux entry 0x%ux\n",
+						panic("mmukmap2: pa 0x%ux entry 0x%ux",
 							pa, *pte);
 					pgsz = BY2PG;
 					pa += pgsz;

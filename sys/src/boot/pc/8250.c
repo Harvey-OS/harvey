@@ -171,7 +171,7 @@ uartintr(Ureg*, void *arg)
 			break;
 		}
 	}
-	panic("uartintr: 0x%2.2ux\n", uartrdreg(up, Istat));
+	panic("uartintr: 0x%2.2ux", uartrdreg(up, Istat));
 }
 
 /*
