@@ -38,14 +38,16 @@ enum {
 	Tesb,
 	Tich,
 	Tsb600,
+	Tunk,
 };
 
-#define Intel(x)	((x) == Tesb  || (x) == Tich)
+#define Intel(x)	((x)->pci->vid == 0x8086)
 
 static char *tname[] = {
 	"63xxesb",
 	"ich",
 	"sb600",
+	"unk",
 };
 
 enum {
@@ -131,6 +133,7 @@ struct Ctlr {
 	Drive	rawdrive[NCtlrdrv];
 	Drive*	drive[NCtlrdrv];
 	int	ndrive;
+	int	mport;
 };
 
 static	Ctlr	iactlr[NCtlr];
@@ -571,7 +574,7 @@ ahciconfigdrive(Ahba *h, Aportc *c, int mode)
 	}
 
 	if(p->sstatus & 3 && h->cap & Hsss){
-		dprint("configdrive:  spinning up ... [%lux]\n", p->sstatus);
+		dprint("configdrive: spinning up ... [%lux]\n", p->sstatus);
 		p->cmd |= Apod|Asud;
 		asleep(1400);
 	}
@@ -707,8 +710,7 @@ identify(Drive *d)
 	u->inquiry[4] = sizeof u->inquiry - 4;
 	memmove(u->inquiry+8, d->model, 40);
 
-	if((osectors == 0 || osectors != s) &&
-	    memcmp(oserial, d->serial, sizeof oserial) != 0){
+	if(osectors != s || memcmp(oserial, d->serial, sizeof oserial)){
 		d->mediachange = 1;
 		u->sectors = 0;
 	}
@@ -753,8 +755,8 @@ updatedrive(Drive *d)
 		dprint("Fatal\n");
 	}
 	if(cause & Adhrs){
-		if(p->task & (32|1)){
-			dprint("Adhrs cause = %lux; serr = %lux; task=%lux\n",
+		if(p->task & (1<<5|1)){
+			dprint("Adhrs cause %lux serr %lux task %lux\n",
 				cause, serr, p->task);
 			d->portm.flag |= Ferror;
 			ewake = 1;
@@ -810,8 +812,7 @@ pstatus(Drive *d, ulong s)
 	case 0:
 		d->state = Dmissing;
 		break;
-	case 2:			/* should this be missing?  need testcase. */
-		dprint("pstatus 2\n");
+	case 2:
 	case 3:
 		d->wait = 0;
 		d->state = Dnew;
@@ -904,10 +905,8 @@ newdrive(Drive *d)
 	}
 	if(m->feat & Dpower && setfeatures(c, 0x85) == -1){
 		m->feat &= ~Dpower;
-		if(ahcirecover(c) == -1) {
-			dprint("%s: ahcirecover failed\n", name);
+		if(ahcirecover(c) == -1)
 			goto lose;
-		}
 	}
 	if (d->sectors == 0) {
 		idprint("%s: no sectors\n", d->unit->name);
@@ -923,7 +922,7 @@ newdrive(Drive *d)
 	s = "";
 	if(m->feat & Dllba)
 		s = "L";
-	idprint("%s: %sLBA %lld sectors\n", d->unit->name, s, d->sectors);
+	idprint("%s: %sLBA %,llud sectors\n", d->unit->name, s, d->sectors);
 	idprint("  %s %s %s %s\n", d->model, d->firmware, d->serial,
 		d->mediachange? "[mediachange]": "");
 
@@ -1005,7 +1004,7 @@ checkdrive(Drive *d, int i)
 reset:
 			if(++d->mode > DMsataii)
 				d->mode = 0;
-			if(d->mode == DMsatai){	/* we tried everything */
+			if(d->mode == DMsatai){
 				d->state = Dportreset;
 				goto portreset;
 			}
@@ -1072,9 +1071,8 @@ iainterrupt(Ureg*, void *a)
 
 	c = a;
 	ilock(c);
-	/* check drive here! */
 	cause = c->hba->isr;
-	for(i = 0; i < c->ndrive; i++){
+	for(i = 0; i < c->mport; i++){
 		m = 1 << i;
 		if((cause & m) == 0)
 			continue;
@@ -1106,7 +1104,7 @@ iaverify(SDunit *u)
 		checkdrive(d, d->driveno);
 		switch(d->state){
 		case Dmissing:
-			if(i < 4 || d->port->sstatus & 0x733)
+			if(d->port->sstatus & 0x733)
 				break;
 			/* fall through */
 		case Dnull:
@@ -1377,7 +1375,7 @@ retry:
 	iunlock(d);
 
 	if(task & (Efatal<<8) || task & (ASbsy|ASdrq) && d->state == Dready){
-		d->port->ci = 0;		/* @? */
+		d->port->ci = 0;
 		ahcirecover(&d->portc);
 		task = d->port->task;
 	}
@@ -1480,7 +1478,7 @@ iario(SDreq *r)
 
 		if(task & (Efatal<<8) ||
 		    task & (ASbsy|ASdrq) && d->state == Dready){
-			d->port->ci = 0;		/* @? */
+			d->port->ci = 0;
 			ahcirecover(&d->portc);
 			task = d->port->task;
 		}
@@ -1528,6 +1526,32 @@ iasetupahci(Ctlr *c)
 	pcicfgw8(c->pci, 0x90, 1<<6 | 1<<5);
 }
 
+static int
+didtype(Pcidev *p)
+{
+	switch(p->vid){
+	case 0x8086:
+		if((p->did & 0xfffc) == 0x2680)
+			return Tesb;
+		/*
+		 * 0x27c4 is the intel 82801 in compatibility (not sata) mode.
+		 * ich7 is 82801g[bh]m?.
+		 */
+		if ((p->did & 0xfeff) == 0x2829 ||		/* ich8 */
+		    (p->did & 0xfffe) == 0x2922 ||		/* ich9 */
+		    (p->did & 0xfffe) == 0x27c4 || p->did == 0x27c0) /* ich7 */
+			return Tich;
+		break;
+	case 0x1002:
+		if(p->did == 0x4380)
+			return Tsb600;
+		break;
+	}
+	if(p->ccrb == Pcibcstore && p->ccru == 6 && p->ccrp == 1)
+		return Tunk;
+	return -1;
+}
+
 static SDev*
 iapnp(void)
 {
@@ -1542,30 +1566,19 @@ iapnp(void)
 	if (done || getconf("*noahciload") != nil)
 		return nil;
 	done = 1;
+	memset(olds, 0xff, sizeof olds);
 	p = nil;
 	head = tail = nil;
 loop:
 	while((p = pcimatch(p, 0, 0)) != nil){
-		/* 0x27c4 is the intel 82801 in compatibility (not sata) mode */
-		if(p->vid == 0x8086 && (p->did & 0xfffc) == 0x2680)
-			type = Tesb;
-		else if(p->vid == 0x8086 &&
-		    (p->did == 0x27c5 || p->did == 0x27c0))
-			type = Tich;	/* 82801g[bh]m?; compat mode fails */
-		else if(p->vid == 0x8086 && (p->did & 0xfeff) == 0x2829)
-			type = Tich;		/* ich8 */
-		else if(p->vid == 0x8086 && (p->did & 0xfffe) == 0x2922)
-			type = Tich;		/* ich8 */
-		else if(p->vid == 0x1002 && p->did == 0x4380)
-			type = Tsb600;
-		else
+		if((type = didtype(p)) == -1)
 			continue;
 		if(niactlr == NCtlr){
 			print("iapnp: %s: too many controllers\n", tname[type]);
 			break;
 		}
 		c = iactlr + niactlr;
-		s = sdevs  + niactlr;
+		s = sdevs + niactlr;
 		memset(c, 0, sizeof *c);
 		memset(s, 0, sizeof *s);
 		c->pci = p;
@@ -1592,11 +1605,11 @@ loop:
 
 		c->mmio = KADDR(io);
 		c->lmmio = (ulong*)c->mmio;
-		if(Intel(c->type) && p->did != 0x2681)
+		if(Intel(c) && p->did != 0x2681)
 			iasetupahci(c);
 		nunit = ahciconf(c);
 //		ahcihbareset((Ahba*)c->mmio);
-		if(Intel(c->type) && iaahcimode(p) == -1)
+		if(Intel(c) && iaahcimode(p) == -1)
 			break;
 		if(nunit < 1){
 //			vunmap(c->mmio, p->mem[Abar].size);
@@ -1612,6 +1625,7 @@ loop:
 		s->idno = 'E';
 		c->sdev = s;
 		c->ndrive = nunit;
+		c->mport = c->hba->cap & 0x1f;
 
 		/* map the drives -- they don't all need to be enabled. */
 		memset(c->rawdrive, 0, sizeof c->rawdrive);
@@ -1624,7 +1638,6 @@ loop:
 			d->ctlr = c;
 			if((c->hba->pi & (1<<i)) == 0)
 				continue;
-//			d->state = Dnew;
 			d->port = (Aport*)(c->mmio + 0x80*i + 0x100);
 			d->portc.p = d->port;
 			d->portc.m = &d->portm;

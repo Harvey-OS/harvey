@@ -7718,7 +7718,7 @@ sys/man/3/proc - 664 sys sys 1196638942 12062
 sys/man/3/root - 664 sys sys 1196638942 632
 sys/man/3/rtc - 664 sys sys 1196638942 667
 sys/man/3/sd - 664 sys sys 1196638942 5659
-sys/man/3/sdahci - 664 sys sys 1212016122 3212
+sys/man/3/sdahci - 664 sys sys 1212097867 3213
 sys/man/3/sdaoe - 664 sys sys 1196638942 1320
 sys/man/3/segment - 664 sys sys 1196638942 2378
 sys/man/3/srv - 664 sys sys 1196638942 1470
@@ -8190,7 +8190,7 @@ sys/src/9/pc/screen.h - 664 sys sys 1147023549 4256
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1211521147 55313
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
 sys/src/9/pc/sdata.c - 664 sys sys 1211924368 53297
-sys/src/9/pc/sdiahci.c - 664 sys sys 1212010154 38901
+sys/src/9/pc/sdiahci.c - 664 sys sys 1212099695 38999
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1204232564 34031
 sys/src/9/pc/sdmylex.c - 664 sys sys 1189229947 28395
 sys/src/9/pc/sdscsi.c - 664 sys sys 1186618532 7957
@@ -8260,7 +8260,7 @@ sys/src/9/port/devpipe.c - 664 sys sys 1077055016 5825
 sys/src/9/port/devpnp.c - 664 sys sys 1088560907 13624
 sys/src/9/port/devproc.c - 664 sys sys 1210984256 28480
 sys/src/9/port/devroot.c - 664 sys sys 1146151714 4242
-sys/src/9/port/devsd.c - 664 sys sys 1186965855 31275
+sys/src/9/port/devsd.c - 664 sys sys 1212099662 31288
 sys/src/9/port/devsdp.c - 664 sys sys 1057323393 44800
 sys/src/9/port/devsegment.c - 664 sys sys 1131289891 9610
 sys/src/9/port/devsrv.c - 664 sys sys 1165810571 5711
@@ -8315,7 +8315,7 @@ sys/src/9/port/swap.c - 664 sys sys 1138028310 7019
 sys/src/9/port/sysfile.c - 664 sys sys 1188922869 22120
 sys/src/9/port/sysproc.c - 664 sys sys 1188922870 21419
 sys/src/9/port/systab.h - 664 sys sys 1161222889 3204
-sys/src/9/port/taslock.c - 664 sys sys 1204229744 4590
+sys/src/9/port/taslock.c - 664 sys sys 1212083600 4478
 sys/src/9/port/thwack.c - 664 sys sys 1057323394 7253
 sys/src/9/port/thwack.h - 664 sys sys 1015278340 1792
 sys/src/9/port/tod.c - 664 sys sys 1204228653 5445
@@ -9187,7 +9187,6 @@ sys/src/boot/pc/conf.c - 664 sys sys 1094674484 10217
 sys/src/boot/pc/console.c - 664 sys sys 1212010517 3422
 sys/src/boot/pc/dat.h - 664 sys sys 1190921443 3637
 sys/src/boot/pc/devbios.c - 664 sys sys 1212010497 9431
-sys/src/boot/pc/devbios.h - 664 sys sys 1193167027 493
 sys/src/boot/pc/devfloppy.c - 664 sys sys 1212010456 15657
 sys/src/boot/pc/devfloppy.h - 664 sys sys 1032409559 4081
 sys/src/boot/pc/devi82365.c - 664 sys sys 1144961189 15051
@@ -9233,7 +9232,7 @@ sys/src/boot/pc/kbd.c - 664 sys sys 1015007952 10188
 sys/src/boot/pc/kfs.h - 664 sys sys 1032215924 861
 sys/src/boot/pc/kfsboot.c - 664 sys sys 1032215914 4788
 sys/src/boot/pc/l.s - 664 sys sys 1193167045 18213
-sys/src/boot/pc/lib.h - 664 sys sys 1200893244 2925
+sys/src/boot/pc/lib.h - 664 sys sys 1212090562 3280
 sys/src/boot/pc/load.c - 664 sys sys 1212010219 10578
 sys/src/boot/pc/mbr.s - 664 sys sys 1015007953 6234
 sys/src/boot/pc/mem.h - 664 sys sys 1190921475 3437
@@ -9254,7 +9253,7 @@ sys/src/boot/pc/sd53c8xx.i - 664 sys sys 1015007955 27245
 sys/src/boot/pc/sdaoe.c - 664 sys sys 1204324647 11381
 sys/src/boot/pc/sdata.c - 664 sys sys 1212010306 39146
 sys/src/boot/pc/sdbios.c - 664 sys sys 1212010334 3280
-sys/src/boot/pc/sdiahci.c - 664 sys sys 1212010293 28716
+sys/src/boot/pc/sdiahci.c - 664 sys sys 1212090562 28613
 sys/src/boot/pc/sdmylex.c - 664 sys sys 1171783051 28694
 sys/src/boot/pc/sdscsi.c - 664 sys sys 1144961224 7006
 sys/src/boot/pc/trap.c - 664 sys sys 1193167011 7497

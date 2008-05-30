@@ -42,23 +42,23 @@ The top level control file,
 .BR /dev/sdctl ,
 supports the following control messages for
 .IR sdahci :
-.TF "\fLahci idprint "
+.TF "\fLiahci idprint"
 .TP
-.B ahci debug
+.B iahci debug
 Toggle debug messages.  Default is off.
 .TP
-.B ahci idprint
+.B iahci idprint
 Toggle printing of drive identification messages.  Default is on.
 Prints short messages when a drive is identified or removed.
 .TP
-.B ahci aprint
+.B iahci aprint
 Print verbose ATAPI debugging messages.  Default is off.
 .PD
 .PP
 The device-level
 .B ctl
 file supports:
-.TF "\fLsmartdisable"
+.TF \fLsmartdisable
 .TP
 .B flushcache
 Send the ATA/ATAPI
