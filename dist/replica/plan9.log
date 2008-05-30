@@ -19760,3 +19760,10 @@
 1212012004 21 c sys/src/boot/pc/devbios.c - 664 sys sys 1212010497 9431
 1212012004 22 c sys/src/boot/pc/sdbios.c - 664 sys sys 1212010334 3280
 1212017405 0 c sys/man/3/sdahci - 664 sys sys 1212016122 3212
+1212084006 0 c sys/src/9/port/taslock.c - 664 sys sys 1212083600 4478
+1212091204 0 c sys/src/boot/pc/lib.h - 664 sys sys 1212090562 3280
+1212091204 1 c sys/src/boot/pc/sdiahci.c - 664 sys sys 1212090562 28613
+1212098403 0 c sys/man/3/sdahci - 664 sys sys 1212097867 3213
+1212100207 0 c sys/src/9/pc/sdiahci.c - 664 sys sys 1212099695 38999
+1212100207 1 c sys/src/9/port/devsd.c - 664 sys sys 1212099662 31288
+1212100207 2 d sys/src/boot/pc/devbios.h - 664 sys sys 1193167027 0

@@ -100,7 +100,7 @@ lock(Lock *l)
 				 */
 				print("inversion 0x%lux pc 0x%lux proc %lud held by pc 0x%lux proc %lud\n",
 					l, pc, up ? up->pid : 0, l->pc, l->p ? l->p->pid : 0);
-				up->edf->d = todget(nil);	/* yield to process with lock */ 
+				up->edf->d = todget(nil);	/* yield to process with lock */
 			}
 			if(i++ > 100000000){
 				i = 0;
@@ -138,15 +138,10 @@ ilock(Lock *l)
 	if(tas(&l->key) != 0){
 		lockstats.glare++;
 		/*
-		 * Cannot also check l->pc and l->m here because
-		 * they might just not be set yet, or the lock might 
-		 * even have been let go.
+		 * Cannot also check l->pc, l->m, or l->isilock here
+		 * because they might just not be set yet, or
+		 * (for pc and m) the lock might have just been unlocked.
 		 */
-		if(!l->isilock){
-			dumplockmem("ilock:", l);
-			panic("corrupt ilock %p pc=%luX m=%p isilock=%d", 
-				l, l->pc, l->m, l->isilock);
-		}
 		for(;;){
 			lockstats.inglare++;
 			splx(x);

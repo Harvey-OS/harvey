@@ -59,24 +59,31 @@ extern	int	fmtinstall(int, int (*)(Fmt*));
 #pragma	varargck	argpos	seprint		3
 #pragma	varargck	argpos	snprint		3
 #pragma	varargck	argpos	sprint		2
-#pragma varargck	type	"H" void*
 
+#pragma varargck	type	"lux"	void*
+#pragma	varargck	type	"E"	uchar*	/* eipfmt */
+
+/* from /sys/include/libc.h */
 #pragma	varargck	type	"lld"	vlong
 #pragma	varargck	type	"llx"	vlong
 #pragma	varargck	type	"lld"	uvlong
 #pragma	varargck	type	"llx"	uvlong
 #pragma	varargck	type	"ld"	long
 #pragma	varargck	type	"lx"	long
+#pragma	varargck	type	"lb"	long
 #pragma	varargck	type	"ld"	ulong
 #pragma	varargck	type	"lx"	ulong
+#pragma	varargck	type	"lb"	ulong
 #pragma	varargck	type	"d"	int
 #pragma	varargck	type	"x"	int
 #pragma	varargck	type	"c"	int
 #pragma	varargck	type	"C"	int
+#pragma	varargck	type	"b"	int
 #pragma	varargck	type	"d"	uint
 #pragma	varargck	type	"x"	uint
 #pragma	varargck	type	"c"	uint
 #pragma	varargck	type	"C"	uint
+#pragma	varargck	type	"b"	uint
 #pragma	varargck	type	"f"	double
 #pragma	varargck	type	"e"	double
 #pragma	varargck	type	"g"	double
@@ -86,10 +93,15 @@ extern	int	fmtinstall(int, int (*)(Fmt*));
 #pragma	varargck	type	"Q"	Rune*
 #pragma	varargck	type	"r"	void
 #pragma	varargck	type	"%"	void
-#pragma	varargck	type	"|"	int
+#pragma	varargck	type	"n"	int*
+#pragma	varargck	type	"p"	uintptr
 #pragma	varargck	type	"p"	void*
-#pragma varargck	type	"lux"	void*
-#pragma	varargck	type	"E"	uchar*
+#pragma	varargck	flag	','
+#pragma	varargck	flag	'h'
+#pragma varargck	type	"<"	void*
+#pragma varargck	type	"["	void*
+#pragma varargck	type	"H"	void*
+#pragma varargck	type	"lH"	void*
 
 #define PRINTSIZE	256
 
