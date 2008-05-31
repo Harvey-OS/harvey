@@ -4,12 +4,11 @@ audio \- SoundBlaster audio controller
 .SH SYNOPSIS
 .nf
 .B bind -a #A /dev
-
+.sp 0.3v
 .B /dev/audio
 .B /dev/volume
 .fi
 .SH DESCRIPTION
-.PP
 The audio device serves a one-level directory,
 giving access to the stereo audio ports.
 .B Audio
@@ -31,9 +30,9 @@ The file
 .B audiostat
 provides additional timing and latency control.  When read, it returns
 lines of the form
-.br
+.IP
 .B "bufsize \f2s\fP buffered \f2b\fP offset \f2o\fP time \f2t\fP
-.br
+.PP
 reporting number of bytes
 .I s
 used for DMA operations (i.e., the minimum useful size for reads and writes),
@@ -93,6 +92,7 @@ The Sound Blaster 16 (or MCD) is half-duplex and accepts the following controls 
 .B volume
 file,
 in the format shown above for reads.
+.TF "\fLspeaker in out"
 .TP
 .B audio out
 Data written to audio.
@@ -124,6 +124,5 @@ Stereo bass tone control.
 Sampling rate for the D/A and A/D converters,
 expressed in Hz.
 Defaults to 44100.
-.PP
 .SH SOURCE
 .B /sys/src/9/port/devaudio.c

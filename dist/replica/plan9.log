@@ -19767,3 +19767,5 @@
 1212100207 0 c sys/src/9/pc/sdiahci.c - 664 sys sys 1212099695 38999
 1212100207 1 c sys/src/9/port/devsd.c - 664 sys sys 1212099662 31288
 1212100207 2 d sys/src/boot/pc/devbios.h - 664 sys sys 1193167027 0
+1212177605 0 c sys/man/3/audio - 664 sys sys 1212176738 2957
+1212184806 0 c sys/man/3/aoe - 664 sys sys 1212183705 6647

@@ -7690,10 +7690,10 @@ sys/man/3 - 20000000775 sys sys 1123100836 0
 sys/man/3/0intro - 664 sys sys 1196638941 1873
 sys/man/3/INDEX - 664 sys sys 1196638941 377
 sys/man/3/INDEX.html - 664 sys sys 1196638941 3691
-sys/man/3/aoe - 664 sys sys 1196638941 6420
+sys/man/3/aoe - 664 sys sys 1212183705 6647
 sys/man/3/apm - 664 sys sys 1196638941 1625
 sys/man/3/arch - 664 sys sys 1196638941 1425
-sys/man/3/audio - 664 sys sys 1196638941 2933
+sys/man/3/audio - 664 sys sys 1212176738 2957
 sys/man/3/bridge - 664 sys sys 1196638941 3370
 sys/man/3/cap - 664 sys sys 1196638941 2137
 sys/man/3/cons - 664 sys sys 1196638941 8972
