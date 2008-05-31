@@ -4,7 +4,7 @@ aoe \- ATA-over-Ethernet (AoE) interface
 .SH SYNOPSIS
 .nf
 .B bind -a #æ /dev
-
+.sp 0.3v
 .B /dev/aoe/ctl
 .B /dev/aoe/log
 .BI /dev/aoe/ shelf . slot /config
@@ -211,8 +211,10 @@ should be consulted for this purpose.
 .PP
 The
 .B data
-file may be read or written like a normal file.  Reads and
-writes to this file are sent as AoE commands to the target.
+file may be read or written like a normal file
+except that reads and writes to this file are converted to
+AoE commands to the target, so transfers should be 512 or 1024 bytes long
+(or a larger multiple of 512 iff jumbo packets are in use).
 The size of this file is the usable size of the target.
 .PP
 The
@@ -269,6 +271,7 @@ Unused.
 .\" .IR vblade (1),
 .IR sd (3),
 .IR sdaoe (3),
+.IR aoesrv (8),
 .IR snoopy (8)
 .br
 .BR http://www.coraid.com/documents/AoEr10.txt
@@ -281,3 +284,7 @@ Proceedings of the Sigcomm '88 Symposium in Stanford, CA, August, 1988.
 There is no
 .B raw
 file for executing arbitrary commands.
+.PP
+This is a fairly primitive interface;
+.IR sdaoe (3)
+is usually more suitable.
