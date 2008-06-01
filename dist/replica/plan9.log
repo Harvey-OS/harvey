@@ -19769,3 +19769,17 @@
 1212100207 2 d sys/src/boot/pc/devbios.h - 664 sys sys 1193167027 0
 1212177605 0 c sys/man/3/audio - 664 sys sys 1212176738 2957
 1212184806 0 c sys/man/3/aoe - 664 sys sys 1212183705 6647
+1212253203 0 c lib/face/48x48x4/.dict - 664 sys sys 1212252650 3637
+1212260404 0 c sys/src/boot/pc/devsd.c - 664 sys sys 1212259573 11548
+1212260404 1 c sys/src/cmd/lex/sub2.c - 664 sys sys 1212260386 17044
+1212260404 2 c sys/src/cmd/lp/lpdaemon.c - 664 sys sys 1212260740 9925
+1212260404 3 c sys/src/cmd/tbl/t3.c - 664 sys sys 1212258964 1816
+1212260404 4 c sys/src/cmd/tbl/t5.c - 664 sys sys 1212259040 3714
+1212260404 5 c sys/src/cmd/tbl/t6.c - 664 sys sys 1212259041 7286
+1212260404 6 c sys/src/cmd/tbl/t9.c - 664 sys sys 1212259072 1568
+1212260404 7 c sys/src/cmd/tbl/tc.c - 664 sys sys 1212258839 1279
+1212262204 0 c sys/src/cmd/lp/lpsend.c - 664 sys sys 1212261425 6138
+1212271204 0 c sys/src/libsec/port/mkfile - 664 sys sys 1212270780 927
+1212271204 1 c sys/src/libsec/port/rsatest.c - 664 sys sys 1212270788 1083
+1212273004 0 c sys/lib/tmac/tmac.s - 664 sys sys 1212272101 23059
+1212274804 0 c sys/man/6/style - 664 sys sys 1212274740 2813

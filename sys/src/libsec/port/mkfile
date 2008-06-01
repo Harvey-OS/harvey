@@ -28,3 +28,6 @@ UPDATE=mkfile\
 	$CFILES\
 
 </sys/src/cmd/mksyslib
+
+$O.rsatest: rsatest.$O
+	$LD -o $target $prereq

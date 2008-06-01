@@ -97,7 +97,6 @@ gettbl(void)
 	permute();
 	if (textflg) 
 		untext();
-	return;
 }
 
 

@@ -18,7 +18,6 @@ yetmore(void)
 	while (gets1(cstore = cspace, MAXCHS) && domore(cstore))
 		;
 	last = cstore;
-	return;
 }
 
 

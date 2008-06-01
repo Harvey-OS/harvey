@@ -67,10 +67,10 @@ error(int level, char *s1, ...)
 		fprint(stderr, "%.15s ", &(chartime[4]));
 	}
 	va_start(ap, s1);
-	while(args[argno++] = va_arg(ap, char*));
+	while(args[argno++] = va_arg(ap, char*))
+		;
 	va_end(ap);
 	fprint(stderr, s1, *args);
-	return;
 }
 
 int
@@ -95,8 +95,7 @@ error(int level, char *s1, ...)
 		chartime = ctime(&thetime);
 		fprintf(stderr, "%.15s ", &(chartime[4]));
 	}
-	fprintf(stderr, s1, (&s1+1));
-	return;
+	fprintf(stderr, s1, &s1 + 1);
 }
 
 void
@@ -186,27 +185,19 @@ tempfile(void)
 
 	sprint(tmpf, "/tmp/lp%d.%d", getpid(), tindx++);
 	if((tmpfd=create(tmpf,
-
 #ifdef plan9
-
-						ORDWR|OTRUNC,
-
+		ORDWR|OTRUNC,
 #endif
-
-												0666)) < 0) {
+	    0666)) < 0) {
 		error(0, "cannot create temp file %s\n", tmpf);
 		exits("cannot create temp file");
 	}
 	close(tmpfd);
 	if((tmpfd=open(tmpf, ORDWR
-
 #ifdef plan9
-
-						|ORCLOSE|OTRUNC
-
+		|ORCLOSE|OTRUNC
 #endif
-
-									)) < 0) {
+	    )) < 0) {
 		error(0, "cannot open temp file %s\n", tmpf);
 		exits("cannot open temp file");
 	}
