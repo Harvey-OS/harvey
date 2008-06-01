@@ -601,11 +601,11 @@ void
 sleep(void*, int (*fn)(void*), void *v)
 {
 	int x;
+
 	x = spllo();
 	while(!fn(v))
 		;
 	splx(x);
-	return;
 }
 
 void
@@ -615,11 +615,9 @@ tsleep(void*, int (*fn)(void*), void *v, int msec)
 	ulong start;
 
 	x = spllo();
-	for(start = m->ticks; TK2MS(m->ticks - start) < msec
-		&& !fn(v); )
+	for(start = m->ticks; TK2MS(m->ticks - start) < msec && !fn(v); )
 		;
 	splx(x);
-	return;
 }
 
 void*
