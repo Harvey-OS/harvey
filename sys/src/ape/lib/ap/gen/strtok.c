@@ -3,16 +3,15 @@
 #define	N	256
 
 char*
-strtok(char *s, const char *b)
+strtok_r(char *s, const char *b, char **last)
 {
-	static char *under_rock;
 	char map[N], *os;
 
 	memset(map, 0, N);
 	while(*b)
 		map[*(unsigned char*)b++] = 1;
 	if(s == 0)
-		s = under_rock;
+		s = *last;
 	while(map[*(unsigned char*)s++])
 		;
 	if(*--s == 0)
@@ -20,10 +19,18 @@ strtok(char *s, const char *b)
 	os = s;
 	while(map[*(unsigned char*)s] == 0)
 		if(*s++ == 0) {
-			under_rock = s-1;
+			*last = s-1;
 			return os;
 		}
 	*s++ = 0;
-	under_rock = s;
+	*last = s;
 	return os;
+}
+
+char*
+strtok(char *s, const char *b)
+{
+	static char *under_rock;
+
+	return strtok_r(s, b, &under_rock);
 }
