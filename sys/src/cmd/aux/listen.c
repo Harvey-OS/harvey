@@ -18,6 +18,7 @@ struct Announce
 	Announce	*next;
 	char	*a;
 	int	announced;
+	int	whined;
 };
 
 int	readstr(char*, char*, char*, int);
@@ -43,7 +44,8 @@ char *namespace;
 void
 usage(void)
 {
-	error("usage: aux/listen [-q] [-n namespace] [-d servdir] [-t trustdir] [proto]");
+	error("usage: aux/listen [-q] [-n namespace] [-d servdir] [-t trustdir]"
+		" [proto]");
 }
 
 /*
@@ -150,8 +152,9 @@ void
 listendir(char *protodir, char *srvdir, int trusted)
 {
 	int ctl, pid, start;
+	char dir[40], err[128];
 	Announce *a;
-	char dir[40];
+	Waitmsg *wm;
 
 	if (srvdir == 0)
 		return;
@@ -198,9 +201,16 @@ listendir(char *protodir, char *srvdir, int trusted)
 				for(;;){
 					ctl = announce(a->a, dir);
 					if(ctl < 0) {
-						syslog(1, listenlog,
-						   "giving up on %s: %r", a->a);
-						exits("ctl");
+						errstr(err, sizeof err);
+						if (!a->whined)
+							syslog(1, listenlog,
+							   "giving up on %s: %r",
+							a->a);
+						if(strstr(err, "address in use")
+						    != nil)
+							exits("addr-in-use");
+						else
+							exits("ctl");
 					}
 					dolisten(proto, dir, ctl, srvdir, a->a);
 					close(ctl);
@@ -214,10 +224,17 @@ listendir(char *protodir, char *srvdir, int trusted)
 		/* pick up any children that gave up and sleep for at least 60 seconds */
 		start = time(0);
 		alarm(60*1000);
-		while((pid = waitpid()) > 0)
+		while((wm = wait()) != nil) {
 			for(a = announcements; a; a = a->next)
-				if(a->announced == pid)
+				if(a->announced == wm->pid) {
 					a->announced = 0;
+					if (strstr(wm->msg, "addr-in-use") !=
+					    nil)
+						/* don't fill log file */
+						a->whined = 1;
+				}
+			free(wm);
+		}
 		alarm(0);
 		start = 60 - (time(0)-start);
 		if(start > 0)
@@ -230,15 +247,9 @@ listendir(char *protodir, char *srvdir, int trusted)
  *  make a list of all services to announce for
  */
 void
-addannounce(char *fmt, ...)
+addannounce(char *str)
 {
 	Announce *a, **l;
-	char str[128];
-	va_list arg;
-
-	va_start(arg, fmt);
-	vseprint(str, str+sizeof(str), fmt, arg);
-	va_end(arg);
 
 	/* look for duplicate */
 	l = &announcements;
@@ -256,6 +267,30 @@ addannounce(char *fmt, ...)
 	strcpy(a->a, str);
 	a->announced = 0;
 	*l = a;
+}
+
+/*
+ *  delete a service for announcement list
+ */
+void
+delannounce(char *str)
+{
+	Announce *a, **l;
+
+	/* look for service */
+	l = &announcements;
+	for(a = announcements; a; a = a->next){
+		if(strcmp(str, a->a) == 0)
+			break;
+		l = &a->next;
+	}
+	if (a == nil)
+		return;
+	*l = a->next;			/* drop from the list */
+	if (a->announced > 0)
+		postnote(PNPROC, a->announced, "die");
+	a->announced = 0;
+	free(a);
 }
 
 static int
@@ -276,6 +311,7 @@ scandir(char *proto, char *protodir, char *dname)
 {
 	int fd, i, n, nlen;
 	char *nm;
+	char ds[128];
 	Dir *db;
 
 	fd = open(dname, OREAD);
@@ -286,11 +322,15 @@ scandir(char *proto, char *protodir, char *dname)
 	while((n=dirread(fd, &db)) > 0){
 		for(i=0; i<n; i++){
 			nm = db[i].name;
-			if(db[i].qid.type&QTDIR ||
-			    strncmp(nm, proto, nlen) != 0 ||
-			    ignore(dname, nm))
-				continue;
-			addannounce("%s!*!%s", protodir, nm+nlen);
+			if(!(db[i].qid.type&QTDIR) &&
+			    strncmp(nm, proto, nlen) == 0) {
+				snprint(ds, sizeof ds, "%s!*!%s", protodir,
+					nm + nlen);
+				if (ignore(dname, nm))
+					delannounce(ds);
+				else
+					addannounce(ds);
+			}
 		}
 		free(db);
 	}

@@ -44,6 +44,12 @@ extern struct tm *gmtime(const time_t *);
 extern struct tm *localtime(const time_t *);
 extern size_t strftime(char *, size_t, const char *, const struct tm *);
 
+#ifdef _REENTRANT_SOURCE
+extern struct tm *gmtime_r(const time_t *, struct tm *);
+extern struct tm *localtime_r(const time_t *, struct tm *);
+extern char *ctime_r(const time_t *, char *);
+#endif
+
 #ifdef _POSIX_SOURCE
 extern void tzset(void);
 #endif
