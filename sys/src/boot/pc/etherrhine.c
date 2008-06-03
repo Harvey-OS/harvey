@@ -96,15 +96,16 @@ enum Regs {
 	ConfigB		= 0x79,
 	ConfigD		= 0x7B,
 	MiscCr		= 0x80,
-	HwSticky	= 0x83,
+	Stickhw		= 0x83,		/* Sticky Hardware Control */
 	MiscIsr		= 0x84,
 	MiscImr		= 0x86,
 	WolCrSet	= 0xA0,
 	WolCfgSet	= 0xA1,
 	WolCgSet	= 0xA3,
-	WolCrClr	= 0xA4,
+	Wolcrclr	= 0xA4,
 	PwrCfgClr	= 0xA5,
-	WolCgClr	= 0xA7,
+	Wolcgclr	= 0xA7,
+	Pwrcsrclr	= 0xAC,
 };
 
 enum {					/* Rcr */
@@ -486,7 +487,23 @@ miiwrite(Mii *mii, int phy, int reg, int data)
 static void
 reset(Ctlr* ctlr)
 {
-	int r, timeo;
+	int r, timeo, revid;
+
+	/*
+	 * Reset power management registers.
+	 */
+	revid = pcicfgr8(ctlr->pci, PciRID);
+	if(revid >= 0x40){
+		/* Set power state D0. */
+		csr8w(ctlr, Stickhw, csr8r(ctlr, Stickhw) & 0xFC);
+
+		/* Disable force PME-enable. */
+		csr8w(ctlr, Wolcgclr, 0x80);
+
+		/* Clear WOL config and status bits. */
+		csr8w(ctlr, Wolcrclr, 0xFF);
+		csr8w(ctlr, Pwrcsrclr, 0xFF);
+	}
 
 	/*
 	 * Soft reset the controller.
