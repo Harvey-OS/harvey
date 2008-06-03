@@ -275,7 +275,7 @@
 386/bin/grap - 775 sys sys 1212377340 283153
 386/bin/graph - 775 sys sys 1210392743 129377
 386/bin/grep - 775 sys sys 1209614327 79510
-386/bin/gs - 775 sys sys 1212377531 10248192
+386/bin/gs - 775 sys sys 1212377587 13279308
 386/bin/gunzip - 775 sys sys 1210392746 80464
 386/bin/gview - 775 sys sys 1210392751 240948
 386/bin/gzip - 775 sys sys 1210392754 83529
@@ -372,7 +372,7 @@
 386/bin/passwd - 775 sys sys 1192762788 85264
 386/bin/pbd - 775 sys sys 1085077087 4661
 386/bin/pcc - 775 sys sys 1168402344 68241
-386/bin/pic - 775 sys sys 1184529905 308725
+386/bin/pic - 775 sys sys 1212377594 309019
 386/bin/pipefile - 775 sys sys 1148500683 39431
 386/bin/plot - 775 sys sys 1210392886 222948
 386/bin/plumb - 775 sys sys 1176520491 69487
@@ -556,13 +556,13 @@
 386/lib/ape/lib9.a - 664 sys sys 1205611022 8766
 386/lib/ape/libap.a - 664 sys sys 1212377617 822090
 386/lib/ape/libbsd.a - 664 sys sys 1212377620 183900
-386/lib/ape/libdraw.a - 664 sys sys 1212377621 49152
-386/lib/ape/libfmt.a - 664 sys sys 1146156980 156706
-386/lib/ape/libl.a - 664 sys sys 1143777857 9406
-386/lib/ape/libnet.a - 664 sys sys 1203828448 24090
-386/lib/ape/libregexp.a - 664 sys sys 1143777857 47500
-386/lib/ape/libutf.a - 664 sys sys 1146156980 88500
-386/lib/ape/libv.a - 664 sys sys 1202357672 19334
+386/lib/ape/libdraw.a - 664 sys sys 1212377632 631580
+386/lib/ape/libfmt.a - 664 sys sys 1212377636 156706
+386/lib/ape/libl.a - 664 sys sys 1212377636 9406
+386/lib/ape/libnet.a - 664 sys sys 1212377637 24090
+386/lib/ape/libregexp.a - 664 sys sys 1212377638 47500
+386/lib/ape/libutf.a - 664 sys sys 1212377640 88500
+386/lib/ape/libv.a - 664 sys sys 1212377641 19334
 386/lib/lib9p.a - 664 sys sys 1209184390 91992
 386/lib/libString.a - 664 sys sys 1209184391 22466
 386/lib/libauth.a - 664 sys sys 1209184392 59742
@@ -8145,7 +8145,7 @@ sys/src/9/pc/ethermii.h - 664 sys sys 1086873891 3258
 sys/src/9/pc/ethersink.c - 664 sys sys 1048644103 1076
 sys/src/9/pc/ethersmc.c - 664 sys sys 1162951986 15116
 sys/src/9/pc/ethervgbe.c - 664 sys sys 1160066496 26838
-sys/src/9/pc/ethervt6102.c - 664 sys sys 1201296945 22600
+sys/src/9/pc/ethervt6102.c - 664 sys sys 1212432407 23073
 sys/src/9/pc/etherwavelan.c - 664 sys sys 1131290380 3747
 sys/src/9/pc/floppy.h - 664 sys sys 1055700609 3835
 sys/src/9/pc/fns.h - 664 sys sys 1190268439 4738
@@ -9221,7 +9221,7 @@ sys/src/boot/pc/etherif.h - 664 sys sys 1174077279 1338
 sys/src/boot/pc/etherigbe.c - 664 sys sys 1201822335 41718
 sys/src/boot/pc/ethermii.c - 664 sys sys 1103641771 4413
 sys/src/boot/pc/ethermii.h - 664 sys sys 1071175087 3259
-sys/src/boot/pc/etherrhine.c - 664 sys sys 1199911576 12759
+sys/src/boot/pc/etherrhine.c - 664 sys sys 1212432164 13178
 sys/src/boot/pc/fns.h - 664 sys sys 1193171343 4880
 sys/src/boot/pc/fs.c - 664 sys sys 1094674483 1509
 sys/src/boot/pc/fs.h - 664 sys sys 1094674488 653
@@ -9498,7 +9498,7 @@ sys/src/cmd/acme/disk.c - 664 sys sys 1014926093 2151
 sys/src/cmd/acme/ecmd.c - 664 sys sys 1199391526 24298
 sys/src/cmd/acme/edit.c - 664 sys sys 1124993578 12019
 sys/src/cmd/acme/edit.h - 664 sys sys 1124993577 2369
-sys/src/cmd/acme/elog.c - 664 sys sys 1111607796 7294
+sys/src/cmd/acme/elog.c - 664 sys sys 1212432645 7429
 sys/src/cmd/acme/exec.c - 664 sys sys 1181880498 28938
 sys/src/cmd/acme/file.c - 664 sys sys 1044626079 5717
 sys/src/cmd/acme/fns.h - 664 sys sys 1107154481 2916
