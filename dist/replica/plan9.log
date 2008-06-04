@@ -19826,3 +19826,4 @@
 1212433204 0 c sys/src/9/pc/ethervt6102.c - 664 sys sys 1212432407 23073
 1212433204 1 c sys/src/boot/pc/etherrhine.c - 664 sys sys 1212432164 13178
 1212433204 2 c sys/src/cmd/acme/elog.c - 664 sys sys 1212432645 7429
+1212465604 0 c 386/bin/acme - 775 sys sys 1212463885 432067
