@@ -19827,3 +19827,4 @@
 1212433204 1 c sys/src/boot/pc/etherrhine.c - 664 sys sys 1212432164 13178
 1212433204 2 c sys/src/cmd/acme/elog.c - 664 sys sys 1212432645 7429
 1212465604 0 c 386/bin/acme - 775 sys sys 1212463885 432067
+1212598803 0 d 386/bin/auth/secretpem - 775 sys sys 1045537944 0

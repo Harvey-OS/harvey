@@ -73,7 +73,6 @@
 386/bin/auth/rsa2x509 - 775 sys sys 1209614113 188278
 386/bin/auth/rsafill - 775 sys sys 1209614116 146106
 386/bin/auth/rsagen - 775 sys sys 1210392484 152111
-386/bin/auth/secretpem - 775 sys sys 1045537944 118526
 386/bin/auth/secstore - 775 sys sys 1210392490 192965
 386/bin/auth/secstored - 775 sys sys 1210392496 199024
 386/bin/auth/secuser - 775 sys sys 1210392499 149620
