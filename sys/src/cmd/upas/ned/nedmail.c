@@ -765,7 +765,7 @@ snprintheader(char *buf, int len, Message *m)
 {
 	char timebuf[32];
 	String *id;
-	char *p, *q;;
+	char *p, *q;
 
 	// create id
 	id = s_new();
@@ -1758,35 +1758,38 @@ tokenize822(char *str, char **args, int max)
 		}
 }
 
+/* return reply-to address & set *nmp to corresponding Message */
+static char *
+getreplyto(Message *m, Message **nmp)
+{
+	Message *nm;
+
+	for(nm = m; nm != &top; nm = nm->parent)
+ 		if(*nm->replyto != 0)
+			break;
+	*nmp = nm;
+	return nm? nm->replyto: nil;
+}
+
 Message*
 rcmd(Cmd *c, Message *m)
 {
+	char *addr;
 	char *av[128];
 	int i, ai = 1;
+	String *from, *rpath, *path = nil, *subject = nil;
 	Message *nm;
-	char *addr;
-	String *path = nil;
-	String *rpath;
-	String *subject = nil;
-	String *from;
 
 	if(m == &top){
 		Bprint(&out, "!address\n");
 		return nil;
 	}
 
-	addr = nil;
-	for(nm = m; nm != &top; nm = nm->parent){
- 		if(*nm->replyto != 0){
-			addr = nm->replyto;
-			break;
-		}
-	}
+	addr = getreplyto(m, &nm);
 	if(addr == nil){
 		Bprint(&out, "!no reply address\n");
 		return nil;
 	}
-
 	if(nm == &top){
 		print("!noone to reply to\n");
 		return nil;
@@ -1796,7 +1799,7 @@ rcmd(Cmd *c, Message *m)
 		if(*nm->subject){
 			av[ai++] = "-s";
 			subject = addrecolon(nm->subject);
-			av[ai++] = s_to_c(subject);;
+			av[ai++] = s_to_c(subject);
 			break;
 		}
 	}
@@ -1881,20 +1884,24 @@ Message*
 acmd(Cmd *c, Message *m)
 {
 	char *av[128];
-	int i, ai;
-	String *from, *to, *cc, *path = nil, *subject = nil;
+	int i, ai = 1;
+	String *from, *rpath, *path = nil, *subject = nil;
+	String *to, *cc;
 
 	if(m == &top){
 		Bprint(&out, "!address\n");
 		return nil;
 	}
 
-	ai = 1;
 	if(*m->subject){
 		av[ai++] = "-s";
 		subject = addrecolon(m->subject);
 		av[ai++] = s_to_c(subject);
 	}
+
+	av[ai++] = "-R";
+	rpath = rooted(s_clone(m->path));
+	av[ai++] = s_to_c(rpath);
 
 	if(strchr(c->av[0], 'A') != nil){
 		av[ai++] = "-t";
@@ -1914,12 +1921,13 @@ acmd(Cmd *c, Message *m)
 	ai += tokenize822(s_to_c(cc), &av[ai], nelem(av) - ai);
 	av[ai] = 0;
 	if(tomailer(av) < 0)
-		return nil;
+		m = nil;
+	s_free(path);
+	s_free(rpath);
+	s_free(subject);
 	s_free(from);
 	s_free(to);
 	s_free(cc);
-	s_free(subject);
-	s_free(path);
 	return m;
 }
 
