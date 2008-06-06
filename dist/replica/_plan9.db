@@ -500,7 +500,7 @@
 386/bin/vac - 775 sys sys 1196742539 171330
 386/bin/vacfs - 775 sys sys 1196742542 176138
 386/bin/venti - 20000000775 sys sys 947360466 0
-386/bin/venti/buildindex - 775 sys sys 1211255650 259435
+386/bin/venti/buildindex - 775 sys sys 1212695266 259494
 386/bin/venti/checkarenas - 775 sys sys 1211255666 261314
 386/bin/venti/checkindex - 775 sys sys 1211255671 256744
 386/bin/venti/clumpstats - 775 sys sys 1211255677 245680
@@ -14229,7 +14229,7 @@ sys/src/cmd/upas/ml/mlmgr.c - 664 sys sys 1045505888 2332
 sys/src/cmd/upas/ml/mlowner.c - 664 sys sys 1177589086 1143
 sys/src/cmd/upas/ned - 20000000775 sys sys 1062073146 0
 sys/src/cmd/upas/ned/mkfile - 664 sys sys 1060041738 233
-sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1210371064 44554
+sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1212691953 44795
 sys/src/cmd/upas/pop3 - 20000000775 sys sys 1064589604 0
 sys/src/cmd/upas/pop3/mkfile - 664 sys sys 1064589604 186
 sys/src/cmd/upas/pop3/pop3.c - 664 sys sys 1115039848 14327
@@ -14374,7 +14374,7 @@ sys/src/cmd/venti/srv/arena.c - 664 sys sys 1207253133 20156
 sys/src/cmd/venti/srv/arenas.c - 664 sys sys 1211224670 8048
 sys/src/cmd/venti/srv/bloom.c - 664 sys sys 1196369124 4445
 sys/src/cmd/venti/srv/buildbuck.c - 664 sys sys 1177189435 2837
-sys/src/cmd/venti/srv/buildindex.c - 664 sys sys 1191257306 21645
+sys/src/cmd/venti/srv/buildindex.c - 664 sys sys 1212642437 21703
 sys/src/cmd/venti/srv/checkarenas.c - 664 sys sys 1191257304 2310
 sys/src/cmd/venti/srv/checkindex.c - 664 sys sys 1179342633 5978
 sys/src/cmd/venti/srv/clump.c - 664 sys sys 1191257297 5316

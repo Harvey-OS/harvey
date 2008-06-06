@@ -811,6 +811,8 @@ isectproc(void *v)
 			sysfatal("not enough memory");
 		nminibuf = nbuf;
 	}
+	if (nbuf == 0)
+		sysfatal("zero nbuf; isect too small");
 	/* size buffer to use extra memory */
 	bufsize = MinBufSize;
 	while(bufsize*2*nbuf <= isectmem && bufsize < MaxBufSize)

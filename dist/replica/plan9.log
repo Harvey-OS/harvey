@@ -19828,3 +19828,6 @@
 1212433204 2 c sys/src/cmd/acme/elog.c - 664 sys sys 1212432645 7429
 1212465604 0 c 386/bin/acme - 775 sys sys 1212463885 432067
 1212598803 0 d 386/bin/auth/secretpem - 775 sys sys 1045537944 0
+1212643806 0 c sys/src/cmd/venti/srv/buildindex.c - 664 sys sys 1212642437 21703
+1212692406 0 c sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1212691953 44795
+1212696005 0 c 386/bin/venti/buildindex - 775 sys sys 1212695266 259494
