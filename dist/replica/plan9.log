@@ -19831,3 +19831,4 @@
 1212643806 0 c sys/src/cmd/venti/srv/buildindex.c - 664 sys sys 1212642437 21703
 1212692406 0 c sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1212691953 44795
 1212696005 0 c 386/bin/venti/buildindex - 775 sys sys 1212695266 259494
+1212724805 0 c 386/bin/upas/nedmail - 775 sys sys 1212724063 156265
