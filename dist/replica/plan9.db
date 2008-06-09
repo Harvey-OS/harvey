@@ -14374,7 +14374,7 @@ sys/src/cmd/venti/srv/arena.c - 664 sys sys 1207253133 20156
 sys/src/cmd/venti/srv/arenas.c - 664 sys sys 1211224670 8048
 sys/src/cmd/venti/srv/bloom.c - 664 sys sys 1196369124 4445
 sys/src/cmd/venti/srv/buildbuck.c - 664 sys sys 1177189435 2837
-sys/src/cmd/venti/srv/buildindex.c - 664 sys sys 1212642437 21703
+sys/src/cmd/venti/srv/buildindex.c - 664 sys sys 1212974464 21739
 sys/src/cmd/venti/srv/checkarenas.c - 664 sys sys 1191257304 2310
 sys/src/cmd/venti/srv/checkindex.c - 664 sys sys 1179342633 5978
 sys/src/cmd/venti/srv/clump.c - 664 sys sys 1191257297 5316
