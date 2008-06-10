@@ -378,6 +378,33 @@ enum {					/* Tdesc status */
 	CssSHIFT	= 8,
 };
 
+typedef struct {
+	ushort	*reg;
+	ulong	*reg32;
+	int	sz;
+} Flash;
+
+enum {
+	/* 16 and 32-bit flash registers for ich flash parts */
+	Bfpr	= 0x00/4,		/* flash base 0:12; lim 16:28 */
+	Fsts	= 0x04/2,		/* flash status;  Hsfsts */
+	Fctl	= 0x06/2,		/* flash control; Hsfctl */
+	Faddr	= 0x08/4,		/* flash address to r/w */
+	Fdata	= 0x10/4,		/* data @ address */
+
+	/* status register */
+	Fdone	= 1<<0,			/* flash cycle done */
+	Fcerr	= 1<<1,			/* cycle error; write 1 to clear */
+	Ael	= 1<<2,			/* direct access error log; 1 to clear */
+	Scip	= 1<<5,			/* spi cycle in progress */
+	Fvalid	= 1<<14,		/* flash descriptor valid */
+
+	/* control register */
+	Fgo	= 1<<0,			/* start cycle */
+	Flcycle	= 1<<1,			/* two bits: r=0; w=2 */
+	Fdbc	= 1<<8,			/* bytes to read; 5 bits */
+};
+
 enum {
 	Nrdesc		= 128,		/* multiple of 8 */
 	Ntdesc		= 128,		/* multiple of 8 */
@@ -801,17 +828,98 @@ i82563shutdown(Ether* ether)
 }
 
 static int
+fcycle(Ctlr *, Flash *f)
+{
+	ushort s, i;
+
+	s = f->reg[Fsts];
+	if((s&Fvalid) == 0)
+		return -1;
+	f->reg[Fsts] |= Fcerr | Ael;
+	for(i = 0; i < 10; i++){
+		if((s&Scip) == 0)
+			return 0;
+		delay(1);
+		s = f->reg[Fsts];
+	}
+	return -1;
+}
+
+static int
+fread(Ctlr *c, Flash *f, int ladr)
+{
+	ushort s;
+
+	delay(1);
+	if(fcycle(c, f) == -1)
+		return -1;
+	f->reg[Fsts] |= Fdone;
+	f->reg32[Faddr] = ladr;
+
+	/* setup flash control register */
+	s = f->reg[Fctl];
+	s &= ~(0x1f << 8);
+	s |= (2-1) << 8;		/* 2 bytes */
+	s &= ~(2*Flcycle);		/* read */
+	f->reg[Fctl] = s | Fgo;
+
+	while((f->reg[Fsts] & Fdone) == 0)
+		;
+	if(f->reg[Fsts] & (Fcerr|Ael))
+		return -1;
+	return f->reg32[Fdata] & 0xffff;
+}
+
+static int
+fload(Ctlr *c)
+{
+	ulong data, io, r, adr;
+	ushort sum;
+	Flash f;
+	Pcidev *p;
+
+//	io = c->pcidev->mem[1].bar & ~0x0f;
+//	f.reg = vmap(io, c->pcidev->mem[1].size);
+//	if(f.reg == nil)
+//		return -1;
+
+	p = c->pcidev;
+	io = upamalloc(p->mem[1].bar & ~0x0F, p->mem[1].size, 0);
+	if(io == 0){
+		print("i82566: can't map flash @ 0x%8.8lux\n", p->mem[1].bar);
+		return -1;
+	}
+	f.reg = KADDR(io);
+
+	f.reg32 = (ulong*)f.reg;
+	f.sz = f.reg32[Bfpr];
+	r = f.sz & 0x1fff;
+	if(csr32r(c, Eec) & (1<<22))
+		++r;
+	r <<= 12;
+
+	sum = 0;
+	for (adr = 0; adr < 0x40; adr++) {
+		data = fread(c, &f, r + adr*2);
+		if(data == -1)
+			break;
+		c->eeprom[adr] = data;
+		sum += data;
+	}
+//	vunmap(f.reg, c->pcidev->mem[1].size);
+	return sum;
+}
+
+static int
 i82563reset(Ctlr* ctlr)
 {
 	int i, r;
 
 	detach(ctlr);
 
-	if(ctlr->type == i82566) {
-		// r = fload(ctlr);
-		r = 0;
-		print("i82566 not done yet\n");
-	} else
+	if(ctlr->type == i82566)
+		r = fload(ctlr);
+	else
 		r = eeload(ctlr);
 	if (r != 0 && r != 0xBABA){
 		print("%s: bad EEPROM checksum - 0x%4.4ux\n", Type, r);
@@ -869,6 +977,9 @@ i82563pci(void)
 
 	p = nil;
 	while(p = pcimatch(p, 0x8086, 0)){
+		if(p->ccrb != 0x02 || p->ccru != 0)
+			continue;
+print("i82563pci: did %4.4#x\n", p->did);
 		switch(p->did){
 		case 0x1096:
 		case 0x10ba:
@@ -877,6 +988,7 @@ i82563pci(void)
 		case 0x1049:		/* mm */
 		case 0x104a:		/* dm */
 		case 0x104d:		/* v */
+		case 0x10bd:		/* dm */
 			type = i82566;
 			break;
 		case 0x10a4:
@@ -995,11 +1107,11 @@ i82563pnp(Ether* edev)
 	 * ideally, we recognize the interface, note it's down and move on.
 	 * currently either we can skip the interface or note it is down,
 	 * but not both.
-	 */
 	if((csr32r(ctlr, Status)&Lu) == 0){
 		print("ether#%d: 82563 (%s): link down\n", edev->ctlrno, Type);
 		return -1;
 	}
+	 */
 
 	return 0;
 }

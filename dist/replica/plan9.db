@@ -500,7 +500,7 @@
 386/bin/vac - 775 sys sys 1196742539 171330
 386/bin/vacfs - 775 sys sys 1196742542 176138
 386/bin/venti - 20000000775 sys sys 947360466 0
-386/bin/venti/buildindex - 775 sys sys 1212695266 259494
+386/bin/venti/buildindex - 775 sys sys 1212982782 259535
 386/bin/venti/checkarenas - 775 sys sys 1211255666 261314
 386/bin/venti/checkindex - 775 sys sys 1211255671 256744
 386/bin/venti/clumpstats - 775 sys sys 1211255677 245680
@@ -8124,7 +8124,7 @@ sys/src/9/pc/ether8139.c - 664 sys sys 1185650567 19974
 sys/src/9/pc/ether8169.c - 664 sys sys 1185812348 26931
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1131290377 32294
 sys/src/9/pc/ether82557.c - 664 sys sys 1211922643 30457
-sys/src/9/pc/ether82563.c - 664 sys sys 1200342471 37076
+sys/src/9/pc/ether82563.c - 664 sys sys 1213016020 37776
 sys/src/9/pc/ether82598.c - 664 sys sys 1203982856 18364
 sys/src/9/pc/ether83815.c - 664 sys sys 1172259521 26346
 sys/src/9/pc/ether8390.c - 664 sys sys 1131290377 17702
@@ -9206,7 +9206,7 @@ sys/src/boot/pc/ether8003.c - 664 sys sys 1015007950 6446
 sys/src/boot/pc/ether8139.c - 664 sys sys 1121393459 14823
 sys/src/boot/pc/ether8169.c - 664 sys sys 1212010436 21868
 sys/src/boot/pc/ether82557.c - 664 sys sys 1212010428 19134
-sys/src/boot/pc/ether82563.c - 664 sys sys 1209184829 26037
+sys/src/boot/pc/ether82563.c - 664 sys sys 1213016004 28290
 sys/src/boot/pc/ether83815.c - 664 sys sys 1144961190 21993
 sys/src/boot/pc/ether8390.c - 664 sys sys 1212010420 16207
 sys/src/boot/pc/ether8390.h - 664 sys sys 1015007951 1392

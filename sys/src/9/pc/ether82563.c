@@ -184,12 +184,29 @@ enum {					/* Mdic */
 	MDIe		= 0x40000000,	/* Error */
 };
 
-enum {					/* Mdic secondary status register */
-	Physsr		= 17,		/* phy secondary status register */
-	Phyier		= 18,		/* phy interrupt enable register */
-	Phypage		= 22,		/* phy page register */
+enum {					/* phy interface registers */
+	Phyctl		= 0,		/* phy ctl */
+	Physsr		= 17,		/* phy secondary status */
+	Phyier		= 18,		/* 82573 phy interrupt enable */
+	Phyisr		= 19,		/* 82563 phy interrupt status */
+	Phylhr		= 19,		/* 8257[12] link health */
+
 	Rtlink		= 1<<10,	/* realtime link status */
-	Phyan		= 1<<11,	/* phy has autonegotiated */
+	Phyan		= 1<<11,	/* phy has auto-negotiated */
+
+	/* Phyctl bits */
+	Ran		= 1<<9,		/* restart auto-negotiation */
+	Ean		= 1<<12,	/* enable auto-negotiation */
+
+	/* 82573 Phyier bits */
+	Lscie		= 1<<10,	/* link status changed ie */
+	Ancie		= 1<<11,	/* auto-negotiation complete ie */
+	Spdie		= 1<<14,	/* speed changed ie */
+	Panie		= 1<<15,	/* phy auto-negotiation error ie */
+
+	/* Phylhr/Phyisr bits */
+	Anf		= 1<<6,		/* lhr: auto-negotiation fault */
+	Ane		= 1<<15,	/* isr: auto-negotiation error */
 };
 
 enum {					/* Icr, Ics, Ims, Imc */
@@ -657,7 +674,7 @@ static Cmdtab i82563ctlmsg[] = {
 static long
 i82563ctl(Ether* edev, void* buf, long n)
 {
-	int v;
+	ulong v;
 	char *p;
 	Ctlr *ctlr;
 	Cmdbuf *cb;
@@ -675,15 +692,15 @@ i82563ctl(Ether* edev, void* buf, long n)
 	ct = lookupcmd(cb, i82563ctlmsg, nelem(i82563ctlmsg));
 	switch(ct->index){
 	case CMrdtr:
-		v = strtol(cb->f[1], &p, 0);
-		if(v < 0 || p == cb->f[1] || v > 0xFFFF)
+		v = strtoul(cb->f[1], &p, 0);
+		if(p == cb->f[1] || v > 0xFFFF)
 			error(Ebadarg);
 		ctlr->rdtr = v;
 		csr32w(ctlr, Rdtr, v);
 		break;
 	case CMradv:
-		v = strtol(cb->f[1], &p, 0);
-		if(v < 0 || p == cb->f[1] || v > 0xFFFF)
+		v = strtoul(cb->f[1], &p, 0);
+		if(p == cb->f[1] || v > 0xFFFF)
 			error(Ebadarg);
 		ctlr->radv = v;
 		csr32w(ctlr, Radv, v);
@@ -751,6 +768,7 @@ i82563rballoc(void)
 	if((bp = i82563rbpool) != nil){
 		i82563rbpool = bp->next;
 		bp->next = nil;
+		_xinc(&bp->ref);
 	}
 	iunlock(&i82563rblock);
 
@@ -1003,36 +1021,36 @@ i82563rproc(void* arg)
 			 * an indication of whether the checksums were
 			 * calculated and valid.
 			 */
-			if (bp = ctlr->rb[rdh]) {
-				if((rd->status & Reop) && rd->errors == 0){
-					bp->wp += rd->length;
-					bp->lim = bp->wp;	/* lie like a dog. */
-					if(!(rd->status & Ixsm)){
-						ctlr->ixsm++;
-						if(rd->status & Ipcs){
-							/*
-							 * IP checksum calculated
-							 * (and valid as errors == 0).
-							 */
-							ctlr->ipcs++;
-							bp->flag |= Bipck;
-						}
-						if(rd->status & Tcpcs){
-							/*
-							 * TCP/UDP checksum calculated
-							 * (and valid as errors == 0).
-							 */
-							ctlr->tcpcs++;
-							bp->flag |= Btcpck|Budpck;
-						}
-						bp->checksum = rd->checksum;
-						bp->flag |= Bpktck;
+			bp = ctlr->rb[rdh];
+			if((rd->status & Reop) && rd->errors == 0){
+				bp->wp += rd->length;
+				bp->lim = bp->wp;	/* lie like a dog. */
+				if(!(rd->status & Ixsm)){
+					ctlr->ixsm++;
+					if(rd->status & Ipcs){
+						/*
+						 * IP checksum calculated
+						 * (and valid as errors == 0).
+						 */
+						ctlr->ipcs++;
+						bp->flag |= Bipck;
 					}
-					etheriq(edev, bp, 1);
-				} else
-					freeb(bp);
-				ctlr->rb[rdh] = nil;
-			}
+					if(rd->status & Tcpcs){
+						/*
+						 * TCP/UDP checksum calculated
+						 * (and valid as errors == 0).
+						 */
+						ctlr->tcpcs++;
+						bp->flag |= Btcpck|Budpck;
+					}
+					bp->checksum = rd->checksum;
+					bp->flag |= Bpktck;
+				}
+				etheriq(edev, bp, 1);
+			} else
+				freeb(bp);
+			ctlr->rb[rdh] = nil;
+
 			rd->status = 0;
 			ctlr->rdfree--;
 			ctlr->rdh = rdh = Next(rdh, m);
@@ -1088,42 +1106,47 @@ phywrite(Ctlr *c, int reg, ushort val)
 	return 0;
 }
 
+/*
+ * watch for changes of link state
+ */
 static void
 i82563lproc(void *v)
 {
-	Ether *e;
+	uint phy, i, a;
 	Ctlr *c;
-	uint phy, i;
+	Ether *e;
 
 	e = v;
 	c = e->ctlr;
 
-	phy = phyread(c, Phyier);
-	if(phy != ~0){
-		phy |= 1<<14;
-		phywrite(c, Phyier, phy);
-	}
-
+	if(c->type == i82573 && (phy = phyread(c, Phyier)) != ~0)
+		phywrite(c, Phyier, phy | Lscie | Ancie | Spdie | Panie);
 	for(;;){
 		phy = phyread(c, Physsr);
 		if(phy == ~0)
 			goto next;
-		e->link = (phy & Rtlink) != 0;
 		i = (phy>>14) & 3;
 
 		switch(c->type){
 		case i82563:
-			if((phy&Phyan) == 0)
-				goto next;
+			a = phyread(c, Phyisr) & Ane;
 			break;
 		case i82571:
 		case i82572:
+			a = phyread(c, Phylhr) & Anf;
 			i = (i-1) & 3;
 			break;
+		default:
+			a = 0;
+			break;
 		}
-
-		c->speeds[i]++;
-		e->mbps = speedtab[i];
+		if(a)
+			phywrite(c, Phyctl, phyread(c, Phyctl) | Ran | Ean);
+		e->link = (phy & Rtlink) != 0;
+		if(e->link){
+			c->speeds[i]++;
+			e->mbps = speedtab[i];
+		}
 next:
 		c->lim = 0;
 		i82563im(c, Lsc);
@@ -1167,7 +1190,7 @@ i82563attach(Ether* edev)
 		qunlock(&ctlr->alock);
 		return;
 	}
-	ctlr->rdba = (Rd*)ROUNDUP((ulong)ctlr->alloc, 256);
+	ctlr->rdba = (Rd*)ROUNDUP((uintptr)ctlr->alloc, 256);
 	ctlr->tdba = (Td*)(ctlr->rdba + ctlr->nrd);
 
 	ctlr->rb = malloc(ctlr->nrd * sizeof(Block*));
@@ -1405,11 +1428,10 @@ fload(Ctlr *c)
 		return -1;
 	f.reg32 = (ulong*)f.reg;
 	f.sz = f.reg32[Bfpr];
-	if(csr32r(c, Eec) & (1<<22)){
-		r = (f.sz >> 16) & 0x1fff;
-		r = (r+1) << 12;
-	}else
-		r = (f.sz & 0x1fff) << 12;
+	r = f.sz & 0x1fff;
+	if(csr32r(c, Eec) & (1<<22))
+		++r;
+	r <<= 12;
 
 	sum = 0;
 	for (adr = 0; adr < 0x40; adr++) {
@@ -1440,9 +1462,9 @@ i82563reset(Ctlr *ctlr)
 		return -1;
 	}
 
-	for(i = Ea; i < Eaddrlen/2; i++){
-		ctlr->ra[2*i]   = ctlr->eeprom[i];
-		ctlr->ra[2*i+1] = ctlr->eeprom[i] >> 8;
+	for(i = 0; i < Eaddrlen/2; i++){
+		ctlr->ra[2*i]   = ctlr->eeprom[Ea+i];
+		ctlr->ra[2*i+1] = ctlr->eeprom[Ea+i] >> 8;
 	}
 	r = (csr32r(ctlr, Status) & Lanid) >> 2;
 	ctlr->ra[5] += r;		/* ea ctlr[1] = ea ctlr[0]+1 */
@@ -1489,6 +1511,7 @@ i82563pci(void)
 		case 0x1049:		/* mm */
 		case 0x104a:		/* dm */
 		case 0x104d:		/* v */
+		case 0x10bd:		/* dm */
 			type = i82566;
 			break;
 		case 0x10a4:
@@ -1508,8 +1531,7 @@ i82563pci(void)
 		io = p->mem[0].bar & ~0x0F;
 		mem = vmap(io, p->mem[0].size);
 		if(mem == nil){
-			print("%s: can't map %.8lux\n", tname[type],
-				p->mem[0].bar);
+			print("%s: can't map %.8lux\n", tname[type], io);
 			continue;
 		}
 		ctlr = malloc(sizeof(Ctlr));
@@ -1520,6 +1542,7 @@ i82563pci(void)
 		ctlr->nic = mem;
 
 		if(i82563reset(ctlr)){
+			vunmap(mem, p->mem[0].size);
 			free(ctlr);
 			continue;
 		}
