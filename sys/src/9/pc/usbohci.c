@@ -341,50 +341,6 @@ static void	unschedendpt(Ctlr *ub, Endpt *ep, int);
 static long	write(Usbhost *, Endpt*, void*, long, vlong, int);
 static long	qtd(Ctlr*, Endpt*, int, Block*, uchar*, uchar*, int, ulong);
 
-static short
-refcnt(Block *b, int i)
-{
-	short v;
-	static Lock l;
-
-	ilock(&l);
-	v = (b->flag += i);
-	iunlock(&l);
-	if(v < 0)
-		iprint("refcnt 0x%lux %d\n", b, v);
-	return v;
-}
-
-static void
-freewb(Block *b)
-{
-	if(b == nil || refcnt(b, -1) > 0)
-		return;
-
-	if(b->base > b->rp || b->rp > b->wp || b->wp > b->lim)
-		iprint("freebw: %lux %lux %lux %lux\n",
-			b->base, b->rp, b->wp, b->lim);
-	/* poison the block in case someone is still holding onto it */
-	b->next = (Block*)0xdeadcafe;
-	b->rp = (uchar*)0xdeadcafe;
-	b->wp = (uchar*)0xdeadcafe;
-	b->lim = (uchar*)0xdeadcafe;
-	b->base = (uchar*)0xdeadcafe;
-
-	free(b);
-}
-
-Block *
-allocwb(long size)
-{
-	Block *b;
-
-	b = allocb(size);
-	b->flag = 1;
-	b->free = freewb;
-	return b;
-}
-
 void
 printdata(void *pdata, int itemsize, int nitems)
 {
@@ -1496,7 +1452,7 @@ qtd(Ctlr *ub, Endpt *ep, int dirin , Block *bp, uchar *base, uchar *limit,
 	if(td->flags & TD_FLAGS_LAST)
 		ep->dir[dirin].xstarted++;
 	if(dirin == Dirout && bp)
-		refcnt(bp, 1);
+		_xinc(&bp->ref);
 	dummytd = TDalloc(ub, ep, 1);
 	TDsetnexttd(td, dummytd);
 	ep->dir[dirin].queued++;
@@ -1897,7 +1853,6 @@ interrupt(Ureg *, void *arg)
 		/* Clean up blocks used for transfers */
 		if(dirin == Dirout)
 			freeb(bp);
-
 		nexttd = TDgetnexttd(donetd);
 		TDfree(ub, donetd);
 		donetd = nexttd;
@@ -2073,7 +2028,7 @@ write(Usbhost *uh, Endpt *ep, void *a, long n, vlong off, int tok)
 	if((m = n) == 0 || p == nil)
 		qtd(ub, ep, Dirout, 0, 0, 0, tok, TD_FLAGS_LAST);
 	else{
-		b = allocwb(m+ep->partial);
+		b = allocb(m+ep->partial);
 		if(ep->partial){
 			memmove(b->wp, ep->bpartial->rp, ep->partial);
 			b->wp += ep->partial;
@@ -2109,7 +2064,7 @@ write(Usbhost *uh, Endpt *ep, void *a, long n, vlong off, int tok)
 				break;
 			}
 		}
-		freeb(b);
+		freeb(b); /* qtd calls incref; this undoes the one too many */
 	}
 	if(ep->epmode != Isomode){
 		sleep(&ep->dir[Dirout].rend, weptdone, ep);

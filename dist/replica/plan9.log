@@ -19836,3 +19836,8 @@
 1212984005 0 c 386/bin/venti/buildindex - 775 sys sys 1212982782 259535
 1213016405 0 c sys/src/9/pc/ether82563.c - 664 sys sys 1213016020 37776
 1213016405 1 c sys/src/boot/pc/ether82563.c - 664 sys sys 1213016004 28290
+1213133405 0 c sys/src/boot/pc/sdata.c - 664 sys sys 1213134120 39148
+1213135206 0 c sys/src/9/pc/sdata.c - 664 sys sys 1213134383 53299
+1213135206 1 c sys/src/9/pc/sdiahci.c - 664 sys sys 1213134393 39005
+1213135206 2 c sys/src/9/pc/usbohci.c - 664 sys sys 1213134352 48372
+1213135206 3 c sys/src/boot/pc/sdiahci.c - 664 sys sys 1213134135 28620

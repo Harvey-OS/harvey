@@ -8188,8 +8188,8 @@ sys/src/9/pc/screen.c - 664 sys sys 1184522395 13973
 sys/src/9/pc/screen.h - 664 sys sys 1147023549 4256
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1211521147 55313
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
-sys/src/9/pc/sdata.c - 664 sys sys 1211924368 53297
-sys/src/9/pc/sdiahci.c - 664 sys sys 1212099695 38999
+sys/src/9/pc/sdata.c - 664 sys sys 1213134383 53299
+sys/src/9/pc/sdiahci.c - 664 sys sys 1213134393 39005
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1204232564 34031
 sys/src/9/pc/sdmylex.c - 664 sys sys 1189229947 28395
 sys/src/9/pc/sdscsi.c - 664 sys sys 1186618532 7957
@@ -8200,7 +8200,7 @@ sys/src/9/pc/uarti8250.c - 664 sys sys 1177676872 13957
 sys/src/9/pc/uartisa.c - 664 sys sys 1127126907 1777
 sys/src/9/pc/uartpci.c - 664 sys sys 1190235592 4685
 sys/src/9/pc/usb.h - 664 sys sys 1202865355 4630
-sys/src/9/pc/usbohci.c - 664 sys sys 1205381809 49041
+sys/src/9/pc/usbohci.c - 664 sys sys 1213134352 48372
 sys/src/9/pc/usbuhci.c - 664 sys sys 1202252076 31839
 sys/src/9/pc/vga.c - 664 sys sys 1131290595 5148
 sys/src/9/pc/vga3dfx.c - 664 sys sys 1133218367 3833
@@ -9251,9 +9251,9 @@ sys/src/boot/pc/sd.h - 664 sys sys 1200690169 2249
 sys/src/boot/pc/sd53c8xx.c - 664 sys sys 1186031515 52082
 sys/src/boot/pc/sd53c8xx.i - 664 sys sys 1015007955 27245
 sys/src/boot/pc/sdaoe.c - 664 sys sys 1204324647 11381
-sys/src/boot/pc/sdata.c - 664 sys sys 1212010306 39146
+sys/src/boot/pc/sdata.c - 664 sys sys 1213134120 39148
 sys/src/boot/pc/sdbios.c - 664 sys sys 1212010334 3280
-sys/src/boot/pc/sdiahci.c - 664 sys sys 1212090562 28613
+sys/src/boot/pc/sdiahci.c - 664 sys sys 1213134135 28620
 sys/src/boot/pc/sdmylex.c - 664 sys sys 1171783051 28694
 sys/src/boot/pc/sdscsi.c - 664 sys sys 1144961224 7006
 sys/src/boot/pc/trap.c - 664 sys sys 1193167011 7497

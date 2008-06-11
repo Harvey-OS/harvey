@@ -1852,7 +1852,7 @@ didtype(Pcidev *p)
 		/* 0x27c4 is the intel 82801 in compatibility (not sata) mode */
 		if ((p->did & 0xfeff) == 0x2829 ||		/* ich8 */
 		    (p->did & 0xfffe) == 0x2922 ||		/* ich9 */
-		    (p->did & 0xfffe) == 0x27c4 || p->did == 0x27c0) /* 82801g[bh]m? */
+		    (p->did & 0xfffe) == 0x27c4 /* || p->did == 0x27c0 */) /* 82801g[bh]m? */
 			return Tich;
 		break;
 	case 0x1002:
