@@ -1539,7 +1539,7 @@ didtype(Pcidev *p)
 		 */
 		if ((p->did & 0xfeff) == 0x2829 ||		/* ich8 */
 		    (p->did & 0xfffe) == 0x2922 ||		/* ich9 */
-		    (p->did & 0xfffe) == 0x27c4 || p->did == 0x27c0) /* ich7 */
+		    (p->did & 0xfffe) == 0x27c4 /* || p->did == 0x27c0 */ ) /* ich7 */
 			return Tich;
 		break;
 	case 0x1002:

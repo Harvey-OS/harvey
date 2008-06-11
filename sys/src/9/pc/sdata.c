@@ -2020,7 +2020,7 @@ atapnp(void)
 		case (0x266F<<16)|0x8086:	/* 82801FB (ICH6) */
 		case (0x27DF<<16)|0x8086:	/* 82801G SATA (ICH7) */
 		case (0x27C0<<16)|0x8086:	/* 82801GB SATA AHCI (ICH7) */
-		case (0x27C4<<16)|0x8086:	/* 82801GBM SATA (ICH7) */
+//		case (0x27C4<<16)|0x8086:	/* 82801GBM SATA (ICH7) */
 		case (0x27C5<<16)|0x8086:	/* 82801GBM SATA AHCI (ICH7) */
 			break;
 		}
