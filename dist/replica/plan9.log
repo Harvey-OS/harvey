@@ -19842,3 +19842,5 @@
 1213135206 2 c sys/src/9/pc/usbohci.c - 664 sys sys 1213134352 48372
 1213135206 3 c sys/src/boot/pc/sdiahci.c - 664 sys sys 1213134135 28620
 1213227004 0 c rc/bin/diskparts - 775 sys sys 1213226510 928
+1213288207 0 c sys/man/2/arg - 664 sys sys 1213288210 2170
+1213290005 0 c sys/man/4/rio - 664 sys sys 1213288888 8658

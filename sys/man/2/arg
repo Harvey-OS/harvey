@@ -49,7 +49,7 @@ or the next argument in
 if any, or 0.
 .I ARGF
 must be called just once for each option
-that takes an argument.
+argument.
 The macro
 .I EARGF
 is like

@@ -379,7 +379,7 @@ and the word
 to be printed there.
 .IP
 .EX
-mount $riosrv /tmp 'new -r 0 0 128 64 -pid '$pid
+mount $wsys /tmp 'new -r 0 0 128 64 -pid '$pid
 echo hi > /tmp/cons
 .EE
 .PP

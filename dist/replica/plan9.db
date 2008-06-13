@@ -7541,7 +7541,7 @@ sys/man/2/access - 664 sys sys 1196638936 1102
 sys/man/2/addpt - 664 sys sys 1196638937 2964
 sys/man/2/aes - 664 sys sys 1196638937 1149
 sys/man/2/allocimage - 664 sys sys 1196638937 7304
-sys/man/2/arg - 664 sys sys 1196638937 2184
+sys/man/2/arg - 664 sys sys 1213288210 2170
 sys/man/2/arith3 - 664 sys sys 1196638939 4393
 sys/man/2/assert - 664 sys sys 1204322308 379
 sys/man/2/atof - 664 sys sys 1196638937 2778
@@ -7759,7 +7759,7 @@ sys/man/4/plumber - 664 sys sys 1196638944 2748
 sys/man/4/ramfs - 664 sys sys 1196638944 1642
 sys/man/4/ratfs - 664 sys sys 1196638944 3276
 sys/man/4/rdbfs - 664 sys sys 1196638944 1123
-sys/man/4/rio - 664 sys sys 1196638944 8660
+sys/man/4/rio - 664 sys sys 1213288888 8658
 sys/man/4/sacfs - 664 sys sys 1196638944 907
 sys/man/4/snap - 664 sys sys 1196638944 1908
 sys/man/4/srv - 664 sys sys 1196638944 4970
