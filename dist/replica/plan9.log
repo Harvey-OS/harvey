@@ -19885,3 +19885,5 @@
 1213560004 4 c sys/src/cmd/vac/vac.h - 664 sys sys 1213558389 3987
 1213560004 5 c sys/src/cmd/vac/vacfs.c - 664 sys sys 1213558401 13323
 1213560004 6 d sys/src/cmd/vac/vtdump.c - 664 sys sys 1213498240 0
+1213635606 0 c rc/bin/dontkill - 775 sys sys 1213634657 313
+1213644604 0 c sys/man/4/cdfs - 664 sys sys 1213644483 5267
