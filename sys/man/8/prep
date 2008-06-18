@@ -713,3 +713,10 @@ can create FAT12 and FAT16
 file systems, but not FAT32 file systems.
 The boot block can only read from
 FAT12 and FAT16 file systems.
+.PP
+If
+.L "prep -p"
+doesn't find a Plan 9 partition table,
+it will issue commands to delete
+.I all
+extant partitions.
