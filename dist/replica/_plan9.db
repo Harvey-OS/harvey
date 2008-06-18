@@ -5520,7 +5520,7 @@ rc/bin/delkey - 775 sys sys 1109429137 643
 rc/bin/dial - 20000000775 sys sys 1059180057 0
 rc/bin/diffy - 775 sys sys 1140694870 277
 rc/bin/dircp - 775 sys sys 1186289104 181
-rc/bin/diskparts - 775 sys sys 1213226510 928
+rc/bin/diskparts - 775 sys sys 1213733501 1052
 rc/bin/dmaon - 775 sys sys 1205288448 220
 rc/bin/doc2ps - 775 sys sys 1205813503 338
 rc/bin/doc2txt - 775 sys sys 1025197880 563
@@ -7884,7 +7884,7 @@ sys/man/8/ping - 664 sys sys 1196638947 3650
 sys/man/8/plan9.ini - 664 sys sys 1202255136 23868
 sys/man/8/pop3 - 664 sys sys 1197574309 3122
 sys/man/8/ppp - 664 sys sys 1210814269 4464
-sys/man/8/prep - 664 sys sys 1202496787 14211
+sys/man/8/prep - 664 sys sys 1213733470 14329
 sys/man/8/qer - 664 sys sys 1196638948 4909
 sys/man/8/reboot - 664 sys sys 1196638948 443
 sys/man/8/replica - 664 sys sys 1196638948 6383

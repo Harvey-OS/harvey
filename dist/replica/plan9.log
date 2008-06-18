@@ -19887,3 +19887,5 @@
 1213560004 6 d sys/src/cmd/vac/vtdump.c - 664 sys sys 1213498240 0
 1213635606 0 c rc/bin/dontkill - 775 sys sys 1213634657 313
 1213644604 0 c sys/man/4/cdfs - 664 sys sys 1213644483 5267
+1213734604 0 c rc/bin/diskparts - 775 sys sys 1213733501 1052
+1213734604 1 c sys/man/8/prep - 664 sys sys 1213733470 14329
