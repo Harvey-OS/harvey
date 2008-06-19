@@ -383,6 +383,7 @@
 386/bin/prof - 775 sys sys 1209614551 112005
 386/bin/proof - 775 sys sys 1210392905 180118
 386/bin/ps - 775 sys sys 1209614557 68753
+386/bin/pump - 775 sys sys 1213813262 60580
 386/bin/pwd - 775 sys sys 1148500685 36932
 386/bin/ramfs - 775 sys sys 1209184388 89491
 386/bin/rc - 775 sys sys 1183001109 145286
@@ -6230,7 +6231,7 @@ sys/lib/dist/cmd/touchfs.c - 664 sys sys 1018469727 1120
 sys/lib/dist/cmd/unbflz.c - 664 sys sys 1018469727 1688
 sys/lib/dist/logcompress.awk - 664 sys sys 1210371936 301
 sys/lib/dist/logtime.awk - 664 sys sys 1019526213 38
-sys/lib/dist/mkfile - 664 sys sys 1210371401 5469
+sys/lib/dist/mkfile - 664 sys sys 1213807255 5494
 sys/lib/dist/pc - 20000000775 sys sys 1147022870 0
 sys/lib/dist/pc/cd0.proto - 664 sys sys 1114358485 7
 sys/lib/dist/pc/empty - 20000000775 sys sys 1020895854 0
@@ -7473,6 +7474,7 @@ sys/man/1/prof - 664 sys sys 1196638933 3594
 sys/man/1/proof - 664 sys sys 1196638933 2300
 sys/man/1/ps - 664 sys sys 1196638933 1722
 sys/man/1/ps2pdf - 664 sys sys 1196638936 1359
+sys/man/1/pump - 664 sys sys 1213765898 1777
 sys/man/1/pwd - 664 sys sys 1196638933 744
 sys/man/1/rc - 664 sys sys 1196638936 20021
 sys/man/1/replica - 664 sys sys 1196638936 7210
@@ -9698,7 +9700,7 @@ sys/src/cmd/auth/rsa2any.h - 664 sys sys 1206420009 277
 sys/src/cmd/auth/rsa2csr.c - 664 sys sys 1048614963 621
 sys/src/cmd/auth/rsa2pub.c - 664 sys sys 1048614964 651
 sys/src/cmd/auth/rsa2ssh.c - 664 sys sys 1048614964 483
-sys/src/cmd/auth/rsa2x509.c - 664 sys sys 1048614964 794
+sys/src/cmd/auth/rsa2x509.c - 664 sys sys 1213807380 795
 sys/src/cmd/auth/rsafill.c - 664 sys sys 1048614963 747
 sys/src/cmd/auth/rsagen.c - 664 sys sys 1048614963 992
 sys/src/cmd/auth/secstore - 20000000775 sys sys 1106575527 0
@@ -13221,6 +13223,7 @@ sys/src/cmd/proof/mkfile - 664 sys sys 944961622 180
 sys/src/cmd/proof/proof.h - 664 sys sys 955223407 919
 sys/src/cmd/proof/screen.c - 664 sys sys 1204590226 6673
 sys/src/cmd/ps.c - 664 sys sys 1144686672 2783
+sys/src/cmd/pump.c - 664 sys sys 1213765467 2941
 sys/src/cmd/pwd.c - 664 sys sys 1067722792 287
 sys/src/cmd/qa - 20000000775 sys sys 1039727573 0
 sys/src/cmd/qa/a.h - 664 sys sys 1089299169 3252

@@ -159,7 +159,7 @@ worldwritable-mail:V:
 	9fs boot
 	test -e /n/boot/sys
 	/usr/rsc/bin/$cputype/lsr -t -d /n/boot/sys /n/boot/lib |
-		grep -v /lib/audio/ |		# give us a break
+		grep -v '/lib/audio/|/sys/src/cmd/vac/test/' |		# give us a break
 		awk '$2 ~ /[2367][^2367].$/' |
 		datemail 'non-group-writable files on fs' 9trouble
 	status=''
