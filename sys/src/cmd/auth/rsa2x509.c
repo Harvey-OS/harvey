@@ -9,7 +9,7 @@
 void
 usage(void)
 {
-	fprint(2, "usage: aux/rsa2x509 [-e expireseconds] 'C=US ...CN=xxx' [key]");
+	fprint(2, "usage: auth/rsa2x509 [-e expireseconds] 'C=US ...CN=xxx' [key]");
 	exits("usage");
 }
 
