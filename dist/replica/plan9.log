@@ -19896,3 +19896,7 @@
 1213808404 0 c sys/lib/dist/mkfile - 664 sys sys 1213807255 5494
 1213808404 1 c sys/src/cmd/auth/rsa2x509.c - 664 sys sys 1213807380 795
 1213813804 0 c 386/bin/pump - 775 sys sys 1213813262 60580
+1213894803 0 c rc/bin/diskparts - 775 sys sys 1213893784 1066
+1213894803 1 c sys/src/cmd/ip/imap4d/search.c - 664 sys sys 1213893891 4557
+1213894803 2 c sys/src/cmd/tlssrv.c - 664 sys sys 1213893726 3478
+1213900204 0 c sys/games/lib/fortunes - 664 sys sys 1213899205 269744
