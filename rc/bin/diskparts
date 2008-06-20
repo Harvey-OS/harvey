@@ -19,7 +19,7 @@ for(disk in /dev/sd*) {
 		parts=($disk/data)
 	for(part in $parts)
 		if(test -f $part)
-			disk/prep -p $part |
+			disk/prep -p $part >[2]/dev/null |
 				grep -v '^delpart ' >$disk/ctl >[2]/dev/null
 }
 
