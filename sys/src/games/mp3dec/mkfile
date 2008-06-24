@@ -1,70 +1,21 @@
-BUILTINS=
 </$objtype/mkfile
 
 OFILES=\
-	audio.$O\
-	audio_dummy.$O\
-	buffer.$O\
-	common.$O\
-	control_generic.$O\
-	dct64.$O\
-	decode.$O\
-	decode_2to1.$O\
-	decode_4to1.$O\
-	decode_ntom.$O\
-	equalizer.$O\
-	getbits.$O\
-	getlopt.$O\
-	httpget.$O\
-	layer1.$O\
-	layer2.$O\
+	bit.$O\
+	decoder.$O\
+	fixed.$O\
+	frame.$O\
+	huffman.$O\
+	layer12.$O\
 	layer3.$O\
-	mpg123.$O\
-	readers.$O\
-	tabinit.$O\
-	term.$O\
-	wav.$O\
-	xfermem.$O\
+	stream.$O\
+	synth.$O\
+	version.$O\
+	main.$O\
 
-HFILES=\
-	audio.h\
-	buffer.h\
-	common.h\
-	genre.h\
-	getbits.h\
-	getlopt.h\
-	huffman.h\
-	l2tables.h\
-	mpg123.h\
-	term.h\
-	version.h\
-	xfermem.h\
+TARG=mp3dec
+BIN=/$objtype/bin/games
 
-FLAGS=\
-	-p\
-	-D_POSIX_SOURCE\
-	-DNOXFERMEM\
-	-DPLAN9\
-	-D_BSD_EXTENSION\
-	-I/sys/include/ape\
-	-I/386/include/ape\
+</sys/src/cmd/mkone
 
-$O.out:	$OFILES
-	$LD $OFILES
-
-%.$O:	%.c
-	$CC $FLAGS $stem.c
-
-%.$O:	$HFILES
-
-all:V: $O.out
-
-clean:V:
-	rm -f *.[$OS] [$OS].out
-nuke:V: clean
-
-install:V:	$O.out
-	cp $O.out /$objtype/bin/games/mp3dec
-
-installall:V:
-	for(objtype in $CPUS) mk install
+CFLAGS=-FVp -DFPM_DEFAULT

@@ -274,7 +274,7 @@ main(int argc, char **argv)
 	refreshwin();
 	redraw(screen, 1);
 	einit(Emouse|Ekeyboard);
-	Etimer = etimer(0, 5000);
+	Etimer = etimer(0, 2500);
 
 	for(;;){
 		switch(eread(Emouse|Ekeyboard|Etimer, &e)){
@@ -285,7 +285,7 @@ main(int argc, char **argv)
 		case Emouse:
 			if(e.mouse.buttons)
 				click(e.mouse);
-			break;
+			/* fall through  */
 		default:	/* Etimer */
 			refreshwin();
 			redraw(screen, 0);
