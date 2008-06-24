@@ -16,44 +16,32 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id; //  huffman.h,v 1.11 2004/01/23 09; // 41; // 32 rob Exp $
+ * $Id: bit.h,v 1.12 2004/01/23 09:41:32 rob Exp $
  */
 
-# ifndef LIBMAD_HUFFMAN_H
-# define LIBMAD_HUFFMAN_H
+# ifndef LIBMAD_BIT_H
+# define LIBMAD_BIT_H
 
-struct huffquad {
-  unsigned char final;
-  struct {
-    unsigned char bits;
-    unsigned short offset;
-  } ptr;
-  struct {
-    unsigned char hlen;
-    unsigned char v, w, x, y;
-  } value;
+struct mad_bitptr {
+  unsigned char const *byte;
+  unsigned short cache;
+  unsigned short left;
 };
 
-struct huffpair {
-  unsigned char final;
-  struct {
-    unsigned char bits;
-    unsigned short offset;
-  } ptr;
-  struct {
-    unsigned char hlen;
-    unsigned char x;
-    unsigned char y;
-  } value;
-};
+void mad_bit_init(struct mad_bitptr *, unsigned char const *);
 
-struct hufftable {
-  struct huffpair const *table;
-  unsigned short linbits;
-  unsigned short startbits;
-};
+# define mad_bit_finish(bitptr)		/* nothing */
 
-extern struct huffquad const *const mad_huff_quad_table[2];
-extern struct hufftable const mad_huff_pair_table[32];
+unsigned int mad_bit_length(struct mad_bitptr const *,
+			    struct mad_bitptr const *);
+
+# define mad_bit_bitsleft(bitptr)  ((bitptr)->left)
+unsigned char const *mad_bit_nextbyte(struct mad_bitptr const *);
+
+void mad_bit_skip(struct mad_bitptr *, unsigned int);
+unsigned long mad_bit_read(struct mad_bitptr *, unsigned int);
+void mad_bit_write(struct mad_bitptr *, unsigned int, unsigned long);
+
+unsigned short mad_bit_crc(struct mad_bitptr, unsigned int, unsigned short);
 
 # endif
