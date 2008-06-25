@@ -1,0 +1,33 @@
+#!/bin/rc
+# backuparenas dev name ... - dump arena `name' from $fs to blu-ray disc.
+#	assumes $set is set.
+rfork ne
+# tunable variables
+fs=yoshimi
+
+if (test -e /sys/lib/backup/funcs)
+	.   /sys/lib/backup/funcs
+
+exits=''
+fsroot=/n/$fs
+if (! test -e $fsroot/!THIS_IS_^`{echo $fs | tr a-z A-Z}^_MAIN) {
+	import $fs / $fsroot || exit
+}
+unmount /mnt/cd >[2]/dev/null
+cdfs -d $1 || exit
+shift
+
+cd $fsroot/dev/fs
+for (name) {
+	grep next /mnt/cd/ctl
+	if (! {venti/rdarena arena0 $name |
+	    pump -b 65536 -k 51200 >/mnt/cd/wd/$name})
+		exit
+	ls -l /mnt/cd
+	if (test -e '/env/fn#dumpdone' -a -e '/env/set')
+		dumpdone arena0 $name
+}
+echo 'remember to *not* remove /mnt/cd/wd' >[1=2]
+# don't remove /mnt/cd/wd, since that would finalize the disc
+# and bugger the permanent toc, at least on bd-r.
+exit ''

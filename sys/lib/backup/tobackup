@@ -1,0 +1,47 @@
+#!/bin/rc
+# tobackup [set] - print names of venti arenas needing to be dumped to disc set
+rfork e
+
+cd /sys/lib/backup
+. funcs
+
+switch ($#*) {
+case 0
+case 1
+	set=$1
+case *
+	echo usage: $0 '[set]' >[1=2]
+	exit usage
+}
+
+if (! test -d $set) {
+	echo $0: no backup set named $set in $backup >[1=2]
+	exit 'no backup set'
+}
+if (! hget -o index http://$fs/index) {
+	echo $0: 'can''t fetch venti index from' $fs >[1=2]
+	exit 'no venti index'
+}
+if (! test -s index) {
+	echo $0: 'empty venti index from' $fs >[1=2]
+	exit 'empty index'
+}
+
+cd $set
+awk '/^arena=/		{ name=$1 }
+	/ disk=sealed/	{ print name; name = "" }
+    ' ../index | sed 's/^arena=//' >nsealed
+>>sealed
+if (! cmp -s sealed nsealed)
+	cp nsealed sealed
+rm -f nsealed
+if (! test -s sealed)
+	exit ''
+
+>>fake
+if (test -s ondisc)
+	comm -23 <{sort -u sealed fake} <{sort -u ondisc}
+if not {				# first sealed arenas, dump all
+	cat sealed
+	chmod +a ondisc >>ondisc
+}

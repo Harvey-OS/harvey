@@ -24,7 +24,7 @@ if(test -e /rc/bin/termrc.local)
 	. /rc/bin/termrc.local
 
 # cs sets sysname (termrc.local may already have started it so check)
-if(! test -e /srv/cs)
+if(! test -e /srv/cs && ! test -e /net/cs)
 	ndb/cs -f $NDBFILE
 sysname=`{cat /dev/sysname}
 if (~ $#sysname 0 || ~ $sysname '') {
@@ -51,19 +51,21 @@ if(test -e /cfg/$sysname/termrc)
 if(test -e /net/ipifc/0/ctl && ! test -e /srv/dns)
 	ndb/dns -r
 
-# start timesync if it isn't running and we weren't told not to
-if(! ps|grep -s timesync)
-	if(! ~ $TIMESYNCARGS '')
-		aux/timesync $TIMESYNCARGS
-
-# add the loop-back device
-if(grep -s loopback /dev/drivers)
-	ip/ipconfig loopback /dev/null 127.1
-
-# set things up for vmware
-if(! ~ `{cat /dev/user} none)
-	if(test -e /bin/aux/vmware)
-		aux/vmware
+if(! ~ $terminal *vx32*){
+	# start timesync if it isn't running and we weren't told not to
+	if(! ps|grep -s timesync)
+		if(! ~ $TIMESYNCARGS '')
+			aux/timesync $TIMESYNCARGS
+	
+	# add the loop-back device
+	if(grep -s loopback /dev/drivers)
+		ip/ipconfig loopback /dev/null 127.1
+	
+	# set things up for vmware
+	if(! ~ `{cat /dev/user} none)
+		if(test -e /bin/aux/vmware)
+			aux/vmware
+}
 
 # query user if terminal isn't adequately configured yet
 if(~ $mouseport ask){
