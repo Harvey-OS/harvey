@@ -1,0 +1,4 @@
+clean:V:
+	rm -f index
+setup:V:
+	mkdir set1

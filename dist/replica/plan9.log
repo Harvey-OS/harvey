@@ -19969,3 +19969,5 @@
 1214263804 65 d sys/src/games/mp3dec/audio_dummy.c - 664 sys sys 956186347 0
 1214263804 66 d sys/src/games/mp3dec/audio.h - 664 sys sys 956186249 0
 1214263804 67 d sys/src/games/mp3dec/audio.c - 664 sys sys 956186249 0
+1214317804 0 c rc/bin/termrc - 775 sys sys 1214313568 2610
+1214339404 0 c sys/man/2/getfcr - 664 sys sys 1214338655 2652

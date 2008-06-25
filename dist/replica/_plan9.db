@@ -5641,7 +5641,7 @@ rc/bin/start - 775 sys sys 945617209 120
 rc/bin/stock - 775 sys sys 1143126371 292
 rc/bin/stop - 775 sys sys 945617209 110
 rc/bin/tel - 775 sys sys 1161209756 128
-rc/bin/termrc - 775 sys sys 1207348859 2548
+rc/bin/termrc - 775 sys sys 1214313568 2610
 rc/bin/termrc.local - 775 sys sys 1210371721 425
 rc/bin/thesaurus - 775 sys sys 1205183987 422
 rc/bin/tlsclienttunnel - 775 sys sys 1024375633 153
@@ -7597,7 +7597,7 @@ sys/man/2/fversion - 664 sys sys 1196638940 1654
 sys/man/2/genrandom - 664 sys sys 1196638940 876
 sys/man/2/getcallerpc - 664 sys sys 1196638940 666
 sys/man/2/getenv - 664 sys sys 1196638937 685
-sys/man/2/getfcr - 664 sys sys 1196638940 2713
+sys/man/2/getfcr - 664 sys sys 1214338655 2652
 sys/man/2/getfields - 664 sys sys 1201889839 1749
 sys/man/2/getpid - 664 sys sys 1196638937 657
 sys/man/2/getuser - 664 sys sys 1196638937 641

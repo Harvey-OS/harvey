@@ -94,15 +94,14 @@ exception bits; a
 .I setfsr
 clears them all.
 The exception bits defined here work on all architectures.
-By default, the initial state is equivalent to
+Where possible, the initial state is equivalent to
 .IP
 .EX
 setfcr(FPPDBL|FPRNR|FPINVAL|FPZDIV|FPOVFL);
 .EE
 .PP
-The default state of the floating point unit is fixed for a given
-architecture but is undefined across Plan 9: the default is
-to provide what the hardware does most efficiently.
+However, this may vary between architectures:
+the default is to provide what the hardware does most efficiently.
 Use these routines
 if you need guaranteed behavior.
 Also, gradual underflow is not available on some machines.

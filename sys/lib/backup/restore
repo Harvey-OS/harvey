@@ -1,0 +1,19 @@
+#!/bin/rc
+# restore [dev] - load venti with arenas on dev, stored one per track
+rfork ne
+if (test -e /sys/lib/backup/funcs)
+	.   /sys/lib/backup/funcs
+switch ($#*) {
+case 0
+case 1
+	rdev=$1
+case *
+	echo usage: $0 '[dev]' >[1=2]
+	exit usage
+}
+
+unmount /mnt/cd >[2]/dev/null
+cdfs -d $rdev || exit
+cd /mnt/cd
+for (track in d[0-9]*)
+	venti/wrarena $track

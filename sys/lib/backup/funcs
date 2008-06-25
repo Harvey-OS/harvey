@@ -1,0 +1,44 @@
+#!/bin/rc
+# funcs - rc functions and definitions common to dump scripts
+fn backupinit {
+	if (! ~ $backupinitdone yes) {
+		disc=1
+		tracks=0
+
+		# tunable parameters
+		set=set1
+		fs=yoshimi
+		trackbytes=1073741824	# twice the venti default on yoshimi
+		rdev=/dev/sdD0
+		discbytes=`{ls -l $rdev/data | awk '{print $6}'}
+		#ntracks=`{ hoc -e 'int('$discbytes/$trackbytes')' }
+		ntracks=45		# for BD dual-layer
+		backupinitdone=yes
+		backups=/sys/lib/backup
+	}
+}
+
+# assume we're in $backups/$set
+fn updprog {
+	echo 'disc='$disc 'tracks='$tracks >ndisc && mv ndisc disc
+}
+
+# assumes $set is set
+fn dumpdone {		# arena-part arena-name
+	@ {
+		cd $backups/$set
+		progress=yes
+		tracks = `{hoc -e $tracks+1}
+		updprog
+		if (~ $debug yes)
+			echo $2 >>fake	# pretend these are sealed
+		echo $2 >>ondisc
+	}
+}
+
+fn quitonfailure {	# exit-status
+	if (! ~ $1 '' 0 '|')
+		exit $1
+}
+
+backupinit

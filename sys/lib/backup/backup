@@ -1,0 +1,94 @@
+#!/bin/rc
+# backup [-n] [-d dev] [-s set] - backup venti arenas to disc set using dev
+#	and record that.  also print recent fossil dump scores.
+rfork ne
+cd /sys/lib/backup
+. funcs
+bind -a . /bin
+
+done=0
+while (~ $done 0 && ! ~ $#* 0 && ~ $1 -*) {
+	switch ($1) {
+	case -d;	rdev=$2; shift
+	case -n;	debug=yes		# don't dump; use with -s test
+	case -s;	set=$2 ; shift
+	case --;	done = 1		# no break in rc, alas
+	case -*
+		echo usage: $0 '[-n] [-d dev] [-s set]' >[1=2]
+		exit usage
+	}
+	shift
+}
+
+fn sigint sighup sigterm {
+	exit note
+}
+
+fn dobackuparenas {
+	if (~ $debug yes) {
+		echo pretending to backuparenas $*
+		shift
+		for (name)
+			dumpdone arena0 $name
+	}
+	if not
+		backuparenas $*
+}
+
+fn backupdisc {
+	echo please insert disc $disc of set $set into $rdev and press return to backup
+	echo -n $"*^': '
+	if (! ~ $debug yes)
+		junk=`{read}
+	if not
+		echo
+	dobackuparenas $rdev $*
+}
+
+fn backup1 {
+	progress=no
+	disc1trks=`{hoc -e $ntracks-$tracks}
+	disc1arenas=()
+	if (! ~ $disc1trks 0)
+		disc1arenas=`{sed $disc1trks^q arenas}
+	if (! ~ $#disc1arenas 0 && ! ~ $disc1trks 0 && backupdisc $disc1arenas){
+		tracks = `{hoc -e $tracks+$#disc1arenas}
+		if (test $tracks -ge $ntracks) {
+			disc=`{hoc -e $disc+1}
+			tracks=0
+		}
+		updprog
+
+		sed 1,$disc1trks^d arenas >morearenas
+		mv morearenas arenas
+		arenas=`{cat arenas}
+	}
+}
+
+cd $set
+tobackup $set >arenas
+quitonfailure $status
+
+arenas=`{cat arenas}
+if (~ $#arenas 0) {
+	echo no sealed arenas not yet on disc exist on $fs
+	exit ''
+}
+
+if (test -s disc)
+	.   disc
+if not
+	updprog
+
+if (! ~ $debug yes && ~ $set set1) {
+	9fs log
+	tail /sys/log/fs.archive | pr -h 'recent fossil dump scores' | lp 
+	echo fossil dump scores just printed.
+}
+
+progress=yes
+while (test $#arenas -gt 0 && ~ $progress yes) {
+	backup1
+	quitonfailure $status
+}
+exit ''
