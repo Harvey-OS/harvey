@@ -4227,3 +4227,4 @@ We tried to find an office that was equally inconvenient for you and Thomas.
 2008-06-18 00:00:37: [650] DEBUG: msg 5 not interesting
 Your IP address is: <? echo getenv('REMOTE_ADDR'); ?>. By continuing to browse this website, you agree to the following terms.
 /*	dummy = malloc(0);  *//* prepare for garbage-collection */
+You chose to apply Shadow Ram extend feature, while you knew it was risky. If the system hangs during boot, please restart the system and come here to change the setting.
