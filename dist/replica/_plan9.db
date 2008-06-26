@@ -565,7 +565,7 @@
 386/lib/ape/libv.a - 664 sys sys 1212377641 19334
 386/lib/lib9p.a - 664 sys sys 1209184390 91992
 386/lib/libString.a - 664 sys sys 1209184391 22466
-386/lib/libauth.a - 664 sys sys 1209184392 59742
+386/lib/libauth.a - 664 sys sys 1214418439 59742
 386/lib/libauthsrv.a - 664 sys sys 1209439929 36740
 386/lib/libavl.a - 664 sys sys 1209184393 11574
 386/lib/libbin.a - 664 sys sys 1209184393 2562
@@ -5855,7 +5855,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1213899205 269744
+sys/games/lib/fortunes - 664 sys sys 1214408981 269915
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -12525,7 +12525,7 @@ sys/src/cmd/ip/httpd/httpd.c - 664 sys sys 1168701369 11538
 sys/src/cmd/ip/httpd/httpsrv.h - 664 sys sys 1142178186 1388
 sys/src/cmd/ip/httpd/imagemap.c - 664 sys sys 984773808 5229
 sys/src/cmd/ip/httpd/init.c - 664 sys sys 1015090171 2182
-sys/src/cmd/ip/httpd/log.c - 664 sys sys 1142862371 3054
+sys/src/cmd/ip/httpd/log.c - 664 sys sys 1214400897 3075
 sys/src/cmd/ip/httpd/man2html.c - 664 sys sys 1139667314 9069
 sys/src/cmd/ip/httpd/mkfile - 664 sys sys 1123902339 1353
 sys/src/cmd/ip/httpd/netlib_find.c - 664 sys sys 1015090172 6247
@@ -12550,7 +12550,7 @@ sys/src/cmd/ip/imap4d/folder.c - 664 sys sys 1015013076 5959
 sys/src/cmd/ip/imap4d/imap4d.c - 664 sys sys 1066325859 40675
 sys/src/cmd/ip/imap4d/imap4d.h - 664 sys sys 1015013076 6697
 sys/src/cmd/ip/imap4d/list.c - 664 sys sys 1015013076 7619
-sys/src/cmd/ip/imap4d/mbox.c - 664 sys sys 1169246001 16971
+sys/src/cmd/ip/imap4d/mbox.c - 664 sys sys 1214367224 16972
 sys/src/cmd/ip/imap4d/mkfile - 664 sys sys 1063897579 332
 sys/src/cmd/ip/imap4d/msg.c - 664 sys sys 1168894057 31415
 sys/src/cmd/ip/imap4d/mutf7.c - 664 sys sys 1015013077 2724
@@ -14780,7 +14780,7 @@ sys/src/libauth/auth_getuserpasswd.c - 664 sys sys 1014929317 1363
 sys/src/libauth/auth_proxy.c - 664 sys sys 1179362110 3673
 sys/src/libauth/auth_respond.c - 664 sys sys 1044828825 1420
 sys/src/libauth/auth_rpc.c - 664 sys sys 1048645351 2064
-sys/src/libauth/auth_userpasswd.c - 664 sys sys 1194215346 1105
+sys/src/libauth/auth_userpasswd.c - 664 sys sys 1214400899 1104
 sys/src/libauth/auth_wep.c - 664 sys sys 1063854011 830
 sys/src/libauth/authlocal.h - 664 sys sys 1014929317 87
 sys/src/libauth/httpauth.c - 664 sys sys 1017166331 1059

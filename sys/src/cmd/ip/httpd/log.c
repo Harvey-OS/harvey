@@ -84,6 +84,7 @@ writelog(HConnect *c, char *fmt, ...)
 			strcmp(fmt+7, "206 partial content, early termination %lld %lld\n") == 0){
 			va_start(arg, fmt);
 			objectsize = va_arg(arg, vlong); /* length in sendfd.c */
+			USED(objectsize);
 			objectsize = va_arg(arg, vlong); /* wrote in sendfd.c */
 			va_end(arg);
 		}

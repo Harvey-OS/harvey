@@ -84,7 +84,7 @@ openBox(char *name, char *fsname, int writable)
 //ZZZ
 		char err[ERRMAX];
 
-		errstr(err, sizeof err);
+		rerrstr(err, sizeof err);
 		if(strstr(err, "file does not exist") == nil)
 			fprint(2,
 		"imap4d at %lud: upas/fs open %s/%s as %s failed: '%s' %s",
