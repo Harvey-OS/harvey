@@ -7462,7 +7462,7 @@ sys/man/1/news - 664 sys sys 1196638932 1151
 sys/man/1/nm - 664 sys sys 1196638932 1601
 sys/man/1/ns - 664 sys sys 1196638935 895
 sys/man/1/p - 664 sys sys 1196638933 504
-sys/man/1/page - 664 sys sys 1196638935 5839
+sys/man/1/page - 664 sys sys 1214619217 5840
 sys/man/1/passwd - 664 sys sys 1201730866 1591
 sys/man/1/patch - 664 sys sys 1206212232 3469
 sys/man/1/pcc - 664 sys sys 1196638933 3478
