@@ -221,7 +221,7 @@ Pages are converted ``on the fly,'' as needed.
 .SH EXAMPLES
 .TP
 .L
-page /sys/src/cmd/gs/examples/tiger.ps
+page /sys/src/cmd/gs/examples/tiger.eps
 Display a color PostScript file.
 .TP
 .L
