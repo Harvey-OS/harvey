@@ -751,9 +751,11 @@ Xlocal(void)
 	}
 	deglob(runq->argv->words->word);
 	runq->local = newvar(strdup(runq->argv->words->word), runq->local);
-	runq->local->val = copywords(runq->argv->next->words, (word *)0);
-	runq->local->changed = 1;
 	poplist();
+	globlist();
+	runq->local->val = runq->argv->words;
+	runq->local->changed = 1;
+	runq->argv->words = 0;
 	poplist();
 }
 
@@ -790,6 +792,7 @@ Xfn(void)
 	word *a;
 	int end;
 	end = runq->code[runq->pc].i;
+	globlist();
 	for(a = runq->argv->words;a;a = a->next){
 		v = gvlook(a->word);
 		if(v->fn)
