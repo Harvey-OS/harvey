@@ -113,6 +113,9 @@ void	wrImpFlags(char *buf, int flags, int killRecent);
 void	writeErr(void);
 void	writeFlags(Biobuf *b, Msg *m, int recentOk);
 
+#pragma	varargck argpos	bye		1
+#pragma	varargck argpos	debuglog	1
+
 #define	MK(t)		((t*)emalloc(sizeof(t)))
 #define	MKZ(t)		((t*)ezmalloc(sizeof(t)))
 #define	MKN(t,n)	((t*)emalloc((n)*sizeof(t)))

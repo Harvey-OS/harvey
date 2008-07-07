@@ -26,6 +26,7 @@ plumbopen(char *name, int omode)
 		if(s == nil)
 			return -1;
 		f = open(s, ORDWR);
+		free(s);
 		if(f < 0)
 			return -1;
 		if(mount(f, -1, "/mnt/plumb", MREPL, "") < 0){

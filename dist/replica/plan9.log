@@ -20014,3 +20014,12 @@
 1214510404 35 c 386/lib/libventi.a - 664 sys sys 1214510301 191836
 1214537404 0 c 386/bin/games/mp3dec - 775 sys sys 1214537048 222181
 1214620204 0 c sys/man/1/page - 664 sys sys 1214619217 5840
+1215383404 0 c sys/src/cmd/ip/imap4d/fns.h - 664 sys sys 1215381935 4349
+1215383404 1 c sys/src/cmd/ip/imap4d/msg.c - 664 sys sys 1215381935 31417
+1215383404 2 c sys/src/cmd/rc/exec.c - 664 sys sys 1215383574 16601
+1215383404 3 c sys/src/cmd/rc/io.c - 664 sys sys 1215383575 3808
+1215383404 4 c sys/src/cmd/rc/plan9.c - 664 sys sys 1215383577 10084
+1215383404 5 c sys/src/cmd/rc/simple.c - 664 sys sys 1215383579 9205
+1215383404 6 c sys/src/cmd/rc/win32.c - 664 sys sys 1215383581 8691
+1215383404 7 c sys/src/libplumb/mesg.c - 664 sys sys 1215382705 7091
+1215383404 8 d sys/src/cmd/rc/fmtquote.c - 664 sys sys 1055698768 0

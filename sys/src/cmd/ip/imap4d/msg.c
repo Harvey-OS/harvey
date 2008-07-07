@@ -858,7 +858,7 @@ msgHeader(Msg *m, Header *h, char *file)
 	h->buf[nn++] = '\n';
 	h->buf[nn] = '\0';
 	if(nn != n)
-		bye("misconverted header %d %d", nn, n);
+		bye("misconverted header %ld %ld", nn, n);
 	free(s);
 
 	/*

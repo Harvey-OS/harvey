@@ -466,7 +466,7 @@ execwhatis(void){	/* mildly wrong -- should fork before writing */
 			found = 0;
 		v = gvlook(a->word);
 		if(v->fn)
-			pfmt(out, "fn %s %s\n", v->name, v->fn[v->pc-1].s);
+			pfmt(out, "fn %q %s\n", v->name, v->fn[v->pc-1].s);
 		else{
 			for(bp = Builtin;bp->name;bp++)
 				if(strcmp(a->word, bp->name)==0){

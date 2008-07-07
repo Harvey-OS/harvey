@@ -91,7 +91,7 @@ void
 pwrd(io *f, char *s)
 {
 	char *t;
-	for(t = s;*t;t++) if(!wordchr(*t)) break;
+	for(t = s;*t;t++) if(*t >= 0 && needsrcquote(*t)) break;
 	if(t==s || *t)
 		pquo(f, s);
 	else pstr(f, s);
