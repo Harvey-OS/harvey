@@ -1,22 +1,24 @@
 #!/bin/rc
-
+# vmware - if we're running in a vmware virtual machine, tweak set up
 if(aux/isvmware -s){
+	echo hwaccel off >'#v/vgactl'
+
 	if(test -f '#P/pge'){
 		echo -n on >'#P/pge'	# default, but set anyway.
 		echo -n off >'#P/i8253timerset'
 	}
-	if(test -f /dev/archctl){
-		echo pge on >/dev/archctl
-		echo coherence nop >/dev/archctl
-		echo i8253set off >/dev/archctl
+	if(test -f '#P/archctl'){
+		echo pge on	>'#P/archctl'
+		echo coherence nop >'#P/archctl'
+		echo i8253set off  >'#P/archctl'
 	}
-	for(i in '#S'/sd??)
-		if(test -f $i/ctl)
-			echo dma on >$i/ctl
+
+	dmaon
+	echo -n hwaccel off >/dev/vgactl
 	aux/vmwarefs
+
 	if(! test -f /dev/snarf)
 		aux/stub /dev/snarf
 	bind /mnt/vmware/snarf /dev/snarf
 	aux/vmmousepoll &
 }
-

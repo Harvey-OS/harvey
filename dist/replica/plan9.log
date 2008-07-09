@@ -20040,3 +20040,5 @@
 1215403204 14 c acme/bin/386/Mail - 775 sys sys 1215402288 178813
 1215468004 0 c sys/src/libc/port/strdup.c - 664 sys sys 1215467473 188
 1215486004 0 c sys/src/libc/port/strdup.c - 664 sys sys 1014927404 153
+1215540005 0 c 386/bin/aux/vmware - 775 sys sys 1215538601 532
+1215545404 0 c 386/bin/aux/vmware - 775 sys sys 1215545344 532

@@ -153,7 +153,7 @@
 386/bin/aux/usage - 775 sys sys 1168402288 59809
 386/bin/aux/vga - 775 sys sys 1210392593 334946
 386/bin/aux/vmmousepoll - 775 sys sys 1032480572 41434
-386/bin/aux/vmware - 775 sys sys 1049428256 453
+386/bin/aux/vmware - 775 sys sys 1215545344 532
 386/bin/aux/vmwarefs - 775 sys sys 1095563640 99117
 386/bin/aux/write - 775 sys sys 1085077011 4188
 386/bin/aux/zerotrunc - 775 sys sys 1108268388 3891
