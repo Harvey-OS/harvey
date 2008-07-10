@@ -88,7 +88,7 @@ main(int argc, char *argv[])
 			blocksize = strtoul(s, &ss, 0);
 			if(s == ss)
 				blocksize = 1;
-			while(*ss == 'k')
+			while(*ss++ == 'k')
 				blocksize *= 1024;
 		}
 		break;
