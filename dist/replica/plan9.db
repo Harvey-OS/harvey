@@ -8196,7 +8196,7 @@ sys/src/9/pc/sdiahci.c - 664 sys sys 1213134393 39005
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1204232564 34031
 sys/src/9/pc/sdmylex.c - 664 sys sys 1189229947 28395
 sys/src/9/pc/sdscsi.c - 664 sys sys 1186618532 7957
-sys/src/9/pc/trap.c - 664 sys sys 1197062171 21897
+sys/src/9/pc/trap.c - 664 sys sys 1215712014 22027
 sys/src/9/pc/uartaxp.c - 664 sys sys 1207419955 18931
 sys/src/9/pc/uartaxp.i - 664 sys sys 1155243528 111326
 sys/src/9/pc/uarti8250.c - 664 sys sys 1177676872 13957
