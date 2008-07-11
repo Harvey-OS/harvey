@@ -968,16 +968,22 @@ userpc(void)
 void
 setregisters(Ureg* ureg, char* pureg, char* uva, int n)
 {
-	ulong flags;
-	ulong cs;
-	ulong ss;
+	ulong cs, ds, es, flags, fs, gs, ss;
 
+	ss = ureg->ss;
 	flags = ureg->flags;
 	cs = ureg->cs;
-	ss = ureg->ss;
+	ds = ureg->ds;
+	es = ureg->es;
+	fs = ureg->fs;
+	gs = ureg->gs;
 	memmove(pureg, uva, n);
-	ureg->flags = (ureg->flags & 0x00FF) | (flags & 0xFF00);
+	ureg->gs = gs;
+	ureg->fs = fs;
+	ureg->es = es;
+	ureg->ds = ds;
 	ureg->cs = cs;
+	ureg->flags = (ureg->flags & 0x00FF) | (flags & 0xFF00);
 	ureg->ss = ss;
 }
 
