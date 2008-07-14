@@ -7883,7 +7883,7 @@ sys/man/8/partfs - 664 sys sys 1196638947 869
 sys/man/8/pci - 664 sys sys 1203983723 591
 sys/man/8/pcmcia - 664 sys sys 1196638947 408
 sys/man/8/pem - 664 sys sys 1196638947 1189
-sys/man/8/ping - 664 sys sys 1196638947 3650
+sys/man/8/ping - 664 sys sys 1215981423 3662
 sys/man/8/plan9.ini - 664 sys sys 1202255136 23868
 sys/man/8/pop3 - 664 sys sys 1197574309 3122
 sys/man/8/ppp - 664 sys sys 1210814269 4464
@@ -8170,11 +8170,11 @@ sys/src/9/pc/mp.h - 664 sys sys 1173288116 6799
 sys/src/9/pc/nv_dma.h - 664 sys sys 1081384508 12943
 sys/src/9/pc/pc - 664 sys sys 1204231598 1551
 sys/src/9/pc/pcauth - 664 sys sys 1204231648 767
-sys/src/9/pc/pccd - 664 sys sys 1191885773 1514
+sys/src/9/pc/pccd - 664 sys sys 1215978231 1621
 sys/src/9/pc/pccpu - 664 sys sys 1204231753 1059
 sys/src/9/pc/pccpuf - 664 sys sys 1204231783 1686
 sys/src/9/pc/pcdisk - 664 sys sys 1204231795 1623
-sys/src/9/pc/pcf - 664 sys sys 1204231808 1669
+sys/src/9/pc/pcf - 664 sys sys 1215977995 1675
 sys/src/9/pc/pcfl - 664 sys sys 1188582378 1579
 sys/src/9/pc/pcflop - 664 sys sys 1190853787 1540
 sys/src/9/pc/pci.c - 664 sys sys 1196312222 29483
