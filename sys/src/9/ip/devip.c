@@ -766,53 +766,64 @@ setluniqueport(Conv* c, int lport)
 	return nil;
 }
 
+/*
+ * is lport in use by anyone?
+ */
+static int
+lportinuse(Proto *p, ushort lport)
+{
+	int x;
+
+	for(x = 0; x < p->nc && p->conv[x]; x++)
+		if(p->conv[x]->lport == lport)
+			return 1;
+	return 0;
+}
 
 /*
  *  pick a local port and set it
  */
-void
+char *
 setlport(Conv* c)
 {
 	Proto *p;
-	ushort *pp;
-	int x, found;
+	int i, port;
 
 	p = c->p;
-	if(c->restricted)
-		pp = &p->nextrport;
-	else
-		pp = &p->nextport;
 	qlock(p);
-	for(;;(*pp)++){
+	if(c->restricted){
+		/* Restricted ports cycle between 600 and 1024. */
+		for(i=0; i<1024-600; i++){
+			if(p->nextrport >= 1024 || p->nextrport < 600)
+				p->nextrport = 600;
+			port = p->nextrport++;
+			if(!lportinuse(p, port))
+				goto chosen;
+		}
+	}else{
 		/*
-		 * Fsproto initialises p->nextport to 0 and the restricted
-		 * ports (p->nextrport) to 600.
-		 * Restricted ports must lie between 600 and 1024.
-		 * For the initial condition or if the unrestricted port number
-		 * has wrapped round, select a random port between 5000 and 1<<15
-		 * to start at.
+		 * Unrestricted ports are chosen randomly
+		 * between 2^15 and 2^16.  There are at most
+		 * 4*Nchan = 4096 ports in use at any given time,
+		 * so even in the worst case, a random probe has a
+		 * 1 - 4096/2^15 = 87% chance of success.
+		 * If 64 successive probes fail, there is a bug somewhere
+		 * (or a once in 10^58 event has happened, but that's
+		 * less likely than a venti collision).
 		 */
-		if(c->restricted){
-			if(*pp >= 1024)
-				*pp = 600;
+		for(i=0; i<64; i++){
+			port = (1<<15) + nrand(1<<15);
+			if(!lportinuse(p, port))
+				goto chosen;
 		}
-		else while(*pp < 5000)
-			*pp = nrand(1<<15);
-
-		found = 0;
-		for(x = 0; x < p->nc; x++){
-			if(p->conv[x] == nil)
-				break;
-			if(p->conv[x]->lport == *pp){
-				found = 1;
-				break;
-			}
-		}
-		if(!found)
-			break;
 	}
-	c->lport = (*pp)++;
 	qunlock(p);
+	return "no ports available";
+
+chosen:
+	c->lport = port;
+	qunlock(p);
+	return nil;
 }
 
 /*
@@ -826,8 +837,6 @@ setladdrport(Conv* c, char* str, int announcing)
 	char *rv;
 	ushort lport;
 	uchar addr[IPaddrlen];
-
-	rv = nil;
 
 	/*
 	 *  ignore restricted part if it exists.  it's
@@ -869,7 +878,7 @@ setladdrport(Conv* c, char* str, int announcing)
 
 	lport = atoi(p);
 	if(lport <= 0)
-		setlport(c);
+		rv = setlport(c);
 	else
 		rv = setluniqueport(c, lport);
 	return rv;
@@ -911,7 +920,9 @@ Fsstdconnect(Conv *c, char *argv[], int argc)
 		if(p != nil)
 			return p;
 		setladdr(c);
-		setlport(c);
+		p = setlport(c);
+		if (p != nil)
+			return p;
 		break;
 	case 3:
 		p = setraddrport(c, argv[1]);
@@ -1153,6 +1164,12 @@ ipwrite(Chan* ch, void *v, long n, vlong off)
 			if (parseip(ia, cb->f[1]) == -1)
 				error(Ebadip);
 			ipifcremmulti(c, c->raddr, ia);
+		} else if(strcmp(cb->f[0], "maxfragsize") == 0){
+			if(cb->nf < 2)
+				error("maxfragsize needs size");
+
+			c->maxfragsize = (int)strtol(cb->f[1], nil, 0);
+			
 		} else if(x->ctl != nil) {
 			p = x->ctl(c, cb->f, cb->nf);
 			if(p != nil)
@@ -1235,7 +1252,6 @@ Fsproto(Fs *f, Proto *p)
 		panic("Fsproto");
 
 	p->x = f->np;
-	p->nextport = 0;
 	p->nextrport = 600;
 	f->p[f->np++] = p;
 
@@ -1313,6 +1329,7 @@ retry:
 	c->lport = 0;
 	c->rport = 0;
 	c->restricted = 0;
+	c->maxfragsize = 0;
 	c->ttl = MAXTTL;
 	qreopen(c->rq);
 	qreopen(c->wq);
