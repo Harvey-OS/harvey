@@ -19,10 +19,6 @@ vncs, vncv \- remote frame buffer server and viewer for Virtual Network Computin
 .IB width x height
 ]
 [
-.B -k
-.I keypattern
-]
-[
 .B -p
 .I pixfmt
 ]
@@ -53,6 +49,10 @@ vncs, vncv \- remote frame buffer server and viewer for Virtual Network Computin
 [
 .B -e
 .I encodings
+]
+[
+.B -k
+.I keypattern
 ]
 .IR host [\fL: n ]
 .SH DESCRIPTION
@@ -89,6 +89,8 @@ As viewers connect, each is authenticated using a
 the user's Inferno/POP password.
 .PP
 The options are:
+.TF "\fL-p \fIpixfmt"
+.PD
 .TP
 .B -c \fIcert
 start TLS on each viewer connection using the certificate
@@ -112,12 +114,6 @@ set the virtual frame buffer to be
 (default
 1024x768)
 pixels.
-.TP
-.B -k \fIkeypattern
-add 
-.I keypattern
-to the pattern used to select a key from 
-.IR factotum (4).
 .TP
 .B -p \fIpixfmt
 set the virtual frame buffer's internal pixel format to
@@ -170,6 +166,12 @@ The default (and full) set is
 .BR raw .
 The encodings should be given as a single space-separated argument
 (quoted when using the shell).
+.TP
+.B -k \fIkeypattern
+add 
+.I keypattern
+to the pattern used to select a key from 
+.IR factotum (4).
 .TP
 .B -s
 share the display with extant viewers;
