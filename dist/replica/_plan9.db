@@ -7521,7 +7521,7 @@ sys/man/1/uptime - 664 sys sys 1196638936 380
 sys/man/1/vac - 664 sys sys 1213503568 4017
 sys/man/1/venti - 664 sys sys 1203807503 2321
 sys/man/1/vi - 664 sys sys 1196638936 2904
-sys/man/1/vnc - 664 sys sys 1196638933 4313
+sys/man/1/vnc - 664 sys sys 1216333990 4339
 sys/man/1/vt - 664 sys sys 1196638936 2424
 sys/man/1/wc - 664 sys sys 1196638936 908
 sys/man/1/weather - 664 sys sys 1198157689 640
