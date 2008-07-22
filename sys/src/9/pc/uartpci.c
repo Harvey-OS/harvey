@@ -115,6 +115,7 @@ uartpcipnp(void)
 				continue;
 			break;
 		case (0x950A<<16)|0x1415:	/* Oxford Semi OX16PCI954 */
+		case (0x9501<<16)|0x1415:
 			/*
 			 * These are common devices used by 3rd-party
 			 * manufacturers.
@@ -125,7 +126,13 @@ uartpcipnp(void)
 			subid |= pcicfgr16(p, PciSID)<<16;
 			switch(subid){
 			default:
+				print("oxsemi uart %.8#ux of vid %#ux did %#ux unknown\n",
+					subid, p->vid, p->did);
 				continue;
+			case (0<<16)|0x1415:
+				uart = uartpci(ctlrno, p, 0, 4, 1843200,
+					"starport-pex4s", 8);
+				break;
 			case (0x2000<<16)|0x131F:/* SIIG CyberSerial PCIe */
 				uart = uartpci(ctlrno, p, 0, 1, 18432000,
 					"CyberSerial-1S", 8);

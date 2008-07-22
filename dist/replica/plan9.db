@@ -8201,7 +8201,7 @@ sys/src/9/pc/uartaxp.c - 664 sys sys 1207419955 18931
 sys/src/9/pc/uartaxp.i - 664 sys sys 1155243528 111326
 sys/src/9/pc/uarti8250.c - 664 sys sys 1177676872 13957
 sys/src/9/pc/uartisa.c - 664 sys sys 1127126907 1777
-sys/src/9/pc/uartpci.c - 664 sys sys 1190235592 4685
+sys/src/9/pc/uartpci.c - 664 sys sys 1216677181 4912
 sys/src/9/pc/usb.h - 664 sys sys 1202865355 4630
 sys/src/9/pc/usbohci.c - 664 sys sys 1213134352 48372
 sys/src/9/pc/usbuhci.c - 664 sys sys 1202252076 31839
@@ -14141,7 +14141,7 @@ sys/src/cmd/unix/u9fs/safecpy.c - 664 sys sys 1043768486 212
 sys/src/cmd/unix/u9fs/strecpy.c - 664 sys sys 1015092353 193
 sys/src/cmd/unix/u9fs/sun-inttypes.h - 664 sys sys 1039110816 441
 sys/src/cmd/unix/u9fs/tokenize.c - 664 sys sys 1015092353 602
-sys/src/cmd/unix/u9fs/u9fs.c - 664 sys sys 1205963230 31901
+sys/src/cmd/unix/u9fs/u9fs.c - 664 sys sys 1216676473 32015
 sys/src/cmd/unix/u9fs/u9fs.h - 664 sys sys 1043768488 649
 sys/src/cmd/unix/u9fs/u9fsauth.h - 664 sys sys 1015092354 126
 sys/src/cmd/unix/u9fs/utfrune.c - 664 sys sys 1015092354 387
