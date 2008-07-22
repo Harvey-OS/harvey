@@ -20066,3 +20066,5 @@
 1216153804 8 c sys/src/9/ip/devip.c - 664 sys sys 1216152698 24934
 1216153804 9 c sys/src/9/ip/ip.h - 664 sys sys 1216152694 16677
 1216335604 0 c sys/man/1/vnc - 664 sys sys 1216333990 4339
+1216677605 0 c sys/src/9/pc/uartpci.c - 664 sys sys 1216677181 4912
+1216677605 1 c sys/src/cmd/unix/u9fs/u9fs.c - 664 sys sys 1216676473 32015
