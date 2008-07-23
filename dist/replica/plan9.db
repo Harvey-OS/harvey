@@ -7477,7 +7477,7 @@ sys/man/1/ps - 664 sys sys 1196638933 1722
 sys/man/1/ps2pdf - 664 sys sys 1196638936 1359
 sys/man/1/pump - 664 sys sys 1213765898 1777
 sys/man/1/pwd - 664 sys sys 1196638933 744
-sys/man/1/rc - 664 sys sys 1196638936 20021
+sys/man/1/rc - 664 sys sys 1216774296 20112
 sys/man/1/replica - 664 sys sys 1196638936 7210
 sys/man/1/resample - 664 sys sys 1196638933 1083
 sys/man/1/rio - 664 sys sys 1196638933 14707
@@ -9188,7 +9188,7 @@ sys/src/boot/pc/cis.c - 664 sys sys 1144961189 9232
 sys/src/boot/pc/clock.c - 664 sys sys 1212010463 6825
 sys/src/boot/pc/conf.c - 664 sys sys 1094674484 10217
 sys/src/boot/pc/console.c - 664 sys sys 1212010517 3422
-sys/src/boot/pc/dat.h - 664 sys sys 1190921443 3637
+sys/src/boot/pc/dat.h - 664 sys sys 1216774050 3637
 sys/src/boot/pc/devbios.c - 664 sys sys 1212010497 9431
 sys/src/boot/pc/devfloppy.c - 664 sys sys 1212010456 15657
 sys/src/boot/pc/devfloppy.h - 664 sys sys 1032409559 4081
@@ -9224,7 +9224,7 @@ sys/src/boot/pc/etherigbe.c - 664 sys sys 1201822335 41718
 sys/src/boot/pc/ethermii.c - 664 sys sys 1103641771 4413
 sys/src/boot/pc/ethermii.h - 664 sys sys 1071175087 3259
 sys/src/boot/pc/etherrhine.c - 664 sys sys 1212432164 13178
-sys/src/boot/pc/fns.h - 664 sys sys 1193171343 4880
+sys/src/boot/pc/fns.h - 664 sys sys 1216773354 4900
 sys/src/boot/pc/fs.c - 664 sys sys 1094674483 1509
 sys/src/boot/pc/fs.h - 664 sys sys 1094674488 653
 sys/src/boot/pc/ilock.c - 664 sys sys 1015007952 303
@@ -9236,7 +9236,7 @@ sys/src/boot/pc/kfs.h - 664 sys sys 1032215924 861
 sys/src/boot/pc/kfsboot.c - 664 sys sys 1032215914 4788
 sys/src/boot/pc/l.s - 664 sys sys 1193167045 18213
 sys/src/boot/pc/lib.h - 664 sys sys 1212090562 3280
-sys/src/boot/pc/load.c - 664 sys sys 1212010219 10578
+sys/src/boot/pc/load.c - 664 sys sys 1212004261 10578
 sys/src/boot/pc/mbr.s - 664 sys sys 1015007953 6234
 sys/src/boot/pc/mem.h - 664 sys sys 1190921475 3437
 sys/src/boot/pc/memory.c - 664 sys sys 1212010326 10266
@@ -9247,7 +9247,7 @@ sys/src/boot/pc/pbs.s - 664 sys sys 1143465387 8291
 sys/src/boot/pc/pbsdebug.s - 664 sys sys 1205786244 6371
 sys/src/boot/pc/pbslba.s - 664 sys sys 1186031549 8180
 sys/src/boot/pc/pbslbadebug.s - 664 sys sys 1205786244 6021
-sys/src/boot/pc/pci.c - 664 sys sys 1196312243 20667
+sys/src/boot/pc/pci.c - 664 sys sys 1216784600 20769
 sys/src/boot/pc/print.c - 664 sys sys 1094674483 219
 sys/src/boot/pc/queue.c - 664 sys sys 1015007954 566
 sys/src/boot/pc/sd.h - 664 sys sys 1200690169 2249
@@ -13289,7 +13289,7 @@ sys/src/cmd/ratfs/ratfs.h - 664 sys sys 1016943965 2743
 sys/src/cmd/rc - 20000000775 sys sys 1071884773 0
 sys/src/cmd/rc/code.c - 664 sys sys 1182898057 8218
 sys/src/cmd/rc/compiling.on.unix - 664 sys sys 1071884773 37638
-sys/src/cmd/rc/exec.c - 664 sys sys 1215383574 16601
+sys/src/cmd/rc/exec.c - 664 sys sys 1216774327 16980
 sys/src/cmd/rc/exec.h - 664 sys sys 1174851874 2828
 sys/src/cmd/rc/fns.h - 664 sys sys 1182899939 1490
 sys/src/cmd/rc/getflags.c - 664 sys sys 1182917999 3743

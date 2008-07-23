@@ -107,6 +107,7 @@ PCMmap*	pcmmap(int, ulong, int, int);
 int	pcmspecial(char*, ISAConf*);
 void	pcmspecialclose(int);
 void	pcmunmap(int, PCMmap*);
+void	prcpuid(void);
 void	ptcheck(char*);
 void	putcr3(ulong);
 void	putidt(Segdesc*, int);

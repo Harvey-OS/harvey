@@ -20068,3 +20068,10 @@
 1216335604 0 c sys/man/1/vnc - 664 sys sys 1216333990 4339
 1216677605 0 c sys/src/9/pc/uartpci.c - 664 sys sys 1216677181 4912
 1216677605 1 c sys/src/cmd/unix/u9fs/u9fs.c - 664 sys sys 1216676473 32015
+1216773003 0 c sys/src/boot/pc/dat.h - 664 sys sys 1216773354 3653
+1216773003 1 c sys/src/boot/pc/fns.h - 664 sys sys 1216773354 4900
+1216774804 0 c sys/man/1/rc - 664 sys sys 1216774296 20112
+1216774804 1 c sys/src/boot/pc/dat.h - 664 sys sys 1216774050 3637
+1216774804 2 c sys/src/boot/pc/load.c - 664 sys sys 1212004261 10578
+1216774804 3 c sys/src/cmd/rc/exec.c - 664 sys sys 1216774327 16980
+1216783804 0 c sys/src/boot/pc/pci.c - 664 sys sys 1216784600 20769
