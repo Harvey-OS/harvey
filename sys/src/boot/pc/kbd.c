@@ -455,15 +455,35 @@ i8042intr(Ureg*, void*)
 
 static char *initfailed = "kbd init failed\n";
 
+static int
+outbyte(int port, int c)
+{
+	outb(port, c);
+	if(outready() < 0) {
+		vga = 0;
+		print(initfailed);
+		return -1;
+	}
+	return 0;
+}
+
 void
 i8042init(void)
 {
-	int c;
+	int c, try;
 
 	/* wait for a quiescent controller */
-	while((c = inb(Status)) & (Outbusy | Inready))
+	try = 1000;
+	while(try-- > 0 && (c = inb(Status)) & (Outbusy | Inready)) {
 		if(c & Inready)
 			inb(Data);
+		delay(1);
+	}
+	if (try <= 0) {
+		vga = 0;
+		print(initfailed);
+		return;
+	}
 
 	/* get current controller command byte */
 	outb(Cmd, 0x20);
@@ -476,14 +496,13 @@ i8042init(void)
 	/* enable kbd xfers and interrupts */
 	ccc &= ~Ckbddis;
 	ccc |= Csf | Ckbdint | Cscs1;
-	if(outready() < 0)
+	if(outready() < 0) {
+		vga = 0;
 		print(initfailed);
-	outb(Cmd, 0x60);
-	if(outready() < 0)
-		print(initfailed);
-	outb(Data, ccc);
-	if(outready() < 0)
-		print(initfailed);
+		return;
+	}
+	if (outbyte(Cmd, 0x60) < 0 || outbyte(Data, ccc) < 0)
+		return;
 
 	setvec(VectorKBD, i8042intr, 0);
 }

@@ -60,6 +60,7 @@ pcibarsize(Pcidev *p, int rno)
 	return -(size & ~0x0F);
 }
 
+/* side effect: if a video controller is seen, set vga non-zero */
 int
 pciscan(int bno, Pcidev** list)
 {
@@ -117,9 +118,11 @@ pciscan(int bno, Pcidev** list)
 			 */
 			switch(p->ccrb){
 
+			case 0x03:		/* display controller */
+				vga = 1;
+				/* fall through */
 			case 0x01:		/* mass storage controller */
 			case 0x02:		/* network controller */
-			case 0x03:		/* display controller */
 			case 0x04:		/* multimedia device */
 			case 0x07:		/* simple comm. controllers */
 			case 0x08:		/* base system peripherals */
@@ -464,7 +467,6 @@ pcirouting(void)
 
 			pci = nil;
 			while ((pci = pcimatch(pci, vid, did)) != nil) {
-
 				if (pci->intl != 0 && pci->intl != 0xFF)
 					continue;
 
