@@ -20075,3 +20075,13 @@
 1216774804 2 c sys/src/boot/pc/load.c - 664 sys sys 1212004261 10578
 1216774804 3 c sys/src/cmd/rc/exec.c - 664 sys sys 1216774327 16980
 1216783804 0 c sys/src/boot/pc/pci.c - 664 sys sys 1216784600 20769
+1216785604 0 c 386/bin/rc - 775 sys sys 1216785116 145872
+1216785604 1 c sys/src/boot/pc/dat.h - 664 sys sys 1216753913 3653
+1216785604 2 c sys/src/boot/pc/kbd.c - 664 sys sys 1216784682 10409
+1216787404 0 c sys/src/boot/pc/8250.c - 664 sys sys 1216786716 5741
+1216787404 1 c sys/src/boot/pc/l.s - 664 sys sys 1216786858 18260
+1216789206 0 c sys/src/boot/pc/load.c - 664 sys sys 1216788286 11006
+1216789206 1 c sys/src/boot/pc/mkfile - 664 sys sys 1216788017 3614
+1216859404 0 c sys/src/boot/pc/bootp.c - 664 sys sys 1216859040 12923
+1216859404 1 c sys/src/boot/pc/load.c - 664 sys sys 1216858654 11008
+1216859404 2 c sys/src/boot/pc/ether82563.c - 664 sys sys 1216858647 28292

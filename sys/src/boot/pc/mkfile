@@ -4,10 +4,11 @@ BIN=/386
 
 TARG=\
 	9load\
-	9pxeload\
-	9loadlite\
 	9loaddebug\
+	9loadlite\
 	9loadlitedebug\
+	9pxeload\
+	9pxeloaddebug\
 	ld.com\
 	mbr\
 	pbs\
@@ -110,6 +111,12 @@ all:V:	$TARG
 	# acid $target
 	# map({"text", 0x80010000, 0x80090000, 0x00000020})
 
+9pxeloaddebug:	lpxe.$O $CORE $LOAD $ETHER
+	$LD -o $target -T0x80007C00 -l $prereq -lflate -lc -lip
+	ls -l $target
+	# acid $target
+	# map({"text", 0x80010000, 0x80090000, 0x00000020})
+
 9loadlite:	l.$O $CORE $LOAD noether.$O
 	$LD -o $target -H3 -T0x80010000 -l $prereq -lflate -lc
 	ls -l $target
@@ -133,8 +140,20 @@ lddebug:	ld.$O $CORE $BCOM
 ld.$O:	l.s
 	$AS -DDOTCOM -o $target l.s
 
+l.$O: l.s
+	$AS -DVGA -o $target l.s
+
 lpxe.$O: l.s
+	$AS -DPXE -DVGA -o $target l.s
+
+lnovga.$O: l.s
+	$AS -o $target l.s
+
+lpxenovga.$O: l.s
 	$AS -DPXE -o $target l.s
+
+loadverb.$O: load.c
+	$CC -o $target $CFLAGS '-DVERBOSE=1' load.c
 
 %.$O:	%.s
 	$AS $stem.s

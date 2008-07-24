@@ -979,7 +979,7 @@ i82563pci(void)
 	while(p = pcimatch(p, 0x8086, 0)){
 		if(p->ccrb != 0x02 || p->ccru != 0)
 			continue;
-print("i82563pci: did %4.4#x\n", p->did);
+//print("i82563pci: did %4.4#x\n", p->did);
 		switch(p->did){
 		case 0x1096:
 		case 0x10ba:
