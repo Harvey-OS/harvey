@@ -7,10 +7,6 @@
 #include "sd.h"
 #include "fs.h"
 
-#ifndef VERBOSE
-#define VERBOSE 0
-#endif
-
 /*
  * "cache" must be in this list so that 9load will pass the definition of
  * the cache partition into the kernel so that the disk named by the `cfs'
@@ -183,8 +179,8 @@ char **ini;
 int scsi0port;
 char *defaultpartition;
 int iniread;
-
 int debugload;
+int vga;
 
 static Medium*
 parse(char *line, char **file)
@@ -228,7 +224,7 @@ boot(Medium *mp, char *file)
 	}
 
 	sprint(BOOTLINE, "%s!%s", mp->name, file);
-	print("booting %s!%s\n", mp->name, file);
+//	print("booting %s!%s\n", mp->name, file);
 	return (*mp->type->boot)(mp->dev, file, &b);
 }
 
@@ -312,8 +308,6 @@ probe(int type, int flag, int dev)
 	return 0;
 }
 
-void	prcpuid(void);
-
 void
 main(void)
 {
@@ -329,35 +323,51 @@ main(void)
 	alarminit();
 	meminit(0);
 	spllo();
-	consinit("0", "9600");
+
+	/*
+	 * the soekris machines have no video but each has a serial port.
+	 * they must see serial output, if any, before cga output because
+	 * otherwise the soekris bios will translate cga output to serial
+	 * output, which will garble serial console output.
+	 */
+	pcimatch(nil, 0, 0);		/* force scan of pci table */
+	if (!vga) {
+		consinit("0", "9600");	/* e.g., for soekris debugging */
+		print("Plan 9 Bootstrap (serial console)\n");
+	}
 	kbdinit();
 	if((ulong)&end > (KZERO|(640*1024)))
 		panic("i'm too big");
 
-	prcpuid();
-	readlsconf();
-	print("initial probe, to find plan9.ini...");
+	if (debug)
+		print("initial probe, for plan9.ini...");
 	/* find and read plan9.ini, setting configuration variables */
 	for(tp = types; tp->type != Tnil; tp++){
 		/* skip bios until we have read plan9.ini */
 		if(!pxe && tp->type == Tether || tp->type == Tbios)
 			continue;
-		if (VERBOSE || debug)
+		if (debug)
 			print("probing %s...", typename(tp->type));
 		if((mp = probe(tp->type, Fini, Dany)) && (mp->flag & Fini)){
-			print("using %s!%s!%s\n", mp->name, mp->part, mp->ini);
+			if (debug)
+				print("using %s!%s!%s\n",
+					mp->name, mp->part, mp->ini);
 			iniread = !dotini(mp->inifs);
 			break;
 		}
 	}
-	print("\n");
-	apminit();
-
+	if (debug)
+		print("\n");
+	/*
+	 * we should now have read plan9.ini, if any.
+	 */
 	debugload = getconf("*debugload") != nil;
-	if((p = getconf("console")) != nil) {
-		consdrain();
+	if((p = getconf("console")) != nil)
 		consinit(p, getconf("baud"));
-	}
+
+	prcpuid();
+	readlsconf();
+	apminit();
 
 	devpccardlink();
 	devi82365link();

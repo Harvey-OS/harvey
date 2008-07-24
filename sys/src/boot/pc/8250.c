@@ -303,6 +303,7 @@ uartdrain(void)
 
 	if((up = uart) == nil)
 		return;
-	for(timeo = 0; timeo < 10000 && up->txbusy; timeo++)
+	for(timeo = 0; timeo < 2000 && up->txbusy; timeo++)
 		delay(1);
+	up->txbusy = 0;
 }

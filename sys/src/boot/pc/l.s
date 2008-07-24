@@ -11,6 +11,7 @@
 #define PDB		0x08000
 #endif PXE
 
+/*#define VGA		1 */
 #define NoScreenBlank	1
 /*#define ResetDiscs	1*/
 
@@ -28,6 +29,7 @@ TEXT origin(SB), $0
 	MOVW	CS, AX
 	MOVW	AX, DS
 
+#ifdef VGA
 #ifdef NoScreenBlank
 	/*
 	 * Get the current video mode. If it isn't mode 3,
@@ -48,7 +50,7 @@ TEXT origin(SB), $0
 sayhello:
 	LWI(hello(SB), rSI)
 	CALL16(biosputs(SB))
-
+#endif	/* VGA */
 #ifdef ResetDiscs
 	XORL	AX, AX			/* reset disc system */
 	XORL	DX, DX
