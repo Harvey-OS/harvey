@@ -1,0 +1,14 @@
+#!/bin/rc
+# startcifs - (re)start cifs (smb) server
+echo killing old cifs server
+Kill aquarela | rc
+
+echo starting new cifs server
+@ {
+	echo 'srv -A local' >>/srv/fscons
+	sleep 2
+	chmod 666 /srv/local
+	9fs local
+	cd /sys/log
+	aquarela
+} &
