@@ -5609,6 +5609,7 @@ rc/bin/service/!il17008 - 775 sys sys 945617221 32
 rc/bin/service/!il17031 - 775 sys sys 945617222 25
 rc/bin/service/!tcp515 - 775 sys sys 960144427 120
 rc/bin/service/!tcp564 - 775 sys sys 1018831800 32
+rc/bin/service/startcifs - 775 sys sys 1216933648 239
 rc/bin/service/startnfs - 775 sys sys 1016832368 283
 rc/bin/service/tcp110 - 775 sys sys 1016832647 85
 rc/bin/service/tcp113 - 775 sys sys 1032057986 90
