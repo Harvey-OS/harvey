@@ -20086,3 +20086,5 @@
 1216859404 1 c sys/src/boot/pc/load.c - 664 sys sys 1216858654 11008
 1216859404 2 c sys/src/boot/pc/ether82563.c - 664 sys sys 1216858647 28292
 1216935004 0 a rc/bin/service/startcifs - 775 sys sys 1216933648 239
+1216999806 0 c sys/games/lib/fortunes - 664 sys sys 1216999929 270162
+1217017804 0 c sys/src/cmd/file.c - 664 sys sys 1217017505 28940
