@@ -190,11 +190,13 @@ int	(*call[])(void) =
 	isas,		/* assembler key words */
 	isp9font,	/* plan 9 font */
 	isp9bit,	/* plan 9 image (as from /dev/window) */
-	ismung,		/* entropy compressed/encrypted */
-	isenglish,	/* char frequency English */
 	isrtf,		/* rich text format */
 	ismsdos,	/* msdos exe (virus file attachement) */
 	isface,		/* ascii face file */
+
+	/* last resorts */
+	ismung,		/* entropy compressed/encrypted */
+	isenglish,	/* char frequency English */
 	0
 };
 
