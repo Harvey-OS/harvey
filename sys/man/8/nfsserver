@@ -29,6 +29,7 @@ run on a Plan 9 CPU server, and should be started in that order.
 All users on client machines have the
 access privileges of the Plan 9 user
 .LR none .
+Currently only NFS version 2 is served.
 .PP
 The
 .I rpc-options
@@ -144,8 +145,8 @@ Assuming the CPU server's name is
 the mount commands on the client would be:
 .PP
 .EX
-/etc/mount -o soft,intr eduardo:bootes /n/bootes
-/etc/mount -o soft,intr eduardo:fornax /n/fornax
+/etc/mount -o soft,intr eduardo:edith /n/edith
+/etc/mount -o soft,intr eduardo:yoshimi /n/yoshimi
 .EE
 .PP
 Note that a single instance of
@@ -165,8 +166,18 @@ Log file.
 It would be nice to provide authentication for users, but Unix systems
 provide too low a level of security to be trusted in a Plan 9 world.
 .SH SEE ALSO
+.IR nfs (4)
+.br
 RFC1057,
-.I "RPC: Remote Procedure Call Protocol Specification, Version 2."
+.I "RPC: Remote Procedure Call Protocol Specification, Version 2,"
+describes Sun's RPC protocol.
 .br
 RFC1094,
-.I "NFS: Network File System Protocol Specification."
+.I "NFS: Network File System Protocol Specification,"
+describes NFS version 2.
+.br
+RFC1813,
+.I "NFS Version 3 Protocol Specification."
+.br
+RFC3530,
+.I "Network File System (NFS) version 4 Protocol."

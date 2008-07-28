@@ -93,7 +93,7 @@ rfork ne
 ramfs -p >[2] /dev/null # silence 'i/o on hungup channel' message at exit
 unmount /mnt/plumb
 bind -c /tmp /srv
-cd /tmp
+builtin cd /tmp
 
 if ( ~ $edit yes ) echo '
 	Warning: The editor will display the secret contents of

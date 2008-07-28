@@ -17,7 +17,7 @@ if(! test -d /n/sources/patch/$1){
 	exit nopatch
 }
 
-cd /n/sources/patch/$1 || exit nopatch
+builtin cd /n/sources/patch/$1 || exit nopatch
 if(! patch/okay .){
 	echo 'bad patch: '$status >[1=2]
 	exit badpatch
