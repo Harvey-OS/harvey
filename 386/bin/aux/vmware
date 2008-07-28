@@ -14,7 +14,6 @@ if(aux/isvmware -s){
 	}
 
 	dmaon
-	echo -n hwaccel off >/dev/vgactl
 	aux/vmwarefs
 
 	if(! test -f /dev/snarf)

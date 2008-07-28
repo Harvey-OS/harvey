@@ -182,7 +182,7 @@ dumpn(char *s, Node *n)
 	Bprint(&bout, "%s%s@%p: time=%ld flags=0x%x next=%p\n",
 		s, n->name, n, n->time, n->flags, n->next);
 	for(a = n->prereqs; a; a = a->next){
-		sprint(buf, "%s   ", (*s == ' ')? s:"");
+		snprint(buf, sizeof buf, "%s   ", (*s == ' ')? s:"");
 		dumpa(buf, a);
 	}
 }
