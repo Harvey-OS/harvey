@@ -20108,3 +20108,4 @@
 1217187004 4 c sys/src/cmd/mk/recipe.c - 664 sys sys 1217185891 2551
 1217188804 0 c sys/src/boot/pc/bcom.c - 664 sys sys 1217188102 6470
 1217217603 0 c 386/bin/mk - 775 sys sys 1217215970 143398
+1217458803 0 c sys/src/cmd/usb/usbd/hub.c - 664 sys sys 1217457665 4292

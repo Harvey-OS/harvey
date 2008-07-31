@@ -14317,7 +14317,7 @@ sys/src/cmd/usb/mkfile - 664 sys sys 1203553384 366
 sys/src/cmd/usb/usbd - 20000000775 sys sys 1091204979 0
 sys/src/cmd/usb/usbd/dat.h - 664 sys sys 1091204979 675
 sys/src/cmd/usb/usbd/fns.h - 664 sys sys 1091204979 495
-sys/src/cmd/usb/usbd/hub.c - 664 sys sys 1202255474 4292
+sys/src/cmd/usb/usbd/hub.c - 664 sys sys 1217457665 4292
 sys/src/cmd/usb/usbd/mkfile - 664 sys sys 1091204979 304
 sys/src/cmd/usb/usbd/setup.c - 664 sys sys 1202255463 1351
 sys/src/cmd/usb/usbd/usbd.c - 664 sys sys 1210357918 5465
