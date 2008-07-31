@@ -199,7 +199,7 @@ portstatus(Hub *h, int port)
 			if(qe == nil)
 				sysfatal("usbd: port %H.%d not found", h, port);
 			*qe = '\0';
-			nf = tokenize(q, field, sizeof field);
+			nf = tokenize(q, field, nelem(field));
 			if(nf < 2)
 				sysfatal("Ill-formed port status: %s", q);
 			if(strtol(field[0], nil, 0) == port)
