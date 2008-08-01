@@ -495,7 +495,7 @@
 386/bin/usb/print - 775 sys sys 1203567409 314
 386/bin/usb/probe - 775 sys sys 1203567409 173
 386/bin/usb/usbaudio - 775 sys sys 1210393040 190049
-386/bin/usb/usbd - 775 sys sys 1210393043 132446
+386/bin/usb/usbd - 775 sys sys 1217475989 132446
 386/bin/usb/usbmouse - 775 sys sys 1210393045 129634
 386/bin/usb/usbprint - 775 sys sys 1203567409 373
 386/bin/usb/usbprobe - 775 sys sys 1203567409 232
