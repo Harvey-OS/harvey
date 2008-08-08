@@ -1017,6 +1017,14 @@ cpd-1304
 	alias=multisync
 
 #
+# Sony CPD-4410 CRT
+#
+cpd-4410=1600x1200
+	defaultclock=161.00
+	shb=1664 ehb=1856 ht=2160
+	vrs=1201 vre=1204 vt=1250
+
+#
 # Viewsonic 17 (model no. 1782)
 # Horizontal timing:
 #	Allowable frequency range: 30.0-82.0KHz

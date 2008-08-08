@@ -349,7 +349,7 @@
 386/bin/ndb - 20000000775 sys sys 985743147 0
 386/bin/ndb/cs - 775 sys sys 1209614440 151743
 386/bin/ndb/csquery - 775 sys sys 1209614441 61663
-386/bin/ndb/dns - 775 sys sys 1210392844 298971
+386/bin/ndb/dns - 775 sys sys 1218136573 298996
 386/bin/ndb/dnsdebug - 775 sys sys 1210392851 272792
 386/bin/ndb/dnsquery - 775 sys sys 1209614460 64416
 386/bin/ndb/dnstcp - 775 sys sys 1210392858 270683
@@ -457,7 +457,7 @@
 386/bin/units - 775 sys sys 1209614695 75419
 386/bin/unlnfs - 775 sys sys 1209614697 72523
 386/bin/unmount - 775 sys sys 1148500700 36646
-386/bin/unvac - 775 sys sys 1214510164 229061
+386/bin/unvac - 775 sys sys 1218136577 228866
 386/bin/unzip - 775 sys sys 1210393005 91104
 386/bin/upas - 20000000775 sys sys 1016857390 0
 386/bin/upas/addhash - 775 sys sys 1209614703 70732
@@ -499,8 +499,8 @@
 386/bin/usb/usbmouse - 775 sys sys 1210393045 129634
 386/bin/usb/usbprint - 775 sys sys 1203567409 373
 386/bin/usb/usbprobe - 775 sys sys 1203567409 232
-386/bin/vac - 775 sys sys 1214510176 229641
-386/bin/vacfs - 775 sys sys 1214510182 243823
+386/bin/vac - 775 sys sys 1218136581 229446
+386/bin/vacfs - 775 sys sys 1218136585 243628
 386/bin/venti - 20000000775 sys sys 947360466 0
 386/bin/venti/buildindex - 775 sys sys 1214510186 259348
 386/bin/venti/checkarenas - 775 sys sys 1214510193 261127
@@ -5294,7 +5294,7 @@ lib/tftpd - 20000000775 sys sys 1020895767 0
 lib/unicode - 664 sys sys 958440028 223312
 lib/unicode.notice - 664 sys sys 958504386 1398
 lib/units - 664 sys sys 1071415518 9997
-lib/vgadb - 664 sys sys 1200170799 31502
+lib/vgadb - 664 sys sys 1218125419 31621
 lib/video.specs - 664 sys sys 1175869533 2942
 lib/volcanoes - 664 sys sys 944944024 119831
 lib/words - 664 sys sys 1014923442 247097
@@ -8063,7 +8063,7 @@ sys/src/9/ip/ptclbsum.c - 664 sys sys 1022588099 1243
 sys/src/9/ip/rudp.c - 664 sys sys 1204231129 20834
 sys/src/9/ip/tcp.c - 664 sys sys 1203551505 66252
 sys/src/9/ip/tripmedium.c - 664 sys sys 1045063515 7136
-sys/src/9/ip/udp.c - 664 sys sys 1187735914 13315
+sys/src/9/ip/udp.c - 664 sys sys 1218084651 12414
 sys/src/9/mkfile - 664 sys sys 1063857477 205
 sys/src/9/mtx - 20000000775 sys sys 1123676466 0
 sys/src/9/mtx/clock.c - 664 sys sys 1206317920 1344
@@ -12854,8 +12854,8 @@ sys/src/cmd/ndb/dn.c - 664 sys sys 1203748557 37967
 sys/src/cmd/ndb/dnarea.c - 664 sys sys 1175664421 2519
 sys/src/cmd/ndb/dnnotify.c - 664 sys sys 1204179585 3112
 sys/src/cmd/ndb/dnresolve.c - 664 sys sys 1207506938 35403
-sys/src/cmd/ndb/dns.c - 664 sys sys 1210369514 18107
-sys/src/cmd/ndb/dns.h - 664 sys sys 1202761152 11969
+sys/src/cmd/ndb/dns.c - 664 sys sys 1218125694 18125
+sys/src/cmd/ndb/dns.h - 664 sys sys 1218084580 11999
 sys/src/cmd/ndb/dnsdebug.c - 664 sys sys 1194216583 8790
 sys/src/cmd/ndb/dnserver.c - 664 sys sys 1198183920 4630
 sys/src/cmd/ndb/dnsquery.c - 664 sys sys 1185315254 2507
@@ -14331,7 +14331,7 @@ sys/src/cmd/vac - 20000000775 sys sys 1055699701 0
 sys/src/cmd/vac/dat.h - 664 sys sys 1213498239 801
 sys/src/cmd/vac/error.c - 664 sys sys 1213498239 709
 sys/src/cmd/vac/error.h - 664 sys sys 1213498239 444
-sys/src/cmd/vac/file.c - 664 sys sys 1213558399 38892
+sys/src/cmd/vac/file.c - 664 sys sys 1218084559 38913
 sys/src/cmd/vac/fns.h - 664 sys sys 1213558385 778
 sys/src/cmd/vac/mkfile - 664 sys sys 1213498239 333
 sys/src/cmd/vac/pack.c - 664 sys sys 1213558400 11975

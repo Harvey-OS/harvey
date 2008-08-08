@@ -142,7 +142,7 @@ uvlong
 vacfilegetid(VacFile *f)
 {
 	/* immutable */
-fprint(2, "getid %s %lld+%lld = %lld\n", f->dir.elem, f->qidoffset, f->dir.qid, f->qidoffset+f->dir.qid);
+//fprint(2, "getid %s %lld+%lld = %lld\n", f->dir.elem, f->qidoffset, f->dir.qid, f->qidoffset+f->dir.qid);
 	return f->qidoffset + f->dir.qid;
 }
 
@@ -409,7 +409,7 @@ dirlookup(VacFile *f, char *elem)
 				filefree(ff);
 				goto Err;
 			}
-fprint(2, "offset %s %lld\n", ff->dir.elem, ff->dir.qidoffset);
+//fprint(2, "offset %s %lld\n", ff->dir.elem, ff->dir.qidoffset);
 			ff->qidoffset = f->qidoffset + ff->dir.qidoffset;
 			vtfileunlock(meta);
 			vtblockput(b);
@@ -1763,7 +1763,7 @@ vacfsopen(VtConn *z, char *file, int mode, int ncache)
 	char *prefix;
 	
 	if(vtparsescore(file, &prefix, score) >= 0){
-		if(strcmp(prefix, "vac") != 0){
+		if(prefix == nil || strcmp(prefix, "vac") != 0){
 			werrstr("not a vac file");
 			return nil;
 		}

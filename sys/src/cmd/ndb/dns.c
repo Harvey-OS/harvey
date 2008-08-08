@@ -424,8 +424,8 @@ io(void)
 	req.isslave = 0;
 	stop = 0;
 	while(!stop){
-		procsetname("served %d 9p; %d alarms; %d rpcs read",
-			stats.qrecvd9p, stats.alarms, stats.qrecvd9prpc);
+		procsetname("%d %s/dns Twrites of %d 9p rpcs read; %d alarms",
+			stats.qrecvd9p, mntpt, stats.qrecvd9prpc, stats.alarms);
 		n = read9pmsg(mfd[0], mdata, sizeof mdata);
 		if(n<=0){
 			dnslog("error reading 9P from %s: %r", mntpt);
@@ -738,8 +738,8 @@ rwrite(Job *job, Mfile *mf, Request *req)
 	} else if(strcmp(job->request.data, "stats")==0){
 		dnstats("/lib/ndb/dnsstats");
 		goto send;
-	} else if(strncmp(job->request.data, "target", 6)==0){
-		target = atol(job->request.data + 6);
+	} else if(strncmp(job->request.data, "target ", 7)==0){
+		target = atol(job->request.data + 7);
 		dnslog("target set to %ld", target);
 		goto send;
 	} else if(strcmp(job->request.data, "age")==0){
