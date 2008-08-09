@@ -290,7 +290,7 @@ default
 .BR /lib/ndb/local .
 .TP
 .B -n
-whenever a zone that we serve changes, send UDP NOTIFY
+whenever a DNS zone that we serve changes, send UDP NOTIFY
 messages to any dns slaves for that zone
 (see the
 .L dnsslave

@@ -7877,7 +7877,7 @@ sys/man/8/mkpaqfs - 664 sys sys 1196638947 890
 sys/man/8/mksacfs - 664 sys sys 1196638947 710
 sys/man/8/mouse - 664 sys sys 1196638947 2476
 sys/man/8/na - 664 sys sys 1196638947 859
-sys/man/8/ndb - 664 sys sys 1207767560 15239
+sys/man/8/ndb - 664 sys sys 1218247417 15243
 sys/man/8/newuser - 664 sys sys 1196638947 2418
 sys/man/8/nfsserver - 664 sys sys 1217138303 3807
 sys/man/8/partfs - 664 sys sys 1196638947 869
@@ -13225,7 +13225,7 @@ sys/src/cmd/proof/mkfile - 664 sys sys 944961622 180
 sys/src/cmd/proof/proof.h - 664 sys sys 955223407 919
 sys/src/cmd/proof/screen.c - 664 sys sys 1204590226 6673
 sys/src/cmd/ps.c - 664 sys sys 1144686672 2783
-sys/src/cmd/pump.c - 664 sys sys 1213765467 2941
+sys/src/cmd/pump.c - 664 sys sys 1218240660 3392
 sys/src/cmd/pwd.c - 664 sys sys 1067722792 287
 sys/src/cmd/qa - 20000000775 sys sys 1039727573 0
 sys/src/cmd/qa/a.h - 664 sys sys 1089299169 3252
@@ -14150,7 +14150,7 @@ sys/src/cmd/unix/winplumb.c - 664 sys sys 1047233509 5015
 sys/src/cmd/unix/winplumb.exe - 664 sys sys 1047233509 32768
 sys/src/cmd/unix/winstart - 775 sys sys 1047233540 60
 sys/src/cmd/unlnfs.c - 664 sys sys 1127525524 1914
-sys/src/cmd/unmount.c - 664 sys sys 1014926615 442
+sys/src/cmd/unmount.c - 664 sys sys 1218224318 526
 sys/src/cmd/upas - 20000000775 sys sys 1075080223 0
 sys/src/cmd/upas/README - 664 sys sys 944961329 1041
 sys/src/cmd/upas/alias - 20000000775 sys sys 1064589598 0
@@ -14428,7 +14428,7 @@ sys/src/cmd/venti/srv/venti.c - 664 sys sys 1196382019 5604
 sys/src/cmd/venti/srv/verifyarena.c - 664 sys sys 1191257292 5776
 sys/src/cmd/venti/srv/whack.c - 664 sys sys 1142736357 6419
 sys/src/cmd/venti/srv/whack.h - 664 sys sys 1142736357 966
-sys/src/cmd/venti/srv/wrarena.c - 664 sys sys 1210358091 4559
+sys/src/cmd/venti/srv/wrarena.c - 664 sys sys 1218240713 4601
 sys/src/cmd/venti/srv/www - 20000000775 sys sys 1189019173 0
 sys/src/cmd/venti/srv/www/stats.html - 664 sys sys 1177190826 869
 sys/src/cmd/venti/srv/www/stats.js - 664 sys sys 1177190826 9427

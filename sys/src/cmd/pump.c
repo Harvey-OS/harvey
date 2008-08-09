@@ -3,12 +3,15 @@
 #include <libc.h>
 
 uchar*	buf;
-ulong	nin;
-ulong	nout;
+
+Lock	arithlock;	/* protect 64-bit accesses: unlikely to be atomic */
+uvlong	nin;
+uvlong	nout;
+
 ulong	kilo;
 ulong	max;
 long	ssize;
-long	tsize;
+vlong	tsize;
 int	dsize;
 int	done;
 int	ibsize;
@@ -69,7 +72,7 @@ main(int argc, char *argv[])
 		ssize <<= 10;
 		break;
 	case 't':
-		tsize = atol(EARGF(usage()));
+		tsize = atoll(EARGF(usage()));
 		tsize *= 10584000;		/* minutes */
 		break;
 	} ARGEND
@@ -109,17 +112,30 @@ main(int argc, char *argv[])
 	exits(0);
 }
 
+/* call with arithlock held */
+static int
+sleepunlocked(long ms)
+{
+	int r;
+
+	unlock(&arithlock);
+	r = sleep(ms);
+	lock(&arithlock);
+	return r;
+}
+
 void
 dooutput(int f)
 {
 	long n, l, c;
 
+	lock(&arithlock);
 	for (;;) {
 		n = nin - nout;
 		if(n == 0) {
 			if(done)
 				break;
-			sleep(dsize);
+			sleepunlocked(dsize);
 			continue;
 		}
 		if(verb && n > max) {
@@ -127,11 +143,15 @@ dooutput(int f)
 			max = n;
 		}
 		l = nout % kilo;
+		unlock(&arithlock);
+
 		if(kilo-l < n)
 			n = kilo-l;
 		if(n > obsize)
 			n = obsize;
 		c = write(f, buf+l, n);
+
+		lock(&arithlock);
 		if(c != n) {
 			fprint(2, "%s: write error: %r\n", argv0);
 			break;
@@ -142,6 +162,7 @@ dooutput(int f)
 			break;
 		}
 	}
+	unlock(&arithlock);
 }
 
 void
@@ -149,17 +170,22 @@ doinput(int f)
 {
 	long n, l, c, xnin;
 
+	lock(&arithlock);
 	if(ssize > 0) {
 		for (xnin = 0; xnin < ssize && !done; xnin += c) {
 			n = kilo - (xnin - nout);
 			if(n == 0)
 				break;
+			unlock(&arithlock);
+
 			l = xnin % kilo;
 			if(kilo-l < n)
 				n = kilo-l;
 			if(n > ibsize)
 				n = ibsize;
 			c = read(f, buf+l, n);
+
+			lock(&arithlock);
 			if(c <= 0) {
 				if(c < 0)
 					fprint(2, "%s: read error: %r\n", argv0);
@@ -171,15 +197,19 @@ doinput(int f)
 	while(!done) {
 		n = kilo - (nin - nout);
 		if(n == 0) {
-			sleep(0);
+			sleepunlocked(0);
 			continue;
 		}
 		l = nin % kilo;
+		unlock(&arithlock);
+
 		if(kilo-l < n)
 			n = kilo-l;
 		if(n > ibsize)
 			n = ibsize;
 		c = read(f, buf+l, n);
+
+		lock(&arithlock);
 		if(c <= 0) {
 			if(c < 0)
 				fprint(2, "%s: read error: %r\n", argv0);
@@ -187,4 +217,5 @@ doinput(int f)
 		}
 		nin += c;
 	}
+	unlock(&arithlock);
 }
