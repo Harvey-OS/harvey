@@ -87,8 +87,8 @@ rdarena(Arena *arena, u64int offset)
 			break;
 		if(a < aa || ci.type == VtCorruptType){
 			if(ci.type == VtCorruptType)
-				fprint(2, "corrupt at %#llx: +%d\n",
-					a, ClumpSize+ci.size);
+				fprint(2, "%s: corrupt clump read at %#llx: +%d\n",
+					argv0, a, ClumpSize+ci.size);
 			continue;
 		}
 		lump = loadclump(arena, a, 0, &cl, score, 0);
@@ -137,6 +137,7 @@ threadmain(int argc, char *argv[])
 	ArenaHead head;
 	ZClump zerocl;
 
+	ventifmtinstall();
 	qlock(&godot);
 	aoffset = 0;
 	ARGBEGIN{
