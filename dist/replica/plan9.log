@@ -20124,3 +20124,8 @@
 1218241805 0 c sys/src/cmd/venti/srv/wrarena.c - 664 sys sys 1218240713 4601
 1218241805 1 c sys/src/cmd/pump.c - 664 sys sys 1218240660 3392
 1218247205 0 c sys/man/8/ndb - 664 sys sys 1218247417 15243
+1218254404 0 c 386/bin/venti/wrarena - 775 sys sys 1218252955 284152
+1218254404 1 c 386/bin/pump - 775 sys sys 1218252949 62504
+1218254404 2 c 386/bin/unmount - 775 sys sys 1218252950 37316
+1218308405 0 c sys/src/cmd/cwfs/juke.c - 664 sys sys 1218308158 28852
+1218308405 1 c sys/src/cmd/upas/pop3/pop3.c - 664 sys sys 1218308089 14373

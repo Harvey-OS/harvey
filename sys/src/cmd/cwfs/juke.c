@@ -99,10 +99,9 @@ newlabel(Device *d, Off labelblk, char *labelbuf, unsigned vord)
 	label->ord = vord;
 	strncpy(label->service, service, sizeof label->service);
 
-//	if (!okay("write new label"))
-//		print("NOT writing new label\n");
-//	else
-	if (wormwrite(d, labelblk, labelbuf))
+	if (!okay("write new label"))
+		print("NOT writing new label\n");
+	else if (wormwrite(d, labelblk, labelbuf))
 		/* wormwrite will have complained in detail */
 		print("can't write new label on side %d\n", vord);
 	else
