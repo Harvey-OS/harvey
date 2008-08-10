@@ -383,7 +383,7 @@
 386/bin/prof - 775 sys sys 1209614551 112005
 386/bin/proof - 775 sys sys 1210392905 180118
 386/bin/ps - 775 sys sys 1209614557 68753
-386/bin/pump - 775 sys sys 1213813262 60580
+386/bin/pump - 775 sys sys 1218252949 62504
 386/bin/pwd - 775 sys sys 1148500685 36932
 386/bin/ramfs - 775 sys sys 1209184388 89491
 386/bin/rc - 775 sys sys 1216785116 145872
@@ -456,7 +456,7 @@
 386/bin/uniq - 775 sys sys 1211428445 62434
 386/bin/units - 775 sys sys 1209614695 75419
 386/bin/unlnfs - 775 sys sys 1209614697 72523
-386/bin/unmount - 775 sys sys 1148500700 36646
+386/bin/unmount - 775 sys sys 1218252950 37316
 386/bin/unvac - 775 sys sys 1218136577 228866
 386/bin/unzip - 775 sys sys 1210393005 91104
 386/bin/upas - 20000000775 sys sys 1016857390 0
@@ -523,7 +523,7 @@
 386/bin/venti/syncindex - 775 sys sys 1214510268 267147
 386/bin/venti/venti - 775 sys sys 1214510282 705880
 386/bin/venti/verifyarena - 775 sys sys 1214510285 166995
-386/bin/venti/wrarena - 775 sys sys 1214510291 284119
+386/bin/venti/wrarena - 775 sys sys 1218252955 284152
 386/bin/venti/write - 775 sys sys 1214510295 151806
 386/bin/vncs - 775 sys sys 1210393170 473332
 386/bin/vncv - 775 sys sys 1210393181 520757
@@ -10160,7 +10160,7 @@ sys/src/cmd/cwfs/fs64/mkfile - 664 sys sys 1174799404 24
 sys/src/cmd/cwfs/fworm.c - 664 sys sys 1174716894 1814
 sys/src/cmd/cwfs/io.h - 664 sys sys 1174280312 866
 sys/src/cmd/cwfs/iobuf.c - 664 sys sys 1176500092 4722
-sys/src/cmd/cwfs/juke.c - 664 sys sys 1176500144 28859
+sys/src/cmd/cwfs/juke.c - 664 sys sys 1218308158 28852
 sys/src/cmd/cwfs/lrand.c - 664 sys sys 1171160167 1070
 sys/src/cmd/cwfs/main.c - 664 sys sys 1194214683 10347
 sys/src/cmd/cwfs/malloc.c - 664 sys sys 1174281557 2360
@@ -14236,7 +14236,7 @@ sys/src/cmd/upas/ned/mkfile - 664 sys sys 1060041738 233
 sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1212691953 44795
 sys/src/cmd/upas/pop3 - 20000000775 sys sys 1064589604 0
 sys/src/cmd/upas/pop3/mkfile - 664 sys sys 1064589604 186
-sys/src/cmd/upas/pop3/pop3.c - 664 sys sys 1115039848 14327
+sys/src/cmd/upas/pop3/pop3.c - 664 sys sys 1218308089 14373
 sys/src/cmd/upas/q - 20000000775 sys sys 1064589601 0
 sys/src/cmd/upas/q/mkfile - 664 sys sys 1064589601 262
 sys/src/cmd/upas/q/qer.c - 664 sys sys 1014926528 3179

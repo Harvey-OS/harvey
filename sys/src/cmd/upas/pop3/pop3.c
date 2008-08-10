@@ -763,7 +763,7 @@ dologin(char *response)
 		senderr("newns failed: %r; server exiting");
 		exits(nil);
 	}
-
+	syslog(0, "pop3", "user %s logged in", user);
 	enableaddr();
 	if(readmbox(box) < 0)
 		exits(nil);
