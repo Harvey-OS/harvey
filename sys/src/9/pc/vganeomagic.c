@@ -337,7 +337,7 @@ waitforidle(VGAscr *scr)
 	while((mmio[BltStat] & NEO_BS0_BLT_BUSY) && x++ < 1000000)
 		;
 	//if(x >= 1000000)
-	//	iprint("idle stat %lud scrmmio %.8lux scr %p pc %luX\n", mmio[BltStat], scr->mmio, scr, getcallerpc(&scr));
+	//	iprint("idle stat %lud scrmmio %#.8lux scr %#p pc %#p\n", mmio[BltStat], scr->mmio, scr, getcallerpc(&scr));
 }
 
 static void
@@ -351,7 +351,7 @@ waitforfifo(VGAscr *scr, int entries)
 	while(((mmio[BltStat]>>8) < entries) && x++ < 1000000)
 		;
 	//if(x >= 1000000)
-	//	iprint("fifo stat %d scrmmio %.8lux scr %p pc %luX\n", mmio[BltStat]>>8, scr->mmio, scr, getcallerpc(&scr));
+	//	iprint("fifo stat %d scrmmio %#.8lux scr %#p pc %#p\n", mmio[BltStat]>>8, scr->mmio, scr, getcallerpc(&scr));
 	/* DirectFB says the above doesn't work.  if so... */
 	/* waitforidle(scr); */
 }

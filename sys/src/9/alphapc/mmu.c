@@ -251,7 +251,7 @@ mmudump(void)
 {
 	Page *top, *lvl2;
 
-	iprint("ptbr %lux up %lux\n", (ulong)m->ptbr, up);
+	iprint("ptbr %lux up %#p\n", (ulong)m->ptbr, up);
 	if(up) {
 		top = up->mmutop;
 		if(top != nil)

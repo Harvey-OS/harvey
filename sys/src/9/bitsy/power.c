@@ -54,7 +54,7 @@ checkktext(void)
 	s = 0;
 	for (p = (ulong*)_start; p < (ulong*)etext; p++){
 		if(*p == 0)
-			iprint("0x%lux->0\n", p);
+			iprint("%#p->0\n", p);
 		if (((ulong)p & 0x1fff) == 0){
 			iprint("page 0x%lux checksum 0x%lux\n",
 				(ulong)(p-1)&~0x1fff, s);
@@ -182,7 +182,8 @@ deepsleep(void) {
 	audiopower(0);
 	screenpower(0);
 	µcpower(0);
-	iprint("entering suspend mode, sp = 0x%lux, pc = 0x%lux, psw = 0x%ux\n", &xsp, xlink, power_pl);
+	iprint("entering suspend mode, sp = %#p, pc = 0x%lux, psw = 0x%ux\n",
+		&xsp, xlink, power_pl);
 //	dumpitall();
 	delay(1000);
 	uartpower(0);
@@ -212,7 +213,8 @@ deepsleep(void) {
 		uartpower(1);
 		delay(100);
 		xlink = getcallerpc(&xlink);
-		iprint("\nresuming execution, sp = 0x%lux, pc = 0x%lux, psw = 0x%ux\n", &xsp, xlink, splhi());
+		iprint("\nresuming execution, sp = %#p, pc = 0x%lux, psw = 0x%ux\n",
+			&xsp, xlink, splhi());
 //		dumpitall();
 		delay(1000);
 //		irpower(1);

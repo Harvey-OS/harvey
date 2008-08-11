@@ -624,7 +624,7 @@ waitforfifo(VGAscr *scr, int entries)
 	while((ior32(scr, FifoStat)&0xFF) > (0x8000>>entries) && x++ < 1000000)
 		;
 	if(x >= 1000000)
-		iprint("fifo %d stat %.8lux %.8lux scrio %.8lux mmio %p scr %p pc %luX\n", entries, ior32(scr, FifoStat), scr->mmio[mmoffset[FifoStat]], scr->io, scr->mmio, scr, getcallerpc(&scr));
+		iprint("fifo %d stat %#.8lux %#.8lux scrio %#.8lux mmio %#p scr %#p pc %#p\n", entries, ior32(scr, FifoStat), scr->mmio[mmoffset[FifoStat]], scr->io, scr->mmio, scr, getcallerpc(&scr));
 }
 
 static void
@@ -637,7 +637,7 @@ waitforidle(VGAscr *scr)
 	while((ior32(scr, GuiStat)&1) && x++ < 1000000)
 		;
 	if(x >= 1000000)
-		iprint("idle stat %.8lux %.8lux scrio %.8lux mmio %p scr %p pc %luX\n", ior32(scr, GuiStat), scr->mmio[mmoffset[GuiStat]], scr->io, scr->mmio, scr, getcallerpc(&scr));
+		iprint("idle stat %#.8lux %#.8lux scrio %#.8lux mmio %#p scr %#p pc %#p\n", ior32(scr, GuiStat), scr->mmio[mmoffset[GuiStat]], scr->io, scr->mmio, scr, getcallerpc(&scr));
 }
 
 static void

@@ -506,18 +506,18 @@ peekmmu(ulong va)
 	e = l1table[va>>20];
 	switch(e & L1TypeMask){
 	default:
-		iprint("l1: %lux[%lux] = %lux invalid\n", l1table, va>>20, e);
+		iprint("l1: %#p[%#lux] = %#lux invalid\n", l1table, va>>20, e);
 		break;
 	case L1PageTable:
-		iprint("l1: %lux[%lux] = %lux pt\n", l1table, va>>20, e);
+		iprint("l1: %#p[%#lux] = %#lux pt\n", l1table, va>>20, e);
 		va &= OneMeg-1;
 		va >>= PGSHIFT;
 		e &= L1PTBaseMask;
 		d = ((ulong*)e)[va];
-		iprint("l2: %lux[%lux] = %lux\n", e, va, d);
+		iprint("l2: %#lux[%#lux] = %#lux\n", e, va, d);
 		break;
 	case L1Section:
-		iprint("l1: %lux[%lux] = %lux section\n", l1table, va>>20, e);
+		iprint("l1: %#p[%#lux] = %#lux section\n", l1table, va>>20, e);
 		break;
 	}
 }

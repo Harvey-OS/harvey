@@ -627,11 +627,11 @@ sdpwrite(Chan *ch, void *a, long n, vlong off)
 		arg0 = cb->f[0];
 		if(strcmp(arg0, "accept") == 0) {
 			if(cb->nf != 2)
-				error("usage: accect file");
+				error("usage: accept file");
 			convopenchan(c, cb->f[1]);
 		} else if(strcmp(arg0, "dial") == 0) {
 			if(cb->nf != 2)
-				error("usage: accect file");
+				error("usage: dial file");
 			convopenchan(c, cb->f[1]);
 			convsetstate(c, CDial);
 		} else if(strcmp(arg0, "drop") == 0) {

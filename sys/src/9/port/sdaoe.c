@@ -500,7 +500,7 @@ aoerio(SDreq *r)
 		rio = devtab[c->c->type]->write;
 		break;
 	default:
-		print("%s: bad cmd 0x%.2ux\n", name, cmd[0]);
+		print("%s: bad cmd %#.2ux\n", name, cmd[0]);
 		r->status = SDcheck;
 		return SDcheck;
 	}

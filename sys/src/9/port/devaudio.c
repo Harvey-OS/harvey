@@ -149,7 +149,7 @@ sbcmd(int val)
 			return 0;
 		}
 	}
-/*	print("#A: sbcmd (0x%.2x) timeout\n", val);	/**/
+/*	print("#A: sbcmd (%#.2x) timeout\n", val);	/**/
 	return 1;
 }
 
@@ -429,7 +429,7 @@ ess1688reset(void)
 
 	i = sbread();
 	if(i != 0xAA) {
-		print("#A: no response 0x%.2x\n", i);
+		print("#A: no response %#.2x\n", i);
 		return 1;
 	}
 
@@ -674,7 +674,7 @@ ess1688(ISAConf* sbconf)
 	major = sbread();
 	minor = sbread();
 	if(major != 0x68 || minor != 0x8B){
-		print("#A: model 0x%.2x 0x%.2x; not ESS1688 compatible\n", major, minor);
+		print("#A: model %#.2x %#.2x; not ESS1688 compatible\n", major, minor);
 		return 1;
 	}
 
@@ -747,7 +747,7 @@ audioinit(void)
 	case 0x280:
 		break;
 	default:
-		print("#A: bad port 0x%lux\n", sbconf.port);
+		print("#A: bad port %#lux\n", sbconf.port);
 		return;
 	}
 
@@ -812,7 +812,7 @@ audioinit(void)
 
 	if(audio.major != 4) {
 		if(audio.major != 3 || audio.minor != 1 || ess1688(&sbconf)){
-			print("#A: model 0x%.2x 0x%.2x; not SB 16 compatible\n",
+			print("#A: model %#.2x %#.2x; not SB 16 compatible\n",
 				audio.major, audio.minor);
 			iofree(sbconf.port);
 			iofree(sbconf.port+0x100);

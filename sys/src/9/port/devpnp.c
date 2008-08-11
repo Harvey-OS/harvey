@@ -498,7 +498,7 @@ pnpread(Chan *c, void *va, long n, vlong offset)
 		return devdirread(c, a, n, (Dirtab *)0, 0L, pnpgen);
 	case Qpnpctl:
 		if(pnp.rddata > 0)
-			sprint(up->genbuf, "enabled 0x%x\n", pnp.rddata);
+			sprint(up->genbuf, "enabled %#x\n", pnp.rddata);
 		else
 			sprint(up->genbuf, "disabled\n");
 		return readstr(offset, a, n, up->genbuf);

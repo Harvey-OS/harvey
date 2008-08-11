@@ -315,7 +315,7 @@ sysfatal(char *fmt, ...)
 void
 _assert(char *fmt)
 {
-	panic("assert failed at 0x%lux: %s", getcallerpc(&fmt), fmt);
+	panic("assert failed at %#p: %s", getcallerpc(&fmt), fmt);
 }
 
 int
@@ -457,7 +457,7 @@ echo(char *buf, int n)
 				consdebug = rdb;
 			else
 				consdebug = nil;
-			print("consdebug now 0x%p\n", consdebug);
+			print("consdebug now %#p\n", consdebug);
 			return;
 		case 'D':
 			if(consdebug == nil)
@@ -631,7 +631,7 @@ readnum(ulong off, char *buf, ulong n, ulong val, int size)
 {
 	char tmp[64];
 
-	snprint(tmp, sizeof(tmp), "%*.0lud", size-1, val);
+	snprint(tmp, sizeof(tmp), "%*lud", size-1, val);
 	tmp[size-1] = ' ';
 	if(off >= size)
 		return 0;
@@ -957,7 +957,7 @@ consread(Chan *c, void *buf, long n, vlong off)
 		return n;
 
 	default:
-		print("consread 0x%llux\n", c->qid.path);
+		print("consread %#llux\n", c->qid.path);
 		error(Egreg);
 	}
 	return -1;		/* never reached */
@@ -1112,7 +1112,7 @@ conswrite(Chan *c, void *va, long n, vlong off)
 		break;
 
 	default:
-		print("conswrite: 0x%llux\n", c->qid.path);
+		print("conswrite: %#llux\n", c->qid.path);
 		error(Egreg);
 	}
 	return n;
@@ -1240,7 +1240,7 @@ readtime(ulong off, char *buf, int n)
 	if(fasthz == 0LL)
 		fastticks((uvlong*)&fasthz);
 	sec = nsec/1000000000ULL;
-	snprint(str, sizeof(str), "%*.0lud %*.0llud %*.0llud %*.0llud ",
+	snprint(str, sizeof(str), "%*lud %*llud %*llud %*llud ",
 		NUMSIZE-1, sec,
 		VLNUMSIZE-1, nsec,
 		VLNUMSIZE-1, ticks,

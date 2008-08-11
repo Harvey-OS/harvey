@@ -821,7 +821,7 @@ if(tr->debug) pdump(unpad_len, p, "decrypted:");
 
 	switch(type) {
 	default:
-		rcvError(tr, EIllegalParameter, "invalid record message 0x%x", type);
+		rcvError(tr, EIllegalParameter, "invalid record message %#x", type);
 		break;
 	case RChangeCipherSpec:
 		if(len != 1 || p[0] != 1)
@@ -1140,7 +1140,7 @@ tlsread(Chan *c, void *a, long n, vlong off)
 		s = buf;
 		e = buf + Statlen;
 		s = seprint(s, e, "State: %s\n", tlsstate(tr->state));
-		s = seprint(s, e, "Version: 0x%x\n", tr->version);
+		s = seprint(s, e, "Version: %#x\n", tr->version);
 		if(tr->in.sec != nil)
 			s = seprint(s, e, "EncIn: %s\nHashIn: %s\n", tr->in.sec->encalg, tr->in.sec->hashalg);
 		if(tr->in.new != nil)

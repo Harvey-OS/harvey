@@ -949,41 +949,9 @@ enum
 	Qkick		= (1<<5),	/* always call the kick routine after qwrite */
 };
 
-
 #define DEVDOTDOT -1
 
-#pragma	varargck	argpos	print	1
-#pragma	varargck	argpos	snprint	3
-#pragma	varargck	argpos	sprint	2
-#pragma	varargck	argpos	fprint	2
-#pragma	varargck	argpos	panic	1
-
-#pragma	varargck	type	"lld"	vlong
-#pragma	varargck	type	"llx"	vlong
-#pragma	varargck	type	"lld"	uvlong
-#pragma	varargck	type	"llx"	uvlong
-#pragma	varargck	type	"lx"	void*
-#pragma	varargck	type	"ld"	long
-#pragma	varargck	type	"lx"	long
-#pragma	varargck	type	"ld"	ulong
-#pragma	varargck	type	"lx"	ulong
-#pragma	varargck	type	"d"	int
-#pragma	varargck	type	"x"	int
-#pragma	varargck	type	"c"	int
-#pragma	varargck	type	"C"	int
-#pragma	varargck	type	"d"	uint
-#pragma	varargck	type	"x"	uint
-#pragma	varargck	type	"c"	uint
-#pragma	varargck	type	"C"	uint
-#pragma	varargck	type	"s"	char*
-#pragma	varargck	type	"S"	Rune*
-#pragma	varargck	type	"r"	void
-#pragma	varargck	type	"%"	void
 #pragma	varargck	type	"I"	uchar*
 #pragma	varargck	type	"V"	uchar*
 #pragma	varargck	type	"E"	uchar*
 #pragma	varargck	type	"M"	uchar*
-#pragma	varargck	type	"p"	uintptr
-#pragma	varargck	type	"p"	void*
-#pragma	varargck	type	"q"	char*
-#pragma	varargck	flag	','

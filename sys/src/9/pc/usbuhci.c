@@ -243,7 +243,7 @@ dumpdata(Block *b, int n)
 {
 	int i;
 
-	XPRINT("\tb %8.8lux[%d]: ", (ulong)b->rp, n);
+	XPRINT("\tb %#p[%d]: ", b->rp, n);
 	if(n > 16)
 		n = 16;
 	for(i=0; i<n; i++)
@@ -285,8 +285,8 @@ dumptd(TD *t, int follow)
 		if(t->status & LowSpeed)
 			*s++ = 'L';
 		*s = 0;
-		XPRINT("td %8.8lux: ", t);
-		XPRINT("l=%8.8lux s=%8.8lux d=%8.8lux b=%8.8lux %8.8lux f=%8.8lux\n",
+		XPRINT("td %#p: ", t);
+		XPRINT("l=%#lux s=%#lux d=%#lux b=%#lux %#lux f=%#lux\n",
 			t->link, t->status, t->dev, t->buffer,
 			(t->bp? (ulong)t->bp->rp: 0), t->flags);
 		XPRINT("\ts=%s,ep=%ld,d=%ld,D=%ld\n", buf, (t->dev>>15)&0xF,
@@ -357,7 +357,7 @@ dumpqh(QH *q)
 
 	q0 = q;
 	for(i = 0; q != nil && i < 10; i++){
-		XPRINT("qh %8.8lux: %8.8lux %8.8lux\n", q, q->head, q->entries);
+		XPRINT("qh %#p: %#lux %#lux\n", q, q->head, q->entries);
 		if((q->entries & (IsQH|Terminate)) == 0)
 			dumptd(TFOL(q->entries), 1);
 		if(q->head & Terminate)
@@ -404,7 +404,7 @@ cleantd(Ctlr *ctlr, TD *t, int discard)
 	Block *b;
 	int n, err;
 
-	XPRINT("cleanTD: %8.8lux %8.8lux %8.8lux %8.8lux\n",
+	XPRINT("cleanTD: %#lux %#lux %#lux %#lux\n",
 		t->link, t->status, t->dev, t->buffer);
 	if(t->ep != nil && t->ep->debug)
 		dumptd(t, 0);
@@ -413,9 +413,9 @@ cleantd(Ctlr *ctlr, TD *t, int discard)
 	err = t->status & (AnyError & ~NAKed);
 	/* TO DO: on t->status&AnyError, q->entries will not have advanced */
 	if (err) {
-		XPRINT("cleanTD: Error %8.8lux %8.8lux %8.8lux %8.8lux\n",
+		XPRINT("cleanTD: Error %#lux %#lux %#lux %#lux\n",
 			t->link, t->status, t->dev, t->buffer);
-		print("cleanTD %d/%d: Error %8.8lux %8.8lux %8.8lux %8.8lux\n",
+		print("cleanTD %d/%d: Error %#lux %#lux %#lux %#lux\n",
 			t->ep->dev->x, t->ep->x,
 			t->link, t->status, t->dev, t->buffer);
 	}
@@ -445,19 +445,19 @@ cleantd(Ctlr *ctlr, TD *t, int discard)
 		wakeup(&t->ep->dir[Dirin].rend);	/* TO DO */
 		break;
 	case Utoksetup:
-		XPRINT("cleanTD: Utoksetup %lux\n", &t->ep);
+		XPRINT("cleanTD: Utoksetup %#p\n", &t->ep);
 		/*
 		 * don't really need to wakeup: subsequent IN or OUT
 		 * gives status./
 		 */
 		if(t->ep != nil) {
 			wakeup(&t->ep->dir[Dirout].rend);	/* TO DO */
-			XPRINT("cleanTD: wakeup %lux\n", &t->ep->dir[Dirout].rend);
+			XPRINT("cleanTD: wakeup %#p\n", &t->ep->dir[Dirout].rend);
 		}
 		break;
 	case Utokout:
 		/* TO DO: mark it done somewhere */
-		XPRINT("cleanTD: TokOut %lux\n", &t->ep);
+		XPRINT("cleanTD: TokOut %#p\n", &t->ep);
 		ilock(ctlr);		/* e->ntd++ is ilocked */
 		if(t->ep != nil){
 			if(t->bp){
@@ -471,7 +471,7 @@ cleantd(Ctlr *ctlr, TD *t, int discard)
 			if(--t->ep->ntd < 0)
 				panic("cleantd ntd");
 			wakeup(&t->ep->dir[Dirout].rend);	/* TO DO */
-			XPRINT("cleanTD: wakeup %lux\n", &t->ep->dir[Dirout].rend);
+			XPRINT("cleanTD: wakeup %#p\n", &t->ep->dir[Dirout].rend);
 		}
 		iunlock(ctlr);
 		break;
@@ -487,7 +487,7 @@ cleanq(Ctlr *ctlr, QH *q, int discard, int vf)
 	ilock(ctlr);
 	tp = nil;
 	for(t = q->first; t != nil;){
-		XPRINT("cleanq: %8.8lux %8.8lux %8.8lux %8.8lux %8.8lux %8.8lux\n",
+		XPRINT("cleanq: %#lux %#lux %#lux %#lux %#lux %#p\n",
 		    t->link, t->status, t->dev, t->buffer, t->flags, t->next);
 		if(t->status & Active){
 			if(t->status & NAKed){
@@ -498,7 +498,7 @@ cleanq(Ctlr *ctlr, QH *q, int discard, int vf)
 				continue;
 			}
 			if(t->flags & CancelTD){
-				XPRINT("cancelTD: %8.8lux\n", (ulong)t);
+				XPRINT("cancelTD: %#p\n", t);
 				/* ensure interrupt next frame */
 				t->status = (t->status & ~Active) | IOC;
 				tp = t;
@@ -532,7 +532,7 @@ cleanq(Ctlr *ctlr, QH *q, int discard, int vf)
 			t = tp->next;
 		else
 			t = q->first;
-		XPRINT("t = %8.8lux\n", t);
+		XPRINT("t = %#p\n", t);
 		dumpqh(q);
 	}
 	if(q->first && q->entries != PCIWADDR(q->first)){
@@ -641,7 +641,7 @@ qxmit(Ctlr *ctlr, Endpt *e, Block *b, int pid)
 	e->ntd++;
 	iunlock(ctlr);
 	if(e->debug)
-		pprint("QTD: %8.8lux n=%ld\n", t, b? BLEN(b): 0);
+		pprint("QTD: %#p n=%ld\n", t, b? BLEN(b): 0);
 	vf = 0;
 	if(e->x == 0){
 		qh = ctlr->ctlq;
@@ -1367,7 +1367,7 @@ write(Usbhost *uh, Endpt *e, void *a, long n, vlong offset, int tok)
 			XPRINT("qh %s: q=%p first=%p last=%p entries=%.8lux\n",
 				"writeusb sleep", qh, qh->first, qh->last,
 				qh->entries);
-			XPRINT("write: sleep %lux\n", &e->dir[Dirout].rend);
+			XPRINT("write: sleep %#p\n", &e->dir[Dirout].rend);
 			sleep(&e->dir[Dirout].rend, qisempty, qh);
 			XPRINT("write: awake\n");
 		}
@@ -1387,11 +1387,11 @@ init(Usbhost* uh)
 	outl(ctlr->io+Flbaseadd, PCIWADDR(ctlr->frames));
 	OUT(Frnum, 0);
 	OUT(Usbintr, 0xF);	/* enable all interrupts */
-	XPRINT("cmd 0x%x sofmod 0x%x\n", IN(Cmd), inb(ctlr->io+SOFMod));
-	XPRINT("sc0 0x%x sc1 0x%x\n", IN(Portsc0), IN(Portsc1));
+	XPRINT("cmd %#x sofmod %#x\n", IN(Cmd), inb(ctlr->io+SOFMod));
+	XPRINT("sc0 %#x sc1 %#x\n", IN(Portsc0), IN(Portsc1));
 	if((IN(Cmd)&1)==0)
 		OUT(Cmd, 1);	/* run */
-//	pprint("at: c=%x s=%x c0=%x\n", IN(Cmd), IN(Status), IN(Portsc0));
+//	pprint("at: c=%#x s=%#x c0=%x\n", IN(Cmd), IN(Status), IN(Portsc0));
 	iunlock(ctlr);
 }
 

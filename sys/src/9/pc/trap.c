@@ -495,7 +495,7 @@ dumpregs(Ureg* ureg)
 			iprint("\n  MCA %8.8llux MCT %8.8llux", mca, mct);
 		}
 	}
-	iprint("\n  ur %lux up %lux\n", ureg, up);
+	iprint("\n  ur %#p up %#p\n", ureg, up);
 }
 
 

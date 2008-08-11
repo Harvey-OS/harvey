@@ -736,7 +736,7 @@ unit2dev(ulong unit)
 			return d;
 		}
 	runlock(&devs);
-	uprint("unit lookup failure: %lux pc %p", unit, getcallerpc(&unit));
+	uprint("unit lookup failure: %lux pc %#p", unit, getcallerpc(&unit));
 	error(up->genbuf);
 	return nil;
 }
@@ -2202,7 +2202,7 @@ netbind(char *path)
 	Chan *dc, *cc, *mtu;
 	Netlink *nl;
 
-	snprint(addr, sizeof addr, "%s!0x%x", path, Aoetype);
+	snprint(addr, sizeof addr, "%s!%#x", path, Aoetype);
 	dc = chandial(addr, nil, nil, &cc);
 	snprint(addr, sizeof addr, "%s/mtu", path);
 	if(waserror())
