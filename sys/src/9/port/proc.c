@@ -115,7 +115,7 @@ sched(void)
 	Proc *p;
 
 	if(m->ilockdepth)
-		panic("ilockdepth %d, last lock 0x%p at 0x%lux, sched called from 0x%lux",
+		panic("ilockdepth %d, last lock %#p at %#lux, sched called from %#p",
 			m->ilockdepth, up?up->lastilock:nil,
 			(up && up->lastilock)?up->lastilock->pc:0,
 			getcallerpc(&p+2));
@@ -737,12 +737,12 @@ sleep(Rendez *r, int (*f)(void*), void *arg)
 	s = splhi();
 
 	if(up->nlocks.ref)
-		print("process %lud sleeps with %lud locks held, last lock 0x%p locked at pc 0x%lux, sleep called from 0x%lux\n",
+		print("process %lud sleeps with %lud locks held, last lock %#p locked at pc %#lux, sleep called from %#p\n",
 			up->pid, up->nlocks.ref, up->lastlock, up->lastlock->pc, getcallerpc(&r));
 	lock(r);
 	lock(&up->rlock);
 	if(r->p){
-		print("double sleep called from 0x%lux, %lud %lud\n", getcallerpc(&r), r->p->pid, up->pid);
+		print("double sleep called from %#p, %lud %lud\n", getcallerpc(&r), r->p->pid, up->pid);
 		dumpstack();
 	}
 
@@ -827,7 +827,7 @@ void
 tsleep(Rendez *r, int (*fn)(void*), void *arg, ulong ms)
 {
 	if (up->tt){
-		print("tsleep: timer active: mode %d, tf 0x%lux\n", up->tmode, up->tf);
+		print("tsleep: timer active: mode %d, tf %#p\n", up->tmode, up->tf);
 		timerdel(up);
 	}
 	up->tns = MS2NS(ms);

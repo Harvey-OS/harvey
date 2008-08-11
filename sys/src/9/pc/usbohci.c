@@ -412,7 +412,7 @@ hcva2ucva(ulong hcva)
 	if(hcva == 0)
 		return nil;
 	if(hcva & 0xf0000000){
-		iprint("hcva2ucva: bad 0x%lux, called from 0x%lux\n",
+		iprint("hcva2ucva: bad %#lux, called from %#p\n",
 			hcva, getcallerpc(&hcva));
 		return nil;
 	}
@@ -672,14 +672,14 @@ dumptd(TD *td, char *s)
 	Endpt *ep;
 
 	ep = td->ep;
-	print("\t%s: 0x%.8lux ctrl 0x%.8lux cbp 0x%.8lux "
-		"nexttd 0x%.8lux be 0x%.8lux, flags %lux\n",
+	print("\t%s: %#p ctrl %#.8lux cbp %#.8lux "
+		"nexttd %#.8lux be %#.8lux, flags %#lux\n",
 		s, td, td->ctrl, td->cbp, td->nexttd, td->be, td->flags);
 	if(ep->epmode != Isomode){
 		print("\t\tbytes: %ld\n", td->be + 1 - td->cbp);
 		return;
 	}
-	print("\t\t0x%ux 0x%ux 0x%ux 0x%ux 0x%ux 0x%ux 0x%ux 0x%ux\n",
+	print("\t\t%#ux %#ux %#ux %#ux %#ux %#ux %#ux %#ux\n",
 		td->offsets[0], td->offsets[1], td->offsets[2], td->offsets[3],
 		td->offsets[4], td->offsets[5], td->offsets[6], td->offsets[7]);
 	print("\t\tbytes:");
@@ -695,7 +695,7 @@ dumped(ED *ed)
 
 	tailp = EDgettail(ed);
 	td = EDgethead(ed);
-	print("dumpED 0x%lux: ctrl 0x%lux tail 0x%lux head 0x%lux next 0x%lux\n",
+	print("dumpED %#p: ctrl %#lux tail %#lux head %#lux next %#lux\n",
 		ed, ed->ctrl, ed->tail, ed->head, ed->next);
 	if(tailp == td)
 		return;
@@ -709,8 +709,8 @@ dumpstatus(Ctlr *ub)
 {
 	ED *ed;
 
-	print("dumpstatus 0x%lux, frame 0x%ux:\n", ub, ub->uchcca->framenumber);
-	print("control 0x%lux, cmdstat 0x%lux, intrsts 0x%lux\n",
+	print("dumpstatus %#p, frame %#ux:\n", ub, ub->uchcca->framenumber);
+	print("control %#lux, cmdstat %#lux, intrsts %#lux\n",
 		ub->base->control, ub->base->cmdsts, ub->base->intrsts);
 	print("Control:\n");
 	for(ed = OHCIgetControlHeadED(ub->base); ed; ed = EDgetnext(ed))
@@ -721,7 +721,7 @@ dumpstatus(Ctlr *ub)
 	print("Iso:\n");
 	for(ed = ub->tree->root[0]; ed; ed = EDgetnext(ed))
 		dumped(ed);
-	print("frame 0x%ux:\n", ub->uchcca->framenumber);
+	print("frame %#ux:\n", ub->uchcca->framenumber);
 }
 
 /*
@@ -1647,7 +1647,7 @@ getportstatus(Ctlr *ub, int port)
 	if(ohcistatus & Lsda)
 		v |= SlowDevice;
 	if(ohcistatus & Ccs)
-		XIPRINT("portstatus(%d) = OHCI 0x%.8lux UHCI 0x%.8ux\n",
+		XIPRINT("portstatus(%d) = OHCI %#.8lux UHCI %#.8ux\n",
 			port, ohcistatus, v);
 	return v;
 }
@@ -1668,17 +1668,17 @@ usbdebug(Usbhost *uh, char *s, char *se)
 	for(i = 0; i < MaxUsbDev; i++){
 		if((dev = uh->dev[i]) == nil)
 			continue;
-		s = seprint(s, se, "dev 0x%6.6lux, %d epts\n", dev->csp, dev->npt);
+		s = seprint(s, se, "dev %#6.6lux, %d epts\n", dev->csp, dev->npt);
 		for(j = 0; j < nelem(dev->ep); j++){
 			if((ep = dev->ep[j]) == nil)
 				continue;
 			if(ep->epmode >= 0 && ep->epmode < Nmodes)
-				s = seprint(s, se, "ept %d/%d: %s 0x%6.6lux "
+				s = seprint(s, se, "ept %d/%d: %s %#6.6lux "
 					"maxpkt %d %s\n",
 					dev->x, ep->x, usbmode[ep->epmode],
 					ep->csp, ep->maxpkt, ep->active ? "active" : "idle");
 			else{
-				s = seprint(s, se, "ept %d/%d: bad mode 0x%6.6lux\n",
+				s = seprint(s, se, "ept %d/%d: bad mode %#6.6lux\n",
 					dev->x, ep->x, ep->csp);
 				continue;
 			}
@@ -1756,7 +1756,7 @@ interrupt(Ureg *, void *arg)
 	if(status & Wdh){
 		/* LSb of donehead has bit that says there are other interrupts */
 		donetd = hcva2ucva(ub->uchcca->donehead & ~0xf);
-		XIPRINT("donetd 0x%.8lux\n", donetd);
+		XIPRINT("donetd %#p\n", donetd);
 	}else
 		donetd = 0;
 	ub->base->intrsts = status;
@@ -1781,7 +1781,7 @@ interrupt(Ureg *, void *arg)
 		}
 		cc = (ctrl >> TD_CC_SHIFT) & TD_CC_MASK;
 		if((usbhdebug || ep->debug) && (cc != 0 && cc != 9)){
-			print("%d/%d: cc %d frnum 0x%lux\n",
+			print("%d/%d: cc %d frnum %#lux\n",
 				ep->dev->x, ep->x, cc, ub->base->fmnumber);
 			dumptd(donetd, "after");
 		}
@@ -1796,8 +1796,8 @@ interrupt(Ureg *, void *arg)
 				if(bp){
 					p = hcva2va(donetd->be + 1);
 					if(p < bp->wp)
-						print("interrupt: bp: rp 0x%lux"
-							", wp 0x%lux→0x%lux\n",
+						print("interrupt: bp: rp %#p"
+							", wp %#p→%#p\n",
 							bp->rp, bp->wp, p);
 					bp->wp = p;
 				}
@@ -1808,8 +1808,8 @@ interrupt(Ureg *, void *arg)
 		case 9:			/* underrun */
 			if(bp){
 				p = hcva2va(donetd->cbp);
-				XEIPRINT("interrupt: bp: rp 0x%lux, wp "
-					"0x%lux→0x%lux\n", bp->rp, bp->wp, p);
+				XEIPRINT("interrupt: bp: rp %#p, wp "
+					"%#p→%#p\n", bp->rp, bp->wp, p);
 				bp->wp = p;
 			}
 			if((donetd->flags & TD_FLAGS_LAST) == 0){
@@ -1868,7 +1868,7 @@ interrupt(Ureg *, void *arg)
 
 		// usbhdbg();		/* TODO */
 		curred = ub->base->periodcurred;
-		print("usbh: unrecoverable error frame 0x%.8lux ed 0x%.8lux, "
+		print("usbh: unrecoverable error frame %#.8lux ed %#.8lux, "
 			"ints %d %d %d %d\n",
 			ub->base->fmnumber, curred,
 			ohciinterrupts[1], ohciinterrupts[2],
@@ -1877,7 +1877,7 @@ interrupt(Ureg *, void *arg)
 			dumped(hcva2ucva(curred));
 	}
 	if(status)
-		IPRINT(("interrupt: unhandled interrupt 0x%.8lux\n", status));
+		IPRINT(("interrupt: unhandled interrupt %#.8lux\n", status));
 }
 
 static void
@@ -1965,7 +1965,7 @@ read(Usbhost *uh, Endpt *ep, void *a, long n, vlong off) /* TODO off */
 	XEPRINT("ohci: read from devusb\n");
 	USED(off);
 	ub = uh->ctlr;
-	XEPRINT("%d/%d: read 0x%.8lux %ld\n", ep->dev->x, ep->x, a, n);
+	XEPRINT("%d/%d: read %#p %ld\n", ep->dev->x, ep->x, a, n);
 	bp = breadusbh(ub, ep, n);
 	l = BLEN(bp);
 	memmove(a, bp->rp, l);
@@ -2006,7 +2006,7 @@ write(Usbhost *uh, Endpt *ep, void *a, long n, vlong off, int tok)
 	epx = ep->private;
 	ub = uh->ctlr;
 	qlock(&ep->wlock);
-	XEPRINT("%d/%d: write 0x%.8lux %ld %s\n", ep->dev->x, ep->x, a, n,
+	XEPRINT("%d/%d: write %#p %ld %s\n", ep->dev->x, ep->x, a, n,
 		tok == Otoksetup? "setup": "out");
 	if(ep->dir[Dirout].xdone - ep->dir[Dirout].xstarted > 0){
 		print("done > started, %d %d\n",
@@ -2105,7 +2105,7 @@ scanpci(void)
 		    p->ccrp != 0x10)
 			continue;
 		mem = p->mem[0].bar & ~0x0F;
-		XPRINT("usbohci: %x/%x port 0x%lux size 0x%x irq %d\n",
+		XPRINT("usbohci: %x/%x port %#lux size %#x irq %d\n",
 			p->vid, p->did, mem, p->mem[0].size, p->intl);
 		if(mem == 0){
 			print("usbohci: failed to map registers\n");
@@ -2119,7 +2119,7 @@ scanpci(void)
 		ctlr = malloc(sizeof(Ctlr));
 		ctlr->pcidev = p;
 		ctlr->base = vmap(mem, p->mem[0].size);
-		XPRINT("scanpci: ctlr 0x%lux, base 0x%lux\n", ctlr, ctlr->base);
+		XPRINT("scanpci: ctlr %#p, base %#p\n", ctlr, ctlr->base);
 		pcisetbme(p);
 		pcisetpms(p, 0);
 		if(ctlrhead != nil)
@@ -2167,7 +2167,7 @@ reset(Usbhost *uh)
 	io = (uintptr)ctlr->base;	/* TODO: correct? */
 	ohci = ctlr->base;
 
-	XPRINT("OHCI ctlr 0x%lux, base 0x%lux\n", ctlr, ohci);
+	XPRINT("OHCI ctlr %#p, base %#p\n", ctlr, ohci);
 
 	p = ctlr->pcidev;
 
@@ -2181,7 +2181,7 @@ reset(Usbhost *uh)
 	XPRINT("Host revision %ld.%ld\n", (ohci->hostrevision >> 4) & 0xf,
 		ohci->hostrevision & 0xf);
 	ctlr->nports = ohci->rhdesca & 0xff;
-	XPRINT("HcControl 0x%.8lux, %d ports\n", ohci->control, ctlr->nports);
+	XPRINT("HcControl %#.8lux, %d ports\n", ohci->control, ctlr->nports);
 	delay(100);  /* anything greater than 50 should ensure reset is done */
 	if(ohci->control == ~0){
 		ctlrhead = nil;

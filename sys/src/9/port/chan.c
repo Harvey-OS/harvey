@@ -63,12 +63,12 @@ dumpmount(void)		/* DEBUGGING */
 	he = &pg->mnthash[MNTHASH];
 	for(h = pg->mnthash; h < he; h++){
 		for(f = *h; f; f = f->hash){
-			print("head: %p: %s 0x%llux.%lud %C %lud -> \n", f,
+			print("head: %#p: %s %#llux.%lud %C %lud -> \n", f,
 				f->from->path->s, f->from->qid.path,
 				f->from->qid.vers, devtab[f->from->type]->dc,
 				f->from->dev);
 			for(t = f->mount; t; t = t->next)
-				print("\t%p: %s (umh %p) (path %.8llux dev %C %lud)\n", t, t->to->path->s, t->to->umh, t->to->qid.path, devtab[t->to->type]->dc, t->to->dev);
+				print("\t%#p: %s (umh %#p) (path %#.8llux dev %C %lud)\n", t, t->to->path->s, t->to->umh, t->to->qid.path, devtab[t->to->type]->dc, t->to->dev);
 		}
 	}
 	poperror();
@@ -113,7 +113,7 @@ decref(Ref *r)
 	x = --r->ref;
 	unlock(r);
 	if(x < 0)
-		panic("decref pc=0x%lux", getcallerpc(&r));
+		panic("decref pc=%#p", getcallerpc(&r));
 
 	return x;
 }
@@ -282,7 +282,7 @@ newpath(char *s)
 	 * allowed, but other names with / in them draw warnings.
 	 */
 	if(strchr(s, '/') && strcmp(s, "#/") != 0 && strcmp(s, "/") != 0)
-		print("newpath: %s from %lux\n", s, getcallerpc(&s));
+		print("newpath: %s from %#p\n", s, getcallerpc(&s));
 
 	p->mlen = 1;
 	p->malen = PATHMSLOP;
@@ -473,7 +473,7 @@ void
 cclose(Chan *c)
 {
 	if(c->flag&CFREE)
-		panic("cclose %lux", getcallerpc(&c));
+		panic("cclose %#p", getcallerpc(&c));
 
 	DBG("cclose %p name=%s ref=%ld\n", c, c->path->s, c->ref);
 	if(decref(c))
@@ -504,7 +504,7 @@ void
 ccloseq(Chan *c)
 {
 	if(c->flag&CFREE)
-		panic("cclose %lux", getcallerpc(&c));
+		panic("cclose %#p", getcallerpc(&c));
 
 	DBG("ccloseq %p name=%s ref=%ld\n", c, c->path->s, c->ref);
 
@@ -638,7 +638,7 @@ cmount(Chan **newp, Chan *old, int flag, char *spec)
 		error(Emount);
 
 	if(old->umh)
-		print("cmount: unexpected umh, caller %.8lux\n", getcallerpc(&newp));
+		print("cmount: unexpected umh, caller %#p\n", getcallerpc(&newp));
 
 	order = flag&MORDER;
 
@@ -912,7 +912,7 @@ undomount(Chan *c, Path *path)
 	Chan *nc;
 
 	if(path->ref != 1 || path->mlen == 0)
-		print("undomount: path %s ref %ld mlen %d caller %lux\n",
+		print("undomount: path %s ref %ld mlen %d caller %#p\n",
 			path->s, path->ref, path->mlen, getcallerpc(&c));
 
 	if(path->mlen>0 && (nc=path->mtpt[path->mlen-1]) != nil){

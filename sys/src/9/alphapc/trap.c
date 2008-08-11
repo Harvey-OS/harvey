@@ -205,7 +205,7 @@ mcheck(Ureg *ur, void *x)
 
 	m = x;
 	data = x;
-	iprint("panic: Machine Check @%lux: %s (%lux) len %lud\n",
+	iprint("panic: Machine Check @%#p: %s (%lux) len %lud\n",
 			m, smcheck(m->code), m->code, m->len);
 	iprint("proc offset %lux sys offset %lux\n", m->procoff, m->sysoff);
 	for (i = 0, col = 0; i < m->len/8; i++) {
@@ -405,8 +405,8 @@ kernfault(Ureg *ur, int code)
 	else
 		s = "ifetch";
 	print("panic: kfault %s VA=0x%lux\n", s, (ulong)ur->a0);
-	print("u=0x%lux status=0x%lux pc=0x%lux sp=0x%lux\n",
-				up, (ulong)ur->status, (ulong)ur->pc, (ulong)ur->sp);
+	print("u=%#p status=0x%lux pc=0x%lux sp=0x%lux\n",
+			up, (ulong)ur->status, (ulong)ur->pc, (ulong)ur->sp);
 	dumpregs(ur);
 	l.sp = ur->sp;
 	l.pc = ur->pc;

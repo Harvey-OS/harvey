@@ -899,7 +899,7 @@ tvread(Chan *c, void *a, long n, vlong offset)
 		print("uablock %ld, bnum %ld, boffs %d, nbytes %d, tvablock %ld\n",
 			uablock, bnum, boffs, nbytes, tvablock);
 		src = tv->abuf + ((uablock + bnum) % tv->nablocks) * tv->absize;
-		print("copying from %.8ulX (abuf %.8ulX), nbytes %d (block %ld.%ld)\n",
+		print("copying from %#p (abuf %#p), nbytes %d (block %ld.%ld)\n",
 			src + boffs, tv->abuf, nbytes, uablock, bnum);
 
 		memmove(a, src + boffs, nbytes);

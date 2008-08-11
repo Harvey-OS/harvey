@@ -642,7 +642,7 @@ portcountpagerefs(ulong *ref, int print)
 				if(s == nil)
 					continue;
 				if(s->ref != s->mark){
-					iprint("segment %#.8lux (used by proc %lud pid %lud) has bad ref count %lud actual %lud\n",
+					iprint("segment %#p (used by proc %lud pid %lud) has bad ref count %lud actual %lud\n",
 						s, i, p->pid, s->ref, s->mark);
 				}
 			}

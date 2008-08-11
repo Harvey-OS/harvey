@@ -345,14 +345,14 @@ waitforidle(VGAscr *scr)
 	while((readget(scr) != nv.dmaput) && x++ < 1000000)
 		;
 	if(x >= 1000000)
-		iprint("idle stat %lud put %d scr %p pc %luX\n", readget(scr), nv.dmaput, scr, getcallerpc(&scr));
+		iprint("idle stat %lud put %d scr %#p pc %#p\n", readget(scr), nv.dmaput, scr, getcallerpc(&scr));
 
 	x = 0;
 	while(pgraph[0x00000700/4] & 0x01 && x++ < 1000000)
 		;
 
 	if(x >= 1000000)
-		iprint("idle stat %lud scrio %.8lux scr %p pc %luX\n", *pgraph, scr->mmio, scr, getcallerpc(&scr));
+		iprint("idle stat %lud scrio %#p scr %#p pc %#p\n", *pgraph, scr->mmio, scr, getcallerpc(&scr));
 }
 
 static void

@@ -19,12 +19,12 @@ qlock(QLock *q)
 	Proc *p;
 
 	if(m->ilockdepth != 0)
-		print("qlock: %lux: ilockdepth %d\n", getcallerpc(&q), m->ilockdepth);
+		print("qlock: %#p: ilockdepth %d\n", getcallerpc(&q), m->ilockdepth);
 	if(up != nil && up->nlocks.ref)
-		print("qlock: %lux: nlocks %lud\n", getcallerpc(&q), up->nlocks.ref);
+		print("qlock: %#p: nlocks %lud\n", getcallerpc(&q), up->nlocks.ref);
 
 	if(q->use.key == 0x55555555)
-		panic("qlock: q %p, key 5*\n", q);
+		panic("qlock: q %#p, key 5*\n", q);
 	lock(&q->use);
 	rwstats.qlock++;
 	if(!q->locked) {

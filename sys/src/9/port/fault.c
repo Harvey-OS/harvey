@@ -327,7 +327,7 @@ okaddr(ulong addr, ulong len, int write)
 			return 1;
 		}
 	}
-	pprint("suicide: invalid address 0x%lux/%lud in sys call pc=0x%lux\n", addr, len, userpc());
+	pprint("suicide: invalid address %#lux/%lud in sys call pc=%#lux\n", addr, len, userpc());
 	return 0;
 }
 
