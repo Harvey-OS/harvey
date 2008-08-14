@@ -20168,3 +20168,5 @@
 1218342604 34 c sys/src/9/port/sdaoe.c - 664 sys sys 1218341980 9919
 1218508204 0 c sys/src/boot/pc/bootp.c - 664 sys sys 1218508001 13158
 1218508204 1 c sys/src/boot/pc/load.c - 664 sys sys 1218507506 11060
+1218661204 0 c sys/src/boot/pc/bootp.c - 664 sys sys 1218660611 12678
+1218661204 1 c sys/src/boot/pc/load.c - 664 sys sys 1218660619 11499

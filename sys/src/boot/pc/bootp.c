@@ -437,7 +437,7 @@ tftpread(int ctlrno, Netaddr *a, Tftp *tftp, int dlen)
 }
 
 static int
-bootpopen1(int ctlrno, char *file, Bootp *rep, int dotftpopen)
+bootpopen(int ctlrno, char *file, Bootp *rep, int dotftpopen)
 {
 	Bootp req;
 	int i, n;
@@ -524,25 +524,6 @@ bootpopen1(int ctlrno, char *file, Bootp *rep, int dotftpopen)
 	if((n = tftpopen(ctlrno, &server, filename, &tftpb)) < 0)
 		return -1;
 
-	return n;
-}
-
-static int
-bootpopen(int ctlrno, char *file, Bootp *rep, int dotftpopen)
-{
-	int n;
-
-	/*
-	 * originally, we looped if we were pxeload or if *bootppersist was set.
-	 * this doesn't work well for pxeload where bootp will never succeed
-	 * on the first interface, so don't loop just because we're pxeload.
-	 */
-	while ((n = bootpopen1(ctlrno, file, rep, dotftpopen)) < 0 &&
-	    persist != nil) {
-		print("pausing before retry...");
-		delay(30*1000);
-		print("\n");
-	}
 	return n;
 }
 
