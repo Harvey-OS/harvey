@@ -432,6 +432,22 @@ done:
 	if(flag)
 		print("\n");
 
+	/*
+	 * e.g., *bootppersist=ether0
+	 *
+	 * previously, we looped in bootpopen if we were pxeload or if
+	 * *bootppersist was set.  that doesn't work well for pxeload where
+	 * bootp will never succeed on the first interface but only on another
+	 * interface.
+	 */
+	if (mode == Mauto && persist != nil &&
+	    (mp = parse(persist, &file)) != nil) {
+		boot(mp, file);
+		print("pausing before retry...");
+		delay(30*1000);
+		print("\n");
+	}
+
 	for(;;){
 		if(getstr("boot from", line, sizeof(line), def, (mode != Manual)*15) >= 0)
 			if(mp = parse(line, &file))

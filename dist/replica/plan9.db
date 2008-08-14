@@ -9183,7 +9183,7 @@ sys/src/boot/pc/apm.c - 664 sys sys 1015007947 289
 sys/src/boot/pc/bcom.c - 664 sys sys 1217188102 6470
 sys/src/boot/pc/boot.c - 664 sys sys 1130887226 8421
 sys/src/boot/pc/bootld.c - 664 sys sys 1015007948 1801
-sys/src/boot/pc/bootp.c - 664 sys sys 1218508001 13158
+sys/src/boot/pc/bootp.c - 664 sys sys 1218660611 12678
 sys/src/boot/pc/cga.c - 664 sys sys 1015007948 1362
 sys/src/boot/pc/cis.c - 664 sys sys 1144961189 9232
 sys/src/boot/pc/clock.c - 664 sys sys 1212010463 6825
@@ -9237,7 +9237,7 @@ sys/src/boot/pc/kfs.h - 664 sys sys 1032215924 861
 sys/src/boot/pc/kfsboot.c - 664 sys sys 1032215914 4788
 sys/src/boot/pc/l.s - 664 sys sys 1216786858 18260
 sys/src/boot/pc/lib.h - 664 sys sys 1212090562 3280
-sys/src/boot/pc/load.c - 664 sys sys 1218507506 11060
+sys/src/boot/pc/load.c - 664 sys sys 1218660619 11499
 sys/src/boot/pc/mbr.s - 664 sys sys 1015007953 6234
 sys/src/boot/pc/mem.h - 664 sys sys 1190921475 3437
 sys/src/boot/pc/memory.c - 664 sys sys 1212010326 10266
