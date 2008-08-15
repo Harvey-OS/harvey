@@ -8857,7 +8857,7 @@ sys/src/ape/lib/ap/plan9/sleep.c - 664 sys sys 1014921985 222
 sys/src/ape/lib/ap/plan9/sqrt.c - 664 sys sys 1014921985 759
 sys/src/ape/lib/ap/plan9/stat.c - 664 sys sys 1014921984 284
 sys/src/ape/lib/ap/plan9/sys9.h - 664 sys sys 1048644336 4251
-sys/src/ape/lib/ap/plan9/system.c - 664 sys sys 1121977156 598
+sys/src/ape/lib/ap/plan9/system.c - 664 sys sys 1218757755 598
 sys/src/ape/lib/ap/plan9/tcgetattr.c - 664 sys sys 1038237528 3070
 sys/src/ape/lib/ap/plan9/time.c - 664 sys sys 1048644336 380
 sys/src/ape/lib/ap/plan9/times.c - 664 sys sys 1014921984 730
@@ -13288,7 +13288,7 @@ sys/src/cmd/ratfs/mkfile - 664 sys sys 1016943965 142
 sys/src/cmd/ratfs/proto.c - 664 sys sys 1016943965 8528
 sys/src/cmd/ratfs/ratfs.h - 664 sys sys 1016943965 2743
 sys/src/cmd/rc - 20000000775 sys sys 1071884773 0
-sys/src/cmd/rc/code.c - 664 sys sys 1182898057 8218
+sys/src/cmd/rc/code.c - 664 sys sys 1218739076 8353
 sys/src/cmd/rc/compiling.on.unix - 664 sys sys 1071884773 37638
 sys/src/cmd/rc/exec.c - 664 sys sys 1216774327 16980
 sys/src/cmd/rc/exec.h - 664 sys sys 1174851874 2828
@@ -13307,7 +13307,7 @@ sys/src/cmd/rc/pcmd.c - 664 sys sys 1100894077 2681
 sys/src/cmd/rc/pfnc.c - 664 sys sys 1100894077 1320
 sys/src/cmd/rc/plan9.c - 664 sys sys 1215383577 10084
 sys/src/cmd/rc/rc.h - 664 sys sys 1182898644 3326
-sys/src/cmd/rc/simple.c - 664 sys sys 1215383579 9205
+sys/src/cmd/rc/simple.c - 664 sys sys 1218738983 9201
 sys/src/cmd/rc/subr.c - 664 sys sys 1182919084 1200
 sys/src/cmd/rc/syn.y - 664 sys sys 944961083 3128
 sys/src/cmd/rc/trap.c - 664 sys sys 1174851077 878
@@ -15884,3 +15884,5 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
+386/bin/rc - 775 sys sys 1218770618 145866
+386/lib/ape/libap.a - 664 sys sys 1218770631 822090

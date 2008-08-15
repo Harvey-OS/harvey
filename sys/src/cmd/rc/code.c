@@ -331,25 +331,25 @@ outcode(tree *t, int eflag)
 	case '=':
 		tt = t;
 		for(;t && t->type=='=';t = c2);
-		if(t){
+		if(t){					/* var=value cmd */
 			for(t = tt;t->type=='=';t = c2){
 				emitf(Xmark);
 				outcode(c1, eflag);
 				emitf(Xmark);
 				outcode(c0, eflag);
-				emitf(Xlocal);
+				emitf(Xlocal);		/* push var for cmd */
 			}
-			t = tt;
-			outcode(c2, eflag);
-			for(;t->type=='=';t = c2) emitf(Xunlocal);
+			outcode(t, eflag);		/* gen. code for cmd */
+			for(t = tt; t->type == '='; t = c2)
+				emitf(Xunlocal);	/* pop var */
 		}
-		else{
+		else{					/* var=value */
 			for(t = tt;t;t = c2){
 				emitf(Xmark);
 				outcode(c1, eflag);
 				emitf(Xmark);
 				outcode(c0, eflag);
-				emitf(Xassign);
+				emitf(Xassign);	/* set var permanently */
 			}
 		}
 		t = tt;	/* so tests below will work */

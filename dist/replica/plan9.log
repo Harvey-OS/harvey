@@ -20170,3 +20170,8 @@
 1218508204 1 c sys/src/boot/pc/load.c - 664 sys sys 1218507506 11060
 1218661204 0 c sys/src/boot/pc/bootp.c - 664 sys sys 1218660611 12678
 1218661204 1 c sys/src/boot/pc/load.c - 664 sys sys 1218660619 11499
+1218738604 0 c sys/src/cmd/rc/simple.c - 664 sys sys 1218738983 9201
+1218740404 0 c sys/src/cmd/rc/code.c - 664 sys sys 1218739076 8353
+1218758405 0 c sys/src/ape/lib/ap/plan9/system.c - 664 sys sys 1218757755 598
+1218771004 0 c 386/bin/rc - 775 sys sys 1218770618 145866
+1218771004 1 c 386/lib/ape/libap.a - 664 sys sys 1218770631 822090
