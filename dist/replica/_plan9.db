@@ -386,7 +386,7 @@
 386/bin/pump - 775 sys sys 1218252949 62504
 386/bin/pwd - 775 sys sys 1148500685 36932
 386/bin/ramfs - 775 sys sys 1209184388 89491
-386/bin/rc - 775 sys sys 1216785116 145872
+386/bin/rc - 775 sys sys 1218770618 145866
 386/bin/rdbfs - 775 sys sys 1210392910 173349
 386/bin/read - 775 sys sys 1168402347 58283
 386/bin/replica - 20000000775 sys sys 1018321168 0
@@ -555,7 +555,7 @@
 386/lib - 20000000775 sys sys 1016826328 0
 386/lib/ape - 20000000775 sys sys 1070519112 0
 386/lib/ape/lib9.a - 664 sys sys 1205611022 8766
-386/lib/ape/libap.a - 664 sys sys 1212377617 822090
+386/lib/ape/libap.a - 664 sys sys 1218770631 822090
 386/lib/ape/libbsd.a - 664 sys sys 1212377620 183900
 386/lib/ape/libdraw.a - 664 sys sys 1212377632 631580
 386/lib/ape/libfmt.a - 664 sys sys 1212377636 156706
@@ -15884,5 +15884,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1018802620 0
-386/bin/rc - 775 sys sys 1218770618 145866
-386/lib/ape/libap.a - 664 sys sys 1218770631 822090
