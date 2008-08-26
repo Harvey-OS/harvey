@@ -140,6 +140,7 @@ extern int close(int);
 extern ssize_t read(int, void *, size_t);
 extern ssize_t write(int, const void *, size_t);
 #ifdef __TYPES_H
+extern int ftruncate(int, off_t);
 extern off_t lseek(int, off_t, int);
 #endif
 
