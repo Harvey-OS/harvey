@@ -1321,6 +1321,47 @@ a1097c=1360x1024		#	78.125 kHz / 72.005 Hz, 4:3 resolution
 	vrs=1025 vre=1028 vt=1066
 	hsync=+ vsync=+
 
+#
+# Dell E198WFP LCD monitor (1440x900 native)
+#
+e198wfp
+	videobw=140
+
+e198wfp=1024x768	# 70Hz
+	clock=75
+	shb=1024 ehb=1328 ht=1328
+	vrs=771 vre=777 vt=806
+	hsync=- vsync=-
+
+e198wfp=1440x900	# 60 Hz
+	clock=106.5
+	shb=1520 ehb=1672 ht=1904
+	vrs=903 vre=909 vt=934
+	hsync=- vsync=+
+
+#
+# HannsG JC199D LCD monitor (1280x1024 native)
+#
+jc199d
+	videobw=140
+
+jc199d=800x600		#	60 Hz
+	defaultclock=40
+	shb=800 ehb=1056 ht=1056
+	vrs=601 vre=605 vt=628
+	hsync=+ vsync=+
+
+jc199d=1024x768		#	60 Hz
+	defaultclock=65
+	shb=1024 ehb=1344 ht=1344
+	vrs=771 vre=777 vt=806
+	hsync=- vsync=-
+
+jc199d=1280x1024		#	60 Hz
+	defaultclock=108
+	shb=1328 ehb=1440 ht=1688
+	vrs=1025 vre=1028 vt=1066
+	hsync=+ vsync=+
 
 #
 # QVGA		320x240		Quarter Video Graphics Array
