@@ -144,6 +144,7 @@ void*	xspanalloc(ulong, int, ulong);
 
 #define malloc(n)	ialloc(n, 0)
 #define mallocz(n, c)	ialloc(n, 0)
+#define mallocalign(n, a, o, s)	ialloc((n), (a))
 #define free(v)		while(0)
 
 #define	GSHORT(p)	(((p)[1]<<8)|(p)[0])

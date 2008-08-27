@@ -22,7 +22,6 @@ typedef struct QLock { int r; } QLock;
 #define qunlock(i)	while(0)
 #define iallocb		allocb
 #define iprint		print
-#define mallocalign(n, a, o, s)	ialloc((n), (a))
 
 #include "etherif.h"
 #include "ethermii.h"

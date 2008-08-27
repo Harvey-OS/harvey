@@ -1,6 +1,7 @@
 /*
- * bootstrap driver for
- * Intel 82563, 82571, 82573 Gigabit Ethernet PCI-Express Controllers
+ * Bootstrap driver for
+ * Intel 82563, 82571, 82573, 82575
+ * GbE PCI-Express Controllers.
  */
 #include "u.h"
 #include "lib.h"
@@ -47,7 +48,7 @@ enum {
 	Fcal		= 0x00000028,	/* Flow Control Address Low */
 	Fcah		= 0x0000002C,	/* Flow Control Address High */
 	Fct		= 0x00000030,	/* Flow Control Type */
-	Kumctrlsta	= 0x00000034,	/* Kumeran Controll and Status Register */
+	Kumctrlsta	= 0x00000034,	/* MAC-PHY Interface */
 	Vet		= 0x00000038,	/* VLAN EtherType */
 	Fcttv		= 0x00000170,	/* Flow Control Transmit Timer Value */
 	Txcw		= 0x00000178,	/* Transmit Configuration Word */
@@ -249,7 +250,7 @@ enum {					/* Txcw */
 	TxcwRfiMASK	= 0x00003000,	/* Remote Fault Indication */
 	TxcwRfiSHIFT	= 12,
 	TxcwNpr		= 0x00008000,	/* Next Page Request */
-	TxcwConfig	= 0x40000000,	/* Transmit COnfig Control */
+	TxcwConfig	= 0x40000000,	/* Transmit Config Control */
 	TxcwAne		= 0x80000000,	/* Auto-Negotiation Enable */
 };
 
@@ -308,6 +309,7 @@ enum {					/* [RT]xdctl */
 	WthreshMASK	= 0x003F0000,	/* Writebacj Threshold */
 	WthreshSHIFT	= 16,
 	Gran		= 0x01000000,	/* Granularity */
+	Qenable		= 0x02000000,	/* Queue Enable (82575eb) */
 };
 
 enum {					/* Rxcsum */
@@ -406,8 +408,8 @@ enum {
 };
 
 enum {
-	Nrdesc		= 128,		/* multiple of 8 */
-	Ntdesc		= 128,		/* multiple of 8 */
+	Nrdesc		= 32,		/* multiple of 8 */
+	Ntdesc		= 8,		/* multiple of 8 */
 };
 
 enum {
@@ -416,6 +418,7 @@ enum {
 	i82571,
 	i82572,
 	i82573,
+	i82575,
 };
 
 static char *tname[] = {
@@ -424,6 +427,7 @@ static char *tname[] = {
 	"i82571",
 	"i82572",
 	"i82573",
+	"i82575",
 };
 
 #define Type	tname[ctlr->type]
@@ -439,7 +443,7 @@ struct Ctlr {
 	uchar	ra[Eaddrlen];		/* receive address */
 	int	type;
 
-	int*	nic;
+	u32int*	nic;
 	Lock	imlock;
 	int	im;			/* interrupt mask */
 
@@ -696,22 +700,25 @@ i82563interrupt(Ureg*, void* arg)
 static void
 i82563init(Ether* edev)
 {
-	int csr, i, r;
 	Ctlr *ctlr;
+	u32int r, rctl;
 
 	ctlr = edev->ctlr;
-	csr = edev->ea[3]<<24 | edev->ea[2]<<16 | edev->ea[1]<<8 | edev->ea[0];
-	csr32w(ctlr, Ral, csr);
-	csr = 0x80000000 | edev->ea[5]<<8 | edev->ea[4];
-	csr32w(ctlr, Rah, csr);
-	for (i = 1; i < 16; i++) {
-		csr32w(ctlr, Ral+i*8, 0);
-		csr32w(ctlr, Rah+i*8, 0);
+
+	rctl = Dpf | Bsize2048 | Bam | RdtmsHALF;
+	if(ctlr->type == i82575){
+		/*
+		 * Setting Qenable in Rxdctl does not
+		 * appear to stick unless Ren is on.
+		 */
+		csr32w(ctlr, Rctl, Ren|rctl);
+		r = csr32r(ctlr, Rxdctl);
+		r |= Qenable;
+		csr32w(ctlr, Rxdctl, r);
 	}
-	for(i = 0; i < 128; i++)
-		csr32w(ctlr, Mta+i*4, 0);
-	csr32w(ctlr, Rctl, 0);
-	ctlr->rdba = xspanalloc(Nrdesc*sizeof(Rdesc), 256, 0);
+	csr32w(ctlr, Rctl, rctl);
+
+	ctlr->rdba = mallocalign(Nrdesc*sizeof(Rdesc), 128, 0, 0);
 	csr32w(ctlr, Rdbal, PCIWADDR(ctlr->rdba));
 	csr32w(ctlr, Rdbah, 0);
 	csr32w(ctlr, Rdlen, Nrdesc*sizeof(Rdesc));
@@ -722,7 +729,7 @@ i82563init(Ether* edev)
 	ctlr->rb = malloc(sizeof(Block*)*Nrdesc);
 	i82563replenish(ctlr);
 	csr32w(ctlr, Rdtr, 0);
-	csr32w(ctlr, Rctl, Dpf | Bsize2048 | Bam | RdtmsHALF);
+
 	if(ctlr->type == i82573)
 		csr32w(ctlr, Ert, 1024/8);
 	if(ctlr->type == i82566)
@@ -733,7 +740,7 @@ i82563init(Ether* edev)
 	csr32w(ctlr, Tipg, 6<<20 | 8<<10 | 8);
 	csr32w(ctlr, Tidv, 1);
 
-	ctlr->tdba = xspanalloc(Ntdesc*sizeof(Tdesc), 256, 0);
+	ctlr->tdba = mallocalign(Ntdesc*sizeof(Tdesc), 128, 0, 0);
 	memset(ctlr->tdba, 0, Ntdesc*sizeof(Tdesc));
 	csr32w(ctlr, Tdbal, PCIWADDR(ctlr->tdba));
 
@@ -745,8 +752,13 @@ i82563init(Ether* edev)
 	csr32w(ctlr, Tdt, ctlr->tdt);
 	ctlr->tb = malloc(sizeof(Block*)*Ntdesc);
 
-//	r = 4<<WthreshSHIFT | 4<<HthreshSHIFT | 8<<PthreshSHIFT;
-//	csr32w(ctlr, Txdctl, r);
+	r = csr32r(ctlr, Txdctl);
+	r &= ~(WthreshMASK|PthreshSHIFT);
+	r |= 4<<WthreshSHIFT | 4<<PthreshSHIFT;
+	if(ctlr->type == i82575)
+		r |= Qenable;
+	csr32w(ctlr, Txdctl, r);
+
 	csr32w(ctlr, Rxcsum, Tuofl | Ipofl | ETHERHDRSIZE<<PcssSHIFT);
 	r = csr32r(ctlr, Tctl);
 	r |= Ten;
@@ -1002,6 +1014,9 @@ i82563pci(void)
 		case 0x108c:		/*  e (iamt) */
 		case 0x109a:		/*  l */
 			type = i82573;
+			break;
+		case 0x10a7:		/* 82575eb */
+			type = i82575;
 			break;
 		default:
 			continue;
