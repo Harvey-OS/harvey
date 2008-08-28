@@ -250,12 +250,12 @@ putscan(uchar esc, uchar sc)
 	if(hdebug)
 		fprint(2, "sc: %x %x\n", (esc? SCesc1: 0), sc);
 	if(!dryrun){
-			s[1] = sc;
+		s[1] = sc;
 		if(esc && sc != 0)
 			write(kbinfd, s, 2);
 		else if(sc != 0)
 			write(kbinfd, s+1, 1);
-}
+	}
 }
 
 static void
@@ -398,7 +398,7 @@ kbdwork(void *a)
 		c = robustread(kbdfd, buf, f->msz);
 		if(c == 0)
 			fprint(2, "%s: %s: eof\n", argv0, f->name);
-		if(c < 0)
+		else if(c < 0)
 			fprint(2, "%s: %s: read: %r\n", argv0, f->name);
 		if(c <= 0){
 			if(!dryrun)
