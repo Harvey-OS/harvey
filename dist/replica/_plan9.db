@@ -491,7 +491,7 @@
 386/bin/upas/vf - 775 sys sys 1209614793 97455
 386/bin/usb - 20000000775 sys sys 1203552638 0
 386/bin/usb/disk - 775 sys sys 1210393033 188288
-386/bin/usb/kb - 775 sys sys 1210393036 133600
+386/bin/usb/kb - 775 sys sys 1219864927 133609
 386/bin/usb/print - 775 sys sys 1203567409 314
 386/bin/usb/probe - 775 sys sys 1203567409 173
 386/bin/usb/usbaudio - 775 sys sys 1210393040 190049
@@ -555,7 +555,7 @@
 386/lib - 20000000775 sys sys 1209184392 0
 386/lib/ape - 20000000775 sys sys 1197477092 0
 386/lib/ape/lib9.a - 664 sys sys 1205611022 8766
-386/lib/ape/libap.a - 664 sys sys 1219693451 823914
+386/lib/ape/libap.a - 664 sys sys 1219807805 823890
 386/lib/ape/libbsd.a - 664 sys sys 1219693452 183900
 386/lib/ape/libdraw.a - 664 sys sys 1219693462 631580
 386/lib/ape/libfmt.a - 664 sys sys 1219693464 156706
@@ -14298,7 +14298,7 @@ sys/src/cmd/usb/disk/disk.c - 664 sys sys 1202256113 20245
 sys/src/cmd/usb/disk/mkfile - 664 sys sys 1193181450 359
 sys/src/cmd/usb/kb - 20000000775 sys sys 1203010067 0
 sys/src/cmd/usb/kb/hid.h - 664 sys sys 1203021357 1065
-sys/src/cmd/usb/kb/kb.c - 664 sys sys 1203021358 13508
+sys/src/cmd/usb/kb/kb.c - 664 sys sys 1219857612 13513
 sys/src/cmd/usb/kb/mkfile - 664 sys sys 1203010067 260
 sys/src/cmd/usb/lib - 20000000775 sys sys 1196687841 0
 sys/src/cmd/usb/lib/device.c - 664 sys sys 1202846662 3549
@@ -15884,4 +15884,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1020896385 0
-386/lib/ape/libap.a - 664 sys sys 1219807805 823890
