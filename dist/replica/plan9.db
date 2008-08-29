@@ -493,7 +493,7 @@
 386/bin/usb/disk - 775 sys sys 1210393033 188288
 386/bin/usb/kb - 775 sys sys 1219864927 133609
 386/bin/usb/print - 775 sys sys 1203567409 314
-386/bin/usb/probe - 775 sys sys 1203567409 173
+386/bin/usb/probe - 775 sys sys 1219979667 253
 386/bin/usb/usbaudio - 775 sys sys 1210393040 190049
 386/bin/usb/usbd - 775 sys sys 1217475989 132446
 386/bin/usb/usbmouse - 775 sys sys 1210393045 129634
@@ -14311,7 +14311,7 @@ sys/src/cmd/usb/lib/util.c - 664 sys sys 1203568227 533
 sys/src/cmd/usb/misc - 20000000775 sys sys 1203553003 0
 sys/src/cmd/usb/misc/mkfile - 664 sys sys 1203553011 356
 sys/src/cmd/usb/misc/print - 775 sys sys 1167253831 314
-sys/src/cmd/usb/misc/probe - 775 sys sys 1167253836 173
+sys/src/cmd/usb/misc/probe - 775 sys sys 1219968817 253
 sys/src/cmd/usb/misc/usbmouse.c - 664 sys sys 1204006880 4826
 sys/src/cmd/usb/mkfile - 664 sys sys 1203553384 366
 sys/src/cmd/usb/usbd - 20000000775 sys sys 1196687841 0
