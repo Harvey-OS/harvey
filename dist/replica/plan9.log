@@ -36084,3 +36084,4 @@
 1219969804 0 c 386/bin/usb/probe - 775 sys sys 1219968814 253
 1219969804 1 c sys/src/cmd/usb/misc/probe - 775 sys sys 1219968817 253
 1219980604 0 c 386/bin/usb/probe - 775 sys sys 1219979667 253
+1220056205 0 c rc/bin/usbstart - 775 sys sys 1220055238 299

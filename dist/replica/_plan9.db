@@ -493,7 +493,7 @@
 386/bin/usb/disk - 775 sys sys 1210393033 188288
 386/bin/usb/kb - 775 sys sys 1219864927 133609
 386/bin/usb/print - 775 sys sys 1203567409 314
-386/bin/usb/probe - 775 sys sys 1219968814 253
+386/bin/usb/probe - 775 sys sys 1219979667 253
 386/bin/usb/usbaudio - 775 sys sys 1210393040 190049
 386/bin/usb/usbd - 775 sys sys 1217475989 132446
 386/bin/usb/usbmouse - 775 sys sys 1210393045 129634
@@ -5655,7 +5655,7 @@ rc/bin/uncompress - 775 sys sys 1158798931 30
 rc/bin/ups - 775 sys sys 1091021981 806
 rc/bin/uptime - 775 sys sys 1074730712 234
 rc/bin/usbfat: - 775 sys sys 1207327063 829
-rc/bin/usbstart - 775 sys sys 1210370172 183
+rc/bin/usbstart - 775 sys sys 1220055238 299
 rc/bin/usps - 775 sys sys 1016826030 450
 rc/bin/vwhois - 775 sys sys 1106409971 445
 rc/bin/wdoc2txt - 775 sys sys 1017431153 277
@@ -15884,4 +15884,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1020896385 0
-386/bin/usb/probe - 775 sys sys 1219979667 253
