@@ -5655,7 +5655,7 @@ rc/bin/uncompress - 775 sys sys 1158798931 30
 rc/bin/ups - 775 sys sys 1091021981 806
 rc/bin/uptime - 775 sys sys 1074730712 234
 rc/bin/usbfat: - 775 sys sys 1207327063 829
-rc/bin/usbstart - 775 sys sys 1210370172 183
+rc/bin/usbstart - 775 sys sys 1220055238 299
 rc/bin/usps - 775 sys sys 1016826030 450
 rc/bin/vwhois - 775 sys sys 1106409971 445
 rc/bin/wdoc2txt - 775 sys sys 1017431153 277
