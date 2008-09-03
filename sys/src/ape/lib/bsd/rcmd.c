@@ -15,8 +15,8 @@
 
 #include "priv.h"
 
-static char *pbotch = "rcmd: protocol botch\n";
-static char *lbotch = "rcmd: botch starting error stream\n";
+static char pbotch[] = "rcmd: protocol botch\n";
+static char lbotch[] = "rcmd: botch starting error stream\n";
 
 static void
 ding(int x)
@@ -73,7 +73,7 @@ rcmd(char **dst, int port, char *luser, char *ruser, char *cmd, int *fd2p)
 			return -1;
 		}
 
-		sprintf(buf, "%d", port2);
+		snprintf(buf, sizeof buf, "%d", port2);
 		if(write(fd, buf, strlen(buf)+1) < 0){
 			close(fd);
 			close(lfd);

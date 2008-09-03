@@ -75,7 +75,7 @@ _sock_data(int cfd, char *net, int domain, int stype, int protocol, Rock **rp)
 	}
 	name[n] = 0;
 	n = strtoul(name, 0, 0);
-	sprintf(name, "/net/%s/%d/data", net, n);
+	snprintf(name, sizeof name, "/net/%s/%d/data", net, n);
 
 	/* open data file */
 	fd = open(name, O_RDWR);
@@ -87,7 +87,7 @@ _sock_data(int cfd, char *net, int domain, int stype, int protocol, Rock **rp)
 	}
 
 	/* hide stuff under the rock */
-	sprintf(name, "/net/%s/%d/ctl", net, n);
+	snprintf(name, sizeof name, "/net/%s/%d/ctl", net, n);
 	r = _sock_newrock(fd);
 	if(r == 0){
 		errno = ENOBUFS;

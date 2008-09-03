@@ -27,7 +27,7 @@ ptsname(int fd)
 		_syserrno();
 		return 0;
 	}
-	sprintf(buf, "/dev/ptty%d", atoi(d->name+4));
+	snprintf(buf, sizeof buf, "/dev/ptty%d", atoi(d->name+4));
 	free(d);
 	return buf;
 }
@@ -47,7 +47,7 @@ ptmname(int fd)
 		return 0;
 	}
 
-	sprintf(buf, "/dev/ttym%d", atoi(d->name+4));
+	snprintf(buf, sizeof buf, "/dev/ttym%d", atoi(d->name+4));
 	return buf;
 }
 
