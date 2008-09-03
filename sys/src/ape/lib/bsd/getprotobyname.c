@@ -41,7 +41,7 @@ struct protoent *getprotobyname(const char *name) {
 	}
 
 	/* construct the query, always expect a protocol# back */
-	sprintf(buf, "!protocol=%s ipv4proto=*", name);
+	snprintf(buf, sizeof buf, "!protocol=%s ipv4proto=*", name);
 
 	/* query the server */
 	if(write(fd, buf, strlen(buf)) < 0){

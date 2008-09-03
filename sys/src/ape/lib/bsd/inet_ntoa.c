@@ -17,6 +17,6 @@ inet_ntoa(struct in_addr in)
 	unsigned char *p;	
 
 	p = (unsigned char*)&in.s_addr;
-	sprintf(s, "%d.%d.%d.%d", p[0], p[1], p[2], p[3]);
+	snprintf(s, sizeof s, "%d.%d.%d.%d", p[0], p[1], p[2], p[3]);
 	return s;
 }

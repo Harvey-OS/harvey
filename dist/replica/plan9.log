@@ -36085,3 +36085,17 @@
 1219969804 1 c sys/src/cmd/usb/misc/probe - 775 sys sys 1219968817 253
 1219980604 0 c 386/bin/usb/probe - 775 sys sys 1219979667 253
 1220056205 0 c rc/bin/usbstart - 775 sys sys 1220055238 299
+1220398205 0 c sys/src/ape/lib/bsd/_sock_srv.c - 664 sys sys 1220397750 976
+1220398205 1 c sys/src/ape/lib/bsd/accept.c - 664 sys sys 1220397766 2016
+1220398205 2 c sys/src/ape/lib/bsd/bind.c - 664 sys sys 1220397762 1216
+1220398205 3 c sys/src/ape/lib/bsd/connect.c - 664 sys sys 1220397758 2191
+1220398205 4 c sys/src/ape/lib/bsd/gethostbyname.c - 664 sys sys 1220397778 2202
+1220398205 5 c sys/src/ape/lib/bsd/getprotobyname.c - 664 sys sys 1220397728 1511
+1220398205 6 c sys/src/ape/lib/bsd/getservbyaddr.c - 664 sys sys 1220397718 321
+1220398205 7 c sys/src/ape/lib/bsd/getservbyname.c - 664 sys sys 1220397712 1621
+1220398205 8 c sys/src/ape/lib/bsd/inet_ntoa.c - 664 sys sys 1220397701 393
+1220398205 9 c sys/src/ape/lib/bsd/listen.c - 664 sys sys 1220397625 2924
+1220398205 10 c sys/src/ape/lib/bsd/pty.c - 664 sys sys 1220397620 1918
+1220398205 11 c sys/src/ape/lib/bsd/rcmd.c - 664 sys sys 1220397615 2413
+1220398205 12 c sys/src/ape/lib/bsd/socket.c - 664 sys sys 1220397610 2838
+1220412605 0 c 386/lib/ape/libbsd.a - 664 sys sys 1220411684 185404
