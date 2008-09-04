@@ -556,7 +556,7 @@
 386/lib/ape - 20000000775 sys sys 1197477092 0
 386/lib/ape/lib9.a - 664 sys sys 1205611022 8766
 386/lib/ape/libap.a - 664 sys sys 1219807805 823890
-386/lib/ape/libbsd.a - 664 sys sys 1219693452 183900
+386/lib/ape/libbsd.a - 664 sys sys 1220411684 185404
 386/lib/ape/libdraw.a - 664 sys sys 1219693462 631580
 386/lib/ape/libfmt.a - 664 sys sys 1219693464 156706
 386/lib/ape/libl.a - 664 sys sys 1212377636 9406
@@ -5857,7 +5857,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1216999929 270162
+sys/games/lib/fortunes - 664 sys sys 1220448032 270186
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -6659,7 +6659,7 @@ sys/lib/lp/process - 20000000775 sys sys 1210119033 0
 sys/lib/lp/process/dpost - 775 sys sys 1015012079 2412
 sys/lib/lp/process/dvipost - 775 sys sys 954037459 3123
 sys/lib/lp/process/g3post - 775 sys sys 1210119087 2350
-sys/lib/lp/process/generic - 775 sys sys 1210119239 4568
+sys/lib/lp/process/generic - 775 sys sys 1220475687 4661
 sys/lib/lp/process/gifpost - 775 sys sys 1210119055 2309
 sys/lib/lp/process/gspipe - 775 sys sys 1015012079 434
 sys/lib/lp/process/gspipeijs - 775 sys sys 1077670465 949
@@ -15884,4 +15884,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1020896385 0
-386/lib/ape/libbsd.a - 664 sys sys 1220411684 185404

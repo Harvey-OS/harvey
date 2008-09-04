@@ -51,9 +51,11 @@ case special
 	case *
 		echo $type file is improper for $LPDEST >[1=2]
 	}
-case Compressed plan old
+case Compressed plan old subfont
 	# type is really 'Compressed image' or 'plan 9 image' or
 	# 'old plan 9 image'
+	# 'subfont' is to cope with a bug in png (writing wrong length),
+	# 6 may 2008
 	switch ($LPCLASS) {
 	case *post*
 		$proc/p9bitpost <$temp
@@ -181,7 +183,7 @@ case empty
 case cannot
 	echo cannot open file >[1=2]
 case English short extended alef limbo [Aa]scii assembler c latin rc sh \
-    as mail email message/rfc822 manual
+    as mail email message/rfc822 manual HTML
 	switch ($LPCLASS) {
 	case *post*
 		$proc/ppost <$temp

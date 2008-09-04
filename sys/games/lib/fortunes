@@ -4229,3 +4229,4 @@ Your IP address is: <? echo getenv('REMOTE_ADDR'); ?>. By continuing to browse t
 /*	dummy = malloc(0);  *//* prepare for garbage-collection */
 You chose to apply Shadow Ram extend feature, while you knew it was risky. If the system hangs during boot, please restart the system and come here to change the setting.
 An amateur thinks it's really funny if you dress a man up as an old lady, put him in a wheelchair, and give the wheelchair a push that sends it spinning down a slope towards a stone wall. For a pro, it's got to be a real old lady. - Groucho Marx.
+Error Code: -2147483648
