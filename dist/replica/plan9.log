@@ -36099,3 +36099,5 @@
 1220398205 11 c sys/src/ape/lib/bsd/rcmd.c - 664 sys sys 1220397615 2413
 1220398205 12 c sys/src/ape/lib/bsd/socket.c - 664 sys sys 1220397610 2838
 1220412605 0 c 386/lib/ape/libbsd.a - 664 sys sys 1220411684 185404
+1220448603 0 c sys/games/lib/fortunes - 664 sys sys 1220448032 270186
+1220477404 0 c sys/lib/lp/process/generic - 775 sys sys 1220475687 4661
