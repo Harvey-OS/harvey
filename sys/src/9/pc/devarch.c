@@ -498,6 +498,30 @@ nop(void)
 {
 }
 
+static void
+archreset(void)
+{
+	i8042reset();
+
+	/*
+	 * Often the BIOS hangs during restart if a conventional 8042
+	 * warm-boot sequence is tried. The following is Intel specific and
+	 * seems to perform a cold-boot, but at least it comes back.
+	 * And sometimes there is no keyboard...
+	 *
+	 * The reset register (0xcf9) is usually in one of the bridge
+	 * chips. The actual location and sequence could be extracted from
+	 * ACPI but why bother, this is the end of the line anyway.
+	 */
+	print("Takes a licking and keeps on ticking...\n");
+	*(ushort*)KADDR(0x472) = 0x1234;	/* BIOS warm-boot flag */
+	outb(0xcf9, 0x02);
+	outb(0xcf9, 0x06);
+
+	for(;;)
+		idle();
+}
+
 /*
  * 386 has no compare-and-swap instruction.
  * Run it with interrupts turned off instead.
@@ -532,7 +556,7 @@ extern PCArch* knownarch[];
 PCArch archgeneric = {
 .id=		"generic",
 .ident=		0,
-.reset=		i8042reset,
+.reset=		archreset,
 .serialpower=	unimplemented,
 .modempower=	unimplemented,
 
@@ -540,8 +564,8 @@ PCArch archgeneric = {
 .intrenable=	i8259enable,
 .intrvecno=	i8259vecno,
 .intrdisable=	i8259disable,
-.intron=		i8259on,
-.introff=		i8259off,
+.intron=	i8259on,
+.introff=	i8259off,
 
 .clockenable=	i8253enable,
 .fastclock=	i8253read,

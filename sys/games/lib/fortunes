@@ -4230,3 +4230,9 @@ Your IP address is: <? echo getenv('REMOTE_ADDR'); ?>. By continuing to browse t
 You chose to apply Shadow Ram extend feature, while you knew it was risky. If the system hangs during boot, please restart the system and come here to change the setting.
 An amateur thinks it's really funny if you dress a man up as an old lady, put him in a wheelchair, and give the wheelchair a push that sends it spinning down a slope towards a stone wall. For a pro, it's got to be a real old lady. - Groucho Marx.
 Error Code: -2147483648
+Pardon the abruptness of this letter; it is due to its exigency. 
+The source of the money is legal and authoritative.
+Please note that I do not intend to waste my time and yours.
+The Internet is still a fascination to me.
+Sometimes one needs to take chances.
+#define MIG_ARRAY_TOO_LARGE     -307    /* array not large enough */

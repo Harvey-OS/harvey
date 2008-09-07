@@ -176,6 +176,7 @@ void (*kbdmouse)(int);
 static Lock i8042lock;
 static uchar ccc;
 static void (*auxputc)(int, int);
+static int nokbd = 1;
 
 /*
  *  wait for output no longer busy
@@ -215,10 +216,12 @@ inready(void)
 void
 i8042reset(void)
 {
-	ushort *s = KADDR(0x472);
 	int i, x;
 
-	*s = 0x1234;		/* BIOS warm-boot flag */
+	if(nokbd)
+		return;
+
+	*((ushort*)KADDR(0x472)) = 0x1234;	/* BIOS warm-boot flag */
 
 	/*
 	 *  newer reset the machine command
@@ -543,35 +546,57 @@ i8042auxenable(void (*putc)(int, int))
 	iunlock(&i8042lock);
 }
 
+static char *initfailed = "i8042: kbdinit failed\n";
+
+static int
+outbyte(int port, int c)
+{
+	outb(port, c);
+	if(outready() < 0) {
+		print(initfailed);
+		return -1;
+	}
+	return 0;
+}
+
 void
 kbdinit(void)
 {
-	int c;
+	int c, try;
 
 	/* wait for a quiescent controller */
-	while((c = inb(Status)) & (Outbusy | Inready))
+	try = 1000;
+	while(try-- > 0 && (c = inb(Status)) & (Outbusy | Inready)) {
 		if(c & Inready)
 			inb(Data);
+		delay(1);
+	}
+	if (try <= 0) {
+		print(initfailed);
+		return;
+	}
 
 	/* get current controller command byte */
 	outb(Cmd, 0x20);
 	if(inready() < 0){
-		print("kbdinit: can't read ccc\n");
+		print("i8042: kbdinit can't read ccc\n");
 		ccc = 0;
 	} else
 		ccc = inb(Data);
 
 	/* enable kbd xfers and interrupts */
-	/* disable mouse */
 	ccc &= ~Ckbddis;
 	ccc |= Csf | Ckbdint | Cscs1;
-	if(outready() < 0)
-		print("kbd init failed\n");
-	outb(Cmd, 0x60);
-	if(outready() < 0)
-		print("kbd init failed\n");
-	outb(Data, ccc);
-	outready();
+	if(outready() < 0) {
+		print(initfailed);
+		return;
+	}
+
+	nokbd = 0;
+
+	/* disable mouse */
+	if (outbyte(Cmd, 0x60) < 0 || outbyte(Data, ccc) < 0)
+		print("i8042: kbdinit mouse disable failed\n");
 }
 
 void
