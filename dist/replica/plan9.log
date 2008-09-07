@@ -36101,3 +36101,9 @@
 1220412605 0 c 386/lib/ape/libbsd.a - 664 sys sys 1220411684 185404
 1220448603 0 c sys/games/lib/fortunes - 664 sys sys 1220448032 270186
 1220477404 0 c sys/lib/lp/process/generic - 775 sys sys 1220475687 4661
+1220677205 0 c sys/games/lib/fortunes - 664 sys sys 1220675972 270514
+1220677205 1 c sys/man/4/usbd - 664 sys sys 1220676054 1038
+1220677205 2 c sys/src/9/pc/devarch.c - 664 sys sys 1220676708 20525
+1220677205 3 c sys/src/9/pc/kbd.c - 664 sys sys 1220676682 13290
+1220677205 4 c sys/src/9/pc/mp.c - 664 sys sys 1220676659 17394
+1220677205 5 c sys/src/libc/port/nrand.c - 664 sys sys 1220676342 262

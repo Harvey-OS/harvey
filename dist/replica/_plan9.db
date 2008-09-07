@@ -5857,7 +5857,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1220448032 270186
+sys/games/lib/fortunes - 664 sys sys 1220675972 270514
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -7772,7 +7772,7 @@ sys/man/4/telco - 664 sys sys 1208111302 4561
 sys/man/4/u9fs - 664 sys sys 1206913743 5223
 sys/man/4/upasfs - 664 sys sys 1196638944 6212
 sys/man/4/usb - 664 sys sys 1206739773 5725
-sys/man/4/usbd - 664 sys sys 1202846392 1035
+sys/man/4/usbd - 664 sys sys 1220676054 1038
 sys/man/4/usbdisk - 664 sys sys 1205857582 3044
 sys/man/4/vacfs - 664 sys sys 1196638944 1545
 sys/man/4/webcookies - 664 sys sys 1196638944 3525
@@ -8104,7 +8104,7 @@ sys/src/9/pc/audio.h - 664 sys sys 1015014513 343
 sys/src/9/pc/bios32.c - 664 sys sys 1173287378 3029
 sys/src/9/pc/cga.c - 664 sys sys 1015014513 1843
 sys/src/9/pc/dat.h - 664 sys sys 1206317920 7549
-sys/src/9/pc/devarch.c - 664 sys sys 1206317920 19865
+sys/src/9/pc/devarch.c - 664 sys sys 1220676708 20525
 sys/src/9/pc/devether.c - 664 sys sys 1196687022 10567
 sys/src/9/pc/devfloppy.c - 664 sys sys 1142958305 20139
 sys/src/9/pc/devi82365.c - 664 sys sys 1146318335 20504
@@ -8158,7 +8158,7 @@ sys/src/9/pc/i8259.c - 664 sys sys 1131290399 4586
 sys/src/9/pc/init9.c - 664 sys sys 1040002518 94
 sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
 sys/src/9/pc/io.h - 664 sys sys 1165555523 9406
-sys/src/9/pc/kbd.c - 664 sys sys 1203021286 12940
+sys/src/9/pc/kbd.c - 664 sys sys 1220676682 13290
 sys/src/9/pc/l.s - 664 sys sys 1196193040 29691
 sys/src/9/pc/main.c - 664 sys sys 1168306227 15337
 sys/src/9/pc/mem.h - 664 sys sys 1196193040 5308
@@ -8166,7 +8166,7 @@ sys/src/9/pc/memory.c - 664 sys sys 1196193039 18878
 sys/src/9/pc/mkfile - 664 sys sys 1204231465 4152
 sys/src/9/pc/mmu.c - 664 sys sys 1218342291 24548
 sys/src/9/pc/mouse.c - 664 sys sys 1203981356 7190
-sys/src/9/pc/mp.c - 664 sys sys 1162388126 17349
+sys/src/9/pc/mp.c - 664 sys sys 1220676659 17394
 sys/src/9/pc/mp.h - 664 sys sys 1173288116 6799
 sys/src/9/pc/nv_dma.h - 664 sys sys 1081384508 12943
 sys/src/9/pc/pc - 664 sys sys 1204231598 1551
@@ -15134,7 +15134,7 @@ sys/src/libc/port/nan.c - 664 sys sys 1014927399 610
 sys/src/libc/port/needsrcquote.c - 664 sys sys 1155363805 152
 sys/src/libc/port/netcrypt.c - 664 sys sys 1014927400 317
 sys/src/libc/port/netmkaddr.c - 664 sys sys 1014927400 863
-sys/src/libc/port/nrand.c - 664 sys sys 1035832917 191
+sys/src/libc/port/nrand.c - 664 sys sys 1220676342 262
 sys/src/libc/port/ntruerand.c - 664 sys sys 1014927400 371
 sys/src/libc/port/perror.c - 664 sys sys 1014927400 199
 sys/src/libc/port/pool.acid - 664 sys sys 1143759318 12028
