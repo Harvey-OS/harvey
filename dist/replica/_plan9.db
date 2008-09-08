@@ -15134,7 +15134,7 @@ sys/src/libc/port/nan.c - 664 sys sys 1014927399 610
 sys/src/libc/port/needsrcquote.c - 664 sys sys 1155363805 152
 sys/src/libc/port/netcrypt.c - 664 sys sys 1014927400 317
 sys/src/libc/port/netmkaddr.c - 664 sys sys 1014927400 863
-sys/src/libc/port/nrand.c - 664 sys sys 1220676342 262
+sys/src/libc/port/nrand.c - 664 sys sys 1035832917 191
 sys/src/libc/port/ntruerand.c - 664 sys sys 1014927400 371
 sys/src/libc/port/perror.c - 664 sys sys 1014927400 199
 sys/src/libc/port/pool.acid - 664 sys sys 1143759318 12028
@@ -15884,3 +15884,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1020896385 0
+386/lib/libc.a - 664 sys sys 1220843761 506328
