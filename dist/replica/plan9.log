@@ -36107,3 +36107,5 @@
 1220677205 3 c sys/src/9/pc/kbd.c - 664 sys sys 1220676682 13290
 1220677205 4 c sys/src/9/pc/mp.c - 664 sys sys 1220676659 17394
 1220677205 5 c sys/src/libc/port/nrand.c - 664 sys sys 1220676342 262
+1220815804 0 c sys/src/libc/port/nrand.c - 664 sys sys 1035832917 191
+1220844603 0 c 386/lib/libc.a - 664 sys sys 1220843761 506328
