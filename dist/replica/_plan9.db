@@ -571,7 +571,7 @@
 386/lib/libavl.a - 664 sys sys 1209184393 11574
 386/lib/libbin.a - 664 sys sys 1209184393 2562
 386/lib/libbio.a - 664 sys sys 1209614882 26256
-386/lib/libc.a - 664 sys sys 1210393270 506282
+386/lib/libc.a - 664 sys sys 1220843761 506328
 386/lib/libcomplete.a - 664 sys sys 1209184402 6440
 386/lib/libcontrol.a - 664 sys sys 1209184407 276774
 386/lib/libdisk.a - 664 sys sys 1210393271 42816
@@ -15884,4 +15884,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1020896385 0
-386/lib/libc.a - 664 sys sys 1220843761 506328
