@@ -14199,7 +14199,7 @@ sys/src/cmd/upas/fs - 20000000775 sys sys 1196687840 0
 sys/src/cmd/upas/fs/dat.h - 664 sys sys 1143929916 4189
 sys/src/cmd/upas/fs/fs.c - 664 sys sys 1175322795 26929
 sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1204007092 16319
-sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1165967884 27070
+sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1221077270 27203
 sys/src/cmd/upas/fs/mkfile - 664 sys sys 1047490336 321
 sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1175322803 7498
 sys/src/cmd/upas/fs/pop3.c - 664 sys sys 1133988332 13024
@@ -15884,3 +15884,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1020896385 0
+386/bin/upas/fs - 775 sys sys 1221103144 333376

@@ -465,7 +465,7 @@
 386/bin/upas/bayes - 775 sys sys 1209614708 73383
 386/bin/upas/deliver - 775 sys sys 1209614712 99223
 386/bin/upas/filter - 775 sys sys 1209614718 146764
-386/bin/upas/fs - 775 sys sys 1215402275 333355
+386/bin/upas/fs - 775 sys sys 1221103144 333376
 386/bin/upas/isspam - 775 sys sys 1064598349 38
 386/bin/upas/list - 775 sys sys 1209614727 83047
 386/bin/upas/marshal - 775 sys sys 1209614731 132947
@@ -14199,7 +14199,7 @@ sys/src/cmd/upas/fs - 20000000775 sys sys 1196687840 0
 sys/src/cmd/upas/fs/dat.h - 664 sys sys 1143929916 4189
 sys/src/cmd/upas/fs/fs.c - 664 sys sys 1175322795 26929
 sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1204007092 16319
-sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1165967884 27070
+sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1221077270 27203
 sys/src/cmd/upas/fs/mkfile - 664 sys sys 1047490336 321
 sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1175322803 7498
 sys/src/cmd/upas/fs/pop3.c - 664 sys sys 1133988332 13024
