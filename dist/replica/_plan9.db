@@ -465,7 +465,7 @@
 386/bin/upas/bayes - 775 sys sys 1209614708 73383
 386/bin/upas/deliver - 775 sys sys 1209614712 99223
 386/bin/upas/filter - 775 sys sys 1209614718 146764
-386/bin/upas/fs - 775 sys sys 1215402275 333355
+386/bin/upas/fs - 775 sys sys 1221103144 333376
 386/bin/upas/isspam - 775 sys sys 1064598349 38
 386/bin/upas/list - 775 sys sys 1209614727 83047
 386/bin/upas/marshal - 775 sys sys 1209614731 132947
@@ -15884,4 +15884,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1020896385 0
-386/bin/upas/fs - 775 sys sys 1221103144 333376
