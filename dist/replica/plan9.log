@@ -36111,3 +36111,5 @@
 1220844603 0 c 386/lib/libc.a - 664 sys sys 1220843761 506328
 1221078605 0 c sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1221077270 27203
 1221103804 0 c 386/bin/upas/fs - 775 sys sys 1221103144 333376
+1221364804 0 c sys/src/cmd/fax/receiverc - 775 sys sys 1221364152 1101
+1221364804 1 d sys/src/cmd/fax/receive - 775 sys sys 944960990 0

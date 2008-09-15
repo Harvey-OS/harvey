@@ -10407,9 +10407,8 @@ sys/src/cmd/fax/file.c - 664 sys sys 944960990 3062
 sys/src/cmd/fax/mkfile - 664 sys sys 1039753042 535
 sys/src/cmd/fax/modem.c - 664 sys sys 1015090401 3875
 sys/src/cmd/fax/modem.h - 664 sys sys 944960990 2510
-sys/src/cmd/fax/receive - 775 sys sys 944960990 56047
 sys/src/cmd/fax/receive.c - 664 sys sys 944960990 1097
-sys/src/cmd/fax/receiverc - 775 sys sys 944960990 581
+sys/src/cmd/fax/receiverc - 775 sys sys 1221364152 1101
 sys/src/cmd/fax/send.c - 664 sys sys 944960990 923
 sys/src/cmd/fax/subr.c - 664 sys sys 1015090401 1245
 sys/src/cmd/fcp.c - 664 sys sys 1136651872 3799
