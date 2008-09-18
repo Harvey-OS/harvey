@@ -36113,3 +36113,4 @@
 1221103804 0 c 386/bin/upas/fs - 775 sys sys 1221103144 333376
 1221364804 0 c sys/src/cmd/fax/receiverc - 775 sys sys 1221364152 1101
 1221364804 1 d sys/src/cmd/fax/receive - 775 sys sys 944960990 0
+1221661805 0 c sys/src/9/port/allocb.c - 664 sys sys 1221660911 3451
