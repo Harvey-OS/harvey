@@ -30,6 +30,8 @@ _allocb(int size)
 	b->list = nil;
 	b->free = 0;
 	b->flag = 0;
+	b->ref = 0;
+	_xinc(&b->ref);
 
 	/* align start of data portion by rounding up */
 	addr = (ulong)b;
@@ -61,11 +63,11 @@ allocb(int size)
 	 * Can still error out of here, though.
 	 */
 	if(up == nil)
-		panic("allocb without up: %luX\n", getcallerpc(&size));
+		panic("allocb without up: %#p", getcallerpc(&size));
 	if((b = _allocb(size)) == nil){
 		xsummary();
 		mallocsummary();
-		panic("allocb: no memory for %d bytes\n", size);
+		panic("allocb: no memory for %d bytes", size);
 	}
 	setmalloctag(b, getcallerpc(&size));
 
@@ -115,9 +117,15 @@ void
 freeb(Block *b)
 {
 	void *dead = (void*)Bdead;
+	long ref;
 
-	if(b == nil)
+	if(b == nil || (ref = _xdec(&b->ref)) > 0)
 		return;
+
+	if(ref < 0){
+		dumpstack();
+		panic("ref %ld callerpc %#p", ref, getcallerpc(&b));
+	}
 
 	/*
 	 * drivers which perform non cache coherent DMA manage their own buffer
@@ -152,23 +160,22 @@ checkb(Block *b, char *msg)
 		panic("checkb b %s %lux", msg, b);
 	if(b->base == dead || b->lim == dead || b->next == dead
 	  || b->rp == dead || b->wp == dead){
-		print("checkb: base 0x%8.8luX lim 0x%8.8luX next 0x%8.8luX\n",
+		print("checkb: base %#p lim %#p next %#p\n",
 			b->base, b->lim, b->next);
-		print("checkb: rp 0x%8.8luX wp 0x%8.8luX\n", b->rp, b->wp);
-		panic("checkb dead: %s\n", msg);
+		print("checkb: rp %#p wp %#p\n", b->rp, b->wp);
+		panic("checkb dead: %s", msg);
 	}
 
 	if(b->base > b->lim)
-		panic("checkb 0 %s %lux %lux", msg, b->base, b->lim);
+		panic("checkb 0 %s %#p %#p", msg, b->base, b->lim);
 	if(b->rp < b->base)
-		panic("checkb 1 %s %lux %lux", msg, b->base, b->rp);
+		panic("checkb 1 %s %#p %#p", msg, b->base, b->rp);
 	if(b->wp < b->base)
-		panic("checkb 2 %s %lux %lux", msg, b->base, b->wp);
+		panic("checkb 2 %s %#p %#p", msg, b->base, b->wp);
 	if(b->rp > b->lim)
-		panic("checkb 3 %s %lux %lux", msg, b->rp, b->lim);
+		panic("checkb 3 %s %#p %#p", msg, b->rp, b->lim);
 	if(b->wp > b->lim)
-		panic("checkb 4 %s %lux %lux", msg, b->wp, b->lim);
-
+		panic("checkb 4 %s %#p %#p", msg, b->wp, b->lim);
 }
 
 void
