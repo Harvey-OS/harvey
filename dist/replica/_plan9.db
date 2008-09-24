@@ -235,7 +235,7 @@
 386/bin/faces - 775 sys sys 1215402243 193483
 386/bin/factor - 775 sys sys 1209614276 61640
 386/bin/fcp - 775 sys sys 1210392688 82521
-386/bin/file - 775 sys sys 1210131851 128896
+386/bin/file - 775 sys sys 1222197005 128278
 386/bin/fmt - 775 sys sys 1209614279 65508
 386/bin/fortune - 775 sys sys 1209614281 67297
 386/bin/fossil - 20000000775 sys sys 1087009456 0
@@ -10412,7 +10412,7 @@ sys/src/cmd/fax/receiverc - 775 sys sys 1221364152 1101
 sys/src/cmd/fax/send.c - 664 sys sys 944960990 923
 sys/src/cmd/fax/subr.c - 664 sys sys 1015090401 1245
 sys/src/cmd/fcp.c - 664 sys sys 1136651872 3799
-sys/src/cmd/file.c - 664 sys sys 1217017505 28940
+sys/src/cmd/file.c - 664 sys sys 1222186474 28992
 sys/src/cmd/fmt.c - 664 sys sys 1137603598 4078
 sys/src/cmd/fortune.c - 664 sys sys 1072729222 1779
 sys/src/cmd/fossil - 20000000775 sys sys 1196687850 0
