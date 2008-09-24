@@ -202,8 +202,8 @@ int	(*call[])(void) =
 
 int mime;
 
-#define OCTET	"application/octet-stream\n"
-#define PLAIN	"text/plain\n"
+char OCTET[] =	"application/octet-stream\n";
+char PLAIN[] =	"text/plain\n";
 
 void
 main(int argc, char *argv[])
@@ -785,6 +785,7 @@ struct	FILE_STRING
 	"BM",			"bmp",				2,	"image/bmp",
 	"\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1",	"microsoft office document",	8,	"application/octet-stream",
 	"<MakerFile ",		"FrameMaker file",		11,	"application/framemaker",
+	"\033E\033",	"HP PCL printer data",		3,	OCTET,
 	"\033%-12345X",	"HPJCL file",		9,	"application/hpjcl",
 	"ID3",			"mp3 audio with id3",	3,	"audio/mpeg",
 	"\211PNG",		"PNG image",		4,	"image/png",
