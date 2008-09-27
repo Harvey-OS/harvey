@@ -182,7 +182,7 @@ main(int argc, char *argv[])
 	Dir *fsb, *tsb;
 
 	Binit(&stdout, 1, OWRITE);
-	progname = *argv;
+	progname = argv0 = *argv;
 	while (--argc && (*++argv)[0] == '-' && (*argv)[1]) {
 		for (p = *argv+1; *p; p++) {
 			switch (*p) {

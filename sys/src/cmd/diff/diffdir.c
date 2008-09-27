@@ -19,8 +19,13 @@ scandir(char *name)
 	int nitems;
 	int fd, n;
 
-	if ((fd = open(name, OREAD)) < 0)
-		panic(2, "can't open %s\n", name);
+	if ((fd = open(name, OREAD)) < 0) {
+		fprint(2, "%s: can't open %s: %r\n", argv0, name);
+		/* fake an empty directory */
+		cp = MALLOC(char*, 1);
+		cp[0] = 0;
+		return cp;
+	}
 	cp = 0;
 	nitems = 0;
 	if((n = dirreadall(fd, &db)) > 0){
