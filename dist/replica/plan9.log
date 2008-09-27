@@ -36116,3 +36116,5 @@
 1221661805 0 c sys/src/9/port/allocb.c - 664 sys sys 1221660911 3451
 1222187404 0 c sys/src/cmd/file.c - 664 sys sys 1222186474 28992
 1222198205 0 c 386/bin/file - 775 sys sys 1222197005 128278
+1222461005 0 c sys/src/cmd/diff/diffdir.c - 664 sys sys 1222453396 1895
+1222461005 1 c sys/src/cmd/diff/main.c - 664 sys sys 1222453385 4346
