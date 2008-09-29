@@ -68,11 +68,14 @@ telcodata telco
 telcofax telco
 u9fs u9fs
 upasfs upasfs
+kb usb
+print usb
 usb usb
 usbaudio usb
 usbmouse usb
-usbprint usb
 usbd usbd
+usbdisk usbdisk
+usbfat: usbdisk
 vacfs vacfs
 webcookies webcookies
 webfs webfs

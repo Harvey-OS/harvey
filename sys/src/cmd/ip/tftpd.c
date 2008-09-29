@@ -1,3 +1,6 @@
+/*
+ * tftpd - tftp service, see /lib/rfc/rfc783
+ */
 #include <u.h>
 #include <libc.h>
 #include <auth.h>
@@ -56,15 +59,15 @@ main(int argc, char **argv)
 	char buf[64];
 	char adir[64], ldir[64];
 	int cfd, lcfd, dfd;
-	char *p, *svc = "69";
+	char *svc = "69";
 
-	setnetmtpt(net, sizeof(net), nil);
+	setnetmtpt(net, sizeof net, nil);
 	ARGBEGIN{
 	case 'd':
 		dbg++;
 		break;
 	case 'h':
-		dir = ARGF();
+		dir = EARGF(usage());
 		break;
 	case 'r':
 		restricted = 1;
@@ -73,10 +76,7 @@ main(int argc, char **argv)
 		svc = EARGF(usage());
 		break;
 	case 'x':
-		p = ARGF();
-		if(p == nil)
-			usage();
-		setnetmtpt(net, sizeof(net), p);
+		setnetmtpt(net, sizeof net, EARGF(usage()));
 		break;
 	default:
 		usage();
@@ -239,7 +239,8 @@ sendfile(int fd, char *name, char *mode)
 			txtry = 0;
 		}
 		else {
-			syslog(dbg, flog, "rexmit %d %s:%d to %s", 4+n, name, block, raddr);
+			syslog(dbg, flog, "rexmit %d %s:%d to %s",
+				4+n, name, block, raddr);
 			txtry++;
 		}
 
@@ -270,10 +271,12 @@ sendfile(int fd, char *name, char *mode)
 		if(ret != Segsize+4 && rexmit == 0)
 			break;
 	}
-error:	
+error:
 	close(fd);
 	close(file);
 }
+
+enum { Hdrsize = 2 * sizeof(short), };		/* op, block */
 
 void
 recvfile(int fd, char *name, char *mode)
@@ -289,6 +292,7 @@ recvfile(int fd, char *name, char *mode)
 	if(file < 0) {
 		errstr(errbuf, sizeof errbuf);
 		nak(fd, 0, errbuf);
+		syslog(dbg, flog, "can't create %s: %r", name);
 		return;
 	}
 
@@ -296,24 +300,38 @@ recvfile(int fd, char *name, char *mode)
 	ack(fd, block);
 	block++;
 
-	for(;;) {
+	for (;;) {
 		alarm(15000);
 		n = read(fd, buf, sizeof(buf));
 		alarm(0);
-		if(n < 0)
+		if(n < 0) {
+			syslog(dbg, flog, "tftpd: network error reading %s: %r",
+				name);
 			goto error;
+		}
+		if(n <= Hdrsize) {
+			syslog(dbg, flog,
+				"tftpd: short read from network, reading %s",
+				name);
+			goto error;
+		}
 		op = buf[0]<<8|buf[1];
-		if(op == Tftp_ERROR)
+		if(op == Tftp_ERROR) {
+			syslog(dbg, flog, "tftpd: tftp error reading %s", name);
 			goto error;
+		}
 
-		n -= 4;
+		n -= Hdrsize;
 		inblock = buf[2]<<8|buf[3];
 		if(op == Tftp_DATA) {
 			if(inblock == block) {
-				ret = write(file, buf, n);
-				if(ret < 0) {
+				ret = write(file, buf+Hdrsize, n);
+				if(ret != n) {
 					errstr(errbuf, sizeof errbuf);
 					nak(fd, 0, errbuf);
+					syslog(dbg, flog,
+					    "tftpd: error writing %s: %s",
+						name, errbuf);
 					goto error;
 				}
 				ack(fd, block);
@@ -338,7 +356,7 @@ ack(int fd, ushort block)
 	ack[3] = block;
 
 	n = write(fd, ack, 4);
-	if(n < 0)
+	if(n < 4)
 		sysfatal("network write: %r");
 }
 
