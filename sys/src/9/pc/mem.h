@@ -44,7 +44,7 @@
 #define	USTKTOP		(VMAP-BY2PG)		/* byte just beyond user stack */
 #define	USTKSIZE	(16*1024*1024)		/* size of user stack */
 #define	TSTKTOP		(USTKTOP-USTKSIZE)	/* end of new stack in sysexec */
-#define	TSTKSIZ 	100
+#define	TSTKSIZ 	100	/* pages in new stack; limits exec args */
 
 /*
  * Fundamental addresses - bottom 64kB saved for return to real mode

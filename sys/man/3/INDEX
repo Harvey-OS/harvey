@@ -1,5 +1,6 @@
 0intro 0intro
 intro 0intro
+aoe aoe
 apm apm
 arch arch
 audio audio
@@ -13,7 +14,16 @@ ether ether
 floppy floppy
 fs fs
 i82365 i82365
+esp ip
+gre ip
+icmp ip
+icmpv6 ip
 ip ip
+ipmux ip
+rudp ip
+tcp ip
+udp ip
+kbin kbin
 kbmap kbmap
 kprof kprof
 loopback loopback
@@ -27,6 +37,8 @@ proc proc
 root root
 rtc rtc
 sd sd
+sdahci sdahci
+sdaoe sdaoe
 segment segment
 srv srv
 ssl ssl

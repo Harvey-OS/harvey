@@ -67,6 +67,7 @@ colors colors
 getmap colors
 comm comm
 con con
+hayes con
 rx con
 telnet con
 xmr con
@@ -87,9 +88,13 @@ delkey delkey
 delatex deroff
 deroff deroff
 diff diff
+doc2ps doc2txt
 doc2txt doc2txt
-mswordstrings msexceltable doc2txt
-xls2txt olefs doc2txt
+msexceltables doc2txt
+mswordstrings doc2txt
+olefs doc2txt
+wdoc2txt doc2txt
+xls2txt doc2txt
 doctype doctype
 du du
 echo echo
@@ -106,6 +111,9 @@ seemail faces
 vwhois faces
 factor factor
 primes factor
+fedex fedex
+ups fedex
+usps fedex
 file file
 deliver filter
 filter filter
@@ -121,6 +129,7 @@ freq freq
 games games
 juggle games
 mahjongg games
+memo games
 sokoban games
 sudoku games
 grap grap
@@ -160,6 +169,7 @@ slay kill
 ktrace ktrace
 kmem leak
 leak leak
+umem leak
 lens lens
 lex lex
 look look
@@ -178,8 +188,11 @@ mkdir mkdir
 ml mlmgr
 mlmgr mlmgr
 mlowner mlmgr
+mp3dec mp3dec
+mp3enc mp3enc
 html2ms ms2html
 ms2html ms2html
+mtime mtime
 mug mug
 nedmail nedmail
 netstat netstat
@@ -188,7 +201,6 @@ nm nm
 ns ns
 p p
 page page
-iam passwd
 netkey passwd
 passwd passwd
 patch patch
@@ -207,6 +219,7 @@ ps ps
 psu ps
 pdf2ps ps2pdf
 ps2pdf ps2pdf
+pump pump
 pbd pwd
 pwd pwd
 . rc
@@ -264,6 +277,7 @@ sha1sum sum
 sum sum
 syscall syscall
 tail tail
+dircp tar
 tar tar
 tbl tbl
 tcs tcs
@@ -276,6 +290,7 @@ time time
 touch touch
 tr tr
 trace trace
+dpost troff
 nroff troff
 troff troff
 troff2html troff2html
@@ -283,7 +298,12 @@ tweak tweak
 uniq uniq
 units units
 uptime uptime
+unvac vac
 vac vac
+copy venti
+read venti
+venti venti
+write venti
 5i vi
 ki vi
 qi vi
@@ -293,6 +313,7 @@ vncs vnc
 vncv vnc
 vt vt
 wc wc
+weather weather
 who who
 whois who
 winwatch winwatch

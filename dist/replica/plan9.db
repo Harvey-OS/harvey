@@ -276,7 +276,7 @@
 386/bin/grep - 775 sys sys 1209614327 79510
 386/bin/gs - 775 sys sys 1212377587 13279308
 386/bin/gunzip - 775 sys sys 1210392746 80464
-386/bin/gview - 775 sys sys 1210392751 240948
+386/bin/gview - 775 sys sys 1222657690 241054
 386/bin/gzip - 775 sys sys 1210392754 83529
 386/bin/hayes - 775 sys sys 1178568278 63329
 386/bin/hget - 775 sys sys 1210392759 236660
@@ -321,7 +321,7 @@
 386/bin/ip/rip - 775 sys sys 1209614399 91313
 386/bin/ip/rlogind - 775 sys sys 1178568290 66192
 386/bin/ip/telnetd - 775 sys sys 1214510156 122006
-386/bin/ip/tftpd - 775 sys sys 1209614404 132085
+386/bin/ip/tftpd - 775 sys sys 1222657690 132527
 386/bin/ip/traceroute - 775 sys sys 1198211710 72783
 386/bin/ip/udpecho - 775 sys sys 1178508500 43095
 386/bin/ip/wol - 775 sys sys 1210392805 47866
@@ -6706,7 +6706,7 @@ sys/lib/man - 20000000775 sys sys 1039727410 0
 sys/lib/man/checkman.awk - 664 sys sys 1017679304 6277
 sys/lib/man/colophon - 664 sys sys 956337727 545
 sys/lib/man/lookman - 20000000775 sys sys 1045538130 0
-sys/lib/man/lookman/index - 664 sys sys 1222571294 1538104
+sys/lib/man/lookman/index - 664 sys sys 1222657691 1643074
 sys/lib/man/lookman/junkwords - 664 sys sys 956337764 3059
 sys/lib/man/lookman/mkindex - 775 sys sys 1017679307 306
 sys/lib/man/mkhtmlindex - 775 sys sys 1072129593 1235
@@ -7369,7 +7369,7 @@ sys/man/1/0intro - 664 sys sys 1196638934 9586
 sys/man/1/2a - 664 sys sys 1196638931 1196
 sys/man/1/2c - 664 sys sys 1196638934 9524
 sys/man/1/2l - 664 sys sys 1196638934 4376
-sys/man/1/INDEX - 664 sys sys 1222571292 3139
+sys/man/1/INDEX - 664 sys sys 1222657690 3385
 sys/man/1/INDEX.html - 664 sys sys 1196638934 16845
 sys/man/1/acid - 664 sys sys 1196638934 9730
 sys/man/1/acme - 664 sys sys 1196638934 18540
@@ -7537,7 +7537,7 @@ sys/man/2/9p - 664 sys sys 1196638939 15852
 sys/man/2/9pcmdbuf - 664 sys sys 1196638939 2162
 sys/man/2/9pfid - 664 sys sys 1196638939 3696
 sys/man/2/9pfile - 664 sys sys 1196638939 4409
-sys/man/2/INDEX - 664 sys sys 1222571292 20532
+sys/man/2/INDEX - 664 sys sys 1222657690 23718
 sys/man/2/INDEX.html - 664 sys sys 1196638939 27618
 sys/man/2/abort - 664 sys sys 1196638936 331
 sys/man/2/abs - 664 sys sys 1196638936 461
@@ -7691,7 +7691,7 @@ sys/man/2/wait - 664 sys sys 1196638939 2525
 sys/man/2/window - 664 sys sys 1196638939 5522
 sys/man/3 - 20000000775 sys sys 1206923648 0
 sys/man/3/0intro - 664 sys sys 1196638941 1873
-sys/man/3/INDEX - 664 sys sys 1222571292 377
+sys/man/3/INDEX - 664 sys sys 1222657690 484
 sys/man/3/INDEX.html - 664 sys sys 1196638941 3691
 sys/man/3/aoe - 664 sys sys 1212183705 6647
 sys/man/3/apm - 664 sys sys 1196638941 1625
@@ -7732,7 +7732,7 @@ sys/man/3/usb - 664 sys sys 1202258356 7527
 sys/man/3/vga - 664 sys sys 1196638942 4987
 sys/man/4 - 20000000775 sys sys 1196638944 0
 sys/man/4/0intro - 664 sys sys 1196638942 472
-sys/man/4/INDEX - 664 sys sys 1222571292 1026
+sys/man/4/INDEX - 664 sys sys 1222657690 1062
 sys/man/4/INDEX.html - 664 sys sys 1196638942 5147
 sys/man/4/acme - 664 sys sys 1196638943 10435
 sys/man/4/archfs - 664 sys sys 1196638943 533
@@ -7794,7 +7794,7 @@ sys/man/5/version - 664 sys sys 1196638944 2657
 sys/man/5/walk - 664 sys sys 1196638944 3622
 sys/man/6 - 20000000775 sys sys 1205952863 0
 sys/man/6/0intro - 664 sys sys 1196638944 179
-sys/man/6/INDEX - 664 sys sys 1222571292 503
+sys/man/6/INDEX - 664 sys sys 1222657690 527
 sys/man/6/INDEX.html - 664 sys sys 1196638944 3416
 sys/man/6/a.out - 664 sys sys 1196638944 7155
 sys/man/6/ar - 664 sys sys 1196638944 2092
@@ -7842,7 +7842,7 @@ sys/man/8/0intro - 664 sys sys 1196638946 247
 sys/man/8/6in4 - 664 sys sys 1196638946 2364
 sys/man/8/9load - 664 sys sys 1196638946 9814
 sys/man/8/9pcon - 664 sys sys 1196638946 2234
-sys/man/8/INDEX - 664 sys sys 1222571292 2773
+sys/man/8/INDEX - 664 sys sys 1222657690 2911
 sys/man/8/INDEX.html - 664 sys sys 1196638946 8619
 sys/man/8/aan - 664 sys sys 1196638946 1670
 sys/man/8/aliasmail - 664 sys sys 1196638946 1350
@@ -8121,7 +8121,7 @@ sys/src/9/pc/devvga.c - 664 sys sys 1181083003 9334
 sys/src/9/pc/dma.c - 664 sys sys 1142966373 5332
 sys/src/9/pc/ether2000.c - 664 sys sys 1173287379 4901
 sys/src/9/pc/ether2114x.c - 664 sys sys 1184468570 41707
-sys/src/9/pc/ether589.c - 664 sys sys 1015014516 4644
+sys/src/9/pc/ether589.c - 664 sys sys 1222640817 4709
 sys/src/9/pc/ether79c970.c - 664 sys sys 1160070602 14088
 sys/src/9/pc/ether8003.c - 664 sys sys 1015014516 6665
 sys/src/9/pc/ether8139.c - 664 sys sys 1185650567 19974
@@ -8161,7 +8161,7 @@ sys/src/9/pc/io.h - 664 sys sys 1165555523 9406
 sys/src/9/pc/kbd.c - 664 sys sys 1220676682 13290
 sys/src/9/pc/l.s - 664 sys sys 1196193040 29691
 sys/src/9/pc/main.c - 664 sys sys 1168306227 15337
-sys/src/9/pc/mem.h - 664 sys sys 1196193040 5308
+sys/src/9/pc/mem.h - 664 sys sys 1222640761 5351
 sys/src/9/pc/memory.c - 664 sys sys 1196193039 18878
 sys/src/9/pc/mkfile - 664 sys sys 1204231465 4152
 sys/src/9/pc/mmu.c - 664 sys sys 1218342291 24548
@@ -12423,7 +12423,7 @@ sys/src/cmd/gs/zlib/zlib.3 - 664 sys sys 1137452698 4488
 sys/src/cmd/gs/zlib/zlib.h - 664 sys sys 1137452698 57769
 sys/src/cmd/gs/zlib/zutil.c - 664 sys sys 1137452698 7057
 sys/src/cmd/gs/zlib/zutil.h - 664 sys sys 1137452698 6612
-sys/src/cmd/gview.c - 664 sys sys 1189617614 54822
+sys/src/cmd/gview.c - 664 sys sys 1222641159 54892
 sys/src/cmd/gzip - 20000000775 sys sys 1196687815 0
 sys/src/cmd/gzip/gunzip.c - 664 sys sys 1210357733 6035
 sys/src/cmd/gzip/gzip.c - 664 sys sys 1210357733 3653
@@ -12638,7 +12638,7 @@ sys/src/cmd/ip/snoopy/udp.c - 664 sys sys 1144955685 2015
 sys/src/cmd/ip/telnet.c - 664 sys sys 1162416789 8621
 sys/src/cmd/ip/telnet.h - 664 sys sys 1015090250 5902
 sys/src/cmd/ip/telnetd.c - 664 sys sys 1135487948 11772
-sys/src/cmd/ip/tftpd.c - 664 sys sys 1106943821 7646
+sys/src/cmd/ip/tftpd.c - 664 sys sys 1222641404 8147
 sys/src/cmd/ip/traceroute.c - 664 sys sys 1198186109 8747
 sys/src/cmd/ip/udpecho.c - 664 sys sys 1178483004 789
 sys/src/cmd/ip/wol.c - 664 sys sys 1210357781 1613

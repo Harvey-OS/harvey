@@ -28,6 +28,7 @@ regexp regexp
 rewrite rewrite
 smtpd smtpd
 snap snap
+style style
 thumbprint thumbprint
 users users
 ASCII utf
@@ -35,5 +36,6 @@ UTF utf
 Unicode utf
 rune utf
 utf utf
+venti venti
 venti.conf venti.conf
 vgadb vgadb

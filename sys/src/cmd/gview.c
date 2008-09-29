@@ -2103,6 +2103,7 @@ void usage(void)
 void main(int argc, char *argv[])
 {
 	int e;
+	char err[ERRMAX];
 
 	ARGBEGIN {
 	case 'm':
@@ -2125,10 +2126,13 @@ void main(int argc, char *argv[])
 	do {
 		e = doinput(*argv ? *argv : "-");
 		if (e < 0) {
-			fprintf(stderr,"Cannot read input file %s\n", *argv);
+			rerrstr(err, sizeof err);
+			fprintf(stderr, "%s: cannot read %s: %s\n",
+				argv0, *argv, err);
 			exits("no valid input file");
 		} else if (e > 0) {
-			fprintf(stderr,"Bad syntax at line %d of file %s\n", e, *argv ? *argv : "-");
+			fprintf(stderr, "%s: %s:%d: bad data syntax\n",
+				argv0, (*argv ? *argv : "-"), e);
 			exits("bad syntax in input");
 		}
 	} while (*argv && *++argv);
