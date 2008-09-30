@@ -276,7 +276,7 @@
 386/bin/grep - 775 sys sys 1209614327 79510
 386/bin/gs - 775 sys sys 1212377587 13279308
 386/bin/gunzip - 775 sys sys 1210392746 80464
-386/bin/gview - 775 sys sys 1210392751 240948
+386/bin/gview - 775 sys sys 1222657690 241054
 386/bin/gzip - 775 sys sys 1210392754 83529
 386/bin/hayes - 775 sys sys 1178568278 63329
 386/bin/hget - 775 sys sys 1210392759 236660
@@ -321,7 +321,7 @@
 386/bin/ip/rip - 775 sys sys 1209614399 91313
 386/bin/ip/rlogind - 775 sys sys 1178568290 66192
 386/bin/ip/telnetd - 775 sys sys 1214510156 122006
-386/bin/ip/tftpd - 775 sys sys 1209614404 132085
+386/bin/ip/tftpd - 775 sys sys 1222657690 132527
 386/bin/ip/traceroute - 775 sys sys 1198211710 72783
 386/bin/ip/udpecho - 775 sys sys 1178508500 43095
 386/bin/ip/wol - 775 sys sys 1210392805 47866
@@ -6706,7 +6706,7 @@ sys/lib/man - 20000000775 sys sys 1039727410 0
 sys/lib/man/checkman.awk - 664 sys sys 1017679304 6277
 sys/lib/man/colophon - 664 sys sys 956337727 545
 sys/lib/man/lookman - 20000000775 sys sys 1045538130 0
-sys/lib/man/lookman/index - 664 sys sys 1222571294 1538104
+sys/lib/man/lookman/index - 664 sys sys 1222657691 1643074
 sys/lib/man/lookman/junkwords - 664 sys sys 956337764 3059
 sys/lib/man/lookman/mkindex - 775 sys sys 1017679307 306
 sys/lib/man/mkhtmlindex - 775 sys sys 1072129593 1235
@@ -7369,7 +7369,7 @@ sys/man/1/0intro - 664 sys sys 1196638934 9586
 sys/man/1/2a - 664 sys sys 1196638931 1196
 sys/man/1/2c - 664 sys sys 1196638934 9524
 sys/man/1/2l - 664 sys sys 1196638934 4376
-sys/man/1/INDEX - 664 sys sys 1222571292 3139
+sys/man/1/INDEX - 664 sys sys 1222657690 3385
 sys/man/1/INDEX.html - 664 sys sys 1196638934 16845
 sys/man/1/acid - 664 sys sys 1196638934 9730
 sys/man/1/acme - 664 sys sys 1196638934 18540
@@ -7537,7 +7537,7 @@ sys/man/2/9p - 664 sys sys 1196638939 15852
 sys/man/2/9pcmdbuf - 664 sys sys 1196638939 2162
 sys/man/2/9pfid - 664 sys sys 1196638939 3696
 sys/man/2/9pfile - 664 sys sys 1196638939 4409
-sys/man/2/INDEX - 664 sys sys 1222571292 20532
+sys/man/2/INDEX - 664 sys sys 1222657690 23718
 sys/man/2/INDEX.html - 664 sys sys 1196638939 27618
 sys/man/2/abort - 664 sys sys 1196638936 331
 sys/man/2/abs - 664 sys sys 1196638936 461
@@ -7691,7 +7691,7 @@ sys/man/2/wait - 664 sys sys 1196638939 2525
 sys/man/2/window - 664 sys sys 1196638939 5522
 sys/man/3 - 20000000775 sys sys 1206923648 0
 sys/man/3/0intro - 664 sys sys 1196638941 1873
-sys/man/3/INDEX - 664 sys sys 1222571292 377
+sys/man/3/INDEX - 664 sys sys 1222657690 484
 sys/man/3/INDEX.html - 664 sys sys 1196638941 3691
 sys/man/3/aoe - 664 sys sys 1212183705 6647
 sys/man/3/apm - 664 sys sys 1196638941 1625
@@ -7732,7 +7732,7 @@ sys/man/3/usb - 664 sys sys 1202258356 7527
 sys/man/3/vga - 664 sys sys 1196638942 4987
 sys/man/4 - 20000000775 sys sys 1196638944 0
 sys/man/4/0intro - 664 sys sys 1196638942 472
-sys/man/4/INDEX - 664 sys sys 1222571292 1026
+sys/man/4/INDEX - 664 sys sys 1222657690 1062
 sys/man/4/INDEX.html - 664 sys sys 1196638942 5147
 sys/man/4/acme - 664 sys sys 1196638943 10435
 sys/man/4/archfs - 664 sys sys 1196638943 533
@@ -7794,7 +7794,7 @@ sys/man/5/version - 664 sys sys 1196638944 2657
 sys/man/5/walk - 664 sys sys 1196638944 3622
 sys/man/6 - 20000000775 sys sys 1205952863 0
 sys/man/6/0intro - 664 sys sys 1196638944 179
-sys/man/6/INDEX - 664 sys sys 1222571292 503
+sys/man/6/INDEX - 664 sys sys 1222657690 527
 sys/man/6/INDEX.html - 664 sys sys 1196638944 3416
 sys/man/6/a.out - 664 sys sys 1196638944 7155
 sys/man/6/ar - 664 sys sys 1196638944 2092
@@ -7842,7 +7842,7 @@ sys/man/8/0intro - 664 sys sys 1196638946 247
 sys/man/8/6in4 - 664 sys sys 1196638946 2364
 sys/man/8/9load - 664 sys sys 1196638946 9814
 sys/man/8/9pcon - 664 sys sys 1196638946 2234
-sys/man/8/INDEX - 664 sys sys 1222571292 2773
+sys/man/8/INDEX - 664 sys sys 1222657690 2911
 sys/man/8/INDEX.html - 664 sys sys 1196638946 8619
 sys/man/8/aan - 664 sys sys 1196638946 1670
 sys/man/8/aliasmail - 664 sys sys 1196638946 1350
@@ -15883,12 +15883,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1020896385 0
-386/bin/gview - 775 sys sys 1222657690 241054
-386/bin/ip/tftpd - 775 sys sys 1222657690 132527
-sys/lib/man/lookman/index - 664 sys sys 1222657691 1643074
-sys/man/1/INDEX - 664 sys sys 1222657690 3385
-sys/man/2/INDEX - 664 sys sys 1222657690 23718
-sys/man/3/INDEX - 664 sys sys 1222657690 484
-sys/man/4/INDEX - 664 sys sys 1222657690 1062
-sys/man/6/INDEX - 664 sys sys 1222657690 527
-sys/man/8/INDEX - 664 sys sys 1222657690 2911
