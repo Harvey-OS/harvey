@@ -15883,3 +15883,5 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1020896385 0
+sys/man/8/prep - 664 sys sys 1223003502 14382
+sys/src/cmd/disk/prep/prep.c - 664 sys sys 1223003493 10203

@@ -75,6 +75,8 @@ Auto autox[] =
 	{	"fossil",	200*MB,	0,	4,	},
 	{	"arenas",	500*MB,	0,	20,	},
 	{	"isect",	25*MB,	0,	1,	},
+	{	"bloom",	4*MB,	512*MB,	1,	},
+
 	{	"other",	200*MB,	0,	4,	},
 	{	"swap",		100*MB,	512*MB,	1,	},
 	{	"cache",	50*MB,	1*GB,	2,	},
