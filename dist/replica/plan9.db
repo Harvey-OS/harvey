@@ -7888,7 +7888,7 @@ sys/man/8/ping - 664 sys sys 1215981423 3662
 sys/man/8/plan9.ini - 664 sys sys 1202255136 23868
 sys/man/8/pop3 - 664 sys sys 1197574309 3122
 sys/man/8/ppp - 664 sys sys 1210814269 4464
-sys/man/8/prep - 664 sys sys 1213733470 14329
+sys/man/8/prep - 664 sys sys 1223003502 14382
 sys/man/8/qer - 664 sys sys 1196638948 4909
 sys/man/8/reboot - 664 sys sys 1196638948 443
 sys/man/8/replica - 664 sys sys 1196638948 6383
@@ -10304,7 +10304,7 @@ sys/src/cmd/disk/prep/edit.c - 664 sys sys 1210357654 9710
 sys/src/cmd/disk/prep/edit.h - 664 sys sys 1015009215 994
 sys/src/cmd/disk/prep/fdisk.c - 664 sys sys 1197673079 22324
 sys/src/cmd/disk/prep/mkfile - 664 sys sys 1022450200 250
-sys/src/cmd/disk/prep/prep.c - 664 sys sys 1193692640 10170
+sys/src/cmd/disk/prep/prep.c - 664 sys sys 1223003493 10203
 sys/src/cmd/disk/rd9660.c - 664 sys sys 1210356589 7440
 sys/src/cmd/disk/sacfs - 20000000775 sys sys 1196687810 0
 sys/src/cmd/disk/sacfs/mkfile - 664 sys sys 964815354 204
