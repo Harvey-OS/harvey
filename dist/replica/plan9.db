@@ -221,7 +221,7 @@
 386/bin/disk/mkfs - 775 sys sys 1209614261 87910
 386/bin/disk/mksacfs - 775 sys sys 1020319074 71451
 386/bin/disk/partfs - 775 sys sys 1210392664 150017
-386/bin/disk/prep - 775 sys sys 1210392666 96206
+386/bin/disk/prep - 775 sys sys 1223060923 96250
 386/bin/disk/sacfs - 775 sys sys 1020319075 79882
 386/bin/dossrv - 775 sys sys 1209614265 136548
 386/bin/du - 775 sys sys 1215633035 76279
