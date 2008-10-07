@@ -856,7 +856,7 @@ eptactivate(Ctlr *ub, Endpt *ep)
 		case Nomode:
 			break;
 		default:
-			panic("eptactivate: wierd epmode %d\n", ep->epmode);
+			panic("eptactivate: wierd epmode %d", ep->epmode);
 		}
 		ep->dir[Dirin].xdone  = ep->dir[Dirin].xstarted =  0;
 		ep->dir[Dirout].xdone = ep->dir[Dirout].xstarted = 0;
@@ -903,7 +903,7 @@ EDpullfromctl(Ctlr *ub, ED *ed)
 		this = EDgetnext(this);
 	}
 	if(this == nil)
-		panic("EDpullfromctl: not found\n");
+		panic("EDpullfromctl: not found");
 	next = EDgetnext(this);
 	if(prev == nil)
 		OHCIsetControlHeadED(ub->base, next);
@@ -979,7 +979,7 @@ eptdeactivate(Ctlr *ub, Endpt *ep)
 		case Nomode:
 			break;
 		default:
-			panic("eptdeactivate: wierd in.epmode %d\n",
+			panic("eptdeactivate: wierd in.epmode %d",
 				ep->epmode);
 		}
 	}
@@ -1003,7 +1003,7 @@ kickappropriatequeue(Ctlr *ub, Endpt *ep, int)
 		/* no kicking required */
 		break;
 	default:
-		panic("wierd epmode %d\n", ep->epmode);
+		panic("wierd epmode %d", ep->epmode);
 	}
 }
 
@@ -1847,7 +1847,7 @@ interrupt(Ureg *, void *arg)
 			wakeup(&ep->dir[dirin].rend);
 			break;
 		default:
-			panic("cc %ud unimplemented\n", cc);
+			panic("cc %ud unimplemented", cc);
 		}
 		ep->dir[dirin].queued--;
 		/* Clean up blocks used for transfers */
@@ -2042,8 +2042,10 @@ write(Usbhost *uh, Endpt *ep, void *a, long n, vlong off, int tok)
 		dcclean(b->rp, m);
 		if(ep->epmode == Isomode && ep->buffered <= ep->bw<<1){
 			sleep(&ep->dir[Dirout].rend, weptdone, ep);
-			if(ep->dir[Dirout].err)
+			if(ep->dir[Dirout].err) {
+				freeb(b);
 				error(ep->dir[Dirout].err);
+			}
 		}
 		while(m > 0){
 			int l;

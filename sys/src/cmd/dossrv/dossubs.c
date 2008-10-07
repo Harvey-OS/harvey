@@ -13,7 +13,7 @@ int
 isdosfs(uchar *buf)
 {
 	/*
-	 * When dynamic disc managers move the disc partition, 
+	 * When dynamic disc managers move the disc partition,
 	 * they make it start with 0xE9.
 	 */
 	if(buf[0] == 0xE9)
@@ -21,9 +21,17 @@ isdosfs(uchar *buf)
 
 	/*
 	 * Check if the jump displacement (magic[1]) is too short for a FAT.
+	 *
+	 * check now omitted due to digital cameras that use a 0 jump.
+	 * the ecma-107 standard says this is okay and that interoperable fat
+	 * implementations shouldn't assume this:
+	 * http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-107.pdf,
+	 * page 11.
 	 */
-	if(buf[0] == 0xEB && buf[2] == 0x90 && buf[1] >= 0x30)
+	if(buf[0] == 0xEB && buf[2] == 0x90 /* && buf[1] >= 0x30 */)
 		return 1;
+	if(chatty)
+		fprint(2, "bad sig %.2ux %.2ux %.2uxn", buf[0], buf[1], buf[2]);
 
 	return 0;
 }
@@ -101,6 +109,8 @@ dosfs(Xfs *xf)
 		bp->fatsize = GLONG(b32->fatsize32);
 		if(bp->fatsize == 0){
 			putsect(p);
+			if(chatty)
+				fprint(2, "fatsize 0\n");
 			return -1;
 		}
 		bp->dataaddr = bp->fataddr + bp->nfats*bp->fatsize;
