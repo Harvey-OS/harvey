@@ -718,6 +718,8 @@ getcrnl(String *s, Biobuf *fp)
 			fprint(2, "%c", c);
 		}
 		switch(c){
+		case 0:
+			break;
 		case -1:
 			goto out;
 		case '\r':
@@ -1118,8 +1120,12 @@ pipemsg(int *byteswritten)
 			sawdot = 1;
 			break;
 		}
+		if(cp[0] == '.'){
+			cp++;
+			n--;
+		}
 		nbytes += n;
-		if(status == 0 && Bwrite(pp->std[0]->fp, *cp == '.' ? cp+1 : cp, n) < 0){
+		if(status == 0 && Bwrite(pp->std[0]->fp, cp, n) < 0){
 			piperror = "write error 3";
 			status = 1;
 		}

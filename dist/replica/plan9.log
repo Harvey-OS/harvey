@@ -36151,3 +36151,9 @@
 1223004604 0 c sys/man/8/prep - 664 sys sys 1223003502 14382
 1223004604 1 c sys/src/cmd/disk/prep/prep.c - 664 sys sys 1223003493 10203
 1223062204 0 c 386/bin/disk/prep - 775 sys sys 1223060923 96250
+1223321404 0 c sys/src/9/pc/usbohci.c - 664 sys sys 1223320689 48302
+1223321404 1 c sys/src/cmd/dossrv/dossubs.c - 664 sys sys 1223320904 38108
+1223323204 0 c sys/src/9/pc/usbohci.c - 664 sys sys 1223321671 48291
+1223323204 1 c sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1223322786 33455
+1223350205 0 c 386/bin/dossrv - 775 sys sys 1223348950 136682
+1223350205 1 c 386/bin/upas/smtpd - 775 sys sys 1223348950 336055

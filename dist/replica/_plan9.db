@@ -8204,7 +8204,7 @@ sys/src/9/pc/uarti8250.c - 664 sys sys 1177676872 13957
 sys/src/9/pc/uartisa.c - 664 sys sys 1127126907 1777
 sys/src/9/pc/uartpci.c - 664 sys sys 1216677181 4912
 sys/src/9/pc/usb.h - 664 sys sys 1202865355 4630
-sys/src/9/pc/usbohci.c - 664 sys sys 1218342331 48280
+sys/src/9/pc/usbohci.c - 664 sys sys 1223321671 48291
 sys/src/9/pc/usbuhci.c - 664 sys sys 1218342383 31740
 sys/src/9/pc/vga.c - 664 sys sys 1131290595 5148
 sys/src/9/pc/vga3dfx.c - 664 sys sys 1133218367 3833
@@ -10322,7 +10322,7 @@ sys/src/cmd/dossrv/dat.h - 664 sys sys 1017679316 5376
 sys/src/cmd/dossrv/devio.c - 664 sys sys 1017679315 1122
 sys/src/cmd/dossrv/dosfs.c - 664 sys sys 1143759346 17008
 sys/src/cmd/dossrv/dosfs.h - 664 sys sys 1014925385 160
-sys/src/cmd/dossrv/dossubs.c - 664 sys sys 1143289669 37706
+sys/src/cmd/dossrv/dossubs.c - 664 sys sys 1223320904 38108
 sys/src/cmd/dossrv/errstr.h - 664 sys sys 1014925385 544
 sys/src/cmd/dossrv/fns.h - 664 sys sys 1014925385 1989
 sys/src/cmd/dossrv/iotrack.c - 664 sys sys 1014925385 5153
@@ -14273,7 +14273,7 @@ sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417
 sys/src/cmd/upas/smtp/rmtdns.c - 664 sys sys 1188509396 1075
 sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1188509396 20717
 sys/src/cmd/upas/smtp/smtp.h - 664 sys sys 1188509396 1356
-sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1204179355 33414
+sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1223322786 33455
 sys/src/cmd/upas/smtp/smtpd.h - 664 sys sys 1201499389 1134
 sys/src/cmd/upas/smtp/smtpd.y - 664 sys sys 1181508390 6924
 sys/src/cmd/upas/smtp/spam.c - 664 sys sys 1139699502 10238
@@ -15883,3 +15883,5 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1020896385 0
+386/bin/dossrv - 775 sys sys 1223348950 136682
+386/bin/upas/smtpd - 775 sys sys 1223348950 336055
