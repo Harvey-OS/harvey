@@ -223,7 +223,7 @@
 386/bin/disk/partfs - 775 sys sys 1210392664 150017
 386/bin/disk/prep - 775 sys sys 1223060923 96250
 386/bin/disk/sacfs - 775 sys sys 1020319075 79882
-386/bin/dossrv - 775 sys sys 1209614265 136548
+386/bin/dossrv - 775 sys sys 1223348950 136682
 386/bin/du - 775 sys sys 1215633035 76279
 386/bin/echo - 775 sys sys 1168402304 57592
 386/bin/ecp - 775 sys sys 1179777651 72588
@@ -482,7 +482,7 @@
 386/bin/upas/scanmail - 775 sys sys 1209614764 128224
 386/bin/upas/send - 775 sys sys 1210648938 192191
 386/bin/upas/smtp - 775 sys sys 1210393023 277548
-386/bin/upas/smtpd - 775 sys sys 1214510171 336053
+386/bin/upas/smtpd - 775 sys sys 1223348950 336055
 386/bin/upas/spam - 775 sys sys 1064598366 36
 386/bin/upas/testscan - 775 sys sys 1209614790 83875
 386/bin/upas/token - 775 sys sys 1188447329 73042
@@ -15883,5 +15883,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1020896385 0
-386/bin/dossrv - 775 sys sys 1223348950 136682
-386/bin/upas/smtpd - 775 sys sys 1223348950 336055
