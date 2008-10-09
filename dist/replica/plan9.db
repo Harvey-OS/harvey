@@ -9195,7 +9195,7 @@ sys/src/boot/pc/devfloppy.c - 664 sys sys 1212010456 15657
 sys/src/boot/pc/devfloppy.h - 664 sys sys 1032409559 4081
 sys/src/boot/pc/devi82365.c - 664 sys sys 1144961189 15051
 sys/src/boot/pc/devpccard.c - 664 sys sys 1153333456 33897
-sys/src/boot/pc/devsd.c - 664 sys sys 1212259573 11548
+sys/src/boot/pc/devsd.c - 664 sys sys 1223515526 11557
 sys/src/boot/pc/dma.c - 664 sys sys 1015007949 4972
 sys/src/boot/pc/dosboot.c - 664 sys sys 1212010488 11337
 sys/src/boot/pc/dosfs.h - 664 sys sys 1032215924 1467
@@ -9237,13 +9237,13 @@ sys/src/boot/pc/kfs.h - 664 sys sys 1032215924 861
 sys/src/boot/pc/kfsboot.c - 664 sys sys 1032215914 4788
 sys/src/boot/pc/l.s - 664 sys sys 1216786858 18260
 sys/src/boot/pc/lib.h - 664 sys sys 1212090562 3280
-sys/src/boot/pc/load.c - 664 sys sys 1218660619 11499
+sys/src/boot/pc/load.c - 664 sys sys 1223515569 11433
 sys/src/boot/pc/mbr.s - 664 sys sys 1015007953 6234
 sys/src/boot/pc/mem.h - 664 sys sys 1190921475 3437
 sys/src/boot/pc/memory.c - 664 sys sys 1212010326 10266
 sys/src/boot/pc/mkfile - 664 sys sys 1216788017 3614
 sys/src/boot/pc/noether.c - 664 sys sys 1193336537 416
-sys/src/boot/pc/part.c - 664 sys sys 1200690166 7158
+sys/src/boot/pc/part.c - 664 sys sys 1223515556 7355
 sys/src/boot/pc/pbs.s - 664 sys sys 1143465387 8291
 sys/src/boot/pc/pbsdebug.s - 664 sys sys 1205786244 6371
 sys/src/boot/pc/pbslba.s - 664 sys sys 1186031549 8180
@@ -9254,7 +9254,7 @@ sys/src/boot/pc/queue.c - 664 sys sys 1015007954 566
 sys/src/boot/pc/sd.h - 664 sys sys 1200690169 2249
 sys/src/boot/pc/sd53c8xx.c - 664 sys sys 1186031515 52082
 sys/src/boot/pc/sd53c8xx.i - 664 sys sys 1015007955 27245
-sys/src/boot/pc/sdaoe.c - 664 sys sys 1204324647 11381
+sys/src/boot/pc/sdaoe.c - 664 sys sys 1223515593 11739
 sys/src/boot/pc/sdata.c - 664 sys sys 1213134120 39148
 sys/src/boot/pc/sdbios.c - 664 sys sys 1212010334 3280
 sys/src/boot/pc/sdiahci.c - 664 sys sys 1213134135 28620
