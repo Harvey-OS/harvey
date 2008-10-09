@@ -36157,3 +36157,7 @@
 1223323204 1 c sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1223322786 33455
 1223350205 0 c 386/bin/dossrv - 775 sys sys 1223348950 136682
 1223350205 1 c 386/bin/upas/smtpd - 775 sys sys 1223348950 336055
+1223515804 0 c sys/src/boot/pc/devsd.c - 664 sys sys 1223515526 11557
+1223515804 1 c sys/src/boot/pc/load.c - 664 sys sys 1223515569 11433
+1223515804 2 c sys/src/boot/pc/part.c - 664 sys sys 1223515556 7355
+1223515804 3 c sys/src/boot/pc/sdaoe.c - 664 sys sys 1223515593 11739

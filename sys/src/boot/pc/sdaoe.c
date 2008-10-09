@@ -1,5 +1,5 @@
 /*
- * aoe sd bootstrap driver, copyright © 2007 coraid
+ * aoe (ata over ethernet) sd bootstrap driver, copyright © 2007 coraid
  */
 
 #include "u.h"
@@ -11,10 +11,9 @@
 #include "sd.h"
 #include "aoe.h"
 
-#define uprint(...)	snprint(up->genbuf, sizeof up->genbuf, __VA_ARGS__);
-
 enum {
-	Nctlr	= 4,
+	NCtlr	= 4,
+	Ctlrlet = 'e',		/* first sd controller letter */
 };
 
 enum {
@@ -59,6 +58,9 @@ struct Ctlr{
 
 static	Ctlr	*head;
 static	Ctlr	*tail;
+// static Ctlr	aoectlr[NCtlr];
+// static SDev	sdevs[NCtlr];
+// static int	naoectlr;
 
 static	int	aoeether[10];
 
@@ -195,7 +197,8 @@ ataidentify(Ctlr *c, ushort *id)
 	idmove(c->firmware, id+23, 8);
 	idmove(c->model, id+27, 40);
 
-print("aoe discovers %d.%d: %s %s\n", c->major, c->minor, c->model, c->serial);
+	print("aoe: discovered %d.%d: %s %s\n",
+		c->major, c->minor, c->model, c->serial);
 
 	c->sectors = s;
 	c->mediachange = 1;
@@ -397,19 +400,6 @@ static char 	*probef[32];
 static int 	nprobe;
 
 int
-pnpprobeid(char *s)
-{
-	int id;
-
-	if(strlen(s) < 2)
-		return 0;
-	id = 'e';
-	if(s[1] == '!')
-		id = s[0];
-	return id;
-}
-
-int
 tokenize(char *s, char **args, int maxargs)
 {
 	int nargs;
@@ -428,7 +418,7 @@ tokenize(char *s, char **args, int maxargs)
 	return nargs;
 }
 
-int
+static int
 aoepnp0(void)
 {
 	int i;
@@ -436,7 +426,7 @@ aoepnp0(void)
 
 	if((p = getconf("aoeif")) == nil)
 		return 0;
-print("aoeif = %s\n", p);
+//	print("aoepnp0: aoeif=%s\n", p);
 	nprobe = tokenize(p, probef, nelem(probef));
 	for(i = 0; i < nprobe; i++){
 		if(strncmp(probef[i], "ether", 5) != 0)
@@ -449,10 +439,11 @@ print("aoeif = %s\n", p);
 
 	if((p = getconf("aoedev")) == nil)
 		return 0;
-	return nprobe = tokenize(p, probef, nelem(probef));
+	nprobe = tokenize(p, probef, nelem(probef));
+	return nprobe;
 }
 
-int
+static int
 probeshelf(char *s, int *shelf, int *slot)
 {
 	int a, b;
@@ -470,11 +461,11 @@ probeshelf(char *s, int *shelf, int *slot)
 
 	*shelf = a;
 	*slot = b;
-print("  shelf=%d.%d\n", a, b);
+//	print("aoe: found shelf=%d.%d\n", a, b);
 	return 0;
 }
 
-Ctlr*
+static Ctlr*
 pnpprobe(SDev *sd)
 {
 	int shelf, slot;
@@ -501,24 +492,25 @@ pnpprobe(SDev *sd)
  * we may need to pretend we found something
  */
 
-SDev*
+static SDev*
 aoepnp(void)
 {
 	int n, i, id;
-	char *p;
+//	char *p;
 	SDev *h, *t, *s;
 
-	p = getconf("aoeif");
-	if (p)
-		print("aoepnp: aoeif=%s\n", p);
+//	p = getconf("aoeif");
+//	if (p)
+//		print("aoepnp: aoeif=%s\n", p);
 
 	if((n = aoepnp0()) == 0)
 		n = 2;
-	t = h = 0;
+	t = h = nil;
 	for(i = 0; i < n; i++){
-		id = 'e';
+		id = Ctlrlet + i;
+//		print("aoepnp: id sd%C\n", id);
 		s = malloc(sizeof *s);
-		if(s == 0)
+		if(s == nil)
 			break;
 		s->ctlr = 0;
 		s->idno = id;
@@ -631,7 +623,7 @@ putlba(Aoeata *a, vlong lba)
 
 /*
  * you'll need to loop if you want to read more than 2 sectors.  for now
- * i'm cheeting and not bothering with a loop.
+ * i'm cheating and not bothering with a loop.
  */
 static uchar pktbuf[1024 + sizeof(Aoeata)];
 
@@ -719,12 +711,32 @@ aoerio(SDreq *r)
 	return SDok;
 }
 
+static SDev*
+aoeid(SDev* sdev)
+{
+	int i;
+	Ctlr *c, *aec;
+
+	for(; sdev; sdev = sdev->next){
+		if(sdev->ifc != &sdaoeifc)
+			continue;
+		c = sdev->ctlr;
+		i = 0;
+		for(aec = head; aec; aec = aec->next) {
+			if(c == aec)
+				sdev->idno = Ctlrlet + i;
+			i++;
+		}
+	}
+	return nil;
+}
+
 SDifc sdaoeifc = {
 	"aoe",
 
 	aoepnp,
 	nil,		/* legacy */
-	nil,		/* id */
+	aoeid,		/* id */
 	nil,		/* enable */
 	nil,		/* disable */
 

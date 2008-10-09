@@ -15,7 +15,6 @@
 
 #define parttrace 0
 
-
 extern SDifc* sdifc[];
 
 static SDev* sdlist;
@@ -490,10 +489,11 @@ long
 sdbio(SDunit *unit, SDpart *pp, void* va, long len, vlong off)
 {
 	long l;
-	ulong bno, max, nb, offset;
-	static uchar *b;
+	ulong offset;
+	uvlong bno, max, nb;
 	char *a;
 	static ulong bsz;
+	static uchar *b;
 
 	a = va;
 memset(a, 0xDA, len);
@@ -538,7 +538,7 @@ memset(a, 0xDA, len);
 //	if(b == nil)
 //		return 0;
 
-	offset = off%unit->secsize;
+	offset = off % unit->secsize;
 	if((l = unit->dev->ifc->bio(unit, 0, 0, b, nb, bno)) < 0) {
 //		sdfree(b);
 		return 0;
