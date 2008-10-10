@@ -36161,3 +36161,6 @@
 1223515804 1 c sys/src/boot/pc/load.c - 664 sys sys 1223515569 11433
 1223515804 2 c sys/src/boot/pc/part.c - 664 sys sys 1223515556 7355
 1223515804 3 c sys/src/boot/pc/sdaoe.c - 664 sys sys 1223515593 11739
+1223562605 0 c sys/man/8/gpsfs - 664 sys sys 1223562059 5097
+1223571604 0 c sys/src/cmd/vac/vacfs.c - 664 sys sys 1223571409 13386
+1223580605 0 c 386/bin/vacfs - 775 sys sys 1223579346 243644

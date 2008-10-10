@@ -207,7 +207,8 @@ threadmain(int argc, char *argv[])
 		close(p[0]);
 		if(defsrv){
 			srvname = smprint("/srv/%s", defsrv);
-			fd = create(srvname, OWRITE|ORCLOSE, 0666);
+			/* child doesn't share fd group, so can't use ORCLOSE */
+			fd = create(srvname, OWRITE, 0666);
 			if(fd < 0)
 				sysfatal("create %s: %r", srvname);
 			if(fprint(fd, "%d", srvfd) < 0)
@@ -233,7 +234,8 @@ srv(void *a)
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-sd] [-h host] [-c ncache] [-m mountpoint] vacfile\n", argv0);
+	fprint(2, "usage: %s [-sd] [-c ncache] [-h host] [-m mountpoint] [-S svc] vacfile\n",
+		argv0);
 	threadexitsall("usage");
 }
 

@@ -500,7 +500,7 @@
 386/bin/usb/usbprint - 775 sys sys 1203567409 373
 386/bin/usb/usbprobe - 775 sys sys 1203567409 232
 386/bin/vac - 775 sys sys 1218136581 229446
-386/bin/vacfs - 775 sys sys 1218136585 243628
+386/bin/vacfs - 775 sys sys 1223579346 243644
 386/bin/venti - 20000000775 sys sys 1191273719 0
 386/bin/venti/buildindex - 775 sys sys 1214510186 259348
 386/bin/venti/checkarenas - 775 sys sys 1214510193 261127
@@ -7863,7 +7863,7 @@ sys/man/8/fs - 664 sys sys 1196638946 15086
 sys/man/8/fsconfig - 664 sys sys 1196638946 8890
 sys/man/8/fshalt - 664 sys sys 1196638947 862
 sys/man/8/getflags - 664 sys sys 1196638947 1713
-sys/man/8/gpsfs - 664 sys sys 1196638947 4918
+sys/man/8/gpsfs - 664 sys sys 1223562059 5097
 sys/man/8/httpd - 664 sys sys 1196638947 6866
 sys/man/8/init - 664 sys sys 1196638947 1430
 sys/man/8/ipconfig - 664 sys sys 1205960389 8284
@@ -14338,7 +14338,7 @@ sys/src/cmd/vac/stdinc.h - 664 sys sys 1213498240 92
 sys/src/cmd/vac/unvac.c - 664 sys sys 1213504395 5186
 sys/src/cmd/vac/vac.c - 664 sys sys 1213558401 12310
 sys/src/cmd/vac/vac.h - 664 sys sys 1213558389 3987
-sys/src/cmd/vac/vacfs.c - 664 sys sys 1213558401 13323
+sys/src/cmd/vac/vacfs.c - 664 sys sys 1223571409 13386
 sys/src/cmd/vc - 20000000775 sys sys 1196687841 0
 sys/src/cmd/vc/cgen.c - 664 sys sys 1143241861 20147
 sys/src/cmd/vc/enam.c - 664 sys sys 1089299165 1093
