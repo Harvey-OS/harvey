@@ -39,8 +39,11 @@ gpsfs, gpsevermore \- GPS time and position service
 ]
 .SH DESCRIPTION
 .B Aux/gpsfs
-reads an NMEA-compatible serial GPS device and provides time and position
-through a file system, typically in
+reads an NMEA-compatible serial GPS (Global Positioning System)
+device and provides time and position
+through a file system, by default mounted on
+.B /mnt
+and implementing
 .BR /mnt/gps .
 .PP
 It implements four files in the
@@ -55,6 +58,8 @@ and
 The read-only
 .B position
 file contains one line of information in 9 tab-separated fields:
+.TF "\fImagnetic deviation
+.PD
 .TP
 .I "fix quality
 0 means position data invalid, 1 means a 2D position is available, 2 means a 3D position is available.
@@ -88,6 +93,8 @@ in km/h
 The read-only
 .B time
 file contains one line of information in 4 tab-separated fields:
+.TF "\fIsystem time
+.PD
 .TP
 .I "gps time
 in
@@ -127,6 +134,8 @@ The read-only
 file contains information about the current satellite constellation.  It consists
 of one line of general information, followed by zero or more lines, one for each satellite in use.
 The first line contains two fields:
+.TF "\fIsatellites in view
+.PD
 .TP
 .I "fix quality
 same as in the
@@ -137,6 +146,8 @@ file.
 number of satellites above the horizon
 .PP
 Subsequent lines have four fields:
+.TF "\fIelevation
+.PD
 .TP
 .I prn
 satellite ID
@@ -183,7 +194,7 @@ The
 .B \-m
 flag specifies a mount mount other than
 .BR /mnt .
-.PP
+.SS Evermore
 .B Aux/gpsevermore
 is used to configure GPSs using an Evermore chipset.
 .PP
