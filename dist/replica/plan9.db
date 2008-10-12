@@ -8128,7 +8128,7 @@ sys/src/9/pc/ether8139.c - 664 sys sys 1185650567 19974
 sys/src/9/pc/ether8169.c - 664 sys sys 1185812348 26931
 sys/src/9/pc/ether82543gc.c - 664 sys sys 1131290377 32294
 sys/src/9/pc/ether82557.c - 664 sys sys 1211922643 30457
-sys/src/9/pc/ether82563.c - 664 sys sys 1213016020 37776
+sys/src/9/pc/ether82563.c - 664 sys sys 1223767244 39197
 sys/src/9/pc/ether82598.c - 664 sys sys 1203982856 18364
 sys/src/9/pc/ether83815.c - 664 sys sys 1172259521 26346
 sys/src/9/pc/ether8390.c - 664 sys sys 1131290377 17702
@@ -8295,8 +8295,8 @@ sys/src/9/port/mkrootall - 775 sys sys 1191430540 453
 sys/src/9/port/mkrootc - 775 sys sys 1055954695 717
 sys/src/9/port/mksystab - 664 sys sys 1014931176 783
 sys/src/9/port/mul64fract.c - 664 sys sys 1071671674 867
-sys/src/9/port/netif.c - 664 sys sys 1178831077 13474
-sys/src/9/port/netif.h - 664 sys sys 1187735815 3059
+sys/src/9/port/netif.c - 664 sys sys 1223761957 13480
+sys/src/9/port/netif.h - 664 sys sys 1223761957 3065
 sys/src/9/port/page.c - 664 sys sys 1218341935 11124
 sys/src/9/port/parse.c - 664 sys sys 1014931177 2026
 sys/src/9/port/pgrp.c - 664 sys sys 1210369414 5000
