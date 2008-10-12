@@ -213,9 +213,9 @@ netifread(Netif *nif, Chan *c, void *a, long n, ulong offset)
 		return readnum(offset, a, n, NETID(c->qid.path), NUMSIZE);
 	case Nstatqid:
 		p = malloc(READSTR);
-		j = snprint(p, READSTR, "in: %d\n", nif->inpackets);
+		j = snprint(p, READSTR, "in: %llud\n", nif->inpackets);
 		j += snprint(p+j, READSTR-j, "link: %d\n", nif->link);
-		j += snprint(p+j, READSTR-j, "out: %d\n", nif->outpackets);
+		j += snprint(p+j, READSTR-j, "out: %llud\n", nif->outpackets);
 		j += snprint(p+j, READSTR-j, "crc errs: %d\n", nif->crcs);
 		j += snprint(p+j, READSTR-j, "overflows: %d\n", nif->overflows);
 		j += snprint(p+j, READSTR-j, "soft overflows: %d\n", nif->soverflows);

@@ -1,5 +1,12 @@
 /*
- * Intel 8256[36], 8257[12], 82573[ev] Gigabit Ethernet PCI-Express Controllers
+ * Intel Gigabit Ethernet PCI-Express Controllers.
+ *	8256[36], 8257[12], 82573[ev]
+ *	82575eb
+ * Pretty basic, does not use many of the chip smarts.
+ * The interrupt mitigation tuning for each chip variant
+ * is probably different. The reset/initialisation
+ * sequence needs straightened out. Doubt the PHY code
+ * for the 82575eb is right.
  */
 #include "u.h"
 #include "../port/lib.h"
@@ -31,7 +38,7 @@ enum {
 	Fcal		= 0x0028,	/* Flow Control Address Low */
 	Fcah		= 0x002C,	/* Flow Control Address High */
 	Fct		= 0x0030,	/* Flow Control Type */
-	Kumctrlsta	= 0x0034,	/* Kumeran Controll and Status Register */
+	Kumctrlsta	= 0x0034,	/* MAC-PHY Interface */
 	Vet		= 0x0038,	/* VLAN EtherType */
 	Fcttv		= 0x0170,	/* Flow Control Transmit Timer Value */
 	Txcw		= 0x0178,	/* Transmit Configuration Word */
@@ -236,7 +243,7 @@ enum {					/* Txcw */
 	TxcwRfiMASK	= 0x00003000,	/* Remote Fault Indication */
 	TxcwRfiSHIFT	= 12,
 	TxcwNpr		= 0x00008000,	/* Next Page Request */
-	TxcwConfig	= 0x40000000,	/* Transmit COnfig Control */
+	TxcwConfig	= 0x40000000,	/* Transmit Config Control */
 	TxcwAne		= 0x80000000,	/* Auto-Negotiation Enable */
 };
 
@@ -265,7 +272,7 @@ enum {					/* Rctl */
 	Bsize1024	= 0x00010000,
 	Bsize512	= 0x00020000,
 	Bsize256	= 0x00030000,
-	BsizeFlex	= 0x08000000,	/* Flexable Bsize in 1kb increments */
+	BsizeFlex	= 0x08000000,	/* Flexible Bsize in 1KB increments */
 	Vfe		= 0x00040000,	/* VLAN Filter Enable */
 	Cfien		= 0x00080000,	/* Canonical Form Indicator Enable */
 	Cfi		= 0x00100000,	/* Canonical Form Indicator value */
@@ -298,6 +305,7 @@ enum {					/* [RT]xdctl */
 	WthreshMASK	= 0x003F0000,	/* Writeback Threshold */
 	WthreshSHIFT	= 16,
 	Gran		= 0x01000000,	/* Granularity */
+	Qenable		= 0x02000000,	/* Queue Enable (82575) */
 };
 
 enum {					/* Rxcsum */
@@ -314,12 +322,12 @@ enum {					/* Receive Delay Timer Ring */
 };
 
 typedef struct Rd {			/* Receive Descriptor */
-	uint	addr[2];
-	ushort	length;
-	ushort	checksum;
-	uchar	status;
-	uchar	errors;
-	ushort	special;
+	u32int	addr[2];
+	u16int	length;
+	u16int	checksum;
+	u8int	status;
+	u8int	errors;
+	u16int	special;
 } Rd;
 
 enum {					/* Rd status */
@@ -343,9 +351,9 @@ enum {					/* Rd errors */
 };
 
 typedef struct {			/* Transmit Descriptor */
-	uint	addr[2];		/* Data */
-	uint	control;
-	uint	status;
+	u32int	addr[2];		/* Data */
+	u32int	control;
+	u32int	status;
 } Td;
 
 enum {					/* Tdesc control */
@@ -375,8 +383,8 @@ enum {					/* Tdesc status */
 };
 
 typedef struct {
-	ushort	*reg;
-	ulong	*reg32;
+	u16int	*reg;
+	u32int	*reg32;
 	int	sz;
 } Flash;
 
@@ -414,6 +422,7 @@ enum {
 	i82571,
 	i82572,
 	i82573,
+	i82575,
 };
 
 static int rbtab[] = {
@@ -423,6 +432,7 @@ static int rbtab[] = {
 	9234,
 	9234,
 	8192,				/* terrible performance above 8k */
+	1514,
 };
 
 static char *tname[] = {
@@ -432,6 +442,7 @@ static char *tname[] = {
 	"i82571",
 	"i82572",
 	"i82573",
+	"i82575",
 };
 
 typedef struct Ctlr Ctlr;
@@ -440,12 +451,11 @@ struct Ctlr {
 	Pcidev	*pcidev;
 	Ctlr	*next;
 	int	active;
-	int	started;
 	int	type;
 	ushort	eeprom[0x40];
 
 	QLock	alock;			/* attach */
-	void	*alloc;			/* receive/transmit descriptors */
+	int	attached;
 	int	nrd;
 	int	ntd;
 	int	nrb;			/* how many this Ctlr has in the pool */
@@ -768,7 +778,7 @@ i82563rballoc(void)
 	if((bp = i82563rbpool) != nil){
 		i82563rbpool = bp->next;
 		bp->next = nil;
-		_xinc(&bp->ref);
+		_xinc(&bp->ref);	/* prevent bp from being freed */
 	}
 	iunlock(&i82563rblock);
 
@@ -818,8 +828,10 @@ i82563txinit(Ctlr* ctlr)
 	}
 	csr32w(ctlr, Tidv, 128);
 	r = csr32r(ctlr, Txdctl);
-	r &= ~WthreshMASK;
+	r &= ~(WthreshMASK|PthreshSHIFT);
 	r |= 4<<WthreshSHIFT | 4<<PthreshSHIFT;
+	if(ctlr->type == i82575)
+		r |= Qenable;
 	csr32w(ctlr, Tadv, 64);
 	csr32w(ctlr, Txdctl, r);
 	r = csr32r(ctlr, Tctl);
@@ -929,20 +941,33 @@ i82563replenish(Ctlr* ctlr)
 static void
 i82563rxinit(Ctlr* ctlr)
 {
-	int i;
 	Block *bp;
+	int i, r, rctl;
 
 	if(ctlr->rbsz <= 2048)
-		csr32w(ctlr, Rctl, Dpf|Bsize2048|Bam|RdtmsHALF);
+		rctl = Dpf|Bsize2048|Bam|RdtmsHALF;
 	else if(ctlr->rbsz <= 8192)
-		csr32w(ctlr, Rctl, Lpe|Dpf|Bsize8192|Bsex|Bam|RdtmsHALF|Secrc);
+		rctl = Lpe|Dpf|Bsize8192|Bsex|Bam|RdtmsHALF|Secrc;
 	else if(ctlr->rbsz <= 12*1024){
 		i = ctlr->rbsz / 1024;
 		if(ctlr->rbsz % 1024)
 			i++;
-		csr32w(ctlr, Rctl, Lpe|Dpf|BsizeFlex*i|Bam|RdtmsHALF|Secrc);
-	}else
-		csr32w(ctlr, Rctl, Lpe|Dpf|Bsize16384|Bsex|Bam|RdtmsHALF|Secrc);
+		rctl = Lpe|Dpf|BsizeFlex*i|Bam|RdtmsHALF|Secrc;
+	}
+	else
+		rctl = Lpe|Dpf|Bsize16384|Bsex|Bam|RdtmsHALF|Secrc;
+
+	if(ctlr->type == i82575){
+		/*
+		 * Setting Qenable in Rxdctl does not
+		 * appear to stick unless Ren is on.
+		 */
+		csr32w(ctlr, Rctl, Ren|rctl);
+		r = csr32r(ctlr, Rxdctl);
+		r |= Qenable;
+		csr32w(ctlr, Rxdctl, r);
+	}
+	csr32w(ctlr, Rctl, rctl);
 
 	if(ctlr->type == i82573)
 		csr32w(ctlr, Ert, 1024/8);
@@ -962,13 +987,24 @@ i82563rxinit(Ctlr* ctlr)
 	csr32w(ctlr, Rdtr, ctlr->rdtr);
 	csr32w(ctlr, Radv, ctlr->radv);
 
-	for(i = 0; i < ctlr->nrd; i++)
+	for(i = 0; i < ctlr->nrd; i++){
 		if((bp = ctlr->rb[i]) != nil){
 			ctlr->rb[i] = nil;
 			freeb(bp);
 		}
+	}
 	i82563replenish(ctlr);
-	csr32w(ctlr, Rxdctl, 2<<WthreshSHIFT | 2<<PthreshSHIFT);
+
+	if(ctlr->type != i82575){
+		/*
+		 * See comment above for Qenable.
+		 * Could shuffle the code?
+		 */
+		r = csr32r(ctlr, Rxdctl);
+		r &= ~(WthreshSHIFT|PthreshSHIFT);
+		r |= (2<<WthreshSHIFT)|(2<<PthreshSHIFT);
+		csr32w(ctlr, Rxdctl, r);
+	}
 
 	/*
 	 * Enable checksum offload.
@@ -1178,23 +1214,13 @@ i82563attach(Ether* edev)
 
 	ctlr = edev->ctlr;
 	qlock(&ctlr->alock);
-	if(ctlr->alloc != nil){
+	if(ctlr->attached){
 		qunlock(&ctlr->alock);
 		return;
 	}
 
 	ctlr->nrd = Nrd;
 	ctlr->ntd = Ntd;
-	ctlr->alloc = malloc(ctlr->nrd*sizeof(Rd)+ctlr->ntd*sizeof(Td) + 255);
-	if(ctlr->alloc == nil){
-		qunlock(&ctlr->alock);
-		return;
-	}
-	ctlr->rdba = (Rd*)ROUNDUP((uintptr)ctlr->alloc, 256);
-	ctlr->tdba = (Td*)(ctlr->rdba + ctlr->nrd);
-
-	ctlr->rb = malloc(ctlr->nrd * sizeof(Block*));
-	ctlr->tb = malloc(ctlr->ntd * sizeof(Block*));
 
 	if(waserror()){
 		while(ctlr->nrb > 0){
@@ -1207,11 +1233,22 @@ i82563attach(Ether* edev)
 		ctlr->tb = nil;
 		free(ctlr->rb);
 		ctlr->rb = nil;
-		free(ctlr->alloc);
-		ctlr->alloc = nil;
+		free(ctlr->tdba);
+		ctlr->tdba = nil;
+		free(ctlr->rdba);
+		ctlr->rdba = nil;
 		qunlock(&ctlr->alock);
 		nexterror();
 	}
+
+	if((ctlr->rdba = mallocalign(ctlr->nrd*sizeof(Rd), 128, 0, 0)) == nil)
+		error(Enomem);
+	if((ctlr->tdba = mallocalign(ctlr->ntd*sizeof(Td), 128, 0, 0)) == nil)
+		error(Enomem);
+	if((ctlr->rb = malloc(ctlr->nrd*sizeof(Block*))) == nil)
+		error(Enomem);
+	if((ctlr->tb = malloc(ctlr->ntd*sizeof(Block*))) == nil)
+		error(Enomem);
 
 	for(ctlr->nrb = 0; ctlr->nrb < Nrb; ctlr->nrb++){
 		if((bp = allocb(ctlr->rbsz + BY2PG)) == nil)
@@ -1219,6 +1256,8 @@ i82563attach(Ether* edev)
 		bp->free = i82563rbfree;
 		freeb(bp);
 	}
+
+	ctlr->attached = 1;
 
 	snprint(name, sizeof name, "#l%dl", edev->ctlrno);
 	kproc(name, i82563lproc, edev);
@@ -1249,7 +1288,7 @@ i82563interrupt(Ureg*, void* arg)
 	csr32w(ctlr, Imc, ~0);
 	im = ctlr->im;
 
-	while(icr = csr32r(ctlr, Icr) & ctlr->im){
+	for(icr = csr32r(ctlr, Icr); icr & ctlr->im; icr = csr32r(ctlr, Icr)){
 		if(icr & Lsc){
 			im &= ~Lsc;
 			ctlr->lim = icr & Lsc;
@@ -1279,18 +1318,6 @@ i82563detach(Ctlr* ctlr)
 {
 	int r, timeo;
 
-	/* balance rx/tx packet buffer */
-	if(ctlr->rbsz > 8192 && (ctlr->type == i82563 || ctlr->type == i82571 ||
-	    ctlr->type == i82572)){
-		ctlr->pba = csr32r(ctlr, Pba);
-		r = ctlr->pba >> 16;
-		r += ctlr->pba & 0xffff;
-		r >>= 1;
-		csr32w(ctlr, Pba, r);
-	} else if(ctlr->type == i82573 && ctlr->rbsz > 1514)
-		csr32w(ctlr, Pba, 14);
-	ctlr->pba = csr32r(ctlr, Pba);
-
 	/*
 	 * Perform a device reset to get the chip back to the
 	 * power-on state, followed by an EEPROM reset to read
@@ -1315,9 +1342,6 @@ i82563detach(Ctlr* ctlr)
 	if(csr32r(ctlr, Ctrl) & Devrst)
 		return -1;
 
-	r = csr32r(ctlr, Ctrl);
-	csr32w(ctlr, Ctrl, Slu|r);
-
 	r = csr32r(ctlr, Ctrlext);
 	csr32w(ctlr, Ctrlext, r|Eerst);
 	delay(1);
@@ -1338,6 +1362,26 @@ i82563detach(Ctlr* ctlr)
 	}
 	if(csr32r(ctlr, Icr))
 		return -1;
+
+	/*
+	 * Balance Rx/Tx packet buffer.
+	 * No need to set PBA register unless using jumbo, defaults to 32KB
+	 * for receive. If it is changed, then have to do a MAC reset,
+	 * and need to do that at the the right time as it will wipe stuff.
+	 */
+	if(ctlr->rbsz > 8192 && (ctlr->type == i82563 || ctlr->type == i82571 ||
+	    ctlr->type == i82572)){
+		ctlr->pba = csr32r(ctlr, Pba);
+		r = ctlr->pba >> 16;
+		r += ctlr->pba & 0xffff;
+		r >>= 1;
+		csr32w(ctlr, Pba, r);
+	} else if(ctlr->type == i82573 && ctlr->rbsz > 1514)
+		csr32w(ctlr, Pba, 14);
+	ctlr->pba = csr32r(ctlr, Pba);
+
+	r = csr32r(ctlr, Ctrl);
+	csr32w(ctlr, Ctrl, Slu|r);
 
 	return 0;
 }
@@ -1426,7 +1470,7 @@ fload(Ctlr *c)
 	f.reg = vmap(io, c->pcidev->mem[1].size);
 	if(f.reg == nil)
 		return -1;
-	f.reg32 = (ulong*)f.reg;
+	f.reg32 = (void*)f.reg;
 	f.sz = f.reg32[Bfpr];
 	r = f.sz & 0x1fff;
 	if(csr32r(c, Eec) & (1<<22))
@@ -1480,10 +1524,18 @@ i82563reset(Ctlr *ctlr)
 	memset(ctlr->mta, 0, sizeof(ctlr->mta));
 	for(i = 0; i < 128; i++)
 		csr32w(ctlr, Mta + i*4, 0);
+
+	/*
+	 * Does autonegotiation affect this manual setting?
+	 * The correct values here should depend on the PBA value
+	 * and maximum frame length, no?
+	 * ctlr->fcrt[lh] are never set, so default to 0.
+	 */
 	csr32w(ctlr, Fcal, 0x00C28001);
 	csr32w(ctlr, Fcah, 0x0100);
 	csr32w(ctlr, Fct, 0x8808);
 	csr32w(ctlr, Fcttv, 0x0100);
+
 	csr32w(ctlr, Fcrtl, ctlr->fcrtl);
 	csr32w(ctlr, Fcrth, ctlr->fcrth);
 
@@ -1525,6 +1577,9 @@ i82563pci(void)
 		case 0x108c:		/*  e (iamt) */
 		case 0x109a:		/*  l */
 			type = i82573;
+			break;
+		case 0x10a7:		/* 82575eb */
+			type = i82575;
 			break;
 		}
 
@@ -1645,6 +1700,12 @@ i82573pnp(Ether *e)
 	return pnp(e, i82573);
 }
 
+static int
+i82575pnp(Ether *e)
+{
+	return pnp(e, i82575);
+}
+
 void
 ether82563link(void)
 {
@@ -1654,5 +1715,6 @@ ether82563link(void)
 	addethercard("i82571", i82571pnp);
 	addethercard("i82572", i82572pnp);
 	addethercard("i82573", i82573pnp);
+	addethercard("i82575", i82575pnp);
 	addethercard("igbepcie", anypnp);
 }
