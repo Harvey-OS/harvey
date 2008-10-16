@@ -29,6 +29,8 @@ typedef struct Cons {
 	Q*	oq;		/* points to console.oq */
 } Cons;
 
+char *currfsysname;
+
 static struct {
 	Q*	iq;		/* input */
 	Q*	oq;		/* output */
@@ -227,8 +229,10 @@ consProc(void*)
 	Q *q;
 	int argc, i, n, r;
 	char *argv[20], buf[Nq], *lp, *wbuf;
+	char procname[64];
 
-	vtThreadSetName("cons");
+	snprint(procname, sizeof procname, "cons %s", currfsysname);
+	vtThreadSetName(procname);
 
 	q = console.iq;
 	qWrite(console.oq, console.prompt, console.np);

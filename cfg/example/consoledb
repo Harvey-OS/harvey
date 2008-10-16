@@ -1,0 +1,9 @@
+group=sys
+	uid=bootes
+	uid=gre
+console=fs dev=/srv/fscons.main
+	gid=sys
+console=other dev=/srv/fscons.other
+	gid=sys
+console=stand dev=/srv/fscons.stand
+	gid=sys

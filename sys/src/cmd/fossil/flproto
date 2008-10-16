@@ -4,8 +4,8 @@
 fsys main config /tmp/fossil
 fsys main open
 fsys main 
-uname rsc :rsc
-uname sys +rsc
+uname geoff :geoff
+uname sys +geoff
 uname jmk :jmk
 uname sys +jmk
 srv -p test.fscons

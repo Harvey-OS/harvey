@@ -77,7 +77,8 @@ freeblist(Block *b)
 
 	for(; b != 0; b = next){
 		next = b->next;
-		b->next = 0;
+		if(b->ref == 1)
+			b->next = nil;
 		freeb(b);
 	}
 }
@@ -99,7 +100,7 @@ padblock(Block *bp, int size)
 		}
 
 		if(bp->next)
-			panic("padblock 0x%luX", getcallerpc(&bp));
+			panic("padblock %#p", getcallerpc(&bp));
 		n = BLEN(bp);
 		padblockcnt++;
 		nbp = allocb(size+n);
@@ -113,7 +114,7 @@ padblock(Block *bp, int size)
 		size = -size;
 
 		if(bp->next)
-			panic("padblock 0x%luX", getcallerpc(&bp));
+			panic("padblock %#p", getcallerpc(&bp));
 
 		if(bp->lim - bp->wp >= size)
 			return bp;
@@ -228,7 +229,7 @@ pullupblock(Block *bp, int n)
 		} else {
 			/* shouldn't happen but why crash if it does */
 			if(i < 0){
-				print("pullup negative length packet, called from 0x%p\n",
+				print("pullup negative length packet, called from %#p\n",
 					getcallerpc(&bp));
 				i = 0;
 			}
@@ -1273,7 +1274,7 @@ qwrite(Queue *q, void *vp, int len)
 	uchar *p = vp;
 
 	QDEBUG if(!islo())
-		print("qwrite hi %lux\n", getcallerpc(&q));
+		print("qwrite hi %#p\n", getcallerpc(&q));
 
 	sofar = 0;
 	do {

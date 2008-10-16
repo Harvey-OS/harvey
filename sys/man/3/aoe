@@ -174,7 +174,7 @@ Number of outstanding AoE frames.
 Maximum number of outstanding frames allowed.
 .TP
 .B nframes
-Maximum number of outstand frames.
+Maximum number of outstanding frames.
 .I Nframes
 is greater than
 .I nmaxout

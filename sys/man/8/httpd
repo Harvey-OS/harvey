@@ -118,8 +118,10 @@ of a file are determined by looking for suffixes of the file name in
 .PP
 Each requested URI is looked up in a redirection table, read from
 .BR /sys/lib/httpd.rewrite .
+The first field of each line is a URI;
+the second a replacement path.
 If a prefix of the URI matches a redirection path,
-the URI is rewritten using a replacement path,
+the URI is rewritten using the corresponding replacement path,
 and a redirect is sent to the HTTP client.
 If the replacement path does not specify a server name,
 and the request has no explicit host,
@@ -282,7 +284,7 @@ If a listing for a directory is requested and access
 is denied, or another error occurs, a simple error
 page is returned.
 .SH FILES
-.TF /lib/namespace.httpd
+.TF /sys/lib/httpd.rewrite
 .TP
 .B /sys/lib/mimetype
 content type description file
@@ -294,7 +296,8 @@ default namespace file for httpd
 redirection file
 .TP
 .B /sys/lib/webls.allowed
-regular expressions describing explicitly listable pathnames; overrides webls.denied
+regular expressions describing explicitly listable pathnames; overrides
+.B webls.denied
 .TP
 .B /sys/lib/webls.denied
 regular expressions describing explicitly unlistable pathnames

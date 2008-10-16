@@ -148,6 +148,7 @@ initarenapart(Part *part)
 
 	ap->arenas = MKNZ(Arena*, ap->narenas);
 	for(i = 0; i < ap->narenas; i++){
+		debugarena = i;
 		ap->arenas[i] = initarena(part, ap->map[i].start, ap->map[i].stop - ap->map[i].start, ap->blocksize);
 		if(ap->arenas[i] == nil){
 			seterr(ECorrupt, "%s: %r", ap->map[i].name);
@@ -168,8 +169,11 @@ initarenapart(Part *part)
 		}
 	}
 
-	for(i = 0; i < ap->narenas; i++)
+	for(i = 0; i < ap->narenas; i++) {
+		debugarena = i;
 		addarena(ap->arenas[i]);
+	}
+	debugarena = -1;
 
 	return ap;
 }

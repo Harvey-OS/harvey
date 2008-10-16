@@ -3,6 +3,7 @@
 #include <signal.h>
 #endif
 #include "stdinc.h"
+#include <bio.h>
 #include "dat.h"
 #include "fns.h"
 
@@ -15,22 +16,63 @@ VtSrv *ventisrv;
 
 static void	ventiserver(void*);
 
+static ulong
+freemem(void)
+{
+	int nf, pgsize = 0;
+	uvlong size, userpgs = 0, userused = 0;
+	char *ln, *sl;
+	char *fields[2];
+	Biobuf *bp;
+
+	size = 64*1024*1024;
+	bp = Bopen("#c/swap", OREAD);
+	if (bp != nil) {
+		while ((ln = Brdline(bp, '\n')) != nil) {
+			ln[Blinelen(bp)-1] = '\0';
+			nf = tokenize(ln, fields, nelem(fields));
+			if (nf != 2)
+				continue;
+			if (strcmp(fields[1], "pagesize") == 0)
+				pgsize = atoi(fields[0]);
+			else if (strcmp(fields[1], "user") == 0) {
+				sl = strchr(fields[0], '/');
+				if (sl == nil)
+					continue;
+				userpgs = atoll(sl+1);
+				userused = atoll(fields[0]);
+			}
+		}
+		Bterm(bp);
+		if (pgsize > 0 && userpgs > 0)
+			size = (userpgs - userused) * pgsize;
+	}
+	/* cap it to keep the size within 32 bits */
+	if (size >= 3840UL * 1024 * 1024)
+		size = 3840UL * 1024 * 1024;
+	return size;
+}
+
 void
 usage(void)
 {
 	fprint(2, "usage: venti [-Ldrsw] [-a ventiaddr] [-c config] "
-"[-h httpaddr] [-B blockcachesize] [-C cachesize] [-I icachesize] [-W webroot]\n");
+"[-h httpaddr] [-m %%] [-B blockcachesize] [-C cachesize] [-I icachesize] "
+"[-W webroot]\n");
 	threadexitsall("usage");
 }
+
 void
 threadmain(int argc, char *argv[])
 {
 	char *configfile, *haddr, *vaddr, *webroot;
-	u32int mem, icmem, bcmem, minbcmem;
+	u32int mem, icmem, bcmem, minbcmem, mempcnt, stfree, aftblmfree, avail;
+	vlong blmsize;
 	Config config;
 
 	traceinit();
 	threadsetname("main");
+	mempcnt = 0;
 	vaddr = nil;
 	haddr = nil;
 	configfile = nil;
@@ -38,6 +80,7 @@ threadmain(int argc, char *argv[])
 	mem = 0;
 	icmem = 0;
 	bcmem = 0;
+	stfree = 0;
 	ARGBEGIN{
 	case 'a':
 		vaddr = EARGF(usage());
@@ -60,6 +103,11 @@ threadmain(int argc, char *argv[])
 		break;
 	case 'h':
 		haddr = EARGF(usage());
+		break;
+	case 'm':
+		mempcnt = atoi(EARGF(usage()));
+		if (mempcnt <= 0 || mempcnt >= 100)
+			usage();
 		break;
 	case 'I':
 		icmem = unittoull(EARGF(usage()));
@@ -106,11 +154,45 @@ threadmain(int argc, char *argv[])
 	if(configfile == nil)
 		configfile = "venti.conf";
 
+	/* automatic memory sizing? */
+	if(mempcnt > 0)
+		stfree = freemem();
 	fprint(2, "conf...");
 	if(initventi(configfile, &config) < 0)
 		sysfatal("can't init server: %r");
 	if(mainindex->bloom && loadbloom(mainindex->bloom) < 0)
 		sysfatal("can't load bloom filter: %r");
+
+	/* automatic memory sizing per venti(8) guidelines? */
+	if(mempcnt > 0) {
+		mem = bcmem = icmem = 0;
+		aftblmfree = freemem();
+		blmsize = stfree - aftblmfree;
+		if (blmsize <= 0)
+			blmsize = 0;
+		avail = ((vlong)stfree * mempcnt) / 100 - blmsize;
+		if (avail <= (1 + 2 + 6) * 1024 * 1024)
+			fprint(2, "bloom filter bigger than mem pcnt; "
+				"resorting to minimum values (9MB total)\n");
+		else {
+			if (avail >= 3840UL * 1024 * 1024)
+				avail = 3840UL * 1024 * 1024;	/* sanity */
+			avail /= 2;
+			icmem = avail;
+			avail /= 3;
+			mem = avail;
+			bcmem = 2 * avail;
+		}
+		if (icmem < 6 * 1024 * 1024)
+			icmem = 6 * 1024 * 1024;
+		if (mem < 1 * 1024 * 1024)		/* lumps */
+			mem = 1 * 1024 * 1024;
+		if (bcmem < 2 * 1024 * 1024)
+			bcmem = 2 * 1024 * 1024;
+		config.mem = mem;
+		config.bcmem = bcmem;
+		config.icmem = icmem;
+	}
 
 	if(mem == 0)
 		mem = config.mem;
@@ -118,6 +200,8 @@ threadmain(int argc, char *argv[])
 		bcmem = config.bcmem;
 	if(icmem == 0)
 		icmem = config.icmem;
+//	fprint(2, "mem %d bcmem %d icmem %d...", mem, bcmem, icmem);
+
 	if(haddr == nil)
 		haddr = config.haddr;
 	if(vaddr == nil)
@@ -128,7 +212,6 @@ threadmain(int argc, char *argv[])
 		webroot = config.webroot;
 	if(queuewrites == 0)
 		queuewrites = config.queuewrites;
-
 	if(haddr){
 		fprint(2, "httpd %s...", haddr);
 		if(httpdinit(haddr, webroot) < 0)

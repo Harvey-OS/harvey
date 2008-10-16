@@ -874,7 +874,7 @@ atapktio(Drive* drive, uchar* cmd, int clen)
 
 	qlock(ctlr);
 
-	as = ataready(cmdport, ctlport, drive->dev, Bsy|Drq, 0, 107*1000);
+	as = ataready(cmdport, ctlport, drive->dev, Bsy|Drq, Drdy, 107*1000);
 	if(as < 0 || (as&Chk)){
 		qunlock(ctlr);
 		return -1;
@@ -969,7 +969,7 @@ atageniostart(Drive* drive, vlong lba)
 	ctlr = drive->ctlr;
 	cmdport = ctlr->cmdport;
 	ctlport = ctlr->ctlport;
-	if(ataready(cmdport, ctlport, drive->dev, Bsy|Drq, 0, 101*1000) < 0)
+	if(ataready(cmdport, ctlport, drive->dev, Bsy|Drq, Drdy, 101*1000) < 0)
 		return -1;
 
 	ilock(ctlr);
@@ -1515,8 +1515,10 @@ atapnp(void)
 		case (0x01BC<<16)|0x10DE:	/* nVidia nForce1 */
 		case (0x0065<<16)|0x10DE:	/* nVidia nForce2 */
 		case (0x0085<<16)|0x10DE:	/* nVidia nForce2 MCP */
+		case (0x00E3<<16)|0x10DE:	/* nVidia nForce2 250 SATA */
 		case (0x00D5<<16)|0x10DE:	/* nVidia nForce3 */
 		case (0x00E5<<16)|0x10DE:	/* nVidia nForce3 Pro */
+		case (0x00EE<<16)|0x10DE:	/* nVidia nForce3 250 SATA */
 		case (0x0035<<16)|0x10DE:	/* nVidia nForce3 MCP */
 		case (0x0053<<16)|0x10DE:	/* nVidia nForce4 */
 		case (0x0054<<16)|0x10DE:	/* nVidia nForce4 SATA */

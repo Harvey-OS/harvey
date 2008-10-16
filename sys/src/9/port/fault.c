@@ -11,7 +11,10 @@ fault(ulong addr, int read)
 	Segment *s;
 	char *sps;
 
-if(up->nlocks.ref) print("fault nlocks %ld\n", up->nlocks.ref);
+	if(up == nil)
+		panic("fault: nil up");
+	if(up->nlocks.ref)
+		print("fault: nlocks %ld\n", up->nlocks.ref);
 
 	sps = up->psstate;
 	up->psstate = "Fault";

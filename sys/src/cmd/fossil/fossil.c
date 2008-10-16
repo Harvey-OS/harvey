@@ -4,16 +4,13 @@
 #include "9.h"
 
 int Dflag;
+int mempcnt;			/* for 9fsys.c */
 char* none = "none";
 
 static void
 usage(void)
 {
-	fprint(2, "usage: %s"
-		" [-Dt]"
-		" [-c cmd]"
-		" [-f partition]\n"
-		, argv0);
+	fprint(2, "usage: %s [-Dt] [-c cmd] [-f partition] [-m %%]\n", argv0);
 	exits("usage");
 }
 
@@ -93,17 +90,24 @@ main(int argc, char* argv[])
 	default:
 		usage();
 		break;
+	case 'c':
+		p = EARGF(usage());
+		currfsysname = p;
+		cmd = vtMemRealloc(cmd, (ncmd+1)*sizeof(char*));
+		cmd[ncmd++] = p;
+		break;
 	case 'D':
 		Dflag ^= 1;
 		break;
 	case 'f':
 		p = EARGF(usage());
+		currfsysname = p;
 		readCmdPart(p, &cmd, &ncmd);
 		break;
-	case 'c':
-		p = EARGF(usage());
-		cmd = vtMemRealloc(cmd, (ncmd+1)*sizeof(char*));
-		cmd[ncmd++] = p;
+	case 'm':
+		mempcnt = atoi(EARGF(usage()));
+		if(mempcnt <= 0 || mempcnt >= 100)
+			usage();
 		break;
 	case 't':
 		tflag = 1;

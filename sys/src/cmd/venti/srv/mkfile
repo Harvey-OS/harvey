@@ -64,6 +64,7 @@ TARG=\
 	fmtisect\
 	mirrorarenas\
 	printarena\
+	printarenapart\
 	rdarena\
 	syncindex\
 	verifyarena\
