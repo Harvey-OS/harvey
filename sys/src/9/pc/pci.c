@@ -659,6 +659,7 @@ static Bridge southbridges[] = {
 	{ 0x1022, 0x746B, nil, nil },		/* AMD 8111 */
 	{ 0x10DE, 0x00D1, nil, nil },		/* NVIDIA nForce 3 */
 	{ 0x10DE, 0x00E0, nil, nil },		/* NVIDIA nForce 3 250 Series */
+	{ 0x10DE, 0x00E1, nil, nil },		/* NVIDIA nForce 3 250 Series */
 	{ 0x1166, 0x0200, nil, nil },		/* ServerWorks ServerSet III LE */
 	{ 0x1002, 0x4377, nil, nil },		/* ATI Radeon Xpress 200M */
 	{ 0x1002, 0x4372, nil, nil },		/* ATI SB400 */

@@ -744,6 +744,7 @@ extern	int		l1quantum;
 extern	int		ignorebloom;
 extern	int		icacheprefetch;
 extern	int		syncwrites;
+extern	int		debugarena; /* print in arena error msgs; -1==unknown */
 
 extern	Stats	*stathist;
 extern	int	nstathist;

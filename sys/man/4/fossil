@@ -14,6 +14,10 @@ fossil \- archival file server
 .B -f
 .I file
 ]
+[
+.B -m
+.I free-memory%
+]
 .PP
 .B fossil/flchk
 [
@@ -64,7 +68,7 @@ fossil \- archival file server
 .I file
 .SH DESCRIPTION
 .I Fossil
-will become the main file system for Plan 9.
+is the main file system for Plan 9.
 Unlike the Plan 9 file servers of old,
 .I fossil
 is a collection of user-space programs that run on a standard Plan 9 kernel.
@@ -242,6 +246,16 @@ Read and execute console commands stored in the Fossil disk
 .I Conf
 .RI ( q.v. )
 reads and writes the command set stored in the disk.
+.TP
+.B -m
+Allocate
+.I free-memory%
+percent of the available free RAM for buffers.
+This overrides all other memory sizing parameters,
+notably the
+.B -c
+option to
+.BR open .
 .PD
 .PP
 .I Flchk
@@ -474,7 +488,7 @@ command to prepare the script.
 .IR fossilcons (8),
 .IR venti (8)
 .SH BUGS
-It is likely that the disk format (but not the Venti format)
+It is possible that the disk format (but not the Venti format)
 will change in the future, to make the disk a full cache
 rather than just a write buffer.
 Changing to the new format will require reformatting
@@ -483,3 +497,7 @@ but note that this will preserve most of the file system
 (all but
 .BR /snapshot )
 with little effort.
+.PP
+The
+.B -m
+option currently assumes a block size of 8K bytes.

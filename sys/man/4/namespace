@@ -265,6 +265,16 @@ Directory of tools for
 .B /cron
 Directory of files for
 .IR cron (8).
+.TP
+.BI /cfg/ system
+.IR System -specific
+files, often addenda to their namesakes,
+notably
+.BR cpurc ,
+.BR termrc ,
+.BR namespace ,
+and
+.BR consoledb .
 .PD
 .PP
 The following files and directories are modified in the standard

@@ -33,11 +33,15 @@ venti \- archival storage server
 .I indexcachesize
 ]
 [
+.B -m
+.I free-memory%
+]
+[
 .B -W
 .I webroot
 ]
 .SH DESCRIPTION
-Venti
+.I Venti
 is a SHA1-addressed archival storage server.
 See 
 .IR venti (6)
@@ -228,6 +232,8 @@ and one serving HTTP
 .PP
 The venti web server provides the following 
 URLs for accessing status information:
+.TF "\fL/storage"
+.PD
 .TP
 .B /index
 A summary of the usage of the arenas and index sections.
@@ -318,6 +324,8 @@ The configuration file consists of lines in the form described below.
 Lines starting with
 .B #
 are comments.
+.TF "\fLindex\fI name "
+.PD
 .TP
 .BI index " name
 Names the index for the system.
@@ -351,7 +359,7 @@ flag to update the index.
 The configuration file also holds configuration parameters
 for the venti server itself.
 These are:
-.TF httpaddr netaddr
+.TF "\fLhttpaddr\fI netaddr "
 .TP
 .BI mem " size
 lump cache size
@@ -416,6 +424,8 @@ can be specified in the configuration file.
 The command line options override those found in a
 configuration file.
 Additional options are:
+.TF "\fL-c\fI config"
+.PD
 .TP
 .BI -c " config
 The server configuration file
@@ -430,6 +440,17 @@ Implies
 .B -L
 Enable logging.  By default all logging is disabled.
 Logging slows server operation considerably.
+.TP
+.B -m
+Allocate
+.I free-memory%
+percent of the available free RAM, and partition it
+per the guidelines in the
+.B Memory
+subsection.
+This percentage should be large enough to include the entire bloom filter.
+This overrides all other memory sizing parameters,
+including those on the command line and in the configuration file.
 .TP
 .B -r
 Allow only read access to the venti data.
@@ -450,13 +471,11 @@ isect /tmp/disks/isect0
 isect /tmp/disks/isect1
 arenas /tmp/disks/arenas
 bloom /tmp/disks/bloom
-mem 10M
-bcmem 20M
-icmem 30M
 % 
 .EE
 .PP
-Format the index sections, the arena partition, and 
+Format the index sections, the arena partition,
+the bloom filter, and 
 finally the main index:
 .IP
 .EX
@@ -490,6 +509,3 @@ Sean Quinlan and Sean Dorward,
 2002.
 .SH BUGS
 Setting up a venti server is too complicated.
-.PP
-Venti should not require the user to decide how to
-partition its memory usage.

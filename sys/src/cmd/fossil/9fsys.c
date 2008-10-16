@@ -1,4 +1,5 @@
 #include "stdinc.h"
+#include <bio.h>
 #include "dat.h"
 #include "fns.h"
 #include "9.h"
@@ -22,6 +23,10 @@ struct Fsys {
 
 	Fsys*	next;
 };
+
+int mempcnt;			/* from fossil.c */
+
+int	fsGetBlockSize(Fs *fs);
 
 static struct {
 	VtLock*	lock;
@@ -1496,13 +1501,50 @@ out:
 	return r;
 }
 
+static ulong
+freemem(void)
+{
+	int nf, pgsize = 0;
+	uvlong size, userpgs = 0, userused = 0;
+	char *ln, *sl;
+	char *fields[2];
+	Biobuf *bp;
+
+	size = 64*1024*1024;
+	bp = Bopen("#c/swap", OREAD);
+	if (bp != nil) {
+		while ((ln = Brdline(bp, '\n')) != nil) {
+			ln[Blinelen(bp)-1] = '\0';
+			nf = tokenize(ln, fields, nelem(fields));
+			if (nf != 2)
+				continue;
+			if (strcmp(fields[1], "pagesize") == 0)
+				pgsize = atoi(fields[0]);
+			else if (strcmp(fields[1], "user") == 0) {
+				sl = strchr(fields[0], '/');
+				if (sl == nil)
+					continue;
+				userpgs = atoll(sl+1);
+				userused = atoll(fields[0]);
+			}
+		}
+		Bterm(bp);
+		if (pgsize > 0 && userpgs > 0)
+			size = (userpgs - userused) * pgsize;
+	}
+	/* cap it to keep the size within 32 bits */
+	if (size >= 3840UL * 1024 * 1024)
+		size = 3840UL * 1024 * 1024;
+	return size;
+}
+
 static int
 fsysOpen(char* name, int argc, char* argv[])
 {
 	char *p, *host;
 	Fsys *fsys;
-	long ncache;
 	int noauth, noventi, noperm, rflag, wstatallow;
+	long ncache;
 	char *usage = "usage: fsys name open [-APVWr] [-c ncache]";
 
 	ncache = 1000;
@@ -1541,6 +1583,14 @@ fsysOpen(char* name, int argc, char* argv[])
 
 	if((fsys = _fsysGet(name)) == nil)
 		return 0;
+
+	/* automatic memory sizing? */
+	if(mempcnt > 0) {
+		/* TODO: 8K is a hack; use the actual block size */
+		ncache = (((vlong)freemem() * mempcnt) / 100) / (8*1024);
+		if (ncache < 100)
+			ncache = 100;
+	}
 
 	vtLock(fsys->lock);
 	if(fsys->fs != nil){
@@ -1794,6 +1844,7 @@ cmdFsys(int argc, char* argv[])
 
 	if(argc == 0){
 		vtRLock(sbox.lock);
+		currfsysname = sbox.head->name;
 		for(fsys = sbox.head; fsys != nil; fsys = fsys->next)
 			consPrint("\t%s\n", fsys->name);
 		vtRUnlock(sbox.lock);

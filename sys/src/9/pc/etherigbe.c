@@ -767,6 +767,7 @@ igberballoc(void)
 	if((bp = igberbpool) != nil){
 		igberbpool = bp->next;
 		bp->next = nil;
+		_xinc(&bp->ref);	/* prevent bp from being freed */
 	}
 	iunlock(&igberblock);
 
