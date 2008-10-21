@@ -327,6 +327,8 @@ changeconf(char *fmt, ...)
 	va_start(arg, fmt);
 	vseprint(buf, buf+sizeof buf, fmt, arg);
 	va_end(arg);
+
+	pref[0] = '\n';
 	strncpy(pref+1, buf, 19);
 	pref[19] = '\0';
 	if(p = strchr(pref, '='))
@@ -335,7 +337,6 @@ changeconf(char *fmt, ...)
 		print("warning: did not change %s in plan9.ini\n", buf);
 
 	/* find old line by looking for \nwhat= */
-	pref[0] = '\n';
 	if(strncmp(BOOTARGS, pref+1, strlen(pref+1)) == 0)
 		p = BOOTARGS;
 	else if(p = strstr(BOOTARGS, pref))
