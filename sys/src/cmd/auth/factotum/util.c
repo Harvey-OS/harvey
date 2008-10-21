@@ -275,7 +275,7 @@ failure(Fsstate *s, char *fmt, ...)
 		rerrstr(s->err, sizeof(s->err));
 	else {
 		va_start(arg, fmt);
-		snprint(e, sizeof e, fmt, arg);
+		vsnprint(e, sizeof e, fmt, arg);
 		va_end(arg);
 		strecpy(s->err, s->err+sizeof(s->err), e);
 		werrstr(e);

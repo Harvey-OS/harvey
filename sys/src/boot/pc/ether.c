@@ -54,6 +54,7 @@ struct {
 	{ "83815", ether83815reset, 0, },
 	{ "rhine", rhinepnp, 0, },
 	{ "vt6102", rhinepnp, 0, },
+	{ "vt6105m", rhinepnp, 0, },	/* until we have a 6105 boot driver */
 	{ "GA620", ga620pnp, 0, },
 	{ "83820",   dp83820pnp, 0, },
 	{ "dp83820", dp83820pnp, 0, },
