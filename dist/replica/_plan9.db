@@ -8169,7 +8169,7 @@ sys/src/9/pc/memory.c - 664 sys sys 1196193039 18878
 sys/src/9/pc/mkfile - 664 sys sys 1204231465 4152
 sys/src/9/pc/mmu.c - 664 sys sys 1218342291 24548
 sys/src/9/pc/mouse.c - 664 sys sys 1203981356 7190
-sys/src/9/pc/mp.c - 664 sys sys 1220676659 17394
+sys/src/9/pc/mp.c - 664 sys sys 1224884202 17683
 sys/src/9/pc/mp.h - 664 sys sys 1173288116 6799
 sys/src/9/pc/nv_dma.h - 664 sys sys 1081384508 12943
 sys/src/9/pc/pc - 664 sys sys 1204231598 1551
@@ -8181,7 +8181,7 @@ sys/src/9/pc/pcdisk - 664 sys sys 1204231795 1623
 sys/src/9/pc/pcf - 664 sys sys 1215977995 1675
 sys/src/9/pc/pcfl - 664 sys sys 1188582378 1579
 sys/src/9/pc/pcflop - 664 sys sys 1190853787 1540
-sys/src/9/pc/pci.c - 664 sys sys 1224095629 29548
+sys/src/9/pc/pci.c - 664 sys sys 1224884207 29606
 sys/src/9/pc/pcmciamodem.c - 664 sys sys 1191476436 1591
 sys/src/9/pc/pcmkfile - 664 sys sys 1109303822 101
 sys/src/9/pc/piix4smbus.c - 664 sys sys 1184467714 5324
@@ -10435,7 +10435,7 @@ sys/src/cmd/fossil/Ccli.c - 664 sys sys 1042005504 1624
 sys/src/cmd/fossil/Ccmd.c - 664 sys sys 1138465941 7985
 sys/src/cmd/fossil/Ccons.c - 664 sys sys 1224094773 6725
 sys/src/cmd/fossil/Clog.c - 664 sys sys 1189638175 665
-sys/src/cmd/fossil/archive.c - 664 sys sys 1087005594 10230
+sys/src/cmd/fossil/archive.c - 664 sys sys 1224884072 10234
 sys/src/cmd/fossil/build - 664 sys sys 1042005505 449
 sys/src/cmd/fossil/buildsh - 775 sys sys 1042005505 561
 sys/src/cmd/fossil/bwatch.c - 664 sys sys 1042005505 6754
@@ -12640,7 +12640,7 @@ sys/src/cmd/ip/snoopy/ttls.c - 664 sys sys 1128179540 1451
 sys/src/cmd/ip/snoopy/udp.c - 664 sys sys 1144955685 2015
 sys/src/cmd/ip/telnet.c - 664 sys sys 1162416789 8621
 sys/src/cmd/ip/telnet.h - 664 sys sys 1015090250 5902
-sys/src/cmd/ip/telnetd.c - 664 sys sys 1135487948 11772
+sys/src/cmd/ip/telnetd.c - 664 sys sys 1224859336 11772
 sys/src/cmd/ip/tftpd.c - 664 sys sys 1222641404 8147
 sys/src/cmd/ip/traceroute.c - 664 sys sys 1198186109 8747
 sys/src/cmd/ip/udpecho.c - 664 sys sys 1178483004 789
@@ -15886,3 +15886,6 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1020896385 0
+386/bin/fossil/flchk - 775 sys sys 1224904197 238953
+386/bin/fossil/flfmt - 775 sys sys 1224904197 246950
+386/bin/fossil/fossil - 775 sys sys 1224904198 370414
