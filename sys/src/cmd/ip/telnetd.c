@@ -334,7 +334,7 @@ fromchild(char *bp, int len)
  *	^H erases the last character buffered.
  *	^U kills the whole line buffered.
  *	^W erases the last word
- *	^D causes a 0-lenght line to be returned.
+ *	^D causes a 0-length line to be returned.
  *	Intr causes an "interrupt" note to be sent to the children.
  */
 #define ECHO(c) { *ebp++ = (c); }

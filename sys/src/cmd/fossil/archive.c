@@ -357,7 +357,7 @@ archThread(void *v)
 		b = superGet(a->c, &super);
 		if(b == nil){
 			vtUnlock(a->fs->elk);
-			fprint(2, "archThread: superGet: %R");
+			fprint(2, "archThread: superGet: %R\n");
 			sleep(60*1000);
 			continue;
 		}
@@ -433,7 +433,7 @@ sleep(10*1000);	/* window of opportunity to provoke races */
 		b = superGet(a->c, &super);
 		if(b == nil){
 			vtUnlock(a->fs->elk);
-			fprint(2, "archThread: superGet: %R");
+			fprint(2, "archThread: superGet: %R\n");
 			sleep(60*1000);
 			continue;
 		}
