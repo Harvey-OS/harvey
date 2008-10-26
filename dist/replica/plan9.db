@@ -556,7 +556,7 @@
 386/lib - 20000000775 sys sys 1209184392 0
 386/lib/ape - 20000000775 sys sys 1197477092 0
 386/lib/ape/lib9.a - 664 sys sys 1205611022 8766
-386/lib/ape/libap.a - 664 sys sys 1219807805 823890
+386/lib/ape/libap.a - 664 sys sys 1224960113 767492
 386/lib/ape/libbsd.a - 664 sys sys 1220411684 185404
 386/lib/ape/libdraw.a - 664 sys sys 1219693462 631580
 386/lib/ape/libfmt.a - 664 sys sys 1219693464 156706
