@@ -33,10 +33,10 @@ MD5state*	md5unpickle(char *p);
 DigestState*	sha1(uchar *data, ulong dlen, uchar *digest, DigestState *state)
 .PP
 .B
-char*		sha1pickle(MD5state *state)
+char*		sha1pickle(SHA1state *state)
 .PP
 .B
-MD5state*	sha1unpickle(char *p);
+SHA1state*	sha1unpickle(char *p);
 .PP
 .Ti
 .B
@@ -162,3 +162,5 @@ md5("drowssap ym", 11, digest, s);
 .IR elgamal (2),
 .IR rc4 (2),
 .IR rsa (2)
+.br
+.B /lib/rfc/rfc2104
