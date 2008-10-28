@@ -7661,7 +7661,7 @@ sys/man/2/rune - 664 sys sys 1196638938 3086
 sys/man/2/runestrcat - 664 sys sys 1196638941 1086
 sys/man/2/scribble - 664 sys sys 1196638941 3847
 sys/man/2/scsi - 664 sys sys 1196638941 3203
-sys/man/2/sechash - 664 sys sys 1196638941 3558
+sys/man/2/sechash - 664 sys sys 1225138636 3584
 sys/man/2/seek - 664 sys sys 1196638938 671
 sys/man/2/segattach - 664 sys sys 1196638938 4166
 sys/man/2/segbrk - 664 sys sys 1196638938 1211
