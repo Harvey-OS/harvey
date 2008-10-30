@@ -36241,3 +36241,9 @@
 1224961204 0 c 386/lib/ape/libap.a - 664 sys sys 1224960113 767492
 1225139404 0 c sys/man/2/sechash - 664 sys sys 1225138636 3584
 1225218609 0 c sys/games/lib/fortunes - 664 sys sys 1225218126 271031
+1225303204 0 c sys/src/cmd/ip/httpd/httpd.c - 664 sys sys 1225303240 11829
+1225314004 0 c sys/src/cmd/ip/httpd/httpsrv.h - 664 sys sys 1225313811 1532
+1225319403 0 c sys/lib/httpd.rewrite - 664 sys sys 1225318416 377
+1225319403 1 c sys/man/8/httpd - 664 sys sys 1225318201 8198
+1225319403 2 c sys/src/cmd/ip/httpd/httpd.c - 664 sys sys 1225318060 11905
+1225319403 3 c sys/src/cmd/ip/httpd/redirect.c - 664 sys sys 1225318035 3438

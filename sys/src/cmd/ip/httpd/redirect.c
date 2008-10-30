@@ -21,6 +21,22 @@ static Redir *redirtab[HASHSIZE];
 static Redir *vhosttab[HASHSIZE];
 static char emptystring[1];
 
+/* replacement field decorated with redirection modifiers? */
+int
+isdecorated(char *repl)
+{
+	return repl[0] == Modsilent || repl[0] == Modperm;
+}
+
+/* return replacement without redirection modifiers */
+char *
+undecorated(char *repl)
+{
+	while (isdecorated(repl))
+		repl++;
+	return repl;
+}
+
 static int
 hashasu(char *key, int n)
 {
@@ -69,7 +85,8 @@ redirectinit(void)
 {
 	static Biobuf *b = nil;
 	static Qid qid;
-	char *file, *line, *s, *host, *field[3];
+	char *file, *line, *s, *host, *repl, *field[3];
+	static char pfx[] = "http://";
 
 	file = "/sys/lib/httpd.rewrite";
 	if(b != nil){
@@ -88,13 +105,15 @@ redirectinit(void)
 	while((line = Brdline(b, '\n')) != nil){
 		line[Blinelen(b)-1] = 0;
 		s = strchr(line, '#');
-		if(s != nil)
-			*s = '\0'; 	/* chop comment */
+		if(s != nil && (s == line || s[-1] == ' ' || s[-1] == '\t'))
+			*s = '\0'; 	/* chop comment iff after whitespace */
 		if(tokenize(line, field, nelem(field)) == 2){
-			if(strncmp(field[0], "http://", STRLEN("http://")) == 0 &&
-					strncmp(field[1], "http://", STRLEN("http://")) != 0){
-				host = field[0]+STRLEN("http://");
-				s = strpbrk(host, "/");
+			repl = undecorated(field[1]);
+			if(strncmp(field[0], pfx, STRLEN(pfx)) == 0 &&
+			   strncmp(repl, pfx, STRLEN(pfx)) != 0){
+				/* url -> filename */
+				host = field[0] + STRLEN(pfx);
+				s = strrchr(host, '/');
 				if(s)
 					*s = 0;  /* chop trailing slash */
 
@@ -133,7 +152,7 @@ char*
 redirect(HConnect *hc, char *path)
 {
 	Redir *redir;
-	char *s, *newpath;
+	char *s, *newpath, *repl;
 	int c, n;
 
 	for(s = strchr(path, '\0'); s > path; s = prevslash(path, s)){
@@ -142,25 +161,28 @@ redirect(HConnect *hc, char *path)
 		redir = lookup(redirtab, path);
 		*s = c;
 		if(redir != nil){
-			n = strlen(redir->repl) + strlen(s) + 2 + UTFmax;
+			repl = undecorated(redir->repl);
+			n = strlen(repl) + strlen(s) + 2 + UTFmax;
 			newpath = halloc(hc, n);
-			snprint(newpath, n, "%s%s", redir->repl, s);
+			snprint(newpath, n, "%s%s", repl, s);
 			return newpath;
 		}
 	}
 	return nil;
 }
 
-// if host is virtual, return implicit prefix for URI within webroot.
-// if not, return empty string
-// return value should not be freed by caller
+/*
+ * if host is virtual, return implicit prefix for URI within webroot.
+ * if not, return empty string.
+ * return value should not be freed by caller.
+ */
 char*
 masquerade(char *host)
 {
 	Redir *redir;
 
 	redir = lookup(vhosttab, host);
-	if(redir != nil)
-		return redir->repl;
-	return emptystring;
+	if(redir == nil)
+		return emptystring;
+	return undecorated(redir->repl);
 }

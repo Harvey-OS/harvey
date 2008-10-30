@@ -2,7 +2,11 @@ typedef struct HSPriv	HSPriv;
 
 enum
 {
-	HSTIMEOUT	= 15 * 60 * 1000
+	HSTIMEOUT	= 15 * 60 * 1000,
+
+	/* rewrite replacement field modifiers */
+	Modsilent	= '@',
+	Modperm		= '=',
 };
 
 struct HSPriv
@@ -54,6 +58,8 @@ void			redirectinit(void);
 char*			redirect(HConnect *hc, char*);
 char*			masquerade(char*);
 char*			authrealm(HConnect *hc, char *path);
+int			isdecorated(char *repl);
+char			*undecorated(char *repl);
 
 /* log.c */
 void			logit(HConnect*, char*, ...);

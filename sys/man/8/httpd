@@ -110,19 +110,26 @@ some magic programs support POST as well.
 Persistent connections are supported for HTTP/1.1 or later clients;
 all connections close after a magic command is executed.
 The Content-type
-(default application/octet-stream)
+(default
+.BR application/octet-stream )
 and Content-encoding
-(default binary)
+(default
+.BR binary )
 of a file are determined by looking for suffixes of the file name in
 .BR /sys/lib/mimetype .
+.SS Redirection
 .PP
 Each requested URI is looked up in a redirection table, read from
 .BR /sys/lib/httpd.rewrite .
+Fields are separated by spaces and tabs.
+Anything following a
+.L #
+is ignored.
 The first field of each line is a URI;
 the second a replacement path.
 If a prefix of the URI matches a redirection path,
 the URI is rewritten using the corresponding replacement path,
-and a redirect is sent to the HTTP client.
+and a temporary redirect is sent to the HTTP client.
 If the replacement path does not specify a server name,
 and the request has no explicit host,
 then
@@ -138,14 +145,35 @@ the requested server),
 but not both:
 .B http://system/who/rob
 will never match a request.
+If the first field ends in a slash, this is an exact match;
+otherwise it is a prefix match.
+The first field is a literal string, matched against
+each file prefix of each URL.
+The most specific, i.e., longest,
+pattern wins, and is applied once (there is no rescanning).
+.PP
 .I Httpd
 handles replacements prefixed with 
-.B @ 
+.L @ 
 internally,
 treating the request as if it were for the replacement
 (without the
 .BR @ )
 but not informing the client of the rewritten name.
+Replacement URLs prefixed with 
+.L =
+generate a permanent redirection instead of a temporary one.
+.I Httpd
+checks to see if this file has changed once every 50 new TCP connections.
+HTTP 1.1 persistent connection implies many pages
+may come in one browser connection, so to kick-start
+.IR httpd ,
+try
+.IP
+.EX
+for(i in `{seq 50}) hget http://www.your-domain.com/ >/dev/null
+.EE
+.SS "Access Control"
 .PP
 Before opening any file,
 .I httpd
@@ -161,6 +189,9 @@ is a domain name presented to the HTTP client.
 The rest are pairs of user name and password.
 Thus, there can be many user name/password pairs
 valid for a directory.
+.br
+.ne 3
+.SS "Auxiliaries (magic)"
 .PP
 If the requested URI begins with
 .BI  /magic/ server /\f1,
@@ -283,6 +314,31 @@ overrides
 If a listing for a directory is requested and access
 is denied, or another error occurs, a simple error
 page is returned.
+.SH EXAMPLES
+These are all examples of how to use
+.BR httpd.rewrite .
+.PP
+A local redirection:
+.RS
+.EX
+/netlib/c++/idioms/index.html.Z /netlib/c++/idioms/index.html
+.EE
+.RE
+.PP
+Redirection to another site:
+.RS
+.EX
+/netlib/lapack/lawns		http://netlib.org/lapack/lawns
+http://inferno.bell-labs.com	http://www.vitanuova.com
+.EE
+.RE
+.PP
+Root directory for virtual host:
+.RS
+.EX
+http://www.ampl.com		/cm/cs/what/ampl
+.EE
+.RE
 .SH FILES
 .TF /sys/lib/httpd.rewrite
 .TP
