@@ -6599,7 +6599,7 @@ sys/lib/ghostscript/wrfont.ps - 664 sys sys 1137463375 18170
 sys/lib/ghostscript/xlatmap - 664 sys sys 1137469677 1750
 sys/lib/ghostscript/zeroline.ps - 664 sys sys 1137463375 2467
 sys/lib/grap.defines - 664 sys sys 944956052 375
-sys/lib/httpd.rewrite - 664 sys sys 954262980 825
+sys/lib/httpd.rewrite - 664 sys sys 1225318416 377
 sys/lib/kbmap - 20000000775 sys sys 1140447136 0
 sys/lib/kbmap/ascii - 664 sys sys 1130763837 5181
 sys/lib/kbmap/azerty - 664 sys sys 1130763837 619
@@ -7867,7 +7867,7 @@ sys/man/8/fsconfig - 664 sys sys 1196638946 8890
 sys/man/8/fshalt - 664 sys sys 1196638947 862
 sys/man/8/getflags - 664 sys sys 1196638947 1713
 sys/man/8/gpsfs - 664 sys sys 1223562059 5097
-sys/man/8/httpd - 664 sys sys 1224114119 6957
+sys/man/8/httpd - 664 sys sys 1225318201 8198
 sys/man/8/init - 664 sys sys 1196638947 1430
 sys/man/8/ipconfig - 664 sys sys 1205960389 8284
 sys/man/8/ipserv - 664 sys sys 1208190062 3272
@@ -12525,8 +12525,8 @@ sys/src/cmd/ip/httpd/classify.c - 664 sys sys 1078840017 9665
 sys/src/cmd/ip/httpd/content.c - 664 sys sys 1015090170 3140
 sys/src/cmd/ip/httpd/emem.c - 664 sys sys 984773807 278
 sys/src/cmd/ip/httpd/hints.c - 664 sys sys 1143759344 6282
-sys/src/cmd/ip/httpd/httpd.c - 664 sys sys 1168701369 11538
-sys/src/cmd/ip/httpd/httpsrv.h - 664 sys sys 1142178186 1388
+sys/src/cmd/ip/httpd/httpd.c - 664 sys sys 1225318060 11905
+sys/src/cmd/ip/httpd/httpsrv.h - 664 sys sys 1225313811 1532
 sys/src/cmd/ip/httpd/imagemap.c - 664 sys sys 984773808 5229
 sys/src/cmd/ip/httpd/init.c - 664 sys sys 1015090171 2182
 sys/src/cmd/ip/httpd/log.c - 664 sys sys 1214400897 3075
@@ -12534,7 +12534,7 @@ sys/src/cmd/ip/httpd/man2html.c - 664 sys sys 1139667314 9069
 sys/src/cmd/ip/httpd/mkfile - 664 sys sys 1123902339 1353
 sys/src/cmd/ip/httpd/netlib_find.c - 664 sys sys 1015090172 6247
 sys/src/cmd/ip/httpd/netlib_history.c - 664 sys sys 1121977160 4748
-sys/src/cmd/ip/httpd/redirect.c - 664 sys sys 1190834585 2962
+sys/src/cmd/ip/httpd/redirect.c - 664 sys sys 1225318035 3438
 sys/src/cmd/ip/httpd/save.c - 664 sys sys 1015090172 3175
 sys/src/cmd/ip/httpd/sendfd.c - 664 sys sys 1129202621 12264
 sys/src/cmd/ip/httpd/webls.c - 664 sys sys 1120737502 7658
