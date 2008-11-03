@@ -12,9 +12,11 @@ found=no
 LIB=/lib/rfc
 cd /n/ftp/in-notes
 for(i in rfc*){
-	target=`{echo $i | sed '
-s/.txt$//
-s/rfc0*/rfc/'}
+	target=`{
+		echo $i | sed '
+			s/.txt$//
+			s/rfc0*/rfc/'
+	}
 	if(test ! -e $LIB/$target && test -f $i){
 		cp $i $LIB/$target
 		chmod 664 $LIB/$target
