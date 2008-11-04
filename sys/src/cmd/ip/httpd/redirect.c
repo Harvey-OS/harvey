@@ -161,7 +161,7 @@ redirect(HConnect *hc, char *path)
 		redir = lookup(redirtab, path);
 		*s = c;
 		if(redir != nil){
-			repl = undecorated(redir->repl);
+			repl = redir->repl;	/* leave decorations on */
 			n = strlen(repl) + strlen(s) + 2 + UTFmax;
 			newpath = halloc(hc, n);
 			snprint(newpath, n, "%s%s", repl, s);
