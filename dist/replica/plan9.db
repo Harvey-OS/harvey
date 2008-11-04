@@ -12525,7 +12525,7 @@ sys/src/cmd/ip/httpd/classify.c - 664 sys sys 1078840017 9665
 sys/src/cmd/ip/httpd/content.c - 664 sys sys 1015090170 3140
 sys/src/cmd/ip/httpd/emem.c - 664 sys sys 984773807 278
 sys/src/cmd/ip/httpd/hints.c - 664 sys sys 1143759344 6282
-sys/src/cmd/ip/httpd/httpd.c - 664 sys sys 1225318060 11905
+sys/src/cmd/ip/httpd/httpd.c - 664 sys sys 1225745388 11969
 sys/src/cmd/ip/httpd/httpsrv.h - 664 sys sys 1225313811 1532
 sys/src/cmd/ip/httpd/imagemap.c - 664 sys sys 984773808 5229
 sys/src/cmd/ip/httpd/init.c - 664 sys sys 1015090171 2182
@@ -12534,7 +12534,7 @@ sys/src/cmd/ip/httpd/man2html.c - 664 sys sys 1139667314 9069
 sys/src/cmd/ip/httpd/mkfile - 664 sys sys 1123902339 1353
 sys/src/cmd/ip/httpd/netlib_find.c - 664 sys sys 1015090172 6247
 sys/src/cmd/ip/httpd/netlib_history.c - 664 sys sys 1121977160 4748
-sys/src/cmd/ip/httpd/redirect.c - 664 sys sys 1225318035 3438
+sys/src/cmd/ip/httpd/redirect.c - 664 sys sys 1225745332 3452
 sys/src/cmd/ip/httpd/save.c - 664 sys sys 1015090172 3175
 sys/src/cmd/ip/httpd/sendfd.c - 664 sys sys 1129202621 12264
 sys/src/cmd/ip/httpd/webls.c - 664 sys sys 1120737502 7658

@@ -284,14 +284,13 @@ doreq(HConnect *c)
 	Strings ss;
 	char *magic, *uri, *newuri, *origuri, *newpath, *hb;
 	char virtualhost[100], logfd0[10], logfd1[10], vers[16];
-	int n, nredirect, permmove;
+	int n, nredirect;
 
 	/*
 	 * munge uri for magic
 	 */
 	uri = c->req.uri;
 	nredirect = 0;
-	permmove = 0;
 top:
 	if(++nredirect > 10){
 		if(hparseheaders(c, 15*60*1000) < 0)
@@ -321,22 +320,23 @@ top:
 		newuri = nil;
 	}else
 		newuri = redirect(c, origuri);
-	
+
 	if(newuri != nil){
 		if(isdecorated(newuri)){
-			if(newuri[0] == Modperm)
-				permmove = 1;
+			if(newuri[0] == Modperm) {
+				logit(c, "%s: permanently moved to %s",
+					origuri, undecorated(newuri));
+				return hmoved(c, undecorated(newuri));
+			}
 			c->req.uri = uri = undecorated(newuri);
+//			logit(c, "%s: silent replacement %s", origuri, uri);
 			goto top;
 		}
 		if(hparseheaders(c, 15*60*1000) < 0)
 			exits("failed");
 		/*
 		 * try temporary redirect instead of permanent,
-		 * unless explicitly overridden.
 		 */
-		if (permmove)
-			return hmoved(c, newuri);
 		if (http11(c))
 			return hredirected(c, "307 Temporary Redirect", newuri);
 		else

@@ -36249,3 +36249,5 @@
 1225319403 3 c sys/src/cmd/ip/httpd/redirect.c - 664 sys sys 1225318035 3438
 1225683004 0 c adm/timezone/CET - 664 adm adm 1225681477 1162
 1225683004 1 c lib/rfc/grabrfc - 775 sys sys 1225681460 815
+1225746005 0 c sys/src/cmd/ip/httpd/httpd.c - 664 sys sys 1225745388 11969
+1225746005 1 c sys/src/cmd/ip/httpd/redirect.c - 664 sys sys 1225745332 3452
