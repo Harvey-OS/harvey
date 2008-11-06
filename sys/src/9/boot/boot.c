@@ -17,6 +17,7 @@ int	bargc;
 
 static void	swapproc(void);
 static Method	*rootserver(char*);
+static void	usbinit(void);
 static void	kbmap(void);
 
 void
@@ -67,6 +68,11 @@ boot(int argc, char *argv[])
 	readfile("#e/cputype", cputype, sizeof(cputype));
 
 	/*
+	 *  set up usb keyboard, mouse and disk, if any.
+	 */
+	usbinit();
+
+	/*
 	 *  pick a method and initialize it
 	 */
 	if(method[0].name == nil)
@@ -77,7 +83,7 @@ boot(int argc, char *argv[])
 	ishybrid = strcmp(mp->name, "hybrid") == 0;
 
 	/*
-	 *  load keymap if its there
+	 *  load keymap if it's there.
 	 */
 	kbmap();
 
@@ -295,30 +301,68 @@ old9p(int fd)
 }
 
 static void
+run(char *prog, char **args)
+{
+	int i, pid;
+
+	if (access(args[0], AEXIST) < 0)
+		return;			/* avoid error messages */
+	print("%s...", prog);
+	switch(pid = fork()){
+	case -1:
+		fatal("fork");
+	case 0:
+		exec(args[0], args);
+		fatal(smprint("can't exec %s: %r", args[0]));
+	}
+	while ((i = waitpid()) != pid && i != -1)
+		;
+	if(i == -1)
+		fatal(smprint("waitpid for %s failed", args[0]));
+}
+
+static void
+usbinit(void)
+{
+	static char *darg[] = { "/boot/usbd", nil };
+	static char *kbarg[] = { "/boot/kb", "-a2", nil };
+	static char *dskarg[] = {
+		"/boot/disk", "-l", "-s", "usbdisk", "-m", "/mnt", nil
+	};
+
+	if(bind("#U", "/dev", MAFTER) < 0 || access("/dev/usb0", 0) < 0)
+		return;
+	run("usbd", darg);
+	if(access("#m/mouse", 0) < 0)	/* no mouse driver? */
+		kbarg[1] = "-k";
+	run("kb", kbarg);
+	run("disk", dskarg);		/* mounts on /mnt/<lun> */
+}
+
+static void
 kbmap(void)
 {
 	char *f;
-	int in, out;
-	int n;
+	int n, in, out;
 	char buf[1024];
 
 	f = getenv("kbmap");
 	if(f == nil)
 		return;
-	in = open(f, OREAD);
-	if(in < 0){
-		warning("can't open kbd map");
-		return;
-	}
 	if(bind("#κ", "/dev", MAFTER) < 0){
 		warning("can't bind #κ");
-		close(in);
+		return;
+	}
+
+	in = open(f, OREAD);
+	if(in < 0){
+		warning("can't open kbd map: %r");
 		return;
 	}
 	out = open("/dev/kbmap", OWRITE);
-	if(out < 0){
-		warning("can't open  /dev/kbmap");
-		close(out);
+	if(out < 0) {
+		warning("can't open /dev/kbmap: %r");
+		close(in);
 		return;
 	}
 	while((n = read(in, buf, sizeof(buf))) > 0)

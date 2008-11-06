@@ -1,5 +1,6 @@
 #define X86STEPPING(x)	((x) & 0x0F)
-#define X86MODEL(x)	(((x)>>4) & 0x0F)
+/* incorporate extended-model bits */
+#define X86MODEL(x)	((((x)>>4) & 0x0F) | (((x)>>16) & 0x0F)<<4)
 #define X86FAMILY(x)	(((x)>>8) & 0x0F)
 
 enum {

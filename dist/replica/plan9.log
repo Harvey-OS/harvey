@@ -36251,3 +36251,10 @@
 1225683004 1 c lib/rfc/grabrfc - 775 sys sys 1225681460 815
 1225746005 0 c sys/src/cmd/ip/httpd/httpd.c - 664 sys sys 1225745388 11969
 1225746005 1 c sys/src/cmd/ip/httpd/redirect.c - 664 sys sys 1225745332 3452
+1225863004 0 c sys/src/9/pc/devarch.c - 664 sys sys 1225862299 20631
+1225863004 1 c sys/src/9/pc/ether83815.c - 664 sys sys 1225862323 27874
+1225863004 2 c sys/src/9/pc/io.h - 664 sys sys 1225862285 9470
+1225863004 3 c sys/src/9/port/sdaoe.c - 664 sys sys 1225862595 9920
+1225863004 4 c sys/src/boot/pc/clock.c - 664 sys sys 1225862215 6992
+1225863004 5 c sys/src/boot/pc/ether83815.c - 664 sys sys 1225862208 23400
+1225864805 0 c sys/src/9/boot/boot.c - 664 sys sys 1225863270 6961
