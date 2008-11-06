@@ -8019,7 +8019,7 @@ sys/src/9/bitsy/wavelan.c - 664 sys sys 1171761416 27148
 sys/src/9/bitsy/wavelan.h - 664 sys sys 1037029076 27
 sys/src/9/boot - 20000000775 sys sys 1206213418 0
 sys/src/9/boot/aux.c - 664 sys sys 1168305725 2586
-sys/src/9/boot/boot.c - 664 sys sys 1146746630 6013
+sys/src/9/boot/boot.c - 664 sys sys 1225863270 6961
 sys/src/9/boot/boot.h - 664 sys sys 1181823402 1722
 sys/src/9/boot/bootauth.c - 664 sys sys 1203021301 1168
 sys/src/9/boot/bootcache.c - 664 sys sys 1171955975 1608
@@ -8107,7 +8107,7 @@ sys/src/9/pc/audio.h - 664 sys sys 1015014513 343
 sys/src/9/pc/bios32.c - 664 sys sys 1173287378 3029
 sys/src/9/pc/cga.c - 664 sys sys 1015014513 1843
 sys/src/9/pc/dat.h - 664 sys sys 1206317920 7549
-sys/src/9/pc/devarch.c - 664 sys sys 1220676708 20525
+sys/src/9/pc/devarch.c - 664 sys sys 1225862299 20631
 sys/src/9/pc/devether.c - 664 sys sys 1196687022 10567
 sys/src/9/pc/devfloppy.c - 664 sys sys 1142958305 20139
 sys/src/9/pc/devi82365.c - 664 sys sys 1146318335 20504
@@ -8133,7 +8133,7 @@ sys/src/9/pc/ether82543gc.c - 664 sys sys 1224095733 32347
 sys/src/9/pc/ether82557.c - 664 sys sys 1211922643 30457
 sys/src/9/pc/ether82563.c - 664 sys sys 1223767244 39197
 sys/src/9/pc/ether82598.c - 664 sys sys 1203982856 18364
-sys/src/9/pc/ether83815.c - 664 sys sys 1172259521 26346
+sys/src/9/pc/ether83815.c - 664 sys sys 1225862323 27874
 sys/src/9/pc/ether8390.c - 664 sys sys 1131290377 17702
 sys/src/9/pc/ether8390.h - 664 sys sys 1015014517 1511
 sys/src/9/pc/etherdp83820.c - 664 sys sys 1224095715 29674
@@ -8160,7 +8160,7 @@ sys/src/9/pc/i8253.c - 664 sys sys 1139681387 6236
 sys/src/9/pc/i8259.c - 664 sys sys 1131290399 4586
 sys/src/9/pc/init9.c - 664 sys sys 1040002518 94
 sys/src/9/pc/initcode.s - 664 sys sys 1015014519 282
-sys/src/9/pc/io.h - 664 sys sys 1165555523 9406
+sys/src/9/pc/io.h - 664 sys sys 1225862285 9470
 sys/src/9/pc/kbd.c - 664 sys sys 1220676682 13290
 sys/src/9/pc/l.s - 664 sys sys 1196193040 29691
 sys/src/9/pc/main.c - 664 sys sys 1168306227 15337
@@ -8314,7 +8314,7 @@ sys/src/9/port/qlock.c - 664 sys sys 1218341971 3299
 sys/src/9/port/rdb.c - 664 sys sys 1184465938 1704
 sys/src/9/port/rebootcmd.c - 664 sys sys 1015278340 1561
 sys/src/9/port/sd.h - 664 sys sys 1186618553 2499
-sys/src/9/port/sdaoe.c - 664 sys sys 1218341980 9919
+sys/src/9/port/sdaoe.c - 664 sys sys 1225862595 9920
 sys/src/9/port/segment.c - 664 sys sys 1170456581 14052
 sys/src/9/port/semaphore.p - 664 sys sys 1143129797 2424
 sys/src/9/port/swap.c - 664 sys sys 1138028310 7019
@@ -9189,7 +9189,7 @@ sys/src/boot/pc/bootld.c - 664 sys sys 1015007948 1801
 sys/src/boot/pc/bootp.c - 664 sys sys 1218660611 12678
 sys/src/boot/pc/cga.c - 664 sys sys 1015007948 1362
 sys/src/boot/pc/cis.c - 664 sys sys 1144961189 9232
-sys/src/boot/pc/clock.c - 664 sys sys 1212010463 6825
+sys/src/boot/pc/clock.c - 664 sys sys 1225862215 6992
 sys/src/boot/pc/conf.c - 664 sys sys 1224519174 10218
 sys/src/boot/pc/console.c - 664 sys sys 1219793776 3965
 sys/src/boot/pc/dat.h - 664 sys sys 1216753913 3653
@@ -9214,7 +9214,7 @@ sys/src/boot/pc/ether8139.c - 664 sys sys 1121393459 14823
 sys/src/boot/pc/ether8169.c - 664 sys sys 1219793666 21819
 sys/src/boot/pc/ether82557.c - 664 sys sys 1212010428 19134
 sys/src/boot/pc/ether82563.c - 664 sys sys 1219793761 28397
-sys/src/boot/pc/ether83815.c - 664 sys sys 1144961190 21993
+sys/src/boot/pc/ether83815.c - 664 sys sys 1225862208 23400
 sys/src/boot/pc/ether8390.c - 664 sys sys 1212010420 16207
 sys/src/boot/pc/ether8390.h - 664 sys sys 1015007951 1392
 sys/src/boot/pc/etherdp83820.c - 664 sys sys 1190221155 28740

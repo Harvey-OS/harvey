@@ -43,7 +43,8 @@ clockintr(Ureg*, void*)
 }
 
 #define STEPPING(x)	((x)&0xf)
-#define X86MODEL(x)	(((x)>>4)&0xf)
+/* incorporate extended-model bits */
+#define X86MODEL(x)	((((x)>>4)&0xf) | (((x)>>16)&0xf)<<4)
 #define X86FAMILY(x)	(((x)>>8)&0xf)
 
 enum
@@ -86,6 +87,9 @@ X86type x86intel[] =
 	{ 6,	7,	16,	"PentiumIII/Xeon", },
 	{ 6,	8,	16,	"PentiumIII/Xeon", },
 	{ 6,	0xB,	16,	"PentiumIII/Xeon", },
+	{ 6,	0x16,	16,	"Core 2", },	/* 64-bit capable */
+	{ 6,	0x17,	16,	"Core 2", },
+	{ 6,	0x1c,	16,	"Atom", },
 	{ 0xF,	1,	16,	"P4", },	/* P4 */
 	{ 0xF,	2,	16,	"PentiumIV/Xeon", },
 	{ 0xF,	6,	16,	"PentiumIV/Xeon", },

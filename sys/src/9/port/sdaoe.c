@@ -389,7 +389,7 @@ pnpprobe(SDev *sd)
 		poperror();
 		break;
 	}
-	print("#æ: pnpprobe establishes %sin %dms\n", probef[i-1], j);
+	print("#æ: pnpprobe establishes %s in %dms\n", probef[i-1], j);
 	return sd->ctlr;
 }
 

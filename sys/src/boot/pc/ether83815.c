@@ -80,20 +80,23 @@ enum {	/* cmdsts */
 
 enum {				/* PCI vendor & device IDs */
 	Nat83815	= (0x0020<<16)|0x100B,
-	SiS = 	0x1039,
-	SiS900 =	(0x0900<<16)|SiS,
-	SiS7016 =	(0x7016<<16)|SiS,
+	SiS 		= 0x1039,
+	SiS900 		= (0x0900<<16)|SiS,
+	SiS7016		= (0x7016<<16)|SiS,
 
 	SiS630bridge	= 0x0008,
 
 	/* SiS 900 PCI revision codes */
-	SiSrev630s =	0x81,
-	SiSrev630e =	0x82,
-	SiSrev630ea1 =	0x83,
+	SiSrev630s 	= 0x81,
+	SiSrev630e 	= 0x82,
+	SiSrev630ea1 	= 0x83,
 
-	SiSeenodeaddr =	8,		/* short addr of SiS eeprom mac addr */
-	SiS630eenodeaddr =	9,	/* likewise for the 630 */
-	Nseenodeaddr =	6,		/* " for NS eeprom */
+	SiSeenodeaddr 	= 8,		/* short addr of SiS eeprom mac addr */
+	SiS630eenodeaddr = 9,		/* likewise for the 630 */
+	Nseenodeaddr	= 6,		/* " for NS eeprom */
+	Nat83815avng	= 0x403,
+	Nat83816avng	= 0x505,	/* 83816 acts like submodel of 83815 */
+					/* using reg. 0x58 to disambiguate. */
 };
 
 typedef struct Ctlr Ctlr;
@@ -105,7 +108,7 @@ typedef struct Ctlr {
 	int	id;			/* (pcidev->did<<16)|pcidev->vid */
 
 	ushort	srom[0xB+1];
-	uchar	sromea[Eaddrlen];			/* MAC address */
+	uchar	sromea[Eaddrlen];	/* MAC address */
 
 	uchar	fd;			/* option or auto negotiation */
 
@@ -124,7 +127,7 @@ typedef struct Ctlr {
 	int	tdri;			/* interface index into tdr */
 	int	ntq;			/* descriptors active */
 	int	ntqmax;
-	Block*	bqhead;	/* transmission queue */
+	Block*	bqhead;			/* transmission queue */
 	Block*	bqtail;
 
 	ulong	rxa;			/* receive statistics */
@@ -148,11 +151,13 @@ typedef struct Ctlr {
 	ulong	ec;
 	ulong	txurn;
 
-	ulong	dperr;		/* system errors */
+	ulong	dperr;			/* system errors */
 	ulong	rmabt;
 	ulong	rtabt;
 	ulong	sserr;
 	ulong	rxsover;
+
+	ulong	version;		/* silicon version; register 0x58h */
 } Ctlr;
 
 static Ctlr* ctlrhead;
@@ -567,7 +572,7 @@ eeidle(Ctlr *ctlr)
 	microdelay(2);
 }
 
-static int
+static ushort
 eegetw(Ctlr *ctlr, int a)
 {
 	int d, i, w;
@@ -597,7 +602,7 @@ eegetw(Ctlr *ctlr, int a)
 	return w;
 }
 
-static void
+static int
 softreset(Ctlr* ctlr, int resetphys)
 {
 	int i, w;
@@ -607,8 +612,10 @@ softreset(Ctlr* ctlr, int resetphys)
 	 */
 	csr32w(ctlr, Rcr, Rst);
 	for(i=0;; i++){
-		if(i > 100)
-			panic("ns83815: soft reset did not complete");
+		if(i > 100){
+			print("ns83815: soft reset did not complete\n");
+			return -1;
+		}
 		microdelay(250);
 		if((csr32r(ctlr, Rcr) & Rst) == 0)
 			break;
@@ -618,15 +625,17 @@ softreset(Ctlr* ctlr, int resetphys)
 	csr32w(ctlr, Rccsr, Pmests);
 	csr32w(ctlr, Rccsr, 0);
 	csr32w(ctlr, Rcfg, csr32r(ctlr, Rcfg) | Pint_acen);
-
+	ctlr->version = csr32r(ctlr, Rsrr);
 	if(resetphys){
 		/*
 		 * Soft-reset the PHY
 		 */
 		csr32w(ctlr, Rbmcr, Reset);
 		for(i=0;; i++){
-			if(i > 100)
-				panic("ns83815: PHY soft reset time out");
+			if(i > 100){
+				print("ns83815: PHY soft reset time out\n");
+				return -1;
+			}
 			if((csr32r(ctlr, Rbmcr) & Reset) == 0)
 				break;
 			delay(1);
@@ -645,7 +654,7 @@ softreset(Ctlr* ctlr, int resetphys)
 	/*
 	 * Auto negotiate
 	 */
-	w = csr16r(ctlr, Rbmsr);	/* clear latched bits */
+	csr16r(ctlr, Rbmsr);		/* clear latched bits */
 	debug("anar: %4.4ux\n", csr16r(ctlr, Ranar));
 	csr16w(ctlr, Rbmcr, Anena);
 	if(csr16r(ctlr, Ranar) == 0 || (csr32r(ctlr, Rcfg) & Aneg_dn) == 0){
@@ -653,7 +662,7 @@ softreset(Ctlr* ctlr, int resetphys)
 		for(i=0;; i++){
 			if(i > 6000){
 				print("ns83815: auto neg timed out\n");
-				break;
+				return -1;
 			}
 			if((w = csr16r(ctlr, Rbmsr)) & Ancomp)
 				break;
@@ -669,6 +678,7 @@ softreset(Ctlr* ctlr, int resetphys)
 	debug("aner: %4.4ux\n", csr16r(ctlr, Raner));
 	debug("physts: %4.4ux\n", csr16r(ctlr, Rphysts));
 	debug("tbscr: %4.4ux\n", csr16r(ctlr, Rtbscr));
+	return 0;
 }
 
 static char* mediatable[9] = {
@@ -758,22 +768,97 @@ sissrom(Ctlr *ctlr)
 	}
 }
 
+ushort
+søkrisee(Ctlr *c, int n)
+{
+	int i;
+	uint cmd;
+	ushort r;
+
+   	csr32w(c, Rmear, Eesel);
+
+	cmd = 0x180|n;
+	for(i = 10; i >= 0; i--){
+		n = 1<<3;
+		if(cmd&(1<<i))
+			n |= 1;
+		csr32w(c, Rmear, n);
+		csr32r(c, Rmear);
+		csr32w(c, Rmear, n|4);
+		csr32r(c, Rmear);
+	}
+
+	csr32w(c, Rmear, 1<<3);
+	csr32r(c, Rmear);
+
+	r = 0;
+	for(i = 0; i < 16; i++){
+		csr32w(c, Rmear, 1<<3 | 1<<2);
+		csr32r(c, Rmear);
+		if(csr32r(c, Rmear) & 2)
+			r |= 1<<i;
+		csr32w(c, Rmear, 1<<3);
+		csr32r(c, Rmear);
+	}
+
+	csr32w(c, Rmear, 1<<3);
+	csr32w(c, Rmear, 0);
+
+	return r;
+}
+
 static void
-nssrom(Ctlr* ctlr)
+nsnormalea(Ctlr *ctlr)
 {
 	int i, j;
-
-	for(i = 0; i < nelem(ctlr->srom); i++)
-		ctlr->srom[i] = eegetw(ctlr, i);
 
 	/*
 	 * the MAC address is reversed, straddling word boundaries
 	 */
 	j = Nseenodeaddr*16 + 15;
-	for(i=0; i<48; i++){
+	for(i=0; i < 48; i++){
 		ctlr->sromea[i>>3] |= ((ctlr->srom[j>>4] >> (15-(j&0xF))) & 1) << (i&7);
 		j++;
 	}
+}
+
+static void
+ns403ea(Ctlr *ctlr)
+{
+	int i;
+	ushort s, t;
+
+	s = ctlr->srom[6];
+	for(i = 0; i < 3; i++){
+		t = ctlr->srom[i+7];
+		ctlr->sromea[i*2]   = t<<1 | s>>15;
+		ctlr->sromea[i*2+1] = t>>7;
+		s = t;
+	}
+}
+
+static void
+nssrom(Ctlr* ctlr)
+{
+	int i, ns403;
+	ulong vers;
+	ushort (*ee)(Ctlr*, int);
+
+	vers = ctlr->version;
+	ns403 = vers == Nat83815avng || vers == Nat83816avng;
+	if(ns403){
+		ee = søkrisee;
+		print("soekris %lx\n", vers);
+	}else
+		ee = eegetw;
+
+	for(i = 0; i < nelem(ctlr->srom); i++)
+		ctlr->srom[i] = ee(ctlr, i);
+
+	if(ns403)
+		ns403ea(ctlr);
+	else
+		nsnormalea(ctlr);
 }
 
 static void
@@ -822,7 +907,10 @@ scanpci83815(void)
 		ctlr->pcidev = p;
 		ctlr->id = (p->did<<16)|p->vid;
 
-		softreset(ctlr, 0);
+		if(softreset(ctlr, 0) == -1){
+			free(ctlr);
+			continue;
+		}
 		srom(ctlr);
 
 		if(ctlrhead != nil)
