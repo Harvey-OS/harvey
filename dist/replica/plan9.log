@@ -36258,3 +36258,4 @@
 1225863004 4 c sys/src/boot/pc/clock.c - 664 sys sys 1225862215 6992
 1225863004 5 c sys/src/boot/pc/ether83815.c - 664 sys sys 1225862208 23400
 1225864805 0 c sys/src/9/boot/boot.c - 664 sys sys 1225863270 6961
+1225990804 0 c sys/games/lib/fortunes - 664 sys sys 1225989641 271149
