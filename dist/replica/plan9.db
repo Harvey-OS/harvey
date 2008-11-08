@@ -12595,6 +12595,7 @@ sys/src/cmd/ip/rarpd.c - 664 sys sys 1084470989 3389
 sys/src/cmd/ip/rexexec.c - 664 sys sys 1121977160 742
 sys/src/cmd/ip/rip.c - 664 sys sys 1178482790 12383
 sys/src/cmd/ip/rlogind.c - 664 sys sys 1121977161 757
+sys/src/cmd/ip/rtcp - 20000000775 sys sys 1226097260 0
 sys/src/cmd/ip/snoopy - 20000000775 sys sys 1196687818 0
 sys/src/cmd/ip/snoopy/aoe.c - 664 sys sys 1181426199 1360
 sys/src/cmd/ip/snoopy/aoeata.c - 664 sys sys 1181426199 1852
