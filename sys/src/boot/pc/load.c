@@ -13,9 +13,10 @@
  * variable in plan9.ini can be seen in all circumstances before termrc
  * sets up all the disk partitions.  In particular, if it's on an odd-ball
  * disk like sd10 rather than sdC0, this is needed.
+ * "nvram" is for the benefit of AoE clients.
  */
 static char *diskparts[] = {
-	"dos", "9fat", "fs", "data", "cdboot", "cache", 0
+	"dos", "9fat", "fs", "data", "cdboot", "cache", "nvram", 0
 };
 static char *etherparts[] = { "*", 0 };
 
