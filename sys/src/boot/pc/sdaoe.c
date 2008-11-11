@@ -36,7 +36,6 @@ struct Ctlr{
 	Ctlr	*next;
 	SDunit	*unit;
 
-	int	ctlrno;
 	int	major;
 	int	minor;
 	uchar	ea[Eaddrlen];
@@ -239,6 +238,30 @@ print("wrong tag\n");
 	return -1;
 }
 
+static int
+etherrxany(Etherpkt *p, int t)
+{
+	int i, n;
+
+	for(i = 0; i < nelem(aoeether); i++)
+		if(aoeether[i])
+			while ((n = etherrxpkt(i, p, t)) != 0)
+				if(nhgets(p->type) == Aoetype)
+					return n;
+	return 0;
+}
+
+static int
+ethertxany(Etherpkt *p, int n)
+{
+	int i;
+
+	for(i = 0; i < nelem(aoeether); i++)
+		if(aoeether[i])
+			ethertxpkt(i, p, n, 0);
+	return 0;
+}
+
 /*
  * ignore the tag for identify.  better than ignoring
  * a response to the wrong identify request
@@ -259,10 +282,10 @@ identify(Ctlr *c)
 			return -1;
 		}
 		tag[i] = idpkt(c, a);
-		ethertxpkt(c->ctlrno, &p, sizeof *a, 0);
+		ethertxany(&p, sizeof *a);
 		memset(&p, 0, sizeof p);
 next:
-		n = etherrxpkt(c->ctlrno, &p, 125);
+		n = etherrxany(&p, 125);
 		if(n == 0){
 			i++;
 			continue;
@@ -357,21 +380,6 @@ discover(int major, int minor)
 }
 
 static int
-rxany(Etherpkt *p, int t)
-{
-	int i, n;
-
-	for(i = 0; i < nelem(aoeether); i++){
-		if(aoeether[i] == 0)
-			continue;
-		while ((n = etherrxpkt(i, p, t)) != 0)
-			if(nhgets(p->type) == Aoetype)
-				return n;
-	}
-	return 0;
-}
-
-static int
 aoeprobe(int major, int minor, SDev *s)
 {
 	Ctlr *ctlr;
@@ -383,7 +391,7 @@ aoeprobe(int major, int minor, SDev *s)
 			return -1;
 		discover(major, minor);
 again:
-		n = rxany(&p, 100);
+		n = etherrxany(&p, 100);
 		if(n > 0 && (ctlr = newctlr(&p)))
 			break;
 		if(n > 0)
@@ -573,10 +581,10 @@ rio(Ctlr *c, Aoeata *a, int n, int scnt)
 	for(i = 0; i < 5; i++){
 		tag = hset(c, a, ACata);
 		cmd = a->cmdstat;
-		ethertxpkt(c->ctlrno, (Etherpkt*)a, n, 0);
+		ethertxany((Etherpkt*)a, n);
 		memset(a, 0, sizeof *a);
 again:
-		n = etherrxpkt(c->ctlrno, (Etherpkt*)a, 125);
+		n = etherrxany((Etherpkt*)a, 125);
 		if(n == 0)
 			continue;
 		if(nhgets(a->type) != Aoetype || nhgetl(a->tag) != tag ||
