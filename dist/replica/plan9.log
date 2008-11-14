@@ -36260,3 +36260,8 @@
 1225864805 0 c sys/src/9/boot/boot.c - 664 sys sys 1225863270 6961
 1225990804 0 c sys/games/lib/fortunes - 664 sys sys 1225989641 271149
 1226098804 0 a sys/src/cmd/ip/rtcp - 20000000775 sys sys 1226097260 0
+1226599204 0 c sys/games/lib/fortunes - 664 sys sys 1226457250 271190
+1226599204 1 c sys/src/boot/pc/load.c - 664 sys sys 1226351940 11488
+1226599204 2 c sys/src/boot/pc/sdaoe.c - 664 sys sys 1226358169 11817
+1226637005 0 a sys/lib/kbmap/it - 664 sys sys 1226636639 5212
+1226637005 1 c sys/lib/troff/font/devutf/utfmap - 664 sys sys 1226636554 1172
