@@ -5860,7 +5860,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1225989641 271149
+sys/games/lib/fortunes - 664 sys sys 1226457250 271190
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -9240,7 +9240,7 @@ sys/src/boot/pc/kfs.h - 664 sys sys 1032215924 861
 sys/src/boot/pc/kfsboot.c - 664 sys sys 1032215914 4788
 sys/src/boot/pc/l.s - 664 sys sys 1216786858 18260
 sys/src/boot/pc/lib.h - 664 sys sys 1212090562 3280
-sys/src/boot/pc/load.c - 664 sys sys 1223515569 11433
+sys/src/boot/pc/load.c - 664 sys sys 1226351940 11488
 sys/src/boot/pc/mbr.s - 664 sys sys 1015007953 6234
 sys/src/boot/pc/mem.h - 664 sys sys 1190921475 3437
 sys/src/boot/pc/memory.c - 664 sys sys 1212010326 10266
@@ -9257,7 +9257,7 @@ sys/src/boot/pc/queue.c - 664 sys sys 1015007954 566
 sys/src/boot/pc/sd.h - 664 sys sys 1200690169 2249
 sys/src/boot/pc/sd53c8xx.c - 664 sys sys 1186031515 52082
 sys/src/boot/pc/sd53c8xx.i - 664 sys sys 1015007955 27245
-sys/src/boot/pc/sdaoe.c - 664 sys sys 1223515593 11739
+sys/src/boot/pc/sdaoe.c - 664 sys sys 1226358169 11817
 sys/src/boot/pc/sdata.c - 664 sys sys 1224095579 39270
 sys/src/boot/pc/sdbios.c - 664 sys sys 1212010334 3280
 sys/src/boot/pc/sdiahci.c - 664 sys sys 1213134135 28620
@@ -15887,3 +15887,5 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1020896385 0
+sys/lib/kbmap/it - 664 sys sys 1226636639 5212
+sys/lib/troff/font/devutf/utfmap - 664 sys sys 1226636554 1172
