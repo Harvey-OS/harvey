@@ -6611,6 +6611,7 @@ sys/lib/kbmap/dvorakr - 664 sys sys 1130763838 1497
 sys/lib/kbmap/ee - 664 sys sys 1130763838 422
 sys/lib/kbmap/es - 664 sys sys 1130763838 670
 sys/lib/kbmap/fi - 664 sys sys 1130763838 369
+sys/lib/kbmap/it - 664 sys sys 1226636639 5212
 sys/lib/kbmap/jp - 664 sys sys 1130763838 315
 sys/lib/kbmap/mouse-csa - 664 sys sys 1130778761 88
 sys/lib/kbmap/mouse-fn - 664 sys sys 1130778761 102
@@ -7289,7 +7290,7 @@ sys/lib/troff/font/devutf/charlib/~= - 664 sys sys 944957516 88
 sys/lib/troff/font/devutf/charlib/☺ - 664 sys sys 1020895801 468
 sys/lib/troff/font/devutf/mkMAP - 775 sys sys 944957518 88
 sys/lib/troff/font/devutf/shell.lib - 664 sys sys 944957518 22924
-sys/lib/troff/font/devutf/utfmap - 664 sys sys 944957518 1172
+sys/lib/troff/font/devutf/utfmap - 664 sys sys 1226636554 1172
 sys/lib/troff/term - 20000000775 sys sys 1039727363 0
 sys/lib/troff/term/tab.37 - 664 sys sys 944957522 1538
 sys/lib/troff/term/tab.450 - 664 sys sys 944957522 1920
@@ -15887,5 +15888,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1020896385 0
-sys/lib/kbmap/it - 664 sys sys 1226636639 5212
-sys/lib/troff/font/devutf/utfmap - 664 sys sys 1226636554 1172
