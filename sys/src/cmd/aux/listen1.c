@@ -98,22 +98,26 @@ main(int argc, char **argv)
 		case 0:
 			fd = accept(nctl, ndir);
 			if(fd < 0){
-				fprint(2, "accept %s: can't open  %s/data: %r", argv[0], ndir);
+				fprint(2, "accept %s: can't open  %s/data: %r\n",
+					argv[0], ndir);
 				_exits(0);
 			}
-			print("incoming call for %s from %s in %s\n", argv[0], remoteaddr(ndir), ndir);
+			print("incoming call for %s from %s in %s\n", argv[0],
+				remoteaddr(ndir), ndir);
 			fprint(nctl, "keepalive");
 			close(ctl);
 			close(nctl);
 			putenv("net", ndir);
-			sprint(data, "%s/data", ndir);
+			snprint(data, sizeof data, "%s/data", ndir);
 			bind(data, "/dev/cons", MREPL);
 			dup(fd, 0);
 			dup(fd, 1);
 			dup(fd, 2);
 			close(fd);
 			exec(argv[1], argv+1);
-			fprint(2, "exec: %r");
+			if(argv[1][0] != '/')
+				exec(smprint("/bin/%s", argv[1]), argv+1);
+			fprint(2, "%s: exec: %r\n", argv0);
 			exits(nil);
 		default:
 			close(nctl);
