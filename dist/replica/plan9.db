@@ -5860,7 +5860,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1226457250 271190
+sys/games/lib/fortunes - 664 sys sys 1226955633 271247
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -7631,7 +7631,7 @@ sys/man/2/mp - 664 sys sys 1207598511 10847
 sys/man/2/muldiv - 664 sys sys 1196638940 639
 sys/man/2/nan - 664 sys sys 1196638938 937
 sys/man/2/ndb - 664 sys sys 1196638941 9743
-sys/man/2/notify - 664 sys sys 1196638938 6376
+sys/man/2/notify - 664 sys sys 1226948179 6395
 sys/man/2/object - 664 sys sys 1196638938 3864
 sys/man/2/open - 664 sys sys 1196638941 3404
 sys/man/2/perror - 664 sys sys 1196638938 1881
@@ -9845,7 +9845,7 @@ sys/src/cmd/aux/gps/util.c - 664 sys sys 1107448815 2795
 sys/src/cmd/aux/lines.c - 664 sys sys 1015008782 546
 sys/src/cmd/aux/lis - 775 sys sys 944960794 45
 sys/src/cmd/aux/listen.c - 664 sys sys 1212348329 10009
-sys/src/cmd/aux/listen1.c - 664 sys sys 1143759349 2005
+sys/src/cmd/aux/listen1.c - 664 sys sys 1226897492 2115
 sys/src/cmd/aux/mkfile - 664 sys sys 1191473306 1008
 sys/src/cmd/aux/mklatinkbd.c - 664 sys sys 953253425 3813
 sys/src/cmd/aux/mnihongo - 20000000775 sys sys 1196687788 0
@@ -14181,7 +14181,7 @@ sys/src/cmd/upas/common - 20000000775 sys sys 1196687840 0
 sys/src/cmd/upas/common/appendfiletombox.c - 664 sys sys 1179946114 2563
 sys/src/cmd/upas/common/aux.c - 664 sys sys 1206163103 2304
 sys/src/cmd/upas/common/become.c - 664 sys sys 1015009623 430
-sys/src/cmd/upas/common/common.h - 664 sys sys 1098803897 2040
+sys/src/cmd/upas/common/common.h - 664 sys sys 1226948204 2077
 sys/src/cmd/upas/common/config.c - 664 sys sys 944961316 254
 sys/src/cmd/upas/common/libsys.c - 664 sys sys 1116769961 14510
 sys/src/cmd/upas/common/mail.c - 664 sys sys 944961315 1346
@@ -14237,7 +14237,7 @@ sys/src/cmd/upas/ml/mlmgr.c - 664 sys sys 1045505888 2332
 sys/src/cmd/upas/ml/mlowner.c - 664 sys sys 1177589086 1143
 sys/src/cmd/upas/ned - 20000000775 sys sys 1196687840 0
 sys/src/cmd/upas/ned/mkfile - 664 sys sys 1060041738 233
-sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1212691953 44795
+sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1226948330 44809
 sys/src/cmd/upas/pop3 - 20000000775 sys sys 1196687840 0
 sys/src/cmd/upas/pop3/mkfile - 664 sys sys 1064589604 186
 sys/src/cmd/upas/pop3/pop3.c - 664 sys sys 1218308089 14373
@@ -14278,7 +14278,7 @@ sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417
 sys/src/cmd/upas/smtp/rmtdns.c - 664 sys sys 1188509396 1075
 sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1188509396 20717
 sys/src/cmd/upas/smtp/smtp.h - 664 sys sys 1188509396 1356
-sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1223322786 33455
+sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1226948306 33540
 sys/src/cmd/upas/smtp/smtpd.h - 664 sys sys 1201499389 1134
 sys/src/cmd/upas/smtp/smtpd.y - 664 sys sys 1181508390 6924
 sys/src/cmd/upas/smtp/spam.c - 664 sys sys 1139699502 10238
