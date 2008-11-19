@@ -1120,7 +1120,7 @@ hex2int(int x)
 		return (x - 'A') + 10;
 	if(x >= 'a' && x <= 'f')
 		return (x - 'a') + 10;
-	return 0;
+	return -1;
 }
 
 // underscores are translated in 2047 headers (uscores=1) 
@@ -1128,7 +1128,7 @@ hex2int(int x)
 static char*
 decquotedline(char *out, char *in, char *e, int uscores)
 {
-	int c, soft;
+	int c, c2, soft;
 
 	/* dump trailing white space */
 	while(e >= in && (*e == ' ' || *e == '\t' || *e == '\r' || *e == '\n'))
@@ -1153,9 +1153,14 @@ decquotedline(char *out, char *in, char *e, int uscores)
 			*out++ = c;
 			break;
 		case '=':
-			c = hex2int(*in++)<<4;
-			c |= hex2int(*in++);
-			*out++ = c;
+			c  = hex2int(*in++);
+			c2 = hex2int(*in++);
+			if (c != -1 && c2 != -1)
+				*out++ = c<<4 | c2;
+			else {
+				*out++ = '=';
+				in -= 2;
+			}
 			break;
 		}
 	}

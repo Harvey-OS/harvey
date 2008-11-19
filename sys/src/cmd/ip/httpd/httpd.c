@@ -285,6 +285,7 @@ doreq(HConnect *c)
 	char *magic, *uri, *newuri, *origuri, *newpath, *hb;
 	char virtualhost[100], logfd0[10], logfd1[10], vers[16];
 	int n, nredirect;
+	uint flags;
 
 	/*
 	 * munge uri for magic
@@ -309,6 +310,7 @@ top:
 	 * Apply redirects.  Do this before reading headers
 	 * (if possible) so that we can redirect to magic invisibly.
 	 */
+	flags = 0;
 	if(origuri[0]=='/' && origuri[1]=='~'){
 		n = strlen(origuri) + 4 + UTFmax;
 		newpath = halloc(c, n);
@@ -319,19 +321,20 @@ top:
 		/* can't redirect / until we read the headers below */
 		newuri = nil;
 	}else
-		newuri = redirect(c, origuri);
+		newuri = redirect(c, origuri, &flags);
 
 	if(newuri != nil){
-		if(isdecorated(newuri)){
-			if(newuri[0] == Modperm) {
-				logit(c, "%s: permanently moved to %s",
-					origuri, undecorated(newuri));
-				return hmoved(c, undecorated(newuri));
-			}
-			c->req.uri = uri = undecorated(newuri);
-//			logit(c, "%s: silent replacement %s", origuri, uri);
+		if(flags & Redirperm) {
+			logit(c, "%s: permanently moved to %s", origuri, newuri);
+			return hmoved(c, newuri);
+		} else if(flags & Redirsilent) {
+			c->req.uri = uri = newuri;
+			logit(c, "%s: silent replacement %s", origuri, uri);
 			goto top;
-		}
+		} else if (flags & (Redironly | Redirsubord))
+			logit(c, "%s: top-level or many-to-one replacement %s",
+				origuri, uri);
+
 		if(hparseheaders(c, 15*60*1000) < 0)
 			exits("failed");
 		/*
@@ -373,9 +376,9 @@ magic:
 		exits("failed");
 	if(origuri[0] == '/' && origuri[1] == 0){	
 		snprint(virtualhost, sizeof virtualhost, "http://%s/", c->head.host);
-		newuri = redirect(c, virtualhost);
+		newuri = redirect(c, virtualhost, nil);
 		if(newuri == nil)
-			newuri = redirect(c, origuri);
+			newuri = redirect(c, origuri, nil);
 		if(newuri)
 			return hmoved(c, newuri);
 	}

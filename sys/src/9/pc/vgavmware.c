@@ -150,24 +150,31 @@ vmwarelinear(VGAscr* scr, int, int)
 	char err[64];
 	Pcidev *p;
 
-	p = pcimatch(nil, PCIVMWARE, 0);
-	if(p == nil)
-		error("no vmware card found");
-
-	switch(p->did){
-	default:
-		snprint(err, sizeof err, "unknown vmware id %.4ux", p->did);
-		error(err);
-		
-	case VMWARE1:
-		vm->ra = 0x4560;
-		vm->rd = 0x4560+4;
-		break;
-
-	case VMWARE2:
-		vm->ra = p->mem[0].bar&~3;
-		vm->rd = vm->ra + 1;
+	err[0] = 0;
+	p = nil;
+	while((p = pcimatch(p, PCIVMWARE, 0)) != nil){
+		if(p->ccrb != Pcibcdisp)
+			continue;
+		switch(p->did){
+		default:
+			snprint(err, sizeof err, "unknown vmware pci did %.4ux",
+				p->did);
+			continue;
+			
+		case VMWARE1:
+			vm->ra = 0x4560;
+			vm->rd = 0x4560 + 4;
+			break;
+	
+		case VMWARE2:
+			vm->ra = p->mem[0].bar & ~3;
+			vm->rd = vm->ra + 1;
+			break;
+		}
+		break;			/* found a card, p is set */
 	}
+	if(p == nil)
+		error(err[0]? err: "no vmware vga card found");
 
 	vgalinearaddr(scr, vmrd(vm, Rfbstart), vmrd(vm, Rfbsize));
 	if(scr->apsize)

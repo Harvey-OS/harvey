@@ -174,7 +174,9 @@ PPTP (point-to-point tunnelling protocol) service.
 .PD
 .PP
 At least the following services are available in
-.BR /bin/service.auth .
+.BR /bin/service.auth ,
+the usual
+.IR trustsrvdir .
 .TF \ tcp0000
 .TP
 .B tcp566
@@ -219,18 +221,9 @@ for an example.
 .B /net/tcp
 by convention, TCP device bind point
 .SH SOURCE
-The sources to
-.I listen
-and
-.I listen1
-are
-.B /sys/src/cmd/aux/listen.c
-and
-.BR /sys/src/cmd/aux/listen1.c .
-The other commands are
-.IR rc (1)
-scripts in
-.BR /rc/bin/service .
+.B /sys/src/cmd/aux/listen*.c
+.br
+.B /rc/bin/service*
 .SH "SEE ALSO"
 .IR authsrv (6),
 .IR dial (2)
