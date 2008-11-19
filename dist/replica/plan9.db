@@ -7868,12 +7868,12 @@ sys/man/8/fsconfig - 664 sys sys 1196638946 8890
 sys/man/8/fshalt - 664 sys sys 1196638947 862
 sys/man/8/getflags - 664 sys sys 1196638947 1713
 sys/man/8/gpsfs - 664 sys sys 1223562059 5097
-sys/man/8/httpd - 664 sys sys 1225318201 8198
+sys/man/8/httpd - 664 sys sys 1227053757 8592
 sys/man/8/init - 664 sys sys 1196638947 1430
 sys/man/8/ipconfig - 664 sys sys 1205960389 8284
 sys/man/8/ipserv - 664 sys sys 1208190062 3272
 sys/man/8/kfscmd - 664 sys sys 1196638947 4514
-sys/man/8/listen - 664 sys sys 1205796105 4090
+sys/man/8/listen - 664 sys sys 1227031256 3995
 sys/man/8/lp - 664 sys sys 1205960257 2490
 sys/man/8/mk9660 - 664 sys sys 1196638947 3946
 sys/man/8/mkfs - 664 sys sys 1196638947 3427
@@ -8233,7 +8233,7 @@ sys/src/9/pc/vgat2r4.c - 664 sys sys 1131290603 9351
 sys/src/9/pc/vgatvp3020.c - 664 sys sys 1131290603 4507
 sys/src/9/pc/vgatvp3026.c - 664 sys sys 1131290603 3956
 sys/src/9/pc/vgavesa.c - 664 sys sys 1131402428 2396
-sys/src/9/pc/vgavmware.c - 664 sys sys 1131290604 5840
+sys/src/9/pc/vgavmware.c - 664 sys sys 1227043666 6011
 sys/src/9/pc/vgax.c - 664 sys sys 1131290604 1671
 sys/src/9/pc/wavelan.c - 664 sys sys 1185652512 27841
 sys/src/9/pc/wavelan.h - 664 sys sys 1107448246 6169
@@ -12526,8 +12526,8 @@ sys/src/cmd/ip/httpd/classify.c - 664 sys sys 1078840017 9665
 sys/src/cmd/ip/httpd/content.c - 664 sys sys 1015090170 3140
 sys/src/cmd/ip/httpd/emem.c - 664 sys sys 984773807 278
 sys/src/cmd/ip/httpd/hints.c - 664 sys sys 1143759344 6282
-sys/src/cmd/ip/httpd/httpd.c - 664 sys sys 1225745388 11969
-sys/src/cmd/ip/httpd/httpsrv.h - 664 sys sys 1225313811 1532
+sys/src/cmd/ip/httpd/httpd.c - 664 sys sys 1227053843 12086
+sys/src/cmd/ip/httpd/httpsrv.h - 664 sys sys 1227053815 1802
 sys/src/cmd/ip/httpd/imagemap.c - 664 sys sys 984773808 5229
 sys/src/cmd/ip/httpd/init.c - 664 sys sys 1015090171 2182
 sys/src/cmd/ip/httpd/log.c - 664 sys sys 1214400897 3075
@@ -12535,7 +12535,7 @@ sys/src/cmd/ip/httpd/man2html.c - 664 sys sys 1139667314 9069
 sys/src/cmd/ip/httpd/mkfile - 664 sys sys 1123902339 1353
 sys/src/cmd/ip/httpd/netlib_find.c - 664 sys sys 1015090172 6247
 sys/src/cmd/ip/httpd/netlib_history.c - 664 sys sys 1121977160 4748
-sys/src/cmd/ip/httpd/redirect.c - 664 sys sys 1225745332 3452
+sys/src/cmd/ip/httpd/redirect.c - 664 sys sys 1227053856 4758
 sys/src/cmd/ip/httpd/save.c - 664 sys sys 1015090172 3175
 sys/src/cmd/ip/httpd/sendfd.c - 664 sys sys 1129202621 12264
 sys/src/cmd/ip/httpd/webls.c - 664 sys sys 1120737502 7658
@@ -14203,7 +14203,7 @@ sys/src/cmd/upas/fs - 20000000775 sys sys 1196687840 0
 sys/src/cmd/upas/fs/dat.h - 664 sys sys 1143929916 4189
 sys/src/cmd/upas/fs/fs.c - 664 sys sys 1175322795 26929
 sys/src/cmd/upas/fs/imap4.c - 664 sys sys 1204007092 16319
-sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1221077270 27203
+sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1227041821 27289
 sys/src/cmd/upas/fs/mkfile - 664 sys sys 1047490336 321
 sys/src/cmd/upas/fs/plan9.c - 664 sys sys 1175322803 7498
 sys/src/cmd/upas/fs/pop3.c - 664 sys sys 1133988332 13024
@@ -14278,7 +14278,7 @@ sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417
 sys/src/cmd/upas/smtp/rmtdns.c - 664 sys sys 1188509396 1075
 sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1188509396 20717
 sys/src/cmd/upas/smtp/smtp.h - 664 sys sys 1188509396 1356
-sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1226948306 33540
+sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1227056402 33580
 sys/src/cmd/upas/smtp/smtpd.h - 664 sys sys 1201499389 1134
 sys/src/cmd/upas/smtp/smtpd.y - 664 sys sys 1181508390 6924
 sys/src/cmd/upas/smtp/spam.c - 664 sys sys 1139699502 10238

@@ -2,7 +2,6 @@
 .SH NAME
 httpd, mirror, save, imagemap, man2html, webls \- HTTP server
 .SH SYNOPSIS
-.PP
 .B ip/httpd/httpd
 .RB [ -a
 .IR srvaddr ]
@@ -128,7 +127,8 @@ is ignored.
 The first field of each line is a URI;
 the second a replacement path.
 If a prefix of the URI matches a redirection path,
-the URI is rewritten using the corresponding replacement path,
+the URI is rewritten using the corresponding replacement path
+instead of the prefix,
 and a temporary redirect is sent to the HTTP client.
 If the replacement path does not specify a server name,
 and the request has no explicit host,
@@ -150,7 +150,18 @@ otherwise it is a prefix match.
 The first field is a literal string, matched against
 each file prefix of each URL.
 The most specific, i.e., longest,
-pattern wins, and is applied once (there is no rescanning).
+pattern wins, and is applied once (there is no rescanning),
+except for the following exceptions.
+.I Httpd
+matches only the prefix and not subordinate pages
+if a replacement is prefixed with 
+.LR > .
+.I Httpd
+omits the unmatched part of the original URI
+from the rewritten URI if the replacement is prefixed with 
+.LR * .
+This permits many-to-one mappings; for example,
+to send all references to an old subtree to a single error page.
 .PP
 .I Httpd
 handles replacements prefixed with 
@@ -328,8 +339,8 @@ A local redirection:
 Redirection to another site:
 .RS
 .EX
-/netlib/lapack/lawns		http://netlib.org/lapack/lawns
-http://inferno.bell-labs.com	http://www.vitanuova.com
+/netlib/lapack/lawns		=http://netlib.org/lapack/lawns
+http://inferno.bell-labs.com	=http://www.vitanuova.com
 .EE
 .RE
 .PP

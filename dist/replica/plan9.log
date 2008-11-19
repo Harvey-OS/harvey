@@ -36271,3 +36271,11 @@
 1226948404 2 c sys/src/cmd/upas/ned/nedmail.c - 664 sys sys 1226948330 44809
 1226948404 3 c sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1226948306 33540
 1226955604 0 c sys/games/lib/fortunes - 664 sys sys 1226955633 271247
+1227033004 0 c sys/man/8/listen - 664 sys sys 1227031256 3995
+1227042005 0 c sys/src/cmd/upas/fs/mbox.c - 664 sys sys 1227041821 27289
+1227043805 0 c sys/src/9/pc/vgavmware.c - 664 sys sys 1227043666 6011
+1227054604 0 c sys/man/8/httpd - 664 sys sys 1227053757 8592
+1227054604 1 c sys/src/cmd/ip/httpd/httpd.c - 664 sys sys 1227053843 12086
+1227054604 2 c sys/src/cmd/ip/httpd/httpsrv.h - 664 sys sys 1227053815 1802
+1227054604 3 c sys/src/cmd/ip/httpd/redirect.c - 664 sys sys 1227053856 4758
+1227056405 0 c sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1227056402 33580
