@@ -558,7 +558,7 @@
 386/lib/ape/lib9.a - 664 sys sys 1205611022 8766
 386/lib/ape/libap.a - 664 sys sys 1224960113 767492
 386/lib/ape/libbsd.a - 664 sys sys 1220411684 185404
-386/lib/ape/libdraw.a - 664 sys sys 1219693462 631580
+386/lib/ape/libdraw.a - 664 sys sys 1227325296 631580
 386/lib/ape/libfmt.a - 664 sys sys 1219693464 156706
 386/lib/ape/libl.a - 664 sys sys 1212377636 9406
 386/lib/ape/libnet.a - 664 sys sys 1219693464 24090
@@ -576,7 +576,7 @@
 386/lib/libcomplete.a - 664 sys sys 1209184402 6440
 386/lib/libcontrol.a - 664 sys sys 1209184407 276774
 386/lib/libdisk.a - 664 sys sys 1210393271 42816
-386/lib/libdraw.a - 664 sys sys 1210393278 377774
+386/lib/libdraw.a - 664 sys sys 1227325296 377774
 386/lib/libflate.a - 664 sys sys 1209184416 76866
 386/lib/libframe.a - 664 sys sys 1209184417 68780
 386/lib/libgeometry.a - 664 sys sys 1209184419 50810
@@ -5860,7 +5860,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1226955633 271247
+sys/games/lib/fortunes - 664 sys sys 1227276926 271405
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -14278,7 +14278,7 @@ sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417
 sys/src/cmd/upas/smtp/rmtdns.c - 664 sys sys 1188509396 1075
 sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1188509396 20717
 sys/src/cmd/upas/smtp/smtp.h - 664 sys sys 1188509396 1356
-sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1227056402 33580
+sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1227297881 33624
 sys/src/cmd/upas/smtp/smtpd.h - 664 sys sys 1201499389 1134
 sys/src/cmd/upas/smtp/smtpd.y - 664 sys sys 1181508390 6924
 sys/src/cmd/upas/smtp/spam.c - 664 sys sys 1139699502 10238
@@ -15275,7 +15275,7 @@ sys/src/libdisk/test.c - 664 sys sys 960347152 275
 sys/src/libdraw - 20000000775 sys sys 1097972686 0
 sys/src/libdraw/alloc.c - 664 sys sys 1142862808 4179
 sys/src/libdraw/allocimagemix.c - 664 sys sys 1014927873 924
-sys/src/libdraw/arith.c - 664 sys sys 1070394447 2628
+sys/src/libdraw/arith.c - 664 sys sys 1227319267 2621
 sys/src/libdraw/bezier.c - 664 sys sys 1040442969 4948
 sys/src/libdraw/border.c - 664 sys sys 984709663 554
 sys/src/libdraw/buildfont.c - 664 sys sys 984709663 2709

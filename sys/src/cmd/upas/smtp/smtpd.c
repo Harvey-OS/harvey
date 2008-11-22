@@ -332,6 +332,8 @@ Liarliar:
 				syslog(0, "smtpd",
 					"Hung up on %s; claimed to be %s",
 					nci->rsys, him);
+				if(Dflag)
+					sleep(delaysecs()*1000);
 				reply("554 5.7.0 Liar!\r\n");
 				exits("client pretended to be us");
 				return;

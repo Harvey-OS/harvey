@@ -36279,3 +36279,8 @@
 1227054604 2 c sys/src/cmd/ip/httpd/httpsrv.h - 664 sys sys 1227053815 1802
 1227054604 3 c sys/src/cmd/ip/httpd/redirect.c - 664 sys sys 1227053856 4758
 1227056405 0 c sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1227056402 33580
+1227277805 0 c sys/games/lib/fortunes - 664 sys sys 1227276926 271405
+1227299404 0 c sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1227297881 33624
+1227319204 0 c sys/src/libdraw/arith.c - 664 sys sys 1227319267 2621
+1227326405 0 c 386/lib/ape/libdraw.a - 664 sys sys 1227325296 631580
+1227326405 1 c 386/lib/libdraw.a - 664 sys sys 1227325296 377774
