@@ -111,7 +111,7 @@
 386/bin/aux/isvmware - 775 sys sys 1032486791 23997
 386/bin/aux/lines - 775 sys sys 1209614153 60657
 386/bin/aux/listen - 775 sys sys 1212377312 108405
-386/bin/aux/listen1 - 775 sys sys 1209614157 94801
+386/bin/aux/listen1 - 775 sys sys 1227384557 95150
 386/bin/aux/lpdaemon - 775 sys sys 1212377314 170862
 386/bin/aux/lpdsend - 775 sys sys 1212377318 157412
 386/bin/aux/lpsend - 775 sys sys 1178568255 51124
@@ -299,7 +299,7 @@
 386/bin/ip/gping - 775 sys sys 1210392772 182372
 386/bin/ip/hogports - 775 sys sys 1148500655 42914
 386/bin/ip/httpd - 20000000775 sys sys 1068385801 0
-386/bin/ip/httpd/httpd - 775 sys sys 1210392778 297211
+386/bin/ip/httpd/httpd - 775 sys sys 1227384558 298281
 386/bin/ip/httpd/imagemap - 775 sys sys 1209614361 116331
 386/bin/ip/httpd/man2html - 775 sys sys 1209614364 124885
 386/bin/ip/httpd/netlib_find - 775 sys sys 1209614367 117179
@@ -465,7 +465,7 @@
 386/bin/upas/bayes - 775 sys sys 1209614708 73383
 386/bin/upas/deliver - 775 sys sys 1209614712 99223
 386/bin/upas/filter - 775 sys sys 1209614718 146764
-386/bin/upas/fs - 775 sys sys 1221103144 333376
+386/bin/upas/fs - 775 sys sys 1227384558 333415
 386/bin/upas/isspam - 775 sys sys 1064598349 38
 386/bin/upas/list - 775 sys sys 1209614727 83047
 386/bin/upas/marshal - 775 sys sys 1209614731 132947
@@ -474,7 +474,7 @@
 386/bin/upas/mlowner - 775 sys sys 1209614739 92274
 386/bin/upas/msgcat - 775 sys sys 1064598353 38
 386/bin/upas/msgtok - 775 sys sys 1209614742 76769
-386/bin/upas/nedmail - 775 sys sys 1215402278 156303
+386/bin/upas/nedmail - 775 sys sys 1227384559 156312
 386/bin/upas/pop3 - 775 sys sys 1218339137 263543
 386/bin/upas/qer - 775 sys sys 1209614754 99206
 386/bin/upas/ratfs - 775 sys sys 1209614758 111371
@@ -482,7 +482,7 @@
 386/bin/upas/scanmail - 775 sys sys 1209614764 128224
 386/bin/upas/send - 775 sys sys 1210648938 192191
 386/bin/upas/smtp - 775 sys sys 1210393023 277548
-386/bin/upas/smtpd - 775 sys sys 1223348950 336055
+386/bin/upas/smtpd - 775 sys sys 1227413337 336220
 386/bin/upas/spam - 775 sys sys 1064598366 36
 386/bin/upas/testscan - 775 sys sys 1209614790 83875
 386/bin/upas/token - 775 sys sys 1188447329 73042
@@ -556,7 +556,7 @@
 386/lib - 20000000775 sys sys 1209184392 0
 386/lib/ape - 20000000775 sys sys 1197477092 0
 386/lib/ape/lib9.a - 664 sys sys 1205611022 8766
-386/lib/ape/libap.a - 664 sys sys 1224960113 767492
+386/lib/ape/libap.a - 664 sys sys 1227384559 823890
 386/lib/ape/libbsd.a - 664 sys sys 1220411684 185404
 386/lib/ape/libdraw.a - 664 sys sys 1227325296 631580
 386/lib/ape/libfmt.a - 664 sys sys 1219693464 156706
@@ -14278,7 +14278,7 @@ sys/src/cmd/upas/smtp/rfc822.y - 664 sys sys 1064589606 13417
 sys/src/cmd/upas/smtp/rmtdns.c - 664 sys sys 1188509396 1075
 sys/src/cmd/upas/smtp/smtp.c - 664 sys sys 1188509396 20717
 sys/src/cmd/upas/smtp/smtp.h - 664 sys sys 1188509396 1356
-sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1227297881 33624
+sys/src/cmd/upas/smtp/smtpd.c - 664 sys sys 1227388958 33680
 sys/src/cmd/upas/smtp/smtpd.h - 664 sys sys 1201499389 1134
 sys/src/cmd/upas/smtp/smtpd.y - 664 sys sys 1181508390 6924
 sys/src/cmd/upas/smtp/spam.c - 664 sys sys 1139699502 10238

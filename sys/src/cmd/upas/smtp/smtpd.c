@@ -177,6 +177,8 @@ main(int argc, char **argv)
 			debug = 0;
 	}
 	getconf();
+	if (isbadguy())
+		exits("banned");
 	Binit(&bin, 0, OREAD);
 
 	if (chdir(UPASLOG) < 0)
@@ -627,7 +629,8 @@ receiver(String *path)
 	/* forwarding() can modify 'path' on loopback request */
 	if(filterstate == ACCEPT && fflag && !authenticated && forwarding(path)) {
 		syslog(0, "smtpd", "Bad Forward %s (%s/%s) (%s)",
-			senders.last->p? s_to_c(senders.last->p): sender,
+			senders.last && senders.last->p?
+				s_to_c(senders.last->p): sender,
 			him, nci->rsys, path? s_to_c(path): rcpt);
 		rejectcount++;
 		reply("550 5.7.1 we don't relay.  send to your-path@[] for "
