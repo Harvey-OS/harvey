@@ -817,7 +817,6 @@ if(0) print("%s %lud: notify %.8lux %.8lux %.8lux %s\n",
 		pexit("Suicide", 0);
 	}
 
-	up->ureg = (void*)sp;
 	memmove((Ureg*)sp, ureg, sizeof(Ureg));
 	*(Ureg**)(sp-BY2WD) = up->ureg;	/* word under Ureg is old up->ureg */
 	up->ureg = (void*)sp;

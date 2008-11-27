@@ -956,7 +956,6 @@ vt6102pci(void)
 		switch((p->did<<16)|p->vid){
 		default:
 			continue;
-		case (0x3053<<16)|0x1106:	/* Rhine III vt6105m (Soekris) */
 		case (0x3065<<16)|0x1106:	/* Rhine II */
 		case (0x3106<<16)|0x1106:	/* Rhine III */
 			break;
