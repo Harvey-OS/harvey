@@ -230,7 +230,7 @@
 386/bin/ed - 775 sys sys 1209614267 93474
 386/bin/eqn - 775 sys sys 1212377326 245242
 386/bin/execnet - 775 sys sys 1210392671 176948
-386/bin/exportfs - 775 sys sys 1210392675 162218
+386/bin/exportfs - 775 sys sys 1227816569 162235
 386/bin/ext2srv - 775 sys sys 1210392679 178650
 386/bin/faces - 775 sys sys 1215402243 193483
 386/bin/factor - 775 sys sys 1209614276 61640
@@ -8152,7 +8152,8 @@ sys/src/9/pc/ethermii.h - 664 sys sys 1086873891 3258
 sys/src/9/pc/ethersink.c - 664 sys sys 1048644103 1076
 sys/src/9/pc/ethersmc.c - 664 sys sys 1162951986 15116
 sys/src/9/pc/ethervgbe.c - 664 sys sys 1160066496 26838
-sys/src/9/pc/ethervt6102.c - 664 sys sys 1212432407 23073
+sys/src/9/pc/ethervt6102.c - 664 sys sys 1227761169 23011
+sys/src/9/pc/ethervt6105m.c - 664 sys sys 1227761173 26708
 sys/src/9/pc/etherwavelan.c - 664 sys sys 1131290380 3747
 sys/src/9/pc/floppy.h - 664 sys sys 1055700609 3835
 sys/src/9/pc/fns.h - 664 sys sys 1190268439 4738
@@ -8201,7 +8202,7 @@ sys/src/9/pc/sdiahci.c - 664 sys sys 1213134393 39005
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1204232564 34031
 sys/src/9/pc/sdmylex.c - 664 sys sys 1189229947 28395
 sys/src/9/pc/sdscsi.c - 664 sys sys 1186618532 7957
-sys/src/9/pc/trap.c - 664 sys sys 1218342303 22025
+sys/src/9/pc/trap.c - 664 sys sys 1227761775 22002
 sys/src/9/pc/uartaxp.c - 664 sys sys 1207419955 18931
 sys/src/9/pc/uartaxp.i - 664 sys sys 1155243528 111326
 sys/src/9/pc/uarti8250.c - 664 sys sys 1177676872 13957
@@ -10375,7 +10376,7 @@ sys/src/cmd/execnet/main.c - 664 sys sys 1019861330 657
 sys/src/cmd/execnet/mkfile - 664 sys sys 1032059543 208
 sys/src/cmd/execnet/note.c - 664 sys sys 1019855740 2315
 sys/src/cmd/exportfs - 20000000775 sys sys 1196687812 0
-sys/src/cmd/exportfs/exportfs.c - 664 sys sys 1210356650 16408
+sys/src/cmd/exportfs/exportfs.c - 664 sys sys 1227763283 16451
 sys/src/cmd/exportfs/exportfs.h - 664 sys sys 1135487971 2809
 sys/src/cmd/exportfs/exportsrv.c - 664 sys sys 1135488028 11946
 sys/src/cmd/exportfs/mkfile - 664 sys sys 1066825703 194
