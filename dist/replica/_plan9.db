@@ -7608,7 +7608,7 @@ sys/man/2/getfields - 664 sys sys 1201889839 1749
 sys/man/2/getpid - 664 sys sys 1196638937 657
 sys/man/2/getuser - 664 sys sys 1196638937 641
 sys/man/2/getwd - 664 sys sys 1196638937 701
-sys/man/2/graphics - 664 sys sys 1196638937 12765
+sys/man/2/graphics - 664 sys sys 1228074051 12764
 sys/man/2/html - 664 sys sys 1196638940 29269
 sys/man/2/httpd - 664 sys sys 1196638940 5919
 sys/man/2/hypot - 664 sys sys 1196638938 302
