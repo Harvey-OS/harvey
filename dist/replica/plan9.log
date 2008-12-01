@@ -36299,3 +36299,4 @@
 1227763803 0 c sys/src/cmd/exportfs/exportfs.c - 664 sys sys 1227763283 16451
 1227817804 0 c 386/bin/exportfs - 775 sys sys 1227816569 162235
 1227909604 0 c sys/games/lib/fortunes - 664 sys sys 1227908087 271448
+1228075204 0 c sys/man/2/graphics - 664 sys sys 1228074051 12764
