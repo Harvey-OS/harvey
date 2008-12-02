@@ -223,6 +223,7 @@ int		chatty9p;
 void		respond(Req*, char*);
 void		responderror(Req*);
 void		threadpostmountsrv(Srv*, char*, char*, int);
+void		threadlistensrv(Srv *s, char *addr);
 
 /*
  * Helper.  Assumes user is same as group.
