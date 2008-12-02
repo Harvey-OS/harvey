@@ -299,7 +299,7 @@
 386/bin/ip/gping - 775 sys sys 1210392772 182372
 386/bin/ip/hogports - 775 sys sys 1148500655 42914
 386/bin/ip/httpd - 20000000775 sys sys 1068385801 0
-386/bin/ip/httpd/httpd - 775 sys sys 1227384558 298281
+386/bin/ip/httpd/httpd - 775 sys sys 1228190946 298453
 386/bin/ip/httpd/imagemap - 775 sys sys 1209614361 116331
 386/bin/ip/httpd/man2html - 775 sys sys 1209614364 124885
 386/bin/ip/httpd/netlib_find - 775 sys sys 1209614367 117179
@@ -507,7 +507,7 @@
 386/bin/venti/checkindex - 775 sys sys 1224558579 256635
 386/bin/venti/clumpstats - 775 sys sys 1224558579 245571
 386/bin/venti/conf - 775 sys sys 1189362423 1505
-386/bin/venti/copy - 775 sys sys 1214510208 138019
+386/bin/venti/copy - 775 sys sys 1228190946 138029
 386/bin/venti/findscore - 775 sys sys 1224558579 247599
 386/bin/venti/fixarenas - 775 sys sys 1224558580 212878
 386/bin/venti/fmtarenas - 775 sys sys 1224558580 247840
@@ -565,7 +565,7 @@
 386/lib/ape/libregexp.a - 664 sys sys 1212377638 47500
 386/lib/ape/libutf.a - 664 sys sys 1212377640 88500
 386/lib/ape/libv.a - 664 sys sys 1219693465 19334
-386/lib/lib9p.a - 664 sys sys 1209184390 91992
+386/lib/lib9p.a - 664 sys sys 1228190946 91992
 386/lib/libString.a - 664 sys sys 1209184391 22466
 386/lib/libauth.a - 664 sys sys 1214418439 59742
 386/lib/libauthsrv.a - 664 sys sys 1209439929 36740
@@ -1312,7 +1312,7 @@ lib/face/48x48x2/x - 20000000775 sys sys 1020895710 0
 lib/face/48x48x2/y - 20000000775 sys sys 1020895710 0
 lib/face/48x48x2/z - 20000000775 sys sys 1020895710 0
 lib/face/48x48x4 - 20000000775 sys sys 1123100641 0
-lib/face/48x48x4/.dict - 664 sys sys 1212252650 3637
+lib/face/48x48x4/.dict - 664 sys sys 1228159989 3676
 lib/face/48x48x4/Z - 20000000775 sys sys 1020895710 0
 lib/face/48x48x4/a - 20000000775 sys sys 1056984105 0
 lib/face/48x48x4/a/adb.1 - 664 sys sys 944941890 962
@@ -5525,7 +5525,7 @@ rc/bin/delkey - 775 sys sys 1109429137 643
 rc/bin/dial - 20000000775 sys sys 1059180057 0
 rc/bin/diffy - 775 sys sys 1140694870 277
 rc/bin/dircp - 775 sys sys 1217181481 197
-rc/bin/diskparts - 775 sys sys 1213893784 1066
+rc/bin/diskparts - 775 sys sys 1228159887 1066
 rc/bin/dmaon - 775 sys sys 1205288448 220
 rc/bin/doc2ps - 775 sys sys 1205813503 338
 rc/bin/doc2txt - 775 sys sys 1025197880 563
@@ -5860,7 +5860,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1227908087 271448
+sys/games/lib/fortunes - 664 sys sys 1228152245 271629
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -6034,7 +6034,7 @@ sys/games/lib/sudoku/images/7.bit - 664 sys sys 1117226542 403
 sys/games/lib/sudoku/images/8.bit - 664 sys sys 1117226542 528
 sys/games/lib/sudoku/images/9.bit - 664 sys sys 1117226542 537
 sys/include - 20000000775 sys sys 1193775454 0
-sys/include/9p.h - 664 sys sys 1134337548 4759
+sys/include/9p.h - 664 sys sys 1228164706 4802
 sys/include/String.h - 664 sys sys 1091904425 1319
 sys/include/a.out.h - 664 sys sys 1178892101 1473
 sys/include/ape - 20000000775 sys sys 1070327361 0
@@ -12527,7 +12527,7 @@ sys/src/cmd/ip/httpd/classify.c - 664 sys sys 1078840017 9665
 sys/src/cmd/ip/httpd/content.c - 664 sys sys 1015090170 3140
 sys/src/cmd/ip/httpd/emem.c - 664 sys sys 984773807 278
 sys/src/cmd/ip/httpd/hints.c - 664 sys sys 1143759344 6282
-sys/src/cmd/ip/httpd/httpd.c - 664 sys sys 1227053843 12086
+sys/src/cmd/ip/httpd/httpd.c - 664 sys sys 1228159735 12152
 sys/src/cmd/ip/httpd/httpsrv.h - 664 sys sys 1227053815 1802
 sys/src/cmd/ip/httpd/imagemap.c - 664 sys sys 984773808 5229
 sys/src/cmd/ip/httpd/init.c - 664 sys sys 1015090171 2182
@@ -14360,7 +14360,7 @@ sys/src/cmd/vc/swt.c - 664 sys sys 1143384791 10367
 sys/src/cmd/vc/txt.c - 664 sys sys 1168702346 22737
 sys/src/cmd/vc/v.out.h - 664 sys sys 1089299165 2630
 sys/src/cmd/venti - 20000000775 sys sys 1208985020 0
-sys/src/cmd/venti/copy.c - 664 sys sys 1193773646 5198
+sys/src/cmd/venti/copy.c - 664 sys sys 1228159676 5205
 sys/src/cmd/venti/devnull.c - 664 sys sys 1177189434 1225
 sys/src/cmd/venti/mkfile - 664 sys sys 1193773294 432
 sys/src/cmd/venti/mkroot.c - 664 sys sys 1177189435 1178

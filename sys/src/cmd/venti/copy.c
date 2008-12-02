@@ -71,7 +71,7 @@ markvisited(uchar score[VtScoreSize], int type)
 void
 usage(void)
 {
-	fprint(2, "usage: copy [-fir] [-t type] srchost dsthost score\n");
+	fprint(2, "usage: %s [-fimrv] [-t type] srchost dsthost score\n", argv0);
 	exits("usage");
 }
 

@@ -2,7 +2,7 @@
 # set up any disk partitions
 rfork e
 if (! test -e /dev/sdctl)
-	bind -a '#S' /dev
+	bind -b '#S' /dev
 
 # set up any /dev/sd partitions.
 # note that really big disks (e.g., aoe devices) may have no mbr
@@ -27,7 +27,7 @@ sysname=`{cat /dev/sysname}
 
 # set up any fs(3) partitions
 if (! test -e /dev/fs/ctl && test -e '#k/fs')
-	bind -a '#k' /dev
+	bind -b '#k' /dev
 if (~ $#sysname 1 && ! ~ $sysname '' &&
     test -r /cfg/$sysname/fsconfig && test -w /dev/fs/ctl)
 	read -m /cfg/$sysname/fsconfig >/dev/fs/ctl
