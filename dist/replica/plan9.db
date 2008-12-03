@@ -5274,7 +5274,7 @@ lib/ndb/local - 664 sys sys 1077723747 292
 lib/ndb/local.complicated - 664 sys sys 1196401790 2980
 lib/ndb/nfs - 664 sys sys 954036707 113
 lib/news - 20000000775 sys sys 1020895764 0
-lib/pci - 664 sys sys 1203978472 219265
+lib/pci - 664 sys sys 1228259418 233927
 lib/rfc - 20000000775 sys sys 1180724499 0
 lib/rfc/grabrfc - 775 sys sys 1225681460 815
 lib/sky - 20000000775 sys sys 1079376081 0
@@ -5585,7 +5585,7 @@ rc/bin/pc/personalize - 775 sys sys 959698938 99
 rc/bin/pc/setup.9fat - 775 sys sys 960857447 546
 rc/bin/pc/setup.disk - 775 sys sys 960857447 579
 rc/bin/pc/update - 775 sys sys 960235807 468
-rc/bin/pci - 775 sys sys 1224614984 933
+rc/bin/pci - 775 sys sys 1228259418 1373
 rc/bin/pdf2ps - 775 sys sys 1210371045 895
 rc/bin/postscript - 20000000775 sys sys 1217181731 0
 rc/bin/printfont - 775 sys sys 945617208 2851
@@ -7885,7 +7885,7 @@ sys/man/8/ndb - 664 sys sys 1218247417 15243
 sys/man/8/newuser - 664 sys sys 1196638947 2418
 sys/man/8/nfsserver - 664 sys sys 1217138303 3807
 sys/man/8/partfs - 664 sys sys 1196638947 869
-sys/man/8/pci - 664 sys sys 1203983723 591
+sys/man/8/pci - 664 sys sys 1228259418 627
 sys/man/8/pcmcia - 664 sys sys 1196638947 408
 sys/man/8/pem - 664 sys sys 1196638947 1189
 sys/man/8/ping - 664 sys sys 1215981423 3662
