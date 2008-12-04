@@ -14370,7 +14370,7 @@ sys/src/cmd/venti/readlist.c - 664 sys sys 1177189435 1934
 sys/src/cmd/venti/ro.c - 664 sys sys 1177189435 1886
 sys/src/cmd/venti/root.c - 664 sys sys 1177189435 1329
 sys/src/cmd/venti/srv - 20000000775 sys sys 1196687844 0
-sys/src/cmd/venti/srv/arena.c - 664 sys sys 1207253133 20156
+sys/src/cmd/venti/srv/arena.c - 664 sys sys 1228350901 20175
 sys/src/cmd/venti/srv/arenas.c - 664 sys sys 1224094524 8107
 sys/src/cmd/venti/srv/bloom.c - 664 sys sys 1196369124 4445
 sys/src/cmd/venti/srv/buildbuck.c - 664 sys sys 1177189435 2837
@@ -14401,7 +14401,7 @@ sys/src/cmd/venti/srv/httpd.c - 664 sys sys 1196369182 22877
 sys/src/cmd/venti/srv/icache.c - 664 sys sys 1207153639 10618
 sys/src/cmd/venti/srv/icachewrite.c - 664 sys sys 1196382019 7477
 sys/src/cmd/venti/srv/ifile.c - 664 sys sys 1189307036 2592
-sys/src/cmd/venti/srv/index.c - 664 sys sys 1191257302 17933
+sys/src/cmd/venti/srv/index.c - 664 sys sys 1228349210 18113
 sys/src/cmd/venti/srv/lump.c - 664 sys sys 1191257295 4947
 sys/src/cmd/venti/srv/lumpcache.c - 664 sys sys 1196369165 8897
 sys/src/cmd/venti/srv/lumpqueue.c - 664 sys sys 1142736354 2722
@@ -15889,3 +15889,18 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1020896385 0
+386/bin/venti/buildindex - 775 sys sys 1228363811 259586
+386/bin/venti/checkarenas - 775 sys sys 1228363811 261373
+386/bin/venti/checkindex - 775 sys sys 1228363812 256795
+386/bin/venti/clumpstats - 775 sys sys 1228363812 245731
+386/bin/venti/findscore - 775 sys sys 1228363812 247759
+386/bin/venti/fmtarenas - 775 sys sys 1228363813 248000
+386/bin/venti/fmtindex - 775 sys sys 1228363813 245998
+386/bin/venti/fmtisect - 775 sys sys 1228363813 246350
+386/bin/venti/mirrorarenas - 775 sys sys 1228363814 255458
+386/bin/venti/printarena - 775 sys sys 1228363814 258039
+386/bin/venti/printarenapart - 775 sys sys 1228363814 259033
+386/bin/venti/rdarena - 775 sys sys 1228363815 247471
+386/bin/venti/syncindex - 775 sys sys 1228363815 267385
+386/bin/venti/venti - 775 sys sys 1228363816 707702
+386/bin/venti/wrarena - 775 sys sys 1228363816 284390

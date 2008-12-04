@@ -683,8 +683,9 @@ loadarena(Arena *arena)
 			logerr(ECorrupt, "arena tail name %s head %s", 
 				arena->name, head.name);
 		else if(arena->clumpmagic != head.clumpmagic)
-			logerr(ECorrupt, "arena tail clumpmagic 0x%lux head 0x%lux",
-				(ulong)arena->clumpmagic, (ulong)head.clumpmagic);
+			logerr(ECorrupt, "arena %d tail clumpmagic 0x%lux head 0x%lux",
+				debugarena, (ulong)arena->clumpmagic,
+				(ulong)head.clumpmagic);
 		else if(arena->version != head.version)
 			logerr(ECorrupt, "arena tail version %d head version %d",
 				arena->version, head.version);
