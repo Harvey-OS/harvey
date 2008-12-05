@@ -7678,7 +7678,7 @@ sys/man/2/string - 664 sys sys 1196638941 5306
 sys/man/2/stringsize - 664 sys sys 1196638938 1409
 sys/man/2/subfont - 664 sys sys 1196638938 5140
 sys/man/2/symbol - 664 sys sys 1196638938 9423
-sys/man/2/thread - 664 sys sys 1196638939 11916
+sys/man/2/thread - 664 sys sys 1228414118 12000
 sys/man/2/time - 664 sys sys 1196638939 736
 sys/man/2/tmpfile - 664 sys sys 1196638939 1157
 sys/man/2/venti-cache - 664 sys sys 1196638941 5022
