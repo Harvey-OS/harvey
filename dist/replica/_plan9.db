@@ -5860,7 +5860,7 @@ sys/games - 20000000775 sys sys 1117225532 0
 sys/games/lib - 20000000775 sys sys 1165337608 0
 sys/games/lib/4scores - 10000000666 sys sys 1118680448 0
 sys/games/lib/5scores - 10000000666 sys sys 1118680453 0
-sys/games/lib/fortunes - 664 sys sys 1228152245 271629
+sys/games/lib/fortunes - 664 sys sys 1228503126 271702
 sys/games/lib/mahjongg - 20000000775 sys sys 1095792278 0
 sys/games/lib/mahjongg/backgrounds - 20000000775 sys sys 1095792293 0
 sys/games/lib/mahjongg/backgrounds/default.bit - 664 sys sys 1095792293 346803
@@ -9365,7 +9365,7 @@ sys/src/cmd/5i/symbols.c - 664 sys sys 1121977746 1724
 sys/src/cmd/5i/syscall.c - 664 sys sys 1183602564 13461
 sys/src/cmd/5l - 20000000775 sys sys 1196687772 0
 sys/src/cmd/5l/asm.c - 664 sys sys 1089299173 32633
-sys/src/cmd/5l/compat.c - 664 sys sys 946759353 465
+sys/src/cmd/5l/compat.c - 664 sys sys 1228513399 521
 sys/src/cmd/5l/l.h - 664 sys sys 1089299173 6841
 sys/src/cmd/5l/l.s - 664 sys sys 944960727 454
 sys/src/cmd/5l/list.c - 664 sys sys 1014924786 5849
@@ -9435,7 +9435,7 @@ sys/src/cmd/8c/swt.c - 664 sys sys 1143384791 9022
 sys/src/cmd/8c/txt.c - 664 sys sys 1143759350 23879
 sys/src/cmd/8l - 20000000775 sys sys 1196687774 0
 sys/src/cmd/8l/asm.c - 664 sys sys 1143759338 11860
-sys/src/cmd/8l/compat.c - 664 sys sys 944960733 445
+sys/src/cmd/8l/compat.c - 664 sys sys 1228513394 501
 sys/src/cmd/8l/l.h - 664 sys sys 1120557254 5785
 sys/src/cmd/8l/list.c - 664 sys sys 1210370436 4200
 sys/src/cmd/8l/mkfile - 664 sys sys 1032102046 363
@@ -13272,7 +13272,7 @@ sys/src/cmd/ql - 20000000775 sys sys 1196687832 0
 sys/src/cmd/ql/asm.c - 664 sys sys 1177590112 14961
 sys/src/cmd/ql/asmout.c - 664 sys sys 1137459145 35737
 sys/src/cmd/ql/cnam.c - 664 sys sys 1089299167 335
-sys/src/cmd/ql/compat.c - 664 sys sys 944961082 445
+sys/src/cmd/ql/compat.c - 664 sys sys 1228513295 501
 sys/src/cmd/ql/cputime.c - 664 sys sys 944961081 336
 sys/src/cmd/ql/l.h - 664 sys sys 1172956269 5938
 sys/src/cmd/ql/list.c - 664 sys sys 1141144912 5663
@@ -15889,3 +15889,4 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1020896385 0
+386/bin/8l - 775 sys sys 1228536513 115680
