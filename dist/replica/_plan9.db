@@ -8490,7 +8490,7 @@ sys/src/ape/cmd/pax/limits.h - 664 sys sys 1014921974 2765
 sys/src/ape/cmd/pax/link.c - 664 sys sys 1014921974 7658
 sys/src/ape/cmd/pax/list.c - 664 sys sys 1014921974 16312
 sys/src/ape/cmd/pax/mem.c - 664 sys sys 1014921974 3278
-sys/src/ape/cmd/pax/mkfile - 664 sys sys 1014921974 479
+sys/src/ape/cmd/pax/mkfile - 664 sys sys 1228781121 476
 sys/src/ape/cmd/pax/namelist.c - 664 sys sys 1014921974 12024
 sys/src/ape/cmd/pax/names.c - 664 sys sys 1014921975 5101
 sys/src/ape/cmd/pax/pass.c - 664 sys sys 1014921975 3640

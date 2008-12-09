@@ -33,7 +33,7 @@ HFILES=config.h\
 BIN=$APEBIN
 </sys/src/cmd/mkone
 
-CFLAGS =-c -D_POSIX_SOURCE -B -J -DPATH_MAX=1024
+CFLAGS =-c -D_POSIX_SOURCE -B -DPATH_MAX=1024
 
 $O.out:	$OFILES $LIB
 	$LD $LDFLAGS -o $target $prereq -lv
