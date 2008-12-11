@@ -65,12 +65,12 @@ and
 .B -r
 options to
 .IR mlmgr .
-However, they are normally appended as a consequence or
+However, they are normally appended as a consequence of
 user requests.
 .PP
 To be added or removed from the list, a user
 may send a message to
-.IB listname -owner\f1.\fP
+.IB listname -owner
 containing a key word in
 the header or body.  The key words are:
 .IP
