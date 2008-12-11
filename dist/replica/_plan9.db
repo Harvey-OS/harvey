@@ -7455,7 +7455,7 @@ sys/man/1/marshal - 664 sys sys 1196638935 3176
 sys/man/1/mc - 664 sys sys 1196638932 552
 sys/man/1/mk - 664 sys sys 1196638935 13198
 sys/man/1/mkdir - 664 sys sys 1196638932 717
-sys/man/1/mlmgr - 664 sys sys 1196638935 2542
+sys/man/1/mlmgr - 664 sys sys 1228935641 2535
 sys/man/1/mp3dec - 664 sys sys 1214263162 792
 sys/man/1/mp3enc - 664 sys sys 1196638935 3236
 sys/man/1/ms2html - 664 sys sys 1196638935 1252
@@ -8197,7 +8197,7 @@ sys/src/9/pc/screen.c - 664 sys sys 1184522395 13973
 sys/src/9/pc/screen.h - 664 sys sys 1147023549 4256
 sys/src/9/pc/sd53c8xx.c - 664 sys sys 1211521147 55313
 sys/src/9/pc/sd53c8xx.n - 664 sys sys 1131290556 12657
-sys/src/9/pc/sdata.c - 664 sys sys 1224095633 53421
+sys/src/9/pc/sdata.c - 664 sys sys 1228955031 53490
 sys/src/9/pc/sdiahci.c - 664 sys sys 1213134393 39005
 sys/src/9/pc/sdmv50xx.c - 664 sys sys 1204232564 34031
 sys/src/9/pc/sdmylex.c - 664 sys sys 1189229947 28395
@@ -9260,7 +9260,7 @@ sys/src/boot/pc/sd.h - 664 sys sys 1200690169 2249
 sys/src/boot/pc/sd53c8xx.c - 664 sys sys 1186031515 52082
 sys/src/boot/pc/sd53c8xx.i - 664 sys sys 1015007955 27245
 sys/src/boot/pc/sdaoe.c - 664 sys sys 1226358169 11817
-sys/src/boot/pc/sdata.c - 664 sys sys 1224095579 39270
+sys/src/boot/pc/sdata.c - 664 sys sys 1228955043 39339
 sys/src/boot/pc/sdbios.c - 664 sys sys 1212010334 3280
 sys/src/boot/pc/sdiahci.c - 664 sys sys 1213134135 28620
 sys/src/boot/pc/sdmylex.c - 664 sys sys 1171783051 28694
