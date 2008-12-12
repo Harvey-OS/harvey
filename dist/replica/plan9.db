@@ -8266,7 +8266,7 @@ sys/src/9/port/devmntstats.c - 664 sys sys 1014931173 4039
 sys/src/9/port/devmouse.c - 664 sys sys 1192564555 13904
 sys/src/9/port/devpipe.c - 664 sys sys 1218341792 5824
 sys/src/9/port/devpnp.c - 664 sys sys 1218341827 13623
-sys/src/9/port/devproc.c - 664 sys sys 1210984256 28480
+sys/src/9/port/devproc.c - 664 sys sys 1229025987 28475
 sys/src/9/port/devroot.c - 664 sys sys 1146151714 4242
 sys/src/9/port/devsd.c - 664 sys sys 1212099662 31288
 sys/src/9/port/devsdp.c - 664 sys sys 1218341848 44798
