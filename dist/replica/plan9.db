@@ -9838,7 +9838,7 @@ sys/src/cmd/aux/flashfs/testld.c - 664 sys sys 1015009082 1043
 sys/src/cmd/aux/flashfs/utils.c - 664 sys sys 1135487936 1094
 sys/src/cmd/aux/getflags.c - 664 sys sys 1139744276 1360
 sys/src/cmd/aux/gps - 20000000775 sys sys 1196687787 0
-sys/src/cmd/aux/gps/dat.h - 664 sys sys 1168307881 287
+sys/src/cmd/aux/gps/dat.h - 664 sys sys 1229129361 322
 sys/src/cmd/aux/gps/gpsevermore.c - 664 sys sys 1210357407 4499
 sys/src/cmd/aux/gps/gpsfs.c - 664 sys sys 1110882109 17951
 sys/src/cmd/aux/gps/mkfile - 664 sys sys 1108397331 219
