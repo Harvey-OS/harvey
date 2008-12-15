@@ -262,7 +262,7 @@
 386/bin/games/juggle - 775 sys sys 1210392717 125962
 386/bin/games/jukebox - 775 sys sys 1222571290 267169
 386/bin/games/jukefs - 775 sys sys 1222571290 164713
-386/bin/games/mahjongg - 775 sys sys 1210392721 165427
+386/bin/games/mahjongg - 775 sys sys 1229314136 165355
 386/bin/games/memo - 775 sys sys 1210392726 156830
 386/bin/games/mp3dec - 775 sys sys 1214537048 222181
 386/bin/games/mp3enc - 775 sys sys 1196220182 530357
@@ -7608,7 +7608,7 @@ sys/man/2/getfields - 664 sys sys 1201889839 1749
 sys/man/2/getpid - 664 sys sys 1196638937 657
 sys/man/2/getuser - 664 sys sys 1196638937 641
 sys/man/2/getwd - 664 sys sys 1196638937 701
-sys/man/2/graphics - 664 sys sys 1228074051 12764
+sys/man/2/graphics - 664 sys sys 1229304375 12773
 sys/man/2/html - 664 sys sys 1196638940 29269
 sys/man/2/httpd - 664 sys sys 1196638940 5919
 sys/man/2/hypot - 664 sys sys 1196638938 302
@@ -14565,7 +14565,7 @@ sys/src/games/catclock.c - 664 sys sys 1108184106 10354
 sys/src/games/eyes.p - 664 sys sys 1108184106 1128
 sys/src/games/juggle.c - 664 sys sys 1118153689 4471
 sys/src/games/mahjongg - 20000000775 sys sys 1191354594 0
-sys/src/games/mahjongg/graphics.c - 664 sys sys 1191355576 5749
+sys/src/games/mahjongg/graphics.c - 664 sys sys 1229304506 5699
 sys/src/games/mahjongg/level.c - 664 sys sys 1191355577 2490
 sys/src/games/mahjongg/logic.c - 664 sys sys 1191354594 1720
 sys/src/games/mahjongg/mahjongg.c - 664 sys sys 1191355577 3869

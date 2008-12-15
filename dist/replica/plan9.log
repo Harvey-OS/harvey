@@ -36342,3 +36342,6 @@
 1228955404 1 c sys/src/boot/pc/sdata.c - 664 sys sys 1228955043 39339
 1229027404 0 c sys/src/9/port/devproc.c - 664 sys sys 1229025987 28475
 1229130004 0 c sys/src/cmd/aux/gps/dat.h - 664 sys sys 1229129361 322
+1229304604 0 c sys/man/2/graphics - 664 sys sys 1229304375 12773
+1229304604 1 c sys/src/games/mahjongg/graphics.c - 664 sys sys 1229304506 5699
+1229315404 0 c 386/bin/games/mahjongg - 775 sys sys 1229314136 165355
