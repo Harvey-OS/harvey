@@ -262,7 +262,7 @@
 386/bin/games/juggle - 775 sys sys 1210392717 125962
 386/bin/games/jukebox - 775 sys sys 1222571290 267169
 386/bin/games/jukefs - 775 sys sys 1222571290 164713
-386/bin/games/mahjongg - 775 sys sys 1210392721 165427
+386/bin/games/mahjongg - 775 sys sys 1229314136 165355
 386/bin/games/memo - 775 sys sys 1210392726 156830
 386/bin/games/mp3dec - 775 sys sys 1214537048 222181
 386/bin/games/mp3enc - 775 sys sys 1196220182 530357
@@ -15889,4 +15889,3 @@ usr/glenda/lib/profile - 664 glenda glenda 1105128663 890
 usr/glenda/readme.acme - 664 glenda glenda 1019860628 4753
 usr/glenda/readme.rio - 664 glenda glenda 1019860628 6370
 usr/glenda/tmp - 20000000775 glenda glenda 1020896385 0
-386/bin/games/mahjongg - 775 sys sys 1229314136 165355
