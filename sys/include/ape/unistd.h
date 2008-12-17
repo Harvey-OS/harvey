@@ -61,6 +61,7 @@ typedef long ssize_t;
 #define	_SC_JOB_CONTROL		8	/* posix job control */
 #define	_SC_SAVED_IDS		9	/* saved suid/sgid per process */
 #define	_SC_VERSION		10	/* this version */
+#define _SC_LOGIN_NAME_MAX	11	/* max length of a login name */
 
 /* pathconf argument */
 #define _PC_LINK_MAX		1

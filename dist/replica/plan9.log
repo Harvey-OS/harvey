@@ -36345,3 +36345,13 @@
 1229304604 0 c sys/man/2/graphics - 664 sys sys 1229304375 12773
 1229304604 1 c sys/src/games/mahjongg/graphics.c - 664 sys sys 1229304506 5699
 1229315404 0 c 386/bin/games/mahjongg - 775 sys sys 1229314136 165355
+1229439604 0 c adm/timezone/local - 664 adm adm 1229439141 1518
+1229441404 0 d sys/src/ape/cmd/pdksh/crap.c - 664 sys sys 1014921977 0
+1229454004 0 c sys/include/ape/unistd.h - 664 sys sys 1229453242 4161
+1229454004 1 c sys/src/ape/lib/ap/posix/sysconf.c - 664 sys sys 1229453242 695
+1229459405 0 c 386/lib/ape/libap.a - 664 sys sys 1229458148 824800
+1229459405 1 c 386/lib/ape/libbsd.a - 664 sys sys 1229458148 185404
+1229459405 2 c 386/lib/ape/libdraw.a - 664 sys sys 1229458149 631580
+1229459405 3 c 386/lib/ape/libfmt.a - 664 sys sys 1229458149 156706
+1229459405 4 c 386/lib/ape/libnet.a - 664 sys sys 1229458149 24090
+1229459405 5 c 386/lib/ape/libv.a - 664 sys sys 1229458149 19334
