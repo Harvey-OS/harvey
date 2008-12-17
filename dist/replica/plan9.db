@@ -556,15 +556,15 @@
 386/lib - 20000000775 sys sys 1209184392 0
 386/lib/ape - 20000000775 sys sys 1197477092 0
 386/lib/ape/lib9.a - 664 sys sys 1205611022 8766
-386/lib/ape/libap.a - 664 sys sys 1227384559 823890
-386/lib/ape/libbsd.a - 664 sys sys 1220411684 185404
-386/lib/ape/libdraw.a - 664 sys sys 1227325296 631580
-386/lib/ape/libfmt.a - 664 sys sys 1219693464 156706
+386/lib/ape/libap.a - 664 sys sys 1229458148 824800
+386/lib/ape/libbsd.a - 664 sys sys 1229458148 185404
+386/lib/ape/libdraw.a - 664 sys sys 1229458149 631580
+386/lib/ape/libfmt.a - 664 sys sys 1229458149 156706
 386/lib/ape/libl.a - 664 sys sys 1212377636 9406
-386/lib/ape/libnet.a - 664 sys sys 1219693464 24090
+386/lib/ape/libnet.a - 664 sys sys 1229458149 24090
 386/lib/ape/libregexp.a - 664 sys sys 1212377638 47500
 386/lib/ape/libutf.a - 664 sys sys 1212377640 88500
-386/lib/ape/libv.a - 664 sys sys 1219693465 19334
+386/lib/ape/libv.a - 664 sys sys 1229458149 19334
 386/lib/lib9p.a - 664 sys sys 1228190946 91992
 386/lib/libString.a - 664 sys sys 1209184391 22466
 386/lib/libauth.a - 664 sys sys 1214418439 59742
@@ -824,7 +824,7 @@ adm/timezone/US_Pacific - 664 adm adm 1143927129 1518
 adm/timezone/US_Yukon - 664 adm adm 1143927130 1518
 adm/timezone/W-SU - 664 adm adm 1020313578 1164
 adm/timezone/WET - 664 adm adm 1020313578 1159
-adm/timezone/local - 664 adm adm 1020313578 1518
+adm/timezone/local - 664 adm adm 1229439141 1518
 adm/users - 664 adm adm 1020313578 123
 adm/whois - 10000000664 adm adm 797055645 0
 alpha - 20000000775 sys sys 1039727908 0
@@ -6097,7 +6097,7 @@ sys/include/ape/sys/wait.h - 664 sys sys 1210370471 697
 sys/include/ape/termios.h - 664 sys sys 944948760 2745
 sys/include/ape/time.h - 664 sys sys 1212357943 1212
 sys/include/ape/u.h - 664 sys sys 1146097783 430
-sys/include/ape/unistd.h - 664 sys sys 1219681426 4098
+sys/include/ape/unistd.h - 664 sys sys 1229453242 4161
 sys/include/ape/utf.h - 664 sys sys 1070327359 1595
 sys/include/ape/utime.h - 664 sys sys 944948760 259
 sys/include/ar.h - 664 sys sys 1014929061 244
@@ -8521,7 +8521,6 @@ sys/src/ape/cmd/pdksh/c_test.h - 664 sys sys 1014921976 1812
 sys/src/ape/cmd/pdksh/c_ulimit.c - 664 sys sys 1014921976 6775
 sys/src/ape/cmd/pdksh/conf-end.h - 664 sys sys 1014921976 1735
 sys/src/ape/cmd/pdksh/config.h - 664 sys sys 1014921976 10283
-sys/src/ape/cmd/pdksh/crap.c - 664 sys sys 1014921977 1397
 sys/src/ape/cmd/pdksh/eval.c - 664 sys sys 1014921976 31469
 sys/src/ape/cmd/pdksh/exec.c - 664 sys sys 1014921976 38927
 sys/src/ape/cmd/pdksh/expand.h - 664 sys sys 1014921976 2799
@@ -8882,7 +8881,7 @@ sys/src/ape/lib/ap/posix/mkfifo.c - 664 sys sys 1014921981 163
 sys/src/ape/lib/ap/posix/mkfile - 664 sys sys 1014921981 222
 sys/src/ape/lib/ap/posix/pathconf.c - 664 sys sys 1014921981 826
 sys/src/ape/lib/ap/posix/sigset.c - 664 sys sys 1014921981 892
-sys/src/ape/lib/ap/posix/sysconf.c - 664 sys sys 1014921981 630
+sys/src/ape/lib/ap/posix/sysconf.c - 664 sys sys 1229453242 695
 sys/src/ape/lib/ap/posix/tzset.c - 664 sys sys 1014921981 2794
 sys/src/ape/lib/ap/power - 20000000775 sys sys 1039727535 0
 sys/src/ape/lib/ap/power/getfcr.s - 664 sys sys 1014921991 352
