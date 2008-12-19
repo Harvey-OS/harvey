@@ -331,7 +331,7 @@
 386/bin/kprof - 775 sys sys 1209614412 106542
 386/bin/ktrace - 775 sys sys 1210392817 124222
 386/bin/lens - 775 sys sys 1210392821 151341
-386/bin/lex - 775 sys sys 1209614417 99202
+386/bin/lex - 775 sys sys 1229630908 99349
 386/bin/lnfs - 775 sys sys 1209614419 100608
 386/bin/look - 775 sys sys 1209614421 65715
 386/bin/ls - 775 sys sys 1209614422 81013
@@ -7555,7 +7555,7 @@ sys/man/2/assert - 664 sys sys 1204322308 379
 sys/man/2/atof - 664 sys sys 1196638937 2778
 sys/man/2/auth - 664 sys sys 1208725235 7535
 sys/man/2/authsrv - 664 sys sys 1196638939 4583
-sys/man/2/avl - 664 sys sys 1196638939 2447
+sys/man/2/avl - 664 sys sys 1229632897 2454
 sys/man/2/bin - 664 sys sys 1196638940 1880
 sys/man/2/bind - 664 sys sys 1196638937 4685
 sys/man/2/bio - 664 sys sys 1196638937 6707
@@ -12735,12 +12735,12 @@ sys/src/cmd/ktrace.c - 664 sys sys 1210357793 7222
 sys/src/cmd/lens.c - 664 sys sys 1130425803 5109
 sys/src/cmd/lex - 20000000775 sys sys 1196687819 0
 sys/src/cmd/lex/header.c - 664 sys sys 1032060383 3368
-sys/src/cmd/lex/ldefs.h - 664 sys sys 1135487942 4101
-sys/src/cmd/lex/lmain.c - 664 sys sys 1135921540 6076
+sys/src/cmd/lex/ldefs.h - 664 sys sys 1229621928 4147
+sys/src/cmd/lex/lmain.c - 664 sys sys 1229621928 6173
 sys/src/cmd/lex/mkfile - 664 sys sys 1032060382 328
 sys/src/cmd/lex/ncform - 664 sys sys 1211224619 3973
 sys/src/cmd/lex/parser.y - 664 sys sys 1136219175 14263
-sys/src/cmd/lex/sub1.c - 664 sys sys 1138551488 10162
+sys/src/cmd/lex/sub1.c - 664 sys sys 1229621928 10302
 sys/src/cmd/lex/sub2.c - 664 sys sys 1212260386 17044
 sys/src/cmd/lnfs.c - 664 sys sys 1094156765 13332
 sys/src/cmd/look.c - 664 sys sys 944961619 5994

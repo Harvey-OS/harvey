@@ -112,7 +112,8 @@ Node *np;
 G. M. Adelson-Velsky,
 E. M. Landis,
 ``An algorithm for the organization of information'',
-Soviet Mathematics, Vol. 3, pp. 1256—1263.
+.IR "Soviet Mathematics" ,
+Vol. 3, pp. 1256—1263.
 .SH DIAGNOSTICS
 Functions returning pointers return
 .B nil
