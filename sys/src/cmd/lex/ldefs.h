@@ -68,6 +68,7 @@ extern int sargc;
 extern char **sargv;
 extern uchar buf[520];
 extern int yyline;		/* line number of file */
+extern char *yyfile;		/* file name of file */
 extern int sect;
 extern int eof;
 extern int lgatflg;
