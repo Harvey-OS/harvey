@@ -130,12 +130,13 @@ biosinit(void)
 	static int beenhere;
 
 	mask = lastbit = 0;
-	if (beenhere)
+
+	/* 9pxeload can't use bios int 13 calls; they wedge the machine */
+	if (pxe || getconf("*nobiosload") != nil || onlybios0 || biosinited ||
+	    beenhere)
 		return mask;
 	beenhere = 1;
-	/* 9pxeload can't use bios int 13 calls; they wedge the machine */
-	if (pxe || getconf("*nobiosload") != nil || onlybios0 || !biosinited)
-		return mask;
+
 	for (devid = 0; devid < (1 << 8) && bdrive.ndevs < Maxdevs; devid++) {
 		lba = islba(devid);
 		if(!lba /* || devid != Baseid && dreset(devid) < 0 */ )
@@ -257,11 +258,11 @@ sectread(Biosdev *bdp, void *a, long n, Devsects offset)
 static int
 dreset(uchar drive)
 {
-if (0) {
-print("devbios: resetting disk controllers...");
-	biosdiskcall(&regs, Biosinit, 0, drive, 0);
-print("\n");
-}
+	if (0) {
+		print("devbios: resetting disk controllers...");
+		biosdiskcall(&regs, Biosinit, 0, drive, 0);
+		print("\n");
+	}
 	return regs.ax? -1: 0;		/* ax!=0 on error */
 }
 
