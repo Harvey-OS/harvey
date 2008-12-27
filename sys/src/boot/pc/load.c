@@ -335,7 +335,12 @@ main(void)
 		print("initial probe, for plan9.ini...");
 	/* find and read plan9.ini, setting configuration variables */
 	for(tp = types; tp->type != Tnil; tp++){
-		/* skip bios until we have read plan9.ini */
+		/*
+		 * we don't know which ether interface to use nor
+		 * whether bios loading is disabled until we have read
+		 * plan9.ini.  make an exception for 9pxeload; probe
+		 * ethers anyway.
+		 */
 		if(!pxe && tp->type == Tether || tp->type == Tbios)
 			continue;
 		if (debug)
@@ -427,9 +432,9 @@ done:
 	 * e.g., *bootppersist=ether0
 	 *
 	 * previously, we looped in bootpopen if we were pxeload or if
-	 * *bootppersist was set.  that doesn't work well for pxeload where
-	 * bootp will never succeed on the first interface but only on another
-	 * interface.
+	 * *bootppersist was set.  that doesn't work well for pxeload
+	 * in configurations where bootp will never succeed on the first
+	 * interface but only on another interface.
 	 */
 	if (mode == Mauto && persist != nil &&
 	    (mp = parse(persist, &file)) != nil) {

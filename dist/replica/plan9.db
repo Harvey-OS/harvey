@@ -9194,7 +9194,7 @@ sys/src/boot/pc/clock.c - 664 sys sys 1225862215 6992
 sys/src/boot/pc/conf.c - 664 sys sys 1224519174 10218
 sys/src/boot/pc/console.c - 664 sys sys 1219793776 3965
 sys/src/boot/pc/dat.h - 664 sys sys 1216753913 3653
-sys/src/boot/pc/devbios.c - 664 sys sys 1212010497 9431
+sys/src/boot/pc/devbios.c - 664 sys sys 1230352121 9426
 sys/src/boot/pc/devfloppy.c - 664 sys sys 1212010456 15657
 sys/src/boot/pc/devfloppy.h - 664 sys sys 1032409559 4081
 sys/src/boot/pc/devi82365.c - 664 sys sys 1144961189 15051
