@@ -161,6 +161,7 @@ char **ini;
 
 int scsi0port;
 char *defaultpartition;
+int biosload;			/* is it safe to probe the bios? */
 int iniread;
 int debugload;
 int vga;
@@ -325,7 +326,7 @@ main(void)
 	pcimatch(nil, 0, 0);		/* force scan of pci table */
 	if (!vga) {
 		consinit("0", "9600");	/* e.g., for soekris debugging */
-		print("Plan 9 Bootstrap (serial console)\n");
+		print("no vga; serial console only\n");
 	}
 	kbdinit();
 	if((ulong)&end > (KZERO|(640*1024)))
@@ -334,14 +335,16 @@ main(void)
 	if (debug)
 		print("initial probe, for plan9.ini...");
 	/* find and read plan9.ini, setting configuration variables */
+	biosload = 1;			/* initially be optimistic */
 	for(tp = types; tp->type != Tnil; tp++){
 		/*
 		 * we don't know which ether interface to use nor
 		 * whether bios loading is disabled until we have read
-		 * plan9.ini.  make an exception for 9pxeload; probe
-		 * ethers anyway.
+		 * plan9.ini.  make an exception for 9pxeload: probe
+		 * ethers anyway.  see if we can live with always
+		 * probing the bios.
 		 */
-		if(!pxe && tp->type == Tether || tp->type == Tbios)
+		if(!pxe && tp->type == Tether /*|| !vga && tp->type == Tbios */)
 			continue;
 		if (debug)
 			print("probing %s...", typename(tp->type));
@@ -360,6 +363,9 @@ main(void)
 	 */
 	persist = getconf("*bootppersist");
 	debugload = getconf("*debugload") != nil;
+	/* hack for soekris-like machines */
+	if(!vga || getconf("*nobiosload") != nil)
+		biosload = 0;
 	if((p = getconf("console")) != nil)
 		consinit(p, getconf("baud"));
 

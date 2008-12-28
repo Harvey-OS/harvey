@@ -18,7 +18,6 @@ long	biosread(Fs *, void *, long);
 vlong	biosseek(Fs *fs, vlong off);
 
 extern SDifc sdbiosifc;
-extern int onlybios0, biosinited;
 
 int
 biosverify(SDunit* )
@@ -136,7 +135,7 @@ biospnp(void)
 	SDev *sdev;
 
 	/* 9pxeload can't use bios int 13 calls; they wedge the machine */
-	if (pxe || getconf("*nobiosload") != nil || onlybios0 || !biosinited)
+	if (pxe || !biosload || onlybios0 || !biosinited)
 		return nil;
 	if((sdev = malloc(sizeof(SDev))) != nil) {
 		sdev->ifc = &sdbiosifc;

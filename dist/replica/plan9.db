@@ -7844,7 +7844,7 @@ sys/man/7/scat - 664 sys sys 1196638946 8904
 sys/man/8 - 20000000775 sys sys 1205960109 0
 sys/man/8/0intro - 664 sys sys 1196638946 247
 sys/man/8/6in4 - 664 sys sys 1196638946 2364
-sys/man/8/9load - 664 sys sys 1196638946 9814
+sys/man/8/9load - 664 sys sys 1230358041 10023
 sys/man/8/9pcon - 664 sys sys 1196638946 2234
 sys/man/8/INDEX - 664 sys sys 1222657690 2911
 sys/man/8/INDEX.html - 664 sys sys 1196638946 8619
@@ -9193,8 +9193,8 @@ sys/src/boot/pc/cis.c - 664 sys sys 1144961189 9232
 sys/src/boot/pc/clock.c - 664 sys sys 1225862215 6992
 sys/src/boot/pc/conf.c - 664 sys sys 1224519174 10218
 sys/src/boot/pc/console.c - 664 sys sys 1219793776 3965
-sys/src/boot/pc/dat.h - 664 sys sys 1216753913 3653
-sys/src/boot/pc/devbios.c - 664 sys sys 1230352121 9426
+sys/src/boot/pc/dat.h - 664 sys sys 1230358944 3719
+sys/src/boot/pc/devbios.c - 664 sys sys 1230362766 9538
 sys/src/boot/pc/devfloppy.c - 664 sys sys 1212010456 15657
 sys/src/boot/pc/devfloppy.h - 664 sys sys 1032409559 4081
 sys/src/boot/pc/devi82365.c - 664 sys sys 1144961189 15051
@@ -9239,9 +9239,9 @@ sys/src/boot/pc/ip.h - 664 sys sys 1094674489 2461
 sys/src/boot/pc/kbd.c - 664 sys sys 1219793777 10481
 sys/src/boot/pc/kfs.h - 664 sys sys 1032215924 861
 sys/src/boot/pc/kfsboot.c - 664 sys sys 1032215914 4788
-sys/src/boot/pc/l.s - 664 sys sys 1216786858 18260
+sys/src/boot/pc/l.s - 664 sys sys 1230355758 18286
 sys/src/boot/pc/lib.h - 664 sys sys 1212090562 3280
-sys/src/boot/pc/load.c - 664 sys sys 1226351940 11488
+sys/src/boot/pc/load.c - 664 sys sys 1230363996 11912
 sys/src/boot/pc/mbr.s - 664 sys sys 1015007953 6234
 sys/src/boot/pc/mem.h - 664 sys sys 1190921475 3437
 sys/src/boot/pc/memory.c - 664 sys sys 1212010326 10266
@@ -9260,7 +9260,7 @@ sys/src/boot/pc/sd53c8xx.c - 664 sys sys 1186031515 52082
 sys/src/boot/pc/sd53c8xx.i - 664 sys sys 1015007955 27245
 sys/src/boot/pc/sdaoe.c - 664 sys sys 1226358169 11817
 sys/src/boot/pc/sdata.c - 664 sys sys 1228955043 39339
-sys/src/boot/pc/sdbios.c - 664 sys sys 1212010334 3280
+sys/src/boot/pc/sdbios.c - 664 sys sys 1230362737 3226
 sys/src/boot/pc/sdiahci.c - 664 sys sys 1213134135 28620
 sys/src/boot/pc/sdmylex.c - 664 sys sys 1171783051 28694
 sys/src/boot/pc/sdscsi.c - 664 sys sys 1144961224 7006
