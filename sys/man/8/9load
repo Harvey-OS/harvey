@@ -237,7 +237,7 @@ the first LBA device
 in the BIOS's list of devices to try to boot from,
 using the BIOS INT 13 calls also used by
 .IR pbslba .
-It currently does not understand any form of partition table;
+It does not understand any form of partition table;
 see the EXAMPLES in
 .IR prep (8)
 for how to format such a device.
@@ -464,3 +464,11 @@ obtains the information normally found in a disc
 file,
 and thereby the kernel to load and boot,
 is not ideal and may change in the future.
+.PP
+BIOS bugs force some limitions on reading via the BIOS.
+.B bios0
+and
+.B sdB0
+only work on the first LBA device
+in the BIOS's list of devices to try to boot from,
+which must also not be the sole device on that list.
