@@ -1,0 +1,61 @@
+.TH LOCK 1
+.SH NAME
+lock \- run a command under lock
+.SH SYNOPSIS
+.B lock
+[
+.B -w
+]
+.I lockfile
+[
+.I command
+[
+.I argument
+\&...
+] ]
+.SH DESCRIPTION
+.I Lock
+runs
+.I command
+(default
+.LR rc )
+with
+.I arguments
+while holding
+.I lockfile
+open and (over)writing at least one byte each minute
+to keep the exclusive-access lock alive.
+If
+.I lockfile
+doesn't already have the exclusive-access bit set in
+its mode,
+the exclusive-access bits are set in its mode and
+.BR qid.type .
+.PP
+Under
+.BR -w ,
+.I lock
+waits for exclusive access to
+.I lockfile
+instead of just trying once.
+.PP
+.I Lock
+sets
+.B /env/prompt
+to contain the name of the lock file.
+.SH EXAMPLES
+Build a
+.IR replica (1)
+database while preventing collisions with other occurrences.
+.IP
+.EX
+cd /sys/lib/dist
+lock scan.lock replica/scan $dist/sources.replica
+.EE
+.SH SOURCE
+.B /sys/src/cmd/lock.c
+.SH SEE ALSO
+.IR intro (5),
+.IR stat (5)
+.\" .SH DIAGNOSTICS
+.\" .SH BUGS
