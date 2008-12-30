@@ -77,5 +77,9 @@ case *
 	# chase the referral chain
 	echo $person | telnet -nr tcp!$x!whois > $file
 }
+if (test ! -s $file) {
+	echo $0: broken whois server tcp!$x!whois returned no data >[1=2]
+	exit broken
+}
 boilerplate $file
 rm $file
