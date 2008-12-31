@@ -36,11 +36,23 @@ $dist/web.protect/%.iso.bz2:	/n/other/dist/%.iso.bz2
 		mv $target $target.old
 	mv $target.new $target
 
+# generate replica log & db for /n/sources/plan9 only
 scan:V:
 	test -d /n/other/dist		# make sure other was mounted above
 	test -d $d
 	test -d $dist/web.protect
-	replica/scan $dist/sources.replica <scan.lock
+	lock scan.lock replica/scan $dist/sources.replica
+	chmod +t $d/dist/replica/*.^(db log)
+
+# generate replica log & db for all of /n/sources
+scanall:V:
+	@ {
+		rfork ne
+		d=/n/sources
+		test -d $d
+		lock scanall.lock replica/scan $dist/sourcesall.replica
+		chmod +t $d/dist/replica/*.^(db log)
+	}
 
 compresslog:V:
 	{
