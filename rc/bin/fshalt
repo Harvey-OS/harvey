@@ -43,7 +43,7 @@ for(i in $f) @ {
 echo -n venti...
 venti/sync -h localhost >[2]/dev/null &
 venti/sync  >[2]/dev/null &
-sleep 30
+sleep 10
 
 for (i in $k){
 	echo -n $i... 
