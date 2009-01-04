@@ -22,7 +22,7 @@ if(! patch/okay .){
 	exit badpatch
 }
 
-if(~ `{cat /proc/$pid/fd | awk 'NR==2{print $NF}'} */dev/cons && ~ `{ls -l /dev/consctl | awk '{print $1}'} *rw*){
+if(~ `{cat /proc/$pid/fd | awk 'NR==2{print $NF}'} */dev/cons && ~ `{ls -l /dev/consctl | awk '{print $1}'} *w*){
 	>/dev/consctl {
 		echo holdon
 		{echo `{date} `{cat /dev/user}
