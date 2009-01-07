@@ -336,8 +336,8 @@ recvfile(int fd, char *name, char *mode)
 				}
 				ack(fd, block);
 				block++;
-			}
-			ack(fd, 0xffff);
+			} else
+				ack(fd, 0xffff);	/* tell him to resend */
 		}
 	}
 error:
