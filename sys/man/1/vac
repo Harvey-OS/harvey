@@ -67,6 +67,8 @@ vac:64daefaecc4df4b5cb48a368b361ef56012a4f46
 Option to 
 .I vac
 are:
+.TF "\fL-d\fI oldvacfile"
+.PD
 .TP
 .BI -b " blocksize
 Specifies the block size that data will be broken into.
@@ -153,6 +155,10 @@ to the time listed in the archive.
 .TP
 .B -c
 Write extracted files to standard output instead of creating a file.
+.TP
+.B -h
+as per
+.IR vac .
 .TP
 .B -t
 Print a list of the files to standard output rather than extracting them.
