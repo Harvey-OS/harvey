@@ -7,6 +7,7 @@ tas1:
 	LWAR	(R4), R3
 	CMP	R3, $0
 	BNE	tas0
+	DCBT	(R4)				/* fix 405 errata cpu_210 */
 	STWCCC	R5, (R4)
 	BNE	tas1
 tas0:

@@ -14,6 +14,9 @@ ping, gping, traceroute, hogports \- probe the Internet
 ] [
 .B -s
 .I size
+] [
+.B -w
+.I waittime
 ]
 .I destination
 .PP
@@ -109,6 +112,10 @@ sets the length of the message to be
 bytes, ICMP header included.
 The size cannot be smaller than 32 or
 larger than 8192.  The default is 64.
+.TP
+.B w
+sets the additional time in milliseconds to wait
+after all packets are sent.
 .PP
 .I Gping
 is a

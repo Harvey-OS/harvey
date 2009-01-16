@@ -7,6 +7,8 @@ fn usage {
 	exit usage
 }
 
+# gs's pdfwrite sometimes emits bad pdf at level 1.2,
+# but 1.4 seems to work fine.
 compat=(-'dCompatibilityLevel=1.2')
 opt=()
 while(! ~ $#* 0 && ~ $1 -* && ! ~ $1 - --){

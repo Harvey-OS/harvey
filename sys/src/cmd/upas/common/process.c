@@ -131,7 +131,7 @@ proc_wait(process *pp)
 	for(;;){
 		status = wait();
 		if(status == nil){
-			errstr(err, sizeof(err));
+			rerrstr(err, sizeof(err));
 			if(strstr(err, "interrupt") == 0)
 				break;
 		}

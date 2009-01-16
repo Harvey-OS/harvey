@@ -185,3 +185,9 @@ There can be no return to the calling process from a successful
 or
 .IR execl ;
 the calling image is lost.
+.SH BUGS
+There is a large but finite limit on the size of an argment list,
+typically around 409,600 bytes.
+The kernel constant
+.B TSTKSIZ
+controls this.

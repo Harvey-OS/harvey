@@ -262,6 +262,7 @@ enum {
 
 typedef struct {
 	Pcidev	*p;
+	Ether	*edev;
 	u32int	*reg;
 	u32int	*reg3;
 	uchar	flag;
@@ -800,6 +801,7 @@ attach(Ether *e)
 	char buf[KNAMELEN];
 
 	c = e->ctlr;
+	c->edev = e;			/* point back to Ether* */
 	qlock(&c->alock);
 	if(c->alloc){
 		qunlock(&c->alock);

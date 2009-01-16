@@ -55,6 +55,7 @@ int rcvdmsgs;
 int rint;
 ushort firstseq;
 vlong sum;
+int waittime = 5000;
 
 static char *network, *target;
 
@@ -304,7 +305,7 @@ rcvr(int fd, int msglen, int interval, int nmsg)
 
 	sum = 0;
 	while(lostmsgs+rcvdmsgs < nmsg){
-		alarm((nmsg-lostmsgs-rcvdmsgs)*interval+5000);
+		alarm((nmsg-lostmsgs-rcvdmsgs)*interval+waittime);
 		n = read(fd, buf, sizeof buf);
 		alarm(0);
 		now = nsec();
@@ -522,6 +523,9 @@ main(int argc, char **argv)
 		break;
 	case 's':
 		msglen = atoi(EARGF(usage()));
+		break;
+	case 'w':
+		waittime = atoi(EARGF(usage()));
 		break;
 	default:
 		usage();

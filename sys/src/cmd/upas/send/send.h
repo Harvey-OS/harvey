@@ -1,5 +1,11 @@
-#define MAXSAME 16
-#define MAXSAMECHAR 1024
+/*
+ * these limits are intended to stay within those imposed by SMTP
+ * and avoid tickling bugs in other mail systems.
+ * they both pertain to attempts to group recipients for the same
+ * destination together in a single copy of a message.
+ */
+#define MAXSAME 32	/* max recipients; was 16 */
+#define MAXSAMECHAR 1024 /* max chars in the list of recipients */
 
 /* status of a destination*/
 typedef enum {

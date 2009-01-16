@@ -1210,7 +1210,7 @@ static Optable optable[256+1] =
 [0xf0]	PRE,0,		"LOCK",
 [0xf2]	OPRE,0,		"REPNE",
 [0xf3]	OPRE,0,		"REP",
-[0xf4]	0,0,		"HALT",
+[0xf4]	0,0,		"HLT",
 [0xf5]	0,0,		"CMC",
 [0xf6]	RMOPB,0,	optabF6,
 [0xf7]	RMOP,0,		optabF7,

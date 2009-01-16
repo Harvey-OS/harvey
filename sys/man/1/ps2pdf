@@ -81,3 +81,10 @@ command-line option.
 .B /rc/bin/pdf2ps
 .SH SEE ALSO
 .IR gs (1)
+.SH BUGS
+.IR Gs 's
+.I pdfwrite
+sometimes emits bad PDF at the default level 1.2.
+Adding
+.BR '-dCompatibilityLevel=1.4'
+should cure it.

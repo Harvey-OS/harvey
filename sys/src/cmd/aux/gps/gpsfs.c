@@ -97,6 +97,7 @@ char *serial = "/dev/eia0";
 Gpsmsg gpsmsg[] = {
 [ASTRAL]	= { "ASTRAL",	 0,	0},
 [GPGGA]		= { "$GPGGA",	15,	0},
+/* NMEA 2.3 permits optional 8th field, mode */
 [GPGLL]		= { "$GPGLL",	 7,	0},
 [GPGSA]		= { "$GPGSA",	18,	0},
 [GPGSV]		= { "$GPGSV",	0,	0},
@@ -282,7 +283,8 @@ gpstrack(void *)
 		if(n == 0)
 			continue;
 		tp = type(t[0]);
-		if(tp >= 0 && tp < nelem(gpsmsg) && gpsmsg[tp].tokens && gpsmsg[tp].tokens != n){
+		if(tp >= 0 && tp < nelem(gpsmsg) && gpsmsg[tp].tokens &&
+		    gpsmsg[tp].tokens > n){
 			gpsmsg[tp].errors++;
 			if(debug)
 				fprint(2, "%s: Expect %d tokens, got %d\n",

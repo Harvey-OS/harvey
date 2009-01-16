@@ -500,4 +500,7 @@ with little effort.
 .PP
 The
 .B -m
-option currently assumes a block size of 8K bytes.
+option currently assumes a block size of 8K bytes,
+and a single file system per
+.I fossil
+instance.

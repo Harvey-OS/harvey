@@ -17,6 +17,10 @@ con, telnet, rx, hayes, xms, xmr \- remote login, execution, and XMODEM file tra
 ]
 ]
 [
+.B -S
+.I svc
+]
+[
 .B -c
 .I cmd
 ]
@@ -25,6 +29,10 @@ con, telnet, rx, hayes, xms, xmr \- remote login, execution, and XMODEM file tra
 .B telnet
 [
 .B -dCrn
+]
+[
+.B -s
+.I svc
 ]
 .RI [ net !] machine
 .PP
@@ -122,6 +130,21 @@ misinterpretation of
 with parity as
 .SM UTF\c
 \&.
+.TP
+.B -S
+Post a pipe as
+.BI /srv/ svc
+and connect it to standard input and output.
+This can be used with
+.B -n
+to create a standing connection that
+.IR consolefs (4),
+for example,
+can then open.
+For
+.IR telnet ,
+this option is
+.BR -s .
 .PP
 The
 .RB control\- \e

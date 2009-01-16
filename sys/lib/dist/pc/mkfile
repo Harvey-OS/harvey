@@ -1,3 +1,4 @@
+out=noutside			# outside web server
 s=/sys/lib/dist/pc
 x=`{bind -b /sys/lib/dist/bin/$cputype /bin}
 default:V: ndisk
@@ -61,8 +62,9 @@ ndisk: 9load /sys/src/9/pc/9pcflop.gz plan9.ini /lib/vgadb
 
 # cannot list both 9pcflop.gz and 9pccd.gz because they cannot be built 
 # in parallel.  stupid mk
-cddisk:D: 9load /sys/src/9/pc/9pcflop.gz plan9.ini.cd /lib/vgadb
+cddisk:DV: 9load /sys/src/9/pc/9pcflop.gz plan9.ini.cd /lib/vgadb
 	mk -a /sys/src/9/pc/9pccd.gz
+	mk -a /sys/src/9/pc/9pcflop.gz
 	rfork n
 	bind plan9.ini.cd plan9.ini
 	dd -if /dev/zero -of cddisk -bs 1024 -count 2880 >[2]/dev/null
@@ -74,8 +76,8 @@ clean:V:
 	rm -rf boot boot.bz2 boot.bflz boot.raw root.bz2 9pcflop ndisk 9load cddisk proto.cp 9loaddebug
 
 install:V: ndisk 9loaddebug
-	9fs outside
-	dst=/n/outside/sys/lib/dist/web.protect
+	9fs $out
+	dst=/n/$out/sys/lib/dist/web.protect
 	cp 9loaddebug $dst
 	gzip -9 < ndisk > $dst/plan9.flp.gz
 	#mk clean
