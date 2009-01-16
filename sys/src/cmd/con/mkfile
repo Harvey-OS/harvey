@@ -15,5 +15,4 @@ UPDATE=\
 
 </sys/src/cmd/mkmany
 
-con.$O:	rustream.h ruttyio.h rusignal.h rufilio.h
 

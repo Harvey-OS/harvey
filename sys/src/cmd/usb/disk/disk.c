@@ -505,7 +505,7 @@ scanstatus(int ctlrno, int id)
 	if (f == nil)
 		sysfatal("can't open %s: %r", buf);
 	if (debug)
-		fprint(2, "\n%s: reading %s\n", argv0, buf);
+		fprint(2, "%s: reading %s\n", argv0, buf);
 	winner = 0;
 	while (!winner && (p = Brdline(f, '\n')) != nil) {
 		p[Blinelen(f)-1] = '\0';

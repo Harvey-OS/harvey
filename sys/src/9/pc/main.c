@@ -713,6 +713,7 @@ reboot(void *entry, void *code, ulong size)
 	print("rebooting...\n");
 
 	/* off we go - never to return */
+	coherence();
 	(*f)(PADDR(entry), PADDR(code), size);
 }
 

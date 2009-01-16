@@ -1,17 +1,11 @@
 #include <u.h>
 #include <libc.h>
 
-#include "rustream.h"
-#include "ruttyio.h"
-#include "rusignal.h"
-#include "rufilio.h"
-
 int debug;		/* true if debugging */
 int ctl = -1;		/* control fd (for break's) */
 int raw;		/* true if raw is on */
 int consctl = -1;	/* control fd for cons */
 int ttypid;		/* pid's if the 2 processes (used to kill them) */
-int msgfd = -1;		/* mesgld file descriptor (for signals to be written to) */
 int outfd = 1;		/* local output file descriptor */
 int cooked;		/* non-zero forces cooked mode */
 int returns;		/* non-zero forces carriage returns not to be filtered out */
@@ -26,7 +20,8 @@ int baud;
 int notkbd;
 int nltocr;		/* translate kbd nl to cr  and vice versa */
 
-typedef struct Msg Msg;
+static char *srv;
+
 #define MAXMSG (2*8192)
 
 int	dodial(char*, char*, char*);
@@ -35,16 +30,10 @@ void	fromnet(int);
 long	iread(int, void*, int);
 long	iwrite(int, void*, int);
 int	menu(int);
-void	msgfromkbd(int);
-void	msgfromnet(int);
-int	msgwrite(int, void*, int);
 void	notifyf(void*, char*);
 void	pass(int, int, int);
 void	rawoff(void);
 void	rawon(void);
-int	readupto(int, char*, int);
-int	sendctl(int, int);
-int	sendctl1(int, int, int);
 void	stdcon(int);
 char*	system(int, char*);
 void	dosystem(int, char*);
@@ -61,7 +50,8 @@ void	simple(char*, char*);
 void
 usage(void)
 {
-	punt("usage: con [-CdnrRsTv] [-b baud] [-l [user]] [-c cmd] net!host[!service]");
+	punt("usage: con [-CdnrRsTv] [-b baud] [-l [user]] [-c cmd] [-S svc] "
+		"net!host[!service]");
 }
 
 void
@@ -75,13 +65,19 @@ main(int argc, char *argv[])
 	case 'b':
 		baud = atoi(EARGF(usage()));
 		break;
+	case 'C':
+		cooked = 1;
+		break;
+	case 'c':
+		cmd = EARGF(usage());
+		break;
 	case 'd':
 		debug = 1;
 		break;
 	case 'l':
 		limited = 1;
 		if(argv[1] != nil && argv[1][0] != '-')
-			remuser = ARGF();
+			remuser = EARGF(usage());
 		break;
 	case 'n':
 		notkbd = 1;
@@ -89,23 +85,20 @@ main(int argc, char *argv[])
 	case 'r':
 		returns = 0;
 		break;
+	case 's':
+		strip = 1;
+		break;
+	case 'S':
+		srv = EARGF(usage());
+		break;
 	case 'R':
 		nltocr = 1;
 		break;
 	case 'T':
 		crtonl = 1;
 		break;
-	case 'C':
-		cooked = 1;
-		break;
-	case 'c':
-		cmd = ARGF();
-		break;
 	case 'v':
 		verbose = 1;
-		break;
-	case 's':
-		strip = 1;
 		break;
 	default:
 		usage();
@@ -342,16 +335,11 @@ menu(int net)
 			return -1;
 		case 'i':
 			buf[0] = 0x1c;
-			if(msgfd <= 0)
-				write(net, buf, 1);
-			else
-				sendctl1(msgfd, M_SIGNAL, SIGQUIT);
+			write(net, buf, 1);
 			done = 1;
 			break;
 		case 'b':
-			if(msgfd >= 0)
-				sendctl(msgfd, M_BREAK);
-			else if(ctl >= 0)
+			if(ctl >= 0)
 				write(ctl, "k", 1);
 			done = 1;
 			break;
@@ -374,6 +362,21 @@ menu(int net)
 	return 0;
 }
 
+void
+post(char *srv, int fd)
+{
+	int f;
+	char buf[32];
+
+	f = create(srv, OWRITE /* |ORCLOSE */ , 0666);
+	if(f < 0)
+		sysfatal("create %s: %r", srv);
+	snprint(buf, sizeof buf, "%d", fd);
+	if(write(f, buf, strlen(buf)) != strlen(buf))
+		sysfatal("write %s: %r", srv);
+	close(f);
+}
+
 /*
  *  the real work.  two processes pass bytes back and forth between the
  *  terminal and the network.
@@ -382,7 +385,23 @@ void
 stdcon(int net)
 {
 	int netpid;
+	int p[2];
+	char *svc;
 
+	svc = nil;
+	if (srv) {
+		if(pipe(p) < 0)
+			sysfatal("pipe: %r");
+		if (srv[0] != '/')
+			svc = smprint("/srv/%s", srv);
+		else
+			svc = srv;
+		post(svc, p[0]);
+		close(p[0]);
+		dup(p[1], 0);
+		dup(p[1], 1);
+		/* pipe is now std in & out */
+	}
 	ttypid = getpid();
 	switch(netpid = rfork(RFMEM|RFPROC)){
 	case -1:
@@ -391,13 +410,18 @@ stdcon(int net)
 	case 0:
 		notify(notifyf);
 		fromnet(net);
+		if (svc)
+			remove(svc);
 		postnote(PNPROC, ttypid, "die yankee dog");
 		exits(0);
 	default:
 		notify(notifyf);
 		fromkbd(net);
+		if (svc)
+			remove(svc);
 		if(notkbd)
-			for(;;)sleep(0);
+			for(;;)
+				sleep(0);
 		postnote(PNPROC, netpid, "die yankee dog");
 		exits(0);
 	}
@@ -582,15 +606,9 @@ system(int fd, char *cmd)
 		break;
 	default:
 		close(pfd[0]);
-		while((n = read(pfd[1], buf, sizeof(buf))) > 0){
-			if(msgfd >= 0){
-				if(msgwrite(fd, buf, n) != n)
-					break;
-			} else {
-				if(write(fd, buf, n) != n)
-					break;
-			}
-		}
+		while((n = read(pfd[1], buf, sizeof(buf))) > 0)
+			if(write(fd, buf, n) != n)
+				break;
 		p = waitpid();
 		outfd = 1;
 		close(pfd[1]);
@@ -663,261 +681,3 @@ iwrite(int f, void *a, int n)
 		return n;
 	return m;
 }
-
-/*
- *  The rest is to support the V10 mesgld protocol.
- */
-
-/*
- *  network orderings
- */
-#define get2byte(p) ((p)[0] + ((p)[1]<<8))
-#define get4byte(p) ((p)[0] + ((p)[1]<<8) + ((p)[2]<<16) + ((p)[3]<<24))
-#define put2byte(p, i) ((p)[0]=(i), (p)[1]=(i)>>8)
-#define put4byte(p, i) ((p)[0]=(i), (p)[1]=(i)>>8, (p)[2]=(i)>>16, (p)[3]=(i)>>24)
-
-/*
- *  tty parameters
- */
-int sgflags = ECHO;
-
-/*
- *  a mesgld message
- */
-struct Msg {
-	struct mesg h;
-	char b[MAXMSG];
-};
-
-
-/*
- *  send an empty mesgld message
- */
-int
-sendctl(int net, int type)
-{
-	Msg m;
-
-	m.h.type = type;
-	m.h.magic = MSGMAGIC;
-	put2byte(m.h.size, 0);
-	if(iwrite(net, &m, sizeof(struct mesg)) != sizeof(struct mesg))
-		return -1;
-	return 0;
-}
-
-/*
- *  send a one byte mesgld message
- */
-int
-sendctl1(int net, int type, int parm)
-{
-	Msg m;
-
-	m.h.type = type;
-	m.h.magic = MSGMAGIC;
-	m.b[0] = parm;
-	put2byte(m.h.size, 1);
-	if(iwrite(net, &m, sizeof(struct mesg)+1) != sizeof(struct mesg)+1)
-		return -1;
-	return 0;
-}
-
-/*
- *  read n bytes.  return -1 if it fails, 0 otherwise.
- */
-int
-readupto(int from, char *a, int len)
-{
-	int n;
-
-	while(len > 0){
-		n = iread(from, a, len);
-		if(n < 0)
-			return -1;
-		a += n;
-		len -= n;
-	}
-	return 0;
-}
-
-/*
- *  Decode a mesgld message from the network
- */
-void
-msgfromnet(int net)
-{
-	ulong com;
-	struct stioctl *io;
-	struct sgttyb *sg;
-	struct ttydevb *td;
-	struct tchars *tc;
-	int len;
-	Msg m;
-
-	for(;;){
-		/* get a complete mesgld message */
-		if(readupto(net, (char*)&m.h, sizeof(struct mesg)) < 0)
-			break;
-		if(m.h.magic != MSGMAGIC){
-			fprint(2, "con: bad message magic 0x%ux\n", m.h.magic);
-			break;
-		}
-		len = get2byte(m.h.size);
-		if(len > sizeof(m.b)){
-			len = sizeof(m.b);
-			fprint(2, "con: mesgld message too long\n");
-		}
-		if(len && readupto(net, m.b, len) < 0)
-			break;
-
-		/* decode */
-		switch(m.h.type){
-		case M_HANGUP:
-			if(debug)
-				fprint(2, "M_HANGUP\n");
-			return;
-		case M_DATA:
-			if(debug)
-				fprint(2, "M_DATA %d bytes\n", len);
-			if(iwrite(outfd, m.b, len) != len){
-				if(outfd == 1)
-					return;
-				outfd = 1;
-				if(iwrite(outfd, m.b, len) != len)
-					return;
-			}
-			continue;
-		case M_IOCTL:
-			break;
-		default:
-			/* ignore */
-			if(debug)
-				fprint(2, "con: unknown message\n");
-			continue;
-		}
-	
-		/*
-		 *  answer an ioctl
-		 */
-		io = (struct stioctl *)m.b;
-		com = get4byte(io->com);
-		if(debug)
-			fprint(2, "M_IOCTL %lud\n", com);
-		switch(com){
-		case FIOLOOKLD:
-			put4byte(io->data, tty_ld);
-			len = 0;
-			break;
-		case TIOCGETP:
-			sg = (struct sgttyb *)io->data;
-			sg->sg_ispeed = sg->sg_ospeed = B9600;
-			sg->sg_erase = 0010;	/* back space */
-			sg->sg_kill = 0025;	/* CNTL U */
-			put2byte(sg->sg_flags, sgflags);
-			len = sizeof(struct sgttyb);
-			break;
-		case TIOCSETN:
-		case TIOCSETP:
-			sg = (struct sgttyb *)io->data;
-			sgflags = get2byte(sg->sg_flags);
-			if((sgflags&(RAW|CBREAK)) || !(sgflags&ECHO))
-				rawon();
-			else
-				rawoff();
-			len = 0;
-			break;
-		case TIOCGETC:
-			tc = (struct tchars *)io->data;
-			tc->t_intrc = 0177;
-			tc->t_quitc = 0034;
-			tc->t_startc = 0;
-			tc->t_stopc = 0;
-			tc->t_eofc = 0004;
-			tc->t_brkc = 0;
-			len = sizeof(struct tchars);
-			break;
-		case TIOCSETC:
-			len = 0;
-			break;
-		case TIOCGDEV:
-			td = (struct ttydevb *)io->data;
-			td->ispeed = td->ospeed = B9600;
-			put2byte(td->flags, 0);
-			len = sizeof(struct ttydevb);
-			break;
-		case TIOCSDEV:
-			len = 0;
-			break;
-		default:
-			/*
-			 *  unimplemented
-			 */
-			m.b[len] = 0;
-			if(sendctl(net, M_IOCNAK) < 0)
-				return;
-			continue;
-		}
-	
-		/*
-		 *  acknowledge
-		 */
-		m.h.type = M_IOCACK;
-		m.h.magic = MSGMAGIC;
-		len += 4;
-		put2byte(m.h.size, len);
-		len += sizeof(struct mesg);
-		if(iwrite(net, &m, len) != len)
-			return;
-	}
-}
-
-/*
- *  Read the keyboard, convert to mesgld messages, and write it to the network.
- *  '^\' gets us into the menu.
- */
-void
-msgfromkbd(int net)
-{
-	long n;
-	char buf[MAXMSG];
-
-	for(;;){
-		n = iread(0, buf, sizeof(buf));
-		if(n < 0)
-			return;
-		if(n && memchr(buf, 0034, n)){
-			if(menu(net) < 0)
-				return;
-		} else {
-			if(msgwrite(net, buf, n) != n)
-				return;
-		}
-	}
-}
-
-int
-msgwrite(int fd, void *buf, int len)
-{
-	Msg m;
-	int n;
-
-	n = len;
-	memmove(m.b, buf, n);
-	put2byte(m.h.size, n);
-	m.h.magic = MSGMAGIC;
-	m.h.type = M_DATA;
-	n += sizeof(struct mesg);
-	if(iwrite(fd, &m, n) != n)
-		return -1;
-	
-	put2byte(m.h.size, 0);
-	m.h.magic = MSGMAGIC;
-	m.h.type = M_DELIM;
-	n = sizeof(struct mesg);
-	if(iwrite(fd, &m, n) != n)
-		return -1;
-
-	return len;
-}
-

@@ -539,10 +539,14 @@ isdomainmatch(char *name, char *pattern)
 	if(strcmp(ipattr(name), "dom")==0 && pattern[0]=='.'){
 		lname = strlen(name);
 		lpattern = strlen(pattern);
+		/* e.g., name: www.google.com && pattern: .google.com */
 		if(lname >= lpattern && cistrcmp(name+lname-lpattern, pattern)==0)
 			return 1;
+		/* e.g., name: google.com && pattern: .google.com */
+		if(lpattern > lname &&
+		    cistrcmp(pattern+lpattern-lname, name) == 0)
+			return 1;
 	}
-
 	return 0;
 }
 
@@ -557,7 +561,7 @@ iscookiematch(Cookie *c, char *dom, char *path, uint now)
 {
 	return isdomainmatch(dom, c->dom)
 		&& strncmp(c->path, path, strlen(c->path))==0
-		&& c->expire >= now;
+		&& (c->expire == 0 || c->expire >= now);
 }
 
 /* 
@@ -577,8 +581,15 @@ cookiesearch(Jar *jar, char *dom, char *path, int issecure)
 	j = newjar();
 	for(i=0; i<jar->nc; i++){
 		if(cookiedebug)
-			fprint(2, "\ttry %s %s %d %s\n", jar->c[i].dom, jar->c[i].path, jar->c[i].secure, jar->c[i].name);
-		if((issecure || !jar->c[i].secure) && iscookiematch(&jar->c[i], dom, path, now)){
+			fprint(2, "\ttry %s %s %d %s\n", jar->c[i].dom,
+				jar->c[i].path, jar->c[i].secure,
+				jar->c[i].name);
+		/*
+		 * fgb says omitting secure checks is necessary to
+		 * get some sites to work, but it seems dubious.
+		 */
+		if((0 || issecure || !jar->c[i].secure) &&
+		    iscookiematch(&jar->c[i], dom, path, now)){
 			if(cookiedebug)
 				fprint(2, "\tmatched\n");
 			addcookie(j, &jar->c[i]);
@@ -589,7 +600,7 @@ cookiesearch(Jar *jar, char *dom, char *path, int issecure)
 		werrstr("no cookies found");
 		return nil;
 	}
-	qsort(j->c, j->nc, sizeof(j->c[0]), (int(*)(const void*, const void*))cookiecmp);
+	qsort(j->c, j->nc, sizeof(j->c[0]), (int(*)(void*, void*))cookiecmp);
 	return j;
 }
 
@@ -599,20 +610,28 @@ cookiesearch(Jar *jar, char *dom, char *path, int issecure)
 static char*
 isbadcookie(Cookie *c, char *dom, char *path)
 {
+	int lcdom, ldom;
+
 	if(strncmp(c->path, path, strlen(c->path)) != 0)
 		return "cookie path is not a prefix of the request path";
 
+	/*
+	 * fgb says omitting this test is necessary to get some sites to work,
+	 * but it seems dubious.
+	 */
 	if(c->explicitdom && c->dom[0] != '.')
 		return "cookie domain doesn't start with dot";
 
-	if(memchr(c->dom+1, '.', strlen(c->dom)-1-1) == nil)
+	lcdom = strlen(c->dom);
+	if(memchr(c->dom+1, '.', lcdom-1-1) == nil)
 		return "cookie domain doesn't have embedded dots";
 
 	if(!isdomainmatch(dom, c->dom))
 		return "request host does not match cookie domain";
 
-	if(strcmp(ipattr(dom), "dom")==0
-	&& memchr(dom, '.', strlen(dom)-strlen(c->dom)) != nil)
+	ldom = strlen(dom);
+	if(strcmp(ipattr(dom), "dom")==0 && lcdom > ldom &&
+	    memchr(dom, '.', lcdom - ldom) != nil)
 		return "request host contains dots before cookie domain";
 
 	return 0;

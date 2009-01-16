@@ -1101,6 +1101,10 @@ Murray Hill, New Jersey 07974
 Bell Laboratories
 Piscataway, New Jersey 08854
 ..
+.de AW
+Bell Laboratories
+2018 Antwerp, Belgium
+..
 .de BT
 .nr PX \\n(.s
 .nr PF \\n(.f
@@ -1116,6 +1120,7 @@ Piscataway, New Jersey 08854
 .de PP
 .RT
 .if \\n(1T .sp \\n(PDu
+.ne 2v
 .ti +\\n(PIu
 ..
 .	\"SH - (unnumbered) section heading

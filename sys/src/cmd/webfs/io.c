@@ -62,16 +62,18 @@ _iotlsdial(va_list *arg)
 		return fd;
 
 	memset(&conn, 0, sizeof conn);
+	/* does no good, so far anyway */
+	// conn.chain = readcertchain("/sys/lib/ssl/vsignss.pem");
+
 	tfd = tlsClient(fd, &conn);
-	if(tfd < 0){
-		print("tls %r\n");
-		close(fd);
-		return -1;
-	}
-	/* BUG: check cert here? */
-	if(conn.cert)
-		free(conn.cert);
 	close(fd);
+	if(tfd < 0)
+		fprint(2, "%s: tlsClient: %r\n", argv0);
+	else {
+		/* BUG: check cert here? */
+		if(conn.cert)
+			free(conn.cert);
+	}
 	return tfd;
 }
 

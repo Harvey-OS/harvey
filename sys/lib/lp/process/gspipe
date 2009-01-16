@@ -21,4 +21,4 @@ gs $GSOPT - >/dev/null
 
 cat $GSTMPFILE
 rm -f $GSTMPFILE
-exit
+exit ''

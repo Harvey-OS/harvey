@@ -8,8 +8,30 @@
 #include <ndb.h>
 #include "dat.h"
 
-Ndb *db;
+static Ndb *db;
 char *ndbfile;
+
+/*
+ * open ndbfile as db if not already open.  also check for stale data
+ * and reload as needed.
+ */
+static Ndb *
+opendb(void)
+{
+	static ulong lastcheck;
+
+	/* check no more often than once every minute */
+	if(db == nil) {
+		db = ndbopen(ndbfile);
+		if(db != nil)
+			lastcheck = now;
+	} else if(now >= lastcheck + 60) {
+		if (ndbchanged(db))
+			ndbreopen(db);
+		lastcheck = now;
+	}
+	return db;
+}
 
 Iplifc*
 findlifc(uchar *ip)
@@ -70,9 +92,7 @@ lookupip(uchar *ipaddr, Info *iip, int gate)
 	Ndbtuple *t, *nt;
 	char *attrs[32], **p;
 
-	if(db == 0)
-		db = ndbopen(ndbfile);
-	if(db == 0){
+	if(opendb() == nil){
 		warning(1, "can't open db");
 		return -1;
 	}
@@ -185,9 +205,7 @@ lookup(Bootp *bp, Info *iip, Info *riip)
 	char *hwval, hwbuf[33];
 	uchar ciaddr[IPaddrlen];
 
-	if(db == 0)
-		db = ndbopen(ndbfile);
-	if(db == 0){
+	if(opendb() == nil){
 		warning(1, "can't open db");
 		return -1;
 	}

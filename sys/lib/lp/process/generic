@@ -134,7 +134,7 @@ case postscript
 	case *
 		echo $type(2) file is improper for $LPDEST >[1=2]
 	}
-case HPJCL
+case HPJCL HP
 	switch ($LPCLASS) {
 	case *HPJCL*
 		$proc/noproc <$temp

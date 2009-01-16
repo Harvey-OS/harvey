@@ -9,6 +9,7 @@
 #define STACKSIZE 128*1024
 
 static int dontfork;
+static int usbnum;
 
 Ref	busy;
 
@@ -34,14 +35,43 @@ usage(void)
 	threadexitsall("usage");
 }
 
+/*
+ * based on libthread's threadsetname, but drags in less library code.
+ * actually just sets the arguments displayed.
+ */
+void
+procsetname(char *fmt, ...)
+{
+	int fd;
+	char *cmdname;
+	char buf[32];
+	va_list arg;
+
+	va_start(arg, fmt);
+	cmdname = vsmprint(fmt, arg);
+	va_end(arg);
+	if (cmdname == nil)
+		return;
+	snprint(buf, sizeof buf, "#p/%d/args", getpid());
+	if((fd = open(buf, OWRITE)) >= 0){
+		write(fd, cmdname, strlen(cmdname)+1);
+		close(fd);
+	}
+	free(cmdname);
+}
+
 void
 work(void *a)
 {
 	int port;
+	char name[100];
 	Hub *hub;
 	Enum *arg;
 
 	hub = a;
+	snprint(name, sizeof name, "%H", hub);
+	procsetname(name);
+
 	for(port = 1; port <= hub->nport; port++){
 		if (debug)
 			fprint(2, "enumerate port %H.%d\n", hub, port);
@@ -61,12 +91,48 @@ work(void *a)
 }
 
 void
-threadmain(int argc, char **argv)
+realmain(void *)
 {
 	int i;
 	Hub *h;
-	int usbnum;
 
+	if (!dontfork) {
+		/* don't hold window open */
+		close(0);
+		close(1);
+		open("/dev/null", OREAD);
+		open("/dev/null", OWRITE);
+		if(!debug && !verbose) {
+			close(2);
+			open("/dev/null", OWRITE);
+		}
+	}
+	if(usbnum < 0){
+		/* always fork off usb[1—n] */
+		for(i=1; (h = roothub(i)) != nil; i++) {
+			incref(&busy);
+			proccreate(work, h, STACKSIZE);
+		}
+		usbnum = 0;
+	}
+	/* usb0 might be handled in this proc */
+	if((h = roothub(usbnum)) != nil){
+		incref(&busy);
+		if (dontfork)
+			work(h);
+		else
+			proccreate(work, h, STACKSIZE);
+	}
+	if (debug)
+		fprint(2, "done\n");
+	while (busy.ref)
+		sleep(100);
+	threadexits(nil);
+}
+
+void
+threadmain(int argc, char **argv)
+{
 	usbnum = -1;
 	ARGBEGIN{
 	case 'd':
@@ -93,33 +159,10 @@ threadmain(int argc, char **argv)
 	usbfmtinit();
 	fmtinstall('H', Hfmt);
 
-	if(usbnum < 0){
-		/* always fork off usb[1—n] */
-		for(i=1; (h = roothub(i)) != nil; i++) {
-			incref(&busy);
-			proccreate(work, h, STACKSIZE);
-		}
-		usbnum = 0;
-	}
-	/* usb0 might be handled in this proc */
-	if((h = roothub(usbnum)) != nil){
-		incref(&busy);
-		if (dontfork) {
-			work(h);
-		} else {
-			rfork(RFNOTEG);
-			proccreate(work, h, STACKSIZE);
-			/* don't hold window open */
-			close(0);
-			close(1);
-			if(!debug && !verbose)
-				close(2);
-		}
-	}
-	if (debug)
-		fprint(2, "done\n");
-	while (busy.ref)
-		sleep(100);
+	if (dontfork)
+		realmain(nil);
+	else
+		procrfork(realmain, nil, STACKSIZE, RFNOTEG | RFFDG);
 	threadexits(nil);
 }
 

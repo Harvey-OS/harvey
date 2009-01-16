@@ -10,13 +10,12 @@ static void snapClose(Snap*);
 Fs *
 fsOpen(char *file, VtSession *z, long ncache, int mode)
 {
-	Fs *fs;
-	Disk *disk;
-	int fd;
-	Block *b, *bs;
-	Super super;
-	int m;
+	int fd, m;
 	uchar oscore[VtScoreSize];
+	Block *b, *bs;
+	Disk *disk;
+	Fs *fs;
+	Super super;
 
 	switch(mode){
 	default:
@@ -45,6 +44,7 @@ fsOpen(char *file, VtSession *z, long ncache, int mode)
 
 	fs = vtMemAllocZ(sizeof(Fs));
 	fs->mode = mode;
+	fs->name = vtStrDup(file);
 	fs->blockSize = diskBlockSize(disk);
 	fs->elk = vtLockAlloc();
 	fs->cache = cacheAlloc(disk, z, ncache, mode);
@@ -65,7 +65,7 @@ fsOpen(char *file, VtSession *z, long ncache, int mode)
 	fs->ehi = super.epochHigh;
 	fs->elo = super.epochLow;
 
-//fprint(2, "fs->ehi %d fs->elo %d active=%d\n", fs->ehi, fs->elo, super.active);
+//fprint(2, "%s: fs->ehi %d fs->elo %d active=%d\n", argv0, fs->ehi, fs->elo, super.active);
 
 	fs->source = sourceRoot(fs, super.active, mode);
 	if(fs->source == nil){
@@ -75,7 +75,8 @@ fsOpen(char *file, VtSession *z, long ncache, int mode)
 		 */
 		if(mode == OReadOnly || strcmp(vtGetError(), EBadRoot) != 0)
 			goto Err;
-		b = cacheLocalData(fs->cache, super.active, BtDir, RootTag, OReadWrite, 0);
+		b = cacheLocalData(fs->cache, super.active, BtDir, RootTag,
+			OReadWrite, 0);
 		if(b == nil){
 			vtSetError("cacheLocalData: %R");
 			goto Err;
@@ -109,17 +110,18 @@ fsOpen(char *file, VtSession *z, long ncache, int mode)
 		}
 	}
 
-//fprint(2, "got fs source\n");
+//fprint(2, "%s: got fs source\n", argv0);
 
 	vtRLock(fs->elk);
 	fs->file = fileRoot(fs->source);
+	fs->source->file = fs->file;		/* point back */
 	vtRUnlock(fs->elk);
 	if(fs->file == nil){
 		vtSetError("fileRoot: %R");
 		goto Err;
 	}
 
-//fprint(2, "got file root\n");
+//fprint(2, "%s: got file root\n", argv0);
 
 	if(mode == OReadWrite){
 		fs->metaFlush = periodicAlloc(fsMetaFlush, fs, 1000);
@@ -128,7 +130,7 @@ fsOpen(char *file, VtSession *z, long ncache, int mode)
 	return fs;
 
 Err:
-fprint(2, "fsOpen error\n");
+fprint(2, "%s: fsOpen error\n", argv0);
 	fsClose(fs);
 	return nil;
 }
@@ -149,6 +151,7 @@ fsClose(Fs *fs)
 	cacheFree(fs->cache);
 	if(fs->arch)
 		archFree(fs->arch);
+	vtMemFree(fs->name);
 	vtRUnlock(fs->elk);
 	vtLockFree(fs->elk);
 	memset(fs, ~0, sizeof(Fs));
@@ -183,11 +186,11 @@ superGet(Cache *c, Super* super)
 	Block *b;
 
 	if((b = cacheLocal(c, PartSuper, 0, OReadWrite)) == nil){
-		fprint(2, "superGet: cacheLocal failed: %R");
+		fprint(2, "%s: superGet: cacheLocal failed: %R\n", argv0);
 		return nil;
 	}
 	if(!superUnpack(super, b->data)){
-		fprint(2, "superGet: superUnpack failed: %R");
+		fprint(2, "%s: superGet: superUnpack failed: %R\n", argv0);
 		blockPut(b);
 		return nil;
 	}
@@ -203,7 +206,8 @@ superWrite(Block* b, Super* super, int forceWrite)
 	if(forceWrite){
 		while(!blockWrite(b)){
 			/* BUG: what should really happen here? */
-			fprint(2, "could not write super block; waiting 10 seconds\n");
+			fprint(2, "%s: could not write super block; "
+				"waiting 10 seconds\n", argv0);
 			sleep(10*1000);
 		}
 		while(b->iostate != BioClean && b->iostate != BioDirty){
@@ -424,11 +428,11 @@ bumpEpoch(Fs *fs, int doarchive)
 
 	b = blockCopy(b, RootTag, fs->ehi+1, fs->elo);
 	if(b == nil){
-		fprint(2, "bumpEpoch: blockCopy: %R\n");
+		fprint(2, "%s: bumpEpoch: blockCopy: %R\n", argv0);
 		return 0;
 	}
 
-	if(0) fprint(2, "snapshot root from %d to %d\n", oldaddr, b->addr);
+	if(0) fprint(2, "%s: snapshot root from %d to %d\n", argv0, oldaddr, b->addr);
 	entryPack(&e, b->data, 1);
 	blockDirty(b);
 
@@ -604,7 +608,7 @@ fsSnapshot(Fs *fs, char *srcpath, char *dstpath, int doarchive)
 	return 1;
 
 Err:
-	fprint(2, "fsSnapshot: %R\n");
+	fprint(2, "%s: fsSnapshot: %R\n", argv0);
 	if(src)
 		fileDecRef(src);
 	if(dst)
@@ -964,16 +968,16 @@ fsSnapshotRemove(Fs *fs)
 
 struct Snap
 {
-	Fs *fs;
-	Periodic *tick;
-	VtLock *lk;
-	uint snapMinutes;
-	uint archMinute;
-	uint snapLife;
-	u32int lastSnap;
-	u32int lastArch;
-	u32int lastCleanup;
-	uint ignore;
+	Fs	*fs;
+	Periodic*tick;
+	VtLock	*lk;
+	uint	snapMinutes;
+	uint	archMinute;
+	uint	snapLife;
+	u32int	lastSnap;
+	u32int	lastArch;
+	u32int	lastCleanup;
+	uint	ignore;
 };
 
 static void
@@ -998,7 +1002,7 @@ snapEvent(void *v)
 	if(s->snapMinutes != ~0 && s->snapMinutes != 0
 	&& now%s->snapMinutes==0 && now != s->lastSnap){
 		if(!fsSnapshot(s->fs, nil, nil, 0))
-			fprint(2, "fsSnapshot snap: %R\n");
+			fprint(2, "%s: fsSnapshot snap: %R\n", argv0);
 		s->lastSnap = now;
 	}
 

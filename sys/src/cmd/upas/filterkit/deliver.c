@@ -14,7 +14,7 @@ usage(void)
 void
 main(int argc, char **argv)
 {
-	int bytes, fd;
+	int bytes, fd, i;
 	char now[30];
 	char *deliveredto;
 	Addr *a;
@@ -38,9 +38,17 @@ main(int argc, char **argv)
 	l = syslock(argv[2]);
 
 	/* append to mbox */
+	i = 0;
+retry:
 	fd = open(argv[2], OWRITE);
-	if(fd < 0)
+	if(fd < 0){
+		rerrstr(now, sizeof(now));
+		if(strstr(now, "exclusive lock") && i++ < 20){
+			sleep(500);	/* wait for lock to go away */
+			goto retry;
+		}
 		sysfatal("opening mailbox: %r");
+	}
 	seek(fd, 0, 2);
 	strncpy(now, ctime(time(0)), sizeof(now));
 	now[28] = 0;

@@ -37,6 +37,7 @@ looksize(char *file, vlong size, int *pixels, int *lines, int *bits)
 			continue;
 		p = atoll(a[3]);
 		l = atoll(a[5]);
+		l += atoll(a[7]);
 		if (l*p*2 == size){
 			*pixels = p;
 			*lines = l;

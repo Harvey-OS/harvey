@@ -605,8 +605,8 @@ static X86type x86intel[] =
 	{ 6,	8,	16,	"PentiumIII/Xeon", },
 	{ 6,	0xB,	16,	"PentiumIII/Xeon", },
 	{ 6,	0xF,	16,	"Xeon5000-series", },
-	{ 6,	0x16,	16,	"Core 2", },	/* 64-bit capable */
-	{ 6,	0x17,	16,	"Core 2", },
+	{ 6,	0x16,	16,	"Core 2 (Intel 64)", },
+	{ 6,	0x17,	16,	"Core 2 (Intel 64)", },
 	{ 6,	0x1c,	16,	"Atom", },
 	{ 0xF,	1,	16,	"P4", },	/* P4 */
 	{ 0xF,	2,	16,	"PentiumIV/Xeon", },
