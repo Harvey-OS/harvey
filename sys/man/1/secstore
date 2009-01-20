@@ -94,6 +94,11 @@ or the server specified by option
 .BR -s .
 .PP
 Option
+.B -u
+access the secure-store files belonging to
+.IR user .
+.PP
+Option
 .B -v
 produces more verbose output, in particular providing a few
 bits of feedback to help the user detect mistyping.
