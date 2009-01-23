@@ -401,13 +401,13 @@ vgbeifstat(Ether* edev, void* a, long n, ulong offset)
 
 	ctlr = edev->ctlr;
 
-	p = malloc(2*READSTR);
+	p = malloc(READSTR);
 	l = 0;
-	l += snprint(p+l, 2*READSTR-l, "tx: %uld\n", ctlr->stats.tx);
-	l += snprint(p+l, 2*READSTR-l, "tx [errs]: %uld\n", ctlr->stats.txe);
-	l += snprint(p+l, 2*READSTR-l, "rx: %uld\n", ctlr->stats.rx);
-	l += snprint(p+l, 2*READSTR-l, "intr: %uld\n", ctlr->stats.intr);
-	snprint(p+l, 2*READSTR-l, "\n");
+	l += snprint(p+l, READSTR-l, "tx: %uld\n", ctlr->stats.tx);
+	l += snprint(p+l, READSTR-l, "tx [errs]: %uld\n", ctlr->stats.txe);
+	l += snprint(p+l, READSTR-l, "rx: %uld\n", ctlr->stats.rx);
+	l += snprint(p+l, READSTR-l, "intr: %uld\n", ctlr->stats.intr);
+	snprint(p+l, READSTR-l, "\n");
 
 	n = readstr(offset, a, n, p);
 	free(p);

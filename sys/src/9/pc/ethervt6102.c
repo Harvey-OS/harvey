@@ -346,41 +346,41 @@ vt6102ifstat(Ether* edev, void* a, long n, ulong offset)
 
 	ctlr = edev->ctlr;
 
-	p = malloc(2*READSTR);
+	p = malloc(READSTR);
 	l = 0;
 	for(i = 0; i < Nrxstats; i++){
-		l += snprint(p+l, 2*READSTR-l, "%s: %ud\n",
+		l += snprint(p+l, READSTR-l, "%s: %ud\n",
 			rxstats[i], ctlr->rxstats[i]);
 	}
 	for(i = 0; i < Ntxstats; i++){
 		if(txstats[i] == nil)
 			continue;
-		l += snprint(p+l, 2*READSTR-l, "%s: %ud\n",
+		l += snprint(p+l, READSTR-l, "%s: %ud\n",
 			txstats[i], ctlr->txstats[i]);
 	}
-	l += snprint(p+l, 2*READSTR-l, "cls: %ud\n", ctlr->cls);
-	l += snprint(p+l, 2*READSTR-l, "intr: %ud\n", ctlr->intr);
-	l += snprint(p+l, 2*READSTR-l, "lintr: %ud\n", ctlr->lintr);
-	l += snprint(p+l, 2*READSTR-l, "lsleep: %ud\n", ctlr->lsleep);
-	l += snprint(p+l, 2*READSTR-l, "rintr: %ud\n", ctlr->rintr);
-	l += snprint(p+l, 2*READSTR-l, "tintr: %ud\n", ctlr->tintr);
-	l += snprint(p+l, 2*READSTR-l, "taligned: %ud\n", ctlr->taligned);
-	l += snprint(p+l, 2*READSTR-l, "tsplit: %ud\n", ctlr->tsplit);
-	l += snprint(p+l, 2*READSTR-l, "tcopied: %ud\n", ctlr->tcopied);
-	l += snprint(p+l, 2*READSTR-l, "txdw: %ud\n", ctlr->txdw);
-	l += snprint(p+l, 2*READSTR-l, "tft: %ud\n", ctlr->tft);
+	l += snprint(p+l, READSTR-l, "cls: %ud\n", ctlr->cls);
+	l += snprint(p+l, READSTR-l, "intr: %ud\n", ctlr->intr);
+	l += snprint(p+l, READSTR-l, "lintr: %ud\n", ctlr->lintr);
+	l += snprint(p+l, READSTR-l, "lsleep: %ud\n", ctlr->lsleep);
+	l += snprint(p+l, READSTR-l, "rintr: %ud\n", ctlr->rintr);
+	l += snprint(p+l, READSTR-l, "tintr: %ud\n", ctlr->tintr);
+	l += snprint(p+l, READSTR-l, "taligned: %ud\n", ctlr->taligned);
+	l += snprint(p+l, READSTR-l, "tsplit: %ud\n", ctlr->tsplit);
+	l += snprint(p+l, READSTR-l, "tcopied: %ud\n", ctlr->tcopied);
+	l += snprint(p+l, READSTR-l, "txdw: %ud\n", ctlr->txdw);
+	l += snprint(p+l, READSTR-l, "tft: %ud\n", ctlr->tft);
 
 	if(ctlr->mii != nil && ctlr->mii->curphy != nil){
-		l += snprint(p+l, 2*READSTR, "phy:   ");
+		l += snprint(p+l, READSTR, "phy:   ");
 		for(i = 0; i < NMiiPhyr; i++){
 			if(i && ((i & 0x07) == 0))
-				l += snprint(p+l, 2*READSTR-l, "\n       ");
+				l += snprint(p+l, READSTR-l, "\n       ");
 			r = miimir(ctlr->mii, i);
-			l += snprint(p+l, 2*READSTR-l, " %4.4uX", r);
+			l += snprint(p+l, READSTR-l, " %4.4uX", r);
 		}
-		snprint(p+l, 2*READSTR-l, "\n");
+		snprint(p+l, READSTR-l, "\n");
 	}
-	snprint(p+l, 2*READSTR-l, "\n");
+	snprint(p+l, READSTR-l, "\n");
 
 	n = readstr(offset, a, n, p);
 	free(p);

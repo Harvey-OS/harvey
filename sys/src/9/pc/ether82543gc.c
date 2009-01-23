@@ -506,7 +506,7 @@ gc82543ifstat(Ether* edev, void* a, long n, ulong offset)
 
 	ctlr = edev->ctlr;
 	lock(&ctlr->slock);
-	p = malloc(2*READSTR);
+	p = malloc(READSTR);
 	l = 0;
 	for(i = 0; i < Nstatistics; i++){
 		r = csr32r(ctlr, Statistics+i*4);
@@ -526,7 +526,7 @@ gc82543ifstat(Ether* edev, void* a, long n, ulong offset)
 				continue;
 			ctlr->statistics[i] = tuvl;
 			ctlr->statistics[i+1] = tuvl>>32;
-			l += snprint(p+l, 2*READSTR-l, "%s: %llud %llud\n",
+			l += snprint(p+l, READSTR-l, "%s: %llud %llud\n",
 				s, tuvl, ruvl);
 			i++;
 			break;
@@ -535,20 +535,20 @@ gc82543ifstat(Ether* edev, void* a, long n, ulong offset)
 			ctlr->statistics[i] += r;
 			if(ctlr->statistics[i] == 0)
 				continue;
-			l += snprint(p+l, 2*READSTR-l, "%s: %ud %ud\n",
+			l += snprint(p+l, READSTR-l, "%s: %ud %ud\n",
 				s, ctlr->statistics[i], r);
 			break;
 		}
 	}
 
-	l += snprint(p+l, 2*READSTR-l, "eeprom:");
+	l += snprint(p+l, READSTR-l, "eeprom:");
 	for(i = 0; i < 0x40; i++){
 		if(i && ((i & 0x07) == 0))
-			l += snprint(p+l, 2*READSTR-l, "\n       ");
-		l += snprint(p+l, 2*READSTR-l, " %4.4uX", ctlr->eeprom[i]);
+			l += snprint(p+l, READSTR-l, "\n       ");
+		l += snprint(p+l, READSTR-l, " %4.4uX", ctlr->eeprom[i]);
 	}
 
-	snprint(p+l, 2*READSTR-l, "\ntxstalled %d\n", ctlr->txstalled);
+	snprint(p+l, READSTR-l, "\ntxstalled %d\n", ctlr->txstalled);
 	n = readstr(offset, a, n, p);
 	free(p);
 	unlock(&ctlr->slock);

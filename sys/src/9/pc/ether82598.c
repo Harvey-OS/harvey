@@ -337,8 +337,8 @@ ifstat(Ether *e, void *a, long n, ulong offset)
 	Ctlr *c;
 
 	c = e->ctlr;
-	p = s = malloc(2*READSTR);
-	q = p + 2*READSTR;
+	p = s = malloc(READSTR);
+	q = p + READSTR;
 
 	readstats(c);
 	for(i = 0; i < nelem(stattab); i++)
