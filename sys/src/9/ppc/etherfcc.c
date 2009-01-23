@@ -466,34 +466,34 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 
 	ctlr = ether->ctlr;
 
-	p = malloc(2*READSTR);
-	len = snprint(p, 2*READSTR, "interrupts: %lud\n", ctlr->interrupts);
-	len += snprint(p+len, 2*READSTR-len, "carrierlost: %lud\n", ctlr->carrierlost);
-	len += snprint(p+len, 2*READSTR-len, "heartbeat: %lud\n", ctlr->heartbeat);
-	len += snprint(p+len, 2*READSTR-len, "retrylimit: %lud\n", ctlr->retrylim);
-	len += snprint(p+len, 2*READSTR-len, "retrycount: %lud\n", ctlr->retrycount);
-	len += snprint(p+len, 2*READSTR-len, "latecollisions: %lud\n", ctlr->latecoll);
-	len += snprint(p+len, 2*READSTR-len, "rxoverruns: %lud\n", ctlr->overrun);
-	len += snprint(p+len, 2*READSTR-len, "txunderruns: %lud\n", ctlr->underrun);
-	len += snprint(p+len, 2*READSTR-len, "framesdeferred: %lud\n", ctlr->deferred);
+	p = malloc(READSTR);
+	len = snprint(p, READSTR, "interrupts: %lud\n", ctlr->interrupts);
+	len += snprint(p+len, READSTR-len, "carrierlost: %lud\n", ctlr->carrierlost);
+	len += snprint(p+len, READSTR-len, "heartbeat: %lud\n", ctlr->heartbeat);
+	len += snprint(p+len, READSTR-len, "retrylimit: %lud\n", ctlr->retrylim);
+	len += snprint(p+len, READSTR-len, "retrycount: %lud\n", ctlr->retrycount);
+	len += snprint(p+len, READSTR-len, "latecollisions: %lud\n", ctlr->latecoll);
+	len += snprint(p+len, READSTR-len, "rxoverruns: %lud\n", ctlr->overrun);
+	len += snprint(p+len, READSTR-len, "txunderruns: %lud\n", ctlr->underrun);
+	len += snprint(p+len, READSTR-len, "framesdeferred: %lud\n", ctlr->deferred);
 	miistatus(ctlr->mii);
 	phy = ctlr->mii->curphy;
-	len += snprint(p+len, 2*READSTR-len, "phy: link=%d, tfc=%d, rfc=%d, speed=%d, fd=%d\n",
+	len += snprint(p+len, READSTR-len, "phy: link=%d, tfc=%d, rfc=%d, speed=%d, fd=%d\n",
 		phy->link, phy->tfc, phy->rfc, phy->speed, phy->fd);
 
 #ifdef DBG
 	if(ctlr->mii != nil && ctlr->mii->curphy != nil){
-		len += snprint(p+len, 2*READSTR, "phy:   ");
+		len += snprint(p+len, READSTR, "phy:   ");
 		for(i = 0; i < NMiiPhyr; i++){
 			if(i && ((i & 0x07) == 0))
-				len += snprint(p+len, 2*READSTR-len, "\n       ");
+				len += snprint(p+len, READSTR-len, "\n       ");
 			r = miimir(ctlr->mii, i);
-			len += snprint(p+len, 2*READSTR-len, " %4.4uX", r);
+			len += snprint(p+len, READSTR-len, " %4.4uX", r);
 		}
-		snprint(p+len, 2*READSTR-len, "\n");
+		snprint(p+len, READSTR-len, "\n");
 	}
 #endif
-	snprint(p+len, 2*READSTR-len, "\n");
+	snprint(p+len, READSTR-len, "\n");
 
 	n = readstr(offset, a, n, p);
 	free(p);

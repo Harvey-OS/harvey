@@ -598,7 +598,7 @@ igbeifstat(Ether* edev, void* a, long n, ulong offset)
 
 	ctlr = edev->ctlr;
 	qlock(&ctlr->slock);
-	p = malloc(2*READSTR);
+	p = malloc(READSTR);
 	l = 0;
 	for(i = 0; i < Nstatistics; i++){
 		r = csr32r(ctlr, Statistics+i*4);
@@ -618,7 +618,7 @@ igbeifstat(Ether* edev, void* a, long n, ulong offset)
 				continue;
 			ctlr->statistics[i] = tuvl;
 			ctlr->statistics[i+1] = tuvl>>32;
-			l += snprint(p+l, 2*READSTR-l, "%s: %llud %llud\n",
+			l += snprint(p+l, READSTR-l, "%s: %llud %llud\n",
 				s, tuvl, ruvl);
 			i++;
 			break;
@@ -627,40 +627,40 @@ igbeifstat(Ether* edev, void* a, long n, ulong offset)
 			ctlr->statistics[i] += r;
 			if(ctlr->statistics[i] == 0)
 				continue;
-			l += snprint(p+l, 2*READSTR-l, "%s: %ud %ud\n",
+			l += snprint(p+l, READSTR-l, "%s: %ud %ud\n",
 				s, ctlr->statistics[i], r);
 			break;
 		}
 	}
 
-	l += snprint(p+l, 2*READSTR-l, "lintr: %ud %ud\n",
+	l += snprint(p+l, READSTR-l, "lintr: %ud %ud\n",
 		ctlr->lintr, ctlr->lsleep);
-	l += snprint(p+l, 2*READSTR-l, "rintr: %ud %ud\n",
+	l += snprint(p+l, READSTR-l, "rintr: %ud %ud\n",
 		ctlr->rintr, ctlr->rsleep);
-	l += snprint(p+l, 2*READSTR-l, "tintr: %ud %ud\n",
+	l += snprint(p+l, READSTR-l, "tintr: %ud %ud\n",
 		ctlr->tintr, ctlr->txdw);
-	l += snprint(p+l, 2*READSTR-l, "ixcs: %ud %ud %ud\n",
+	l += snprint(p+l, READSTR-l, "ixcs: %ud %ud %ud\n",
 		ctlr->ixsm, ctlr->ipcs, ctlr->tcpcs);
-	l += snprint(p+l, 2*READSTR-l, "rdtr: %ud\n", ctlr->rdtr);
-	l += snprint(p+l, 2*READSTR-l, "Ctrlext: %08x\n", csr32r(ctlr, Ctrlext));
+	l += snprint(p+l, READSTR-l, "rdtr: %ud\n", ctlr->rdtr);
+	l += snprint(p+l, READSTR-l, "Ctrlext: %08x\n", csr32r(ctlr, Ctrlext));
 
-	l += snprint(p+l, 2*READSTR-l, "eeprom:");
+	l += snprint(p+l, READSTR-l, "eeprom:");
 	for(i = 0; i < 0x40; i++){
 		if(i && ((i & 0x07) == 0))
-			l += snprint(p+l, 2*READSTR-l, "\n       ");
-		l += snprint(p+l, 2*READSTR-l, " %4.4uX", ctlr->eeprom[i]);
+			l += snprint(p+l, READSTR-l, "\n       ");
+		l += snprint(p+l, READSTR-l, " %4.4uX", ctlr->eeprom[i]);
 	}
-	l += snprint(p+l, 2*READSTR-l, "\n");
+	l += snprint(p+l, READSTR-l, "\n");
 
 	if(ctlr->mii != nil && ctlr->mii->curphy != nil){
-		l += snprint(p+l, 2*READSTR, "phy:   ");
+		l += snprint(p+l, READSTR, "phy:   ");
 		for(i = 0; i < NMiiPhyr; i++){
 			if(i && ((i & 0x07) == 0))
-				l += snprint(p+l, 2*READSTR-l, "\n       ");
+				l += snprint(p+l, READSTR-l, "\n       ");
 			r = miimir(ctlr->mii, i);
-			l += snprint(p+l, 2*READSTR-l, " %4.4uX", r);
+			l += snprint(p+l, READSTR-l, " %4.4uX", r);
 		}
-		snprint(p+l, 2*READSTR-l, "\n");
+		snprint(p+l, READSTR-l, "\n");
 	}
 	n = readstr(offset, a, n, p);
 	free(p);
