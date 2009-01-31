@@ -47,9 +47,8 @@ regsub(char *sp,	/* source string */
 					*dp++ = *sp;
 				break;
 			}
-		}else if(*sp == '&'){				
-			if(mp[0].sp != 0 && mp!=0 && ms>0)
-			if(mp[0].sp != 0)
+		}else if(*sp == '&'){
+			if(mp!=0 && mp[0].sp != 0 && ms>0)
 				for(ssp = mp[0].sp;
 				     ssp < mp[0].ep; ssp++)
 					if(dp < ep)

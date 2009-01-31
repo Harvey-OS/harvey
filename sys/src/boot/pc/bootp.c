@@ -139,29 +139,13 @@ ip_csum(uchar *addr)
 	return (sum^0xffff);
 }
 
-enum {
-	/* this is only true of IPv4, but we're not doing v6 yet */
-	Min_udp_payload = ETHERMINTU - ETHERHDRSIZE - UDP_HDRSIZE,
-};
-
 static void
 udpsend(int ctlrno, Netaddr *a, void *data, int dlen)
 {
-	char payload[ETHERMAXTU];
 	Udphdr *uh;
 	Etherhdr *ip;
 	Etherpkt pkt;
 	int len, ptcllen;
-
-	/*
-	 * if packet is too short, make it longer rather than relying
-	 * on ethernet interface or lower layers to pad it.
-	 */
-	if (dlen < Min_udp_payload) {
-		memmove(payload, data, dlen);
-		data = payload;
-		dlen = Min_udp_payload;
-	}
 
 	uh = (Udphdr*)&pkt;
 
@@ -212,6 +196,12 @@ udpsend(int ctlrno, Netaddr *a, void *data, int dlen)
 if(debug) {
 	print("udpsend ");
 }
+	/*
+	 * if packet is too short, make it longer rather than relying
+	 * on ethernet interface or lower layers to pad it.
+	 */
+	if (len < ETHERMINTU)
+		len = ETHERMINTU;
 	ethertxpkt(ctlrno, &pkt, len, Timeout);
 }
 
