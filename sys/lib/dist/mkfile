@@ -76,10 +76,10 @@ odump:V:
 		-p /sys/lib/sysconfig/proto/allproto /n/other/dist/distdump.iso
 
 cd.install:V:
-	if(~ $sysname achille){
-		echo; echo; echo '*** run this on a real machine, like olive.'
-		exit bad
-	}
+#	if(~ $sysname achille){
+#		echo; echo; echo '*** run this on a real machine, like ethel.'
+#		exit bad
+#	}
 	bzip2 -9 < /n/other/dist/plan9.iso >web.protect/nplan9.iso.bz2
 
 D.install:V:
