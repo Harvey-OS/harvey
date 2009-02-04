@@ -1,4 +1,77 @@
 #
+#	The master for this file is /n/fs/lib/ndb/common
+#
+
+#
+# real dns root server ips
+#
+dom=A.ROOT-SERVERS.NET ip=198.41.0.4
+dom=B.ROOT-SERVERS.NET ip=128.9.0.107
+dom=C.ROOT-SERVERS.NET ip=192.33.4.12
+dom=D.ROOT-SERVERS.NET ip=128.8.10.90
+dom=E.ROOT-SERVERS.NET ip=192.203.230.10
+dom=F.ROOT-SERVERS.NET ip=192.5.5.241
+dom=G.ROOT-SERVERS.NET ip=192.112.36.4
+dom=H.ROOT-SERVERS.NET ip=128.63.2.53
+dom=I.ROOT-SERVERS.NET ip=192.36.148.17
+dom=J.ROOT-SERVERS.NET ip=198.41.0.10
+dom=K.ROOT-SERVERS.NET ip=193.0.14.129
+dom=L.ROOT-SERVERS.NET ip=199.7.83.42		# nov 2007
+dom=M.ROOT-SERVERS.NET ip=202.12.27.33
+
+dom=a.gtld-servers.net ip=192.5.6.30
+dom=b.gtld-servers.net ip=192.33.14.30
+dom=c.gtld-servers.net ip=192.26.92.30
+dom=d.gtld-servers.net ip=192.31.80.30
+dom=e.gtld-servers.net ip=192.12.94.30
+dom=f.gtld-servers.net ip=192.35.51.30
+dom=g.gtld-servers.net ip=192.42.93.30
+dom=h.gtld-servers.net ip=192.54.112.30
+dom=i.gtld-servers.net ip=192.43.172.30
+dom=j.gtld-servers.net ip=192.48.79.30
+dom=k.gtld-servers.net ip=192.52.178.30
+dom=l.gtld-servers.net ip=192.41.162.30
+dom=m.gtld-servers.net ip=192.55.83.30
+
+#
+# spam defense.  unfortunately, arin doesn't give negative
+# rcodes for these non-routable addresses.  we'll do it for them.
+#
+dom=10.in-addr.arpa soa=		# rfc1918 zones
+	dom=16.172.in-addr.arpa soa=
+	dom=17.172.in-addr.arpa soa=
+	dom=18.172.in-addr.arpa soa=
+	dom=19.172.in-addr.arpa soa=
+	dom=20.172.in-addr.arpa soa=
+	dom=21.172.in-addr.arpa soa=
+	dom=22.172.in-addr.arpa soa=
+	dom=23.172.in-addr.arpa soa=
+	dom=24.172.in-addr.arpa soa=
+	dom=25.172.in-addr.arpa soa=
+	dom=26.172.in-addr.arpa soa=
+	dom=27.172.in-addr.arpa soa=
+	dom=28.172.in-addr.arpa soa=
+	dom=29.172.in-addr.arpa soa=
+	dom=30.172.in-addr.arpa soa=
+	dom=31.172.in-addr.arpa soa=
+	dom=168.192.in-addr.arpa soa=
+	dom=0.in-addr.arpa soa=		# rfc3330 zones
+	dom=127.in-addr.arpa soa=
+	dom=254.169.in-addr.arpa soa=
+	dom=2.0.192.in-addr.arpa soa=
+	dom=255.255.255.255.in-addr.arpa soa=
+	dom=d.f.ip6.arpa soa=		# rfc4193 recommendation
+	dom=0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa soa= # rfc4291 zones
+	dom=1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa soa=
+	dom=8.e.f.ip6.arpa soa=
+	dom=9.e.f.ip6.arpa soa=
+	dom=a.e.f.ip6.arpa soa=
+	dom=b.e.f.ip6.arpa soa=
+	refresh=3600 ttl=3600
+	ns=ns1.cs.bell-labs.com
+	ns=ns2.cs.bell-labs.com
+
+#
 #  ip protocol numbers
 #
 protocol=reserved	ipv4proto=0
@@ -140,6 +213,7 @@ tcp=imap port=143
 tcp=NeWS port=144
 tcp=print-srv port=170
 tcp=z39.50 port=210
+tcp=ldap port=389
 tcp=fsb port=400
 tcp=sysmon port=401
 tcp=proxy port=402
@@ -160,6 +234,7 @@ tcp=9fs port=564
 tcp=whoami port=565
 tcp=guard port=566
 tcp=ticket port=567
+tcp=ldaps port=636
 tcp=fmclient port=729
 tcp=imaps port=993
 tcp=pop3s port=995
@@ -168,8 +243,10 @@ tcp=pptp port=1723
 tcp=nfs port=2049
 tcp=webster port=2627
 tcp=weather port=3000
+tcp=mysql port=3306
 tcp=sip port=5060
 tcp=sips port=5061
+tcp=ttcp port=5117
 tcp=secstore port=5356
 tcp=vnc-http port=5800
 tcp=vnc port=5900
@@ -198,12 +275,17 @@ tcp=glenglenda7 port=17026
 tcp=glenglenda8 port=17027
 tcp=glenglenda9 port=17028
 tcp=glenglenda10 port=17029
+tcp=nupasimap port=17030
+tcp=nupasimaps port=17031
 tcp=flyboy port=17032
 tcp=venti port=17034
 tcp=wiki port=17035
 tcp=vica port=17036
+tcp=aan port=17037
 
-il=9fs port=17008
+
+# testing
+tcp=9fsa port=18008
 
 udp=echo port=7
 udp=tacacs port=49
@@ -216,6 +298,7 @@ udp=portmap port=111
 udp=ntp port=123
 udp=netbios-ns port=137
 udp=snmp port=161
+udp=ikev2 port=500
 udp=syslog port=514
 udp=rip port=520
 udp=dhcp6c port=546
@@ -224,8 +307,38 @@ udp=nfs port=2049
 udp=bfs port=2201
 udp=virgil port=2202
 udp=sip port=5060
-udp=bandt2 port=7331
-udp=oradius port=1645
+udp=bandt2 port=7331		# viaducts
+udp=oradius port=1812
+udp=radius port=1812
 udp=dhash port=11977
+udp=ulctl port=12666
+udp=uldata port=12667
+udp=dldata port=12668
 
 gre=ppp port=34827
+
+#
+# authdom declarations need to be visible on the inside network,
+# even for outside machines.  putting them here ensures
+# their visibility everywhere.
+#
+
+# for geoff
+auth=www.9netics.com authdom=9netics.com
+auth=newcpu.9netics.net authdom=9netics.net
+
+# for geoff's ipv6 testing
+auth=9grid.hamnavoe.com
+	authdom=hamnavoe.com
+	authdom=9grid.hamnavoe.com
+
+auth=whale.lsub.org
+	authdom=lsub.org
+	authdom=dat.escet.urjc.es
+
+# for jmk
+auth=tor.texas.9grid.us authdom=9grid.us
+auth=9grid.net authdom=9grid.net
+
+# for sape
+auth=130.89.145.31 authdom=cs.utwente.nl
