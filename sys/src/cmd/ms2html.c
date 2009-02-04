@@ -1357,7 +1357,7 @@ doconvert(void)
 	Bprint(&bout, "<br>&#32;<br>\n");
 	Bprint(&bout, "<A href=http://www.lucent.com/copyright.html>\n");
 	t = localtime(time(nil));
-	Bprint(&bout, "Copyright</A> &#169; %d Lucent Technologies Inc.  All rights reserved.\n",
+	Bprint(&bout, "Copyright</A> &#169; %d Alcatel-Lucent Inc.  All rights reserved.\n",
 			t->year+1900);
 	Bprint(&bout, "</body></html>\n");
 }
