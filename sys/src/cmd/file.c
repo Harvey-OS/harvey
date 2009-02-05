@@ -889,6 +889,16 @@ iff(void)
 		print("%s\n", mime? "audio/x-aiff": "aiff audio");
 		return 1;
 	}
+	if (strncmp((char*)buf, "RIFF", 4) == 0) {
+		if (strncmp((char*)buf+8, "WAVE", 4) == 0)
+			print("%s\n", mime? "audio/wave": "wave audio");
+		else if (strncmp((char*)buf+8, "AVI ", 4) == 0)
+			print("%s\n", mime? "video/avi": "avi video");
+		else
+			print("%s\n", mime? "application/octet-stream":
+				"riff file");
+		return 1;
+	}
 	return 0;
 }
 
