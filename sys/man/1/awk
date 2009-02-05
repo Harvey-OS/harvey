@@ -204,6 +204,9 @@ The built-in function
 .BI fflush( expr )
 flushes any buffered output for the file or pipe
 .IR expr .
+If
+.IR expr
+is omitted or is a null string, all open files are flushed.
 .PP
 The mathematical functions
 .BR exp ,
@@ -218,11 +221,11 @@ Other built-in functions:
 .TF length
 .TP
 .B length
-the length of its argument
-taken as a string,
-or of
+If its argument is a string, the string's length is returned.
+If its argument is an array, the number of subscripts in the array is returned.
+If no argument, the length of
 .B $0
-if no argument.
+is returned.
 .TP
 .B rand
 random number on (0,1)
