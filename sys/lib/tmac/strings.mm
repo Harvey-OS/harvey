@@ -11,7 +11,7 @@
 '''\"	]S defined as logo character
 .ds ]S \s36\(LH\s0
 '''\"	}Z defined as Company Name
-.ds }Z Lucent Bell Laboratories
+.ds }Z Alcatel-Lucent Bell Laboratories
 '''\"
 '''\"   Strings for proprietary markings at bottom of page.
 '''\"	Free Strings:  ]Q ]R ]H ]L ]V ]W ]X ]k ]l
@@ -49,7 +49,7 @@
 '''\"	Marking Type:  COPYRIGHT
 '''\"	Invocation:  .PM 5  or  .PM CR
 '''\"	Strings: ]i ]j
-.ds ]i \f1Copyright \(co 20\\n(;V Lucent\fP
+.ds ]i \f1Copyright \(co 20\\n(;V Alcatel-Lucent\fP
 .ds ]j \f1All Rights Reserved.\fP
 '''\"
 '''\"	Marking Type:  UNPUBLISHED WORK

@@ -43,7 +43,8 @@ int	qwidth;			/* max width of -q version */
 int	vwidth;			/* max width of dev */
 int	uwidth;			/* max width of userid */
 int	mwidth;			/* max width of muid */
-int	glwidth;		/* max width of groupid and length */
+int	lwidth;			/* max width of length */
+int	gwidth;			/* max width of groupid */
 Biobuf	bin;
 
 void
@@ -172,7 +173,7 @@ dowidths(Dir *db)
 			qwidth = n;
 	}
 	if(mflag) {
-		n = snprint(buf, sizeof buf, "[%s]", db->muid);
+		n = snprint(buf, sizeof buf, "[%q]", db->muid);
 		if(n > mwidth)
 			mwidth = n;
 	}
@@ -180,13 +181,15 @@ dowidths(Dir *db)
 		n = sprint(buf, "%ud", db->dev);
 		if(n > vwidth)
 			vwidth = n;
-		n = strlen(db->uid);
+		n = sprint(buf, "%q", db->uid);
 		if(n > uwidth)
 			uwidth = n;
+		n = sprint(buf, "%q", db->gid);
+		if(n > gwidth)
+			gwidth = n;
 		n = sprint(buf, "%llud", db->length);
-		n += strlen(db->gid);
-		if(n > glwidth)
-			glwidth = n;
+		if(n > lwidth)
+			lwidth = n;
 	}
 }
 
@@ -211,7 +214,7 @@ format(Dir *db, char *name)
 		Bprint(&bin, "%*llud ",
 			swidth, (db->length+1023)/1024);
 	if(mflag){
-		Bprint(&bin, "[%s] ", db->muid);
+		Bprint(&bin, "[%q] ", db->muid);
 		for(i=2+strlen(db->muid); i<mwidth; i++)
 			Bprint(&bin, " ");
 	}
@@ -224,12 +227,12 @@ format(Dir *db, char *name)
 		Bprint(&bin, "%c ", (db->mode&DMTMP)? 't': '-');
 
 	if(lflag)
-		Bprint(&bin, "%M %C %*ud %*s %s %*llud %s ",
+		Bprint(&bin, "%M %C %*ud %*q %*q %*llud %s ",
 			db->mode, db->type,
 			vwidth, db->dev,
 			-uwidth, db->uid,
-			db->gid,
-			(int)(glwidth - strlen(db->gid)), db->length,
+			-gwidth, db->gid,
+			lwidth, db->length,
 			asciitime(uflag? db->atime: db->mtime));
 	Bprint(&bin, Qflag? "%s%s\n": "%q%s\n", name, fileflag(db));
 }
@@ -312,7 +315,9 @@ xcleanname(char *name)
 	for(r=w=name; *r; r++){
 		if(*r=='/' && r>name && *(r-1)=='/')
 			continue;
-		*w++ = *r;
+		if(w != r)
+			*w = *r;
+		w++;
 	}
 	*w = 0;
 	while(w-1>name && *(w-1)=='/')

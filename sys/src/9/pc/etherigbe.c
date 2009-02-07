@@ -32,6 +32,7 @@ enum {
 	i82542		= (0x1000<<16)|0x8086,
 	i82543gc	= (0x1004<<16)|0x8086,
 	i82544ei	= (0x1008<<16)|0x8086,
+	i82544eif	= (0x1009<<16)|0x8086,
 	i82547ei	= (0x1019<<16)|0x8086,
 	i82540em	= (0x100E<<16)|0x8086,
 	i82540eplp	= (0x101E<<16)|0x8086,
@@ -833,6 +834,7 @@ igbelproc(void* arg)
 		switch(ctlr->id){
 		case i82543gc:
 		case i82544ei:
+		case i82544eif:
 		default:
 			if(!(ctrl & Asde)){
 				ctrl &= ~(SspeedMASK|Ilos|Fd);
@@ -897,6 +899,7 @@ igbetxinit(Ctlr* ctlr)
 		break;
 	case i82543gc:
 	case i82544ei:
+	case i82544eif:
 	case i82547ei:
 	case i82540em:
 	case i82540eplp:
@@ -1478,6 +1481,7 @@ igbemii(Ctlr* ctlr)
 		ctlr->mii->miw = i82543miimiw;
 		break;
 	case i82544ei:
+	case i82544eif:
 	case i82547ei:
 	case i82540em:
 	case i82540eplp:
@@ -1917,6 +1921,7 @@ igbepci(void)
 			continue;
 		case i82543gc:
 		case i82544ei:
+		case i82544eif:
 		case i82547ei:
 		case i82540em:
 		case i82540eplp:
