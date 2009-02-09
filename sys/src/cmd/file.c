@@ -260,7 +260,7 @@ type(char *file, int nlen)
 	}
 	fname = file;
 	if ((fd = open(file, OREAD)) < 0) {
-		print("cannot open\n");
+		print("cannot open: %r\n");
 		return;
 	}
 	filetype(fd);
@@ -346,7 +346,7 @@ filetype(int fd)
 	/* may be reading a pipe on standard input */
 	nbuf = readn(fd, buf, sizeof(buf)-1);
 	if(nbuf < 0) {
-		print("cannot read\n");
+		print("cannot read: %r\n");
 		return;
 	}
 	if(nbuf == 0) {

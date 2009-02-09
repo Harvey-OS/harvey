@@ -2,6 +2,7 @@ APE=/sys/src/ape
 <$APE/config
 LIB=/$objtype/lib/ape/libap.a
 OFILES=\
+	cycles.$O\
 	lock.$O\
 	main9.$O\
 	main9p.$O\

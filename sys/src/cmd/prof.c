@@ -304,12 +304,12 @@ plot(void)
 	}
 	sum(data[0].down);
 	qsort(acc, nsym, sizeof(Acc), acmp);
-	Bprint(&bout, "  %%   Time\tCalls\tName\n");
+	Bprint(&bout, "  %%     Time     Calls  Name\n");
 	if(ms == 0)
 		ms = 1;
 	while (--nsym >= 0) {
 		if(acc[nsym].calls)
-			Bprint(&bout, "%4.1f%8.3f %8lud\t%s\n",
+			Bprint(&bout, "%4.1f %8.3f %8lud\t%s\n",
 				(100.0*acc[nsym].ms)/ms,
 				acc[nsym].ms/1000.0,
 				acc[nsym].calls,
