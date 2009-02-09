@@ -3,6 +3,7 @@ APE=/sys/src/ape
 LIB=/$objtype/lib/ape/libap.a
 OFILES=\
 	_seek.$O\
+	cycles.$O\
 	divl.$O\
 	divq.$O\
 	getfcr.$O\

@@ -142,7 +142,7 @@ _profdump(void)
 		break;
 	case Profuser:
 		cycles((uvlong*)&_tos->prof.first->time);
-		_tos->prof.first->time = _tos->prof.first->time + _tos->kcycles;
+		_tos->prof.first->time = _tos->prof.first->time - _tos->kcycles;
 		break;
 	case Proftime:
 		cycles((uvlong*)&_tos->prof.first->time);
