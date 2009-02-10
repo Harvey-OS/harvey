@@ -22,7 +22,7 @@ TEXT	_mainp(SB), 1, $(8+NPRIVATES*4)
 
 	CALL	_envsetup(SB)
 
-	/* main(argc, argv, environ; */
+	/* main(argc, argv, environ); */
 	MOVL	inargc-4(FP), AX
 	MOVL	AX, 0(SP)
 	LEAL	inargv+0(FP), AX

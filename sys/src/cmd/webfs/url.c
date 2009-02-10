@@ -170,7 +170,7 @@ Retab retab[] =	/* view in constant width Font */
 [REauthority]
 	"^(((" USERINFO_2 "*)@)?(((\\[[^\\]@]+\\])|([^:\\[@]+))(:([0-9]*))?)?)?$", nil, 0,
 	/* |----user info-----|  |--------host----------------|  |-port-| */
-	{  2,                    7,                              12, },
+	{  3,                    7,                              11, },
 
 [REhost]
 	"^(([a-zA-Z0-9\\-.]+)|(\\[([a-fA-F0-9.:]+)\\]))$", nil, 0,
@@ -667,6 +667,8 @@ parse_authority(SplitUrl *su, Url *u)
 {
 	Resub m[MaxResub];
 	Retab *t;
+	char *host;
+	char *userinfo;
 
 	if(su->authority.s == nil)
 		return 0;
@@ -688,6 +690,15 @@ parse_authority(SplitUrl *su, Url *u)
 	if(m[t->ind[2]].sp)
 		u->port = estredup(m[t->ind[2]].sp, m[t->ind[2]].ep);
 
+
+	if(urldebug > 0){
+		userinfo = estredup(m[t->ind[0]].sp, m[t->ind[0]].ep); 
+		host = estredup(m[t->ind[1]].sp, m[t->ind[1]].ep);
+		fprint(2, "port: %q, authority %q\n", u->port, u->authority);
+		fprint(2, "host %q, userinfo %q\n", host, userinfo);
+		free(host);
+		free(userinfo);
+	}
 	return 0;
 }
 
