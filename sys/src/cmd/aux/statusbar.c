@@ -83,8 +83,12 @@ drawbar(void)
 	}
 
 	if(last != i){
-		draw(screen, Rect(rbar.min.x+last, rbar.min.y, rbar.min.x+i, rbar.max.y),
-			dark, nil, ZP);
+		if(i > last)
+			draw(screen, Rect(rbar.min.x+last, rbar.min.y, rbar.min.x+i, rbar.max.y),
+				dark, nil, ZP);
+		else
+			draw(screen, Rect(rbar.min.x+i, rbar.min.y, rbar.min.x+last, rbar.max.y),
+				light, nil, ZP);
 		last = i;
 	}
 	flushimage(display, 1);

@@ -74,9 +74,10 @@ void
 clientbodyopen(Client *c, Req *r)
 {
 	char e[ERRMAX], *next;
-	int i;
+	int i, nauth;
 	Url *u;
 
+	nauth = 0;
 	next = nil;
 	for(i=0; i<=c->ctl.redirectlimit; i++){
 		if(c->url == nil){
@@ -103,8 +104,8 @@ clientbodyopen(Client *c, Req *r)
 				respond(r, e);
 			return;
 		}
-		if (c->authenticate)
-			continue;
+		if (c->authenticate && nauth++ < 1)
+				continue;
 		if(!c->redirect)
 			break;
 		next = c->redirect;

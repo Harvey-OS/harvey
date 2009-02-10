@@ -268,16 +268,24 @@ httpopen(Client *c, Url *url)
 	char *cookies;
 	Ioproc *io;
 	HttpState *hs;
+	char *service;
 
 	if(httpdebug)
 		fprint(2, "httpopen\n");
 	io = c->io;
 	hs = emalloc(sizeof(*hs));
 	hs->c = c;
-	hs->netaddr = estrdup(netmkaddr(url->host, 0, url->scheme));
+
+	if(url->port)
+		service = url->port;
+	else
+		service = url->scheme;
+	hs->netaddr = estrdup(netmkaddr(url->host, 0, service));
 	c->aux = hs;
-	if(httpdebug)
+	if(httpdebug){
 		fprint(2, "dial %s\n", hs->netaddr);
+		fprint(2, "dial port: %s\n", url->port);
+	}
 	fd = iotlsdial(io, hs->netaddr, 0, 0, 0, url->ischeme==UShttps);
 	if(fd < 0){
 	Error:
@@ -297,7 +305,7 @@ httpopen(Client *c, Url *url)
 	hs->fd = fd;
 	if(httpdebug)
 		fprint(2, "<- %s %s HTTP/1.0\n<- Host: %s\n",
-			c->havepostbody? "POST": " GET", url->http.page_spec, url->host);
+			c->havepostbody? "POST": "GET", url->http.page_spec, url->host);
 	ioprint(io, fd, "%s %s HTTP/1.0\r\nHost: %s\r\n",
 		c->havepostbody? "POST" : "GET", url->http.page_spec, url->host);
 	if(httpdebug)
@@ -331,7 +339,6 @@ httpopen(Client *c, Url *url)
 		if(iowrite(io, fd, c->postbody, c->npostbody) != c->npostbody)
 			goto Error;
 
-	c->havepostbody = 0;
 	redirect = 0;
 	authenticate = 0;
 	initibuf(&hs->b, io, fd);
