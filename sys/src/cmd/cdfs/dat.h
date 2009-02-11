@@ -121,6 +121,11 @@ enum {
 	CDNblock = 12,		/* chosen for CD */
 	DVDNblock = 16,		/* DVD ECC block is 16 sectors */
 	BDNblock = 32,		/* BD ECC block (`cluster') is 32 sectors */
+	/*
+	 * make a single transfer fit in a 9P rpc.  if we don't do this,
+	 * remote access (e.g., via /mnt/term/dev/sd*) fails mysteriously.
+	 */
+	Readblock = 8192/BScdrom,
 };
 
 typedef struct Buf Buf;

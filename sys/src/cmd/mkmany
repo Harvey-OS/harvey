@@ -22,6 +22,9 @@ $O.%:	%.$O $OFILES $LIB
 y.tab.h y.tab.c:	$YFILES
 	$YACC $YFLAGS $prereq
 
+lex.yy.c:	$LFILES
+	$LEX $LFLAGS $prereq
+
 %.install:V:	$BIN/%
 
 $BIN/%:	$O.%
@@ -60,10 +63,10 @@ update:V:
 	update $UPDATEFLAGS $UPDATE
 
 nuke:V:
-	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].* *.acid $TARG
+	rm -f *.[$OS] y.tab.? lex.yy.c y.debug y.output [$OS].* *.acid $TARG
 
 clean:V:
-	rm -f *.[$OS] *.a[$OS] y.tab.? y.debug y.output [$OS].* $TARG $CLEANFILES
+	rm -f *.[$OS] *.a[$OS] y.tab.? lex.yy.c y.debug y.output [$OS].* $TARG $CLEANFILES
 
 %.clean:V:
 	rm -f $stem.[$OS] [$OS].$stem $stem.acid $stem
