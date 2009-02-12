@@ -32,7 +32,7 @@ returns the quantity
 .if n .IR value *2** exp.
 .PP
 .I Modf
-returns the positive fractional part of
+returns the signed fractional part of
 .I value
 and stores the integer part indirectly
 through
