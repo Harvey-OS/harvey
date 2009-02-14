@@ -4252,3 +4252,4 @@ Your Real Estate Building Service request has been completed.  Your service requ
 There is no organization (dept/cost center) in Lucent Technologies whose name matches "convenience"!
 	buf[0] = '\0';		/* make sure it's empty (silly 3b2) */
   #ifndef bool /* Linux 2.6.19 C++ nightmare */
+slashdot: the consensus of the ill-informed  - brucee

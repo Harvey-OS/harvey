@@ -117,10 +117,10 @@ cpumain(int argc, char **argv)
 	secstoreserver = nil;
 	authserver = getenv("auth");
 	if(authserver == nil)
-		authserver = "lookout.cs.bell-labs.com";
+		authserver = "p9auth.cs.bell-labs.com";
 	system = getenv("cpu");
 	if(system == nil)
-		system = "anna.cs.bell-labs.com";
+		system = "plan9.bell-labs.com";
 	ARGBEGIN{
 	case 'a':
 		authserver = EARGF(usage());
@@ -150,7 +150,7 @@ cpumain(int argc, char **argv)
 		break;
 	case 'o':
 		authserver = "plan9.bell-labs.com";
-		system = "plan9.bell-labs.com";
+		system = "p9auth.cs.bell-labs.com";
 		break;
 	case 's':
 		secstoreserver = EARGF(usage());
