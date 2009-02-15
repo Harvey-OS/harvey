@@ -73,7 +73,7 @@ Unlike the Plan 9 file servers of old,
 .I fossil
 is a collection of user-space programs that run on a standard Plan 9 kernel.
 The name of the main fossil file server at Murray Hill is
-.BR yoshimi .
+.BR pie .
 The Plan 9 distribution file server,
 .BR sources ,
 is also a fossil server.

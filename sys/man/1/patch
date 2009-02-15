@@ -87,8 +87,8 @@ source files and the patched source files.
 .PP
 .I Patch/apply
 applies the patch to the current source tree.
-It is intended to be run by the Plan 9 developers  with
-.B yoshimi
+It is intended to be run by the Plan 9 developers with
+.B pie
 as their root file system.
 If the source has changed since the patch was
 created,
