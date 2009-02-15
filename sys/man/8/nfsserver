@@ -135,7 +135,7 @@ A typical entry in
 might be:
 .PP
 .EX
-aux/nfsserver -a tcp!edith -a tcp!yoshimi -c /lib/ndb/nfs
+aux/nfsserver -a tcp!pie -a tcp!yoshimi -c /lib/ndb/nfs
 aux/pcnfsd
 aux/portmapper
 .EE
@@ -145,7 +145,7 @@ Assuming the CPU server's name is
 the mount commands on the client would be:
 .PP
 .EX
-/etc/mount -o soft,intr eduardo:edith /n/edith
+/etc/mount -o soft,intr eduardo:pie /n/pie
 /etc/mount -o soft,intr eduardo:yoshimi /n/yoshimi
 .EE
 .PP

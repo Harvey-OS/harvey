@@ -314,7 +314,8 @@ httpopen(Client *c, Url *url)
 		ioprint(io, fd, "User-Agent: %s\r\n", c->ctl.useragent);
 	if(c->ctl.sendcookies){
 		/* should we use url->page here?  sometimes it is nil. */
-		cookies = httpcookies(url->host, url->http.page_spec, 0);
+		cookies = httpcookies(url->host, url->http.page_spec,
+			url->ischeme == UShttps);
 		if(cookies && cookies[0])
 			ioprint(io, fd, "%s", cookies);
 		if(httpdebug)
