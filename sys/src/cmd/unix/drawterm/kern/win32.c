@@ -448,7 +448,7 @@ oserrstr(void)
 long
 showfilewrite(char *a, int n)
 {
-	Rune *action, *arg, *cmd;
+	Rune *action, *arg, *cmd, *p;
 	static Rune Lopen[] = { 'o', 'p', 'e', 'n', 0 };
 
 	cmd = runesmprint("%.*s", n, a);
