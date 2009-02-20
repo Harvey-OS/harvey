@@ -239,7 +239,8 @@ smbtrans2queryfsinformation(SmbSession *s, SmbHeader *h)
 	case SMB_QUERY_FS_SIZE_INFO:
 		translogprint(s->transaction.in.setup[0], "SMB_QUERY_FS_SIZE_INFO\n");
 		if (!smbbufferputv(s->transaction.out.data, 0xffffffffffffffffLL)
-			|| !smbbufferputv(s->transaction.out.data, 0xffffffffffffffffLL)
+                        /* Windows sees 0xffffffffffffffffLL as "Nnot enough space" */
+			|| !smbbufferputv(s->transaction.out.data, 0x0000ffffffffffffLL)
 			|| !smbbufferputl(s->transaction.out.data, 1 << (smbglobals.l2allocationsize - smbglobals.l2sectorsize))
 			|| !smbbufferputl(s->transaction.out.data, 1 << smbglobals.l2sectorsize))
 			goto misc;
