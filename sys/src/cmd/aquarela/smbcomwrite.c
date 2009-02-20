@@ -180,7 +180,7 @@ smbcomwriteandx(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
 	count = ((long)smbnhgets(pdata) << 16); pdata += 2; // MSBs of length or zero 
 	count |= smbnhgets(pdata); pdata += 2;		// LSBs of length
 	dataoff = smbnhgets(pdata); pdata += 2;		// offset to data in packet
-	if (h->wordcount != 14)
+	if (h->wordcount == 14)
 		offset = ((long)smbnhgets(pdata) << 16); pdata += 2; // MSBs of offset in file, if long pkt 
 	pdata += 4;					// data bytes to write (including those not sent yet)
 
