@@ -172,7 +172,7 @@
 .ds y!
 .ds z!
 '''			\" initialize proprietary notice
-.ds o) "Lucent Technologies \(em PROPRIETARY
+.ds o) "Alcatel-Lucent \(em PROPRIETARY
 .ds p) "Use pursuant to Company Instructions
 .ds q)
 .ds r)
@@ -451,7 +451,7 @@
 .if '\\$1'BP' .nr p 1
 .if '\\$1'BR' \{\
 .	nr p 2
-.	ds o) "Lucent Technologies \(em PROPRIETARY (RESTRICTED)
+.	ds o) "Alcatel-Lucent \(em PROPRIETARY (RESTRICTED)
 .	ds p) "Solely for authorized persons having a need to know
 .	ds q) "     pursuant to Company Instructions \}
 .if '\\$1'0' .nr p 0
@@ -924,13 +924,13 @@ Initial Distribution Specifications	\\*(N1\f2 (page ii of \\n(tc)\f3
 .	ft 1
 .	sp -0.05i
 .	TK \}
-\f3Future Lucent Technologies Distribution by ITDS\f1
+\f3Future Alcatel-Lucent Distribution by ITDS\f1
 .ti 0.5i
 .sp 0.05i
 .ie \\n(ra=2 \{\
-\f3DO NOT RELEASE\f1 to any Lucent Technologies employee without appropriate approval for each request. \}
+\f3DO NOT RELEASE\f1 to any Alcatel-Lucent employee without appropriate approval for each request. \}
 .el \{\
-\f3RELEASE\f1 to any Lucent Technologies employee (excluding contract employees). \}
+\f3RELEASE\f1 to any Alcatel-Lucent employee (excluding contract employees). \}
 .TK
 '''\"					put out author signature section
 .ft 3

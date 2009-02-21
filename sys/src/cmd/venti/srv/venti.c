@@ -172,8 +172,9 @@ threadmain(int argc, char *argv[])
 			blmsize = 0;
 		avail = ((vlong)stfree * mempcnt) / 100 - blmsize;
 		if (avail <= (1 + 2 + 6) * 1024 * 1024)
-			fprint(2, "bloom filter bigger than mem pcnt; "
-				"resorting to minimum values (9MB total)\n");
+			fprint(2, "%s: bloom filter bigger than mem pcnt; "
+				"resorting to minimum values (9MB total)\n",
+				argv0);
 		else {
 			if (avail >= 3840UL * 1024 * 1024)
 				avail = 3840UL * 1024 * 1024;	/* sanity */
@@ -200,7 +201,7 @@ threadmain(int argc, char *argv[])
 		bcmem = config.bcmem;
 	if(icmem == 0)
 		icmem = config.icmem;
-//	fprint(2, "mem %d bcmem %d icmem %d...", mem, bcmem, icmem);
+	fprint(2, "%s: mem %d bcmem %d icmem %d...", argv0, mem, bcmem, icmem);
 
 	if(haddr == nil)
 		haddr = config.haddr;

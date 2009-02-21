@@ -337,7 +337,10 @@ dnpurge(void)
 	unlock(&dnlock);
 }
 
-/* delete rp from *l, free rp */
+/*
+ *  delete rp from *l, free rp.
+ *  call with dnlock held.
+ */
 static void
 rrdelete(RR **l, RR *rp)
 {
@@ -347,7 +350,8 @@ rrdelete(RR **l, RR *rp)
 }
 
 /*
- *  check the age of resource records, free any that have timed out
+ *  check the age of resource records, free any that have timed out.
+ *  call with dnlock held.
  */
 void
 dnage(DN *dp)
@@ -383,54 +387,15 @@ dnagenever(void)
 
 	lock(&dnlock);
 
-	/* mark all referenced domain names */
+	/* mark referenced domain names in NS RRs */
 	for(i = 0; i < HTLEN; i++)
 		for(dp = ht[i]; dp; dp = dp->next) {
-			MARK(dp);
+//			MARK(dp);
 			for(rp = dp->rr; rp; rp = rp->next){
 				MARK(rp->owner);
-				if(rp->negative){
-					MARK(rp->negsoaowner);
-					continue;
-				}
 				switch(rp->type){
-				case Thinfo:
-					MARK(rp->cpu);
-					MARK(rp->os);
-					break;
-				case Ttxt:
-					break;
-				case Tcname:
-				case Tmb:
-				case Tmd:
-				case Tmf:
 				case Tns:
-				case Tmx:
-				case Tsrv:
 					MARK(rp->host);
-					break;
-				case Tmg:
-				case Tmr:
-					MARK(rp->mb);
-					break;
-				case Tminfo:
-					MARK(rp->rmb);
-					MARK(rp->mb);
-					break;
-				case Trp:
-					MARK(rp->rmb);
-					MARK(rp->rp);
-					break;
-				case Ta:
-				case Taaaa:
-					MARK(rp->ip);
-					break;
-				case Tptr:
-					MARK(rp->ptr);
-					break;
-				case Tsoa:
-					MARK(rp->host);
-					MARK(rp->rmb);
 					break;
 				}
 			}
@@ -690,6 +655,17 @@ putactivity(int recursive)
 	dnvars.mutex = 0;
 }
 
+int
+rrlistlen(RR *rp)
+{
+	int n;
+
+	n = 0;
+	for(; rp; rp = rp->next)
+		++n;
+	return n;
+}
+
 /*
  *  Attach a single resource record to a domain name (new->owner).
  *	- Avoid duplicates with already present RR's
@@ -797,18 +773,24 @@ void
 rrattach(RR *rp, int auth)
 {
 	RR *next;
+	DN *dp;
 
 	lock(&dnlock);
 	for(; rp; rp = next){
 		next = rp->next;
 		rp->next = nil;
+		dp = rp->owner;
 
 		/* avoid any outside spoofing */
 //		dnslog("rrattach: %s", rp->owner->name);
 		if(cfg.cachedb && !rp->db && inmyarea(rp->owner->name))
 			rrfree(rp);
-		else
+		else {
 			rrattach1(rp, auth);
+			if (rrlistlen(dp->rr) % 100 == 0)
+				dnslog("rrlookup(%s): rr list len is multiple"
+					" of 100", dp->name);
+		}
 	}
 	unlock(&dnlock);
 }

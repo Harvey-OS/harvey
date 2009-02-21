@@ -343,9 +343,9 @@
 .ie \n(dv=5 .ds lG \s10\f(ATx\fP\f\\nv\fP\s0
 .el .ds lG \s36\(LH\s0
 '''\" initialize entity strings
-.ds e1 "LUCENT-BL
-.ds e2 "LUCENT
-.ds e3 "LUCENT BELL LABORATORIES
+.ds e1 "ALCATEL-LUCENT-BL
+.ds e2 "ALCATEL-LUCENT
+.ds e3 "ALCATEL-LUCENT BELL LABORATORIES
 .ds e4 "Department Head
 '''\" initialize trademark symbol string
 .if t .ds Tm \v'-0.5m'\s-4TM\s+4\v'0.5m'
@@ -377,27 +377,27 @@
 .if '\\$1'TI' .nr en 3
 .if '\\$1'CH' .nr en 4
 .if \\n(en=1 \{\
-.ds e1 "LUCENT-BL
-.ds e2 "LUCENT
-.ds e3 "LUCENT BELL LABORATORIES
+.ds e1 "ALCATEL-LUCENT-BL
+.ds e2 "ALCATEL-LUCENT
+.ds e3 "ALCATEL-LUCENT BELL LABORATORIES
 .ds e4 "Department Head
 .br\}
 .if \\n(en=2 \{\
-.ds e1 "LUCENT-IS
-.ds e2 "LUCENT
-.ds e3 "LUCENT INFORMATION SYSTEMS
+.ds e1 "ALCATEL-LUCENT-IS
+.ds e2 "ALCATEL-LUCENT
+.ds e3 "ALCATEL-LUCENT INFORMATION SYSTEMS
 .ds e4 "Department Head
 .br\}
 .if \\n(en=3 \{\
-.ds e1 "Lucent Technologies, Inc.
-.ds e2 "Lucent
-.ds e3 "LUCENT TECHNOLOGIES, INC.
+.ds e1 "Alcatel-Lucent, Inc.
+.ds e2 "Alcatel-Lucent
+.ds e3 "ALCATEL-LUCENT, INC.
 .ds e4 "Manager
 .br\}
 .if \\n(en=4 \{\
-.ds e1 "Lucent
-.ds e2 "Lucent
-.ds e3 "        Lucent
+.ds e1 "Alcatel-Lucent
+.ds e2 "Alcatel-Lucent
+.ds e3 "        Alcatel-Lucent
 .ds e4 "Department Head
 .br \}
 .rm aC
@@ -815,9 +815,9 @@
 '''\"						Future Lucent Distribution handling
 .if ((\\n(ra<2)&(\\np=2)) \{\
 .nr ra 2
-.tm WARNING: Future Lucent Distribution by ITDS - PROPRIETARY (RESTRICTED) document     MAY NOT BE RELEASED without appropriate approval for each request;                coversheet has been modified accordingly\}
+.tm WARNING: Future Alcatel-Lucent Distribution by ITDS - PROPRIETARY (RESTRICTED) document     MAY NOT BE RELEASED without appropriate approval for each request;                coversheet has been modified accordingly\}
 .if \\n(ra=0 \{\
-.tm WARNING: Future Lucent Distribution by ITDS: missing or invalid .fA macro;          indicate desired action by checking yes or no box on page 2 of coversheet;        next time include .fA macro with y or n argument \}
+.tm WARNING: Future Alcatel-Lucent Distribution by ITDS: missing or invalid .fA macro;          indicate desired action by checking yes or no box on page 2 of coversheet;        next time include .fA macro with y or n argument \}
 '''\"						at least 3 lines for Future Lucent Distribution section (more for nroff negative and ra=0)
 '''\"					\" next 2 lines for yes/no boxes; remove when .fA macro becomes mandatory
 .if t .if \\n(ra=0 .nr e \\ne-4
@@ -1704,7 +1704,7 @@ Supersedes or amends document number \\*(e(. \}
 .if n .sp 4
 '''\"					output proprietary notice if it exists
 .if \\np=1 \{\
-.ds o) LUCENT \- PROPRIETARY
+.ds o) ALCATEL-LUCENT \- PROPRIETARY
 .ds p) "Use pursuant to Company Instructions
 .ds q)
 .ds r)
@@ -1717,7 +1717,7 @@ Supersedes or amends document number \\*(e(. \}
 .if t .ti 1.25i
 \\*(p) \}
 .if \\np=2 \{\
-.ds o) LUCENT \- PROPRIETARY (RESTRICTED)
+.ds o) ALCATEL-LUCENT \- PROPRIETARY (RESTRICTED)
 .ds p) "Solely for authorized persons having a need to know
 .ds q) "pursuant to Company Instructions
 .ft 2
@@ -1808,19 +1808,19 @@ Initial Distribution Specifications	\\*(n)\f2 (page ii of \\n(tc)\f3
 .ft 1
 .if t .sp -0.05i
 .tK \}
-\f3Future Lucent Distribution by ITDS\f1
+\f3Future Alcatel-Lucent Distribution by ITDS\f1
 .if \\n(ra>0 \{\
 .ti 0.5i
 .if t .sp 0.05i
 .ie \\n(ra=2 \{\
-.if t \f3DO NOT RELEASE\f1 to any Lucent employee without appropriate approval for each request.
+.if t \f3DO NOT RELEASE\f1 to any Alcatel-Lucent employee without appropriate approval for each request.
 .if n \{\
-\f3DO NOT RELEASE\f1 to any Lucent employee without appropriate approval
+\f3DO NOT RELEASE\f1 to any Alcatel-Lucent employee without appropriate approval
 .br
 .ti 1.0i
 for each request.\}\}
 .el \{\
-\f3RELEASE\f1 to any Lucent employee (excluding contract employees).
+\f3RELEASE\f1 to any Alcatel-Lucent employee (excluding contract employees).
 .br \}\}
 '''\"					next 41 lines for yes/no boxes; remove when .fA macro becomes mandatory
 .if \\n(ra=0 \{\
@@ -1830,13 +1830,13 @@ for each request.\}\}
 .bE
 .sp|\\nzu
 .ti 0.25i
-Yes, \f3RELEASE\f1 to any Lucent employee (excluding
+Yes, \f3RELEASE\f1 to any Alcatel-Lucent employee (excluding
 .sp|\\nzu
 .ti 4.1i
 .bE
 .sp|\\nzu
 .ti 4.25i
-No, \f3DO NOT RELEASE\f1 to any Lucent employee
+No, \f3DO NOT RELEASE\f1 to any Alcatel-Lucent employee
 .mk z
 .ti 0.35i
 contract employees).
@@ -1849,13 +1849,13 @@ without obtaining appropriate approval.\}
 .bE
 .sp|\\nzu
 .ti 0.4i
-Yes, \f3RELEASE\f1 to any Lucent employee
+Yes, \f3RELEASE\f1 to any Alcatel-Lucent employee
 .sp|\\nzu
 .ti 4.1i
 .bE
 .sp|\\nzu
 .ti 4.4i
-No, \f3DO NOT RELEASE\f1 to any Lucent
+No, \f3DO NOT RELEASE\f1 to any Alcatel-Lucent
 .mk z
 .ti 0.5i
 (except contract employees).
@@ -1944,7 +1944,7 @@ For Use by Recipient of Cover Sheet:
 .sp1
 .rn fo xx
   Otherwise:
-   Enter PAN if Lucent-BL (or SS# if non-Lucent-BL). \l'1.5i'
+   Enter PAN if Alcatel-Lucent-BL (or SS# if non-Alcatel-Lucent-BL). \l'1.5i'
    Return this sheet to any ITDS location. 
 .sp|\\nzu
 .in 4.0i
@@ -1963,8 +1963,8 @@ Internal Technical Document Service
 .sp1
 .mk z
 .rn fo xx
-1 Enter PAN if Lucent-BL (or SS# if
-  non-Lucent-BL).
+1 Enter PAN if Alcatel-Lucent-BL (or SS# if
+  non-Alcatel-Lucent-BL).
                \l'2.0i'
 2 Return this sheet to any
   ITDS location. 

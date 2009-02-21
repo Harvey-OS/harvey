@@ -1,9 +1,9 @@
 #!/bin/rc
-
+# ps2pdf - convert PostScript to PDF
 rfork e
 
 fn usage {
-	echo 'usage: ps2pdf [gs-options] [input.ps] [output.pdf]' >[1=2]
+	echo 'usage: ps2pdf [gs-options] [input.ps [output.pdf]]' >[1=2]
 	exit usage
 }
 
@@ -41,5 +41,3 @@ gscmd=( gs $opt -dSAFER -dNOPAUSE -dBATCH -q -s'DEVICE=pdfwrite' \
 	$opt $compat \
 	-s'OutputFile='$fout -c .setpdfwrite -f $fin)
 exec $gscmd
-
-

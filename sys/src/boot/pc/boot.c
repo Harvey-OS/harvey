@@ -7,6 +7,10 @@
 
 #include "/sys/src/libmach/elf.h"
 
+enum {
+	Maxkernel = 4*1024*1024,
+};
+
 static uchar elfident[7] = {
 	'\177', 'E', 'L', 'F', '\1', '\1', '\1'
 };
@@ -296,9 +300,9 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 			/* check for gzipped kernel */
 			if(b->bp[0] == 0x1F && (uchar)b->bp[1] == 0x8B && b->bp[2] == 0x08) {
 				b->state = READGZIP;
-				b->bp = (char*)malloc(1440*1024);
+				b->bp = (char*)malloc(Maxkernel);
 				b->wp = b->bp;
-				b->ep = b->wp + 1440*1024;
+				b->ep = b->wp + Maxkernel;
 				memmove(b->bp, &b->exec, sizeof(Exec));
 				b->wp += sizeof(Exec);
 				print("gz...");

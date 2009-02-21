@@ -4,7 +4,7 @@ GLOBL	_tos(SB), $4
 GLOBL	_privates(SB), $4
 GLOBL	_nprivates(SB), $4
 
-TEXT	_mainp(SB), 1, $(8+NPRIVATES*4)
+TEXT	_mainp(SB), 1, $(3*4+NPRIVATES*4)
 
 	/* _tos = arg */
 	MOVL	AX, _tos(SB)
