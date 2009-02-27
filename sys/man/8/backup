@@ -1,0 +1,176 @@
+.TH BACKUP 8
+.SH NAME
+backup, tobackup, dumparenas, restore \- backup venti arenas to blu-ray discs or restore from them
+.SH SYNOPSIS
+.B backup
+[
+.B -n
+] [
+.B -d
+.I dev
+] [
+.B -s
+.I set
+]
+.br
+.B tobackup
+[
+.I set
+]
+.br
+.B dumparenas
+.I dev
+.I arena
+\&...
+.br
+.B restore
+.I arena-#
+[
+.I dev
+]
+.SH DESCRIPTION
+These programs reside in
+.B /sys/lib/backup
+and provide a means to backup
+.IR venti (8)
+storage to Blu-ray (or other large optical) discs,
+while keeping track of which arenas have been written to which discs.
+Multiple backup sets are supported,
+as is (re)loading a
+.I venti
+store from a backup thus made.
+.PP
+The first time that
+.I backup
+is run,
+it will dump all sealed
+.I venti
+arenas.
+Thereafter,
+it will append only those sealed arenas not already written to a disc
+within the given backup set.
+The
+.B -s
+option uses a backup
+.I set
+other than the default.
+The
+.B -d
+option uses a disc burner
+other than the default
+.LR /dev/sdD0 .
+The
+.B -n
+option goes through the motions but does not burn any tracks
+on the Blu-ray disc.
+As a side-effect,
+.I backup
+run on the default dump set,
+.LR set1 ,
+will also print the last few
+.I fossil
+dump scores.
+.PP
+.I Tobackup
+prints the names of all the sealed arenas not yet backed up to a disc
+in the current
+.IR set .
+.PP
+.I Dumparenas
+copies the named
+.IR arena s,
+one per track,
+to the device
+.IR dev ,
+which is first mounted via
+.IR cdfs (4).
+.I Venti/rdarena
+is used to extract each arena.
+.PP
+.I Tobackup
+and
+.I dumparenas
+are invoked internally by
+.IR backup .
+.PP
+.I Restore
+copies each data track (assumed to be a saved arena) on
+.I dev
+(by default,
+.LR /dev/sdC0 )
+into its appropriate place in the
+.I venti
+arenas partition
+(locally,
+.BR /dev/sde0/arenas ),
+thus adding the arena to the current
+.I venti
+store.
+The arena size of the arena partition must match the size of the arenas
+on optical disc (except for ~60K of trailing debris on the optical disc arenas).
+.PP
+.I Arena-#
+must be the number (starting from zero)
+of the first arena slot in the arenas partition that
+you wish to restore into from the current optical disc
+.RI ( not
+necessarily that of the first arena on the disc).
+.I Restore
+will prompt for confirmation that the first arena is the correct one,
+after printing a summary of its arena header.
+Typing
+.L y
+will proceed normally,
+.L n
+will abort all processing,
+and
+.L skip
+will cause
+.I restore
+to proceed to the next track and ask for confirmation of it.
+.PP
+The arenas partition must be formatted
+(see
+.I fmtarenas
+in
+.IR venti-fmt (8))
+before restoring into it.
+When all the arenas have been restored,
+it will be necessary to build a new
+.I venti
+index,
+the usual steps being to run
+.IR checkarenas ,
+.IR fmtisect ,
+.IR fmtbloom ,
+.IR fmtindex ,
+and
+.IR "buildindex -b" ,
+all from
+.IR venti-fmt (8).
+.SH FILES
+.TF /sys/lib/backup
+.TP
+.B /sys/lib/backup
+backup scripts and records
+.TP
+.B set1
+subdirectory containing records for default backup set
+.TP
+.B /sys/log
+source of dump scores
+.SH SOURCE
+.B /sys/lib/backup
+.SH SEE ALSO
+.IR venti (1),
+.IR cdfs (4),
+.IR venti (8),
+.IR venti-fmt (8),
+.IR venti-backup (8)
+.br
+.IR "Venti Backup on Blu-Ray Discs"
+.SH BUGS
+Assumes a single arenas partition named
+.LR arena0 .
+Assumes that the file server's arenas are accessible on it as
+.LR /dev/fs/arena0 .

@@ -7,14 +7,20 @@ fn backupinit {
 
 		# tunable parameters
 		set=set1
-		fs=yoshimi
-		trackbytes=1073741824	# twice the venti default on yoshimi
-		rdev=/dev/sdD0
-		discbytes=`{ls -l $rdev/data | awk '{print $6}'}
-		#ntracks=`{ hoc -e 'int('$discbytes/$trackbytes')' }
+		fs=pie
+		arenas=/dev/sde0/arena0	# on $fs
+		rdev=/dev/sdE1		# on terminal with bd burner
+
+		blocksize=8192
+		arenasize=1073741824 # twice the venti default, on yoshimi & pie
+		# trackbytes=$arenasize
+		# discbytes=`{ls -l $rdev/data | awk '{print $6}'}
+		# ntracks=`{ hoc -e 'int('$discbytes/$trackbytes')' }
 		ntracks=45		# for BD dual-layer
+
 		backupinitdone=yes
 		backups=/sys/lib/backup
+		path=(/bin $backups .)
 	}
 }
 
@@ -39,6 +45,13 @@ fn dumpdone {		# arena-part arena-name
 fn quitonfailure {	# exit-status
 	if (! ~ $1 '' 0 '|')
 		exit $1
+}
+
+# caller sets arenabase first
+fn arenastart {		# arena#
+	bytes =  `{ echo $arenabase' + ('$1' * '$arenasize')' | bc }
+	blocks = `{ echo $bytes' / '$blocksize | bc }
+	echo $blocks
 }
 
 backupinit

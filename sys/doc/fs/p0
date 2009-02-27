@@ -17,7 +17,7 @@ delim $$
 The 64-bit Standalone Plan 9 File Server
 .AU
 Ken Thompson*
-ken@plan9.bell-labs.com
+.CW ken@plan9.bell-labs.com
 .FS
 \l'4i'
 .br
@@ -39,16 +39,18 @@ Some specifics apply to the 32-bit
 Plan 9 file server
 Emelie,
 which code is also the basis for
-the user level file server
+the user-level file server
 .CW kfs .
 .PP
-Collyer recently created a 64-bit version of
+In 2004,
+Collyer created a 64-bit version of
 Thompson's 32-bit file server, updating all file
 offsets, sizes and block numbers to 64 bits.
 In addition, triple- and quadruple-indirect
 blocks were implemented.
 File name components were extended from 27 to 55 bytes.
-Further work is planned, notably improved peripheral and protocol support.
+This code is also the basis for the user-level file server
+.I cwfs (4).
 .AE
 .SH
 Introduction
