@@ -3,7 +3,7 @@
 #	assumes $set is set.
 rfork ne
 # tunable variables
-fs=yoshimi
+fs=pie
 
 if (test -e /sys/lib/backup/funcs)
 	.   /sys/lib/backup/funcs
@@ -23,7 +23,7 @@ for (name) {
 	if (! {venti/rdarena arena0 $name |
 	    pump -b 65536 -k 51200 >/mnt/cd/wd/$name})
 		exit
-	ls -l /mnt/cd
+#	ls -l /mnt/cd
 	if (test -e '/env/fn#dumpdone' -a -e '/env/set')
 		dumpdone arena0 $name
 }

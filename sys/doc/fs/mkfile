@@ -12,6 +12,13 @@ OBJ=\
 	p9\
 	pa\
 
+all:V: fs.ps fs.pdf fs.html
+
+%.pdf:D: %.ps
+	cat ../docfonts $stem.ps >_$stem.ps
+	# distill _$stem.ps && mv _$stem.pdf $stem.pdf
+	ps2pdf _$stem.ps $stem.pdf && rm -f _$stem.ps
+
 fs.ps:D:	$OBJ
 	{echo $FONTS; tbl $OBJ } | eqn | troff -ms | lp -dstdout >$target
 	../cleanps $target
@@ -19,7 +26,7 @@ fs.ps:D:	$OBJ
 fs.trout:D:	$OBJ
 	{echo $FONTS; tbl $OBJ } | eqn | troff -ms >$target
 
-fs.html:D:
+fs.html:D: $OBJ
 	{echo $FONTS; tbl $OBJ } | eqn | htmlroff -ms -mhtml >$target
 
 clean:V:
