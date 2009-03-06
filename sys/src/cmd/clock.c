@@ -34,7 +34,7 @@ redraw(Image *screen)
 		return;
 
 	ntms = *localtime(ntm);
-	anghr = 90-(ntms.hour*5 + ntms.min/10)*6;
+	anghr = 90-(ntms.hour*5 + ntms.min/12)*6;
 	angmin = 90-ntms.min*6;
 	tm = ntm;
 	tms = ntms;
