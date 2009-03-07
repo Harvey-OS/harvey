@@ -117,6 +117,9 @@ but it refuses to move a directory into another directory.
 .B /sys/src/cmd/mv.c
 .SH "SEE ALSO"
 .IR cat (1),
+.I dircp
+in
+.IR tar (1),
 .IR stat (2),
 .IR read (5)
 .SH DIAGNOSTICS
