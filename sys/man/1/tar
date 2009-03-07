@@ -12,7 +12,6 @@ tar, dircp \- archiver
 .I fromdir
 .I todir
 .SH DESCRIPTION
-.PP
 .I Tar
 saves and restores file trees.
 It is most often used to transport a tree of files from one
@@ -101,7 +100,9 @@ By default, files are always extracted relative to the current directory.
 .B T
 Modifies the behavior of
 .B x
-to set the modified time
+to set the modified time,
+mode and, for POSIX archives and filesystem permitting,
+the user and group
 of each file to that specified in the archive.
 .TP
 .B u
@@ -118,7 +119,9 @@ give more details about the
 archive entries.
 .TP
 .B z
-Operate on compressed tar archives.
+Operate on compressed
+.I tar
+archives.
 The type of compression is inferred from the file name extension:
 .IR gzip (1)
 for
@@ -178,7 +181,9 @@ File path names are limited to
 100 characters
 (256 when using ustar format).
 .PP
-The tar format allows specification of links and symbolic links,
+The
+.I tar
+format allows specification of links and symbolic links,
 concepts foreign to Plan 9: they are ignored.
 .PP
 The
