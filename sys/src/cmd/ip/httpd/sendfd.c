@@ -18,7 +18,7 @@ static	void		printtype(Hio *hout, HContent *type, HContent *enc);
 
 /*
  * fd references a file which has been authorized & checked for relocations.
- * send back the headers & it's contents.
+ * send back the headers & its contents.
  * includes checks for conditional requests & ranges.
  */
 int
@@ -310,8 +310,8 @@ notaccept(HConnect *c, HContent *type, HContent *enc, char *which)
 	s = c->xferbuf;
 	s = seprint(s, e, "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">\n");
 	s = seprint(s, e, "<html>\n<title>Unacceptable %s</title>\n<body>\n", which);
-	s = seprint(s, e, "Your browser will not accept this data, %H, because of it's %s.<br>\n", c->req.uri, which);
-	s = seprint(s, e, "It's Content-Type is %s/%s", type->generic, type->specific);
+	s = seprint(s, e, "Your browser will not accept this data, %H, because of its %s.<br>\n", c->req.uri, which);
+	s = seprint(s, e, "Its Content-Type is %s/%s", type->generic, type->specific);
 	if(enc != nil)
 		s = seprint(s, e, ", and Content-Encoding is %s", enc->generic);
 	s = seprint(s, e, ".<br>\n\n");
