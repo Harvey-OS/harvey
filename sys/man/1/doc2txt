@@ -35,10 +35,13 @@ doc2txt, doc2ps, wdoc2txt, xls2txt, olefs, mswordstrings, msexceltables
 .br
 .B aux/msexceltables
 [
-.B -aDnt
+.B -qaDnt
 ] [
 .B -d
 .I delim
+] [
+.B -c
+.I column-range
 ] [
 .B -w
 .I worksheet-range
@@ -95,26 +98,38 @@ by default a single space.
 .B -D
 Enables debugging output.
 .TP
+.BI -c " range
+.I Range
+is a comma-separated list of column numbers and ranges.
+Ranges are separated by dashes.
+Limit processing to just those columns named;
+by default all columns are output.
+.TP
 .B -n
-Disables field padding to column width.
+Disables field padding to column width. 
+.TP
+.B -q
+Disable quoting of textural fields (see 
+.IR quote (2).)
 .TP
 .B -t
 Truncate fields to the column width.
 .TP
-.BI -w " pages
-.I Pages
-is a comma-separated list of page numbers and ranges.
-Ranges are separated by dashes.
-Limit processing to just those pages named;
-by default all tabular sheets are output.
+.BI -w " range
+.I Range
+is a comma-separated list of worksheet numbers and ranges, this
+limits the sheets output using the same syntax as the
+.B -c
+option above.
 Suppressed chart pages are always included in the sheet count.
 .SH EXAMPLE
 Extract pieces of an MS Excel spreadsheet.
 .PD 0
 .IP
 .EX
+.SM
 aux/olefs report.xls
-msexceltables -w 1,7,9-14,3-4 -n -d '@' /mnt/doc/Workbook
+msexceltables -q -w 1,7,9-14 -c 3-5 -n -d '@' /mnt/doc/Workbook > rpt.txt
 unmount /mnt/doc
 .EE
 .PD

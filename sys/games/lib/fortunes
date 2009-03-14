@@ -4253,3 +4253,4 @@ There is no organization (dept/cost center) in Lucent Technologies whose name ma
 	buf[0] = '\0';		/* make sure it's empty (silly 3b2) */
   #ifndef bool /* Linux 2.6.19 C++ nightmare */
 slashdot: the consensus of the ill-informed  - brucee
+"People aren't wearing enough hats" - Truism from brucee
