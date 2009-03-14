@@ -441,11 +441,11 @@ etherprobe(int cardno, int ctlrno)
 		lg = 14;
 	/* allocate larger output queues for higher-speed interfaces */
 	bsz = 1UL << (lg + 17);		/* 2ⁱ⁷ = 128K, bsz = 2ⁿ × 128K */
-	while (bsz > mainmem->maxsize && bsz >= 128*1024)
+	while (bsz > mainmem->maxsize / 8 && bsz > 128*1024)
 		bsz /= 2;
 
 	netifinit(ether, name, Ntypes, bsz);
-	while (ether->oq == nil && bsz >= 128*1024) {
+	while (ether->oq == nil && bsz > 128*1024) {
 		bsz /= 2;
 		ether->oq = qopen(bsz, Qmsg, 0, 0);
 		ether->limit = bsz;

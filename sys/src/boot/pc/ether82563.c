@@ -430,8 +430,6 @@ static char *tname[] = {
 	"i82575",
 };
 
-#define Type	tname[ctlr->type]
-
 typedef struct Ctlr Ctlr;
 struct Ctlr {
 	int	port;
@@ -640,6 +638,8 @@ toringbuf(Ether *ether, Block *bp)
 			ether->ctlrno, ether->ri);
 }
 
+int	interesting(Block *bp);
+
 static void
 i82563interrupt(Ureg*, void* arg)
 {
@@ -674,11 +674,12 @@ i82563interrupt(Ureg*, void* arg)
 						bp->rp+6, rdesc->length);
 				ctlr->rb[rdh] = nil;
 				bp->wp += rdesc->length;
-				toringbuf(edev, bp);
+//				if (interesting(bp))
+					toringbuf(edev, bp);
 				freeb(bp);
 			} else if (rdesc->status & Reop && rdesc->errors)
-				print("%s: input packet error 0x%ux\n",
-					Type, rdesc->errors);
+				print("%s: input packet error %#ux\n",
+					tname[ctlr->type], rdesc->errors);
 			rdesc->status = 0;
 			rdh = NEXT(rdh, Nrdesc);
 		}
@@ -717,7 +718,6 @@ i82563init(Ether* edev)
 		csr32w(ctlr, Rxdctl, r);
 	}
 	csr32w(ctlr, Rctl, rctl);
-
 	ctlr->rdba = mallocalign(Nrdesc*sizeof(Rdesc), 128, 0, 0);
 	csr32w(ctlr, Rdbal, PCIWADDR(ctlr->rdba));
 	csr32w(ctlr, Rdbah, 0);
@@ -759,7 +759,12 @@ i82563init(Ether* edev)
 		r |= Qenable;
 	csr32w(ctlr, Txdctl, r);
 
-	csr32w(ctlr, Rxcsum, Tuofl | Ipofl | ETHERHDRSIZE<<PcssSHIFT);
+	/*
+	 * Don't enable checksum offload.  In practice, it interferes with
+	 * tftp booting on at least the 82575.
+	 */
+//	csr32w(ctlr, Rxcsum, Tuofl | Ipofl | ETHERHDRSIZE<<PcssSHIFT);
+	csr32w(ctlr, Rxcsum, 0);
 	r = csr32r(ctlr, Tctl);
 	r |= Ten;
 	csr32w(ctlr, Tctl, r);
@@ -934,7 +939,8 @@ i82563reset(Ctlr* ctlr)
 	else
 		r = eeload(ctlr);
 	if (r != 0 && r != 0xBABA){
-		print("%s: bad EEPROM checksum - 0x%4.4ux\n", Type, r);
+		print("%s: bad EEPROM checksum - 0x%4.4ux\n",
+			tname[ctlr->type], r);
 		return -1;
 	}
 
@@ -1123,7 +1129,8 @@ i82563pnp(Ether* edev)
 	 * currently either we can skip the interface or note it is down,
 	 * but not both.
 	if((csr32r(ctlr, Status)&Lu) == 0){
-		print("ether#%d: 82563 (%s): link down\n", edev->ctlrno, Type);
+		print("ether#%d: 82563 (%s): link down\n",
+			edev->ctlrno, tname[ctlr->type]);
 		return -1;
 	}
 	 */
