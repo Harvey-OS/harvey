@@ -991,8 +991,10 @@ i82563rxinit(Ctlr* ctlr)
 	csr32w(ctlr, Rdh, 0);
 	ctlr->rdt = 0;
 	csr32w(ctlr, Rdt, 0);
-	ctlr->rdtr = 25;
-	ctlr->radv = 500;
+	/* to hell with interrupt moderation, we've got fast cpus */
+//	ctlr->rdtr = 25;		/* µs units? */
+//	ctlr->radv = 500;		/* µs units? */
+	ctlr->radv = ctlr->rdtr = 0;
 	csr32w(ctlr, Rdtr, ctlr->rdtr);
 	csr32w(ctlr, Radv, ctlr->radv);
 
@@ -1016,9 +1018,11 @@ i82563rxinit(Ctlr* ctlr)
 	}
 
 	/*
-	 * Enable checksum offload.
+	 * Don't enable checksum offload.  In practice, it interferes with
+	 * tftp booting on at least the 82575.
 	 */
-	csr32w(ctlr, Rxcsum, Tuofl | Ipofl | ETHERHDRSIZE<<PcssSHIFT);
+//	csr32w(ctlr, Rxcsum, Tuofl | Ipofl | ETHERHDRSIZE<<PcssSHIFT);
+	csr32w(ctlr, Rxcsum, 0);
 }
 
 static int
@@ -1092,7 +1096,10 @@ i82563rproc(void* arg)
 					bp->flag |= Bpktck;
 				}
 				etheriq(edev, bp, 1);
-			} else
+			} else if (rd->status & Reop && rd->errors)
+				print("%s: input packet error %#ux\n",
+					tname[ctlr->type], rd->errors);
+			else
 				freeb(bp);
 			ctlr->rb[rdh] = nil;
 
@@ -1190,7 +1197,8 @@ i82563lproc(void *v)
 		e->link = (phy & Rtlink) != 0;
 		if(e->link){
 			c->speeds[i]++;
-			e->mbps = speedtab[i];
+			if (speedtab[i])
+				e->mbps = speedtab[i];
 		}
 next:
 		c->lim = 0;
@@ -1321,6 +1329,16 @@ i82563interrupt(Ureg*, void* arg)
 	ctlr->im = im;
 	csr32w(ctlr, Ims, im);
 	iunlock(&ctlr->imlock);
+}
+
+/* assume misrouted interrupts and check all controllers */
+static void
+i82575interrupt(Ureg*, void *)
+{
+	Ctlr *ctlr;
+
+	for (ctlr = i82563ctlrhead; ctlr != nil; ctlr = ctlr->next)
+		i82563interrupt(nil, ctlr->edev);
 }
 
 static int
@@ -1591,7 +1609,7 @@ i82563pci(void)
 		case 0x109a:		/*  l */
 			type = i82573;
 			break;
-		case 0x10a7:		/* 82575eb */
+		case 0x10a7:	/* 82575eb: one of a pair of controllers */
 			type = i82575;
 			break;
 		}
@@ -1653,6 +1671,7 @@ pnp(Ether* edev, int type)
 		return -1;
 
 	edev->ctlr = ctlr;
+	ctlr->edev = edev;			/* point back to Ether* */
 	edev->port = ctlr->port;
 	edev->irq = ctlr->pcidev->intl;
 	edev->tbdf = ctlr->pcidev->tbdf;
@@ -1665,7 +1684,8 @@ pnp(Ether* edev, int type)
 	 */
 	edev->attach = i82563attach;
 	edev->transmit = i82563transmit;
-	edev->interrupt = i82563interrupt;
+	edev->interrupt = (ctlr->type == i82575?
+		i82575interrupt: i82563interrupt);
 	edev->ifstat = i82563ifstat;
 	edev->ctl = i82563ctl;
 
