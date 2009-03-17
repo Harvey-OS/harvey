@@ -674,7 +674,7 @@ i82563interrupt(Ureg*, void* arg)
 						bp->rp+6, rdesc->length);
 				ctlr->rb[rdh] = nil;
 				bp->wp += rdesc->length;
-//				if (interesting(bp))
+				if (interesting(bp))
 					toringbuf(edev, bp);
 				freeb(bp);
 			} else if (rdesc->status & Reop && rdesc->errors)
@@ -729,6 +729,7 @@ i82563init(Ether* edev)
 	ctlr->rb = malloc(sizeof(Block*)*Nrdesc);
 	i82563replenish(ctlr);
 	csr32w(ctlr, Rdtr, 0);
+	csr32w(ctlr, Radv, 0);
 
 	if(ctlr->type == i82573)
 		csr32w(ctlr, Ert, 1024/8);

@@ -21,6 +21,9 @@ extern	char	Enotup[];
 enum {
 	Nctlr	= 32,
 	Maxpath	= 128,
+
+	Probeintvl	= 100,		/* ms. between probes */
+	Probemax	= 8000,		/* max ms. to wait */
 };
 
 enum {
@@ -288,10 +291,10 @@ aoeprobe(char *path, SDev *s)
 	poperror();
 	cclose(c);
 
-	for(i = 0;; i += 200){
-		if(i > 8000 || waserror())
+	for(i = 0; ; i += Probeintvl){
+		if(i > Probemax || waserror())
 			error(Etimedout);
-		tsleep(&up->sleep, return0, 0, 200);
+		tsleep(&up->sleep, return0, 0, Probeintvl);
 		poperror();
 
 		uprint("%s/ident", path);
@@ -376,20 +379,21 @@ pnpprobe(SDev *sd)
 	if(p[1] == '!')
 		p += 2;
 
-	for(j = 0;; j += 200){
-		if(j > 8000){
-			print("#æ: pnpprobe: %s: %s\n", probef[i-1], up->errstr);
+	for(j = 0; ; j += Probeintvl){
+		if(j > Probemax){
+			print("#æ: pnpprobe failed in %d ms: %s: %s\n",
+				j, probef[i-1], up->errstr);
 			return 0;
 		}
 		if(waserror()){
-			tsleep(&up->sleep, return0, 0, 200);
+			tsleep(&up->sleep, return0, 0, Probeintvl);
 			continue;
 		}
 		sd = aoeprobe(p, sd);
 		poperror();
 		break;
 	}
-	print("#æ: pnpprobe establishes %s in %dms\n", probef[i-1], j);
+	print("#æ: pnpprobe established %s in %d ms\n", probef[i-1], j);
 	return sd->ctlr;
 }
 

@@ -13,7 +13,11 @@
 
 enum {
 	NCtlr	= 4,
-	Ctlrlet = 'e',		/* first sd controller letter */
+	Ctlrlet = 'e',			/* first sd controller letter */
+
+	Probeintvl	= 100,		/* ms. between probes */
+	Probemax	= 8000,		/* max ms. to wait */
+	Probetries	= Probemax / Probeintvl, /* max tries */
 };
 
 enum {
@@ -232,7 +236,7 @@ chktag(int *out, int nout, int tag)
 	for(j = 0; j <= nout; j++)
 		if(out[j] == tag)
 			return 0;
-print("wrong tag\n");
+	print("wrong aoe tag\n");
 	for(j = 0; j <= nout; j++)
 		print("%.8ux != %.8ux\n", out[j], tag);
 	return -1;
@@ -277,7 +281,7 @@ identify(Ctlr *c)
 	a = (Aoeata*)&p;
 	i = 0;
 	do {
-		if(i == 5){
+		if(i == Probetries){
 			print("aoe: identify timeout\n");
 			return -1;
 		}
@@ -285,7 +289,7 @@ identify(Ctlr *c)
 		ethertxany(&p, sizeof *a);
 		memset(&p, 0, sizeof p);
 next:
-		n = etherrxany(&p, 125);
+		n = etherrxany(&p, Probeintvl);
 		if(n == 0){
 			i++;
 			continue;
@@ -386,18 +390,17 @@ aoeprobe(int major, int minor, SDev *s)
 	Etherpkt p;
 	int n, i;
 
-	for(i = 0;; i += 200){
-		if(i > 8000)
+	for(i = 0; ; i += Probeintvl){
+		if(i > Probemax)
 			return -1;
 		discover(major, minor);
 again:
-		n = etherrxany(&p, 100);
-		if(n > 0 && (ctlr = newctlr(&p)))
+		n = etherrxany(&p, Probeintvl);
+		if(n > 0 && (ctlr = newctlr(&p)) != nil)
 			break;
 		if(n > 0)
 			goto again;
 	}
-
 	s->ctlr = ctlr;
 	s->ifc = &sdaoeifc;
 	s->nunit = 1;
@@ -434,8 +437,8 @@ aoepnp0(void)
 
 	if((p = getconf("aoeif")) == nil)
 		return 0;
-//	print("aoepnp0: aoeif=%s\n", p);
 	nprobe = tokenize(p, probef, nelem(probef));
+
 	for(i = 0; i < nprobe; i++){
 		if(strncmp(probef[i], "ether", 5) != 0)
 			continue;
@@ -447,8 +450,7 @@ aoepnp0(void)
 
 	if((p = getconf("aoedev")) == nil)
 		return 0;
-	nprobe = tokenize(p, probef, nelem(probef));
-	return nprobe;
+	return tokenize(p, probef, nelem(probef));
 }
 
 static int
@@ -578,13 +580,13 @@ rio(Ctlr *c, Aoeata *a, int n, int scnt)
 {
 	int i, tag, cmd;
 
-	for(i = 0; i < 5; i++){
+	for(i = 0; i < Probetries; i++){
 		tag = hset(c, a, ACata);
 		cmd = a->cmdstat;
 		ethertxany((Etherpkt*)a, n);
 		memset(a, 0, sizeof *a);
 again:
-		n = etherrxany((Etherpkt*)a, 125);
+		n = etherrxany((Etherpkt*)a, Probeintvl);
 		if(n == 0)
 			continue;
 		if(nhgets(a->type) != Aoetype || nhgetl(a->tag) != tag ||
@@ -607,7 +609,7 @@ again:
 		case Cwrext:
 			return scnt * 512;
 		default:
-print("unknown cmd %ux\n", cmd);
+			print("unknown aoe cmd %ux\n", cmd);
 			break;
 		}
 	}
