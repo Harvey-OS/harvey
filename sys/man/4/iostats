@@ -70,8 +70,13 @@ iostats -df /fd/1 rc
 .EE
 .SH SOURCE
 .B /sys/src/cmd/iostats
+.SH SEE ALSO
+.IR dup (3)
 .SH BUGS
 Poor clock resolution means that large amounts of I/O must be done to
 get accurate rate figures.
 .PP
-Can be fooled by programs that do fresh mounts outside its purview.
+Can be fooled by programs that do fresh mounts outside its purview,
+or by the use of names of files with content that can vary by process (e.g.,
+.LR #d ,
+.LR /dev/cons ).
