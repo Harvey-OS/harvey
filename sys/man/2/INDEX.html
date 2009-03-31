@@ -74,6 +74,10 @@
 -  routines for communicating with authentication servers
 <DD><TT> authdial, passtokey, nvcsum, readnvram, convT2M, convM2T, convTR2M, convM2TR, convA2M, convM2A, convPR2M, convM2PR, _asgetticket, _asrdresp</TT>
 </DT>
+<DT><A HREF="/magic/man2html/2/avl">avl</A>
+-  AVL tree routines
+<DD><TT> mkavltree, insertavl, lookupavl, deleteavl, avlwalk, avlnext, avlprev, endwalk</TT>
+</DT>
 <DT><A HREF="/magic/man2html/2/bin">bin</A>
 -  grouped memory allocation
 <DD><TT> binalloc, bingrow, binfree</TT>
@@ -136,7 +140,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/des">des</A>
 -  single and triple digital encryption standard
-<DD><TT> setupDESstate, des_key_setup, block_cipher, desCBCencrypt, desCBCdecrypt, desECBencrypt, desECBdecrypt, des3CBCencrypt, des3CBCdecrypt, des3ECBencrypt, des3ECBdecrypt, key_setup, des56to64, des64to56, setupDES3state, triple_block_cipher,</TT>
+<DD><TT> setupDESstate, des_key_setup, block_cipher, desCBCencrypt, desCBCdecrypt, desECBencrypt, desECBdecrypt, des3CBCencrypt, des3CBCdecrypt, des3ECBencrypt, des3ECBdecrypt, key_setup, des56to64, des64to56, setupDES3state, triple_block_cipher</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/dial">dial</A>
 -  make and break network connections
@@ -250,10 +254,6 @@
 -  initialize 9P connection and negotiate version
 <DD><TT> fversion</TT>
 </DT>
-<DT><A HREF="/magic/man2html/2/genrandom">genrandom</A>
--  random number generation
-<DD><TT> genrandom, prng</TT>
-</DT>
 <DT><A HREF="/magic/man2html/2/getcallerpc">getcallerpc</A>
 -  fetch return PC of current function
 <DD><TT> getcallerpc</TT>
@@ -311,7 +311,7 @@
 <DD><TT> iounit</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/ip">ip</A>
--  Internet protocol
+-  Internet Protocol addressing
 <DD><TT> eipfmt, parseip, parseipmask, v4parseip, v4parsecidr, parseether, myipaddr, myetheraddr, maskip, equivip4, equivip6, defmask, isv4, v4tov6, v6tov4, nhgetv, nhgetl, nhgets, hnputv, hnputl, hnputs, ptclbsum, readipifc</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/isalpharune">isalpharune</A>
@@ -447,8 +447,8 @@
 <DD><TT> quotestrdup, quoterunestrdup, unquotestrdup, unquoterunestrdup, quotestrfmt, quoterunestrfmt, quotefmtinstall, doquote, needsrcquote</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/rand">rand</A>
--  random number generator
-<DD><TT> rand, lrand, frand, nrand, lnrand, srand, truerand, ntruerand, fastrand, nfastrand</TT>
+-  random number generators
+<DD><TT> rand, lrand, frand, nrand, lnrand, srand, truerand, ntruerand, genrandom, prng, fastrand, nfastrand</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/rc4">rc4</A>
 -  alleged rc4 encryption
@@ -500,7 +500,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/sechash">sechash</A>
 -  cryptographically secure hashes
-<DD><TT> md4, md5, sha1, hmac_md5, hmac_sha1, md5pickle, md5unpickle, sha1pickle, sha1unpickle</TT>
+<DD><TT> md4, md5, sha1, aes, hmac_x, hmac_md5, hmac_sha1, hmac_aes, md5pickle, md5unpickle, sha1pickle, sha1unpickle</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/seek">seek</A>
 -  change file offset
@@ -573,6 +573,46 @@
 <DT><A HREF="/magic/man2html/2/tmpfile">tmpfile</A>
 -  Stdio temporary files
 <DD><TT> tmpfile, tmpnam</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/venti-cache">venti-cache</A>
+-  Venti block cache
+<DD><TT> VtBlock, VtCache, vtblockcopy, vtblockdirty, vtblockduplock, vtblockput, vtblockwrite, vtcachealloc, vtcacheallocblock, vtcacheblocksize, vtcachefree, vtcacheglobal, vtcachelocal, vtcachesetwrite, vtglobaltolocal, vtlocaltoglobal</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/venti-client">venti-client</A>
+-  Venti client
+<DD><TT> vtconnect, vthello, vtread, vtwrite, vtreadpacket, vtwritepacket, vtsync, vtping, vtrpc, ventidoublechecksha1</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/venti-conn">venti-conn</A>
+-  Venti network connections
+<DD><TT> VtConn, vtconn, vtdial, vtfreeconn, vtsend, vtrecv, vtversion, vtdebug, vthangup</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/venti-fcall">venti-fcall</A>
+-  venti data formats
+<DD><TT> VtEntry, VtFcall, VtRoot, vtentrypack, vtentryunpack, vtfcallclear, vtfcallfmt, vtfcallpack, vtfcallunpack, vtfromdisktype, vttodisktype, vtgetstring, vtputstring, vtrootpack, vtrootunpack, vtparsescore, vtscorefmt</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/venti-file">venti-file</A>
+-  Venti files
+<DD><TT> VtFile, vtfileblock, vtfileblockscore, vtfileclose, vtfilecreate, vtfilecreateroot, vtfileflush, vtfileflushbefore, vtfilegetdirsize, vtfilegetentry, vtfilegetsize, vtfileincref, vtfilelock, vtfilelock2, vtfileopen, vtfileopenroot, vtfileread, vtfileremove, vtfilesetdirsize, vtfilesetentry, vtfilesetsize, vtfiletruncate, vtfileunlock, vtfilewrite</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/venti-log">venti-log</A>
+-  Venti logs
+<DD><TT> VtLog, VtLogChunk, vtlog, vtlogclose, vtlogdump, vtlognames, vtlogopen, vtlogprint, vtlogremove, vtlogopen, ventilogging</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/venti-mem">venti-mem</A>
+-  error-checking memory allocators
+<DD><TT> vtbrk, vtmalloc, vtmallocz, vtrealloc, vtstrdup, vtfree</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/venti-packet">venti-packet</A>
+-  zero-copy network buffers
+<DD><TT> Packet, packetalloc, packetappend, packetasize, packetcmp, packetconcat, packetconsume, packetcopy, packetdup, packetforeign, packetfragments, packetfree, packetheader, packetpeek, packetprefix, packetsha1, packetsize, packetsplit, packetstats, packettrailer, packettrim</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/venti-server">venti-server</A>
+-  Venti server
+<DD><TT> vtsrvhello, vtlisten, vtgetreq, vtrespond</TT>
+</DT>
+<DT><A HREF="/magic/man2html/2/venti-zero">venti-zero</A>
+-  Venti block truncation
+<DD><TT> vtzerotruncate, vtzeroextend, vtzeroscore</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/wait">wait</A>
 -  wait for a process to exit

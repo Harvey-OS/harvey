@@ -172,6 +172,7 @@ leak leak
 umem leak
 lens lens
 lex lex
+lock lock
 look look
 lp lp
 lc ls

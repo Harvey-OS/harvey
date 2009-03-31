@@ -16,7 +16,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/8/9load">9load</A>
 -  PC bootstrap program
-<DD><TT> 9load, ld, 9pxeload</TT>
+<DD><TT> 9load, 9pxeload, ld</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/9pcon">9pcon</A>
 -  9P to text translator
@@ -34,9 +34,17 @@
 -  Advanced Power Management 1.2 BIOS interface
 <DD><TT> apm</TT>
 </DT>
+<DT><A HREF="/magic/man2html/8/aquarela">aquarela</A>
+-  CIFS server
+<DD><TT> aquarela</TT>
+</DT>
 <DT><A HREF="/magic/man2html/8/auth">auth</A>
--  maintain authentication databases
-<DD><TT> changeuser, convkeys, convkeys2, printnetkey, status, enable, disable, authsrv, guard.srv, wrkey, login, none</TT>
+-  maintain or query authentication databases
+<DD><TT> changeuser, convkeys, convkeys2, printnetkey, status, enable, disable, authsrv, guard.srv, wrkey, login, newns, none</TT>
+</DT>
+<DT><A HREF="/magic/man2html/8/backup">backup</A>
+-  backup venti arenas to blu-ray discs or restore from them
+<DD><TT> backup, tobackup, dumparenas, restore</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/boot">boot</A>
 -  connect to the root file server
@@ -45,6 +53,10 @@
 <DT><A HREF="/magic/man2html/8/booting">booting</A>
 -  bootstrapping procedures
 <DD><TT> booting</TT>
+</DT>
+<DT><A HREF="/magic/man2html/8/cec">cec</A>
+-  Coraid Ethernet Console
+<DD><TT> cec</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/cpurc">cpurc</A>
 -  boot scripts
@@ -57,6 +69,10 @@
 <DT><A HREF="/magic/man2html/8/dhcpd">dhcpd</A>
 -  Internet booting
 <DD><TT> dhcpd, dhcpleases, rarpd, tftpd</TT>
+</DT>
+<DT><A HREF="/magic/man2html/8/diskparts">diskparts</A>
+-  prepare disks for use
+<DD><TT> diskparts, dmaon</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/disksim">disksim</A>
 -  disk simulator
@@ -112,7 +128,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/8/listen">listen</A>
 -  listen for calls on a network device
-<DD><TT> listen, listen1, tcp7, tcp9, tcp19, tcp21, tcp22, tcp23, tcp25, tcp53, tcp110, tcp113, tcp143, tcp513, tcp515, tcp564, tcp565, tcp566, tcp567, tcp993, tcp1723, tcp17007, tcp17009, tcp17010, tcp17013</TT>
+<DD><TT> listen, listen1, tcp7, tcp9, tcp19, tcp21, tcp22, tcp23, tcp25, tcp53, tcp110, tcp113, tcp143, tcp513, tcp515, tcp564, tcp565, tcp566, tcp567, tcp993, tcp995, tcp1723, tcp17007, tcp17008, tcp17009, tcp17010, tcp17013</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/lp">lp</A>
 -  PostScript preprocessors
@@ -144,7 +160,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/8/ndb">ndb</A>
 -  network database
-<DD><TT> query, ipquery, mkhash, mkdb, mkhosts, cs, csquery, dns, dnsquery, dnsdebug</TT>
+<DD><TT> query, ipquery, mkhash, mkdb, mkhosts, cs, csquery, dns, dnstcp, dnsquery, dnsdebug</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/newuser">newuser</A>
 -  adding a new user
@@ -152,7 +168,15 @@
 </DT>
 <DT><A HREF="/magic/man2html/8/nfsserver">nfsserver</A>
 -  NFS service
-<DD><TT> nfsserver, portmapper, pcnfsd, 9auth</TT>
+<DD><TT> nfsserver, portmapper, pcnfsd</TT>
+</DT>
+<DT><A HREF="/magic/man2html/8/partfs">partfs</A>
+-  serve file, with partitions
+<DD><TT> partfs</TT>
+</DT>
+<DT><A HREF="/magic/man2html/8/pci">pci</A>
+-  print PCI bus configuration
+<DD><TT> pci</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/pcmcia">pcmcia</A>
 -  identify a PCMCIA card
@@ -171,11 +195,11 @@
 <DD><TT> plan9.ini</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/pop3">pop3</A>
--  mail servers
+-  Internet mail servers
 <DD><TT> pop3, imap4d</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/ppp">ppp</A>
--  point to point protocol
+-  point-to-point protocol
 <DD><TT> ppp, pppoe, pptp, pptpd</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/prep">prep</A>
@@ -263,15 +287,23 @@
 <DD><TT> bootfloppy, bootplan9, bootwin9x, bootwinnt, personalize, setup.9fat, setup.disk, setup.kfs, update</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/venti">venti</A>
--  an archival block storage server
+-  archival storage server
 <DD><TT> venti</TT>
 </DT>
-<DT><A HREF="/magic/man2html/8/ventiaux">ventiaux</A>
--  Venti maintenance and debugging commands
-<DD><TT> buildindex, checkarenas, checkindex, conf, copy, fmtarenas, fmtindex, fmtisect, rdarena, rdarenablocks, read, wrarenablocks, write</TT>
+<DT><A HREF="/magic/man2html/8/venti-backup">venti-backup</A>
+-  copy arenas between venti servers
+<DD><TT> rdarena, wrarena</TT>
+</DT>
+<DT><A HREF="/magic/man2html/8/venti-fmt">venti-fmt</A>
+-  prepare and maintain a venti server
+<DD><TT> buildindex, checkarenas, checkindex, conf, fmtarenas, fmtbloom, fmtindex, fmtisect, syncindex</TT>
 </DT>
 <DT><A HREF="/magic/man2html/8/vga">vga</A>
 -  configure a VGA card
 <DD><TT> vga</TT>
+</DT>
+<DT><A HREF="/magic/man2html/8/wol">wol</A>
+-  send wake-on-lan Ethernet packet
+<DD><TT> wol</TT>
 </DT>
 </DL>
