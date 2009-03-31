@@ -23,6 +23,10 @@ none auth
 printnetkey auth
 status auth
 wrkey auth
+backup backup
+dumparenas backup
+restore backup
+tobackup backup
 boot boot
 booting booting
 cec cec
