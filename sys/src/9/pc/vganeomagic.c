@@ -71,6 +71,13 @@ neomagicenable(VGAscr* scr)
 			ioaddr = p->mem[1].bar & ~0x0F;
 			iosize = p->mem[1].size;
 			break;
+		case 0x0016:		/* MagicMedia 256XL+ */
+			curoff = 0x1000;
+			/* Vaio VESA BIOS says 6080, but then hwgc doesn't work */
+			vmsize = 4096*1024;
+			ioaddr = p->mem[1].bar & ~0x0F;
+			iosize = p->mem[1].size;
+			break;
 		default:
 			return;
 		}
