@@ -107,6 +107,12 @@ snarf(Vga* vga, Ctlr* ctlr)
 			vga->vmz = 4096*1024;
 			vga->apz = 16*1024*1024;
 			break;
+		case 0x0016:			/* MagicMedia 256 XL+ */
+			vga->f[1] = 110000000;
+			/* Vaio VESA BIOS says 6080, but then hwgc doesn't work */
+			vga->vmz = 4096*1024;
+			vga->apz = 32*1024*1024;
+			break;
 		case 0x0001:			/* MagicGraph 128 */
 		case 0x0002:			/* MagicGraph 128 V */
 		default:

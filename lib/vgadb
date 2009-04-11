@@ -327,6 +327,7 @@ ctlr
 	vid=0x10C8 did=0x0004		# MagicGraph 128 XD
 	vid=0x10C8 did=0x0005		# MagicMedia 256 AV
 	vid=0x10C8 did=0x0006		# MagicMedia 256 ZX
+	vid=0x10C8 did=0x0016		# MagicMedia 256 XL+
 	0xC0048="MagicGraph 128XD"	# IBM Thinkpad 560X
 	0xC0048="MagicMedia 256AV"	# IBM Thinkpad 600E
 	0xC0048="MagicGraph 256 AV"	# IBM Thinkpad 570, 600E
