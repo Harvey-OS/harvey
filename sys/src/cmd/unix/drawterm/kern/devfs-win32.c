@@ -172,8 +172,7 @@ fswalk(Chan *c, Chan *nc, char **name, int nname)
 		cname = addelem(cname, name[i]);
 		wq->qid[i] = nc->qid;
 	}
-	nc->name = nil;
-	cnameclose(cname);
+	nc->name = cname;
 	if(i != nname){
 		cclose(nc);
 		wq->clone = nil;

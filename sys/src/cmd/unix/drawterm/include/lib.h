@@ -14,6 +14,7 @@
 #define log2	liblog2
 #define log	liblog
 #define reboot	libreboot
+#define strtoll libstrtoll
 #undef timeradd
 #define timeradd	xtimeradd
 
@@ -56,41 +57,22 @@ enum
 };
 
 /*
- * all rune routines, from utf.h
+ * new rune routines
  */
 extern	int	runetochar(char*, Rune*);
 extern	int	chartorune(Rune*, char*);
 extern	int	runelen(long);
-extern	int	runenlen(Rune*, int);
 extern	int	fullrune(char*, int);
-extern	int	utflen(char*);
-extern	int	utfnlen(char*, long);
+
+extern  int	wstrtoutf(char*, Rune*, int);
+extern  int	wstrutflen(Rune*);
+
+/*
+ * rune routines from converted str routines
+ */
+extern	long	utflen(char*);
 extern	char*	utfrune(char*, long);
 extern	char*	utfrrune(char*, long);
-extern	char*	utfutf(char*, char*);
-extern	char*	utfecpy(char*, char*, char*);
-
-extern	Rune*	runestrcat(Rune*, Rune*);
-extern	Rune*	runestrchr(Rune*, Rune);
-extern	int	runestrcmp(Rune*, Rune*);
-extern	Rune*	runestrcpy(Rune*, Rune*);
-extern	Rune*	runestrncpy(Rune*, Rune*, long);
-extern	Rune*	runestrecpy(Rune*, Rune*, Rune*);
-extern	Rune*	runestrdup(Rune*);
-extern	Rune*	runestrncat(Rune*, Rune*, long);
-extern	int	runestrncmp(Rune*, Rune*, long);
-extern	Rune*	runestrrchr(Rune*, Rune);
-extern	long	runestrlen(Rune*);
-extern	Rune*	runestrstr(Rune*, Rune*);
-
-extern	Rune	tolowerrune(Rune);
-extern	Rune	totitlerune(Rune);
-extern	Rune	toupperrune(Rune);
-extern	int	isalpharune(Rune);
-extern	int	islowerrune(Rune);
-extern	int	isspacerune(Rune);
-extern	int	istitlerune(Rune);
-extern	int	isupperrune(Rune);
 
 /*
  * Syscall data structures
@@ -140,7 +122,12 @@ extern	int	isupperrune(Rune);
 
 typedef struct Lock
 {
+#ifdef PTHREAD
+	int init;
+	pthread_mutex_t mutex;
+#else
 	long	key;
+#endif
 } Lock;
 
 typedef struct QLock
@@ -241,6 +228,10 @@ extern	Rune*	runeseprint(Rune*, Rune*, char*, ...);
 extern	Rune*	runevseprint(Rune*, Rune*, char*, va_list);
 extern	Rune*	runesmprint(char*, ...);
 extern	Rune*	runevsmprint(char*, va_list);
+
+extern       Rune*	runestrchr(Rune*, Rune);
+extern       long	runestrlen(Rune*);
+extern       Rune*	runestrstr(Rune*, Rune*);
 
 extern	int	fmtfdinit(Fmt*, int, char*, int);
 extern	int	fmtfdflush(Fmt*);

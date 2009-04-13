@@ -1,6 +1,5 @@
-# Unix
-#PTHREAD=	# for Mac
-PTHREAD=-pthread
+# Mac OS X
+PTHREAD=	# for Mac
 AR=ar
 AS=as
 RANLIB=ranlib
@@ -10,14 +9,13 @@ CFLAGS=-Wall -Wno-missing-braces -ggdb -I$(ROOT) -I$(ROOT)/include -I$(ROOT)/ker
 O=o
 OS=posix
 GUI=x11
-LDADD=-L$(X11)/lib64 -L$(X11)/lib -lX11 -ggdb
+LDADD=-L$(X11)/lib -lX11 -ggdb
 LDFLAGS=$(PTHREAD)
 TARG=drawterm
-# AUDIO=none
-AUDIO=unix
+AUDIO=none
 
 all: default
 
 libmachdep.a:
-	arch=`uname -m|sed 's/i.86/386/;s/Power Macintosh/power/; s/x86_64/amd64/'`; \
+	arch=`uname -m|sed 's/i.86/386/;s/Power Macintosh/power/'`; \
 	(cd posix-$$arch &&  make)

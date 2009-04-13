@@ -2,7 +2,12 @@
  * Posix generic OS implementation for drawterm.
  */
 
+#include "u.h"
+
+#ifndef _XOPEN_SOURCE	/* for Apple and OpenBSD; not sure if needed */
 #define _XOPEN_SOURCE 500
+#endif
+
 #include <pthread.h>
 #include <time.h>
 #include <sys/time.h>
@@ -11,7 +16,6 @@
 #include <pwd.h>
 #include <errno.h>
 
-#include "u.h"
 #include "lib.h"
 #include "dat.h"
 #include "fns.h"
