@@ -14,6 +14,7 @@ Queue*	lineq;			/* processed console input */
 Queue*	serialoq;		/* serial console output */
 Queue*	kprintoq;		/* console output, for /dev/kprint */
 long	kprintinuse;		/* test and set whether /dev/kprint is open */
+Lock	kprintlock;
 int	iprintscreenputs = 0;
 
 int	panicking;
@@ -141,7 +142,7 @@ putstrn0(char *str, int n, int usewrite)
 			qwrite(kprintoq, str, n);
 		else
 			qiwrite(kprintoq, str, n);
-	}else if(screenputs != nil)
+	}else if(screenputs != 0)
 		screenputs(str, n);
 }
 
@@ -584,10 +585,14 @@ consopen(Chan *c, int omode)
 		break;
 
 	case Qkprint:
-		if(tas(&kprintinuse) != 0){
+		lock(&kprintlock);
+		if(kprintinuse != 0){
 			c->flag &= ~COPEN;
+			unlock(&kprintlock);
 			error(Einuse);
 		}
+		kprintinuse = 1;
+		unlock(&kprintlock);
 		if(kprintoq == nil){
 			kprintoq = qopen(8*1024, Qcoalesce, 0, 0);
 			if(kprintoq == nil){
@@ -1177,7 +1182,7 @@ iprint(char *fmt, ...)
 	va_start(arg, fmt);
 	n = vseprint(buf, buf+sizeof(buf), fmt, arg) - buf;
 	va_end(arg);
-	if(screenputs != nil && iprintscreenputs)
+	if(screenputs != 0 && iprintscreenputs)
 		screenputs(buf, n);
 #undef write
 	write(2, buf, n);

@@ -14,7 +14,7 @@ sprint(char *buf, char *fmt, ...)
 	 * on PowerPC, the stack is near the top of memory, so
 	 * we must be sure not to overflow a 32-bit pointer.
 	 */
-	if(buf+len < buf)
+	if((uintptr)buf+len < (uintptr)buf)
 		len = -(uintptr)buf-1;
 
 	va_start(args, fmt);

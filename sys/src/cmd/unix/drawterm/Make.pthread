@@ -1,8 +1,8 @@
 # Unix
 #PTHREAD=	# for Mac
-PTHREAD=-pthread
+PTHREAD=-pthread -DPTHREAD
 AR=ar
-AS=as
+AS=no-as-here
 RANLIB=ranlib
 X11=/usr/X11R6
 CC=gcc
@@ -19,5 +19,4 @@ AUDIO=unix
 all: default
 
 libmachdep.a:
-	arch=`uname -m|sed 's/i.86/386/;s/Power Macintosh/power/; s/x86_64/amd64/'`; \
-	(cd posix-$$arch &&  make)
+	(cd posix-port &&  make)

@@ -3,11 +3,17 @@ include ../Make.config
 LIB=libgui.a
 
 OFILES=\
-	x11.$O\
-	keysym2ucs-x11.$O
+	alloc.$O\
+	cload.$O\
+	draw.$O\
+	load.$O\
+	screen.$O
 
 default: $(LIB)
 $(LIB): $(OFILES)
 	$(AR) r $(LIB) $(OFILES)
 	$(RANLIB) $(LIB)
+
+%.$O: %.c
+	$(CC) $(CFLAGS) $*.c
 

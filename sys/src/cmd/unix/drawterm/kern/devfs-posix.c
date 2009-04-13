@@ -1,3 +1,4 @@
+#include	"u.h"
 #include	<sys/types.h>
 #include	<sys/stat.h>
 #include	<dirent.h>
@@ -9,7 +10,6 @@
 #ifndef NAME_MAX
 #	define NAME_MAX 256
 #endif
-#include	"u.h"
 #include	"lib.h"
 #include	"dat.h"
 #include	"fns.h"
@@ -33,7 +33,7 @@ struct Ufsinfo
 	int	uid;
 	int	gid;
 	DIR*	dir;
-	ulong	offset;
+	vlong	offset;
 	QLock	oq;
 	char nextname[NAME_MAX];
 };
@@ -160,8 +160,7 @@ fswalk(Chan *c, Chan *nc, char **name, int nname)
 		cname = addelem(cname, name[i]);
 		wq->qid[i] = nc->qid;
 	}
-	nc->name = nil;
-	cnameclose(cname);
+	nc->name = cname;
 	if(i != nname){
 		cclose(nc);
 		wq->clone = nil;

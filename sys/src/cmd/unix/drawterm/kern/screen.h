@@ -57,3 +57,7 @@ void	drawflushr(Rectangle);
 void	flushmemscreen(Rectangle);
 uchar *attachscreen(Rectangle*, ulong*, int*, int*, int*, void**);
 
+void	drawqlock(void);
+void	drawqunlock(void);
+int	drawcanqlock(void);
+void	terminit(void);
