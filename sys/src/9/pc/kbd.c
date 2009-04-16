@@ -56,7 +56,7 @@ enum {
 };
 
 /*
- * The codes at 0x79 and 0x81 are produed by the PFU Happy Hacking keyboard.
+ * The codes at 0x79 and 0x7b are produed by the PFU Happy Hacking keyboard.
  * A 'standard' keyboard doesn't produce anything above 0x58.
  */
 Rune kbtab[Nscan] = 
