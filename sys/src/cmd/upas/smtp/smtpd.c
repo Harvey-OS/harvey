@@ -50,6 +50,8 @@ int	pipemsg(int*);
 int	rejectcheck(void);
 String*	startcmd(void);
 
+static void	logmsg(char *action);
+
 static int
 catchalarm(void *a, char *msg)
 {
@@ -473,9 +475,33 @@ sender(String *path)
 	/*
 	 * see if this ip address, domain name, user name or account is blocked
 	 */
-	filterstate = blocked(path);
-
 	logged = 0;
+	filterstate = blocked(path);
+	/*
+	 * permanently reject what we can before trying smtp ping, which
+	 * often leads to merely temporary rejections.
+	 */
+	switch (filterstate){
+	case DENIED:
+		syslog(0, "smtpd", "Denied %s (%s/%s)",
+			s_to_c(path), him, nci->rsys);
+		rejectcount++;
+		logged++;
+		reply("554-5.7.1 We don't accept mail from %s.\r\n",
+			s_to_c(path));
+		reply("554 5.7.1 Contact postmaster@%s for more information.\r\n",
+			dom);
+		return;
+	case REFUSED:
+		syslog(0, "smtpd", "Refused %s (%s/%s)",
+			s_to_c(path), him, nci->rsys);
+		rejectcount++;
+		logged++;
+		reply("554 5.7.1 Sender domain must exist: %s\r\n",
+			s_to_c(path));
+		return;
+	}
+
 	listadd(&senders, path);
 	reply("250 2.0.0 sender is %s\r\n", s_to_c(path));
 }
@@ -922,23 +948,33 @@ startcmd(void)
  *  address@him
  */
 char*
-bprintnode(Biobuf *b, Node *p)
+bprintnode(Biobuf *b, Node *p, int *cntp)
 {
+	int len;
+
+	*cntp = 0;
 	if(p->s){
 		if(p->addr && strchr(s_to_c(p->s), '@') == nil){
 			if(Bprint(b, "%s@%s", s_to_c(p->s), him) < 0)
 				return nil;
+			*cntp += s_len(p->s) + 1 + strlen(him);
 		} else {
-			if(Bwrite(b, s_to_c(p->s), s_len(p->s)) < 0)
+			len = s_len(p->s);
+			if(Bwrite(b, s_to_c(p->s), len) < 0)
 				return nil;
+			*cntp += len;
 		}
 	}else{
 		if(Bputc(b, p->c) < 0)
 			return nil;
+		++*cntp;
 	}
-	if(p->white)
-		if(Bwrite(b, s_to_c(p->white), s_len(p->white)) < 0)
+	if(p->white) {
+		len = s_len(p->white);
+		if(Bwrite(b, s_to_c(p->white), len) < 0)
 			return nil;
+		*cntp += len;
+	}
 	return p->end+1;
 }
 
@@ -1003,7 +1039,7 @@ forgedheaderwarnings(void)
 int
 pipemsg(int *byteswritten)
 {
-	int n, nbytes, sawdot, status;
+	int n, nbytes, sawdot, status, nonhdr, bpr;
 	char *cp;
 	Field *f;
 	Link *l;
@@ -1070,19 +1106,20 @@ pipemsg(int *byteswritten)
 	 */
 	if(originator == 0){
 		if(senders.last == nil)
-			Bprint(pp->std[0]->fp, "From: /dev/null@%s\n", him);
+			nbytes += Bprint(pp->std[0]->fp, "From: /dev/null@%s\n",
+				him);
 		else
-			Bprint(pp->std[0]->fp, "From: %s\n",
+			nbytes += Bprint(pp->std[0]->fp, "From: %s\n",
 				s_to_c(senders.last->p));
 	}
 	if(destination == 0){
-		Bprint(pp->std[0]->fp, "To: ");
+		nbytes += Bprint(pp->std[0]->fp, "To: ");
 		for(l = rcvers.first; l; l = l->next){
 			if(l != rcvers.first)
-				Bprint(pp->std[0]->fp, ", ");
-			Bprint(pp->std[0]->fp, "%s", s_to_c(l->p));
+				nbytes += Bprint(pp->std[0]->fp, ", ");
+			nbytes += Bprint(pp->std[0]->fp, "%s", s_to_c(l->p));
 		}
-		Bprint(pp->std[0]->fp, "\n");
+		nbytes += Bprint(pp->std[0]->fp, "\n");
 	}
 
 	/*
@@ -1091,12 +1128,16 @@ pipemsg(int *byteswritten)
 	 */
 	cp = s_to_c(hdr);
 	for(f = firstfield; cp != nil && f; f = f->next){
-		for(p = f->node; cp != 0 && p; p = p->next)
-			cp = bprintnode(pp->std[0]->fp, p);
+		for(p = f->node; cp != 0 && p; p = p->next) {
+			bpr = 0;
+			cp = bprintnode(pp->std[0]->fp, p, &bpr);
+			nbytes += bpr;
+		}
 		if(status == 0 && Bprint(pp->std[0]->fp, "\n") < 0){
 			piperror = "write error";
 			status = 1;
 		}
+		nbytes++;		/* for newline */
 	}
 	if(cp == nil){
 		piperror = "sender domain";
@@ -1104,11 +1145,12 @@ pipemsg(int *byteswritten)
 	}
 
 	/* write anything we read following the header */
-	if(status == 0 &&
-	    Bwrite(pp->std[0]->fp, cp, s_to_c(hdr) + s_len(hdr) - cp) < 0){
+	nonhdr = s_to_c(hdr) + s_len(hdr) - cp;
+	if(status == 0 && Bwrite(pp->std[0]->fp, cp, nonhdr) < 0){
 		piperror = "write error 2";
 		status = 1;
 	}
+	nbytes += nonhdr;
 	s_free(hdr);
 
 	/*

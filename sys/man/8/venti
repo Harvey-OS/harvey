@@ -385,8 +385,9 @@ queue writes in memory
 (default is not to queue)
 .TP
 .BI webroot " dir
-directory tree containing files for HTTP server
-to consult for unrecognized URLs
+directory tree containing files for
+.IR venti 's
+internal HTTP server to consult for unrecognized URLs
 .PD
 .PP
 The units for the various cache sizes above can be specified by appending a

@@ -1,4 +1,3 @@
-/* Copyright © Coraid, Inc. 2006.  All rights reserved. */
 #include <u.h>
 #include <libc.h>
 #include "cec.h"
@@ -48,6 +47,8 @@ muxkbd(int kfd, int cfd)
 	while((m.p.len = read(kfd, m.p.data, sizeof m.p.data)) > 0)
 		if(write(cfd, &m, m.p.len+22) != m.p.len+22)
 			break;
+	m.type = Ffatal;
+	write(cfd, &m, 4);
 	exits("");
 }
 
