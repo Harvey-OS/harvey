@@ -524,6 +524,11 @@ vgberxeof(Ether* edev)
 			block->wp = block->rp + length;
 
 			ctlr->stats.rx++;
+			/*
+			 * the packet actually *is* from the wire, but
+			 * we're maintaining a private array of Blocks,
+			 * so can't have etheriq free block.
+			 */
 			etheriq(edev, block, 0);
 		}
 		else

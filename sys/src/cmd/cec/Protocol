@@ -68,7 +68,7 @@ specific.
 3.  Initializing a connection. Tinit[abc]
 
 A connection is initialized by the following conversation: In addition
-to the fields set for the Tdiscover packet, he client sends a packet
+to the fields set for the Tdiscover packet, the client sends a packet
 of type Tinita with the conntag of its choice.  The server responds to
 Tinita with a packet of type Tinitb.  And finally the client sents a
 Tinitc packet back to the server, completing the connection.
@@ -78,7 +78,7 @@ Tinitc packet back to the server, completing the connection.
 Data is sent from the client to the console server with the Tdata packet.
 The seq field is incremented for each data packet sent.  Thus data packets
 may be transmitted if lost.  The data is whatever data the client has to
-send to the server, up to 1500 bytes.  Typically, however, each keystroke
+send to the server, up to 255 bytes.  Typically, however, each keystroke
 is sent in a seperate packet.  The len field is the length of the
 data.
 

@@ -1,13 +1,15 @@
-/* Copyright Coraid, Inc.  2006.  All Rights Reserved */
 #include <u.h>
 #include <libc.h>
 #include "cec.h"
 
-static int fd = -1;
+static	int	fd	= -1;
+extern	char	*svc;
 
 void
 rawon(void)
 {
+	if(svc)
+		return;
 	if((fd = open("/dev/consctl", OWRITE)) == -1 ||
 	    write(fd, "rawon", 5) != 5)
 		fprint(2, "Can't make console raw\n");
@@ -16,6 +18,8 @@ rawon(void)
 void
 rawoff(void)
 {
+	if(svc)
+		return;
 	close(fd);
 }
 

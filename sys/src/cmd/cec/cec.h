@@ -1,5 +1,3 @@
-/* cec.h: definitions for cec */
-
 typedef struct {
 	uchar	dst[6];
 	uchar	src[6];
@@ -14,27 +12,27 @@ typedef struct {
 enum {
 	Fkbd,
 	Fcec,
-	Floc,
+	Ffatal,
 };
 
 typedef struct Mux Mux;
 #pragma incomplete Mux;
 
-enum {
+enum{
 	Iowait		= 2000,
 	Etype 		= 0xbcbc,
 };
 int debug;
 
-Mux *mux(int fd[2]);
-int muxread(Mux*, Pkt*);
-void muxfree(Mux*);
+Mux	*mux(int fd[2]);
+void	muxfree(Mux*);
+int	muxread(Mux*, Pkt*);
 
-int netopen(char *name);
-int netsend(void *, int);
-int netget(void *, int);
+int	netget(void *, int);
+int	netopen(char *name);
+int	netsend(void *, int);
 
-void rawon(void);
-void rawoff(void);
-void dump(uchar*, int);
-void exits0(char*);
+void	dump(uchar*, int);
+void	exits0(char*);
+void	rawoff(void);
+void	rawon(void);
