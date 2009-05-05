@@ -86,15 +86,17 @@ main(int argc, char *argv[])
 int
 gline(char *buf)
 {
+	int len;
 	char *p;
 
 	p = Brdline(&fin, '\n');
 	if(p == 0)
 		return 1;
-	if(fin.rdline >= bsize-1)
+	len = Blinelen(&fin);
+	if(len >= bsize-1)
 		sysfatal("line too long");
-	memmove(buf, p, fin.rdline);
-	buf[fin.rdline-1] = 0;
+	memmove(buf, p, len);
+	buf[len-1] = 0;
 	return 0;
 }
 
