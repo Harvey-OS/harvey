@@ -197,7 +197,7 @@ is like
 .B -t
 but prints a final line with the total time.
 .PD
-.SH EXAMPLE
+.SH EXAMPLES
 Backup to a BD-R disc:
 .br
 .ne 3
