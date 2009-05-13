@@ -110,6 +110,14 @@ Xbackq(void)
 		f = openfd(pfd[PRD]);
 		s = wd;
 		v = 0;
+		/*
+		 * this isn't quite right for utf.  stop could have utf
+		 * in it, and we're processing the input as bytes, not
+		 * utf encodings of runes.  further, if we run out of
+		 * room in wd, we can chop in the middle of a utf encoding
+		 * (not to mention stepping on one of the bytes).
+		 * presotto's Strings seem like the right data structure here.
+		 */
 		while((c = rchr(f))!=EOF){
 			if(strchr(stop, c) || s==ewd){
 				if(s!=wd){
