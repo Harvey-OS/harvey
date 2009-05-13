@@ -12,15 +12,17 @@ pfmt(io *f, char *fmt, ...)
 {
 	va_list ap;
 	char err[ERRMAX];
+
 	va_start(ap, fmt);
 	pfmtnest++;
-	for(;*fmt;fmt++)
-		if(*fmt!='%')
+	for(;*fmt;fmt++) {
+		if(*fmt!='%') {
 			pchr(f, *fmt);
-		else switch(*++fmt){
-		case '\0':
-			va_end(ap);
-			return;
+			continue;
+		}
+		if(*++fmt == '\0')		/* "blah%"? */
+			break;
+		switch(*fmt){
 		case 'c':
 			pchr(f, va_arg(ap, int));
 			break;
@@ -55,6 +57,7 @@ pfmt(io *f, char *fmt, ...)
 			pchr(f, *fmt);
 			break;
 		}
+	}
 	va_end(ap);
 	if(--pfmtnest==0)
 		flush(f);
