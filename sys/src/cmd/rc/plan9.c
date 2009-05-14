@@ -646,3 +646,10 @@ havewaitpid(int pid)
 			return 1;
 	return 0;
 }
+
+/* avoid loading any floating-point library code */
+int
+_efgfmt(Fmt *)
+{
+	return -1;
+}
