@@ -111,7 +111,7 @@ Here is the job that mails system news.
 .EX
 % cat /cron/upas/cron
 # send system news
-15 8-17, 21 ***	helix	/mail/lib/mailnews
+15 8-17,21 * * *	helix	/mail/lib/mailnews
 %
 .EE
 .SH FILES
