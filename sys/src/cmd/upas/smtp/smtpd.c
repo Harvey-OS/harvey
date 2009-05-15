@@ -163,7 +163,7 @@ main(int argc, char **argv)
 
 	nci = getnetconninfo(netdir, 0);
 	if(nci == nil)
-		sysfatal("can't get remote system's address");
+		sysfatal("can't get remote system's address: %r");
 	parseip(rsysip, nci->rsys);
 
 	if(mailer == nil)
@@ -305,8 +305,8 @@ static int
 delaysecs(void)
 {
 	if (netaspam[rsysip[0]])
-		return 60;
-	return 15;
+		return 20;
+	return 12;
 }
 
 void
@@ -899,14 +899,15 @@ startcmd(void)
 			dom);
 		return 0;
 	case ACCEPT:
-	case TRUSTED:
 		/*
 		 * now that all other filters have been passed,
 		 * do grey-list processing.
 		 */
 		if(gflag)
 			vfysenderhostok();
+		/* fall through */
 
+	case TRUSTED:
 		/*
 		 *  set up mail command
 		 */
