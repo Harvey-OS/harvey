@@ -227,3 +227,9 @@ by convention, TCP device bind point
 .SH "SEE ALSO"
 .IR authsrv (6),
 .IR dial (2)
+.SH BUGS
+.IR Srvdir ,
+.IR trustsrvdir
+and
+.I namespace
+must all be absolute path names.

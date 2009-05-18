@@ -43,6 +43,25 @@ static struct {
 	{ nil },
 };
 
+static int nextport;
+static ulong portsinuse[16];
+
+static int
+inuse(ulong port)
+{
+	int i;
+
+	for (i = 0; i < nextport; i++)
+		if (portsinuse[i] == port)
+			return 1;
+
+	/* port is available.  mark it as used now. */
+	if (nextport >= nelem(portsinuse))
+		return 1;		/* too many ports in use */
+	portsinuse[nextport++] = port;
+	return 0;
+}
+
 static Ctlr*
 ne2000match(Ether* edev, int id)
 {
@@ -72,7 +91,6 @@ ne2000match(Ether* edev, int id)
 		edev->irq = p->intl;
 
 		ctlr->active = 1;
-
 		return ctlr;
 	}
 
@@ -127,6 +145,7 @@ ne2000pnp(Ether* edev)
 	}
 }
 
+/* may be called more than once */
 int
 ne2000reset(Ether* ether)
 {
@@ -139,6 +158,13 @@ ne2000reset(Ether* ether)
 	if(ether->port == 0)
 		ne2000pnp(ether);
 
+	/*
+	 * port == 0 is a desperate attempt to find something at the
+	 * default port.  only allow one of these to be found, and
+	 * only if no other card has been found.
+	 */
+	if(ether->port == 0 && ether->ctlrno > 0)
+		return -1;
 	/*
 	 * Set up the software configuration.
 	 * Use defaults for port, irq, mem and size
@@ -153,6 +179,9 @@ ne2000reset(Ether* ether)
 	if(ether->size == 0)
 		ether->size = 16*1024;
 	port = ether->port;
+
+	if(inuse(ether->port))
+		return -1;
 
 	ether->ctlr = malloc(sizeof(Dp8390));
 	ctlr = ether->ctlr;
@@ -214,6 +243,5 @@ ne2000reset(Ether* ether)
 			ether->ea[i] = buf[i];
 	}
 	dp8390setea(ether);
-
 	return 0;
 }
