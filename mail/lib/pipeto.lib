@@ -26,6 +26,19 @@ fn log {
 		echo `{date} $* >>/mail/box/$USER/_log >[2]/dev/null
 }
 
+fn gonefishing {
+	if (test -e gone.fishing) {
+		MAILTO=`{cat $D/replyto}
+		grep '^'$"MAILTO'$' gone.addrs >/dev/null >[2=1] || {
+			echo $MAILTO >>gone.addrs
+			message=gone.msg
+			if (! test -e $message)
+				message=/mail/lib/gone.msg
+			mail $MAILTO <$message
+		}
+	}
+}
+
 # deliver mail to a local file
 fn spool {
 	if(~ $#* 0)
@@ -33,6 +46,7 @@ fn spool {
 	if not
 		_mbox=$1
 	$BIN/deliver $RECIP $D/from $_mbox < $D/raw || exit $status
+	gonefishing
 }
 
 # spool but change the subject line to note spam
@@ -48,8 +62,8 @@ fn spool-tagged-spam {
 		echo
 		cat $D/rawbody
 	} | $BIN/deliver $RECIP $D/from $_mbox || exit $status
+	gonefishing
 }
-
 
 # forward mail to a list of addresses
 fn forward {
