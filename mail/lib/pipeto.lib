@@ -37,6 +37,8 @@ fn gonefishing {
 			mail $MAILTO <$message
 		}
 	}
+	if not
+		status=''			# ensure good exit status
 }
 
 # deliver mail to a local file
