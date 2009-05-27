@@ -1,0 +1,25 @@
+</$objtype/mkfile
+
+TARG=ether
+LIB=../lib/usb.a$O
+
+HFILES=\
+	ether.h\
+	../lib/usb.h\
+	../lib/usbfs.h\
+
+OFILES=\
+	main.$O\
+	ether.$O\
+	asix.$O\
+	cdc.$O\
+
+BIN=/$objtype/bin/usb
+</sys/src/cmd/mkone
+CFLAGS=-I../lib $CFLAGS
+
+$LIB:
+	cd ../lib
+	mk install
+	mk clean
+

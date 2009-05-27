@@ -1,19 +1,20 @@
 </$objtype/mkfile
 
 TARG=kb
-
-OFILES=\
-	kb.$O\
-
-
+OFILES=main.$O
+LIBDOFILES=kb.$O
 HFILES=\
 	../lib/usb.h\
 	hid.h\
 
-
-LIB=../lib/usb.a$O
+LIBD=../lib/usbdev.a$O
+LIBU=../lib/usb.a$O
+LIB=\
+	$LIBD\
+	$LIBU\
 
 BIN=/$objtype/bin/usb
+
 
 UPDATE=\
 	mkfile\
@@ -21,11 +22,14 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 
 </sys/src/cmd/mkone
-
 CFLAGS=-I../lib $CFLAGS
 
-$LIB:
+$LIBU:
 	cd ../lib
 	mk install
 	mk clean
+
+$LIBD:V: $LIBDOFILES
+	ar vu $LIBD $newprereq
+	rm $newprereq
 

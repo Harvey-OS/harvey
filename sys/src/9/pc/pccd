@@ -1,4 +1,4 @@
-# small kernel used to install from cd
+# pccd - small kernel used to install from cd
 dev
 	root
 	cons
@@ -60,6 +60,7 @@ link
 	etherigbe	pci ethermii
 	ethervgbe	pci ethermii
 	ethervt6102	pci ethermii
+	ethervt6105m	pci ethermii
 	ethersink
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
@@ -70,6 +71,7 @@ link
 	netdevmedium
 	usbuhci
 	usbohci
+	usbehci
 
 misc
 	archmp		mp apic
@@ -112,18 +114,16 @@ ip
 	ipifc
 	icmp
 	icmp6
-#	il
 
 port
 	int cpuserver = 0;
 
 boot boot #S/sdD0/data
 	tcp
-#	il
 	local
 
 bootdir
 	bootpccd.out boot
 	/386/bin/ip/ipconfig ipconfig
 	/386/bin/9660srv kfs
-
+	/386/bin/usb/usbd

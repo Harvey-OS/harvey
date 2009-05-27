@@ -1,6 +1,13 @@
 /*
- * USB Universal Host Controller Interface (UHCI) driver
+ * USB Universal Host Controller Interface (sic) driver.
+ *
+ * BUGS:
+ * - Too many delays and ilocks.
+ * - bandwidth admission control must be done per-frame.
+ * - interrupt endpoints should go on a tree like [oe]hci.
+ * - must warn of power overruns.
  */
+
 #include	"u.h"
 #include	"../port/lib.h"
 #include	"mem.h"
@@ -8,1410 +15,2085 @@
 #include	"fns.h"
 #include	"io.h"
 #include	"../port/error.h"
-
 #include	"usb.h"
 
-#define XPRINT if(debug)print
-#define XXPRINT if(0)print
+typedef struct Ctlio Ctlio;
+typedef struct Ctlr Ctlr;
+typedef struct Isoio Isoio;
+typedef struct Qh Qh;
+typedef struct Qhpool Qhpool;
+typedef struct Qio Qio;
+typedef struct Td Td;
+typedef struct Tdpool Tdpool;
 
-static int Chatty = 0;
-static int debug = 0;
-
-static	char	Estalled[] = "usb endpoint stalled";
-
-/*
- * UHCI interface registers and bits
- */
 enum
 {
+	Resetdelay	= 100,		/* delay after a controller reset (ms) */
+	Enabledelay	= 100,		/* waiting for a port to enable */
+	Abortdelay	= 5,		/* delay after cancelling Tds (ms) */
+	Incr		= 64,		/* for Td and Qh pools */
+	Ctltmout	= 2000,		/* timeout for a ctl. request (ms) */
+	Bulktmout	= 4000,		/* timeout for a bulk xfer. (ms) */
+	Isotmout	= 2000,		/* timeout for an iso. request (ms) */
+
+	Tdatomic	= 8,		/* max nb. of Tds per bulk I/O op. */
+
+	/* Queue states (software) */
+	Qidle		= 0,
+	Qinstall,
+	Qrun,
+	Qdone,
+	Qclose,
+	Qfree,
+
 	/*
-	 * USB packet definitions...
- 	 */
+	 * HW constants
+	 */
 
-	/* low nibbles are on-the-wire */
-	Utokin = 0x69,
-	Utokout = 0xE1,
-	Utoksetup = 0x2D,
+	Nframes		= 1024,		/* 2ⁿ for xspanalloc; max 1024 */
+	Align		= 16,		/* for data structures */
 
-	/* i/o space */
-	Cmd = 0,
-	Status = 2,
-	Usbintr = 4,
-	Frnum = 6,
-	Flbaseadd = 8,
-	SOFMod = 0xC,
-	Portsc0 = 0x10,
-	Portsc1 = 0x12,
+	/* Size of small buffer kept within Tds. (software) */
+	/* Keep as a multiple of Align to maintain alignment of Tds in pool */
+	Tdndata		= 1*Align,
 
-	/* port status */
-	Suspend =	1<<12,
-	PortReset =	1<<9,
-	SlowDevice =	1<<8,
-	ResumeDetect =	1<<6,
-	PortChange =	1<<3,	/* write 1 to clear */
-	PortEnable =	1<<2,
-	StatusChange =	1<<1,	/* write 1 to clear */
-	DevicePresent =	1<<0,
+	/* i/o space
+	 * Some ports are short, some are long, some are byte.
+	 * We use ins[bsl] and not vmap.
+	 */
+	Cmd		= 0,
+		Crun		= 0x01,
+		Chcreset	= 0x02,	/* host controller reset */
+		Cgreset		= 0x04,	/* global reset */
+		Cegsm		= 0x08,	/* enter global suspend */
+		Cfgr		= 0x10,	/* forge global resume */
+		Cdbg		= 0x20,	/* single step, debug */
+		Cmaxp		= 0x80,	/* max packet */
 
-	NFRAME = 	1024,	/* must be 2ⁿ for xspanalloc; max 1024 */
-	FRAMESIZE=	NFRAME*sizeof(ulong), /* fixed by hardware; aligned to same */
+	Status		= 2,
+		Susbintr		= 0x01,	/* interrupt */
+		Seintr		= 0x02, /* error interrupt */
+		Sresume		= 0x04, /* resume detect */
+		Shserr		= 0x08, /* host system error */
+		Shcerr		= 0x10, /* host controller error */
+		Shalted		= 0x20, /* controller halted */
+		Sall		= 0x3F,
 
-	Vf =		1<<2,	/* TD only */
-	IsQH =		1<<1,
-	Terminate =	1<<0,
+	Usbintr 		= 4,
+		Itmout		= 0x01, /* timeout or crc */
+		Iresume		= 0x02, /* resume interrupt enable */
+		Ioc		= 0x04, /* interrupt on complete */
+		Ishort		= 0x08, /* short packet interrupt */
+		Iall		= 0x0F,
+	Frnum		= 6,
+	Flbaseadd 	= 8,
+	SOFmod		= 0xC,		/* start of frame modifier register */
 
-	/* TD.status */
-	SPD =		1<<29,
-	ErrLimit0 =	0<<27,
-	ErrLimit1 =	1<<27,
-	ErrLimit2 =	2<<27,
-	ErrLimit3 =	3<<27,
-	LowSpeed =	1<<26,
-	IsoSelect =	1<<25,
-	IOC =		1<<24,
-	Active =	1<<23,
-	Stalled =	1<<22,
-	DataBufferErr =	1<<21,
-	Babbling =	1<<20,
-	NAKed =		1<<19,
-	CRCorTimeout =	1<<18,
-	BitstuffErr =	1<<17,
-	AnyError = (Stalled | DataBufferErr | Babbling | NAKed | CRCorTimeout |
-			BitstuffErr),
+	Portsc0		= 0x10,
+		PSpresent	= 0x0001,	/* device present */
+		PSstatuschg	= 0x0002,	/* PSpresent changed */
+		PSenable	= 0x0004,	/* device enabled */
+		PSchange	= 0x0008,	/* PSenable changed */
+		PSresume	= 0x0040,	/* resume detected */
+		PSreserved1	= 0x0080,	/* always read as 1; reserved */
+		PSslow		= 0x0100,	/* device has low speed */
+		PSreset		= 0x0200,	/* port reset */
+		PSsuspend	= 0x1000,	/* port suspended */
 
-	/* TD.dev */
-	IsDATA1 =	1<<19,
+	/* Transfer descriptor link */
+	Tdterm		= 0x1,		/* nil (terminate) */
+	Tdlinkqh	= 0x2,			/* link refers to a QH */
+	Tdvf		= 0x4,		/* run linked Tds first (depth-first)*/
 
-	/* TD.flags (software) */
-	CancelTD=	1<<0,
-	IsoClean=	1<<2,
+	/* Transfer status bits */
+	Tdbitstuff	= 0x00020000,	/* bit stuffing error */
+	Tdcrcto		= 0x00040000,	/* crc or timeout error */
+	Tdnak		= 0x00080000,	/* nak packet received */
+	Tdbabble	= 0x00100000,	/* babble detected */
+	Tddberr		= 0x00200000,	/* data buf. error */
+	Tdstalled	= 0x00400000,	/* serious error to ep. */
+	Tdactive		= 0x00800000,	/* enabled/in use by hw */
+	/* Transfer control bits */
+	Tdioc		= 0x01000000,	/* interrupt on complete */
+	Tdiso		= 0x02000000,	/* isochronous select */
+	Tdlow		= 0x04000000,	/* low speed device */
+	Tderr1		= 0x08000000,	/* bit 0 of error counter */
+	Tderr2		= 0x10000000,	/* bit 1 of error counter */
+	Tdspd		= 0x20000000,	/* short packet detect */
+
+	Tdlen		= 0x000003FF,	/* actual length field */
+
+	Tdfatalerr	= Tdnak|Tdbabble|Tdstalled, /* hw retries others */
+	Tderrors	= Tdfatalerr|Tdbitstuff|Tdcrcto|Tddberr,
+
+	/* Transfer descriptor token bits */
+	Tddata0		= 0,
+	Tddata1		= 0x80000,	/* data toggle (1==DATA1) */
+	Tdtokin		= 0x69,
+	Tdtokout	= 0xE1,
+	Tdtoksetup	= 0x2D,
+
+	Tdmaxpkt	= 0x800,	/* max packet size */
+
+	/* Queue head bits */
+	QHterm		= 1<<0,		/* nil (terminate) */
+	QHlinkqh		= 1<<1,		/* link refers to a QH */
+	QHvf		= 1<<2,		/* vertical first (depth first) */
 };
 
-static struct
-{
-	int	bit;
-	char	*name;
-}
-portstatus[] =
-{
-	{ Suspend,		"suspend", },
-	{ PortReset,		"reset", },
-	{ SlowDevice,		"lowspeed", },
-	{ ResumeDetect,		"resume", },
-	{ PortChange,		"portchange", },
-	{ PortEnable,		"enable", },
-	{ StatusChange,		"statuschange", },
-	{ DevicePresent,	"present", },
-};
-
-typedef struct Ctlr Ctlr;
-typedef struct Endptx Endptx;
-typedef struct QH QH;
-typedef struct TD TD;
-
-/*
- * software structures
- */
 struct Ctlr
 {
-	Lock;	/* protects state shared with interrupt (eg, free list) */
-	Ctlr*	next;
+	Lock;			/* for ilock. qh lists and basic ctlr I/O */
+	QLock	portlck;	/* for port resets/enable... */
 	Pcidev*	pcidev;
 	int	active;
-
-	int	io;
-	ulong*	frames;		/* frame list */
-	ulong*	frameld;	/* real time load on each frame list entry */
-	QLock	resetl;		/* lock controller during USB reset */
-
-	TD*	tdpool;
-	TD*	freetd;
-	QH*	qhpool;
-	QH*	freeqh;
-
-	QH*	ctlq;	/* queue for control i/o */
-	QH*	bwsop;	/* empty bandwidth sop (to PIIX4 errata specs) */
-	QH*	bulkq;	/* queue for bulk i/o (points back to bandwidth sop) */
-	QH*	recvq;	/* receive queues for bulk i/o */
-
-	Udev*	ports[2];
-
-	struct {
-		Lock;
-		Endpt*	f;
-	} activends;
-
-	long	usbints;	/* debugging */
-	long	framenumber;
-	long	frameptr;
-	long	usbbogus;
+	int	port;		/* I/O address */
+	Qh*	qhs;		/* list of Qhs for this controller */
+	Qh*	qh[Tmax];	/* Dummy Qhs to insert Qhs after */
+	Isoio*	iso;		/* list of active iso I/O */
+	ulong*	frames;		/* frame list (used by hw) */
+	ulong	load;		/* max load for a single frame */
+	ulong	isoload;		/* max iso load for a single frame */
+	int	nintr;		/* number of interrupts attended */
+	int	ntdintr;		/* number of intrs. with something to do */
+	int	nqhintr;		/* number of intrs. for Qhs */
+	int	nisointr;	/* number of intrs. for iso transfers */
 };
 
-#define	IN(x)		ins(ctlr->io+(x))
-#define	OUT(x, v)	outs(ctlr->io+(x), (v))
-
-static Ctlr* ctlrhead;
-static Ctlr* ctlrtail;
-
-struct Endptx
+struct Qio
 {
-	QH*	epq;		/* queue of TDs for this endpoint */
+	QLock;			/* for the entire I/O process */
+	Rendez;			/* wait for completion */
+	Qh*	qh;		/* Td list (field const after init) */
+	int	usbid;		/* usb address for endpoint/device */
+	int	toggle;		/* Tddata0/Tddata1 */
+	int	tok;		/* Tdtoksetup, Tdtokin, Tdtokout */
+	ulong	iotime;		/* time of last I/O */
+	int	debug;		/* debug flag from the endpoint */
+	char*	err;		/* error string */
+};
 
-	/* ISO related: */
-	void*	tdalloc;
-	void*	bpalloc;
-	uchar*	bp0;		/* first block in array */
-	TD*	td0;		/* first td in array */
-	TD*	etd; /* pointer into circular list of TDs for isochronous ept */
-	TD*	xtd;		/* next td to be cleaned */
+struct Ctlio
+{
+	Qio;			/* a single Qio for each RPC */
+	uchar*	data;		/* read from last ctl req. */
+	int	ndata;		/* number of bytes read */
+};
+
+struct Isoio
+{
+	QLock;
+	Rendez;			/* wait for space/completion/errors */
+	int	usbid;		/* address used for device/endpoint */
+	int	tok;		/* Tdtokin or Tdtokout */
+	int	state;		/* Qrun -> Qdone -> Qrun... -> Qclose */
+	int	nframes;	/* Nframes/ep->pollival */
+	uchar*	data;		/* iso data buffers if not embedded */
+	int	td0frno;	/* frame number for first Td */
+	Td*	tdu;		/* next td for user I/O in tdps */
+	Td*	tdi;		/* next td processed by interrupt */
+	char*	err;		/* error string */
+	int	nerrs;		/* nb of consecutive I/O errors */
+	long	nleft;		/* number of bytes left from last write */
+	int	debug;		/* debug flag from the endpoint */
+	Isoio*	next;		/* in list of active Isoios */
+	Td*	tdps[Nframes];	/* pointer to Td used for i-th frame or nil */
+};
+
+struct Tdpool
+{
+	Lock;
+	Td*	free;
+	int	nalloc;
+	int	ninuse;
+	int	nfree;
+};
+
+struct Qhpool
+{
+	Lock;
+	Qh*	free;
+	int	nalloc;
+	int	ninuse;
+	int	nfree;
 };
 
 /*
- * UHCI hardware structures, aligned on 16-byte boundary
+ * HW data structures
  */
-struct TD
+
+/*
+ * Queue header (known by hw).
+ * 16-byte aligned. first two words used by hw.
+ * They are taken from the pool upon endpoint opening and
+ * queued after the dummy queue header for the endpoint type
+ * in the controller. Actual I/O happens as Tds are linked into it.
+ * The driver does I/O in lock-step.
+ * The user builds a list of Tds and links it into the Qh,
+ * then the Qh goes from Qidle to Qrun and nobody touches it until
+ * it becomes Qdone at interrupt time.
+ * At that point the user collects the Tds and it goes Qidle.
+ * A premature cancel may set the state to Qclose and abort I/O.
+ * The Ctlr lock protects change of state for Qhs in use.
+ */
+struct Qh
 {
-	ulong	link;
-	ulong	status;		/* controller r/w */
-	ulong	dev;
-	ulong	buffer;
+	ulong	link;		/* link to next horiz. item (eg. Qh) */
+	ulong	elink;		/* link to element (eg. Td; updated by hw) */
 
-	/* software */
-	ulong	flags;
-	union{
-		Block*	bp;	/* non-iso */
-		ulong	offset;	/* iso */
-	};
-	Endpt*	ep;
-	TD*	next;
-};
-#define	TFOL(p)	((TD*)KADDR((ulong)(p) & ~(0xF|PCIWINDOW)))
+	ulong	state;		/* Qidle -> Qinstall -> Qrun -> Qdone | Qclose */
+	Qio*	io;		/* for this queue */
 
-struct QH
-{
-	ulong	head;
-	ulong	entries; /* address of next TD or QH to process (updated by controller) */
-
-	/* software */
-	QH*	hlink;
-	TD*	first;
-	QH*	next;		/* free list */
-	TD*	last;
-	ulong	_d1;		/* fillers */
-	ulong	_d2;
+	Qh*	next;		/* in active or free list */
+	Td*	tds;		/* Td list in this Qh (initially, elink) */
+	char*	tag;		/* debug and align, mostly */
+	ulong	align;
 };
 
-#define	QFOL(p)	((QH*)KADDR((ulong)(p) & ~(0xF|PCIWINDOW)))
-
-static TD *
-alloctd(Ctlr *ctlr)
+/*
+ * Transfer descriptor.
+ * 16-byte aligned. first two words used by hw. Next 4 by sw.
+ * We keep an embedded buffer for small I/O transfers.
+ * They are taken from the pool when buffers are needed for I/O
+ * and linked at the Qh/Isoio for the endpoint and direction requiring it.
+ * The block keeps actual data. They are protected from races by
+ * the queue or the pool keeping it. The owner of the link to the Td
+ * is free to use it and can be the only one using it.
+ */
+struct Td
 {
-	TD *t;
+	ulong	link;		/* Link to next Td or Qh */
+	ulong	csw;		/* control and status word (updated by hw) */
+	ulong	token;		/* endpt, device, pid */
+	ulong	buffer;		/* buffer pointer */
 
-	ilock(ctlr);
-	t = ctlr->freetd;
-	if(t == nil)
-		panic("alloctd");	/* TO DO */
-	ctlr->freetd = t->next;
-	t->next = nil;
-	iunlock(ctlr);
-	t->ep = nil;
-	t->bp = nil;
-	t->status = 0;
-	t->link = Terminate;
-	t->buffer = 0;
-	t->flags = 0;
-	return t;
+	Td*	next;		/* in qh or Isoio or free list */
+	ulong	ndata;		/* bytes available/used at data */
+	uchar*	data;		/* pointer to actual data */
+	void*	buff;		/* allocated data, for large transfers */
+
+	uchar	sbuff[Tdndata];	/* embedded buffer, for small transfers */
+};
+
+#define INB(x)		inb(ctlr->port+(x))
+#define	INS(x)		ins(ctlr->port+(x))
+#define INL(x)		inl(ctlr->port+(x))
+#define OUTB(x, v)	outb(ctlr->port+(x), (v))
+#define	OUTS(x, v)	outs(ctlr->port+(x), (v))
+#define OUTL(x, v)	outl(ctlr->port+(x), (v))
+#define TRUNC(x, sz)	((x) & ((sz)-1))
+#define PTR(q)		((void*)KADDR((ulong)(q) & ~ (0xF|PCIWINDOW)))
+#define QPTR(q)		((Qh*)PTR(q))
+#define TPTR(q)		((Td*)PTR(q))
+#define PORT(p)		(Portsc0 + 2*(p))
+#define diprint		if(debug || iso->debug)print
+#define ddiprint		if(debug>1 || iso->debug>1)print
+#define dqprint		if(debug || (qh->io && qh->io->debug))print
+#define ddqprint		if(debug>1 || (qh->io && qh->io->debug>1))print
+
+static Ctlr* ctlrs[Nhcis];
+
+static Tdpool tdpool;
+static Qhpool qhpool;
+static int debug;
+
+static char* qhsname[] = { "idle", "install", "run", "done", "close", "FREE" };
+
+static void
+uhcicmd(Ctlr *ctlr, int c)
+{
+	OUTS(Cmd, c);
 }
 
 static void
-freetd(Ctlr *ctlr, TD *t)
-{
-	t->ep = nil;
-	if(t->bp)
-		freeb(t->bp);
-	t->bp = nil;
-	ilock(ctlr);
-	t->buffer = 0xdeadbeef;
-	t->next = ctlr->freetd;
-	ctlr->freetd = t;
-	iunlock(ctlr);
-}
-
-static void
-dumpdata(Block *b, int n)
+uhcirun(Ctlr *ctlr, int on)
 {
 	int i;
 
-	XPRINT("\tb %#p[%d]: ", b->rp, n);
-	if(n > 16)
-		n = 16;
-	for(i=0; i<n; i++)
-		XPRINT(" %2.2ux", b->rp[i]);
-	XPRINT("\n");
-}
+	ddprint("uhci %#ux setting run to %d\n", ctlr->port, on);
 
-static void
-dumptd(TD *t, int follow)
-{
-	int i, n;
-	char buf[20], *s;
-	TD *t0;
-
-	t0 = t;
-	while(t){
-		i = t->dev & 0xFF;
-		if(i == Utokout || i == Utoksetup)
-			n = ((t->dev>>21) + 1) & 0x7FF;
-		else if((t->status & Active) == 0)
-			n = (t->status + 1) & 0x7FF;
-		else
-			n = 0;
-		s = buf;
-		if(t->status & Active)
-			*s++ = 'A';
-		if(t->status & Stalled)
-			*s++ = 'S';
-		if(t->status & DataBufferErr)
-			*s++ = 'D';
-		if(t->status & Babbling)
-			*s++ = 'B';
-		if(t->status & NAKed)
-			*s++ = 'N';
-		if(t->status & CRCorTimeout)
-			*s++ = 'T';
-		if(t->status & BitstuffErr)
-			*s++ = 'b';
-		if(t->status & LowSpeed)
-			*s++ = 'L';
-		*s = 0;
-		XPRINT("td %#p: ", t);
-		XPRINT("l=%#lux s=%#lux d=%#lux b=%#lux %#lux f=%#lux\n",
-			t->link, t->status, t->dev, t->buffer,
-			(t->bp? (ulong)t->bp->rp: 0), t->flags);
-		XPRINT("\ts=%s,ep=%ld,d=%ld,D=%ld\n", buf, (t->dev>>15)&0xF,
-			(t->dev>>8)&0xFF, (t->dev>>19)&1);
-		if(debug && t->bp && (t->flags & CancelTD) == 0)
-			dumpdata(t->bp, n);
-		if(!follow || t->link & Terminate || t->link & IsQH)
-			break;
-		t = TFOL(t->link);
-		if(t == t0)
-			break;		/* looped */
-	}
-}
-
-static TD *
-alloctde(Ctlr *ctlr, Endpt *e, int pid, int n)
-{
-	TD *t;
-	int tog, id;
-
-	t = alloctd(ctlr);
-	id = (e->x<<7)|(e->dev->x&0x7F);
-	tog = 0;
-	if((pid == Utokout && e->wdata01) || (pid == Utokin && e->rdata01))
-		tog = IsDATA1;
-	t->ep = e;
-	t->status = ErrLimit3 | Active | IOC;	/* or put IOC only on last? */
-	if(e->dev->speed == Lowspeed)
-		t->status |= LowSpeed;
-	t->dev = ((n-1)<<21) | ((id&0x7FF)<<8) | pid | tog;
-	return t;
-}
-
-static QH *
-allocqh(Ctlr *ctlr)
-{
-	QH *qh;
-
-	ilock(ctlr);
-	qh = ctlr->freeqh;
-	if(qh == nil)
-		panic("allocqh");	/* TO DO */
-	ctlr->freeqh = qh->next;
-	qh->next = nil;
-	iunlock(ctlr);
-	qh->head = Terminate;
-	qh->entries = Terminate;
-	qh->hlink = nil;
-	qh->first = nil;
-	qh->last = nil;
-	return qh;
-}
-
-static void
-freeqh(Ctlr *ctlr, QH *qh)
-{
-	ilock(ctlr);
-	qh->next = ctlr->freeqh;
-	ctlr->freeqh = qh;
-	iunlock(ctlr);
-}
-
-static void
-dumpqh(QH *q)
-{
-	int i;
-	QH *q0;
-
-	q0 = q;
-	for(i = 0; q != nil && i < 10; i++){
-		XPRINT("qh %#p: %#lux %#lux\n", q, q->head, q->entries);
-		if((q->entries & (IsQH|Terminate)) == 0)
-			dumptd(TFOL(q->entries), 1);
-		if(q->head & Terminate)
-			break;
-		if((q->head & IsQH) == 0){
-			XPRINT("head:");
-			dumptd(TFOL(q->head), 1);
-			break;
-		}
-		q = QFOL(q->head);
-		if(q == q0)
-			break;	/* looped */
-	}
-}
-
-static void
-queuetd(Ctlr *ctlr, QH *q, TD *t, int vf, char *why)
-{
-	TD *lt;
-
-	for(lt = t; lt->next != nil; lt = lt->next)
-		lt->link = PCIWADDR(lt->next) | vf;
-	lt->link = Terminate;
-	ilock(ctlr);
-	XPRINT("usbuhci: queuetd %s: t=%p lt=%p q=%p first=%p last=%p entries=%.8lux\n",
-		why, t, lt, q, q->first, q->last, q->entries);
-	if(q->first != nil){
-		q->last->link = PCIWADDR(t) | vf;
-		q->last->next = t;
-	}else{
-		q->first = t;
-		q->entries = PCIWADDR(t);
-	}
-	q->last = lt;
-	XPRINT("	t=%p q=%p first=%p last=%p entries=%.8lux\n",
-		t, q, q->first, q->last, q->entries);
-	dumpqh(q);
-	iunlock(ctlr);
-}
-
-static void
-cleantd(Ctlr *ctlr, TD *t, int discard)
-{
-	Block *b;
-	int n, err;
-
-	XPRINT("usbuhci: cleanTD: %#lux %#lux %#lux %#lux\n",
-		t->link, t->status, t->dev, t->buffer);
-	if(t->ep != nil && t->ep->debug)
-		dumptd(t, 0);
-	if(t->status & Active)
-		panic("cleantd Active");
-	err = t->status & (AnyError & ~NAKed);
-	/* TO DO: on t->status&AnyError, q->entries will not have advanced */
-	if (err) {
-		XPRINT("usbuhci: cleanTD: Error %#lux %#lux %#lux %#lux\n",
-			t->link, t->status, t->dev, t->buffer);
-		print("usbuhci: cleanTD %d/%d: Error %#lux %#lux %#lux %#lux\n",
-			t->ep->dev->x, t->ep->x,
-			t->link, t->status, t->dev, t->buffer);
-	}
-	switch(t->dev&0xFF){
-	case Utokin:
-		if(discard || (t->flags & CancelTD) || t->ep == nil ||
-		    t->ep->x!=0&&err){
-			if(t->ep != nil){
-				if(err != 0)
-					t->ep->dir[Dirin].err = err & Stalled
-						? Estalled : Eio;
-				wakeup(&t->ep->dir[Dirin].rend);   /* in case anyone cares */
-			}
-			break;
-		}
-		b = t->bp;
-		n = (t->status + 1) & 0x7FF;
-		if(n > b->lim - b->wp)
-			n = 0;
-		b->wp += n;
-		if(Chatty)
-			dumpdata(b, n);
-		t->bp = nil;
-		t->ep->nbytes += n;
-		t->ep->nblocks++;
-		qpass(t->ep->rq, b);	/* TO DO: flow control */
-		wakeup(&t->ep->dir[Dirin].rend);	/* TO DO */
-		break;
-	case Utoksetup:
-		XPRINT("usbuhci: cleanTD: Utoksetup %#p\n", &t->ep);
-		/*
-		 * don't really need to wakeup: subsequent IN or OUT
-		 * gives status./
-		 */
-		if(t->ep != nil) {
-			wakeup(&t->ep->dir[Dirout].rend);	/* TO DO */
-			XPRINT("usbuhci: cleanTD: wakeup %#p\n",
-				&t->ep->dir[Dirout].rend);
-		}
-		break;
-	case Utokout:
-		/* TO DO: mark it done somewhere */
-		XPRINT("usbuhci: cleanTD: TokOut %#p\n", &t->ep);
-		ilock(ctlr);		/* e->ntd++ is ilocked */
-		if(t->ep != nil){
-			if(t->bp){
-				n = BLEN(t->bp);
-				t->ep->nbytes += n;
-				t->ep->nblocks++;
-			}
-			if(t->ep->x && err)
-				t->ep->dir[Dirout].err = err&Stalled
-					? Estalled : Eio;
-			if(--t->ep->ntd < 0)
-				panic("cleantd ntd");
-			wakeup(&t->ep->dir[Dirout].rend);	/* TO DO */
-			XPRINT("usbuhci: cleanTD: wakeup %#p\n",
-				&t->ep->dir[Dirout].rend);
-		}
-		iunlock(ctlr);
-		break;
-	}
-	freetd(ctlr, t);
-}
-
-static void
-cleanq(Ctlr *ctlr, QH *q, int discard, int vf)
-{
-	TD *t, *tp;
-
-	ilock(ctlr);
-	tp = nil;
-	for(t = q->first; t != nil;){
-		XPRINT("usbuchi: cleanq: %#lux %#lux %#lux %#lux %#lux %#p\n",
-		    t->link, t->status, t->dev, t->buffer, t->flags, t->next);
-		if(t->status & Active){
-			if(t->status & NAKed){
-				/* ensure interrupt next frame */
-				t->status = (t->status & ~NAKed) | IOC;
-				tp = t;
-				t = t->next;
-				continue;
-			}
-			if(t->flags & CancelTD){
-				XPRINT("usbuchi: cancelTD: %#p\n", t);
-				/* ensure interrupt next frame */
-				t->status = (t->status & ~Active) | IOC;
-				tp = t;
-				t = t->next;
-				continue;
-			}
-			tp = t;
-			t = t->next;
-			continue;
-		}
-		t->status &= ~IOC;
-		if (tp == nil) {
-			q->first = t->next;
-			if(q->first != nil)
-				q->entries = PCIWADDR(q->first);
-			else
-				q->entries = Terminate;
-		} else {
-			tp->next = t->next;
-			if (t->next != nil)
-				tp->link = PCIWADDR(t->next) | vf;
-			else
-				tp->link = Terminate;
-		}
-		if (q->last == t)
-			q->last = tp;
-		iunlock(ctlr);
-		cleantd(ctlr, t, discard);
-		ilock(ctlr);
-		if (tp)
-			t = tp->next;
-		else
-			t = q->first;
-		XPRINT("t = %#p\n", t);
-		dumpqh(q);
-	}
-	if(q->first && q->entries != PCIWADDR(q->first)){
-		ctlr->usbbogus++;
-		q->entries = PCIWADDR(q->first);
-	}
-	iunlock(ctlr);
-}
-
-static void
-canceltds(Ctlr *ctlr, QH *q, Endpt *e)
-{
-	TD *t;
-
-	if(q != nil){
-		ilock(ctlr);
-		for(t = q->first; t != nil; t = t->next)
-			if(t->ep == e)
-				t->flags |= CancelTD;
-		iunlock(ctlr);
-		XPRINT("cancel:\n");
-		dumpqh(q);
-	}
-}
-
-static void
-eptcancel(Ctlr *ctlr, Endpt *e)
-{
-	Endptx *x;
-
-	if(e == nil)
-		return;
-	x = e->private;
-	canceltds(ctlr, x->epq, e);
-	canceltds(ctlr, ctlr->ctlq, e);
-	canceltds(ctlr, ctlr->bulkq, e);
-}
-
-static void
-eptactivate(Ctlr *ctlr, Endpt *e)
-{
-	ilock(&ctlr->activends);
-	if(e->active == 0){
-		XPRINT("activate 0x%p\n", e);
-		e->active = 1;
-		e->activef = ctlr->activends.f;
-		ctlr->activends.f = e;
-	}
-	iunlock(&ctlr->activends);
-}
-
-static void
-eptdeactivate(Ctlr *ctlr, Endpt *e)
-{
-	Endpt **l;
-
-	/* could be O(1) but not worth it yet */
-	ilock(&ctlr->activends);
-	if(e->active){
-		e->active = 0;
-		XPRINT("deactivate 0x%p\n", e);
-		for(l = &ctlr->activends.f; *l != e; l = &(*l)->activef)
-			if(*l == nil){
-				iunlock(&ctlr->activends);
-				panic("usb eptdeactivate");
-			}
-		*l = e->activef;
-	}
-	iunlock(&ctlr->activends);
-}
-
-static void
-queueqh(Ctlr *ctlr, QH *qh)
-{
-	QH *q;
-
-	/* See if it's already queued */
-	for (q = ctlr->recvq->next; q; q = q->hlink)
-		if (q == qh)
-			return;
-	if ((qh->hlink = ctlr->recvq->next) == nil)
-		qh->head = Terminate;
-	else
-		qh->head = PCIWADDR(ctlr->recvq->next) | IsQH;
-	ctlr->recvq->next = qh;
-	ctlr->recvq->entries = PCIWADDR(qh) | IsQH;
-}
-
-static QH*
-qxmit(Ctlr *ctlr, Endpt *e, Block *b, int pid)
-{
-	TD *t;
-	int n, vf;
-	QH *qh;
-	Endptx *x;
-
-	x = e->private;
-	if(b != nil){
-		n = BLEN(b);
-		t = alloctde(ctlr, e, pid, n);
-		t->bp = b;
-		t->buffer = PCIWADDR(b->rp);
-	}else
-		t = alloctde(ctlr, e, pid, 0);
-	ilock(ctlr);
-	e->ntd++;
-	iunlock(ctlr);
-	if(e->debug)
-		pprint("QTD: %#p n=%ld\n", t, b? BLEN(b): 0);
-	vf = 0;
-	if(e->x == 0){
-		qh = ctlr->ctlq;
-		vf = 0;
-	}else if((qh = x->epq) == nil || e->mode != OWRITE){
-		qh = ctlr->bulkq;
-		vf = Vf;
-	}
-	queuetd(ctlr, qh, t, vf, "qxmit");
-	return qh;
-}
-
-static QH*
-qrcv(Ctlr *ctlr, Endpt *e)
-{
-	TD *t;
-	Block *b;
-	QH *qh;
-	int vf;
-	Endptx *x;
-
-	x = e->private;
-	t = alloctde(ctlr, e, Utokin, e->maxpkt);
-	b = allocb(e->maxpkt);
-	t->bp = b;
-	t->buffer = PCIWADDR(b->wp);
-	vf = 0;
-	if(e->x == 0){
-		qh = ctlr->ctlq;
-	}else if((qh = x->epq) == nil || e->mode != OREAD){
-		qh = ctlr->bulkq;
-		vf = Vf;
-	}
-	queuetd(ctlr, qh, t, vf, "qrcv");
-	return qh;
-}
-
-static int
-usbsched(Ctlr *ctlr, int pollms, ulong load)
-{
-	int i, d, q;
-	ulong best, worst;
-
-	best = 1000000;
-	q = -1;
-	for (d = 0; d < pollms; d++){
-		worst = 0;
-		for (i = d; i < NFRAME; i++)
-			if (ctlr->frameld[i] + load > worst)
-				worst = ctlr->frameld[i] + load;
-		if (worst < best){
-			best = worst;
-			q = d;
-		}
-	}
-	return q;
-}
-
-static int
-schedendpt(Ctlr *ctlr, Endpt *e)
-{
-	TD *td;
-	Endptx *x;
-	uchar *bp;
-	int i, id, ix, size, frnum;
-
-	/* Only for isochronous endpoints */
-	if(e->epmode != Isomode || e->sched >= 0)
-		return 0;
-
-	/* Interrupt mode should also go here */
-
-	if (e->active)
-		return -1;
-	e->off = 0;
-	e->sched = usbsched(ctlr, e->pollms, e->maxpkt);
-	if(e->sched < 0)
-		return -1;
-
-	x = e->private;
-	if (x->tdalloc || x->bpalloc)
-		panic("usb: tdalloc/bpalloc");
-	x->tdalloc = mallocz(0x10 + NFRAME*sizeof(TD), 1);
-	x->bpalloc = mallocz(0x10 + e->maxpkt*NFRAME/e->pollms, 1);
-	x->td0 = (TD*)(((ulong)x->tdalloc + 0xf) & ~0xf);
-	x->bp0 = (uchar *)(((ulong)x->bpalloc + 0xf) & ~0xf);
-	frnum = (IN(Frnum) + 1) & 0x3ff;
-	frnum = (frnum & ~(e->pollms - 1)) + e->sched;
-	x->xtd = &x->td0[(frnum+8)&0x3ff];	/* Next td to finish */
-	x->etd = nil;
-	e->remain = 0;
-	e->nbytes = 0;
-	td = x->td0;
-	for(i = e->sched; i < NFRAME; i += e->pollms){
-		bp = x->bp0 + e->maxpkt*i/e->pollms;
-		td->buffer = PCIWADDR(bp);
-		td->ep = e;
-		td->next = &td[1];
-		ctlr->frameld[i] += e->maxpkt;
-		td++;
-	}
-	td[-1].next = x->td0;
-	for(i = e->sched; i < NFRAME; i += e->pollms){
-		ix = (frnum+i) & 0x3ff;
-		td = &x->td0[ix];
-
-		id = (e->x<<7)|(e->dev->x&0x7F);
-		if (e->mode == OREAD)
-			/* enable receive on this entry */
-			td->dev = (e->maxpkt-1)<<21 | (id&0x7FF)<<8 | Utokin;
-		else{
-			size = (e->hz + e->remain)*e->pollms/1000;
-			e->remain = (e->hz + e->remain)*e->pollms%1000;
-			size *= e->samplesz;
-			td->dev = (size-1)<<21 | (id&0x7FF)<<8 | Utokout;
-		}
-		td->status = ErrLimit1 | Active | IsoSelect | IOC;
-		td->link = ctlr->frames[ix];
-		td->flags |= IsoClean;
-		ctlr->frames[ix] = PCIWADDR(td);
-	}
-	return 0;
-}
-
-static void
-unschedendpt(Ctlr *ctlr, Endpt *e)
-{
-	int q;
-	TD *td;
-	Endptx *x;
-	ulong *addr;
-
-	if(e->epmode != Isomode || e->sched < 0)
-		return;
-
-	x = e->private;
-	if (x->tdalloc == nil)
-		panic("tdalloc");
-	for (q = e->sched; q < NFRAME; q += e->pollms){
-		td = x->td0++;
-		addr = &ctlr->frames[q];
-		while(*addr != PADDR(td)) {
-			if(*addr & IsQH)
-				panic("usb: TD expected");
-			addr = &TFOL(*addr)->link;
-		}
-		*addr = td->link;
-		ctlr->frameld[q] -= e->maxpkt;
-	}
-	free(x->tdalloc);
-	free(x->bpalloc);
-	x->tdalloc = nil;
-	x->bpalloc = nil;
-	x->etd = nil;
-	x->td0 = nil;
-	e->sched = -1;
-}
-
-static void
-epalloc(Usbhost *uh, Endpt *e)
-{
-	Endptx *x;
-
-	x = malloc(sizeof(Endptx));
-	e->private = x;
-	x->epq = allocqh(uh->ctlr);
-	if(x->epq == nil)
-		panic("devendptx");
-}
-
-static void
-epfree(Usbhost *uh, Endpt *e)
-{
-	Ctlr *ctlr;
-	Endptx *x;
-
-	ctlr = uh->ctlr;
-	x = e->private;
-	if(x->epq != nil)
-		freeqh(ctlr, x->epq);
-}
-
-static void
-epopen(Usbhost *uh, Endpt *e)
-{
-	Ctlr *ctlr;
-
-	ctlr = uh->ctlr;
-	if(e->epmode == Isomode && e->active)
-		error("already open");
-	if(schedendpt(ctlr, e) < 0){
-		if(e->active)
-			error("cannot schedule USB endpoint, active");
-		else
-			error("cannot schedule USB endpoint");
-	}
-	eptactivate(ctlr, e);
-}
-
-static void
-epclose(Usbhost *uh, Endpt *e)
-{
-	Ctlr *ctlr;
-
-	ctlr = uh->ctlr;
-	eptdeactivate(ctlr, e);
-	unschedendpt(ctlr, e);
-}
-
-static void
-epmode(Usbhost *uh, Endpt *e)
-{
-	Ctlr *ctlr;
-	Endptx *x;
-
-	if(e->epnewmode == e->epmode)
-		return;
-	ctlr = uh->ctlr;
-	x = e->private;
-	if(e->epnewmode == Isomode){
-		if(x->epq != nil){
-			freeqh(ctlr, x->epq);
-			x->epq = nil;
-		}
-	}else{
-		/* Each bulk device gets a queue head hanging off the
-		 * bulk queue head
-		 */
-		if(x->epq == nil){
-			x->epq = allocqh(ctlr);
-			if(x->epq == nil)
-				panic("epbulk: allocqh");
-		}
-		queueqh(ctlr, x->epq);
-	}
-	e->epmode = e->epnewmode;
-}
-
-static	int	ioport[] = {-1, Portsc0, Portsc1};
-
-static void
-portreset(Usbhost *uh, int port)
-{
-	int i, p;
-	Ctlr *ctlr;
-
-	ctlr = uh->ctlr;
-	if(port != 1 && port != 2)
-		error(Ebadarg);
-
-	/* should check that device not being configured on other port? */
-	p = ioport[port];
-	qlock(&ctlr->resetl);
-	if(waserror()){
-		qunlock(&ctlr->resetl);
-		nexterror();
-	}
-	XPRINT("r: %x\n", IN(p));
-	ilock(ctlr);
-	OUT(p, PortReset);
-	delay(12);	/* BUG */
-	XPRINT("r2: %x\n", IN(p));
-	OUT(p, IN(p) & ~PortReset);
-	XPRINT("r3: %x\n", IN(p));
-	OUT(p, IN(p) | PortEnable);
-	microdelay(64);
-	for(i=0; i<1000 && (IN(p) & PortEnable) == 0; i++)
-		;
-	XPRINT("r': %x %d\n", IN(p), i);
-	OUT(p, (IN(p) & ~PortReset)|PortEnable);
-	iunlock(ctlr);
-	poperror();
-	qunlock(&ctlr->resetl);
-}
-
-static void
-portenable(Usbhost *uh, int port, int on)
-{
-	int w, p;
-	Ctlr *ctlr;
-
-	ctlr = uh->ctlr;
-	if(port != 1 && port != 2)
-		error(Ebadarg);
-
-	/* should check that device not being configured on other port? */
-	p = ioport[port];
-	qlock(&ctlr->resetl);
-	if(waserror()){
-		qunlock(&ctlr->resetl);
-		nexterror();
-	}
-	ilock(ctlr);
-	w = IN(p);
 	if(on)
-		w |= PortEnable;
+		uhcicmd(ctlr, INS(Cmd)|Crun);
 	else
-		w &= ~PortEnable;
-	OUT(p, w);
-	microdelay(64);
-	iunlock(ctlr);
-	XPRINT("e: %x\n", IN(p));
-	poperror();
-	qunlock(&ctlr->resetl);
+		uhcicmd(ctlr, INS(Cmd) & ~Crun);
+	for(i = 0; i < 100; i++)
+		if(on == 0 && (INS(Status) & Shalted) != 0)
+			break;
+		else if(on != 0 && (INS(Status) & Shalted) == 0)
+			break;
+		else
+			delay(1);
+	if(i == 100)
+		dprint("uhci %#x run cmd timed out\n", ctlr->port);
+	ddprint("uhci %#ux cmd %#ux sts %#ux\n",
+		ctlr->port, INS(Cmd), INS(Status));
+}
+
+static int
+tdlen(Td *td)
+{
+	return (td->csw+1) & Tdlen;
+}
+
+static int
+maxtdlen(Td *td)
+{
+	return ((td->token>>21)+1) & (Tdmaxpkt-1);
+}
+
+static int
+tdtok(Td *td)
+{
+	return td->token & 0xFF;
+}
+
+static char*
+seprinttd(char *s, char *se, Td *td)
+{
+	s = seprint(s, se, "%#p link %#ulx", td, td->link);
+	if((td->link & Tdvf) != 0)
+		s = seprint(s, se, "V");
+	if((td->link & Tdterm) != 0)
+		s = seprint(s, se, "T");
+	if((td->link & Tdlinkqh) != 0)
+		s = seprint(s, se, "Q");
+	s = seprint(s, se, " csw %#ulx ", td->csw);
+	if(td->csw & Tdactive)
+		s = seprint(s, se, "a");
+	if(td->csw & Tdiso)
+		s = seprint(s, se, "I");
+	if(td->csw & Tdioc)
+		s = seprint(s, se, "i");
+	if(td->csw & Tdlow)
+		s = seprint(s, se, "l");
+	if((td->csw & (Tderr1|Tderr2)) == 0)
+		s = seprint(s, se, "z");
+	if(td->csw & Tderrors)
+		s = seprint(s, se, " err %#ulx", td->csw & Tderrors);
+	if(td->csw & Tdstalled)
+		s = seprint(s, se, "s");
+	if(td->csw & Tddberr)
+		s = seprint(s, se, "d");
+	if(td->csw & Tdbabble)
+		s = seprint(s, se, "b");
+	if(td->csw & Tdnak)
+		s = seprint(s, se, "n");
+	if(td->csw & Tdcrcto)
+		s = seprint(s, se, "c");
+	if(td->csw & Tdbitstuff)
+		s = seprint(s, se, "B");
+	s = seprint(s, se, " stslen %d", tdlen(td));
+
+	s = seprint(s, se, " token %#ulx", td->token);
+	if(td->token == 0)		/* the BWS loopback Td, ignore rest */
+		return s;
+	s = seprint(s, se, " maxlen %d", maxtdlen(td));
+	if(td->token & Tddata1)
+		s = seprint(s, se, " d1");
+	else
+		s = seprint(s, se, " d0");
+	s = seprint(s, se, " id %#ulx:", (td->token>>15) & Epmax);
+	s = seprint(s, se, "%#ulx", (td->token>>8) & Devmax);
+	switch(tdtok(td)){
+	case Tdtokin:
+		s = seprint(s, se, " in");
+		break;
+	case Tdtokout:
+		s = seprint(s, se, " out");
+		break;
+	case Tdtoksetup:
+		s = seprint(s, se, " setup");
+		break;
+	default:
+		s = seprint(s, se, " BADPID");
+	}
+	s = seprint(s, se, "\n\t  buffer %#ulx data %#p", td->buffer, td->data);
+	s = seprint(s, se, " ndata %uld sbuff %#p buff %#p",
+		td->ndata, td->sbuff, td->buff);
+	if(td->ndata > 0)
+		s = seprintdata(s, se, td->data, td->ndata);
+	return s;
 }
 
 static void
-portinfo(Usbhost *uh, char *s, char *se)
+isodump(Isoio *iso, int all)
 {
-	int x, i, j;
-	Ctlr *ctlr;
+	char buf[256];
+	Td *td;
+	int i;
 
-	ctlr = uh->ctlr;
-	for(i = 1; i <= 2; i++) {
-		ilock(ctlr);
-		x = IN(ioport[i]);
-		if((x & (PortChange|StatusChange)) != 0)
-			/* TODO: could notify usbd equivalent here */
-			OUT(ioport[i], x);
-		iunlock(ctlr);
-		s = seprint(s, se, "%d %ux", i, x);
-		for(j = 0; j < nelem(portstatus); j++) {
-			if((x & portstatus[j].bit) != 0)
-				s = seprint(s, se, " %s", portstatus[j].name);
+	print("iso %#p %s state %d nframes %d"
+		" td0 %#p tdu %#p tdi %#p data %#p\n",
+		iso, iso->tok == Tdtokin ? "in" : "out",
+		iso->state, iso->nframes, iso->tdps[iso->td0frno],
+		iso->tdu, iso->tdi, iso->data);
+	if(iso->err != nil)
+		print("\terr='%s'\n", iso->err);
+	if(all == 0){
+		seprinttd(buf, buf+sizeof(buf), iso->tdu);
+		print("\ttdu %s\n", buf);
+		seprinttd(buf, buf+sizeof(buf), iso->tdi);
+		print("\ttdi %s\n", buf);
+	}else{
+		td = iso->tdps[iso->td0frno];
+		for(i = 0; i < iso->nframes; i++){
+			seprinttd(buf, buf+sizeof(buf), td);
+			if(td == iso->tdi)
+				print("i->");
+			if(td == iso->tdu)
+				print("u->");
+			print("\t%s\n", buf);
+			td = td->next;
 		}
-		s = seprint(s, se, "\n");
 	}
 }
 
-static void
-cleaniso(Endpt *e, int frnum)
+static int
+sameptr(void *p, ulong l)
 {
-	TD *td;
-	int id, n, i;
-	Endptx *x;
-	uchar *bp;
+	if(l & QHterm)
+		return p == nil;
+	return PTR(l) == p;
+}
 
-	x = e->private;
-	td = x->xtd;
-	if (td->status & Active)
-		return;
-	id = e->x<<7 | (e->dev->x&0x7F);
-	do {
-		if (td->status & AnyError)
-			XPRINT("usbuhci: usbisoerror 0x%lux\n", td->status);
-		n = (td->status + 1) & 0x3ff;
-		e->nbytes += n;
-		if ((td->flags & IsoClean) == 0)
-			e->nblocks++;
-		if (e->mode == OREAD){
-			e->buffered += n;
-			e->poffset += (td->status + 1) & 0x3ff;
-			td->offset = e->poffset;
-			td->dev = (e->maxpkt-1)<<21 | (id&0x7FF)<<8 | Utokin;
-			e->toffset = td->offset;
-		}else{
-			if ((td->flags & IsoClean) == 0){
-				e->buffered -= n;
-				if (e->buffered < 0){
-//					print("usbuchi: e->buffered %d?\n",
-//						e->buffered);
-					e->buffered = 0;
-				}
-			}
-			e->toffset = td->offset;
-			n = (e->hz + e->remain)*e->pollms/1000;
-			e->remain = (e->hz + e->remain)*e->pollms%1000;
-			n *= e->samplesz;
-			td->dev = (n-1)<<21 | (id&0x7FF)<<8 | Utokout;
-			td->offset = e->poffset;
-			e->poffset += n;
-		}
-		td = td->next;
-		if (x->xtd == td){
-			XPRINT("@");
+static void
+dumptd(Td *td, char *pref)
+{
+	char buf[256];
+	char *s;
+	char *se;
+	int i;
+
+	i = 0;
+	se = buf+sizeof(buf);
+	for(; td != nil; td = td->next){
+		s = seprinttd(buf, se, td);
+		if(!sameptr(td->next, td->link))
+			seprint(s, se, " next %#p != link %#ulx %#p",
+				td->next, td->link, TPTR(td->link));
+		print("%std %s\n", pref, buf);
+		if(i++ > 20){
+			print("...more tds...\n");
 			break;
 		}
-	} while ((td->status & Active) == 0);
-	e->time = todget(nil);
-	x->xtd = td;
-	for (n = 2; n < 4; n++){
-		i = (frnum + n) & 0x3ff;
-		td = x->td0 + i;
-		bp = x->bp0 + e->maxpkt*i/e->pollms;
-		if (td->status & Active)
-			continue;
-
-		if (e->mode == OWRITE){
-			if (td == x->etd) {
-				XPRINT("*");
-				memset(bp+e->off, 0, e->maxpkt-e->off);
-				if (e->off == 0)
-					td->flags |= IsoClean;
-				else
-					e->buffered += (((td->dev>>21) +1) &
-						0x3ff) - e->off;
-				x->etd = nil;
-			}else if ((td->flags & IsoClean) == 0){
-				XPRINT("-");
-				memset(bp, 0, e->maxpkt);
-				td->flags |= IsoClean;
-			}
-		} else
-			/* Unread bytes are now lost */
-			e->buffered -= (td->status + 1) & 0x3ff;
-		td->status = ErrLimit1 | Active | IsoSelect | IOC;
 	}
-	wakeup(&e->dir[Dirout].rend);
+}
+
+static void
+qhdump(Qh *qh, char *pref)
+{
+	char buf[256];
+	char *s;
+	char *se;
+	ulong td;
+	int i;
+
+	s = buf;
+	se = buf+sizeof(buf);
+	s = seprint(s, se, "%sqh %s %#p state %s link %#ulx", pref,
+		qh->tag, qh, qhsname[qh->state], qh->link);
+	if(!sameptr(qh->tds, qh->elink))
+		s = seprint(s, se, " [tds %#p != elink %#ulx %#p]",
+			qh->tds, qh->elink, TPTR(qh->elink));
+	if(!sameptr(qh->next, qh->link))
+		s = seprint(s, se, " [next %#p != link %#ulx %#p]",
+			qh->next, qh->link, QPTR(qh->link));
+	if((qh->link & Tdterm) != 0)
+		s = seprint(s, se, "T");
+	if((qh->link & Tdlinkqh) != 0)
+		s = seprint(s, se, "Q");
+	s = seprint(s, se, " elink %#ulx", qh->elink);
+	if((qh->elink & Tdterm) != 0)
+		s = seprint(s, se, "T");
+	if((qh->elink & Tdlinkqh) != 0)
+		s = seprint(s, se, "Q");
+	s = seprint(s, se, " io %#p", qh->io);
+	if(qh->io != nil && qh->io->err != nil)
+		seprint(s, se, " err='%s'", qh->io->err);
+	print("%s\n", buf);
+	dumptd(qh->tds, "\t");
+	if((qh->elink & QHterm) == 0){
+		print("\thw tds:");
+		i = 0;
+		for(td = qh->elink; (td & Tdterm) == 0; td = TPTR(td)->link){
+			print(" %#ulx", td);
+			if(td == TPTR(td)->link)	/* BWS Td */
+				break;
+			if(i++ > 40){
+				print("...");
+				break;
+			}
+		}
+		print("\n");
+	}
+}
+
+static void
+xdump(Ctlr *ctlr, int doilock)
+{
+	Isoio *iso;
+	Qh *qh;
+	int i;
+
+	if(doilock){
+		if(ctlr == ctlrs[0]){
+			lock(&tdpool);
+			print("tds: alloc %d = inuse %d + free %d\n",
+				tdpool.nalloc, tdpool.ninuse, tdpool.nfree);
+			unlock(&tdpool);
+			lock(&qhpool);
+			print("qhs: alloc %d = inuse %d + free %d\n",
+				qhpool.nalloc, qhpool.ninuse, qhpool.nfree);
+			unlock(&qhpool);
+		}
+		ilock(ctlr);
+	}
+	print("uhci port %#x frames %#p nintr %d ntdintr %d",
+		ctlr->port, ctlr->frames, ctlr->nintr, ctlr->ntdintr);
+	print(" nqhintr %d nisointr %d\n", ctlr->nqhintr, ctlr->nisointr);
+	print("cmd %#ux sts %#ux fl %#ulx ps1 %#ux ps2 %#ux frames[0] %#ulx\n",
+		INS(Cmd), INS(Status), 
+		INL(Flbaseadd), INS(PORT(0)), INS(PORT(1)),
+		ctlr->frames[0]);
+	for(iso = ctlr->iso; iso != nil; iso = iso->next)
+		isodump(iso, 1);
+	i = 0;
+	for(qh = ctlr->qhs; qh != nil; qh = qh->next){
+		qhdump(qh, "");
+		if(i++ > 20){
+			print("qhloop\n");
+			break;
+		}
+	}
+	print("\n");
+	if(doilock)
+		iunlock(ctlr);
+}
+
+static void
+dump(Hci *hp)
+{
+	xdump(hp->aux, 1);
+}
+
+static Td*
+tdalloc(void)
+{
+	int i;
+	Td *td;
+	Td *pool;
+
+	lock(&tdpool);
+	if(tdpool.free == nil){
+		ddprint("uhci: tdalloc %d Tds\n", Incr);
+		pool = xspanalloc(Incr*sizeof(Td), Align, 0);
+		if(pool == nil)
+			panic("tdalloc");
+		for(i=Incr; --i>=0;){
+			pool[i].next = tdpool.free;
+			tdpool.free = &pool[i];
+		}
+		tdpool.nalloc += Incr;
+		tdpool.nfree += Incr;
+	}
+	td = tdpool.free;
+	tdpool.free = td->next;
+	tdpool.ninuse++;
+	tdpool.nfree--;
+	unlock(&tdpool);
+
+	memset(td, 0, sizeof(Td));
+	td->link = Tdterm;
+	assert(((ulong)td & 0xF) == 0);
+	return td;
+}
+
+static void
+tdfree(Td *td)
+{
+	if(td == nil)
+		return;
+	free(td->buff);
+	td->buff = nil;
+	lock(&tdpool);
+	td->next = tdpool.free;
+	tdpool.free = td;
+	tdpool.ninuse--;
+	tdpool.nfree++;
+	unlock(&tdpool);
+}
+
+static void
+qhlinkqh(Qh* qh, Qh* next)
+{
+	if(next == nil)
+		qh->link = QHterm;
+	else{
+		next->link = qh->link;
+		next->next = qh->next;
+		qh->link = PCIWADDR(next)|QHlinkqh;
+	}
+	qh->next = next;
+}
+
+static void
+qhlinktd(Qh *qh, Td *td)
+{
+	qh->tds = td;
+	if(td == nil)
+		qh->elink = QHvf|QHterm;
+	else
+		qh->elink = PCIWADDR(td);
+}
+
+static void
+tdlinktd(Td *td, Td *next)
+{
+	td->next = next;
+	if(next == nil)
+		td->link = Tdterm;
+	else
+		td->link = PCIWADDR(next)|Tdvf;
+}
+
+static Qh*
+qhalloc(Ctlr *ctlr, Qh *prev, Qio *io, char *tag)
+{
+	int i;
+	Qh *qh;
+	Qh *pool;
+
+	lock(&qhpool);
+	if(qhpool.free == nil){
+		ddprint("uhci: qhalloc %d Qhs\n", Incr);
+		pool = xspanalloc(Incr*sizeof(Qh), Align, 0);
+		if(pool == nil)
+			panic("qhalloc");
+		for(i=Incr; --i>=0;){
+			pool[i].next = qhpool.free;
+			qhpool.free = &pool[i];
+		}
+		qhpool.nalloc += Incr;
+		qhpool.nfree += Incr;
+	}
+	qh = qhpool.free;
+	qhpool.free = qh->next;
+	qh->next = nil;
+	qh->link = QHterm;
+	qhpool.ninuse++;
+	qhpool.nfree--;
+	unlock(&qhpool);
+
+	qh->tds = nil;
+	qh->elink = QHterm;
+	qh->state = Qidle;
+	qh->io = io;
+	qh->tag = nil;
+	kstrdup(&qh->tag, tag);
+
+	if(prev != nil){
+		coherence();
+		ilock(ctlr);
+		qhlinkqh(prev, qh);
+		iunlock(ctlr);
+	}
+
+	assert(((ulong)qh & 0xF) == 0);
+	return qh;
+}
+
+static void
+qhfree(Ctlr *ctlr, Qh *qh)
+{
+	Td *td;
+	Td *ltd;
+	Qh *q;
+
+	if(qh == nil)
+		return;
+
+	ilock(ctlr);
+	for(q = ctlr->qhs; q != nil; q = q->next)
+		if(q->next == qh)
+			break;
+	if(q == nil)
+		panic("qhfree: nil q");
+	q->next = qh->next;
+	q->link = qh->link;
+	iunlock(ctlr);
+
+	for(td = qh->tds; td != nil; td = ltd){
+		ltd = td->next;
+		tdfree(td);
+	}
+	lock(&qhpool);
+	qh->state = Qfree;	/* paranoia */
+	qh->next = qhpool.free;
+	qh->tag = nil;
+	qh->io = nil;
+	qhpool.free = qh;
+	qhpool.ninuse--;
+	qhpool.nfree++;
+	unlock(&qhpool);
+	ddprint("qhfree: qh %#p\n", qh);
+}
+
+static char*
+errmsg(int err)
+{
+	if(err == 0)
+		return "ok";
+	if(err & Tdcrcto)
+		return "crc/timeout error";
+	if(err & Tdbabble)
+		return "babble detected";
+	if(err & Tddberr)
+		return "db error";
+	if(err & Tdbitstuff)
+		return "bit stuffing error";
+	if(err & Tdstalled)
+		return Estalled;
+	return Eio;
+}
+
+static int
+isocanread(void *a)
+{
+	Isoio *iso;
+
+	iso = a;
+	return iso->state == Qclose ||
+		(iso->state == Qrun &&
+		iso->tok == Tdtokin && iso->tdi != iso->tdu);
+}
+
+static int
+isocanwrite(void *a)
+{
+	Isoio *iso;
+
+	iso = a;
+	return iso->state == Qclose ||
+		(iso->state == Qrun &&
+		iso->tok == Tdtokout && iso->tdu->next != iso->tdi);
+}
+
+static void
+tdisoinit(Isoio *iso, Td *td, long count)
+{
+	td->ndata = count;
+	td->token = ((count-1)<<21)| ((iso->usbid & 0x7FF)<<8) | iso->tok;
+	td->csw = Tderr1|Tdiso|Tdactive|Tdioc;
+}
+
+/*
+ * Process Iso i/o on interrupt. For writes update just error status.
+ * For reads update tds to reflect data and also error status.
+ * When tdi aproaches tdu, advance tdu; data may be lost.
+ * (If nframes is << Nframes tdu might be far away but this avoids
+ * races regarding frno.)
+ * If we suffer errors for more than half the frames we stall.
+ */
+static void
+isointerrupt(Ctlr *ctlr, Isoio* iso)
+{
+	Td *tdi;
+	int err;
+	int i;
+	int nframes;
+
+	tdi = iso->tdi;
+	if((tdi->csw & Tdactive) != 0)		/* nothing new done */
+		return;
+	ctlr->nisointr++;
+	ddiprint("isointr: iso %#p: tdi %#p tdu %#p\n", iso, tdi, iso->tdu);
+	if(iso->state != Qrun && iso->state != Qdone)
+		panic("isointr: iso state");
+	if(debug > 1 || iso->debug > 1)
+		isodump(iso, 0);
+
+	nframes = iso->nframes / 2;		/* limit how many we look */
+	if(nframes > 64)
+		nframes = 64;
+
+	for(i = 0; i < nframes && (tdi->csw & Tdactive) == 0; i++){
+		tdi->csw &= ~Tdioc;
+		err = tdi->csw & Tderrors;
+		if(err == 0)
+			iso->nerrs = 0;
+		else if(iso->nerrs++ > iso->nframes/2)
+			tdi->csw |= Tdstalled;
+		if((tdi->csw & Tdstalled) != 0){
+			if(iso->err == nil){
+				iso->err = errmsg(err);
+				diprint("isointerrupt: tdi %#p error %#ux %s\n",
+					tdi, err, iso->err);
+				diprint("ctlr load %uld\n", ctlr->load);
+			}
+			tdi->ndata = 0;
+		}else
+			tdi->ndata = tdlen(tdi);
+
+		if(tdi->next == iso->tdu || tdi->next->next == iso->tdu){
+			memset(iso->tdu->data, 0, maxtdlen(iso->tdu));
+			tdisoinit(iso, iso->tdu, maxtdlen(iso->tdu));
+			iso->tdu = iso->tdu->next;
+			iso->nleft = 0;
+		}
+		tdi = tdi->next;
+	}
+	ddiprint("isointr: %d frames processed\n", nframes);
+	if(i == nframes)
+		tdi->csw |= Tdioc;
+	iso->tdi = tdi;
+	if(isocanwrite(iso) || isocanread(iso)){
+		diprint("wakeup iso %#p tdi %#p tdu %#p\n", iso,
+			iso->tdi, iso->tdu);
+		wakeup(iso);
+	}
+
+}
+
+/*
+ * Process a Qh upon interrupt. There's one per ongoing user I/O.
+ * User process releases resources later, that is not done here.
+ * We may find in this order one or more Tds:
+ * - none/many non active and completed Tds
+ * - none/one (usually(!) not active) and failed Td
+ * - none/many active Tds.
+ * Upon errors the entire transfer is aborted and error reported.
+ * Otherwise, the transfer is complete only when all Tds are done or
+ * when a read with less than maxpkt is found.
+ * Use the software list and not qh->elink to avoid races.
+ * We could use qh->elink to see if there's something new or not.
+ */
+static void
+qhinterrupt(Ctlr *ctlr, Qh *qh)
+{
+	Td *td;
+	int err;
+
+	ctlr->nqhintr++;
+	if(qh->state != Qrun)
+		panic("qhinterrupt: qh state");
+	if(qh->tds == nil)
+		panic("qhinterrupt: no tds");
+	if((qh->tds->csw & Tdactive) == 0)
+		ddqprint("qhinterrupt port %#ux qh %#p p0 %#x p1 %#x\n",
+			ctlr->port, qh, INS(PORT(0)), INS(PORT(1)));
+	for(td = qh->tds; td != nil; td = td->next){
+		if(td->csw & Tdactive)
+			return;
+		td->csw &= ~Tdioc;
+		if((td->csw & Tdstalled) != 0){
+			err = td->csw & Tderrors;
+			/* just stalled is end of xfer but not an error */
+			if(err != Tdstalled && qh->io->err == nil){
+				qh->io->err = errmsg(td->csw & Tderrors);
+				dqprint("qhinterrupt: td %#p error %#ux %s\n",
+					td, err, qh->io->err);
+				dqprint("ctlr load %uld\n", ctlr->load);
+			}
+			break;
+		}
+		if((td->csw & Tdnak) != 0){	/* retransmit; not serious */
+			td->csw &= ~Tdnak;
+			if(td->next == nil)
+				td->csw |= Tdioc;
+		}
+		td->ndata = tdlen(td);
+		if(td->ndata < maxtdlen(td)){	/* EOT */
+			td = td->next;
+			break;
+		}
+	}
+
+	/*
+	 * Done. Make void the Tds not used (errors or EOT) and wakeup epio.
+	 */
+	qh->elink = QHterm;
+	for(; td != nil; td = td->next)
+		td->ndata = 0;
+	qh->state = Qdone;	
+	wakeup(qh->io);
 }
 
 static void
 interrupt(Ureg*, void *a)
 {
-	QH *q;
+	Hci *hp;
 	Ctlr *ctlr;
-	Endpt *e;
-	Endptx *x;
-	int s, frnum;
-	Usbhost *uh;
+	int frptr;
+	int frno;
+	Qh *qh;
+	Isoio *iso;
+	int sts;
+	int cmd;
 
-	uh = a;
-	ctlr = uh->ctlr;
-	s = IN(Status);
-	ctlr->frameptr = inl(ctlr->io+Flbaseadd);
-	ctlr->framenumber = IN(Frnum) & 0x3ff;
-	OUT(Status, s);
-	if ((s & 0x1f) == 0)
+	hp = a;
+	ctlr = hp->aux;
+	ilock(ctlr);
+	ctlr->nintr++;
+	sts = INS(Status);
+	if((sts & Sall) == 0){		/* not for us; sharing irq */
+		iunlock(ctlr);
 		return;
-	ctlr->usbints++;
-	frnum = IN(Frnum) & 0x3ff;
-	if (s & 0x1a) {
-		XPRINT("cmd #%x sofmod #%x\n", IN(Cmd), inb(ctlr->io+SOFMod));
-		XPRINT("sc0 #%x sc1 #%x\n", IN(Portsc0), IN(Portsc1));
 	}
-
-	ilock(&ctlr->activends);
-	for(e = ctlr->activends.f; e != nil; e = e->activef){
-		x = e->private;
-		if(e->epmode == Isomode){
-			XXPRINT("cleaniso(e)\n");
-			cleaniso(e, frnum);
-		}else if(x->epq != nil){
-			XXPRINT("cleanq(ctlr, x->epq, 0, 0)\n");
-			cleanq(ctlr, x->epq, 0, 0);
-		}
+	OUTS(Status, sts & Sall);
+	cmd = INS(Cmd);
+	if(cmd & Crun == 0){
+		print("uhci %#ux: not running: uhci bug?\n", ctlr->port);
+		/* BUG: should abort everything in this case */
 	}
-	iunlock(&ctlr->activends);
-	XXPRINT("cleanq(ctlr, ctlr->ctlq, 0, 0)\n");
-	cleanq(ctlr, ctlr->ctlq, 0, 0);
-	XXPRINT("cleanq(ctlr, ctlr->bulkq, 0, Vf)\n");
-	cleanq(ctlr, ctlr->bulkq, 0, Vf);
-	XXPRINT("clean recvq\n");
-	for (q = ctlr->recvq->next; q; q = q->hlink) {
-		XXPRINT("cleanq(ctlr, q, 0, Vf)\n");
-		cleanq(ctlr, q, 0, Vf);
+	if(debug > 1){
+		frptr = INL(Flbaseadd);
+		frno = INL(Frnum);
+		frno = TRUNC(frno, Nframes);
+		print("cmd %#ux sts %#ux frptr %#ux frno %d\n",
+			cmd, sts, frptr, frno);
 	}
+	ctlr->ntdintr++;
+	/*
+	 * Will we know in USB 3.0 who the interrupt was for?.
+	 * Do they still teach indexing in CS?
+	 * This is Intel's doing.
+	 */
+	for(iso = ctlr->iso; iso != nil; iso = iso->next)
+		if(iso->state == Qrun || iso->state == Qdone)
+			isointerrupt(ctlr, iso);
+	for(qh = ctlr->qhs; qh != nil; qh = qh->next)
+		if(qh->state == Qrun)
+			qhinterrupt(ctlr, qh);
+		else if(qh->state == Qclose)
+			qhlinktd(qh, nil);
+	iunlock(ctlr);
+			
 }
 
-static int
-eptinput(void *arg)
-{
-	Endpt *e;
-
-	e = arg;
-	return e->eof || e->dir[Dirin].err || qcanread(e->rq);
-}
-
-static int
-isoready(void *a)
-{
-	Endptx *x;
-	TD *etd;
-
-	x = a;
-	return (etd = x->etd) == nil ||
-		(etd != x->xtd && (etd->status & Active) == 0);
-}
-
+/*
+ * iso->tdu is the next place to put data. When it gets full
+ * it is activated and tdu advanced.
+ */
 static long
-isoio(Ctlr *ctlr, Endpt *e, void *a, long n, ulong offset, int w)
+putsamples(Isoio *iso, uchar *b, long count)
 {
-	TD *td;
-	Endptx *x;
-	int i, frnum;
-	uchar *p, *q, *bp;
-	volatile int isolock;
+	long tot;
+	long n;
 
-	x = e->private;
-	qlock(&e->rlock);
-	isolock = 0;
-	if(waserror()){
-		if (isolock){
-			isolock = 0;
-			iunlock(&ctlr->activends);
+	for(tot = 0; isocanwrite(iso) && tot < count; tot += n){
+		n = count-tot;
+		if(n > maxtdlen(iso->tdu) - iso->nleft)
+			n = maxtdlen(iso->tdu) - iso->nleft;
+		memmove(iso->tdu->data+iso->nleft, b+tot, n);
+		iso->nleft += n;
+		if(iso->nleft == maxtdlen(iso->tdu)){
+			tdisoinit(iso, iso->tdu, iso->nleft);
+			iso->nleft = 0;
+			iso->tdu = iso->tdu->next;
 		}
-		qunlock(&e->rlock);
-		eptcancel(ctlr, e);
+	}
+	return tot;
+}
+
+/*
+ * Queue data for writing and return error status from
+ * last writes done, to maintain buffered data.
+ */
+static long
+episowrite(Ep *ep, Isoio *iso, void *a, long count)
+{
+	Ctlr *ctlr;
+	uchar *b;
+	int tot;
+	int nw;
+	char *err;
+
+	iso->debug = ep->debug;
+	diprint("uhci: episowrite: %#p ep%d.%d\n", iso, ep->dev->nb, ep->nb);
+
+	ctlr = ep->hp->aux;
+	qlock(iso);
+	if(waserror()){
+		qunlock(iso);
 		nexterror();
 	}
-	p = a;
-	if (offset != 0 && offset != e->foffset){
-		iprint("usbuhci: offset %lud, foffset %llud\n",
-			offset, e->foffset);
-		/* Seek to a specific position */
-		frnum = (IN(Frnum) + 8) & 0x3ff;
-		td = x->td0 + frnum;
-		if (offset < td->offset)
-			error("ancient history");
-		while (offset > e->toffset)
-			tsleep(&e->dir[Dirout].rend, return0, 0, 500);
-		/* TODO: how should this be parenthesised? */
-		while (offset >= td->offset +
-		    (((w? (td->dev>>21): td->status) + 1) & 0x7ff)){
-			td = td->next;
-			if (td == x->xtd)
-				iprint("usbuhci: trouble\n");
-		}
-		ilock(&ctlr->activends);
-		isolock = 1;
-		e->off = td->offset - offset;
-		if (e->off >= e->maxpkt){
-			iprint("I can't program: %d\n", e->off);
-			e->off = 0;
-		}
-		x->etd = td;
-		e->foffset = offset;
+	ilock(ctlr);
+	if(iso->state == Qclose){
+		iunlock(ctlr);
+		error(iso->err ? iso->err : Eio);
 	}
-	do {
-		if (isolock == 0){
-			ilock(&ctlr->activends);
-			isolock = 1;
-		}
-		td = x->etd;
-		if (td == nil || e->off == 0){
-			if (td == nil){
-				XPRINT("0");
-				if (w){
-					frnum = (IN(Frnum) + 1) & 0x3ff;
-					td = x->td0 + frnum;
-					while(td->status & Active)
-						td = td->next;
-				}else{
-					frnum = (IN(Frnum) - 4) & 0x3ff;
-					td = x->td0 + frnum;
-					while(td->next != x->xtd)
-						td = td->next;
-				}
-				x->etd = td;
-				e->off = 0;
-			}else{
-				/* New td, make sure it's ready */
-				while (isoready(x) == 0){
-					isolock = 0;
-					iunlock(&ctlr->activends);
-					sleep(&e->dir[Dirout].rend, isoready, x);
-					ilock(&ctlr->activends);
-					isolock = 1;
-				}
-				if (x->etd == nil){
-					XPRINT("!");
-					continue;
-				}
+	iso->state = Qrun;
+	b = a;
+	for(tot = 0; tot < count; tot += nw){
+		while(isocanwrite(iso) == 0){
+			iunlock(ctlr);
+			diprint("uhci: episowrite: %#p sleep\n", iso);
+			if(waserror()){
+				if(iso->err == nil)
+					iso->err = "I/O timed out";
+				ilock(ctlr);
+				break;
 			}
-			if (w)
-				e->psize = ((td->dev >> 21) + 1) & 0x7ff;
-			else
-				e->psize = (x->etd->status + 1) & 0x7ff;
-			if(e->psize > e->maxpkt)
-				panic("packet size > maximum");
+			tsleep(iso, isocanwrite, iso, Isotmout);
+			poperror();
+			ilock(ctlr);
 		}
-		if((i = n) >= e->psize)
-			i = e->psize;
-		if (w)
-			e->buffered += i;
-		else{
-			e->buffered -= i;
-			if (e->buffered < 0)
-				e->buffered = 0;
+		err = iso->err;
+		iso->err = nil;
+		if(iso->state == Qclose || err != nil){
+			iunlock(ctlr);
+			error(err ? err : Eio);
 		}
-		isolock = 0;
-		iunlock(&ctlr->activends);
-		td->flags &= ~IsoClean;
-		bp = x->bp0 + (td - x->td0) * e->maxpkt / e->pollms;
-		q = bp + e->off;
-		if (w)
-			memmove(q, p, i);
-		else
-			memmove(p, q, i);
-		p += i;
-		n -= i;
-		e->off += i;
-		e->psize -= i;
-		if (e->psize){
-			if (n != 0)
-				panic("usb iso: can't happen");
-			break;
-		}
-		if(w)
-			td->offset = offset + (p-(uchar*)a) -
-				(((td->dev >> 21) + 1) & 0x7ff);
-		td->status = ErrLimit3 | Active | IsoSelect | IOC;
-		x->etd = td->next;
-		e->off = 0;
-	} while(n > 0);
-	n = p-(uchar*)a;
-	e->foffset += n;
+		if(iso->state != Qrun)
+			panic("episowrite: iso not running");
+		iunlock(ctlr);		/* We could page fault here */
+		nw = putsamples(iso, b+tot, count-tot);
+		ilock(ctlr);
+	}
+	if(iso->state != Qclose)
+		iso->state = Qdone;
+	iunlock(ctlr);
+	err = iso->err;		/* in case it failed early */
+	iso->err = nil;
+	qunlock(iso);
 	poperror();
-	if (isolock)
-		iunlock(&ctlr->activends);
-	qunlock(&e->rlock);
-	return n;
+	if(err != nil)
+		error(err);
+	diprint("uhci: episowrite: %#p %d bytes\n", iso, tot);
+	return tot;
 }
 
+/*
+ * Available data is kept at tdu and following tds, up to tdi (excluded).
+ */
 static long
-read(Usbhost *uh, Endpt *e, void *a, long n, vlong offset)
+episoread(Ep *ep, Isoio *iso, void *a, int count)
 {
-	long l, i;
-	Block *b;
 	Ctlr *ctlr;
-	uchar *p;
+	uchar *b;
+	int nr;
+	int tot;
+	Td *tdu;
 
-	ctlr = uh->ctlr;
-	if(e->epmode == Isomode)
-		return isoio(ctlr, e, a, n, (ulong)offset, 0);
+	iso->debug = ep->debug;
+	diprint("uhci: episoread: %#p ep%d.%d\n", iso, ep->dev->nb, ep->nb);
 
-	XPRINT("qlock(%p)\n", &e->rlock);
-	qlock(&e->rlock);
-	XPRINT("got qlock(%p)\n", &e->rlock);
+	b = a;
+	ctlr = ep->hp->aux;
+	qlock(iso);
 	if(waserror()){
-		e->dir[Dirin].err = nil;
-		qunlock(&e->rlock);
-		eptcancel(ctlr, e);
+		qunlock(iso);
 		nexterror();
 	}
-	p = a;
-	do {
-		if(e->eof) {
-			XPRINT("e->eof\n");
-			break;
-		}
-		if(e->dir[Dirin].err)
-			error(e->dir[Dirin].err);
-		qrcv(ctlr, e);
-		e->rdata01 ^= 1;
-		sleep(&e->dir[Dirin].rend, eptinput, e);
-		if(e->dir[Dirin].err)
-			error(e->dir[Dirin].err);
-		b = qget(e->rq);	/* TO DO */
-		if(b == nil) {
-			XPRINT("b == nil\n");
-			break;
-		}
+	iso->err = nil;
+	iso->nerrs = 0;
+	ilock(ctlr);
+	if(iso->state == Qclose){
+		iunlock(ctlr);
+		error(iso->err ? iso->err : Eio);
+	}
+	iso->state = Qrun;
+	while(isocanread(iso) == 0){
+		iunlock(ctlr);
+		diprint("uhci: episoread: %#p sleep\n", iso);
 		if(waserror()){
-			freeb(b);
-			nexterror();
-		}
-		l = BLEN(b);
-		if((i = l) > n)
-			i = n;
-		if(i > 0){
-			memmove(p, b->rp, i);
-			p += i;
-		}
-		poperror();
-		freeb(b);
-		n -= i;
-		if (l != e->maxpkt)
+			if(iso->err == nil)
+				iso->err = "I/O timed out";
+			ilock(ctlr);
 			break;
-	} while (n > 0);
+		}
+		tsleep(iso, isocanread, iso, Isotmout);
+		poperror();
+		ilock(ctlr);
+	}
+	if(iso->state == Qclose){
+		iunlock(ctlr);
+		error(iso->err ? iso->err : Eio);
+	}
+	iso->state = Qdone;
+	assert(iso->tdu != iso->tdi);
+
+	for(tot = 0; iso->tdi != iso->tdu && tot < count; tot += nr){
+		tdu = iso->tdu;
+		if(tdu->csw & Tdactive){
+			diprint("uhci: episoread: %#p tdu active\n", iso);
+			break;
+		}
+		nr = tdu->ndata;
+		if(tot + nr > count)
+			nr = count - tot;
+		if(nr == 0)
+			print("uhci: ep%d.%d: too many polls\n",
+				ep->dev->nb, ep->nb);
+		else{
+			iunlock(ctlr);		/* We could page fault here */
+			memmove(b+tot, tdu->data, nr);
+			ilock(ctlr);
+			if(nr < tdu->ndata)
+				memmove(tdu->data, tdu->data+nr, tdu->ndata - nr);
+			tdu->ndata -= nr;
+		}
+		if(tdu->ndata == 0){
+			tdisoinit(iso, tdu, ep->maxpkt);
+			iso->tdu = tdu->next;
+		}
+	}
+	iunlock(ctlr);
+	qunlock(iso);
 	poperror();
-	qunlock(&e->rlock);
-	return p - (uchar*)a;
+	diprint("uhci: episoread: %#p %d bytes err '%s'\n", iso, tot, iso->err);
+	if(iso->err != nil)
+		error(iso->err);
+	return tot;
 }
 
 static int
-qisempty(void *arg)
+nexttoggle(int tog)
 {
-	return ((QH*)arg)->entries & Terminate;
+	if(tog == Tddata0)
+		return Tddata1;
+	else
+		return Tddata0;
 }
 
-static long
-write(Usbhost *uh, Endpt *e, void *a, long n, vlong offset, int tok)
+static Td*
+epgettd(Ep *ep, Qio *io, int flags, void *a, int count)
 {
-	int i, j;
-	QH *qh;
-	Block *b;
-	Ctlr *ctlr;
-	uchar *p;
+	Td *td;
+	int tok;
 
-	ctlr = uh->ctlr;
-	if(e->epmode == Isomode)
-		return isoio(ctlr, e, a, n, (ulong)offset, 1);
+	if(ep->maxpkt < count)
+		error("maxpkt too short");
+	td = tdalloc();
+	if(count <= Tdndata)
+		td->data = td->sbuff;
+	else
+		td->data = td->buff = smalloc(ep->maxpkt);
+	td->buffer = PCIWADDR(td->data);
+	td->ndata = count;
+	if(a != nil && count > 0)
+		memmove(td->data, a, count);
+	td->csw = Tderr2|Tderr1|flags;
+	if(ep->dev->speed == Lowspeed)
+		td->csw |= Tdlow;
+	tok = io->tok | io->toggle;
+	io->toggle = nexttoggle(io->toggle);
+	td->token = ((count-1)<<21) | ((io->usbid&0x7FF)<<8) | tok;
 
-	p = a;
-	qlock(&e->wlock);
-	if(waserror()){
-		e->dir[Dirout].err = nil;
-		qunlock(&e->wlock);
-		eptcancel(ctlr, e);
-		nexterror();
+	return td;
+}
+
+/*
+ * Try to get them idle
+ */
+static void
+aborttds(Qh *qh)
+{
+	Td *td;
+
+	qh->state = Qdone;
+	qh->elink = QHterm;
+	for(td = qh->tds; td != nil; td = td->next){
+		if(td->csw & Tdactive)
+			td->ndata = 0;
+		td->csw &= ~(Tdactive|Tdioc);
 	}
-	do {
-		if(e->dir[Dirout].err)
-			error(e->dir[Dirout].err);
-		if((i = n) >= e->maxpkt)
-			i = e->maxpkt;
-		b = allocb(i);
-		if(waserror()){
-			freeb(b);
-			nexterror();
-		}
-		XPRINT("out [%d]", i);
-		for (j = 0; j < i; j++)
-			XPRINT(" %.2x", p[j]);
-		XPRINT("\n");
-		memmove(b->wp, p, i);
-		b->wp += i;
-		p += i;
-		n -= i;
-		poperror();
-		qh = qxmit(ctlr, e, b, tok);
-		tok = Utokout;
-		e->wdata01 ^= 1;
-		if(e->ntd >= e->nbuf) {
-			XPRINT("qh %s: q=%p first=%p last=%p entries=%.8lux\n",
-				"writeusb sleep", qh, qh->first, qh->last,
-				qh->entries);
-			XPRINT("write: sleep %#p\n", &e->dir[Dirout].rend);
-			sleep(&e->dir[Dirout].rend, qisempty, qh);
-			XPRINT("write: awake\n");
-		}
-	} while(n > 0);
-	poperror();
-	qunlock(&e->wlock);
-	return p - (uchar*)a;
+}
+
+static int
+epiodone(void *a)
+{
+	Qh *qh;
+
+	qh = a;
+	return qh->state != Qrun;
 }
 
 static void
-init(Usbhost* uh)
+epiowait(Ctlr *ctlr, Qio *io, int tmout, ulong load)
+{
+	Qh *qh;
+	int timedout;
+
+	qh = io->qh;
+	ddqprint("uhci io %#p sleep on qh %#p state %uld\n", io, qh, qh->state);
+	timedout = 0;
+	if(waserror()){
+		dqprint("uhci io %#p qh %#p timed out\n", io, qh);
+		timedout++;
+	}else{
+		if(tmout == 0)
+			sleep(io, epiodone, qh);
+		else
+			tsleep(io, epiodone, qh, tmout);
+		poperror();
+	}
+	ilock(ctlr);
+	if(qh->state == Qrun)
+		timedout = 1;
+	else if(qh->state != Qdone && qh->state != Qclose)
+		panic("epio: queue not done and not closed");
+	if(timedout){
+		aborttds(io->qh);
+		io->err = "request timed out";
+		iunlock(ctlr);
+		if(!waserror()){
+			tsleep(&up->sleep, return0, 0, Abortdelay);
+			poperror();
+		}
+		ilock(ctlr);
+	}
+	if(qh->state != Qclose)
+		qh->state = Qidle;
+	qhlinktd(qh, nil);
+	ctlr->load -= load;
+	iunlock(ctlr);	
+}
+
+/*
+ * Non iso I/O.
+ * To make it work for control transfers, the caller may
+ * lock the Qio for the entire control transfer.
+ * If tmout is not 0 it is a timeout value in ms.
+ *
+ */
+static long
+epio(Ep *ep, Qio *io, void *a, long count, int tmout, int mustlock)
+{
+	Td *td;
+	Td *ltd;
+	Td *td0;
+	Td *ntd;
+	Ctlr *ctlr;
+	Qh* qh;
+	long n;
+	long tot;
+	char buf[128];
+	uchar *c;
+	int saved;
+	int ntds;
+	ulong load;
+	char *err;
+
+	qh = io->qh;
+	ctlr = ep->hp->aux;
+	io->debug = ep->debug;
+	ddeprint("epio: %s ep%d.%d io %#p count %ld load %uld\n",
+		io->tok == Tdtokin ? "in" : "out",
+		ep->dev->nb, ep->nb, io, count, ctlr->load);
+	if((debug > 1 || ep->debug > 1) && io->tok != Tdtokin){
+		seprintdata(buf, buf+sizeof(buf), a, count);
+		print("uchi epio: user data: %s\n", buf);
+	}
+	if(mustlock){
+		qlock(io);
+		if(waserror()){
+			qunlock(io);
+			nexterror();
+		}
+	}
+	io->err = nil;
+	ilock(ctlr);
+	if(qh->state == Qclose){	/* Tds released by cancelio */
+		iunlock(ctlr);
+		error(io->err ? io->err : Eio);
+	}
+	if(qh->state != Qidle)
+		panic("epio: qh not idle");
+	qh->state = Qinstall;
+	iunlock(ctlr);
+
+	c = a;
+	td0 = ltd = nil;
+	load = tot = 0;
+	do{
+		n = ep->maxpkt;
+		if(count-tot < n)
+			n = count-tot;
+		if(io->tok != Tdtokin)
+			td = epgettd(ep, io, Tdactive, c+tot, n);
+		else
+			td = epgettd(ep, io, Tdactive|Tdspd, nil, n);
+		if(td0 == nil)
+			td0 = td;
+		else
+			tdlinktd(ltd, td);
+		ltd = td;
+		tot += n;
+		load += ep->load;
+	}while(tot < count);
+	if(td0 == nil || ltd == nil)
+		panic("epio: no td");
+
+	ltd->csw |= Tdioc;	/* the last one interrupts */
+	ddeprint("uhci: load %uld ctlr load %uld\n", load, ctlr->load);
+	ilock(ctlr);
+	if(qh->state != Qclose){
+		io->iotime = TK2MS(MACHP(0)->ticks);
+		qh->state = Qrun;
+		coherence();
+		qhlinktd(qh, td0);
+		ctlr->load += load;
+	}
+	iunlock(ctlr);
+
+	epiowait(ctlr, io, tmout, load);
+	if(debug > 1 || ep->debug > 1)
+		dumptd(td0, "epio: got tds: ");
+
+	tot = 0;
+	c = a;
+	saved = 0;
+	ntds = 0;
+	for(td = td0; td != nil; td = ntd){
+		ntds++;
+		/*
+		 * Use td tok, not io tok, because of setup packets.
+		 * Also, if the Td was stalled or active (previous Td
+		 * was a short packet), we must save the toggle as it is.
+		 */
+		if(td->csw & (Tdstalled|Tdactive)){
+			if(saved++ == 0)
+				io->toggle = td->token & Tddata1;
+		}else{
+			tot += td->ndata;
+			if(tdtok(td) == Tdtokin && td->ndata > 0){
+				memmove(c, td->data, td->ndata);
+				c += td->ndata;
+			}
+		}
+		ntd = td->next;
+		tdfree(td);
+	}
+	err = io->err;
+	if(mustlock){
+		qunlock(io);
+		poperror();
+	}
+	ddeprint("epio: io %#p: %d tds: return %ld err '%s'\n",
+		io, ntds, tot, err);
+	if(err != nil)
+		error(err);
+	if(tot < 0)
+		error(Eio);
+	return tot;
+}
+
+/*
+ * halt condition was cleared on the endpoint. update our toggles.
+ */
+static void
+clrhalt(Ep *ep)
+{
+	Qio *io;
+
+	ep->clrhalt = 0;
+	switch(ep->ttype){
+	case Tbulk:
+	case Tintr:
+		io = ep->aux;
+		if(ep->mode != OREAD){
+			qlock(&io[OWRITE]);
+			io[OWRITE].toggle = Tddata0;
+			deprint("ep clrhalt for io %#p\n", io+OWRITE);
+			qunlock(&io[OWRITE]);
+		}
+		if(ep->mode != OWRITE){
+			qlock(&io[OREAD]);
+			io[OREAD].toggle = Tddata0;
+			deprint("ep clrhalt for io %#p\n", io+OREAD);
+			qunlock(&io[OREAD]);
+		}
+		break;
+	}
+}
+
+static long
+epread(Ep *ep, void *a, long count)
+{
+	Ctlio *cio;
+	Qio *io;
+	Isoio *iso;
+	char buf[160];
+	ulong delta;
+
+	ddeprint("uhci: epread\n");
+	if(ep->aux == nil)
+		panic("epread: not open");
+
+	switch(ep->ttype){
+	case Tctl:
+		cio = ep->aux;
+		qlock(cio);
+		if(waserror()){
+			qunlock(cio);
+			nexterror();
+		}
+		ddeprint("epread ctl ndata %d\n", cio->ndata);
+		if(cio->ndata < 0)
+			error("request expected");
+		else if(cio->ndata == 0){
+			cio->ndata = -1;
+			count = 0;
+		}else{
+			if(count > cio->ndata)
+				count = cio->ndata;
+			if(count > 0)
+				memmove(a, cio->data, count);
+			/* BUG for big transfers */
+			free(cio->data);
+			cio->data = nil;
+			cio->ndata = 0;	/* signal EOF next time */
+		}
+		qunlock(cio);
+		poperror();
+		if(debug>1 || ep->debug){
+			seprintdata(buf, buf+sizeof(buf), a, count);
+			print("epread: %s\n", buf);
+		}
+		return count;
+	case Tbulk:
+		io = ep->aux;
+		if(ep->clrhalt)
+			clrhalt(ep);
+		return epio(ep, &io[OREAD], a, count, Bulktmout, 1);
+	case Tintr:
+		io = ep->aux;
+		delta = TK2MS(MACHP(0)->ticks) - io[OREAD].iotime + 1;
+		if(delta < ep->pollival / 2)
+			tsleep(&up->sleep, return0, 0, ep->pollival/2 - delta);
+		if(ep->clrhalt)
+			clrhalt(ep);
+		return epio(ep, &io[OREAD], a, count, 0, 1);
+	case Tiso:
+		iso = ep->aux;
+		return episoread(ep, iso, a, count);
+	default:
+		panic("epread: bad ep ttype %d", ep->ttype);
+	}
+	return -1;
+}
+
+/*
+ * Control transfers are one setup write (data0)
+ * plus zero or more reads/writes (data1, data0, ...)
+ * plus a final write/read with data1 to ack.
+ * For both host to device and device to host we perform
+ * the entire transfer when the user writes the request,
+ * and keep any data read from the device for a later read.
+ * We call epio three times instead of placing all Tds at
+ * the same time because doing so leads to crc/tmout errors
+ * for some devices.
+ * Upon errors on the data phase we must still run the status
+ * phase or the device may cease responding in the future.
+ */
+static long
+epctlio(Ep *ep, Ctlio *cio, void *a, long count)
+{
+	uchar *c;
+	long len;
+
+	ddeprint("epctlio: cio %#p ep%d.%d count %ld\n",
+		cio, ep->dev->nb, ep->nb, count);
+	if(count < Rsetuplen)
+		error("short usb comand");
+	qlock(cio);
+	free(cio->data);
+	cio->data = nil;
+	cio->ndata = 0;
+	if(waserror()){
+		qunlock(cio);
+		free(cio->data);
+		cio->data = nil;
+		cio->ndata = 0;
+		nexterror();
+	}
+
+	/* set the address if unset and out of configuration state */
+	if(ep->dev->state != Dconfig && cio->usbid == 0)
+		cio->usbid = ((ep->nb&Epmax)<<7)|(ep->dev->nb&Devmax);
+	c = a;
+	cio->tok = Tdtoksetup;
+	cio->toggle = Tddata0;
+	if(epio(ep, cio, a, Rsetuplen, Ctltmout, 0) < Rsetuplen)
+		error(Eio);
+	a = c + Rsetuplen;
+	count -= Rsetuplen;
+
+	cio->toggle = Tddata1;
+	if(c[Rtype] & Rd2h){
+		cio->tok = Tdtokin;
+		len = GET2(c+Rcount);
+		if(len <= 0)
+			error("bad length in d2h request");
+		if(len > Maxctllen)
+			error("d2h data too large to fit in uhci");
+		a = cio->data = smalloc(len+1);
+	}else{
+		cio->tok = Tdtokout;
+		len = count;
+	}
+	if(len > 0)
+		if(waserror())
+			len = -1;
+		else{
+			len = epio(ep, cio, a, len, Ctltmout, 0);
+			poperror();
+		}
+	if(c[Rtype] & Rd2h){
+		count = Rsetuplen;
+		cio->ndata = len;
+		cio->tok = Tdtokout;
+	}else{
+		if(len < 0)
+			count = -1;
+		else
+			count = Rsetuplen + len;
+		cio->tok = Tdtokin;
+	}
+	cio->toggle = Tddata1;
+	epio(ep, cio, nil, 0, Ctltmout, 0);
+	qunlock(cio);
+	poperror();
+	ddeprint("epctlio cio %#p return %ld\n", cio, count);
+	return count;
+}
+
+static long
+epwrite(Ep *ep, void *a, long count)
+{
+	Ctlio *cio;
+	Isoio *iso;
+	Qio *io;
+	ulong delta;
+	char *b;
+	int tot;
+	int nw;
+
+	ddeprint("uhci: epwrite ep%d.%d\n", ep->dev->nb, ep->nb);
+	if(ep->aux == nil)
+		panic("uhci: epwrite: not open");
+	switch(ep->ttype){
+	case Tctl:
+		cio = ep->aux;
+		return epctlio(ep, cio, a, count);
+	case Tbulk:
+		io = ep->aux;
+		if(ep->clrhalt)
+			clrhalt(ep);
+		/*
+		 * Put at most Tdatomic Tds (512 bytes) at a time.
+		 * Otherwise some devices produce babble errors.
+		 */
+		b = a;
+		for(tot = 0; tot < count ; tot += nw){
+			nw = count - tot;
+			if(nw > Tdatomic * ep->maxpkt)
+				nw = Tdatomic * ep->maxpkt;
+			nw = epio(ep, &io[OWRITE], b+tot, nw, Bulktmout, 1);
+		}
+		return tot;
+	case Tintr:
+		io = ep->aux;
+		delta = TK2MS(MACHP(0)->ticks) - io[OWRITE].iotime + 1;
+		if(delta < ep->pollival)
+			tsleep(&up->sleep, return0, 0, ep->pollival - delta);
+		if(ep->clrhalt)
+			clrhalt(ep);
+		return epio(ep, &io[OWRITE], a, count, 0, 1);
+	case Tiso:
+		iso = ep->aux;
+		return episowrite(ep, iso, a, count);
+	default:
+		panic("uhci: epwrite: bad ep ttype %d", ep->ttype);
+	}
+	return -1;
+}
+
+static void
+isoopen(Ep *ep)
 {
 	Ctlr *ctlr;
+	Isoio *iso;
+	int frno;
+	int i;
+	Td* td;
+	Td* ltd;
+	int size;
+	int left;
 
-	ctlr = uh->ctlr;
+	if(ep->mode == ORDWR)
+		error("iso i/o is half-duplex");
+	ctlr = ep->hp->aux;
+	iso = ep->aux;
+	iso->debug = ep->debug;
+	iso->next = nil;			/* paranoia */
+	if(ep->mode == OREAD)
+		iso->tok = Tdtokin;
+	else
+		iso->tok = Tdtokout;
+	iso->usbid = ((ep->nb & Epmax)<<7)|(ep->dev->nb & Devmax);
+	iso->state = Qidle;
+	iso->nframes = Nframes/ep->pollival;
+	if(iso->nframes < 3)
+		error("uhci isoopen bug");	/* we need at least 3 tds */
+
 	ilock(ctlr);
-	outl(ctlr->io+Flbaseadd, PCIWADDR(ctlr->frames));
-	OUT(Frnum, 0);
-	OUT(Usbintr, 0xF);	/* enable all interrupts */
-	XPRINT("cmd %#x sofmod %#x\n", IN(Cmd), inb(ctlr->io+SOFMod));
-	XPRINT("sc0 %#x sc1 %#x\n", IN(Portsc0), IN(Portsc1));
-	if((IN(Cmd)&1)==0)
-		OUT(Cmd, 1);	/* run */
-//	pprint("at: c=%#x s=%#x c0=%x\n", IN(Cmd), IN(Status), IN(Portsc0));
+	if(ctlr->load + ep->load > 800){
+		iunlock(ctlr);
+		error("bandwidth exceeded");
+	}
+	ctlr->load += ep->load;
+	ctlr->isoload += ep->load;
+	dprint("uhci: load %uld isoload %uld\n", ctlr->load, ctlr->isoload);
 	iunlock(ctlr);
+
+	/*
+	 * From here on this cannot raise errors
+	 * unless we catch them and release here all memory allocated.
+	 */
+	if(ep->maxpkt > Tdndata)
+		iso->data = smalloc(iso->nframes*ep->maxpkt);
+	ilock(ctlr);
+	frno = INS(Frnum) + 10;			/* start 10ms ahead */
+	frno = TRUNC(frno, Nframes);
+	iunlock(ctlr);
+	iso->td0frno = frno;
+	ltd = nil;
+	left = 0;
+	for(i = 0; i < iso->nframes; i++){
+		td = iso->tdps[frno] = tdalloc();
+		if(ep->mode == OREAD)
+			size = ep->maxpkt;
+		else{
+			size = (ep->hz+left) * ep->pollival / 1000;
+			size *= ep->samplesz;
+			left = (ep->hz+left) * ep->pollival % 1000;
+			if(size > ep->maxpkt){
+				print("uhci: ep%d.%d: size > maxpkt\n",
+					ep->dev->nb, ep->nb);
+				print("size = %d max = %ld\n", size, ep->maxpkt);
+				size = ep->maxpkt;
+			}
+		}
+		if(size > Tdndata)
+			td->data = iso->data + i * ep->maxpkt;
+		else
+			td->data = td->sbuff;
+		td->buffer = PCIWADDR(td->data);
+		tdisoinit(iso, td, size);
+		if(ltd != nil)
+			ltd->next = td;
+		ltd = td;
+		frno = TRUNC(frno+ep->pollival, Nframes);
+	}
+	ltd->next = iso->tdps[iso->td0frno];
+	iso->tdi = iso->tdps[iso->td0frno];
+	iso->tdu = iso->tdi;	/* read: right now; write: 1s ahead */
+	ilock(ctlr);
+	frno = iso->td0frno;
+	for(i = 0; i < iso->nframes; i++){
+		iso->tdps[frno]->link = ctlr->frames[frno];
+		frno = TRUNC(frno+ep->pollival, Nframes);
+	}
+	coherence();
+	frno = iso->td0frno;
+	for(i = 0; i < iso->nframes; i++){
+		ctlr->frames[frno] = PCIWADDR(iso->tdps[frno]);
+		frno = TRUNC(frno+ep->pollival, Nframes);
+	}
+	iso->next = ctlr->iso;
+	ctlr->iso = iso;
+	iso->state = Qdone;
+	iunlock(ctlr);
+	if(debug > 1 || iso->debug >1)
+		isodump(iso, 0);
+}
+
+/*
+ * Allocate the endpoint and set it up for I/O
+ * in the controller. This must follow what's said
+ * in Ep regarding configuration, including perhaps
+ * the saved toggles (saved on a previous close of
+ * the endpoint data file by epclose).
+ */
+static void
+epopen(Ep *ep)
+{
+	Ctlr *ctlr;
+	Qh *cqh;
+	Qio *io;
+	Ctlio *cio;
+	int usbid;
+
+	ctlr = ep->hp->aux;
+	deprint("uhci: epopen ep%d.%d\n", ep->dev->nb, ep->nb);
+	if(ep->aux != nil)
+		panic("uhci: epopen called with open ep");
+	if(waserror()){
+		free(ep->aux);
+		ep->aux = nil;
+		nexterror();
+	}
+	if(ep->maxpkt > Tdmaxpkt){
+		print("uhci: maxkpkt too large: using %d\n", Tdmaxpkt);
+		ep->maxpkt = Tdmaxpkt;
+	}
+	cqh = ctlr->qh[ep->ttype];
+	switch(ep->ttype){
+	case Tnone:
+		error("endpoint not configured");
+	case Tiso:
+		ep->aux = smalloc(sizeof(Isoio));
+		isoopen(ep);
+		break;
+	case Tctl:
+		cio = ep->aux = smalloc(sizeof(Ctlio));
+		cio->debug = ep->debug;
+		cio->ndata = -1;
+		cio->data = nil;
+		if(ep->dev->isroot != 0 && ep->nb == 0)	/* root hub */
+			break;
+		cio->qh = qhalloc(ctlr, cqh, cio, "epc");
+		break;
+	case Tbulk:
+	case Tintr:
+		io = ep->aux = smalloc(sizeof(Qio)*2);
+		io[OREAD].debug = io[OWRITE].debug = ep->debug;
+		usbid = ((ep->nb&Epmax)<<7)|(ep->dev->nb &Devmax);
+		if(ep->mode != OREAD){
+			if(ep->toggle[OWRITE] != 0)
+				io[OWRITE].toggle = Tddata1;
+			else
+				io[OWRITE].toggle = Tddata0;
+			io[OWRITE].tok = Tdtokout;
+			io[OWRITE].qh = qhalloc(ctlr, cqh, io+OWRITE, "epw");
+			io[OWRITE].usbid = usbid;
+		}
+		if(ep->mode != OWRITE){
+			if(ep->toggle[OREAD] != 0)
+				io[OREAD].toggle = Tddata1;
+			else
+				io[OREAD].toggle = Tddata0;
+			io[OREAD].tok = Tdtokin;
+			io[OREAD].qh = qhalloc(ctlr, cqh, io+OREAD, "epr");
+			io[OREAD].usbid = usbid;
+		}
+		break;
+	}
+	if(debug>1 || ep->debug)
+		dump(ep->hp);
+	deprint("uhci: epopen done\n");
+	poperror();
+}
+
+static void
+cancelio(Ctlr *ctlr, Qio *io)
+{
+	Qh *qh;
+
+	ilock(ctlr);
+	qh = io->qh;
+	if(io == nil || io->qh == nil || io->qh->state == Qclose){
+		iunlock(ctlr);
+		return;
+	}
+	dqprint("uhci: cancelio for qh %#p state %s\n",
+		qh, qhsname[qh->state]);
+	aborttds(qh);
+	qh->state = Qclose;
+	iunlock(ctlr);
+	if(!waserror()){
+		tsleep(&up->sleep, return0, 0, Abortdelay);
+		poperror();
+	}
+
+	wakeup(io);
+	qlock(io);
+	/* wait for epio if running */
+	qunlock(io);
+
+	qhfree(ctlr, qh);
+	io->qh = nil;
+}
+
+static void
+cancelisoio(Ctlr *ctlr, Isoio *iso, int pollival, ulong load)
+{
+	Isoio **il;
+	ulong *lp;
+	int i;
+	int frno;
+	Td *td;
+
+	ilock(ctlr);
+	if(iso->state == Qclose){
+		iunlock(ctlr);
+		return;
+	}
+	if(iso->state != Qrun && iso->state != Qdone)
+		panic("bad iso state");
+	iso->state = Qclose;
+	if(ctlr->isoload < load)
+		panic("uhci: low isoload");
+	ctlr->isoload -= load;
+	ctlr->load -= load;
+	for(il = &ctlr->iso; *il != nil; il = &(*il)->next)
+		if(*il == iso)
+			break;
+	if(*il == nil)
+		panic("isocancel: not found");
+	*il = iso->next;
+	frno = iso->td0frno;
+	for(i = 0; i < iso->nframes; i++){
+		td = iso->tdps[frno];
+		td->csw &= ~(Tdioc|Tdactive);
+		for(lp=&ctlr->frames[frno]; !(*lp & Tdterm);
+					lp = &TPTR(*lp)->link)
+			if(TPTR(*lp) == td)
+				break;
+		if(*lp & Tdterm)
+			panic("cancelisoio: td not found");
+		*lp = td->link;
+		frno = TRUNC(frno+pollival, Nframes);
+	}
+	iunlock(ctlr);
+
+	/*
+	 * wakeup anyone waiting for I/O and
+	 * wait to be sure no I/O is in progress in the controller.
+	 * and then wait to be sure episo-io is no longer running.
+	 */
+	wakeup(iso);
+	diprint("cancelisoio iso %#p waiting for I/O to cease\n", iso);
+	tsleep(&up->sleep, return0, 0, 5);
+	qlock(iso);
+	qunlock(iso);
+	diprint("cancelisoio iso %#p releasing iso\n", iso);
+
+	frno = iso->td0frno;
+	for(i = 0; i < iso->nframes; i++){
+		tdfree(iso->tdps[frno]);
+		iso->tdps[frno] = nil;
+		frno = TRUNC(frno+pollival, Nframes);
+	}
+	free(iso->data);
+	iso->data = nil;
+	
+}
+
+static void
+epclose(Ep *ep)
+{
+	Ctlr *ctlr;
+	Ctlio *cio;
+	Isoio *iso;
+	Qio *io;
+
+	ctlr = ep->hp->aux;
+	deprint("uhci: epclose ep%d.%d\n", ep->dev->nb, ep->nb);
+
+	if(ep->aux == nil)
+		panic("uhci: epclose called with closed ep");
+	switch(ep->ttype){
+	case Tctl:
+		cio = ep->aux;
+		cancelio(ctlr, cio);
+		free(cio->data);
+		cio->data = nil;
+		break;
+	case Tbulk:
+	case Tintr:
+		io = ep->aux;
+		ep->toggle[OREAD] = ep->toggle[OWRITE] = 0;
+		if(ep->mode != OWRITE){
+			cancelio(ctlr, &io[OREAD]);
+			if(io[OREAD].toggle == Tddata1)
+				ep->toggle[OREAD] = 1;
+		}
+		if(ep->mode != OREAD){
+			cancelio(ctlr, &io[OWRITE]);
+			if(io[OWRITE].toggle == Tddata1)
+				ep->toggle[OWRITE] = 1;
+		}
+		break;
+	case Tiso:
+		iso = ep->aux;
+		cancelisoio(ctlr, iso, ep->pollival, ep->load);
+		break;
+	default:
+		panic("epclose: bad ttype %d", ep->ttype);
+	}
+
+	free(ep->aux);
+	ep->aux = nil;
+
+}
+
+static char*
+seprintep(char *s, char *e, Ep *ep)
+{
+	Ctlio *cio;
+	Qio *io;
+	Isoio *iso;
+	Ctlr *ctlr;
+
+	ctlr = ep->hp->aux;
+	ilock(ctlr);
+	if(ep->aux == nil){
+		*s = 0;
+		iunlock(ctlr);
+		return s;
+	}
+	switch(ep->ttype){
+	case Tctl:
+		cio = ep->aux;
+		s = seprint(s,e,"cio %#p qh %#p"
+			" id %#x tog %#x tok %#x err %s\n",
+			cio, cio->qh, cio->usbid, cio->toggle,
+			cio->tok, cio->err);
+		break;
+	case Tbulk:
+	case Tintr:
+		io = ep->aux;
+		if(ep->mode != OWRITE)
+			s = seprint(s,e,"r: qh %#p id %#x tog %#x tok %#x err %s\n",
+				io[OREAD].qh, io[OREAD].usbid, io[OREAD].toggle,
+				io[OREAD].tok, io[OREAD].err);
+		if(ep->mode != OREAD)
+			s = seprint(s,e,"w: qh %#p id %#x tog %#x tok %#x err %s\n",
+				io[OWRITE].qh, io[OWRITE].usbid, io[OWRITE].toggle,
+				io[OWRITE].tok, io[OWRITE].err);
+		break;
+	case Tiso:
+		iso = ep->aux;
+		s = seprint(s,e,"iso %#p id %#x tok %#x tdu %#p tdi %#p err %s\n",
+			iso, iso->usbid, iso->tok, iso->tdu, iso->tdi, iso->err);
+		break;
+	}
+	iunlock(ctlr);
+	return s;
+}
+
+static int
+portenable(Hci *hp, int port, int on)
+{
+	int s;
+	int ioport;
+	Ctlr *ctlr;
+
+	ctlr = hp->aux;
+	dprint("uhci: %#x port %d enable=%d\n", ctlr->port, port, on);
+	ioport = PORT(port-1);
+	qlock(&ctlr->portlck);
+	if(waserror()){
+		qunlock(&ctlr->portlck);
+		nexterror();
+	}
+	ilock(ctlr);
+	s = INS(ioport);
+	if(on)
+		OUTS(ioport, s | PSenable);
+	else
+		OUTS(ioport, s & ~PSenable);
+	microdelay(64);
+	iunlock(ctlr);
+	tsleep(&up->sleep, return0, 0, Enabledelay);
+	dprint("uhci %#ux port %d enable=%d: sts %#x\n",
+		ctlr->port, port, on, INS(ioport));
+	qunlock(&ctlr->portlck);
+	poperror();
+	return 0;
+}
+
+static int
+portreset(Hci *hp, int port, int on)
+{
+	int i, p;
+	Ctlr *ctlr;
+
+	if(on == 0)
+		return 0;
+	ctlr = hp->aux;
+	dprint("uhci: %#ux port %d reset\n", ctlr->port, port);
+	p = PORT(port-1);
+	ilock(ctlr);
+	OUTS(p, PSreset);
+	delay(50);
+	OUTS(p, INS(p) & ~PSreset);
+	OUTS(p, INS(p) | PSenable);
+	microdelay(64);
+	for(i=0; i<1000 && (INS(p) & PSenable) == 0; i++)
+		;
+	OUTS(p, (INS(p) & ~PSreset)|PSenable);
+	iunlock(ctlr);
+	dprint("uhci %#ux after port %d reset: sts %#x\n",
+		ctlr->port, port, INS(p));
+	return 0;
+}
+
+static int
+portstatus(Hci *hp, int port)
+{
+	int s;
+	int r;
+	int ioport;
+	Ctlr *ctlr;
+
+	ctlr = hp->aux;
+	ioport = PORT(port-1);
+	qlock(&ctlr->portlck);
+	if(waserror()){
+		iunlock(ctlr);
+		qunlock(&ctlr->portlck);
+		nexterror();
+	}
+	ilock(ctlr);
+	s = INS(ioport);
+	if(s & (PSstatuschg | PSchange)){
+		OUTS(ioport, s);
+		ddprint("uhci %#ux port %d status %#x\n", ctlr->port, port, s);
+	}
+	iunlock(ctlr);
+	qunlock(&ctlr->portlck);
+	poperror();
+
+	/*
+	 * We must return status bits as a
+	 * get port status hub request would do.
+	 */
+	r = 0;
+	if(s & PSpresent)
+		r |= HPpresent;
+	if(s & PSenable)
+		r |= HPenable;
+	if(s & PSsuspend)
+		r |= HPsuspend;
+	if(s & PSreset)
+		r |= HPreset;
+	if(s & PSslow)
+		r |= HPslow;
+	if(s & PSstatuschg)
+		r |= HPstatuschg;
+	if(s & PSchange)
+		r |= HPchange;
+	return r;
 }
 
 static void
 scanpci(void)
 {
+	static int already = 0;
 	int io;
+	int i;
 	Ctlr *ctlr;
 	Pcidev *p;
-	static int already = 0;
 
 	if(already)
 		return;
 	already = 1;
 	p = nil;
-	while(p = pcimatch(p, 0, 0)) {
+	while(p = pcimatch(p, 0, 0)){
 		/*
 		 * Find UHCI controllers (Programming Interface = 0).
 		 */
@@ -1424,8 +2106,8 @@ scanpci(void)
 		default:
 			continue;
 		}
-		if(io == 0) {
-			print("usbuhci: %x/%x failed to map registers\n",
+		if(io == 0){
+			print("usbuhci: %#x %#x: failed to map registers\n",
 				p->vid, p->did);
 			continue;
 		}
@@ -1433,151 +2115,198 @@ scanpci(void)
 			print("usbuhci: port %#ux in use\n", io);
 			continue;
 		}
-		if(p->intl == 0xFF || p->intl == 0) {
+		if(p->intl == 0xFF || p->intl == 0){
 			print("usbuhci: no irq assigned for port %#ux\n", io);
 			continue;
 		}
 
-		XPRINT("usbuhci: %x/%x port 0x%ux size 0x%x irq %d\n",
+		dprint("uhci: %#x %#x: port %#ux size %#x irq %d\n",
 			p->vid, p->did, io, p->mem[4].size, p->intl);
 
-		ctlr = malloc(sizeof(Ctlr));
+		ctlr = mallocz(sizeof(Ctlr), 1);
 		ctlr->pcidev = p;
-		ctlr->io = io;
-		if(ctlrhead != nil)
-			ctlrtail->next = ctlr;
-		else
-			ctlrhead = ctlr;
-		ctlrtail = ctlr;
+		ctlr->port = io;
+		for(i = 0; i < Nhcis; i++)
+			if(ctlrs[i] == nil){
+				ctlrs[i] = ctlr;
+				break;
+			}
+		if(i == Nhcis)
+			print("uhci: bug: no more controllers\n");
 	}
 }
 
-static int
-reset(Usbhost *uh)
+static void
+uhcimeminit(Ctlr *ctlr)
+{
+	Td* td;
+	Qh *qh;
+	int frsize;
+	int i;
+
+	ctlr->qhs = ctlr->qh[Tctl] = qhalloc(ctlr, nil, nil, "CTL");
+	ctlr->qh[Tintr] = qhalloc(ctlr, ctlr->qh[Tctl], nil, "INT");
+	ctlr->qh[Tbulk] = qhalloc(ctlr, ctlr->qh[Tintr], nil, "BLK");
+
+	/* idle Td from dummy Qh at the end. looped back to itself */
+	/* This is a workaround for PIIX4 errata 29773804.pdf */
+	qh = qhalloc(ctlr, ctlr->qh[Tbulk], nil, "BWS");
+	td = tdalloc();
+	td->link = PCIWADDR(td);
+	qhlinktd(qh, td);
+
+	/* loop (hw only) from the last qh back to control xfers.
+	 * this may be done only for some of them. Disable until ehci comes.
+	 */
+	if(0)
+	qh->link = PCIWADDR(ctlr->qhs);
+
+	frsize = Nframes*sizeof(ulong);
+	ctlr->frames = xspanalloc(frsize, frsize, 0);
+	if(ctlr->frames == nil)
+		panic("uhci reset: no memory\n");
+
+	ctlr->iso = nil;
+	for(i = 0; i < Nframes; i++)
+		ctlr->frames[i] = PCIWADDR(ctlr->qhs)|QHlinkqh;
+	OUTL(Flbaseadd, PCIWADDR(ctlr->frames));
+	OUTS(Frnum, 0);
+	dprint("uhci %#ux flb %#ulx frno %#ux\n", ctlr->port,
+		INL(Flbaseadd), INS(Frnum));
+}
+
+static void
+init(Hci *hp)
+{
+	Ctlr *ctlr;
+	int sts;
+	int i;
+
+	ctlr = hp->aux;
+	dprint("uhci %#ux init\n", ctlr->port);
+	coherence();
+	ilock(ctlr);
+	OUTS(Usbintr, Itmout|Iresume|Ioc|Ishort);
+	uhcirun(ctlr, 1);
+	dprint("uhci: init: cmd %#ux sts %#ux sof %#ux",
+		INS(Cmd), INS(Status), INS(SOFmod));
+	dprint(" flb %#ulx frno %#ux psc0 %#ux psc1 %#ux",
+		INL(Flbaseadd), INS(Frnum), INS(PORT(0)), INS(PORT(1)));
+	/* guess other ports */
+	for(i = 2; i < 6; i++){
+		sts = INS(PORT(i));
+		if(sts != 0xFFFF && (sts & PSreserved1) == 1){
+			dprint(" psc%d %#ux", i, sts);
+			hp->nports++;
+		}else
+			break;
+	}
+	for(i = 0; i < hp->nports; i++)
+		OUTS(PORT(i), 0);
+	iunlock(ctlr);
+}
+
+static void
+uhcireset(Ctlr *ctlr)
 {
 	int i;
-	TD *t;
-	ulong io;
+	int sof;
+
+	ilock(ctlr);
+	dprint("uhci %#ux reset\n", ctlr->port);
+
+	/*
+	 * Turn off legacy mode. Some controllers won't
+	 * interrupt us as expected otherwise.
+	 */
+	uhcirun(ctlr, 0);
+	pcicfgw16(ctlr->pcidev, 0xc0, 0x2000);
+
+	OUTS(Usbintr, 0);
+	sof = INB(SOFmod);
+	uhcicmd(ctlr, Cgreset);			/* global reset */
+	delay(Resetdelay);
+	uhcicmd(ctlr, 0);			/* all halt */
+	uhcicmd(ctlr, Chcreset);			/* controller reset */
+	for(i = 0; i < 100; i++){
+		if((INS(Cmd) & Chcreset) == 0)
+			break;
+		delay(1);
+	}
+	if(i == 100)
+		print("uhci %#x controller reset timed out\n", ctlr->port);
+	OUTB(SOFmod, sof);
+	iunlock(ctlr);
+}
+
+static void
+setdebug(Hci*, int d)
+{
+	debug = d;
+}
+
+static int
+reset(Hci *hp)
+{
+	static Lock resetlck;
+	int i;
 	Ctlr *ctlr;
 	Pcidev *p;
 
+	if(getconf("*nousbuhci"))
+		return -1;
+
+	ilock(&resetlck);
 	scanpci();
 
 	/*
-	 * Any adapter matches if no uh->port is supplied,
+	 * Any adapter matches if no hp->port is supplied,
 	 * otherwise the ports must match.
 	 */
-	for(ctlr = ctlrhead; ctlr != nil; ctlr = ctlr->next){
-		if(ctlr->active)
-			continue;
-		if(uh->port == 0 || uh->port == ctlr->io){
+	ctlr = nil;
+	for(i = 0; i < Nhcis && ctlrs[i] != nil; i++){
+		ctlr = ctlrs[i];
+		if(ctlr->active == 0)
+		if(hp->port == 0 || hp->port == ctlr->port){
 			ctlr->active = 1;
 			break;
 		}
 	}
-	if(ctlr == nil)
+	iunlock(&resetlck);
+	if(ctlrs[i] == nil || i == Nhcis)
 		return -1;
 
-	io = ctlr->io;
 	p = ctlr->pcidev;
+	hp->aux = ctlr;
+	hp->port = ctlr->port;
+	hp->irq = p->intl;
+	hp->tbdf = p->tbdf;
+	hp->nports = 2;			/* default */
 
-	uh->ctlr = ctlr;
-	uh->port = io;
-	uh->irq = p->intl;
-	uh->tbdf = p->tbdf;
-
-	XPRINT("usbcmd\t0x%.4x\nusbsts\t0x%.4x\nusbintr\t0x%.4x\nfrnum\t0x%.2x\n",
-		IN(Cmd), IN(Status), IN(Usbintr), inb(io+Frnum));
-	XPRINT("frbaseadd\t0x%.4x\nsofmod\t0x%x\nportsc1\t0x%.4x\nportsc2\t0x%.4x\n",
-		IN(Flbaseadd), inb(io+SOFMod), IN(Portsc0), IN(Portsc1));
-
-	OUT(Cmd, 0);				/* stop */
-	while((IN(Status) & (1<<5)) == 0)	/* wait for halt */
-		;
-	OUT(Status, 0xFF);			/* clear pending interrupts */
-	/* legacy support register: turn off lunacy mode */
-	pcicfgw16(p, 0xc0, 0x2000);
-
-	if(0){
-		i = inb(io+SOFMod);
-		OUT(Cmd, 4);		/* global reset */
-		delay(15);
-		OUT(Cmd, 0);		/* end reset */
-		delay(4);
-		outb(io+SOFMod, i);
-	}
-
-	ctlr->tdpool = xspanalloc(128*sizeof(TD), 16, 0);
-	for(i=128; --i>=0;){
-		ctlr->tdpool[i].next = ctlr->freetd;
-		ctlr->freetd = &ctlr->tdpool[i];
-	}
-	ctlr->qhpool = xspanalloc(64*sizeof(QH), 16, 0);
-	for(i=64; --i>=0;){
-		ctlr->qhpool[i].next = ctlr->freeqh;
-		ctlr->freeqh = &ctlr->qhpool[i];
-	}
+	uhcireset(ctlr);
+	uhcimeminit(ctlr);
 
 	/*
-	 * the last entries of the periodic (interrupt & isochronous)
-	 * scheduling TD entries points to the control queue and the
-	 * bandwidth sop for bulk traffic.  this is looped following the
-	 * instructions in PIIX4 errata 29773804.pdf: a QH links to a
-	 * looped but inactive TD as its sole entry, with its head entry
-	 * leading on to the bulk traffic, the last QH of which links
-	 * back to the empty QH.
+	 * Linkage to the generic HCI driver.
 	 */
-	ctlr->ctlq = allocqh(ctlr);
-	ctlr->bwsop = allocqh(ctlr);
-	ctlr->bulkq = allocqh(ctlr);
-	ctlr->recvq = allocqh(ctlr);
-	t = alloctd(ctlr);		/* inactive TD, looped */
-	t->link = PCIWADDR(t);
-	ctlr->bwsop->entries = PCIWADDR(t);
-
-	ctlr->ctlq->head = PCIWADDR(ctlr->bulkq) | IsQH;
-	ctlr->bulkq->head = PCIWADDR(ctlr->recvq) | IsQH;
-	ctlr->recvq->head = PCIWADDR(ctlr->bwsop) | IsQH;
-	if (1)				/* don't use loop back */
- 		ctlr->bwsop->head = Terminate;
-	else				/* set up loop back */
-		ctlr->bwsop->head = PCIWADDR(ctlr->bwsop) | IsQH;
-
-	ctlr->frames = xspanalloc(FRAMESIZE, FRAMESIZE, 0);
-	ctlr->frameld = xallocz(FRAMESIZE, 1);
-	if (ctlr->frames == nil || ctlr->frameld == nil)
-		panic("uhci reset: no memory");
-	for (i = 0; i < NFRAME; i++)
-		ctlr->frames[i] = PCIWADDR(ctlr->ctlq) | IsQH;
-
-	/*
-	 * Linkage to the generic USB driver.
-	 */
-	uh->init = init;
-	uh->interrupt = interrupt;
-
-	uh->portinfo = portinfo;
-	uh->portreset = portreset;
-	uh->portenable = portenable;
-
-	uh->epalloc = epalloc;
-	uh->epfree = epfree;
-	uh->epopen = epopen;
-	uh->epclose = epclose;
-	uh->epmode = epmode;
-
-	uh->read = read;
-	uh->write = write;
-
-	uh->tokin = Utokin;
-	uh->tokout = Utokout;
-	uh->toksetup = Utoksetup;
-
+	hp->init = init;
+	hp->dump = dump;
+	hp->interrupt = interrupt;
+	hp->epopen = epopen;
+	hp->epclose = epclose;
+	hp->epread = epread;
+	hp->epwrite = epwrite;
+	hp->seprintep = seprintep;
+	hp->portenable = portenable;
+	hp->portreset = portreset;
+	hp->portstatus = portstatus;
+	hp->debug = setdebug;
+	hp->type = "uhci";
 	return 0;
 }
 
 void
 usbuhcilink(void)
 {
-	addusbtype("uhci", reset);
+	addhcitype("uhci", reset);
 }
