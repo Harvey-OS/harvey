@@ -2,16 +2,20 @@
 
 TARG=usbd
 OFILES=\
-	hub.$O\
-	setup.$O\
 	usbd.$O\
+	dev.$O\
+	devtab.$O\
 
 HFILES=\
-	dat.h\
-	fns.h\
+	usbd.h\
 	../lib/usb.h\
+	../lib/usbfs.h\
 
-LIB=../lib/usb.a$O
+LIBD=../lib/usbdev.a$O
+LIBU=../lib/usb.a$O
+LIB=\
+	$LIBD\
+	$LIBU\
 
 UPDATE=\
 	$HFILES\
@@ -23,8 +27,13 @@ BIN=/$objtype/bin/usb
 </sys/src/cmd/mkone
 
 CFLAGS=-I../lib $CFLAGS
+CLEANFILES=devtab.c
 
-$LIB:
+$LIBU:
 	cd ../lib
 	mk install
 	mk clean
+
+devtab.c: usbdb ../lib/usb.h mkdev
+	mkdev >$target
+

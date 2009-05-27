@@ -1,3 +1,4 @@
+# pcfl - no longer builds because /sys/lib/sysconfig/fl is gone
 dev
 	root
 	cons
@@ -30,7 +31,8 @@ dev
 	pccard
 	i82365		cis
 	uart
-	usb
+#	usb
+#	kbin
 
 link
 	devpccard
@@ -56,7 +58,9 @@ link
 	pcmciamodem
 	netdevmedium
 	loopbackmedium
-	usbuhci
+#	usbohci
+#	usbuhci
+#	usbehci
 
 misc
 	archmp		mp apic
@@ -100,6 +104,7 @@ port
 	int cpuserver = 0;
 
 boot boot #S/sdC0/
+	tcp
 	local
 
 bootdir
@@ -114,8 +119,8 @@ bootdir
 	/386/bin/auth/factotum
 	/386/bin/fossil/fossil
 	/386/bin/ip/ipconfig
+	/386/bin/usb/usbd
 	/386/bin/venti/venti
 	/sys/lib/sysconfig/fl/boot
 	/sys/lib/sysconfig/fl/flproto
 	/sys/lib/sysconfig/fl/venti.conf
-

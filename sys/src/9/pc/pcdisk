@@ -59,6 +59,7 @@ link
 	etherigbe	pci ethermii
 	ethervgbe	pci ethermii
 	ethervt6102	pci ethermii
+	ethervt6105m	pci ethermii
 	ethersink
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
@@ -67,6 +68,8 @@ link
 	netdevmedium
 	loopbackmedium
 	usbuhci
+	usbohci
+	usbehci
 
 misc
 	archmp		mp apic
@@ -106,20 +109,19 @@ misc
 ip
 	tcp
 	udp
+	rudp
 	ipifc
 	icmp
 	icmp6
 	gre
 	ipmux
 	esp
-#	il
 
 port
 	int cpuserver = 0;
 
 boot boot #S/sdC0/
 	tcp
-#	il
 	local
 
 bootdir
@@ -128,3 +130,4 @@ bootdir
 	/386/bin/auth/factotum
 	/386/bin/disk/kfs
 	/386/bin/cfs
+	/386/bin/usb/usbd

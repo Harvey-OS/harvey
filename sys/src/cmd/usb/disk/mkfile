@@ -1,21 +1,41 @@
 </$objtype/mkfile
 
 TARG=disk
-LIBDIR=../lib
-HFILES = /sys/src/cmd/scuzz/scsireq.h $LIBDIR/usb.h
-OFILES = disk.$O scsireq.$O
-LIB=$LIBDIR/usb.a$O
+OFILES=\
+	main.$O
+
+LIBDOFILES=\
+	disk.$O\
+	scsireq.$O\
+	scsierrs.$O\
+
+HFILES =\
+	scsireq.h\
+	../lib/usb.h\
+	../lib/usbfs.h\
+	ums.h\
+
+LIBD=../lib/usbdev.a$O
+LIBU=../lib/usb.a$O
+LIB=\
+	$LIBD\
+	$LIBU\
 
 BIN=/$objtype/bin/usb
 
 </sys/src/cmd/mkone
+CFLAGS=-I../lib $CFLAGS
+CLEANFILES=scsierrs.c
 
-CFLAGS=-I$LIBDIR -I/sys/src/cmd/scuzz $CFLAGS
-
-$LIB:
-	cd $LIBDIR
+$LIBU:
+	cd ../lib
 	mk install
 	mk clean
 
-scsireq.$O: /sys/src/cmd/scuzz/scsireq.c
-	$CC $CFLAGS /sys/src/cmd/scuzz/scsireq.c
+$LIBD:V: $LIBDOFILES
+	ar vu $LIBD $newprereq
+	rm $newprereq
+
+scsierrs.c: /sys/lib/scsicodes mkscsierrs
+	mkscsierrs >scsierrs.c
+

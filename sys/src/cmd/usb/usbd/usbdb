@@ -1,0 +1,6 @@
+# only kb and disk are prepared for embedding.
+# others are not yet converted to sit in the usbd device driver library
+embed
+	kb	csp=0x010103 csp=0x020103	args=
+	disk	class=storage	args=
+auto

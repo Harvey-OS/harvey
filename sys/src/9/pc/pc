@@ -53,12 +53,14 @@ link
 	ether82563	pci
 	ether82557	pci
 	ether83815	pci
+	etherdp83820	pci
 	etherec2t	ether8390
 	etherelnk3	pci
 	etherga620	pci
 	etherigbe	pci ethermii
 	ethervgbe	pci ethermii
 	ethervt6102	pci ethermii
+	ethervt6105m	pci ethermii
 	ethersink
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
@@ -70,6 +72,7 @@ link
 	loopbackmedium
 	usbuhci
 	usbohci
+	usbehci
 
 misc
 	archmp		mp apic
@@ -115,16 +118,15 @@ ip
 	gre
 	ipmux
 	esp
-#	il
 
 port
 	int cpuserver = 0;
 
 boot
 	tcp
-#	il
 
 bootdir
 	bootpc.out boot
 	/386/bin/ip/ipconfig
 	/386/bin/auth/factotum
+	/386/bin/usb/usbd

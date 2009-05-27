@@ -1,15 +1,15 @@
 </$objtype/mkfile
 
-TARG=usbaudio
+TARG=audio
 OFILES=\
 	audiofs.$O\
 	audiosub.$O\
-	usbaudio.$O\
-	usbaudioctl.$O\
+	audio.$O\
+	audioctl.$O\
 
 HFILES=\
-	usbaudio.h\
-	usbaudioctl.h\
+	audio.h\
+	audioctl.h\
 	../lib/usb.h\
 
 UPDATE=\

@@ -1,3 +1,4 @@
+# pccpu - cpu server kernel
 dev
 	root
 	cons
@@ -28,6 +29,7 @@ dev
 
 	uart
 	usb
+	kbin
 	audio
 
 link
@@ -42,11 +44,13 @@ link
 	ether82563	pci
 	ether82557	pci
 	ether83815	pci
+	etherdp83820	pci
 	etherelnk3	pci
 	etherga620	pci
 	etherigbe	pci ethermii
 	ethervgbe	pci ethermii
 	ethervt6102	pci ethermii
+	ethervt6105m	pci ethermii
 #	etherm10g	pci ethermii
 	ether82598	pci
 	ethersink
@@ -54,6 +58,7 @@ link
 	loopbackmedium
 	usbuhci
 	usbohci
+	usbehci
 
 misc
 	archmp		mp apic
@@ -79,16 +84,15 @@ ip
 	ipmux
 	esp
 	rudp
-#	il
 
 port
 	int cpuserver = 1;
 
 boot cpu
 	tcp
-#	il
 
 bootdir
 	bootpccpu.out boot
 	/386/bin/ip/ipconfig ipconfig
 	/386/bin/auth/factotum
+	/386/bin/usb/usbd

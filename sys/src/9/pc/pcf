@@ -59,6 +59,7 @@ link
 	etherigbe	pci ethermii
 	ethervgbe	pci ethermii
 	ethervt6102	pci ethermii
+	ethervt6105m	pci ethermii
 	ethersink
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
@@ -67,6 +68,8 @@ link
 	netdevmedium
 	loopbackmedium
 	usbuhci
+	usbohci
+	usbehci
 
 misc
 	archmp		mp apic
@@ -105,6 +108,7 @@ misc
 ip
 	tcp
 	udp
+	rudp
 	ipifc
 	icmp
 	icmp6
@@ -123,6 +127,6 @@ bootdir
 	bootpcf.out boot
 	/386/bin/ip/ipconfig
 	/386/bin/auth/factotum
-#	/386/bin/disk/kfs
 	/386/bin/fossil/fossil
 	/386/bin/venti/venti
+	/386/bin/usb/usbd

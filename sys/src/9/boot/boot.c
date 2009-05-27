@@ -325,18 +325,9 @@ static void
 usbinit(void)
 {
 	static char *darg[] = { "/boot/usbd", nil };
-	static char *kbarg[] = { "/boot/kb", "-a2", nil };
-	static char *dskarg[] = {
-		"/boot/disk", "-l", "-s", "usbdisk", "-m", "/mnt", nil
-	};
 
-	if(bind("#U", "/dev", MAFTER) < 0 || access("/dev/usb0", 0) < 0)
-		return;
-	run("usbd", darg);
-	if(access("#m/mouse", 0) < 0)	/* no mouse driver? */
-		kbarg[1] = "-k";
-	run("kb", kbarg);
-	run("disk", dskarg);		/* mounts on /mnt/<lun> */
+	if(bind("#u", "/dev", MAFTER) >= 0 && access("/dev/usb", 0) >= 0)
+		run("usbd", darg);
 }
 
 static void

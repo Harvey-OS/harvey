@@ -32,6 +32,7 @@ dev
 
 	uart
 	usb
+	kbin
 
 link
 	realmode
@@ -55,6 +56,7 @@ link
 	etherigbe	pci ethermii
 	ethervgbe	pci ethermii
 	ethervt6102	pci ethermii
+	ethervt6105m	pci ethermii
 #	etherm10g	pci
 	ethersink
 	ethersmc	devi82365 cis
@@ -64,6 +66,7 @@ link
 	loopbackmedium
 	usbuhci
 	usbohci
+	usbehci
 
 misc
 	archmp		mp apic
@@ -125,3 +128,4 @@ bootdir
 #	/386/bin/disk/kfs
 	/386/bin/fossil/fossil
 	/386/bin/venti/venti
+	/386/bin/usb/usbd

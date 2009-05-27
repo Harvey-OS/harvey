@@ -5,8 +5,8 @@
 #include <fcall.h>
 #include <libsec.h>
 #include "usb.h"
-#include "usbaudio.h"
-#include "usbaudioctl.h"
+#include "audio.h"
+#include "audioctl.h"
 
 int attachok;
 
@@ -68,19 +68,14 @@ enum {
 	Qvolume,
 	Qaudioctl,
 	Qaudiostat,
-	Qaudio,
-	Qaudioin,
 	Nqid,
 };
 
 Dir dirs[] = {
-	/* Note: Qaudio{in} used as mount point for /dev/usb/%d/ep%ddata only */
-[Qdir] =	{0,0,{Qdir,      0,QTDIR},0555|DMDIR,0,0,0, ".",  nil,nil,nil},
+[Qdir] =		{0,0,{Qdir,      0,QTDIR},0555|DMDIR,0,0,0, ".",  nil,nil,nil},
 [Qvolume] =	{0,0,{Qvolume,   0,QTFILE},0666,0,0,0,	"volume", nil,nil,nil},
 [Qaudioctl] =	{0,0,{Qaudioctl, 0,QTFILE},0666,0,0,0,	"audioctl",nil,nil,nil},
 [Qaudiostat] =	{0,0,{Qaudiostat,0,QTFILE},0666,0,0,0,	"audiostat",nil,nil,nil},
-[Qaudio] =	{0,0,{Qaudio,    0,QTFILE},0222,0,0,0, "audio",   nil,nil,nil},
-[Qaudioin] =	{0,0,{Qaudioin,  0,QTFILE},0444,0,0,0, "audioin", nil,nil,nil},
 };
 
 int	messagesize = 4*1024+IOHDRSZ;
@@ -166,12 +161,19 @@ post(char *name, char *envname, int srvfd)
 	putenv(envname, name);
 }
 
+/*
+ * BUG: If audio is later used on a different name space, the
+ * audio/audioin files are not there because of the bind trick.
+ * We should actually implement those files despite the binds.
+ * If audio is used from within the same ns nothing would change,
+ * otherwise, whoever would mount the audio files could still
+ * play/record audio (unlike now).
+ */
 void
 serve(void *)
 {
 	int i;
 	ulong t;
-	Dir *dir;
 
 	if(pipe(p) < 0)
 		sysfatal("pipe failed");
@@ -181,7 +183,7 @@ serve(void *)
 	atnotify(notifyf, 1);
 	strcpy(user, getuser());
 	t = time(nil);
-	for (i = 0; i < Nqid; i++){
+	for(i = 0; i < Nqid; i++){
 		dirs[i].uid = user;
 		dirs[i].gid = user;
 		dirs[i].muid = user;
@@ -193,7 +195,7 @@ serve(void *)
 		mntpt = mntdir;
 	}
 
-	if(debug)
+	if(usbdebug)
 		fmtinstall('F', fcallfmt);
 
 	procrfork(io, nil, STACKSIZE, RFFDG|RFNAMEG);
@@ -206,25 +208,10 @@ serve(void *)
 	}
 	if(mount(p[1], -1, mntpt, MBEFORE, "") < 0)
 		sysfatal("mount failed");
-	if (endpt[Play] >= 0){
-		sprint(epdata, "#U/usb%d/%d/ep%ddata", ad->ctlrno, ad->id,
-			 endpt[Play]);
-		sprint(audiofile, "%s/audio", mntpt);
-		if(bind(epdata, audiofile, MREPL) < 0)
-			sysfatal("bind failed");
-
-		dir = dirstat(epdata);
-		if (dir && (dir->mode & 0222) != 0222)
-			sysfatal("%s unwritable", epdata);
-		free(dir);
-	}
-	if (endpt[Record] >= 0){
-		sprint(epdata, "#U/usb%d/%d/ep%ddata", ad->ctlrno, ad->id,
-			endpt[Record]);
-		sprint(audiofile, "%s/audioin", mntpt);
-		if(bind(epdata, audiofile, MREPL) < 0)
-			sysfatal("bind failed");
-	}
+	if(endpt[Play] >= 0 && devctl(epdev[Play], "name audio") < 0)
+		fprint(2, "audio: name audio: %r\n");
+	if(endpt[Record] >= 0 && devctl(epdev[Record], "name audioin") < 0)
+		fprint(2, "audio: name audioin: %r\n");
 	threadexits(nil);
 }
 
@@ -262,16 +249,15 @@ rflush(Fid *)
 
 	do {
 		waitflush = 0;
-		for (w = workers; w; w = w->next)
-			if (w->tag == thdr.oldtag){
+		for(w = workers; w; w = w->next)
+			if(w->tag == thdr.oldtag){
 				waitflush++;
 				nbsendul(w->eventc, thdr.oldtag << 16 | Flush);
 			}
-		if (waitflush)
+		if(waitflush)
 			sleep(50);
 	} while(waitflush);
-	if (debug & Dbgproc)
-		fprint(2, "flush done on tag %d\n", thdr.oldtag);
+	dprint(2, "flush done on tag %d\n", thdr.oldtag);
 	return 0;
 }
 
@@ -305,19 +291,15 @@ dowalk(Fid *f, char *name)
 {
 	int t;
 
-	if (strcmp(name, ".") == 0)
+	if(strcmp(name, ".") == 0)
 		return nil;
-	if (strcmp(name, "..") == 0){
+	if(strcmp(name, "..") == 0){
 		f->dir = &dirs[Qdir];
 		return nil;
 	}
 	if(f->dir != &dirs[Qdir])
 		return Enotexist;
-	for (t = 1; t < Nqid; t++){
-		if (t == Qaudio && endpt[Play] < 0)
-			continue;
-		if (t == Qaudioin && endpt[Record] < 0)
-			continue;
+	for(t = 1; t < Nqid; t++){
 		if(strcmp(name, dirs[t].name) == 0){
 			f->dir = &dirs[t];
 			return nil;
@@ -381,7 +363,7 @@ allocaudioctldata(void)
 	Audioctldata *a;
 
 	a = emallocz(sizeof(Audioctldata), 1);
-	for (i = 0; i < 2; i++)
+	for(i = 0; i < 2; i++)
 		for(j=0; j < Ncontrol; j++)
 			for(k=0; k < 8; k++)
 				a->values[i][j][k] = Undef;
@@ -394,8 +376,6 @@ ropen(Fid *f)
 	if(f->flags & Open)
 		return Eisopen;
 
-	if(f->dir == &dirs[Qaudio] || f->dir == &dirs[Qaudioin])
-		return Eperm;
 	if(thdr.mode != OREAD && (f->dir->mode & 0x2) == 0)
 		return Eperm;
 	qlock(f);
@@ -422,11 +402,7 @@ readtopdir(Fid*, uchar *buf, long off, int cnt, int blen)
 
 	n = 0;
 	pos = 0;
-	for (i = 1; i < Nqid; i++){
-		if (endpt[Play] < 0 && i == Qaudio)
-			continue;
-		if (endpt[Record] < 0 && i == Qaudioin)
-			continue;
+	for(i = 1; i < Nqid; i++){
 		m = convD2M(&dirs[i], &buf[n], blen-n);
 		if(off <= pos){
 			if(m <= BIT16SZ || m > cnt)
@@ -450,32 +426,32 @@ makeaudioctldata(Fid *f)
 	Audiocontrol *c;
 	Audioctldata *a;
 
-	if ((a = f->fiddata) == nil)
+	if((a = f->fiddata) == nil)
 		sysfatal("fiddata");
-	if ((p = a->s) == nil)
-		a->s = p = emalloc(Chunk);
+	if((p = a->s) == nil)
+		a->s = p = emallocz(Chunk, 0);
 	e = p + Chunk - 1;	/* e must point *at* last byte, not *after* */
-	for (rec = 0; rec < 2; rec++)
-		for (ctl = 0; ctl < Ncontrol; ctl++) {
+	for(rec = 0; rec < 2; rec++)
+		for(ctl = 0; ctl < Ncontrol; ctl++){
 			c = &controls[rec][ctl];
 			actls = a->values[rec][ctl];
 			diff = 0;
-			if (c->chans){
-				for (i = 1; i < 8; i++)
-					if ((c->chans & 1<<i) &&
+			if(c->chans){
+				for(i = 1; i < 8; i++)
+					if((c->chans & 1<<i) &&
 					    c->value[i] != actls[i])
 						diff = 1;
 			}else
-				if (c->value[0] != actls[0])
+				if(c->value[0] != actls[0])
 					diff = 1;
-			if (diff){
+			if(diff){
 				p = seprint(p, e, "%s %s %A", c->name,
 					rec? "in": "out", c);
 				memmove(actls, c->value, sizeof c->value);
-				if (c->min != Undef){
+				if(c->min != Undef){
 					p = seprint(p, e, " %ld %ld", c->min,
 						c->max);
-					if (c->step != Undef)
+					if(c->step != Undef)
 						p = seprint(p, e, " %ld",
 							c->step);
 				}
@@ -500,9 +476,9 @@ readproc(void *x)
 	Worker *w;
 
 	w = x;
-	mdata = emalloc(8*1024+IOHDRSZ);
+	mdata = emallocz(8*1024+IOHDRSZ, 0);
 	while(event = recvul(w->eventc)){
-		if (event != Work)
+		if(event != Work)
 			continue;
 		f = w->fid;
 		rhdr = w->rhdr;
@@ -515,38 +491,35 @@ readproc(void *x)
 			qunlock(f);
 			event = recvul(w->eventc);
 			qlock(f);
-			if (debug & Dbgproc)
-				fprint(2, "readproc unblocked fid %d %lld\n",
+			ddprint(2, "readproc unblocked fid %d %lld\n",
 					f->fid, f->dir->qid.path);
-			switch (event & 0xffff) {
+			switch (event & 0xffff){
 			case Work:
 				sysfatal("readproc phase error");
 			case Check:
-				if (f->fiddata && makeaudioctldata(f) == 0)
+				if(f->fiddata && makeaudioctldata(f) == 0)
 					continue;
 				break;
 			case Flush:
-				if ((event >> 16) == rhdr->tag) {
-					if (debug & Dbgproc)
-						fprint(2, "readproc flushing fid %d, tag %d\n",
-							f->fid, rhdr->tag);
+				if((event >> 16) == rhdr->tag){
+					ddprint(2, "readproc flushing fid %d, tag %d\n",
+						f->fid, rhdr->tag);
 					goto flush;
 				}
 				continue;
 			}
-			if (f->fiddata){
+			if(f->fiddata){
 				rhdr->data = a->s;
 				rhdr->count = a->ns;
 				break;
 			}
 			yield();
 		}
-		if (rhdr->count > cnt)
+		if(rhdr->count > cnt)
 			rhdr->count = cnt;
-		if (rhdr->count)
+		if(rhdr->count)
 			f->flags &= ~Eof;
-		if(debug & (Dbgproc|Dbgfs))
-			fprint(2, "readproc:->%F\n", rhdr);
+		ddprint(2, "readproc:->%F\n", rhdr);
 		n = convS2M(rhdr, mdata, messagesize);
 		if(write(mfd[1], mdata, n) != n)
 			sysfatal("mount write");
@@ -591,9 +564,9 @@ rread(Fid *f)
 	if(f->dir == &dirs[Qvolume]){
 		p = buf;
 		n = sizeof buf;
-		for (rec = 0; rec < 2; rec++){
+		for(rec = 0; rec < 2; rec++){
 			c = &controls[rec][Volume_control];
-			if (c->readable){
+			if(c->readable){
 				div = c->max - c->min;
 				i = snprint(p, n, "audio %s %ld\n",
 					rec? "in": "out", (c->min != Undef?
@@ -603,7 +576,7 @@ rread(Fid *f)
 				n -= i;
 			}
 			c = &controls[rec][Treble_control];
-			if (c->readable){
+			if(c->readable){
 				div = c->max - c->min;
 				i = snprint(p, n, "treb %s %ld\n",
 					rec? "in": "out", (c->min != Undef?
@@ -613,7 +586,7 @@ rread(Fid *f)
 				n -= i;
 			}
 			c = &controls[rec][Bass_control];
-			if (c->readable){
+			if(c->readable){
 				div = c->max - c->min;
 				i = snprint(p, n, "bass %s %ld\n",
 					rec? "in": "out", (c->min != Undef?
@@ -623,7 +596,7 @@ rread(Fid *f)
 				n -= i;
 			}
 			c = &controls[rec][Speed_control];
-			if (c->readable){
+			if(c->readable){
 				i = snprint(p, n, "speed %s %ld\n",
 					rec? "in": "out", c->value[0]);
 				p += i;
@@ -631,12 +604,12 @@ rread(Fid *f)
 			}
 		}
 		n = sizeof buf - n;
-		if (off > n)
+		if(off > n)
 			rhdr.count = 0;
 		else{
 			rhdr.data = buf + off;
 			rhdr.count = n - off;
-			if (rhdr.count > cnt)
+			if(rhdr.count > cnt)
 				rhdr.count = cnt;
 		}
 		return nil;
@@ -647,41 +620,41 @@ rread(Fid *f)
 
 		qlock(f);
 		a = f->fiddata;
-		if (off - a->offoff < 0){
+		if(off - a->offoff < 0){
 			/* there was a seek */
 			a->offoff = off;
 			a->ns = 0;
 		}
 		do {
-			if (off - a->offoff < a->ns){
+			if(off - a->offoff < a->ns){
 				rhdr.data = a->s + (off - a->offoff);
 				rhdr.count = a->ns - (off - a->offoff);
-				if (rhdr.count > cnt)
+				if(rhdr.count > cnt)
 					rhdr.count = cnt;
 				qunlock(f);
 				return nil;
 			}
-			if (a->offoff != off){
+			if(a->offoff != off){
 				a->ns = 0;
 				a->offoff = off;
 				rhdr.count = 0;
 				qunlock(f);
 				return nil;
 			}
-		} while (makeaudioctldata(f) != 0);
+		} while(makeaudioctldata(f) != 0);
 
 		assert(a->offoff == off);
 		/* Wait for data off line */
 		f->readers++;
 		w = nbrecvp(procchan);
-		if (w == nil){
+		if(w == nil){
 			w = emallocz(sizeof(Worker), 1);
 			w->eventc = chancreate(sizeof(ulong), 1);
 			w->next = workers;
 			workers = w;
 			proccreate(readproc, w, 4096);
 		}
-		hdr = emalloc(sizeof(Fcall));
+		hdr = emallocz(sizeof(Fcall), 0);
 		w->fid = f;
 		w->tag = thdr.tag;
 		assert(w->rhdr == nil);
@@ -719,67 +692,61 @@ rwrite(Fid *f)
 		thdr.data[cnt] = '\0';
 		nlines = getfields(thdr.data, lines, 2*Ncontrol, 1, "\n");
 		for(i = 0; i < nlines; i++){
-			if (debug)
-				 fprint(2, "line: %s\n", lines[i]);
+			dprint(2, "line: %s\n", lines[i]);
 			nf = tokenize(lines[i], fields, 4);
-			if (nf == 0)
+			if(nf == 0)
 				continue;
-			if (nf == 3)
-				if (strcmp(fields[1], "in") == 0 ||
+			if(nf == 3)
+				if(strcmp(fields[1], "in") == 0 ||
 				    strcmp(fields[1], "record") == 0)
 					rec = 1;
-				else if (strcmp(fields[1], "out") == 0 ||
+				else if(strcmp(fields[1], "out") == 0 ||
 				    strcmp(fields[1], "playback") == 0)
 					rec = 0;
-				else {
-					if (debug)
-						fprint(2, "bad1\n");
+				else{
+					dprint(2, "bad1\n");
 					return Ebadctl;
 				}
-			else if (nf == 2)
+			else if(nf == 2)
 				rec = 0;
-			else {
-				if (debug)
-					fprint(2, "bad2 %d\n", nf);
+			else{
+				dprint(2, "bad2 %d\n", nf);
 				return Ebadctl;
 			}
 			c = nil;
-			if (strcmp(fields[0], "audio") == 0) /* special case */
+			if(strcmp(fields[0], "audio") == 0) /* special case */
 				fields[0] = "volume";
-			for (ctl = 0; ctl < Ncontrol; ctl++){
+			for(ctl = 0; ctl < Ncontrol; ctl++){
 				c = &controls[rec][ctl];
-				if (strcmp(fields[0], c->name) == 0)
+				if(strcmp(fields[0], c->name) == 0)
 					break;
 			}
-			if (ctl == Ncontrol){
-				if (debug)
-					fprint(2, "bad3\n");
+			if(ctl == Ncontrol){
+				dprint(2, "bad3\n");
 				return Ebadctl;
 			}
-			if (f->dir == &dirs[Qvolume] && ctl != Speed_control &&
+			if(f->dir == &dirs[Qvolume] && ctl != Speed_control &&
 			    c->min != Undef && c->max != Undef){
 				nnf = tokenize(fields[nf-1], subfields,
 					nelem(subfields));
-				if (nnf <= 0 || nnf > 8){
-					if (debug)
-						fprint(2, "bad4\n");
+				if(nnf <= 0 || nnf > 8){
+					dprint(2, "bad4\n");
 					return Ebadctl;
 				}
 				p = buf;
-				for (i = 0; i < nnf; i++){
+				for(i = 0; i < nnf; i++){
 					value = strtol(subfields[i], nil, 0);
 					value = ((100 - value)*c->min +
 						value*c->max) / 100;
-					if (debug)
-						if (p == buf)
-							fprint(2, "rwrite: %s %s '%ld",
+					if(p == buf){
+						dprint(2, "rwrite: %s %s '%ld",
 								c->name, rec?
 								"record":
 								"playback",
 								value);
-						else
-							fprint(2, " %ld", value);
-					if (p == buf)
+					}else
+						dprint(2, " %ld", value);
+					if(p == buf)
 						p = seprint(p, buf+sizeof buf,
 							"0x%p %s %s '%ld",
 							replchan, c->name, rec?
@@ -789,13 +756,11 @@ rwrite(Fid *f)
 						p = seprint(p, buf+sizeof buf,
 							" %ld", value);
 				}
-				if (debug)
-					fprint(2, "'\n");
+				dprint(2, "'\n");
 				seprint(p, buf+sizeof buf-1, "'");
 				chanprint(controlchan, buf);
-			} else {
-				if (debug)
-					fprint(2, "rwrite: %s %s %q", c->name,
+			}else{
+				dprint(2, "rwrite: %s %s %q", c->name,
 						rec? "record": "playback",
 						fields[nf-1]);
 				chanprint(controlchan, "0x%p %s %s %q",
@@ -803,16 +768,16 @@ rwrite(Fid *f)
 					"playback", fields[nf-1]);
 			}
 			p = recvp(replchan);
-			if (p){
-				if (strcmp(p, "ok") == 0){
+			if(p){
+				if(strcmp(p, "ok") == 0){
 					free(p);
 					p = nil;
 				}
-				if (err == nil)
+				if(err == nil)
 					err = p;
 			}
 		}
-		for (w = workers; w; w = w->next)
+		for(w = workers; w; w = w->next)
 			nbsendul(w->eventc, Qaudioctl << 16 | Check);
 		rhdr.count = thdr.count;
 		return err;
@@ -828,9 +793,9 @@ rclunk(Fid *f)
 	qlock(f);
 	f->flags &= ~(Open|Busy);
 	assert(f->readers ==0);
-	if (f->fiddata){
+	if(f->fiddata){
 		a = f->fiddata;
-		if (a->s)
+		if(a->s)
 			free(a->s);
 		free(a);
 		f->fiddata = nil;
@@ -850,16 +815,12 @@ rstat(Fid *f)
 {
 	Audioctldata *a;
 
-	if (f->dir == &dirs[Qaudio] && endpt[Play] < 0)
-		return Enotexist;
-	if (f->dir == &dirs[Qaudioin] && endpt[Record] < 0)
-		return Enotexist;
-	if (f->dir == &dirs[Qaudioctl]){
+	if(f->dir == &dirs[Qaudioctl]){
 		qlock(f);
-		if (f->fiddata == nil)
+		if(f->fiddata == nil)
 			f->fiddata = allocaudioctldata();
 		a = f->fiddata;
-		if (a->ns == 0)
+		if(a->ns == 0)
 			makeaudioctldata(f);
 		f->dir->length = a->offoff + a->ns;
 		qunlock(f);
@@ -921,9 +882,8 @@ io(void *)
 			continue;
 		if(n < 0){
 			rerrstr(e, sizeof e);
-			if (strcmp(e, "interrupted") == 0){
-				if (debug)
-					fprint(2, "read9pmsg interrupted\n");
+			if(strcmp(e, "interrupted") == 0){
+				dprint(2, "read9pmsg interrupted\n");
 				continue;
 			}
 			return;
@@ -931,15 +891,14 @@ io(void *)
 		if(convM2S(mdata, n, &thdr) == 0)
 			continue;
 
-		if(debug & Dbgfs)
-			fprint(2, "io:<-%F\n", &thdr);
+		ddprint(2, "io:<-%F\n", &thdr);
 
 		rhdr.data = (char*)mdata + messagesize;
 		if(!fcalls[thdr.type])
 			err = "bad fcall type";
 		else
 			err = (*fcalls[thdr.type])(newfid(thdr.fid));
-		if (err == (char*)~0)
+		if(err == (char*)~0)
 			continue;	/* handled off line */
 		if(err){
 			rhdr.type = Rerror;
@@ -949,8 +908,7 @@ io(void *)
 			rhdr.fid = thdr.fid;
 		}
 		rhdr.tag = thdr.tag;
-		if(debug & Dbgfs)
-			fprint(2, "io:->%F\n", &rhdr);
+		ddprint(2, "io:->%F\n", &rhdr);
 		n = convS2M(&rhdr, mdata, messagesize);
 		if(write(mfd[1], mdata, n) != n)
 			sysfatal("mount write");
@@ -976,6 +934,6 @@ ctlevent(void)
 {
 	Worker *w;
 
-	for (w = workers; w; w = w->next)
+	for(w = workers; w; w = w->next)
 		nbsendul(w->eventc, Qaudioctl << 16 | Check);
 }

@@ -1,152 +1,93 @@
-/*
- * USB implementation for Plan 9
- *	(c) 1998, 1999 C H Forsyth
- */
+typedef struct Altc Altc;
+typedef struct Conf Conf;
+typedef struct DConf DConf;
+typedef struct DDesc DDesc;
+typedef struct DDev DDev;
+typedef struct DEp DEp;
+typedef struct DIface DIface;
+typedef struct Desc Desc;
+typedef struct Dev Dev;
+typedef struct Ep Ep;
+typedef struct Iface Iface;
+typedef struct Usbdev Usbdev;
 
-enum {
-	Dbginfo =	0x01,
-	Dbgfs =		0x02,
-	Dbgproc =	0x04,
-	Dbgcontrol =	0x08,
-};
-
-extern int debug, debugdebug, usbdebug, verbose;
-
-typedef uchar byte;
-
-#ifndef CHANNOP
-typedef struct Ref Ref;
-
-#define threadprint fprint
-#endif
-
-/*
- * USB definitions
- */
-
-typedef struct DConfig DConfig;
-typedef struct DDevice DDevice;
-typedef struct DEndpoint DEndpoint;
-typedef struct DHid DHid;
-typedef struct DHub DHub;
-typedef struct DInterface DInterface;
-typedef struct Dconf Dconf;
-typedef struct Dalt Dalt;
-typedef struct Device Device;
-typedef struct Dinf Dinf;
-typedef struct Endpt Endpt;
-
-typedef struct Namelist Namelist;
-
-#define	GET2(p)	((((p)[1]&0xFF)<<8)|((p)[0]&0xFF))
-#define	PUT2(p,v)	{((p)[0] = (v)); ((p)[1] = (v)>>8);}
 
 enum
 {
+	Uctries	= 4,		/* nb. of tries for usbcmd */
+	Ucdelay = 50,		/* delay before retrying */
+
 	/* request type */
-	RH2D = 0<<7,
-	RD2H = 1<<7,
+	Rh2d	= 0<<7,		/* host to device */
+	Rd2h	= 1<<7,		/* device to host */ 
 
-	Rstandard = 0<<5,	/* types */
-	Rclass =  1<<5,
-	Rvendor = 2<<5,
+	Rstd	= 0<<5,		/* types */
+	Rclass	= 1<<5,
+	Rvendor	= 2<<5,
 
-	Rdevice = 0,		/* recipients */
-	Rinterface = 1,
-	Rendpt = 2,
-	Rother = 3,
+	Rdev	= 0,		/* recipients */
+	Riface	= 1,
+	Rep	= 2,		/* endpoint */
+	Rother	= 3,
 
 	/* standard requests */
-	GET_STATUS = 0,
-	CLEAR_FEATURE = 1,
-	SET_FEATURE = 3,
-	SET_ADDRESS = 5,
-	GET_DESCRIPTOR = 6,
-	SET_DESCRIPTOR = 7,
-	GET_CONFIGURATION = 8,
-	SET_CONFIGURATION = 9,
-	GET_INTERFACE = 10,
-	SET_INTERFACE = 11,
-	SYNCH_FRAME = 12,
+	Rgetstatus	= 0,
+	Rclearfeature	= 1,
+	Rsetfeature	= 3,
+	Rsetaddress	= 5,
+	Rgetdesc	= 6,
+	Rsetdesc	= 7,
+	Rgetconf	= 8,
+	Rsetconf	= 9,
+	Rgetiface	= 10,
+	Rsetiface	= 11,
+	Rsynchframe	= 12,
 
-	GET_CUR = 0x81,
-	GET_MIN = 0x82,
-	GET_MAX = 0x83,
-	GET_RES = 0x84,
-	SET_CUR = 0x01,
-	SET_MIN = 0x02,
-	SET_MAX = 0x03,
-	SET_RES = 0x04,
+	Rgetcur	= 0x81,
+	Rgetmin	= 0x82,
+	Rgetmax	= 0x83,
+	Rgetres	= 0x84,
+	Rsetcur	= 0x01,
+	Rsetmin	= 0x02,
+	Rsetmax	= 0x03,
+	Rsetres	= 0x04,
 
-	/* hub class feature selectors */
-	C_HUB_LOCAL_POWER = 0,
-	C_HUB_OVER_CURRENT,
-	PORT_CONNECTION = 0,
-	PORT_ENABLE = 1,
-	PORT_SUSPEND = 2,
-	PORT_OVER_CURRENT = 3,
-	PORT_RESET = 4,
-	PORT_POWER = 8,
-	PORT_LOW_SPEED = 9,
-	C_PORT_CONNECTION = 16,
-	C_PORT_ENABLE,
-	C_PORT_SUSPEND,
-	C_PORT_OVER_CURRENT,
-	C_PORT_RESET,
+	/* dev classes */
+	Clnone		= 0,		/* not in usb */
+	Claudio		= 1,
+	Clcomms		= 2,
+	Clhid		= 3,
+	Clprinter	= 7,
+	Clstorage	= 8,
+	Clhub		= 9,
+	Cldata		= 10,
+
+	/* standard descriptor sizes */
+	Ddevlen		= 18,
+	Dconflen	= 9,
+	Difacelen	= 9,
+	Deplen		= 7,
 
 	/* descriptor types */
-	DEVICE = 1,
-	CONFIGURATION = 2,
-	STRING = 3,
-	INTERFACE = 4,
-	ENDPOINT = 5,
-	HID = 0x21,
-	REPORT = 0x22,
-	PHYSICAL = 0x23,
-	HUB	= 0x29,
+	Ddev		= 1,
+	Dconf		= 2,
+	Dstr		= 3,
+	Diface		= 4,
+	Dep		= 5,
+	Dreport		= 0x22,
+	Dfunction		= 0x24,
+	Dphysical	= 0x23,
 
 	/* feature selectors */
-	DEVICE_REMOTE_WAKEUP = 1,
-	ENDPOINT_STALL = 0,
-
-	/* report types */
-	Tmtype = 3<<2,
-	Tmitem = 0xF0,
-	Tmain = 0<<2,
-		Tinput = 0x80,
-		Toutput = 0x90,
-		Tfeature = 0xB0,
-		Tcoll = 0xA0,
-		Tecoll = 0xC0,
-	 Tglobal = 1<<2,
-		Tusagepage = 0x00,
-		Tlmin = 0x10,
-		Tlmax = 0x20,
-		Tpmin = 0x30,
-		Tpmax = 0x40,
-		Tunitexp = 0x50,
-		Tunit = 0x60,
-		Trepsize = 0x70,
-		TrepID = 0x80,
-		Trepcount = 0x90,
-		Tpush = 0xA0,
-		Tpop = 0xB0,
-	 Tlocal = 2<<2,
-		Tusage = 0x00,
-		Tumin = 0x10,
-		Tumax = 0x20,
-		Tdindex = 0x30,
-		Tdmin = 0x40,
-		Tdmax = 0x50,
-		Tsindex = 0x70,
-		Tsmin = 0x80,
-		Tsmax = 0x90,
-		Tsetdelim = 0xA0,
-	 Treserved = 3<<2,
-	 Tlong = 0xFE,
+	Fdevremotewakeup = 1,
+	Fhalt 	= 0,
 
 	/* parameters */
-	Nendpt =	16,
+	Nep = 16,
+	Niface = 16,
+	Naltc = 16,
+	Nddesc = 32,
+	Nconf = 16,
 
 	/* device state */
 	Detached = 0,
@@ -154,11 +95,6 @@ enum
 	Enabled,
 	Assigned,
 	Configured,
-
-	/* classes */
-	Noclass = 0,
-	Hubclass,
-	Otherclass,
 
 	/* endpoint direction */
 	Ein = 0,
@@ -176,221 +112,249 @@ enum
 	Easync = 1,
 	Eadapt = 2,
 	Esync = 3,
-};
 
-enum
-{
-	CL_AUDIO = 1,
-	CL_COMMS = 2,
-	CL_HID = 3,
-	CL_PRINTER = 7,
-	CL_STORAGE = 8,
-	CL_HUB = 9,
-	CL_DATA = 10,
-};
-
-struct Endpt
-{
-	uchar	addr;		/* endpoint address, 0-15 (|0x80 if direction==Ein) */
-	uchar	dir;		/* direction, Ein/Eout */
-	uchar	type;		/* Econtrol, Eiso, Ebulk, Eintr */
-	uchar	isotype;	/* Eunknown, Easync, Eadapt, Esync */
-	int	id;
-	int	class;
-	ulong	csp;
-	int	maxpkt;
-	Device*	dev;
-	Dconf*	conf;
-	Dinf*	iface;
-};
-
-struct Dalt
-{
-	int	attrib;
-	int	interval;
-	void*	devspec;	/* device specific settings */
-};
-
-struct Dinf
-{
-	int 	interface;	/* interface number */
-	ulong	csp;		/* USB class/subclass/proto */
-	Dalt*	dalt[16];
-	Endpt*	endpt[16];
-};
-
-struct Dconf
-{
-	ulong	csp;		/* USB class/subclass/proto */
-	int	nif;		/* number of interfaces */
-	int	cval;		/* value for set configuration */
-	int	attrib;
-	int	milliamps;	/* maximum power in this configuration */
-	Dinf*	iface[16];	/* up to 16 interfaces */
-};
-
-/* Dconf.attrib */
-enum
-{
+	/* config attrib */
 	Cbuspowered = 1<<7,
 	Cselfpowered = 1<<6,
 	Cremotewakeup = 1<<5,
+
+	/* report types */
+	Tmtype	= 3<<2,
+	Tmitem	= 0xF0,
+	Tmain	= 0<<2,
+		Tinput	= 0x80,
+		Toutput	= 0x90,
+		Tfeature = 0xB0,
+		Tcoll	= 0xA0,
+		Tecoll	= 0xC0,
+	 Tglobal	= 1<<2,
+		Tusagepage = 0x00,
+		Tlmin	= 0x10,
+		Tlmax	= 0x20,
+		Tpmin	= 0x30,
+		Tpmax	= 0x40,
+		Tunitexp	= 0x50,
+		Tunit	= 0x60,
+		Trepsize	= 0x70,
+		TrepID	= 0x80,
+		Trepcount = 0x90,
+		Tpush	= 0xA0,
+		Tpop	= 0xB0,
+	 Tlocal	= 2<<2,
+		Tusage	= 0x00,
+		Tumin	= 0x10,
+		Tumax	= 0x20,
+		Tdindex	= 0x30,
+		Tdmin	= 0x40,
+		Tdmax	= 0x50,
+		Tsindex	= 0x70,
+		Tsmin	= 0x80,
+		Tsmax	= 0x90,
+		Tsetdelim = 0xA0,
+	 Treserved	= 3<<2,
+	 Tlong	= 0xFE,
+
 };
 
-struct Device
+/*
+ * Usb device (when used for ep0s) or endpoint.
+ * RC: One ref because of existing, another one per ogoing I/O.
+ * per-driver resources (including FS if any) are released by aux
+ * once the last ref is gone. This may include other Devs using
+ * to access endpoints for actual I/O.
+ */
+struct Dev
 {
 	Ref;
-	int	ctlrno;
-	int	ctl;		/* fd */
-	int	setup;		/* fd */
-	int	status;		/* fd */
-	int	state;
-	int	id;
-	int	class;
-	int	npt;
-	int	ls;		/* low speed */
+	char*	dir;		/* path for the endpoint dir */
+	int	id;		/* usb id for device or ep. number */
+	int	dfd;		/* descriptor for the data file */
+	int	cfd;		/* descriptor for the control file */
+	int	maxpkt;		/* cached from usb description */
+	Ref	nerrs;		/* number of errors in requests */
+	Usbdev*	usb;		/* USB description */
+	void*	aux;		/* for the device driver */
+	void	(*free)(void*);	/* idem. to release aux */
+};
+
+/*
+ * device description as reported by USB (unpacked).
+ */
+struct Usbdev
+{
 	ulong	csp;		/* USB class/subclass/proto */
-	int	nconf;
-	int	nif;		/* # of interfaces (sum of per-conf `nif's) */
 	int	vid;		/* vendor id */
 	int	did;		/* product (device) id */
-	Dconf*	config[16];
-	Endpt*	ep[Nendpt];
-	Device*	setupfd;	/* for usbprobe */
-	Device*	cfd;		/* for usbprobe */
+	char*	vendor;
+	char*	product;
+	char*	serial;
+	int	vsid;
+	int	psid;
+	int	ssid;
+	int	class;		/* from descriptor */
+	int	nconf;		/* from descriptor */
+	Conf*	conf[Nconf];	/* configurations */
+	Ep*	ep[Nep];	/* all endpoints in device */
+	Desc*	ddesc[Nddesc];	/* (raw) device specific descriptors */
+};
+
+struct Ep
+{
+	uchar	addr;		/* endpt address, 0-15 (|0x80 if Ein) */
+	uchar	dir;		/* direction, Ein/Eout */
+	uchar	type;		/* Econtrol, Eiso, Ebulk, Eintr */
+	uchar	isotype;		/* Eunknown, Easync, Eadapt, Esync */
+	int	id;
+	int	maxpkt;		/* max. packet size */
+	int	ntds;		/* nb. of Tds per µframe */
+	Conf*	conf;		/* the endpoint belongs to */
+	Iface*	iface;		/* the endpoint belongs to */
+};
+
+struct Altc
+{
+	int	attrib;
+	int	interval;
+	void*	aux;		/* for the driver program */
+};
+
+struct Iface
+{
+	int 	id;		/* interface number */
+	ulong	csp;		/* USB class/subclass/proto */
+	Altc*	altc[Naltc];
+	Ep*	ep[Nep];
+	void*	aux;		/* for the driver program */
+};
+
+struct Conf
+{
+	int	cval;		/* value for set configuration */
+	int	attrib;
+	int	milliamps;	/* maximum power in this config. */
+	Iface*	iface[Niface];	/* up to 16 interfaces */
+};
+
+/*
+ * Device-specific descriptors.
+ * They show up mixed with other descriptors
+ * within a configuration.
+ * These are unknown to the library but handed to the driver.
+ */
+struct Desc
+{
+	Conf*	conf;		/* where this descriptor was read */
+	Iface*	iface;		/* last iface before desc in conf. */
+	Ep*	ep;		/* last endpt before desc in conf. */
+	Altc*	altc;		/* last alt.c. before desc in conf. */
+	DDesc	data;		/* unparsed standard USB descriptor */
+};
+
+struct DDesc
+{
+	uchar	bLength;
+	uchar	bDescriptorType;
+	uchar	bbytes[1];
+	/* extra bytes allocated here to keep the rest of it */
 };
 
 /*
  * layout of standard descriptor types
  */
-struct DDevice
+struct DDev
 {
-	byte	bLength;
-	byte	bDescriptorType;
-	byte	bcdUSB[2];
-	byte	bDeviceClass;
-	byte	bDeviceSubClass;
-	byte	bDeviceProtocol;
-	byte	bMaxPacketSize0;
-	byte	idVendor[2];
-	byte	idProduct[2];
-	byte	bcdDevice[2];
-	byte	iManufacturer;
-	byte	iProduct;
-	byte	iSerialNumber;
-	byte	bNumConfigurations;
-};
-#define	DDEVLEN	18
-
-struct DConfig
-{
-	byte	bLength;
-	byte	bDescriptorType;
-	byte	wTotalLength[2];
-	byte	bNumInterfaces;
-	byte	bConfigurationValue;
-	byte	iConfiguration;
-	byte	bmAttributes;
-	byte	MaxPower;
-};
-#define	DCONFLEN	9
-
-struct DInterface
-{
-	byte	bLength;
-	byte	bDescriptorType;
-	byte	bInterfaceNumber;
-	byte	bAlternateSetting;
-	byte	bNumEndpoints;
-	byte	bInterfaceClass;
-	byte	bInterfaceSubClass;
-	byte	bInterfaceProtocol;
-	byte	iInterface;
-};
-#define	DINTERLEN	9
-
-struct DEndpoint
-{
-	byte	bLength;
-	byte	bDescriptorType;
-	byte	bEndpointAddress;
-	byte	bmAttributes;
-	byte	wMaxPacketSize[2];
-	byte	bInterval;
-};
-#define	DENDPLEN	7
-
-struct DHid
-{
-	byte	bLength;
-	byte	bDescriptorType;
-	byte	bcdHID[2];
-	byte	bCountryCode;
-	byte	bNumDescriptors;
-	byte	bClassDescriptorType;
-	byte	wItemLength[2];
-};
-#define	DHIDLEN	9
-
-struct DHub
-{
-	byte	bLength;
-	byte	bDescriptorType;
-	byte	bNbrPorts;
-	byte	wHubCharacteristics[2];
-	byte	bPwrOn2PwrGood;
-	byte	bHubContrCurrent;
-	byte	DeviceRemovable[1];	/* variable length */
-/*	byte	PortPwrCtrlMask;		/* variable length, deprecated in USB v1.1 */
-};
-#define	DHUBLEN	9
-
-struct Namelist
-{
-	short	index;
-	char		*name;
+	uchar	bLength;
+	uchar	bDescriptorType;
+	uchar	bcdUSB[2];
+	uchar	bDevClass;
+	uchar	bDevSubClass;
+	uchar	bDevProtocol;
+	uchar	bMaxPacketSize0;
+	uchar	idVendor[2];
+	uchar	idProduct[2];
+	uchar	bcdDev[2];
+	uchar	iManufacturer;
+	uchar	iProduct;
+	uchar	iSerialNumber;
+	uchar	bNumConfigurations;
 };
 
-typedef struct Drivetab
+struct DConf
 {
-	ulong	csp;
-	void	(*driver)(Device *d);
-} Drivetab;
+	uchar	bLength;
+	uchar	bDescriptorType;
+	uchar	wTotalLength[2];
+	uchar	bNumInterfaces;
+	uchar	bConfigurationValue;
+	uchar	iConfiguration;
+	uchar	bmAttributes;
+	uchar	MaxPower;
+};
+
+struct DIface
+{
+	uchar	bLength;
+	uchar	bDescriptorType;
+	uchar	bInterfaceNumber;
+	uchar	bAlternateSetting;
+	uchar	bNumEndpoints;
+	uchar	bInterfaceClass;
+	uchar	bInterfaceSubClass;
+	uchar	bInterfaceProtocol;
+	uchar	iInterface;
+};
+
+struct DEp
+{
+	uchar	bLength;
+	uchar	bDescriptorType;
+	uchar	bEndpointAddress;
+	uchar	bmAttributes;
+	uchar	wMaxPacketSize[2];
+	uchar	bInterval;
+};
 
 #define Class(csp)	((csp)&0xff)
 #define Subclass(csp)	(((csp)>>8)&0xff)
 #define Proto(csp)	(((csp)>>16)&0xff)
 #define CSP(c, s, p)	((c) | ((s)<<8) | ((p)<<16))
+#define	GET2(p)		((((p)[1]&0xFF)<<8)|((p)[0]&0xFF))
+#define	PUT2(p,v)	{((p)[0] = (v)); ((p)[1] = (v)>>8);}
+#define	GET4(p)		((((p)[3]&0xFF)<<24)|(((p)[2]&0xFF)<<16)|(((p)[1]&0xFF)<<8)|((p)[0]&0xFF))
+#define	PUT4(p,v)	{((p)[0] = (v)); ((p)[1] = (v)>>8); ((p)[2] = (v)>>16); ((p)[3] = (v)>>24);}
+#define dprint if(usbdebug)fprint
+#define ddprint if(usbdebug > 1)fprint
 
-extern void (*dprinter[0x100])(Device *, int, ulong, void *b, int n);
 
-/*
- * format routines
- */
-void	pdesc	(Device *, int, ulong, byte *, int);
-void	preport	(Device *, int, ulong, byte *, int);
-void	pstring	(Device *, int, ulong, void *, int);
-void	phub	(Device *, int, ulong, void *, int);
-void	pdevice	(Device *, int, ulong, void *, int);
-void	phid	(Device *, int, ulong, void *, int);
-void	pcs_raw(char *tag, byte *b, int n);
+# 	|c/f2p *.c |sort +1
 
-/*
- * interface
- */
-void	usbfmtinit(void);
-Device*	opendev(int, int);
-void	closedev(Device*);
-int	describedevice(Device*);
-int	loadconfig(Device *d, int n);
-Endpt *	newendpt(Device *d, int id, ulong csp);
-int	setupcmd(Endpt*, int, int, int, int, byte*, int);
-int	setupreq(Endpt*, int, int, int, int, int);
-int	setupreply(Endpt*, void*, int);
-void	setdevclass(Device *d, int n);
-void *	emalloc(ulong);
-void *	emallocz(ulong, int);
+#pragma	varargck	type  "U"	Dev*
+#pragma	varargck	argpos	devctl	2
 
-char *	namefor(Namelist *, int);
+int	Ufmt(Fmt *f);
+char*	classname(int c);
+void	closedev(Dev *d);
+int	configdev(Dev *d);
+int	devctl(Dev *dev, char *fmt, ...);
+void*	emallocz(ulong size, int zero);
+char*	estrdup(char *s);
+int	matchdevcsp(char *info, void *a);
+int	finddevs(int (*matchf)(char*,void*), void *farg, char** dirs, int ndirs);
+char*	hexstr(void *a, int n);
+int	loaddevconf(Dev *d, int n);
+int	loaddevdesc(Dev *d);
+char*	loaddevstr(Dev *d, int sid);
+Dev*	opendev(char *fn);
+int	opendevdata(Dev *d, int mode);
+Dev*	openep(Dev *d, int id);
+int	parseconf(Usbdev *d, Conf *c, uchar *b, int n);
+int	parsedesc(Usbdev *d, Conf *c, uchar *b, int n);
+int	parsedev(Dev *xd, uchar *b, int n);
+void	startdevs(char *args, char *argv[], int argc, int (*mf)(char*,void*), void*ma, int (*df)(Dev*,int,char**));
+int	unstall(Dev *dev, Dev *ep, int dir);
+int	usbcmd(Dev *d, int type, int req, int value, int index, uchar *data, int count);
 
-#pragma	varargck	type  "D"	Device*
+
+extern int usbdebug;	/* more messages for bigger values */
+
+
