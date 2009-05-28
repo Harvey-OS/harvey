@@ -632,6 +632,21 @@ dell2001fp=1600x1200
 	vrs=1201 vre=1204 vt=1250
 
 #
+# Dell 2007FP at 1600x1200
+#
+# Horz=30-81kHz
+# Vert=56-76Hz, 1600x1200 at 60Hz only 
+#
+dell2007fp
+	videobw=200					# actually 162
+	alias=multisync
+dell2007fp=1600x1200					# 60Hz, 75KHz
+	defaultclock=160
+	shb=1864 ehb=1888 ht=2144
+	shs=1648
+	vrs=1202 vre=1208 vt=1240
+
+#
 # EIZO (Nanao) FlexScan 6600 (greyscale)
 #
 eizo6600
