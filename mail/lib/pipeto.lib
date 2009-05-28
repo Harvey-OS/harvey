@@ -34,7 +34,16 @@ fn gonefishing {
 			message=gone.msg
 			if (! test -e $message)
 				message=/mail/lib/gone.msg
-			mail $MAILTO <$message
+
+			# only respond if $USER is mentioned in To: or cc:
+			# header.  this avoids autoresponding to mailing lists.
+			tohdr=`{cat $D/to}
+			cchdr=`{cat $D/cc}
+			if (~ $"tohdr $USER@* *!$USER $USER ||
+			    ~ $"cchdr $USER@* *!$USER $USER)
+				mail $MAILTO <$message
+			if not
+				status=''
 		}
 	}
 	if not
