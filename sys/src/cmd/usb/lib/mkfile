@@ -23,7 +23,7 @@ UPDATE=\
 
 install:V:	$LIB
 	date
+safeinstall:V: install
+safeinstallall:V: installall
 nuke:V:
-	rm -f *.[$OS] y.tab.? y.output y.error
-	rm -f $LIB
-	rm -f usbdev.a8
+	rm -f *.[$OS] y.tab.? y.output y.error *.a[$OS]

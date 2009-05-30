@@ -11,11 +11,15 @@ typedef struct Ep Ep;
 typedef struct Iface Iface;
 typedef struct Usbdev Usbdev;
 
-
-enum
-{
-	Uctries	= 4,		/* nb. of tries for usbcmd */
-	Ucdelay = 50,		/* delay before retrying */
+enum {
+	/* tunable parameters */
+	Nconf	= 16,	/* max. configurations per usb device */
+	Nep	= 64,	/* max. endpoints per usb device & per interface */
+	Nddesc	= Nep*2, /* max. device-specific descriptors per usb device */
+	Niface	= 16,	/* max. interfaces per configuration */
+	Naltc	= 16,	/* max. channels per interface */
+	Uctries	= 4,	/* no. of tries for usbcmd */
+	Ucdelay	= 50,	/* delay before retrying */
 
 	/* request type */
 	Rh2d	= 0<<7,		/* host to device */
@@ -75,19 +79,12 @@ enum
 	Diface		= 4,
 	Dep		= 5,
 	Dreport		= 0x22,
-	Dfunction		= 0x24,
+	Dfunction	= 0x24,
 	Dphysical	= 0x23,
 
 	/* feature selectors */
 	Fdevremotewakeup = 1,
 	Fhalt 	= 0,
-
-	/* parameters */
-	Nep = 16,
-	Niface = 16,
-	Naltc = 16,
-	Nddesc = 32,
-	Nconf = 16,
 
 	/* device state */
 	Detached = 0,
@@ -232,7 +229,7 @@ struct Conf
 	int	cval;		/* value for set configuration */
 	int	attrib;
 	int	milliamps;	/* maximum power in this config. */
-	Iface*	iface[Niface];	/* up to 16 interfaces */
+	Iface*	iface[Niface];
 };
 
 /*
@@ -314,19 +311,20 @@ struct DEp
 	uchar	bInterval;
 };
 
-#define Class(csp)	((csp)&0xff)
-#define Subclass(csp)	(((csp)>>8)&0xff)
-#define Proto(csp)	(((csp)>>16)&0xff)
-#define CSP(c, s, p)	((c) | ((s)<<8) | ((p)<<16))
-#define	GET2(p)		((((p)[1]&0xFF)<<8)|((p)[0]&0xFF))
-#define	PUT2(p,v)	{((p)[0] = (v)); ((p)[1] = (v)>>8);}
-#define	GET4(p)		((((p)[3]&0xFF)<<24)|(((p)[2]&0xFF)<<16)|(((p)[1]&0xFF)<<8)|((p)[0]&0xFF))
-#define	PUT4(p,v)	{((p)[0] = (v)); ((p)[1] = (v)>>8); ((p)[2] = (v)>>16); ((p)[3] = (v)>>24);}
+#define Class(csp)	((csp) & 0xff)
+#define Subclass(csp)	(((csp)>>8) & 0xff)
+#define Proto(csp)	(((csp)>>16) & 0xff)
+#define CSP(c, s, p)	((c) | (s)<<8 | (p)<<16)
+
+#define	GET2(p)		(((p)[1] & 0xFF)<<8 | ((p)[0] & 0xFF))
+#define	PUT2(p,v)	{(p)[0] = (v); (p)[1] = (v)>>8;}
+#define	GET4(p)		(((p)[3]&0xFF)<<24 | ((p)[2]&0xFF)<<16 | \
+			 ((p)[1]&0xFF)<<8  | ((p)[0]&0xFF))
+#define	PUT4(p,v)	{(p)[0] = (v);     (p)[1] = (v)>>8; \
+			 (p)[2] = (v)>>16; (p)[3] = (v)>>24;}
+
 #define dprint if(usbdebug)fprint
 #define ddprint if(usbdebug > 1)fprint
-
-
-# 	|c/f2p *.c |sort +1
 
 #pragma	varargck	type  "U"	Dev*
 #pragma	varargck	argpos	devctl	2

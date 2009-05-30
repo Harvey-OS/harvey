@@ -39,8 +39,10 @@ fn gonefishing {
 			# header.  this avoids autoresponding to mailing lists.
 			tohdr=`{cat $D/to}
 			cchdr=`{cat $D/cc}
-			if (~ $"tohdr $USER@* *!$USER $USER ||
-			    ~ $"cchdr $USER@* *!$USER $USER)
+			if (~ ' '^$"tohdr^' ' \
+			      *' '^$USER@* *!$USER' '* *' '$USER' '* ||
+			    ~ ' '^$"cchdr^' ' \
+			      *' '^$USER@* *!$USER' '* *' '$USER' '*)
 				mail $MAILTO <$message
 			if not
 				status=''

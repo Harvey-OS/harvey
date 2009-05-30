@@ -63,16 +63,14 @@ serialreset(Serial *ser)
 int
 serialrecover(Serial *ser, char *err)
 {
-	static int recover = 0;
-
 	if(strstr(err, "detached") != nil)
 		return -1;
-	if(recover > 1)
+	if(ser->recover > 1)
 		serialfatal(ser);
-	recover++;
+	ser->recover++;
 	if(serialreset(ser) < 0)
 		return -1;
-	recover = 0;
+	ser->recover = 0;
 	return 0;
 }
 
