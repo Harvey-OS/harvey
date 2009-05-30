@@ -33,6 +33,8 @@ openep(Dev *d, int id)
 	Usbdev *ud;
 	char name[40];
 
+	if(access("/dev/usb", AEXIST) < 0 && bind("#u", "/dev", MBEFORE) < 0)
+		return nil;
 	if(d->cfd < 0 || d->usb == nil){
 		werrstr("device not configured");
 		return nil;
@@ -91,6 +93,8 @@ opendev(char *fn)
 	Dev *d;
 	int l;
 
+	if(access("/dev/usb", AEXIST) < 0 && bind("#u", "/dev", MBEFORE) < 0)
+		return nil;
 	d = emallocz(sizeof(Dev), 1);
 	incref(d);
 
