@@ -368,7 +368,8 @@ Read and write operations of arbitrary size are allowed.
 .IR mouse (3),
 .IR sd (3),
 .IR usb (3),
-.IR usbd (4)
+.IR usbd (4),
+.IR partfs (8)
 .SH BUGS
 The various device drivers are generic USB drivers and
 may work only for certain devices on each class.
