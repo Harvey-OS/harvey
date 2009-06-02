@@ -64,7 +64,7 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	}
 	if(vctl[vno]){
 		if(vctl[vno]->isr != v->isr || vctl[vno]->eoi != v->eoi)
-			panic("intrenable: handler: %s %s %luX %luX %luX %luX\n",
+			panic("intrenable: handler: %s %s %#p %#p %#p %#p",
 				vctl[vno]->name, v->name,
 				vctl[vno]->isr, v->isr, vctl[vno]->eoi, v->eoi);
 		v->next = vctl[vno];

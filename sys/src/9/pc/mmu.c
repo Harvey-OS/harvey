@@ -334,9 +334,9 @@ mmurelease(Proc* proc)
 		if(proc->mmupdb == nil)
 			panic("mmurelease: no mmupdb");
 		if(--proc->kmaptable->ref)
-			panic("mmurelease: kmap ref %d\n", proc->kmaptable->ref);
+			panic("mmurelease: kmap ref %d", proc->kmaptable->ref);
 		if(proc->nkmap)
-			panic("mmurelease: nkmap %d\n", proc->nkmap);
+			panic("mmurelease: nkmap %d", proc->nkmap);
 		/*
 		 * remove kmaptable from pdb before putting pdb up for reuse.
 		 */
@@ -360,7 +360,7 @@ mmurelease(Proc* proc)
 	for(page = proc->mmufree; page; page = next){
 		next = page->next;
 		if(--page->ref)
-			panic("mmurelease: page->ref %d\n", page->ref);
+			panic("mmurelease: page->ref %d", page->ref);
 		pagechainhead(page);
 	}
 	if(proc->mmufree && palloc.r.p)
@@ -500,7 +500,7 @@ mmuwalk(ulong* pdb, ulong va, int level, int create)
 
 	case 2:
 		if(*table & PTESIZE)
-			panic("mmuwalk2: va %luX entry %luX\n", va, *table);
+			panic("mmuwalk2: va %luX entry %luX", va, *table);
 		if(!(*table & PTEVALID)){
 			/*
 			 * Have to call low-level allocator from
@@ -645,7 +645,7 @@ vunmap(void *v, int size)
 	size = ROUND(size, BY2PG);
 	
 	if(size < 0 || va < VMAP || va+size > VMAP+VMAPSIZE)
-		panic("vunmap va=%#.8lux size=%#x pc=%#.8lux\n",
+		panic("vunmap va=%#.8lux size=%#x pc=%#.8lux",
 			va, size, getcallerpc(&va));
 
 	pdbunmap(MACHP(0)->pdb, va, size);

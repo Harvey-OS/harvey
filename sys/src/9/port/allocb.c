@@ -157,7 +157,7 @@ checkb(Block *b, char *msg)
 	void *dead = (void*)Bdead;
 
 	if(b == dead)
-		panic("checkb b %s %lux", msg, b);
+		panic("checkb b %s %#p", msg, b);
 	if(b->base == dead || b->lim == dead || b->next == dead
 	  || b->rp == dead || b->wp == dead){
 		print("checkb: base %#p lim %#p next %#p\n",

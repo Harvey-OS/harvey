@@ -1298,7 +1298,7 @@ epctl(Ep *ep, Chan *c, void *a, long n)
 		kstrdup(&ep->name, cb->f[1]);
 		break;
 	default:
-		panic("usb: unknown epctl %d\n", ct->index);
+		panic("usb: unknown epctl %d", ct->index);
 	}
 	free(cb);
 	poperror();

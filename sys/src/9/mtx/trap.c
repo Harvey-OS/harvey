@@ -111,7 +111,7 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	}
 	if(vctl[vno]){
 		if(vctl[vno]->isr != v->isr || vctl[vno]->eoi != v->eoi)
-			panic("intrenable: handler: %s %s %luX %luX %luX %luX\n",
+			panic("intrenable: handler: %s %s %#p %#p %#p %#p",
 				vctl[vno]->name, v->name,
 				vctl[vno]->isr, v->isr, vctl[vno]->eoi, v->eoi);
 		v->next = vctl[vno];
@@ -232,7 +232,7 @@ trap(Ureg *ureg)
 		break;
 	case CSYSCALL:
 		if(!user)
-			panic("syscall in kernel: srr1 0x%4.4luX\n", ureg->srr1);
+			panic("syscall in kernel: srr1 0x%4.4luX", ureg->srr1);
 		syscall(ureg);
 		return;		/* syscall() calls notify itself, don't do it again */
 	case CFPU:
@@ -292,7 +292,7 @@ trap(Ureg *ureg)
 		dumpregs(ureg);
 		if(ecode < nelem(excname))
 			panic("%s", excname[ecode]);
-		panic("unknown trap/intr: %d\n", ecode);
+		panic("unknown trap/intr: %d", ecode);
 	}
 
 	/* restoreureg must execute at high IPL */

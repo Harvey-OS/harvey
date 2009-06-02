@@ -1215,8 +1215,8 @@ pstat(Aoedev *d, char *db, int len, int off)
 	int i;
 	char *state, *s, *p, *e;
 
-	s = p = malloc(1024);
-	e = p + 1024;
+	s = p = malloc(READSTR);
+	e = p + READSTR;
 
 	state = "down";
 	if(UP(d))
@@ -1281,8 +1281,8 @@ devlinkread(Chan *c, void *db, int len, int off)
 		return 0;
 	l = d->dl + i;
 
-	s = p = malloc(1024);
-	e = s + 1024;
+	s = p = malloc(READSTR);
+	e = s + READSTR;
 
 	p = seprint(p, e, "addr: ");
 	for(i = 0; i < l->nea; i++)
@@ -1314,8 +1314,8 @@ topctlread(Chan *, void *db, int len, int off)
 	char *s, *p, *e;
 	Netlink *n;
 
-	s = p = malloc(1024);
-	e = s + 1024;
+	s = p = malloc(READSTR);
+	e = s + READSTR;
 
 	p = seprint(p, e, "debug: %d\n", debug);
 	p = seprint(p, e, "autodiscover: %d\n", autodiscover);

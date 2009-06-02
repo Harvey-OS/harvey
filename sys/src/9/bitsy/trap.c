@@ -295,7 +295,7 @@ faultarm(Ureg *ureg, ulong va, int user, int read)
 
 	if (up == nil) {
 		warnregs(ureg, "kernel fault");
-		panic("fault: nil up in faultarm, accessing 0x%lux\n", va);
+		panic("fault: nil up in faultarm, accessing 0x%lux", va);
 	}
 	insyscall = up->insyscall;
 	up->insyscall = 1;
@@ -303,7 +303,7 @@ faultarm(Ureg *ureg, ulong va, int user, int read)
 	if(n < 0){
 		if(!user){
 			warnregs(ureg, "kernel fault");
-			panic("fault: kernel accessing 0x%lux\n", va);
+			panic("fault: kernel accessing 0x%lux", va);
 		}
 //		warnregs(ureg, "user fault");
 		sprint(buf, "sys: trap: fault %s va=0x%lux", read ? "read" : "write", va);
@@ -348,7 +348,7 @@ trap(Ureg *ureg)
 		rem = ((char*)ureg)-((char*)(MACHADDR+sizeof(Mach)));
 	if(rem < 256) {
 		dumpstack();
-		panic("trap %d bytes remaining, up = 0x%lux, ureg = 0x%lux, at pc 0x%lux",
+		panic("trap %d bytes remaining, up = %#p, ureg = %#p, at pc 0x%lux",
 			rem, up, ureg, ureg->pc);
 	}
 
@@ -380,7 +380,7 @@ trap(Ureg *ureg)
 		fsr = getfsr() & 0xf;
 		switch(fsr){
 		case 0x0:
-			panic("vector exception at %lux\n", ureg->pc);
+			panic("vector exception at %lux", ureg->pc);
 			break;
 		case 0x1:
 		case 0x3:
@@ -392,7 +392,7 @@ trap(Ureg *ureg)
 				panic("kernel alignment: pc 0x%lux va 0x%lux", ureg->pc, va);
 			break;
 		case 0x2:
-			panic("terminal exception at %lux\n", ureg->pc);
+			panic("terminal exception at %lux", ureg->pc);
 			break;
 		case 0x4:
 		case 0x6:
@@ -400,7 +400,7 @@ trap(Ureg *ureg)
 		case 0xa:
 		case 0xc:
 		case 0xe:
-			panic("external abort 0x%lux pc 0x%lux addr 0x%lux\n", fsr, ureg->pc, va);
+			panic("external abort 0x%lux pc 0x%lux addr 0x%lux", fsr, ureg->pc, va);
 			break;
 		case 0x5:
 		case 0x7:
@@ -415,7 +415,7 @@ trap(Ureg *ureg)
 					ureg->pc, va);
 				postnote(up, 1, buf, NDebug);
 			} else
-				panic("kernel access violation: pc 0x%lux va 0x%lux\n",
+				panic("kernel access violation: pc 0x%lux va 0x%lux",
 					ureg->pc, va);
 			break;
 		case 0xd:
@@ -528,7 +528,7 @@ syscall(Ureg* ureg)
 	int	i, scallnr;
 
 	if((ureg->psr & PsrMask) != PsrMusr) {
-		panic("syscall: pc 0x%lux r14 0x%lux cs 0x%lux\n", ureg->pc, ureg->r14, ureg->psr);
+		panic("syscall: pc 0x%lux r14 0x%lux cs 0x%lux", ureg->pc, ureg->r14, ureg->psr);
 	}
 
 	m->syscall++;
