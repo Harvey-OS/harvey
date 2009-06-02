@@ -458,7 +458,7 @@ etherprobe(int cardno, int ctlrno)
 		ether->limit = bsz;
 	}
 	if(ether->oq == nil)
-		panic("etherreset %s: can't allocate output queue of %d bytes",
+		panic("etherreset %s: can't allocate output queue of %ld bytes",
 			name, bsz);
 	ether->alen = Eaddrlen;
 	memmove(ether->addr, ether->ea, Eaddrlen);

@@ -1183,7 +1183,7 @@ qhinterrupt(Ctlr *, Ep *ep, Qio *io, Td *td, int)
 		td->last = 1;
 		break;
 	default:
-		panic("ohci: td cc %ud unknown\n", err);
+		panic("ohci: td cc %ud unknown", err);
 	}
 
 	if(td->last != 0){
@@ -1287,7 +1287,7 @@ interrupt(Ureg *, void *arg)
 		ntd = pa2ptr(td->nexttd & ~0xF);
 		td->nexttd = 0;
 		if(td->ep == nil || td->io == nil)
-			panic("interrupt: ep %#x io %#x\n", td->ep, td->io);
+			panic("interrupt: ep %#p io %#p", td->ep, td->io);
 		ohciinterrupts[td->ep->ttype]++;
 		if(td->ep->ttype == Tiso)
 			isointerrupt(ctlr, td->ep, td->io, td, frno);

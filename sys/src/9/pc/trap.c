@@ -60,7 +60,7 @@ intrenable(int irq, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
 	}
 	if(vctl[vno]){
 		if(vctl[vno]->isr != v->isr || vctl[vno]->eoi != v->eoi)
-			panic("intrenable: handler: %s %s %luX %luX %luX %luX\n",
+			panic("intrenable: handler: %s %s %#p %#p %#p %#p",
 				vctl[vno]->name, v->name,
 				vctl[vno]->isr, v->isr, vctl[vno]->eoi, v->eoi);
 		v->next = vctl[vno];
@@ -146,7 +146,7 @@ trapenable(int vno, void (*f)(Ureg*, void*), void* a, char *name)
 	Vctl *v;
 
 	if(vno < 0 || vno >= VectorPIC)
-		panic("trapenable: vno %d\n", vno);
+		panic("trapenable: vno %d", vno);
 	v = xalloc(sizeof(Vctl));
 	v->tbdf = BUSUNKNOWN;
 	v->f = f;
@@ -431,7 +431,7 @@ trap(Ureg* ureg)
 		}
 		if(vno < nelem(excname))
 			panic("%s", excname[vno]);
-		panic("unknown trap/intr: %d\n", vno);
+		panic("unknown trap/intr: %d", vno);
 	}
 	splhi();
 
@@ -637,7 +637,7 @@ fault386(Ureg* ureg, void*)
 	if(n < 0){
 		if(!user){
 			dumpregs(ureg);
-			panic("fault: 0x%lux\n", addr);
+			panic("fault: 0x%lux", addr);
 		}
 		checkpages();
 		checkfault(addr, ureg->pc);
@@ -666,7 +666,7 @@ syscall(Ureg* ureg)
 	ulong scallnr;
 
 	if((ureg->cs & 0xFFFF) != UESEL)
-		panic("syscall: cs 0x%4.4luX\n", ureg->cs);
+		panic("syscall: cs 0x%4.4luX", ureg->cs);
 
 	cycles(&up->kentry);
 

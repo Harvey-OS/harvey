@@ -2164,7 +2164,7 @@ uhcimeminit(Ctlr *ctlr)
 	frsize = Nframes*sizeof(ulong);
 	ctlr->frames = xspanalloc(frsize, frsize, 0);
 	if(ctlr->frames == nil)
-		panic("uhci reset: no memory\n");
+		panic("uhci reset: no memory");
 
 	ctlr->iso = nil;
 	for(i = 0; i < Nframes; i++)

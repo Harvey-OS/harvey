@@ -2333,7 +2333,7 @@ epiowait(Hci *hp, Qio *io, int tmout, ulong load)
 		dqprint("ehci io %#p qh %#p timed out (no intr?)\n", io, qh);
 		timedout = 1;
 	}else if(qh->state != Qdone && qh->state != Qclose)
-		panic("ehci: epio: queue state %d\n", qh->state);
+		panic("ehci: epio: queue state %d", qh->state);
 	if(timedout){
 		aborttds(io->qh);
 		io->err = "request timed out";
@@ -3273,7 +3273,7 @@ ehcimeminit(Ctlr *ctlr)
 	assert((frsize & 0xFFF) == 0);		/* must be 4k aligned */
 	ctlr->frames = xspanalloc(frsize, frsize, 0);
 	if(ctlr->frames == nil)
-		panic("ehci reset: no memory\n");
+		panic("ehci reset: no memory");
 
 	for (i = 0; i < ctlr->nframes; i++)
 		ctlr->frames[i] = Lterm;
@@ -3367,7 +3367,7 @@ ehcireset(Ctlr *ctlr)
 		ctlr->nframes = 256;
 		break;
 	default:
-		panic("ehci: unknown fls %d\n", opio->cmd & Cflsmask);
+		panic("ehci: unknown fls %#lux", opio->cmd & Cflsmask);
 	}
 	dprint("ehci: %d frames\n", ctlr->nframes);
 	iunlock(ctlr);
