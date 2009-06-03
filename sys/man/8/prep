@@ -699,8 +699,9 @@ Create a bootable USB disk or flash-memory device to be booted
 via the BIOS and with no partitions:
 .IP
 .EX
-usb/disk
-disk/format -b /386/pbslba -df /n/disk/0/data \e
+mount /srv/usb /n/usb
+ls /n/usb
+disk/format -b /386/pbslba -df /n/usb/sdU13.0/data \e
 	/386/9load /386/9pcf.gz /tmp/plan9.ini
 .EE
 .SH SOURCE
@@ -710,6 +711,7 @@ disk/format -b /386/pbslba -df /n/disk/0/data \e
 .SH SEE ALSO
 .IR floppy (3),
 .IR sd (3),
+.IR usb (4),
 .IR 9load (8),
 .IR partfs (8)
 .SH BUGS
@@ -722,6 +724,6 @@ FAT12 and FAT16 file systems.
 If
 .L "prep -p"
 doesn't find a Plan 9 partition table,
-it will issue commands to delete
+it will emit commands to delete
 .I all
 extant partitions.
