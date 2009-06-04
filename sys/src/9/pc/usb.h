@@ -8,9 +8,12 @@ typedef struct Hciimpl Hciimpl;	/* Link to the controller impl. */
 
 enum
 {
+	/* fundamental constants */
+	Ndeveps	= 16,		/* max nb. of endpoints per device */
+
+	/* tunable parameters */
 	Nhcis	= 16,		/* max nb. of HCIs */
 	Neps	= 64,		/* max nb. of endpoints */
-	Ndeveps	= 16,		/* max nb. of endpoints per device */
 	Maxctllen = 8*1024,	/* max allowed sized for ctl. xfers */
 
 	/* transfer types. keep this order */
