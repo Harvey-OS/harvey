@@ -36,7 +36,6 @@ dev
 	uart
 	usb
 
-	tv
 
 link
 	realmode

@@ -38,6 +38,7 @@ enum
 	Rd2h = 1<<7,
 	Rstd = 0<<5,
 	Rclass =  1<<5,
+	Rdev = 0,
 	Rep = 2,
 	Rother = 3,
 
@@ -53,6 +54,8 @@ enum
 	Rgetstatus	= 0,
 	Rclearfeature	= 1,
 	Rsetfeature	= 3,
+	Rsetaddr	= 5,
+	Rgetdesc	= 6,
 
 	/* device states */
 	Dconfig	 = 0,		/* configuration in progress */
