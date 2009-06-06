@@ -12,10 +12,12 @@ typedef struct Iface Iface;
 typedef struct Usbdev Usbdev;
 
 enum {
+	/* fundamental constants */
+	Nep	= 16,	/* max. endpoints per usb device & per interface */
+
 	/* tunable parameters */
 	Nconf	= 16,	/* max. configurations per usb device */
-	Nep	= 64,	/* max. endpoints per usb device & per interface */
-	Nddesc	= Nep*2, /* max. device-specific descriptors per usb device */
+	Nddesc	= 8*Nep, /* max. device-specific descriptors per usb device */
 	Niface	= 16,	/* max. interfaces per configuration */
 	Naltc	= 16,	/* max. channels per interface */
 	Uctries	= 4,	/* no. of tries for usbcmd */
