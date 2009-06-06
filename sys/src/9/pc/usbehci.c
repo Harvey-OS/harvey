@@ -17,11 +17,10 @@
 #include	"io.h"
 #include	"../port/error.h"
 #include	"usb.h"
+#include	"usbehci.h"
 
 typedef struct Ctlio Ctlio;
 typedef struct Ctlr Ctlr;
-typedef struct Ecapio Ecapio;
-typedef struct Eopio Eopio;
 typedef struct Itd Itd;
 typedef struct Sitd Sitd;
 typedef struct Qtd Qtd;
@@ -38,8 +37,7 @@ typedef struct Poll Poll;
 /*
  * EHCI interface registers and bits
  */
-enum
-{
+enum {
 	/* Queue states (software) */
 	Qidle		= 0,
 	Qinstall,
@@ -65,70 +63,6 @@ enum
 	/*
 	 * HW constants
 	 */
-
-	Cnports		= 0xF,		/* nport bits in Ecapio parms. */
-	C64		= 1,		/* 64-bits, in Ecapio capparms. */
-
-	/* typed links  */
-	Lterm		= 1,
-	Litd		= 0<<1,
-	Lqh		= 1<<1,
-	Lsitd		= 2<<1,
-	Lfstn		= 3<<1,		/* we don't use these */
-
-	/* Cmd reg. */
-	Cstop		= 0x00000,	/* stop running */
-	Crun		= 0x00001,	/* start operation */
-	Chcreset	= 0x00002,	/* host controller reset */
-	Cflsmask	= 0x0000C,	/* frame list size bits */
-	Cfls1024	= 0x00000,	/* frame list size 1024 */
-	Cfls512		= 0x00004,	/* frame list size 512 frames */
-	Cfls256		= 0x00008,	/* frame list size 256 frames */
-	Cpse		= 0x00010,	/* periodic sched. enable */
-	Case		= 0x00020,	/* async sched. enable */
-	Ciasync		= 0x00040,	/* interrupt on async advance doorbell */
-	Citc1		= 0x10000,	/* interrupt threshold ctl. 1 µframe */
-	Citc4		= 0x40000,	/* same. 2 µframes */
-	/* ... */
-	Citc8		= 0x80000,	/* same. 8 µframes (can go up to 64) */
-
-	/* Sts reg. */
-	Sasyncss	= 0x08000,	/* aync schedule status */
-	Speriodss	= 0x04000,	/* periodic schedule status */
-	Srecl		= 0x02000,	/* reclamnation (empty async sched.) */
-	Shalted		= 0x01000,	/* h.c. is halted */
-	Sasync		= 0x00020,	/* interrupt on async advance */
-	Sherr		= 0x00010,	/* host system error */
-	Sfrroll		= 0x00008,	/* frame list roll over */
-	Sportchg	= 0x00004,	/* port change detect */
-	Serrintr	= 0x00002,		/* error interrupt */
-	Sintr		= 0x00001,	/* interrupt */
-	Sintrs		= 0x0003F,	/* interrupts status */
-
-	/* Intr reg. */
-	Iusb		= 0x01,		/* intr. on usb */
-	Ierr		= 0x02,		/* intr. on usb error */
-	Iportchg	= 0x04,		/* intr. on port change */
-	Ifrroll		= 0x08,		/* intr. on frlist roll over */
-	Ihcerr		= 0x10,		/* intr. on host error */
-	Iasync		= 0x20,		/* intr. on async advance enable */
-	Iall		= 0x3F,		/* all interrupts */
-
-	/* Config reg. */
-	Callmine		= 1,		/* route all ports to us */
-
-	/* Portsc reg. */
-	Pspresent	= 0x00000001,	/* device present */
-	Psstatuschg	= 0x00000002,	/* Pspresent changed */
-	Psenable	= 0x00000004,	/* device enabled */
-	Pschange	= 0x00000008,	/* Psenable changed */
-	Psresume	= 0x00000040,	/* resume detected */
-	Pssuspend	= 0x00000080,	/* port suspended */
-	Psreset		= 0x00000100,	/* port reset */
-	Pspower		= 0x00001000,	/* port power on */
-	Psowner		= 0x00002000,	/* port owned by companion */
-	Pslinemask	= 0x00000C00,	/* line status bits */
-	Pslow		= 0x00000400,	/* low speed device */
 
 	/* Itd bits (csw[]) */
 	Itdactive	= 0x80000000,	/* execution enabled */
@@ -231,8 +165,7 @@ enum
 /*
  * Endpoint tree (software)
  */
-struct Qtree
-{
+struct Qtree {
 	int	nel;
 	int	depth;
 	ulong*	bw;
@@ -240,10 +173,9 @@ struct Qtree
 };
 
 /*
- * One per endpoint per direction, to control I/O. 
+ * One per endpoint per direction, to control I/O.
  */
-struct Qio
-{
+struct Qio {
 	QLock;			/* for the entire I/O process */
 	Rendez;			/* wait for completion */
 	Qh*	qh;		/* Td list (field const after init) */
@@ -257,15 +189,13 @@ struct Qio
 	ulong	bw;
 };
 
-struct Ctlio
-{
+struct Ctlio {
 	Qio;			/* a single Qio for each RPC */
 	uchar*	data;		/* read from last ctl req. */
 	int	ndata;		/* number of bytes read */
 };
 
-struct Isoio
-{
+struct Isoio {
 	QLock;
 	Rendez;			/* wait for space/completion/errors */
 	int	usbid;		/* address used for device/endpoint */
@@ -296,16 +226,14 @@ struct Isoio
 	};
 };
 
-struct Poll
-{
+struct Poll {
 	Lock;
 	Rendez;
 	int must;
 	int does;
 };
 
-struct Ctlr
-{
+struct Ctlr {
 	Rendez;			/* for waiting to async advance doorbell */
 	Lock;			/* for ilock. qh lists and basic ctlr I/O */
 	QLock	portlck;	/* for port resets/enable... (and doorbell) */
@@ -331,41 +259,12 @@ struct Ctlr
 	Poll	poll;
 };
 
-struct Edpool
-{
+struct Edpool {
 	Lock;
 	Ed*	free;
 	int	nalloc;
 	int	ninuse;
 	int	nfree;
-};
-
-/*
- * Capability registers (hw)
- */
-struct Ecapio
-{
-	ulong	cap;		/* 00 controller capability register */
-	ulong	parms;		/* 04 structural parameters register */
-	ulong	capparms;	/* 08 capability parameters */
-	ulong	portroute;	/* 0c not on the CS5536 */
-};
-
-/*
- * Operational registers (hw)
- */
-struct Eopio
-{
-	ulong	cmd;		/* 00 command */
-	ulong	sts;		/* 04 status */
-	ulong	intr;		/* 08 interrupt enable */
-	ulong	frno;		/* 0c frame index */
-	ulong	seg;		/* 10 bits 63:32 of EHCI datastructs (unused) */
-	ulong	frbase;		/* 14 frame list base addr, 4096-byte boundary */
-	ulong	link;		/* 18 link for async list */
-	uchar	d2c[0x40-0x1c];	/* 1c dummy */
-	ulong	config;		/* 40 1: all ports default-routed to this HC */
-	ulong	portsc[1];	/* 44 Port status and control, one per port */
 };
 
 /*
@@ -378,8 +277,7 @@ struct Eopio
  * Iso transfer descriptor. hw. 92 bytes, 104 bytes total
  * aligned to 32.
  */
-struct Itd
-{
+struct Itd {
 	ulong	link;		/* to next hw struct */
 	ulong	csw[8];		/* sts/length/pg/off. updated by hw */
 	ulong	buffer[7];	/* buffer pointers, addrs, maxsz */
@@ -396,8 +294,7 @@ struct Itd
  * Split transaction iso transfer descriptor.
  * hw: 36 bytes, 52 bytes total. aligned to 32.
  */
-struct Sitd
-{
+struct Sitd {
 	ulong	link;		/* to next hw struct */
 	ulong	epc;		/* static endpoint state. addrs */
 	ulong	mfs;		/* static endpoint state. µ-frame sched. */
@@ -418,8 +315,7 @@ struct Sitd
  * Queue element transfer descriptor.
  * hw: first 52 bytes; total 68+sbuff bytes aligned to 32 bytes.
  */
-struct Td
-{
+struct Td {
 	ulong	nlink;		/* to next Td */
 	ulong	alink;		/* alternate link to next Td */
 	ulong	csw;		/* cmd/sts. updated by hw */
@@ -437,8 +333,7 @@ struct Td
  * Queue head. Aligned to 32 bytes.
  * hw uses the first 68 bytes, 92 total.
  */
-struct Qh
-{
+struct Qh {
 	ulong	link;		/* to next Qh in round robin */
 	ulong	eps0;		/* static endpoint state. addrs */
 	ulong	eps1;		/* static endpoint state. µ-frame sched. */
@@ -470,8 +365,7 @@ struct Qh
  * Software. Ehci descriptors provided by pool.
  * There are soo few because we avoid using Fstn.
  */
-union Ed
-{
+union Ed {
 	Ed*	next;		/* in free list */
 	Qh	qh;
 	Td	td;
@@ -481,9 +375,9 @@ union Ed
 };
 
 #define diprint		if(debug || iso->debug)print
-#define ddiprint		if(debug>1 || iso->debug>1)print
+#define ddiprint	if(debug>1 || iso->debug>1)print
 #define dqprint		if(debug || (qh->io && qh->io->debug))print
-#define ddqprint		if(debug>1 || (qh->io && qh->io->debug>1))print
+#define ddqprint	if(debug>1 || (qh->io && qh->io->debug>1))print
 #define TRUNC(x, sz)	((x) & ((sz)-1))
 #define LPTR(q)		((ulong*)KADDR((q) & ~0x1F))
 
@@ -516,14 +410,14 @@ ehcirun(Ctlr *ctlr, int on)
 	if(i == 100)
 		print("ehci %#p %s cmd timed out\n",
 			ctlr->capio, on ? "run" : "halt");
-	ddprint("ehci %#p cmd %#ulx sts %#ulx\n", ctlr->capio, opio->cmd, opio->sts);
+	ddprint("ehci %#p cmd %#ulx sts %#ulx\n",
+		ctlr->capio, opio->cmd, opio->sts);
 }
 
 static void*
 edalloc(void)
 {
-	Ed *ed;
-	Ed *pool;
+	Ed *ed, *pool;
 	int i;
 
 	lock(&edpool);
@@ -1567,7 +1461,7 @@ qhinterrupt(Ctlr *ctlr, Qh *qh)
 if(debug || qh->io->debug){
 seprinttd(buf, buf+sizeof(buf), td, "intr-fail-td");
 print("qh %#p io %#p\n\t%s\n", qh, qh->io, buf);
-}				
+}
 			if(qh->io->err == nil){
 				qh->io->err = errmsg(td->csw & Tderrors);
 				dqprint("qhintr: td %#p csw %#ulx error %#ux %s\n",
@@ -1586,7 +1480,7 @@ print("qh %#p io %#p\n\t%s\n", qh, qh->io, buf);
 	 */
 	for(; td != nil; td = td->next)
 		td->ndata = 0;
-	qh->state = Qdone;	
+	qh->state = Qdone;
 	wakeup(qh->io);
 	return 1;
 }
@@ -2341,7 +2235,7 @@ epiowait(Hci *hp, Qio *io, int tmout, ulong load)
 		if(!waserror()){
 			tsleep(&up->sleep, return0, 0, Abortdelay);
 			poperror();
-		} 
+		}
 		ilock(ctlr);
 	}
 	if(qh->state != Qclose)
@@ -2349,7 +2243,7 @@ epiowait(Hci *hp, Qio *io, int tmout, ulong load)
 	qhlinktd(qh, nil);
 	ctlr->load -= load;
 	ctlr->nreqs--;
-	iunlock(ctlr);	
+	iunlock(ctlr);
 }
 
 /*
