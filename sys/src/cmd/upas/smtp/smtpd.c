@@ -9,8 +9,6 @@
 #include <auth.h>
 #include "../smtp/y.tab.h"
 
-#define DBGMX 1
-
 char	*me;
 char	*him="";
 char	*dom;
@@ -73,8 +71,12 @@ catchalarm(void *a, char *msg)
 		rv = Atnoteunknown;
 
 	/* kill the children if there are any */
-	if(pp)
+	if(pp) {
 		syskillpg(pp->pid);
+		/* none can't syskillpg, so try a variant */
+		sleep(500);
+		syskill(pp->pid);
+	}
 
 	return rv;
 }
@@ -234,7 +236,7 @@ listadd(List *l, String *path)
 int
 reply(char *fmt, ...)
 {
-	int n;
+	long n;
 	char buf[SIZE], *out;
 	va_list arg;
 
@@ -242,7 +244,7 @@ reply(char *fmt, ...)
 	out = vseprint(buf, buf+SIZE, fmt, arg);
 	va_end(arg);
 
-	n = (long)(out - buf);
+	n = out - buf;
 	if(debug) {
 		seek(2, 0, 2);
 		write(2, buf, n);
@@ -1187,6 +1189,9 @@ pipemsg(int *byteswritten)
 		snprint(pipbuf, sizeof pipbuf, "network eof: %r");
 		piperror = pipbuf;
 		syskillpg(pp->pid);
+		/* none can't syskillpg, so try a variant */
+		sleep(500);
+		syskill(pp->pid);
 		status = 1;
 	}
 
@@ -1568,8 +1573,8 @@ auth(String *mech, String *resp)
 			goto bomb_out;
 		}
 		memset(s_to_c(s_resp1_64), 'X', s_len(s_resp1_64));
-		user = (s_to_c(s_resp1) + strlen(s_to_c(s_resp1)) + 1);
-		pass = user + (strlen(user) + 1);
+		user = s_to_c(s_resp1) + strlen(s_to_c(s_resp1)) + 1;
+		pass = user + strlen(user) + 1;
 		ai = auth_userpasswd(user, pass);
 		authenticated = ai != nil;
 		memset(pass, 'X', strlen(pass));
