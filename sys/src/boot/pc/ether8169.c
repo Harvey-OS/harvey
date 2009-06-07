@@ -114,6 +114,7 @@ enum {					/* Tcr */
 	Macv13		= 0x34000000,	/* RTL8101E */
 	Macv14		= 0x30800000,	/* RTL8100E */
 	Macv15		= 0x38800000,	/* RTL8100E */
+ 	Macv16		= 0x24800000,	/* RTL8102EL */
 	Ifg0		= 0x01000000,	/* Interframe Gap 0 */
 	Ifg1		= 0x02000000,	/* Interframe Gap 1 */
 };
@@ -518,6 +519,9 @@ rtl8169init(Ether* edev)
 	cplusc |= Rxchksum|Mulrw;
 	switch(ctlr->macv){
 	default:
+		iunlock(&ctlr->ilock);
+		print("ether8169: unknown macv %#08ux for vid %#ux did %#ux\n",
+			ctlr->macv, ctlr->pcidev->vid, ctlr->pcidev->did);
 		return -1;
 	case Macv01:
 		ctlr->mtps = HOWMANY(Mps, 32);
@@ -553,6 +557,7 @@ rtl8169init(Ether* edev)
 	case Macv12:
 	case Macv14:
 	case Macv15:
+	case Macv16:
 		break;
 	}
 

@@ -1109,8 +1109,8 @@ atagenio(Drive* drive, uchar* cmd, int)
 		*p++ = len>>24;
 		*p++ = len>>16;
 		*p++ = len>>8;
-		*p = len;
-		drive->data += 8;
+		*p++ = len;
+		drive->data = p;
 		return SDok;
 
 	case 0x9E:			/* long read capacity */
@@ -1135,8 +1135,8 @@ atagenio(Drive* drive, uchar* cmd, int)
 		*p++ = len>>24;
 		*p++ = len>>16;
 		*p++ = len>>8;
-		*p = len;
-		drive->data += 8;
+		*p++ = len;
+		drive->data = p;
 		return SDok;
 
 	case 0x28:			/* read */
