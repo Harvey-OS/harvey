@@ -559,6 +559,7 @@ swcursorhide(void)
 		return;
 	swvisible = 0;
 	memimagedraw(gscreen, swrect, swback, ZP, memopaque, ZP, S);
+	flushmemscreen(swrect);
 }
 
 void
@@ -583,6 +584,7 @@ swcursordraw(void)
 	swrect = rectaddpt(Rect(0,0,16,16), swvispt);
 	memimagedraw(swback, swback->r, gscreen, swpt, memopaque, ZP, S);
 	memimagedraw(gscreen, swrect, swimg1, ZP, swmask1, ZP, SoverD);
+	flushmemscreen(swrect);
 	swvisible = 1;
 }
 
