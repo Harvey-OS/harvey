@@ -56,7 +56,7 @@ enum {
 };
 
 /*
- * The codes at 0x79 and 0x7b are produed by the PFU Happy Hacking keyboard.
+ * The codes at 0x79 and 0x7b are produced by the PFU Happy Hacking keyboard.
  * A 'standard' keyboard doesn't produce anything above 0x58.
  */
 Rune kbtab[Nscan] = 
@@ -403,7 +403,7 @@ if(kdebug)
 	}
 
 	/*
- 	 *  normal character
+	 *  normal character
 	 */
 	if(!(c & (Spec|KF))){
 		if(kbscan->ctl)
@@ -536,7 +536,7 @@ i8042auxenable(void (*putc)(int, int))
 	outb(Data, ccc);
 	if(outready() < 0)
 		print(err);
-	outb(Cmd, 0xA8);			/* auxilliary device enable */
+	outb(Cmd, 0xA8);			/* auxiliary device enable */
 	if(outready() < 0){
 		iunlock(&i8042lock);
 		return;

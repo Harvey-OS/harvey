@@ -37,6 +37,12 @@ enum {
 
 	Qmax = 16,
 };
+enum {				/* cpuid standard function codes */
+	Highstdfunc = 0,	/* also returns vendor string */
+	Procsig,
+	Proctlbcache,
+	Procserial,
+};
 
 typedef long Rdwrfn(Chan*, void*, long, vlong);
 
@@ -721,9 +727,19 @@ cpuidentify(void)
 	int family, model, nomce;
 	X86type *t, *tab;
 	ulong cr4;
+	ulong regs[4];
 	vlong mca, mct;
 
-	cpuid(m->cpuidid, &m->cpuidax, &m->cpuiddx);
+	cpuid(Highstdfunc, regs);
+	memmove(m->cpuidid,   &regs[1], BY2WD);	/* bx */
+	memmove(m->cpuidid+4, &regs[3], BY2WD);	/* dx */
+	memmove(m->cpuidid+8, &regs[2], BY2WD);	/* cx */
+	m->cpuidid[12] = '\0';
+
+	cpuid(Procsig, regs);
+	m->cpuidax = regs[0];
+	m->cpuiddx = regs[3];
+
 	if(strncmp(m->cpuidid, "AuthenticAMD", 12) == 0 ||
 	   strncmp(m->cpuidid, "Geode by NSC", 12) == 0)
 		tab = x86amd;
@@ -755,7 +771,7 @@ cpuidentify(void)
 	}
 
 	/*
- 	 *  use i8253 to guess our cpu speed
+	 *  use i8253 to guess our cpu speed
 	 */
 	guesscpuhz(t->aalcycles);
 
@@ -850,6 +866,7 @@ archctlread(Chan*, void *a, long nn, vlong offset)
 	else
 		n += snprint(buf+n, sizeof buf-n, "0x%p\n", cmpswap);
 	n += snprint(buf+n, sizeof buf-n, "i8253set %s\n", doi8253set ? "on" : "off");
+	n += mtrrprint(buf+n, sizeof buf-n);
 	buf[n] = 0;
 	return readstr(offset, a, nn, buf);
 }
@@ -859,6 +876,7 @@ enum
 	CMpge,
 	CMcoherence,
 	CMi8253set,
+	CMcache,
 };
 
 static Cmdtab archctlmsg[] =
@@ -866,6 +884,7 @@ static Cmdtab archctlmsg[] =
 	CMpge,		"pge",		2,
 	CMcoherence,	"coherence",	2,
 	CMi8253set,	"i8253set",	2,
+	CMcache,		"cache",		4,
 };
 
 static long
@@ -873,6 +892,9 @@ archctlwrite(Chan*, void *a, long n, vlong)
 {
 	Cmdbuf *cb;
 	Cmdtab *ct;
+	uintptr base;
+	ulong size;
+	char *ep;
 
 	cb = parsecmd(a, n);
 	if(waserror()){
@@ -918,6 +940,15 @@ archctlwrite(Chan*, void *a, long n, vlong)
 			(*arch->timerset)(0);
 		}else
 			cmderror(cb, "invalid i2853set ctl");
+		break;
+	case CMcache:
+		base = strtoul(cb->f[1], &ep, 0);
+		if(*ep)
+			error("cache: parse error: base not a number?");
+		size = strtoul(cb->f[2], &ep, 0);
+		if(*ep)
+			error("cache: parse error: size not a number?");
+		mtrr(base, size, cb->f[3]);
 		break;
 	}
 	free(cb);
