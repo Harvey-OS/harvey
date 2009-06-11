@@ -73,6 +73,7 @@ link
 
 misc
 	archmp		mp apic
+	mtrr
 
 	sdata		pci sdscsi
 	sd53c8xx	pci sdscsi

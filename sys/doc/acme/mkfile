@@ -10,3 +10,5 @@ acme.ps:D:	acme.ms
 acme.html:D:	acme.ms
 	htmlroff -ms -mhtml acme.ms >acme.html
 
+clean:V:
+	# nothing

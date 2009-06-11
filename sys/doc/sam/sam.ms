@@ -21,7 +21,7 @@
 .sp
 ..
 .de XP
-.ie h .html - <center><img src="sam.\\$1.png" /></center>
+.ie h .html - <center><img src="\\$1.gif" /></center>
 .el .BP \\$1.ps \\$2
 ..
 .TL
