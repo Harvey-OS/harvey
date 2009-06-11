@@ -62,6 +62,7 @@ link
 
 misc
 	archmp		mp apic
+	mtrr
 
 	uarti8250
 	uartpci		pci

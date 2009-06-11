@@ -21,7 +21,7 @@
 .if h \{\
 .de FG
 .B1 10 60
-.html - <center><a href="\\$1.png"><img src="\\$1s.png" /></a></center>
+.html - <center><a href="\\$1.gif"><img src="\\$1.gif" /></a></center>
 .\" .sp .5v
 ..
 .de fg

@@ -2,6 +2,7 @@
 .FP lucidasans
 .na
 .ds CH
+.
 .de He
 .sp
 .ft B
@@ -11,22 +12,26 @@
 .ft
 .br
 ..
-.de Ti
-.ft R
-.ie h \{\
-\\$3 
-(\c
-.if !'\\$2'troff' \! \<a href="\\$2.html"\>html\</a\> |
-\! \<a href="\\$2.ps"\>ps\</a\>
-|
-\! \<a href="\\$2.pdf"\>pdf\</a\>)
-.\}
-.el \{\
-.ta \\n(LLuR
-\\$3 \a\|\|\\$1
-.\}
-.br
-..
+.
+.\" BUG: \! transparency always emits the rest of the line, even in
+.\" an `unexecuted' if-else branch, so this doesn't work as desired.
+.\" .de Ti
+.\" .ft R
+.\" .ie h \{\
+.\" \\$3 
+.\" (\c
+.\" .if !'\\$2'troff' \! \<a href="\\$2.html"\>html\</a\> |
+.\" \! \<a href="\\$2.ps"\>ps\</a\>
+.\" |
+.\" \! \<a href="\\$2.pdf"\>pdf\</a\>)
+.\" ...\}
+.\" .el \{\
+.\" .ta \\n(LLuR
+.\" \\$3 \a\|\|\\$1
+.\" ...\}
+.\" .br
+.\" ..
+.
 .de Au
 .ft I
 .in 1i
@@ -47,9 +52,11 @@
 ..
 .de Co
 ..
+.
 .nr PS 9
 .nr VS 11
 .nf
+.
 .LP
 .ps 12
 .ce
@@ -58,6 +65,7 @@
 .ps
 .sp .5i
 .He "Introduction
+.
 .Ti 1 9 "Plan 9 From Bell Labs
 .Au "Rob Pike, Dave Presotto, Sean Dorward, Bob Flandrena, Ken Thompson, Howard Trickey, and Phil \%Winterbottom
 .De "An overview of the system; read at least this paper before you install.
@@ -66,7 +74,7 @@
 .Au "Rob Pike, Dave Presotto, Ken Thompson, Howard Trickey, and Phil \%Winterbottom
 .Co updated only to mention appearance in SIGOPS
 .De "What's in a name?
-.Ti 29 net "The Organization of Networks in Plan 9
+.Ti 29 net/net "The Organization of Networks in Plan 9
 .Au "Dave Presotto and Phil Winterbottom
 .De "Connecting the pieces.  The details in the paper are outdated but the ideas still apply.
 .Ti 43 auth "Security in Plan 9
@@ -106,7 +114,7 @@
 .De "Things you'd rather not know.
 .bp
 .He "User Interfaces
-.Ti 159 8½ "8½, the Plan 9 Window System
+.Ti 159 8½/8½ "8½, the Plan 9 Window System
 .Au "Rob Pike
 .Co fine - introductory footnote tweaked
 .De "An introduction to the (previous) window system and its unusual implementation.
@@ -114,11 +122,11 @@
 .Au "Tom Duff
 .Co updated
 .De "An introduction to the new shell, complete with examples.
-.Ti 185 sam "The Text Editor \&\f(CWsam\fP
+.Ti 185 sam/sam "The Text Editor \&\f(CWsam\fP
 .Au "Rob Pike
 .Co fine
 .De "\f(CWSam\fP is the standard editor on Plan 9.
-.Ti 215 acme "Acme: A User Interface for Programmers
+.Ti 215 acme/acme "Acme: A User Interface for Programmers
 .Au "Rob Pike
 .Co fine
 .De "A system with a more radical approach to programming and editing.
@@ -139,14 +147,14 @@
 .Au "Bob Flandrena
 .Co updated
 .De "The procedures necessary to add a new instruction set to Plan 9's programming environment.
-.Ti 279 fs "The Plan 9 File Server
+.Ti 279 fs/fs "The Plan 9 File Server
 .Au "Ken Thompson
 .Co updated
 .De "The design of the central file server and its novel backup system.
-.Ti 287 venti "Venti: A new approach to archival storage
+.Ti 287 venti/venti "Venti: A new approach to archival storage
 .Au "Sean Quinlan and Sean Dorward
 .De "Archival block-level storage using secure hashes as block identifiers.
-.Ti 301 il "The IL protocol
+.Ti 301 il/il "The IL protocol
 .Au "Dave Presotto and Phil Winterbottom
 .De "A description of the Internet protocol Plan 9 uses for internal communication.
 .Ti 307 lexnames "Lexical File Names in Plan 9, or, Getting Dot-Dot Right
@@ -173,6 +181,5 @@
 .He "Installation
 .Ti 400 port "The Various Ports
 .De "The hardware requirements for the Plan 9 compilers and kernels.
-.if h \{\
-.sp 1
-\! \<center\>\<a href="/plan9/"\>Plan 9 Home Page\</a\>\</center\>
+.
+.Hp
