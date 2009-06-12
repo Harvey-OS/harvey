@@ -1,10 +1,10 @@
-.TH PROC 3 
+.TH PROC 3
 .SH NAME
 proc \- running processes
 .SH SYNOPSIS
 .nf
 .B bind #p /proc
-
+.sp 0.3v
 .B /proc/trace
 .BI /proc/ n /args
 .BI /proc/ n /ctl
@@ -185,6 +185,71 @@ system call, its
 .B wait
 file cannot be read by any process.
 .PP
+The read-only
+.B profile
+file contains the instruction frequency count information used for multiprocess profiling; see
+.B tprof
+in
+.IR prof (1).
+The information is gleaned by sampling the program's user-level program counter
+at interrupt time.
+.PP
+Strings written to the
+.B note
+file will be posted as a note to the process
+(see
+.IR notify (2)).
+The note should be less than
+.B ERRLEN-1
+characters long;
+the last character is reserved for a terminating NUL character.
+A read of at least
+.B ERRLEN
+characters will retrieve the oldest note posted to the
+process and prevent its delivery to the process.
+The
+.B notepg
+file is similar, but the note will be delivered to all the
+processes in the target process's
+.I note group
+(see
+.IR fork (2)).
+However, if the process doing the write is in the group,
+it will not receive the note.
+The
+.B notepg
+file is write-only.
+.PP
+The textual
+.B noteid
+file may be read to recover an integer identifying the note group of the process
+(see
+.B RFNOTEG
+in
+.IR fork (2)).
+The file may be written to cause the process to change to another note group,
+provided the group exists and is owned by the same user.
+.PP
+The file
+.B /proc/trace
+can be opened once and read to see trace events from processes that have
+had the string
+.B trace
+written to their
+.B ctl
+file.
+Each event produces, in native machine format, the
+.IR pid ,
+a
+.IR type ,
+and a
+.I "time stamp"
+(see
+.B /sys/include/trace.h
+and
+.BR /sys/src/cmd/trace.c ).
+.
+.SS Control messages
 Textual messages written to the
 .B ctl
 file control the execution of the process.
@@ -351,15 +416,17 @@ to
 perform a schedulability test and start scheduling the process as a real-time
 process if the test succeeds.  If the test fails, the
 .B write
-will fail with error set to the reason for failure.  
+will fail with error set to the reason for failure.
 .TP 10n
 .B event
-Add a user event to the 
+Add a user event to the
 .B /proc/trace
 file.
 .PD
-.PP
-Real-time processes are periodically
+.
+.SS Real-time scheduling
+.I Real-time
+processes are periodically
 .IR released ,
 giving them a higher priority than non-real-time processes until they either
 give up the processor voluntarily, they exhaust their CPU allocation, or they reach their
@@ -372,7 +439,8 @@ or not.
 Non-sporadic processes are called
 .I periodic
 and they are released precisely at intervals of their period (but periods can be skipped
-if the process blocks on I/O).  Sporadic processes are released whenever they become
+if the process blocks on I/O).
+Sporadic processes are released whenever they become
 runnable (after being blocked by
 .IR sleep ()
 or I/O), but always at least an interval of
@@ -385,13 +453,15 @@ of a real-time process specifies that the process must complete within the first
 .I deadline
 seconds of its
 .IR period .
-The dealine must be less than or equal to the period.  If it is not specified, it is set to the period.
+The dealine must be less than or equal to the period.
+If it is not specified, it is set to the period.
 .PP
 The
 .I cost
 of a real-time process describes the maximum CPU time the process may use per period.
 .PP
-A real-time process can give up the CPU before its deadline is reached or its allocation is exhausted.
+A real-time process can give up the CPU before its deadline is reached
+or its allocation is exhausted.
 It does this by calling
 .IR sleep (0).
 If
@@ -402,7 +472,8 @@ is assumed for
 .I sporadic
 processes.
 .PP
-Of the released processes, the one with the earliest deadline has the highest priority.
+Of the released processes,
+the one with the earliest deadline has the highest priority.
 Care should be taken using spin locks (see
 .IR lock (2))
 because a real-time process spinning on a lock will not give up the processor until
@@ -421,70 +492,6 @@ Unless
 explicitly set, user processes have base priority 10, kernel processes
 13.
 Children inherit the parent's base priority.
-.PP
-The read-only
-.B profile
-file contains the instruction frequency count information used for multiprocess profiling; see
-.B tprof
-in
-.IR prof (1).
-The information is gleaned by sampling the program's user-level program counter
-at interrupt time.
-.PP
-Strings written to the
-.B note
-file will be posted as a note to the process
-(see
-.IR notify (2)).
-The note should be less than
-.B ERRLEN-1
-characters long;
-the last character is reserved for a terminating NUL character.
-A read of at least
-.B ERRLEN
-characters will retrieve the oldest note posted to the
-process and prevent its delivery to the process.
-The
-.B notepg
-file is similar, but the note will be delivered to all the
-processes in the target process's
-.I note group
-(see
-.IR fork (2)).
-However, if the process doing the write is in the group,
-it will not receive the note.
-The
-.B notepg
-file is write-only.
-.PP
-The textual
-.B noteid
-file may be read to recover an integer identifying the note group of the process
-(see
-.B RFNOTEG
-in
-.IR fork (2)).
-The file may be written to cause the process to change to another note group,
-provided the group exists and is owned by the same user.
-.PP
-The file
-.B /proc/trace
-can be opened once and read to see trace events from processes that have
-had the string
-.B trace
-written to their
-.B ctl
-file.
-Each event produces, in native machine format, the
-.IR pid ,
-a
-.IR type ,
-and a
-.I "time stamp"
-(see
-.B /sys/include/trace.h
-and
-.BR /sys/src/cmd/trace.c ).
 .SH FILES
 .nf
 .B /sys/src/9/*/mem.h
