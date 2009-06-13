@@ -199,12 +199,8 @@ outch(int base, int c)
 			break;
 		if((status&Fpe)==0 && (status&(Fselect|Fnoerror)) != (Fselect|Fnoerror))
 			error(Eio);
-		if(tries < 10)
-			tsleep(&lptrendez, return0, nil, 1);
-		else {
-			outb(base+Qpcr, Finitbar|Fie);
-			tsleep(&lptrendez, lptready, (void *)base, 100);
-		}
+		outb(base+Qpcr, Finitbar|Fie);
+		tsleep(&lptrendez, lptready, (void *)base, 100);
 	}
 	outb(base+Qdlr, c);
 	outb(base+Qpcr, Finitbar|Fstrobe);
