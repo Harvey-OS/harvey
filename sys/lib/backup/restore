@@ -80,8 +80,9 @@ for (track in d[0-9]*) {
 		# argh!  something (cdfs?) appends 60K of *stuff* to each
 		# arena on optical disc.  restrain dd.
 		count=`{ echo $arenasize/$blocksize | bc }
-		pump <$track | dd -quiet 1 -count $count -bs $blocksize \
-			-of $arenas -oseek $off
+		pump -i 1048576 -o 65536 -d 10 <$track |
+			dd -quiet 1 -count $count -bs $blocksize -of $arenas \
+				-oseek $off
 		arena = `{hoc -e $arena+1}
 	}
 }
