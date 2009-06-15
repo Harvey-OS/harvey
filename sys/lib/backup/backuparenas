@@ -21,7 +21,7 @@ cd $fsroot/dev/fs
 for (name) {
 	grep next /mnt/cd/ctl
 	if (! {venti/rdarena arena0 $name |
-	    pump -b 65536 -k 51200 >/mnt/cd/wd/$name})
+	    pump -i 65536 -o 1048576 -k 51200 -d 10 >/mnt/cd/wd/$name})
 		exit
 #	ls -l /mnt/cd
 	if (test -e '/env/fn#dumpdone' -a -e '/env/set')
