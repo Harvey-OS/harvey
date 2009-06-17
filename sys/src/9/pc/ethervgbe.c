@@ -465,14 +465,24 @@ vgbedumpisr(ulong isr)
 	}
 }
 
+static void
+noop(Block *)
+{
+}
+
 static int
 vgbenewrx(Ctlr* ctlr, int i)
 {
 	Block* block;
 	RxDesc* desc;
 
-	/* Allocate Rx block. (TODO: Alignment ?) */
+	/*
+	 * allocate a receive Block.  we're maintaining
+	 * a private pool of Blocks, so we don't want freeb
+	 * to actually free them, thus we set block->free.
+	 */
 	block = allocb(RxSize);
+	block->free = noop;
 
 	/* Remember that block. */
 	ctlr->rx_blocks[i] = block;
@@ -524,12 +534,7 @@ vgberxeof(Ether* edev)
 			block->wp = block->rp + length;
 
 			ctlr->stats.rx++;
-			/*
-			 * the packet actually *is* from the wire, but
-			 * we're maintaining a private array of Blocks,
-			 * so can't have etheriq free block.
-			 */
-			etheriq(edev, block, 0);
+			etheriq(edev, block, 1);
 		}
 		else
 			print("vgbe: Rx-desc[%#02x] *BAD FRAME* status=%#08ulx ctl=%#08ulx\n",
