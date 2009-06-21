@@ -26,7 +26,7 @@ mouseproc(void *arg)
 
 	mc = arg;
 	if((mfd = open("/dev/mouse", OREAD)) < 0)
-		sysfatal("open /dev/mouse: %r\en");
+		sysfatal("open /dev/mouse: %r");
 	for(;;){
 		if(read(mfd, m, sizeof m) != sizeof m)
 			sysfatal("eof");
