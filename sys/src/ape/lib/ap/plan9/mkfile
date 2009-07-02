@@ -71,7 +71,6 @@ OFILES=\
 	pipe.$O\
 	profile.$O\
 	qlock.$O\
-	raise.$O\
 	read.$O\
 	rename.$O\
 	rmdir.$O\
