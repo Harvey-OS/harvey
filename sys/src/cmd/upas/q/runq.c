@@ -356,7 +356,11 @@ dofile(Dir *dp)
 	if(!Eflag && (d = dirstat(file(dp->name, 'E'))) != nil){
 		etime = d->mtime;
 		free(d);
-		if(etime - dtime < 60*60){
+		if(etime - dtime < 15*60){
+			/* up to the first 15 minutes, every 30 seconds */
+			if(time(0) - etime < 30)
+				return;
+		} else if(etime - dtime < 60*60){
 			/* up to the first hour, try every 15 minutes */
 			if(time(0) - etime < 15*60)
 				return;
@@ -513,7 +517,11 @@ dofile(Dir *dp)
 		if(wm->msg[0]){
 			if(debug)
 				fprint(2, "[%d] wm->msg == %s\n", getpid(), wm->msg);
-			if(!Rflag && strstr(wm->msg, "Retry")==0){
+			syslog(0, runqlog, "message: %s\n", wm->msg);
+			if(strstr(wm->msg, "Ignore") != nil){
+				/* fix for fish/chips, leave message alone */
+				logit("ignoring", dp->name, av);
+			}else if(!Rflag && strstr(wm->msg, "Retry")==0){
 				/* return the message and remove it */
 				if(returnmail(av, dp->name, wm->msg) != 0)
 					logit("returnmail failed", dp->name, av);

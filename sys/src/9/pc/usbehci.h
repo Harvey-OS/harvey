@@ -75,7 +75,7 @@ enum
 
 	/* Debug port csw reg. */
 	Cowner	= 0x40000000,		/* port owned by ehci */
-	Cenable	= 0x20000000,		/* debug port enabled */
+	Cenable	= 0x10000000,		/* debug port enabled */
 	Cdone	= 0x00010000,		/* request is done */
 	Cbusy	= 0x00000400,		/* port in use by a driver */
 	Cerrmask= 0x00000380,		/* error code bits */
@@ -95,7 +95,7 @@ enum
 	Ptokmask	= 0xFF,
 
 	Ptoggle		= 0x00008800,	/* to update toggles */
-	Ptogglemask	= 0x00FFFF00,
+	Ptogglemask	= 0x0000FF00,
 
 	/* Debug port addr reg. */
 	Adevshift	= 8,		/* device address */
@@ -143,3 +143,5 @@ struct Edbgio
 	ulong	addr;		/* device and endpoint addresses */
 };
 
+extern Ecapio *ehcidebugcapio;
+extern int ehcidebugport;

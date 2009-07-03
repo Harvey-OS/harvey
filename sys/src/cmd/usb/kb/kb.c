@@ -120,14 +120,17 @@ kbfatal(KDev *kd, char *sts)
 	Dev *dev;
 
 	if(sts != nil)
-		fprint(2, "kd: %s: fatal: %s\n", kd->ep->dir, sts);
-	dev = kd->dev;
-	devctl(dev, "detach");
+		fprint(2, "kb: fatal: %s\n", sts);
+	else
+		fprint(2, "kb: exiting\n");
 	if(kd->repeatc != nil)
-		sendul(kd->repeatc, Diemsg);
-	closedev(kd->ep);
-	kd->ep = nil;
+		nbsendul(kd->repeatc, Diemsg);
+	dev = kd->dev;
 	kd->dev = nil;
+	if(kd->ep != nil)
+		closedev(kd->ep);
+	kd->ep = nil;
+	devctl(dev, "detach");
 	closedev(dev);
 	/*
 	 * free(kd); done by closedev.
@@ -197,12 +200,16 @@ ptrwork(void* a)
 	mfd = f->in->fd;
 
 	if(f->ep->maxpkt < 3 || f->ep->maxpkt > sizeof buf)
-		kbfatal(f, "weird maxpkt");
+		kbfatal(f, "weird mouse maxpkt");
 	for(;;){
 		memset(buf, 0, sizeof buf);
+		if(f->ep == nil)
+			kbfatal(f, nil);
 		c = read(ptrfd, buf, f->ep->maxpkt);
+		assert(f->dev != nil);
+		assert(f->ep != nil);
 		if(c < 0)
-			fprint(2, "kb: %s: read: %r\n", f->ep->dir);
+			dprint(2, "kb: mouse: %s: read: %r\n", f->ep->dir);
 		if(c <= 0)
 			kbfatal(f, nil);
 		if(c < 3)
@@ -220,12 +227,10 @@ ptrwork(void* a)
 		if(c > 3 && buf[3] == -1)	/* down */
 			b |= 0x10;
 		if(kbdebug)
-			fprint(2, "%s: ptr: m%11d %11d %11d\n", argv0, x, y, b);
+			fprint(2, "kb: m%11d %11d %11d\n", x, y, b);
 		seprint(mbuf, mbuf+sizeof(mbuf), "m%11d %11d %11d", x, y,b);
-		if(write(mfd, mbuf, strlen(mbuf)) < 0){
-			fprint(2, "%s: #m/mousein: write: %r", argv0);
-			kbfatal(f, "mousein");
-		}
+		if(write(mfd, mbuf, strlen(mbuf)) < 0)
+			kbfatal(f, "mousein i/o");
 		if(hipri == 0){
 			sethipri();
 			hipri = 1;
@@ -414,10 +419,12 @@ kbdwork(void *a)
 	for(;;){
 		memset(buf, 0, sizeof buf);
 		c = read(kbdfd, buf, f->ep->maxpkt);
+		assert(f->dev != nil);
+		assert(f->ep != nil);
 		if(c < 0)
-			fprint(2, "%s: %s: read: %r\n", argv0, f->ep->dir);
+			dprint(2, "kb: %s: read: %r\n", f->ep->dir);
 		if(c <= 0)
-			kbfatal(f, "eof");
+			kbfatal(f, nil);
 		if(c < 3)
 			continue;
 		if(kbdbusy(buf + 2, c - 2))
@@ -457,6 +464,7 @@ freekdev(void *a)
 		}
 		qunlock(&inlck);
 	}
+	dprint(2, "freekdev\n");
 	free(kd);
 }
 
@@ -474,20 +482,15 @@ kbstart(Dev *d, Ep *ep, Kin *in, void (*f)(void*), int accel)
 			return;
 		}
 	}
+	in->ref++;	/* for kd->in = in */
 	qunlock(&inlck);
-	kd = d->aux;
-	if(kd == nil){
-		kd = d->aux = emallocz(sizeof(KDev), 1);
-		d->free = freekdev;
-		kd->in = in;
-		qlock(&inlck);
-		kd->in->ref++;
-		qunlock(&inlck);
-		kd->dev = d;
-		if(setbootproto(kd, ep->id) < 0){
-			fprint(2, "kb: %s: bootproto: %r\n", d->dir);
-			return;
-		}
+	kd = d->aux = emallocz(sizeof(KDev), 1);
+	d->free = freekdev;
+	kd->in = in;
+	kd->dev = d;
+	if(setbootproto(kd, ep->id) < 0){
+		fprint(2, "kb: %s: bootproto: %r\n", d->dir);
+		return;
 	}
 	kd->accel = accel;
 	kd->ep = openep(d, ep->id);

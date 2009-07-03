@@ -326,7 +326,7 @@ usbinit(void)
 {
 	static char *darg[] = { "/boot/usbd", nil };
 
-	if(bind("#u", "/dev", MAFTER) >= 0 && access("/dev/usb", 0) >= 0)
+	if(access("#u/usb/ctl", 0) >= 0 && bind("#u", "/dev", MAFTER) >= 0)
 		run("usbd", darg);
 }
 

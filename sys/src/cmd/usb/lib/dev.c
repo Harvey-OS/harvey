@@ -100,7 +100,13 @@ opendev(char *fn)
 
 	l = strlen(fn);
 	d->dfd = -1;
-	d->dir = emallocz(l + strlen("/data") + 1, 0);
+	/*
+	 * +30 to allocate extra size to concat "/<epfilename>"
+	 * we should probably remove that feature from the manual
+	 * and from the code after checking out that nobody relies on
+	 * that.
+	 */
+	d->dir = emallocz(l + 30, 0);
 	strcpy(d->dir, fn);
 	strcpy(d->dir+l, "/ctl");
 	d->cfd = open(d->dir, ORDWR|OCEXEC);
@@ -119,12 +125,10 @@ opendev(char *fn)
 int
 opendevdata(Dev *d, int mode)
 {
-	int l;
+	char buf[80]; /* more than enough for a usb path */
 
-	l = strlen(d->dir);
-	strcpy(d->dir+l, "/data");
-	d->dfd = open(d->dir, mode|OCEXEC);
-	d->dir[l] = 0;
+	seprint(buf, buf+sizeof(buf), "%s/data", d->dir);
+	d->dfd = open(buf, mode|OCEXEC);
 	return d->dfd;
 }
 

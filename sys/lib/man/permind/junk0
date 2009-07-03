@@ -1,0 +1,529 @@
+0intro(1) intro \- introduction to Plan 9
+2a(1) 0a, 1a, 2a, 5a, 6a, 7a, 8a, ka, qa, va \- assemblers
+2c(1) 0c, 1c, 2c, 5c, 6c, 7c, 8c, kc, qc, vc \- C compilers
+2l(1) 0l, 1l, 2l, 5l, 6l, 7l, 8l, kl, ql, vl \- loaders
+acid(1) acid, truss, trump \- debugger
+acme(1) acme, win, awd \- interactive text windows
+ap(1) ap \- fetch Associated Press news articles
+ar(1) ar \- archive and library maintainer
+ascii(1) ascii, unicode \- interpret ASCII, Unicode characters
+awk(1) awk \- pattern-directed scanning and processing language
+basename(1) basename \- strip file name affixes
+bc(1) bc \- arbitrary-precision arithmetic language
+bind(1) bind, mount, unmount \- change name space
+bitsyload(1) bitsyload, light, pencal, keyboard, params, prompter \- bitsy-specific utilities
+bundle(1) bundle \- collect files for distribution
+cal(1) cal \- print calendar
+calendar(1) calendar \- print upcoming events
+cat(1) cat, read \- catenate files
+cb(1) cb \- C program beautifier
+chgrp(1) chgrp \- change file group
+chmod(1) chmod \- change mode
+cleanname(1) cleanname \- clean a path name
+cmp(1) cmp \- compare two files
+col(1) col \- column alignment
+colors(1) getmap, colors \- display color map
+comm(1) comm \- select or reject lines common to two sorted files
+con(1) con, telnet, rx, hayes, xms, xmr \- remote login, execution, and XMODEM file transfer
+cp(1) cp, fcp, mv \- copy, move files
+cpp(1) cpp \- C language preprocessor
+cpu(1) cpu \- connection to CPU server
+crop(1) crop, iconv \- frame, crop, and convert image
+date(1) date, clock \- date and time
+db(1) db \- debugger
+dc(1) dc \- desk calculator
+dd(1) dd \- convert and copy a file
+delkey(1) delkey \- delete keys from factotum
+deroff(1) deroff, delatex \- remove formatting requests
+diff(1) diff \- differential file comparator
+doc2txt(1) doc2txt, doc2ps, wdoc2txt, xls2txt, olefs, mswordstrings, msexceltables \- extract printable text from Microsoft documents
+doctype(1) doctype \- intuit command line for formatting a document
+du(1) du \- disk usage
+echo(1) echo \- print arguments
+ecp(1) ecp \- fast copy, handling errors
+ed(1) ed \- text editor
+emacs(1) emacs \- editor macros
+eqn(1) eqn \- typeset mathematics
+expect(1) at, drain, expect, pass \- dialer scripting tools
+faces(1) faces, seemail, vwhois \- mailbox interface
+factor(1) factor, primes \- factor a number, generate large primes
+fedex(1) fedex, ups, usps \- track shipments
+file(1) file \- determine file type
+filter(1) filter, list, deliver, token, vf \- filtering mail
+fmt(1) fmt, htmlfmt \- simple text formatters
+fortune(1) fortune \- sample lines from a file
+freq(1) freq \- print histogram of character frequencies
+games(1) 4s, 5s, juggle, mahjongg, memo, sokoban, sudoku \- time wasters
+grap(1) grap \- pic preprocessor for drawing graphs
+graph(1) graph \- draw a graph
+grep(1) grep \- search a file for a pattern
+gs(1) gs \- Aladdin Ghostscript (PostScript and PDF language interpreter)
+gview(1) gview \- interactive graph viewer
+gzip(1) gzip, gunzip, bzip2, bunzip2, compress, uncompress, zip, unzip \- compress and expand data
+hget(1) hget \- retrieve a web page corresponding to a url
+history(1) history \- print file names from the dump
+hoc(1) hoc \- interactive floating point language
+htmlroff(1) htmlroff \- HTML formatting and typesetting
+idiff(1) idiff \- interactive diff
+join(1) join \- relational database operator
+jpg(1) jpg, gif, png, ppm, bmp, yuv, ico, togif, toppm, topng, toico \- view and convert pictures
+kbmap(1) kbmap \- show a list of available keyboard maps and switch between them.
+kill(1) kill, slay, broke \- print commands to kill processes
+ktrace(1) ktrace \- interpret kernel stack dumps
+leak(1) leak, kmem, umem \- help find memory leaks
+lens(1) lens \- interactive screen magnifier
+lex(1) lex \- generator of lexical analysis programs
+lock(1) lock \- run a command under lock
+look(1) look \- find lines in a sorted list
+lp(1) lp \- printer output
+ls(1) ls, lc \- list contents of directory
+mail(1) mail, go.fishing \- mail and mailboxes
+man(1) man, lookman, sig \- print or find pages of this manual
+marshal(1) marshal \- formatting and sending mail
+mc(1) mc \- multicolumn print
+mk(1) mk, membername \- maintain (make) related files
+mkdir(1) mkdir \- make a directory
+mlmgr(1) ml, mlmgr, mlowner \- unmoderated mailing lists
+mp3dec(1) mp3dec \- decode audio MPEG files (layers 1, 2 and 3)
+mp3enc(1) mp3enc \- create mp3 audio files
+ms2html(1) ms2html, html2ms \- convert between troff's ms macros and html
+mtime(1) mtime \- print file modification time
+mug(1) mug - convert an image to a face icon
+nedmail(1) nedmail \- reading mail
+netstat(1) netstat \- summarize network connections
+news(1) news \- print news items
+nm(1) nm \- name list (symbol table)
+ns(1) ns \- display name space
+p(1) p \- paginate
+page(1) page \- view FAX, image, graphic, PostScript, PDF, and typesetter output files
+passwd(1) passwd, netkey \- change or verify user password
+patch(1) patch \- simple patch creation and tracking system
+pcc(1) pcc \- APE C compiler driver
+pic(1) pic, tpic \- troff and tex preprocessors for drawing pictures
+pipefile(1) pipefile \- attach filter to file in name space
+plot(1) plot \- graphics filter
+plumb(1) plumb \- send message to plumber
+pr(1) pr \- print file
+prof(1) prof, tprof, kprof \- display profiling data
+proof(1) proof \- troff output interpreter
+ps(1) ps, psu \- process status
+ps2pdf(1) ps2pdf, pdf2ps \- convert between PostScript and PDF
+pump(1) pump \- copy asynchronously via a large circular buffer
+pwd(1) pwd, pbd \- working directory
+rc(1) rc, cd, eval, exec, exit, flag, rfork, shift, wait, whatis, ., ~ \- command language
+replica(1) changes, pull, push, scan \- client-server replica management
+resample(1) resample \- resample a picture
+rio(1) rio, label, window, wloc \- window system
+rm(1) rm \- remove files
+rwd(1) rwd, conswdir \- maintain remote working directory
+sam(1) sam, B, sam.save, samterm \- screen editor with structural regular expressions 
+secstore(1) aescbc, ipso, secstore \- secstore commands
+sed(1) sed \- stream editor
+seq(1) seq \- print sequences of numbers
+size(1) size \- print size of executable files
+sleep(1) sleep \- suspend execution for an interval
+sort(1) sort \- sort and/or merge files
+spell(1) spell, sprog \- find spelling errors
+spin(1) spin - verification tool for models of concurrent systems
+split(1) split \- split a file into pieces
+src(1) src \- find source code for executable
+ssh(1) ssh, sshnet, scp, sshserve \- secure login and file copy from/to Unix or Plan 9
+stop(1) stop, start \- print commands to stop and start processes
+strings(1) strings \- extract printable strings
+strip(1) strip \- remove symbols from binary files
+sum(1) sum, md5sum, sha1sum \- sum and count blocks in a file
+syscall(1) syscall \- test a system call
+tail(1) tail \- deliver the last part of a file
+tar(1) tar, dircp \- archiver
+tbl(1) tbl \- format tables for nroff or troff
+tcs(1) tcs \- translate character sets
+tee(1) tee \- pipe fitting
+tel(1) tel, iwhois \- look in phone book
+test(1) test \- set status according to condition
+thesaurus(1) thesaurus \- search online thesaurus
+time(1) time \- time a command
+touch(1) touch \- set modification date of a file
+tr(1) tr \- translate characters
+trace(1) trace \- show (real-time) process behavior
+troff(1) troff, nroff, dpost \- text formatting and typesetting
+troff2html(1) troff2html \- convert troff output into HTML
+tweak(1) tweak \- edit image files, subfont files, face files, etc.
+uniq(1) uniq \- report repeated lines in a file
+units(1) units \- conversion program
+uptime(1) uptime \- show how long the system has been running
+vac(1) vac, unvac \- create, extract a vac archive on Venti
+venti(1) read, write, copy \- simple Venti clients
+vi(1) 5i, ki, vi, qi \- instruction simulators
+vnc(1) vncs, vncv \- remote frame buffer server and viewer for Virtual Network Computing (VN)
+vt(1) vt \- emulate a VT-100 or VT-220 terminal
+wc(1) wc \- word count
+weather(1) weather \- print weather report
+who(1) who, whois \- who is using the machine
+winwatch(1) winwatch \- monitor rio windows
+xd(1) xd \- hex, octal, decimal, or ASCII dump
+yacc(1) yacc \- yet another compiler-compiler
+yesterday(1) yesterday, diffy \- print file names from the dump
+0intro(2) intro \- introduction to library functions
+9p(2) Srv, dirread9p, emalloc9p, erealloc9p, estrdup9p, listensrv, postfd, postmountsrv, readbuf, readstr, respond, responderror, threadlistensrv, threadpostmountsrv, srv \- 9P file service
+9pcmdbuf(2) Cmdbuf, parsecmd, respondcmderror, lookupcmd \- control message parsing
+9pfid(2) Fid, Fidpool, allocfidpool, freefidpool, allocfid, closefid, lookupfid, removefid, Req, Reqpool, allocreqpool, freereqpool, allocreq, closereq, lookupreq, removereq \- 9P fid, request tracking
+9pfile(2) Tree, alloctree, freetree, File, createfile, closefile, removefile, walkfile, opendirfile, readdirfile, closedirfile, hasperm \- in-memory file hierarchy
+abort(2) abort \- generate a fault
+abs(2) abs, labs \- integer absolute values
+access(2) access \- determine accessibility of file
+addpt(2) addpt, subpt, mulpt, divpt, rectaddpt, rectsubpt, insetrect, canonrect, eqpt, eqrect, ptinrect, rectinrect, rectXrect, rectclip, combinerect, Dx, Dy, Pt, Rect, Rpt \- arithmetic on points and rectangles
+aes(2) setupAESstate, aesCBCencrypt, aesCBCdecrypt - advanced encryption standard (rijndael)
+allocimage(2) allocimage, allocimagemix, freeimage, nameimage, namedimage, setalpha, loadimage, cloadimage, unloadimage, readimage, writeimage, bytesperline, wordsperline \- allocating, freeing, reading, writing images
+arg(2) ARGBEGIN, ARGEND, ARGC, ARGF, EARGF, arginit, argopt \- process option letters from argv
+arith3(2) add3, sub3, neg3, div3, mul3, eqpt3, closept3, dot3, cross3, len3, dist3, unit3, midpt3, lerp3, reflect3, nearseg3, pldist3, vdiv3, vrem3, pn2f3, ppp2f3, fff2p3, pdiv4, add4, sub4 \- operations on 3-d points and planes
+assert(2) assert \- check program invariants
+atof(2) atof, atoi, atol, atoll, charstod, strtod, strtol, strtoll, strtoul, strtoull \- convert text to numbers
+auth(2) amount, newns, addns, login, noworld, auth_proxy, fauth_proxy, auth_allocrpc, auth_freerpc, auth_rpc, auth_getkey, amount_getkey, auth_freeAI, auth_chuid, auth_challenge, auth_response, auth_freechal, auth_respond, auth_userpasswd, auth_getuserpasswd, auth_getinfo \- routines for authenticating users
+authsrv(2) authdial, passtokey, nvcsum, readnvram, convT2M, convM2T, convTR2M, convM2TR, convA2M, convM2A, convPR2M, convM2PR, _asgetticket, _asrdresp \- routines for communicating with authentication servers
+avl(2) mkavltree, insertavl, lookupavl, deleteavl, avlwalk, avlnext, avlprev, endwalk - AVL tree routines
+bin(2) binalloc, bingrow, binfree \- grouped memory allocation
+bind(2) bind, mount, unmount \- change name space
+bio(2) Bopen, Binit, Binits, Brdline, Brdstr, Bgetc, Bgetrune, Bgetd, Bungetc, Bungetrune, Bread, Bseek, Boffset, Bfildes, Blinelen, Bputc, Bputrune, Bprint, Bvprint, Bwrite, Bflush, Bterm, Bbuffered \- buffered input/output
+blowfish(2) setupBFstate, bfCBCencrypt, bfCBCdecrypt, bfECBencrypt, bfECBdecrypt - blowfish encryption
+brk(2) brk, sbrk \- change memory allocation
+cachechars(2) cachechars, agefont, loadchar, Subfont, Fontchar, Font \- font utilities
+chdir(2) chdir \- change working directory
+cleanname(2) cleanname \- clean a path name
+color(2) cmap2rgb, cmap2rgba, rgb2cmap \- colors and color maps
+complete(2) complete \- file name completion
+control(2) Control, Controlset, activate, closecontrol, closecontrolset, controlcalled, controlwire, createbox, createboxbox, createbutton, createcolumn, createentry, createkeyboard, createlabel, createmenu, createradiobutton, createrow, createscribble, createslider, createstack, createtab, createtext, createtextbutton, ctlerror, ctlmalloc, ctlrealloc, ctlstrdup, ctlprint, deactivate, freectlfont, freectlimage, initcontrols, namectlfont, namectlimage, newcontrolset, resizecontrolset \- interactive graphical controls
+cputime(2) cputime, times \- cpu time in this process and children
+ctime(2) ctime, localtime, gmtime, asctime, tm2sec, timezone \- convert date and time
+ctype(2) isalpha, isupper, islower, isdigit, isxdigit, isalnum, isspace, ispunct, isprint, isgraph, iscntrl, isascii, toascii, _toupper, _tolower, toupper, tolower \- ASCII character classification
+debugger(2) cisctrace, risctrace, ciscframe, riscframe, localaddr, symoff, fpformat, beieee80ftos, beieeesftos, beieeedftos, leieee80ftos, leieeesftos, leieeedftos, ieeesftos, ieeedftos \- machine-independent debugger functions
+des(2) setupDESstate, des_key_setup, block_cipher, desCBCencrypt, desCBCdecrypt, desECBencrypt, desECBdecrypt, des3CBCencrypt, des3CBCdecrypt, des3ECBencrypt, des3ECBdecrypt, key_setup, des56to64, des64to56, setupDES3state, triple_block_cipher - single and triple digital encryption standard
+dial(2) dial, hangup, announce, listen, accept, reject, netmkaddr, setnetmtpt, getnetconninfo, freenetconninfo \- make and break network connections
+dirread(2) dirread, dirreadall \- read directory
+disk(2) opendisk, Disk \- generic disk device interface
+draw(2) Image, draw, gendraw, drawreplxy, drawrepl, replclipr, line, poly, fillpoly, bezier, bezspline, fillbezier, fillbezspline, ellipse, fillellipse, arc, fillarc, icossin, icossin2, border, string, stringn, runestring, runestringn, stringbg, stringnbg, runestringbg, runestringnbg, _string, ARROW, drawsetdebug \- graphics functions PB L 
+dsa(2) dsagen, dsasign, dsaverify, dsapuballoc, dsapubfree, dsaprivalloc, dsaprivfree, dsasigalloc, dsasigfree, dsaprivtopub - digital signature algorithm
+dup(2) dup \- duplicate an open file descriptor
+elgamal(2) eggen, egencrypt, egdecrypt, egsign, egverify, egpuballoc, egpubfree, egprivalloc, egprivfree, egsigalloc, egsigfree, egprivtopub - elgamal encryption
+encode(2) dec64, enc64, dec32, enc32, dec16, enc16, encodefmt \- encoding byte arrays as strings
+encrypt(2) encrypt, decrypt, netcrypt \- DES encryption
+errstr(2) errstr, rerrstr, werrstr \- description of last system call error
+event(2) event, einit, estart, estartfn, etimer, eread, emouse, ekbd, ecanread, ecanmouse, ecankbd, ereadmouse, eatomouse, eresized, egetrect, edrawgetrect, emenuhit, emoveto, esetcursor, Event, Mouse, Menu \- graphics events
+exec(2) exec, execl, _privates, _nprivates, _tos \- execute a file
+exits(2) exits, _exits, atexit, atexitdont, terminate \- terminate process, process cleanup
+exp(2) exp, log, log10, pow, pow10, sqrt \- exponential, logarithm, power, square root
+fauth(2) fauth \- set up authentication on a file descriptor to a file server
+fcall(2) Fcall, convS2M, convD2M, convM2S, convM2D, fcallfmt, dirfmt, dirmodefmt, read9pmsg, statcheck, sizeS2M, sizeD2M \- interface to Plan 9 File protocol
+fd2path(2) fd2path \- return file name associated with file descriptor
+fgetc(2) fgetc, getc, getchar, fputc, putc, putchar, ungetc, fgets, gets, fputs, puts, fread, fwrite \- Stdio input and output
+flate(2) deflateinit, deflate, deflatezlib, deflateblock, deflatezlibblock, inflateinit, inflate, inflatezlib, inflateblock, inflatezlibblock, flateerr, mkcrctab, blockcrc, adler32 \- deflate compression
+floor(2) fabs, fmod, floor, ceil \- absolute value, remainder, floor, ceiling functions
+fmtinstall(2) fmtinstall, dofmt, dorfmt, fmtprint, fmtvprint, fmtrune, fmtstrcpy, fmtrunestrcpy, fmtfdinit, fmtfdflush, fmtstrinit, fmtstrflush, runefmtstrinit, runefmtstrflush, errfmt \- support for user-defined print formats and output routines
+fopen(2) fopen, freopen, fdopen, fileno, fclose, sopenr, sopenw, sclose, fflush, setvbuf, setbuf, fgetpos, ftell, fsetpos, fseek, rewind, feof, ferror, clearerr \- standard buffered input/output package
+fork(2) fork, rfork \- manipulate process resources
+fprintf(2) fprintf, printf, sprintf, snprintf, vfprintf, vprintf, vsprintf, vsnprintf \- print formatted output
+frame(2) frinit, frsetrects, frinittick, frclear, frcharofpt, frptofchar, frinsert, frdelete, frselect, frtick, frselectpaint, frdrawsel, frdrawsel0, frgetmouse \- frames of text
+frexp(2) frexp, ldexp, modf \- split into mantissa and exponent
+fscanf(2) fscanf, scanf, sscanf, vfscanf \- scan formatted input
+fversion(2) fversion \- initialize 9P connection and negotiate version
+getcallerpc(2) getcallerpc \- fetch return PC of current function
+getenv(2) getenv, putenv \- access environment variables
+getfcr(2) getfcr, setfcr, getfsr, setfsr \- control floating point
+getfields(2) getfields, gettokens, tokenize \- break a string into fields
+getpid(2) getpid, getppid \- get process ids
+getuser(2) getuser, sysname \- get user or system name
+getwd(2) getwd \- get current directory
+graphics(2) Display, Point, Rectangle, Cursor, initdraw, geninitdraw, drawerror, initdisplay, closedisplay, getdefont, getwindow, gengetwindow, flushimage, bufimage, lockdisplay, unlockdisplay, openfont, buildfont, freefont, Pfmt, Rfmt, strtochan, chantostr, chantodepth \- interactive graphics
+html(2) parsehtml, printitems, validitems, freeitems, freedocinfo, dimenkind, dimenspec, targetid, targetname, fromStr, toStr \- HTML parser
+httpd(2) HConnect, HContent, HContents, HETag, HFields, Hio, Htmlesc, HttpHead, HttpReq, HRange, HSPairs, hmydomain, hversion, htmlesc, halloc, hbodypush, hbuflen, hcheckcontent, hclose, hdate2sec, hdatefmt, hfail, hflush, hgetc, hgethead, hinit, hiserror, hload, hlower, hmkcontent, hmkhfields, hmkmimeboundary, hmkspairs, hmoved, hokheaders, hparseheaders, hparsequery, hparsereq, hprint, hputc, hreadbuf, hredirected, hreqcleanup, hrevhfields, hrevspairs, hstrdup, http11, httpfmt, httpunesc, hunallowed, hungetc, hunload, hurlfmt, hurlunesc, hvprint, hwrite, hxferenc, \- routines for creating an http server
+hypot(2) hypot \- Euclidean distance
+intmap(2) Intmap, allocmap, freemap, insertkey, caninsertkey, lookupkey, deletekey \- integer to data structure maps
+ioproc(2) closeioproc, iocall, ioclose, iointerrupt, iodial, ioopen, ioproc, ioread, ioreadn, iowrite \- slave I/O processes for threaded programs
+iounit(2) iounit \- return size of atomic I/O unit for file descriptor
+ip(2) eipfmt, parseip, parseipmask, v4parseip, v4parsecidr, parseether, myipaddr, myetheraddr, maskip, equivip4, equivip6, defmask, isv4, v4tov6, v6tov4, nhgetv, nhgetl, nhgets, hnputv, hnputl, hnputs, ptclbsum, readipifc \- Internet Protocol addressing
+isalpharune(2) isalpharune, islowerrune, isspacerune, istitlerune, isupperrune, tolowerrune, totitlerune, toupperrune \- Unicode character classes and cases
+keyboard(2) initkeyboard, ctlkeyboard, closekeyboard \- keyboard control
+lock(2) lock, canlock, unlock, qlock, canqlock, qunlock, rlock, canrlock, runlock, wlock, canwlock, wunlock, rsleep, rwakeup, rwakeupall, incref, decref \- spin locks, queueing rendezvous locks, reader-writer locks, rendezvous points, and reference counts
+mach(2) crackhdr, machbytype, machbyname, newmap, setmap, findseg, unusemap, loadmap, attachproc, get1, get2, get4, get8, put1, put2, put4, put8, beswab, beswal, beswav, leswab, leswal, leswav \- machine-independent access to executable files
+malloc(2) malloc, mallocalign, mallocz, free, realloc, calloc, msize, setmalloctag, setrealloctag, getmalloctag, getrealloctag, malloctopoolblock \- memory allocator
+matrix(2) ident, matmul, matmulr, determinant, adjoint, invertmat, xformpoint, xformpointd, xformplane, pushmat, popmat, rot, qrot, scale, move, xform, ixform, persp, look, viewport \- Geometric transformations
+memdraw(2) Memimage, Memdata, Memdrawparam, memimageinit, wordaddr, byteaddr, memimagemove, allocmemimage, allocmemimaged, readmemimage, creadmemimage, writememimage, freememimage, memsetchan, loadmemimage, cloadmemimage, unloadmemimage, memfillcolor, memarc, mempoly, memellipse, memfillpoly, memimageline, memimagedraw, drawclip, memlinebbox, memlineendsize, allocmemsubfont, openmemsubfont, freememsubfont, memsubfontwidth, getmemdefont, memimagestring, iprint, hwdraw \- drawing routines for memory-resident images
+memlayer(2) memdraw, memlalloc, memldelete, memlexpose, memlfree, memlhide, memline, memlnorefresh, memload, memunload, memlorigin, memlsetrefresh, memltofront, memltofrontn, memltorear, memltorearn \- windows of memory-resident images
+memory(2) memccpy, memchr, memcmp, memcpy, memmove, memset \- memory operations
+mktemp(2) mktemp \- make a unique file name
+mouse(2) initmouse, readmouse, closemouse, moveto, getrect, drawgetrect, menuhit, setcursor \- mouse control
+mp(2) mpsetminbits, mpnew, mpfree, mpbits, mpnorm, mpcopy, mpassign, mprand, strtomp, mpfmt,mptoa, betomp, mptobe, letomp, mptole, mptoui, uitomp, mptoi, itomp, uvtomp, mptouv, vtomp, mptov, mpdigdiv, mpadd, mpsub, mpleft, mpright, mpmul, mpexp, mpmod, mpdiv, mpcmp, mpextendedgcd, mpinvert, mpsignif, mplowbits0, mpvecdigmuladd, mpvecdigmulsub, mpvecadd, mpvecsub, mpveccmp, mpvecmul, mpmagcmp, mpmagadd, mpmagsub, crtpre, crtin, crtout, crtprefree, crtresfree \- extended precision arithmetic
+muldiv(2) muldiv, umuldiv \- high-precision multiplication and division
+nan(2) NaN, Inf, isNaN, isInf \- not-a-number and infinity functions
+ndb(2) ndbopen, ndbcat, ndbchanged, ndbclose, ndbreopen, ndbsearch, ndbsnext, ndbgetvalue, ndbfree, ipattr, ndbgetipaddr, ndbipinfo, csipinfo, ndbhash, ndbparse, csgetvalue, ndbfindattr, dnsquery, ndbdiscard, ndbconcatenate, ndbreorder, ndbsubstitute, ndbgetval, csgetval, ndblookval \- network database
+notify(2) notify, noted, atnotify \- handle asynchronous process notification
+object(2) objtype, readobj, objtraverse, isar, nextar, readar \- object file interpretation functions
+open(2) open, create, close \- open a file for reading or writing, create file
+perror(2) perror, syslog, sysfatal \- system error messages
+pipe(2) pipe \- create an interprocess channel
+plumb(2) eplumb, plumbfree, plumbopen, plumbsend, plumbsendtext, plumblookup, plumbpack, plumbpackattr, plumbaddattr, plumbdelattr, plumbrecv, plumbunpack, plumbunpackpartial, plumbunpackattr, Plumbmsg \- plumb messages
+pool(2) poolalloc, poolallocalignspan, poolfree, poolmsize, poolrealloc, poolcompact, poolcheck, poolblockcheck, pooldump \- general memory management routines
+postnote(2) postnote \- send a note to a process or process group
+prime(2) genprime, gensafeprime, genstrongprime, DSAprimes, probably_prime, smallprimetest \- prime number generation
+print(2) print, fprint, sprint, snprint, seprint, smprint, runesprint, runesnprint, runeseprint, runesmprint, vfprint, vsnprint, vseprint, vsmprint, runevsnprint, runevseprint, runevsmprint \- print formatted output
+privalloc(2) privalloc, privfree \- per-process private storage management
+proto(2) rdproto \- parse and process a proto file listing
+pushssl(2) pushssl \- attach SSL version 2 encryption to a communication channel
+pushtls(2) pushtls, tlsClient, tlsServer, initThumbprints, freeThumbprints, okThumbprint, readcert, readcertchain \- attach TLS1 or SSL3 encryption to a communication channel
+qball(2) qball \- 3-d rotation controller
+qsort(2) qsort \- quicker sort
+quaternion(2) qtom, mtoq, qadd, qsub, qneg, qmul, qdiv, qunit, qinv, qlen, slerp, qmid, qsqrt \- Quaternion arithmetic
+quote(2) quotestrdup, quoterunestrdup, unquotestrdup, unquoterunestrdup, quotestrfmt, quoterunestrfmt, quotefmtinstall, doquote, needsrcquote \- quoted character strings
+rand(2) rand, lrand, frand, nrand, lnrand, srand, truerand, ntruerand, genrandom, prng, fastrand, nfastrand \- random number generators
+rc4(2) setupRC4state, rc4, rc4skip, rc4back - alleged rc4 encryption
+read(2) read, readn, write, pread, pwrite \- read or write file
+readcolmap(2) RGB, readcolmap, writecolmap \- access display color map
+readv(2) readv, writev, preadv, pwritev \- scatter/gather read and write
+regexp(2) regcomp, regcomplit, regcompnl, regexec, regsub, rregexec, rregsub, regerror \- regular expression
+remove(2) remove \- remove a file
+rendezvous(2) rendezvous \- user level process synchronization
+rsa(2) asn1dump, asn1toRSApriv, decodePEM, rsadecrypt, rsaencrypt, rsagen, rsaprivalloc, rsaprivfree, rsaprivtopub, rsapuballoc, rsapubfree, X509toRSApub, X509gen, X509verify \- RSA encryption algorithm
+rune(2) runetochar, chartorune, runelen, runenlen, fullrune, utfecpy, utflen, utfnlen, utfrune, utfrrune, utfutf \- rune/UTF conversion
+runestrcat(2) runestrcat, runestrncat, runestrcmp, runestrncmp, runestrcpy, runestrncpy, runestrecpy, runestrlen, runestrchr, runestrrchr, runestrdup, runestrstr \- rune string operations
+scribble(2) scribblealloc, recognize \- character recognition
+scsi(2) openscsi, closescsi, scsiready, scsi, scsicmd, scsierror \- SCSI device operations
+sechash(2) md4, md5, sha1, aes, hmac_x, hmac_md5, hmac_sha1, hmac_aes, md5pickle, md5unpickle, sha1pickle, sha1unpickle \- cryptographically secure hashes
+seek(2) seek \- change file offset
+segattach(2) segattach, segdetach, segfree \- map/unmap a segment in virtual memory
+segbrk(2) segbrk \- change memory allocation
+segflush(2) segflush \- flush instruction and data caches
+semacquire(2) semacquire, semrelease \- user level semaphores
+setjmp(2) setjmp, longjmp, notejmp \- non-local goto
+sin(2) sin, cos, tan, asin, acos, atan, atan2 \- trigonometric functions
+sinh(2) sinh, cosh, tanh \- hyperbolic functions
+sleep(2) sleep, alarm \- delay, ask for delayed note
+stat(2) stat, fstat, wstat, fwstat, dirstat, dirfstat, dirwstat, dirfwstat, nulldir \- get and put file status
+strcat(2) strcat, strncat, strcmp, strncmp, cistrcmp, cistrncmp, strcpy, strncpy, strecpy, strlen, strchr, strrchr, strpbrk, strspn, strcspn, strtok, strdup, strstr, cistrstr \- string operations
+string(2) s_alloc, s_append, s_array, s_copy, s_error, s_free, s_incref, s_memappend, s_nappend, s_new, s_newalloc, s_parse, s_reset, s_restart, s_terminate, s_tolower, s_putc, s_unique, s_grow, s_read, s_read_line, s_getline \- extensible strings
+stringsize(2) stringsize, stringwidth, stringnwidth, runestringsize, runestringwidth, runestringnwidth \- graphical size of strings
+subfont(2) allocsubfont, freesubfont, installsubfont, lookupsubfont, uninstallsubfont, subfontname, readsubfont, readsubfonti, writesubfont, stringsubfont, strsubfontwidth, mkfont \- subfont manipulation
+symbol(2) syminit, getsym, symbase, pc2sp, pc2line, textseg, line2addr, lookup, findlocal, getauto, findsym, localsym, globalsym, textsym, file2pc, fileelem, filesym, fileline, fnbound \- symbol table access functions
+thread(2) alt, chancreate, chanfree, chaninit, chanprint, mainstacksize, proccreate, procdata, procexec, procexecl, procrfork, recv, recvp, recvul, send, sendp, sendul, nbrecv, nbrecvp, nbrecvul, nbsend, nbsendp, nbsendul, threadcreate, threaddata, threadexits, threadexitsall, threadgetgrp, threadgetname, threadint, threadintgrp, threadkill, threadkillgrp, threadmain, threadnotify, threadid, threadpid, threadsetgrp, threadsetname, threadwaitchan, yield \- thread and proc management
+time(2) time, nsec \- time in seconds and nanoseconds since epoch
+tmpfile(2) tmpfile, tmpnam \- Stdio temporary files
+usb(2) usbcmd, classname, closedev, configdev, devctl, finddevs, loaddevstr, matchdevcsp, opendev, opendevdata, openep, startdevs, unstall, class, subclass, proto, CSP \- USB device driver library
+usbfs(2) usbreadbuf, usbfsadd, usbfsdel, usbdirread, usbfsinit, usbdirfs, usbfs \- USB device driver file system library
+venti(2) venti \- archival storage server
+venti-cache(2) VtBlock, VtCache, vtblockcopy, vtblockdirty, vtblockduplock, vtblockput, vtblockwrite, vtcachealloc, vtcacheallocblock, vtcacheblocksize, vtcachefree, vtcacheglobal, vtcachelocal, vtcachesetwrite, vtglobaltolocal, vtlocaltoglobal \- Venti block cache
+venti-client(2) vtconnect, vthello, vtread, vtwrite, vtreadpacket, vtwritepacket, vtsync, vtping, vtrpc, ventidoublechecksha1 \- Venti client
+venti-conn(2) VtConn, vtconn, vtdial, vtfreeconn, vtsend, vtrecv, vtversion, vtdebug, vthangup \- Venti network connections
+venti-fcall(2) VtEntry, VtFcall, VtRoot, vtentrypack, vtentryunpack, vtfcallclear, vtfcallfmt, vtfcallpack, vtfcallunpack, vtfromdisktype, vttodisktype, vtgetstring, vtputstring, vtrootpack, vtrootunpack, vtparsescore, vtscorefmt \- venti data formats
+venti-file(2) VtFile, vtfileblock, vtfileblockscore, vtfileclose, vtfilecreate, vtfilecreateroot, vtfileflush, vtfileflushbefore, vtfilegetdirsize, vtfilegetentry, vtfilegetsize, vtfileincref, vtfilelock, vtfilelock2, vtfileopen, vtfileopenroot, vtfileread, vtfileremove, vtfilesetdirsize, vtfilesetentry, vtfilesetsize, vtfiletruncate, vtfileunlock, vtfilewrite \- Venti files
+venti-log(2) VtLog, VtLogChunk, vtlog, vtlogclose, vtlogdump, vtlognames, vtlogopen, vtlogprint, vtlogremove, vtlogopen, ventilogging \- Venti logs
+venti-mem(2) vtbrk, vtmalloc, vtmallocz, vtrealloc, vtstrdup, vtfree \- error-checking memory allocators
+venti-packet(2) Packet, packetalloc, packetappend, packetasize, packetcmp, packetconcat, packetconsume, packetcopy, packetdup, packetforeign, packetfragments, packetfree, packetheader, packetpeek, packetprefix, packetsha1, packetsize, packetsplit, packetstats, packettrailer, packettrim \- zero-copy network buffers
+venti-server(2) vtsrvhello, vtlisten, vtgetreq, vtrespond \- Venti server
+venti-zero(2) vtzerotruncate, vtzeroextend, vtzeroscore \- Venti block truncation
+wait(2) await, wait, waitpid \- wait for a process to exit
+window(2) Screen, allocscreen, publicscreen, freescreen, allocwindow, bottomwindow, bottomnwindows, topwindow, topnwindows, originwindow \- window management
+0intro(3) intro \- introduction to the Plan 9 devices
+aoe(3) aoe \- ATA-over-Ethernet (Ao) interface
+apm(3) apm \- Advanced Power Management 1.2 BIOS interface
+arch(3) arch \- architecture-specific information and control
+audio(3) audio \- SoundBlaster audio controller
+bridge(3) bridge \- IPv4 Ethernet bridge
+cap(3) cap \- capabilities for setting the user id of processes
+cons(3) cons \- console, clocks, process/process group ids, user, null, reboot, etc.
+draw(3) draw \- screen graphics
+dup(3) dup \- dups of open files
+env(3) env \- environment variables
+ether(3) ether \- Ethernet device
+floppy(3) floppy \- floppy disk interface
+fs(3) fs \- file system devices
+i82365(3) i82365 \- Personal Computer Memory Card Interface Association (PCMCI) device
+ip(3) ip, esp, gre, icmp, icmpv6, ipmux, rudp, tcp, udp \- network protocols over IP
+kbin(3) kbin \- external keyboard input
+kbmap(3) kbmap \- keyboard map
+kprof(3) kprof \- kernel profiling
+loopback(3) loopback \- network link simulation
+lpt(3) lpt \- parallel port interface for PC's
+mnt(3) mnt \- attach to 9P servers
+mouse(3) mouse, cursor \- kernel mouse interface
+pipe(3) pipe \- two-way interprocess communication
+pnp(3) pnp \- Plug 'n' Play ISA and PCI Interfaces
+proc(3) proc \- running processes
+root(3) root \- the root file system
+rtc(3) rtc \- real-time clock and non-volatile RAM
+sd(3) sd \- storage device interface
+sdahci(3) sdahci \- AHCI (Advanced Host Controller Interface) SATA (Serial AT) storage device drivers
+sdaoe(3) sdaoe \- ATA-over-Ethernet (Ao) storage device interface
+segment(3) segment \- long lived memory segments
+srv(3) srv \- server registry
+ssl(3) ssl \- SSL record layer
+tls(3) tls \- TLS1 and SSL3 record layer
+uart(3) uart, eia \- serial communication control
+usb(3) usb \- USB Host Controller Interface
+vga(3) vga \- VGA controller device
+0intro(4) intro \- introduction to file servers
+acme(4) acme \- control files for text windows
+archfs(4) archfs \- mount mkfs-style archive
+cdfs(4) cdfs, cddb \- optical disc (CD, DVD, B) track reader and writer file system
+cfs(4) cfs \- cache file system
+consolefs(4) consolefs, C, clog \- file system for console access
+cwfs(4) cwfs \- cached-worm file server, dump
+dossrv(4) dossrv, 9660srv, a:, b:, c:, d:, 9fat:, dosmnt, eject \- DOS and ISO9660 file systems
+execnet(4) execnet \- network interface to program execution
+exportfs(4) exportfs, srvfs \- network file server plumbing
+ext2srv(4) ext2srv \- ext2 file system
+factotum(4) factotum, fgui \- authentication agent
+fossil(4) fossil \- archival file server
+fs(4) fs \- file server, dump
+ftpfs(4) ftpfs \- file transfer protocol (FT) file system
+httpfile(4) httpfile \- serve a single web file
+import(4) import \- import a name space from a remote system
+iostats(4) iostats \- file system to measure I/O
+keyfs(4) keyfs, warning \- authentication database files
+kfs(4) kfs \- disk file system
+lnfs(4) lnfs \- long name file system
+mntgen(4) mntgen \- automatically generate mount points for file systems
+namespace(4) namespace \- structure of conventional file name space
+nfs(4) nfs \- Sun network file system client
+nntpfs(4) nntpfs \- network news transport protocol (NNT) file system
+paqfs(4) paqfs \- compressed read-only file system
+plumber(4) plumber \- file system for interprocess messaging
+ramfs(4) ramfs \- memory file system
+ratfs(4) ratfs \- mail address ratification file system
+rdbfs(4) rdbfs \- remote kernel debugging file system
+rio(4) rio \- window system files
+sacfs(4) sacfs \- compressed file system
+snap(4) snap, snapfs \- create and mount process snapshots
+srv(4) srv, srvold9p, 9fs, srvssh \- start network file service
+tapefs(4) 32vfs, cpiofs, tapfs, tarfs, tpfs, v6fs, v10fs, zipfs \- mount archival file systems
+telco(4) telco, faxreceive, faxsend, fax, telcofax, telcodata \- telephone dialer network
+u9fs(4) u9fs \- serve 9P from Unix
+upasfs(4) upasfs \- mail file server
+usb(4) audio, disk, ether, kb, print, probe, serial, usbfat: \- Universal Serial Bus device drivers
+usbd(4) usbd \- Universal Serial Bus daemon
+vacfs(4) vacfs \- a Venti-based file system
+webcookies(4) webcookies \- HTTP cookie manager
+webfs(4) webfs \- world wide web file system
+wikifs(4) wikifs, wikipost \- wiki file system
+0intro(5) intro \- introduction to the Plan 9 File Protocol, 9P
+attach(5) attach, auth \- messages to establish a connection
+clunk(5) clunk \- forget about a fid
+error(5) error \- return an error
+flush(5) flush \- abort a message
+open(5) open, create \- prepare a fid for I/O on an existing or new file
+read(5) read, write \- transfer data from and to a file
+remove(5) remove \- remove a file from a server
+stat(5) stat, wstat \- inquire or change file attributes
+version(5) version \- negotiate protocol version
+walk(5) walk \- descend a directory hierarchy
+0intro(6) intro \- introduction to file formats
+a.out(6) a.out \- object file format
+ar(6) ar \- archive (library) file format
+authsrv(6) authsrv, p9any, p9sk1, p9sk2 \- authentication protocols
+color(6) color \- representation of pixels and colors
+face(6) face \- face files
+font(6) font, subfont \- external format for fonts and subfonts
+htmlroff(6) htmlroff \- HTML formatting and typesetting
+image(6) image \- external format for images
+keyboard(6) keyboard \- how to type characters
+keys.who(6) keys.who \- biographic information for key holders
+man(6) man \- macros to typeset manual
+map(6) map \- digitized map formats
+mhtml(6) mhtml \- macros for formatting HTML
+mnihongo(6) mnihongo \- macros for typesetting Japanese
+mpictures(6) mpictures \- picture inclusion macros
+ms(6) ms \- macros for formatting manuscripts
+namespace(6) namespace \- name space description file
+ndb(6) ndb \- Network database
+plot(6) plot \- graphics interface
+plumb(6) plumb \- format of plumb messages and rules
+regexp(6) regexp \- regular expression notation
+rewrite(6) rewrite \- mail rewrite rules
+smtpd(6) smtpd \- SMTP listener configuration
+snap(6) snap \- process snapshots
+style(6) style \- Plan 9 coding conventions for C
+thumbprint(6) thumbprint \- public key thumbprints
+users(6) users \- file server user list format
+utf(6) UTF, Unicode, ASCII, rune \- character set and format
+venti(6) venti \- archival storage server
+venti.conf(6) venti.conf \- a venti configuration file
+vgadb(6) vgadb \- VGA controller and monitor database
+0intro(7) intro \- introduction to databases
+astro(7) astro \- print astronomical information
+dict(7) dict \- dictionary browser
+juke(7) juke \- music jukebox
+map(7) map, mapdemo \- draw maps on various projections
+playlistfs(7) playlistfs \- playlist file system
+scat(7) scat \- sky catalogue and Digitized Sky Survey
+0intro(8) intro \- introduction to system administration
+6in4(8) 6in4 - configure and run automatic or manual 6to4 tunnel of IPv6 through IPv4
+9load(8) 9load, 9pxeload, ld \- PC bootstrap program
+9pcon(8) 9pcon \- 9P to text translator
+aan(8) aan \- always available network
+aliasmail(8) aliasmail \- expand system wide mail aliases
+apm(8) apm \- Advanced Power Management 1.2 BIOS interface
+aquarela(8) aquarela \- CIFS server
+auth(8) changeuser, convkeys, convkeys2, printnetkey, status, enable, disable, authsrv, guard.srv, wrkey, login, newns, none \- maintain or query authentication databases
+backup(8) backup, tobackup, dumparenas, restore \- backup venti arenas to blu-ray discs or restore from them
+boot(8) boot \- connect to the root file server
+booting(8) booting \- bootstrapping procedures
+cec(8) cec \- Coraid Ethernet Console
+cpurc(8) cpurc, cpurc.local, termrc, termrc.local \- boot scripts
+cron(8) cron \- clock daemon
+dhcpd(8) dhcpd, dhcpleases, rarpd, tftpd \- Internet booting
+diskparts(8) diskparts, dmaon \- prepare disks for use
+disksim(8) disksim \- disk simulator
+drawterm(8) drawterm \- connect to Plan 9 CPU servers from other operating systems
+fossilcons(8) fossilcons \- fossil console commands
+fs(8) fs, exsort \- file server maintenance
+fsconfig(8) fsconfig \- configuring a file server
+fshalt(8) fshalt, reboot \- halt any local file systems and optionally reboot the system
+getflags(8) getflags, usage \- command-line parsing for shell scripts
+gpsfs(8) gpsfs, gpsevermore \- GPS time and position service
+httpd(8) httpd, mirror, save, imagemap, man2html, webls \- HTTP server
+init(8) init \- initialize machine upon booting
+ipconfig(8) ipconfig, rip, linklocal, ipv6on \- Internet configuration and routing
+ipserv(8) telnetd, rlogind, rexexec, ftpd \- Internet remote access daemons
+kfscmd(8) kfscmd, ksync \- kfs administration
+listen(8) listen, listen1, tcp7, tcp9, tcp19, tcp21, tcp22, tcp23, tcp25, tcp53, tcp110, tcp113, tcp143, tcp513, tcp515, tcp564, tcp565, tcp566, tcp567, tcp993, tcp995, tcp1723, tcp17007, tcp17008, tcp17009, tcp17010, tcp17013 \- listen for calls on a network device
+lp(8) lp \- PostScript preprocessors
+mk9660(8) dump9660, mk9660 \- create an ISO-9660 CD image
+mkfs(8) mkfs, mkext \- archive or update a file system
+mkpaqfs(8) mkpaqfs \- make a compressed read-only file system
+mksacfs(8) mksacfs \- make a compressed file system
+mouse(8) aux/mouse, aux/accupoint \- configure a mouse to a port
+na(8) na \- assembler for the Symbios Logic PCI-SCSI I/O Processors
+ndb(8) query, ipquery, mkhash, mkdb, mkhosts, cs, csquery, dns, dnstcp, dnsquery, dnsdebug \- network database
+newuser(8) newuser \- adding a new user
+nfsserver(8) nfsserver, portmapper, pcnfsd \- NFS service
+partfs(8) partfs \- serve file, with partitions
+pci(8) pci \- print PCI bus configuration
+pcmcia(8) pcmcia \- identify a PCMCIA card
+pem(8) pemdecode, pemencode \- encode files in Privacy Enhanced Mail (PE) format
+ping(8) ping, gping, traceroute, hogports \- probe the Internet
+plan9.ini(8) plan9.ini \- configuration file for PCs
+pop3(8) pop3, imap4d \- Internet mail servers
+ppp(8) ppp, pppoe, pptp, pptpd \- point-to-point protocol
+prep(8) prep, fdisk, format, mbr \- prepare hard and floppy diskettes, flashes
+qer(8) qer, runq \- queue management for spooled files
+reboot(8) reboot \- reboot the system upon loss of remote file server connection
+replica(8) applychanges, applylog, compactdb, updatedb \- simple client-server replica management
+rsa(8) rsagen, rsafill, asn12rsa, rsa2pub, rsa2ssh, rsa2x509 \- generate and format rsa keys
+scanmail(8) scanmail, testscan \- spam filters
+scuzz(8) scuzz \- SCSI target control
+secstore(8) secstored, secuser \- secstore commands
+securenet(8) securenet \- Digital Pathways SecureNet Key remote authentication box
+send(8) send \- mail routing and delivery
+smtp(8) smtp, smtpd \- mail transport
+snoopy(8) snoopy \- spy on network packets
+stats(8) stats \- display graphs of system activity
+statusbar(8) statusbar \- display a bar graph status window
+stub(8) stub \- provide mount point stubs
+swap(8) swap \- establish a swap file
+timesync(8) timesync \- synchronize the system clock to a time source
+tlssrv(8) tlssrv, tlsclient, tlssrvtunnel, tlsclienttunnel \- TLS server and client
+trampoline(8) trampoline \- forward incoming calls to another address
+udpecho(8) udpecho \- echo UDP packets
+update(8) bootfloppy, bootplan9, bootwin9x, bootwinnt, personalize, setup.9fat, setup.disk, setup.kfs, update \- administration for local file systems
+venti(8) venti \- archival storage server
+venti-backup(8) rdarena, wrarena \- copy arenas between venti servers
+venti-fmt(8) buildindex, checkarenas, checkindex, conf, fmtarenas, fmtbloom, fmtindex, fmtisect, syncindex \- prepare and maintain a venti server
+vga(8) vga \- configure a VGA card
+wol(8) wol \- send wake-on-lan Ethernet packet
