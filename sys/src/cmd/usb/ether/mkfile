@@ -1,25 +1,35 @@
 </$objtype/mkfile
 
 TARG=ether
-LIB=../lib/usb.a$O
+OFILES=\
+	main.$O\
+
+LIBDOFILES=\
+	ether.$O\
+	asix.$O\
+	cdc.$O\
 
 HFILES=\
 	ether.h\
 	../lib/usb.h\
 	../lib/usbfs.h\
 
-OFILES=\
-	main.$O\
-	ether.$O\
-	asix.$O\
-	cdc.$O\
+LIBD=../lib/usbdev.a$O
+LIBU=../lib/usb.a$O
+LIB=\
+	$LIBD\
+	$LIBU\
 
 BIN=/$objtype/bin/usb
+
 </sys/src/cmd/mkone
 CFLAGS=-I../lib $CFLAGS
 
-$LIB:
+$LIBU:
 	cd ../lib
 	mk install
 	mk clean
 
+$LIBD:V: $LIBDOFILES
+	ar vu $LIBD $newprereq
+	rm $newprereq

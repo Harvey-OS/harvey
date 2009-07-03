@@ -144,7 +144,7 @@ startdevproc(void *a)
 		fprint(2, "%s: %s: not found. can't exec\n", argv0, dt->name);
 		sendul(sa->rc, -1);
 		threadexits("exec");
-	}else {
+	}else{
 		sa->pp->dev = opendev(d->dir);
 		sendul(sa->rc, 0);
 		if(dt->init(d, argc, argv) < 0){
@@ -227,7 +227,7 @@ startdev(Port *pp)
 	/*
 	 * From here on the device is for the driver.
 	 * When we return pp->dev contains a Dev just for us
-	 * with only the ctl open. Both released on the last closedev,
+	 * with only the ctl open. Both devs are released on the last closedev:
 	 * driver's upon I/O errors and ours upon port dettach.
 	 */
 	if(dt->name == nil){

@@ -1,33 +1,25 @@
 #!/bin/rc
-
-# lucent web proxy caches the page; defeat it
-rfork n
+# ups - look up a UPS tracking number
+rfork en
 
 if(! ~ $#* 1) {
 	echo usage: ups 1ZA41W190338680961 >[1=2]
 	exit usage
 }
 
-rfork e
-hget 'http://wwwapps.ups.com/etracking/tracking.cgi?track=Track&InquiryNumber1='^$1^ \
+hget 'http://wwwapps.ups.com/WebTracking/processInputRequest?tracknum='^$1^ \
 	'&TypeOfInquiryNumber=T' >/tmp/ups.1
 
-cat /tmp/ups.1 |
-x=`{sed -n 's/^<INPUT TYPE="HIDDEN" NAME="([^"]+)" VALUE="([^"]+)">.*/\1=\2/p' |
-tr ' 	' ++}
-x=$"x
-x=`{echo $x | sed 's/ /\&/g'}
-x=$"x
-x=$x^'&tdts1.x=19&tdts1.y=7'
-hget -p $x http://wwwapps.ups.com/etracking/tracking.cgi >/tmp/ups.2
-
-sed 's/<[Tt][Dd]>/& «TD»/g; s/<[Tt][Rr]>/&<td> «TR» /g' /tmp/ups.2 |
-	htmlfmt >/tmp/ups.3
-sam -d /tmp/ups.3 >[2] /dev/null <<'!'
+sed 's/<[Tt][Dd]>/& «TD»/g; s/<[Tt][Rr]>/&<td> «TR» /g' /tmp/ups.1 |
+	htmlfmt >/tmp/ups.2
+sam -d /tmp/ups.2 >[2] /dev/null <<'!'
 /^Tracking results.*/p
 .,$d
-/View Details/d
+/Help/d
 1,.d
+$-2,$d
+/Status:/+1
+.,/«TR»/-2d
 ,s/\n/ /g
 ,s/«TR»/\n/g
 ,s/«TD»/	/g
@@ -37,3 +29,4 @@ sam -d /tmp/ups.3 >[2] /dev/null <<'!'
 ,s/\n\n+/\n\n/g
 ,p
 !
+echo

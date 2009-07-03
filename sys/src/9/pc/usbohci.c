@@ -20,18 +20,18 @@
 
 #include	"usb.h"
 
+typedef struct Ctlio Ctlio;
 typedef struct Ctlr Ctlr;
-typedef struct Qtree Qtree;
+typedef struct Ed Ed;
+typedef struct Edpool Edpool;
 typedef struct Epx Epx;
-typedef struct Td Td;
 typedef struct Hcca Hcca;
+typedef struct Isoio Isoio;
 typedef struct Ohci Ohci;
 typedef struct Qio Qio;
-typedef struct Ed Ed;
-typedef struct Ctlio Ctlio;
-typedef struct Isoio Isoio;
+typedef struct Qtree Qtree;
+typedef struct Td Td;
 typedef struct Tdpool Tdpool;
-typedef struct Edpool Edpool;
 
 enum
 {
@@ -44,7 +44,7 @@ enum
 	Bulktmout	= 2000,		/* timeout for a bulk xfer. (ms) */
 	Isotmout	= 2000,		/* timeout for an iso. request (ms) */
 	Abortdelay	= 1,		/* delay after cancelling Tds (ms) */
-	Tdatomic		= 8,		/* max nb. of Tds per bulk I/O op. */
+	Tdatomic	= 8,		/* max nb. of Tds per bulk I/O op. */
 	Enabledelay	= 100,		/* waiting for a port to enable */
 
 
@@ -213,7 +213,7 @@ struct Ctlio
 	Qio;			/* single Ed for all transfers */
 	uchar*	data;		/* read from last ctl req. */
 	int	ndata;		/* number of bytes read */
-	
+
 };
 
 struct Isoio
@@ -270,7 +270,7 @@ struct Ohci
 	ulong	revision;		/*00*/
 	ulong	control;		/*04*/
 	ulong	cmdsts;			/*08*/
-	ulong	intrsts;			/*0c*/
+	ulong	intrsts;		/*0c*/
 	ulong	intrenable;		/*10*/
 	ulong	intrdisable;		/*14*/
 
@@ -300,7 +300,7 @@ struct Ohci
 	/* unknown */
 	ulong	hostueaddr;		/*e0*/
 	ulong	hostuests;		/*e4*/
-	ulong	hosttimeoutctrl;		/*e8*/
+	ulong	hosttimeoutctrl;	/*e8*/
 	ulong	pad59;			/*ec*/
 	ulong	pad60;			/*f0*/
 	ulong	hostrevision;		/*f4*/
@@ -493,7 +493,7 @@ unlinkctl(Ctlr *ctlr, Ed *ed)
 		edlinked(prev, next);
 	ctlr->ohci->control |= Ccle;
 	edlinked(ed, nil);		/* wipe out next field */
-	
+
 }
 
 static void
@@ -633,8 +633,7 @@ tdfree(Td *td)
 static Ed*
 edalloc(void)
 {
-	Ed *ed;
-	Ed *pool;
+	Ed *ed, *pool;
 	int i;
 
 	lock(&edpool);
@@ -891,9 +890,7 @@ dumptds(Td *td, char *p, int iso)
 static void
 dumped(Ed *ed)
 {
-	char *buf;
-	char *s;
-	char *e;
+	char *buf, *s, *e;
 
 	if(ed == nil){
 		print("<null ed>\n");
@@ -1127,8 +1124,7 @@ static void
 qhinterrupt(Ctlr *, Ep *ep, Qio *io, Td *td, int)
 {
 	Block *bp;
-	int mode;
-	int err;
+	int mode, err;
 	Ed *ed;
 
 	ed = io->ed;
@@ -1205,8 +1201,7 @@ isointerrupt(Ctlr *ctlr, Ep *ep, Qio *io, Td *td, int)
 {
 	Isoio *iso;
 	Block *bp;
-	int err;
-	int isoerr;
+	int err, isoerr;
 	Ed *ed;
 
 	iso = ep->aux;
@@ -1259,14 +1254,11 @@ isointerrupt(Ctlr *ctlr, Ep *ep, Qio *io, Td *td, int)
 static void
 interrupt(Ureg *, void *arg)
 {
-	Td *td, *ntd;
-	Td *td0;
+	Td *td, *ntd, *td0;
 	Hci *hp;
 	Ctlr *ctlr;
-	ulong status;
-	ulong curred;
-	int i;
-	int frno;
+	ulong status, curred;
+	int i, frno;
 
 	hp = arg;
 	ctlr = hp->aux;
@@ -1287,7 +1279,7 @@ interrupt(Ureg *, void *arg)
 		ntd = pa2ptr(td->nexttd & ~0xF);
 		td->nexttd = 0;
 		if(td->ep == nil || td->io == nil)
-			panic("interrupt: ep %#p io %#p", td->ep, td->io);
+			panic("ohci: interrupt: ep %#p io %#p", td->ep, td->io);
 		ohciinterrupts[td->ep->ttype]++;
 		if(td->ep->ttype == Tiso)
 			isointerrupt(ctlr, td->ep, td->io, td, frno);
@@ -1334,8 +1326,7 @@ interrupt(Ureg *, void *arg)
 static Td*
 epgettd(Ep *ep, Qio *io, Td **dtdp, int flags, void *a, int count)
 {
-	Td *td;
-	Td *dtd;
+	Td *td, *dtd;
 	Block *bp;
 
 	if(ep->maxpkt > 0x2000)
@@ -1437,7 +1428,7 @@ epiowait(Ctlr *ctlr, Qio *io, int tmout, ulong)
 	}
 	if(io->state != Qclose)
 		io->state = Qidle;
-	iunlock(ctlr);	
+	iunlock(ctlr);
 }
 
 /*
@@ -1453,17 +1444,12 @@ epio(Ep *ep, Qio *io, void *a, long count, int tmout, int mustlock)
 	Ed *ed;
 	Ctlr *ctlr;
 	char buf[80];
-	uchar *c;
-	Td *td;
-	Td *ltd;
-	Td *ntd;
-	Td *td0;
-	ulong load;
-	int last;
-	int ntds;
-	long tot;
-	long n;
 	char *err;
+	uchar *c;
+	Td *td, *ltd, *ntd, *td0;
+	int last, ntds;
+	long tot, n;
+	ulong load;
 
 	ed = io->ed;
 	ctlr = ep->hp->aux;
@@ -1789,8 +1775,7 @@ episowrite(Ep *ep, void *a, long count)
 	uchar *b;
 	Ctlr *ctlr;
 	char *err;
-	long tot;
-	long nw;
+	long tot, nw;
 
 	ctlr = ep->hp->aux;
 	iso = ep->aux;
@@ -1855,8 +1840,7 @@ epwrite(Ep *ep, void *a, long count)
 	Ctlio *cio;
 	ulong delta;
 	uchar *b;
-	long tot;
-	long nw;
+	long tot, nw;
 
 	if(ep->aux == nil)
 		panic("ohci: epwrite: not open");
@@ -1964,8 +1948,7 @@ newed(Ctlr *ctlr, Ep *ep, Qio *io, char *)
 static void
 isoopen(Ctlr *ctlr, Ep *ep)
 {
-	Td *td;
-	Td *edtds;
+	Td *td, *edtds;
 	Isoio *iso;
 	int i;
 
@@ -2177,6 +2160,7 @@ static int
 portreset(Hci *hp, int port, int on)
 {
 	Ctlr *ctlr;
+	Ohci *ohci;
 
 	if(on == 0)
 		return 0;
@@ -2188,13 +2172,19 @@ portreset(Hci *hp, int port, int on)
 		nexterror();
 	}
 	ilock(ctlr);
-	ctlr->ohci->rhportsts[port - 1] = Spp | Spr;
-	while((ctlr->ohci->rhportsts[port - 1] & Prsc) == 0){
+	ohci = ctlr->ohci;
+	ohci->rhportsts[port - 1] = Spp;
+	if((ohci->rhportsts[port - 1] & Ccs) == 0){
+		iunlock(ctlr);
+		error("port not connected");
+	}
+	ohci->rhportsts[port - 1] = Spr;
+	while((ohci->rhportsts[port - 1] & Prsc) == 0){
 		iunlock(ctlr);
 		dprint("ohci: portreset, wait for reset complete\n");
 		ilock(ctlr);
 	}
-	ctlr->ohci->rhportsts[port - 1] = Prsc;
+	ohci->rhportsts[port - 1] = Prsc;
 	iunlock(ctlr);
 	poperror();
 	qunlock(&ctlr->resetl);
@@ -2285,9 +2275,7 @@ init(Hci *hp)
 	Ctlr *ctlr;
 	Ohci *ohci;
 	int i;
-	ulong ival;
-	ulong ctrl;
-	ulong fmi;
+	ulong ival, ctrl, fmi;
 
 	ctlr = hp->aux;
 	dprint("ohci %#p init\n", ctlr->ohci);
@@ -2329,8 +2317,11 @@ init(Hci *hp)
 		ohci->rhportsts[i] = 0;		/* this has no effect */
 	delay(50);
 
-	for(i = 0; i < ctlr->nports; i++)
-		ohci->rhportsts[i] = Spp | Spr;
+	for(i = 0; i < ctlr->nports; i++){
+		ohci->rhportsts[i] =  Spp;
+		if((ohci->rhportsts[i] & Ccs) != 0)
+			ohci->rhportsts[i] |= Spr;
+	}
 	delay(100);
 
 	ctrl = ohci->control;
@@ -2493,10 +2484,10 @@ ohcireset(Ctlr *ctlr)
 static int
 reset(Hci *hp)
 {
-	static Lock resetlck;
 	int i;
 	Ctlr *ctlr;
 	Pcidev *p;
+	static Lock resetlck;
 
 	if(getconf("*nousbohci"))
 		return -1;
