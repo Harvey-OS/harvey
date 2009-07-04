@@ -446,9 +446,10 @@ amd79c970reset(Ether* ether)
 	switch(x&0xFFFFFFF){
 	case 0x2420003:	/* PCnet/PCI 79C970 */
 	case 0x2621003:	/* PCnet/PCI II 79C970A */
+	case 0x2625003:	/* PCnet-FAST III 79C973 */
 		break;
 	default:
-		print("unknown PCnet card version %.7ux\n", x&0xFFFFFFF);
+		print("unknown PCnet card version 0x%.7ux\n", x&0xFFFFFFF);
 		iunlock(ctlr);
 		return -1;
 	}
