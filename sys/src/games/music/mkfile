@@ -1,7 +1,7 @@
 dirs = playlistfs jukefs jukebox
 
-DEFAULTMAP = /sys/lib/music/map
-ICONPATH = /sys/lib/music/icon
+DEFAULTMAP = /lib/audio/map
+ICONPATH = /lib/audio/icon
 
 ICONS = \
 	next.bit\
