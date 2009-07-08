@@ -221,6 +221,8 @@ tcomo(Node *n, int f)
 		if(tcompat(n, l->type, r->type, tand))
 			goto bad;
 		n->type = l->type;
+		n->right = new1(OCAST, r, Z);
+		n->right->type = types[TINT];
 		if(typeu[n->type->etype]) {
 			if(n->op == OASASHR)
 				n->op = OASLSHR;

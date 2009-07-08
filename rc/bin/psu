@@ -1,8 +1,8 @@
 #!/bin/rc
-
+# psu - ps for just one user
+rfork e
 flags=()
-switch($1){
-case -*
+while (! ~ $#* 0 && ~ $1 -*) {
 	flags = ($flags $1)
 	shift
 }

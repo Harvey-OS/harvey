@@ -78,8 +78,8 @@ typedef	char*	va_list;
 #define va_end(list)\
 	USED(list)
 #define va_arg(list, mode)\
-	((sizeof(mode) == 1)?\
+	((sizeof(mode) <= 4)?\
 		((list += 4), (mode*)list)[-1]:\
-	(sizeof(mode) == 2)?\
-		((list += 4), (mode*)list)[-1]:\
-		((list += sizeof(mode)), (mode*)list)[-1])
+	(signof(mode) != signof(double))?\
+		((list += sizeof(mode)), (mode*)list)[-1]:\
+		((list = (char*)((uintptr)(list+7) & ~7) + sizeof(mode)), (mode*)list)[-1])

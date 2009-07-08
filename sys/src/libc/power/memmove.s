@@ -1,8 +1,8 @@
 #define	BDNZ	BC	16,0,
-	TEXT	memcpy(SB), $0
+	TEXT	memmove(SB), $0
 	BR	move
 
-	TEXT	memmove(SB), $0
+	TEXT	memcpy(SB), $0
 move:
 
 /*
@@ -67,13 +67,13 @@ f2:
 	SUB	$4, R10
 f3:
 	MOVWU	4(R11), R16
-	MOVWU	R16, 4(R10)
 	MOVWU	4(R11), R17
-	MOVWU	R17, 4(R10)
-	MOVWU	4(R11), R16
+	MOVWU	4(R11), R18
+	MOVWU	4(R11), R19
 	MOVWU	R16, 4(R10)
-	MOVWU	4(R11), R17
 	MOVWU	R17, 4(R10)
+	MOVWU	R18, 4(R10)
+	MOVWU	R19, 4(R10)
 	BDNZ	f3
 	RLWNMCC	$0, R9, $15, R9	/* residue */
 	BEQ	ret
@@ -133,13 +133,13 @@ b2:
 	MOVW	R14, CTR
 b3:
 	MOVWU	-4(R13), R16
-	MOVWU	R16, -4(R12)
 	MOVWU	-4(R13), R17
-	MOVWU	R17, -4(R12)
-	MOVWU	-4(R13), R16
+	MOVWU	-4(R13), R18
+	MOVWU	-4(R13), R19
 	MOVWU	R16, -4(R12)
-	MOVWU	-4(R13), R17
 	MOVWU	R17, -4(R12)
+	MOVWU	R18, -4(R12)
+	MOVWU	R19, -4(R12)
 	BDNZ	b3
 	RLWNMCC	$0, R9, $15, R9	/* residue */
 	BEQ	ret

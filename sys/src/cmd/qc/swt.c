@@ -1,5 +1,7 @@
 #include "gc.h"
 
+static int	doubleflag;
+
 void
 swit1(C1 *q, int nc, long def, Node *n)
 {
@@ -365,13 +367,18 @@ zwrite(Biobuf *b, Prog *p, int sf, int st)
 	long l;
 
 	bf[0] = p->as;
-	bf[1] = p->reg;
+	bf[1] = p->as>>8;
+	bf[2] = p->reg;
+	if(p->from3.type != D_NONE)
+		bf[2] |= 0x40;
 	l = p->lineno;
-	bf[2] = l;
-	bf[3] = l>>8;
-	bf[4] = l>>16;
-	bf[5] = l>>24;
-	bp = zaddr(bf+6, &p->from, sf);
+	bf[3] = l;
+	bf[4] = l>>8;
+	bf[5] = l>>16;
+	bf[6] = l>>24;
+	bp = zaddr(bf+7, &p->from, sf);
+	if(bf[2] & 0x40)
+		bp = zaddr(bp, &p->from3, 0);
 	bp = zaddr(bp, &p->to, st);
 	Bwrite(b, bf, bp-bf);
 }
@@ -421,6 +428,7 @@ outhist(Biobuf *b)
 			}
 			if(n) {
 				Bputc(b, ANAME);
+				Bputc(b, ANAME>>8);
 				Bputc(b, D_FILE);
 				Bputc(b, 1);
 				Bputc(b, '<');
@@ -446,27 +454,29 @@ outhist(Biobuf *b)
 void
 zname(Biobuf *b, Sym *s, int t)
 {
-	char *n, bf[7];
+	char *n, bf[8];
 	ulong sig;
 
 	n = s->name;
 	if(debug['T'] && t == D_EXTERN && s->sig != SIGDONE && s->type != types[TENUM] && s != symrathole){
 		sig = sign(s);
 		bf[0] = ASIGNAME;
-		bf[1] = sig;
-		bf[2] = sig>>8;
-		bf[3] = sig>>16;
-		bf[4] = sig>>24;
-		bf[5] = t;
-		bf[6] = s->sym;
-		Bwrite(b, bf, 7);
+		bf[1] = ASIGNAME>>8;
+		bf[2] = sig;
+		bf[3] = sig>>8;
+		bf[4] = sig>>16;
+		bf[5] = sig>>24;
+		bf[6] = t;
+		bf[7] = s->sym;
+		Bwrite(b, bf, 8);
 		s->sig = SIGDONE;
 	}
 	else{
 		bf[0] = ANAME;
-		bf[1] = t;	/* type */
-		bf[2] = s->sym;	/* sym */
-		Bwrite(b, bf, 3);
+		bf[1] = ANAME>>8;
+		bf[2] = t;	/* type */
+		bf[3] = s->sym;	/* sym */
+		Bwrite(b, bf, 4);
 	}
 	Bwrite(b, n, strlen(n)+1);
 }
@@ -527,32 +537,66 @@ zaddr(char *bp, Adr *a, int s)
 	return bp;
 }
 
+static int
+doubled(Type *t)
+{
+	Type *v;
+
+	if(debug['4'])
+		return 0;
+	if(t->nbits != 0)
+		return 0;
+	switch(t->etype){
+	case TDOUBLE:
+		return 1;
+
+	case TARRAY:
+		for(v=t; v->etype==TARRAY; v=v->link)
+			;
+		return v->etype == TDOUBLE;
+
+	case TSTRUCT:
+	case TUNION:
+		for(v = t->link; v != T; v = v->down)
+			if(doubled(v))
+				return 1;
+		break;
+	}
+	return 0;
+}
+
 long
 align(long i, Type *t, int op)
 {
 	long o;
 	Type *v;
-	int w;
+	int w, pc;
 
 	o = i;
 	w = 1;
+	pc = 0;
 	switch(op) {
 	default:
 		diag(Z, "unknown align opcode %d", op);
 		break;
 
 	case Asu2:	/* padding at end of a struct */
-		w = SZ_LONG;
+		w = doubled(t)? SZ_DOUBLE: SZ_LONG;
 		if(packflg)
 			w = packflg;
 		break;
 
-	case Ael1:	/* initial allign of struct element */
+	case Ael1:	/* initial align of struct element (also automatic) */
 		for(v=t; v->etype==TARRAY; v=v->link)
 			;
 		w = ewidth[v->etype];
-		if(w <= 0 || w >= SZ_LONG)
-			w = SZ_LONG;
+		if(w <= 0 || w >= SZ_LONG){
+			if(doubled(v)){
+				w = SZ_DOUBLE;
+				doubleflag = 1;
+			}else
+				w = SZ_LONG;
+		}
 		if(packflg)
 			w = packflg;
 		break;
@@ -568,10 +612,15 @@ align(long i, Type *t, int op)
 		}
 		break;
 
-	case Aarg1:	/* initial allign of parameter */
+	case Aarg1:	/* initial align of parameter */
 		w = ewidth[t->etype];
 		if(w <= 0 || w >= SZ_LONG) {
-			w = SZ_LONG;
+			if(doubled(t)){
+				w = SZ_DOUBLE;
+				pc = SZ_LONG;		/* alignment must account for pc */
+				hasdoubled = 1;
+			}else
+				w = SZ_LONG;
 			break;
 		}
 		o += SZ_LONG - w;	/* big endian adjustment */
@@ -581,14 +630,20 @@ align(long i, Type *t, int op)
 	case Aarg2:	/* width of a parameter */
 		o += t->width;
 		w = SZ_LONG;
+		if(doubled(t)){
+			pc = SZ_LONG;
+			hasdoubled = 1;
+		}
 		break;
 
-	case Aaut3:	/* total allign of automatic */
+	case Aaut3:	/* total align of automatic */
+		doubleflag = 0;
 		o = align(o, t, Ael1);
 		o = align(o, t, Ael2);
+		hasdoubled |= doubleflag;
 		break;
 	}
-	o = round(o, w);
+	o = round(o+pc, w)-pc;
 	if(debug['A'])
 		print("align %s %ld %T = %ld\n", bnames[op], i, t, o);
 	return o;
@@ -597,8 +652,13 @@ align(long i, Type *t, int op)
 long
 maxround(long max, long v)
 {
-	v += SZ_LONG-1;
+	int w;
+
+	w = SZ_LONG;
+	if((debug['8'] || hasdoubled) && !debug['4'])
+		w = SZ_DOUBLE;
+	v += w-1;
 	if(v > max)
-		max = round(v, SZ_LONG);
+		max = round(v, w);
 	return max;
 }

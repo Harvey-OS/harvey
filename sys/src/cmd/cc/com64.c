@@ -1,7 +1,7 @@
 #include "cc.h"
 
 /*
- * this is machine depend, but it is totally
+ * this is machine dependent, but it is totally
  * common on all of the 64-bit symulating machines.
  */
 
@@ -258,6 +258,8 @@ com64(Node *n)
 			r->op = OFUNC;
 			r->type = types[TLONG];
 			return 1;
+		case OCOND:
+			return 1;
 		}
 	}
 
@@ -503,6 +505,7 @@ setvinc:
 	n->left = a;
 	l = new(OADDR, l, Z);
 	l->type = typ(TIND, l->left->type);
+	l->complex = l->left->complex;
 	n->right = new(OLIST, l, r);
 	n->complex = FNX;
 	n->op = OFUNC;
@@ -536,6 +539,7 @@ setasop:
 
 	t = new(OADDR, l, 0);
 	t->type = typ(TIND, l->type);
+	t->complex = l->complex;
 	r = new(OLIST, t, r);
 
 	n->left = nodvasop;

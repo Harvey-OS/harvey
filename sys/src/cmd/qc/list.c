@@ -42,7 +42,7 @@ Bconv(Fmt *fp)
 int
 Pconv(Fmt *fp)
 {
-	char str[STRINGSZ];
+	char str[STRINGSZ], *s;
 	Prog *p;
 	int a;
 
@@ -50,17 +50,16 @@ Pconv(Fmt *fp)
 	a = p->as;
 	if(a == ADATA)
 		sprint(str, "	%A	%D/%d,%D", a, &p->from, p->reg, &p->to);
-	else
-	if(p->as == ATEXT)
+	else if(p->as == ATEXT)
 		sprint(str, "	%A	%D,%d,%D", a, &p->from, p->reg, &p->to);
-	else
-	if(p->reg == NREG)
-		sprint(str, "	%A	%D,%D", a, &p->from, &p->to);
-	else
-	if(p->from.type != D_FREG)
-		sprint(str, "	%A	%D,R%d,%D", a, &p->from, p->reg, &p->to);
-	else
-		sprint(str, "	%A	%D,F%d,%D", a, &p->from, p->reg, &p->to);
+	else {
+		s = seprint(str, str+sizeof(str), "	%A	%D", a, &p->from);
+		if(p->reg != NREG)
+			s = seprint(s, str+sizeof(str), ",%c%d", p->from.type==D_FREG? 'F': 'R', p->reg);
+		if(p->from3.type != D_NONE)
+			s = seprint(s, str+sizeof(str), ",%D", &p->from3);
+		seprint(s, s+sizeof(str), ",%D", &p->to);
+	}
 	return fmtstrcpy(fp, str);
 }
 
@@ -72,7 +71,7 @@ Aconv(Fmt *fp)
 
 	a = va_arg(fp->args, int);
 	s = "???";
-	if(a >= AXXX && a <= AEND)
+	if(a >= AXXX && a <= ALAST)
 		s = anames[a];
 	return fmtstrcpy(fp, s);
 }
@@ -196,10 +195,25 @@ Nconv(Fmt *fp)
 	char str[STRINGSZ];
 	Adr *a;
 	Sym *s;
+	int i, l, b, n;
 
 	a = va_arg(fp->args, Adr*);
 	s = a->sym;
 	if(s == S) {
+		if(a->offset > 64 || -a->offset > 64) {
+			n = 0;
+			l = a->offset & 1;
+			for(i=0; i<32; i++){
+				b = (a->offset >> i) & 1;
+				if(b != l)
+					n++;
+				l = b;
+			}
+			if(n < 2) {
+				sprint(str, "%#lux", a->offset);
+				goto out;
+			}
+		}
 		sprint(str, "%ld", a->offset);
 		goto out;
 	}

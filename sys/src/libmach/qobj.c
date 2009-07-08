@@ -23,21 +23,26 @@ static void skip(Biobuf*, int);
 int
 _isq(char *s)
 {
-	return  (s[0]&0377) == ANAME				/* ANAME */
-		&& s[1] == D_FILE			/* type */
-		&& s[2] == 1				/* sym */
-		&& s[3] == '<';				/* name of file */
+	return  (s[0]&0377) == ANAME			/* ANAME */
+		&& (s[1]&0377) == ANAME>>8
+		&& s[2] == D_FILE			/* type */
+		&& s[3] == 1				/* sym */
+		&& s[4] == '<';				/* name of file */
 }
 
 int
 _readq(Biobuf *bp, Prog *p)
 {
-	int as, n;
+	int as, n, c;
 	Addr a;
 
-	as = Bgetc(bp);			/* as */
+	as = Bgetc(bp);			/* as(low) */
 	if(as < 0)
 		return 0;
+	c = Bgetc(bp);		/* as(high) */
+	if(c < 0)
+		return 0;
+	as |= ((c & 0xff) << 8);
 	p->kind = aNone;
 	p->sig = 0;
 	if(as == ANAME || as == ASIGNAME){
@@ -98,6 +103,7 @@ addr(Biobuf *bp)
 		break;
 	case D_SPR:
 	case D_OREG:
+	case D_DCR:
 	case D_CONST:
 	case D_BRANCH:
 		off = Bgetc(bp);

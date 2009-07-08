@@ -1,6 +1,6 @@
 dirs = playlistfs jukefs jukebox
 
-DEFAULTMAP = /lib/audio/map
+# DEFAULTMAP = /lib/audio/map
 ICONPATH = /lib/audio/icon
 
 ICONS = \
@@ -16,14 +16,13 @@ ICONS = \
 
 ICONFILES = ${ICONS:%.bit=icon/%.bit}
 
-all:
+default:V: all
 
-all dep clean:V:
-	for (i in $dirs) { 
+all dep clean nuke:V:
+	for (i in $dirs) @ {
 		echo $i
 		cd $i
 		mk $MKFLAGS $target
-		cd ..
 	}
 
 rcinstall:V:	juke.rc
@@ -34,16 +33,14 @@ $ICONPATH:
 	mkdir $ICONPATH
 
 iconinstall:V:	$ICONFILES $ICONPATH
-	for (i in $ICONS) {
+	for (i in $ICONS)
 		cp $ICONFILES $ICONPATH
-	}
 
 install:V:
-	for (i in $dirs) { 
+	for (i in $dirs) @ {
 		echo $i
 		cd $i
 		mk $MKFLAGS $target
-		cd ..
 	}
 	mk rcinstall
 	mk iconinstall
@@ -52,8 +49,3 @@ installall:V:
 	for(objtype in $CPUS)
 		mk $MKFLAGS install
 	mk rcinstall
-
-clean:V:
-	;
-nuke:V: clean
-	;

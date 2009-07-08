@@ -5,6 +5,7 @@ OFILES=\
 	cgen.$O\
 	enam.$O\
 	list.$O\
+	machcap.$O\
 	mul.$O\
 	peep.$O\
 	pgen.$O\

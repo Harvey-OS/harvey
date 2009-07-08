@@ -237,11 +237,13 @@ mspr(ulong ir)
 	if(getxo(ir) == 339) {
 		if(trace)
 			itrace("%s\tr%d,%s", ci->name, rd, n);
-		reg.r[rd] = *d;
+		if(d != nil)
+			reg.r[rd] = *d;
 	} else {
 		if(trace)
 			itrace("%s\t%s,r%d", ci->name, n, rd);
-		*d = reg.r[rd];
+		if(d != nil)
+			*d = reg.r[rd];
 	}
 }
 
@@ -529,11 +531,11 @@ add(ulong ir)
 	uvlong r;
 
 	getarrr(ir);
-	r = (uvlong)(ulong)reg.r[ra] + reg.r[rb];
+	r = (uvlong)(ulong)reg.r[ra] + (uvlong)(ulong)reg.r[rb];
 	if(ir & OE) {
 		reg.xer &= ~XER_OV;
 		if(r >> 16)
-			reg.xer |= XER_SO | XER_OV;
+			reg.xer |= XER_SO | XER_OV;	/* TO DO: rubbish */
 	}
 	reg.r[rd] = (ulong)r;
 	if(ir & Rc)
@@ -550,7 +552,7 @@ addc(ulong ir)
 	uvlong r;
 
 	getarrr(ir);
-	r = (uvlong)(ulong)reg.r[ra] + reg.r[rb];
+	r = (uvlong)(ulong)reg.r[ra] + (uvlong)(ulong)reg.r[rb];
 	v = r>>32;
 	reg.xer &= ~XER_CA;
 	if(v)
@@ -575,7 +577,7 @@ adde(ulong ir)
 	uvlong r;
 
 	getarrr(ir);
-	r = (uvlong)(ulong)reg.r[ra] + reg.r[rb] + (reg.xer&XER_CA)!=0;
+	r = (uvlong)(ulong)reg.r[ra] + (uvlong)(ulong)reg.r[rb] + ((reg.xer&XER_CA)!=0);
 	v = r>>32;
 	reg.xer &= ~XER_CA;
 	if(v)
@@ -601,7 +603,7 @@ addic(ulong ir)
 	uvlong r;
 
 	getairr(ir);
-	r = (uvlong)(ulong)reg.r[ra] + imm;
+	r = (uvlong)(ulong)reg.r[ra] + (uvlong)(ulong)imm;
 	v = r>>32;
 	reg.xer &= ~XER_CA;
 	if(v)
@@ -620,7 +622,7 @@ addiccc(ulong ir)
 	uvlong r;
 
 	getairr(ir);
-	r = (uvlong)(ulong)reg.r[ra] + imm;
+	r = (uvlong)(ulong)reg.r[ra] + (uvlong)(ulong)imm;
 	v = r>>32;
 	reg.xer &= ~XER_CA;
 	if(v)
@@ -641,7 +643,7 @@ addme(ulong ir)
 	getarrr(ir);
 	if(rb)
 		undef(ir);
-	r = (uvlong)(ulong)reg.r[ra] + 0xFFFFFFFF + (reg.xer&XER_CA)!=0;
+	r = (uvlong)(ulong)reg.r[ra] + (uvlong)0xFFFFFFFFU + ((reg.xer&XER_CA)!=0);
 	v = r>>32;
 	reg.xer &= ~XER_CA;
 	if(v)
@@ -668,7 +670,7 @@ addze(ulong ir)
 	getarrr(ir);
 	if(rb)
 		undef(ir);
-	r = (uvlong)(ulong)reg.r[ra] + (reg.xer&XER_CA)!=0;
+	r = (uvlong)(ulong)reg.r[ra] + ((reg.xer&XER_CA)!=0);
 	v = r>>32;
 	reg.xer &= ~XER_CA;
 	if(v)
@@ -1072,7 +1074,7 @@ subf(ulong ir)
 	uvlong r;
 
 	getarrr(ir);
-	r = (uvlong)((ulong)~reg.r[ra]) + reg.r[rb] + 1;
+	r = (uvlong)((ulong)~reg.r[ra]) + (uvlong)(ulong)reg.r[rb] + 1;
 	if(ir & OE) {
 		reg.xer &= ~XER_OV;
 		if(r >> 16)
@@ -1093,7 +1095,7 @@ subfc(ulong ir)
 	uvlong r;
 
 	getarrr(ir);
-	r = (uvlong)((ulong)~reg.r[ra]) + reg.r[rb] + 1;
+	r = (uvlong)((ulong)~reg.r[ra]) + (uvlong)(ulong)reg.r[rb] + 1;
 	v = r>>32;
 	reg.xer &= ~XER_CA;
 	if(v)
@@ -1118,7 +1120,7 @@ subfe(ulong ir)
 	uvlong r;
 
 	getarrr(ir);
-	r = (uvlong)((ulong)~reg.r[ra]) + reg.r[rb] + (reg.xer&XER_CA)!=0;
+	r = (uvlong)((ulong)~reg.r[ra]) + (uvlong)(ulong)reg.r[rb] + ((reg.xer&XER_CA)!=0);
 	v = r>>32;
 	reg.xer &= ~XER_CA;
 	if(v)
@@ -1144,7 +1146,7 @@ subfic(ulong ir)
 	uvlong r;
 
 	getairr(ir);
-	r = (uvlong)((ulong)~reg.r[ra]) + imm + 1;
+	r = (uvlong)((ulong)~reg.r[ra]) + (uvlong)(ulong)imm + 1;
 	v = r>>32;
 	reg.xer &= ~XER_CA;
 	if(v)
@@ -1164,7 +1166,7 @@ subfme(ulong ir)
 	getarrr(ir);
 	if(rb)
 		undef(ir);
-	r = (uvlong)((ulong)~reg.r[ra]) + 0xFFFFFFFF + (reg.xer&XER_CA)!=0;
+	r = (uvlong)((ulong)~reg.r[ra]) + (uvlong)0xFFFFFFFFU + ((reg.xer&XER_CA)!=0);
 	v = r>>32;
 	reg.xer &= ~XER_CA;
 	if(v)
@@ -1191,7 +1193,7 @@ subfze(ulong ir)
 	getarrr(ir);
 	if(rb)
 		undef(ir);
-	r = (uvlong)((ulong)~reg.r[ra]) + (reg.xer&XER_CA)!=0;
+	r = (uvlong)((ulong)~reg.r[ra]) + ((reg.xer&XER_CA)!=0);
 	v = r>>32;
 	reg.xer &= ~XER_CA;
 	if(v)
