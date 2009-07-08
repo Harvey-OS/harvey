@@ -304,6 +304,7 @@ void*	mysbrk(ulong);
 void	names(void);
 void	nocache(Prog*);
 void	noops(void);
+void	nopout(Prog*);
 void	nuxiinit(void);
 void	objfile(char*);
 int	ocmp(void*, void*);

@@ -17,8 +17,6 @@
 typedef struct Registers Registers;
 typedef struct Segment Segment;
 typedef struct Memory Memory;
-typedef struct Mul Mul;
-typedef struct Mulu Mulu;
 typedef struct Inset Inset;
 typedef struct Inst Inst;
 typedef struct Icache Icache;
@@ -95,21 +93,7 @@ struct Registers
 	ulong	dec;
 	ulong	tbl;
 	ulong	tbu;
-
-	union {
-		double	fd[32];
-		uvlong	dv[32];
-	};
-};
-
-struct Mulu{
-	ulong lo;
-	ulong hi;
-};
-
-struct Mul{
-	long lo;
-	long hi;
+	double	fd[32];
 };
 
 enum
@@ -146,6 +130,7 @@ struct Memory
 };
 
 void		fatal(int, char*, ...);
+void		fpreginit(void);
 void		run(void);
 void		undef(ulong);
 void		unimp(ulong);
@@ -170,8 +155,6 @@ ulong		getmem_4(ulong);
 ulong		getmem_2(ulong);
 void	putmem_v(ulong, uvlong);
 void		putmem_h(ulong, short);
-Mul		mul(long, long);
-Mulu		mulu(ulong, ulong);
 void		isum(void);
 void		initicache(void);
 void		updateicache(ulong addr);

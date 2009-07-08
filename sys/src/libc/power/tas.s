@@ -1,8 +1,8 @@
-TEXT	_tas(SB), $0
+TEXT	_tas(SB), 1, $-4
 	MOVW	R3, R4
 	MOVW	$0xdeaddead,R5
 tas1:
-/*	DCBF	(R4)			 fix for 603x bug */
+/*	DCBF	(R4)			 	fix for 603x bug */
 	SYNC
 	LWAR	(R4), R3
 	CMP	R3, $0

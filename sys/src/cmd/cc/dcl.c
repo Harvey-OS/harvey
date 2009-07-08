@@ -975,6 +975,12 @@ rsametype(Type *t1, Type *t2, int n, int f)
 				snap(t1);
 			if(t2->link == T)
 				snap(t2);
+			if(t1 != t2 && t1->link == T && t2->link == T){
+				/* structs with missing or different tag names aren't considered equal */
+				if(t1->tag == nil || t2->tag == nil ||
+				   strcmp(t1->tag->name, t2->tag->name) != 0)
+					return 0;
+			}
 			t1 = t1->link;
 			t2 = t2->link;
 			for(;;) {

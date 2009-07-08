@@ -2,6 +2,9 @@
 
 static	int	resvreg[nelem(reg)];
 
+static	void	gopcode64(int, Node*, Node*, Node*);
+static	void	gori64(int, Node*, Node*, Node*);
+static	void	gandi64(int, Node*, Node*, Node*);
 
 void
 ginit(void)
@@ -30,6 +33,7 @@ ginit(void)
 	zprog.from.type = D_NONE;
 	zprog.from.name = D_NONE;
 	zprog.from.reg = NREG;
+	zprog.from3 = zprog.from;
 	zprog.to = zprog.from;
 
 	regnode.op = OREGISTER;
@@ -70,14 +74,6 @@ ginit(void)
 	nodrat->class = CGLOBL;
 	complex(nodrat);
 	nodrat->type = t;
-
-	nodret = new(ONAME, Z, Z);
-	nodret->sym = slookup(".ret");
-	nodret->type = types[TIND];
-	nodret->etype = TIND;
-	nodret->class = CPARAM;
-	nodret = new(OIND, nodret, Z);
-	complex(nodret);
 
 	com64init();
 
@@ -188,10 +184,10 @@ garg1(Node *n, Node *tn1, Node *tn2, int f, Node **fnxp)
 	if(typesuv[n->type->etype]) {
 		regaalloc(tn2, n);
 		if(n->complex >= FNX) {
-			sugen(*fnxp, tn2, n->type->width);
+			cgen(*fnxp, tn2);
 			(*fnxp)++;
 		} else
-			sugen(n, tn2, n->type->width);
+			cgen(n, tn2);
 		return;
 	}
 	if(REGARG && curarg == 0 && typechlp[n->type->etype]) {
@@ -314,6 +310,27 @@ regalloc(Node *n, Node *tn, Node *o)
 		}
 		diag(tn, "out of float registers");
 		goto err;
+
+	case TVLONG:
+	case TUVLONG:
+		n->op = OREGPAIR;
+		n->complex = 0;	/* already in registers */
+		n->addable = 11;
+		n->type = tn->type;
+		n->lineno = nearln;
+		n->left = alloc(sizeof(Node));
+		n->right = alloc(sizeof(Node));
+		if(o != Z && o->op == OREGPAIR) {
+			regalloc(n->left, &regnode, o->left);
+			regalloc(n->right, &regnode, o->right);
+		} else {
+			regalloc(n->left, &regnode, Z);
+			regalloc(n->right, &regnode, Z);
+		}
+		n->right->type = types[TULONG];
+		if(tn->type->etype == TUVLONG)
+			n->left->type = types[TULONG];	/* TO DO: is this a bad idea? */
+		return;
 	}
 	diag(tn, "unknown type in regalloc: %T", tn->type);
 err:
@@ -342,6 +359,11 @@ regfree(Node *n)
 {
 	int i;
 
+	if(n->op == OREGPAIR) {
+		regfree(n->left);
+		regfree(n->right);
+		return;
+	}
 	i = 0;
 	if(n->op != OREGISTER && n->op != OINDREG)
 		goto err;
@@ -353,14 +375,19 @@ regfree(Node *n)
 	reg[i]--;
 	return;
 err:
-	diag(n, "error in regfree: %d", i);
+	diag(n, "error in regfree: %d [%d]", i, reg[i]);
+	prtree(n, "regfree");
 }
 
 void
 regsalloc(Node *n, Node *nn)
 {
-	cursafe = align(cursafe, nn->type, Aaut3);
+	cursafe = align(cursafe+stkoff, nn->type, Aaut3)-stkoff;
 	maxargsafe = maxround(maxargsafe, cursafe+curarg);
+//	if(nn->type->etype == TDOUBLE || nn->type->etype == TVLONG){
+//		extern int hasdoubled;
+//		fprint(2, "stkoff=%ld cursafe=%ld curarg=%ld %d\n", stkoff, cursafe, curarg, hasdoubled);
+//	}
 	*n = *nodsafe;
 	n->xoffset = -(stkoff + cursafe);
 	n->type = nn->type;
@@ -450,6 +477,7 @@ naddr(Node *n, Adr *a)
 
 	case OIND:
 		naddr(n->left, a);
+		a->offset += n->xoffset;	/* little hack for reglcgenv */
 		if(a->type == D_REG) {
 			a->type = D_OREG;
 			break;
@@ -523,6 +551,59 @@ naddr(Node *n, Adr *a)
 		break;
 
 	}
+}
+
+void
+gloadhi(Node *f, Node *t, int c)
+{
+	Type *ot;
+
+	if(f->op == OCONST){
+		f = nodconst((long)(f->vconst>>32));
+		if(c==1 && sconst(f) || c==2 && uconst(f)){
+			if(t->op == OREGISTER)
+				regfree(t);
+			*t = *f;
+			return;
+		}
+	}
+	if(f->op == OREGPAIR) {
+		gmove(f->left, t);
+		return;
+	}
+	ot = f->type;
+	f->type = types[TLONG];
+	gmove(f, t);
+	f->type = ot;
+}
+
+void
+gloadlo(Node *f, Node *t, int c)
+{
+	Type *ot;
+
+	if(f->op == OCONST){
+		f = nodconst((long)f->vconst);
+		if(c && uconst(f)){
+			if(t->op == OREGISTER)
+				regfree(t);
+			*t = *f;
+			return;
+		}
+	}
+	if(f->op == OREGPAIR) {
+		gmove(f->right, t);
+		return;
+	}
+	ot = f->type;
+	f->type = types[TLONG];
+	f->xoffset += SZ_LONG;
+	if(0){
+		prtree(f, "gloadlo f"); prtree(t, "gloadlo t");
+	}
+	gmove(f, t);
+	f->xoffset -= SZ_LONG;
+	f->type = ot;
 }
 
 void
@@ -602,6 +683,17 @@ gmove(Node *f, Node *t)
 			return;
 		}
 	}
+	if((ft == TVLONG || ft == TUVLONG) && f->op == OCONST && t->op == OREGPAIR) {
+		if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
+			gmove(nod32const(f->vconst>>32), t->left);
+		else
+			gmove(nod32const(f->vconst), t->left);
+		if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
+			gmove(nod32const(f->vconst), t->right);
+		else
+			gmove(nod32const(f->vconst>>32), t->right);
+		return;
+	}
 	/*
 	 * a load --
 	 * put it into a register then
@@ -631,8 +723,25 @@ gmove(Node *f, Node *t)
 			a = AMOVHZ;
 			break;
 		}
-		regalloc(&nod, f, t);
-		gins(a, f, &nod);
+		if(typev[ft]) {
+			if(typev[tt]) {
+				regalloc(&nod, f, t);
+				/* low order first, because its value will be used first */
+				f->xoffset += SZ_LONG;
+				gins(AMOVW, f, nod.right);
+				f->xoffset -= SZ_LONG;
+				gins(AMOVW, f, nod.left);
+			} else {
+				/* assumed not float or double */
+				regalloc(&nod, &regnode, t);
+				f->xoffset += SZ_LONG;
+				gins(AMOVW, f, &nod);
+				f->xoffset -= SZ_LONG;
+			}
+		} else {
+			regalloc(&nod, f, t);
+			gins(a, f, &nod);
+		}
 		gmove(&nod, t);
 		regfree(&nod);
 		return;
@@ -669,6 +778,11 @@ gmove(Node *f, Node *t)
 		}
 		if(R0ISZERO && !typefd[ft] && vconst(f) == 0) {
 			gins(a, f, t);
+			if(typev[tt]) {
+				t->xoffset += SZ_LONG;
+				gins(a, f, t);
+				t->xoffset -= SZ_LONG;
+			}
 			return;
 		}
 		if(ft == tt)
@@ -676,7 +790,13 @@ gmove(Node *f, Node *t)
 		else
 			regalloc(&nod, t, Z);
 		gmove(f, &nod);
-		gins(a, &nod, t);
+		if(typev[tt]) {
+			t->xoffset += SZ_LONG;
+			gins(a, nod.right, t);
+			t->xoffset -= SZ_LONG;
+			gins(a, nod.left, t);
+		} else
+			gins(a, &nod, t);
 		regfree(&nod);
 		return;
 	}
@@ -710,7 +830,7 @@ gmove(Node *f, Node *t)
 		case TUCHAR:
 			/* BUG: not right for unsigned long */
 			regalloc(&nod, f, Z);	/* should be type float */
-			regsalloc(&fxrat, f);
+			regsalloc(&fxrat, &fconstnode);
 			gins(AFCTIWZ, f, &nod);
 			gins(AFMOVD, &nod, &fxrat);
 			regfree(&nod);
@@ -817,7 +937,7 @@ gmove(Node *f, Node *t)
 			 */
 			regalloc(&fxc0, f, Z);
 			regalloc(&fxc2, f, Z);
-			regsalloc(&fxrat, t);	/* should be type float */
+			regsalloc(&fxrat, &fconstnode);	/* should be type float */
 			gins(AMOVW, nodconst(0x43300000L), &fxc0);
 			gins(AMOVW, f, &fxc2);
 			gins(AMOVW, &fxc0, &fxrat);
@@ -876,13 +996,28 @@ gmove(Node *f, Node *t)
 			break;
 		}
 		break;
+	case TVLONG:
+	case TUVLONG:
+		switch(tt) {
+		case TVLONG:
+		case TUVLONG:
+			a = AMOVW;
+			break;
+		}
+		break;
 	}
 	if(a == AGOK)
 		diag(Z, "bad opcode in gmove %T -> %T", f->type, t->type);
 	if(a == AMOVW || a == AFMOVS || a == AFMOVD)
 	if(samaddr(f, t))
 		return;
-	gins(a, f, t);
+	if(typev[ft]) {
+		if(f->op != OREGPAIR || t->op != OREGPAIR)
+			diag(Z, "bad vlong in gmove (%O->%O)", f->op, t->op);
+		gins(a, f->left, t->left);
+		gins(a, f->right, t->right);
+	} else
+		gins(a, f, t);
 }
 
 void
@@ -900,21 +1035,75 @@ gins(int a, Node *f, Node *t)
 }
 
 void
+gins3(int a, Node *f1, Node *f2, Node *t)
+{
+	Adr ta;
+
+	nextpc();
+	p->as = a;
+	if(f1 != Z)
+		naddr(f1, &p->from);
+	if(f2 != Z && (f2->op != OREGISTER || !samaddr(f2, t))) {
+		ta = zprog.from;	/* TO DO */
+		naddr(f2, &ta);
+		p->reg = ta.reg;
+		if(ta.type == D_CONST && ta.offset == 0) {
+			if(R0ISZERO)
+				p->reg = REGZERO;
+			else
+				diag(Z, "REGZERO in gins3 %A", a);
+		}else if(ta.type == D_CONST)
+			p->from3 = ta;
+	}
+	if(t != Z)
+		naddr(t, &p->to);
+	if(debug['g'])
+		print("%P\n", p);
+}
+
+void
+gins4(int a, Node *f1, Node *f2, Node *f3, Node *t)
+{
+	Adr ta;
+
+	nextpc();
+	p->as = a;
+	naddr(f1, &p->from);
+	if(f2->op != OREGISTER && (f2->op != OCONST || vconst(f2) != 0))
+		diag(f2, "invalid gins4");
+	naddr(f2, &ta);
+	p->reg = ta.reg;
+	if(ta.type == D_CONST && ta.offset == 0)
+		p->reg = REGZERO;
+	naddr(f3, &p->from3);
+	naddr(t, &p->to);
+	if(debug['g'])
+		print("%P\n", p);
+}
+
+void
 gopcode(int o, Node *f1, Node *f2, Node *t)
 {
-	int a, et;
-	Adr ta;
-	int uns;
+	int a, et, uns;
 
-	uns = 0;
-	et = TLONG;
-	if(f1 != Z && f1->type != T)
-		et = f1->type->etype;
-	a = AGOK;
-	switch(o) {
-	case OAS:
+	if(o == OAS) {
 		gmove(f1, t);
 		return;
+	}
+	et = TLONG;
+	if(f1 != Z && f1->type != T) {
+		if(f1->op == OCONST && t != Z && t->type != T)
+			et = t->type->etype;
+		else
+			et = f1->type->etype;
+	}
+	if((typev[et] || t->type != T && typev[t->type->etype]) && o != OFUNC) {
+		gopcode64(o, f1, f2, t);
+		return;
+	}
+	uns = 0;
+	a = AGOK;
+	switch(o) {
 
 	case OASADD:
 	case OADD:
@@ -965,7 +1154,7 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 
 	case OASASHL:
 	case OASHL:
-		a = ASLW;	/* BUG? */
+		a = ASLW;
 		break;
 
 	case OFUNC:
@@ -1027,10 +1216,14 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 
 	case OEQ:
 		a = ABEQ;
+		if(t->op == OCONST && t->vconst >= (1<<15))
+			goto cmpu;
 		goto cmp;
 
 	case ONE:
 		a = ABNE;
+		if(t->op == OCONST && t->vconst >= (1<<15))
+			goto cmpu;
 		goto cmp;
 
 	case OLT:
@@ -1090,24 +1283,258 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 	}
 	if(a == AGOK)
 		diag(Z, "bad in gopcode %O", o);
-	nextpc();
-	p->as = a;
-	if(f1 != Z)
-		naddr(f1, &p->from);
-	if(f2 != Z) {
-		naddr(f2, &ta);
-		p->reg = ta.reg;
-		if(ta.type == D_CONST && ta.offset == 0) {
-			if(R0ISZERO)
-				p->reg = REGZERO;
+	gins3(a, f1, f2, t);
+}
+
+static void
+gopcode64(int o, Node *f1, Node *f2, Node *t)
+{
+	int a1, a2;
+	Node nod, nod1, nod2, sh;
+	ulong m;
+	Prog *p1;
+
+	if(t->op != OREGPAIR || f2 != Z && f2->op != OREGPAIR) {
+		diag(Z, "bad f2/dest in gopcode64 %O", o);
+		return;
+	}
+	if(f1->op != OCONST &&
+	   (typev[f1->type->etype] && f1->op != OREGPAIR || !typev[f1->type->etype] && f1->op != OREGISTER)) {
+		diag(Z, "bad f1[%O] in gopcode64 %O", f1->op, o);
+		return;
+	}
+	/* a1 for low-order, a2 for high-order */
+	a1 = AGOK;
+	a2 = AGOK;
+	switch(o) {
+	case OASADD:
+	case OADD:
+		if(f1->op == OCONST && sconst(f1)) {
+			if(f2 == Z)
+				f2 = t;
+			gins3(AADDC, f1, f2->right, t->right);
+			if((f1->vconst>>32) == 0)
+				gins(AADDZE, f2->left, t->left);
+			else if((f1->vconst>>32) == -1)
+				gins(AADDME, f2->left, t->left);
 			else
-				diag(Z, "REGZERO in gopcode %O", o);
+				diag(t, "odd vlong ADD: %lld", f1->vconst);
+			return;
+		}
+		a1 = AADDC;
+		a2 = AADDE;
+		break;
+
+	case OASSUB:
+	case OSUB:
+		a1 = ASUBC;
+		a2 = ASUBE;
+		break;
+
+	case OASOR:
+	case OOR:
+		if(f1->op == OCONST) {
+			gori64(AOR, f1, f2, t);
+			return;
+		}
+		a1 = a2 = AOR;
+		break;
+
+	case OASAND:
+	case OAND:
+		if(f1->op == OCONST) {
+			gandi64(AANDCC, f1, f2, t);
+			return;
+		}
+		a1 = a2 = AAND;
+		break;
+
+	case OASXOR:
+	case OXOR:
+		if(f1->op == OCONST) {
+			gori64(AXOR, f1, f2, t);
+			return;
+		}
+		a1 = a2 = AXOR;
+		break;
+
+	case OASLSHR:
+	case OLSHR:
+		if(f2 == Z)
+			f2 = t;
+		if(f1->op == OCONST) {
+			if(f1->vconst >= 32) {
+				if(f1->vconst == 32)
+					gmove(f2->left, t->right);
+				else if(f1->vconst < 64)
+					gins3(ASRW, nodconst(f1->vconst-32), f2->left, t->right);
+				else
+					gmove(nodconst(0), t->right);
+				gmove(nodconst(0), t->left);
+				return;
+			}
+			if(f1->vconst <= 0) {
+				if(f2 != t)
+					gmove(f2, t);
+				return;
+			}
+			sh = *nodconst(32 - f1->vconst);
+			m = 0xFFFFFFFFUL >> f1->vconst;
+			gins4(ARLWNM, &sh, f2->right, nodconst(m), t->right);
+			gins4(ARLWMI, &sh, f2->left, nodconst(~m), t->right);
+			gins4(ARLWNM, &sh, f2->left, nodconst(m), t->left);
+			return;
+		}
+		regalloc(&nod, &regnode, Z);
+		gins3(ASUBC, f1, nodconst(32), &nod);
+		gins3(ASRW, f1, f2->right, t->right);
+		regalloc(&nod1, &regnode, Z);
+		gins3(ASLW, &nod, f2->left, &nod1);
+		gins(AOR, &nod1, t->right);
+		gins3(AADD, nodconst(-32), f1, &nod);
+		gins3(ASRW, &nod, f2->left, &nod1);
+		gins(AOR, &nod1, t->right);
+		gins3(ASRW, f1, f2->left, t->left);
+		regfree(&nod);
+		regfree(&nod1);
+		return;
+
+	case OASASHR:
+	case OASHR:
+		if(f2 == Z)
+			f2 = t;
+		if(f1->op == OCONST) {
+			if(f1->vconst >= 32) {
+				if(f1->vconst == 32)
+					gmove(f2->left, t->right);
+				else if(f1->vconst < 64)
+					gins3(ASRAW, nodconst(f1->vconst-32), f2->left, t->right);
+				gins3(ASRAW, nodconst(31), f2->left, t->left);
+				if(f1->vconst >= 64) {
+					gmove(t->left, t->right);
+					return;
+				}
+				return;
+			}
+			if(f1->vconst <= 0) {
+				if(f2 != t)
+					gmove(f2, t);
+				return;
+			}
+			sh = *nodconst(32 - f1->vconst);
+			m = 0xFFFFFFFFUL >> f1->vconst;
+			gins4(ARLWNM, &sh, f2->right, nodconst(m), t->right);
+			gins4(ARLWMI, &sh, f2->left, nodconst(~m), t->right);
+			gins3(ASRAW, &sh, f2->left, t->left);
+			return;
+		}
+		regalloc(&nod, &regnode, Z);
+		gins3(ASUBC, f1, nodconst(32), &nod);
+		gins3(ASRW, f1, f2->right, t->right);
+		regalloc(&nod1, &regnode, Z);
+		gins3(ASLW, &nod, f2->left, &nod1);
+		gins(AOR, &nod1, t->right);
+		gins3(AADDCCC, nodconst(-32), f1, &nod);
+		gins3(ASRAW, &nod, f2->left, &nod1);
+		gins(ABLE, Z, Z);
+		p1 = p;
+		gins(AMOVW, &nod1, t->right);
+		patch(p1, pc);
+		gins3(ASRAW, f1, f2->left, t->left);
+		regfree(&nod);
+		regfree(&nod1);
+		return;
+
+	case OASASHL:
+	case OASHL:
+		if(f2 == Z)
+			f2 = t;
+		if(f1->op == OCONST) {
+			if(f1->vconst >= 32) {
+				if(f1->vconst == 32)
+					gmove(f2->right, t->left);
+				else if(f1->vconst >= 64)
+					gmove(nodconst(0), t->left);
+				else
+					gins3(ASLW, nodconst(f1->vconst-32), f2->right, t->left);
+				gmove(nodconst(0), t->right);
+				return;
+			}
+			if(f1->vconst <= 0) {
+				if(f2 != t)
+					gmove(f2, t);
+				return;
+			}
+			m = 0xFFFFFFFFUL << f1->vconst;
+			gins4(ARLWNM, f1, f2->left, nodconst(m), t->left);
+			gins4(ARLWMI, f1, f2->right, nodconst(~m), t->left);
+			gins4(ARLWNM, f1, f2->right, nodconst(m), t->right);
+			return;
+		}
+		regalloc(&nod, &regnode, Z);
+		gins3(ASUBC, f1, nodconst(32), &nod);
+		gins3(ASLW, f1, f2->left, t->left);
+		regalloc(&nod1, &regnode, Z);
+		gins3(ASRW, &nod, f2->right, &nod1);
+		gins(AOR, &nod1, t->left);
+		gins3(AADD, nodconst(-32), f1, &nod);
+		gins3(ASLW, &nod, f2->right, &nod1);
+		gins(AOR, &nod1, t->left);
+		gins3(ASLW, f1, f2->right, t->right);
+		regfree(&nod);
+		regfree(&nod1);
+		return;
+
+	case OASLMUL:
+	case OLMUL:
+	case OASMUL:
+	case OMUL:
+		if(f2 == Z)
+			f2 = t;
+		regalloc(&nod, &regnode, Z);
+		gins3(AMULLW, f1->right, f2->right, &nod);	/* lo(f2.low*f1.low) */
+		a1 = AMULHW;
+		if(o == OLMUL || o == OASLMUL)
+			a1 = AMULHWU;
+		regalloc(&nod1, &regnode, Z);
+		gins3(a1, f1->right, f2->right, &nod1);		/* hi(f2.low*f1.low) */
+		regalloc(&nod2, &regnode, Z);
+		gins3(AMULLW, f2->right, f1->left, &nod2);	/* lo(f2.low*f1.high) */
+		gins(AADD, &nod2, &nod1);
+		gins3(AMULLW, f1->right, f2->left, &nod2);	/* hi(f2.high*f1.low) */
+		gins(AADD, &nod2, &nod1);
+		regfree(&nod2);
+		gmove(&nod, t->right);
+		gmove(&nod1, t->left);
+		regfree(&nod);
+		regfree(&nod1);
+		return;
+
+	case OCOM:
+		a1 = a2 = ANOR;
+		break;
+
+	case ONEG:
+		gins3(ASUBC, t->right, nodconst(0), t->right);
+		gins(ASUBZE, t->left, t->left);
+		return;
+	}
+	if(a1 == AGOK || a2 == AGOK)
+		diag(Z, "bad in gopcode64 %O", o);
+	if(f1->op == OCONST) {
+		if(f2 != Z & f2 != t)
+			diag(Z, "bad const in gopcode64 %O", o);
+		gins(a1, nod32const(f1->vconst), t->right);
+		gins(a2, nod32const(f1->vconst>>32), t->left);
+	} else {
+		if(f2 != Z && f2 != t) {
+			gins3(a1, f1->right, f2->right, t->right);
+			gins3(a2, f1->left, f2->left, t->left);
+		} else {
+			gins(a1, f1->right, t->right);
+			gins(a2, f1->left, t->left);
 		}
 	}
-	if(t != Z)
-		naddr(t, &p->to);
-	if(debug['g'])
-		print("%P\n", p);
 }
 
 samaddr(Node *f, Node *t)
@@ -1121,8 +1548,49 @@ samaddr(Node *f, Node *t)
 		if(f->reg != t->reg)
 			break;
 		return 1;
+
+	case OREGPAIR:
+		return samaddr(f->left, t->left) && samaddr(f->right, t->right);
 	}
 	return 0;
+}
+
+static void
+gori64(int a, Node *f1, Node *f2, Node *t)
+{
+	ulong lo, hi;
+
+	if(f2 == Z)
+		f2 = t;
+	lo = f1->vconst & MASK(32);
+	hi = (f1->vconst >> 32) & MASK(32);
+	if(lo & 0xFFFF)
+		gins3(a, nodconst(lo & 0xFFFF), f2->right, t->right);
+	if((lo >> 16) != 0)
+		gins3(a, nodconst(lo & 0xFFFF0000UL), f2->right, t->right);
+	if(hi & 0xFFFF)
+		gins3(a, nodconst(hi & 0xFFFF), f2->left, t->left);
+	if((hi >> 16) != 0)
+		gins3(a, nodconst(hi & 0xFFFF0000UL), f2->left, t->left);
+}
+
+static void
+gandi64(int a, Node *f1, Node *f2, Node *t)
+{
+	ulong lo, hi;
+
+	if(f2 == Z)
+		f2 = t;
+	lo = f1->vconst & MASK(32);
+	hi = (f1->vconst >> 32) & MASK(32);
+	if(lo == 0)
+		gins(AMOVW, nodconst(0), t->right);
+	else
+		gins3(a, nodconst(lo), f2->right, t->right);
+	if(hi == 0)
+		gins(AMOVW, nodconst(0), t->left);
+	else
+		gins3(a, nodconst(hi), f2->left, t->left);
 }
 
 void

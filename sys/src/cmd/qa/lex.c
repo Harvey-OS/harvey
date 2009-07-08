@@ -169,7 +169,7 @@ struct
 	"MSR",		LMSR,	D_MSR,
 	"FPSCR",	LFPSCR,	D_FPSCR,
 	"SPR",		LSPR,	D_SPR,
-	"DCR",		LSPR,	D_DCR,
+	"DCR",		LDCR,	D_DCR,
 
 	"SEG",		LSEG,	D_SREG,
 
@@ -539,7 +539,85 @@ struct
 	"NMACLHWV", LMA, ANMACLHWV,
 	"NMACLHWVCC", LMA, ANMACLHWVCC,
 
-/* special instructions */
+	/* optional on 32-bit */
+	"FRES", LFCONV, AFRES,
+	"FRESCC", LFCONV, AFRESCC,
+	"FRSQRTE", LFCONV, AFRSQRTE,
+	"FRSQRTECC", LFCONV, AFRSQRTECC,
+	"FSEL", LFMA, AFSEL,
+	"FSELCC", LFMA, AFSELCC,
+	"FSQRT", LFCONV, AFSQRT,
+	"FSQRTCC", LFCONV, AFSQRTCC,
+	"FSQRTS", LFCONV, AFSQRTS,
+	"FSQRTSCC", LFCONV, AFSQRTSCC,
+
+	/* parallel, cross, and secondary (fp2) */
+	"FPSEL", LFMA, AFPSEL,
+	"FPMUL", LFADD, AFPMUL,
+	"FXMUL", LFADD, AFXMUL,
+	"FXPMUL", LFADD, AFXPMUL,
+	"FXSMUL", LFADD, AFXSMUL,
+	"FPADD", LFADD, AFPADD,
+	"FPSUB", LFADD, AFPSUB,
+	"FPRE", LFCONV, AFPRE,
+	"FPRSQRTE", LFCONV, AFPRSQRTE,
+	"FPMADD", LFMA, AFPMADD,
+	"FXMADD", LFMA, AFXMADD,
+	"FXCPMADD", LFMA, AFXCPMADD,
+	"FXCSMADD", LFMA, AFXCSMADD,
+	"FPNMADD", LFMA, AFPNMADD,
+	"FXNMADD", LFMA, AFXNMADD,
+	"FXCPNMADD", LFMA, AFXCPNMADD,
+	"FXCSNMADD", LFMA, AFXCSNMADD,
+	"FPMSUB", LFMA, AFPMSUB,
+	"FXMSUB", LFMA, AFXMSUB,
+	"FXCPMSUB", LFMA, AFXCPMSUB,
+	"FXCSMSUB", LFMA, AFXCSMSUB,
+	"FPNMSUB", LFMA, AFPNMSUB,
+	"FXNMSUB", LFMA, AFXNMSUB,
+	"FXCPNMSUB", LFMA, AFXCPNMSUB,
+	"FXCSNMSUB", LFMA, AFXCSNMSUB,
+	"FPABS", LFCONV, AFPABS,
+	"FPNEG", LFCONV, AFPNEG,
+	"FPRSP", LFCONV, AFPRSP,
+	"FPNABS", LFCONV, AFPNABS,
+	"FSMOVD", LFMOV, AFSMOVD,
+	"FSCMP", LFCMP, AFSCMP,
+	"FSABS", LFCONV, AFSABS,
+	"FSNEG", LFCONV, AFSNEG,
+	"FSNABS", LFCONV, AFSNABS,
+	"FPCTIW", LFCONV, AFPCTIW,
+	"FPCTIWZ", LFCONV, AFPCTIWZ,
+	"FMOVSPD", LFCONV, AFMOVSPD,
+	"FMOVPSD", LFCONV, AFMOVPSD,
+	"FXCPNPMA", LFMA, AFXCPNPMA,
+	"FXCSNPMA", LFMA, AFXCSNPMA,
+	"FXCPNSMA", LFMA, AFXCPNSMA,
+	"FXCSNSMA", LFMA, AFXCSNSMA,
+	"FXCXNPMA", LFMA, AFXCXNPMA,
+	"FXCXNSMA", LFMA, AFXCXNSMA,
+	"FXCXMA", LFMA, AFXCXMA,
+	"FXCXNMS", LFMA, AFXCXNMS,
+
+	/* parallel, cross, and secondary load and store (fp2) */
+	"FSMOVS", LFMOVX, AFSMOVS,
+	"FSMOVSU", LFMOVX, AFSMOVSU,
+	"FSMOVD", LFMOVX, AFSMOVD,
+	"FSMOVDU", LFMOVX, AFSMOVDU,
+	"FXMOVS", LFMOVX, AFXMOVS,
+	"FXMOVSU", LFMOVX, AFXMOVSU,
+	"FXMOVD", LFMOVX, AFXMOVD,
+	"FXMOVDU", LFMOVX, AFXMOVDU,
+	"FPMOVS", LFMOVX, AFPMOVS,
+	"FPMOVSU", LFMOVX, AFPMOVSU,
+	"FPMOVD", LFMOVX, AFPMOVD,
+	"FPMOVDU", LFMOVX, AFPMOVDU,
+	"FPMOVIW", LFMOVX, AFPMOVIW,
+
+	"AFMOVSPD",	LFMOV,	AFMOVSPD,
+	"AFMOVPSD",	LFMOV,	AFMOVPSD,
+
+	/* special instructions */
 	"DCBF",		LXOP,	ADCBF,
 	"DCBI",		LXOP,	ADCBI,
 	"DCBST",	LXOP,	ADCBST,
@@ -626,6 +704,7 @@ zname(char *n, int t, int s)
 {
 
 	Bputc(&obuf, ANAME);
+	Bputc(&obuf, ANAME>>8);
 	Bputc(&obuf, t);	/* type */
 	Bputc(&obuf, s);	/* sym */
 	while(*n) {
@@ -746,6 +825,7 @@ outcode(int a, Gen *g1, int reg, Gen *g2)
 		st = outsim(g2);
 	} while(sf != 0 && st == sf);
 	Bputc(&obuf, a);
+	Bputc(&obuf, a>>8);
 	Bputc(&obuf, reg|nosched);
 	Bputc(&obuf, lineno);
 	Bputc(&obuf, lineno>>8);
@@ -773,6 +853,7 @@ outgcode(int a, Gen *g1, int reg, Gen *g2, Gen *g3)
 	if(g2->type != D_NONE)
 		flag = 0x40;	/* flags extra operand */
 	Bputc(&obuf, a);
+	Bputc(&obuf, a>>8);
 	Bputc(&obuf, reg | nosched | flag);
 	Bputc(&obuf, lineno);
 	Bputc(&obuf, lineno>>8);
@@ -828,6 +909,7 @@ outhist(void)
 			}
 			if(n) {
 				Bputc(&obuf, ANAME);
+				Bputc(&obuf, ANAME>>8);
 				Bputc(&obuf, D_FILE);	/* type */
 				Bputc(&obuf, 1);	/* sym */
 				Bputc(&obuf, '<');
@@ -843,6 +925,7 @@ outhist(void)
 		g.offset = h->offset;
 
 		Bputc(&obuf, AHISTORY);
+		Bputc(&obuf, AHISTORY>>8);
 		Bputc(&obuf, 0);
 		Bputc(&obuf, h->line);
 		Bputc(&obuf, h->line>>8);

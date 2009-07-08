@@ -167,7 +167,16 @@ loop1:
 			case AORNCC:
 			case AXORCC:
 			case ASUBCC:
+			case ASUBECC:
+			case ASUBMECC:
+			case ASUBZECC:
 			case AADDCC:
+			case AADDCCC:
+			case AADDECC:
+			case AADDMECC:
+			case AADDZECC:
+			case ARLWMICC:
+			case ARLWNMCC:
 				t = p1->as;
 				break;
 			/* don't deal with floating point instructions for now */
@@ -269,6 +278,7 @@ excise(Reg *r)
 	p = r->prog;
 	p->as = ANOP;
 	p->from = zprog.from;
+	p->from3 = zprog.from3;
 	p->to = zprog.to;
 	p->reg = zprog.reg; /**/
 }
@@ -374,10 +384,22 @@ subprop(Reg *r0)
 			return 0;
 
 		case AADD:
+		case AADDC:
+		case AADDCC:
+		case AADDE:
+		case AADDECC:
 		case ASUB:
+		case ASUBCC:
+		case ASUBC:
+		case ASUBCCC:
+		case ASUBE:
+		case ASUBECC:
 		case ASLW:
+		case ASLWCC:
 		case ASRW:
+		case ASRWCC:
 		case ASRAW:
+		case ASRAWCC:
 		case AOR:
 		case AORCC:
 		case AORN:
@@ -392,13 +414,17 @@ subprop(Reg *r0)
 		case ANORCC:
 		case AXOR:
 		case AXORCC:
+		case AMULHW:
+		case AMULHWU:
 		case AMULLW:
 		case ADIVW:
 		case ADIVWU:
 		case AREM:
 		case AREMU:
-		case ANEG:
-		case ANEGCC:
+		case ARLWNM:
+		case ARLWNMCC:
+		case ARLWMI:
+		case ARLWMICC:
 
 		case AFADD:
 		case AFADDS:
@@ -408,8 +434,6 @@ subprop(Reg *r0)
 		case AFMULS:
 		case AFDIV:
 		case AFDIVS:
-		case AFNEG:
-		case AFNEGCC:
 			if(p->to.type == v1->type)
 			if(p->to.reg == v1->reg) {
 				if(p->reg == NREG)
@@ -418,6 +442,18 @@ subprop(Reg *r0)
 			}
 			break;
 
+		case AADDME:
+		case AADDMECC:
+		case AADDZE:
+		case AADDZECC:
+		case ASUBME:
+		case ASUBMECC:
+		case ASUBZE:
+		case ASUBZECC:
+		case ANEG:
+		case ANEGCC:
+		case AFNEG:
+		case AFNEGCC:
 		case AFMOVS:
 		case AFMOVD:
 		case AMOVW:
@@ -595,6 +631,14 @@ copyu(Prog *p, Adr *v, Adr *s)
 
 	case ANEG:
 	case ANEGCC:
+	case AADDME:
+	case AADDMECC:
+	case AADDZE:
+	case AADDZECC:
+	case ASUBME:
+	case ASUBMECC:
+	case ASUBZE:
+	case ASUBZECC:
 
 	case AFCTIW:
 	case AFCTIWZ:
@@ -623,6 +667,8 @@ copyu(Prog *p, Adr *v, Adr *s)
 		return 0;
 
 	case AADD:	/* read read write */
+	case AADDC:
+	case AADDE:
 	case ASUB:
 	case ASLW:
 	case ASRW:
@@ -640,11 +686,17 @@ copyu(Prog *p, Adr *v, Adr *s)
 	case ANOR:
 	case ANORCC:
 	case AXOR:
+	case AMULHW:
+	case AMULHWU:
 	case AMULLW:
 	case ADIVW:
 	case ADIVWU:
 	case AREM:
 	case AREMU:
+	case ARLWMI:
+	case ARLWMICC:
+	case ARLWNM:
+	case ARLWNMCC:
 
 	case AFADDS:
 	case AFADD:
@@ -760,9 +812,25 @@ a2type(Prog *p)
 
 	switch(p->as) {
 	case AADD:
+	case AADDC:
 	case AADDCC:
+	case AADDCCC:
+	case AADDE:
+	case AADDECC:
+	case AADDME:
+	case AADDMECC:
+	case AADDZE:
+	case AADDZECC:
 	case ASUB:
+	case ASUBC:
 	case ASUBCC:
+	case ASUBCCC:
+	case ASUBE:
+	case ASUBECC:
+	case ASUBME:
+	case ASUBMECC:
+	case ASUBZE:
+	case ASUBZECC:
 	case ASLW:
 	case ASLWCC:
 	case ASRW:
@@ -781,6 +849,8 @@ a2type(Prog *p)
 	case AXORCC:
 	case ANEG:
 	case ANEGCC:
+	case AMULHW:
+	case AMULHWU:
 	case AMULLW:
 	case AMULLWCC:
 	case ADIVW:
@@ -795,6 +865,10 @@ a2type(Prog *p)
 	case ANANDCC:
 	case ANOR:
 	case ANORCC:
+	case ARLWMI:
+	case ARLWMICC:
+	case ARLWNM:
+	case ARLWNMCC:
 		return D_REG;
 
 	case AFADDS:

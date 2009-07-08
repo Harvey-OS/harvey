@@ -139,7 +139,7 @@ ctlr
 	# vid=0x5333 did=0x8A21		# Savage 3DMV, not supported
 	vid=0x5333 did=0x8A22		# Savage 4
 	vid=0x5333 did=0x8A25		# ProSavage PN133
-	vid=0x5333 did=0x8A26		# ProSavage KN133 
+	vid=0x5333 did=0x8A26		# ProSavage KN133
 	vid=0x5333 did=0x883D		# ViRGE VX
 	vid=0x5333 did=0x8C01		# ViRGE MX
 	vid=0x5333 did=0x8C03		# ViRGE MXP
@@ -202,7 +202,7 @@ ctlr							# CL-GD542x
 	hwgc=clgd542xhwgc
 ctlr
 	0xC0039="CL-GD5436/46 PCI VGA BIOS Version"
-	0xC0039="CL-GD5446 PCI VGA BIOS Version"	
+	0xC0039="CL-GD5446 PCI VGA BIOS Version"
 	vid=0x1013 did=0x00b8		# CL-GD5446, at least in QEMU
 	link=vga
 	ctlr=clgd542x linear=1
@@ -291,7 +291,7 @@ ctlr
 	0xC0093="Trident TGUI96xx"
 	0xC0044="GL A6.00E"
 	0xC68A5="TVGA BIOS LS  6.0 (08)"		# Sharp Actius A250, Cyber 9525/DVD
-	0xC7E5F="TVGA BIOS 1.14"				# iTuner 
+	0xC7E5F="TVGA BIOS 1.14"				# iTuner
 	link=vga
 	ctlr=cyber938x linear=1
 	hwgc=cyber938xhwgc
@@ -427,7 +427,7 @@ include=640x480					# 60Hz, 31.5KHz
 include=640x480@72Hz					# 72Hz, 38.5KHz
 	clock=32
 	shb=664 ehb=704 ht=832
-	vrs=489 vre=492 vt=520 
+	vrs=489 vre=492 vt=520
 
 include=800x600					# 60Hz, 37.9KHz
 	defaultclock=40
@@ -602,7 +602,7 @@ vs17x=1024x768					# ??Hz, ??.?KHz
 
 #
 # Dell UltraScan 21TE (MODEL No. D2130T-HS)
-# Horizontal timing: 
+# Horizontal timing:
 #	Allowable frequency range: 30-93KHz
 # Vertical timing:
 #	Allowable frequency range: 50-152Hz
@@ -635,7 +635,7 @@ dell2001fp=1600x1200
 # Dell 2007FP at 1600x1200
 #
 # Horz=30-81kHz
-# Vert=56-76Hz, 1600x1200 at 60Hz only 
+# Vert=56-76Hz, 1600x1200 at 60Hz only
 #
 dell2007fp
 	videobw=200					# actually 162
@@ -681,7 +681,7 @@ cm751u=1600x1200					# 75Hz, 93.75 kHz
 
 #
 # Hitachi CM801U
-# Horizontal timing: 
+# Horizontal timing:
 #	Allowable frequency range: 31-96KHz
 # Vertical timing:
 #	Allowable frequency range: 50-160Hz
@@ -707,7 +707,7 @@ cm801u=1376x1024						# ??Hz, ??.?KHz
 #
 # We can't seem to set the clock higher than 100MHz here.
 # Maybe it's because we don't have clock doubling code in aux/vga,
-# maybe it's because the chip won't go that high.  
+# maybe it's because the chip won't go that high.
 # Using a clock of 75 produces noticeable refresh pulsing on the LCD,
 # a clock of 100 seems okay.  I'd like to go higher.
 # If only we had documentation.  -rsc
@@ -748,7 +748,7 @@ ms8617
 
 #
 # IDEK Vision Master 21 (model no. MF-8221E)
-# Horizontal timing: 
+# Horizontal timing:
 #	Allowable frequency range: 24.8-94.0KHz
 # Vertical timing:
 #	Allowable frequency range: 50-160Hz
@@ -804,14 +804,14 @@ pro400=1600x1200					# 76Hz, 90.0KHz
 	vrs=1202 vre=1208 vt=1240
 pro400=1280x1024
 	defaultclock=135				# 90hz, 103Khz
-	shb=1352 ehb=1544 ht=1712			# 
+	shb=1352 ehb=1544 ht=1712			#
 	shs=1328
 	vrs=1028 vre=1034 vt=1075
 pro400=1024x768
 
 #
 # Micron 17FGx
-# Horizontal timing: 
+# Horizontal timing:
 #	Allowable frequency range: 30-64KHz
 # Vertical timing:
 #	Allowable frequency range: 50-100Hz
@@ -941,7 +941,7 @@ versalx=1024x768
 	shb=664 ehb=760 ht=800
 	vrs=491 vre=493 vt=525
 
-# 
+#
 # Panasonic E70i 17" monitor
 # from aam396@mail.usask.ca
 #
@@ -956,7 +956,7 @@ e70i=1280x1024
 #
 #
 # Sampo KDM-1788
-# Horizontal timing: 
+# Horizontal timing:
 #	Allowable frequency range: 30-82KHz
 # Vertical timing:
 #	Allowable frequency range: 50-120Hz
@@ -969,7 +969,7 @@ kdm-1788
 
 #
 # Samsung SyncMaster 17GLsi
-# Horizontal timing: 
+# Horizontal timing:
 #	Allowable frequency range: 30-85KHz
 # Vertical timing:
 #	Allowable frequency range: 50-120Hz
@@ -1132,7 +1132,7 @@ multilink=1600x1024
 multilinx=1600x1024
 	clock=103.125
 	shb=1592 ehb=1624 ht=1672
-	shs=1592 
+	shs=1592
 	vrs=1024 vre=1029 vt=1029
 	hsync=+ vsync=+
 #
@@ -1255,49 +1255,49 @@ planar=1280x1024
 #
 # Dell 2405FPW LCD
 #
-2405fpw=640x480				# 60Hz 
+2405fpw=640x480				# 60Hz
 	clock=25.175
 	shb=648 ehb=792 ht=800
 	vrs=490 vre=492 vt=525
-	hsync=- vsync=- 
-2405fpw=640x480				# 75Hz 
-	clock=31.5
-	shb=640 ehb=840 ht=840
-	vrs=481 vre=484 vt=500
-	hsync=- vsync=- 
-2405fpw=800x600				# 60Hz 
+	hsync=- vsync=-
+#2405fpw=640x480				# 75Hz
+#	clock=31.5
+#	shb=640 ehb=840 ht=840
+#	vrs=481 vre=484 vt=500
+#	hsync=- vsync=-
+2405fpw=800x600				# 60Hz
 	clock=40
 	shb=800 ehb=1056 ht=1056
 	vrs=601 vre=605 vt=628
-	hsync=+ vsync=+ 
-2405fpw=800x600				# 75Hz 
-	clock=49.5
-	shb=800 ehb=1056 ht=1056
-	vrs=601 vre=604 vt=625
-	hsync=+ vsync=+ 
+	hsync=+ vsync=+
+#2405fpw=800x600				# 75Hz
+#	clock=49.5
+#	shb=800 ehb=1056 ht=1056
+#	vrs=601 vre=604 vt=625
+#	hsync=+ vsync=+
 2405fpw=1024x768			# 60Hz
 	clock=65
 	shb=1024 ehb=1344 ht=1344
 	vrs=771 vre=777 vt=806
-	hsync=- vsync=- 
-2405fpw=1024x768			# 75Hz
-	clock=78.75
-	shb=1024 ehb=1312 ht=1312
-	vrs=769 vre=772 vt=800
-	hsync=+ vsync=+ 
+	hsync=- vsync=-
+#2405fpw=1024x768			# 75Hz
+#	clock=78.75
+#	shb=1024 ehb=1312 ht=1312
+#	vrs=769 vre=772 vt=800
+#	hsync=+ vsync=+
 2405fpw=1280x1024			# 75Hz
 	clock=135
 	shb=1280 ehb=1688 ht=1688
 	vrs=1025 vre=1028 vt=1066
-	hsync=+ vsync=+ 
+	hsync=+ vsync=+
 2405fpw=1920x1200			# 60Hz
 	clock=154
 	shb=1968 ehb=2000 ht=2080
 	vrs=1203 vre=1209 vt=1235
-	hsync=+ vsync=- 
+	hsync=+ vsync=-
 
 #
-# Viewsonic VP201(b) at 1600x1200 
+# Viewsonic VP201(b) at 1600x1200
 #
 vp201
 	videobw=200
@@ -1356,6 +1356,60 @@ e198wfp=1440x900	# 60 Hz
 	hsync=- vsync=+
 
 #
+# Dell E228WFP LCD monitor (1680x1050 native)
+#
+e228wfp
+	videobw=150
+
+e228wfp=640x480		# 60Hz
+	clock=25.175
+	shb=648 ehb=792 ht=800
+	vrs=490 vre=492 vt=525
+	hsync=- vsync=-
+
+#e228wfp=640x480		# 75Hz
+#	clock=31.5
+#	shb=640 ehb=840 ht=840
+#	vrs=481 vre=484 vt=500
+#	hsync=- vsync=-
+
+e228wfp=800x600		# 60Hz
+	clock=40
+	shb=800 ehb=1056 ht=1056
+	vrs=601 vre=605 vt=628
+	hsync=+ vsync=+
+
+#e228wfp=800x600		# 75Hz
+#	clock=49.5
+#	shb=800 ehb=1056 ht=1056
+#	vrs=601 vre=604 vt=625
+#	hsync=+ vsync=+
+
+e228wfp=1024x768	# 60Hz
+	clock=65
+	shb=1024 ehb=1344 ht=1344
+	vrs=771 vre=777 vt=806
+	hsync=- vsync=-
+
+#e228wfp=1024x768	# 75Hz
+#	clock=78.75
+#	shb=1024 ehb=1312 ht=1312
+#	vrs=769 vre=772 vt=800
+#	hsync=+ vsync=+
+
+e228wfp=1280x1024	# 75Hz
+	clock=135
+	shb=1280 ehb=1688 ht=1688
+	vrs=1025 vre=1028 vt=1066
+	hsync=+ vsync=+
+
+e228wfp=1680x1050	# 60Hz
+	clock=146.25
+	shb=1784 ehb=1960 ht=2240
+	vrs=1053 vre=1059 vt=1089
+	hsync=- vsync=+
+
+#
 # HannsG JC199D LCD monitor (1280x1024 native)
 #
 jc199d
@@ -1389,8 +1443,8 @@ jc199d=1280x1024		#	60 Hz
 # UXGA		1600x1200	Ultra eXtended Graphics Array
 # WSXGA+	1680x1050	Wide SXGA+
 # WUXGA		1920x1200	Wide UXGA
-# QXGA		2048x1536	Quad XGA 
-# QSXGA		2560x2048	Quad SXGA 
+# QXGA		2048x1536	Quad XGA
+# QSXGA		2560x2048	Quad SXGA
 # QUXGA		3200x2400	Quad UXGA
 # QUXGA-W	3840x2400	Wide-QUXGA
 #

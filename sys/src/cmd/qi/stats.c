@@ -92,7 +92,10 @@ isum(void)
 	}
 
 	Bprint(bioout, "\n%-8ud      Memory cycles\n", loads+stores+total);
-	
+
+	if(total == 0)
+		return;
+
 	Bprint(bioout, "%-8ud %3d%% Instruction cycles\n",
 				total, Percent(total, loads+stores+total));
 

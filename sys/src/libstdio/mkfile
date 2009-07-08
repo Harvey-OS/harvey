@@ -67,6 +67,3 @@ CFLAGS=
 
 test:V:	$OFILES
 	ar vu libstdio.a $OFILES
-
-nuke:V:
-	rm -f *.[$OS] [$OS].out libstdio.a

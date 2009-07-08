@@ -6,6 +6,9 @@
 #define	DEFAULT	'9'
 #endif
 
+#define	OANAME	229	/* old ANAME */
+
+
 char	*noname		= "<none>";
 char	symname[]	= SYMDEF;
 char	thechar		= 'q';
@@ -18,6 +21,9 @@ char	*thestring 	= "power";
  *	-H3 -T0x02010000 -D0x00001000	is raw
  *	-H4 -T0x1000200 -D0x20000e00 -R4	is aix xcoff executable
  *	-H5 -T0x80010000 -t0x10000	ELF, phys = 10000, vaddr = 0x8001...
+ *					appropriate for blue gene (bg/l anyway)
+ *	-H6 -T0xfffe2100 -R4		ELF, phys = vaddr = 0xfffe2100
+ *					appropriate for virtex 4 boot
  */
 
 static int
@@ -174,6 +180,7 @@ main(int argc, char *argv[])
 			INITRND = 0;
 		break;
 	case 5:	/* elf executable */
+	case 6:	/* elf for virtex 4 */
 		HEADR = rnd(52L+3*32L, 16);
 		if(INITTEXT == -1)
 			INITTEXT = 0x00400000L+HEADR;
@@ -718,35 +725,39 @@ loop:
 		bloc = buf.xbuf;
 		goto loop;
 	}
-	o = bloc[0];		/* as */
+	o = bloc[0] | (bloc[1] << 8);		/* as */
+	if(bloc[0] == OANAME && o != OANAME) {
+		diag("%s: probably old .q file\n", pn);
+		errorexit();
+	}
 	if(o <= 0 || o >= ALAST) {
 		diag("%s: opcode out of range %d", pn, o);
-		print("	probably not a .q file\n");
+		print("	probably not a .%c file\n", thechar);
 		errorexit();
 	}
 	if(o == ANAME || o == ASIGNAME) {
 		sig = 0;
 		if(o == ASIGNAME) {
-			sig = bloc[1] | (bloc[2]<<8) | (bloc[3]<<16) | (bloc[4]<<24);
+			sig = bloc[2] | (bloc[3]<<8) | (bloc[4]<<16) | (bloc[5]<<24);
 			bloc += 4;
 			c -= 4;
 		}
-		stop = memchr(&bloc[3], 0, bsize-&bloc[3]);
+		stop = memchr(&bloc[4], 0, bsize-&bloc[4]);
 		if(stop == 0){
 			bsize = readsome(f, buf.xbuf, bloc, bsize, c);
 			if(bsize == 0)
 				goto eof;
 			bloc = buf.xbuf;
-			stop = memchr(&bloc[3], 0, bsize-&bloc[3]);
+			stop = memchr(&bloc[4], 0, bsize-&bloc[4]);
 			if(stop == 0){
 				fprint(2, "%s: name too long\n", pn);
 				errorexit();
 			}
 		}
-		v = bloc[1];	/* type */
-		o = bloc[2];	/* sym */
-		bloc += 3;
-		c -= 3;
+		v = bloc[2];	/* type */
+		o = bloc[3];	/* sym */
+		bloc += 4;
+		c -= 4;
 
 		r = 0;
 		if(v == D_STATIC)
@@ -789,12 +800,12 @@ loop:
 	hunk += sizeof(Prog);
 
 	p->as = o;
-	p->reg = bloc[1] & 0x3f;
-	if(bloc[1] & 0x80)
+	p->reg = bloc[2] & 0x3f;
+	if(bloc[2] & 0x80)
 		p->mark = NOSCHED;
-	p->line = bloc[2] | (bloc[3]<<8) | (bloc[4]<<16) | (bloc[5]<<24);
-	r = zaddr(bloc+6, &p->from, h) + 6;
-	if(bloc[1] & 0x40)
+	p->line = bloc[3] | (bloc[4]<<8) | (bloc[5]<<16) | (bloc[6]<<24);
+	r = zaddr(bloc+7, &p->from, h) + 7;
+	if(bloc[2] & 0x40)
 		r += zaddr(bloc+r, &p->from3, h);
 	else
 		p->from3 = zprg.from3;

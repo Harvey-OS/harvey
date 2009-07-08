@@ -840,7 +840,6 @@ allreg(ulong b, Rgn *r)
 		}
 		break;
 
-	case TVLONG:
 	case TDOUBLE:
 	case TFLOAT:
 		i = BtoF(~b);

@@ -9,6 +9,7 @@
 #include "mp.h"
 #include "apbootstrap.h"
 
+static PCMP* mppcmp;
 static Bus* mpbus;
 static Bus* mpbuslast;
 static int mpisabus = -1;
@@ -163,6 +164,7 @@ mkiointr(PCMPintr* p)
 {
 	Bus *bus;
 	Aintr *aintr;
+	PCMPintr* pcmpintr;
 
 	/*
 	 * According to the MultiProcessor Specification, a destination
@@ -177,6 +179,28 @@ mkiointr(PCMPintr* p)
 
 	aintr = xalloc(sizeof(Aintr));
 	aintr->intr = p;
+
+	if(0)
+		print("iointr: type %d intr type %d flags %#o "
+			"bus %d irq %d apicno %d intin %d\n",
+			p->type, p->intr, p->flags,
+			p->busno, p->irq, p->apicno, p->intin);
+	/*
+	 * Hack for Intel SR1520ML motherboard, which BIOS describes
+	 * the i82575 dual ethernet controllers incorrectly.
+	 */
+	if(memcmp(mppcmp->product, "INTEL   X38MLST     ", 20) == 0){
+		if(p->busno == 1 && p->intin == 16 && p->irq == 1){
+			pcmpintr = malloc(sizeof(PCMPintr));
+			memmove(pcmpintr, p, sizeof(PCMPintr));
+			print("mkiointr: %20.20s bus %d intin %d irq %d\n",
+				(char*)mppcmp->product,
+				pcmpintr->busno, pcmpintr->intin,
+				pcmpintr->irq);
+			pcmpintr->intin = 17;
+			aintr->intr = pcmpintr;
+		}
+	}
 	aintr->apic = &mpapic[p->apicno];
 	aintr->next = bus->aintr;
 	bus->aintr = aintr;
@@ -484,6 +508,7 @@ mpinit(void)
 	 */
 	if((va = vmap(pcmp->lapicbase, 1024)) == nil)
 		return;
+	mppcmp = pcmp;
 	print("LAPIC: %.8lux %.8lux\n", pcmp->lapicbase, (ulong)va);
 
 	bpapic = nil;
@@ -653,7 +678,12 @@ mpintrenablex(Vctl* v, int tbdf)
 	for(aintr = bus->aintr; aintr; aintr = aintr->next){
 		if(aintr->intr->irq != irq)
 			continue;
+		if (0) {
+			PCMPintr* p = aintr->intr;
 
+	   	 	print("mpintrenablex: bus %d intin %d irq %d\n",
+				p->busno, p->intin, p->irq);
+		}
 		/*
 		 * Check if already enabled. Multifunction devices may share
 		 * INT[A-D]# so, if already enabled, check the polarity matches
@@ -666,9 +696,9 @@ mpintrenablex(Vctl* v, int tbdf)
 		 */
 		apic = aintr->apic;
 		ioapicrdtr(apic, aintr->intr->intin, 0, &lo);
-
 		if(!(lo & ApicIMASK)){
 			vno = lo & 0xFF;
+//print("%s vector %d (!imask)\n", v->name, vno);
 			n = mpintrinit(bus, aintr->intr, vno, v->irq);
 			n |= ApicLOGICAL;
 			lo &= ~(ApicRemoteIRR|ApicDELIVS);
@@ -698,6 +728,7 @@ mpintrenablex(Vctl* v, int tbdf)
 		 *    the same IRQ as devices on another pin.
 		 */
 		vno = VectorAPIC + (incref(&mpvnoref)-1)*8;
+//print("%s vector %d (imask)\n", v->name, vno);
 		if(vno > MaxVectorAPIC){
 			print("mpintrenable: vno %d, irq %d, tbdf %uX\n",
 				vno, v->irq, tbdf);

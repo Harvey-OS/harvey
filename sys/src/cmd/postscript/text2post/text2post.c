@@ -474,13 +474,13 @@ main(int argc, char *argv[]) {
 	char *t;
 	Biobuf *input;
 
-	if ((bstderr = (Biobuf *)malloc(sizeof(Biobuf))) < (Biobuf *)0)
+	if ((bstderr = (Biobuf *)malloc(sizeof(Biobuf))) == nil)
 		exits("malloc");
 	if (Binit(bstderr, 2, OWRITE) == Beof)
 		exits("Binit");
 	Bstderr = &(bstderr->Biobufhdr);
 
-	if ((bstdout = (Biobuf *)malloc(sizeof(Biobuf))) < (Biobuf *)0)
+	if ((bstdout = (Biobuf *)malloc(sizeof(Biobuf))) == nil)
 		exits("malloc");
 	if (Binit(bstdout, 1, OWRITE) == Beof)
 		exits("Binit");
@@ -542,7 +542,7 @@ main(int argc, char *argv[]) {
 	}ARGEND;
 	prologues();
 	if (argc <= 0) {
-		if ((bstdin = (Biobuf *)malloc(sizeof(Biobuf))) < (Biobuf *)0)
+		if ((bstdin = (Biobuf *)malloc(sizeof(Biobuf))) == nil)
 			exits("malloc");
 		if (Binit(bstdin, 0, OREAD) == Beof) {
 			fprint(2, "cannot Binit stdin\n");

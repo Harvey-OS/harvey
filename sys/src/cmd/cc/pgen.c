@@ -9,6 +9,7 @@ codgen(Node *n, Node *nn)
 	cursafe = 0;
 	curarg = 0;
 	maxargsafe = 0;
+	hasdoubled = 0;
 
 	/*
 	 * isolate name
@@ -25,6 +26,24 @@ codgen(Node *n, Node *nn)
 	gpseudo(ATEXT, n1->sym, nodconst(stkoff));
 	sp = p;
 
+	if(typecmplx[thisfn->link->etype]) {
+		if(nodret == nil) {
+			nodret = new(ONAME, Z, Z);
+			nodret->sym = slookup(".ret");
+			nodret->class = CPARAM;
+			nodret->type = types[TIND];
+			nodret->etype = TIND;
+			nodret = new(OIND, nodret, Z);
+		}
+		n1 = nodret->left;
+		if(n1->type == T || n1->type->link != thisfn->link) {
+			n1->type = typ(TIND, thisfn->link);
+			n1->etype = n1->type->etype;
+			nodret = new(OIND, n1, Z);
+			complex(nodret);
+		}
+	}
+
 	/*
 	 * isolate first argument
 	 */
@@ -35,11 +54,14 @@ codgen(Node *n, Node *nn)
 			gmove(&nod, &nod1);
 		} else
 		if(firstarg && typeword[firstargtype->etype]) {
-			nod1 = *nodret->left;
+			nod1 = znode;
+			nod1.op = ONAME;
 			nod1.sym = firstarg;
 			nod1.type = firstargtype;
+			nod1.class = CPARAM;
 			nod1.xoffset = align(0, firstargtype, Aarg1);
 			nod1.etype = firstargtype->etype;
+			xcom(&nod1);
 			nodreg(&nod, &nod1, REGARG);
 			gmove(&nod, &nod1);
 		}
@@ -56,7 +78,7 @@ codgen(Node *n, Node *nn)
 	if(!debug['N'] || debug['R'] || debug['P'])
 		regopt(sp);
 	
-	if(thechar=='6' || thechar=='7')	/* [sic] */
+	if(thechar=='6' || thechar=='7' || thechar=='9' || hasdoubled)	/* [sic] */
 		maxargsafe = round(maxargsafe, 8);
 	sp->to.offset += maxargsafe;
 }
@@ -148,7 +170,13 @@ loop:
 			break;
 		}
 		if(typecmplx[n->type->etype]) {
-			sugen(l, nodret, n->type->width);
+			nod = znode;
+			nod.op = OAS;
+			nod.left = nodret;
+			nod.right = l;
+			nod.type = n->type;
+			nod.complex = l->complex;
+			cgen(&nod, Z);
 			noretval(3);
 			gbranch(ORETURN);
 			break;

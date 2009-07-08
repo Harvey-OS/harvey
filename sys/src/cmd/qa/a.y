@@ -20,9 +20,9 @@
 %token	<lval>	LNOP LEND LRETT LWORD LTEXT LDATA LRETRN
 %token	<lval>	LCONST LSP LSB LFP LPC LCREG LFLUSH
 %token	<lval>	LREG LFREG LR LCR LF LFPSCR
-%token	<lval>	LLR LCTR LSPR LSPREG LSEG LMSR
+%token	<lval>	LLR LCTR LSPR LSPREG LSEG LMSR LDCR
 %token	<lval>	LSCHED LXLD LXST LXOP LXMV
-%token	<lval>	LRLWM LMOVMW LMOVEM LMOVFL LMTFSB LMA
+%token	<lval>	LRLWM LMOVMW LMOVEM LMOVFL LMTFSB LMA LFMOVX
 %token	<dval>	LFCONST
 %token	<sval>	LSCONST
 %token	<sym>	LNAME LLAB LVAR
@@ -95,7 +95,7 @@ inst:
 		outcode($1, &$2, NREG, &$4);
 	}
 /*
- * load floats
+ * load and store floats
  */
 |	LFMOV addr ',' freg
 	{
@@ -118,6 +118,17 @@ inst:
 		outcode($1, &$2, NREG, &$4);
 	}
 |	LFMOV freg ',' regaddr
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
+/*
+ * load and store floats, indexed only
+ */
+|	LFMOVX regaddr ',' freg
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
+|	LFMOVX freg ',' regaddr
 	{
 		outcode($1, &$2, NREG, &$4);
 	}
@@ -696,6 +707,19 @@ psr:
 		$$ = nullgen;
 		$$.type = $1;
 		$$.offset = $3;
+	}
+|	LDCR '(' con ')'
+	{
+		$$ = nullgen;
+		$$.type = $1;
+		$$.offset = $3;
+	}
+|	LDCR '(' sreg ')'
+	{
+		$$ = nullgen;
+		$$.type = $1;
+		$$.reg = $3;
+		$$.offset = 0;
 	}
 |	msr
 

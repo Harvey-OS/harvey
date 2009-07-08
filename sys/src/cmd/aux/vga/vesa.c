@@ -80,7 +80,7 @@ enum {
 	Fdpmssuspend = 1<<2,	/* supports DPMS suspend mode */
 	Fdpmsactiveoff = 1<<3,	/* supports DPMS active off mode */
 	Fmonochrome = 1<<4,	/* is a monochrome display */
-	Fgtf = 1<<5,			/* supports VESA GTF: see /lib/vesa/gtf10.pdf */
+	Fgtf = 1<<5,		/* supports VESA GTF: see /public/doc/vesa/gtf10.pdf */
 };
 
 #define WORD(p) ((p)[0] | ((p)[1]<<8))
@@ -684,7 +684,7 @@ addmode(Modelist *l, Mode m)
 /*
  * Parse VESA EDID information.  Based on the VESA
  * Extended Display Identification Data standard, Version 3,
- * November 13, 1997.  See /lib/vesa/edidv3.pdf.
+ * November 13, 1997.  See /public/doc/vesa/edidv3.pdf.
  *
  * This only handles 128-byte EDID blocks.  Until I find
  * a monitor that produces 256-byte blocks, I'm not going
