@@ -15,7 +15,7 @@ enum {
 	Nself		= Maxmedia*5,
 	NHASH		= 1<<6,
 	NCACHE		= 256,
-	QMAX		= 64*1024-1,
+	QMAX		= 192*1024-1,
 };
 
 Medium *media[Maxmedia] = { 0 };
@@ -316,7 +316,7 @@ ipifccreate(Conv *c)
 	Ipifc *ifc;
 
 	c->rq = qopen(QMAX, 0, 0, 0);
-	c->sq = qopen(2*QMAX, 0, 0, 0);
+	c->sq = qopen(QMAX, 0, 0, 0);
 	c->wq = qopen(QMAX, Qkick, ipifckick, c);
 	ifc = (Ipifc*)c->ptcl;
 	ifc->conv = c;

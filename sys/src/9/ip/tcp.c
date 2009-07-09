@@ -41,13 +41,13 @@ enum
 	EOLOPT		= 0,
 	NOOPOPT		= 1,
 	MSSOPT		= 2,
-	MSS_LENGTH	= 4,		/* Mean segment size */
+	MSS_LENGTH	= 4,		/* Maximum segment size */
 	WSOPT		= 3,
 	WS_LENGTH	= 3,		/* Bits to scale window size by */
 	MSL2		= 10,
 	MSPTICK		= 50,		/* Milliseconds per timer tick */
-	DEF_MSS		= 1460,		/* Default mean segment */
-	DEF_MSS6	= 1280,		/* Default mean segment (min) for v6 */
+	DEF_MSS		= 1460,		/* Default maximum segment */
+	DEF_MSS6	= 1280,		/* Default maximum segment (min) for v6 */
 	DEF_RTT		= 500,		/* Default round trip */
 	DEF_KAT		= 120000,	/* Default time (ms) between keep alives */
 	TCP_LISTEN	= 0,		/* Listen connection */
@@ -226,9 +226,9 @@ struct Tcpctl
 	ushort	ssthresh;		/* Slow start threshold */
 	int	resent;			/* Bytes just resent */
 	int	irs;			/* Initial received squence */
-	ushort	mss;			/* Mean segment size */
+	ushort	mss;			/* Maximum segment size */
 	int	rerecv;			/* Overlap of data rerecevived */
-	ulong	window;			/* Recevive window */
+	ulong	window;			/* Receive window */
 	uchar	backoff;		/* Exponential backoff counter */
 	int	backedoff;		/* ms we've backed off for rexmits */
 	uchar	flags;			/* State flags */
@@ -290,6 +290,7 @@ ushort	tcp_mss = DEF_MSS;	/* Maximum segment size to be sent */
 enum {
 	/* MIB stats */
 	MaxConn,
+	Mss,
 	ActiveOpens,
 	PassiveOpens,
 	EstabResets,
@@ -313,6 +314,7 @@ enum {
 static char *statnames[] =
 {
 [MaxConn]	"MaxConn",
+[Mss]		"MaxSegment",
 [ActiveOpens]	"ActiveOpens",
 [PassiveOpens]	"PassiveOpens",
 [EstabResets]	"EstabResets",
@@ -578,6 +580,8 @@ tcprcvwin(Conv *s)				/* Call with tcb locked */
 	w = tcb->window - qlen(s->rq);
 	if(w < 0)
 		w = 0;
+	if(w == 0)
+		netlog(s->p->f, Logtcp, "tcprcvwim: window %d qlen %d\n", tcb->window, qlen(s->rq));
 	tcb->rcv.wnd = w;
 	if(w == 0)
 		tcb->rcv.blocked = 1;
@@ -798,6 +802,7 @@ inittcpctl(Conv *s, int mode)
 	Tcpctl *tcb;
 	Tcp4hdr* h4;
 	Tcp6hdr* h6;
+	Tcppriv *tpriv;
 	int mss;
 
 	tcb = (Tcpctl*)s->ptcl;
@@ -853,6 +858,8 @@ inittcpctl(Conv *s, int mode)
 	}
 
 	tcb->mss = tcb->cwind = mss;
+	tpriv = s->p->priv;
+	tpriv->stats[Mss] = tcb->mss;
 
 	/* default is no window scaling */
 	tcb->window = QMAX;
@@ -985,6 +992,7 @@ htontcp6(Tcp *tcph, Block *data, Tcp6hdr *ph, Tcpctl *tcb)
 			*opt++ = MSSOPT;
 			*opt++ = MSS_LENGTH;
 			hnputs(opt, tcph->mss);
+//			print("our outgoing mss %d\n", tcph->mss);
 			opt += 2;
 		}
 		if(tcph->ws != 0){
@@ -1197,8 +1205,10 @@ ntohtcp4(Tcp *tcph, Block **bpp)
 			break;
 		switch(*optr) {
 		case MSSOPT:
-			if(optlen == MSS_LENGTH)
+			if(optlen == MSS_LENGTH) {
 				tcph->mss = nhgets(optr+2);
+//				print("new incoming mss %d\n", tcph->mss);
+			}
 			break;
 		case WSOPT:
 			if(optlen == WS_LENGTH && *(optr+2) <= 14)
@@ -1218,6 +1228,8 @@ ntohtcp4(Tcp *tcph, Block **bpp)
 void
 tcpsndsyn(Conv *s, Tcpctl *tcb)
 {
+	Tcppriv *tpriv;
+
 	tcb->iss = (nrand(1<<16)<<16)|nrand(1<<16);
 	tcb->rttseq = tcb->iss;
 	tcb->snd.wl2 = tcb->iss;
@@ -1230,6 +1242,8 @@ tcpsndsyn(Conv *s, Tcpctl *tcb)
 
 	/* set desired mss and scale */
 	tcb->mss = tcpmtu(s->p, s->laddr, s->ipversion, &tcb->scale);
+	tpriv = s->p->priv;
+	tpriv->stats[Mss] = tcb->mss;
 }
 
 void
@@ -1404,6 +1418,8 @@ sndsynack(Proto *tcp, Limbo *lp)
 	seg.flags = SYN|ACK;
 	seg.urg = 0;
 	seg.mss = tcpmtu(tcp, lp->laddr, lp->version, &scale);
+//	if (seg.mss > lp->mss && lp->mss >= 512)
+//		seg.mss = lp->mss;
 	seg.wnd = QMAX;
 
 	/* if the other side set scale, we should too */
@@ -1664,8 +1680,10 @@ tcpincoming(Conv *s, Tcp *segp, uchar *src, uchar *dst, uchar version)
 	tcb->flags |= SYNACK;
 
 	/* our sending max segment size cannot be bigger than what he asked for */
-	if(lp->mss != 0 && lp->mss < tcb->mss)
+	if(lp->mss != 0 && lp->mss < tcb->mss) {
 		tcb->mss = lp->mss;
+		tpriv->stats[Mss] = tcb->mss;
+	}
 
 	/* window scaling */
 	tcpsetscale(new, tcb, lp->rcvscale, lp->sndscale);
@@ -2150,6 +2168,9 @@ reset:
 
 	/* Cut the data to fit the receive window */
 	if(tcptrim(tcb, &seg, &bp, &length) == -1) {
+		netlog(f, Logtcp, "tcptrim, not accept, seq %lud-%lud win %lud-%lud\n", 
+			seg.seq, seg.seq + length - 1, 
+			tcb->rcv.nxt, tcb->rcv.nxt + tcb->rcv.wnd-1);
 		netlog(f, Logtcp, "tcp len < 0, %lud %d\n", seg.seq, length);
 		update(s, &seg);
 		if(qlen(s->wq)+tcb->flgcnt == 0 && tcb->state == Closing) {
@@ -2834,6 +2855,7 @@ void
 procsyn(Conv *s, Tcp *seg)
 {
 	Tcpctl *tcb;
+	Tcppriv *tpriv;
 
 	tcb = (Tcpctl*)s->ptcl;
 	tcb->flags |= FORCE;
@@ -2843,8 +2865,11 @@ procsyn(Conv *s, Tcp *seg)
 	tcb->irs = seg->seq;
 
 	/* our sending max segment size cannot be bigger than what he asked for */
-	if(seg->mss != 0 && seg->mss < tcb->mss)
+	if(seg->mss != 0 && seg->mss < tcb->mss) {
 		tcb->mss = seg->mss;
+		tpriv = s->p->priv;
+		tpriv->stats[Mss] = tcb->mss;
+	}
 
 	/* the congestion window always starts out as a single segment */
 	tcb->snd.wnd = seg->wnd;

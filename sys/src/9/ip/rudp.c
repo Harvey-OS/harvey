@@ -690,7 +690,7 @@ rudpinit(Fs *fs)
 	rudp->advise = rudpadvise;
 	rudp->stats = rudpstats;
 	rudp->ipproto = IP_UDPPROTO;
-	rudp->nc = 16;
+	rudp->nc = 32;
 	rudp->ptclsize = sizeof(Rudpcb);
 
 	Fsproto(fs, rudp);

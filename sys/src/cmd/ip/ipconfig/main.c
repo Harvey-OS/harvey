@@ -620,7 +620,7 @@ doadd(int retry)
 	/* run dhcp if we need something */
 	if(dodhcp){
 		mkclientid();
-		for(tries = 0; tries < 6; tries++){
+		for(tries = 0; tries < 30; tries++){
 			dhcpquery(!noconfig, Sselecting);
 			if(conf.state == Sbound)
 				break;

@@ -16,7 +16,7 @@
  * "nvram" is for the benefit of AoE clients.
  */
 static char *diskparts[] = {
-	"dos", "9fat", "fs", "data", "cdboot", "cache", "nvram", 0
+	"dos", "plan9", "9fat", "fs", "data", "cdboot", "cache", "nvram", 0
 };
 static char *etherparts[] = { "*", 0 };
 
@@ -332,9 +332,11 @@ main(void)
 	if((ulong)&end > (KZERO|(640*1024)))
 		panic("i'm too big");
 
+	/*
+	 * find and read plan9.ini, setting configuration variables.
+	 */
 	if (debug)
-		print("initial probe, for plan9.ini...");
-	/* find and read plan9.ini, setting configuration variables */
+		print("plan9.ini probe...");
 	biosload = 1;			/* initially be optimistic */
 	for(tp = types; tp->type != Tnil; tp++){
 		/*
@@ -361,6 +363,8 @@ main(void)
 	/*
 	 * we should now have read plan9.ini, if any.
 	 */
+	if (!iniread)
+		print("no plan9.ini\n");
 	persist = getconf("*bootppersist");
 	debugload = getconf("*debugload") != nil;
 	/* hack for soekris-like machines */
@@ -411,16 +415,18 @@ done:
 		if((mp = probe(Tany, flag, Dany)) && mp->type->type != Tfloppy)
 			boot(mp, "");
 		if (debugload)
-			print("end auto probe\n");
+			print("end auto-boot probe\n");
 	}
 
 	def[0] = 0;
 	probe(Tany, Fnone, Dany);
 	if (debugload)
 		print("end final probe\n");
+
 	if(p = getconf("bootdef"))
 		strcpy(def, p);
 
+	/* print possible boot methods */
 	flag = 0;
 	for(tp = types; tp->type != Tnil; tp++){
 		for(mp = tp->media; mp; mp = mp->next){

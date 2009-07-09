@@ -1,6 +1,6 @@
 </$objtype/mkfile
 BIN=/$objtype/bin/auth
-CFLAGS=-Fw
+# CFLAGS=-Fw
 HFILES =\
 	SConn.h\
 	secstore.h\

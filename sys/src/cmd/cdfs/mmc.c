@@ -578,6 +578,11 @@ mmcreadtoc(Drive *drive, int type, int track, void *data, int nbytes)
 	cmd[7] = nbytes>>8;
 	cmd[8] = nbytes;
 
+	/*
+	 * printing iounit(drive->Scsi.rawfd) here yields
+	 *	iounit(3) = 0;		# for local access
+	 *	iounit(3) = 65512;	# for remote access via /mnt/term
+	 */
 	return scsi(drive, cmd, sizeof(cmd), data, nbytes, Sread);
 }
 
