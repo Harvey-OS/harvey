@@ -105,7 +105,11 @@ struct Ipfrag
 {
 	ushort	foff;
 	ushort	flen;
+
+	uchar	payload[];
 };
+
+#define IPFRAGSZ offsetof(Ipfrag, payload[0])
 
 /* an instance of IP */
 struct IP
@@ -601,9 +605,9 @@ ip6reassemble(IP* ip, int uflen, Block* bp, Ip6hdr* ih)
 		return bp;
 	}
 
-	if(bp->base+sizeof(Ipfrag) >= bp->rp){
-		bp = padblock(bp, sizeof(Ipfrag));
-		bp->rp += sizeof(Ipfrag);
+	if(bp->base+IPFRAGSZ >= bp->rp){
+		bp = padblock(bp, IPFRAGSZ);
+		bp->rp += IPFRAGSZ;
 	}
 
 	BKFG(bp)->foff = offset;

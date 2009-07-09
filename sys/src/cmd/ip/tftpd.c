@@ -245,7 +245,7 @@ sendfile(int fd, char *name, char *mode)
 		}
 
 		ret = write(fd, buf, 4+n);
-		if(ret < 0)
+		if(ret < 4+n)
 			sysfatal("tftpd: network write error: %r");
 
 		for(rxl = 0; rxl < 10; rxl++) {

@@ -42,7 +42,7 @@ int	qidcnt;
 int	qfreecnt;
 int	ncollision;
 
-int	netfd;
+int	netfd;				/* initially stdin */
 int	srvfd = -1;
 int	nonone = 1;
 char	*filterp;
@@ -54,13 +54,32 @@ int	readonly;
 static void	mksecret(char *, uchar *);
 static int localread9pmsg(int, void *, uint, ulong *);
 static char *anstring  = "tcp!*!0";
+
+char *netdir = "", *local = "", *remote = "";
+
 int	filter(int, char *);
 
 void
 usage(void)
 {
-	fprint(2, "usage:	%s [-adnsR] [-f dbgfile] [-m msize] [-r root] [-S srvfile] [-e 'crypt hash'] [-P exclusion-file] [-A announce-string] [-B address]\n", argv0);
+	fprint(2, "usage: %s [-adnsR] [-f dbgfile] [-m msize] [-r root] "
+		"[-S srvfile] [-e 'crypt hash'] [-P exclusion-file] "
+		"[-A announce-string] [-B address]\n", argv0);
 	fatal("usage");
+}
+
+static void
+noteconn(int fd)
+{
+	NetConnInfo *nci;
+
+	nci = getnetconninfo(nil, fd);
+	if (nci == nil)
+		return;
+	netdir = strdup(nci->dir);
+	local = strdup(nci->lsys);
+	remote = strdup(nci->rsys);
+	freenetconninfo(nci);
 }
 
 void
@@ -183,6 +202,8 @@ main(int argc, char **argv)
 		if(srv == nil)
 			sysfatal("-B requires -s");
 
+		local = "me";
+		remote = na;
 		if((fd = dial(netmkaddr(na, 0, "importfs"), 0, 0, 0)) < 0)
 			sysfatal("can't dial %s: %r", na);
 	
@@ -238,6 +259,7 @@ main(int argc, char **argv)
 		strncpy(buf, srv, sizeof buf);
 	}
 	else {
+		noteconn(netfd);
 		buf[0] = 0;
 		n = read(0, buf, sizeof(buf)-1);
 		if(n < 0) {

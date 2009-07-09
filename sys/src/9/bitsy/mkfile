@@ -100,12 +100,12 @@ installkern:V:	$p$CONF
 <../port/portmkfile
 <|../port/mkbootrules $CONF
 
-init.h:	../port/initcode.c init9.s
+init.h:D:	../port/initcode.c init9.s
 	$CC ../port/initcode.c
 	$AS init9.s
-	$LD -l -R1 -o init.out init9.$O initcode.$O /arm/lib/libc.a
+	$LD -l -R1 -s -o init.out init9.$O initcode.$O /arm/lib/libc.a
 	{echo 'uchar initcode[]={'
-	 strip -o /fd/1 init.out | xd -1x |
+	 xd -1x <init.out |
 		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
 	 echo '};'} > init.h
 

@@ -5,6 +5,8 @@
 #define Extern	extern
 #include "exportfs.h"
 
+extern char *netdir, *local, *remote;
+
 char Ebadfid[] = "Bad fid";
 char Enotdir[] = "Not a directory";
 char Edupfid[] = "Fid already in use";
@@ -425,6 +427,31 @@ Xwstat(Fsrpc *t)
 	t->busy = 0;
 }
 
+/*
+ * based on libthread's threadsetname, but drags in less library code.
+ * actually just sets the arguments displayed.
+ */
+void
+procsetname(char *fmt, ...)
+{
+	int fd;
+	char *cmdname;
+	char buf[128];
+	va_list arg;
+
+	va_start(arg, fmt);
+	cmdname = vsmprint(fmt, arg);
+	va_end(arg);
+	if (cmdname == nil)
+		return;
+	snprint(buf, sizeof buf, "#p/%d/args", getpid());
+	if((fd = open(buf, OWRITE)) >= 0){
+		write(fd, cmdname, strlen(cmdname)+1);
+		close(fd);
+	}
+	free(cmdname);
+}
+
 void
 slave(Fsrpc *f)
 {
@@ -468,6 +495,12 @@ slave(Fsrpc *f)
 			fatal("rfork");
 
 		case 0:
+			if (local[0] != '\0')
+				if (netdir[0] != '\0')
+					procsetname("%s: %s -> %s", netdir, 
+						local, remote);
+				else
+					procsetname("%s -> %s", local, remote);
 			blockingslave();
 			fatal("slave");
 
