@@ -21,6 +21,18 @@ struct Inprogress
 };
 Inprogress inprog[Maxactive+2];
 
+typedef struct Forwtarg Forwtarg;
+struct Forwtarg {
+	char	*host;
+	uchar	addr[IPaddrlen];
+	int	fd;
+	ulong	lastdial;
+};
+Forwtarg forwtarg[10];
+int currtarg;
+
+static char *hmsg = "headers";
+
 /*
  *  record client id and ignore retransmissions.
  *  we're still single thread at this point.
@@ -56,6 +68,59 @@ clientrxmit(DNSmsg *req, uchar *buf)
 	memmove(&empty->uh, uh, Udphdrsize);
 	empty->inuse = 1;
 	return empty;
+}
+
+int
+addforwtarg(char *host)
+{
+	Forwtarg *tp;
+
+	if (currtarg >= nelem(forwtarg)) {
+		dnslog("too many forwarding targets");
+		return -1;
+	}
+	tp = forwtarg + currtarg;
+	if (parseip(tp->addr, host) < 0) {
+		dnslog("can't parse ip %s", host);
+		return -1;
+	}
+	tp->lastdial = time(nil);
+	tp->fd = udpport(mntpt);
+	if (tp->fd < 0)
+		return -1;
+
+	free(tp->host);
+	tp->host = estrdup(host);
+	currtarg++;
+	return 0;
+}
+
+/*
+ * fast forwarding of incoming queries to other dns servers.
+ * intended primarily for debugging.
+ */
+static void
+redistrib(uchar *buf, int len)
+{
+	Forwtarg *tp;
+	Udphdr *uh;
+	static uchar outpkt[1500];
+
+	assert(len <= sizeof outpkt);
+	memmove(outpkt, buf, len);
+	uh = (Udphdr *)outpkt;
+	for (tp = forwtarg; tp < forwtarg + currtarg; tp++)
+		if (tp->fd > 0) {
+			memmove(outpkt, tp->addr, sizeof tp->addr);
+			hnputs(uh->rport, 53);		/* dns port */
+			if (write(tp->fd, outpkt, len) != len) {
+				close(tp->fd);
+				tp->fd = -1;
+			}
+		} else if (tp->host && time(nil) - tp->lastdial > 60) {
+			tp->lastdial = time(nil);
+			tp->fd = udpport(mntpt);
+		}
 }
 
 /*
@@ -114,6 +179,9 @@ restart:
 		alarm(0);
 		if(len <= Udphdrsize)
 			goto restart;
+
+		redistrib(buf, len);
+
 		uh = (Udphdr*)buf;
 		len -= Udphdrsize;
 
@@ -203,8 +271,6 @@ freereq:
 /*
  *  announce on well-known dns udp port and set message style interface
  */
-static char *hmsg = "headers";
-
 static int
 udpannounce(char *mntpt)
 {
@@ -223,7 +289,7 @@ udpannounce(char *mntpt)
 	snprint(datafile, sizeof(datafile), "%s/data", dir);
 
 	/* turn on header style interface */
-	if(write(ctl, hmsg, strlen(hmsg)) , 0)
+	if(write(ctl, hmsg, strlen(hmsg)) != strlen(hmsg))
 		abort();			/* hmsg */
 	data = open(datafile, ORDWR);
 	if(data < 0){

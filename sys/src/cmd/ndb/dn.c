@@ -11,10 +11,10 @@
  *  about 1780 names.
  *
  * aging seems to corrupt the cache, so raise the trigger from 4000 until we
- * figure it out.  trying again with 4000...
+ * figure it out.
  */
 enum {
-	Deftarget = 4000,
+	Deftarget = 8000,
 };
 enum {
 	Minage		= 10*60,
@@ -377,29 +377,82 @@ dnage(DN *dp)
 
 #define MARK(dp)	{ if (dp) (dp)->keep = 1; }
 
+/* mark a domain name and those in its RRs as never to be aged */
+void
+dnagenever(DN *dp, int dolock)
+{
+	RR *rp;
+
+	if (dolock)
+		lock(&dnlock);
+
+	/* mark all referenced domain names */
+	MARK(dp);
+	for(rp = dp->rr; rp; rp = rp->next){
+		MARK(rp->owner);
+		if(rp->negative){
+			MARK(rp->negsoaowner);
+			continue;
+		}
+		switch(rp->type){
+		case Thinfo:
+			MARK(rp->cpu);
+			MARK(rp->os);
+			break;
+		case Ttxt:
+			break;
+		case Tcname:
+		case Tmb:
+		case Tmd:
+		case Tmf:
+		case Tns:
+		case Tmx:
+		case Tsrv:
+			MARK(rp->host);
+			break;
+		case Tmg:
+		case Tmr:
+			MARK(rp->mb);
+			break;
+		case Tminfo:
+			MARK(rp->rmb);
+			MARK(rp->mb);
+			break;
+		case Trp:
+			MARK(rp->rmb);
+			MARK(rp->rp);
+			break;
+		case Ta:
+		case Taaaa:
+			MARK(rp->ip);
+			break;
+		case Tptr:
+			MARK(rp->ptr);
+			break;
+		case Tsoa:
+			MARK(rp->host);
+			MARK(rp->rmb);
+			break;
+		}
+	}
+
+	if (dolock)
+		unlock(&dnlock);
+}
+
 /* mark all current domain names as never to be aged */
 void
-dnagenever(void)
+dnageallnever(void)
 {
 	int i;
 	DN *dp;
-	RR *rp;
 
 	lock(&dnlock);
 
-	/* mark referenced domain names in NS RRs */
+	/* mark all referenced domain names */
 	for(i = 0; i < HTLEN; i++)
-		for(dp = ht[i]; dp; dp = dp->next) {
-//			MARK(dp);
-			for(rp = dp->rr; rp; rp = rp->next){
-				MARK(rp->owner);
-				switch(rp->type){
-				case Tns:
-					MARK(rp->host);
-					break;
-				}
-			}
-		}
+		for(dp = ht[i]; dp; dp = dp->next)
+			dnagenever(dp, 0);
 
 	unlock(&dnlock);
 
@@ -539,10 +592,12 @@ dnagedb(void)
 
 	/* time out all database entries */
 	for(i = 0; i < HTLEN; i++)
-		for(dp = ht[i]; dp; dp = dp->next)
+		for(dp = ht[i]; dp; dp = dp->next) {
+			dp->keep = 0;
 			for(rp = dp->rr; rp; rp = rp->next)
 				if(rp->db)
 					rp->expire = 0;
+		}
 
 	unlock(&dnlock);
 }
