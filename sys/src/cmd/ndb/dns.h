@@ -148,7 +148,7 @@ enum
 	Maxactive=	250,
 
 	/* tune; was 60; keep it short */
-	Maxreqtm=	10,	/* max. seconds to process a request */
+	Maxreqtm=	30,	/* max. seconds to process a request */
 
 	Notauthoritative = 0,
 	Authoritative,
@@ -455,7 +455,8 @@ void	db2cache(int);
 void	dnage(DN*);
 void	dnageall(int);
 void	dnagedb(void);
-void	dnagenever(void);
+void	dnageallnever(void);
+void	dnagenever(DN *, int);
 void	dnauthdb(void);
 void	dncheck(void*, int);
 void	dndump(char*);

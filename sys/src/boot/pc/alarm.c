@@ -4,7 +4,9 @@
 #include	"dat.h"
 #include	"fns.h"
 #include	"io.h"
-#define	MAXALARM	10
+
+#define NA	10		/* max. alarms per clock tick */
+#define	MAXALARM (3 * NA)
 
 Alarm	alarmtab[MAXALARM];
 
@@ -92,7 +94,6 @@ alarminit(void)
 {
 }
 
-#define NA 10		/* alarms per clock tick */
 void
 checkalarms(void)
 {

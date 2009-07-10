@@ -23,17 +23,26 @@ struct AESstate
 	ulong	setup;
 	int	rounds;
 	int	keybytes;
-//	uint	ctrsz;
+	uint	ctrsz;
 	uchar	key[AESmaxkey];			/* unexpanded key */
 	ulong	ekey[4*(AESmaxrounds + 1)];	/* encryption key */
 	ulong	dkey[4*(AESmaxrounds + 1)];	/* decryption key */
 	uchar	ivec[AESbsize];			/* initialization vector */
-//	uchar	mackey[3 * AESbsize];		/* 3 XCBC mac 96 keys */
+	uchar	mackey[3 * AESbsize];		/* 3 XCBC mac 96 keys */
 };
+
+/* block ciphers */
+void	aes_encrypt(ulong rk[], int Nr, uchar pt[16], uchar ct[16]);
+void	aes_decrypt(ulong rk[], int Nr, uchar ct[16], uchar pt[16]);
 
 void	setupAESstate(AESstate *s, uchar key[], int keybytes, uchar *ivec);
 void	aesCBCencrypt(uchar *p, int len, AESstate *s);
 void	aesCBCdecrypt(uchar *p, int len, AESstate *s);
+void	aesCTRdecrypt(uchar *p, int len, AESstate *s);
+void	aesCTRencrypt(uchar *p, int len, AESstate *s);
+
+void	setupAESXCBCstate(AESstate *s);
+uchar*	aesXCBCmac(uchar *p, int len, AESstate *s);
 
 /*
  * Blowfish Definitions

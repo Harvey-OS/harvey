@@ -319,6 +319,22 @@ addconf(char *fmt, ...)
 }
 
 void
+dumpbootargs(void)
+{
+	char *p, *nl;
+
+	/* in the boot, we can only print PRINTSIZE (256) bytes at a time. */
+	print("boot args: ");
+	for (p = (char *)BOOTARGS; *p != '\0'; p = nl) {
+		nl = strchr(p, '\n');
+		if (nl != nil) {
+			++nl;
+			print("%.*s", (int)(nl - p), p);
+		}
+	}
+}
+
+void
 changeconf(char *fmt, ...)
 {
 	va_list arg;

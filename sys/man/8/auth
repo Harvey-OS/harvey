@@ -1,6 +1,6 @@
 .TH AUTH 8
 .SH NAME
-changeuser, convkeys, convkeys2, printnetkey, status, enable, disable, authsrv, guard.srv, wrkey, login, newns, none \- maintain or query authentication databases
+changeuser, convkeys, convkeys2, printnetkey, status, enable, disable, authsrv, guard.srv, wrkey, login, newns, none, as \- maintain or query authentication databases
 .SH SYNOPSIS
 .B auth/changeuser
 .RB [ -np ]
@@ -54,6 +54,10 @@ changeuser, convkeys, convkeys2, printnetkey, status, enable, disable, authsrv, 
 .I command
 .I arg
 \&...
+.PP
+.B auth/as
+.I user
+.I command
 .SH DESCRIPTION
 These administrative commands run only on the authentication server.
 .IR Changeuser
@@ -235,6 +239,21 @@ If there are no arguments, it
 .BR /bin/rc .
 It's an easy way to run a command as
 .IR none .
+.PP
+.I As
+executes
+.I command
+as
+.IR user .
+.I Command
+is a single argument to
+.IR rc ,
+containing an arbitrary
+.I rc
+command.
+This only works for the hostowner and only if
+.L #¤/caphash
+still exists.
 .SH FILES
 .TF /sys/lib/httppasswords
 .TP

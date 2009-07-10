@@ -468,38 +468,11 @@ etherprobe(int cardno, int ctlrno)
 }
 
 static void
-fakeintrs(void)
-{
-	int ctlrno;
-	Ether *ether;
-
-	for(ctlrno = 0; ctlrno < MaxEther; ctlrno++) {
-		ether = etherxx[ctlrno];
-		if (ether && ether->interrupt)
-			ether->interrupt(nil, ether);
-	}
-}
-
-/* terrible temporary hack for 82575 */
-static void
-startfakeintrs(void)
-{
-	static int first = 1;
-
-	if (first) {
-		addclock0link(fakeintrs, 1);
-		first = 0;
-	}
-}
-
-static void
 etherreset(void)
 {
 	Ether *ether;
 	int cardno, ctlrno;
 
-	if (getconf("*fakeintrs") != nil)
-		startfakeintrs();
 	for(ctlrno = 0; ctlrno < MaxEther; ctlrno++){
 		if((ether = etherprobe(-1, ctlrno)) == nil)
 			continue;

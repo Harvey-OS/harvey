@@ -9,16 +9,12 @@ if(! ~ $#* 1) {
 
 rfork e
 
-hget -p 'tracknbr='^$1 http://www.framed.usps.com/cgi-bin/cttgate/ontrack.cgi |
-	tr -d '' |
-	sed 's/<[^>]*>//g' | 
-	sed 's/\&quot;/"/g;s/\&lt;/</g;s/\&gt;/>/g;s/\&amp;/\&/g' |
-	sed 's/\&(copy|nbsp);//' |
-	grep -v Copyright |
-	grep -v 'You can track' |
-	grep -v 'Enter the number' |
-	grep -v 'Item Number:' |
-	sed 's/[ 	]*$//' |
-	uniq |
-	fmt
+hget -p 'origTrackNum='^$1 http://trkcnfrm1.smi.usps.com/PTSInternetWeb/InterLabelInquiry.do |
+	htmlfmt > /tmp/usps.$pid
 
+sam -d /tmp/usps.$pid >[2] /dev/null <<'!'
+0,/Label/-1d
+/^Enter Label/,$d
+,p
+!
+rm /tmp/usps.$pid

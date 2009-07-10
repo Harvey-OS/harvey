@@ -6,8 +6,8 @@
 #include "io.h"
 
 #include "ip.h"
+#include "aoe.h"
 
-extern int debugload;
 extern char *persist;
 
 uchar broadcast[Eaddrlen] = {
@@ -202,7 +202,8 @@ if(debug) {
 	 */
 	if (len < ETHERMINTU)
 		len = ETHERMINTU;
-	ethertxpkt(ctlrno, &pkt, len, Timeout);
+	if (ethertxpkt(ctlrno, &pkt, len, Timeout) == 0)
+		print("xmit failure\n");
 }
 
 static void
@@ -373,7 +374,12 @@ tftpopen(int ctlrno, Netaddr *a, char *name, Tftp *tftp)
 		}
 	}
 
-	print("tftpopen: failed to connect to server\n");
+	print("tftpopen: failed to connect to server (%ld.%ld.%ld.%ld!%d)\n",
+		(a->ip >> 24) & 0xff,
+		(a->ip >> 16) & 0xff,
+		(a->ip >> 8) & 0xff,
+		a->ip & 0xff,
+		oport);
 	return -1;
 }
 
@@ -392,6 +398,7 @@ tftpread(int ctlrno, Netaddr *a, Tftp *tftp, int dlen)
 		buf[3] = tftpblockno;
 
 		udpsend(ctlrno, a, buf, sizeof(buf));
+
 		len = udprecv(ctlrno, a, tftp, dlen);
 		if(len <= sizeof(tftp->header)){
 			if(debug)
@@ -647,4 +654,59 @@ pxegetfspart(int ctlrno, char* part, int)
 	pxether[ctlrno].fs.root.walked = 0;
 
 	return &pxether[ctlrno].fs;
+}
+
+/*
+ * hack to avoid queueing packets we don't care about.
+ * needs to admit udp and aoe packets.
+ */
+int
+interesting(Block *bp)
+{
+	ulong addr;
+	Netaddr *a = &server;
+	Udphdr *h;
+
+	h = (Udphdr*)bp->rp;
+	if(debug)
+		print("inpkt %E to %E...\n", h->s, h->d);
+
+	switch(nhgets(h->type)){
+	case Aoetype:
+		return 1;
+	case ET_IP:
+		break;
+	default:
+		if(debug)
+			print("not ipv4...");
+		return 0;
+	}
+
+	if(h->vihl != (IP_VER|IP_HLEN)) {
+		print("ip bad vers/hlen\n");
+		return 0;
+	}
+	if(h->udpproto != IP_UDPPROTO) {
+		if(debug)
+			print("not udp (%d)...", h->udpproto);
+		return 0;
+	}
+
+	if(debug)
+		print("okay udp...");
+
+	if(a->port != 0 && nhgets(h->udpsport) != a->port) {
+		if(debug)
+			print("udpport %ux not %ux\n",
+				nhgets(h->udpsport), a->port);
+		return 0;
+	}
+
+	addr = nhgetl(h->udpsrc);
+	if(a->ip != Bcastip && a->ip != addr) {
+		if(debug)
+			print("bad ip %lux not %lux\n", addr, a->ip);
+		return 0;
+	}
+	return 1;
 }

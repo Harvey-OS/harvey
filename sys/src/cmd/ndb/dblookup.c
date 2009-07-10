@@ -16,7 +16,7 @@ enum {
 	 * confused by a zero ttl, and instead of using the data and then
 	 * discarding the RR, they conclude that they don't have valid data.
 	 */
-	Ptrttl = 300,
+	Ptrttl = 120,
 };
 
 static Ndb *db;
@@ -602,6 +602,7 @@ dbpair2cache(DN *dp, Ndbtuple *entry, Ndbtuple *pair)
 		return;
 
 	rp->owner = dp;
+	dnagenever(dp, 1);
 	rp->db = 1;
 	rp->ttl = intval(entry, pair, "ttl", rp->ttl);
 	rrattach(rp, Notauthoritative);
