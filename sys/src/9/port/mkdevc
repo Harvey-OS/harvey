@@ -15,28 +15,28 @@ BEGIN{
 collect && /^[^ \t]/{
 	collect = 0;
 }
-collect && section ~ "dev"{
+collect && section == "dev"{
 	dev[ndev++] = $1;
-	if($1 ~ "ad")
+	if($1 == "ad")
 		devad = 1;
-	else if($1 ~ "sd")
+	else if($1 == "sd")
 		devsd = 1;
-	else if($1 ~ "uart")
+	else if($1 == "uart")
 		devuart = 1;
-	else if($1 ~ "vga")
+	else if($1 == "vga")
 		devvga = 1;
 	for(i = 2; i <= NF; i++){
-		if($i ~ "dma" && objtype ~ "(386|alpha|amd64)")
+		if($i == "dma" && objtype ~ "(386|alpha|amd64)")
 			i8237dma++;
 	}
 }
-collect && section ~ "ip"{
+collect && section == "ip"{
 	ip[nip++] = $1;
 }
-collect && section ~ "link"{
+collect && section == "link"{
 	link[nlink++] = $1;
 }
-collect && section ~ "misc"{
+collect && section == "misc"{
 	sub(/^[ \t]*/, "");
 	misc[nmisc++] = $1;
 	if($1 ~ "^arch.*")
@@ -59,13 +59,13 @@ collect && section ~ "misc"{
 	}
 }
 
-collect && section ~ "port"{
+collect && section == "port"{
 	sub(/^[ \t]*/, "");
 	port[nport++] = $0;
 }
 $0 ~ /^[^ \t]/{
-	if($0 ~ "(bootdir|dev|ip|link|misc|port)"){
-		section = $0;
+	if($1 ~ "(bootdir|dev|ip|link|misc|port)"){
+		section = $1;
 		collect = 1;
 	}
 	next;
@@ -109,7 +109,7 @@ END{
 		printf "\t%slink();\n", link[i];
 	printf "}\n\n";
 
-	if(narch || objtype ~ "386"){
+	if(narch || objtype == "386"){
 		for(i = 0; i < narch; i++)
 			printf "extern PCArch %s;\n", arch[i];
 		printf "PCArch* knownarch[] = {\n";
