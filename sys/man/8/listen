@@ -3,7 +3,7 @@
 listen, listen1, tcp7, tcp9, tcp19, tcp21, tcp22, tcp23, tcp25, tcp53, tcp110, tcp113, tcp143, tcp513, tcp515, tcp564, tcp565, tcp566, tcp567, tcp993, tcp995, tcp1723, tcp17007, tcp17008, tcp17009, tcp17010, tcp17013 \- listen for calls on a network device
 .SH SYNOPSIS
 .B aux/listen
-.RB [ -q ]
+.RB [ -iq ]
 .RB [ -d
 .IR srvdir ]
 .RB [ -t
@@ -59,6 +59,9 @@ selects an alternate
 Option
 .B -q
 suppresses affirmative log information.
+Option
+.B -i
+suppresses the periodic scan of the service directories for changes.
 .PP
 Service names are made by concatenating the name of
 the network with the name of the service or port.

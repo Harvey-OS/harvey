@@ -34,6 +34,7 @@ void	listendir(char*, char*, int);
 char	listenlog[] = "listen";
 
 int	quiet;
+int	immutable;
 char	*cpu;
 char	*proto;
 Announce *announcements;
@@ -85,6 +86,7 @@ main(int argc, char *argv[])
 	trustdir = 0;
 	proto = "tcp";
 	quiet = 0;
+	immutable = 0;
 	argv0 = argv[0];
 	cpu = getenv("cputype");
 	if(cpu == 0)
@@ -102,6 +104,13 @@ main(int argc, char *argv[])
 		break;
 	case 'n':
 		namespace = EARGF(usage());
+		break;
+	case 'i':
+		/*
+		 * fixed configuration, no periodic
+		 * rescan of the service directory.
+		 */
+		immutable = 1;
 		break;
 	default:
 		usage();
@@ -180,12 +189,12 @@ listendir(char *protodir, char *srvdir, int trusted)
 	notify(dingdong);
 
 	pid = getpid();
+	scandir(proto, protodir, srvdir);
 	for(;;){
 		/*
 		 * loop through announcements and process trusted services in
 		 * invoker's ns and untrusted in none's.
 		 */
-		scandir(proto, protodir, srvdir);
 		for(a = announcements; a; a = a->next){
 			if(a->announced > 0)
 				continue;
@@ -221,9 +230,20 @@ listendir(char *protodir, char *srvdir, int trusted)
 			}
 		}
 
-		/* pick up any children that gave up and sleep for at least 60 seconds */
+		/*
+		 * if not running a fixed configuration,
+		 * pick up any children that gave up and
+		 * sleep for at least 60 seconds.
+		 * If a service process dies in a fixed
+		 * configuration what should be done -
+		 * nothing? restart? restart after a delay?
+		 * - currently just wait for something to
+		 * die and delay at least 60 seconds
+		 * between restarts.
+		 */
 		start = time(0);
-		alarm(60*1000);
+		if(!immutable)
+			alarm(60*1000);
 		while((wm = wait()) != nil) {
 			for(a = announcements; a; a = a->next)
 				if(a->announced == wm->pid) {
@@ -234,8 +254,13 @@ listendir(char *protodir, char *srvdir, int trusted)
 						a->whined = 1;
 				}
 			free(wm);
+			if(immutable)
+				break;
 		}
-		alarm(0);
+		if(!immutable){
+			alarm(0);
+			scandir(proto, protodir, srvdir);
+		}
 		start = 60 - (time(0)-start);
 		if(start > 0)
 			sleep(start*1000);
