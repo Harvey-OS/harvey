@@ -188,7 +188,7 @@ umsrequest(Umsc *umsc, ScsiPtr *cmd, ScsiPtr *data, int *status)
 	cbw.lun = umsc->lun;
 	if(cmd->count < 1 || cmd->count > 16)
 		print("%s: umsrequest: bad cmd count: %ld\n", argv0, cmd->count);
-	
+
 	cbw.len = cmd->count;
 	assert(cmd->count <= sizeof(cbw.command));
 	memcpy(cbw.command, cmd->p, cmd->count);
@@ -629,6 +629,9 @@ findendpoints(Ums *ums)
 		return -1;
 	}
 	dprint(2, "disk: ep in %s out %s\n", ums->epin->dir, ums->epout->dir);
+
+	devctl(ums->epin, "timeout 2000");
+	devctl(ums->epout, "timeout 2000");
 
 	if(usbdebug > 1 || diskdebug > 2){
 		devctl(ums->epin, "debug 1");

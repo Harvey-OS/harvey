@@ -28,7 +28,6 @@ install installall safeinstall safeinstallall:V:
 	for (i in $DIRS) @{
 		cd $i && mk $target
 	}
-	cp usbfat: /rc/bin
 	cp probe /$objtype/bin/usb/probe
 
 update:V:

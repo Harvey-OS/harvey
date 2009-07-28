@@ -16,6 +16,8 @@ enum
 
 	Eaddrlen = 6,
 	Epktlen = 1514,
+	Ehdrsize = 2*Eaddrlen + 2,
+
 	Maxpkt	= 2000,	/* no jumbo packets here */
 	Nconns	= 8,	/* max number of connections */
 	Nbufs	= 8,	/* max number of buffers */
@@ -23,6 +25,8 @@ enum
 	Fnheader = 0,	/* Functions */
 	Fnunion = 6,
 	Fnether = 15,
+
+	Cdcunion	= 6,	/* CDC Union descriptor subtype */
 };
 
 struct Buf
@@ -68,7 +72,8 @@ struct Ether
 	int	cid;			/* ctlr id */
 	int	phy;			/* phy id */
 	Ref	prom;			/* nb. of promiscuous conns */
-	int	exiting;			/* shutting it down */
+	int	exiting;			/* shutting down */
+	int	wrexited;			/* write process died */
 	uchar	addr[Eaddrlen];		/* mac */
 	int	nconns;			/* nb. of entries used in... */
 	Conn*	conns[Nconns];		/* connections */
