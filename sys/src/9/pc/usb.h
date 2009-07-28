@@ -15,6 +15,7 @@ enum
 	Nhcis	= 16,		/* max nb. of HCIs */
 	Neps	= 64,		/* max nb. of endpoints */
 	Maxctllen = 8*1024,	/* max allowed sized for ctl. xfers */
+	Xfertmout = 2000,	/* default request time out (ms) */
 
 	/* transfer types. keep this order */
 	Tnone = 0,		/* no tranfer type configured */
@@ -159,6 +160,7 @@ struct Ep
 	long	hz;		/* poll frequency (iso) */
 	long	samplesz;	/* sample size (iso) */
 	int	ntds;		/* nb. of Tds per µframe */
+	int	tmout;		/* 0 or timeout for transfers (ms) */
 };
 
 /*

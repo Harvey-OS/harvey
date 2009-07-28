@@ -48,9 +48,6 @@ enum {
 
 	Enabledelay	= 100,		/* waiting for a port to enable */
 	Abortdelay	= 5,		/* delay after cancelling Tds (ms) */
-	Ctltmout	= 2000,		/* timeout for a ctl. request (ms) */
-	Bulktmout	= 2000,		/* timeout for a bulk xfer. (ms) */
-	Isotmout	= 2000,		/* timeout for an iso. request (ms) */
 
 	Incr		= 64,		/* for pools of Tds, Qhs, etc. */
 	Align		= 128,		/* in bytes for all those descriptors */
@@ -386,6 +383,9 @@ static Edpool edpool;
 static Ctlr* ctlrs[Nhcis];
 static char Ebug[] = "not yet implemented";
 static char* qhsname[] = { "idle", "install", "run", "done", "close", "FREE" };
+
+Ecapio* ehcidebugcapio;
+int ehcidebugport;
 
 
 static void
@@ -1445,7 +1445,6 @@ qhinterrupt(Ctlr *ctlr, Qh *qh)
 {
 	Td *td;
 	int err;
-	char buf[256];
 
 	if(qh->state != Qrun)
 		panic("qhinterrupt: qh state");
@@ -1458,10 +1457,6 @@ qhinterrupt(Ctlr *ctlr, Qh *qh)
 			return 0;
 		if((td->csw & Tderrors) != 0){
 			err = td->csw & Tderrors;
-if(debug || qh->io->debug){
-seprinttd(buf, buf+sizeof(buf), td, "intr-fail-td");
-print("qh %#p io %#p\n\t%s\n", qh, qh->io, buf);
-}
 			if(qh->io->err == nil){
 				qh->io->err = errmsg(td->csw & Tderrors);
 				dqprint("qhintr: td %#p csw %#ulx error %#ux %s\n",
@@ -1918,7 +1913,7 @@ episoread(Ep *ep, Isoio *iso, void *a, long count)
 			ilock(ctlr);
 			break;
 		}
-		tsleep(iso, isocanread, iso, Isotmout);
+		tsleep(iso, isocanread, iso, ep->tmout);
 		poperror();
 		ilock(ctlr);
 	}
@@ -2018,7 +2013,7 @@ episowrite(Ep *ep, Isoio *iso, void *a, long count)
 				ilock(ctlr);
 				break;
 			}
-			tsleep(iso, isocanwrite, iso, Isotmout);
+			tsleep(iso, isocanwrite, iso, ep->tmout);
 			poperror();
 			ilock(ctlr);
 		}
@@ -2250,30 +2245,24 @@ epiowait(Hci *hp, Qio *io, int tmout, ulong load)
  * Non iso I/O.
  * To make it work for control transfers, the caller may
  * lock the Qio for the entire control transfer.
- * If tmout is not 0 it is a timeout value in ms.
- *
  */
 static long
-epio(Ep *ep, Qio *io, void *a, long count, int tmout, int mustlock)
+epio(Ep *ep, Qio *io, void *a, long count, int mustlock)
 {
-	Td *td;
-	Td *ltd;
-	Td *td0;
-	Td *ntd;
+	Td *td, *ltd, *td0, *ntd;
 	Ctlr *ctlr;
 	Qh* qh;
-	long n;
-	long tot;
+	long n, tot;
 	char buf[128];
 	uchar *c;
-	int saved;
-	int ntds;
+	int saved, ntds, tmout;
 	ulong load;
 	char *err;
 
 	qh = io->qh;
 	ctlr = ep->hp->aux;
 	io->debug = ep->debug;
+	tmout = ep->tmout;
 	ddeprint("epio: %s ep%d.%d io %#p count %ld load %uld\n",
 		io->tok == Tdtokin ? "in" : "out",
 		ep->dev->nb, ep->nb, io, count, ctlr->load);
@@ -2341,6 +2330,7 @@ epio(Ep *ep, Qio *io, void *a, long count, int tmout, int mustlock)
 		wakeup(&ctlr->poll);
 
 	epiowait(ep->hp, io, tmout, load);
+
 	if(debug > 1 || ep->debug > 1){
 		dumptd(td0, "epio: got: ");
 		qhdump(qh);
@@ -2436,7 +2426,7 @@ epread(Ep *ep, void *a, long count)
 		io = ep->aux;
 		if(ep->clrhalt)
 			clrhalt(ep);
-		return epio(ep, &io[OREAD], a, count, Bulktmout, 1);
+		return epio(ep, &io[OREAD], a, count, 1);
 	case Tintr:
 		io = ep->aux;
 		delta = TK2MS(MACHP(0)->ticks) - io[OREAD].iotime + 1;
@@ -2444,7 +2434,7 @@ epread(Ep *ep, void *a, long count)
 			tsleep(&up->sleep, return0, 0, ep->pollival/2 - delta);
 		if(ep->clrhalt)
 			clrhalt(ep);
-		return epio(ep, &io[OREAD], a, count, 0, 1);
+		return epio(ep, &io[OREAD], a, count, 1);
 	case Tiso:
 		iso = ep->aux;
 		return episoread(ep, iso, a, count);
@@ -2498,7 +2488,7 @@ epctlio(Ep *ep, Ctlio *cio, void *a, long count)
 	c = a;
 	cio->tok = Tdtoksetup;
 	cio->toggle = Tddata0;
-	if(epio(ep, cio, a, Rsetuplen, Ctltmout, 0) < Rsetuplen)
+	if(epio(ep, cio, a, Rsetuplen, 0) < Rsetuplen)
 		error(Eio);
 	a = c + Rsetuplen;
 	count -= Rsetuplen;
@@ -2520,7 +2510,7 @@ epctlio(Ep *ep, Ctlio *cio, void *a, long count)
 		if(waserror())
 			len = -1;
 		else{
-			len = epio(ep, cio, a, len, Ctltmout, 0);
+			len = epio(ep, cio, a, len, 0);
 			poperror();
 		}
 	if(c[Rtype] & Rd2h){
@@ -2535,7 +2525,7 @@ epctlio(Ep *ep, Ctlio *cio, void *a, long count)
 		cio->tok = Tdtokin;
 	}
 	cio->toggle = Tddata1;
-	epio(ep, cio, nil, 0, Ctltmout, 0);
+	epio(ep, cio, nil, 0, 0);
 	qunlock(cio);
 	poperror();
 	ddeprint("epctlio cio %#p return %ld\n", cio, count);
@@ -2563,7 +2553,7 @@ epwrite(Ep *ep, void *a, long count)
 		io = ep->aux;
 		if(ep->clrhalt)
 			clrhalt(ep);
-		return epio(ep, &io[OWRITE], a, count, Bulktmout, 1);
+		return epio(ep, &io[OWRITE], a, count, 1);
 	case Tintr:
 		io = ep->aux;
 		delta = TK2MS(MACHP(0)->ticks) - io[OWRITE].iotime + 1;
@@ -2571,7 +2561,7 @@ epwrite(Ep *ep, void *a, long count)
 			tsleep(&up->sleep, return0, 0, ep->pollival - delta);
 		if(ep->clrhalt)
 			clrhalt(ep);
-		return epio(ep, &io[OWRITE], a, count, 0, 1);
+		return epio(ep, &io[OWRITE], a, count, 1);
 	case Tiso:
 		iso = ep->aux;
 		return episowrite(ep, iso, a, count);
@@ -2714,10 +2704,8 @@ isoopen(Ctlr *ctlr, Ep *ep)
 		error("uhci isoopen bug");	/* we need at least 3 tds */
 	iso->maxsize = ep->ntds * ep->maxpkt;
 	ilock(ctlr);
-	if(ctlr->load + ep->load > 800){
-		iunlock(ctlr);
-		error("bandwidth exceeded");
-	}
+	if(ctlr->load + ep->load > 800)
+		print("usb: ehci: bandwidth may be exceeded\n");
 	ctlr->load += ep->load;
 	ctlr->isoload += ep->load;
 	ctlr->nreqs++;
@@ -3222,6 +3210,7 @@ ehcireset(Ctlr *ctlr)
 
 	ilock(ctlr);
 	dprint("ehci %#p reset\n", ctlr->capio);
+	opio = ctlr->opio;
 
 	/*
 	 * Turn off legacy mode. Some controllers won't
@@ -3238,15 +3227,16 @@ ehcireset(Ctlr *ctlr)
 		ctlr->opio->seg = 0;
 	}
 
-	opio = ctlr->opio;
-	opio->cmd |= Chcreset;	/* controller reset */
-	for(i = 0; i < 100; i++){
-		if((opio->cmd & Chcreset) == 0)
-			break;
-		delay(1);
+	if(ehcidebugcapio != ctlr->capio){
+		opio->cmd |= Chcreset;	/* controller reset */
+		for(i = 0; i < 100; i++){
+			if((opio->cmd & Chcreset) == 0)
+				break;
+			delay(1);
+		}
+		if(i == 100)
+			print("ehci %#p controller reset timed out\n", ctlr->capio);
 	}
-	if(i == 100)
-		print("ehci %#p controller reset timed out\n", ctlr->capio);
 
 	/* requesting more interrupts per µframe may miss interrupts */
 	opio->cmd |= Citc8;	/* 1 intr. per ms */
@@ -3261,7 +3251,7 @@ ehcireset(Ctlr *ctlr)
 		ctlr->nframes = 256;
 		break;
 	default:
-		panic("ehci: unknown fls %#lux", opio->cmd & Cflsmask);
+		panic("ehci: unknown fls %ld", opio->cmd & Cflsmask);
 	}
 	dprint("ehci: %d frames\n", ctlr->nframes);
 	iunlock(ctlr);
@@ -3276,11 +3266,11 @@ setdebug(Hci*, int d)
 static int
 reset(Hci *hp)
 {
-	static Lock resetlck;
 	int i;
 	Ctlr *ctlr;
 	Ecapio *capio;
 	Pcidev *p;
+	static Lock resetlck;
 
 	if(getconf("*nousbehci"))
 		return -1;
@@ -3347,4 +3337,3 @@ usbehcilink(void)
 {
 	addhcitype("ehci", reset);
 }
-

@@ -40,9 +40,6 @@ enum
 	Align		= 0x20,		/* OHCI only requires 0x10 */
 					/* use always a power of 2 */
 
-	Ctltmout	= 2000,		/* timeout for a ctl. request (ms) */
-	Bulktmout	= 2000,		/* timeout for a bulk xfer. (ms) */
-	Isotmout	= 2000,		/* timeout for an iso. request (ms) */
 	Abortdelay	= 1,		/* delay after cancelling Tds (ms) */
 	Tdatomic	= 8,		/* max nb. of Tds per bulk I/O op. */
 	Enabledelay	= 100,		/* waiting for a port to enable */
@@ -213,7 +210,6 @@ struct Ctlio
 	Qio;			/* single Ed for all transfers */
 	uchar*	data;		/* read from last ctl req. */
 	int	ndata;		/* number of bytes read */
-
 };
 
 struct Isoio
@@ -493,7 +489,6 @@ unlinkctl(Ctlr *ctlr, Ed *ed)
 		edlinked(prev, next);
 	ctlr->ohci->control |= Ccle;
 	edlinked(ed, nil);		/* wipe out next field */
-
 }
 
 static void
@@ -1201,8 +1196,8 @@ isointerrupt(Ctlr *ctlr, Ep *ep, Qio *io, Td *td, int)
 {
 	Isoio *iso;
 	Block *bp;
-	int err, isoerr;
 	Ed *ed;
+	int err, isoerr;
 
 	iso = ep->aux;
 	ed = io->ed;
@@ -1435,11 +1430,9 @@ epiowait(Ctlr *ctlr, Qio *io, int tmout, ulong)
  * Non iso I/O.
  * To make it work for control transfers, the caller may
  * lock the Qio for the entire control transfer.
- * If tmout is not 0 it is a timeout value in ms.
- *
  */
 static long
-epio(Ep *ep, Qio *io, void *a, long count, int tmout, int mustlock)
+epio(Ep *ep, Qio *io, void *a, long count, int mustlock)
 {
 	Ed *ed;
 	Ctlr *ctlr;
@@ -1450,10 +1443,12 @@ epio(Ep *ep, Qio *io, void *a, long count, int tmout, int mustlock)
 	int last, ntds;
 	long tot, n;
 	ulong load;
+	int tmout;
 
 	ed = io->ed;
 	ctlr = ep->hp->aux;
 	io->debug = ep->debug;
+	tmout = ep->tmout;
 	ddeprint("ohci: %s ep%d.%d io %#p count %ld\n",
 		io->tok == Tdtokin ? "in" : "out",
 		ep->dev->nb, ep->nb, io, count);
@@ -1512,6 +1507,7 @@ epio(Ep *ep, Qio *io, void *a, long count, int tmout, int mustlock)
 	iunlock(ctlr);
 
 	epiowait(ctlr, io, tmout, load);
+
 	ilock(ctlr);
 	if(debug > 1 || ep->debug > 1)
 		dumptds(td0, "got td", 0);
@@ -1634,7 +1630,7 @@ epread(Ep *ep, void *a, long count)
 		io = ep->aux;
 		if(ep->clrhalt)
 			clrhalt(ep);
-		return epio(ep, &io[OREAD], a, count, Bulktmout, 1);
+		return epio(ep, &io[OREAD], a, count, 1);
 	case Tintr:
 		io = ep->aux;
 		delta = TK2MS(MACHP(0)->ticks) - io[OREAD].iotime + 1;
@@ -1642,7 +1638,7 @@ epread(Ep *ep, void *a, long count)
 			tsleep(&up->sleep, return0, 0, ep->pollival/2 - delta);
 		if(ep->clrhalt)
 			clrhalt(ep);
-		return epio(ep, &io[OREAD], a, count, 0, 1);
+		return epio(ep, &io[OREAD], a, count, 1);
 	case Tiso:
 		panic("ohci: iso read not implemented");
 		break;
@@ -1698,7 +1694,7 @@ epctlio(Ep *ep, Ctlio *cio, void *a, long count)
 	c = a;
 	cio->tok = Tdtoksetup;
 	cio->toggle = Tddata0;
-	if(epio(ep, cio, a, Rsetuplen, Ctltmout, 0) < Rsetuplen)
+	if(epio(ep, cio, a, Rsetuplen, 0) < Rsetuplen)
 		error(Eio);
 
 	a = c + Rsetuplen;
@@ -1721,7 +1717,7 @@ epctlio(Ep *ep, Ctlio *cio, void *a, long count)
 		if(waserror())
 			len = -1;
 		else{
-			len = epio(ep, cio, a, len, Ctltmout, 0);
+			len = epio(ep, cio, a, len, 0);
 			poperror();
 		}
 	if(c[Rtype] & Rd2h){
@@ -1736,7 +1732,7 @@ epctlio(Ep *ep, Ctlio *cio, void *a, long count)
 		cio->tok = Tdtokin;
 	}
 	cio->toggle = Tddata1;
-	epio(ep, cio, nil, 0, Ctltmout, 0);
+	epio(ep, cio, nil, 0, 0);
 	qunlock(cio);
 	poperror();
 	ddeprint("epctlio cio %#p return %ld\n", cio, count);
@@ -1771,11 +1767,11 @@ putsamples(Ctlr *ctlr, Ep *ep, Isoio *iso, uchar *b, long count)
 static long
 episowrite(Ep *ep, void *a, long count)
 {
-	Isoio *iso;
+	long tot, nw;
+	char *err;
 	uchar *b;
 	Ctlr *ctlr;
-	char *err;
-	long tot, nw;
+	Isoio *iso;
 
 	ctlr = ep->hp->aux;
 	iso = ep->aux;
@@ -1804,7 +1800,7 @@ episowrite(Ep *ep, void *a, long count)
 				ilock(ctlr);
 				break;
 			}
-			tsleep(iso, isocanwrite, iso, Isotmout);
+			tsleep(iso, isocanwrite, iso, ep->tmout);
 			poperror();
 			ilock(ctlr);
 		}
@@ -1861,7 +1857,7 @@ epwrite(Ep *ep, void *a, long count)
 			nw = count - tot;
 			if(nw > Tdatomic * ep->maxpkt)
 				nw = Tdatomic * ep->maxpkt;
-			nw = epio(ep, &io[OWRITE], b+tot, nw, Bulktmout, 1);
+			nw = epio(ep, &io[OWRITE], b+tot, nw, 1);
 		}
 		return tot;
 	case Tintr:
@@ -1871,7 +1867,7 @@ epwrite(Ep *ep, void *a, long count)
 			tsleep(&up->sleep, return0, 0, ep->pollival - delta);
 		if(ep->clrhalt)
 			clrhalt(ep);
-		return epio(ep, &io[OWRITE], a, count, 0, 1);
+		return epio(ep, &io[OWRITE], a, count, 1);
 	case Tiso:
 		return episowrite(ep, a, count);
 	default:

@@ -182,10 +182,14 @@ The most common error is
 indicating problems in communication with the device (eg., a physical
 detach of the device or a wiring problem).
 .PP
-For control, bulk, and isochronous transfers, there is an implicit
+For control and isochronous transfers, there is an implicit
 timeout performed by the kernel and it is not necessary for applications
 to place their own timers.
-For interrupt transfers, the kernel will not time out any operation.
+For other transfer types, the kernel will not time out any operation
+by default
+(but see the
+.L timeout
+control request).
 .SS "ctl and status"
 .PP
 The
@@ -438,6 +442,14 @@ stops debugging diagnostics.
 .L 1
 causes just problem reports.
 Bigger values report almost everything.
+.TP
+.BI timeout " n"
+Enable time-outs for the endpoint.
+Transfers are timed out by the kernel after
+.I n
+ms.
+This should not be used for control and isochronous endpoints,
+which are always timed out.
 .PD
 .LP
 Setup endpoints
