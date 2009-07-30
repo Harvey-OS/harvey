@@ -1,0 +1,75 @@
+.TH ABACO 1
+.SH NAME
+abaco, readweb \- browse the World-Wide Web
+.SH SYNOPSIS
+.B abaco
+[
+.B -p
+] [
+.B -c
+.I ncols
+] [
+.B -m
+.I mtpt
+] [
+.B -t
+.I charset
+] [
+.I url
+]
+.PP
+.B readweb
+[
+.I url
+]
+.SH DESCRIPTION
+.I Abaco
+is a lightweight web browser with the appearance of
+.IR acme (1)
+with
+.I ncols
+columns (one by default).
+Given a
+.IR url ,
+it will start by displaying that page.
+Clicking mouse button 3 on a link
+opens it in a new
+.I abaco
+window.
+.B -t
+selects an alternate character set;
+.B -m
+an alternate mount point for
+.IR webfs .
+Normally the standard error of subshells is closed,
+but
+.B -p
+prevents this.
+.PP
+.I Readweb
+imports the outside network, if necessary,
+starts
+.I webfs
+and
+.I webcookies
+and finally
+.IR abaco .
+.\" .SH EXAMPLES
+.SH FILES
+.TP 15
+.B /mnt/web
+default
+.I webfs
+mount point
+.SH SOURCE
+.B /sys/src/cmd/abaco
+.br
+.B /rc/bin/readweb
+.SH SEE ALSO
+.IR vnc (1),
+.IR webcookies (4),
+.IR webfs (4),
+.SH BUGS
+.I Abaco
+is a work in progress;
+many features of giant web browsers are absent.
