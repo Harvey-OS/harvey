@@ -18,4 +18,4 @@ hget http://$ventihttp/index |
 		}
 	' |
 	rc |
-	awk '$3 == 16 { printf("vac:%s\n", $2) }'
+	awk '$3 == 16 { printf("vac:%s\n", $2 "") }'
