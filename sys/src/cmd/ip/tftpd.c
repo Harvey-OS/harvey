@@ -89,6 +89,11 @@ main(int argc, char **argv)
 	fmtinstall('E', eipfmt);
 	fmtinstall('I', eipfmt);
 
+	/*
+	 * setuser calls newns, and typical /lib/namespace files contain
+	 * "cd /usr/$user", so call setuser before chdir.
+	 */
+	setuser();
 	if(chdir(dir) < 0)
 		sysfatal("can't get to directory %s: %r", dir);
 
@@ -107,7 +112,7 @@ main(int argc, char **argv)
 	if (cfd < 0)
 		sysfatal("announcing on %s: %r", buf);
 	syslog(dbg, flog, "tftpd started on %s dir %s", buf, adir);
-	setuser();
+//	setuser();
 	for(;;) {
 		lcfd = listen(adir, ldir);
 		if(lcfd < 0)
@@ -250,7 +255,7 @@ sendfile(int fd, char *name, char *mode)
 
 		for(rxl = 0; rxl < 10; rxl++) {
 			rexmit = 0;
-			alarm(500);
+			alarm(1000);
 			al = read(fd, ack, sizeof(ack));
 			alarm(0);
 			if(al < 0) {
