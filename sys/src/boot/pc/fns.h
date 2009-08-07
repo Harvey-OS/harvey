@@ -92,7 +92,7 @@ void	pciclrbme(Pcidev*);
 void	pciclrioe(Pcidev*);
 void	pciclrmwi(Pcidev*);
 int	pcigetpms(Pcidev*);
-void	pcihinv(Pcidev*);
+void	pcihinv(Pcidev*, int);
 Pcidev*	pcimatch(Pcidev*, int, int);
 uchar	pciintl(Pcidev *);
 uchar	pciipin(Pcidev *, uchar);

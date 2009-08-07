@@ -561,7 +561,7 @@ out:
 	unlock(&pcicfginitlock);
 
 	if(getconf("*pcihinv"))
-		pcihinv(nil);
+		pcihinv(nil, -1);
 }
 
 
@@ -810,7 +810,7 @@ pciintl(Pcidev *pci)
 }
 
 void
-pcihinv(Pcidev* p)
+pcihinv(Pcidev* p, int base)
 {
 	int i;
 	Pcidev *t;
@@ -823,6 +823,8 @@ pcihinv(Pcidev* p)
 		print("bus dev type vid  did intl memory\n");
 	}
 	for(t = p; t != nil; t = t->link) {
+		if (base >= 0 && base != t->ccrb)
+			continue;
 		print("%d  %2d/%d %.2ux %.2ux %.2ux %.4ux %.4ux %3d  ",
 			BUSBNO(t->tbdf), BUSDNO(t->tbdf), BUSFNO(t->tbdf),
 			t->ccrb, t->ccru, t->ccrp, t->vid, t->did, t->intl);
@@ -837,7 +839,7 @@ pcihinv(Pcidev* p)
 	}
 	while(p != nil) {
 		if(p->bridge != nil)
-			pcihinv(p->bridge);
+			pcihinv(p->bridge, base);
 		p = p->link;
 	}
 }

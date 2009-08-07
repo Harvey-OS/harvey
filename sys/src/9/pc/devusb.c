@@ -664,10 +664,8 @@ static Hci*
 hciprobe(int cardno, int ctlrno)
 {
 	Hci *hp;
-	char buf[128];
-	char *ebuf;
-	char name[64];
 	char *type;
+	char name[64];
 	static int epnb = 1;	/* guess the endpoint nb. for the controller */
 
 	ddprint("hciprobe %d %d\n", cardno, ctlrno);
@@ -691,11 +689,8 @@ hciprobe(int cardno, int ctlrno)
 		}
 	}
 
-	if(cardno >= Nhcis || hcitypes[cardno].type == nil){
-		free(hp);
-		return nil;
-	}
-	if(hcitypes[cardno].reset(hp) < 0){
+	if(cardno >= Nhcis || hcitypes[cardno].type == nil ||
+	    hcitypes[cardno].reset(hp) < 0){
 		free(hp);
 		return nil;
 	}
@@ -709,11 +704,14 @@ hciprobe(int cardno, int ctlrno)
 		hp->irq = 9;
 	snprint(name, sizeof(name), "usb%s", hcitypes[cardno].type);
 	intrenable(hp->irq, hp->interrupt, hp, hp->tbdf, name);
-	ebuf = buf + sizeof buf;
-	seprint(buf, ebuf, "#u/usb/ep%d.0: %s: port 0x%luX irq %d",
-		epnb++, hcitypes[cardno].type, hp->port, hp->irq);
-	print("%s\n", buf);
 
+	/*
+	 * modern machines have too many usb controllers to list on
+	 * the console.
+	 */
+//	print("#u/usb/ep%d.0: %s: port 0x%luX irq %d\n",
+//		epnb, hcitypes[cardno].type, hp->port, hp->irq);
+	epnb++;
 	return hp;
 }
 

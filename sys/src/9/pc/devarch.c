@@ -840,35 +840,41 @@ cputyperead(Chan*, void *a, long n, vlong offset)
 static long
 archctlread(Chan*, void *a, long nn, vlong offset)
 {
-	char buf[256];
 	int n;
+	char *buf, *p, *ep;
 
-	n = snprint(buf, sizeof buf, "cpu %s %lud%s\n",
+	p = buf = malloc(READSTR);
+	ep = p + READSTR;
+	p = seprint(p, ep, "cpu %s %lud%s\n",
 		cputype->name, (ulong)(m->cpuhz+999999)/1000000,
 		m->havepge ? " pge" : "");
-	n += snprint(buf+n, sizeof buf-n, "pge %s\n", getcr4()&0x80 ? "on" : "off");
-	n += snprint(buf+n, sizeof buf-n, "coherence ");
+	p = seprint(p, ep, "pge %s\n", getcr4()&0x80 ? "on" : "off");
+	p = seprint(p, ep, "coherence ");
 	if(coherence == mb386)
-		n += snprint(buf+n, sizeof buf-n, "mb386\n");
+		p = seprint(p, ep, "mb386\n");
 	else if(coherence == mb586)
-		n += snprint(buf+n, sizeof buf-n, "mb586\n");
+		p = seprint(p, ep, "mb586\n");
 	else if(coherence == mfence)
-		n += snprint(buf+n, sizeof buf-n, "mfence\n");
+		p = seprint(p, ep, "mfence\n");
 	else if(coherence == nop)
-		n += snprint(buf+n, sizeof buf-n, "nop\n");
+		p = seprint(p, ep, "nop\n");
 	else
-		n += snprint(buf+n, sizeof buf-n, "0x%p\n", coherence);
-	n += snprint(buf+n, sizeof buf-n, "cmpswap ");
+		p = seprint(p, ep, "0x%p\n", coherence);
+	p = seprint(p, ep, "cmpswap ");
 	if(cmpswap == cmpswap386)
-		n += snprint(buf+n, sizeof buf-n, "cmpswap386\n");
+		p = seprint(p, ep, "cmpswap386\n");
 	else if(cmpswap == cmpswap486)
-		n += snprint(buf+n, sizeof buf-n, "cmpswap486\n");
+		p = seprint(p, ep, "cmpswap486\n");
 	else
-		n += snprint(buf+n, sizeof buf-n, "0x%p\n", cmpswap);
-	n += snprint(buf+n, sizeof buf-n, "i8253set %s\n", doi8253set ? "on" : "off");
-	n += mtrrprint(buf+n, sizeof buf-n);
-	buf[n] = 0;
-	return readstr(offset, a, nn, buf);
+		p = seprint(p, ep, "0x%p\n", cmpswap);
+	p = seprint(p, ep, "i8253set %s\n", doi8253set ? "on" : "off");
+	n = p - buf;
+	n += mtrrprint(p, ep - p);
+	buf[n] = '\0';
+
+	n = readstr(offset, a, nn, buf);
+	free(buf);
+	return n;
 }
 
 enum
@@ -890,10 +896,9 @@ static Cmdtab archctlmsg[] =
 static long
 archctlwrite(Chan*, void *a, long n, vlong)
 {
+	uvlong base, size;
 	Cmdbuf *cb;
 	Cmdtab *ct;
-	uintptr base;
-	ulong size;
 	char *ep;
 
 	cb = parsecmd(a, n);
@@ -942,10 +947,10 @@ archctlwrite(Chan*, void *a, long n, vlong)
 			cmderror(cb, "invalid i2853set ctl");
 		break;
 	case CMcache:
-		base = strtoul(cb->f[1], &ep, 0);
+		base = strtoull(cb->f[1], &ep, 0);
 		if(*ep)
 			error("cache: parse error: base not a number?");
-		size = strtoul(cb->f[2], &ep, 0);
+		size = strtoull(cb->f[2], &ep, 0);
 		if(*ep)
 			error("cache: parse error: size not a number?");
 		mtrr(base, size, cb->f[3]);

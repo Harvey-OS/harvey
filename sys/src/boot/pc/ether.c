@@ -163,7 +163,10 @@ etherinit(void)
 			break;
 		}
 	}
-
+	if (mask == 0) {
+		print("no ethernet interfaces recognised\n");
+		pcihinv(nil, Pcibcnet);
+	}
 	return mask;
 }
 

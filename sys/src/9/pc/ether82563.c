@@ -419,6 +419,7 @@ enum {
 	Iany,
 	i82563,
 	i82566,
+	i82567,
 	i82571,
 	i82572,
 	i82573,
@@ -428,6 +429,7 @@ enum {
 static int rbtab[] = {
 	0,
 	9014,
+	1514,
 	1514,
 	9234,
 	9234,
@@ -439,6 +441,7 @@ static char *tname[] = {
 	"any",
 	"i82563",
 	"i82566",
+	"i82567",
 	"i82571",
 	"i82572",
 	"i82573",
@@ -752,7 +755,7 @@ i82563multicast(void* arg, uchar* addr, int on)
 	ctlr = edev->ctlr;
 
 	x = addr[5]>>1;
-	if(ctlr->type == i82566)
+	if(ctlr->type == i82566 || ctlr->type == i82567)
 		x &= 31;
 	bit = ((addr[5] & 1)<<4)|(addr[4]>>4);
 	/*
@@ -981,7 +984,7 @@ i82563rxinit(Ctlr* ctlr)
 	if(ctlr->type == i82573)
 		csr32w(ctlr, Ert, 1024/8);
 
-	if(ctlr->type == i82566)
+	if(ctlr->type == i82566 || ctlr->type == i82567)
 		csr32w(ctlr, Pbs, 16);
 
 	csr32w(ctlr, Rdbal, PCIWADDR(ctlr->rdba));
@@ -1358,7 +1361,7 @@ i82563detach(Ctlr* ctlr)
 	delay(10);
 
 	r = csr32r(ctlr, Ctrl);
-	if(ctlr->type == i82566)
+	if(ctlr->type == i82566 || ctlr->type == i82567)
 		r |= Phyrst;
 	csr32w(ctlr, Ctrl, Devrst | r);
 	delay(1);
@@ -1524,7 +1527,7 @@ i82563reset(Ctlr *ctlr)
 
 	if(i82563detach(ctlr))
 		return -1;
-	if(ctlr->type == i82566)
+	if(ctlr->type == i82566 || ctlr->type == i82567)
 		r = fload(ctlr);
 	else
 		r = eeload(ctlr);
@@ -1596,6 +1599,9 @@ i82563pci(void)
 		case 0x104d:		/* v */
 		case 0x10bd:		/* dm */
 			type = i82566;
+			break;
+		case 0x10cd:		/* lf */
+			type = i82567;
 			break;
 		case 0x10a4:
 		case 0x105e:
