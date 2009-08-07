@@ -111,6 +111,7 @@ enum {					/* Tcr */
 	Macv05		= 0x18000000,	/* RTL8169SC/8110SC */
 	Macv11		= 0x30000000,	/* RTL8168B/8111B */
 	Macv12		= 0x38000000,	/* RTL8169B/8111B */
+	Macv12a		= 0x3c000000,	/* RTL8169C/8111C */
 	Macv13		= 0x34000000,	/* RTL8101E */
 	Macv14		= 0x30800000,	/* RTL8100E */
 	Macv15		= 0x38800000,	/* RTL8100E */
@@ -556,6 +557,7 @@ rtl8169init(Ether* edev)
 	case Macv04:
 	case Macv11:
 	case Macv12:
+	case Macv12a:
 	case Macv14:
 	case Macv15:
 	case Macv16:

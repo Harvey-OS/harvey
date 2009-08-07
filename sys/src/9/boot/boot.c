@@ -307,7 +307,8 @@ run(char *prog, char **args)
 
 	if (access(args[0], AEXIST) < 0)
 		return;			/* avoid error messages */
-	print("%s...", prog);
+//	print("%s...", prog);
+	USED(prog);
 	switch(pid = fork()){
 	case -1:
 		fatal("fork");
