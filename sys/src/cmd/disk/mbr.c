@@ -105,6 +105,7 @@ writechs(Disk *disk, uchar *p, vlong lba)
 static void
 wrtentry(Disk *disk, Tentry *tp, int type, u32int base, u32int lba, u32int end)
 {
+	tp->active = 0x80;		/* make this sole partition active */
 	tp->type = type;
 	writechs(disk, &tp->starth, lba);
 	writechs(disk, &tp->endh, end-1);
@@ -129,7 +130,7 @@ main(int argc, char **argv)
 		flag9 = 1;
 		break;
 	case 'm':
-		mbrfile = ARGF();
+		mbrfile = EARGF(usage());
 		break;
 	default:
 		usage();

@@ -197,7 +197,6 @@ void	schedinit(void);
 int	scsiio(Device*, int, uchar*, int, void*, int);
 void	scsiinit(void);
 Off	scsiread(int, void*, long);
-Devsize	scsiseek(int, Devsize);
 Off	scsiwrite(int, void*, long);
 char*	sdof(Device*);
 void	sec2rtc(Timet, Rtc *);
