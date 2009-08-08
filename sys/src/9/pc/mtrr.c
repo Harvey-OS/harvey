@@ -16,7 +16,7 @@
 enum {
 	/*
 	 * MTRR Physical base/mask are indexed by
-	 *	MTRRPhys{Base|Mask}N = MTRRPhys{Base|Mask}0 + 2*i
+	 *	MTRRPhys{Base|Mask}N = MTRRPhys{Base|Mask}0 + 2*N
 	 */
 	MTRRPhysBase0 = 0x200,
 	MTRRPhysMask0 = 0x201,
@@ -84,6 +84,8 @@ static char *types[] = {
 [Writeback]	"wb",
 		nil
 };
+static Mtrrop *postedop;
+static Rendez oprend;
 
 static char *
 type2str(int type)
@@ -112,23 +114,21 @@ physmask(void)
 
 	if (mask != -1)
 		return mask;
-	mask = Paerange - 1;				/* default */
 	cpuid(Exthighfunc, regs);
 	if(regs[0] >= Extaddrsz) {			/* ax */
 		cpuid(Extaddrsz, regs);
 		mask = (1LL << (regs[0] & 0xFF)) - 1;	/* ax */
-		if (mask >= Paerange)
-			mask = Paerange - 1;
 	}
+	mask &= Paerange - 1;				/* x86 sanity */
 	return mask;
 }
 
-static int
-overlap(vlong b1, long s1, vlong b2, long s2)
+/* limit physical addresses to 36 bits on the x86 */
+static void
+sanity(Mtrreg *mtrr)
 {
-	if(b1 > b2)
-		return overlap(b2, s2, b1, s1);
-	return b1 + s1 > b2;
+	mtrr->base &= Paerange - 1;
+	mtrr->mask &= Paerange - 1;
 }
 
 static int
@@ -141,6 +141,7 @@ ispow2(uvlong ul)
 static int
 mtrrdec(Mtrreg *mtrr, uvlong *ptr, uvlong *size, int *type)
 {
+	sanity(mtrr);
 	*ptr =  mtrr->base & ~(BY2PG-1);
 	*type = mtrr->base & 0xff;
 	*size = (physmask() ^ (mtrr->mask & ~(BY2PG-1))) + 1;
@@ -152,6 +153,7 @@ mtrrenc(Mtrreg *mtrr, uvlong ptr, uvlong size, int type, int ok)
 {
 	mtrr->base = ptr | (type & 0xff);
 	mtrr->mask = (physmask() & ~(size - 1)) | (ok? 1<<11: 0);
+	sanity(mtrr);
 }
 
 /*
@@ -165,13 +167,15 @@ mtrrget(Mtrreg *mtrr, uint i)
 		error("mtrr index out of range");
 	rdmsr(MTRRPhysBase0 + 2*i, &mtrr->base);
 	rdmsr(MTRRPhysMask0 + 2*i, &mtrr->mask);
+	sanity(mtrr);
 }
 
 static void
-mtrrput(Mtrreg *mtrr, int i)
+mtrrput(Mtrreg *mtrr, uint i)
 {
 	if (i >= Nmtrr)
 		error("mtrr index out of range");
+	sanity(mtrr);
 	wrmsr(MTRRPhysBase0 + 2*i, mtrr->base);
 	wrmsr(MTRRPhysMask0 + 2*i, mtrr->mask);
 }
@@ -185,8 +189,6 @@ mtrrop(Mtrrop **op)
 	static long bar1, bar2;
 
 	s = splhi();		/* avoid race with mtrrclock */
-
-// iprint("cpu%d enter mtrrop\n", m->machno);
 
 	/*
 	 * wait for all CPUs to sync here, so that the MTRR setup gets
@@ -224,16 +226,22 @@ mtrrop(Mtrrop **op)
 	while(bar1 > 0)
 		microdelay(10);
 	_xdec(&bar2);
+	wakeup(&oprend);
 	splx(s);
 }
-
-static Mtrrop *postedop;
 
 void
 mtrrclock(void)				/* called from clock interrupt */
 {
 	if(postedop != nil)
 		mtrrop(&postedop);
+}
+
+/* if there's an operation still pending, keep sleeping */
+static int
+opavail(void *)
+{
+	return postedop == nil;
 }
 
 int
@@ -279,24 +287,23 @@ mtrr(uvlong base, uvlong size, char *tstr)
 		break;
 	}
 
+	qlock(&mtrrlk);
 	slot = -1;
 	vcnt = cap & Capvcnt;
 	for(i = 0; i < vcnt; i++){
 		mtrrget(&mtrr, i);
 		mok = mtrrdec(&mtrr, &mp, &msize, &mtype);
-		if(!mok)
-			slot = i;
-		else if(mp == base && msize == size){
+		/* reuse any entry for addresses above 4GB */
+		if(!mok || mp == base && msize == size || mp >= (1LL<<32)){
 			slot = i;
 			break;
 		}
-		if(mok && overlap(mp, msize, base, size))
-			error("mtrr range overlaps existing definition");
 	}
 	if(slot == -1)
 		error("no free mtrr slots");
 
-	qlock(&mtrrlk);
+	while(postedop != nil)
+		sleep(&oprend, opavail, 0);
 	mtrrenc(&entry, base, size, type, 1);
 	op.reg = &entry;
 	op.slot = slot;
