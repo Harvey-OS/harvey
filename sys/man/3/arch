@@ -66,7 +66,7 @@ that reflect the state of memory caching via MTRRs
 (memory-type region registers).
 The second word on the line is
 .L default
-or a C-style number which is the base address of the region;
+or a C-style number which is the base physical address of the region;
 the third is a C-style length of the region;
 and the fourth is one of
 .LR uc
