@@ -5,11 +5,11 @@ struct Serialops {
 	int	(*init)(Serial*);
 	int	(*getparam)(Serial*);
 	int	(*setparam)(Serial*);
-	void	(*clearpipes)(Serial*);
-	void	(*sendlines)(Serial*);
-	void	(*modemctl)(Serial*, int);
+	int	(*clearpipes)(Serial*);
+	int	(*sendlines)(Serial*);
+	int	(*modemctl)(Serial*, int);
 	int	(*setbreak)(Serial*, int);
-	void	(*readstatus)(Serial*);
+	int	(*readstatus)(Serial*);
 };
 
 struct Serial {
@@ -22,6 +22,7 @@ struct Serial {
 	Usbfs	fs;
 	int	type;
 	int	recover;
+	int	hasepintr;
 
 	uchar	ctlstate;
 	/* serial parameters */
@@ -49,8 +50,6 @@ struct Serial {
 	Serialops;
 };
 
-extern Serialops plops;
-
 enum {
 	/* soft flow control chars */
 	CTLS = 023,
@@ -71,11 +70,15 @@ struct Cinfo {
 	int	cid;		/* controller id assigned by us */
 };
 
-extern Cinfo cinfo[];
+extern Cinfo plinfo[];
+extern Cinfo uconsinfo[];
 extern int serialdebug;
 
 #define	dsprint	if(serialdebug)fprint
 
 int	serialrecover(Serial *ser, char *err);
 int	serialreset(Serial *ser);
-char	*dumpstatus(Serial *ser, char *buf, int bufsz);
+char	*serdumpst(Serial *ser, char *buf, int bufsz);
+
+int	serialnop(Serial *);
+int	serialnopctl(Serial *, int);

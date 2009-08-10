@@ -2,11 +2,12 @@
 
 TARG=serial
 OFILES=main.$O
-LIBDOFILES=serial.$O prolific.$O
+LIBDOFILES=serial.$O prolific.$O ucons.$O
 HFILES=\
 	../lib/usb.h\
 	prolific.h\
 	serial.h\
+	ucons.h\
 
 LIBD=../lib/usbdev.a$O
 LIBU=../lib/usb.a$O
