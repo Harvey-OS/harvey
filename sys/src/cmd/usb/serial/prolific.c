@@ -6,6 +6,68 @@
 #include "serial.h"
 #include "prolific.h"
 
+Cinfo plinfo[] = {
+	{ PL2303Vid,	PL2303Did },
+	{ PL2303Vid,	PL2303DidRSAQ2 },
+	{ PL2303Vid,	PL2303DidDCU11 },
+	{ PL2303Vid,	PL2303DidRSAQ3 },
+	{ PL2303Vid,	PL2303DidPHAROS },
+	{ PL2303Vid,	PL2303DidALDIGA },
+	{ PL2303Vid,	PL2303DidMMX },
+	{ PL2303Vid,	PL2303DidGPRS },
+	{ IODATAVid,	IODATADid },
+	{ IODATAVid,	IODATADidRSAQ5 },
+	{ ATENVid,	ATENDid },
+	{ ATENVid2,	ATENDid },
+	{ ELCOMVid,	ELCOMDid },
+	{ ELCOMVid,	ELCOMDidUCSGT },
+	{ ITEGNOVid,	ITEGNODid },
+	{ ITEGNOVid,	ITEGNODid2080 },
+	{ MA620Vid,	MA620Did },
+	{ RATOCVid,	RATOCDid },
+	{ TRIPPVid,	TRIPPDid },
+	{ RADIOSHACKVid,RADIOSHACKDid },
+	{ DCU10Vid,	DCU10Did },
+	{ SITECOMVid,	SITECOMDid },
+	{ ALCATELVid,	ALCATELDid },
+	{ SAMSUNGVid,	SAMSUNGDid },
+	{ SIEMENSVid,	SIEMENSDidSX1 },
+	{ SIEMENSVid,	SIEMENSDidX65 },
+	{ SIEMENSVid,	SIEMENSDidX75 },
+	{ SIEMENSVid,	SIEMENSDidEF81 },
+	{ SYNTECHVid,	SYNTECHDid },
+	{ NOKIACA42Vid,	NOKIACA42Did },
+	{ CA42CA42Vid,	CA42CA42Did },
+	{ SAGEMVid,	SAGEMDid },
+	{ LEADTEKVid,	LEADTEK9531Did },
+	{ SPEEDDRAGONVid,SPEEDDRAGONDid },
+	{ DATAPILOTU2Vid,DATAPILOTU2Did },
+	{ BELKINVid,	BELKINDid },
+	{ ALCORVid,	ALCORDid },
+	{ WS002INVid,	WS002INDid },
+	{ COREGAVid,	COREGADid },
+	{ YCCABLEVid,	YCCABLEDid },
+	{ SUPERIALVid,	SUPERIALDid },
+	{ HPVid,	HPLD220Did },
+	{ 0,		0 },
+};
+
+int
+plmatch(char *info)
+{
+	Cinfo *ip;
+	char buf[50];
+
+	for(ip = plinfo; ip->vid != 0; ip++){
+		snprint(buf, sizeof buf, "vid %#06x did %#06x",
+			ip->vid, ip->did);
+		dsprint(2, "serial: %s %s", buf, info);
+		if(strstr(info, buf) != nil)
+			return 0;
+	}
+	return -1;
+}
+
 static void	statusreader(void *u);
 
 static void
@@ -76,13 +138,13 @@ plgetparam(Serial *ser)
 	return res;
 }
 
-static void
+static int
 plmodemctl(Serial *ser, int set)
 {
 	if(set == 0){
 		ser->mctl = 0;
 		vendorwrite(ser, 0x0, 0x0);
-		return;
+		return 0;
 	}
 
 	ser->mctl = 1;
@@ -90,6 +152,7 @@ plmodemctl(Serial *ser, int set)
 		vendorwrite(ser, 0x0, Dcr0InitX);
 	else
 		vendorwrite(ser, 0x0, Dcr0InitH);
+	return 0;
 }
 
 static int
@@ -165,7 +228,7 @@ plinit(Serial *ser)
 	st = emallocz(255, 1);
 	qlock(ser);
 	if(serialdebug)
-		dumpstatus(ser, st, 255);
+		serdumpst(ser, st, 255);
 	dsprint(2, st);
 	qunlock(ser);
 	free(st);
@@ -182,7 +245,7 @@ plsetbreak(Serial *ser, int val)
 		(val != 0? BreakOn: BreakOff), val, 0, nil, 0);
 }
 
-static void
+static int
 plclearpipes(Serial *ser)
 {
 	if(ser->type == TypeHX){
@@ -196,6 +259,7 @@ plclearpipes(Serial *ser)
 		if(unstall(ser->dev, ser->epintr, Ein) < 0)
 			dprint(2, "disk: unstall epintr: %r\n");
 	}
+	return 0;
 }
 
 static int
@@ -218,7 +282,7 @@ composectl(Serial *ser)
 		ser->ctlstate &= ~CtlDTR;
 }
 
-void
+int
 plsendlines(Serial *ser)
 {
 	int res;
@@ -227,6 +291,7 @@ plsendlines(Serial *ser)
 	composectl(ser);
 	res = setctlline(ser, ser->ctlstate);
 	dsprint(2, "serial: getparam res: %d\n", res);
+	return 0;
 }
 
 static int
