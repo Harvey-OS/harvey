@@ -974,7 +974,7 @@ dhcpwatch(int needconfig)
 		if(conf.lease > 0){
 			/*
 			 * during boot, the starttime can be bogus so avoid
-			 * spurious ipinconfig's
+			 * spurious ipunconfig's
 			 */
 			t = time(0) - conf.starttime;
 			if(t > (3*secs)/2)

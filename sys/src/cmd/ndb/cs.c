@@ -1087,7 +1087,7 @@ netinit(int background)
 	/* find out what our ip address is */
 	readipinterfaces();
 
-	/* set the system name if we need to, these says ip is all we have */
+	/* set the system name if we need to, these days ip is all we have */
 	ipid();
 
 	if(debug)
