@@ -59,6 +59,7 @@ int	rntocmd(char*);
 int	reply(char*, ...);
 int	restartcmd(char*);
 int	retrievecmd(char*);
+int	sitecmd(char*);
 int	sizecmd(char*);
 int	storecmd(char*);
 int	storeucmd(char*);
@@ -105,6 +106,7 @@ Cmd cmdtab[] =
 	{ "rmd",	delcmd,		1, },
 	{ "rnfr",	rnfrcmd,	1, },
 	{ "rnto",	rntocmd,	1, },
+	{ "site", sitecmd, 1, },
 	{ "size", 	sizecmd,	1, },
 	{ "stor", 	storecmd,	1, },
 	{ "stou", 	storeucmd,	1, },
@@ -1120,6 +1122,52 @@ listcmd(char *arg)
 {
 	return asproc(list, arg, 1);
 }
+
+/*
+ * fuse compatability
+ */
+int
+oksiteuser(void)
+{
+	char buf[64];
+	int fd, n;
+
+	fd = open("#c/user", OREAD);
+	if(fd < 0)
+		return 1;
+	n = read(fd, buf, sizeof buf - 1);
+	if(n > 0){
+		buf[n] = 0;
+		if(strcmp(buf, "none") == 0)
+			n = -1;
+	}
+	close(fd);
+	return n > 0;
+}
+
+int
+sitecmd(char *arg)
+{
+	char *f[4];
+	int nf, r;
+	Dir *d;
+
+	nf = tokenize(arg, f, nelem(f));
+	if(nf != 3 || cistrcmp(f[0], "chmod") != 0)
+		return reply("501 bad site command");
+	if(!oksiteuser())
+		return reply("550 Permission denied");
+	d = dirstat(f[2]);
+	if(d == nil)
+		return reply("501 site chmod: file does not exist");
+	d->mode &= ~0777;
+	d->mode |= strtoul(f[1], 0, 8) & 0777;
+	r = dirwstat(f[2], d);
+	free(d);
+	if(r < 0)
+		return reply("550 Permission denied %r");
+	return reply("200 very well, then");
+ }
 
 /*
  *  return the size of the file

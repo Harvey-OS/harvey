@@ -40,10 +40,19 @@ static Field p_fields[] =
 static void
 p_compile(Filter *f)
 {
+	Mux *m;
+
 	if(f->op == '='){
 		compile_cmp(aoe.name, f, p_fields);
 		return;
 	}
+	for(m = p_mux; m->name; m++)
+		if(strcmp(f->s, m->name) == 0){
+			f->pr = m->pr;
+			f->ulv = m->val;
+			f->subop = Ocmd;
+			return;
+		}
 	sysfatal("unknown aoe field: %s", f->s);
 }
 
@@ -95,7 +104,7 @@ Proto aoe =
 	p_filter,
 	p_seprint,
 	p_mux,
-	nil,
+	"%lud",
 	p_fields,
 	defaultframer,
 };

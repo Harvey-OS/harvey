@@ -242,25 +242,9 @@ iwalkup(Xfile *f)
 static int
 casestrcmp(int isplan9, char *a, char *b)
 {
-	int ca, cb;
-
 	if(isplan9)
 		return strcmp(a, b);
-	for(;;) {
-		ca = *a++;
-		cb = *b++;
-		if(ca >= 'A' && ca <= 'Z')
-			ca += 'a' - 'A';
-		if(cb >= 'A' && cb <= 'Z')
-			cb += 'a' - 'A';
-		if(ca != cb) {
-			if(ca > cb)
-				return 1;
-			return -1;
-		}
-		if(ca == 0)
-			return 0;
-	}
+	return cistrcmp(a, b);
 }
 
 static void
