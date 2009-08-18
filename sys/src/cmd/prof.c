@@ -336,6 +336,7 @@ char*	trans[] =
 	"386",		"8.out",
 	"68020",		"2.out",
 	"alpha",		"7.out",
+	"amd64",	"6.out",
 	"arm",		"5.out",
 	"mips",		"v.out",
 	"power",		"q.out",

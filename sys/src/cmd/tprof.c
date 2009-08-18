@@ -138,10 +138,10 @@ main(int argc, char *argv[])
 	Binit(&outbuf, 1, OWRITE);
 	Bprint(&outbuf, "    ms      %%   sym\n");
 	while(--k>=0)
-		Bprint(&outbuf, "%6ld\t%3ld.%ld\t%s\n",
+		Bprint(&outbuf, "%6ld\t%3lld.%lld\t%s\n",
 				cp[k].time,
-				100*cp[k].time/delta,
-				(1000*cp[k].time/delta)%10,
+				100LL*cp[k].time/delta,
+				(1000LL*cp[k].time/delta)%10,
 				cp[k].name);
 	exits(0);
 }
