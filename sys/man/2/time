@@ -35,6 +35,7 @@ opening that file when they are first called.
 .br
 .B /sys/src/libc/9sys/nsec.c
 .SH SEE ALSO
+.IR cputime (2),
 .IR cons (3)
 .SH DIAGNOSTICS
 Sets
