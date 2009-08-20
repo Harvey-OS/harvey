@@ -31,7 +31,7 @@ struct Tos {
     vlong   pcycles;        /* process cycles (kernel + user) */
     ulong   pid;            /* process id */
     ulong   clock;          /* profiling clock */
-    /* top of stack */
+    /* top of stack is here */
 };
 .PP
 .B
@@ -141,6 +141,11 @@ When the new program begins, the global pointer
 is set to the address of a structure
 that holds information
 allowing accurate time keeping and clock reading in user space.
+These data are updated by the kernel during of the life of the process,
+including across
+.IR rfork s
+and
+.IR exec s.
 If there is a user-space accessible fast clock (a processor
 cycle counter),
 .B cyclefreq
@@ -150,6 +155,8 @@ will be set to its frequency in Hz.
 counts the number of cycles 
 this process has spent in kernel mode
 (kernel and user mode).
+.B Pid
+is the current process's id.
 .B Clock
 is the user-profiling clock (see
 .IR prof (1)).
