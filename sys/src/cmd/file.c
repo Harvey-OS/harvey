@@ -639,6 +639,7 @@ Fileoffmag longofftab[] = {
 	256*1024, 0xe7a5e4a9, 0xFFFFFFFF, "venti arenas partition\n", OCTET,
 	256*1024, 0xc75e5cd1, 0xFFFFFFFF, "venti index section\n", OCTET,
 	128*1024, 0x89ae7637, 0xFFFFFFFF, "fossil write buffer\n", OCTET,
+	4,	  0x31647542, 0xFFFFFFFF, "OS X finder properties\n", OCTET,
 };
 
 int
