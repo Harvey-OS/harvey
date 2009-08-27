@@ -178,7 +178,7 @@ hostlookup(char *host)
 
 	he = gethostbyname(host);
 	if(he != 0 && he->h_addr_list[0]) {
-		p = he->h_addr_list[0];
+		p = (uchar*)he->h_addr_list[0];
 		sprint(buf, "%ud.%ud.%ud.%ud", p[0], p[1], p[2], p[3]);
 	} else
 		strcpy(buf, host);

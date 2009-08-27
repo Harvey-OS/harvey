@@ -118,8 +118,8 @@ randomread(void *xp, ulong n)
 		}
 
 		/*
-		 *  beating clocks will be precictable if
-		 *  they are synchronized.  Use a cheap pseudo
+		 *  beating clocks will be predictable if
+		 *  they are synchronized.  Use a cheap pseudo-
 		 *  random number generator to obscure any cycles.
 		 */
 		x = rb.randn*1103515245 ^ *rb.rp;
