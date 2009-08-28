@@ -1,6 +1,6 @@
 .TH AUTH 8
 .SH NAME
-changeuser, convkeys, convkeys2, printnetkey, status, enable, disable, authsrv, guard.srv, wrkey, login, newns, none, as \- maintain or query authentication databases
+changeuser, convkeys, convkeys2, printnetkey, status, enable, disable, authsrv, guard.srv, debug, wrkey, login, newns, none, as \- maintain or query authentication databases
 .SH SYNOPSIS
 .B auth/changeuser
 .RB [ -np ]
@@ -29,6 +29,8 @@ changeuser, convkeys, convkeys2, printnetkey, status, enable, disable, authsrv, 
 .B auth/authsrv
 .PP
 .B auth/guard.srv
+.PP
+.B auth/debug
 .PP
 .B auth/wrkey
 .PP
@@ -185,8 +187,16 @@ described in
 .I Guard.srv
 is similar.  It is called whenever a foreign (e.g. Unix) system wants
 to do a SecureNet challenge/response authentication.
+.SS Anywhere commands
 .PP
 The remaining commands need not be run on an authentication server.
+.PP
+.I Debug
+attempts to authenticate using each
+.B p9sk1
+key found in
+.I factotum
+and prints progress reports.
 .PP
 .I Wrkey
 prompts for a machine key, host owner, and host domain and stores them in

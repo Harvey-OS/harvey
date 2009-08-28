@@ -29,6 +29,7 @@ static AuthInfo *p9any(int);
 static char	*system;
 static int	cflag;
 extern int	dbg;
+extern char*	base;	// fs base for devroot
 
 static char	*srvname = "ncpu";
 static char	*ealgs = "rc4_256 sha1";
@@ -111,9 +112,7 @@ cpumain(int argc, char **argv)
 		close(fd);
 	}
 
-        user = getenv("USER");
-        if(user == nil)
-        	user = readcons("user", nil, 0);
+	user = getenv("USER");
 	secstoreserver = nil;
 	authserver = getenv("auth");
 	if(authserver == nil)
@@ -128,6 +127,14 @@ cpumain(int argc, char **argv)
 	case 'c':
 		system = EARGF(usage());
 		break;
+	case 'd':
+		dbg++;
+		break;
+	case 'e':
+		ealgs = EARGF(usage());
+		if(*ealgs == 0 || strcmp(ealgs, "clear") == 0)
+			ealgs = nil;
+		break;
 	case 'C':
 		cflag++;
 		cmd[0] = '!';
@@ -137,16 +144,11 @@ cpumain(int argc, char **argv)
 			strcat(cmd, p);
 		}
 		break;
-	case 'd':
-		dbg++;
-		break;
-	case 'e':
-		ealgs = EARGF(usage());
-		if(*ealgs == 0 || strcmp(ealgs, "clear") == 0)
-			ealgs = nil;
-		break;
 	case 'k':
 		keyspec = EARGF(usage());
+		break;
+	case 'r':
+		base = EARGF(usage());
 		break;
 	case 's':
 		secstoreserver = EARGF(usage());
@@ -160,6 +162,9 @@ cpumain(int argc, char **argv)
 
 	if(argc != 0)
 		usage();
+
+	if(user == nil)
+		user = readcons("user", nil, 0);
 
 	if(mountfactotum() < 0){
 		if(secstoreserver == nil)
@@ -548,7 +553,7 @@ p9any(int fd)
 	char tbuf[TICKETLEN+TICKETLEN+AUTHENTLEN], trbuf[TICKREQLEN];
 	char authkey[DESKEYLEN];
 	Authenticator auth;
-	int afd, i, v2;
+	int afd, i, n, v2;
 	Ticketreq tr;
 	Ticket t;
 	AuthInfo *ai;
@@ -626,8 +631,23 @@ p9any(int fd)
 	if(write(fd, tbuf, TICKETLEN+AUTHENTLEN) != TICKETLEN+AUTHENTLEN)
 		fatal(1, "cannot send ticket and authenticator back in p9sk1");
 
-	if(readn(fd, tbuf, AUTHENTLEN) != AUTHENTLEN)
-		fatal(1, "cannot read authenticator in p9sk1");
+	if((n=readn(fd, tbuf, AUTHENTLEN)) != AUTHENTLEN ||
+			memcmp(tbuf, "cpu:", 4) == 0){
+		if(n <= 4)
+			fatal(1, "cannot read authenticator in p9sk1");
+
+		/*
+		 * didn't send back authenticator:
+		 * sent back fatal error message.
+		 */
+		memmove(buf, tbuf, n);
+		i = readn(fd, buf+n, sizeof buf-n-1);
+		if(i > 0)
+			n += i;
+		buf[n] = 0;
+		werrstr("");
+		fatal(0, "server says: %s", buf);
+	}
 	
 	convM2A(tbuf, &auth, t.key);
 	if(auth.num != AuthAs
@@ -635,7 +655,7 @@ p9any(int fd)
 	|| auth.id != 0){
 		print("?you and auth server agree about password.\n");
 		print("?server is confused.\n");
-		fatal(1, "server lies got %llux.%d want %llux.%d", *(vlong*)auth.chal, auth.id, *(vlong*)cchal, 0);
+		fatal(0, "server lies got %llux.%d want %llux.%d", *(vlong*)auth.chal, auth.id, *(vlong*)cchal, 0);
 	}
 	//print("i am %s there.\n", t.suid);
 	ai = mallocz(sizeof(AuthInfo), 1);

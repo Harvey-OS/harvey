@@ -3,24 +3,30 @@
 aan \- always available network
 .SH SYNOPSIS
 .B aan
+.B -c
 [
 .B -d
-]
-[
-.B -c
 ]
 [
 .B -m maxto
 ]
 .I dialstring
-|
-.I dir
+.br
+.B aan
+[
+.B -d
+]
+[
+.B -m maxto
+]
+.I netdir
 .SH DESCRIPTION
 .I Aan
 tunnels traffic between a client and a server through a persistent
 network connection.  If the connection breaks (voluntarily or
-due to networking problems), the aan client re-establishes the
-connection by redialing the server.
+due to networking problems), the
+.I aan
+client re-establishes the connection by redialing the server.
 .PP
 .I Aan 
 uses a unique protocol to make sure no data is ever lost even
@@ -31,7 +37,7 @@ retransmits all unacknowledged data between client and server.
 .PP
 A connection can be broken voluntarily (e.g. by roaming over IP networks), 
 or a connection can break when the IP service is unreliable.
-In either case
+In either case,
 .I aan
 re-establishes the client's connection automatically.
 .PP 
@@ -39,17 +45,17 @@ When the server part has not heard from the client in
 .I maxto
 seconds, the server part of
 .I aan
-exits.  The default
+exits.
+The default
 .I maxto
 is one day.
 The client side (option
 .BR -c )
 calls the server by its
 .IR dialstring ,
-while
-the server side listens for connections in the 
+while the server side listens for connections in the 
 already-announced network directory
-.IR devdir .
+.IR netdir .
 .PP
 .I Aan
 is usually run automatically through the
@@ -57,8 +63,11 @@ is usually run automatically through the
 option of
 .IR import (4).
 .SH EXAMPLE
-Assume the server part of aan is encapsulated in exportfs on the
-machine
+Assume the server part of
+.I aan
+is encapsulated in
+.I exportfs
+on the machine
 .B sob
 and started through
 .B aux/listen
@@ -79,6 +88,7 @@ using this command:
 import -p astro6 / /mnt/term
 .EE
 .SH FILES
+.TF /sys/log/aan
 .TP
 .B /sys/log/aan
 Log file

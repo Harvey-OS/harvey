@@ -78,7 +78,7 @@ static void		freeendpoints(Endpoints *);
 static void
 usage(void)
 {
-	fprint(2, "Usage: %s [-c] [-d] [-m maxto] dialstring|handle\n", progname);
+	fprint(2, "Usage: %s [-cd] [-m maxto] dialstring|netdir\n", progname);
 	exits("usage");
 }
 
@@ -112,11 +112,9 @@ threadmain(int argc, char **argv)
 	case 'm':
 		maxto = (int)strtol(EARGF(usage()), (char **)nil, 0);
 		break;
-	case '?':
 	default:
 		usage();
-	}
-	ARGEND;
+	} ARGEND;
 
 	if (argc != 1)
 		usage();
