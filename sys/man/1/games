@@ -1,6 +1,6 @@
 .TH GAMES 1
 .SH NAME
-4s, 5s, juggle, mahjongg, memo, sokoban, sudoku \- time wasters
+4s, 5s, juggle, life, mahjongg, memo, sokoban, sudoku \- time wasters
 .SH SYNOPSIS
 .B games/4s
 .br
@@ -17,6 +17,9 @@
 .I start
 ]
 .I pattern
+.br
+.B games/life
+.I startfile
 .br
 .B games/mahjongg
 [
@@ -48,7 +51,9 @@
 .SH DESCRIPTION
 There are a few games in
 .BR /bin/games :
-.TP \w'\fLfireworksXX'u
+.TF mahjongg
+.PD
+.TP
 .BR 4s , " 5s"
 Try to fill complete rows using 4-square or 5-square tiles.
 Move tiles left or right by moving the mouse.
@@ -96,7 +101,14 @@ can be used to speed up or slow down the action (default is 20).
 Try the pattern 333333441333333 or 333353505151512333333
 or YWUSQOMKIGECA
 (see
-.IR http://seehuhn.de/jong/theory.html ).
+.BR http://seehuhn.de/jong/theory.html ).
+.TP
+.B life
+Play the game of Life, given an initial position.
+There is a library of interesting initial positions;
+the library is consulted if
+.I startfile
+cannot be found.
 .TP
 .B mahjongg
 Remove all tiles
@@ -208,39 +220,47 @@ clear the board to its starting (or last loaded) state
 .TP
 .B Save
 save the current board to
-.I /tmp/sudoku-save
+.B /tmp/sudoku-save
 .TP
 .B Load
 load the last saved board from
-.I /tmp/sudoku-save
+.B /tmp/sudoku-save
 .TP
 .B Print
 print the current board and solution in a format
-suitable for addition in the sudoku library to
-.I /tmp/sudoku-board
+suitable for addition in the
+.I sudoku
+library to
+.B /tmp/sudoku-board
 .TP
 .B Offline
 pretty-print the board for off-line solving to
-.I /tmp/sudoku-print
+.B /tmp/sudoku-print
 .TP
 .B Exit
 quit the game
 .RE
 .IP
-Button 2 presents a list of sudoku boards from
-.I /sys/games/lib/sudoku/boards
-with varying degree of difficulty.
+Button 2 presents a list of
+.I sudoku
+boards of varying degrees of difficulty from
+.BR /sys/games/lib/sudoku/boards .
 .IP
 Pressing the
 .B Q
-key quits sudoku
+key quits
+.IR sudoku .
 .SH FILES
+.TF /sys/games/lib/mahjongg/*
 .TP
 .B /sys/games/lib/[45]scores
 score files of
 .I 4s
 and
 .I 5s
+.TP
+.B /sys/games/lib/life/*
+interesting starting positions
 .TP
 .B /sys/games/lib/mahjongg/*
 image sprites, levels and backgrounds used by
@@ -260,7 +280,11 @@ images and boards used by
 .SH SOURCE
 .B /sys/src/games
 .SH BUGS
-In 4s and 5s mouse warping (when the game is resumed,
+In
+.I 4s
+and
+.IR 5s ,
+mouse warping (when the game is resumed,
 and when a new tile appears) does not happen when
 the mouse cursor is outside the game window.
 Those who prefer to use the keyboard without the mouse

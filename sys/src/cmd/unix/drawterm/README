@@ -24,14 +24,15 @@ See http://swtch.com/drawterm/
 
 SOURCE
 ------
-Use CVS: cvs -d :pserver:anoncvs@cvs.pdos.csail.mit.edu:/cvs co drawterm
-On the web at http://cvs.pdos.csail.mit.edu/cvs/drawterm
-In the Plan 9 distribution: /sys/src/cmd/unix/drawterm
+Use Mercurial: hg clone http://code.swtch.com/drawterm
+On the web at http://code.swtch.com/drawterm
+Tar file at http://swtch.com/drawterm/
+In the Plan 9 distribution: /sys/src/cmd/unix/drawterm/ (sometimes out of date)
 
 
 HELP
 ----
-Email Russ Cox <rsc@swtch.com> with bug reports or problems.
+Issue tracker: http://code.swtch.com/drawterm/issues
 
 
 TO DO:
