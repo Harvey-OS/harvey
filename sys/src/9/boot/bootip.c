@@ -136,22 +136,6 @@ connecttcp(void)
 	return fd;
 }
 
-void
-configil(Method*)
-{
-	configip(bargc, bargv, 1);
-	setauthaddr("tcp", 567);
-}
-
-int
-connectil(void)
-{
-	char buf[64];
-
-	snprint(buf, sizeof buf, "il!%I!17008", fsip);
-	return dial(buf, 0, 0, 0);
-}
-
 static int
 isvalidip(uchar *ip)
 {
