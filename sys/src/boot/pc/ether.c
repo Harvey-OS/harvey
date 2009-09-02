@@ -25,7 +25,7 @@ extern int rtl8139pnp(Ether*);
 extern int rtl8169pnp(Ether*);
 extern int ether83815reset(Ether*);
 extern int rhinepnp(Ether*);
-extern int ga620pnp(Ether*);
+// extern int ga620pnp(Ether*);
 extern int dp83820pnp(Ether*);
 
 struct {
@@ -55,7 +55,7 @@ struct {
 	{ "rhine", rhinepnp, 0, },
 	{ "vt6102", rhinepnp, 0, },
 	{ "vt6105m", rhinepnp, 0, },	/* until we have a 6105 boot driver */
-	{ "GA620", ga620pnp, 0, },
+//	{ "GA620", ga620pnp, 0, },
 	{ "83820",   dp83820pnp, 0, },
 	{ "dp83820", dp83820pnp, 0, },
 

@@ -1,4 +1,7 @@
 /*
+ * this driver is too bloated with firmware to include in 9pxeload,
+ * which must fit in 512K.  it's also for a very old card.
+ *
  * bootstrap driver for
  * Netgear GA620 Gigabit Ethernet Card.
  * Specific for the Alteon Tigon 2 and Intel Pentium or later.

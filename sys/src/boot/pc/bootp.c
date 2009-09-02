@@ -1,3 +1,10 @@
+/*
+ * bootp & tftp clients, mainly for pxe booting
+ *
+ * intel says that pxe can only load into the bottom 640K,
+ * and intel's boot agent takes 128K, leaving only 512K
+ * for 9pxeload (or a tiny kernel).
+ */
 #include "u.h"
 #include "lib.h"
 #include "mem.h"
