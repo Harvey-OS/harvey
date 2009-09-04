@@ -1385,7 +1385,8 @@ and so on, as in the ARM manual, with synonyms
 and
 .CW .LO
 (for
-.CW .CC ), for example
+.CW .CC ),
+for example
 .CW ADD.NE .
 Arithmetic
 and logical instructions
