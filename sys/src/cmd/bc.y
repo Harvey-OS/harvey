@@ -870,8 +870,8 @@ void
 yyerror(char *s, ...)
 {
 	if(ifile > sargc)
-		ss = "teletype";
-	Bprint(&bstdout, "c[%s on line %d, %s]pc\n", s, ln+1, ss);
+		ss = "stdin";
+	Bprint(&bstdout, "c[%s:%d %s]pc\n", ss, ln+1, s);
 	Bflush(&bstdout);
 	cp = cary;
 	crs = rcrs;
