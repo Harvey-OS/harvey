@@ -1143,10 +1143,12 @@ qhinterrupt(Ctlr *, Ep *ep, Qio *io, Td *td, int)
 		if(mode == OREAD){
 			if(td->cbp == 0)
 				panic("ohci: short packet but cbp == 0");
-			if((td->cbp & ~0xFFF) == (td->cbp0 & ~0xFFF))
-				bp->wp = pa2ptr(td->cbp);
-			else
-				bp->wp = bp->rp + 0x1000 + (td->cbp&0xFFF);
+			/*
+			 * td->cbp and td->cbp0 are the real addresses
+			 * corresponding to virtual addresses bp->wp and
+			 * bp->rp respectively.
+			 */
+			bp->wp = bp->rp + (td->cbp - td->cbp0);
 			if(bp->wp < bp->rp)
 				panic("ohci: wp < rp");
 			/*
@@ -1368,6 +1370,8 @@ aborttds(Qio *io)
 	Td *td;
 
 	ed = io->ed;
+	if(ed == nil)
+		return;
 	ed->ctrl |= Edskip;
 	for(td = ed->tds; td != nil; td = td->next)
 		if(td->bp != nil)
