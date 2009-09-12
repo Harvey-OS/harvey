@@ -150,7 +150,7 @@ rebuild-mail:V:
 	status=''
 
 scansources-mail:V:
-	scansources | datemail 'nightly fs vs. martha scan' 9trouble
+	scansources | datemail 'nightly fs vs. sources scan' 9trouble
 
 worldwritable-mail:V:
 	test -e /n/sources/plan9
