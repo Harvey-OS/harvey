@@ -337,7 +337,8 @@ main(void)
 	 */
 	if (debug)
 		print("plan9.ini probe...");
-	biosload = 1;			/* initially be optimistic */
+	/* most bioses seem to be broken */
+//	biosload = 1;			/* initially be optimistic */
 	for(tp = types; tp->type != Tnil; tp++){
 		/*
 		 * we don't know which ether interface to use nor
