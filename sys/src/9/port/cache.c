@@ -149,11 +149,11 @@ cprint(Chan *c, Mntcache *m, char *s)
 			ct = 0;
 		o = e->start+e->len;
 	}
-	pprint("%s: %#lux.%#lux %d %d %s (%d %c)\n",
-	s, m->qid.path, m->qid.vers, m->type, m->dev, c->path, nb, ct ? 'C' : 'N');
+	pprint("%s: %#llux.%#lux %d %d %s (%d %c)\n",
+	s, m->qid.path, m->qid.vers, m->type, m->dev, c->path->s, nb, ct ? 'C' : 'N');
 
 	for(e = m->list; e; e = e->next) {
-		pprint("\t%4d %5d %4d %lux\n",
+		pprint("\t%4d %5lud %4d %#p\n",
 			e->bid, e->start, e->len, e->cache);
 	}
 }
