@@ -391,3 +391,4 @@ long		lcycles(void);
 
 #pragma varargck argpos iprint	1
 #pragma	varargck argpos	panic	1
+#pragma varargck argpos pprint	1

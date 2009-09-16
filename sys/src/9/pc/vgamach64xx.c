@@ -1072,7 +1072,7 @@ ovl_enable(VGAscr *scr, Chan *c, char **field)
 static void
 ovl_status(VGAscr *scr, Chan *, char **field)
 {
-	pprint("%s: %s %.4uX, VT/GT %s, PRO %s, ovlclock %d, rev B %s, refclock %ld\n",
+	pprint("%s: %s %.4uX, VT/GT %s, PRO %s, ovlclock %lud, rev B %s, refclock %ld\n",
 		   scr->dev->name, field[0], mach64type->m64_id,
 		   mach64type->m64_vtgt? "yes": "no",
 		   mach64type->m64_pro? "yes": "no",
