@@ -288,6 +288,7 @@ ls -lp /n/dump/1992/02??/mips/bin/vc | uniq
 .IR yesterday (1),
 .IR fs (3),
 .IR sd (3),
+.IR fossil (4),
 .IR fs (4),
 .IR srv (4),
 .IR fs (8),
@@ -309,3 +310,8 @@ deciding which to serve by sniffing the first packet on each connection.
 .PP
 File system block size and disk address size (32- or 64-bit) are fixed
 at compilation time, and this is not easily changed.
+.PP
+.I Cwfs
+is probably not the right choice of file server for new file systems.
+It's intended to cope with existing file systems on optical jukeboxes
+or images thereof.
