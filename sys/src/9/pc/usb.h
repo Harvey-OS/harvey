@@ -14,7 +14,7 @@ enum
 	/* tunable parameters */
 	Nhcis	= 16,		/* max nb. of HCIs */
 	Neps	= 64,		/* max nb. of endpoints */
-	Maxctllen = 8*1024,	/* max allowed sized for ctl. xfers */
+	Maxctllen = 16*1024,	/* max allowed sized for ctl. xfers */
 	Xfertmout = 2000,	/* default request time out (ms) */
 
 	/* transfer types. keep this order */
@@ -62,6 +62,7 @@ enum
 	Dconfig	 = 0,		/* configuration in progress */
 	Denabled,		/* address assigned */
 	Ddetach,		/* device is detached */
+	Dreset,			/* its port is being reset */
 
 	/* (root) Hub reply to port status (reported to usbd) */
 	HPpresent	= 0x1,
