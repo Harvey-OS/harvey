@@ -349,7 +349,6 @@ rootdirgen(Usbfs *fs, Qid, int i, Dir *d, void *)
 	}
 	filldir(fs, d, tab, cn);
 	return 0;
-
 }
 
 static int
@@ -731,9 +730,9 @@ etherbread(Ether *e, Buf *bp)
 	bp->rp = bp->data + Hdrsize;
 	bp->ndata = -1;
 	bp->ndata = read(e->epin->dfd, bp->rp, sizeof(bp->data)-Hdrsize);
-	if(bp->ndata < 0)
-		deprint(2, "%s: etherbread: %r\n", argv0);
-	else
+	if(bp->ndata < 0){
+		deprint(2, "%s: etherbread: %r\n", argv0);	/* keep { and }  */
+	}else
 		deprint(2, "%s: etherbread: got %d bytes\n", argv0, bp->ndata);
 	return bp->ndata;
 }
@@ -745,9 +744,9 @@ etherbwrite(Ether *e, Buf *bp)
 
 	deprint(2, "%s: etherbwrite %d bytes\n", argv0, bp->ndata);
 	n = write(e->epout->dfd, bp->rp, bp->ndata);
-	if(n < 0)
-		deprint(2, "%s: etherbwrite: %r\n", argv0);
-	else
+	if(n < 0){
+		deprint(2, "%s: etherbwrite: %r\n", argv0);	/* keep { and }  */
+	}else
 		deprint(2, "%s: etherbwrite wrote %ld bytes\n", argv0, n);
 	if(n <= 0)
 		return n;
@@ -789,7 +788,7 @@ fswrite(Usbfs *fs, Fid *fid, void *data, long count, vlong)
 			dumpframe("etherout", bp->rp, bp->ndata);
 		if(e->nblock == 0)
 			sendp(e->wc, bp);
-		else if(nbsendp(e->wc, bp) < 0){
+		else if(nbsendp(e->wc, bp) == 0){
 			deprint(2, "%s: (out) packet lost\n", argv0);
 			freebuf(e, bp);
 		}
@@ -909,7 +908,6 @@ etherfree(Ether *e)
 	shutdownchan(e->wc);
 	e->epin = e->epout = nil;
 	free(e);
-
 }
 
 static void
@@ -940,8 +938,10 @@ etherwriteproc(void *a)
 	wc = e->wc;
 	while(e->exiting == 0){
 		bp = recvp(wc);
-		if(bp == nil || e->exiting != 0)
+		if(bp == nil || e->exiting != 0){
+			free(bp);
 			break;
+		}
 		e->nout++;
 		if(e->bwrite(e, bp) < 0)
 			e->noerrs++;
@@ -1020,7 +1020,7 @@ etherreadproc(void *a)
 					dbp->ndata = n;
 					dbp->type = bp->type;
 				}
-				if(nbsendp(e->conns[i]->rc, dbp) < 0){
+				if(nbsendp(e->conns[i]->rc, dbp) == 0){
 					e->nierrs++;
 					freebuf(e, dbp);
 				}

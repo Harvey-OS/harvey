@@ -16,11 +16,9 @@ static void netenv(char*, uchar*);
 void
 configip(int bargc, char **bargv, int needfs)
 {
-	int argc, pid;
-	char **argv, *p;
 	Waitmsg *w;
-	char **arg;
-	char buf[32];
+	int argc, pid;
+	char **arg, **argv, buf[32], *p;
 
 	fmtinstall('I', eipfmt);
 	fmtinstall('M', eipfmt);
@@ -28,7 +26,7 @@ configip(int bargc, char **bargv, int needfs)
 
 	arg = malloc((bargc+1) * sizeof(char*));
 	if(arg == nil)
-		fatal("malloc");
+		fatal("%r");
 	memmove(arg, bargv, bargc * sizeof(char*));
 	arg[bargc] = 0;
 
@@ -51,17 +49,22 @@ configip(int bargc, char **bargv, int needfs)
 	} ARGEND;
 
 	/* bind in an ip interface */
-	bind("#I", mpoint, MAFTER);
-	bind("#l0", mpoint, MAFTER);
-	bind("#l1", mpoint, MAFTER);
-	bind("#l2", mpoint, MAFTER);
-	bind("#l3", mpoint, MAFTER);
+	if(bind("#I", mpoint, MAFTER) < 0)
+		fatal("bind #I: %r\n");
+	if(access("#l0", 0) == 0 && bind("#l0", mpoint, MAFTER) < 0)
+		print("bind #l0: %r\n");
+	if(access("#l1", 0) == 0 && bind("#l1", mpoint, MAFTER) < 0)
+		print("bind #l1: %r\n");
+	if(access("#l2", 0) == 0 && bind("#l2", mpoint, MAFTER) < 0)
+		print("bind #l2: %r\n");
+	if(access("#l3", 0) == 0 && bind("#l3", mpoint, MAFTER) < 0)
+		print("bind #l3: %r\n");
 	werrstr("");
 
 	/* let ipconfig configure the ip interface */
 	switch(pid = fork()){
 	case -1:
-		fatal("configuring ip");
+		fatal("configuring ip: %r");
 	case 0:
 		exec("/boot/ipconfig", arg);
 		fatal("execing /ipconfig");

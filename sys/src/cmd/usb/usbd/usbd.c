@@ -465,6 +465,95 @@ portdetach(Hub *h, int p)
 	}
 }
 
+/*
+ * The next two functions are included to
+ * perform a port reset asked for by someone (usually a driver).
+ * This must be done while no other device is in using the
+ * configuration address and with care to keep the old address.
+ * To keep drivers decoupled from usbd they write the reset request
+ * to the #u/usb/epN.0/ctl file and then exit.
+ * This is unfortunate because usbd must now poll twice as much.
+ *
+ * An alternative to this reset process would be for the driver to detach
+ * the device. The next function could see that, issue a port reset, and
+ * then restart the driver once to see if it's a temporary error.
+ *
+ * The real fix would be to use interrupt endpoints for non-root hubs
+ * (would probably make some hubs fail) and add an events file to
+ * the kernel to report events to usbd. This is a severe change not
+ * yet implemented.
+ */
+static int
+portresetwanted(Hub *h, int p)
+{
+	char buf[5];
+	Port *pp;
+	Dev *nd;
+
+	pp = &h->port[p];
+	nd = pp->dev;
+	if(nd != nil && nd->cfd >= 0 && pread(nd->cfd, buf, 5, 0LL) == 5)
+		return strncmp(buf, "reset", 5) == 0;
+	else
+		return 0;
+}
+
+static void
+portreset(Hub *h, int p)
+{
+	int sts;
+	Dev *d, *nd;
+	Port *pp;
+
+	d = h->dev;
+	pp = &h->port[p];
+	nd = pp->dev;
+	dprint(2, "%s: %s: port %d: resetting\n", argv0, d->dir, p);
+	if(hubfeature(h, p, Fportreset, 1) < 0){
+		dprint(2, "%s: %s: port %d: reset: %r\n", argv0, d->dir, p);
+		goto Fail;
+	}
+	sleep(Resetdelay);
+	sts = portstatus(h, p);
+	if(sts < 0)
+		goto Fail;
+	if((sts & PSenable) == 0){
+		dprint(2, "%s: %s: port %d: not enabled?\n", argv0, d->dir, p);
+		hubfeature(h, p, Fportenable, 1);
+		sts = portstatus(h, p);
+		if((sts & PSenable) == 0)
+			goto Fail;
+	}
+	nd = pp->dev;
+	opendevdata(nd, ORDWR);
+	if(usbcmd(nd, Rh2d|Rstd|Rdev, Rsetaddress, nd->id, 0, nil, 0) < 0){
+		dprint(2, "%s: %s: port %d: setaddress: %r\n", argv0, d->dir, p);
+		goto Fail;
+	}
+	if(devctl(nd, "address") < 0){
+		dprint(2, "%s: %s: port %d: set address: %r\n", argv0, d->dir, p);
+		goto Fail;
+	}
+	if(usbcmd(nd, Rh2d|Rstd|Rdev, Rsetconf, 1, 0, nil, 0) < 0){
+		dprint(2, "%s: %s: port %d: setconf: %r\n", argv0, d->dir, p);
+		unstall(nd, nd, Eout);
+		if(usbcmd(nd, Rh2d|Rstd|Rdev, Rsetconf, 1, 0, nil, 0) < 0)
+			goto Fail;
+	}
+	if(nd->dfd >= 0)
+		close(nd->dfd);
+	return;
+Fail:
+	pp->state = Pdisabled;
+	pp->sts = 0;
+	if(pp->hub != nil)
+		pp->hub = nil;	/* hub closed by enumhub */
+	hubfeature(h, p, Fportenable, 0);
+	if(nd != nil)
+		devctl(nd, "detach");
+	closedev(nd);
+}
+
 static int
 portgone(Port *pp, int sts)
 {
@@ -513,6 +602,8 @@ enumhub(Hub *h, int p)
 				portdetach(h, p);
 	}else if(portgone(pp, sts))
 		portdetach(h, p);
+	else if(portresetwanted(h, p))
+		portreset(h, p);
 	else if(pp->sts != sts){
 		dprint(2, "%s: %s port %d: sts %s %#x ->",
 			argv0, d->dir, p, stsstr(pp->sts), pp->sts);
@@ -617,7 +708,6 @@ setdrvargs(char *name, char *args)
 		if(strstr(dt->name, name) != nil)
 			dt->args = estrdup(args);
 }
-
 
 static long
 cfswrite(Usbfs*, Fid *, void *data, long cnt, vlong )

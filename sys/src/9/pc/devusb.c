@@ -71,7 +71,6 @@ enum
 	/* Usb ctls. */
 	CMdebug = 0,		/* debug on|off */
 	CMdump,			/* dump (data structures for debug) */
-	CMreset,		/* reset the bus; start over */
 
 	/* Ep. ctls */
 	CMnew = 0,		/* new nb ctl|bulk|intr|iso r|w|rw (endpoint) */
@@ -90,6 +89,7 @@ enum
 	CMdebugep,		/* debug n (set/clear debug for this ep) */
 	CMname,			/* name str (show up as #u/name as well) */
 	CMtmout,		/* timeout n (activate timeouts for ep) */
+	CMpreset,		/* reset the port */
 
 	/* Hub feature selectors */
 	Rportenable	= 1,
@@ -113,7 +113,6 @@ static Cmdtab usbctls[] =
 {
 	{CMdebug,	"debug",	2},
 	{CMdump,	"dump",		1},
-	{CMreset,	"reset",	1},
 };
 
 static Cmdtab epctls[] =
@@ -134,6 +133,7 @@ static Cmdtab epctls[] =
 	{CMclrhalt,	"clrhalt",	1},
 	{CMname,	"name",		2},
 	{CMtmout,	"timeout",	2},
+	{CMpreset,	"reset",	1},
 };
 
 static Dirtab usbdir[] =
@@ -269,7 +269,7 @@ addhcitype(char* t, int (*r)(Hci*))
 static char*
 seprintep(char *s, char *se, Ep *ep, int all)
 {
-	static char* dsnames[] = { "config", "enabled", "detached" };
+	static char* dsnames[] = { "config", "enabled", "detached", "reset" };
 	Udev *d;
 	int i;
 	int di;
@@ -657,7 +657,6 @@ usbgen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
 Fail:
 	if(0)ddprint("fail\n");
 	return -1;
-
 }
 
 static Hci*
@@ -709,8 +708,8 @@ hciprobe(int cardno, int ctlrno)
 	 * modern machines have too many usb controllers to list on
 	 * the console.
 	 */
-//	print("#u/usb/ep%d.0: %s: port 0x%luX irq %d\n",
-//		epnb, hcitypes[cardno].type, hp->port, hp->irq);
+	dprint("#u/usb/ep%d.0: %s: port 0x%luX irq %d\n",
+		epnb, hcitypes[cardno].type, hp->port, hp->irq);
 	epnb++;
 	return hp;
 }
@@ -1142,7 +1141,7 @@ epctl(Ep *ep, Chan *c, void *a, long n)
 	if(ct == nil)
 		error(Ebadctl);
 	i = ct->index;
-	if(i == CMnew || i == CMspeed || i == CMhub)
+	if(i == CMnew || i == CMspeed || i == CMhub || i == CMpreset)
 		if(ep != ep->ep0)
 			error("allowed only on a setup endpoint");
 	if(i != CMclrhalt && i != CMdetach && i != CMdebugep && i != CMname)
@@ -1317,6 +1316,14 @@ epctl(Ep *ep, Chan *c, void *a, long n)
 		if(ep->tmout != 0 && ep->tmout < Xfertmout)
 			ep->tmout = Xfertmout;
 		break;
+	case CMpreset:
+		deprint("usb epctl %s\n", cb->f[0]);
+		if(ep->ttype != Tctl)
+			error("not a control endpoint");
+		if(ep->dev->state != Denabled)
+			error("forbidden on devices not enabled");
+		ep->dev->state = Dreset;
+		break;
 	default:
 		panic("usb: unknown epctl %d", ct->index);
 	}
@@ -1354,18 +1361,6 @@ usbctl(void *a, long n)
 				ep->hp->debug(ep->hp, debug);
 				putep(ep);
 			}
-		break;
-	case CMreset:
-		print("devusb: CMreset not implemented\n");
-		error("not implemented");
-#ifdef TODO
-		XXX: I'm not sure this is a good idea.
-		Usbd should not be restarted at all.
-		for(all eps)
-			closeep(ep);
-		do a global reset once more
-		recreate root hub devices in place.
-#endif
 		break;
 	case CMdump:
 		dumpeps();

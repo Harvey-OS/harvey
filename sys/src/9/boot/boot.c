@@ -49,7 +49,7 @@ boot(int argc, char *argv[])
 #ifdef DEBUG
 	print("argc=%d\n", argc);
 	for(fd = 0; fd < argc; fd++)
-		print("%lux %s ", argv[fd], argv[fd]);
+		print("%#p %s ", argv[fd], argv[fd]);
 	print("\n");
 #endif DEBUG
 
