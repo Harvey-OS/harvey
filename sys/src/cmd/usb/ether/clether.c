@@ -643,7 +643,7 @@ finddevice(int *ctrlno, int *id)
 				p += 8;
 
 			csp = atol(p);
-			
+
 			if(Class(csp) != Clcomms)
 				continue;
 			switch(Subclass(csp)){
@@ -888,7 +888,7 @@ void (*dprinter[])(Device *, int, ulong, void *b, int n) = {
 	[FUNCTION] etherfunc,
 };
 
-Srv fs = 
+Srv fs =
 {
 .attach=		fsattach,
 .destroyfid=	fsdestroyfid,

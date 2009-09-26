@@ -60,7 +60,7 @@ enum
 	Pollms		= 250, 		/* port poll interval */
 	Chgdelay	= 100,		/* waiting for port become stable */
 	Chgtmout	= 1000,		/* ...but at most this much */
-	
+
 	/*
 	 * device tab for embedded usb drivers.
 	 */
@@ -113,7 +113,7 @@ struct Devtab
 {
 	char	*name;
 	int	(*init)(Dev*, int, char**);	/* nil if external */
- 	int	csps[4];
+	int	csps[4];
 	int	vid;
 	int	did;
 	char	*args;

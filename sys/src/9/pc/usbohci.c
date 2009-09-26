@@ -1688,10 +1688,11 @@ epctlio(Ep *ep, Ctlio *cio, void *a, long count)
 	}
 
 	/* set the address if unset and out of configuration state */
-	if(ep->dev->state != Dconfig && cio->usbid == 0){
-		cio->usbid = (ep->nb<<7)|(ep->dev->nb & Devmax);
-		edsetaddr(cio->ed, cio->usbid);
-	}
+	if(ep->dev->state != Dconfig && ep->dev->state != Dreset)
+		if(cio->usbid == 0){
+			cio->usbid = (ep->nb<<7)|(ep->dev->nb & Devmax);
+			edsetaddr(cio->ed, cio->usbid);
+		}
 	/* adjust maxpkt if the user has learned a different one */
 	if(edmaxpkt(cio->ed) != ep->maxpkt)
 		edsetmaxpkt(cio->ed, ep->maxpkt);

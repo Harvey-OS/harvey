@@ -2478,10 +2478,11 @@ epctlio(Ep *ep, Ctlio *cio, void *a, long count)
 	}
 
 	/* set the address if unset and out of configuration state */
-	if(ep->dev->state != Dconfig && cio->usbid == 0){
-		cio->usbid = ((ep->nb&Epmax)<<7)|(ep->dev->nb&Devmax);
-		qhsetaddr(cio->qh, cio->usbid);
-	}
+	if(ep->dev->state != Dconfig && ep->dev->state != Dreset)
+		if(cio->usbid == 0){
+			cio->usbid = ((ep->nb&Epmax)<<7)|(ep->dev->nb&Devmax);
+			qhsetaddr(cio->qh, cio->usbid);
+		}
 	/* adjust maxpkt if the user has learned a different one */
 	if(qhmaxpkt(cio->qh) != ep->maxpkt)
 		qhsetmaxpkt(cio->qh, ep->maxpkt);

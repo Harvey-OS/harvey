@@ -396,13 +396,44 @@ kbdbusy(uchar* buf, int n)
 	return 1;
 }
 
+static int
+setbootproto(KDev* f, int eid)
+{
+	int r, id;
+
+	r = Rh2d|Rclass|Riface;
+	id = f->dev->usb->ep[eid]->iface->id;
+	return usbcmd(f->dev, r, Setproto, Bootproto, id, nil, 0);
+}
+
+/*
+ * Try to recover from a babble error. A port reset is the only way out.
+ * BUG: we should be careful not to reset a bundle with several devices.
+ */
+static void
+recoverkb(KDev *f)
+{
+	int i;
+
+	close(f->dev->dfd);		/* it's for usbd now */
+	devctl(f->dev, "reset");
+	for(i = 0; i < 10; i++){
+		sleep(500);
+		if(opendevdata(f->dev, ORDWR) >= 0){
+			setbootproto(f, f->ep->id);
+			break;
+		}
+		/* else usbd still working... */
+	}
+}
+
 static void
 kbdwork(void *a)
 {
-	int c, i, kbdfd;
-	uchar buf[64], lbuf[64];
+	int c, i, kbdfd, nerrs;
+	uchar dk, buf[64], lbuf[64];
+	char err[128];
 	KDev *f = a;
-	uchar dk;
 
 	kbdfd = f->ep->dfd;
 
@@ -415,14 +446,20 @@ kbdwork(void *a)
 
 	proccreate(repeatproc, f, Stack);
 	memset(lbuf, 0, sizeof lbuf);
-	dk = 0;
+	dk = nerrs = 0;
 	for(;;){
 		memset(buf, 0, sizeof buf);
 		c = read(kbdfd, buf, f->ep->maxpkt);
 		assert(f->dev != nil);
 		assert(f->ep != nil);
-		if(c < 0)
-			dprint(2, "kb: %s: read: %r\n", f->ep->dir);
+		if(c < 0){
+			rerrstr(err, sizeof(err));
+			dprint(2, "kb: %s: read: %s\n", f->ep->dir, err);
+			if(strstr(err, "babble") != 0 && ++nerrs < 3){
+				recoverkb(f);
+				continue;
+			}
+		}
 		if(c <= 0)
 			kbfatal(f, nil);
 		if(c < 3)
@@ -437,17 +474,8 @@ kbdwork(void *a)
 		}
 		dk = putkeys(f, buf, lbuf, f->ep->maxpkt, dk);
 		memmove(lbuf, buf, c);
+		nerrs = 0;
 	}
-}
-
-static int
-setbootproto(KDev* f, int eid)
-{
-	int r, id;
-
-	r = Rh2d|Rclass|Riface;
-	id = f->dev->usb->ep[eid]->iface->id;
-	return usbcmd(f->dev, r, Setproto, Bootproto, id, nil, 0);
 }
 
 static void
