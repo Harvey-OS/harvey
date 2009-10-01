@@ -204,6 +204,8 @@ extern	char*	anames[];
 #pragma	varargck	type	"R"	int
 #pragma	varargck	type	"S"	char*
 
+#pragma	varargck	argpos	diag 1
+
 int	Aconv(Fmt*);
 int	Dconv(Fmt*);
 int	Pconv(Fmt*);

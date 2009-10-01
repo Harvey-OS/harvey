@@ -122,7 +122,7 @@ asmb(void)
 	cflush();
 	switch(HEADTYPE) {
 	default:
-		diag("unknown header type %d", HEADTYPE);
+		diag("unknown header type %ld", HEADTYPE);
 	case 0:
 		seek(cout, rnd(HEADR+textsize, 8192), 0);
 		break;

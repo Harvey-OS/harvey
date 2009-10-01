@@ -198,11 +198,14 @@ EXTERN union
 #define	cbuf	u.obuf
 #define	xbuf	u.ibuf
 
+#pragma	varargck	type	"A"	int
 #pragma	varargck	type	"A"	uint
 #pragma	varargck	type	"D"	Adr*
 #pragma	varargck	type	"P"	Prog*
 #pragma	varargck	type	"R"	int
 #pragma	varargck	type	"S"	char*
+
+#pragma	varargck	argpos	diag 1
 
 EXTERN	long	HEADR;
 EXTERN	long	HEADTYPE;
@@ -342,8 +345,3 @@ void	xdefine(char*, int, long);
 void	xfol(Prog*);
 int	zaddr(uchar*, Adr*, Sym*[]);
 void	zerosig(char*);
-
-#pragma	varargck	type	"D"	Adr*
-#pragma	varargck	type	"P"	Prog*
-#pragma	varargck	type	"R"	int
-#pragma	varargck	type	"A"	int

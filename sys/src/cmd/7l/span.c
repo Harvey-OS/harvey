@@ -115,7 +115,7 @@ aclass(Adr *a)
 			if (offset >= -0x80000000LL && offset < 0x7fff8000LL)
 				return C_LEXT;
 		badoff:
-			diag("offset out of range: 0x%lux", offset);
+			diag("offset out of range: %#llux", offset);
 			return C_GOK;
 		case D_AUTO:
 			offset = autosize + a->offset;

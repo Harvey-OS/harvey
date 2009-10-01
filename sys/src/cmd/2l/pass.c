@@ -420,7 +420,7 @@ dostkoff(void)
 			if(q->stkoff >= 0)
 				if(q->stkoff != s)
 					diag("stack offset %ld is %ld sb %ld in %s\n%P",
-						q->pc, q->stkoff, s, q, TNAME, p);
+						q->pc, q->stkoff, s, TNAME, p);
 			q->stkoff = s;
 		}
 		o = &optab[p->as];

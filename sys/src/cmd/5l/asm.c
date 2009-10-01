@@ -1478,7 +1478,7 @@ olr(long v, int b, int r, int sc)
 		o ^= 1 << 23;
 	}
 	if(v >= (1<<12))
-		diag("literal span too large: %d (R%d)\n%P", v, b, PP);
+		diag("literal span too large: %ld (R%d)\n%P", v, b, PP);
 	o |= v;
 	o |= b << 16;
 	o |= r << 12;
@@ -1503,7 +1503,7 @@ olhr(long v, int b, int r, int sc)
 		o ^= 1 << 23;
 	}
 	if(v >= (1<<8))
-		diag("literal span too large: %d (R%d)\n%P", v, b, PP);
+		diag("literal span too large: %ld (R%d)\n%P", v, b, PP);
 	o |= (v&0xf)|((v>>4)<<8)|(1<<22);
 	o |= b << 16;
 	o |= r << 12;
@@ -1575,9 +1575,9 @@ ofsr(int a, int r, long v, int b, int sc, Prog *p)
 		o ^= 1 << 23;
 	}
 	if(v & 3)
-		diag("odd offset for floating point op: %d\n%P", v, p);
+		diag("odd offset for floating point op: %ld\n%P", v, p);
 	else if(v >= (1<<10))
-		diag("literal span too large: %d\n%P", v, p);
+		diag("literal span too large: %ld\n%P", v, p);
 	o |= (v>>2) & 0xFF;
 	o |= b << 16;
 	o |= r << 12;
