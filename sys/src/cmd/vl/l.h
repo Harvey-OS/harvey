@@ -258,6 +258,8 @@ extern	Optab	optab[];
 #pragma	varargck	type	"P"	Prog*
 #pragma	varargck	type	"S"	char*
 
+#pragma	varargck	argpos	diag 1
+
 int	Aconv(Fmt*);
 int	Dconv(Fmt*);
 int	Nconv(Fmt*);

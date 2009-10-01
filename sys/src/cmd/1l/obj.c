@@ -92,7 +92,7 @@ main(int argc, char *argv[])
 		INITRND = 0;
 	switch(HEADTYPE) {
 	default:
-		diag("unknown -H option %d", HEADTYPE);
+		diag("unknown -H option %ld", HEADTYPE);
 		errorexit();
 
 	case 0:	/* this is garbage */

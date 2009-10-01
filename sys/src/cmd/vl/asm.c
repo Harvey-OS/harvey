@@ -856,7 +856,7 @@ asmout(Prog *p, Optab *o, int aflag)
 		else
 			v = (p->cond->pc - pc-4) >> 2;
 		if(((v << 16) >> 16) != v)
-			diag("short branch too far: %d\n%P", v, p);
+			diag("short branch too far: %ld\n%P", v, p);
 		o1 = OP_IRR(opirr(p->as), v, p->from.reg, p->reg);
 		break;
 

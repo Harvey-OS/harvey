@@ -292,11 +292,14 @@ EXTERN	Prog*	prog_mod;
 EXTERN	Prog*	prog_modu;
 
 #pragma	varargck	type	"A"	int
+#pragma	varargck	type	"A"	uint
 #pragma	varargck	type	"C"	int
 #pragma	varargck	type	"D"	Adr*
 #pragma	varargck	type	"N"	Adr*
 #pragma	varargck	type	"P"	Prog*
 #pragma	varargck	type	"S"	char*
+
+#pragma	varargck	argpos	diag 1
 
 int	Aconv(Fmt*);
 int	Cconv(Fmt*);

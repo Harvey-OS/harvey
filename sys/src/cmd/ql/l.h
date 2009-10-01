@@ -329,9 +329,12 @@ void	xdefine(char*, int, long);
 void	xfol(Prog*);
 void	zerosig(char*);
 
+#pragma	varargck	type	"A"	int
+#pragma	varargck	type	"A"	uint
 #pragma	varargck	type	"D"	Adr*
 #pragma	varargck	type	"N"	Adr*
 #pragma	varargck	type	"P"	Prog*
 #pragma	varargck	type	"R"	int
-#pragma	varargck	type	"A"	int
 #pragma	varargck	type	"S"	char*
+
+#pragma	varargck	argpos	diag 1
