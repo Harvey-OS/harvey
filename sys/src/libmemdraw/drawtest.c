@@ -62,7 +62,7 @@ iprint(char *fmt, ...)
 	char buf[1024];
 
 	va_start(va, fmt);
-	n = doprint(buf, buf+sizeof buf, fmt, va) - buf;
+	n = vseprint(buf, buf+sizeof buf, fmt, va) - buf;
 	va_end(va);
 
 	write(1,buf,n);
@@ -104,7 +104,7 @@ main(int argc, char *argv[])
 		exits("usage");
 	}
 
-	fmtinstall('b', numbconv);	/* binary! */
+//	fmtinstall('b', numbconv);	/* binary! */
 
 	fprint(2, "%s -x %d -y %d -s 0x%x %s %s %s\n", argv0, Xrange, Yrange, seed, dchan, schan, mchan);
 	srand(seed);
