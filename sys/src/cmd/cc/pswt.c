@@ -62,7 +62,7 @@ doswit(Node *n)
 }
 
 void
-cas(void)
+casf(void)
 {
 	Case *c;
 
