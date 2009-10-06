@@ -195,7 +195,7 @@ pickletype(Type *t)
 			goto asmstr;
 		an = pmap(s->name);
 
-		Bprint(&outbuf, "char *\npickle_%s(char *bp, char *ep, int un, %s *addr)\n{\n\tint _i = 0;\n\n\tUSED(_i);\n", an, an);
+		Bprint(&outbuf, "uchar*\npickle_%s(uchar *bp, uchar *ep, int un, %s *addr)\n{\n\tint _i = 0;\n\n\tUSED(_i);\n", an, an);
 		for(l = t->link; l != T; l = l->down)
 			picklemember(l, 0);
 		Bprint(&outbuf, "\treturn bp;\n}\n\n");

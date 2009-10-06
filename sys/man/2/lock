@@ -295,7 +295,7 @@ where some other process holds the lock.
 After a thousand unsuccessful attempts,
 .I lock
 sleeps for 100ms between attempts.
-Another another thousand unsuccessful attempts,
+After another thousand unsuccessful attempts,
 .I lock
 sleeps for a full second between attempts.
 .B Locks
@@ -305,3 +305,9 @@ avoid tying up the CPU when a process deadlocks.
 As discussed above,
 if a lock is to be held for much more than a few instructions,
 the queueing lock types should be almost always be used.
+.PP
+It is an error for a program to
+.I fork
+when it holds a lock in shared memory, since this will result
+in two processes holding the same lock at the same time,
+which should not happen.

@@ -298,7 +298,7 @@ Node*	nodconst(long);
 int	swcmp(const void*, const void*);
 void	doswit(int, Node*);
 void	swit1(C1*, int, long, int, Node*);
-void	cas(void);
+void	casf(void);
 int	bitload(Node*, int, int, int, Node*);
 void	bitstore(Node*, int, int, int, int, Node*);
 long	outstring(char*, long);
