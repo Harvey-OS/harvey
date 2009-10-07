@@ -1,6 +1,6 @@
 .TH ATOM 2
 .SH NAME
-ainc, adec, cas, cas32, cas64, casp, casl, loadlink, storecond, tas \- atomic RMW operations
+ainc, adec, cas, cas32, cas64, casp, casl, loadlink, storecond, _tas \- atomic RMW operations
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -28,7 +28,7 @@ int casp(void **addr, void *ov, void *nv);
 int casl(ulong *addr, ulong ov, ulong nv);
 .PP
 .B
-int tas(ulong *addr);
+int _tas(ulong *addr);
 .PP
 .B
 ulong loadlink(ulong*);
@@ -71,7 +71,7 @@ or
 These instructions are, however, emulated by the Plan 9 kernel.
 All other architectures have 32-bit CAS.
 .PP
-.I Tas
+.I _tas
 implements
 .IR Test-and-Set ,
 which is available on all architectures and used for the implementation
@@ -107,7 +107,7 @@ these are used to implement
 .IR thread (2)
 .SH DIAGNOSTICS
 The CAS functions,
-.IR tas ,
+.IR _tas ,
 and
 .I storecond
 return 0 for failure and 1 for success.
