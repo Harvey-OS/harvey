@@ -4,6 +4,7 @@ objtype=386
 LIB=/$objtype/lib/libc.a
 SFILES=\
 	argv0.s\
+	atom.s\
 	getfcr.s\
 	main9.s\
 	main9p.s\

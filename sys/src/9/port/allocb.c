@@ -124,7 +124,7 @@ freeb(Block *b)
 
 	if(ref < 0){
 		dumpstack();
-		panic("ref %ld callerpc %#p", ref, getcallerpc(&b));
+		panic("freeb: ref %ld; caller pc %#p", ref, getcallerpc(&b));
 	}
 
 	/*
