@@ -143,8 +143,8 @@ enum {
 /* cmd register bits */
 enum {
 	Aicc	= 1<<28,	/* interface communcations control. 4 bits */
-	Aasp	= 1<<27,	/* agressive slumber & partial sleep */
-	Aalpe 	= 1<<26,	/* agressive link pm enable */
+	Aasp	= 1<<27,	/* aggressive slumber & partial sleep */
+	Aalpe 	= 1<<26,	/* aggressive link pm enable */
 	Adlae	= 1<<25,	/* drive led on atapi */
 	Aatapi	= 1<<24,	/* device is atapi */
 	Aesp	= 1<<21,	/* external sata port */
