@@ -58,7 +58,7 @@ ssh, sshnet, scp, sshserve \- secure login and file copy from/to Unix or Plan 9
 .SH DESCRIPTION
 .I Ssh
 allows authenticated login over an encrypted channel to hosts that
-support the ssh protocol (see the RFC listed below for encryption and
+support the ssh protocol (see the RFCs listed below for encryption and
 authentication details).
 .LP
 .I Ssh
@@ -337,6 +337,8 @@ servers.
 .SH SOURCE
 .B /sys/src/cmd/ssh
 .SH "SEE ALSO"
+.B /lib/rfc/rfc425[0-6]
+.br
 .IR factotum (4),
 .IR authsrv (6),
 .IR rsa (8)
