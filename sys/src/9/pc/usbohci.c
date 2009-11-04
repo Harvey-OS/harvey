@@ -2071,14 +2071,14 @@ cancelio(Ep *ep, Qio *io)
 	Ctlr *ctlr;
 
 	ctlr = ep->hp->aux;
-	ed = io->ed;
 
 	ilock(ctlr);
 	if(io == nil || io->state == Qclose){
-		assert(io->ed == nil);
+		assert(io == nil || io->ed == nil);
 		iunlock(ctlr);
 		return;
 	}
+	ed = io->ed;
 	io->state = Qclose;
 	io->err = Eio;
 	aborttds(io);
