@@ -1,6 +1,6 @@
 .TH ARG 2
 .SH NAME
-ARGBEGIN, ARGEND, ARGC, ARGF, EARGF, arginit, argopt \- process option letters from argv
+ARGBEGIN, ARGEND, ARGC, ARGF, EARGF \- process option letters from argv
 .SH SYNOPSIS
 .B #include <u.h>
 .br
