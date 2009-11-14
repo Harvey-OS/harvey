@@ -1,0 +1,167 @@
+/*
+ * Program Status Registers
+ */
+#define PsrMusr		0x00000010		/* mode */
+#define PsrMfiq		0x00000011
+#define PsrMirq		0x00000012
+#define PsrMsvc		0x00000013
+#define PsrMabt		0x00000017
+#define PsrMund		0x0000001B
+#define PsrMsys		0x0000001F
+#define PsrMask		0x0000001F
+
+#define PsrDfiq		0x00000040		/* disable FIQ interrupts */
+#define PsrDirq		0x00000080		/* disable IRQ interrupts */
+
+#define PsrV		0x10000000		/* overflow */
+#define PsrC		0x20000000		/* carry/borrow/extend */
+#define PsrZ		0x40000000		/* zero */
+#define PsrN		0x80000000		/* negative/less than */
+
+/*
+ * Coprocessors
+ */
+#define CpSC		15			/* System Control */
+
+/*
+ * opcode 1
+ */
+#define	CpDef		0			/* default */
+#define CpL2		1			/* L2 cache operations */
+
+/*
+ * Primary (CRn) CpSC registers.
+ */
+#define	CpID		0			/* ID and cache type */
+#define	CpCONTROL	1			/* miscellaneous control */
+#define	CpTTB		2			/* Translation Table Base */
+#define	CpDAC		3			/* Domain Access Control */
+#define	CpFSR		5			/* Fault Status */
+#define	CpFAR		6			/* Fault Address */
+#define	CpCACHE		7			/* cache/write buffer control */
+#define	CpTLB		8			/* TLB control */
+#define	CpCLD		9			/* Cache Lockdown */
+#define CpTLD		10			/* TLB Lockdown */
+#define	CpPID		13			/* Process ID */
+#define CpTESTCFG	15			/* test config. (arm926) */
+
+/*
+ * CpID opcode2 fields.
+ */
+#define CpIDid		0			/* main ID */
+#define CpIDct		1			/* cache type */
+
+/*
+ * CpCONTROL
+ */
+#define CpCmmu		0x00000001		/* M: MMU enable */
+#define CpCalign	0x00000002		/* A: alignment fault enable */
+#define CpCdcache	0x00000004		/* C: data cache on */
+#define CpCwb		0x00000008		/* W: write buffer turned on */
+#define CpCi32		0x00000010		/* P: 32-bit program space */
+#define CpCd32		0x00000020		/* D: 32-bit data space */
+#define CpCbe		0x00000080		/* B: big-endian operation */
+#define CpCsystem	0x00000100		/* S: system permission */
+#define CpCrom		0x00000200		/* R: ROM permission */
+#define CpCicache	0x00001000		/* I: instruction cache on */
+#define CpChv		0x00002000		/* V: high vectors */
+
+/*
+ * CpCACHE Secondary (CRm) registers and opcode2 fields.
+ * In ARM-speak, 'flush' means invalidate and 'clean' means writeback.
+ */
+#define CpCACHEintr	0			/* interrupt */
+#define CpCACHEinvi	5			/* instruction */
+#define CpCACHEinvd	6			/* data */
+#define CpCACHEinvu	7			/* unified */
+#define CpCACHEwb	10			/* writeback */
+#define CpCACHEwbi	14			/* writeback+invalidate */
+
+#define CpCACHEall	0			/* entire */
+#define CpCACHEse	1			/* single entry */
+#define CpCACHEsi	2			/* set/index */
+#define CpCACHEtest	3			/* test loop */
+#define CpCACHEwait	4			/* wait */
+
+/*
+ * CpTLB Secondary (CRm) registers and opcode2 fields.
+ */
+#define CpTLBinvi	5			/* instruction */
+#define CpTLBinvd	6			/* data */
+#define CpTLBinvu	7			/* unified */
+
+#define CpTLBinv	0			/* invalidate all */
+#define CpTLBinvse	1			/* invalidate single entry */
+
+/*
+ * CpTESTCFG Secondary (CRm) registers and opcode2 fields; sheeva only.
+ */
+#define CpTCl2cfg	1
+#define CpTCl2flush	9
+#define CpTCl2waylck	10
+#define CpTCl2inv	11
+#define CpTCl2perfctl	12
+#define CpTCl2perfcnt	13
+
+/* CpTCl2cfg */
+#define CpTCl2conf	0
+
+/* CpTCl2flush & CpTCl2inv */
+#define CpTCl2all	0
+#define CpTCl2seva	1
+#define CpTCl2way	2
+#define CpTCl2sepa	3
+#define CpTCl2valow	4
+#define CpTCl2vahigh	5			/* also triggers flush or inv */
+
+/* CpTCl2flush
+#define CpTCecccnt	6			/* ecc error count */
+#define CpTCeccthr	7			/* ecc error threshold */
+
+/* CpTCwaylck */
+#define CpTCwaylock	7
+
+/* CpTCl2inv */
+#define CpTCl2erraddr	7			/* ecc error address */
+
+/* CpTCl2perfctl */
+#define CpTCl2perf0ctl	0
+#define CpTCl2perf1ctl	1
+
+/* CpTCl2perfcnt */
+#define CpTCl2perf0low	0
+#define CpTCl2perf0high	1
+#define CpTCl2perf1low	2
+#define CpTCl2perf1high	3
+
+/*
+ * MMU.
+ */
+
+#define Fault		0x00000000u		/* L[12] */
+
+/* in pre-armv7 only, the 0x10 bit must be on */
+#define Coarse		0x00000011u		/* L1 */
+#define Section		0x00000012u		/* L1 1MB */
+#define Fine		0x00000013u		/* L1 */
+
+#define Large		0x00000001u		/* L2 64KB */
+#define Small		0x00000002u		/* L2 4KB */
+#define Tiny		0x00000003u		/* L2 1KB */
+#define Buffered	0x00000004u		/* L[12] */
+#define Cached		0x00000008u		/* L[12] */
+
+#define Dom0		0
+#define Noaccess	0			/* AP, DAC */
+#define Krw		1			/* AP */
+#define Uro		2			/* AP */
+#define Urw		3			/* AP */
+#define Client		1			/* DAC */
+#define Manager		3			/* DAC */
+
+#define AP(n, v) F((v), ((n)*2)+4, 2)
+#define L1AP(ap) (AP(3, (ap)))
+#define L2AP(ap) (AP(3, (ap))|AP(2, (ap))|AP(1, (ap))|AP(0, (ap))) /* pre-armv7 */
+#define DAC(n, v) F((v), (n)*2, 2)
+
+#define HVECTORS	0xffff0000		/* physical addr of vectors */

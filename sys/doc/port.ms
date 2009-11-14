@@ -67,9 +67,7 @@ The MIPS compiler
 This compiler generates code for the R2000, R3000, and R4000 machines configured
 to be big-endians.  The compiler generates no R4000-specific instructions
 although the assembler and loader support the new user-mode instructions.
-There is no support for little-endian machines.
-(A little-endian port exists, but is not included in the distribution.
-Contact us if you need it.)
+There are options to generate code for little-endian machines.
 Considering its speed, the Plan 9 compiler generates good code,
 but the commercial
 MIPS compiler with all the stops pulled out consistently beats it
@@ -169,7 +167,8 @@ The PowerPC compiler
 .PP
 The PowerPC compiler supports the 32-bit PowerPC architecture only;
 it does not support either the 64-bit extensions or the POWER compatibility instructions.
-It has been used for production operating system work on the 603, 603e, 604e, 821, 823, and 860.
+It has been used for production operating system work on the 603, 603e, 604e, 821, 823, and 860,
+and experimental work on the 405, 440 and 450.
 On the 8xx floating-point instructions must be emulated.
 Instruction scheduling is not implemented; otherwise the code generated
 is similar to that for the other load-store architectures.
@@ -178,14 +177,15 @@ counter register, several condition code registers, and multiply-accumulate
 instructions, but they are sometimes
 used by assembly language routines in the libraries.
 .SH
-The Acorn ARM compiler
+The ARM compiler
 .PP
 The ARM compiler is fairly solid; it has been used for some production
 operating system work including Inferno and the Plan 9 kernel
-for the iPAQ, which uses a StrongArm SA1.
+for the iPAQ, which uses a StrongArm SA1, and the Sheevaplug.
 The compiler supports the ARMv4 architecture;
-it does not support the Thumb instruction set.
-It has been used on ARM7500FE processors and the Strongarm SA1 core machines.
+it does not support the Thumb instruction sets.
+It has been used on ARM7500FE, ARM926 and Cortex-A8 processors
+and the Strongarm SA1 core machines.
 The compiler generates instructions for the ARM floating-point coprocessor.
 .SH
 The AMD 29000 compiler
@@ -339,6 +339,18 @@ See the file
 .CW /sys/src/9/bitsy/Booting101
 for information about installing Plan 9 on the iPAQ.
 .SH
+The Sheevaplug operating system
+.PP
+This is an ARM CPU-server kernel that emulates floating-point and
+CAS (compare-and-swap) instructions.
+It is derived from a port of native Inferno to the Sheevaplug
+by Salva Peir\f(Jpó\fP and Mechiel Lukkien.
+There are many features of the Marvell Kirkwood system-on-a-chip
+that it does not exploit.
+Initially, there are drivers for Gigabit Ethernet and the console serial port;
+we hope to add USB and NAND or SPI Flash drivers.
+.ig
+.SH
 The file server
 .PP
 The file server runs on only a handful of distinct machines.
@@ -445,3 +457,4 @@ learn about the WORM software.
 Again, see
 .I fsconfig (8)
 for details.
+..

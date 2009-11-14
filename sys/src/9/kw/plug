@@ -1,0 +1,58 @@
+# marvell sheeva plug
+dev
+	root
+	cons
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	arch
+	ssl
+	tls
+	cap
+	kprof
+#	flash
+#	pci		pci
+
+	ether		netif
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum inferno
+
+	uart
+#	usb
+
+link
+	etherkw		ethermii
+	archkw
+	ethermedium
+	loopbackmedium
+	netdevmedium
+#	usbehci
+ip
+	tcp
+	udp
+	ipifc
+	icmp
+	icmp6
+	ipmux
+
+misc
+	rdb
+	softfpu
+	syscall
+	uartkw
+
+boot cpu
+	tcp
+
+bootdir
+	bootplug.out boot
+	/arm/bin/ip/ipconfig ipconfig
+	/arm/bin/auth/factotum factotum
+#	/arm/bin/usb/usbd
+	nvram
+
+port
+	int cpuserver = 1;
+	int i8250freq = 3686000;
