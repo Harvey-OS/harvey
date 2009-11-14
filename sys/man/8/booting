@@ -136,7 +136,19 @@ will be downloaded by default.
 Once the kernel is loaded,
 it prompts for the Ethernet
 protocol to use to reach the root file server; request the default.
+.SS Sheevaplug CPU Server
+Type
+.IP
+.EX
+setenv bootdelay 2
+setenv bootcmd 'bootp; bootp; tftp 0x800000; go 0x800000'
+saveenv
+.EE
 .PP
+at U-Boot the first time;
+thereafter, the Sheevaplug will automatically boot via BOOTP and TFTP
+when reset or turned on.
+.ig
 .SS File servers
 The CPU servers and terminals run essentially the same program, but
 the Plan 9 file servers run a distinct system.
@@ -145,14 +157,15 @@ The file servers accept only the commands described in
 on their consoles.
 .SS PC File Server
 Boot the PC file server like a regular PC, loading the appropriate file system kernel.
+..
 .SH "SEE ALSO"
 .IR 9load (8),
 .IR boot (8),
-.IR fs (8),
+.\" .IR fs (8),
 .IR init (8),
 .IR plan9.ini (8)
 .SH SOURCE
 Sources for the various boot programs are under
 .BR /sys/src/boot .
-.SH BUGS
-The file server should be able to boot from its own disk.
+.\" .SH BUGS
+.\" The file server should be able to boot from its own disk.

@@ -1,0 +1,132 @@
+CONF=plug
+CONFLIST=plug
+
+# allegedly u-boot uses the bottom 8MB (up to 0x800000)
+# so avoid that
+loadaddr=0x60800000
+
+objtype=arm
+</$objtype/mkfile
+p=9
+
+DEVS=`{rc ../port/mkdevlist $CONF}
+
+PORT=\
+	alarm.$O\
+	alloc.$O\
+	allocb.$O\
+	auth.$O\
+	cache.$O\
+	chan.$O\
+	dev.$O\
+	devtab.$O\
+	edf.$O\
+	fault.$O\
+	latin1.$O\
+	mul64fract.$O\
+	rebootcmd.$O\
+	page.$O\
+	parse.$O\
+	pgrp.$O\
+	portclock.$O\
+	print.$O\
+	proc.$O\
+	qio.$O\
+	qlock.$O\
+	segment.$O\
+	swap.$O\
+	sysfile.$O\
+	sysproc.$O\
+	taslock.$O\
+	tod.$O\
+	xalloc.$O\
+
+OBJ=\
+	l.$O\
+	lexception.$O\
+	lproc.$O\
+	arch.$O\
+	clock.$O\
+	fpi.$O\
+	fpiarm.$O\
+	fpimem.$O\
+	main.$O\
+	mmu.$O\
+	random.$O\
+	trap.$O\
+	$CONF.root.$O\
+	$CONF.rootc.$O\
+	$DEVS\
+	$PORT\
+
+LIB=\
+	/$objtype/lib/libmemlayer.a\
+	/$objtype/lib/libmemdraw.a\
+	/$objtype/lib/libdraw.a\
+	/$objtype/lib/libip.a\
+	/$objtype/lib/libc.a\
+	/$objtype/lib/libsec.a\
+
+9:V: $p$CONF s$p$CONF
+
+$p$CONF:DQ:	$CONF.c $OBJ $LIB mkfile
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	echo '# linking raw kernel'
+	$LD -o $target -H0 -R4096 -T$loadaddr -l $OBJ $CONF.$O $LIB
+
+s$p$CONF:DQ:	$CONF.$O $OBJ $LIB
+	echo '# linking kernel with symbols'
+	$LD -o $target -R4096 -T$loadaddr -l $OBJ $CONF.$O $LIB
+	size $target
+
+$p$CONF.gz:D:	$p$CONF
+	gzip -9 <$p$CONF >$target
+
+$OBJ: $HFILES
+
+install:V: /$objtype/$p$CONF
+
+/$objtype/$p$CONF:D: $p$CONF s$p$CONF
+	{ cp -x $p$CONF s$p$CONF /$objtype } &
+	{ 9fs lookout &&  cp -x $p$CONF s$p$CONF /n/lookout/$objtype } &
+#	{ 9fs piestand && cp -x $p$CONF s$p$CONF /n/piestand/$objtype } &
+	wait
+	touch $target
+
+<../boot/bootmkfile
+<../port/portmkfile
+<|../port/mkbootrules $CONF
+
+# CFLAGS= -I. -I../port $CFLAGS	# hack to compile private sysproc.c (e.g.)
+
+clock.$O:	/$objtype/include/ureg.h
+devether.$O:	/$objtype/include/ureg.h
+fpiarm.$O:	/$objtype/include/ureg.h
+main.$O:	/$objtype/include/ureg.h errstr.h init.h reboot.h
+mmu.$O:		/$objtype/include/ureg.h
+trap$O:		/$objtype/include/ureg.h
+
+devether.$0:	etherif.h ../port/netif.h
+etherkw.$0:	etherif.h ../port/netif.h
+
+l.$O lexception.$O lproc.$O: arm.s arm.h mem.h
+
+init.h:D:	../port/initcode.c init9.s
+	$CC ../port/initcode.c
+	$AS init9.s
+	$LD -l -R1 -s -o init.out init9.$O initcode.$O /$objtype/lib/libc.a
+	{echo 'uchar initcode[]={'
+	 xd -1x <init.out |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > init.h
+
+reboot.h:D:	rebootcode.s arm.s arm.h mem.h
+	$AS rebootcode.s
+	# -lc is only for memmove.  -T arg is PADDR(REBOOTADDR)
+	$LD -l -a -s -T0x100 -R4 -o reboot.out rebootcode.$O -lc >reboot.list
+	{echo 'uchar rebootcode[]={'
+	 xd -1x reboot.out |
+		sed -e '1,2d' -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > reboot.h
+errstr.h:D:	../port/mkerrstr ../port/error.h
+	rc ../port/mkerrstr > errstr.h
