@@ -71,7 +71,6 @@ enum
 	/* Usb ctls. */
 	CMdebug = 0,		/* debug on|off */
 	CMdump,			/* dump (data structures for debug) */
-	CMreset,		/* reset the bus; start over */
 
 	/* Ep. ctls */
 	CMnew = 0,		/* new nb ctl|bulk|intr|iso r|w|rw (endpoint) */
@@ -89,6 +88,8 @@ enum
 	CMaddress,		/* address (address is assigned) */
 	CMdebugep,		/* debug n (set/clear debug for this ep) */
 	CMname,			/* name str (show up as #u/name as well) */
+	CMtmout,		/* timeout n (activate timeouts for ep) */
+	CMpreset,		/* reset the port */
 
 	/* Hub feature selectors */
 	Rportenable	= 1,
@@ -112,7 +113,6 @@ static Cmdtab usbctls[] =
 {
 	{CMdebug,	"debug",	2},
 	{CMdump,	"dump",		1},
-	{CMreset,	"reset",	1},
 };
 
 static Cmdtab epctls[] =
@@ -132,6 +132,8 @@ static Cmdtab epctls[] =
 	{CMdebugep,	"debug",	2},
 	{CMclrhalt,	"clrhalt",	1},
 	{CMname,	"name",		2},
+	{CMtmout,	"timeout",	2},
+	{CMpreset,	"reset",	1},
 };
 
 static Dirtab usbdir[] =
@@ -267,7 +269,7 @@ addhcitype(char* t, int (*r)(Hci*))
 static char*
 seprintep(char *s, char *se, Ep *ep, int all)
 {
-	static char* dsnames[] = { "config", "enabled", "detached" };
+	static char* dsnames[] = { "config", "enabled", "detached", "reset" };
 	Udev *d;
 	int i;
 	int di;
@@ -303,6 +305,8 @@ seprintep(char *s, char *se, Ep *ep, int all)
 		s = seprint(s, se, " idx %d", ep->idx);
 		if(ep->name != nil)
 			s = seprint(s, se, " name '%s'", ep->name);
+		if(ep->tmout != 0)
+			s = seprint(s, se, " tmout");
 		if(ep == ep->ep0){
 			s = seprint(s, se, " ctlrno %#x", ep->hp->ctlrno);
 			s = seprint(s, se, " eps:");
@@ -312,7 +316,7 @@ seprintep(char *s, char *se, Ep *ep, int all)
 		}
 	}
 	if(ep->info != nil)
-		s = seprint(s, se, "\n%s\n", ep->info);
+		s = seprint(s, se, "\n%s %s\n", ep->info, ep->hp->type);
 	else
 		s = seprint(s, se, "\n");
 	qunlock(ep);
@@ -336,7 +340,7 @@ epalloc(Hci *hp)
 		qunlock(&epslck);
 		free(ep);
 		print("usb: bug: too few endpoints.\n");
-		return nil;	
+		return nil;
 	}
 	ep->idx = i;
 	if(epmax <= i)
@@ -467,6 +471,7 @@ newdev(Hci *hp, int ishub, int isroot)
 	ep->dev = d;
 	ep->ep0 = ep;			/* no ref counted here */
 	ep->ttype = Tctl;
+	ep->tmout = Xfertmout;
 	ep->mode = ORDWR;
 	dprint("newdev %#p ep%d.%d %#p\n", d, d->nb, ep->nb, ep);
 	return ep;
@@ -495,11 +500,20 @@ newdevep(Ep *ep, int i, int tt, int mode)
 	nep->mode = mode;
 	nep->ttype = tt;
 	nep->debug = ep->debug;
-	if(tt == Tintr || tt == Tiso)	/* assign defaults */
+	/* set defaults */
+	switch(tt){
+	case Tctl:
+		nep->tmout = Xfertmout;
+		break;
+	case Tintr:
 		nep->pollival = 10;
-	if(tt == Tiso){
+		break;
+	case Tiso:
+		nep->tmout = Xfertmout;
+		nep->pollival = 10;
 		nep->samplesz = 4;
 		nep->hz = 44100;
+		break;
 	}
 	deprint("newdevep ep%d.%d %#p\n", d->nb, nep->nb, nep);
 	return ep;
@@ -643,7 +657,6 @@ usbgen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
 Fail:
 	if(0)ddprint("fail\n");
 	return -1;
-	
 }
 
 static Hci*
@@ -683,7 +696,8 @@ hciprobe(int cardno, int ctlrno)
 	snprint(name, sizeof(name), "usb%s", hcitypes[cardno].type);
 	intrenable(Irqlo, hp->irq, hp->interrupt, hp, name);
 	print("#u/usb/ep%d.0: %s: port 0x%luX irq %d\n",
-		epnb++, hcitypes[cardno].type, hp->port, hp->irq);
+		epnb, hcitypes[cardno].type, hp->port, hp->irq);
+	epnb++;
 	return hp;
 }
 
@@ -1112,7 +1126,7 @@ epctl(Ep *ep, Chan *c, void *a, long n)
 	if(ct == nil)
 		error(Ebadctl);
 	i = ct->index;
-	if(i == CMnew || i == CMspeed || i == CMhub)
+	if(i == CMnew || i == CMspeed || i == CMhub || i == CMpreset)
 		if(ep != ep->ep0)
 			error("allowed only on a setup endpoint");
 	if(i != CMclrhalt && i != CMdetach && i != CMdebugep && i != CMname)
@@ -1279,6 +1293,22 @@ epctl(Ep *ep, Chan *c, void *a, long n)
 		validname(cb->f[1], 0);
 		kstrdup(&ep->name, cb->f[1]);
 		break;
+	case CMtmout:
+		deprint("usb epctl %s\n", cb->f[0]);
+		if(ep->ttype == Tiso || ep->ttype == Tctl)
+			error("ctl ignored for this endpoint type");
+		ep->tmout = strtoul(cb->f[1], nil, 0);
+		if(ep->tmout != 0 && ep->tmout < Xfertmout)
+			ep->tmout = Xfertmout;
+		break;
+	case CMpreset:
+		deprint("usb epctl %s\n", cb->f[0]);
+		if(ep->ttype != Tctl)
+			error("not a control endpoint");
+		if(ep->dev->state != Denabled)
+			error("forbidden on devices not enabled");
+		ep->dev->state = Dreset;
+		break;
 	default:
 		panic("usb: unknown epctl %d", ct->index);
 	}
@@ -1316,18 +1346,6 @@ usbctl(void *a, long n)
 				ep->hp->debug(ep->hp, debug);
 				putep(ep);
 			}
-		break;
-	case CMreset:
-		print("devusb: CMreset not implemented\n");
-		error("not implemented");
-		/*
-		 * XXX: I'm not sure this is a good idea.
-		 * Usbd should not be restarted at all.
-		 * for(all eps)
-		 *	closeep(ep);
-		 * do a global reset once more
-		 * recreate root hub devices in place.
-		 */
 		break;
 	case CMdump:
 		dumpeps();
@@ -1418,18 +1436,17 @@ usbwrite(Chan *c, void *a, long n, vlong off)
 void
 usbshutdown(void)
 {
-	Hci *hci;
+	Hci *hp;
 	int i;
 
 	for(i = 0; i < Nhcis; i++){
-		hci = hcis[i];
-		if(hci == nil)
+		hp = hcis[i];
+		if(hp == nil)
 			continue;
-		if(hci->shutdown == nil) {
-			print("#l%d: no shutdown function\n", i);
-			continue;
-		}
-		(*hci->shutdown)(hci);
+		if(hp->shutdown == nil)
+			print("#u: no shutdown function for %s\n", hp->type);
+		else
+			hp->shutdown(hp);
 	}
 }
 
