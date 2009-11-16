@@ -137,11 +137,11 @@ opendevdata(Dev *d, int mode)
 
 enum
 {
-	/* Max device conf is also limited by max control request size
-	 * as limited by the kernel usb.h.
-	 * (both limits are arbitrary).
+	/*
+	 * Max device conf is also limited by max control request size as
+	 * limited by Maxctllen in the kernel usb.h (both limits are arbitrary).
 	 */
-	Maxdevconf = 16 * 1024
+	Maxdevconf = 32 * 1024,
 };
 
 int
