@@ -78,7 +78,7 @@ enum {
 	/* various flags & constants */
 	v6MINTU		= 1280,
 	HOP_LIMIT	= 255,
-	IP6HDR		= 20,		/* sizeof(Ip6hdr) */
+	IP6HDR		= 40,		/* sizeof(Ip6hdr) = 8 + 2*16 */
 
 	/* option types */
 
