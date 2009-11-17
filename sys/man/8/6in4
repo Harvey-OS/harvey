@@ -82,7 +82,9 @@ instead of
 .PD
 .SH EXAMPLES
 If your primary IPv4 address is public,
-you can start a 6to4 tunnel simply with
+you can start a
+.I 6to4
+tunnel simply with
 .IP
 .EX
 ip/6in4 -g
