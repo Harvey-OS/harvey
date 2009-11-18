@@ -439,10 +439,10 @@ icmphostunr(Fs *f, Ipifc *ifc, Block *bp, int code, int free)
 
 	rlock(ifc);
 	if(ipv6anylocal(ifc, np->src))
-		netlog(f, Logicmp, "send icmphostunr -> s%I d%I\n",
+		netlog(f, Logicmp, "send icmphostunr -> src %I dst %I\n",
 			p->src, p->dst);
 	else {
-		netlog(f, Logicmp, "icmphostunr fail -> s%I d%I\n",
+		netlog(f, Logicmp, "icmphostunr fail -> src %I dst %I\n",
 			p->src, p->dst);
 		freeblist(nbp);
 		if(free)
@@ -492,10 +492,10 @@ icmpttlexceeded6(Fs *f, Ipifc *ifc, Block *bp)
 	np = (IPICMP *) nbp->rp;
 
 	if(ipv6anylocal(ifc, np->src))
-		netlog(f, Logicmp, "send icmpttlexceeded6 -> s%I d%I\n",
+		netlog(f, Logicmp, "send icmpttlexceeded6 -> src %I dst %I\n",
 			p->src, p->dst);
 	else {
-		netlog(f, Logicmp, "icmpttlexceeded6 fail -> s%I d%I\n",
+		netlog(f, Logicmp, "icmpttlexceeded6 fail -> src %I dst %I\n",
 			p->src, p->dst);
 		return;
 	}
@@ -531,10 +531,10 @@ icmppkttoobig6(Fs *f, Ipifc *ifc, Block *bp)
 	np = (IPICMP *)nbp->rp;
 
 	if(ipv6anylocal(ifc, np->src))
-		netlog(f, Logicmp, "send icmppkttoobig6 -> s%I d%I\n",
+		netlog(f, Logicmp, "send icmppkttoobig6 -> src %I dst %I\n",
 			p->src, p->dst);
 	else {
-		netlog(f, Logicmp, "icmppkttoobig6 fail -> s%I d%I\n",
+		netlog(f, Logicmp, "icmppkttoobig6 fail -> src %I dst %I\n",
 			p->src, p->dst);
 		return;
 	}

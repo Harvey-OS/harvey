@@ -51,7 +51,7 @@ bootdir
 	/arm/bin/ip/ipconfig ipconfig
 	/arm/bin/auth/factotum factotum
 #	/arm/bin/usb/usbd
-	nvram
+#	nvram
 
 port
 	int cpuserver = 1;

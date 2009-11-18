@@ -581,7 +581,7 @@ tcprcvwin(Conv *s)				/* Call with tcb locked */
 	if(w < 0)
 		w = 0;
 	if(w == 0)
-		netlog(s->p->f, Logtcp, "tcprcvwim: window %d qlen %d\n", tcb->window, qlen(s->rq));
+		netlog(s->p->f, Logtcp, "tcprcvwim: window %lud qlen %d\n", tcb->window, qlen(s->rq));
 	tcb->rcv.wnd = w;
 	if(w == 0)
 		tcb->rcv.blocked = 1;
@@ -1623,7 +1623,7 @@ tcpincoming(Conv *s, Tcp *segp, uchar *src, uchar *dst, uchar version)
 	/* find a call in limbo */
 	h = hashipa(src, segp->source);
 	for(l = &tpriv->lht[h]; (lp = *l) != nil; l = &lp->next){
-		netlog(s->p->f, Logtcp, "tcpincoming s %I,%ux/%I,%ux d %I,%ux/%I,%ux v %d/%d\n",
+		netlog(s->p->f, Logtcp, "tcpincoming s %I!%ud/%I!%ud d %I!%ud/%I!%ud v %d/%d\n",
 			src, segp->source, lp->raddr, lp->rport,
 			dst, segp->dest, lp->laddr, lp->lport,
 			version, lp->version
@@ -1814,7 +1814,7 @@ update(Conv *s, Tcp *seg)
 	&& seg->wnd == tcb->snd.wnd) {
 
 		/* this is a pure ack w/o window update */
-		netlog(s->p->f, Logtcprxmt, "dupack %lud ack %lud sndwnd %d advwin %d\n",
+		netlog(s->p->f, Logtcprxmt, "dupack %lud ack %lud sndwnd %lud advwin %lud\n",
 			tcb->snd.dupacks, seg->ack, tcb->snd.wnd, seg->wnd);
 
 		if(++tcb->snd.dupacks == TCPREXMTTHRESH) {
@@ -1859,7 +1859,7 @@ update(Conv *s, Tcp *seg)
 		tcb->snd.dupacks = 0;
 		tcb->snd.recovery = 0;
 	} else
-		netlog(s->p->f, Logtcp, "rxt next %lud, cwin %ud\n", seg->ack, tcb->cwind);
+		netlog(s->p->f, Logtcp, "rxt next %lud, cwin %lud\n", seg->ack, tcb->cwind);
 
 	/* Compute the new send window size */
 	acked = seg->ack - tcb->snd.una;
@@ -2047,7 +2047,8 @@ tcpiput(Proto *tcp, Ipifc*, Block *bp)
 	/* Look for a matching conversation */
 	s = iphtlook(&tpriv->ht, source, seg.source, dest, seg.dest);
 	if(s == nil){
-		netlog(f, Logtcp, "iphtlook failed\n");
+		netlog(f, Logtcp, "iphtlook(src %I!%d, dst %I!%d) failed\n",
+			source, seg.source, dest, seg.dest);
 reset:
 		qunlock(tcp);
 		sndrst(tcp, source, dest, length, &seg, version, "no conversation");
@@ -2559,7 +2560,7 @@ tcpoutput(Conv *s)
 			if(ssize < n)
 				n = ssize;
 			tcb->resent += n;
-			netlog(f, Logtcp, "rexmit: %I.%d -> %I.%d ptr %lux nxt %lux\n",
+			netlog(f, Logtcp, "rexmit: %I!%d -> %I!%d ptr %lux nxt %lux\n",
 				s->raddr, s->rport, s->laddr, s->lport, tcb->snd.ptr, tcb->snd.nxt);
 			tpriv->stats[RetransSegs]++;
 		}
@@ -2826,7 +2827,7 @@ tcptimeout(void *arg)
 			localclose(s, Etimedout);
 			break;
 		}
-		netlog(s->p->f, Logtcprxmt, "timeout rexmit 0x%lux %d/%d\n", tcb->snd.una, tcb->timer.start, NOW);
+		netlog(s->p->f, Logtcprxmt, "timeout rexmit %#lux %d/%lud\n", tcb->snd.una, tcb->timer.start, NOW);
 		tcpsettimer(tcb);
 		tcprxmit(s);
 		tpriv->stats[RetransTimeouts]++;

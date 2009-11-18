@@ -15,9 +15,10 @@ snoopy \- spy on network packets
 .B -f
 .I filter-expression
 ] [
-.B -h first-header
+.B -h
+.I first-header
 ] [
-packet-source
+.I packet-source
 ]
 .PP
 .B snoopy
@@ -26,7 +27,6 @@ packet-source
 .I proto...
 ]
 .SH DESCRIPTION
-.PP
 .I Snoopy
 reads packets from a
 .I packet-source
@@ -169,10 +169,11 @@ to filter the packet stream.  The default is
 to match all packets.
 .TP
 .B -h
-assume the first header per packet to be
-.IR first-header .
+assume the first header per packet to be of the
+.I first-header
+protocol.
 The default is
-.IR ether .
+.LR ether .
 .SH EXAMPLES
 To display only
 .SM BOOTP
