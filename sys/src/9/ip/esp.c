@@ -474,7 +474,7 @@ espiput(Proto *esp, Ipifc*, Block *bp)
 	c = convlookup(esp, vers.spi);
 	if(c == nil) {
 		qunlock(esp);
-		netlog(f, Logesp, "esp: no conv %I -> %I!%d\n", vers.raddr,
+		netlog(f, Logesp, "esp: no conv %I -> %I!%lud\n", vers.raddr,
 			vers.laddr, vers.spi);
 		icmpnoconv(f, bp);
 		freeblist(bp);
@@ -491,7 +491,7 @@ espiput(Proto *esp, Ipifc*, Block *bp)
 
 	if(BLEN(bp) < vers.hdrlen + ecb->espivlen + Esptaillen + ecb->ahlen) {
 		qunlock(c);
-		netlog(f, Logesp, "esp: short block %I -> %I!%d\n", vers.raddr,
+		netlog(f, Logesp, "esp: short block %I -> %I!%lud\n", vers.raddr,
 			vers.laddr, vers.spi);
 		freeb(bp);
 		return;
@@ -505,7 +505,7 @@ espiput(Proto *esp, Ipifc*, Block *bp)
 	if(!ecb->auth(ecb, espspi, auth - espspi, auth)) {
 		qunlock(c);
 print("esp: bad auth %I -> %I!%ld\n", vers.raddr, vers.laddr, vers.spi);
-		netlog(f, Logesp, "esp: bad auth %I -> %I!%d\n", vers.raddr,
+		netlog(f, Logesp, "esp: bad auth %I -> %I!%lud\n", vers.raddr,
 			vers.laddr, vers.spi);
 		freeb(bp);
 		return;
@@ -514,7 +514,7 @@ print("esp: bad auth %I -> %I!%ld\n", vers.raddr, vers.laddr, vers.spi);
 	payload = BLEN(bp) - vers.hdrlen - ecb->ahlen;
 	if(payload <= 0 || payload % 4 != 0 || payload % ecb->espblklen != 0) {
 		qunlock(c);
-		netlog(f, Logesp, "esp: bad length %I -> %I!%d payload=%d BLEN=%d\n",
+		netlog(f, Logesp, "esp: bad length %I -> %I!%lud payload=%d BLEN=%lud\n",
 			vers.raddr, vers.laddr, vers.spi, payload, BLEN(bp));
 		freeb(bp);
 		return;
@@ -524,7 +524,7 @@ print("esp: bad auth %I -> %I!%ld\n", vers.raddr, vers.laddr, vers.spi);
 	if(!ecb->cipher(ecb, bp->rp + vers.hdrlen, payload)) {
 		qunlock(c);
 print("esp: cipher failed %I -> %I!%ld: %s\n", vers.raddr, vers.laddr, vers.spi, up->errstr);
-		netlog(f, Logesp, "esp: cipher failed %I -> %I!%d: %s\n",
+		netlog(f, Logesp, "esp: cipher failed %I -> %I!%lud: %s\n",
 			vers.raddr, vers.laddr, vers.spi, up->errstr);
 		freeb(bp);
 		return;
@@ -536,7 +536,7 @@ print("esp: cipher failed %I -> %I!%ld: %s\n", vers.raddr, vers.laddr, vers.spi,
 	nexthdr = et->nexthdr;
 	if(payload <= 0) {
 		qunlock(c);
-		netlog(f, Logesp, "esp: short packet after decrypt %I -> %I!%d\n",
+		netlog(f, Logesp, "esp: short packet after decrypt %I -> %I!%lud\n",
 			vers.raddr, vers.laddr, vers.spi);
 		freeb(bp);
 		return;
