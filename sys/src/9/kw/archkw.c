@@ -162,9 +162,9 @@ archkwlink(void)
 }
 
 int
-archether(int ctlno, Ether *ether)
+archether(unsigned ctlno, Ether *ether)
 {
-	if(ctlno != 0)
+	if(ctlno >= 2)
 		return -1;
 	ether->type = "kirkwood";
 	ether->port = ctlno;

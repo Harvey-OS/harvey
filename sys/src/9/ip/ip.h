@@ -648,13 +648,11 @@ extern ulong	restrict_mtu(uchar*, ulong);
 /*
  * bootp.c
  */
-extern char*	bootp(Ipifc*);
 extern int	bootpread(char*, ulong, int);
 
 /*
  *  resolving inferno/plan9 differences
  */
-Chan*		commonfdtochan(int, int, int, int);
 char*		commonuser(void);
 char*		commonerror(void);
 

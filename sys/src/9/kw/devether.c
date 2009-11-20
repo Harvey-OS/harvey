@@ -12,7 +12,7 @@
 #define devno	dev
 #define iq	in
 
-extern int archether(int ctlno, Ether *ether);
+extern int archether(unsigned ctlno, Ether *ether);
 
 static Ether *etherxx[MaxEther];
 
