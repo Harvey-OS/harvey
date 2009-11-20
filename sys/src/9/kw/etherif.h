@@ -9,13 +9,11 @@ struct Ether {
 	RWlock;				/* TO DO */
 	ISAConf;			/* hardware info */
 	int	ctlrno;
-//	int	tbdf;			/* type+busno+devno+funcno */
 	int	minmtu;
 	int	maxmtu;
 	uchar	ea[Eaddrlen];
 	void	*address;
 	int	tbusy;
-	int	encry;
 
 	void	(*attach)(Ether*);	/* filled in by reset routine */
 	void	(*closed)(Ether*);
@@ -29,6 +27,9 @@ struct Ether {
 	void	*ctlr;
 	int	pcmslot;		/* PCMCIA */
 	int	fullduplex;		/* non-zero if full duplex */
+	int	linkchg;		/* link status changed? */
+	int	mcaston;		/* multicast ever enabled? */
+	uvlong	starttime;		/* last activity time */
 
 	Queue*	oq;
 

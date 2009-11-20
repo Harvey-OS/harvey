@@ -1,5 +1,5 @@
 CONF=plug
-CONFLIST=plug
+CONFLIST=plug openrd
 
 # allegedly u-boot uses the bottom 8MB (up to 0x800000)
 # so avoid that

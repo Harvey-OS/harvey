@@ -35,6 +35,13 @@ boot(int argc, char *argv[])
 
 	fmtinstall('r', errfmt);
 
+	/*
+	 * we should inherit the standard fds all referring to /dev/cons,
+	 * but we're being paranoid.
+	 */
+	close(0);
+	close(1);
+	close(2);
 	bind("#c", "/dev", MBEFORE);
 	open("/dev/cons", OREAD);
 	open("/dev/cons", OWRITE);

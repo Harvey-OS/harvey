@@ -336,7 +336,9 @@ icmpiput(Proto *icmp, Ipifc*, Block *bp)
 	ipriv->stats[InMsgs]++;
 
 	p = (Icmp *)bp->rp;
-	netlog(icmp->f, Logicmp, "icmpiput %d %d\n", p->type, p->code);
+	netlog(icmp->f, Logicmp, "icmpiput %s (%d) %d\n",
+		(p->type < nelem(icmpnames)? icmpnames[p->type]: ""),
+		p->type, p->code);
 	n = blocklen(bp);
 	if(n < ICMP_IPSIZE+ICMP_HDRSIZE){
 		ipriv->stats[InErrors]++;

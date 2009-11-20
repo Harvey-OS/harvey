@@ -71,7 +71,7 @@ m_free(message *mp)
 	free((char *)mp);
 }
 
-/* read a message into a temp file , return an open fd to it */
+/* read a message into a temp file, return an open fd to it in mp->fd */
 static int
 m_read_to_file(Biobuf *fp, message *mp)
 {
@@ -82,7 +82,7 @@ m_read_to_file(Biobuf *fp, message *mp)
 
 	file = s_new();
 	/*
-	 *  create temp file to be remove on close
+	 *  create temp file to be removed on close
 	 */
 	abspath("mtXXXXXX", UPASTMP, file);
 	mktemp(s_to_c(file));

@@ -818,6 +818,12 @@ setlport(Conv* c)
 		}
 	}
 	qunlock(p);
+	/*
+	 * debugging: let's see if we ever get this.
+	 * if we do (and we're a cpu server), we might as well restart
+	 * since we're now unable to service new connections.
+	 */
+	panic("setlport: out of ports");
 	return "no ports available";
 
 chosen:
@@ -1313,8 +1319,12 @@ retry:
 		}
 	}
 	if(pp >= ep) {
+		if(p->gc)
+			print("Fsprotoclone: garbage collecting Convs\n");
 		if(p->gc != nil && (*p->gc)(p))
 			goto retry;
+		/* debugging: do we ever get here? */
+		panic("Fsprotoclone: all conversations in use");
 		return nil;
 	}
 
@@ -1390,7 +1400,14 @@ Fsnewcall(Conv *c, uchar *raddr, ushort rport, uchar *laddr, ushort lport, uchar
 	for(l = &c->incall; *l; l = &(*l)->next)
 		i++;
 	if(i >= Maxincall) {
+		static int beenhere;
+
 		qunlock(c);
+		if (!beenhere) {
+			beenhere = 1;
+			print("Fsnewcall: incall queue full (%d) on port %d\n",
+				i, c->lport);
+		}
 		return nil;
 	}
 

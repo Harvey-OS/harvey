@@ -22,6 +22,8 @@ int	logged;
 int	rejectcount;
 int	hardreject;
 
+ulong	starttime;
+
 Biobuf	bin;
 
 int	debug;
@@ -69,9 +71,13 @@ catchalarm(void *a, char *msg)
 		rv = Atnoterecog;
 	} else
 		rv = Atnoteunknown;
+	if (debug) {
+		seek(2, 0, 2);
+		fprint(2, "caught note: %s\n", msg);
+	}
 
 	/* kill the children if there are any */
-	if(pp) {
+	if(pp && pp->pid > 0) {
 		syskillpg(pp->pid);
 		/* none can't syskillpg, so try a variant */
 		sleep(500);
@@ -114,6 +120,7 @@ main(int argc, char **argv)
 	netdir = nil;
 	quotefmtinstall();
 	fmtinstall('I', eipfmt);
+	starttime = time(0);
 	ARGBEGIN{
 	case 'a':
 		authenticate = 1;
@@ -172,9 +179,9 @@ main(int argc, char **argv)
 		mailer = mailerpath("send");
 
 	if(debug){
+		snprint(buf, sizeof buf, "%s/smtpdb/%ld", UPASLOG, time(0));
 		close(2);
-		snprint(buf, sizeof(buf), "%s/smtpd.db", UPASLOG);
-		if (open(buf, OWRITE) >= 0) {
+		if (create(buf, OWRITE | OEXCL, 0662) >= 0) {
 			seek(2, 0, 2);
 			fprint(2, "%d smtpd %s\n", getpid(), thedate());
 		} else
@@ -231,6 +238,15 @@ listadd(List *l, String *path)
 	l->last = lp;
 }
 
+void
+stamp(void)
+{
+	if(debug) {
+		seek(2, 0, 2);
+		fprint(2, "%3lud ", time(0) - starttime);
+	}
+}
+
 #define	SIZE	4096
 
 int
@@ -247,6 +263,7 @@ reply(char *fmt, ...)
 	n = out - buf;
 	if(debug) {
 		seek(2, 0, 2);
+		stamp();
 		write(2, buf, n);
 	}
 	write(1, buf, n);
@@ -675,6 +692,12 @@ void
 quit(void)
 {
 	reply("221 2.0.0 Successful termination\r\n");
+	if(debug){
+		seek(2, 0, 2);
+		stamp();
+		fprint(2, "# %d sent 221 reply to QUIT %s\n",
+			getpid(), thedate());
+	}
 	close(0);
 	exits(0);
 }
@@ -766,6 +789,7 @@ getcrnl(String *s, Biobuf *fp)
 				if(debug) {
 					seek(2, 0, 2);
 					fprint(2, "%c", c);
+					stamp();
 				}
 				s_putc(s, '\n');
 				goto out;
@@ -1008,7 +1032,8 @@ forgedheaderwarnings(void)
 	nbytes = 0;
 
 	/* warn about envelope sender */
-	if(strcmp(s_to_c(senders.last->p), "/dev/null") != 0 &&
+	if(senders.last != nil && senders.last->p != nil &&
+	    strcmp(s_to_c(senders.last->p), "/dev/null") != 0 &&
 	    masquerade(senders.last->p, nil))
 		nbytes += Bprint(pp->std[0]->fp,
 			"X-warning: suspect envelope domain\n");
@@ -1110,7 +1135,7 @@ pipemsg(int *byteswritten)
 	 *  add an orginator and/or destination if either is missing
 	 */
 	if(originator == 0){
-		if(senders.last == nil)
+		if(senders.last == nil || senders.last->p == nil)
 			nbytes += Bprint(pp->std[0]->fp, "From: /dev/null@%s\n",
 				him);
 		else
@@ -1190,16 +1215,23 @@ pipemsg(int *byteswritten)
 		/* message did not terminate normally */
 		snprint(pipbuf, sizeof pipbuf, "network eof: %r");
 		piperror = pipbuf;
-		syskillpg(pp->pid);
-		/* none can't syskillpg, so try a variant */
-		sleep(500);
-		syskill(pp->pid);
+		if (pp->pid > 0) {
+			syskillpg(pp->pid);
+			/* none can't syskillpg, so try a variant */
+			sleep(500);
+			syskill(pp->pid);
+		}
 		status = 1;
 	}
 
 	if(status == 0 && Bflush(pp->std[0]->fp) < 0){
 		piperror = "write error 4";
 		status = 1;
+	}
+	if (debug) {
+		stamp();
+		fprint(2, "at end of message; %s .\n",
+			(sawdot? "saw": "didn't see"));
 	}
 	stream_free(pp->std[0]);
 	pp->std[0] = 0;
@@ -1338,6 +1370,12 @@ data(void)
 		return;
 
 	reply("354 Input message; end with <CRLF>.<CRLF>\r\n");
+	if(debug){
+		seek(2, 0, 2);
+		stamp();
+		fprint(2, "# sent 354; accepting DATA %s\n", thedate());
+	}
+
 
 	/*
 	 *  allow 145 more minutes to move the data
@@ -1350,18 +1388,28 @@ data(void)
 	 *  read any error messages
 	 */
 	err = s_new();
+	if (debug) {
+		stamp();
+		fprint(2, "waiting for upas/send to close stderr\n");
+	}
 	while(s_read_line(pp->std[2]->fp, err))
 		;
 
 	alarm(0);
 	atnotify(catchalarm, 0);
 
+	if (debug) {
+		stamp();
+		fprint(2, "waiting for upas/send to exit\n");
+	}
 	status |= proc_wait(pp);
 	if(debug){
 		seek(2, 0, 2);
-		fprint(2, "%d status %ux\n", getpid(), status);
+		stamp();
+		fprint(2, "# %d upas/send status %#ux at %s\n",
+			getpid(), status, thedate());
 		if(*s_to_c(err))
-			fprint(2, "%d error %s\n", getpid(), s_to_c(err));
+			fprint(2, "# %d error %s\n", getpid(), s_to_c(err));
 	}
 
 	/*
@@ -1414,6 +1462,12 @@ data(void)
 		else {
 			reply("250 2.5.0 sent\r\n");
 			logcall(nbytes);
+			if(debug){
+				seek(2, 0, 2);
+				stamp();
+				fprint(2, "# %d sent 250 reply %s\n",
+					getpid(), thedate());
+			}
 		}
 	}
 	proc_free(pp);

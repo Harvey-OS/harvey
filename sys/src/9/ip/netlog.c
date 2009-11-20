@@ -225,7 +225,7 @@ netlogctl(Fs *f, char* s, int n)
 void
 netlog(Fs *f, int mask, char *fmt, ...)
 {
-	char buf[128], *t, *fp;
+	char buf[256], *t, *fp;
 	int i, n;
 	va_list arg;
 

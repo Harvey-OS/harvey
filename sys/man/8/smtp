@@ -55,7 +55,7 @@ sends the mail message from standard input
 to the users
 .I rcpt-list
 on the host at network address
-.I address 
+.I address
 using the Simple Mail Transfer Protocol.
 The options are:
 .TF -
@@ -151,7 +151,9 @@ specifies a certificate to use for TLS.  Without this
 option, the capability to start TLS will not be advertised.
 .TP
 .B -d
-turns on debugging output to standard error.
+turns on debugging output,
+with each connection's output going to a uniquely-named file in
+.BR /sys/log/smtpdb .
 .TP
 .B -D
 sleeps for 15 seconds usually at the start of the SMTP dialogue;

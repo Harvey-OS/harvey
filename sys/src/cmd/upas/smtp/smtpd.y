@@ -145,7 +145,7 @@ dotnum		: snum '.' snum '.' snum '.' snum ={ $$ = cat(&$1, &$2, &$3, &$4, &$5, &
 number		: d		={ $$ = cat(&$1, 0, 0, 0, 0 ,0, 0); }
 		| number d	={ $$ = cat(&$1, &$2, 0, 0, 0 ,0, 0); }
 		;
-snum		: number		={ if(atoi(s_to_c($1.s)) > 255) print("bad snum\n"); }
+snum		: number		={ if(atoi(s_to_c($1.s)) > 255) fprint(2, "bad snum\n"); }
 		;
 spaces		: SPACE		={ $$ = $1; }
 		| SPACE	spaces	={ $$ = $1; }

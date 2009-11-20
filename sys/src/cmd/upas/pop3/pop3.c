@@ -63,7 +63,7 @@ static int passwordinclear;
 static int didtls;
 
 typedef struct Msg Msg;
-struct Msg 
+struct Msg
 {
 	int upasnum;
 	char digest[64];
@@ -85,7 +85,8 @@ static char tmpaddr[64];
 void
 usage(void)
 {
-	fprint(2, "usage: upas/pop3 [-a authmboxfile] [-d debugfile] [-p]\n");
+	fprint(2, "usage: upas/pop3 [-a authmboxfile] [-d debugfile] [-p] "
+		"[-r remote] [-t cert]\n");
 	exits("usage");
 }
 
@@ -113,6 +114,9 @@ main(int argc, char **argv)
 			close(fd);
 		}
 		break;
+	case 'p':
+		passwordinclear = 1;
+		break;
 	case 'r':
 		strecpy(tmpaddr, tmpaddr+sizeof tmpaddr, EARGF(usage()));
 		if(arg = strchr(tmpaddr, '!'))
@@ -125,9 +129,6 @@ main(int argc, char **argv)
 			senderr("cannot read TLS certificate: %r");
 			exits(nil);
 		}
-		break;
-	case 'p':
-		passwordinclear = 1;
 		break;
 	}ARGEND
 
@@ -575,7 +576,7 @@ stlscmd(char*)
 	Binit(&out, 1, OWRITE);
 	didtls = 1;
 	return 0;
-}		
+}
 
 static int
 topcmd(char *arg)
@@ -643,7 +644,7 @@ uidlcmd(char *arg)
 			return senderr("no such message");
 		sendok("%d %s", n+1, msg[n].digest);
 	}
-	return 0;	
+	return 0;
 }
 
 static char*
@@ -738,15 +739,23 @@ dologin(char *response)
 {
 	AuthInfo *ai;
 	static int tries;
+	static ulong delaysecs = 5;
 
 	chs->user = user;
 	chs->resp = response;
 	chs->nresp = strlen(response);
 	if((ai = auth_response(chs)) == nil){
-		if(tries++ >= 5){
+		if(tries >= 20){
 			senderr("authentication failed: %r; server exiting");
 			exits(nil);
-		}	
+		}
+		if(++tries == 3)
+			syslog(0, "pop3", "likely password guesser from %s",
+				peeraddr);
+		delaysecs *= 2;
+		if (delaysecs > 30*60)
+			delaysecs = 30*60;		/* half-hour max. */
+		sleep(delaysecs * 1000); /* prevent beating on our auth server */
 		return senderr("authentication failed");
 	}
 
@@ -784,7 +793,7 @@ passcmd(char *arg)
 	if((chs = auth_challenge("proto=apop role=server")) == nil)
 		return senderr("couldn't get apop challenge");
 
-	// hash challenge with secret and convert to ascii
+	/* hash challenge with secret and convert to ascii */
 	s = md5((uchar*)chs->chal, chs->nchal, 0, 0);
 	md5((uchar*)arg, strlen(arg), digest, s);
 	snprint(response, sizeof response, "%.*H", MD5dlen, digest);
