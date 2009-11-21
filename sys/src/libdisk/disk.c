@@ -63,6 +63,9 @@ partitiongeometry(Disk *disk)
 	uchar buf[512];
 	Table *t;
 
+	if(disk->c == 0 || disk->h == 0 || disk->s == 0)
+		return -1;
+
 	t = (Table*)(buf + Toffset);
 
 	/*
