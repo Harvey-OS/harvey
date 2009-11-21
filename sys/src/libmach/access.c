@@ -209,7 +209,7 @@ mget(Map *map, uvlong addr, void *buf, int size)
 		return -1;
 	}
 	for (i = j = 0; i < 2; i++) {	/* in case read crosses page */
-		k = spread(s, buf, size-j, off+j);
+		k = spread(s, (void*)((uchar *)buf+j), size-j, off+j);
 		if (k < 0) {
 			werrstr("can't read address %llux: %r", addr);
 			return -1;
