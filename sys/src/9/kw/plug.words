@@ -8,7 +8,7 @@ i & d caches 16K each, associativity 4, 32-byte lines, 128 sets
 16550 uart for console
 see http://www.marvell.com/files/products/embedded_processors/kirkwood/\
 	FS_88F6180_9x_6281_OpenSource.pdf, stored locally as
-	/public/doc/marvell/sheeva/88f61xx.kirkwood.pdf
+	/public/doc/marvell/88f61xx.kirkwood.pdf
 
 this plan 9 port is based on the port of native inferno to the
 sheevaplug by Salva Peiró (saoret.one@gmail.com) and Mechiel Lukkien

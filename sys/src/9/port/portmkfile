@@ -35,10 +35,10 @@ clean:V:
 		mk $i.clean
 
 %.clean:V:
-	rm -f $stem.c [9bz]$stem [9bz]$stem.gz boot$stem.* *.acid
+	rm -f $stem.c [9bz]$stem [9bz]$stem.gz s[9bz]$stem boot$stem.* *.acid
 
 nuke:V:	clean
-	rm -f ../boot/libboot.a$O *.elf *.rr s$p$CONF
+	rm -f ../boot/libboot.a$O *.elf *.rr
 
 %.$O:	/$objtype/include/u.h ../port/lib.h mem.h dat.h fns.h io.h ../port/error.h ../port/portdat.h ../port/portfns.h
 

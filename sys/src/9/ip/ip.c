@@ -7,86 +7,7 @@
 
 #include	"ip.h"
 
-typedef struct IP		IP;
-typedef struct Fragment4	Fragment4;
-typedef struct Fragment6	Fragment6;
-typedef struct Ipfrag		Ipfrag;
-
 #define BLKIPVER(xp)	(((Ip4hdr*)((xp)->rp))->vihl&0xF0)
-
-/* MIB II counters */
-enum
-{
-	Forwarding,
-	DefaultTTL,
-	InReceives,
-	InHdrErrors,
-	InAddrErrors,
-	ForwDatagrams,
-	InUnknownProtos,
-	InDiscards,
-	InDelivers,
-	OutRequests,
-	OutDiscards,
-	OutNoRoutes,
-	ReasmTimeout,
-	ReasmReqds,
-	ReasmOKs,
-	ReasmFails,
-	FragOKs,
-	FragFails,
-	FragCreates,
-
-	Nstats,
-};
-
-struct Fragment4
-{
-	Block*	blist;
-	Fragment4*	next;
-	ulong 	src;
-	ulong 	dst;
-	ushort	id;
-	ulong 	age;
-};
-
-struct Fragment6
-{
-	Block*	blist;
-	Fragment6*	next;
-	uchar 	src[IPaddrlen];
-	uchar 	dst[IPaddrlen];
-	uint	id;
-	ulong 	age;
-};
-
-struct Ipfrag
-{
-	ushort	foff;
-	ushort	flen;
-
-	uchar	payload[];
-};
-
-#define IPFRAGSZ offsetof(Ipfrag, payload[0])
-
-/* an instance of IP */
-struct IP
-{
-	ulong		stats[Nstats];
-
-	QLock		fraglock4;
-	Fragment4*	flisthead4;
-	Fragment4*	fragfree4;
-	Ref		id4;
-
-	QLock		fraglock6;
-	Fragment6*	flisthead6;
-	Fragment6*	fragfree6;
-	Ref		id6;
-
-	int		iprouting;	/* true if we route like a gateway */
-};
 
 static char *statnames[] =
 {
@@ -542,8 +463,8 @@ ipstats(Fs *f, char *buf, int len)
 
 	p = buf;
 	e = p+len;
-	for(i = 0; i < Nstats; i++)
-		p = seprint(p, e, "%s: %lud\n", statnames[i], ip->stats[i]);
+	for(i = 0; i < Nipstats; i++)
+		p = seprint(p, e, "%s: %llud\n", statnames[i], ip->stats[i]);
 	return p - buf;
 }
 

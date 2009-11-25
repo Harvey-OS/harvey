@@ -1,7 +1,8 @@
 /*
  * marvell kirkwood ethernet (88e1116) driver
  * (as found in the sheevaplug & openrd).
- * from /public/doc/marvell/sheeva/88f61xx.kirkwood.pdf
+ * from /public/doc/marvell/88f61xx.kirkwood.pdf
+ * and  /public/doc/marvell/88e1116.pdf.
  */
 
 #include "u.h"
@@ -832,7 +833,7 @@ interrupt(Ureg*, void *arg)
 			iprint("etherkw: interrupt cause unknown; "
 				"irq %#lux irqe %#lux\n", irq, irqe);
 	}
-	intrclear(Irqlo, IRQ0gbe0sum);
+	intrclear(Irqlo, ether->irq);
 }
 
 void
@@ -872,6 +873,7 @@ shutdown(Ether *ether)
 	reg->psc0 = 0;			/* no PSC0porton */
 	reg->psc1 |= PSC1portreset;
 	iunlock(ctlr);
+	coherence();
 	delay(100);
 }
 
@@ -955,19 +957,16 @@ miird(Mii *mii, int pa, int ra)
 	ctlr = (Ctlr*)mii->ctlr;
 	reg = ctlr->reg;
 
-	/* check to read params */
-	if (pa == 0xEE && ra == 0xEE)
-		return reg->phy & 0xff;
-
 	/* check params */
-	if (((pa<<Physmiaddroff) & ~Physmiaddrmask) ||
-	    ((ra<<SmiRegaddroff) & ~SmiRegaddrmask))
+	if ((pa<<Physmiaddroff) & ~Physmiaddrmask ||
+	    (ra<<SmiRegaddroff) & ~SmiRegaddrmask)
 		return -1;
 
 	smibusywait(reg, PhysmiBusy);
 
-	/* fill the phy address and regiser offset and read opcode */
+	/* fill the phy address and register offset and read opcode */
 	reg->smi = pa << Physmiaddroff | ra << SmiRegaddroff | PhysmiopRd;
+	coherence();
 
 	/* wait til read value is ready */
 //	if (smibusywait(reg, PhysmiReadok) < 0)
@@ -979,7 +978,6 @@ miird(Mii *mii, int pa, int ra)
 			MIIDBG("SMI read-valid timeout\n");
 			return -1;
 		}
-//		delay(1);
 	} while (!(smi_reg & PhysmiReadok));
 
 	/* Wait for the data to update in the SMI register */
@@ -1007,8 +1005,8 @@ miiwr(Mii *mii, int pa, int ra, int v)
 
 	/* fill the phy address and register offset and read opcode */
 	smi_reg = v << Physmidataoff | pa << Physmiaddroff | ra << SmiRegaddroff;
-	smi_reg &= ~PhysmiopRd;
-	reg->smi = smi_reg;
+	reg->smi = smi_reg & ~PhysmiopRd;
+	coherence();
 	return 0;
 }
 
@@ -1027,21 +1025,15 @@ kirkwoodmii(Ether *ether)
 	ctlr->mii->mir = miird;
 	ctlr->mii->miw = miiwr;
 
-	phy = nil;
 	if(mii(ctlr->mii, ~0) == 0 || (phy = ctlr->mii->curphy) == nil){
-		iprint("#l%d: etherkw: init mii failure\n", ether->ctlrno);
-		if (phy)
-			iprint("#l%d: etherkw: mii(...,~0) failed\n",
-				ether->ctlrno);
-		else
-			iprint("#l%d: etherkw: nil ctlr->mii->curphy\n",
-				ether->ctlrno);
+		print("#l%d: etherkw: init mii failure\n", ether->ctlrno);
 		free(ctlr->mii);
 		ctlr->mii = nil;
 		return -1;
 	}
 
-	MIIDBG("oui %X phyno %d\n", phy->oui, phy->phyno);
+	/* oui 005043 is marvell */
+	MIIDBG("oui %#X phyno %d\n", phy->oui, phy->phyno);
 	if(miistatus(ctlr->mii) < 0){
 		miireset(ctlr->mii);
 		MIIDBG("miireset\n");
@@ -1070,34 +1062,58 @@ kirkwoodmii(Ether *ether)
 	}
 
 	ether->mbps = phy->speed;
-//	iprint("etherkw: mii: fd=%d speed=%d tfc=%d rfc=%d\n",
+//	iprint("#l%d: kirkwoodmii: fd %d speed %d tfc %d rfc %d\n",
 //		ctlr->port, phy->fd, phy->speed, phy->tfc, phy->rfc);
 	MIIDBG("mii done\n");
 	return 0;
 }
 
+enum {						/* PHY register pages */
+	Pagcopper,
+	Pagfiber,
+	Pagrgmii,
+	Pagled,
+	Pagrsvd1,
+	Pagvct,
+	Pagtest,
+	Pagrsvd2,
+	Pagfactest,
+};
+
+static void
+miiregpage(Mii *mii, ulong dev, ulong page)
+{
+	miiwr(mii, dev, Eadr, page);
+}
+
 static int
-miiphyinit(Mii *mii)			/* magic numbers 'r' us */
+miiphyinit(Mii *mii)
 {
 	ulong dev;
+	Ctlr *ctlr;
+	Gbereg *reg;
 
-	/* select mii phy */
-	dev = miird(mii, 0xEE, 0xEE);		/* device address */
-//	print("dev %lux\n", dev);
-	if (dev == -1) {
-		print("etherkw: can't read PHY dev address\n");
-		return -1;
-	}
+	ctlr = (Ctlr*)mii->ctlr;
+	reg = ctlr->reg;
+	dev = reg->phy;
+	MIIDBG("phy dev addr %lux\n", dev);
 
 	/* leds link & activity */
-	miiwr(mii, dev, 22, 0x3);
-	miiwr(mii, dev, 10, (miird(mii, dev, 10) & ~0xf) | 1);	/* magic */
-	miiwr(mii, dev, 22, 0);
+	miiregpage(mii, dev, Pagled);
+	/* low 4 bits == 1: on - link, blink - activity, off - no link */
+	miiwr(mii, dev, Scr, (miird(mii, dev, Scr) & ~0xf) | 1);
+
+	miiregpage(mii, dev, Pagrgmii);
+	miiwr(mii, dev, Scr, miird(mii, dev, Scr) | Rgmiipwrup);
+	/* must now do a software reset, sez the manual */
 
 	/* enable RGMII delay on Tx and Rx for CPU port */
-	miiwr(mii, dev, 22, 2);
-	miiwr(mii, dev, 21, miird(mii, dev, 21) | 1<<5 | 1<<4);	/* magic */
-	miiwr(mii, dev, 22, 0);
+	miiwr(mii, dev, Recr, miird(mii, dev, Recr) | Rxtiming | Rxtiming);
+
+	miiregpage(mii, dev, Pagcopper);
+	miiwr(mii, dev, Scr,
+		(miird(mii, dev, Scr) & ~(Pwrdown|Endetect)) | Mdix);
+
 	return 0;
 }
 
@@ -1129,6 +1145,7 @@ portreset(Gbereg *reg)
 	quiesce(reg);
 	reg->psc0 &= ~PSC0porton;		/* disable port */
 	reg->psc1 &= ~(PSC1rgmii|PSC1portreset); /* set port & MII active */
+	coherence();
 	for (i = 0; i < 4000; i++)		/* magic delay */
 		;
 }
@@ -1175,6 +1192,7 @@ archetheraddr(Ether *ether, Gbereg *reg, int rxqno)
 	/* accept all multicast too.  set up special & other tables. */
 	memset(reg->dfsmt, Qno<<1 | Pass, sizeof reg->dfsmt);
 	memset(reg->dfomt, Qno<<1 | Pass, sizeof reg->dfomt);
+	coherence();
 }
 
 static void
@@ -1285,6 +1303,7 @@ ctlrinit(Ether *ether)
 	reg->pmtu = 0;
 
 	reg->rqc = Rxqon(Qno);
+	coherence();
 	etheractive(ether);
 
 	snprint(name, sizeof name, "#l%drproc", ether->ctlrno);
@@ -1362,7 +1381,6 @@ ifstat(Ether *ether, void *a, long n, ulong off)
 	e = p + READSTR;
 
 	ilock(ctlr);
-
 	getmibstats(ctlr);
 
 	ctlr->intrs += ctlr->newintrs;
@@ -1427,16 +1445,17 @@ static int
 reset(Ether *ether)
 {
 	Ctlr *ctlr;
+	static uchar zeroea[Eaddrlen];
 
-	ctlr = malloc(sizeof *ctlr);
-	memset(ctlr, 0, sizeof *ctlr);
-	ether->ctlr = ctlr;
+	ether->ctlr = ctlr = malloc(sizeof *ctlr);
 	switch(ether->ctlrno) {
 	case 0:
 		ctlr->reg = (Gbereg*)Gbe0regs;
+		ether->irq = IRQ0gbe0sum;
 		break;
 	case 1:
 		ctlr->reg = (Gbereg*)Gbe1regs;
+		ether->irq = IRQ0gbe1sum;
 		break;
 	default:
 		panic("etherkw: bad ether ctlr #%d", ether->ctlrno);
@@ -1446,21 +1465,28 @@ reset(Ether *ether)
 //	*(ulong *)0xf10100e0 |= 1 << 7 | 1 << 15;
 
 	portreset(ctlr->reg);
+	/* ensure that both interfaces are set to RGMII before calling mii */
+	((Gbereg*)Gbe0regs)->psc1 |= PSC1rgmii;
+	((Gbereg*)Gbe1regs)->psc1 |= PSC1rgmii;
 
 	/* Set phy address of the port */
 	ctlr->port = ether->ctlrno;
 	ctlr->reg->phy = ether->ctlrno;
+	coherence();
 	ether->port = (uintptr)ctlr->reg;
-	ether->irq = IRQ0gbe0sum;
 
 	if(kirkwoodmii(ether) < 0){
 		free(ctlr);
 		ether->ctlr = nil;
 		return -1;
 	}
-	miiphyinit(ctlr->mii);			/* commented-out in inferno */
+	miiphyinit(ctlr->mii);
 	archetheraddr(ether, ctlr->reg, Qno);	/* original location */
-
+	if (memcmp(ether->ea, zeroea, sizeof zeroea) == 0){
+		free(ctlr);
+		ether->ctlr = nil;
+		return -1;			/* no rj45 for this ether */
+	}
 	ether->attach = attach;
 	ether->transmit = transmit;
 	ether->interrupt = interrupt;

@@ -1,8 +1,12 @@
 typedef struct	Conv	Conv;
+typedef struct	Fragment4 Fragment4;
+typedef struct	Fragment6 Fragment6;
 typedef struct	Fs	Fs;
 typedef union	Hwaddr	Hwaddr;
 typedef struct	IP	IP;
 typedef struct	IPaux	IPaux;
+typedef struct	Ip4hdr	Ip4hdr;
+typedef struct	Ipfrag	Ipfrag;
 typedef struct	Ipself	Ipself;
 typedef struct	Ipselftab	Ipselftab;
 typedef struct	Iplink	Iplink;
@@ -72,8 +76,81 @@ enum
 	Connected=	4,
 };
 
+/* MIB II counters */
+enum
+{
+	Forwarding,
+	DefaultTTL,
+	InReceives,
+	InHdrErrors,
+	InAddrErrors,
+	ForwDatagrams,
+	InUnknownProtos,
+	InDiscards,
+	InDelivers,
+	OutRequests,
+	OutDiscards,
+	OutNoRoutes,
+	ReasmTimeout,
+	ReasmReqds,
+	ReasmOKs,
+	ReasmFails,
+	FragOKs,
+	FragFails,
+	FragCreates,
+
+	Nipstats,
+};
+
+struct Fragment4
+{
+	Block*	blist;
+	Fragment4*	next;
+	ulong 	src;
+	ulong 	dst;
+	ushort	id;
+	ulong 	age;
+};
+
+struct Fragment6
+{
+	Block*	blist;
+	Fragment6*	next;
+	uchar 	src[IPaddrlen];
+	uchar 	dst[IPaddrlen];
+	uint	id;
+	ulong 	age;
+};
+
+struct Ipfrag
+{
+	ushort	foff;
+	ushort	flen;
+
+	uchar	payload[];
+};
+
+#define IPFRAGSZ offsetof(Ipfrag, payload[0])
+
+/* an instance of IP */
+struct IP
+{
+	uvlong		stats[Nipstats];
+
+	QLock		fraglock4;
+	Fragment4*	flisthead4;
+	Fragment4*	fragfree4;
+	Ref		id4;
+
+	QLock		fraglock6;
+	Fragment6*	flisthead6;
+	Fragment6*	fragfree6;
+	Ref		id6;
+
+	int		iprouting;	/* true if we route like a gateway */
+};
+
 /* on the wire packet header */
-typedef struct Ip4hdr		Ip4hdr;
 struct Ip4hdr
 {
 	uchar	vihl;		/* Version and header length */

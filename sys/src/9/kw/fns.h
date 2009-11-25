@@ -62,7 +62,7 @@ void	procsetup(Proc*);
 extern void _reset(void);
 extern void setr13(int, u32int*);
 #define tas _tas
-extern int _tas(ulong *);
+extern int _tas(void *);
 extern u32int ttbget(void);
 extern void ttbput(u32int);
 
