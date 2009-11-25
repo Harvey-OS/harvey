@@ -1,5 +1,5 @@
 /*
- * sheevaplug clock
+ * kirkwood clock
  */
 #include "u.h"
 #include "../port/lib.h"
@@ -30,6 +30,7 @@ clockinit(void)
 	TimerReg *tmr = TIMERREG;
 
 	tmr->ctl = 0;
+	coherence();
 	intrenable(Irqbridge, IRQcputimer0, clockintr, nil, "clock");
 
 	s = spllo();			/* risky */
@@ -42,6 +43,7 @@ clockinit(void)
 
 	tmr->timer0 = Tcycles;
 	tmr->ctl = Tmr0enable;		/* just once */
+	coherence();
 
 	s = spllo();			/* risky */
 	/* one iteration seems to take about 40 ns. */
@@ -60,9 +62,11 @@ clockinit(void)
 	}
 
 	tmr->ctl = 0;
+	coherence();
 	tmr->timer0  = Tcycles;
 	tmr->reload0 = Tcycles;
 	tmr->ctl = Tmr0enable | Tmr0periodic;
+	coherence();
 }
 
 void

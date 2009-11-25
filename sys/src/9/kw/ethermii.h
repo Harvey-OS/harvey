@@ -2,18 +2,31 @@ typedef struct Mii Mii;
 typedef struct MiiPhy MiiPhy;
 
 enum {					/* registers */
-	Bmcr		= 0x00,		/* Basic Mode Control */
-	Bmsr		= 0x01,		/* Basic Mode Status */
-	Phyidr1		= 0x02,		/* PHY Identifier #1 */
-	Phyidr2		= 0x03,		/* PHY Identifier #2 */
-	Anar		= 0x04,		/* Auto-Negotiation Advertisement */
-	Anlpar		= 0x05,		/* AN Link Partner Ability */
-	Aner		= 0x06,		/* AN Expansion */
-	Annptr		= 0x07,		/* AN Next Page TX */
-	Annprr		= 0x08,		/* AN Next Page RX */
-	Mscr		= 0x09,		/* MASTER-SLAVE Control */
-	Mssr		= 0x0A,		/* MASTER-SLAVE Status */
-	Esr		= 0x0F,		/* Extended Status */
+	Bmcr		= 0,		/* Basic Mode Control */
+	Bmsr		= 1,		/* Basic Mode Status */
+	Phyidr1		= 2,		/* PHY Identifier #1 */
+	Phyidr2		= 3,		/* PHY Identifier #2 */
+	Anar		= 4,		/* Auto-Negotiation Advertisement */
+	Anlpar		= 5,		/* AN Link Partner Ability */
+	Aner		= 6,		/* AN Expansion */
+	Annptr		= 7,		/* AN Next Page TX */
+	Annprr		= 8,		/* AN Next Page RX */
+	Mscr		= 9,		/* Gb Control */
+	Mssr		= 10,		/* Gb Status */
+	Esr		= 15,		/* Extended Status */
+
+	/* 88e1116-specific paged registers */
+	Scr		= 16,		/* special control register */
+	Ssr		= 17,		/* special status register */
+	Ier		= 18,		/* interrupt enable reg */
+	Isr		= 19,		/* interrupt status reg */
+	Escr		= 20,		/* extended special control reg */
+	Recr		= 21,		/* RX error counter reg */
+	Eadr		= 22,		/* extended address reg (page select) */
+	Globsts		= 23,		/* global status */
+	Impover		= 24,	/* RGMII output impedance override (page 2) */
+	Imptarg		= 25,	/* RGMII output impedance target (page 2) */
+	Scr2		= 26,		/* special control register 2 */
 
 	NMiiPhyr	= 32,
 	NMiiPhy		= 32,
@@ -78,6 +91,20 @@ enum {					/* Esr */
 	Esr1000TFD	= 0x2000,	/* 1000BASE-T FD Capable */
 	Esr1000XHD	= 0x4000,	/* 1000BASE-X HD Capable */
 	Esr1000XFD	= 0x8000,	/* 1000BASE-X FD Capable */
+};
+
+enum {					/* Scr page 0 */
+	Pwrdown		= 0x0004,	/* power down */
+	Mdix		= 0x0060,	/* MDI crossover mode */
+	Endetect	= 0x0300,	/* energy detect */
+};
+enum {					/* Scr page 2 */
+	Rgmiipwrup	= 0x0008,	/* RGMII power up: must sw reset after */
+};
+
+enum {					/* Recr page 2 */
+	Txtiming	= 1<<4,
+	Rxtiming	= 1<<5,
 };
 
 typedef struct Mii {

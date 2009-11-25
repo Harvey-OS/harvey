@@ -173,30 +173,43 @@ archether(unsigned ctlno, Ether *ether)
 }
 
 /* LED/USB gpios */
-enum
-{
-	SheevaOEValLow	= 1<<29,        /* USB_PWEN low */
-	SheevaOEValHigh	= 1<<17,        /* LED pin high */
-	SheevaOELow	= ~0,
-	SheevaOEHigh	= ~0,
+enum {
+	/*
+	 * the bit assignments are MPP pin numbers from the last page of the
+	 * sheevaplug 6.0.1 schematic.
+	 */
+	KWOEValHigh	= 1<<(49-32),	/* pin 49: LED pin */
+	KWOEValLow	= 1<<29,	/* pin 29: USB_PWEN, pin 28: usb_pwerr */
+	KWOELow		= ~0,
+	KWOEHigh	= ~0,
 };
 
 /* called early in main */
 void
 archreset(void)
 {
+	ulong clocks;
+	CpucsReg *cpu;
+
 	/* watchdog disabled */
 	TIMERREG->ctl = 0;
 
 	/* configure gpios */
-	((GpioReg*)AddrGpio0)->dataout = SheevaOEValLow;
-	((GpioReg*)AddrGpio0)->dataoutena = SheevaOELow;
+	((GpioReg*)AddrGpio0)->dataout = KWOEValLow;
+	((GpioReg*)AddrGpio0)->dataoutena = KWOELow;
 
-	((GpioReg*)AddrGpio1)->dataout = SheevaOEValHigh;
-	((GpioReg*)AddrGpio1)->dataoutena = SheevaOEHigh;
+	((GpioReg*)AddrGpio1)->dataout = KWOEValHigh;
+	((GpioReg*)AddrGpio1)->dataoutena = KWOEHigh;
 	coherence();
 
-	CPUCSREG->l2cfg &= ~L2on;
+	cpu = CPUCSREG;
+	cpu->mempm = 0;			/* turn everything on */
+	coherence();
+	clocks = (1<<10) - 1;
+	clocks |= ((1<<21) - 1) & ~((1<<14) - 1);
+	clocks &= ~(1<<18 | 1<<1);	/* reserved bits */
+	cpu->clockgate |= clocks;	/* enable all the clocks */
+	cpu->l2cfg &= ~L2on;
 	coherence();
 }
 
@@ -209,6 +222,7 @@ archreboot(void)
 	CPUCSREG->rstout = RstoutSoft;
 	CPUCSREG->softreset = ResetSystem;
 	CPUCSREG->cpucsr = Reset;
+	coherence();
 	delay(500);
 
 	splhi();

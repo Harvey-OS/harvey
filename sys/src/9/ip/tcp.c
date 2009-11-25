@@ -349,7 +349,7 @@ struct Tcppriv
 	QLock	apl;
 	int	ackprocstarted;
 
-	ulong	stats[Nstats];
+	uvlong	stats[Nstats];
 };
 
 /*
@@ -3124,7 +3124,7 @@ tcpstats(Proto *tcp, char *buf, int len)
 	p = buf;
 	e = p+len;
 	for(i = 0; i < Nstats; i++)
-		p = seprint(p, e, "%s: %lud\n", statnames[i], priv->stats[i]);
+		p = seprint(p, e, "%s: %llud\n", statnames[i], priv->stats[i]);
 	return p - buf;
 }
 

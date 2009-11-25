@@ -10,6 +10,10 @@
 #include "etherif.h"
 #include "ethermii.h"
 
+/*
+ * on kirkwood (or openrd at least), ether0's phy has address 8,
+ * ether1's is 18.
+ */
 int
 mii(Mii* mii, int mask)
 {
@@ -37,8 +41,14 @@ mii(Mii* mii, int mask)
 		oui = (r & 0x3FFF)<<6;
 		r = mii->mir(mii, phyno, Phyidr2);
 		oui |= r>>10;
+		/*
+		 * for some reason, phyno 18 (ether1's) doesn't report an
+		 * oui of 0x005043 (Marvell), but rather 0xFFFFF.
+		 * for now, workaround it by knowing that 18 is a valid PHY.
+		 */
 		if(oui == 0xFFFFF || oui == 0)
-			continue;
+			if (phyno != 18)
+				continue;
 
 		if((miiphy = malloc(sizeof(MiiPhy))) == nil)
 			continue;

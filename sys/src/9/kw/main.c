@@ -83,7 +83,7 @@ getenv(char* name, char* buf, int n)
 	return nil;
 }
 
-#include <io.h>
+#include "io.h"
 
 typedef struct Spiregs Spiregs;
 struct Spiregs {
