@@ -17,7 +17,9 @@ enum {
 static void
 clockintr(Ureg *ureg, void*)
 {
+	TIMERREG->timerwd = CLOCKFREQ;		/* reassure the watchdog */
 	m->fastclock++;
+	coherence();
 	timerintr(ureg, 0);
 	intrclear(Irqbridge, IRQcputimer0);
 }
@@ -65,7 +67,10 @@ clockinit(void)
 	coherence();
 	tmr->timer0  = Tcycles;
 	tmr->reload0 = Tcycles;
-	tmr->ctl = Tmr0enable | Tmr0periodic;
+	tmr->timerwd = CLOCKFREQ;
+	coherence();
+	tmr->ctl = Tmr0enable | Tmr0periodic | TmrWDenable;
+	CPUCSREG->rstout |= RstoutWatchdog;
 	coherence();
 }
 

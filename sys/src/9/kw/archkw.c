@@ -191,8 +191,7 @@ archreset(void)
 	ulong clocks;
 	CpucsReg *cpu;
 
-	/* watchdog disabled */
-	TIMERREG->ctl = 0;
+	TIMERREG->ctl = 0;		/* watchdog disabled */
 
 	/* configure gpios */
 	((GpioReg*)AddrGpio0)->dataout = KWOEValLow;

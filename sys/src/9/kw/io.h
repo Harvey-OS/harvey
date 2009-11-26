@@ -316,6 +316,7 @@ enum {
 	IRQcputimer0,
 	IRQcputimer1,
 	IRQcputimerwd,
+	IRQaccesserr,
 };
 
 /*
