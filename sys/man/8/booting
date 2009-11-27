@@ -136,7 +136,7 @@ will be downloaded by default.
 Once the kernel is loaded,
 it prompts for the Ethernet
 protocol to use to reach the root file server; request the default.
-.SS Sheevaplug CPU Server
+.SS Marvell Kirkwood boards
 Type
 .IP
 .EX
@@ -146,7 +146,7 @@ saveenv
 .EE
 .PP
 at U-Boot the first time;
-thereafter, the Sheevaplug will automatically boot via BOOTP and TFTP
+thereafter, the Kirkwood board will automatically boot via BOOTP and TFTP
 when reset or turned on.
 .ig
 .SS File servers

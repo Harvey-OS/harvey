@@ -339,16 +339,19 @@ See the file
 .CW /sys/src/9/bitsy/Booting101
 for information about installing Plan 9 on the iPAQ.
 .SH
-The Sheevaplug operating system
+The Marvell Kirkwood operating system
 .PP
-This is an ARM CPU-server kernel that emulates floating-point and
+This is an ARM kernel that emulates floating-point and
 CAS (compare-and-swap) instructions.
+It is known to run on the Sheevaplug and Openrd-client boards.
 It is derived from a port of native Inferno to the Sheevaplug
 by Salva Peir\f(Jpó\fP and Mechiel Lukkien.
 There are many features of the Marvell Kirkwood system-on-a-chip
 that it does not exploit.
-Initially, there are drivers for Gigabit Ethernet and the console serial port;
-we hope to add USB and NAND or SPI Flash drivers.
+Initially, there are drivers for up to two
+Gigabit Ethernet interfaces and the console serial port;
+we hope to add USB and NAND or SPI Flash drivers,
+and a video driver for the Openrd-client.
 .ig
 .SH
 The file server
