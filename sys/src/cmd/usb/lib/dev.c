@@ -141,7 +141,7 @@ enum
 	 * Max device conf is also limited by max control request size as
 	 * limited by Maxctllen in the kernel usb.h (both limits are arbitrary).
 	 */
-	Maxdevconf = 32 * 1024,
+	Maxdevconf = 4 * 1024,	/* asking for 16K kills Newsham's disk */
 };
 
 int

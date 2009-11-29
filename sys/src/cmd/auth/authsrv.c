@@ -809,8 +809,10 @@ speaksfor(char *speaker, char *user)
 	snprint(notuser, sizeof notuser, "!%s", user);
 	for(ntp = tp; ntp; ntp = ntp->entry)
 		if(strcmp(ntp->attr, "uid") == 0){
-			if(strcmp(ntp->val, notuser) == 0)
+			if(strcmp(ntp->val, notuser) == 0){
+				ok = 0;
 				break;
+			}
 			if(*ntp->val == '*' || strcmp(ntp->val, user) == 0)
 				ok = 1;
 		}
