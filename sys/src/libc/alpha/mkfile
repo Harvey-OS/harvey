@@ -4,6 +4,7 @@ objtype=alpha
 LIB=/$objtype/lib/libc.a
 SFILES=\
 	argv0.s\
+	atom.s\
 	divl.s\
 	divq.s\
 	getcallerpc.s\
