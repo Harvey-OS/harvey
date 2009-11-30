@@ -240,6 +240,14 @@ struct Conf
  * within a configuration.
  * These are unknown to the library but handed to the driver.
  */
+struct DDesc
+{
+	uchar	bLength;
+	uchar	bDescriptorType;
+	uchar	bbytes[1];
+	/* extra bytes allocated here to keep the rest of it */
+};
+
 struct Desc
 {
 	Conf*	conf;		/* where this descriptor was read */
@@ -247,14 +255,6 @@ struct Desc
 	Ep*	ep;		/* last endpt before desc in conf. */
 	Altc*	altc;		/* last alt.c. before desc in conf. */
 	DDesc	data;		/* unparsed standard USB descriptor */
-};
-
-struct DDesc
-{
-	uchar	bLength;
-	uchar	bDescriptorType;
-	uchar	bbytes[1];
-	/* extra bytes allocated here to keep the rest of it */
 };
 
 /*
