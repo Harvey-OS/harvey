@@ -861,16 +861,17 @@ whichrx(Ctlr *c, int sz)
 static Block*
 balloc(Rx* rx)
 {
-	Block *b;
+	Block *bp;
 
 	ilock(rx->pool);
-	if((b = rx->pool->head) != nil){
-		rx->pool->head = b->next;
-		b->next = nil;
+	if((bp = rx->pool->head) != nil){
+		rx->pool->head = bp->next;
+		bp->next = nil;
+		_xinc(&bp->ref);	/* prevent bp from being freed */
 		rx->pool->n--;
 	}
 	iunlock(rx->pool);
-	return b;
+	return bp;
 }
 
 static void

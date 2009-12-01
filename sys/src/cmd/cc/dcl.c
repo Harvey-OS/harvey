@@ -540,8 +540,8 @@ suallign(Type *t)
 				}
 				l->offset = o;
 			} else {
-				if(l->width <= 0)
-				if(l->down != T)
+				if(l->width < 0 ||
+				   l->width == 0 && l->down != T)
 					if(l->sym)
 						diag(Z, "incomplete structure element: %s",
 							l->sym->name);

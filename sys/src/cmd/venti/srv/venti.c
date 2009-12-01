@@ -9,6 +9,15 @@
 
 #include "whack.h"
 
+typedef struct Allocs Allocs;
+struct Allocs {
+	u32int	mem;
+	u32int	bcmem;
+	u32int	icmem;
+	u32int	stfree;				/* free memory at start */
+	uint	mempcnt;
+};
+
 int debug;
 int nofork;
 int mainstacksize = 256*1024;
@@ -53,11 +62,94 @@ freemem(void)
 	return size;
 }
 
+static void
+allocminima(Allocs *all)			/* enforce minima for sanity */
+{
+	if (all->icmem < 6 * 1024 * 1024)
+		all->icmem = 6 * 1024 * 1024;
+	if (all->mem < 1024 * 1024 || all->mem == 0xffffffffUL)  /* lumps */
+		all->mem = 1024 * 1024;
+	if (all->bcmem < 2 * 1024 * 1024)
+		all->bcmem = 2 * 1024 * 1024;
+}
+
+/* automatic memory allocations sizing per venti(8) guidelines */
+static Allocs
+allocbypcnt(u32int mempcnt, u32int stfree)
+{
+	u32int avail;
+	vlong blmsize;
+	Allocs all;
+	static u32int free;
+
+	all.mem = all.bcmem = all.icmem = 0;
+	all.mempcnt = mempcnt;
+	all.stfree = stfree;
+
+	if (free == 0)
+		free = freemem();
+	blmsize = stfree - free;
+	if (blmsize <= 0)
+		blmsize = 0;
+	avail = ((vlong)stfree * mempcnt) / 100 - blmsize;
+	if (avail <= (1 + 2 + 6) * 1024 * 1024)
+		fprint(2, "%s: bloom filter bigger than mem pcnt; "
+			"resorting to minimum values (9MB total)\n", argv0);
+	else {
+		if (avail >= 3840UL * 1024 * 1024)
+			avail = 3840UL * 1024 * 1024;	/* sanity */
+		avail /= 2;
+		all.icmem = avail;
+		avail /= 3;
+		all.mem = avail;
+		all.bcmem = 2 * avail;
+	}
+	return all;
+}
+
+/*
+ * we compute default values for allocations,
+ * which can be overridden by (in order):
+ *	configuration file parameters,
+ *	command-line options other than -m, and -m.
+ */
+static Allocs
+sizeallocs(Allocs opt, Config *cfg)
+{
+	Allocs all;
+
+	/* work out sane defaults */
+	all = allocbypcnt(20, opt.stfree);
+
+	/* config file parameters override */
+	if (cfg->mem)
+		all.mem = cfg->mem;
+	if (cfg->bcmem)
+		all.bcmem = cfg->bcmem;
+	if (cfg->icmem)
+		all.icmem = cfg->icmem;
+
+	/* command-line options override */
+	if (opt.mem)
+		all.mem = opt.mem;
+	if (opt.bcmem)
+		all.bcmem = opt.bcmem;
+	if (opt.icmem)
+		all.icmem = opt.icmem;
+
+	/* automatic memory sizing? */
+	if(opt.mempcnt > 0)
+		all = allocbypcnt(opt.mempcnt, opt.stfree);
+
+	allocminima(&all);
+	return all;
+}
+
 void
 usage(void)
 {
 	fprint(2, "usage: venti [-Ldrsw] [-a ventiaddr] [-c config] "
-"[-h httpaddr] [-m %%] [-B blockcachesize] [-C cachesize] [-I icachesize] "
+"[-h httpaddr] [-m %%mem] [-B blockcachesize] [-C cachesize] [-I icachesize] "
 "[-W webroot]\n");
 	threadexitsall("usage");
 }
@@ -66,8 +158,8 @@ void
 threadmain(int argc, char *argv[])
 {
 	char *configfile, *haddr, *vaddr, *webroot;
-	u32int mem, icmem, bcmem, minbcmem, mempcnt, stfree, aftblmfree, avail;
-	vlong blmsize;
+	u32int mem, icmem, bcmem, minbcmem, mempcnt, stfree;
+	Allocs allocs;
 	Config config;
 
 	traceinit();
@@ -154,55 +246,31 @@ threadmain(int argc, char *argv[])
 	if(configfile == nil)
 		configfile = "venti.conf";
 
-	/* automatic memory sizing? */
 	if(mempcnt > 0)
-		stfree = freemem();
+		stfree = freemem();   /* remember free memory for auto-sizing */
 	fprint(2, "conf...");
 	if(initventi(configfile, &config) < 0)
 		sysfatal("can't init server: %r");
+	/*
+	 * load bloom filter
+	 */
 	if(mainindex->bloom && loadbloom(mainindex->bloom) < 0)
 		sysfatal("can't load bloom filter: %r");
 
-	/* automatic memory sizing per venti(8) guidelines? */
-	if(mempcnt > 0) {
-		mem = bcmem = icmem = 0;
-		aftblmfree = freemem();
-		blmsize = stfree - aftblmfree;
-		if (blmsize <= 0)
-			blmsize = 0;
-		avail = ((vlong)stfree * mempcnt) / 100 - blmsize;
-		if (avail <= (1 + 2 + 6) * 1024 * 1024)
-			fprint(2, "%s: bloom filter bigger than mem pcnt; "
-				"resorting to minimum values (9MB total)\n",
-				argv0);
-		else {
-			if (avail >= 3840UL * 1024 * 1024)
-				avail = 3840UL * 1024 * 1024;	/* sanity */
-			avail /= 2;
-			icmem = avail;
-			avail /= 3;
-			mem = avail;
-			bcmem = 2 * avail;
-		}
-		if (icmem < 6 * 1024 * 1024)
-			icmem = 6 * 1024 * 1024;
-		if (mem < 1 * 1024 * 1024)		/* lumps */
-			mem = 1 * 1024 * 1024;
-		if (bcmem < 2 * 1024 * 1024)
-			bcmem = 2 * 1024 * 1024;
-		config.mem = mem;
-		config.bcmem = bcmem;
-		config.icmem = icmem;
-	}
+	/*
+	 * size memory allocations; assumes bloom filter is loaded
+	 */
+	allocs = sizeallocs((Allocs){mem, bcmem, icmem, stfree, mempcnt},
+		&config);
+	mem = allocs.mem;
+	bcmem = allocs.bcmem;
+	icmem = allocs.icmem;
+	fprint(2, "%s: mem %,ud bcmem %,ud icmem %,ud...",
+		argv0, mem, bcmem, icmem);
 
-	if(mem == 0)
-		mem = config.mem;
-	if(bcmem == 0)
-		bcmem = config.bcmem;
-	if(icmem == 0)
-		icmem = config.icmem;
-	fprint(2, "%s: mem %d bcmem %d icmem %d...", argv0, mem, bcmem, icmem);
-
+	/*
+	 * default other configuration-file parameters
+	 */
 	if(haddr == nil)
 		haddr = config.haddr;
 	if(vaddr == nil)
@@ -213,31 +281,34 @@ threadmain(int argc, char *argv[])
 		webroot = config.webroot;
 	if(queuewrites == 0)
 		queuewrites = config.queuewrites;
+
 	if(haddr){
 		fprint(2, "httpd %s...", haddr);
 		if(httpdinit(haddr, webroot) < 0)
 			fprint(2, "warning: can't start http server: %r");
 	}
-
 	fprint(2, "init...");
 
-	if(mem == 0xffffffffUL)
-		mem = 1 * 1024 * 1024;
+	/*
+	 * lump cache
+	 */
 	if(0) fprint(2, "initialize %d bytes of lump cache for %d lumps\n",
 		mem, mem / (8 * 1024));
 	initlumpcache(mem, mem / (8 * 1024));
 
+	/*
+	 * index cache
+	 */
 	initicache(icmem);
 	initicachewrite();
 
 	/*
-	 * need a block for every arena and every process
+	 * block cache: need a block for every arena and every process
 	 */
 	minbcmem = maxblocksize * 
 		(mainindex->narenas + mainindex->nsects*4 + 16);
 	if(bcmem < minbcmem)
 		bcmem = minbcmem;
-
 	if(0) fprint(2, "initialize %d bytes of disk block cache\n", bcmem);
 	initdcache(bcmem);
 

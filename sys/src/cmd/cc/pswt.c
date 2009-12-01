@@ -18,6 +18,7 @@ doswit(Node *n)
 	Case *c;
 	C1 *q, *iq;
 	long def, nc, i, isv;
+	int dup;
 
 	def = 0;
 	nc = 0;
@@ -51,9 +52,14 @@ doswit(Node *n)
 	if(debug['W'])
 	for(i=0; i<nc; i++)
 		print("case %2ld: = %.8llux\n", i, (vlong)iq[i].val);
+	dup = 0;
 	for(i=0; i<nc-1; i++)
-		if(iq[i].val == iq[i+1].val)
+		if(iq[i].val == iq[i+1].val) {
 			diag(n, "duplicate cases in switch %lld", (vlong)iq[i].val);
+			dup = 1;
+		}
+	if(dup)
+		return;
 	if(def == 0) {
 		def = breakpc;
 		nbreak++;
