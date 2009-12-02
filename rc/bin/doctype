@@ -23,7 +23,7 @@ ifs='
 '{
 	files=`{echo $*}
 }
-grep -h '\$LIST|\|reference|^\.(EQ|TS|\[|PS|IS|GS|G1|GD|PP|BM|LP|BP|PI|cstart|begin|TH...)|^\.P$' $* |
+grep -h '\$LIST|\|reference|Jp|^\.(EQ|TS|\[|PS|IS|GS|G1|GD|PP|BM|LP|BP|PI|cstart|begin|TH...)|^\.P$' $* |
 sort -u |
 awk '
 BEGIN	{ files = "'$files'" }
@@ -46,6 +46,7 @@ BEGIN	{ files = "'$files'" }
 /^\.P$/	{ mm++ }
 /^\.BP/	{ pictures++ }
 /^\.PI/	{ pictures++ }
+/^\.ft *Jp|\\f\(Jp/ { nihongo++ }
 END {
 	x = ""
 	if (refer) {
@@ -69,6 +70,7 @@ END {
 	else if (mm) x = x "-mm"
 	if (lbits) x = x " -mbits"
 	if (pictures) x = x " -mpictures"
+	if (nihongo) x = x " -mnihongo"
 	x = x " '$opt' '$dev' " files
 	print x
 }'
