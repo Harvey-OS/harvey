@@ -56,4 +56,4 @@ if(~ $flagt 1) all=($all -t)
 if(~ $flagu 1) all=($all -u)
 # ignore -1
 
-/$objtype/bin/ls $all $* | $post
+/$cputype/bin/ls $all $* | $post
