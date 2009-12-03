@@ -91,8 +91,10 @@ dodata(void)
 		s->value = bsssize + datsize;
 		bsssize += t;
 	}
+	xdefine("bdata", SDATA, 0L);
 	xdefine("edata", SBSS, datsize);
 	xdefine("end", SBSS, bsssize + datsize);
+	/* etext is defined in span.c */
 }
 
 Prog*
