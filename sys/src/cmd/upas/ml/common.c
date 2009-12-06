@@ -113,7 +113,7 @@ readaddrs(char *file)
 	Bterm(b);
 }
 
-/* start a mailer sending to all the receivers */
+/* start a mailer sending to all the receivers for list `name' */
 int
 startmailer(char *name)
 {
@@ -122,7 +122,18 @@ startmailer(char *name)
 	int ac;
 	Addr *a;
 
-	putenv("upasname", "/dev/null");
+	/*
+	 * we used to send mail to the list from /dev/null,
+	 * which is equivalent to an smtp return address of <>,
+	 * but such a return address should only be used when
+	 * sending a bounce to a single address.  our smtpd lets
+	 * such mail through, but refuses mail from <> to multiple
+	 * addresses, since that's not allowed and is likely spam.
+	 * thus mailing list mail to another upas system with
+	 * multiple addressees was being rejected.
+	 */
+	putenv("upasname", smprint("%s-owner", name));
+
 	if(pipe(pfd) < 0)
 		sysfatal("creating pipe: %r");
 	switch(fork()){
@@ -160,7 +171,7 @@ sendnotification(char *addr, char *listname, int rem)
 	int pfd[2];
 	Waitmsg *w;
 
-	putenv("upasname", "/dev/null");
+	putenv("upasname", smprint("%s-owner", listname));
 	if(pipe(pfd) < 0)
 		sysfatal("creating pipe: %r");
 	switch(fork()){
