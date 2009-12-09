@@ -215,11 +215,3 @@ new VGA controller or monitor setting.
 It is useful in such cases to have
 the above command for setting the controller to a known state
 at your fingertips.
-.PP
-Due to the current implementation of access to the PC's
-`real mode',
-the VESA BIOS calls will only work on
-uniprocessors or on multiprocessors with
-.B *nomp=1
-in
-.IR plan9.ini .
