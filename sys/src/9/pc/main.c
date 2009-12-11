@@ -648,12 +648,21 @@ shutdown(int ispanic)
 	else if(m->machno == 0 && (active.machs & (1<<m->machno)) == 0)
 		active.ispanic = 0;
 	once = active.machs & (1<<m->machno);
+	/*
+	 * setting exiting will make hzclock() on each processor call exit(0),
+	 * which calls shutdown(0) and arch->reset(), which on mp systems is
+	 * mpshutdown, from which there is no return: the processor is idled
+	 * or initiates a reboot.  clearing our bit in machs avoids calling
+	 * exit(0) from hzclock() on this processor.
+	 */
 	active.machs &= ~(1<<m->machno);
 	active.exiting = 1;
 	unlock(&active);
 
 	if(once)
 		iprint("cpu%d: exiting\n", m->machno);
+
+	/* wait for any other processors to shutdown */
 	spllo();
 	for(ms = 5*1000; ms > 0; ms -= TK2MS(2)){
 		delay(TK2MS(2));
@@ -661,14 +670,14 @@ shutdown(int ispanic)
 			break;
 	}
 
-	if(getconf("*debug"))
-		delay(5*60*1000);
-
 	if(active.ispanic){
 		if(!cpuserver)
 			for(;;)
 				halt();
-		delay(10000);
+		if(getconf("*debug"))
+			delay(5*60*1000);
+		else
+			delay(10000);
 	}else
 		delay(1000);
 }
@@ -681,11 +690,26 @@ reboot(void *entry, void *code, ulong size)
 
 	writeconf();
 
+	/*
+	 * the boot processor is cpu0.  execute this function on it
+	 * so that the new kernel has the same cpu0.  this only matters
+	 * because the hardware has a notion of which processor was the
+	 * boot processor and we look at it at start up.
+	 */
+	if (m->machno != 0) {
+		procwired(up, 0);
+		sched();
+	}
+
 	shutdown(0);
 
 	/*
 	 * should be the only processor running now
 	 */
+	if (m->machno != 0)
+		print("on cpu%d (not 0)!\n", m->machno);
+	if (active.machs)
+		print("still have active ap processors!\n");
 
 	print("shutting down...\n");
 	delay(200);
@@ -697,6 +721,7 @@ reboot(void *entry, void *code, ulong size)
 
 	/* shutdown devices */
 	chandevshutdown();
+	arch->introff();
 
 	/*
 	 * Modify the machine page table to directly map the low 4MB of memory

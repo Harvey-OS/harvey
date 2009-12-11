@@ -41,7 +41,7 @@ enum
 					/* use always a power of 2 */
 
 	Abortdelay	= 1,		/* delay after cancelling Tds (ms) */
-	Tdatomic	= 8,		/* max nb. of Tds per bulk I/O op. */
+	Tdatomic		= 8,		/* max nb. of Tds per bulk I/O op. */
 	Enabledelay	= 100,		/* waiting for a port to enable */
 
 
@@ -144,7 +144,6 @@ enum
 	Drwe =	1 << 15,
 	Srwe =	1 << 15,
 	Lpsc =	1 << 16,
-	Sgp =	1 << 16,
 	Ccic =	1 << 17,
 	Crwe =	1 << 31,
 
@@ -266,7 +265,7 @@ struct Ohci
 	ulong	revision;		/*00*/
 	ulong	control;		/*04*/
 	ulong	cmdsts;			/*08*/
-	ulong	intrsts;		/*0c*/
+	ulong	intrsts;			/*0c*/
 	ulong	intrenable;		/*10*/
 	ulong	intrdisable;		/*14*/
 
@@ -296,7 +295,7 @@ struct Ohci
 	/* unknown */
 	ulong	hostueaddr;		/*e0*/
 	ulong	hostuests;		/*e4*/
-	ulong	hosttimeoutctrl;	/*e8*/
+	ulong	hosttimeoutctrl;		/*e8*/
 	ulong	pad59;			/*ec*/
 	ulong	pad60;			/*f0*/
 	ulong	hostrevision;		/*f4*/
@@ -337,7 +336,6 @@ struct Ctlr
 {
 	Lock;			/* for ilock; lists and basic ctlr I/O */
 	QLock	resetl;		/* lock controller during USB reset */
-	Pcidev*	pcidev;
 	int	active;
 	Ctlr*	next;
 	int	nports;
@@ -348,6 +346,7 @@ struct Ctlr
 	Ed*	intrhd;		/* list of intr. eds in tree */
 	Qtree*	tree;		/* tree for t Ep i/o */
 	int	ntree;		/* number of dummy Eds in tree */
+	Pcidev*	pcidev;
 };
 
 #define dqprint		if(debug || io && io->debug)print
@@ -1339,7 +1338,7 @@ epgettd(Ep *ep, Qio *io, Td **dtdp, int flags, void *a, int count)
 		td->cbp0 = td->cbp = ptr2pa(bp->wp);
 		td->be = ptr2pa(bp->wp + count - 1);
 		if(a != nil){
-			validaddr((uintptr)a, count, 0);		/* DEBUG */
+			/* validaddr((uintptr)a, count, 0); DEBUG */
 			memmove(bp->wp, a, count);
 		}
 		bp->wp += count;
@@ -1444,10 +1443,9 @@ epio(Ep *ep, Qio *io, void *a, long count, int mustlock)
 	char *err;
 	uchar *c;
 	Td *td, *ltd, *ntd, *td0;
-	int last, ntds;
+	int last, ntds, tmout;
 	long tot, n;
 	ulong load;
-	int tmout;
 
 	ed = io->ed;
 	ctlr = ep->hp->aux;
@@ -1511,7 +1509,6 @@ epio(Ep *ep, Qio *io, void *a, long count, int mustlock)
 	iunlock(ctlr);
 
 	epiowait(ctlr, io, tmout, load);
-
 	ilock(ctlr);
 	if(debug > 1 || ep->debug > 1)
 		dumptds(td0, "got td", 0);
@@ -2304,8 +2301,6 @@ init(Hci *hp)
 	ohci->control |= Ccle | Cble | Cple | Cie | Cfsoper;
 
 	/* set frame after operational */
-	ival = ohci->fminterval & ~(Fmaxpktmask << Fmaxpktshift);
-	ohci->fminterval = ival | (5120 << Fmaxpktshift);
 	ohci->rhdesca = Nps;	/* no power switching */
 	if(ohci->rhdesca & Nps){
 		dprint("ohci: ports are not power switched\n");
@@ -2329,8 +2324,10 @@ init(Hci *hp)
 	if((ctrl & Cfsmask) != Cfsoper){
 		ctrl = (ctrl & ~Cfsmask) | Cfsoper;
 		ohci->control = ctrl;
-		ohci->rhsts = Sgp;
+		ohci->rhsts = Lpsc;
 	}
+	ival = ohci->fminterval & ~(Fmaxpktmask << Fmaxpktshift);
+	ohci->fminterval = ival | (5120 << Fmaxpktshift);
 
 	if(debug > 1)
 		dumpohci(ctlr);
@@ -2482,6 +2479,20 @@ ohcireset(Ctlr *ctlr)
 	iunlock(ctlr);
 }
 
+static void
+shutdown(Hci *hp)
+{
+	Ctlr *ctlr;
+
+	ctlr = hp->aux;
+
+	ilock(ctlr);
+	ctlr->ohci->intrenable = 0;
+	ctlr->ohci->control = 0;
+	delay(100);
+	iunlock(ctlr);
+}
+
 static int
 reset(Hci *hp)
 {
@@ -2492,7 +2503,6 @@ reset(Hci *hp)
 
 	if(getconf("*nousbohci"))
 		return -1;
-
 	ilock(&resetlck);
 	scanpci();
 
@@ -2540,6 +2550,7 @@ reset(Hci *hp)
 	hp->portenable = portenable;
 	hp->portreset = portreset;
 	hp->portstatus = portstatus;
+	hp->shutdown = shutdown;
 	hp->debug = usbdebug;
 	hp->type = "ohci";
 	return 0;
