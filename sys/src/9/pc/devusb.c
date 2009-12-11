@@ -316,7 +316,7 @@ seprintep(char *s, char *se, Ep *ep, int all)
 		}
 	}
 	if(ep->info != nil)
-		s = seprint(s, se, "\n%s\n", ep->info);
+		s = seprint(s, se, "\n%s %s\n", ep->info, ep->hp->type);
 	else
 		s = seprint(s, se, "\n");
 	qunlock(ep);
@@ -688,8 +688,12 @@ hciprobe(int cardno, int ctlrno)
 		}
 	}
 
-	if(cardno >= Nhcis || hcitypes[cardno].type == nil ||
-	    hcitypes[cardno].reset(hp) < 0){
+	if(cardno >= Nhcis || hcitypes[cardno].type == nil){
+		free(hp);
+		return nil;
+	}
+	dprint("%s...", hcitypes[cardno].type);
+	if(hcitypes[cardno].reset(hp) < 0){
 		free(hp);
 		return nil;
 	}
@@ -1448,13 +1452,30 @@ usbwrite(Chan *c, void *a, long n, vlong off)
 	return n;
 }
 
+void
+usbshutdown(void)
+{
+	Hci *hp;
+	int i;
+
+	for(i = 0; i < Nhcis; i++){
+		hp = hcis[i];
+		if(hp == nil)
+			continue;
+		if(hp->shutdown == nil)
+			print("#u: no shutdown function for %s\n", hp->type);
+		else
+			hp->shutdown(hp);
+	}
+}
+
 Dev usbdevtab = {
 	L'u',
 	"usb",
 
 	usbreset,
 	usbinit,
-	devshutdown,
+	usbshutdown,
 	usbattach,
 	usbwalk,
 	usbstat,

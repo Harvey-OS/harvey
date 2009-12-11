@@ -26,6 +26,7 @@ u9fs \- serve 9P from Unix
 .B -u
 .I onlyuser
 ]
+.I fsroot
 .SH DESCRIPTION
 .I U9fs
 is
@@ -164,6 +165,13 @@ Treat all attaches as coming from
 This is useful in some cases when running without
 .IR inetd ;
 see the examples.
+.PP
+If
+.I fsroot
+is specified,
+.I u9fs
+will serve only that tree; othwise, it will serve the entire Unix
+file system.
 .SH EXAMPLES
 .PP
 Plan 9 calls 9P file service
@@ -183,7 +191,8 @@ For more information on this procedure, see
 and
 .IR bind (1).
 .PP
-.I U9fs
+By default,
+.I u9fs
 serves the entire file system of the Unix machine.
 It forbids access to devices
 because the program is single-threaded and may block unpredictably.

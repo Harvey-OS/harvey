@@ -829,6 +829,7 @@ mpshutdown(void)
 		if(lapicisr(VectorKBD))
 			lapiceoi(VectorKBD);
 #endif /* FIX THIS */
+		arch->introff();
 		idle();
 	}
 

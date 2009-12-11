@@ -336,7 +336,7 @@ struct Qh {
 	ulong	eps1;		/* static endpoint state. µ-frame sched. */
 
 	/* updated by hw */
-	ulong	clink;		/* current Td (No Term bit here!) */
+	ulong	tclink;		/* current Td (No Term bit here!) */
 	ulong	nlink;		/* to next Td */
 	ulong	alink;		/* alternate link to next Td */
 	ulong	csw;		/* cmd/sts. updated by hw */
@@ -372,9 +372,9 @@ union Ed {
 };
 
 #define diprint		if(debug || iso->debug)print
-#define ddiprint	if(debug>1 || iso->debug>1)print
+#define ddiprint		if(debug>1 || iso->debug>1)print
 #define dqprint		if(debug || (qh->io && qh->io->debug))print
-#define ddqprint	if(debug>1 || (qh->io && qh->io->debug>1))print
+#define ddqprint		if(debug>1 || (qh->io && qh->io->debug>1))print
 #define TRUNC(x, sz)	((x) & ((sz)-1))
 #define LPTR(q)		((ulong*)KADDR((q) & ~0x1F))
 
@@ -386,7 +386,6 @@ static char* qhsname[] = { "idle", "install", "run", "done", "close", "FREE" };
 
 Ecapio* ehcidebugcapio;
 int ehcidebugport;
-
 
 static void
 ehcirun(Ctlr *ctlr, int on)
@@ -410,8 +409,7 @@ ehcirun(Ctlr *ctlr, int on)
 	if(i == 100)
 		print("ehci %#p %s cmd timed out\n",
 			ctlr->capio, on ? "run" : "halt");
-	ddprint("ehci %#p cmd %#ulx sts %#ulx\n",
-		ctlr->capio, opio->cmd, opio->sts);
+	ddprint("ehci %#p cmd %#ulx sts %#ulx\n", ctlr->capio, opio->cmd, opio->sts);
 }
 
 static void*
@@ -807,7 +805,7 @@ qhlinktd(Qh *qh, Td *td)
 		qh->tds = td;
 		csw = qh->csw & (Tddata1|Tdping);	/* save */
 		qh->csw = Tdhalt;
-		qh->clink = 0;
+		qh->tclink = 0;
 		qh->alink = Lterm;
 		qh->nlink = PADDR(td);
 		for(i = 0; i < nelem(qh->buffer); i++)
@@ -1034,7 +1032,7 @@ qhdump(Qh *qh)
 	s = seprint(s, se, " hub %uld", (qh->eps1 >> 16) & 0x7f);
 	s = seprint(s, se, " port %uld", (qh->eps1 >> 23) & 0x7f);
 	s = seprintlink(s, se, " link", qh->link, 1);
-	seprint(s, se, "  clink %#ulx", qh->clink);
+	seprint(s, se, "  clink %#ulx", qh->tclink);
 	print("%s\n", buf);
 	s = seprint(buf, se, "\tnrld %uld", (qh->eps0 >> Qhrlcshift) & Qhrlcmask);
 	s = seprint(s, se, " nak %uld", (qh->alink >> 1) & 0xf);
@@ -2330,7 +2328,6 @@ epio(Ep *ep, Qio *io, void *a, long count, int mustlock)
 		wakeup(&ctlr->poll);
 
 	epiowait(ep->hp, io, tmout, load);
-
 	if(debug > 1 || ep->debug > 1){
 		dumptd(td0, "epio: got: ");
 		qhdump(qh);
@@ -2704,9 +2701,9 @@ isoopen(Ctlr *ctlr, Ep *ep)
 	if(iso->nframes < 3)
 		error("uhci isoopen bug");	/* we need at least 3 tds */
 	iso->maxsize = ep->ntds * ep->maxpkt;
-	ilock(ctlr);
 	if(ctlr->load + ep->load > 800)
 		print("usb: ehci: bandwidth may be exceeded\n");
+	ilock(ctlr);
 	ctlr->load += ep->load;
 	ctlr->isoload += ep->load;
 	ctlr->nreqs++;
@@ -3189,10 +3186,10 @@ init(Hci *hp)
 	 * some machines won't post other interrupts.
 	 */
 	opio->intr = Iusb|Ierr|Iportchg|Ihcerr|Iasync;
-	opio->config = Callmine;	/* reclaim all ports */
 	opio->cmd |= Cpse;
 	opio->cmd |= Case;
 	ehcirun(ctlr, 1);
+	opio->config = Callmine;	/* reclaim all ports */
 
 	for (i = 0; i < hp->nports; i++)
 		opio->portsc[i] = Pspower;
@@ -3201,6 +3198,36 @@ init(Hci *hp)
 	if(debug > 1)
 		dump(hp);
 
+}
+
+/* Isn't this cap list search in a helper function? */
+static void
+getehci(Ctlr* ctlr)
+{
+	int i, ptr, cap, sem;
+
+	ptr = ctlr->capio->capparms>>Ceecpshift & Ceecpmask;
+	for(; ptr != 0; ptr = pcicfgr8(ctlr->pcidev, ptr+1)){
+		if(ptr < 0x40 || (ptr & ~0xFC))
+			break;
+		cap = pcicfgr8(ctlr->pcidev, ptr);
+		if(cap != Clegacy)
+			continue;
+		sem = pcicfgr8(ctlr->pcidev, ptr+CLbiossem);
+		if(sem == 0)
+			continue;
+		pcicfgw8(ctlr->pcidev, ptr+CLossem, 1);
+		for(i = 0; i < 100; i++){
+			if(pcicfgr8(ctlr->pcidev, ptr+CLbiossem) == 0)
+				break;
+			delay(10);
+		}
+		if(i == 100)
+			dprint("ehci %#p: bios timed out\n", ctlr->capio);
+		pcicfgw32(ctlr->pcidev, ptr+CLcontrol, 0);	/* no SMIs */
+		ctlr->opio->config = 0;
+		return;
+	}
 }
 
 static void
@@ -3220,12 +3247,17 @@ ehcireset(Ctlr *ctlr)
 	ehcirun(ctlr, 0);
 	pcicfgw16(ctlr->pcidev, 0xc0, 0x2000);
 
+	/*
+	 * reclaim from bios
+	 */
+	getehci(ctlr);
+
 	/* clear high 32 bits of address signals if it's 64 bits capable.
 	 * This is probably not needed but it does not hurt and others do it.
 	 */
 	if((ctlr->capio->capparms & C64) != 0){
 		dprint("ehci: 64 bits\n");
-		ctlr->opio->seg = 0;
+		opio->seg = 0;
 	}
 
 	if(ehcidebugcapio != ctlr->capio){
@@ -3240,7 +3272,7 @@ ehcireset(Ctlr *ctlr)
 	}
 
 	/* requesting more interrupts per µframe may miss interrupts */
-	opio->cmd |= Citc8;	/* 1 intr. per ms */
+	opio->cmd |= Citc8;		/* 1 intr. per ms */
 	switch(opio->cmd & Cflsmask){
 	case Cfls1024:
 		ctlr->nframes = 1024;
@@ -3262,6 +3294,30 @@ static void
 setdebug(Hci*, int d)
 {
 	debug = d;
+}
+
+static void
+shutdown(Hci *hp)
+{
+	int i;
+	Ctlr *ctlr;
+	Eopio *opio;
+
+	ctlr = hp->aux;
+	ilock(ctlr);
+	opio = ctlr->opio;
+	opio->cmd |= Chcreset;		/* controller reset */
+	for(i = 0; i < 100; i++){
+		if((opio->cmd & Chcreset) == 0)
+			break;
+		delay(1);
+	}
+	if(i >= 100)
+		print("ehci %#p controller reset timed out\n", ctlr->capio);
+	delay(100);
+	ehcirun(ctlr, 0);
+	opio->frbase = 0;
+	iunlock(ctlr);
 }
 
 static int
@@ -3328,6 +3384,7 @@ reset(Hci *hp)
 	hp->portenable = portenable;
 	hp->portreset = portreset;
 	hp->portstatus = portstatus;
+	hp->shutdown = shutdown;
 	hp->debug = setdebug;
 	hp->type = "ehci";
 	return 0;
