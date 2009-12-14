@@ -99,12 +99,16 @@ timerset(uvlong next)
 #endif
 }
 
+/*
+ * shift by 8 to provide enough resolution that dropping the tick rate
+ * won't mess up TOD calculation and cause infrequent clock interrupts.
+ */
 uvlong
 fastticks(uvlong *hz)
 {
 	if(hz)
-		*hz = HZ;
-	return m->fastclock;
+		*hz = HZ << 8;
+	return m->fastclock << 8;
 }
 
 ulong
