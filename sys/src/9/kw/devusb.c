@@ -1083,6 +1083,8 @@ setmaxpkt(Ep *ep, char* s)
 		spp = (ep->hz * ep->pollival * ep->ntds + 7999) / 8000;
 	else
 		spp = (ep->hz * ep->pollival + 999) / 1000;
+	assert(spp != 0);
+	assert(ep->samplesz != 0);	
 	ep->maxpkt = spp * ep->samplesz;
 	deprint("usb: %s: setmaxpkt: hz %ld poll %ld"
 		" ntds %d %s speed -> spp %ld maxpkt %ld\n", s,

@@ -209,6 +209,7 @@ enum {
 	AddrMpp		= Regbase+0x10000,
 	AddrDevid	= Regbase+0x10034,
 	AddrClockctl	= Regbase+0x1004c,
+	AddrAnalog	= Regbase+0x1007c,
 	AddrEfuse	= Regbase+0x1008c,
 	AddrIocfg0	= Regbase+0x100e0,
 	AddrGpio0	= Regbase+0x10100,
@@ -369,6 +370,8 @@ enum {
 	/* cpucfg bits */
 	Cfgvecinithi	= 1<<1,	/* boot at 0xffff0000, not 0; default 1 */
 	Cfgbigendreset	= 3<<1,	/* init. as big-endian at reset; default 0 */
+	Cfgiprefetch	= 1<<16,	/* instruction prefetch enable */
+	Cfgdprefetch	= 1<<17,	/* data prefetch enable */
 
 	/* cpucsr bits */
 	Reset		= 1<<1,
@@ -385,33 +388,4 @@ enum {
 	L2ecc		= 1<<2,
 	L2on		= 1<<3,
 	L2writethru	= 1<<4,		/* else write-back */
-};
-
-/*
- * clocks (clock.c and archkw.c)
- */
-
-enum {
-	/* timer ctl bits */
-	Tmr0enable	= 1<<0,
-	Tmr0periodic	= 1<<1,
-	Tmr1enable	= 1<<2,
-	Tmr1periodic	= 1<<3,
-	TmrWDenable	= 1<<4,
-	TmrWDperiodic	= 1<<5,
-};
-
-#define TIMERREG	((TimerReg*)AddrTimer)
-
-typedef struct TimerReg TimerReg;
-struct TimerReg
-{
-	ulong	ctl;
-	ulong	pad[3];
-	ulong	reload0;
-	ulong	timer0;
-	ulong	reload1;
-	ulong	timer1;
-	ulong	reloadwd;
-	ulong	timerwd;
 };

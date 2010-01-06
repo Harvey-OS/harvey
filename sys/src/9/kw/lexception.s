@@ -27,13 +27,14 @@ TEXT vtable(SB), 1, $-4
 	WORD	$_vdabt(SB)		/* data abort, switch to svc mode */
 	WORD	$_vsvc(SB)		/* reserved */
 	WORD	$_virq(SB)		/* IRQ, switch to svc mode */
-	WORD	$_vfiq(SB)		/* FIQ, switch to svc mode */
+//	WORD	$_vfiq(SB)		/* FIQ, switch to svc mode */
+	WORD	$_virq(SB)		/* FIQ, switch to svc mode */
 
 TEXT _vrst(SB), 1, $-4
 	BL	_reset(SB)
 
 TEXT _vsvc(SB), 1, $-4			/* SWI */
-	MOVW.W	R14, -4(R13)		/* ureg->pc = interupted PC */
+	MOVW.W	R14, -4(R13)		/* ureg->pc = interrupted PC */
 	MOVW	SPSR, R14		/* ureg->psr = SPSR */
 	MOVW.W	R14, -4(R13)		/* ... */
 	MOVW	$PsrMsvc, R14		/* ureg->type = PsrMsvc */
