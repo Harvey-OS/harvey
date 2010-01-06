@@ -153,11 +153,9 @@ Dev archdevtab = {
 char *
 cputype2name(char *buf, int size)
 {
-	char *s, *es, *soc;
+	char *soc;
 
-	s = buf;
-	es = buf + size;
-	m->cputype = *(ulong*)AddrDevid;
+	m->cputype = *(ulong *)AddrDevid;
 	switch(m->cputype & 3) {
 	case 0:
 		soc = "88F6180";
@@ -166,13 +164,13 @@ cputype2name(char *buf, int size)
 		soc = "88F619[02]";
 		break;
 	case 2:
-		soc = "88F6281 (arm926ej-s)";
+		soc = "88F6281";
 		break;
 	default:
 		soc = "unknown";
 		break;
 	}
-	seprint(s, es, "Marvell %s", soc);
+	seprint(buf, buf + size, "Marvell %s (arm926ej-s)", soc);
 	return buf;
 }
 

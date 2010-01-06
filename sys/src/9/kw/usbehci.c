@@ -384,9 +384,9 @@ union Ed
 };
 
 #define diprint		if(debug || iso->debug)print
-#define ddiprint		if(debug>1 || iso->debug>1)print
+#define ddiprint	if(debug>1 || iso->debug>1)print
 #define dqprint		if(debug || (qh->io && qh->io->debug))print
-#define ddqprint		if(debug>1 || (qh->io && qh->io->debug>1))print
+#define ddqprint	if(debug>1 || (qh->io && qh->io->debug>1))print
 #define TRUNC(x, sz)	((x) & ((sz)-1))
 #define LPTR(q)		((ulong*)KADDR((q) & ~0x1F))
 
@@ -2707,6 +2707,7 @@ isoopen(Ctlr *ctlr, Ep *ep)
 		else
 			ival /= 8;
 	}
+	assert(ival != 0);
 	iso->nframes = Nisoframes / ival;
 	if(iso->nframes < 3)
 		error("uhci isoopen bug");	/* we need at least 3 tds */
@@ -2827,6 +2828,7 @@ epopen(Ep *ep)
 		io = ep->aux = smalloc(sizeof(Qio)*2);
 		io[OREAD].debug = io[OWRITE].debug = ep->debug;
 		usbid = ((ep->nb&Epmax)<<7)|(ep->dev->nb &Devmax);
+		assert(ep->pollival != 0);
 		if(ep->mode != OREAD){
 			if(ep->toggle[OWRITE] != 0)
 				io[OWRITE].toggle = Tddata1;
@@ -3179,6 +3181,8 @@ ehcireset(Ctlr *ctlr)
 {
 	Eopio *opio;
 	int i;
+	ulong val;
+	ulong *reg;
 
 	ilock(ctlr);
 	dprint("ehci %#p reset\n", ctlr->capio);
@@ -3190,7 +3194,8 @@ ehcireset(Ctlr *ctlr)
 	 */
 	ehcirun(ctlr, 0);
 
-	/* clear high 32 bits of address signals if it's 64 bits capable.
+	/*
+	 * clear high 32 bits of address signals if it's 64 bits capable.
 	 * This is probably not needed but it does not hurt and others do it.
 	 */
 	if((ctlr->capio->capparms & C64) != 0){
@@ -3223,6 +3228,43 @@ ehcireset(Ctlr *ctlr)
 		panic("ehci: unknown fls %ld", opio->cmd & Cflsmask);
 	}
 	dprint("ehci: %d frames\n", ctlr->nframes);
+
+	/* Marvell errata FE-USB-340 workaround */
+	opio->usbmode |= 1 << 4;	/* magic from marvell */
+
+	/*
+	 * Marvell guideline GL-USB-160.
+	 * uses publically-undocumented registers.
+	 */
+	reg = (ulong *)(Regbase + 0x50410);
+	*reg |= 1 << 21;
+	coherence();
+	microdelay(100);
+	*reg &= ~(1 << 21);
+
+	reg = (ulong *)(Regbase + 0x50420);
+	val = *reg;
+	val &= ~(017 << 27 | 7);
+	val |= 1 << 26 | 1 << 12 | 4;	/* 4 for 6281-A0 (3 for A1) */
+	*reg = val;
+	coherence();
+	microdelay(100);
+	val &= ~(1 << 12);
+	*reg = val;
+
+	reg = (ulong *)(Regbase + 0x50430);
+	val = *reg;
+	val &= ~(3 << 2 | 017 << 4);
+	val |= 1 << 2 | 8 << 4;
+	*reg = val;
+
+	reg = (ulong *)(Regbase + 0x50440);
+	val = *reg;
+	val &= ~(3 << 8);
+	val |= 1 << 8;			/* 1 for 6281-A0; 3 for A1 */
+	*reg = val;
+
+	coherence();
 	iunlock(ctlr);
 }
 

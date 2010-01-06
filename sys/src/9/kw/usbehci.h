@@ -135,6 +135,23 @@ struct Eopio
 	uchar	d2c[0x40-0x1c];	/* 1c dummy */
 	ulong	config;		/* 40 1: all ports default-routed to this HC */
 	ulong	portsc[1];	/* 44 Port status and control, one per port */
+
+	/*
+	 * these are present on the Kirkwood USB controller.
+	 * are they standard now?  Marvell doesn't document them publically.
+	 */
+	uchar	_pad0[0x64-0x48];
+	ulong	otgsc;
+	ulong	usbmode;
+	ulong	epsetupsts;
+	ulong	epprime;
+	ulong	epflush;
+	ulong	epsts;
+	ulong	epcompl;
+	ulong	epctl0;
+	ulong	epctl1;
+	ulong	epctl2;
+	ulong	epctl3;
 };
 
 /*

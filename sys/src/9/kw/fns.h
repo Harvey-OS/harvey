@@ -27,6 +27,7 @@ extern void cachedwbse(void*, int);
 extern void cacheiinv(void);
 extern void cacheuwbinv(void);
 extern uintptr cankaddr(uintptr pa);
+extern void clockshutdown(void);
 int	cmpswap(long*, long, long);
 
 /*

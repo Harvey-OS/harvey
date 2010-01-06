@@ -78,13 +78,22 @@ mmuinit(void)
 	for (fpa = 0xf8000000; fpa < 0xf8000000 + 16*MB; fpa += MiB)
 		l1[L1X(fpa)] = fpa|Dom0|L1AP(Krw)|Section|Cached|Buffered;
 
-	/* map high vectors to start of dram, but only 4K, not 1MB */
+	/*
+	 * map high vectors to start of dram, but only 4K, not 1MB.
+	 */
 	pa -= MACHSIZE+2*1024;
 	l2 = KADDR(pa);
 	memset(l2, 0, 1024);
 	/* vectors step on u-boot, but so do page tables */
 	l2[L2X(HVECTORS)] = PHYSDRAM|L2AP(Krw)|Small;
 	l1[L1X(HVECTORS)] = pa|Dom0|Coarse;	/* vectors -> ttb-machsize-2k */
+
+	/* double map vectors at virtual 0 so reset will see them */
+	pa -= 1024;
+	l2 = KADDR(pa);
+	memset(l2, 0, 1024);
+	l2[L2X(0)] = PHYSDRAM|L2AP(Krw)|Small;
+	l1[L1X(0)] = pa|Dom0|Coarse;
 
 	mmuinvalidate();
 	cacheuwbinv();
@@ -115,8 +124,7 @@ mmul2empty(Proc* proc, int clear)
 static void
 mmul1empty(void)
 {
-#ifdef notdef
-there's a bug in here
+#ifdef notdef			/* there's a bug in here */
 	PTE *l1;
 
 	/* clean out any user mappings still in l1 */

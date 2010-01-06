@@ -29,7 +29,7 @@ enum {
 	Nrx		= 512,
 	Ntx		= 512,
 	Nrxblks		= 1024,
-	Rxblklen	= 2+1522, /* ethernet uses first 2 bytes as padding */
+	Rxblklen	= 2+1522,  /* ifc. supplies first 2 bytes as padding */
 
 	Maxrxintrsec	= 20*1000,	/* max. rx intrs. / sec */
 	Etherstuck	= 90,	/* must send or receive a packet in this many sec.s */
@@ -71,7 +71,13 @@ struct Tx {
 
 /* fixed by hw; part of Gberegs */
 struct Mibstats {
-	uvlong	rxby;			/* good bytes rcv'd */
+	union {
+		uvlong	rxby;		/* good bytes rcv'd */
+		struct {
+			ulong rxbylo;
+			ulong rxbyhi;
+		};
+	};
 	ulong	badrxby;		/* bad bytes rcv'd */
 	ulong	mactxerr;		/* tx err pkts */
 	ulong	rxpkt;			/* good pkts rcv'd */
@@ -86,7 +92,13 @@ struct Mibstats {
 	ulong	rx512_1023;		/* pkts 512—1023 bytes */
 	ulong	rx1024_max;		/* pkts >= 1024 bytes */
 
-	uvlong	txby;			/* good bytes sent */
+	union {
+		uvlong	txby;		/* good bytes sent */
+		struct {
+			ulong txbylo;
+			ulong txbyhi;
+		};
+	};
 	ulong	txpkt;			/* good pkts sent */
 	/* half-duplex: pkts dropped due to excessive collisions */
 	ulong	txcollpktdrop;
@@ -193,12 +205,12 @@ enum {
 	/* max. input pkt size */
 #define PSC0mru(v)	((v)<<17)
 	PSC0mrumask	= PSC0mru(MASK(3)),
-	PSC0mru1518	= 0,
-	PSC0mru1522,
-	PSC0mru1552,
-	PSC0mru9022,
-	PSC0mru9192,
-	PSC0mru9700,
+	PSC0mru1518	= 0,		/* 1500+2* 6(addrs) +2 + 4(crc) */
+	PSC0mru1522,			/* 1518 + 4(vlan tags) */
+	PSC0mru1552,			/* `baby giant' */
+	PSC0mru9022,			/* `jumbo' */
+	PSC0mru9192,			/* bigger jumbo */
+	PSC0mru9700,			/* still bigger jumbo */
 
 	PSC0fd_frc		= 1<<21,	/* force full duplex */
 	PSC0flctlfrc		= 1<<22,
@@ -732,6 +744,11 @@ gotinput(void* ctlr)
 	return ((Ctlr*)ctlr)->haveinput != 0;
 }
 
+/*
+ * process any packets in the input ring.
+ * also sum mib stats frequently so avoid the overflow
+ * mentioned in the errata.
+ */
 static void
 rcvproc(void* arg)
 {
@@ -741,9 +758,15 @@ rcvproc(void* arg)
 	ether = arg;
 	ctlr = ether->ctlr;
 	for(;;){
-		sleep(&ctlr->rrendez, gotinput, ctlr);
-		ctlr->haveinput = 0;
-		receive(ether);
+		tsleep(&ctlr->rrendez, gotinput, ctlr, 10*1000);
+		ilock(ctlr);
+		getmibstats(ctlr);
+		if (ctlr->haveinput) {
+			ctlr->haveinput = 0;
+			iunlock(ctlr);
+			receive(ether);
+		} else
+			iunlock(ctlr);
 	}
 }
 
@@ -1293,7 +1316,6 @@ ctlrinit(Ether *ether)
 	reg->portcfgx = 0;
 
 	reg->psc1 = PSC1rgmii | PSC1encolonbp | PSC1coldomlim(0x23);
-	/* why 1522? 1518 should be enough */
 	reg->psc0 = PSC0porton | PSC0an_flctloff |
 		PSC0an_pauseadv | PSC0nofrclinkdown | PSC0mru(PSC0mru1522);
 
@@ -1324,7 +1346,8 @@ attach(Ether* ether)
 }
 
 /*
- * statistics goo
+ * statistics goo.
+ * mib registers clear on read.
  */
 
 static void
@@ -1333,12 +1356,13 @@ getmibstats(Ctlr *ctlr)
 	Gbereg *reg = ctlr->reg;
 
 	/*
-	 * rxbyteslo & txbylo seem to return the same as the *hi-variant.
-	 * the docs claim [rt]xby 64 bit.  can we do an atomic 64 bit read?
+	 * Marvell 88f6281 errata FE-ETH-120: high long of rxby and txby
+	 * can't be read correctly, so read the low long frequently
+	 * (every 30 seconds or less), thus avoiding overflow into high long.
 	 */
+	ctlr->rxby	+= reg->rxbylo;
+	ctlr->txby	+= reg->txbylo;
 
-	/* mib registers clear on read, store them */
-	ctlr->rxby	+= reg->rxby;
 	ctlr->badrxby	+= reg->badrxby;
 	ctlr->mactxerr	+= reg->mactxerr;
 	ctlr->rxpkt	+= reg->rxpkt;
@@ -1351,7 +1375,6 @@ getmibstats(Ctlr *ctlr)
 	ctlr->rx256_511	+= reg->rx256_511;
 	ctlr->rx512_1023+= reg->rx512_1023;
 	ctlr->rx1024_max+= reg->rx1024_max;
-	ctlr->txby	+= reg->txby;
 	ctlr->txpkt	+= reg->txpkt;
 	ctlr->txcollpktdrop+= reg->txcollpktdrop;
 	ctlr->txmcastpkt+= reg->txmcastpkt;
@@ -1461,8 +1484,8 @@ reset(Ether *ether)
 		panic("etherkw: bad ether ctlr #%d", ether->ctlrno);
 	}
 
-	/* io cfg 0: 1.8v gbe */
-//	*(ulong *)0xf10100e0 |= 1 << 7 | 1 << 15;
+//	*(ulong *)AddrIocfg0 |= 1 << 7 | 1 << 15;	/* io cfg 0: 1.8v gbe */
+//	coherence();
 
 	portreset(ctlr->reg);
 	/* ensure that both interfaces are set to RGMII before calling mii */

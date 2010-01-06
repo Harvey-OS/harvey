@@ -1,4 +1,4 @@
-out=noutside			# outside web server
+out=outside			# outside web server
 s=/sys/lib/dist/pc
 x=`{bind -b /sys/lib/dist/bin/$cputype /bin}
 default:V: ndisk
