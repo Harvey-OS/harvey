@@ -1,13 +1,15 @@
 .TH USB 4
 .SH NAME
 audio,
+ccid,
 disk,
 ether,
 kb,
 print,
 probe,
 serial,
-usbfat:
+usbfat:,
+usbeject
 \- Universal Serial Bus device drivers
 .SH SYNOPSIS
 .B usb/kb
@@ -23,20 +25,22 @@ usbfat:
 .B usb/disk
 [
 .B -Dd
-]
-[
+] [
 .B -m
 .I mnt
-]
-[
+] [
 .B -s
 .I srv
-]
-[
+] [
 .I dev ...
 ]
 .PP
 .B usbfat:
+[
+.I disk ...
+]
+.PP
+.B usbeject
 [
 .I disk ...
 ]
@@ -60,43 +64,55 @@ usbfat:
 .B usb/ether
 [
 .B -Dd
-]
-[
+] [
 .B -m
 .I mnt
-]
-[
+] [
 .B -s
 .I srv
-]
-[
+] [
 .I dev ...
 ]
 .PP
 .B usb/serial
 [
 .B -Dd
-]
-[
+] [
 .B -m
 .I mnt
-]
-[
+] [
 .B -s
 .I srv
-]
-[
+] [
 .I dev ...
 ]
 .PP
 .B usb/print
 [
 .B -d
-]
-[
+] [
 .I dev ...
 ]
 .PP
+.B usb/ccid
+[
+.B -d
+]
+.ig
+.PP
+.B usb/ibuddy
+[
+.B -Dd
+] [
+.B -m
+.I mnt
+] [
+.B -s
+.I srv
+] [
+.I dev ...
+]
+..
 .B usb/probe
 .SH DESCRIPTION
 These programs drive USB devices of specific classes via
@@ -204,12 +220,28 @@ The
 file supplies the device
 geometry when read.
 .PP
-The convenience script
+The script
 .B usbfat:
-mounts the FAT file system in the DOS partition of the named
+mounts the FAT file systems in the DOS partitions of the named
 .IR disk s;
 if none, it mounts those file systems found at
 .BR /dev/sdU*.*/data .
+When more than one partition is found, a suffix is appended to
+the disk name to identify the partition number.
+The script
+.B usbeject
+undoes the effect. If no argument is given, it unmounts all USB
+disks. An argument
+.BI sdU N
+unmounts all partitions from disk with USB target
+.IR N .
+.ig
+An argument
+.BI sdU N . M
+or
+.BI sdU N . M . P
+.\" TODO: fill in missing words
+..
 .SS Printers
 .I Print
 provides a single file can be written to print on a USB printer.
@@ -235,7 +267,7 @@ as is customary.
 .SS Serial ports
 .I Serial
 provides a file system (usually mounted at
-.BR /dev )
+.BR /n/serial )
 that includes one directory per USB serial port, named
 .BI eiaU N.
 In this directory there are two files,
@@ -360,6 +392,88 @@ samples ordered primarily by time and
 secondarily by channel.
 Samples occupy the minimum integral number of bytes.
 Read and write operations of arbitrary size are allowed.
+.SS Ccid
+.I Ccid
+discovers and configures SIM or SAM cards using the CCID standard.
+It provides a file system (usually seen at
+.BR /dev )
+that includes three files,
+.BI ctl ,
+.B raw
+and
+.BI rpc .
+Reading from
+.B ctl
+a description of the smartcard reader capabilities is printed.
+.B raw
+is just intended for debugging.
+Reads and writes to the
+raw file send and receive raw CCID packets.
+Smart cards identify themselves by giving out an ATR,
+an array of characters describing the card uniquely.
+Users of the driver write the ATR to the
+.B rpc
+file and are blocked until a card with that ATR is seen.
+From then on they can do ICC RPCs using whatever
+language the smart card speaks. A small write cancels
+an outstanding RPC.
+.PP
+The driver takes care of powering the card adequately, based
+on its ATR, and tunnelling the RPCs through the USB device.
+Only slot 0 is supported.
+.PP
+When the smartcard disappears,
+all reads and write fail until the file is reopened and
+a new ATR is written to it.
+.
+.ig
+.SS Ibuddy
+.PP
+Ibuddy supports a USB I-buddy toy, a little winged-demon.
+The driver provides one directory per attached toy with a 
+single 
+.BR ctl 
+file to control the device. Directories are named
+.BR ibuddyN ,
+being 
+.I N
+the corresponding usb device number.
+When read, the 
+.BR ctl 
+file provides the state of the device in this form:
+.IP
+.EX
+hips right|left
+wings open|close
+red on|off
+green on|off
+blue on|off
+heart on|off
+.EE
+.PP
+Each line describes the status of one feature. 
+.IR  Red , 
+.IR  blue ,
+and 
+.IR  green
+are the different leds in the head of
+the toy. 
+.IR  Heart 
+represents the red led in the chest of
+the toy. 
+.IR  Wings 
+represents the status of the wings, which
+can be closed or open.
+.IR  Hips 
+represents the orientation
+of the toy (left or right, from the figure's point of view).
+.PP
+Lines can be written to the 
+.BR ctl 
+file to command the device.
+Multiple lines (six at most) can be written
+at once, with one action per line.
+..
 .SH SOURCE
 .B /sys/src/cmd/usb
 .SH "SEE ALSO"
@@ -373,15 +487,21 @@ Read and write operations of arbitrary size are allowed.
 .SH BUGS
 The various device drivers are generic USB drivers and
 may work only for certain devices on each class.
-The Ethernet device works only for certain ASIX-based cards and for CDC devices.
+.PP
 ATA storage devices are not supported.
+.PP
+The Ethernet device works only for certain ASIX-based cards and for CDC devices.
 Both the Ethernet and printer drivers have not
 been tested and it is likely they will fail.
-The serial driver works only for the Prolific chip, and control of the
+.PP
+The serial driver works only for the Prolific chip and Ftdi,
+and control of the
 .B dcd
 and
 .B dsr
 signals and some of the extra features are unimplemented.
+For Ftdi, only the Sheevaplug has been tried.
+There is support for the EHCI debug port, but it loses bytes.
 .PP
 Not heavily exercised yet.
 The entire set of drivers is new and therefore potentially unreliable.

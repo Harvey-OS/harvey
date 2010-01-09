@@ -61,7 +61,7 @@ plmatch(char *info)
 	for(ip = plinfo; ip->vid != 0; ip++){
 		snprint(buf, sizeof buf, "vid %#06x did %#06x",
 			ip->vid, ip->did);
-		dsprint(2, "serial: %s %s", buf, info);
+		dsprint(2, "serial: %s %s\n", buf, info);
 		if(strstr(info, buf) != nil)
 			return 0;
 	}
@@ -105,10 +105,28 @@ vendorwrite(Serial *ser, int val, int index)
 	return res;
 }
 
+/* BUG: I could probably read Dcr0 and set only the bits */
+static int
+plmodemctl(Serial *ser, int set)
+{
+	if(set == 0){
+		ser->mctl = 0;
+		vendorwrite(ser, Dcr0Idx|DcrSet, Dcr0Init);
+		return 0;
+	}
+
+	ser->mctl = 1;
+	if(ser->type == TypeHX)
+		vendorwrite(ser, Dcr0Idx|DcrSet, Dcr0Init|Dcr0HwFcX);
+	else
+		vendorwrite(ser, Dcr0Idx|DcrSet, Dcr0Init|Dcr0HwFcH);
+	return 0;
+}
+
 static int
 plgetparam(Serial *ser)
 {
-	uchar buf[7];
+	uchar buf[ParamReqSz];
 	int res;
 
 	res = usbcmd(ser->dev, Rd2h | Rclass | Riface, GetLineReq,
@@ -139,26 +157,9 @@ plgetparam(Serial *ser)
 }
 
 static int
-plmodemctl(Serial *ser, int set)
-{
-	if(set == 0){
-		ser->mctl = 0;
-		vendorwrite(ser, 0x0, 0x0);
-		return 0;
-	}
-
-	ser->mctl = 1;
-	if(ser->type == TypeHX)
-		vendorwrite(ser, 0x0, Dcr0InitX);
-	else
-		vendorwrite(ser, 0x0, Dcr0InitH);
-	return 0;
-}
-
-static int
 plsetparam(Serial *ser)
 {
-	uchar buf[7];
+	uchar buf[ParamReqSz];
 	int res;
 
 	PUT4(buf, ser->baud);
@@ -183,27 +184,54 @@ plsetparam(Serial *ser)
 }
 
 static int
+revid(ulong devno)
+{
+	switch(devno){
+	case RevH:
+		return TypeH;
+	case RevX:
+	case RevHX:
+	case Rev1:
+		return TypeHX;
+	default:
+		return TypeUnk;
+	}
+}
+
+/* linux driver says the release id is not always right */
+static int
+heuristicid(ulong csp, ulong maxpkt)
+{
+	if(Class(csp) == 0x02)
+		return TypeH;
+	else if(maxpkt == 0x40)
+		return TypeHX;
+	else if(Class(csp) == 0x00 || Class(csp) == 0xFF)
+		return TypeH;
+	else{
+		fprint(2, "serial: chip unknown, setting to HX version\n");
+		return TypeHX;
+	}
+}
+
+static int
 plinit(Serial *ser)
 {
-	ulong csp;
 	char *st;
 	uchar *buf;
+	ulong csp, maxpkt, dno;
 
-	buf = emallocz(VendorReqSize, 1);
+	buf = emallocz(VendorReqSz, 1);
 	qlock(ser);
 	serialreset(ser);
+
 	csp = ser->dev->usb->csp;
+	maxpkt = ser->dev->maxpkt;
+	dno = ser->dev->usb->dno;
 
-	if(Class(csp) == 0x02)
-		ser->type = Type0;
-	else if(ser->dev->maxpkt == 0x40)
-		ser->type = TypeHX;
-	else if(Class(csp) == 0x00 || Class(csp) == 0xFF)
-		ser->type = Type1;
+	if((ser->type = revid(dno)) == TypeUnk)
+		ser->type = heuristicid(csp, maxpkt);
 
-	if(ser->type != ser->dev->usb->psid)
-		fprint(2, "serial: warning, heuristics: %#ux and psid: "
-			"%#ux, not a match\n", ser->type, ser->dev->usb->psid);
 	dsprint(2, "serial: type %d\n", ser->type);
 
 	vendorread(ser, 0x8484, 0, buf);
@@ -214,13 +242,14 @@ plinit(Serial *ser)
 	vendorwrite(ser, 0x0404, 1);
 	vendorread(ser, 0x8484, 0, buf);
 	vendorread(ser, 0x8383, 0, buf);
-	vendorwrite(ser, 0, 1);
-	vendorwrite(ser, 1, 0);
+
+	vendorwrite(ser, Dcr0Idx|DcrSet, Dcr0Init);
+	vendorwrite(ser, Dcr1Idx|DcrSet, Dcr1Init);
 
 	if(ser->type == TypeHX)
-		vendorwrite(ser, 2, Dcr2InitX);
+		vendorwrite(ser, Dcr2Idx|DcrSet, Dcr2InitX);
 	else
-		vendorwrite(ser, 2, Dcr2InitH);
+		vendorwrite(ser, Dcr2Idx|DcrSet, Dcr2InitH);
 
 	plgetparam(ser);
 	qunlock(ser);
@@ -249,8 +278,8 @@ static int
 plclearpipes(Serial *ser)
 {
 	if(ser->type == TypeHX){
-		vendorwrite(ser, 8, 0x0);
-		vendorwrite(ser, 9, 0x0);
+		vendorwrite(ser, PipeDSRst, 0);
+		vendorwrite(ser, PipeUSRst, 0);
 	}else{
 		if(unstall(ser->dev, ser->epout, Eout) < 0)
 			dprint(2, "disk: unstall epout: %r\n");
@@ -290,7 +319,7 @@ plsendlines(Serial *ser)
 	dsprint(2, "serial: sendlines: %#2.2x\n", ser->ctlstate);
 	composectl(ser);
 	res = setctlline(ser, ser->ctlstate);
-	dsprint(2, "serial: getparam res: %d\n", res);
+	dsprint(2, "serial: sendlines res: %d\n", res);
 	return 0;
 }
 
@@ -299,7 +328,7 @@ plreadstatus(Serial *ser)
 {
 	int nr, dfd;
 	char err[40];
-	uchar buf[10];
+	uchar buf[VendorReqSz];
 
 	qlock(ser);
 	dsprint(2, "serial: reading from interrupt\n");
@@ -326,11 +355,11 @@ plreadstatus(Serial *ser)
 		ser->cts = buf[8] & BreakerrStatus;
 		ser->ring = buf[8] & RingStatus;
 		ser->cts = buf[8] & CtsStatus;
-		if (buf[8] & FrerrStatus)
+		if(buf[8] & FrerrStatus)
 			ser->nframeerr++;
-		if (buf[8] & ParerrStatus)
+		if(buf[8] & ParerrStatus)
 			ser->nparityerr++;
-		if (buf[8] & OvererrStatus)
+		if(buf[8] & OvererrStatus)
 			ser->novererr++;
 	} else
 		dsprint(2, "serial: bad status read %d\n", nr);
@@ -346,18 +375,32 @@ statusreader(void *u)
 
 	ser = u;
 	threadsetname("statusreaderproc");
-
-	while(plreadstatus(ser) > 0)
+	while(plreadstatus(ser) >= 0)
 		;
+	fprint(2, "serial: statusreader exiting\n");
 	closedev(ser->dev);
 }
 
+/*
+ * Maximum number of bytes transferred per frame
+ * The output buffer size cannot be increased due to the size encoding
+ */
+
+static int
+plseteps(Serial *ser)
+{
+	devctl(ser->epin,  "maxpkt 256");
+	devctl(ser->epout, "maxpkt 256");
+	return 0;
+}
+
 Serialops plops = {
-	.init =		plinit,
-	.getparam =	plgetparam,
-	.setparam =	plsetparam,
-	.clearpipes =	plclearpipes,
-	.sendlines =	plsendlines,
-	.modemctl =	plmodemctl,
-	.setbreak =	plsetbreak,
+	.init		= plinit,
+	.getparam	= plgetparam,
+	.setparam	= plsetparam,
+	.clearpipes	= plclearpipes,
+	.sendlines	= plsendlines,
+	.modemctl	= plmodemctl,
+	.setbreak	= plsetbreak,
+	.seteps		= plseteps,
 };
