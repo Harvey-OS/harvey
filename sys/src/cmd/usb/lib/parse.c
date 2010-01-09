@@ -35,6 +35,7 @@ parsedev(Dev *xd, uchar *b, int n)
 		dprint(2, "%s: %s: no configurations\n", argv0, xd->dir);
 	d->vid = GET2(dd->idVendor);
 	d->did = GET2(dd->idProduct);
+	d->dno = GET2(dd->bcdDev);
 	d->vsid = dd->iManufacturer;
 	d->psid = dd->iProduct;
 	d->ssid = dd->iSerialNumber;

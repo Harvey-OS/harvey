@@ -41,6 +41,7 @@ struct Usbdev {
 	ulong	csp;		/* USB class/subclass/proto */
 	int	vid;		/* vendor id */
 	int	did;		/* product (device) id */
+	int	dno;		/* device release number */
 	char*	vendor;
 	char*	product;
 	char*	serial;

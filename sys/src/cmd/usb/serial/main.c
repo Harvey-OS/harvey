@@ -6,25 +6,27 @@
 #include "serial.h"
 #include "ucons.h"
 #include "prolific.h"
+#include "ftdi.h"
 
-typedef struct Parg Parg;
 enum {
 	Arglen = 80,
 };
 
+typedef struct Parg Parg;
 
-
+/* keep in sync with serial.c */
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-d] [-a n] [dev...]\n", argv0);
+	fprint(2, "usage: %s [-dD] [-m mtpt] [-s srv] [dev...]\n", argv0);
 	threadexitsall("usage");
 }
 
 static int
 matchserial(char *info, void*)
 {
-	if(uconsmatch(info) == 0 || plmatch(info) == 0)
+	if(uconsmatch(info) == 0 || plmatch(info) == 0 ||
+	    ftmatch(nil, info) == 0)
 		return 0;
 	return -1;
 }
@@ -35,7 +37,7 @@ threadmain(int argc, char **argv)
 	char *mnt, *srv, *as, *ae;
 	char args[Arglen];
 
-	mnt = "/dev";
+	mnt = "/n/serial";
 	srv = nil;
 
 	quotefmtinstall();

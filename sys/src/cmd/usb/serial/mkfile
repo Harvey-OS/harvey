@@ -2,9 +2,10 @@
 
 TARG=serial
 OFILES=main.$O
-LIBDOFILES=serial.$O prolific.$O ucons.$O
+LIBDOFILES=ftdi.$O serial.$O prolific.$O ucons.$O
 HFILES=\
 	../lib/usb.h\
+	ftdi.h\
 	prolific.h\
 	serial.h\
 	ucons.h\
@@ -17,13 +18,13 @@ LIB=\
 
 BIN=/$objtype/bin/usb
 
-
 UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
 
 </sys/src/cmd/mkone
+
 CFLAGS=-I../lib $CFLAGS
 
 $LIBU:
@@ -34,4 +35,3 @@ $LIBU:
 $LIBD:V: $LIBDOFILES
 	ar vu $LIBD $newprereq
 	rm $newprereq
-

@@ -2,16 +2,28 @@ typedef struct Serialops Serialops;
 typedef struct Serial Serial;
 
 struct Serialops {
+	int	(*seteps)(Serial*);
 	int	(*init)(Serial*);
 	int	(*getparam)(Serial*);
 	int	(*setparam)(Serial*);
 	int	(*clearpipes)(Serial*);
+	int	(*reset)(Serial*);
 	int	(*sendlines)(Serial*);
 	int	(*modemctl)(Serial*, int);
 	int	(*setbreak)(Serial*, int);
 	int	(*readstatus)(Serial*);
+	int	(*wait4data)(Serial*, uchar *, int);
+	int	(*wait4write)(Serial*, uchar *, int);
 };
 
+enum{
+	DataBufSz = 8*1024,
+};
+
+/*
+ * TODO: this should have an array of serial devices and
+ * have the common part separated.  Means rethinking locking though.
+ */
 struct Serial {
 	QLock;
 	Dev	*dev;		/* usb device*/
@@ -38,6 +50,8 @@ struct Serial {
 	int	dsr;
 	int	dcd;
 	int	dtr;
+	int	rlsd;
+
 	vlong	timer;
 	int	blocked;	/* for sw flow ctl. BUG: not implemented yet */
 	int	nbreakerr;
@@ -47,13 +61,29 @@ struct Serial {
 	int	novererr;
 	int	enabled;
 
+	int	maxread;
+	int	maxwrite;
+
+	int	inhdrsz;
+	int	outhdrsz;
 	Serialops;
+
+	int	baudbase;	/* for special baud base settings, see ftdi */
+	int	interfc;	/* interfc on the device for ftdi */
+
+	Channel *w4data;
+	Channel *gotdata;
+	Channel *w4empty;
+	int	ndata;
+	uchar	data[DataBufSz];
 };
 
 enum {
 	/* soft flow control chars */
-	CTLS = 023,
-	CTLQ = 021,
+	CTLS	= 023,
+	CTLQ	= 021,
+	CtlDTR	= 1,
+	CtlRTS	= 2,
 };
 
 /*
