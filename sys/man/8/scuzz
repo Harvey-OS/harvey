@@ -406,3 +406,8 @@ The
 .I max-xfer
 value is currently limited to 245760
 to limit kernel memory consumption.
+.LP
+It may be necessary to set
+.I max-xfer
+to exactly the block size used to write a tape
+in order to read it on some drives.
