@@ -347,7 +347,7 @@ icmpiput(Proto *icmp, Ipifc*, Block *bp)
 		goto raise;
 	}
 	iplen = nhgets(p->length);
-	if(iplen > n || (iplen % 1)){
+	if(iplen > n){
 		ipriv->stats[LenErrs]++;
 		ipriv->stats[InErrors]++;
 		netlog(icmp->f, Logicmp, "icmp length %d\n", iplen);

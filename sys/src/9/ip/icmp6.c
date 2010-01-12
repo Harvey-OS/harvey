@@ -572,7 +572,7 @@ valid(Proto *icmp, Ipifc *ifc, Block *bp, Icmppriv6 *ipriv)
 	}
 
 	iplen = nhgets(p->ploadlen);
-	if(iplen > n - IP6HDR || (iplen % 1) != 0) {
+	if(iplen > n - IP6HDR) {
 		ipriv->stats[LenErrs6]++;
 		netlog(icmp->f, Logicmp, "icmp length %d\n", iplen);
 		goto err;
