@@ -303,6 +303,7 @@ Updenv(void)
 		updenvlocal(runq->local);
 }
 
+/* not used on plan 9 */
 int
 ForkExecute(char *file, char **argv, int sin, int sout, int serr)
 {
@@ -336,9 +337,11 @@ void
 Execute(word *args, word *path)
 {
 	char **argv = mkargv(args);
-	char file[1024];
+	char file[1024], errstr[1024];
 	int nc;
+
 	Updenv();
+	errstr[0] = '\0';
 	for(;path;path = path->next){
 		nc = strlen(path->word);
 		if(nc < sizeof file - 1){	/* 1 for / */
@@ -350,12 +353,19 @@ Execute(word *args, word *path)
 			if(nc + strlen(argv[1]) < sizeof file){
 				strcat(file, argv[1]);
 				exec(file, argv+1);
+				rerrstr(errstr, sizeof errstr);
+				/*
+				 * if file is executable, exec should have
+				 * worked.  stop searching and print the
+				 * reason for failure.
+				 */
+				if (access(file, AEXEC) == 0)
+					break;
 			}
 			else werrstr("command name too long");
 		}
 	}
-	rerrstr(file, sizeof file);
-	pfmt(err, "%s: %s\n", argv[1], file);
+	pfmt(err, "%s: %s\n", argv[1], errstr);
 	efree((char *)argv);
 }
 #define	NDIR	256		/* shoud be a better way */
