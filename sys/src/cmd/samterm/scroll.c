@@ -55,15 +55,21 @@ void
 scrmark(Flayer *l, Rectangle r)
 {
 	r.max.x--;
-	if(rectclip(&r, l->scroll))
+	if(rectclip(&r, l->scroll)) {
+		if (l->f.b == nil)
+			panic("scrmark: nil l->f.b");
 		draw(l->f.b, r, l->f.cols[HIGH], nil, ZP);
+	}
 }
 
 void
 scrunmark(Flayer *l, Rectangle r)
 {
-	if(rectclip(&r, l->scroll))
+	if(rectclip(&r, l->scroll)) {
+		if (l->f.b == nil)
+			panic("scrunmark: nil l->f.b");
 		draw(l->f.b, r, scrback, nil, Pt(0, r.min.y-l->scroll.min.y));
+	}
 }
 
 void

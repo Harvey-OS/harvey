@@ -16,6 +16,7 @@ char*	getarg(Text*, int, int, Rune**, int*);
 char*	getbytearg(Text*, int, int, char**);
 void	new(Text*, Text*, Text*, int, int, Rune*, int);
 void	undo(Text*, Text*, Text*, int, int, Rune*, int);
+char*	getname(Text*, Text*, Rune*, int, int);
 void	scrsleep(uint);
 void	savemouse(Window*);
 void	restoremouse(Window*);
