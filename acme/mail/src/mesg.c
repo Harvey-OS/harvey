@@ -949,7 +949,7 @@ ext(char *type)
 void
 mimedisplay(Message *m, char *name, char *rootdir, Window *w, int fileonly)
 {
-	char *dest;
+	char *dest, *maildest;
 
 	if(strcmp(m->disposition, "file")==0 || strlen(m->filename)!=0){
 		if(strlen(m->filename) == 0){
@@ -957,8 +957,14 @@ mimedisplay(Message *m, char *name, char *rootdir, Window *w, int fileonly)
 			dest[strlen(dest)-1] = '\0';
 		}else
 			dest = estrdup(m->filename);
-		if(m->filename[0] != '/')
+		if(maildest = getenv("maildest")){
+			maildest = eappend(maildest, "/", dest);
+			Bprint(w->body, "\tcp %s%sbody%s %q\n", rootdir, name, ext(m->type), maildest);
+			free(maildest);
+		}
+		if(m->filename[0] != '/'){
 			dest = egrow(estrdup(home), "/", dest);
+		}
 		Bprint(w->body, "\tcp %s%sbody%s %q\n", rootdir, name, ext(m->type), dest);
 		free(dest);
 	}else if(!fileonly)

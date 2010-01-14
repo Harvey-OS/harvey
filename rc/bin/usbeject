@@ -1,0 +1,41 @@
+#!/bin/rc
+# usbeject - unmount usb disks given as arguments
+#	unmount all of them if no arguments given
+rfork e
+disk = ()
+mtpt = /n/usb
+
+test -e /dev/fs/ctl || bind -b '#k' /dev >[2]/dev/null
+
+test -e /dev/usb || bind -a '#u' /dev || {
+	echo $0: no '#u/usb' >[1=2]
+	exit nousb
+}
+test -e /dev/usbdctl || mount -a /srv/usb /dev || {
+	echo $0: cannot mount /srv/usb >[1=2]
+	exit nousbd
+}
+
+disks=()
+mtpt=()
+switch ($#*) {
+case 0
+	disks=`{ls -pd /n/sdU*}
+case *
+	disks=()
+	for (a) {
+		if(~ $a sd??)
+			disk=`{ls -pd /n/^$*^*}
+		if not
+			disk=$a
+		disks=($disks $disk)
+	}
+}
+if (~ $disks '''sdU*''')
+	exit ''
+for (disk in $disks) {
+	unmount /n/$disk >[2]/dev/null && echo $disk unmounted
+	if (test -e /dev/fs/ctl)
+		echo del $disk^parts/^'*' >/dev/fs/ctl >[2]/dev/null
+}
+exit ''

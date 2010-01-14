@@ -298,9 +298,9 @@ configures and manages a USB audio device.
 It implements a file system,
 normally mounted on
 .BI /dev ,
-but this can be changed with the
-.B \-m
-option, with files
+but this can be changed with
+.BR \-m ,
+containing files
 .BR volume ,
 .BR audioctl ,
 .BR audio ,
@@ -315,7 +315,9 @@ maintain backward compatibility with the Soundblaster driver.
 The
 .B \-V
 option (verbose)
-causes usbaudio to print information about the device on startup.
+causes
+.I audio
+to print information about the device on startup.
 The
 .B \-s
 option specifies a name for a file descriptor to be posted in
@@ -392,10 +394,11 @@ samples ordered primarily by time and
 secondarily by channel.
 Samples occupy the minimum integral number of bytes.
 Read and write operations of arbitrary size are allowed.
+.
 .SS Ccid
 .I Ccid
 discovers and configures SIM or SAM cards using the CCID standard.
-It provides a file system (usually seen at
+It provides a file system (usually mounted at
 .BR /dev )
 that includes three files,
 .BI ctl ,
@@ -430,16 +433,16 @@ a new ATR is written to it.
 .SS Ibuddy
 .PP
 Ibuddy supports a USB I-buddy toy, a little winged-demon.
-The driver provides one directory per attached toy with a 
-single 
-.BR ctl 
-file to control the device. Directories are named
+The driver provides one directory per attached toy with a single
+.BR ctl
+file to control the device.
+Directories are named
 .BR ibuddyN ,
-being 
+being
 .I N
 the corresponding usb device number.
-When read, the 
-.BR ctl 
+When read, the
+.BR ctl
 file provides the state of the device in this form:
 .IP
 .EX
@@ -451,25 +454,25 @@ blue on|off
 heart on|off
 .EE
 .PP
-Each line describes the status of one feature. 
-.IR  Red , 
+Each line describes the status of one feature.
+.IR  Red ,
 .IR  blue ,
-and 
+and
 .IR  green
 are the different leds in the head of
-the toy. 
-.IR  Heart 
+the toy.
+.IR  Heart
 represents the red led in the chest of
-the toy. 
-.IR  Wings 
+the toy.
+.IR  Wings
 represents the status of the wings, which
 can be closed or open.
-.IR  Hips 
+.IR  Hips
 represents the orientation
 of the toy (left or right, from the figure's point of view).
 .PP
-Lines can be written to the 
-.BR ctl 
+Lines can be written to the
+.BR ctl
 file to command the device.
 Multiple lines (six at most) can be written
 at once, with one action per line.
