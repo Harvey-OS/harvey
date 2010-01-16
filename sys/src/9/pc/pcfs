@@ -1,0 +1,99 @@
+# pcfs - pccpuf variant with venti, fossil, boot script & more compiled in.
+#	for use on file servers, including standalone ones
+dev
+	root
+	cons
+	arch
+	pnp		pci
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	rtc
+	ssl
+	tls
+	cap
+	fs
+
+	ether		netif
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
+
+	sd
+	floppy		dma
+	aoe
+
+	uart
+	usb
+	kbin
+
+link
+	ether82557	pci
+	ether82563	pci
+	etherdp83820	pci
+	etherga620	pci
+	etherigbe	pci ethermii
+	ethervt6105m
+	ethersink
+	ethermedium
+	netdevmedium
+	loopbackmedium
+	usbuhci
+	usbohci
+	usbehci
+
+misc
+	realmode
+	archmp		mp apic
+	mtrr
+
+	uarti8250
+
+	sdaoe
+	sdata		pci sdscsi
+	sdiahci		pci sdscsi
+	sd53c8xx	pci sdscsi
+	sdmylex		pci sdscsi
+
+ip
+	tcp
+	udp
+	rudp
+	ipifc
+	icmp
+	icmp6
+	ipmux
+	esp
+
+port
+	int cpuserver = 1;
+
+boot boot #S/sdC0/
+	tcp
+	local
+
+bootdir
+	boot.fs boot
+	/386/bin/rc
+	/rc/lib/rcmain
+	/386/bin/ip/ipconfig
+	/386/bin/auth/factotum
+	/386/bin/venti/venti
+	/386/bin/fossil/fossil
+	/386/bin/auth/aescbc
+	/386/bin/aux/zerotrunc
+	/386/bin/bind
+	/386/bin/cat
+	/386/bin/cp
+	/386/bin/disk/fdisk
+	/386/bin/disk/prep
+	/386/bin/echo
+	/386/bin/ls
+	/386/bin/mount
+	/386/bin/read
+	/386/bin/sed
+	/386/bin/sleep
+	/386/bin/srv
+	/386/bin/test
+	/386/bin/usb/usbd
