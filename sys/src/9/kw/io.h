@@ -230,6 +230,11 @@ enum {
 	Addrpcibase	= Regbase+0x41800,
 
 	Addrusb		= Regbase+0x50000,
+
+	Addrsata	= Regbase+0x80000,	/* sata config reg here */
+	Addrsata0	= Regbase+0x82000,	/* edma config reg here */
+	Addrsata1	= Regbase+0x84000,	/* edma config reg here */
+
 	AddrSdio	= Regbase+0x90000,
 };
 
