@@ -46,7 +46,7 @@ case *'zip archive'*
 		exit discard
 	}
 
-case jpeg 'PNG image' bmp 'GIF image' *'plan 9 image'
+case jpeg 'PNG image' bmp 'GIF image' *'plan 9 image'*
 	save accept
 	exit accept
 
