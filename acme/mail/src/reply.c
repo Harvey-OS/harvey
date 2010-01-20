@@ -341,21 +341,20 @@ print2(int fd, int ofd, char *fmt, ...)
 	return n;
 }
 
-void
+int
 write2(int fd, int ofd, char *buf, int n, int nofrom)
 {
 	char *from, *p;
-	int m;
+	int m = 0;
 
-	write(fd, buf, n);
+	if(fd >= 0)
+		m = write(fd, buf, n);
 
 	if(ofd <= 0)
-		return;
+		return m;
 
-	if(nofrom == 0){
-		write(ofd, buf, n);
-		return;
-	}
+	if(nofrom == 0)
+		return write(ofd, buf, n);
 
 	/* need to escape leading From lines to avoid corrupting 'outgoing' mailbox */
 	for(p=buf; *p; p+=m){
@@ -367,13 +366,15 @@ write2(int fd, int ofd, char *buf, int n, int nofrom)
 		if(m > 0)
 			write(ofd, p, m);
 		if(from){
+			/* escape with space if From is at start of line */
 			if(p==buf || from[-1]=='\n')
-				write(ofd, " ", 1);	/* escape with space if From is at start of line */
+				write(ofd, " ", 1);
 			write(ofd, from, 4);
 			m += 4;
 		}
 		n -= m;
 	}
+	return p - buf;
 }
 
 void

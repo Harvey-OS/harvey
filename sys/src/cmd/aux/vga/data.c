@@ -49,6 +49,8 @@ Ctlr* ctlrs[] = {
 	&neomagichwgc,				/* hwgc */
 	&nvidia,				/* ctlr */
 	&nvidiahwgc,				/* hwgc */
+	&radeon,				/* ctlr */
+	&radeonhwgc,				/* hwgc */
 	&palette,				/* ctlr */
 	&rgb524,				/* ramdac */
 	&rgb524hwgc,				/* hwgc */

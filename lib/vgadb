@@ -388,6 +388,46 @@ ctlr
 	ctlr=mga4xx linear=1
 	hwgc=mga4xxhwgc
 
+
+ctlr
+	vid=0x1002 did=0x4242	# [BB] Radeon All in Wonder 8500DV
+ 	vid=0x1002 did=0x4964	# [Id] Radeon 9000
+ 	vid=0x1002 did=0x4965	# [Ie] Radeon 9000
+  	vid=0x1002 did=0x4966	# [If] Radeon 9000
+	vid=0x1002 did=0x4967	# [Ig] Radeon 9000
+  	vid=0x1002 did=0x4c57	# [LW] Radeon Mobility 7500
+	vid=0x1002 did=0x4c58	# [LX] Radeon Mobility FireGL 7800
+ 	vid=0x1002 did=0x4c59	# [LY] Radeon M6
+	vid=0x1002 did=0x4c5a	# [LZ] Radeon M6
+	vid=0x1002 did=0x4c64	# [Ld] Radeon Mobility 9000
+	vid=0x1002 did=0x4c65	# [Le] Radeon Mobility 9000
+	vid=0x1002 did=0x4c66	# [Lf] Radeon Mobility 9000
+	vid=0x1002 did=0x4c67	# [Lg] Radeon Mobility 9000
+	vid=0x1002 did=0x4e44	# [ND] Radeon 9700
+	vid=0x1002 did=0x4e45	# [NE] Radeon 9700
+	vid=0x1002 did=0x4e46	# [NF] Radeon 9700
+	vid=0x1002 did=0x4e47	# [NG] Radeon 9700
+	vid=0x1002 did=0x5144	# [QD] Radeon 64 DDR
+	vid=0x1002 did=0x5145	# [QE] Radeon 64 DDR
+	vid=0x1002 did=0x5146	# [QF] Radeon 64 DDR
+	vid=0x1002 did=0x5147	# [QG] Radeon 64 DDR
+	vid=0x1002 did=0x5148	# [QH] Radeon 8500
+	vid=0x1002 did=0x5149	# [QI] Radeon 8500
+	vid=0x1002 did=0x514A	# [QJ] Radeon 8500
+	vid=0x1002 did=0x514B	# [QK] Radeon 8500
+	vid=0x1002 did=0x514C	# [QL] Radeon 8500
+	vid=0x1002 did=0x5157	# [QW] Radeon RV200 7500
+	vid=0x1002 did=0x5158	# [QX] Radeon RV200 7500
+	vid=0x1002 did=0x5159	# [QY] Radeon VE
+	vid=0x1002 did=0x515a	# [QK] Radeon VE
+	vid=0x1002 did=0x5168	# [Qh] Radeon R200
+	vid=0x1002 did=0x5169	# [Qi] Radeon R200
+	vid=0x1002 did=0x516a	# [Qj] Radeon R200
+	vid=0x1002 did=0x516b	# [Qk] Radeon R200
+	link=vga
+	ctlr=radeon linear=1
+	hwgc=radeonhwgc
+
 #
 # mode:
 # These entries specify a monitor operating mode.
