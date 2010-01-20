@@ -18,8 +18,8 @@ struct Graph
 	int		*data;
 	int		ndata;
 	char		*label;
-	void		(*newvalue)(Machine*, ulong*, ulong*, int);
-	void		(*update)(Graph*, ulong, ulong);
+	void		(*newvalue)(Machine*, uvlong*, uvlong*, int);
+	void		(*update)(Graph*, uvlong, uvlong);
 	Machine		*mach;
 	int		overflow;
 	Image		*overtmp;
@@ -62,17 +62,19 @@ struct Machine
 	int		ifstatsfd;
 	int		batteryfd;
 	int		bitsybatfd;
+	int		tempfd;
 	int		disable;
 
-	ulong		devswap[4];
-	ulong		devsysstat[10];
-	ulong		prevsysstat[10];
+	uvlong		devswap[4];
+	uvlong		devsysstat[10];
+	uvlong		prevsysstat[10];
 	int		nproc;
 	int		lgproc;
-	ulong		netetherstats[8];
-	ulong		prevetherstats[8];
-	ulong		batterystats[2];
-	ulong		netetherifstats[2];
+	uvlong		netetherstats[8];
+	uvlong		prevetherstats[8];
+	uvlong		batterystats[2];
+	uvlong		netetherifstats[2];
+	uvlong		temp[10];
 
 	char		buf[1024];
 	char		*bufp;
@@ -117,6 +119,7 @@ enum Menu2
 	Mtlbmiss,
 	Mtlbpurge,
 	Msignal,
+	Mtemp,
 	Nmenu2,
 };
 
@@ -138,31 +141,33 @@ char	*menu2str[Nmenu2+1] = {
 	"add  tlbmiss ",
 	"add  tlbpurge",
 	"add  802.11b ",
+	"add  temp    ",
 	nil,
 };
 
 
-void	contextval(Machine*, ulong*, ulong*, int),
-	etherval(Machine*, ulong*, ulong*, int),
-	ethererrval(Machine*, ulong*, ulong*, int),
-	etherinval(Machine*, ulong*, ulong*, int),
-	etheroutval(Machine*, ulong*, ulong*, int),
-	faultval(Machine*, ulong*, ulong*, int),
-	intrval(Machine*, ulong*, ulong*, int),
-	inintrval(Machine*, ulong*, ulong*, int),
-	loadval(Machine*, ulong*, ulong*, int),
-	idleval(Machine*, ulong*, ulong*, int),
-	memval(Machine*, ulong*, ulong*, int),
-	swapval(Machine*, ulong*, ulong*, int),
-	syscallval(Machine*, ulong*, ulong*, int),
-	tlbmissval(Machine*, ulong*, ulong*, int),
-	tlbpurgeval(Machine*, ulong*, ulong*, int),
-	batteryval(Machine*, ulong*, ulong*, int),
-	signalval(Machine*, ulong*, ulong*, int);
+void	contextval(Machine*, uvlong*, uvlong*, int),
+	etherval(Machine*, uvlong*, uvlong*, int),
+	ethererrval(Machine*, uvlong*, uvlong*, int),
+	etherinval(Machine*, uvlong*, uvlong*, int),
+	etheroutval(Machine*, uvlong*, uvlong*, int),
+	faultval(Machine*, uvlong*, uvlong*, int),
+	intrval(Machine*, uvlong*, uvlong*, int),
+	inintrval(Machine*, uvlong*, uvlong*, int),
+	loadval(Machine*, uvlong*, uvlong*, int),
+	idleval(Machine*, uvlong*, uvlong*, int),
+	memval(Machine*, uvlong*, uvlong*, int),
+	swapval(Machine*, uvlong*, uvlong*, int),
+	syscallval(Machine*, uvlong*, uvlong*, int),
+	tlbmissval(Machine*, uvlong*, uvlong*, int),
+	tlbpurgeval(Machine*, uvlong*, uvlong*, int),
+	batteryval(Machine*, uvlong*, uvlong*, int),
+	signalval(Machine*, uvlong*, uvlong*, int),
+	tempval(Machine*, uvlong*, uvlong*, int);
 
 Menu	menu2 = {menu2str, nil};
 int	present[Nmenu2];
-void	(*newvaluefn[Nmenu2])(Machine*, ulong*, ulong*, int init) = {
+void	(*newvaluefn[Nmenu2])(Machine*, uvlong*, uvlong*, int init) = {
 	batteryval,
 	contextval,
 	etherval,
@@ -180,6 +185,7 @@ void	(*newvaluefn[Nmenu2])(Machine*, ulong*, ulong*, int init) = {
 	tlbmissval,
 	tlbpurgeval,
 	signalval,
+	tempval,
 };
 
 Image	*cols[Ncolor][3];
@@ -187,7 +193,7 @@ Graph	*graph;
 Machine	*mach;
 Font	*mediumfont;
 char	*mysysname;
-char	argchars[] = "8bceEfiImlnpstw";
+char	argchars[] = "8bceEfiImlnpstwz";
 int	pids[NPROC];
 int 	parity;	/* toggled to avoid patterns in textured background */
 int	nmach;
@@ -330,7 +336,7 @@ paritypt(int x)
 }
 
 Point
-datapoint(Graph *g, int x, ulong v, ulong vmax)
+datapoint(Graph *g, int x, uvlong v, uvlong vmax)
 {
 	Point p;
 	double y;
@@ -360,7 +366,7 @@ datapoint(Graph *g, int x, ulong v, ulong vmax)
 }
 
 void
-drawdatum(Graph *g, int x, ulong prev, ulong v, ulong vmax)
+drawdatum(Graph *g, int x, uvlong prev, uvlong v, uvlong vmax)
 {
 	int c;
 	Point p, q;
@@ -381,7 +387,7 @@ drawdatum(Graph *g, int x, ulong prev, ulong v, ulong vmax)
 }
 
 void
-redraw(Graph *g, ulong vmax)
+redraw(Graph *g, uvlong vmax)
 {
 	int i, c;
 
@@ -394,7 +400,7 @@ redraw(Graph *g, ulong vmax)
 }
 
 void
-update1(Graph *g, ulong v, ulong vmax)
+update1(Graph *g, uvlong v, uvlong vmax)
 {
 	char buf[48];
 	int overflow;
@@ -413,14 +419,14 @@ update1(Graph *g, ulong v, ulong vmax)
 	if(overflow && g->overtmp!=nil){
 		g->overflow = 1;
 		draw(g->overtmp, g->overtmp->r, screen, nil, g->overtmp->r.min);
-		sprint(buf, "%lud", v);
+		sprint(buf, "%llud", v);
 		string(screen, g->overtmp->r.min, display->black, ZP, mediumfont, buf);
 	}
 }
 
 /* read one line of text from buffer and process integers */
 int
-readnums(Machine *m, int n, ulong *a, int spanlines)
+readnums(Machine *m, int n, uvlong *a, int spanlines)
 {
 	int i;
 	char *p, *ep;
@@ -433,11 +439,11 @@ readnums(Machine *m, int n, ulong *a, int spanlines)
 				break;
 	p = m->bufp;
 	for(i=0; i<n && p<ep; i++){
-		while(p<ep && !isdigit(*p) && *p!='-')
+		while(p<ep && (!isascii(*p) || !isdigit(*p)) && *p!='-')
 			p++;
 		if(p == ep)
 			break;
-		a[i] = strtoul(p, &p, 10);
+		a[i] = strtoull(p, &p, 10);
 	}
 	if(ep < m->ebufp)
 		ep++;
@@ -581,7 +587,7 @@ connectexportfs(char *addr)
 }
 
 int
-readswap(Machine *m, ulong *a)
+readswap(Machine *m, uvlong *a)
 {
 	if(strstr(m->buf, "memory\n")){
 		/* new /dev/swap - skip first 3 numbers */
@@ -609,7 +615,7 @@ shortname(char *s)
 }
 
 int
-ilog10(long j)
+ilog10(uvlong j)
 {
 	int i;
 
@@ -617,12 +623,12 @@ ilog10(long j)
 		j /= 10;
 	return i;
 }
-	
+
 int
 initmach(Machine *m, char *name)
 {
 	int n, fd;
-	ulong a[MAXNUM];
+	uvlong a[MAXNUM];
 	char *p, mpt[256], buf[256];
 
 	p = strchr(name, '!');
@@ -657,8 +663,10 @@ initmach(Machine *m, char *name)
 	m->swapfd = open(buf, OREAD);
 	if(loadbuf(m, &m->swapfd) && readswap(m, a))
 		memmove(m->devswap, a, sizeof m->devswap);
-	else
-		m->devswap[Maxmem] = m->devswap[Maxswap] = 100;
+	else{
+		m->devswap[Maxswap] = 100;
+		m->devswap[Maxmem] = 100;
+	}
 
 	snprint(buf, sizeof buf, "%s/dev/sysstat", mpt);
 	m->statsfd = open(buf, OREAD);
@@ -695,6 +703,11 @@ initmach(Machine *m, char *name)
 		if(loadbuf(m, &m->bitsybatfd) && readnums(m, 1, a, 0))
 			memmove(m->batterystats, a, sizeof(m->batterystats));
 	}
+	snprint(buf, sizeof buf, "%s/dev/cputemp", mpt);
+	m->tempfd = open(buf, OREAD);
+	if(loadbuf(m, &m->tempfd))
+		for(n=0; n < nelem(m->temp) && readnums(m, 2, a, 0); n++)
+			 m->temp[n] = a[0];
 	return 1;
 }
 
@@ -741,11 +754,17 @@ needsignal(int init)
 	return init | present[Msignal];
 }
 
+int
+needtemp(int init)
+{
+	return init | present[Mtemp];
+}
+
 void
 readmach(Machine *m, int init)
 {
 	int n, i;
-	ulong a[nelem(m->devsysstat)];
+	uvlong a[nelem(m->devsysstat)];
 	char buf[32];
 
 	if(m->remote && (m->disable || setjmp(catchalarm))){
@@ -788,7 +807,9 @@ readmach(Machine *m, int init)
 		memmove(m->batterystats, a, sizeof(m->batterystats));
 	if(needbattery(init) && loadbuf(m, &m->bitsybatfd) && readnums(m, 1, a, 0))
 		memmove(m->batterystats, a, sizeof(m->batterystats));
-
+	if(needtemp(init) && loadbuf(m, &m->tempfd))
+		for(n=0; n < nelem(m->temp) && readnums(m, 2, a, 0); n++)
+			 m->temp[n] = a[0];
 	if(m->remote){
 		alarm(0);
 		notify(nil);
@@ -796,21 +817,21 @@ readmach(Machine *m, int init)
 }
 
 void
-memval(Machine *m, ulong *v, ulong *vmax, int)
+memval(Machine *m, uvlong *v, uvlong *vmax, int)
 {
 	*v = m->devswap[Mem];
 	*vmax = m->devswap[Maxmem];
 }
 
 void
-swapval(Machine *m, ulong *v, ulong *vmax, int)
+swapval(Machine *m, uvlong *v, uvlong *vmax, int)
 {
 	*v = m->devswap[Swap];
 	*vmax = m->devswap[Maxswap];
 }
 
 void
-contextval(Machine *m, ulong *v, ulong *vmax, int init)
+contextval(Machine *m, uvlong *v, uvlong *vmax, int init)
 {
 	*v = m->devsysstat[Context]-m->prevsysstat[Context];
 	*vmax = sleeptime*m->nproc;
@@ -818,17 +839,20 @@ contextval(Machine *m, ulong *v, ulong *vmax, int init)
 		*vmax = sleeptime;
 }
 
+/*
+ * bug: need to factor in HZ
+ */
 void
-intrval(Machine *m, ulong *v, ulong *vmax, int init)
+intrval(Machine *m, uvlong *v, uvlong *vmax, int init)
 {
 	*v = m->devsysstat[Interrupt]-m->prevsysstat[Interrupt];
-	*vmax = sleeptime*m->nproc;
+	*vmax = sleeptime*m->nproc*10;
 	if(init)
-		*vmax = sleeptime;
+		*vmax = sleeptime*10;
 }
 
 void
-syscallval(Machine *m, ulong *v, ulong *vmax, int init)
+syscallval(Machine *m, uvlong *v, uvlong *vmax, int init)
 {
 	*v = m->devsysstat[Syscall]-m->prevsysstat[Syscall];
 	*vmax = sleeptime*m->nproc;
@@ -837,7 +861,7 @@ syscallval(Machine *m, ulong *v, ulong *vmax, int init)
 }
 
 void
-faultval(Machine *m, ulong *v, ulong *vmax, int init)
+faultval(Machine *m, uvlong *v, uvlong *vmax, int init)
 {
 	*v = m->devsysstat[Fault]-m->prevsysstat[Fault];
 	*vmax = sleeptime*m->nproc;
@@ -846,7 +870,7 @@ faultval(Machine *m, ulong *v, ulong *vmax, int init)
 }
 
 void
-tlbmissval(Machine *m, ulong *v, ulong *vmax, int init)
+tlbmissval(Machine *m, uvlong *v, uvlong *vmax, int init)
 {
 	*v = m->devsysstat[TLBfault]-m->prevsysstat[TLBfault];
 	*vmax = (sleeptime/1000)*10*m->nproc;
@@ -855,7 +879,7 @@ tlbmissval(Machine *m, ulong *v, ulong *vmax, int init)
 }
 
 void
-tlbpurgeval(Machine *m, ulong *v, ulong *vmax, int init)
+tlbpurgeval(Machine *m, uvlong *v, uvlong *vmax, int init)
 {
 	*v = m->devsysstat[TLBpurge]-m->prevsysstat[TLBpurge];
 	*vmax = (sleeptime/1000)*10*m->nproc;
@@ -864,7 +888,7 @@ tlbpurgeval(Machine *m, ulong *v, ulong *vmax, int init)
 }
 
 void
-loadval(Machine *m, ulong *v, ulong *vmax, int init)
+loadval(Machine *m, uvlong *v, uvlong *vmax, int init)
 {
 	*v = m->devsysstat[Load];
 	*vmax = 1000*m->nproc;
@@ -873,21 +897,21 @@ loadval(Machine *m, ulong *v, ulong *vmax, int init)
 }
 
 void
-idleval(Machine *m, ulong *v, ulong *vmax, int)
+idleval(Machine *m, uvlong *v, uvlong *vmax, int)
 {
 	*v = m->devsysstat[Idle]/m->nproc;
 	*vmax = 100;
 }
 
 void
-inintrval(Machine *m, ulong *v, ulong *vmax, int)
+inintrval(Machine *m, uvlong *v, uvlong *vmax, int)
 {
 	*v = m->devsysstat[InIntr]/m->nproc;
 	*vmax = 100;
 }
 
 void
-etherval(Machine *m, ulong *v, ulong *vmax, int init)
+etherval(Machine *m, uvlong *v, uvlong *vmax, int init)
 {
 	*v = m->netetherstats[In]-m->prevetherstats[In] + m->netetherstats[Out]-m->prevetherstats[Out];
 	*vmax = sleeptime*m->nproc;
@@ -896,7 +920,7 @@ etherval(Machine *m, ulong *v, ulong *vmax, int init)
 }
 
 void
-etherinval(Machine *m, ulong *v, ulong *vmax, int init)
+etherinval(Machine *m, uvlong *v, uvlong *vmax, int init)
 {
 	*v = m->netetherstats[In]-m->prevetherstats[In];
 	*vmax = sleeptime*m->nproc;
@@ -905,7 +929,7 @@ etherinval(Machine *m, ulong *v, ulong *vmax, int init)
 }
 
 void
-etheroutval(Machine *m, ulong *v, ulong *vmax, int init)
+etheroutval(Machine *m, uvlong *v, uvlong *vmax, int init)
 {
 	*v = m->netetherstats[Out]-m->prevetherstats[Out];
 	*vmax = sleeptime*m->nproc;
@@ -914,7 +938,7 @@ etheroutval(Machine *m, ulong *v, ulong *vmax, int init)
 }
 
 void
-ethererrval(Machine *m, ulong *v, ulong *vmax, int init)
+ethererrval(Machine *m, uvlong *v, uvlong *vmax, int init)
 {
 	int i;
 
@@ -927,7 +951,7 @@ ethererrval(Machine *m, ulong *v, ulong *vmax, int init)
 }
 
 void
-batteryval(Machine *m, ulong *v, ulong *vmax, int)
+batteryval(Machine *m, uvlong *v, uvlong *vmax, int)
 {
 	*v = m->batterystats[0];
 	if(m->bitsybatfd >= 0)
@@ -937,7 +961,7 @@ batteryval(Machine *m, ulong *v, ulong *vmax, int)
 }
 
 void
-signalval(Machine *m, ulong *v, ulong *vmax, int)
+signalval(Machine *m, uvlong *v, uvlong *vmax, int)
 {
 	ulong l;
 
@@ -951,6 +975,19 @@ signalval(Machine *m, ulong *v, ulong *vmax, int)
 		return;
 	}
 	*v = 20*(l+95);
+}
+
+void
+tempval(Machine *m, uvlong *v, uvlong *vmax, int)
+{
+	ulong l;
+
+	*vmax = sleeptime;
+	l = m->temp[0];
+	if(l == ~0 || l == 0)
+		*v = 0;
+	else
+		*v = (l-20)*27;
 }
 
 void
@@ -1048,7 +1085,7 @@ void
 labelstrs(Graph *g, char strs[Nlab][Lablen], int *np)
 {
 	int j;
-	ulong v, vmax;
+	uvlong v, vmax;
 
 	g->newvalue(g->mach, &v, &vmax, 1);
 	if(logscale){
@@ -1087,7 +1124,7 @@ resize(void)
 	int i, j, k, n, startx, starty, x, y, dx, dy, ly, ondata, maxx, wid, nlab;
 	Graph *g;
 	Rectangle machr, r;
-	ulong v, vmax;
+	uvlong v, vmax;
 	char buf[128], labs[Nlab][Lablen];
 
 	draw(screen, screen->r, display->white, nil, ZP);
@@ -1252,7 +1289,7 @@ main(int argc, char *argv[])
 {
 	int i, j;
 	double secs;
-	ulong v, vmax, nargs;
+	uvlong v, vmax, nargs;
 	char args[100];
 
 	nmach = 1;
@@ -1358,6 +1395,9 @@ main(int argc, char *argv[])
 		break;
 	case 'w':
 		addgraph(Mswap);
+		break;
+	case 'z':
+		addgraph(Mtemp);
 		break;
 	}
 

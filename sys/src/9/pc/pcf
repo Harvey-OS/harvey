@@ -49,7 +49,8 @@ link
 	ether8003	ether8390
 	ether8139	pci
 	ether8169	pci ethermii
-	ether82543gc	pci
+# should be obsoleted by igbe
+#	ether82543gc	pci
 	ether82557	pci
 	ether82563	pci
 	ether83815	pci
@@ -100,6 +101,7 @@ misc
 	vgamga4xx	+cur
 	vganeomagic	+cur
 	vganvidia	+cur
+	vgaradeon	+cur
 	vgargb524	=cur
 	vgas3		+cur vgasavage
 	vgat2r4		+cur

@@ -17,12 +17,17 @@ enum {
 };
 
 static char* ec2tpcmcia[] = {
-	"EC2T",				/* Linksys Combo PCMCIA EthernetCard */
-	"PCMPC100",			/* EtherFast 10/100 PC Card */
-	"EN2216",			/* Accton EtherPair-PCMCIA */
-	"FA410TX",			/* Netgear FA410TX */
-	"Network Everywhere",		/* Linksys NP10T 10BaseT Card */
-	nil,
+	{ "EC2T" },			/* Linksys Combo PCMCIA EthernetCard */
+	{ "PCMPC100" },			/* EtherFast 10/100 PC Card */
+	{ "PCM100" },			/* EtherFast PCM100 Card */
+	{ "EN2216" },			/* Accton EtherPair-PCMCIA */
+	{ "FA410TX" },			/* Netgear FA410TX */
+	{ "FA411" },			/* Netgear FA411 PCMCIA */
+	{ "Network Everywhere" },	/* Linksys NP10T 10BaseT Card */
+	{ "10/100 Port Attached" },	/* SMC 8040TX */
+	{ "8041TX-10/100-PC-Card-V2" }, /* SMC 8041TX */
+	{ "SMC8022" },			/* SMC 8022 / EZCard-10-PCMCIA */
+	{ nil },
 };
 
 int

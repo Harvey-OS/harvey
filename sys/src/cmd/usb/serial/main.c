@@ -37,7 +37,7 @@ threadmain(int argc, char **argv)
 	char *mnt, *srv, *as, *ae;
 	char args[Arglen];
 
-	mnt = "/n/serial";
+	mnt = "/dev";
 	srv = nil;
 
 	quotefmtinstall();

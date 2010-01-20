@@ -332,6 +332,10 @@ extern Ctlr neomagichwgc;
 extern Ctlr nvidia;
 extern Ctlr nvidiahwgc;
 
+/* radeon.c */
+extern Ctlr radeon;
+extern Ctlr radeonhwgc;
+
 /* palette.c */
 extern Ctlr palette;
 

@@ -29,10 +29,11 @@ static Ec2t ec2tpcmcia[] = {
 	{ "PCM100", 1, },		/* EtherFast PCM100 Card */
 	{ "EN2216", 0, },		/* Accton EtherPair-PCMCIA */
 	{ "FA410TX", 1, },		/* Netgear FA410TX */
+	{ "FA411", 0 },			/* Netgear FA411 PCMCIA */
 	{ "Network Everywhere", 0, },	/* Linksys NP10T 10BaseT Card */
 	{ "10/100 Port Attached", 1, },	/* SMC 8040TX */
 	{ "8041TX-10/100-PC-Card-V2", 0 }, /* SMC 8041TX */
-	{ "FA411", 0 },			/* Netgear FA411 PCMCIA */
+	{ "SMC8022", 0},		/* SMC 8022 / EZCard-10-PCMCIA */
 	{ nil, 0, },
 };
 

@@ -267,11 +267,11 @@ as is customary.
 .SS Serial ports
 .I Serial
 provides a file system (usually mounted at
-.BR /n/serial )
+.BR /dev )
 that includes one directory per USB serial port, named
 .BI eiaU N.
 In this directory there are two files,
-.BI eiaU N /data ,
+.BI eiaU N,
 similar to
 .BI eia N
 in

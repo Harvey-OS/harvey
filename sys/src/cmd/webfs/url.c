@@ -261,7 +261,7 @@ merge_relative_path(char *base, char *rel_st, int rel_len, char *dest)
 	pdest = dest;
 
 	/* 6a: start with base, discard last segment */
-	if(base){
+	if(base && base[0]){
 		/* Empty paths don't match in our scheme; 'base' should be nil */
 		assert(base[0] == '/');
 		e = strrchr(base, '/');

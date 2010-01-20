@@ -571,12 +571,10 @@ mesgsave(Message *m, char *s)
 	}
 	free(t);
 
-	all = emalloc(n+k+1);
-	memmove(all, unixheader, k);
-	memmove(all+k, raw, n);
-	memmove(all+k+n, "\n", 1);
-	n = k+n+1;
-	free(unixheader);
+	all = emalloc(n+2);
+	memmove(all, raw, n);
+	memmove(all+n, "\n", 1);
+	n++;
 	free(raw);
 	ret = 1;
 	s = estrdup(s);
@@ -586,10 +584,12 @@ mesgsave(Message *m, char *s)
 	if(ofd < 0){
 		fprint(2, "Mail: can't open %s: %r\n", s);
 		ret = 0;
-	}else if(seek(ofd, 0LL, 2)<0 || write(ofd, all, n)!=n){
+	}else if(seek(ofd, 0LL, 2) < 0 || write(ofd, unixheader, k) != k ||
+	    write2(-1, ofd, all, n, 1) < n){
 		fprint(2, "Mail: save failed: can't write %s: %r\n", s);
 		ret = 0;
 	}
+	free(unixheader);
 	free(all);
 	close(ofd);
 	free(s);

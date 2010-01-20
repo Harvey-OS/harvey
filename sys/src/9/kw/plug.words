@@ -38,7 +38,7 @@ f1010000	64K	uart, flashes, rtc, gpio, etc.
 f1040000	64K	pci-e regs
 f1050000	64K	usb otg regs (ehci-like)
 f1070000	64K	gbe regs
-f1080000	64K	sata regs
+f1080000	64K	non-ahci sata regs
 f1090000	64K	sdio regs
 
 f8000000	128MB	boot device	# default, mapped to 0 by u-boot
