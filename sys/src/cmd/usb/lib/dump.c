@@ -31,27 +31,25 @@ classname(int c)
 	}
 }
 
-char*
+char *
 hexstr(void *a, int n)
 {
 	int i;
+	char *dbuff, *s, *e;
 	uchar *b;
-	char *dbuff;
-	char *s;
-	char *e;
 
 	b = a;
 	dbuff = s = emallocz(1024, 0);
 	*s = 0;
-	e = s+1024;
-	for(i=0; i < n; i++)
+	e = s + 1024;
+	for(i = 0; i < n; i++)
 		s = seprint(s, e, " %.2ux", b[i]);
 	if(s == e)
 		fprint(2, "%s: usb/lib: hexdump: bug: small buffer\n", argv0);
 	return dbuff;
 }
 
-static char*
+static char *
 seprintiface(char *s, char *e, Iface *i)
 {
 	int	j;

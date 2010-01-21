@@ -419,6 +419,7 @@ void
 rbfree(Block *b)
 {
 	b->rp = b->wp = (uchar*)PGROUND((uintptr)b->base);
+ 	b->flag &= ~(Bipck | Budpck | Btcpck | Bpktck);
 	ilock(&rblock);
 	b->next = rbpool;
 	rbpool = b;

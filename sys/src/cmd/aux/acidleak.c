@@ -56,11 +56,13 @@ struct Data {
 };
 
 Block *block;
-int nblock;
+uint nblock;
+uint ablock;
 
 Data *data;
 Data *edata;
-int ndata;
+uint ndata;
+uint adata;
 
 int
 addrcmp(void *va, void *vb)
@@ -200,17 +202,28 @@ main(int argc, char **argv)
 		p[Blinelen(&bio)-1] = '\0';
 		nf = tokenize(p, f, nelem(f));
 		if(nf >= 4 && strcmp(f[0], "data") == 0) {
-			if(ndata%64==0)
-				data = erealloc(data, (ndata+64)*sizeof(Data));
+			if(ndata >= adata){
+				if(adata == 0)
+					adata = 4096;
+				else
+					adata += adata / 4;  /* increase 25% */
+				data = erealloc(data, adata * sizeof(Data));
+			}
 			data[ndata].addr = strtoul(f[1], nil, 0);
 			data[ndata].val = strtoul(f[2], nil, 0);
 			data[ndata].type = f[3][0];
 			data[ndata].b = 0;
 			ndata++;
 		}
-		if(nf >= 5 && (strcmp(f[0], "block") == 0 || strcmp(f[0], "free") == 0)) {
-			if(nblock%64 == 0)
-				block = erealloc(block, (nblock+64)*sizeof(Block));
+		if(nf >= 5 &&
+		    (strcmp(f[0], "block") == 0 || strcmp(f[0], "free") == 0)) {
+			if(nblock >= ablock){
+				if(ablock == 0)
+					ablock = 4096;
+				else
+					ablock += ablock / 4; /* increase 25% */
+				block = erealloc(block, ablock * sizeof(Block));
+			}
 			block[nblock].addr = strtoul(f[1], nil, 0);
 			block[nblock].size = strtoul(f[2], nil, 0);
 			block[nblock].w0 = strtoul(f[3], nil, 0);
@@ -319,4 +332,5 @@ main(int argc, char **argv)
 				Bprint(&bio, "block 0x%.8lux 0x%.8lux 0x%.8lux 0x%.8lux %s %s\n", b->addr, b->size, b->w0, b->w1, b->s0, b->s1);
 	}
 	Bterm(&bio);
+	exits(nil);
 }

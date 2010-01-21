@@ -87,7 +87,7 @@ serialreset(Serial *ser)
 	return 0;
 }
 
-/*call this if something goes wrong */
+/* call this if something goes wrong */
 int
 serialrecover(Serial *ser, char *err)
 {
@@ -400,6 +400,10 @@ dirgen(Usbfs *fs, Qid, int i, Dir *d, void *)
 	return 0;
 }
 
+enum {
+	Serbufsize	= 255,
+};
+
 static long
 dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 {
@@ -414,8 +418,8 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 	path = fid->qid.path & ~fs->qid;
 	ser = fs->aux;
 
-	buf = emallocz(255, 1);
-	err = emallocz(255, 1);
+	buf = emallocz(Serbufsize, 1);
+	err = emallocz(Serbufsize, 1);
 	qlock(ser);
 	switch(path){
 	case Qroot:
@@ -439,7 +443,7 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 				qlock(ser);
 			}
 			if(rcount < 0)
-				snprint(err, 255, "%r");
+				snprint(err, Serbufsize, "%r");
 			if(usbdebug >= 3)
 				dsprint(2, "serial: read: %s %ld\n", err, rcount);
 		} while(rcount < 0 && strstr(err, "timed out") != nil);
@@ -457,7 +461,7 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 		if(offset != 0)
 			count = 0;
 		else {
-			e = serdumpst(ser, buf, 255);
+			e = serdumpst(ser, buf, Serbufsize);
 			count = usbreadbuf(data, count, 0, buf, e - buf);
 		}
 		break;
@@ -682,11 +686,11 @@ serialmain(Dev *dev, int argc, char* argv[])
 		return usage();
 
 	ser = dev->aux = emallocz(sizeof(Serial), 1);
-	/* BUG could this go wrong?,channel leaks? */
+	/* BUG: could this go wrong? channel leaks? */
 	ser->w4data  = chancreate(sizeof(ulong), 0);
 	ser->gotdata = chancreate(sizeof(ulong), 0);
 	ser->w4empty = chancreate(sizeof(ulong), 0);
-	ser->maxread = ser->maxwrite = 8*1024;
+	ser->maxread = ser->maxwrite = sizeof ser->data;
 	ser->dev = dev;
 	dev->free = serdevfree;
 
@@ -702,15 +706,18 @@ serialmain(Dev *dev, int argc, char* argv[])
 		ser->Serialops = ftops;
 	else {
 		werrstr("serial: no serial devices found");
+		closedev(dev);
 		return -1;
 	}
 
 	if(findendpoints(ser) < 0){
 		werrstr("serial: no endpoints found");
+		closedev(dev);
 		return -1;
 	}
 	if(serinit(ser) < 0){
 		dprint(2, "serial: serinit: %r\n");
+		closedev(dev);
 		return -1;
 	}
 
