@@ -4,8 +4,8 @@
  *	82575eb
  * Pretty basic, does not use many of the chip smarts.
  * The interrupt mitigation tuning for each chip variant
- * is probably different. The reset/initialisation
- * sequence needs straightened out. Doubt the PHY code
+ * is probably different.  The reset/initialisation
+ * sequence needs straightening out.  Doubt the PHY code
  * for the 82575eb is right.
  */
 #include "u.h"
@@ -793,6 +793,7 @@ static void
 i82563rbfree(Block* b)
 {
 	b->rp = b->wp = (uchar*)PGROUND((uintptr)b->base);
+ 	b->flag &= ~(Bipck | Budpck | Btcpck | Bpktck);
 	ilock(&i82563rblock);
 	b->next = i82563rbpool;
 	i82563rbpool = b;
@@ -995,9 +996,9 @@ i82563rxinit(Ctlr* ctlr)
 	ctlr->rdt = 0;
 	csr32w(ctlr, Rdt, 0);
 	/* to hell with interrupt moderation, we've got fast cpus */
+	ctlr->radv = ctlr->rdtr = 0;
 //	ctlr->rdtr = 25;		/* µs units? */
 //	ctlr->radv = 500;		/* µs units? */
-	ctlr->radv = ctlr->rdtr = 0;
 	csr32w(ctlr, Rdtr, ctlr->rdtr);
 	csr32w(ctlr, Radv, ctlr->radv);
 
@@ -1244,31 +1245,27 @@ i82563attach(Ether* edev)
 	ctlr->ntd = Ntd;
 
 	if(waserror()){
-		while(ctlr->nrb > 0){
+		for(; ctlr->nrb > 0; ctlr->nrb--){
 			bp = i82563rballoc();
 			bp->free = nil;
 			freeb(bp);
-			ctlr->nrb--;
 		}
 		free(ctlr->tb);
-		ctlr->tb = nil;
 		free(ctlr->rb);
+		ctlr->tb = nil;
 		ctlr->rb = nil;
 		free(ctlr->tdba);
-		ctlr->tdba = nil;
 		free(ctlr->rdba);
+		ctlr->tdba = nil;
 		ctlr->rdba = nil;
 		qunlock(&ctlr->alock);
 		nexterror();
 	}
 
-	if((ctlr->rdba = mallocalign(ctlr->nrd*sizeof(Rd), 128, 0, 0)) == nil)
-		error(Enomem);
-	if((ctlr->tdba = mallocalign(ctlr->ntd*sizeof(Td), 128, 0, 0)) == nil)
-		error(Enomem);
-	if((ctlr->rb = malloc(ctlr->nrd*sizeof(Block*))) == nil)
-		error(Enomem);
-	if((ctlr->tb = malloc(ctlr->ntd*sizeof(Block*))) == nil)
+	if((ctlr->rdba = mallocalign(ctlr->nrd*sizeof(Rd), 128, 0, 0)) == nil ||
+	   (ctlr->tdba = mallocalign(ctlr->ntd*sizeof(Td), 128, 0, 0)) == nil ||
+	   (ctlr->rb = malloc(ctlr->nrd*sizeof(Block*))) == nil ||
+	   (ctlr->tb = malloc(ctlr->ntd*sizeof(Block*))) == nil)
 		error(Enomem);
 
 	for(ctlr->nrb = 0; ctlr->nrb < Nrb; ctlr->nrb++){

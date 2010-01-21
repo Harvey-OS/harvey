@@ -45,6 +45,34 @@ long	BADOFFSET	=	-1;
 			cflush();\
 	}
 
+#define HPUT(h) { \
+		if (little) { \
+			HLEPUT(h); \
+		} else { \
+			HBEPUT(h); \
+		} \
+	}
+
+#define	HLEPUT(c)\
+	{\
+		cbp[0] = (c);\
+		cbp[1] = (c)>>8;\
+		cbp += 2;\
+		cbc -= 2;\
+		if(cbc <= 0)\
+			cflush();\
+	}
+
+#define	HBEPUT(c)\
+	{\
+		cbp[0] = (c)>>8;\
+		cbp[1] = (c);\
+		cbp += 2;\
+		cbc -= 2;\
+		if(cbc <= 0)\
+			cflush();\
+	}
+
 
 #define	CPUT(c)\
 	{\
@@ -59,6 +87,12 @@ void
 objput(long l)	/* emit long in byte order appropriate to object machine */
 {
 	LPUT(l);
+}
+
+void
+objhput(short s)
+{
+	HPUT(s);
 }
 
 void
@@ -357,48 +391,64 @@ asmb(void)
 		lput(0x80L);			/* flags */
 		break;
 	case 5:
+		/* strings are order-independent */
 		strnput("\177ELF", 4);		/* e_ident */
 		CPUT(1);			/* class = 32 bit */
-		CPUT(2);			/* data = MSB */
-		CPUT(1);			/* version = CURRENT */
-		strnput("", 9);
-		lput((2L<<16)|8L);		/* type = EXEC; machine = MIPS */
-		lput(1L);			/* version = CURRENT */
-		lput(entryvalue());		/* entry vaddr */
-		lput(52L);			/* offset to first phdr */
-		lput(0L);			/* offset to first shdr */
-		lput(0L);			/* flags = MIPS */
-		lput((52L<<16)|32L);		/* Ehdr & Phdr sizes*/
-		lput((3L<<16)|0L);		/* # Phdrs & Shdr size */
-		lput((0L<<16)|0L);		/* # Shdrs & shdr string size */
+		CPUT(little? 1: 2);		/* data: 1 = LSB, 2 = MSB */
+		CPUT(1);			/* version = 1 */
+		strnput("", 9);			/* reserved for expansion */
+		/* entire remainder of ELF file is in target byte order */
 
-		/* TODO: only these few words are in native byte order? */
-		objput(1L);			/* text - type = PT_LOAD */
+		/* file header part of ELF header */
+		objhput(2);			/* type = EXEC */
+		objhput(8);			/* machine = MIPS */
+		objput(1L);			/* version = CURRENT */
+		objput(entryvalue());		/* entry vaddr */
+		objput(52L);			/* offset to first phdr */
+		objput(0L);			/* offset to first shdr */
+		objput(0L);			/* flags (no MIPS flags defined) */
+		objhput(52);			/* Ehdr size */
+		objhput(32);			/* Phdr size */
+		objhput(3);			/* # of Phdrs */
+		objhput(0);			/* Shdr size */
+		objhput(0);			/* # of Shdrs */
+		objhput(0);			/* Shdr string size */
+
+		/* "Program headers" - one per chunk of file to load */
+
+		/*
+		 * include ELF headers in text -- 8l doesn't,
+		 * but in theory it aids demand loading.
+		 */
+		objput(1L);			/* text: type = PT_LOAD */
 		objput(0L);			/* file offset */
 		objput(INITTEXT-HEADR);		/* vaddr */
 		objput(INITTEXT-HEADR);		/* paddr */
 		objput(HEADR+textsize);		/* file size */
 		objput(HEADR+textsize);		/* memory size */
 		objput(0x05L);			/* protections = RX */
-		objput(0x10000L);		/* alignment code?? */
+		objput(0x1000L);		/* page-align text off's & vaddrs */
 
-		lput(1L);			/* data - type = PT_LOAD */
-		lput(HEADR+textsize);		/* file offset */
-		lput(INITDAT);			/* vaddr */
-		lput(INITDAT);			/* paddr */
-		lput(datsize);			/* file size */
-		lput(datsize+bsssize);		/* memory size */
-		lput(0x06L);			/* protections = RW */
-		lput(0x10000L);			/* alignment code?? */
+		objput(1L);			/* data: type = PT_LOAD */
+		objput(HEADR+textsize);		/* file offset */
+		objput(INITDAT);		/* vaddr */
+		objput(INITDAT);		/* paddr */
+		objput(datsize);		/* file size */
+		objput(datsize+bsssize);	/* memory size */
+		objput(0x06L);			/* protections = RW */
+		if(INITDAT % 4096 == 0 && (HEADR + textsize) % 4096 == 0)
+			objput(0x1000L);	/* page-align data off's & vaddrs */
+		else
+			objput(0L);		/* do not claim alignment */
 
-		lput(0L);			/* data - type = PT_NULL */
-		lput(HEADR+textsize+datsize);	/* file offset */
-		lput(0L);
-		lput(0L);
-		lput(symsize);			/* symbol table size */
-		lput(lcsize);			/* line number size */
-		lput(0x04L);			/* protections = R */
-		lput(0x04L);			/* alignment code?? */
+		objput(0L);			/* P9 symbols: type = PT_NULL */
+		objput(HEADR+textsize+datsize);	/* file offset */
+		objput(0L);
+		objput(0L);
+		objput(symsize);		/* symbol table size */
+		objput(lcsize);			/* line number size */
+		objput(0x04L);			/* protections = R */
+		objput(0L);			/* do not claim alignment */
 		break;
 	case 6:
 		break;

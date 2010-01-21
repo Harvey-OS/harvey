@@ -1,6 +1,6 @@
 .TH AUDIO 3 
 .SH NAME
-audio \- SoundBlaster audio controller
+audio \- SoundBlaster or ESS1688 audio controller
 .SH SYNOPSIS
 .nf
 .B bind -a #A /dev
@@ -47,8 +47,7 @@ was reached.  Using
 and
 .IR o ,
 it is possible to calculate at what time a byte with a different offset will
-be recorded or played back.  See also
-.IR usb (4).
+be recorded or played back.
 .PP
 .B Volume
 is the control file associated with the audio port.
@@ -126,3 +125,5 @@ expressed in Hz.
 Defaults to 44100.
 .SH SOURCE
 .B /sys/src/9/port/devaudio.c
+.SH SEE ALSO
+.IR usb (4)

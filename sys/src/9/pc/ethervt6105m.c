@@ -579,6 +579,7 @@ vt6105Mrbfree(Block* bp)
 {
 	bp->rp = bp->lim - (Rdbsz+3);
 	bp->wp = bp->rp;
+ 	bp->flag &= ~(Bipck | Budpck | Btcpck | Bpktck);
 
 	ilock(&vt6105Mrblock);
 	bp->next = vt6105Mrbpool;

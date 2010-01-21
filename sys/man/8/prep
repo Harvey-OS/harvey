@@ -1,6 +1,6 @@
 .TH PREP 8
 .SH NAME
-prep, fdisk, format, mbr \- prepare hard and floppy diskettes, flashes
+prep, fdisk, format, mbr \- prepare disks, floppies and flashes
 .SH SYNOPSIS
 .B disk/prep
 [
@@ -364,21 +364,29 @@ is set to the maximum value that
 .I end
 can take on without running off the disk
 or into another partition.
+Numeric constants followed by
+.LR k ,
+.LR m ,
+.LR g ,
+or
+.LR t
+(or upper-case equivalents)
+are scaled to the respective size in kilo-, mega-, giga-, or tera-bytes.
 Finally, the expression
 .IB n %
 evaluates to
 .RI ( n × disksize )/100.
-As an example,
-.B a
-.B .
-.B .+20%
+As examples,
+.L "a . .+20%"
 creates a new partition starting at
 .B .
 that takes up a fifth of the disk,
+.L "a . .+21G"
+creates a new partition starting at
+.B .
+that takes up 21 gigabytes (21×2\u\s-130\s0\d bytes),
 and
-.B a
-.B 1000
-.B $
+.L "a 1000 $"
 creates a new partition starting at
 sector 1000 and
 extending as far as possible.

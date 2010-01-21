@@ -26,6 +26,12 @@ and division by zero.
 Also, the library functions sometimes return them when
 the arguments are not in the domain, or the result is
 out of range.
+By default, manipulating these values may cause a floating point exception
+on some processors but
+.I setfcr
+(see
+.IR getfcr (2))
+can change that behavior.
 .PP
 .I NaN
 returns a double that is not-a-number.
@@ -42,3 +48,5 @@ returns true if its first argument is infinity
 with the same sign as the second argument.
 .SH SOURCE
 .B /sys/src/libc/port/nan.c
+.SH "SEE ALSO"
+.IR getfcr (2)
