@@ -413,6 +413,7 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 	char *e, *buf, *err;	/* change */
 	Qid q;
 	Serial *ser;
+	static int errrun;
 
 	q = fid->qid;
 	path = fid->qid.path & ~fs->qid;
@@ -442,8 +443,22 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 				rcount = read(dfd, data, count);
 				qlock(ser);
 			}
-			if(rcount < 0)
+			/*
+			 * if we encounter a long run of continuous read
+			 * errors, do something drastic so that our caller
+			 * doesn't just spin its wheels forever.
+			 */
+			if(rcount < 0) {
 				snprint(err, Serbufsize, "%r");
+				if (++errrun > 1000) {
+					/* the line has been dropped; give up */
+					qunlock(ser);
+					fprint(2, "%s: line is gone: %r\n",
+						argv0);
+					threadexitsall("serial line gone");
+				}
+			} else
+				errrun = 0;
 			if(usbdebug >= 3)
 				dsprint(2, "serial: read: %s %ld\n", err, rcount);
 		} while(rcount < 0 && strstr(err, "timed out") != nil);

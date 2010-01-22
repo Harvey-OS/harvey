@@ -1150,7 +1150,8 @@ msgRecv(TlsConnection *c, Msg *m)
 		nn = get16(p);
 		p += 2;
 		n -= 2;
-		if(nn == 0 || n != nn)
+		/* nn == 0 can happen; yahoo's servers do it */
+		if(nn != n)
 			goto Short;
 		/* cas */
 		i = 0;
@@ -1163,7 +1164,8 @@ msgRecv(TlsConnection *c, Msg *m)
 			if(nn < 1 || nn > n)
 				goto Short;
 			m->u.certificateRequest.nca = i+1;
-			m->u.certificateRequest.cas = erealloc(m->u.certificateRequest.cas, (i+1)*sizeof(Bytes));
+			m->u.certificateRequest.cas = erealloc(
+				m->u.certificateRequest.cas, (i+1)*sizeof(Bytes));
 			m->u.certificateRequest.cas[i] = makebytes(p, nn);
 			p += nn;
 			n -= nn;

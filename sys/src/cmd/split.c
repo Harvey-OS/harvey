@@ -70,13 +70,18 @@ main(int argc, char *argv[])
 		Binit(b, 0, OREAD);
 
 	if(pattern) {
-		if(!(exp = regcomp(iflag? fold(pattern,strlen(pattern)): pattern)))
+		Resub match[2];
+
+		if(!(exp = regcomp(iflag? fold(pattern, strlen(pattern)):
+		    pattern)))
 			badexp();
+		memset(match, 0, sizeof match);
+		matchfile(match);
 		while((line=Brdline(b,'\n')) != 0) {
-			Resub match[2];
 			memset(match, 0, sizeof match);
 			line[Blinelen(b)-1] = 0;
-			if(regexec(exp,iflag?fold(line,Blinelen(b)-1):line,match,2)) {
+			if(regexec(exp, iflag? fold(line, Blinelen(b)-1): line,
+			    match, 2)) {
 				if(matchfile(match) && xflag)
 					continue;
 			} else if(output == 0)
@@ -110,7 +115,8 @@ main(int argc, char *argv[])
 int
 nextfile(void)
 {
-	static canopen = 1;
+	static int canopen = 1;
+
 	if(suff[0] > 'z') {
 		if(canopen)
 			fprint(2, "split: file %szz not split\n",stem);
@@ -129,6 +135,7 @@ matchfile(Resub *match)
 {
 	if(match[1].sp) {
 		int len = match[1].ep - match[1].sp;
+
 		strncpy(name, match[1].sp, len);
 		strcpy(name+len, suffix);
 		openf();
@@ -141,6 +148,7 @@ void
 openf(void)
 {
 	static int fd = 0;
+
 	Bflush(output);
 	Bterm(output);
 	if(fd > 0)
