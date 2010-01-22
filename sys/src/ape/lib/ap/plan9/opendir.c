@@ -40,7 +40,7 @@ opendir(const char *filename)
 		errno = ENOMEM;
 		return NULL;
 	}
-	d->dd_buf = ((char *)d) + sizeof(DIR);
+	d->dd_buf = (char *)d + sizeof(DIR);
 	d->dd_fd = f;
 	d->dd_loc = 0;
 	d->dd_size = 0;
@@ -67,18 +67,14 @@ closedir(DIR *d)
 void
 rewinddir(DIR *d)
 {
-	int f;
-	char dname[300];
-
+	if(!d)
+		return;
 	d->dd_loc = 0;
 	d->dd_size = 0;
 	d->dirsize = 0;
 	d->dirloc = 0;
 	free(d->dirs);
 	d->dirs = nil;
-	if(!d){
-		return;
-	}
 	if(_SEEK(d->dd_fd, 0, 0) < 0){
 		_syserrno();
 		return;
@@ -99,12 +95,18 @@ readdir(DIR *d)
 	if(d->dd_loc >= d->dd_size){
 		if(d->dirloc >= d->dirsize){
 			free(d->dirs);
+			d->dirs = NULL;
 			d->dirsize = _dirread(d->dd_fd, &d->dirs);
 			d->dirloc = 0;
 		}
+		if(d->dirsize < 0) {	/* malloc or read failed in _dirread? */
+			free(d->dirs);
+			d->dirs = NULL;
+		}
 		if(d->dirs == NULL)
 			return NULL;
-		dr = (struct dirent *)(d->dd_buf);
+
+		dr = (struct dirent *)d->dd_buf;
 		dirs = d->dirs;
 		for(i=0; i<DBLOCKSIZE && d->dirloc < d->dirsize; i++){
 			strncpy(dr[i].d_name, dirs[d->dirloc++].name, MAXNAMLEN);

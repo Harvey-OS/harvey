@@ -414,6 +414,25 @@ and
 (for parsing a line into fields).
 See the Research Unix System Programmer's Manual, Tenth Edition, for a description
 of these functions.
+.XX
+.CW _C99_SNPRINTF_EXTENSION .
+This extension permits the use of the return values of
+.I snprintf
+and
+.I vsnprintf .
+Before C99, the 1999 C standard,
+these functions usually returned the number of bytes,
+excluding terminating NUL,
+actually stored in the target string.
+(GNU, as usual, had to be different and returned -1 if the target
+string was too small.)
+C99 requires them to instead return the number of bytes,
+excluding terminating NUL,
+that would have been written into the target string if it were infinitely large,
+so old programs compiled under C99 rules will be prone to overrunning
+their buffers.
+This extension is a way for the programmer to declare that he or she understands
+the situation and has adjusted the code being compiled to compensate.
 .SH
 Common Problems
 .PP

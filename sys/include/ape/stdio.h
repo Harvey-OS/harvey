@@ -88,12 +88,19 @@ extern int fscanf(FILE *, const char *, ...);
 extern int printf(const char *, ...);
 extern int scanf(const char *, ...);
 extern int sprintf(char *, const char *, ...);
+#define _C99_SNPRINTF_EXTENSION
+#ifdef _C99_SNPRINTF_EXTENSION		/* user knows about c99 treachery */
 extern int snprintf(char *, size_t, const char *, ...);
+extern int vsnprintf(char *, size_t, const char *, va_list);
+#else
+/* draw errors on any attempt to use *snprintf value so old code gets changed */
+extern void snprintf(char *, size_t, const char *, ...);
+extern void vsnprintf(char *, size_t, const char *, va_list);
+#endif
 extern int sscanf(const char *, const char *, ...);
 extern int vfprintf(FILE *, const char *, va_list);
 extern int vprintf(const char *, va_list);
 extern int vsprintf(char *, const char *, va_list);
-extern int vsnprintf(char *, size_t, const char *, va_list);
 extern int vfscanf(FILE *, const char *, va_list);
 extern int fgetc(FILE *);
 extern char *fgets(char *, int, FILE *);

@@ -1,7 +1,10 @@
 /*
  * pANS stdio -- sprintf
  */
+#define _C99_SNPRINTF_EXTENSION
+
 #include "iolib.h"
+
 int snprintf(char *buf, size_t nbuf, const char *fmt, ...){
 	int n;
 	va_list args;

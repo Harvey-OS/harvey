@@ -292,8 +292,7 @@ static Rpc*
 fswalk(Rpc *r)
 {
 	int i;
-	Fid *nfid;
-	Fid *ofid;
+	Fid *nfid, *ofid;
 
 	if(r->fid->omode != ONONE)
 		return fserror(r, Eisopen);
@@ -331,11 +330,10 @@ fswalk(Rpc *r)
 static void
 fsioproc(void* a)
 {
+	long rc;
 	Channel *p = a;
 	Rpc *rpc;
-	long rc;
-	Fcall *t;
-	Fcall *r;
+	Fcall *t, *r;
 	Fid *fid;
 
 	dprint(2, "%s: fsioproc pid %d\n", argv0, getpid());
@@ -355,16 +353,21 @@ fsioproc(void* a)
 			}
 			break;
 		case Tread:
-			rc = fsops->read(fsops,fid,r->data,t->count,t->offset);
+			rc = fsops->read(fsops, fid, r->data, t->count, t->offset);
 			if(rc >= 0){
 				if(rc > t->count)
 					print("%s: bug: read %ld bytes > %ud wanted\n",
 						argv0, rc, t->count);
 				r->count = rc;
 			}
+			/*
+			 * TODO: if we encounter a long run of continuous read
+			 * errors, we should do something more drastic so that
+			 * our caller doesn't just spin its wheels forever.
+			 */
 			break;
 		case Twrite:
-			rc = fsops->write(fsops,fid,t->data,t->count,t->offset);
+			rc = fsops->write(fsops, fid, t->data, t->count, t->offset);
 			r->count = rc;
 			break;
 		default:
@@ -398,11 +401,9 @@ fsopen(Rpc *r)
 int
 usbdirread(Usbfs*f, Qid q, char *data, long cnt, vlong off, Dirgen gen, void *arg)
 {
-	Dir d;
+	int i, n, nd;
 	char name[Namesz];
-	int i;
-	int n;
-	int nd;
+	Dir d;
 
 	memset(&d, 0, sizeof(d));
 	d.name = name;

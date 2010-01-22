@@ -134,16 +134,21 @@ _profout(void)
 static void
 err(char *fmt, ...)
 {
-	int n, fd;
+	int fd;
 	va_list arg;
 	char buf[128];
 
 	if((fd = open("/dev/cons", OWRITE)) == -1)
 		return;
 	va_start(arg, fmt);
-	n = vsnprintf(buf, sizeof(buf), fmt, arg);
+	/*
+	 * C99 now requires *snprintf to return the number of characters
+	 * that *would* have been emitted, had there been room for them.
+	 * Arrgh!
+	 */
+	vsnprintf(buf, sizeof buf, fmt, arg);
 	va_end(arg);
-	write(fd, buf, n);
+	write(fd, buf, strlen(buf));
 	close(fd);
 }
 

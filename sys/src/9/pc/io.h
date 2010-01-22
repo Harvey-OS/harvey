@@ -369,3 +369,6 @@ struct PCMslot
 	int	time;
 	PCMmap	mmap[4];	/* maps, last is always for the kernel */
 };
+
+#pragma varargck	type	"T"	int
+#pragma varargck	type	"T"	uint
