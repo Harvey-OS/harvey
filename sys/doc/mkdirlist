@@ -1,5 +1,5 @@
 #!/bin/rc
-
+# mkdirlist
 for(i in $*)
 	if(~ $i */*)
-		echo $i
+		basename -d $i
