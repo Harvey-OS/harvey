@@ -143,8 +143,8 @@ err(char *fmt, ...)
 	va_start(arg, fmt);
 	/*
 	 * C99 now requires *snprintf to return the number of characters
-	 * that *would* have been emitted, had there been room for them.
-	 * Arrgh!
+	 * that *would* have been emitted, had there been room for them,
+	 * or a negative value on an `encoding error'.  Arrgh!
 	 */
 	vsnprintf(buf, sizeof buf, fmt, arg);
 	va_end(arg);

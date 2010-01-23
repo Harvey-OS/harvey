@@ -88,8 +88,7 @@ extern int fscanf(FILE *, const char *, ...);
 extern int printf(const char *, ...);
 extern int scanf(const char *, ...);
 extern int sprintf(char *, const char *, ...);
-#define _C99_SNPRINTF_EXTENSION
-#ifdef _C99_SNPRINTF_EXTENSION		/* user knows about c99 treachery */
+#ifdef _C99_SNPRINTF_EXTENSION /* user knows about c99 out-of-bounds returns */
 extern int snprintf(char *, size_t, const char *, ...);
 extern int vsnprintf(char *, size_t, const char *, va_list);
 #else

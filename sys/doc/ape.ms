@@ -428,7 +428,8 @@ actually stored in the target string.
 string was too small.)
 C99 requires them to instead return the number of bytes,
 excluding terminating NUL,
-that would have been written into the target string if it were infinitely large,
+that would have been written into the target string if it were infinitely large
+or a negative value if an `encoding error' occurs,
 so old programs compiled under C99 rules will be prone to overrunning
 their buffers.
 This extension is a way for the programmer to declare that he or she understands

@@ -220,6 +220,15 @@ showdata(Plumbmsg *msg)
 	return s && strcmp(s, "showdata")==0;
 }
 
+static int
+plumbquit(Plumbmsg *msg)
+{
+	char *s;
+
+	s = plumblookup(msg->attr, "action");
+	return s && strcmp(s, "quit")==0;
+}
+
 /* correspond to entries in miditems[] below,
  * changing one means you need to change
  */
@@ -666,6 +675,8 @@ viewer(Document *dd)
 				plumbfree(pm);
 				break;
 			}
+			if(plumbquit(pm))
+				exits(nil);
 			if(showdata(pm)) {
 				s = estrdup("/tmp/pageplumbXXXXXXX");
 				fd = opentemp(s);
