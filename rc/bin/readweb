@@ -7,4 +7,4 @@ outside && bind /net.alt /net
 webfs
 webcookies
 echo useragent netscape 1.0 >/mnt/web/ctl
-exec abaco $*
+exec /$cputype/bin/abaco $*
