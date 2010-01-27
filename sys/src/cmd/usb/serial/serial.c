@@ -230,7 +230,12 @@ serialctl(Serial *p, char *cmd)
 			}
 			break;
 		}
-		if (nop)
+		/*
+		 * don't print.  the condition is harmless and the print
+		 * splatters all over the display.
+		 */
+		USED(nop);
+		if (0 && nop)
 			fprint(2, "serial: %c, unsupported nop ctl\n", c);
 	}
 	if(drain)
@@ -413,7 +418,7 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 	char *e, *buf, *err;	/* change */
 	Qid q;
 	Serial *ser;
-	static int errrun;
+	static int errrun, good;
 
 	q = fid->qid;
 	path = fid->qid.path & ~fs->qid;
@@ -436,6 +441,7 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 			if(usbdebug >= 3)
 				dsprint(2, "serial: reading: %ld\n", count);
 
+			assert(count > 0);
 			if(ser->wait4data != nil)
 				rcount = ser->wait4data(ser, data, count);
 			else{
@@ -450,15 +456,19 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 			 */
 			if(rcount < 0) {
 				snprint(err, Serbufsize, "%r");
-				if (++errrun > 1000) {
+				++errrun;
+				sleep(20);
+				if (good > 0 && errrun > 10000) {
 					/* the line has been dropped; give up */
 					qunlock(ser);
-					fprint(2, "%s: line is gone: %r\n",
-						argv0);
+					fprint(2, "%s: line %s is gone: %r\n",
+						argv0, ser->fs.name);
 					threadexitsall("serial line gone");
 				}
-			} else
+			} else {
 				errrun = 0;
+				good++;
+			}
 			if(usbdebug >= 3)
 				dsprint(2, "serial: read: %s %ld\n", err, rcount);
 		} while(rcount < 0 && strstr(err, "timed out") != nil);
