@@ -340,7 +340,7 @@ plreadstatus(Serial *ser)
 	snprint(err, sizeof err, "%r");
 	dsprint(2, "serial: interrupt read %d %r\n", nr);
 
-	if(nr < 0 && strstr(err, "timed out") != nil){
+	if(nr < 0 && strstr(err, "timed out") == nil){
 		dsprint(2, "serial: need to recover, status read %d %r\n", nr);
 		if(serialrecover(ser, err) < 0){
 			qunlock(ser);
