@@ -9,6 +9,7 @@
 0004 beginning-of-partition/medium detected
 0005 end-of-data detected
 0006 i/o process terminated
+0007 programmable early warning detected
 0011 audio play operation in progress
 0012 audio play operation paused
 0013 audio play operation successfully completed
@@ -16,6 +17,13 @@
 0015 no current audio status to return
 0016 operation in progress
 0017 cleaning requested
+0018 erase operation in progress
+0019 locate operation in progress
+001a rewind operation in progress
+001b set capacity operation in progress
+001c verify operation in progress
+001d ata pass through information available
+001e conflicting sa creation request
 0100 no index/sector signal
 0200 no seek complete
 0300 peripheral device write fault
@@ -23,7 +31,7 @@
 0302 excessive write errors
 0400 logical unit not ready, cause not reportable
 0401 logical unit is in process of becoming ready
-0402 logical unit not ready, initializing cmd. required
+0402 logical unit not ready, initializing command required
 0403 logical unit not ready, manual intervention required
 0404 logical unit not ready, format in progress
 0405 logical unit not ready, rebuild in progress
@@ -31,7 +39,20 @@
 0407 logical unit not ready, operation in progress
 0408 logical unit not ready, long write in progress
 0409 logical unit not ready, self-test in progress
-0410 auxiliary memory code 2 (99-148) [proposed]
+040a logical unit not accessible, asymmetric access state transition
+040b logical unit not accessible, target port in standby state
+040c logical unit not accessible, target port in unavailable state
+040d logical unit not ready, structure check required
+0410 logical unit not ready, auxiliary memory not accessible
+0411 logical unit not ready, notify (enable spinup) required
+0412 logical unit not ready, offline
+0413 logical unit not ready, sa creation in progress
+0414 logical unit not ready, space allocation in progress
+0415 logical unit not ready, robotics disabled
+0416 logical unit not ready, configuration required
+0417 logical unit not ready, calibration required
+0418 logical unit not ready, a door is open
+0419 logical unit not ready, operating in sequential mode
 0500 logical unit does not respond to selection
 0600 no reference position found
 0700 multiple peripheral devices selected
@@ -49,6 +70,12 @@
 0b00 warning
 0b01 warning - specified temperature exceeded
 0b02 warning - enclosure degraded
+0b03 warning - background self-test failed
+0b04 warning - background pre-scan detected medium error
+0b05 warning - background medium scan detected medium error
+0b06 warning - non-volatile cache now volatile
+0b07 warning - degraded power to non-volatile cache
+0b08 warning - power loss expected
 0c00 write error
 0c01 write error - recovered with auto reallocation
 0c02 write error - auto reallocation failed
@@ -60,11 +87,25 @@
 0c08 write error - recovery failed
 0c09 write error - loss of streaming
 0c0a write error - padding blocks added
-0c0b auxiliary memory code 4 (99-148) [proposed]
-0d/00
-0e/00
+0c0b auxiliary memory write error
+0c0c write error - unexpected unsolicited data
+0c0d write error - not enough unsolicited data
+0c0f defects in error window
+0d00 error detected by third party temporary initiator
+0d01 third party device failure
+0d02 copy target device not reachable
+0d03 incorrect copy target device type
+0d04 copy target device data underrun
+0d05 copy target device data overrun
+0e00 invalid information unit
+0e01 information unit too short
+0e02 information unit too long
+0e03 invalid field in command information unit
 0f/00
 1000 id crc or ecc error
+1001 logical block guard check failed
+1002 logical block application tag check failed
+1003 logical block reference tag check failed
 1100 unrecovered read error
 1101 read retries exhausted
 1102 error too long to correct
@@ -83,7 +124,9 @@
 110f error reading upc/ean number
 1110 error reading isrc number
 1111 read error - loss of streaming
-1112 auxiliary memory code 3 (99-148) [proposed]
+1112 auxiliary memory read error
+1113 read error - failed retransmission request
+1114 read error - lba marked bad by application client
 1200 address mark not found for id field
 1300 address mark not found for data field
 1400 recorded entity not found
@@ -93,6 +136,7 @@
 1404 block sequence error
 1405 record not found - recommend reassignment
 1406 record not found - data auto-reallocated
+1407 locate operation failure
 1500 random positioning error
 1501 mechanical positioning error
 1502 positioning error detected by read of medium
@@ -119,6 +163,7 @@
 1805 recovered data - recommend reassignment
 1806 recovered data - recommend rewrite
 1807 recovered data with ecc - data rewritten
+1808 recovered data with linking
 1900 defect list error
 1901 defect list not available
 1902 defect list error in primary list
@@ -129,18 +174,36 @@
 1c01 primary defect list not found
 1c02 grown defect list not found
 1d00 miscompare during verify operation
+1d01 miscompare verify of unmapped lba
 1e00 recovered id with ecc correction
 1f00 partial defect list transfer
 2000 invalid command operation code
-2001 access controls code 1 (99-314) [proposed]
-2002 access controls code 2 (99-314) [proposed]
-2003 access controls code 3 (99-314) [proposed]
+2001 access denied - initiator pending-enrolled
+2002 access denied - no access rights
+2003 access denied - invalid mgmt id key
+2004 illegal command while in write capable state
+2005 obsolete
+2006 illegal command while in explicit address mode
+2007 illegal command while in implicit address mode
+2008 access denied - enrollment conflict
+2009 access denied - invalid lu identifier
+200a access denied - invalid proxy token
+200b access denied - acl lun conflict
 2100 logical block address out of range
 2101 invalid element address
+2102 invalid address for write
+2103 invalid write crossing layer jump
 2200 illegal function (use 20 00, 24 00, or 26 00)
 23/00
 2400 invalid field in cdb
 2401 cdb decryption error
+2402 obsolete
+2403 obsolete
+2404 security audit value frozen
+2405 security working key frozen
+2406 nonce not unique
+2407 nonce timestamp out of range
+2408 invalid xcdb
 2500 logical unit not supported
 2600 invalid field in parameter list
 2601 parameter not supported
@@ -156,14 +219,23 @@
 260b inline data length exceeded
 260c invalid operation for copy source or destination
 260d copy segment granularity violation
+260e invalid parameter while port is enabled
+260f invalid data-out buffer integrity check value
+2610 data decryption key fail limit reached
+2611 incomplete key-associated data set
+2612 vendor specific key reference not found
 2700 write protected
 2701 hardware write protected
 2702 logical unit software write protected
 2703 associated write protect
 2704 persistent write protect
 2705 permanent write protect
+2706 conditional write protect
+2707 space allocation failed write protect
 2800 not ready to ready change, medium may have changed
 2801 import or export element accessed
+2802 format-layer may have changed
+2803 import/export element accessed, medium changed
 2900 power on, reset, or bus device reset occurred
 2901 power on occurred
 2902 scsi bus reset occurred
@@ -171,12 +243,26 @@
 2904 device internal reset
 2905 transceiver mode changed to single-ended
 2906 transceiver mode changed to lvd
+2907 i_t nexus loss occurred
 2a00 parameters changed
 2a01 mode parameters changed
 2a02 log parameters changed
 2a03 reservations preempted
 2a04 reservations released
 2a05 registrations preempted
+2a06 asymmetric access state changed
+2a07 implicit asymmetric access state transition failed
+2a08 priority changed
+2a09 capacity data has changed
+2a0a error history i_t nexus cleared
+2a0b error history snapshot released
+2a0c error recovery attributes have changed
+2a0d data encryption capabilities changed
+2a10 timestamp changed
+2a11 data encryption parameters changed by another i_t nexus
+2a12 data encryption parameters changed by vendor specific event
+2a13 data encryption key instance counter has changed
+2a14 sa creation capabilities data has changed
 2b00 copy cannot execute since host cannot disconnect
 2c00 command sequence error
 2c01 too many windows specified
@@ -184,14 +270,17 @@
 2c03 current program area is not empty
 2c04 current program area is empty
 2c05 illegal power condition request
+2c06 persistent prevent conflict
+2c07 previous busy status
+2c08 previous task set full status
+2c09 previous reservation conflict status
+2c0a partition or collection contains user objects
+2c0b not reserved
 2d00 overwrite error on update in place
-2e00 error detected by third party temporary initiator
-2e01 third party device failure
-2e02 copy target device not reachable
-2e03 incorrect copy target device type
-2e04 copy target device data underrun
-2e05 copy target device data overrun
+2e00 insufficient time for operation
 2f00 commands cleared by another initiator
+2f01 commands cleared by power loss notification
+2f02 commands cleared by device server
 3000 incompatible medium installed
 3001 cannot read medium - unknown format
 3002 cannot read medium - incompatible format
@@ -202,8 +291,16 @@
 3007 cleaning failure
 3008 cannot write - application code mismatch
 3009 current session not fixated for append
+300a cleaning request rejected
+300c worm medium - overwrite attempted
+300d worm medium - integrity check
+3010 medium not formatted
+3011 incompatible volume type
+3012 incompatible volume qualifier
+3013 cleaning volume expired
 3100 medium format corrupted
 3101 format command failed
+3102 zoned formatting failed due to spare linking
 3200 no defect spare location available
 3201 defect list update failure
 3300 tape length error
@@ -213,12 +310,14 @@
 3502 enclosure services unavailable
 3503 enclosure services transfer failure
 3504 enclosure services transfer refused
+3505 enclosure services checksum error
 3600 ribbon, ink, or toner failure
 3700 rounded parameter
 3800 event status notification
 3802 esn - power management class event
 3804 esn - media class event
 3806 esn - device busy class event
+3807 thin provisioning soft threshold reached
 3900 saving parameters not supported
 3a00 medium not present
 3a01 medium not present - tray closed
@@ -247,6 +346,11 @@
 3b14 medium magazine locked
 3b15 medium magazine unlocked
 3b16 mechanical positioning or changer error
+3b17 read past end of user object
+3b18 element disabled
+3b19 element enabled
+3b1a data transfer device removed
+3b1b data transfer device inserted
 3c/00
 3d00 invalid bits in identify message
 3e00 logical unit has not self-configured yet
@@ -272,43 +376,65 @@
 3f0f echo buffer overwritten
 3f10 medium loadable
 3f11 medium auxiliary memory accessible
+3f12 iscsi ip address added
+3f13 iscsi ip address removed
+3f14 iscsi ip address changed
 4000 ram failure (should use 40 nn)
 40nn diagnostic failure on component nn (80h-ffh)
 4100 data path failure (should use 40 nn)
 4200 power-on or self-test failure (should use 40 nn)
 4300 message error
 4400 internal target failure
+4471 ata device failed set features
 4500 select or reselect failure
 4600 unsuccessful soft reset
 4700 scsi parity error
 4701 data phase crc error detected
 4702 scsi parity error detected during st data phase
-4703 information unit crc error detected
+4703 information unit iucrc error detected
 4704 asynchronous information protection error detected
+4705 protocol service crc error
+4706 phy test function in progress
+477f some commands cleared by iscsi protocol event
 4800 initiator detected error message received
 4900 invalid message error
 4a00 command phase error
 4b00 data phase error
+4b01 invalid target port transfer tag received
+4b02 too much write data
+4b03 ack/nak timeout
+4b04 nak received
+4b05 data offset error
+4b06 initiator response timeout
+4b07 connection lost
 4c00 logical unit failed self-configuration
-4dnn tagged overlapped commands (nn = queue tag)
+4dnn tagged overlapped commands (nn = task tag)
 4e00 overlapped commands attempted
 4f/00
 5000 write append error
 5001 write append position error
 5002 position error related to timing
 5100 erase failure
+5101 erase failure - incomplete erase operation detected
 5200 cartridge fault
 5300 media load or eject failed
 5301 unload tape failure
 5302 medium removal prevented
+5303 medium removal prevented by data transfer element
+5304 medium thread or unthread failure
 5400 scsi to host system interface failure
 5500 system resource failure
 5501 system buffer full
 5502 insufficient reservation resources
 5503 insufficient resources
 5504 insufficient registration resources
-5505 access controls code 4 (99-314) [proposed]
-5506 auxiliary memory code 1 (99-148) [proposed]
+5505 insufficient access control resources
+5506 auxiliary memory out of space
+5507 quota error
+5508 maximum number of supplemental decryption keys exceeded
+5509 medium auxiliary memory not accessible
+550a data currently unavailable
+550b insufficient power for operation
 56/00
 5700 unable to recover table-of-contents
 5800 generation does not exist
@@ -327,6 +453,7 @@
 5d00 failure prediction threshold exceeded
 5d01 media failure prediction threshold exceeded
 5d02 logical unit failure prediction threshold exceeded
+5d03 spare area exhaustion prediction threshold exceeded
 5d10 hardware impending failure general hard drive failure
 5d11 hardware impending failure drive error rate too high
 5d12 hardware impending failure data error rate too high
@@ -411,6 +538,12 @@
 5e02 standby condition activated by timer
 5e03 idle condition activated by command
 5e04 standby condition activated by command
+5e05 idle_b condition activated by timer
+5e06 idle_b condition activated by command
+5e07 idle_c condition activated by timer
+5e08 idle_c condition activated by command
+5e09 standby_y condition activated by timer
+5e0a standby_y condition activated by command
 5e41 power state change to active
 5e42 power state change to idle
 5e43 power state change to standby
@@ -441,6 +574,8 @@
 6707 creation of logical unit failed
 6708 assign failure occurred
 6709 multiply assigned logical unit
+670a set target port groups command failed
+670b ata device feature not enabled
 6800 logical unit not configured
 6900 data loss on logical unit
 6901 multiple logical unit failures
@@ -458,6 +593,8 @@
 6f03 read of scrambled sector without authentication
 6f04 media region code is mismatched to logical unit region
 6f05 drive region must be permanent/region reset count error
+6f06 insufficient block count for binding nonce recording
+6f07 conflict in binding nonce recording
 70nn decompression exception short algorithm id of nn
 7100 decompression exception long algorithm id
 7200 session fixation error
@@ -466,14 +603,46 @@
 7203 session fixation error - incomplete track in session
 7204 empty or partially written reserved track
 7205 no more track reservations allowed
+7206 rmz extension is not allowed
+7207 no more test zone extensions are allowed
 7300 cd control error
 7301 power calibration area almost full
 7302 power calibration area is full
 7303 power calibration area error
 7304 program memory area update failure
 7305 program memory area is full
-7306 rma/pma is full
-74/00
+7306 rma/pma is almost full
+7310 current power calibration area almost full
+7311 current power calibration area is full
+7317 rdz is full
+7400 security error
+7401 unable to decrypt data
+7402 unencrypted data encountered while decrypting
+7403 incorrect data encryption key
+7404 cryptographic integrity validation failed
+7405 error decrypting data
+7406 unknown signature verification key
+7407 encryption parameters not useable
+7408 digital signature validation failure
+7409 encryption mode mismatch on read
+740a encrypted block not raw read enabled
+740b incorrect encryption parameters
+740c unable to decrypt parameter list
+740d encryption algorithm disabled
+7410 sa creation parameter value invalid
+7411 sa creation parameter value rejected
+7412 invalid sa usage
+7421 data encryption configuration prevented
+7430 sa creation parameter not supported
+7440 authentication failed
+7461 external data encryption key manager access error
+7462 external data encryption key manager error
+7463 external data encryption key not found
+7464 external data encryption request not authorized
+746e external data encryption control timeout
+746f external data encryption control error
+7471 logical unit access not authorized
+7479 security conflict in translated device
 75/00
 76/00
 77/00

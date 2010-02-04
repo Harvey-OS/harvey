@@ -1,3 +1,4 @@
+/* clog - log console */
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
@@ -26,7 +27,7 @@ main(int argc, char **argv)
 	Biobuf in;
 	int fd;
 	char *p, *t;
-	char buf[8192];
+	char buf[Bsize];
 
 	argv0 = argv[0];
 	if(argc < 3){
@@ -48,16 +49,16 @@ main(int argc, char **argv)
 			p[Blinelen(&in)-1] = 0;
 			t = ctime(time(0));
 			t[19] = 0;
-			if(fprint(fd, "%s: %s\n", t, p) < 0){
+			while(fprint(fd, "%s: %s\n", t, p) < 0) {
 				close(fd);
+				sleep(500);
 				fd = openlog(argv[2]);
-				fprint(fd, "%s: %s\n", t, p);
 			}
-		} else if(Blinelen(&in) == 0)	// true eof
+		} else if(Blinelen(&in) == 0)	/* true eof or error */
 			break;
-		else {
-			Bread(&in, buf, sizeof buf);
-		}
+		/* discard partial buffer? perhaps due to very long line */
+		else if (Bread(&in, buf, sizeof buf) < 0)
+			break;
 	}
 	exits(0);
 }

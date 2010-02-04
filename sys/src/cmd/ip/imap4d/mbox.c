@@ -77,9 +77,13 @@ openBox(char *name, char *fsname, int writable)
 	int n, new;
 
 	if(cistrcmp(name, "inbox") == 0)
-		name = "mbox";
-
+		if(access("msgs", AEXIST) == 0)
+			name = "msgs";
+		else
+			name = "mbox";
 	fsInit();
+	debuglog("imap4d open %s %s\n", name, fsname);
+
 	if(fprint(fsCtl, "open /mail/box/%s/%s %s", username, name, fsname) < 0){
 //ZZZ
 		char err[ERRMAX];
@@ -785,8 +789,37 @@ static char *stoplist[] =
 	"pipeto",
 	"forward",
 	"names",
+	"pipefrom",
+	"headers",
+	"imap.ok",
 	0
 };
+
+static char *folders[100];
+static char *folderbuff;
+
+static void
+readokfolders(void)
+{
+	int fd, nr;
+
+	folderbuff = malloc(512);
+	if(folderbuff == nil)
+		return;
+	fd = open("imap.ok", OREAD);
+	if(fd < 0){
+Fail:
+		free(folderbuff);
+		folderbuff = nil;
+		return;
+	}
+	nr = read(fd, folderbuff, 512-1);	/* once is ok */
+	close(fd);
+	if(nr < 0)
+		goto Fail;
+	folderbuff[nr] = 0;
+	tokenize(folderbuff, folders, nelem(folders));
+}
 
 /*
  * reject bad mailboxes based on mailbox name
@@ -797,11 +830,19 @@ okMbox(char *path)
 	char *name;
 	int i;
 
+	if(folderbuff == nil && access("imap.ok", AREAD) == 0)
+		readokfolders();
 	name = strrchr(path, '/');
 	if(name == nil)
 		name = path;
 	else
 		name++;
+	if(folderbuff != nil){
+		for(i = 0; i < nelem(folders) && folders[i] != nil; i++)
+			if(cistrcmp(folders[i], name) == 0)
+				return 1;
+		return 0;
+	}
 	if(strlen(name) + STRLEN(".imp") >= MboxNameLen)
 		return 0;
 	for(i = 0; stoplist[i]; i++)

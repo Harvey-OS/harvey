@@ -111,6 +111,8 @@ extern Message	*root;
 extern Mailboxinit	plan9mbox;
 extern Mailboxinit	pop3mbox;
 extern Mailboxinit	imap4mbox;
+extern Mailboxinit	planbmbox;
+extern Mailboxinit	planbvmbox;
 
 char*		syncmbox(Mailbox*, int);
 char*		geterrstr(void);
@@ -149,6 +151,7 @@ extern int	debug;
 extern int	fflag;
 extern int	logging;
 extern char	user[Elemlen];
+extern char	stdmbox[Pathlen];
 extern QLock	mbllock;
 extern Mailbox	*mbl;
 extern char	*mntpt;

@@ -79,6 +79,8 @@ enum
 Mailboxinit *boxinit[] = {
 	imap4mbox,
 	pop3mbox,
+	planbmbox,
+	planbvmbox,
 	plan9mbox,
 };
 

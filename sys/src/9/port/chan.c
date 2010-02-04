@@ -168,7 +168,6 @@ kstrdup(char **p, char *s)
 {
 	int n;
 	char *t, *prev;
-	static Lock l;
 
 	n = strlen(s)+1;
 	/* if it's a user, we can wait for memory; if not, something's very wrong */

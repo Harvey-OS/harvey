@@ -60,7 +60,10 @@ lsubBoxes(char *cmd, char *ref, char *pat)
 			continue;
 		isdir = 1;
 		if(cistrcmp(s, "INBOX") == 0){
-			mtime = listMtime("mbox");
+			if(access("msgs", AEXIST) == 0)
+				mtime = listMtime("msgs");
+			else
+				mtime = listMtime("mbox");
 			isdir = 0;
 		}else{
 			d = cdDirstat(mboxDir, s);
@@ -207,15 +210,37 @@ listMatch(char *cmd, char *ref, char *pat, char *mbox, char *mm)
 			ok = 0;
 			while((nd = dirread(fd, &dirs)) > 0){
 				for(i = 0; i < nd; i++){
-					if(*wc == '*' && (dirs[i].mode & DMDIR) && mayMatch(mm, dirs[i].name, 1)){
-						snprint(mb+nmdir, nmb-nmdir, "%s", dirs[i].name);
-						ok |= listAll(cmd, ref, pat, mb, dirs[i].mtime);
+					if(strcmp(mbox, "") == 0 &&
+					    !okMbox(dirs[i].name))
+						continue;
+					/* Safety: ignore message dirs */
+					if(strstr(dirs[i].name, "mails") != 0 ||
+					   strcmp(dirs[i].name, "out") == 0 ||
+					   strcmp(dirs[i].name, "obox") == 0 ||
+					   strcmp(dirs[i].name, "ombox") == 0)
+						continue;
+					if(strcmp(dirs[i].name, "msgs") == 0)
+						dirs[i].mode &= ~DMDIR;
+					if(*wc == '*' && dirs[i].mode & DMDIR &&
+					    mayMatch(mm, dirs[i].name, 1)){
+						snprint(mb+nmdir, nmb-nmdir,
+							"%s", dirs[i].name);
+						ok |= listAll(cmd, ref, pat, mb,
+							dirs[i].mtime);
 					}else if(mayMatch(mm, dirs[i].name, 0)){
-						snprint(mb+nmdir, nmb-nmdir, "%s%s", dirs[i].name, m);
+						snprint(mb+nmdir, nmb-nmdir,
+							"%s%s", dirs[i].name, m);
 						if(*m == '\0')
-							ok |= checkMatch(cmd, ref, pat, mb, dirs[i].mtime, (dirs[i].mode & DMDIR) == DMDIR);
+							ok |= checkMatch(cmd,
+								ref, pat, mb,
+								dirs[i].mtime,
+								dirs[i].mode &
+								DMDIR);
 						else if(dirs[i].mode & DMDIR)
-							ok |= listMatch(cmd, ref, pat, mb, mb + nmdir + strlen(dirs[i].name));
+							ok |= listMatch(cmd,
+								ref, pat, mb, mb
+								+ nmdir + strlen(
+								dirs[i].name));
 					}
 				}
 				free(dirs);
@@ -261,7 +286,8 @@ listAll(char *cmd, char *ref, char *pat, char *mbox, long mtime)
 	while((nd = dirread(fd, &dirs)) > 0){
 		for(i = 0; i < nd; i++){
 			snprint(mb, nmb, "%s/%s", mbox, dirs[i].name);
-			if(dirs[i].mode & DMDIR)
+			/* safety: do not recurr */
+			if(0 && dirs[i].mode & DMDIR)
 				ok |= listAll(cmd, ref, pat, mb, dirs[i].mtime);
 			else
 				ok |= checkMatch(cmd, ref, pat, mb, dirs[i].mtime, 0);
