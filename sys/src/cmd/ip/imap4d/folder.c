@@ -91,11 +91,16 @@ cdRemove(char *dir, char *file)
 MbLock*
 mbLock(void)
 {
+	int i;
+
 	if(mLock.fd >= 0)
 		bye("mail lock deadlock");
-	mLock.fd = openLocked(mboxDir, "L.mbox", OREAD);
-	if(mLock.fd >= 0)
-		return &mLock;
+	for(i = 0; i < 5; i++){
+		mLock.fd = openLocked(mboxDir, "L.mbox", OREAD);
+		if(mLock.fd >= 0)
+			return &mLock;
+		sleep(1000);
+	}
 	return nil;
 }
 
@@ -132,7 +137,10 @@ impName(char *name)
 	int n;
 
 	if(cistrcmp(name, "inbox") == 0)
-		name = "mbox";
+		if(access("msgs", AEXIST) == 0)
+			name = "msgs";
+		else
+			name = "mbox";
 	n = strlen(name) + STRLEN(".imp") + 1;
 	s = binalloc(&parseBin, n, 0);
 	if(s == nil)
@@ -304,7 +312,10 @@ copyBox(char *from, char *to, int doremove)
 	int ffd, tfd, ok;
 
 	if(cistrcmp(from, "inbox") == 0)
-		from = "mbox";
+		if(access("msgs", AEXIST) == 0)
+			from = "msgs";
+		else
+			from = "mbox";
 
 	ml = mbLock();
 	if(ml == nil)

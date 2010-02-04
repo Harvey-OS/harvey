@@ -394,6 +394,8 @@ strtod(CONST char *s00, char **se)
 	/* Get starting approximation = rv * 10**e1 */
 
 	if (e1 > 0) {
+		if (nd0 + e1 - 1 > DBL_MAX_10_EXP)
+			goto ovfl;
 		if (i = e1 & 15)
 			rv.d *= tens[i];
 		if (e1 &= ~15) {
