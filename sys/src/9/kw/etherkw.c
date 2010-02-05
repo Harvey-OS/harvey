@@ -362,29 +362,29 @@ struct Gbereg {
 	ulong	smi;			/* serial mgmt. interface */
 	ulong	euda;			/* ether default address */
 	ulong	eudid;			/* ether default id */
-	ulong	_pad0[PAD(0x80, 0xc)];
+	uchar	_pad0[0x80-0x10];
 
 	ulong	euirq;			/* interrupt cause */
 	ulong	euirqmask;		/* interrupt mask */
-	ulong	_pad1[PAD(0x94, 0x84)];
+	uchar	_pad1[0x94-0x88];
 
 	ulong	euea;			/* error address */
 	ulong	euiae;			/* internal error address */
-	ulong	_pad2[PAD(0xb0, 0x98)];
+	uchar	_pad2[0xb0-0x9c];
 
 	ulong	euc;			/* control */
-	ulong	_pad3[PAD(0x200, 0xb0)];
+	uchar	_pad3[0x200-0xb4];
 
 	struct {
 		ulong	base;		/* window base */
 		ulong	size;		/* window size */
 	} base[6];
-	ulong	_pad4[PAD(0x280, 0x22c)];
+	uchar	_pad4[0x280-0x230];
 
 	ulong	harr[4];		/* high address remap */
 	ulong	bare;			/* base address enable */
 	ulong	epap;			/* port access protect */
-	ulong	_pad5[PAD(0x400, 0x294)];
+	uchar	_pad5[0x400-0x298];
 
 	ulong	portcfg;		/* port configuration */
 	ulong	portcfgx;		/* port config. extend */
@@ -424,15 +424,15 @@ struct Gbereg {
 	ulong	pxofc;			/* port overrun frame counter */
 	ulong	_pad12[2];
 	ulong	piae;			/* port internal address error */
-	ulong	_pad13[PAD(0x4bc, 0x494)];
+	uchar	_pad13[0x4bc-0x498];
 	ulong	etherprio;		/* ether type priority */
-	ulong	_pad14[PAD(0x4dc, 0x4bc)];
+	uchar	_pad14[0x4dc-0x4c0];
 	ulong	tqfpc;			/* tx queue fixed priority config. */
 	ulong	pttbrc;			/* port tx token-bucket rate config. */
 	ulong	tqc1;			/* tx queue command 1 */
 	ulong	pmtu;			/* port maximum transmit unit */
 	ulong	pmtbs;			/* port maximum token bucket size */
-	ulong	_pad15[PAD(0x600, 0x4ec)];
+	uchar	_pad15[0x600-0x4f0];
 
 	struct {
 		ulong	_pad[3];
@@ -440,10 +440,10 @@ struct Gbereg {
 	} crdp[8];
 	ulong	rqc;			/* rx queue command */
 	ulong	tcsdp;			/* phys. addr.: cur. tx desc. ptr */
-	ulong	_pad16[PAD(0x6c0, 0x684)];
+	uchar	_pad16[0x6c0-0x688];
 
 	ulong	tcqdp[8];		/* phys. addr.: cur. tx q. desc. ptr */
-	ulong	_pad17[PAD(0x700, 0x6dc)];
+	uchar	_pad17[0x700-0x6e0];
 
 	struct {
 		ulong	tbctr;		/* queue tx token-bucket counter */
@@ -452,7 +452,7 @@ struct Gbereg {
 		ulong	_pad;
 	} tq[8];
 	ulong	pttbc;			/* port tx token-bucket counter */
-	ulong	_pad18[PAD(0x7a8, 0x780)];
+	uchar	_pad18[0x7a8-0x784];
 
 	ulong	ipg2;			/* tx queue ipg */
 	ulong	_pad19[3];
@@ -463,11 +463,11 @@ struct Gbereg {
 	ulong	ltap;			/* low token in async packet */
 	ulong	_pad21;
 	ulong	ts;			/* tx speed */
-	ulong	_pad22[PAD(0x1000, 0x7d0)];
+	uchar	_pad22[0x1000-0x7d4];
 
 	/* mac mib counters: statistics */
 	Mibstats;
-	ulong	_pad23[PAD(0x1400, 0x107c)];
+	uchar	_pad23[0x1400-0x1080];
 
 	/* multicast filtering; each byte: Qno<<1 | Pass */
 	ulong	dfsmt[64];	/* dest addr filter special m'cast table */
