@@ -198,9 +198,6 @@ struct Pcidev
  * Kirkwood stuff
  */
 
-/* weird padding macro */
-#define PAD(next, last)	(((next) - sizeof(ulong) - (last)) / sizeof(ulong))
-
 enum {
 	Regbase		= 0xf1000000,	/* PHYSIO in mem.h */
 	AddrSDramc	= Regbase+0x01400,

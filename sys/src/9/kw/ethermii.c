@@ -44,7 +44,7 @@ mii(Mii* mii, int mask)
 		/*
 		 * for some reason, phyno 18 (ether1's) doesn't report an
 		 * oui of 0x005043 (Marvell), but rather 0xFFFFF.
-		 * for now, workaround it by knowing that 18 is a valid PHY.
+		 * for now, work around it by knowing that 18 is a valid PHY.
 		 */
 		if(oui == 0xFFFFF || oui == 0)
 			if (phyno != 18)

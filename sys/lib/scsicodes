@@ -1,7 +1,12 @@
-# hget http://www.t10.org/lists/asc-num.htm |
-#   grep '^[0-9]' |tr -d '' |tr A-Z a-z |
-#   sed 's/(..)\/(..)  ..............  (.*)/\1\2 \3/' > scsicodes
-# (and then put this header back)
+#!/bin/rc
+{
+	sed '/^$/q' scsicodes
+	hget http://www.t10.org/lists/asc-num.htm |
+		grep '^[0-9]' |tr -d '' |tr A-Z a-z |
+		sed 's/(..)\/(..)  ..............  (.*)/\1\2 \3/'
+} > nscsicodes && mv nscsicodes scsicodes
+exit
+
 0000 no additional sense information
 0001 filemark detected
 0002 end-of-partition/medium detected

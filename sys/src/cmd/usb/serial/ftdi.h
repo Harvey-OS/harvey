@@ -1,9 +1,10 @@
 enum {
 	/* used by devices which don't provide their own Vid */
-	FTVid = 0x0403,
+	FTVid		= 0x0403,
+	FTOpenrdDid	= 0x9E90,
 
-	FTSheevaVid = 0x9E88,
-	FTSheevaDid = 0x9E8F,
+	FTSheevaVid	= 0x9E88,
+	FTSheevaDid	= 0x9E8F,
 
 	FTSIODid	= 0x8372,	/* Product Id SIO appl'n of 8U100AX */
 	FT8U232AMDid	= 0x6001, 	/* Similar device to SIO above */

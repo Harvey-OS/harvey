@@ -383,6 +383,40 @@ union Ed
 	uchar	align[Align];
 };
 
+typedef struct Kwusb Kwusb;
+typedef struct Usbwin Usbwin;
+struct Kwusb {			/* at offset 0x300 from Addrusb */
+	ulong	bcs;		/* bridge ctl & sts */
+	uchar	_pad0[0x310-0x304];
+
+	ulong	bic;		/* bridge intr. cause */
+	ulong	bim;		/* bridge intr. mask */
+	ulong	_pad1;
+	ulong	bea;		/* bridge error addr. */
+	struct Usbwin {
+		ulong	ctl;
+		ulong	base;
+		ulong	_pad2[2];
+	} win[4];
+	ulong	phycfg;		/* phy config. */
+	uchar	_pad3[0x400-0x364];
+
+	ulong	pwrctl;		/* power control */
+	uchar	_pad4[0x410-0x404];
+	ulong	phypll;		/* phy pll control */
+	uchar	_pad5[0x420-0x414];
+	ulong	phytxctl;	/* phy transmit control */
+	uchar	_pad6[0x430-0x424];
+	ulong	phyrxctl;	/* phy receive control */
+	uchar	_pad7[0x440-0x434];
+	ulong	phyivref;	/* phy ivref control */
+};
+
+enum {
+	/* Kwusb->win[i].ctl bits */
+	Winenable	= 1<<0,
+};
+
 #define diprint		if(debug || iso->debug)print
 #define ddiprint	if(debug>1 || iso->debug>1)print
 #define dqprint		if(debug || (qh->io && qh->io->debug))print
@@ -3176,23 +3210,82 @@ init(Hci *hp)
 
 }
 
+#define WINTARG(ctl)	(((ctl) >> 4) & 017)
+#define WINATTR(ctl)	(((ctl) >> 8) & 0377)
+#define WIN64KSIZE(ctl)	(((ctl) >> 16) + 1)
+
+#define SIZETO64KSIZE(size) ((size) / (64*1024) - 1)
+
+static void
+addrmapdump(void)
+{
+	int i;
+	ulong ctl, targ, attr, size64k;
+	Kwusb *map;
+	Usbwin *win;
+
+	map = (Kwusb *)(Addrusb + 0x300);
+	for (i = 0; i < nelem(map->win); i++) {
+		win = &map->win[i];
+		ctl = win->ctl;
+		if (ctl & Winenable) {
+			targ = WINTARG(ctl);
+			attr = WINATTR(ctl);
+			size64k = WIN64KSIZE(ctl);
+			print("usb address map window %d: "
+				"targ %ld attr %#lux size %,ld addr %#lux\n",
+				i, targ, attr, size64k * 64*1024, win->base);
+		}
+	}
+}
+
+/* assumes ctlr is ilocked */
+static void
+ctlrreset(Ctlr *ctlr)
+{
+	int i;
+	Eopio *opio;
+
+	opio = ctlr->opio;
+	opio->cmd |= Chcreset;
+	/* wait for it to come out of reset */
+	for(i = 0; i < 100 && opio->cmd & Chcreset; i++)
+		delay(1);
+	if(i >= 100)
+		print("ehci %#p controller reset timed out\n", ctlr->capio);
+	/*
+	 * Marvell errata FE-USB-340 workaround: 1 << 4 magic:
+	 * disable streaming.  Magic 3 (usb host mode) from the linux driver
+	 * makes it work.  Ick.
+	 */
+	opio->usbmode |= 1 << 4 | 3;
+	coherence();
+}
+
+static void
+setaddrwin(Kwusb *kw, int win, int attr, ulong base)
+{
+	/* target 0, size 256MB */
+	kw->win[win].ctl = Winenable | 0 << 4 | attr << 8 |
+		SIZETO64KSIZE(256*MB) << 16;
+	kw->win[win].base = base;
+}
+
 static void
 ehcireset(Ctlr *ctlr)
 {
-	Eopio *opio;
 	int i;
-	ulong val;
-	ulong *reg;
+	ulong v;
+	Eopio *opio;
+	Kwusb *kw;
 
 	ilock(ctlr);
 	dprint("ehci %#p reset\n", ctlr->capio);
 	opio = ctlr->opio;
 
-	/*
-	 * Turn off legacy mode. Some controllers won't
-	 * interrupt us as expected otherwise.
-	 */
-	ehcirun(ctlr, 0);
+	kw = (Kwusb *)(Addrusb + 0x300);
+	kw->bic = kw->bim = 0;
+	ctlrreset(ctlr);
 
 	/*
 	 * clear high 32 bits of address signals if it's 64 bits capable.
@@ -3202,15 +3295,6 @@ ehcireset(Ctlr *ctlr)
 		dprint("ehci: 64 bits\n");
 		opio->seg = 0;
 	}
-
-	opio->cmd |= Chcreset;	/* controller reset */
-	for(i = 0; i < 100; i++){
-		if((opio->cmd & Chcreset) == 0)
-			break;
-		delay(1);
-	}
-	if(i == 100)
-		print("ehci %#p controller reset timed out\n", ctlr->capio);
 
 	/* requesting more interrupts per µframe may miss interrupts */
 	opio->cmd |= Citc8;		/* 1 intr. per ms */
@@ -3230,45 +3314,60 @@ ehcireset(Ctlr *ctlr)
 	dprint("ehci: %d frames\n", ctlr->nframes);
 
 	/*
-	 * Marvell errata FE-USB-340 workaround: 1 << 4 magic.
-	 * Magic 3 from the linux driver makes it work.  Ick.
+	 * set up the USB address map (bridge address decoding)
 	 */
-	opio->usbmode |= 1 << 4 | 3;
+	for (i = 0; i < nelem(kw->win); i++)
+		kw->win[i].ctl = kw->win[i].base = 0;
+	coherence();
+
+	setaddrwin(kw, 0, 0xe, 0);		/* attr 0xe: sdram cs 0 */
+	setaddrwin(kw, 1, 0xd, 256*MB);		/* attr 0xd: sdram cs 1 */
+	setaddrwin(kw, 2, 0xe, (ulong)KADDR(0));      /* attr 0xe: sdram cs 0 */
+	setaddrwin(kw, 3, 0xd, (ulong)KADDR(256*MB)); /* attr 0xd: sdram cs 1 */
+	coherence();
+
+	if (kw->bcs & (1 << 4))
+		print("usb BS bit is one, thus no byte swapping\n");
+	else
+		print("usb BS bit is zero, thus byte swapping\n");
+	addrmapdump();				/* verify sanity */
+
+	kw->pwrctl |= 1 << 0 | 1 << 1;		/* Pu | PuPll */
 	coherence();
 
 	/*
 	 * Marvell guideline GL-USB-160.
-	 * uses publically-undocumented registers.
 	 */
-	reg = (ulong *)(Regbase + 0x50410);
-	*reg |= 1 << 21;
+	kw->phypll |= 1 << 21;		/* VCOCAL_START: PLL calibration */
 	coherence();
 	microdelay(100);
-	*reg &= ~(1 << 21);
+	kw->phypll &= ~(1 << 21);
 
-	reg = (ulong *)(Regbase + 0x50420);
-	val = *reg;
-	val &= ~(017 << 27 | 7);
-	val |= 1 << 26 | 1 << 12 | 4;	/* 4 for 6281-A0 (3 for A1) */
-	*reg = val;
+	v = kw->phytxctl & ~(017 << 27 | 7);	/* REG_EXT_FS_RCALL & AMP_2_0 */
+	/*
+	 * AMP_2_0 = 4 for 6281-A0 (but 3 for A1).
+	 * also set REG_EXT_FS_RCALL_EN | REG_RCAL_START.
+	 */
+	kw->phytxctl = v | 1 << 26 | 1 << 12 | 4;
 	coherence();
 	microdelay(100);
-	val &= ~(1 << 12);
-	*reg = val;
+	kw->phytxctl &= ~(1 << 12);
 
-	reg = (ulong *)(Regbase + 0x50430);
-	val = *reg;
-	val &= ~(3 << 2 | 017 << 4);
-	val |= 1 << 2 | 8 << 4;
-	*reg = val;
+	v = kw->phyrxctl & ~(3 << 2 | 017 << 4); /* LPF_COEF_1_0 & SQ_THRESH_3_0 */
+	kw->phyrxctl = v | 1 << 2 | 8 << 4;
 
-	reg = (ulong *)(Regbase + 0x50440);
-	val = *reg;
-	val &= ~(3 << 8);
-	val |= 1 << 8;			/* 1 for 6281-A0; 3 for A1 */
-	*reg = val;
+	v = kw->phyivref & ~(3 << 8);		/* TXVDD12 */
+	kw->phyivref = v | 1 << 8;		/* 1 for 6281-A0; 3 for A1 */
 
 	coherence();
+
+	/*
+	 * Turn off legacy mode.  Some controllers won't
+	 * interrupt us as expected otherwise.
+	 */
+	ehcirun(ctlr, 0);
+	ctlrreset(ctlr);
+
 	iunlock(ctlr);
 }
 
@@ -3281,23 +3380,15 @@ setdebug(Hci*, int d)
 static void
 shutdown(Hci *hp)
 {
-	int i;
 	Ctlr *ctlr;
 	Eopio *opio;
 
 	ctlr = hp->aux;
 	ilock(ctlr);
-	opio = ctlr->opio;
-	opio->cmd |= Chcreset;		/* controller reset */
-	for(i = 0; i < 100; i++){
-		if((opio->cmd & Chcreset) == 0)
-			break;
-		delay(1);
-	}
-	if(i >= 100)
-		print("ehci %#p controller reset timed out\n", ctlr->capio);
+	ctlrreset(ctlr);
 	delay(100);
 	ehcirun(ctlr, 0);
+	opio = ctlr->opio;
 	opio->frbase = 0;
 	iunlock(ctlr);
 }
