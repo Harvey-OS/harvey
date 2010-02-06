@@ -1,3 +1,9 @@
+/*
+ * vga driver using just vesa bios to set up.
+ *
+ * note that setting hwaccel to zero will cause cursor ghosts to be
+ * left behind.  hwaccel set non-zero repairs this.
+ */
 #include "u.h"
 #include "../port/lib.h"
 #include "mem.h"
