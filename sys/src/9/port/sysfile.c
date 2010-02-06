@@ -628,7 +628,6 @@ mountfix(Chan *c, uchar *op, long n, long maxn)
 static long
 read(ulong *arg, vlong *offp)
 {
-	int dir;
 	long n, nn, nnn;
 	uchar *p;
 	Chan *c;
@@ -669,19 +668,19 @@ read(ulong *arg, vlong *offp)
 		unionrewind(c);
 	}
 
-	dir = c->qid.type&QTDIR;
-	if(dir && mountrockread(c, p, n, &nn)){
-		/* do nothing: mountrockread filled buffer */
-	}else{
-		if(dir && c->umh)
+	if(c->qid.type & QTDIR){
+		if(mountrockread(c, p, n, &nn)){
+			/* do nothing: mountrockread filled buffer */
+		}else if(c->umh)
 			nn = unionread(c, p, n);
-		else
-			nn = devtab[c->type]->read(c, p, n, off);
-	}
-	if(dir)
+		else{
+			if(off != c->offset)
+				error(Edirseek);
+			nn = devtab[c->type]->read(c, p, n, c->devoffset);
+		}
 		nnn = mountfix(c, p, nn, n);
-	else
-		nnn = nn;
+	}else
+		nnn = nn = devtab[c->type]->read(c, p, n, off);
 
 	lock(c);
 	c->devoffset += nn;
