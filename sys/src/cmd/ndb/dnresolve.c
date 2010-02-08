@@ -89,7 +89,7 @@ static RR*	dnresolve1(char*, int, int, Request*, int, int);
 static int	netquery(Query *, int);
 
 /*
- * reading /proc/pid/args yields either "name" or "name [display args]",
+ * reading /proc/pid/args yields either "name args" or "name [display args]",
  * so return only display args, if any.
  */
 static char *
@@ -147,7 +147,9 @@ dnresolve(char *name, int class, int type, Request *req, RR **cn, int depth,
 				nrp->ptr->name);
 			rp = dnresolve(nname, class, type, req, cn, depth+1,
 				recurse, rooted, status);
+			lock(&dnlock);
 			rrfreelist(rrremneg(&rp));
+			unlock(&dnlock);
 		}
 		if(drp != nil)
 			rrfreelist(drp);
@@ -181,10 +183,12 @@ dnresolve(char *name, int class, int type, Request *req, RR **cn, int depth,
 				}
 
 				name = rp->host->name;
+				lock(&dnlock);
 				if(cn)
 					rrcat(cn, rp);
 				else
 					rrfreelist(rp);
+				unlock(&dnlock);
 
 				rp = dnresolve1(name, class, type, req,
 					depth, recurse);
@@ -225,7 +229,7 @@ static void
 querydestroy(Query *qp)
 {
 	queryck(qp);
-	/* leave udpfd alone */
+	/* leave udpfd open */
 	if (qp->tcpfd > 0)
 		close(qp->tcpfd);
 	if (qp->tcpctlfd > 0) {
@@ -793,7 +797,9 @@ serveraddrs(Query *qp, int nd, int depth)
 
 			arp = dnresolve(rp->host->name, Cin, Ta, qp->req, 0,
 				depth+1, Recurse, 1, 0);
+			lock(&dnlock);
 			rrfreelist(rrremneg(&arp));
+			unlock(&dnlock);
 			if(arp)
 				break;
 		}
@@ -1106,12 +1112,14 @@ procansw(Query *qp, DNSmsg *mp, uchar *srcip, int depth, Dest *p)
 	}
 
 	/* remove any soa's from the authority section */
+	lock(&dnlock);
 	soarr = rrremtype(&mp->ns, Tsoa);
 
 	/* incorporate answers */
 	unique(mp->an);
 	unique(mp->ns);
 	unique(mp->ar);
+	unlock(&dnlock);
 	if(mp->an)
 		rrattach(mp->an, (mp->flags & Fauth) != 0);
 	if(mp->ar)
