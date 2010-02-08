@@ -321,8 +321,8 @@ newfid(int fid, int needunused)
 		}
 	mf = emalloc(sizeof(*mf));
 	mf->fid = fid;
-	mf->next = mfalloc.inuse;
 	mf->user = estrdup("dummy");
+	mf->next = mfalloc.inuse;
 	mfalloc.inuse = mf;
 	unlock(&mfalloc);
 	return mf;
@@ -344,6 +344,7 @@ freefid(Mfile *mf)
 			unlock(&mfalloc);
 			return;
 		}
+	unlock(&mfalloc);
 	sysfatal("freeing unused fid");
 }
 
@@ -356,6 +357,7 @@ copyfid(Mfile *mf, int fid)
 	if(nmf == nil)
 		return nil;
 	nmf->fid = fid;
+	free(nmf->user);			/* estrdup("dummy") */
 	nmf->user = estrdup(mf->user);
 	nmf->qid.type = mf->qid.type;
 	nmf->qid.path = mf->qid.path;
@@ -424,7 +426,6 @@ io(void)
 	 */
 	if(setjmp(req.mret))
 		putactivity(0);
-//	procsetname("9p server");
 	req.isslave = 0;
 	stop = 0;
 	while(!stop){
@@ -810,11 +811,13 @@ rwrite(Job *job, Mfile *mf, Request *req)
 	rp = dnresolve(p, Cin, mf->type, req, 0, 0, Recurse, rooted, &status);
 
 	dncheck(0, 1);
+	lock(&dnlock);
 	neg = rrremneg(&rp);
 	if(neg){
 		status = neg->negrcode;
 		rrfreelist(neg);
 	}
+	unlock(&dnlock);
 
 	if(rp == nil)
 		switch(status){

@@ -111,11 +111,12 @@ dblookup(char *name, int class, int type, int auth, int ttl)
 	err = Rname;
 
 	if(type == Tall){
+		lock(&dnlock);
 		rp = nil;
 		for (type = Ta; type < Tall; type++)
-			/* HACK: exclude Taaaa (ipv6) for speed for now */
-			if(implemented[type] && (1 || type != Taaaa))
+			if(implemented[type])
 				rrcat(&rp, dblookup(name, class, type, auth, ttl));
+		unlock(&dnlock);
 		return rp;
 	}
 
@@ -671,7 +672,7 @@ loaddomsrvs(void)
 void
 db2cache(int doit)
 {
-	ulong youngest, temp;
+	ulong youngest;
 	Ndb *ndb;
 	Dir *d;
 	static ulong lastcheck, lastyoungest;
@@ -703,9 +704,8 @@ db2cache(int doit)
 			/* dirfstat avoids walking the mount table each time */
 			if((d = dirfstat(Bfildes(&ndb->b))) != nil ||
 			   (d = dirstat(ndb->file)) != nil){
-				temp = d->mtime;	/* ulong vs int crap */
-				if(temp > youngest)
-					youngest = temp;
+				if(d->mtime > youngest)
+					youngest = d->mtime;
 				free(d);
 			}
 		if(!doit && youngest == lastyoungest)

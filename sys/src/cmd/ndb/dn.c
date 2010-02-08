@@ -217,8 +217,9 @@ dnlookup(char *name, int class, int enter)
 	assert(dp->name != nil);
 	dp->class = class;
 	dp->rr = 0;
-	dp->next = 0;
 	dp->referenced = now;
+	/* add new DN to tail of the hash list.  *l points to last next ptr. */
+	dp->next = nil;
 	*l = dp;
 	unlock(&dnlock);
 
@@ -741,7 +742,7 @@ rrattach1(RR *new, int auth)
 
 //	dnslog("rrattach1: %s", new->owner->name);
 	if(!new->db)
-		new->expire = new->ttl;
+		new->expire = new->ttl;		/* ? */
 	else
 		new->expire = now + Year;
 	dp = new->owner;
@@ -804,16 +805,16 @@ rrattach1(RR *new, int auth)
 		l = &rp->next;
 	}
 
-	if (rronlist(new, *l)) {
+	if (rronlist(new, rp)) {
 		/* should not happen; duplicates were processed above */
-		dnslog("adding duplicate %R to list of %R; aborting", new, *l);
+		dnslog("adding duplicate %R to list of %R; aborting", new, rp);
 		abort();
 	}
 	/*
 	 *  add to chain
 	 */
 	new->cached = 1;
-	new->next = *l;
+	new->next = rp;
 	*l = new;
 }
 
@@ -841,15 +842,21 @@ rrattach(RR *rp, int auth)
 		if(cfg.cachedb && !rp->db && inmyarea(rp->owner->name))
 			rrfree(rp);
 		else {
+			/* ameliorate the memory leak */
+			if (0 && rrlistlen(dp->rr) > 50 && !dp->keep) {
+				dnslog("rrattach(%s): rr list too long; "
+					"freeing it", dp->name);
+				rrfreelist(dp->rr);
+				dp->rr = nil;
+			} else
+				USED(dp);
 			rrattach1(rp, auth);
-			if (rrlistlen(dp->rr) % 100 == 0)
-				dnslog("rrlookup(%s): rr list len is multiple"
-					" of 100", dp->name);
 		}
 	}
 	unlock(&dnlock);
 }
 
+/* should be called with dnlock held */
 RR**
 rrcopy(RR *rp, RR **last)
 {
@@ -1060,7 +1067,8 @@ tsame(int t1, int t2)
 
 /*
  *  Add resource records to a list, duplicate them if they are cached
- *  RR's since these are shared.
+ *  RR's since these are shared.  should be called with dnlock held
+ *  to avoid racing down the start chain.
  */
 RR*
 rrcat(RR **start, RR *rp)
@@ -1963,7 +1971,7 @@ rrfree(RR *rp)
 	RR *nrp;
 	Txt *t;
 
-	assert(rp->magic = RRmagic);
+	assert(rp->magic == RRmagic);
 	assert(!rp->cached);
 
 	dp = rp->owner;
