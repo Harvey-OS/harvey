@@ -478,13 +478,10 @@ ahciflushcache(Aportc *pc)
 static ushort
 gbit16(void *a)
 {
-	ushort j;
 	uchar *i;
 
 	i = a;
-	j  = i[1] << 8;
-	j |= i[0];
-	return j;
+	return i[1]<<8 | i[0];
 }
 
 static ulong
@@ -810,7 +807,7 @@ ahciconfigdrive(Ahba *h, Aportc *c, int mode)
 		ahciwakeup(p);
 
 	/* disable power managment sequence from book. */
-	p->sctl = (3*Aipm) | (mode*Aspd) | 0*Adet;
+	p->sctl = (3*Aipm) | (mode*Aspd) | (0*Adet);
 	p->cmd &= ~Aalpe;
 
 	p->ie = IEM;
@@ -893,9 +890,8 @@ idmove(char *p, ushort *a, int n)
 	while(p > op && *--p == ' ')
 		*p = 0;
 	e = p;
-	p = op;
-	while(*p == ' ')
-		p++;
+	for (p = op; *p == ' '; p++)
+		;
 	memmove(op, p, n - (e - p));
 }
 
@@ -930,7 +926,7 @@ identify(Drive *d)
 	u->inquiry[4] = sizeof u->inquiry - 4;
 	memmove(u->inquiry+8, d->model, 40);
 
-	if(osectors != s && memcmp(oserial, d->serial, sizeof oserial) != 0){
+	if(osectors != s || memcmp(oserial, d->serial, sizeof oserial) != 0){
 		d->mediachange = 1;
 		u->sectors = 0;
 	}
@@ -975,7 +971,7 @@ updatedrive(Drive *d)
 		dprint("ahci: updatedrive: fatal\n");
 	}
 	if(cause & Adhrs){
-		if(p->task & 33){
+		if(p->task & (1<<5|1)){
 			dprint("ahci: Adhrs cause %lux serr %lux task %lux\n",
 				cause, serr, p->task);
 			d->portm.flag |= Ferror;
@@ -1002,7 +998,7 @@ updatedrive(Drive *d)
 				d->state = Derror;
 			break;
 		case 3:				/* device & phy comm. estab. */
-			/* power mgnt crap for suprise removal */
+			/* power mgnt crap for surprise removal */
 			p->ie |= Aprcs|Apcs;	/* is this required? */
 			d->state = Dreset;
 			break;
@@ -1032,7 +1028,7 @@ pstatus(Drive *d, ulong s)
 {
 	/*
 	 * bogus code because the first interrupt is currently dropped.
-	 * likely my fault.  serror is maybe cleared at the wrong time.
+	 * likely my fault.  serror may be cleared at the wrong time.
 	 */
 	switch(s){
 	case 0:			/* no device */
@@ -1150,7 +1146,7 @@ newdrive(Drive *d)
 	s = "";
 	if(m->feat & Dllba)
 		s = "L";
-	idprint("%s: %sLBA %,lld sectors\n", d->unit->name, s, d->sectors);
+	idprint("%s: %sLBA %,llud sectors\n", d->unit->name, s, d->sectors);
 	idprint("  %s %s %s %s\n", d->model, d->firmware, d->serial,
 		d->mediachange? "[mediachange]": "");
 	return 0;
@@ -1440,7 +1436,7 @@ iaonline(SDunit *unit)
 		d->mediachange = 0;
 		/* devsd resets this after online is called; why? */
 		unit->sectors = d->sectors;
-		unit->secsize = 512;
+		unit->secsize = 512;	/* TODO */
 	} else if(d->state == Dready)
 		r = 1;
 	iunlock(d);
@@ -1852,10 +1848,17 @@ didtype(Pcidev *p)
 	case 0x8086:
 		if((p->did & 0xfffc) == 0x2680)
 			return Tesb;
-		/* 0x27c4 is the intel 82801 in compatibility (not sata) mode */
-		if ((p->did & 0xfeff) == 0x2829 ||		/* ich8 */
-		    (p->did & 0xfffe) == 0x2922 ||		/* ich9 */
-		    (p->did & 0xfffe) == 0x27c4 /* || p->did == 0x27c0 */) /* 82801g[bh]m? */
+		/*
+		 * 0x27c4 is the intel 82801 in compatibility (not sata) mode.
+		 */
+		if ((p->did & 0xfffb) == 0x27c1 ||	/* 82801g[bh]m ich7 */
+		    p->did == 0x2821 ||			/* 82801h[roh] */
+		    (p->did & 0xfffe) == 0x2824 ||	/* 82801h[b] */
+		    (p->did & 0xfeff) == 0x2829 ||	/* ich8/9m */
+		    (p->did & 0xfffe) == 0x2922 ||	/* ich9 */
+		    p->did == 0x3a02 ||			/* 82801jd/do */
+		    (p->did & 0xfefe) == 0x3a22 ||	/* ich10, pch */
+		    (p->did & 0xfff7) == 0x3b28)	/* pchm */
 			return Tich;
 		break;
 	case 0x1002:
@@ -1891,7 +1894,7 @@ loop:
 		if (type == -1 || p->mem[Abar].bar == 0)
 			continue;
 		if(niactlr == NCtlr){
-			print("ahci: %spnp: too many controllers\n",
+			print("ahci: iapnp: %s: too many controllers\n",
 				tname[type]);
 			break;
 		}
@@ -2026,7 +2029,7 @@ iarctl(SDunit *u, char *p, int l)
 	p = seprint(p, e, "reg\ttask %lux cmd %lux serr %lux %s ci %lux is %lux; "
 		"sig %lux sstatus %04lux\n", o->task, o->cmd, o->serror, buf,
 		o->ci, o->isr, o->sig, o->sstatus);
-	p = seprint(p, e, "geometry %llud 512\n", d->sectors);
+	p = seprint(p, e, "geometry %llud 512\n", d->sectors); /* TODO */
 	return p - op;
 }
 

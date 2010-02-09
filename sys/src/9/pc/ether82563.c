@@ -4,8 +4,8 @@
  *	82575eb
  * Pretty basic, does not use many of the chip smarts.
  * The interrupt mitigation tuning for each chip variant
- * is probably different.  The reset/initialisation
- * sequence needs straightening out.  Doubt the PHY code
+ * is probably different. The reset/initialisation
+ * sequence needs straightened out. Doubt the PHY code
  * for the 82575eb is right.
  */
 #include "u.h"
@@ -996,9 +996,9 @@ i82563rxinit(Ctlr* ctlr)
 	ctlr->rdt = 0;
 	csr32w(ctlr, Rdt, 0);
 	/* to hell with interrupt moderation, we've got fast cpus */
-	ctlr->radv = ctlr->rdtr = 0;
 //	ctlr->rdtr = 25;		/* µs units? */
 //	ctlr->radv = 500;		/* µs units? */
+	ctlr->radv = ctlr->rdtr = 0;
 	csr32w(ctlr, Rdtr, ctlr->rdtr);
 	csr32w(ctlr, Radv, ctlr->radv);
 
@@ -1245,18 +1245,19 @@ i82563attach(Ether* edev)
 	ctlr->ntd = Ntd;
 
 	if(waserror()){
-		for(; ctlr->nrb > 0; ctlr->nrb--){
+		while(ctlr->nrb > 0){
 			bp = i82563rballoc();
 			bp->free = nil;
 			freeb(bp);
+			ctlr->nrb--;
 		}
 		free(ctlr->tb);
-		free(ctlr->rb);
 		ctlr->tb = nil;
+		free(ctlr->rb);
 		ctlr->rb = nil;
 		free(ctlr->tdba);
-		free(ctlr->rdba);
 		ctlr->tdba = nil;
+		free(ctlr->rdba);
 		ctlr->rdba = nil;
 		qunlock(&ctlr->alock);
 		nexterror();
