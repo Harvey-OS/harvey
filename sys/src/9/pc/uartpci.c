@@ -92,14 +92,14 @@ uartpcipnp(void)
 
 	/*
 	 * Loop through all PCI devices looking for simple serial
-	 * controllers (ccrb == 0x07) and configure the ones which
+	 * controllers (ccrb == Pcibccomm (7)) and configure the ones which
 	 * are familiar. All suitable devices are configured to
 	 * simply point to the generic i8250 driver.
 	 */
 	perlehead = perletail = nil;
 	ctlrno = 0;
 	for(p = pcimatch(nil, 0, 0); p != nil; p = pcimatch(p, 0, 0)){
-		if(p->ccrb != 0x07 || p->ccru > 2)
+		if(p->ccrb != Pcibccomm || p->ccru > 2)
 			continue;
 
 		switch(p->did<<16 | p->vid){
@@ -116,6 +116,7 @@ uartpcipnp(void)
 			break;
 		case (0x950A<<16)|0x1415:	/* Oxford Semi OX16PCI954 */
 		case (0x9501<<16)|0x1415:
+		case (0x9521<<16)|0x1415:
 			/*
 			 * These are common devices used by 3rd-party
 			 * manufacturers.
@@ -132,6 +133,10 @@ uartpcipnp(void)
 			case (0<<16)|0x1415:
 				uart = uartpci(ctlrno, p, 0, 4, 1843200,
 					"starport-pex4s", 8);
+				break;
+			case (1<<16)|0x1415:
+				uart = uartpci(ctlrno, p, 0, 2, 14745600,
+					"starport-pex2s", 8);
 				break;
 			case (0x2000<<16)|0x131F:/* SIIG CyberSerial PCIe */
 				uart = uartpci(ctlrno, p, 0, 1, 18432000,
