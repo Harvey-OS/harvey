@@ -17,6 +17,7 @@ struct URL
 	char	*redirect;
 	char	*postbody;
 	char	*cred;
+	char *rhead;
 	long	mtime;
 };
 
@@ -92,7 +93,7 @@ struct {
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-dhv] [-o outfile] [-p body] [-x netmtpt] url\n", argv0);
+	fprint(2, "usage: %s [-dhv] [-o outfile] [-p body] [-x netmtpt] [-r header] url\n", argv0);
 	exits("usage");
 }
 
@@ -133,6 +134,9 @@ main(int argc, char **argv)
 		break;
 	case 'x':
 		net = EARGF(usage());
+		break;
+	case 'r':
+		u.rhead = EARGF(usage());
 		break;
 	case 'p':
 		t = EARGF(usage());
@@ -379,9 +383,6 @@ dohttp(URL *u, URL *px, Range *r, Out *out, long mtime)
 						"Pragma: no-cache\r\n",
 						u->host, u->page, u->host);
 			}
-			if(u->cred)
-				dfprint(fd,	"Authorization: Basic %s\r\n",
-						u->cred);
 		} else {
 			dfprint(fd,	"POST %s HTTP/1.0\r\n"
 					"Host: %s\r\n"
@@ -389,9 +390,11 @@ dohttp(URL *u, URL *px, Range *r, Out *out, long mtime)
 					"Content-length: %d\r\n"
 					"User-agent: Plan9/hget\r\n",
 					u->page, u->host, strlen(u->postbody));
-			if(u->cred)
-				dfprint(fd, "Authorization: Basic %s\r\n", u->cred);
 		}
+		if(u->cred)
+			dfprint(fd, "Authorization: Basic %s\r\n", u->cred);
+		if(u->rhead)
+			dfprint(fd, "%s\r\n", u->rhead);
 		if(r->start != 0){
 			dfprint(fd, "Range: bytes=%d-\n", r->start);
 			if(u->etag != nil){

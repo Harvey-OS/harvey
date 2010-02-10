@@ -129,23 +129,6 @@ _insertavl(Avl **tp, Avl *p, Avl *r, int (*cmp)(Avl*,Avl*), Avl **rfree)
 	return 0;
 }
 
-static Avl*
-_lookupavl(Avl *t, Avl *r, int (*cmp)(Avl*,Avl*))
-{
-	int i;
-	Avl *p;
-
-	p = nil;
-	while(t != nil){
-		assert(t->p == p);
-		if((i = cmp(r, t)) == 0)
-			return t;
-		p = t;
-		t = t->n[(i+1)/2];
-	}
-	return nil;
-}
-
 static int
 successor(Avl **tp, Avl *p, Avl **r)
 {
@@ -257,12 +240,6 @@ insertavl(Avltree *t, Avl *new, Avl **oldp)
 	_insertavl(&t->root, nil, new, t->cmp, oldp);
 }
 
-Avl*
-lookupavl(Avltree *t, Avl *key)
-{
-	return _lookupavl(t->root, key, t->cmp);
-}
-
 static Avl*
 findpredecessor(Avl *a)
 {
@@ -299,6 +276,41 @@ findsuccessor(Avl *a)
 			a = a->p;
 		return a->p;
 	}
+}
+
+static Avl*
+_lookupavl(Avl *t, Avl *r, int (*cmp)(Avl*,Avl*), int neighbor)
+{
+	int i;
+	Avl *p;
+
+	p = nil;
+	if(t == nil)
+		return nil;
+	do{
+		assert(t->p == p);
+		if((i = cmp(r, t)) == 0)
+			return t;
+		p = t;
+		t = t->n[(i+1)/2];
+	}while(t);
+	if(neighbor == 0)
+		return nil;
+	if(neighbor < 0)
+		return i > 0 ? p : findpredecessor(p);
+	return i < 0 ? p : findsuccessor(p);
+}
+
+Avl*
+searchavl(Avltree *t, Avl *key, int neighbor)
+{
+	return _lookupavl(t->root, key, t->cmp, neighbor);
+}
+
+Avl*
+lookupavl(Avltree *t, Avl *key)
+{
+	return _lookupavl(t->root, key, t->cmp, 0);
 }
 
 static void
