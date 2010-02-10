@@ -1,20 +1,22 @@
-.TH HGET 1 
+.TH HGET 1
 .SH NAME
-hget  \- retrieve a web page corresponding to a url
+hget \- retrieve a web page corresponding to a url
 .SH SYNOPSIS
-.PP
 .B hget
 [
 .B -dhv
-][
+] [
 .B -o
 .I ofile
-][
+] [
 .B -p
 .I body
-][
+] [
 .B -x
 .I netmntpt
+] [
+.B -r
+.I header
 ]
 .I url
 .SH DESCRIPTION
@@ -48,6 +50,11 @@ Option
 .B -h
 causes HTTP headers to be printed to standard output
 in addition to the transferred web page.
+.PP
+Option
+.B -r
+sends an arbitrary HTTP
+.IR header .
 .PP
 Option
 .B -d

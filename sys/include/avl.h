@@ -23,3 +23,4 @@ void	endwalk(Avlwalk *walk);
 void	insertavl(Avltree *tree, Avl *new, Avl **oldp);
 Avl	*lookupavl(Avltree *tree, Avl *key);
 Avltree	*mkavltree(int(*cmp)(Avl*, Avl*));
+Avl*	searchavl(Avltree *tree, Avl *key, int neighbor);
