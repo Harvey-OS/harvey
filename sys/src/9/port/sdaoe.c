@@ -69,32 +69,13 @@ struct Ctlr{
 	char	ident[0x100];
 };
 
+void	aoeidmove(char *p, ushort *a, unsigned n);
+
 static	Lock	ctlrlock;
 static	Ctlr	*head;
 static	Ctlr	*tail;
 
 SDifc sdaoeifc;
-
-static void
-idmove(char *p, ushort *a, int n)
-{
-	int i;
-	char *op, *e;
-
-	op = p;
-	for(i = 0; i < n/2; i++){
-		*p++ = a[i] >> 8;
-		*p++ = a[i];
-	}
-	*p = 0;
-	while(p > op && *--p == ' ')
-		*p = 0;
-	e = p;
-	p = op;
-	while(*p == ' ')
-		p++;
-	memmove(op, p, n - (e - p));
-}
 
 static ushort
 gbit16(void *a)
@@ -157,9 +138,9 @@ identify(Ctlr *c, ushort *id)
 			c->feat |= Dnop;
 	}
 
-	idmove(c->serial, id+10, 20);
-	idmove(c->firmware, id+23, 8);
-	idmove(c->model, id+27, 40);
+	aoeidmove(c->serial, id+10, 20);
+	aoeidmove(c->firmware, id+23, 8);
+	aoeidmove(c->model, id+27, 40);
 
 	if((osectors == 0 || osectors != s) &&
 	    memcmp(oserial, c->serial, sizeof oserial) != 0){
