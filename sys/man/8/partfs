@@ -53,7 +53,7 @@ Partition a USB flash device:
 .EX
 usb/disk
 disk/partfs /n/disk/0/data
-disk/mbr /dev/sdXX/data
+disk/mbr -m /386/mbr /dev/sdXX/data
 disk/fdisk -baw /dev/sdXX/data
 disk/prep /dev/sdXX/plan9
 .EE
