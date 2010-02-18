@@ -57,6 +57,7 @@ threadmain(int argc, char **argv)
 		break;
 	case 's':
 		srv = EARGF(usage());
+		break;
 	default:
 		usage();
 	}ARGEND
