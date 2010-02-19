@@ -7,15 +7,15 @@ sdahci \- AHCI (Advanced Host Controller Interface) SATA (Serial ATA) storage de
 .sp 0.3v
 .BI /dev/sdctl
 .sp 0.3v
-.BI /dev/sd E 0/ctl
-.BI /dev/sd E 0/raw
-.BI /dev/sd E 0/data
+.BI /dev/sd En /ctl
+.BI /dev/sd En /raw
+.BI /dev/sd En /data
 \&...
 .fi
 .SH DESCRIPTION
 The
 .I sdahci
-drivers provide access to AHCI devices via the
+driver provides access to AHCI devices via the
 .IR sd (3)
 interface.
 The AHCI programming interface supports up to 32
@@ -23,6 +23,9 @@ hot-swappable ATAPI or hard disk-like devices per controller.
 The legacy IDE interface provided by
 .B sdata.c
 supports up to four drives which are not hot-swappable.
+Controller drive letters are assigned from
+.L E
+onward.
 .PP
 AHCI controllers are detected automatically.
 Currently Intel and AMD controllers are detected.
