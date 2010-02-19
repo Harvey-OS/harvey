@@ -2,7 +2,7 @@
 # start abaco and its prerequisites
 rfork n
 
-outside && bind /net.alt /net
+# outside && bind /net.alt /net
 
 webfs
 webcookies
