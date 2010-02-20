@@ -685,7 +685,7 @@ for(disk in /dev/sd??) {
 }
 .EE
 .PP
-Create a Plan 9 boot floppy on a previously formatted diskette:
+Create a Plan 9 boot floppy on a previously formatted diskette.
 .IP
 .EX
 disk/format -b /386/pbs -df /dev/fd0disk \e
@@ -704,13 +704,21 @@ disk/format -b /386/pbslba -d -r 2 /dev/sdC0/9fat \e
 .EE
 .PP
 Create a bootable USB disk or flash-memory device to be booted
-via the BIOS and with no partitions:
+via the BIOS and containing only a FAT
+.I fdisk
+partition.
 .IP
 .EX
 mount /srv/usb /n/usb
-ls /n/usb
-disk/format -b /386/pbslba -df /n/usb/sdU13.0/data \e
-	/386/9load /386/9pcf.gz /tmp/plan9.ini
+ls /n/usb/sdU*			# note the sdU* number
+disk/partfs /n/usb/sdU13.0/data
+disk/mbr -m /386/mbr /dev/sdXX/data
+disk/fdisk -baw /dev/sdXX/data
+disk/fdisk /dev/sdXX/data
+# delete p1 and create a new FAT16 p1 of about 100MB,
+# and mark it active.  write and quit.
+disk/format -b /386/pbslba -d -r 2 /dev/sdXX/dos \e
+	/386/9load /386/9pcf /tmp/plan9.ini
 .EE
 .SH SOURCE
 .B /sys/src/cmd/disk/prep
