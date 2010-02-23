@@ -120,11 +120,6 @@ enum {
 #define WINATTR(ctl)	(((ctl) >> 8) & 0377)
 #define WIN64KSIZE(ctl)	(((ctl) >> 16) + 1)
 
-enum {
-	Targflash = 1,
-	Attrspi	= 0x1e,
-};
-
 static void
 addrmap(void)
 {

@@ -391,3 +391,61 @@ enum {
 	L2on		= 1<<3,
 	L2writethru	= 1<<4,		/* else write-back */
 };
+
+enum {
+	/* from 88f6281 func'l specs (MV-S104860-00), tables 2 & 3, chapter 2 */
+	Targdram	= 0,		/* ddr sdram */
+	Targflash	= 1,
+
+	/* attributes */
+	Attrcs0		= 0xe,		/* chip select 0 (low dram) */
+	Attrcs1		= 0xd,		/* chip select 1 (high dram) */
+	Attrbootrom	= 0x1d,
+	Attrspi		= 0x1e,
+	Attrnand	= 0x2f,
+};
+
+typedef struct Pciex Pciex;
+struct Pciex {
+	ushort	venid;			/* 0x11ab means Marvell */
+	ushort	devid;			/* 0x6281 means 6281 */
+	ulong	csr;
+	ulong	revid;
+	ulong	bistcache;		/* bist hdr type & cache-line size */
+	ulong	bar0;
+	ulong	bar0hi;
+	ulong	bar1;
+	ulong	bar1hi;
+	ulong	bar2;
+	ulong	bar2hi;
+	ulong	_pad0;
+	ushort	ssvenid;		/* 0x11ab means Marvell */
+	ushort	ssdevid;		/* 0x11ab means Marvell */
+	ulong	rombar;
+	ulong	caplist;
+	ulong	_pad1;
+	ulong	intrpinline;		/* interrupt pin & line */
+	ulong	pmcap;			/* power mgmt. capability header */
+	ulong	pmcsr;			/* power mgmt. control & status */
+	ulong	_pad2[2];
+	ulong	msictl;			/* msi message control */
+	ulong	msiaddr;
+	ulong	msiaddrhi;
+	ulong	msidata;
+	ulong	cap;
+	ulong	devcap;
+	ulong	devcsr;
+	ulong	linkcap;
+	ulong	linkcsr;
+
+	uchar	_pad[0x40100-0x40074];
+	ulong	errrep;			/* advanced error report header */
+	ulong	uncorrerr;		/* uncorrectable error status */
+	ulong	uncorrerrmask;		/* uncorrectable error mask */
+	ulong	uncorrerrsev;		/* uncorrectable error severity */
+	ulong	correrr;		/* correctable error status */
+	ulong	correrrmask;		/* correctable error mask */
+	ulong	errcap;			/* advanced error capability & ctl. */
+	ulong	hdrlog[4];		/* header log */
+	/* continues with more rubbish at 0x41a00.  some day... */
+};
