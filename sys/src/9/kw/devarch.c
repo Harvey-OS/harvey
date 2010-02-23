@@ -153,12 +153,16 @@ Dev archdevtab = {
 char *
 cputype2name(char *buf, int size)
 {
-	char *soc;
+	ulong id, archid, rev;
+	char *manu, *arch, *socrev;
+	char unk[32], soc[32], revname[32];
+	Pciex *pci;
 
 	m->cputype = *(ulong *)AddrDevid;
+#ifdef OLD
 	switch(m->cputype & 3) {
 	case 0:
-		soc = "88F6180";
+		soc = "88F6[12]80";
 		break;
 	case 1:
 		soc = "88F619[02]";
@@ -170,7 +174,43 @@ cputype2name(char *buf, int size)
 		soc = "unknown";
 		break;
 	}
-	seprint(buf, buf + size, "Marvell %s (arm926ej-s)", soc);
+#endif
+	/* strange way to get this information, but it's what u-boot does */
+	pci = (Pciex *)Addrpci;
+	snprint(soc, sizeof soc, "88F%ux", pci->devid);
+	rev = pci->revid & ((1<<4)-1);
+
+	id = cpidget();
+	if ((id >> 24) == 0x56 && pci->venid == 0x11ab)
+		manu = "Marvell";
+	else
+		manu = "unknown";
+	archid = (id >> 16) & ((1<<4)-1);
+	switch (archid) {
+	case 5:
+		arch = "v5te";
+		break;
+	default:
+		snprint(unk, sizeof unk, "unknown (%ld)", archid);
+		arch = unk;
+		break;
+	}
+	switch (rev) {
+	case 2:
+		socrev = "A0";
+		break;
+	case 3:
+		socrev = "A1";		/* complete guess-work */
+		break;
+	default:
+		snprint(revname, sizeof revname, "unknown rev (%ld)", rev);
+		socrev = revname;
+		break;
+	}
+	seprint(buf, buf + size,
+		"%s %s %s; arm926ej-s arch %s rev %ld.%ld part %lux",
+		manu, soc, socrev, arch, (id >> 20) & ((1<<4)-1),
+		id & ((1<<4)-1), (id >> 4) & ((1<<12)-1));
 	return buf;
 }
 
