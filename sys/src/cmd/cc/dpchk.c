@@ -75,9 +75,9 @@ getflag(char *s)
 	nstar = 0;
 	for(;;) {
 		s += chartorune(&c, s);
+		fmt += runetochar(fmt, &c);
 		if(c == 0 || c >= nelem(flagbits))
 			break;
-		fmt += runetochar(fmt, &c);
 		f = flagbits[c];
 		switch(f) {
 		case Fnone:
