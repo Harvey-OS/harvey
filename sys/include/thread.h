@@ -28,6 +28,7 @@ struct Channel {
 	int	freed;		/* Set when channel is being deleted */
 	volatile Alt **qentry;	/* Receivers/senders waiting (malloc) */
 	volatile int nentry;	/* # of entries malloc-ed */
+	volatile int closed;	/* channel is closed */
 	uchar	v[1];		/* Array of s values in the channel */
 };
 
@@ -45,6 +46,7 @@ struct Alt {
 	Channel	*c;		/* channel */
 	void	*v;		/* pointer to value */
 	ChanOp	op;		/* operation */
+	char	*err;		/* did the op fail? */
 	/*
 	 * the next variables are used internally to alt
 	 * they need not be initialized
@@ -58,8 +60,10 @@ struct Ref {
 };
 
 int	alt(Alt alts[]);
+int	chanclose(Channel*);
 Channel*chancreate(int elemsize, int bufsize);
 int	chaninit(Channel *c, int elemsize, int elemcnt);
+int	chanisclosed(Channel *c);
 void	chanfree(Channel *c);
 int	chanprint(Channel *, char *, ...);
 long	decref(Ref *r);			/* returns 0 iff value is now zero */

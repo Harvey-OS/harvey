@@ -1,9 +1,11 @@
 .TH THREAD 2
 .SH NAME
 alt,
+chanclose,
 chancreate,
 chanfree,
 chaninit,
+chanisclosed,
 chanprint,
 mainstacksize,
 proccreate,
@@ -48,20 +50,27 @@ yield \- thread and proc management
 #include <libc.h>
 #include <thread.h>
 .sp
-#define	CHANEND		0
-#define	CHANSND		1
-#define	CHANRCV		2
-#define	CHANNOP		3
-#define	CHANNOBLK	4
+typedef enum {
+	CHANEND,
+	CHANSND,
+	CHANRCV,
+	CHANNOP,
+	CHANNOBLK,
+} ChanOp;
 .sp
 .ta \w'    'u +\w'Channel 'u
 typedef struct Alt Alt;
 struct Alt {
-	Channel	*c;
-	void	*v;
-	int	op;
-	Channel	**tag;
-	int	entryno;
+	Channel	*c;   /* channel */
+	void	*v;   /* pointer to value */
+	ChanOp	op;   /* operation */
+	char	*err; /* did the op fail? */
+	/*
+	 * the next variables are used internally to alt
+	 * they need not be initialized
+	 */
+	Channel	**tag;   /* pointer to rendez-vous tag */
+	int	entryno; /* entry number */
 };
 .fi
 .de XX
@@ -116,6 +125,8 @@ int	nbsend(Channel *c, void *v)
 int	nbsendp(Channel *c, void *v)
 int	nbsendul(Channel *c, ulong v)
 int	chanprint(Channel *c, char *fmt, ...)
+int	chanclose(Channel *c);
+int	chanisclosed(Channel *c);
 .XX
 void	procexecl(Channel *cpid, char *file, ...)
 void	procexec(Channel *cpid, char *file, char *args[])
@@ -167,7 +178,7 @@ executes
 .I fn(arg)
 on a stack of size
 .IR stacksize .
-Thread stacks are allocated in shared memory, making it valid to pass 
+Thread stacks are allocated in shared memory, making it valid to pass
 pointers to stack variables between threads and procs.
 .I Procrfork
 creates a new proc, and inside that proc creates
@@ -189,7 +200,7 @@ Do not include
 in
 .IR rforkflag .)
 .I Proccreate
-is identical to 
+is identical to
 .I procrfork
 with
 .I rforkflag
@@ -307,7 +318,7 @@ is only valid until the next call to
 returns a pointer to a per-thread pointer
 that may be modified by threaded programs for
 per-thread storage.
-Similarly, 
+Similarly,
 .I procdata
 returns a pointer to a per-proc pointer.
 .SS Executing new programs
@@ -379,10 +390,10 @@ operation blocks until the corresponding
 operation occurs and
 .IR "vice versa" .
 .I Chaninit
-initializes a 
+initializes a
 .B Channel
 for messages of size
-.I elsize 
+.I elsize
 and with a buffer holding
 .I nel
 messages.
@@ -520,12 +531,43 @@ calls.
 formats its arguments in the manner of
 .IR print (2)
 and sends the result to the channel
-.IR c.
+.IR c .
 The string delivered by
 .I chanprint
 is allocated with
 .IR malloc (2)
 and should be freed upon receipt.
+.PP
+.I Chanclose
+prevents further elements being sent to the channel
+.IR c .
+After closing a channel,
+.I send
+and
+.I recv
+never block.
+.I Send
+always
+returns \-1.
+.I Recv
+returns \-1 if the channel is empty.
+.I Alt
+may choose a
+.B CHANSND
+or
+.B CHANRCV
+that failed because the channel was closed.
+In this case, the
+.B err
+field of the
+.B Alt
+entry points to an error string stating that the
+channel was closed and the operation was completed
+with failure.
+If all entries have been selected and failed because
+they were closed,
+.I alt
+returns \-1.
 .SS Errors, notes and resources
 Thread library functions do not return on failure;
 if errors occur, the entire program is aborted.
@@ -546,7 +588,7 @@ in threaded programs.
 will print the error string and call
 .IR threadexitsall .
 .PP
-It is safe to use 
+It is safe to use
 .IR rfork
 (see
 .IR fork (2))
@@ -564,7 +606,7 @@ and
 .BR RFCENVG.
 (To create new processes, use
 .I proccreate
-and 
+and
 .IR procrfork .)
 As mentioned above,
 the thread library depends on all procs being in the

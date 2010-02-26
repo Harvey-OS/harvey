@@ -3,6 +3,12 @@
 #include <thread.h>
 #include "threadimpl.h"
 
+/* Value to indicate the channel is closed */
+enum {
+	CHANCLOSD = 0xc105ed,
+};
+
+static char errcl[] = "channel was closed";
 static Lock chanlock;		/* central channel access lock */
 
 static void enqueue(Alt*, Channel**);
@@ -10,15 +16,22 @@ static void dequeue(Alt*);
 static int canexec(Alt*);
 static int altexec(Alt*, int);
 
+#define Closed	((void*)CHANCLOSD)
+#define Intred	((void*)~0)		/* interrupted */
+
 static void
 _chanfree(Channel *c)
 {
 	int i, inuse;
 
-	inuse = 0;
-	for(i = 0; i < c->nentry; i++)
-		if(c->qentry[i])
-			inuse = 1;
+	if(c->closed == 1)			/* chanclose is ongoing */
+		inuse = 1;
+	else{
+		inuse = 0;
+		for(i = 0; i < c->nentry; i++)	/* alt ongoing */
+			if(c->qentry[i])
+				inuse = 1;
+	}
 	if(inuse)
 		c->freed = 1;
 	else{
@@ -43,6 +56,7 @@ chaninit(Channel *c, int elemsize, int elemcnt)
 		return -1;
 	c->f = 0;
 	c->n = 0;
+	c->closed = 0;
 	c->freed = 0;
 	c->e = elemsize;
 	c->s = elemcnt;
@@ -64,12 +78,18 @@ chancreate(int elemsize, int elemcnt)
 	return c;
 }
 
+static int
+isopenfor(Channel *c, int op)
+{
+	return c->closed == 0 || (op == CHANRCV && c->n > 0);
+}
+
 int
 alt(Alt *alts)
 {
-	Alt *a, *xa;
+	Alt *a, *xa, *ca;
 	Channel volatile *c;
-	int n, s;
+	int n, s, waiting, allreadycl;
 	void* r;
 	Thread *t;
 
@@ -96,7 +116,7 @@ alt(Alt *alts)
 		xa->entryno = -1;
 		if(xa->op == CHANNOP)
 			continue;
-		
+
 		c = xa->c;
 		if(c==nil){
 			unlock(&chanlock);
@@ -105,10 +125,11 @@ alt(Alt *alts)
 			return -1;
 		}
 
-		if(canexec(xa))
+		if(isopenfor(c, xa->op) && canexec(xa))
 			if(nrand(++n) == 0)
 				a = xa;
 	}
+
 
 	if(a==nil){
 		/* nothing can proceed */
@@ -116,23 +137,49 @@ alt(Alt *alts)
 			unlock(&chanlock);
 			_procsplx(s);
 			t->chan = Channone;
-			return xa - alts;
+			if(xa->op == CHANNOBLK)
+				return xa - alts;
 		}
 
-		/* enqueue on all channels. */
+		/* enqueue on all channels open for us. */
 		c = nil;
-		for(xa=alts; xa->op!=CHANEND; xa++){
+		ca = nil;
+		waiting = 0;
+		allreadycl = 0;
+		for(xa=alts; xa->op!=CHANEND; xa++)
 			if(xa->op==CHANNOP)
 				continue;
-			enqueue(xa, &c);
-		}
+			else if(isopenfor(xa->c, xa->op)){
+				waiting = 1;
+				enqueue(xa, &c);
+			} else if(xa->err != errcl)
+				ca = xa;
+			else
+				allreadycl = 1;
 
+		if(waiting == 0)
+			if(ca != nil){
+				/* everything was closed, select last channel */
+				ca->err = errcl;
+				unlock(&chanlock);
+				_procsplx(s);
+				t->chan = Channone;
+				return ca - alts;
+			} else if(allreadycl){
+				/* everything was already closed */
+				unlock(&chanlock);
+				_procsplx(s);
+				t->chan = Channone;
+				return -1;
+			}
 		/*
 		 * wait for successful rendezvous.
 		 * we can't just give up if the rendezvous
 		 * is interrupted -- someone else might come
 		 * along and try to rendezvous with us, so
 		 * we need to be here.
+		 * if the channel was closed, the op is done
+		 * and we flag an error for the entry.
 		 */
 	    Again:
 		unlock(&chanlock);
@@ -141,8 +188,8 @@ alt(Alt *alts)
 		s = _procsplhi();
 		lock(&chanlock);
 
-		if(r==(void*)~0){		/* interrupted */
-			if(c!=nil)		/* someone will meet us; go back */
+		if(r==Intred){		/* interrupted */
+			if(c!=nil)	/* someone will meet us; go back */
 				goto Again;
 			c = (Channel*)~0;	/* so no one tries to meet us */
 		}
@@ -152,8 +199,12 @@ alt(Alt *alts)
 		for(xa=alts; xa->op!=CHANEND; xa++){
 			if(xa->op==CHANNOP)
 				continue;
-			if(xa->c == c)
+			if(xa->c == c){
 				a = xa;
+				a->err = nil;
+				if(r == Closed)
+					a->err = errcl;
+			}
 			dequeue(xa);
 		}
 		unlock(&chanlock);
@@ -162,12 +213,67 @@ alt(Alt *alts)
 			assert(c==(Channel*)~0);
 			return -1;
 		}
-	}else{
+	}else
 		altexec(a, s);	/* unlocks chanlock, does splx */
-	}
 	_sched();
 	t->chan = Channone;
 	return a - alts;
+}
+
+int
+chanclose(Channel *c)
+{
+	Alt *a;
+	int i, s, some;
+
+	s = _procsplhi();	/* note handlers; see :/^alt */
+	lock(&chanlock);
+	if(c->closed){
+		/* Already close; we fail but it's ok. don't print */
+		unlock(&chanlock);
+		_procsplx(s);
+		return -1;
+	}
+	c->closed = 1;		/* Being closed */
+
+	/*
+	 * locate entries that will fail due to close
+	 * (send, and receive if nothing buffered) and wake them up.
+	 * Continue doing so until we make a full pass with no work,
+	 * otherwise we might miss alts being made while the lock is released.
+	 * We hope that this is O(2n) and not O(n*n).
+	 */
+	do{
+		some = 0;
+		for(i = 0; i < c->nentry; i++){
+			if((a = c->qentry[i]) == nil || *a->tag != nil)
+				continue;
+			if(a->op != CHANSND && (a->op != CHANRCV || c->n != 0))
+				continue;
+			*a->tag = c;
+			unlock(&chanlock);
+			_procsplx(s);
+			while(_threadrendezvous(a->tag, Closed) == Intred)
+				;
+			s = _procsplhi();
+			lock(&chanlock);
+			some++;
+		}
+	}while(some);
+
+	c->closed = 2;		/* Fully closed */
+	if(c->freed)
+		_chanfree(c);
+	unlock(&chanlock);
+	_procsplx(s);
+	return 0;
+}
+
+int
+chanisclosed(Channel *c)
+{
+	/* No need to get the lock */
+	return c->closed != 0;
 }
 
 static int
@@ -184,6 +290,7 @@ runop(int op, Channel *c, void *v, int nb)
 	a[0].op = op;
 	a[0].c = c;
 	a[0].v = v;
+	a[0].err = nil;
 	a[1].op = CHANEND;
 	if(nb)
 		a[1].op = CHANNOBLK;
@@ -194,6 +301,11 @@ runop(int op, Channel *c, void *v, int nb)
 		assert(nb);
 		return 0;
 	case 0:
+		/*
+		 * Okay, but return -1 if the op is done because of a close.
+		 */
+		if(a[0].err != nil)
+			return -1;
 		return 1;
 	default:
 		fprint(2, "ERROR: channel alt returned %d\n", r);
@@ -350,7 +462,8 @@ dequeue(Alt *a)
 		if(c->qentry[i]==a){
 			_threaddebug(DBGCHAN, "Dequeuing alt %p from channel %p", a, a->c);
 			c->qentry[i] = nil;
-			if(c->freed)
+			/* release if freed and not closing */
+			if(c->freed && c->closed != 1)
 				_chanfree(c);
 			return;
 		}
@@ -467,7 +580,7 @@ altexec(Alt *a, int spl)
 		unlock(&chanlock);
 		_procsplx(spl);
 		_threaddebug(DBGCHAN, "chanlock is %lud", *(ulong*)&chanlock);
-		while(_threadrendezvous(b->tag, 0) == (void*)~0)
+		while(_threadrendezvous(b->tag, 0) == Intred)
 			;
 		return 1;
 	}
