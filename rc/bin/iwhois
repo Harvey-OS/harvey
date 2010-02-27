@@ -63,19 +63,17 @@ fn sigexit {
 	rm -f $file
 }
 echo $person | telnet -nr tcp!$machine!whois > $file
-x=`{ sed -n '
-	s/.*Whois Server: (.*)/\1/p
-	s;.*ReferralServer: whois://(.*);\1;p
-	' $file }
-switch($x){
-case ''
+x=`{ sed -n -e 's/.*Whois Server: (.*)/\1/p' \
+	-e 's;.*ReferralServer: whois://(.*)(:43)?;\1;p' $file }
+switch($#x){
+case 0
 	;			# e.g., for .ca
-case *' '*
-	echo $0: buggery: $x >[1=2]
-	exit botch
-case *
+case 1
 	# chase the referral chain
 	echo $person | telnet -nr tcp!$x!whois > $file
+case *
+#	echo $0: buggery: `{echo $x | tr ' ' '\12' | sort -u} >[1=2]
+	echo $person | telnet -nr tcp!^$x(1)^!whois > $file
 }
 if (test ! -s $file) {
 	echo $0: broken whois server tcp!$x!whois returned no data >[1=2]

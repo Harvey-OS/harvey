@@ -271,13 +271,13 @@ provides a file system (usually mounted at
 that includes one directory per USB serial port, named
 .BI eiaU N.
 In this directory there are two files,
-.BI eiaU N,
+.BI eiau N,
 similar to
 .BI eia N
 in
 .IR eia (3),
 and
-.BI eiaU N /ctl .
+.BI eiau N /ctl .
 .I Ctl
 admits writes in the same format as
 .BI eia N ctl

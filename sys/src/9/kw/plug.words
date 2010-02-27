@@ -1,6 +1,6 @@
 marvell or global scale sheevaplug
 
-marvell 88f6281 (feroceon kirkwood) SoC
+marvell 88f6281 (feroceon kirkwood) SoC; ours are revision A0
 arm926ej-s rev 1 [56251311] (armv5tejl) 1.2GHz cpu
 i & d caches 16K each, associativity 4, 32-byte lines, 128 sets
 512MB of dram at physical address 0

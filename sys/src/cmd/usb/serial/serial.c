@@ -746,6 +746,13 @@ serialmain(Dev *dev, int argc, char* argv[])
 		return -1;
 	}
 
+	dirtab[Qdata].name = smprint("eiau%d", dev->id);
+	dirtab[Qctl].name  = smprint("eiau%dctl", dev->id);
+	/*
+	 * it would nice to get rid of this extra level of directory,
+	 * thus reducing /dev/eiaU6/eiau6* to /dev/eiau6*
+	 * for easier binding into /dev with `bind -a /dev/eiaU* /dev'.
+	 */
 	snprint(ser->fs.name, sizeof ser->fs.name, "eiaU%d", dev->id);
 	fprint(2, "%s\n", ser->fs.name);
 	ser->fs.dev = dev;

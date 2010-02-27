@@ -1,0 +1,20 @@
+.TH SCREENLOCK 8
+.SH NAME
+screenlock \- disable access to a terminal
+.SH SYNOPSIS
+.B screenlock
+.SH DESCRIPTION
+.I Screenlock
+grabs the screen, keyboard, and mouse devices
+to disable access to the Plan 9 terminal on which it is run.
+The screen can be unlocked by typing the invoking user's Plan 9 password
+and a newline.
+.SH FILES
+.TF /lib/bunny.bit
+.TP
+.B /lib/bunny.bit
+the image displayed while the terminal is locked
+.SH SOURCE
+.B /sys/src/cmd/screenlock.c
+.SH BUGS
+Use of this program on communal terminals is anti-social.
