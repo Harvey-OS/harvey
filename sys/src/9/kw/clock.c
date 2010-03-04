@@ -1,5 +1,7 @@
 /*
  * kirkwood clocks
+ *
+ * timers count down to zero.
  */
 #include "u.h"
 #include "../port/lib.h"
@@ -13,18 +15,17 @@
 #define TIMERREG	((TimerReg *)AddrTimer)
 
 enum {
-	Tcycles = CLOCKFREQ / HZ,		/* cycles per clock tick */
+	Tcycles		= CLOCKFREQ / HZ,	/* cycles per clock tick */
+	MaxPeriod	= Tcycles,
+	MinPeriod	= MaxPeriod / 100,
 
 	/* timer ctl bits */
 	Tmr0enable	= 1<<0,
-	Tmr0periodic	= 1<<1,
+	Tmr0periodic	= 1<<1,	/* at 0 count, load timer0 from reload0 */
 	Tmr1enable	= 1<<2,
-	Tmr1periodic	= 1<<3,
+	Tmr1periodic	= 1<<3,	/* at 0 count, load timer1 from reload1 */
 	TmrWDenable	= 1<<4,
 	TmrWDperiodic	= 1<<5,
-
-	MaxPeriod	= Tcycles,
-	MinPeriod	= MaxPeriod / 100,
 };
 
 typedef struct TimerReg TimerReg;
@@ -33,18 +34,22 @@ struct TimerReg
 	ulong	ctl;
 	ulong	pad[3];
 	ulong	reload0;
-	ulong	timer0;
+	ulong	timer0;			/* cycles until zero */
 	ulong	reload1;
-	ulong	timer1;
+	ulong	timer1;			/* cycles until zero */
 	ulong	reloadwd;
 	ulong	timerwd;
 };
 
+static int ticks; /* for sanity checking; m->ticks doesn't always get called */
+
 static void
-clockintr(Ureg *ureg, void*)
+clockintr(Ureg *ureg, void *arg)
 {
-	TIMERREG->timerwd = CLOCKFREQ;		/* reassure the watchdog */
-	m->fastclock++;
+	TimerReg *tmr = arg;
+
+	tmr->timerwd = CLOCKFREQ;		/* reassure the watchdog */
+	ticks++;
 	coherence();
 	timerintr(ureg, 0);
 	intrclear(Irqbridge, IRQcputimer0);
@@ -61,32 +66,35 @@ clockshutdown(void)
 void
 clockinit(void)
 {
-	int s;
-	long cyc;
+	int i, s;
 	TimerReg *tmr = TIMERREG;
 
 	clockshutdown();
-	intrenable(Irqbridge, IRQcputimer0, clockintr, nil, "clock");
 
+	/*
+	 * verify sanity of timer0
+	 */
+
+	intrenable(Irqbridge, IRQcputimer0, clockintr, tmr, "clock");
 	s = spllo();			/* risky */
 	/* take any deferred clock (& other) interrupts here */
 	splx(s);
 
 	/* adjust m->bootdelay, used by delay()? */
-	m->ticks = 0;
+	m->ticks = ticks = 0;
 	m->fastclock = 0;
 
-	tmr->timer0 = Tcycles;
+	tmr->timer0 = 1;
 	tmr->ctl = Tmr0enable;		/* just once */
 	coherence();
 
 	s = spllo();			/* risky */
-	/* one iteration seems to take about 40 ns. */
-	for (cyc = Tcycles; cyc > 0 && m->fastclock == 0; cyc--)
-		;
+	for (i = 0; i < 10 && ticks == 0; i++) {
+		delay(1);
+		coherence();
+	}
 	splx(s);
-
-	if (m->fastclock == 0) {
+	if (ticks == 0) {
 		serialputc('?');
 		if (tmr->timer0 == 0)
 			panic("clock not interrupting");
@@ -96,11 +104,13 @@ clockinit(void)
 			panic("clock running very slowly");
 	}
 
+	/*
+	 * configure all timers
+	 */
 	clockshutdown();
-	tmr->timer0  = Tcycles;
-	tmr->timer1  = ~0;
-	tmr->reload1 = ~0;
-	tmr->timerwd = CLOCKFREQ;
+	tmr->reload0 = tmr->timer0 = Tcycles;	/* tick clock */
+	tmr->reload1 = tmr->timer1 = ~0;	/* cycle clock */
+	tmr->timerwd = CLOCKFREQ;		/* watch dog timer */
 	coherence();
 	tmr->ctl = Tmr0enable | Tmr1enable | Tmr1periodic | TmrWDenable;
 	CPUCSREG->rstout |= RstoutWatchdog;
@@ -132,12 +142,18 @@ fastticks(uvlong *hz)
 		*hz = CLOCKFREQ;
 	s = splhi();
 	/* zero low ulong of fastclock */
-	now = (m->fastclock & ~(uvlong)~0ul) | ~TIMERREG->timer1;
-	if(now < m->fastclock)
+	now = (m->fastclock & ~(uvlong)~0ul) | perfticks();
+	if(now < m->fastclock)		/* low bits must have wrapped */
 		now += 1ll << 32;
 	m->fastclock = now;
 	splx(s);
 	return now;
+}
+
+ulong
+perfticks(void)
+{
+	return ~TIMERREG->timer1;
 }
 
 ulong
@@ -168,10 +184,4 @@ delay(int l)
 	while(l-- > 0)
 		for(i=0; i < j; i++)
 			;
-}
-
-ulong
-perfticks(void)
-{
-	return ~TIMERREG->timer1;
 }
