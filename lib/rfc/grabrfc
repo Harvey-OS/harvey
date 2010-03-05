@@ -6,7 +6,7 @@ fn cd
 dom=`{ndb/query sys $sysname dom}
 
 ramfs
-ftpfs -q/ -a $user@$dom ftp.isi.edu
+ftpfs -q/ -a $user@$dom ftp.rfc-editor.org	# was ftp.isi.edu
 
 found=no
 LIB=/lib/rfc
