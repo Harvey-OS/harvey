@@ -23,7 +23,7 @@ enum {
 	Maxpath	= 128,
 
 	Probeintvl	= 100,		/* ms. between probes */
-	Probemax	= 10,		/* max probes */
+	Probemax	= 20,		/* max probes */
 };
 
 enum {

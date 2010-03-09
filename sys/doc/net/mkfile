@@ -16,3 +16,6 @@ tree.pout:D:	tree
 net.html:D:	$DEPS
 	tbl net.ms | htmlroff -ms -mhtml >net.html
 
+clean:V:
+	rm -f net.ps tree.pout net.trout
+
