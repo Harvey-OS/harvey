@@ -744,7 +744,7 @@ For example, the entry for our CPU server
 specifies a domain name, an IP address, an Ethernet address,
 a Datakit address, a boot file, and supported protocols.
 .P1
-sys = helix
+sys=helix
 	dom=helix.research.bell-labs.com
 	bootf=/mips/9power
 	ip=135.104.9.31 ether=0800690222f0

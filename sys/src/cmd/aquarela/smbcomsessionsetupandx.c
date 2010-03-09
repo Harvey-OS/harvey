@@ -120,6 +120,10 @@ smblogprint(h->command, "nativelanman: %s\n", nativelanman);
 			goto errordone;
 		}
 		memcpy(&s->client.mschapreply, mschapreply, sizeof(s->client.mschapreply));
+		if(s->cs == nil){
+			smbseterror(s, ERRSRV, ERRerror);
+			goto errordone;
+		}
 		s->cs->user = accountname;
 		s->cs->resp = &s->client.mschapreply;
 		s->cs->nresp = sizeof(MSchapreply);
