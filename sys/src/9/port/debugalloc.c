@@ -675,9 +675,7 @@ recur(Bhdr *t)
 {
 	if(t == 0)
 		return 1;
-	if(((ulong)t) < 0x80000000)
-		return 0;
-	if(((ulong)t) > 0x90000000)
+	if((uintptr)t < KZERO || (uintptr)t - KZERO > 0x10000000)
 		return 0;
 	return recur(t->right) && recur(t->left);
 }

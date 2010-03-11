@@ -144,7 +144,7 @@ prettyrrfmt(Fmt *f)
 		rrname(rp->type, buf, sizeof buf));
 
 	if(rp->negative){
-		seprint(p, e, "negative rcode %d\n", rp->negrcode);
+		seprint(p, e, "negative rcode %d", rp->negrcode);
 		goto out;
 	}
 
