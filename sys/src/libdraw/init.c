@@ -115,7 +115,7 @@ initdraw(void(*error)(Display*, char*), char *fontname , char *label)
 	char *dev = "/dev";
 
 	if(access("/dev/draw/new", AEXIST)<0 && bind("#i", "/dev", MAFTER)<0){
-		fprint(2, "imageinit: can't bind /dev/draw: %r");
+		fprint(2, "imageinit: can't bind /dev/draw: %r\n");
 		return -1;
 	}
 	return geninitdraw(dev, error, fontname, label, dev, Refnone);
