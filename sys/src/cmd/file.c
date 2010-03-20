@@ -586,6 +586,7 @@ Filemagic long0tab[] = {
 	/* "pXc2 */
 	0x32630070,	0xFFFF00FF,	"pac4 audio file\n",	OCTET,
 	0xBA010000,	0xFFFFFFFF,	"mpeg system stream\n",	OCTET,
+	0x43614c66,	0xFFFFFFFF,	"FLAC audio file\n",	OCTET,
 	0x30800CC0,	0xFFFFFFFF,	"inferno .dis executable\n", OCTET,
 	0x04034B50,	0xFFFFFFFF,	"zip archive\n", "application/zip",
 	070707,		0xFFFF,		"cpio archive\n", OCTET,
