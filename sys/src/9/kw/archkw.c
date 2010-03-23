@@ -254,8 +254,8 @@ archreset(void)
 	cpu->mempm = 0;			/* turn everything on */
 	coherence();
 
-	clocks = (1<<10) - 1;
-	clocks |= ((1<<21) - 1) & ~((1<<14) - 1);
+	clocks = MASK(10);
+	clocks |= MASK(21) & ~MASK(14);
 	clocks &= ~(1<<18 | 1<<1);	/* reserved bits */
 	cpu->clockgate |= clocks;	/* enable all the clocks */
 	cpu->l2cfg &= ~L2on;
@@ -284,12 +284,6 @@ archreboot(void)
 	iprint("waiting...");
 	for(;;)
 		idlehands();
-}
-
-long
-lcycles(void)
-{
-	return 0;
 }
 
 void

@@ -178,14 +178,14 @@ cputype2name(char *buf, int size)
 	/* strange way to get this information, but it's what u-boot does */
 	pci = (Pciex *)Addrpci;
 	snprint(soc, sizeof soc, "88F%ux", pci->devid);
-	rev = pci->revid & ((1<<4)-1);
+	m->socrev = rev = pci->revid & MASK(4);
 
 	id = cpidget();
 	if ((id >> 24) == 0x56 && pci->venid == 0x11ab)
 		manu = "Marvell";
 	else
 		manu = "unknown";
-	archid = (id >> 16) & ((1<<4)-1);
+	archid = (id >> 16) & MASK(4);
 	switch (archid) {
 	case 5:
 		arch = "v5te";
@@ -195,22 +195,29 @@ cputype2name(char *buf, int size)
 		arch = unk;
 		break;
 	}
-	switch (rev) {
-	case 2:
-		socrev = "A0";
-		break;
-	case 3:
-		socrev = "A1";		/* complete guess-work */
-		break;
-	default:
-		snprint(revname, sizeof revname, "unknown rev (%ld)", rev);
-		socrev = revname;
-		break;
-	}
+	if (pci->devid != 0x6281)
+		socrev = "unknown";
+	else
+		switch (rev) {
+		case 0:
+			socrev = "Z0";
+			break;
+		case 2:
+			socrev = "A0";
+			break;
+		case 3:
+			socrev = "A1";
+			break;
+		default:
+			snprint(revname, sizeof revname, "unknown rev (%ld)",
+				rev);
+			socrev = revname;
+			break;
+		}
 	seprint(buf, buf + size,
 		"%s %s %s; arm926ej-s arch %s rev %ld.%ld part %lux",
-		manu, soc, socrev, arch, (id >> 20) & ((1<<4)-1),
-		id & ((1<<4)-1), (id >> 4) & ((1<<12)-1));
+		manu, soc, socrev, arch, (id >> 20) & MASK(4),
+		id & MASK(4), (id >> 4) & MASK(12));
 	return buf;
 }
 

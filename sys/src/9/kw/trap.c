@@ -358,6 +358,10 @@ trap(Ureg *ureg)
 	}
 
 	user = (ureg->psr & PsrMask) == PsrMusr;
+	if(user){
+		up->dbgreg = ureg;
+		cycles(&up->kentry);
+	}
 
 	if(ureg->type == PsrMabt+1)
 		ureg->pc -= 8;
