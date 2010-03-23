@@ -10,6 +10,8 @@
 
 #include "reboot.h"
 
+#define MAXCONF 64
+
 uintptr kseg0 = KZERO;
 Mach* machaddr[MAXMACH];
 
@@ -30,6 +32,10 @@ static uintptr sp;		/* XXX - must go - user stack of init proc */
 
 int vflag;
 char debug[256];
+
+static char confname[MAXCONF][KNAMELEN];
+static char *confval[MAXCONF];
+static int nconf;
 
 static void
 optionsinit(char* s)
@@ -168,6 +174,23 @@ void	archconsole(void);
 	coherence(); \
 }
 
+static void
+setconf(char *name, char *val)
+{
+	strncpy(confname[nconf], name, KNAMELEN);
+	kstrdup(&confval[nconf], val);
+	nconf++;
+}
+
+/* TODO: need a better solution; perhaps read the u-boot environment */
+static void
+plan9iniinit(void)
+{
+	/* sheevaplug configuration */
+	setconf("aoeif", "ether0");
+	setconf("aoedev", "e!#æ/aoe/1.0");
+}
+
 /*
  * entered from l.s with mmu enabled.
  *
@@ -223,6 +246,7 @@ wave('\r');
 	trapinit();
 	clockinit();
 
+	plan9iniinit();
 	printinit();
 	/* only now can we print */
 	uartkirkwoodconsole();
@@ -398,6 +422,7 @@ init0(void)
 		ksetenv("nvram", "/boot/nvram", 0);
 		ksetenv("nvroff", "0", 0);
 		ksetenv("nvrlen", "512", 0);
+
 		ksetenv("nobootprompt", "tcp", 0);
 
 		poperror();
@@ -518,7 +543,7 @@ Confmem sheevamem[] = {
 	/*
 	 * Memory available to Plan 9:
 	 */
-	{ .base = 0x00000000, .limit = 512*1024*1024, },
+	{ .base = 0, .limit = 512*MB, },
 };
 
 void
@@ -530,8 +555,6 @@ confinit(void)
 
 	/*
 	 * Copy the physical memory configuration to Conf.mem.
-	 * The physical memory configuration will be used later
-	 * to check against what the the Pico Array wants.
 	 */
 	if(nelem(sheevamem) > nelem(conf.mem)){
 		iprint("memory configuration botch\n");
@@ -595,9 +618,40 @@ confinit(void)
 		imagmem->maxsize = kpages;
 }
 
-char*
-getconf(char *)
+static int
+findconf(char *name)
 {
+	int i;
+
+	for(i = 0; i < nconf; i++)
+		if(cistrcmp(confname[i], name) == 0)
+			return i;
+	return -1;
+}
+
+void
+addconf(char *name, char *val)
+{
+	int i;
+
+	i = findconf(name);
+	if(i < 0){
+		if(val == nil || nconf >= MAXCONF)
+			return;
+		i = nconf++;
+		strecpy(confname[i], confname[i]+sizeof(confname[i]), name);
+	}
+	confval[i] = val;
+}
+
+char*
+getconf(char *name)
+{
+	int i;
+
+	i = findconf(name);
+	if(i >= 0)
+		return confval[i];
 	return nil;
 }
 

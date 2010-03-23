@@ -403,17 +403,21 @@ etherreset(void)
 				intrenable(Irqlo, ether->irq, ether->interrupt,
 					ether, name);
 
-			i = sprint(buf, "#l%d: %s: %dMbps port %#lux irq %d",
+			i = snprint(buf, sizeof buf,
+				"#l%d: %s: %dMbps port %#lux irq %d",
 				ctlrno, ether->type, ether->mbps, ether->port,
 				ether->irq);
 			if(ether->mem)
-				i += sprint(buf+i, " addr %#lux", PADDR(ether->mem));
+				i += snprint(buf+i, sizeof buf - i,
+					" addr %#lux", PADDR(ether->mem));
 			if(ether->size)
-				i += sprint(buf+i, " size 0x%luX", ether->size);
-			i += sprint(buf+i, ": %2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux",
+				i += snprint(buf+i, sizeof buf - i,
+					" size 0x%luX", ether->size);
+			i += snprint(buf+i, sizeof buf - i,
+				": %2.2ux%2.2ux%2.2ux%2.2ux%2.2ux%2.2ux",
 				ether->ea[0], ether->ea[1], ether->ea[2],
 				ether->ea[3], ether->ea[4], ether->ea[5]);
-			sprint(buf+i, "\n");
+			snprint(buf+i, sizeof buf - i, "\n");
 			print("%s", buf);
 
 			if(ether->mbps >= 1000)

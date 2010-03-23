@@ -156,6 +156,12 @@ perfticks(void)
 	return ~TIMERREG->timer1;
 }
 
+long
+lcycles(void)
+{
+	return perfticks();
+}
+
 ulong
 µs(void)
 {

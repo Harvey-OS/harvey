@@ -53,6 +53,9 @@ kexit(Ureg*)
 	tos->pcycles = up->pcycles;
 	tos->cyclefreq = Frequency;
 	tos->pid = up->pid;
+
+	/* make visible immediately to user proc */
+	cachedwbinvse(tos, sizeof *tos);
 }
 
 /*
@@ -129,6 +132,11 @@ procsetup(Proc* p)
 void
 procsave(Proc* p)
 {
+	uvlong t;
+
+	cycles(&t);
+	p->pcycles += t;
+
 	fpuprocsave(p);
 }
 
