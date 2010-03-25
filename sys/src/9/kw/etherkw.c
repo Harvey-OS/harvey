@@ -21,8 +21,8 @@
 #define	MIIDBG	if(0)iprint
 
 enum {
-	Gbe0regs	= Regbase + 0x72000,
-	Gbe1regs	= Regbase + 0x76000,
+	Gbe0regs	= PHYSIO + 0x72000,
+	Gbe1regs	= PHYSIO + 0x76000,
 
 	Nrx		= 512,
 	Ntx		= 512,

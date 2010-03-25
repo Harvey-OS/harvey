@@ -55,15 +55,16 @@
  * This should leave 12K from KZERO to L1-MACHSIZE.
  * cpu0's Mach struct is at L1 - MACHSIZE(4K) to L1 (12K to 16K above KZERO).
  * PTEs are stored from L1 to L1+32K (16K to 48K above KZERO).
+ * L2 PTEs for trap vectors and i/o regs are stored below L1-MACHSIZE.
  * KTZERO may be anywhere after KZERO + 48K.
  * vectors are at 0.
  */
 
 #define	KSEG0		0x60000000		/* kernel segment */
-#define	KSEGM		0xE0000000		/* mask to check segment */
+/* mask to check segment; good for 512MB dram */
+#define	KSEGM		0xE0000000
 #define	KZERO		KSEG0			/* kernel address space */
 #define L1		(KZERO+16*KiB)		/* tt ptes: 16KiB aligned */
-// #define KTZERO	(KZERO+0x8000)		/* kernel text start */
 #define	KTZERO		(KZERO+0x800000)	/* kernel text start */
 
 #define	UZERO		0			/* user segment */
@@ -73,7 +74,9 @@
 #define	TSTKTOP		(USTKTOP-USTKSIZE)	/* sysexec temporary stack */
 #define	TSTKSIZ	 	256
 
-#define	REBOOTADDR	KADDR(0x100)	/* reboot code - physical address */
+/* address at which to copy and execute rebootcode */
+#define	REBOOTADDR	KADDR(0x100)
+
 /*
  * Time.
  * Does this need to be here? Used in assembler?
@@ -123,15 +126,17 @@
  * Physical machine information from here on.
  */
 #define PHYSDRAM	0
+#define CESASRAM	0xc8010000
 #define PHYSNAND	0xd8000000
 #define FLASHSIZE	(128*MiB)
 #define PHYSSPIFLASH	0xe8000000
 // #define PHYSENV		(PHYSFLASH+256*KiB)
 // #define ENVSIZE		(64*KiB)
 #define PHYSBOOTROM	0xffff0000		/* boot rom */
-#define PHYSIO		0xf1000000		/* Regbase in io.h */
-#define PHYSCONS	0xf1012000		/* uart */
+/* this address is configured by u-boot, and is 0xd0000000 at reset */
+#define PHYSIO		0xf1000000		/* internal registers */
+#define PHYSCONS	(PHYSIO + 0x12000)	/* uart */
 
-//#define PHYSNAND	0xf9000000
+// #define PHYSNAND	0xf9000000
 
 #define VIRTIO		PHYSIO

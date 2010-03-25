@@ -106,6 +106,12 @@
 /* CpTCl2cfg */
 #define CpTCl2conf	0
 
+/* CpTCl2conf bits */
+#define	CpTCldcstream	(1<<29)			/* D cache streaming switch */
+#define	CpTCl2wralloc	(1<<28)			/* cache write allocate */
+#define	CpTCl2prefdis	(1<<24)			/* l2 cache prefetch disable */
+#define	CpTCl2ena	(1<<22)			/* l2 cache enable */
+
 /* CpTCl2flush & CpTCl2inv */
 #define CpTCl2all	0
 #define CpTCl2seva	1
@@ -160,7 +166,7 @@
 #define Manager		3			/* DAC */
 
 #define AP(n, v) F((v), ((n)*2)+4, 2)
-#define L1AP(ap) (AP(3, (ap)))
+#define L1AP(ap) (AP(3, (ap)))		/* in L1, only Sections have AP */
 #define L2AP(ap) (AP(3, (ap))|AP(2, (ap))|AP(1, (ap))|AP(0, (ap))) /* pre-armv7 */
 #define DAC(n, v) F((v), (n)*2, 2)
 
