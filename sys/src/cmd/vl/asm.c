@@ -391,7 +391,7 @@ asmb(void)
 		lput(0x80L);			/* flags */
 		break;
 	case 5:
-		/* strings are order-independent */
+		/* first part of ELF is byte-wide parts, thus no byte-order issues */
 		strnput("\177ELF", 4);		/* e_ident */
 		CPUT(1);			/* class = 32 bit */
 		CPUT(little? 1: 2);		/* data: 1 = LSB, 2 = MSB */
