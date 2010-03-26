@@ -171,9 +171,12 @@ main(int argc, char *argv[])
 	case 'z':
 		zonerefreshprogram = EARGF(usage());
 		break;
+	default:
+		usage();
+		break;
 	}ARGEND
-	USED(argc);
-	USED(argv);
+	if(argc != 0)
+		usage();
 
 	if(testing)
 		mainmem->flags |= POOL_NOREUSE | POOL_ANTAGONISM;
