@@ -397,6 +397,7 @@ enum {
 	/* from 88f6281 func'l specs (MV-S104860-00), tables 2 & 3, chapter 2 */
 	Targdram	= 0,		/* ddr sdram */
 	Targflash	= 1,
+	Targcesasram	= 3,		/* security accelerator sram */
 
 	/* attributes */
 	Attrcs0		= 0xe,		/* chip select 0 (low dram) */
