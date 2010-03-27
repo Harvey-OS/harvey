@@ -126,7 +126,7 @@
  * Physical machine information from here on.
  */
 #define PHYSDRAM	0
-#define CESASRAM	0xc8010000
+#define PHYSCESASRAM	0xc8010000
 #define PHYSNAND	0xd8000000
 #define FLASHSIZE	(128*MiB)
 #define PHYSSPIFLASH	0xe8000000
