@@ -156,6 +156,19 @@ enum {
 	Allmodepages = 0x3F,
 };
 
+/* scsi device types, from the scsi standards */
+enum {
+	Devdir,			/* usually disk */
+	Devseq,			/* usually tape */
+	Devprint,
+	Dev3,
+	Devworm,		/* also direct, but special */
+	Devcd,			/* also direct */
+	Dev6,
+	Devmo,			/* also direct */
+	Devjuke,
+};
+
 /* p arguments should be of type uchar* */
 #define GETBELONG(p) ((ulong)(p)[0]<<24 | (ulong)(p)[1]<<16 | (p)[2]<<8 | (p)[3])
 #define PUTBELONG(p, ul) ((p)[0] = (ul)>>24, (p)[1] = (ul)>>16, \

@@ -68,6 +68,7 @@ struct Ums
 	uchar	maxlun;
 	int	seq;
 	int	nerrs;
+	int	wrongresidues;
 };
 
 /*
