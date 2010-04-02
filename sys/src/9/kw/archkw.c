@@ -114,7 +114,7 @@ enum {
  * 4 targ 1 attr 0x1d size  16MB addr 0xff::			boot rom
  * 5 targ 1 attr 0x1e size 128MB addr 0xe8::	disabled	spi flash
  * 6 targ 1 attr 0x1d size 128MB addr 0xf::	disabled	boot rom
- * 7 targ 3 attr 0x1  size  64K  addr 0xfb::			crypto
+ * 7 targ 3 attr 0x1  size  64K  addr 0xfb::			crypto sram
  */
 #define WINTARG(ctl)	(((ctl) >> 4) & 017)
 #define WINATTR(ctl)	(((ctl) >> 8) & 0377)
@@ -152,7 +152,20 @@ addrmap(void)
 						win->remaplo);
 				iprint("\n");
 			}
-		}
+		} else if (targ == Targcesasram) {
+			win->ctl |= Winenable;
+			win->base = PHYSCESASRAM;
+			coherence();
+			iprint("address map: enabled window %d for cesasram:\n"
+				"\ttarg %ld attr %#lux size %,ld addr %#lux",
+				i, targ, attr, size64k * 64*1024,
+				win->base);
+			if (i < 4)
+				iprint(" remap addr %#llux",
+					(uvlong)win->remaphi<<32 |
+					win->remaplo);
+			iprint("\n");
+	}
 	}
 	if (!sawspi)
 		panic("address map: no existing window for spi");
