@@ -104,7 +104,7 @@
  * CpTESTCFG Secondary (CRm) registers and opcode2 fields; sheeva only.
  */
 #define CpTCl2cfg	1
-#define CpTCl2flush	9
+#define CpTCl2flush	9			/* cpu blocks until flush done */
 #define CpTCl2waylck	10
 #define CpTCl2inv	11
 #define CpTCl2perfctl	12
@@ -131,8 +131,8 @@
 #define CpTCecccnt	6			/* ecc error count */
 #define CpTCeccthr	7			/* ecc error threshold */
 
-/* CpTCwaylck */
-#define CpTCwaylock	7
+/* CpTCl2waylck */
+#define CpTCl2waylock	7
 
 /* CpTCl2inv */
 #define CpTCl2erraddr	7			/* ecc error address */

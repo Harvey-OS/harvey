@@ -16,6 +16,10 @@
 
 #define SDRAMDREG	((SDramdReg*)AddrSDramd)
 
+enum {
+	L2writeback = 0,
+};
+
 typedef struct GpioReg GpioReg;
 struct GpioReg {
 	ulong	dataout;
@@ -104,6 +108,8 @@ enum {
 	Winenable	= 1<<0,
 };
 
+void l2cacheinv(void);
+
 /*
  * u-boot leaves us with this address map:
  *
@@ -121,7 +127,25 @@ enum {
 #define WIN64KSIZE(ctl)	(((ctl) >> 16) + 1)
 
 static void
-addrmap(void)
+praddrwin(Addrwin *win, int i)
+{
+	ulong ctl, targ, attr, size64k;
+
+	ctl = win->ctl;
+	targ = WINTARG(ctl);
+	attr = WINATTR(ctl);
+	size64k = WIN64KSIZE(ctl);
+	print("address map: %s window %d: targ %ld attr %#lux size %,ld addr %#lux",
+		ctl & Winenable? "enabled": "disabled", i, targ, attr,
+		size64k * 64*1024, win->base);
+	if (i < 4)
+		print(" remap addr %#llux", (uvlong)win->remaphi<<32 |
+			win->remaplo);
+	print("\n");
+}
+
+static void
+fixaddrmap(void)
 {
 	int i, sawspi;
 	ulong ctl, targ, attr, size64k;
@@ -136,40 +160,45 @@ addrmap(void)
 		targ = WINTARG(ctl);
 		attr = WINATTR(ctl);
 		size64k = WIN64KSIZE(ctl);
+
 		if (targ == Targflash && attr == Attrspi &&
+		    size64k == 16*MB/(64*1024)) {
+			win->ctl &= ~Winenable;
+			coherence();
+			if (i < 4) {
+				// TODO set the remap addr; it's 0 now
+			}
+			praddrwin(win, i);
+		} else if (targ == Targflash && attr == Attrspi &&
 		    size64k == 128*MB/(64*1024)) {
 			sawspi = 1;
 			if (!(ctl & Winenable)) {
 				win->ctl |= Winenable;
 				coherence();
-				iprint("address map: enabled window %d for spi:\n"
-					"\ttarg %ld attr %#lux size %,ld addr %#lux",
-					i, targ, attr, size64k * 64*1024,
-					win->base);
-				if (i < 4)
-					iprint(" remap addr %#llux",
-						(uvlong)win->remaphi<<32 |
-						win->remaplo);
-				iprint("\n");
+				praddrwin(win, i);
 			}
 		} else if (targ == Targcesasram) {
 			win->ctl |= Winenable;
 			win->base = PHYSCESASRAM;
 			coherence();
-			iprint("address map: enabled window %d for cesasram:\n"
-				"\ttarg %ld attr %#lux size %,ld addr %#lux",
-				i, targ, attr, size64k * 64*1024,
-				win->base);
-			if (i < 4)
-				iprint(" remap addr %#llux",
-					(uvlong)win->remaphi<<32 |
-					win->remaplo);
-			iprint("\n");
-	}
+			praddrwin(win, i);
+		}
 	}
 	if (!sawspi)
 		panic("address map: no existing window for spi");
-//	iprint("dirba %#lux\n", map->dirba);
+	if (map->dirba != PHYSIO)
+		panic("dirba not %#ux", PHYSIO);
+}
+
+static void
+praddrmap(void)
+{
+	int i;
+	Addrmap *map;
+
+	map = (Addrmap *)AddrWin;
+	for (i = 0; i < nelem(map->win); i++)
+		praddrwin(&map->win[i], i);
 }
 
 void
@@ -181,7 +210,7 @@ l2cacheon(void)
 	l1cachesoff();
 	cacheuwbinv();
 
-	/* disable caching of i/o registers */
+	/* disable l2 caching of i/o registers */
 	l2p = (L2uncache *)Addrl2cache;
 	memset(l2p, 0, sizeof *l2p);
 	/* l2: don't cache upper half of address space */
@@ -195,17 +224,25 @@ l2cacheon(void)
 	cpu = CPUCSREG;
 	cpu->cpucfg |= Cfgiprefetch | Cfgdprefetch;
 
-	/* writeback requires extra care */
-	cpu->l2cfg |= L2on | L2ecc | L2writethru;
+	/*
+	 * writeback requires extra care; i thought we were now taking
+	 * that extra care, but trying to use write-back kills the system.
+	 */
+	if (L2writeback)
+		cpu->l2cfg &= ~L2writethru;
+	else
+		cpu->l2cfg |= L2writethru;
+	cpu->l2cfg |= L2exists | L2ecc;
 	cpu->l2tm1 = cpu->l2tm0 = 0x66666666; /* marvell guideline GL-CPU-120 */
 	coherence();
 
 	cachedinv();
-
+	l2cacheinv();
 	l2cachecfgon();
-	l1cacheson();
 
-	print("l2 cache enabled as write-through\n");
+	l1cacheson();
+	print("l2 cache enabled as write-%s\n", cpu->l2cfg & L2writethru?
+		"through": "back");
 }
 
 /* called late in main */
@@ -214,7 +251,9 @@ archconfinit(void)
 {
 	m->cpuhz = 1200*1000*1000;
 	m->delayloop = m->cpuhz/6000;  /* only an initial estimate */
-	addrmap();
+	fixaddrmap();
+//	praddrmap();
+	l2cacheon();
 }
 
 void
@@ -271,7 +310,7 @@ archreset(void)
 	clocks |= MASK(21) & ~MASK(14);
 	clocks &= ~(1<<18 | 1<<1);	/* reserved bits */
 	cpu->clockgate |= clocks;	/* enable all the clocks */
-	cpu->l2cfg &= ~L2on;
+	cpu->l2cfg |= L2exists;		/* when L2exists is 0, the l2 ignores us */
 	coherence();
 
 	dram = (Dramctl *)AddrSDramc;
