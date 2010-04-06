@@ -389,7 +389,7 @@ enum {
 
 	/* l2cfg bits */
 	L2ecc		= 1<<2,
-	L2on		= 1<<3,
+	L2exists	= 1<<3,		/* l2 cache doesn't ignore cpu */
 	L2writethru	= 1<<4,		/* else write-back */
 };
 

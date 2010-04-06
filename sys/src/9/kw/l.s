@@ -125,6 +125,11 @@ _ptekrw:					/* set PTEs for 512MiB */
 
 	/* mmu.c sets up the vectors later */
 
+	/*
+	 * set up a temporary stack; avoid data & bss segments
+	 */
+	MOVW	$(PHYSDRAM | (128*1024*1024)), R13
+
 WAVE('P')
 	/* set the domain access control */
 	MOVW	$Client, R0
@@ -142,12 +147,27 @@ WAVE('l')
 	BL	cacheuwbinv(SB)
 	BL	mmuinvalidate(SB)
 	BL	mmuenable(SB)
-	BL	cacheuwbinv(SB)
 
 WAVE('a')
 	/* warp the PC into the virtual map */
 	MOVW	$KZERO, R0
 	BL	_r15warp(SB)
+
+	/*
+	 * now running at KZERO+something!
+	 */
+
+	MOVW	$setR12(SB), R12		/* reload the SB */
+
+	/*
+	 * set up temporary stack again, in case we've just switched
+	 * to a new register set.
+	 */
+	MOVW	$(KZERO|(128*1024*1024)), R13
+
+	/* can now execute arbitrary C code */
+
+	BL	cacheuwbinv(SB)
 
 	/* undo double map of 0, KZERO */
 	MOVW	$PADDR(L1+L1X(0)), R4		/* address of PTE for 0 */
@@ -241,8 +261,10 @@ _limbo:						/* should not get here... */
 	BL	_div(SB)			/* hack to load _div, etc. */
 
 TEXT _r15warp(SB), 1, $-4
-	BIC	$0xf0000000, R14
+	BIC	$KSEGM, R14
 	ORR	R0, R14
+	BIC	$KSEGM, R13
+	ORR	R0, R13
 	RET
 
 /* clobbers R1, R6 */
@@ -271,7 +293,7 @@ TEXT l1cacheson(SB), 1, $-4
 	RET
 
 TEXT l1cachesoff(SB), 1, $-4
-	MOVW	R14, R7				/* save link */
+	MOVM.DB.W [R14], (R13)			/* save lr on stack */
 
 	MOVW	CPSR, R5
 	ORR	$(PsrDirq|PsrDfiq), R5, R4
@@ -286,67 +308,94 @@ TEXT l1cachesoff(SB), 1, $-4
 	BARRIERS
 
 	MOVW	R5, CPSR			/* splx */
-	MOVW	R7, R14				/* restore link */
+	MOVM.IA.W (R13), [R14]			/* restore lr */
+	RET
+
+TEXT wbstktop(SB), 1, $-4		/* force writes to stack out to dram */
+	BARRIERS
+	MOVW	R13, R0
+	BIC	$(CACHELINESZ-1), R0
+	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwb), CpCACHEse
+	ADD	$CACHELINESZ, R0
+	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwb), CpCACHEse
+	ADD	$CACHELINESZ, R0
+	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwb), CpCACHEse
+	ADD	$CACHELINESZ, R0
+	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwb), CpCACHEse
+	BARRIERS
+	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwb), CpCACHEwait
+	BARRIERS
 	RET
 
 TEXT cachedwb(SB), 1, $-4			/* D writeback */
+	MOVM.DB.W [R14], (R13)			/* save lr on stack */
 	BARRIERS
 _dwb:
 	MRC	CpSC, 0, R15, C(CpCACHE), C(CpCACHEwb), CpCACHEtest
 	BNE	_dwb
+	BL	l1cachewait(SB)
 	MCR	CpSC, CpL2, R0, C(CpTESTCFG), C(CpTCl2flush), CpTCl2all
-	B	_wait
+	BARRIERS
+	MOVM.IA.W (R13), [R14]			/* restore lr */
+	RET
 
 TEXT cachedwbse(SB), 1, $-4			/* D writeback SE */
+	MOVM.DB.W [R14], (R13)			/* save lr on stack */
 	MOVW	R0, R2				/* first arg: address */
 	BARRIERS
 	MOVW	4(FP), R1			/* second arg: size */
 //	CMP.S	$(4*1024), R1
 //	BGT	_dwb
 	ADD	R2, R1
-	BIC	$31, R2
+	BIC	$(CACHELINESZ-1), R2
 _dwbse:
 	MCR	CpSC, 0, R2, C(CpCACHE), C(CpCACHEwb), CpCACHEse
-	BARRIERS
+	BL	l1cachewait(SB)
 	MCR	CpSC, CpL2, R2, C(CpTESTCFG), C(CpTCl2flush), CpTCl2seva
 	BARRIERS
-	ADD	$32, R2
+	ADD	$CACHELINESZ, R2
 	CMP.S	R2, R1
 	BGT	_dwbse
-	B	_wait
+	MOVM.IA.W (R13), [R14]			/* restore lr */
+	RET
 
 TEXT cachedwbinv(SB), 1, $-4			/* D writeback+invalidate */
+	MOVM.DB.W [R14], (R13)			/* save lr on stack */
 	BARRIERS
 _dwbinv:
 	MRC	CpSC, 0, PC, C(CpCACHE), C(CpCACHEwbi), CpCACHEtest
 	BNE	_dwbinv
+	BL	l1cachewait(SB)
 	MCR	CpSC, CpL2, PC, C(CpTESTCFG), C(CpTCl2flush), CpTCl2all
 	BARRIERS
 	MCR	CpSC, CpL2, PC, C(CpTESTCFG), C(CpTCl2inv), CpTCl2all
-	B	_wait
+	BARRIERS
+	MOVM.IA.W (R13), [R14]			/* restore lr */
+	RET
 
 TEXT cachedwbinvse(SB), 1, $-4			/* D writeback+invalidate SE */
+	MOVM.DB.W [R14], (R13)			/* save lr on stack */
 	MOVW	R0, R2				/* first arg: address */
 	BARRIERS
 	MOVW	4(FP), R1			/* second arg: size */
 //	CMP.S	$(4*1024), R1
 //	BGT	_dwbinv
 	ADD	R2, R1
-	BIC	$31, R2
+	BIC	$(CACHELINESZ-1), R2
 _dwbinvse:
 	MCR	CpSC, 0, R2, C(CpCACHE), C(CpCACHEwbi), CpCACHEse
-	BARRIERS
+	BL	l1cachewait(SB)
 	MCR	CpSC, CpL2, R2, C(CpTESTCFG), C(CpTCl2flush), CpTCl2seva
 	BARRIERS
 	MCR	CpSC, CpL2, R2, C(CpTESTCFG), C(CpTCl2inv), CpTCl2seva
 	BARRIERS
-	ADD	$32, R2
+	ADD	$CACHELINESZ, R2
 	CMP.S	R2, R1
 	BGT	_dwbinvse
-	B	_wait
+	MOVM.IA.W (R13), [R14]			/* restore lr */
+	RET
 
-_wait:						/* drain write buffer */
-	MOVW	$0, R0
+TEXT l1cachewait(SB), 1, $-4			/* drain write buffer */
 	BARRIERS
 	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwb), CpCACHEwait
 	BARRIERS
@@ -359,31 +408,27 @@ TEXT cachedinvse(SB), 1, $-4			/* D invalidate SE */
 //	CMP.S	$(4*1024), R1
 //	BGT	_dinv
 	ADD	R2, R1
-	BIC	$31, R2
+	BIC	$(CACHELINESZ-1), R2
 _dinvse:
 	MCR	CpSC, 0, R2, C(CpCACHE), C(CpCACHEinvd), CpCACHEse
 	BARRIERS
 	MCR	CpSC, CpL2, R2, C(CpTESTCFG), C(CpTCl2inv), CpTCl2seva
 	BARRIERS
-	ADD	$32, R2
+	ADD	$CACHELINESZ, R2
 	CMP.S	R2, R1
 	BGT	_dinvse
 	RET
 
 TEXT cacheuwbinv(SB), 1, $-4			/* D+I writeback+invalidate */
+	MOVM.DB.W [R14], (R13)			/* save lr on stack */
 	MOVW	CPSR, R3			/* splhi */
 	ORR	$(PsrDirq), R3, R1
 	MOVW	R1, CPSR
-	BARRIERS
+	BL	wbstktop(SB)
 
 _uwbinv:					/* D writeback+invalidate */
 	MRC	CpSC, 0, PC, C(CpCACHE), C(CpCACHEwbi), CpCACHEtest
 	BNE	_uwbinv
-	MCR	CpSC, CpL2, PC, C(CpTESTCFG), C(CpTCl2flush), CpTCl2all
-	BARRIERS
-	MCR	CpSC, CpL2, PC, C(CpTESTCFG), C(CpTCl2inv), CpTCl2all
-	BARRIERS
-
 	MOVW	$0, R0				/* I invalidate */
 	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEinvi), CpCACHEall
 	BARRIERS
@@ -392,26 +437,37 @@ _uwbinv:					/* D writeback+invalidate */
 	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwb), CpCACHEwait
 	BARRIERS
 
+	BL	l1cachewait(SB)
+	MCR	CpSC, CpL2, PC, C(CpTESTCFG), C(CpTCl2flush), CpTCl2all
+	BARRIERS
+	MCR	CpSC, CpL2, PC, C(CpTESTCFG), C(CpTCl2inv), CpTCl2all
+	BARRIERS
+
 	MOVW	R3, CPSR			/* splx */
+	MOVM.IA.W (R13), [R14]			/* restore lr */
 	RET
 
 TEXT cacheiinv(SB), 1, $-4			/* I invalidate */
+	MOVM.DB.W [R14], (R13)			/* save lr on stack */
 	BARRIERS
 	MOVW	$0, R0
 	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEinvi), CpCACHEall
-	BARRIERS
+	BL	l1cachewait(SB)
 	MCR	CpSC, CpL2, R0, C(CpTESTCFG), C(CpTCl2inv), CpTCl2all
 	BARRIERS
+	MOVM.IA.W (R13), [R14]			/* restore lr */
 	RET
 
 TEXT cachedinv(SB), 1, $-4			/* D invalidate */
+	MOVM.DB.W [R14], (R13)			/* save lr on stack */
 	BARRIERS
 _dinv:
 	MOVW	$0, R0
 	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEinvd), CpCACHEall
-	BARRIERS
+	BL	l1cachewait(SB)
 	MCR	CpSC, CpL2, R0, C(CpTESTCFG), C(CpTCl2inv), CpTCl2all
 	BARRIERS
+	MOVM.IA.W (R13), [R14]			/* restore lr */
 	RET
 
 /* enable l2 cache in config coproc. reg.  do this while l1 caches are off */
@@ -425,24 +481,35 @@ TEXT l2cachecfgon(SB), 1, $-4
 	BARRIERS
 	RET
 
-TEXT icflushall(SB), 1, $-4
+/* invalidate l2 cache */
+TEXT l2cacheinv(SB), 1, $-4
 	BARRIERS
-	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwbi), CpCACHEall
-	BARRIERS
-	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEinvi), CpCACHEall
-	BARRIERS
-	MCR	CpSC, CpL2, R0, C(CpTESTCFG), C(CpTCl2flush), CpTCl2all
+	MCR	CpSC, CpL2, R0, C(CpTESTCFG), C(CpTCl2inv), CpTCl2all
 	BARRIERS
 	RET
 
-TEXT dcflushall(SB), 1, $-4
+TEXT icflushall(SB), 1, $-4
+	MOVM.DB.W [R14], (R13)			/* save lr on stack */
 	BARRIERS
-	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwb), CpCACHEall
-	BARRIERS
-	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEinvd), CpCACHEall
-	BARRIERS
+	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwbi), CpCACHEall
+	BL	l1cachewait(SB)
+	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEinvi), CpCACHEall
+	BL	l1cachewait(SB)
 	MCR	CpSC, CpL2, R0, C(CpTESTCFG), C(CpTCl2flush), CpTCl2all
 	BARRIERS
+	MOVM.IA.W (R13), [R14]			/* restore lr */
+	RET
+
+TEXT dcflushall(SB), 1, $-4
+	MOVM.DB.W [R14], (R13)			/* save lr on stack */
+	BARRIERS
+	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwb), CpCACHEall
+	BL	l1cachewait(SB)
+	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEinvd), CpCACHEall
+	BL	l1cachewait(SB)
+	MCR	CpSC, CpL2, R0, C(CpTESTCFG), C(CpTCl2flush), CpTCl2all
+	BARRIERS
+	MOVM.IA.W (R13), [R14]			/* restore lr */
 	RET
 
 /*

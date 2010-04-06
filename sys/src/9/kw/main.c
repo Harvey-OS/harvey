@@ -130,8 +130,6 @@ spiprobe(void)
 {
 	Spiregs *rp = (Spiregs *)AddrSpi;
 
-	l2cacheon();
-
 	rp->ictl |= Csnact;
 	coherence();
 	rp->icfg |= Dirrdcmd | 3<<8;	/* fast reads, 4-byte addresses */
@@ -248,8 +246,9 @@ wave('\r');
 
 	plan9iniinit();
 	printinit();
-	/* only now can we print */
 	uartkirkwoodconsole();
+	/* only now can we print */
+
 	archconfinit();
 	cpuidprint();
 	timersinit();
@@ -258,7 +257,6 @@ wave('\r');
 	initseg();
 	links();
 	chandevreset();
-
 	spiprobe();
 
 	pageinit();
