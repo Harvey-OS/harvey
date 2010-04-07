@@ -79,10 +79,17 @@
 #define CpCACHEintr	0			/* interrupt */
 #define CpCACHEinvi	5			/* instruction */
 #define CpCACHEinvd	6			/* data */
-#define CpCACHEinvu	7			/* unified */
-#define CpCACHEwb	10			/* writeback */
-#define CpCACHEwbi	14			/* writeback+invalidate */
+#define CpCACHEinvu	7			/* unified (I+D) */
+#define CpCACHEwb	10			/* writeback D */
+#define CpCACHEwbu	11			/* writeback U (not 926ejs) */
+#define CpCACHEwbi	14			/* writeback D + invalidate */
+#define CpCACHEwbui	15			/* writeback U + inval (not 926ejs) */
 
+/*
+ * the 926ejs manual says that we can't use CpCACHEall nor CpCACHEwait
+ * for writeback operations on the 926ejs, except for CpCACHEwb + CpCACHEwait,
+ * which means `drain write buffer'.
+ */
 #define CpCACHEall	0			/* entire */
 #define CpCACHEse	1			/* single entry */
 #define CpCACHEsi	2			/* set/index */
