@@ -41,6 +41,7 @@ ip
 
 misc
 	rdb
+	coproc
 	softfpu
 	syscall
 	uartkw
