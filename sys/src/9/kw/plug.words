@@ -15,7 +15,24 @@ this plan 9 port is based on the port of native inferno to the
 sheevaplug by Salva Peiró (saoret.one@gmail.com) and Mechiel Lukkien
 (mechiel@ueber.net).
 
-# type this once at u-boot; there after the plug will pxe boot:
+___
+
+unfinished business:
+
+usb almost works.  we can see devices but not perform i/o to them.
+
+the l2 cache is run write-through because setting it to write-back
+makes the kernel wedge at about the time that it starts running user
+processes.
+
+access to nand or spi flash would be handy for nvram and small
+fossils.  flash access isn't well documented.  inferno implements
+these software layers: ecc, translation (for wear-levelling and bad
+sectors), common flash code and specific drivers for flash chips.
+
+___
+
+# type this once at u-boot; thereafter the plug will pxe boot:
 setenv bootdelay 2
 setenv bootcmd 'bootp; bootp; tftp 0x800000; go 0x800000'
 saveenv

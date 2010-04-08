@@ -155,20 +155,20 @@
 #define CpTCl2perf1high	3
 
 /*
- * MMU.
+ * MMU page table entries.
+ * Impl (0x10) bit is implementation-defined and is mandatory on pre-v7 arms.
  */
+#define Impl		0x10			/* earlier arms */
+#define Fault		0x00000000		/* L[12] pte: unmapped */
 
-#define Fault		0x00000000u		/* L[12] */
-
-/* in pre-armv7 only, the 0x10 bit must be on */
-#define Coarse		0x00000011u		/* L1 */
-#define Section		0x00000012u		/* L1 1MB */
-#define Fine		0x00000013u		/* L1 */
+#define Coarse		(Impl|1)		/* L1 */
+#define Section		(Impl|2)		/* L1 1MB */
+#define Fine		(Impl|3)		/* L1 */
 
 #define Large		0x00000001u		/* L2 64KB */
 #define Small		0x00000002u		/* L2 4KB */
 #define Tiny		0x00000003u		/* L2 1KB */
-#define Buffered	0x00000004u		/* L[12] */
+#define Buffered	0x00000004u		/* L[12]: write-back not -thru */
 #define Cached		0x00000008u		/* L[12] */
 
 #define Dom0		0

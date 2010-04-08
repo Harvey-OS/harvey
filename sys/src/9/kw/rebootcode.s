@@ -131,7 +131,7 @@ _ptrdbl:
 	RET
 
 TEXT _r15warp(SB), 1, $-4
-	BIC	$0xf0000000, R14
+	BIC	$KSEGM, R14
 	ORR	R0, R14
 	RET
 
@@ -158,13 +158,17 @@ _uwbinv:					/* D writeback+invalidate */
 	MRC	CpSC, 0, PC, C(CpCACHE), C(CpCACHEwbi), CpCACHEtest
 	BNE	_uwbinv
 
+	MOVW	$0, R0				/* I invalidate */
+	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEinvi), CpCACHEall
+	BARRIERS
+
+	MOVW	$0, R0				/* drain write buffer */
+	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwb), CpCACHEwait
+	BARRIERS
+
 	MCR	CpSC, CpL2, PC, C(CpTESTCFG), C(CpTCl2flush), CpTCl2all
 	BARRIERS
 	MCR	CpSC, CpL2, PC, C(CpTESTCFG), C(CpTCl2inv), CpTCl2all
-	BARRIERS
-
-	MOVW	$0, R0				/* I invalidate */
-	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEinvi), CpCACHEall
 	BARRIERS
 
 	MOVW	$0, R0				/* drain write buffer */
