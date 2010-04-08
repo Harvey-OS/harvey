@@ -1,5 +1,5 @@
 CONF=plug
-CONFLIST=plug openrd
+CONFLIST=plug
 
 # allegedly u-boot uses the bottom 8MB (up to 0x800000)
 # so avoid that
@@ -46,6 +46,7 @@ OBJ=\
 	lexception.$O\
 	lproc.$O\
 	arch.$O\
+#	cga.$O\
 	clock.$O\
 	fpi.$O\
 	fpiarm.$O\
