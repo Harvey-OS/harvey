@@ -3352,7 +3352,7 @@ ehcireset(Ctlr *ctlr)
 	 * AMP_2_0 = 4 for 6281-A0 (but 3 for A1).
 	 * also set REG_EXT_FS_RCALL_EN | REG_RCAL_START.
 	 */
-	kw->phytxctl = v | 1 << 26 | 1 << 12 | 4;
+	kw->phytxctl = v | 1 << 26 | 1 << 12 | 4;	// TODO
 	coherence();
 	microdelay(100);
 	kw->phytxctl &= ~(1 << 12);
@@ -3361,7 +3361,7 @@ ehcireset(Ctlr *ctlr)
 	kw->phyrxctl = v | 1 << 2 | 8 << 4;
 
 	v = kw->phyivref & ~(3 << 8);		/* TXVDD12 */
-	kw->phyivref = v | 1 << 8;		/* 1 for 6281-A0; 3 for A1 */
+	kw->phyivref = v | 1 << 8;		/* TODO: 1 for 6281-A0; 3 for A1 */
 
 	coherence();
 
