@@ -16,6 +16,7 @@
 
 enum {
 	Tcycles		= CLOCKFREQ / HZ,	/* cycles per clock tick */
+	Dogperiod	= 5 * CLOCKFREQ,	// TODO tune
 	MaxPeriod	= Tcycles,
 	MinPeriod	= MaxPeriod / 100,
 
@@ -48,7 +49,7 @@ clockintr(Ureg *ureg, void *arg)
 {
 	TimerReg *tmr = arg;
 
-	tmr->timerwd = CLOCKFREQ;		/* reassure the watchdog */
+	tmr->timerwd = Dogperiod;		/* reassure the watchdog */
 	ticks++;
 	coherence();
 	timerintr(ureg, 0);
@@ -110,7 +111,7 @@ clockinit(void)
 	clockshutdown();
 	tmr->reload0 = tmr->timer0 = Tcycles;	/* tick clock */
 	tmr->reload1 = tmr->timer1 = ~0;	/* cycle clock */
-	tmr->timerwd = CLOCKFREQ;		/* watch dog timer */
+	tmr->timerwd = Dogperiod;		/* watch dog timer */
 	coherence();
 	tmr->ctl = Tmr0enable | Tmr1enable | Tmr1periodic | TmrWDenable;
 	CPUCSREG->rstout |= RstoutWatchdog;

@@ -127,6 +127,7 @@
  * Physical machine information from here on.
  */
 #define PHYSDRAM	0
+/* from 0x80000000 up is uncached by L2 (see archkw.c) */
 #define PHYSCESASRAM	0xc8010000
 #define PHYSNAND	0xd8000000
 #define FLASHSIZE	(128*MiB)

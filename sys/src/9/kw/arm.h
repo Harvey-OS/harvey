@@ -109,6 +109,9 @@
 
 /*
  * CpTESTCFG Secondary (CRm) registers and opcode2 fields; sheeva only.
+ * opcode1 == CpL2 (1).  L2 cache operations block the CPU until finished.
+ * Specifically, write-back (clean) blocks until all dirty lines have been
+ * drained from the L2 buffers.
  */
 #define CpTCl2cfg	1
 #define CpTCl2flush	9			/* cpu blocks until flush done */
@@ -156,18 +159,18 @@
 
 /*
  * MMU page table entries.
- * Impl (0x10) bit is implementation-defined and is mandatory on pre-v7 arms.
+ * Mbo (0x10) bit is implementation-defined and mandatory on some pre-v7 arms.
  */
-#define Impl		0x10			/* earlier arms */
+#define Mbo		0x10			/* must be 1 on earlier arms */
 #define Fault		0x00000000		/* L[12] pte: unmapped */
 
-#define Coarse		(Impl|1)		/* L1 */
-#define Section		(Impl|2)		/* L1 1MB */
-#define Fine		(Impl|3)		/* L1 */
+#define Coarse		(Mbo|1)			/* L1 */
+#define Section		(Mbo|2)			/* L1 1MB */
+#define Fine		(Mbo|3)			/* L1 */
 
 #define Large		0x00000001u		/* L2 64KB */
 #define Small		0x00000002u		/* L2 4KB */
-#define Tiny		0x00000003u		/* L2 1KB */
+#define Tiny		0x00000003u		/* L2 1KB, deprecated */
 #define Buffered	0x00000004u		/* L[12]: write-back not -thru */
 #define Cached		0x00000008u		/* L[12] */
 
@@ -184,4 +187,4 @@
 #define L2AP(ap) (AP(3, (ap))|AP(2, (ap))|AP(1, (ap))|AP(0, (ap))) /* pre-armv7 */
 #define DAC(n, v) F((v), (n)*2, 2)
 
-#define HVECTORS	0xffff0000		/* physical addr of vectors */
+#define HVECTORS	0xffff0000		/* addr of vectors */
