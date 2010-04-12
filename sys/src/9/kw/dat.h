@@ -10,9 +10,7 @@ typedef struct Notsave	Notsave;
 typedef struct Page	Page;
 typedef struct Pcidev	Pcidev;
 typedef struct PhysUart	PhysUart;
-typedef struct PFPU	PFPU;
 typedef struct PMMU	PMMU;
-typedef struct PNOTIFY	PNOTIFY;
 typedef struct Proc	Proc;
 typedef u32int		PTE;
 typedef struct Uart	Uart;
@@ -48,7 +46,7 @@ struct Label
 /*
  * emulated floating point
  */
-struct PFPU
+struct FPsave
 {
 	ulong	status;
 	ulong	control;
@@ -58,7 +56,7 @@ struct PFPU
 };
 
 /*
- * PFPU.status
+ * FPsave.status
  */
 enum
 {
@@ -94,9 +92,9 @@ struct Conf
 //	ulong	mhz;
 };
 
-struct FPsave {
-	int	emptiness;
-};
+/*
+ *  things saved in the Proc structure during a notify
+ */
 struct Notsave {
 	int	emptiness;
 };
@@ -120,16 +118,6 @@ struct PMMU
 {
 	Page*	mmul2;
 	Page*	mmul2cache;	/* free mmu pages */
-
-	PFPU;			/* hack */
-};
-
-/*
- *  things saved in the Proc structure during a notify
- */
-struct PNOTIFY
-{
-	void	emptiness;
 };
 
 #include "../port/portdat.h"
