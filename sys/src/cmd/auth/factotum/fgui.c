@@ -72,7 +72,6 @@ threadmain(int argc, char *argv[])
 	RequestType *p;
 	Font *invis;
 
-	
 	ARGBEGIN{
 	}ARGEND;
 
@@ -90,7 +89,8 @@ threadmain(int argc, char *argv[])
 	}
 
 	/* gui initialization */
-	initdraw(0, 0, "auth/fgui");
+	if(initdraw(0, 0, "auth/fgui") < 0)
+		sysfatal("initdraw failed: %r");
 	initcontrols();
 	hide();
 
