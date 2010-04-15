@@ -48,16 +48,15 @@ extern void cpwrsc(int op1, int crn, int crm, int op2, ulong val);
 #define cycles(ip) *(ip) = lcycles()
 extern u32int dacget(void);
 extern void dacput(u32int);
-extern void dcflushall(void);
 extern u32int farget(void);
 extern u32int fsrget(void);
-extern void icflushall(void);
 extern void l1cachesoff(void);
 extern void l1cacheson(void);
 extern void l2cachecfgoff(void);
 extern void l2cachecfgon(void);
 extern void l2cacheon(void);
 extern void lastresortprint(char *buf, long bp);
+extern int log2(ulong);
 extern void mmuinvalidate(void);		/* 'mmu' or 'tlb'? */
 extern void mmuinvalidateaddr(u32int);		/* 'mmu' or 'tlb'? */
 extern u32int pidget(void);

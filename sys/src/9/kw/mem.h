@@ -52,19 +52,19 @@
  * KZERO is mapped to physical 0.
  * u-boot claims to take 0 - 8MB.
  *
- * This should leave 12K from KZERO to L1-MACHSIZE.
- * cpu0's Mach struct is at L1 - MACHSIZE(4K) to L1 (12K to 16K above KZERO).
- * PTEs are stored from L1 to L1+32K (16K to 48K above KZERO).
- * L2 PTEs for trap vectors and i/o regs are stored below L1-MACHSIZE.
- * KTZERO may be anywhere after KZERO + 48K.
- * vectors are at 0.
+ * vectors are at 0, plan9.ini is at KZERO+4K and is limited to 16K by
+ * devenv.  L2 PTEs for trap vectors & i/o regs are stored from KZERO+56K
+ * to L1-MACHSIZE (KZERO+60K).  cpu0's Mach struct is at L1 - MACHSIZE(4K)
+ * to L1 (KZERO+60K to KZERO+64K).  L1 PTEs are stored from L1 to L1+32K
+ * (KZERO+64K to KZERO+96K).  KTZERO may be anywhere after KZERO+96K.
  */
 
 #define	KSEG0		0x60000000		/* kernel segment */
 /* mask to check segment; good for 512MB dram */
 #define	KSEGM		0xE0000000
 #define	KZERO		KSEG0			/* kernel address space */
-#define L1		(KZERO+16*KiB)		/* tt ptes: 16KiB aligned */
+#define CONFADDR	(KZERO+4*KiB)		/* unparsed plan9.ini */
+#define L1		(KZERO+64*KiB)		/* tt ptes: 16KiB aligned */
 #define	KTZERO		(KZERO+0x800000)	/* kernel text start */
 
 #define	UZERO		0			/* user segment */
@@ -132,13 +132,10 @@
 #define PHYSNAND	0xd8000000
 #define FLASHSIZE	(128*MiB)
 #define PHYSSPIFLASH	0xe8000000
-// #define PHYSENV		(PHYSFLASH+256*KiB)
-// #define ENVSIZE		(64*KiB)
 #define PHYSBOOTROM	0xffff0000		/* boot rom */
+
 /* this address is configured by u-boot, and is 0xd0000000 at reset */
 #define PHYSIO		0xf1000000		/* internal registers */
 #define PHYSCONS	(PHYSIO + 0x12000)	/* uart */
-
-// #define PHYSNAND	0xf9000000
 
 #define VIRTIO		PHYSIO

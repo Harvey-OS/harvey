@@ -137,35 +137,44 @@ Once the kernel is loaded,
 it prompts for the Ethernet
 protocol to use to reach the root file server; request the default.
 .SS Marvell Kirkwood boards
-Type
+Supported boards include the Sheevaplug and Openrd-client.
+Type this at U-boot once,
+replacing
+.L 00504301c49e
+with your board's MAC address:
 .IP
 .EX
 setenv bootdelay 2
-setenv bootcmd 'bootp; bootp; tftp 0x800000; go 0x800000'
+# the next two lines should be typed as one
+setenv bootcmd 'bootp; bootp; tftp 0x1000 /cfg/pxe/00504301c49e;
+	bootp; tftp 0x800000; go 0x800000'
 saveenv
 .EE
 .PP
-at U-Boot the first time;
-thereafter, the Kirkwood board will automatically boot via BOOTP and TFTP
+Thereafter, the board will automatically boot via BOOTP and TFTP
 when reset or turned on.
-.ig
-.SS File servers
-The CPU servers and terminals run essentially the same program, but
-the Plan 9 file servers run a distinct system.
-The file servers accept only the commands described in
-.IR fs (8)
-on their consoles.
-.SS PC File Server
-Boot the PC file server like a regular PC, loading the appropriate file system kernel.
-..
+.SS TI OMAP3530 boards
+Supported boards include the IGEPv2 from ISEE.
+Type this at U-boot once,
+replacing
+.L acde48000254
+with your board's MAC address:
+.IP
+.EX
+setenv bootdelay 2
+# the next two lines should be typed as one
+setenv bootcmd 'tftp 0x80300000 /cfg/pxe/acde48000254;
+	dhcp 0x80310000; go 0x80310000'
+saveenv
+.EE
+.PP
+Thereafter, the board will automatically boot via BOOTP and TFTP
+when reset or turned on.
 .SH "SEE ALSO"
 .IR 9load (8),
 .IR boot (8),
-.\" .IR fs (8),
 .IR init (8),
 .IR plan9.ini (8)
 .SH SOURCE
 Sources for the various boot programs are under
 .BR /sys/src/boot .
-.\" .SH BUGS
-.\" The file server should be able to boot from its own disk.

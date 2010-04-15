@@ -160,19 +160,12 @@ _uwbinv:					/* D writeback+invalidate */
 
 	MOVW	$0, R0				/* I invalidate */
 	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEinvi), CpCACHEall
+	/* drain L1 write buffer, also drains L2 eviction buffer on sheeva */
 	BARRIERS
 
-	MOVW	$0, R0				/* drain write buffer */
-	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwb), CpCACHEwait
+	MCR	CpSC, CpL2, R0, C(CpTESTCFG), C(CpTCl2flush), CpTCl2all
 	BARRIERS
-
-	MCR	CpSC, CpL2, PC, C(CpTESTCFG), C(CpTCl2flush), CpTCl2all
-	BARRIERS
-	MCR	CpSC, CpL2, PC, C(CpTESTCFG), C(CpTCl2inv), CpTCl2all
-	BARRIERS
-
-	MOVW	$0, R0				/* drain write buffer */
-	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwb), CpCACHEwait
+	MCR	CpSC, CpL2, R0, C(CpTESTCFG), C(CpTCl2inv), CpTCl2all
 	BARRIERS
 
 	MOVW	R3, CPSR			/* splx */
