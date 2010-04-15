@@ -346,12 +346,24 @@ CAS (compare-and-swap) instructions.
 It is known to run on the Sheevaplug and Openrd-client boards.
 It is derived from a port of native Inferno to the Sheevaplug
 by Salva Peir\f(Jpó\fP and Mechiel Lukkien.
-There are many features of the Marvell Kirkwood system-on-a-chip
+There are many features of the Kirkwood system-on-a-chip
 that it does not exploit.
 Initially, there are drivers for up to two
 Gigabit Ethernet interfaces and the console serial port;
-we hope to add USB and NAND or SPI Flash drivers,
+we hope to add USB and flash memory drivers,
 and a video driver for the Openrd-client.
+.SH
+The TI OMAP3530 operating system
+.PP
+This is an ARM kernel that emulates pre-VFPv3 floating-point and
+CAS (compare-and-swap) instructions.
+It is known to run on the IGEPv2 board and might
+eventually run on the Beagleboard, once USB is working.
+There are many features of the OMAP system-on-a-chip that it does not exploit.
+Initially, there are drivers for the IGEPv2's SMSC 9221 100Mb/s Ethernet
+interface and the console serial port;
+we hope to add USB, flash memory and video drivers.
+.
 .ig
 .SH
 The file server

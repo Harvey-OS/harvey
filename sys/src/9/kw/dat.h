@@ -4,6 +4,7 @@ typedef struct FPsave	FPsave;
 typedef struct ISAConf	ISAConf;
 typedef struct Label	Label;
 typedef struct Lock	Lock;
+typedef struct Memcache	Memcache;
 typedef struct MMMU	MMMU;
 typedef struct Mach	Mach;
 typedef struct Notsave	Notsave;
@@ -262,4 +263,20 @@ struct DevConf
 	char	*type;			/* card type, malloced */
 	int	nports;			/* Number of ports */
 	Devport	*ports;			/* The ports themselves */
+};
+
+/* characteristics of a given cache level */
+struct Memcache {
+	uint	level;		/* 1 is nearest processor, 2 further away */
+	uint	icache;		/* flag.  otherwise D cache */
+
+	uint	size;
+	uint	nways;		/* associativity */
+	uint	nsets;
+	uint	linelen;	/* bytes per cache line */
+	uint	flags;
+
+	uint	log2linelen;
+	uint	waysh;		/* shifts for set/way register */
+	uint	setsh;
 };

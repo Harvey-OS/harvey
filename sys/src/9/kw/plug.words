@@ -22,8 +22,7 @@ unfinished business:
 usb almost works.  we can see devices but not perform i/o to them.
 
 the l2 cache is run write-through because setting it to write-back
-makes the kernel wedge at about the time that it starts running user
-processes.
+makes the kernel wedge shortly after it starts running user processes.
 
 access to nand or spi flash would be handy for nvram and small
 fossils.  flash access isn't well documented.  inferno implements
@@ -32,10 +31,14 @@ sectors), common flash code and specific drivers for flash chips.
 
 ___
 
-# type this once at u-boot; thereafter the plug will pxe boot:
+# type this once at u-boot, replacing 00504301c49e with your plug's
+# mac address; thereafter the plug will pxe boot:
 setenv bootdelay 2
-setenv bootcmd 'bootp; bootp; tftp 0x800000; go 0x800000'
+setenv bootcmd 'bootp; bootp; tftp 0x1000 /cfg/pxe/00504301c49e; bootp; tftp 0x800000; go 0x800000'
 saveenv
+
+# see cfg-pxe-example
+
 
 	physical mem map
 hex addr	size	what

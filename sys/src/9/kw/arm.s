@@ -31,7 +31,8 @@
 	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwb), CpCACHEdmbarr
 /*
  * data synchronisation barrier (formerly drain write buffer).
- * waits for cache, tlb, branch-prediction, memory; the lot.
+ * waits for cache flushes, eviction buffer drain, tlb flushes,
+ * branch-prediction flushes, writes to memory; the lot.
  * on sheeva, also flushes L2 eviction buffer.
  * zeroes R0.
  */
@@ -39,10 +40,14 @@
 	MOVW	$0, R0; \
 	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwb), CpCACHEwait
 /* prefetch flush; zeroes R0 */
+/*
+ * TODO: is the CpL2 MCR needed? not for write-thru l2.  write-back l2 croaks
+ * either way.
+ */
 #define ISB	\
 	MOVW	$0, R0; \
-	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEinvi), CpCACHEwait; \
-	MCR	CpSC, CpL2, PC, C(CpTESTCFG), C(CpTCl2inv), CpTCl2seva
+	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEinvi), CpCACHEwait
+//	MCR	CpSC, CpL2, PC, C(CpTESTCFG), C(CpTCl2inv), CpTCl2seva
 
 /* zeroes R0 */
 #define	BARRIERS	DSB; ISB

@@ -46,7 +46,7 @@ OBJ=\
 	lexception.$O\
 	lproc.$O\
 	arch.$O\
-#	cga.$O\
+	cga.$O\
 	clock.$O\
 	fpi.$O\
 	fpiarm.$O\
@@ -104,13 +104,13 @@ clock.$O:	/$objtype/include/ureg.h
 devether.$O:	/$objtype/include/ureg.h
 fpiarm.$O:	/$objtype/include/ureg.h
 main.$O:	/$objtype/include/ureg.h errstr.h init.h reboot.h
-mmu.$O:		/$objtype/include/ureg.h
+mmu.$O:		/$objtype/include/ureg.h arm.h
 trap$O:		/$objtype/include/ureg.h
 
 devether.$0:	etherif.h ../port/netif.h
 etherkw.$0:	etherif.h ../port/netif.h
 
-l.$O lexception.$O lproc.$O: arm.s arm.h mem.h
+l.$O lexception.$O lproc.$O: arm.s arm.h mem.h cache.v5.s
 
 init.h:D:	../port/initcode.c init9.s
 	$CC ../port/initcode.c

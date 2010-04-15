@@ -10,7 +10,29 @@
 
 #include "reboot.h"
 
-#define MAXCONF 64
+/*
+ * Where configuration info is left for the loaded programme.
+ * This will turn into a structure as more is done by the boot loader
+ * (e.g. why parse the .ini file twice?).
+ * There are 3584 bytes available at CONFADDR.
+ */
+#define BOOTARGS	((char*)CONFADDR)
+#define	BOOTARGSLEN	(16*KiB)		/* limit in devenv.c */
+#define	MAXCONF		64
+
+/*
+ * this low-level printing stuff is ugly,
+ * but there appears to be no other way to
+ * print until after #t is populated.
+ */
+#define wave(c) { \
+	coherence(); \
+	while ((*(ulong *)(PHYSCONS+4*5) & (1<<5)) == 0) /* (x->lsr&LSRthre)==0? */ \
+		; \
+	*(ulong *)PHYSCONS = (c); \
+	coherence(); \
+}
+#define isascii(c) ((uchar)(c) > 0 && (uchar)(c) < 0177)
 
 uintptr kseg0 = KZERO;
 Mach* machaddr[MAXMACH];
@@ -33,28 +55,115 @@ static uintptr sp;		/* XXX - must go - user stack of init proc */
 int vflag;
 char debug[256];
 
+/* store plan9.ini contents here at least until we stash them in #ec */
 static char confname[MAXCONF][KNAMELEN];
 static char *confval[MAXCONF];
 static int nconf;
+
+static int
+findconf(char *name)
+{
+	int i;
+
+	for(i = 0; i < nconf; i++)
+		if(cistrcmp(confname[i], name) == 0)
+			return i;
+	return -1;
+}
+
+char*
+getconf(char *name)
+{
+	int i;
+
+	i = findconf(name);
+	if(i >= 0)
+		return confval[i];
+	return nil;
+}
+
+void
+addconf(char *name, char *val)
+{
+	int i;
+
+	i = findconf(name);
+	if(i < 0){
+		if(val == nil || nconf >= MAXCONF)
+			return;
+		i = nconf++;
+		strecpy(confname[i], confname[i]+sizeof(confname[i]), name);
+	}
+	confval[i] = val;
+}
+
+static void
+writeconf(void)
+{
+	char *p, *q;
+	int n;
+
+	p = getconfenv();
+
+	if(waserror()) {
+		free(p);
+		nexterror();
+	}
+
+	/* convert to name=value\n format */
+	for(q=p; *q; q++) {
+		q += strlen(q);
+		*q = '=';
+		q += strlen(q);
+		*q = '\n';
+	}
+	n = q - p + 1;
+	if(n >= BOOTARGSLEN)
+		error("kernel configuration too large");
+	memmove(BOOTARGS, p, n);
+	poperror();
+	free(p);
+}
+
+/*
+ * assumes that we have loaded our /cfg/pxe/mac file at 0x1000 with
+ * tftp in u-boot.
+ */
+static void
+plan9iniinit(void)
+{
+	char *k, *v, *next;
+	static char *kd, *vd;
+
+	k = (char *)CONFADDR;
+	if(!isascii(*k))
+		return;
+
+	for(; k && *k != '\0'; k = next) {
+		if (!isascii(*k))		/* sanity check */
+			break;
+		next = strchr(k, '\n');
+		if (next)
+			*next++ = '\0';
+
+		if (*k == '\0' || *k == '\n' || *k == '#')
+			continue;
+		v = strchr(k, '=');
+		if(v == nil)
+			continue;		/* mal-formed line */
+		*v++ = '\0';
+
+		kd = vd = nil;
+		kstrdup(&kd, k);
+		kstrdup(&vd, v);
+		addconf(kd, vd);
+	}
+}
 
 static void
 optionsinit(char* s)
 {
 	char *o;
-#ifdef USE_FLASH
-	uintptr va;
-	char *p;
-
-	va = 0xf0000000;
-	if(mmukmap(va, PHYSFLASH, 1*MiB) != 0){
-		o = oenv;
-		for(p = (char*)(va+256*KiB+4); *p != 0; p += strlen(p)+1)
-			o = strecpy(o, oenv+sizeof(oenv), p)+1;
-		mmukunmap(va, PHYSFLASH, 1*MiB);
-	}
-#else
-	strcpy(oenv, "ethaddr=00:50:43:01:c4:9e");	// TODO
-#endif
 
 	o = strecpy(oargb, oargb+sizeof(oargb), s)+1;
 	if(getenv("bootargs", o, o - oargb) != nil)
@@ -122,9 +231,6 @@ dumpbytes(uchar *bp, long max)
 	iprint("...\n");
 }
 
-vlong	probeaddr(uintptr);
-
-// linux sez environment is in nand, 128K at offset 0x40000
 static void
 spiprobe(void)
 {
@@ -137,57 +243,9 @@ spiprobe(void)
 	coherence();
 
 	print("spi flash at %#ux: memory reads enabled\n", PHYSSPIFLASH);
-#ifdef AMBITIOUS
-	uchar *p, *ep, *np;
-
-	p = (uchar *)PHYSSPIFLASH;
-	ep = p + FLASHSIZE - 64;
-iprint("scan: ");
-	for (; p < ep - 1; p++) {
-iprint("%#p of %,ld bytes...", p, ep - p);
-		np = memchr(p, 'e', ep - p);
-		if (np == nil)
-			break;
-		p = np;
-		if (*p == 'e' && memcmp(p, "ethaddr", 7) == 0)
-			break;
-	}
-	dumpbytes(p, 64);
-#endif
 }
 
 void	archconsole(void);
-
-/*
- * this low-level printing stuff is ugly,
- * but there appears to be no other way to
- * print until after #t is populated.
- */
-
-#define wave(c) { \
-	coherence(); \
-	while ((*(ulong *)(PHYSCONS+4*5) & (1<<5)) == 0) /* (x->lsr&LSRthre)==0? */ \
-		; \
-	*(ulong *)PHYSCONS = (c); \
-	coherence(); \
-}
-
-static void
-setconf(char *name, char *val)
-{
-	strncpy(confname[nconf], name, KNAMELEN);
-	kstrdup(&confval[nconf], val);
-	nconf++;
-}
-
-/* TODO: need a better solution; perhaps read the u-boot environment */
-static void
-plan9iniinit(void)
-{
-	/* sheevaplug configuration */
-	setconf("aoeif", "ether0");
-	setconf("aoedev", "e!#æ/aoe/1.0");
-}
 
 /*
  * entered from l.s with mmu enabled.
@@ -222,11 +280,11 @@ wave('9');
 	optionsinit("/boot/boot boot");
 	quotefmtinstall();
 	archconsole();
-wave('\n');
+wave(' ');
 
 	confinit();
+	/* xinit would print if it could */
 	xinit();
-wave('\r');
 
 	/*
 	 * Printinit will cause the first malloc call.
@@ -244,10 +302,12 @@ wave('\r');
 	trapinit();
 	clockinit();
 
-	plan9iniinit();
+	plan9iniinit();		/* before we step on plan9.ini in low memory */
+
 	printinit();
 	uartkirkwoodconsole();
 	/* only now can we print */
+	print("from Bell Labs\n\n");
 
 	archconfinit();
 	cpuidprint();
@@ -339,7 +399,8 @@ reboot(void *entry, void *code, ulong size)
 	void (*f)(ulong, ulong, ulong);
 
 	iprint("starting reboot...");
-//	writeconf();
+	writeconf();
+	
 	shutdown(0);
 
 	/*
@@ -363,9 +424,7 @@ reboot(void *entry, void *code, ulong size)
 	/* setup reboot trampoline function */
 	f = (void*)REBOOTADDR;
 	memmove(f, rebootcode, sizeof(rebootcode));
-	coherence();
-	dcflushall();
-	icflushall();
+	cacheuwbinv();
 
 	print("rebooting...");
 	iprint("entry %#lux code %#lux size %ld\n",
@@ -373,9 +432,7 @@ reboot(void *entry, void *code, ulong size)
 	delay(100);		/* wait for uart to quiesce */
 
 	/* off we go - never to return */
-	coherence();
-	dcflushall();
-	icflushall();
+	cacheuwbinv();
 	(*f)(PADDR(entry), PADDR(code), size);
 
 	iprint("loaded kernel returned!\n");
@@ -389,6 +446,7 @@ reboot(void *entry, void *code, ulong size)
 void
 init0(void)
 {
+	int i;
 	char buf[2*KNAMELEN];
 
 	assert(up != nil);
@@ -416,13 +474,11 @@ init0(void)
 		else
 			ksetenv("service", "terminal", 0);
 
-		/* sheevaplug configuration */
-		ksetenv("nvram", "/boot/nvram", 0);
-		ksetenv("nvroff", "0", 0);
-		ksetenv("nvrlen", "512", 0);
-
-		ksetenv("nobootprompt", "tcp", 0);
-
+		/* convert plan9.ini variables to #e and #ec */
+		for(i = 0; i < nconf; i++) {
+			ksetenv(confname[i], confval[i], 0);
+			ksetenv(confname[i], confval[i], 1);
+		}
 		poperror();
 	}
 	kproc("alarm", alarmkproc, 0);
@@ -614,43 +670,6 @@ confinit(void)
 		 * be careful with 32-bit overflow.
 		 */
 		imagmem->maxsize = kpages;
-}
-
-static int
-findconf(char *name)
-{
-	int i;
-
-	for(i = 0; i < nconf; i++)
-		if(cistrcmp(confname[i], name) == 0)
-			return i;
-	return -1;
-}
-
-void
-addconf(char *name, char *val)
-{
-	int i;
-
-	i = findconf(name);
-	if(i < 0){
-		if(val == nil || nconf >= MAXCONF)
-			return;
-		i = nconf++;
-		strecpy(confname[i], confname[i]+sizeof(confname[i]), name);
-	}
-	confval[i] = val;
-}
-
-char*
-getconf(char *name)
-{
-	int i;
-
-	i = findconf(name);
-	if(i >= 0)
-		return confval[i];
-	return nil;
 }
 
 int

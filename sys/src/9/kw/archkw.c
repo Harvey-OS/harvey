@@ -14,9 +14,16 @@
 #include "etherif.h"
 // #include "../port/flashif.h"
 
+#include "arm.h"
+
 #define SDRAMDREG	((SDramdReg*)AddrSDramd)
 
 enum {
+	/*
+	 * TODO: make L2writeback = 1 work.
+	 * seems to wedge shortly after we start running user procs,
+	 * even if the Buffered bit is never set in a PTE(!).
+	 */
 	L2writeback = 0,
 };
 
@@ -135,7 +142,7 @@ praddrwin(Addrwin *win, int i)
 	targ = WINTARG(ctl);
 	attr = WINATTR(ctl);
 	size64k = WIN64KSIZE(ctl);
-	print("address map: %s window %d: targ %ld attr %#lux size %,ld addr %#lux",
+	print("cpu addr map: %s window %d: targ %ld attr %#lux size %,ld addr %#lux",
 		ctl & Winenable? "enabled": "disabled", i, targ, attr,
 		size64k * 64*1024, win->base);
 	if (i < 4)
@@ -185,7 +192,7 @@ fixaddrmap(void)
 		}
 	}
 	if (!sawspi)
-		panic("address map: no existing window for spi");
+		panic("cpu address map: no existing window for spi");
 	if (map->dirba != PHYSIO)
 		panic("dirba not %#ux", PHYSIO);
 }
@@ -201,48 +208,131 @@ praddrmap(void)
 		praddrwin(&map->win[i], i);
 }
 
+int
+ispow2(uvlong ul)
+{
+	/* see Hacker's Delight if this isn't obvious */
+	return (ul & (ul - 1)) == 0;
+}
+
+/*
+ * return exponent of smallest power of 2 ≥ n
+ */
+int
+log2(ulong n)
+{
+	int i;
+
+	for(i = 0; (1 << i) < n; i++)
+		;
+	return i;
+}
+
+void
+cacheinfo(int level, int icache, Memcache *cp)		/* l1 only */
+{
+	uint len, assoc, size;
+	ulong setsways;
+
+	/* get cache types & sizes */
+	setsways = cprdsc(0, CpID, CpIDidct, CpIDct);
+
+	cp->level = level;
+	cp->icache = icache;
+
+	if (((setsways >> 25) & MASK(4)) == 0)
+		iprint("write-through");
+	if ((setsways & (1<<24)) == 0)
+		icache = 0;		/* unified cache */
+	if (!icache)
+		setsways >>= 12;
+
+	if (setsways & (1<<11))
+		iprint("l%d: page table mapping restrictions apply\n", level);
+	if (setsways & (1<<2))
+		iprint("l%d: M bit is set in cache type reg\n", level);
+
+	assoc = (setsways >> 3) & MASK(3);
+	cp->nways = 1 << assoc;
+	size = (setsways >> 6) & MASK(4);
+	cp->size  = 1 << (size + 9);
+	len = setsways & MASK(2);
+	cp->log2linelen = len + 3;
+	cp->linelen = 1 << cp->log2linelen;
+	cp->flags = setsways;
+
+	cp->nsets = 1 << (size + 6 - assoc - len);
+	cp->setsh = cp->log2linelen;
+	cp->waysh = 32 - log2(cp->nways);
+}
+
+static void
+prcachecfg(void)
+{
+	Memcache mc;
+
+	cacheinfo(1, 0, &mc);
+	iprint("l%d D: %d bytes: %d ways %d sets %d bytes/line",
+		mc.level, mc.size, mc.nways, mc.nsets, mc.linelen);
+	if (mc.linelen != CACHELINESZ)
+		iprint(" *should* be %d", CACHELINESZ);
+	iprint("\n");
+
+	cacheinfo(1, 1, &mc);
+	iprint("l%d I: %d bytes, %d ways %d sets %d bytes/line",
+		mc.level, mc.size, mc.nways, mc.nsets, mc.linelen);
+	if (mc.linelen != CACHELINESZ)
+		iprint(" *should* be %d", CACHELINESZ);
+	iprint("\n");
+}
+
 void
 l2cacheon(void)
 {
+	ulong cfg;
 	CpucsReg *cpu;
 	L2uncache *l2p;
 
-	l1cachesoff();
 	cacheuwbinv();
+	l1cachesoff();			/* turns off L2 as a side effect */
+
+	cpwrsc(CpDef, CpCLD, 0, 0, 0);  /* GL-CPU-100: set D cache lockdown reg. */
+
+	/* marvell guideline GL-CPU-130 */
+	cpu = CPUCSREG;
+	cfg = cpu->cpucfg | L2exists | L2ecc | Cfgiprefetch | Cfgdprefetch;
+
+	/*
+	 * writeback requires extra care; i thought we were now taking that
+	 * extra care, but trying to allow L2 write-back wedges the system.
+	 */
+	if (L2writeback)
+		cfg &= ~L2writethru;	/* see PTE Cached & Buffered bits */
+	else
+		cfg |= L2writethru;
+	cpu->l2cfg = cfg;
+	coherence();			/* force l2 cache to pay attention */
+	cpu->l2tm1 = cpu->l2tm0 = 0x66666666; /* marvell guideline GL-CPU-120 */
+	coherence();
+
+	cpwrsc(CpL2, CpTESTCFG, CpTCl2waylck, CpTCl2waylock, 0);
+//	l2cachecfgoff();
+
+	cachedinv();
+	l2cacheinv();
 
 	/* disable l2 caching of i/o registers */
 	l2p = (L2uncache *)Addrl2cache;
 	memset(l2p, 0, sizeof *l2p);
 	/* l2: don't cache upper half of address space */
 	l2p->win[0].base = 0x80000000 | L2enable;	/* 64K multiple */
-	l2p->win[0].size = (32768-1) << 16;		/* 64K multiples */
+	l2p->win[0].size = (32*1024-1) << 16;		/* 64K multiples */
 	coherence();
 
-	cacheuwbinv();
-
-	/* marvell guideline GL-CPU-130 */
-	cpu = CPUCSREG;
-	cpu->cpucfg |= Cfgiprefetch | Cfgdprefetch;
-
-	/*
-	 * writeback requires extra care; i thought we were now taking
-	 * that extra care, but trying to use write-back kills the system.
-	 */
-	if (L2writeback)
-		cpu->l2cfg &= ~L2writethru;
-	else
-		cpu->l2cfg |= L2writethru;
-	cpu->l2cfg |= L2exists | L2ecc;
-	cpu->l2tm1 = cpu->l2tm0 = 0x66666666; /* marvell guideline GL-CPU-120 */
-	coherence();
-
-	cachedinv();
-	l2cacheinv();
 	l2cachecfgon();
-
-	l1cacheson();
-	print("l2 cache enabled as write-%s\n", cpu->l2cfg & L2writethru?
-		"through": "back");
+	l1cacheson();			/* turns L2 on as a side effect */
+	print("l2 cache enabled for low memory as write-%s\n",
+		cpu->l2cfg & L2writethru? "through": "back");
 }
 
 /* called late in main */
@@ -253,6 +343,8 @@ archconfinit(void)
 	m->delayloop = m->cpuhz/6000;  /* only an initial estimate */
 	fixaddrmap();
 //	praddrmap();
+	prcachecfg();
+
 	l2cacheon();
 }
 
@@ -296,9 +388,11 @@ archreset(void)
 
 	/* configure gpios */
 	((GpioReg*)AddrGpio0)->dataout = KWOEValLow;
+	coherence();
 	((GpioReg*)AddrGpio0)->dataoutena = KWOELow;
 
 	((GpioReg*)AddrGpio1)->dataout = KWOEValHigh;
+	coherence();
 	((GpioReg*)AddrGpio1)->dataoutena = KWOEHigh;
 	coherence();
 
@@ -324,10 +418,11 @@ void
 archreboot(void)
 {
 	iprint("reset!\n");
-	delay(100);
+	delay(10);
 
 	CPUCSREG->rstout = RstoutSoft;
 	CPUCSREG->softreset = ResetSystem;
+	coherence();
 	CPUCSREG->cpucsr = Reset;
 	coherence();
 	delay(500);
