@@ -20,9 +20,11 @@
 
 enum {
 	/*
-	 * TODO: make L2writeback = 1 work.
-	 * seems to wedge shortly after we start running user procs,
-	 * even if the Buffered bit is never set in a PTE(!).
+	 * Things might run faster if we could make L2writeback = 1 work,
+	 * but currently that causes the system to wedge shortly after we
+	 * start running user procs, even if the Buffered bit is never set
+	 * in a PTE(!) or if all of memory is made uncacheable by the l2
+	 * cache(!).  We may be dealing with a broken l2 cache.
 	 */
 	L2writeback = 0,
 };
@@ -229,28 +231,21 @@ log2(ulong n)
 }
 
 void
-cacheinfo(int level, int icache, Memcache *cp)		/* l1 only */
+cacheinfo(int level, int kind, Memcache *cp)		/* l1 only */
 {
 	uint len, assoc, size;
 	ulong setsways;
 
-	/* get cache types & sizes */
+	/* get cache types & sizes (read-only reg) */
 	setsways = cprdsc(0, CpID, CpIDidct, CpIDct);
 
 	cp->level = level;
-	cp->icache = icache;
+	cp->kind = kind;
 
-	if (((setsways >> 25) & MASK(4)) == 0)
-		iprint("write-through");
 	if ((setsways & (1<<24)) == 0)
-		icache = 0;		/* unified cache */
-	if (!icache)
+		kind = Unified;
+	if (kind != Icache)
 		setsways >>= 12;
-
-	if (setsways & (1<<11))
-		iprint("l%d: page table mapping restrictions apply\n", level);
-	if (setsways & (1<<2))
-		iprint("l%d: M bit is set in cache type reg\n", level);
 
 	assoc = (setsways >> 3) & MASK(3);
 	cp->nways = 1 << assoc;
@@ -259,11 +254,61 @@ cacheinfo(int level, int icache, Memcache *cp)		/* l1 only */
 	len = setsways & MASK(2);
 	cp->log2linelen = len + 3;
 	cp->linelen = 1 << cp->log2linelen;
-	cp->flags = setsways;
+	cp->setsways = setsways;
 
 	cp->nsets = 1 << (size + 6 - assoc - len);
 	cp->setsh = cp->log2linelen;
 	cp->waysh = 32 - log2(cp->nways);
+}
+
+static char *
+wbtype(uint type)
+{
+	static char *types[] = {
+		"write-through",
+		"read data block",
+		"reg 7 ops, no lock-down",
+	[06]	"reg 7 ops, format A",
+	[07]	"reg 7 ops, format B deprecated",
+	[016]	"reg 7 ops, format C",
+	[05]	"reg 7 ops, format D",
+	};
+
+	if (type >= nelem(types) || types[type] == nil)
+		return "GOK";
+	return types[type];
+}
+
+static void
+prcache(Memcache *mcp)
+{
+	int type;
+	char id;
+
+	if (mcp->kind == Unified)
+		id = 'U';
+	else if (mcp->kind == Icache)
+		id = 'I';
+	else if (mcp->kind == Dcache)
+		id = 'D';
+	else
+		id = '?';
+	print("l%d %c: %d bytes, %d ways %d sets %d bytes/line",
+		mcp->level, id, mcp->size, mcp->nways, mcp->nsets,
+		mcp->linelen);
+	if (mcp->linelen != CACHELINESZ)
+		print(" *should* be %d", CACHELINESZ);
+	type = (mcp->setsways >> 25) & MASK(4);
+	if (type == 0)
+		print("; write-through only");
+	else
+		print("; write-back type `%s' (%#o) possible",
+			wbtype(type), type);
+	if (mcp->setsways & (1<<11))
+		print("; page table mapping restrictions apply");
+	if (mcp->setsways & (1<<2))
+		print("; M bit is set in cache type reg");
+	print("\n");
 }
 
 static void
@@ -271,19 +316,10 @@ prcachecfg(void)
 {
 	Memcache mc;
 
-	cacheinfo(1, 0, &mc);
-	iprint("l%d D: %d bytes: %d ways %d sets %d bytes/line",
-		mc.level, mc.size, mc.nways, mc.nsets, mc.linelen);
-	if (mc.linelen != CACHELINESZ)
-		iprint(" *should* be %d", CACHELINESZ);
-	iprint("\n");
-
-	cacheinfo(1, 1, &mc);
-	iprint("l%d I: %d bytes, %d ways %d sets %d bytes/line",
-		mc.level, mc.size, mc.nways, mc.nsets, mc.linelen);
-	if (mc.linelen != CACHELINESZ)
-		iprint(" *should* be %d", CACHELINESZ);
-	iprint("\n");
+	cacheinfo(1, Dcache, &mc);
+	prcache(&mc);
+	cacheinfo(1, Icache, &mc);
+	prcache(&mc);
 }
 
 void
@@ -327,11 +363,12 @@ l2cacheon(void)
 	/* l2: don't cache upper half of address space */
 	l2p->win[0].base = 0x80000000 | L2enable;	/* 64K multiple */
 	l2p->win[0].size = (32*1024-1) << 16;		/* 64K multiples */
+
 	coherence();
 
 	l2cachecfgon();
 	l1cacheson();			/* turns L2 on as a side effect */
-	print("l2 cache enabled for low memory as write-%s\n",
+	print("l2 cache: write-%s, low memory only\n",
 		cpu->l2cfg & L2writethru? "through": "back");
 }
 
