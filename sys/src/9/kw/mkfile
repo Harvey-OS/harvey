@@ -110,7 +110,7 @@ trap$O:		/$objtype/include/ureg.h
 devether.$0:	etherif.h ../port/netif.h
 etherkw.$0:	etherif.h ../port/netif.h
 
-l.$O lexception.$O lproc.$O: arm.s arm.h mem.h cache.v5.s
+l.$O lexception.$O lproc.$O: arm.s arm.h mem.h
 
 init.h:D:	../port/initcode.c init9.s
 	$CC ../port/initcode.c

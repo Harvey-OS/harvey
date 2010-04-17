@@ -188,7 +188,7 @@ syscall(Ureg* ureg)
 	int i, scallnr;
 
 	if(!userureg(ureg))
-		panic("syscall: pc %#ux r14 %#ux psr %#ux",
+		panic("syscall: from kernel: pc %#ux r14 %#ux psr %#ux",
 			ureg->pc, ureg->r14, ureg->psr);
 
 	cycles(&up->kentry);

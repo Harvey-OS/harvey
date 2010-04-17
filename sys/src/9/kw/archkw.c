@@ -19,14 +19,8 @@
 #define SDRAMDREG	((SDramdReg*)AddrSDramd)
 
 enum {
-	/*
-	 * Things might run faster if we could make L2writeback = 1 work,
-	 * but currently that causes the system to wedge shortly after we
-	 * start running user procs, even if the Buffered bit is never set
-	 * in a PTE(!) or if all of memory is made uncacheable by the l2
-	 * cache(!).  We may be dealing with a broken l2 cache.
-	 */
 	L2writeback = 0,
+	Debug = 0,
 };
 
 typedef struct GpioReg GpioReg;
@@ -117,8 +111,6 @@ enum {
 	Winenable	= 1<<0,
 };
 
-void l2cacheinv(void);
-
 /*
  * u-boot leaves us with this address map:
  *
@@ -140,6 +132,10 @@ praddrwin(Addrwin *win, int i)
 {
 	ulong ctl, targ, attr, size64k;
 
+	if (!Debug) {
+		USED(win, i);
+		return;
+	}
 	ctl = win->ctl;
 	targ = WINTARG(ctl);
 	attr = WINATTR(ctl);
@@ -330,6 +326,7 @@ l2cacheon(void)
 	L2uncache *l2p;
 
 	cacheuwbinv();
+	l2cacheuwbinv();
 	l1cachesoff();			/* turns off L2 as a side effect */
 
 	cpwrsc(CpDef, CpCLD, 0, 0, 0);  /* GL-CPU-100: set D cache lockdown reg. */
@@ -338,10 +335,6 @@ l2cacheon(void)
 	cpu = CPUCSREG;
 	cfg = cpu->cpucfg | L2exists | L2ecc | Cfgiprefetch | Cfgdprefetch;
 
-	/*
-	 * writeback requires extra care; i thought we were now taking that
-	 * extra care, but trying to allow L2 write-back wedges the system.
-	 */
 	if (L2writeback)
 		cfg &= ~L2writethru;	/* see PTE Cached & Buffered bits */
 	else
@@ -355,7 +348,7 @@ l2cacheon(void)
 //	l2cachecfgoff();
 
 	cachedinv();
-	l2cacheinv();
+	l2cacheuinv();
 
 	/* disable l2 caching of i/o registers */
 	l2p = (L2uncache *)Addrl2cache;
@@ -363,12 +356,11 @@ l2cacheon(void)
 	/* l2: don't cache upper half of address space */
 	l2p->win[0].base = 0x80000000 | L2enable;	/* 64K multiple */
 	l2p->win[0].size = (32*1024-1) << 16;		/* 64K multiples */
-
 	coherence();
 
 	l2cachecfgon();
 	l1cacheson();			/* turns L2 on as a side effect */
-	print("l2 cache: write-%s, low memory only\n",
+	print("l2 cache: 256K or 512K: 4 ways, 32-byte lines, write-%s, low memory only\n",
 		cpu->l2cfg & L2writethru? "through": "back");
 }
 

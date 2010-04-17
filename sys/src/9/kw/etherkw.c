@@ -552,10 +552,12 @@ rxreplenish(Ctlr *ctlr)
 		r->countsize = Bufsize(Rxblklen);
 		r->buf = PADDR(b->rp);
 		cachedwbse(r, sizeof *r);
+		l2cacheuwbse(r, sizeof *r);
 
 		/* and fire */
 		r->cs = RCSdmaown | RCSenableintr;
 		cachedwbse(&r->cs, BY2SE);
+		l2cacheuwbse(&r->cs, BY2SE);
 
 		ctlr->rxtail = NEXT(ctlr->rxtail, Nrx);
 	}
@@ -600,6 +602,7 @@ receive(Ether *ether)
 		r = &ctlr->rx[ctlr->rxhead];
 		assert(((uintptr)r & (Descralign - 1)) == 0);
 		cachedinvse(r, sizeof *r);
+		l2cacheuinvse(r, sizeof *r);
 		if(r->cs & RCSdmaown)
 			break;
 
@@ -624,6 +627,7 @@ receive(Ether *ether)
 		assert(n >= 2 && n < 2048);
 
 		cachedinvse(b->rp, n);
+		l2cacheuinvse(b->rp, n);
 		b->wp = b->rp + n;
 		/*
 		 * skip hardware padding to align ipv4 address in memory
@@ -646,6 +650,7 @@ txreplenish(Ether *ether)			/* free transmitted packets */
 	ctlr = ether->ctlr;
 	while(ctlr->txtail != ctlr->txhead) {
 		cachedinvse(&ctlr->tx[ctlr->txtail].cs, BY2SE);
+		l2cacheuinvse(&ctlr->tx[ctlr->txtail].cs, BY2SE);
 		if(ctlr->tx[ctlr->txtail].cs & TCSdmaown)
 			break;
 		if(ctlr->txb[ctlr->txtail] == nil)
@@ -681,6 +686,7 @@ transmit(Ether *ether)
 		t = &ctlr->tx[ctlr->txhead];
 		assert(((uintptr)t & (Descralign - 1)) == 0);
 		cachedinvse(t, sizeof *t);
+		l2cacheuinvse(t, sizeof *t);
 		if(t->cs & TCSdmaown) {		/* free descriptor? */
 			ctlr->txringfull++;
 			break;
@@ -700,11 +706,13 @@ transmit(Ether *ether)
 		t->buf = PADDR(b->rp);
 		t->countchk = len << 16;
 		cachedwbse(t, sizeof *t);
+		l2cacheuwbse(t, sizeof *t);
 
 		/* and fire */
 		t->cs = TCSpadding | TCSfirst | TCSlast | TCSdmaown |
 			TCSenableintr;
 		cachedwbse(&t->cs, BY2SE);
+		l2cacheuwbse(&t->cs, BY2SE);
 
 		kick++;
 		ctlr->txhead = NEXT(ctlr->txhead, Ntx);
@@ -826,12 +834,12 @@ interrupt(Ureg*, void *arg)
 		if (irq & Irxerrq(Qno)) {
 			ether->buffs++;		/* approx. error */
 			/* null descriptor pointer or descriptor owned by cpu */
-			panic("etherkw: rx err on queue 0");
+			iprint("etherkw: rx err on queue 0 - input ring full\n");
 		}
 		if (irq & Irxerr) {
 			ether->buffs++;		/* approx. error */
 			/* null descriptor pointer or descriptor owned by cpu */
-			panic("etherkw: rx err");
+			iprint("etherkw: rx err - input ring full\n");
 		}
 		if(irq & (Irxerr | Irxerrq(Qno)))
 			handled++;
@@ -1258,6 +1266,7 @@ ctlrinit(Ether *ether)
 	}
 	ctlr->rxtail = ctlr->rxhead = 0;
 	cachedwb();
+	l2cacheuwb();
 	rxreplenish(ctlr);
 
 	ctlr->tx = xspanalloc(Ntx * sizeof(Tx), Descralign, 0);
@@ -1273,6 +1282,7 @@ ctlrinit(Ether *ether)
 	}
 	ctlr->txtail = ctlr->txhead = 0;
 	cachedwb();
+	l2cacheuwb();
 
 	/* clear stats by reading them into fake ctlr */
 	getmibstats(&fakectlr);

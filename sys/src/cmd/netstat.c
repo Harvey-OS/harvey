@@ -63,14 +63,14 @@ main(int argc, char *argv[])
 		exits(0);
 	}
 
-	fd = open(netroot, OREAD);
-	if(fd < 0)
-		sysfatal("open %s: %r", netroot);
-
 	if(nproto){
 		for(i=0; i<nproto; i++)
 			nstat(proto[i], pip);
 	}else{
+		fd = open(netroot, OREAD);
+		if(fd < 0)
+			sysfatal("open %s: %r", netroot);
+
 		tot = dirreadall(fd, &d);
 		for(i=0; i<tot; i++){
 			if(strcmp(d[i].name, "ipifc") == 0)
@@ -131,38 +131,37 @@ pip(char *net, Dir *db)
 	if(strcmp(db->name, "stats") == 0)
 		return;
 
-	snprint(buf, sizeof buf, "%s/%s/%s/ctl", netroot, net, db->name);
-
-	sprint(buf, "%s/%s/%s/status", netroot, net, db->name);
+	snprint(buf, sizeof buf, "%s/%s/%s/status", netroot, net, db->name);
 	fd = open(buf, OREAD);
 	if(fd < 0)
 		return;
-
 	n = read(fd, buf, sizeof(buf));
+	close(fd);
 	if(n < 0)
 		return;
 	buf[n] = 0;
-	close(fd);
 
 	p = strchr(buf, ' ');
 	if(p != 0)
 		*p = 0;
-	
+	p = strrchr(buf, '\n');
+	if(p != 0)
+		*p = 0;
 	Bprint(&out, "%-4s %-4s %-10s %-12s ", net, db->name, db->uid, buf);
 
-	sprint(buf, "%s/%s/%s/local", netroot, net, db->name);
+	snprint(buf, sizeof buf, "%s/%s/%s/local", netroot, net, db->name);
 	fd = open(buf, OREAD);
 	if(fd < 0) {
 		Bprint(&out, "\n");
 		return;
 	}
 	n = read(fd, buf, sizeof(buf));
+	close(fd);
 	if(n < 0) {
 		Bprint(&out, "\n");
 		return;
 	}
 	buf[n-1] = 0;
-	close(fd);
 	p = strchr(buf, '!');
 	if(p == 0) {
 		Bprint(&out, "\n");
@@ -171,21 +170,22 @@ pip(char *net, Dir *db)
 	*p = '\0';
 	Bprint(&out, "%-10s ", getport(net, p+1));
 
-	sprint(buf, "%s/%s/%s/remote", netroot, net, db->name);
+	snprint(buf, sizeof buf, "%s/%s/%s/remote", netroot, net, db->name);
 	fd = open(buf, OREAD);
 	if(fd < 0) {
 		print("\n");
 		return;
 	}
 	n = read(fd, buf, sizeof(buf));
+	close(fd);
 	if(n < 0) {
 		print("\n");
 		return;
 	}
 	buf[n-1] = 0;
-	close(fd);
 	p = strchr(buf, '!');
-	*p++ = '\0';
+	if(p != nil)
+		*p++ = '\0';
 
 	if(notrans){
 		Bprint(&out, "%-10s %s\n", getport(net, p), buf);
