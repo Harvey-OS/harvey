@@ -55,6 +55,12 @@ extern void l1cacheson(void);
 extern void l2cachecfgoff(void);
 extern void l2cachecfgon(void);
 extern void l2cacheon(void);
+extern void l2cacheuinv(void);
+extern void l2cacheuinvse(void*, int);
+extern void l2cacheuwb(void);
+extern void l2cacheuwbinv(void);
+extern void l2cacheuwbinvse(void*, int);
+extern void l2cacheuwbse(void*, int);
 extern void lastresortprint(char *buf, long bp);
 extern int log2(ulong);
 extern void mmuinvalidate(void);		/* 'mmu' or 'tlb'? */
