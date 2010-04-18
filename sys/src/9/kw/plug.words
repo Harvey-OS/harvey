@@ -7,10 +7,10 @@ l1 I & D VIVT caches 16K each: 4-way, 128 sets, 32-byte lines
 	l1 D is write-through, l1 I is write-back
 unified l2 PIPT cache 256K: 4-way, 2048 sets, 32-byte lines
 	potentially 512K: 8-way
-thus the l1 caches need to be flushed or invalidated when mmu mappings
-change, but l2 only needs to be flushed or invalidated around dma
-operations, and only the affected dma buffers need to be flushed or
-invalidated in l2.
+there is no hardware cache coherence, thus the l1 caches need to be
+flushed or invalidated when mmu mappings change, but l2 only needs to
+be flushed or invalidated around dma operations, and only the affected
+dma buffers need to be flushed or invalidated in l2.
 
 512MB of dram at physical address 0
 512MB of flash

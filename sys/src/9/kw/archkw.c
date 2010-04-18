@@ -39,7 +39,7 @@ typedef struct L2uncache L2uncache;
 typedef struct L2win L2win;
 struct L2uncache {
 	struct L2win {
-		ulong	base;
+		ulong	base;	/* phys addr */
 		ulong	size;
 	} win[4];
 };
@@ -353,14 +353,17 @@ l2cacheon(void)
 	/* disable l2 caching of i/o registers */
 	l2p = (L2uncache *)Addrl2cache;
 	memset(l2p, 0, sizeof *l2p);
-	/* l2: don't cache upper half of address space */
+	/*
+	 * l2: don't cache upper half of address space.
+	 * the L2 cache is PIPT, so the addresses are physical.
+	 */
 	l2p->win[0].base = 0x80000000 | L2enable;	/* 64K multiple */
 	l2p->win[0].size = (32*1024-1) << 16;		/* 64K multiples */
 	coherence();
 
 	l2cachecfgon();
 	l1cacheson();			/* turns L2 on as a side effect */
-	print("l2 cache: 256K or 512K: 4 ways, 32-byte lines, write-%s, low memory only\n",
+	print("l2 cache: 256K or 512K: 4 ways, 32-byte lines, write-%s, sdram only\n",
 		cpu->l2cfg & L2writethru? "through": "back");
 }
 
