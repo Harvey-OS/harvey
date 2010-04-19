@@ -1324,7 +1324,8 @@ retry:
 		if(p->gc != nil && (*p->gc)(p))
 			goto retry;
 		/* debugging: do we ever get here? */
-		panic("Fsprotoclone: all conversations in use");
+		if (cpuserver)
+			panic("Fsprotoclone: all conversations in use");
 		return nil;
 	}
 
