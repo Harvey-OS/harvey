@@ -1454,7 +1454,7 @@ p220bw=1680x1050	# 60Hz
 	clock=119
 	shb=1728 ehb=1760 ht=1840
 	vrs=1053 vre=1059 vt=1080
-	hsync=- vsync=+ 
+	hsync=- vsync=+
 
 #
 # HannsG JC199D LCD monitor (1280x1024 native)
@@ -1478,6 +1478,142 @@ jc199d=1280x1024	# 60 Hz
 	defaultclock=108
 	shb=1328 ehb=1440 ht=1688
 	vrs=1025 vre=1028 vt=1066
+	hsync=+ vsync=+
+
+#
+#	Acer AL1706 17" LCD
+#
+al1706
+	videobw=75
+	alias=multisync
+
+al1706=640x480			# 60Hz
+	clock=25.175
+	shb=648 ehb=792 ht=800
+	vrs=490 vre=492 vt=525
+	hsync=- vsync=-
+al1706=640x480			# 73Hz
+	clock=31.5
+	shb=648 ehb=824 ht=832
+	vrs=489 vre=492 vt=520
+	hsync=- vsync=-
+al1706=640x480			# 75Hz
+	clock=31.5
+	shb=640 ehb=840 ht=840
+	vrs=481 vre=484 vt=500
+	hsync=- vsync=-
+al1706=800x600			# 56Hz
+	clock=36
+	shb=800 ehb=1024 ht=1024
+	vrs=601 vre=603 vt=625
+	hsync=+ vsync=+
+al1706=800x600			# 60Hz
+	clock=40
+	shb=800 ehb=1056 ht=1056
+	vrs=601 vre=605 vt=628
+	hsync=+ vsync=+
+al1706=800x600			# 72Hz
+	clock=50
+	shb=800 ehb=1040 ht=1040
+	vrs=637 vre=643 vt=666
+	hsync=+ vsync=+
+al1706=800x600			# 75Hz
+	clock=49.5
+	shb=800 ehb=1056 ht=1056
+	vrs=601 vre=604 vt=625
+	hsync=+ vsync=+
+al1706=1024x768			# 60Hz
+	clock=65
+	shb=1024 ehb=1344 ht=1344
+	vrs=771 vre=777 vt=806
+	hsync=- vsync=-
+al1706=1024x768			# 70Hz
+	clock=75
+	shb=1024 ehb=1328 ht=1328
+	vrs=771 vre=777 vt=806
+	hsync=- vsync=-
+al1706=1024x768			# 75Hz
+	clock=78.75
+	shb=1024 ehb=1312 ht=1312
+	vrs=769 vre=772 vt=800
+	hsync=+ vsync=+
+al1706=1280x1024		# 75Hz
+	clock=135
+	shb=1280 ehb=1688 ht=1688
+	vrs=1025 vre=1028 vt=1066
+	hsync=+ vsync=+
+al1706=1280x1024		# 60Hz
+	clock=108
+	shb=1328 ehb=1440 ht=1688
+	vrs=1025 vre=1028 vt=1066
+	hsync=+ vsync=+
+
+#
+# Philips 109 B6: 19" CRT
+#
+p109b6
+	videobw=230
+	alias=multisync
+
+p109b6=640x480			# 60Hz
+	clock=25.175
+	shb=648 ehb=792 ht=800
+	vrs=490 vre=492 vt=525
+	hsync=- vsync=-
+p109b6=640x480			# 73Hz
+	clock=31.5
+	shb=648 ehb=824 ht=832
+	vrs=489 vre=492 vt=520
+	hsync=- vsync=-
+p109b6=640x480			# 75Hz
+	clock=31.5
+	shb=640 ehb=840 ht=840
+	vrs=481 vre=484 vt=500
+	hsync=- vsync=-
+p109b6=800x600			# 56Hz
+	clock=36
+	shb=800 ehb=1024 ht=1024
+	vrs=601 vre=603 vt=625
+	hsync=+ vsync=+
+p109b6=800x600			# 60Hz
+	clock=40
+	shb=800 ehb=1056 ht=1056
+	vrs=601 vre=605 vt=628
+	hsync=+ vsync=+
+p109b6=800x600			# 72Hz
+	clock=50
+	shb=800 ehb=1040 ht=1040
+	vrs=637 vre=643 vt=666
+	hsync=+ vsync=+
+p109b6=800x600			# 75Hz
+	clock=49.5
+	shb=800 ehb=1056 ht=1056
+	vrs=601 vre=604 vt=625
+	hsync=+ vsync=+
+p109b6=1024x768			# 60Hz
+	clock=65
+	shb=1024 ehb=1344 ht=1344
+	vrs=771 vre=777 vt=806
+	hsync=- vsync=-
+p109b6=1024x768			# 70Hz
+	clock=75
+	shb=1024 ehb=1328 ht=1328
+	vrs=771 vre=777 vt=806
+	hsync=- vsync=-
+p109b6=1024x768			# 75Hz
+	clock=78.75
+	shb=1024 ehb=1312 ht=1312
+	vrs=769 vre=772 vt=800
+	hsync=+ vsync=+
+p109b6=1280x1024		# 75Hz
+	clock=135
+	shb=1280 ehb=1688 ht=1688
+	vrs=1025 vre=1028 vt=1066
+	hsync=+ vsync=+
+p109b6=1600x1200		# 75Hz
+	clock=202
+	shb=1664 ehb=1856 ht=2160
+	vrs=1201 vre=1204 vt=1250
 	hsync=+ vsync=+
 
 #
