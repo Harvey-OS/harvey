@@ -518,6 +518,7 @@ rxkick(Ctlr *ctlr)
 		reg->crdp[Qno].r = PADDR(&ctlr->rx[ctlr->rxhead]);
 	if ((reg->rqc & 0xff) == 0)		/* all queues are stopped? */
 		reg->rqc = Rxqon(Qno);		/* restart */
+	coherence();
 }
 
 static void
@@ -529,6 +530,7 @@ txkick(Ctlr *ctlr)
 		reg->tcqdp[Qno] = PADDR(&ctlr->tx[ctlr->txhead]);
 	if ((reg->tqc & 0xff) == 0)		/* all q's stopped? */
 		reg->tqc = Txqon(Qno);		/* restart */
+	coherence();
 }
 
 static void
@@ -601,8 +603,8 @@ receive(Ether *ether)
 	for (i = Nrx-2; i > 0; i--) {
 		r = &ctlr->rx[ctlr->rxhead];
 		assert(((uintptr)r & (Descralign - 1)) == 0);
-		cachedinvse(r, sizeof *r);
 		l2cacheuinvse(r, sizeof *r);
+		cachedinvse(r, sizeof *r);
 		if(r->cs & RCSdmaown)
 			break;
 
@@ -626,12 +628,12 @@ receive(Ether *ether)
 		n = r->countsize >> 16;
 		assert(n >= 2 && n < 2048);
 
-		cachedinvse(b->rp, n);
 		l2cacheuinvse(b->rp, n);
+		cachedinvse(b->rp, n);
 		b->wp = b->rp + n;
 		/*
-		 * skip hardware padding to align ipv4 address in memory
-		 * (mv-s104860-u0 §8.3.4.1)
+		 * skip hardware padding intended to align ipv4 address
+		 * in memory (mv-s104860-u0 §8.3.4.1)
 		 */
 		b->rp += 2;
 		etheriq(ether, b, 1);
@@ -649,8 +651,8 @@ txreplenish(Ether *ether)			/* free transmitted packets */
 
 	ctlr = ether->ctlr;
 	while(ctlr->txtail != ctlr->txhead) {
-		cachedinvse(&ctlr->tx[ctlr->txtail].cs, BY2SE);
 		l2cacheuinvse(&ctlr->tx[ctlr->txtail].cs, BY2SE);
+		cachedinvse(&ctlr->tx[ctlr->txtail].cs, BY2SE);
 		if(ctlr->tx[ctlr->txtail].cs & TCSdmaown)
 			break;
 		if(ctlr->txb[ctlr->txtail] == nil)
@@ -685,8 +687,8 @@ transmit(Ether *ether)
 	for (i = Ntx/2 - 2; i > 0; i--) {
 		t = &ctlr->tx[ctlr->txhead];
 		assert(((uintptr)t & (Descralign - 1)) == 0);
-		cachedinvse(t, sizeof *t);
 		l2cacheuinvse(t, sizeof *t);
+		cachedinvse(t, sizeof *t);
 		if(t->cs & TCSdmaown) {		/* free descriptor? */
 			ctlr->txringfull++;
 			break;
@@ -701,6 +703,10 @@ transmit(Ether *ether)
 			continue;
 		}
 		ctlr->txb[ctlr->txhead] = b;
+
+		/* make sure the whole packet is in memory */
+		cachedwbse(b->rp, len);
+		l2cacheuwbse(b->rp, len);
 
 		/* set up the transmit descriptor */
 		t->buf = PADDR(b->rp);
@@ -1319,6 +1325,7 @@ ctlrinit(Ether *ether)
 	reg->crdp[Qno].r = PADDR(&ctlr->rx[ctlr->rxhead]);
 	for (i = 1; i < nelem(reg->crdp); i++)
 		reg->crdp[i].r = 0;
+	coherence();
 
 	reg->portcfg = Rxqdefault(Qno) | Rxqarp(Qno);
 	reg->portcfgx = 0;

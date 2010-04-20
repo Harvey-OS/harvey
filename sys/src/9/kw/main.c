@@ -20,18 +20,6 @@
 #define	BOOTARGSLEN	(16*KiB)		/* limit in devenv.c */
 #define	MAXCONF		64
 
-/*
- * this low-level printing stuff is ugly,
- * but there appears to be no other way to
- * print until after #t is populated.
- */
-#define wave(c) { \
-	coherence(); \
-	while ((*(ulong *)(PHYSCONS+4*5) & (1<<5)) == 0) /* (x->lsr&LSRthre)==0? */ \
-		; \
-	*(ulong *)PHYSCONS = (c); \
-	coherence(); \
-}
 #define isascii(c) ((uchar)(c) > 0 && (uchar)(c) < 0177)
 
 uintptr kseg0 = KZERO;
@@ -242,7 +230,7 @@ spiprobe(void)
 	rp->icfg &= ~Bytelen;		/* one-byte reads */
 	coherence();
 
-	print("spi flash at %#ux: memory reads enabled\n", PHYSSPIFLASH);
+//	print("spi flash at %#ux: memory reads enabled\n", PHYSSPIFLASH);
 }
 
 void	archconsole(void);
@@ -323,6 +311,7 @@ wave(' ');
 	swapinit();
 	userinit();
 	schedinit();
+	panic("schedinit returned");
 }
 
 void
@@ -425,6 +414,7 @@ reboot(void *entry, void *code, ulong size)
 	f = (void*)REBOOTADDR;
 	memmove(f, rebootcode, sizeof(rebootcode));
 	cacheuwbinv();
+	l2cacheuwb();
 
 	print("rebooting...");
 	iprint("entry %#lux code %#lux size %ld\n",
@@ -433,6 +423,7 @@ reboot(void *entry, void *code, ulong size)
 
 	/* off we go - never to return */
 	cacheuwbinv();
+	l2cacheuwb();
 	(*f)(PADDR(entry), PADDR(code), size);
 
 	iprint("loaded kernel returned!\n");

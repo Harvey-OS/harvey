@@ -18,10 +18,6 @@
  * they are within ±32MiB relative and do not require any
  * local variables or more than one argument (i.e. there is
  * no stack).
- *
- * Iff loaded by u-boot's bootm command, r2 is supposed to point to a
- * tagged list in low memory, but could be 0.  u-boot environment
- * variables may be in that tagged list, which should be in the first 16K.
  */
 TEXT _start(SB), 1, $-4
 	MOVW	$setR12(SB), R12		/* load the SB */
@@ -746,27 +742,37 @@ TEXT splfhi(SB), $-4
 	MOVW	R3, R0
 	RET
 
-TEXT splflo(SB), $-4
-	MOVW	CPSR, R3
-	BIC	$(PsrDfiq), R3, R1
-	MOVW	R1, CPSR
+//TEXT splflo(SB), $-4
+//	MOVW	CPSR, R3
+//	BIC	$(PsrDfiq), R3, R1
+//	MOVW	R1, CPSR
+//	BARRIERS
+//	MOVW	R3, R0
+//	RET
+
+TEXT	_tas(SB), $-4
+	MOVW	R0,R1
+	BARRIERS
+	MOVW	$1,R0
+	SWPW	R0,(R1)			/* fix: deprecated in armv7 */
+	MOVW	R0, R3
 	BARRIERS
 	MOVW	R3, R0
 	RET
 
-TEXT tas32(SB), 1, $-4
-	MOVW	R0, R1
-	MOVW	$0xDEADDEAD, R0
-	MOVW	R0, R3
-	SWPW	R0, (R1)
-	CMP.S	R0, R3
-	BEQ	_tasout
-	EOR	R3, R3			/* R3 = 0 */
-	CMP.S	R0, R3
-	BEQ	_tasout
-	MOVW	$1, R15			/* abort: lock != 0 && lock != $0xDEADDEAD */
-_tasout:
-	RET
+//TEXT tas32(SB), 1, $-4
+//	MOVW	R0, R1
+//	MOVW	$0xDEADDEAD, R0
+//	MOVW	R0, R3
+//	SWPW	R0, (R1)
+//	CMP.S	R0, R3
+//	BEQ	_tasout
+//	EOR	R3, R3			/* R3 = 0 */
+//	CMP.S	R0, R3
+//	BEQ	_tasout
+//	MOVW	$1, R15			/* abort: lock != 0 && lock != $0xDEADDEAD */
+//_tasout:
+//	RET
 
 TEXT setlabel(SB), 1, $-4
 	MOVW	R13, 0(R0)		/* sp */

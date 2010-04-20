@@ -200,6 +200,7 @@ enum {
 
 extern register Mach* m;			/* R10 */
 extern register Proc* up;			/* R9 */
+
 extern uintptr kseg0;
 extern Mach* machaddr[MAXMACH];
 
