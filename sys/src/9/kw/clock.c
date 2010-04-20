@@ -75,6 +75,7 @@ void
 clockinit(void)
 {
 	int i, s;
+	CpucsReg *cpu = CPUCSREG;
 	TimerReg *tmr = TIMERREG;
 
 	clockshutdown();
@@ -122,7 +123,9 @@ clockinit(void)
 	coherence();
 	tmr->ctl = Tmr0enable | Tmr0reload | Tmr1enable | Tmr1reload |
 		TmrWDenable;
-	CPUCSREG->rstout |= RstoutWatchdog;
+//	intrenable(Irqbridge, IRQcputimer1, clockintr, tmr, "clock1");
+//	cpu->irqmask |= 1 << IRQcputimer0  | 1 << IRQcputimer1; // TODO experiment
+	cpu->rstout |= RstoutWatchdog;
 	coherence();
 }
 

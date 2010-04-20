@@ -19,7 +19,7 @@
 #define SDRAMDREG	((SDramdReg*)AddrSDramd)
 
 enum {
-	L2writeback = 0,
+	L2writeback = 1,
 	Debug = 0,
 };
 
@@ -345,7 +345,6 @@ l2cacheon(void)
 	coherence();
 
 	cpwrsc(CpL2, CpTESTCFG, CpTCl2waylck, CpTCl2waylock, 0);
-//	l2cachecfgoff();
 
 	cachedinv();
 	l2cacheuinv();

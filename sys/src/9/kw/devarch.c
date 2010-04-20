@@ -178,6 +178,7 @@ cputype2name(char *buf, int size)
 	/* strange way to get this information, but it's what u-boot does */
 	pci = (Pciex *)Addrpci;
 	snprint(soc, sizeof soc, "88F%ux", pci->devid);
+	/* stash rev for benefit of later usb initialisation */
 	m->socrev = rev = pci->revid & MASK(4);
 
 	id = cpidget();
@@ -198,7 +199,6 @@ cputype2name(char *buf, int size)
 	if (pci->devid != 0x6281)
 		socrev = "unknown";
 	else
-		// TODO: record rev somewhere for benefit of usb initialisation
 		switch (rev) {
 		case 0:
 			socrev = "Z0";

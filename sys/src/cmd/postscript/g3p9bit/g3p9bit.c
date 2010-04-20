@@ -342,7 +342,6 @@ loop:
 		return 1;
 	}
 	goto loop;
-	return 0;
 }
 
 

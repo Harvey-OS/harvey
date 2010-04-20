@@ -138,15 +138,29 @@ it prompts for the Ethernet
 protocol to use to reach the root file server; request the default.
 .SS Marvell Kirkwood boards
 Supported boards include the Sheevaplug and Openrd-client.
-Type this at U-boot once,
-replacing
-.L 00504301c49e
-with your board's MAC address:
+In the following,
+replace
+.I MAC
+with your board's MAC address without colons,
+in lower case (\c
+.L ether=
+.I ndb
+attribute).
+First,
+.IP
+.EX
+cd /cfg/pxe; cp example-kw \fIMAC
+.EE
+.PP
+and edit
+.L /cfg/pxe/\fIMAC
+to taste.
+Type this at U-boot once:
 .IP
 .EX
 setenv bootdelay 2
-# the next two lines should be typed as one
-setenv bootcmd 'bootp; bootp; tftp 0x1000 /cfg/pxe/00504301c49e;
+# \fItype the next two lines as one\fP
+setenv bootcmd 'bootp; bootp; tftp 0x1000 /cfg/pxe/\fIMAC\fP;
 	bootp; tftp 0x800000; go 0x800000'
 saveenv
 .EE
@@ -155,15 +169,29 @@ Thereafter, the board will automatically boot via BOOTP and TFTP
 when reset or turned on.
 .SS TI OMAP3530 boards
 Supported boards include the IGEPv2 from ISEE.
-Type this at U-boot once,
-replacing
-.L acde48000254
-with your board's MAC address:
+In the following,
+replace
+.I MAC
+with your board's MAC address without colons,
+in lower case (\c
+.L ether=
+.I ndb
+attribute).
+First,
+.IP
+.EX
+cd /cfg/pxe; cp example-kw \fIMAC
+.EE
+.PP
+and edit
+.L /cfg/pxe/\fIMAC
+to taste.
+Type this at U-boot once:
 .IP
 .EX
 setenv bootdelay 2
-# the next two lines should be typed as one
-setenv bootcmd 'tftp 0x80300000 /cfg/pxe/acde48000254;
+# \fItype the next two lines as one\fP
+setenv bootcmd 'tftp 0x80300000 /cfg/pxe/\fIMAC\fP;
 	dhcp 0x80310000; go 0x80310000'
 saveenv
 .EE

@@ -185,6 +185,19 @@ extern void kexit(Ureg*);
 #define	waserror()	(up->nerrlab++, setlabel(&up->errlab[up->nerrlab-1]))
 
 /*
+ * this low-level printing stuff is ugly,
+ * but there appears to be no other way to
+ * print until after #t is populated.
+ */
+#define wave(c) { \
+	coherence(); \
+	while ((*(ulong *)(PHYSCONS+4*5) & (1<<5)) == 0) /* (x->lsr&LSRthre)==0? */ \
+		; \
+	*(ulong *)PHYSCONS = (c); \
+	coherence(); \
+}
+
+/*
  * These are not good enough.
  */
 #define KADDR(pa)	UINT2PTR(KZERO|((uintptr)(pa)))

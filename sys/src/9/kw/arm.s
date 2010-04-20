@@ -41,13 +41,13 @@
 	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwb), CpCACHEwait
 /* prefetch flush; zeroes R0 */
 /*
- * TODO: is the CpL2 MCR needed? not for write-thru l2.  write-back l2 croaks
- * either way.
+ * arm926ej-s manual says we need to sync with l2 cache in isb,
+ * and uncached load is the easiest way.  doesn't seem to matter.
  */
 #define ISB	\
 	MOVW	$0, R0; \
 	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEinvi), CpCACHEwait
-//	MCR	CpSC, CpL2, PC, C(CpTESTCFG), C(CpTCl2inv), CpTCl2seva
+//	MOVW	(R0), R0; MOVW $0, R0
 
 /* zeroes R0 */
 #define	BARRIERS	DSB; ISB
