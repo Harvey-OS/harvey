@@ -46,7 +46,7 @@ setenv bootdelay 2
 setenv bootcmd 'bootp; bootp; tftp 0x1000 /cfg/pxe/00504301c49e; bootp; tftp 0x800000; go 0x800000'
 saveenv
 
-# see cfg-pxe-example
+# see /cfg/pxe/example-kw
 
 
 	physical mem map
