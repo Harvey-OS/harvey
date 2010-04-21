@@ -1,0 +1,15 @@
+# igepv2
+ethaddr=acde48000254
+# 512 MB at 0x80000000 (vs 256 MB on beagle)
+*maxmem=0xa0000000
+# 720 MHz (vs 500 MHz on beagle)
+*cpumhz=720
+
+# beagle/igep configuration
+nvram=/boot/nvram
+nvroff=0
+nvrlen=512
+nobootprompt=tcp
+
+# aoeif=ether0
+# aoedev=e!#æ/aoe/1.0

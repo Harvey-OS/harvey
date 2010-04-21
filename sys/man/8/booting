@@ -180,12 +180,20 @@ attribute).
 First,
 .IP
 .EX
-cd /cfg/pxe; cp example-kw \fIMAC
+cd /cfg/pxe; cp example-omap \fIMAC
 .EE
 .PP
 and edit
 .L /cfg/pxe/\fIMAC
 to taste.
+Be sure to edit the line for
+.L ethaddr
+to
+.IP
+.EX
+ethaddr=\fIMAC
+.EE
+.PP
 Type this at U-boot once:
 .IP
 .EX
