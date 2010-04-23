@@ -461,13 +461,6 @@ ethershutdown(void)
 	}
 }
 
-
-/* called from clock.c once per second */
-void
-etherclock(void)
-{
-}
-
 #define POLY 0xedb88320
 
 /* really slow 32 bit crc for ethers */

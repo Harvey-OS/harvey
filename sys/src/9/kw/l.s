@@ -322,30 +322,22 @@ TEXT l1cachesoff(SB), 1, $-4
  * cache* functions affect only the L1 caches, which are VIVT.
  */
 
-#define MAXFLUSH 320000
-
 TEXT cachedwb(SB), 1, $-4			/* D writeback */
 	MOVW	CPSR, R3			/* splhi */
 	ORR	$(PsrDirq), R3, R1
 	MOVW	R1, CPSR
 	BARRIERS
+
 	/* keep writing back dirty cache lines until no more exist */
-	MOVW	$MAXFLUSH, R1
 _dwb:
-	SUB.S	$1, R1
-	BEQ	stuck
 	MRC	CpSC, 0, PC, C(CpCACHE), C(CpCACHEwb), CpCACHEtest
 	BNE	_dwb
 	/* drain L1 write buffer, also drains L2 eviction buffer on sheeva */
 	BARRIERS
-dwbret:
+
 	MOVW	R3, CPSR			/* splx */
 	BARRIERS
 	RET
-stuck:
-WAVE('?')
-WAVE('!')
-	B	dwbret
 
 TEXT cachedwbse(SB), 1, $-4			/* D writeback SE */
 	MOVW	R0, R2				/* first arg: address */
@@ -380,10 +372,7 @@ TEXT cachedwbinv(SB), 1, $-4			/* D writeback+invalidate */
 	BARRIERS
 
 	/* keep writing back dirty cache lines until no more exist */
-	MOVW	$MAXFLUSH, R1
 _dwbinv:
-	SUB.S	$1, R1
-	BEQ	stuck
 	MRC	CpSC, 0, PC, C(CpCACHE), C(CpCACHEwbi), CpCACHEtest
 	BNE	_dwbinv
 	/* drain L1 write buffer, also drains L2 eviction buffer on sheeva */
@@ -452,10 +441,7 @@ TEXT cacheuwbinv(SB), 1, $-4			/* D+I writeback+invalidate */
 	BARRIERS
 
 	/* keep writing back dirty cache lines until no more exist */
-	MOVW	$MAXFLUSH, R1
 _uwbinv:					/* D writeback+invalidate */
-	SUB.S	$1, R1
-	BEQ	stuck
 	MRC	CpSC, 0, PC, C(CpCACHE), C(CpCACHEwbi), CpCACHEtest
 	BNE	_uwbinv
 	/* drain L1 write buffer, also drains L2 eviction buffer on sheeva */

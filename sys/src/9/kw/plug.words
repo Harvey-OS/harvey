@@ -7,12 +7,23 @@ l1 I & D VIVT caches 16K each: 4-way, 128 sets, 32-byte lines
 	l1 D is write-through, l1 I is write-back
 unified l2 PIPT cache 256K: 4-way, 2048 sets, 32-byte lines
 	potentially 512K: 8-way
+
 apparently the mmu walks the page tables in dram and won't look in the
 l2 cache.  there is no hardware cache coherence, thus the l1 caches
 need to be flushed or invalidated when mmu mappings change, but l2
 only needs to be flushed or invalidated around dma operations and page
 table changes, and only the affected dma buffers and descriptors or
 page table entries need to be flushed or invalidated in l2.
+
+we arrange that device registers are uncached.
+
+be aware that cache operations act on cache lines (of CACHELINESZ
+bytes) as atomic units, so if you invalidate 4 caches of a cache line,
+you invalidate the entire cache line, whether it's been written back
+(is clean) or not (is dirty).  mixed data structures with parts
+maintained by hardware and other parts by software are especially
+tricky.  we try to pad the initial hardware parts so that the software
+parts start in a new cache line.
 
 512MB of dram at physical address 0
 512MB of flash
@@ -28,10 +39,6 @@ sheevaplug by Salva Peiró (saoret.one@gmail.com) and Mechiel Lukkien
 ___
 
 unfinished business:
-
-usb almost works.  we can see devices but not perform i/o to them.
-this may be due to lack of cache flushing and invalidation around dma
-operations.
 
 access to nand or spi flash would be handy for nvram and small
 fossils.  flash access isn't well documented.  inferno implements

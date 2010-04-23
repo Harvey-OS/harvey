@@ -60,13 +60,15 @@ OBJ=\
 	$DEVS\
 	$PORT\
 
+# HFILES=
+
 LIB=\
 	/$objtype/lib/libmemlayer.a\
 	/$objtype/lib/libmemdraw.a\
 	/$objtype/lib/libdraw.a\
 	/$objtype/lib/libip.a\
-	/$objtype/lib/libc.a\
 	/$objtype/lib/libsec.a\
+	/$objtype/lib/libc.a\
 
 9:V: $p$CONF s$p$CONF
 
@@ -100,17 +102,17 @@ install:V: /$objtype/$p$CONF
 
 # CFLAGS= -I. -I../port $CFLAGS	# hack to compile private sysproc.c (e.g.)
 
-clock.$O:	/$objtype/include/ureg.h
-devether.$O:	/$objtype/include/ureg.h
-fpiarm.$O:	/$objtype/include/ureg.h
-main.$O:	/$objtype/include/ureg.h errstr.h init.h reboot.h
-mmu.$O:		/$objtype/include/ureg.h arm.h
-trap$O:		/$objtype/include/ureg.h
+arch.$O clock.$O fpiarm.$O main.$O mmu.$O screen.$O sdscsi.$O syscall.$O \
+	trap.$O: /$objtype/include/ureg.h
 
-devether.$0:	etherif.h ../port/netif.h
-etherkw.$0:	etherif.h ../port/netif.h
-
-l.$O lexception.$O lproc.$O: arm.s arm.h mem.h
+archkw.$O devether.$0 etherkw.$O ethermii.$O: \
+	etherif.h ethermii.h ../port/netif.h
+fpi.$O fpiarm.$O fpimem.$O: fpi.h
+l.$O lexception.$O lproc.$O mmu.$O: arm.s arm.h mem.h
+main.$O:	errstr.h init.h reboot.h
+mouse.$O:	screen.h
+devusb.$O:	usb.h
+usbehci.$O usbohci.$O usbuhci.$O: usb.h usbehci.h uncached.h
 
 init.h:D:	../port/initcode.c init9.s
 	$CC ../port/initcode.c

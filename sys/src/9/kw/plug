@@ -28,8 +28,7 @@ dev
 ##	kbin
 
 	uart
-# usb is temporarily excluded until we add cache ops to it, 16 apr 2010
-#	usb
+	usb
 
 link
 	etherkw		ethermii
@@ -37,7 +36,7 @@ link
 	ethermedium
 	loopbackmedium
 	netdevmedium
-#	usbehci
+	usbehci
 
 ip
 	tcp
@@ -50,10 +49,11 @@ ip
 misc
 	rdb
 	coproc
+	sdaoe		sdscsi
 	softfpu
 	syscall
 	uartkw
-	sdaoe		sdscsi
+	ucalloc
 ##	vgavesa
 
 port
@@ -67,5 +67,5 @@ bootdir
 	boot$CONF.out boot
 	/arm/bin/ip/ipconfig ipconfig
 	/arm/bin/auth/factotum factotum
-#	/arm/bin/usb/usbd
+	/arm/bin/usb/usbd
 	nvram

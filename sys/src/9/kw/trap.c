@@ -374,7 +374,7 @@ trap(Ureg *ureg)
 		rem = (char*)ureg - ((char*)m + sizeof(Mach));
 	if(rem < 256) {
 		dumpstack();
-		panic("trap %d bytes remaining, up %#p ureg %#p at pc %#ux",
+		panic("trap %d bytes remaining, up %#p ureg %#p at pc %#lux",
 			rem, up, ureg, ureg->pc);
 	}
 
@@ -392,7 +392,7 @@ trap(Ureg *ureg)
 	m->inclockintr = 0;
 	switch(ureg->type) {
 	default:
-		panic("unknown trap %d", ureg->type);
+		panic("unknown trap %ld", ureg->type);
 		break;
 	case PsrMirq:
 		ldrexvalid = 0;
@@ -417,20 +417,20 @@ trap(Ureg *ureg)
 		}
 		switch(fsr){
 		case 0x0:
-			panic("vector exception at %#ux", ureg->pc);
+			panic("vector exception at %#lux", ureg->pc);
 			break;
 		case 0x1:
 		case 0x3:
 			if(user){
 				snprint(buf, sizeof buf,
-					"sys: alignment: pc %#ux va %#p\n",
+					"sys: alignment: pc %#lux va %#p\n",
 					ureg->pc, va);
 				postnote(up, 1, buf, NDebug);
 			} else
-				panic("kernel alignment: pc %#ux va %#p", ureg->pc, va);
+				panic("kernel alignment: pc %#lux va %#p", ureg->pc, va);
 			break;
 		case 0x2:
-			panic("terminal exception at %#ux", ureg->pc);
+			panic("terminal exception at %#lux", ureg->pc);
 			break;
 		case 0x4:
 		case 0x6:
@@ -438,7 +438,7 @@ trap(Ureg *ureg)
 		case 0xa:
 		case 0xc:
 		case 0xe:
-			panic("external abort %#ux pc %#ux addr %#px",
+			panic("external abort %#ux pc %#lux addr %#px",
 				fsr, ureg->pc, va);
 			break;
 		case 0x5:		/* translation fault, no section entry */
@@ -450,11 +450,11 @@ trap(Ureg *ureg)
 			/* domain fault, accessing something we shouldn't */
 			if(user){
 				snprint(buf, sizeof buf,
-					"sys: access violation: pc %#ux va %#p\n",
+					"sys: access violation: pc %#lux va %#p\n",
 					ureg->pc, va);
 				postnote(up, 1, buf, NDebug);
 			} else
-				panic("kernel access violation: pc %#ux va %#p",
+				panic("kernel access violation: pc %#lux va %#p",
 					ureg->pc, va);
 			break;
 		case 0xd:
@@ -473,12 +473,12 @@ trap(Ureg *ureg)
 			if(rv == 0){
 				ldrexvalid = 0;
 				snprint(buf, sizeof buf,
-					"undefined instruction: pc %#ux",
+					"undefined instruction: pc %#lux",
 					ureg->pc);
 				postnote(up, 1, buf, NDebug);
 			}
 		}else{
-			iprint("undefined instruction: pc %#ux inst %#ux\n",
+			iprint("undefined instruction: pc %#lux inst %#ux\n",
 				ureg->pc, ((u32int*)ureg->pc)[-2]);
 			panic("undefined instruction");
 		}
@@ -532,7 +532,7 @@ dumplongs(char *msg, ulong *v, int n)
 static void
 dumpstackwithureg(Ureg *ureg)
 {
-	iprint("ktrace /kernel/path %#.8ux %#.8ux %#.8ux # pc, sp, link\n",
+	iprint("ktrace /kernel/path %#.8lux %#.8lux %#.8lux # pc, sp, link\n",
 		ureg->pc, ureg->sp, ureg->r14);
 	delay(2000);
 #ifdef AMBITIOUS
@@ -606,16 +606,16 @@ dumpregs(Ureg* ureg)
 	if(ureg != nil && (ureg->psr & PsrMask) != PsrMsvc)
 		iprint(" in %s", trapname(ureg->psr));
 	iprint("\n");
-	iprint("psr %8.8ux type %2.2ux pc %8.8ux link %8.8ux\n",
+	iprint("psr %8.8lux type %2.2lux pc %8.8lux link %8.8lux\n",
 		ureg->psr, ureg->type, ureg->pc, ureg->link);
-	iprint("R14 %8.8ux R13 %8.8ux R12 %8.8ux R11 %8.8ux R10 %8.8ux\n",
+	iprint("R14 %8.8lux R13 %8.8lux R12 %8.8lux R11 %8.8lux R10 %8.8lux\n",
 		ureg->r14, ureg->r13, ureg->r12, ureg->r11, ureg->r10);
-	iprint("R9  %8.8ux R8  %8.8ux R7  %8.8ux R6  %8.8ux R5  %8.8ux\n",
+	iprint("R9  %8.8lux R8  %8.8lux R7  %8.8lux R6  %8.8lux R5  %8.8lux\n",
 		ureg->r9, ureg->r8, ureg->r7, ureg->r6, ureg->r5);
-	iprint("R4  %8.8ux R3  %8.8ux R2  %8.8ux R1  %8.8ux R0  %8.8ux\n",
+	iprint("R4  %8.8lux R3  %8.8lux R2  %8.8lux R1  %8.8lux R0  %8.8lux\n",
 		ureg->r4, ureg->r3, ureg->r2, ureg->r1, ureg->r0);
 	iprint("stack is at %#p\n", ureg);
-	iprint("pc %#ux link %#ux\n", ureg->pc, ureg->link);
+	iprint("pc %#lux link %#lux\n", ureg->pc, ureg->link);
 
 	if(up)
 		iprint("user stack: %#p-%#p\n", up->kstack, up->kstack+KSTACK-4);
