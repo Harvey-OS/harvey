@@ -1,6 +1,6 @@
 .TH POOL 2
 .SH NAME
-poolalloc, poolallocalignspan, poolfree, poolmsize, poolrealloc, poolcompact, poolcheck, poolblockcheck,
+poolalloc, poolallocalign, poolfree, poolmsize, poolrealloc, poolcompact, poolcheck, poolblockcheck,
 pooldump \- general memory management routines
 .SH SYNOPSIS
 .B #include <u.h>
@@ -13,7 +13,7 @@ pooldump \- general memory management routines
 void*	poolalloc(Pool* pool, ulong size)
 .PP
 .B
-void*	poolallocalignspan(Pool *pool, ulong size, 
+void*	poolallocalign(Pool *pool, ulong size, 
 .br
 .B
                 ulong align, long offset, ulong span)

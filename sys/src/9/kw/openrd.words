@@ -18,6 +18,4 @@ run video as normal svga; get framebuffer addr from pci (implement pci).
 uart0 is the shared jtag/uart thing with the usb mini b connector.
 uart1 is the rs232/rs485 ports.
 
-is the u-boot environment in nand flash at 0xf80a0000?
-
 has non-ahci sata without going through pci
