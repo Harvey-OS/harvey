@@ -130,13 +130,13 @@ the file name can be omitted and the
 file specified by the
 .B bootf
 parameter for the machine in
-.BR /lib/ndb
+.B /lib/ndb
 will be downloaded by default.
 .PP
 Once the kernel is loaded,
 it prompts for the Ethernet
 protocol to use to reach the root file server; request the default.
-.SS Marvell Kirkwood boards
+.SS Marvell Kirkwood CPU Server
 Supported boards include the Sheevaplug and Openrd-client.
 In the following,
 replace
@@ -167,7 +167,13 @@ saveenv
 .PP
 Thereafter, the board will automatically boot via BOOTP and TFTP
 when reset or turned on.
-.SS TI OMAP3530 boards
+The
+.L bootf
+parameter for
+.B /lib/ndb
+is
+.BR /arm/9plug .
+.SS TI OMAP3530 CPU Server
 Supported boards include the IGEPv2 from ISEE.
 In the following,
 replace
@@ -187,11 +193,11 @@ and edit
 .L /cfg/pxe/\fIMAC
 to taste.
 Be sure to edit the line for
-.L ethaddr
-to
+.L ether0
+to set
 .IP
 .EX
-ethaddr=\fIMAC
+ea=\fIMAC
 .EE
 .PP
 Type this at U-boot once:
@@ -206,6 +212,12 @@ saveenv
 .PP
 Thereafter, the board will automatically boot via BOOTP and TFTP
 when reset or turned on.
+The
+.L bootf
+parameter for
+.B /lib/ndb
+is
+.BR /arm/9beagle .
 .SH "SEE ALSO"
 .IR 9load (8),
 .IR boot (8),

@@ -341,21 +341,23 @@ for information about installing Plan 9 on the iPAQ.
 .SH
 The Marvell Kirkwood operating system
 .PP
-This is an ARM kernel that emulates floating-point and
+This is an ARM kernel for the ARM926EJ-S processor
+and it emulates floating-point and
 CAS (compare-and-swap) instructions.
 It is known to run on the Sheevaplug and Openrd-client boards.
 It is derived from a port of native Inferno to the Sheevaplug
 by Salva Peir\f(Jpó\fP and Mechiel Lukkien.
 There are many features of the Kirkwood system-on-a-chip
 that it does not exploit.
-Initially, there are drivers for up to two
-Gigabit Ethernet interfaces and the console serial port;
-we hope to add USB and flash memory drivers,
-and a video driver for the Openrd-client.
+There are currently drivers for up to two
+Gigabit Ethernet interfaces,
+USB and the console serial port;
+we hope to add crypto acceleration, and a video driver for the Openrd-client.
 .SH
 The TI OMAP3530 operating system
 .PP
-This is an ARM kernel that emulates pre-VFPv3 floating-point and
+This is an ARM kernel for the Cortex-A8 processor
+and it emulates pre-VFPv3 floating-point and
 CAS (compare-and-swap) instructions.
 It is known to run on the IGEPv2 board and might
 eventually run on the Beagleboard, once USB is working.
