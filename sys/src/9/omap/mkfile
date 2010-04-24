@@ -1,9 +1,10 @@
-CONF=plug
-CONFLIST=plug
+CONF=beagle
+CONFLIST=beagle
 
-# allegedly u-boot uses the bottom 8MB (up to 0x800000)
-# so avoid that
-loadaddr=0x60800000
+# allegedly u-boot uses the bottom 3MB (up to 0x300000) so avoid that,
+# and leave 64K for plan9.ini.  loadaddr must match KTZERO in mem.h.
+# 0xc0310000 has worked, 0x80310000 should work but doesn't yet.
+loadaddr=0xc0310000
 
 objtype=arm
 </$objtype/mkfile
@@ -19,7 +20,6 @@ PORT=\
 	cache.$O\
 	chan.$O\
 	dev.$O\
-	devtab.$O\
 	edf.$O\
 	fault.$O\
 	latin1.$O\
@@ -46,7 +46,6 @@ OBJ=\
 	lexception.$O\
 	lproc.$O\
 	arch.$O\
-	cga.$O\
 	clock.$O\
 	fpi.$O\
 	fpiarm.$O\
@@ -60,14 +59,13 @@ OBJ=\
 	$DEVS\
 	$PORT\
 
-# HFILES=
-
 LIB=\
 	/$objtype/lib/libmemlayer.a\
 	/$objtype/lib/libmemdraw.a\
 	/$objtype/lib/libdraw.a\
 	/$objtype/lib/libip.a\
 	/$objtype/lib/libsec.a\
+	/$objtype/lib/libmp.a\
 	/$objtype/lib/libc.a\
 
 9:V: $p$CONF s$p$CONF
@@ -79,6 +77,7 @@ $p$CONF:DQ:	$CONF.c $OBJ $LIB mkfile
 
 s$p$CONF:DQ:	$CONF.$O $OBJ $LIB
 	echo '# linking kernel with symbols'
+#	$LD -o $target -R4096 -T$loadaddr -l -a $OBJ $CONF.$O $LIB >$target.list
 	$LD -o $target -R4096 -T$loadaddr -l $OBJ $CONF.$O $LIB
 	size $target
 
@@ -98,15 +97,15 @@ install:V: /$objtype/$p$CONF
 <../port/portmkfile
 <|../port/mkbootrules $CONF
 
-# CFLAGS= -I. -I../port $CFLAGS	# hack to compile private sysproc.c (e.g.)
+CFLAGS= -I. -I../port $CFLAGS	# hack to compile private sysproc.c (e.g.)
 
 arch.$O clock.$O fpiarm.$O main.$O mmu.$O screen.$O sdscsi.$O syscall.$O \
 	trap.$O: /$objtype/include/ureg.h
 
-archkw.$O devether.$0 etherkw.$O ethermii.$O: \
-	etherif.h ethermii.h ../port/netif.h
+archomap.$O devether.$0 ether9221.$O: etherif.h ../port/netif.h
 fpi.$O fpiarm.$O fpimem.$O: fpi.h
 l.$O lexception.$O lproc.$O mmu.$O: arm.s arm.h mem.h
+l.$O rebootcode.$O: cache.v7.s
 main.$O:	errstr.h init.h reboot.h
 mouse.$O:	screen.h
 devusb.$O:	usb.h
@@ -121,10 +120,11 @@ init.h:D:	../port/initcode.c init9.s
 		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
 	 echo '};'} > init.h
 
-reboot.h:D:	rebootcode.s arm.s arm.h mem.h
+reboot.h:D:	rebootcode.s cache.v7.s arm.s arm.h mem.h
 	$AS rebootcode.s
 	# -lc is only for memmove.  -T arg is PADDR(REBOOTADDR)
-	$LD -l -a -s -T0x100 -R4 -o reboot.out rebootcode.$O -lc >reboot.list
+#	$LD -l -a -s -T0x100 -R4 -o reboot.out rebootcode.$O -lc >reboot.list
+	$LD -l -s -T0x100 -R4 -o reboot.out rebootcode.$O -lc
 	{echo 'uchar rebootcode[]={'
 	 xd -1x reboot.out |
 		sed -e '1,2d' -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
