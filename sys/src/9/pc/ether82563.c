@@ -1594,25 +1594,33 @@ i82563pci(void)
 			break;
 		case 0x1049:		/* mm */
 		case 0x104a:		/* dm */
-		case 0x104d:		/* v */
+		case 0x104b:		/* dc */
+		case 0x104d:		/* mc */
 		case 0x10bd:		/* dm */
+		case 0x294c:		/* dc-2 */
 			type = i82566;
 			break;
 		case 0x10cd:		/* lf */
+		case 0x10ce:		/* v-2 */
+		case 0x10de:		/* lm-3 */
+		case 0x10f5:		/* lm-2 */
 			type = i82567;
 			break;
 		case 0x10a4:
 		case 0x105e:
 			type = i82571;
 			break;
-		case 0x10b9:		/* sic, 82572 */
+		case 0x10b9:		/* sic, 82572gi */
 			type = i82572;
 			break;
-		case 0x108b:		/*  e */
+		case 0x108b:		/*  v */
 		case 0x108c:		/*  e (iamt) */
 		case 0x109a:		/*  l */
 			type = i82573;
 			break;
+//		case 0x10d3:		/* l */
+//			type = i82574;	/* never heard of it */
+//			break;
 		case 0x10a7:	/* 82575eb: one of a pair of controllers */
 			type = i82575;
 			break;
