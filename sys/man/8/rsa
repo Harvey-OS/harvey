@@ -2,7 +2,6 @@
 .SH NAME
 rsagen, rsafill, asn12rsa, rsa2pub, rsa2ssh, rsa2x509 \- generate and format rsa keys
 .SH SYNOPSIS
-.PP
 .B rsagen
 [
 .B -b
@@ -53,6 +52,8 @@ prefixed with the string
 this is the generic key format used by
 .IR factotum (4).
 A full RSA private key has the following attributes:
+.TF proto
+.PD
 .TP
 .B proto
 must be
