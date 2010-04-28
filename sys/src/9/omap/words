@@ -27,6 +27,7 @@ i & d L1 caches, 16K each, 4 ways, 64 sets, 64-byte lines
 	can invalidate entire i-cache only
 	can clean or invalidate by set and way data/unified cache
 unified L2 PIPT cache, 256K, 8 ways, 512 sets, 64-byte lines
+no hardware cache coherence
 
 l3 interconnect firewalls are all off at boot time, except for a bit of
 	secure ram
@@ -81,6 +82,16 @@ Video
 
 The video controller may be documented and source is available for a
 Linux driver.
+___
+
+The code is fairly heavy-handed with the use of barrier instructions
+(BARRIERS in assembler, coherence in C), partly in reaction to bad
+experience doing Power PC ports, but also just as precautions against
+modern processors, which may feel free to execute instructions out of
+order or some time later, store to memory out of order or some time
+later, otherwise break the model of traditional sequential processors,
+or any combination of the above.
+___
 
 There are a few rough edges:
 
