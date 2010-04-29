@@ -127,15 +127,16 @@
  * Physical machine information from here on.
  */
 #define PHYSDRAM	0
+
 /* from 0x80000000 up is uncached by L2 (see archkw.c) */
 #define PHYSCESASRAM	0xc8010000
-#define PHYSNAND	0xd8000000
-#define FLASHSIZE	(128*MiB)
 #define PHYSSPIFLASH	0xe8000000
-#define PHYSBOOTROM	0xffff0000		/* boot rom */
-
 /* this address is configured by u-boot, and is 0xd0000000 at reset */
 #define PHYSIO		0xf1000000		/* internal registers */
 #define PHYSCONS	(PHYSIO + 0x12000)	/* uart */
+#define PHYSNAND	0xf9000000
+#define PHYSBOOTROM	0xffff0000		/* boot rom */
+
+#define FLASHSIZE	(512*MiB)		/* but not addressed linearly */
 
 #define VIRTIO		PHYSIO

@@ -65,10 +65,8 @@ mmuinit(void)
 	l1 = KADDR(pa);
 
 	/* identity-map nand flash */
-	for (fpa = PHYSNAND; fpa < PHYSNAND + FLASHSIZE; fpa += MiB)
+	for (fpa = PHYSNAND; (fpa >> 24) != 0; fpa += MiB)
 		l1[L1X(fpa)] = fpa|Dom0|L1AP(Krw)|Section;
-	for (fpa = 0xf9000000; fpa < 0xf9000000 + 8*MB; fpa += MiB)
-		l1[L1X(fpa)] = fpa|Dom0|L1AP(Krw)|Section|Cached|Buffered;
 
 	/* identity-map spi flash */
 	for (fpa = PHYSSPIFLASH; fpa < PHYSSPIFLASH + FLASHSIZE; fpa += MiB)
