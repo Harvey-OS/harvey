@@ -13,6 +13,7 @@
 #include "../port/netif.h"
 #include "etherif.h"
 // #include "../port/flashif.h"
+#include "flashif.h"
 
 #include "arm.h"
 
@@ -471,7 +472,6 @@ archconsole(void)
 //serialputs("uart0 console @ 115200\n", strlen("uart0 console @ 115200\n"));
 }
 
-#ifdef USE_FLASH
 void
 archflashwp(Flash*, int)
 {
@@ -489,9 +489,8 @@ archflashreset(int bank, Flash *f)
 		return -1;
 	f->type = "nand";
 	f->addr = (void*)PHYSNAND;
-	f->size = 0;	/* done by probe */
+	f->size = 0;		/* done by probe */
 	f->width = 1;
 	f->interleave = 0;
 	return 0;
 }
-#endif
