@@ -29,6 +29,7 @@ struct Flashregion {
 	ulong	end;
 	ulong	erasesize;
 	ulong	pagesize;	/* if non-0, size of pages within erase block */
+	ulong	spares;		/* spare bytes per page, for ecc, etc. */
 };
 
 /*
