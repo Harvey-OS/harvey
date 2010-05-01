@@ -26,7 +26,7 @@ tricky.  we try to pad the initial hardware parts so that the software
 parts start in a new cache line.
 
 512MB of dram at physical address 0
-512MB of flash
+512MB of nand flash
 16550 uart for console
 see http://www.marvell.com/files/products/embedded_processors/kirkwood/\
 	FS_88F6180_9x_6281_OpenSource.pdf, stored locally as
@@ -43,15 +43,6 @@ or any combination of the above.
 this plan 9 port is based on the port of native inferno to the
 sheevaplug by Salva Peiró (saoret.one@gmail.com) and Mechiel Lukkien
 (mechiel@ueber.net).
-
-___
-
-unfinished business:
-
-access to nand or spi flash would be handy for nvram and small
-fossils.  flash access isn't well documented.  inferno implements
-these software layers: ecc, translation (for wear-levelling and bad
-sectors), common flash code and specific drivers for flash chips.
 
 ___
 
