@@ -451,10 +451,14 @@ isphys(void *p)
 static void
 xcachewbse(void *va, long sz)
 {
+#ifdef smalloc			/* using uncached memory */
+	USED(va, sz);
+#else
 	if (isphys(va))
 		panic("xcachewbse: phys addr %#p", va);
 	cachedwbse(va, sz);
 	l2cacheuwbse(va, sz);
+#endif
 }
 
 /*
@@ -467,19 +471,27 @@ xcachewbse(void *va, long sz)
 static void
 xcachewbinvse(void *va, long sz)
 {
+#ifdef smalloc			/* using uncached memory */
+	USED(va, sz);
+#else
 	if (isphys(va))
 		panic("xcachewbinvse: phys addr %#p", va);
 	cachedwbinvse(va, sz);
 	l2cacheuwbinvse(va, sz);
+#endif
 }
 
 static void
 xcacheinvse(void *va, long sz)
 {
+#ifdef smalloc			/* using uncached memory */
+	USED(va, sz);
+#else
 	if (isphys(va))
 		panic("xcacheinvse: phys addr %#p", va);
 	l2cacheuinvse(va, sz);
 	cachedinvse(va, sz);
+#endif
 }
 
 static void
