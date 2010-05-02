@@ -12,6 +12,10 @@
 #define xspanalloc		ucallocalign
 #define mallocz(n, clr)		ucallocz(n, clr)
 
+#define allocb			ucallocb
+#define iallocb			uciallocb
+#define freeb			ucfreeb
+
 static void *
 ucallocz(uint n, int)
 {
