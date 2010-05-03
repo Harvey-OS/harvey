@@ -32,6 +32,11 @@ see http://www.marvell.com/files/products/embedded_processors/kirkwood/\
 	FS_88F6180_9x_6281_OpenSource.pdf, stored locally as
 	/public/doc/marvell/88f61xx.kirkwood.pdf
 
+If you plan to use flash, it would be wise to avoid touching the
+first 8MB, which contains u-boot and the distributed linux kernel.
+You'll also likely want to use paqfs rather than fossil or kfs
+for file systems in flash since there is no wear-levelling.
+
 The code is fairly heavy-handed with the use of barrier instructions
 (BARRIERS in assembler, coherence in C), partly in reaction to bad
 experience doing Power PC ports, but also just as precautions against
