@@ -15,7 +15,7 @@ dev
 	kprof
 	aoe
 	sd
-#	flash
+	flash
 #	pnp		pci
 
 	ether		netif
@@ -34,6 +34,7 @@ link
 	etherkw		ethermii
 	archkw
 	ethermedium
+	flashkw
 	loopbackmedium
 	netdevmedium
 	usbehci
@@ -49,6 +50,7 @@ ip
 misc
 	rdb
 	coproc
+	ecc
 	sdaoe		sdscsi
 	softfpu
 	syscall
