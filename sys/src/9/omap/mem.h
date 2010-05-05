@@ -182,7 +182,7 @@
 #define PHYSPMRT	0x68010000	/* l3 PM register target */
 #define PHYSSMS		0x6c000000	/* cfg regs: sms addr space 2 */
 #define PHYSDRC		0x6d000000	/* sdram ctlr, addr space 3 */
-#define PHYSGPMC	0x6e000000	/* (non-dram) memory ctlr */
+#define PHYSGPMC	0x6e000000	/* flash, non-dram memory ctlr */
 
 #define PHYSDRAM	0x80000000
 
