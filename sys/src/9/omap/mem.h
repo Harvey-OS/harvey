@@ -115,6 +115,7 @@
 /*
  * Physical machine information from here on.
  */
+#define PHYSNAND	0x02000000	/* mapped here in archomap.c */
 #define PHYSETHER	0x2c000000
 
 #define PHYSIO		0x48000000	/* L4 ctl */
@@ -176,16 +177,23 @@
 #define PHYSL4PROT	0x54728000	/* l4 protection regs */
 
 #define PHYSL3		0x68000000	/* l3 interconnect control */
+#define PHYSL3GPMCCFG	0x68002000	/* l3 gpmc target port agent cfg */
 #define PHYSL3USB	0x68004000	/* l3 regs for usb */
 #define PHYSL3USBOTG	0x68004400	/* l3 regs for usb otg */
+/* (target port) protection registers */
+#define PHYSL3PMRT	0x68010000	/* l3 PM register target prot. */
+#define PHYSL3GPMCPM	0x68012400	/* l3 gpmc target port protection */
+#define PHYSL3OCTRAM	0x68012800	/* l3 ocm ram */
+#define PHYSL3OCTROM	0x68012c00	/* l3 ocm rom */
+#define PHYSL3MAD2D	0x68013000	/* l3 die-to-die */
+#define PHYSL3IVA	0x68014000	/* l3 die-to-die */
 
-#define PHYSPMRT	0x68010000	/* l3 PM register target */
 #define PHYSSMS		0x6c000000	/* cfg regs: sms addr space 2 */
 #define PHYSDRC		0x6d000000	/* sdram ctlr, addr space 3 */
 #define PHYSGPMC	0x6e000000	/* flash, non-dram memory ctlr */
 
 #define PHYSDRAM	0x80000000
 
-#define PHYSNAND	0xf9000000
-
 #define VIRTIO		PHYSIO
+
+#define NANDSIZE	(512*MB)
