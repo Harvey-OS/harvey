@@ -84,6 +84,7 @@ mmuinit(void)
 	idmap(l1, PHYSSMS);
 	idmap(l1, PHYSDRC);
 	idmap(l1, PHYSGPMC);
+	idmap(l1, PHYSNAND);
 
 	/* map high vectors to start of dram, but only 4K, not 1MB */
 	pa -= MACHSIZE+2*1024;

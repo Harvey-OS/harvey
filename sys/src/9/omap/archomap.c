@@ -16,9 +16,9 @@
 
 #include "../port/netif.h"
 #include "etherif.h"
-// #include "../port/flashif.h"
 #include "usbehci.h"
 
+typedef struct L3agent L3agent;
 typedef struct L3protreg L3protreg;
 typedef struct L3regs L3regs;
 typedef struct Usbotg Usbotg;
@@ -86,6 +86,10 @@ enum {
 	Ohci_resetdone	= 1<<1,
 };
 
+/*
+ * an array of these structs is preceded by error_log at 0x20, control,
+ * error_clear_single, error_clear_multi.  first struct is at offset 0x48.
+ */
 struct L3protreg {		/* an L3 protection region */
 	uvlong	req_info_perm;
 	uvlong	read_perm;
@@ -101,18 +105,27 @@ enum {
 	Permmpu		= 1<<1,
 };
 
+struct L3agent {
+	uchar	_pad0[0x20];
+	uvlong	ctl;
+	uvlong	sts;
+	uchar	_pad1[0x58 - 0x30];
+	uvlong	errlog;
+	uvlong	errlogaddr;
+};
+
 struct L3regs {
-	L3protreg *base;
-	int	upper;
+	L3protreg *base;		/* base of array */
+	int	upper;			/* index maximum */
 	char	*name;
 };
 L3regs l3regs[] = {
-	(L3regs *)0x68010048, 1, "rt",		/* l3 config */
-	(L3regs *)0x68012448, 7, "gpmc",
-	(L3regs *)0x68012848, 7, "ocm ram",
-	(L3regs *)0x68012c48, 1, "ocm rom",
-	(L3regs *)0x68013048, 7, "mad2d",	/* die-to-die */
-	(L3regs *)0x68014048, 3, "iva2.2",	/* a/v */
+	(L3protreg *)(PHYSL3GPMCPM+0x48), 7, "gpmc",	/* known to be first */
+	(L3protreg *)(PHYSL3PMRT+0x48), 1, "rt",	/* l3 config */
+	(L3protreg *)(PHYSL3OCTRAM+0x48), 7, "ocm ram",
+	(L3protreg *)(PHYSL3OCTROM+0x48), 1, "ocm rom",
+	(L3protreg *)(PHYSL3MAD2D+0x48), 7, "mad2d",	/* die-to-die */
+	(L3protreg *)(PHYSL3IVA+0x48), 3, "iva2.2",	/* a/v */
 };
 
 /*
@@ -204,6 +217,7 @@ struct Gen {
 	ulong	devconf1;
 };
 
+
 static char *
 devidstr(ulong)
 {
@@ -250,6 +264,58 @@ archconfinit(void)
 	m->delayloop = m->cpuhz/2000;		/* initial estimate */
 }
 
+static void
+prperm(uvlong perm)
+{
+	if (perm == MASK(16))
+		print("all");
+	else
+		print("%#llux", perm);
+}
+
+static void
+prl3region(L3protreg *pr, int r)
+{
+	int level, size, addrspace;
+	uvlong am, base;
+
+	if (r == 0)
+		am = 0;
+	else
+		am = pr->addr_match;
+	size = (am >> 3) & MASK(5);
+	if (r > 0 && size == 0)			/* disabled? */
+		return;
+
+	print("  %d: perms req ", r);
+	prperm(pr->req_info_perm);
+	if (pr->read_perm == pr->write_perm && pr->read_perm == MASK(16))
+		print(" rw all");
+	else {
+		print(" read ");
+		prperm(pr->read_perm);
+		print(" write ");
+		prperm(pr->write_perm);
+	}
+	if (r == 0)
+		print(", all addrs level 0");
+	else {
+		size = 1 << size;		/* 2^size */
+		level = (am >> 9) & 1;
+		if (r == 1)
+			level = 3;
+		else
+			level++;
+		addrspace = am & 7;
+		base = am & ~MASK(10);
+		print(", base %#llux size %dKB level %d addrspace %d",
+			base, size, level, addrspace);
+	}
+	print("\n");
+	delay(100);
+}
+
+
 /*
  * dump the l3 interconnect firewall settings by protection region.
  * mpu, sys dma and both usbs (0x21a) should be set in all read & write
@@ -258,46 +324,26 @@ archconfinit(void)
 static void
 dumpl3pr(void)
 {
-	int r, level, size, addrspace;
-	uvlong am, base;
+	int r;
 	L3regs *reg;
 	L3protreg *pr;
 
 	for (reg = l3regs; reg < l3regs + nelem(l3regs); reg++) {
-		print("%#p (%s) enabled regions:\n", reg->base, reg->name);
-		for (r = 0; r <= reg->upper; r++) {
-			pr = reg->base + r;
-			if (r == 0)
-				am = 0;
-			else
-				am = pr->addr_match;
-			size = (am >> 3) & MASK(5);
-			if (r > 0 && size == 0)		/* disabled? */
-				continue;
-			print("%d: req %#llux ", r, pr->req_info_perm);
-			if (pr->read_perm == pr->write_perm &&
-			    pr->read_perm == MASK(16))
-				print("rw all");
-			else
-				print("read %#llux write %#llux",
-					pr->read_perm, pr->write_perm);
-			if (r == 0)
-				print(" all addrs, level 0");
-			else {
-				size = 1 << size;	/* 2^size */
-				level = (am >> 9) & 1;
-				if (r == 1)
-					level = 3;
-				else
-					level++;
-				addrspace = am & 7;
-				base = am & ~MASK(10);
-				print(" base %#llux size %dKB level %d addrspace %d",
-					base, size, level, addrspace);
-			}
-			print("\n");
-		}
+		print("%#p (%s) enabled l3 regions:\n", reg->base, reg->name);
+		for (r = 0; r <= reg->upper; r++)
+			prl3region(reg->base + r, r);
 	}
+if (0) {				// TODO
+	/* touch up gpmc perms */
+	reg = l3regs;			/* first entry is gpmc */
+	for (r = 0; r <= reg->upper; r++) {
+		pr = reg->base + r;
+		// TODO
+	}
+	print("%#p (%s) modified l3 regions:\n", reg->base, reg->name);
+	for (r = 0; r <= reg->upper; r++)
+		prl3region(reg->base + r, r);
+}
 }
 
 static void
@@ -940,39 +986,15 @@ fpon(void)
 	/* we should now be able to execute VFP-style FP instr'ns natively */
 }
 
-/*
- * set gpmc_config7[i] for all chip selects?
- *	CSVALID | cs_base | (maskaddress == 010)
- * addr is PHYSGPMC + 0x78 + 0x30*i, for i from 0 to 7
- *
- * there are secure sdrc registers at 0x48002460
- * sdrc regs at PHYSSDRC; see spruf98c §1.2.8.2.
- * set or dump l4 prot regs at PHYSL4?
- */
-void
-archreset(void)
+static void
+resetusb(void)
 {
 	int bound;
 	Uhh *uhh;
 	Usbotg *otg;
 	Usbtll *tll;
-	static int beenhere;
 
-	if (beenhere)
-		return;
-	beenhere = 1;
-
-//	dumpl3pr();
-	prcachecfg();
-	/* fight omap35x errata 2.0.1.104 */
-	memset((void *)PHYSSWBOOTCFG, 0, 240);
-	coherence();
-
-	setpadmodes();
-	configclks();
-	configgpio();
-
-	iprint("usb: resetting otg...");
+	iprint("resetting usb: otg...");
 	otg = (Usbotg *)PHYSUSBOTG;
 	otg->otgsyscfg = Softreset;	/* see omap35x errata 3.1.1.144 */
 	coherence();
@@ -1015,7 +1037,33 @@ archreset(void)
 	} else
 		iprint("no tll...");
 	iprint("\n");
+}
 
+/*
+ * there are secure sdrc registers at 0x48002460
+ * sdrc regs at PHYSSDRC; see spruf98c §1.2.8.2.
+ * set or dump l4 prot regs at PHYSL4?
+ */
+void
+archreset(void)
+{
+	static int beenhere;
+
+	if (beenhere)
+		return;
+	beenhere = 1;
+
+//	dumpl3pr();
+	prcachecfg();
+	/* fight omap35x errata 2.0.1.104 */
+	memset((void *)PHYSSWBOOTCFG, 0, 240);
+	coherence();
+
+	setpadmodes();
+	configclks();
+	configgpio();
+
+	resetusb();
 	fpon();
 }
 
@@ -1141,8 +1189,8 @@ archflashreset(int bank, Flash *f)
 	if(bank != 0)
 		return -1;
 	f->type = "nand";
-	f->addr = (void*)PHYSNAND;
-	f->size = 0;	/* done by probe */
+	f->addr = (void*)PHYSNAND;		/* mapped here by archreset */
+	f->size = 0;				/* done by probe */
 	f->width = 1;
 	f->interleave = 0;
 	return 0;
