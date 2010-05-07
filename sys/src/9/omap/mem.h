@@ -115,7 +115,9 @@
 /*
  * Physical machine information from here on.
  */
-#define PHYSNAND	0x02000000	/* mapped here in archomap.c */
+
+/* gpmc-controlled address space 0—1G */
+#define PHYSNAND	0x20000000	/* mapped here by u-boot or flashomap */
 #define PHYSETHER	0x2c000000
 
 #define PHYSIO		0x48000000	/* L4 ctl */
@@ -196,4 +198,4 @@
 
 #define VIRTIO		PHYSIO
 
-#define NANDSIZE	(512*MB)
+#define NANDSIZE	(512*MB)	/* or 256 on beagle */

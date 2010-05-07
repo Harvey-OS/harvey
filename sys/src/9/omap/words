@@ -11,6 +11,15 @@ igepv2 board:
 cortex-a8 cpu: arm v7-a arch. rev 3, 720MHz, dual-issue
 OMAP3530-GP ES3.1, CPU-OPP2 L3-165MHz
 IGEP v2.x rev. B + LPDDR/ONENAND
+DRAM:  512 MB
+Muxed OneNAND(DDP) 512MB 1.8V 16-bit (0x58)
+OneNAND version = 0x0031
+Chip support all block unlock
+Chip has 2 plane
+Scanning device for bad blocks
+Bad eraseblock 3134 at 0x187c0000
+Bad eraseblock 3135 at 0x187e0000
+OneNAND: 512 MB
 
 omap3530 SoC
 CORE_CLK runs at 26MHz
@@ -124,8 +133,8 @@ ___
 	memory map (mostly from omap35x ref)
 hex addr	size	what
 ----
-02000000	512MB	nand flash mapped here
 2c000000	?	smc 9221 ethernet
+38000000	16MB	256MB (beagle) or 512MB (igep) nand flash mapped here
 
 40000000	112K	boot rom, top of user space
 40200000	64K	sram
