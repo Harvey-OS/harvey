@@ -67,6 +67,25 @@ idmap(PTE *l1, ulong va)
 	l1[L1X(va)] = va | Dom0 | L1AP(Krw) | Section;
 }
 
+/* identity map `mbs' megabytes from phys */
+void
+mmuidmap(uintptr phys, int mbs)
+{
+	PTE *l1;
+	uintptr pa, fpa;
+
+	pa = ttbget();
+	l1 = KADDR(pa);
+
+	for (fpa = phys; mbs-- > 0; fpa += MiB)
+		l1[L1X(fpa)] = fpa|Dom0|L1AP(Krw)|Section;
+	coherence();
+
+	mmuinvalidate();
+	cacheuwbinv();
+	l2cacheuwbinv();
+}
+
 void
 mmuinit(void)
 {

@@ -87,7 +87,7 @@ f1090000	64K	sdio regs
 
 f8000000	128MB	boot device	# default, mapped to 0 by u-boot
 f8000000	16MB	spi flash	# mapped by u-boot
-f9000000	8MB	nand flash
+f9000000	8MB	nand flash	# on sheeva/openrd, mapped by u-boot
 fb000000	64KB	crypto engine
 ff000000	16MB	boot rom	# u-boot
 
