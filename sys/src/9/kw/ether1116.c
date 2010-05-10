@@ -542,7 +542,7 @@ rxreplenish(Ctlr *ctlr)
 	while(ctlr->rxb[ctlr->rxtail] == nil) {
 		b = rxallocb();
 		if(b == nil) {
-			iprint("etherkw: rxreplenish out of buffers\n");
+			iprint("ether1116: rxreplenish out of buffers\n");
 			break;
 		}
 
@@ -586,8 +586,10 @@ static void
 ethercheck(Ether *ether)
 {
 	if (ether->starttime != 0 &&
-	    TK2MS(MACHP(0)->ticks)/1000 - ether->starttime > Etherstuck)
+	    TK2MS(MACHP(0)->ticks)/1000 - ether->starttime > Etherstuck) {
+		etheractive(ether);
 		iprint("ethernet stuck\n");
+	}
 }
 
 static void
@@ -610,7 +612,7 @@ receive(Ether *ether)
 
 		b = ctlr->rxb[ctlr->rxhead];
 		if (b == nil)
-			panic("etherkw: nil ctlr->rxb[ctlr->rxhead] "
+			panic("ether1116: nil ctlr->rxb[ctlr->rxhead] "
 				"in receive");
 		ctlr->rxb[ctlr->rxhead] = nil;
 		ctlr->rxhead = NEXT(ctlr->rxhead, Nrx);
@@ -837,15 +839,16 @@ interrupt(Ureg*, void *arg)
 			handled++;
 	}
 	if (irq & Isum) {
+		/* TODO we get these continually on the guruplug */
 		if (irq & Irxerrq(Qno)) {
 			ether->buffs++;		/* approx. error */
 			/* null descriptor pointer or descriptor owned by cpu */
-			iprint("etherkw: rx err on queue 0 - input ring full\n");
+//			iprint("ether1116: rx err on queue 0 - input ring full\n");
 		}
 		if (irq & Irxerr) {
 			ether->buffs++;		/* approx. error */
 			/* null descriptor pointer or descriptor owned by cpu */
-			iprint("etherkw: rx err - input ring full\n");
+//			iprint("ether1116: rx err - input ring full\n");
 		}
 		if(irq & (Irxerr | Irxerrq(Qno)))
 			handled++;
@@ -863,9 +866,9 @@ interrupt(Ureg*, void *arg)
 		irqe &= ~IEtxbufferq(Qno);
 		if (irq == 0 && irqe == 0) {
 			/* seems to be triggered by continuous output */
-			// iprint("etherkw: spurious interrupt\n");
+			// iprint("ether1116: spurious interrupt\n");
 		} else
-			iprint("etherkw: interrupt cause unknown; "
+			iprint("ether1116: interrupt cause unknown; "
 				"irq %#lux irqe %#lux\n", irq, irqe);
 	}
 	intrclear(Irqlo, ether->irq);
@@ -1061,7 +1064,7 @@ kirkwoodmii(Ether *ether)
 	ctlr->mii->miw = miiwr;
 
 	if(mii(ctlr->mii, ~0) == 0 || (phy = ctlr->mii->curphy) == nil){
-		print("#l%d: etherkw: init mii failure\n", ether->ctlrno);
+		print("#l%d: ether1116: init mii failure\n", ether->ctlrno);
 		free(ctlr->mii);
 		ctlr->mii = nil;
 		return -1;
@@ -1081,7 +1084,7 @@ kirkwoodmii(Ether *ether)
 		if(miird(ctlr->mii, phy->phyno, Bmsr) & BmsrLs){
 			for(i = 0; ; i++){
 				if(i > 600){
-					iprint("etherkw: autonegotiation failed\n");
+					iprint("ether1116: autonegotiation failed\n");
 					break;
 				}
 				if(miird(ctlr->mii, phy->phyno, Bmsr) & BmsrAnc)
@@ -1091,7 +1094,7 @@ kirkwoodmii(Ether *ether)
 			if(miistatus(ctlr->mii) < 0)
 				iprint("miistatus failed\n");
 		}else{
-			iprint("etherkw: no link\n");
+			iprint("ether1116: no link\n");
 			phy->speed = 10;	/* simple default */
 		}
 	}
@@ -1140,7 +1143,7 @@ miiphyinit(Mii *mii)
 
 	miiregpage(mii, dev, Pagrgmii);
 	miiwr(mii, dev, Scr, miird(mii, dev, Scr) | Rgmiipwrup);
-	/* must now do a software reset, sez the manual */
+	/* TODO must now do a software reset, sez the manual */
 
 	/* enable RGMII delay on Tx and Rx for CPU port */
 	miiwr(mii, dev, Recr, miird(mii, dev, Recr) | Rxtiming | Rxtiming);
@@ -1246,7 +1249,7 @@ ctlrinit(Ether *ether)
 	for(i = 0; i < Nrxblks; i++) {
 		b = iallocb(Rxblklen+Bufalign-1);
 		if(b == nil) {
-			iprint("etherkw: no memory for rx buffers\n");
+			iprint("ether1116: no memory for rx buffers\n");
 			break;
 		}
 		assert(b->ref == 1);
@@ -1261,7 +1264,7 @@ ctlrinit(Ether *ether)
 
 	ctlr->rx = xspanalloc(Nrx * sizeof(Rx), Descralign, 0);
 	if(ctlr->rx == nil)
-		panic("etherkw: no memory for rx ring");
+		panic("ether1116: no memory for rx ring");
 	for(i = 0; i < Nrx; i++) {
 		r = &ctlr->rx[i];
 		assert(((uintptr)r & (Descralign - 1)) == 0);
@@ -1277,7 +1280,7 @@ ctlrinit(Ether *ether)
 
 	ctlr->tx = xspanalloc(Ntx * sizeof(Tx), Descralign, 0);
 	if(ctlr->tx == nil)
-		panic("etherkw: no memory for tx ring");
+		panic("ether1116: no memory for tx ring");
 	for(i = 0; i < Ntx; i++) {
 		t = &ctlr->tx[i];
 		assert(((uintptr)t & (Descralign - 1)) == 0);
@@ -1309,7 +1312,9 @@ ctlrinit(Ether *ether)
 	reg->pxtfut = 0;	/* TFUTipginttx(CLOCKFREQ/(Maxrxintrsec*64)) */
 
 	/* allow just these interrupts */
-	reg->irqmask = Irxbufferq(Qno) | Irxerr | Itxendq(Qno);
+	/* no Irxerr interrupts since the guru plug generates them continually */
+//	reg->irqmask = Irxbufferq(Qno) | Irxerr | Itxendq(Qno);
+	reg->irqmask = Irxbufferq(Qno) | Itxendq(Qno);
 	reg->irqemask = IEtxerrq(Qno) | IEphystschg | IErxoverrun | IEtxunderrun;
 
 	reg->irq = 0;
@@ -1496,11 +1501,12 @@ reset(Ether *ether)
 		ether->irq = IRQ0gbe1sum;
 		break;
 	default:
-		panic("etherkw: bad ether ctlr #%d", ether->ctlrno);
+		panic("ether1116: bad ether ctlr #%d", ether->ctlrno);
 	}
 
-//	*(ulong *)AddrIocfg0 |= 1 << 7 | 1 << 15;	/* io cfg 0: 1.8v gbe */
-//	coherence();
+	/* TODO need this for guruplug, at least */
+	*(ulong *)AddrIocfg0 |= 1 << 7 | 1 << 15;	/* io cfg 0: 1.8v gbe */
+	coherence();
 
 	portreset(ctlr->reg);
 	/* ensure that both interfaces are set to RGMII before calling mii */
@@ -1540,7 +1546,7 @@ reset(Ether *ether)
 }
 
 void
-etherkwlink(void)
+ether1116link(void)
 {
-	addethercard("kirkwood", reset);
+	addethercard("88e1116", reset);
 }

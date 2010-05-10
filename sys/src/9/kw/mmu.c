@@ -56,23 +56,41 @@ mmudump(PTE *l1)
 }
 
 void
-mmuinit(void)
+mmuidmap(uintptr phys, int mbs)
 {
-	PTE *l1, *l2;
-	uintptr pa, fpa, i;
+	PTE *l1;
+	uintptr pa, fpa;
 
 	pa = ttbget();
 	l1 = KADDR(pa);
 
-	/* identity-map nand flash */
+	for (fpa = phys; mbs-- > 0; fpa += MiB)
+		l1[L1X(fpa)] = fpa|Dom0|L1AP(Krw)|Section;
+	coherence();
+
+	mmuinvalidate();
+	cacheuwbinv();
+	l2cacheuwbinv();
+}
+
+void
+mmuinit(void)
+{
+	PTE *l1, *l2;
+	uintptr pa, i;
+
+	pa = ttbget();
+	l1 = KADDR(pa);
+
+//	/* identity-map nand flash */
 	for (fpa = PHYSNAND; (fpa >> 24) != 0; fpa += MiB)
 		l1[L1X(fpa)] = fpa|Dom0|L1AP(Krw)|Section;
 
 	/* identity-map spi flash */
-	for (fpa = PHYSSPIFLASH; fpa < PHYSSPIFLASH + FLASHSIZE; fpa += MiB)
-		l1[L1X(fpa)] = fpa|Dom0|L1AP(Krw)|Section|Cached|Buffered;
-	for (fpa = 0xf8000000; fpa < 0xf8000000 + 16*MB; fpa += MiB)
-		l1[L1X(fpa)] = fpa|Dom0|L1AP(Krw)|Section|Cached|Buffered;
+//	for (fpa = PHYSSPIFLASH; fpa < PHYSSPIFLASH + FLASHSIZE; fpa += MiB)
+//		l1[L1X(fpa)] = fpa|Dom0|L1AP(Krw)|Section|Cached|Buffered;
+//	for (fpa = 0xf8000000; fpa < 0xf8000000 + 16*MB; fpa += MiB)
+//		l1[L1X(fpa)] = fpa|Dom0|L1AP(Krw)|Section|Cached|Buffered;
 
 	/*
 	 * map high vectors to start of dram, but only 4K, not 1MB.

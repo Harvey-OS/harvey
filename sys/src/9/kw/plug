@@ -31,9 +31,10 @@ dev
 	usb
 
 link
-	etherkw		ethermii
+	ether1116	ethermii
 	archkw
 	ethermedium
+# no flash yet for guruplug
 	flashkw
 	loopbackmedium
 	netdevmedium
