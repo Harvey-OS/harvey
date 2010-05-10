@@ -200,13 +200,13 @@ cputype2name(char *buf, int size)
 		socrev = "unknown";
 	else
 		switch (rev) {
-		case 0:
+		case Socrevz0:
 			socrev = "Z0";
 			break;
-		case 2:
+		case Socreva0:
 			socrev = "A0";
 			break;
-		case 3:
+		case Socreva1:
 			socrev = "A1";
 			break;
 		default:

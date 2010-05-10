@@ -103,7 +103,7 @@ install:V: /$objtype/$p$CONF
 arch.$O clock.$O fpiarm.$O main.$O mmu.$O screen.$O sdscsi.$O syscall.$O \
 	trap.$O: /$objtype/include/ureg.h
 
-archkw.$O devether.$0 etherkw.$O ethermii.$O: \
+archkw.$O devether.$0 ether1116.$O ethermii.$O: \
 	etherif.h ethermii.h ../port/netif.h
 archkw.$O devflash.$O flashkw.$O: flashif.h
 fpi.$O fpiarm.$O fpimem.$O: fpi.h

@@ -64,6 +64,7 @@ mmudump(PTE *l1)
 static void
 idmap(PTE *l1, ulong va)
 {
+	va &= ~(MB-1);
 	l1[L1X(va)] = va | Dom0 | L1AP(Krw) | Section;
 }
 
@@ -72,15 +73,11 @@ void
 mmuidmap(uintptr phys, int mbs)
 {
 	PTE *l1;
-	uintptr pa, fpa;
+	uintptr fpa;
 
-	pa = ttbget();
-	l1 = KADDR(pa);
-
+	l1 = KADDR(ttbget());
 	for (fpa = phys; mbs-- > 0; fpa += MiB)
-		l1[L1X(fpa)] = fpa|Dom0|L1AP(Krw)|Section;
-	coherence();
-
+		idmap(l1, fpa);
 	mmuinvalidate();
 	cacheuwbinv();
 	l2cacheuwbinv();
@@ -89,7 +86,7 @@ mmuidmap(uintptr phys, int mbs)
 void
 mmuinit(void)
 {
-	int i;
+//	int i;
 	uintptr pa;
 	PTE *l1, *l2;
 
@@ -105,8 +102,8 @@ mmuinit(void)
 	idmap(l1, PHYSSMS);
 	idmap(l1, PHYSDRC);
 	idmap(l1, PHYSGPMC);
-	for (i = 0; i < 16; i++)	/* just need 16MB */
-		idmap(l1, PHYSNAND + i*MB);
+//	for (i = 0; i < 16; i++)	/* just need 16MB */
+//		idmap(l1, PHYSNAND + i*MB);
 
 	/* map high vectors to start of dram, but only 4K, not 1MB */
 	pa -= MACHSIZE+2*1024;
