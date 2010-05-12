@@ -103,6 +103,8 @@ arch.$O clock.$O fpiarm.$O main.$O mmu.$O screen.$O sdscsi.$O syscall.$O \
 	trap.$O: /$objtype/include/ureg.h
 
 archomap.$O devether.$0 ether9221.$O: etherif.h ../port/netif.h
+archomap.$O devflash.$O flashomap.$O: ../port/flashif.h
+ecc.$O flashomap.$O: ../port/nandecc.h
 fpi.$O fpiarm.$O fpimem.$O: fpi.h
 l.$O lexception.$O lproc.$O mmu.$O: arm.s arm.h mem.h
 l.$O rebootcode.$O: cache.v7.s

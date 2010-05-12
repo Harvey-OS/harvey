@@ -760,6 +760,10 @@ TEXT	_tas(SB), $-4
 //_tasout:
 //	RET
 
+TEXT clz(SB), 1, $-4
+	CLZ(0, 0)			/* 0 is R0 */
+	RET
+
 TEXT setlabel(SB), 1, $-4
 	MOVW	R13, 0(R0)		/* sp */
 	MOVW	R14, 4(R0)		/* pc */

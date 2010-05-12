@@ -1,3 +1,7 @@
+/*
+ * flash memory
+ */
+
 #include	"u.h"
 #include	"../port/lib.h"
 #include	"mem.h"
@@ -5,18 +9,13 @@
 #include	"fns.h"
 #include	"../port/error.h"
 
-/*
- * flash memory
- */
-
-// #include "../port/flashif.h"
-#include "flashif.h"
+#include "../port/flashif.h"
 
 typedef struct Flashtype Flashtype;
 struct Flashtype {
 	char*	name;
 	int	(*reset)(Flash*);
-	Flashtype*	next;
+	Flashtype∗ next;
 };
 
 enum {
@@ -26,7 +25,7 @@ enum {
 static struct
 {
 	Flash*	card[Nbanks];	/* actual card type, reset for access */
-	Flashtype*	types;	/* possible card types */
+	Flashtype* types;	/* possible card types */
 }flash;
 
 enum{

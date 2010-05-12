@@ -27,6 +27,9 @@
 	MOVW	R1, (R7); \
 	BARRIERS
 
+/* new instruction */
+#define CLZ(s, d) WORD	$(0xe16f0f10 | (d) << 12 | (s))	/* count leading 0s */
+
 #define DMB	\
 	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwb), CpCACHEdmbarr
 /*

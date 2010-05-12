@@ -1,4 +1,5 @@
-# sheeva plug, openrd-client and others based on marvell's kirkwood soc
+# sheeva plug, openrd-client, guruplug and others
+#	based on marvell's kirkwood soc
 dev
 	root
 	cons
@@ -35,7 +36,7 @@ link
 	archkw
 	ethermedium
 # no flash yet for guruplug
-	flashkw
+	flashkw		ecc
 	loopbackmedium
 	netdevmedium
 	usbehci
@@ -51,7 +52,6 @@ ip
 misc
 	rdb
 	coproc
-	ecc
 	sdaoe		sdscsi
 	softfpu
 	syscall
