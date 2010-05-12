@@ -28,6 +28,7 @@ typedef struct Fstn Fstn;
 typedef struct Isoio Isoio;
 typedef struct Itd Itd;
 typedef struct Kwusb Kwusb;
+typedef struct Kwusbtt Kwusbtt;
 typedef struct Poll Poll;
 typedef struct Qh Qh;
 typedef struct Qio Qio;
@@ -397,6 +398,19 @@ union Ed
 	uchar	align[Align];
 };
 
+/* kirkwood usb transaction translator registers? (undocumented) */
+struct Kwusbtt {		/* at Addrusb */
+	ulong	id;
+	ulong	hwgeneral;
+	ulong	hwhost;
+	ulong	hwdevice;
+	ulong	hwtxbuf;
+	ulong	hwrxbuf;
+	ulong	hwtttxbuf;
+	ulong	hwttrxbuf;
+};
+
+/* kirkwood usb bridge & phy registers */
 struct Kwusb {			/* at offset 0x300 from Addrusb */
 	ulong	bcs;		/* bridge ctl & sts */
 	uchar	_pad0[0x310-0x304];
@@ -406,7 +420,7 @@ struct Kwusb {			/* at offset 0x300 from Addrusb */
 	ulong	_pad1;
 	ulong	bea;		/* bridge error addr. */
 	struct Usbwin {
-		ulong	ctl;
+		ulong	ctl;	/* see Winenable in io.h */
 		ulong	base;
 		ulong	_pad2[2];
 	} win[4];
@@ -422,11 +436,6 @@ struct Kwusb {			/* at offset 0x300 from Addrusb */
 	ulong	phyrxctl;	/* phy receive control */
 	uchar	_pad7[0x440-0x434];
 	ulong	phyivref;	/* phy ivref control */
-};
-
-enum {
-	/* Kwusb->win[i].ctl bits */
-	Winenable	= 1<<0,
 };
 
 #define diprint		if(debug || iso->debug)print
@@ -3397,7 +3406,7 @@ setaddrwin(Kwusb *kw, int win, int attr, ulong base)
 static void
 ehcireset(Ctlr *ctlr)
 {
-	int i;
+	int i, amp, txvdd;
 	ulong v;
 	Eopio *opio;
 	Kwusb *kw;
@@ -3467,11 +3476,21 @@ ehcireset(Ctlr *ctlr)
 	kw->phypll &= ~(1 << 21);
 
 	v = kw->phytxctl & ~(017 << 27 | 7);	/* REG_EXT_FS_RCALL & AMP_2_0 */
-	/*
-	 * AMP_2_0 = 4 for 6281-A0 (but 3 for A1).
-	 * also set REG_EXT_FS_RCALL_EN | REG_RCAL_START.
-	 */
-	kw->phytxctl = v | 1 << 26 | 1 << 12 | 4;	// TODO
+	switch (m->socrev) {
+	default:
+		print("usehci: bad 6281 soc rev %d\n", m->socrev);
+		/* fall through */
+	case Socreva0:
+		amp = 4;
+		txvdd = 1;
+		break;
+	case Socreva1:
+		amp = 3;
+		txvdd = 3;
+		break;
+	}
+	/* REG_EXT_FS_RCALL_EN | REG_RCAL_START | AMP_2_0 */
+	kw->phytxctl = v | 1 << 26 | 1 << 12 | amp;
 	coherence();
 	microdelay(100);
 	kw->phytxctl &= ~(1 << 12);
@@ -3480,7 +3499,7 @@ ehcireset(Ctlr *ctlr)
 	kw->phyrxctl = v | 1 << 2 | 8 << 4;
 
 	v = kw->phyivref & ~(3 << 8);		/* TXVDD12 */
-	kw->phyivref = v | 1 << 8;		/* TODO: 1 for 6281-A0; 3 for A1 */
+	kw->phyivref = v | txvdd << 8;
 
 	coherence();
 

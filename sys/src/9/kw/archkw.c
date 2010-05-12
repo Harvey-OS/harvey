@@ -12,8 +12,7 @@
 
 #include "../port/netif.h"
 #include "etherif.h"
-// #include "../port/flashif.h"
-#include "flashif.h"
+#include "../port/flashif.h"
 
 #include "arm.h"
 
@@ -99,17 +98,12 @@ typedef struct Addrmap Addrmap;
 typedef struct Addrwin Addrwin;
 struct Addrmap {
 	struct Addrwin {
-		ulong	ctl;
+		ulong	ctl;	/* see Winenable in io.h */
 		ulong	base;
 		ulong	remaplo;
 		ulong	remaphi;
 	} win[8];
 	ulong	dirba;		/* device internal reg's base addr.: PHYSIO */
-};
-
-enum {
-	/* Addrwin->ctl bits */
-	Winenable	= 1<<0,
 };
 
 /*
@@ -494,7 +488,12 @@ archflashreset(int bank, Flash *f)
 	if(bank != 0)
 		return -1;
 	f->type = "nand";
-	f->addr = (void*)PHYSNAND;
+	if (flashat(f, PHYSNAND1))
+		f->addr = (void*)PHYSNAND1;
+	else if (flashat(f, PHYSNAND2))
+		f->addr = (void*)PHYSNAND2;
+	else
+		f->addr = nil;
 	f->size = 0;		/* done by probe */
 	f->width = 1;
 	f->interleave = 0;

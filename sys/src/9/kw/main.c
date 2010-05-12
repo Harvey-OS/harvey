@@ -304,7 +304,7 @@ wave(' ');
 	initseg();
 	links();
 	chandevreset();
-	spiprobe();
+//	spiprobe();
 
 	pageinit();
 	swapinit();
@@ -586,8 +586,9 @@ Conf conf;			/* XXX - must go - gag */
 Confmem sheevamem[] = {
 	/*
 	 * Memory available to Plan 9:
+	 * the 8K is reserved for ethernet dma access violations to scribble on.
 	 */
-	{ .base = 0, .limit = 512*MB, },
+	{ .base = 0, .limit = 512*MB - 8*1024, },
 };
 
 void
