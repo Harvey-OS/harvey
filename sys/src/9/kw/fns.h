@@ -28,13 +28,10 @@ extern void cacheiinv(void);
 extern void cacheuwbinv(void);
 extern uintptr cankaddr(uintptr pa);
 extern void clockshutdown(void);
+extern int clz(ulong);
 int	cmpswap(long*, long, long);
 
-/*
- * cachedwb seems like overkill, but just calling barriers isn't enough.
- */
-#define coherence cachedwb
-// #define coherence barriers
+#define coherence barriers
 
 extern u32int controlget(void);
 extern u32int cpctget(void);
