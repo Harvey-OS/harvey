@@ -1,8 +1,11 @@
 /*
- * marvell kirkwood ethernet (88e1116) driver
- * (as found in the sheevaplug & openrd).
- * from /public/doc/marvell/88f61xx.kirkwood.pdf
- * and  /public/doc/marvell/88e1116.pdf.
+ * marvell kirkwood ethernet (88e1116 and 88e1121) driver
+ * (as found in the sheevaplug, openrd and guruplug).
+ * the main difference is the flavour of phy kludgery necessary.
+ *
+ * from /public/doc/marvell/88f61xx.kirkwood.pdf,
+ *	/public/doc/marvell/88e1116.pdf, and
+ *	/public/doc/marvell/88e1121r.pdf.
  */
 
 #include "u.h"
@@ -20,6 +23,9 @@
 
 #define	MIIDBG	if(0)iprint
 
+#define WINATTR(v)      (((v) & MASK(8)) << 8)
+#define WINSIZE(v)      (((v)/(64*1024) - 1) << 16)
+
 enum {
 	Gbe0regs	= PHYSIO + 0x72000,
 	Gbe1regs	= PHYSIO + 0x76000,
@@ -30,7 +36,7 @@ enum {
 	Rxblklen	= 2+1522,  /* ifc. supplies first 2 bytes as padding */
 
 	Maxrxintrsec	= 20*1000,	/* max. rx intrs. / sec */
-	Etherstuck	= 90,	/* must send or receive a packet in this many sec.s */
+	Etherstuck	= 70,	/* must send or receive a packet in this many sec.s */
 
 	Descralign	= 16,
 	Bufalign	= 8,
@@ -72,8 +78,8 @@ struct Mibstats {
 	union {
 		uvlong	rxby;		/* good bytes rcv'd */
 		struct {
-			ulong rxbylo;
-			ulong rxbyhi;
+			ulong	rxbylo;
+			ulong	rxbyhi;
 		};
 	};
 	ulong	badrxby;		/* bad bytes rcv'd */
@@ -93,8 +99,8 @@ struct Mibstats {
 	union {
 		uvlong	txby;		/* good bytes sent */
 		struct {
-			ulong txbylo;
-			ulong txbyhi;
+			ulong	txbylo;
+			ulong	txbyhi;
 		};
 	};
 	ulong	txpkt;			/* good pkts sent */
@@ -120,6 +126,7 @@ struct Mibstats {
 
 struct Ctlr {
 	Lock;
+	Ether	*ether;
 	Gbereg	*reg;
 
 	Lock	initlock;
@@ -156,7 +163,10 @@ struct Ctlr {
 #define	Txqon(q)	(1<<(q))
 
 enum {
-	/* sdma config, sdc */
+	/* euc bits */
+	Portreset	= 1 << 20,
+
+	/* sdma config, sdc bits */
 	Burst1		= 0,
 	Burst2,
 	Burst4,
@@ -171,7 +181,7 @@ enum {
 	/* rx intr ipg (inter packet gap) */
 #define SDCipgintrx(v)	((((v)>>15) & 1)<<25) | (((v) & MASK(15))<<7)
 
-	/* portcfg */
+	/* portcfg bits */
 	PCFGupromisc		= 1<<0,	/* unicast promiscuous mode */
 #define Rxqdefault(q)	((q)<<1)
 #define Rxqarp(q)	((q)<<4)
@@ -179,18 +189,18 @@ enum {
 	PCFGbcrejectip		= 1<<8,
 	PCFGbcrejectarp		= 1<<9,
 	PCFGamnotxes		= 1<<12, /* auto mode, no summary update on tx */
-	PCFGtcpq	= 1<<14,
-	PCFGudpq	= 1<<15,
+	PCFGtcpq	= 1<<14,	/* capture tcp frames to tcpq */
+	PCFGudpq	= 1<<15,	/* capture udp frames to udpq */
 #define	Rxqtcp(q)	((q)<<16)
 #define	Rxqudp(q)	((q)<<19)
 #define	Rxqbpdu(q)	((q)<<22)
 	PCFGrxcs	= 1<<25,	/* rx tcp checksum mode with header */
 
-	/* portcfgx */
+	/* portcfgx bits */
 	PCFGXspanq	= 1<<1,
 	PCFGXcrcoff	= 1<<2,		/* no ethernet crc */
 
-	/* port serial control0, psc0 */
+	/* port serial control0, psc0 bits */
 	PSC0porton		= 1<<0,
 	PSC0forcelinkup		= 1<<1,
 	PSC0an_dplxoff		= 1<<2,	/* an_ = auto. negotiate */
@@ -198,7 +208,7 @@ enum {
 	PSC0an_pauseadv		= 1<<4,
 	PSC0nofrclinkdown	= 1<<10,
 	PSC0an_spdoff		= 1<<13,
-	PSC0dteadv		= 1<<14,
+	PSC0dteadv		= 1<<14,	/* dte advertise */
 
 	/* max. input pkt size */
 #define PSC0mru(v)	((v)<<17)
@@ -215,7 +225,7 @@ enum {
 	PSC0gmiispd_gbfrc	= 1<<23,
 	PSC0miispdfrc100mbps	= 1<<24,
 
-	/* port status 0, ps0 */
+	/* port status 0, ps0 bits */
 	PS0linkup	= 1<<1,
 	PS0fd		= 1<<2,			/* full duplex */
 	PS0flctl	= 1<<3,
@@ -226,7 +236,7 @@ enum {
 	PS0rxfifo1empty	= 1<<11,
 	PS0rxfifo2empty	= 1<<12,
 
-	/* port serial control 1, psc1 */
+	/* port serial control 1, psc1 bits */
 	PSC1loopback	= 1<<1,
 	PSC1mii		= 0<<2,
 	PSC1rgmii	= 1<<3,			/* enable RGMII */
@@ -241,7 +251,7 @@ enum {
 #define PSC1coldomlim(v) (((v) & MASK(6))<<16)
 	PSC1miiallowoddpreamble	= 1<<22,
 
-	/* port status 1, ps1 */
+	/* port status 1, ps1 bits */
 	PS1rxpause	= 1<<0,
 	PS1txpause	= 1<<1,
 	PS1pressure	= 1<<2,
@@ -252,17 +262,18 @@ enum {
 	PS1syncok	= 1<<7,
 	PS1nosquelch	= 1<<8,
 
-	/* irq */
+	/* irq bits */
+	/* rx buf returned to cpu ownership, or frame reception finished */
 	Irx		= 1<<0,
-	Iextend		= 1<<1,
-#define Irxbufferq(q)	(1<<((q)+2))
-	Irxerr		= 1<<10,
+	Iextend		= 1<<1,		/* IEsum of irqe set */
+#define Irxbufferq(q)	(1<<((q)+2))	/* rx buf returned to cpu ownership */
+	Irxerr		= 1<<10,	/* input ring full, usually */
 #define Irxerrq(q)	(1<<((q)+11))
-#define Itxendq(q)	(1<<((q)+19))
+#define Itxendq(q)	(1<<((q)+19))	/* tx dma stopped for q */
 	Isum		= 1<<31,
 
-	/* irq extended, irqe */
-#define	IEtxbufferq(q)	(1<<((q)+0))
+	/* irq extended, irqe bits */
+#define	IEtxbufferq(q)	(1<<((q)+0))	/* tx buf returned to cpu ownership */
 #define	IEtxerrq(q)	(1<<((q)+8))
 	IEphystschg	= 1<<16,
 	IEptp		= 1<<17,
@@ -362,23 +373,20 @@ struct Gbereg {
 	ulong	eudid;			/* ether default id */
 	uchar	_pad0[0x80-0x10];
 
+	/* dma stuff */
 	ulong	euirq;			/* interrupt cause */
 	ulong	euirqmask;		/* interrupt mask */
 	uchar	_pad1[0x94-0x88];
-
 	ulong	euea;			/* error address */
 	ulong	euiae;			/* internal error address */
 	uchar	_pad2[0xb0-0x9c];
-
 	ulong	euc;			/* control */
 	uchar	_pad3[0x200-0xb4];
-
 	struct {
 		ulong	base;		/* window base */
 		ulong	size;		/* window size */
 	} base[6];
 	uchar	_pad4[0x280-0x230];
-
 	ulong	harr[4];		/* high address remap */
 	ulong	bare;			/* base address enable */
 	ulong	epap;			/* port access protect */
@@ -474,6 +482,9 @@ struct Gbereg {
 	ulong	dfut[4];		/* dest addr filter unicast table */
 };
 
+static Ctlr *ctlrs[MaxEther];
+static uchar zeroea[Eaddrlen];
+
 static void getmibstats(Ctlr *);
 
 static void
@@ -542,7 +553,8 @@ rxreplenish(Ctlr *ctlr)
 	while(ctlr->rxb[ctlr->rxtail] == nil) {
 		b = rxallocb();
 		if(b == nil) {
-			iprint("ether1116: rxreplenish out of buffers\n");
+			iprint("#l%d: rxreplenish out of buffers\n",
+				ctlr->ether->ctlrno);
 			break;
 		}
 
@@ -563,7 +575,6 @@ rxreplenish(Ctlr *ctlr)
 
 		ctlr->rxtail = NEXT(ctlr->rxtail, Nrx);
 	}
-	rxkick(ctlr);
 }
 
 static void
@@ -627,11 +638,11 @@ receive(Ether *ether)
 			continue;
 		}
 
-		n = r->countsize >> 16;
+		n = r->countsize >> 16;		/* TODO includes 2 pad bytes? */
 		assert(n >= 2 && n < 2048);
 
-		l2cacheuinvse(b->rp, n);
-		cachedinvse(b->rp, n);
+		l2cacheuinvse(b->rp, n+2);
+		cachedinvse(b->rp, n+2);
 		b->wp = b->rp + n;
 		/*
 		 * skip hardware padding intended to align ipv4 address
@@ -640,10 +651,13 @@ receive(Ether *ether)
 		b->rp += 2;
 		etheriq(ether, b, 1);
 		etheractive(ether);
-		if (i % (Nrx / 2) == 0)
+		if (i % (Nrx / 2) == 0) {
 			rxreplenish(ctlr);
+			rxkick(ctlr);
+		}
 	}
 	rxreplenish(ctlr);
+	rxkick(ctlr);
 }
 
 static void
@@ -661,6 +675,7 @@ txreplenish(Ether *ether)			/* free transmitted packets */
 			panic("no block for sent packet?!");
 		freeb(ctlr->txb[ctlr->txtail]);
 		ctlr->txb[ctlr->txtail] = nil;
+
 		ctlr->txtail = NEXT(ctlr->txtail, Ntx);
 		etheractive(ether);
 	}
@@ -742,13 +757,17 @@ dumprxdescs(Ctlr *ctlr)
 
 	iprint("\nrxhead %d rxtail %d; txcdp %#p rxcdp %#p\n",
 		ctlr->rxhead, ctlr->rxtail, reg->tcqdp[Qno], reg->crdp[Qno].r);
-	for (i = 0; i < Nrx; i++)
+	for (i = 0; i < Nrx; i++) {
 		iprint("rxb %d @ %#p: %#p\n", i, &ctlr->rxb[i], ctlr->rxb[i]);
-	for (i = 0; i < Nrx; i++)
+		delay(50);
+	}
+	for (i = 0; i < Nrx; i++) {
 		iprint("rx %d @ %#p: cs %#lux countsize %lud buf %#lux next %#lux\n",
 			i, &ctlr->rx[i], ctlr->rx[i].cs,
 			ctlr->rx[i].countsize >> 3, ctlr->rx[i].buf,
 			ctlr->rx[i].next);
+		delay(50);
+	}
 	delay(1000);
 }
 
@@ -795,17 +814,18 @@ interrupt(Ureg*, void *arg)
 	handled = 0;
 	irq = reg->irq;
 	irqe = reg->irqe;
+	reg->irqe = 0;				/* extinguish intr causes */
 	reg->irq = 0;				/* extinguish intr causes */
-	reg->irqe = 0;				/* " " " */
 	ethercheck(ether);
 
-	if(irq & Irxbufferq(Qno)) {
+	if(irq & (Irx | Irxbufferq(Qno))) {
 		/*
 		 * letting a kproc process the input takes far less real time
 		 * than doing it all at interrupt level.
 		 */
 		ctlr->haveinput = 1;
 		wakeup(&ctlr->rrendez);
+		irq &= ~(Irx | Irxbufferq(Qno));
 		handled++;
 	} else
 		rxkick(ctlr);
@@ -814,6 +834,7 @@ interrupt(Ureg*, void *arg)
 		reg->irqmask  &= ~Itxendq(Qno);	/* prevent more interrupts */
 		reg->irqemask &= ~(IEtxerrq(Qno) | IEtxunderrun);
 		transmit(ether);
+		irq &= ~Itxendq(Qno);
 		handled++;
 	}
 
@@ -839,19 +860,18 @@ interrupt(Ureg*, void *arg)
 			handled++;
 	}
 	if (irq & Isum) {
-		/* TODO we get these continually on the guruplug */
-		if (irq & Irxerrq(Qno)) {
-			ether->buffs++;		/* approx. error */
-			/* null descriptor pointer or descriptor owned by cpu */
-//			iprint("ether1116: rx err on queue 0 - input ring full\n");
-		}
 		if (irq & Irxerr) {
 			ether->buffs++;		/* approx. error */
 			/* null descriptor pointer or descriptor owned by cpu */
-//			iprint("ether1116: rx err - input ring full\n");
+//			iprint("#l%d: rx err - input ring full\n", ether->ctlrno);
+
+			/* if the input ring is full, drain it */
+			ctlr->haveinput = 1;
+			wakeup(&ctlr->rrendez);
 		}
 		if(irq & (Irxerr | Irxerrq(Qno)))
 			handled++;
+		irq  &= ~(Irxerr | Irxerrq(Qno));
 	}
 
 	if(ether->linkchg && (reg->ps1 & PS1an_done)) {
@@ -901,18 +921,35 @@ static void quiesce(Gbereg *reg);
 static void
 shutdown(Ether *ether)
 {
+	int i;
 	Ctlr *ctlr = ether->ctlr;
 	Gbereg *reg = ctlr->reg;
 
 	ilock(ctlr);
 	quiesce(reg);
-	reg->tcqdp[Qno]  = 0;
-	reg->crdp[Qno].r = 0;
+	reg->euc |= Portreset;
+	coherence();
+	iunlock(ctlr);
+	delay(100);
+	ilock(ctlr);
+	reg->euc &= ~Portreset;
+	coherence();
+	delay(20);
+
 	reg->psc0 = 0;			/* no PSC0porton */
 	reg->psc1 |= PSC1portreset;
-	iunlock(ctlr);
 	coherence();
-	delay(100);
+	delay(50);
+	reg->psc1 &= ~PSC1portreset;
+	coherence();
+
+	for (i = 0; i < nelem(reg->tcqdp); i++)
+		reg->tcqdp[i] = 0;
+	for (i = 0; i < nelem(reg->crdp); i++)
+		reg->crdp[i].r = 0;
+	coherence();
+
+	iunlock(ctlr);
 }
 
 enum {
@@ -989,11 +1026,9 @@ static int
 miird(Mii *mii, int pa, int ra)
 {
 	ulong smi_reg, timeout;
-	Ctlr *ctlr;
 	Gbereg *reg;
 
-	ctlr = (Ctlr*)mii->ctlr;
-	reg = ctlr->reg;
+	reg = ((Ctlr*)mii->ctlr)->reg;
 
 	/* check params */
 	if ((pa<<Physmiaddroff) & ~Physmiaddrmask ||
@@ -1007,8 +1042,6 @@ miird(Mii *mii, int pa, int ra)
 	coherence();
 
 	/* wait til read value is ready */
-//	if (smibusywait(reg, PhysmiReadok) < 0)
-//		return -1;
 	timeout = PhysmiTimeout;
 	do {
 		smi_reg = reg->smi;
@@ -1027,12 +1060,10 @@ miird(Mii *mii, int pa, int ra)
 static int
 miiwr(Mii *mii, int pa, int ra, int v)
 {
-	Ctlr *ctlr;
 	Gbereg *reg;
 	ulong smi_reg;
 
-	ctlr = (Ctlr*)mii->ctlr;
-	reg = ctlr->reg;
+	reg = ((Ctlr*)mii->ctlr)->reg;
 
 	/* check params */
 	if (((pa<<Physmiaddroff) & ~Physmiaddrmask) ||
@@ -1046,6 +1077,134 @@ miiwr(Mii *mii, int pa, int ra, int v)
 	reg->smi = smi_reg & ~PhysmiopRd;
 	coherence();
 	return 0;
+}
+
+#define MIIMODEL(idr2)	(((idr2) >> 4) & MASK(6))
+
+enum {
+	Hacknone,
+	Hackdual,
+
+	Ouimarvell	= 0x005043,
+
+	/* idr2 mii/phy model numbers */
+	Phy1000		= 0x00,		/* 88E1000 Gb */
+	Phy1011		= 0x02,		/* 88E1011 Gb */
+	Phy1000_3	= 0x03,		/* 88E1000 Gb */
+	Phy1000s	= 0x04,		/* 88E1000S Gb */
+	Phy1000_5	= 0x05,		/* 88E1000 Gb */
+	Phy1000_6	= 0x06,		/* 88E1000 Gb */
+	Phy3082		= 0x08,		/* 88E3082 10/100 */
+	Phy1112		= 0x09,		/* 88E1112 Gb */
+	Phy1121r	= 0x0b,		/* says the 1121r manual */
+	Phy1149		= 0x0b,		/* 88E1149 Gb */
+	Phy1111		= 0x0c,		/* 88E1111 Gb */
+	Phy1116		= 0x21,		/* 88E1116 Gb */
+	Phy1116r	= 0x24,		/* 88E1116R Gb */
+	Phy1118		= 0x22,		/* 88E1118 Gb */
+	Phy3016		= 0x26,		/* 88E3016 10/100 */
+};
+
+static int hackflavour;
+
+/*
+ * on openrd, ether0's phy has address 8, ether1's is ether0's 24.
+ * on guruplug, ether0's is phy 0 and ether1's is ether0's phy 1.
+ */
+int
+mymii(Mii* mii, int mask)
+{
+	Ctlr *ctlr;
+	MiiPhy *miiphy;
+	int bit, ctlrno, oui, model, phyno, r, rmask;
+	static int dualport, phyidx;
+	static int phynos[NMiiPhy];
+
+	ctlr = mii->ctlr;
+	ctlrno = ctlr->ether->ctlrno;
+
+	/* first pass: figure out what kind of phy(s) we have. */
+	dualport = 0;
+	if (ctlrno == 0) {
+		for(phyno = 0; phyno < NMiiPhy; phyno++){
+			bit = 1<<phyno;
+			if(!(mask & bit) || mii->mask & bit)
+				continue;
+			if(mii->mir(mii, phyno, Bmsr) == -1)
+				continue;
+			r = mii->mir(mii, phyno, Phyidr1);
+			oui = (r & 0x3FFF)<<6;
+			r = mii->mir(mii, phyno, Phyidr2);
+			oui |= r>>10;
+			model = MIIMODEL(r);
+			if (oui == 0xfffff && model == 0x3f)
+				continue;
+			MIIDBG("ctlrno %d phy %d oui %#ux model %#ux\n",
+				ctlrno, phyno, oui, model);
+			delay(50);
+			if (model == Phy1121r || model == Phy1116r)
+				++dualport;
+			phynos[phyidx++] = phyno;
+		}
+		hackflavour = dualport == 2 && phyidx == 2? Hackdual: Hacknone;
+		MIIDBG("ether1116: %s-port phy\n",
+			hackflavour == Hackdual? "dual": "single");
+	}
+
+	/*
+	 * Probe through mii for PHYs in mask;
+	 * return the mask of those found in the current probe.
+	 * If the PHY has not already been probed, update
+	 * the Mii information.
+	 */
+	rmask = 0;
+	if (hackflavour == Hackdual && ctlrno < phyidx) {
+		/*
+		 * openrd, guruplug or the like: use ether0's phys.
+		 * this is a nasty hack, but so is the hardware.
+		 */
+		MIIDBG("ctlrno %d using ctlrno 0's phyno %d\n",
+			ctlrno, phynos[ctlrno]);
+		ctlr->mii = mii = ctlrs[0]->mii;
+		mask = 1 << phynos[ctlrno];
+		mii->mask = ~mask;
+	}
+	for(phyno = 0; phyno < NMiiPhy; phyno++){
+		bit = 1<<phyno;
+		if(!(mask & bit))
+			continue;
+		if(mii->mask & bit){
+			rmask |= bit;
+			continue;
+		}
+		if(mii->mir(mii, phyno, Bmsr) == -1)
+			continue;
+		r = mii->mir(mii, phyno, Phyidr1);
+		oui = (r & 0x3FFF)<<6;
+		r = mii->mir(mii, phyno, Phyidr2);
+		oui |= r>>10;
+		if(oui == 0xFFFFF || oui == 0)
+			continue;
+
+		if((miiphy = malloc(sizeof(MiiPhy))) == nil)
+			continue;
+		miiphy->mii = mii;
+		miiphy->oui = oui;
+		miiphy->phyno = phyno;
+
+		miiphy->anar = ~0;
+		miiphy->fc = ~0;
+		miiphy->mscr = ~0;
+
+		mii->phy[phyno] = miiphy;
+		if(ctlrno == 0 || hackflavour != Hackdual && mii->curphy == nil)
+			mii->curphy = miiphy;
+		mii->mask |= bit;
+		mii->nphy++;
+
+		rmask |= bit;
+	}
+	return rmask;
 }
 
 static int
@@ -1063,7 +1222,7 @@ kirkwoodmii(Ether *ether)
 	ctlr->mii->mir = miird;
 	ctlr->mii->miw = miiwr;
 
-	if(mii(ctlr->mii, ~0) == 0 || (phy = ctlr->mii->curphy) == nil){
+	if(mymii(ctlr->mii, ~0) == 0 || (phy = ctlr->mii->curphy) == nil){
 		print("#l%d: ether1116: init mii failure\n", ether->ctlrno);
 		free(ctlr->mii);
 		ctlr->mii = nil;
@@ -1072,7 +1231,8 @@ kirkwoodmii(Ether *ether)
 
 	/* oui 005043 is marvell */
 	MIIDBG("oui %#X phyno %d\n", phy->oui, phy->phyno);
-	if(miistatus(ctlr->mii) < 0){
+	if((ctlr->ether->ctlrno == 0 || hackflavour != Hackdual) &&
+	    miistatus(ctlr->mii) < 0){
 		miireset(ctlr->mii);
 		MIIDBG("miireset\n");
 		if(miiane(ctlr->mii, ~0, 0, ~0) < 0){
@@ -1100,8 +1260,8 @@ kirkwoodmii(Ether *ether)
 	}
 
 	ether->mbps = phy->speed;
-//	iprint("#l%d: kirkwoodmii: fd %d speed %d tfc %d rfc %d\n",
-//		ctlr->port, phy->fd, phy->speed, phy->tfc, phy->rfc);
+	MIIDBG("#l%d: kirkwoodmii: fd %d speed %d tfc %d rfc %d\n",
+		ctlr->port, phy->fd, phy->speed, phy->tfc, phy->rfc);
 	MIIDBG("mii done\n");
 	return 0;
 }
@@ -1143,10 +1303,13 @@ miiphyinit(Mii *mii)
 
 	miiregpage(mii, dev, Pagrgmii);
 	miiwr(mii, dev, Scr, miird(mii, dev, Scr) | Rgmiipwrup);
-	/* TODO must now do a software reset, sez the manual */
+	/* must now do a software reset, says the manual */
+	miireset(ctlr->mii);
 
 	/* enable RGMII delay on Tx and Rx for CPU port */
 	miiwr(mii, dev, Recr, miird(mii, dev, Recr) | Rxtiming | Rxtiming);
+	/* must now do a software reset, says the manual */
+	miireset(ctlr->mii);
 
 	miiregpage(mii, dev, Pagcopper);
 	miiwr(mii, dev, Scr,
@@ -1176,27 +1339,14 @@ quiesce(Gbereg *reg)
 }
 
 static void
-portreset(Gbereg *reg)
-{
-	ulong i;
-
-	quiesce(reg);
-	reg->psc0 &= ~PSC0porton;		/* disable port */
-	reg->psc1 &= ~(PSC1rgmii|PSC1portreset); /* set port & MII active */
-	coherence();
-	for (i = 0; i < 4000; i++)		/* magic delay */
-		;
-}
-
-static void
-p16(uchar *p, ulong v)
+p16(uchar *p, ulong v)		/* convert big-endian short to bytes */
 {
 	*p++ = v>>8;
 	*p   = v;
 }
 
 static void
-p32(uchar *p, ulong v)
+p32(uchar *p, ulong v)		/* convert big-endian long to bytes */
 {
 	*p++ = v>>24;
 	*p++ = v>>16;
@@ -1211,19 +1361,28 @@ p32(uchar *p, ulong v)
 void
 archetheraddr(Ether *ether, Gbereg *reg, int rxqno)
 {
+	uchar *ea;
 	ulong nibble, ucreg, tbloff, regoff;
 
-	p32(ether->ea,   reg->macah);
-	p16(ether->ea+4, reg->macal);
+	ea = ether->ea;
+	p32(ea,   reg->macah);
+	p16(ea+4, reg->macal);
+	if (memcmp(ea, zeroea, sizeof zeroea) == 0 && ether->ctlrno > 0) {
+		/* hack: use ctlr[0]'s + ctlrno */
+		memmove(ea, ctlrs[0]->ether->ea, Eaddrlen);
+		ea[Eaddrlen-1] += ether->ctlrno;
+		reg->macah = ea[0] << 24 | ea[1] << 16 | ea[2] << 8 | ea[3];
+		reg->macal = ea[4] <<  8 | ea[5];
+		coherence();
+	}
 
 	/* accept frames on ea */
-	nibble = ether->ea[5] & 0xf;
+	nibble = ea[5] & 0xf;
 	tbloff = nibble / 4;
 	regoff = nibble % 4;
 
 	regoff *= 8;
-	ucreg = reg->dfut[tbloff];
-	ucreg &= 0xff << regoff;
+	ucreg = reg->dfut[tbloff] & (0xff << regoff);
 	ucreg |= (rxqno << 1 | Pass) << regoff;
 	reg->dfut[tbloff] = ucreg;
 
@@ -1234,16 +1393,31 @@ archetheraddr(Ether *ether, Gbereg *reg, int rxqno)
 }
 
 static void
-ctlrinit(Ether *ether)
+cfgdramacc(Gbereg *reg)
+{
+	memset(reg->harr, 0, sizeof reg->harr);
+	memset(reg->base, 0, sizeof reg->base);
+
+	reg->bare = MASK(6) - MASK(2);	/* disable wins 2-5 */
+	/* this doesn't make any sense, but it's required */
+	reg->epap = 3 << 2 | 3;		/* full access for wins 0 & 1 */
+//	reg->epap = 0;		/* no access on access violation for all wins */
+	coherence();
+
+	reg->base[0].base = PHYSDRAM | WINATTR(Attrcs0) | Targdram;
+	reg->base[0].size = WINSIZE(256*MB);
+	reg->base[1].base = (PHYSDRAM + 256*MB) | WINATTR(Attrcs1) | Targdram;
+	reg->base[1].size = WINSIZE(256*MB);
+	coherence();
+}
+
+static void
+ctlralloc(Ctlr *ctlr)
 {
 	int i;
 	Block *b;
-	Ctlr *ctlr = ether->ctlr;
-	Gbereg *reg = ctlr->reg;
 	Rx *r;
 	Tx *t;
-	static char name[KNAMELEN];
-	static Ctlr fakectlr;		/* bigger than 4K; keep off the stack */
 
 	ilock(&freeblocks);
 	for(i = 0; i < Nrxblks; i++) {
@@ -1274,9 +1448,10 @@ ctlrinit(Ether *ether)
 		ctlr->rxb[i] = nil;
 	}
 	ctlr->rxtail = ctlr->rxhead = 0;
+
+	rxreplenish(ctlr);
 	cachedwb();
 	l2cacheuwb();
-	rxreplenish(ctlr);
 
 	ctlr->tx = xspanalloc(Ntx * sizeof(Tx), Descralign, 0);
 	if(ctlr->tx == nil)
@@ -1292,11 +1467,36 @@ ctlrinit(Ether *ether)
 	ctlr->txtail = ctlr->txhead = 0;
 	cachedwb();
 	l2cacheuwb();
+}
+
+static void
+ctlrinit(Ether *ether)
+{
+	int i;
+	Ctlr *ctlr = ether->ctlr;
+	Gbereg *reg = ctlr->reg;
+	static char name[KNAMELEN];
+	static Ctlr fakectlr;		/* bigger than 4K; keep off the stack */
+
+	for (i = 0; i < nelem(reg->tcqdp); i++)
+		reg->tcqdp[i] = 0;
+	for (i = 0; i < nelem(reg->crdp); i++)
+		reg->crdp[i].r = 0;
+	coherence();
+
+	cfgdramacc(reg);
+	ctlralloc(ctlr);
+
+	reg->tcqdp[Qno]  = PADDR(&ctlr->tx[ctlr->txhead]);
+	reg->crdp[Qno].r = PADDR(&ctlr->rx[ctlr->rxhead]);
+	coherence();
+
+//	dumprxdescs(ctlr);
 
 	/* clear stats by reading them into fake ctlr */
 	getmibstats(&fakectlr);
 
-	reg->pxmfs = MFS64by;
+	reg->pxmfs = MFS40by;			/* allow runts in */
 
 	/*
 	 * ipg's (inter packet gaps) for interrupt coalescing,
@@ -1312,44 +1512,51 @@ ctlrinit(Ether *ether)
 	reg->pxtfut = 0;	/* TFUTipginttx(CLOCKFREQ/(Maxrxintrsec*64)) */
 
 	/* allow just these interrupts */
-	/* no Irxerr interrupts since the guru plug generates them continually */
-//	reg->irqmask = Irxbufferq(Qno) | Irxerr | Itxendq(Qno);
-	reg->irqmask = Irxbufferq(Qno) | Itxendq(Qno);
-	reg->irqemask = IEtxerrq(Qno) | IEphystschg | IErxoverrun | IEtxunderrun;
+	/* guruplug generates Irxerr interrupts continually */
+	reg->irqmask = Isum | Irx | Irxbufferq(Qno) | Irxerr | Itxendq(Qno);
+	reg->irqemask = IEsum | IEtxerrq(Qno) | IEphystschg | IErxoverrun |
+		IEtxunderrun;
 
-	reg->irq = 0;
 	reg->irqe = 0;
 	reg->euirqmask = 0;
+	coherence();
+	reg->irq = 0;
 	reg->euirq = 0;
+	/* send errors to end of memory */
+//	reg->euda = PHYSDRAM + 512*MB - 8*1024;
+	reg->euda = 0;
+	reg->eudid = Attrcs1 << 4 | Targdram;
 
 //	archetheraddr(ether, ctlr->reg, Qno);	/* 2nd location */
 
-	reg->tcqdp[Qno]  = PADDR(&ctlr->tx[ctlr->txhead]);
-	for (i = 1; i < nelem(reg->tcqdp); i++)
-		reg->tcqdp[i] = 0;
-	reg->crdp[Qno].r = PADDR(&ctlr->rx[ctlr->rxhead]);
-	for (i = 1; i < nelem(reg->crdp); i++)
-		reg->crdp[i].r = 0;
-	coherence();
-
 	reg->portcfg = Rxqdefault(Qno) | Rxqarp(Qno);
 	reg->portcfgx = 0;
+	coherence();
+
+	/*
+	 * start the controller running.
+	 * turn the port on, kick the receiver.
+	 */
 
 	reg->psc1 = PSC1rgmii | PSC1encolonbp | PSC1coldomlim(0x23);
+	/* do this only when the controller is quiescent */
 	reg->psc0 = PSC0porton | PSC0an_flctloff |
 		PSC0an_pauseadv | PSC0nofrclinkdown | PSC0mru(PSC0mru1522);
+	coherence();
+	for (i = 0; i < 4000; i++)		/* magic delay */
+		;
 
 	ether->link = (reg->ps0 & PS0linkup) != 0;
 
 	/* set ethernet MTU for leaky bucket mechanism to 0 (disabled) */
 	reg->pmtu = 0;
-
-	reg->rqc = Rxqon(Qno);
-	coherence();
 	etheractive(ether);
 
 	snprint(name, sizeof name, "#l%drproc", ether->ctlrno);
 	kproc(name, rcvproc, ether);
+
+	reg->rqc = Rxqon(Qno);
+	coherence();
 }
 
 static void
@@ -1488,7 +1695,6 @@ static int
 reset(Ether *ether)
 {
 	Ctlr *ctlr;
-	static uchar zeroea[Eaddrlen];
 
 	ether->ctlr = ctlr = malloc(sizeof *ctlr);
 	switch(ether->ctlrno) {
@@ -1504,14 +1710,18 @@ reset(Ether *ether)
 		panic("ether1116: bad ether ctlr #%d", ether->ctlrno);
 	}
 
-	/* TODO need this for guruplug, at least */
+	/* need this for guruplug, at least */
 	*(ulong *)AddrIocfg0 |= 1 << 7 | 1 << 15;	/* io cfg 0: 1.8v gbe */
 	coherence();
 
-	portreset(ctlr->reg);
+	ctlr->ether = ether;
+	ctlrs[ether->ctlrno] = ctlr;
+
+	shutdown(ether);
 	/* ensure that both interfaces are set to RGMII before calling mii */
 	((Gbereg*)Gbe0regs)->psc1 |= PSC1rgmii;
 	((Gbereg*)Gbe1regs)->psc1 |= PSC1rgmii;
+	coherence();
 
 	/* Set phy address of the port */
 	ctlr->port = ether->ctlrno;
@@ -1527,10 +1737,12 @@ reset(Ether *ether)
 	miiphyinit(ctlr->mii);
 	archetheraddr(ether, ctlr->reg, Qno);	/* original location */
 	if (memcmp(ether->ea, zeroea, sizeof zeroea) == 0){
+iprint("ether1116: reset: zero ether->ea\n");
 		free(ctlr);
 		ether->ctlr = nil;
 		return -1;			/* no rj45 for this ether */
 	}
+
 	ether->attach = attach;
 	ether->transmit = transmit;
 	ether->interrupt = interrupt;
@@ -1541,7 +1753,6 @@ reset(Ether *ether)
 	ether->arg = ether;
 	ether->promiscuous = promiscuous;
 	ether->multicast = multicast;
-
 	return 0;
 }
 

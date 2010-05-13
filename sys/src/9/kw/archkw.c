@@ -148,12 +148,10 @@ static void
 fixaddrmap(void)
 {
 	int i;
-//	int sawspi;
 	ulong ctl, targ, attr, size64k;
 	Addrmap *map;
 	Addrwin *win;
 
-//	sawspi = 0;
 	map = (Addrmap *)AddrWin;
 	for (i = 0; i < nelem(map->win); i++) {
 		win = &map->win[i];
@@ -162,23 +160,6 @@ fixaddrmap(void)
 		attr = WINATTR(ctl);
 		size64k = WIN64KSIZE(ctl);
 
-//		if (targ == Targflash && attr == Attrspi &&
-//		    size64k == 16*MB/(64*1024)) {
-//			win->ctl &= ~Winenable;
-//			coherence();
-//			if (i < 4) {
-//				// TODO set the remap addr; it's 0 now
-//			}
-//			praddrwin(win, i);
-//		} else if (targ == Targflash && attr == Attrspi &&
-//		    size64k == 128*MB/(64*1024)) {
-//			sawspi = 1;
-//			if (!(ctl & Winenable)) {
-//				win->ctl |= Winenable;
-//				coherence();
-//				praddrwin(win, i);
-//			}
-//		} else
 		USED(attr, size64k);
 		if (targ == Targcesasram) {
 			win->ctl |= Winenable;
@@ -187,8 +168,6 @@ fixaddrmap(void)
 			praddrwin(win, i);
 		}
 	}
-//	if (!sawspi)
-//		print("cpu address map: no existing window for spi\n");
 	if (map->dirba != PHYSIO)
 		panic("dirba not %#ux", PHYSIO);
 }
@@ -219,8 +198,9 @@ log2(ulong n)
 {
 	int i;
 
-	for(i = 0; (1 << i) < n; i++)
-		;
+	i = 31 - clz(n);
+	if (!ispow2(n) || n == 0)
+		i++;
 	return i;
 }
 

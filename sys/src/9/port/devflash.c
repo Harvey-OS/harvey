@@ -15,7 +15,7 @@ typedef struct Flashtype Flashtype;
 struct Flashtype {
 	char*	name;
 	int	(*reset)(Flash*);
-	Flashtype∗ next;
+	Flashtype* next;
 };
 
 enum {
