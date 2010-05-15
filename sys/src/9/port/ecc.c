@@ -109,7 +109,7 @@ nandecccorrect(uchar *buf, ulong calcecc, ulong *storedecc, int reportbad)
 	if (k == 1) {
 		if (reportbad)
 			print("nandecccorrect: single bit error in ecc\n");
-		// assume the stored ecc was wrong
+		/* assume the stored ecc was wrong */
 		*storedecc = calcecc;
 		return NandEccErrorOneBitInEcc;
 	}
