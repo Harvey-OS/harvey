@@ -17,8 +17,7 @@ bridge \- IPv4 Ethernet bridge
 .SH DESCRIPTION
 The
 .I bridge
-device implements bridging of IPv4 packets
-amongst Ethernet interfaces.
+device bridges IPv4 packets amongst Ethernet interfaces.
 The number
 .I b
 in the bind is optional and selects a particular bridge
@@ -80,6 +79,7 @@ Read packets from the
 interface and write them to the
 .I path2
 interface.
+Such tunnels have an MTU of 1400 bytes.
 .TP
 .BI "unbind " "type address [ownhash]"
 Disassociate the interface associated with

@@ -109,9 +109,11 @@ enum {
 	/* status bits */
 	SFail		= 1<<0,
 	SCachefail	= 1<<1,
-	SIdle		= 1<<5,
+	SIdle		= 1<<5,		/* doesn't seem to come on ever */
 	SReady		= 1<<6,
 	SNotprotected	= 1<<7,
+
+	Srdymask	= SReady,	/* was SIdle|SReady */
 };
 
 Nandtab nandtab[] = {
@@ -289,6 +291,28 @@ idchip(Flash *f)
 }
 
 static int
+ctlrwait(Flash *f)
+{
+	int sts, cnt;
+
+	nandclaim(f);
+	for (;;) {
+		nandcmd(f, Readstatus);
+		for(cnt = 100; cnt > 0 && (nandread(f) & Srdymask) != Srdymask;
+		    cnt--)
+			microdelay(50);
+		nandcmd(f, Readstatus);
+		sts = nandread(f);
+		if((sts & Srdymask) == Srdymask)
+			break;
+		print("flashkw: flash ctlr busy, sts %#ux: resetting\n", sts);
+		nandcmd(f, Resetf);
+	}
+	nandunclaim(f);
+	return 0;
+}
+
+static int
 erasezone(Flash *f, Flashregion *r, ulong offset)
 {
 	int i;
@@ -313,15 +337,13 @@ erasezone(Flash *f, Flashregion *r, ulong offset)
 		print("flashkw: erase: block %#lux\n", block);
 
 	/* make sure controller is idle */
-	nandclaim(f);
-	nandcmd(f, Readstatus);
-	if((nandread(f) & (SIdle|SReady)) != (SIdle|SReady)) {
-		nandunclaim(f);
+	if(ctlrwait(f) < 0) {
 		print("flashkw: erase: flash busy\n");
 		return -1;
 	}
 
 	/* start erasing */
+	nandclaim(f);
 	nandcmd(f, Erase);
 	nandaddr(f, page>>0);
 	nandaddr(f, page>>8);
@@ -397,16 +419,13 @@ write1page(Flash *f, ulong offset, void *buf)
 		p += 256;
 	}
 
-	nandclaim(f);
-
-	nandcmd(f, Readstatus);
-	if((nandread(f) & (SIdle|SReady)) != (SIdle|SReady)) {
-		nandunclaim(f);
+	if(ctlrwait(f) < 0) {
 		print("flashkw: write: nand not ready & idle\n");
 		return -1;
 	}
 
 	/* write, only whole pages for now, no sub-pages */
+	nandclaim(f);
 	nandcmd(f, Program);
 	nandaddr(f, 0);
 	nandaddr(f, 0);

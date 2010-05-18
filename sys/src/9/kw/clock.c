@@ -16,7 +16,7 @@
 
 enum {
 	Tcycles		= CLOCKFREQ / HZ,	/* cycles per clock tick */
-	Dogperiod	= 5 * CLOCKFREQ, /* at most 21 s.; must fit in ulong */
+	Dogperiod	= 15 * CLOCKFREQ, /* at most 21 s.; must fit in ulong */
 	MaxPeriod	= Tcycles,
 	MinPeriod	= MaxPeriod / 100,
 
@@ -123,8 +123,6 @@ clockinit(void)
 	coherence();
 	tmr->ctl = Tmr0enable | Tmr0reload | Tmr1enable | Tmr1reload |
 		TmrWDenable;
-//	intrenable(Irqbridge, IRQcputimer1, clockintr, tmr, "clock1");
-//	cpu->irqmask |= 1 << IRQcputimer0  | 1 << IRQcputimer1; // TODO experiment
 	cpu->rstout |= RstoutWatchdog;
 	coherence();
 }
