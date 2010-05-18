@@ -1141,8 +1141,8 @@ mymii(Mii* mii, int mask)
 				continue;
 			MIIDBG("ctlrno %d phy %d oui %#ux model %#ux\n",
 				ctlrno, phyno, oui, model);
-			delay(50);
-			if (model == Phy1121r || model == Phy1116r)
+			if (oui == Ouimarvell &&
+			    (model == Phy1121r || model == Phy1116r))
 				++dualport;
 			phynos[phyidx++] = phyno;
 		}
@@ -1231,6 +1231,7 @@ kirkwoodmii(Ether *ether)
 
 	/* oui 005043 is marvell */
 	MIIDBG("oui %#X phyno %d\n", phy->oui, phy->phyno);
+	// TODO: does this make sense? shouldn't each phy be initialised?
 	if((ctlr->ether->ctlrno == 0 || hackflavour != Hackdual) &&
 	    miistatus(ctlr->mii) < 0){
 		miireset(ctlr->mii);
