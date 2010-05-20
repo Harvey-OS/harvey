@@ -420,6 +420,8 @@ writetomem(ulong inst)
 	return 1;
 }
 
+void	prgpmcerrs(void);
+
 /*
  *  here on all exceptions other than syscall (SWI)
  */
@@ -478,7 +480,9 @@ trap(Ureg *ureg)
 		ldrexvalid = 0;
 		va = farget();
 		inst = *(ulong*)(ureg->pc);
-		fsr = fsrget() & 0xf;
+		/* bits 12 and 10 have to be concatenated with status */
+		x = fsrget();
+		fsr = (x>>7) & 0x20 | (x>>6) & 0x10 | x & 0xf;
 		if (probing && !user) {
 			if (trapped++ > 0)
 				panic("trap: recursive probe %#lux", va);
@@ -486,11 +490,15 @@ trap(Ureg *ureg)
 			break;
 		}
 		switch(fsr){
+		default:
+		case 0xa:		/* ? was under external abort */
+			panic("unknown data fault, 6b fsr %#lux", fsr);
+			break;
 		case 0x0:
 			panic("vector exception at %#lux", ureg->pc);
 			break;
-		case 0x1:
-		case 0x3:
+		case 0x1:		/* alignment fault */
+		case 0x3:		/* access flag fault (section) */
 			if(user){
 				snprint(buf, sizeof buf,
 					"sys: alignment: pc %#lux va %#p\n",
@@ -502,13 +510,23 @@ trap(Ureg *ureg)
 		case 0x2:
 			panic("terminal exception at %#lux", ureg->pc);
 			break;
-		case 0x4:
-		case 0x6:
-		case 0x8:
-		case 0xa:
-		case 0xc:
-		case 0xe:
+		case 0x4:		/* icache maint fault */
+		case 0x6:		/* access flag fault (page) */
+		case 0x8:		/* precise external abort, non-xlat'n */
+		case 0x28:
+		case 0xc:		/* l1 translation, precise ext. abort */
+		case 0x2c:
+		case 0xe:		/* l2 translation, precise ext. abort */
+		case 0x2e:
+		case 0x16:		/* imprecise ext. abort, non-xlt'n */
+		case 0x36:
 			panic("external abort %#lux pc %#lux addr %#p",
+				fsr, ureg->pc, va);
+			break;
+		case 0x1c:		/* l1 translation, precise parity err */
+		case 0x1e:		/* l2 translation, precise parity err */
+		case 0x18:		/* imprecise parity or ecc err */
+			panic("translation parity error %#lux pc %#lux addr %#p",
 				fsr, ureg->pc, va);
 			break;
 		case 0x5:		/* translation fault, no section entry */

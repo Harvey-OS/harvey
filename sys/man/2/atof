@@ -135,9 +135,6 @@ Zero is returned if the beginning of the input string is not
 interpretable as a number; even in this case,
 .I rptr
 will be updated.
-.br
-These routines set
-.IR errstr .
 .SH BUGS
 .I Atoi,
 .I atol,

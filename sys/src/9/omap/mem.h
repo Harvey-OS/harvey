@@ -117,12 +117,13 @@
  */
 
 /* gpmc-controlled address space 0—1G */
-#define PHYSNAND	0x20000000	/* mapped here by u-boot or flashomap */
+#define PHYSNAND	1		/* cs0 is onenand flash */
 #define PHYSETHER	0x2c000000
 
 #define PHYSIO		0x48000000	/* L4 ctl */
 
 #define PHYSSCM		0x48002000	/* system control module */
+
 /* core control pad cfg		0x48002030—0x480021e4, */
 /* core control d2d pad cfg	0x480021e4—0x48002264 */
 #define PHYSSCMPCONF	0x48002270	/* general device config */
@@ -130,6 +131,7 @@
 /* core control pad cfg (2)	0x480025d8—0x480025fc */
 #define PHYSSWBOOTCFG	0x48002910	/* sw booting config */
 /* wakeup control pad cfg	0x48002a00—0x48002a54 */
+
 #define PHYSSCMMPU	0x48004900	/* actually CPU */
 #define PHYSSCMCORE	0x48004a00
 #define PHYSSCMWKUP	0x48004c00
@@ -196,6 +198,5 @@
 
 #define PHYSDRAM	0x80000000
 
+#define VIRTNAND	0x20000000	/* fixed by u-boot */
 #define VIRTIO		PHYSIO
-
-#define NANDSIZE	(512*MB)	/* or 256 on beagle */

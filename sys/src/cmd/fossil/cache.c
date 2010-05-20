@@ -737,9 +737,15 @@ cacheAllocBlock(Cache *c, int type, u32int tag, u32int epoch, u32int epochLow)
 			addr = 0;
 			if(++nwrap >= 2){
 				blockPut(b);
-				fl->last = 0;
 				vtSetError("disk is full");
-				fprint(2, "%s: cacheAllocBlock: xxx1 %R\n", argv0);
+				/*
+				 * try to avoid a continuous spew of console
+				 * messages.
+				 */
+				if (fl->last != 0)
+					fprint(2, "%s: cacheAllocBlock: xxx1 %R\n",
+						argv0);
+				fl->last = 0;
 				vtUnlock(fl->lk);
 				return nil;
 			}

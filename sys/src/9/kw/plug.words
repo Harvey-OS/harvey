@@ -1,6 +1,6 @@
-global scale sheevaplug
+global scale sheevaplug & guruplug
 
-marvell 88f6281 (feroceon kirkwood) SoC; ours are revision A0
+marvell 88f6281 (feroceon kirkwood) SoC
 arm926ej-s rev 1 [56251311] (armv5tejl) 1.2GHz cpu
 
 l1 I & D VIVT caches 16K each: 4-way, 128 sets, 32-byte lines
@@ -33,11 +33,10 @@ see http://www.marvell.com/files/products/embedded_processors/kirkwood/\
 	/public/doc/marvell/88f61xx.kirkwood.pdf
 
 If you plan to use flash, it would be wise to avoid touching the first
-few megabytes, which contain u-boot and the distributed linux kernel.
-u-boot occupies flash up to 0x100000, and there's a linux kernel from
-there to 0x400000.  You'll also likely want to use paqfs rather than
-fossil or kfs for file systems in flash since there is no
-wear-levelling.
+megabyte, which contains u-boot, right up to 0x100000.  There's a
+linux kernel from there to 0x400000, if you care.  You'll also likely
+want to use paqfs rather than fossil or kfs for file systems in flash
+since there is no wear-levelling.
 
 The code is fairly heavy-handed with the use of barrier instructions
 (BARRIERS in assembler, coherence in C), partly in reaction to bad
