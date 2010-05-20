@@ -16,6 +16,7 @@ enum
 	Nram	= 2048,
 	Maxsize	= 768*1024*1024,
 	Maxfdata	= 8192,
+	Maxulong= (1ULL << 32) - 1,
 };
 
 typedef struct Fid Fid;
@@ -504,11 +505,16 @@ rread(Fid *f)
 		return Enotexist;
 	n = 0;
 	rhdr.count = 0;
+	rhdr.data = (char*)rdata;
+	if (thdr.offset < 0 || thdr.offset > Maxulong)
+		return "whacko seek offset";
 	off = thdr.offset;
 	buf = rdata;
 	cnt = thdr.count;
 	if(cnt > messagesize)	/* shouldn't happen, anyway */
 		cnt = messagesize;
+	if(cnt < 0)
+		return "negative read count";
 	if(f->ram->qid.type & QTDIR){
 		for(r=ram+1; off > 0; r++){
 			if(r->busy && r->parent==f->ram-ram)
@@ -548,12 +554,17 @@ rwrite(Fid *f)
 	int cnt;
 
 	r = f->ram;
+	rhdr.count = 0;
 	if(r->busy == 0)
 		return Enotexist;
+	if (thdr.offset < 0 || thdr.offset > Maxulong)
+		return "whacko seek offset";
 	off = thdr.offset;
 	if(r->perm & DMAPPEND)
 		off = r->ndata;
 	cnt = thdr.count;
+	if(cnt < 0)
+		return "negative write count";
 	if(r->qid.type & QTDIR)
 		return Eisdir;
 	if(memlim && off+cnt >= Maxsize)		/* sanity check */

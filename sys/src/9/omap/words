@@ -77,14 +77,14 @@ There are four USB errata that need to be looked into for the igepv2
 
 Flash
 
-access to nand or spi flash would be handy for nvram and small
-fossils.  flash access isn't well documented.  inferno implements
-these software layers: ecc, translation (for wear-levelling and bad
-sectors), common flash code and specific drivers for flash chips.
+access to nand flash would be handy for nvram and paqfs or sacfs file
+systems.
 
 In the flash, x-loader occupies up to 0x20000, then u-boot from
-0x80000 to 0x1e0000.  The flash chip is a micron pop 2Gb nand
-mt29f2g16abdhc-et (physical marking jw256).
+0x80000 to 0x1e0000, and there's a linux kernel after that (if you
+care).  The beagle's flash chip is a micron pop 2Gb nand
+mt29f2g16abdhc-et (physical marking jw256), and the igep's is a
+samsung onenand.
 
 VFPv3 Floating Point
 
@@ -133,6 +133,8 @@ ___
 	memory map (mostly from omap35x ref)
 hex addr	size	what
 ----
+0		16MB	physical address of flash registers, buffers
+20000000	16MB	virtual address of flash registers, buffers
 2c000000	?	smc 9221 ethernet
 38000000	16MB	256MB (beagle) or 512MB (igep) nand flash mapped here
 

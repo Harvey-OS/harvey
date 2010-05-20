@@ -90,7 +90,7 @@ enum {
  * an array of these structs is preceded by error_log at 0x20, control,
  * error_clear_single, error_clear_multi.  first struct is at offset 0x48.
  */
-struct L3protreg {		/* an L3 protection region */
+struct L3protreg {		/* hw: an L3 protection region */
 	uvlong	req_info_perm;
 	uvlong	read_perm;
 	uvlong	write_perm;
@@ -105,7 +105,7 @@ enum {
 	Permmpu		= 1<<1,
 };
 
-struct L3agent {
+struct L3agent {		/* hw registers */
 	uchar	_pad0[0x20];
 	uvlong	ctl;
 	uvlong	sts;
@@ -245,7 +245,7 @@ log2(ulong n)
 	int i;
 
 	i = 31 - clz(n);
-	if (!ispow2(n))
+	if (!ispow2(n) || n == 0)
 		i++;
 	return i;
 }
@@ -254,13 +254,16 @@ void
 archconfinit(void)
 {
 	char *p;
+	ulong mhz;
 
 	assert(m != nil);
+	m->cpuhz = 500 * 1000 * 1000;		/* beagle speed */
 	p = getconf("*cpumhz");
-	if (p)
-		m->cpuhz = atoi(p) * 1000 * 1000;
-	else
-		m->cpuhz = 500 * 1000 * 1000;	/* beagle speed */
+	if (p) {
+		mhz = atoi(p) * 1000 * 1000;
+		if (mhz >= 100*1000*1000 && mhz <= 3000UL*1000*1000)
+			m->cpuhz = mhz;
+	}
 	m->delayloop = m->cpuhz/2000;		/* initial estimate */
 }
 
@@ -832,9 +835,9 @@ prcachecfg(void)
 		if (mc.linelen != CACHELINESZ)
 			iprint(" *should* be %d", CACHELINESZ);
 		if (mc.setsways & Cawt)
-			iprint("; can write-through");
+			iprint("; can WT");
 		if (mc.setsways & Cawb)
-			iprint("; can write-back");
+			iprint("; can WB");
 #ifdef COMPULSIVE			/* both caches can do this */
 		if (mc.setsways & Cara)
 			iprint("; can read-allocate");
@@ -875,7 +878,7 @@ subarch(int impl, uint sa)
 }
 
 /*
- * padconf bits in a short, 2 per register
+ * padconf bits in a short, 2 per long register
  *	15	wakeupevent
  *	14	wakeupenable
  *	13	offpulltypeselect
@@ -890,7 +893,61 @@ subarch(int impl, uint sa)
  */
 
 enum {
-	Muxmode		= MASK(3),
+	/* pad config register bits */
+	Inena	= 1 << 8,		/* input enable */
+	Indis	= 0 << 8,		/* input disable */
+	Ptup	= 1 << 4,		/* pull type up */
+	Ptdown	= 0 << 4,		/* pull type down */
+	Ptena	= 1 << 3,		/* pull type selection is active */
+	Ptdis	= 0 << 3,		/* pull type selection is inactive */
+	Muxmode	= MASK(3),
+
+	/* pad config registers relevant to flash */
+	GpmcA1		= 0x4800207A,
+	GpmcA2		= 0x4800207C,
+	GpmcA3		= 0x4800207E,
+	GpmcA4		= 0x48002080,
+	GpmcA5		= 0x48002082,
+	GpmcA6		= 0x48002084,
+	GpmcA7		= 0x48002086,
+	GpmcA8		= 0x48002088,
+	GpmcA9		= 0x4800208A,
+	GpmcA10		= 0x4800208C,
+	GpmcD0		= 0x4800208E,
+	GpmcD1		= 0x48002090,
+	GpmcD2		= 0x48002092,
+	GpmcD3		= 0x48002094,
+	GpmcD4		= 0x48002096,
+	GpmcD5		= 0x48002098,
+	GpmcD6		= 0x4800209A,
+	GpmcD7		= 0x4800209C,
+	GpmcD8		= 0x4800209E,
+	GpmcD9		= 0x480020A0,
+	GpmcD10		= 0x480020A2,
+	GpmcD11		= 0x480020A4,
+	GpmcD12		= 0x480020A6,
+	GpmcD13		= 0x480020A8,
+	GpmcD14		= 0x480020AA,
+	GpmcD15		= 0x480020AC,
+	GpmcNCS0	= 0x480020AE,
+	GpmcNCS1	= 0x480020B0,
+	GpmcNCS2	= 0x480020B2,
+	GpmcNCS3	= 0x480020B4,
+	GpmcNCS4	= 0x480020B6,
+	GpmcNCS5	= 0x480020B8,
+	GpmcNCS6	= 0x480020BA,
+	GpmcNCS7	= 0x480020BC,
+	GpmcCLK		= 0x480020BE,
+	GpmcNADV_ALE	= 0x480020C0,
+	GpmcNOE		= 0x480020C2,
+	GpmcNWE		= 0x480020C4,
+	GpmcNBE0_CLE	= 0x480020C6,
+	GpmcNBE1	= 0x480020C8,
+	GpmcNWP		= 0x480020CA,
+	GpmcWAIT0	= 0x480020CC,
+	GpmcWAIT1	= 0x480020CE,
+	GpmcWAIT2	= 0x480020D0,
+	GpmcWAIT3	= 0x480020D2,
 };
 
 /* set SCM pad config mux mode */
@@ -902,12 +959,8 @@ setmuxmode(ulong addr, int shorts, int mode)
 
 	for (ptr = (ushort *)addr; shorts-- > 0; ptr++) {
 		omode = *ptr & Muxmode;
-		if (omode != mode) {
-//			print("scm pad %#p was mux mode %d, now %d\n",
-//				ptr, omode, mode);
-//			delay(10);
+		if (omode != mode)
 			*ptr = *ptr & ~Muxmode | mode & Muxmode;
-		}
 	}
 	coherence();
 }
@@ -915,7 +968,7 @@ setmuxmode(ulong addr, int shorts, int mode)
 static void
 setpadmodes(void)
 {
-	ushort *ptr;
+	int off;
 
 	/* set scm pad modes for usb; hasn't made any difference yet */
 	setmuxmode(0x48002166, 7, 5);	/* hsusb3_tll; is mode 4 */
@@ -931,10 +984,70 @@ setpadmodes(void)
 	 * igep only: mode 4 of 21d2 is gpio_176 (smsc9221 ether irq).
 	 * see ether9221.c for more.
 	 */
-	ptr = (ushort *)0x480021d2;
-//	setmuxmode((uintptr)ptr, 1, 4);
-	/* input enable, pu/pd = 3, muxmode 4 */
-	*ptr = 1 << 8 | 3 << 3 | 4;
+	*(ushort *)0x480021d2 = Inena | Ptup | Ptena | 4;
+
+	/* magic from u-boot */
+	*(ushort *)GpmcA1	= Indis | Ptup | Ptena | 0;
+	*(ushort *)GpmcA2	= Indis | Ptup | Ptena | 0;
+	*(ushort *)GpmcA3	= Indis | Ptup | Ptena | 0;
+	*(ushort *)GpmcA4	= Indis | Ptup | Ptena | 0;
+	*(ushort *)GpmcA5	= Indis | Ptup | Ptena | 0;
+	*(ushort *)GpmcA6	= Indis | Ptup | Ptena | 0;
+	*(ushort *)GpmcA7	= Indis | Ptup | Ptena | 0;
+	*(ushort *)GpmcA8	= Indis | Ptup | Ptena | 0;
+	*(ushort *)GpmcA9	= Indis | Ptup | Ptena | 0;
+	*(ushort *)GpmcA10	= Indis | Ptup | Ptena | 0;
+
+	*(ushort *)GpmcD0	= Inena | Ptup | Ptena | 0;
+	*(ushort *)GpmcD1	= Inena | Ptup | Ptena | 0;
+	*(ushort *)GpmcD2	= Inena | Ptup | Ptena | 0;
+	*(ushort *)GpmcD3	= Inena | Ptup | Ptena | 0;
+	*(ushort *)GpmcD4	= Inena | Ptup | Ptena | 0;
+	*(ushort *)GpmcD5	= Inena | Ptup | Ptena | 0;
+	*(ushort *)GpmcD6	= Inena | Ptup | Ptena | 0;
+	*(ushort *)GpmcD7	= Inena | Ptup | Ptena | 0;
+	*(ushort *)GpmcD8	= Inena | Ptup | Ptena | 0;
+	*(ushort *)GpmcD9	= Inena | Ptup | Ptena | 0;
+	*(ushort *)GpmcD10	= Inena | Ptup | Ptena | 0;
+	*(ushort *)GpmcD11	= Inena | Ptup | Ptena | 0;
+	*(ushort *)GpmcD12	= Inena | Ptup | Ptena | 0;
+	*(ushort *)GpmcD13	= Inena | Ptup | Ptena | 0;
+	*(ushort *)GpmcD14	= Inena | Ptup | Ptena | 0;
+	*(ushort *)GpmcD15	= Inena | Ptup | Ptena | 0;
+
+	*(ushort *)GpmcNCS0	= Indis | Ptup | Ptena | 0;
+	*(ushort *)GpmcNCS1	= Indis | Ptup | Ptena | 0;
+	*(ushort *)GpmcNCS2	= Indis | Ptup | Ptena | 0;
+	*(ushort *)GpmcNCS3	= Indis | Ptup | Ptena | 0;
+	*(ushort *)GpmcNCS4	= Indis | Ptup | Ptena | 0;
+	*(ushort *)GpmcNCS5	= Indis | Ptup | Ptena | 0;
+	*(ushort *)GpmcNCS6	= Indis | Ptup | Ptena | 0;
+
+	*(ushort *)GpmcNOE	= Indis | Ptdown | Ptdis | 0;
+	*(ushort *)GpmcNWE	= Indis | Ptdown | Ptdis | 0;
+
+	*(ushort *)GpmcWAIT2	= Inena | Ptup | Ptena | 4; /* GPIO_64 -ETH_NRESET */
+	*(ushort *)GpmcNCS7	= Inena | Ptup | Ptena | 1; /* SYS_nDMA_REQ3 */
+
+	*(ushort *)GpmcCLK	= Indis | Ptdown | Ptdis | 0;
+
+	*(ushort *)GpmcNBE1	= Inena | Ptdown | Ptdis | 0;
+
+	*(ushort *)GpmcNADV_ALE	= Indis | Ptdown | Ptdis | 0;
+	*(ushort *)GpmcNBE0_CLE	= Indis | Ptdown | Ptdis | 0;
+
+	*(ushort *)GpmcNWP	= Inena | Ptdown | Ptdis | 0;
+
+	*(ushort *)GpmcWAIT0	= Inena | Ptup | Ptena | 0;
+	*(ushort *)GpmcWAIT1	= Inena | Ptup | Ptena | 0;
+	*(ushort *)GpmcWAIT3	= Inena | Ptup | Ptena | 0;
+
+	/*
+	 * magic from u-boot: set 0xe00 bits in gpmc_(nwe|noe|nadv_ale)
+	 * to enable `off' mode for each.
+	 */
+	for (off = 0xc0; off <= 0xc4; off += sizeof(short))
+		*((ushort *)(PHYSSCM + off)) |= 0xe00;
 	coherence();
 }
 

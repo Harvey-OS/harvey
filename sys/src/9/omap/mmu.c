@@ -68,25 +68,33 @@ idmap(PTE *l1, ulong va)
 	l1[L1X(va)] = va | Dom0 | L1AP(Krw) | Section;
 }
 
+/* map `mbs' megabytes from virt to phys */
+void
+mmumap(uintptr virt, uintptr phys, int mbs)
+{
+	uint off;
+	PTE *l1;
+
+	phys &= ~(MB-1);
+	virt &= ~(MB-1);
+	l1 = KADDR(ttbget());
+	for (off = 0; mbs-- > 0; off += MB)
+		l1[L1X(virt + off)] = (phys + off) | Dom0 | L1AP(Krw) | Section;
+	cacheuwbinv();
+	l2cacheuwbinv();
+	mmuinvalidate();
+}
+
 /* identity map `mbs' megabytes from phys */
 void
 mmuidmap(uintptr phys, int mbs)
 {
-	PTE *l1;
-	uintptr fpa;
-
-	l1 = KADDR(ttbget());
-	for (fpa = phys; mbs-- > 0; fpa += MiB)
-		idmap(l1, fpa);
-	mmuinvalidate();
-	cacheuwbinv();
-	l2cacheuwbinv();
+	mmumap(phys, phys, mbs);
 }
 
 void
 mmuinit(void)
 {
-//	int i;
 	uintptr pa;
 	PTE *l1, *l2;
 
@@ -102,8 +110,6 @@ mmuinit(void)
 	idmap(l1, PHYSSMS);
 	idmap(l1, PHYSDRC);
 	idmap(l1, PHYSGPMC);
-//	for (i = 0; i < 16; i++)	/* just need 16MB */
-//		idmap(l1, PHYSNAND + i*MB);
 
 	/* map high vectors to start of dram, but only 4K, not 1MB */
 	pa -= MACHSIZE+2*1024;
@@ -114,9 +120,9 @@ mmuinit(void)
 	l1[L1X(HVECTORS)] = pa|Dom0|Coarse;	/* vectors -> ttb-machsize-2k */
 	coherence();
 
-	mmuinvalidate();
 	cacheuwbinv();
 	l2cacheuwbinv();
+	mmuinvalidate();
 
 	m->mmul1 = l1;
 //	mmudump(l1);			/* DEBUG */
