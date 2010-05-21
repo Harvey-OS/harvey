@@ -498,7 +498,7 @@ rread(Fid *f)
 {
 	Ram *r;
 	uchar *buf;
-	long off;
+	vlong off;
 	int n, m, cnt;
 
 	if(f->ram->busy == 0)
@@ -506,8 +506,8 @@ rread(Fid *f)
 	n = 0;
 	rhdr.count = 0;
 	rhdr.data = (char*)rdata;
-	if (thdr.offset < 0 || thdr.offset > Maxulong)
-		return "whacko seek offset";
+	if (thdr.offset < 0)
+		return "negative seek offset";
 	off = thdr.offset;
 	buf = rdata;
 	cnt = thdr.count;
@@ -550,15 +550,15 @@ char*
 rwrite(Fid *f)
 {
 	Ram *r;
-	ulong off;
+	vlong off;
 	int cnt;
 
 	r = f->ram;
 	rhdr.count = 0;
 	if(r->busy == 0)
 		return Enotexist;
-	if (thdr.offset < 0 || thdr.offset > Maxulong)
-		return "whacko seek offset";
+	if (thdr.offset < 0)
+		return "negative seek offset";
 	off = thdr.offset;
 	if(r->perm & DMAPPEND)
 		off = r->ndata;
