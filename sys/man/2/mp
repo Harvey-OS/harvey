@@ -338,6 +338,12 @@ and
 .IR print (2)
 to print hexadecimal representations of
 .BR mpint s.
+The conventional verb is
+.LR B ,
+for which
+.I mp.h
+provides a
+.LR pragma .
 .PP
 .I Mptobe
 and
