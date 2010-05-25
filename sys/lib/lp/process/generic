@@ -178,6 +178,17 @@ case PDF
 	case *
 		echo Unrecognized class of line printer for $LPDEST >[1=2]
 	}
+case microsoft				# office document
+	switch ($LPCLASS) {
+	case *post*
+		doc2ps $temp | $proc/post
+	case *gs!*
+		doc2ps $temp | $proc/post  | $proc/gspipe
+	case *gsijs!*
+		doc2ps $temp | $proc/post | $proc/gspipeijs
+	case *
+		echo $type(2) file is improper for $LPDEST >[1=2]
+	}
 case empty
 	echo file is empty >[1=2]
 case cannot
