@@ -891,7 +891,7 @@ resetdisk(Drive *d)
 static int
 newdrive(Drive *d)
 {
-	char *name, *s;
+	char *name;
 	Aportc *c;
 	Aportm *m;
 
@@ -929,13 +929,9 @@ newdrive(Drive *d)
 
 	qunlock(c->m);
 
-	s = "";
-	if(m->feat & Dllba)
-		s = "L";
-	idprint("%s: %sLBA %,llud sectors\n", d->unit->name, s, d->sectors);
-	idprint("  %s %s %s %s\n", d->model, d->firmware, d->serial,
-		d->mediachange? "[mediachange]": "");
-
+	idprint("%s: %sLBA %,llud sectors: %s %s %s %s\n", d->unit->name,
+		(m->feat & Dllba? "L": ""), d->sectors, d->model, d->firmware,
+		d->serial, d->mediachange? "[mediachange]": "");
 	return 0;
 
 lose:
@@ -1318,7 +1314,8 @@ waitready(Drive *d)
 {
 	ulong s, t, i;
 
-	for(i = 0; i < 120; i++){
+	/* don't wait long; we're only the bootstrap */
+	for(i = 0; i < 150; i++){
 		ilock(d);
 		s = d->port->sstatus;
 		t = d->port->task;
@@ -1330,7 +1327,7 @@ waitready(Drive *d)
 		if((i + 1) % 30 == 0)
 			print("%s: waitready: [%s] task=%lux sstat=%lux\n",
 				d->unit->name, diskstates[d->state], t, s);
-		esleep(1000);
+		esleep(100);
 	}
 	print("%s: not responding; offline\n", d->unit->name);
 	ilock(d);
