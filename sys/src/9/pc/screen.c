@@ -363,6 +363,11 @@ hwdraw(Memdrawparam *par)
 		return 0;
 
 	if(scr->cur == &swcursor){
+		/*
+		 * always calling swcursorhide here doesn't cure
+		 * leaving cursor tracks nor failing to refresh menus
+		 * with the latest libmemdraw/draw.c.
+		 */
 		if(dst->data->bdata == gscreendata.bdata)
 			swcursoravoid(par->r);
 		if(src->data->bdata == gscreendata.bdata)

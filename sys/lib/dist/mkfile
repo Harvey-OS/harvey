@@ -15,7 +15,7 @@ cd-dist:V: /n/other/dist/plan9.iso.bz2
 	mk $dist/web.protect/plan9.iso.bz2
 
 contrib-cd:V: /n/other/dist/contrib.iso.bz2
-#	mk $dist/web.protect/contrib.iso.bz2
+	mk $dist/web.protect/contrib.iso.bz2
 
 /n/other/dist/%.iso:D: /n/sources/plan9/dist/replica/plan9.log
 	@{cd pc; mk cddisk; cd ..}
@@ -141,10 +141,12 @@ reencode:V:
 		-p ./contrib.proto $target
 
 rebuild:V:
-	rebuild
+	chmod +l build.lock >>build.lock
+	rebuild <build.lock
 
 rebuild-mail:V:
-	rebuild
+	chmod +l build.lock >>build.lock
+	rebuild <build.lock
 	datemail 'nightly build errors' 9trouble <buildit.out
 	datemail 'nightly build differences' 9trouble <checkbuild.out
 	status=''
