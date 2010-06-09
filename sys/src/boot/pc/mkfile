@@ -7,9 +7,9 @@ TARG=\
 	9loaddebug\
 	9loadlite\
 	9loadlitedebug\
+	9loadnousb\
 	9pxeload\
 	9pxeloaddebug\
-	ld.com\
 	mbr\
 	pbs\
 	pbslba\
@@ -96,31 +96,35 @@ CFLAGS=-FTVw -I.
 
 all:V:	$TARG
 
-9load:	l.$O $CORE $LOAD $ETHER
+9load:	l.$O $CORE $LOAD $ETHER biosload.$O
 	$LD -o $target -H3 -T0x80010000 -l $prereq -lflate -lc -lip
 	ls -l $target
 
-9pxeload:	lpxe.$O $CORE $LOAD $ETHER
+9pxeload:	lpxe.$O $CORE $LOAD $ETHER biosload.$O
 	$LD -o $target -H3 -T0x80007C00 -l $prereq -lflate -lc -lip
 	ls -l $target
 
-9loaddebug:	l.$O $CORE $LOAD $ETHER
+9loaddebug:	l.$O $CORE $LOAD $ETHER biosload.$O
 	$LD -o $target -T0x80010000 -l $prereq -lflate -lc -lip
 	ls -l $target
 	# acid $target
 	# map({"text", 0x80010000, 0x80090000, 0x00000020})
 
-9pxeloaddebug:	lpxe.$O $CORE $LOAD $ETHER
+9pxeloaddebug:	lpxe.$O $CORE $LOAD $ETHER biosload.$O
 	$LD -o $target -T0x80007C00 -l $prereq -lflate -lc -lip
 	ls -l $target
 	# acid $target
 	# map({"text", 0x80010000, 0x80090000, 0x00000020})
 
-9loadlite:	l.$O $CORE $LOAD noether.$O
+9loadnousb:	l.$O $CORE $LOAD $ETHER nobiosload.$O
+	$LD -o $target -H3 -T0x80010000 -l $prereq -lflate -lc -lip
+	ls -l $target
+
+9loadlite:	l.$O $CORE $LOAD noether.$O biosload.$O
 	$LD -o $target -H3 -T0x80010000 -l $prereq -lflate -lc
 	ls -l $target
 
-9loadlitedebug:	l.$O $CORE $LOAD noether.$O
+9loadlitedebug:	l.$O $CORE $LOAD noether.$O biosload.$O
 	$LD -o $target -T0x80010000 -l $prereq -lflate -lc
 	ls -l $target
 	# acid $target
@@ -193,8 +197,9 @@ install:V:
 		mk $MKFLAGS $i.install
 
 %.install:V:	$BIN/%
-	# import lookout / /n/lookout
-	# cp $prereq /n/lookout/$prereq
+#	for (fs in $EXTRACOPIES)
+#		9fs $fs && cp $prereq /n/$fs/$prereq
+	;
 
 $BIN/%:	%
 	cp $stem $BIN/$stem

@@ -1,5 +1,6 @@
 /*
- * boot driver for BIOS devices
+ * boot driver for BIOS LBA devices
+ * heavily dependent upon correct BIOS implementation
  */
 #include <u.h>
 #include "lib.h"
@@ -17,13 +18,16 @@ typedef struct Biosdev Biosdev;
 
 enum {
 	Debug = 0,
-	Maxdevs = 4,
+	Maxdevs = 8,
 
-	CF = 1,
+	CF = 1,				/* carry flag: indicates an error */
 	Flopid = 0,			/* first floppy */
 	Baseid = 0x80,			/* first disk */
 
-	/* bios calls: int 13 disk services */
+	Dap	= 1<<0,
+	Edd	= 1<<2,
+
+	/* bios calls: int 0x13 disk services */
 	Biosinit	= 0,		/* initialise disk & floppy ctlrs */
 	Biosdrvsts,
 	Bioschsrdsects,
@@ -52,12 +56,12 @@ struct Biosdev {
 	ushort	sectsz;
 };
 
-typedef struct Extread {
+typedef struct Extread {	/* a device address packet */
 	uchar	size;
 	uchar	unused1;
 	uchar	nsects;
 	uchar	unused2;
-	ulong	addr;		/* segment:offset */
+	ulong	addr;		/* segment:offset; ea = (segment<<4)+offset */
 	uvlong	stsect;		/* starting sector */
 } Extread;
 typedef struct Edrvparam {
@@ -98,19 +102,39 @@ static Devbytes	extgetsize(Biosdev *);
 static Devsects	getsize(uchar drive, char *type);
 static int	islba(uchar drive);
 
+/*
+ * caller must zero or otherwise initialise *rp,
+ * other than ax, bx, dx, si & ds.
+ */
 static int
 biosdiskcall(Ureg *rp, uchar op, ulong bx, ulong dx, ulong si)
 {
-	memset(rp, 0, sizeof *rp);
 	rp->ax = op << 8;
 	rp->bx = bx;
-	rp->dx = dx;			/* often drive id */
-	rp->si = si;
-	/* pass command in *rp, get results from there */
+	rp->dx = dx;		/* often drive id */
+	/*
+	 * ensure that addr fits in a short,
+	 * then jigger it and DS to avoid segment 0.
+	 */
+	if((si & 0xffff0000) != 0)
+		print("biosdiskcall: address %#lux not a short\n", si);
+	rp->ds = si >> 4;
+	si &= 0xf;
+	if((si & 0xffff0000) != ((si + 512 - 1) & 0xffff0000))
+		print("biosdiskcall: address %#lux too near segment boundary\n",
+			si);
+	rp->si = si;		/* ds:si forms data access packet addr */
+	/*
+	 * *rp is copied into low memory (realmoderegs) and thence into
+	 * the machine registers before the BIOS call, and the registers are
+	 * copied into realmoderegs and thence into *rp after.
+	 */
 	realmode(0x13, rp);
 	if (rp->flags & CF) {
-//		print("biosdiskcall: int 13 op 0x%ux drive 0x%lux failed, "
-//			"ah error code 0x%ux\n", op, dx, (uchar)(rp->ax >> 8));
+		if (Debug && dx == Baseid)
+			print("\nbiosdiskcall: int 0x13 op 0x%ux drive 0x%lux "
+				"failed, ah error code 0x%ux\n",
+				op, dx, (uchar)(rp->ax >> 8));
 		return -1;
 	}
 	return 0;
@@ -135,23 +159,21 @@ biosinit(void)
 	beenhere = 1;
 
 	mask = lastbit = 0;
-	for (devid = 0; devid < (1 << 8) && bdrive.ndevs < Maxdevs; devid++) {
+	for (devid = Baseid; devid < (1 << 8) && bdrive.ndevs < Maxdevs;
+	     devid++) {
 		lba = islba(devid);
-		if (lba < 0) {
-			if (devid > 0)
-				continue;
-			if (debugload)
-				print("bios call failed; bios loading disabled\n");	
-			biosload = 0;
-			return 0;
-		}
+		if (lba < 0)
+			break;
+
+		/* don't reset; it seems to hang the bios */
 		if(!lba /* || devid != Baseid && dreset(devid) < 0 */ )
 			continue;
-		type = Typedisk;		/* HACK */
+		type = Typenone;
 		if (getsize(devid, &type) == 0) { /* no device, end of range */
-			devid &= ~0xf;
-			devid += 0x10;
-			devid--;
+//			devid &= ~0xf;
+//			devid += 0x10;
+//			devid--;
+//			break;
 			continue;
 		}
 		lastbit = 1 << bdrive.ndevs;
@@ -161,17 +183,21 @@ biosinit(void)
 		bdp->type = type;
 		size = extgetsize(bdp);
 		bdp->size = size;
-		print("bios%d: drive 0x%ux: %llud bytes, type %d\n",
+		print("bios%d: drive 0x%ux: %,llud bytes, type %d\n",
 			bdrive.ndevs, devid, size, type);
 		bdrive.ndevs++;
 	}
+	USED(lastbit);
+//	islba(Baseid);	/* do a successful operation to make bios happy again */
+
 	/*
-	 * bioses seem to only be able to read from drive number 0x80
+	 * some bioses seem to only be able to read from drive number 0x80
 	 * and certainly can't read from the highest drive number when we
-	 * call them, even if there is only one.  attempting to read from
-	 * the last drive number yields a hung machine or a two-minute pause.
+	 * call them, even if there is only one.  attempting to read from the
+	 * last drive number may yield a hung machine or a two-minute pause.
 	 */
 	if (bdrive.ndevs > 0) {
+#ifdef NOT_LAST_DRIVE
 		if (bdrive.ndevs == 1) {
 			print("biosinit: sorry, only one bios drive; "
 				"can't read last one\n");
@@ -180,6 +206,9 @@ biosinit(void)
 			biosinited = 1;
 		bdrive.ndevs--;	/* omit last drive number; it can't be read */
 		mask &= ~lastbit;
+#else
+		biosinited = 1;
+#endif
 	}
 	return mask;
 }
@@ -220,6 +249,19 @@ biosboot(int dev, char *file, Boot *b)
 	return fsboot(fs, file, b);
 }
 
+static void
+dump(void *addr, int wds)
+{
+	unsigned i;
+	ulong *p = addr;
+
+	for (i = 0; i < wds; i++)
+		print("%lux ", p[i]);
+		if (i % 8 == 7)
+			print("\n");
+	print("\n");
+}
+
 /* read n bytes at sector offset into a from drive id */
 long
 sectread(Biosdev *bdp, void *a, long n, Devsects offset)
@@ -230,11 +272,16 @@ sectread(Biosdev *bdp, void *a, long n, Devsects offset)
 	if(n < 0 || n > bdp->sectsz)
 		return -1;
 	if(Debug)
-		memset((uchar *)BIOSXCHG, 'r', bdp->sectsz); /* preclean the buffer. */
+		/* scribble on the buffer to provoke trouble */
+		memset((uchar *)BIOSXCHG, 'r', bdp->sectsz);
 
-	biosdiskcall(&regs, Biosdrvrdy, 0, bdp->id, 0);
+//	if(Debug)
+//		print("drive ready %#ux...", bdp->id);
+//	memset(&regs, 0, sizeof regs);
+//	if (biosdiskcall(&regs, Biosdrvrdy, 0, bdp->id, 0) < 0)
+//		print("not ready\n");
 
-	/* space for a BIG sector, just in case... */
+	/* space for a big, optical-size sector, just in case... */
 	biosparam = (uchar *)BIOSXCHG + 2*1024;
 
 	/* read into BIOSXCHG */
@@ -244,7 +291,26 @@ sectread(Biosdev *bdp, void *a, long n, Devsects offset)
 	erp->nsects = 1;
 	erp->addr = PADDR(BIOSXCHG);
 	erp->stsect = offset;
-	if (biosdiskcall(&regs, Biosrdsect, 0, bdp->id, PADDR(erp)) < 0) {
+	/*
+	 * ensure that addr fits in a short,
+	 * then jigger it to avoid segment 0.
+	 */
+	if((erp->addr & 0xffff0000) != 0)
+		print("sectread: address %#lux not a short\n", erp->addr);
+	erp->addr = ((erp->addr & 0xffff) >> 4) << 16 | (erp->addr & 0xf);
+	if((erp->addr & 0xffff0000) != ((erp->addr + 512 - 1) & 0xffff0000))
+		print("sectread: address %#lux too near segment boundary\n",
+			erp->addr);
+
+	if (0 && Debug)
+		print("reading drive %#ux offset %lld into seg:off %lux:%ux...",
+			bdp->id, offset, erp->addr>>16, (ushort)erp->addr);
+	if (Debug)
+		dump(erp, sizeof *erp / 4);
+	memset(&regs, 0, sizeof regs);
+	regs.es = erp->addr >> 16;
+	if (biosdiskcall(&regs, Biosrdsect, (ushort)erp->addr, bdp->id,
+	    PADDR(erp)) < 0) {
 		print("sectread: bios failed to read %ld @ sector %lld of 0x%ux\n",
 			n, offset, bdp->id);
 		return -1;
@@ -252,7 +318,7 @@ sectread(Biosdev *bdp, void *a, long n, Devsects offset)
 
 	/* copy into caller's buffer */
 	memmove(a, (char *)BIOSXCHG, n);
-	if(Debug){
+	if(0 && Debug){
 		cp = (uchar *)BIOSXCHG;
 		print("-%ux %ux %ux %ux--%16.16s-\n",
 			cp[0], cp[1], cp[2], cp[3], (char *)cp + 480);
@@ -264,28 +330,36 @@ sectread(Biosdev *bdp, void *a, long n, Devsects offset)
 static int
 dreset(uchar drive)
 {
-	if (0) {
-		print("devbios: resetting disk controllers...");
-		biosdiskcall(&regs, Biosinit, 0, drive, 0);
-		print("\n");
-	}
+	print("devbios: resetting %#ux...", drive);
+	memset(&regs, 0, sizeof regs);
+	if (biosdiskcall(&regs, Biosinit, 0, drive, 0) < 0)
+		print("failed");
+	print("\n");
 	return regs.ax? -1: 0;		/* ax!=0 on error */
 }
 
 static int
 islba(uchar drive)
 {
-	if (biosdiskcall(&regs, Biosckext, 0x55aa, drive, 0) < 0)
+	memset(&regs, 0, sizeof regs);
+	if (biosdiskcall(&regs, Biosckext, 0x55aa, drive, 0) < 0) {
+		/*
+		 * we have an old bios without extensions, in theory.
+		 * in practice, there may just be no drive for this number.
+		 */
+//		print("islba: drive %ux: Biosckext failed\n", drive);
 		return -1;
+	}
 	if(regs.bx != 0xaa55){
-		print("islba: buggy bios\n");
+		print("islba: buggy bios: drive %#ux extension check returned "
+			"%lux in bx\n", drive, regs.bx);
 		return -1;
 	}
 	if (Debug)
 		print("islba: drive 0x%ux extensions version %d.%d cx 0x%lux\n",
 			drive, (uchar)(regs.ax >> 8),
-			(uchar)regs.ax, regs.cx); /* cx: 4=edd, 1=use dap */
-	return regs.cx & 1;		/* dap bit */
+			(uchar)regs.ax, regs.cx);  /* cx has Edd, Dap bits */
+	return regs.cx & Dap;
 }
 
 /*
@@ -297,10 +371,12 @@ getsize(uchar id, char *typep)
 {
 	int dtype;
 
+	memset(&regs, 0, sizeof regs);
 	if (biosdiskcall(&regs, Biosdrvtype, 0x55aa, id, 0) < 0)
 		return 0;
 
 	dtype = (ushort)regs.ax >> 8;
+	*typep = dtype;
 	if(dtype == Typenone){
 		print("no such device 0x%ux of type %d\n", id, dtype);
 		return 0;
@@ -309,7 +385,6 @@ getsize(uchar id, char *typep)
 		print("non-disk device 0x%ux of type %d\n", id, dtype);
 		return 0;
 	}
-	*typep = dtype;
 	return (ushort)regs.cx | regs.dx << 16;
 }
 
@@ -323,13 +398,14 @@ extgetsize(Biosdev *bdp)
 	memset(edp, 0, sizeof *edp);
 	edp->size = sizeof *edp;
 	edp->dpilen = 36;
+	memset(&regs, 0, sizeof regs);
 	if (biosdiskcall(&regs, Biosedrvparam, 0, bdp->id, PADDR(edp)) < 0)
-		return 0;
+		return 0;		/* old bios without extensions */
 	if(Debug) {
 		print("extgetsize: drive 0x%ux info flags 0x%ux",
 			bdp->id, edp->flags);
 		if (edp->key == 0xbedd)
-			print(" %s %s", edp->bustype, edp->ifctype);
+			print(" %.4s %.8s", edp->bustype, edp->ifctype);
 		print("\n");
 	}
 	if (edp->sectsz <= 0) {
@@ -364,7 +440,7 @@ biosread(Fs *fs, void *a, long n)
 		want = bdp->sectsz;
 		if (totnr + want > n)
 			want = n - totnr;
-		if(Debug)
+		if(0 && Debug && debugload)
 			print("bios%d, read: %ld @ off %lld, want: %d, id: 0x%ux\n",
 				fs->dev, n, offset, want, bdp->id);
 		part = offset % bdp->sectsz;
