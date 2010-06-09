@@ -96,18 +96,14 @@ extern SDifc sdiahciifc;
 extern SDifc sdaoeifc;
 extern SDifc sdbiosifc;
 
-#ifndef NOSCSI
 extern SDifc sdmylexifc;
 extern SDifc sd53c8xxifc;
-#endif NOSCSI
 
 SDifc* sdifc[] = {
 	&sdataifc,
 	&sdiahciifc,
-#ifndef NOSCSI
 	&sdmylexifc,
 	&sd53c8xxifc,
-#endif
 	&sdbiosifc,
 	&sdaoeifc,
 	nil,
@@ -332,13 +328,15 @@ main(void)
 	if((ulong)&end > (KZERO|(640*1024)))
 		panic("i'm too big");
 
+	if (!pxe)
+		/* TODO turning off debug and debugload makes loading fail */
+		debug = 1;
+
 	/*
 	 * find and read plan9.ini, setting configuration variables.
 	 */
 	if (debug)
 		print("plan9.ini probe...");
-	/* most bioses seem to be broken */
-//	biosload = 1;			/* initially be optimistic */
 	for(tp = types; tp->type != Tnil; tp++){
 		/*
 		 * we don't know which ether interface to use nor
@@ -361,12 +359,16 @@ main(void)
 	}
 	if (debug)
 		print("\n");
+
 	/*
 	 * we should now have read plan9.ini, if any.
 	 */
 	if (!iniread)
 		print("no plan9.ini\n");
+
 	persist = getconf("*bootppersist");
+	if (!pxe)
+		debug = 0;		/* stop the flood of output */
 	debugload = getconf("*debugload") != nil;
 	/* hack for soekris-like machines */
 	if(!vga || getconf("*nobiosload") != nil)
