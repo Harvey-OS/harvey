@@ -1,12 +1,13 @@
-
-/*	permuted title index
+/*
+	permuted title index
 	ptx [-t] [-i ignore] [-o only] [-w num] [-r]
 	    [-c commands] [-g gap] [-f] [input]
+
 	Ptx reads the input file and permutes on words in it.
 	It excludes all words in the ignore file.
 	Alternately it includes words in the only file.
 	if neither is given it excludes the words in
-	/sys/man/man0/permind/ignore.
+	/sys/lib/man/permind/ignore.
 
 	The width of the output line (except for -r field)
 	can be changed to num,
@@ -20,16 +21,16 @@
 	-r takes the first word on each line and makes it
 	into a fifth field.
 	-c inserts troff commands for font-setting etc at beginning
-
-	*/
+ */
 
 #include <u.h>
 #include <libc.h>
 #include <stdio.h>
 #include <ctype.h>
+
 #define DEFLTX "/sys/lib/man/permind/ignore"
-#define TILDE 0177
-#define	N 30
+#define TILDE	0177		/* actually RUBOUT, not ~ */
+#define	N	30
 #define	MAX	N*BUFSIZ
 #define LMAX	2048
 #define MAXT	2048
@@ -56,7 +57,6 @@ int hash(char *, char *);
 int storeh(int, char *);
 
 int status;
-
 
 char *hasht[MAXT];
 char line[LMAX];
@@ -113,14 +113,11 @@ main(int argc, char **argv)
 	int c;
 	char *bufp;
 	char *pend;
-
 	char *xfile;
 	FILE *xptr;
 	Waitmsg *w;
 
-
-/*	argument decoding	*/
-
+	/* argument decoding */
 	xfile = DEFLTX;
 	ARGBEGIN {
 	case 'r':
@@ -188,7 +185,6 @@ main(int argc, char **argv)
 	if(argc == 1)
 		infile = *argv;
 
-
 	/* Default breaks of blank, tab and newline */
 	btable[' '] = ON;
 	btable['\t'] = ON;
@@ -201,11 +197,11 @@ main(int argc, char **argv)
 			btable[c] = ON;
 	}
 
-/*	Allocate space for a buffer.  If only or ignore file present
+	/*
+	Allocate space for a buffer.  If only or ignore file present
 	read it into buffer. Else read in default ignore file
 	and put resulting words in buffer.
 	*/
-
 
 	if((strtbufp = calloc(N,BUFSIZ)) == NULL)
 		diag("Out of memory space",empty);
@@ -215,17 +211,14 @@ main(int argc, char **argv)
 	if((xptr = fopen(xfile,"r")) == NULL)
 		diag("Cannot open  file",xfile);
 
-	while(bufp < endbufp && (c = getc(xptr)) != EOF) {
+	while(bufp < endbufp && (c = getc(xptr)) != EOF)
 		if(isabreak(c)) {
 			if(storeh(hash(strtbufp,bufp),strtbufp))
 				diag("Too many words",xfile);
 			*bufp++ = '\0';
 			strtbufp = bufp;
-		}
-		else {
+		} else
 			*bufp++ = (isupper(c)?tolower(c):c);
-		}
-	}
 	if (bufp >= endbufp)
 		diag("Too many words in file",xfile);
 	endbufp = --bufp;
@@ -235,12 +228,13 @@ main(int argc, char **argv)
 	if((sortptr = fopen(sortfile, "w")) == NULL)
 		diag("Cannot open output for sorting:",sortfile);
 
-/*	get a line of data and compare each word for
+	/*
+	get a line of data and compare each word for
 	inclusion or exclusion in the sort phase
-*/
+	*/
 	if (infile!=0 && (inptr = fopen(infile,"r")) == NULL)
 		diag("Cannot open data: ",infile);
-	while(pend=getline())
+	while((pend = getline()) != NULL)
 		cmpline(pend);
 	fclose(sortptr);
 
@@ -249,7 +243,7 @@ main(int argc, char **argv)
 			sortfile, "-o", sortfile, 0);
 		diag("Sort exec failed","");
 	}
-	if((w=wait())==nil || w->msg[0]!=0)
+	if((w = wait()) == NULL || w->msg[0] != '\0')
 		diag("Sort failed","");
 	free(w);
 
@@ -260,15 +254,17 @@ main(int argc, char **argv)
 		execl(roff, roff, "-a", kfile, 0);
 		diag("Sort exec failed","");
 	}
-	if((w=wait())==nil || w->msg[0]!=0)
+	if((w = wait()) == NULL || w->msg[0] != '\0')
 		diag("Sort failed","");
 	free(w);
 
 	getsort();
-/*	remove(sortfile);
-	remove(kfile);*/
-fflush(0);
-_exits(0);
+/*
+	remove(sortfile);
+	remove(kfile);
+ */
+	fflush(0);
+	_exits(0);
 /* I don't know what's wrong with the atexit func... */
 /*	exits(0);	*/
 }
@@ -277,13 +273,13 @@ void
 msg(char *s, char *arg)
 {
 	fprintf(stderr,"ptx: %s %s\n",s,arg);
-	return;
 }
 
 void
 extra(int c)
 {
 	char s[] = "-x.";
+
 	s[1] = c;
 	diag("Extra option", s);
 }
@@ -291,7 +287,6 @@ extra(int c)
 void
 diag(char *s, char *arg)
 {
-
 	msg(s,arg);
 /*
 	remove(sortfile);
@@ -304,54 +299,51 @@ diag(char *s, char *arg)
 char*
 getline(void)
 {
-
 	int c;
 	char *linep;
 	char *endlinep;
-
 
 	endlinep= line + mlen;
 	linep = line;
 	/* Throw away leading white space */
 
-	while(isspace(c=getc(inptr)))
+	while(isspace(c = getc(inptr)))
 		;
 	if(c==EOF)
 		return(0);
 	ungetc(c,inptr);
-	while(( c=getc(inptr)) != EOF) {
+	while((c = getc(inptr)) != EOF)
 		switch (c) {
-
-			case '\t':
-				if(linep<endlinep)
-					*linep++ = ' ';
-				break;
-			case '\n':
-				while(isspace(*--linep));
-				*++linep = '\n';
-				return(linep);
-			default:
-				if(linep < endlinep)
-					*linep++ = c;
+		case '\t':
+			if(linep<endlinep)
+				*linep++ = ' ';
+			break;
+		case '\n':
+			while(isspace(*--linep))
+				;
+			*++linep = '\n';
+			return(linep);
+		default:
+			if(linep < endlinep)
+				*linep++ = c;
+			break;
 		}
-	}
 	return(0);
 }
 
 void
 cmpline(char *pend)
 {
-
 	char *pstrt, *pchar, *cp;
 	char **hp;
 	int flag;
 
 	pchar = line;
 	if(rflag)
-		while(pchar<pend&&!isspace(*pchar))
+		while(pchar < pend && !isspace(*pchar))
 			pchar++;
-	while(pchar<pend){
-	/* eliminate white space */
+	while(pchar < pend){
+		/* eliminate white space */
 		if(isabreak(*pchar++))
 			continue;
 		pstrt = --pchar;
@@ -364,23 +356,23 @@ cmpline(char *pend)
 				while(cp = *hp++){
 					if(hp == &hasht[MAXT])
 						hp = hasht;
-	/* possible match */
+					/* possible match */
 					if(cmpword(pstrt,pchar,cp)){
-	/* exact match */
+						/* exact match */
 						if(!ignore && only)
 							putline(pstrt,pend);
 						flag = 0;
 						break;
 					}
 				}
-	/* no match */
+				/* no match */
 				if(flag){
 					if(ignore || !only)
 						putline(pstrt,pend);
 					flag = 0;
 				}
 			}
-		pchar++;
+			pchar++;
 		}
 	}
 }
@@ -395,7 +387,8 @@ cmpword(char *cpp, char *pend, char *hpp)
 		if((isupper(c)?tolower(c):c) != *hpp++)
 			return(0);
 	}
-	if(--cpp == pend) return(1);
+	if(--cpp == pend)
+		return(1);
 	return(0);
 }
 
@@ -406,8 +399,7 @@ putline(char *strt, char *end)
 
 	for(cp=strt; cp<end; cp++)
 		putc(*cp, sortptr);
-	/* Add extra blank before TILDE to sort correctly
-	   with -fd option */
+	/* Add extra blank before TILDE to sort correctly with -fd option */
 	putc(' ',sortptr);
 	putc(TILDE,sortptr);
 	for (cp=line; cp<strt; cp++)
@@ -454,26 +446,24 @@ makek(void)
 	fclose(kptr);
 }
 
-		
-
 void
 getsort(void)
 {
 	char *tilde, *linep, *markp;
-	int i0, i1, i2, i3, i4, i5, i6, i7;
-	int w0, w6;
+	int i0, i1, i2, i3, i4, i5, i6, i7, w0, w6;
 
-	if((sortptr = fopen(sortfile,"r")) == NULL)
-		diag("Cannot open sorted data:",sortfile);
-	if((wptr = fopen(wfile,"r")) == NULL)
-		diag("Cannot open width file:",wfile);
+	if((sortptr = fopen(sortfile, "r")) == NULL)
+		diag("Cannot open sorted data:", sortfile);
+	if((wptr = fopen(wfile, "r")) == NULL)
+		diag("Cannot open width file:", wfile);
 	getlen();
 
 	halflen = (llen-gutter)/2;
 
-	while(fgets(line,sizeof(line),sortptr) != 0) {
-		if(fgets(mark,sizeof(mark),wptr) == 0)
-			diag("Phase error 1","");
+	while(fgets(line, sizeof(line), sortptr) != NULL) {
+		if(fgets(mark, sizeof(mark), wptr) == NULL)
+			diag("Phase error 1: premature EOF on width file",
+				wfile);
 		linep = line;
 		markp = mark;
 		i3 = i7 = 0;
@@ -487,11 +477,11 @@ getsort(void)
 			else if(isspace(*linep)) {
 				i7++;
 				word[i7].p = linep;
-				if(!markp) {
-					diag("Phase error 2","");
-				}
+				if(!markp)
+					diag("Phase error 2: no widths for summary",
+						line);
 				word[i7].w = atoi(markp);
-				markp = strchr(markp+1,' ');
+				markp = strchr(markp+1, ' ');
 			}
 		}
 		i0 = 0;
@@ -528,7 +518,7 @@ getsort(void)
 			putout(word[i3].p+2,word[i4].p);
 		}
 		printf("\"\n");
-	}	
+	}
 }
 
 void
@@ -537,7 +527,7 @@ putout(char *strt, char *end)
 	char *cp;
 
 	for(cp=strt; cp<end; )
-			putc(*cp++,outptr);
+		putc(*cp++,outptr);
 }
 
 void
@@ -553,7 +543,9 @@ setlen(void)
 void
 getlen(void)
 {
-	char s[20];
+	char s[128];
+
+	s[0] = '\0';
 	fgets(s,sizeof(s),kptr);
 	llen = atoi(s);
 
@@ -591,9 +583,7 @@ hash(char *strtp, char *endp)
 	c = *cp;
 	j = (isupper(c)?tolower(c):c);
 	j = k*j;
-
-	k = (i ^ (j>>2)) & MASK;
-	return(k);
+	return (i ^ (j>>2)) & MASK;
 }
 
 int
@@ -601,17 +591,15 @@ storeh(int num, char *strtp)
 {
 	int i;
 
-	for(i=num; i<MAXT; i++) {
+	for(i=num; i<MAXT; i++)
 		if(hasht[i] == 0) {
 			hasht[i] = strtp;
 			return(0);
 		}
-	}
-	for(i=0; i<num; i++) {
+	for(i=0; i<num; i++)
 		if(hasht[i] == 0) {
 			hasht[i] = strtp;
 			return(0);
 		}
-	}
 	return(1);
 }

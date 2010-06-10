@@ -501,7 +501,7 @@ Start the server and check the storage statistics:
 .IR venti (1),
 .IR venti (2),
 .IR venti (6),
-.IR venti-backup (8)
+.IR venti-backup (8),
 .IR venti-fmt (8)
 .br
 Sean Quinlan and Sean Dorward,
