@@ -26,10 +26,9 @@ permindex:V: $O.ptx1
 		{ $NF = toc[$NF]; print }
 	' junk3 >permindex
 
-
 $O.ptx1: ptx1.c
 	$CC ptx1.c
-	$LD -o $O.ptx1 ptx1.$O -lstdio
+	$LD -o $target ptx1.$O -lstdio
 
 clean:V:
-	rm -f junk* ptx1.v *.ptx1 permindex out
+	rm -f junk* ptx1.$O *.ptx1 permindex out
