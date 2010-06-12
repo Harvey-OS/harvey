@@ -77,10 +77,10 @@ odump:V:
 
 cd.install:V:
 #	if(~ $sysname achille){
-#		echo; echo; echo '*** run this on a real machine, like ethel.'
+#		echo; echo; echo '*** run this on a real machine, like fish.'
 #		exit bad
 #	}
-	bzip2 -9 < /n/other/dist/plan9.iso >web.protect/nplan9.iso.bz2
+	bzip2 -9 </n/other/dist/plan9.iso >web.protect/nplan9.iso.bz2
 
 D.install:V:
 	D=/n/roro/usr/rob/testplan9
@@ -173,7 +173,7 @@ worldwritable-mail:V:
 	9fs boot
 	test -e /n/boot/sys
 	/usr/rsc/bin/$cputype/lsr -t -d /n/boot/sys /n/boot/lib |
-		grep -v '/lib/audio/|/sys/src/cmd/vac/test/' |		# give us a break
+		grep -v '/lib/audio/|/sys/src/cmd/vac/test/' | # give us a break
 		awk '$2 ~ /[2367][^2367].$/' |
 		datemail 'non-group-writable files on fs' 9trouble
 	status=''
