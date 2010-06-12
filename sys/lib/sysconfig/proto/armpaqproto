@@ -1,10 +1,7 @@
 #
-# This proto includes into armpaq enough tools to make the bitsy
-# useful without mounting a file server.
+# This proto includes into armpaq enough tools to make the bitsy or
+# guruplug brick useful without mounting a file server.
 # 
-# This should probably go to /sys/lib/sysconfig/proto/armpaqproto
-# so that each Plan 9 site could choose what to download by default into
-# their handhelds.
 
 acme
 	bin
@@ -95,7 +92,70 @@ arm
 	init
 mail
 	lib
-		*
+		blessed
+#		blocked
+#		blocked.common
+#		blocked.ext
+#		blocked.ext.seed
+#		blocked.seed
+		bulk
+		classify.re
+		cleanmailtmp
+		cleanqs
+		dnsprime
+		equivlist
+		gone.fishing
+		gone.msg
+		goose
+		goose.ext
+		haspercent
+		ignore
+		isspam.rc
+		leftlucent
+		mailnews
+		mkfile
+		msgcat.rc
+		namefiles
+		names.1121
+		names.1122
+		names.1127
+		names.1127ehg
+		names.blocked
+		names.blocked.int
+		names.ho
+		names.local
+		names.zoo
+		netlib
+		newstime
+		no-reply-all
+		patterns
+		pipeto.bayes
+		pipeto.lib
+		prof.mbox
+		prof.spam
+		qmail
+		qmail.ext
+		qmail.in
+		qmail.lu
+		qmail.unsafe
+		remotemail
+		rewrite
+		rewrite-error
+		scrubqs
+		setup.bayes
+		smtpd.conf
+		smtpd.conf.ext
+		smtprelays
+		spam.rc
+		spamip
+		splitmbox
+		token.msg
+		unspam.rc
+		validateaddress
+		validateattachment
+		validatesender
+		vfsend
+		whitelist
 bin
 fd
 lib

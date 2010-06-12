@@ -1,0 +1,232 @@
+adm
+	keys
+	keys.who
+	netkeys
+	netkeys.who
+	warn.keys
+	warn.netkeys
+	whois
+	timezone
+		*
+	users
+386
+	9pcf
+	9pccpuf
+	bin
+		8a
+		8c
+		8l
+		acid
+		basename
+		bind
+		calendar
+		cat
+		chmod
+		con
+		cp
+		cpu
+		date
+		dc
+		dd
+		du
+		echo
+		ed
+		exportfs
+		ftpfs
+		grep
+		import
+		ls
+		mc
+		mk
+		mkdir
+		mntgen
+		mount
+		netkey
+		netstat
+		pbd
+		plumber
+		ps
+		pwd
+		ramfs
+		rc
+		read
+		rio
+		rm
+		rx
+		sam
+		sed
+		sleep
+		snap
+		snapfs
+		snoopy
+		srv
+		ssh
+		stats
+		tail
+		telco
+		telnet
+		test
+		unmount
+		vac
+		vacfs
+		wc
+		xd
+		auth
+			*
+		aux
+			clog
+			consolefs
+			faxreceive
+			faxsend
+			pcmcia
+			listen
+			listen1
+			mouse
+			reboot
+			samterm
+			sshserve
+			timesync
+			vga
+		dial
+			expect
+		disk
+			*
+		fossil
+			*
+		ip
+			*
+		ndb
+			*
+		upas
+			*
+		venti
+			*
+	include
+		*
+	init
+	lib
+		*
+cfg
+	+
+lib
+	font
+		bit
+			misc
+				*
+			lucm
+				*
+			pelm
+				*
+			special
+				*
+	namespace
+	ndb
+		common
+		local
+		local-cs
+		friends
+		grid
+		trip
+		local-x
+		external
+		external-cs
+		mkfile - - - /lib/ndb/mkfile.standalone
+mail
+	lib
+		rewrite 664 sys sys /mail/lib/rewrite.gateway
+		remotemail
+		qmail
+mnt
+	acme
+	apeselect
+	cd
+	cons
+		cons
+		consctl
+	consoles
+	doc
+	exportfs
+		*
+	keys
+	lp
+	netkeys
+	plumb
+	rdb
+	temp
+	term
+	wsys
+n
+rc
+	lib
+		rcmain
+	bin
+		+
+sys
+	include
+		*
+	lib
+		acid
+			*
+		plumb
+			*
+		tls
+			*
+		ssl
+			*
+		fax
+			*
+	log
+		auth a666 sys sys /sys/log/proto
+		cs a666 sys sys /sys/log/proto
+		dns a666 sys sys /sys/log/proto
+		fax a666 sys sys /sys/log/proto
+		ipboot a666 sys sys /sys/log/proto
+		listen a666 sys sys /sys/log/proto
+		mail a666 sys sys /sys/log/proto
+		smtp a666 sys sys /sys/log/proto
+		ssh a666 sys sys /sys/log/proto
+		telco a666 sys sys /sys/log/proto
+		timesync a666 sys sys /sys/log/proto
+	ssh
+		keyring
+	src
+		cmd
+			fossil
+				*
+			venti
+				*
+		9
+			boot
+				*
+			ip
+				*
+			pc
+				*
+			port
+				*
+		libventi
+			*
+tmp
+usr
+	glenda
+		+	
+	presotto
+		lib
+			profile
+		bin
+			rc
+			386
+		tmp
+	jmk
+		lib
+		bin
+			rc
+			386
+		tmp
+	rsc
+		lib
+			profile
+		bin
+			rc
+			386
+		tmp

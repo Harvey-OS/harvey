@@ -65,10 +65,13 @@ port
 
 boot cpu
 	tcp
+#	paq
 
 bootdir
 	boot$CONF.out boot
-	/arm/bin/ip/ipconfig ipconfig
-	/arm/bin/auth/factotum factotum
+	/arm/bin/ip/ipconfig
+	/arm/bin/auth/factotum
+#	/arm/bin/paqfs
 	/arm/bin/usb/usbd
+# nvram not needed any longer, it's in flash
 	nvram
