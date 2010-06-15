@@ -228,3 +228,8 @@ will not work on APE programs.
 is not speedy, and
 .I acidleak
 can consume more memory than the process(es) being examined.
+.PP
+These commands require
+.B /sys/src/libc/port/pool.acid
+to be present and generated from
+.BR pool.c .
