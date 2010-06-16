@@ -1,8 +1,6 @@
 /*
  * This part takes care of locking except for initialization and
  * other threads created by the hw dep. drivers.
- * BUG: An error on the device does not make the driver exit.
- * It probably should.
  */
 
 #include <u.h>
@@ -40,48 +38,65 @@ static Dirtab dirtab[] = {
 
 static int sdebug;
 
-int
-serialnop(Serial *)
-{
-	return 0;
-}
-
-int
-serialnopctl(Serial *, int)
-{
-	return 0;
-}
-
 static void
 serialfatal(Serial *ser)
 {
+	Serialport *p;
+	int i;
+
 	dsprint(2, "serial: fatal error, detaching\n");
 	devctl(ser->dev, "detach");
-	usbfsdel(&ser->fs);
+
+	for(i = 0; i < ser->nifcs; i++){
+		p = &ser->p[i];
+		if(p->isjtag)
+			continue;
+		usbfsdel(&p->fs);
+		if(p->w4data != nil)
+			chanclose(p->w4data);
+		if(p->gotdata != nil)
+			chanclose(p->gotdata);
+		if(p->readc)
+			chanclose(p->readc);
+	}
 }
 
 /* I sleep with the lock... only way to drain in general */
 static void
-serialdrain(Serial *ser)
+serialdrain(Serialport *p)
 {
+	Serial *ser;
 	uint baud, pipesize;
 
-	if(ser->maxwrite < 256)
+	ser = p->s;
+	baud = p->baud;
+
+	if(p->baud == ~0)
+		return;
+	if(ser->maxwtrans < 256)
 		pipesize = 256;
 	else
-		pipesize = ser->maxwrite;
-	baud = ser->baud;
+		pipesize = ser->maxwtrans;
 	/* wait for the at least 256-byte pipe to clear */
 	sleep(10 + pipesize/((1 + baud)*1000));
 	if(ser->clearpipes != nil)
-		ser->clearpipes(ser);
+		ser->clearpipes(p);
 }
 
+/* BUG: separate reset per port */
 int
 serialreset(Serial *ser)
 {
+	Serialport *p;
+	int i;
+
 	/* cmd for reset */
-	serialdrain(ser);
+	for(i = 0; i < ser->nifcs; i++){
+		p = &ser->p[i];
+		if(p->isjtag)
+			continue;
+		serialdrain(p);
+	}
 	if(ser->reset != nil)
 		ser->reset(ser);
 	return 0;
@@ -103,18 +118,20 @@ serialrecover(Serial *ser, char *err)
 }
 
 static int
-serialctl(Serial *p, char *cmd)
+serialctl(Serialport *p, char *cmd)
 {
+	Serial *ser;
 	int c, i, n, nf, nop, nw, par, drain, set, lines;
 	char *f[16];
 	uchar x;
 
+	ser = p->s;
 	drain = set = lines = 0;
 	nf = tokenize(cmd, f, nelem(f));
 	for(i = 0; i < nf; i++){
 		if(strncmp(f[i], "break", 5) == 0){
-			if(p->setbreak != nil)
-				p->setbreak(p, 1);
+			if(ser->setbreak != nil)
+				ser->setbreak(p, 1);
 			continue;
 		}
 
@@ -156,9 +173,9 @@ serialctl(Serial *p, char *cmd)
 			break;
 		case 'k':
 			drain++;
-			p->setbreak(p, 1);
+			ser->setbreak(p, 1);
 			sleep(n);
-			p->setbreak(p, 0);
+			ser->setbreak(p, 0);
 			break;
 		case 'l':
 			drain++;
@@ -167,8 +184,8 @@ serialctl(Serial *p, char *cmd)
 			break;
 		case 'm':
 			drain++;
-			if(p->modemctl != nil)
-				p->modemctl(p, n);
+			if(ser->modemctl != nil)
+				ser->modemctl(p, n);
 			if(n == 0)
 				p->cts = 0;
 			break;
@@ -220,12 +237,12 @@ serialctl(Serial *p, char *cmd)
 				x = CTLS;
 			else
 				x = CTLQ;
-			if(p->wait4write != nil)
-				nw = p->wait4write(p, &x, 1);
+			if(ser->wait4write != nil)
+				nw = ser->wait4write(p, &x, 1);
 			else
 				nw = write(p->epout->dfd, &x, 1);
 			if(nw != 1){
-				serialrecover(p, "");
+				serialrecover(ser, "");
 				return -1;
 			}
 			break;
@@ -241,10 +258,10 @@ serialctl(Serial *p, char *cmd)
 	if(drain)
 		serialdrain(p);
 	if(lines && !set){
-		if(p->sendlines != nil && p->sendlines(p) < 0)
+		if(ser->sendlines != nil && ser->sendlines(p) < 0)
 			return -1;
 	} else if(set){
-		if(p->setparam != nil && p->setparam(p) < 0)
+		if(ser->setparam != nil && ser->setparam(p) < 0)
 			return -1;
 	}
 	return 0;
@@ -253,44 +270,51 @@ serialctl(Serial *p, char *cmd)
 char *pformat = "noems";
 
 char *
-serdumpst(Serial *ser, char *buf, int bufsz)
+serdumpst(Serialport *p, char *buf, int bufsz)
 {
 	char *e, *s;
+	Serial *ser;
+
+	ser = p->s;
 
 	e = buf + bufsz;
-	s = seprint(buf, e, "b%d ", ser->baud);
-	s = seprint(s, e, "c%d ", ser->dcd);	/* unimplemented */
-	s = seprint(s, e, "d%d ", ser->dtr);
-	s = seprint(s, e, "e%d ", ser->dsr);	/* unimplemented */
-	s = seprint(s, e, "l%d ", ser->bits);
-	s = seprint(s, e, "m%d ", ser->mctl);
-	if(ser->parity >= 0 || ser->parity < strlen(pformat))
-		s = seprint(s, e, "p%c ", pformat[ser->parity]);
+	s = seprint(buf, e, "b%d ", p->baud);
+	s = seprint(s, e, "c%d ", p->dcd);	/* unimplemented */
+	s = seprint(s, e, "d%d ", p->dtr);
+	s = seprint(s, e, "e%d ", p->dsr);	/* unimplemented */
+	s = seprint(s, e, "l%d ", p->bits);
+	s = seprint(s, e, "m%d ", p->mctl);
+	if(p->parity >= 0 || p->parity < strlen(pformat))
+		s = seprint(s, e, "p%c ", pformat[p->parity]);
 	else
 		s = seprint(s, e, "p%c ", '?');
-	s = seprint(s, e, "r%d ", ser->rts);
-	s = seprint(s, e, "s%d ", ser->stop);
-	s = seprint(s, e, "i%d ", ser->fifo);
+	s = seprint(s, e, "r%d ", p->rts);
+	s = seprint(s, e, "s%d ", p->stop);
+	s = seprint(s, e, "i%d ", p->fifo);
 	s = seprint(s, e, "\ndev(%d) ", 0);
 	s = seprint(s, e, "type(%d)  ", ser->type);
-	s = seprint(s, e, "framing(%d) ", ser->nframeerr);
-	s = seprint(s, e, "overruns(%d) ", ser->novererr);
-	s = seprint(s, e, "berr(%d) ", ser->nbreakerr);
-	s = seprint(s, e, " serr(%d) ", ser->nparityerr);
+	s = seprint(s, e, "framing(%d) ", p->nframeerr);
+	s = seprint(s, e, "overruns(%d) ", p->novererr);
+	s = seprint(s, e, "berr(%d) ", p->nbreakerr);
+	s = seprint(s, e, " serr(%d) ", p->nparityerr);
 	return s;
 }
 
 static int
-serinit(Serial *ser)
+serinit(Serialport *p)
 {
 	int res;
-
 	res = 0;
+	Serial *ser;
+
+	ser = p->s;
+
 	if(ser->init != nil)
-		res = ser->init(ser);
+		res = ser->init(p);
 	if(ser->getparam != nil)
-		ser->getparam(ser);
-	ser->nframeerr = ser->nparityerr = ser->nbreakerr = ser->novererr = 0;
+		ser->getparam(p);
+	p->nframeerr = p->nparityerr = p->nbreakerr = p->novererr = 0;
+
 	return res;
 }
 
@@ -300,7 +324,7 @@ dwalk(Usbfs *fs, Fid *fid, char *name)
 	int i;
 	char *dname;
 	Qid qid;
-	Serial *ser;
+	Serialport *p;
 
 	qid = fid->qid;
 	if((qid.type & QTDIR) == 0){
@@ -316,9 +340,9 @@ dwalk(Usbfs *fs, Fid *fid, char *name)
 		return 0;
 	}
 
-	ser = fs->aux;
+	p = fs->aux;
 	for(i = 1; i < nelem(dirtab); i++){
-		dname = smprint(dirtab[i].name, ser->fs.name);
+		dname = smprint(dirtab[i].name, p->fs.name);
 		if(strcmp(name, dname) == 0){
 			qid.path = i | fs->qid;
 			qid.vers = 0;
@@ -337,18 +361,18 @@ static void
 dostat(Usbfs *fs, int path, Dir *d)
 {
 	Dirtab *t;
-	Serial *ser;
+	Serialport *p;
 
 	t = &dirtab[path];
 	d->qid.path = path;
 	d->qid.type = t->mode >> 24;
 	d->mode = t->mode;
-	ser = fs->aux;
+	p = fs->aux;
 
 	if(strcmp(t->name, "/") == 0)
 		d->name = t->name;
 	else
-		snprint(d->name, Namesz, t->name, ser->fs.name);
+		snprint(d->name, Namesz, t->name, p->fs.name);
 	d->length = 0;
 }
 
@@ -367,10 +391,10 @@ static int
 dopen(Usbfs *fs, Fid *fid, int)
 {
 	ulong path;
-	// Serial *ser;
+	// Serialport *p;
 
 	path = fid->qid.path & ~fs->qid;
-	// ser = fs->aux;
+	// p = fs->aux;
 	switch(path){		/* BUG: unneeded? */
 	case Qdata:
 		dsprint(2, "serial, opened data\n");
@@ -417,12 +441,14 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 	ulong path;
 	char *e, *buf, *err;	/* change */
 	Qid q;
+	Serialport *p;
 	Serial *ser;
 	static int errrun, good;
 
 	q = fid->qid;
 	path = fid->qid.path & ~fs->qid;
-	ser = fs->aux;
+	p = fs->aux;
+	ser = p->s;
 
 	buf = emallocz(Serbufsize, 1);
 	err = emallocz(Serbufsize, 1);
@@ -437,13 +463,13 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 		dsprint(2, "serial: reading from data\n");
 		do {
 			err[0] = 0;
-			dfd = ser->epin->dfd;
+			dfd = p->epin->dfd;
 			if(usbdebug >= 3)
 				dsprint(2, "serial: reading: %ld\n", count);
 
 			assert(count > 0);
 			if(ser->wait4data != nil)
-				rcount = ser->wait4data(ser, data, count);
+				rcount = ser->wait4data(p, data, count);
 			else{
 				qunlock(ser);
 				rcount = read(dfd, data, count);
@@ -462,7 +488,7 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 					/* the line has been dropped; give up */
 					qunlock(ser);
 					fprint(2, "%s: line %s is gone: %r\n",
-						argv0, ser->fs.name);
+						argv0, p->fs.name);
 					threadexitsall("serial line gone");
 				}
 			} else {
@@ -486,7 +512,7 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 		if(offset != 0)
 			count = 0;
 		else {
-			e = serdumpst(ser, buf, Serbufsize);
+			e = serdumpst(p, buf, Serbufsize);
 			count = usbreadbuf(data, count, 0, buf, e - buf);
 		}
 		break;
@@ -498,17 +524,19 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 }
 
 static long
-altwrite(Serial *ser, uchar *buf, long count)
+altwrite(Serialport *p, uchar *buf, long count)
 {
 	int nw, dfd;
 	char err[128];
+	Serial *ser;
 
+	ser = p->s;
 	do{
 		if(ser->wait4write != nil)
 			/* unlocked inside later */
-			nw = ser->wait4write(ser, buf, count);
+			nw = ser->wait4write(p, buf, count);
 		else{
-			dfd = ser->epout->dfd;
+			dfd = p->epout->dfd;
 			qunlock(ser);
 			nw = write(dfd, buf, count);
 			qlock(ser);
@@ -520,7 +548,7 @@ altwrite(Serial *ser, uchar *buf, long count)
 		dsprint(2, "serial: need to recover, status in write %d %r\n",
 			nw);
 		snprint(err, sizeof err, "%r");
-		serialrecover(ser, err);
+		serialrecover(p->s, err);
 	}
 	return nw;
 }
@@ -530,21 +558,23 @@ dwrite(Usbfs *fs, Fid *fid, void *buf, long count, vlong)
 {
 	ulong path;
 	char *cmd;
+	Serialport *p;
 	Serial *ser;
 
-	ser = fs->aux;
+	p = fs->aux;
+	ser = p->s;
 	path = fid->qid.path & ~fs->qid;
 
 	qlock(ser);
 	switch(path){
 	case Qdata:
-		count = altwrite(ser, (uchar *)buf, count);
+		count = altwrite(p, (uchar *)buf, count);
 		break;
 	case Qctl:
 		cmd = emallocz(count+1, 1);
 		memmove(cmd, buf, count);
 		cmd[count] = 0;
-		if(serialctl(ser, cmd) < 0){
+		if(serialctl(p, cmd) < 0){
 			qunlock(ser);
 			werrstr(Ebadctl);
 			free(cmd);
@@ -562,69 +592,69 @@ dwrite(Usbfs *fs, Fid *fid, void *buf, long count, vlong)
 }
 
 static int
-openeps(Serial *ser, int epin, int epout, int epintr)
+openeps(Serialport *p, int epin, int epout, int epintr)
 {
-	ser->epin = openep(ser->dev, epin);
-	if(ser->epin == nil){
+	Serial *ser;
+
+	ser = p->s;
+	p->epin = openep(ser->dev, epin);
+	if(p->epin == nil){
 		fprint(2, "serial: openep %d: %r\n", epin);
 		return -1;
 	}
-	ser->epout = openep(ser->dev, epout);
-	if(ser->epout == nil){
+	p->epout = openep(ser->dev, epout);
+	if(p->epout == nil){
 		fprint(2, "serial: openep %d: %r\n", epout);
-		closedev(ser->epin);
+		closedev(p->epin);
 		return -1;
 	}
 
-	devctl(ser->epin,  "timeout 1000");
-	devctl(ser->epout, "timeout 1000");
+	devctl(p->epin,  "timeout 1000");
+	devctl(p->epout, "timeout 1000");
 
 	if(ser->hasepintr){
-		ser->epintr = openep(ser->dev, epintr);
-		if(ser->epintr == nil){
+		p->epintr = openep(ser->dev, epintr);
+		if(p->epintr == nil){
 			fprint(2, "serial: openep %d: %r\n", epintr);
-			closedev(ser->epin);
-			closedev(ser->epout);
+			closedev(p->epin);
+			closedev(p->epout);
 			return -1;
 		}
-		opendevdata(ser->epintr, OREAD);
-		devctl(ser->epintr, "timeout 1000");
+		opendevdata(p->epintr, OREAD);
+		devctl(p->epintr, "timeout 1000");
 	}
 
 	if(ser->seteps!= nil)
-		ser->seteps(ser);
-	opendevdata(ser->epin, OREAD);
-	opendevdata(ser->epout, OWRITE);
-	if(ser->epin->dfd < 0 || ser->epout->dfd < 0 ||
-	    (ser->hasepintr && ser->epintr->dfd < 0)){
+		ser->seteps(p);
+	opendevdata(p->epin, OREAD);
+	opendevdata(p->epout, OWRITE);
+	if(p->epin->dfd < 0 ||p->epout->dfd < 0 ||
+	    (ser->hasepintr && p->epintr->dfd < 0)){
 		fprint(2, "serial: open i/o ep data: %r\n");
-		closedev(ser->epin);
-		closedev(ser->epout);
+		closedev(p->epin);
+		closedev(p->epout);
 		if(ser->hasepintr)
-			closedev(ser->epintr);
+			closedev(p->epintr);
 		return -1;
 	}
 	return 0;
 }
 
 static int
-findendpoints(Serial *ser)
+findendpoints(Serial *ser, int ifc)
 {
 	int i, epin, epout, epintr;
 	Ep *ep, **eps;
-	Usbdev *ud;
+	///Usbdev *ud;
 
 	epintr = epin = epout = -1;
-	ud = ser->dev->usb;
+	//ud = ser->dev->usb;
 
 	/*
 	 * interfc 0 means start from the start which is equiv to
 	 * iterate through endpoints probably, could be done better
 	 */
-	if(ser->interfc == 0)
-		eps = ud->ep;
-	else
-		eps = ser->dev->usb->conf[0]->iface[ser->interfc]->ep;
+	eps = ser->dev->usb->conf[0]->iface[ifc]->ep;
 
 	for(i = 0; i < Niface; i++){
 		if((ep = eps[i]) == nil)
@@ -639,22 +669,22 @@ findendpoints(Serial *ser)
 				epout = ep->id;
 		}
 	}
-	dprint(2, "serial: ep ids: in %d out %d intr %d\n", epin, epout, epintr);
+	dprint(2, "serial[%d]: ep ids: in %d out %d intr %d\n", ifc, epin, epout, epintr);
 	if(epin == -1 || epout == -1 || (ser->hasepintr && epintr == -1))
 		return -1;
 
-	if(openeps(ser, epin, epout, epintr) < 0)
+	if(openeps(&ser->p[ifc], epin, epout, epintr) < 0)
 		return -1;
 
-	dprint(2, "serial: ep in %s out %s\n", ser->epin->dir, ser->epout->dir);
+	dprint(2, "serial: ep in %s out %s\n", ser->p[ifc].epin->dir, ser->p[ifc].epout->dir);
 	if(ser->hasepintr)
-		dprint(2, "serial: ep intr %s\n", ser->epintr->dir);
+		dprint(2, "serial: ep intr %s\n", ser->p[ifc].epintr->dir);
 
 	if(usbdebug > 1 || serialdebug > 2){
-		devctl(ser->epin,  "debug 1");
-		devctl(ser->epout, "debug 1");
+		devctl(ser->p[ifc].epin,  "debug 1");
+		devctl(ser->p[ifc].epout, "debug 1");
 		if(ser->hasepintr)
-			devctl(ser->epintr, "debug 1");
+			devctl(ser->p[ifc].epintr, "debug 1");
 		devctl(ser->dev, "debug 1");
 	}
 	return 0;
@@ -672,17 +702,28 @@ static void
 serdevfree(void *a)
 {
 	Serial *ser = a;
+	Serialport *p;
+	int i;
 
 	if(ser == nil)
 		return;
-	if(ser->hasepintr)
-		closedev(ser->epintr);
-	closedev(ser->epin);
-	closedev(ser->epout);
-	ser->epintr = ser->epin = ser->epout = nil;
-	chanfree(ser->w4data);
-	chanfree(ser->gotdata);
-	chanfree(ser->w4empty);
+
+	for(i = 0; i < ser->nifcs; i++){
+		p = &ser->p[i];
+
+		if(ser->hasepintr)
+			closedev(p->epintr);
+		closedev(p->epin);
+		closedev(p->epout);
+		p->epintr = p->epin = p->epout = nil;
+		if(p->w4data != nil)
+			chanfree(p->w4data);
+		if(p->gotdata != nil)
+			chanfree(p->gotdata);
+		if(p->readc)
+			chanfree(p->readc);
+
+	}
 	free(ser);
 }
 
@@ -694,11 +735,28 @@ static Usbfs serialfs = {
 	.stat =	dstat,
 };
 
+static void
+serialfsend(Usbfs *fs)
+{
+	Serialport *p;
+
+	p = fs->aux;
+
+	if(p->w4data != nil)
+		chanclose(p->w4data);
+	if(p->gotdata != nil)
+		chanclose(p->gotdata);
+	if(p->readc)
+		chanclose(p->readc);
+}
+
 int
 serialmain(Dev *dev, int argc, char* argv[])
 {
 	Serial *ser;
+	Serialport *p;
 	char buf[50];
+	int i;
 
 	ARGBEGIN{
 	case 'd':
@@ -711,17 +769,15 @@ serialmain(Dev *dev, int argc, char* argv[])
 		return usage();
 
 	ser = dev->aux = emallocz(sizeof(Serial), 1);
-	/* BUG: could this go wrong? channel leaks? */
-	ser->w4data  = chancreate(sizeof(ulong), 0);
-	ser->gotdata = chancreate(sizeof(ulong), 0);
-	ser->w4empty = chancreate(sizeof(ulong), 0);
-	ser->maxread = ser->maxwrite = sizeof ser->data;
+	ser->maxrtrans = ser->maxwtrans = sizeof ser->p[0].data;
+	ser->maxread = ser->maxwrite = sizeof ser->p[0].data;
 	ser->dev = dev;
 	dev->free = serdevfree;
+	ser->jtag = -1;
+	ser->nifcs = 1;
 
 	snprint(buf, sizeof buf, "vid %#06x did %#06x",
 		dev->usb->vid, dev->usb->did);
-	ser->fs = serialfs;
 	if(plmatch(buf) == 0){
 		ser->hasepintr = 1;
 		ser->Serialops = plops;
@@ -731,35 +787,50 @@ serialmain(Dev *dev, int argc, char* argv[])
 		ser->Serialops = ftops;
 	else {
 		werrstr("serial: no serial devices found");
-		closedev(dev);
 		return -1;
 	}
 
-	if(findendpoints(ser) < 0){
-		werrstr("serial: no endpoints found");
-		closedev(dev);
-		return -1;
-	}
-	if(serinit(ser) < 0){
-		dprint(2, "serial: serinit: %r\n");
-		closedev(dev);
-		return -1;
+	for(i = 0; i < ser->nifcs; i++){
+		p = &ser->p[i];
+		p->interfc = i;
+		if(i == ser->jtag){
+			p->isjtag++;
+			continue;
+		}
+		p->s = ser;
+		p->fs = serialfs;
+		if(findendpoints(ser, i) < 0){
+			werrstr("serial: no endpoints found for ifc %d", i);
+			return -1;
+		}
+		p->w4data  = chancreate(sizeof(ulong), 0);
+		p->gotdata = chancreate(sizeof(ulong), 0);
 	}
 
-	dirtab[Qdata].name = smprint("eiau%d", dev->id);
-	dirtab[Qctl].name  = smprint("eiau%dctl", dev->id);
-	/*
-	 * it would nice to get rid of this extra level of directory,
-	 * thus reducing /dev/eiaU6/eiau6* to /dev/eiau6*
-	 * for easier binding into /dev with `bind -a /dev/eiaU* /dev'.
-	 */
-	snprint(ser->fs.name, sizeof ser->fs.name, "eiaU%d", dev->id);
-	fprint(2, "%s\n", ser->fs.name);
-	ser->fs.dev = dev;
-	incref(dev);
-	ser->fs.aux = ser;
-	usbfsadd(&ser->fs);
+	qlock(ser);
+	serialreset(ser);
+	for(i = 0; i < ser->nifcs; i++){
+		p = &ser->p[i];
+		if(p->isjtag){
+			dsprint(2, "serial: ignoring JTAG interface %d %p\n", i, p);
+			continue;
+		}
+		dprint(2, "serial: valid interface, calling serinit\n");
+		if(serinit(p) < 0){
+			dprint(2, "serial: serinit: %r\n");
+			return -1;
+		}
 
-	closedev(dev);
+		dsprint(2, "serial: adding interface %d, %p\n", p->interfc, p);
+		snprint(p->fs.name, sizeof p->fs.name, "eiaU%d", dev->id+i-1);
+		fprint(2, "%s\n", p->fs.name);
+		p->fs.dev = dev;
+		incref(dev);
+		p->fs.aux = p;
+		p->fs.end = serialfsend;
+		usbfsadd(&p->fs);
+	}
+
+	qunlock(ser);
 	return 0;
 }

@@ -1,5 +1,5 @@
 /*
- * myricom 10 Gb ethernet driver
+ * myricom 10g-pcie-8a 10 Gb ethernet driver
  * © 2007 erik quanstrom, coraid
  *
  * the card is big endian.
@@ -362,15 +362,12 @@ whichfw(Pcidev *p)
 		print("fw = %d [forced]\n", i);
 		return i;
 	}
-	if(lanes <= 4){
+	if(lanes <= 4)
 		print("fw = 4096 [lanes]\n");
-		return 4*KiB;
-	}
-	if(ecrc & 10){
+	else if(ecrc & 10)
 		print("fw = 4096 [ecrc set]\n");
-		return 4*KiB;
-	}
-	print("fw = 4096 [default]\n");
+	else
+		print("fw = 4096 [default]\n");
 	return 4*KiB;
 }
 
@@ -1556,7 +1553,20 @@ m10gpci(void)
 	Ctlr *t, *c;
 
 	t = 0;
-	for(p = 0; p = pcimatch(p, 0x14c1, 0x0008); ){
+	for(p = 0; p = pcimatch(p, Vmyricom, 0); ){
+		switch(p->did){
+		case 0x8:		/* 8a */
+			break;
+		case 0x9:		/* 8a with msi-x fw */
+		case 0xa:		/* 8b */
+		case 0xb:		/* 8b2 */
+		case 0xc:		/* 2-8b2 */
+			/* untested */
+			break;
+		default:
+			print("etherm10g: unknown myricom did %#ux\n", p->did);
+			continue;
+		}
 		c = malloc(sizeof *c);
 		if(c == nil)
 			continue;

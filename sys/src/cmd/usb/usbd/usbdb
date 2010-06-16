@@ -2,6 +2,8 @@
 # others are not yet converted to sit in the usbd device driver library
 embed
 	kb	csp=0x010103 csp=0x020103	args=
-	disk	class=storage	args=
-	ether	class=comms	args=
+	disk	class=storage			args=
+#	ether	class=comms			args=
+	ether	class=255 csp=0x00ffff		args=
+#	serial	class=255 csp=0xffffff vid=0x9e88 did=0x9e8f	args=
 auto

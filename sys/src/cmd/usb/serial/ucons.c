@@ -28,11 +28,16 @@ uconsmatch(char *info)
 }
 
 static int
-ucseteps(Serial *ser)
+ucseteps(Serialport *p)
 {
-	ser->maxread = ser->maxwrite = 8;
-	devctl(ser->epin,  "maxpkt 8");
-	devctl(ser->epout, "maxpkt 8");
+	Serial *ser;
+
+	ser = p->s;
+
+	p->baud = ~0;	/* not real port */
+	ser->maxrtrans = ser->maxwtrans = 8;
+	devctl(p->epin,  "maxpkt 8");
+	devctl(p->epout, "maxpkt 8");
 	return 0;
 }
 

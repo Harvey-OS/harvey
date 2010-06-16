@@ -1,5 +1,5 @@
 /*
- * intel 10gbe pci-express driver
+ * intel 10GB ethernet pci-express driver
  * copyright © 2007, coraid, inc.
  */
 #include "u.h"

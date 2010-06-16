@@ -260,6 +260,12 @@ struct Pcidev
 	int	pmrb;			/* power management register block */
 };
 
+enum {
+	/* vendor ids */
+	Vintel	= 0x8086,
+	Vmyricom= 0x14c1,
+};
+
 #define PCIWINDOW	0
 #define PCIWADDR(va)	(PADDR(va)+PCIWINDOW)
 #define ISAWINDOW	0

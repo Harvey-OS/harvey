@@ -1,7 +1,6 @@
 enum {
 	/* used by devices which don't provide their own Vid */
 	FTVid		= 0x0403,
-	FTOpenrdDid	= 0x9E90,
 
 	FTSheevaVid	= 0x9E88,
 	FTSheevaDid	= 0x9E8F,
@@ -13,24 +12,24 @@ enum {
 	FTRELAISDid	= 0xFA10,	/* Relais device */
 
 	/* NF reader */
-	FTNFRICVid = 0x0DCD,
-	FTNFRICDid = 0x0001,
+	FTNFRICVid	= 0x0DCD,
+	FTNFRICDid	= 0x0001,
 
-	FTACTZWAVEDid = 0xF2D0,		/* www.irtrans.de device */
+	FTACTZWAVEDid	= 0xF2D0,		/* www.irtrans.de device */
 
 	/*
 	 * ACT Solutions HomePro ZWave interface
 	 * http://www.act-solutions.com/HomePro.htm)
 	 */
-	FTIRTRANSDid = 0xFC60,
+	FTIRTRANSDid	= 0xFC60,
 
 	/*
 	 * www.thoughttechnology.com/ TT-USB
 	 */
-	FTTTUSBDid = 0xFF20,
+	FTTTUSBDid	= 0xFF20,
 
 	/* iPlus device */
-	FTIPLUSDid = 0xD070,
+	FTIPLUSDid	= 0xD070,
 
 	/* www.crystalfontz.com devices */
 	FTXF632Did = 0xFC08,	/* 632: 16x2 Character Display */
@@ -46,7 +45,7 @@ enum {
 	 * Video Networks Limited / Homechoice in the UK
 	 * use an ftdi-based device for their 1Mb broadband
 	 */
-	FTVNHCPCUSBDDid = 0xfe38,
+	FTVNHCPCUSBDDid	= 0xfe38,
 
 	/*
 	 * PCDJ use ftdi based dj-controllers
@@ -381,6 +380,11 @@ enum {
 	 * ACG Identification Technologies GmbH products http://www.acg.de/
 	 */
 	FTACGHFDUALDid	= 0xDD20,		/* HF Dual ISO Reader (RFID) */
+	/*
+	 * new high speed devices
+	 */
+	FT4232HDid	= 0x6011,		/* FTDI FT4232H based device */
+	
 };
 
 /* Commands */
@@ -395,7 +399,11 @@ enum {
 	FTSETERRORCHAR,			/* Set the error character */
 	FTSETLATENCYTIMER,		/* Set the latency timer */
 	FTGETLATENCYTIMER,		/* Get the latency timer */
-	FTGETE2READ	= 0x90,		/* Read an address */
+	FTSETBITMODE,			/* Set bigbang mode */
+	FTGETPINS,			/* Read pins state */
+	FTGETE2READ	= 0x90,		/* Read an address from EEPROM */
+	FTSETE2WRITE,			/* Write to address on the EEPROM */
+	FTSETE2ERASE,			/* Erase address on the EEPROM */
 };
 
 enum {
@@ -446,10 +454,13 @@ enum {
 
 /* chip type */
 enum {
-	SIO	= 1,
-	FT8U232AM= 2,
-	FT232BM	= 3,
-	FT2232C	= 4,
+	SIO		= 1,
+	FT8U232AM	= 2,
+	FT232BM		= 3,
+	FT2232C		= 4,
+	FTKINDR		= 5,
+	FT2232H		= 6,
+	FT4232H		= 7,
 };
 
 enum {

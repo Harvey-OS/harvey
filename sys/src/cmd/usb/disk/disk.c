@@ -34,7 +34,7 @@ struct Dirtab
 static Dirtab dirtab[] =
 {
 	[Qdir]	"/",	DMDIR|0555,
-	[Qctl]	"ctl",	0444,
+	[Qctl]	"ctl",	0664,		/* nothing secret here */
 	[Qraw]	"raw",	0640,
 	[Qdata]	"data",	0640,
 };
@@ -145,12 +145,19 @@ umsinit(Ums *ums)
 		lun->umsc = lun;
 		lun->lun = i;
 		lun->flags = Fopen | Fusb | Frw10;
-		if(SRinquiry(lun) < 0 && SRinquiry(lun) < 0)
+		if(SRinquiry(lun) < 0 && SRinquiry(lun) < 0){
+			dprint(2, "disk: lun %d inquiry failed\n", i);
 			continue;
-		if(lun->inquiry[0] != 0x00){
-			/* not a disk */
-			fprint(2, "%s: lun %d is not a disk (type %#02x)\n",
-				argv0, i, lun->inquiry[0]);
+		}
+		switch(lun->inquiry[0]){
+		case Devdir:
+		case Devworm:		/* a little different than the others */
+		case Devcd:
+		case Devmo:
+			break;
+		default:
+			fprint(2, "disk: lun %d is not a disk (type %#02x)\n",
+				i, lun->inquiry[0]);
 			continue;
 		}
 		SRstart(lun, 1);
@@ -163,6 +170,7 @@ umsinit(Ums *ums)
 		umscapacity(lun);
 	}
 	if(some == 0){
+		dprint(2, "disk: all luns failed\n");
 		devctl(ums->dev, "detach");
 		return -1;
 	}
@@ -178,7 +186,7 @@ umsrequest(Umsc *umsc, ScsiPtr *cmd, ScsiPtr *data, int *status)
 {
 	Cbw cbw;
 	Csw csw;
-	int n;
+	int n, nio;
 	Ums *ums;
 
 	ums = umsc->ums;
@@ -189,7 +197,7 @@ umsrequest(Umsc *umsc, ScsiPtr *cmd, ScsiPtr *data, int *status)
 	cbw.flags = data->write? CbwDataOut: CbwDataIn;
 	cbw.lun = umsc->lun;
 	if(cmd->count < 1 || cmd->count > 16)
-		print("%s: umsrequest: bad cmd count: %ld\n", argv0, cmd->count);
+		print("disk: umsrequest: bad cmd count: %ld\n", cmd->count);
 
 	cbw.len = cmd->count;
 	assert(cmd->count <= sizeof(cbw.command));
@@ -208,12 +216,13 @@ umsrequest(Umsc *umsc, ScsiPtr *cmd, ScsiPtr *data, int *status)
 		fprint(2, "disk: cmd: %r\n");
 		goto Fail;
 	}
+	nio = data->count;
 	if(data->count != 0){
 		if(data->write)
-			n = write(ums->epout->dfd, data->p, data->count);
+			n = nio = write(ums->epout->dfd, data->p, data->count);
 		else{
 			memset(data->p, data->count, 0);
-			n = read(ums->epin->dfd, data->p, data->count);
+			n = nio = read(ums->epin->dfd, data->p, data->count);
 		}
 		if(diskdebug)
 			if(n < 0)
@@ -242,8 +251,10 @@ umsrequest(Umsc *umsc, ScsiPtr *cmd, ScsiPtr *data, int *status)
 		dprint(2, "disk: phase error\n");
 		goto Fail;
 	}
+	if(csw.dataresidue == 0 || ums->wrongresidues)
+		csw.dataresidue = data->count - nio;
 	if(diskdebug){
-		fprint(2, "status: %2.2ux residue: %ld\n",
+		fprint(2, "disk: status: %2.2ux residue: %ld\n",
 			csw.status, csw.dataresidue);
 		if(cbw.command[0] == ScmdRsense){
 			fprint(2, "sense data:");
@@ -484,6 +495,10 @@ dwrite(Usbfs *fs, Fid *fid, void *buf, long count, vlong offset)
 		qunlock(ums);
 		werrstr(Eperm);
 		return -1;
+	case Qctl:
+		qunlock(ums);
+		dprint(2, "usb/disk: ctl ignored\n");
+		return count;
 	case Qraw:
 		if(lun->lbsize <= 0 && umscapacity(lun) < 0){
 			qunlock(ums);
@@ -698,6 +713,13 @@ diskmain(Dev *dev, int argc, char **argv)
 		werrstr("disk: endpoints not found");
 		return -1;
 	}
+
+	/*
+	 * SanDISK 512M gets residues wrong.
+	 */
+	if(dev->usb->vid == 0x0781 && dev->usb->did == 0x5150)
+		ums->wrongresidues = 1;
+
 	if(umsinit(ums) < 0){
 		dprint(2, "disk: umsinit: %r\n");
 		return -1;
@@ -712,6 +734,5 @@ diskmain(Dev *dev, int argc, char **argv)
 		lun->fs.aux = lun;
 		usbfsadd(&lun->fs);
 	}
-	closedev(dev);
 	return 0;
 }

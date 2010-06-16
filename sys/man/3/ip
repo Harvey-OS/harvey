@@ -970,6 +970,11 @@ sending to the other end of the tunnel.
 Received packets are checked against their MAC's,
 decrypted, and queued for reading from
 .BR data .
+In the following,
+.I secret
+is the hexadecimal encoding of a key,
+without a leading
+.LR 0x .
 The control messages are:
 .TF "\fLesp \fIalg secret\fR"
 .PD
