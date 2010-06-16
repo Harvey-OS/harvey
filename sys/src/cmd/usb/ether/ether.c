@@ -907,6 +907,7 @@ etherfree(Ether *e)
 	shutdownchan(e->rc);
 	shutdownchan(e->wc);
 	e->epin = e->epout = nil;
+	devctl(e->dev, "detach");
 	free(e);
 }
 
@@ -1030,6 +1031,7 @@ etherreadproc(void *a)
 	deprint(2, "%s: writeproc exiting\n", argv0);
 	etherexiting(e);
 	closedev(e->dev);
+	usbfsdel(&e->fs);
 }
 
 static void
@@ -1173,6 +1175,7 @@ ethermain(Dev *dev, int argc, char **argv)
 	incref(e->dev);
 	proccreate(etherreadproc, e, 16*1024);
 	deprint(2, "%s: dev ref %ld\n", argv0, dev->ref);
+	incref(e->dev);
 	usbfsadd(&e->fs);
 	return 0;
 }

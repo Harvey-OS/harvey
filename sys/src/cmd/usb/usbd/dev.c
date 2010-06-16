@@ -147,10 +147,9 @@ startdevproc(void *a)
 	}else{
 		sa->pp->dev = opendev(d->dir);
 		sendul(sa->rc, 0);
-		if(dt->init(d, argc, argv) < 0){
+		if(dt->init(d, argc, argv) < 0)
 			fprint(2, "%s: %s: %r\n", argv0, dt->name);
-			closedev(d);
-		}
+		closedev(d);
 		free(sa);
 	}
 	threadexits(nil);
