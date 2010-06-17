@@ -675,13 +675,13 @@ pxegetfspart(int ctlrno, char* part, int)
  * needs to admit udp and aoe packets.
  */
 int
-interesting(Block *bp)
+interesting(void* pkt)
 {
 	ulong addr;
 	Netaddr *a = &server;
 	Udphdr *h;
 
-	h = (Udphdr*)bp->rp;
+	h = pkt;
 	if(debug)
 		print("inpkt %E to %E...\n", h->s, h->d);
 
