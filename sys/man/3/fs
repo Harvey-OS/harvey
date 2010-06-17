@@ -1,39 +1,61 @@
-.TH FS 3 
+.TH FS 3
 .SH NAME
 fs \- file system devices
 .SH SYNOPSIS
 .nf
 .B bind -b #k /dev
-
+.sp 0.3v
 .B /dev/fs
 .B /dev/fs/ctl
 .B /dev/fs/...
+.B /dev/\fInew\fP
 .fi
 .SH DESCRIPTION
 The
 .I fs
-driver builds complex disk files out of simpler disk files. 
+driver builds complex disk files out of simpler disk files.
 Inspired by the Plan 9 file server kernel's configuration strings,
 it provides device mirroring, partitioning, interleaving, and catenation
 for disk-based services like
-.IR kfs (4)
+.IR fossil (4)
 or
 .IR venti (8).
 .PP
-The device
-is intended to be bound at
+The device is intended to be bound at
 .B /dev
-and contains a directory named
+and initially contains a directory named
 .BR fs ,
 which in turn contains a
 .B ctl
 file and one file per configured device.
 .PP
-Most control messages each introduce a new device, here named
+Most control messages introduce a new device, here named
 .IR new .
 The
 .I file
-arguments are interpreted in the name space of the writer.
+arguments are interpreted in the name space of the writing process.
+.PP
+The device name
+.I new
+may be a single filename component (containing no slashes);
+in this case, the device is created under
+.BR #k/fs .
+If
+.I new
+instead has the format
+.IB dir / file,
+the device is made available at
+.BI #k/ dir / file.
+The directory
+.I dir
+goes away when the last device on it is removed with the
+.B del
+control message,
+but
+.B #k/fs
+will never be removed.
+.TF "del \fIold
+.PD
 .TP
 .BI cat " new files" \fR...
 The device
@@ -67,15 +89,18 @@ Reads from
 are handled by sequentially reading from the
 .I files
 from left to right until one succeeds.
-The length of the mirror device is the minimum of the lengths of the 
+The length of the mirror device is the minimum of the lengths of the
 .IR files .
 .TP
 .BI part " new file offset length"
-The device
+.TP
+.BI part " new offset end
+In the first form,
+the device
 .I new
 corresponds to the
 .I length
-bytes starting at
+units starting at
 .I offset
 in
 .IR file .
@@ -85,6 +110,52 @@ reaches past the end of
 .IR file ,
 .I length
 is silently reduced to fit.
+Units are bytes.
+In the second form,
+a previous
+.B disk
+request must have defined the source
+.I file
+for further requests and the end of the device
+is determined by the
+.I end
+offset in the source file, and not by the device
+length. Units are as defined in the previous
+.B disk
+request. This form is accepted for compatibility with
+.IR fdisk (8)
+and
+.IR sd (3)
+devices.
+.TP
+.BI del " old
+Removes the device named
+.IR old .
+The device will still be seen while in use.
+Further I/O attempts will fail with an error indication stating that
+the device is gone.
+When
+.I old
+is
+.IB dir /*\fR,
+all devices under
+.I dir
+are removed.
+.TP
+.BI disk " dir [ n file ]
+makes
+.I dir
+implicit in new device names (i.e., it makes
+.I new
+mean
+.IB dir / new
+by default).
+Optional argument
+.I n
+specifies the default unit (sector) size in bytes and the default source
+.I file
+for further partition devices.
+Default values are restored when the control file is closed.
 .TP
 .B clear
 Discard all
@@ -95,16 +166,30 @@ device definitions.
 If the variable
 .B fsconfig
 is set in
-.IR plan9.ini (8)
-then 
+.IR plan9.ini (8),
 .I fs
 will read its configuration from the file
 .B $fsconfig
 on the first attach.
-This is useful when the machine boots
-from a local file server that uses
+This is useful when the machine boots from a local file server that uses
 .IR fs .
-.SH EXAMPLE
+.SH EXAMPLES
+Use a previously partitioned disk,
+.BR /dev/sdC0 ,
+making
+partition files available under
+.BR /dev/sdC0parts :
+.IP
+.EX
+{
+	echo disk sdC0parts 512 /dev/sdC0/data
+	disk/fdisk -p /dev/sdC0/data
+	# now create plan 9 partitions
+	echo disk sdC0parts 512 /dev/sdC0parts/plan9
+	disk/prep -p /dev/sdC0parts/plan9
+} > /dev/fs/ctl
+.EE
+.LP
 Mirror the two disks
 .B /dev/sdC0/data
 and
@@ -157,7 +242,7 @@ in
 .IR cat (1),
 .IR dd (1),
 .IR sd (3),
-.IR kfs (4),
+.IR fossil (4),
 .IR fs (8),
 .IR plan9.ini (8),
 .IR prep (8),
