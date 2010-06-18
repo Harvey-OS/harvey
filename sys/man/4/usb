@@ -503,9 +503,8 @@ and control of the
 and
 .B dsr
 signals and some of the extra features are unimplemented.
-For Ftdi, only the Sheevaplug has been tried.
+For Ftdi, only the Sheevaplug and Guruplug have been tried.
 There is support for the EHCI debug port, but it loses bytes.
 .PP
-Not heavily exercised yet.
 The entire set of drivers is new and therefore potentially unreliable.
 A list of working devices must be compiled.
