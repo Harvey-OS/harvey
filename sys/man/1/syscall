@@ -1,6 +1,6 @@
 .TH SYSCALL 1 
 .SH NAME
-syscall  \- test a system call
+syscall \- test a system call
 .SH SYNOPSIS
 .B syscall
 [
@@ -26,11 +26,11 @@ An argument is either an integer constant as in C (its value is passed),
 a string (its address is passed),
 or the literal
 .B buf
-(a pointer to a 1 Kbyte buffer is passed).
+(a pointer to a 1MB buffer is passed).
 .PP
 If
 .B -o
-is given, the contents of the 1 Kbyte buffer are printed as a zero-terminated string
+is given, the contents of the 1MB buffer are printed as a zero-terminated string
 after the system call is done.
 The
 .B -x
