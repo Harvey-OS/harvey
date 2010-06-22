@@ -102,7 +102,7 @@ main(int argc, char *argv[])
 	}ARGEND
 	if(argc<1 || argc>1+NARG){
     Usage:
-		fprint(2, "usage: syscall [-ox] entry [args; buf==8192 byte buffer]\n");
+		fprint(2, "usage: syscall [-ox] entry [args; buf==1MB buffer]\n");
 		fprint(2, "\tsyscall write 1 hello 5\n");
 		fprint(2, "\tsyscall -o errstr buf 1024\n");
 		fprint(2, "\tsyscall -[xs] stat file buf 1024\n");
