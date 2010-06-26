@@ -2,7 +2,6 @@
 .SH NAME
 filter, list, deliver, token, vf \-  filtering mail
 .SH SYNOPSIS
-.PP
 .B upas/filter
 [
 .B -bh
@@ -21,7 +20,7 @@ filter, list, deliver, token, vf \-  filtering mail
 .I patternfile
 .I addressfile ...
 .PP
-.B upas/deliver 
+.B upas/deliver
 .I recipient
 .I fromfile
 .I mbox
@@ -37,11 +36,10 @@ filter, list, deliver, token, vf \-  filtering mail
 .B -r
 ]
 [
-.B -s 
+.B -s
 .I savefile
 ]
 .SH DESCRIPTION
-.PP
 A user may filter all incoming mail by creating
 a world readable/executable file
 .BI /mail/box/ username /pipeto.
@@ -62,12 +60,12 @@ be append only.
 A message that matches none of the expressions is delivered into
 the user's standard mail box.
 .PP
-By default, 
+By default,
 .I filter
 matches each regular expression against the message's sender.
-The 
+The
 .B -h
-flag causes 
+flag causes
 .I filter
 to match against the entire header,
 and the
@@ -80,6 +78,7 @@ For example, to delete any messages of precedence bulk, place in
 your
 .B pipeto
 file:
+.IP
 .EX
 /bin/upas/filter -h $1 $2 'Precedence: bulk' /dev/null
 .EE
@@ -101,6 +100,8 @@ to check each address contained in the
 against a list of patterns in
 .IR patternfile .
 Patterns come in four forms:
+.TF ~\fIregular-expression\fP
+.PD
 .TP
 .B ~\fIregular-expression\fP
 If any address matches the regular expression,
@@ -131,11 +132,12 @@ If no addresses match a pattern,
 returns "no match".
 .PP
 The pattern file may also contain lines of the form
+.IP
 .EX
 #include filename
 .EE
-This allows pattern files to include other pattern
-files.
+.LP
+to allow pattern files to include other pattern files.
 All pattern matches are case insensitive.
 .I List
 searches the pattern file (and its includes) in order.
@@ -168,10 +170,10 @@ the message read from standard input.
 It obeys standard mail file locking and logging
 conventions.
 .PP
-A sample 
+.B /sys/src/cmd/upas/filterkit/pipeto.sample
+is a sample
 .B pipeto
-using the filter kit can be found in
-.BR /sys/src/cmd/upas/filterkit/pipeto.sample .
+using the filter kit.
 .PP
 A sample
 .BR pipefrom ,
@@ -192,7 +194,7 @@ The behavior depends on the attachment's file name
 extension and MIME content type.
 .B /sys/lib/mimetype
 contains the list of known extensions and MIME content types.
-The fifth field of each line specifies the 
+The fifth field of each line specifies the
 safety of a particular file type:
 .B y
 (yes),
@@ -227,11 +229,11 @@ Attachments with safety
 and
 .BR .scr ,
 all Microsoft executable extensions)
-are taken as 
+are taken as
 cause for the entire message to be rejected.
 A safety of
 .B p
-(used for the 
+(used for the
 .B x-gunzip
 mime type)
 causes the previous extension to be tested,
@@ -242,25 +244,25 @@ is treated the same as
 .PP
 If
 .B /mail/lib/validateattachment
-exists and is executable, 
+exists and is executable,
 .B vf
-runs it on all attachments with safety 
+runs it on all attachments with safety
 .B n
 (attachments it would normally sanitize).
 If
 .IR validateattachment 's
 exit status contains the string
-.L discard ,
+.LR discard ,
 .I vf
 rejects the entire message.
 If the status contains the string
-.L accept ,
-.I vf 
+.LR accept ,
+.I vf
 does not sanitize the attachment.
-Otherwise, 
-.I vf 
+Otherwise,
+.I vf
 sanitizes the attachment as before.
-The standard 
+The standard
 .I validateattachment
 uses
 .IR file (1)
@@ -277,7 +279,7 @@ The
 .B -r
 option causes
 .I vf
-not to sanitize MIME attachments, only to
+not to sanitize MIME attachments, but instead to
 reject messages it determines to be viruses.
 The
 .B -s
@@ -285,10 +287,10 @@ option causes
 .I vf
 to log all attachments of safety
 .B r
-in the mail box 
+in the mail box
 .IR savefile .
 .SH FILES
-.TF /mail/box/*/dead.letter
+.TF /mail/lib/validateattachment
 .TP
 .B /mail/box/*/pipeto
 mail filter
@@ -299,11 +301,10 @@ MIME content types
 .B /mail/lib/validateattachment
 attachment checker
 .SH SOURCE
-.TP
 .B /sys/src/cmd/upas/send
-.TP
+.br
 .B /sys/src/cmd/upas/filterkit
-.TP
+.br
 .B /sys/src/cmd/upas/vf
 .SH "SEE ALSO"
 .IR aliasmail (8),
@@ -317,4 +318,3 @@ attachment checker
 .IR send (8),
 .IR smtp (8),
 .IR upasfs (4)
-
