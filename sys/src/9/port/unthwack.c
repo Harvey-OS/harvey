@@ -171,7 +171,8 @@ unthwack(Unthwack *ut, uchar *dst, int ndst, uchar *src, int nsrc, ulong seq)
 	}
 	eblocks = b;
 	if(cseq != seq){
-		print("blocks dropped: seq=%ld cseq=%ld %d cmask=%#lx %#x\n", seq, cseq, src[0], cmask, src[1]);
+		print("unthwack: blocks dropped: seq=%ld cseq=%ld %d cmask=%#lx %#x\n",
+			seq, cseq, src[0], cmask, src[1]);
 		return -2;
 	}
 
