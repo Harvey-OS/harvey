@@ -1334,7 +1334,7 @@ conviconnect(Conv *c, int subtype, Block *b)
 	acceptid = nhgetl(b->rp + 4);
 	freeb(b);
 
-if(0)print("conviconnect: %s: %d %uld %uld\n", convstatename[c->state], subtype, dialid, acceptid);
+if(0)print("sdp: conviconnect: %s: %d %uld %uld\n", convstatename[c->state], subtype, dialid, acceptid);
 
 	if(subtype == ConReset) {
 		convsetstate(c, CClosed);
@@ -1421,7 +1421,7 @@ if(0)print("conviconnect: %s: %d %uld %uld\n", convstatename[c->state], subtype,
 	}
 Reset:
 	// invalid connection message - reset to sender
-if(1)print("invalid conviconnect - sending reset\n");
+if(1)print("sdp: invalid conviconnect - sending reset\n");
 	convoconnect(c, ConReset, dialid, acceptid);
 	convsetstate(c, CClosed);
 }
@@ -2283,6 +2283,7 @@ thwackuncomp(Conv *c, int subtype, ulong seq, Block **bp)
 		b = allocb(ThwMaxBlock);
 		n = unthwack(c->in.compstate, b->wp, ThwMaxBlock, bb->rp, BLEN(bb), seq);
 		freeb(bb);
+		*bp = nil;
 		if(n < 0) {
 if(0)print("unthwack failed: %d\n", n);
 			freeb(b);
