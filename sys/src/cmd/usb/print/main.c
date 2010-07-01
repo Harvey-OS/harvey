@@ -14,7 +14,7 @@ enum
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-d] [dev...]\n", argv0);
+	fprint(2, "usage: %s [-d] [-N nb] [dev...]\n", argv0);
 	threadexitsall("usage");
 }
 
@@ -26,14 +26,18 @@ void
 threadmain(int argc, char **argv)
 {
 	char args[Arglen];
+	char *as;
 	char *ae;
 
 	quotefmtinstall();
 	ae = args+sizeof(args);
-	seprint(args, ae, "print");
+	as = seprint(args, ae, "print");
 	ARGBEGIN{
 	case 'd':
 		usbdebug++;
+		break;
+	case 'N':
+		as = seprint(as, ae, " -N %s", EARGF(usage()));
 		break;
 	default:
 		usage();

@@ -545,29 +545,23 @@ kbstart(Dev *d, Ep *ep, Kin *in, void (*f)(void*), int accel)
 static int
 usage(void)
 {
-	werrstr("usage: usb/kb [-dkmn] [-a n]");
+	werrstr("usage: usb/kb [-dkm] [-a n] [-N nb]");
 	return -1;
 }
 
 int
 kbmain(Dev *d, int argc, char* argv[])
 {
-	int i;
-	int kena;
-	int pena;
-	int accel;
-	char *as;
+	int i, kena, pena, accel, devid;
 	Usbdev *ud;
 	Ep *ep;
 
 	kena = pena = 1;
 	accel = 0;
+	devid = d->id;
 	ARGBEGIN{
 	case 'a':
-		as = ARGF();
-		if(as == nil)
-			return usage();
-		accel = strtol(as, nil, 0);
+		accel = strtol(EARGF(usage()), nil, 0);
 		break;
 	case 'd':
 		kbdebug++;
@@ -580,12 +574,16 @@ kbmain(Dev *d, int argc, char* argv[])
 		kena = 0;
 		pena = 1;
 		break;
+	case 'N':
+		devid = atoi(EARGF(usage()));		/* ignore dev number */
+		break;
 	default:
 		return usage();
 	}ARGEND;
 	if(argc != 0){
 		return usage();
 	}
+	USED(devid);
 	ud = d->usb;
 	d->aux = nil;
 	dprint(2, "kb: main: dev %s ref %ld\n", d->dir, d->ref);

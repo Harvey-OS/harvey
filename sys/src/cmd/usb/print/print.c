@@ -21,13 +21,12 @@ enum
 };
 
 int
-findendpoints(Dev *dev)
+findendpoints(Dev *dev, int devid)
 {
 	Ep *ep;
 	Dev *d;
 	Usbdev *ud;
-	int i;
-	int epout;
+	int i, epout;
 
 	epout = -1;
 	ud = dev->usb;
@@ -57,28 +56,34 @@ findendpoints(Dev *dev)
 	dprint(2, "print: ep out %s\n", d->dir);
 	if(usbdebug > 1)
 		devctl(d, "debug 1");
-	devctl(d, "name lp%d", dev->id);
+	devctl(d, "name lp%d", devid);
 	return 0;
 }
 
 static int
 usage(void)
 {
-	werrstr("usage: usb/print");
+	werrstr("usage: usb/print [-N id]");
 	return -1;
 }
 
 int
 printmain(Dev *dev, int argc, char **argv)
 {
+	int devid;
+
+	devid = dev->id;
 	ARGBEGIN{
+	case 'N':
+		devid = atoi(EARGF(usage()));
+		break;
 	default:
 		return usage();
 	}ARGEND
 	if(argc != 0)
 		return usage();
 
-	if(findendpoints(dev) < 0){
+	if(findendpoints(dev, devid) < 0){
 		werrstr("print: endpoints not found");
 		return -1;
 	}

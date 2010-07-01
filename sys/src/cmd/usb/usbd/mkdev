@@ -39,6 +39,7 @@ Devtab devtab[] = {
 	/* device, entrypoint, {csp, csp, csp csp}, vid, did */
 EOF
 awk '
+/^#|^$/	{ next }
 collect && /^[^ \t]/{
 	collect = 0;
 }
@@ -102,12 +103,11 @@ collect {
 		printf("0, ");
 	printf("}, %s, %s, \"%s\"},\n", vid, did, args);
 }
-' $DB |  sed $subs
+' $DB | sed $subs
 
-cat<<EOF
+cat <<EOF
 	{nil, nil,	{0, 0, 0, 0, }, -1, -1, nil},
 };
 
 /* end of machine generated */
 EOF
-

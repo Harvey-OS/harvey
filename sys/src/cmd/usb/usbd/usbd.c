@@ -457,6 +457,9 @@ portdetach(Hub *h, int p)
 		closehub(pp->hub);
 		pp->hub = nil;
 	}
+	if(pp->devmaskp != nil)
+		putdevnb(pp->devmaskp, pp->devnb);
+	pp->devmaskp = nil;
 	if(pp->dev != nil){
 		devctl(pp->dev, "detach");
 		usbfsgone(pp->dev->dir);

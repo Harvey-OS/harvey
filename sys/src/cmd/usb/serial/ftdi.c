@@ -587,9 +587,9 @@ wait4data(Serialport *p, uchar *data, int count)
 
 	qunlock(ser);
 	d = sendul(p->w4data, 1);
+	qlock(ser);
 	if(d <= 0)
 		return -1;
-	qlock(ser);
 	if(p->ndata >= count)
 		p->ndata -= count;
 	else{
