@@ -204,7 +204,7 @@ buttonproc(void *)
 void
 usage(void)
 {
-	fprint(2, "usage: usbaudio [-dpV] [-m mountpoint] [-s srvname] "
+	fprint(2, "usage: usbaudio [-dpV] [-N nb] [-m mountpoint] [-s srvname] "
 		"[-v volume] [dev]\n");
 	threadexitsall("usage");
 }
@@ -230,6 +230,9 @@ threadmain(int argc, char **argv)
 	quotefmtinstall();
 
 	ARGBEGIN{
+	case 'N':
+		p = EARGF(usage());	/* ignore dev nb */
+		break;
 	case 'd':
 		usbdebug++;
 		verbose++;

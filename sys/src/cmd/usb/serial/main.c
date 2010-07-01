@@ -18,7 +18,7 @@ typedef struct Parg Parg;
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-dD] [-m mtpt] [-s srv] [dev...]\n", argv0);
+	fprint(2, "usage: %s [-dD] [-N nb] [-m mtpt] [-s srv] [dev...]\n", argv0);
 	threadexitsall("usage");
 }
 
@@ -50,6 +50,9 @@ threadmain(int argc, char **argv)
 	case 'd':
 		usbdebug++;
 		as = seprint(as, ae, " -d");
+		break;
+	case 'N':
+		as = seprint(as, ae, " -N %s", EARGF(usage()));
 		break;
 	case 'm':
 		mnt = EARGF(usage());
