@@ -325,7 +325,7 @@ main(int argc, char **argv)
 		    DoRemove:
 			USED(checkedmatch1);
 			assert(ismatch(name));
-			chat("a %q %luo %q %q %lud\n", name, rd.mode, rd.uid, rd.gid, rd.mtime);
+			chat("d %q %luo %q %q %lud\n", name, rd.mode, rd.uid, rd.gid, rd.mtime);
 			if(donothing)
 				break;
 			if(remove(local) < 0){

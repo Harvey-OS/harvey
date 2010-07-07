@@ -24,7 +24,7 @@ exit 0
 ; Updated and currently maintained by:
 ; Kavi Corporation (admin@pcidatabase.com)
 ;
-; This header created on Wed May 26 10:13:10 PDT 2010
+; This header created on Tue Jul  6 14:15:47 PDT 2010
 ;---------------------------------------------------------------------------
 ;
 ; This text file is formatted as follows:
@@ -2313,8 +2313,8 @@ exit 0
 	2164	BtV 2164 Display Adapter
 	2165	BtV 2165 MediaStream Controller
 	36e	878a 25878-13
-	36E&SUBSYS_0000000	Bt360 MediaStream Controller Brooktree Corp
 	36E&SUBSYS_0000000	CONEXANT FUSION 878A 25878-13 E407702 conexant 878a
+	36E&SUBSYS_0000000	Bt360 MediaStream Controller Brooktree Corp
 	8230	BtV 8230 ATM Segment/Reassembly Controller (SRC)
 	8472	Bt8471/72 32/64-channel HDLC Controllers
 	8474	Bt8474 128-channel HDLC Controller
@@ -2494,7 +2494,7 @@ exit 0
 	1451	M1451 Pentium CPU to PCI Bridge
 	1461	M1461 P54C Chipset
 	1489	M1489 486 PCI Chipset
-	1511	M1511 Aladdin 2 Host Bridge
+	1511	M1575 Aladdin 2 Host Bridge
 	1513	M1513 Aladdin 2 South Bridge
 	1521	M1521 Bios
 	1523	M1523 ISA Bridge
@@ -2539,7 +2539,7 @@ exit 0
 	5229&REV_C5	? PATA 133
 	5235	M1621 ALI M1621 A1
 	5236	M5273 EHCI USB 2.0
-	5237	M5273 A1 for windows 98 OpenHCI 1.1 USB to  2.0
+	5237	M5273 A1 for windows 2000 OpenHCI 1.1 USB to  2.0
 	5239	527210B9 USB EHCI2.0 Controller
 	5249	M5249 HyperTransport to PCI Bridge
 	5251	M5251 IEEE P1394 OpenHCI 1.0 Controller
@@ -3306,6 +3306,7 @@ exit 0
 	0883	ALC883 Realtek 7.1+2 High Definition Audio
 	0885	ALC885 8-channel High Definition Audio 
 	0888	ALC888 Realtek 7.1+2 High Definition Audio
+	1003	123 321
 	7305	RTU7305 RF  controller UWD Wireless USB
 	8021	RTL8029AS NIC
 	8029	RTL8028 PCI Full-Duplex Ethernet Controller with PnP Function
@@ -3797,7 +3798,7 @@ exit 0
 	7634	IDT_Audiov5939 IDT/Sigmae HDl Audio Driver v6.10.5939.0 05/06/2008
 	7662	IDT_Audiov5939 IDT/Sigmae HDl Audio Driver v6.10.5939.0 05/06/2008
 	7675	92HD73C1 92HD73C1
-	76A0	102801FF SigmaTel High Definition Audio CODEC (Dell Precision M4300)
+	76A0	102801FF SigmaTel High Definition Audio CODEC (Dell Precision M4300 and LAT D630)
 	76B2	92HD75B3 IDT Audio
 	76D5	0x76D5 0x3649
 111F	Precision Digital Images
@@ -3986,6 +3987,7 @@ exit 0
 	0071	DataFire Micro V 
 	0072	DataFire Micro V 
 	0073	DataFire Micro V 
+	00c8	20F0 Digi Neo 2
 	6001	Avanstar 
 1150	Thinking Machines Corporation
 1151	JAE Electronics Inc.
@@ -4388,7 +4390,7 @@ exit 0
 11BB	Pyramid Technology
 11BC	Network Peripherals Inc
 	0001	NPI NuCard PCI FDDI
-11BD	NABOHO
+11BD	NABOHO/INFORMATICIEN /BURKINA
 	0015	660806-2.0 rob2d
 	1158	48 spécialité électronique et informatique
 	11BD	40 maintenance informatique
@@ -5353,6 +5355,7 @@ exit 0
 1389	Applicom International
 	0001	PCI1500PFB Intelligent fieldbus Adapter
 	0104	PCI-CANIO PCI-CANIO adapter
+138A	Validity Sensors, Inc.
 138B	Tokimec Inc
 138E	Basler GMBH
 138F	Patapsco Designs Inc
@@ -5830,6 +5833,7 @@ exit 0
 	1600	BCM5752 NetXtreme BCM5752 Gigabit Ethernet PCI Express
 	1612	BCM70010/BCM70012 Broadcom Video Decoder/Accelerator
 	1639	BCM5709 NetXtreme II Gigabit Ethernet
+	163B	BCM5709 Broadcom NetXtreme II BCM5706/5708/5709/5716 Driver
 	1644	 BCM5751F ven_1102dev_0004
 	1645	BCM5701 broadtcomBCM5701 Gigabit Ethernet
 	1646	BCM5702x1 NetXtreme Gigabit Ethernet
@@ -5906,7 +5910,7 @@ exit 0
 	4324	BCM4309 802.11a/b/g Wireless LAN Controller
 	4325	BCM4306 802.11b/g Wireless LAN Controller
 	4326	BCM4306 Chipcommon I/O Controller?
-	4328	BCM4321KFBG Broadcom 432AGN 802.11a/b/g/draft-n Wi-Fi Solution
+	4328	BCM4321KFBG Broadcom BCM43xx 1.0 (5.10.91.27)
 	4329	BCM43XX Broadcom 802.11n Network Adapter
 	432B	4322 WIRELESS for Hp pavilion, Wireless for macbook pro (late 2009 model), Wireless for Dell e6500 ,Dell 
 	4401	BCM4401 10/100 Integrated Ethernet Controller
@@ -5996,7 +6000,7 @@ exit 0
 	50452		14F12F30 Conextant High Definition Audio-Venice 5051
 	50452	14F12F30 Conextant High Definition Audio-Venice 5051
 	5051	4.0.1.6 Audio
-	5051_	unknow Realtek High Definition audio
+	5051_	DG31PR Realtek High Definition audio
 	5051__	G45 Conexant High Definition SmartAudio 221
 	5066	Cx20561 HDAUDIO\Func_01&VEN_14F1&DEV_5066&SUBSYS_17AA4002&REV_1003
 	5B7A	Belived to be a CX23416 Single-Chip MPEG-2 Encoder with Integrated Analog Video/Broadcast Audio Decoder
@@ -6825,6 +6829,7 @@ exit 0
 	4033	  BenONE-Xilinx-Kit-ROHS
 	4034	  BenNUEY PCIX RoHS
 1991	Topstar Digital Technologies Co., Ltd.
+19a2	ServerEngines
 19A8	DAQDATA GmbH
 19AC	Kasten Chase Applied Research
 	0001	ACA2400 Crypto Accelerator
@@ -7176,6 +7181,7 @@ exit 0
 	10d3	82574L Intel® 82574L Gigabit Ethernet Controller
 	10DE	82567LM-3  Intel Gigabit network connection
 	10E8	Unknown Unknown
+	10EF	Intel® 82578DM Gigabit Ethernet Controller Intel® 82578DM Gigabit Ethernet Controller
 	10F5	82567LM Intel®  82567LM-2 Gigabit Network Connection
 	1100	82815/EP/P Host-Hub Interface Bridge / DRAM Ctrlr
 	1101	82815/EP/P AGP Bridge
@@ -7597,12 +7603,13 @@ exit 0
 	3B2F	PCH (Ibex Peak) SATA AHCI 6-Port Mobile
 	3B30	Intel(R) 5 Series/3400 Series Chipset Family SMBus Controller
 	3B32	Intel(R) Turbo Boost Technology Driver LPC Interface Controller
-	3B64	Intel Intel Management Engine Interface (MEI) Driver
+	3B64	0780 Intel Management Engine Interface (MEI) Driver
 	4000	Creatix V.90 HaM Modem
 	402f	- Intel Lan
 	4220	MPCI3B  driverIntel PRO/Wireless 2200BG
 	4222	10208086 Intel 3945ABG Wireless LAN controller
 	4223	2915ABG Intel (R) PRO/Wireless 2200BG Network Connection, (R) PRO/Wireless 2915ABG Network Connection
+	42231	2915ABG Intel (R) PRO/Wireless 2200BG Network Connection, (R) PRO/Wireless 2915ABG Network Connection
 	4224	Intel Pro Wireless 2915ABG 802.11a/b/g WLan adapter
 	4227	3945ABG Intel(R) PRO/Wireless 3945ABG
 	4229	Intel 4965AGN IntelÂ® Wireless WiFi Link 4965AGN(supporting 802.11a/b/g/Draft-N)
@@ -7812,7 +7819,7 @@ exit 0
 	00C3	AIC-7899D Ultra160 SCSI Controller
 	00C5	RAID Subsystem HBA
 	00CF	AIC-7899G Ultra160 SCSI Controller
-	0241	1420 Adaptec 1420SA Serual AHA HostRAID Controller
+	0241	1420 Adaptec 1420SA Serial AHA HostRAID Controller
 	0258	AAC-RAID Adaptec AAR-2610SA SATA 6-Port Raid
 	0285	Adaptec 2410SA SATA RAID PCIX133 32/64bit
 	0286	SUBSYS_95801014REV_02 SUBSYS_95801014REV_02
