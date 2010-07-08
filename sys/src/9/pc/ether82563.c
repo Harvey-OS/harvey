@@ -1,7 +1,7 @@
 /*
  * Intel Gigabit Ethernet PCI-Express Controllers.
  *	8256[36], 8257[12], 82573[ev]
- *	82575eb
+ *	82575eb, 82576
  * Pretty basic, does not use many of the chip smarts.
  * The interrupt mitigation tuning for each chip variant
  * is probably different. The reset/initialisation
@@ -424,6 +424,7 @@ enum {
 	i82572,
 	i82573,
 	i82575,
+	i82576,
 };
 
 static int rbtab[] = {
@@ -434,6 +435,7 @@ static int rbtab[] = {
 	9234,
 	9234,
 	8192,				/* terrible performance above 8k */
+	1514,
 	1514,
 };
 
@@ -446,6 +448,7 @@ static char *tname[] = {
 	"i82572",
 	"i82573",
 	"i82575",
+	"i82576",
 };
 
 typedef struct Ctlr Ctlr;
@@ -833,9 +836,9 @@ i82563txinit(Ctlr* ctlr)
 	}
 	csr32w(ctlr, Tidv, 128);
 	r = csr32r(ctlr, Txdctl);
-	r &= ~(WthreshMASK|PthreshSHIFT);
+	r &= ~(WthreshMASK|PthreshMASK);
 	r |= 4<<WthreshSHIFT | 4<<PthreshSHIFT;
-	if(ctlr->type == i82575)
+	if(ctlr->type == i82575 || ctlr->type == i82576)
 		r |= Qenable;
 	csr32w(ctlr, Tadv, 64);
 	csr32w(ctlr, Txdctl, r);
@@ -970,7 +973,7 @@ i82563rxinit(Ctlr* ctlr)
 	else
 		rctl = Lpe|Dpf|Bsize16384|Bsex|Bam|RdtmsHALF|Secrc;
 
-	if(ctlr->type == i82575){
+	if(ctlr->type == i82575 || ctlr->type == i82576){
 		/*
 		 * Setting Qenable in Rxdctl does not
 		 * appear to stick unless Ren is on.
@@ -1010,13 +1013,13 @@ i82563rxinit(Ctlr* ctlr)
 	}
 	i82563replenish(ctlr);
 
-	if(ctlr->type != i82575){
+	if(ctlr->type != i82575 || ctlr->type == i82576){
 		/*
 		 * See comment above for Qenable.
 		 * Could shuffle the code?
 		 */
 		r = csr32r(ctlr, Rxdctl);
-		r &= ~(WthreshSHIFT|PthreshSHIFT);
+		r &= ~(WthreshMASK|PthreshMASK);
 		r |= (2<<WthreshSHIFT)|(2<<PthreshSHIFT);
 		csr32w(ctlr, Rxdctl, r);
 	}
@@ -1623,6 +1626,11 @@ i82563pci(void)
 //			break;
 		case 0x10a7:	/* 82575eb: one of a pair of controllers */
 			type = i82575;
+			break;
+		case 0x10c9:		/* 82576 copper */
+		case 0x10e6:		/* 82576 fiber */
+		case 0x10e7:		/* 82576 serdes */
+			type = i82576;
 			break;
 		}
 

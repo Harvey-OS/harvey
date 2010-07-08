@@ -611,11 +611,14 @@ static X86type x86intel[] =
 	{ 6,	8,	16,	"PentiumIII/Xeon", },
 	{ 6,	0xB,	16,	"PentiumIII/Xeon", },
 	{ 6,	0xF,	16,	"Xeon5000-series", },
-	{ 6,	0x16,	16,	"Core 2 (Intel 64)", },
-	{ 6,	0x17,	16,	"Core 2 (Intel 64)", },
-	{ 6,	0x1c,	16,	"Atom", },
+	{ 6,	0x16,	16,	"Celeron", },
+	{ 6,	0x17,	16,	"Core 2/Xeon", },
+	{ 6,	0x1A,	16,	"Core i7/Xeon", },
+	{ 6,	0x1C,	16,	"Atom", },
+	{ 6,	0x1D,	16,	"Xeon MP", },
 	{ 0xF,	1,	16,	"P4", },	/* P4 */
 	{ 0xF,	2,	16,	"PentiumIV/Xeon", },
+	{ 0xF,	6,	16,	"PentiumIV/Xeon", },
 
 	{ 3,	-1,	32,	"386", },	/* family defaults */
 	{ 4,	-1,	22,	"486", },
@@ -653,10 +656,13 @@ static X86type x86amd[] =
 	{ 6,	1,	11,	"AMD-Athlon", },/* trial and error */
 	{ 6,	2,	11,	"AMD-Athlon", },/* trial and error */
 
+	{ 0x1F,	9,	11,	"AMD-K10 Opteron G34", },/* guesswork */
+
 	{ 4,	-1,	22,	"Am486", },	/* guesswork */
 	{ 5,	-1,	23,	"AMD-K5/K6", },	/* guesswork */
 	{ 6,	-1,	11,	"AMD-Athlon", },/* guesswork */
-	{ 0xF,	-1,	11,	"AMD64", },	/* guesswork */
+	{ 0xF,	-1,	11,	"AMD-K8", },	/* guesswork */
+	{ 0x1F,	-1,	11,	"AMD-K10", },	/* guesswork */
 
 	{ -1,	-1,	11,	"unknown", },	/* total default */
 };

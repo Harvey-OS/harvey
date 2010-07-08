@@ -85,7 +85,7 @@ Auto autox[] =
 void
 usage(void)
 {
-	fprint(2, "usage: disk/prep [bcfprw] [-a partname]... [-s sectorsize] /dev/sdC0/plan9\n");
+	fprint(2, "usage: disk/prep [-bcfprw] [-a partname]... [-s sectorsize] /dev/sdC0/plan9\n");
 	exits("usage");
 }
 
@@ -112,7 +112,7 @@ main(int argc, char **argv)
 			}
 		}
 		if(i == nelem(autox)){
-			fprint(2, "don't know how to create autoxmatic partition %s\n", p);
+			fprint(2, "don't know how to create automatic partition %s\n", p);
 			usage();
 		}
 		doautox = 1;
@@ -150,10 +150,8 @@ main(int argc, char **argv)
 		usage();
 
 	disk = opendisk(argv[0], rdonly, file);
-	if(disk == nil) {
-		fprint(2, "cannot open disk: %r\n");
-		exits("opendisk");
-	}
+	if(disk == nil)
+		sysfatal("cannot open disk: %r");
 
 	if(secsize != 0) {
 		disk->secsize = secsize;
@@ -221,6 +219,8 @@ cmdsum(Edit *edit, Part *p, vlong a, vlong b)
 		suf = "KB";
 		div = KB;
 	}else{
+		if (sz < 0)
+			fprint(2, "%s: negative size!\n", argv0);
 		suf = "B ";
 		div = 1;
 	}

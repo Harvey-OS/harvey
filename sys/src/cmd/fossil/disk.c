@@ -6,6 +6,11 @@
 static void diskThread(void *a);
 
 enum {
+	/*
+	 * disable measurement since it gets alignment faults on BG
+	 * and the guts used to be commented out.
+	 */
+	Timing	= 0,			/* flag */
 	QueueSize = 100,		/* maximum block to queue */
 };
 
@@ -310,20 +315,26 @@ diskThread(void *a)
 	buf = vtMemAlloc(disk->h.blockSize);
 
 	vtLock(disk->lk);
-	nio = 0;
-	t = -nsec();
+	if (Timing) {
+		nio = 0;
+		t = -nsec();
+	}
 	for(;;){
 		while(disk->nqueue == 0){
-			t += nsec();
-//if(nio >= 10000){
-//fprint(2, "disk: io=%d at %.3fms\n", nio, t*1e-6/nio);
-//nio = 0;
-//t = 0;
-//}
+			if (Timing) {
+				t += nsec();
+				if(nio >= 10000){
+					fprint(2, "disk: io=%d at %.3fms\n",
+						nio, t*1e-6/nio);
+					nio = 0;
+					t = 0;
+				}
+			}
 			if(disk->die != nil)
 				goto Done;
 			vtSleep(disk->starve);
-			t -= nsec();
+			if (Timing)
+				t -= nsec();
 		}
 		assert(disk->cur != nil || disk->next != nil);
 
@@ -383,7 +394,8 @@ if(0)fprint(2, "fossil: diskThread: %d:%d %x\n", getpid(), b->part, b->addr);
 			vtWakeup(disk->flow);
 		if(disk->nqueue == 0)
 			vtWakeup(disk->flush);
-		nio++;
+		if(Timing)
+			nio++;
 	}
 Done:
 //fprint(2, "diskThread done\n");

@@ -1608,7 +1608,7 @@ loop:
 
 		/* ugly hack: get this in compatibility mode; see memory.c:271 */
 		if(p->mem[Abar].bar == 0) {
-			print("%s: did %#ux has zero bar\n", tname[c->type],
+			if(0)print("%s: did %#ux has zero bar\n", tname[c->type],
 				p->did);
 			continue;
 		}

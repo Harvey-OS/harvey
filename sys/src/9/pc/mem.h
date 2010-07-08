@@ -17,7 +17,7 @@
 #define	PGROUND(s)	ROUND(s, BY2PG)
 #define	BLOCKALIGN	8
 
-#define	MAXMACH		8			/* max # cpus system can run */
+#define	MAXMACH		24			/* max # cpus system can run */
 #define	KSTACK		4096			/* Size of kernel stack */
 
 /*
