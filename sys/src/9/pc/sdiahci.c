@@ -1222,7 +1222,18 @@ checkdrive(Drive *d, int i)
 	ushort s;
 	char *name;
 
+	if(d == nil) {
+		print("checkdrive: nil d\n");
+		return;
+	}
 	ilock(d);
+	if(d->unit == nil || d->port == nil) {
+		if(0)
+			print("checkdrive: nil d->%s\n",
+				d->unit == nil? "unit": "port");
+		iunlock(d);
+		return;
+	}
 	name = d->unit->name;
 	s = d->port->sstatus;
 	if(s)

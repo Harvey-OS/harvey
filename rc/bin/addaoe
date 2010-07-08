@@ -4,4 +4,5 @@ if (! ~ $#* 2 || ! ~ $1 ? || ! ~ $2 *.*) {
 	echo usage: $0 letter aoe-lun >[1=2]
 	exit usage
 }
-exec echo config switch on spec $1 type aoe//dev/aoe/$2 >/dev/sdctl
+if (test -e /dev/aoe/$2 && ! test -e /dev/sd^$1^0)
+	echo config switch on spec $1 type aoe//dev/aoe/$2 >/dev/sdctl

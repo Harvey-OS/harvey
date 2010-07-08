@@ -101,9 +101,9 @@ case 204.178.31.*
 ipconfig loopback /dev/null 127.1
 
 # local hackery: add extra sr luns
-if (test -e /dev/aoe/1.1)
+if (test -e /dev/aoe/1.1 && ! test -e /dev/sdf0)
 	echo config switch on spec f type aoe//dev/aoe/1.1 >/dev/sdctl
-if (test -e /dev/aoe/1.2)
+if (test -e /dev/aoe/1.2 && ! test -e /dev/sdg0)
 	echo config switch on spec g type aoe//dev/aoe/1.2 >/dev/sdctl
 diskparts
 

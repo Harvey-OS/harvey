@@ -228,6 +228,7 @@ enum {
 	TypeLINUXSWAP	= 0x82,
 	TypeLINUX	= 0x83,
 	TypeLINUXEXT	= 0x85,
+	TypeLINUXLVM	= 0x8E,		/* logical volume manager */
 	TypeAMOEBA	= 0x93,
 	TypeAMOEBABB	= 0x94,
 	TypeBSD386	= 0xA5,
@@ -305,6 +306,7 @@ static Type types[256] = {
 	[TypeLINUXSWAP]		{ "LINUXSWAP", "linuxswap" },
 	[TypeLINUX]		{ "LINUX", "linux" },
 	[TypeLINUXEXT]		{ "LINUXEXTENDED", "" },
+	[TypeLINUXLVM]		{ "LINUXLVM", "linuxlvm" },
 	[TypeAMOEBA]		{ "AMOEBA", "amoeba" },
 	[TypeAMOEBABB]		{ "AMOEBABB", "amoebaboot" },
 	[TypeBSD386]		{ "BSD386", "bsd386" },
