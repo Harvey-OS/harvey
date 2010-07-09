@@ -84,7 +84,7 @@ words given on the command line.
 .PP
 .B Sig
 prints the signature (i.e. C definition) of the
-.IR function 's
+.IR function s
 given on the command line.
 .SH FILES
 .TP
