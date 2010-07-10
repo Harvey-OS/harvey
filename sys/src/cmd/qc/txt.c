@@ -1493,15 +1493,12 @@ gopcode64(int o, Node *f1, Node *f2, Node *t)
 			f2 = t;
 		regalloc(&nod, &regnode, Z);
 		gins3(AMULLW, f1->right, f2->right, &nod);	/* lo(f2.low*f1.low) */
-		a1 = AMULHW;
-		if(o == OLMUL || o == OASLMUL)
-			a1 = AMULHWU;
 		regalloc(&nod1, &regnode, Z);
-		gins3(a1, f1->right, f2->right, &nod1);		/* hi(f2.low*f1.low) */
+		gins3(AMULHWU, f1->right, f2->right, &nod1);		/* hi(f2.low*f1.low) */
 		regalloc(&nod2, &regnode, Z);
 		gins3(AMULLW, f2->right, f1->left, &nod2);	/* lo(f2.low*f1.high) */
 		gins(AADD, &nod2, &nod1);
-		gins3(AMULLW, f1->right, f2->left, &nod2);	/* hi(f2.high*f1.low) */
+		gins3(AMULLW, f1->right, f2->left, &nod2);	/* lo(f2.high*f1.low) */
 		gins(AADD, &nod2, &nod1);
 		regfree(&nod2);
 		gmove(&nod, t->right);
