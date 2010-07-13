@@ -76,7 +76,8 @@ struct Machine
 	uvlong		netetherifstats[2];
 	uvlong		temp[10];
 
-	char		buf[1024];
+	/* big enough to hold /dev/sysstat even with many processors */
+	char		buf[8*1024];
 	char		*bufp;
 	char		*ebufp;
 };
