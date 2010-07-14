@@ -80,7 +80,11 @@ uartenable(Uart *p)
 		uartctl(p, "b9600");
 	(*p->phys->enable)(p, 1);
 
-	lock(&uartalloc);
+	/*
+	 * use ilock because uartclock can otherwise interrupt here
+	 * and would hang on an attempt to lock uartalloc.
+	 */
+	ilock(&uartalloc);
 	for(l = &uartalloc.elist; *l; l = &(*l)->elist){
 		if(*l == p)
 			break;
@@ -90,7 +94,7 @@ uartenable(Uart *p)
 		uartalloc.elist = p;
 	}
 	p->enabled = 1;
-	unlock(&uartalloc);
+	iunlock(&uartalloc);
 
 	return p;
 }
@@ -102,7 +106,7 @@ uartdisable(Uart *p)
 
 	(*p->phys->disable)(p);
 
-	lock(&uartalloc);
+	ilock(&uartalloc);
 	for(l = &uartalloc.elist; *l; l = &(*l)->elist){
 		if(*l == p){
 			*l = p->elist;
@@ -110,7 +114,7 @@ uartdisable(Uart *p)
 		}
 	}
 	p->enabled = 0;
-	unlock(&uartalloc);
+	iunlock(&uartalloc);
 }
 
 void
@@ -707,7 +711,7 @@ uartclock(void)
 {
 	Uart *p;
 
-	lock(&uartalloc);
+	ilock(&uartalloc);
 	for(p = uartalloc.elist; p; p = p->elist){
 
 		/* this hopefully amortizes cost of qproduce to many chars */
@@ -734,7 +738,7 @@ uartclock(void)
 			iunlock(&p->tlock);
 		}
 	}
-	unlock(&uartalloc);
+	iunlock(&uartalloc);
 }
 
 /*

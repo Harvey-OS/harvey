@@ -270,7 +270,7 @@ char*
 getconf(char *name)
 {
 	int i, n, nmatch;
-	char buf[20];
+	char buf[120];
 
 	nmatch = 0;
 	for(i = 0; i < nconf; i++)
