@@ -1,0 +1,18 @@
+#!/bin/rc
+
+rfork e
+
+files=()
+while(! ~ $#* 0){
+	switch($1){
+	case -
+		files=($files /fd/0)
+	case -*
+		;
+	case *
+		files=($files $1)
+	}
+	shift
+}
+
+exec /$cputype/bin/cat $files

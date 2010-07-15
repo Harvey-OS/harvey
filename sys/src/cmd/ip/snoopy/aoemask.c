@@ -4,39 +4,33 @@
 #include "dat.h"
 #include "protos.h"
 
-typedef struct{
-	uchar	verflags;
-	uchar	error;
-	uchar	major[2];
-	uchar	minor;
+typedef struct {
+	uchar	res;
 	uchar	cmd;
-	uchar	tag[4];
-}Hdr;
+	uchar	err;
+	uchar	cnt;
+} Hdr;
 
-enum{
-	Hsize	= 10,
-};
-
-enum{
-	Omajor,
-	Ominor,
+enum {
 	Ocmd,
-};
+	Oerr,
+	Ocnt,
 
-static Mux p_mux[] = {
-	{"aoeata",	0},
-	{"aoecmd",	1},
-	{"aoemask",	2},
-	{"aoerr",	3},
-	{0},
+	Hsize	= 4,
 };
 
 static Field p_fields[] =
 {
-	{"shelf",	Fnum,	Ominor,		"shelf", },
-	{"slot",	Fnum,	Omajor,		"slot",	},
-	{"cmd",		Fnum,	Ocmd,		"cmd",	},
-	{0}
+	{ "cmd",	Fnum,	Ocmd,	"command", },
+	{ "err",	Fnum,	Oerr,	"error", },
+	{ "cnt",	Fnum,	Ocnt,	"count", },
+	nil
+};
+
+static Mux p_mux[] = {
+	{ "aoemd",	0 },
+	{ "aoemd",	1 },
+	nil
 };
 
 static void
@@ -45,7 +39,7 @@ p_compile(Filter *f)
 	Mux *m;
 
 	if(f->op == '='){
-		compile_cmp(aoe.name, f, p_fields);
+		compile_cmp(aoerr.name, f, p_fields);
 		return;
 	}
 	for(m = p_mux; m->name; m++)
@@ -55,7 +49,7 @@ p_compile(Filter *f)
 			f->subop = Ocmd;
 			return;
 		}
-	sysfatal("unknown aoe field: %s", f->s);
+	sysfatal("unknown aoemask field: %s", f->s);
 }
 
 static int
@@ -70,19 +64,31 @@ p_filter(Filter *f, Msg *m)
 	m->ps += Hsize;
 
 	switch(f->subop){
-	case Omajor:
-		return NetS(h->major) == f->ulv;
-	case Ominor:
-		return h->minor == f->ulv;
 	case Ocmd:
 		return h->cmd == f->ulv;
+	case Oerr:
+		return h->err == f->ulv;
+	case Ocnt:
+		return h->cnt == f->ulv;
 	}
 	return 0;
 }
 
+static char *ctab[] = {
+	"read",
+	"edit",
+};
+
+static char *etab[] = {
+	"",
+	"bad",
+	"full",
+};
+
 static int
 p_seprint(Msg *m)
 {
+	char *s, *t;
 	Hdr *h;
 
 	if(m->pe - m->ps < Hsize)
@@ -93,15 +99,19 @@ p_seprint(Msg *m)
 
 	demux(p_mux, h->cmd, h->cmd, m, &dump);
 
-	m->p = seprint(m->p, m->e, "ver=%d flag=%4b err=%d %d.%d cmd=%ux tag=%ux",
-		h->verflags >> 4, h->verflags & 0xf, h->error, NetS(h->major),
-		h->minor, h->cmd, NetL(h->tag));
+	s = "unk";
+	if(h->cmd < nelem(ctab))
+		s = ctab[h->cmd];
+	t = "unk";
+	if(h->err < nelem(etab))
+		s = etab[h->err];
+	m->p = seprint(m->p, m->e, "cmd=%d %s err=%d %s cnt=%d\n",
+		h->cmd, s, h->err, t, h->cnt);
 	return 0;
 }
 
-Proto aoe =
-{
-	"aoe",
+Proto aoemask = {
+	"aoemask",
 	p_compile,
 	p_filter,
 	p_seprint,

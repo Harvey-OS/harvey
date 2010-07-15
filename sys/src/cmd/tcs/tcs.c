@@ -505,6 +505,8 @@ struct convert convert[] =
 	{ "euc-k", "Korean EUC: ASCII+KS C 5601 1987", Func, 0, (Fnptr)uksc_out },
 	{ "gb2312", "GB2312-80 (Chinese)", From|Func, 0, (Fnptr)gb_in },
 	{ "gb2312", "GB2312-80 (Chinese)", Func, 0, (Fnptr)gb_out },
+	{ "gbk", "GBK (Chinese)", From|Func, 0, (Fnptr)gbk_in },
+	{ "gbk", "GBK (Chinese)", Func, 0, (Fnptr)gbk_out },
 	{ "html", "HTML", From|Func, 0, (Fnptr)html_in },
 	{ "html", "HTML", Func, 0, (Fnptr)html_out },
 	{ "ibm437", "IBM Code Page 437 (US)", Table, (void*)tabcp437 },
