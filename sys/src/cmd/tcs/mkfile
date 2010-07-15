@@ -5,11 +5,13 @@ OFILES=tcs.$O\
 	conv_jis.$O\
 	conv_big5.$O\
 	conv_gb.$O\
+	conv_gbk.$O\
 	conv_ksc.$O\
 	utf.$O\
 	html.$O\
 	kuten208.$O\
 	gb.$O\
+	gbk.$O\
 	ksc.$O\
 	big5.$O\
 	tune.$O

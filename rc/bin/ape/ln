@@ -1,0 +1,23 @@
+#!/bin/rc
+
+argv0=$0
+force=n
+while(! ~ $#* 0 && ~ $1 -*){
+	switch($1){
+	case -f
+		force=y
+	case -s
+		;
+	case *
+		echo 'usage: ln [-s] [-f] source destination' >[2=1]
+		exit 'usage'
+	}
+	shift
+}
+
+if(~ $force n && test -e $2){
+	echo ln: $2 destination exists >[2=1]
+	exit 'usage'
+}
+
+exec cp -gux $1 $2

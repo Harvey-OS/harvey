@@ -1,0 +1,2 @@
+#!/bin/rc
+exec /rc/bin/ape/grep $*

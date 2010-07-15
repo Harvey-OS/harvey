@@ -133,6 +133,7 @@ enum {	/* Cdimg->flags, Cdinfo->flags */
 	CDnew = 1<<4,
 	CDdump = 1<<5,
 	CDbootable = 1<<6,
+	CDbootnoemu = 1<<7,
 };
 
 typedef struct Tx Tx;
