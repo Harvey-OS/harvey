@@ -144,6 +144,14 @@ uartpcipnp(void)
 				break;
 			}
 			break;
+		case (0x9505<<16)|0x1415:	/* Oxford Semi OXuPCI952 */
+			name = "SATAGear-IOI-102";  /* PciSVID=1415, PciSID=0 */
+			if (uartpci(ctlrno, p, 0, 1, 14745600, name, 8) != nil)
+				ctlrno++;
+			if (uartpci(ctlrno, p, 1, 1, 14745600, name, 8) != nil)
+				ctlrno++;
+			uart = nil;		/* don't ctlrno++ below */
+			break;
 		case (0x9050<<16)|0x10B5:	/* Perle PCI-Fast4 series */
 		case (0x9030<<16)|0x10B5:	/* Perle Ultraport series */
 			/*

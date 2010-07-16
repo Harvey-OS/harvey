@@ -61,9 +61,9 @@ struct Ref {
 
 int	alt(Alt alts[]);
 int	chanclose(Channel*);
+int	chanclosing(Channel *c);
 Channel*chancreate(int elemsize, int bufsize);
 int	chaninit(Channel *c, int elemsize, int elemcnt);
-int	chanisclosed(Channel *c);
 void	chanfree(Channel *c);
 int	chanprint(Channel *, char *, ...);
 long	decref(Ref *r);			/* returns 0 iff value is now zero */

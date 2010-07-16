@@ -567,6 +567,30 @@ mimerange(Hlex *h, char *)
 }
 
 /*
+ * parse it like cookies
+ */
+static void
+authdigest(Hlex *h, char *)
+{
+	char *s;
+	HSPairs *p;
+
+	p = nil;
+	for(;;){
+		while(lex(h) != Word)
+			if(h->tok != ';' && h->tok != ',')
+				goto breakout;
+		s = hstrdup(h->c, h->wordval);
+		while (lex(h) != Word && h->tok != QString)
+			if (h->tok != '=')
+				goto breakout;
+		p = hmkspairs(h->c, s, hstrdup(h->c, h->wordval), p);
+	}
+breakout:
+	h->c->head.authinfo = hrevspairs(p);
+}
+
+/*
  * note: netscape and ie through versions 4.7 and 4
  * support only basic authorization, so that is all that is supported here
  *
@@ -575,13 +599,10 @@ mimerange(Hlex *h, char *)
  * username ":" password
  */
 static void
-mimeauthorization(Hlex *h, char *)
+authbasic(Hlex *h, char *)
 {
 	char *up, *p;
 	int n;
-
-	if(lex(h) != Word || cistrcmp(h->wordval, "basic") != 0)
-		return;
 
 	n = lexbase64(h);
 	if(!n)
@@ -609,6 +630,28 @@ mimeauthorization(Hlex *h, char *)
 		h->c->head.authuser = hstrdup(h->c, up);
 		h->c->head.authpass = hstrdup(h->c, p);
 	}
+}
+
+/*
+ * "Authorization" ":" "Basic" | "Digest" ...
+ */
+static void
+mimeauthorization(Hlex *h, char *)
+{
+	int i;
+	static MimeHead authparser[] = {
+		{ "basic", authbasic },
+		{ "digest", authdigest },
+	};
+
+	if(lex(h) != Word)
+		return;
+
+	for (i = 0; i < nelem(authparser); i++)
+		if (cistrcmp(h->wordval, authparser[i].name) == 0) {
+			(*authparser[i].parse)(h, nil);
+			break;
+		}
 }
 
 static void

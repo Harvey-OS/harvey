@@ -224,7 +224,7 @@ int
 chanclose(Channel *c)
 {
 	Alt *a;
-	int i, s, some;
+	int i, s;
 
 	s = _procsplhi();	/* note handlers; see :/^alt */
 	lock(&chanlock);
@@ -235,31 +235,29 @@ chanclose(Channel *c)
 		return -1;
 	}
 	c->closed = 1;		/* Being closed */
-
 	/*
-	 * locate entries that will fail due to close
+	 * Locate entries that will fail due to close
 	 * (send, and receive if nothing buffered) and wake them up.
-	 * Continue doing so until we make a full pass with no work,
-	 * otherwise we might miss alts being made while the lock is released.
-	 * We hope that this is O(2n) and not O(n*n).
+	 * the situation cannot change because all queries
+	 * should be committed by now and new ones will find the channel
+	 * closed.  We still need to take the lock during the iteration
+	 * because we can wake threads on qentrys we have not seen yet
+	 * as in alt and there would be a race in the access to *a.
 	 */
-	do{
-		some = 0;
-		for(i = 0; i < c->nentry; i++){
-			if((a = c->qentry[i]) == nil || *a->tag != nil)
-				continue;
-			if(a->op != CHANSND && (a->op != CHANRCV || c->n != 0))
-				continue;
-			*a->tag = c;
-			unlock(&chanlock);
-			_procsplx(s);
-			while(_threadrendezvous(a->tag, Closed) == Intred)
-				;
-			s = _procsplhi();
-			lock(&chanlock);
-			some++;
-		}
-	}while(some);
+	for(i = 0; i < c->nentry; i++){
+		if((a = c->qentry[i]) == nil || *a->tag != nil)
+			continue;
+
+		if(a->op != CHANSND && (a->op != CHANRCV || c->n != 0))
+			continue;
+		*a->tag = c;
+		unlock(&chanlock);
+		_procsplx(s);
+		while(_threadrendezvous(a->tag, Closed) == Intred)
+			;
+		s = _procsplhi();
+		lock(&chanlock);
+	}
 
 	c->closed = 2;		/* Fully closed */
 	if(c->freed)
@@ -270,11 +268,29 @@ chanclose(Channel *c)
 }
 
 int
+chanclosing(Channel *c)
+{
+	int n, s;
+
+	s = _procsplhi();	/* note handlers; see :/^alt */
+	lock(&chanlock);
+	if(c->closed == 0)
+		n = -1;
+	else
+		n = c->n;
+	unlock(&chanlock);
+	_procsplx(s);
+	return n;
+}
+
+/*
+ * superseded by chanclosing
+int
 chanisclosed(Channel *c)
 {
-	/* No need to get the lock */
-	return c->closed != 0;
+	return chanisclosing(c) >= 0;
 }
+ */
 
 static int
 runop(int op, Channel *c, void *v, int nb)

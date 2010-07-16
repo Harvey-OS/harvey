@@ -180,6 +180,7 @@ struct HttpHead
 	char	*authuser;		/* authorization info */
 	char	*authpass;
 	HSPairs	*cookie;	/* if present, list of cookies */
+	HSPairs		*authinfo;		/* digest authorization */
 
 	/*
 	 * experimental headers
@@ -195,6 +196,9 @@ struct HConnect
 {
 	void	*private;		/* for the library clients */
 	void	(*replog)(HConnect*, char*, ...); /* called when reply sent */
+
+	char	*scheme;		/* "http" vs. "https" */
+	char	*port;		/* may be arbitrary, i.e., neither 80 nor 443 */
 
 	HttpReq	req;
 	HttpHead head;
