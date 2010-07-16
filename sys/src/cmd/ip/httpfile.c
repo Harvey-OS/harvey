@@ -33,7 +33,7 @@ int mcache;
 void
 usage(void)
 {
-	fprint(2, "usage: httpfile [-Dd] [-b count] [-f file] [-m mtpt] [-s srvname] [-x net] url\n");
+	fprint(2, "usage: httpfile [-Dd] [-c count] [-f file] [-m mtpt] [-s srvname] [-x net] url\n");
 	exits("usage");
 }
 

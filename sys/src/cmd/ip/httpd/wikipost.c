@@ -117,9 +117,22 @@ unhttp(char *s)
 void
 mountwiki(HConnect *c, char *service)
 {
-	char buf[64];
+	char buf[128];
 	int fd;
 
+	/* already in (possibly private) namespace? */
+	snprint(buf, sizeof buf, "/mnt/wiki.%s/new", service);
+	if (access(buf, AREAD) == 0){
+		if (bind(buf, "/mnt/wiki", MREPL) < 0){
+			syslog(0, LOG, "%s bind /mnt/wiki failed: %r",
+				hp->remotesys);
+			hfail(c, HNotFound);
+			exits("bind /mnt/wiki failed");
+		}
+		return;
+	}
+
+	/* old way: public wikifs from /srv */
 	snprint(buf, sizeof buf, "/srv/wiki.%s", service);
 	if((fd = open(buf, ORDWR)) < 0){
 		syslog(0, LOG, "%s open %s failed: %r", buf, hp->remotesys);

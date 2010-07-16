@@ -491,7 +491,8 @@ httpopen(Client *c, Url *url)
 		}
 		c->authenticate = hs->credentials;
 		hs->credentials = nil;
-	}
+	}else if(c->authenticate)
+		c->authenticate = 0;
 	if(redirect){
 		if(!hs->location){
 			werrstr("redirection without Location: header");

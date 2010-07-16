@@ -14,6 +14,10 @@ dump9660, mk9660 \- create an ISO-9660 CD image
 .I bootfile
 ]
 [
+.B -B
+.I bootfile
+]
+[
 .B -p
 .I proto
 ]
@@ -178,7 +182,16 @@ That is, the boot floppy image must be listed in the
 file already:
 the
 .B -b
-flag just creates a pointer to it.
+option just creates a pointer to it.
+.PP
+The
+.B -B
+option is similar to
+.B -b
+but the created CD image is marked as having a non-floppy-emulation
+boot block.
+This gives the program in the boot block full (ATA) LBA access
+to the CD filesystem, not just the initial blocks that would fit on a floppy.
 .PP
 The
 .B -D

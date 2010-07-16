@@ -1,32 +1,20 @@
 .TH HTTPD 8
 .SH NAME
-httpd, mirror, save, imagemap, man2html, webls \- HTTP server
+httpd, save, imagemap, man2html, webls \- HTTP server
 .SH SYNOPSIS
 .B ip/httpd/httpd
 .RB [ -a
 .IR srvaddr ]
 .RB [ -c
-.IR cert ]
+.I cert
+.RB [ -C
+.IR certchain ]]
 .RB [ -d
 .IR domain ]
 .RB [ -n
 .IR namespace ]
 .RB [ -w
 .IR webroot ]
-.PP
-.B ip/httpd/mirror
-.RB [ -b
-.IR inbuf ]
-.RB [ -d
-.IR domain ]
-.RB [ -r
-.IR remoteip ]
-.RB [ -w
-.IR webroot ]
-.RB [ -N
-.IR netdir ]
-.I method version uri
-.RI [ search ]
 .PP
 .B ip/httpd/save
 .RB [ -b
@@ -41,47 +29,15 @@ httpd, mirror, save, imagemap, man2html, webls \- HTTP server
 .IR netdir ]
 .I method version uri
 .RI [ search ]
-.PP
+.br
 .B ip/httpd/imagemap
-.RB [ -b
-.IR inbuf ]
-.RB [ -d
-.IR domain ]
-.RB [ -r
-.IR remoteip ]
-.RB [ -w
-.IR webroot ]
-.RB [ -N
-.IR netdir ]
-.I method version uri
-.PP
+.I ...
+.br
 .B ip/httpd/man2html
-.RB [ -b
-.IR inbuf ]
-.RB [ -d
-.IR domain ]
-.RB [ -r
-.IR remoteip ]
-.RB [ -w
-.IR webroot ]
-.RB [ -N
-.IR netdir ]
-.I method version uri
-.RI [ search ]
-.PP
+.I ...
+.br
 .B ip/httpd/webls
-.RB [ -b
-.IR inbuf ]
-.RB [ -d
-.IR domain ]
-.RB [ -r
-.IR remoteip ]
-.RB [ -w
-.IR webroot ]
-.RB [ -N
-.IR netdir ]
-.I method version uri
-.RI [ search ]
+.I ...
 .SH DESCRIPTION
 .I Httpd
 serves the
@@ -102,6 +58,11 @@ option, then the service is instead
 .BR tcp!*!https .
 There should already be a factotum
 holding the corresponding private key.
+If the specified certificate has been signed
+by a certificate authority, the
+.B -C
+option may be used to specify a file
+containing a chain of signed certificates.
 .PP
 .I Httpd
 supports only the GET and HEAD methods of the HTTP protocol;
@@ -210,6 +171,7 @@ If the requested URI begins with
 executes the file
 .BI /bin/ip/httpd/ server
 to finish servicing the request.
+All the auxiliaries take the same arguments.
 .IR Method
 and
 .IR version
@@ -228,10 +190,6 @@ See
 .B httpd.h
 in that directory and existing magic commands for more details.
 .PP
-.I Mirror
-is a trivial server that just returns the method, URI, any search,
-the headers, and the message body sent by the client.
-.PP
 .I Save
 writes a line to
 .BI /usr/web/save/ uri .data
@@ -245,7 +203,7 @@ It is used to record form submissions.
 .PP
 .I Imagemap
 processes an HTML imagemap query.
-It looks up a the point
+It looks up the point
 .I search
 in the image map file given by 
 .IR uri ,

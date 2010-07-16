@@ -143,18 +143,18 @@ parseuri(HConnect *c, char *uri)
 	char *urihost, *p;
 
 	urihost = nil;
-	if(uri[0] != '/'){
-		if(cistrncmp(uri, "http://", 7) != 0){
-			ss.s1 = nil;
-			ss.s2 = nil;
+	ss.s1 = ss.s2 = nil;
+	if(uri[0] != '/')
+		if(cistrncmp(uri, "http://", 7) == 0)
+			uri += 5;		/* skip http: */
+		else if (cistrncmp(uri, "https://", 8) == 0)
+			uri += 6;		/* skip https: */
+		else
 			return ss;
-		}
-		uri += 5;	/* skip http: */
-	}
 
 	/*
 	 * anything starting with // is a host name or number
-	 * hostnames constists of letters, digits, - and .
+	 * hostnames consists of letters, digits, - and .
 	 * for now, just ignore any port given
 	 */
 	if(uri[0] == '/' && uri[1] == '/'){
@@ -171,11 +171,8 @@ parseuri(HConnect *c, char *uri)
 			*p = '\0';
 	}
 
-	if(uri[0] != '/' || uri[1] == '/'){
-		ss.s1 = nil;
-		ss.s2 = nil;
+	if(uri[0] != '/' || uri[1] == '/')
 		return ss;
-	}
 
 	ss.s1 = uri;
 	ss.s2 = hlower(urihost);

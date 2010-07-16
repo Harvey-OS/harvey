@@ -323,7 +323,7 @@ main(int argc, char **argv)
 		exits("failed");
 	}
 
-	bind("/usr/web", "/", MREPL);
+	bind(webroot, "/", MREPL);
 
 	if(connect->req.search != nil)
 		dosearch(connect->req.search);

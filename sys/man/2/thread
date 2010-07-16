@@ -5,7 +5,7 @@ chanclose,
 chancreate,
 chanfree,
 chaninit,
-chanisclosed,
+chanclosing,
 chanprint,
 mainstacksize,
 proccreate,
@@ -126,7 +126,7 @@ int	nbsendp(Channel *c, void *v)
 int	nbsendul(Channel *c, ulong v)
 int	chanprint(Channel *c, char *fmt, ...)
 int	chanclose(Channel *c);
-int	chanisclosed(Channel *c);
+int	chanclosing(Channel *c);
 .XX
 void	procexecl(Channel *cpid, char *file, ...)
 void	procexec(Channel *cpid, char *file, char *args[])
@@ -571,6 +571,12 @@ returns \-1.
 .SS Errors, notes and resources
 Thread library functions do not return on failure;
 if errors occur, the entire program is aborted.
+.PP
+.I Chanclosing
+returns \-1 if no one called
+.I closed
+on the channel, and otherwise
+the number of elements still in the channel.
 .PP
 Threaded programs should use
 .I threadnotify
