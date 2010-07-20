@@ -1,4 +1,6 @@
-# tiny kernel used to install from floppy
+# tiny kernel used to install from floppy.
+# has minimal vga drivers, no usb support and only some ether drivers,
+# and in general no frills.  probably only useful in quite old systems.
 dev
 	root
 	cons
@@ -23,24 +25,19 @@ dev
 	draw		screen vga vgax
 	mouse		mouse
 	vga
-	kbmap
+#	kbmap
 
 	sd
 	floppy		dma
-#	lpt
 
-#	audio		dma
 	pccard
 	i82365		cis
 	uart
-#	usb
-#	kbin
 
 link
 	realmode
 	devpccard
 	devi82365
-#	apm		apmjump
 	ether2000	ether8390
 	ether2114x	pci
 	ether589	etherelnk3
@@ -48,14 +45,14 @@ link
 	ether8003	ether8390
 	ether8139	pci
 	ether8169	pci ethermii
-	ether82543gc	pci
 #	ether82563	pci
 	ether82557	pci
 	ether83815	pci
-	etherdp83820	pci
+#	etherdp83820	pci
 	etherec2t	ether8390
 	etherelnk3	pci
-	etherga620	pci
+# has vast firmware
+#	etherga620	pci
 	etherigbe	pci ethermii
 	ethervgbe	pci ethermii
 	ethervt6102	pci ethermii
@@ -64,14 +61,9 @@ link
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
 	ethermedium
-#	etherm10g
-#	ether82598	pci
 	pcmciamodem
 	netdevmedium
 	loopbackmedium
-#	usbuhci
-#	usbohci
-#	usbehci
 
 misc
 #	archmp		mp apic
@@ -85,28 +77,8 @@ misc
 	uarti8250
 #	uartpci		pci
 
-	vga3dfx		+cur
-	vgaark2000pv	+cur
-	vgabt485	=cur
-	vgaclgd542x	+cur
-	vgaclgd546x	+cur
-	vgact65545	+cur
-	vgacyber938x	+cur
-	vgaet4000	+cur
-	vgahiqvideo	+cur
-	vgai81x		+cur
-	vgamach64xx	+cur
-	vgamga2164w	+cur
-	vgamga4xx	+cur
-	vganeomagic	+cur
-	vganvidia	+cur
-	vgargb524	=cur
-	vgas3		+cur vgasavage
-	vgat2r4		+cur
-	vgatvp3020	=cur
-	vgatvp3026	=cur
 	vgavesa
-	vgavmware	+cur
+#	vgavmware	+cur
 
 ip
 	tcp
@@ -125,4 +97,3 @@ bootdir
 	bootpcflop.out boot
 	/sys/lib/dist/bin/386/bzfs kfs
 	/sys/lib/dist/pc/root.bz2 bzroot
-#	/386/bin/usb/usbd

@@ -355,11 +355,16 @@ Execute(word *args, word *path)
 				exec(file, argv+1);
 				rerrstr(errstr, sizeof errstr);
 				/*
-				 * if file is executable, exec should have
-				 * worked.  stop searching and print the
-				 * reason for failure.
+				 * if file exists and is executable, exec should
+				 * have worked, unless it's a directory or an
+				 * executable for another architecture.  in
+				 * particular, if it failed due to lack of
+				 * swap/vm (e.g., arg. list too long) or other
+				 * allocation failure, stop searching and print
+				 * the reason for failure.
 				 */
-				if (access(file, AEXEC) == 0)
+				if (strstr(errstr, " allocat") != nil ||
+				    strstr(errstr, " full") != nil)
 					break;
 			}
 			else werrstr("command name too long");
