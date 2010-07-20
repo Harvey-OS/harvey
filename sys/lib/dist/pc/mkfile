@@ -50,6 +50,10 @@ root.bz2:Q: boot.bz2
 		mk 'CONF=pccd' 9pccd.gz
 	}
 
+# disk/format apparently uses stat to obtain a file's real name, so
+# binding 9loadusb onto 9load will store the name 9loadusb in the
+# generated fat filesystem.  the same is true for plan9.ini.cd and plan9.ini.
+
 9load: /386/9loadlite
 #	cp $prereq $target
 	cp /386/9loadnousb $target	# cater to old bioses
@@ -57,7 +61,6 @@ root.bz2:Q: boot.bz2
 
 ndisk: 9load /sys/src/9/pc/9pcflop.gz plan9.ini /lib/vgadb
 	dd -if /dev/zero -of ndisk -bs 1024 -count 1440 >[2]/dev/null
-	bind /386/9loadnousb 9load	# cater to old bioses
 	disk/format -f -b /386/pbs -d ndisk \
 		9load /sys/src/9/pc/9pcflop.gz plan9.ini /lib/vgadb
 	ls -l ndisk
@@ -68,15 +71,15 @@ cddisk:DV: 9load /sys/src/9/pc/9pcflop.gz plan9.ini.cd /lib/vgadb
 	mk -a /sys/src/9/pc/9pccd.gz
 	mk -a /sys/src/9/pc/9pcflop.gz
 	rfork n
-	bind plan9.ini.cd plan9.ini
+	cp -x plan9.ini.cd subst/plan9.ini
 	dd -if /dev/zero -of cddisk -bs 1024 -count 2880 >[2]/dev/null
-	bind /386/9loadnousb 9load	# cater to old bioses
 	disk/format -t 3½QD -f -b /386/pbs -d cddisk \
-		9load /sys/src/9/pc/9pcflop.gz /sys/src/9/pc/9pccd.gz plan9.ini /lib/vgadb
+		9load /sys/src/9/pc/^(9pcflop.gz 9pccd.gz) \
+		subst/plan9.ini /lib/vgadb
 	ls -l cddisk
 
 clean:V:
-	if (! unmount 9load)
+	if (! unmount 9load >[2]/dev/null)
 		;
 	rm -rf boot boot.bz2 boot.bflz boot.raw root.bz2 9pcflop ndisk 9load cddisk proto.cp 9loaddebug
 
@@ -85,7 +88,7 @@ install:V: ndisk 9loaddebug
 	dst=/n/$out/sys/lib/dist/web.protect
 	cp 9loaddebug $dst
 	gzip -9 < ndisk > $dst/plan9.flp.gz
-	#mk clean
+	# mk clean
 
 test:V: ndisk 9loaddebug
 	cp 9loaddebug ../web.protect2/n9loaddebug

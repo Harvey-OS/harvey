@@ -1,86 +1,92 @@
 # /sys/lib/dist/mkfile
-d=/n/sources/plan9
-dist=/sys/lib/dist
+src9=/n/sources/plan9		# what to export
+dist=/sys/lib/dist		# where this machinery lives
+scr=/n/other/dist		# scratch space before copying to web.protect
 # import /sys/lib/dist/web.protect from the outside
 x=`{setup}
 
-cd:V: /n/other/dist/plan9.iso
+cd:V: $scr/plan9.iso
 
-ncd:V: /n/other/dist/plan9-new.iso.bz2
+ncd:V: $scr/plan9-new.iso.bz2
 
-ncd-dist:V: /n/other/dist/plan9-new.iso.bz2
+ncd-dist:V: $scr/plan9-new.iso.bz2
 	mk $dist/web.protect/plan9-new.iso.bz2
 
-cd-dist:V: /n/other/dist/plan9.iso.bz2
+cd-dist:V: $scr/plan9.iso.bz2
 	mk $dist/web.protect/plan9.iso.bz2
 
-contrib-cd:V: /n/other/dist/contrib.iso.bz2
+contrib-cd:V: $scr/contrib.iso.bz2
 	mk $dist/web.protect/contrib.iso.bz2
 
-/n/other/dist/%.iso:D: /n/sources/plan9/dist/replica/plan9.log
-	@{cd pc; mk cddisk; cd ..}
+$scr/%.iso:D: $src9/dist/replica/plan9.log
+	@ { cd pc; mk cddisk }
 	rm -f $target
 	bind pc/cddisk cdstub/bootdisk.img
-	if(! test -f $d/bootdisk.img)
-		bind -a cdstub $d
+	if(! test -f $src9/bootdisk.img)
+		bind -a cdstub $src9
 	title=`{date | sed 's/(...) (...) (..) (..:..):.. (...) (....)/Plan 9 - \2 \3 \6 \4/'}
 	title=$"title
 	echo 'CD:' $title
-	disk/mk9660 -9cj -v $title -s $d -b bootdisk.img $target
+	disk/mk9660 -9cj -v $title -s $src9 -b bootdisk.img $target
 
-# try not to clobber downloads in progress
-$dist/web.protect/%.iso.bz2:	/n/other/dist/%.iso.bz2
+# copy compressed file from scratch space to the distribution, carefully
+$dist/web.protect/%.iso.bz2:	$scr/%.iso.bz2
+	>>$target.new
+	chmod +t $target.new		# waste write buf, not venti store
 	cp $prereq $target.new
-	chmod +t $target.new		# don't waste venti on it
+	# replace previous version with a flash cut
 	if (test -e $target)
-		mv $target $target.old
+		mv $target $target.old # try to not clobber downloads in progress
 	mv $target.new $target
 
-# generate replica log & db for /n/sources/plan9 only
+cd-cleanup:V:
+	rm -f $dist/web.protect/*.iso.bz2.old # remove old versions after a delay
+
+# generate replica log & db for $src9 only
 scan:V:
-	test -d /n/other/dist		# make sure other was mounted above
-	test -d $d
+	test -d $scr		# make sure other was mounted above
+	test -d $src9
 	test -d $dist/web.protect
 	lock scan.lock replica/scan $dist/sources.replica
-	chmod +t $d/dist/replica/*.^(db log)
+	chmod +t $src9/dist/replica/*.^(db log)
 
 # generate replica log & db for all of /n/sources
 scanall:V:
 	@ {
 		rfork ne
 		d=/n/sources
-		test -d $d
+		test -d $src9
 		lock scanall.lock replica/scan $dist/sourcesall.replica
-		chmod +t $d/dist/replica/*.^(db log)
+		chmod +t $src9/dist/replica/*.^(db log)
 	}
 
 compresslog:V:
 	{
-	awk -f logcompress.awk $d/dist/replica/plan9.log |
+	awk -f logcompress.awk $src9/dist/replica/plan9.log |
 		awk -f logtime.awk -v 't='^`{date -n} >/tmp/plan9.log
-	rm -f $d/dist/replica/plan9.new.log
-	cp /tmp/plan9.log $d/dist/replica/plan9.new.log &&
-		mv $d/dist/replica/plan9.new.log $d/dist/replica/plan9.log
+	rm -f $src9/dist/replica/plan9.new.log
+	cp /tmp/plan9.log $src9/dist/replica/plan9.new.log &&
+		mv $src9/dist/replica/plan9.new.log $src9/dist/replica/plan9.log
 	} <scan.lock
 
 #restart:V:
-#	rm -f $d/dist/replica/plan9.db
-#	rm -f $d/dist/replica/plan9.log
-#	chmod 664 $d/dist/replica/plan9.db >$d/dist/replica/plan9.db
-#	chmod 664 $d/dist/replica/plan9.log >$d/dist/replica/plan9.log
-#	chmod +a $d/dist/replica/plan9.log
+#	rm -f $src9/dist/replica/plan9.db
+#	rm -f $src9/dist/replica/plan9.log
+#	chmod 664 $src9/dist/replica/plan9.db >$src9/dist/replica/plan9.db
+#	chmod 664 $src9/dist/replica/plan9.log >$src9/dist/replica/plan9.log
+#	chmod +a $src9/dist/replica/plan9.log
 #	mk scan
 
 odump:V:
-	disk/dump9660 -9cj -v 'Plan 9 4e Dumps' -s $d \
-		-p /sys/lib/sysconfig/proto/allproto /n/other/dist/distdump.iso
+	disk/dump9660 -9cj -v 'Plan 9 4e Dumps' -s $src9 \
+		-p /sys/lib/sysconfig/proto/allproto $scr/distdump.iso
 
 cd.install:V:
 #	if(~ $sysname achille){
-#		echo; echo; echo '*** run this on a real machine, like fish.'
+#		echo; echo; echo '*** run this on a real machine, like chips.'
 #		exit bad
 #	}
-	bzip2 -9 </n/other/dist/plan9.iso >web.protect/nplan9.iso.bz2
+	bzip2 -9 <$scr/plan9.iso >web.protect/nplan9.iso.bz2
 
 D.install:V:
 	D=/n/roro/usr/rob/testplan9
@@ -105,7 +111,7 @@ reallyinstall:V:
 dump:V:
 	rm -f /srv/9660.xxx
 	9660srv 9660.xxx
-	mount /srv/9660.xxx /n/kremvax /n/other/dist/plan9.iso
+	mount /srv/9660.xxx /n/kremvax $scr/plan9.iso
 	now=`{mtime $dist/web.protect/plan9.iso.bz2 | awk '{print $1}'}
 	ls -l /rls/plan9/4e.iso
 	disk/dump9660 -9cj -s /n/kremvax -n $now /rls/plan9/4e.iso
@@ -113,17 +119,18 @@ dump:V:
 	rm /srv/9660.xxx
 
 reencode:V:
-	rm -f /n/other/dist/nplan9.iso
+	rm -f $scr/nplan9.iso
 	rm -f /srv/9660.xxx
 	9660srv 9660.xxx
-	mount /srv/9660.xxx /n/kremvax /n/other/dist/plan9.iso
+	mount /srv/9660.xxx /n/kremvax $scr/plan9.iso
 	disk/mk9660 -9cj -v 'Plan 9 4th Edition' -s /n/kremvax \
-		-b bootdisk.img /n/other/dist/nplan9.iso
+		-b bootdisk.img $scr/nplan9.iso
 	rm /srv/9660.xxx
 
-/n/other/dist/%.iso.bz2:D: /n/other/dist/%.iso
+# compress a cd image in scratch space
+$scr/%.iso.bz2:D: $scr/%.iso
 	@ {
-		cd /n/other/dist
+		cd $scr
 		bzip2 -9 <$stem.iso >n$stem.iso.bz2 &&
 		{
 			if (test -e $stem.iso.bz2)
@@ -135,7 +142,7 @@ reencode:V:
 			$stem.iso.bz2 >>/usr/web/plan9checksums.txt
 	}
 
-/n/other/dist/contrib.iso:DV:
+$scr/contrib.iso:DV:
 	rm -f $target
 	disk/mk9660 -9cj -v 'Plan 9 Extras' -s /n/sources \
 		-p ./contrib.proto $target
@@ -155,14 +162,14 @@ scansources-mail:V:
 	scansources | datemail 'nightly fs vs. sources scan' 9trouble
 
 worldwritable-mail:V:
-	test -e /n/sources/plan9
+	test -e $src9
 	@ {cd /n/sources; /usr/rsc/bin/$cputype/lsr -t -d} |
 		awk '$2 ~ /[2367]$/' | grep -vf ok-writable |
 		datemail 'WRITABLE FILES ON SOURCES' 9trouble || status=''
 	status=''
 	@ {
-		cd /n/sources/plan9
-		/usr/rsc/bin/$cputype/lsr -t -d /n/sources/plan9
+		cd $src9
+		/usr/rsc/bin/$cputype/lsr -t -d $src9
 	} |
 		awk '$2 ~ /[2367][^2367].$/' |
 		datemail 'non-group-writable files on sources' 9trouble
@@ -182,9 +189,9 @@ worldwritable-mail:V:
 	@{
 		rfork n
 		9fs sources
-		test -e /n/sources/plan9
-		bind -a /n/sources/plan9 /n/sources/plan9/sys/src
-		cd /n/sources/plan9/sys/src
+		test -e $src9
+		bind -a $src9 $src9/sys/src
+		cd $src9/sys/src
 		tar c LICENSE NOTICE 9
 	} | gzip >$target
 
@@ -198,11 +205,11 @@ plan9.tar.bz2:V:
 		rfork n
 		9fs sources
 		cd /n/sources
-		test -e /n/sources/plan9
-		bind /n/empty /n/sources/plan9/lib/font
-		bind /n/empty /n/sources/plan9/sys/lib/postscript/font
-		bind /n/empty /n/sources/plan9/sys/lib/ghostscript
-		bind /n/empty /n/sources/plan9/sys/src/cmd/gs
+		test -e $src9
+		bind /n/empty $src9/lib/font
+		bind /n/empty $src9/sys/lib/postscript/font
+		bind /n/empty $src9/sys/lib/ghostscript
+		bind /n/empty $src9/sys/src/cmd/gs
 		tar c plan9/LICENSE* plan9/NOTICE plan9/*/mkfile plan9/*/include \
 			plan9/acme/*/src plan9/acme/bin/source \
 			plan9/^(adm cron lib lp mail rc sys tmp usr)
@@ -210,5 +217,5 @@ plan9.tar.bz2:V:
 
 plan9-export:V: plan9.tar.bz2
 	9fs sources
+	chmod +t plan9.tar.bz2
 	mv plan9.tar.bz2 /n/sources/extra/plan9.tar.bz2
-	chmod +t	 /n/sources/extra/plan9.tar.bz2
