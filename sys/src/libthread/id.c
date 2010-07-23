@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <thread.h>
 #include "threadimpl.h"
+#include <tos.h>
 
 int
 threadid(void)
@@ -71,7 +72,7 @@ threadsetname(char *fmt, ...)
 	t->cmdname = vsmprint(fmt, arg);
 	va_end(arg);
 	if(t->cmdname && p->nthreads == 1){
-		snprint(buf, sizeof buf, "#p/%d/args", getpid());
+		snprint(buf, sizeof buf, "#p/%lud/args", _tos->pid); //getpid());
 		if((fd = open(buf, OWRITE)) >= 0){
 			write(fd, t->cmdname, strlen(t->cmdname)+1);
 			close(fd);
@@ -89,6 +90,12 @@ void**
 threaddata(void)
 {
 	return &_threadgetproc()->thread->udata[0];
+}
+
+void**
+_workerdata(void)
+{
+	return &_threadgetproc()->wdata;
 }
 
 void**

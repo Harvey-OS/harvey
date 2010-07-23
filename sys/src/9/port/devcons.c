@@ -101,7 +101,8 @@ prflush(void)
  */
 struct {
 	Lock lk;
-	char buf[16384];
+//	char buf[16384];		/* normal */
+	char buf[256*1024];		/* for acpi debugging */
 	uint n;
 } kmesg;
 
@@ -1333,6 +1334,8 @@ writebintime(char *buf, int n)
 		if(n < sizeof(uvlong))
 			error(Ebadtimectl);
 		le2vlong(&fasthz, p);
+		if(fasthz <= 0)
+			error(Ebadtimectl);
 		todsetfreq(fasthz);
 		break;
 	}

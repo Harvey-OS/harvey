@@ -23,9 +23,13 @@ case *.ac.uk
 case *.au
 	machine=whois.aunic.net
 	fn boilerplate { grep -v ':[	 ]*$' $* }
-case *.fr
-	machine=whois.nic.fr
-	fn boilerplate { grep -v '^%%' $* }
+case *.be
+	machine=whois.dns.be
+	person='-T dn '^$person
+	fn boilerplate { cat $* }
+case *.cn
+	machine=whois.cnnic.net.cn
+	fn boilerplate { cat $* }
 case *.de
 	machine=whois.denic.de
 	person='-T dn '^$person
@@ -33,22 +37,22 @@ case *.de
 case *.dk
 	machine=whois.dk-hostmaster.dk
 	fn boilerplate { grep -v '^#' $* }
-case *.se
-	machine=whois.nic-se.se
-	fn boilerplate { grep -v '^#' $* | uniq }
 case *.es
 	echo no known whois server for .es
 	exit
+case *.fr
+	machine=whois.nic.fr
+	fn boilerplate { grep -v '^%%' $* }
+case *.in
+	machine=whois.inregistry.net
+	fn boilerplate { cat $* }
 case *.jp
 	machine=whois.jprs.jp
 	person=$person^'/e'
 	fn boilerplate { cat $* }
-case *.in
-	machine=whois.inregistry.net
-	fn boilerplate { cat $* }
-case *.cn
-	machine=whois.cnnic.net.cn
-	fn boilerplate { cat $* }
+case *.se
+	machine=whois.nic-se.se
+	fn boilerplate { grep -v '^#' $* | uniq }
 case [0-9]*.[0-9]*.[0-9]*.[0-9]*
 	machine=whois.arin.net
 	fn boilerplate { cat $* }

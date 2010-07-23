@@ -1686,7 +1686,6 @@ validname0(char *aname, int slashok, int dup, ulong pc)
 
 	name = aname;
 	if((ulong)name < KZERO){
-		validaddr((ulong)name, 1, 0);
 		if(!dup)
 			print("warning: validname called from %lux with user pointer", pc);
 		ename = vmemchr(name, 0, (1<<16));

@@ -130,6 +130,7 @@ struct Proc
 	void		*arg;			/* passed between shared and unshared stk */
 	char		str[ERRMAX];		/* used by threadexits to avoid malloc */
 
+	void*		wdata;			/* Lib(worker) per-proc data pointer */
 	void*		udata;			/* User per-proc data pointer */
 	char		threadint;		/* tag for threadexitsall() */
 };
@@ -152,34 +153,35 @@ struct Ioproc
 	Ioproc *next;
 };
 
-void		_freeproc(Proc*);
-void		_freethread(Thread*);
+void	_freeproc(Proc*);
+void	_freethread(Thread*);
 Proc*	_newproc(void(*)(void*), void*, uint, char*, int, int);
-int		_procsplhi(void);
-void		_procsplx(int);
-void		_sched(void);
-int		_schedexec(Execargs*);
-void		_schedexecwait(void);
-void		_schedexit(Proc*);
-int		_schedfork(Proc*);
-void		_schedinit(void*);
-void		_systhreadinit(void);
-void		_threadassert(char*);
-void		_threadbreakrendez(void);
-void		_threaddebug(ulong, char*, ...);
-void		_threadexitsall(char*);
-void		_threadflagrendez(Thread*);
+int	_procsplhi(void);
+void	_procsplx(int);
+void	_sched(void);
+int	_schedexec(Execargs*);
+void	_schedexecwait(void);
+void	_schedexit(Proc*);
+int	_schedfork(Proc*);
+void	_schedinit(void*);
+void	_systhreadinit(void);
+void	_threadassert(char*);
+void	_threadbreakrendez(void);
+void	_threaddebug(ulong, char*, ...);
+void	_threadexitsall(char*);
+void	_threadflagrendez(Thread*);
 Proc*	_threadgetproc(void);
-void		_threadsetproc(Proc*);
-void		_threadinitstack(Thread*, void(*)(void*), void*);
+void	_threadsetproc(Proc*);
+void	_threadinitstack(Thread*, void(*)(void*), void*);
 void*	_threadmalloc(long, int);
-void		_threadnote(void*, char*);
-void		_threadready(Thread*);
+void	_threadnote(void*, char*);
+void	_threadready(Thread*);
 void*	_threadrendezvous(void*, void*);
-void		_threadsignal(void);
-void		_threadsysfatal(char*, va_list);
-long		_xdec(long*);
-void		_xinc(long*);
+void	_threadsignal(void);
+void	_threadsysfatal(char*, va_list);
+long	_xdec(long*);
+void	_xinc(long*);
+void**	_workerdata(void);
 
 extern int			_threaddebuglevel;
 extern char*		_threadexitsallstatus;

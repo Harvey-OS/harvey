@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <thread.h>
 #include "threadimpl.h"
+#include <tos.h>
 
 char *_threadexitsallstatus;
 Channel *_threadwaitchan;
@@ -32,7 +33,7 @@ threadexitsall(char *exitstr)
 		exitstr = "";
 	_threadexitsallstatus = exitstr;
 	_threaddebug(DBGSCHED, "_threadexitsallstatus set to %p", _threadexitsallstatus);
-	mypid = getpid();
+	mypid = _tos->pid; //getpid();
 
 	/*
 	 * signal others.

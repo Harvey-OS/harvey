@@ -79,10 +79,10 @@ sysfauth(ulong *arg)
 
 	ac = mntauth(c, aname);
 	/* at this point ac is responsible for keeping c alive */
-	cclose(c);
 	poperror();	/* c */
-	free(aname);
+	cclose(c);
 	poperror();	/* aname */
+	free(aname);
 
 	if(waserror()){
 		cclose(ac);

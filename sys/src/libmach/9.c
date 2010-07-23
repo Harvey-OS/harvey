@@ -20,7 +20,7 @@
 Reglist power64reglist[] = {
 	{"CAUSE",	REGOFF(cause),	RINT|RRDONLY,	'Y'},
 	{"TRAP",	REGOFF(cause),	RINT|RRDONLY,	'Y'},	/* alias for acid */
-	{"MSR",	REGOFF(msr),	RINT|RRDONLY,	'Y'},
+//	{"MSR",	REGOFF(msr),	RINT|RRDONLY,	'Y'},
 	{"PC",		REGOFF(pc),	RINT,		'Y'},
 	{"LR",		REGOFF(lr),	RINT,		'Y'},
 	{"CR",		REGOFF(cr),	RINT,		'X'},

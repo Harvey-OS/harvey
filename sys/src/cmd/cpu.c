@@ -34,6 +34,7 @@ int	cflag;
 int	dbg;
 char	*user;
 char	*patternfile;
+char	*origargs;
 
 char	*srvname = "ncpu";
 char	*exportfs = "/bin/exportfs";
@@ -77,6 +78,61 @@ usage(void)
 	exits("usage");
 }
 
+/*
+ * reading /proc/pid/args yields either "name args" or "name [display args]",
+ * so return only args or display args.
+ */
+static char *
+procgetname(void)
+{
+	int fd, n;
+	char *lp, *rp;
+	char buf[256];
+
+	snprint(buf, sizeof buf, "#p/%d/args", getpid());
+	if((fd = open(buf, OREAD)) < 0)
+		return strdup("");
+	*buf = '\0';
+	n = read(fd, buf, sizeof buf-1);
+	close(fd);
+	if (n >= 0)
+		buf[n] = '\0';
+	if ((lp = strchr(buf, '[')) == nil || (rp = strrchr(buf, ']')) == nil) {
+		lp = strchr(buf, ' ');
+		if (lp == nil)
+			return strdup("");
+		else
+			return strdup(lp+1);
+	}
+	*rp = '\0';
+	return strdup(lp+1);
+}
+
+/*
+ * based on libthread's threadsetname, but drags in less library code.
+ * actually just sets the arguments displayed.
+ */
+void
+procsetname(char *fmt, ...)
+{
+	int fd;
+	char *cmdname;
+	char buf[128];
+	va_list arg;
+
+	va_start(arg, fmt);
+	cmdname = vsmprint(fmt, arg);
+	va_end(arg);
+	if (cmdname == nil)
+		return;
+	snprint(buf, sizeof buf, "#p/%d/args", getpid());
+	if((fd = open(buf, OWRITE)) >= 0){
+		write(fd, cmdname, strlen(cmdname)+1);
+		close(fd);
+	}
+	free(cmdname);
+}
+
 void
 main(int argc, char **argv)
 {
@@ -84,6 +140,8 @@ main(int argc, char **argv)
 	int ac, fd, ms, data;
 	char *av[10];
 
+	quotefmtinstall();
+	origargs = procgetname();
 	/* see if we should use a larger message size */
 	fd = open("/dev/draw", OREAD);
 	if(fd > 0){
@@ -160,6 +218,7 @@ main(int argc, char **argv)
 	if(err = rexcall(&data, system, srvname))
 		fatal(1, "%s: %s", err, system);
 
+	procsetname("%s", origargs);
 	/* Tell the remote side the command to execute and where our working directory is */
 	if(cflag)
 		writestr(data, cmd, "command", 0);
@@ -369,6 +428,7 @@ rexcall(int *fd, char *host, char *service)
 	int n;
 
 	na = netmkaddr(host, 0, service);
+	procsetname("dialing %s", na);
 	if((*fd = dial(na, 0, dir, 0)) < 0)
 		return "can't dial";
 
@@ -377,7 +437,9 @@ rexcall(int *fd, char *host, char *service)
 		snprint(msg, sizeof(msg), "%s %s", am->name, ealgs);
 	else
 		snprint(msg, sizeof(msg), "%s", am->name);
+	procsetname("writing %s", msg);
 	writestr(*fd, msg, negstr, 0);
+	procsetname("awaiting auth method");
 	n = readstr(*fd, err, sizeof err);
 	if(n < 0)
 		return negstr;
@@ -387,6 +449,7 @@ rexcall(int *fd, char *host, char *service)
 	}
 
 	/* authenticate */
+	procsetname("%s: auth via %s", origargs, am->name);
 	*fd = (*am->cf)(*fd);
 	if(*fd < 0)
 		return "can't authenticate";
@@ -524,6 +587,8 @@ p9auth(int fd)
 	int i;
 	AuthInfo *ai;
 
+	procsetname("%s: auth_proxy proto=%q role=client %s",
+		origargs, p9authproto, keyspec);
 	ai = auth_proxy(fd, auth_getkey, "proto=%q role=client %s", p9authproto, keyspec);
 	if(ai == nil)
 		return -1;
@@ -535,8 +600,10 @@ p9auth(int fd)
 	srand(truerand());
 	for(i = 0; i < 4; i++)
 		key[i] = rand();
+	procsetname("writing p9 key");
 	if(write(fd, key, 4) != 4)
 		return -1;
+	procsetname("reading p9 key");
 	if(readn(fd, key+12, 4) != 4)
 		return -1;
 
@@ -546,6 +613,7 @@ p9auth(int fd)
 	mksecret(fromserversecret, digest+10);
 
 	/* set up encryption */
+	procsetname("pushssl");
 	i = pushssl(fd, ealgs, fromclientsecret, fromserversecret, nil);
 	if(i < 0)
 		werrstr("can't establish ssl connection: %r");

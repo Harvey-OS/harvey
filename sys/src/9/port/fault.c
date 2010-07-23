@@ -136,12 +136,6 @@ fixfault(Segment *s, ulong addr, int read, int doputmmu)
 		if(ref > 1) {
 			unlock(lkp);
 
-			if(swapfull()){
-				qunlock(&s->lk);
-				pprint("swap space full\n");
-				faulterror(Enoswap, nil, 1);
-			}
-
 			new = newpage(0, &s, addr);
 			if(s == 0)
 				return -1;
@@ -151,7 +145,7 @@ fixfault(Segment *s, ulong addr, int read, int doputmmu)
 		}
 		else {
 			/* save a copy of the original for the image cache */
-			if(lkp->image && !swapfull())
+			if(lkp->image)
 				duppage(lkp);
 
 			unlock(lkp);
@@ -208,6 +202,11 @@ retry:
 			*p = new;
 			return;
 		}
+
+		c = s->image->c;
+		ask = s->flen-soff;
+		if(ask > BY2PG)
+			ask = BY2PG;
 	}
 	else {			/* from a swap image */
 		daddr = swapaddr(loadrec);
@@ -217,39 +216,34 @@ retry:
 			*p = new;
 			return;
 		}
+
+		c = swapimage.c;
+		ask = BY2PG;
 	}
-
-
 	qunlock(&s->lk);
 
 	new = newpage(0, 0, addr);
 	k = kmap(new);
 	kaddr = (char*)VA(k);
 
-	if(loadrec == 0) {			/* This is demand load */
-		c = s->image->c;
-		while(waserror()) {
-			if(strcmp(up->errstr, Eintr) == 0)
-				continue;
-			kunmap(k);
-			putpage(new);
-			faulterror("sys: demand load I/O error", c, 0);
-		}
-
-		ask = s->flen-soff;
-		if(ask > BY2PG)
-			ask = BY2PG;
-
-		n = devtab[c->type]->read(c, kaddr, ask, daddr);
-		if(n != ask)
-			faulterror(Eioload, c, 0);
-		if(ask < BY2PG)
-			memset(kaddr+ask, 0, BY2PG-ask);
-
-		poperror();
+	while(waserror()) {
+		if(strcmp(up->errstr, Eintr) == 0)
+			continue;
 		kunmap(k);
-		qlock(&s->lk);
+		putpage(new);
+		faulterror(Eioload, c, 0);
+	}
 
+	n = devtab[c->type]->read(c, kaddr, ask, daddr);
+	if(n != ask)
+		faulterror(Eioload, c, 0);
+	if(ask < BY2PG)
+		memset(kaddr+ask, 0, BY2PG-ask);
+
+	poperror();
+	kunmap(k);
+	qlock(&s->lk);
+	if(loadrec == 0) {	/* This is demand load */
 		/*
 		 *  race, another proc may have gotten here first while
 		 *  s->lk was unlocked
@@ -262,24 +256,7 @@ retry:
 		else
 			putpage(new);
 	}
-	else {				/* This is paged out */
-		c = swapimage.c;
-		if(waserror()) {
-			kunmap(k);
-			putpage(new);
-			qlock(&s->lk);
-			qunlock(&s->lk);
-			faulterror("sys: page in I/O error", c, 0);
-		}
-
-		n = devtab[c->type]->read(c, kaddr, BY2PG, daddr);
-		if(n != BY2PG)
-			faulterror(Eioload, c, 0);
-
-		poperror();
-		kunmap(k);
-		qlock(&s->lk);
-
+	else {			/* This is paged out */
 		/*
 		 *  race, another proc may have gotten here first
 		 *  (and the pager may have run on that page) while
@@ -337,8 +314,10 @@ okaddr(ulong addr, ulong len, int write)
 void
 validaddr(ulong addr, ulong len, int write)
 {
-	if(!okaddr(addr, len, write))
-		pexit("Suicide", 0);
+	if(!okaddr(addr, len, write)){
+		postnote(up, 1, "sys: bad address in syscall", NDebug);
+		error(Ebadarg);
+	}
 }
 
 /*

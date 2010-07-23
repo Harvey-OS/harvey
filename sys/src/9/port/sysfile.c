@@ -266,16 +266,15 @@ long
 sysopen(ulong *arg)
 {
 	int fd;
-	Chan *c = 0;
+	Chan *c;
 
 	openmode(arg[1]);	/* error check only */
-	if(waserror()){
-		if(c)
-			cclose(c);
-		nexterror();
-	}
 	validaddr(arg[0], 1, 0);
 	c = namec((char*)arg[0], Aopen, arg[1], 0);
+	if(waserror()){
+		cclose(c);
+		nexterror();
+	}
 	fd = newfd(c);
 	if(fd < 0)
 		error(Enofd);
@@ -999,9 +998,14 @@ bindmount(int ismount, int fd, int afd, char* arg0, char* arg1, ulong flag, char
 	if((flag&~MMASK) || (flag&MORDER)==(MBEFORE|MAFTER))
 		error(Ebadarg);
 
-	bogus.flags = flag & MCACHE;
-
 	if(ismount){
+		validaddr((ulong)spec, 1, 0);
+		spec = validnamedup(spec, 1);
+		if(waserror()){
+			free(spec);
+			nexterror();
+		}
+
 		if(up->pgrp->noattach)
 			error(Enoattach);
 
@@ -1017,32 +1021,18 @@ bindmount(int ismount, int fd, int afd, char* arg0, char* arg1, ulong flag, char
 		if(afd >= 0)
 			ac = fdtochan(afd, ORDWR, 0, 1);
 
+		bogus.flags = flag & MCACHE;
 		bogus.chan = bc;
 		bogus.authchan = ac;
-
-		validaddr((ulong)spec, 1, 0);
 		bogus.spec = spec;
-		if(waserror())
-			error(Ebadspec);
-		spec = validnamedup(spec, 1);
-		poperror();
-		
-		if(waserror()){
-			free(spec);
-			nexterror();
-		}
-
 		ret = devno('M', 0);
 		c0 = devtab[ret]->attach((char*)&bogus);
-
-		poperror();	/* spec */
-		free(spec);
 		poperror();	/* ac bc */
 		if(ac)
 			cclose(ac);
 		cclose(bc);
 	}else{
-		bogus.spec = 0;
+		spec = 0;
 		validaddr((ulong)arg0, 1, 0);
 		c0 = namec(arg0, Abind, 0, 0);
 	}
@@ -1059,15 +1049,17 @@ bindmount(int ismount, int fd, int afd, char* arg0, char* arg1, ulong flag, char
 		nexterror();
 	}
 
-	ret = cmount(&c0, c1, flag, bogus.spec);
+	ret = cmount(&c0, c1, flag, spec);
 
 	poperror();
 	cclose(c1);
 	poperror();
 	cclose(c0);
-	if(ismount)
+	if(ismount){
 		fdclose(fd, 0);
-
+		poperror();
+		free(spec);
+	}
 	return ret;
 }
 
@@ -1098,23 +1090,6 @@ sysunmount(ulong *arg)
 
 	validaddr(arg[1], 1, 0);
 	cmount = namec((char *)arg[1], Amount, 0, 0);
-
-	if(arg[0]) {
-		if(waserror()) {
-			cclose(cmount);
-			nexterror();
-		}
-		validaddr(arg[0], 1, 0);
-		/*
-		 * This has to be namec(..., Aopen, ...) because
-		 * if arg[0] is something like /srv/cs or /fd/0,
-		 * opening it is the only way to get at the real
-		 * Chan underneath.
-		 */
-		cmounted = namec((char*)arg[0], Aopen, OREAD, 0);
-		poperror();
-	}
-
 	if(waserror()) {
 		cclose(cmount);
 		if(cmounted)
@@ -1122,11 +1097,21 @@ sysunmount(ulong *arg)
 		nexterror();
 	}
 
+	if(arg[0]) {
+		/*
+		 * This has to be namec(..., Aopen, ...) because
+		 * if arg[0] is something like /srv/cs or /fd/0,
+		 * opening it is the only way to get at the real
+		 * Chan underneath.
+		 */
+		validaddr(arg[0], 1, 0);
+		cmounted = namec((char*)arg[0], Aopen, OREAD, 0);
+	}
 	cunmount(cmount, cmounted);
+	poperror();
 	cclose(cmount);
 	if(cmounted)
 		cclose(cmounted);
-	poperror();
 	return 0;
 }
 
@@ -1134,16 +1119,15 @@ long
 syscreate(ulong *arg)
 {
 	int fd;
-	Chan *c = 0;
+	Chan *c;
 
 	openmode(arg[1]&~OEXCL);	/* error check only; OEXCL okay here */
-	if(waserror()) {
-		if(c)
-			cclose(c);
-		nexterror();
-	}
 	validaddr(arg[0], 1, 0);
 	c = namec((char*)arg[0], Acreate, arg[1], arg[2]);
+	if(waserror()) {
+		cclose(c);
+		nexterror();
+	}
 	fd = newfd(c);
 	if(fd < 0)
 		error(Enofd);
