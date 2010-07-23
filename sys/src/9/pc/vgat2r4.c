@@ -83,8 +83,10 @@ t2r4enable(VGAscr* scr)
 
 	scr->mmio = mmio;
 	vgalinearpci(scr);
-	if(scr->paddr)
+	if(scr->paddr) {
 		addvgaseg("t2r4screen", scr->paddr, scr->apsize);
+		mtrr(scr->paddr, scr->apsize, "wc");
+	}
 }
 
 static uchar

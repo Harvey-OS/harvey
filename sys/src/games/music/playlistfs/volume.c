@@ -76,8 +76,7 @@ volumeset(int *v)
 			return;
 		}
 		fprint(fd, "audio out %d",  v[0]);
-		v[1] = Undef;
-		send(volumechan, volume);
+		send(volumechan, v);
 	} else {
 		p = buf;
 		for (i = 0; i < 8; i++){

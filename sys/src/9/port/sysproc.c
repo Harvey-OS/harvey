@@ -222,7 +222,7 @@ sysexec(ulong *arg)
 	int i;
 	Chan *tc;
 	char **argv, **argp;
-	char *a, *charp, *args, *file;
+	char *a, *charp, *args, *file, *file0;
 	char *progarg[sizeof(Exec)/2+1], *elem, progelem[64];
 	ulong ssize, spage, nargs, nbytes, n, bssend;
 	int indir;
@@ -233,14 +233,16 @@ sysexec(ulong *arg)
 	ulong magic, text, entry, data, bss;
 	Tos *tos;
 
-	validaddr(arg[0], 1, 0);
-	file = (char*)arg[0];
 	indir = 0;
 	elem = nil;
+	validaddr(arg[0], 1, 0);
+	file0 = validnamedup((char*)arg[0], 1);
 	if(waserror()){
+		free(file0);
 		free(elem);
 		nexterror();
 	}
+	file = file0;
 	for(;;){
 		tc = namec(file, Aopen, OEXEC, 0);
 		if(waserror()){
@@ -373,6 +375,7 @@ sysexec(ulong *arg)
 		memmove(charp, *argp++, n);
 		charp += n;
 	}
+	free(file0);
 
 	free(up->text);
 	up->text = elem;

@@ -151,6 +151,8 @@ void	realmode(Ureg*);
 void	screeninit(void);
 void	(*screenputs)(char*, int);
 void	syncclock(void);
+void	syscallprint(Ureg *ureg);
+void	syscallretprint(Ureg *ureg, int syscallno, uvlong start, uvlong stop);
 void*	tmpmap(Page*);
 void	tmpunmap(void*);
 void	touser(void*);

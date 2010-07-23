@@ -12,6 +12,7 @@ TARG=jpg\
 	toico\
 	bmp\
 	tga\
+	v210\
 
 IMFILES=\
 	torgbv.$O\
@@ -53,6 +54,7 @@ $O.png:		$IMFILES readpng.$O png.$O
 $O.topng:	writepng.$O topng.$O
 $O.yuv:		$IMFILES readyuv.$O yuv.$O
 $O.bmp:		$IMFILES readbmp.$O bmp.$O
+$O.v210:	$IMFILES readv210.$O v210.$O
 
 torgbv.$O:	ycbcr.h rgbv.h
 

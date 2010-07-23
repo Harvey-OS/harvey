@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <thread.h>
 #include "threadimpl.h"
+#include <tos.h>
 
 static Thread	*runthread(Proc*);
 
@@ -31,7 +32,7 @@ _schedinit(void *arg)
 
 	p = arg;
 	_threadsetproc(p);
-	p->pid = getpid();
+	p->pid = _tos->pid; //getpid();
 	while(setjmp(p->sched))
 		;
 	_threaddebug(DBGSCHED, "top of schedinit, _threadexitsallstatus=%p", _threadexitsallstatus);
@@ -88,9 +89,9 @@ needstack(int n)
 	t = p->thread;
 	
 	if((uchar*)&x - n < (uchar*)t->stk){
-		fprint(2, "%s %d: &x=%p n=%d t->stk=%p\n",
-			argv0, getpid(), &x, n, t->stk);
-		fprint(2, "%s %d: stack overflow\n", argv0, getpid());
+		fprint(2, "%s %lud: &x=%p n=%d t->stk=%p\n",
+			argv0, _tos->pid, &x, n, t->stk);
+		fprint(2, "%s %lud: stack overflow\n", argv0, _tos->pid);
 		abort();
 	}
 }

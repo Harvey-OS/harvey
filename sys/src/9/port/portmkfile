@@ -71,9 +71,9 @@ trap.$O:	../port/systab.h
 devpipe.$O:	../port/netif.h
 netif.$O:	../port/netif.h
 devuart.$O:	../port/netif.h
-devmouse.$O:	screen.h
-devdraw.$O:	screen.h
-screen.$O:	screen.h
+devmouse.$O:	screen.h /sys/include/memdraw.h
+devdraw.$O:	screen.h /sys/include/memdraw.h
+screen.$O:	screen.h /sys/include/memdraw.h
 latin1.$O:	../port/latin1.h
 thwack.$O:	../port/thwack.h
 unthwack.$O:	../port/thwack.h
