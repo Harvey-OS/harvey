@@ -8,13 +8,6 @@ struct	Resublist
 	Resub	m[NSUBEXP];
 };
 
-/* max character classes per program */
-Reprog	RePrOg;
-#define	NCLASS	(sizeof(RePrOg.class)/sizeof(Reclass))
-
-/* max rune ranges per character class */
-#define NCCRUNE	(sizeof(Reclass)/sizeof(Rune))
-
 /*
  * Actions and Tokens (Reinst types)
  *

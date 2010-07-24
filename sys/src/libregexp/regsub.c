@@ -28,7 +28,7 @@ regsub(char *sp,	/* source string */
 			case '8':
 			case '9':
 				i = *sp-'0';
-				if(mp[i].sp != 0 && mp!=0 && ms>i)
+				if(mp!=0 && mp[i].sp != 0 && ms>i)
 					for(ssp = mp[i].sp;
 					     ssp < mp[i].ep;
 					     ssp++)
