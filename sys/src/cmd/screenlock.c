@@ -190,14 +190,25 @@ grabmouse(void*)
 	}
 }
 
+/* lay down text at `p' */
+static void
+screenstring(Point p, char *s)
+{
+	string(screen, p, screen->display->white, ZP, font, s);
+	flushimage(display, 1);
+}
+
 void
 lockscreen(void)
 {
 	enum { Nfld = 5, Fldlen = 12, Cursorlen = 2*4 + 2*2*16, };
+	char *s;
 	char buf[Nfld*Fldlen], *flds[Nfld], newcmd[128], cbuf[Cursorlen];
 	int fd, dx, dy;
 	Image *i;
+	Point p;
 	Rectangle r;
+	Tm *tm;
 
 	fd = open("/dev/screen", OREAD);
 	if(fd < 0)
@@ -211,8 +222,8 @@ lockscreen(void)
 	snprint(newcmd, sizeof newcmd, "-r %s %s %d %d",
 		flds[1], flds[2], atoi(flds[3]) - 1, atoi(flds[4]) - 1);
 	newwindow(newcmd);
-	initdraw(nil, nil, "screenlock");
-
+	if (initdraw(nil, nil, "screenlock") < 0)
+		sysfatal("initdraw failed");
 	if(display == nil)
 		error("no display");
 
@@ -224,6 +235,7 @@ lockscreen(void)
 		i = readimage(display, fd, 0);
 		if(i){
  			r = screen->r;
+			p = Pt(r.max.x / 2, r.max.y * 2 / 3); 
 			dx = (Dx(screen->r) - Dx(i->r)) / 2;
 			r.min.x += dx;
 			r.max.x -= dx;
@@ -235,6 +247,12 @@ lockscreen(void)
 			flushimage(display, 1);
 		}
 		close(fd);
+
+		/* identify the user on screen, centered */
+		tm = localtime(time(0));
+		s = smprint("user %s at %d:%2d", getuser(), tm->hour, tm->min);
+		p = subpt(p, Pt(stringsize(font, "m").x * strlen(s) / 2, 0));
+		screenstring(p, s);
 	}
 
 	/* clear the cursor */

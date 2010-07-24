@@ -15,19 +15,15 @@
 #include "fns.h"
 #include "io.h"
 
-typedef struct QLock { int r; } QLock;
-#define qlock(i)	while(0)
-#define qunlock(i)	while(0)
 #define iprint		print
 
 #include "etherif.h"
 #include "ethermii.h"
 
 enum {
-	Ntxd = 4,
-	Nrxd = 4,
+	Ntxd = 16,
+	Nrxd = 32,
 	Nwait = 50,
-	BIGSTR = 8192,
 };
 
 typedef struct Desc Desc;
@@ -56,7 +52,7 @@ struct Ctlr {
 	Desc	*txd;		/* wants to be aligned on 16-byte boundary */
 	Desc	*rxd;
 
-	QLock	attachlck;
+//	QLock	attachlck;
 	Lock	tlock;
 };
 
@@ -251,10 +247,11 @@ attach(Ether *edev)
 	Desc *txd, *rxd, *td, *rd;
 	Mii *mi;
 	MiiPhy *phy;
-	int i, s;
+	int s;
+	uint i;
 
 	ctlr = edev->ctlr;
-	qlock(&ctlr->attachlck);
+//	qlock(&ctlr->attachlck);
 	if (ctlr->attached == 0) {
 		txd = ctlr->txd;
 		rxd = ctlr->rxd;
@@ -293,7 +290,7 @@ attach(Ether *edev)
 		splx(s);
 		ctlr->attached = 1;
 	}
-	qunlock(&ctlr->attachlck);
+//	qunlock(&ctlr->attachlck);
 }
 
 static void
@@ -301,7 +298,8 @@ txstart(Ether *edev)
 {
 	Ctlr *ctlr;
 	Desc *txd, *td;
-	int i, txused, n;
+	int txused, n;
+	uint i;
 	RingBuf *tb;
 
 	ctlr = edev->ctlr;
@@ -348,7 +346,8 @@ txcomplete(Ether *edev)
 {
 	Ctlr *ctlr;
 	Desc *txd, *td;
-	int i, txused;
+	int txused;
+	uint i;
 	ulong stat;
 
 	ctlr = edev->ctlr;
@@ -364,7 +363,7 @@ txcomplete(Ether *edev)
 	ctlr->txused = txused;
 	ctlr->txtail = i;
 
-	if (txused <= Ntxd/2)
+//	if (txused <= Ntxd/2)
 		txstart(edev);
 }
 
@@ -377,7 +376,8 @@ interrupt(Ureg *, void *arg)
 	ushort  isr, misr;
 	ulong stat;
 	Desc *rxd, *rd;
-	int i, n, size;
+	int n, size;
+	uint i;
 
 	edev = (Ether*)arg;
 	ctlr = edev->ctlr;
@@ -405,7 +405,10 @@ interrupt(Ureg *, void *arg)
 				rb->len = size;
 				memmove(rb->pkt, rd->buf, size);
 				edev->ri = NEXT(edev->ri, edev->nrb);
-			}
+			} else
+				print("etherrhine: ether%d discarding input pkt;"
+					" buffer ring too small\n",
+					edev->ctlrno);
 
 			rd->size = sizeof(Etherpkt)+4;
 			coherence();
@@ -592,9 +595,8 @@ init(Ether *edev)
 		return;
 	}
 	for (i = 0; i < NMiiPhy; ++i)
-		if (ctlr->mii.phy[i])
-			if (ctlr->mii.phy[i]->oui != 0xFFFFF)
-				ctlr->mii.curphy = ctlr->mii.phy[i];
+		if (ctlr->mii.phy[i] && ctlr->mii.phy[i]->oui != 0xFFFFF)
+			ctlr->mii.curphy = ctlr->mii.phy[i];
 	miistatus(&ctlr->mii);
 
 	iow16(ctlr, Imr, 0);

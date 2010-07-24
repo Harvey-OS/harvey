@@ -451,10 +451,10 @@ armco(Opcode *o, Instr *i)		/* coprocessor instructions */
 	p = (i->w >> 5) & 0x7;
 	if(i->w&(1<<4)) {
 		op = (i->w >> 21) & 0x07;
-		snprint(buf, sizeof(buf), "#%x, #%x, R%d, C(%d), C(%d), #%x\n", cp, op, i->rd, i->rn, i->rs, p);
+		snprint(buf, sizeof(buf), "#%x, #%x, R%d, C(%d), C(%d), #%x", cp, op, i->rd, i->rn, i->rs, p);
 	} else {
 		op = (i->w >> 20) & 0x0f;
-		snprint(buf, sizeof(buf), "#%x, #%x, C(%d), C(%d), C(%d), #%x\n", cp, op, i->rd, i->rn, i->rs, p);
+		snprint(buf, sizeof(buf), "#%x, #%x, C(%d), C(%d), C(%d), #%x", cp, op, i->rd, i->rn, i->rs, p);
 	}
 	format(o->o, i, buf);
 }

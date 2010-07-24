@@ -45,9 +45,11 @@ static struct {
 	"pc", "#f/fd1disk", -1, 512,
 	"mips", "#r/nvram", 1024+900, sizeof(Nvrsafe),
 	"power", "#F/flash/flash0", 0x440000, sizeof(Nvrsafe),
+	"power", "#F/flash/flash", 0x440000, sizeof(Nvrsafe),
 	"power", "#r/nvram", 4352, sizeof(Nvrsafe),	/* OK for MTX-604e */
 	"power", "/nvram", 0, sizeof(Nvrsafe),	/* OK for Ucu */
 	"arm", "#F/flash/flash0", 0x100000, sizeof(Nvrsafe),
+	"arm", "#F/flash/flash", 0x100000, sizeof(Nvrsafe),
 	"debug", "/tmp/nvram", 0, sizeof(Nvrsafe),
 };
 
@@ -129,15 +131,19 @@ typedef struct {
 	int	safelen;
 } Nvrwhere;
 
+static char *nvrfile = nil, *cputype = nil;
+
 /* returns with *locp filled in and locp->fd open, if possible */
 static void
 findnvram(Nvrwhere *locp)
 {
-	char *cputype, *nvrfile, *nvrlen, *nvroff, *v[2];
+	char *nvrlen, *nvroff, *v[2];
 	int fd, i, safeoff, safelen;
 
-	nvrfile = getenv("nvram");
-	cputype = getenv("cputype");
+	if (nvrfile == nil)
+		nvrfile = getenv("nvram");
+	if (cputype == nil)
+		cputype = getenv("cputype");
 	if(cputype == nil)
 		cputype = strdup("mips");
 	if(strcmp(cputype, "386")==0 || strcmp(cputype, "alpha")==0) {
@@ -199,8 +205,6 @@ findnvram(Nvrwhere *locp)
 			}
 			break;
 		}
-	free(nvrfile);
-	free(cputype);
 	locp->fd = fd;
 	locp->safelen = safelen;
 	locp->safeoff = safeoff;
@@ -241,12 +245,16 @@ readnvram(Nvrsafe *safep, int flag)
 		safe = safep;
 	else {
 		memset(safep, 0, sizeof(*safep));
-		if(loc.fd < 0
-		|| seek(loc.fd, loc.safeoff, 0) < 0
-		|| read(loc.fd, buf, loc.safelen) != loc.safelen){
+		if(loc.fd < 0)
+			fprint(2, "can't open %s: %r\n", nvrfile);
+		else if (seek(loc.fd, loc.safeoff, 0) < 0)
+			fprint(2, "can't seek %s to %d: %r\n",
+				nvrfile, loc.safeoff);
+		else if (read(loc.fd, buf, loc.safelen) != loc.safelen){
 			err = 1;
 			if(flag&(NVwrite|NVwriteonerr))
-				fprint(2, "can't read nvram: %r\n");
+				fprint(2, "can't read %d bytes from %s: %r\n",
+					loc.safelen, nvrfile);
 			/* start from scratch */
 			memset(safep, 0, sizeof(*safep));
 			safe = safep;

@@ -114,7 +114,7 @@ struct Userhdr
 
 struct Esppriv
 {
-	ulong	in;
+	uvlong	in;
 	ulong	inerrors;
 };
 
@@ -613,7 +613,7 @@ espstats(Proto *esp, char *buf, int len)
 	Esppriv *upriv;
 
 	upriv = esp->priv;
-	return snprint(buf, len, "%lud %lud\n",
+	return snprint(buf, len, "%llud %lud\n",
 		upriv->in,
 		upriv->inerrors);
 }
@@ -667,9 +667,10 @@ static char *
 setalg(Espcb *ecb, char **f, int n, Algorithm *alg)
 {
 	uchar *key;
-	int c, i, nbyte, nchar;
+	int c, nbyte, nchar;
+	uint i;
 
-	if(n < 2)
+	if(n < 2 || n > 3)
 		return "bad format";
 	for(; alg->name; alg++)
 		if(strcmp(f[1], alg->name) == 0)
@@ -677,10 +678,14 @@ setalg(Espcb *ecb, char **f, int n, Algorithm *alg)
 	if(alg->name == nil)
 		return "unknown algorithm";
 
-	if(n != 3)
-		return "bad format";
 	nbyte = (alg->keylen + 7) >> 3;
-	nchar = strlen(f[2]);
+	if (n == 2)
+		nchar = 0;
+	else
+		nchar = strlen(f[2]);
+	if(nchar != 2 * nbyte)			/* TODO: maybe < is ok */
+		return "key not required length";
+	/* convert hex digits from ascii, in place */
 	for(i=0; i<nchar; i++) {
 		c = f[2][i];
 		if(c >= '0' && c <= '9')
@@ -690,14 +695,15 @@ setalg(Espcb *ecb, char **f, int n, Algorithm *alg)
 		else if(c >= 'A' && c <= 'F')
 			f[2][i] -= 'A'-10;
 		else
-			return "bad character in key";
+			return "non-hex character in key";
 	}
+	/* collapse hex digits into complete bytes in reverse order in key */
 	key = smalloc(nbyte);
-	for(i=0; i<nchar && i*2<nbyte; i++) {
+	for(i = 0; i < nchar && i/2 < nbyte; i++) {
 		c = f[2][nchar-i-1];
 		if(i&1)
 			c <<= 4;
-		key[i>>1] |= c;
+		key[i/2] |= c;
 	}
 
 	alg->init(ecb, alg->name, key, alg->keylen);
@@ -806,7 +812,7 @@ aesahauth(Espcb *ecb, uchar *t, int tlen, uchar *auth)
 	uchar hash[AESdlen];
 
 	memset(hash, 0, AESdlen);
-	ecb->ds = hmac_aes(t, tlen, hash, BITS2BYTES(96), (uchar*)ecb->ahstate,
+	ecb->ds = hmac_aes(t, tlen, (uchar*)ecb->ahstate, BITS2BYTES(96), hash,
 		ecb->ds);
 	r = memcmp(auth, hash, ecb->ahlen) == 0;
 	memmove(auth, hash, ecb->ahlen);
