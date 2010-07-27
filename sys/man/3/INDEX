@@ -11,6 +11,7 @@ draw draw
 dup dup
 env env
 ether ether
+flash flash
 floppy floppy
 fs fs
 i82365 i82365
