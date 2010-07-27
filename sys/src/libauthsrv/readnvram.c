@@ -245,16 +245,19 @@ readnvram(Nvrsafe *safep, int flag)
 		safe = safep;
 	else {
 		memset(safep, 0, sizeof(*safep));
-		if(loc.fd < 0)
-			fprint(2, "can't open %s: %r\n", nvrfile);
-		else if (seek(loc.fd, loc.safeoff, 0) < 0)
-			fprint(2, "can't seek %s to %d: %r\n",
-				nvrfile, loc.safeoff);
-		else if (read(loc.fd, buf, loc.safelen) != loc.safelen){
+		if(loc.fd < 0
+		|| seek(loc.fd, loc.safeoff, 0) < 0
+		|| read(loc.fd, buf, loc.safelen) != loc.safelen){
 			err = 1;
 			if(flag&(NVwrite|NVwriteonerr))
-				fprint(2, "can't read %d bytes from %s: %r\n",
-					loc.safelen, nvrfile);
+				if(loc.fd < 0)
+					fprint(2, "can't open %s: %r\n", nvrfile);
+				else if (seek(loc.fd, loc.safeoff, 0) < 0)
+					fprint(2, "can't seek %s to %d: %r\n",
+						nvrfile, loc.safeoff);
+				else
+					fprint(2, "can't read %d bytes from %s: %r\n",
+						loc.safelen, nvrfile);
 			/* start from scratch */
 			memset(safep, 0, sizeof(*safep));
 			safe = safep;

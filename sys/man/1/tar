@@ -97,6 +97,10 @@ Do not generate the POSIX ustar format.
 When extracting, respect leading slash on file names.
 By default, files are always extracted relative to the current directory.
 .TP
+.B s
+When extracting, attempt to resynchronise after not finding a tape header
+block where expected.
+.TP
 .B T
 Modifies the behavior of
 .B x
@@ -159,7 +163,7 @@ verbs on archives with recognized extensions.
 can be used to copy hierarchies thus:
 .IP
 .EX
-@{cd fromdir && tar cp .} | @{cd todir && tar xT}
+@{cd fromdir && tar c .} | @{cd todir && tar xT}
 .EE
 .PP
 .I Dircp

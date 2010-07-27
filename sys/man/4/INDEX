@@ -5,6 +5,7 @@ archfs archfs
 cddb cdfs
 cdfs cdfs
 cfs cfs
+cifs cifs
 C consolefs
 clog consolefs
 consolefs consolefs
@@ -24,6 +25,9 @@ srvfs exportfs
 ext2srv ext2srv
 factotum factotum
 fgui factotum
+flashfs flashfs
+flchk fossil
+flfmt fossil
 fossil fossil
 fs fs
 ftpfs ftpfs
@@ -69,6 +73,7 @@ telcofax telco
 u9fs u9fs
 upasfs upasfs
 audio usb
+ccid usb
 disk usb
 ether usb
 kb usb
@@ -76,6 +81,7 @@ print usb
 probe usb
 serial usb
 usb usb
+usbeject usb
 usbfat: usb
 usbd usbd
 vacfs vacfs

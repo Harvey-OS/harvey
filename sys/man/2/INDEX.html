@@ -44,7 +44,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/aes">aes</A>
 -  advanced encryption standard (rijndael)
-<DD><TT> setupAESstate, aesCBCencrypt, aesCBCdecrypt</TT>
+<DD><TT> setupAESstate, aesCBCencrypt, aesCBCdecrypt, aesCTRencrypt, aesCTRdecrypt, setupAESXCBCstate, aesXCBCmac</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/allocimage">allocimage</A>
 -  allocating, freeing, reading, writing images
@@ -52,7 +52,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/arg">arg</A>
 -  process option letters from argv
-<DD><TT> ARGBEGIN, ARGEND, ARGC, ARGF, EARGF, arginit, argopt</TT>
+<DD><TT> ARGBEGIN, ARGEND, ARGC, ARGF, EARGF</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/arith3">arith3</A>
 -  operations on 3-d points and planes
@@ -124,7 +124,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/cputime">cputime</A>
 -  cpu time in this process and children
-<DD><TT> cputime, times</TT>
+<DD><TT> cputime, times, cycles</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/ctime">ctime</A>
 -  convert date and time
@@ -400,7 +400,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/pool">pool</A>
 -  general memory management routines
-<DD><TT> poolalloc, poolallocalignspan, poolfree, poolmsize, poolrealloc, poolcompact, poolcheck, poolblockcheck, pooldump</TT>
+<DD><TT> poolalloc, poolallocalign, poolfree, poolmsize, poolrealloc, poolcompact, poolcheck, poolblockcheck, pooldump</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/postnote">postnote</A>
 -  send a note to a process or process group
@@ -500,7 +500,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/sechash">sechash</A>
 -  cryptographically secure hashes
-<DD><TT> md4, md5, sha1, aes, hmac_x, hmac_md5, hmac_sha1, hmac_aes, md5pickle, md5unpickle, sha1pickle, sha1unpickle</TT>
+<DD><TT> md4, md5, sha1, sha2_224, sha2_256, sha2_384, sha2_512, aes, hmac_x, hmac_md5, hmac_sha1, hmac_sha2_224, hmac_sha2_256, hmac_sha2_384, hmac_sha2_512, hmac_aes, md5pickle, md5unpickle, sha1pickle, sha1unpickle</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/seek">seek</A>
 -  change file offset
@@ -564,7 +564,7 @@
 </DT>
 <DT><A HREF="/magic/man2html/2/thread">thread</A>
 -  thread and proc management
-<DD><TT> alt, chancreate, chanfree, chaninit, chanprint, mainstacksize, proccreate, procdata, procexec, procexecl, procrfork, recv, recvp, recvul, send, sendp, sendul, nbrecv, nbrecvp, nbrecvul, nbsend, nbsendp, nbsendul, threadcreate, threaddata, threadexits, threadexitsall, threadgetgrp, threadgetname, threadint, threadintgrp, threadkill, threadkillgrp, threadmain, threadnotify, threadid, threadpid, threadsetgrp, threadsetname, threadwaitchan, yield</TT>
+<DD><TT> alt, chanclose, chancreate, chanfree, chaninit, chanclosing, chanprint, mainstacksize, proccreate, procdata, procexec, procexecl, procrfork, recv, recvp, recvul, send, sendp, sendul, nbrecv, nbrecvp, nbrecvul, nbsend, nbsendp, nbsendul, threadcreate, threaddata, threadexits, threadexitsall, threadgetgrp, threadgetname, threadint, threadintgrp, threadkill, threadkillgrp, threadmain, threadnotify, threadid, threadpid, threadsetgrp, threadsetname, threadwaitchan, yield</TT>
 </DT>
 <DT><A HREF="/magic/man2html/2/time">time</A>
 -  time in seconds and nanoseconds since epoch

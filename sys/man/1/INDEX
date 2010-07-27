@@ -30,6 +30,8 @@ vc 2c
 kl 2l
 ql 2l
 vl 2l
+abaco abaco
+readweb abaco
 acid acid
 trump acid
 truss acid
@@ -128,6 +130,7 @@ freq freq
 5s games
 games games
 juggle games
+life games
 mahjongg games
 memo games
 sokoban games
@@ -161,6 +164,7 @@ togif jpg
 toico jpg
 topng jpg
 toppm jpg
+v210 jpg
 yuv jpg
 kbmap kbmap
 broke kill

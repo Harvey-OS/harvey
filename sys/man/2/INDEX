@@ -78,6 +78,10 @@ subpt addpt
 aes aes
 aesCBCdecrypt aes
 aesCBCencrypt aes
+aesCTRdecrypt aes
+aesCTRencrypt aes
+aesXCBCmac aes
+setupAESXCBCstate aes
 setupAESstate aes
 allocimage allocimage
 allocimagemix allocimage
@@ -98,8 +102,6 @@ ARGEND arg
 ARGF arg
 EARGF arg
 arg arg
-arginit arg
-argopt arg
 add3 arith3
 add4 arith3
 arith3 arith3
@@ -273,6 +275,7 @@ namectlimage control
 newcontrolset control
 resizecontrolset control
 cputime cputime
+cycles cputime
 times cputime
 asctime ctime
 ctime ctime
@@ -998,7 +1001,7 @@ plumbunpackattr plumb
 plumbunpackpartial plumb
 pool pool
 poolalloc pool
-poolallocalignspan pool
+poolallocalign pool
 poolblockcheck pool
 poolcheck pool
 poolcompact pool
@@ -1161,6 +1164,10 @@ aes sechash
 hmac_aes sechash
 hmac_md5 sechash
 hmac_sha1 sechash
+hmac_sha2_224 sechash
+hmac_sha2_256 sechash
+hmac_sha2_384 sechash
+hmac_sha2_512 sechash
 hmac_x sechash
 md4 sechash
 md5 sechash
@@ -1170,6 +1177,10 @@ sechash sechash
 sha1 sechash
 sha1pickle sechash
 sha1unpickle sechash
+sha2_224 sechash
+sha2_256 sechash
+sha2_384 sechash
+sha2_512 sechash
 seek seek
 segattach segattach
 segdetach segattach
@@ -1284,6 +1295,8 @@ syminit symbol
 textseg symbol
 textsym symbol
 alt thread
+chanclose thread
+chanclosing thread
 chancreate thread
 chanfree thread
 chaninit thread

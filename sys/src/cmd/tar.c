@@ -8,6 +8,7 @@
 
 #include <u.h>
 #include <libc.h>
+#include <ctype.h>
 #include <fcall.h>		/* for %M */
 #include <String.h>
 
@@ -123,7 +124,7 @@ typedef struct {
 	int	open;
 } Pushstate;
 
-#define OTHER(rdwr) (rdwr == Rd? Wr: Rd)
+#define OTHER(rdwr) ((rdwr) == Rd? Wr: Rd)
 
 static int debug;
 static int fixednblock;
@@ -142,6 +143,7 @@ static Off blkoff;		/* offset of the current archive block (not Tblock) */
 static Off nexthdr;
 
 static int nblock = Dblock;
+static int resync;
 static char *usefile, *arname = "archive";
 static char origdir[Maxname*2];
 static Hdr *tpblk, *endblk;
@@ -150,7 +152,7 @@ static Hdr *curblk;
 static void
 usage(void)
 {
-	fprint(2, "usage: %s {crtx}[PRTfgikmpuvz] [archive] file1 file2...\n",
+	fprint(2, "usage: %s {crtx}[PRTfgikmpsuvz] [archive] [file1 file2...]\n",
 		argv0);
 	exits("usage");
 }
@@ -319,10 +321,10 @@ refill(int ar, char *bufs, int justhdr)
 	if (first && usefile && !fixednblock) {
 		n = eread(arname, ar, bufs, bytes);
 		if (n == 0)
-			sysfatal("EOF reading archive: %r");
+			sysfatal("EOF reading archive %s: %r", arname);
 		i = n;
 		if (i % Tblock != 0)
-			sysfatal("archive block size (%d) error", i);
+			sysfatal("%s: archive block size (%d) error", arname, i);
 		i /= Tblock;
 		if (i != nblock) {
 			nblock = i;
@@ -333,16 +335,16 @@ refill(int ar, char *bufs, int justhdr)
 	} else if (justhdr && seekable && nexthdr - blkoff >= bytes) {
 		/* optimisation for huge archive members on seekable media */
 		if (seek(ar, bytes, 1) < 0)
-			sysfatal("can't seek on archive: %r");
+			sysfatal("can't seek on archive %s: %r", arname);
 		n = bytes;
 	} else
 		n = ereadn(arname, ar, bufs, bytes);
 	first = 0;
 
 	if (n == 0)
-		sysfatal("unexpected EOF reading archive");
+		sysfatal("unexpected EOF reading archive %s", arname);
 	if (n % Tblock != 0)
-		sysfatal("partial block read from archive");
+		sysfatal("partial block read from archive %s", arname);
 	if (n != bytes) {
 		done = 1;
 		memset(bufs + n, 0, bytes - n);
@@ -485,8 +487,8 @@ static char *
 name(Hdr *hp)
 {
 	int pfxlen, namlen;
-	static char fullnamebuf[2+Maxname+1];  /* 2+ for ./ on relative names */
 	char *fullname;
+	static char fullnamebuf[2+Maxname+1];  /* 2+ for ./ on relative names */
 
 	fullname = fullnamebuf+2;
 	namlen = strnlen(hp->name, sizeof hp->name);
@@ -542,6 +544,28 @@ putbe(uchar *dest, uvlong vl, int size)
 }
 
 /*
+ * cautious parsing of octal numbers as ascii strings in
+ * a tar header block.  this is particularly important for
+ * trusting the checksum when trying to resync.
+ */
+static uvlong
+hdrotoull(char *st, char *end, uvlong errval, char *name, char *field)
+{
+	char *numb;
+
+	for (numb = st; (*numb == ' ' || *numb == '\0') && numb < end; numb++)
+		;
+	if (numb < end && isascii(*numb) && isdigit(*numb))
+		return strtoull(numb, nil, 8);
+	else if (numb >= end)
+		fprint(2, "%s: %s: empty %s in header\n", argv0, name, field);
+	else
+		fprint(2, "%s: %s: %s: non-numeric %s in header\n",
+			argv0, name, numb, field);
+	return errval;
+}
+
+/*
  * return the nominal size from the header block, which is not always the
  * size in the archive (the archive size may be zero for some file types
  * regardless of the nominal size).
@@ -563,8 +587,10 @@ hdrsize(Hdr *hp)
 		p = (uchar *)hp->size + sizeof hp->size - 1 -
 			sizeof(vlong);		/* -1 for terminating space */
 		return G8BEBYTE(p);
-	} else
-		return strtoull(hp->size, nil, 8);
+	}
+
+	return hdrotoull(hp->size, hp->size + sizeof hp->size, 0,
+		name(hp), "size");
 }
 
 /*
@@ -578,6 +604,15 @@ arsize(Hdr *hp)
 	return hdrsize(hp);
 }
 
+static long
+parsecksum(char *cksum, char *name)
+{
+	Hdr *hp;
+
+	return hdrotoull(cksum, cksum + sizeof hp->chksum, (uvlong)-1LL,
+		name, "checksum");
+}
+
 static Hdr *
 readhdr(int ar)
 {
@@ -586,13 +621,28 @@ readhdr(int ar)
 
 	hp = getblkrd(ar, Alldata);
 	if (hp == nil)
-		sysfatal("unexpected EOF instead of archive header");
+		sysfatal("unexpected EOF instead of archive header in %s",
+			arname);
 	if (eotar(hp))			/* end-of-archive block? */
 		return nil;
-	hdrcksum = strtoul(hp->chksum, nil, 8);
-	if (chksum(hp) != hdrcksum)
-		sysfatal("bad archive header checksum: name %.64s...",
-			hp->name);
+
+	hdrcksum = parsecksum(hp->chksum, name(hp));
+	if (hdrcksum == -1 || chksum(hp) != hdrcksum) {
+		if (!resync)
+			sysfatal("bad archive header checksum in %s: "
+				"name %.100s...; expected %#luo got %#luo",
+				arname, hp->name, hdrcksum, chksum(hp));
+		fprint(2, "%s: skipping past archive header with bad checksum in %s...",
+			argv0, arname);
+		do {
+			hp = getblkrd(ar, Alldata);
+			if (hp == nil)
+				sysfatal("unexpected EOF looking for archive header in %s",
+					arname);
+			hdrcksum = parsecksum(hp->chksum, name(hp));
+		} while (hdrcksum == -1 || chksum(hp) != hdrcksum);
+		fprint(2, "found %s\n", name(hp));
+	}
 	nexthdr += Tblock*(1 + BYTES2TBLKS(arsize(hp)));
 	return hp;
 }
@@ -851,7 +901,8 @@ replace(char **argv)
 		 * and back up curblk ptr over end-of-archive Tblock in memory.
 		 */
 		if (seek(ar, blkoff, 0) < 0)
-			sysfatal("can't seek back over end-of-archive: %r");
+			sysfatal("can't seek back over end-of-archive in %s: %r",
+				arname);
 		curblk--;
 	}
 
@@ -1030,8 +1081,8 @@ copyfromar(int ar, int fd, char *fname, ulong blksleft, Off bytes)
 	for (; blksleft > 0; blksleft -= blksread) {
 		hbp = getblkrd(ar, (fd >= 0? Alldata: Justnxthdr));
 		if (hbp == nil)
-			sysfatal("unexpected EOF on archive extracting %s",
-				fname);
+			sysfatal("unexpected EOF on archive extracting %s from %s",
+				fname, arname);
 		blksread = gothowmany(blksleft);
 		if (blksread <= 0) {
 			fprint(2, "%s: got %ld blocks reading %s!\n",
@@ -1050,22 +1101,25 @@ copyfromar(int ar, int fd, char *fname, ulong blksleft, Off bytes)
 		assert(bytes >= 0);
 	}
 	if (bytes > 0)
-		fprint(2,
-	"%s: %lld bytes uncopied at EOF on archive; %s not fully extracted\n",
-			argv0, bytes, fname);
+		fprint(2, "%s: %lld bytes uncopied at EOF on archive %s; "
+			"%s not fully extracted\n", argv0, bytes, arname, fname);
 }
 
 static void
-wrmeta(int fd, Hdr *hp, long mtime)		/* update metadata */
+wrmeta(int fd, Hdr *hp, long mtime, int mode)		/* update metadata */
 {
 	Dir nd;
 
 	nulldir(&nd);
 	nd.mtime = mtime;
+	nd.mode = mode;
 	dirfwstat(fd, &nd);
 	if (isustar(hp)) {
 		nulldir(&nd);
 		nd.gid = hp->gname;
+		dirfwstat(fd, &nd);
+		nulldir(&nd);
+		nd.uid = hp->uname;
 		dirfwstat(fd, &nd);
 	}
 }
@@ -1123,7 +1177,7 @@ extract1(int ar, Hdr *hp, char *fname)
 		 * creating files in them, but we don't do that.
 		 */
 		if (settime)
-			wrmeta(fd, hp, mtime);
+			wrmeta(fd, hp, mtime, mode);
 		close(fd);
 	}
 }
@@ -1138,8 +1192,8 @@ skip(int ar, Hdr *hp, char *fname)
 	     blksleft -= blksread) {
 		hbp = getblkrd(ar, Justnxthdr);
 		if (hbp == nil)
-			sysfatal("unexpected EOF on archive extracting %s",
-				fname);
+			sysfatal("unexpected EOF on archive extracting %s from %s",
+				fname, arname);
 		blksread = gothowmany(blksleft);
 		putreadblks(ar, blksread);
 	}
@@ -1218,6 +1272,9 @@ main(int argc, char *argv[])
 		break;
 	case 'R':
 		relative = 0;
+		break;
+	case 's':
+		resync++;
 		break;
 	case 't':
 		verb = Toc;

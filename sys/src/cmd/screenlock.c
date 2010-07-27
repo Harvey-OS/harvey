@@ -251,7 +251,7 @@ lockscreen(void)
 		/* identify the user on screen, centered */
 		tm = localtime(time(0));
 		s = smprint("user %s at %d:%2d", getuser(), tm->hour, tm->min);
-		p = subpt(p, Pt(stringsize(font, "m").x * strlen(s) / 2, 0));
+		p = subpt(p, Pt(stringwidth(font, "m") * strlen(s) / 2, 0));
 		screenstring(p, s);
 	}
 
