@@ -275,20 +275,20 @@ In this directory there are two files,
 similar to
 .BI eia N
 in
-.IR eia (3),
+.IR uart (3),
 and
 .BI eiau N /ctl .
 .I Ctl
 admits writes in the same format as
 .BI eia N ctl
 in
-.IR eia (3).
+.IR uart (3).
 Reading from
 .I ctl
 gives the serial port's settings in the same format as
 .BI eia N status
 in
-.IR eia (3).
+.IR uart (3).
 Options are similar to those of
 .IR disk .
 .
@@ -480,10 +480,10 @@ at once, with one action per line.
 .SH SOURCE
 .B /sys/src/cmd/usb
 .SH "SEE ALSO"
-.IR eia (3),
 .IR kbin (3),
 .IR mouse (3),
 .IR sd (3),
+.IR uart (3),
 .IR usb (3),
 .IR usbd (4),
 .IR partfs (8)

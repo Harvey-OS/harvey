@@ -100,6 +100,8 @@ install-in-flash:V: /$objtype/$p$CONF paqdisk
 
 /$objtype/$p$CONF:D: $p$CONF s$p$CONF
 	cp -x $p$CONF s$p$CONF /$objtype &
+	{ 9fs lookout &&  cp -x $p$CONF s$p$CONF /n/lookout/$objtype } &
+#	{ 9fs piestand && cp -x $p$CONF s$p$CONF /n/piestand/$objtype } &
 	wait
 	touch $target
 
@@ -120,7 +122,7 @@ paqdisk:
 arch.$O clock.$O fpiarm.$O main.$O mmu.$O screen.$O sdscsi.$O syscall.$O \
 	trap.$O: /$objtype/include/ureg.h
 
-archkw.$O devether.$0 ether1116.$O ethermii.$O: \
+archkw.$O devether.$O ether1116.$O ethermii.$O: \
 	etherif.h ethermii.h ../port/netif.h
 archkw.$O devflash.$O flashkw.$O: ../port/flashif.h
 fpi.$O fpiarm.$O fpimem.$O: fpi.h
