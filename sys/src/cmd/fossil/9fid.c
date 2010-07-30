@@ -193,7 +193,7 @@ fidGet(Con* con, u32int fidno, int flags)
 		 */
 		if(flags & FidFCreate){
 			vtUnlock(con->fidlock);
-			vtSetError("fid 0x%ud in use", fidno);
+			vtSetError("%s: fid 0x%ud in use", argv0, fidno);
 			return nil;
 		}
 		fid->ref++;
@@ -202,7 +202,7 @@ fidGet(Con* con, u32int fidno, int flags)
 		fidLock(fid, flags);
 		if((fid->open & FidOCreate) || fid->fidno == NOFID){
 			fidPut(fid);
-			vtSetError("fid invalid");
+			vtSetError("%s: fid invalid", argv0);
 			return nil;
 		}
 		return fid;
@@ -241,7 +241,7 @@ fidGet(Con* con, u32int fidno, int flags)
 	}
 	vtUnlock(con->fidlock);
 
-	vtSetError("fid not found");
+	vtSetError("%s: fid not found", argv0);
 	return nil;
 }
 

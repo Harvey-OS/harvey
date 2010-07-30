@@ -743,3 +743,9 @@ doesn't find a Plan 9 partition table,
 it will emit commands to delete
 .I all
 extant partitions.
+Similarly,
+.L "fdisk -p"
+will delete all partitions,
+including
+.LR data ,
+if there are no partitions defined in the MBR.
