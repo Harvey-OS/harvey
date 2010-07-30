@@ -12,15 +12,16 @@ if (! test -e /dev/sdctl)
 # no plan 9 partition table will delete all extant partitions.
 for(disk in /dev/sd*) {
 	if(test -f $disk/data && test -f $disk/ctl)
-		disk/fdisk -p $disk/data >$disk/ctl >[2]/dev/null
+		{ disk/fdisk -p $disk/data |
+			grep -v '^delpart ' >$disk/ctl } >[2]/dev/null
 	if(test -f $disk/plan9)
 		parts=($disk/plan9*)
 	if not
 		parts=($disk/data)
 	for(part in $parts)
 		if(test -f $part)
-			disk/prep -p $part >[2]/dev/null |
-				grep -v '^delpart ' >$disk/ctl >[2]/dev/null
+			 { disk/prep -p $part |
+				grep -v '^delpart ' >$disk/ctl } >[2]/dev/null
 }
 
 sysname=`{cat /dev/sysname}

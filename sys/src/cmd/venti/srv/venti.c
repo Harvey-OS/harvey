@@ -53,7 +53,7 @@ freemem(void)
 			}
 		}
 		Bterm(bp);
-		if (pgsize > 0 && userpgs > 0)
+		if (pgsize > 0 && userpgs > 0 && userused > 0)
 			size = (userpgs - userused) * pgsize;
 	}
 	/* cap it to keep the size within 32 bits */
@@ -92,8 +92,8 @@ allocbypcnt(u32int mempcnt, u32int stfree)
 	blmsize = stfree - free;
 	if (blmsize <= 0)
 		blmsize = 0;
-	avail = ((vlong)stfree * mempcnt) / 100 - blmsize;
-	if (avail <= (1 + 2 + 6) * 1024 * 1024)
+	avail = ((vlong)stfree * mempcnt) / 100;
+	if (blmsize >= avail || (avail -= blmsize) <= (1 + 2 + 6) * 1024 * 1024)
 		fprint(2, "%s: bloom filter bigger than mem pcnt; "
 			"resorting to minimum values (9MB total)\n", argv0);
 	else {
