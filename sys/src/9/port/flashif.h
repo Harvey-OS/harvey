@@ -28,7 +28,9 @@ struct Flashregion {
 	ulong	start;		/* physical base address (allowing for banks) */
 	ulong	end;
 	ulong	erasesize;
+	ulong	eraseshift;	/* log2(erasesize) */
 	ulong	pagesize;	/* if non-0, size of pages within erase block */
+	ulong	pageshift;	/* log2(pagesize) */
 	ulong	spares;		/* spare bytes per page, for ecc, etc. */
 };
 

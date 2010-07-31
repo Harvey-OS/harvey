@@ -49,6 +49,10 @@ static char confname[MAXCONF][KNAMELEN];
 static char confval[MAXCONF][MAXCONFLINE];
 static int nconf;
 
+#ifdef CRYPTOSANDBOX
+uchar sandbox[64*1024+BY2PG];
+#endif
+
 static int
 findconf(char *name)
 {
@@ -295,6 +299,11 @@ wave(' ');
 	uartkirkwoodconsole();
 	/* only now can we print */
 	print("from Bell Labs\n\n");
+
+#ifdef CRYPTOSANDBOX
+	print("sandbox: 64K at physical %#lux, mapped to 0xf10b0000\n",
+		PADDR((uintptr)sandbox & ~(BY2PG-1)));
+#endif
 
 	archconfinit();
 	cpuidprint();

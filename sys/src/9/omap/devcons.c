@@ -304,8 +304,8 @@ panic(char *fmt, ...)
 	splx(s);
 	prflush();
 	buf[n] = '\n';
-	putstrn(buf, n+1);
-	dumpstack();
+//	putstrn(buf, n+1);
+//	dumpstack();
 
 	exit(1);
 }
