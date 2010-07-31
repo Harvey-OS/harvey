@@ -37,7 +37,7 @@ enum {
 	MinPeriod	= (Tcycles / 100 < 2? 2: Tcycles / 100),
 	MaxPeriod	= Tcycles,
 
-	Dogtimeout	= 4 * Clockfreqbase,	/* 4 seconds */
+	Dogtimeout	= 20 * Clockfreqbase,	/* was 4 s.; must be ≤ 21 s. */
 };
 
 enum {
