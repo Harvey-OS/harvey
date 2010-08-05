@@ -62,6 +62,7 @@ cifshdr(Session *s, Share *sp, int cmd)
 	dfs = 0;
 	tid = NO_TID;
 	Active = IDLE_TIME;
+	werrstr("");
 	sign = s->secmode & SECMODE_SIGN_ENABLED? FL2_PACKET_SIGNATURES: 0;
 
 	if(sp){
@@ -195,7 +196,7 @@ print("MAC signature bad\n");
 		 * catch that too.
 		 */
 		if(p->s->seqrun && seq != p->seq && seq != 0){
-			werrstr("%ux != %ux bad sequence number", seq, p->seq);
+			print("%ux != %ux bad sequence number\n", seq, p->seq);
 			return -1;
 		}
 	}
@@ -205,7 +206,7 @@ print("MAC signature bad\n");
 		p->s->uid = uid;
 
 	if(flags2 & FL2_NT_ERRCODES){
-		/* is it a real error rather than info/warning/chatter */
+		/* is it a real error rather than info/warning/chatter? */
 		if((err & 0xF0000000) == 0xC0000000){
 			werrstr("%s", nterrstr(err));
 			return -1;
@@ -226,11 +227,12 @@ print("MAC signature bad\n");
  * more modern ones, so we don't give them the choice.
  */
 int
-CIFSnegotiate(Session *s, long *svrtime, char *domain, int domlen, char *cname, int cnamlen)
+CIFSnegotiate(Session *s, long *svrtime, char *domain, int domlen, char *cname,
+	int cnamlen)
 {
 	int d, i;
 	char *ispeak = "NT LM 0.12";
-	char *dialects[] = {
+	static char *dialects[] = {
 //		{ "PC NETWORK PROGRAM 1.0"},
 //		{ "MICROSOFT NETWORKS 1.03"},
 //		{ "MICROSOFT NETWORKS 3.0"},

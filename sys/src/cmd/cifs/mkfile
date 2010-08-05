@@ -4,7 +4,7 @@
 
 TARG=cifs
 HFILES=cifs.h
-BIN=/$objtype/bin/aux
+BIN=/$objtype/bin
 OFILES= main.$O transnt.$O trans2.$O trans.$O cifs.$O 	\
 	netbios.$O pack.$O info.$O fs.$O sid2name.$O	\
 	misc.$O nterrstr.$O doserrstr.$O raperrstr.$O 	\
