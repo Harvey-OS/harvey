@@ -2,9 +2,9 @@
 .SH NAME
 cifs - Microsoft™ Windows network filesystem client
 .SH SYNOPSIS
-.B aux/cifs
+.B cifs
 [
-.B -dDb
+.B -bdDiv
 ] [
 .B -a
 .I auth-method
@@ -23,7 +23,7 @@ cifs - Microsoft™ Windows network filesystem client
 ]
 .I host
 [
-.I share...
+.I share ...
 ]
 .SH DESCRIPTION
 .I Cifs
@@ -176,7 +176,7 @@ NetApp Filer compatibility has not yet been tested; there may not be any.
 .PP
 DFS support is unfinished.
 .PP
-Kerbros authentication is unfinished.
+Kerberos authentication is unfinished.
 .PP
 NetBios name resolution is not supported, though it is now rarely used.
 .PP

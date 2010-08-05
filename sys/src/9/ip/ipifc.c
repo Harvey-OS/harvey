@@ -1150,7 +1150,9 @@ enum {
 int
 v6addrtype(uchar *addr)
 {
-	if(islinklocal(addr) ||
+	if(isv4(addr) || ipcmp(addr, IPnoaddr) == 0)
+		return unknownv6;
+	else if(islinklocal(addr) ||
 	    isv6mcast(addr) && (addr[1] & 0xF) <= Link_local_scop)
 		return linklocalv6;
 	else

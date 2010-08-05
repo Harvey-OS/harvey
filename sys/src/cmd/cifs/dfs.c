@@ -86,7 +86,7 @@ dfscacheinfo(Fmt *f)
 	return 0;
 }
 
-static char *
+char *
 trimshare(char *s)
 {
 	char *p;
@@ -211,7 +211,7 @@ remap(Dfscache *cp, Refer *re)
 	long rtt;
 	char *p, *a[4];
 	enum {
-		Host = 1,
+		Hostname = 1,
 		Shre = 2,
 		Path = 3,
 		Rtt_tol = 10,
@@ -234,7 +234,7 @@ remap(Dfscache *cp, Refer *re)
 			print("	remap nfields=%d\n", n);
 		return -1;
 	}
-	if((rtt = ping(a[Host], Dfstout)) == -1){
+	if((rtt = ping(a[Hostname], Dfstout)) == -1){
 		if(Debug && strstr(Debug, "dfs") != nil)
 			print("	remap ping failed\n");
 		return -1;
@@ -257,7 +257,7 @@ remap(Dfscache *cp, Refer *re)
 	cp->rtt = rtt;
 	cp->prox = re->prox;
 	cp->expiry = time(nil)+re->ttl;
-	cp->host = estrdup9p(a[Host]);
+	cp->host = estrdup9p(a[Hostname]);
 	cp->share = estrdup9p(trimshare(a[Shre]));
 	cp->path = estrdup9p(a[Path]);
 	if(Debug && strstr(Debug, "dfs") != nil)
