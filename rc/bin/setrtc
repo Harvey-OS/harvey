@@ -1,0 +1,4 @@
+#!/bin/rc
+# setrtc - set real-time clock to current system time
+if (test -e '#r/rtc')
+	awk '{print $1}' /dev/time >'#r/rtc'
