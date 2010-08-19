@@ -163,7 +163,7 @@ smbcomwriteandx(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
 	SmbTree *t;
 	SmbFile *f;
 	ushort dataoff, fid, count;
-	ulong offset;
+	vlong offset;
 	long nb;
 
 	if (h->wordcount != 12 && h->wordcount != 14)
@@ -174,20 +174,20 @@ smbcomwriteandx(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
 	andxoffset = smbnhgets(pdata); pdata += 2;	// andx offset
 	fid = smbnhgets(pdata); pdata += 2;		// fid
 	offset = smbnhgetl(pdata); pdata += 4;		// offset in file
-	pdata += 4;					// reserved
+	pdata += 4;					// timeout
 	pdata += 2;					// write mode
-	pdata += 2;					// bytes waiting to be written
-	count = ((long)smbnhgets(pdata) << 16); pdata += 2; // MSBs of length or zero 
-	count |= smbnhgets(pdata); pdata += 2;		// LSBs of length
+	pdata += 2;					// (Remaining) bytes waiting to be written
+	pdata += 2;					// Reserved
+	count = smbnhgets(pdata); pdata += 2;		// LSBs of length
 	dataoff = smbnhgets(pdata); pdata += 2;		// offset to data in packet
-	if (h->wordcount == 14)
-		offset = ((long)smbnhgets(pdata) << 16); pdata += 2; // MSBs of offset in file, if long pkt 
-	pdata += 4;					// data bytes to write (including those not sent yet)
+	if (dataoff + count > smbbufferwriteoffset(b))
+		return SmbProcessResultFormat;
+	if(h->wordcount == 14)
+		offset |= (vlong)smbnhgetl(pdata)<<32;
 
-	USED(pdata);
-
-	smblogprint(SMB_COM_WRITE_ANDX, "smbcomwriteandx: fid 0x%.4ux count 0x%.4ux offset 0x%.8lux\n",
+	smblogprint(SMB_COM_WRITE_ANDX, "smbcomwriteandx: fid 0x%.4ux count 0x%.4ux offset 0x%.llux\n",
 		fid, count, offset);
+
 
 	t = smbidmapfind(s->tidmap, h->tid);
 	if (t == nil) {
@@ -216,13 +216,11 @@ smbcomwriteandx(SmbSession *s, SmbHeader *h, uchar *pdata, SmbBuffer *b)
 	if (!smbbufferputandxheader(s->response, h, &s->peerinfo, andxcommand, &andxoffsetfixup))
 		return SmbProcessResultMisc;
 
-	if (!smbbufferputs(s->response, nb)			// count
-		|| !smbbufferputs(s->response, 0)		// datacompactionmode
-		|| !smbbufferputs(s->response, 0)		// remaining
-		|| !smbbufferputl(s->response, 0)		// reserved
+	if (!smbbufferputs(s->response, nb)			// Count
+		|| !smbbufferputs(s->response, 0)		// Available
+		|| !smbbufferputl(s->response, 0)		// Reserved
 		|| !smbbufferputs(s->response, 0))		// byte count in reply
 		return SmbProcessResultMisc;
-
 
 	if (andxcommand != SMB_COM_NO_ANDX_COMMAND)
 		return smbchaincommand(s, h, andxoffsetfixup, andxcommand, andxoffset, b);

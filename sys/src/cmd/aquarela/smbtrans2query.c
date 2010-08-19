@@ -30,7 +30,6 @@ query(SmbSession *s, char *cmdname, char *filename, ushort infolevel, vlong cbo,
 			|| !smbbufferputv(s->transaction.out.data, ntmtime)
 			|| !smbbufferputv(s->transaction.out.data, ntmtime)
 			|| !smbbufferputl(s->transaction.out.data, dosmode))
-//			|| !smbbufferputl(s->transaction.out.data, 0))
 			return SmbProcessResultMisc;
 		break;
 	case SMB_QUERY_FILE_ALL_INFO:
@@ -153,6 +152,7 @@ smbtrans2queryfileinformation(SmbSession *s, SmbHeader *h)
 	SmbProcessResult pr;
 	ushort fid;
 	ushort infolevel;
+	vlong o;
 	Dir *d;
 
 	t = smbidmapfind(s->tidmap, h->tid);
@@ -174,8 +174,18 @@ smbtrans2queryfileinformation(SmbSession *s, SmbHeader *h)
 		pr = SmbProcessResultError;
 		goto done;
 	}
-	d = dirfstat(f->fd);
-	pr = query(s, "file", f->name, infolevel, seek(f->fd, 0, 1), d);
+	if(f->fd >= 0){
+		o = seek(f->fd, 0, 1);
+		d = dirfstat(f->fd);
+	} else {
+		char *fullpath = nil;
+
+		o = 0;
+		smbstringprint(&fullpath, "%s%s", f->t->serv->path, f->name);
+		d = dirstat(fullpath);
+		free(fullpath);
+	}
+	pr = query(s, "file", f->name, infolevel, o, d);
 	free(d);
 done:
 	smbbufferfree(&b);
@@ -238,9 +248,8 @@ smbtrans2queryfsinformation(SmbSession *s, SmbHeader *h)
 		break;
 	case SMB_QUERY_FS_SIZE_INFO:
 		translogprint(s->transaction.in.setup[0], "SMB_QUERY_FS_SIZE_INFO\n");
-		if (!smbbufferputv(s->transaction.out.data, 0xffffffffffffffffLL)
-                        /* Windows sees 0xffffffffffffffffLL as "Nnot enough space" */
-			|| !smbbufferputv(s->transaction.out.data, 0x0000ffffffffffffLL)
+		if (!smbbufferputv(s->transaction.out.data, 0LL)
+			|| !smbbufferputv(s->transaction.out.data, 0LL)
 			|| !smbbufferputl(s->transaction.out.data, 1 << (smbglobals.l2allocationsize - smbglobals.l2sectorsize))
 			|| !smbbufferputl(s->transaction.out.data, 1 << smbglobals.l2sectorsize))
 			goto misc;
