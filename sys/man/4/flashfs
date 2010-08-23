@@ -67,7 +67,7 @@ to contain exactly
 .I nsect
 sectors.
 .SH SOURCE
-.B /sys/src/cmd/aux/flashfs/flashfs.c
+.B /sys/src/cmd/aux/flashfs
 .SH "SEE ALSO"
 .IR paqfs (4),
 .IR sacfs (4),
