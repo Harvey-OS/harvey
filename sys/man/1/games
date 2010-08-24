@@ -1,10 +1,19 @@
 .TH GAMES 1
 .SH NAME
-4s, 5s, juggle, life, mahjongg, memo, sokoban, sudoku \- time wasters
+4s, 5s, festoon, juggle, life, mahjongg, memo, sokoban, sudoku \- time wasters
 .SH SYNOPSIS
 .B games/4s
 .br
 .B games/5s
+.br
+.B games/festoon
+[
+.B -pet
+] [
+.I sentences
+[
+.I percent-invented-nouns
+] ]
 .br
 .B games/juggle
 [
@@ -86,6 +95,17 @@ toggle suspend/resume.
 and
 .LR control-D
 quit.
+.TP
+.B festoon
+Generate an official-looking but utterly nonsensical bureaucratic report as
+.L "pic | eqn | tbl | troff -mm"
+input.
+Options
+.BR -p ,
+.B -e
+and
+.B -t
+add gibberish diagrams, equations and tables.
 .TP
 .B juggle
 Display the juggling

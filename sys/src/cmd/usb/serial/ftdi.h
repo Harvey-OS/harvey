@@ -4,6 +4,7 @@ enum {
 
 	FTSheevaVid	= 0x9E88,
 	FTSheevaDid	= 0x9E8F,
+	FTOpenRDUltDid	= 0x9E90,
 
 	FTSIODid	= 0x8372,	/* Product Id SIO appl'n of 8U100AX */
 	FT8U232AMDid	= 0x6001, 	/* Similar device to SIO above */

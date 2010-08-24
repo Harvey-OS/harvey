@@ -10,6 +10,7 @@ smbcomrename(SmbSession *s, SmbHeader *h, uchar *, SmbBuffer *b)
 	char *olddir, *newdir;
 	char *oldname, *newname;
 	uchar oldfmt, newfmt;
+	SmbTree *t;
 	Dir d;
 	SmbProcessResult pr;
 
@@ -19,8 +20,13 @@ smbcomrename(SmbSession *s, SmbHeader *h, uchar *, SmbBuffer *b)
 		|| !smbbuffergetb(b, &newfmt) || newfmt != 0x04 || !smbbuffergetstring(b, h, SMB_STRING_PATH, &new))
 		return SmbProcessResultFormat;
 
-	smbstringprint(&oldpath, "%s%s", s->serv->path, old);
-	smbstringprint(&newpath, "%s%s", s->serv->path, new);
+	t = smbidmapfind(s->tidmap, h->tid);
+	if (t == nil) {
+		smbseterror(s, ERRSRV, ERRinvtid);
+		return SmbProcessResultError;
+	}
+	smbstringprint(&oldpath, "%s%s", t->serv->path, old);
+	smbstringprint(&newpath, "%s%s", t->serv->path, new);
 
 	smblogprint(h->command, "smbcomrename: %s to %s\n", oldpath, newpath);
 	smbpathsplit(oldpath, &olddir, &oldname);

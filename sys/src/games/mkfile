@@ -2,8 +2,11 @@
 
 TARG=4s\
 	5s\
+	ana\
 	catclock\
+	festoon\
 	juggle\
+	life\
 	memo\
 
 OFILES=
@@ -13,6 +16,7 @@ HFILES=
 BIN=/$objtype/bin/games
 
 DIRS=\
+#	blabs\
 	mahjongg\
 	mp3dec\
 	mp3enc\

@@ -6,6 +6,7 @@ smbcomdeletedirectory(SmbSession *s, SmbHeader *h, uchar *, SmbBuffer *b)
 	int rv;
 	char *path;
 	char *fullpath = nil;
+	SmbTree *t;
 	uchar fmt;
 
 	if (h->wordcount != 0)
@@ -13,7 +14,12 @@ smbcomdeletedirectory(SmbSession *s, SmbHeader *h, uchar *, SmbBuffer *b)
 	if (!smbbuffergetb(b, &fmt) || fmt != 0x04 || !smbbuffergetstring(b, h, SMB_STRING_PATH, &path))
 		return SmbProcessResultFormat;
 	smblogprint(h->command, "smbcomdeletedirectory: %s\n", path);
-        smbstringprint(&fullpath, "%s%s", s->serv->path, path);
+	t = smbidmapfind(s->tidmap, h->tid);
+	if (t == nil) {
+		smbseterror(s, ERRSRV, ERRinvtid);
+		return SmbProcessResultError;
+	}
+	smbstringprint(&fullpath, "%s%s", t->serv->path, path);
 	rv = remove(fullpath);
 	if (rv < 0) {
 		smblogprint(h->command, "smbcomdeletedirectory failed: %r\n");

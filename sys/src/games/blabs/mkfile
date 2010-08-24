@@ -1,0 +1,31 @@
+</$objtype/mkfile
+
+BIN = /$objtype/bin/games
+TARG = blabs
+OFILES = blabs.$O
+
+FACES=\
+	andrew.bits\
+	bart.bits\
+	bwk.bits\
+	dmr.bits\
+	doug.bits\
+	gerard.bits\
+	howard.bits\
+	ken.bits\
+	philw.bits\
+	pjw.bits\
+	presotto.bits\
+	rob.bits\
+	sean.bits\
+	td.bits\
+	
+</sys/src/cmd/mkone
+
+%.bits:
+	mkface $stem
+
+blabs.$O: $FACES
+
+clean:V:
+	rm -f *.[$OS] [$OS].out y.tab.? y.debug y.output $TARG *.bits
