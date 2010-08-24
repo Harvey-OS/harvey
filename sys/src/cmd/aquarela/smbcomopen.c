@@ -101,6 +101,7 @@ openfile(SmbSession *s, SmbTree *t, char *path, ushort mode, ushort attr, ushort
 		else if (createoptions & SMB_CO_DIRECTORY) {
 			attr &= ~SMB_ATTR_NORMAL;
 			attr |= SMB_ATTR_DIRECTORY;
+			p9mode = OREAD;
 		}
 //smblogprint(-1, "creating: before conversion attr 0x%.4ux\n", attr);
 		p9attr = smbdosattr2plan9mode(attr);

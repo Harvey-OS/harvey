@@ -275,7 +275,7 @@ ipiput6(Fs *f, Ipifc *ifc, Block *bp)
 	/* route */
 	if(notforme) {
 		if(!ip->iprouting){
-			freeb(bp);
+			freeblist(bp);
 			return;
 		}
 

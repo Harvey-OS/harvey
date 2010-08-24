@@ -15,6 +15,7 @@
 Cinfo ftinfo[] = {
 	{ FTVid, FTACTZWAVEDid },
 	{ FTSheevaVid, FTSheevaDid },
+	{ FTVid, FTOpenRDUltDid},
 	{ FTVid, FTIRTRANSDid },
 	{ FTVid, FTIPLUSDid },
 	{ FTVid, FTSIODid },

@@ -1,0 +1,37 @@
+#!/bin/rc
+
+fn unhex {
+	tr '	' ' ' | sed 's/0x//g;s/[, ]//g;s/../0x&, /g;s/^/	/'
+}
+
+if(! ~ $#* 1) {
+	echo 'usage: mkface who' >[1=2]
+	exit usage
+}
+
+who=$1
+x='^astro/'^$who^' '
+z='^([^ ]+)/'^$who^' '
+
+file=notfound
+for(i in 1 2 4 8)
+	if(y=`{grep $x /lib/face/48x48x$i/.dict} || y=`{grep $z /lib/face/48x48x$i/.dict})
+		file=/lib/face/48x48x$i/$y(2)
+
+if(~ $file notfound) {
+	echo 'cannot find face for '$who >[1=2]
+	exit noface
+}
+
+{
+	echo 'uchar '$who'bits[] = {'
+	switch($file) {
+	case *48x48x8* *48x48x4*
+		fb/enc2bit $file | dd -bs 60 -skip 1 >[2]/dev/null | xd |
+		sed 's#^.......##' | unhex
+	case *48x48x2* *48x48x1*
+		cat $file | unhex
+	}
+	echo '};'
+} >$who.bits
+

@@ -2169,9 +2169,9 @@ reset:
 
 	/* Cut the data to fit the receive window */
 	if(tcptrim(tcb, &seg, &bp, &length) == -1) {
-		netlog(f, Logtcp, "tcptrim, not accept, seq %lud-%lud win %lud-%lud\n", 
+		netlog(f, Logtcp, "tcptrim, not accept, seq %lud-%lud win %lud-%lud from %I\n", 
 			seg.seq, seg.seq + length - 1, 
-			tcb->rcv.nxt, tcb->rcv.nxt + tcb->rcv.wnd-1);
+			tcb->rcv.nxt, tcb->rcv.nxt + tcb->rcv.wnd-1, s->raddr);
 		netlog(f, Logtcp, "tcp len < 0, %lud %d\n", seg.seq, length);
 		update(s, &seg);
 		if(qlen(s->wq)+tcb->flgcnt == 0 && tcb->state == Closing) {
