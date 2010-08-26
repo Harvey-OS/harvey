@@ -25,6 +25,9 @@ maintained by hardware and other parts by software are especially
 tricky.  we try to pad the initial hardware parts so that the software
 parts start in a new cache line.
 
+there are no video controllers so far, so this port is a cpu
+kernel only.
+
 512MB of dram at physical address 0
 512MB of nand flash
 16550 uart for console

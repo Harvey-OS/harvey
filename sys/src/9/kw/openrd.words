@@ -11,7 +11,7 @@ pci bus 0
 
 64MB vga memory, resolution up to 1280x1024 @ 60 Hz.  the video
 controller is undocumented and even the Linux driver is only available
-as a binary.
+as a binary, so so far this port is only a cpu kernel.
 
 run video as normal svga; get framebuffer addr from pci (implement pci).
 
