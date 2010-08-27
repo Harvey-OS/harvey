@@ -16,7 +16,7 @@ ALLOBJ=\
 	conv.$O\
 	utils.$O\
 
-HDRS=\
+HFILES=\
 	flashfs.h
 
 LIB=/$objtype/lib/lib9p.a
@@ -36,4 +36,4 @@ $O.dummyfs: dummy.$O dreq.$O entry.$O errors.$O devfs.$O utils.$O
 $O.flashfs: flash.$O journal.$O entry.$O errors.$O request.$O devfs.$O conv.$O utils.$O
 	$LD -o $target $prereq
 
-$ALLOBJ: $HDRS
+$ALLOBJ: $HFILES
