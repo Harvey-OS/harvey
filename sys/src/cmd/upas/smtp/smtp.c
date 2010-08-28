@@ -288,7 +288,7 @@ error:
 static char *
 connect(char* net)
 {
-	char buf[256];
+	char buf[Errlen];
 	int fd;
 
 	fd = mxdial(net, ddomain, gdomain);

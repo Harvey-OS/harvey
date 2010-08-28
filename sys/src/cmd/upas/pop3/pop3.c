@@ -167,7 +167,7 @@ static int
 readmbox(char *box)
 {
 	int fd, i, n, nd, lines, pid;
-	char buf[100], err[ERRMAX];
+	char buf[100], err[Errlen];
 	char *p;
 	Biobuf *b;
 	Dir *d, *draw;

@@ -380,8 +380,12 @@ imap4login(Imap *imap)
 static char*
 imaperrstr(char *host, char *port)
 {
-	static char mess[256];
-	char err[64];
+	/*
+	 * make mess big enough to hold a TLS certificate fingerprint
+	 * plus quite a bit of slop.
+	 */
+	static char mess[3 * Errlen];
+	char err[Errlen];
 
 	err[0] = '\0';
 	errstr(err, sizeof(err));
