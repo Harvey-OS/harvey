@@ -333,7 +333,7 @@ readmbox(Mailbox *mb, int doplumb, int virt)
 	int fd;
 	Dir *d;
 	Message *m;
-	static char err[128];
+	static char err[Errlen];
 
 	if(debug)
 		fprint(2, "read mbox %s\n", mb->path);
