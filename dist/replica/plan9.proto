@@ -85,7 +85,10 @@ sys	- sys sys
 		lib	- sys sys
 			4scores	a666 sys sys
 			5scores	a666 sys sys
+			anawords	- sys sys
 			fortunes	- sys sys
+			life	- sys sys
+				+	- sys sys
 			mahjongg	- sys sys
 				+	- sys sys
 			sokoban	- sys sys
