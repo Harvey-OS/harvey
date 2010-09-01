@@ -738,12 +738,8 @@ TEXT splfhi(SB), $-4
 
 TEXT	_tas(SB), $-4
 	MOVW	R0,R1
-	BARRIERS
 	MOVW	$1,R0
 	SWPW	R0,(R1)			/* fix: deprecated in armv7 */
-	MOVW	R0, R3
-	BARRIERS
-	MOVW	R3, R0
 	RET
 
 //TEXT tas32(SB), 1, $-4
