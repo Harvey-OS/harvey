@@ -18,7 +18,7 @@ page table entries need to be flushed or invalidated in l2.
 we arrange that device registers are uncached.
 
 be aware that cache operations act on cache lines (of CACHELINESZ
-bytes) as atomic units, so if you invalidate 4 caches of a cache line,
+bytes) as atomic units, so if you invalidate one word of a cache line,
 you invalidate the entire cache line, whether it's been written back
 (is clean) or not (is dirty).  mixed data structures with parts
 maintained by hardware and other parts by software are especially

@@ -322,7 +322,7 @@ _ptrdbl:
 	/* ...and jump to it */
 //	MOVW	R2, R15				/* software reboot */
 _limbo:						/* should not get here... */
-	BL	_idlehands(SB)
+	BL	idlehands(SB)
 	B	_limbo				/* ... and can't get out */
 	BL	_div(SB)			/* hack to load _div, etc. */
 
@@ -339,7 +339,7 @@ TEXT _r15warp(SB), 1, $-4
  * l2 functions are unnecessary.
  */
 
-TEXT cachedwbse(SB), 1, $-4			/* D writeback SE */
+TEXT cachedwbse(SB), $-4			/* D writeback SE */
 	MOVW	R0, R2
 
 	MOVW	CPSR, R3			/* splhi */
@@ -359,7 +359,7 @@ _dwbse:
 	BGT	_dwbse
 	B	_wait
 
-TEXT cachedwbinvse(SB), 1, $-4			/* D writeback+invalidate SE */
+TEXT cachedwbinvse(SB), $-4			/* D writeback+invalidate SE */
 	MOVW	R0, R2
 
 	MOVW	CPSR, R3			/* splhi */
@@ -387,7 +387,7 @@ _wait:						/* drain write buffer */
 	BARRIERS
 	RET
 
-TEXT cachedinvse(SB), 1, $-4			/* D invalidate SE */
+TEXT cachedinvse(SB), $-4			/* D invalidate SE */
 	MOVW	R0, R2
 
 	MOVW	CPSR, R3			/* splhi */
@@ -428,7 +428,7 @@ TEXT mmudisable(SB), 1, $-4
  * If one of these MCR instructions crashes or hangs the machine,
  * check your Level 1 page table (at TTB) closely.
  */
-TEXT mmuinvalidate(SB), 1, $-4			/* invalidate all */
+TEXT mmuinvalidate(SB), $-4			/* invalidate all */
 	BARRIERS
 	MOVW	CPSR, R2
 	ORR	$(PsrDirq|PsrDfiq), R2, R3	/* interrupts off */
@@ -442,7 +442,7 @@ TEXT mmuinvalidate(SB), 1, $-4			/* invalidate all */
 	BARRIERS
 	RET
 
-TEXT mmuinvalidateaddr(SB), 1, $-4		/* invalidate single entry */
+TEXT mmuinvalidateaddr(SB), $-4			/* invalidate single entry */
 	MCR	CpSC, 0, R0, C(CpTLB), C(CpTLBinvu), CpTLBinvse
 	BARRIERS
 	RET
@@ -515,7 +515,7 @@ TEXT splhi(SB), 1, $-4
 	MOVW	R3, R0				/* must return old CPSR */
 	RET
 
-TEXT spllo(SB), 1, $-4
+TEXT spllo(SB), 1, $-4			/* start marker for devkprof.c */
 	MOVW	CPSR, R3
 	BIC	$PsrDirq, R3, R1
 	MOVW	R1, CPSR
@@ -535,7 +535,7 @@ TEXT splx(SB), 1, $-4
 	MOVW	R3, R0				/* must return old CPSR */
 	RET
 
-TEXT spldone(SB), 1, $0				/* marker for devkprof.c */
+TEXT spldone(SB), 1, $0				/* end marker for devkprof.c */
 	RET
 
 TEXT islo(SB), 1, $-4
@@ -546,15 +546,11 @@ TEXT islo(SB), 1, $-4
 
 TEXT	_tas(SB), $-4
 	MOVW	R0,R1
-	BARRIERS
 	MOVW	$1,R0
 	SWPW	R0,(R1)			/* fix: deprecated in armv7 */
-	MOVW	R0, R3
-	BARRIERS
-	MOVW	R3, R0
 	RET
 
-TEXT clz(SB), 1, $-4
+TEXT clz(SB), $-4
 	CLZ(0, 0)			/* 0 is R0 */
 	RET
 
@@ -574,12 +570,12 @@ TEXT getcallerpc(SB), 1, $-4
 	MOVW	0(R13), R0
 	RET
 
-TEXT _idlehands(SB), 1, $-4
+TEXT idlehands(SB), $-4
 	BARRIERS
 	WFI
 	RET
 
-TEXT coherence(SB), 1, $-4
+TEXT coherence(SB), $-4
 	BARRIERS
 	RET
 

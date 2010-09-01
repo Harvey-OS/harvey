@@ -1,5 +1,5 @@
-#define LASTRESORT lastresortprint	/* for ../port/devcons.c */
-#define CRUDEPRINT serialputs		/* for ../port/devcons.c */
+#define LASTRESORT lastresortprint	/* for ./devcons.c */
+#define CRUDEPRINT serialputs		/* for ./devcons.c */
 
 /*
  * Time.

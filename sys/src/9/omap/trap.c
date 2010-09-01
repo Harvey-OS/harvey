@@ -726,14 +726,6 @@ dumpregs(Ureg* ureg)
 	dumpscr();
 }
 
-void
-idlehands(void)
-{
-	extern void _idlehands(void);
-
-	_idlehands();
-}
-
 vlong
 probeaddr(uintptr addr)
 {
