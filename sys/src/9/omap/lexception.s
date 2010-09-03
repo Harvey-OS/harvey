@@ -97,7 +97,6 @@ _vswitch:
 	BIC	$PsrMask, R14
 	ORR	$(PsrDirq|PsrDfiq|PsrMsvc), R14
 	MOVW	R14, CPSR		/* switch! */
-	DSB; ISB			/* force new cpsr to take effect */
 
 	AND.S	$0xf, R1, R4		/* interrupted code kernel or user? */
 	BEQ	_userexcep
@@ -175,12 +174,10 @@ TEXT setr13(SB), 1, $-4
 	BIC	$PsrMask, R2, R3
 	ORR	R0, R3
 	MOVW	R3, CPSR
-	BARRIERS
 
 	MOVW	R13, R3
 	MOVW	R1, R13
 
 	MOVW	R2, CPSR
-	BARRIERS
 	MOVW	R3, R0
 	RET

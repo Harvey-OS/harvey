@@ -21,13 +21,13 @@
 
 /* wave at the user; clobbers R1 & R7; needs R12 (SB) set */
 #define WAVE(c) \
-	BARRIERS; \
+	ISB; \
 	MOVW	$PHYSCONS, R7; \
 	MOVW	$(c), R1; \
 	MOVW	R1, (R7); \
-	BARRIERS
+	ISB
 
-/* new instruction */
+/* new instructions */
 #define CLZ(s, d) WORD	$(0xe16f0f10 | (d) << 12 | (s))	/* count leading 0s */
 
 #define DMB	\
@@ -42,8 +42,8 @@
 #define DSB	\
 	MOVW	$0, R0; \
 	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwb), CpCACHEwait
-/* prefetch flush; zeroes R0 */
 /*
+ * prefetch flush; zeroes R0.
  * arm926ej-s manual says we need to sync with l2 cache in isb,
  * and uncached load is the easiest way.  doesn't seem to matter.
  */
@@ -53,7 +53,7 @@
 //	MOVW	(R0), R0; MOVW $0, R0
 
 /* zeroes R0 */
-#define	BARRIERS	DSB; ISB
+#define	BARRIERS	ISB; DSB
 
 /*
  * invoked with PTE bits in R2, pa in R3, PTE pointed to by R4.

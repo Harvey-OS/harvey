@@ -57,6 +57,8 @@ label: \
 #define ISB	WORD	$0xf57ff06f	/* instr. sync. barrier; last f = SY */
 #define NOOP	WORD	$0xe320f000
 #define CLZ(s, d) WORD	$(0xe16f0f10 | (d) << 12 | (s))	/* count leading 0s */
+#define CPSIE	WORD	$0xf1080080	/* intr enable: zeroes I bit */
+#define CPSID	WORD	$0xf10c0080	/* intr disable: sets I bit */
 
 /* floating point */
 #define VMRS(fp, cpu) WORD $(0xeef00a10 | (fp)<<16 | (cpu)<<12) /* FP → arm */
