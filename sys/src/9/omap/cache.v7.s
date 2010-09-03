@@ -6,7 +6,7 @@
 TEXT cacheiinv(SB), $-4				/* I invalidate */
 	MOVW	$0, R0
 	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEinvi), CpCACHEall /* ok on cortex */
-	BARRIERS
+	ISB
 	RET
 
 /*
@@ -27,7 +27,7 @@ TEXT cachedinv_sw(SB), $-4
 	/* set cache size select */
 TEXT setcachelvl(SB), $-4
 	MCR	CpSC, CpIDcssel, R0, C(CpID), C(CpIDid), 0
-	BARRIERS
+	ISB
 	RET
 
 	/* return cache sizes */
@@ -65,17 +65,15 @@ TEXT cachedinv(SB), $-4
 TEXT cacheuwbinv(SB), $-4
 	MOVM.DB.W [R14], (R13)	/* save lr on stack */
 	MOVW	CPSR, R1
-	ORR	$(PsrDirq|PsrDfiq), R1, R0
-	MOVW	R0, CPSR	/* splhi */
-	BARRIERS
+	CPSID			/* splhi */
+
 	MOVM.DB.W [R1], (R13)	/* save R1 on stack */
 
 	BL	cachedwbinv(SB)
 	BL	cacheiinv(SB)
 
-	MOVM.IA.W (R13), [R1]	/* restore R1 */
+	MOVM.IA.W (R13), [R1]	/* restore R1 (saved CPSR) */
 	MOVW	R1, CPSR
-	BARRIERS
 	MOVM.IA.W (R13), [R14]	/* restore lr */
 	RET
 
@@ -93,9 +91,8 @@ TEXT l2cacheuwb(SB), $-4
 TEXT l2cacheuwbinv(SB), $-4
 	MOVW.W	R14, -8(R13)
 	MOVW	CPSR, R1
-	ORR	$(PsrDirq|PsrDfiq), R1, R0
-	MOVW	R0, CPSR	/* splhi */
-	BARRIERS
+	CPSID			/* splhi */
+
 	MOVM.DB.W [R1], (R13)	/* save R1 on stack */
 
 	MOVW	$cachedwbinv_sw(SB), R0
@@ -103,9 +100,8 @@ TEXT l2cacheuwbinv(SB), $-4
 	BL	cacheall(SB)
 	BL	l2cacheuinv(SB)
 
-	MOVM.IA.W (R13), [R1]	/* restore R1 */
+	MOVM.IA.W (R13), [R1]	/* restore R1 (saved CPSR) */
 	MOVW	R1, CPSR
-	BARRIERS
 	MOVW.P	8(R13), R15
 
 TEXT l2cacheuinv(SB), $-4
@@ -148,18 +144,16 @@ TEXT cacheall+0(SB), $-4
 	/* drain write buffers */
 	BARRIERS
 	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwb), CpCACHEwait
-	BARRIERS
+	ISB
 
 	MOVW	CPSR, R2
 	MOVM.DB.W [R2,R14], (SP) /* save regs on stack */
-	ORR	$(PsrDirq|PsrDfiq), R2
-	MOVW	R2, CPSR	/* splhi to make entire op atomic */
-	BARRIERS
+	CPSID			/* splhi to make entire op atomic */
 
 	/* get cache sizes */
 	SLL	$1, R8, R0	/* R0 = (cache - 1) << 1 */
 	MCR	CpSC, CpIDcssel, R0, C(CpID), C(CpIDid), 0 /* set cache size select */
-	BARRIERS
+	ISB
 	MRC	CpSC, CpIDcsize, R0, C(CpID), C(CpIDid), 0 /* get cache sizes */
 
 	/* compute # of ways and sets for this cache level */
@@ -201,11 +195,10 @@ inner:
 
 	MOVM.IA.W (SP), [R2,R14] /* restore regs */
 	MOVW	R2, CPSR	/* splx */
-	BARRIERS
 
 	/* drain write buffers */
 	MCR	CpSC, 0, R0, C(CpCACHE), C(CpCACHEwb), CpCACHEwait
-	BARRIERS
+	ISB
 	RET
 
 buggery:

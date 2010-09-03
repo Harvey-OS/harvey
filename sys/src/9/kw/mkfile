@@ -75,12 +75,12 @@ LIB=\
 $p$CONF:DQ:	$CONF.c $OBJ $LIB mkfile
 	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
 	echo '# linking raw kernel'
-	sleep 1				# avoid relinking later
+#	sleep 1				# avoid relinking later
 	$LD -o $target -H0 -R4096 -T$loadaddr -l $OBJ $CONF.$O $LIB
 
 s$p$CONF:DQ:	$CONF.$O $OBJ $LIB
 	echo '# linking kernel with symbols'
-	sleep 1				# avoid relinking later
+#	sleep 1				# avoid relinking later
 	$LD -o $target -R4096 -T$loadaddr -l $OBJ $CONF.$O $LIB
 	size $target
 
