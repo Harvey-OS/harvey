@@ -100,14 +100,6 @@ _vswitch:
 	ORR	$(PsrDirq|PsrDfiq|PsrMsvc), R14
 	MOVW	R14, CPSR		/* switch! */
 
-//	/*
-//	 * execute barrier instructions (without changing R0) to force new CPSR
-//	 * to take effect.
-//	 */
-//	MOVW	$0, R4
-//	MCR	CpSC, 0, R4, C(CpCACHE), C(CpCACHEwb), CpCACHEwait
-//	MCR	CpSC, 0, R4, C(CpCACHE), C(CpCACHEinvi), CpCACHEwait
-
 	AND.S	$0xf, R1, R4		/* interrupted code kernel or user? */
 	BEQ	_userexcep
 
