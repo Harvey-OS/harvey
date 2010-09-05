@@ -173,11 +173,10 @@ TEXT setr13(SB), 1, $-4
 	MOVW	CPSR, R2
 	BIC	$PsrMask, R2, R3
 	ORR	R0, R3
-	MOVW	R3, CPSR
+	MOVW	R3, CPSR		/* switch to new mode */
 
-	MOVW	R13, R3
-	MOVW	R1, R13
+	MOVW	R13, R0			/* return old sp */
+	MOVW	R1, R13			/* install new one */
 
-	MOVW	R2, CPSR
-	MOVW	R3, R0
+	MOVW	R2, CPSR		/* switch back to old mode */
 	RET
