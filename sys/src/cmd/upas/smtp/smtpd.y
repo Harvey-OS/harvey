@@ -3,6 +3,8 @@
 #include <ctype.h>
 #include "smtpd.h"
 
+#define YYMAXDEPTH	500		/* was default 150 */
+
 #define YYSTYPE yystype
 typedef struct quux yystype;
 struct quux {

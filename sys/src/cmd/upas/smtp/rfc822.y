@@ -3,6 +3,8 @@
 #include "smtp.h"
 #include <ctype.h>
 
+#define YYMAXDEPTH	500		/* was default 150 */
+
 char	*yylp;		/* next character to be lex'd */
 int	yydone;		/* tell yylex to give up */
 char	*yybuffer;	/* first parsed character */
