@@ -213,6 +213,7 @@ enum {
 	AddrRtc		= PHYSIO+0x10300,
 	AddrNandf       = PHYSIO+0x10418,
 	AddrSpi		= PHYSIO+0x10600,
+ 	AddrTwsi	= PHYSIO+0x11000,
 	AddrUart0	= PHYSIO+0x12000,
 	AddrUart1	= PHYSIO+0x12100,
 
