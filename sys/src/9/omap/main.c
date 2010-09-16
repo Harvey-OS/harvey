@@ -253,6 +253,12 @@ wave('l');
 	watchdoginit();
 
 	printinit();
+	i8250console();
+//	uartconsole(CONSOLE, "");		/* was "b115200" */
+//	normalprint = 1;
+
+	cpuidprint();
+//	chkmissing();
 
 	procinit0();
 	initseg();
@@ -260,15 +266,6 @@ wave('l');
 	dmainit();
 	links();
 	chandevreset();
-
-	i8250console();
-//	uartconsole(CONSOLE, "");		/* was "b115200" */
-//	normalprint = 1;
-	iprint("\n");
-
-	delay(20);
-	cpuidprint();
-//	chkmissing();
 
 	pageinit();
 	swapinit();

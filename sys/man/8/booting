@@ -185,7 +185,7 @@ parameter for
 is
 .BR /arm/9plug .
 .SS TI OMAP3530 CPU Server
-Supported boards include the IGEPv2 from ISEE.
+Supported boards include the IGEPv2 from ISEE and the Gumstix Overo.
 In the following,
 replace
 .I MAC
@@ -211,13 +211,25 @@ to set
 ea=\fIMAC
 .EE
 .PP
-Type this at U-boot once:
+For IGEPv2 boards,
+type this at U-boot once:
 .IP
 .EX
 setenv bootdelay 2
 # \fItype the next two lines as one\fP
 setenv bootcmd 'tftp 0x80300000 /cfg/pxe/\fIMAC\fP;
 	dhcp 0x80310000; go 0x80310000'
+saveenv
+.EE
+.PP
+For Gumstix Overo boards,
+type this at U-boot once:
+.IP
+.EX
+setenv bootdelay 2
+# \fItype the next two lines as one\fP
+setenv bootcmd 'bootp 0x80310000; bootp 0x80300000 /cfg/pxe/\fIMAC\fP;
+	go 0x80310000'
 saveenv
 .EE
 .PP
