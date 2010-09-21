@@ -45,21 +45,21 @@ TEXT cachedwb(SB), $-4
 	MOVW.W	R14, -8(R13)
 	MOVW	$cachedwb_sw(SB), R0
 	MOVW	$1, R8
-	BL	cacheall(SB)
+	BL	wholecache(SB)
 	MOVW.P	8(R13), R15
 
 TEXT cachedwbinv(SB), $-4
 	MOVW.W	R14, -8(R13)
 	MOVW	$cachedwbinv_sw(SB), R0
 	MOVW	$1, R8
-	BL	cacheall(SB)
+	BL	wholecache(SB)
 	MOVW.P	8(R13), R15
 
 TEXT cachedinv(SB), $-4
 	MOVW.W	R14, -8(R13)
 	MOVW	$cachedinv_sw(SB), R0
 	MOVW	$1, R8
-	BL	cacheall(SB)
+	BL	wholecache(SB)
 	MOVW.P	8(R13), R15
 
 TEXT cacheuwbinv(SB), $-4
@@ -85,7 +85,7 @@ TEXT l2cacheuwb(SB), $-4
 	MOVW.W	R14, -8(R13)
 	MOVW	$cachedwb_sw(SB), R0
 	MOVW	$2, R8
-	BL	cacheall(SB)
+	BL	wholecache(SB)
 	MOVW.P	8(R13), R15
 
 TEXT l2cacheuwbinv(SB), $-4
@@ -97,7 +97,7 @@ TEXT l2cacheuwbinv(SB), $-4
 
 	MOVW	$cachedwbinv_sw(SB), R0
 	MOVW	$2, R8
-	BL	cacheall(SB)
+	BL	wholecache(SB)
 	BL	l2cacheuinv(SB)
 
 	MOVM.IA.W (R13), [R1]	/* restore R1 (saved CPSR) */
@@ -108,7 +108,7 @@ TEXT l2cacheuinv(SB), $-4
 	MOVW.W	R14, -8(R13)
 	MOVW	$cachedinv_sw(SB), R0
 	MOVW	$2, R8
-	BL	cacheall(SB)
+	BL	wholecache(SB)
 	MOVW.P	8(R13), R15
 
 /*
@@ -129,7 +129,7 @@ TEXT l2cacheuinv(SB), $-4
  *
  * initial translation by 5c, then massaged by hand.
  */
-TEXT cacheall+0(SB), $-4
+TEXT wholecache+0(SB), $-4
 	MOVW	R0, R1		/* save argument for inner loop in R1 */
 	SUB	$1, R8		/* convert cache level to zero origin */
 

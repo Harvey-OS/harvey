@@ -464,7 +464,7 @@ vmap(uintptr pa, usize size)
 	o = pa & (BY2PG-1);
 	pa -= o;
 	size += o;
-	size = ROUNDUP(size, PGSIZE);
+	size = ROUNDUP(size, BY2PG);
 
 	va = kseg0|pa;
 	pae = mmukmap(va, pa, size);

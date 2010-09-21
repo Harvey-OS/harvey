@@ -499,7 +499,7 @@ bootargs(uintptr base)
 	 * of the argument list checked in syscall.
 	 */
 	i = oargblen+1;
-	p = UINT2PTR(STACKALIGN(base + PGSIZE - sizeof(up->s.args) - i));
+	p = UINT2PTR(STACKALIGN(base + BY2PG - sizeof(up->s.args) - i));
 	memmove(p, oargb, i);
 
 	/*
@@ -512,7 +512,7 @@ bootargs(uintptr base)
 	 * unused so it doesn't matter (at the moment...).
 	 */
 	av = (char**)(p - (oargc+2)*sizeof(char*));
-	ssize = base + PGSIZE - PTR2UINT(av);
+	ssize = base + BY2PG - PTR2UINT(av);
 	*av++ = (char*)oargc;
 	for(i = 0; i < oargc; i++)
 		*av++ = (oargv[i] - oargb) + (p - base) + (USTKTOP - BY2PG);
