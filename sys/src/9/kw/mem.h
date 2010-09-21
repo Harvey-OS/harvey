@@ -34,13 +34,13 @@
 /*
  * Sizes
  */
-#define	PGSIZE		(4*KiB)			/* bytes per page */
-#define	PGSHIFT		12			/* log(PGZIZE) */
-#define	PGROUND(s)	ROUNDUP(s, PGSIZE)
+#define	BY2PG		(4*KiB)			/* bytes per page */
+#define	PGSHIFT		12			/* log(BY2PG) */
+#define	PGROUND(s)	ROUNDUP(s, BY2PG)
 #define	ROUND(s, sz)	(((s)+(sz-1))&~(sz-1))
 
 #define	MAXMACH		1			/* max # cpus system can run */
-#define	MACHSIZE	(PGSIZE)
+#define	MACHSIZE	BY2PG
 
 #define KSTKSIZE	(8*KiB)
 #define STACKALIGN(sp)	((sp) & ~3)		/* bug: assure with alloc */
@@ -102,7 +102,6 @@
  * Sizes
  */
 #define BI2BY		8			/* bits per byte */
-#define BY2PG		PGSIZE
 #define BY2SE		4
 #define BY2WD		4
 #define BY2V		8			/* only used in xalloc.c */

@@ -328,4 +328,6 @@ forkchild(Proc *p, Ureg *ureg)
 	/* Things from bottom of syscall which were never executed */
 	p->psstate = 0;
 	p->insyscall = 0;
+
+	fpusysrforkchild(p, cureg, up);
 }
