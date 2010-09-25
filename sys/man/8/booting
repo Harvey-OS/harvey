@@ -184,7 +184,7 @@ parameter for
 .B /lib/ndb
 is
 .BR /arm/9plug .
-.SS TI OMAP3530 CPU Server
+.SS TI OMAP35 CPU Server
 Supported boards include the IGEPv2 from ISEE and the Gumstix Overo.
 In the following,
 replace
