@@ -354,16 +354,17 @@ Gigabit Ethernet interfaces,
 USB and the console serial port;
 we hope to add crypto acceleration, and a video driver for the Openrd-client.
 .SH
-The TI OMAP3530 operating system
+The TI OMAP35 operating system
 .PP
 This is an ARM kernel for the Cortex-A8 processor
 and it emulates pre-VFPv3 floating-point and
 CAS (compare-and-swap) instructions.
-It is known to run on the IGEPv2 board and might
-eventually run on the Beagleboard, once USB is working.
+It is known to run on the IGEPv2 board and the Gumstix Overo,
+and might eventually run on the Beagleboard, once USB is working.
 There are many features of the OMAP system-on-a-chip that it does not exploit.
-Initially, there are drivers for the IGEPv2's SMSC 9221 100Mb/s Ethernet
-interface and the console serial port;
+Initially, there are drivers for the SMSC 9221 100Mb/s Ethernet
+interface in the IGEPv2 and Overo,
+and the console serial port;
 we hope to add USB, flash memory and video drivers.
 .
 .ig
