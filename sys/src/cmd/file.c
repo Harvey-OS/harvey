@@ -339,7 +339,7 @@ filetype(int fd)
 		return;
 	}
 	if(mbuf->type != 'M' && mbuf->type != '|') {
-		print(mime ? OCTET : "special file #%c/%s\n",
+		print(mime ? OCTET : "special file #%C/%s\n",
 			mbuf->type, mbuf->name);
 		return;
 	}
@@ -596,6 +596,16 @@ Filemagic long0tab[] = {
 	0xfffe,		0xffffffff,	"utf-32le\n",	"text/plain charset=utf-32le",
 	0xfeff,		0xffff,		"utf-16be\n",	"text/plain charset=utf-16be",
 	0xfffe,		0xffff,		"utf-16le\n",	"text/plain charset=utf-16le",
+	/* 0xfeedface: this could alternately be a Next Plan 9 boot image */
+	0xcefaedfe,	0xFFFFFFFF,	"32-bit power Mach-O executable\n", OCTET,
+	/* 0xfeedfacf */
+	0xcffaedfe,	0xFFFFFFFF,	"64-bit power Mach-O executable\n", OCTET,
+	/* 0xcefaedfe */
+	0xfeedface,	0xFFFFFFFF,	"386 Mach-O executable\n", OCTET,
+	/* 0xcffaedfe */
+	0xfeedfacf,	0xFFFFFFFF,	"amd64 Mach-O executable\n", OCTET,
+	/* 0xcafebabe */
+	0xbebafeca,	0xFFFFFFFF,	"Mach-O universal executable\n", OCTET,
 	/*
 	 * venti & fossil magic numbers are stored big-endian on disk,
 	 * thus the numbers appear reversed in this table.
