@@ -89,7 +89,7 @@ char *keyspec = "";
 void
 usage(void)
 {
-	fprint(2, "ftpfs [-/dqnt] [-a passwd] [-m mountpoint] [-e ext] [-o os] [-r root] [net!]address\n");
+	fprint(2, "ftpfs [-/dqnt] [-a passwd] [-m mountpoint] [-e ext] [-k keyspec] [-o os] [-r root] [net!]address\n");
 	exits("usage");
 }
 
