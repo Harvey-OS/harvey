@@ -96,7 +96,7 @@
 #define BY2V		8			/* only used in xalloc.c */
 
 #define CACHELINESZ	64			/* bytes per cache line */
-#define	PTEMAPMEM	(1024*1024)	
+#define	PTEMAPMEM	(1024*1024)
 #define	PTEPERTAB	(PTEMAPMEM/BY2PG)
 #define	SEGMAPSIZE	1984			/* magic 16*124 */
 #define	SSEGMAPSIZE	16			/* magic */
@@ -135,10 +135,15 @@
 #define PHYSSCMCORE	0x48004a00
 #define PHYSSCMWKUP	0x48004c00
 #define PHYSSCMPLL	0x48004d00	/* clock ctl for dpll[3-5] */
+#define PHYSSCMDSS	0x48004e00
 #define PHYSSCMPER	0x48005000
 #define PHYSSCMUSB	0x48005400
 
 #define PHYSL4CORE	0x48040100	/* l4 ap */
+#define PHYSDSS		0x48050000	/* start of dss registers */
+#define PHYSDISPC	0x48050400
+#define PHYSGFX		0x48050480	/* part of dispc */
+
 #define PHYSSDMA	0x48056000	/* system dma */
 #define PHYSDMA		0x48060000
 
@@ -148,7 +153,10 @@
 #define PHYSEHCI	0x48064800	/* usb 2.0: medium */
 #define PHYSUART0	0x4806a000
 #define PHYSUART1	0x4806c000
+#define PHYSMMCHS1	0x4809c000	/* mmc/sdio */
 #define PHYSUSBOTG	0x480ab000	/* on-the-go usb */
+#define PHYSMMCHS3	0x480ad000
+#define PHYSMMCHS2	0x480b4000
 
 #define PHYSINTC	0x48200000	/* interrupt controller */
 
@@ -159,6 +167,9 @@
 
 #define PHYSCNTRL	0x4830a200	/* SoC id, etc. */
 #define PHYSWDT1	0x4830c000	/* wdt1, not on GP omaps */
+
+#define PHYSGPIO1	0x48310000	/* contains dss gpio */
+
 #define PHYSWDOG	0x48314000	/* watchdog timer, wdt2 */
 #define PHYSWDT2	0x48314000	/* watchdog timer, wdt2 */
 #define PHYSTIMER1	0x48318000
