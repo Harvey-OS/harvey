@@ -114,6 +114,7 @@ struct Conf
 	int	nswppo;		/* max # of pageouts per segment pass */
 	ulong	hz;		/* processor cycle freq */
 	ulong	mhz;
+	int	monitor;	/* flag */
 };
 
 /*
@@ -259,7 +260,7 @@ extern char dbgflg[256];
  *  hardware info about a device
  */
 typedef struct {
-	ulong	port;	
+	ulong	port;
 	int	size;
 } Devport;
 

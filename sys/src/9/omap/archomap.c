@@ -756,6 +756,46 @@ configgpio(void)
 	coherence();
 }
 
+enum {
+	/* idlest bits */
+	Gpioidle= 1 << 3,
+	Dssidle	= 1 << 1,
+};
+
+void
+configscreengpio(void)
+{
+	Cm *wkup = (Cm *)PHYSSCMWKUP;
+	Gpio *gpio = (Gpio *)PHYSGPIO1;
+
+	/* no clocksel needed */
+	wkup->fclken |= B(3);			/* turn gpioclock on */
+	wkup->iclken |= B(3);
+	wkup->autoidle |= B(3); 		/* gpio clock set it on auto */
+	coherence();
+	while (wkup->idlest & Gpioidle)
+		;
+	/* should use a UNMASK macro? */
+	gpio->oe |= ~0 ^ B(24) ^ B(8) ^ B(5);	/* enable output*/
+	gpio->dataout |= B(24) | B(8) | B(5);	/* set output pins */
+	coherence();
+	delay(50);
+}
+
+void
+screenclockson(void)
+{
+	Cm *dsscm = (Cm *)PHYSSCMDSS;
+
+	dsscm->clksel[0] = B(12) | 2;		/* DPLL4 */
+	dsscm->fclken = B(2) | B(1) | B(0);  /* turn on clocks for tv, dss2/1 */
+	dsscm->iclken |= B(0);			/* turn on dss clock */
+	coherence();
+	delay(50);
+	while (dsscm->idlest & Dssidle)
+		;
+}
+
 void
 gpioirqclr(void)
 {
@@ -891,6 +931,8 @@ subarch(int impl, uint sa)
  *	4	pulltypeselect
  *	3	pulludenable
  *	2-0	muxmode
+ *
+ * see table 7-5 in §7.4.4.3 of spruf98d
  */
 
 enum {
@@ -972,14 +1014,15 @@ setpadmodes(void)
 	int off;
 
 	/* set scm pad modes for usb; hasn't made any difference yet */
-	setmuxmode(0x48002166, 7, 5);	/* hsusb3_tll; is mode 4 */
+	setmuxmode(0x48002166, 7, 5);	/* hsusb3_tll* in mode 5; is mode 4 */
+	/* 216c mode 
 	setmuxmode(0x48002180, 1, 5);	/* hsusb3_tll_clk; is mode 4 */
 	setmuxmode(0x48002184, 4, 5);	/* hsusb3_tll_data?; is mode 1 */
-	setmuxmode(0x480021a2, 12, 0);	/* hsusb0 (console) */
-	setmuxmode(0x480021d4, 6, 2);	/* hsusb2_tll (ehci port 2); */
-					/* mode 3 is hsusb2 */
-	setmuxmode(0x480025d8, 18, 6);	/* hsusb[12]_tll; mode 3 is */
-					/* hsusb1_data, hsusb2 */
+	setmuxmode(0x480021a2, 12, 0);	/* hsusb0 (console) in mode 0 */
+	setmuxmode(0x480021d4, 6, 2);	/* hsusb2_tll* (ehci port 2) in mode 2 */
+					/* mode 3 is hsusb2_data* */
+	setmuxmode(0x480025d8, 18, 6);	/* hsusb[12]_tll*; mode 3 is */
+					/* hsusb1_data*, hsusb2* */
 
 	/*
 	 * igep only: mode 4 of 21d2 is gpio_176 (smsc9221 ether irq).
@@ -1242,6 +1285,7 @@ cpuidprint(void)
 	char name[64];
 
 	cputype2name(name, sizeof name);
+	delay(250);				/* let uart catch up */
 	iprint("cpu%d: %lldMHz ARM %s\n", m->machno, m->cpuhz / (1000*1000),
 		name);
 }

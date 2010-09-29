@@ -17,6 +17,7 @@ dev
 	kprof
 	aoe
 	sd
+	fs
 #	flash
 
 	ether		netif
