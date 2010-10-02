@@ -312,8 +312,7 @@ wave(' ');
 	procinit0();
 	initseg();
 	links();
-	chandevreset();
-//	spiprobe();
+	chandevreset();			/* most devices are discovered here */
 
 	pageinit();
 	swapinit();
