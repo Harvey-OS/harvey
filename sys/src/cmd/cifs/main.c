@@ -26,7 +26,8 @@ struct Aux {
 
 extern int chatty9p;
 
-int Dfstout = 100; /* timeout (in ms) for ping of dfs servers (assume they are local) */
+int Checkcase = 1;		/* enforce case significance on filenames */
+int Dfstout = 100;		/* timeout (in ms) for ping of dfs servers (assume they are local)  */
 int Billtrog = 1;		/* enable file owner/group resolution */
 int Attachpid;			/* pid of proc that attaches (ugh !) */
 char *Debug = nil;		/* messages */
@@ -39,6 +40,8 @@ Share Shares[MAX_SHARES]; 	/* table of connected shares */
 int Nshares = 0;		/* number of Shares connected */
 Aux *Auxroot = nil;		/* linked list of Aux structs */
 char *Host = nil;		/* host we are connected to */
+
+static char *Ipcname = "IPC$";
 
 #define ptype(x)	(((x) & 0xf))
 #define pindex(x)	(((x) & 0xff0) >> 4)
@@ -87,19 +90,18 @@ Qid
 mkqid(char *s, int is_dir, long vers, int subtype, long path)
 {
 	Qid q;
-	union {				/* align digest suitably */
-		uchar	digest[SHA1dlen];
-		uvlong	uvl;
-	} u;
+	uchar digest[SHA1dlen];
 
-	sha1((uchar *)s, strlen(s), u.digest, nil);
-	q.type = is_dir? QTDIR: 0;
+	sha1((uchar *)s, strlen(s), digest, nil);
+	q.type = (is_dir)? QTDIR: 0;
 	q.vers = vers;
 	if(subtype){
-		q.path = *((uvlong *)u.digest) & ~0xfffL;
-		q.path |= (path & 0xff) << 4 | (subtype & 0xf);
-	}else
-		q.path = *((uvlong *)u.digest) & ~0xfL;
+		q.path = *((uvlong *)digest) & ~0xfffL;
+		q.path |= ((path & 0xff) << 4);
+		q.path |= (subtype & 0xf);
+	}
+	else
+		q.path = *((uvlong *)digest) & ~0xfL;
 	return q;
 }
 
@@ -112,7 +114,7 @@ V2D(Dir *d, Qid qid, char *name)
 	memset(d, 0, sizeof(Dir));
 	d->type = 'C';
 	d->dev = 1;
-	d->name = strlwr(estrdup9p(name));
+	d->name = estrdup9p(name);
 	d->uid = estrdup9p("bill");
 	d->muid = estrdup9p("boyd");
 	d->gid = estrdup9p("trog");
@@ -187,12 +189,13 @@ newpath(char *path, char *name)
 static int
 dirgen(int slot, Dir *d, void *aux)
 {
-	int numinf = numinfo(), rc, got;
-	int slots = min(Sess->mtu, MTU) / sizeof(FInfo);
 	long off;
-	char *npath;
-	Aux *a = aux;
 	FInfo *fi;
+	int rc, got;
+	Aux *a = aux;
+	char *npath;
+	int numinf = numinfo();
+	int slots = min(Sess->mtu, MTU) / sizeof(FInfo);
 
 	if(strcmp(a->path, "/") == 0){
 		if(slot < numinf){
@@ -267,9 +270,9 @@ from_cache:
 static void
 fsattach(Req *r)
 {
-	char *spec = r->ifcall.aname;
 	Aux *a;
 	static int first = 1;
+	char *spec = r->ifcall.aname;
 
 	if(first)
 		setup();
@@ -329,63 +332,134 @@ fsclone(Fid *ofid, Fid *fid)
 	return nil;
 }
 
+/*
+ * for some weird reason T2queryall() returns share names
+ * in lower case so we have to do an extra test against
+ * our share table to validate filename case.
+ *
+ * on top of this here (snell & Wilcox) most of our
+ * redirections point to a share of the same name,
+ * but some do not, thus the tail of the filename
+ * returned by T2queryall() is not the same as
+ * the name we wanted.
+ *
+ * We work around this by not validating the names
+ * or files which resolve to share names as they must
+ * be correct, having been enforced in the dfs layer.
+ */
+static int
+validfile(char *found, char *want, char *winpath, Share *sp)
+{
+	char *share;
+
+	if(strcmp(want, "..") == 0)
+		return 1;
+	if(strcmp(winpath, "/") == 0){
+		share = trimshare(sp->name);
+		if(cistrcmp(want, share) == 0)
+			return strcmp(want, share) == 0;
+		/*
+		 * OK, a DFS redirection points us from a directory XXX
+		 * to a share named YYY.  There is no case checking we can
+		 * do so we allow either case - it's all we can do.
+		 */
+		return 1;
+	}
+	if(cistrcmp(found, want) != 0)
+		return 0;
+	if(!Checkcase)
+		return 1;
+	if(strcmp(found, want) == 0)
+		return 1;
+	return 0;
+}
+
+
 static char*
 fswalk1(Fid *fid, char *name, Qid *qid)
 {
-	int rc, n, i;
-	char *npath;
-	Aux *a = fid->aux;
 	FInfo fi;
+	int rc, n, i;
+	Aux *a = fid->aux;
 	static char e[ERRMAX];
+	char *p, *npath, *winpath;
 
 	*e = 0;
 	npath = newpath(a->path, name);
-	if(strcmp(npath, "/") == 0)
+	if(strcmp(npath, "/") == 0){			/* root dir */
 		*qid = mkqid("/", 1, 1, Proot, 0);
-	else if(strrchr(npath, '/') == npath){
-		if((n = walkinfo(name)) != -1)
+		free(a->path);
+		a->path = npath;
+		fid->qid = *qid;
+		return nil;
+	}
+
+	if(strrchr(npath, '/') == npath){		/* top level dir */
+		if((n = walkinfo(name)) != -1){		/* info file */
 			*qid = mkqid(npath, 0, 1, Pinfo, n);
-		else {
+		}
+		else {					/* volume name */
 			for(i = 0; i < Nshares; i++){
 				n = strlen(Shares[i].name);
-				if(cistrncmp(npath+1, Shares[i].name, n) != 0 ||
-				    npath[n+1] != 0 && npath[n+1] != '/')
+				if(cistrncmp(npath+1, Shares[i].name, n) != 0)
+					continue;
+				if(Checkcase && strncmp(npath+1, Shares[i].name, n) != 0)
+					continue;
+				if(npath[n+1] != 0 && npath[n+1] != '/')
 					continue;
 				break;
 			}
-			if(i < Nshares){
-				a->sp = Shares+i;
-				*qid = mkqid(npath, 1, 1, Pshare, i);
-			} else {
+			if(i >= Nshares){
 				free(npath);
 				return "not found";
 			}
+			a->sp = Shares+i;
+			*qid = mkqid(npath, 1, 1, Pshare, i);
 		}
-	} else {
-again:
-		if(mapshare(npath, &a->sp) == -1){
-			free(npath);
-			return "not found";
-		}
-
-		memset(&fi, 0, sizeof fi);
-
-		if(Sess->caps & CAP_NT_SMBS)
-			rc = T2queryall(Sess, a->sp, mapfile(npath), &fi);
-		else
-			rc = T2querystandard(Sess, a->sp, mapfile(npath), &fi);
-
-		if((a->sp->options & SMB_SHARE_IS_IN_DFS) != 0 &&
-		    (fi.attribs & ATTR_REPARSE) != 0 &&
-		    redirect(Sess, a->sp, npath) != -1)
-			goto again;
-		if(rc == -1){
-			rerrstr(e, sizeof(e));
-			free(npath);
-			return e;
-		}
-		*qid = mkqid(npath, fi.attribs & ATTR_DIRECTORY, fi.changed, 0, 0);
+		free(a->path);
+		a->path = npath;
+		fid->qid = *qid;
+		return nil;
 	}
+
+	/* must be a vanilla file or directory */
+again:
+	if(mapshare(npath, &a->sp) == -1){
+		rerrstr(e, sizeof(e));
+		free(npath);
+		return e;
+	}
+
+	winpath = mapfile(npath);
+	memset(&fi, 0, sizeof fi);
+	if(Sess->caps & CAP_NT_SMBS)
+		rc = T2queryall(Sess, a->sp, winpath, &fi);
+	else
+		rc = T2querystandard(Sess, a->sp, winpath, &fi);
+
+	if(rc == -1){
+		rerrstr(e, sizeof(e));
+		free(npath);
+		return e;
+	}
+
+	if((a->sp->options & SMB_SHARE_IS_IN_DFS) != 0 &&
+	    (fi.attribs & ATTR_REPARSE) != 0){
+		if(redirect(Sess, a->sp, npath) != -1)
+			goto again;
+	}
+
+	if((p = strrchr(fi.name, '/')) == nil && (p = strrchr(fi.name, '\\')) == nil)
+		p = fi.name;
+	else
+		p++;
+
+	if(! validfile(p, name, winpath, a->sp)){
+		free(npath);
+		return "not found";
+
+	}
+	*qid = mkqid(npath, fi.attribs & ATTR_DIRECTORY, fi.changed, 0, 0);
 
 	free(a->path);
 	a->path = npath;
@@ -583,10 +657,10 @@ ntcreateopen(Aux *a, char *path, int mode, int perm, int is_create,
 static void
 fscreate(Req *r)
 {
+	FInfo fi;
 	int rc, is_dir;
 	char *npath;
 	Aux *a = r->fid->aux;
-	FInfo fi;
 
 	a->end = a->off = 0;
 	a->cache = emalloc9p(max(Sess->mtu, MTU));
@@ -654,9 +728,11 @@ fsopen(Req *r)
 static void
 fswrite(Req *r)
 {
-	vlong n, m, got, len = r->ifcall.count, off = r->ifcall.offset;
-	char *buf = r->ifcall.data;
+	vlong n, m, got;
 	Aux *a = r->fid->aux;
+	vlong len = r->ifcall.count;
+	vlong off = r->ifcall.offset;
+	char *buf = r->ifcall.data;
 
 	got = 0;
 	n = Sess->mtu -OVERHEAD;
@@ -678,9 +754,11 @@ fswrite(Req *r)
 static void
 fsread(Req *r)
 {
-	vlong n, m, got, len = r->ifcall.count, off = r->ifcall.offset;
-	char *buf = r->ofcall.data;
+	vlong n, m, got;
 	Aux *a = r->fid->aux;
+	char *buf = r->ofcall.data;
+	vlong len = r->ifcall.count;
+	vlong off = r->ifcall.offset;
 
 	if(ptype(r->fid->qid.path) == Pinfo){
 		r->ofcall.count = readinfo(pindex(r->fid->qid.path), buf, len,
@@ -814,9 +892,9 @@ static void
 fswstat(Req *r)
 {
 	int fh, result, rc;
+	FInfo fi, tmpfi;
 	char *p, *from, *npath;
 	Aux *a = r->fid->aux;
-	FInfo fi, tmpfi;
 
 	if(ptype(r->fid->qid.path) == Proot ||
 	   ptype(r->fid->qid.path) == Pshare){
@@ -936,11 +1014,12 @@ fswstat(Req *r)
 	 * always update the readonly flag as
 	 * we may have cleared it above.
 	 */
-	if(~r->d.mode)
+	if(~r->d.mode){
 		if(r->d.mode & 0222)
 			fi.attribs &= ~ATTR_READONLY;
 		else
 			fi.attribs |= ATTR_READONLY;
+	}
 	if(rdonly(Sess, a->sp, mapfile(a->path), fi.attribs & ATTR_READONLY) == -1){
 		werrstr("(set info) - %r");
 		responderrstr(r);
@@ -1005,9 +1084,9 @@ usage(void)
 static void
 keepalive(void)
 {
-	int fd, i, rc = 0;
-	uvlong tot, fre;
 	char buf[32];
+	uvlong tot, fre;
+	int fd, i, slot, rc;
 
 	snprint(buf, sizeof buf, "#p/%d/args", getpid());
 	if((fd = open(buf, OWRITE)) >= 0){
@@ -1015,13 +1094,18 @@ keepalive(void)
 		close(fd);
 	}
 
+	rc = 0;
+	slot = 0;
 	do{
 		sleep(6000);
 		if(Active-- != 0)
 			continue;
-		for(i = 0; i < Nshares; i++)
-			if((rc = T2fssizeinfo(Sess, Shares+i, &tot, &fre)) != -1)
+		for(i = 0; i < Nshares; i++){
+			if((rc = T2fssizeinfo(Sess, &Shares[slot], &tot, &fre)) == 0)
 				break;
+			if(++slot >= Nshares)
+				slot = 0;
+		}
 	}while(rc != -1);
 	postnote(PNPROC, Attachpid, "die");
 }
@@ -1040,7 +1124,7 @@ void
 dmpkey(char *s, void *v, int n)
 {
 	int i;
-	uchar *p = (uchar *)v;
+	unsigned char *p = (unsigned char *)v;
 
 	print("%s", s);
 	for(i = 0; i < n; i++)
@@ -1078,6 +1162,9 @@ main(int argc, char **argv)
 	case 'd':
 		Debug = EARGF(usage());
 		break;
+	case 'i':
+		Checkcase = 0;
+		break;
 	case 'k':
 		keyp = EARGF(usage());
 		break;
@@ -1086,7 +1173,7 @@ main(int argc, char **argv)
 		break;
 	case 'n':
 		strncpy(cname, EARGF(usage()), sizeof(cname));
-		cname[sizeof(cname) -1] = 0;
+		cname[sizeof(cname) - 1] = 0;
 		break;
 	case 's':
 		svs = EARGF(usage());
@@ -1121,6 +1208,7 @@ main(int argc, char **argv)
 	if((Sess = cifsdial(Host, Host, sysname)) != nil ||
 	   (Sess = cifsdial(Host, "*SMBSERVER", sysname)) != nil)
 		goto connected;
+
 	sysfatal("%s - cannot dial, %r\n", Host);
 connected:
 	if(CIFSnegotiate(Sess, &svrtime, windom, sizeof windom, cname, sizeof cname) == -1)
@@ -1137,10 +1225,10 @@ connected:
 		sysfatal("session authentication failed, %r\n");
 
 	Sess->slip = svrtime - time(nil);
-	Sess->cname = strlwr(estrdup9p(cname));
+	Sess->cname = estrdup9p(cname);
 
-	if(CIFStreeconnect(Sess, cname, "IPC$", &Ipc) == -1)
-		fprint(2, "IPC$, %r - can't connect\n");
+	if(CIFStreeconnect(Sess, cname, Ipcname, &Ipc) == -1)
+		fprint(2, "%s, %r - can't connect\n", Ipcname);
 
 	Nshares = 0;
 	if(argc == 1){
