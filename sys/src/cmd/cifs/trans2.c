@@ -187,9 +187,9 @@ int
 T2findnext(Session *s, Share *sp, int slots, char *path, int *got,
 	long *resume, FInfo *fip, int sh)
 {
+	Pkt *p;
 	int i, n;
 	uchar *next;
-	Pkt *p;
 
 	/*
 	 * So I believe from comp.protocols.smb if you send

@@ -54,7 +54,7 @@ void	waitacks(void);
 void
 usage(void)
 {
-	fprint(2, "usage: ip/pptp [-Pd] [-s user:secret] [-x pppnetmntpt] [-w window] server\n");
+	fprint(2, "usage: ip/pptp [-Pd] [-k keyspec] [-x pppnetmntpt] [-w window] server\n");
 	exits("usage");
 }
 
