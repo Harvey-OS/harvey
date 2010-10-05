@@ -21,24 +21,16 @@ setup(int argc, char **argv)
 
 	fd = open(dns, ORDWR);
 	if(fd < 0){
-		if(domount == 0){
-			fprint(2, "can't open %s: %r\n", mtpt);
-			exits(0);
-		}
+		if(domount == 0)
+			sysfatal("can't open %s: %r", dns);
 		fd = open(srv, ORDWR);
-		if(fd < 0){
-			print("can't open %s: %r\n", srv);
-			exits(0);
-		}
-		if(mount(fd, -1, mtpt, MBEFORE, "") < 0){
-			print("can't mount(%s, %s): %r\n", srv, mtpt);
-			exits(0);
-		}
-		fd = open(mtpt, ORDWR);
-		if(fd < 0){
-			print("can't open %s: %r\n", mtpt);
-			exits(0);
-		}
+		if(fd < 0)
+			sysfatal("can't open %s: %r", srv);
+		if(mount(fd, -1, mtpt, MBEFORE, "") < 0)
+			sysfatal("can't mount(%s, %s): %r", srv, mtpt);
+		fd = open(dns, ORDWR);
+		if(fd < 0)
+			sysfatal("can't open %s: %r", dns);
 	}
 	return fd;
 }

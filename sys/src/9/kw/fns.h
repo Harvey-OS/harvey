@@ -70,6 +70,8 @@ void	procsave(Proc*);
 void	procsetup(Proc*);
 extern void _reset(void);
 extern void setr13(int, u32int*);
+extern void syscallfmt(int syscallno, ulong pc, va_list list);
+extern void sysretfmt(int syscallno, va_list list, long ret, uvlong start, uvlong stop);
 extern int tas(void *);
 extern u32int ttbget(void);
 extern void ttbput(u32int);

@@ -236,6 +236,8 @@ tcp=guard port=566
 tcp=ticket port=567
 tcp=ldaps port=636
 tcp=fmclient port=729
+tcp=ftps-data port=989
+tcp=ftps port=990
 tcp=imaps port=993
 tcp=pop3s port=995
 tcp=ingreslock port=1524
@@ -298,6 +300,7 @@ udp=portmap port=111
 udp=ntp port=123
 udp=netbios-ns port=137
 udp=snmp port=161
+udp=ha port=434			# mobile ip home agent
 udp=ikev2 port=500
 udp=syslog port=514
 udp=rip port=520
@@ -326,6 +329,7 @@ gre=ppp port=34827
 # for geoff
 auth=www.9netics.com authdom=9netics.com
 auth=newcpu.9netics.net authdom=9netics.net
+auth=mordor.tip9ug.jp authdom=tip9ug.jp
 
 # for geoff's ipv6 testing
 auth=9grid.hamnavoe.com
