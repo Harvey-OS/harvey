@@ -85,7 +85,7 @@ intrdisable(int irq, void (*f)(Ureg *, void *), void *a, int tbdf, char *name)
 	vno = arch->intrvecno(irq);
 	ilock(&vctllock);
 	pv = &vctl[vno];
-	while (*pv && 
+	while (*pv &&
 		  ((*pv)->irq != irq || (*pv)->tbdf != tbdf || (*pv)->f != f || (*pv)->a != a ||
 		   strcmp((*pv)->name, name)))
 		pv = &((*pv)->next);
@@ -93,7 +93,7 @@ intrdisable(int irq, void (*f)(Ureg *, void *), void *a, int tbdf, char *name)
 
 	v = *pv;
 	*pv = (*pv)->next;	/* Link out the entry */
-	
+
 	if(vctl[vno] == nil && arch->intrdisable != nil)
 		arch->intrdisable(irq);
 	iunlock(&vctllock);
@@ -134,7 +134,7 @@ irqallocread(Chan*, void *vbuf, long n, vlong offset)
 
 				if(n == 0)
 					return oldn;
-			}	
+			}
 		}
 	}
 	return oldn - n;
@@ -179,7 +179,7 @@ nmienable(void)
 
 /*
  * Minimal trap setup.  Just enough so that we can panic
- * on traps (bugs) during kernel initialization.  
+ * on traps (bugs) during kernel initialization.
  * Called very early - malloc is not yet available.
  */
 void
@@ -664,7 +664,7 @@ syscall(Ureg* ureg)
 	long	ret;
 	int	i, s;
 	ulong scallnr;
-	vlong startnsec, stopnsec;
+	vlong startns, stopns;
 
 	if((ureg->cs & 0xFFFF) != UESEL)
 		panic("syscall: cs 0x%4.4luX", ureg->cs);
@@ -676,25 +676,36 @@ syscall(Ureg* ureg)
 	up->pc = ureg->pc;
 	up->dbgreg = ureg;
 
+	sp = ureg->usp;
+	scallnr = ureg->ax;
+	up->scallnr = scallnr;
+
 	if(up->procctl == Proc_tracesyscall){
+		/*
+		 * Redundant validaddr.  Do we care?
+		 * Tracing syscalls is not exactly a fast path...
+		 * Beware, validaddr currently does a pexit rather
+		 * than an error if there's a problem; that might
+		 * change in the future.
+		 */
+		if(sp < (USTKTOP-BY2PG) || sp > (USTKTOP-sizeof(Sargs)-BY2WD))
+			validaddr(sp, sizeof(Sargs)+BY2WD, 0);
+
+		syscallfmt(scallnr, ureg->pc, (va_list)(sp+BY2WD));
 		up->procctl = Proc_stopme;
-		syscallprint(ureg);
 		procctl(up);
 		if(up->syscalltrace)
 			free(up->syscalltrace);
 		up->syscalltrace = nil;
-		startnsec = todget(nil);
+		startns = todget(nil);
 	}
 
-	scallnr = ureg->ax;
-	up->scallnr = scallnr;
 	if(scallnr == RFORK && up->fpstate == FPactive){
 		fpsave(&up->fpsave);
 		up->fpstate = FPinactive;
 	}
 	spllo();
 
-	sp = ureg->usp;
 	up->nerrlab = 0;
 	ret = -1;
 	if(!waserror()){
@@ -738,9 +749,9 @@ syscall(Ureg* ureg)
 	ureg->ax = ret;
 
 	if(up->procctl == Proc_tracesyscall){
-		stopnsec = todget(nil);
+		stopns = todget(nil);
 		up->procctl = Proc_stopme;
-		syscallretprint(ureg, scallnr, startnsec, stopnsec);
+		sysretfmt(scallnr, (va_list)(sp+BY2WD), ret, startns, stopns);
 		s = splhi();
 		procctl(up);
 		splx(s);
@@ -818,7 +829,7 @@ notify(Ureg* ureg)
 	sp = ureg->usp;
 	sp -= 256;	/* debugging: preserve context causing problem */
 	sp -= sizeof(Ureg);
-if(0) print("%s %lud: notify %.8lux %.8lux %.8lux %s\n", 
+if(0) print("%s %lud: notify %.8lux %.8lux %.8lux %s\n",
 	up->text, up->pid, ureg->pc, ureg->usp, sp, n->msg);
 
 	if(!okaddr((ulong)up->notify, 1, 0)
@@ -901,7 +912,7 @@ noted(Ureg* ureg, ulong arg0)
 	switch(arg0){
 	case NCONT:
 	case NRSTR:
-if(0) print("%s %lud: noted %.8lux %.8lux\n", 
+if(0) print("%s %lud: noted %.8lux %.8lux\n",
 	up->text, up->pid, nureg->pc, nureg->usp);
 		if(!okaddr(nureg->pc, 1, 0) || !okaddr(nureg->usp, BY2WD, 0)){
 			qunlock(&up->debug);
@@ -931,9 +942,9 @@ if(0) print("%s %lud: noted %.8lux %.8lux\n",
 		pprint("unknown noted arg 0x%lux\n", arg0);
 		up->lastnote.flag = NDebug;
 		/* fall through */
-		
+
 	case NDFLT:
-		if(up->lastnote.flag == NDebug){ 
+		if(up->lastnote.flag == NDebug){
 			qunlock(&up->debug);
 			pprint("suicide: %s\n", up->lastnote.msg);
 		} else

@@ -22,6 +22,8 @@
 .if t .ds <. .
 .if n .ds >, ,
 .if t .ds <, ,
+.\" default separator for authors
+.ds [a ,
 .de [5 \" tm style
 .FS
 .IP "\\*([F.\0"
