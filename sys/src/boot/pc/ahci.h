@@ -173,6 +173,33 @@ enum {
 	Adet	= 1<<0,		/* device detection */
 };
 
+/* sstatus register bits */
+enum{
+	/* sstatus det */
+	Smissing	= 0<<0,
+	Spresent	= 1<<0,
+	Sphylink	= 3<<0,
+	Sbist		= 4<<0,
+	Smask		= 7<<0,
+
+	/* sstatus speed */
+	Gmissing	= 0<<4,
+	Gi		= 1<<4,
+	Gii		= 2<<4,
+	Giii		= 3<<4,
+	Gmask		= 7<<4,
+
+	/* sstatus ipm */
+	Imissing	= 0<<8,
+	Iactive		= 1<<8,
+	Isleepy		= 2<<8,
+	Islumber	= 6<<8,
+	Imask		= 7<<8,
+
+	SImask		= Smask | Imask,
+	SSmask		= Smask | Isleepy,
+};
+
 #define	sstatus	scr0
 #define	sctl	scr2
 #define	serror	scr1
