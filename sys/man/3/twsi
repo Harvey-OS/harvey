@@ -1,0 +1,23 @@
+.TH TWSI 3 
+.SH NAME
+twsi - two-wire serial interface (TWSI) and inter-integrated circuit (I⁲C) interface
+.SH SYNOPSIS
+.B bind -a #⁲ /dev
+.sp 0.3v
+.B /dev/twsi
+.SH DESCRIPTION
+The
+.I twsi
+device serves a one-level directory containing a single file,
+.BR twsi ,
+as an interface to a TWSI or I⁲C bus.
+.SH FILES
+.B #⁲/twsi
+.SH SOURCE
+.B /sys/src/9/kw/devtwsi.c
+.SH BUGS
+10-bit addressed devices are not supported.
+.PP
+No slave mode.
+.PP
+Setting the bus rate is not supported.

@@ -19,6 +19,7 @@ dev
 	sd
 	fs
 	flash
+	twsi
 #	pnp		pci
 
 	ether		netif
