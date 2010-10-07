@@ -93,7 +93,7 @@ xspanalloc(ulong size, int align, ulong span)
 	ulong a, v, t;
 	a = (ulong)xalloc(size+align+span);
 	if(a == 0)
-		panic("xspanalloc: %lud %d %lux\n", size, align, span);
+		panic("xspanalloc: %lud %d %lux", size, align, span);
 
 	if(span > 2) {
 		v = (a + span) & ~(span-1);
@@ -189,7 +189,7 @@ xmerge(void *vp, void *vq)
 			print("\n");
 			wd++;
 		}
-		panic("xmerge(%#p, %#p) bad magic %#lux, %#lux\n",
+		panic("xmerge(%#p, %#p) bad magic %#lux, %#lux",
 			vp, vq, p->magix, q->magix);
 	}
 	if((uchar*)p+p->size == (uchar*)q) {

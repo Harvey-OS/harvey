@@ -46,20 +46,19 @@ l4 interconnect firewalls seem to be sane at boot time
 ___
 The state of the Beagleboard/IGEPv2 (TI OMAP35 SoC, Cortex-A8) port.
 
-Plan 9 runs on the IGEPv2 board.
+Plan 9 runs on the IGEPv2 and Gumstix Overo boards.
 
 On the Beagleboard, Plan 9 is not yet usable but it gets as far as
 trying to access the USB ethernet (since the Beagleboard has no
 built-in ethernet and must use USB ethernet).
 
-IGEP Ethernet
+IGEP & Gumstix Ethernet
 
-The igep's smsc9221 ethernet consumes a lot of system time.  The
-design decision to use fifos rather than buffer rings and to not
-incorporate dma into the ethernet controller is probably responsible.
-With only a single core, running the 9221 consumes a lot of the
-available CPU time.  It's probably worth trying to use the system dma
-controller again.
+The smsc9221 ethernet consumes a lot of system time.  The design
+decision to use fifos rather than buffer rings and to not incorporate
+dma into the ethernet controller is probably responsible.  With only a
+single core, running the 9221 consumes a lot of the available CPU
+time.  It's probably worth trying to use the system dma controller again.
 
 USB
 
@@ -93,8 +92,15 @@ than 5c/5l currently generate.  New 5c or 5l is in the works.
 
 Video
 
-The video controller may be documented and source is available for a
-Linux driver.
+The display subsystem for omap3 (dss) is divided into 3 parts, called lcd,
+video and dsi (ignoring the various accelerators).  The system only
+supports the lcd via dvi interface so far because it's the only one we
+have been able to test.  1280x1024x16 is the default resolution, this
+might be changed.  Writing to /dev/dssctl (e.g., echo 1024x768x16
+>/dev/dssctl) changes the resolution.  Currently the system does not
+use the rfbi since it seems like an unnecessary optimisation at this
+point.  Per Odlund wrote the first draft of the video driver for a
+Google Summer of Code project.
 ___
 
 The code is fairly heavy-handed with the use of barrier instructions
@@ -112,9 +118,8 @@ There are a few rough edges:
 timers are complex, but one could eventually do better (or just let
 timesync compensate).
 
-- Serial console printing is rudimentary.  I tried repeatedly to hook
-into devuart, but failed.  "g 'CRUDEPRINT|LASTRESORT' ." should find
-the workarounds.
+- Serial console printing is rudimentary and polled.  It looks like
+we're not getting uart transmit interrupts or something similar.
 
 - User processes are limited to 512MB (mainly by the IGEPv2 Ethernet
 being at 0x2c000000), which isn't a problem since Beagleboards only

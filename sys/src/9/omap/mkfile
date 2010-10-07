@@ -50,6 +50,7 @@ OBJ=\
 	fpi.$O\
 	fpiarm.$O\
 	fpimem.$O\
+	kbd.$O\
 	main.$O\
 	mmu.$O\
 	random.$O\
@@ -89,7 +90,7 @@ $OBJ: $HFILES
 install:V: /$objtype/$p$CONF
 
 /$objtype/$p$CONF:D: $p$CONF s$p$CONF
-	cp -x $p$CONF s$p$CONF /$objtype &
+	{ cp -x $p$CONF s$p$CONF /$objtype } &
 	wait
 	touch $target
 
@@ -103,14 +104,14 @@ arch.$O clock.$O fpiarm.$O main.$O mmu.$O screen.$O sdscsi.$O syscall.$O \
 	trap.$O: /$objtype/include/ureg.h
 
 archomap.$O devether.$0 ether9221.$O: etherif.h ../port/netif.h
-archomap.$O devflash.$O flashomap.$O: ../port/flashif.h
-ecc.$O flashomap.$O: ../port/nandecc.h
+archomap.$O devflash.$O flashbeagle.$O flashigep.$O: ../port/flashif.h
+ecc.$O flashbeagle.$O flashigep.$O: ../port/nandecc.h io.h
 fpi.$O fpiarm.$O fpimem.$O: fpi.h
 l.$O lexception.$O lproc.$O mmu.$O: arm.s arm.h mem.h
 l.$O rebootcode.$O: cache.v7.s
-main.$O:	errstr.h init.h reboot.h
-mouse.$O:	screen.h
-devusb.$O:	usb.h
+main.$O: errstr.h init.h reboot.h
+devmouse.$O mouse.$O screen.$O: screen.h
+devusb.$O: usb.h
 usbehci.$O usbohci.$O usbuhci.$O: usb.h usbehci.h uncached.h
 
 init.h:D:	../port/initcode.c init9.s
