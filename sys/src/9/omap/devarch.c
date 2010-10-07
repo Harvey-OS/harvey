@@ -153,7 +153,7 @@ Dev archdevtab = {
 char *
 cputype2name(char *buf, int size)
 {
-#ifdef TODO		/* identify the flavour of omap3530 SoC & cpu */
+#ifdef TODO		/* identify the flavour of SoC & cpu */
 	char *soc;
 
 	m->cputype = *(ulong *)AddrDevid;

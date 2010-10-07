@@ -112,6 +112,7 @@ writeconf(void)
 	if(n >= BOOTARGSLEN)
 		error("kernel configuration too large");
 	memmove(BOOTARGS, p, n);
+	memset(BOOTARGS + n, '\n', BOOTARGSLEN - n);
 	poperror();
 	free(p);
 }
@@ -225,9 +226,9 @@ wave('l');
 
 	confinit();
 	/* xinit prints (if it can), so finish up the banner here. */
-	delay(10);
+	delay(500);
 	iprint("l Labs\n\n");
-	delay(10);
+	delay(500);
 	xinit();
 
 	/*
@@ -247,15 +248,14 @@ wave('l');
 
 	archconfinit();
 
-	archreset();			/* configures clock signals */
+	archreset();			/* configure clock signals */
 	clockinit();			/* start clocks */
 	timersinit();
 	watchdoginit();
 
+	delay(250);			/* let uart catch up */
 	printinit();
-	i8250console();
-//	uartconsole(CONSOLE, "");		/* was "b115200" */
-//	normalprint = 1;
+	kbdenable();
 
 	cpuidprint();
 //	chkmissing();
@@ -265,7 +265,11 @@ wave('l');
 
 	dmainit();
 	links();
-	chandevreset();
+	conf.monitor = 1;
+	screeninit();
+	chandevreset();			/* most devices are discovered here */
+
+//	i8250console();			/* too early; see init0 */
 
 	pageinit();
 	swapinit();
@@ -436,7 +440,12 @@ init0(void)
 
 	dmatest();		/* needs `up' set, so can't do it earlier */
 	chandevinit();
-	i8250console();		/* again */
+	i8250console();		/* might be redundant, but harmless */
+	if(kbdq == nil)
+		panic("init0: nil kbdq");
+	if(serialoq == nil)
+		panic("init0: nil serialoq");
+	normalprint = 0;	/* always use iprint, print to uart is broken */
 
 	if(!waserror()){
 		snprint(buf, sizeof(buf), "%s %s", "ARM", conffile);
