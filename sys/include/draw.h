@@ -522,6 +522,6 @@ extern	void	_twiddlecompressed(uchar*, int);
 extern	int	_compblocksize(Rectangle, int);
 
 /* XXX backwards helps; should go */
-extern	int		log2[];
+// extern	int		log2[];	/* was used by libmemlayer/line.c */
 extern	ulong	drawld2chan[];
 extern	void		drawsetdebug(int);

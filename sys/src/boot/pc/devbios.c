@@ -135,6 +135,7 @@ biosdiskcall(Ureg *rp, uchar op, ulong bx, ulong dx, ulong si)
 			print("\nbiosdiskcall: int 0x13 op 0x%ux drive 0x%lux "
 				"failed, ah error code 0x%ux\n",
 				op, dx, (uchar)(rp->ax >> 8));
+		biosload = 0;		/* stop trying before we wedge */
 		return -1;
 	}
 	return 0;
@@ -147,7 +148,7 @@ biosdiskcall(Ureg *rp, uchar op, ulong bx, ulong dx, ulong si)
 int
 biosinit(void)
 {
-	int devid, lba, mask, lastbit;
+	int devid, lba, mask, lastbit, ndrive;
 	Devbytes size;
 	char type;
 	Biosdev *bdp;
@@ -158,6 +159,9 @@ biosinit(void)
 		return 0;
 	beenhere = 1;
 
+	ndrive = *(uchar *)KADDR(0x475);
+	if (Debug)
+		print("bios claims %d drive(s)\n", ndrive);
 	mask = lastbit = 0;
 	for (devid = Baseid; devid < (1 << 8) && bdrive.ndevs < Maxdevs;
 	     devid++) {
@@ -189,6 +193,12 @@ biosinit(void)
 	}
 	USED(lastbit);
 //	islba(Baseid);	/* do a successful operation to make bios happy again */
+
+	if (Debug && ndrive != bdrive.ndevs)
+		print("bios: ndrive %d != bdrive.ndevs %d\n",
+			ndrive, bdrive.ndevs);
+	if (ndrive < bdrive.ndevs)
+		bdrive.ndevs = ndrive;		/* use smaller estimate */
 
 	/*
 	 * some bioses seem to only be able to read from drive number 0x80
@@ -275,11 +285,13 @@ sectread(Biosdev *bdp, void *a, long n, Devsects offset)
 		/* scribble on the buffer to provoke trouble */
 		memset((uchar *)BIOSXCHG, 'r', bdp->sectsz);
 
-//	if(Debug)
-//		print("drive ready %#ux...", bdp->id);
-//	memset(&regs, 0, sizeof regs);
-//	if (biosdiskcall(&regs, Biosdrvrdy, 0, bdp->id, 0) < 0)
-//		print("not ready\n");
+	if(Debug)
+		print("drive ready %#ux...", bdp->id);
+	memset(&regs, 0, sizeof regs);
+	if (biosdiskcall(&regs, Biosdrvrdy, 0, bdp->id, 0) < 0) {
+		print("not ready\n");
+		return -1;
+	}
 
 	/* space for a big, optical-size sector, just in case... */
 	biosparam = (uchar *)BIOSXCHG + 2*1024;
@@ -425,7 +437,7 @@ biosread(Fs *fs, void *a, long n)
 	Devbytes offset;
 	Biosdev *bdp;
 
-	if(fs->dev > bdrive.ndevs)
+	if(!biosload || fs->dev > bdrive.ndevs)
 		return -1;
 	if (n <= 0)
 		return n;

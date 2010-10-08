@@ -1,5 +1,7 @@
 typedef struct Cursor Cursor;
 typedef struct Cursorinfo	Cursorinfo;
+typedef struct OScreen OScreen;
+typedef struct Omap3fb Omap3fb;
 typedef struct Scr	Scr;
 
 struct Cursorinfo
@@ -23,11 +25,12 @@ extern uchar*	attachscreen(Rectangle*, ulong*, int*, int*, int*);
 extern void	blankscreen(int);
 extern void	flushmemscreen(Rectangle);
 
-#define ishwimage(i)	0
+#define ishwimage(i)	0		/* for ../port/devdraw.c */
 
 /* for communication between devdss.c and screen.c */
 
-enum {					/* maxima */
+enum {
+	/* maxima */
 	Wid		= 1280,
 	Ht		= 1024,
 	Depth		= 16,		/* bits per pixel */
@@ -40,9 +43,6 @@ enum {					/* maxima */
 	Pblack		= 0x00,
 	Pwhite		= 0xFF,
 };
-
-typedef struct OScreen OScreen;
-typedef struct Omap3fb Omap3fb;
 
 struct OScreen {
 	int	open;

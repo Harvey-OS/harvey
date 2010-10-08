@@ -370,8 +370,11 @@ main(void)
 	if (!pxe)
 		debug = 0;		/* stop the flood of output */
 	debugload = getconf("*debugload") != nil;
-	/* hack for soekris-like machines */
-	if(!vga || getconf("*nobiosload") != nil)
+	/*
+	 * !vga is a hack for soekris-like machines.
+	 * 9pxeload can't use bios int 13 calls; they wedge the machine.
+	 */
+	if(!vga || pxe || getconf("*nobiosload") != nil)
 		biosload = 0;
 	if((p = getconf("console")) != nil)
 		consinit(p, getconf("baud"));

@@ -3,9 +3,6 @@
  *
  * we ignore the first 2 uarts on the omap35 (see below) and use the
  * third one but call it 0.
- *
- * TODO: uart output other than from iprint never appears.
- *	are we not getting tx interrupts?
  */
 
 #include "u.h"
@@ -130,7 +127,6 @@ typedef struct Ctlr {
 } Ctlr;
 
 extern PhysUart i8250physuart;
-extern int normalprint;
 
 static Ctlr i8250ctlr[] = {
 {	.io	= (u32int*)PHYSCONS,		/* UART3 in TI terminology */
@@ -481,7 +477,7 @@ i8250kick(Uart* uart)
 	if(/* uart->cts == 0 || */ uart->blocked)
 		return;
 
-	if(!normalprint) {
+	if(!normalprint) {			/* early */
 		if (uart->op < uart->oe)
 			emptyoutstage(uart, uart->oe - uart->op);
 		while ((i = uartstageoutput(uart)) > 0)
@@ -491,7 +487,8 @@ i8250kick(Uart* uart)
 
 	/* nothing more to send? then disable xmit intr */
 	ctlr = uart->regs;
-	if (uart->op >= uart->oe && csr8r(ctlr, Lsr) & Temt) {
+	if (uart->op >= uart->oe && qlen(uart->oq) == 0 &&
+	    csr8r(ctlr, Lsr) & Temt) {
 		ctlr->sticky[Ier] &= ~Ethre;
 		csr8w(ctlr, Ier, 0);
 		return;
@@ -528,7 +525,6 @@ i8250interrupt(Ureg*, void* arg)
 	int iir, lsr, old, r;
 
 	uart = arg;
-
 	ctlr = uart->regs;
 	for(iir = csr8r(ctlr, Iir); !(iir & Ip); iir = csr8r(ctlr, Iir)){
 		switch(iir & IirMASK){
@@ -582,7 +578,7 @@ i8250interrupt(Ureg*, void* arg)
 			break;
 
 		default:
-			iprint("weird uart interrupt %#2.2uX\n", iir);
+			iprint("weird uart interrupt type %#2.2uX\n", iir);
 			break;
 		}
 	}
@@ -665,7 +661,6 @@ i8250enable(Uart* uart, int ie)
 			irqenable(ctlr->irq, i8250interrupt, uart, uart->name);
 			ctlr->iena = 1;
 		}
-//		ctlr->sticky[Ier] = Ethre|Erda;		/* tx intr broken */
 		ctlr->sticky[Ier] = Erda;
 //		ctlr->sticky[Mcr] |= Ie;		/* not on omap */
 		ctlr->sticky[Mcr] = 0;
@@ -816,7 +811,7 @@ i8250console(void)
 		return -1;			/* too early */
 
 	if(uartenable(uart) != nil /* && uart->console */){
-iprint("i8250console: enabling console uart\n");
+		// iprint("i8250console: enabling console uart\n");
 		kbdq = uart->iq;
 		serialoq = uart->oq;
 		uart->putc = kbdcr2nl;

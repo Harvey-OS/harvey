@@ -445,7 +445,7 @@ init0(void)
 		panic("init0: nil kbdq");
 	if(serialoq == nil)
 		panic("init0: nil serialoq");
-	normalprint = 0;	/* always use iprint, print to uart is broken */
+	normalprint = 1;
 
 	if(!waserror()){
 		snprint(buf, sizeof(buf), "%s %s", "ARM", conffile);

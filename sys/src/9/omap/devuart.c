@@ -513,7 +513,6 @@ uartwrite(Chan *c, void *buf, long n, vlong)
 
 		qunlock(p);
 		poperror();
-		uartkick(p);		/* desperation */
 		break;
 	case Nctlqid:
 		cmd = malloc(n+1);
@@ -746,6 +745,7 @@ uartclock(void)
 			}
 			iunlock(&p->tlock);
 		}
+		uartkick(p);		/* keep it moving */
 	}
 	iunlock(&uartalloc);
 }
