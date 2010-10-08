@@ -6,6 +6,12 @@
 
 #define	MAXLINE	70
 
+/* imported from libdraw/arith.c to permit an extern log2 function */
+static int log2[] = {
+	-1, 0, 1, -1, 2, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, 4,
+	-1, -1, -1, -1, -1, -1, -1, 4 /* BUG */, -1, -1, -1, -1, -1, -1, -1, 5
+};
+
 /*
  * Write data
  */

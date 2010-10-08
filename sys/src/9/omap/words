@@ -118,12 +118,9 @@ There are a few rough edges:
 timers are complex, but one could eventually do better (or just let
 timesync compensate).
 
-- Serial console printing is rudimentary and polled.  It looks like
-we're not getting uart transmit interrupts or something similar.
-
-- User processes are limited to 512MB (mainly by the IGEPv2 Ethernet
+- User processes are limited to 512MB virtual (mainly by the IGEPv2 Ethernet
 being at 0x2c000000), which isn't a problem since Beagleboards only
-have 256MB of dram and IGEPv2s have 512MB.
+have 256MB of dram and IGEPv2s have 512MB, and we don't want to swap.
 
 - might use ucalloc.c to allocate uncached scratch space for generated code
 in coproc.c.

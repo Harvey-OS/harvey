@@ -29,7 +29,7 @@
 /*
  * Fundamental addresses
  */
-/* edd 4 draft says BDA is at 40:00 = 0x400 */
+/* edd says BDA (bios data area) is at 40:00 = 0x400 - 0x500 */
 #define IDTADDR		0x80000800		/* idt */
 #define APBOOTSTRAP	0x80001000		/* AP bootstrap code */
 #define CONFADDR	0x80001200		/* info passed from boot loader */

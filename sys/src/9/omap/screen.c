@@ -23,8 +23,6 @@
 #include "screen.h"
 // #include "gamma.h"
 
-#define MINX 8
-
 enum {
 	Tabstop	= 4,		/* should be 8 */
 	/*
@@ -54,7 +52,7 @@ enum {
 	EnableWakeup	= 1 << 2,
 	Autoidle	= 1 << 0,
 
-	/* dispc pool_freq  */
+	/* dispc pool_freq */
 	Ipc		= 1 << 14,
 	Ihs		= 1 << 13,
 	Ivs		= 1 << 12,
@@ -166,10 +164,14 @@ Cursor	arrow = {
 	},
 };
 
+#ifdef notdef
+#define MINX 8
+
 static struct {
 	Point	pos;
 	int	bwid;
 } out;
+#endif
 
 OScreen oscreen;
 OScreen settings[] = {
@@ -177,7 +179,7 @@ OScreen settings[] = {
 	0, 1024,  768, 60, RGB16,  65000, 159<<20, 23<<8, 135, 29<<20, 3<<8, 6,
 	0, 1280, 1024, 60, RGB16, 108000, 247<<20, 47<<8, 111, 38<<20, 1<<8, 3,
 };
-struct Omap3fb *framebuf;
+Omap3fb *framebuf;
 Memimage *gscreen;
 
 static Memdata xgdata;
@@ -232,8 +234,6 @@ lcdoff(void)
 	/* spin until the frame is complete, but not forever */
 	for(cnt = 50; !(dispc->irqstat1 & 1) && cnt-- > 0; )
 		delay(10);
-	if(cnt <= 0)
-		iprint("screen: lcd never came ready!\n");
 #endif
 	delay(20);			/* worst case for 1 frame, 50Hz */
 }
@@ -316,11 +316,10 @@ lcdinit(void)
 void
 screentest(void)
 {
-	int h = Ht, w = Wid, i, k;
+	int i;
 
-	for (i = 0; i < h; i++)
-		for (k = 0; k < w; k++)
-			framebuf->pixel[i*w + k] = 0x1f;
+	for (i = nelem(framebuf->pixel) - 1; i >= 0; i--)
+		framebuf->pixel[i] = 0x1f;			/* blue */
 //	memset(framebuf->pixel, ~0, sizeof framebuf->pixel);	/* white */
 }
 
@@ -331,7 +330,7 @@ screenpower(int on)
 }
 
 int
-cursoron(int)
+cursoron(int)		// TODO
 {
 	return 0;
 }
@@ -342,7 +341,7 @@ cursoroff(int)
 }
 
 void
-setcursor(Cursor* curs)
+setcursor(Cursor* curs)	// TODO
 {
 //	VGAscr *scr;
 
@@ -371,22 +370,24 @@ screeninit(void)
 	gscreen->r = Rect(0, 0, Wid, Ht);
 	gscreen->clipr = gscreen->r;
 	/* width, in words, of a single scan line */
-	gscreen->width = Wid*(Depth/BI2BY)/BY2WD;
+	gscreen->width = Wid * (Depth / BI2BY) / BY2WD;
 	flushmemscreen(gscreen->r);
 
-	iprint("on: blue for a few seconds...");
+	iprint("on: blue for 2 seconds...");
 	delay(2*1000);
 	iprint("\n");
 
 	memimageinit();
 	memdefont = getmemdefont();
 
+#ifdef notdef
 	out.pos.x = MINX;
 	out.pos.y = 0;
 	out.bwid = memdefont->info[' '].width;
+#endif
 	blanktime = 3;				/* minutes */
 
-	screenwin();
+	screenwin();			/* draw border & top orange bar */
 	screenputs = omapscreenputs;
 	iprint("screen: frame buffer at %#p\n", framebuf);
 }

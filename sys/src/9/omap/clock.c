@@ -352,7 +352,6 @@ clockinit(void)
 	 * needed to consume 1 ms.  2 is min. instructions in the delay loop.
 	 */
 	m->delayloop = m->cpuhz / (1000 * 2);
-	m->delayloop = m->cpuhz / 1000;		/* overestimate for safety */
 //	iprint("m->delayloop = %lud\n", m->delayloop);
 
 	/*
