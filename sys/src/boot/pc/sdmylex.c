@@ -1058,6 +1058,11 @@ mylexpnp(void)
 
 	p = nil;
 	head = tail = nil;
+
+	/* native access to disks seems to interfere with bios loading */
+	if (biosload)
+		return nil;
+
 	while(p = pcimatch(p, 0x104B, 0)){
 		if((sdev = mylexprobe(p->mem[0].bar & ~0x01, p->intl)) == nil)
 			continue;

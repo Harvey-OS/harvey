@@ -1612,6 +1612,11 @@ iapnp(void)
 
 	if (done || getconf("*noahciload") != nil)
 		return nil;
+
+	/* native access to disks seems to interfere with bios loading */
+	if (biosload)
+		return nil;
+
 	done = 1;
 	memset(olds, 0xff, sizeof olds);
 	p = nil;

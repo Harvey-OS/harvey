@@ -313,7 +313,8 @@ _sdinit(void)
 int
 cdinit(void)
 {
-	if(sdnunit == 0)
+	/* native access to disks seems to interfere with bios loading */
+	if(sdnunit == 0 && !biosload)
 		_sdinit();
 	return cdmask;
 }
