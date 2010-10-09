@@ -149,6 +149,10 @@ floppyinit(void)
 	ulong maxtsize;
 	int mask;
 
+	/* native access to disks seems to interfere with bios loading */
+	if (biosload)
+		return 0;
+
 	dmainit(DMAchan);
 
 	floppysetup0(&fl);

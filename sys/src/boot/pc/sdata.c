@@ -1402,6 +1402,11 @@ atapnp(void)
 	SDev *legacy[2], *sdev, *head, *tail;
 
 	legacy[0] = legacy[1] = head = tail = nil;
+
+	/* native access to disks seems to interfere with bios loading */
+	if (biosload)
+		return nil;
+
 	if(sdev = ataprobe(0x1F0, 0x3F4, IrqATA0)){
 		head = tail = sdev;
 		legacy[0] = sdev;
