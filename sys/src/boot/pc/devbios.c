@@ -121,6 +121,13 @@ static Devbytes	extgetsize(Biosdev *);
 static Devsects	getsize(uchar drive, char *type);
 static int	islba(uchar drive);
 
+void
+stopbiosload(void)
+{
+	biosload = 0;
+	print("disabling bios loading\n");
+}
+
 /* convert ah error code to a string (just common cases) */
 static char *
 strerr(uchar err)
@@ -363,7 +370,7 @@ sectread(Biosdev *bdp, void *a, long n, Devsects offset)
 	if (biosdiskcall(&regs, Biosrdsect, erp->addr, bdp->id, PADDR(erp)) < 0) {
 		print("sectread: bios failed to read %ld @ sector %lld of %#ux\n",
 			n, offset, bdp->id);
-		biosload = 0;		/* stop trying before we wedge */
+		stopbiosload();		/* stop trying before we wedge */
 		return -1;
 	}
 	if (Debug)
@@ -405,7 +412,7 @@ islba(uchar drive)
 	if(regs.bx != Youreok){
 		print("islba: buggy bios: drive %#ux extension check returned "
 			"%lux in bx\n", drive, regs.bx);
-		biosload = 0;
+		stopbiosload();
 		return -1;
 	}
 	if (Debug) {

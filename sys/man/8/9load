@@ -1,6 +1,6 @@
 .TH 9LOAD 8
 .SH NAME
-9load, 9pxeload, ld \- PC bootstrap program
+9load, 9pxeload, 9loadusb, 9loadask, ld \- PC bootstrap program
 .SH SYNOPSIS
 .I "(Under MS-DOS)
 .br
@@ -25,8 +25,19 @@ it cannot be run directly by hand.
 .I 9pxeload
 is a version of
 .I 9load
-that can be booted using the PXE download
+that can be booted using the PXE download (BOOTP/DHCP followed by TFTP)
 found in some ethernet card BIOSes.
+.I 9loadusb
+is a version that will use only the BIOS's device drivers,
+and thus can load from USB devices.
+In contrast,
+.I 9load
+will
+.I not
+use BIOS device drivers.
+.I 9loadask
+is a version that asks on the console (too early for serial ports, alas)
+if you want to use BIOS drivers to boot.
 There are three bootstrap sequences:
 .IP \-
 BIOS, MBR, disk partition PBS,
@@ -138,7 +149,7 @@ prepared using
 to install the appropriate files and bootstrap sectors
 (see
 .IR prep (8)),
-or by using a PXE capable BIOS to boot
+or by using a PXE-capable BIOS to boot
 .I 9pxeload
 directly over the ethernet.
 .SS Bootfile
@@ -456,6 +467,7 @@ it attempts to de-install it, but the technique
 used may not always work.
 It is safer not to install the Extended Memory Manager before running
 .IR ld .
+.ig
 .PP
 The way
 .I 9pxeload
@@ -464,6 +476,7 @@ obtains the information normally found in a disc
 file,
 and thereby the kernel to load and boot,
 is not ideal and may change in the future.
+..
 .PP
 BIOS bugs force some limitions on reading via the BIOS.
 .B bios0
