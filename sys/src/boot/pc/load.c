@@ -166,6 +166,7 @@ char *defaultpartition;
  * choose bios (usb) loading or everything-else loading.
  */
 int biosload;
+int askbiosload;
 
 int iniread;
 int debugload;
@@ -341,6 +342,14 @@ main(void)
 		/* TODO turning off debug and debugload makes loading fail */
 		debug = 1;
 
+	/* this is too early for the non-soekris serial console, alas */
+	if (askbiosload) {
+		line[0] = '\0';
+		getstr("use bios drivers (e.g., for usb)", line, sizeof line,
+			"no", 60*1000);
+		biosload = strncmp(line, "yes", 3) == 0;
+	}
+
 	/*
 	 * find and read plan9.ini, setting configuration variables.
 	 */
@@ -351,8 +360,7 @@ main(void)
 		 * we don't know which ether interface to use nor
 		 * whether bios loading is disabled until we have read
 		 * plan9.ini.  make an exception for 9pxeload: probe
-		 * ethers anyway.  see if we can live with always
-		 * probing the bios.
+		 * ethers anyway.
 		 */
 		if(!pxe && tp->type == Tether /*|| !vga && tp->type == Tbios */)
 			continue;
