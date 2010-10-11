@@ -55,7 +55,8 @@ case go
 	if not if(! test -f /n/9fat/plan9.ini)
 		need9fatformat=yes
 
-	bind /n/newfs/386/9loadnousb /n/newfs/386/9load	# cater to old bioses
+	if (test -e  /n/newfs/386/9loadnousb)
+		bind /n/newfs/386/9loadnousb /n/newfs/386/9load	# cater to old bioses
 	if(~ $need9fatformat yes){
 		log Initializing Plan 9 FAT partition.
 		disk/format -r 2 -d -b /386/pbs \
