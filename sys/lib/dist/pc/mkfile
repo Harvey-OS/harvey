@@ -56,7 +56,8 @@ root.bz2:Q: boot.bz2
 
 9load: /386/9loadlite
 #	cp $prereq $target
-	cp /386/9loadnousb $target	# cater to old bioses
+	if (test -e /386/9loadnousb)
+		cp  /386/9loadnousb $target	# cater to old bioses
 	cp /386/9loadlitedebug 9loaddebug
 
 ndisk: 9load /sys/src/9/pc/9pcflop.gz plan9.ini /lib/vgadb

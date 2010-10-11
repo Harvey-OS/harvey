@@ -32,7 +32,8 @@ if(! ~ `{ls -l $adisk | awk '{print $6}'} 1474560){
 }
 
 log Formatting boot floppy
-bind /n/newfs/386/9loadnousb /n/newfs/386/9load		# cater to old bioses
+if (test -e  /n/newfs/386/9loadnousb)
+	bind /n/newfs/386/9loadnousb /n/newfs/386/9load	# cater to old bioses
 disk/format -b /386/pbs \
 	-fd $adisk /n/newfs/386/9load /n/newfs/386/9pcdisk.gz \
 	/tmp/plan9ini.bak
