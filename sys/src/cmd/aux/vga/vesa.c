@@ -201,7 +201,7 @@ static void
 load(Vga* vga, Ctlr* ctlr)
 {
 	if(vbe == nil)
-		error("no vesa bios");
+		error("no vesa bios\n");
 	if(vbesetmode(vbe, atoi(dbattr(vga->mode->attr, "id"))) < 0){
 		ctlr->flag |= Ferror;
 		fprint(2, "vbesetmode: %r\n");

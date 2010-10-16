@@ -207,12 +207,12 @@ init(Vga* vga, Ctlr* ctlr)
 
 	vmwr(vm, Rid, (0x900000<<8)|2);
 	if(vmrd(vm, Rid)&0xFF != 2)
-		error("old vmware svga version %lud; need version 2",
+		error("old vmware svga version %lud; need version 2\n",
 			vmrd(vm,Rid)&0xFF);
 
 	ctlr->flag |= Ulinear;
 	if(strcmp(vm->chan, "unknown") == 0)
-		error("couldn't translate color masks into channel");
+		error("couldn't translate color masks into channel\n");
 
 	/* Always use the screen depth, and clip the screen size */
 	vga->mode->z = vm->r[Rbpp];
