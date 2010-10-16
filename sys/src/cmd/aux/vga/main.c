@@ -281,7 +281,7 @@ main(int argc, char** argv)
 
 	for(ctlr = vga->link; ctlr; ctlr = ctlr->link)
 		if(ctlr->flag & Ferror)
-			error("%r");
+			error("%r\n");
 
 	if(iflag || lflag){
 		if(getenv(type))
@@ -369,7 +369,7 @@ main(int argc, char** argv)
 			if(vga->mode->z < nelem(chanstr) && chanstr[vga->mode->z])
 				strcpy(vga->mode->chan, chanstr[vga->mode->z]);
 			else
-				error("%s: unknown channel type to use for depth %d", vga->ctlr->name, vga->mode->z);
+				error("%s: unknown channel type to use for depth %d\n", vga->ctlr->name, vga->mode->z);
 		}
 
 		if(iflag || pflag)

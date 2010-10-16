@@ -84,7 +84,7 @@ openBox(char *name, char *fsname, int writable)
 	fsInit();
 	debuglog("imap4d open %s %s\n", name, fsname);
 
-	if(fprint(fsCtl, "open /mail/box/%s/%s %s", username, name, fsname) < 0){
+	if(fprint(fsCtl, "open '/mail/box/%s/%s' %s", username, name, fsname) < 0){
 //ZZZ
 		char err[ERRMAX];
 

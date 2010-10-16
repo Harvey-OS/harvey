@@ -388,7 +388,7 @@ init(Vga* vga, Ctlr* ctlr)
 			 * 32-bit mode (which the GX/2 calls 24-bit unpacked mode).
 			 */
 			if(id != 0x8A10)
-				error("32-bit mode only supported on the GX/2");
+				error("32-bit mode only supported on the GX/2\n");
 			vga->crt[0x67] |= 0xD0;
 			break;
 		}

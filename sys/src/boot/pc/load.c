@@ -346,7 +346,7 @@ main(void)
 	if (askbiosload) {
 		line[0] = '\0';
 		getstr("use bios drivers (e.g., for usb)", line, sizeof line,
-			"no", 60*1000);
+			"no", 60);
 		biosload = strncmp(line, "yes", 3) == 0;
 	}
 

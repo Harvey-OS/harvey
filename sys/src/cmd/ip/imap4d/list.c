@@ -360,7 +360,7 @@ checkMatch(char *cmd, char *ref, char *pat, char *mbox, long mtime, int isdir)
 
 	s = strmutf7(mbox);
 	if(s != nil)
-		Bprint(&bout, "* %s %s \"/\" %s\r\n", cmd, flags, s);
+		Bprint(&bout, "* %s %s \"/\" \"%s\"\r\n", cmd, flags, s);
 	return 1;
 }
 

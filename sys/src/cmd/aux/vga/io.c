@@ -252,12 +252,12 @@ dumpbios(long size)
 	buf = alloc(size);
 	offset = 0xC0000;
 	if(doreadbios((char*)buf, size, offset) != size)
-		error("short bios read in dumpbios");
+		error("short bios read in dumpbios\n");
 
 	if(buf[0] != 0x55 || buf[1] != 0xAA){
 		offset = 0xE0000;
 		if(doreadbios((char*)buf, size, offset) != size)
-			error("short bios read in dumpbios");
+			error("short bios read in dumpbios\n");
 		if(buf[0] != 0x55 || buf[1] != 0xAA){
 			free(buf);
 			return;

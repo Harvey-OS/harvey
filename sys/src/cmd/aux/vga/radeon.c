@@ -23,7 +23,7 @@ enum {
 
 typedef struct Radeon Radeon;
 struct Radeon {
-	ulong	mmio;
+	uintptr	mmio;
 	Pcidev	*pci;
 	uchar	*bios;
 
@@ -243,8 +243,8 @@ snarf(Vga *vga, Ctlr *ctlr)
 		if (mmio == ~0)
 			error("%s: can't attach mmio segment\n", ctlr->name);
 
-		DBGPRINT("radeon: mmio address: 0x%08ulx [size=0x%x]\n",
-			mmio, p->mem[2].size);
+		DBGPRINT("radeon: mmio address: %08#p [size=%#x]\n",
+			(void *)mmio, p->mem[2].size);
 
 		radeon->pci = p;
 		radeon->r300_workaround = isr300;
