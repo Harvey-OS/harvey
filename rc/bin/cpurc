@@ -69,7 +69,9 @@ if(! ps|grep -s timesync) {
 if(test -e /cfg/$sysname/cpustart)
 	. /cfg/$sysname/cpustart
 
-dontkill '^(ipconfig|factotum|mntgen|venti|fossil|cs|dns|listen|reboot)$'
+# mode of /proc/*/ctl is inherited across rfork, and sets modes on
+# other /proc files, such as note, so let listen be killed.
+dontkill '^(ipconfig|factotum|mntgen|venti|fossil|cs|dns|reboot)$'
 
 # echo `{date} $sysname >>/sys/log/boot
 exit ''
