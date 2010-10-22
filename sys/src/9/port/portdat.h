@@ -667,7 +667,7 @@ struct Proc
 
 	QLock	debug;		/* to access debugging elements of User */
 	Proc	*pdbg;		/* the debugging process */
-	ulong	procmode;	/* proc device file mode */
+	ulong	procmode;	/* proc device default file mode */
 	ulong	privatemem;	/* proc does not let anyone read mem */
 	int	hang;		/* hang at next exec for debug */
 	int	procctl;	/* Control for /proc debugging */
