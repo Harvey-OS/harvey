@@ -19,6 +19,7 @@ cat<<EOF
 EOF
 
 awk '
+/^#|^$/	{ next }
 collect && /^[^ \t]/{
 	collect = 0;
 }
@@ -38,6 +39,7 @@ cat <<EOF
 Devtab devtab[] = {
 	/* device, entrypoint, {csp, csp, csp csp}, vid, did */
 EOF
+
 awk '
 /^#|^$/	{ next }
 collect && /^[^ \t]/{
