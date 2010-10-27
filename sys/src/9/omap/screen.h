@@ -42,6 +42,11 @@ enum {
 
 	Pblack		= 0x00,
 	Pwhite		= 0xFF,
+
+	/* settings indices */
+	Res800x600	= 0,
+	Res1024x768,
+	Res1280x1024,
 };
 
 struct OScreen {
@@ -50,9 +55,6 @@ struct OScreen {
 	uint	ht;
 	uint	freq;
 	uint	chan;
-
-//	Lock;
-//	Cursor;
 
 	/* shouldn't be needed? */
 	uint	pixelclock;
@@ -63,6 +65,9 @@ struct OScreen {
 	uint	vbp;
 	uint	vfp;
 	uint	vsw;
+
+//	Lock;
+//	Cursor;
 };
 
 struct Omap3fb {		/* frame buffer for 24-bit active color */

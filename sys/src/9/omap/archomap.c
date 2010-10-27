@@ -19,9 +19,16 @@
 #include "../port/flashif.h"
 #include "usbehci.h"
 
+#define FREQSEL(x) ((x) << 4)
+
+typedef struct Cm Cm;
+typedef struct Cntrl Cntrl;
+typedef struct Gen Gen;
+typedef struct Gpio Gpio;
 typedef struct L3agent L3agent;
 typedef struct L3protreg L3protreg;
 typedef struct L3regs L3regs;
+typedef struct Prm Prm;
 typedef struct Usbotg Usbotg;
 typedef struct Usbtll Usbtll;
 
@@ -134,7 +141,6 @@ L3regs l3regs[] = {
  * 	units of MHz: 0 = 12, 1 = 13, 2 = 19.2, 3 = 26, 4 = 38.4, 5 = 16.8
  */
 
-typedef struct Cm Cm;
 struct Cm {				/* clock management */
 	ulong	fclken;			/* ``functional'' clock enable */
 	ulong	fclken2;
@@ -168,17 +174,66 @@ struct Cm {				/* clock management */
 	ulong	clkoutctrl;
 };
 
-typedef struct Prm Prm;
 struct Prm {				/* power & reset management */
 	uchar	_pad[0x50];
 	ulong	rstctrl;
+};
+
+struct Gpio {
+	ulong	_pad0[4];
+	ulong	sysconfig;
+	ulong	sysstatus;
+
+	ulong	irqsts1;		/* for mpu */
+	ulong	irqen1;
+	ulong	wkupen;
+	ulong	_pad1;
+	ulong	irqsts2;		/* for iva */
+	ulong	irqen2;
+
+	ulong	ctrl;
+
+	ulong	oe;
+	ulong	datain;
+	ulong	dataout;
+
+	ulong	lvldet0;
+	ulong	lvldet1;
+	ulong	risingdet;
+	ulong	fallingdet;
+
+	/* rest are uninteresting */
+	ulong	deben;			/* debouncing enable */
+	ulong	debtime;
+	ulong	_pad2[2];
+
+	ulong	clrirqen1;
+	ulong	setirqen1;
+	ulong	_pad3[2];
+
+	ulong	clrirqen2;
+	ulong	setirqen2;
+	ulong	_pad4[2];
+
+	ulong	clrwkupen;
+	ulong	setwkupen;
+	ulong	_pad5[2];
+
+	ulong	clrdataout;
+	ulong	setdataout;
 };
 
 enum {
 	/* clock enable & idle status bits */
 	Wkusimocp	= 1 << 9,	/* SIM card: uses 120MHz clock */
 	Wkwdt2		= 1 << 5,	/* wdt2 clock enable bit for wakeup */
-	Wkgpt1		= 1 << 0,	/* gpt1 clock enable bit for wakeup */
+	Wkgpio1		= 1 << 3,	/* gpio1 " */
+	Wkgpt1		= 1 << 0,	/* gpt1 " */
+
+	Dssl3l4		= 1 << 0,	/* dss l3, l4 i clks */
+	Dsstv		= 1 << 2,	/* dss tv f clock */
+	Dss2		= 1 << 1,	/* dss clock 2 */
+	Dss1		= 1 << 0,	/* dss clock 1 */
 
 	Pergpio6	= 1 << 17,
 	Pergpio5	= 1 << 16,
@@ -209,15 +264,73 @@ enum {
 
 	/* core->idlest bits */
 	Coreusbhsotgidle = 1 << 5,
-	Coreusbhsotgstdby = 1 << 4,
+	Coreusbhsotgstdby= 1 << 4,
+
+	Dplllock	= 7,
+
+	/* mpu->idlest2 bits */
+	Dplllocked	= 1,
+	Dpllbypassed	= 0,
+
+	/* wkup->idlest bits */
+	Gpio1idle	= 1 << 3,
+
+	/* dss->idlest bits */
+	Dssidle		= 1 << 1,
+
+	Gpio1vidmagic	= 1<<24 | 1<<8 | 1<<5,	/* gpio 1 pins for video */
+};
+enum {
+	Rstgs		= 1 << 1,	/* global sw. reset */
+
+	/* fp control regs.  most are read-only */
+	Fpsid		= 0,
+	Fpscr,				/* rw */
+	Mvfr1		= 6,
+	Mvfr0,
+	Fpexc,				/* rw */
 };
 
-typedef struct Gen Gen;
+/* see ether9221.c for explanation */
+enum {
+	Ethergpio	= 176,
+	Etherchanbit	= 1 << (Ethergpio % 32),
+};
+
+/*
+ * these shift values are for the Cortex-A8 L1 cache (A=2, L=6) and
+ * the Cortex-A8 L2 cache (A=3, L=6).
+ * A = log2(# of ways), L = log2(bytes per cache line).
+ * see armv7 arch ref p. 1403.
+ *
+ * #define L1WAYSH 30
+ * #define L1SETSH 6
+ * #define L2WAYSH 29
+ * #define L2SETSH 6
+ */
+enum {
+	/*
+	 * cache capabilities.  write-back vs write-through is controlled
+	 * by the Buffered bit in PTEs.
+	 */
+	Cawt	= 1 << 31,
+	Cawb	= 1 << 30,
+	Cara	= 1 << 29,
+	Cawa	= 1 << 28,
+};
+
 struct Gen {
 	ulong	padconf_off;
 	ulong	devconf0;
 	uchar	_pad0[0x68 - 8];
 	ulong	devconf1;
+};
+
+struct Cntrl {
+	ulong	_pad0;
+	ulong	id;
+	ulong	_pad1;
+	ulong	skuid;
 };
 
 
@@ -383,24 +496,6 @@ archether(unsigned ctlrno, Ether *ether)
 	}
 	return -1;
 }
-
-#define FREQSEL(x) ((x) << 4)
-
-enum {
-	Dplllock	= 7,
-
-	/* mpu->idlest2 bits */
-	Dplllocked	= 1,
-	Dpllbypassed	= 0,
-};
-
-typedef struct Cntrl Cntrl;
-struct Cntrl {
-	ulong	_pad0;
-	ulong	id;
-	ulong	_pad1;
-	ulong	skuid;
-};
 
 /*
  * turn on all the necessary clocks on the SoC.
@@ -662,57 +757,6 @@ configclks(void)
 	delay(20);
 }
 
-typedef struct Gpio Gpio;
-struct Gpio {
-	ulong	_pad0[4];
-	ulong	sysconfig;
-	ulong	sysstatus;
-
-	ulong	irqsts1;		/* for mpu */
-	ulong	irqen1;
-	ulong	wkupen;
-	ulong	_pad1;
-	ulong	irqsts2;		/* for iva */
-	ulong	irqen2;
-
-	ulong	ctrl;
-
-	ulong	oe;
-	ulong	datain;
-	ulong	dataout;
-
-	ulong	lvldet0;
-	ulong	lvldet1;
-	ulong	risingdet;
-	ulong	fallingdet;
-
-	/* rest are uninteresting */
-	ulong	deben;			/* debouncing enable */
-	ulong	debtime;
-	ulong	_pad2[2];
-
-	ulong	clrirqen1;
-	ulong	setirqen1;
-	ulong	_pad3[2];
-
-	ulong	clrirqen2;
-	ulong	setirqen2;
-	ulong	_pad4[2];
-
-	ulong	clrwkupen;
-	ulong	setwkupen;
-	ulong	_pad5[2];
-
-	ulong	clrdataout;
-	ulong	setdataout;
-};
-
-/* see ether9221.c for explanation */
-enum {
-	Ethergpio	= 176,
-	Etherchanbit	= 1 << (Ethergpio % 32),
-};
-
 static void
 resetwait(ulong *reg)
 {
@@ -761,12 +805,6 @@ configgpio(void)
 	coherence();
 }
 
-enum {
-	/* idlest bits */
-	Gpioidle= 1 << 3,
-	Dssidle	= 1 << 1,
-};
-
 void
 configscreengpio(void)
 {
@@ -774,15 +812,23 @@ configscreengpio(void)
 	Gpio *gpio = (Gpio *)PHYSGPIO1;
 
 	/* no clocksel needed */
-	wkup->fclken |= B(3);			/* turn gpioclock on */
-	wkup->iclken |= B(3);
-//	wkup->autoidle |= B(3); 		/* gpio clock set it on auto */
+	wkup->iclken |= Wkgpio1;
 	coherence();
-	while (wkup->idlest & Gpioidle)
+	wkup->fclken |= Wkgpio1;		/* turn gpio clock on */
+	coherence();
+	// wkup->autoidle |= Wkgpio1; 		/* set gpio clock on auto */
+	wkup->autoidle = 0;
+	coherence();
+	while (wkup->idlest & Gpio1idle)
 		;
-	/* should use a UNMASK macro? */
-	gpio->oe |= ~0 ^ B(24) ^ B(8) ^ B(5);	/* enable output*/
-	gpio->dataout |= B(24) | B(8) | B(5);	/* set output pins */
+
+	/*
+	 * 0 bits in oe are output signals.
+	 * enable output for gpio 1 (first gpio) video magic pins.
+	 */
+	gpio->oe &= ~Gpio1vidmagic;
+	coherence();
+	gpio->dataout |= Gpio1vidmagic;		/* set output pins to 1 */
 	coherence();
 	delay(50);
 }
@@ -790,14 +836,17 @@ configscreengpio(void)
 void
 screenclockson(void)
 {
-	Cm *dsscm = (Cm *)PHYSSCMDSS;
+	Cm *dss = (Cm *)PHYSSCMDSS;
 
-	dsscm->clksel[0] = B(12) | 2;		/* DPLL4 */
-	dsscm->fclken = B(2) | B(1) | B(0);  /* turn on clocks for tv, dss2/1 */
-	dsscm->iclken |= B(0);			/* turn on dss clock */
+	dss->iclken |= Dssl3l4;
+	coherence();
+	dss->fclken = Dsstv | Dss2 | Dss1;
+	coherence();
+	/* tv fclk is dpll4 clk; dpll4 m4 divide factor for dss1 fclk is 2 */
+	dss->clksel[0] = 1<<12 | 2;
 	coherence();
 	delay(50);
-	while (dsscm->idlest & Dssidle)
+	while (dss->idlest & Dssidle)
 		;
 }
 
@@ -809,28 +858,6 @@ gpioirqclr(void)
 	gpio->irqsts1 = gpio->irqsts1;
 	coherence();
 }
-
-/*
- * these shift values are for the Cortex-A8 L1 cache (A=2, L=6) and
- * the Cortex-A8 L2 cache (A=3, L=6).
- * A = log2(# of ways), L = log2(bytes per cache line).
- * see armv7 arch ref p. 1403.
- *
- * #define L1WAYSH 30
- * #define L1SETSH 6
- * #define L2WAYSH 29
- * #define L2SETSH 6
- */
-enum {
-	/*
-	 * cache capabilities.  write-back vs write-through is controlled
-	 * by the Buffered bit in PTEs.
-	 */
-	Cawt	= 1 << 31,
-	Cawb	= 1 << 30,
-	Cara	= 1 << 29,
-	Cawa	= 1 << 28,
-};
 
 static char *
 l1iptype(uint type)
@@ -896,15 +923,6 @@ prcachecfg(void)
 		iprint("\n");
 	}
 }
-
-enum {
-	/* fp control regs.  most are read-only */
-	Fpsid,
-	Fpscr,			/* rw */
-	Mvfr1	= 6,
-	Mvfr0,
-	Fpexc,			/* rw */
-};
 
 static char *
 subarch(int impl, uint sa)
@@ -1234,10 +1252,6 @@ archreset(void)
 	resetusb();
 	fpon();
 }
-
-enum {
-	Rstgs	= 1 << 1,		/* global sw. reset */
-};
 
 void
 archreboot(void)

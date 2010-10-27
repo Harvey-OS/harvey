@@ -88,26 +88,19 @@ getchans(char *p)
 static long
 settingswrite(OScreen *setting, char *p)
 {
-#ifdef notdef
-	if(strncmp("640x480", p, 7) == 0){
-		*setting = settings[0];
-		setting->chan = getchans(p+7);
-		return 1;
-	} else
-#endif
 	if (strncmp("800x600", p, 7) == 0) {
-		*setting = settings[0];
-		setting->chan = getchans(p + 7);
-		return 1;
+		p += 7;
+		*setting = settings[Res800x600];
 	} else if (strncmp("1024x768", p, 8) == 0) {
-		*setting = settings[1];
-		setting->chan = getchans(p + 8);
-		return 1;
+		p += 8;
+		*setting = settings[Res1024x768];
 	} else if (strncmp("1280x1024", p, 9) == 0) {
-		*setting = settings[2];
-		setting->chan = getchans(p + 9);
-	}
-	return -1;
+		p += 9;
+		*setting = settings[Res1280x1024];
+	} else
+		return -1;
+	setting->chan = getchans(p);
+	return 1;
 }
 
 static long
@@ -119,8 +112,7 @@ screenread(Chan *c, void *a, long n, vlong off)
 
 	switch ((ulong)c->qid.path) {
 	case Qdir:
-		return devdirread(c, a, n, dsstab, nelem(dsstab),
-			devgen);
+		return devdirread(c, a, n, dsstab, nelem(dsstab), devgen);
 	case Qdss:
 		scr = &oscreen;
 		p = malloc(READSTR);
@@ -156,7 +148,8 @@ screenwrite(Chan *c, void *a, long n, vlong off)
 		if(off)
 			error(Ebadarg);
 		n = settingswrite(&oscreen, a);
-		free(framebuf);
+		if (n < 0)
+			error(Ebadctl);
 		screeninit();
 		return n;
 	default:
