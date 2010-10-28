@@ -39,16 +39,17 @@ enum {
 	i82544ei	= (0x1008<<16)|0x8086,
 	i82544eif	= (0x1009<<16)|0x8086,
 	i82544gc	= (0x100d<<16)|0x8086,
-	i82547ei	= (0x1019<<16)|0x8086,
 	i82540em	= (0x100E<<16)|0x8086,
 	i82540eplp	= (0x101E<<16)|0x8086,
 	i82545em	= (0x100F<<16)|0x8086,
 	i82545gmc	= (0x1026<<16)|0x8086,
+	i82547ei	= (0x1019<<16)|0x8086,
 	i82547gi	= (0x1075<<16)|0x8086,
+	i82541ei	= (0x1013<<16)|0x8086,
 	i82541gi	= (0x1076<<16)|0x8086,
 	i82541gi2	= (0x1077<<16)|0x8086,
-	i82546gb	= (0x1079<<16)|0x8086,
 	i82541pi	= (0x107c<<16)|0x8086,
+	i82546gb	= (0x1079<<16)|0x8086,
 	i82546eb	= (0x1010<<16)|0x8086,
 };
 
@@ -903,15 +904,16 @@ igbeinit(Ether* edev)
 	case i82544ei:
 	case i82544eif:
 	case i82544gc:
-	case i82547ei:
 	case i82540em:
 	case i82540eplp:
+	case i82541ei:
 	case i82541gi:
 	case i82541gi2:
 	case i82541pi:
 	case i82546gb:
 	case i82546eb:
 	case i82547gi:
+	case i82547ei:
 	case i82545em:
 	case i82545gmc:
 		r = 8;
@@ -948,13 +950,13 @@ igbeinit(Ether* edev)
 	case i82540em:
 	case i82540eplp:
 	case i82547gi:
-	case i82541pi:
 	case i82545em:
 	case i82545gmc:
 	case i82546gb:
 	case i82546eb:
 	case i82541gi:
 	case i82541gi2:
+	case i82541pi:
 		r = csr32r(ctlr, Txdctl);
 		r &= ~WthreshMASK;
 		r |= Gran|(4<<WthreshSHIFT);
@@ -1180,9 +1182,9 @@ igbemii(Ctlr* ctlr)
 	case i82544ei:
 	case i82544eif:
 	case i82544gc:
-	case i82547ei:
 	case i82540em:
 	case i82540eplp:
+	case i82547ei:
 	case i82547gi:
 	case i82541gi:
 	case i82541gi2:
@@ -1356,14 +1358,16 @@ at93c46r(Ctlr* ctlr)
 		break;
 	case i82540em:
 	case i82540eplp:
+	case i82541ei:
 	case i82541gi:
 	case i82541gi2:
+	case i82541pi:
 	case i82545em:
 	case i82545gmc:
-	case i82541pi:
-	case i82547gi:
 	case i82546gb:
 	case i82546eb:
+	case i82547ei:
+	case i82547gi:
 		areq = 1;
 		csr32w(ctlr, Eecd, eecd|Areq);
 		for(i = 0; i < 1000; i++){
@@ -1442,9 +1446,9 @@ detach(Ctlr *ctlr)
 	case i82540eplp:
 	case i82541gi:
 	case i82541gi2:
+	case i82541pi:
 	case i82545em:
 	case i82545gmc:
-	case i82541pi:
 	case i82547gi:
 	case i82546gb:
 	case i82546eb:
@@ -1635,9 +1639,10 @@ igbepci(void)
 		case i82544eif:
 		case i82544gc:
 		case i82547ei:
+		case i82547gi:
 		case i82540em:
 		case i82540eplp:
-		case i82547gi:
+		case i82541ei:
 		case i82541gi:
 		case i82541gi2:
 		case i82541pi:
