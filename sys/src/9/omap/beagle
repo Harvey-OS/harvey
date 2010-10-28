@@ -27,7 +27,7 @@ dev
 	dss
 	kbmap
 	kbin
-#	mouse
+	mouse
 
 	uart
 #	usb
@@ -59,7 +59,7 @@ misc
 	rdb
 	coproc
 	dma
-#	mouse
+	mouse
 #	sdaoe		sdscsi
 	softfpu
 	syscall

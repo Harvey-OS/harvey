@@ -24,7 +24,7 @@ enum {
 };
 
 extern OScreen oscreen;
-extern OScreen settings[];
+extern Settings settings[];
 extern Omap3fb *framebuf;
 
 static QLock dsslck;
@@ -86,20 +86,20 @@ getchans(char *p)
 }
 
 static long
-settingswrite(OScreen *setting, char *p)
+settingswrite(OScreen *scr, char *p)
 {
 	if (strncmp("800x600", p, 7) == 0) {
 		p += 7;
-		*setting = settings[Res800x600];
+		scr->settings = &settings[Res800x600];
 	} else if (strncmp("1024x768", p, 8) == 0) {
 		p += 8;
-		*setting = settings[Res1024x768];
+		scr->settings = &settings[Res1024x768];
 	} else if (strncmp("1280x1024", p, 9) == 0) {
 		p += 9;
-		*setting = settings[Res1280x1024];
+		scr->settings = &settings[Res1280x1024];
 	} else
 		return -1;
-	setting->chan = getchans(p);
+	scr->settings->chan = getchans(p);
 	return 1;
 }
 
@@ -108,27 +108,27 @@ screenread(Chan *c, void *a, long n, vlong off)
 {
 	int len, depth;
 	char *p;
-	OScreen *scr;
+	Settings *set;
 
 	switch ((ulong)c->qid.path) {
 	case Qdir:
 		return devdirread(c, a, n, dsstab, nelem(dsstab), devgen);
 	case Qdss:
-		scr = &oscreen;
+		set = oscreen.settings;
 		p = malloc(READSTR);
 		if(waserror()){
 			free(p);
 			nexterror();
 		}
-		if (scr->chan == RGB16)
+		if (set->chan == RGB16)
 			depth = 16;
-		else if (scr->chan == RGB24)
+		else if (set->chan == RGB24)
 			depth = 24;
 		else
 			depth = 0;
 		len = snprint(p, READSTR, "size %dx%dx%d @ %d Hz\n"
-			"addr %#p size %ud\n", scr->wid, scr->ht, depth,
-			scr->freq, framebuf, sizeof *framebuf);
+			"addr %#p size %ud\n", set->wid, set->ht, depth,
+			set->freq, framebuf, sizeof *framebuf);
 		USED(len);
 		n = readstr(off, a, n, p);
 		poperror();
