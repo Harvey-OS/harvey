@@ -1267,7 +1267,7 @@ archreboot(void)
 
 	/* shouldn't get here */
 	splhi();
-	iprint("waiting");
+	iprint("awaiting reset");
 	for(;;) {
 		delay(1000);
 		print(".");

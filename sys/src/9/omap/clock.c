@@ -23,13 +23,14 @@ enum {
 	Tn0		= PHYSTIMER1,
 	Tn1		= PHYSTIMER2,
 
+	/* irq 36 is watchdog timer module 3 overflow */
 	Tn0irq		= 37,			/* base IRQ for all timers */
 
 	Freebase	= 1,			/* base of free-running timer */
 
 	/*
 	 * clock is 32K (32,768) Hz, so one tick is 30.517µs,
-	 * so 327.68 ticks is 10ms, 32.768 tick is 1ms.
+	 * so 327.68 ticks is 10ms, 32.768 ticks is 1ms.
 	 */
 	Clockfreqbase	= 32 * 1024,		/* base rate in Hz */
 	Tcycles		= Clockfreqbase / HZ,	/* cycles per clock tick */

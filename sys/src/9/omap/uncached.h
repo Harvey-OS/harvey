@@ -7,10 +7,11 @@
  * from usbehci.  so, at least for now, we will use uncached memory until
  * we sort out the write-back problems.
  */
-#define smalloc(n)		myucalloc(n)
 #define free			ucfree
+#define malloc			myucalloc
+#define mallocz			ucallocz
+#define smalloc			myucalloc
 #define xspanalloc		ucallocalign
-#define mallocz(n, clr)		ucallocz(n, clr)
 
 #define allocb			ucallocb
 #define iallocb			uciallocb
