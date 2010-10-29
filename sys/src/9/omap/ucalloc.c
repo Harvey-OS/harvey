@@ -84,16 +84,12 @@ ucarena(usize size)
 	assert(size == 1*MiB);
 
 	mainmem->maxsize += 1*MiB;
-	if((v = mallocalign(1*MiB, 1*MiB, 0, 0)) == nil){
-		mainmem->maxsize -= 1*MiB;
-		return nil;
-	}
-	if((uv = mmuuncache(v, 1*MiB)) == nil){
+	if((v = mallocalign(1*MiB, 1*MiB, 0, 0)) == nil ||
+	    (uv = mmuuncache(v, 1*MiB)) == nil){
 		free(v);
 		mainmem->maxsize -= 1*MiB;
 		return nil;
 	}
-
 	return uv;
 }
 
