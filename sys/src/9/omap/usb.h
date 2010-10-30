@@ -14,7 +14,7 @@ enum
 	/* tunable parameters */
 	Nhcis	= 16,		/* max nb. of HCIs */
 	Neps	= 64,		/* max nb. of endpoints */
-	Maxctllen = 16*1024,	/* max allowed sized for ctl. xfers */
+	Maxctllen = 32*1024, /* max allowed sized for ctl. xfers; see Maxdevconf */
 	Xfertmout = 2000,	/* default request time out (ms) */
 
 	/* transfer types. keep this order */
@@ -157,7 +157,7 @@ struct Ep
 	void*	aux;		/* for controller specific info */
 	int	rhrepl;		/* fake root hub replies */
 	int	toggle[2];	/* saved toggles (while ep is not in use) */
-	long	pollival;		/* poll interval ([µ]frames; intr/iso) */
+	long	pollival;	/* poll interval ([µ]frames; intr/iso) */
 	long	hz;		/* poll frequency (iso) */
 	long	samplesz;	/* sample size (iso) */
 	int	ntds;		/* nb. of Tds per µframe */
