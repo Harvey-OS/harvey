@@ -101,6 +101,11 @@ might be changed.  Writing to /dev/dssctl (e.g., echo 1024x768x16
 use the rfbi since it seems like an unnecessary optimisation at this
 point.  Per Odlund wrote the first draft of the video driver for a
 Google Summer of Code project.
+
+Stray Interrupts
+
+IRQs 56 and 57 are I2C.  83, 86 and 94 are MMC.
+
 ___
 
 The code is fairly heavy-handed with the use of barrier instructions

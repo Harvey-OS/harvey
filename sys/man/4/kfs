@@ -25,7 +25,7 @@ kfs \- disk file system
 ]
 .SH DESCRIPTION
 .I Kfs
-is a local user-level file server for a Plan 9 terminal with a disk.
+is an old, local user-level file server for a Plan 9 terminal with a disk.
 It maintains a hierarchical Plan 9 file system on the disk
 and offers
 9P (see
@@ -120,6 +120,7 @@ Default file holding blocks.
 .SH SOURCE
 .B /sys/src/cmd/disk/kfs
 .SH "SEE ALSO"
+.IR fossil (4),
 .IR kfscmd (8),
 .IR mkfs (8),
 .IR prep (8),
@@ -130,3 +131,6 @@ For the moment,
 serves both the old (third edition) and new (fourth
 edition) versions of 9P, deciding which to serve by sniffing the first packet on each
 connection.
+.LP
+.I Kfs
+doesn't allow creating files with component names longer than 28 bytes.

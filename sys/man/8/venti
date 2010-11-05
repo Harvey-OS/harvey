@@ -476,12 +476,12 @@ bloom /tmp/disks/bloom
 .EE
 .PP
 Format the index sections, the arena partition,
-the bloom filter, and 
+the bloom filter, and
 finally the main index:
 .IP
 .EX
-% venti/fmtisect isect0. /tmp/disks/isect0 &
-% venti/fmtisect isect1. /tmp/disks/isect1 &
+% venti/fmtisect isect0. /tmp/disks/isect0
+% venti/fmtisect isect1. /tmp/disks/isect1
 % venti/fmtarenas arenas0. /tmp/disks/arenas &
 % venti/fmtbloom /tmp/disks/bloom &
 % wait

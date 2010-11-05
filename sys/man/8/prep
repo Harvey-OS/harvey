@@ -188,6 +188,8 @@ works in units of disk sectors, which are almost always 512 bytes.
 and
 .I prep
 share most of their options:
+.TF -a
+.PD
 .TP
 .B -a
 Automatically partition the disk.
@@ -305,6 +307,8 @@ secondary partitions cannot exceed four.
 The commands are as follows.
 In the descriptions, read ``sector'' as ``cylinder'' when using
 .IR fdisk .
+.TF ".\fI newdot
+.PD
 .TP
 .B "a\fR \fIname\fR [ \fIstart\fR [ \fIend\fR ] ]"
 Create a partition named
@@ -457,6 +461,8 @@ again will quit the program.
 .PP
 .I Fdisk
 also has the following commands.
+.TF "t \fR[\fI type \fR]
+.PD
 .TP
 .BI A " name
 Set the named partition active.
@@ -704,26 +710,38 @@ disk/format -b /386/pbslba -d -r 2 /dev/sdC0/9fat \e
 .EE
 .PP
 Create a bootable USB disk or flash-memory device to be booted
-via the BIOS and containing only a FAT
-.I fdisk
-partition.
+via the BIOS and containing only a FAT Plan 9 partition.
 .IP
 .EX
 mount /srv/usb /n/usb
-ls /n/usb/sdU*			# note the sdU* number
-disk/partfs /n/usb/sdU13.0/data
-disk/mbr -m /386/mbr /dev/sdXX/data
-disk/fdisk -baw /dev/sdXX/data
-disk/fdisk /dev/sdXX/data
-# delete p1 and create a new FAT16 p1 of about 100MB,
-# and mark it active.  write and quit.
-disk/format -b /386/pbslba -d -r 2 /dev/sdXX/dos \e
-	/386/9load /386/9pcf /tmp/plan9.ini
+ls -d /n/usb/sdU*		# note the name, normally sdU0.0
+disk/partfs /n/usb/sdU0.0/data
+cd /dev/sdXX
+disk/mbr -m /386/mbr data
+disk/fdisk -baw data
+disk/prep -bw -a^(9fat nvram fossil) plan9
+cp /386/9loadusb /tmp/9load  # force format to use the name `9load'
+disk/format -b /386/pbslba -d -r 2 9fat /tmp/9load \e
+	/386/9pccpuf /tmp/plan9.ini
 .EE
+.SH FILES
+.TF /386/mbr.bootmgr
+.TP
+.B /386/mbr
+.TP
+.B /386/mbr.bootmgr
+self-configuring `smart boot manager'
 .SH SOURCE
+.TF /sys/src/cmd/disk/prep
+.TP
 .B /sys/src/cmd/disk/prep
-.br
+.TP
 .B /sys/src/boot/pc
+.TP
+.B /n/sources/extra/bootmgr.tgz
+source for
+.BR /386/mbr.bootmgr ;
+compilable on (l)unix
 .SH SEE ALSO
 .IR floppy (3),
 .IR sd (3),
