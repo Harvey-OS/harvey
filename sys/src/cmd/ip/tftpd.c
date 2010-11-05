@@ -43,6 +43,17 @@ enum
 
 	Defsegsize	= 512,
 	Maxsegsize	= 65464,	/* from rfc2348 */
+
+	/*
+	 * bandt (viaduct) tunnels use smaller mtu than ether's
+	 * (1400 bytes for tcp mss of 1300 bytes).
+	 */
+	Bandtmtu	= 1400,
+	/*
+	 * maximum size of block's data content, excludes hdrs,
+	 * notably IP/UDP and TFTP, using worst-case (IPv6) sizes.
+	 */
+	Bandtblksz	= Bandtmtu - 40 - 8,
 };
 
 typedef struct Opt Opt;
@@ -58,11 +69,12 @@ int	restricted;
 int	pid;
 
 /* options */
-int	blksize = Defsegsize;
+int	blksize = Defsegsize;		/* excluding 4-byte header */
 int	timeout = 5;			/* seconds */
 int	tsize;
 static Opt option[] = {
 	"timeout",	&timeout,	1,	255,
+	/* see "hack" below */
 	"blksize",	&blksize,	8,	Maxsegsize,
 	"tsize",	&tsize,		0,	~0UL >> 1,
 };
@@ -264,8 +276,23 @@ options(int fd, char *buf, char *file, ushort oper, char *p, int dlen)
 				sprint(bp, "%lld", size);
 				syslog(dbg, flog, "tftpd %d %s tsize is %,lld",
 					pid, file, size);
+			}
+			/*
+			 * hack: bandt (viaducts) uses smaller mtu than ether's
+			 * (1400 bytes for tcp mss of 1300 bytes),
+			 * so offer at most bandt's mtu minus headers,
+			 * to avoid failure of pxe booting via viaduct.
+			 */
+			else if (oper == Tftp_READ &&
+			    cistrcmp(p, "blksize") == 0 &&
+			    blksize > Bandtblksz) {
+				blksize = Bandtblksz;
+				sprint(bp, "%d", blksize);
+				syslog(dbg, flog,
+					"tftpd %d overriding blksize to %d",
+					pid, blksize);
 			} else
-				sprint(bp, "%s", val); /* use value asked for */
+				strcpy(bp, val);  /* use requested value */
 			bp += strlen(bp) + 1;
 		}
 		p = val + vallen;
