@@ -90,13 +90,14 @@ authuser(Conn *c)
 	}
 
 	for(i=0; i<c->nokauth; i++){
-		debug(DBG_AUTH, "authmask %#x, consider %s (%#x)\n", c->authmask, c->okauth[i]->name, 1<<c->okauth[i]->id);
+		debug(DBG_AUTH, "authmask %#lux, consider %s (%#x)\n",
+			c->authmask, c->okauth[i]->name, 1<<c->okauth[i]->id);
 		if(c->authmask & (1<<c->okauth[i]->id))
 			if((*c->okauth[i]->fn)(c) == 0)
 				return 0;
 	}
 
-	debug(DBG_AUTH, "no auth methods worked; (authmask=%#x)\n", c->authmask);
+	debug(DBG_AUTH, "no auth methods worked; (authmask=%#lux)\n", c->authmask);
 	return -1;
 }
 

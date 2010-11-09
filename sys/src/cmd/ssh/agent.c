@@ -203,7 +203,7 @@ handleagentmsg(Msg *m)
 	assert(m->type == SSH_MSG_CHANNEL_DATA);
 
 	debug(DBG_AUTH, "agent data\n");
-	debug(DBG_AUTH, "\t%.*H\n", m->ep-m->rp, m->rp);
+	debug(DBG_AUTH, "\t%.*H\n", (int)(m->ep - m->rp), m->rp);
 	chan = getlong(m);
 	len = getlong(m);
 	if(m->rp+len != m->ep)

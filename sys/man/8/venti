@@ -227,7 +227,7 @@ the venti protocol as described in
 .IR venti (6),
 and one serving HTTP
 (conventionally TCP port 
-.BR venti ,
+.BR http ,
 80).
 .PP
 The venti web server provides the following 

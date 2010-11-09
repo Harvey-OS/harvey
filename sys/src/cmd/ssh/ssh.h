@@ -298,6 +298,6 @@ void		sshlog(char*, ...);
 void		setaliases(Conn*, char*);
 void		privatefactotum(void);
 
+#pragma varargck argpos debug 2
 #pragma varargck argpos error 1
 #pragma varargck argpos sshlog 2
-
