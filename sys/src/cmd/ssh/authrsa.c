@@ -41,7 +41,7 @@ authrsafn(Conn *c)
 		m = recvmsg(c, -1);
 		switch(m->type){
 		case SSH_SMSG_FAILURE:
-			debug(DBG_AUTH, "\tnot accepted\n", (char*)rpc->arg);
+			debug(DBG_AUTH, "\tnot accepted %s\n", (char*)rpc->arg);
 			free(m);
 			continue;
 		default:

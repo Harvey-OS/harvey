@@ -102,7 +102,7 @@ allocmsg(Conn *c, int type, int len)
 void
 unrecvmsg(Conn *c, Msg *m)
 {
-	debug(DBG_PROTO, "unreceived %s len %d\n", msgnames[m->type], m->ep - m->rp);
+	debug(DBG_PROTO, "unreceived %s len %ld\n", msgnames[m->type], m->ep - m->rp);
 	free(c->unget);
 	c->unget = m;
 }
@@ -171,7 +171,7 @@ recvmsg(Conn *c, int type)
 	Msg *m;
 
 	while((m = recvmsg0(c)) != nil){
-		debug(DBG_PROTO, "received %s len %d\n", msgnames[m->type], m->ep - m->rp);
+		debug(DBG_PROTO, "received %s len %ld\n", msgnames[m->type], m->ep - m->rp);
 		if(m->type != SSH_MSG_DEBUG && m->type != SSH_MSG_IGNORE)
 			break;
 		if(m->type == SSH_MSG_DEBUG)
@@ -205,7 +205,7 @@ sendmsg(Msg *m)
 	len = datalen + 5;
 	pad = 8 - len%8;
 
-	debug(DBG_PROTO, "sending %s len %d\n", msgnames[m->type], datalen);
+	debug(DBG_PROTO, "sending %s len %lud\n", msgnames[m->type], datalen);
 
 	p = m->bp;
 	memmove(m->bp+4+pad+1, m->bp, datalen);	/* slide data to correct position */
