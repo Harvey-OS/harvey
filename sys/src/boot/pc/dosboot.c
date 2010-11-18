@@ -134,7 +134,7 @@ getclust(Dos *dos, long sector)
 	/*
 	 *  read in the cluster
 	 */
-	fs = (Fs*)dos;
+	fs = (Fs*)dos;		/* assume dos is embedded at start of an Fs */
 	chat("getclust addr %lud %p %p %p\n", (ulong)((sector+dos->start)*(vlong)dos->sectsize),
 		fs, fs->diskseek, fs->diskread);
 	if(fs->diskseek(fs, (sector+dos->start)*(vlong)dos->sectsize) < 0){
@@ -420,7 +420,7 @@ chat("dosinit0 %p %p %p\n", fs, fs->diskseek, fs->diskread);
 
 chat("dosinit0a\n");
 
-	p->dos = 0;
+	p->dos = 0;				/* don't cache this block */
 	b = (Dosboot *)p->iobuf;
 	if(b->magic[0] != JMPNEAR && (b->magic[0] != JMPSHORT || b->magic[2] != 0x90)){
 		chat("no dos file system %x %x %x %x\n",

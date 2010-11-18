@@ -218,7 +218,7 @@ aesleep(Aportm *, Asleep *a, int ms)
 
 	start = m->ticks;
 	while((a->p->ci & a->i) != 0)
-		if(TK2MS(m->ticks-start) >= ms)
+		if(TK2MS(m->ticks - start) >= ms)
 			break;
 }
 
@@ -947,7 +947,11 @@ newdrive(Drive *d)
 	return 0;
 
 lose:
-	qunlock(&d->portm);
+	idprint("sdiachi: %s can't be initialized\n", name);
+	ilock(d);
+	d->state = Dnull;
+	iunlock(d);
+	qunlock(c->m);
 	return -1;
 }
 
@@ -1127,7 +1131,8 @@ iaverify(SDunit *u)
 	iunlock(c);
 
 	reset = 0;
-	for(i = 0; i < 10; i++){
+	/* we may be waiting for a cd drive to spin up, so be a bit patient. */
+	for(i = 0; i < 50; i++){
 		checkdrive(d, d->driveno);
 		switch(d->state){
 		case Dnew:
@@ -1154,13 +1159,16 @@ iaverify(SDunit *u)
 				return scsiverify(d->unit);
 			return 1;
 		}
+		if(d->state != Dnew && i >= 10)
+			break;
+		/* Dnew means there's something there. it's just really slow. */
 		delay(100);
 	}
 	if(d->state != Dmissing)
 		print("sdiahci: drive %d won't come up; "
-			"in state %s after %d resets\n",
-			d->driveno, diskstates[d->state], i);
-	return 1;
+			"in state %s after %d ms.\n",
+			d->driveno, diskstates[d->state], i*100);
+	return 0;
 }
 
 static int
@@ -1350,7 +1358,10 @@ waitready(Drive *d)
 		if(d->state == Dreset || d->state == Dportreset ||
 		    d->state == Dnew)
 			return 1;
-		δ = m->ticks - d->lastseen;
+		if(d->lastseen == 0)
+			δ = 0;
+		else
+			δ = TK2MS(m->ticks - d->lastseen);
 		if(d->state == Dnull || δ > 10*1000)
 			return -1;
 		ilock(d);
@@ -1545,27 +1556,38 @@ iario(SDreq *r)
 }
 
 /*
- * configure drives 0-5 as ahci sata  (c.f. errata)
+ * configure drives 0-15 as ahci sata  (c.f. errata)
  */
 static int
 iaahcimode(Pcidev *p)
 {
-	dprint("iaahcimode: %ux %ux %ux\n", pcicfgr8(p, 0x91), pcicfgr8(p, 92),
-		pcicfgr8(p, 93));
-	pcicfgw16(p, 0x92, pcicfgr32(p, 0x92) | 0xf);	/* ports 0-3 */
-//	pcicfgw8(p, 0x93, pcicfgr32(p, 9x93) | 3);	/* ports 4-5 */
+	uint u;
+
+	u = pcicfgr16(p, 0x92);
+	dprint("ahci: %ux: iaahcimode %.2ux %.4ux\n",
+		p->tbdf, pcicfgr8(p, 0x91), u);
+	pcicfgw16(p, 0x92, u | 0xf);
 	return 0;
 }
+
+enum {
+	Ghc	= 0x04/4,	/* global host control */
+	Pi	= 0x0c/4,	/* ports implemented */
+
+	Cmddec	= 1<<15,	/* enable command block decode */
+
+	/* Ghc bits */
+	Ahcien	= 1<<31,	/* ahci enable */
+};
 
 static void
 iasetupahci(Ctlr *c)
 {
-	/* disable cmd block decoding. */
-	pcicfgw16(c->pci, 0x40, pcicfgr16(c->pci, 0x40) & ~(1<<15));
-	pcicfgw16(c->pci, 0x42, pcicfgr16(c->pci, 0x42) & ~(1<<15));
+	pcicfgw16(c->pci, 0x40, pcicfgr16(c->pci, 0x40) & ~Cmddec);
+	pcicfgw16(c->pci, 0x42, pcicfgr16(c->pci, 0x42) & ~Cmddec);
 
-	c->lmmio[0x4/4] |= 1 << 31;	/* enable ahci mode (ghc register) */
-	c->lmmio[0xc/4] = (1 << 6) - 1;	/* 5 ports. (supposedly ro pi reg.) */
+	c->lmmio[Ghc] |= Ahcien;
+	c->lmmio[Pi] = (1 << 6) - 1;	/* 5 ports (supposedly ro pi reg) */
 
 	/* enable ahci mode; from ich9 datasheet */
 	pcicfgw16(c->pci, 0x90, 1<<6 | 1<<5);

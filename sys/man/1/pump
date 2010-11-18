@@ -55,7 +55,7 @@ and
 .I write
 operations to
 .I iando
-kilobytes.
+bytes.
 The default size is 8 kilobytes.
 .TP
 .B -d
@@ -74,7 +74,7 @@ sets the size of
 .I read
 operations to
 .I ireadsize
-kilobytes.
+bytes.
 .TP
 .B -k
 allocates a circular buffer of
@@ -87,7 +87,7 @@ sets the size of
 .I write
 operations to
 .I owritesize
-kilobytes.
+bytes.
 .TP
 .B -s
 prevents output until
