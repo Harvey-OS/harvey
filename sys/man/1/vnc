@@ -232,3 +232,6 @@ only the upper left corner can be accessed.
 .I Vncv
 does no verification of the TLS certificate presented
 by the server.
+.PP
+.I Vncv
+supports only version 3.3 of the RFB protocol.

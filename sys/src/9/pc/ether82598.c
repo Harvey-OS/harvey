@@ -270,8 +270,8 @@ typedef struct {
 	int	ntd;
 	int	nrb;
 	int	rbsz;
-	QLock	slock;
-	QLock	alock;
+	Lock	slock;
+	Lock	alock;
 	QLock	tlock;
 	Rendez	lrendez;
 	Rendez	trendez;
@@ -317,10 +317,10 @@ readstats(Ctlr *c)
 {
 	int i;
 
-	qlock(&c->slock);
+	lock(&c->slock);
 	for(i = 0; i < nelem(c->stats); i++)
 		c->stats[i] += c->reg[stattab[i].reg >> 2];
-	qunlock(&c->slock);
+	unlock(&c->slock);
 }
 
 static int speedtab[] = {
@@ -454,7 +454,6 @@ transmit(Ether *e)
 	Td *t;
 
 	c = e->ctlr;
-//	qlock(&c->tlock);
 	if(!canqlock(&c->tlock)){
 		im(c, Itx0);
 		return;
@@ -804,9 +803,9 @@ attach(Ether *e)
 
 	c = e->ctlr;
 	c->edev = e;			/* point back to Ether* */
-	qlock(&c->alock);
+	lock(&c->alock);
 	if(c->alloc){
-		qunlock(&c->alock);
+		unlock(&c->alock);
 		return;
 	}
 
@@ -816,7 +815,7 @@ attach(Ether *e)
 	t += c->ntd * sizeof *c->tdba + 255;
 	t += (c->ntd + c->nrd) * sizeof(Block*);
 	c->alloc = malloc(t);
-	qunlock(&c->alock);
+	unlock(&c->alock);
 	if(c->alloc == nil)
 		error(Enomem);
 
@@ -845,11 +844,11 @@ attach(Ether *e)
 	rxinit(c);
 	txinit(c);
 
-	sprint(buf, "#l%dl", e->ctlrno);
+	snprint(buf, sizeof buf, "#l%dl", e->ctlrno);
 	kproc(buf, lproc, e);
-	sprint(buf, "#l%dr", e->ctlrno);
+	snprint(buf, sizeof buf, "#l%dr", e->ctlrno);
 	kproc(buf, rproc, e);
-	sprint(buf, "#l%dt", e->ctlrno);
+	snprint(buf, sizeof buf, "#l%dt", e->ctlrno);
 	kproc(buf, tproc, e);
 }
 
