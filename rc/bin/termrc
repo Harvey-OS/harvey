@@ -56,11 +56,11 @@ if(! ~ $terminal *vx32*){
 	if(! ps|grep -s timesync)
 		if(! ~ $TIMESYNCARGS '')
 			aux/timesync $TIMESYNCARGS
-	
-	# add the loop-back device
-	if(grep -s loopback /dev/drivers)
+
+	# add the loop-back medium
+	if(! grep -s 127.0.0.1 /net/ipselftab)
 		ip/ipconfig loopback /dev/null 127.1
-	
+
 	# set things up for vmware
 	if(! ~ `{cat /dev/user} none)
 		if(test -e /bin/aux/vmware)

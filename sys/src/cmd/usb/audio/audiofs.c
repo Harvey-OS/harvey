@@ -154,7 +154,7 @@ post(char *name, char *envname, int srvfd)
 	fd = create(name, OWRITE, attachok?0666:0600);
 	if(fd < 0)
 		return;
-	sprint(buf, "%d",srvfd);
+	snprint(buf, sizeof buf, "%d", srvfd);
 	if(write(fd, buf, strlen(buf)) != strlen(buf))
 		sysfatal("srv write");
 	close(fd);
@@ -202,7 +202,7 @@ serve(void *)
 
 	close(p[0]);	/* don't deadlock if child fails */
 	if(srvpost){
-		sprint(srvfile, "/srv/%s", srvpost);
+		snprint(srvfile, sizeof srvfile, "/srv/%s", srvpost);
 		remove(srvfile);
 		post(srvfile, "usbaudio", p[1]);
 	}

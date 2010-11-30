@@ -389,10 +389,17 @@ wantsession(uchar *pkt)
 	if(findtag(pkt, TagAcSysErr, &len, 0))
 		return bad("ac system error");
 
-	if((s = findtag(pkt, TagSrvName, &len, 0)) == nil)
-		return bad("no matching service name");
-	if(len != strlen(srvname) || memcmp(s, srvname, len) != 0)
-		return bad("no matching service name");
+	/*
+	 * rsc said: ``if there is no -S option given, the current code
+	 * waits for an offer with service name == "".
+	 * that's silly.  it should take the first one it gets.''
+	 */
+	if(srvname[0] != '\0') {
+		if((s = findtag(pkt, TagSrvName, &len, 0)) == nil)
+			return bad("no matching service name");
+		if(len != strlen(srvname) || memcmp(s, srvname, len) != 0)
+			return bad("no matching service name");
+	}
 	sessid = nhgets(ph->sessid);
 	return 1;
 }

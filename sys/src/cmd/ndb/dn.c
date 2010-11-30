@@ -741,9 +741,16 @@ rrattach1(RR *new, int auth)
 	assert(new->magic == RRmagic && !new->cached);
 
 //	dnslog("rrattach1: %s", new->owner->name);
-	if(!new->db)
+	if(!new->db) {
 		new->expire = new->ttl;		/* ? */
-	else
+		/*
+		 * try not to let responses expire before we
+		 * can use them to complete this query, by extending
+		 * past expiration time.
+		 */
+		if(new->expire <= now - 60)
+			new->expire = now + 10*Min;
+	} else
 		new->expire = now + Year;
 	dp = new->owner;
 	assert(dp->magic == DNmagic);
