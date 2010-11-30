@@ -892,8 +892,7 @@ SRopenraw(ScsiReq *rp, char *unit)
 	memset(rp, 0, sizeof *rp);
 	rp->unit = unit;
 
-	sprint(name, "%s/raw", unit);
-
+	snprint(name, sizeof name, "%s/raw", unit);
 	if((rp->fd = open(name, ORDWR)) == -1){
 		rp->status = STtimeout;
 		return -1;

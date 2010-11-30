@@ -73,15 +73,15 @@ struct Dstate
 enum
 {
 	Maxdmsg=	1<<16,
-	Maxdstate=	128,	/* must be a power of 2 */
+	Maxdstate=	512,	/* max. open ssl conn's; must be a power of 2 */
 };
 
-Lock	dslock;
-int	dshiwat;
-char	*dsname[Maxdstate];
-Dstate	*dstate[Maxdstate];
-char	*encalgs;
-char	*hashalgs;
+static	Lock	dslock;
+static	int	dshiwat;
+static	char	*dsname[Maxdstate];
+static	Dstate	*dstate[Maxdstate];
+static	char	*encalgs;
+static	char	*hashalgs;
 
 enum{
 	Qtopdir		= 1,	/* top level directory */
