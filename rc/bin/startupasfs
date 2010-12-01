@@ -1,0 +1,5 @@
+#!/bin/rc
+# startupasfs - start upas/fs if needed, mainly for lib/profile
+if (! test -e /srv/upasfs.$user)
+	upas/fs -s
+mount -c /srv/upasfs.$user /mail/fs

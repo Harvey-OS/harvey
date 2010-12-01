@@ -714,6 +714,8 @@ putfullname(Hdr *hp, char *name)
 static int
 mkhdr(Hdr *hp, Dir *dir, char *file)
 {
+	int r;
+
 	/*
 	 * some of these fields run together, so we format them left-to-right
 	 * and don't use snprint.
@@ -736,7 +738,7 @@ mkhdr(Hdr *hp, Dir *dir, char *file)
 		sprint(hp->size, "%11lluo ", dir->length);
 	sprint(hp->mtime, "%11luo ", dir->mtime);
 	hp->linkflag = (dir->mode&DMDIR? LF_DIR: LF_PLAIN1);
-	putfullname(hp, file);
+	r = putfullname(hp, file);
 	if (posix) {
 		strncpy(hp->magic, "ustar", sizeof hp->magic);
 		strncpy(hp->version, "00", sizeof hp->version);
@@ -744,7 +746,7 @@ mkhdr(Hdr *hp, Dir *dir, char *file)
 		strncpy(hp->gname, dir->gid, sizeof hp->gname);
 	}
 	sprint(hp->chksum, "%6luo", chksum(hp));
-	return 0;
+	return r;
 }
 
 static void addtoar(int ar, char *file, char *shortf);
