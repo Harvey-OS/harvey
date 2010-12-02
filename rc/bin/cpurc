@@ -26,15 +26,15 @@ prompt=($sysname^'# ' '	')
 if(test -e /cfg/$sysname/cpurc)
 	. /cfg/$sysname/cpurc
 
-# if we're not a server, start a dns resolver
-if(! test -e /srv/dns)
-	ndb/dns -r
-
 # start up internet if we don't already have an address
 if(! grep u /net/ipselftab | grep -sv 127.0.0.1)
 	ip/ipconfig
 if(! grep -s 127.0.0.1 /net/ipselftab)
 	ip/ipconfig loopback /dev/null 127.1
+
+# if we're not a server, start a dns resolver
+if(! test -e /srv/dns)
+	ndb/dns -r
 
 # If you are on an auth server, start these before listening:
 #
