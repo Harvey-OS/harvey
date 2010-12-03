@@ -22,6 +22,9 @@ surround a binary operator (particular a low precedence one) with spaces;
 don't try to write the most compact code possible
 but rather the most readable.
 .IP •
+parenthesize expressions involving arithmetic and bit-wise operators;
+otherwise don't parenthesize heavily (e.g., as in Pascal).
+.IP •
 no white space before opening braces.
 .IP •
 no white space after the keywords
@@ -66,9 +69,11 @@ don't write
 .L !strcmp
 (nor
 .LR !memcmp ,
-etc.);
-always explicitly compare the result of string comparison with zero using
-a relational operator.
+etc.)
+nor
+.LR "if(memcmp(a, b, c))" ;
+always explicitly compare the result of string or memory
+comparison with zero using a relational operator.
 .PP
 Ultimately, the goal is to write code that fits in with the other code
 around it and the system as a whole.  If the file you are editing
