@@ -1,22 +1,20 @@
 .TH UPASFS 4
 .SH NAME
-upasfs \- mail file server
+upasfs, startupasfs \- mail file server
 .SH SYNOPSIS
 .B upas/fs
 [
 .B -f
 .I mailbox
-][
-.B -bnp
-][
-.B -s
-.I srvname
-][
+] [
+.B -bnps
+] [
 .B -m
 .I mntpoint
 ]
-.SH DESCRIPTION
 .PP
+.B startupasfs
+.SH DESCRIPTION
 .I Fs
 is a user level file system that reads mailboxes and presents them as a file
 system.
@@ -40,6 +38,16 @@ also generates plumbing messages used by
 and
 .IR faces (1)
 to provide mail announcements.
+.PP
+.I Startupasfs
+is a shell script suitable for use in one's profile.
+It runs
+.B "fs -s"
+for the invoking user if none is already running,
+and always mounts the user's posted
+.I fs
+on
+.BR /mail/fs .
 .PP
 The mailbox itself becomes a directory under
 .BR /mail/fs .
@@ -117,11 +125,13 @@ the envelope header from the mailbox
 The
 .B info
 file contains the following information, one item per line.  Lists
-of addresses are single space separated.
-.IP
+of addresses are single-space separated.
+.LP
+.2C
+.PD 0
+.LP
 .TP 2i
 .I "sender address
-.PD 0
 .TP
 .I "recipient addresses
 .TP
@@ -152,6 +162,8 @@ of addresses are single space separated.
 .I "message id
 .TP
 .I "number of lines in body
+.LP
+.1C
 .PD
 .PP
 Deleting message directories causes the message to be removed from
@@ -190,7 +202,7 @@ Delete the messages with the given numbers from
 .PD
 .PP
 The options are:
-.TF "-f file
+.TF "-f\fI file
 .TP
 .BI -f file
 use
@@ -218,21 +230,21 @@ from source
 .B mailfs
 for each message received or deleted.
 The message contains the attributes
-.IR sender = "<contents of from file>" ,
-.IR filetype =mail,
-.IR mailtype = "deleted or new" ,
+.BI sender= "<contents of " from " file>,"
+.BR filetype=mail ,
+.BR "mailtype=deleted\fI or \fPnew" ,
 and
-.IR length = "<message length in bytes>" .
+.BI length= "<message length in bytes>."
 The contents of the message is the full path
 name of the directory representing the message.
 .TP
 .B -s
 causes
 .I fs
-to put itself in
+to post itself in
 .B /srv
 with a name of the form
-.BR /srv/upasfs.\fIuser\fP .
+.BI /srv/upasfs. user.
 .TP
 .B -m
 specifies a mount point other than
@@ -319,9 +331,12 @@ mutual exclusion lock for multiple mbox readers
 .TP
 .B /mail/box/*/L.mbox
 mutual exclusion lock for altering mbox
+.br
+.ne 3
 .SH SOURCE
-.TP
 .B /sys/src/cmd/upas/fs
+.br
+.B /rc/bin/startupasfs
 .SH "SEE ALSO"
 .IR aliasmail (8),
 .IR faces (1),
