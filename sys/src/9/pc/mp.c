@@ -823,7 +823,7 @@ mpshutdown(void)
 		idle();
 	}
 
-	print("apshutdown: active = 0x%2.2uX\n", active.machs);
+	print("apshutdown: active = %#8.8ux\n", active.machs);
 	delay(1000);
 	splhi();
 

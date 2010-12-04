@@ -160,6 +160,8 @@ guesscpuhz(int aalcycles)
  	 *  figure out clock frequency and a loop multiplier for delay().
 	 *  n.b. counter goes up by 2*Freq
 	 */
+	if(x == 0)
+		x = 1;			/* avoid division by zero on vmware 7 */
 	cpufreq = (vlong)loops*((aalcycles*2*Freq)/x);
 	m->loopconst = (cpufreq/1000)/aalcycles;	/* AAM+LOOP's for 1 ms */
 
