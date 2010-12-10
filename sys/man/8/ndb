@@ -491,7 +491,7 @@ dom=ns1.cs.bell-labs.com ip=135.104.1.11
 .EE
 .LP
 will automatically create both forward and reverse entries for
-.B ns1.cs.bell-labs.com .
+.BR ns1.cs.bell-labs.com .
 Unlike other DNS servers, there's no way to generate
 inconsistent forward and reverse entries.
 .SS "Classless reverse delegation"

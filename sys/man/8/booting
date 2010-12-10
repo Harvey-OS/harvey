@@ -25,6 +25,8 @@ other methods of rebooting are mentioned for some machines.
 .SS PCs
 To boot a PC, it is necessary to get
 .B /386/9load
+or
+.B /386/9pxeload
 loaded into memory.
 There are many ways to do this.  A Plan 9 boot floppy prepared by
 .B format
@@ -177,12 +179,11 @@ saveenv
 .EE
 .PP
 Thereafter, the board will automatically boot via BOOTP and TFTP
-when reset or turned on.
+when reset.
 The
+.I ndb
 .L bootf
-parameter for
-.B /lib/ndb
-is
+parameter is
 .BR /arm/9plug .
 .SS TI OMAP35 CPU Server
 Supported boards include the IGEPv2 from ISEE and the Gumstix Overo.
@@ -234,14 +235,14 @@ saveenv
 .EE
 .PP
 Thereafter, the board will automatically boot via BOOTP and TFTP
-when reset or turned on.
+when reset.
 The
+.I ndb
 .L bootf
-parameter for
-.B /lib/ndb
-is
+parameter is
 .BR /arm/9beagle .
 .SH "SEE ALSO"
+.IR ndb (6),
 .IR 9load (8),
 .IR boot (8),
 .IR init (8),

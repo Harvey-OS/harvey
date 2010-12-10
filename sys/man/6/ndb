@@ -88,7 +88,7 @@ at the lowest level, the entry for the host or network itself,
 and works its way up, bit by bit, looking at entries for nets/subnets
 that include the network or host.  The search ends when the attribute
 is found.
-For example, consider at the following entries:
+For example, consider the following entries:
 .IP
 .EX
 ipnet=murray-hill ip=135.104.0.0 ipmask=255.255.0.0
@@ -185,7 +185,9 @@ may expect requests to come from the address in the first
 attribute.
 .TP
 .B bootf
-file to download for initial bootstrap
+file to download for initial bootstrap;
+.B /386/9pxeload
+to boot a PC via PXE.
 .TP
 .B ipnet
 Internet network name
@@ -334,13 +336,16 @@ tcp=rexec	port=512	restricted
 tcp=9fs	port=564
 .EE
 .SH FILES
+.TF /lib/ndb/local
 .TP
 .B /lib/ndb/local
 first database file searched
 .SH "SEE ALSO"
+.IR con (1),
 .IR dial (2),
 .IR ndb (2),
-.IR ndb (8),
+.IR 9load (8),
+.IR booting (8),
 .IR dhcpd (8),
 .IR ipconfig (8),
-.IR con (1)
+.IR ndb (8)
