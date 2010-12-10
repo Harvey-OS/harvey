@@ -163,7 +163,10 @@ as a
 .B bootfile=
 entry in
 .IR plan9.ini ,
-or if booting from the ethernet, by a BOOTP server.
+or if booting from the ethernet, by a BOOTP server
+(see
+.B "Kernel loading"
+below).
 If the
 .B plan9.ini
 file contains multiple
@@ -450,9 +453,17 @@ for information on ensuring this.
 .IB "FAT-filesystem" :\eplan9\eplan9.ini
 .br
 .IB "FAT-filesystem" :\eplan9.ini
+.TF /cfg/pxe
+.TP
+.BI /cfg/pxe
+directory of
+.I plan9.ini
+files on your TFTP server
 .SH SOURCE
 .B /sys/src/boot/pc
 .SH "SEE ALSO"
+.IR booting (8),
+.IR dhcpd (8),
 .IR plan9.ini (8),
 .IR prep (8)
 .SH BUGS
@@ -467,16 +478,6 @@ it attempts to de-install it, but the technique
 used may not always work.
 It is safer not to install the Extended Memory Manager before running
 .IR ld .
-.ig
-.PP
-The way
-.I 9pxeload
-obtains the information normally found in a disc
-.I plan9.ini
-file,
-and thereby the kernel to load and boot,
-is not ideal and may change in the future.
-..
 .PP
 BIOS bugs force some limitions on reading via the BIOS.
 .B bios0
