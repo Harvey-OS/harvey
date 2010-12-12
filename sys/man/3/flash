@@ -69,7 +69,8 @@ but cannot change a 0 bit to 1;
 that can only be done by erasing one or more flash segments.
 NAND flash typically has restrictions on the number of writes
 allowed to a page before requiring a block erase.
-Reads and writes are unbuffered.
+.\" bad idea:
+.\" Reads and writes are unbuffered.
 .PP
 The control file
 .BI part ctl
