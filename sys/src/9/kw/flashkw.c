@@ -39,6 +39,8 @@
 enum {
 	Debug		= 0,
 
+	Nopage		= ~0ul,		/* cache is empty */
+
 	/* vendors */
 	Hynix		= 0xad,
 	Samsung		= 0xec,
@@ -355,6 +357,9 @@ erasezone(Flash *f, Flashregion *r, ulong offset)
 	nandaddr(f, page>>16);
 	nandcmd(f, Erasestart);
 
+	/* invalidate cache on any erasure (slight overkill) */
+	cache.pageno = Nopage;
+
 	/* have to wait until flash is done.  typically ~2ms */
 	delay(1);
 	nandcmd(f, Readstatus);
@@ -653,6 +658,7 @@ reset(Flash *f)
 	f->suspend = nil;
 	f->resume = nil;
 	f->sort = "nand";
+	cache.pageno = Nopage;
 	return idchip(f);
 }
 
