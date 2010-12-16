@@ -541,7 +541,7 @@ crackdir(char *p, String **remname)
 		case 5:
 			if(strcmp(field[1], "DIR") == 0)
 				d.mode |= DMDIR;
-			d.length = atoi(field[0]);
+			d.length = atoll(field[0]);
 			dn = getfields(field[2], dfield, 4, 1, "-");
 			if(dn == 3)
 				d.atime = cracktime(dfield[0], dfield[1], dfield[2], field[3]);
@@ -554,7 +554,7 @@ crackdir(char *p, String **remname)
 			return 0;
 		}
 		s = s_copy(field[3]);
-		d.length = atoi(field[0]);
+		d.length = atoll(field[0]);
 		d.mode = 0666;
 		d.uid = "Tops";
 		d.gid = d.uid;
@@ -570,7 +570,7 @@ crackdir(char *p, String **remname)
 			s = s_copy(field[0]);
 			s_append(s, ".");
 			s_append(s, field[1]);
-			d.length = atoi(field[3])*atoi(field[4]);
+			d.length = atoll(field[3]) * atoll(field[4]);
 			if(*field[2] == 'F')
 				d.mode = 0666;
 			else
@@ -609,7 +609,7 @@ crackdir(char *p, String **remname)
 				*cp = 0;
 			}
 			s = s_copy(field[0]);
-			d.length = atoi(field[1])*512;
+			d.length = atoll(field[1]) * 512;
 			field[4][strlen(field[4])-1] = 0;
 			d.uid = field[4]+1;
 			d.gid = d.uid;
@@ -630,7 +630,7 @@ crackdir(char *p, String **remname)
 			d.uid = field[2];
 			d.gid = d.uid;
 			d.mode = nw_mode(field[0][0], field[1]);
-			d.length = atoi(field[3]);
+			d.length = atoll(field[3]);
 			if(strchr(field[6], ':'))
 				d.atime = cracktime(field[4], field[5], nil, field[6]);
 			else
@@ -643,7 +643,7 @@ crackdir(char *p, String **remname)
 			d.mode = 0666;
 			if(*field[0] == 'd')
 				d.mode |= DMDIR;
-			d.length = atoi(field[3]);
+			d.length = atoll(field[3]);
 			d.atime = cracktime(field[4], field[5], field[6], field[7]);
 			break;
 		case 1:
@@ -666,7 +666,7 @@ crackdir(char *p, String **remname)
 			d.uid = field[2];
 			d.gid = d.uid;
 			d.mode = crackmode(field[0]);
-			d.length = atoi(field[3]);
+			d.length = atoll(field[3]);
 			if(strchr(field[6], ':'))
 				d.atime = cracktime(field[4], field[5], 0, field[6]);
 			else
@@ -677,7 +677,7 @@ crackdir(char *p, String **remname)
 			d.uid = field[2];
 			d.gid = field[3];
 			d.mode = crackmode(field[0]);
-			d.length = atoi(field[4]);
+			d.length = atoll(field[4]);
 			if(strchr(field[7], ':'))
 				d.atime = cracktime(field[5], field[6], 0, field[7]);
 			else
@@ -688,7 +688,7 @@ crackdir(char *p, String **remname)
 			d.uid = field[3];
 			d.gid = field[4];
 			d.mode = crackmode(field[0]);
-			d.length = atoi(field[5]);
+			d.length = atoll(field[5]);
 			if(strchr(field[8], ':'))
 				d.atime = cracktime(field[6], field[7], 0, field[8]);
 			else
@@ -703,7 +703,7 @@ crackdir(char *p, String **remname)
 				d.mode = DMDIR|0777;
 			} else {
 				d.mode = 0666;
-				d.length = atoi(field[2]);
+				d.length = atoll(field[2]);
 			}
 			dn = getfields(field[0], dfield, 4, 1, "/-");
 			if(dn == 3)
