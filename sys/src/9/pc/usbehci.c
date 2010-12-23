@@ -99,7 +99,7 @@ enum {
 	Stderr		= 0x00000040,	/* tr. translator error */
 	Stddberr	= 0x00000020,	/* data buffer error */
 	Stdbabble	= 0x00000010,	/* babble error */
-	Stdtrerr	= 0x00000008,	/* transanction error */
+	Stdtrerr	= 0x00000008,	/* transaction error */
 	Stdmmf		= 0x00000004,	/* missed µframe */
 	Stddcs		= 0x00000002,	/* do complete split */
 
@@ -129,7 +129,7 @@ enum {
 	Tdhalt		= 0x00000040,	/* halted */
 	Tddberr		= 0x00000020,	/* data buffer error */
 	Tdbabble	= 0x00000010,	/* babble error */
-	Tdtrerr		= 0x00000008,	/* transanction error */
+	Tdtrerr		= 0x00000008,	/* transaction error */
 	Tdmmf		= 0x00000004,	/* missed µframe */
 	Tddcs		= 0x00000002,	/* do complete split */
 	Tdping		= 0x00000001,	/* do ping */
