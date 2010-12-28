@@ -57,7 +57,7 @@ noted(Ureg* cur, uintptr arg0)
 	switch((int)arg0){
 	case NCONT:
 	case NRSTR:
-		if(!okaddr(nur->pc, BY2SE, 0) || !okaddr(nur->sp, BY2SE, 0)){
+		if(!okaddr(nur->pc, BY2WD, 0) || !okaddr(nur->sp, BY2WD, 0)){
 			qunlock(&up->debug);
 			pprint("suicide: trap in noted\n");
 			pexit("Suicide", 0);
@@ -66,7 +66,7 @@ noted(Ureg* cur, uintptr arg0)
 		qunlock(&up->debug);
 		break;
 	case NSAVE:
-		if(!okaddr(nur->pc, BY2SE, 0) || !okaddr(nur->sp, BY2SE, 0)){
+		if(!okaddr(nur->pc, BY2WD, 0) || !okaddr(nur->sp, BY2WD, 0)){
 			qunlock(&up->debug);
 			pprint("suicide: trap in noted\n");
 			pexit("Suicide", 0);

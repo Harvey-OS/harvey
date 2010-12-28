@@ -570,8 +570,8 @@ rxreplenish(Ctlr *ctlr)
 
 		/* and fire */
 		r->cs = RCSdmaown | RCSenableintr;
-		cachedwbse(&r->cs, BY2SE);
-		l2cacheuwbse(&r->cs, BY2SE);
+		cachedwbse(&r->cs, BY2WD);
+		l2cacheuwbse(&r->cs, BY2WD);
 
 		ctlr->rxtail = NEXT(ctlr->rxtail, Nrx);
 	}
@@ -668,8 +668,8 @@ txreplenish(Ether *ether)			/* free transmitted packets */
 
 	ctlr = ether->ctlr;
 	while(ctlr->txtail != ctlr->txhead) {
-		l2cacheuinvse(&ctlr->tx[ctlr->txtail].cs, BY2SE);
-		cachedinvse(&ctlr->tx[ctlr->txtail].cs, BY2SE);
+		l2cacheuinvse(&ctlr->tx[ctlr->txtail].cs, BY2WD);
+		cachedinvse(&ctlr->tx[ctlr->txtail].cs, BY2WD);
 		if(ctlr->tx[ctlr->txtail].cs & TCSdmaown)
 			break;
 		if(ctlr->txb[ctlr->txtail] == nil)
@@ -735,8 +735,8 @@ transmit(Ether *ether)
 		/* and fire */
 		t->cs = TCSpadding | TCSfirst | TCSlast | TCSdmaown |
 			TCSenableintr;
-		cachedwbse(&t->cs, BY2SE);
-		l2cacheuwbse(&t->cs, BY2SE);
+		cachedwbse(&t->cs, BY2WD);
+		l2cacheuwbse(&t->cs, BY2WD);
 
 		kick++;
 		ctlr->txhead = NEXT(ctlr->txhead, Ntx);
