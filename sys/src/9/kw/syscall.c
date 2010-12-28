@@ -57,7 +57,7 @@ noted(Ureg* cur, uintptr arg0)
 	switch((int)arg0){
 	case NCONT:
 	case NRSTR:
-		if(!okaddr(nur->pc, BY2SE, 0) || !okaddr(nur->sp, BY2SE, 0)){
+		if(!okaddr(nur->pc, BY2WD, 0) || !okaddr(nur->sp, BY2WD, 0)){
 			qunlock(&up->debug);
 			pprint("suicide: trap in noted\n");
 			pexit("Suicide", 0);
@@ -66,7 +66,7 @@ noted(Ureg* cur, uintptr arg0)
 		qunlock(&up->debug);
 		break;
 	case NSAVE:
-		if(!okaddr(nur->pc, BY2SE, 0) || !okaddr(nur->sp, BY2SE, 0)){
+		if(!okaddr(nur->pc, BY2WD, 0) || !okaddr(nur->sp, BY2WD, 0)){
 			qunlock(&up->debug);
 			pprint("suicide: trap in noted\n");
 			pexit("Suicide", 0);
@@ -217,7 +217,7 @@ syscall(Ureg* ureg)
 		if(sp < (USTKTOP-BY2PG) || sp > (USTKTOP-sizeof(Sargs)-BY2WD))
 			validaddr(sp, sizeof(Sargs)+BY2WD, 0);
 
-		syscallfmt(scallnr, ureg->pc, (va_list)(sp+BY2SE));
+		syscallfmt(scallnr, ureg->pc, (va_list)(sp+BY2WD));
 		up->procctl = Proc_stopme;
 		procctl(up);
 		if (up->syscalltrace) 
@@ -271,7 +271,7 @@ syscall(Ureg* ureg)
 	if(up->procctl == Proc_tracesyscall){
 		stopns = todget(nil);
 		up->procctl = Proc_stopme;
-		sysretfmt(scallnr, (va_list)(sp+BY2SE), ret, startns, stopns);
+		sysretfmt(scallnr, (va_list)(sp+BY2WD), ret, startns, stopns);
 		s = splhi();
 		procctl(up);
 		splx(s);
