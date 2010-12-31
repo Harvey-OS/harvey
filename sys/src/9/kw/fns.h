@@ -75,6 +75,12 @@ extern void sysretfmt(int syscallno, va_list list, long ret, uvlong start, uvlon
 extern int tas(void *);
 extern u32int ttbget(void);
 extern void ttbput(u32int);
+extern void* ucalloc(usize);
+extern Block* ucallocb(int);
+extern void* ucallocalign(usize size, int align, int span);
+extern void ucfree(void*);
+extern void ucfreeb(Block*);
+extern Block* uciallocb(int);
 
 Dev*		devtabget(int, int);
 void		devtabinit(void);
