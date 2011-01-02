@@ -2,7 +2,7 @@
 .SH NAME
 mkflashfs \- make a journalling file system for flash memory
 .SH SYNOPSIS
-.B disk/mkflashfs
+.B aux/mkflashfs
 [
 .B -n
 .I nsect
