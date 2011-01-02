@@ -2,7 +2,7 @@
 .SH NAME
 flashfs \- journalling file system for flash memory
 .SH SYNOPSIS
-.B disk/flashfs
+.B aux/flashfs
 [
 .B -Dr
 ] [
