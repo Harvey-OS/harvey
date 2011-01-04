@@ -248,6 +248,7 @@ delctlr(Ctlr *c)
 	free(x);
 }
 
+/* don't call aoeprobe from within a loop; it loops internally retrying open. */
 static SDev*
 aoeprobe(char *path, SDev *s)
 {
@@ -340,8 +341,7 @@ aoepnp(void)
 static Ctlr*
 pnpprobe(SDev *sd)
 {
-	int j;
-	ulong start, duration;
+	ulong start;
 	char *p;
 	static int i;
 
@@ -354,22 +354,16 @@ pnpprobe(SDev *sd)
 		p += 2;
 
 	start = TK2MS(MACHP(0)->ticks);
-	for(j = 0; j < Probemax; j++){
-		if(!waserror()){
-			/* aoeprobe does a similar round of probing */
-			sd = aoeprobe(p, sd);
-			poperror();
-			break;
-		}
-		tsleep(&up->sleep, return0, 0, Probeintvl);
-	}
-	duration = TK2MS(MACHP(0)->ticks) - start;
-	if(j >= Probemax){
-		print("#æ: pnpprobe failed in %lud ms: %s: %s\n", duration,
-			probef[i-1], up->errstr);
+	if(waserror()){
+		print("#æ: pnpprobe failed in %lud ms: %s: %s\n",
+			TK2MS(MACHP(0)->ticks) - start, probef[i-1],
+			up->errstr);
 		return nil;
 	}
-	print("#æ: pnpprobe established %s in %lud ms\n", probef[i-1], duration);
+	sd = aoeprobe(p, sd);			/* does a round of probing */
+	poperror();
+	print("#æ: pnpprobe established %s in %lud ms\n",
+		probef[i-1], TK2MS(MACHP(0)->ticks) - start);
 	return sd->ctlr;
 }
 

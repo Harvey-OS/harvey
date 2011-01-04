@@ -834,8 +834,8 @@ if(0) print("%s %lud: notify %.8lux %.8lux %.8lux %s\n",
 
 	if(!okaddr((ulong)up->notify, 1, 0)
 	|| !okaddr(sp-ERRMAX-4*BY2WD, sizeof(Ureg)+ERRMAX+4*BY2WD, 1)){
-		pprint("suicide: bad address in notify\n");
 		qunlock(&up->debug);
+		pprint("suicide: bad address in notify\n");
 		pexit("Suicide", 0);
 	}
 
@@ -884,8 +884,8 @@ noted(Ureg* ureg, ulong arg0)
 	/* sanity clause */
 	oureg = (ulong)nureg;
 	if(!okaddr((ulong)oureg-BY2WD, BY2WD+sizeof(Ureg), 0)){
-		pprint("bad ureg in noted or call to noted when not notified\n");
 		qunlock(&up->debug);
+		pprint("bad ureg in noted or call to noted when not notified\n");
 		pexit("Suicide", 0);
 	}
 
@@ -899,8 +899,8 @@ noted(Ureg* ureg, ulong arg0)
 	if((nureg->cs & 0xFFFF) != UESEL || (nureg->ss & 0xFFFF) != UDSEL
 	  || (nureg->ds & 0xFFFF) != UDSEL || (nureg->es & 0xFFFF) != UDSEL
 	  || (nureg->fs & 0xFFFF) != UDSEL || (nureg->gs & 0xFFFF) != UDSEL){
-		pprint("bad segment selector in noted\n");
 		qunlock(&up->debug);
+		pprint("bad segment selector in noted\n");
 		pexit("Suicide", 0);
 	}
 
