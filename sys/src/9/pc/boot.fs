@@ -168,17 +168,31 @@ rootspec=main/active
 # newns() needs it, among others.
 
 # mount new root
-echo -n mount /srv/boot /root...
-mount -cC /srv/boot /root
-bind -a /root /
+if (test -e /srv/boot)
+	srv=boot
+if not if (test -e /srv/fossil)
+	srv=fossil
+if not if (test -e /srv/fsmain)
+	srv=fsmain
+if not {
+	echo cannot find a root in /srv:
+	ls -l /srv
+}
+echo -n mount -cC /srv/$srv $rootdir...
+	mount -cC /srv/$srv $rootdir
+bind -a $rootdir /
 
-bind -ac /root/mnt /mnt
+if (test -d $rootdir/mnt)
+	bind -ac $rootdir/mnt /mnt
 mount -b /srv/factotum /mnt
 
 # standard bin
+if (! test -d /$cputype) {
+	echo /$cputype missing!
+	exec ./rc -m/boot/rcmain -i
+}
 bind /$cputype/bin /bin
 bind -a /rc/bin /bin
-
 
 # run cpurc
 echo cpurc...

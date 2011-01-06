@@ -24,6 +24,7 @@ enum {
 
 
 struct Serialport {
+	char name[32];
 	Serial	*s;		/* device we belong to */
 	int	isjtag;
 
