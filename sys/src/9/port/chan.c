@@ -1013,7 +1013,8 @@ walk(Chan **cp, char **names, int nnames, int nomount, int *nerror)
 				 * mh->mount->to == c, so start at mh->mount->next
 				 */
 				rlock(&mh->lock);
-				for(f = mh->mount->next; f; f = f->next)
+				f = mh->mount;
+				for(f = (f? f->next: f); f; f = f->next)
 					if((wq = ewalk(f->to, nil, names+nhave, ntry)) != nil)
 						break;
 				runlock(&mh->lock);
@@ -1263,7 +1264,7 @@ namelenerror(char *aname, int len, char *err)
 			if(name <= aname)
 				panic("bad math in namelenerror");
 			/* walk out of current UTF sequence */
-			for(i=0; (*name&0xC0)==0x80 && i<3; i++)
+			for(i=0; (*name&0xC0)==0x80 && i<UTFmax; i++)
 				name++;
 		}
 		snprint(up->genbuf, sizeof up->genbuf, "...%.*s",
@@ -1687,7 +1688,7 @@ validname0(char *aname, int slashok, int dup, ulong pc)
 	name = aname;
 	if((ulong)name < KZERO){
 		if(!dup)
-			print("warning: validname called from %lux with user pointer", pc);
+			print("warning: validname called from %#p with user pointer", pc);
 		ename = vmemchr(name, 0, (1<<16));
 	}else
 		ename = memchr(name, 0, (1<<16));
