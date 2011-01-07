@@ -900,6 +900,7 @@ scan(void)
 		case 0x10c7:		/* 82598 af single port */
 		case 0x10b6:		/* 82598 backplane */
 		case 0x10dd:		/* 82598 at cx4 */
+		case 0x10ec:		/* 82598 at cx4 dual port */
 			break;
 		default:
 			continue;
