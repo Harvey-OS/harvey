@@ -2,7 +2,7 @@
 
 static char *kwd[] =
 {
-	"$adt", "$aggr", "$append", "$complex", "$defn",
+	"$adt", "$aggr", "$append", "$builtin", "$complex", "$defn",
 	"$delete", "$do", "$else", "$eval", "$head", "$if",
 	"$local", "$loop", "$return", "$tail", "$then",
 	"$union", "$whatis", "$while",
