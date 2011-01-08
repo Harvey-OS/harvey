@@ -283,7 +283,7 @@ dump(void)
 
 			switch(c->type){
 			case Tnumber:
-				if(Xf[c->f] == 0)
+				if(Xf == nil || Xf[c->f] == 0)
 					Bprint(bo, "%-*.*g", min, max, c->number);
 				else
 					numfmt(Xf[c->f], min, max, c->number);
