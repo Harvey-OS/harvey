@@ -399,7 +399,7 @@ union Ed
 };
 
 /* kirkwood usb transaction translator registers? (undocumented) */
-struct Kwusbtt {		/* at Addrusb */
+struct Kwusbtt {		/* at soc.ehci */
 	ulong	id;
 	ulong	hwgeneral;
 	ulong	hwhost;
@@ -411,7 +411,7 @@ struct Kwusbtt {		/* at Addrusb */
 };
 
 /* kirkwood usb bridge & phy registers */
-struct Kwusb {			/* at offset 0x300 from Addrusb */
+struct Kwusb {			/* at offset 0x300 from soc.ehci */
 	ulong	bcs;		/* bridge ctl & sts */
 	uchar	_pad0[0x310-0x304];
 
@@ -462,6 +462,7 @@ xcachewbse(void *va, long sz)
 {
 #ifdef smalloc			/* using uncached memory */
 	USED(va, sz);
+	coherence();
 #else
 	if (isphys(va))
 		panic("xcachewbse: phys addr %#p", va);
@@ -482,6 +483,7 @@ xcachewbinvse(void *va, long sz)
 {
 #ifdef smalloc			/* using uncached memory */
 	USED(va, sz);
+	coherence();
 #else
 	if (isphys(va))
 		panic("xcachewbinvse: phys addr %#p", va);
@@ -922,14 +924,12 @@ qhlinktd(Qh *qh, Td *td)
 	int i;
 
 	xcacheinvse(&qh->csw, sizeof qh->csw);		/* also eps?, *link */
-	if(td == nil){
-		qh->tds = nil;
-		qh->csw |= Tdhalt;
-		qh->csw &= ~Tdactive;
-		xcachewbse(&qh->csw, sizeof qh->csw);	/* also eps?, *link */
-	}else{
-		qh->tds = td;
-		csw = qh->csw & (Tddata1|Tdping);	/* save */
+	csw = qh->csw;
+	qh->tds = td;
+	if(td == nil)
+		qh->csw = (csw & ~Tdactive) | Tdhalt;
+	else{
+		csw &= Tddata1 | Tdping;	/* save */
 		qh->csw = Tdhalt;
 		qh->clink = 0;
 		qh->alink = Lterm;
@@ -939,8 +939,8 @@ qhlinktd(Qh *qh, Td *td)
 		xcachewbse(qh->buffer, sizeof qh->buffer);
 		xcachewbse(&qh->csw, sizeof qh->csw);	/* also eps?, *link */
 		qh->csw = csw & ~(Tdhalt|Tdactive);	/* activate next */
-		xcachewbse(&qh->csw, sizeof qh->csw);	/* also eps?, *link */
 	}
+	xcachewbse(&qh->csw, sizeof qh->csw);	/* also eps?, *link */
 }
 
 static char*
@@ -3194,8 +3194,8 @@ scanpci(void)		/* actually just use fixed addresses on sheeva */
 
 	ctlr = mallocz(sizeof(Ctlr), 1);
 	/* the sheeva's usb 2.0 otg uses a superset of the ehci registers */
-	ctlr->capio = (Ecapio *)(Addrusb + 0x100);
-	ctlr->opio  = (Eopio *) (Addrusb + 0x140);
+	ctlr->capio = (Ecapio *)(soc.ehci + 0x100);
+	ctlr->opio  = (Eopio *) (soc.ehci + 0x140);
 	dprint("usbehci: port %#p\n", ctlr->capio);
 
 	ctlrs[0] = ctlr;
@@ -3352,7 +3352,7 @@ addrmapdump(void)
 
 	if (!Debug)
 		return;
-	map = (Kwusb *)(Addrusb + 0x300);
+	map = (Kwusb *)(soc.ehci + 0x300);
 	for (i = 0; i < nelem(map->win); i++) {
 		win = &map->win[i];
 		ctl = win->ctl;
@@ -3415,7 +3415,7 @@ ehcireset(Ctlr *ctlr)
 	dprint("ehci %#p reset\n", ctlr->capio);
 	opio = ctlr->opio;
 
-	kw = (Kwusb *)(Addrusb + 0x300);
+	kw = (Kwusb *)(soc.ehci + 0x300);
 	kw->bic = 0;
 	kw->bim = (1<<4) - 1;		/* enable all defined intrs */
 	ctlrreset(ctlr);

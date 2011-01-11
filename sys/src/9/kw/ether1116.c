@@ -1699,7 +1699,7 @@ reset(Ether *ether)
 	}
 
 	/* need this for guruplug, at least */
-	*(ulong *)AddrIocfg0 |= 1 << 7 | 1 << 15;	/* io cfg 0: 1.8v gbe */
+	*(ulong *)soc.iocfg |= 1 << 7 | 1 << 15;	/* io cfg 0: 1.8v gbe */
 	coherence();
 
 	ctlr->ether = ether;

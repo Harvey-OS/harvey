@@ -14,6 +14,7 @@ typedef struct PhysUart	PhysUart;
 typedef struct PMMU	PMMU;
 typedef struct Proc	Proc;
 typedef u32int		PTE;
+typedef struct Soc	Soc;
 typedef struct Uart	Uart;
 typedef struct Ureg	Ureg;
 typedef uvlong		Tval;
@@ -287,3 +288,32 @@ struct Memcache {
 	uint	waysh;		/* shifts for set/way register */
 	uint	setsh;
 };
+
+struct Soc {			/* addr's of SoC controllers */
+	uintptr	cpu;
+	uintptr	devid;
+	uintptr	l2cache;
+	uintptr	sdramc;
+//	uintptr	sdramd;		/* unused */
+
+	uintptr	iocfg;
+	uintptr addrmap;
+	uintptr	intr;
+	uintptr	nand;
+	uintptr	cesa;		/* crypto accel. */
+	uintptr	ehci;
+	uintptr spi;
+	uintptr	twsi;
+
+	uintptr	analog;
+	uintptr	pci;
+	uintptr	pcibase;
+
+	uintptr	rtc;		/* real-time clock */
+	uintptr	clock;
+
+	uintptr	sata[3];
+	uintptr	uart[2];
+	uintptr	gpio[2];
+} soc;
+extern Soc soc;

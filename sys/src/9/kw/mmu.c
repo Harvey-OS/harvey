@@ -113,15 +113,16 @@ mmuinit(void)
 	/* identity map by default */
 	for (i = 0; i < 1024/4; i++)
 		l2[L2X(VIRTIO + i*BY2PG)] = (PHYSIO + i*BY2PG)|L2AP(Krw)|Small;
+
 #ifdef CRYPTOSANDBOX
 	/*
 	 * rest is to let rae experiment with the crypto hardware
 	 */
 	/* access to cycle counter */
-	l2[L2X(AddrTimer)] = AddrTimer | L2AP(Urw)|Small;
+	l2[L2X(soc.clock)] = soc.clock | L2AP(Urw)|Small;
 	/* cesa registers; also visible in user space */
 	for (i = 0; i < 16; i++)
-		l2[L2X(AddrCesa + i*BY2PG)] = (AddrCesa + i*BY2PG) |
+		l2[L2X(soc.cesa + i*BY2PG)] = (soc.cesa + i*BY2PG) |
 			L2AP(Urw)|Small;
 	/* crypto sram; remapped to unused space and visible in user space */
 	l2[L2X(PHYSIO + 0xa0000)] = PHYSCESASRAM | L2AP(Urw)|Small;
@@ -131,6 +132,7 @@ mmuinit(void)
 			(PADDR((uintptr)sandbox & ~(BY2PG-1)) + i*BY2PG) |
 			 L2AP(Urw) | Small;
 #endif
+
 	l1[L1X(VIRTIO)] = pa|Dom0|Coarse;
 	coherence();
 

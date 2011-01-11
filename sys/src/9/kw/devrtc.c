@@ -42,7 +42,7 @@ static Dirtab rtcdir[] = {
 	".",	{Qdir, 0, QTDIR},	0,		0555,
 	"rtc",	{Qrtc},			NUMSIZE,	0664,
 };
-static	RtcReg	*rtcreg = (RtcReg*)AddrRtc;
+static	RtcReg	*rtcreg;		/* filled in by attach */
 static	Lock	rtclock;
 
 #define SEC2MIN	60
@@ -271,6 +271,7 @@ setrtc(Rtc *rtc)
 static Chan*
 rtcattach(char *spec)
 {
+	rtcreg = (RtcReg*)soc.rtc;
 	return devattach(L'r', spec);
 }
 
