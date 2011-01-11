@@ -57,10 +57,11 @@ struct Irq {
 	int	nirqvec;
 	char	*name;
 };
+/* irq and irqmask are filled in by trapinit */
 static Irq irqs[] = {
-[Irqlo]	{&INTRREG->lo.irq, &INTRREG->lo.irqmask, irqlo,	nelem(irqlo), "lo"},
-[Irqhi]	{&INTRREG->hi.irq, &INTRREG->hi.irqmask, irqhi,	nelem(irqhi), "hi"},
-[Irqbridge] {&CPUCSREG->irq, &CPUCSREG->irqmask, irqbridge, nelem(irqbridge), "bridge"},
+[Irqlo]		{nil, nil, irqlo,	nelem(irqlo),	"lo"},
+[Irqhi]		{nil, nil, irqhi,	nelem(irqhi),	"hi"},
+[Irqbridge]	{nil, nil, irqbridge,	nelem(irqbridge), "bridge"},
 };
 
 /*
@@ -122,10 +123,14 @@ intrunmask(int sort, int v)
 static void
 maskallints(void)
 {
+	CpucsReg *cpu = (CpucsReg *)soc.cpu;
+	IntrReg *intr;
+
 	/* no fiq or ep in use */
-	INTRREG->lo.irqmask = 0;
-	INTRREG->hi.irqmask = 0;
-	CPUCSREG->irqmask = 0;
+	intr = (IntrReg *)soc.intr;
+	intr->lo.irqmask = 0;
+	intr->hi.irqmask = 0;
+	cpu->irqmask = 0;
 	coherence();
 }
 
@@ -234,6 +239,16 @@ trapinit(void)
 	IntrReg *intr;
 	Vectorpage *page0 = (Vectorpage*)HVECTORS;
 
+	intr = (IntrReg *)soc.intr;
+	cpu = (CpucsReg *)soc.cpu;
+	irqs[Irqlo].irq = &intr->lo.irq;
+	irqs[Irqlo].irqmask = &intr->lo.irqmask;
+	irqs[Irqhi].irq = &intr->hi.irq;
+	irqs[Irqhi].irqmask = &intr->hi.irqmask;
+	irqs[Irqbridge].irq = &cpu->irq;
+	irqs[Irqbridge].irqmask = &cpu->irqmask;
+	coherence();
+
 	setr13(PsrMfiq, m->fiqstack + nelem(m->fiqstack));
 	setr13(PsrMirq, m->irqstack + nelem(m->irqstack));
 	setr13(PsrMabt, m->abtstack + nelem(m->abtstack));
@@ -244,7 +259,6 @@ trapinit(void)
 	cacheuwbinv();
 	l2cacheuwbinv();
 
-	cpu = CPUCSREG;
 	cpu->cpucfg &= ~Cfgvecinithi;
 
 	for(i = 0; i < nelem(irqlo); i++)
@@ -255,7 +269,6 @@ trapinit(void)
 		intrunset(&irqbridge[i]);
 
 	/* disable all interrupts */
-	intr = INTRREG;
 	intr->lo.fiqmask = intr->hi.fiqmask = 0;
 	intr->lo.irqmask = intr->hi.irqmask = 0;
 	intr->lo.epmask =  intr->hi.epmask = 0;
@@ -532,13 +545,12 @@ dumplongs(char *msg, ulong *v, int n)
 static void
 dumpstackwithureg(Ureg *ureg)
 {
-	iprint("ktrace /kernel/path %#.8lux %#.8lux %#.8lux # pc, sp, link\n",
-		ureg->pc, ureg->sp, ureg->r14);
-	delay(2000);
-#ifdef AMBITIOUS
 	uintptr l, i, v, estack;
 	u32int *p;
 
+	iprint("ktrace /kernel/path %#.8lux %#.8lux %#.8lux # pc, sp, link\n",
+		ureg->pc, ureg->sp, ureg->r14);
+	delay(2000);
 	i = 0;
 	if(up != nil && (uintptr)&l <= (uintptr)up->kstack+KSTACK)
 		estack = (uintptr)up->kstack+KSTACK;
@@ -555,9 +567,9 @@ dumpstackwithureg(Ureg *ureg)
 	for(l = (uintptr)&l; l < estack; l += sizeof(uintptr)){
 		v = *(uintptr*)l;
 		if(KTZERO < v && v < (uintptr)etext && !(v & 3)){
-			v -= sizeof(u32int);
+			v -= sizeof(u32int);		/* back up an instr */
 			p = (u32int*)v;
-			if((*p & 0x0f000000) == 0x0b000000){	/* magic */
+			if((*p & 0x0f000000) == 0x0b000000){	/* BL instr? */
 				iprint("%#8.8lux=%#8.8lux ", l, v);
 				i++;
 			}
@@ -569,7 +581,6 @@ dumpstackwithureg(Ureg *ureg)
 	}
 	if(i)
 		iprint("\n");
-#endif
 }
 
 /*

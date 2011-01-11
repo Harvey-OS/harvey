@@ -56,7 +56,6 @@ enum {
 };
 
 struct Twsi {
-	Kwtwsi	*reg;
 	QLock;
 	Rendez	nextbyte;
 
@@ -71,9 +70,7 @@ struct Twsi {
 	char	*error;
 };
 
-static Twsi twsi = {
-	.reg	(Kwtwsi *)AddrTwsi,
-};
+static Twsi twsi;
 
 static Dirtab twsidir[] = {
 	".",	{Qdir, 0, QTDIR},	0,	DMDIR|0555,
@@ -85,15 +82,17 @@ static char Eabsts[] = "abnormal status";
 static void
 twsifinish(void)
 {
+	Kwtwsi *krp = (Kwtwsi *)soc.twsi;
+
 	twsi.done = 1;
-	twsi.reg->ctl |= Twsistop;
+	krp->ctl |= Twsistop;
 	coherence();
 }
 
 static void
 twsidoread(void)
 {
-	Kwtwsi *krp = twsi.reg;
+	Kwtwsi *krp = (Kwtwsi *)soc.twsi;
 
 	switch(krp->status){
 	case SStart:
@@ -122,7 +121,7 @@ twsidoread(void)
 static void
 twsidowrite(void)
 {
-	Kwtwsi *krp = twsi.reg;
+	Kwtwsi *krp = (Kwtwsi *)soc.twsi;
 
 	switch(krp->status){
 	case SStart:
@@ -153,7 +152,7 @@ twsixfer(uchar *buf, ulong len, ulong offset, void (*op)(void))
 {
 	ulong off;
 	char *err;
-	Kwtwsi *krp = twsi.reg;
+	Kwtwsi *krp = (Kwtwsi *)soc.twsi;
 
 	qlock(&twsi);
 	twsi.bp = buf;
@@ -189,7 +188,7 @@ twsixfer(uchar *buf, ulong len, ulong offset, void (*op)(void))
 static void
 interrupt(Ureg *, void *)
 {
-	Kwtwsi *krp = twsi.reg;
+	Kwtwsi *krp = (Kwtwsi *)soc.twsi;
 
 	twsi.intr = 1;
 	wakeup(&twsi.nextbyte);
@@ -202,7 +201,7 @@ interrupt(Ureg *, void *)
 static void
 twsiinit(void)
 {
-	Kwtwsi *krp = twsi.reg;
+	Kwtwsi *krp = (Kwtwsi *)soc.twsi;
 
 	intrenable(Irqlo, IRQ0twsi, interrupt, nil, "twsi");
 	krp->ctl &= ~Twsiint;
@@ -213,7 +212,9 @@ twsiinit(void)
 static void
 twsishutdown(void)
 {
-	twsi.reg->ctl &= ~Twsiinten;
+	Kwtwsi *krp = (Kwtwsi *)soc.twsi;
+
+	krp->ctl &= ~Twsiinten;
 	coherence();
 	intrdisable(Irqlo, IRQ0twsi, interrupt, nil, "twsi");
 }

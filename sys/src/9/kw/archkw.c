@@ -16,8 +16,6 @@
 
 #include "arm.h"
 
-#define SDRAMDREG	((SDramdReg*)AddrSDramd)
-
 enum {
 	L2writeback = 1,
 	Debug = 0,
@@ -86,6 +84,7 @@ struct Dramctl {
 	ulong	dqscalib;
 };
 
+/* unused so far */
 typedef struct SDramdReg SDramdReg;
 struct SDramdReg {
 	struct {
@@ -104,6 +103,38 @@ struct Addrmap {
 		ulong	remaphi;
 	} win[8];
 	ulong	dirba;		/* device internal reg's base addr.: PHYSIO */
+};
+
+Soc soc = {
+	.cpu		= PHYSIO+0x20100,
+	.devid		= PHYSIO+0x10034,
+	.l2cache	= PHYSIO+0x20a00,  	/* uncachable addrs for L2 */
+	.sdramc		= PHYSIO+0x01400,
+//	.sdramd		= PHYSIO+0x01500,	/* unused */
+
+	.iocfg		= PHYSIO+0x100e0,
+	.addrmap	= PHYSIO+0x20000,
+	.intr		= PHYSIO+0x20200,
+	.nand		= PHYSIO+0x10418,
+	.cesa		= PHYSIO+0x30000,	/* crypto accelerator */
+	.ehci		= PHYSIO+0x50000,
+	.spi		= PHYSIO+0x10600,
+ 	.twsi		= PHYSIO+0x11000,
+
+	.analog		= PHYSIO+0x1007c,
+	.pci		= PHYSIO+0x40000,
+	.pcibase	= PHYSIO+0x41800,
+
+	.rtc		= PHYSIO+0x10300,
+	.clock		= PHYSIO+0x20300,
+//	.clockctl	= PHYSIO+0x1004c,	/* unused */
+
+	.sata		= { PHYSIO+0x80000,	/* sata config reg here */
+			PHYSIO+0x82000,		/* edma config reg here */
+			PHYSIO+0x84000,		/* edma config reg here */
+			},
+	.uart		= { PHYSIO+0x12000, PHYSIO+0x12100, },
+	.gpio		= { PHYSIO+0x10100, PHYSIO+0x10140, },
 };
 
 /*
@@ -152,7 +183,7 @@ fixaddrmap(void)
 	Addrmap *map;
 	Addrwin *win;
 
-	map = (Addrmap *)AddrWin;
+	map = (Addrmap *)soc.addrmap;
 	for (i = 0; i < nelem(map->win); i++) {
 		win = &map->win[i];
 		ctl = win->ctl;
@@ -178,7 +209,7 @@ praddrmap(void)
 	int i;
 	Addrmap *map;
 
-	map = (Addrmap *)AddrWin;
+	map = (Addrmap *)soc.addrmap;
 	for (i = 0; i < nelem(map->win); i++)
 		praddrwin(&map->win[i], i);
 }
@@ -310,7 +341,7 @@ l2cacheon(void)
 	cpwrsc(CpDef, CpCLD, 0, 0, 0);  /* GL-CPU-100: set D cache lockdown reg. */
 
 	/* marvell guideline GL-CPU-130 */
-	cpu = CPUCSREG;
+	cpu = (CpucsReg *)soc.cpu;
 	cfg = cpu->cpucfg | L2exists | L2ecc | Cfgiprefetch | Cfgdprefetch;
 
 	if (L2writeback)
@@ -328,7 +359,7 @@ l2cacheon(void)
 	l2cacheuinv();
 
 	/* disable l2 caching of i/o registers */
-	l2p = (L2uncache *)Addrl2cache;
+	l2p = (L2uncache *)soc.l2cache;
 	memset(l2p, 0, sizeof *l2p);
 	/*
 	 * l2: don't cache upper half of address space.
@@ -393,20 +424,23 @@ archreset(void)
 	ulong clocks;
 	CpucsReg *cpu;
 	Dramctl *dram;
+	GpioReg *gpio;
 
 	clockshutdown();		/* watchdog disabled */
 
 	/* configure gpios */
-	((GpioReg*)AddrGpio0)->dataout = KWOEValLow;
+	gpio = (GpioReg*)soc.gpio[0];
+	gpio->dataout = KWOEValLow;
 	coherence();
-	((GpioReg*)AddrGpio0)->dataoutena = KWOELow;
+	gpio->dataoutena = KWOELow;
 
-	((GpioReg*)AddrGpio1)->dataout = KWOEValHigh;
+	gpio = (GpioReg*)soc.gpio[1];
+	gpio->dataout = KWOEValHigh;
 	coherence();
-	((GpioReg*)AddrGpio1)->dataoutena = KWOEHigh;
+	gpio->dataoutena = KWOEHigh;
 	coherence();
 
-	cpu = CPUCSREG;
+	cpu = (CpucsReg *)soc.cpu;
 	cpu->mempm = 0;			/* turn everything on */
 	coherence();
 
@@ -417,23 +451,26 @@ archreset(void)
 	cpu->l2cfg |= L2exists;		/* when L2exists is 0, the l2 ignores us */
 	coherence();
 
-	dram = (Dramctl *)AddrSDramc;
+	dram = (Dramctl *)soc.sdramc;
 	dram->ddrctllo &= ~(1<<6);	/* marvell guideline GL-MEM-70 */
 
-	*(ulong *)AddrAnalog = 0x68;	/* marvell guideline GL-MISC-40 */
+	*(ulong *)soc.analog = 0x68;	/* marvell guideline GL-MISC-40 */
 	coherence();
 }
 
 void
 archreboot(void)
 {
+	CpucsReg *cpu;
+
 	iprint("reset!\n");
 	delay(10);
 
-	CPUCSREG->rstout = RstoutSoft;
-	CPUCSREG->softreset = ResetSystem;
+	cpu = (CpucsReg *)soc.cpu;
+	cpu->rstout = RstoutSoft;
+	cpu->softreset = ResetSystem;
 	coherence();
-	CPUCSREG->cpucsr = Reset;
+	cpu->cpucsr = Reset;
 	coherence();
 	delay(500);
 

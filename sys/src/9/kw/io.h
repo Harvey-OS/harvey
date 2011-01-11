@@ -191,49 +191,16 @@ struct Pcidev
 
 #define PCIWINDOW	0
 #define PCIWADDR(va)	(PADDR(va)+PCIWINDOW)
-#define ISAWINDOW	0
-#define ISAWADDR(va)	(PADDR(va)+ISAWINDOW)
 
 /*
  * Kirkwood stuff
  */
 
 enum {
-	AddrSDramc	= PHYSIO+0x01400,
-	AddrSDramd	= PHYSIO+0x01500,
-
-	AddrMpp		= PHYSIO+0x10000,
-	AddrDevid	= PHYSIO+0x10034,
-	AddrClockctl	= PHYSIO+0x1004c,
-	AddrAnalog	= PHYSIO+0x1007c,
 	AddrEfuse	= PHYSIO+0x1008c,
-	AddrIocfg0	= PHYSIO+0x100e0,
-	AddrGpio0	= PHYSIO+0x10100,
-	AddrGpio1	= PHYSIO+0x10140,
-	AddrRtc		= PHYSIO+0x10300,
-	AddrNandf       = PHYSIO+0x10418,
-	AddrSpi		= PHYSIO+0x10600,
- 	AddrTwsi	= PHYSIO+0x11000,
-	AddrUart0	= PHYSIO+0x12000,
-	AddrUart1	= PHYSIO+0x12100,
-
-	AddrWin		= PHYSIO+0x20000,
-	AddrCpucsr	= PHYSIO+0x20100,
-	AddrIntr	= PHYSIO+0x20200,
-	AddrTimer	= PHYSIO+0x20300,
-	Addrl2cache	= PHYSIO+0x20a00,  /* uncacheable addresses for L2 */
-
-	AddrCesa	= PHYSIO+0x30000,	/* crypto accelerator */
-
-	Addrpci		= PHYSIO+0x40000,
-	Addrpcibase	= PHYSIO+0x41800,
-
-	Addrusb		= PHYSIO+0x50000,
-
-	Addrsata	= PHYSIO+0x80000,	/* sata config reg here */
-	Addrsata0	= PHYSIO+0x82000,	/* edma config reg here */
-	Addrsata1	= PHYSIO+0x84000,	/* edma config reg here */
-
+	Addrpci		= PHYSIO+0x40000,	/* for registers below */
+	Addrpcibase	= PHYSIO+0x41800,	/* for registers below */
+	AddrMpp		= PHYSIO+0x10000,
 	AddrSdio	= PHYSIO+0x90000,
 };
 
@@ -244,7 +211,7 @@ enum {
 };
 
 enum {
-	/* registers */
+	/* registers; if we actually use these, change to soc.pci(base)->reg */
 	PciBAR0		= Addrpcibase + 4,	/* base address */
 	PciBAR1		= Addrpcibase + 8,
 
@@ -333,7 +300,6 @@ enum {
 /*
  * interrupt controller
  */
-#define INTRREG		((IntrReg*)AddrIntr)
 typedef struct IntrReg IntrReg;
 struct IntrReg
 {
@@ -345,12 +311,9 @@ struct IntrReg
 	} lo, hi;
 };
 
-
 /*
  * CPU control & status (archkw.c and trap.c)
  */
-#define CPUCSREG	((CpucsReg*)AddrCpucsr)
-
 typedef struct CpucsReg CpucsReg;
 struct CpucsReg
 {

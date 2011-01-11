@@ -34,8 +34,6 @@
 #include	"../port/flashif.h"
 #include	"../port/nandecc.h"
 
-#define NANDFREG ((Nandreg*)AddrNandf)
-
 enum {
 	Debug		= 0,
 
@@ -178,14 +176,18 @@ nandwriten(Flash *f, uchar *buf, long n)
 static void
 nandclaim(Flash*)
 {
-	NANDFREG->ctl |= NandActCEBoot;
+	Nandreg *nand = (Nandreg*)soc.nand;
+
+	nand->ctl |= NandActCEBoot;
 	coherence();
 }
 
 static void
 nandunclaim(Flash*)
 {
-	NANDFREG->ctl &= ~NandActCEBoot;
+	Nandreg *nand = (Nandreg*)soc.nand;
+
+	nand->ctl &= ~NandActCEBoot;
 	coherence();
 }
 
