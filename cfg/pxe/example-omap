@@ -1,7 +1,9 @@
-# igepv2
-ethaddr=acde48000254
-# 512 MB at 0x80000000 (vs 256 MB on beagle)
-*maxmem=0xa0000000
+# overo water
+ether0=type=9221 ea=0015c928d562
+console=0 b115200
+
+# 256 MB at phys 0x80000000
+*maxmem=0x90000000
 # 720 MHz (vs 500 MHz on beagle)
 *cpumhz=720
 
