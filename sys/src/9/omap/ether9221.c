@@ -311,8 +311,7 @@ macwait(Regs *regs)
 {
 	long bound;
 
-	for (bound = 400*1000*1000; regs->maccsrcmd & Csrbusy && bound > 0;
-	    bound--)
+	for (bound = 400*Mhz; regs->maccsrcmd & Csrbusy && bound > 0; bound--)
 		;
 	if (bound <= 0)
 		iprint("smc: mac registers didn't come ready\n");
@@ -791,8 +790,7 @@ powerwait(Regs *regs)
 	long bound;
 
 	regs->bytetest = 0;			/* bring power on */
-	for (bound = 400*1000*1000; !(regs->pmtctl & Dready) && bound > 0;
-	    bound--)
+	for (bound = 400*Mhz; !(regs->pmtctl & Dready) && bound > 0; bound--)
 		;
 	if (bound <= 0)
 		iprint("smc: pmtctl didn't come ready\n");

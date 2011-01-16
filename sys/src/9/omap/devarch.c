@@ -182,8 +182,7 @@ cputyperead(Chan*, void *a, long n, vlong offset)
 	char name[64], str[128];
 
 	cputype2name(name, sizeof name);
-	snprint(str, sizeof str, "ARM %s %llud\n", name,
-		m->cpuhz / (1000*1000));
+	snprint(str, sizeof str, "ARM %s %llud\n", name, m->cpuhz / Mhz);
 	return readstr(offset, a, n, str);
 }
 
