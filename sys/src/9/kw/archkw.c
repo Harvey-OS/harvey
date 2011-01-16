@@ -379,7 +379,7 @@ l2cacheon(void)
 void
 archconfinit(void)
 {
-	m->cpuhz = 1200*1000*1000;
+	m->cpuhz = Frequency;
 	m->delayloop = m->cpuhz/2000; 	 /* initial estimate */
 	fixaddrmap();
 	if (Debug)
