@@ -153,25 +153,6 @@ Dev archdevtab = {
 char *
 cputype2name(char *buf, int size)
 {
-#ifdef TODO		/* identify the flavour of SoC & cpu */
-	char *soc;
-
-	m->cputype = *(ulong *)AddrDevid;
-	switch(m->cputype & 3) {
-	case 0:
-//		soc = "88F6180";
-		break;
-	case 1:
-//		soc = "88F619[02]";
-		break;
-	case 2:
-//		soc = "88F6281";
-		break;
-	default:
-		soc = "unknown";
-		break;
-	}
-#endif
 	seprint(buf, buf + size, "Cortex-A8");
 	return buf;
 }

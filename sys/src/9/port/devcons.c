@@ -594,6 +594,7 @@ enum{
 	Qtime,
 	Quser,
 	Qzero,
+	Qconfig,
 };
 
 enum
@@ -625,6 +626,7 @@ static Dirtab consdir[]={
 	"time",		{Qtime},	NUMSIZE+3*VLNUMSIZE,	0664,
 	"user",		{Quser},	0,		0666,
 	"zero",		{Qzero},	0,		0444,
+	"config",	{Qconfig},	0,		0444,
 };
 
 int
@@ -747,6 +749,7 @@ consread(Chan *c, void *buf, long n, vlong off)
 	char tmp[256];		/* must be >= 18*NUMSIZE (Qswap) */
 	int i, k, id, send;
 	vlong offset = off;
+	extern char configfile[];
 
 	if(n <= 0)
 		return n;
@@ -862,6 +865,9 @@ consread(Chan *c, void *buf, long n, vlong off)
 
 	case Qnull:
 		return 0;
+
+	case Qconfig:
+		return readstr((ulong)offset, buf, n, configfile);
 
 	case Qsysstat:
 		b = smalloc(conf.nmach*(NUMSIZE*11+1) + 1);	/* +1 for NUL */
@@ -1041,6 +1047,10 @@ conswrite(Chan *c, void *va, long n, vlong off)
 		return userwrite(a, n);
 
 	case Qnull:
+		break;
+
+	case Qconfig:
+		error(Eperm);
 		break;
 
 	case Qreboot:

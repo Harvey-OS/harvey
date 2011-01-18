@@ -373,11 +373,11 @@ archconfinit(void)
 	ulong mhz;
 
 	assert(m != nil);
-	m->cpuhz = 500 * 1000 * 1000;		/* beagle speed */
+	m->cpuhz = 500 * Mhz;			/* beagle speed */
 	p = getconf("*cpumhz");
 	if (p) {
-		mhz = atoi(p) * 1000 * 1000;
-		if (mhz >= 100*1000*1000 && mhz <= 3000UL*1000*1000)
+		mhz = atoi(p) * Mhz;
+		if (mhz >= 100*Mhz && mhz <= 3000UL*Mhz)
 			m->cpuhz = mhz;
 	}
 	m->delayloop = m->cpuhz/2000;		/* initial estimate */
@@ -525,7 +525,7 @@ configmpu(void)
 //	iprint("\tfclk src %ld; dpll1 mult %ld (MHz) div %ld",
 //		(clk >> 19) & MASK(3), mhz, clk & MASK(7));
 	iprint("; at %ldMHz", mhz);
-	nmhz = m->cpuhz / (1000*1000);		/* nominal speed */
+	nmhz = m->cpuhz / Mhz;			/* nominal speed */
 	if (mhz == nmhz) {
 		iprint("\n");
 		return;
@@ -762,7 +762,7 @@ resetwait(ulong *reg)
 {
 	long bound;
 
-	for (bound = 400*1000*1000; !(*reg & Resetdone) && bound > 0; bound--)
+	for (bound = 400*Mhz; !(*reg & Resetdone) && bound > 0; bound--)
 		;
 	if (bound <= 0)
 		iprint("archomap: Resetdone didn't come ready\n");
@@ -1193,7 +1193,7 @@ resetusb(void)
 	uhh->sysconfig |= Softreset;
 	coherence();
 	resetwait(&uhh->sysstatus);
-	for (bound = 400*1000*1000; !(uhh->sysstatus & Resetdone) && bound > 0;
+	for (bound = 400*Mhz; !(uhh->sysstatus & Resetdone) && bound > 0;
 	    bound--)
 		;
 	uhh->sysconfig |= Sidle | Midle;
@@ -1239,6 +1239,10 @@ archreset(void)
 		return;
 	beenhere = 1;
 
+	/* conservative temporary values until archconfinit runs */
+	m->cpuhz = 500 * Mhz;			/* beagle speed */
+	m->delayloop = m->cpuhz/2000;		/* initial estimate */
+
 //	dumpl3pr();
 	prcachecfg();
 	/* fight omap35x errata 2.0.1.104 */
@@ -1246,8 +1250,10 @@ archreset(void)
 	coherence();
 
 	setpadmodes();
-	configclks();
+	configclks();			/* may change cpu speed */
 	configgpio();
+
+	archconfinit();
 
 	resetusb();
 	fpon();
@@ -1311,8 +1317,7 @@ cpuidprint(void)
 
 	cputype2name(name, sizeof name);
 	delay(250);				/* let uart catch up */
-	iprint("cpu%d: %lldMHz ARM %s\n", m->machno, m->cpuhz / (1000*1000),
-		name);
+	iprint("cpu%d: %lldMHz ARM %s\n", m->machno, m->cpuhz / Mhz, name);
 }
 
 static void

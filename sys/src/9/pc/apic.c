@@ -163,17 +163,15 @@ lapictimerinit(void)
 void
 lapicinit(Apic* apic)
 {
-	ulong lvt;
-//	ulong r;
+	ulong r, lvt;
 
 	if(lapicbase == 0)
 		lapicbase = apic->addr;
 
-	lapicw(LapicDFR, 0xf0000000);
-//	r = (lapicr(LapicID)>>24) & 0xFF;
-//	lapicw(LapicLDR, (1<<r)<<24);
-	lapicw(LapicLDR, 0xff000000);
-	lapicw(LapicTPR, 0xff);
+	lapicw(LapicDFR, 0xFFFFFFFF);
+	r = (lapicr(LapicID)>>24) & 0xFF;
+	lapicw(LapicLDR, (1<<r)<<24);
+	lapicw(LapicTPR, 0xFF);
 	lapicw(LapicSVR, LapicENABLE|(VectorPIC+IrqSPURIOUS));
 
 	lapictimerinit();
