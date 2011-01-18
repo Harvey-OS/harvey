@@ -1,4 +1,4 @@
-.TH CONS 3 
+.TH CONS 3
 .SH NAME
 cons \- console, clocks, process/process group ids, user, null, reboot, etc.
 .SH SYNOPSIS
@@ -6,6 +6,7 @@ cons \- console, clocks, process/process group ids, user, null, reboot, etc.
 .B bind #c /dev
 
 .B /dev/bintime
+.B /dev/config
 .B /dev/cons
 .B /dev/consctl
 .B /dev/cputime
@@ -111,6 +112,10 @@ The
 file contains a textual representation of the operating system's version and parameters.
 At the moment, it contains one field: the 9P protocol version, currently
 .BR 2000 .
+.PP
+The
+.B config
+file contains a copy of the kernel configuration file used to build the kernel.
 .PP
 The
 .B kmesg
@@ -257,7 +262,7 @@ If the binary number fits in 32 bits, it is formatted as an
 leading blanks and one trailing blank; totaling 12 bytes.
 Otherwise, it
 is formatted as 21 digit decimal numbers with leading blanks and one
-trailing blank; totaling 22 bytes.  
+trailing blank; totaling 22 bytes.
 .PP
 The
 .B cputime

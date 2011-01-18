@@ -50,6 +50,11 @@ $CONF.$O:	$CONF.c
 
 $CONF.c:	../port/mkdevc $CONF
 	rc ../port/mkdevc $CONF > $CONF.c
+	{echo 'uchar configfile[]={'
+	 xd -1x $CONF |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo 0,
+	 echo '};'} >> $CONF.c
 
 errstr.h:	../port/mkerrstr ../port/error.h
 	rc ../port/mkerrstr > errstr.h

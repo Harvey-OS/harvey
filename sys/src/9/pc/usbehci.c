@@ -409,7 +409,7 @@ ehcirun(Ctlr *ctlr, int on)
 	if(i == 100)
 		print("ehci %#p %s cmd timed out\n",
 			ctlr->capio, on ? "run" : "halt");
-	ddprint("ehci %#p cmd %#ulx sts %#ulx\n", ctlr->capio, opio->cmd, opio->sts);
+	ddprint("ehci %#p cmd %#lux sts %#lux\n", ctlr->capio, opio->cmd, opio->sts);
 }
 
 static void*
@@ -875,7 +875,7 @@ seprintitd(char *s, char *se, Itd *td)
 	}
 	s = seprint(s, se, "\tbuffs:");
 	for(i = 0; i < nelem(td->buffer); i++)
-		s = seprint(s, se, " %#ulx", td->buffer[i] >> 12);
+		s = seprint(s, se, " %#lux", td->buffer[i] >> 12);
 	return seprint(s, se, "\n");
 }
 
@@ -916,11 +916,11 @@ seprintsitd(char *s, char *se, Sitd *td)
 	ss = (td->csw & Stddcs) ? 'c' : 's';
 	pg = (td->csw & Stdpg) ? '1' : '0';
 	s = seprint(s, se, "\t%s %cs pg%c", flags, ss, pg);
-	s = seprint(s, se, " b0 %#ulx b1 %#ulx off %uld\n",
+	s = seprint(s, se, " b0 %#lux b1 %#lux off %uld\n",
 		td->buffer[0] >> 12, td->buffer[1] >> 12, td->buffer[0] & 0xfff);
 	s = seprint(s, se, "\ttpos %c tcnt %uld",
 		pc[(td->buffer[0]>>3)&3], td->buffer[1] & 7);
-	s = seprint(s, se, " ssm %#ulx csm %#ulx cspm %#ulx",
+	s = seprint(s, se, " ssm %#lux csm %#lux cspm %#lux",
 		td->mfs & 0xff, (td->mfs>>8) & 0xff, (td->csw>>8) & 0xff);
 	s = seprintlink(s, se, " link", td->link, 1);
 	s = seprintlink(s, se, " blink", td->blink, 0);
@@ -978,11 +978,11 @@ seprinttd(char *s, char *se, Td *td, char *tag)
 	ss = (td->csw & Tddcs) ? 'c' : 's';
 	s = seprint(s, se, "\n\td%c %s %cs", t, flags, ss);
 	s = seprint(s, se, " max %uld", maxtdlen(td));
-	s = seprint(s, se, " pg %uld off %#ulx\n",
+	s = seprint(s, se, " pg %uld off %#lux\n",
 		(td->csw >> Tdpgshift) & Tdpgmask, td->buffer[0] & 0xFFF);
 	s = seprint(s, se, "\tbuffs:");
 	for(i = 0; i < nelem(td->buffer); i++)
-		s = seprint(s, se, " %#ulx", td->buffer[i]>>12);
+		s = seprint(s, se, " %#lux", td->buffer[i]>>12);
 	if(td->data != nil)
 		s = seprintdata(s, se, td->data, td->ndata);
 	return seprint(s, se, "\n");
@@ -1032,7 +1032,7 @@ qhdump(Qh *qh)
 	s = seprint(s, se, " hub %uld", (qh->eps1 >> 16) & 0x7f);
 	s = seprint(s, se, " port %uld", (qh->eps1 >> 23) & 0x7f);
 	s = seprintlink(s, se, " link", qh->link, 1);
-	seprint(s, se, "  clink %#ulx", qh->tclink);
+	seprint(s, se, "  clink %#lux", qh->tclink);
 	print("%s\n", buf);
 	s = seprint(buf, se, "\tnrld %uld", (qh->eps0 >> Qhrlcshift) & Qhrlcmask);
 	s = seprint(s, se, " nak %uld", (qh->alink >> 1) & 0xf);
@@ -1047,7 +1047,7 @@ qhdump(Qh *qh)
 		s = seprint(s, se, "i");
 	s = seprint(s, se, " %s", speed[(qh->eps0 >> 12) & 3]);
 	s = seprint(s, se, " mult %uld", (qh->eps1 >> Qhmultshift) & Qhmultmask);
-	seprint(s, se, " scm %#ulx ism %#ulx\n",
+	seprint(s, se, " scm %#lux ism %#lux\n",
 		(qh->eps1 >> 8 & 0xff), qh->eps1 & 0xff);
 	print("%s\n", buf);
 	memset(&td, 0, sizeof(td));
@@ -1136,14 +1136,14 @@ dump(Hci *hp)
 		ctlr->capio, ctlr->frames, ctlr->nframes,
 		ctlr->nintr, ctlr->ntdintr);
 	print(" nqhintr %d nisointr %d\n", ctlr->nqhintr, ctlr->nisointr);
-	print("\tcmd %#ulx sts %#ulx intr %#ulx frno %uld",
+	print("\tcmd %#lux sts %#lux intr %#lux frno %uld",
 		opio->cmd, opio->sts, opio->intr, opio->frno);
-	print(" base %#ulx link %#ulx fr0 %#ulx\n",
+	print(" base %#lux link %#lux fr0 %#lux\n",
 		opio->frbase, opio->link, ctlr->frames[0]);
 	se = buf+sizeof(buf);
 	s = seprint(buf, se, "\t");
 	for(i = 0; i < hp->nports; i++){
-		s = seprint(s, se, "p%d %#ulx ", i, opio->portsc[i]);
+		s = seprint(s, se, "p%d %#lux ", i, opio->portsc[i]);
 		if(hp->nports > 4 && i == hp->nports/2 - 1)
 			s = seprint(s, se, "\n\t");
 	}
@@ -1457,7 +1457,7 @@ qhinterrupt(Ctlr *ctlr, Qh *qh)
 			err = td->csw & Tderrors;
 			if(qh->io->err == nil){
 				qh->io->err = errmsg(td->csw & Tderrors);
-				dqprint("qhintr: td %#p csw %#ulx error %#ux %s\n",
+				dqprint("qhintr: td %#p csw %#lux error %#ux %s\n",
 					td, td->csw, err, qh->io->err);
 			}
 			break;
@@ -1527,7 +1527,7 @@ ehciintr(Hci *hp)
 				ctlr->nintr, ctlr->ntdintr);
 			print(" nqhintr %d nisointr %d\n",
 				ctlr->nqhintr, ctlr->nisointr);
-			print("\tcmd %#ulx sts %#ulx intr %#ulx frno %uld",
+			print("\tcmd %#lux sts %#lux intr %#lux frno %uld",
 				opio->cmd, opio->sts, opio->intr, opio->frno);
 		}
 
@@ -1592,7 +1592,7 @@ portenable(Hci *hp, int port, int on)
 	microdelay(64);
 	iunlock(ctlr);
 	tsleep(&up->sleep, return0, 0, Enabledelay);
-	dprint("ehci %#p port %d enable=%d: sts %#ulx\n",
+	dprint("ehci %#p port %d enable=%d: sts %#lux\n",
 		ctlr->capio, port, on, opio->portsc[port-1]);
 	qunlock(&ctlr->portlck);
 	poperror();
@@ -1644,7 +1644,7 @@ portreset(Hci *hp, int port, int on)
 		nexterror();
 	}
 	s = opio->portsc[port-1];
-	dprint("ehci %#p port %d reset; sts %#ulx\n", ctlr->capio, port, s);
+	dprint("ehci %#p port %d reset; sts %#lux\n", ctlr->capio, port, s);
 	ilock(ctlr);
 	s &= ~(Psenable|Psreset);
 	opio->portsc[port-1] = s|Psreset;
@@ -1659,7 +1659,7 @@ portreset(Hci *hp, int port, int on)
 		portlend(ctlr, port, "full");
 
 	iunlock(ctlr);
-	dprint("ehci %#p after port %d reset; sts %#ulx\n",
+	dprint("ehci %#p after port %d reset; sts %#lux\n",
 		ctlr->capio, port, opio->portsc[port-1]);
 	qunlock(&ctlr->portlck);
 	poperror();
@@ -2074,9 +2074,10 @@ epgettd(Qio *io, int flags, void *a, int count, int maxpkt)
 	 * embedded buffer if count bytes fit in there.
 	 */
 	assert(Align > sizeof(Td));
-	if(count <= Align - sizeof(Td))
+	if(count <= Align - sizeof(Td)){
 		td->data = td->sbuff;
-	else
+		td->buff = nil;
+	}else
 		td->data = td->buff = smalloc(Tdmaxpkt);
 
 	pa = PADDR(td->data);
@@ -3048,10 +3049,10 @@ scanpci(void)
 			continue;
 		}
 		if(p->intl == 0xff || p->intl == 0) {
-			print("usbehci: no irq assigned for port %#ulx\n", io);
+			print("usbehci: no irq assigned for port %#lux\n", io);
 			continue;
 		}
-		dprint("usbehci: %#x %#x: port %#ulx size %#x irq %d\n",
+		dprint("usbehci: %#x %#x: port %#lux size %#x irq %d\n",
 			p->vid, p->did, io, p->mem[0].size, p->intl);
 
 		ctlr = mallocz(sizeof(Ctlr), 1);
@@ -3164,7 +3165,7 @@ ehcimeminit(Ctlr *ctlr)
 	mkqhtree(ctlr);			/* init sync list */
 	edfree(edalloc());		/* try to get some ones pre-allocated */
 
-	dprint("ehci %#p flb %#ulx frno %#ulx\n",
+	dprint("ehci %#p flb %#lux frno %#lux\n",
 		ctlr->capio, opio->frbase, opio->frno);
 }
 

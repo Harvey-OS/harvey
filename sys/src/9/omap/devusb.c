@@ -1,5 +1,5 @@
 /*
- * USB device driver.
+ * USB device driver framework.
  *
  * This is in charge of providing access to actual HCIs
  * and providing I/O to the various endpoints of devices.
@@ -36,7 +36,6 @@
  * a generic controller driver, the problem is that details
  * regarding how to handle toggles, tokens, Tds, etc. will
  * get in the way. Thus, code is probably easier the way it is.
- *
  */
 
 #include	"u.h"
@@ -126,7 +125,7 @@ static Cmdtab epctls[] =
 	{CMpollival,	"pollival",	2},
 	{CMsamplesz,	"samplesz",	2},
 	{CMhz,		"hz",		2},
-	{CMinfo,		"info",		0},
+	{CMinfo,	"info",		0},
 	{CMdetach,	"detach",	1},
 	{CMaddress,	"address",	1},
 	{CMdebugep,	"debug",	2},
@@ -1068,11 +1067,7 @@ usbread(Chan *c, void *a, long n, vlong offset)
 static long
 pow2(int n)
 {
-	long v;
-
-	for(v = 1; n > 0; n--)
-		v *= 2;
-	return v;
+	return 1 << n;
 }
 
 static void
@@ -1103,18 +1098,13 @@ setmaxpkt(Ep *ep, char* s)
 static long
 epctl(Ep *ep, Chan *c, void *a, long n)
 {
-	static char *Info = "info ";
+	int i, l, mode, nb, tt;
+	char *b, *s;
+	Cmdbuf *cb;
+	Cmdtab *ct;
 	Ep *nep;
 	Udev *d;
-	int l;
-	char *s;
-	char *b;
-	int tt;
-	int i;
-	int mode;
-	int nb;
-	Cmdtab *ct;
-	Cmdbuf *cb;
+	static char *Info = "info ";
 
 	d = ep->dev;
 
@@ -1391,9 +1381,8 @@ ctlwrite(Chan *c, void *a, long n)
 static long
 usbwrite(Chan *c, void *a, long n, vlong off)
 {
-	int q;
+	int nr, q;
 	Ep *ep;
-	int nr;
 
 	if(c->qid.type == QTDIR)
 		error(Eisdir);

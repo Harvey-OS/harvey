@@ -17,7 +17,8 @@ static int mpeisabus = -1;
 extern int i8259elcr;			/* mask of level-triggered interrupts */
 static Apic mpapic[MaxAPICNO+1];
 static int machno2apicno[MaxAPICNO+1];	/* inverse map: machno -> APIC ID */
-static u32int mprdthi = ~0;
+static Lock mprdthilock;
+static int mprdthi;
 static Ref mpvnoref;			/* unique vector assignment */
 static int mpmachno = 1;
 
@@ -48,7 +49,7 @@ mkprocessor(PCMPprocessor* p)
 {
 	Apic *apic;
 
-	if(!(p->flags & PcmpEN)/* || p->apicno > MaxAPICNO*/)
+	if(!(p->flags & PcmpEN) || p->apicno > MaxAPICNO)
 		return 0;
 
 	apic = &mpapic[p->apicno];
@@ -139,7 +140,7 @@ mkioapic(PCMPioapic* p)
 	Apic *apic;
 	void *va;
 
-	if(!(p->flags & PcmpEN)/* || p->apicno > MaxAPICNO*/)
+	if(!(p->flags & PcmpEN) || p->apicno > MaxAPICNO)
 		return 0;
 
 	/*
@@ -385,7 +386,9 @@ squidboy(Apic* apic)
 	cpuidprint();
 	checkmtrr();
 
-	apic->online = 1;
+	lock(&mprdthilock);
+	mprdthi |= (1<<apic->apicno)<<24;
+	unlock(&mprdthilock);
 
 	lapicinit(apic);
 	lapiconline();
@@ -472,8 +475,12 @@ mpstartap(Apic* apic)
 	nvramwrite(0x0F, 0x0A);
 	lapicstartap(apic, PADDR(APBOOTSTRAP));
 	for(i = 0; i < 1000; i++){
-		if(apic->online)
+		lock(&mprdthilock);
+		if(mprdthi & ((1<<apic->apicno)<<24)){
+			unlock(&mprdthilock);
 			break;
+		}
+		unlock(&mprdthilock);
 		delay(10);
 	}
 	nvramwrite(0x0F, 0x00);
@@ -570,6 +577,9 @@ mpinit(void)
 		return;
 
 	lapicinit(bpapic);
+	lock(&mprdthilock);
+	mprdthi |= (1<<bpapic->apicno)<<24;
+	unlock(&mprdthilock);
 
 	/*
 	 * These interrupts are local to the processor
@@ -733,9 +743,9 @@ mpintrenablex(Vctl* v, int tbdf)
 		lo |= ApicLOGICAL;
 
 		if((apic->flags & PcmpEN) && apic->type == PcmpIOAPIC){
-			//lock(&mprdthilock);
+			lock(&mprdthilock);
  			ioapicrdtw(apic, aintr->intr->intin, mprdthi, lo);
-			//unlock(&mprdthilock);
+			unlock(&mprdthilock);
 		}
 		//else
 		//	print("lo not enabled 0x%uX %d\n",
@@ -823,7 +833,7 @@ mpshutdown(void)
 		idle();
 	}
 
-	print("apshutdown: active = %#8.8ux\n", active.machs);
+	print("apshutdown: active = 0x%2.2uX\n", active.machs);
 	delay(1000);
 	splhi();
 

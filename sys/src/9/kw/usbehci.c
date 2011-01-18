@@ -1580,6 +1580,7 @@ qhinterrupt(Ctlr *ctlr, Qh *qh)
 {
 	Td *td;
 	int err;
+	ulong csw;
 
 	if(qh->state != Qrun)
 		panic("qhinterrupt: qh state");
@@ -1591,6 +1592,7 @@ qhinterrupt(Ctlr *ctlr, Qh *qh)
 		ddqprint("qhinterrupt port %#p qh %#p\n", ctlr->capio, qh);
 	for(; td != nil; td = td->next){
 		xcacheinvse(&td->csw, sizeof td->csw);
+retry:
 		if(td->csw & Tdactive)
 			return 0;
 		err = td->csw & Tderrors;
@@ -2229,9 +2231,10 @@ epgettd(Qio *io, int flags, void *a, int count, int maxpkt)
 	 * embedded buffer if count bytes fit in there.
 	 */
 	assert(Align > sizeof(Td));
-	if(count <= Align - sizeof(Td))
+	if(count <= Align - sizeof(Td)){
 		td->data = td->sbuff;
-	else
+		td->buff = nil;
+	}else
 		td->data = td->buff = smalloc(Tdmaxpkt);
 
 	pa = PADDR(td->data);
