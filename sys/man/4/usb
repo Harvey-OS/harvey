@@ -264,33 +264,40 @@ When started manually, the file interface is mounted at
 .B /net
 as is customary.
 .
-.SS Serial ports
+.SS Serial and JTAG ports
 .I Serial
 provides a file system (usually mounted at
 .BR /dev )
 that includes one directory per USB serial port, named
-.BI eiaU N.
+.BI eiaU N
+or
+.BI eiaU N . M.
 In this directory there are two files,
-.BI eiau N,
+.BR eiaU ,
 similar to
 .BI eia N
 in
 .IR uart (3),
 and
-.BI eiau N /ctl .
-.I Ctl
-admits writes in the same format as
+.BR eiaUctl ,
+which admits writes in the same format as
 .BI eia N ctl
 in
 .IR uart (3).
 Reading from
-.I ctl
+.B eiaUctl
 gives the serial port's settings in the same format as
 .BI eia N status
 in
 .IR uart (3).
 Options are similar to those of
 .IR disk .
+.PP
+JTAG ports are similar
+but the files are named
+.B jtag
+and
+.BR jtagctl .
 .
 .SS Audio devices
 .I Usbaudio
