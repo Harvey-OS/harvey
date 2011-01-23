@@ -27,11 +27,8 @@
 #define WINSIZE(v)      (((v)/(64*1024) - 1) << 16)
 
 enum {
-	Gbe0regs	= PHYSIO + 0x72000,
-	Gbe1regs	= PHYSIO + 0x76000,
-
 	Nrx		= 512,
-	Ntx		= 512,
+	Ntx		= 32,
 	Nrxblks		= 1024,
 	Rxblklen	= 2+1522,  /* ifc. supplies first 2 bytes as padding */
 
@@ -1687,16 +1684,15 @@ reset(Ether *ether)
 	ether->ctlr = ctlr = malloc(sizeof *ctlr);
 	switch(ether->ctlrno) {
 	case 0:
-		ctlr->reg = (Gbereg*)Gbe0regs;
 		ether->irq = IRQ0gbe0sum;
 		break;
 	case 1:
-		ctlr->reg = (Gbereg*)Gbe1regs;
 		ether->irq = IRQ0gbe1sum;
 		break;
 	default:
 		panic("ether1116: bad ether ctlr #%d", ether->ctlrno);
 	}
+	ctlr->reg = (Gbereg*)soc.ether[ether->ctlrno];
 
 	/* need this for guruplug, at least */
 	*(ulong *)soc.iocfg |= 1 << 7 | 1 << 15;	/* io cfg 0: 1.8v gbe */
@@ -1707,8 +1703,8 @@ reset(Ether *ether)
 
 	shutdown(ether);
 	/* ensure that both interfaces are set to RGMII before calling mii */
-	((Gbereg*)Gbe0regs)->psc1 |= PSC1rgmii;
-	((Gbereg*)Gbe1regs)->psc1 |= PSC1rgmii;
+	((Gbereg*)soc.ether[0])->psc1 |= PSC1rgmii;
+	((Gbereg*)soc.ether[1])->psc1 |= PSC1rgmii;
 	coherence();
 
 	/* Set phy address of the port */
