@@ -129,6 +129,7 @@ Soc soc = {
 	.clock		= PHYSIO+0x20300,
 //	.clockctl	= PHYSIO+0x1004c,	/* unused */
 
+	.ether		= { PHYSIO+0x72000, PHYSIO+0x76000, },
 	.sata		= { PHYSIO+0x80000,	/* sata config reg here */
 			PHYSIO+0x82000,		/* edma config reg here */
 			PHYSIO+0x84000,		/* edma config reg here */

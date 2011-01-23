@@ -312,6 +312,7 @@ struct Soc {			/* addr's of SoC controllers */
 	uintptr	rtc;		/* real-time clock */
 	uintptr	clock;
 
+	uintptr ether[2];
 	uintptr	sata[3];
 	uintptr	uart[2];
 	uintptr	gpio[2];
