@@ -138,8 +138,24 @@ will be downloaded by default.
 Once the kernel is loaded,
 it prompts for the Ethernet
 protocol to use to reach the root file server; request the default.
-.SS Marvell Kirkwood CPU Server
-Supported boards include the Sheevaplug, Openrd-client and Guruplug.
+.
+.SS ARM CPU Servers
+All ARM systems are started by
+.I U-boot
+using similar commands.
+The kernels
+(and thus
+.I ndb
+.L bootf
+parameters)
+are
+.L /arm/9gd
+for the Marvell PXA168-based Guruplug Display,
+.L /arm/9plug
+for all Marvell Kirkwood plugs (Sheevaplug, Guruplug, Openrd, etc.),
+and
+.L /arm/9beagle
+for TI OMAP3 boards (IGEPv2 from ISEE, Gumstix Overo).
 In the following,
 replace
 .I MAC
@@ -149,7 +165,13 @@ in lower case
 .L ether
 .I ndb
 attribute).
-First,
+.PP
+First, establish a
+.I /cfg/pxe
+(\c
+.IR plan9.ini )
+file for the new CPU server.
+For Kirkwood plugs,
 .IP
 .EX
 cd /cfg/pxe; cp example-kw \fIMAC
@@ -158,53 +180,16 @@ cd /cfg/pxe; cp example-kw \fIMAC
 and edit
 .L /cfg/pxe/\fIMAC
 to taste.
-For Sheevaplugs and Openrd boards,
-type this at U-boot once:
-.IP
-.EX
-setenv bootdelay 2
-# \fItype the next two lines as one\fP
-setenv bootcmd 'bootp; bootp; tftp 0x1000 /cfg/pxe/\fIMAC\fP;
-	bootp; tftp 0x800000; go 0x800000'
-saveenv
-.EE
-.PP
-For Guruplugs,
-type this at U-boot once:
-.IP
-.EX
-setenv bootdelay 2
-setenv bootcmd 'dhcp 0x800000; tftp 0x1000 /cfg/pxe/\fIMAC\fP; go 0x800000'
-saveenv
-.EE
-.PP
-Thereafter, the board will automatically boot via BOOTP and TFTP
-when reset.
-The
-.I ndb
-.L bootf
-parameter is
-.BR /arm/9plug .
-.SS TI OMAP35 CPU Server
-Supported boards include the IGEPv2 from ISEE and the Gumstix Overo.
-In the following,
-replace
-.I MAC
-with your board's MAC address without colons,
-in lower case (\c
-.L ether=
-.I ndb
-attribute).
-First,
-.IP
-.EX
-cd /cfg/pxe; cp example-omap \fIMAC
-.EE
-.PP
-and edit
-.L /cfg/pxe/\fIMAC
-to taste.
-Be sure to edit the line for
+For PXA plugs, replace
+.L kw
+with
+.LR pxa ;
+for OMAP boards, replace
+.L kw
+with
+.LR omap
+and
+be sure to edit the line for
 .L ether0
 to set
 .IP
@@ -212,35 +197,59 @@ to set
 ea=\fIMAC
 .EE
 .PP
-For IGEPv2 boards,
+Second,
+configure
+.I U-boot
+to load the appropriate kernel and
+.I /cfg/pxe
+file at suitable addresses and start the kernel.
+For Sheevaplugs and Openrd boards,
 type this at U-boot once:
 .IP
 .EX
 setenv bootdelay 2
 # \fItype the next two lines as one\fP
-setenv bootcmd 'tftp 0x80300000 /cfg/pxe/\fIMAC\fP;
-	dhcp 0x80310000; go 0x80310000'
+setenv bootcmd 'bootp; bootp; tftp 0x1000 /cfg/pxe/\fIMAC\fP; bootp;
+	tftp 0x800000; go 0x800000'
 saveenv
+.EE
+.PP
+For Guruplugs Displays,
+do the same but type this after
+.L "setenv bootcmd"
+instead:
+.IP
+.EX
+\&'dhcp; tftpboot; tftpboot 0x1000 /cfg/pxe/\fIMAC\fP; bootz 0x500000'
+.EE
+.PP
+For Kirkwood Guruplugs,
+type this after
+.LR "setenv bootcmd" :
+.IP
+.EX
+\&'dhcp 0x800000; tftp 0x1000 /cfg/pxe/\fIMAC\fP; go 0x800000'
+.EE
+.PP
+For IGEPv2 boards,
+type this after
+.LR "setenv bootcmd" :
+.IP
+.EX
+\&'tftp 0x80300000 /cfg/pxe/\fIMAC\fP; dhcp 0x80310000; go 0x80310000'
 .EE
 .PP
 For Gumstix Overo boards,
-type this at U-boot once:
+type this after
+.LR "setenv bootcmd" :
 .IP
 .EX
-setenv bootdelay 2
-# \fItype the next two lines as one\fP
-setenv bootcmd 'bootp 0x80310000; bootp 0x80300000 /cfg/pxe/\fIMAC\fP;
-	go 0x80310000'
-saveenv
+\&'bootp 0x80310000; bootp 0x80300000 /cfg/pxe/\fIMAC\fP; go 0x80310000'
 .EE
 .PP
-Thereafter, the board will automatically boot via BOOTP and TFTP
+Thereafter, the boards will automatically boot via BOOTP and TFTP
 when reset.
-The
-.I ndb
-.L bootf
-parameter is
-.BR /arm/9beagle .
+.
 .SH "SEE ALSO"
 .IR ndb (6),
 .IR 9load (8),
