@@ -76,12 +76,6 @@ extern int tas(void *);
 extern u32int ttbget(void);
 extern void ttbput(u32int);
 
-Dev*		devtabget(int, int);
-void		devtabinit(void);
-void		devtabreset(void);
-long		devtabread(Chan*, void*, long, vlong);
-void		devtabshutdown(void);
-
 extern void intrclear(int sort, int v);
 extern void intrenable(int sort, int v, void (*f)(Ureg*, void*), void *a, char *name);
 extern void intrdisable(int sort, int v, void (*f)(Ureg*, void*), void* a, char *name);

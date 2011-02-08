@@ -81,35 +81,64 @@ serialdrain(Serialport *p)
 		ser->clearpipes(p);
 }
 
-/* BUG: separate reset per port */
 int
 serialreset(Serial *ser)
 {
 	Serialport *p;
-	int i;
+	int i, res;
 
+	res = 0;
 	/* cmd for reset */
 	for(i = 0; i < ser->nifcs; i++){
 		p = &ser->p[i];
 		serialdrain(p);
 	}
 	if(ser->reset != nil)
-		ser->reset(ser);
-	return 0;
+		res = ser->reset(ser, nil);
+	return res;
 }
 
-/* call this if something goes wrong */
+/* call this if something goes wrong, must be qlocked */
 int
-serialrecover(Serial *ser, char *err)
+serialrecover(Serial *ser, Serialport *p, Dev *ep, char *err)
 {
+	if(p != nil)
+		dprint(2, "serial[%d], %s: %s, level %d\n", p->interfc,
+			p->name, err, ser->recover);
+	else
+		dprint(2, "serial[%s], global error, level %d\n",
+			ser->p[0].name, ser->recover);
+	ser->recover++;
 	if(strstr(err, "detached") != nil)
 		return -1;
-	if(ser->recover > 1)
+	if(ser->recover < 3){
+		if(ep != nil){
+			if(p->epintr != nil && ep == p->epintr)
+				unstall(ser->dev, p->epintr, Ein);
+			if(p->epin != nil && ep == p->epin)
+				unstall(ser->dev, p->epin, Ein);
+			if(p->epout != nil && ep == p->epout)
+				unstall(ser->dev, p->epout, Eout);
+			return 0;
+		}
+		if(p != nil){
+			if(p->epintr != nil)
+				unstall(ser->dev, p->epintr, Ein);
+			if(p->epin != nil)
+				unstall(ser->dev, p->epin, Ein);
+			if(p->epout != nil)
+				unstall(ser->dev, p->epout, Eout);
+		}
+		return 0;
+	}
+	if(ser->recover > 4 && ser->recover < 8)
 		serialfatal(ser);
-	ser->recover++;
+	if(ser->recover > 8){
+		ser->reset(ser, p);
+		return 0;
+	}
 	if(serialreset(ser) < 0)
 		return -1;
-	ser->recover = 0;
 	return 0;
 }
 
@@ -238,7 +267,7 @@ serialctl(Serialport *p, char *cmd)
 			else
 				nw = write(p->epout->dfd, &x, 1);
 			if(nw != 1){
-				serialrecover(ser, "");
+				serialrecover(ser, nil, p->epout, "");
 				return -1;
 			}
 			break;
@@ -260,6 +289,7 @@ serialctl(Serialport *p, char *cmd)
 		if(ser->setparam != nil && ser->setparam(p) < 0)
 			return -1;
 	}
+	ser->recover = 0;
 	return 0;
 }
 
@@ -505,7 +535,7 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 		if(rcount < 0){
 			dsprint(2, "serial: need to recover, data read %ld %r\n",
 				count);
-			serialrecover(ser, err);
+			serialrecover(ser, nil, p->epin, err);
 		}
 		dsprint(2, "serial: read from bulk %ld\n", rcount);
 		count = rcount;
@@ -521,6 +551,8 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 		}
 		break;
 	}
+	if(count >= 0)
+		ser->recover = 0;
 	qunlock(ser);
 	free(err);
 	free(buf);
@@ -555,7 +587,7 @@ altwrite(Serialport *p, uchar *buf, long count)
 		dsprint(2, "serial: need to recover, status in write %d %r\n",
 			nw);
 		snprint(err, sizeof err, "%r");
-		serialrecover(p->s, err);
+		serialrecover(p->s, nil, p->epout, err);
 	}
 	return nw;
 }
@@ -596,6 +628,10 @@ dwrite(Usbfs *fs, Fid *fid, void *buf, long count, vlong)
 		werrstr(Eperm);
 		return -1;
 	}
+	if(count >= 0)
+		ser->recover = 0;
+	else
+		serialrecover(ser, nil, p->epout, "writing");
 	qunlock(ser);
 	return count;
 }
@@ -802,7 +838,6 @@ serialmain(Dev *dev, int argc, char* argv[])
 		werrstr("serial: no serial devices found");
 		return -1;
 	}
-
 	for(i = 0; i < ser->nifcs; i++){
 		p = &ser->p[i];
 		p->interfc = i;
@@ -841,7 +876,7 @@ serialmain(Dev *dev, int argc, char* argv[])
 			else
 				snprint(p->fs.name, sizeof p->fs.name, "eiaU%d.%d", devid, i);
 		}
-		fprint(2, "%s\n", p->fs.name);
+		fprint(2, "%s...", p->fs.name);
 		p->fs.dev = dev;
 		incref(dev);
 		p->fs.aux = p;

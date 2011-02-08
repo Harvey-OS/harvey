@@ -685,7 +685,7 @@ cpdata(Serial *ser, Serialport *port, uchar *out, uchar *in, int sz)
 static void
 epreader(void *u)
 {
-	int dfd, rcount, cl;
+	int dfd, rcount, cl, ntries, recov;
 	char err[40];
 	Areader *a;
 	Channel *c;
@@ -700,20 +700,30 @@ epreader(void *u)
 	c = a->c;
 	free(a);
 
-	qlock(ser);
+	qlock(ser);	/* this makes the reader wait end of initialization too */
 	dfd = p->epin->dfd;
 	qunlock(ser);
 
+	ntries = 0;
 	pk = nil;
 	do {
 		if (pk == nil)
 			pk = emallocz(sizeof(Packser), 1);
+Eagain:
 		rcount = read(dfd, pk->b, sizeof pk->b);
 		if(serialdebug > 5)
 			dsprint(2, "%d %#ux%#ux ", rcount, p->data[0],
 				p->data[1]);
-		if(rcount < 0)
-			break;
+
+		if(rcount < 0){
+			if(ntries++ > 100)
+				break;
+			qlock(ser);
+			recov = serialrecover(ser, p, nil, "epreader: bulkin error");
+			qunlock(ser);
+			if(recov >= 0)
+				goto Eagain;
+		}
 		if(rcount == 0)
 			continue;
 		if(rcount >= ser->inhdrsz){
@@ -731,6 +741,10 @@ epreader(void *u)
 				}
 			}else
 				free(pk);
+			qlock(ser);
+			ser->recover = 0;
+			qunlock(ser);
+			ntries = 0;
 			pk = nil;
 		}
 	} while(rcount >= 0 || (rcount < 0 && strstr(err, "timed out") != nil));
@@ -794,11 +808,14 @@ statusreader(void *u)
 }
 
 static int
-ftreset(Serial *ser)
+ftreset(Serial *ser, Serialport *p)
 {
-	Serialport *p;
 	int i;
 
+	if(p != nil){
+		ftdiwrite(p, FTRESETCTLVAL, 0, FTRESET);
+		return 0;
+	}
 	p = ser->p;
 	for(i = 0; i < Maxifc; i++)
 		if(p[i].s != nil)

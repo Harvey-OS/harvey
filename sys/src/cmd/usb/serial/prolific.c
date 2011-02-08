@@ -372,7 +372,7 @@ plreadstatus(Serialport *p)
 
 	if(nr < 0 && strstr(err, "timed out") == nil){
 		dsprint(2, "serial: need to recover, status read %d %r\n", nr);
-		if(serialrecover(ser, err) < 0){
+		if(serialrecover(ser, nil, nil, err) < 0){
 			qunlock(ser);
 			return -1;
 		}

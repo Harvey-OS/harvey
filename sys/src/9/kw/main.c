@@ -410,7 +410,7 @@ reboot(void *entry, void *code, ulong size)
 	serialoq = nil;
 
 	/* shutdown devices */
-	devtabshutdown();
+	chandevshutdown();
 
 	/* call off the dog */
 	clockshutdown();
@@ -461,7 +461,7 @@ init0(void)
 	up->slash->path = newpath("/");
 	up->dot = cclone(up->slash);
 
-	devtabinit();
+	chandevinit();
 
 	if(!waserror()){
 		snprint(buf, sizeof(buf), "%s %s", "ARM", conffile);

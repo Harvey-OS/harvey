@@ -1,5 +1,5 @@
 /*
- * marvell kirkwood ethernet (88e1116 and 88e1121) driver
+ * marvell kirkwood gigabit ethernet (88e1116 and 88e1121) driver
  * (as found in the sheevaplug, openrd and guruplug).
  * the main difference is the flavour of phy kludgery necessary.
  *

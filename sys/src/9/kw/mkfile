@@ -19,7 +19,6 @@ PORT=\
 	cache.$O\
 	chan.$O\
 	dev.$O\
-	devtab.$O\
 	edf.$O\
 	fault.$O\
 	latin1.$O\
