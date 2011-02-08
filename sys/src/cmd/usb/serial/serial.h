@@ -8,7 +8,7 @@ struct Serialops {
 	int	(*getparam)(Serialport*);
 	int	(*setparam)(Serialport*);
 	int	(*clearpipes)(Serialport*);
-	int	(*reset)(Serial*);
+	int	(*reset)(Serial*, Serialport*);
 	int	(*sendlines)(Serialport*);
 	int	(*modemctl)(Serialport*, int);
 	int	(*setbreak)(Serialport*, int);
@@ -121,6 +121,6 @@ extern int serialdebug;
 
 #define	dsprint	if(serialdebug)fprint
 
-int	serialrecover(Serial *ser, char *err);
+int	serialrecover(Serial *ser, Serialport *p, Dev *ep, char *err);
 int	serialreset(Serial *ser);
 char	*serdumpst(Serialport *p, char *buf, int bufsz);

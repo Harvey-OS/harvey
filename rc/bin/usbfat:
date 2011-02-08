@@ -63,8 +63,6 @@ for(d in $disks){
 				}
 			}
 		}
-		if not
-			echo $d does not exist >[1=2]
 	}
 }
 exit ''

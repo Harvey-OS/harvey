@@ -164,7 +164,7 @@ static char *spname[] =
 	[Nospeed]	"no",
 };
 
-static int	debug = 0;
+static int	debug;
 static Hcitype	hcitypes[Nhcis];
 static Hci*	hcis[Nhcis];
 static QLock	epslck;		/* add, del, lookup endpoints */
@@ -669,7 +669,7 @@ hciprobe(int cardno, int ctlrno)
 	hp = mallocz(sizeof(Hci), 1);
 	hp->ctlrno = ctlrno;
 
-	if(cardno < 0){
+	if(cardno < 0)
 		for(cardno = 0; cardno < Nhcis; cardno++){
 			if(hcitypes[cardno].type == nil)
 				break;
@@ -679,7 +679,6 @@ hciprobe(int cardno, int ctlrno)
 			if(cistrcmp(hcitypes[cardno].type, type) == 0)
 				break;
 		}
-	}
 
 	if(cardno >= Nhcis || hcitypes[cardno].type == nil){
 		free(hp);

@@ -26,7 +26,8 @@ TEXT vtable(SB), 1, $-4
 	WORD	$_vdabt(SB)		/* data abort, switch to svc mode */
 	WORD	$_vsvc(SB)		/* reserved */
 	WORD	$_virq(SB)		/* IRQ, switch to svc mode */
-	WORD	$_vfiq(SB)		/* FIQ, switch to svc mode */
+//	WORD	$_vfiq(SB)		/* FIQ, switch to svc mode */
+	WORD	$_virq(SB)		/* FIQ, switch to svc mode */
 
 TEXT _vrst(SB), 1, $-4
 	BL	_reset(SB)
@@ -38,12 +39,14 @@ TEXT _vsvc(SB), 1, $-4			/* SWI */
 	MOVW	$PsrMsvc, R14		/* ureg->type = PsrMsvc */
 	MOVW.W	R14, -4(R13)		/* ... */
 
+	/* avoid the ambiguity described in notes/movm.w. */
 //	MOVM.DB.W.S [R0-R14], (R13)	/* save user level registers, at end r13 points to ureg */
 	MOVM.DB.S [R0-R14], (R13)	/* save user level registers */
 	SUB	$(15*4), R13		/* r13 now points to ureg */
 
 	MOVW	$setR12(SB), R12	/* Make sure we've got the kernel's SB loaded */
 
+//	MOVW	$(KSEG0+16*KiB-MACHSIZE), R10	/* m */
 	MOVW	$(L1-MACHSIZE), R10	/* m */
 	MOVW	8(R10), R9		/* up */
 
@@ -106,6 +109,7 @@ _vswitch:
 	MOVM.IA	  (R3), [R0-R4]		/* restore [R0-R4] from previous mode's stack */
 
 	/*
+	 * avoid the ambiguity described in notes/movm.w.
 	 * In order to get a predictable value in R13 after the stores,
 	 * separate the store-multiple from the stack-pointer adjustment.
 	 * We'll assume that the old value of R13 should be stored on the stack.
@@ -138,12 +142,14 @@ _userexcep:
 	MOVM.DB.W [R0-R2], (R13)	/* set ureg->{type, psr, pc}; r13 points to ureg->type  */
 	MOVM.IA	  (R3), [R0-R4]		/* restore [R0-R4] from previous mode's stack */
 
+	/* avoid the ambiguity described in notes/movm.w. */
 //	MOVM.DB.W.S [R0-R14], (R13)	/* save kernel level registers, at end r13 points to ureg */
 	MOVM.DB.S [R0-R14], (R13)	/* save kernel level registers */
 	SUB	$(15*4), R13		/* r13 now points to ureg */
 
 	MOVW	$setR12(SB), R12	/* Make sure we've got the kernel's SB loaded */
 
+//	MOVW	$(KSEG0+16*KiB-MACHSIZE), R10	/* m */
 	MOVW	$(L1-MACHSIZE), R10	/* m */
 	MOVW	8(R10), R9		/* up */
 
@@ -161,7 +167,6 @@ _userexcep:
 	RFE				/* MOVM.IA.S.W (R13), [R15] */
 
 TEXT _vfiq(SB), 1, $-4			/* FIQ */
-WAVE('%')
 	RFE				/* FIQ is special, ignore it for now */
 
 /*
