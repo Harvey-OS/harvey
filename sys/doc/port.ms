@@ -186,7 +186,10 @@ The compiler supports the ARMv4 architecture;
 it does not support the Thumb instruction sets.
 It has been used on ARM7500FE, ARM926 and Cortex-A8 processors
 and the Strongarm SA1 core machines.
-The compiler generates instructions for the ARM floating-point coprocessor.
+The compiler generates instructions for
+ARM 7500 FPA floating-point coprocessor 1,
+but probably should instead generate VFP 3+ instructions
+for coprocessors 10 and 11.
 .SH
 The AMD 29000 compiler
 .PP
@@ -344,7 +347,7 @@ The Marvell Kirkwood operating system
 This is an ARM kernel for the ARM926EJ-S processor
 and it emulates floating-point and
 CAS (compare-and-swap) instructions.
-It is known to run on the Sheevaplug and Openrd-client boards.
+It is known to run on the Sheevaplug, Guruplug and Openrd-client boards.
 It is derived from a port of native Inferno to the Sheevaplug
 by Salva Peir\f(Jpó\fP and Mechiel Lukkien.
 There are many features of the Kirkwood system-on-a-chip
@@ -353,6 +356,21 @@ There are currently drivers for up to two
 Gigabit Ethernet interfaces,
 USB and the console serial port;
 we hope to add crypto acceleration, and a video driver for the Openrd-client.
+.SH
+The Marvell PXA168 operating system
+.PP
+This is an ARM kernel for the ARM-v5-architecture processor in the
+Marvell PXA168 system-on-a-chip
+and it emulates floating-point and
+CAS (compare-and-swap) instructions.
+It is known to run on the Guruplug Display.
+There are many features of the system-on-a-chip
+that it does not exploit.
+There are currently drivers for
+a Fast Ethernet interface,
+.\" USB
+and the console serial port;
+we hope to add crypto acceleration, and a video driver.
 .SH
 The TI OMAP35 operating system
 .PP
@@ -366,6 +384,7 @@ Initially, there are drivers for the SMSC 9221 100Mb/s Ethernet
 interface in the IGEPv2 and Overo,
 and the console serial port;
 we hope to add USB, flash memory and video drivers.
+.
 .
 .ig
 .SH
