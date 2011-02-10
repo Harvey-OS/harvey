@@ -69,6 +69,10 @@ alloc.$O:	/sys/include/pool.h
 devmnt.$O:	/sys/include/fcall.h
 proc.$O:	errstr.h
 devroot.$O:	errstr.h
+devaoe.$O:	/$objtype/include/ureg.h
+devfs.$O:	/$objtype/include/ureg.h
+devsd.$O:	/$objtype/include/ureg.h
+sdscsi.$O:	/$objtype/include/ureg.h
 trap.$O:	/$objtype/include/ureg.h
 devproc.$O:	/$objtype/include/ureg.h
 main.$O:	init.h
