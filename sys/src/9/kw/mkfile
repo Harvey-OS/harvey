@@ -129,8 +129,8 @@ fpi.$O fpiarm.$O fpimem.$O: fpi.h
 l.$O lexception.$O lproc.$O mmu.$O: arm.s arm.h mem.h
 main.$O:	errstr.h init.h reboot.h
 mouse.$O:	screen.h
-devusb.$O:	usb.h
-usbehci.$O usbohci.$O usbuhci.$O: usb.h usbehci.h uncached.h
+devusb.$O:	../port/usb.h
+usbehci.$O usbohci.$O usbuhci.$O: ../port/usb.h usbehci.h uncached.h
 
 init.h:D:	../port/initcode.c init9.s
 	$CC ../port/initcode.c

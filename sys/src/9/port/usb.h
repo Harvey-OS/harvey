@@ -1,6 +1,14 @@
 /*
  * common USB definitions.
  */
+#define dprint		if(debug)print
+#define ddprint		if(debug>1)print
+#define deprint		if(debug || ep->debug)print
+#define ddeprint	if(debug>1 || ep->debug>1)print
+
+#define	GET2(p)		((((p)[1]&0xFF)<<8)|((p)[0]&0xFF))
+#define	PUT2(p,v)	{((p)[0] = (v)); ((p)[1] = (v)>>8);}
+
 typedef struct Udev Udev;	/* USB device */
 typedef struct Ep Ep;		/* Endpoint */
 typedef struct Hci Hci;		/* Host Controller Interface */
@@ -181,12 +189,6 @@ struct Udev
 };
 
 void	addhcitype(char *type, int (*reset)(Hci*));
-#define dprint		if(debug)print
-#define ddprint		if(debug>1)print
-#define deprint		if(debug || ep->debug)print
-#define ddeprint	if(debug>1 || ep->debug>1)print
-#define	GET2(p)		((((p)[1]&0xFF)<<8)|((p)[0]&0xFF))
-#define	PUT2(p,v)	{((p)[0] = (v)); ((p)[1] = (v)>>8);}
 
 extern char *usbmodename[];
 extern char Estalled[];

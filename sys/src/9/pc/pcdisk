@@ -69,7 +69,7 @@ link
 	loopbackmedium
 	usbuhci
 	usbohci
-	usbehci
+	usbehci		usbehcipc
 
 misc
 	archmp		mp apic

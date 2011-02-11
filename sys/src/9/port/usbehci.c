@@ -2,6 +2,8 @@
  * USB Enhanced Host Controller Interface (EHCI) driver
  * High speed USB 2.0.
  *
+ * Note that all of our unlock routines call coherence.
+ *
  * BUGS:
  * - Too many delays and ilocks.
  * - bandwidth admission control must be done per-frame.
@@ -16,22 +18,24 @@
 #include	"fns.h"
 #include	"io.h"
 #include	"../port/error.h"
-#include	"usb.h"
+#include	"../port/usb.h"
 #include	"usbehci.h"
 #include	"uncached.h"
 
+#define diprint		if(ehcidebug || iso->debug)print
+#define ddiprint	if(ehcidebug>1 || iso->debug>1)print
+#define dqprint		if(ehcidebug || (qh->io && qh->io->debug))print
+#define ddqprint	if(ehcidebug>1 || (qh->io && qh->io->debug>1))print
+
+#define TRUNC(x, sz)	((x) & ((sz)-1))
+#define LPTR(q)		((ulong*)KADDR((q) & ~0x1F))
+
 typedef struct Ctlio Ctlio;
-typedef struct Ctlr Ctlr;
 typedef union Ed Ed;
 typedef struct Edpool Edpool;
-typedef struct Fstn Fstn;
-typedef struct Isoio Isoio;
 typedef struct Itd Itd;
-typedef struct Poll Poll;
-typedef struct Qh Qh;
 typedef struct Qio Qio;
 typedef struct Qtd Qtd;
-typedef struct Qtree Qtree;
 typedef struct Sitd Sitd;
 typedef struct Td Td;
 
@@ -208,7 +212,7 @@ struct Isoio
 	uchar*	data;		/* iso data buffers if not embedded */
 	char*	err;		/* error string */
 	int	nerrs;		/* nb of consecutive I/O errors */
-	ulong	maxsize;		/* ntds * ep->maxpkt */
+	ulong	maxsize;	/* ntds * ep->maxpkt */
 	long	nleft;		/* number of bytes left from last write */
 	int	debug;		/* debug flag from the endpoint */
 	int	hs;		/* is high speed? */
@@ -227,41 +231,6 @@ struct Isoio
 		Sitd**	sitdps;	/* sitdps[i]: ptr to Sitd for i-th frame or nil */
 		ulong**	tdps;	/* same thing, as seen by hw */
 	};
-};
-
-struct Poll
-{
-	Lock;
-	Rendez;
-	int	must;
-	int	does;
-};
-
-struct Ctlr
-{
-	Rendez;			/* for waiting to async advance doorbell */
-	Lock;			/* for ilock. qh lists and basic ctlr I/O */
-	QLock	portlck;	/* for port resets/enable... (and doorbell) */
-	int	active;		/* in use or not */
-//	Pcidev*	pcidev;
-	Ecapio*	capio;		/* Capability i/o regs */
-	Eopio*	opio;		/* Operational i/o regs */
-
-	int	nframes;	/* 1024, 512, or 256 frames in the list */
-	ulong*	frames;		/* periodic frame list (hw) */
-	Qh*	qhs;		/* async Qh circular list for bulk/ctl */
-	Qtree*	tree;		/* tree of Qhs for the periodic list */
-	int	ntree;		/* number of dummy qhs in tree */
-	Qh*	intrqhs;		/* list of (not dummy) qhs in tree  */
-	Isoio*	iso;		/* list of active Iso I/O */
-	ulong	load;
-	ulong	isoload;
-	int	nintr;		/* number of interrupts attended */
-	int	ntdintr;		/* number of intrs. with something to do */
-	int	nqhintr;		/* number of async td intrs. */
-	int	nisointr;	/* number of periodic td intrs. */
-	int	nreqs;
-	Poll	poll;
 };
 
 struct Edpool
@@ -374,7 +343,7 @@ struct Qh
 
 /*
  * We can avoid frame span traversal nodes if we don't span frames.
- * Just schedule transfer that can fit on the current frame and
+ * Just schedule transfers that can fit on the current frame and
  * wait a little bit otherwise.
  */
 
@@ -392,29 +361,22 @@ union Ed
 	uchar	align[Align];
 };
 
-#define diprint		if(debug || iso->debug)iprint
-#define ddiprint	if(debug>1 || iso->debug>1)iprint
-#define dqprint		if(debug || (qh->io && qh->io->debug))iprint
-#define ddqprint	if(debug>1 || (qh->io && qh->io->debug>1))iprint
-#define TRUNC(x, sz)	((x) & ((sz)-1))
-#define LPTR(q)		((ulong*)KADDR((q) & ~0x1F))
+int ehcidebug;
 
-static int debug = 0;
 static Edpool edpool;
-static Ctlr* ctlrs[Nhcis];
 static char Ebug[] = "not yet implemented";
 static char* qhsname[] = { "idle", "install", "run", "done", "close", "FREE" };
 
 Ecapio* ehcidebugcapio;
 int ehcidebugport;
 
-static void
+void
 ehcirun(Ctlr *ctlr, int on)
 {
 	int i;
 	Eopio *opio;
 
-	ddprint("ehcirun: %#p %s\n", ctlr->capio, on ? "starting" : "halting");
+	ddprint("ehci %#p %s\n", ctlr->capio, on ? "starting" : "halting");
 	opio = ctlr->opio;
 	if(on)
 		opio->cmd |= Crun;
@@ -431,7 +393,7 @@ ehcirun(Ctlr *ctlr, int on)
 	if(i == 100)
 		print("ehci %#p %s cmd timed out\n",
 			ctlr->capio, on ? "run" : "halt");
-	ddprint("ehcirun: %#p cmd %#lux sts %#lux\n",
+	ddprint("ehci %#p cmd %#lux sts %#lux\n",
 		ctlr->capio, opio->cmd, opio->sts);
 }
 
@@ -544,6 +506,7 @@ tdlinktd(Td *td, Td *next)
 		td->nlink = Lterm;
 	else
 		td->nlink = PADDR(next);
+	coherence();
 }
 
 static Qh*
@@ -627,8 +590,10 @@ schedq(Ctlr *ctlr, Qh *qh, int pollival)
 	qh->sched = q;
 	qhlinkqh(qh, tqh->next);
 	qhlinkqh(tqh, qh);
+	coherence();
 	qh->inext = ctlr->intrqhs;
 	ctlr->intrqhs = qh;
+	coherence();
 	return 0;
 }
 
@@ -699,7 +664,6 @@ qhalloc(Ctlr *ctlr, Ep *ep, Qio *io, char* tag)
 	qh->state = Qidle;
 	qh->sched = -1;
 	qh->io = io;
-	coherence();
 	if(ep != nil){
 		qh->eps0 = 0;
 		qhsetmaxpkt(qh, ep->maxpkt);
@@ -709,8 +673,7 @@ qhalloc(Ctlr *ctlr, Ep *ep, Qio *io, char* tag)
 			qh->eps0 |= Qhhigh;
 		else if(ep->ttype == Tctl)
 			qh->eps0 |= Qhnhctl;
-		qh->eps0 |= Qhdtc;
-		qh->eps0 |= (8 << Qhrlcshift);	/* 8 naks max */
+		qh->eps0 |= Qhdtc | 8 << Qhrlcshift;	/* 8 naks max */
 		coherence();
 		qhsetaddr(qh, io->usbid);
 		qh->eps1 = (ep->ntds & Qhmultmask) << Qhmultshift;
@@ -718,7 +681,7 @@ qhalloc(Ctlr *ctlr, Ep *ep, Qio *io, char* tag)
 		qh->eps1 |= ep->dev->hub << Qhhubshift;
 		qh->eps1 |= 034 << Qhscmshift;
 		if(ep->ttype == Tintr)
-			qh->eps1 |= (1 << Qhismshift); /* intr. start µf. */
+			qh->eps1 |= 1 << Qhismshift;	/* intr. start µf. */
 		coherence();
 		if(io != nil)
 			io->tag = tag;
@@ -781,7 +744,6 @@ qhcoherency(Ctlr *ctlr)
 	if(i == 3)
 		print("ehci: async advance doorbell did not ring\n");
 	ctlr->opio->cmd &= ~Ciasync;	/* try to clean */
-	coherence();
 	qunlock(&ctlr->portlck);
 }
 
@@ -823,26 +785,23 @@ qhlinktd(Qh *qh, Td *td)
 	ulong csw;
 	int i;
 
-	if(td == nil){
-		qh->tds = nil;
-		coherence();
-		qh->csw |= Tdhalt;
-		qh->csw &= ~Tdactive;
-		coherence();
-	}else{
-		qh->tds = td;
-		csw = qh->csw & (Tddata1|Tdping);	/* save */
+	csw = qh->csw;
+	qh->tds = td;
+	if(td == nil)
+		qh->csw = (csw & ~Tdactive) | Tdhalt;
+	else{
+		csw &= Tddata1 | Tdping;	/* save */
 		qh->csw = Tdhalt;
 		coherence();
 		qh->tclink = 0;
 		qh->alink = Lterm;
 		qh->nlink = PADDR(td);
-		coherence();
 		for(i = 0; i < nelem(qh->buffer); i++)
 			qh->buffer[i] = 0;
-		qh->csw = csw & ~(Tdhalt|Tdactive);	/* activate next */
 		coherence();
+		qh->csw = csw & ~(Tdhalt|Tdactive);	/* activate next */
 	}
+	coherence();
 }
 
 static char*
@@ -977,6 +936,8 @@ seprinttd(char *s, char *se, Td *td, char *tag)
 	char flags[9];
 	static char *tok[4] = { "out", "in", "setup", "BUG" };
 
+	if(td == nil)
+		return seprint(s, se, "%s <nil td>\n", tag);
 	s = seprint(s, se, "%s %#p", tag, td);
 	s = seprintlink(s, se, " nlink", td->nlink, 0);
 	s = seprintlink(s, se, " alink", td->alink, 0);
@@ -1119,38 +1080,37 @@ isodump(Isoio* iso, int all)
 			seprintsitd(buf, buf+sizeof(buf), stdu);
 			print("\tstdu %s\n", buf);
 		}
-	else{
+	else
 		for(i = 0; i < Nisoframes; i++)
 			if(iso->tdps[i] != nil)
-			if(iso->hs != 0){
-				td = iso->itdps[i];
-				seprintitd(buf, buf+sizeof(buf), td);
-				if(td == iso->tdi)
-					print("i->");
-				if(td == iso->tdu)
-					print("i->");
-				print("[%d]\t%s", i, buf);
-			}else{
-				std = iso->sitdps[i];
-				seprintsitd(buf, buf+sizeof(buf), std);
-				if(std == iso->stdi)
-					print("i->");
-				if(std == iso->stdu)
-					print("u->");
-				print("[%d]\t%s", i, buf);
-			}
-	}
+				if(iso->hs != 0){
+					td = iso->itdps[i];
+					seprintitd(buf, buf+sizeof(buf), td);
+					if(td == iso->tdi)
+						print("i->");
+					if(td == iso->tdu)
+						print("i->");
+					print("[%d]\t%s", i, buf);
+				}else{
+					std = iso->sitdps[i];
+					seprintsitd(buf, buf+sizeof(buf), std);
+					if(std == iso->stdi)
+						print("i->");
+					if(std == iso->stdu)
+						print("u->");
+					print("[%d]\t%s", i, buf);
+				}
 }
 
 static void
 dump(Hci *hp)
 {
-	Ctlr *ctlr;
-	Isoio *iso;
-	Eopio *opio;
 	int i;
-	char buf[128];
 	char *s, *se;
+	char buf[128];
+	Ctlr *ctlr;
+	Eopio *opio;
+	Isoio *iso;
 	Qh *qh;
 
 	ctlr = hp->aux;
@@ -1344,7 +1304,7 @@ isohsinterrupt(Ctlr *ctlr, Isoio *iso)
 	ddiprint("isohsintr: iso %#p: tdi %#p tdu %#p\n", iso, tdi, iso->tdu);
 	if(iso->state != Qrun && iso->state != Qdone)
 		panic("isofsintr: iso state");
-	if(debug > 1 || iso->debug > 1)
+	if(ehcidebug > 1 || iso->debug > 1)
 		isodump(iso, 0);
 
 	nframes = iso->nframes / 2;		/* limit how many we look */
@@ -1359,6 +1319,7 @@ isohsinterrupt(Ctlr *ctlr, Isoio *iso)
 		if(iso->tok == Tdtokin)
 			tdi->ndata += (tdi->csw[i] >> Itdlenshift) & Itdlenmask;
 		err = 0;
+		coherence();
 		for(t = 0; t < nelem(tdi->csw); t++){
 			tdi->csw[t] &= ~Itdioc;
 			coherence();
@@ -1386,10 +1347,12 @@ isohsinterrupt(Ctlr *ctlr, Isoio *iso)
 		coherence();
 	}
 	ddiprint("isohsintr: %d frames processed\n", nframes);
-	if(i == nframes)
+	if(i == nframes){
 		tdi->csw[0] |= Itdioc;
-	coherence();
+		coherence();
+	}
 	iso->tdi = tdi;
+	coherence();
 	if(isocanwrite(iso) || isocanread(iso)){
 		diprint("wakeup iso %#p tdi %#p tdu %#p\n", iso,
 			iso->tdi, iso->tdu);
@@ -1412,7 +1375,7 @@ isofsinterrupt(Ctlr *ctlr, Isoio *iso)
 	ddiprint("isofsintr: iso %#p: tdi %#p tdu %#p\n", iso, stdi, iso->stdu);
 	if(iso->state != Qrun && iso->state != Qdone)
 		panic("isofsintr: iso state");
-	if(debug > 1 || iso->debug > 1)
+	if(ehcidebug > 1 || iso->debug > 1)
 		isodump(iso, 0);
 
 	nframes = iso->nframes / 2;		/* limit how many we look */
@@ -1421,6 +1384,7 @@ isofsinterrupt(Ctlr *ctlr, Isoio *iso)
 
 	for(i = 0; i < nframes && (stdi->csw & Stdactive) == 0; i++){
 		stdi->csw &= ~Stdioc;
+		/* write back csw and see if it produces errors */
 		coherence();
 		err = stdi->csw & Stderrors;
 		if(err == 0){
@@ -1441,18 +1405,21 @@ isofsinterrupt(Ctlr *ctlr, Isoio *iso)
 
 		if(stdi->next == iso->stdu || stdi->next->next == iso->stdu){
 			memset(iso->stdu->data, 0, iso->stdu->mdata);
+			coherence();
 			sitdinit(iso, iso->stdu);
 			iso->stdu = iso->stdu->next;
 			iso->nleft = 0;
 		}
-		stdi = stdi->next;
 		coherence();
+		stdi = stdi->next;
 	}
 	ddiprint("isofsintr: %d frames processed\n", nframes);
-	if(i == nframes)
+	if(i == nframes){
 		stdi->csw |= Stdioc;
-	coherence();
+		coherence();
+	}
 	iso->stdi = stdi;
+	coherence();
 	if(isocanwrite(iso) || isocanread(iso)){
 		diprint("wakeup iso %#p tdi %#p tdu %#p\n", iso,
 			iso->stdi, iso->stdu);
@@ -1469,17 +1436,18 @@ qhinterrupt(Ctlr *ctlr, Qh *qh)
 
 	if(qh->state != Qrun)
 		panic("qhinterrupt: qh state");
-	if(qh->tds == nil)
+	td = qh->tds;
+	if(td == nil)
 		panic("qhinterrupt: no tds");
-	if((qh->tds->csw & Tdactive) == 0)
-		ddqprint("qhinterrupt port %#p qh %#p\n",ctlr->capio, qh);
-	for(td = qh->tds; td != nil; td = td->next){
+	if((td->csw & Tdactive) == 0)
+		ddqprint("qhinterrupt port %#p qh %#p\n", ctlr->capio, qh);
+	for(; td != nil; td = td->next){
 		if(td->csw & Tdactive)
 			return 0;
-		if((td->csw & Tderrors) != 0){
-			err = td->csw & Tderrors;
+		err = td->csw & Tderrors;
+		if(err != 0){
 			if(qh->io->err == nil){
-				qh->io->err = errmsg(td->csw & Tderrors);
+				qh->io->err = errmsg(err);
 				dqprint("qhintr: td %#p csw %#lux error %#ux %s\n",
 					td, td->csw, err, qh->io->err);
 			}
@@ -1499,6 +1467,7 @@ qhinterrupt(Ctlr *ctlr, Qh *qh)
 		td->ndata = 0;
 	coherence();
 	qh->state = Qdone;
+	coherence();
 	wakeup(qh->io);
 	return 1;
 }
@@ -1546,7 +1515,7 @@ ehciintr(Hci *hp)
 	some = 0;
 	if((sts & (Serrintr|Sintr)) != 0){
 		ctlr->ntdintr++;
-		if(debug > 1){
+		if(ehcidebug > 1){
 			print("ehci port %#p frames %#p nintr %d ntdintr %d",
 				ctlr->capio, ctlr->frames,
 				ctlr->nintr, ctlr->ntdintr);
@@ -1677,6 +1646,7 @@ portreset(Hci *hp, int port, int on)
 	s &= ~(Psenable|Psreset);
 	opio->portsc[port-1] = s | Psreset;	/* initiate reset */
 	coherence();
+
 	for(i = 0; i < 50; i++){		/* was 10 */
 		delay(10);
 		if((opio->portsc[port-1] & Psreset) == 0)
@@ -1808,6 +1778,7 @@ clrhalt(Ep *ep)
 	Qio *io;
 
 	ep->clrhalt = 0;
+	coherence();
 	switch(ep->ttype){
 	case Tintr:
 	case Tbulk:
@@ -1868,6 +1839,7 @@ episohscpy(Ctlr *ctlr, Ep *ep, Isoio* iso, uchar *b, long count)
 			if(nr < tdu->ndata)
 				memmove(tdu->data, tdu->data+nr, tdu->ndata - nr);
 			tdu->ndata -= nr;
+			coherence();
 		}
 		if(tdu->ndata == 0){
 			itdinit(iso, tdu);
@@ -1904,6 +1876,7 @@ episofscpy(Ctlr *ctlr, Ep *ep, Isoio* iso, uchar *b, long count)
 				memmove(stdu->data, stdu->data+nr,
 					stdu->ndata - nr);
 			stdu->ndata -= nr;
+			coherence();
 		}
 		if(stdu->ndata == 0){
 			sitdinit(iso, stdu);
@@ -1938,6 +1911,7 @@ episoread(Ep *ep, Isoio *iso, void *a, long count)
 		error(iso->err ? iso->err : Eio);
 	}
 	iso->state = Qrun;
+	coherence();
 	while(isocanread(iso) == 0){
 		iunlock(ctlr);
 		diprint("ehci: episoread: %#p sleep\n", iso);
@@ -1956,6 +1930,7 @@ episoread(Ep *ep, Isoio *iso, void *a, long count)
 		error(iso->err ? iso->err : Eio);
 	}
 	iso->state = Qdone;
+	coherence();
 	assert(iso->tdu != iso->tdi);
 
 	if(iso->hs != 0)
@@ -1985,7 +1960,8 @@ putsamples(Isoio *iso, uchar *b, long count)
 		if(iso->hs != 0){
 			if(n > iso->tdu->mdata - iso->nleft)
 				n = iso->tdu->mdata - iso->nleft;
-			memmove(iso->tdu->data+iso->nleft, b+tot, n);
+			memmove(iso->tdu->data + iso->nleft, b + tot, n);
+			coherence();
 			iso->nleft += n;
 			if(iso->nleft == iso->tdu->mdata){
 				itdinit(iso, iso->tdu);
@@ -1995,7 +1971,8 @@ putsamples(Isoio *iso, uchar *b, long count)
 		}else{
 			if(n > iso->stdu->mdata - iso->nleft)
 				n = iso->stdu->mdata - iso->nleft;
-			memmove(iso->stdu->data+iso->nleft, b+tot, n);
+			memmove(iso->stdu->data + iso->nleft, b + tot, n);
+			coherence();
 			iso->nleft += n;
 			if(iso->nleft == iso->stdu->mdata){
 				sitdinit(iso, iso->stdu);
@@ -2034,6 +2011,7 @@ episowrite(Ep *ep, Isoio *iso, void *a, long count)
 		error(iso->err ? iso->err : Eio);
 	}
 	iso->state = Qrun;
+	coherence();
 	b = a;
 	for(tot = 0; tot < count; tot += nw){
 		while(isocanwrite(iso) == 0){
@@ -2140,6 +2118,7 @@ aborttds(Qh *qh)
 	Td *td;
 
 	qh->state = Qdone;
+	coherence();
 	if(qh->sched >= 0 && (qh->eps0 & Qhspeedmask) != Qhhigh)
 		qh->eps0 |= Qhint;	/* inactivate on next pass */
 	coherence();
@@ -2147,8 +2126,8 @@ aborttds(Qh *qh)
 		if(td->csw & Tdactive)
 			td->ndata = 0;
 		td->csw |= Tdhalt;
+		coherence();
 	}
-	coherence();
 }
 
 /*
@@ -2273,6 +2252,7 @@ epiowait(Hci *hp, Qio *io, int tmout, ulong load)
 	}
 	if(qh->state != Qclose)
 		qh->state = Qidle;
+	coherence();
 	qhlinktd(qh, nil);
 	ctlr->load -= load;
 	ctlr->nreqs--;
@@ -2287,15 +2267,15 @@ epiowait(Hci *hp, Qio *io, int tmout, ulong load)
 static long
 epio(Ep *ep, Qio *io, void *a, long count, int mustlock)
 {
-	Td *td, *ltd, *td0, *ntd;
-	Ctlr *ctlr;
-	Qh* qh;
-	long n, tot;
-	char buf[128];
-	uchar *c;
 	int saved, ntds, tmout;
+	long n, tot;
 	ulong load;
 	char *err;
+	char buf[128];
+	uchar *c;
+	Ctlr *ctlr;
+	Qh* qh;
+	Td *td, *ltd, *td0, *ntd;
 
 	qh = io->qh;
 	ctlr = ep->hp->aux;
@@ -2304,7 +2284,7 @@ epio(Ep *ep, Qio *io, void *a, long count, int mustlock)
 	ddeprint("epio: %s ep%d.%d io %#p count %ld load %uld\n",
 		io->tok == Tdtokin ? "in" : "out",
 		ep->dev->nb, ep->nb, io, count, ctlr->load);
-	if((debug > 1 || ep->debug > 1) && io->tok != Tdtokin){
+	if((ehcidebug > 1 || ep->debug > 1) && io->tok != Tdtokin){
 		seprintdata(buf, buf+sizeof(buf), a, count);
 		print("echi epio: user data: %s\n", buf);
 	}
@@ -2348,17 +2328,18 @@ epio(Ep *ep, Qio *io, void *a, long count, int mustlock)
 	if(td0 == nil || ltd == nil)
 		panic("epio: no td");
 
-	ltd->csw |= Tdioc;	/* the last one interrupts */
+	ltd->csw |= Tdioc;		/* the last one interrupts */
 	coherence();
 
 	ddeprint("ehci: load %uld ctlr load %uld\n", load, ctlr->load);
-	if(debug > 1 || ep->debug > 1)
+	if(ehcidebug > 1 || ep->debug > 1)
 		dumptd(td0, "epio: put: ");
 
 	ilock(ctlr);
 	if(qh->state != Qclose){
 		io->iotime = TK2MS(MACHP(0)->ticks);
 		qh->state = Qrun;
+		coherence();
 		qhlinktd(qh, td0);
 		ctlr->nreqs++;
 		ctlr->load += load;
@@ -2369,7 +2350,7 @@ epio(Ep *ep, Qio *io, void *a, long count, int mustlock)
 		wakeup(&ctlr->poll);
 
 	epiowait(ep->hp, io, tmout, load);
-	if(debug > 1 || ep->debug > 1){
+	if(ehcidebug > 1 || ep->debug > 1){
 		dumptd(td0, "epio: got: ");
 		qhdump(qh);
 	}
@@ -2386,8 +2367,10 @@ epio(Ep *ep, Qio *io, void *a, long count, int mustlock)
 		 * was a short packet), we must save the toggle as it is.
 		 */
 		if(td->csw & (Tdhalt|Tdactive)){
-			if(saved++ == 0)
+			if(saved++ == 0) {
 				io->toggle = td->csw & Tddata1;
+				coherence();
+			}
 		}else{
 			tot += td->ndata;
 			if((td->csw & Tdtok) == Tdtokin && td->ndata > 0){
@@ -2455,7 +2438,7 @@ epread(Ep *ep, void *a, long count)
 		}
 		qunlock(cio);
 		poperror();
-		if(debug>1 || ep->debug){
+		if(ehcidebug>1 || ep->debug){
 			seprintdata(buf, buf+sizeof(buf), a, count);
 			print("epread: %s\n", buf);
 		}
@@ -2519,6 +2502,7 @@ epctlio(Ep *ep, Ctlio *cio, void *a, long count)
 	if(ep->dev->state != Dconfig && ep->dev->state != Dreset)
 		if(cio->usbid == 0){
 			cio->usbid = (ep->nb&Epmax) << 7 | ep->dev->nb&Devmax;
+			coherence();
 			qhsetaddr(cio->qh, cio->usbid);
 		}
 	/* adjust maxpkt if the user has learned a different one */
@@ -2527,6 +2511,7 @@ epctlio(Ep *ep, Ctlio *cio, void *a, long count)
 	c = a;
 	cio->tok = Tdtoksetup;
 	cio->toggle = Tddata0;
+	coherence();
 	if(epio(ep, cio, a, Rsetuplen, 0) < Rsetuplen)
 		error(Eio);
 	a = c + Rsetuplen;
@@ -2545,6 +2530,7 @@ epctlio(Ep *ep, Ctlio *cio, void *a, long count)
 		cio->tok = Tdtokout;
 		len = count;
 	}
+	coherence();
 	if(len > 0)
 		if(waserror())
 			len = -1;
@@ -2564,6 +2550,7 @@ epctlio(Ep *ep, Ctlio *cio, void *a, long count)
 		cio->tok = Tdtokin;
 	}
 	cio->toggle = Tddata1;
+	coherence();
 	epio(ep, cio, nil, 0, 0);
 	qunlock(cio);
 	poperror();
@@ -2622,13 +2609,11 @@ isofsinit(Ep *ep, Isoio *iso)
 	for(i = 0; i < iso->nframes; i++){
 		td = sitdalloc();
 		td->data = iso->data + i * ep->maxpkt;
-		coherence();
 		td->epc = ep->dev->port << Stdportshift;
 		td->epc |= ep->dev->hub << Stdhubshift;
 		td->epc |= ep->nb << Stdepshift;
 		td->epc |= ep->dev->nb << Stddevshift;
-		coherence();
-		td->mfs = (034 << Stdscmshift) | (1 << Stdssmshift);
+		td->mfs = 034 << Stdscmshift | 1 << Stdssmshift;
 		if(ep->mode == OREAD){
 			td->epc |= Stdin;
 			td->mdata = ep->maxpkt;
@@ -2661,10 +2646,10 @@ isofsinit(Ep *ep, Isoio *iso)
 static void
 isohsinit(Ep *ep, Isoio *iso)
 {
-	Itd *td, *ltd;
 	int ival, p;
 	long left;
 	ulong frno, i, pa;
+	Itd *ltd, *td;
 
 	iso->hs = 1;
 	ival = 1;
@@ -2675,8 +2660,7 @@ isohsinit(Ep *ep, Isoio *iso)
 	frno = iso->td0frno;
 	for(i = 0; i < iso->nframes; i++){
 		td = itdalloc();
-		td->data = iso->data + i * 8  * iso->maxsize;
-		coherence();
+		td->data = iso->data + i * 8 * iso->maxsize;
 		pa = PADDR(td->data) & ~0xFFF;
 		for(p = 0; p < 8; p++)
 			td->buffer[i] = pa + p * 0x1000;
@@ -2688,7 +2672,6 @@ isohsinit(Ep *ep, Isoio *iso)
 			td->buffer[1] |= Itdout;
 		td->buffer[1] |= ep->maxpkt << Itdmaxpktshift;
 		td->buffer[2] |= ep->ntds << Itdntdsshift;
-		coherence();
 
 		if(ep->mode == OREAD)
 			td->mdata = 8 * iso->maxsize;
@@ -2711,7 +2694,7 @@ isohsinit(Ep *ep, Isoio *iso)
 static void
 isoopen(Ctlr *ctlr, Ep *ep)
 {
-	uint ival;		/* pollival in ms */
+	int ival;		/* pollival in ms */
 	int tpf;		/* tds per frame */
 	int i, n, w, woff;
 	ulong frno;
@@ -2730,6 +2713,7 @@ isoopen(Ctlr *ctlr, Ep *ep)
 	}
 	iso->usbid = ep->nb << 7 | ep->dev->nb & Devmax;
 	iso->state = Qidle;
+	coherence();
 	iso->debug = ep->debug;
 	ival = ep->pollival;
 	tpf = 1;
@@ -2804,6 +2788,7 @@ isoopen(Ctlr *ctlr, Ep *ep)
 			else
 				ctlr->frames[woff+frno] = PADDR(iso->tdps[frno])
 					|Lsitd;
+			coherence();
 			frno = TRUNC(frno+ep->pollival, Nisoframes);
 		}
 	}
@@ -2813,7 +2798,7 @@ isoopen(Ctlr *ctlr, Ep *ep)
 	coherence();
 	iso->state = Qdone;
 	iunlock(ctlr);
-	if(debug > 1 || iso->debug >1)
+	if(ehcidebug > 1 || iso->debug >1)
 		isodump(iso, 0);
 }
 
@@ -2888,7 +2873,7 @@ epopen(Ep *ep)
 		break;
 	}
 	coherence();
-	if(debug>1 || ep->debug)
+	if(ehcidebug>1 || ep->debug)
 		dump(ep->hp);
 	deprint("ehci: epopen done\n");
 	poperror();
@@ -2941,6 +2926,7 @@ cancelisoio(Ctlr *ctlr, Isoio *iso, int pollival, ulong load)
 	if(iso->state != Qrun && iso->state != Qdone)
 		panic("bad iso state");
 	iso->state = Qclose;
+	coherence();
 	if(ctlr->isoload < load)
 		panic("ehci: low isoload");
 	ctlr->isoload -= load;
@@ -2964,7 +2950,8 @@ cancelisoio(Ctlr *ctlr, Isoio *iso, int pollival, ulong load)
 			std->csw &= ~(Stdioc|Stdactive);
 		}
 		coherence();
-		for(lp=&ctlr->frames[frno]; !(*lp & Lterm); lp = &LPTR(*lp)[0])
+		for(lp = &ctlr->frames[frno]; !(*lp & Lterm);
+		    lp = &LPTR(*lp)[0])
 			if(LPTR(*lp) == tp)
 				break;
 		if(*lp & Lterm)
@@ -3011,6 +2998,7 @@ cancelisoio(Ctlr *ctlr, Isoio *iso, int pollival, ulong load)
 	iso->tdps = nil;
 	free(iso->data);
 	iso->data = nil;
+	coherence();
 }
 
 static void
@@ -3098,7 +3086,7 @@ mkqhtree(Ctlr *ctlr)
 	if(qt->bw == nil || tree == nil)
 		panic("ehci: mkqhtree: no memory");
 	for(i = 0; i < n; i++){
-		qh = tree[i] = edalloc();
+		tree[i] = qh = edalloc();
 		if(qh == nil)
 			panic("ehci: mkqhtree: no memory");
 		qh->nlink = qh->alink = qh->link = Lterm;
@@ -3127,18 +3115,19 @@ mkqhtree(Ctlr *ctlr)
 		leafs[i] = PADDR(tree[leaf0 + o]) | Lqh;
 	}
 	assert((ctlr->nframes % Nintrleafs) == 0);
-	for(i = 0; i < ctlr->nframes; i += Nintrleafs)
-		memmove(ctlr->frames + i, leafs, sizeof(leafs));
+	for(i = 0; i < ctlr->nframes; i += Nintrleafs){
+		memmove(ctlr->frames + i, leafs, sizeof leafs);
+		coherence();
+	}
 	ctlr->tree = qt;
 	coherence();
 }
 
-static void
+void
 ehcimeminit(Ctlr *ctlr)
 {
-	int frsize;
+	int i, frsize;
 	Eopio *opio;
-	int i;
 
 	opio = ctlr->opio;
 	frsize = ctlr->nframes * sizeof(ulong);
@@ -3190,209 +3179,14 @@ init(Hci *hp)
 
 	for (i = 0; i < hp->nports; i++)
 		opio->portsc[i] = Pspower;
-	coherence();
 	iunlock(ctlr);
-
-	if(debug > 1)
+	if(ehcidebug > 1)
 		dump(hp);
 }
 
-static void
-ehcireset(Ctlr *ctlr)
+void
+ehcilinkage(Hci *hp)
 {
-	Eopio *opio;
-	int i;
-
-	ilock(ctlr);
-	dprint("ehci %#p reset\n", ctlr->capio);
-	opio = ctlr->opio;
-
-	/*
-	 * Turn off legacy mode. Some controllers won't
-	 * interrupt us as expected otherwise.
-	 */
-	ehcirun(ctlr, 0);
-
-	/* clear high 32 bits of address signals if it's 64 bits capable.
-	 * This is probably not needed but it does not hurt and others do it.
-	 */
-	if((ctlr->capio->capparms & C64) != 0){
-		dprint("ehci: 64 bits\n");
-		opio->seg = 0;
-	}
-
-	if(ehcidebugcapio != ctlr->capio){
-		opio->cmd |= Chcreset;	/* controller reset */
-		coherence();
-		for(i = 0; i < 100; i++){
-			if((opio->cmd & Chcreset) == 0)
-				break;
-			delay(1);
-		}
-		if(i == 100)
-			print("ehci %#p controller reset timed out\n", ctlr->capio);
-	}
-
-	/* requesting more interrupts per µframe may miss interrupts */
-	opio->cmd |= Citc8;		/* 1 intr. per ms */
-	coherence();
-	switch(opio->cmd & Cflsmask){
-	case Cfls1024:
-		ctlr->nframes = 1024;
-		break;
-	case Cfls512:
-		ctlr->nframes = 512;
-		break;
-	case Cfls256:
-		ctlr->nframes = 256;
-		break;
-	default:
-		panic("ehci: unknown fls %ld", opio->cmd & Cflsmask);
-	}
-	coherence();
-	dprint("ehci: %d frames\n", ctlr->nframes);
-	iunlock(ctlr);
-}
-
-static void
-setdebug(Hci*, int d)
-{
-	debug = d;
-}
-
-static void
-shutdown(Hci *hp)
-{
-	int i;
-	Ctlr *ctlr;
-	Eopio *opio;
-
-	ctlr = hp->aux;
-	ilock(ctlr);
-	opio = ctlr->opio;
-	opio->cmd |= Chcreset;		/* controller reset */
-	coherence();
-	for(i = 0; i < 100; i++){
-		if((opio->cmd & Chcreset) == 0)
-			break;
-		delay(1);
-	}
-	if(i >= 100)
-		print("ehci %#p controller reset timed out\n", ctlr->capio);
-	delay(100);
-	ehcirun(ctlr, 0);
-	opio->frbase = 0;
-	coherence();
-	iunlock(ctlr);
-}
-
-/*
- * omap3530-specific setup
- */
-
-enum {
-	/* opio->insn[5] bits */
-	Control		= 1<<31,  /* set to start access, cleared when done */
-	Write		= 2<<22,
-	Read		= 3<<22,
-	Portsh		= 24,
-	Regaddrsh	= 16,		/* 0x2f means use extended reg addr */
-	Eregaddrsh	= 8,
-
-	/* phy reg addresses */
-	Funcctlreg	= 4,
-	Ifcctlreg	= 7,
-
-	Phystppullupoff	= 0x90,		/* on is 0x10 */
-
-	Phyrstport2	= 147,		/* gpio # */
-
-};
-
-static void
-wrulpi(Eopio *opio, int port, int reg, uchar data)
-{
-	opio->insn[5] = Control | port << Portsh | Write | reg << Regaddrsh |
-		data;
-	coherence();
-	/*
-	 * this seems contrary to the skimpy documentation in the manual
-	 * but inverting the test hangs forever.
-	 */
-	while (!(opio->insn[5] & Control))
-		;
-}
-
-static int
-reset(Hci *hp)
-{
-	Ctlr *ctlr;
-	Ecapio *capio;
-	Eopio *opio;
-	Uhh *uhh;
-	static int beenhere;
-
-	if (beenhere)
-		return -1;
-	beenhere = 1;
-
-	if(getconf("*nousbehci") != nil || probeaddr(PHYSEHCI) < 0)
-		return -1;
-
-	ctlr = mallocz(sizeof(Ctlr), 1);
-	/*
-	 * don't bother with vmap; i/o space is all mapped anyway,
-	 * and a size less than 1MB will blow an assertion in mmukmap.
-	 */
-	ctlr->capio = capio = (Ecapio *)PHYSEHCI;
-//	ctlr->capio = capio = vmap(PHYSEHCI, 1024);
-	ctlr->opio = opio = (Eopio*)((uintptr)capio + (capio->cap & 0xff));
-
-	hp->aux = ctlr;
-	hp->port = (uintptr)ctlr->capio;
-	hp->irq = 77;
-	hp->nports = capio->parms & Cnports;
-
-	ddprint("echi: %s, ncc %lud npcc %lud\n",
-		capio->parms & 0x10000 ? "leds" : "no leds",
-		(capio->parms >> 12) & 0xf, (capio->parms >> 8) & 0xf);
-	ddprint("ehci: routing %s, %sport power ctl, %d ports\n",
-		capio->parms & 0x40 ? "explicit" : "automatic",
-		capio->parms & 0x10 ? "" : "no ", hp->nports);
-
-	ehcireset(ctlr);
-	ehcimeminit(ctlr);
-
-	/* omap35-specific set up */
-	/* bit 5 `must be set to 1 for proper behavior', spruf98d §23.2.6.7.17 */
-	opio->insn[4] |= 1<<5;
-	coherence();
-
-	/* insn[5] is for both utmi and ulpi, depending on hostconfig mode */
-	uhh = (Uhh *)PHYSUHH;
-	if (uhh->hostconfig & P1ulpi_bypass) {		/* utmi port 1 active */
-		/* not doing this */
-		iprint("usbehci: bypassing ulpi on port 1!\n");
-		opio->insn[5] &= ~(MASK(4) << 13);
-		opio->insn[5] |= 1 << 13;		/* select port 1 */
-		coherence();
-	} else {					/* ulpi port 1 active */
-		/* TODO may need to reset gpio port2 here */
-
-		/* disable integrated stp pull-up resistor */
-		wrulpi(opio, 1, Ifcctlreg, Phystppullupoff);
-
-		/* force phy to `high-speed' */
-		wrulpi(opio, 1, Funcctlreg, 0x40);
-	}
-
-	intrenable(78, interrupt, hp, UNKNOWN, "usbtll");
-	intrenable(92, interrupt, hp, UNKNOWN, "usb otg");
-	intrenable(93, interrupt, hp, UNKNOWN, "usb otg dma");
-
-	/*
-	 * Linkage to the generic HCI driver.
-	 */
 	hp->init = init;
 	hp->dump = dump;
 	hp->interrupt = interrupt;
@@ -3404,14 +3198,7 @@ reset(Hci *hp)
 	hp->portenable = portenable;
 	hp->portreset = portreset;
 	hp->portstatus = portstatus;
-	hp->shutdown = shutdown;
-	hp->debug = setdebug;
+//	hp->shutdown = shutdown;
+//	hp->debug = setdebug;
 	hp->type = "ehci";
-	return 0;
-}
-
-void
-usbehcilink(void)
-{
-	addhcitype("ehci", reset);
 }

@@ -43,7 +43,7 @@ link
 	ether9221
 ## avoid tickling errata 3.1.1.183
 ##	usbohci
-#	usbehci
+#	usbehci		usbehciomap
 
 ip
 	tcp

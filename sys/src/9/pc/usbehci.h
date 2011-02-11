@@ -1,6 +1,30 @@
+/* override default macros from ../port/usb.h */
+#undef	dprint
+#undef	ddprint
+#undef	deprint
+#undef	ddeprint
+#define dprint		if(ehcidebug)print
+#define ddprint		if(ehcidebug>1)print
+#define deprint		if(ehcidebug || ep->debug)print
+#define ddeprint	if(ehcidebug>1 || ep->debug>1)print
+
+typedef struct Ctlr Ctlr;
 typedef struct Ecapio Ecapio;
-typedef struct Eopio Eopio;
 typedef struct Edbgio Edbgio;
+typedef struct Eopio Eopio;
+typedef struct Isoio Isoio;
+typedef struct Poll Poll;
+typedef struct Qh Qh;
+typedef struct Qtree Qtree;
+
+#pragma incomplete Ctlr;
+#pragma incomplete Ecapio;
+#pragma incomplete Edbgio;
+#pragma incomplete Eopio;
+#pragma incomplete Isoio;
+#pragma incomplete Poll;
+#pragma incomplete Qh;
+#pragma incomplete Qtree;
 
 /*
  * EHCI interface registers and bits
@@ -64,7 +88,7 @@ enum
 	Iall		= 0x3F,		/* all interrupts */
 
 	/* Config reg. */
-	Callmine		= 1,		/* route all ports to us */
+	Callmine	= 1,		/* route all ports to us */
 
 	/* Portsc reg. */
 	Pspresent	= 0x00000001,	/* device present */
@@ -106,7 +130,7 @@ enum
 	/* Debug port addr reg. */
 	Adevshift	= 8,		/* device address */
 	Adevmask	= 0x7F,
-	Aepshift		= 0,		/* endpoint number */
+	Aepshift	= 0,		/* endpoint number */
 	Aepmask		= 0xF,
 };
 
@@ -120,6 +144,56 @@ struct Ecapio
 	ulong	capparms;	/* 08 capability parameters */
 	ulong	portroute;	/* 0c not on the CS5536 */
 };
+
+/*
+ * Debug port registers (hw)
+ */
+struct Edbgio
+{
+	ulong	csw;		/* control and status */
+	ulong	pid;		/* USB pid */
+	uchar	data[8];	/* data buffer */
+	ulong	addr;		/* device and endpoint addresses */
+};
+
+struct Poll
+{
+	Lock;
+	Rendez;
+	int	must;
+	int	does;
+};
+
+struct Ctlr
+{
+	Rendez;			/* for waiting to async advance doorbell */
+	Lock;			/* for ilock. qh lists and basic ctlr I/O */
+	QLock	portlck;	/* for port resets/enable... (and doorbell) */
+	int	active;		/* in use or not */
+	Pcidev*	pcidev;
+	Ecapio*	capio;		/* Capability i/o regs */
+	Eopio*	opio;		/* Operational i/o regs */
+
+	int	nframes;	/* 1024, 512, or 256 frames in the list */
+	ulong*	frames;		/* periodic frame list (hw) */
+	Qh*	qhs;		/* async Qh circular list for bulk/ctl */
+	Qtree*	tree;		/* tree of Qhs for the periodic list */
+	int	ntree;		/* number of dummy qhs in tree */
+	Qh*	intrqhs;		/* list of (not dummy) qhs in tree  */
+	Isoio*	iso;		/* list of active Iso I/O */
+	ulong	load;
+	ulong	isoload;
+	int	nintr;		/* number of interrupts attended */
+	int	ntdintr;	/* number of intrs. with something to do */
+	int	nqhintr;	/* number of async td intrs. */
+	int	nisointr;	/* number of periodic td intrs. */
+	int	nreqs;
+	Poll	poll;
+};
+
+/*
+ * PC-specific stuff
+ */
 
 /*
  * Operational registers (hw)
@@ -138,16 +212,10 @@ struct Eopio
 	ulong	portsc[1];	/* 44 Port status and control, one per port */
 };
 
-/*
- * Debug port registers (hw)
- */
-struct Edbgio
-{
-	ulong	csw;		/* control and status */
-	ulong	pid;		/* USB pid */
-	uchar	data[8];	/* data buffer */
-	ulong	addr;		/* device and endpoint addresses */
-};
-
+extern int ehcidebug;
 extern Ecapio *ehcidebugcapio;
 extern int ehcidebugport;
+
+void	ehcilinkage(Hci *hp);
+void	ehcimeminit(Ctlr *ctlr);
+void	ehcirun(Ctlr *ctlr, int on);

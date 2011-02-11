@@ -114,7 +114,7 @@ devaoe.$O sdaoe.$O:		../port/aoe.h
 main.$O:			init.h reboot.h
 wavelan.$O:			wavelan.c ../pc/wavelan.c ../pc/wavelan.h
 etherwavelan.$O:		etherwavelan.c ../pc/wavelan.h
-devusb.$O usbuhci.$O usbohci.$O usbehci.$O: usb.h
+devusb.$O usbuhci.$O usbohci.$O usbehci.$O: ../port/usb.h
 trap.$O:			/sys/include/tos.h
 uartaxp.$O:			uartaxp.i
 etherm10g.$O:			etherm10g2k.i etherm10g4k.i

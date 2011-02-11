@@ -111,8 +111,8 @@ l.$O lexception.$O lproc.$O mmu.$O: arm.s arm.h mem.h
 l.$O rebootcode.$O: cache.v7.s
 main.$O: errstr.h init.h reboot.h
 devdss.$O devmouse.$O mouse.$O screen.$O: screen.h
-devusb.$O: usb.h
-usbehci.$O usbohci.$O usbuhci.$O: usb.h usbehci.h uncached.h
+devusb.$O: ../port/usb.h
+usbehci.$O usbohci.$O usbuhci.$O: ../port/usb.h usbehci.h uncached.h
 
 init.h:D:	../port/initcode.c init9.s
 	$CC ../port/initcode.c

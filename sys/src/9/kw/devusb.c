@@ -45,7 +45,7 @@
 #include	"fns.h"
 #include	"io.h"
 #include	"../port/error.h"
-#include	"usb.h"
+#include	"../port/usb.h"
 
 typedef struct Hcitype Hcitype;
 
