@@ -41,7 +41,7 @@ link
 	loopbackmedium
 	usbuhci
 	usbohci
-	usbehci
+	usbehci		usbehcipc
 
 misc
 	realmode

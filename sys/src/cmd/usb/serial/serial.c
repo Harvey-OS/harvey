@@ -112,16 +112,17 @@ serialrecover(Serial *ser, Serialport *p, Dev *ep, char *err)
 	if(strstr(err, "detached") != nil)
 		return -1;
 	if(ser->recover < 3){
-		if(ep != nil){
-			if(p->epintr != nil && ep == p->epintr)
-				unstall(ser->dev, p->epintr, Ein);
-			if(p->epin != nil && ep == p->epin)
-				unstall(ser->dev, p->epin, Ein);
-			if(p->epout != nil && ep == p->epout)
-				unstall(ser->dev, p->epout, Eout);
-			return 0;
-		}
-		if(p != nil){
+		if(p != nil){	
+			if(ep != nil){
+				if(ep == p->epintr)
+					unstall(ser->dev, p->epintr, Ein);
+				if(ep == p->epin)
+					unstall(ser->dev, p->epin, Ein);
+				if(ep == p->epout)
+					unstall(ser->dev, p->epout, Eout);
+				return 0;
+			}
+
 			if(p->epintr != nil)
 				unstall(ser->dev, p->epintr, Ein);
 			if(p->epin != nil)
@@ -267,7 +268,7 @@ serialctl(Serialport *p, char *cmd)
 			else
 				nw = write(p->epout->dfd, &x, 1);
 			if(nw != 1){
-				serialrecover(ser, nil, p->epout, "");
+				serialrecover(ser, p, p->epout, "");
 				return -1;
 			}
 			break;
@@ -535,7 +536,7 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 		if(rcount < 0){
 			dsprint(2, "serial: need to recover, data read %ld %r\n",
 				count);
-			serialrecover(ser, nil, p->epin, err);
+			serialrecover(ser, p, p->epin, err);
 		}
 		dsprint(2, "serial: read from bulk %ld\n", rcount);
 		count = rcount;
@@ -587,7 +588,7 @@ altwrite(Serialport *p, uchar *buf, long count)
 		dsprint(2, "serial: need to recover, status in write %d %r\n",
 			nw);
 		snprint(err, sizeof err, "%r");
-		serialrecover(p->s, nil, p->epout, err);
+		serialrecover(p->s, p, p->epout, err);
 	}
 	return nw;
 }
@@ -631,7 +632,7 @@ dwrite(Usbfs *fs, Fid *fid, void *buf, long count, vlong)
 	if(count >= 0)
 		ser->recover = 0;
 	else
-		serialrecover(ser, nil, p->epout, "writing");
+		serialrecover(ser, p, p->epout, "writing");
 	qunlock(ser);
 	return count;
 }

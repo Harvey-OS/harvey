@@ -94,6 +94,14 @@ type is text
 data matches '([a-zA-Z¡-￿0-9_\-./]+)\(([1-8])\)'
 plumb start rc -c 'man -b '$2' '$1'
 
+# RFC references are looked up in /lib/rfc and passed to editor
+type is text
+data	matches 'RFC ?([0-9]+)'
+arg isfile /lib/rfc/rfc$1
+data set	$file
+plumb to edit
+plumb client window $editor
+
 # start rule for images without known suffixes
 dst is image
 plumb to image

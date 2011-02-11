@@ -16,7 +16,9 @@
 enum {
 	/* alternates:	0xe12fff1e	BX (R14); last e is R14 */
 	/*		0xe28ef000	B 0(R14); second e is R14 (ken) */
-	Retinst	= 0xe1a0f00e,		/* MOV R14, R15 */
+	Retinst	= 0xe1a0f00e,		/* MOVW R14, R15 */
+
+	Fpproc	= 10,			/* for vfp 3+; also 11 for doubles */
 };
 
 void
@@ -111,7 +113,7 @@ fprd(int fpreg)
 	 * VMRS.  return value will be in R0, which is convenient.
 	 * Rt will be R0.
 	 */
-	instr[0] = 0xeef00a10 | fpreg << 16 | 0 << 12;
+	instr[0] = 0xeef00010 | fpreg << 16 | 0 << 12 | Fpproc << 8;
 	instr[1] = Retinst;
 	coherence();
 
@@ -136,7 +138,7 @@ fpwr(int fpreg, ulong val)
 	s = splhi();
 	fpreg &= 017;
 	/* VMSR.  Rt will be R0. */
-	instr[0] = 0xeee00a10 | fpreg << 16 | 0 << 12;
+	instr[0] = 0xeee00010 | fpreg << 16 | 0 << 12 | Fpproc << 8;
 	instr[1] = Retinst;
 	coherence();
 
