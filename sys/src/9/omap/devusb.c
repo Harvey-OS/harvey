@@ -328,7 +328,7 @@ epalloc(Hci *hp)
 	Ep *ep;
 	int i;
 
-	ep = mallocz(sizeof(Ep), 1);
+	ep = smalloc(sizeof(Ep));
 	ep->ref = 1;
 	qlock(&epslck);
 	for(i = 0; i < Neps; i++)
@@ -454,7 +454,7 @@ newdev(Hci *hp, int ishub, int isroot)
 	Udev *d;
 
 	ep = epalloc(hp);
-	d = ep->dev = mallocz(sizeof(Udev), 1);
+	d = ep->dev = smalloc(sizeof(Udev));
 	d->nb = newusbid(hp);
 	d->eps[0] = ep;
 	ep->nb = 0;
@@ -666,7 +666,7 @@ hciprobe(int cardno, int ctlrno)
 	static int epnb = 1;	/* guess the endpoint nb. for the controller */
 
 	ddprint("hciprobe %d %d\n", cardno, ctlrno);
-	hp = mallocz(sizeof(Hci), 1);
+	hp = smalloc(sizeof(Hci));
 	hp->ctlrno = ctlrno;
 
 	if(cardno < 0)
