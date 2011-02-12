@@ -2112,7 +2112,7 @@ scanpci(void)
 		dprint("uhci: %#x %#x: port %#ux size %#x irq %d\n",
 			p->vid, p->did, io, p->mem[4].size, p->intl);
 
-		ctlr = mallocz(sizeof(Ctlr), 1);
+		ctlr = smalloc(sizeof(Ctlr));
 		ctlr->pcidev = p;
 		ctlr->port = io;
 		for(i = 0; i < Nhcis; i++)

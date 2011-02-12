@@ -158,13 +158,12 @@ reset(Hci *hp)
 	if(getconf("*nousbehci") != nil || probeaddr(PHYSEHCI) < 0)
 		return -1;
 
-	ctlr = mallocz(sizeof(Ctlr), 1);
+	ctlr = smalloc(sizeof(Ctlr));
 	/*
 	 * don't bother with vmap; i/o space is all mapped anyway,
 	 * and a size less than 1MB will blow an assertion in mmukmap.
 	 */
 	ctlr->capio = capio = (Ecapio *)PHYSEHCI;
-//	ctlr->capio = capio = vmap(PHYSEHCI, 1024);
 	ctlr->opio = opio = (Eopio*)((uintptr)capio + (capio->cap & 0xff));
 
 	hp->aux = ctlr;
