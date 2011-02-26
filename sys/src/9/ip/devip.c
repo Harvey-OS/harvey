@@ -183,7 +183,7 @@ ipgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 	case Qtopdir:
 		if(s == DEVDOTDOT){
 			mkqid(&q, QID(0, 0, Qtopdir), 0, QTDIR);
-			sprint(up->genbuf, "#I%lud", c->dev);
+			snprint(up->genbuf, sizeof up->genbuf, "#I%lud", c->dev);
 			devdir(c, q, up->genbuf, 0, network, 0555, dp);
 			return 1;
 		}
@@ -206,13 +206,13 @@ ipgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 	case Qprotodir:
 		if(s == DEVDOTDOT){
 			mkqid(&q, QID(0, 0, Qtopdir), 0, QTDIR);
-			sprint(up->genbuf, "#I%lud", c->dev);
+			snprint(up->genbuf, sizeof up->genbuf, "#I%lud", c->dev);
 			devdir(c, q, up->genbuf, 0, network, 0555, dp);
 			return 1;
 		}
 		if(s < f->p[PROTO(c->qid)]->ac) {
 			cv = f->p[PROTO(c->qid)]->conv[s];
-			sprint(up->genbuf, "%d", s);
+			snprint(up->genbuf, sizeof up->genbuf, "%d", s);
 			mkqid(&q, QID(PROTO(c->qid), s, Qconvdir), 0, QTDIR);
 			devdir(c, q, up->genbuf, 0, cv->owner, 0555, dp);
 			return 1;
@@ -649,7 +649,7 @@ ipread(Chan *ch, void *a, long n, vlong off)
 		return netlogread(f, a, offset, n);
 	case Qctl:
 		buf = smalloc(16);
-		sprint(buf, "%lud", CONV(ch->qid));
+		snprint(buf, 16, "%lud", CONV(ch->qid));
 		rv = readstr(offset, p, n, buf);
 		free(buf);
 		return rv;
@@ -658,7 +658,7 @@ ipread(Chan *ch, void *a, long n, vlong off)
 		x = f->p[PROTO(ch->qid)];
 		c = x->conv[CONV(ch->qid)];
 		if(x->remote == nil) {
-			sprint(buf, "%I!%d\n", c->raddr, c->rport);
+			snprint(buf, Statelen, "%I!%d\n", c->raddr, c->rport);
 		} else {
 			(*x->remote)(c, buf, Statelen-2);
 		}
@@ -670,7 +670,7 @@ ipread(Chan *ch, void *a, long n, vlong off)
 		x = f->p[PROTO(ch->qid)];
 		c = x->conv[CONV(ch->qid)];
 		if(x->local == nil) {
-			sprint(buf, "%I!%d\n", c->laddr, c->lport);
+			snprint(buf, Statelen, "%I!%d\n", c->laddr, c->lport);
 		} else {
 			(*x->local)(c, buf, Statelen-2);
 		}

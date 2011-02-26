@@ -74,7 +74,7 @@ lptgen(Chan *c, char*, Dirtab *tab, int ntab, int i, Dir *dp)
 	if(qid.path < Qdata)
 		qid.path += lptbase[c->dev];
 	qid.vers = c->dev;
-	sprint(up->genbuf, "lpt%lud%s", c->dev+1, tab->name);
+	snprint(up->genbuf, sizeof up->genbuf, "lpt%lud%s", c->dev+1, tab->name);
 	devdir(c, qid, up->genbuf, tab->length, eve, tab->perm, dp);
 	return 1;
 }
@@ -84,7 +84,7 @@ lptattach(char *spec)
 {
 	Chan *c;
 	int i  = (spec && *spec) ? strtol(spec, 0, 0) : 1;
-	char name[5];
+	char name[8];
 	static int set;
 
 	if(!set){
@@ -96,7 +96,7 @@ lptattach(char *spec)
 		error(Ebadarg);
 	if(lptallocd[i-1] == 0){
 		int ecr;
-		sprint(name, "lpt%d", i-1);
+		snprint(name, sizeof name, "lpt%d", i-1);
 		if(ioalloc(lptbase[i-1], 3, 0, name) < 0)
 			error("lpt port space in use");
 		lptallocd[i-1] = 1;
@@ -149,7 +149,7 @@ lptread(Chan *c, void *a, long n, vlong)
 
 	if(c->qid.path == Qdir)
 		return devdirread(c, a, n, lptdir, nelem(lptdir), lptgen);
-	size = sprint(str, "0x%2.2ux\n", inb(c->qid.path));
+	size = snprint(str, sizeof str, "0x%2.2ux\n", inb(c->qid.path));
 	o = c->offset;
 	if(o >= size)
 		return 0;

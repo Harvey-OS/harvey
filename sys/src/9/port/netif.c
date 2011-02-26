@@ -97,7 +97,7 @@ netifgen(Chan *c, char*, Dirtab *vp, int, int i, Dir *dp)
 				return 0;
 			q.type = QTDIR;
 			q.path = NETQID(i, N3rdqid);
-			sprint(up->genbuf, "%d", i);
+			snprint(up->genbuf, sizeof up->genbuf, "%d", i);
 			devdir(c, q, up->genbuf, 0, eve, DMDIR|0555, dp);
 			break;
 		}

@@ -305,7 +305,7 @@ pnpreset(void)
 	if(isa.port < 0x203 || isa.port > 0x3ff)
 		return;
 	for(csn = 1; csn < 256; csn++) {
-		sprint(buf, "pnp%d", csn);
+		snprint(buf, sizeof buf, "pnp%d", csn);
 		s = getconf(buf);
 		if(s == 0)
 			continue;
@@ -342,12 +342,12 @@ csngen(Chan *c, int t, int csn, Card *cp, Dir *dp)
 	switch(t) {
 	case Qcsnctl:
 		q = (Qid){QID(csn, Qcsnctl), 0, 0};
-		sprint(up->genbuf, "csn%dctl", csn);
+		snprint(up->genbuf, sizeof up->genbuf, "csn%dctl", csn);
 		devdir(c, q, up->genbuf, 0, eve, 0664, dp);
 		return 1;
 	case Qcsnraw:
 		q = (Qid){QID(csn, Qcsnraw), 0, 0};
-		sprint(up->genbuf, "csn%draw", csn);
+		snprint(up->genbuf, sizeof up->genbuf, "csn%draw", csn);
 		devdir(c, q, up->genbuf, cp->ncfg, eve, 0444, dp);
 		return 1;
 	}
@@ -362,11 +362,13 @@ pcigen(Chan *c, int t, int tbdf, Dir *dp)
 	q = (Qid){BUSBDF(tbdf)|t, 0, 0};
 	switch(t) {
 	case Qpcictl:
-		sprint(up->genbuf, "%d.%d.%dctl", BUSBNO(tbdf), BUSDNO(tbdf), BUSFNO(tbdf));
+		snprint(up->genbuf, sizeof up->genbuf, "%d.%d.%dctl",
+			BUSBNO(tbdf), BUSDNO(tbdf), BUSFNO(tbdf));
 		devdir(c, q, up->genbuf, 0, eve, 0444, dp);
 		return 1;
 	case Qpciraw:
-		sprint(up->genbuf, "%d.%d.%draw", BUSBNO(tbdf), BUSDNO(tbdf), BUSFNO(tbdf));
+		snprint(up->genbuf, sizeof up->genbuf, "%d.%d.%draw",
+			BUSBNO(tbdf), BUSDNO(tbdf), BUSFNO(tbdf));
 		devdir(c, q, up->genbuf, 128, eve, 0660, dp);
 		return 1;
 	}
@@ -385,7 +387,7 @@ pnpgen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
 	case Qtopdir:
 		if(s == DEVDOTDOT){
 			q = (Qid){QID(0, Qtopdir), 0, QTDIR};
-			sprint(up->genbuf, "#%C", pnpdevtab.dc);
+			snprint(up->genbuf, sizeof up->genbuf, "#%C", pnpdevtab.dc);
 			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
 			return 1;
 		}
@@ -393,7 +395,7 @@ pnpgen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
 	case Qpnpdir:
 		if(s == DEVDOTDOT){
 			q = (Qid){QID(0, Qtopdir), 0, QTDIR};
-			sprint(up->genbuf, "#%C", pnpdevtab.dc);
+			snprint(up->genbuf, sizeof up->genbuf, "#%C", pnpdevtab.dc);
 			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
 			return 1;
 		}
@@ -422,7 +424,7 @@ pnpgen(Chan *c, char *, Dirtab*, int, int s, Dir *dp)
 	case Qpcidir:
 		if(s == DEVDOTDOT){
 			q = (Qid){QID(0, Qtopdir), 0, QTDIR};
-			sprint(up->genbuf, "#%C", pnpdevtab.dc);
+			snprint(up->genbuf, sizeof up->genbuf, "#%C", pnpdevtab.dc);
 			devdir(c, q, up->genbuf, 0, eve, 0555, dp);
 			return 1;
 		}
@@ -498,9 +500,10 @@ pnpread(Chan *c, void *va, long n, vlong offset)
 		return devdirread(c, a, n, (Dirtab *)0, 0L, pnpgen);
 	case Qpnpctl:
 		if(pnp.rddata > 0)
-			sprint(up->genbuf, "enabled %#x\n", pnp.rddata);
+			snprint(up->genbuf, sizeof up->genbuf, "enabled %#x\n",
+				pnp.rddata);
 		else
-			sprint(up->genbuf, "disabled\n");
+			snprint(up->genbuf, sizeof up->genbuf, "disabled\n");
 		return readstr(offset, a, n, up->genbuf);
 	case Qcsnraw:
 		csn = CSN(c->qid);
@@ -525,7 +528,8 @@ pnpread(Chan *c, void *va, long n, vlong offset)
 		cp = findcsn(csn, 0, 1);
 		if(cp == nil)
 			error(Egreg);
-		sprint(up->genbuf, "%s\n", serial(cp->id1, cp->id2));
+		snprint(up->genbuf, sizeof up->genbuf, "%s\n",
+			serial(cp->id1, cp->id2));
 		return readstr(offset, a, n, up->genbuf);
 	case Qpcictl:
 		tbdf = MKBUS(BusPCI, 0, 0, 0)|BUSBDF((ulong)c->qid.path);
