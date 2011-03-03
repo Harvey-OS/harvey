@@ -1613,8 +1613,10 @@ didtype(Pcidev *p)
 		    (p->did & 0xfff7) == 0x3b28)	/* pchm */
 			return Tich;
 		break;
-	case 0x1002:
-		return Tsb600;
+	case 0x1002:					/* ATI */
+		if (p->did == 0x4380 || p->did == 0x4390 || p->did == 0x4391)
+			return Tsb600;
+		break;
 	}
 	if(p->ccrb == Pcibcstore && p->ccru == 6 && p->ccrp == 1)
 		return Tunk;
