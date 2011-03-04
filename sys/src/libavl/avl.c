@@ -97,6 +97,16 @@ balance(Avl **tp, Avl *p)
 }
 
 static int
+canoncmp(int cmp)
+{
+	if(cmp < 0)
+		return -1;
+	else if(cmp > 0)
+		return 1;
+	return 0;
+}
+
+static int
 _insertavl(Avl **tp, Avl *p, Avl *r, int (*cmp)(Avl*,Avl*), Avl **rfree)
 {
 	int i, ob;
@@ -110,7 +120,7 @@ _insertavl(Avl **tp, Avl *p, Avl *r, int (*cmp)(Avl*,Avl*), Avl **rfree)
 		return 1;
 	}
 	ob = (*tp)->bal;
-	if((i = cmp(r, *tp)) != 0){
+	if((i = canoncmp(cmp(r, *tp))) != 0){
 		(*tp)->bal += i * _insertavl(&(*tp)->n[(i+1)/2], *tp, r, cmp,
 			rfree);
 		balance(tp, p);
@@ -158,7 +168,7 @@ _deleteavl(Avl **tp, Avl *p, Avl *rx, int(*cmp)(Avl*,Avl*), Avl **del,
 		return 0;
 
 	ob = (*tp)->bal;
-	if((i=cmp(rx, *tp)) != 0){
+	if((i=canoncmp(cmp(rx, *tp))) != 0){
 		(*tp)->bal += i * _deleteavl(&(*tp)->n[(i+1)/2], *tp, rx, cmp,
 			del, predel, arg);
 		balance(tp, p);
@@ -289,7 +299,7 @@ _lookupavl(Avl *t, Avl *r, int (*cmp)(Avl*,Avl*), int neighbor)
 		return nil;
 	do{
 		assert(t->p == p);
-		if((i = cmp(r, t)) == 0)
+		if((i = canoncmp(cmp(r, t))) == 0)
 			return t;
 		p = t;
 		t = t->n[(i+1)/2];
