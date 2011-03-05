@@ -52,7 +52,7 @@ typedef struct Exectable{
 	uchar	_magic;			/* _MAGIC() magic */
 	Mach	*mach;			/* Per-machine data */
 	long	hsize;			/* header size */
-	ulong	(*swal)(ulong);		/* beswal or leswal */
+	ulong	(*swal)(ulong);		/* header swap, beswal or leswal */
 	int	(*hparse)(int, Fhdr*, ExecHdr*);
 } ExecTable;
 
@@ -186,7 +186,7 @@ ExecTable exectab[] =
 		1,
 		&mamd64,
 		sizeof(Exec)+8,
-		nil,
+		beswal,
 		commonllp64 },
 	{ Q_MAGIC,			/* PowerPC q.out & boot image */
 		"power plan 9 executable",
@@ -204,7 +204,7 @@ ExecTable exectab[] =
 		1,
 		&mpower64,
 		sizeof(Exec)+8,
-		nil,
+		beswal,
 		commonllp64 },
 	{ ELF_MAG,			/* any elf32 */
 		"elf executable",
@@ -441,7 +441,6 @@ commonllp64(int, Fhdr *fp, ExecHdr *hp)
 	long pgsize;
 	uvlong entry;
 
-	hswal(&hp->e, sizeof(Exec)/sizeof(long), beswal);
 	if(!(hp->e.magic & HDR_MAGIC))
 		return 0;
 
