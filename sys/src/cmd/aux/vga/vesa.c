@@ -474,7 +474,10 @@ vbemodes(Vbe *vbe)
 int
 vbemodeinfo(Vbe *vbe, int id, Vmode *m)
 {
+	int o;
+	ulong d, c, x;
 	uchar *p;
+	char tmp[sizeof m->chan];
 	Ureg u;
 
 	p = vbesetup(vbe, &u, 0x4F01);
@@ -501,12 +504,43 @@ vbemodeinfo(Vbe *vbe, int id, Vmode *m)
 	m->paddr = LONG(p+40);
 	snprint(m->name, sizeof m->name, "%dx%dx%d",
 		m->dx, m->dy, m->depth);
-	if(m->depth <= 8)
+	if(m->depth <= 8) {
 		snprint(m->chan, sizeof m->chan, "m%d", m->depth);
-	else if(m->xo)
-		snprint(m->chan, sizeof m->chan, "x%dr%dg%db%d", m->x, m->r, m->g, m->b);
-	else
-		snprint(m->chan, sizeof m->chan, "r%dg%db%d", m->r, m->g, m->b);
+		return 0;
+	}
+
+	m->xo = m->x = 0;
+	d = 1 << (m->depth - 1);
+	d |= d - 1;
+	c  = ((1<<m->r)-1) << m->ro;
+	c |= ((1<<m->g)-1) << m->go;
+	c |= ((1<<m->b)-1) << m->bo;
+	x = d ^ c;
+	if(x != 0){
+		for(; (x & 1) == 0; x >>= 1)
+			m->xo++;
+		for(; x & 1; x >>= 1)
+			m->x++;
+	}
+
+	m->chan[0] = o = 0;
+	while(o < m->depth){
+		if(m->r && m->ro == o){
+			snprint(tmp, sizeof tmp, "r%d%s", m->r, m->chan);
+			o += m->r;
+		}else if(m->g && m->go == o){
+			snprint(tmp, sizeof tmp, "g%d%s", m->g, m->chan);
+			o += m->g;
+		}else if(m->b && m->bo == o){
+			snprint(tmp, sizeof tmp, "b%d%s", m->b, m->chan);
+			o += m->b;
+		}else if(m->x && m->xo == o){
+			snprint(tmp, sizeof tmp, "x%d%s", m->x, m->chan);
+			o += m->x;
+		}else
+			break;
+		strncpy(m->chan, tmp, sizeof m->chan);
+	}
 	return 0;
 }
 

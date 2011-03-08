@@ -1474,7 +1474,6 @@ atapnp(void)
 		case (0x4D69<<16)|0x105A:	/* Promise Ultra/133 TX2 */
 		case (0x3373<<16)|0x105A:	/* Promise 20378 RAID */
 		case (0x3149<<16)|0x1106:	/* VIA VT8237 SATA/RAID */
-		case (0x4379<<16)|0x1002:	/* ATI 4379 SATA*/
 		case (0x0680<<16)|0x1095:	/* SiI 0680/680A PATA133 ATAPI/RAID */
 		case (0x3112<<16)|0x1095:	/* SiL 3112 SATA (DMA busted?) */
 		case (0x3114<<16)|0x1095:	/* SiL 3114 SATA/RAID */
@@ -1513,6 +1512,9 @@ atapnp(void)
 			pcicfgw8(p, 0x46, (r & 0x0C)|0xF0);
 			/*FALLTHROUGH*/
 		case (0x7469<<16)|0x1022:	/* AMD 3111 */
+		case (0x4376<<16)|0x1002:	/* ATI SB400 PATA */
+		case (0x4379<<16)|0x1002:	/* ATI SB400 SATA */
+		case (0x437a<<16)|0x1002:	/* ATI SB400 SATA */
 			/*
 			 * This can probably be lumped in with the 768 above.
 			 */
@@ -1537,6 +1539,7 @@ atapnp(void)
 		case (0x0646<<16)|0x1095:	/* CMD 646 */
 		case (0x0571<<16)|0x1106:	/* VIA 82C686 */
 		case (0x0211<<16)|0x1166:	/* ServerWorks IB6566 */
+		case (0x2363<<16)|0x197b:	/* JMicron SATA */
 		case (0x1230<<16)|0x8086:	/* 82371FB (PIIX) */
 		case (0x7010<<16)|0x8086:	/* 82371SB (PIIX3) */
 		case (0x7111<<16)|0x8086:	/* 82371[AE]B (PIIX4[E]) */

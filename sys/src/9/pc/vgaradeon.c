@@ -108,10 +108,8 @@ radeonenable(VGAscr *scr)
 	addvgaseg("radeonmmio", p->mem[2].bar & ~0x0f, p->mem[2].size);
 
 	vgalinearpci(scr);
-	if(scr->apsize) {
+	if(scr->apsize)
 		addvgaseg("radeonscreen", scr->paddr, scr->apsize);
-		mtrr(scr->paddr, scr->apsize, "wc");
-	}
 }
 
 static void

@@ -35,7 +35,7 @@ fn xxx {
 	if not
 		ape/diff3 -m $1 $2.orig $2 >$2.new
 	if(grep -s '^<<<<' $2.new){
-		echo conflicts merging $1';' see $d/$2.new >[1=2]
+		echo conflicts merging $1';' see `{pwd}^/$2.new >[1=2]
 		
 		touch failed
 	}
