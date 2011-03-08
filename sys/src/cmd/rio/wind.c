@@ -1300,6 +1300,7 @@ wclosewin(Window *w)
 		if(hidden[i] == w){
 			--nhidden;
 			memmove(hidden+i, hidden+i+1, (nhidden-i)*sizeof(hidden[0]));
+			hidden[nhidden] = nil;
 			break;
 		}
 	for(i=0; i<nwindow; i++)
