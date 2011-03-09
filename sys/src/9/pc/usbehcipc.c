@@ -199,9 +199,11 @@ scanpci(void)
 		 * we'll wedge solid after iunlock in init for the second one.
 		 */
 		if (i > 0 && i < Nhcis) {
-			iprint("usbehci: ignoring controllers after the first, "
-				"at %#p\n", io);
-			ctlrs[i] = nil;
+//			iprint("usbehci: ignoring controllers after the first, "
+//				"at %#p\n", io);
+//			ctlrs[i] = nil;
+			iprint("usbehci: multiple controllers, "
+				"unclear how this can work\n");
 		}
 	}
 }
