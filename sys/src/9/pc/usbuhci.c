@@ -1300,7 +1300,7 @@ epio(Ep *ep, Qio *io, void *a, long count, int mustlock)
 		n = ep->maxpkt;
 		if(count-tot < n)
 			n = count-tot;
-		if(io->tok != Tdtokin)
+		if(c != nil && io->tok != Tdtokin)
 			td = epgettd(ep, io, Tdactive, c+tot, n);
 		else
 			td = epgettd(ep, io, Tdactive|Tdspd, nil, n);
@@ -1348,7 +1348,7 @@ epio(Ep *ep, Qio *io, void *a, long count, int mustlock)
 				io->toggle = td->token & Tddata1;
 		}else{
 			tot += td->ndata;
-			if(tdtok(td) == Tdtokin && td->ndata > 0){
+			if(c != nil && tdtok(td) == Tdtokin && td->ndata > 0){
 				memmove(c, td->data, td->ndata);
 				c += td->ndata;
 			}
