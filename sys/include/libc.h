@@ -83,6 +83,7 @@ extern	int	islowerrune(Rune);
 extern	int	isspacerune(Rune);
 extern	int	istitlerune(Rune);
 extern	int	isupperrune(Rune);
+extern	int	isdigitrune(Rune);
 
 /*
  * malloc

@@ -101,7 +101,7 @@ void	threadintgrp(int group)
 void	threadkill(int id)
 int	threadkillgrp(int group)
 .XX
-void	threadsetname(char *name)
+void	threadsetname(char *name, ...)
 char*	threadgetname(void)
 .XX
 void**	threaddata(void)
