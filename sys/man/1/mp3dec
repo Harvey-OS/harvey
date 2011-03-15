@@ -35,8 +35,6 @@ When writing to
 .I mp3dec
 prints a warning to standard error
 if the stream rate is not 44100 Hz.
-.SH BUGS
-It's another GNU behemoth, lightly tamed.
 .SH SOURCE
 .B /sys/src/games/mp3dec
 .SH "SEE ALSO"
@@ -45,3 +43,5 @@ It's another GNU behemoth, lightly tamed.
 .IR playlistfs (7)
 .br
 .B http://www.underbit.com/products/mad/
+.SH BUGS
+It's another GNU behemoth, lightly tamed.

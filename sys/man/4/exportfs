@@ -50,8 +50,7 @@ The options are:
 .B -A \fIaddress
 Use the network
 .I address
-to
-.IR announce (2)
+to announce
 .IR aan (8)
 connections,
 if requested by the initial protocol.
@@ -252,6 +251,7 @@ cd /n/spy; ls
 .br
 .B /sys/src/cmd/srvfs.c
 .SH SEE ALSO
+.IR dial (2),
 .IR import (4),
 .IR aan (8),
 .IR listen (8)

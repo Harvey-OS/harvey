@@ -163,7 +163,6 @@ the default base is 10.
 .SH SEE ALSO
 .IR flashfs (4),
 .IR paqfs (4)
-.\" .IR ftl (3)
 .SH DIAGNOSTICS
 A write will return an error if
 an attempt is made to change a 0 bit to 1,

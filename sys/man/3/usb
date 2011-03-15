@@ -1,7 +1,7 @@
+.TH USB 3
 .EQ
 delim $$
 .EN
-.TH USB 3
 .SH NAME
 usb \- USB Host Controller Interface
 .SH SYNOPSIS
@@ -115,7 +115,7 @@ After configuring a device, other endpoints may be created
 as dictated by the device to perform actual I/O.
 .SS Operation
 Bus enumeration and device configuration is performed by
-.IR usbd (8)
+.IR usbd (4)
 and not by this driver.
 The driver provides an interface
 to access existing endpoints (initially those for the built-in root hubs),
@@ -130,7 +130,7 @@ is a number identifying a device and
 is a number identifying one of its endpoints.
 .PP
 For each device attached to the bus, and configured by
-.IR usbd (8),
+.IR usbd (4),
 an endpoint zero (a
 .I setup
 endpoint)
@@ -212,7 +212,7 @@ storage csp 0x500608 vid 0x951 did 0x1613 Kingston 'DT 101 II'
 .LP
 The first line contains status information.
 The rest is information supplied by
-.IR usbd(8)
+.IR usbd (4)
 as an aid to locate devices.
 The status information includes:
 .TF "\fREndpoint mode
@@ -346,7 +346,7 @@ USB class, subclass and proto codes can be found at
 Endpoint control files accept the following requests.
 In most cases
 the driver does not issue them, leaving the task to either
-.IR usbd (8)
+.IR usbd (4)
 or the usb driver library documented in
 .IR usb (2).
 .TF "\fLsamplehz\fI n
@@ -408,7 +408,7 @@ Replaces description information in
 .B ctl
 with
 .IR string .
-.IR Usbd (8)
+.IR Usbd (4)
 uses this to add device descriptions.
 .TP
 .B address

@@ -189,12 +189,6 @@ Streaming from stereo 44.1KHz raw PCM data, encoding mono at 16KHz
 .EX
 dd -conv swab | games/mp3enc -a -r -m m --resample 16 -b 24
 .EE
-.SH BUGS
-Quality is much better than encoders based on the ISO routines,
-but still not as good as the FhG encoder.
-.PP
-It's a GNU behemoth, lightly rehabilitated.
-There are zillions of undocumented options.
 .SH SOURCE
 .B /sys/src/games/mp3enc
 .SH SEE ALSO
@@ -207,3 +201,9 @@ There are zillions of undocumented options.
 .IR playlistfs (7)
 .br
 .B http://www.sulaco.org/mp3
+.SH BUGS
+Quality is much better than encoders based on the ISO routines,
+but still not as good as the FhG encoder.
+.PP
+It's a GNU behemoth, lightly rehabilitated.
+There are zillions of undocumented options.
