@@ -56,7 +56,7 @@ option to
 .\" and
 .\" .I venti/fmtisect
 .\" (see
-,\" .IR ventiaux (8))
+.\" .IR venti-fmt (8))
 causes it to print status lines suitable for
 input to
 .IR statusbar .

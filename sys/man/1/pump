@@ -109,11 +109,10 @@ venti/rdarena arena0 arena.3 |
 .SH SOURCE
 .B /sys/src/cmd/pump.c
 .SH SEE ALSO
-.IR cdfs (1),
 .IR cp (1),
 .IR dd (1),
-.IR ecp (1)
-.\" .SH DIAGNOSTICS
+.IR ecp (1),
+.IR cdfs (4)
 .SH BUGS
 .I Pump
 processes spin while waiting for the circular buffer

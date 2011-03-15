@@ -35,7 +35,9 @@ void	vtfree(void *ptr)
 .SH DESCRIPTION
 These routines allocate and free memory.
 On failure, they print an error message and call
-.IR sysfatal (2).
+.IR sysfatal
+(from
+.IR perror (2)).
 They do not return.
 .PP
 .I Vtbrk

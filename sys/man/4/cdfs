@@ -173,7 +173,6 @@ to get a table of contents.
 Subsequent lines contain the current and maximum
 reading and writing speeds.
 Additional lines may further describe the current disc.
-.PD
 .PP
 .I Aux/cddb
 takes 4 optional arguments.
@@ -196,7 +195,6 @@ option causes the time of each track to be appended to the normal output.
 is like
 .B -t
 but prints a final line with the total time.
-.PD
 .SH EXAMPLES
 Backup to a BD-R disc:
 .br
@@ -228,17 +226,17 @@ rm /mnt/cd/wa
 .SH SOURCE
 .B /sys/src/cmd/cdfs
 .SH SEE ALSO
-.TF "\fLhttp://www.t10.org\fP"
-.TP
-.B http://www.t10.org
-optical disc interface standards
-.PP
-.PD
 .IR sd (3),
 .I 9660srv
 (in
 .IR dossrv (4)),
 .IR mk9660 (8)
+.PD 0
+.TF "\fLhttp://www.t10.org\fP"
+.TP
+.B http://www.t10.org
+optical disc interface standards
+.PD
 .SH BUGS
 Fixating a BD-R disc records only the first track in the disc's TOC.
 Any other tracks are still there and their data accessible via
