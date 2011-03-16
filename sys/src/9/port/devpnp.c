@@ -586,13 +586,14 @@ pnpwrite(Chan *c, void *va, long n, vlong offset)
 	Card *cp;
 	Pcidev *p;
 	ulong port, x;
-	char *a, buf[256];
+	char buf[256];
+	uchar *a;
 	int csn, i, r, tbdf;
 
 	if(n >= sizeof(buf))
 		n = sizeof(buf)-1;
 	a = va;
-	strncpy(buf, a, n);
+	strncpy(buf, va, n);
 	buf[n] = 0;
 
 	switch(TYPE(c->qid)){

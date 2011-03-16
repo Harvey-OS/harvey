@@ -62,9 +62,9 @@ ulong protopout[256];
 void
 error(char *s)
 {
-	char buf[ERRLEN];
+	char buf[ERRMAX];
 
-	errstr(buf);
+	errstr(buf, sizeof buf);
 	fprint(2, "snoopy: %s %s\n", buf, s);
 	exits("death");
 }
@@ -72,16 +72,16 @@ error(char *s)
 void
 warning(char *s)
 {
-	char buf[ERRLEN];
+	char buf[ERRMAX];
 
-	errstr(buf);
+	errstr(buf, sizeof buf);
 	fprint(2, "snoopy: %s %s\n", buf, s);
 }
 
 void
 printproto(int p)
 {
-	print("\t%d(%d %d %d %d)", p, protoin[p], protopin[p], protoout[p], protopout[p]);
+	print("\t%d(%ld %ld %ld %ld)", p, protoin[p], protopin[p], protoout[p], protopout[p]);
 }
 
 void
@@ -118,8 +118,8 @@ main(int argc, char *argv[])
 		delta = 5*60*1000;
 	parseether(target, argv[1]);
 
-	fmtinstall('E', eipconv);
-	fmtinstall('I', eipconv);
+	fmtinstall('E', eipfmt);
+	fmtinstall('I', eipfmt);
 
 	snprint(buf, sizeof(buf), "%s!-2", argv[0]);
 	fd = dial(buf, 0, 0, &cfd);
@@ -175,7 +175,7 @@ main(int argc, char *argv[])
 			}
 		}
 		if(ts - start >= delta){
-			print("%8.8d %d", time(0), ts - start);
+			print("%8.8ld %ld", time(0), ts - start);
 			printproto(0);
 			printproto(IP_MBONEPROTO);
 			printproto(IP_UDPPROTO);

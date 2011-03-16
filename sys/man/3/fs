@@ -123,7 +123,9 @@ offset in the source file, and not by the device
 length. Units are as defined in the previous
 .B disk
 request. This form is accepted for compatibility with
-.IR fdisk (8)
+.IR fdisk
+(in
+.IR prep (8))
 and
 .IR sd (3)
 devices.
