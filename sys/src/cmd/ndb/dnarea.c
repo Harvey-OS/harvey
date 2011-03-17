@@ -119,7 +119,7 @@ refresh_areas(Area *s)
 
 		pid = fork();
 		if (pid == -1) {
-			sleep(1000);	/* don't try it again immediately */
+			sleep(1000);	/* don't fork again immediately */
 			continue;
 		}
 		if (pid == 0){

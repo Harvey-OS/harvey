@@ -100,7 +100,7 @@ main(int argc, char *argv[])
 			break;
 
 		getactivity(&req, 0);
-		req.aborttime = now + 15*Min;
+		req.aborttime = timems() + S2MS(15*Min);
 		rcode = 0;
 		memset(&reqmsg, 0, sizeof reqmsg);
 		err = convM2DNS(buf, len, &reqmsg, &rcode);

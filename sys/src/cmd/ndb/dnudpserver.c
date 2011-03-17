@@ -188,7 +188,7 @@ restart:
 		// dnslog("read received UDP from %I to %I",
 		//	((Udphdr*)buf)->raddr, ((Udphdr*)buf)->laddr);
 		getactivity(&req, 0);
-		req.aborttime = now + Maxreqtm;
+		req.aborttime = timems() + Maxreqtm;
 //		req.from = smprint("%I", ((Udphdr*)buf)->raddr);
 		req.from = smprint("%I", buf);
 		rcode = 0;
