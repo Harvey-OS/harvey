@@ -437,7 +437,7 @@ io(void)
 		n = read9pmsg(mfd[0], mdata, sizeof mdata);
 		if(n<=0){
 			dnslog("error reading 9P from %s: %r", mntpt);
-			sleep(2000);		/* don't thrash */
+			sleep(2000);	/* don't thrash after read error */
 			return;
 		}
 
@@ -452,7 +452,7 @@ io(void)
 			dnslog("%F", &job->request);
 
 		getactivity(&req, 0);
-		req.aborttime = time(nil) + Maxreqtm;
+		req.aborttime = timems() + Maxreqtm;
 		req.from = "9p";
 
 		switch(job->request.type){

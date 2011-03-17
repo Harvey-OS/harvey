@@ -1,5 +1,10 @@
 #include <thread.h>		/* for Ref */
 
+#define NS2MS(ns) ((ns) / 1000000L)
+#define S2MS(s)   ((s)  * 1000LL)
+
+#define timems()	NS2MS(nsec())
+
 typedef struct Ndbtuple Ndbtuple;
 
 enum
@@ -132,8 +137,8 @@ enum
 	Reserved=	5*Min,
 
 	/* packet sizes */
-	Maxudp=		512,	/* maximum bytes per udp message */
-	Maxudpin=	2048,	/* maximum bytes per udp message */
+	Maxudp=		512,	/* maximum bytes per udp message sent */
+	Maxudpin=	2048,	/* maximum bytes per udp message rcv'd */
 
 	/* length of domain name hash table */
 	HTLEN= 		4*1024,
@@ -147,8 +152,8 @@ enum
 	/* parallelism: tune; was 32; allow lots */
 	Maxactive=	250,
 
-	/* tune; was 60; keep it short */
-	Maxreqtm=	30,	/* max. seconds to process a request */
+	/* tune; was 60*1000; keep it short */
+	Maxreqtm=	8*1000,	/* max. ms to process a request */
 
 	Notauthoritative = 0,
 	Authoritative,
@@ -175,7 +180,7 @@ typedef struct Txt	Txt;
 struct Request
 {
 	int	isslave;	/* pid of slave */
-	ulong	aborttime;	/* time at which we give up */
+	uvlong	aborttime;	/* time in ms at which we give up */
 	jmp_buf	mret;		/* where master jumps to after starting a slave */
 	int	id;
 	char	*from;		/* who asked us? */
