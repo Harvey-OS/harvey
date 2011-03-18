@@ -1124,6 +1124,7 @@ PP = p;
 			o1 |= rf | (rt<<12);
 		break;
 
+	/* old arm 7500 fp using coproc 1 (1<<8) */
 	case 56:	/* move to FP[CS]R */
 		o1 = ((p->scond & C_SCOND) << 28) | (0xe << 24) | (1<<8) | (1<<4);
 		o1 |= ((p->to.reg+1)<<21) | (p->from.reg << 12);
@@ -1405,6 +1406,7 @@ oprrr(int a, int sc)
 	case ASRA:	return o | (0xd<<21) | (2<<5);
 	case ASWI:	return o | (0xf<<24);
 
+	/* old arm 7500 fp using coproc 1 (1<<8) */
 	case AADDD:	return o | (0xe<<24) | (0x0<<20) | (1<<8) | (1<<7);
 	case AADDF:	return o | (0xe<<24) | (0x0<<20) | (1<<8);
 	case AMULD:	return o | (0xe<<24) | (0x1<<20) | (1<<8) | (1<<7);

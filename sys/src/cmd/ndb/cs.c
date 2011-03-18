@@ -79,6 +79,7 @@ Mlist	*mlist;
 int	mfd[2];
 int	debug;
 int	paranoia;
+int	ipv6lookups = 1;
 jmp_buf	masterjmp;	/* return through here after a slave process has been created */
 int	*isslave;	/* *isslave non-zero means this is a slave process */
 char	*dbfile;
@@ -226,6 +227,9 @@ main(int argc, char *argv[])
 	setnetmtpt(mntpt, sizeof(mntpt), nil);
 	ext[0] = 0;
 	ARGBEGIN{
+	case '4':
+		ipv6lookups = 0;
+		break;
 	case 'd':
 		debug = 1;
 		break;
@@ -766,6 +770,15 @@ rwrite(Job *job, Mfile *mf)
 	if(strncmp(job->request.data, "debug", 5)==0){
 		debug ^= 1;
 		syslog(1, logfile, "debug %d", debug);
+		goto send;
+	}
+
+	/*
+	 *  toggle ipv6 lookups
+	 */
+	if(strncmp(job->request.data, "ipv6", 4)==0){
+		ipv6lookups ^= 1;
+		syslog(1, logfile, "ipv6lookups %d", ipv6lookups);
 		goto send;
 	}
 
@@ -1573,6 +1586,30 @@ slave(char *host)
 
 }
 
+static Ndbtuple*
+dnsip6lookup(char *mntpt, char *buf, Ndbtuple *t)
+{
+	Ndbtuple *t6, *tt;
+
+	t6 = dnsquery(mntpt, buf, "ipv6");	/* lookup AAAA dns RRs */
+	if (t6 == nil)
+		return t;
+
+	/* convert ipv6 attr to ip */
+	for (tt = t6; tt != nil; tt = tt->entry)
+		if (strcmp(tt->attr, "ipv6") == 0)
+			strncpy(tt->attr, "ip", sizeof tt->attr - 1);
+
+	if (t == nil)
+		return t6;
+
+	/* append t6 list to t list */
+	for (tt = t; tt->entry != nil; tt = tt->entry)
+		;
+	tt->entry = t6;
+	return t;
+}
+
 /*
  *  call the dns process and have it try to translate a name
  */
@@ -1591,8 +1628,12 @@ dnsiplookup(char *host, Ndbs *s)
 
 	if(strcmp(ipattr(buf), "ip") == 0)
 		t = dnsquery(mntpt, buf, "ptr");
-	else
+	else {
 		t = dnsquery(mntpt, buf, "ip");
+		/* special case: query ipv6 (AAAA dns RR) too */
+		if (ipv6lookups)
+			t = dnsip6lookup(mntpt, buf, t);
+	}
 	s->t = t;
 
 	if(t == nil){
@@ -1678,7 +1719,7 @@ genquery(Mfile *mf, char *query)
 	Ndbtuple *t;
 	Ndbs s;
 
-	n = getfields(query, attr, 32, 1, " ");
+	n = getfields(query, attr, nelem(attr), 1, " ");
 	if(n == 0)
 		return "bad query";
 

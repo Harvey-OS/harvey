@@ -56,6 +56,8 @@ errtoolong(RR *rp, Scan *sp, int remain, int need, char *where)
 	/* hack to cope with servers that don't set Ftrunc when they should */
 	if (remain < Maxudp && need > Maxudp)
 		sp->trunc = 1;
+	if (debug)
+		dnslog("malformed rr: %R", rp);
 	return 0;
 }
 
@@ -467,10 +469,8 @@ retry:
 		 * 235.9.104.135.in-addr.arpa cname
 		 *	235.9.104.135.in-addr.arpa from 135.104.9.235
 		 */
-		if (type == Tcname && sp->p - data == 2 && len == 0) {
-			// dnslog("convM2RR: got %R", rp);
+		if (type == Tcname && sp->p - data == 2 && len == 0)
 			return rp;
-		}
 		if (len > sp->p - data){
 			dnslog("bad %s RR len (%d bytes nominal, %lud actual): %R",
 				rrname(type, ptype, sizeof ptype), len,
@@ -521,6 +521,11 @@ rrloop(Scan *sp, char *what, int count, int quest)
 		if(rp == nil)
 			break;
 		setmalloctag(rp, getcallerpc(&sp));
+		/*
+		 * it might be better to ignore the bad rr, possibly break out,
+		 * but return the previous rrs, if any.  that way our callers
+		 * would know that they had got a response, however ill-formed.
+		 */
 		if(sp->err || sp->rcode || sp->stop){
 			rrfree(rp);
 			break;

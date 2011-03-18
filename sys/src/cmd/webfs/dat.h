@@ -88,7 +88,7 @@ struct Url
 
 enum
 {
-	STACK = 16384,
+	STACK = 32*1024,  /* was 16*1024; there are big arrays on the stack */
 };
 
 extern	Client**	client;

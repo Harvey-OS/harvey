@@ -62,11 +62,12 @@ safeinstallall:V:
 update:V:
 	update $UPDATEFLAGS $UPDATE
 
+# [$OS].??* avoids file names like 9.h
 nuke:V:
-	rm -f *.[$OS] y.tab.? lex.yy.c y.debug y.output [$OS].* *.acid $TARG
+	rm -f *.[$OS] y.tab.? lex.yy.c y.debug y.output [$OS].??* *.acid $TARG
 
 clean:V:
-	rm -f *.[$OS] *.a[$OS] y.tab.? lex.yy.c y.debug y.output [$OS].* $TARG $CLEANFILES
+	rm -f *.[$OS] *.a[$OS] y.tab.? lex.yy.c y.debug y.output [$OS].??* $TARG $CLEANFILES
 
 %.clean:V:
 	rm -f $stem.[$OS] [$OS].$stem $stem.acid $stem
