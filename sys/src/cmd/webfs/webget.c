@@ -27,7 +27,7 @@ usage(void)
 void
 main(int argc, char **argv)
 {
-	int conn, ctlfd, fd, i, n;
+	int conn, ctlfd, fd, n;
 	char buf[128], *base, *mtpt, *post, *url;
 
 	mtpt = "/mnt/web";

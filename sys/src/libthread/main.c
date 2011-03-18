@@ -17,6 +17,10 @@ static jmp_buf _mainjmp;
 static void mainlauncher(void*);
 extern void (*_sysfatal)(char*, va_list);
 extern void (*__assert)(char*);
+extern int (*_dial)(char*, char*, char*, int*);
+
+extern int _threaddial(char*, char*, char*, int*);
+
 static Proc **mainp;
 
 void
@@ -34,6 +38,7 @@ main(int argc, char **argv)
 	_systhreadinit();
 	_qlockinit(_threadrendezvous);
 	_sysfatal = _threadsysfatal;
+	_dial = _threaddial;
 	__assert = _threadassert;
 	notify(_threadnote);
 	if(mainstacksize == 0)

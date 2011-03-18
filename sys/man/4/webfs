@@ -15,7 +15,6 @@ webfs \- world wide web file system
 .B -s
 .I service
 ]
-\&...
 .SH DESCRIPTION
 .I Webfs
 presents a file system interface to the parsing and retrieving

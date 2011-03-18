@@ -35,7 +35,7 @@ query, ipquery, mkhash, mkdb, mkhosts, cs, csquery, dns, dnstcp, dnsquery, dnsde
 .br
 .B ndb/cs
 [
-.B -n
+.B -4n
 ] [
 .B -f
 .I dbfile
@@ -235,6 +235,15 @@ also sets the system name in
 if it can figure it out.
 The options are:
 .TF -n
+.TP
+.B -4
+Only look up IPv4 addresses (A records) when consulting DNS.
+The default is to also look up v6 addresses (AAAA records).
+Writing
+.L ipv6
+to
+.B /net/cs
+will toggle IP v6 look-ups.
 .TP
 .B -f
 supplies the name of the data base file to use,

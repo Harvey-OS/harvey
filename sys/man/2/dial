@@ -102,7 +102,7 @@ If the network in
 is
 .BR net ,
 .I dial
-will try in succession all
+will try in parallel all addresses on
 networks in common between source and destination
 until a call succeeds.
 It returns a file descriptor open for reading and writing the

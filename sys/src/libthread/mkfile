@@ -4,11 +4,11 @@ LIB=/$objtype/lib/libthread.a
 
 OFILES=\
 	$objtype.$O\
-	xinc$objtype.$O\
 	channel.$O\
 	chanprint.$O\
 	create.$O\
 	debug.$O\
+	dial.$O\
 	exec.$O\
 	exit.$O\
 	id.$O\
@@ -38,6 +38,7 @@ CFILES=\
 	chanprint.c\
 	create.c\
 	debug.c\
+	dial.c\
 	example.c\
 	exec.c\
 	exit.c\
@@ -56,19 +57,10 @@ CFILES=\
 	mips.c\
 	note.c\
 	power.c\
-	ref.c\
 	rendez.c\
 	sched.c\
 	test.c\
 	tprimes.c\
-	xincarm.c\
-
-SFILES=\
-	xinc386.s\
-	xincalpha.s\
-	xincamd64.s\
-	xincmips.s\
-	xincpower.s\
 
 HFILES=\
 	/sys/include/thread.h\
@@ -77,7 +69,6 @@ HFILES=\
 UPDATE=mkfile\
 	/386/lib/libthread.a\
 	$HFILES\
-	xincport.h\
 	$CFILES\
 	$SFILES\
 
