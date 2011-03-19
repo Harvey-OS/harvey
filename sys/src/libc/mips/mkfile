@@ -4,6 +4,7 @@ objtype=mips
 LIB=/$objtype/lib/libc.a
 SFILES=\
 	argv0.s\
+	atom.s\
 	getcallerpc.s\
 	getfcr.s\
 	main9.s\

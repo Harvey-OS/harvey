@@ -1,5 +1,5 @@
 /*
- * Realtek RTL8110S/8169S.
+ * Realtek RTL8110S/8169S Gigabit Ethernet Controllers.
  * Mostly there. There are some magic register values used
  * which are not described in any datasheet or driver but seem
  * to be necessary.

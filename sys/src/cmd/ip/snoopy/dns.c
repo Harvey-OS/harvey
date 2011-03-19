@@ -350,7 +350,7 @@ freealldn(void)
 	}
 }
 
-
+int debug;				/* for ndb/dns.h */
 ulong now = 0;
 
 void
