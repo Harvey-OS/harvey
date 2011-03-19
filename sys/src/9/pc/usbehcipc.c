@@ -191,19 +191,18 @@ scanpci(void)
 				ctlrs[i] = ctlr;
 				break;
 			}
-		if(i == Nhcis)
+		if(i >= Nhcis)
 			print("ehci: bug: more than %d controllers\n", Nhcis);
 
 		/*
 		 * currently, if we enable a second ehci controller,
 		 * we'll wedge solid after iunlock in init for the second one.
 		 */
-		if (i > 0 && i < Nhcis) {
+		if (i > 0) {
 //			iprint("usbehci: ignoring controllers after the first, "
 //				"at %#p\n", io);
 //			ctlrs[i] = nil;
-			iprint("usbehci: multiple controllers, "
-				"unclear how this can work\n");
+			iprint("usbehci: multiple controllers present\n");
 		}
 	}
 }

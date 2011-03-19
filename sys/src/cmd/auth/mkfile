@@ -3,6 +3,7 @@
 #		programs
 #
 TARG=\
+	as\
 	asn12dsa\
 	asn12rsa\
 	authsrv\
@@ -24,6 +25,7 @@ TARG=\
 	pemdecode\
 	pemencode\
 	printnetkey\
+	readnvram\
 	rsa2csr\
 	rsa2pub\
 	rsa2ssh\
