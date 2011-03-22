@@ -17,10 +17,10 @@ static int mpeisabus = -1;
 extern int i8259elcr;			/* mask of level-triggered interrupts */
 static Apic mpapic[MaxAPICNO+1];
 static int machno2apicno[MaxAPICNO+1];	/* inverse map: machno -> APIC ID */
-static Lock mprdthilock;
-static int mprdthi;
 static Ref mpvnoref;			/* unique vector assignment */
 static int mpmachno = 1;
+static Lock mpphysidlock;
+static int mpphysid;
 
 static char* buses[] = {
 	"CBUSI ",
@@ -47,24 +47,26 @@ static char* buses[] = {
 static Apic*
 mkprocessor(PCMPprocessor* p)
 {
+	int apicno;
 	Apic *apic;
 
-	if(!(p->flags & PcmpEN) || p->apicno > MaxAPICNO)
+	apicno = p->apicno;
+	if(!(p->flags & PcmpEN) || apicno > MaxAPICNO)
 		return 0;
 
-	apic = &mpapic[p->apicno];
+	apic = &mpapic[apicno];
 	apic->type = PcmpPROCESSOR;
-	apic->apicno = p->apicno;
+	apic->apicno = apicno;
 	apic->flags = p->flags;
 	apic->lintr[0] = ApicIMASK;
 	apic->lintr[1] = ApicIMASK;
 
 	if(p->flags & PcmpBP){
-		machno2apicno[0] = p->apicno;
+		machno2apicno[0] = apicno;
 		apic->machno = 0;
 	}
 	else{
-		machno2apicno[mpmachno] = p->apicno;
+		machno2apicno[mpmachno] = apicno;
 		apic->machno = mpmachno;
 		mpmachno++;
 	}
@@ -137,10 +139,12 @@ mpgetbus(int busno)
 static Apic*
 mkioapic(PCMPioapic* p)
 {
-	Apic *apic;
 	void *va;
+	int apicno;
+	Apic *apic;
 
-	if(!(p->flags & PcmpEN) || p->apicno > MaxAPICNO)
+	apicno = p->apicno;
+	if(!(p->flags & PcmpEN) || apicno > MaxAPICNO)
 		return 0;
 
 	/*
@@ -149,9 +153,9 @@ mkioapic(PCMPioapic* p)
 	if((va = vmap(p->addr, 1024)) == nil)
 		return 0;
 
-	apic = &mpapic[p->apicno];
+	apic = &mpapic[apicno];
 	apic->type = PcmpIOAPIC;
-	apic->apicno = p->apicno;
+	apic->apicno = apicno;
 	apic->addr = va;
 	apic->paddr = p->addr;
 	apic->flags = p->flags;
@@ -225,7 +229,7 @@ mpintrinit(Bus* bus, PCMPintr* intr, int vno, int /*irq*/)
 	switch(intr->intr){
 
 	default:				/* PcmpINT */
-		v |= ApicLOWEST;
+		v |= ApicFIXED;			/* no-op */
 		break;
 
 	case PcmpNMI:
@@ -386,9 +390,7 @@ squidboy(Apic* apic)
 	cpuidprint();
 	checkmtrr();
 
-	lock(&mprdthilock);
-	mprdthi |= (1<<apic->apicno)<<24;
-	unlock(&mprdthilock);
+	apic->online = 1;
 
 	lapicinit(apic);
 	lapiconline();
@@ -475,12 +477,8 @@ mpstartap(Apic* apic)
 	nvramwrite(0x0F, 0x0A);
 	lapicstartap(apic, PADDR(APBOOTSTRAP));
 	for(i = 0; i < 1000; i++){
-		lock(&mprdthilock);
-		if(mprdthi & ((1<<apic->apicno)<<24)){
-			unlock(&mprdthilock);
+		if(apic->online)
 			break;
-		}
-		unlock(&mprdthilock);
 		delay(10);
 	}
 	nvramwrite(0x0F, 0x00);
@@ -575,11 +573,9 @@ mpinit(void)
 	 */
 	if(bpapic == 0)
 		return;
+	bpapic->online = 1;
 
 	lapicinit(bpapic);
-	lock(&mprdthilock);
-	mprdthi |= (1<<bpapic->apicno)<<24;
-	unlock(&mprdthilock);
 
 	/*
 	 * These interrupts are local to the processor
@@ -600,9 +596,11 @@ mpinit(void)
 		ncpu = strtol(cp, 0, 0);
 		if(ncpu < 1)
 			ncpu = 1;
+		else if(ncpu > MAXMACH)
+			ncpu = MAXMACH;
 	}
 	else
-		ncpu = MaxAPICNO;
+		ncpu = MAXMACH;
 	memmove((void*)APBOOTSTRAP, apbootstrap, sizeof(apbootstrap));
 	for(apic = mpapic; apic <= &mpapic[MaxAPICNO]; apic++){
 		if(ncpu <= 1)
@@ -627,13 +625,48 @@ mpinit(void)
 }
 
 static int
+mpintrcpu(void)
+{
+	int i;
+
+	/*
+	 * The bulk of this code was written ~1995, when there was
+	 * one architecture and one generation of hardware, the number
+	 * of CPUs was up to 4(8) and the choices for interrupt routing
+	 * were physical, or flat logical (optionally with lowest
+	 * priority interrupt). Logical mode hasn't scaled well with
+	 * the increasing number of packages/cores/threads, so the
+	 * fall-back is to physical mode, which works across all processor
+	 * generations, both AMD and Intel, using the APIC and xAPIC.
+	 *
+	 * Interrupt routing policy can be set here.
+	 * Currently, just assign each interrupt to a different CPU on
+	 * a round-robin basis. Some idea of the packages/cores/thread
+	 * topology would be useful here, e.g. to not assign interrupts
+	 * to more than one thread in a core, or to use a "noise" core.
+	 * But, as usual, Intel make that an onerous task. 
+	 */
+	lock(&mpphysidlock);
+	for(;;){
+		i = mpphysid++;
+		if(mpphysid >= MaxAPICNO+1)
+			mpphysid = 0;
+		if(mpapic[i].online)
+			break;
+	}
+	unlock(&mpphysidlock);
+
+	return mpapic[i].apicno;
+}
+
+static int
 mpintrenablex(Vctl* v, int tbdf)
 {
 	Bus *bus;
 	Aintr *aintr;
 	Apic *apic;
 	Pcidev *pcidev;
-	int bno, dno, irq, lo, n, type, vno;
+	int bno, dno, hi, irq, lo, n, type, vno;
 
 	/*
 	 * Find the bus.
@@ -700,7 +733,7 @@ mpintrenablex(Vctl* v, int tbdf)
 			vno = lo & 0xFF;
 //print("%s vector %d (!imask)\n", v->name, vno);
 			n = mpintrinit(bus, aintr->intr, vno, v->irq);
-			n |= ApicLOGICAL;
+			n |= ApicPHYSICAL;		/* no-op */
 			lo &= ~(ApicRemoteIRR|ApicDELIVS);
 			if(n != lo || !(n & ApicLEVEL)){
 				print("mpintrenable: multiple botch irq%d, tbdf %uX, lo %8.8uX, n %8.8uX\n",
@@ -734,19 +767,18 @@ mpintrenablex(Vctl* v, int tbdf)
 				vno, v->irq, tbdf);
 			return -1;
 		}
+		hi = mpintrcpu()<<24;
 		lo = mpintrinit(bus, aintr->intr, vno, v->irq);
 		//print("lo 0x%uX: busno %d intr %d vno %d irq %d elcr 0x%uX\n",
 		//	lo, bus->busno, aintr->intr->irq, vno,
 		//	v->irq, i8259elcr);
 		if(lo & ApicIMASK)
 			return -1;
-		lo |= ApicLOGICAL;
 
-		if((apic->flags & PcmpEN) && apic->type == PcmpIOAPIC){
-			lock(&mprdthilock);
- 			ioapicrdtw(apic, aintr->intr->intin, mprdthi, lo);
-			unlock(&mprdthilock);
-		}
+		lo |= ApicPHYSICAL;			/* no-op */
+
+		if((apic->flags & PcmpEN) && apic->type == PcmpIOAPIC)
+ 			ioapicrdtw(apic, aintr->intr->intin, hi, lo);
 		//else
 		//	print("lo not enabled 0x%uX %d\n",
 		//		apic->flags, apic->type);
@@ -833,7 +865,7 @@ mpshutdown(void)
 		idle();
 	}
 
-	print("apshutdown: active = 0x%2.2uX\n", active.machs);
+	print("apshutdown: active = %#8.8ux\n", active.machs);
 	delay(1000);
 	splhi();
 
