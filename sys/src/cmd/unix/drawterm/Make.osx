@@ -4,12 +4,12 @@ AR=ar
 AS=as
 RANLIB=ranlib
 CC=gcc
-CFLAGS=-Wall -Wno-missing-braces -ggdb -I$(ROOT) -I$(ROOT)/include -I$(ROOT)/kern -c -D_THREAD_SAFE $(PTHREAD) -O2
+CFLAGS=-m32 -Wall -Wno-missing-braces -ggdb -I$(ROOT) -I$(ROOT)/include -I$(ROOT)/kern -c -D_THREAD_SAFE $(PTHREAD) -O2
 O=o
 OS=posix
 GUI=osx
 LDADD=-ggdb -framework Carbon -framework QuickTime
-LDFLAGS=$(PTHREAD)
+LDFLAGS=$(PTHREAD) -m32
 TARG=drawterm
 AUDIO=none
 
