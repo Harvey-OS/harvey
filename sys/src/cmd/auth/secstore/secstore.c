@@ -476,7 +476,7 @@ login(char *id, char *dest, int pass_stdin, int pass_nvram)
 		readstr(c->conn, s);	/* TODO: check for error? */
 	}
 	if(strcmp(s, "OK") != 0){
-		fprint(2, "%s\n", s);
+		fprint(2, "%s: %s\n", argv0, s);
 		c->conn->free(c->conn);
 		free(c);
 		return nil;
