@@ -4,17 +4,10 @@
 #include <bio.h>
 #include <ndb.h>
 #include <ip.h>
+#include "dns.h"
 
 enum {
 	FQDNMAX	= 255,
-
-	Cin	= 1,		/* internet */
-	Call	= 255,		/* all classes */
-
-	Ta	= 1,		/* v4 address */
-	Tsoa	= 6,		/* start of authority */
-	Taaaa	= 28,		/* v6 address */
-	Tall	= 255,		/* all types */
 };
 
 char *errmsgs[] = {

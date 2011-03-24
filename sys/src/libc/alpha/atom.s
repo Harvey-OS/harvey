@@ -18,16 +18,33 @@ dec1:
 	BEQ	R2, dec1		/* write failed, retry */
 	RET
 
+TEXT	_xinc(SB), $-8
+	MOVQ	R0, R1			/* p */
+xinc1:
+	MOVLL	(R1), R0		/* *p */
+	ADDL	$1, R0
+	MOVLC	R0, (R1)		/* (*p)++ */
+	BEQ	R0, xinc1		/* write failed, retry */
+	RET
+
+TEXT	_xdec(SB), $-8
+	MOVQ	R0, R1			/* p */
+xdec1:
+	MOVLL	(R1), R0		/* *p */
+	SUBL	$1, R0
+	MOVQ	R0, R2
+	MOVLC	R2, (R1)		/* --(*p) */
+	BEQ	R2, xdec1		/* write failed, retry */
+	RET
+
 TEXT	cas(SB), $-8
-TEXT	cas32(SB), $-8
-TEXT	casl(SB), $-8
 TEXT	casp(SB), $-8
 	MOVQ	R0, R1	/* p */
 	MOVL	old+4(FP), R2
 	MOVL	new+8(FP), R3
 	MOVLL	(R1), R0
 	CMPEQ	R0, R2, R4
-	BEQ	R4, fail	/* if R0 != [sic] R2, goto fail */
+	BEQ	R4, fail		/* if R0 != [sic] R2, goto fail */
 	MOVQ	R3, R0
 	MOVLC	R0, (R1)
 	RET

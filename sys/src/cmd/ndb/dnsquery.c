@@ -86,7 +86,7 @@ query(int fd)
 			}
 
 		/* inverse queries may need to be permuted */
-		if(n > 4 && strcmp("ptr", &line[n-3]) == 0 &&
+		if(n > 4 && strcmp(" ptr", &line[n-4]) == 0 &&
 		    cistrstr(line, ".arpa") == nil){
 			/* TODO: reversing v6 addrs is harder */
 			for(p = line; *p; p++)
