@@ -210,9 +210,14 @@ hint(RR **last, RR *rp)
 		hp = rrlookup(rp->host, Ta, NOneg);
 		if(hp == nil)
 			hp = dblookup(rp->host->name, Cin, Ta, 0, 0);
+		if(hp == nil)
+			hp = rrlookup(rp->host, Taaaa, NOneg);
+		if(hp == nil)
+			hp = dblookup(rp->host->name, Cin, Taaaa, 0, 0);
 		if (hp && strncmp(hp->owner->name, "local#", 6) == 0)
 			dnslog("returning %s as hint", hp->owner->name);
 		rrcat(last, hp);
 		break;
 	}
 }
+ 

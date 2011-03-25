@@ -303,16 +303,18 @@ err:
  * ms windows 2000 seems to get the bytes backward in the type field
  * of ptr records, so return a format error as feedback.
  */
-static void
-mstypehack(Scan *sp, int type, char *where)
+static ushort
+mstypehack(Scan *sp, ushort type, char *where)
 {
-	if ((uchar)type == 0 && (uchar)(type>>8) != 0) {
+	if ((uchar)type == 0 && (type>>8) != 0) {
 		USED(where);
 //		dnslog("%s: byte-swapped type field in ptr rr from win2k",
 //			where);
-		if (sp->rcode == 0)
+		if (sp->rcode == Rok)
 			sp->rcode = Rformat;
+		return (uchar)type << 8 | type >> 8;
 	}
+	return type;
 }
 
 /*
@@ -332,7 +334,7 @@ retry:
 	USHORT(type);
 	USHORT(class);
 
-	mstypehack(sp, type, "convM2RR");
+	type = mstypehack(sp, type, "convM2RR");
 	rp = rralloc(type);
 	rp->owner = dnlookup(dname, class, 1);
 	rp->type = type;
@@ -499,7 +501,7 @@ convM2Q(Scan *sp)
 	if(sp->err || sp->rcode || sp->stop)
 		return nil;
 
-	mstypehack(sp, type, "convM2Q");
+	type = mstypehack(sp, type, "convM2Q");
 	rp = rralloc(type);
 	rp->owner = dnlookup(dname, class, 1);
 
@@ -552,7 +554,7 @@ convM2DNS(uchar *buf, int len, DNSmsg *m, int *codep)
 	Scan *sp;
 
 	if (codep)
-		*codep = 0;
+		*codep = Rok;
 	assert(len >= 0);
 	sp = &scan;
 	memset(sp, 0, sizeof *sp);
@@ -580,7 +582,7 @@ convM2DNS(uchar *buf, int len, DNSmsg *m, int *codep)
 	if (sp->trunc)
 		m->flags |= Ftrunc;
 	if (sp->stop)
-		sp->rcode = 0;
+		sp->rcode = Rok;
 	if (codep)
 		*codep = sp->rcode;
 	return err;

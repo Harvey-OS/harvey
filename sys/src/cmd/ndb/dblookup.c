@@ -213,6 +213,10 @@ dblookup1(char *name, int type, int auth, int ttl)
 		attr = "ip";
 		f = addrrr;
 		break;
+	case Taaaa:
+		attr = "ipv6";
+		f = addrrr;
+		break;
 	case Tnull:
 		attr = "nullrr";
 		f = nullrr;
@@ -581,7 +585,8 @@ dbpair2cache(DN *dp, Ndbtuple *entry, Ndbtuple *pair)
 	static ulong ord;
 
 	rp = 0;
-	if(cistrcmp(pair->attr, "ip") == 0){
+	if(cistrcmp(pair->attr, "ip") == 0 ||
+	   cistrcmp(pair->attr, "ipv6") == 0){
 		dp->ordinal = ord++;
 		rp = addrrr(entry, pair);
 	} else 	if(cistrcmp(pair->attr, "ns") == 0)
@@ -875,6 +880,7 @@ addlocaldnsserver(DN *dp, int class, char *ipaddr, int i)
 	DN *nsdp;
 	RR *rp;
 	char buf[32];
+	uchar ip[IPaddrlen];
 
 	/* reject our own ip addresses so we don't query ourselves via udp */
 	if (myaddr(ipaddr))
@@ -905,8 +911,11 @@ addlocaldnsserver(DN *dp, int class, char *ipaddr, int i)
 	rp->ttl = (1UL<<31)-1;
 	rrattach(rp, Authoritative);	/* will not attach rrs in my area */
 
-	/* A record */
-	rp = rralloc(Ta);
+	/* A or AAAA record */
+	if (parseip(ip, ipaddr) >= 0 && isv4(ip))
+		rp = rralloc(Ta);
+	else
+		rp = rralloc(Taaaa);
 	rp->ip = dnlookup(ipaddr, class, 1);
 	rp->owner = nsdp;
 	rp->local = 1;

@@ -40,7 +40,7 @@ void	squirrelserveraddrs(void);
 void
 usage(void)
 {
-	fprint(2, "%s: [-rx] [-f db-file]\n", argv0);
+	fprint(2, "%s: [-rx] [-f db-file] [[@server] domain [type]]\n", argv0);
 	exits("usage");
 }
 
@@ -300,6 +300,8 @@ getdnsservers(int class)
 void
 squirrelserveraddrs(void)
 {
+	int v4;
+	char *attr;
 	RR *rr, *rp, **l;
 	Request req;
 
@@ -312,8 +314,10 @@ squirrelserveraddrs(void)
 	rr = getdnsservers(Cin);
 	l = &serveraddrs;
 	for(rp = rr; rp != nil; rp = rp->next){
-		if(strcmp(ipattr(rp->host->name), "ip") == 0){
-			*l = rralloc(Ta);
+		attr = ipattr(rp->host->name);
+		v4 = strcmp(attr, "ip") == 0;
+		if(v4 || strcmp(attr, "ipv6") == 0){
+			*l = rralloc(v4? Ta: Taaaa);
 			(*l)->owner = rp->host;
 			(*l)->ip = rp->host;
 			l = &(*l)->next;
@@ -322,6 +326,9 @@ squirrelserveraddrs(void)
 		req.isslave = 1;
 		req.aborttime = NS2MS(nowns) + Maxreqtm;
 		*l = dnresolve(rp->host->name, Cin, Ta, &req, 0, 0, Recurse, 0, 0);
+		if(*l == nil)
+			*l = dnresolve(rp->host->name, Cin, Taaaa, &req,
+				0, 0, Recurse, 0, 0);
 		while(*l != nil)
 			l = &(*l)->next;
 	}
