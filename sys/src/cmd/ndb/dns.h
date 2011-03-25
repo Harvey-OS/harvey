@@ -532,6 +532,8 @@ RR*	dnresolve(char*, int, int, Request*, RR**, int, int, int, int*);
 int	udpport(char *);
 int	mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno);
 int	seerootns(void);
+void	initdnsmsg(DNSmsg *mp, RR *rp, int flags, ushort reqno);
+DNSmsg*	newdnsmsg(RR *rp, int flags, ushort reqno);
 
 /* dnserver.c */
 void	dnserver(DNSmsg*, DNSmsg*, Request*, uchar *, int);

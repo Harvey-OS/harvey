@@ -81,6 +81,7 @@ char	*logfile = "dns";	/* or "dns.test" */
 char	*dbfile;
 char	mntpt[Maxpath];
 
+int	addforwtarg(char *);
 int	fillreply(Mfile*, int);
 void	freejob(Job*);
 void	io(void);
@@ -102,6 +103,10 @@ void	rwstat(Job*, Mfile*);
 void	sendmsg(Job*, char*);
 void	setext(char*, int, char*);
 
+static char *lookupqueryold(Job*, Mfile*, Request*, char*, char*, int, int);
+static char *lookupquerynew(Job*, Mfile*, Request*, char*, char*, int, int);
+static char *respond(Job*, Mfile*, RR*, char*, int, int);
+
 void
 usage(void)
 {
@@ -109,8 +114,6 @@ usage(void)
 		"[-T forwip] [-x netmtpt] [-z refreshprog]\n", argv0);
 	exits("usage");
 }
-
-int addforwtarg(char *);
 
 void
 main(int argc, char *argv[])
@@ -700,26 +703,25 @@ rread(Job *job, Mfile *mf)
 void
 rwrite(Job *job, Mfile *mf, Request *req)
 {
-	int rooted, status, wantsav;
-	long n;
+	int rooted, wantsav, send;
 	ulong cnt;
 	char *err, *p, *atype;
-	RR *rp, *tp, *neg;
+	char errbuf[ERRMAX];
 
 	err = nil;
 	cnt = job->request.count;
-	if(mf->qid.type & QTDIR){
+	send = 1;
+	if(mf->qid.type & QTDIR)
 		err = "can't write directory";
-		goto send;
-	}
-	if (job->request.offset != 0) {
+	else if (job->request.offset != 0)
 		err = "writing at non-zero offset";
-		goto send;
-	}
-	if(cnt >= Maxrequest){
+	else if(cnt >= Maxrequest)
 		err = "request too long";
+	else
+		send = 0;
+	if (send)
 		goto send;
-	}
+
 	job->request.data[cnt] = 0;
 	if(cnt > 0 && job->request.data[cnt-1] == '\n')
 		job->request.data[cnt-1] = 0;
@@ -728,35 +730,31 @@ rwrite(Job *job, Mfile *mf, Request *req)
 	 *  special commands
 	 */
 //	dnslog("rwrite got: %s", job->request.data);
-	if(strcmp(job->request.data, "debug")==0){
-		debug ^= 1;
-		goto send;
-	} else if(strcmp(job->request.data, "dump")==0){
-		dndump("/lib/ndb/dnsdump");
-		goto send;
-	} else if(strcmp(job->request.data, "poolcheck")==0){
-		poolcheck(mainmem);
-		goto send;
-	} else if(strcmp(job->request.data, "refresh")==0){
-		needrefresh = 1;
-		goto send;
-	} else if(strcmp(job->request.data, "restart")==0){
-		stop = 1;
-		goto send;
-	} else if(strcmp(job->request.data, "stats")==0){
-		dnstats("/lib/ndb/dnsstats");
-		goto send;
-	} else if(strncmp(job->request.data, "target ", 7)==0){
-		target = atol(job->request.data + 7);
-		dnslog("target set to %ld", target);
-		goto send;
-	} else if(strcmp(job->request.data, "age")==0){
+	send = 1;
+	if(strcmp(job->request.data, "age")==0){
 		dnslog("dump, age & dump forced");
 		dndump("/lib/ndb/dnsdump1");
 		dnforceage();
 		dndump("/lib/ndb/dnsdump2");
+	} else if(strcmp(job->request.data, "debug")==0)
+		debug ^= 1;
+	else if(strcmp(job->request.data, "dump")==0)
+		dndump("/lib/ndb/dnsdump");
+	else if(strcmp(job->request.data, "poolcheck")==0)
+		poolcheck(mainmem);
+	else if(strcmp(job->request.data, "refresh")==0)
+		needrefresh = 1;
+	else if(strcmp(job->request.data, "restart")==0)
+		stop = 1;
+	else if(strcmp(job->request.data, "stats")==0)
+		dnstats("/lib/ndb/dnsstats");
+	else if(strncmp(job->request.data, "target ", 7)==0){
+		target = atol(job->request.data + 7);
+		dnslog("target set to %ld", target);
+	} else
+		send = 0;
+	if (send)
 		goto send;
-	}
 
 	/*
 	 *  kill previous reply
@@ -769,7 +767,9 @@ rwrite(Job *job, Mfile *mf, Request *req)
 	 */
 	atype = strchr(job->request.data, ' ');
 	if(atype == 0){
-		err = "illegal request";
+		snprint(errbuf, sizeof errbuf, "illegal request %s",
+			job->request.data);
+		err = errbuf;
 		goto send;
 	} else
 		*atype++ = 0;
@@ -791,7 +791,8 @@ rwrite(Job *job, Mfile *mf, Request *req)
 	stats.qrecvd9p++;
 	mf->type = rrtype(atype);
 	if(mf->type < 0){
-		err = "unknown type";
+		snprint(errbuf, sizeof errbuf, "unknown type %s", atype);
+		err = errbuf;
 		goto send;
 	}
 
@@ -809,8 +810,32 @@ rwrite(Job *job, Mfile *mf, Request *req)
 	} else
 		wantsav = 0;
 
+	err = lookupqueryold(job, mf, req, errbuf, p, wantsav, rooted);
+send:
 	dncheck(0, 1);
-	status = 0;
+	job->reply.count = cnt;
+	sendmsg(job, err);
+}
+
+/*
+ * dnsdebug calls
+ *	rr = dnresolve(buf, Cin, type, &req, 0, 0, Recurse, rooted, 0);
+ * which generates a UDP query, which eventually calls
+ *	dnserver(&reqmsg, &repmsg, &req, buf, rcode);
+ * which calls
+ *	rp = dnresolve(name, Cin, type, req, &mp->an, 0, recurse, 1, 0);
+ *
+ * but here we just call dnresolve directly.
+ */
+static char *
+lookupqueryold(Job *job, Mfile *mf, Request *req, char *errbuf, char *p,
+	int wantsav, int rooted)
+{
+	int status;
+	RR *rp, *neg;
+
+	dncheck(0, 1);
+	status = Rok;
 	rp = dnresolve(p, Cin, mf->type, req, 0, 0, Recurse, rooted, &status);
 
 	dncheck(0, 1);
@@ -822,43 +847,73 @@ rwrite(Job *job, Mfile *mf, Request *req)
 	}
 	unlock(&dnlock);
 
+	return respond(job, mf, rp, errbuf, status, wantsav);
+}
+
+static char *
+respond(Job *job, Mfile *mf, RR *rp, char *errbuf, int status, int wantsav)
+{
+	long n;
+	RR *tp;
+
 	if(rp == nil)
 		switch(status){
 		case Rname:
-			err = "name does not exist";
-			break;
+			return "name does not exist";
 		case Rserver:
-			err = "dns failure";
-			break;
+			return "dns failure";
+		case Rok:
 		default:
-			err = "resource does not exist";
-			break;
+			snprint(errbuf, ERRMAX,
+				"resource does not exist; negrcode %d", status);
+			return errbuf;
 		}
-	else {
-		lock(&joblock);
-		if(!job->flushed){
-			/* format data to be read later */
-			n = 0;
-			mf->nrr = 0;
-			for(tp = rp; mf->nrr < Maxrrr-1 && n < Maxreply && tp &&
-			    tsame(mf->type, tp->type); tp = tp->next){
-				mf->rr[mf->nrr++] = n;
-				if(wantsav)
-					n += snprint(mf->reply+n, Maxreply-n,
-						"%Q", tp);
-				else
-					n += snprint(mf->reply+n, Maxreply-n,
-						"%R", tp);
-			}
-			mf->rr[mf->nrr] = n;
+
+	lock(&joblock);
+	if(!job->flushed){
+		/* format data to be read later */
+		n = 0;
+		mf->nrr = 0;
+		for(tp = rp; mf->nrr < Maxrrr-1 && n < Maxreply && tp &&
+		    tsame(mf->type, tp->type); tp = tp->next){
+			mf->rr[mf->nrr++] = n;
+			if(wantsav)
+				n += snprint(mf->reply+n, Maxreply-n, "%Q", tp);
+			else
+				n += snprint(mf->reply+n, Maxreply-n, "%R", tp);
 		}
-		unlock(&joblock);
-		rrfreelist(rp);
+		mf->rr[mf->nrr] = n;
 	}
-send:
+	unlock(&joblock);
+	rrfreelist(rp);
+	return nil;
+}
+
+/* simulate what dnsudpserver does */
+static char *
+lookupquerynew(Job *job, Mfile *mf, Request *req, char *errbuf, char *p,
+	int wantsav, int)
+{
+	char *err;
+	uchar buf[Udphdrsize + Maxudp + 1024];
+	DNSmsg *mp;
+	DNSmsg repmsg;
+	RR *rp;
+
 	dncheck(0, 1);
-	job->reply.count = cnt;
-	sendmsg(job, err);
+
+	memset(&repmsg, 0, sizeof repmsg);
+	rp = rralloc(mf->type);
+	rp->owner = dnlookup(p, Cin, 1);
+	mp = newdnsmsg(rp, Frecurse|Oquery, (ushort)rand());
+
+	dnserver(mp, &repmsg, req, buf, Rok);
+
+	freeanswers(mp);
+	err = respond(job, mf, repmsg.an, errbuf, Rok, wantsav);
+	repmsg.an = nil;		/* freed above */
+	freeanswers(&repmsg);
+	return err;
 }
 
 void

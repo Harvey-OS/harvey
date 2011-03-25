@@ -1047,7 +1047,10 @@ rrtype(char *atype)
 	/* make any a synonym for all */
 	if(strcmp(atype, "any") == 0)
 		return Tall;
-	return atoi(atype);
+	else if(isascii(atype[0]) && isdigit(atype[0]))
+		return atoi(atype);
+	else
+		return -1;
 }
 
 /*

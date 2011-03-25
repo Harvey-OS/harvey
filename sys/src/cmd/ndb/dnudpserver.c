@@ -238,7 +238,7 @@ restart:
 					uh->rport[1], reqmsg.id,
 					reqmsg.qd->owner->name,
 					rrname(reqmsg.qd->type, tname,
-					sizeof tname));	// DEBUG
+					sizeof tname));
 		}
 		/* loop through each question */
 		while(reqmsg.qd){

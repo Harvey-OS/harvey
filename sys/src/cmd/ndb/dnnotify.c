@@ -66,6 +66,8 @@ send_notify(char *slave, RR *soa, Request *req)
 	} else {
 		rp = dnresolve(slave, Cin, Ta, req, nil, 0, 1, 1, &status);
 		if(rp == nil)
+			rp = dnresolve(slave, Cin, Taaaa, req, nil, 0, 1, 1, &status);
+		if(rp == nil)
 			return;
 		parseip(up->raddr, rp->ip->name);
 		rrfreelist(rp);		/* was rrfree */
