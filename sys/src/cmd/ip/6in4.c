@@ -7,8 +7,24 @@
 #include <libc.h>
 #include <ip.h>
 
+/*
+ * IPv6 and related IP protocols & their numbers:
+ *
+ * ipv6		41      IPv6            # Internet Protocol, version 6
+ * ipv6-route	43      IPv6-Route      # Routing Header for IPv6
+ * ipv6-frag	44      IPv6-Frag       # Fragment Header for IPv6
+ * esp		50      ESP             # Encapsulating Security Payload
+ * ah		51      AH              # Authentication Header
+ * ipv6-icmp	58      IPv6-ICMP icmp6 # ICMP version 6
+ * ipv6-nonxt	59      IPv6-NoNxt      # No Next Header for IPv6
+ * ipv6-opts	60      IPv6-Opts       # Destination Options for IPv6
+ */
+
 enum {
 	IP_IPV6PROTO	= 41,		/* IPv4 protocol number for IPv6 */
+ 	IP_ESPPROTO	= 50,		/* IP v4 and v6 protocol number */
+ 	IP_AHPROTO	= 51,		/* IP v4 and v6 protocol number */
+	IP_ICMPV6PROTO	= 58,
 	V6to4pfx	= 0x2002,
 };
 
@@ -146,8 +162,8 @@ setup(int *v6net, int *tunp)
 	/*
 	 * gain access to IPv6-in-IPv4 packets
 	 */
-	p = seprint(buf, buf + sizeof buf, "%s/ipmux!proto=%2.2x;dst=%V",
-		net, IP_IPV6PROTO, myip + IPv4off);
+	p = seprint(buf, buf + sizeof buf, "%s/ipmux!proto=%2.2x|%2.2x;dst=%V",
+		net, IP_IPV6PROTO, IP_ICMPV6PROTO, myip + IPv4off);
 	if (!anysender)
 		seprint(p, buf + sizeof buf, ";src=%V", remote4 + IPv4off);
 	*tunp = dial(buf, 0, 0, 0);
@@ -301,13 +317,12 @@ ip2tunnel(int in, int out)
 	op = (Iphdr*)buf;
 	op->vihl = IP_VER4 | 5;		/* hdr is 5 longs? */
 	memcpy(op->src, myip + IPv4off, sizeof op->src);
-	op->proto = IP_IPV6PROTO;
 	op->ttl = 100;
 
 	/* get a V6 packet destined for the tunnel */
-	while ((n = read(in, buf + STFHDR, sizeof buf - STFHDR)) > 0) {
+	ip = (Ip6hdr*)(buf + STFHDR);
+	while ((n = read(in, ip, sizeof buf - STFHDR)) > 0) {
 		/* if not IPV6, drop it */
-		ip = (Ip6hdr*)(buf + STFHDR);
 		if ((ip->vcf[0] & 0xF0) != IP_VER6)
 			continue;
 
@@ -326,6 +341,7 @@ ip2tunnel(int in, int out)
 			continue;
 		}
 
+		op->proto = ip->proto;
 		if (debug > 1)
 			fprint(2, "v6 to tunnel %I -> %I\n", ip->src, ip->dst);
 		/* send 6to4 packets directly to ipv4 target */
@@ -371,8 +387,9 @@ tunnel2ip(int in, int out)
 			break;
 		}
 
-		/* if not IPv4 nor IPv4 protocol IPv6, drop it */
-		if ((ip->vihl & 0xF0) != IP_VER4 || ip->proto != IP_IPV6PROTO)
+		/* if not IPv4 nor IPv4 protocol IPv6 nor ICMPv6, drop it */
+		if ((ip->vihl & 0xF0) != IP_VER4 ||
+		    ip->proto != IP_IPV6PROTO && ip->proto != IP_ICMPV6PROTO)
 			continue;
 
 		/* check length: drop if too short, trim if too long */
