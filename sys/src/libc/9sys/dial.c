@@ -4,6 +4,8 @@
 #include <u.h>
 #include <libc.h>
 
+typedef struct Conn Conn;
+typedef struct Dest Dest;
 typedef struct DS DS;
 
 enum
@@ -11,9 +13,12 @@ enum
 	Maxstring	= 128,
 	Maxpath		= 256,
 
-	/* these are probably overly generous */
-	Maxconcurr	= 16,
-	Maxcsreply	= 80*50,
+	Maxcsreply	= 64*80,	/* this is probably overly generous */
+	/*
+	 * this should be a plausible slight overestimate for non-interactive
+	 * use even if it's ridiculously long for interactive use.
+	 */
+	Maxconnms	= 20*60*1000,	/* 20 minutes */
 };
 
 struct DS {
@@ -30,27 +35,27 @@ struct DS {
 };
 
 /*
- * these need to be seen by this proc & all children.
- * malloc these so we can execute multiple csdials within a
- * multi-process program concurrently.
+ * malloc these; they need to be writable by this proc & all children.
+ * the stack is private to each proc, and static allocation in the data
+ * segment would not permit concurrent dials within a multi-process program.
  */
-typedef struct Conn Conn;
-typedef struct Dest Dest;
 struct Conn {
 	int	pid;
+	int	dead;
+
 	int	dfd;
 	int	cfd;
-	int	dead;
-	char	err[ERRMAX];
 	char	dir[NETPATHLEN];
+	char	err[ERRMAX];
 };
 struct Dest {
-	Conn	conn[Maxconcurr];
+	Conn	*conn;			/* allocated array */
 	Conn	*connend;
-	Conn	*connjunk;		/* last slot */
 	int	nkid;
+
 	QLock	winlck;
 	int	winner;			/* index into conn[] */
+
 	char	*nextaddr;
 	char	addrlist[Maxcsreply];
 };
@@ -114,6 +119,29 @@ dial(char *dest, char *local, char *dir, int *cfdp)
 	return (*_dial)(dest, local, dir, cfdp);
 }
 
+static int
+connsalloc(Dest *dp, int addrs)
+{
+	free(dp->conn);
+	dp->connend = nil;
+	assert(addrs > 0);
+
+	dp->conn = mallocz(addrs * sizeof *dp->conn, 1);
+	if(dp->conn == nil)
+		return -1;
+	dp->connend = dp->conn + addrs;
+	return 0;
+}
+
+static void
+freedest(Dest *dp)
+{
+	if (dp != nil) {
+		free(dp->conn);
+		free(dp);
+	}
+}
+
 static void
 closeopenfd(int *fdp)
 {
@@ -136,6 +164,8 @@ notedeath(Dest *dp, char *exitsts)
 	if (n < 4)
 		return;
 	pid = atoi(fields[0]);
+	if (pid <= 0)
+		return;
 	for (conn = dp->conn; conn < dp->connend; conn++)
 		if (conn->pid == pid && !conn->dead) {  /* it's one we know? */
 			if (conn - dp->conn != dp->winner) {
@@ -252,24 +282,19 @@ dialmulti(DS *ds, Dest *dp)
 	int rv, kid, kidme;
 	char *clone, *dest;
 	char err[ERRMAX], besterr[ERRMAX];
-	Conn *conn;
 
-	dp->nkid = dp->winner = -1;
+	dp->winner = -1;
+	dp->nkid = 0;
 	while(dp->winner < 0 && *dp->nextaddr != '\0' &&
 	    parsecs(dp, &clone, &dest) >= 0) {
-		if (dp->nkid < nelem(dp->conn))
-			++dp->nkid;
-		kidme = dp->nkid;		/* make private copy on stack */
+		kidme = dp->nkid++;		/* make private copy on stack */
 		kid = rfork(RFPROC|RFMEM);	/* spin off a call attempt */
 		if (kid < 0)
 			--dp->nkid;
 		else if (kid == 0) {
+			alarm(Maxconnms);
 			*besterr = '\0';
-			if (kidme < dp->connend - dp->conn)
-				conn = &dp->conn[kidme];
-			else			/* too many: let them collide */
-				conn = dp->connjunk;
-			rv = call(clone, dest, ds, dp, conn);
+			rv = call(clone, dest, ds, dp, &dp->conn[kidme]);
 			if(rv < 0)
 				pickuperr(besterr, err);
 			_exits(besterr);	/* avoid atexit callbacks */
@@ -287,6 +312,7 @@ static int
 csdial(DS *ds)
 {
 	int n, fd, rv, addrs, bleft;
+	char c;
 	char *addrp, *clone2, *dest;
 	char buf[Maxstring], clone[Maxpath], err[ERRMAX], besterr[ERRMAX];
 	Dest *dp;
@@ -294,8 +320,11 @@ csdial(DS *ds)
 	dp = mallocz(sizeof *dp, 1);
 	if(dp == nil)
 		return -1;
-	dp->connjunk = dp->connend = dp->conn + nelem(dp->conn) - 1;
-	dp->winner = 0;
+	dp->winner = -1;
+	if (connsalloc(dp, 1) < 0) {		/* room for a single conn. */
+		freedest(dp);
+		return -1;
+	}
 
 	/*
 	 *  open connection server
@@ -307,7 +336,7 @@ csdial(DS *ds)
 		snprint(clone, sizeof(clone), "%s/%s/clone", ds->netdir, ds->proto);
 		rv = call(clone, ds->rem, ds, dp, &dp->conn[0]);
 		fillinds(ds, dp);
-		free(dp);
+		freedest(dp);
 		return rv;
 	}
 
@@ -317,7 +346,7 @@ csdial(DS *ds)
 	snprint(buf, sizeof(buf), "%s!%s", ds->proto, ds->rem);
 	if(write(fd, buf, strlen(buf)) < 0){
 		close(fd);
-		free(dp);
+		freedest(dp);
 		return -1;
 	}
 
@@ -327,7 +356,7 @@ csdial(DS *ds)
 	seek(fd, 0, 0);
 	addrs = 0;
 	addrp = dp->nextaddr = dp->addrlist;
-	bleft = sizeof dp->addrlist - 2;
+	bleft = sizeof dp->addrlist - 2;	/* 2 is room for \n\0 */
 	while(bleft > 0 && (n = read(fd, addrp, bleft)) > 0) {
 		if (addrp[n-1] != '\n')
 			addrp[n++] = '\n';
@@ -335,6 +364,13 @@ csdial(DS *ds)
 		addrp += n;
 		bleft -= n;
 	}
+	/*
+	 * if we haven't read all of cs's output, assume the last line might
+	 * have been truncated and ignore it.  we really don't expect this
+	 * to happen.
+	 */
+	if (addrs > 0 && bleft <= 0 && read(fd, &c, 1) == 1)
+		addrs--;
 	close(fd);
 
 	*besterr = 0;
@@ -348,14 +384,14 @@ csdial(DS *ds)
 			pickuperr(besterr, err);
 			werrstr("%s", besterr);
 		}
-	} else
+	} else if (connsalloc(dp, addrs) >= 0)
 		rv = dialmulti(ds, dp);
 
 	/* fill in results */
 	if (rv >= 0 && dp->winner >= 0)
-		return fillinds(ds, dp);
+		rv = fillinds(ds, dp);
 
-	free(dp);
+	freedest(dp);
 	return rv;
 }
 
@@ -384,7 +420,7 @@ call(char *clone, char *dest, DS *ds, Dest *dp, Conn *conn)
 	/* get directory name */
 	n = read(cfd, name, sizeof(name)-1);
 	if(n < 0){
-		close(cfd);
+		closeopenfd(&conn->cfd);
 		return -1;
 	}
 	name[n] = 0;
@@ -403,20 +439,18 @@ call(char *clone, char *dest, DS *ds, Dest *dp, Conn *conn)
 	else
 		snprint(name, sizeof(name), "connect %s", dest);
 	if(write(cfd, name, strlen(name)) < 0){
-		close(cfd);
+		closeopenfd(&conn->cfd);
 		return -1;
 	}
 
 	/* open data connection */
 	conn->dfd = fd = open(data, ORDWR);
 	if(fd < 0){
-		close(cfd);
+		closeopenfd(&conn->cfd);
 		return -1;
 	}
-	if(ds->cfdp)
-		conn->cfd = cfd;
-	else
-		close(cfd);
+	if(ds->cfdp == nil)
+		closeopenfd(&conn->cfd);
 
 	qlock(&dp->winlck);
 	if (dp->winner < 0 && conn < dp->connend)
