@@ -11,7 +11,7 @@ OFILES =\
 	util.$O\
 
 
-TARG = secstore secstored secuser aescbc descbc
+TARG = secstore secstored secuser aescbc	# descbc
 DEBUG = secchk
 
 UPDATE=\
