@@ -45,7 +45,7 @@ static Dirtab dirtab[] =
 int exabyte, force6bytecmds;
 long maxiosize = MaxIOsize;
 
-static int diskdebug;
+int diskdebug;
 
 static int
 getmaxlun(Dev *dev)
@@ -109,6 +109,7 @@ umscapacity(Umsc *lun)
 	lun->blocks = 0;
 	lun->capacity = 0;
 	lun->lbsize = 0;
+	memset(data, 0, sizeof data);
 	if(SRrcapacity(lun, data) < 0 && SRrcapacity(lun, data)  < 0)
 		return -1;
 	lun->blocks = GETBELONG(data);
@@ -120,11 +121,15 @@ umscapacity(Umsc *lun)
 			return -1;
 		}else{
 			lun->lbsize = GETBELONG(data + 8);
-			lun->blocks = (uvlong)GETBELONG(data)<<32 | GETBELONG(data + 4);
+			lun->blocks = (uvlong)GETBELONG(data)<<32 |
+				GETBELONG(data + 4);
 		}
 	}
 	lun->blocks++; /* SRcapacity returns LBA of last block */
 	lun->capacity = (vlong)lun->blocks * lun->lbsize;
+	if(diskdebug)
+		fprint(2, "disk: logical block size %lud, # blocks %llud\n",
+			lun->lbsize, lun->blocks);
 	return 0;
 }
 

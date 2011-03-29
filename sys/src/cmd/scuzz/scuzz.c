@@ -178,7 +178,7 @@ cmdread(ScsiReq *rp, int argc, char *argv[])
 		}
 		break;
 	}
-	print("bsize=%lud\n", rp->lbsize);
+	print("device native block size=%lud\n", rp->lbsize);
 	total = 0;
 	while(nbytes){
 		n = vlmin(nbytes, iosize);
