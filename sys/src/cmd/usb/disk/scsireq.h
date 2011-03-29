@@ -1,9 +1,10 @@
 /*
- * This is /sys/src/cmd/scuzz/scsireq.c
+ * This is /sys/src/cmd/scuzz/scsireq.h
  * changed to add more debug support, to keep
  * disk compiling without a scuzz that includes these changes.
+ *
+ * this file is also included by usb/disk and cdfs
  */
-/* this file is also included by usb/disk and cdfs */
 typedef struct Umsc Umsc;
 #pragma incomplete Umsc
 
