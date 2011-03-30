@@ -526,9 +526,10 @@ root of the USB interface
 .IR usbd (4),
 .IR plan9.ini (8)
 .SH BUGS
+USB controllers limit the speed of all their ports
+to that of the slowest device connected to any one of them.
+.PP
 Isochronous input streams are not implemented for OHCI.
 .PP
 Some EHCI controllers drop completion interrupts and so must
 be polled, which hurts throughput.
-.PP
-Not heavily exercised yet.

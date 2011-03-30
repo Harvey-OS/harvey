@@ -1,8 +1,7 @@
 /*
  * usb/disk - usb mass storage file server
- * BUG: supports only the scsi command interface.
- * BUG: This should use /dev/sdfile to
- * use the kernel ether device code.
+ *
+ * supports only the scsi command interface, not ata.
  */
 
 #include <u.h>
@@ -43,9 +42,16 @@ static Dirtab dirtab[] =
  * These are used by scuzz scsireq
  */
 int exabyte, force6bytecmds;
-long maxiosize = MaxIOsize;
 
 int diskdebug;
+
+static void
+ding(void *, char *msg)
+{
+	if(strstr(msg, "alarm") != nil)
+		noted(NCONT);
+	noted(NDFLT);
+}
 
 static int
 getmaxlun(Dev *dev)
@@ -99,6 +105,25 @@ umsfatal(Ums *ums)
 	devctl(ums->dev, "detach");
 	for(i = 0; i < ums->maxlun; i++)
 		usbfsdel(&ums->lun[i].fs);
+}
+
+static int
+ispow2(uvlong ul)
+{
+	return (ul & (ul - 1)) == 0;
+}
+
+/*
+ * return smallest power of 2 >= n
+ */
+static int
+log2(int n)
+{
+	int i;
+
+	for(i = 0; (1 << i) < n; i++)
+		;
+	return i;
 }
 
 static int
@@ -191,7 +216,7 @@ umsrequest(Umsc *umsc, ScsiPtr *cmd, ScsiPtr *data, int *status)
 {
 	Cbw cbw;
 	Csw csw;
-	int n, nio;
+	int n, nio, left;
 	Ums *ums;
 
 	ums = umsc->ums;
@@ -210,25 +235,31 @@ umsrequest(Umsc *umsc, ScsiPtr *cmd, ScsiPtr *data, int *status)
 	memset(cbw.command + cmd->count, 0, sizeof(cbw.command) - cmd->count);
 
 	werrstr("");		/* we use %r later even for n == 0 */
-
 	if(diskdebug){
 		fprint(2, "disk: cmd: tag %#lx: ", cbw.tag);
 		for(n = 0; n < cbw.len; n++)
 			fprint(2, " %2.2x", cbw.command[n]&0xFF);
 		fprint(2, " datalen: %ld\n", cbw.datalen);
 	}
+
+	/* issue tunnelled scsi command */
 	if(write(ums->epout->dfd, &cbw, CbwLen) != CbwLen){
 		fprint(2, "disk: cmd: %r\n");
 		goto Fail;
 	}
+
+	/* transfer the data */
 	nio = data->count;
-	if(data->count != 0){
+	if(nio != 0){
 		if(data->write)
-			n = nio = write(ums->epout->dfd, data->p, data->count);
+			n = write(ums->epout->dfd, data->p, nio);
 		else{
-			memset(data->p, data->count, 0);
-			n = nio = read(ums->epin->dfd, data->p, data->count);
+			n = read(ums->epin->dfd, data->p, nio);
+			left = nio - n;
+			if (n >= 0 && left > 0)	/* didn't fill data->p? */
+				memset(data->p + n, 0, left);
 		}
+		nio = n;
 		if(diskdebug)
 			if(n < 0)
 				fprint(2, "disk: data: %r\n");
@@ -238,12 +269,15 @@ umsrequest(Umsc *umsc, ScsiPtr *cmd, ScsiPtr *data, int *status)
 			if(data->write == 0)
 				unstall(ums->dev, ums->epin, Ein);
 	}
+
+	/* read the transfer's status */
 	n = read(ums->epin->dfd, &csw, CswLen);
 	if(n <= 0){
 		/* n == 0 means "stalled" */
 		unstall(ums->dev, ums->epin, Ein);
 		n = read(ums->epin->dfd, &csw, CswLen);
 	}
+
 	if(n != CswLen || strncmp(csw.signature, "USBS", 4) != 0){
 		dprint(2, "disk: read n=%d: status: %r\n", n);
 		goto Fail;
@@ -378,6 +412,46 @@ dopen(Usbfs *fs, Fid *fid, int)
 }
 
 /*
+ * check i/o parameters and compute values needed later.
+ * we shift & mask manually to avoid run-time calls to _divv and _modv,
+ * since we don't need general division nor its cost.
+ */
+static int
+setup(Umsc *lun, char *data, int count, vlong offset)
+{
+	long nb, lbsize, lbshift, lbmask;
+	uvlong bno;
+
+	if(count < 0 || lun->lbsize <= 0 && umscapacity(lun) < 0 ||
+	    lun->lbsize == 0)
+		return -1;
+	lbsize = lun->lbsize;
+	assert(ispow2(lbsize));
+	lbshift = log2(lbsize);
+	lbmask = lbsize - 1;
+
+	bno = offset >> lbshift;	/* offset / lbsize */
+	nb = ((offset + count + lbsize - 1) >> lbshift) - bno;
+
+	if(bno + nb > lun->blocks)		/* past end of device? */
+		nb = lun->blocks - bno;
+	if(nb * lbsize > Maxiosize)
+		nb = Maxiosize / lbsize;
+	lun->nb = nb;
+	if(bno >= lun->blocks || nb == 0)
+		return 0;
+
+	lun->offset = bno;
+	lun->off = offset & lbmask;		/* offset % lbsize */
+	if(lun->off == 0 && (count & lbmask) == 0)
+		lun->bufp = data;
+	else
+		/* not transferring full, aligned blocks; need intermediary */
+		lun->bufp = lun->buf;
+	return count;
+}
+
+/*
  * Upon SRread/SRwrite errors we assume the medium may have changed,
  * and ask again for the capacity of the media.
  * BUG: How to proceed to avoid confussing dossrv??
@@ -385,9 +459,9 @@ dopen(Usbfs *fs, Fid *fid, int)
 static long
 dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 {
-	long bno, nb, len, off, n;
+	long n;
 	ulong path;
-	char buf[1024], *p;
+	char buf[1024];
 	char *s, *e;
 	Umsc *lun;
 	Ums *ums;
@@ -397,6 +471,7 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 	path = fid->qid.path & ~fs->qid;
 	ums = fs->dev->aux;
 	lun = fs->aux;
+
 	qlock(ums);
 	switch(path){
 	case Qdir:
@@ -408,15 +483,15 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 		if(lun->flags & Finqok)
 			s = seprint(s, e, "inquiry %s ", lun->inq);
 		if(lun->blocks > 0)
-			s = seprint(s, e, "geometry %llud %ld", lun->blocks,
-				lun->lbsize);
+			s = seprint(s, e, "geometry %llud %ld",
+				lun->blocks, lun->lbsize);
 		s = seprint(s, e, "\n");
 		count = usbreadbuf(data, count, offset, buf, s - buf);
 		break;
 	case Qraw:
 		if(lun->lbsize <= 0 && umscapacity(lun) < 0){
-			qunlock(ums);
-			return -1;
+			count = -1;
+			break;
 		}
 		switch(lun->phase){
 		case Pcmd:
@@ -424,16 +499,13 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 			werrstr("phase error");
 			return -1;
 		case Pdata:
-			lun->data.p = (uchar*)data;
+			lun->data.p = data;
 			lun->data.count = count;
 			lun->data.write = 0;
 			count = umsrequest(lun,&lun->cmd,&lun->data,&lun->status);
 			lun->phase = Pstatus;
-			if(count < 0){
-				lun->lbsize = 0;	/* medium may have changed */
-				qunlock(ums);
-				return -1;
-			}
+			if(count < 0)
+				lun->lbsize = 0;  /* medium may have changed */
 			break;
 		case Pstatus:
 			n = snprint(buf, sizeof buf, "%11.0ud ", lun->status);
@@ -443,36 +515,25 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 		}
 		break;
 	case Qdata:
-		if(lun->lbsize <= 0 && umscapacity(lun) < 0){
-			qunlock(ums);
-			return -1;
-		}
-		bno = offset / lun->lbsize;
-		nb = (offset + count + lun->lbsize - 1) / lun->lbsize - bno;
-		if(bno + nb > lun->blocks)
-			nb = lun->blocks - bno;
-		if(bno >= lun->blocks || nb == 0){
-			count = 0;
+		count = setup(lun, data, count, offset);
+		if (count <= 0)
 			break;
-		}
-		if(nb * lun->lbsize > maxiosize)
-			nb = maxiosize / lun->lbsize;
-		p = emallocz(nb * lun->lbsize, 0);	/* could use a static buffer */
-		lun->offset = offset / lun->lbsize;
-		n = SRread(lun, p, nb * lun->lbsize);
+		n = SRread(lun, lun->bufp, lun->nb * lun->lbsize);
 		if(n < 0){
-			free(p);
 			lun->lbsize = 0;	/* medium may have changed */
-			qunlock(ums);
-			return -1;
+			count = -1;
+		} else if (lun->bufp == data)
+			count = n;
+		else{
+			/*
+			 * if n == lun->nb*lun->lbsize (as expected),
+			 * just copy count bytes.
+			 */
+			if(lun->off + count > n)
+				count = n - lun->off; /* short read */
+			if(count > 0)
+				memmove(data, lun->bufp + lun->off, count);
 		}
-		len = count;
-		off = offset % lun->lbsize;
-		if(off + len > n)
-			len = n - off;
-		count = len;
-		memmove(data, p + off, len);
-		free(p);
 		break;
 	}
 	qunlock(ums);
@@ -480,33 +541,31 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 }
 
 static long
-dwrite(Usbfs *fs, Fid *fid, void *buf, long count, vlong offset)
+dwrite(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 {
-	int bno, nb, len, off;
+	long len, ocount;
 	ulong path;
-	char *p;
+	uvlong bno;
 	Ums *ums;
 	Umsc *lun;
-	char *data;
 
 	ums = fs->dev->aux;
 	lun = fs->aux;
 	path = fid->qid.path & ~fs->qid;
-	data = buf;
+
 	qlock(ums);
 	switch(path){
 	default:
-		qunlock(ums);
 		werrstr(Eperm);
-		return -1;
+		count = -1;
+		break;
 	case Qctl:
-		qunlock(ums);
 		dprint(2, "usb/disk: ctl ignored\n");
-		return count;
+		break;
 	case Qraw:
 		if(lun->lbsize <= 0 && umscapacity(lun) < 0){
-			qunlock(ums);
-			return -1;
+			count = -1;
+			break;
 		}
 		switch(lun->phase){
 		case Pcmd:
@@ -522,67 +581,56 @@ dwrite(Usbfs *fs, Fid *fid, void *buf, long count, vlong offset)
 			lun->phase = Pdata;
 			break;
 		case Pdata:
-			lun->data.p = (uchar*)data;
+			lun->data.p = data;
 			lun->data.count = count;
 			lun->data.write = 1;
 			count = umsrequest(lun,&lun->cmd,&lun->data,&lun->status);
 			lun->phase = Pstatus;
-			if(count < 0){
-				lun->lbsize = 0;	/* medium may have changed */
-				qunlock(ums);
-				return -1;
-			}
+			if(count < 0)
+				lun->lbsize = 0;  /* medium may have changed */
 			break;
 		case Pstatus:
 			lun->phase = Pcmd;
-			qunlock(ums);
 			werrstr("phase error");
-			return -1;
+			count = -1;
+			break;
 		}
 		break;
 	case Qdata:
-		if(lun->lbsize <= 0 && umscapacity(lun) < 0){
-			qunlock(ums);
-			return -1;
-		}
-		bno = offset / lun->lbsize;
-		nb = (offset + count + lun->lbsize-1) / lun->lbsize - bno;
-		if(bno + nb > lun->blocks)
-			nb = lun->blocks - bno;
-		if(bno >= lun->blocks || nb == 0){
-			count = 0;
+		len = ocount = count;
+		count = setup(lun, data, count, offset);
+		if (count <= 0)
 			break;
-		}
-		if(nb * lun->lbsize > maxiosize)
-			nb = maxiosize / lun->lbsize;
-		p = emallocz(nb * lun->lbsize, 0);
-		off = offset % lun->lbsize;
-		len = count;
-		if(off || (len % lun->lbsize) != 0){
-			lun->offset = offset / lun->lbsize;
-			count = SRread(lun, p, nb * lun->lbsize);
-			if(count < 0){
-				free(p);
-				lun->lbsize = 0;	/* medium may have changed */
-				qunlock(ums);
-				return -1;
+		bno = lun->offset;
+		if (lun->bufp == lun->buf) {
+			count = SRread(lun, lun->bufp, lun->nb * lun->lbsize);
+			if(count < 0) {
+				lun->lbsize = 0;  /* medium may have changed */
+				break;
 			}
-			if(off + len > count)
-				len = count - off;
+			/*
+			 * if count == lun->nb*lun->lbsize, as expected, just
+			 * copy len (the original count) bytes of user data.
+			 */
+			if(lun->off + len > count)
+				len = count - lun->off; /* short read */
+			if(len > 0)
+				memmove(lun->bufp + lun->off, data, len);
 		}
-		memmove(p+off, data, len);
-		lun->offset = offset / lun->lbsize;
-		count = SRwrite(lun, p, nb * lun->lbsize);
-		if(count < 0){
-			free(p);
+
+		lun->offset = bno;
+		count = SRwrite(lun, lun->bufp, lun->nb * lun->lbsize);
+		if(count < 0)
 			lun->lbsize = 0;	/* medium may have changed */
-			qunlock(ums);
-			return -1;
+		else{
+			if(lun->off + len > count)
+				count -= lun->off; /* short write */
+			/* never report more bytes written than requested */
+			if(count < 0)
+				count = 0;
+			else if(count > ocount)
+				count = ocount;
 		}
-		if(off+len > count)
-			len = count - off;
-		count = len;
-		free(p);
 		break;
 	}
 	qunlock(ums);
@@ -712,6 +760,7 @@ diskmain(Dev *dev, int argc, char **argv)
 		return usage();
 	}
 
+//	notify(ding);
 	ums = dev->aux = emallocz(sizeof(Ums), 1);
 	ums->maxlun = -1;
 	ums->dev = dev;

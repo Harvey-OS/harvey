@@ -26,7 +26,6 @@ enum
 	Umsreset =	0xFF,
 	Getmaxlun =	0xFE,
 
-	MaxIOsize	= 256*1024,	/* max. I/O size */
 //	Maxlun		= 256,
 	Maxlun		= 32,
 
@@ -45,17 +44,27 @@ enum
 	CswPhaseErr	= 2,
 };
 
-/* these are 600 bytes each; ScsiReq is not tiny */
+/*
+ * corresponds to a lun.
+ * these are ~600+Maxiosize bytes each; ScsiReq is not tiny.
+ */
 struct Umsc
 {
 	ScsiReq;
 	uvlong	blocks;
 	vlong	capacity;
+
+	/* from setup */
+	char	*bufp;
+	long	off;		/* offset within a block */
+	long	nb;		/* byte count */
+
 	uchar 	rawcmd[10];
 	uchar	phase;
 	char	*inq;
 	Ums	*ums;
 	Usbfs	fs;
+	char	buf[Maxiosize];
 };
 
 struct Ums

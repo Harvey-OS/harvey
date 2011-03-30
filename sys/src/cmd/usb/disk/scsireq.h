@@ -1,18 +1,21 @@
 /*
  * This is /sys/src/cmd/scuzz/scsireq.h
- * changed to add more debug support, to keep
+ * changed to add more debug support, and to keep
  * disk compiling without a scuzz that includes these changes.
  *
- * this file is also included by usb/disk and cdfs
+ * scsireq.h is also included by usb/disk and cdfs.
  */
 typedef struct Umsc Umsc;
 #pragma incomplete Umsc
 
 enum {					/* fundamental constants/defaults */
-	NTargetID	= 8,		/* number of target IDs */
-	CtlrID		= 7,		/* default controller target ID */
 	MaxDirData	= 255,		/* max. direct data returned */
-	LBsize		= 512,		/* default logical-block size */
+	/*
+	 * Because we are accessed via devmnt, we can never get i/o counts
+	 * larger than 8216 (Msgsize and devmnt's offered iounit) - 24
+	 * (IOHDRSZ) = 8K.
+	 */
+	Maxiosize	= 8216 - IOHDRSZ, /* max. I/O transfer size */
 };
 
 typedef struct {
@@ -26,7 +29,7 @@ typedef struct {
 	char	*unit;			/* unit directory */
 	int	lun;
 	ulong	lbsize;
-	ulong	offset;			/* in blocks of lbsize bytes */
+	uvlong	offset;			/* in blocks of lbsize bytes */
 	int	fd;
 	Umsc	*umsc;			/* lun */
 	ScsiPtr	cmd;
@@ -176,8 +179,6 @@ enum {
 			  (p)[2] = (ul)>>8,  (p)[3] = (ul))
 #define GETBE24(p)	((ulong)(p)[0]<<16 | (p)[1]<<8 | (p)[2])
 #define PUTBE24(p, ul)	((p)[0] = (ul)>>16, (p)[1] = (ul)>>8, (p)[2] = (ul))
-
-extern long maxiosize;
 
 long	SRready(ScsiReq*);
 long	SRrewind(ScsiReq*);

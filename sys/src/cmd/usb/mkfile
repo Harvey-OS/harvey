@@ -21,7 +21,7 @@ none:VQ:
 
 all clean nuke:VQ:
 	for (i in $DIRS) @{
-		cd $i && mk $target
+		cd $i && echo $i: && mk $target
 	}
 
 install installall safeinstall safeinstallall:V:
