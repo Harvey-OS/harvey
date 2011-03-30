@@ -4,7 +4,7 @@ typedef struct Fid Fid;
 enum
 {
 	Hdrsize	= 128,		/* plenty of room for headers */
-	Msgsize	= 8 * 1024,
+	Msgsize	= 8216,		/* our preferred iounit (also devmnt's) */
 	Bufsize	= Hdrsize + Msgsize,
 	Namesz = 40,
 	Errmax = 128,

@@ -498,7 +498,7 @@ at once, with one action per line.
 The various device drivers are generic USB drivers and
 may work only for certain devices on each class.
 .PP
-ATA storage devices are not supported.
+USB ATA storage devices are not supported.
 .PP
 The Ethernet device works only for certain ASIX-based cards and for CDC devices.
 Both the Ethernet and printer drivers have not
@@ -512,6 +512,3 @@ and
 signals and some of the extra features are unimplemented.
 For Ftdi, only the Sheevaplug and Guruplug have been tried.
 There is support for the EHCI debug port, but it loses bytes.
-.PP
-The entire set of drivers is new and therefore potentially unreliable.
-A list of working devices must be compiled.
