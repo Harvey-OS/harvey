@@ -31,11 +31,11 @@ if not {
 
 fn nonnil {		# variable
 	if (~ $#$1 0) {
-		echo no ip for $1
+		echo ipv6on: no ip for $1 >[1=2]
 		exit no-ip
 	}
 	if (! ~ $#$1 1) {
-		echo multiple ips for $1
+		echo ipv6on: multiple ips for $1 >[1=2]
 		exit multiple-ips
 	}
 }
@@ -70,9 +70,9 @@ if (~ $#gw 1) {
 		sleep 1					# wait for ping
 
 		gweth=`{grep '* '^$gwv4^' ' $netdir/arp | awk '{print $4}' }
-		nonnil gweth
+		nonnil gweth >[2]/dev/null	# don't frighten users
 		gwlnk=`{ip/linklocal $gweth}
-		nonnil gwlnk
+		nonnil gwlnk >[2]/dev/null
 	}
 }
 nonnil mev6
