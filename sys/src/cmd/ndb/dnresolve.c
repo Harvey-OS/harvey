@@ -945,7 +945,7 @@ mydnsquery(Query *qp, int medium, uchar *udppkt, int len)
 {
 	int rv = -1, nfd;
 	char *domain;
-	char conndir[40];
+	char conndir[40], net[40];
 	uchar belen[2];
 	NetConnInfo *nci;
 
@@ -984,8 +984,10 @@ mydnsquery(Query *qp, int medium, uchar *udppkt, int len)
 		break;
 	case Tcp:
 		/* send via TCP & keep fd around for reply */
+		snprint(net, sizeof net, "%s/tcp",
+			(mntpt[0] != '\0'? mntpt: "/net"));
 		alarm(10*1000);
-		qp->tcpfd = rv = dial(netmkaddr(domain, "tcp", "dns"), nil,
+		qp->tcpfd = rv = dial(netmkaddr(domain, net, "dns"), nil,
 			conndir, &qp->tcpctlfd);
 		alarm(0);
 		if (qp->tcpfd < 0) {
