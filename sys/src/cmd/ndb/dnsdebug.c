@@ -343,7 +343,9 @@ preloadserveraddrs(void)
 
 	l = &first;
 	for(rp = serveraddrs; rp != nil; rp = rp->next){
+		lock(&dnlock);
 		rrcopy(rp, l);
+		unlock(&dnlock);
 		rrattach(first, Authoritative);
 	}
 }
