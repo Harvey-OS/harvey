@@ -100,9 +100,6 @@ dblookup(char *name, int class, int type, int auth, int ttl)
 	char buf[256];
 	RR *rp, *tp;
 	DN *dp, *ndp;
-	static int parallel;
-	static int parfd[2];
-	static char token[1];
 
 	/* so far only internet lookups are implemented */
 	if(class != Cin)

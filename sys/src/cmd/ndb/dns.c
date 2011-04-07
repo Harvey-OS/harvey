@@ -218,7 +218,7 @@ main(int argc, char *argv[])
 
 	srand(now*getpid());
 	db2cache(1);
-//	dnageallnever();
+//	dnageallnever();		/* someday try this again */
 
 	if (cfg.straddle && !seerootns())
 		dnslog("straddle server misconfigured; can't see root name servers");

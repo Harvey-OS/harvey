@@ -18,7 +18,7 @@ enum
 	 * this should be a plausible slight overestimate for non-interactive
 	 * use even if it's ridiculously long for interactive use.
 	 */
-	Maxconnms	= 20*60*1000,	/* 20 minutes */
+	Maxconnms	= 2*60*1000,	/* 2 minutes */
 };
 
 struct DS {
@@ -275,6 +275,12 @@ pickuperr(char *besterr, char *err)
 		strcpy(besterr, err);
 }
 
+static void
+catcher(void*, char *)
+{
+	noted(NDFLT);
+}
+
 /*
  * try all addresses in parallel and take the first one that answers;
  * this helps when systems have ip v4 and v6 addresses but are
@@ -296,9 +302,12 @@ dialmulti(DS *ds, Dest *dp)
 		if (kid < 0)
 			--dp->nkid;
 		else if (kid == 0) {
+			/* die on alarm, avoid atnotify callbacks */
+			notify(catcher);
 			/* don't override outstanding alarm */
 			oalarm = alarm(0);
 			alarm(oalarm > 0? oalarm: Maxconnms);
+
 			*besterr = '\0';
 			rv = call(clone, dest, ds, dp, &dp->conn[kidme]);
 			if(rv < 0)
