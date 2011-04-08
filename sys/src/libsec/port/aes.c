@@ -59,7 +59,7 @@ static uchar basekey[3][16] = {
 	},
 };
 
-int aes_setupEnc(ulong rk[/*4*(Nr + 1)*/], const uchar cipherKey[],
+static int aes_setupEnc(ulong rk[/*4*(Nr + 1)*/], const uchar cipherKey[],
 		int keyBits);
 static int aes_setupDec(ulong rk[/*4*(Nr + 1)*/], const uchar cipherKey[],
 		int keyBits);
@@ -1158,7 +1158,7 @@ static const u32 rcon[] = {
  *
  * @return	the number of rounds for the given cipher key size.
  */
-int
+static int
 aes_setupEnc(ulong rk[/*4*(Nr + 1)*/], const uchar cipherKey[], int keyBits)
 {
 	int i = 0;
