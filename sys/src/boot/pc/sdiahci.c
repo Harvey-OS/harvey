@@ -1,5 +1,5 @@
 /*
- * intel/amd ahci (advanced host controller interface) sata controller
+ * ahci (advanced host controller interface) serial ata
  * bootstrap driver
  * copyright © 2007, 2008 coraid, inc.
  */
@@ -80,12 +80,14 @@ enum {
 	DMautoneg,
 	DMsatai,
 	DMsataii,
+	DMsata3,
 };
 
 static char *modename[] = {
 	"auto",
 	"satai",
 	"sataii",
+	"sata 3",
 };
 
 typedef struct {
@@ -1393,8 +1395,8 @@ iariopkt(SDreq *r, Drive *d)
 	name = d->unit->name;
 	p = d->port;
 
-	aprint("%02ux %02ux %c %d %p\n", cmd[0], cmd[2], "rw"[r->write],
-		r->dlen, r->data);
+	aprint("iariopkt: cmd %02ux %02ux %c len %d %#p\n", cmd[0], cmd[2],
+		"rw"[r->write], r->dlen, r->data);
 //	if(cmd[0] == 0x5a && (cmd[2] & 0x3f) == 0x3f)
 //		return sdmodesense(r, cmd, d->info, sizeof d->info);
 	r->rlen = 0;
@@ -1617,6 +1619,13 @@ didtype(Pcidev *p)
 		if (p->did == 0x4380 || p->did == 0x4390 || p->did == 0x4391)
 			return Tsb600;
 		break;
+	case 0x1b4b:					/* marvell */
+		/* can't cope with sata 3 yet; touching it will hang */
+		if (p->did == 0x9123) {
+			print("ahci: ignoring sata 3 controller\n");
+			return -1;
+		}
+		break;
 	}
 	if(p->ccrb == Pcibcstore && p->ccru == 6 && p->ccrp == 1)
 		return Tunk;
@@ -1693,9 +1702,9 @@ loop:
 			continue;
 		}
 		niactlr++;
-		i = (c->hba->cap>>21) & 1;
-		print("%s: sata-%s with %d ports\n", tname[c->type],
-			"I\0II"+i*2, nunit);
+		i = (c->hba->cap>>20) & ((1<<4)-1);	/* iss */
+		print("%s: %s with %d ports\n", tname[c->type],
+			modename[i], nunit);
 		s->ifc = &sdiahciifc;
 		s->ctlr = c;
 		s->nunit = nunit;

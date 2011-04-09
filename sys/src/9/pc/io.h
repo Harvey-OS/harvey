@@ -143,6 +143,7 @@ enum {
 	/* mass storage */
 	Pciscscsi	= 0,		/* SCSI */
 	Pciscide	= 1,		/* IDE (ATA) */
+	Pciscsata	= 6,		/* SATA */
 
 	/* network */
 	Pciscether	= 0,		/* Ethernet */
@@ -262,7 +263,10 @@ struct Pcidev
 
 enum {
 	/* vendor ids */
+	Vatiamd	= 0x1002,
 	Vintel	= 0x8086,
+	Vjmicron= 0x197b,
+	Vmarvell= 0x1b4b,
 	Vmyricom= 0x14c1,
 };
 
