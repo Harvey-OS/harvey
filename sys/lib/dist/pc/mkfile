@@ -1,6 +1,7 @@
 out=outside			# outside web server
 s=/sys/lib/dist/pc
 x=`{bind -b /sys/lib/dist/bin/$cputype /bin}
+
 default:V: ndisk
 	ls -l ndisk
 
@@ -55,9 +56,9 @@ root.bz2:Q: boot.bz2
 # generated fat filesystem.  the same is true for plan9.ini.cd and plan9.ini.
 
 9load: /386/9loadlite
-#	cp $prereq $target
-	if (test -e /386/9loadnousb)
-		cp  /386/9loadnousb $target	# cater to old bioses
+	cp $prereq $target
+#	if (test -e /386/9loadnousb)
+#		cp  /386/9loadnousb $target	# cater to old bioses
 	cp /386/9loadlitedebug 9loaddebug
 
 ndisk: 9load /sys/src/9/pc/9pcflop.gz plan9.ini /lib/vgadb
