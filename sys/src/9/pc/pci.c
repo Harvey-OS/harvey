@@ -640,7 +640,9 @@ static Bridge southbridges[] = {
 	{ 0x8086, 0x2410, pIIxget, pIIxset },	/* Intel 82801AA */
 	{ 0x8086, 0x2420, pIIxget, pIIxset },	/* Intel 82801AB */
 	{ 0x8086, 0x2440, pIIxget, pIIxset },	/* Intel 82801BA */
+	{ 0x8086, 0x2448, pIIxget, pIIxset },	/* Intel 82801BAM/CAM/DBM */
 	{ 0x8086, 0x244c, pIIxget, pIIxset },	/* Intel 82801BAM */
+	{ 0x8086, 0x244e, pIIxget, pIIxset },	/* Intel 82801 */
 	{ 0x8086, 0x2480, pIIxget, pIIxset },	/* Intel 82801CA */
 	{ 0x8086, 0x248c, pIIxget, pIIxset },	/* Intel 82801CAM */
 	{ 0x8086, 0x24c0, pIIxget, pIIxset },	/* Intel 82801DBL */
@@ -651,6 +653,10 @@ static Bridge southbridges[] = {
 	{ 0x8086, 0x2641, pIIxget, pIIxset },	/* Intel 82801FBM */
 	{ 0x8086, 0x27b8, pIIxget, pIIxset },	/* Intel 82801GB */
 	{ 0x8086, 0x27b9, pIIxget, pIIxset },	/* Intel 82801GBM */
+	{ 0x8086, 0x3a16, pIIxget, pIIxset },	/* Intel 82801JIR */
+	{ 0x8086, 0x3a40, pIIxget, pIIxset },	/* Intel 82801JI */
+	{ 0x8086, 0x3a42, pIIxget, pIIxset },	/* Intel 82801JI */
+	{ 0x8086, 0x3a48, pIIxget, pIIxset },	/* Intel 82801JI */
 	{ 0x8086, 0x2916, pIIxget, pIIxset },	/* Intel 82801? */
 	{ 0x1106, 0x0586, viaget, viaset },	/* Viatech 82C586 */
 	{ 0x1106, 0x0596, viaget, viaset },	/* Viatech 82C596 */

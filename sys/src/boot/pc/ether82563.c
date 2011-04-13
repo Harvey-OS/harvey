@@ -1,6 +1,6 @@
 /*
  * Bootstrap driver for
- * Intel 82563, 82571, 82573, 82575, 82576
+ * Intel 82563, 82571, 82573, 82575, 82576, 82577
  * GbE PCI-Express Controllers.
  */
 #include "u.h"
@@ -421,6 +421,7 @@ enum {
 	i82573,
 	i82575,
 	i82576,
+	i82577,
 };
 
 static char *tname[] = {
@@ -432,6 +433,7 @@ static char *tname[] = {
 	"i82573",
 	"i82575",
 	"i82576",
+	"i82577",
 };
 
 typedef struct Ctlr Ctlr;
@@ -687,13 +689,14 @@ i82563interrupt(Ureg*, void* arg)
 					tname[ctlr->type], rdesc->errors);
 			rdesc->status = 0;
 			rdh = NEXT(rdh, Nrdesc);
-			if (++rxcnt >= 16 && ctlr->type == i82576) {
+			if (++rxcnt >= 16 &&
+			    (ctlr->type == i82576 || ctlr->type == i82577)) {
 				i82563replenish(ctlr);
 				rxcnt = 0;
 			}
 		}
 		ctlr->rdh = rdh;
-		if(icr & Rxdmt0 || ctlr->type == i82576)
+		if(icr & Rxdmt0 || ctlr->type == i82576 || ctlr->type == i82577)
 			i82563replenish(ctlr);
 		if(icr & Txdw){
 			im &= ~Txdw;
@@ -944,7 +947,7 @@ i82563reset(Ctlr* ctlr)
 
 	detach(ctlr);
 
-	if(ctlr->type == i82566 || ctlr->type == i82567)
+	if(ctlr->type == i82566 || ctlr->type == i82567 || ctlr->type == i82577)
 		r = fload(ctlr);
 	else
 		r = eeload(ctlr);
@@ -1049,6 +1052,9 @@ i82563pci(void)
 		case 0x10e6:		/* 82576 fiber */
 		case 0x10e7:		/* 82576 serdes */
 			type = i82576;
+			break;
+		case 0x10ea:		/* 82577lm */
+			type = i82577;
 			break;
 		default:
 			continue;

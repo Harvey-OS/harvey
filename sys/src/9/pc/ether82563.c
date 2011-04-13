@@ -1,7 +1,7 @@
 /*
  * Intel Gigabit Ethernet PCI-Express Controllers.
  *	8256[36], 8257[12], 82573[ev]
- *	82575eb, 82576
+ *	82575eb, 82576, 82577
  * Pretty basic, does not use many of the chip smarts.
  * The interrupt mitigation tuning for each chip variant
  * is probably different. The reset/initialisation
@@ -425,6 +425,7 @@ enum {
 	i82573,
 	i82575,
 	i82576,
+	i82577,
 };
 
 static int rbtab[] = {
@@ -435,6 +436,7 @@ static int rbtab[] = {
 	9234,
 	9234,
 	8192,				/* terrible performance above 8k */
+	1514,
 	1514,
 	1514,
 };
@@ -449,6 +451,7 @@ static char *tname[] = {
 	"i82573",
 	"i82575",
 	"i82576",
+	"i82577",
 };
 
 typedef struct Ctlr Ctlr;
@@ -985,7 +988,7 @@ i82563rxinit(Ctlr* ctlr)
 	}
 	csr32w(ctlr, Rctl, rctl);
 
-	if(ctlr->type == i82573)
+	if(ctlr->type == i82573 || ctlr->type == i82577)
 		csr32w(ctlr, Ert, 1024/8);
 
 	if(ctlr->type == i82566 || ctlr->type == i82567)
@@ -1192,6 +1195,8 @@ i82563lproc(void *v)
 			break;
 		case i82571:
 		case i82572:
+		case i82575:
+		case i82576:
 			a = phyread(c, Phylhr) & Anf;
 			i = (i-1) & 3;
 			break;
@@ -1528,7 +1533,7 @@ i82563reset(Ctlr *ctlr)
 
 	if(i82563detach(ctlr))
 		return -1;
-	if(ctlr->type == i82566 || ctlr->type == i82567)
+	if(ctlr->type == i82566 || ctlr->type == i82567 || ctlr->type == i82577)
 		r = fload(ctlr);
 	else
 		r = eeload(ctlr);
@@ -1631,6 +1636,9 @@ i82563pci(void)
 		case 0x10e6:		/* 82576 fiber */
 		case 0x10e7:		/* 82576 serdes */
 			type = i82576;
+			break;
+		case 0x10ea:		/* 82577lm */
+			type = i82577;
 			break;
 		}
 
