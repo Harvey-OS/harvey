@@ -93,6 +93,7 @@ X86type x86intel[] =
 	{ 6,	0x1A,	16,	"Core i7/Xeon", },
 	{ 6,	0x1C,	16,	"Atom", },
 	{ 6,	0x1D,	16,	"Xeon MP", },
+	{ 6,	0x25,	16,	"Core i5", },
 	{ 0xF,	1,	16,	"P4", },	/* P4 */
 	{ 0xF,	2,	16,	"PentiumIV/Xeon", },
 	{ 0xF,	6,	16,	"PentiumIV/Xeon", },
@@ -213,7 +214,7 @@ prcpuid(void)
 {
 	if (cputype == nil)
 		panic("prcpuid: clockinit not called");
-	print("cpu0: %dMHz %s loop %d\n", cpumhz, cputype->name, loopconst);
+	print("cpu0: %dMHz %s\n", cpumhz, cputype->name);
 }
 
 void
