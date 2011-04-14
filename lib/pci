@@ -7253,7 +7253,7 @@ exit 0
 	3304	unknown 802.11N usb wifi device
 	3c03	DWL-G122 Wifi USB Same chipset of RALINK  RT2500
 8080	Xirlink, Inc
-8086	Intel Corporation DO NOT ASSOCIATE WITH  DEVICE ID 3092
+8086	Intel Corporation
 	0008	Extended Express System Support Ctrlr
 	0042	Intel graphics Intel Q57/H55 Clarkdale (Onboard on D2912-A1x)
 	0046	Intel Graphics Media Accelerator HD Intel Graphics Media Accelerator HD

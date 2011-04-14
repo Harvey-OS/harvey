@@ -4,6 +4,7 @@
 # will defeat booting from usb devices.
 *nomp=1
 *nobiosload=1
+debugboot=1
 # *noahciload=1
 # *debugload=1
 # *nodumpstack=1
