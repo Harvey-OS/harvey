@@ -1127,6 +1127,8 @@ rrremneg(RR **l)
 	RR **nl, *rp;
 	RR *first;
 
+	if (canlock(&dnlock))
+		abort();	/* rrremneg called with dnlock not held */
 	first = nil;
 	nl = &first;
 	while(*l != nil){

@@ -1188,13 +1188,15 @@ insideaddr(char *dom)
 
 	if (!cfg.inside || !cfg.straddle || !cfg.serve)
 		return 1;
+	if (dom[0] == '\0' || strcmp(dom, ".") == 0)	/* dns root? */
+		return 1;			/* hack for initialisation */
 
 	lock(&dblock);
 	if (indoms == nil)
 		loaddomsrvs();
 	if (indoms == nil) {
 		unlock(&dblock);
-		return 1;	/* no "inside" sys, try inside nameservers */
+		return 1;  /* no "inside-dom" sys, try inside nameservers */
 	}
 
 	rv = 0;

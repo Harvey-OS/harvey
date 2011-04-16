@@ -218,10 +218,10 @@ main(int argc, char *argv[])
 
 	srand(now*getpid());
 	db2cache(1);
-//	dnageallnever();		/* someday try this again */
+//	dnageallnever();
 
 	if (cfg.straddle && !seerootns())
-		dnslog("straddle server misconfigured; can't see root name servers");
+		dnslog("straddle server misconfigured; can't resolve root name servers");
 	/*
 	 * fork without sharing heap.
 	 * parent waits around for child to die, then forks & restarts.

@@ -251,6 +251,12 @@ substring of
 that begins at position
 .IR m 
 counted from 1.
+If
+.I n
+is omitted, it is taken to be the length of
+.I s
+from
+.IR m .
 .TP
 .BI index( s , " t" )
 the position in
@@ -303,6 +309,18 @@ If
 is not given,
 .B $0
 is used.
+A
+.L &
+character in
+.I t
+will be replaced by the sub-string of
+.I s
+matched by
+.IR r ;
+it may be escaped with
+.L \e
+to substitute a literal
+.LR & .
 .TP
 .B gsub
 same as
