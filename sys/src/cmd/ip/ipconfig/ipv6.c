@@ -647,13 +647,13 @@ recvrahost(uchar buf[], int pktlen)
 					ra->src, conf.dev, prfo->pref);
 			}
 			break;
+		default:
+			ralog("ignoring optype %d in Routeradv from %I",
+				optype, ra->src);
+			/* fall through */
 		case V6nd_srcaddrs:
 			/* netsbd sends this, so quietly ignore it for now */
 			m += 8 * buf[m+1];
-			break;
-		default:
-			m += 8 * buf[m+1];
-			ralog("ignoring optype %d in Routeradv", optype);
 			break;
 		}
 	}

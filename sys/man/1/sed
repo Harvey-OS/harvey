@@ -130,7 +130,7 @@ is created before processing begins.
 There can be at most 120 distinct
 .I wfile
 arguments.
-.TP \w'\fL!\ \fIfunction\fLXXX'u
+.TP \w'\fL!\ \fIfunction\fL'u
 .B a\e
 .br
 .ns
@@ -229,7 +229,11 @@ Substitute the
 .I replacement
 string for instances of the
 .I regular-expression
-in the pattern space.
+in the pattern space,
+as per
+.I regsub
+in
+.IR regexp (2).
 Any character may be used instead of
 .LR / .
 For a fuller description see
@@ -247,6 +251,8 @@ first one.
 .TP
 .B p
 Print the pattern space if a replacement was made.
+.TF "w\fI wfile "
+.PD
 .TP
 .BI w " wfile"
 Write.
@@ -270,9 +276,7 @@ If
 .I label
 is empty, branch to the end of the script.
 .TP
-.B w
-.I wfile
-.br
+.BI w " wfile"
 Write.
 Append the pattern space to
 .IR wfile .
