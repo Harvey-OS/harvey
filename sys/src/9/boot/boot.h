@@ -28,6 +28,7 @@ extern uchar	statbuf[Statsz];
 extern int	bargc;
 extern char	*bargv[Nbarg];
 extern int	pcload;
+extern void	usbdiskinit(void);
 
 /* libc equivalent */
 extern int	cache(int);

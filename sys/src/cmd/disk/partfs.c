@@ -107,6 +107,27 @@ delpart(char *s)
 }
 
 static void
+addparts(char *buf)
+{
+	char *f[4], *p, *q;
+
+	/*
+	 * Use partitions passed from boot program,
+	 * e.g.
+	 *	sdC0part=dos 63 123123/plan9 123123 456456
+	 * This happens before /boot sets hostname so the
+	 * partitions will have the null-string for user.
+	 */
+	for(p = buf; p != nil; p = q){
+		if(q = strchr(p, '/'))
+			*q++ = '\0';
+		if(tokenize(p, f, nelem(f)) >= 3 &&
+		    addpart(f[0], strtoull(f[1], 0, 0), strtoull(f[2], 0, 0)) < 0)
+			fprint(2, "%s: addpart %s: %r\n", argv0, f[0]);
+	}
+}
+
+static void
 ctlwrite0(Req *r, char *msg, Cmdbuf *cb)
 {
 	vlong start, end;
@@ -491,8 +512,8 @@ char *srvname;
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-Dr] [-d sdname] [-m mtpt] [-s srvname] diskimage\n",
-		argv0);
+	fprint(2, "usage: %s [-Dr] [-d sdname] [-m mtpt] [-p 9parts] "
+		"[-s srvname] diskimage\n", argv0);
 	fprint(2, "\tdefault mtpt is /dev\n");
 	exits("usage");
 }
@@ -501,11 +522,12 @@ void
 main(int argc, char **argv)
 {
 	int isdir;
-	char *file, *cname;
+	char *file, *cname, *parts;
 	Dir *dir;
 
 	quotefmtinstall();
 	time0 = time(0);
+	parts = nil;
 
 	ARGBEGIN{
 	case 'D':
@@ -516,6 +538,9 @@ main(int argc, char **argv)
 		break;
 	case 'm':
 		mtpt = EARGF(usage());
+		break;
+	case 'p':
+		parts = EARGF(usage());
 		break;
 	case 'r':
 		rdonly = 1;
@@ -556,6 +581,12 @@ main(int argc, char **argv)
 	tab[0].name = estrdup9p("data");
 	tab[0].mode = 0666;
 	tab[0].length = nsect;
+
+	/*
+	 * hack for booting from usb: add 9load partitions.
+	 */
+	if(parts != nil)
+		addparts(parts);
 
 	postmountsrv(&fs, srvname, mtpt, MBEFORE);
 	exits(nil);

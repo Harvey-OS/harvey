@@ -248,7 +248,7 @@ connectlocalfossil(void)
 	run("/boot/fossil", "-f", partition, "-c", "srv -A fboot", "-c", "srv -p fscons", 0);
 	fd = open("#s/fboot", ORDWR);
 	if(fd < 0){
-		print("open #s/fboot: %r\n");
+		warning("open #s/fboot");
 		return -1;
 	}
 	remove("#s/fboot");	/* we'll repost as #s/boot */
@@ -266,7 +266,9 @@ connectlocal(void)
 		fatal("bind #p");
 	bind("#S", "/dev", MAFTER);
 	bind("#k", "/dev", MAFTER);
+	bind("#u", "/dev", MAFTER);
 	bind("#æ", "/dev", MAFTER);
+	usbdiskinit();		/* make partfs partitions visible */
 
 	if((fd = connectlocalfossil()) < 0)
 	if((fd = connectlocalkfs()) < 0)

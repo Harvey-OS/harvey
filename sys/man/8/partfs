@@ -5,16 +5,16 @@ partfs \- serve file, with partitions
 .B disk/partfs
 [
 .B -Dr
-]
-[
+] [
 .B -d
 .I diskname
-]
-[
+] [
 .B -m
 .I mtpt
-]
-[
+] [
+.B -p
+.I 9load-parts
+] [
 .B -s
 .I srvname
 ]
@@ -42,6 +42,28 @@ the arguments are
 sectors and sector size.
 .PP
 The
+.B -m
+option causes
+.I partfs
+to mount its synthetic file system at
+.I mtpt
+instead of
+.BR /dev .
+.PP
+The
+.B -p
+option causes
+.I partfs
+to treat
+.I 9load-parts
+as a partition environment variable constructed by
+.IR 9load (8)
+and adds the defined partitions.
+This is used primarily by
+.IR boot (8)
+to assist booting from USB disks.
+.PP
+The
 .B -s
 option causes
 .I partfs
@@ -51,8 +73,7 @@ to post its 9P service at
 Partition a USB flash device:
 .IP
 .EX
-usb/disk
-disk/partfs /n/disk/0/data
+disk/partfs /dev/sdU0.0/data
 disk/mbr -m /386/mbr /dev/sdXX/data
 disk/fdisk -baw /dev/sdXX/data
 disk/prep /dev/sdXX/plan9
@@ -60,6 +81,7 @@ disk/prep /dev/sdXX/plan9
 .SH SOURCE
 .B /sys/src/cmd/disk/partfs.c
 .SH SEE ALSO
+.IR fs (3),
 .IR sd (3),
 .IR disksim (8),
 .IR prep (8)
