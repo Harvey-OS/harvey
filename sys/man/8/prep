@@ -143,7 +143,7 @@ A
 file system.
 .TP
 .B fscfg
-A one-sector partition used to store an
+A few-sector partition used to store an
 .IR fs (3)
 configuration.
 .TP
@@ -713,9 +713,7 @@ Create a bootable USB disk or flash-memory device to be booted
 via the BIOS and containing only a FAT Plan 9 partition.
 .IP
 .EX
-mount /srv/usb /n/usb
-ls -d /n/usb/sdU*		# note the name, normally sdU0.0
-disk/partfs /n/usb/sdU0.0/data
+disk/partfs /dev/sdU0.0/data
 cd /dev/sdXX
 disk/mbr -m /386/mbr data
 disk/fdisk -baw data

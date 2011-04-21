@@ -268,7 +268,6 @@ connectlocal(void)
 	bind("#k", "/dev", MAFTER);
 	bind("#u", "/dev", MAFTER);
 	bind("#æ", "/dev", MAFTER);
-	usbdiskinit();		/* make partfs partitions visible */
 
 	if((fd = connectlocalfossil()) < 0)
 	if((fd = connectlocalkfs()) < 0)

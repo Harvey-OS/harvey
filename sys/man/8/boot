@@ -34,12 +34,12 @@ into memory.
 Once loaded, the kernel initializes its data structures and devices.
 It sets the two environment variables
 .B /env/cputype
-and 
+and
 .B /env/terminal
 to describe the processor.
 It then binds a place-holder file server,
 .IR root (3),
-onto 
+onto
 .B /
 and crafts an initial process whose sole function is to
 .IR exec (2)
@@ -115,7 +115,7 @@ option,
 will prompt for one on the console:
 .IP
 .EX
-user: 
+user:
 .EE
 .PP
 The user will also be prompted for a password to
@@ -123,7 +123,7 @@ be used as an encryption key on each
 .IR attach (5):
 .IP
 .EX
-password: 
+password:
 .EE
 .PP
 With most
@@ -212,7 +212,7 @@ option is given or if no stored information is found
 will prompt for all three items and store them.
 .IP
 .EX
-password: 
+password:
 authid: bootes
 authdom: research.bell-labs.com
 .EE
@@ -238,7 +238,7 @@ The
 are passed to
 .IR ipconfig (8)
 when configuring the IP stack.
-The 
+The
 .IR plan9.ini (8)
 variables
 .B fs
@@ -253,13 +253,13 @@ connect to the local file system.
 The first argument is a disk holding a file system.
 .I Boot
 inspects the disk.
-If the disk is a 
+If the disk is a
 .IR fossil (4)
 file system, it invokes
 .B /boot/fossil
 to serve it.
 If the
-.B venti 
+.B venti
 environment variable (really,
 .IR plan9.ini (8)
 variable) is set,
@@ -274,7 +274,7 @@ The variable's value can take the following forms:
 .B /dev/sdC0/arenas
 the file should be a venti partition with a configuration
 stored on it using
-.I venti/conf 
+.I venti/conf
 (see
 .IR venti-fmt (8)).
 .I Boot
@@ -284,7 +284,7 @@ and start
 announcing on
 .B tcp!127.1!17034
 for venti service
-and 
+and
 .B tcp!127.1!8000
 for web service,
 using the configuration stored in that partition.
@@ -309,10 +309,35 @@ will configure the IP stack by passing
 if any, to
 .IR ipconfig (8).
 .RE
-.PP
+.IP
+.I Fossil
+is invoked as
+.RS
+.IP
+.EX
+/boot/fossil -f \fIpartition\fP -c 'srv -A fboot' -c 'srv -p fscons'
+.EE
+.RE
+.IP
+and
+.I boot
+then renames
+.L /srv/fboot
+to
+.LR /srv/boot ,
+so
+.B fossil.conf
+should not use the
+.B srv
+command to create
+.LR fboot ,
+.LR boot ,
+nor
+.LR fscons .
+.IP
 If the disk is not a
 .IR fossil (4)
-partition, 
+partition,
 .I boot
 invokes
 .BR /boot/kfs .
@@ -331,7 +356,7 @@ a
 disk.
 The args are passed to
 .IR kfs (4).
-.PP
+.IP
 For the
 .B tcp
 method,
@@ -342,12 +367,12 @@ system on the network using the BOOTP protocol and
 the Plan 9 vendor-specific fields.
 .SH EXAMPLES
 On PCs, the default arguments to boot are constructed using
-the 
+the
 .B bootargs
 variable in
 .IR plan9.ini (8).
 .PP
-Start 
+Start
 .IR kfs (4)
 with extra disk buffers:
 .IP
@@ -366,7 +391,7 @@ bootargs=tcp -g 192.168.0.1 ether /net/ether1 \e
     192.168.0.50 255.255.255.0
 .EE
 .LP
-(The 
+(The
 .B bootargs
 line is split only for presentation; it is one line in the file.)
 .SH FILES
@@ -377,6 +402,7 @@ line is split only for presentation; it is one line in the file.)
 .B /sys/src/9/boot
 .SH "SEE ALSO"
 .IR root (3),
+.IR factotum (4),
 .IR dhcpd (8),
 .IR init (8)
 .SH BUGS

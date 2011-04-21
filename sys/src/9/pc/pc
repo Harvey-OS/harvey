@@ -130,3 +130,4 @@ bootdir
 	/386/bin/ip/ipconfig
 	/386/bin/auth/factotum
 	/386/bin/usb/usbd
+	/386/bin/disk/partfs

@@ -132,3 +132,4 @@ bootdir
 	/386/bin/disk/kfs
 	/386/bin/cfs
 	/386/bin/usb/usbd
+	/386/bin/disk/partfs
