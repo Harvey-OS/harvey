@@ -93,8 +93,10 @@ The length of the mirror device is the minimum of the lengths of the
 .IR files .
 .TP
 .BI part " new file offset length"
+.PD 0
 .TP
 .BI part " new offset end
+.PD
 In the first form,
 the device
 .I new

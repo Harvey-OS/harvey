@@ -135,3 +135,4 @@ bootdir
 	/386/bin/fossil/fossil
 	/386/bin/venti/venti
 	/386/bin/usb/usbd
+	/386/bin/disk/partfs
