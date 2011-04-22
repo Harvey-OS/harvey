@@ -1,0 +1,54 @@
+.TH MKUSBBOOT 8
+.SH NAME
+mkusbboot - generate bootable USB disk image
+.SH SYNOPSIS
+.B mkusbboot
+[
+.I root
+]
+.SH DESCRIPTION
+.I Mkusbboot
+generates a bootable disk image,
+called
+.BR image ,
+from the filesystem at
+.I root
+(by default
+.B /n/boot
+but often
+.BR /n/sources/plan9 ),
+and using the
+.IR mkfs (8)
+prototype file
+.BR /sys/lib/sysconfig/proto/stand-usb
+and files in
+.BR /sys/lib/sysconfig/usb .
+.PP
+The image contains a
+.IR fossil (4)
+file system and is configured to be bootable when copied to a USB disk.
+It is normally 1,900,000,000 bytes long, so it should fit on so-called 2 GB
+USB devices.
+When building from
+.BR /n/sources/plan9 ,
+the image will be 900,000,000 bytes long, to fit so-called 1 GB USB devices.
+.SH FILES
+.B /sys/lib/sysconfig/usb
+.br
+.B /sys/lib/sysconfig/proto/stand-usb
+.SH SOURCE
+.B /rc/bin/mkusbboot
+.SH SEE ALSO
+.IR usb (4),
+.IR boot (8),
+.IR diskparts (8),
+.IR partfs (8),
+.IR plan9.ini (8),
+.IR prep (8)
+.SH BUGS
+Should be run only on machines with no running
+.I fossil
+instances.
+.PP
+Not all BIOSes can reliably boot from USB devices.
+Your mileage may vary.
