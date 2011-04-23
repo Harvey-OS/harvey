@@ -361,7 +361,7 @@ union Ed
 	uchar	align[Align];
 };
 
-int ehcidebug;
+int ehcidebug = 0;
 
 static Edpool edpool;
 static char Ebug[] = "not yet implemented";
@@ -1624,7 +1624,7 @@ portlend(Ctlr *ctlr, int port, char *ss)
 static int
 portreset(Hci *hp, int port, int on)
 {
-	ulong s;
+	ulong *portscp;
 	Eopio *opio;
 	Ctlr *ctlr;
 	int i;
@@ -1640,31 +1640,35 @@ portreset(Hci *hp, int port, int on)
 		qunlock(&ctlr->portlck);
 		nexterror();
 	}
-	s = opio->portsc[port-1];
-	dprint("ehci %#p port %d reset; sts %#lux\n", ctlr->capio, port, s);
+	portscp = &opio->portsc[port-1];
+	dprint("ehci %#p port %d reset; sts %#lux\n", ctlr->capio, port, *portscp);
 	ilock(ctlr);
-	s &= ~(Psenable|Psreset);
-	opio->portsc[port-1] = s | Psreset;	/* initiate reset */
+	/* Shalted must be zero, else Psreset will stay set */
+	if (opio->sts & Shalted)
+		iprint("ehci %#p: halted yet trying to reset port\n",
+			ctlr->capio);
+	*portscp = (*portscp & ~Psenable) | Psreset;	/* initiate reset */
 	coherence();
 
-	for(i = 0; i < 50; i++){		/* was 10 */
+	/*
+	 * usb 2 spec: reset must finish within 20 ms.
+	 * linux says spec says it can take 50 ms. for hubs.
+	 */
+	for(i = 0; *portscp & Psreset && i < 10; i++)
 		delay(10);
-		if((opio->portsc[port-1] & Psreset) == 0)
-			break;
-	}
-	if (opio->portsc[port-1] & Psreset)
-		iprint("ehci %#p: port %d didn't reset after %d ms; sts %#lux\n",
-			ctlr->capio, port, i * 10, opio->portsc[port-1]);
-	opio->portsc[port-1] &= ~Psreset;  /* force appearance of reset done */
+	if (*portscp & Psreset)
+		iprint("ehci %#p: port %d didn't reset within %d ms; sts %#lux\n",
+			ctlr->capio, port, i * 10, *portscp);
+	*portscp &= ~Psreset;		/* force appearance of reset done */
 	coherence();
+	delay(10);			/* ehci spec: enable within 2 ms. */
 
-	delay(10);
-	if((opio->portsc[port-1] & Psenable) == 0)
+	if((*portscp & Psenable) == 0)
 		portlend(ctlr, port, "full");
 
 	iunlock(ctlr);
 	dprint("ehci %#p after port %d reset; sts %#lux\n",
-		ctlr->capio, port, opio->portsc[port-1]);
+		ctlr->capio, port, *portscp);
 	qunlock(&ctlr->portlck);
 	poperror();
 	return 0;
@@ -2080,7 +2084,6 @@ epgettd(Qio *io, int flags, void *a, int count, int maxpkt)
 	td = tdalloc();
 	td->csw = flags | io->toggle | io->tok | count << Tdlenshift |
 		Tderr2 | Tderr1;
-	coherence();
 
 	/*
 	 * use the space wasted by alignment as an
@@ -2208,11 +2211,12 @@ epiowait(Hci *hp, Qio *io, int tmout, ulong load)
 
 	ctlr = hp->aux;
 	qh = io->qh;
-	ddqprint("ehci io %#p sleep on qh %#p state %s\n",
-		io, qh, qhsname[qh->state]);
+	ddqprint("ehci %#p: io %#p sleep on qh %#p state %s\n",
+		ctlr->capio, io, qh, qhsname[qh->state]);
 	timedout = 0;
 	if(waserror()){
-		dqprint("ehci io %#p qh %#p timed out\n", io, qh);
+		dqprint("ehci %#p: io %#p qh %#p timed out\n",
+			ctlr->capio, io, qh);
 		timedout++;
 	}else{
 		if(tmout == 0)
@@ -2236,7 +2240,9 @@ epiowait(Hci *hp, Qio *io, int tmout, ulong load)
 	}
 
 	if(qh->state == Qrun){
-		dqprint("ehci io %#p qh %#p timed out (no intr?)\n", io, qh);
+//		dqprint("ehci %#p: io %#p qh %#p timed out (no intr?)\n",
+		iprint("ehci %#p: io %#p qh %#p timed out (no intr?)\n",
+			ctlr->capio, io, qh);
 		timedout = 1;
 	}else if(qh->state != Qdone && qh->state != Qclose)
 		panic("ehci: epio: queue state %d", qh->state);
