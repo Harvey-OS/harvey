@@ -11,3 +11,6 @@ of each
 .IR file .
 .SH SOURCE
 .B /sys/src/cmd/mtime.c
+.SH SEE ALSO
+.IR du (1),
+.IR seconds (1)
