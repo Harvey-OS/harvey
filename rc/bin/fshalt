@@ -1,7 +1,8 @@
 #!/bin/rc
 # fshalt [-r] - sync (flush) and, if possible, halt all file servers
 #	and optionally reboot
-rfork e
+rfork ne
+kerncopy=()
 reboot=no
 switch ($#*) {
 case 0
@@ -14,8 +15,41 @@ case *
 
 path=(/bin)
 builtin cd /
+9fs boot		# in case of odd namespace
+ramfs			# stash files here that we'll need after the fs halts
 
 setrtc
+
+# turn off graphics, if any
+if (test -e '#v/vgactl' && test -e '#P/realmode') {
+	kill rio | rc -i &
+	sleep 2
+	aux/vga -l text
+}
+
+fn isbootable {
+	test -e $1 && ~ `{file $1} *' plan 9 boot image'
+}
+fn usekernel {
+	kerncopy=/tmp/kern
+	cp $1 $kerncopy && echo -n using kernel $1...
+}
+
+# make a copy of the right kernel
+if (~ $reboot yes) {
+	kern=`{echo $terminal |
+		sed 's;^([^ ]+) .*/([^/]+)$;/n/boot/'$cputype'/9\2;'}
+	if (isbootable $kern)
+		usekernel $kern
+	if not {
+		# $kern is probably a raw binary, try s^name as boot image
+		kern=`{ echo $kern | sed 's;.*/;&s;' }
+		if (isbootable $kern)
+			usekernel $kern
+		if not
+			echo -n using default kernel...
+	}
+}
 
 # start venti flushing
 venti/sync -h localhost >[2]/dev/null &
@@ -59,15 +93,9 @@ for (i in $k){
 }
 
 # halting (binaries we run can't be on the fs we're halting)
-ramfs
+builtin cd /bin
+cp dial/expect echo disk/kfscmd rc sed /tmp
 builtin cd /tmp
-cp /bin/dial/expect /tmp
-cp /bin/echo /tmp
-cp /bin/disk/kfscmd /tmp
-cp /bin/rc /tmp
-cp /bin/sed /tmp
-cp /bin/ns /tmp
-cp /bin/iostats /tmp
 mkdir /tmp/lib
 cp /rc/lib/rcmain /tmp/lib
 bind /tmp /rc
@@ -99,10 +127,8 @@ fn x {
 	echo
 	echo done halting
 
-	if (~ $reboot yes) {
-		echo rebooting...
-		echo reboot >'#c/reboot'
-	}
+	if (~ $reboot yes)
+		echo reboot $kerncopy >'#c/reboot'
 }
 
 x
