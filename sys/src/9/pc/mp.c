@@ -847,6 +847,15 @@ mpintrenable(Vctl* v)
 static Lock mpshutdownlock;
 
 void
+mpresetothers(void)
+{
+	/*
+	 * INIT all excluding self.
+	 */
+	lapicicrw(0, 0x000C0000|ApicINIT);
+}
+
+void
 mpshutdown(void)
 {
 	/*
@@ -868,11 +877,7 @@ mpshutdown(void)
 	print("apshutdown: active = %#8.8ux\n", active.machs);
 	delay(1000);
 	splhi();
-
-	/*
-	 * INIT all excluding self.
-	 */
-	lapicicrw(0, 0x000C0000|ApicINIT);
+	mpresetothers();
 
 	pcireset();
 	i8042reset();
