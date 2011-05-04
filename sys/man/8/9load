@@ -455,6 +455,9 @@ for information on ensuring this.
 .IB "FAT-filesystem" :\eplan9.ini
 .TF /cfg/pxe
 .TP
+.B /386
+most of these binaries reside here
+.TP
 .BI /cfg/pxe
 directory of
 .I plan9.ini

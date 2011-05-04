@@ -230,7 +230,7 @@ This option may be repeated to give multiple
 commands.
 Typically the only commands given on the
 command line are
-.RB `` . \fIfile \fR,''
+.RB `` ".\fI file" ,''
 which executes a file containing commands,
 and
 .RB `` "srv -p" \fIcons \fR,''

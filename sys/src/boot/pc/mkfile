@@ -20,9 +20,9 @@ CORE=\
 	cga.$O\
 	clock.$O\
 	console.$O\
-	dosboot.$O\
 	devfloppy.$O\
 	dma.$O\
+	dosboot.$O\
 	fs.$O\
 	ilock.$O\
 	kbd.$O\
@@ -46,34 +46,34 @@ LOAD=\
 	memory.$O\
 	part.$O\
 	pci.$O\
-	sdata.$O\
-	sdmylex.$O\
 	sd53c8xx.$O\
-	sdiahci.$O\
-	sdscsi.$O\
 	sdaoe.$O\
+	sdata.$O\
 	sdbios.$O\
+	sdiahci.$O\
+	sdmylex.$O\
+	sdscsi.$O\
 
 ETHER=\
 	bootp.$O\
 	ether.$O\
-	ether2114x.$O\
 	ether2000.$O\
+	ether2114x.$O\
 	ether589.$O\
 	ether79c970.$O\
 	ether8003.$O\
 	ether8139.$O\
 	ether8169.$O\
-	ether82563.$O\
 	ether82557.$O\
+	ether82563.$O\
 	ether83815.$O\
 	ether8390.$O\
+	etherdp83820.$O\
 	etherec2t.$O\
 	etherelnk3.$O\
 	etherigbe.$O\
 	ethermii.$O\
 	etherrhine.$O\
-	etherdp83820.$O\
 
 BCOM=\
 	bcom.$O\
@@ -202,9 +202,8 @@ install:V:
 		mk $MKFLAGS $i.install
 
 %.install:V:	$BIN/%
-#	for (fs in $EXTRACOPIES)
-#		9fs $fs && cp $prereq /n/$fs/$prereq
-	;
+	for (fs in lookout boundary piestand bovril)
+		9fs $fs && cp $prereq /n/$fs/$prereq
 
 $BIN/%:	%
 	cp $stem $BIN/$stem
