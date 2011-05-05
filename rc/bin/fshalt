@@ -22,6 +22,7 @@ setrtc
 
 # turn off graphics, if any
 if (test -e '#v/vgactl' && test -e '#P/realmode') {
+	prompt=()
 	kill rio | rc -i &
 	sleep 2
 	aux/vga -l text
@@ -128,7 +129,7 @@ fn x {
 	echo done halting
 
 	if (~ $reboot yes)
-		echo reboot $kerncopy >'#c/reboot'
+		echo reboot kern >'#c/reboot'
 }
 
 x
