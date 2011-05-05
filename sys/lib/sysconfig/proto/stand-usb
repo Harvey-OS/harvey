@@ -23,8 +23,10 @@ usr	- sys sys
 	glenda	- glenda glenda
 		+	- glenda glenda
 
-# architectures owned by sys
+# architectures are owned by sys
 386	- sys sys
+	+	- sys sys
+amd64	- sys sys
 	+	- sys sys
 
 # everything else is owned by sys

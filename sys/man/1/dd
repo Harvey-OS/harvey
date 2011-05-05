@@ -16,7 +16,9 @@ The standard input and output are used by default.
 The input and output block size may be
 specified to take advantage of raw physical I/O.
 The options are
-.TP \w'\fLoseek\ \ \fIn'u
+.TF "quiet\ \ \fIn
+.PD
+.TP
 .BI -if\  f
 Open file
 .I f

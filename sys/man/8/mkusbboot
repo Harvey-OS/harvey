@@ -26,16 +26,34 @@ and files in
 .PP
 The image contains a
 .IR fossil (4)
-file system and is configured to be bootable when copied to a USB disk.
+file system and is configured to be bootable
+as a CPU server on
+.B 386
+(with optional VGA)
+or
+.B amd64
+machines, when copied to a USB disk.
 It is normally 1,900,000,000 bytes long, so it should fit on so-called 2 GB
 USB devices.
 When building from
 .BR /n/sources/plan9 ,
 the image will be 900,000,000 bytes long, to fit so-called 1 GB USB devices.
+.SH EXAMPLES
+Create a bootable USB flash drive from the local Plan 9 installation.
+.IP
+.EX
+mkusbboot
+pump <image >/dev/sdU0.0/data
+.EE
 .SH FILES
+.TF /env/objtype
+.TP
 .B /sys/lib/sysconfig/usb
-.br
+.TP
 .B /sys/lib/sysconfig/proto/stand-usb
+.TP
+.B /env/objtype
+determines the architecture of the boot programs in the disk image
 .SH SOURCE
 .B /rc/bin/mkusbboot
 .SH SEE ALSO
