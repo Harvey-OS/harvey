@@ -1,0 +1,178 @@
+.TH CALLS 1
+.SH NAME
+calls \- print static call graph of a C program
+.SH SYNOPSIS
+.B calls
+[
+.B \-ptv
+] [
+.B \-f
+.I function
+] [
+.B \-w
+.I width
+\&...
+] [
+.B \-D
+.I def
+] [
+.B \-U
+.I def
+] [
+.B \-I
+.I dir
+] [
+file ...
+]
+.SH DESCRIPTION
+.I Calls
+reads
+.IR file s,
+which should be the source of C programs,
+and writes the analysed calling pattern to standard output.
+If no file names are given,
+standard input will be read.
+.I Calls
+is intended to help analyse the flow of a program by laying out the
+functions called in the hierarchical manner used in
+.I "Software Tools"
+by
+B. Kernighan and P. Plauger.
+.PP
+All input is first filtered through
+.IR cpp (1).
+Functions called but not defined within the source
+.IR file s
+are shown as:
+.PP
+.RS
+function
+.B [external]
+.RE
+.PP
+Recursive references are shown as:
+.PP
+.RS
+.B <<<
+function
+.RE
+.PP
+Options are:
+.TP 0.6i
+.B \-f
+Add
+.I function
+as a root of a call graph to be printed.
+.TP
+.B -p
+Make
+.I cpp
+search the APE
+.I include
+directories.
+.TP
+.B \-t
+Provides a terse form of output,
+in which the calling pattern for any
+function is printed only once on the first occurrence of the function.
+Subsequent occurrences output the function name and a notation
+.IP "" 1i
+\&...
+.BI "[see line " xx ]
+.IP "" 0.6i
+This is the default case.
+.TP 0.6i
+.B \-v
+Full output of function calling patterns on every occurrence.
+.TP
+.BI \-w n
+Set the output width to
+.IR n .
+The default is 80 columns.
+.TP
+.BI \-D name
+.PD 0
+.TP
+.PD 0.4v
+.BI \-D name=defn
+Define the
+.I name
+for
+.IR cpp ,
+as if by
+.BR #define .
+If no definition is given, the name is defined as 1.
+.TP
+.BI \-U name
+Remove any initial definition of
+.IR name ,
+where
+.I name
+is a reserved symbol that is predefined by
+.IR cpp .
+.TP
+.BI \-I dir
+Change the algorithm for searching for
+.B #include
+files whose names do not begin with
+.B /
+to look in
+.I dir
+before looking in the directories on the standard list.
+.SH EXAMPLES
+What does
+.I cat
+call?
+.IP
+.EX
+% calls -f main /sys/src/cmd/cat.c
+1   main
+2       cat
+3               read [external]
+4               write [external]
+5               sysfatal [external]
+6       open [external]
+7       sysfatal [external]
+8       close [external]
+9       exits [external]
+.EE
+.br
+.ne 7
+.PP
+What internal functions does
+.I dd
+call?
+.IP
+.EX
+% calls -f main /sys/src/cmd/dd.c | grep -v '\e[external\e]'
+1   main
+5       number
+6               <<< number
+9       match
+17      flsh
+21              term
+22                      stats
+25      term ... [see line 21]
+26      stats ... [see line 22]
+.EE
+.PP
+Note the recursion in
+.IR number .
+.PP
+Generate the PC kernel's internal call graph.
+.IP
+.EX
+cd /sys/src/9/pc
+calls -f main -I../port -I. ../port/*.c ../ip/*.c *.c |
+	grep -v external
+.EE
+.SH BUGS
+Forward declared functions defined within a function body which are not
+subsequently used within that function body will be listed as having been
+called.
+.PP
+Does not understand calls through function pointers.
+.PP
+Does not understand the restricted scope of
+.I static
+functions.
