@@ -1,7 +1,7 @@
 #!/bin/rc
 # fshalt [-r] - sync (flush) and, if possible, halt all file servers
 #	and optionally reboot
-rfork ne
+rfork nes
 kerncopy=()
 reboot=no
 switch ($#*) {
@@ -32,8 +32,8 @@ fn isbootable {
 	test -e $1 && ~ `{file $1} *' plan 9 boot image'
 }
 fn usekernel {
-	kerncopy=/tmp/kern
-	cp $1 $kerncopy && echo -n using kernel $1...
+	kerncopy=kern
+	cp $1 /tmp/$kerncopy && echo -n using kernel $1...
 }
 
 # make a copy of the right kernel
@@ -129,7 +129,7 @@ fn x {
 	echo done halting
 
 	if (~ $reboot yes)
-		echo reboot kern >'#c/reboot'
+		echo reboot $kerncopy >'#c/reboot'
 }
 
 x
