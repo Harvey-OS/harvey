@@ -384,7 +384,7 @@ ipiput4(Fs *f, Ipifc *ifc, Block *bp)
 		}
 
 		/* don't forward to source's network */
-		memmove(&conv, ifc->conv, sizeof conv);
+		memset(&conv, 0, sizeof conv);
 		conv.r = nil;
 		r = v4lookup(f, h->dst, &conv);
 		if(r == nil || r->ifc == ifc){
