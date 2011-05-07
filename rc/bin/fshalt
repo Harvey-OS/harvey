@@ -22,7 +22,7 @@ setrtc
 
 # turn off graphics, if any
 if (test -e '#v/vgactl' && test -e '#P/realmode') {
-	prompt=()
+	prompt=''
 	kill rio | rc -i &
 	sleep 2
 	aux/vga -l text
