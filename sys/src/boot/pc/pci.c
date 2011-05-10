@@ -345,6 +345,7 @@ static bridge_t southbridges[] = {
 	{ 0x8086, 0x2420, pIIx_link, pIIx_init },	// Intel 82801AB
 	{ 0x8086, 0x2440, pIIx_link, pIIx_init },	// Intel 82801BA
 	{ 0x8086, 0x244c, pIIx_link, pIIx_init },	// Intel 82801BAM
+	{ 0x8086, 0x244e, pIIx_link, pIIx_init },	// Intel 82801
 	{ 0x8086, 0x2480, pIIx_link, pIIx_init },	// Intel 82801CA
 	{ 0x8086, 0x248c, pIIx_link, pIIx_init },	// Intel 82801CAM
 	{ 0x8086, 0x24c0, pIIx_link, pIIx_init },	// Intel 82801DBL
@@ -355,6 +356,11 @@ static bridge_t southbridges[] = {
 	{ 0x8086, 0x2641, pIIx_link, pIIx_init },	// Intel 82801FBM
 	{ 0x8086, 0x27b8, pIIx_link, pIIx_init },	// Intel 82801GB
 	{ 0x8086, 0x27b9, pIIx_link, pIIx_init },	// Intel 82801GBM
+	{ 0x8086, 0x27bd, pIIx_link, pIIx_init },	// Intel 82801GB/GR
+	{ 0x8086, 0x3a16, pIIx_link, pIIx_init },	// Intel 82801JIR
+	{ 0x8086, 0x3a40, pIIx_link, pIIx_init },	// Intel 82801JI
+	{ 0x8086, 0x3a42, pIIx_link, pIIx_init },	// Intel 82801JI
+	{ 0x8086, 0x3a48, pIIx_link, pIIx_init },	// Intel 82801JI
 	{ 0x1106, 0x0586, via_link, via_init },		// Viatech 82C586
 	{ 0x1106, 0x0596, via_link, via_init },		// Viatech 82C596
 	{ 0x1106, 0x0686, via_link, via_init },		// Viatech 82C686

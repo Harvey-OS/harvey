@@ -454,7 +454,10 @@ setup(Umsc *lun, char *data, int count, vlong offset)
 /*
  * Upon SRread/SRwrite errors we assume the medium may have changed,
  * and ask again for the capacity of the media.
- * BUG: How to proceed to avoid confussing dossrv??
+ * BUG: How to proceed to avoid confusing dossrv??
+ *
+ * ctl reads must match the format documented in sd(3) exactly
+ * to interoperate with the rest of the system.
  */
 static long
 dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
@@ -478,14 +481,14 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 		count = usbdirread(fs, q, data, count, offset, dirgen, nil);
 		break;
 	case Qctl:
+		s = buf;
 		e = buf + sizeof(buf);
-		s = seprint(buf, e, "%s lun %ld: ", fs->dev->dir, lun - &ums->lun[0]);
 		if(lun->flags & Finqok)
-			s = seprint(s, e, "inquiry %s ", lun->inq);
+			s = seprint(s, e, "inquiry %s lun %ld: %s\n",
+				fs->dev->dir, lun - &ums->lun[0], lun->inq);
 		if(lun->blocks > 0)
-			s = seprint(s, e, "geometry %llud %ld",
+			s = seprint(s, e, "geometry %llud %ld\n",
 				lun->blocks, lun->lbsize);
-		s = seprint(s, e, "\n");
 		count = usbreadbuf(data, count, offset, buf, s - buf);
 		break;
 	case Qraw:
