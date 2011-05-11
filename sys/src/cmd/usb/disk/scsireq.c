@@ -754,7 +754,7 @@ SRdumpErr(ScsiReq *rp)
 
 	se = buf+sizeof(buf);
 	seprintcmd(buf, se, (char*)rp->cmd.p, rp->cmd.count, 0);
-	print("\t%s status: %s\n", buf, scsierr(rp));
+	fprint(2, "\t%s status: %s\n", buf, scsierr(rp));
 }
 
 long

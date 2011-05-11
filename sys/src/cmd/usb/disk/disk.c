@@ -227,7 +227,7 @@ umsrequest(Umsc *umsc, ScsiPtr *cmd, ScsiPtr *data, int *status)
 	cbw.flags = data->write? CbwDataOut: CbwDataIn;
 	cbw.lun = umsc->lun;
 	if(cmd->count < 1 || cmd->count > 16)
-		print("disk: umsrequest: bad cmd count: %ld\n", cmd->count);
+		fprint(2, "disk: umsrequest: bad cmd count: %ld\n", cmd->count);
 
 	cbw.len = cmd->count;
 	assert(cmd->count <= sizeof(cbw.command));
