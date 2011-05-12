@@ -253,8 +253,11 @@ There are too many combinations of optical media, each with unique quirks,
 approximately
 the cross-product of these tuples:
 (CD DVD- DVD+ BD),
+(-ROM -R -RW),
 (single-layer dual-layer),
-(-ROM -R -RW).
+plus oddities like DVD-RAM.
+Triple-layer BD drives and discs are starting to appear,
+likely to be followed by quad-layer.
 .PP
 Only MMC-compliant disc readers and writers
 are supported, but it would be easy to add
