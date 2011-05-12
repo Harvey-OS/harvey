@@ -204,7 +204,7 @@ fsremove(Req *r)
 }
 
 /* result is one word, so it can be used as a uid in Dir structs */
-static char *
+char *
 disctype(Drive *drive)
 {
 	char *type, *rw;
@@ -229,9 +229,9 @@ disctype(Drive *drive)
 	}
 	rw = "";
 	if (drive->mmctype != Mmcnone && drive->dvdtype == nil)
-		if (drive->erasable)
+		if (drive->erasable == 1)
 			rw = drive->mmctype == Mmcbd? "re": "rw";
-		else if (drive->recordable)
+		else if (drive->recordable == 1)
 			rw = "r";
 		else
 			rw = "rom";
@@ -718,6 +718,7 @@ main(int argc, char **argv)
 	if(dev == nil || mtpt == nil || argc > 0)
 		usage();
 
+	werrstr("");
 	if((s = openscsi(dev)) == nil)
 		sysfatal("openscsi '%s': %r", dev);
 	if((drive = mmcprobe(s)) == nil)
