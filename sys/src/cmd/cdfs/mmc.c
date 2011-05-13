@@ -14,6 +14,8 @@
 
 enum
 {
+	Desperate	= 0,	/* non-zero grubs around in inquiry string */
+
 	Pagesz		= 255,
 
 	Pagwrparams	= 5,	/* (cd|dvd)-r(w) device write parameters */
@@ -110,16 +112,6 @@ initcdb(uchar *cdb, int len, int cmd)
 	cdb[0] = cmd;
 }
 
-//static uchar *
-//newcdb(int len, int cmd)
-//{
-//	uchar *cdb;
-//
-//	cdb = emalloc(len);
-//	cdb[0] = cmd;
-//	return cdb;
-//}
-
 /*
  * SCSI CDBs (cmd arrays) are 6, 10, 12, 16 or 32 bytes long.
  * The mode sense/select commands implicitly refer to
@@ -162,14 +154,9 @@ mmcgetpage10(Drive *drive, int page, void *v)
 	uchar cmd[10], resp[512];
 	int n, r;
 
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdMsense10;
+	initcdb(cmd, sizeof cmd, ScmdMsense10);
 	cmd[2] = page;
 	cmd[8] = 255;			/* allocation length: buffer size */
-
-//	print("get: sending cmd\n");
-//	hexdump(cmd, 10);
-
 	n = scsi(drive, cmd, sizeof(cmd), resp, sizeof(resp), Sread);
 	if(n < Mode10parmhdrlen)
 		return -1;
@@ -183,12 +170,6 @@ mmcgetpage10(Drive *drive, int page, void *v)
 		n = Pagesz;
 
 	memmove(v, &resp[Mode10parmhdrlen + r], n);
-
-//	print("get: got cmd\n");
-//	hexdump(cmd, 10);
-//	print("page\n");
-//	hexdump(v, n);
-
 	return n;
 }
 
@@ -198,8 +179,7 @@ mmcgetpage6(Drive *drive, int page, void *v)
 	uchar cmd[6], resp[512];
 	int n;
 
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdMsense6;
+	initcdb(cmd, sizeof cmd, ScmdMsense6);
 	cmd[2] = page;
 	cmd[4] = 255;			/* allocation length */
 
@@ -234,8 +214,7 @@ mmcsetpage10(Drive *drive, int page, void *v)
 	p[1] = len - 2;
 
 	/* set up CDB */
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdMselect10;
+	initcdb(cmd, sizeof cmd, ScmdMselect10);
 	cmd[1] = 0x10;			/* format not vendor-specific */
 	cmd[8] = len;
 
@@ -271,8 +250,7 @@ mmcsetpage6(Drive *drive, int page, void *v)
 	p = emalloc(len);
 	memmove(p + Mode6parmhdrlen, pagedata, pagedata[1]);
 
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdMselect6;
+	initcdb(cmd, sizeof cmd, ScmdMselect6);
 	cmd[1] = 0x10;			/* format not vendor-specific */
 	cmd[4] = len;
 
@@ -486,8 +464,7 @@ mmctrackinfo(Drive *drive, int t, int i)
 	Mmcaux *aux;
 
 	aux = drive->aux;
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdRtrackinfo;
+	initcdb(cmd, sizeof cmd, ScmdRtrackinfo);
 	cmd[1] = 1;			/* address below is logical track # */
 	cmd[2] = t>>24;
 	cmd[3] = t>>16;
@@ -545,7 +522,7 @@ mmctrackinfo(Drive *drive, int t, int i)
 
 	if(resp[6] & (1<<6)) {			/* blank? */
 		drive->track[i].type = TypeBlank;
-		drive->writeok = 1;
+		drive->writeok = Yes;
 	}
 
 	if(vflag)
@@ -570,8 +547,7 @@ mmcreadtoc(Drive *drive, int type, int track, void *data, int nbytes)
 {
 	uchar cmd[10];
 
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdRTOC;
+	initcdb(cmd, sizeof cmd, ScmdRTOC);
 	cmd[1] = type;				/* msf bit & reserved */
 	cmd[2] = Tocfmttoc;
 	cmd[6] = track;				/* track/session */
@@ -584,26 +560,6 @@ mmcreadtoc(Drive *drive, int type, int track, void *data, int nbytes)
 	 *	iounit(3) = 65512;	# for remote access via /mnt/term
 	 */
 	return scsi(drive, cmd, sizeof(cmd), data, nbytes, Sread);
-}
-
-static int
-mmcreaddiscinfo(Drive *drive, void *data, int nbytes)
-{
-	uchar cmd[10];
-	int n;
-
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdRdiscinfo;
-	cmd[7] = nbytes>>8;
-	cmd[8] = nbytes;
-	n = scsi(drive, cmd, sizeof(cmd), data, nbytes, Sread);
-	if(n < 24) {
-		if(n >= 0)
-			werrstr("rdiscinfo returns %d", n);
-		return -1;
-	}
-
-	return n;
 }
 
 static Msf
@@ -621,18 +577,104 @@ static int
 getdiscinfo(Drive *drive, uchar resp[], int resplen)
 {
 	int n;
+	uchar cmd[10];
 
-	n = mmcreaddiscinfo(drive, resp, resplen);
-	if(n < 3) {
-		if (vflag)
+	initcdb(cmd, sizeof cmd, ScmdRdiscinfo);
+	cmd[7] = resplen>>8;
+	cmd[8] = resplen;
+	n = scsi(drive, cmd, sizeof(cmd), resp, resplen, Sread);
+	if(n < 24) {
+		if(n >= 0)
+			werrstr("rdiscinfo returns %d", n);
+		else if (vflag)
 			fprint(2, "read disc info failed\n");
-		return n;
+		return -1;
 	}
 	if (vflag)
 		fprint(2, "read disc info succeeded\n");
 	assert((resp[2] & 0340) == 0);			/* data type 0 */
 	drive->erasable = ((resp[2] & 0x10) != 0);	/* -RW? */
-	drive->erasableset = 1;
+	return n;
+}
+
+static int
+getconf(Drive *drive)
+{
+	int n;
+	ushort prof;
+	ulong datalen;
+	uchar cmd[10];
+	uchar resp[2*1024];	/* 64k-8 ok, 2k often enough, 400 typical */
+
+	initcdb(cmd, sizeof cmd, Scmdgetconf);
+	cmd[3] = 1;			/* start with core feature */
+	cmd[7] = sizeof resp >> 8;
+	cmd[8] = sizeof resp;
+	n = scsi(drive, cmd, sizeof(cmd), resp, sizeof resp, Sread);
+	if (n < 0) {
+		if(vflag)
+			fprint(2, "get config cmd failed\n");
+		return -1;
+	}
+	if (n < 4)
+		return -1;
+	datalen = GETBELONG(resp+0);
+	if (datalen < 8)
+		return -1;
+	/*
+	 * features start with an 8-byte header:
+	 * ulong datalen, ushort reserved, ushort current profile.
+	 * profile codes (table 92) are: 0 reserved, 1-7 legacy, 8-0xf cd,
+	 * 0x10-0x1f 0x2a-0x2b dvd*, 0x40-0x4f bd, 0x50-0x5f hd dvd,
+	 * 0xffff whacko.
+	 *
+	 * this is followed by multiple feature descriptors:
+	 * ushort code, uchar bits, uchar addnl_len, addnl_len bytes.
+	 */
+	prof = resp[6]<<8 | resp[7];
+	if(prof == 0 || prof == 0xffff)	/* none or whacko? */
+		return n;
+	if(drive->mmctype != Mmcnone)
+		return n;
+	switch (prof >> 4) {
+	case 0:
+		drive->mmctype = Mmccd;
+		break;
+	case 1:
+		if (prof == 0x1a || prof == 0x1b)
+			drive->mmctype = Mmcdvdplus;
+		else
+			drive->mmctype = Mmcdvdminus;
+		break;
+	case 2:
+		drive->mmctype = Mmcdvdplus;	/* dual layer */
+		break;
+	case 4:
+		drive->mmctype = Mmcbd;
+		/*
+		 * further decode prof to set writability flags.
+		 * mostly for Pioneer BDR-206M.  there may be unnecessary
+		 * future profiles for dual, triple and quad layer;
+		 * let's hope not.
+		 */
+		switch (prof) {
+		case 0x40:
+			drive->erasable = drive->recordable = No;
+		case 0x41:
+		case 0x42:
+			drive->erasable = No;
+			drive->recordable = Yes;
+			break;
+		case 0x43:
+			drive->erasable = Yes;
+			drive->recordable = No;
+			break;
+		}
+		break;
+	case 5:
+		drive->mmctype = Mmcdvdminus;	/* hd dvd, obs. */
+		break;
+	}
 	return n;
 }
 
@@ -648,11 +690,11 @@ getdvdstruct(Drive *drive)
 	cmd[8] = sizeof resp >> 8;	/* allocation length */
 	cmd[9] = sizeof resp;
 	n = scsi(drive, cmd, sizeof(cmd), resp, sizeof resp, Sread);
-	if (n < 7)
+	if (n < 7) {
+		if(vflag)
+			fprint(2, "read disc structure (dvd) cmd failed\n");
 		return -1;
-
-//	print("dvd structure:\n");
-//	hexdump(resp, n);
+	}
 
 	/* resp[0..1] is resp length */
 	cat = (resp[4] & 0xf0) >> 4;	/* disk category, MMC-6 §6.22.3.2.1 */
@@ -660,22 +702,57 @@ getdvdstruct(Drive *drive)
 		fprint(2, "dvd type is %s\n", dvdtype[cat]);
 	drive->dvdtype = dvdtype[cat];
 	/* write parameters mode page may suffice to compute writeok for dvd */
-	drive->erasable = drive->recordable = 0;
+	drive->erasable = drive->recordable = No;
 	/*
 	 * the layer-type field is a *bit array*,
 	 * though an enumeration of types would make more sense,
 	 * since the types are exclusive, not orthogonal.
 	 */
 	if (resp[6] & (1<<2))			/* rewritable? */
-		drive->erasable = 1;
+		drive->erasable = Yes;
 	else if (resp[6] & (1<<1))		/* recordable once? */
-		drive->recordable = 1;
-	else {					/* factory-pressed disk */
-		drive->blank = 0;
-		drive->blankset = 1;
-	}
-	drive->erasableset = drive->recordableset = 1;
+		drive->recordable = Yes;
+	else					/* factory-pressed disk */
+		drive->blank = No;
 	drive->mmctype = (cat >= 8? Mmcdvdplus: Mmcdvdminus);
+	return 0;
+}
+
+/*
+ * ugly hack to divine device type from inquiry string as last resort.
+ * mostly for Pioneer BDR-206M.
+ */
+static int
+bdguess(Drive *drive)
+{
+	if (drive->mmctype == Mmcnone) {
+		if (strstr(drive->Scsi.inquire, "BD") == nil)
+			return -1;
+		if (vflag)
+			fprint(2, "drive probably a BD (from inquiry string)\n");
+		drive->mmctype = Mmcbd;
+	} else if (drive->mmctype == Mmcbd) {
+		if (drive->erasable != Unset && drive->recordable != Unset)
+			return 0;
+	} else
+		return -1;
+
+	drive->recordable = drive->writeok = No;
+	if (strstr(drive->Scsi.inquire, "RW") != nil) {
+		if (vflag)
+			fprint(2, "drive probably a burner (from inquiry string)\n");
+		drive->recordable = drive->writeok = Yes;
+		if (drive->erasable == Unset) {	/* set by getdiscinfo perhaps */
+			drive->erasable = No;	/* no way to tell, alas */
+			if (vflag)
+				fprint(2, "\tassuming -r not -rw\n");
+		}
+	} else {
+		if (drive->erasable == Unset)
+			drive->erasable = No;
+	}
+	if (drive->erasable == Yes)
+		drive->recordable = No;		/* mutually exclusive */
 	return 0;
 }
 
@@ -683,42 +760,59 @@ static int
 getbdstruct(Drive *drive)
 {
 	int n;
-	uchar cmd[12], resp[4100];
+	uchar cmd[12], resp[4+4096];
+	uchar *di, *body;
 
 	initcdb(cmd, sizeof cmd, ScmdReadDVD); /* actually, read disc structure */
 	cmd[1] = 1;			/* media type: bd */
+	/* cmd[6] is layer #, 0 is first */
 	cmd[7] = 0;			/* format code: disc info */
 	cmd[8] = sizeof resp >> 8;	/* allocation length */
 	cmd[9] = sizeof resp;
 	n = scsi(drive, cmd, sizeof(cmd), resp, sizeof resp, Sread);
+	if(n < 0) {
+		if(vflag)
+			fprint(2, "read disc structure (bd) cmd failed\n");
+		return -1;
+	}
+
 	/*
-	 * resp[0..1] is resp length.
-	 * resp[4+8..4+8+2] is bd type (disc type identifier):
-	 * BDO|BDW|BDR, MMC-6 §6.22.3.3.1.  The above command should
+	 * resp[0..1] is resp length (4100); 2 & 3 are reserved.
+	 * there may be multiple disc info structs of 112 bytes each.
+	 * disc info (di) starts at 4.  di[0..7] are header, followed by body.
+	 * body[0..2] is bd type (disc type identifier):
+	 * BDO|BDW|BDR, MMC-6 §6.22.3.3.1.  The above scsi command should
 	 * fail on DVD drives, but some seem to ignore media type
 	 * and return successfully, so verify that it's a BD drive.
 	 */
-	if (n < 4+8+3 || resp[4+8] != 'B' || resp[4+8+1] != 'D')
-		return -1;
-	if (vflag)
-		fprint(2, "read disc structure (bd) succeeded\n");
-	drive->erasable = drive->recordable = 0;
-	switch (resp[4+8+2]) {
-	case 'O':
-		drive->blank = 0;
-		drive->blankset = 1;
-		break;
-	case 'R':				/* Recordable */
-		drive->recordable = 1;
-		break;
-	case 'W':				/* reWritable */
-		drive->erasable = 1;
-		break;
-	default:
-		fprint(2, "%s: unknown bd type BD%c\n", argv0, resp[4+8+2]);
+	di = resp + 4;
+	body = di + 8;
+	n -= 4 + 8;
+	if (n < 3 || di[0] != 'D' || di[1] != 'I' ||
+	    body[0] != 'B' || body[1] != 'D') {
+		if(vflag)
+			fprint(2, "it's not a bd\n");
 		return -1;
 	}
-	drive->erasableset = drive->recordableset = 1;
+	if (vflag)
+		fprint(2, "read disc structure (bd) succeeded; di format %d\n",
+			di[2]);
+
+	drive->erasable = drive->recordable = No;
+	switch (body[2]) {
+	case 'O':				/* read-Only */
+		drive->blank = No;
+		break;
+	case 'R':				/* Recordable */
+		drive->recordable = Yes;
+		break;
+	case 'W':				/* reWritable */
+		drive->erasable = Yes;
+		break;
+	default:
+		fprint(2, "%s: unknown bd type BD%c\n", argv0, body[2]);
+		return -1;
+	}
 	drive->mmctype = Mmcbd;
 	return 0;
 }
@@ -809,8 +903,8 @@ mmcgettoc(Drive *drive)
 	drive->nameok = 0;
 	drive->nchange = drive->Scsi.nchange;
 	drive->changetime = drive->Scsi.changetime;
-	drive->writeok = drive->erasable = drive->recordable = drive->blank = 0;
-	drive->erasableset = drive->recordableset = drive->blankset = 0;
+	drive->writeok = No;
+	drive->erasable = drive->recordable = drive->blank = Unset;
 	aux = drive->aux;
 	aux->mmcnwa = 0;
 	aux->nropen = aux->nwopen = 0;
@@ -822,7 +916,7 @@ mmcgettoc(Drive *drive)
 	}
 
 	/*
-	 * TODO: set read ahead, MMC-6 §6.37, seems to control caching.
+	 * should set read ahead, MMC-6 §6.37, seems to control caching.
 	 */
 
 	/*
@@ -843,7 +937,7 @@ mmcgettoc(Drive *drive)
 		if(vflag)
 			print("blank disc %d %d\n", first, last);
 		/* the assumption of blankness may be unwarranted */
-		drive->writeok = drive->blank = drive->blankset = 1;
+		drive->writeok = drive->blank = Yes;
 	} else {
 		first = resp[2];
 		last = resp[3];
@@ -858,26 +952,29 @@ mmcgettoc(Drive *drive)
 		}
 	}
 
+	/* deduce disc type */
 	drive->mmctype = Mmcnone;
 	drive->dvdtype = nil;
 	getdvdstruct(drive);
+	getconf(drive);
 	getbdstruct(drive);
+	if (Desperate)
+		bdguess(drive);
 	if (drive->mmctype == Mmcnone)
 		drive->mmctype = Mmccd;		/* by default */
-	if (drive->recordable || drive->erasable)
-		drive->writeok = 1;
+	if (drive->recordable == Yes || drive->erasable == Yes)
+		drive->writeok = Yes;
 
 	if (vflag) {
 		fprint(2, "writeok %d", drive->writeok);
 		/* drive->blank is never used and hard to figure out */
-//		if (drive->blankset)
-//			fprint(2, " blank %d", drive->blank);
-		if (drive->recordableset)
+		if (drive->recordable != Unset)
 			fprint(2, " recordable %d", drive->recordable);
-		if (drive->erasableset)
+		if (drive->erasable != Unset)
 			fprint(2, " erasable %d", drive->erasable);
 		fprint(2, "\n");
-		print("first %d last %d\n", first, last);
+		fprint(2, "first %d last %d\n", first, last);
+		fprint(2, "it's a %s disc.\n\n", disctype(drive)); /* leak */
 	}
 
 	if(first == 0 && last == 0)
@@ -954,7 +1051,7 @@ mmcsetbs(Drive *drive, int bs)
 		switch(bs){
 		case BScdda:
 			/* 2 audio channels without pre-emphasis */
-			settrkmode(p, Tmcdda);	/* TODO: should be Tm2audio? */
+			settrkmode(p, Tmcdda);	/* should be Tm2audio? */
 			p[Wpdatblktype] = Dbraw;
 			break;
 		case BScdrom:
@@ -1023,9 +1120,8 @@ mmcread(Buf *buf, void *v, long nblock, ulong off)
 	 * a cd drive with a cd in it and we're not reading data
 	 * (e.g., reading audio).
 	 */
-	memset(cmd, 0, sizeof(cmd));
 	if (drive->type == TypeCD && drive->mmctype == Mmccd && bs != BScdrom) {
-		cmd[0] = ScmdReadcd;
+		initcdb(cmd, sizeof cmd, ScmdReadcd);
 		cmd[2] = off>>24;
 		cmd[3] = off>>16;
 		cmd[4] = off>>8;
@@ -1049,7 +1145,7 @@ mmcread(Buf *buf, void *v, long nblock, ulong off)
 			return -1;
 		}
 	} else {			/* e.g., TypeDA */
-		cmd[0] = ScmdRead12;
+		initcdb(cmd, sizeof cmd, ScmdRead12);
 		cmd[2] = off>>24;
 		cmd[3] = off>>16;
 		cmd[4] = off>>8;
@@ -1111,7 +1207,7 @@ format(Drive *drive)
 	uchar *fmtdesc;
 	uchar cmd[6], parms[4+8];
 
-	if (drive->recordable && drive->mmctype != Mmcbd) {
+	if (drive->recordable == Yes && drive->mmctype != Mmcbd) {
 		werrstr("don't format write-once cd or dvd media");
 		return -1;
 	}
@@ -1166,8 +1262,7 @@ mmcxwrite(Otrack *o, void *v, long nblk)
 	aux->ntotby += nblk*o->track->bs;
 	aux->ntotbk += nblk;
 
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdExtwrite;		/* write (10) */
+	initcdb(cmd, sizeof cmd, ScmdExtwrite);	/* write (10) */
 	cmd[2] = aux->mmcnwa>>24;
 	cmd[3] = aux->mmcnwa>>16;
 	cmd[4] = aux->mmcnwa>>8;
@@ -1297,7 +1392,7 @@ mmccreate(Drive *drive, int type)
 
 	/* special hack for dvd-r: reserve the invisible track */
 	if (drive->mmctype == Mmcdvdminus && drive->writeok &&
-	    drive->recordable && reserve(drive, invis) < 0) {
+	    drive->recordable == Yes && reserve(drive, invis) < 0) {
 		if (vflag)
 			fprint(2, "mmcreate: reserving track %d for dvd-r "
 				"failed: %r\n", invis);
@@ -1339,8 +1434,7 @@ mmcxclose(Drive *drive, int clf, int trackno)
 {
 	uchar cmd[10];
 
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdClosetracksess;
+	initcdb(cmd, sizeof cmd, ScmdClosetracksess);
 	/* cmd[1] & 1 is the immediate bit */
 	cmd[2] = clf;				/* close function */
 	if(clf == Closetrack)
@@ -1364,7 +1458,7 @@ mmcsynccache(Drive *drive)
 	if (vflag) {
 		fprint(2, "syncing cache");
 		if (drive->mmctype == Mmcdvdminus && drive->writeok &&
-		    drive->recordable)
+		    drive->recordable == Yes)
 			fprint(2, "; dvd-r burning rest of track reservation, "
 				"will be slow");
 		fprint(2, "\n");
@@ -1383,7 +1477,7 @@ mmcsynccache(Drive *drive)
 	 * rsc: seems not to work on some drives.
 	 * so ignore return code & don't issue on dvd+rw.
 	 */
-	if(drive->mmctype != Mmcdvdplus || !drive->erasable) {
+	if(drive->mmctype != Mmcdvdplus || drive->erasable == No) {
 		if (vflag)
 			fprint(2, "closing invisible track %d (not dvd+rw)...\n",
 				invis);
@@ -1445,7 +1539,7 @@ mmcfixate(Drive *drive)
 	setonesess(drive);
 
 	/* skip explicit close session on bd-r */
-	if (drive->mmctype != Mmcbd || drive->erasable) {
+	if (drive->mmctype != Mmcbd || drive->erasable == Yes) {
 		if (vflag)
 			fprint(2, "closing session and maybe finalizing...\n");
 		r = mmcxclose(drive, Closesessfinal, 0);
@@ -1459,7 +1553,7 @@ mmcfixate(Drive *drive)
 	 * Closedvdrbdfinal closes & finalizes dvd+r and bd-r.
 	 */
 	if ((drive->mmctype == Mmcdvdplus || drive->mmctype == Mmcbd) &&
-	    !drive->erasable) {
+	    drive->erasable == No) {
 		if (vflag)
 			fprint(2, "finalizing dvd+r or bd-r... "
 				"(won't print `done').\n");
@@ -1475,8 +1569,7 @@ mmcblank(Drive *drive, int quick)
 
 	drive->nchange = -1;		/* force reread toc */
 
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdBlank;		/* blank cd-rw media */
+	initcdb(cmd, sizeof cmd, ScmdBlank);	/* blank cd-rw media */
 	/* immediate bit is 0x10 */
 	/* cmd[1] = 0 means blank the whole disc; = 1 just the header */
 	cmd[1] = quick ? 0x01 : 0x00;
@@ -1519,8 +1612,7 @@ mmcsetspeed(Drive *drive, int r, int w)
 	char *rv;
 	uchar cmd[12];
 
-	memset(cmd, 0, sizeof(cmd));
-	cmd[0] = ScmdSetcdspeed;
+	initcdb(cmd, sizeof cmd, ScmdSetcdspeed);
 	cmd[2] = r>>8;
 	cmd[3] = r;
 	cmd[4] = w>>8;

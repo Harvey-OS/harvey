@@ -30,6 +30,17 @@ enum {
 	TypeDisk,
 	TypeBlank,
 
+	/* disc writability classes */
+	Readonly	= 0,		/* -ROM */
+	Write1,				/* -R: write once only */
+	Erasewrite,			/* -R[WE]: erase then write */
+	Ram,				/* -RAM: read & write unrestricted */
+
+	/* tri-state flags */
+	Unset		= -1,
+	No,
+	Yes,
+
 	/* offsets in Pagcapmechsts mode page; see MMC-3 §5.5.10 */
 	Capread		= 2,
 	Capwrite	= 3,
@@ -129,11 +140,12 @@ enum {
 };
 
 typedef struct Buf Buf;
-typedef struct Drive Drive;
-typedef struct Track Track;
-typedef struct Otrack Otrack;
 typedef struct Dev Dev;
+typedef struct Drive Drive;
 typedef struct Msf Msf;		/* minute, second, frame */
+typedef struct Otrack Otrack;
+typedef struct Track Track;
+typedef schar Tristate;
 
 struct Msf {
 	int	m;
@@ -196,23 +208,24 @@ struct Drive
 	QLock;
 	Scsi;
 
-	int	type;			/* scsi peripheral device type */
+	int	type;			/* scsi peripheral device type: Type?? */
 
 	/* disc characteristics */
-	int	mmctype;
-	char	*dvdtype;
+	int	mmctype;		/* cd, dvd, or bd */
+	char	*dvdtype;		/* name of dvd flavour */
 	int	firsttrack;
 	int	ntrack;
 	int	nchange;		/* compare with the members in Scsi */
 	ulong	changetime;		/* " */
 	int	nameok;
-	int	writeok;
-	int	blank;			/* (not used for anything yet) */
-	int	blankset;
-	int	recordable;		/* writable by burning? */
-	int	recordableset;
-	int	erasable;		/* rewritable? */
-	int	erasableset;
+	int	writeok;		/* writable disc? */
+	Tristate blank;			/* (not used for anything yet) */
+	/*
+	 * we could combine these attributes into a single variable except
+	 * that we discover them separately sometimes.
+	 */
+	Tristate recordable;		/* writable by burning? */
+	Tristate erasable;		/* writable after erasing? */
 
 	Track	track[Ntrack];
 	ulong	cap;			/* drive capabilities */
