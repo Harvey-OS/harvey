@@ -22,10 +22,13 @@ setrtc
 
 # turn off graphics, if any
 if (test -e '#v/vgactl' && test -e '#P/realmode') {
-	prompt=''
-	kill rio | rc -i &
-	sleep 2
-	aux/vga -l text
+	vgatype=`{read '#v/vgactl'}
+	if (! ~ $vgatype(2) cga) {
+		prompt=''
+		kill rio | rc -i &
+		sleep 2
+		aux/vga -l text
+	}
 }
 
 fn isbootable {
