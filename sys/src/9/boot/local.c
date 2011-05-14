@@ -212,7 +212,7 @@ connectlocalfossil(void)
 
 	settime(1, -1, nil);
 
-	/* make venti available */
+	/* make venti available.  give it 20% of free memory. */
 	if((venti = getenv("venti")) && (nf = tokenize(venti, f, nelem(f)))){
 		if((fd = open(f[0], OREAD)) >= 0){
 			print("venti...");
@@ -234,7 +234,8 @@ connectlocalfossil(void)
 				f[2] = "tcp!127.1!8000";
 			}
 			configloopback();
-			run("/boot/venti", "-c", f[0], "-a", f[1], "-h", f[2], 0);
+			run("/boot/venti", "-m", "20", "-c", f[0],
+				"-a", f[1], "-h", f[2], nil);
 			/*
 			 * If the announce address is tcp!*!foo, then set
 			 * $venti to tcp!127.1!foo instead, which is actually dialable.
@@ -253,9 +254,10 @@ connectlocalfossil(void)
 		}
 	}
 
-	/* start fossil */
+	/* start fossil.  give it 20% of free memory. */
 	print("fossil(%s)...", partition);
-	run("/boot/fossil", "-f", partition, "-c", "srv -A fboot", "-c", "srv -p fscons", 0);
+	run("/boot/fossil", "-m", "20", "-f", partition,
+		"-c", "srv -A fboot", "-c", "srv -p fscons", nil);
 	fd = open("#s/fboot", ORDWR);
 	if(fd < 0){
 		warning("open #s/fboot");
