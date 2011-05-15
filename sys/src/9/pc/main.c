@@ -652,9 +652,9 @@ shutdown(int ispanic)
 	/*
 	 * setting exiting will make hzclock() on each processor call exit(0),
 	 * which calls shutdown(0) and arch->reset(), which on mp systems is
-	 * mpshutdown, from which there is no return: the processor is idled
-	 * or initiates a reboot.  clearing our bit in machs avoids calling
-	 * exit(0) from hzclock() on this processor.
+	 * mpshutdown, which idles non-bootstrap cpus and returns on bootstrap
+	 * processors (to permit a reboot).  clearing our bit in machs avoids
+	 * calling exit(0) from hzclock() on this processor.
 	 */
 	active.machs &= ~(1<<m->machno);
 	active.exiting = 1;
@@ -702,11 +702,16 @@ reboot(void *entry, void *code, ulong size)
 		sched();
 	}
 
-	/*
-	 * shutdown is too drastic on the pc, it starts a system reset.
-	 * just reset the other cpus, if any.
-	 */
 	if(conf.nmach > 1) {
+		/*
+		 * the other cpus could be holding locks that will never get
+		 * released (e.g., in the print path) if we put them into
+		 * reset now, so force them to shutdown gracefully first.
+		 */
+		lock(&active);
+		active.rebooting = 1;
+		unlock(&active);
+		shutdown(0);
 		mpresetothers();	/* bug: requires archmp */
 		delay(20);
 	}
