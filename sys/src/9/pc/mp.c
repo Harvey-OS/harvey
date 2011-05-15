@@ -874,6 +874,8 @@ mpshutdown(void)
 		idle();
 	}
 
+	if(active.rebooting)
+		return;
 	print("apshutdown: active = %#8.8ux\n", active.machs);
 	delay(1000);
 	splhi();
