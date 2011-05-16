@@ -419,6 +419,7 @@ enum {
 	i82571,
 	i82572,
 	i82573,
+	i82574,
 	i82575,
 	i82576,
 	i82577,
@@ -431,6 +432,7 @@ static char *tname[] = {
 	"i82571",
 	"i82572",
 	"i82573",
+	"i82574",
 	"i82575",
 	"i82576",
 	"i82577",
@@ -1042,9 +1044,9 @@ i82563pci(void)
 		case 0x109a:		/*  l */
 			type = i82573;
 			break;
-//		case 0x10d3:		/* l */
-//			type = i82574;	/* never heard of it */
-//			break;
+		case 0x10d3:		/* l */
+			type = i82574;
+			break;
 		case 0x10a7:		/* 82575eb */
 			type = i82575;
 			break;
