@@ -813,7 +813,7 @@ isectproc(void *v)
 	}
 	if (nbuf == 0) {
 		fprint(2, "%s: brand-new index, no work to do\n", argv0);
-		exits(0);
+		threadexitsall(0);
 	}
 
 	/* size buffer to use extra memory */

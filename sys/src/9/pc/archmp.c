@@ -54,6 +54,15 @@ mpsearch(void)
 	return mpscan(KADDR(0xF0000), 0x10000);
 }
 
+static void
+mpresetothers(void)
+{
+	/*
+	 * INIT all excluding self.
+	 */
+	lapicicrw(0, 0x000C0000|ApicINIT);
+}
+
 static int identify(void);
 
 PCArch archmp = {
@@ -66,6 +75,7 @@ PCArch archmp = {
 .introff=	lapicintroff,
 .fastclock=	i8253read,
 .timerset=	lapictimerset,
+.resetothers=	mpresetothers,
 };
 
 static int

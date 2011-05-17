@@ -210,6 +210,8 @@ documented in
 .IR fossilcons (8).
 .PP
 The options are:
+.TF "-c\fI cmd
+.PD
 .TP
 .B -D
 Toggle the debugging flag, which is initially off.
@@ -299,6 +301,8 @@ blocks and any inconsistencies involving the active file system
 should be taken with a grain of salt.
 .PP
 The options are:
+.TF "-h\fI host
+.PD
 .TP
 .B -f
 Fast mode.
@@ -335,6 +339,8 @@ and
 .BR snapshot ,
 as described above.
 The options are:
+.TF "-b\fI blocksize
+.PD
 .TP
 .B -y
 Yes mode.

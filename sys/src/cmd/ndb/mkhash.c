@@ -76,7 +76,7 @@ main(int argc, char **argv)
 	uchar *p;
 
 	if(argc != 3){
-		fprint(2, "mkhash: usage file attribute\n");
+		fprint(2, "usage: mkhash file attribute\n");
 		exits("usage");
 	}
 	db = ndbopen(argv[1]);
