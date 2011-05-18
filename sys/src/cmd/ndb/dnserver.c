@@ -109,9 +109,11 @@ dnserver(DNSmsg *reqp, DNSmsg *repp, Request *req, uchar *srcip, int rcode)
 			if(repp->ns){
 				/* don't pass on anything we know is wrong */
 				if(repp->ns->negative){
+					lock(&dnlock);
 					rp = repp->ns;
 					repp->ns = nil;
 					rrfreelist(rp);
+					unlock(&dnlock);
 				}
 				break;
 			}

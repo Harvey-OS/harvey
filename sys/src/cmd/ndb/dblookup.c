@@ -106,18 +106,18 @@ dblookup(char *name, int class, int type, int auth, int ttl)
 		return 0;
 
 	err = Rname;
+	rp = nil;
 
 	if(type == Tall){
-		lock(&dnlock);
-		rp = nil;
 		for (type = Ta; type < Tall; type++)
-			if(implemented[type])
-				rrcat(&rp, dblookup(name, class, type, auth, ttl));
-		unlock(&dnlock);
+			if(implemented[type]) {
+				tp = dblookup(name, class, type, auth, ttl);
+				lock(&dnlock);
+				rrcat(&rp, tp);
+				unlock(&dnlock);
+			}
 		return rp;
 	}
-
-	rp = nil;
 
 	lock(&dblock);
 	dp = dnlookup(name, class, 1);

@@ -110,9 +110,12 @@ static struct stats {
 
 static long getfrees = 0;
 
-int bracket = 0;			/* curly brace count */
-int linect = 0;				/* line number */
+int bracket = 0;			/* curly brace count in input */
+int linect = 0;				/* line number in output */
 int activep = 0;			/* current function being output */
+
+char *infile;
+int lineno = 1;				/* line number of input */
 
 /* options */
 int terse = 1;				/* track functions only once */
@@ -467,6 +470,8 @@ skipcomments(Biobuf *in, int firstc)
 
 	for (c = firstc; isascii(c) && isspace(c) || c == '/';
 	     c = Bgetrune(in)) {
+		if (c == '\n')
+			lineno++;
 		if (c != '/')
 			continue;
 		c = Bgetrune(in);		/* read ahead */
@@ -479,12 +484,15 @@ skipcomments(Biobuf *in, int firstc)
 		if (c == '/') {			/* c++ style */
 			while ((c = Bgetrune(in)) != '\n' && c != Beof)
 				;
+			if (c == '\n')
+				lineno++;
 			continue;
 		}
 		for (;;) {
 			/* skip to possible closing delimiter */
 			while ((c = Bgetrune(in)) != '*' && c != Beof)
-				;
+				if (c == '\n')
+					lineno++;
 			if (c == Beof)
 				break;
 			/* else c == '*' */
@@ -610,9 +618,11 @@ getfunc(Biobuf *in, char *atom)
 		switch (c) {
 		case Beof:
 			return Beof;
+		case '\n':
+			lineno++;
+			/* fall through */
 		case '\t':		/* ignore white space */
 		case ' ':
-		case '\n':
 		case '\f':
 		case '\r':
 		case '/':		/* potential comment? */
@@ -627,8 +637,10 @@ getfunc(Biobuf *in, char *atom)
 			/* CPP output will not span lines */
 			while ((c = Bgetrune(in)) != '\n' && c != Beof)
 				;
-			if (c == '\n')
+			if (c == '\n') {
+				lineno++;
 				c = Bgetrune(in);
+			}
 			break;
 		case Quote:		/* character constant */
 		case '\"':		/* string constant */
@@ -645,10 +657,12 @@ getfunc(Biobuf *in, char *atom)
 			c = newatom(in, atom);
 			break;
 		case '}':		/* end of a block */
-			--bracket;
-			if (bracket < 0)
-				fprint(2, "%s: bracket underflow!\n",
-					argv0);
+			if (bracket < 1)
+				fprint(2, "%s: %s:%d: too many closing braces; "
+					"previous open brace missing\n",
+					argv0, infile, lineno);
+			else
+				--bracket;
 			c = newatom(in, atom);
 			break;
 		case '(':		/* parameter list for function? */
@@ -662,7 +676,9 @@ getfunc(Biobuf *in, char *atom)
 					}
 				ss = seen(atom);
 				if (ss == Nomore)
-					fprint(2, "%s: aseen overflow!\n", argv0);
+					fprint(2, "%s: %s:%d: more than %d "
+						"identifiers in a function\n",
+						argv0, infile, lineno, Maxseen);
 				if (bracket > 0 && ss == Added)
 					return Call;
 			}
@@ -785,6 +801,8 @@ scanfiles(int argc, char **argv)
 			return;
 		}
 
+		infile = s_to_c(cmd);
+		lineno = 1;
 		addfuncs(infd);
 
 		sts = pushclose(&ps);

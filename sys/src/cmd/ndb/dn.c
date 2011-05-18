@@ -856,9 +856,11 @@ rrattach(RR *rp, int auth)
 		rp->next = nil;
 		dp = rp->owner;
 
-		/* avoid any outside spoofing */
 //		dnslog("rrattach: %s", rp->owner->name);
-		if(cfg.cachedb && !rp->db && inmyarea(rp->owner->name))
+		/* avoid any outside spoofing; leave keepers alone */
+		if(cfg.cachedb && !rp->db && inmyarea(rp->owner->name)
+//		    || dp->keep			/* TODO: make this work */
+		    )
 			rrfree(rp);
 		else {
 			/* ameliorate the memory leak (someday delete this) */
@@ -1041,8 +1043,8 @@ rrlookup(DN *dp, int type, int flag)
 		}
 
 out:
-	unlock(&dnlock);
 	unique(first);
+	unlock(&dnlock);
 //	dnslog("rrlookup(%s) -> %#p\t# in-core only", dp->name, first);
 //	if (first)
 //		setmalloctag(first, getcallerpc(&dp));
@@ -1594,6 +1596,7 @@ rrequiv(RR *r1, RR *r2)
 		&& r1->arg1 == r2->arg1;
 }
 
+/* called with dnlock held */
 void
 unique(RR *rp)
 {
