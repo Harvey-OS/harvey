@@ -91,8 +91,10 @@ freearea(Area **l)
 
 	while(s = *l){
 		*l = s->next;
+		lock(&dnlock);
 		rrfree(s->soarr);
 		memset(s, 0, sizeof *s);	/* cause trouble */
+		unlock(&dnlock);
 		free(s);
 	}
 }

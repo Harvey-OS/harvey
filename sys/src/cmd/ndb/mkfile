@@ -34,6 +34,10 @@ BIN=/$objtype/bin/ndb
 $O.dns: $DNSOBJ
 	$LD -o $target $prereq
 
+# print it in landscape orientation; it's way more useful than 80 columns
+calls.dns:D: ${DNSOBJ:%.$O=%.c}
+	calls -w 132 -f main $prereq >$target
+
 $O.dnstcp: $DNSTCPOBJ
 	$LD -o $target $prereq
 
