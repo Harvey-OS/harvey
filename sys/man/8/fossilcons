@@ -106,7 +106,7 @@ con /srv/fscons
 .I name
 .B open
 [
-.B -APVWr
+.B -APVWar
 ]
 [
 .B -c
@@ -479,6 +479,8 @@ manipulates entries in the user table.
 There is no distinction between users and groups:
 a user is a group with one member.
 For each user, the user table records:
+.TF \fImembers
+.PD
 .TP
 .I id
 the string used to represent this user in the on-disk structures
@@ -525,6 +527,8 @@ is the
 .I name
 of a user.
 The second argument is a verb, one of:
+.TF \fI%newname
+.PD
 .TP
 .I id
 create a user with name
@@ -712,6 +716,8 @@ opens the file system, reading the
 root and super blocks and allocating an in-memory
 cache for disk and Venti blocks.
 The options are:
+.TF "-c\fI ncache
+.PD
 .TP
 .B -A
 run with no authentication
@@ -724,6 +730,10 @@ do not attempt to connect to a Venti server
 .TP
 .B -W
 allow wstat to make arbitrary changes to the user and group fields
+.TP
+.B -a
+do not update file access times;
+primarily to avoid wear on flash memories
 .TP
 .B -r
 open the file system read-only

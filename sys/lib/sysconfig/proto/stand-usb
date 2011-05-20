@@ -25,9 +25,97 @@ usr	- sys sys
 
 # architectures are owned by sys
 386	- sys sys
-	+	- sys sys
+	*	- sys sys
+	bin	- sys sys
+		*	- sys sys
+		ape	- sys sys
+			+	- sys sys
+		auth	- sys sys
+			+	- sys sys
+		aux	- sys sys
+			+	- sys sys
+		aviation	- sys sys
+			+	- sys sys
+		bitsy	- sys sys
+			+	- sys sys
+		dial	- sys sys
+			+	- sys sys
+		disk	- sys sys
+			+	- sys sys
+		fb	- sys sys
+			+	- sys sys
+		fossil	- sys sys
+			+	- sys sys
+		fs	- sys sys
+			+	- sys sys
+		games	- sys sys
+			+	- sys sys
+		ip	- sys sys
+			+	- sys sys
+		ndb	- sys sys
+			+	- sys sys
+		replica	- sys sys
+			+	- sys sys
+		upas	- sys sys
+			+	- sys sys
+		usb	- sys sys
+			+	- sys sys
+		venti	- sys sys
+			+	- sys sys
+	include	- sys sys
+		*	- sys sys
+		ape	- sys sys
+			+	- sys sys
+	lib	- sys sys
+		*	- sys sys
+		ape	- sys sys
+			+	- sys sys
 amd64	- sys sys
-	+	- sys sys
+	*	- sys sys
+	bin	- sys sys
+		*	- sys sys
+		ape	- sys sys
+			+	- sys sys
+		auth	- sys sys
+			+	- sys sys
+		aux	- sys sys
+			+	- sys sys
+		aviation	- sys sys
+			+	- sys sys
+		bitsy	- sys sys
+			+	- sys sys
+		dial	- sys sys
+			+	- sys sys
+		disk	- sys sys
+			+	- sys sys
+		fb	- sys sys
+			+	- sys sys
+		fossil	- sys sys
+			+	- sys sys
+		fs	- sys sys
+			+	- sys sys
+		games	- sys sys
+			+	- sys sys
+		ip	- sys sys
+			+	- sys sys
+		ndb	- sys sys
+			+	- sys sys
+		replica	- sys sys
+			+	- sys sys
+		upas	- sys sys
+			+	- sys sys
+		usb	- sys sys
+			+	- sys sys
+		venti	- sys sys
+			+	- sys sys
+	include	- sys sys
+		*	- sys sys
+		ape	- sys sys
+			+	- sys sys
+	lib	- sys sys
+		*	- sys sys
+		ape	- sys sys
+			+	- sys sys
 
 # everything else is owned by sys
 acme	- sys sys
@@ -60,14 +148,45 @@ mnt	- sys sys
 n	- sys sys
 	+	- sys sys
 rc	- sys sys
-	+	- sys sys
+	bin	- sys sys
+		+	- sys sys
+		ape	- sys sys
+			+	- sys sys
+		dial	- sys sys
+			+	- sys sys
+		ipconf	- sys sys
+			+	- sys sys
+		patch	- sys sys
+			+	- sys sys
+		pc	- sys sys
+			+	- sys sys
+		postscript	- sys sys
+			+	- sys sys
+		replica	- sys sys
+			+	- sys sys
+		service	- sys sys
+			+	- sys sys
+		service.alt.auth	- sys sys
+			+	- sys sys
+		service.alt.standalone	- sys sys
+			+	- sys sys
+		service.auth	- sys sys
+			+	- sys sys
+		service.fs	- sys sys
+			+	- sys sys
+		service.standalone	- sys sys
+			+	- sys sys
+	lib	- sys sys
+		*	- sys sys
 sys	- sys sys
 	doc	- sys sys
 		+	- sys sys
 	include	- sys sys
-		+	- sys sys
+		*	- sys sys
+		ape	- sys sys
+			+	- sys sys
 	lib	- sys sys
-		*
+		*	- sys sys
 		acid	- sys sys
 			+	- sys sys
 		backup	- sys sys
@@ -90,8 +209,12 @@ sys	- sys sys
 			+	- sys sys
 		sysconfig	- sys sys
 			+	- sys sys
+# we only care about texmf/tex/generic/hyphen/hyphen.tex, because troff uses it
 		texmf	- sys sys
-			+	- sys sys
+			tex	- sys sys
+				generic	- sys sys
+					hyphen	- sys sys
+						hyphen.tex - sys sys
 		tls	- sys sys
 			+	- sys sys
 		tmac	- sys sys
@@ -99,7 +222,7 @@ sys	- sys sys
 		troff	- sys sys
 			+	- sys sys
 		wiki	- sys sys
-			+	- sys sys
+			*	- sys sys
 	log	- sys sys
 		+	- sys sys
 	man	- sys sys
