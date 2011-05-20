@@ -1,0 +1,160 @@
+#!/bin/rc
+# mkusbboot - make a bootable standalone plan 9 image to copy to a usb disk.
+#
+# due to name clashes in /srv, will only work on a machine
+# without a fossil named `fossil' already running.
+
+rfork en
+syscfg=/sys/lib/sysconfig
+proto=$syscfg/proto/stand-usb
+srcroot=/n/boot
+quantum=1000000
+# size of image in $quantum-byte units.  1900 is enough for production system
+# (fs, /n/boot, ~1.2GB); 900 is ample for our install image
+# (sources, /n/sources/plan9, ~370MB).
+size=1900
+
+fn killfossil {
+	sleep 1
+	unmount /n/f &
+	sleep 1
+	rm -f /srv/^(fossil fossil.open fscons fscons.open)
+	kill fossil | rc
+	sleep 1
+}
+
+fn sendexpect {		# send expect timeout
+	echo $1
+	if(! dial/expect -qt $3 $2)
+		echo -n 'no '^$"1^'...' > /dev/cons
+}
+
+fn usage {
+	echo usage: $argv0 '[-p proto] [-r root] [-s 10⁶-bytes]' >[1=2]
+	exit usage
+}
+
+fn sigexit {
+	rm -f /tmp/^(9load fossil-no-list.conf)
+	exit
+}
+fn sigint sighup sigterm {
+	rm -f /tmp/^(9load fossil-no-list.conf)
+	killfossil
+	exit note
+}
+
+# process arguments
+done=0
+argv0=$0
+while (~ $done 0 && ! ~ $#* 0 && ~ $1 -*) {
+	switch ($1) {
+	case -p;	proto=$2; shift
+	case -r;	srcroot=$2; shift
+	case -s;	size=$2; shift
+	case --;	done=1			# no break in rc, alas
+	case -*;	usage
+	}
+	shift
+}
+if (! ~ $#* 0)
+	usage
+
+# special case sources
+if (~ $srcroot /n/*)
+	srcfs=`{ echo $srcroot | sed 's;^/n/([^/]+).*;\1;' }
+if (~ $srcfs sources)
+	size=900
+
+# make empty disk image file of maximum size
+echo -n 'image: ' >[1=2]
+dd -ibs $quantum -obs $quantum -oseek `{hoc -e $size'-1'} -count 1 -quiet 1 \
+	</dev/zero >image
+
+# partition it
+disk/partfs image
+cd /dev/sdXX
+
+# prep it: lay down mbr, fdisk partitions, 9 partitions
+echo -n mbr+fdisk+prep... >[1=2]
+disk/mbr -m /$objtype/mbr data
+disk/fdisk -baw data
+disk/prep -bw -a^(9fat nvram fscfg fossil) plan9 >/dev/null
+
+# populate 9fat, nvram, fsconfig
+echo -n 9fat... >[1=2]
+cp /$objtype/9loadusb /tmp/9load	# force format to use the name `9load'
+switch ($objtype) {
+case 386
+	k=/$objtype/9pccpuf.gz
+case amd64
+	k=/$objtype/9k8cpu
+case *
+	echo $0: 'can''t cope with architecture' $objtype >[1=2]
+	exit unknown-arch
+}
+disk/format -b /$objtype/pbslba -d -r 2 9fat /tmp/9load $k \
+	$syscfg/usb/plan9.ini >[2=1] |
+	grep -v '^(add .* at clust |Init|type |Adding file|used )'
+cp /dev/zero nvram >[2]/dev/null
+cp /dev/zero fscfg >[2]/dev/null
+
+# initialise fossil
+echo -n fossil init... >[1=2]
+fossil/flfmt -y fossil
+
+# install listen-less config for fossil creation
+{
+	grep -v '^listen ' $syscfg/usb/fossil.conf
+	echo create /active/adm adm sys d775
+	echo create /active/adm/users adm sys 664
+} >/tmp/fossil-no-list.conf
+fossil/conf -w fossil /tmp/fossil-no-list.conf
+if (test -e /srv/fossil -o -e /srv/fossil.open) {
+	echo $0: /srv/fossil* exists, not safe to start a new one >[1=2]
+	exit exists
+}
+
+# start fossil
+fossil/fossil -f /dev/sdXX/fossil
+mount -cC /srv/fossil.open /n/f
+
+# set up /adm/users
+cp /adm/users /n/f/adm
+{
+	echo
+	dial/drain &
+	sleep 2
+	sendexpect 'users -r /active/adm/users' ': ' 5
+} </srv/fscons.open >>/srv/fscons.open
+
+# remount with new users
+unmount /n/f
+mount -cC /srv/fossil.open /n/f
+
+# populate fossil
+9fs $srcfs
+@ {
+	# logs are boring, make them all appear empty
+	chmod +arw /tmp/empty-log >/tmp/empty-log
+	cd $srcroot/sys/log && {
+		for (f in [0-9a-z]* */*)
+			if (! ~ $f httpd mkfile smtpdb timesync.d vac year)
+				bind /tmp/empty-log $f
+	}
+	cd /tmp
+	disk/mkfs -u $srcroot/adm/users -U -d /n/f -s $srcroot $proto
+}
+
+# stop fossil gracefully
+{
+	echo
+	dial/drain &
+	sleep 2
+	sendexpect 'fsys all sync' ': ' 120
+	sendexpect 'fsys all halt' ': ' 5
+} </srv/fscons.open >>/srv/fscons.open
+killfossil
+
+# install permanent fossil configuration
+fossil/conf -w fossil $syscfg/usb/fossil.conf
