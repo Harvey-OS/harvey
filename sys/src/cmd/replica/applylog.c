@@ -165,6 +165,17 @@ notexists(char *path)
 	return 0;
 }
 
+int
+prstopped(int skip, char *name)
+{
+	if(!skip) {
+		fprint(2, "stopped updating log apply time because of %s\n",
+			name);
+		skip = 1;
+	}
+	return skip;
+}
+
 void
 main(int argc, char **argv)
 { 
@@ -291,9 +302,7 @@ main(int argc, char **argv)
 			if(access(remote, AEXIST) >= 0)	/* got recreated! */
 				break;
 			if(!ismatch(name)){
-				if(!skip)
-					fprint(2, "stopped updating log apply time because of %s\n", name);
-				skip = 1;
+				skip = prstopped(skip, name);
 				continue;
 			}
 			SET(checkedmatch1);
@@ -342,9 +351,7 @@ main(int argc, char **argv)
 		case 'a':	/* add file */
 			if(!havedb){
 				if(!ismatch(name)){
-					if(!skip)
-						fprint(2, "stopped updating log apply time because of %s\n", name);
-					skip = 1;
+					skip = prstopped(skip, name);
 					continue;
 				}
 				SET(checkedmatch2);
@@ -371,9 +378,7 @@ main(int argc, char **argv)
 				if((ld.mode&DMDIR) && (rd.mode&DMDIR))
 					break;
 				if(!ismatch(name)){
-					if(!skip)
-						fprint(2, "stopped updating log apply time because of %s\n", name);
-					skip = 1;
+					skip = prstopped(skip, name);
 					continue;
 				}
 				SET(checkedmatch2);
@@ -386,15 +391,13 @@ main(int argc, char **argv)
 				if(resolve1=='s')
 					goto DoCreate;
 				else if(resolve1 == 'c')
-					break;
+					goto DoCreateDb;
 				conflict(name, "locally modified; will not overwrite");
 				skip = 1;
 				continue;
 			}
 			if(!ismatch(name)){
-				if(!skip)
-					fprint(2, "stopped updating log apply time because of %s\n", name);
-				skip = 1;
+				skip = prstopped(skip, name);
 				continue;
 			}
 			SET(checkedmatch2);
@@ -456,9 +459,7 @@ main(int argc, char **argv)
 					break;
 				}
 				if(!ismatch(name)){
-					if(!skip)
-						fprint(2, "stopped updating log apply time because of %s\n", name);
-					skip = 1;
+					skip = prstopped(skip, name);
 					continue;
 				}
 				SET(checkedmatch3);
@@ -480,9 +481,7 @@ main(int argc, char **argv)
 			if(dbd.mtime >= rd.mtime)		/* already have/had this version; ignore */
 				break;
 			if(!ismatch(name)){
-				if(!skip)
-					fprint(2, "stopped updating log apply time because of %s\n", name);
-				skip = 1;
+				skip = prstopped(skip, name);
 				continue;
 			}
 			SET(checkedmatch3);
@@ -514,7 +513,7 @@ main(int argc, char **argv)
 				if(resolve1 == 's')
 					goto DoCopy;
 				else if(resolve1 == 'c')
-					break;
+					goto DoCopyDb;
 				conflict(name, "locally modified; will not update [%llud %lud -> %llud %lud]", dbd.length, dbd.mtime, ld.length, ld.mtime);
 				skip = 1;
 				continue;
@@ -558,9 +557,7 @@ main(int argc, char **argv)
 					break;
 				}
 				if(!ismatch(name)){
-					if(!skip)
-						fprint(2, "stopped updating log apply time because of %s\n", name);
-					skip = 1;
+					skip = prstopped(skip, name);
 					continue;
 				}
 				SET(checkedmatch4);
@@ -591,9 +588,7 @@ main(int argc, char **argv)
 					break;
 				}
 				if(!ismatch(name)){
-					if(!skip)
-						fprint(2, "stopped updating log apply time because of %s\n", name);
-					skip = 1;
+					skip = prstopped(skip, name);
 					continue;
 				}
 				SET(checkedmatch4);
@@ -615,9 +610,7 @@ main(int argc, char **argv)
 					break;
 				}
 				if(!ismatch(name)){
-					if(!skip)
-						fprint(2, "stopped updating log apply time because of %s\n", name);
-					skip = 1;
+					skip = prstopped(skip, name);
 					continue;
 				}
 				SET(checkedmatch4);
@@ -640,9 +633,7 @@ main(int argc, char **argv)
 					break;
 				}
 				if(!ismatch(name)){
-					if(!skip)
-						fprint(2, "stopped updating log apply time because of %s\n", name);
-					skip = 1;
+					skip = prstopped(skip, name);
 					continue;
 				}
 				SET(checkedmatch4);
@@ -655,9 +646,7 @@ main(int argc, char **argv)
 				continue;
 			}
 			if(!ismatch(name)){
-				if(!skip)
-					fprint(2, "stopped updating log apply time because of %s\n", name);
-				skip = 1;
+				skip = prstopped(skip, name);
 				continue;
 			}
 			SET(checkedmatch4);
@@ -942,55 +931,69 @@ opentemp(char *template)
 	return fd;
 }
 
-int
-copyfile(char *local, char *remote, char *name, Dir *d, int dowstat, int *printerror)
+static int
+copytotemp(char *remote, int rfd, Dir *d0)
 {
-	Dir *d0, *d1, *dl;
-	Dir nd;
-	int rfd, tfd, wfd, didcreate;
-	char tmp[32], *p, *safe;
-	char err[ERRMAX];
+	int tfd;
+	char tmp[32];
+	Dir *d1;
 
-Again:
-	*printerror = 0;
-	if((rfd = open(remote, OREAD)) < 0)
-		return -1;
-
-	d0 = dirfstat(rfd);
-	if(d0 == nil){
-		close(rfd);
-		return -1;
-	}
-	*printerror = 1;
-	if(!tempspool){
-		tfd = rfd;
-		goto DoCopy;
-	}
 	strcpy(tmp, "/tmp/replicaXXXXXXXX");
 	tfd = opentemp(tmp);
-	if(tfd < 0){
-		close(rfd);
-		free(d0);
+	if(tfd < 0)
 		return -1;
-	}
 	if(copy1(rfd, tfd, remote, tmp) < 0 || (d1 = dirfstat(rfd)) == nil){
-		close(rfd);
 		close(tfd);
-		free(d0);
 		return -1;
 	}
-	close(rfd);
+
 	if(d0->qid.path != d1->qid.path
 	|| d0->qid.vers != d1->qid.vers
 	|| d0->mtime != d1->mtime
 	|| d0->length != d1->length){
 		/* file changed underfoot; go around again */
-		close(tfd);
-		free(d0);
 		free(d1);
-		goto Again;
+		close(tfd);
+		return -2;
 	}
 	free(d1);
+	return tfd;
+}
+
+int
+copyfile(char *local, char *remote, char *name, Dir *d, int dowstat,
+	int *printerror)
+{
+	Dir *d0, *dl;
+	Dir nd;
+	int rfd, tfd, wfd, didcreate;
+	char tmp[32], *p, *safe;
+	char err[ERRMAX];
+
+	do {
+		*printerror = 0;
+		if((rfd = open(remote, OREAD)) < 0)
+			return -1;
+
+		d0 = dirfstat(rfd);
+		if(d0 == nil){
+			close(rfd);
+			return -1;
+		}
+		*printerror = 1;
+		if(!tempspool){
+			tfd = rfd;
+			goto DoCopy;
+		}
+
+		tfd = copytotemp(remote, rfd, d0);
+		close(rfd);
+		if (tfd < 0) {
+			free(d0);
+			if (tfd == -1)
+				return -1;
+		}
+	} while(tfd == -2);
 	if(seek(tfd, 0, 0) != 0){
 		close(tfd);
 		free(d0);
@@ -1107,7 +1110,6 @@ samecontents(char *local, char *remote)
 {
 	Dir *d0, *d1;
 	int rfd, tfd, lfd, ret;
-	char tmp[32];
 
 	/* quick check: sizes must match */
 	d1 = nil;
@@ -1122,41 +1124,21 @@ samecontents(char *local, char *remote)
 		return 0;
 	}
 
-Again:
-	if((rfd = open(remote, OREAD)) < 0)
-		return -1;
-	d0 = dirfstat(rfd);
-	if(d0 == nil){
-		close(rfd);
-		return -1;
-	}
+	do {
+		if((rfd = open(remote, OREAD)) < 0)
+			return -1;
+		d0 = dirfstat(rfd);
+		if(d0 == nil){
+			close(rfd);
+			return -1;
+		}
 
-	strcpy(tmp, "/tmp/replicaXXXXXXXX");
-	tfd = opentemp(tmp);
-	if(tfd < 0){
+		tfd = copytotemp(remote, rfd, d0);
 		close(rfd);
 		free(d0);
-		return -1;
-	}
-	if(copy1(rfd, tfd, remote, tmp) < 0 || (d1 = dirfstat(rfd)) == nil){
-		close(rfd);
-		close(tfd);
-		free(d0);
-		return -1;
-	}
-	close(rfd);
-	if(d0->qid.path != d1->qid.path
-	|| d0->qid.vers != d1->qid.vers
-	|| d0->mtime != d1->mtime
-	|| d0->length != d1->length){
-		/* file changed underfoot; go around again */
-		close(tfd);
-		free(d0);
-		free(d1);
-		goto Again;
-	}
-	free(d1);
-	free(d0);
+		if (tfd == -1)
+			return -1;
+	} while(tfd == -2);
 	if(seek(tfd, 0, 0) != 0){
 		close(tfd);
 		return -1;
