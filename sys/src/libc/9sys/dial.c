@@ -413,7 +413,7 @@ csdial(DS *ds)
 static int
 call(char *clone, char *dest, DS *ds, Dest *dp, Conn *conn)
 {
-	int fd, cfd, n;
+	int fd, cfd, n, oalarm;
 	char cname[Maxpath], name[Maxpath], data[Maxpath], *p;
 
 	/* because cs is in a different name space, replace the mount point */
@@ -467,10 +467,15 @@ call(char *clone, char *dest, DS *ds, Dest *dp, Conn *conn)
 	if(ds->cfdp == nil)
 		closeopenfd(&conn->cfd);
 
-	qlock(&dp->winlck);
-	if (dp->winner < 0 && conn < dp->connend)
-		dp->winner = conn - dp->conn;
-	qunlock(&dp->winlck);
+	n = conn - dp->conn;
+	oalarm = alarm(0);	/* don't let alarm interrupt critical section */
+	if (dp->winner < 0) {
+		qlock(&dp->winlck);
+		if (dp->winner < 0 && conn < dp->connend)
+			dp->winner = n;
+		qunlock(&dp->winlck);
+	}
+	alarm(oalarm);
 	return fd;
 }
 

@@ -959,6 +959,7 @@ ntptimediff(NTPserver *ns)
 	notify(ding);
 	alarm(30*1000);	/* don't wait forever if ns->name is unreachable */
 	fd = dial(netmkaddr(ns->name, "udp", "ntp"), 0, dir, 0);
+	alarm(0);
 	if(fd < 0){
 		if (!whined++)
 			syslog(0, logfile, "can't reach %s: %r", ns->name);
