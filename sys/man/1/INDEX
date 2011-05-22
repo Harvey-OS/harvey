@@ -57,6 +57,7 @@ prompter bitsyload
 bundle bundle
 cal cal
 calendar calendar
+calls calls
 cat cat
 read cat
 cb cb
@@ -128,6 +129,7 @@ fortune fortune
 freq freq
 4s games
 5s games
+festoon games
 games games
 juggle games
 life games
@@ -228,6 +230,7 @@ ps2pdf ps2pdf
 pump pump
 pbd pwd
 pwd pwd
+ratrace ratrace
 . rc
 cd rc
 eval rc
@@ -257,6 +260,7 @@ B sam
 sam sam
 sam.save sam
 samterm sam
+seconds seconds
 aescbc secstore
 ipso secstore
 secstore secstore
@@ -264,6 +268,7 @@ sed sed
 seq seq
 size size
 sleep sleep
+soelim soelim
 sort sort
 spell spell
 sprog spell

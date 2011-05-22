@@ -44,6 +44,7 @@ segment segment
 srv srv
 ssl ssl
 tls tls
+twsi twsi
 eia uart
 uart uart
 usb usb

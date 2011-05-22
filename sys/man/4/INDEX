@@ -71,6 +71,7 @@ telco telco
 telcodata telco
 telcofax telco
 u9fs u9fs
+startupasfs upasfs
 upasfs upasfs
 audio usb
 ccid usb
