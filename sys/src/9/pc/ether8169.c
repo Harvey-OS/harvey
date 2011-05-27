@@ -614,6 +614,12 @@ rtl8169reset(Ctlr* ctlr)
 }
 
 static void
+rtl8169shutdown(Ether *ether)
+{
+	rtl8169reset(ether->ctlr);
+}
+
+static void
 rtl8169replenish(Ctlr* ctlr)
 {
 	D *d;
@@ -1231,7 +1237,7 @@ rtl8169pnp(Ether* edev)
 	edev->arg = edev;
 	edev->promiscuous = rtl8169promiscuous;
 	edev->multicast = rtl8169multicast;
-//	edev->shutdown = rtl8169shutdown;
+	edev->shutdown = rtl8169shutdown;
 
 	rtl8169link(edev);
 

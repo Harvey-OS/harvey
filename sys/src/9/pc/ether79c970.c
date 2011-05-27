@@ -307,6 +307,18 @@ multicast(void* arg, uchar*, int)
 }
 
 static void
+shutdown(Ether *ether)
+{
+	Ctlr *ctlr;
+
+	ctlr = ether->ctlr;
+	ilock(ctlr);
+	io32r(ctlr, Sreset);
+	io16r(ctlr, Sreset);
+	unlock(ctlr);
+}
+
+static void
 txstart(Ether* ether)
 {
 	Ctlr *ctlr;
@@ -514,11 +526,9 @@ reset(Ether* ether)
 	ether->irq = ctlr->pcidev->intl;
 	ether->tbdf = ctlr->pcidev->tbdf;
 	pcisetbme(ctlr->pcidev);
+	shutdown(ether);
 	ilock(ctlr);
 	ctlr->init = 1;
-
-	io32r(ctlr, Sreset);
-	io16r(ctlr, Sreset);
 
 	if(io16w(ctlr, Rap, 0), io16r(ctlr, Rdp) == 4){
 		ctlr->ior = io16r;
@@ -634,7 +644,7 @@ reset(Ether* ether)
 	ether->arg = ether;
 	ether->promiscuous = promiscuous;
 	ether->multicast = multicast;
-//	ether->shutdown = shutdown;
+	ether->shutdown = shutdown;
 
 	return 0;
 }

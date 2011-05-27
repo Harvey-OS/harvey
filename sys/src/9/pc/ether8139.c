@@ -380,6 +380,18 @@ rtl8139halt(Ctlr* ctlr)
 }
 
 static void
+rtl8139shutdown(Ether *edev)
+{
+	Ctlr *ctlr;
+
+	ctlr = edev->ctlr;
+	ilock(&ctlr->ilock);
+	rtl8139halt(ctlr);
+	rtl8139reset(ctlr);
+	iunlock(&ctlr->ilock);
+}
+
+static void
 rtl8139init(Ether* edev)
 {
 	int i;
@@ -815,7 +827,7 @@ rtl8139pnp(Ether* edev)
 	edev->arg = edev;
 	edev->promiscuous = rtl8139promiscuous;
 	edev->multicast = rtl8139multicast;
-//	edev->shutdown = rtl8139shutdown;
+	edev->shutdown = rtl8139shutdown;
 
 	/*
 	 * This should be much more dynamic but will do for now.

@@ -132,16 +132,16 @@ static char *sname[]={ "Text", "Data", "Bss", "Stack", "Shared", "Phys", };
 
 /*
  * Qids are, in path:
- *	 4 bits of file type (qids above)
- *	23 bits of process slot number + 1
+ *	 5 bits of file type (qids above)
+ *	26 bits of process slot number + 1
  *	     in vers,
  *	32 bits of pid, for consistency checking
  * If notepg, c->pgrpid.path is pgrp slot, .vers is noteid.
  */
 #define	QSHIFT	5	/* location in qid of proc slot # */
 
-#define	QID(q)		((((ulong)(q).path)&0x0000001F)>>0)
-#define	SLOT(q)		(((((ulong)(q).path)&0x07FFFFFE0)>>QSHIFT)-1)
+#define	QID(q)		((((ulong)(q).path) & ((1<<QSHIFT)-1)) >> 0)
+#define	SLOT(q)		(((((ulong)(q).path) & ~(1UL<<31)) >> QSHIFT) - 1)
 #define	PID(q)		((q).vers)
 #define	NOTEID(q)	((q).vers)
 
@@ -288,7 +288,7 @@ _proctrace(Proc* p, Tevent etype, vlong ts)
 static void
 procinit(void)
 {
-	if(conf.nproc >= (1<<(16-QSHIFT))-1)
+	if(conf.nproc >= (1<<(31-QSHIFT))-1)
 		print("warning: too many procs for devproc\n");
 	addclock0link((void (*)(void))profclock, 113);	/* Relative prime to HZ */
 }
