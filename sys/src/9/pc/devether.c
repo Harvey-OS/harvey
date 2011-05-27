@@ -508,7 +508,7 @@ ethershutdown(void)
 		if(ether == nil)
 			continue;
 		if(ether->shutdown == nil) {
-			print("#l%d: no shutdown fuction\n", i);
+			print("#l%d: no shutdown function\n", i);
 			continue;
 		}
 		(*ether->shutdown)(ether);

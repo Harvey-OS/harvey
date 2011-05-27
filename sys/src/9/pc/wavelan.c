@@ -1173,6 +1173,18 @@ w_interrupt(Ureg* ,void* arg)
 	iunlock(ctlr);
 }
 
+static void
+w_shutdown(Ether* ether)
+{
+	Ctlr *ctlr;
+
+	ctlr = ether->ctlr;
+	w_intdis(ctlr);
+	if(w_cmd(ctlr,WCmdIni,0))
+		iprint("#l%d: init failed\n", ether->ctlrno);
+	w_intdis(ctlr);
+}
+
 int
 wavelanreset(Ether* ether, Ctlr *ctlr)
 {
@@ -1239,6 +1251,7 @@ wavelanreset(Ether* ether, Ctlr *ctlr)
 	ether->power = w_power;
 	ether->promiscuous = w_promiscuous;
 	ether->multicast = w_multicast;
+	ether->shutdown = w_shutdown;
 	ether->scanbs = w_scanbs;
 	ether->arg = ether;
 

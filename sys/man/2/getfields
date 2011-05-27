@@ -28,7 +28,9 @@ fields of the null terminated
 .SM UTF
 string
 .IR str .
-Delimiters between these fields are set to null.
+Delimiters between these fields are set to
+.SM NUL
+bytes.
 .PP
 Fields are substrings of
 .I str

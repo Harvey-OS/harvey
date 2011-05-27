@@ -54,6 +54,7 @@ enum
 	 * notably IP/UDP and TFTP, using worst-case (IPv6) sizes.
 	 */
 	Bandtblksz	= Bandtmtu - 40 - 8,
+	Bcavium		= 1432,		/* cavium's u-boot demands this size */
 };
 
 typedef struct Opt Opt;
@@ -282,10 +283,11 @@ options(int fd, char *buf, char *file, ushort oper, char *p, int dlen)
 			 * (1400 bytes for tcp mss of 1300 bytes),
 			 * so offer at most bandt's mtu minus headers,
 			 * to avoid failure of pxe booting via viaduct.
+			 * there's an exception for the cavium's u-boot.
 			 */
 			else if (oper == Tftp_READ &&
 			    cistrcmp(p, "blksize") == 0 &&
-			    blksize > Bandtblksz) {
+			    blksize > Bandtblksz && blksize != Bcavium) {
 				blksize = Bandtblksz;
 				sprint(bp, "%d", blksize);
 				syslog(dbg, flog,

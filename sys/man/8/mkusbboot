@@ -48,7 +48,7 @@ The image contains
 and
 .IR fossil (4)
 file systems and is configured to be bootable
-as a CPU server on
+as a CPU server with serial console on
 .B 386
 (with optional VGA)
 or

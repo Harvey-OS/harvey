@@ -769,6 +769,7 @@ reset(Ether* ether)
 	ether->ifstat = ifstat;
 	ether->promiscuous = promiscuous;
 	ether->multicast = multicast;
+	ether->shutdown = chipreset;
 	ether->arg = ether;
 	iunlock(ctlr);
 	return 0;
