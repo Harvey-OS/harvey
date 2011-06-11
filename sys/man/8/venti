@@ -34,7 +34,7 @@ venti \- archival storage server
 ]
 [
 .B -m
-.I free-memory%
+.I free-memory-percent
 ]
 [
 .B -W
@@ -444,7 +444,7 @@ Logging slows server operation considerably.
 .TP
 .B -m
 Allocate
-.I free-memory%
+.I free-memory-percent
 percent of the available free RAM, and partition it
 per the guidelines in the
 .B Memory
