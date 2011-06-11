@@ -16,7 +16,7 @@ fossil, flchk, flfmt \- archival file server
 ]
 [
 .B -m
-.I free-memory%
+.I free-memory-percent
 ]
 .PP
 .B fossil/flchk
@@ -251,7 +251,7 @@ reads and writes the command set stored in the disk.
 .TP
 .B -m
 Allocate
-.I free-memory%
+.I free-memory-percent
 percent of the available free RAM for buffers.
 This overrides all other memory sizing parameters,
 notably the
