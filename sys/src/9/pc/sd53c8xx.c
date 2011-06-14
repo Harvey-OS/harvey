@@ -2106,7 +2106,7 @@ sd53c8xxpnp(void)
 				break;
 		}
 		if(v >= &variant[nelem(variant)]) {
-			print("no match\n");
+			print("sd53c8xx: no match\n");
 			continue;
 		}
 		print(PRINTPREFIX "%s rev. 0x%2.2x intr=%d command=%4.4uX\n",
