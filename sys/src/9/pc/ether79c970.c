@@ -315,7 +315,7 @@ shutdown(Ether *ether)
 	ilock(ctlr);
 	io32r(ctlr, Sreset);
 	io16r(ctlr, Sreset);
-	unlock(ctlr);
+	iunlock(ctlr);
 }
 
 static void
