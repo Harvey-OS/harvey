@@ -14,33 +14,13 @@ quantum=1000000
 # (sources, /n/sources/plan9, ~370MB).
 size=1900
 
-fn killfossil {
-	sleep 1
-	unmount /n/f &
-	sleep 1
-	rm -f /srv/^(fossil fossil.open fscons fscons.open)
-	kill fossil | rc
-	sleep 1
-}
-
-fn sendexpect {		# send expect timeout
-	echo $1
-	if(! dial/expect -qt $3 $2)
-		echo -n 'no '^$"1^'...' > /dev/cons
-}
-
 fn usage {
 	echo usage: $argv0 '[-p proto] [-r root] [-s 10⁶-bytes]' >[1=2]
 	exit usage
 }
 
-fn sigexit {
-	rm -f /tmp/^(9load fossil-no-list.conf)
-	exit
-}
 fn sigint sighup sigterm {
-	rm -f /tmp/^(9load fossil-no-list.conf)
-	killfossil
+	rm -f /tmp/9load
 	exit note
 }
 
@@ -98,63 +78,9 @@ disk/format -b /$objtype/pbslba -d -r 2 9fat /tmp/9load $k \
 	grep -v '^(add .* at clust |Init|type |Adding file|used )'
 cp /dev/zero nvram >[2]/dev/null
 cp /dev/zero fscfg >[2]/dev/null
+rm -f /tmp/9load
 
-# initialise fossil
-echo -n fossil init... >[1=2]
-fossil/flfmt -y fossil
-
-# install listen-less config for fossil creation
-{
-	grep -v '^listen ' $syscfg/usb/fossil.conf
-	echo create /active/adm adm sys d775
-	echo create /active/adm/users adm sys 664
-} >/tmp/fossil-no-list.conf
-fossil/conf -w fossil /tmp/fossil-no-list.conf
-if (test -e /srv/fossil -o -e /srv/fossil.open) {
-	echo $0: /srv/fossil* exists, not safe to start a new one >[1=2]
-	exit exists
-}
-
-# start fossil
-fossil/fossil -f /dev/sdXX/fossil
-mount -cC /srv/fossil.open /n/f
-
-# set up /adm/users
-cp /adm/users /n/f/adm
-{
-	echo
-	dial/drain &
-	sleep 2
-	sendexpect 'users -r /active/adm/users' ': ' 5
-} </srv/fscons.open >>/srv/fscons.open
-
-# remount with new users
-unmount /n/f
-mount -cC /srv/fossil.open /n/f
-
-# populate fossil
+# fill the fossil
 9fs $srcfs
-@ {
-	# logs are boring, make them all appear empty
-	chmod +arw /tmp/empty-log >/tmp/empty-log
-	cd $srcroot/sys/log && {
-		for (f in [0-9a-z]* */*)
-			if (! ~ $f httpd mkfile smtpdb timesync.d vac year)
-				bind /tmp/empty-log $f
-	}
-	cd /tmp
-	disk/mkfs -u $srcroot/adm/users -U -d /n/f -s $srcroot $proto
-}
-
-# stop fossil gracefully
-{
-	echo
-	dial/drain &
-	sleep 2
-	sendexpect 'fsys all sync' ': ' 120
-	sendexpect 'fsys all halt' ': ' 5
-} </srv/fscons.open >>/srv/fscons.open
-killfossil
-
-# install permanent fossil configuration
-fossil/conf -w fossil $syscfg/usb/fossil.conf
+echo -n load fossil... >[1=2]
+exec loadfossil /dev/sdXX/fossil $srcroot $proto $syscfg/usb/fossil.conf

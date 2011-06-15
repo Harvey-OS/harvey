@@ -27,6 +27,7 @@ main(int argc, char *argv[])
 	char ctl[128];
 
 	closefds();
+	alarm(0);
 
 	service = "cpu";
 	manual = 0;
