@@ -53,6 +53,9 @@ struct Dest {
 	Conn	*connend;
 	int	nkid;
 
+	long	oalarm;
+	int	naddrs;
+
 	QLock	winlck;
 	int	winner;			/* index into conn[] */
 
@@ -140,10 +143,15 @@ connsalloc(Dest *dp, int addrs)
 static void
 freedest(Dest *dp)
 {
-	if (dp != nil) {
-		free(dp->conn);
-		free(dp);
-	}
+	long oalarm;
+
+	if (dp == nil)
+		return;
+	oalarm = dp->oalarm;
+	free(dp->conn);
+	free(dp);
+	if (oalarm >= 0)
+		alarm(oalarm);
 }
 
 static void
@@ -233,7 +241,7 @@ connectwait(Dest *dp, char *besterr)
 	/* kill all of our still-live kids & reap them */
 	for (conn = dp->conn; conn < dp->connend; conn++)
 		if (!conn->dead)
-			postnote(PNPROC, conn->pid, "die");
+			postnote(PNPROC, conn->pid, "alarm");
 	while (reap(dp) >= 0)
 		;
 
@@ -276,9 +284,12 @@ pickuperr(char *besterr, char *err)
 }
 
 static void
-catcher(void*, char *)
+catcher(void *, char *s)
 {
-	noted(NDFLT);
+	if (strstr(s, "alarm") != nil)
+		noted(NCONT);
+	else
+		noted(NDFLT);
 }
 
 /*
@@ -289,7 +300,7 @@ catcher(void*, char *)
 static int
 dialmulti(DS *ds, Dest *dp)
 {
-	int rv, kid, kidme, oalarm;
+	int rv, kid, kidme;
 	char *clone, *dest;
 	char err[ERRMAX], besterr[ERRMAX];
 
@@ -302,11 +313,8 @@ dialmulti(DS *ds, Dest *dp)
 		if (kid < 0)
 			--dp->nkid;
 		else if (kid == 0) {
-			/* die on alarm, avoid atnotify callbacks */
+			/* only in kid, to avoid atnotify callbacks in parent */
 			notify(catcher);
-			/* don't override outstanding alarm */
-			oalarm = alarm(0);
-			alarm(oalarm > 0? oalarm: Maxconnms);
 
 			*besterr = '\0';
 			rv = call(clone, dest, ds, dp, &dp->conn[kidme]);
@@ -336,6 +344,7 @@ csdial(DS *ds)
 	if(dp == nil)
 		return -1;
 	dp->winner = -1;
+	dp->oalarm = alarm(0);
 	if (connsalloc(dp, 1) < 0) {		/* room for a single conn. */
 		freedest(dp);
 		return -1;
@@ -390,6 +399,7 @@ csdial(DS *ds)
 
 	*besterr = 0;
 	rv = -1;				/* pessimistic default */
+	dp->naddrs = addrs;
 	if (addrs == 0)
 		werrstr("no address to dial");
 	else if (addrs == 1) {
@@ -413,7 +423,7 @@ csdial(DS *ds)
 static int
 call(char *clone, char *dest, DS *ds, Dest *dp, Conn *conn)
 {
-	int fd, cfd, n, oalarm;
+	int fd, cfd, n, calleralarm, oalarm;
 	char cname[Maxpath], name[Maxpath], data[Maxpath], *p;
 
 	/* because cs is in a different name space, replace the mount point */
@@ -448,6 +458,13 @@ call(char *clone, char *dest, DS *ds, Dest *dp, Conn *conn)
 		snprint(conn->dir, NETPATHLEN, "%s/%s", cname, name);
 	snprint(data, sizeof(data), "%s/%s/data", cname, name);
 
+	/* should be no alarm pending now; re-instate caller's alarm, if any */
+	calleralarm = dp->oalarm > 0;
+	if (calleralarm)
+		alarm(dp->oalarm);
+	else if (dp->naddrs > 1)	/* in a sub-process? */
+		alarm(Maxconnms);
+
 	/* connect */
 	if(ds->local)
 		snprint(name, sizeof(name), "connect %s %s", dest, ds->local);
@@ -458,24 +475,28 @@ call(char *clone, char *dest, DS *ds, Dest *dp, Conn *conn)
 		return -1;
 	}
 
+	oalarm = alarm(0);	/* don't let alarm interrupt critical section */
+	if (calleralarm)
+		dp->oalarm = oalarm;	/* time has passed, so update user's */
+
 	/* open data connection */
 	conn->dfd = fd = open(data, ORDWR);
 	if(fd < 0){
 		closeopenfd(&conn->cfd);
+		alarm(dp->oalarm);
 		return -1;
 	}
 	if(ds->cfdp == nil)
 		closeopenfd(&conn->cfd);
 
 	n = conn - dp->conn;
-	oalarm = alarm(0);	/* don't let alarm interrupt critical section */
 	if (dp->winner < 0) {
 		qlock(&dp->winlck);
 		if (dp->winner < 0 && conn < dp->connend)
 			dp->winner = n;
 		qunlock(&dp->winlck);
 	}
-	alarm(oalarm);
+	alarm(calleralarm? dp->oalarm: 0);
 	return fd;
 }
 

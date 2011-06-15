@@ -190,11 +190,23 @@ mach64xxenable(VGAscr* scr)
 static void
 mach64xxlinear(VGAscr* scr, int size, int)
 {
+	ulong mmiophys;
+
 	vgalinearpci(scr);
 	if(scr->paddr == 0)
 		return;
+	/*
+	 * vgalinearpci sets framebuffer into write combining mode.
+	 * Because mmio register page is inside framebuffer space,
+	 * set it back to uncached.
+	 */
+	mmiophys = scr->paddr + size - BY2PG;
+	if(!waserror()){
+		mtrr(mmiophys, BY2PG, "uc");
+		poperror();
+	}
 	scr->mmio = (ulong*)((uchar*)scr->vaddr+size-1024);
-	addvgaseg("mach64mmio", scr->paddr+size-BY2PG, BY2PG);
+	addvgaseg("mach64mmio", mmiophys, BY2PG);
 	addvgaseg("mach64screen", scr->paddr, scr->apsize);
 }
 

@@ -1263,6 +1263,7 @@ usage(void)
 void
 threadmain(int argc, char **argv)
 {
+	rfork(RFNOTEG);
 	fmtinstall('F', fcallfmt);
 
 	ARGBEGIN{

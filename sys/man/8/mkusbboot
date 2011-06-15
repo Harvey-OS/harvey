@@ -21,15 +21,13 @@ called
 from the filesystem at
 .I root
 (by default
-.B /n/boot
-but could be
-.BR /n/sources/plan9 ),
-and using the
+.BR /n/boot ),
+.\" but could be
+.\" .BR /n/sources/plan9 ),
+using the
 .IR mkfs (8)
 prototype file
 .I proto
-(by default
-.BR /sys/lib/sysconfig/proto/stand-usb )
 and files in
 .BR /sys/lib/sysconfig/usb .
 .PP
@@ -77,6 +75,8 @@ and
 for the generated system
 .TP
 .B /sys/lib/sysconfig/proto/stand-usb
+default
+.I proto
 .TP
 .B /env/objtype
 architecture of the boot programs in the disk image
@@ -98,6 +98,7 @@ files created while executing
 .IR usb (4),
 .IR boot (8),
 .IR diskparts (8),
+.IR loadfossil (8),
 .IR partfs (8),
 .IR plan9.ini (8),
 .IR prep (8)

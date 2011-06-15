@@ -114,6 +114,50 @@ amd64	- sys sys
 		*	- sys sys
 		ape	- sys sys
 			+	- sys sys
+arm	- sys sys
+	*	- sys sys
+	bin	- sys sys
+		*	- sys sys
+		ape	- sys sys
+			+	- sys sys
+		auth	- sys sys
+			+	- sys sys
+		aux	- sys sys
+			+	- sys sys
+		aviation	- sys sys
+			+	- sys sys
+		bitsy	- sys sys
+			+	- sys sys
+		dial	- sys sys
+			+	- sys sys
+		disk	- sys sys
+			+	- sys sys
+		fossil	- sys sys
+			+	- sys sys
+		fs	- sys sys
+			+	- sys sys
+		games	- sys sys
+			+	- sys sys
+		ip	- sys sys
+			+	- sys sys
+		ndb	- sys sys
+			+	- sys sys
+		replica	- sys sys
+			+	- sys sys
+		upas	- sys sys
+			+	- sys sys
+		usb	- sys sys
+			+	- sys sys
+		venti	- sys sys
+			+	- sys sys
+	include	- sys sys
+		*	- sys sys
+		ape	- sys sys
+			+	- sys sys
+	lib	- sys sys
+		*	- sys sys
+		ape	- sys sys
+			+	- sys sys
 
 # everything else is owned by sys
 acme	- sys sys
@@ -121,10 +165,11 @@ acme	- sys sys
 cron	- sys sys
 	upas	- upas sys
 		+	- upas sys
-fd	- sys sys
-	+	- sys sys
-env	- sys sys
-	+	- sys sys
+# these are in #/
+#fd	- sys sys
+#	+	- sys sys
+#env	- sys sys
+#	+	- sys sys
 lib	- sys sys
 	*	- sys sys
 	cmap	- sys sys

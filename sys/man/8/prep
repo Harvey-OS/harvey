@@ -708,20 +708,6 @@ disk/prep -bw -a^(9fat nvram fossil cache swap) /dev/sdC0/plan9
 disk/format -b /386/pbslba -d -r 2 /dev/sdC0/9fat \e
 	/386/9load /386/9pcf /tmp/plan9.ini
 .EE
-.PP
-Create a bootable USB disk or flash-memory device to be booted
-via the BIOS and containing only a FAT Plan 9 partition.
-.IP
-.EX
-disk/partfs /dev/sdU0.0/data
-cd /dev/sdXX
-disk/mbr -m /386/mbr data
-disk/fdisk -baw data
-disk/prep -bw -a^(9fat nvram fossil) plan9
-cp /386/9loadusb /tmp/9load  # force format to use the name `9load'
-disk/format -b /386/pbslba -d -r 2 9fat /tmp/9load \e
-	/386/9pccpuf /tmp/plan9.ini
-.EE
 .SH FILES
 .TF /386/mbr.bootmgr
 .TP
@@ -730,21 +716,22 @@ disk/format -b /386/pbslba -d -r 2 9fat /tmp/9load \e
 .B /386/mbr.bootmgr
 self-configuring `smart boot manager'
 .SH SOURCE
-.TF /sys/src/cmd/disk/prep
+.TF /n/sources/extra/bootmgr.tgz
 .TP
 .B /sys/src/cmd/disk/prep
 .TP
 .B /sys/src/boot/pc
 .TP
 .B /n/sources/extra/bootmgr.tgz
-source for
-.BR /386/mbr.bootmgr ;
-compilable on (l)unix
+.I nasm
+assembler source for
+.B /386/mbr.bootmgr
 .SH SEE ALSO
 .IR floppy (3),
 .IR sd (3),
 .IR usb (4),
 .IR 9load (8),
+.IR mkusbboot (8),
 .IR partfs (8)
 .SH BUGS
 .I Format
