@@ -346,11 +346,18 @@ setleds(Kbscan *kbscan)
 		leds |= 1<<1;
 	if(0 && kbscan->caps)		/* we don't implement caps lock */
 		leds |= 1<<2;
+
 	ilock(&i8042lock);
 	outready();
 	outb(Data, 0xed);		/* `reset keyboard lock states' */
+	if(inready() == 0)
+		inb(Data);
+
 	outready();
 	outb(Data, leds);
+	if(inready() == 0)
+		inb(Data);
+
 	outready();
 	iunlock(&i8042lock);
 }

@@ -409,7 +409,7 @@ commonboot(Fhdr *fp)
 		fp->type = FAMD64B;
 		fp->txtaddr = fp->entry;
 		fp->name = "amd64 plan 9 boot image";
-		fp->dataddr = _round(fp->txtaddr+fp->txtsz, mach->pgsize);
+		fp->dataddr = _round(fp->txtaddr+fp->txtsz, 4096);
 		break;
 	default:
 		return;
