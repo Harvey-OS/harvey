@@ -15,6 +15,7 @@ enum {
 };
 
 extern char *currfsysname;
+extern char *foptname;
 
 void	fsClose(Fs*);
 int	fsEpochLow(Fs*, u32int);

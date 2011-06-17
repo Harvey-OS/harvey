@@ -55,8 +55,7 @@ fossil/flfmt -y $fosspart
 
 # install listen-less config for fossil creation
 {
-	grep -v '^listen ' $fossconf | sed '/^fsys main config/c\
-fsys main config '^$fosspart
+	grep -v '^listen ' $fossconf
 	echo create /active/adm adm sys d775
 	echo create /active/adm/users adm sys 664
 } >/tmp/fossil-no-list.conf
@@ -103,6 +102,4 @@ mount -cC /srv/fossil.open /n/f
 killfossil
 
 # install permanent fossil configuration
-sed '/^fsys main config/c\
-fsys main config '^$fosspart $fossconf >/tmp/fossil-no-list.conf
-fossil/conf -w $fosspart /tmp/fossil-no-list.conf
+fossil/conf -w $fosspart $fossconf
