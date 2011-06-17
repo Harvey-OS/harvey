@@ -428,8 +428,12 @@ etherprobe(int cardno, int ctlrno)
 	if(ether->irq >= 0)
 		intrenable(ether->irq, ether->interrupt, ether, ether->tbdf, name);
 
-	i = sprint(buf, "#l%d: %s: %dMbps port 0x%luX irq %d",
-		ctlrno, cards[cardno].type, ether->mbps, ether->port, ether->irq);
+	i = sprint(buf, "#l%d: %s: ", ctlrno, cards[cardno].type);
+	if(ether->mbps >= 1000)
+		i += sprint(buf+i, "%dGbps", ether->mbps/1000);
+	else
+		i += sprint(buf+i, "%dMbps", ether->mbps);
+	i += sprint(buf+i, " port 0x%luX irq %d", ether->port, ether->irq);
 	if(ether->mem)
 		i += sprint(buf+i, " addr 0x%luX", ether->mem);
 	if(ether->size)

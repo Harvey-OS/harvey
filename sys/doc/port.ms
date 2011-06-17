@@ -181,7 +181,8 @@ The ARM compiler
 .PP
 The ARM compiler is fairly solid; it has been used for some production
 operating system work including Inferno and the Plan 9 kernel
-for the iPAQ, which uses a StrongArm SA1, and the Sheevaplug.
+for the iPAQ, which uses a StrongArm SA1, and the Sheevaplug,
+Guruplug, Dreamplug and others.
 The compiler supports the ARMv4 architecture;
 it does not support the Thumb instruction sets.
 It has been used on ARM7500FE, ARM926 and Cortex-A8 processors
@@ -347,7 +348,8 @@ The Marvell Kirkwood operating system
 This is an ARM kernel for the ARM926EJ-S processor
 and it emulates floating-point and
 CAS (compare-and-swap) instructions.
-It is known to run on the Sheevaplug, Guruplug and Openrd-client boards.
+It is known to run on the Sheevaplug, Guruplug, Dreamplug
+and Openrd-client boards.
 It is derived from a port of native Inferno to the Sheevaplug
 by Salva Peir\f(Jpó\fP and Mechiel Lukkien.
 There are many features of the Kirkwood system-on-a-chip

@@ -152,7 +152,7 @@ are
 .L /arm/9gd
 for the Marvell PXA168-based Guruplug Display,
 .L /arm/9plug
-for all Marvell Kirkwood plugs (Sheevaplug, Guruplug, Openrd, etc.),
+for all Marvell Kirkwood plugs (Sheevaplug, Guruplug, Dreamplug, Openrd, etc.),
 and
 .L /arm/9beagle
 for TI OMAP3 boards (IGEPv2 from ISEE, Gumstix Overo).

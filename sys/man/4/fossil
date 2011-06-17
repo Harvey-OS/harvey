@@ -431,7 +431,7 @@ checking turned off, create a users file, and mount the server:
 .EX
 fossil/flfmt /dev/sdC0/fossil
 fossil/conf -w /dev/sdC0/fossil <<EOF
-fsys main config /dev/sdC0/fossil
+fsys main config
 fsys main open -AWP
 fsys main
 create /active/adm adm sys d775
@@ -492,6 +492,7 @@ command to prepare the script.
 .IR fs (4),
 .IR srv (4),
 .IR fossilcons (8),
+.IR loadfossil (8),
 .IR venti (8)
 .SH BUGS
 It is possible that the disk format (but not the Venti format)

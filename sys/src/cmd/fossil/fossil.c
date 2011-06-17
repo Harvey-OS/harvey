@@ -6,6 +6,7 @@
 int Dflag;
 int mempcnt;			/* for 9fsys.c */
 char* none = "none";
+char* foptname = "/none/such";
 
 static void
 usage(void)
@@ -101,7 +102,7 @@ main(int argc, char* argv[])
 		break;
 	case 'f':
 		p = EARGF(usage());
-		currfsysname = p;
+		currfsysname = foptname = p;
 		readCmdPart(p, &cmd, &ncmd);
 		break;
 	case 'm':

@@ -93,7 +93,9 @@ con /srv/fscons
 .B fsys
 .I name
 .B config
+[
 .I device
+]
 .PP
 .B fsys
 .I name
@@ -685,8 +687,21 @@ operate on unopened file systems; they require the prefix.
 creates a new file system named
 .I name
 using disk file
-.I device .
+.IR device .
 This just adds an entry to fossil's internal table.
+If
+.I device
+is missing,
+the
+.I file
+argument to
+.IR fossil 's
+.B -f
+option will be used instead;
+this allows the
+.I fossil
+configuration file to avoid naming the partition that it is embedded in,
+making it more portable.
 .PP
 .I Venti
 establishes a connection to the Venti server
@@ -758,6 +773,8 @@ and then closes the device file.
 .I Unconfig
 removes the named file system (which must be closed)
 from fossil's internal table.
+.br
+.ne 3
 .SS File system maintenance
 .I Bfree
 marks the block at disk address
