@@ -361,6 +361,8 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 		return 0;
 
 	p = malloc(READSTR);
+	if(p == nil)
+		error(Enomem);
 	l = snprint(p, READSTR, "Rxa: %lud\n", ctlr->rxa);
 	l += snprint(p+l, READSTR-l, "Rxo: %lud\n", ctlr->rxo);
 	l += snprint(p+l, READSTR-l, "Rlong: %lud\n", ctlr->rlong);
@@ -1068,6 +1070,8 @@ scanpci83815(void)
 		 * bar[1] is the memory-mapped register address.
 		 */
 		ctlr = malloc(sizeof(Ctlr));
+		if(ctlr == nil)
+			error(Enomem);
 		ctlr->port = p->mem[0].bar & ~0x01;
 		ctlr->pcidev = p;
 		ctlr->id = id;

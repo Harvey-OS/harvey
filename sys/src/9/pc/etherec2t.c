@@ -91,6 +91,10 @@ reset(Ether* ether)
 
 	ether->ctlr = malloc(sizeof(Dp8390));
 	ctlr = ether->ctlr;
+	if(ctlr == nil) {
+		iofree(port);
+		error(Enomem);
+	}
 	ctlr->width = 2;
 	ctlr->ram = 0;
 

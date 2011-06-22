@@ -1293,6 +1293,8 @@ pccardread(Chan *c, void *a, long n, vlong offset)
 
 	case Qctl:
 		buf = p = malloc(READSTR);
+		if(p == nil)
+			error(Enomem);
 		buf[0] = 0;
 		e = p + READSTR;
 

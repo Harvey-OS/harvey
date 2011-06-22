@@ -1369,6 +1369,8 @@ m10gifstat(Ether *e, void *v, long n, ulong off)
 
 	c = e->ctlr;
 	p = malloc(READSTR+1);
+	if(p == nil)
+		error(Enomem);
 	l = 0;
 	/* no point in locking this because this is done via dma. */
 	memmove(&s, c->stats, sizeof s);

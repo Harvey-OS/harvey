@@ -29,6 +29,8 @@ uartpci(int ctlrno, Pcidev* p, int barno, int n, int freq, char* name,
 	}
 
 	head = uart = malloc(sizeof(Uart)*n);
+	if(uart == nil)
+		error(Enomem);
 	for(i = 0; i < n; i++){
 		ctlr = i8250alloc(io, p->intl, p->tbdf);
 		io += iosize;

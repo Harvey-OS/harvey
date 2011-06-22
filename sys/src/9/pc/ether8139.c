@@ -311,6 +311,8 @@ rtl8139ifstat(Ether* edev, void* a, long n, ulong offset)
 
 	ctlr = edev->ctlr;
 	p = malloc(READSTR);
+	if(p == nil)
+		error(Enomem);
 	l = snprint(p, READSTR, "rcr %#8.8ux\n", ctlr->rcr);
 	l += snprint(p+l, READSTR-l, "multicast %ud\n", ctlr->mcast);
 	l += snprint(p+l, READSTR-l, "ierrs %d\n", ctlr->ierrs);
@@ -466,6 +468,10 @@ rtl8139attach(Ether* edev)
 	if(ctlr->alloc == nil){
 		ctlr->rblen = 1<<((Rblen>>RblenSHIFT)+13);
 		ctlr->alloc = mallocz(ctlr->rblen+16 + Ntd*Tdbsz + 32, 0);
+		if(ctlr->alloc == nil) {
+			qunlock(&ctlr->alock);
+			error(Enomem);
+		}
 		rtl8139init(edev);
 	}
 	qunlock(&ctlr->alock);
@@ -764,6 +770,8 @@ rtl8139pnp(Ether* edev)
 			if(p->ccrb != 0x02 || p->ccru != 0)
 				continue;
 			ctlr = malloc(sizeof(Ctlr));
+			if(ctlr == nil)
+				error(Enomem);
 			ctlr->pcidev = p;
 			ctlr->id = (p->did<<16)|p->vid;
 

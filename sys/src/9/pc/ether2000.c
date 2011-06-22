@@ -98,6 +98,8 @@ ne2000pnp(Ether* edev)
 			if(p->ccrb != 0x02 || p->ccru != 0)
 				continue;
 			ctlr = malloc(sizeof(Ctlr));
+			if(ctlr == nil)
+				error(Enomem);
 			ctlr->pcidev = p;
 
 			if(ctlrhead != nil)
@@ -162,6 +164,8 @@ ne2000reset(Ether* edev)
 
 	edev->ctlr = malloc(sizeof(Dp8390));
 	dp8390 = edev->ctlr;
+	if(dp8390 == nil)
+		error(Enomem);
 	dp8390->width = 2;
 	dp8390->ram = 0;
 

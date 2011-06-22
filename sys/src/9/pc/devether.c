@@ -378,6 +378,8 @@ etherprobe(int cardno, int ctlrno)
 	char buf[128], name[32];
 
 	ether = malloc(sizeof(Ether));
+	if(ether == nil)
+		error(Enomem);
 	memset(ether, 0, sizeof(Ether));
 	ether->ctlrno = ctlrno;
 	ether->tbdf = BUSUNKNOWN;

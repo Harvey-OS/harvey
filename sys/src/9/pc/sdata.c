@@ -2141,6 +2141,8 @@ ataenable(SDev* sdev)
 		if(ctlr->pcidev != nil)
 			pcisetbme(ctlr->pcidev);
 		ctlr->prdt = mallocalign(Nprd*sizeof(Prd), 4, 0, 4*1024);
+		if(ctlr->prdt == nil)
+			error(Enomem);
 	}
 	snprint(name, sizeof(name), "%s (%s)", sdev->name, sdev->ifc->name);
 	intrenable(ctlr->irq, atainterrupt, ctlr, ctlr->tbdf, name);

@@ -442,6 +442,8 @@ vt6105Mifstat(Ether* edev, void* a, long n, ulong offset)
 
 	alloc = malloc(READSTR);
 	p = alloc;
+	if(p == nil)
+		error(Enomem);
 	e = p + READSTR;
 	for(i = 0; i < Nrxstats; i++){
 		p = seprint(p, e, "%s: %ud\n", rxstats[i], ctlr->rxstats[i]);
@@ -1132,6 +1134,10 @@ vt6105Mpci(void)
 			continue;
 		}
 		ctlr = malloc(sizeof(Ctlr));
+		if(ctlr == nil) {
+			iofree(port);
+			error(Enomem);
+		}
 		ctlr->port = port;
 		ctlr->pcidev = p;
 		ctlr->id = (p->did<<16)|p->vid;

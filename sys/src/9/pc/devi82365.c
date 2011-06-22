@@ -766,6 +766,8 @@ i82365read(Chan *c, void *a, long n, vlong off)
 		return pcmread(SLOTNO(c), TYPE(c) == Qattr, a, n, off);
 	case Qctl:
 		buf = p = malloc(READSTR);
+		if(p == nil)
+			error(Enomem);
 		e = p + READSTR;
 		pp = slot + SLOTNO(c);
 

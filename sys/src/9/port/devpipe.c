@@ -14,6 +14,7 @@ struct Pipe
 	Pipe	*next;
 	int	ref;
 	ulong	path;
+	long	perm;
 	Queue	*q[2];
 	int	qref[2];
 };
@@ -80,6 +81,7 @@ pipeattach(char *spec)
 	lock(&pipealloc);
 	p->path = ++pipealloc.path;
 	unlock(&pipealloc);
+	p->perm = pipedir[Qdata0].perm;
 
 	mkqid(&c->qid, NETQID(2*p->path, Qdir), 0, QTDIR);
 	c->aux = p;
@@ -116,7 +118,7 @@ pipegen(Chan *c, char*, Dirtab *tab, int ntab, int i, Dir *dp)
 		break;
 	}
 	mkqid(&q, NETQID(NETID(c->qid.path), tab->qid.path), 0, QTFILE);
-	devdir(c, q, tab->name, len, eve, tab->perm, dp);
+	devdir(c, q, tab->name, len, eve, p->perm, dp);
 	return 1;
 }
 
@@ -161,10 +163,10 @@ pipestat(Chan *c, uchar *db, int n)
 		devdir(c, c->qid, ".", 0, eve, DMDIR|0555, &dir);
 		break;
 	case Qdata0:
-		devdir(c, c->qid, "data", qlen(p->q[0]), eve, 0600, &dir);
+		devdir(c, c->qid, "data", qlen(p->q[0]), eve, p->perm, &dir);
 		break;
 	case Qdata1:
-		devdir(c, c->qid, "data1", qlen(p->q[1]), eve, 0600, &dir);
+		devdir(c, c->qid, "data1", qlen(p->q[1]), eve, p->perm, &dir);
 		break;
 	default:
 		panic("pipestat");
@@ -173,6 +175,36 @@ pipestat(Chan *c, uchar *db, int n)
 	if(n < BIT16SZ)
 		error(Eshortstat);
 	return n;
+}
+
+static int
+pipewstat(Chan* c, uchar* db, int n)
+{
+	int m;
+	Dir *dir;
+	Pipe *p;
+
+	p = c->aux;
+	if(strcmp(up->user, eve) != 0)
+		error(Eperm);
+	if(NETTYPE(c->qid.path) == Qdir)
+		error(Eisdir);
+
+	dir = smalloc(sizeof(Dir)+n);
+	if(waserror()){
+		free(dir);
+		nexterror();
+	}
+	m = convM2D(db, n, &dir[0], (char*)&dir[1]);
+	if(m == 0)
+		error(Eshortstat);
+	if(!emptystr(dir[0].uid))
+		error("can't change owner");
+	if(dir[0].mode != ~0UL)
+		p->perm = dir[0].mode;
+	poperror();
+	free(dir);
+	return m;
 }
 
 /*
@@ -387,5 +419,5 @@ Dev pipedevtab = {
 	pipewrite,
 	pipebwrite,
 	devremove,
-	devwstat,
+	pipewstat,
 };

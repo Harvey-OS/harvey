@@ -435,6 +435,8 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 	unlock(&ctlr->dlock);
 
 	p = malloc(READSTR);
+	if(p == nil)
+		error(Enomem);
 	len = snprint(p, READSTR, "transmit good frames: %lud\n", dump[0]);
 	len += snprint(p+len, READSTR-len, "transmit maximum collisions errors: %lud\n", dump[1]);
 	len += snprint(p+len, READSTR-len, "transmit late collisions errors: %lud\n", dump[2]);
@@ -795,6 +797,10 @@ ctlrinit(Ctlr* ctlr)
 	 */
 	ilock(&ctlr->cblock);
 	ctlr->cbr = malloc(ctlr->ncb*sizeof(Cb));
+	if(ctlr->cbr == nil) {
+		iunlock(&ctlr->cblock);
+		error(Enomem);
+	}
 	for(i = 0; i < ctlr->ncb; i++){
 		ctlr->cbr[i].status = CbC|CbOK;
 		ctlr->cbr[i].command = CbS|CbNOP;
@@ -911,6 +917,8 @@ reread:
 	if(ctlr->eepromsz == 0){
 		ctlr->eepromsz = 8-size;
 		ctlr->eeprom = malloc((1<<ctlr->eepromsz)*sizeof(ushort));
+		if(ctlr->eeprom == nil)
+			error(Enomem);
 		goto reread;
 	}
 
@@ -971,6 +979,8 @@ i82557pci(void)
 		}
 
 		ctlr = malloc(sizeof(Ctlr));
+		if(ctlr == nil)
+			error(Enomem);
 		ctlr->port = port;
 		ctlr->pcidev = p;
 		ctlr->nop = nop;

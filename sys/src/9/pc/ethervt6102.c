@@ -347,6 +347,8 @@ vt6102ifstat(Ether* edev, void* a, long n, ulong offset)
 	ctlr = edev->ctlr;
 
 	p = malloc(READSTR);
+	if(p == nil)
+		error(Enomem);
 	l = 0;
 	for(i = 0; i < Nrxstats; i++){
 		l += snprint(p+l, READSTR-l, "%s: %ud\n",
@@ -967,6 +969,10 @@ vt6102pci(void)
 			continue;
 		}
 		ctlr = malloc(sizeof(Ctlr));
+		if(ctlr == nil) {
+			iofree(port);
+			error(Enomem);
+		}
 		ctlr->port = port;
 		ctlr->pcidev = p;
 		ctlr->id = (p->did<<16)|p->vid;

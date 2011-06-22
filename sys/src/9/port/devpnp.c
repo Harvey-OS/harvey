@@ -194,6 +194,11 @@ findcsn(int csn, int create, int dolock)
 	}
 	if(create) {
 		*l = nc = malloc(sizeof(Card));
+		if(nc == nil) {
+			if(dolock)
+				qunlock(&pnp);
+			error(Enomem);
+		}
 		nc->next = c;
 		nc->csn = csn;
 		c = nc;

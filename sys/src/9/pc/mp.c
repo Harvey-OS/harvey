@@ -185,7 +185,7 @@ mkiointr(PCMPintr* p)
 	aintr->intr = p;
 
 	if(0)
-		print("iointr: type %d intr type %d flags %#o "
+		print("mkiointr: type %d intr type %d flags %#o "
 			"bus %d irq %d apicno %d intin %d\n",
 			p->type, p->intr, p->flags,
 			p->busno, p->irq, p->apicno, p->intin);
@@ -196,6 +196,8 @@ mkiointr(PCMPintr* p)
 	if(memcmp(mppcmp->product, "INTEL   X38MLST     ", 20) == 0){
 		if(p->busno == 1 && p->intin == 16 && p->irq == 1){
 			pcmpintr = malloc(sizeof(PCMPintr));
+			if(pcmpintr == nil)
+				panic("mkiointr: no memory");
 			memmove(pcmpintr, p, sizeof(PCMPintr));
 			print("mkiointr: %20.20s bus %d intin %d irq %d\n",
 				(char*)mppcmp->product,

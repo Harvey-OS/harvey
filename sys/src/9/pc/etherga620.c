@@ -344,6 +344,8 @@ ga620ifstat(Ether* edev, void* a, long n, ulong offset)
 	if(n == 0)
 		return 0;
 	p = malloc(READSTR);
+	if(p == nil)
+		error(Enomem);
 	l = 0;
 	for(i = 0; i < 256; i++){
 		if((r = ctlr->gib->statistics[i]) == 0)
@@ -749,10 +751,30 @@ ga620init(Ether* edev)
 	ea = edev->ea[2]<<24 | edev->ea[3]<<16 | edev->ea[4]<<8 | edev->ea[5];
 	csr32w(ctlr, Mac+4, ea);
 
+	ctlr->gib = nil;
+	ctlr->er = nil;
+	ctlr->srb = nil;
+	ctlr->sr = nil;
+	ctlr->rsr = nil;
+	if(waserror()) {
+		free(ctlr->gib);
+		free(ctlr->er);
+		free(ctlr->srb);
+		free(ctlr->sr);
+		free(ctlr->rsr);
+		ctlr->gib = nil;
+		ctlr->er = nil;
+		ctlr->srb = nil;
+		ctlr->sr = nil;
+		ctlr->rsr = nil;
+		nexterror();
+	}
 	/*
 	 * General Information Block.
 	 */
 	ctlr->gib = malloc(sizeof(Gib));
+	if(ctlr->gib == nil)
+		error(Enomem);
 	sethost64(&host64, ctlr->gib);
 	csr32w(ctlr, Gip, host64.hi);
 	csr32w(ctlr, Gip+4, host64.lo);
@@ -763,6 +785,8 @@ ga620init(Ether* edev)
 	 * tell the NIC where it is and initialise the indices.
 	 */
 	ctlr->er = malign(sizeof(Ere)*Ner);
+	if(ctlr->er == nil)
+		error(Enomem);
 	sethost64(&ctlr->gib->ercb.addr, ctlr->er);
 	sethost64(&ctlr->gib->epp, ctlr->epi);
 	csr32w(ctlr, Eci, 0);
@@ -795,6 +819,8 @@ ga620init(Ether* edev)
 	 * with this entry so an external array must be kept.
 	 */
 	ctlr->sr = malign(sizeof(Sbd)*Nsr);
+	if(ctlr->sr == nil)
+		error(Enomem);
 	sethost64(&ctlr->gib->srcb.addr, ctlr->sr);
 	if(ctlr->hardwarecksum)
 		flags = TcpUdpCksum|NoPseudoHdrCksum|HostRing;
@@ -806,11 +832,15 @@ ga620init(Ether* edev)
 	sethost64(&ctlr->gib->scp, ctlr->sci);
 	csr32w(ctlr, Spi, 0);
 	ctlr->srb = malloc(sizeof(Block*)*Nsr);
+	if(ctlr->srb == nil)
+		error(Enomem);
 
 	/*
 	 * Receive Standard Ring.
 	 */
 	ctlr->rsr = malign(sizeof(Rbd)*Nrsr);
+	if(ctlr->rsr == nil)
+		error(Enomem);
 	sethost64(&ctlr->gib->rsrcb.addr, ctlr->rsr);
 	if(ctlr->hardwarecksum)
 		flags = TcpUdpCksum|NoPseudoHdrCksum;
@@ -831,6 +861,9 @@ ga620init(Ether* edev)
 	 * tell the NIC where it is and initialise the indices.
 	 */
 	ctlr->rrr = malign(sizeof(Rbd)*Nrrr);
+	if(ctlr->rrr == nil)
+		error(Enomem);
+	poperror();
 	sethost64(&ctlr->gib->rrrcb.addr, ctlr->rrr);
 	ctlr->gib->rrrcb.control = Nrrr<<16 | 0;
 	sethost64(&ctlr->gib->rrrpp, ctlr->rrrpi);
@@ -1173,6 +1206,10 @@ ga620pci(void)
 		}
 
 		ctlr = malloc(sizeof(Ctlr));
+		if(ctlr == nil) {
+			vunmap(mem, p->mem[0].size);
+			error(Enomem);
+		}
 		ctlr->port = p->mem[0].bar & ~0x0F;
 		ctlr->pcidev = p;
 		ctlr->id = p->did<<16 | p->vid;

@@ -833,9 +833,6 @@ rtl8169attach(Ether* edev)
 	ctlr = edev->ctlr;
 	qlock(&ctlr->alock);
 	if(ctlr->init == 0){
-		/*
-		 * Handle allocation/init errors here.
-		 */
 		ctlr->td = mallocalign(sizeof(D)*Ntd, 256, 0, 0);
 		ctlr->tb = malloc(Ntd*sizeof(Block*));
 		ctlr->ntd = Ntd;
@@ -843,6 +840,16 @@ rtl8169attach(Ether* edev)
 		ctlr->rb = malloc(Nrd*sizeof(Block*));
 		ctlr->nrd = Nrd;
 		ctlr->dtcc = mallocalign(sizeof(Dtcc), 64, 0, 0);
+		if(ctlr->td == nil || ctlr->tb == nil || ctlr->rd == nil ||
+		   ctlr->rb == nil || ctlr->dtcc == nil) {
+			free(ctlr->td);
+			free(ctlr->tb);
+			free(ctlr->rd);
+			free(ctlr->rb);
+			free(ctlr->dtcc);
+			qunlock(&ctlr->alock);
+			error(Enomem);
+		}
 		rtl8169init(edev);
 		ctlr->init = 1;
 	}
@@ -1131,6 +1138,8 @@ rtl8169pci(void)
 			continue;
 		}
 		ctlr = malloc(sizeof(Ctlr));
+		if(ctlr == nil)
+			error(Enomem);
 		ctlr->port = port;
 		ctlr->pcidev = p;
 		ctlr->pciv = i;
