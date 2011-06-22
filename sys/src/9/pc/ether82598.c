@@ -338,6 +338,8 @@ ifstat(Ether *e, void *a, long n, ulong offset)
 
 	c = e->ctlr;
 	p = s = malloc(READSTR);
+	if(p == nil)
+		error(Enomem);
 	q = p + READSTR;
 
 	readstats(c);
@@ -923,6 +925,11 @@ scan(void)
 			continue;
 		}
 		c = malloc(sizeof *c);
+		if(c == nil) {
+			vunmap(mem, p->mem[0].size);
+			vunmap(mem3, p->mem[3].size);
+			error(Enomem);
+		}
 		c->p = p;
 		c->reg = (u32int*)mem;
 		c->reg3 = (u32int*)mem3;

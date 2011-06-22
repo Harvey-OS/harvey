@@ -893,6 +893,8 @@ initDESkey_40(OneWay *w)
 	}
 
 	w->state = malloc(sizeof(DESstate));
+	if(w->state == nil)
+		error(Enomem);
 	if(w->slen >= 16)
 		setupDESstate(w->state, key, w->secret+8);
 	else if(w->slen >= 8)
@@ -929,6 +931,8 @@ initRC4key_40(OneWay *w)
 		w->slen = 5;
 
 	w->state = malloc(sizeof(RC4state));
+	if(w->state == nil)
+		error(Enomem);
 	setupRC4state(w->state, w->secret, w->slen);
 }
 
@@ -948,6 +952,8 @@ initRC4key_128(OneWay *w)
 		w->slen = 16;
 
 	w->state = malloc(sizeof(RC4state));
+	if(w->state == nil)
+		error(Enomem);
 	setupRC4state(w->state, w->secret, w->slen);
 }
 

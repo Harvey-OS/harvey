@@ -200,6 +200,8 @@ pcibusmap(Pcidev *root, ulong *pmema, ulong *pioa, int wrreg)
 
 	ntb *= (PciCIS-PciBAR0)/4;
 	table = malloc(2*ntb*sizeof(Pcisiz));
+	if(table == nil)
+		error(Enomem);
 	itb = table;
 	mtb = table+ntb;
 
@@ -389,6 +391,8 @@ pcilscan(int bno, Pcidev** list)
 			if(l == 0xFFFFFFFF || l == 0)
 				continue;
 			p = malloc(sizeof(*p));
+			if(p == nil)
+				error(Enomem);
 			p->tbdf = tbdf;
 			p->vid = l;
 			p->did = l>>16;

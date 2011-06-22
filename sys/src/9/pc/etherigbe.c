@@ -602,6 +602,10 @@ igbeifstat(Ether* edev, void* a, long n, ulong offset)
 	ctlr = edev->ctlr;
 	qlock(&ctlr->slock);
 	p = malloc(READSTR);
+	if(p == nil) {
+		qunlock(&ctlr->slock);
+		error(Enomem);
+	}
 	l = 0;
 	for(i = 0; i < Nstatistics; i++){
 		r = csr32r(ctlr, Statistics+i*4);
@@ -1207,25 +1211,10 @@ igbeattach(Ether* edev)
 		return;
 	}
 
-	ctlr->nrd = ROUND(Nrd, 8);
-	ctlr->ntd = ROUND(Ntd, 8);
-	ctlr->alloc = malloc(ctlr->nrd*sizeof(Rd)+ctlr->ntd*sizeof(Td) + 127);
-	if(ctlr->alloc == nil){
-		print("igbe: can't allocate ctlr->alloc\n");
-		qunlock(&ctlr->alock);
-		return;
-	}
-	ctlr->rdba = (Rd*)ROUNDUP((uintptr)ctlr->alloc, 128);
-	ctlr->tdba = (Td*)(ctlr->rdba+ctlr->nrd);
-
-	ctlr->rb = malloc(ctlr->nrd*sizeof(Block*));
-	ctlr->tb = malloc(ctlr->ntd*sizeof(Block*));
-	if (ctlr->rb == nil || ctlr->tb == nil) {
-		print("igbe: can't allocate ctlr->rb or ctlr->tb\n");
-		qunlock(&ctlr->alock);
-		return;
-	}
-
+	ctlr->tb = nil;
+	ctlr->rb = nil;
+	ctlr->alloc = nil;
+	ctlr->nrb = 0;
 	if(waserror()){
 		while(ctlr->nrb > 0){
 			bp = igberballoc();
@@ -1241,6 +1230,23 @@ igbeattach(Ether* edev)
 		ctlr->alloc = nil;
 		qunlock(&ctlr->alock);
 		nexterror();
+	}
+
+	ctlr->nrd = ROUND(Nrd, 8);
+	ctlr->ntd = ROUND(Ntd, 8);
+	ctlr->alloc = malloc(ctlr->nrd*sizeof(Rd)+ctlr->ntd*sizeof(Td) + 127);
+	if(ctlr->alloc == nil) {
+		print("igbe: can't allocate ctlr->alloc\n");
+		error(Enomem);
+	}
+	ctlr->rdba = (Rd*)ROUNDUP((uintptr)ctlr->alloc, 128);
+	ctlr->tdba = (Td*)(ctlr->rdba+ctlr->nrd);
+
+	ctlr->rb = malloc(ctlr->nrd*sizeof(Block*));
+	ctlr->tb = malloc(ctlr->ntd*sizeof(Block*));
+	if (ctlr->rb == nil || ctlr->tb == nil) {
+		print("igbe: can't allocate ctlr->rb or ctlr->tb\n");
+		error(Enomem);
 	}
 
 	for(ctlr->nrb = 0; ctlr->nrb < Nrb; ctlr->nrb++){
@@ -1965,6 +1971,10 @@ igbepci(void)
 				break;
 		}
 		ctlr = malloc(sizeof(Ctlr));
+		if(ctlr == nil) {
+			vunmap(mem, p->mem[0].size);
+			error(Enomem);
+		}
 		ctlr->port = p->mem[0].bar & ~0x0F;
 		ctlr->pcidev = p;
 		ctlr->id = (p->did<<16)|p->vid;

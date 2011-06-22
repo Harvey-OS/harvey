@@ -634,17 +634,17 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 		[8]	"100-FD",
 		[9]	"110",
 	};
-
 	Smc91xx* ctlr;
-	char* p;
+	char *p, *s;
 	int r, len;
-	char* s;
 	
 	if (n == 0)
 		return 0;
 
 	ctlr = ether->ctlr;
 	p = malloc(READSTR);
+	if(p == nil)
+		error(Enomem);
 
 	s = 0;
 	if (ctlr->rev > 0) {

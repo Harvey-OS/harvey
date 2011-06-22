@@ -27,9 +27,10 @@ uartisa(int ctlrno, ISAConf* isa)
 
 	uart = malloc(sizeof(Uart));
 	ctlr = i8250alloc(io, isa->irq, BUSUNKNOWN);
-	if(ctlr == nil){
+	if(uart == nil || ctlr == nil){
 		iofree(io);
 		free(uart);
+		free(ctlr);
 		return nil;
 	}
 

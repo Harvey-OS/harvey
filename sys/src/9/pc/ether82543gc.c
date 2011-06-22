@@ -507,6 +507,10 @@ gc82543ifstat(Ether* edev, void* a, long n, ulong offset)
 	ctlr = edev->ctlr;
 	lock(&ctlr->slock);
 	p = malloc(READSTR);
+	if(p == nil) {
+		unlock(&ctlr->slock);
+		error(Enomem);
+	}
 	l = 0;
 	for(i = 0; i < Nstatistics; i++){
 		r = csr32r(ctlr, Statistics+i*4);
@@ -1282,6 +1286,8 @@ gc82543pci(void)
 					cls*4);
 		}
 		ctlr = malloc(sizeof(Ctlr));
+		if(ctlr == nil)
+			error(Enomem);
 		ctlr->port = p->mem[0].bar & ~0x0F;
 		ctlr->pcidev = p;
 		ctlr->id = (p->did<<16)|p->vid;

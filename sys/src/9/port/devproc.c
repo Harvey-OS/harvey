@@ -934,6 +934,8 @@ procread(Chan *c, void *va, long n, vlong off)
 		if(p->pgrp == nil || p->pid != PID(c->qid))
 			error(Eprocdied);
 		mw = c->aux;
+		if(mw == nil)
+			error(Enomem);
 		if(mw->cddone){
 			qunlock(&p->debug);
 			poperror();

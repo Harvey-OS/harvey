@@ -9,6 +9,7 @@ C	ce
 D	ssl
 E	sdp
 F	flash
+F	ppcflash
 G	gs1
 I	ip
 K	kprof
@@ -17,8 +18,6 @@ M	mnt
 P	arch
 S	sd
 T	lm78
-U	usb
-V	lml
 V	tv
 X	loopback
 Y	pccard
@@ -40,16 +39,24 @@ r	rtc
 r	µc
 s	srv
 t	uart
+u	usb
+v	dss
+v	lcd
 v	vga
 w	wd
+x	xenstore
 y	i82365
 y	pcmcia
 |	pipe
 ¤	cap
 æ	aoe
 Ι	kbin
+Λ	lml
+α	acpi
 κ	kbmap
 μ	moipv6
+⁲	twsi
+↔	usbcons
 霞	kasumi
 
 α	local use

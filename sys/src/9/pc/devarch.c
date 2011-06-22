@@ -851,6 +851,8 @@ archctlread(Chan*, void *a, long nn, vlong offset)
 	char *buf, *p, *ep;
 
 	p = buf = malloc(READSTR);
+	if(p == nil)
+		error(Enomem);
 	ep = p + READSTR;
 	p = seprint(p, ep, "cpu %s %lud%s\n",
 		cputype->name, (ulong)(m->cpuhz+999999)/1000000,

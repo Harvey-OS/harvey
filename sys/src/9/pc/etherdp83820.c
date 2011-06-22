@@ -921,6 +921,8 @@ dp83820ifstat(Ether* edev, void* a, long n, ulong offset)
 		return 0;
 
 	p = malloc(READSTR);
+	if(p == nil)
+		error(Enomem);
 	l = 0;
 	for(i = 0; i < Nmibd; i++){
 		r = csr32r(ctlr, Mibd+(i*sizeof(int)));
@@ -1059,6 +1061,8 @@ reread:
 	if(ctlr->eepromsz == 0){
 		ctlr->eepromsz = 8-size;
 		ctlr->eeprom = malloc((1<<ctlr->eepromsz)*sizeof(ushort));
+		if(ctlr->eeprom == nil)
+			error(Enomem);
 		goto reread;
 	}
 
@@ -1165,6 +1169,10 @@ dp83820pci(void)
 		}
 
 		ctlr = malloc(sizeof(Ctlr));
+		if(ctlr == nil) {
+			vunmap(mem, p->mem[1].size);
+			error(Enomem);
+		}
 		ctlr->port = p->mem[1].bar & ~0x0F;
 		ctlr->pcidev = p;
 		ctlr->id = (p->did<<16)|p->vid;
@@ -1172,6 +1180,7 @@ dp83820pci(void)
 		ctlr->nic = mem;
 		if(dp83820reset(ctlr)){
 			free(ctlr);
+			vunmap(mem, p->mem[1].size);
 			continue;
 		}
 		pcisetbme(p);

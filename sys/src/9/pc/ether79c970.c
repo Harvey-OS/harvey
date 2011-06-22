@@ -205,6 +205,8 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 		return 0;
 
 	p = malloc(READSTR);
+	if(p == nil)
+		error(Enomem);
 	len = snprint(p, READSTR, "Rxbuff: %ld\n", ctlr->rxbuff);
 	len += snprint(p+len, READSTR-len, "Crc: %ld\n", ctlr->crc);
 	len += snprint(p+len, READSTR-len, "Oflo: %ld\n", ctlr->oflo);
@@ -482,6 +484,8 @@ amd79c970pci(void)
 			continue;
 		}
 		ctlr = malloc(sizeof(Ctlr));
+		if(ctlr == nil)
+			error(Enomem);
 		ctlr->port = p->mem[0].bar & ~0x01;
 		ctlr->pcidev = p;
 

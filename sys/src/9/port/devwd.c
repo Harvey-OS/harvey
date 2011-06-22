@@ -77,6 +77,8 @@ wdread(Chan* c, void* a, long n, vlong off)
 			return 0;
 
 		p = malloc(READSTR);
+		if(p == nil)
+			error(Enomem);
 		if(waserror()){
 			free(p);
 			nexterror();

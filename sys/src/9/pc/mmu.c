@@ -88,6 +88,8 @@ mmuinit(void)
 	m->pdb[PDX(VPT)] = PADDR(m->pdb)|PTEWRITE|PTEVALID;
 	
 	m->tss = malloc(sizeof(Tss));
+	if(m->tss == nil)
+		panic("mmuinit: no memory");
 	memset(m->tss, 0, sizeof(Tss));
 	m->tss->iomap = 0xDFFF<<16;
 

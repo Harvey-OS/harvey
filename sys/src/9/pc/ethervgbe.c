@@ -402,6 +402,8 @@ vgbeifstat(Ether* edev, void* a, long n, ulong offset)
 	ctlr = edev->ctlr;
 
 	p = malloc(READSTR);
+	if(p == nil)
+		error(Enomem);
 	l = 0;
 	l += snprint(p+l, READSTR-l, "tx: %uld\n", ctlr->stats.tx);
 	l += snprint(p+l, READSTR-l, "tx [errs]: %uld\n", ctlr->stats.txe);
