@@ -27,7 +27,7 @@ Bconv(Fmt *fp)
 		if(str[0])
 			strcat(str, " ");
 		if(var[i].sym == S) {
-			sprint(ss, "$%ld", var[i].offset);
+			snprint(ss, sizeof(ss), "$%ld", var[i].offset);
 			s = ss;
 		} else
 			s = var[i].sym->name;
@@ -47,13 +47,13 @@ Pconv(Fmt *fp)
 
 	p = va_arg(fp->args, Prog*);
 	if(p->as == ADATA)
-		sprint(str, "	%A	%D/%d,%D",
+		snprint(str, sizeof(str), "	%A	%D/%d,%D",
 			p->as, &p->from, p->from.scale, &p->to);
 	else if(p->as == ATEXT)
-		sprint(str, "	%A	%D,%d,%D",
+		snprint(str, sizeof(str), "	%A	%D,%d,%D",
 			p->as, &p->from, p->from.scale, &p->to);
 	else
-		sprint(str, "	%A	%D,%D",
+		snprint(str, sizeof(str), "	%A	%D,%D",
 			p->as, &p->from, &p->to);
 	return fmtstrcpy(fp, str);
 }
@@ -78,18 +78,18 @@ Dconv(Fmt *fp)
 	i = a->type;
 	if(i >= D_INDIR) {
 		if(a->offset)
-			sprint(str, "%ld(%R)", a->offset, i-D_INDIR);
+			snprint(str, sizeof(str), "%ld(%R)", a->offset, i-D_INDIR);
 		else
-			sprint(str, "(%R)", i-D_INDIR);
+			snprint(str, sizeof(str), "(%R)", i-D_INDIR);
 		goto brk;
 	}
 	switch(i) {
 
 	default:
 		if(a->offset)
-			sprint(str, "$%ld,%R", a->offset, i);
+			snprint(str, sizeof(str), "$%ld,%R", a->offset, i);
 		else
-			sprint(str, "%R", i);
+			snprint(str, sizeof(str), "%R", i);
 		break;
 
 	case D_NONE:
@@ -97,53 +97,54 @@ Dconv(Fmt *fp)
 		break;
 
 	case D_BRANCH:
-		sprint(str, "%ld(PC)", a->offset-pc);
+		snprint(str, sizeof(str), "%ld(PC)", a->offset-pc);
 		break;
 
 	case D_EXTERN:
-		sprint(str, "%s+%ld(SB)", a->sym->name, a->offset);
+		snprint(str, sizeof(str), "%s+%ld(SB)", a->sym->name, a->offset);
 		break;
 
 	case D_STATIC:
-		sprint(str, "%s<>+%ld(SB)", a->sym->name,
+		snprint(str, sizeof(str), "%s<>+%ld(SB)", a->sym->name,
 			a->offset);
 		break;
 
 	case D_AUTO:
-		sprint(str, "%s+%ld(SP)", a->sym->name, a->offset);
+		snprint(str, sizeof(str), "%s+%ld(SP)", a->sym->name, a->offset);
 		break;
 
 	case D_PARAM:
 		if(a->sym)
-			sprint(str, "%s+%ld(FP)", a->sym->name, a->offset);
+			snprint(str, sizeof(str), "%s+%ld(FP)", a->sym->name, a->offset);
 		else
-			sprint(str, "%ld(FP)", a->offset);
+			snprint(str, sizeof(str), "%ld(FP)", a->offset);
 		break;
 
 	case D_CONST:
-		sprint(str, "$%ld", a->offset);
+		snprint(str, sizeof(str), "$%ld", a->offset);
 		break;
 
 	case D_FCONST:
-		sprint(str, "$(%.17e)", a->dval);
+		snprint(str, sizeof(str), "$(%.17e)", a->dval);
 		break;
 
 	case D_SCONST:
-		sprint(str, "$\"%S\"", a->sval);
+		snprint(str, sizeof(str), "$\"%S\"", a->sval);
 		break;
 
 	case D_ADDR:
 		a->type = a->index;
 		a->index = D_NONE;
-		sprint(str, "$%D", a);
+		snprint(str, sizeof(str), "$%D", a);
 		a->index = a->type;
 		a->type = D_ADDR;
 		goto conv;
 	}
 brk:
 	if(a->index != D_NONE) {
-		sprint(s, "(%R*%d)", (int)a->index, (int)a->scale);
-		strcat(str, s);
+		fmtstrcpy(fp, str);
+		snprint(s, sizeof(s), "(%R*%d)", (int)a->index, (int)a->scale);
+		return fmtstrcpy(fp, s);
 	}
 conv:
 	return fmtstrcpy(fp, str);
@@ -229,9 +230,9 @@ Rconv(Fmt *fp)
 
 	r = va_arg(fp->args, int);
 	if(r >= D_AL && r <= D_NONE)
-		sprint(str, "%s", regstr[r-D_AL]);
+		snprint(str, sizeof(str), "%s", regstr[r-D_AL]);
 	else
-		sprint(str, "gok(%d)", r);
+		snprint(str, sizeof(str), "gok(%d)", r);
 
 	return fmtstrcpy(fp, str);
 }
