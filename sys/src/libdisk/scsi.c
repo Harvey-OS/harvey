@@ -14,7 +14,24 @@
 #include <disk.h>
 
 enum {
-	Readtoc	= 0x43,
+	/* commands */
+	Testrdy		= 0x00,
+	Reqsense	= 0x03,
+	Write10		= 0x2a,
+	Readtoc		= 0x43,
+
+	/* sense[2] (key) sense codes */
+	Sensenone	= 0,
+	Sensenotrdy	= 2,
+	Sensebadreq	= 5,
+
+	/* sense[12] (asc) sense codes */
+	Lunnotrdy	= 0x04,
+	Recovnoecc	= 0x17,
+	Recovecc	= 0x18,
+	Badcdb		= 0x24,
+	Newmedium	= 0x28,
+	Nomedium	= 0x3a,
 };
 
 int scsiverbose;
@@ -77,7 +94,7 @@ scsierror(int asc, int ascq)
 	getcodes();
 
 	if(codes) {
-		sprint(search, "\n%.2ux%.2ux ", asc, ascq);
+		snprint(search, sizeof search, "\n%.2ux%.2ux ", asc, ascq);
 		if(p = strstr(codes, search)) {
 			p += 6;
 			if((q = strchr(p, '\n')) == nil)
@@ -86,7 +103,7 @@ scsierror(int asc, int ascq)
 			return buf;
 		}
 
-		sprint(search, "\n%.2ux00", asc);
+		snprint(search, sizeof search, "\n%.2ux00", asc);
 		if(p = strstr(codes, search)) {
 			p += 6;
 			if((q = strchr(p, '\n')) == nil)
@@ -96,7 +113,7 @@ scsierror(int asc, int ascq)
 		}
 	}
 
-	sprint(buf, "scsi #%.2ux %.2ux", asc, ascq);
+	snprint(buf, sizeof buf, "scsi #%.2ux %.2ux", asc, ascq);
 	return buf;
 }
 
@@ -175,18 +192,18 @@ _scsiready(Scsi *s, int dolock)
 	werrstr("");
 	for(i=0; i<3; i++) {
 		memset(cmd, 0, sizeof(cmd));
-		cmd[0] = 0x00;	/* unit ready */
+		cmd[0] = Testrdy;	/* unit ready */
 		if(write(s->rawfd, cmd, sizeof(cmd)) != sizeof(cmd)) {
 			if(scsiverbose)
 				fprint(2, "ur cmd write: %r\n");
 			werrstr("short unit-ready raw write");
-			goto bad;
+			continue;
 		}
 		write(s->rawfd, resp, 0);
 		if(read(s->rawfd, resp, sizeof(resp)) < 0) {
 			if(scsiverbose)
 				fprint(2, "ur resp read: %r\n");
-			goto bad;
+			continue;
 		}
 		resp[sizeof(resp)-1] = '\0';
 		status = atoi((char*)resp);
@@ -197,7 +214,6 @@ _scsiready(Scsi *s, int dolock)
 		}
 		if(scsiverbose)
 			fprint(2, "target: bad status: %x\n", status);
-	bad:;
 	}
 	rerrstr(err, sizeof err);
 	if(err[0] == '\0')
@@ -234,7 +250,7 @@ scsi(Scsi *s, uchar *cmd, int ccount, void *v, int dcount, int io)
 		 * request sense
 		 */
 		memset(req, 0, sizeof(req));
-		req[0] = 0x03;
+		req[0] = Reqsense;
 		req[4] = sizeof(sense);
 		memset(sense, 0xFF, sizeof(sense));
 		if((n=_scsicmd(s, req, sizeof(req), sense, sizeof(sense), Sread, 0)) < 14)
@@ -245,30 +261,37 @@ scsi(Scsi *s, uchar *cmd, int ccount, void *v, int dcount, int io)
 			if(scsiverbose)
 				fprint(2, "unit not ready\n");
 	
-		key = sense[2];
-		code = sense[12];
-		if(code == 0x17 || code == 0x18) {	/* recovered errors */
+		key = sense[2] & 0xf;
+		code = sense[12];			/* asc */
+		if(code == Recovnoecc || code == Recovecc) { /* recovered errors */
 			qunlock(s);
 			return dcount;
 		}
-		if(code == 0x28 && cmd[0] == Readtoc) {
+
+		/* retry various odd cases */
+		if(code == Newmedium && cmd[0] == Readtoc) {
 			/* read toc and media changed */
 			s->nchange++;
 			s->changetime = time(0);
-			continue;
+		} else if(cmd[0] == Write10 && key == Sensenotrdy &&
+		    code == Lunnotrdy && sense[13] == 0x08) {
+			/* long write in progress, per mmc-6 */
+			tries = 0;
+			sleep(1);
 		}
 	}
 
 	/* drive not ready, or medium not present */
-	if(cmd[0] == Readtoc && key == 2 && (code == 0x3a || code == 0x04)) {
+	if(cmd[0] == Readtoc && key == Sensenotrdy &&
+	    (code == Nomedium || code == Lunnotrdy)) {
 		s->changetime = 0;
 		qunlock(s);
 		return -1;
 	}
 	qunlock(s);
 
-	if(cmd[0] == Readtoc && key == 5 && code == 0x24) /* blank media */
-		return -1;
+	if(cmd[0] == Readtoc && key == Sensebadreq && code == Badcdb)
+		return -1;			/* blank media */
 
 	p = scsierror(code, sense[13]);
 
@@ -278,7 +301,7 @@ scsi(Scsi *s, uchar *cmd, int ccount, void *v, int dcount, int io)
 		fprint(2, "scsi cmd #%.2ux: %.2ux %.2ux %.2ux: %s\n",
 			cmd[0], key, code, sense[13], p);
 
-//	if(key == 0)			/* no sense? */
+//	if(key == Sensenone)
 //		return dcount;
 	return -1;
 }
