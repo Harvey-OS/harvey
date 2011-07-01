@@ -1208,6 +1208,8 @@ snap -a -s /snapshot/2003/1220/0700 -d /archive/2003/1220
 .SH BUGS
 It is prudent to avoid taking a snapshot at the same time as an
 archival dump.
+.I Fossil
+has been seen to sometimes hang when they collide.
 Snapshots are taken when
 .BI time(0)/60% interval
 is zero, so
