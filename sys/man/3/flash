@@ -73,7 +73,7 @@ allowed to a page before requiring a block erase.
 .\" Reads and writes are unbuffered.
 .PP
 The control file
-.BI part ctl
+.IB part ctl
 can be read and written.
 A read returns several lines containing decimal and hexadecimal numbers
 (separated by white space)
