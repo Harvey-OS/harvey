@@ -6,5 +6,5 @@ rfork n
 
 webfs
 webcookies
-echo useragent netscape 1.0 >/mnt/web/ctl
+echo -n useragent netscape 1.0 >/mnt/web/ctl
 exec /$cputype/bin/abaco $*
