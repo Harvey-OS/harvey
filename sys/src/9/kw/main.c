@@ -221,21 +221,27 @@ dumpbytes(uchar *bp, long max)
 	iprint("...\n");
 }
 
+void	archconsole(void);
+vlong	probeaddr(uintptr);
+
 static void
 spiprobe(void)
 {
 	Spiregs *rp = (Spiregs *)soc.spi;
 
+	if (probeaddr(soc.spi) < 0)
+		return;
 	rp->ictl |= Csnact;
 	coherence();
 	rp->icfg |= Dirrdcmd | 3<<8;	/* fast reads, 4-byte addresses */
 	rp->icfg &= ~Bytelen;		/* one-byte reads */
 	coherence();
 
-//	print("spi flash at %#ux: memory reads enabled\n", PHYSSPIFLASH);
+	print("spi flash ignored: ctlr %#p, data %#ux", rp, PHYSSPIFLASH);
+	if (probeaddr(PHYSSPIFLASH) < 0)
+		print(" (no response)");
+	print(": memory reads enabled\n");
 }
-
-void	archconsole(void);
 
 /*
  * entered from l.s with mmu enabled.
@@ -313,6 +319,7 @@ wave(' ');
 	initseg();
 	links();
 	chandevreset();			/* most devices are discovered here */
+	spiprobe();
 
 	pageinit();
 	swapinit();

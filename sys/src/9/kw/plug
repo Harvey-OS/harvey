@@ -76,5 +76,6 @@ bootdir
 	/arm/bin/auth/factotum
 #	/arm/bin/paqfs
 	/arm/bin/usb/usbd
-# nvram not needed any longer, it's in flash
+# nvram not needed any longer, it's in flash.
+# but on the dreamplug, flash is spi instead of nand, so we do need it.
 	nvram

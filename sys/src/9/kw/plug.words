@@ -65,40 +65,33 @@ saveenv
 
 
 	physical mem map
-hex addr	size	what
+
+hex addr size	what
 ----
-0		512MB	sdram
+0	 512MB	sdram
+c8010000 2K	cesa sram
 
-80000000	512MB	pcie mem	# default
-c8010000	2K	cesa sram
-d0000000	1MB	internal regs default address at reset
-d8000000	128MB	nand flash	# actually 512MB addressed through this
-e8000000	128MB	spi serial flash
-f0000000	128MB	boot rom	# default
-f0000000	16MB	pcie io		# mapped from 0xc0000000 by u-boot
+	virtual mem map (from cpu address map & mmu mappings)
 
-f1000000	1MB 	internal regs as mapped by u-boot
-f1000000	64K	dram regs
-f1010000	64K	uart, flashes, rtc, gpio, etc.
-f1030000	64K	crypto accelerator (cesa)
-f1040000	64K	pci-e regs
-f1050000	64K	usb otg regs (ehci-like)
-f1070000	64K	gbe regs
-f1080000	64K	non-ahci sata regs
-f1090000	64K	sdio regs
-
-f8000000	128MB	boot device	# default, mapped to 0 by u-boot
-f8000000	16MB	spi flash	# mapped by u-boot
-f9000000	8MB	nand flash	# on sheeva/openrd, mapped by u-boot
-fb000000	64KB	crypto engine
-ff000000	16MB	boot rom	# u-boot
-
-	virtual mem map
-hex addr	size	what
+hex addr size	what
 ----
-0		512MB	user process address space
-
-60000000		kzero, mapped to 0
-90000000	256MB	pcie mem	# mapped by u-boot
-c0000000	64KB	pcie i/o	# mapped by u-boot
-...			as per physical map
+0	 512MB	user process address space
+60000000 512MB	kzero, mapped to 0
+90000000 256MB	pcie mem	# identity mapped by u-boot
+d0000000 1MB	internal regs default address at reset
+d8000000 128MB	nand flash	# 512MB addressed through this (guru)
+f0000000 16MB	pcie i/o	# mapped to 0xc0000000 by u-boot
+f1000000 1MB 	internal regs (on-chip devices) as mapped by u-boot
+f1000000 64K	dram regs
+f1010000 64K	uart, flashes, rtc, gpio, etc.
+f1030000 64K	crypto accelerator (cesa)
+f1040000 64K	pcie regs
+f1050000 64K	usb otg regs (ehci-like)
+f1070000 64K	gbe regs
+f1080000 64K	non-ahci sata regs
+f1090000 64K	sdio regs
+f8000000 16MB	spi flash	# mapped to 0 by u-boot
+f9000000 8MB	nand flash	# identity mapped by u-boot (sheeva/openrd)
+fb000000 64KB	crypto engine	# identity mapped by u-boot
+ff000000 16MB	boot rom	# identity mapped by u-boot
+... 		as per physical map
