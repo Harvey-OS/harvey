@@ -393,6 +393,34 @@ size_cmap(gs_font *font, uint first_code, int num_glyphs, gs_glyph max_glyph,
 
 /* ------ hmtx/vmtx ------ */
 
+/*
+ * avoid fp exceptions storing large doubles into integers by limiting
+ * the range of the results.  these are band-aids that don't fix the
+ * root cause of the out-of-range results, but they keep gs on the rails.
+ */
+
+ushort
+limdbl2ushort(double d)
+{
+	if (d < 0)
+		return 0;
+	else if (d > 64000)
+		return 64000;
+	else
+		return d;
+}
+
+long
+limdbl2long(double d)
+{
+	if (d > 2e9)
+		return 2e9;
+	else if (d < -2e9)
+		return -2e9;
+	else
+		return d;
+}
+
 private void
 write_mtx(stream *s, gs_font_type42 *pfont, const gs_type42_mtx_t *pmtx,
 	  int wmode)
@@ -406,12 +434,12 @@ write_mtx(stream *s, gs_font_type42 *pfont, const gs_type42_mtx_t *pmtx,
     sbw[0] = sbw[1] = sbw[2] = sbw[3] = 0; /* in case of failures */
     for (i = 0; i < pmtx->numMetrics; ++i) {
 	DISCARD(pfont->data.get_metrics(pfont, i, wmode, sbw));
-	put_ushort(s, (ushort)(sbw[wmode + 2] * factor)); /* width */
-	put_ushort(s, (ushort)(sbw[wmode] * factor)); /* lsb, may be <0 */
+	put_ushort(s, limdbl2ushort(sbw[wmode + 2] * factor)); /* width */
+	put_ushort(s, limdbl2ushort(sbw[wmode] * factor)); /* lsb, may be <0 */
     }
     for (; len < pmtx->length; ++i, len += 2) {
 	DISCARD(pfont->data.get_metrics(pfont, i, wmode, sbw));
-	put_ushort(s, (ushort)(sbw[wmode] * factor)); /* lsb, may be <0 */
+	put_ushort(s, limdbl2ushort(sbw[wmode] * factor)); /* lsb, may be <0 */
     }
 }
 
@@ -420,19 +448,24 @@ private uint
 size_mtx(gs_font_type42 *pfont, gs_type42_mtx_t *pmtx, uint max_glyph,
 	 int wmode)
 {
-    int prev_width = min_int;
+    int prev_width = min_int, wmode2;
     uint last_width = 0; /* pacify compilers */
     double factor = pfont->data.unitsPerEm * (wmode ? -1 : 1);
-    uint i;
+    uint i, j;
 
     for (i = 0; i <= max_glyph; ++i) {
 	float sbw[4];
-	int code = pfont->data.get_metrics(pfont, i, wmode, sbw);
-	int width;
+	int code, width;
 
+	for (j = 0; j < 4; j++)
+		sbw[j] = 0;
+	code = pfont->data.get_metrics(pfont, i, wmode, sbw);
 	if (code < 0)
 	    continue;
-	width = (int)(sbw[wmode + 2] * factor + 0.5);
+	wmode2 = wmode + 2;
+	if (wmode2 < 0 || wmode2 >= 4)
+		abort();	/* "wmode2 out of range" */
+	width = limdbl2long(sbw[wmode2] * factor + 0.5);
 	if (width != prev_width)
 	    prev_width = width, last_width = i;
     }

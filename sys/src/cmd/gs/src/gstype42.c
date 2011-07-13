@@ -35,6 +35,8 @@
 #include "gxistate.h"
 #include "stream.h"
 
+void abort(void);
+
 /* Structure descriptor */
 public_st_gs_font_type42();
 
@@ -221,6 +223,8 @@ gs_type42_font_init(gs_font_type42 * pfont)
 	) {
 	float upem = (float)pfont->data.unitsPerEm;
 
+	if (upem == 0)
+		abort(); /* "gs_type42_init_font: 0 pfont->data.unitsPerEm" */
 	pfont->FontBBox.p.x = S16(head_box) / upem;
 	pfont->FontBBox.p.y = S16(head_box + 2) / upem;
 	pfont->FontBBox.q.x = S16(head_box + 4) / upem;
@@ -249,6 +253,14 @@ gs_len_glyphs_release(void *data, void *event)
 
 /* ---------------- Glyph level ---------------- */
 
+double
+recipunitsperem(gs_font_type42 *pfont)
+{
+	if (pfont->data.unitsPerEm == 0)
+		abort(); /* "recipunitsperem: 0 pfont->data.unitsPerEm" */
+	return 1. / pfont->data.unitsPerEm;
+}
+
 /*
  * Parse the definition of one component of a composite glyph.  We don't
  * bother to parse the component index, since the caller can do this so
@@ -261,7 +273,7 @@ parse_component(const byte **pdata, uint *pflags, gs_matrix_fixed *psmat,
 {
     const byte *gdata = *pdata;
     uint flags;
-    double factor = 1.0 / pfont->data.unitsPerEm;
+    double factor = recipunitsperem(pfont);
     gs_matrix_fixed mat;
     gs_matrix scale_mat;
 
@@ -674,7 +686,7 @@ simple_glyph_metrics(gs_font_type42 * pfont, uint glyph_index, int wmode,
 {
     int (*string_proc)(gs_font_type42 *, ulong, uint, const byte **) =
 	pfont->data.string_proc;
-    double factor = 1.0 / pfont->data.unitsPerEm;
+    double factor = recipunitsperem(pfont);
     uint width;
     int lsb;
     int code;
@@ -852,7 +864,7 @@ append_simple(const byte *gdata, float sbw[4], const gs_matrix_fixed *pmat,
 	uint i, np;
 	float offset = 0;
 	gs_fixed_point pt;
-	double factor = 1.0 / pfont->data.unitsPerEm;
+	double factor = recipunitsperem(pfont);
 	/*
 	 * Decode the first flag byte outside the loop, to avoid a
 	 * compiler warning about uninitialized variables.

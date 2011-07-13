@@ -221,8 +221,11 @@ findflash(Flash *f, uintptr pa, uchar *id4p)
 		sts = nandread(f);
 		nandunclaim(f);
 	}
-	if(!(sts & SReady))
+	if(!(sts & SReady)) {
+		if (Debug)
+			print("flashkw: ctlr %#p not ready\n", pa);
 		return nil;
+	}
 
 	nandclaim(f);
 	nandcmd(f, Readid);
@@ -241,6 +244,7 @@ findflash(Flash *f, uintptr pa, uchar *id4p)
 		if(chip->vid == maker && chip->did == device)
 			return chip;
 	}
+	print("flashkw: unknown chip: vid %#ux did %#ux\n", maker, device);
 	return nil;
 }
 

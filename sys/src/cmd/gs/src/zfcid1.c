@@ -135,6 +135,8 @@ z11_get_outline(gs_font_type42 * pfont, uint glyph_index,
 #define GET_U16_MSB(p) (((uint)((p)[0]) << 8) + (p)[1])
 #define GET_S16_MSB(p) (int)((GET_U16_MSB(p) ^ 0x8000) - 0x8000)
 
+double	recipunitsperem(gs_font_type42 *pfont);
+
 private int
 z11_get_metrics(gs_font_type42 * pfont, uint glyph_index, int wmode,
 		float sbw[4])
@@ -157,7 +159,7 @@ z11_get_metrics(gs_font_type42 * pfont, uint glyph_index, int wmode,
     lsb = GET_S16_MSB(pmetrics + 2);
     width = GET_U16_MSB(pmetrics + 0);
     {
-	double factor = 1.0 / pfont->data.unitsPerEm;
+	double factor = recipunitsperem(pfont);
 
 	if (wmode) {
 	    sbw[0] = 0, sbw[1] = -lsb * factor;
