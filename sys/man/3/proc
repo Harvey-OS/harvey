@@ -397,7 +397,7 @@ command below contains further details.
 .TP 10n
 .B "yieldonblock
 Make the real-time process yield on blocking I/O.
-  The description of the
+The description of the
 .B admit
 command below contains further details.
 .TP 10n

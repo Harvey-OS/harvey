@@ -20,9 +20,7 @@ logopen(Log *alog)
 			alog->nlog = 4*1024;
 		if(alog->minread == 0)
 			alog->minread = 1;
-		if(alog->buf == nil)
-			alog->buf = malloc(alog->nlog);
-		if(alog->buf == nil)
+		if(alog->buf == nil && (alog->buf = malloc(alog->nlog)) == nil)
 			error(Enomem);
 		alog->rptr = alog->buf;
 		alog->end = alog->buf + alog->nlog;
