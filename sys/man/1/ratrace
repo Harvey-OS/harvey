@@ -41,7 +41,7 @@ and
 the start and stop times for the system call in nanoseconds.
 The times are exclusive of the overhead for tracing.
 .SH FILES
-.BI /proc/ pid /syscalltrace
+.BI /proc/ pid /syscall
 .br
 .BI /proc/ pid /ctl
 .SH SOURCE

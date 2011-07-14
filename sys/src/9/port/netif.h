@@ -17,6 +17,7 @@ enum
 	Nstatqid,
 	Ntypeqid,
 	Nifstatqid,
+	Nmtuqid,
 };
 
 /*
@@ -76,6 +77,9 @@ struct Netif
 	int	alen;			/* address length */
 	int	mbps;			/* megabits per sec */
 	int	link;			/* link status */
+	int	minmtu;
+	int 	maxmtu;
+	int	mtu;
 	uchar	addr[Nmaxaddr];
 	uchar	bcast[Nmaxaddr];
 	Netaddr	*maddr;			/* known multicast addresses */
@@ -100,6 +104,7 @@ struct Netif
 	void	*arg;
 	void	(*promiscuous)(void*, int);
 	void	(*multicast)(void*, uchar*, int);
+	int	(*hwmtu)(void*, int);	/* get/set mtu */
 	void	(*scanbs)(void*, uint);	/* scan for base stations */
 };
 
