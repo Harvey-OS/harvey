@@ -29,19 +29,35 @@ die(char *s)
 void
 cwrite(int fd, char *path, char *cmd, int len)
 {
+	werrstr("");
 	if (write(fd, cmd, len) < len) {
-		fprint(2, "cwrite: %s: failed %d bytes: %r\n", path, len);
+		fprint(2, "cwrite: %s: failed writing %d bytes: %r\n",
+			path, len);
 		sendp(quit, nil);
 		threadexits(nil);
 	}
 }
 
+Str *
+newstr(void)
+{
+	Str *s;
+
+	s = mallocz(sizeof(Str) + Bufsize, 1);
+	if (s == nil)
+		sysfatal("malloc");
+	s->buf = (char *)&s[1];
+	return s;
+}
+
 void
 reader(void *v)
 {
-	int cfd, tfd, forking = 0, pid, newpid;
+	int cfd, tfd, forking = 0, exiting, pid, newpid;
 	char *ctl, *truss;
 	Str *s;
+	static char start[] = "start";
+	static char waitstop[] = "waitstop";
 
 	pid = (int)(uintptr)v;
 	ctl = smprint("/proc/%d/ctl", pid);
@@ -51,12 +67,13 @@ reader(void *v)
 	if ((tfd = open(truss, OREAD)) < 0)
 		die(smprint("%s: %r", truss));
 
-	cwrite(cfd, ctl, "stop", 4);
-	cwrite(cfd, truss, "startsyscall", 12);
+	/* child was stopped by hang msg earlier */
+	cwrite(cfd, ctl, waitstop, sizeof waitstop - 1);
 
-	s = mallocz(sizeof(Str) + Bufsize, 1);
-	s->buf = (char *)&s[1];
-	while((s->len = pread(tfd, s->buf, Bufsize - 1, 0)) > 0){
+	cwrite(cfd, ctl, "startsyscall", 12);
+	s = newstr();
+	exiting = 0;
+	while((s->len = pread(tfd, s->buf, Bufsize - 1, 0)) >= 0){
 		if (forking && s->buf[1] == '=' && s->buf[3] != '-') {
 			forking = 0;
 			newpid = strtol(&s->buf[3], 0, 0);
@@ -73,20 +90,26 @@ reader(void *v)
 			char *rf;
 
 			rf = strdup(s->buf);
-         		if (tokenize(rf, a, 8) == 5) {
-				ulong flags;
-
-				flags = strtoul(a[4], 0, 16);
-				if (flags & RFPROC)
-					forking = 1;
-			}
+         		if (tokenize(rf, a, 8) == 5 &&
+			    strtoul(a[4], 0, 16) & RFPROC)
+				forking = 1;
 			free(rf);
+		} else if (strstr(s->buf, " Exits") != nil)
+			exiting = 1;
+
+		sendp(out, s);	/* print line from /proc/$child/syscall */
+		if (exiting) {
+			s = newstr();
+			strcpy(s->buf, "\n");
+			sendp(out, s);
+			break;
 		}
-		sendp(out, s);
-		cwrite(cfd, truss, "startsyscall", 12);
-		s = mallocz(sizeof(Str) + Bufsize, 1);
-		s->buf = (char *)&s[1];
+
+		/* flush syscall trace buffer */
+		cwrite(cfd, ctl, "startsyscall", 12);
+		s = newstr();
 	}
+
 	sendp(quit, nil);
 	threadexitsall(nil);
 }
@@ -111,17 +134,17 @@ writer(void *)
 
 	for(;;)
 		switch(alt(a)){
-		case 0:
+		case 0:			/* quit */
 			nread--;
 			if(nread <= 0)
 				goto done;
 			break;
-		case 1:
+		case 1:			/* out */
 			/* it's a nice null terminated thing */
 			fprint(2, "%s", s->buf);
 			free(s);
 			break;
-		case 2:
+		case 2:			/* forkc */
 			// procrfork(reader, (void*)newpid, Stacksize, 0);
 			nread++;
 			break;
@@ -138,6 +161,22 @@ usage(void)
 }
 
 void
+hang(void)
+{
+	int me;
+	char *myctl;
+	static char hang[] = "hang";
+
+	myctl = smprint("/proc/%d/ctl", getpid());
+	me = open(myctl, OWRITE);
+	if (me < 0)
+		sysfatal("can't open %s: %r", myctl);
+	cwrite(me, myctl, hang, sizeof hang - 1);
+	close(me);
+	free(myctl);
+}
+
+void
 threadmain(int argc, char **argv)
 {
 	int pid;
@@ -151,7 +190,7 @@ threadmain(int argc, char **argv)
 	 */
 	if (argc < 2)
 		usage();
-	if (argv[1][0] == '-')
+	while (argv[1][0] == '-') {
 		switch(argv[1][1]) {
 		case 'c':
 			if (argc < 3)
@@ -162,6 +201,9 @@ threadmain(int argc, char **argv)
 		default:
 			usage();
 		}
+		++argv;
+		--argc;
+	}
 
 	/* run a command? */
 	if(cmd) {
@@ -169,6 +211,7 @@ threadmain(int argc, char **argv)
 		if (pid < 0)
 			sysfatal("fork failed: %r");
 		if(pid == 0) {
+			hang();
 			exec(cmd, args);
 			if(cmd[0] != '/')
 				exec(smprint("/bin/%s", cmd), args);
