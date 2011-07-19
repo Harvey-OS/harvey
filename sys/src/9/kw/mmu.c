@@ -441,8 +441,8 @@ mmukunmap(uintptr va, uintptr pa, usize size)
 uintptr
 cankaddr(uintptr pa)
 {
-	if(pa < PHYSDRAM + 512*MiB)		/* assumes PHYSDRAM is 0 */
-		return PHYSDRAM + 512*MiB - pa;
+	if(pa < PHYSDRAM + memsize)		/* assumes PHYSDRAM is 0 */
+		return PHYSDRAM + memsize - pa;
 	return 0;
 }
 
