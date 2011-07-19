@@ -61,6 +61,7 @@ extern void l2cacheuwbinvse(void*, int);
 extern void l2cacheuwbse(void*, int);
 extern void lastresortprint(char *buf, long bp);
 extern int log2(ulong);
+extern void mmuidmap(uintptr phys, int mbs);
 extern void mmuinvalidate(void);		/* 'mmu' or 'tlb'? */
 extern void mmuinvalidateaddr(u32int);		/* 'mmu' or 'tlb'? */
 extern u32int pidget(void);

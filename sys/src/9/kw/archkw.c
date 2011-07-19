@@ -97,10 +97,10 @@ typedef struct Addrmap Addrmap;
 typedef struct Addrwin Addrwin;
 struct Addrmap {
 	struct Addrwin {
-		ulong	ctl;	/* see Winenable in io.h */
-		ulong	base;
-		ulong	remaplo;
-		ulong	remaphi;
+		ulong	ctl;		/* see Winenable in io.h */
+		ulong	base;		/* virtual address */
+		ulong	remaplo;	/* physical address sent to target */
+		ulong	remaphi;	/* " */
 	} win[8];
 	ulong	dirba;		/* device internal reg's base addr.: PHYSIO */
 };
@@ -113,7 +113,7 @@ Soc soc = {
 //	.sdramd		= PHYSIO+0x01500,	/* unused */
 
 	.iocfg		= PHYSIO+0x100e0,
-	.addrmap	= PHYSIO+0x20000,
+	.addrmap	= PHYSIO+0x20000,	/* cpu address map */
 	.intr		= PHYSIO+0x20200,
 	.nand		= PHYSIO+0x10418,
 	.cesa		= PHYSIO+0x30000,	/* crypto accelerator */
@@ -149,7 +149,19 @@ Soc soc = {
  * 5 targ 1 attr 0x1e size 128MB addr 0xe8::	disabled	spi flash
  * 6 targ 1 attr 0x1d size 128MB addr 0xf::	disabled	boot rom
  * 7 targ 3 attr 0x1  size  64K  addr 0xfb::			crypto sram
+ *
+ * dreamplug u-boot leaves us with this address map:
+ *
+ * 0 targ 4 attr 0xe8 size 256MB addr 0x9::  remap addr 0x9::	pci mem
+ * 1 targ 4 attr 0xe0 size  64KB addr 0xc::  remap addr 0xc::	pci i/o
+ * 2 targ 1 attr 0x2f size 128MB addr 0xd8:: remap addr 0xd8::	nand flash
+ * 3 targ 1 attr 0x1e size 128MB addr 0xe8:: remap addr 0xe8::	spi flash
+ * 4 targ 1 attr 0x1d size 128MB addr 0xf8::			boot rom
+ * 5 targ 3 attr 0x1  size  64K  addr 0xc801::			crypto sram
+ * 6 targ 0 attr 0x0  size  64K  addr 0xf::	disabled	ram?
+ * 7 targ 0 attr 0x0  size  64K  addr 0xf8::	disabled	ram?
  */
+
 #define WINTARG(ctl)	(((ctl) >> 4) & 017)
 #define WINATTR(ctl)	(((ctl) >> 8) & 0377)
 #define WIN64KSIZE(ctl)	(((ctl) >> 16) + 1)

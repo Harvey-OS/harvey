@@ -204,6 +204,7 @@ extern register Proc* up;			/* R9 */
 
 extern uintptr kseg0;
 extern Mach* machaddr[MAXMACH];
+extern ulong memsize;
 
 enum {
 	Nvec = 8,	/* # of vectors at start of lexception.s */
@@ -294,7 +295,6 @@ struct Soc {			/* addr's of SoC controllers */
 	uintptr	devid;
 	uintptr	l2cache;
 	uintptr	sdramc;
-//	uintptr	sdramd;		/* unused */
 
 	uintptr	iocfg;
 	uintptr addrmap;

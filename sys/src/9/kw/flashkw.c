@@ -192,8 +192,6 @@ nandunclaim(Flash*)
 }
 
 
-void	mmuidmap(uintptr phys, int mbs);
-
 Nandtab *
 findflash(Flash *f, uintptr pa, uchar *id4p)
 {
