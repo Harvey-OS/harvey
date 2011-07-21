@@ -373,6 +373,8 @@ etherreset(void)
 	for(ether = 0, ctlrno = 0; ctlrno < MaxEther; ctlrno++){
 		if(ether == 0)
 			ether = malloc(sizeof(Ether));
+		if(ether == 0)
+			panic("etherreset: no memory");
 		memset(ether, 0, sizeof(Ether));
 		ether->ctlrno = ctlrno;
 		ether->mbps = 10;
