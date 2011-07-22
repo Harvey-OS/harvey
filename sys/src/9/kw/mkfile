@@ -1,5 +1,6 @@
 CONF=plug
-CONFLIST=plug
+CONFLIST=plug plugnv
+EXTRACOPIES=
 
 # allegedly u-boot uses the bottom 8MB (up to 0x800000)
 # so avoid that
@@ -99,9 +100,9 @@ install-in-flash:V: /$objtype/$p$CONF paqdisk
 	cp paqdisk /dev/flash/plan9
 
 /$objtype/$p$CONF:D: $p$CONF s$p$CONF
-	cp -x $p$CONF s$p$CONF /$objtype &
-	{ 9fs lookout &&  cp -x $p$CONF s$p$CONF /n/lookout/$objtype } &
-#	{ 9fs piestand && cp -x $p$CONF s$p$CONF /n/piestand/$objtype } &
+	cp -x $p$CONF s$p$CONF /$objtype/ &
+	for(i in $EXTRACOPIES)
+		{ echo $i: && 9fs $i && cp $p$CONF s$p$CONF /n/$i/$objtype } &
 	wait
 	touch $target
 

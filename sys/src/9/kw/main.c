@@ -610,7 +610,7 @@ Confmem sheevamem[nelem(conf.mem)] = {
 	 * Memory available to Plan 9:
 	 * the 8K is reserved for ethernet dma access violations to scribble on.
 	 */
-	{ .base = PHYSDRAM, .limit = PHYSDRAM + Minmem - 8*1024, },
+	{ .base = PHYSDRAM, .limit = PHYSDRAM + Maxmem - 8*1024, },
 };
 ulong memsize = Maxmem;
 
