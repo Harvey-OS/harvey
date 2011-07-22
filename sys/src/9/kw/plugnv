@@ -1,5 +1,5 @@
-# plug - sheeva plug, openrd-client, guruplug, dreamplug and others based on
-#	marvell's kirkwood soc
+# plugnv - sheeva plug, openrd-client, guruplug, dreamplug and others based on
+#	marvell's kirkwood soc.  includes compiled-in nvram.
 dev
 	root
 	cons
@@ -75,6 +75,9 @@ bootdir
 	boot$CONF.out boot
 	/arm/bin/ip/ipconfig
 	/arm/bin/auth/factotum
-	/arm/bin/usb/usbd
-	/arm/bin/disk/partfs
 #	/arm/bin/paqfs
+	/arm/bin/usb/usbd
+# compiled-in nvram is a hack and only needed if flash is inaccessible,
+# usb won't work, and we don't have coraid access.  it should not be used
+# on outside machines.
+	nvram
