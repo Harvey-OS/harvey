@@ -1894,8 +1894,10 @@ didtype(Pcidev *p)
 			return Tich;
 		break;
 	case Vatiamd:
-		if(p->did == 0x4380)
+		if(p->did == 0x4380 || p->did == 0x4390 || p->did == 0x4391){
+			print("detected sb600 vid 0x%ux did 0x%ux\n", p->vid, p->did);
 			return Tsb600;
+		}
 		break;
 	case Vmarvell:
 		/* can't cope with sata 3 yet; touching sd files will hang */

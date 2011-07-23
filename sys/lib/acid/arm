@@ -68,6 +68,7 @@ defn pstop(pid)
 	}
 }
 
+sizeofUreg=72;
 aggr Ureg
 {
 	'U' 0 r0;

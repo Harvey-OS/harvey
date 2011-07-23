@@ -1,6 +1,7 @@
 #include "../port/portfns.h"
 
 void	aamloop(int);
+void	acpiscan(void (*func)(uchar *));
 Dirtab*	addarchfile(char*, int, long(*)(Chan*,void*,long,vlong), long(*)(Chan*,void*,long,vlong));
 void	archinit(void);
 int	bios32call(BIOS32ci*, u16int[3]);

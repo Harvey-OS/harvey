@@ -12,7 +12,7 @@ BOOTFILES=\
 	settime.$O\
 	sac.$O\
 	paq.$O\
-#	parts.$O\
+	parts.$O\
 	printstub.$O\
 	usb.$O\
 
