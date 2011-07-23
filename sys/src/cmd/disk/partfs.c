@@ -274,12 +274,6 @@ Have:
 	return 0;
 }
 
-void*
-evommem(void *a, void *b, ulong n)
-{
-	return memmove(b, a, n);
-}
-
 int
 rdwrpart(Req *r)
 {

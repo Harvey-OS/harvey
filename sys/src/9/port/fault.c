@@ -14,7 +14,7 @@ fault(ulong addr, int read)
 	if(up == nil)
 		panic("fault: nil up");
 	if(up->nlocks.ref)
-		print("fault: nlocks %ld\n", up->nlocks.ref);
+		print("fault: addr %#p: nlocks %ld\n", addr, up->nlocks.ref);
 
 	sps = up->psstate;
 	up->psstate = "Fault";

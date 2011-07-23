@@ -182,12 +182,12 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 				else if(xbp = iallocb(len)){
 					memmove(xbp->wp, pkt, len);
 					xbp->wp += len;
-					if(qpass(f->in, xbp) < 0) {
+					if(qpass(f->in, xbp) < 0){
 						// print("soverflow for f->in\n");
 						ether->soverflows++;
 					}
 				}
-				else {
+				else{
 					// print("soverflow iallocb\n");
 					ether->soverflows++;
 				}
@@ -198,7 +198,7 @@ etheriq(Ether* ether, Block* bp, int fromwire)
 	}
 
 	if(fx){
-		if(qpass(fx->in, bp) < 0) {
+		if(qpass(fx->in, bp) < 0){
 			// print("soverflow for fx->in\n");
 			ether->soverflows++;
 		}
@@ -274,13 +274,13 @@ etherwrite(Chan* chan, void* buf, long n, vlong)
 			return n;
 		}
 		free(cb);
-		if(ether->ctl!=nil)
-			return ether->ctl(ether,buf,n);
+		if(ether->ctl != nil)
+			return ether->ctl(ether, buf, n);
 
 		error(Ebadctl);
 	}
 
-	if(n > ether->maxmtu)
+	if(n > ether->mtu)
 		error(Etoobig);
 	if(n < ether->minmtu)
 		error(Etoosmall);
@@ -317,7 +317,7 @@ etherbwrite(Chan* chan, Block* bp, ulong)
 	}
 	ether = etherxx[chan->dev];
 
-	if(n > ether->maxmtu){
+	if(n > ether->mtu){
 		freeb(bp);
 		error(Etoobig);
 	}
@@ -386,6 +386,7 @@ etherprobe(int cardno, int ctlrno)
 	ether->mbps = 10;
 	ether->minmtu = ETHERMINTU;
 	ether->maxmtu = ETHERMAXTU;
+	ether->mtu = ETHERMAXTU;
 
 	if(cardno < 0){
 		if(isaconfig("ether", ctlrno, ether) == 0){

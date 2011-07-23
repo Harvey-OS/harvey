@@ -1923,13 +1923,15 @@ atapnp(void)
 			r &= ~0x2000;
 			pcicfgw32(p, 0x40, r);
 			break;
-		case (0x4D38<<16)|0x105A:	/* Promise PDC20262 */
+		case (0x4379<<16)|0x1002:	/* ATI 4379 SATA*/
+		case (0x439c<<16)|0x1002:	/* ATI 439c SATA*/
+		case (0x3373<<16)|0x105A:	/* Promise 20378 RAID */
 		case (0x4D30<<16)|0x105A:	/* Promise PDC202xx */
+		case (0x4D38<<16)|0x105A:	/* Promise PDC20262 */
 		case (0x4D68<<16)|0x105A:	/* Promise PDC20268 */
 		case (0x4D69<<16)|0x105A:	/* Promise Ultra/133 TX2 */
-		case (0x3373<<16)|0x105A:	/* Promise 20378 RAID */
-		case (0x3149<<16)|0x1106:	/* VIA VT8237 SATA/RAID */
 		case (0x3112<<16)|0x1095:	/* SiI 3112 SATA/RAID */
+		case (0x3149<<16)|0x1106:	/* VIA VT8237 SATA/RAID */
 			maxio = 15;
 			span = 8*1024;
 			/*FALLTHROUGH*/
@@ -1999,8 +2001,8 @@ atapnp(void)
 			 * address for the registers (0x50?).
 			 */
 			/*FALLTHROUGH*/
-		case (0x4376<<16)|0x1002:	/* ATI SB400 PATA */
-		case (0x4379<<16)|0x1002:	/* ATI SB400 SATA */
+		case (0x4372<<16)|0x1002:	/* ATI SB400 */
+		case (0x4376<<16)|0x1002:	/* ATI Radeon Xpress 200M */
 		case (0x437a<<16)|0x1002:	/* ATI SB400 SATA */
 			break;
 		case (0x0211<<16)|0x1166:	/* ServerWorks IB6566 */

@@ -3,6 +3,7 @@
 rfork e
 if (! test -e /dev/sdctl)
 	bind -b '#S' /dev
+bind -a /bin/disk /bin >[2]/dev/null		# work with /boot too
 
 # set up any /dev/sd partitions.
 # note that really big disks (e.g., aoe devices) may have no mbr
@@ -12,7 +13,7 @@ if (! test -e /dev/sdctl)
 # no plan 9 partition table will delete all extant partitions.
 for(disk in /dev/sd*) {
 	if(test -f $disk/data && test -f $disk/ctl)
-		{ disk/fdisk -p $disk/data |
+		{ fdisk -p $disk/data |
 			grep -v '^delpart ' >$disk/ctl } >[2]/dev/null
 	if(test -f $disk/plan9)
 		parts=($disk/plan9*)
@@ -20,7 +21,7 @@ for(disk in /dev/sd*) {
 		parts=($disk/data)
 	for(part in $parts)
 		if(test -f $part)
-			 { disk/prep -p $part |
+			 { prep -p $part |
 				grep -v '^delpart ' >$disk/ctl } >[2]/dev/null
 }
 

@@ -116,8 +116,8 @@ boot(int argc, char *argv[])
 	 * parse them and create partitions.
 	 */
 	rdparts = getenv("readparts");
-//	if(rdparts)
-//		readparts();
+	if(rdparts)
+		readparts();
 	free(rdparts);
 
 	/*

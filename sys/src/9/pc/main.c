@@ -843,6 +843,8 @@ cistrncmp(char *a, char *b, int n)
 	return 0;
 }
 
+int less_power_slower;
+
 /*
  *  put the processor in the halt state if we've no processes to run.
  *  an interrupt will get us going again.
@@ -850,6 +852,12 @@ cistrncmp(char *a, char *b, int n)
 void
 idlehands(void)
 {
-	if(conf.nmach == 1)
+	/*
+	 * we used to halt only on single-core setups. halting in an smp system 
+	 * can result in a startup latency for processes that become ready.
+	 * if less_power_slower is true, we care more about saving energy
+	 * than reducing this latency.
+	 */
+	if(conf.nmach == 1 || less_power_slower)
 		halt();
 }
