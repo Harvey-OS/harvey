@@ -827,6 +827,8 @@ struct	FILE_STRING
 				"pem x.509 certificate", -1,	"text/plain",
 	"subject=/C=",		"pem certificate with header", -1, "text/plain",
 	"process snapshot ",	"process snapshot",	-1,	"application/snapfs",
+	"BEGIN:VCARD\r\n",	"vCard",		13,	"text/directory;profile=vcard",
+	"BEGIN:VCARD\n",	"vCard",		12,	"text/directory;profile=vcard",
 	0,0,0,0
 };
 

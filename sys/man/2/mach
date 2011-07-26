@@ -1,7 +1,7 @@
 .TH MACH 2
 .SH NAME
 crackhdr, machbytype, machbyname, newmap, setmap, findseg, unusemap,
-loadmap, attachproc, get1, get2, get4, get8, put1, put2, put4, put8,
+loadmap, attachproc, get1, get2, get4, get8, geta, put1, put2, put4, put8, puta
 beswab, beswal, beswav, leswab, leswal, leswav \- machine-independent access to executable files
 .SH SYNOPSIS
 .B #include <u.h>
@@ -56,6 +56,9 @@ int get4(Map *map, ulong addr, long *val)
 int get8(Map *map, ulong addr, vlong *val)
 .PP
 .B
+int geta(Map *map, uvlong addr, uvlong *val)
+.PP
+.B
 int put1(Map *map, ulong addr, uchar *buf, int n)
 .PP
 .B
@@ -66,6 +69,9 @@ int put4(Map *map, ulong addr, long val)
 .PP
 .B
 int put8(Map *map, ulong addr, vlong val)
+.PP
+.B
+int puta(Map *map, uvlong addr, uvlong val)
 .PP
 .B
 ushort beswab(ushort val)

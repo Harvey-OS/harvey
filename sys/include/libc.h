@@ -177,16 +177,23 @@ extern	Rune*	runefmtstrflush(Fmt*);
 #pragma	varargck	argpos	sprint		2
 
 #pragma	varargck	type	"lld"	vlong
+#pragma	varargck	type	"llo"	vlong
 #pragma	varargck	type	"llx"	vlong
+#pragma	varargck	type	"llb"	vlong
 #pragma	varargck	type	"lld"	uvlong
+#pragma	varargck	type	"llo"	uvlong
 #pragma	varargck	type	"llx"	uvlong
+#pragma	varargck	type	"llb"	uvlong
 #pragma	varargck	type	"ld"	long
+#pragma	varargck	type	"lo"	long
 #pragma	varargck	type	"lx"	long
 #pragma	varargck	type	"lb"	long
 #pragma	varargck	type	"ld"	ulong
+#pragma	varargck	type	"lo"	ulong
 #pragma	varargck	type	"lx"	ulong
 #pragma	varargck	type	"lb"	ulong
 #pragma	varargck	type	"d"	int
+#pragma	varargck	type	"o"	int
 #pragma	varargck	type	"x"	int
 #pragma	varargck	type	"c"	int
 #pragma	varargck	type	"C"	int
