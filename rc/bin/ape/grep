@@ -7,7 +7,10 @@ files=()
 argv0=$0
 while(! ~ $#* 0){
 	switch($1){
-	case -[cefinsv]
+	case -e
+		opts=($opts $1 $2)
+		shift
+	case -[cfinsv]
 		opts=($opts $1)
 	case -q
 		opts=($opts -s)

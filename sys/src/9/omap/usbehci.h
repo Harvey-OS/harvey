@@ -35,9 +35,12 @@ enum
 	Cnports		= 0xF,		/* nport bits in Ecapio parms. */
 	Cdbgportshift	= 20,		/* debug port in Ecapio parms. */
 	Cdbgportmask	= 0xF,
-	C64		= 1,		/* 64-bits, in Ecapio capparms. */
-	Ceecpshift	= 8,		/* extended capabilities ptr. in */
-	Ceecpmask	= 8,		/* the Ecapio capparms reg. */
+
+	/* Ecapio->capparms bits */
+	C64		= 1<<0,		/* 64-bits */
+	Ceecpshift	= 8,		/* extended capabilities ptr. */
+	Ceecpmask	= (1<<8) - 1,
+
 	Clegacy		= 1,		/* legacy support cap. id */
 	CLbiossem	= 2,		/* legacy cap. bios sem. */
 	CLossem		= 3,		/* legacy cap. os sem */
