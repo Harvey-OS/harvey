@@ -45,8 +45,6 @@ enum state {
 	S_STNL, S_COMNL, S_EOFCOM, S_COMMENT, S_EOB, S_WS, S_NAME
 };
 
-int	tottok;
-int	tokkind[256];
 struct	fsm {
 	int	state;		/* if in this state */
 	uchar	ch[4];		/* and see one of these characters */

@@ -513,7 +513,10 @@ static Qh*
 qhlinkqh(Qh *qh, Qh *next)
 {
 	qh->next = next;
-	qh->link = PADDR(next)|Lqh;
+	if(next == nil)
+		qh->link = Lterm;
+	else
+		qh->link = PADDR(next)|Lqh;
 	coherence();
 	return qh;
 }
@@ -529,7 +532,7 @@ qhsetaddr(Qh *qh, ulong addr)
 }
 
 /*
- * return smallest power of 2 <= n
+ * return largest power of 2 <= n
  */
 static int
 flog2lower(int n)
@@ -2369,15 +2372,18 @@ epio(Ep *ep, Qio *io, void *a, long count, int mustlock)
 		ntds++;
 		/*
 		 * Use td tok, not io tok, because of setup packets.
-		 * Also, if the Td was stalled or active (previous Td
-		 * was a short packet), we must save the toggle as it is.
+		 * Also, we must save the next toggle value from the
+		 * last completed Td (in case of a short packet, or
+		 * fewer than the requested number of packets in the
+		 * Td being transferred).
 		 */
-		if(td->csw & (Tdhalt|Tdactive)){
-			if(saved++ == 0) {
+		if(td->csw & (Tdhalt|Tdactive))
+			saved++;
+		else{
+			if(!saved){
 				io->toggle = td->csw & Tddata1;
 				coherence();
 			}
-		}else{
 			tot += td->ndata;
 			if(c != nil && (td->csw & Tdtok) == Tdtokin && td->ndata > 0){
 				memmove(c, td->data, td->ndata);
@@ -3162,6 +3168,7 @@ init(Hci *hp)
 	Ctlr *ctlr;
 	Eopio *opio;
 	int i;
+	static int ctlrno;
 
 	hp->highspeed = 1;
 	ctlr = hp->aux;
@@ -3180,7 +3187,12 @@ init(Hci *hp)
 	opio->cmd |= Case;
 	coherence();
 	ehcirun(ctlr, 1);
-	opio->config = Callmine;	/* reclaim all ports */
+	/*
+	 * route all ports by default to only one ehci (the first).
+	 * it's not obvious how multiple ehcis could work and on some
+	 * machines, setting Callmine on all ehcis makes the machine seize up.
+	 */
+	opio->config = (ctlrno == 0? Callmine: 0);
 	coherence();
 
 	for (i = 0; i < hp->nports; i++)
@@ -3188,6 +3200,7 @@ init(Hci *hp)
 	iunlock(ctlr);
 	if(ehcidebug > 1)
 		dump(hp);
+	ctlrno++;
 }
 
 void

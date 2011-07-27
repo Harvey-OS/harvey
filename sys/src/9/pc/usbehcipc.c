@@ -15,7 +15,7 @@
 #include	"usbehci.h"
 
 static Ctlr* ctlrs[Nhcis];
-static int maxehci = 1<<30;
+static int maxehci = Nhcis;
 
 /* Isn't this cap list search in a helper function? */
 static void
@@ -167,6 +167,11 @@ scanpci(void)
 			io = p->mem[0].bar & ~0x0f;
 			break;
 		default:
+			continue;
+		}
+		if(0 && p->vid == Vintel && p->did == 0x3b34) {
+			print("usbehci: ignoring known bad ctlr %#ux/%#ux\n",
+				p->vid, p->did);
 			continue;
 		}
 		if(io == 0){

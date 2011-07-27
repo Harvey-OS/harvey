@@ -2,7 +2,7 @@
 #include <libc.h>
 #include "cpp.h"
 
-#define	NSTAK	32
+#define	NSTAK	1024
 #define	SGN	0
 #define	UNS	1
 #define	UND	2
@@ -92,8 +92,8 @@ const struct pri {
 
 int	evalop(struct pri);
 struct	value tokval(Token *);
-struct value vals[NSTAK], *vp;
-enum toktype ops[NSTAK], *op;
+struct value vals[NSTAK + 1], *vp;
+enum toktype ops[NSTAK + 1], *op;
 
 /*
  * Evaluate an #if #elif #ifdef #ifndef line.  trp->tp points to the keyword.
@@ -122,6 +122,8 @@ eval(Tokenrow *trp, int kw)
 	op = ops;
 	*op++ = END;
 	for (rand=0, tp = trp->bp+ntok; tp < trp->lp; tp++) {
+		if(op >= ops + NSTAK)
+			sysfatal("cpp: can't evaluate #if: increase NSTAK");
 		switch(tp->type) {
 		case WS:
 		case NL:

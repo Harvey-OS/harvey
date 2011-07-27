@@ -15,7 +15,8 @@ while(! ~ $#* 0 && ~ $1 -*){
 	shift
 }
 
-if(~ $force n && test -e $2){
+
+if(~ $force n && test -e $2 && ! test -d $2){
 	echo ln: $2 destination exists >[2=1]
 	exit 'usage'
 }
