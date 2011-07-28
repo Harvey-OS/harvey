@@ -269,11 +269,11 @@ setroot(Cdimg *cd, ulong block, ulong dloc, ulong dlen)
 }
 
 void
-setvolsize(Cdimg *cd, ulong block, ulong size)
+setvolsize(Cdimg *cd, uvlong block, ulong size)
 {
 	assert(block != 0);
 
-	Cwseek(cd, (vlong)block * Blocksize + offsetof(Cvoldesc, volsize[0]));
+	Cwseek(cd, block * Blocksize + offsetof(Cvoldesc, volsize[0]));
 	Cputn(cd, size, 4);
 }
 
@@ -388,35 +388,67 @@ if(c >= 256) abort();
 }
 
 void
-Cputnl(Cdimg *cd, ulong val, int size)
+Cputnl(Cdimg *cd, uvlong val, int size)
 {
 	switch(size) {
 	default:
-		sysfatal("bad size %d in bputnl", size);
+		sysfatal("bad size %d in Cputnl", size);
 	case 2:
+		if(val >= (1<<16))
+			sysfatal("value %llud too big for size %d in Cputnl",
+				val, size);
 		Cputc(cd, val);
 		Cputc(cd, val>>8);
 		break;
 	case 4:
+		if(val >= (1ULL<<32))
+			sysfatal("value %llud too big for size %d in Cputnl",
+				val, size);
 		Cputc(cd, val);
 		Cputc(cd, val>>8);
 		Cputc(cd, val>>16);
 		Cputc(cd, val>>24);
 		break;
+	case 8:
+		Cputc(cd, val);
+		Cputc(cd, val>>8);
+		Cputc(cd, val>>16);
+		Cputc(cd, val>>24);
+		Cputc(cd, val>>32);
+		Cputc(cd, val>>40);
+		Cputc(cd, val>>48);
+		Cputc(cd, val>>56);
+		break;
 	}
 }
 
 void
-Cputnm(Cdimg *cd, ulong val, int size)
+Cputnm(Cdimg *cd, uvlong val, int size)
 {
 	switch(size) {
 	default:
-		sysfatal("bad size %d in bputnl", size);
+		sysfatal("bad size %d in Cputnm", size);
 	case 2:
+		if(val >= (1<<16))
+			sysfatal("value %llud too big for size %d in Cputnl",
+				val, size);
 		Cputc(cd, val>>8);
 		Cputc(cd, val);
 		break;
 	case 4:
+		if(val >= (1ULL<<32))
+			sysfatal("value %llud too big for size %d in Cputnl",
+				val, size);
+		Cputc(cd, val>>24);
+		Cputc(cd, val>>16);
+		Cputc(cd, val>>8);
+		Cputc(cd, val);
+		break;
+	case 8:
+		Cputc(cd, val>>56);
+		Cputc(cd, val>>48);
+		Cputc(cd, val>>40);
+		Cputc(cd, val>>32);
 		Cputc(cd, val>>24);
 		Cputc(cd, val>>16);
 		Cputc(cd, val>>8);
@@ -426,7 +458,7 @@ Cputnm(Cdimg *cd, ulong val, int size)
 }
 
 void
-Cputn(Cdimg *cd, long val, int size)
+Cputn(Cdimg *cd, uvlong val, int size)
 {
 	Cputnl(cd, val, size);
 	Cputnm(cd, val, size);

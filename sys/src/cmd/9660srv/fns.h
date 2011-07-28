@@ -1,7 +1,7 @@
 void	chat(char*, ...);
 void*	ealloc(long);
 void	error(char*);
-Iobuf*	getbuf(Xdata*, ulong);
+Iobuf*	getbuf(Xdata*, uvlong);
 Xdata*	getxdata(char*);
 void	iobuf_init(void);
 void	nexterror(void);

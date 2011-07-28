@@ -31,6 +31,7 @@ static int	showdrec(int, int, void*);
 static long	gtime(uchar*);
 static long	l16(void*);
 static long	l32(void*);
+static vlong	l64(void *);
 static void	newdrec(Xfile*, Drec*);
 static int	rzdir(Xfs*, Dir*, int, Drec*);
 
@@ -211,7 +212,7 @@ iclone(Xfile *of, Xfile *nf)
 static void
 iwalkup(Xfile *f)
 {
-	long paddr;
+	vlong paddr;
 	uchar dbuf[256];
 	Drec *d = (Drec *)dbuf;
 	Xfile pf, ppf;
@@ -493,7 +494,7 @@ getdrec(Xfile *f, void *buf)
 		return -1;
 	size = fakemax(l32(ip->d.size));
 	while(ip->offset < size){
-		addr = (l32(ip->d.addr)+ip->d.attrlen)*ip->blksize + ip->offset;
+		addr = ((vlong)l32(ip->d.addr)+ip->d.attrlen)*ip->blksize + ip->offset;
 		boff = addr % Sectorsize;
 		if(boff > Sectorsize-34){
 			ip->offset += Sectorsize-boff;
@@ -748,13 +749,13 @@ rzdir(Xfs *fs, Dir *d, int fmt, Drec *dp)
 static int
 getcontin(Xdata *dev, uchar *p, uchar **s)
 {
-	long bn, off, len;
+	vlong bn, off, len;
 	Iobuf *b;
 
 	bn = l32(p+4);
 	off = l32(p+12);
 	len = l32(p+20);
-	chat("getcontin %d...", bn);
+	chat("getcontin %lld...", bn);
 	b = getbuf(dev, bn);
 	if(b == 0){
 		*s = 0;
@@ -871,7 +872,16 @@ l16(void *arg)
 static long
 l32(void *arg)
 {
-	return ((((((long)p[3]<<8)|p[2])<<8)|p[1])<<8)|p[0];
+	return (((long)p[3]<<8 | p[2])<<8 | p[1])<<8 | p[0];
 }
 
 #undef	p
+
+static vlong
+l64(void *arg)
+{
+	uchar *p;
+
+	p = arg;
+	return (vlong)l32(p+4) << 32 | (ulong)l32(p);
+}
