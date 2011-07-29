@@ -1,0 +1,41 @@
+.TH BSPLIT 1
+.SH NAME
+bsplit \- split binary data into fixed-size chunks
+.SH SYNOPSIS
+.B bsplit
+[
+.B -p
+.I prefix
+] [
+.B -s
+.I size
+] [
+.I file
+\&...
+]
+.SH DESCRIPTION
+.I Bsplit
+copies binary data from input
+.I files
+into a series of files with names starting with
+.I prefix
+.RL ( bs.\&
+by default)
+and of a fixed
+.I size
+(512MB by default).
+The last file may be shorter than
+.IR size .
+This can be useful when copying large amounts of data onto
+fixed-size storage media such as CDs or DVDs.
+.\" .SH EXAMPLES
+.SH FILES
+.I prefixNNNNN
+output files
+.SH SOURCE
+.B /sys/src/cmd/bsplit.c
+.SH SEE ALSO
+.IR split (1),
+.IR tarsplit (1)
+.\" .SH DIAGNOSTICS
+.\" .SH BUGS

@@ -1,0 +1,85 @@
+.TH TARSPLIT 1
+.SH NAME
+tarsplit, tarcat \- split a tar archive into archives under some size, or combine archives
+.SH SYNOPSIS
+.B tarsplit
+[
+.B -p
+.I prefix
+] [
+.B -s
+.I size
+] [
+.I file
+\&...
+]
+.PP
+.B tarcat
+[
+.I file
+\&...
+]
+.SH DESCRIPTION
+.I Tarsplit
+copies a
+.IR tar (1)
+archive from input
+.IR file (s)
+into a series of independent
+.I tar
+archives with names starting with
+.I prefix
+.RL ( ts.\&
+by default)
+and no larger than a fixed
+.I size
+(512MB by default).
+This can be useful when copying large archives onto
+fixed-size storage media such as CDs or DVDs.
+.PP
+.I Tarsplit
+prints a list on standard output
+of the resulting archive names, and the first and last member names in each,
+to assist finding particular members without recombining the archives.
+.PP
+.I Tarcat
+copies
+.IR tar (1)
+archives from input
+.IR file s
+and combines them into a single
+.I tar
+archive.
+It is the inverse of
+.IR tarsplit .
+.SH EXAMPLES
+Archive
+.B /adm
+and split the result.
+.EX
+; tar c /adm | tarsplit -s 409600
+ts.00000: /adm/ ... /adm/brickdb/have/timeout/viaduct60
+ts.00001: /adm/brickdb/have/tls-log ... /adm/timezone/Australia_Broken-Hill
+ts.00002: /adm/timezone/Australia_LHI ... /adm/words
+; file ts.*
+ts.00000: posix tar archive
+ts.00001: posix tar archive
+ts.00002: posix tar archive
+.EE
+.PP
+Reassemble the original archive and check the tail end for completeness:
+.EX
+; tarcat ts.* | tar t | tail -2
+\&./adm/whois
+\&./adm/words
+.EE
+.SH FILES
+.I prefixNNNNN
+output archives
+.SH SOURCE
+.B /sys/src/cmd/tarsplit
+.SH SEE ALSO
+.IR bsplit (1),
+.IR split (1)
+.\" .SH DIAGNOSTICS
+.\" .SH BUGS

@@ -1,0 +1,11 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin
+TARG=\
+	tarcat\
+	tarsplit\
+
+HFILES=tar.h
+OFILES=tarsub.$O
+
+</sys/src/cmd/mkmany
