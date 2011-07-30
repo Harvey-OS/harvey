@@ -30,8 +30,8 @@
 	USED(argv); USED(argc); }
 #define	TARGC() (_argc)
 
-#define ROUNDUP(a, b)	(((a) + (b) - 1)/(b))
-#define BYTES2TBLKS(bytes) ROUNDUP(bytes, Tblock)
+#define HOWMANY(a, size)	(((a) + (size) - 1) / (size))
+#define BYTES2TBLKS(bytes)	HOWMANY(bytes, Tblock)
 
 /* read big-endian binary integers; args must be (uchar *) */
 #define	G2BEBYTE(x)	(((x)[0]<<8)  |  (x)[1])

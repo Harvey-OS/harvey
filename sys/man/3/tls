@@ -161,12 +161,13 @@ The current non-fatal alert messages are
 .BR "'close notify'" ,
 .BR "'no renegotiation'" ,
 and
-.BR "'handshake canceled by user'" .
+.B "'handshake canceled by user'"
+(sic).
 Receipt of one of these alerts cause the next read on
 .I hand
 to terminate with an error.
 If the alert is
-.BR "'close notify'",
+.BR "'close notify'" ,
 all future reads will terminate with a
 .B "tls hungup"
 error.
@@ -258,9 +259,11 @@ This will always include
 .BR clear ,
 meaning no encryption or digesting.
 Currently implemented encryption algorithms are
-.B 'rc4_128'
+.BR 'rc4_128' ,
+.BR '3des_ede_cbc' ,
+.B 'aes_128_cbc'
 and
-.BR '3des_ede_cbc' .
+.BR 'aes_256_cbc' .
 Currently implemented hashing algorithms are
 .B 'md5'
 and

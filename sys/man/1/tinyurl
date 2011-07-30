@@ -1,0 +1,23 @@
+.TH TINYURL 1
+.SH NAME
+tinyurl \- shrink a URL
+.SH SYNOPSIS
+.B tinyurl
+.I URL
+\&...
+.SH DESCRIPTION
+.I Tinyurl
+emits a short URL
+(Uniform Resource Locator) for each
+.I URL
+provided,
+using
+.BR tinyurl.com .
+.SH SOURCE
+.B /rc/bin/tinyurl
+.SH SEE ALSO
+.IR hget (1)
+.SH BUGS
+It's slow.
+.PP
+Redesigns of the source website can break this program.

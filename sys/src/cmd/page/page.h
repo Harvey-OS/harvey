@@ -25,6 +25,7 @@ Document *initgfx(Biobuf*, int, char**, uchar*, int);
 Document *inittroff(Biobuf*, int, char**, uchar*, int);
 Document *initdvi(Biobuf*, int, char**, uchar*, int);
 Document *initmsdoc(Biobuf*, int, char**, uchar*, int);
+void setlabel(char *);
 
 void viewer(Document*);
 extern Cursor reading;

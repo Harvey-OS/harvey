@@ -169,6 +169,12 @@ sends an RFC2136 DNS
 packet to a nameserver to associate the host's IPv4 address with its DNS name.
 This is required if the domain's nameserver is
 a Microsoft Windows Active Directory controller.
+The host's domain name will be sent to the AD controller unless 
+a tuple of the form
+.BI inform= xxx
+is found in the host's
+.I ndb
+entry.
 .SS "Database maintenance"
 .I Ndb/mkhash
 creates a hash file for all entries with attribute

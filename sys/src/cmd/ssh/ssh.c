@@ -14,6 +14,13 @@ void fromstdin(Conn*);
 void winchanges(Conn*);
 static void	sendwritemsg(Conn *c, char *buf, int n);
 
+/*
+ * Lifted from telnet.c, con.c
+ */
+static int consctl = -1;
+static int outfd = 1;			/* changed during system */
+static void system(Conn*, char*);
+
 Cipher *allcipher[] = {
 	&cipherrc4,
 	&cipherblowfish,
@@ -234,6 +241,7 @@ buildcmd(int argc, char **argv)
 	return s;
 }
 
+
 void
 fromnet(Conn *c)
 {
@@ -289,7 +297,7 @@ fromnet(Conn *c)
 			break;
 
 		case SSH_SMSG_STDOUT_DATA:
-			fd = 1;
+			fd = outfd;
 			goto Dataout;
 		case SSH_SMSG_STDERR_DATA:
 			fd = 2;
@@ -310,14 +318,6 @@ fromnet(Conn *c)
 		free(m);
 	}
 }		
-
-/*
- * Lifted from telnet.c, con.c
- */
-
-static int consctl = -1;
-static int outfd1=1, outfd2=2;	/* changed during system */
-static void system(Conn*, char*);
 
 /*
  *  turn keyboard raw mode on
@@ -446,7 +446,7 @@ system(Conn *c, char *cmd)
 		perror("pipe");
 		return;
 	}
-	outfd1 = outfd2 = pfd[1];
+	outfd = pfd[1];
 
 	wasconsctl = consctl;
 	close(consctl);
@@ -473,8 +473,7 @@ system(Conn *c, char *cmd)
 		while((n = read(pfd[1], buf, sizeof(buf))) > 0)
 			sendwritemsg(c, buf, n);
 		p = waitpid();
-		outfd1 = 1;
-		outfd2 = 2;
+		outfd = 1;
 		close(pfd[1]);
 		if(p < 0 || p != pid)
 			return;

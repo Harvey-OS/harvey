@@ -1,0 +1,6 @@
+#!/bin/rc
+# tinyurl url
+for (url) {
+	hget http://tinyurl.com/api-create.php?url'='$url
+	echo
+}

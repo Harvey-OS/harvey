@@ -24,11 +24,6 @@ char *errmsgs[] = {
 	[10] "domain name not in zone",
 };
 
-char *dnsrch[] = {
-	"dnsdomain",
-	"dom",
-};
-
 void
 usage(void)
 {
@@ -98,12 +93,12 @@ main(int argc, char *argv[])
 {
 	int debug, len, fd;
 	uint err;
-	char *sysname, *dnsdomain, *dom, *ns, net[32];
+	char *sysname, *dnsdomain, *dom, *inform, *ns, net[32];
 	uchar *p, buf[4096], addr[IPv4addrlen], v6addr[IPaddrlen];
 	ushort txid;
 	Ndb *db;
 	Ndbtuple *t, *tt;
-	static char *query[] = { "dom", "dnsdomain", "ns", };
+	static char *query[] = { "dom", "dnsdomain", "ns", "inform" };
 
 	fmtinstall('I', eipfmt);
 	fmtinstall('V', eipfmt);
@@ -112,6 +107,7 @@ main(int argc, char *argv[])
 	debug = 0;
 	ns = nil;
 	dom = nil;
+	inform = nil;
 	dnsdomain = nil;
 	ARGBEGIN{
 	case 'd':
@@ -133,16 +129,22 @@ main(int argc, char *argv[])
 	if((db = ndbopen(nil)) == nil)
 		sysfatal("can't open ndb: %r");
 	tt = ndbipinfo(db, "sys", sysname, query, nelem(query));
-	for(t = tt; t; t = t->entry)
+	for(t = tt; t; t = t->entry){
 		if(strcmp(t->attr, "ns") == 0)
 			ns = t->val;
 		else if(strcmp(t->attr, "dom") == 0)
 			dom = t->val;
 		else if(strcmp(t->attr, "dnsdomain") == 0)
 			dnsdomain = t->val;
+		else if(strcmp(t->attr, "inform") == 0)
+			inform = t->val;
+	}
+
 	ndbfree(tt);
 	ndbclose(db);
 
+	if(inform)
+		dom = inform;
 	if(!ns)
 		sysfatal("no relevant ns=");
 	if(!dom)

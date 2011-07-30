@@ -10,6 +10,7 @@
 
 enum {
 	Stdin,
+	Endsize	= 2 * Tblock,		/* size of zero blocks at archive end */
 };
 
 /* private data */
@@ -39,20 +40,25 @@ opennext(int out, char *prefix)
 static int
 split(int in, int out, char * /* inname */)
 {
-	vlong len;
+	vlong len, membsz;
 	uvlong outoff = 0;
 	static Hblock hdr;
 	Hblock *hp = &hdr;
 
 	while (getdir(hp, in, &len)) {
-		if (outoff + Tblock + ROUNDUP((uvlong)len, Tblock) >
-		    size - 2*Tblock)
+		membsz = Tblock + ROUNDUP((uvlong)len, Tblock);
+		if (outoff + membsz + Endsize > size) {	/* won't fit? */
 			out = closeout(out, filenm, 1);
+			if (membsz + Endsize > size)
+				sysfatal("archive member %s (%,lld) + overhead "
+					"exceeds size limit %,lld", hp->name,
+					len, size);
+		}
 		if (out < 0)
 			out = opennext(out, prefix);
 		/* write directory block */
-		outoff = writetar(out, (char *)hp, Tblock);
-		passtar(hp, in, out, len);
+		writetar(out, (char *)hp, Tblock);
+		outoff = passtar(hp, in, out, len);
 	}
 	return out;
 }
@@ -75,6 +81,8 @@ main(int argc, char **argv)
 		break;
 	case 's':
 		size = atoll(EARGF(usage()));
+		if (size < Tblock + Endsize)
+			sysfatal("implausible max size of %lld bytes", size);
 		break;
 	default:
 		usage();

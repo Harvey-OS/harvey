@@ -234,6 +234,8 @@ static void	rcvError(TlsRec *tr, int err, char *msg, ...);
 static int	rc4enc(Secret *sec, uchar *buf, int n);
 static int	des3enc(Secret *sec, uchar *buf, int n);
 static int	des3dec(Secret *sec, uchar *buf, int n);
+static int	aesenc(Secret *sec, uchar *buf, int n);
+static int	aesdec(Secret *sec, uchar *buf, int n);
 static int	noenc(Secret *sec, uchar *buf, int n);
 static int	sslunpad(uchar *buf, int n, int block);
 static int	tlsunpad(uchar *buf, int n, int block);
@@ -1428,6 +1430,16 @@ initDES3key(Encalg *, Secret *s, uchar *p, uchar *iv)
 }
 
 static void
+initAESkey(Encalg *ea, Secret *s, uchar *p, uchar *iv)
+{
+	s->enckey = smalloc(sizeof(AESstate));
+	s->enc = aesenc;
+	s->dec = aesdec;
+	s->block = 16;
+	setupAESstate(s->enckey, p, ea->keylen, iv);
+}
+
+static void
 initclearenc(Encalg *, Secret *s, uchar *, uchar *)
 {
 	s->enc = noenc;
@@ -1440,6 +1452,8 @@ static Encalg encrypttab[] =
 	{ "clear", 0, 0, initclearenc },
 	{ "rc4_128", 128/8, 0, initRC4key },
 	{ "3des_ede_cbc", 3 * 8, 8, initDES3key },
+	{ "aes_128_cbc", 128/8, 16, initAESkey },
+	{ "aes_256_cbc", 256/8, 16, initAESkey },
 	{ 0 }
 };
 
@@ -2000,7 +2014,7 @@ blockpad(uchar *buf, int n, int block)
 		buf[n++] = pad;
 	return nn;
 }
-		
+
 static int
 des3enc(Secret *sec, uchar *buf, int n)
 {
@@ -2015,6 +2029,22 @@ des3dec(Secret *sec, uchar *buf, int n)
 	des3CBCdecrypt(buf, n, sec->enckey);
 	return (*sec->unpad)(buf, n, 8);
 }
+
+static int
+aesenc(Secret *sec, uchar *buf, int n)
+{
+	n = blockpad(buf, n, 16);
+	aesCBCencrypt(buf, n, sec->enckey);
+	return n;
+}
+
+static int
+aesdec(Secret *sec, uchar *buf, int n)
+{
+	aesCBCdecrypt(buf, n, sec->enckey);
+	return (*sec->unpad)(buf, n, 16);
+}
+
 static DigestState*
 nomac(uchar *, ulong, uchar *, ulong, uchar *, DigestState *)
 {

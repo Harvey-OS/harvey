@@ -112,25 +112,28 @@ getdir(Hblock *hp, int in, vlong *lenp)
 	return 1;
 }
 
-void
+uvlong 
 passtar(Hblock *hp, int in, int outf, vlong len)
 {
 	ulong bytes;
+	vlong off;
 	uvlong blks;
 	char bigbuf[Blocksxfr*Tblock];		/* 2*(8192 == MAXFDATA) */
 
+	off = outoff;
 	if (islink(hp->linkflag))
-		return;
+		return off;
 	for (blks = TAPEBLKS((uvlong)len); blks >= Blocksxfr;
 	    blks -= Blocksxfr) {
 		readtar(in, bigbuf, sizeof bigbuf);
-		writetar(outf, bigbuf, sizeof bigbuf);
+		off = writetar(outf, bigbuf, sizeof bigbuf);
 	}
 	if (blks > 0) {
 		bytes = blks*Tblock;
 		readtar(in, bigbuf, bytes);
-		writetar(outf, bigbuf, bytes);
+		off = writetar(outf, bigbuf, bytes);
 	}
+	return off;
 }
 
 void
@@ -143,7 +146,7 @@ putempty(int out)
 
 /* emit zero blocks at end */
 int
-closeout(int outf, char *filenm, int prflag)
+closeout(int outf, char *, int prflag)
 {
 	if (outf < 0)
 		return -1;
@@ -151,7 +154,6 @@ closeout(int outf, char *filenm, int prflag)
 	putempty(outf);
 	if (lastnm && prflag)
 		fprint(2, " %s\n", lastnm);
-	if (close(outf) < 0)
-		sysfatal("error writing %s: %r", filenm);
+	close(outf);		/* guaranteed to succeed on plan 9 */
 	return -1;
 }

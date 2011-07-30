@@ -317,6 +317,8 @@ viewer(Document *dd)
 	midmenu.gen = 0;
 	midmenu.lasthit = Next;
 
+	if(doc->docname != nil)
+		setlabel(doc->docname);
 	showpage(page, &menu);
 	esetcursor(nil);
 
