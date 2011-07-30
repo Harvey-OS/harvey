@@ -401,6 +401,8 @@ rattach(Fcall *rx, Fcall *tx)
 			seterror(tx, Eauth);
 			return;
 		}
+		if (none != nil)
+			rx->uname = none->name;
 	} else {
 		if((e = auth->attach(rx, tx)) != nil){
 			seterror(tx, e);
@@ -1605,7 +1607,7 @@ usercreate(Fid *fid, char *elem, int omode, long perm, char **ep)
 			return -1;
 		}
 		/* race */
-		if(mkdir(npath, perm&0777) < 0){
+		if(mkdir(npath, (perm|0400)&0777) < 0){
 			*ep = strerror(errno);
 			free(npath);
 			return -1;
@@ -1759,6 +1761,8 @@ main(int argc, char **argv)
 			sysfatal("chroot '%s' failed", argv[0]);
 
 	none = uname2user("none");
+	if(none == nil)
+		none = uname2user("nobody");
 
 	serve(0, 1);
 	return 0;

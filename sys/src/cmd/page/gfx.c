@@ -87,6 +87,7 @@ gfxpagename(Document *doc, int page)
 static Image*
 gfxdrawpage(Document *doc, int page)
 {
+	setlabel(gfxpagename(doc, page));
 	GfxInfo *gfx = doc->extra;
 	return convert(gfx->g+page);
 }

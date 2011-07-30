@@ -305,11 +305,16 @@ _percentfmt(Fmt *f)
 	return _fmtrcpy(f, x, 1);
 }
 
+enum {
+	/* %,#llb could emit a sign, "0b" and 64 digits with 21 commas */
+	Maxintwidth = 1 + 2 + 64 + 64/3,
+};
+
 /* fmt an integer */
 int
 _ifmt(Fmt *f)
 {
-	char buf[70], *p, *conv;
+	char buf[Maxintwidth + 1], *p, *conv;
 	uvlong vu;
 	ulong u;
 	uintptr pu;
@@ -512,12 +517,12 @@ _flagfmt(Fmt *f)
 int
 _badfmt(Fmt *f)
 {
-	char x[3];
+	Rune x[3];
 
 	x[0] = '%';
 	x[1] = f->r;
 	x[2] = '%';
 	f->prec = 3;
-	_fmtcpy(f, x, 3, 3);
+	_fmtrcpy(f, x, 3);
 	return 0;
 }

@@ -56,11 +56,12 @@ It is the inverse of
 Archive
 .B /adm
 and split the result.
+.IP
 .EX
 ; tar c /adm | tarsplit -s 409600
 ts.00000: /adm/ ... /adm/brickdb/have/timeout/viaduct60
-ts.00001: /adm/brickdb/have/tls-log ... /adm/timezone/Australia_Broken-Hill
-ts.00002: /adm/timezone/Australia_LHI ... /adm/words
+ts.00001: /adm/brickdb/have/tls-log ... /adm/timezone/Australia_ACT
+ts.00002: /adm/timezone/Australia_Broken-Hill ... /adm/words
 ; file ts.*
 ts.00000: posix tar archive
 ts.00001: posix tar archive
@@ -68,6 +69,7 @@ ts.00002: posix tar archive
 .EE
 .PP
 Reassemble the original archive and check the tail end for completeness:
+.IP
 .EX
 ; tarcat ts.* | tar t | tail -2
 \&./adm/whois
@@ -81,5 +83,3 @@ output archives
 .SH SEE ALSO
 .IR bsplit (1),
 .IR split (1)
-.\" .SH DIAGNOSTICS
-.\" .SH BUGS
