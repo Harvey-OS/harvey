@@ -1152,6 +1152,8 @@ sitecmd(char *arg)
 	int nf, r;
 	Dir *d;
 
+	if(arg == 0)
+		return reply("501 bad site command");
 	nf = tokenize(arg, f, nelem(f));
 	if(nf != 3 || cistrcmp(f[0], "chmod") != 0)
 		return reply("501 bad site command");
