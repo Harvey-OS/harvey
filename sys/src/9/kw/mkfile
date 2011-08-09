@@ -69,6 +69,7 @@ LIB=\
 	/$objtype/lib/libdraw.a\
 	/$objtype/lib/libip.a\
 	/$objtype/lib/libsec.a\
+	/$objtype/lib/libmp.a\
 	/$objtype/lib/libc.a\
 
 9:V: $p$CONF s$p$CONF
