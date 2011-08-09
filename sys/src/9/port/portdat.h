@@ -959,3 +959,7 @@ enum
 #pragma	varargck	type	"V"	uchar*
 #pragma	varargck	type	"E"	uchar*
 #pragma	varargck	type	"M"	uchar*
+
+#ifndef KMESGSIZE
+#define KMESGSIZE (16*1024)
+#endif
