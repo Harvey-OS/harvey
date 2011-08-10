@@ -42,6 +42,7 @@ link
 	devpccard
 	devi82365
 	apm		apmjump
+
 	ether2000	ether8390
 	ether2114x	pci
 	ether589	etherelnk3
@@ -49,7 +50,6 @@ link
 	ether8003	ether8390
 	ether8139
 	ether8169	pci ethermii
-	ether82543gc	pci
 	ether82563	pci
 	ether82557	pci
 	ether83815	pci
@@ -63,10 +63,12 @@ link
 	ethersink
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
+
 	ethermedium
 	pcmciamodem
 	netdevmedium
 	loopbackmedium
+
 	usbuhci
 	usbohci
 	usbehci		usbehcipc
@@ -126,10 +128,9 @@ boot boot #S/sdC0/
 	local
 
 bootdir
-	bootpcdisk.out boot
+	boot$CONF.out boot
 	/386/bin/ip/ipconfig
 	/386/bin/auth/factotum
 	/386/bin/disk/kfs
 	/386/bin/cfs
 	/386/bin/usb/usbd
-	/386/bin/disk/partfs
