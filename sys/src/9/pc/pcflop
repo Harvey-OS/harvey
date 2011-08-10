@@ -1,4 +1,4 @@
-# tiny kernel used to install from floppy.
+# pcflop - tiny kernel used to install from floppy.
 # has minimal vga drivers, no usb support and only some ether drivers,
 # and in general no frills.  probably only useful in quite old systems.
 dev
@@ -14,10 +14,7 @@ dev
 	srv
 	dup
 	rtc
-#	ssl
-#	tls
 	cap
-#	kprof
 
 	ether		netif
 	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
@@ -25,7 +22,6 @@ dev
 	draw		screen vga vgax
 	mouse		mouse
 	vga
-#	kbmap
 
 	sd
 	floppy		dma
@@ -48,11 +44,8 @@ link
 #	ether82563	pci
 	ether82557	pci
 	ether83815	pci
-#	etherdp83820	pci
 	etherec2t	ether8390
 	etherelnk3	pci
-# has vast firmware
-#	etherga620	pci
 	etherigbe	pci ethermii
 	ethervgbe	pci ethermii
 	ethervt6102	pci ethermii
@@ -66,7 +59,6 @@ link
 	loopbackmedium
 
 misc
-#	archmp		mp apic
 	mtrr
 
 	sdata		pci sdscsi
@@ -75,10 +67,8 @@ misc
 #	sdiahci		pci sdscsi
 
 	uarti8250
-#	uartpci		pci
 
 	vgavesa
-#	vgavmware	+cur
 
 ip
 	tcp
@@ -94,6 +84,6 @@ boot glenda boot #f/fd0disk
 	local
 
 bootdir
-	bootpcflop.out boot
+	boot$CONF.out boot
 	/sys/lib/dist/bin/386/bzfs kfs
 	/sys/lib/dist/pc/root.bz2 bzroot
