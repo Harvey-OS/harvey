@@ -79,6 +79,26 @@ file; see the description of
 .I wavelan
 in
 .IR plan9.ini (8).
+The control messages described in
+.IR ip (3)
+under
+.B "Configuring interfaces"
+from
+.L bridge
+to
+.L headersonly
+are understood.
+The additional control message
+.L nonblocking
+makes
+.I write
+systems calls to this interface non-blocking iff
+followed by nothing or a non-zero integer;
+a following
+.L 0
+makes
+.I writes
+block on a full output queue.
 .PP
 Reading the
 .B ctl

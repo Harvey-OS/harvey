@@ -877,6 +877,14 @@ vt6102detach(Ctlr* ctlr)
 	return 0;
 }
 
+static void
+vt6102shutdown(Ether *ether)
+{
+	Ctlr *ctlr = ether->ctlr;
+
+	vt6102detach(ctlr);
+}
+
 static int
 vt6102reset(Ctlr* ctlr)
 {
@@ -1039,6 +1047,7 @@ vt6102pnp(Ether* edev)
 	edev->transmit = vt6102transmit;
 	edev->interrupt = vt6102interrupt;
 	edev->ifstat = vt6102ifstat;
+	edev->shutdown = vt6102shutdown;
 	edev->ctl = nil;
 
 	edev->arg = edev;
