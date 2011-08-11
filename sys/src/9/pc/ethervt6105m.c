@@ -1040,6 +1040,14 @@ vt6105Mdetach(Ctlr* ctlr)
 	return 0;
 }
 
+static void
+vt6105Mshutdown(Ether *ether)
+{
+	Ctlr *ctlr = ether->ctlr;
+
+	vt6105Mdetach(ctlr);
+}
+
 static int
 vt6105Mreset(Ctlr* ctlr)
 {
@@ -1208,6 +1216,7 @@ vt6105Mpnp(Ether* edev)
 	edev->transmit = vt6105Mtransmit;
 	edev->interrupt = vt6105Minterrupt;
 	edev->ifstat = vt6105Mifstat;
+	edev->shutdown = vt6105Mshutdown;
 	edev->ctl = nil;
 
 	edev->arg = edev;
