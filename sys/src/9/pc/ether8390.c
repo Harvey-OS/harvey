@@ -752,6 +752,15 @@ disable(Dp8390* ctlr)
 			;
 }
 
+static void
+shutdown(Ether *ether)
+{
+	Dp8390 *ctlr;
+
+	ctlr = ether->ctlr;
+	disable(ctlr);
+}
+
 int
 dp8390reset(Ether* ether)
 {
@@ -802,6 +811,7 @@ dp8390reset(Ether* ether)
 	ether->attach = attach;
 	ether->transmit = transmit;
 	ether->interrupt = interrupt;
+	ether->shutdown = shutdown;
 	ether->ifstat = 0;
 
 	ether->promiscuous = promiscuous;
