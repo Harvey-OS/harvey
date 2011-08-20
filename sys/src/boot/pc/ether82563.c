@@ -1081,11 +1081,9 @@ i82563pci(void)
 			print("%s: unexpected CLS - %d bytes\n",
 				tname[type], cls*sizeof(long));
 			break;
-		case 0x00:
+		case 0x00:			/* alphapc 164lx returns 0 */
 		case 0xFF:
-			/* alphapc 164lx returns 0 */
-			print("%s: unusable PciCLS: %d, using %d longs\n",
-				tname[type], cls, CACHELINESZ/sizeof(long));
+			/* bogus value; use a sane default */
 			cls = CACHELINESZ/sizeof(long);
 			pcicfgw8(p, PciCLS, cls);
 			break;
