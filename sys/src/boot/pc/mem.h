@@ -12,6 +12,7 @@
 #define	WD2PG		(BY2PG/BY2WD)		/* words per page */
 #define	PGSHIFT		12			/* log(BY2PG) */
 #define	PGROUND(s)	(((s)+(BY2PG-1))&~(BY2PG-1))
+#define CACHELINESZ	32			/* pentium & later */
 
 #define	MAXMACH		1			/* max # cpus system can run */
 

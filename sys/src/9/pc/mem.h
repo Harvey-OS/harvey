@@ -18,6 +18,7 @@
 #define	PGSHIFT		12			/* log(BY2PG) */
 #define	ROUND(s, sz)	(((s)+((sz)-1))&~((sz)-1))
 #define	PGROUND(s)	ROUND(s, BY2PG)
+#define CACHELINESZ	32			/* pentium & later */
 #define	BLOCKALIGN	8
 
 /*
