@@ -35,7 +35,7 @@ struct Mmcaux {
 	int	pagecmdsz;
 
 	/* disc characteristics */
-	ulong	mmcnwa;
+	long	mmcnwa;			/* next writable address (block #) */
 	int	nropen;
 	int	nwopen;
 	vlong	ntotby;
@@ -61,6 +61,8 @@ static char *dvdtype[] = {
 	"dvd+r-dl",
 	"type-15-unknown",
 };
+
+static int getinvistrack(Drive *drive);
 
 static ulong
 bige(void *p)
@@ -366,11 +368,16 @@ mmcprobe(Scsi *scsi)
 
 	if (vflag)
 		print("mmcprobe: inquiry: %s\n", scsi->inquire);
+
 	drive = emalloc(sizeof(Drive));
 	drive->Scsi = *scsi;
 	drive->Dev = mmcdev;
+	drive->invistrack = -1;
+	getinvistrack(drive);
+
 	aux = emalloc(sizeof(Mmcaux));
 	drive->aux = aux;
+
 	scsiready(drive);
 	drive->type = getdevtype(drive);
 	if (drive->type != TypeCD) {
@@ -458,6 +465,7 @@ static int
 mmctrackinfo(Drive *drive, int t, int i)
 {
 	int n, type, bs;
+	long newnwa;
 	ulong beg, size;
 	uchar tmode;
 	uchar cmd[10], resp[255];
@@ -525,17 +533,29 @@ mmctrackinfo(Drive *drive, int t, int i)
 		drive->writeok = Yes;
 	}
 
+	/*
+	 * figure out the first writable block, if we can
+	 */
 	if(vflag)
 		print(" start %lud end %lud", beg, beg + size - 1);
-	/* resp[6] & (1<<7) of zero: invisible track */
-	/* t == getinvistrack(): invisible track */
-	if(t == Invistrack || resp[7] & 1) {	/* invis or nwa valid? */
-		aux->mmcnwa = bige(&resp[12]);
-		if ((long)aux->mmcnwa < 0)	/* implausible? */
-			aux->mmcnwa = 0;
-		if (vflag)
-			print(" nwa %lud", aux->mmcnwa);
+	if(resp[7] & 1) {			/* nwa valid? */
+		newnwa = bige(&resp[12]);
+		if (newnwa >= 0)
+			if (aux->mmcnwa < 0)
+				aux->mmcnwa = newnwa;
+			else if (aux->mmcnwa != newnwa)
+				fprint(2, "nwa is %ld but invis track starts blk %ld\n",
+					newnwa, aux->mmcnwa);
 	}
+	/* resp[6] & (1<<7) of zero: invisible track */
+	if(t == Invistrack || t == drive->invistrack)
+		if (aux->mmcnwa < 0)
+			aux->mmcnwa = beg;
+		else if (aux->mmcnwa != beg)
+			fprint(2, "invis track starts blk %ld but nwa is %ld\n",
+				beg, aux->mmcnwa);
+	if (vflag && aux->mmcnwa >= 0)
+		print(" nwa %lud", aux->mmcnwa);
 	if (vflag)
 		print("\n");
 	return 0;
@@ -712,8 +732,7 @@ getdvdstruct(Drive *drive)
 		drive->erasable = Yes;
 	else if (resp[6] & (1<<1))		/* recordable once? */
 		drive->recordable = Yes;
-	else					/* factory-pressed disk */
-		drive->blank = No;
+	/* else it's a factory-pressed disk */
 	drive->mmctype = (cat >= 8? Mmcdvdplus: Mmcdvdminus);
 	return 0;
 }
@@ -801,7 +820,6 @@ getbdstruct(Drive *drive)
 	drive->erasable = drive->recordable = No;
 	switch (body[2]) {
 	case 'O':				/* read-Only */
-		drive->blank = No;
 		break;
 	case 'R':				/* Recordable */
 		drive->recordable = Yes;
@@ -904,9 +922,10 @@ mmcgettoc(Drive *drive)
 	drive->nchange = drive->Scsi.nchange;
 	drive->changetime = drive->Scsi.changetime;
 	drive->writeok = No;
-	drive->erasable = drive->recordable = drive->blank = Unset;
+	drive->erasable = drive->recordable = Unset;
+	getinvistrack(drive);
 	aux = drive->aux;
-	aux->mmcnwa = 0;
+	aux->mmcnwa = -1;
 	aux->nropen = aux->nwopen = 0;
 	aux->ntotby = aux->ntotbk = 0;
 
@@ -924,8 +943,8 @@ mmcgettoc(Drive *drive)
 	 */
 	if((n = mmcreadtoc(drive, Msfbit, 0, resp, sizeof(resp))) < 4) {
 		/*
-		 * on a blank disc in a cd-rw, use readdiscinfo
-		 * to find the track info.
+		 * it could be a blank disc.  in case it's a blank disc in a
+		 * cd-rw drive, use readdiscinfo to try to find the track info.
 		 */
 		if(getdiscinfo(drive, resp, sizeof(resp)) < 7)
 			return -1;
@@ -935,9 +954,8 @@ mmcgettoc(Drive *drive)
 		first = resp[3];
 		last = resp[6];
 		if(vflag)
-			print("blank disc %d %d\n", first, last);
-		/* the assumption of blankness may be unwarranted */
-		drive->writeok = drive->blank = Yes;
+			print("tracks %d-%d\n", first, last);
+		drive->writeok = Yes;
 	} else {
 		first = resp[2];
 		last = resp[3];
@@ -967,7 +985,6 @@ mmcgettoc(Drive *drive)
 
 	if (vflag) {
 		fprint(2, "writeok %d", drive->writeok);
-		/* drive->blank is never used and hard to figure out */
 		if (drive->recordable != Unset)
 			fprint(2, " recordable %d", drive->recordable);
 		if (drive->erasable != Unset)
@@ -1250,12 +1267,13 @@ format(Drive *drive)
 static long
 mmcxwrite(Otrack *o, void *v, long nblk)
 {
+	int r;
 	uchar cmd[10];
 	Mmcaux *aux;
 
 	assert(o->omode == OWRITE);
 	aux = o->drive->aux;
-	if (aux->mmcnwa == 0 && scsiready(o->drive) < 0) {
+	if (aux->mmcnwa == -1 && scsiready(o->drive) < 0) {
 		werrstr("device not ready to write");
 		return -1;
 	}
@@ -1272,8 +1290,14 @@ mmcxwrite(Otrack *o, void *v, long nblk)
 	if(vflag)
 		print("%lld ns: write %ld at 0x%lux\n",
 			nsec(), nblk, aux->mmcnwa);
+	r = scsi(o->drive, cmd, sizeof(cmd), v, nblk*o->track->bs, Swrite);
+	if (r < 0)
+		fprint(2, "%s: write error at blk offset %,ld = "
+			"offset %,lld / bs %ld: %r\n",
+			argv0, aux->mmcnwa, (vlong)aux->mmcnwa * o->track->bs,
+			o->track->bs);
 	aux->mmcnwa += nblk;
-	return scsi(o->drive, cmd, sizeof(cmd), v, nblk*o->track->bs, Swrite);
+	return r;
 }
 
 static long
@@ -1336,13 +1360,14 @@ getinvistrack(Drive *drive)
 	if(vflag)
 		print("getinvistrack: track #%d session #%d\n",
 			resp[2], resp[3]);
+	drive->invistrack = resp[2];
 	return resp[2];
 }
 
 static Otrack*
 mmccreate(Drive *drive, int type)
 {
-	int bs, invis;
+	int bs;
 	Mmcaux *aux;
 	Track *t;
 	Otrack *o;
@@ -1366,15 +1391,11 @@ mmccreate(Drive *drive, int type)
 		return nil;
 	}
 
-	invis = getinvistrack(drive);
-	if (invis < 0)
-		invis = Invistrack;
-
 	/* comment out the returns for now; it should be no big deal - geoff */
-	if(mmctrackinfo(drive, invis, Maxtrack)) {
+	if(mmctrackinfo(drive, drive->invistrack, Maxtrack)) {
 		if (vflag)
 			fprint(2, "mmccreate: mmctrackinfo for invis track %d"
-				" failed: %r\n", invis);
+				" failed: %r\n", drive->invistrack);
 		werrstr("disc not writable");
 //		return nil;
 	}
@@ -1382,20 +1403,20 @@ mmccreate(Drive *drive, int type)
 		werrstr("cannot set bs mode");
 //		return nil;
 	}
-	if(mmctrackinfo(drive, invis, Maxtrack)) {
+	if(mmctrackinfo(drive, drive->invistrack, Maxtrack)) {
 		if (vflag)
 			fprint(2, "mmccreate: mmctrackinfo for invis track %d"
-				" (2) failed: %r\n", invis);
+				" (2) failed: %r\n", drive->invistrack);
 		werrstr("disc not writable 2");
 //		return nil;
 	}
 
 	/* special hack for dvd-r: reserve the invisible track */
 	if (drive->mmctype == Mmcdvdminus && drive->writeok &&
-	    drive->recordable == Yes && reserve(drive, invis) < 0) {
+	    drive->recordable == Yes && reserve(drive, drive->invistrack) < 0) {
 		if (vflag)
 			fprint(2, "mmcreate: reserving track %d for dvd-r "
-				"failed: %r\n", invis);
+				"failed: %r\n", drive->invistrack);
 		return nil;
 	}
 
@@ -1446,7 +1467,6 @@ mmcxclose(Drive *drive, int clf, int trackno)
 void
 mmcsynccache(Drive *drive)
 {
-	int invis;
 	uchar cmd[10];
 	Mmcaux *aux;
 
@@ -1470,9 +1490,6 @@ mmcsynccache(Drive *drive)
 			aux->ntotby, aux->ntotbk, aux->mmcnwa);
 	}
 
-	invis = getinvistrack(drive);
-	if (invis < 0)
-		invis = Invistrack;
 	/*
 	 * rsc: seems not to work on some drives.
 	 * so ignore return code & don't issue on dvd+rw.
@@ -1480,11 +1497,12 @@ mmcsynccache(Drive *drive)
 	if(drive->mmctype != Mmcdvdplus || drive->erasable == No) {
 		if (vflag)
 			fprint(2, "closing invisible track %d (not dvd+rw)...\n",
-				invis);
- 		mmcxclose(drive, Closetrack, invis);
+				drive->invistrack);
+ 		mmcxclose(drive, Closetrack, drive->invistrack);
 		if (vflag)
 			fprint(2, "... done.\n");
 	}
+	getinvistrack(drive);		/* track # has probably changed */
 }
 
 /*
