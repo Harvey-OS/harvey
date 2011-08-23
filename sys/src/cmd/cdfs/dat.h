@@ -214,12 +214,12 @@ struct Drive
 	int	mmctype;		/* cd, dvd, or bd */
 	char	*dvdtype;		/* name of dvd flavour */
 	int	firsttrack;
+	int	invistrack;
 	int	ntrack;
 	int	nchange;		/* compare with the members in Scsi */
 	ulong	changetime;		/* " */
 	int	nameok;
 	int	writeok;		/* writable disc? */
-	Tristate blank;			/* (not used for anything yet) */
 	/*
 	 * we could combine these attributes into a single variable except
 	 * that we discover them separately sometimes.
