@@ -29,9 +29,14 @@ enum {
 	Attr		= (Black<<4)|Grey,	/* high nibble background
 						 * low foreground
 						 */
+
+	Poststrlen	= 0,
+	Postcodelen	= 2,
+	Postlen		= Poststrlen+Postcodelen,
 };
 
 #define CGASCREENBASE	((uchar*)KADDR(0xB8000))
+#define CGA		CGASCREENBASE
 
 static int cgapos;
 static Lock cgascreenlock;
@@ -113,6 +118,20 @@ cgascreenputs(char* s, int n)
 		cgascreenputc(*s++);
 
 	unlock(&cgascreenlock);
+}
+
+char hex[] = "0123456789ABCDEF";
+
+void
+cgapost(int code)
+{
+	uchar *cga;
+
+	cga = CGA;
+	cga[Width*Height-Postcodelen*2] = hex[(code>>4) & 0x0F];
+	cga[Width*Height-Postcodelen*2+1] = Attr;
+	cga[Width*Height-Postcodelen*2+2] = hex[code & 0x0F];
+	cga[Width*Height-Postcodelen*2+3] = Attr;
 }
 
 void

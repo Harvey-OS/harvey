@@ -215,6 +215,19 @@ inready(void)
 }
 
 /*
+ *  ask 8042 to enable the use of address bit 20
+ */
+void
+i8042a20(void)
+{
+	outready();
+	outb(Cmd, 0xD1);
+	outready();
+	outb(Data, 0xDF);
+	outready();
+}
+
+/*
  *  ask 8042 to reset the machine
  */
 void

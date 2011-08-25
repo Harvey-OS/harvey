@@ -10,6 +10,7 @@ void	bios32close(BIOS32si*);
 BIOS32si* bios32open(char*);
 void	bootargs(void*);
 ulong	cankaddr(ulong);
+void	cgapost(int);
 void	clockintr(Ureg*, void*);
 int	(*cmpswap)(long*, long, long);
 int	cmpswap486(long*, long, long);
