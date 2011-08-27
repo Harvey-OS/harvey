@@ -13,7 +13,7 @@
 
 struct
 {
-	char	output[16384];
+	char	output[PCICONSSIZE];
 	int	ptr;
 }PCICONS;
 

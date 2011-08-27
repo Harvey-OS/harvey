@@ -28,6 +28,7 @@ typedef struct Vctl	Vctl;
 #define MAXSYSARG	5	/* for mount(fd, afd, mpt, flag, arg) */
 
 #define KMESGSIZE (256*1024)	/* lots, for acpi debugging */
+#define STAGESIZE 2048
 
 /*
  *  parameters for sysproc.c
