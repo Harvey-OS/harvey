@@ -58,6 +58,16 @@ typedef int    Devgen(Chan*, char*, Dirtab*, int, int, Dir*);
 
 #include <fcall.h>
 
+#ifndef KMESGSIZE
+#define KMESGSIZE (16*1024)
+#endif
+#ifndef PCICONSSIZE
+#define PCICONSSIZE (16*1024)
+#endif
+#ifndef STAGESIZE
+#define STAGESIZE 64
+#endif
+
 struct Ref
 {
 	Lock;
@@ -853,7 +863,7 @@ struct PhysUart
 };
 
 enum {
-	Stagesize=	2048
+	Stagesize=	STAGESIZE
 };
 
 /*
@@ -959,7 +969,3 @@ enum
 #pragma	varargck	type	"V"	uchar*
 #pragma	varargck	type	"E"	uchar*
 #pragma	varargck	type	"M"	uchar*
-
-#ifndef KMESGSIZE
-#define KMESGSIZE (16*1024)
-#endif
