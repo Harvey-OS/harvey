@@ -290,7 +290,7 @@ mtrr(uvlong base, uvlong size, char *tstr)
 	qlock(&mtrrlk);
 	slot = -1;
 	vcnt = cap & Capvcnt;
-	for(i = 0; i < vcnt; i++){
+	for(i = 0; i < vcnt && i < Nmtrr; i++){
 		mtrrget(&mtrr, i);
 		mok = mtrrdec(&mtrr, &mp, &msize, &mtype);
 		/* reuse any entry for addresses above 4GB */
@@ -330,7 +330,7 @@ mtrrprint(char *buf, long bufsize)
 	n += snprint(buf+n, bufsize-n, "cache default %s\n",
 		type2str(def & Deftype));
 	vcnt = cap & Capvcnt;
-	for(i = 0; i < vcnt; i++){
+	for(i = 0; i < vcnt && i < Nmtrr; i++){
 		mtrrget(&mtrr, i);
 		if (mtrrdec(&mtrr, &base, &size, &type))
 			n += snprint(buf+n, bufsize-n,
