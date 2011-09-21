@@ -586,6 +586,7 @@ struct X86type {
 	char*	name;
 };
 
+/* cpuid ax is 0x0ffMTFmS, where 0xffF is family, 0xMm is model */
 static X86type x86intel[] =
 {
 	{ 4,	0,	22,	"486DX", },	/* known chips */
@@ -610,13 +611,22 @@ static X86type x86intel[] =
 	{ 6,	7,	16,	"PentiumIII/Xeon", },
 	{ 6,	8,	16,	"PentiumIII/Xeon", },
 	{ 6,	0xB,	16,	"PentiumIII/Xeon", },
-	{ 6,	0xF,	16,	"Xeon5000-series", },
+	{ 6,	0xF,	16,	"Core 2/Xeon", },
 	{ 6,	0x16,	16,	"Celeron", },
 	{ 6,	0x17,	16,	"Core 2/Xeon", },
 	{ 6,	0x1A,	16,	"Core i7/Xeon", },
 	{ 6,	0x1C,	16,	"Atom", },
 	{ 6,	0x1D,	16,	"Xeon MP", },
-	{ 6,	0x25,	16,	"Core i5", },
+	{ 6,	0x1E,	16,	"Core i5/i7/Xeon", },
+	{ 6,	0x1F,	16,	"Core i7/Xeon", },
+	{ 6,	0x22,	16,	"Core i7", },
+	{ 6,	0x25,	16,	"Core i3/i5/i7", },
+	{ 6,	0x2A,	16,	"Core i7", },
+	{ 6,	0x2C,	16,	"Core i7/Xeon", },
+	{ 6,	0x2D,	16,	"Core i7", },
+	{ 6,	0x2E,	16,	"Xeon MP", },
+	{ 6,	0x2F,	16,	"Xeon MP", },
+	{ 6,	0x3A,	16,	"Core i7", },
 	{ 0xF,	1,	16,	"P4", },	/* P4 */
 	{ 0xF,	2,	16,	"PentiumIV/Xeon", },
 	{ 0xF,	6,	16,	"PentiumIV/Xeon", },
