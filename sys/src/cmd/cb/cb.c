@@ -29,7 +29,7 @@ main(int argc, char *argv[])
 			maxleng -= (maxleng + 5)/10;
 			continue;
 		default:
-			fprint(2, "cb: illegal option %c\n", *argv[1]);
+			fprint(2, "cb: illegal option %c\n", (*argv)[1]);
 			exits("boom");
 		}
 	}
@@ -39,6 +39,7 @@ main(int argc, char *argv[])
 		Binit(&stdin, 0, OREAD);
 		input = &stdin;
 		work();
+		Bterm(input);
 	} else {
 		while (argc-- > 0){
 			if ((input = Bopen( *argv, OREAD)) == 0){
@@ -46,6 +47,7 @@ main(int argc, char *argv[])
 				exits("boom");
 			}
 			work();
+			Bterm(input);
 			argv++;
 		}
 	}
