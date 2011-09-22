@@ -1515,6 +1515,7 @@ atapnp(void)
 		case (0x4376<<16)|0x1002:	/* ATI SB400 PATA */
 		case (0x4379<<16)|0x1002:	/* ATI SB400 SATA */
 		case (0x437a<<16)|0x1002:	/* ATI SB400 SATA */
+		case (0x438c<<16)|0x1002:	/* ATI SB600 PATA */
 			/*
 			 * This can probably be lumped in with the 768 above.
 			 */
@@ -1551,6 +1552,7 @@ atapnp(void)
 		case (0x248B<<16)|0x8086:	/* 82801CA (ICH3, High-End) */
 		case (0x24CA<<16)|0x8086:	/* 82801DBM (ICH4, Mobile) */
 		case (0x24CB<<16)|0x8086:	/* 82801DB (ICH4, High-End) */
+		case (0x24D1<<16)|0x8086:	/* 82801EB/ER (ICH5 High-End) */
 		case (0x24DB<<16)|0x8086:	/* 82801EB (ICH5) */
 		case (0x25A3<<16)|0x8086:	/* 6300ESB (E7210) */
 		case (0x2653<<16)|0x8086:	/* 82801FBM (ICH6M) */

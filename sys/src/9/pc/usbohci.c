@@ -1133,11 +1133,12 @@ qhinterrupt(Ctlr *, Ep *ep, Qio *io, Td *td, int)
 
 	switch(err){
 	case Tddataovr:			/* Overrun is not an error */
-	case Tdok:
-		/* can't make this assertion in virtualbox */
-//		if(td->cbp != 0)
-//			panic("ohci: full packet but cbp != 0");
 		break;
+	case Tdok:
+		/* virtualbox doesn't always report underflow on short packets */
+		if(td->cbp == 0)
+			break;
+		/* fall through */
 	case Tddataund:
 		/* short input packets are ok */
 		if(mode == OREAD){
@@ -1326,12 +1327,16 @@ epgettd(Ep *ep, Qio *io, Td **dtdp, int flags, void *a, int count)
 	Td *td, *dtd;
 	Block *bp;
 
-	if(ep->maxpkt > 0x2000)
-		panic("ohci: max packet > two pages");
-	if(ep->maxpkt < count)
-		error("maxpkt too short");
-	bp = allocb(ep->maxpkt);	/* panics if no mem */
-	assert(bp != nil);
+	if(count <= BY2PG)
+		bp = allocb(count);
+	else{
+		if(count > 2*BY2PG)
+			panic("ohci: transfer > two pages");
+		/* maximum of one physical page crossing allowed */
+		bp = allocb(count+BY2PG);
+		bp->rp = (uchar*)PGROUND((uintptr)bp->rp);
+		bp->wp = bp->rp;
+	}
 	dtd = *dtdp;
 	td = dtd;
 	td->bp = bp;
@@ -1340,8 +1345,6 @@ epgettd(Ep *ep, Qio *io, Td **dtdp, int flags, void *a, int count)
 		td->be = ptr2pa(bp->wp + count - 1);
 		if(a != nil){
 			/* validaddr((uintptr)a, count, 0); DEBUG */
-			assert(bp != nil);
-			assert(bp->wp != nil);
 			memmove(bp->wp, a, count);
 		}
 		bp->wp += count;
@@ -1482,7 +1485,7 @@ epio(Ep *ep, Qio *io, void *a, long count, int mustlock)
 	ltd = td0 = ed->tds;
 	load = tot = 0;
 	do{
-		n = ep->maxpkt;
+		n = 2*BY2PG;
 		if(count-tot < n)
 			n = count-tot;
 		if(c != nil && io->tok != Tdtokin)
