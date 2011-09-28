@@ -180,7 +180,8 @@ sysrfork(ulong *arg)
 	if((flag&RFNOTEG) == 0)
 		p->noteid = up->noteid;
 
-	p->fpstate = up->fpstate;
+	/* don't penalize the child, it hasn't done FP in a note handler. */
+	p->fpstate = up->fpstate & ~FPillegal;
 	pid = p->pid;
 	memset(p->time, 0, sizeof(p->time));
 	p->time[TReal] = MACHP(0)->ticks;
