@@ -89,6 +89,9 @@ enum
 	FPinit,
 	FPactive,
 	FPinactive,
+
+	/* bit or'd with the state */
+	FPillegal= 0x100,
 };
 
 struct Confmem
