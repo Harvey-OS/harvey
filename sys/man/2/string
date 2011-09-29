@@ -1,6 +1,6 @@
 .TH STRING 2
 .SH NAME
-s_alloc, s_append, s_array, s_copy, s_error, s_free, s_incref, s_memappend, s_nappend, s_new, s_newalloc, s_parse, s_reset, s_restart, s_terminate, s_tolower, s_putc, s_unique, s_grow, s_read, s_read_line, s_getline \- extensible strings
+s_alloc, s_append, s_array, s_copy, s_error, s_free, s_incref, s_memappend, s_nappend, s_new, s_newalloc, s_parse, s_reset, s_restart, s_terminate, s_tolower, s_putc, s_unique, s_grow, s_read, s_read_line, s_getline, s_allocinstack, s_freeinstack, s_rdinstack \- extensible strings
 .SH SYNOPSIS
 .B #include <u.h>
 .br
@@ -71,6 +71,15 @@ char*	s_read_line(Biobuf *b, String *s)
 .br
 .B
 char*	s_getline(Biobuf *b, String *s)
+.br
+.B
+Sinstack*	s_allocinstack(char *file)
+.br
+.B
+void		s_freeinstack(Sinstack *stack)
+.br
+.B
+char*	s_rdinstack(Sinstack *stack, String *to)
 .SH DESCRIPTION
 .PP
 These routines manipulate extensible strings.  
@@ -213,23 +222,53 @@ reads the requested number of characters through a
 into a string.  The string is grown as necessary.
 An eof or error terminates the read.
 The number of bytes read is returned.
-The string is null terminated.
+The string is
+.SM ASCII
+.SM NUL
+terminated.
 .PP
 .I S_read_line
 reads up to and including the next newline and returns
 a pointer to the beginning of the bytes read.
-An eof or error terminates the read.
-The string is null terminated.
+An eof or error terminates the read and returns 0.
+The string is
+.SM NUL
+terminated.
 .PP
 .I S_getline
 reads up to the next newline and returns
-a pointer to the beginning of the bytes read.  Leading
+a pointer to the beginning of the bytes read
+(0 on eof or error).
+Leading
 spaces and tabs and the trailing newline are all discarded.
 .I S_getline
+will discard all lines beginning with
+.LR # .
+.PP
+.I S_rdinstack
 will recursively read through files included with
-.B #include
+.L #include
 and discard all other lines beginning with
-.BR # .
+.LR # .
+The next line read from a
+.I stack
+of include files is appended to
+.IR to .
+.I S_rdinstack
+returns a pointer to the beginning of the bytes read.
+An eof or error terminates the read and returns 0.
+The string is
+.SM NUL
+terminated.
+.I S_allocinstack
+opens
+.I file
+for reading and returns a pointer to a new stack of include files, or
+.B nil
+on failure.
+.I S_freeinstack
+frees such a
+.IR stack .
 .SH SOURCE
 .B /sys/src/libString
 .SH SEE ALSO
