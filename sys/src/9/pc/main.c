@@ -10,6 +10,10 @@
 #include	"reboot.h"
 #include	"mp.h"
 
+enum {
+	Less_power_slower = 1,
+};
+
 Mach *m;
 
 /*
@@ -843,8 +847,6 @@ cistrncmp(char *a, char *b, int n)
 	return 0;
 }
 
-int less_power_slower;
-
 /*
  *  put the processor in the halt state if we've no processes to run.
  *  an interrupt will get us going again.
@@ -857,7 +859,11 @@ idlehands(void)
 	 * can result in a startup latency for processes that become ready.
 	 * if less_power_slower is true, we care more about saving energy
 	 * than reducing this latency.
+	 *
+	 * the performance loss of less_power_slower seems to be minute
+	 * and it reduces lock contention (thus system time and real time)
+	 * on many-core systems with large values of NPROC.
 	 */
-	if(conf.nmach == 1 || less_power_slower)
+	if(conf.nmach == 1 || Less_power_slower)
 		halt();
 }
