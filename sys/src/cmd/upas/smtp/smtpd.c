@@ -386,11 +386,11 @@ Liarliar:
 		rdot = him;
 	else
 		rdot++;
-	if (cistrcmp(rdot, "localdomain") == 0 ||
+	if (!trusted && (cistrcmp(rdot, "localdomain") == 0 ||
 	    cistrcmp(rdot, "localhost") == 0 ||
 	    cistrcmp(rdot, "example") == 0 ||
 	    cistrcmp(rdot, "invalid") == 0 ||
-	    cistrcmp(rdot, "test") == 0)
+	    cistrcmp(rdot, "test") == 0))
 		goto Liarliar;			/* bad top-level domain */
 	/* check second-level RFC 2606 domains: example\.(com|net|org) */
 	if (rdot != him)
