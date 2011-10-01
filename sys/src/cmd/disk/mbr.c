@@ -145,10 +145,16 @@ main(int argc, char **argv)
 
 	if(disk->type == Tfloppy)
 		fatal("will not install mbr on floppy");
-	if(disk->secsize != 512)
-		fatal("secsize %d invalid", disk->secsize);
+	/*
+	 * we need to cope with 4k-byte sectors on some newer disks.
+	 * we're only interested in 512 bytes of mbr, so
+	 * on 4k disks, rely on /dev/sd to read-modify-write.
+	 */
+	secsize = 512;
+	if(disk->secsize != secsize)
+		fprint(2, "%s: sector size %lld not %ld, should be okay\n",
+			argv0, disk->secsize, secsize);
 
-	secsize = disk->secsize;
 	buf = malloc(secsize*(disk->s+1));
 	mbr = malloc(secsize*disk->s);
 	if(buf == nil || mbr == nil)
