@@ -89,13 +89,11 @@ attachproc(int pid, int kflag, int corefd, Fhdr *fp)
 	map = newmap(0, 4);
 	if (!map)
 		return 0;
-	if(kflag) {
+	if(kflag)
 		regs = "kregs";
-		mode = OREAD;
-	} else {
+	else
 		regs = "regs";
-		mode = ORDWR;
-	}
+	mode = ORDWR;
 	if (mach->regsize) {
 		sprint(buf, "/proc/%d/%s", pid, regs);
 		fd = open(buf, mode);
