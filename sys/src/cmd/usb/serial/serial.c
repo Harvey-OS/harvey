@@ -542,13 +542,11 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 		count = rcount;
 		break;
 	case Qctl:
-		if(offset != 0)
+		if(offset != 0 || p->isjtag)
 			count = 0;
 		else {
-			if(!p->isjtag){
-				e = serdumpst(p, buf, Serbufsize);
-				count = usbreadbuf(data, count, 0, buf, e - buf);
-			}
+			e = serdumpst(p, buf, Serbufsize);
+			count = usbreadbuf(data, count, 0, buf, e - buf);
 		}
 		break;
 	}
