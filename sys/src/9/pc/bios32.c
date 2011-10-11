@@ -7,11 +7,7 @@
 
 #define VFLAG(...)	if(vflag) print(__VA_ARGS__)
 
-#define BIOSSEG(a)	KADDR(((uint)(a))<<4)
 #define UPTR2INT(p)	((uintptr)(p))
-
-#define l16get(p)	(((p)[1]<<8)|(p)[0])
-#define l32get(p)	(((u32int)l16get(p+2)<<16)|l16get(p))
 
 static int vflag = 0;
 
@@ -90,9 +86,9 @@ bios32locate(void)
 		return -1;
 	if(rsdchecksum(sdh, sizeof(BIOS32sdh)) == nil)
 		return -1;
-	VFLAG("sdh @ %#p, entry %#ux\n", sdh, l32get(sdh->physaddr));
+	VFLAG("sdh @ %#p, entry %#ux\n", sdh, L32GET(sdh->physaddr));
 
-	bios32entry = vmap(l32get(sdh->physaddr), 4096+1);
+	bios32entry = vmap(L32GET(sdh->physaddr), 4096+1);
 	VFLAG("entry @ %#p\n", bios32entry);
 	ptr = UPTR2INT(bios32entry);
 	bios32ptr[0] = ptr & 0xffff;

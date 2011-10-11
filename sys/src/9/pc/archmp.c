@@ -96,12 +96,20 @@ identify(void)
 	 * if correct, check the version.
 	 * To do: check extended table checksum.
 	 */
-	if((_mp_ = mpsearch()) == 0 || _mp_->physaddr == 0)
+	if((_mp_ = mpsearch()) == 0 || _mp_->physaddr == 0) {
+		/*
+		 * we can easily get processor info from acpi, but
+		 * interrupt routing, etc. would require interpreting aml.
+		 */
+		print("archmp: no mp table found, assuming uniprocessor\n");
 		return 1;
+	}
 
 	pcmp = KADDR(_mp_->physaddr);
-	if(memcmp(pcmp, "PCMP", 4))
+	if(memcmp(pcmp, "PCMP", 4) != 0) {
+		print("archmp: mp table has bad magic");
 		return 1;
+	}
 
 	length = pcmp->length;
 	sum = 0;
