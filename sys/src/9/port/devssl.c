@@ -760,7 +760,7 @@ sslput(Dstate *s, Block * volatile b)
 
 	if(waserror()){
 		if(b != nil)
-			free(b);
+			freeb(b);
 		nexterror();
 	}
 

@@ -79,7 +79,7 @@ installs or changes
 .I user
 in an authentication database.
 It does not install a user on a Plan 9 file server; see
-.IR fs (8)
+.IR fossilcons (8)
 for that.
 .PP
 Option
