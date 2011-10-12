@@ -717,7 +717,8 @@ cpuidprint(void)
 	int i;
 	char buf[128];
 
-	i = sprint(buf, "cpu%d: %dMHz ", m->machno, m->cpumhz);
+	i = sprint(buf, "cpu%d: %s%dMHz ", m->machno, m->machno < 10? " ": "",
+		m->cpumhz);
 	if(m->cpuidid[0])
 		i += sprint(buf+i, "%12.12s ", m->cpuidid);
 	seprint(buf+i, buf + sizeof buf - 1,
@@ -1028,6 +1029,12 @@ archinit(void)
 
 	addarchfile("cputype", 0444, cputyperead, nil);
 	addarchfile("archctl", 0664, archctlread, archctlwrite);
+}
+
+void
+archrevert(void)
+{
+	arch = &archgeneric;
 }
 
 /*
