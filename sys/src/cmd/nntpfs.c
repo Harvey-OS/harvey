@@ -213,7 +213,7 @@ nntpconnect(Netbuf *n)
 	n->currentgroup = nil;
 	close(n->fd);
 	if((n->fd = dial(n->addr, nil, nil, nil)) < 0){	
-		snprint(n->response, sizeof n->response, "dial: %r");
+		snprint(n->response, sizeof n->response, "dial %s: %r", n->addr);
 		return -1;
 	}
 	Binit(&n->br, n->fd, OREAD);

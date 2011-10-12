@@ -9,14 +9,22 @@
 #include "mp.h"
 #include "apbootstrap.h"
 
+#define dprint(...)	if(mpdebug) print(__VA_ARGS__); else USED(mpdebug)
+
+/* from mpacpi.c */
+Apic *bootapic;
+
+int mpdebug;
+void (*mpacpifunc)(void);
+
 static PCMP* mppcmp;
 static Bus* mpbus;
 static Bus* mpbuslast;
 static int mpisabus = -1;
 static int mpeisabus = -1;
 extern int i8259elcr;			/* mask of level-triggered interrupts */
-static Apic mpapic[MaxAPICNO+1];
-static int machno2apicno[MaxAPICNO+1];	/* inverse map: machno -> APIC ID */
+/* static */ Apic mpapic[MaxAPICNO+1];
+/* static */ int machno2apicno[MaxAPICNO+1];	/* inverse map: machno -> APIC ID */
 static Ref mpvnoref;			/* unique vector assignment */
 static int mpmachno = 1;
 static Lock mpphysidlock;
@@ -185,7 +193,7 @@ mkiointr(PCMPintr* p)
 	aintr->intr = p;
 
 	if(0)
-		print("mkiointr: type %d intr type %d flags %#o "
+		dprint("mkiointr: type %d intr type %d flags %#o "
 			"bus %d irq %d apicno %d intin %d\n",
 			p->type, p->intr, p->flags,
 			p->busno, p->irq, p->apicno, p->intin);
@@ -193,7 +201,7 @@ mkiointr(PCMPintr* p)
 	 * Hack for Intel SR1520ML motherboard, which BIOS describes
 	 * the i82575 dual ethernet controllers incorrectly.
 	 */
-	if(memcmp(mppcmp->product, "INTEL   X38MLST     ", 20) == 0){
+	if(mppcmp && memcmp(mppcmp->product, "INTEL   X38MLST     ", 20) == 0){
 		if(p->busno == 1 && p->intin == 16 && p->irq == 1){
 			pcmpintr = malloc(sizeof(PCMPintr));
 			if(pcmpintr == nil)
@@ -207,6 +215,8 @@ mkiointr(PCMPintr* p)
 			aintr->intr = pcmpintr;
 		}
 	}
+	if ((unsigned)p->apicno >= nelem(mpapic))
+		panic("mkiointr: apic %d out of range", p->apicno);
 	aintr->apic = &mpapic[p->apicno];
 	aintr->next = bus->aintr;
 	bus->aintr = aintr;
@@ -320,6 +330,8 @@ mklintr(PCMPintr* p)
 		}
 	}
 	else{
+		if ((unsigned)p->apicno >= nelem(mpapic))
+			panic("mklintr: ioapic %d out of range", p->apicno);
 		apic = &mpapic[p->apicno];
 		if((apic->flags & PcmpEN) && apic->type == PcmpPROCESSOR)
 			apic->lintr[intin] = v;
@@ -486,21 +498,41 @@ mpstartap(Apic* apic)
 	nvramwrite(0x0F, 0x00);
 }
 
+static void
+trympacpi(void)
+{
+	if (mpacpifunc == nil) {
+		print("mpinit: scanning acpi madt for extra cpus\n");
+		(*mpacpifunc)();
+	}
+}
+
 void
 mpinit(void)
 {
-	int ncpu;
+	int ncpu, cpuson;
 	char *cp;
 	PCMP *pcmp;
 	uchar *e, *p;
 	Apic *apic, *bpapic;
 	void *va;
 
+	mpdebug = getconf("*debugmp") != nil;
 	i8259init();
 	syncclock();
 
-	if(_mp_ == 0)
+	bpapic = nil;
+	cpuson = 0;
+
+	if(_mp_ == 0) {
+		/*
+		 * We can easily get processor info from ACPI, but
+		 * interrupt routing, etc. would require interpreting AML.
+		 */
+		print("mpinit: no mp table found, assuming uniprocessor\n");
+		archrevert();
 		return;
+	}
 	pcmp = KADDR(_mp_->physaddr);
 
 	/*
@@ -509,9 +541,7 @@ mpinit(void)
 	if((va = vmap(pcmp->lapicbase, 1024)) == nil)
 		return;
 	mppcmp = pcmp;
-	print("LAPIC: %.8lux %.8lux\n", pcmp->lapicbase, (ulong)va);
-
-	bpapic = nil;
+	print("LAPIC: %#lux %#lux\n", pcmp->lapicbase, (ulong)va);
 
 	/*
 	 * Run through the table saving information needed for starting
@@ -544,6 +574,7 @@ mpinit(void)
 			apic->paddr = pcmp->lapicbase;
 			if(apic->flags & PcmpBP)
 				bpapic = apic;
+			cpuson++;
 		}
 		p += sizeof(PCMPprocessor);
 		continue;
@@ -569,6 +600,14 @@ mpinit(void)
 		p += sizeof(PCMPintr);
 		continue;
 	}
+
+	dprint("mpinit: mp table describes %d cpus\n", cpuson);
+
+	/* For now, always scan ACPI's MADT for processors that MP missed. */
+	trympacpi();
+
+	if (bpapic == nil)
+		bpapic = bootapic;
 
 	/*
 	 * No bootstrap processor, no need to go further.
@@ -648,6 +687,14 @@ mpintrcpu(void)
 	 * to more than one thread in a core, or to use a "noise" core.
 	 * But, as usual, Intel make that an onerous task. 
 	 */
+
+	/*
+	 * temporary workaround for many-core intel (non-amd) systems:
+	 * always use cpu 0.
+	 */
+	if(strncmp(m->cpuidid, "AuthenticAMD", 12) != 0 && conf.nmach > 8)
+		return 0;
+
 	lock(&mpphysidlock);
 	for(;;){
 		i = mpphysid++;
@@ -669,6 +716,7 @@ mpintrenablex(Vctl* v, int tbdf)
 	Apic *apic;
 	Pcidev *pcidev;
 	int bno, dno, hi, irq, lo, n, type, vno;
+	char *typenm;
 
 	/*
 	 * Find the bus.
@@ -678,6 +726,7 @@ mpintrenablex(Vctl* v, int tbdf)
 	dno = BUSDNO(tbdf);
 	if(type == BusISA)
 		bno = mpisabus;
+	vno = -1;
 	for(bus = mpbus; bus != nil; bus = bus->next){
 		if(bus->type != type)
 			continue;
@@ -685,7 +734,9 @@ mpintrenablex(Vctl* v, int tbdf)
 			break;
 	}
 	if(bus == nil){
-		print("ioapicirq: can't find bus type %d\n", type);
+		typenm = type < 0 || type >= nelem(buses)? "": buses[type];
+		panic("mpintrenablex: can't find bus type %d (%s) for "
+			"irq %d %s busno %d", type, typenm, v->irq, v->name, bno);
 		return -1;
 	}
 
@@ -701,7 +752,7 @@ mpintrenablex(Vctl* v, int tbdf)
 			irq = (dno<<2)|(n-1);
 		else
 			irq = -1;
-		//print("pcidev %uX: irq %uX v->irq %uX\n", tbdf, irq, v->irq);
+		//print("pcidev %#uX: irq %#uX v->irq %#uX\n", tbdf, irq, v->irq);
 	}
 	else
 		irq = v->irq;
@@ -742,11 +793,7 @@ mpintrenablex(Vctl* v, int tbdf)
 					v->irq, tbdf, lo, n);
 				return -1;
 			}
-
-			v->isr = lapicisr;
-			v->eoi = lapiceoi;
-
-			return vno;
+			break;
 		}
 
 		/*
@@ -769,6 +816,7 @@ mpintrenablex(Vctl* v, int tbdf)
 				vno, v->irq, tbdf);
 			return -1;
 		}
+
 		hi = mpintrcpu()<<24;
 		lo = mpintrinit(bus, aintr->intr, vno, v->irq);
 		//print("lo 0x%uX: busno %d intr %d vno %d irq %d elcr 0x%uX\n",
@@ -776,7 +824,6 @@ mpintrenablex(Vctl* v, int tbdf)
 		//	v->irq, i8259elcr);
 		if(lo & ApicIMASK)
 			return -1;
-
 		lo |= ApicPHYSICAL;			/* no-op */
 
 		if((apic->flags & PcmpEN) && apic->type == PcmpIOAPIC)
@@ -784,14 +831,13 @@ mpintrenablex(Vctl* v, int tbdf)
 		//else
 		//	print("lo not enabled 0x%uX %d\n",
 		//		apic->flags, apic->type);
-
+		break;
+	}
+	if (aintr) {
 		v->isr = lapicisr;
 		v->eoi = lapiceoi;
-
-		return vno;
 	}
-
-	return -1;
+	return vno;
 }
 
 int

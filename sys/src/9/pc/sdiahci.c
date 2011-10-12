@@ -1409,7 +1409,7 @@ iainterrupt(Ureg*, void *a)
 	cause = c->hba->isr;
 	if (cause == 0) {
 		isctlrjabbering(c, cause);
-		iprint("sdiahci: interrupt for no drive\n");
+		// iprint("sdiahci: interrupt for no drive\n");
 		iunlock(c);
 		return;
 	}
