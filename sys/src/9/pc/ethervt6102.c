@@ -493,7 +493,7 @@ vt6102attach(Ether* edev)
 	alloc = malloc((ctlr->nrd+ctlr->ntd)*ctlr->cls + ctlr->ntd*Txcopy + ctlr->cls-1);
 	if(alloc == nil){
 		qunlock(&ctlr->alock);
-		return;
+		error(Enomem);
 	}
 	ctlr->alloc = alloc;
 	alloc = (uchar*)ROUNDUP((ulong)alloc, ctlr->cls);

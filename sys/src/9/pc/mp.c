@@ -501,7 +501,7 @@ mpstartap(Apic* apic)
 static void
 trympacpi(void)
 {
-	if (mpacpifunc == nil) {
+	if (mpacpifunc != nil) {
 		print("mpinit: scanning acpi madt for extra cpus\n");
 		(*mpacpifunc)();
 	}
@@ -690,7 +690,7 @@ mpintrcpu(void)
 
 	/*
 	 * temporary workaround for many-core intel (non-amd) systems:
-	 * always use cpu 0.
+	 * always use cpu 0.  (TODO)
 	 */
 	if(strncmp(m->cpuidid, "AuthenticAMD", 12) != 0 && conf.nmach > 8)
 		return 0;
