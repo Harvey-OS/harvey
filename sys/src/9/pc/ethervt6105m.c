@@ -637,7 +637,7 @@ vt6105Mattach(Ether* edev)
 	alloc = mallocalign((ctlr->nrd+ctlr->ntd)*dsz, dsz, 0, 0);
 	if(alloc == nil){
 		qunlock(&ctlr->alock);
-		return;
+		error(Enomem);
 	}
 	ctlr->alloc = alloc;
 
