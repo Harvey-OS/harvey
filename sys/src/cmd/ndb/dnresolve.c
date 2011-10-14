@@ -646,7 +646,7 @@ freeanswers(DNSmsg *mp)
 	mp->qdcount = mp->ancount = mp->nscount = mp->arcount = 0;
 }
 
-/* timed read of reply.  sets srcip */
+/* timed read of reply.  sets srcip.  ibuf must be 64K to handle tcp answers. */
 static int
 readnet(Query *qp, int medium, uchar *ibuf, uvlong endms, uchar **replyp,
 	uchar *srcip)
@@ -1527,7 +1527,6 @@ udpquery(Query *qp, char *mntpt, int depth, int patient, int inns)
 	static ulong lastmount;
 
 	/* use alloced buffers rather than ones from the stack */
-	// ibuf = emalloc(Maxudpin+Udphdrsize);
 	ibuf = emalloc(64*1024);		/* max. tcp reply size */
 	obuf = emalloc(Maxudp+Udphdrsize);
 

@@ -6,9 +6,9 @@
 typedef struct Scan	Scan;
 struct Scan
 {
-	uchar	*base;
-	uchar	*p;
-	uchar	*ep;
+	uchar	*base;		/* input buffer */
+	uchar	*p;		/* current position */
+	uchar	*ep;		/* byte after the end */
 
 	char	*err;
 	char	errbuf[256];	/* hold a formatted error sometimes */
@@ -16,16 +16,6 @@ struct Scan
 	int	stop;		/* flag: stop processing */
 	int	trunc;		/* flag: input truncated */
 };
-
-#define NAME(x)		gname(x, rp, sp)
-#define SYMBOL(x)	(x = gsym(rp, sp))
-#define STRING(x)	(x = gstr(rp, sp))
-#define USHORT(x)	(x = gshort(rp, sp))
-#define ULONG(x)	(x = glong(rp, sp))
-#define UCHAR(x)	(x = gchar(rp, sp))
-#define V4ADDR(x)	(x = gv4addr(rp, sp))
-#define V6ADDR(x)	(x = gv6addr(rp, sp))
-#define BYTES(x, y)	(y = gbytes(rp, sp, &x, len - (sp->p - data)))
 
 static int
 errneg(RR *rp, Scan *sp, int actual)
@@ -56,7 +46,7 @@ errtoolong(RR *rp, Scan *sp, int remain, int need, char *where)
 	/* hack to cope with servers that don't set Ftrunc when they should */
 	if (remain < Maxudp && need > Maxudp)
 		sp->trunc = 1;
-	if (debug)
+	if (debug && rp)
 		dnslog("malformed rr: %R", rp);
 	return 0;
 }
@@ -236,6 +226,10 @@ gname(char *to, RR *rp, Scan *sp)
 		goto err;
 	pointer = 0;
 	p = sp->p;
+	if (p == nil) {
+		dnslog("gname: %R: nil sp->p", rp);
+		goto err;
+	}
 	toend = to + Domlen;
 	for(len = 0; *p && p < sp->ep; len += (pointer? 0: n+1)) {
 		n = 0;
@@ -312,10 +306,20 @@ mstypehack(Scan *sp, ushort type, char *where)
 //			where);
 		if (sp->rcode == Rok)
 			sp->rcode = Rformat;
-		return (uchar)type << 8 | type >> 8;
+		type >>= 8;
 	}
 	return type;
 }
+
+#define NAME(x)		gname(x, rp, sp)
+#define SYMBOL(x)	((x) = gsym(rp, sp))
+#define STRING(x)	((x) = gstr(rp, sp))
+#define USHORT(x)	((x) = gshort(rp, sp))
+#define ULONG(x)	((x) = glong(rp, sp))
+#define UCHAR(x)	((x) = gchar(rp, sp))
+#define V4ADDR(x)	((x) = gv4addr(rp, sp))
+#define V6ADDR(x)	((x) = gv6addr(rp, sp))
+#define BYTES(x, y)	((y) = gbytes(rp, sp, &(x), len - (sp->p - data)))
 
 /*
  *  convert the next RR from a message
@@ -323,13 +327,14 @@ mstypehack(Scan *sp, ushort type, char *where)
 static RR*
 convM2RR(Scan *sp, char *what)
 {
-	int type, class, len;
+	int type, class, len, left;
 	char dname[Domlen+1];
 	uchar *data;
-	RR *rp = nil;
+	RR *rp;
 	Txt *t, **l;
 
 retry:
+	rp = nil;
 	NAME(dname);
 	USHORT(type);
 	USHORT(class);
@@ -341,8 +346,10 @@ retry:
 
 	ULONG(rp->ttl);
 	rp->ttl += now;
-	USHORT(len);
+	USHORT(len);			/* length of data following */
 	data = sp->p;
+	assert(data != nil);
+	left = sp->ep - sp->p;
 
 	/*
 	 * ms windows generates a lot of badly-formatted hints.
@@ -350,21 +357,23 @@ retry:
 	 * it also generates answers in which p overshoots ep by exactly
 	 * one byte; this seems to be harmless, so don't log them either.
 	 */
-	if (sp->ep - sp->p < len &&
+	if (len > left &&
 	   !(strcmp(what, "hints") == 0 ||
 	     sp->p == sp->ep + 1 && strcmp(what, "answers") == 0))
-		errtoolong(rp, sp, sp->ep - sp->p, len, "convM2RR");
+		errtoolong(rp, sp, left, len, "convM2RR");
 	if(sp->err || sp->rcode || sp->stop){
 		rrfree(rp);
 		return nil;
 	}
+	/* even if we don't log an error message, truncate length to fit data */
+	if (len > left)
+		len = left;
 
 	switch(type){
 	default:
 		/* unknown type, just ignore it */
 		sp->p = data + len;
 		rrfree(rp);
-		rp = nil;
 		goto retry;
 	case Thinfo:
 		SYMBOL(rp->cpu);
@@ -493,8 +502,9 @@ convM2Q(Scan *sp)
 {
 	char dname[Domlen+1];
 	int type, class;
-	RR *rp = nil;
+	RR *rp;
 
+	rp = nil;
 	NAME(dname);
 	USHORT(type);
 	USHORT(class);
@@ -535,7 +545,8 @@ rrloop(Scan *sp, char *what, int count, int quest)
 		*l = rp;
 		l = &rp->next;
 	}
-//	setmalloctag(first, getcallerpc(&sp));
+//	if(first)
+//		setmalloctag(first, getcallerpc(&sp));
 	return first;
 }
 
@@ -553,15 +564,15 @@ convM2DNS(uchar *buf, int len, DNSmsg *m, int *codep)
 	Scan scan;
 	Scan *sp;
 
-	if (codep)
-		*codep = Rok;
 	assert(len >= 0);
+	assert(buf != nil);
 	sp = &scan;
 	memset(sp, 0, sizeof *sp);
 	sp->base = sp->p = buf;
 	sp->ep = buf + len;
 	sp->err = nil;
 	sp->errbuf[0] = '\0';
+	sp->rcode = Rok;
 
 	memset(m, 0, sizeof *m);
 	USHORT(m->id);
