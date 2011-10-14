@@ -22,10 +22,14 @@ is yet to be written.
 Introduction
 .LP
 There are many compilers in the series.
-Six of the compilers (MIPS 3000, SPARC, Intel 386, Power PC, DEC Alpha, and Motorola 68020)
+Five of the compilers (Intel 386, AMD64, PowerPC, PowerPC 64-bit, ARM)
 are considered active and are used to compile
 current versions of Plan 9.
-Several others (Motorola 68000, Intel 960, ARM 7500, AMD 29000) have had only limited use, such as
+Four of the compilers (MIPS 3000, SPARC, DEC Alpha, and Motorola 68020)
+are maintained but are for older machines
+for which we have no current ports of Plan 9;
+other than the MIPS, we are unlikely to port to any such machines.
+Several others (Motorola 68000, Intel 960, AMD 29000) have had only limited use, such as
 to program peripherals or experimental devices.
 .NH
 Structure
@@ -54,15 +58,16 @@ are as follows:
 \\$1	\f(CW\\$2\fP  \f(CW\\$3\fP  \f(CW\\$4\fP
 ..
 .Ta SPARC kc kl ka
-.Ta Power\ PC qc ql qa
+.Ta PowerPC qc ql qa
 .Ta MIPS vc vl va
+.Ta MIPS\ little-endian 0c 0l 0a
 .Ta Motorola\ 68000 1c 1l 1a
 .Ta Motorola\ 68020 2c 2l 2a
-.Ta ARM\ 7500 5c 5l 5a
-.Ta Intel\ 960 6c 6l 6a
+.Ta ARM 5c 5l 5a
+.Ta AMD64 6c 6l 6a
 .Ta DEC\ Alpha 7c 7l 7a
 .Ta Intel\ 386 8c 8l 8a
-.Ta AMD\ 29000 9c 9l 9a
+.Ta PowerPC\ 64-bit 9c 9l 9a
 .DE
 There is a further breakdown
 in the source of the compilers into
@@ -323,14 +328,14 @@ to the loader.
 The loader uses the library name to
 find libraries to load.
 If the name contains
-.CW %O ,
+.CW $O ,
 it is replaced with
 the single character object type of the compiler
 (e.g.,
 .CW v
 for the MIPS).
 If the name contains
-.CW %M ,
+.CW $M ,
 it is replaced with
 the architecture type for the compiler
 (e.g.,
@@ -343,7 +348,7 @@ if it starts with
 .CW .
 then it is searched for in the loader's current directory.
 Otherwise, the name is searched from
-.CW /%M/lib .
+.CW /$M/lib .
 Such
 .CW #pragma
 statements in header files guarantee that the correct
@@ -352,7 +357,7 @@ need to specify them explicitly at link time.
 .LP
 They also accept
 .CW #pragma
-.CW hjdicks
+.CW packed
 .CW on
 (or
 .CW yes
@@ -360,7 +365,7 @@ or
 .CW 1 )
 to cause subsequently declared data, until
 .CW #pragma
-.CW hjdicks
+.CW packed
 .CW off
 (or
 .CW no

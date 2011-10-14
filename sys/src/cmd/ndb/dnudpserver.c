@@ -283,19 +283,21 @@ udpannounce(char *mntpt)
 	ctl = announce(datafile, dir);
 	if(ctl < 0){
 		if(!whined++)
-			warning("can't announce on dns udp port");
+			warning("can't announce on %s", datafile);
 		return -1;
 	}
-	snprint(datafile, sizeof(datafile), "%s/data", dir);
 
 	/* turn on header style interface */
 	if(write(ctl, hmsg, strlen(hmsg)) != strlen(hmsg))
 		abort();			/* hmsg */
+
+	snprint(datafile, sizeof(datafile), "%s/data", dir);
 	data = open(datafile, ORDWR);
 	if(data < 0){
 		close(ctl);
 		if(!whined++)
-			warning("can't announce on dns udp port");
+			warning("can't open %s to announce on dns udp port",
+				datafile);
 		return -1;
 	}
 
