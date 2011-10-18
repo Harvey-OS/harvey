@@ -1463,7 +1463,7 @@ iaenable(SDev *s)
 	if(!c->enabled) {
 		if(once == 0) {
 			once = 1;
-			kproc("iasata", satakproc, 0);
+			kproc("ahci", satakproc, 0);
 		}
 		if(c->ndrive == 0)
 			panic("iaenable: zero s->ctlr->ndrive");
@@ -2191,6 +2191,23 @@ forcestate(Drive *d, char *state)
 	iunlock(d);
 }
 
+/*
+ * force this driver to notice a change of medium if the hardware doesn't
+ * report it.
+ */
+static void
+changemedia(SDunit *u)
+{
+	Ctlr *c;
+	Drive *d;
+
+	c = u->dev->ctlr;
+	d = c->drive[u->subno];
+	ilock(d);
+	d->mediachange = 1;
+	u->sectors = 0;
+	iunlock(d);
+}
 
 static int
 iawctl(SDunit *u, Cmdbuf *cmd)
@@ -2204,7 +2221,9 @@ iawctl(SDunit *u, Cmdbuf *cmd)
 	d = c->drive[u->subno];
 	f = cmd->f;
 
-	if(strcmp(f[0], "flushcache") == 0)
+	if(strcmp(f[0], "change") == 0)
+		changemedia(u);
+	else if(strcmp(f[0], "flushcache") == 0)
 		runflushcache(d);
 	else if(strcmp(f[0], "identify") ==  0){
 		i = strtoul(f[1]? f[1]: "0", 0, 0);
