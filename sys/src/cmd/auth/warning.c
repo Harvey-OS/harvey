@@ -87,7 +87,7 @@ douser(Fs *f, char *user)
 	long rcvrs, et, now;
 	char *l;
 
-	sprint(buf, "%s/expire", user);
+	snprint(buf, sizeof buf, "%s/expire", user);
 	et = readnumfile(buf);
 	now = time(0);
 
@@ -95,7 +95,7 @@ douser(Fs *f, char *user)
 	if(et <= now || et > now+14*24*60*60)
 		return;
 
-	sprint(buf, "%s/warnings", user);
+	snprint(buf, sizeof buf, "%s/warnings", user);
 	nwarn = readnumfile(buf);
 	if(et <= now+14*24*60*60 && et > now+7*24*60*60){
 		/* one warning 2 weeks before expiration */
@@ -222,7 +222,7 @@ mail(Fs *f, char *rcvr, char *user, long et)
 			p++;
 		else
 			p = f->keys;
-		sprint(buf, "/adm/warn.%s", p);
+		snprint(buf, sizeof buf, "/adm/warn.%s", p);
 		fd = open(buf, OREAD);
 		if(fd >= 0){
 			while((i = read(fd, buf, sizeof(buf))) > 0)
@@ -278,7 +278,7 @@ complain(char *fmt, ...)
 	va_list arg;
 
 	s = buf;
-	s += sprint(s, "%s: ", argv0);
+	s += snprint(s, sizeof buf, "%s: ", argv0);
 	va_start(arg, fmt);
 	s = vseprint(s, buf + sizeof(buf) / sizeof(*buf), fmt, arg);
 	va_end(arg);

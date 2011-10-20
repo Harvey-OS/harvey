@@ -70,7 +70,7 @@ main(int argc, char *argv[])
 	 * challenge-response
 	 */
 	chal = lnrand(MAXNETCHAL);
-	sprint(buf, "challenge: %lud\nresponse: ", chal);
+	snprint(buf, sizeof buf, "challenge: %lud\nresponse: ", chal);
 	n = strlen(buf) + 1;
 	if(write(1, buf, n) != n){
 		if(debug)

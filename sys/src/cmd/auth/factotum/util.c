@@ -494,7 +494,7 @@ getnvramkey(int flag, char **secstorepw)
 
 	s = emalloc(512);
 	fmtinstall('H', encodefmt);
-	sprint(s, "key proto=p9sk1 user=%q dom=%q !hex=%.*H !password=______", 
+	snprint(s, 512, "key proto=p9sk1 user=%q dom=%q !hex=%.*H !password=______", 
 		safe.authid, safe.authdom, DESKEYLEN, safe.machkey);
 	writehostowner(safe.authid);
 
@@ -594,7 +594,7 @@ mkcap(char *from, char *to)
 	uchar rand[20];
 	char *cap;
 	char *key;
-	int nfrom, nto;
+	int nfrom, nto, ncap;
 	uchar hash[SHA1dlen];
 
 	if(caphashfd < 0)
@@ -603,8 +603,9 @@ mkcap(char *from, char *to)
 	/* create the capability */
 	nto = strlen(to);
 	nfrom = strlen(from);
-	cap = emalloc(nfrom+1+nto+1+sizeof(rand)*3+1);
-	sprint(cap, "%s@%s", from, to);
+	ncap = nfrom + 1 + nto + 1 + sizeof(rand)*3 + 1;
+	cap = emalloc(ncap);
+	snprint(cap, ncap, "%s@%s", from, to);
 	memrandom(rand, sizeof(rand));
 	key = cap+nfrom+1+nto+1;
 	enc64(key, sizeof(rand)*3, rand, sizeof(rand));

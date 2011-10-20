@@ -108,7 +108,7 @@ install(char *db, char *u, char *key, long t, int newkey)
 	int fd;
 
 	if(!exists(db, u)){
-		sprint(buf, "%s/%s", db, u);
+		snprint(buf, sizeof buf, "%s/%s", db, u);
 		fd = create(buf, OREAD, 0777|DMDIR);
 		if(fd < 0)
 			error("can't create user %s: %r", u);
@@ -116,7 +116,7 @@ install(char *db, char *u, char *key, long t, int newkey)
 	}
 
 	if(newkey){
-		sprint(buf, "%s/%s/key", db, u);
+		snprint(buf, sizeof buf, "%s/%s/key", db, u);
 		fd = open(buf, OWRITE);
 		if(fd < 0 || write(fd, key, DESKEYLEN) != DESKEYLEN)
 			error("can't set key: %r");
@@ -125,7 +125,7 @@ install(char *db, char *u, char *key, long t, int newkey)
 
 	if(t == -1)
 		return;
-	sprint(buf, "%s/%s/expire", db, u);
+	snprint(buf, sizeof buf, "%s/%s/expire", db, u);
 	fd = open(buf, OWRITE);
 	if(fd < 0 || fprint(fd, "%ld", t) < 0)
 		error("can't write expiration time");
@@ -137,7 +137,7 @@ exists(char *db, char *u)
 {
 	char buf[KEYDBBUF+ANAMELEN+6];
 
-	sprint(buf, "%s/%s/expire", db, u);
+	snprint(buf, sizeof buf, "%s/%s/expire", db, u);
 	if(access(buf, 0) < 0)
 		return 0;
 	return 1;

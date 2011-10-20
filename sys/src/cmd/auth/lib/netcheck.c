@@ -27,7 +27,7 @@ netresp(char *key, long chal, char *answer)
 	uchar buf[8];
 
 	memset(buf, 0, 8);
-	sprint((char *)buf, "%lud", chal);
+	snprint((char *)buf, sizeof buf, "%lud", chal);
 	if(encrypt(key, buf, 8) < 0)
 		error("can't encrypt response");
 	chal = (buf[0]<<24)+(buf[1]<<16)+(buf[2]<<8)+buf[3];
@@ -87,7 +87,7 @@ smartcheck(void *key, long chal, char *response)
 	uchar buf[2*8];
 	int i, c, cslo, cshi;
 
-	sprint((char*)buf, "%lud        ", chal);
+	snprint((char*)buf, sizeof buf, "%lud        ", chal);
 	cslo = 0x52;
 	cshi = cslo;
 	for(i = 0; i < 8; i++){

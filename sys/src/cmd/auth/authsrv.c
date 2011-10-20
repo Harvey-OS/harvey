@@ -189,7 +189,7 @@ challengebox(Ticketreq *tr)
 	memset(buf, 0, sizeof(buf));
 	buf[0] = AuthOK;
 	chal = lnrand(MAXNETCHAL);
-	sprint(buf+1, "%lud", chal);
+	snprint(buf+1, sizeof buf - 1, "%lud", chal);
 	if(write(1, buf, NETCHLEN+1) < 0)
 		exits(0);
 	if(readn(0, buf, NETCHLEN) < 0)
@@ -508,7 +508,7 @@ vnc(Ticketreq *tr)
 	 */
 	randombytes(chal+6, VNCchallen);
 	chal[0] = AuthOKvar;
-	sprint((char*)chal+1, "%-5d", VNCchallen);
+	snprint((char*)chal+1, sizeof chal - 1, "%-5d", VNCchallen);
 	if(write(1, chal, sizeof(chal)) != sizeof(chal))
 		return;
 

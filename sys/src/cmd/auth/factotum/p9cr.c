@@ -175,7 +175,7 @@ p9response(Fsstate *fss, State *s)
 		return failure(fss, "vncresponse cannot happen");
 	passtokey(key, pw);
 	memset(buf, 0, 8);
-	sprint((char*)buf, "%d", atoi(s->chal));
+	snprint((char*)buf, sizeof buf, "%d", atoi(s->chal));
 	if(encrypt(key, buf, 8) < 0)
 		return failure(fss, "can't encrypt response");
 	chal = (buf[0]<<24)+(buf[1]<<16)+(buf[2]<<8)+buf[3];
