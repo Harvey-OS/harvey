@@ -42,7 +42,7 @@ main(int argc, char *argv[])
 			exits(0);
 		buf[n] = '\0';
 		n = strtol(buf, 0, 10);
-		sprint(buf, "%d", n);
+		snprint(buf, sizeof buf, "%d", n);
 		netcrypt(key, buf);
 		print("response: %s\n", buf);
 	}

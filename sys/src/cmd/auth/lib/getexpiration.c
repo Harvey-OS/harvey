@@ -53,12 +53,14 @@ getexpiration(char *db, char *u)
 		if(strncmp(buf, "never", 5)){
 			secs = atoi(buf);
 			memmove(&date, localtime(secs), sizeof(date));
-			sprint(buf, "%4.4d%2.2d%2.2d", date.year+1900, date.mon+1, date.mday);
+			snprint(buf, sizeof buf, "%4.4d%2.2d%2.2d",
+				date.year+1900, date.mon+1, date.mday);
 		} else
 			buf[5] = 0;
 	} else
 		strcpy(buf, "never");
-	sprint(prompt, "Expiration date (YYYYMMDD or never)[return = %s]: ", buf);
+	snprint(prompt, sizeof prompt,
+		"Expiration date (YYYYMMDD or never)[return = %s]: ", buf);
 
 	now = time(0);
 	for(;;){

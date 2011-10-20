@@ -22,7 +22,8 @@ keyfmt(Fmt *f)
 		key[i+1] = k[i] << (7 - i);
 	}
 	key[7] &= ~1;
-	sprint(buf, "%.3uo %.3uo %.3uo %.3uo %.3uo %.3uo %.3uo %.3uo",
+	snprint(buf, sizeof buf,
+		"%.3uo %.3uo %.3uo %.3uo %.3uo %.3uo %.3uo %.3uo",
 		key[0], key[1], key[2], key[3], key[4], key[5], key[6], key[7]);
 	fmtstrcpy(f, buf);
 	return 0;
