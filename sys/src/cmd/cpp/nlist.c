@@ -161,6 +161,8 @@ setup(int argc, char **argv)
 	dp = ".";
 	fp = "<stdin>";
 	fd = 0;
+	if (argc > 2)
+		error(FATAL, "Too many file arguments; see cpp(1)");
 	if (argc > 0) {
 		if ((fp = strrchr(argv[0], '/')) != NULL) {
 			int len = fp - argv[0];
