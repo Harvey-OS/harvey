@@ -21,7 +21,7 @@
 #define Intel(x)	((x)->pci->vid == Vintel)
 
 enum {
-	NCtlr	= 8,
+	NCtlr	= 16,
 	NCtlrdrv= 32,
 	NDrive	= NCtlr*NCtlrdrv,
 
@@ -145,7 +145,9 @@ struct Drive {
 	char	firmware[8+1];
 	char	model[40+1];
 
-	ushort	info[0x200];
+	int	infosz;
+	ushort	*info;
+	ushort	tinyinfo[2];	/* used iff malloc fails */
 
 	int	driveno;	/* ctlr*NCtlrdrv + unit */
 	/* controller port # != driveno when not all ports are enabled */
@@ -171,8 +173,8 @@ struct Ctlr {
 	/* phyical register address */
 	uchar	*physio;
 
-	Drive	rawdrive[NCtlrdrv];
-	Drive*	drive[NCtlrdrv];
+	Drive	*rawdrive;
+	Drive	*drive[NCtlrdrv];
 	int	ndrive;
 	int	mport;		/* highest drive # (0-origin) on ich9 at least */
 
@@ -938,6 +940,14 @@ identify(Drive *d)
 	uchar oserial[21];
 	SDunit *u;
 
+	if(d->info == nil) {
+		d->infosz = 512 * sizeof(ushort);
+		d->info = malloc(d->infosz);
+	}
+	if(d->info == nil) {
+		d->info = d->tinyinfo;
+		d->infosz = sizeof d->tinyinfo;
+	}
 	id = d->info;
 	s = ahciidentify(&d->portc, id);
 	if(s == -1){
@@ -1362,7 +1372,8 @@ satakproc(void*)
 	for(;;){
 		tsleep(&up->sleep, return0, 0, Nms);
 		for(i = 0; i < niadrive; i++)
-			checkdrive(iadrive[i], i);
+			if(iadrive[i] != nil)
+				checkdrive(iadrive[i], i);
 	}
 }
 
@@ -1711,7 +1722,7 @@ iariopkt(SDreq *r, Drive *d)
 	aprint("ahci: iariopkt: %02ux %02ux %c %d %p\n",
 		cmd[0], cmd[2], "rw"[r->write], r->dlen, r->data);
 	if(cmd[0] == 0x5a && (cmd[2] & 0x3f) == 0x3f)
-		return sdmodesense(r, cmd, d->info, sizeof d->info);
+		return sdmodesense(r, cmd, d->info, d->infosz);
 	r->rlen = 0;
 	count = r->dlen;
 	max = 65536;
@@ -1812,7 +1823,7 @@ iario(SDreq *r)
 		return sdsetsense(r, SDcheck, 3, 0xc, 2);
 	}
 
-	if((i = sdfakescsi(r, d->info, sizeof d->info)) != SDnostatus){
+	if((i = sdfakescsi(r, d->info, d->infosz)) != SDnostatus){
 		r->status = i;
 		return i;
 	}
@@ -1967,13 +1978,60 @@ didtype(Pcidev *p)
 	return -1;
 }
 
+static int
+newctlr(Ctlr *ctlr, SDev *sdev, int nunit)
+{
+	int i, n;
+	Drive *drive;
+
+	ctlr->ndrive = sdev->nunit = nunit;
+	ctlr->mport = ctlr->hba->cap & ((1<<5)-1);
+
+	i = (ctlr->hba->cap >> 20) & ((1<<4)-1);		/* iss */
+	print("#S/sd%c: %s: %#p %s, %d ports, irq %d\n", sdev->idno,
+		Tname(ctlr), ctlr->physio, descmode[i], nunit, ctlr->pci->intl);
+	/* map the drives -- they don't all need to be enabled. */
+	n = 0;
+	ctlr->rawdrive = malloc(NCtlrdrv * sizeof(Drive));
+	if(ctlr->rawdrive == nil) {
+		print("ahci: out of memory\n");
+		return -1;
+	}
+	for(i = 0; i < NCtlrdrv; i++) {
+		drive = ctlr->rawdrive + i;
+		drive->portno = i;
+		drive->driveno = -1;
+		drive->sectors = 0;
+		drive->serial[0] = ' ';
+		drive->ctlr = ctlr;
+		if((ctlr->hba->pi & (1<<i)) == 0)
+			continue;
+		drive->port = (Aport*)(ctlr->mmio + 0x80*i + 0x100);
+		drive->portc.p = drive->port;
+		drive->portc.m = &drive->portm;
+		drive->driveno = n++;
+		ctlr->drive[drive->driveno] = drive;
+		iadrive[niadrive + drive->driveno] = drive;
+	}
+	for(i = 0; i < n; i++)
+		if(ahciidle(ctlr->drive[i]->port) == -1){
+			dprint("ahci: %s: port %d wedged; abort\n",
+				Tname(ctlr), i);
+			return -1;
+		}
+	for(i = 0; i < n; i++){
+		ctlr->drive[i]->mode = DMsatai;
+		configdrive(ctlr->drive[i]);
+	}
+	return n;
+}
+
 static SDev*
 iapnp(void)
 {
-	int i, n, nunit, type;
+	int n, nunit, type;
 	ulong io;
 	Ctlr *c;
-	Drive *d;
 	Pcidev *p;
 	SDev *head, *tail, *s;
 	static int done;
@@ -2025,42 +2083,9 @@ loop:
 			vunmap(c->mmio, p->mem[Abar].size);
 			continue;
 		}
-		c->ndrive = s->nunit = nunit;
-		c->mport = c->hba->cap & ((1<<5)-1);
-
-		i = (c->hba->cap >> 20) & ((1<<4)-1);		/* iss */
-		print("#S/sd%c: %s: %#p %s, %d ports, irq %d\n", s->idno,
-			Tname(c), c->physio, descmode[i], nunit, c->pci->intl);
-		/* map the drives -- they don't all need to be enabled. */
-		memset(c->rawdrive, 0, sizeof c->rawdrive);
-		n = 0;
-		for(i = 0; i < NCtlrdrv; i++) {
-			d = c->rawdrive + i;
-			d->portno = i;
-			d->driveno = -1;
-			d->sectors = 0;
-			d->serial[0] = ' ';
-			d->ctlr = c;
-			if((c->hba->pi & (1<<i)) == 0)
-				continue;
-			d->port = (Aport*)(c->mmio + 0x80*i + 0x100);
-			d->portc.p = d->port;
-			d->portc.m = &d->portm;
-			d->driveno = n++;
-			c->drive[d->driveno] = d;
-			iadrive[niadrive + d->driveno] = d;
-		}
-		for(i = 0; i < n; i++)
-			if(ahciidle(c->drive[i]->port) == -1){
-				dprint("ahci: %s: port %d wedged; abort\n",
-					Tname(c), i);
-				goto loop;
-			}
-		for(i = 0; i < n; i++){
-			c->drive[i]->mode = DMsatai;
-			configdrive(c->drive[i]);
-		}
-
+		n = newctlr(c, s, nunit);
+		if(n < 0)
+			goto loop;
 		niadrive += n;
 		niactlr++;
 		if(head)
