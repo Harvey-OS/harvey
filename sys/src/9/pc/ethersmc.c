@@ -553,7 +553,7 @@ interrupt(Ureg*, void *arg)
 
 		if (status & IntAlloc) {
 			outb(port + IntrMask, mask & ~IntAlloc);
-			txstart(ether);;
+			txstart(ether);
 			mask = inb(port + IntrMask);
 		}
 

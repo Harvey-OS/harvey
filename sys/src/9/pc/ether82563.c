@@ -411,7 +411,7 @@ enum {
 
 enum {
 	Nrd		= 256,		/* power of two */
-	Ntd		= 128,		/* power of two */
+	Ntd		= 64,		/* power of two */
 	Nrb		= 1024,		/* private receive buffers per Ctlr */
 };
 
@@ -1250,13 +1250,13 @@ i82563attach(Ether* edev)
 	char name[KNAMELEN];
 
 	ctlr = edev->ctlr;
-	ctlr->edev = edev;			/* point back to Ether* */
 	qlock(&ctlr->alock);
 	if(ctlr->attached){
 		qunlock(&ctlr->alock);
 		return;
 	}
 
+	ctlr->edev = edev;			/* point back to Ether* */
 	ctlr->nrd = Nrd;
 	ctlr->ntd = Ntd;
 

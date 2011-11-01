@@ -303,7 +303,7 @@ typedef struct {
 enum {
 	Rbsz	= 12*1024,
 	Nrd	= 256,
-	Ntd	= 256,
+	Ntd	= 64,
 	Nrb	= 256,
 };
 

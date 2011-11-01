@@ -1300,7 +1300,7 @@ reset(Ether* ether)
 	 * Load the chip configuration and start it off.
 	 */
 	if(ether->oq == 0)
-		ether->oq = qopen(256*1024, Qmsg, 0, 0);
+		ether->oq = qopen(64*1024, Qmsg, 0, 0);
 	configure(ether, 0);
 	command(ctlr, CUstart, PADDR(&ctlr->cbr->status));
 

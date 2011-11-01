@@ -447,26 +447,32 @@ etherprobe(int cardno, int ctlrno)
 	sprint(buf+i, "\n");
 	print(buf);
 
+	/*
+	 * input queues are allocated by ../port/netif.c:/^openfile.
+	 * the size will be the last argument to netifinit() below.
+	 *
+	 * output queues should be small, to minimise `bufferbloat',
+	 * which confuses tcp's feedback loop.  at 1Gb/s, it only takes
+	 * ~15µs to transmit a full-sized non-jumbo packet.
+	 */
+
 	/* compute log10(ether->mbps) into lg */
 	for(lg = 0, mb = ether->mbps; mb >= 10; lg++)
 		mb /= 10;
-	if (lg > 0)
-		lg--;
-	if (lg > 14)			/* 2^(14+17) = 2⁳ⁱ */
+	if (lg > 14)			/* sanity cap; 2**(14+15) = 2²⁹ */
 		lg = 14;
-	/* allocate larger output queues for higher-speed interfaces */
-	bsz = 1UL << (lg + 17);		/* 2ⁱ⁷ = 128K, bsz = 2ⁿ × 128K */
-	while (bsz > mainmem->maxsize / 8 && bsz > 128*1024)
-		bsz /= 2;
 
+	/* allocate larger input queues for higher-speed interfaces */
+	bsz = 1UL << (lg + 15);		/* 2ⁱ⁵ = 32K, bsz = 2ⁿ × 32K */
+	while (bsz > mainmem->maxsize / 8 && bsz > 128*1024)	/* sanity */
+		bsz /= 2;
 	netifinit(ether, name, Ntypes, bsz);
-	if(ether->oq == nil) {
-		ether->oq = qopen(bsz, Qmsg, 0, 0);
-		ether->limit = bsz;
-	}
+
 	if(ether->oq == nil)
-		panic("etherreset %s: can't allocate output queue of %ld bytes",
-			name, bsz);
+		ether->oq = qopen(1 << (lg + 13), Qmsg, 0, 0);
+	if(ether->oq == nil)
+		panic("etherreset %s: can't allocate output queue", name);
+
 	ether->alen = Eaddrlen;
 	memmove(ether->addr, ether->ea, Eaddrlen);
 	memset(ether->bcast, 0xFF, Eaddrlen);

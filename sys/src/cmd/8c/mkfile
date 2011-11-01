@@ -2,7 +2,6 @@
 
 TARG=8c
 OFILES=\
-	bound.$O\
 	cgen.$O\
 	cgen64.$O\
 	div.$O\
@@ -33,7 +32,6 @@ $LIB:
 	mk install
 	mk clean
 
-bound.$O:	bound.h
 
 %.$O: ../cc/%.c
 	$CC $CFLAGS ../cc/$stem.c
