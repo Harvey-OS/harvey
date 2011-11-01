@@ -339,7 +339,7 @@ enum {					/* Tdesc status */
 
 enum {
 	Nrdesc		= 256,		/* multiple of 8 */
-	Ntdesc		= 256,		/* multiple of 8 */
+	Ntdesc		= 64,		/* multiple of 8 */
 	Nblocks		= 4098,		/* total number of blocks to use */
 
 	SBLOCKSIZE	= 2048,

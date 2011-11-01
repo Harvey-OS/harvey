@@ -311,7 +311,7 @@ patch(void)
 				switch(s->type) {
 				default:
 					/* diag prints TNAME first */
-					diag("%s is undefined", s->name);
+					diag("undefined: %s", s->name);
 					s->type = STEXT;
 					s->value = vexit;
 					break;	/* or fall through to set offset? */
@@ -678,14 +678,14 @@ export(void)
 	n = 0;
 	for(i = 0; i < NHASH; i++)
 		for(s = hash[i]; s != S; s = s->link)
-			if(s->sig != 0 && s->type != SXREF && s->type != SUNDEF && (nexports == 0 || s->subtype == SEXPORT))
+			if(s->type != SXREF && s->type != SUNDEF && (nexports == 0 && s->sig != 0 || s->subtype == SEXPORT || allexport))
 				n++;
 	esyms = malloc(n*sizeof(Sym*));
 	ne = n;
 	n = 0;
 	for(i = 0; i < NHASH; i++)
 		for(s = hash[i]; s != S; s = s->link)
-			if(s->sig != 0 && s->type != SXREF && s->type != SUNDEF && (nexports == 0 || s->subtype == SEXPORT))
+			if(s->type != SXREF && s->type != SUNDEF && (nexports == 0 && s->sig != 0 || s->subtype == SEXPORT || allexport))
 				esyms[n++] = s;
 	for(i = 0; i < ne-1; i++)
 		for(j = i+1; j < ne; j++)

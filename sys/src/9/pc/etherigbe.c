@@ -708,7 +708,7 @@ igbectl(Ether* edev, void* buf, long n)
 		v = strtol(cb->f[1], &p, 0);
 		if(v < 0 || p == cb->f[1] || v > 0xFFFF)
 			error(Ebadarg);
-		ctlr->rdtr = v;;
+		ctlr->rdtr = v;
 		csr32w(ctlr, Rdtr, Fpd|v);
 		break;
 	}

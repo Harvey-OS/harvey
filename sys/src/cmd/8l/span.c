@@ -304,6 +304,24 @@ asmlc(void)
 }
 
 int
+prefixof(Adr *a)
+{
+	switch(a->type) {
+	case D_INDIR+D_CS:
+		return 0x2e;
+	case D_INDIR+D_DS:
+		return 0x3e;
+	case D_INDIR+D_ES:
+		return 0x26;
+	case D_INDIR+D_FS:
+		return 0x64;
+	case D_INDIR+D_GS:
+		return 0x65;
+	}
+	return 0;
+}
+
+int
 oclass(Adr *a)
 {
 	long v;
@@ -334,6 +352,8 @@ oclass(Adr *a)
 		return Yax;
 
 	case D_CL:
+		return Ycl;
+
 	case D_DL:
 	case D_BL:
 	case D_AH:
@@ -606,7 +626,7 @@ asmand(Adr *a, int r)
 	}
 	if(t >= D_INDIR) {
 		t -= D_INDIR;
-		if(t == D_NONE) {
+		if(t == D_NONE || D_CS <= t && t <= D_GS) {
 			*andptr++ = (0 << 6) | (5 << 0) | (r << 3);
 			put4(v);
 			return;
@@ -767,6 +787,7 @@ uchar	ymovtab[] =
 	ASHRL,	Ycol,	Yml,	6,	0xac,0xad,0,0,
 
 /* extra imul */
+	AIMULW,	Yml,	Yrl,	7,	Pq,0xaf,0,0,
 	AIMULL,	Yml,	Yrl,	7,	Pm,0xaf,0,0,
 	0
 };
@@ -821,7 +842,14 @@ doasm(Prog *p)
 	Prog *q, pp;
 	uchar *t;
 	int z, op, ft, tt;
-	long v;
+	long v, pre;
+
+	pre = prefixof(&p->from);
+	if(pre)
+		*andptr++ = pre;
+	pre = prefixof(&p->to);
+	if(pre)
+		*andptr++ = pre;
 
 	o = &optab[p->as];
 	ft = oclass(&p->from) * Ymax;

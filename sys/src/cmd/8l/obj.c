@@ -95,8 +95,13 @@ main(int argc, char *argv[])
 		break;
 	case 'x':	/* produce export table */
 		doexp = 1;
-		if(argv[1] != nil && argv[1][0] != '-' && !isobjfile(argv[1]))
-			readundefs(ARGF(), SEXPORT);
+		if(argv[1] != nil && argv[1][0] != '-' && !isobjfile(argv[1])){
+			a = ARGF();
+			if(strcmp(a, "*") == 0)
+				allexport = 1;
+			else
+				readundefs(a, SEXPORT);
+		}
 		break;
 	case 'u':	/* produce dynamically loadable module */
 		dlm = 1;

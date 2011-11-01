@@ -72,6 +72,7 @@ struct	Gen
 	double	dval;
 	char	sval[8];
 	long	offset;
+	long	offset2;
 	Sym*	sym;
 	short	type;
 	short	index;

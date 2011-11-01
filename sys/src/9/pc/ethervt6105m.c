@@ -282,7 +282,7 @@ enum {						/* Tx Ds branch */
 
 enum {
 	Nrd		= 196,
-	Ntd		= 128,
+	Ntd		= 64,
 	Crcsz		= 4,
 	Bslop		= 48,
 	Rdbsz		= ETHERMAXTU+Crcsz+Bslop,

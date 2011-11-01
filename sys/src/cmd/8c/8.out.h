@@ -2,6 +2,7 @@
 #define	NSNAME	8
 #define NOPROF	(1<<0)
 #define DUPOK	(1<<1)
+#define NOSPLIT	(1<<2)
 
 enum	as
 {
@@ -353,6 +354,58 @@ enum	as
 
 	ASIGNAME,
 
+	AFCOMI,
+	AFCOMIP,
+	AFUCOMI,
+	AFUCOMIP,
+	ACMPXCHGB,
+	ACMPXCHGL,
+	ACMPXCHGW,
+
+	/* conditional move */
+	ACMOVLCC,
+	ACMOVLCS,
+	ACMOVLEQ,
+	ACMOVLGE,
+	ACMOVLGT,
+	ACMOVLHI,
+	ACMOVLLE,
+	ACMOVLLS,
+	ACMOVLLT,
+	ACMOVLMI,
+	ACMOVLNE,
+	ACMOVLOC,
+	ACMOVLOS,
+	ACMOVLPC,
+	ACMOVLPL,
+	ACMOVLPS,
+	ACMOVWCC,
+	ACMOVWCS,
+	ACMOVWEQ,
+	ACMOVWGE,
+	ACMOVWGT,
+	ACMOVWHI,
+	ACMOVWLE,
+	ACMOVWLS,
+	ACMOVWLT,
+	ACMOVWMI,
+	ACMOVWNE,
+	ACMOVWOC,
+	ACMOVWOS,
+	ACMOVWPC,
+	ACMOVWPL,
+	ACMOVWPS,
+
+	AFCMOVCC,
+	AFCMOVCS,
+	AFCMOVEQ,
+	AFCMOVHI,
+	AFCMOVLS,
+	AFCMOVNE,
+	AFCMOVNU,
+	AFCMOVUN,
+
+	/* add new operations here. nowhere else. here. */
 	ALAST
 };
 
@@ -378,6 +431,7 @@ enum
 	D_DI,
 
 	D_F0		= 16,
+	D_F7		= D_F0 + 7,
 
 	D_CS		= 24,
 	D_SS,
@@ -413,12 +467,18 @@ enum
 
 	D_INDIR,	/* additive */
 
+	D_CONST2 = D_INDIR+D_INDIR,
+
+	D_SIZE,	/* 8l internal */
+
 	T_TYPE		= 1<<0,
 	T_INDEX		= 1<<1,
 	T_OFFSET	= 1<<2,
 	T_FCONST	= 1<<3,
 	T_SYM		= 1<<4,
 	T_SCONST	= 1<<5,
+	T_OFFSET2	= 1<<6,
+	T_GOTYPE	= 1<<7,
 
 	REGARG		= -1,
 	REGRET		= D_AX,

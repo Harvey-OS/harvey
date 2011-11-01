@@ -338,7 +338,7 @@ enum {
 	Nrd		= 256,
 	Nrb		= 4*Nrd,
 	Rbsz		= ROUNDUP(sizeof(Etherpkt)+8, 8),
-	Ntd		= 128,
+	Ntd		= 64,
 };
 
 typedef struct Ctlr Ctlr;

@@ -37,7 +37,7 @@ struct	Adr
 		Sym*	u1sym;
 	} u1;
 	short	type;
-	char	index;
+	uchar	index;
 	char	scale;
 };
 
@@ -58,11 +58,12 @@ struct	Prog
 	Prog*	pcond;	/* work on this */
 	long	pc;
 	long	line;
-	uchar	mark;	/* work on these */
-	uchar	back;
-
 	short	as;
 	char	width;		/* fake for DATA */
+	char	ft;		/* oclass cache */
+	char	tt;
+	uchar	mark;	/* work on these */
+	uchar	back;
 };
 struct	Auto
 {
@@ -203,6 +204,7 @@ EXTERN union
 #pragma	varargck	type	"D"	Adr*
 #pragma	varargck	type	"P"	Prog*
 #pragma	varargck	type	"R"	int
+#pragma	varargck	type	"R"	uint
 #pragma	varargck	type	"S"	char*
 
 #pragma	varargck	argpos	diag 1
@@ -270,7 +272,7 @@ EXTERN	int	dtype;
 EXTERN	Adr*	reloca;
 EXTERN	int	doexp, dlm;
 EXTERN	int	imports, nimports;
-EXTERN	int	exports, nexports;
+EXTERN	int	exports, nexports, allexport;
 EXTERN	char*	EXPTAB;
 EXTERN	Prog	undefp;
 
@@ -345,3 +347,8 @@ void	xdefine(char*, int, long);
 void	xfol(Prog*);
 int	zaddr(uchar*, Adr*, Sym*[]);
 void	zerosig(char*);
+
+#pragma	varargck	type	"D"	Adr*
+#pragma	varargck	type	"P"	Prog*
+#pragma	varargck	type	"R"	int
+#pragma	varargck	type	"A"	int
