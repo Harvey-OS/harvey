@@ -189,6 +189,10 @@ main(int argc, char **argv)
 		*p++ = '\0';
 		kidname = p;
 	}
+	/* don't leave standard descriptors open to confuse mk */
+	close(0);
+	close(1);
+	close(2);
 	postmountsrv(&fs, nil, mtpt, MBEFORE);
 	exits(nil);
 }
