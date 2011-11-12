@@ -7,7 +7,6 @@
 static int	sizeToDepth(uvlong s, int psize, int dsize);
 static u32int 	tagGen(void);
 static Block 	*sourceLoad(Source *r, Entry *e);
-static Block	*sourceLoadUnlocked(Source *r, Entry *e);
 static int	sourceShrinkDepth(Source*, Block*, Entry*, int);
 static int	sourceShrinkSize(Source*, Entry*, uvlong);
 static int	sourceGrowDepth(Source*, Block*, Entry*, int);

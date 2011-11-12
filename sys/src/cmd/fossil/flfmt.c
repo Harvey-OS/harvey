@@ -8,7 +8,6 @@
 static void usage(void);
 static u64int fdsize(int fd);
 static void partition(int fd, int bsize, Header *h);
-static void writeBlock(int fd, uchar *buf, int bsize, ulong bn);
 static u64int unittoull(char *s);
 static u32int blockAlloc(int type, u32int tag);
 static void blockRead(int part, u32int addr);

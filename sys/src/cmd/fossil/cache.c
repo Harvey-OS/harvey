@@ -9,6 +9,9 @@ typedef struct FreeList FreeList;
 typedef struct BAddr BAddr;
 
 enum {
+	Nowaitlock,
+	Waitlock,
+
 	BadHeap = ~0,
 };
 
@@ -112,14 +115,12 @@ static void heapIns(Block*);
 static void cacheCheck(Cache*);
 static void unlinkThread(void *a);
 static void flushThread(void *a);
-static void flushBody(Cache *c);
 static void unlinkBody(Cache *c);
 static int cacheFlushBlock(Cache *c);
 static void cacheSync(void*);
 static BList *blistAlloc(Block*);
 static void blistFree(Cache*, BList*);
 static void doRemoveLink(Cache*, BList*);
-static void doRemoveLinkList(Cache*, BList*);
 
 /*
  * Mapping from local block type to Venti type
@@ -473,7 +474,7 @@ _cacheLocalLookup(Cache *c, int part, u32int addr, u32int vers,
 static Block*
 cacheLocalLookup(Cache *c, int part, u32int addr, u32int vers)
 {
-	return _cacheLocalLookup(c, part, addr, vers, 1, 0);
+	return _cacheLocalLookup(c, part, addr, vers, Waitlock, 0);
 }
 
 
@@ -1194,7 +1195,8 @@ blockWrite(Block *b)
 		}
 
 		lockfail = 0;
-		bb = _cacheLocalLookup(c, p->part, p->addr, p->vers, 0, &lockfail);
+		bb = _cacheLocalLookup(c, p->part, p->addr, p->vers, Nowaitlock,
+			&lockfail);
 		if(bb == nil){
 			if(lockfail)
 				return 0;
@@ -2003,7 +2005,8 @@ cacheFlushBlock(Cache *c)
 			return 0;
 		p = c->baddr + c->br;
 		c->br++;
-		b = _cacheLocalLookup(c, p->part, p->addr, p->vers, 0, &lockfail);
+		b = _cacheLocalLookup(c, p->part, p->addr, p->vers, Nowaitlock,
+			&lockfail);
 
 		if(b && blockWrite(b)){
 			c->nflush++;
