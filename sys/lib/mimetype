@@ -21,7 +21,7 @@
 .bcpio		application	x-bcpio		-		m
 .bib		text		plain		-		y # BibTex input
 .bmp		image		bmp		-		y # bitmapped image
-.bz2		-		-		bzip2		m # bzipped file
+.bz2		application	x-bzip2		bzip2		m # bzipped file
 .c		text		plain		-		y # C program
 .c++		text		plain		-		y # C++ program
 .cacert		application	x-x509-ca-cert	-		y # DER X.509 CA certificate
@@ -53,7 +53,7 @@
 .gcd		text		x-pcs-gcd	-		y	# helper file for .qcp
 .gif		image		gif		-		y
 .gtar		application	x-gtar		-		m
-.gz		-		-		gzip		m # gzipped file
+.gz		application	x-gzip		gzip		m # gzipped file
 .h		text		plain		-		y # C header file
 .hdf		application	x-hdf		-		y
 .hdml		text		x-hdml		-		y

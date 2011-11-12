@@ -14,7 +14,11 @@ and
 .I ld
 are programs that reside in a FAT file system and bootstrap Plan 9.
 .I 9load
-loads the kernel, but it cannot be run from DOS; use
+loads a
+.B 386
+.\" or
+.\" .B amd64
+kernel, but it cannot be run from DOS; use
 .I ld
 to bootstrap (by starting
 .IR 9load )
@@ -26,7 +30,7 @@ it cannot be run directly by hand.
 is a version of
 .I 9load
 that can be booted using the PXE download (BOOTP/DHCP followed by TFTP)
-found in some ethernet card BIOSes.
+found in any reasonable ethernet card's BIOS.
 .I 9loadusb
 is a version that will use only the BIOS's device drivers,
 and thus can load from USB devices.
@@ -38,7 +42,11 @@ use BIOS device drivers.
 .I 9loadask
 is a version that asks on the console (too early for serial ports, alas)
 if you want to use BIOS drivers to boot.
-There are three bootstrap sequences:
+There are four bootstrap sequences:
+.IP \- 3
+PXE BIOS,
+.IR 9pxeload ,
+kernel
 .IP \-
 BIOS, MBR, disk partition PBS,
 .IR 9load ,
@@ -71,11 +79,11 @@ can only be booted using
 and then only if the machine's BIOS supports
 linear block addressing (LBA) mode for disk transfers.
 .PP
-When booting from floppy or hard disk, the BIOS loads the
+When booting from disk or floppy, the BIOS loads the
 first sector of the medium at location
 .BR 0x7C00 .
+In the case of a disk, it is the master boot record (MBR).
 In the case of a floppy, this is the PBS.
-In the case of a hard disk, it is the master boot record (MBR).
 The MBR copies itself to address
 .BR 0x600 ,
 finds the active partition and loads its PBS at address
@@ -97,7 +105,7 @@ operating systems,
 and (modulo the large disk constraints just described)
 non-Plan 9 MBRs are suitable for booting Plan 9.
 .PP
-Thus the default sequence is: BIOS, MBR, PBS,
+Thus the default sequence when booting from disk is: BIOS, MBR, PBS,
 .IR 9load ,
 kernel.
 .PP
@@ -137,21 +145,25 @@ After loading, control is passed to the entry location.
 .PP
 In summary,
 Plan 9 can be booted on a PC three different ways:
-either by booting MS-DOS and using
-.I ld
-to start
-.I 9load
-in the appropriate directory,
-by booting directly from a Plan 9 boot floppy or disk
-partition
+either
+by using a PXE-capable BIOS to boot
+.I 9pxeload
+directly over the ethernet,
+by booting directly from a Plan 9 disk partition
+or boot floppy
 prepared using
 .B format
 to install the appropriate files and bootstrap sectors
 (see
 .IR prep (8)),
-or by using a PXE-capable BIOS to boot
-.I 9pxeload
-directly over the ethernet.
+or rarely
+by booting MS-DOS and using
+.I ld
+to start
+.I 9load
+in the appropriate directory.
+.br
+.ne 4
 .SS Bootfile
 The
 .IR bootfile ,
@@ -193,23 +205,6 @@ are
 .TF \fLethern
 .PD
 .TP
-.BI fd n
-An MS-DOS floppy disk.
-.I N
-specifies the floppy drive, either
-0 or 1.
-The
-.I bootfile
-is the contents of the MS-DOS
-.IR file .
-There is no default file.
-For compatibility with hard disks, a
-.I partition
-may be given, but only
-.B dos
-is recognized:
-.BI fd0!dos! file\f1.
-.TP
 .BI ether n
 Ethernet.
 .I N
@@ -226,7 +221,7 @@ is determined by the
 entry for this PC.
 .TP
 .BI sd Cn
-Non-floppy disk.
+Normal disk.
 The device name format is described in
 .IR sd (3).
 A
@@ -242,6 +237,23 @@ By convention, this partition is called
 .BR 9fat .
 There is no default partition or pathname.
 .TP
+.BI fd n
+An MS-DOS floppy disk.
+.I N
+specifies the floppy drive, either
+0 or 1.
+The
+.I bootfile
+is the contents of the MS-DOS
+.IR file .
+There is no default file.
+For compatibility with normal disks, a
+.I partition
+may be given, but only
+.B dos
+is recognized:
+.BI fd0!dos! file\f1.
+.TP
 .B bios0
 (Not in
 .IR 9pxeload .)
@@ -252,10 +264,12 @@ in the BIOS's list of devices to try to boot from,
 using the BIOS INT 13 calls also used by
 .IR pbslba .
 It does not understand any form of partition table;
-see the EXAMPLES in
+see the
+.B EXAMPLES
+in
 .IR prep (8)
 for how to format such a device.
-This is mostly useful for booting from USB devices so far.
+This has been mostly useful for booting from USB devices so far.
 .TP
 .B sdB0
 (Not in
@@ -290,11 +304,11 @@ Only devices which can be automatically configured,
 e.g. most PCI ethernet adapters,
 will be recognised.
 If the file
-.BI /cfg/pxe/ XXXXXXXXXXXX
+.BI /cfg/pxe/ ether
 can be located via a DHCP server,
 where
-.I XXXXXXXXXXXX
-is the MAC address of a recognised ethernet adapter,
+.I ether
+is the lower-case MAC address of a recognised ethernet adapter,
 the contents are obtained and used as a
 .IR plan9.ini .
 .PP

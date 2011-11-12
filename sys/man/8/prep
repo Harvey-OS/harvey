@@ -65,7 +65,7 @@ prep, fdisk, format, mbr \- prepare disks, floppies and flashes
 ]
 .I disk
 .SH DESCRIPTION
-A partition table is stored on a hard disk to specify the division of
+A partition table is stored on a non-floppy disk to specify the division of
 the physical disk into a set of logical units.
 On PCs, the partition table is stored at the end of the master boot record
 of the disk.
@@ -480,12 +480,12 @@ will display a list of choices and then prompt for it.
 .PD
 .PP
 .I Format
-prepares for use the floppy diskette or hard disk partition in the file named
+prepares for use the disk partition or the floppy diskette in the file named
 .IR disk ,
 for example
-.B /dev/fd0disk
+.B /dev/sdC0/9fat
 or
-.BR /dev/sdC0/9fat .
+.BR /dev/fd0disk .
 The options are:
 .TP
 .B -f
@@ -654,8 +654,8 @@ The partition boot block then loads a bootstrap
 program such as
 .IR 9load (8),
 which then loads the operating system.
-If MS-DOS or Windows 9[58] is already installed
-on your hard disk, the master boot record
+If MS-DOS or Windows is already installed
+on your disk, the master boot record
 already has a suitable boot block.
 Otherwise,
 .B /386/mbr
@@ -698,7 +698,7 @@ disk/format -b /386/pbs -df /dev/fd0disk \e
 	/386/9load /tmp/plan9.ini /386/9pcf.gz
 .EE
 .PP
-Initialize the blank hard disk
+Initialize the blank disk
 .BR /dev/sdC0/data .
 .IP
 .EX
