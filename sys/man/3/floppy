@@ -1,6 +1,6 @@
 .TH FLOPPY 3 
 .SH NAME
-floppy \- floppy disk interface
+floppy \- floppy diskette interface
 .SH SYNOPSIS
 .nf
 .B bind -a #f /dev
@@ -15,9 +15,8 @@ floppy \- floppy disk interface
 .B /dev/fd3ctl
 .fi
 .SH DESCRIPTION
-.PP
-The floppy disk interface serves a one-level directory giving access to up
-to four floppy disk drives.
+The floppy diskette interface serves a one-level directory giving access to up
+to four floppy diskette drives.
 Each drive is represented by a data and control file.
 There are no partitions.
 .PP
@@ -36,7 +35,7 @@ Reset the drive.
 Format the floppy.  The
 .I type
 sets the density and
-type of disk to be formatted; see
+type of diskette to be formatted; see
 .B format
 in
 .IR prep (8).
@@ -44,11 +43,13 @@ in
 .PP
 A read of the
 .B ctl
-file returns a string describing the form factor of the disk, one of
+file returns a string describing the form factor of the diskette, one of
 .BR 3½DD ,
 .BR 3½HD ,
 .BR 5¼DD ,
 or
 .BR 5¼HD .
 .SH SOURCE
-.B /sys/src/9/*/devfloppy.c
+.B /sys/src/9/pc/devfloppy.c
+.SH BUGS
+Floppies are tiny, unreliable and eventually wear out.
