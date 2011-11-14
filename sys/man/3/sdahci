@@ -19,7 +19,7 @@ driver provides access to AHCI devices via the
 .IR sd (3)
 interface.
 The AHCI programming interface supports up to 32
-hot-swappable ATAPI or hard disk-like devices per controller.
+hot-swappable ATAPI or disk-like devices per controller.
 The legacy IDE interface provided by
 .B sdata.c
 supports up to four drives which are not hot-swappable.
