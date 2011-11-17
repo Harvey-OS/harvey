@@ -22,11 +22,11 @@ typedef	struct	Bits	Bits;
 
 #define	NHUNK		50000L
 #define	BUFSIZ		8192
-#define	NSYMB		500
+#define	NSYMB		1500
 #define	NHASH		1024
 #define	STRINGSZ	200
 #define	HISTSZ		20
-#define YYMAXDEPTH	500
+#define YYMAXDEPTH	1500
 #define	NTERM		10
 #define	MAXALIGN	7
 
@@ -294,6 +294,7 @@ enum
 	OINDEX,
 	OFAS,
 	OREGPAIR,
+	OEXREG,
 
 	OEND
 };
@@ -477,6 +478,7 @@ EXTERN	int	packflg;
 EXTERN	int	fproundflg;
 EXTERN	int	profileflg;
 EXTERN	int	ncontin;
+EXTERN	int	newvlongcode;
 EXTERN	int	canreach;
 EXTERN	int	warnreach;
 EXTERN	Bits	zbits;
@@ -614,7 +616,7 @@ int	rsametype(Type*, Type*, int, int);
 int	sametype(Type*, Type*);
 ulong	sign(Sym*);
 ulong	signature(Type*);
-void	suallign(Type*);
+void	sualign(Type*);
 void	tmerge(Type*, Sym*);
 void	walkparam(Node*, int);
 void	xdecl(int, Type*, Sym*);
@@ -632,6 +634,8 @@ int	tcomo(Node*, int);
 int	tcomx(Node*);
 int	tlvalue(Node*);
 void	constas(Node*, Type*, Type*);
+Node*	uncomma(Node*);
+Node*	uncomargs(Node*);
 
 /*
  * con.c

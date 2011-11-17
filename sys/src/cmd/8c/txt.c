@@ -158,7 +158,8 @@ gargs(Node *n, Node *tn1, Node *tn2)
 	cursafe = regs;
 }
 
-int nareg(void)
+int
+nareg(int notbp)
 {
 	int i, n;
 
@@ -166,6 +167,8 @@ int nareg(void)
 	for(i=D_AX; i<=D_DI; i++)
 		if(reg[i] == 0)
 			n++;
+	if(notbp && reg[D_BP] == 0)
+		n--;
 	return n;
 }
 
@@ -306,6 +309,7 @@ regalloc(Node *n, Node *tn, Node *o)
 			if(reg[i] == 0)
 				goto out;
 		diag(tn, "out of fixed registers");
+abort();
 		goto err;
 
 	case TFLOAT:
@@ -430,6 +434,11 @@ naddr(Node *n, Adr *a)
 		a->sym = S;
 		break;
 
+	case OEXREG:
+		a->type = D_INDIR + D_GS;
+		a->offset = n->reg - 1;
+		a->etype = n->etype;
+		break;
 
 	case OIND:
 		naddr(n->left, a);
@@ -1355,7 +1364,15 @@ long
 exreg(Type *t)
 {
 
-	USED(t);
+	int o;
+
+	if(typechlp[t->etype]){
+		if(exregoffset >= 32)
+			return 0;
+		o = exregoffset;
+		exregoffset += 4;
+		return o+1;	/* +1 to avoid 0 == failure; naddr case OEXREG will -1. */
+	}
 	return 0;
 }
 

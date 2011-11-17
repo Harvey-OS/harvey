@@ -4,10 +4,11 @@
  * If there's no usb keyboard, it tries to setup the mouse, if any.
  * It should be started at boot time.
  *
- * Mouse events are converted to the format of mouse(3)'s
- * mousein file.
+ * Mouse events are converted to the format of mouse(3)'s mousein file.
  * Keyboard keycodes are translated to scan codes and sent to kbin(3).
  *
+ * If there is no keyboard, it tries to setup the mouse properly, else it falls
+ * back to boot protocol.
  */
 
 #include <u.h>
@@ -18,8 +19,8 @@
 
 enum
 {
-	Awakemsg=0xdeaddead,
-	Diemsg = 0xbeefbeef,
+	Awakemsg= 0xdeaddead,
+	Diemsg	= 0xbeefbeef,
 };
 
 typedef struct KDev KDev;
@@ -32,6 +33,9 @@ struct KDev
 	Kin*	in;		/* used to send events to kernel */
 	Channel*repeatc;	/* only for keyboard */
 	int	accel;		/* only for mouse */
+	int	bootp;		/* has associated keyboard */
+	HidRepTempl templ;
+	int	(*ptrvals)(KDev *kd, Chain *ch, int *px, int *py, int *pb);
 };
 
 /*
@@ -62,7 +66,7 @@ struct Kin
  * key code to scan code; for the page table used by
  * the logitech bluetooth keyboard.
  */
-static char sctab[256] = 
+static char sctab[256] =
 {
 [0x00]	0x0,	0x0,	0x0,	0x0,	0x1e,	0x30,	0x2e,	0x20,
 [0x08]	0x12,	0x21,	0x22,	0x23,	0x17,	0x24,	0x25,	0x26,
@@ -114,14 +118,57 @@ static Kin ptrin =
 
 static int kbdebug;
 
+static int ptrbootpvals(KDev *kd, Chain *ch, int *px, int *py, int *pb);
+static int ptrrepvals(KDev *kd, Chain *ch, int *px, int *py, int *pb);
+
 static int
-setbootproto(KDev* f, int eid)
+setbootproto(KDev* f, int eid, uchar *, int)
 {
 	int r, id;
 
+	f->ptrvals = ptrbootpvals;
 	r = Rh2d|Rclass|Riface;
+	dprint(2, "setting boot protocol\n");
 	id = f->dev->usb->ep[eid]->iface->id;
 	return usbcmd(f->dev, r, Setproto, Bootproto, id, nil, 0);
+}
+
+static uchar ignoredesc[128];
+
+static int
+setfirstconfig(KDev* f, int eid, uchar *desc, int descsz)
+{
+	int nr, r, id, i;
+
+	dprint(2, "setting first config\n");
+	if(desc == nil){
+		descsz = sizeof ignoredesc;
+		desc = ignoredesc;
+	}
+	id = f->dev->usb->ep[eid]->iface->id;
+	r = Rh2d | Rstd | Rdev;
+	nr =usbcmd(f->dev,  r, Rsetconf, 1, id, nil, 0);
+	if(nr < 0)
+		return -1;
+	r = Rh2d | Rclass | Riface;
+	nr=usbcmd(f->dev,   r, Setidle,  0, id, nil, 0);
+	if(nr < 0)
+		return -1;
+	r = Rd2h | Rstd | Riface;
+	nr=usbcmd(f->dev,  r, Rgetdesc, Dreport<<8, id, desc, descsz);
+	if(nr < 0)
+		return -1;
+	if(kbdebug && nr > 0){
+		fprint(2, "report descriptor: ");
+		for(i = 0; i < nr; i++){
+			fprint(2, " %#2.2ux ", desc[i]);
+			if(i!= 0 && i%8 == 0)
+				fprint(2, "\n");
+		}
+		fprint(2, "\n");
+	}
+	f->ptrvals = ptrrepvals;
+	return nr;
 }
 
 /*
@@ -136,9 +183,15 @@ recoverkb(KDev *f)
 	close(f->dev->dfd);		/* it's for usbd now */
 	devctl(f->dev, "reset");
 	for(i = 0; i < 10; i++){
+		if(i == 5)
+			f->bootp++;
 		sleep(500);
 		if(opendevdata(f->dev, ORDWR) >= 0){
-			setbootproto(f, f->ep->id);
+			if(f->bootp)
+				/* TODO func pointer */
+				setbootproto(f, f->ep->id, nil, 0);
+			else
+				setfirstconfig(f, f->ep->id, nil, 0);
 			break;
 		}
 		/* else usbd still working... */
@@ -207,36 +260,85 @@ sethipri(void)
 	char fn[30];
 	int fd;
 
-	snprint(fn, sizeof(fn), "/proc/%d/ctl", getpid());
+	snprint(fn, sizeof fn, "/proc/%d/ctl", getpid());
 	fd = open(fn, OWRITE);
-	if(fd < 0)
-		return;
-	fprint(fd, "pri 13");
-	close(fd);
+	if(fd >= 0) {
+		fprint(fd, "pri 13");
+		close(fd);
+	}
+}
+
+static int
+ptrrepvals(KDev *kd, Chain *ch, int *px, int *py, int *pb)
+{
+	int i, x, y, b, c;
+	static char buts[] = {0x0, 0x2, 0x1};
+
+	c = ch->e / 8;
+	parsereport(&kd->templ, ch);
+
+	if(kbdebug)
+		dumpreport(&kd->templ);
+	if(c < 3)
+		return -1;
+	x = hidifcval(&kd->templ, KindX, 0);
+	y = hidifcval(&kd->templ, KindY, 0);
+	b = 0;
+	for(i = 0; i<sizeof buts; i++)
+		b |= (hidifcval(&kd->templ, KindButtons, i) & 1) << buts[i];
+	if(c > 3 && hidifcval(&kd->templ, KindWheel, 0) > 0)	/* up */
+		b |= 0x10;
+	if(c > 3 && hidifcval(&kd->templ, KindWheel, 0) < 0)	/* down */
+		b |= 0x08;
+
+	*px = x;
+	*py = y;
+	*pb = b;
+	return 0;
+}
+
+static int
+ptrbootpvals(KDev *kd, Chain *ch, int *px, int *py, int *pb)
+{
+	int b, c;
+	char x, y;
+	static char maptab[] = {0x0, 0x1, 0x4, 0x5, 0x2, 0x3, 0x6, 0x7};
+
+	c = ch->e / 8;
+	if(c < 3)
+		return -1;
+	x = hidifcval(&kd->templ, KindX, 0);
+	y = hidifcval(&kd->templ, KindY, 0);
+
+	b = maptab[ch->buf[0] & 0x7];
+	if(c > 3 && ch->buf[3] == 1)		/* up */
+		b |= 0x08;
+	if(c > 3 && ch->buf[3] == 0xff)		/* down */
+		b |= 0x10;
+	*px = x;
+	*py = y;
+	*pb = b;
+	return 0;
 }
 
 static void
 ptrwork(void* a)
 {
-	static char maptab[] = {0x0, 0x1, 0x4, 0x5, 0x2, 0x3, 0x6, 0x7};
-	int x, y, b, c, ptrfd;
-	int	mfd, nerrs;
-	char	buf[32];
-	char	mbuf[80];
-	KDev*	f = a;
-	int	hipri;
+	int hipri, mfd, nerrs, x, y, b, c, ptrfd;
+	char mbuf[80];
+	Chain ch;
+	KDev* f = a;
 
 	hipri = nerrs = 0;
 	ptrfd = f->ep->dfd;
 	mfd = f->in->fd;
-
-	if(f->ep->maxpkt < 3 || f->ep->maxpkt > sizeof buf)
+	if(f->ep->maxpkt < 3 || f->ep->maxpkt > MaxChLen)
 		kbfatal(f, "weird mouse maxpkt");
 	for(;;){
-		memset(buf, 0, sizeof buf);
+		memset(ch.buf, 0, MaxChLen);
 		if(f->ep == nil)
 			kbfatal(f, nil);
-		c = read(ptrfd, buf, f->ep->maxpkt);
+		c = read(ptrfd, ch.buf, f->ep->maxpkt);
 		assert(f->dev != nil);
 		assert(f->ep != nil);
 		if(c < 0){
@@ -248,20 +350,15 @@ ptrwork(void* a)
 		}
 		if(c <= 0)
 			kbfatal(f, nil);
-		if(c < 3)
+		ch.b = 0;
+		ch.e = 8 * c;
+		if(f->ptrvals(f, &ch, &x, &y, &b) < 0)
 			continue;
+
 		if(f->accel){
-			x = scale(f, buf[1]);
-			y = scale(f, buf[2]);
-		}else{
-			x = buf[1];
-			y = buf[2];
+			x = scale(f, x);
+			y = scale(f, y);
 		}
-		b = maptab[buf[0] & 0x7];
-		if(c > 3 && buf[3] == 1)	/* up */
-			b |= 0x08;
-		if(c > 3 && buf[3] == -1)	/* down */
-			b |= 0x10;
 		if(kbdebug > 1)
 			fprint(2, "kb: m%11d %11d %11d\n", x, y, b);
 		seprint(mbuf, mbuf+sizeof(mbuf), "m%11d %11d %11d", x, y,b);
@@ -502,9 +599,10 @@ freekdev(void *a)
 }
 
 static void
-kbstart(Dev *d, Ep *ep, Kin *in, void (*f)(void*), int accel)
+kbstart(Dev *d, Ep *ep, Kin *in, void (*f)(void*), KDev *kd)
 {
-	KDev *kd;
+	uchar desc[128];
+	int res;
 
 	qlock(&inlck);
 	if(in->fd < 0){
@@ -517,15 +615,23 @@ kbstart(Dev *d, Ep *ep, Kin *in, void (*f)(void*), int accel)
 	}
 	in->ref++;	/* for kd->in = in */
 	qunlock(&inlck);
-	kd = d->aux = emallocz(sizeof(KDev), 1);
 	d->free = freekdev;
 	kd->in = in;
 	kd->dev = d;
-	if(setbootproto(kd, ep->id) < 0){
-		fprint(2, "kb: %s: bootproto: %r\n", d->dir);
-		return;
-	}
-	kd->accel = accel;
+	res = -1;
+	if(!kd->bootp)
+		res= setfirstconfig(kd, ep->id, desc, sizeof desc);
+	if(res > 0)
+		res = parsereportdesc(&kd->templ, desc, sizeof desc);
+	/* if we could not set the first config, we give up */
+	if(kd->bootp || res < 0){
+		kd->bootp = 1;
+		if(setbootproto(kd, ep->id, nil, 0) < 0){
+			fprint(2, "kb: %s: bootproto: %r\n", d->dir);
+			return;
+		}
+	}else if(kbdebug)
+		dumpreport(&kd->templ);
 	kd->ep = openep(d, ep->id);
 	if(kd->ep == nil){
 		fprint(2, "kb: %s: openep %d: %r\n", d->dir, ep->id);
@@ -545,18 +651,20 @@ kbstart(Dev *d, Ep *ep, Kin *in, void (*f)(void*), int accel)
 static int
 usage(void)
 {
-	werrstr("usage: usb/kb [-dkm] [-a n] [-N nb]");
+	werrstr("usage: usb/kb [-bdkm] [-a n] [-N nb]");
 	return -1;
 }
 
 int
 kbmain(Dev *d, int argc, char* argv[])
 {
-	int i, kena, pena, accel, devid;
-	Usbdev *ud;
+	int bootp, i, kena, pena, accel, devid;
 	Ep *ep;
+	KDev *kd;
+	Usbdev *ud;
 
 	kena = pena = 1;
+	bootp = 0;
 	accel = 0;
 	devid = d->id;
 	ARGBEGIN{
@@ -577,25 +685,43 @@ kbmain(Dev *d, int argc, char* argv[])
 	case 'N':
 		devid = atoi(EARGF(usage()));		/* ignore dev number */
 		break;
+	case 'b':
+		bootp++;
+		break;
 	default:
 		return usage();
 	}ARGEND;
-	if(argc != 0){
+	if(argc != 0)
 		return usage();
-	}
 	USED(devid);
 	ud = d->usb;
 	d->aux = nil;
 	dprint(2, "kb: main: dev %s ref %ld\n", d->dir, d->ref);
+
+	if(kena)
+		for(i = 0; i < nelem(ud->ep); i++)
+			if((ep = ud->ep[i]) == nil)
+				break;
+			else if(ep->iface->csp == KbdCSP)
+				bootp = 1;
+
 	for(i = 0; i < nelem(ud->ep); i++){
 		if((ep = ud->ep[i]) == nil)
 			break;
-		if(kena && ep->type == Eintr && ep->dir == Ein)
-		if(ep->iface->csp == KbdCSP)
-			kbstart(d, ep, &kbdin, kbdwork, accel);
-		if(pena && ep->type == Eintr && ep->dir == Ein)
-		if(ep->iface->csp == PtrCSP)
-			kbstart(d, ep, &ptrin, ptrwork, accel);
+		if(kena && ep->type == Eintr && ep->dir == Ein &&
+		    ep->iface->csp == KbdCSP){
+			kd = d->aux = emallocz(sizeof(KDev), 1);
+			kd->accel = 0;
+			kd->bootp = 1;
+			kbstart(d, ep, &kbdin, kbdwork, kd);
+		}
+		if(pena && ep->type == Eintr && ep->dir == Ein &&
+		    ep->iface->csp == PtrCSP){
+			kd = d->aux = emallocz(sizeof(KDev), 1);
+			kd->accel = accel;
+			kd->bootp = bootp;
+			kbstart(d, ep, &ptrin, ptrwork, kd);
+		}
 	}
 	return 0;
 }

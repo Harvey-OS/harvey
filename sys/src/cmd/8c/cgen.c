@@ -25,6 +25,12 @@ cgen(Node *n, Node *nn)
 	l = n->left;
 	r = n->right;
 	o = n->op;
+// Go's version does the following, but it's the wrong place: doesn't allow assignment
+//	if(o == OEXREG || nn != Z && nn->op == OEXREG) {
+//		gmove(n, nn);
+//		return;
+//	}
+
 	if(n->addable >= INDEXED) {
 		if(nn == Z) {
 			switch(o) {
@@ -244,7 +250,7 @@ cgen(Node *n, Node *nn)
 		if(n->op == OADD && l->op == OASHL && l->right->op == OCONST
 		&& (r->op != OCONST || r->vconst < -128 || r->vconst > 127)) {
 			c = l->right->vconst;
-			if(c > 0 && c <= 3) {
+			if(c > 0 && c <= 3 && nareg(1) >= 4) {
 				if(l->left->complex >= r->complex) {
 					regalloc(&nod, l->left, nn);
 					cgen(l->left, &nod);
@@ -887,6 +893,7 @@ cgen(Node *n, Node *nn)
 		break;
 
 	case OFUNC:
+		l = uncomma(l);
 		if(l->complex >= FNX) {
 			if(l->op != OIND)
 				diag(n, "bad function call");
@@ -1824,6 +1831,12 @@ copy:
 	gins(ACLD, Z, Z);
 	gins(AREP, Z, Z);
 	gins(AMOVSL, Z, Z);
+	if(w & (SZ_LONG-1)) {
+		/* odd length of packed structure */
+		gins(AMOVL, nodconst(w & (SZ_LONG-1)), &nod3);
+		gins(AREP, Z, Z);
+		gins(AMOVSB, Z, Z);
+	}
 	if(c & 4) {
 		gins(APOPL, Z, &nod3);
 		reg[D_CX]--;

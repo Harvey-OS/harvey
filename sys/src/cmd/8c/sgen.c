@@ -88,6 +88,10 @@ xcom(Node *n)
 			n->addable = 11;
 		break;
 
+	case OEXREG:
+		n->addable = 12;
+		break;
+
 	case OREGISTER:
 		n->addable = 12;
 		break;

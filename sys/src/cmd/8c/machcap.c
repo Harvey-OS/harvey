@@ -53,6 +53,7 @@ machcap(Node *n)
 	case OANDAND:
 	case OOROR:
 	case ONOT:
+	case ODOT:
 		return 1;
 
 	case OASADD:
