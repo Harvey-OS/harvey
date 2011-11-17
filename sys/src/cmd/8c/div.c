@@ -6,7 +6,7 @@
  * SIGPLAN Notices, Vol. 29, June 1994, page 61.
  */
 
-#define	TN(n)	(1ULL << (n))
+#define	TN(n)	((uvlong)1 << (n))
 #define	T31	TN(31)
 #define	T32	TN(32)
 

@@ -1,6 +1,15 @@
 #include "cc.h"
 
+typedef struct Com Com;
+struct Com
+{
+	int	n;
+	Node	*t[500];
+};
+
 int compar(Node*, int);
+static void comma(Node*);
+static Node*	commas(Com*, Node*);
 
 void
 complex(Node *n)
@@ -15,6 +24,8 @@ complex(Node *n)
 			prtree(n, "pre complex");
 	if(tcom(n))
 		return;
+	if(debug['y'] || 1)
+		comma(n);
 	if(debug['t'])
 		if(n->op != OCONST)
 			prtree(n, "t complex");
@@ -273,8 +284,11 @@ tcomo(Node *n, int f)
 			goto bad;
 		n->type = l->type;
 		if(n->type->etype == TIND)
-		if(n->type->link->width < 1)
-			diag(n, "inc/dec of a void pointer");
+		if(n->type->link->width < 1) {
+			snap(n->type->link);
+			if(n->type->link->width < 1)
+				diag(n, "inc/dec of a void pointer");
+		}
 		break;
 
 	case OEQ:
@@ -610,6 +624,8 @@ tcomo(Node *n, int f)
 		n->addable = 1;
 		if(n->class == CEXREG) {
 			n->op = OREGISTER;
+			if(thechar == '8')
+				n->op = OEXREG;
 			n->reg = n->sym->offset;
 			n->xoffset = 0;
 			break;
@@ -882,6 +898,101 @@ tlvalue(Node *n)
 }
 
 /*
+ * hoist comma operators out of expressions
+ *	(a,b) OP c => (a, b OP c)
+ *	OP(a,b) =>	(a, OP b)
+ *	a OP (b,c) => (b, a OP c)
+ */
+
+static Node*
+comargs(Com *com, Node *n)
+{
+	if(n != Z && n->op == OLIST){
+		n->left = comargs(com, n->left);
+		n->right = comargs(com, n->right);
+	}
+	return commas(com, n);
+}
+
+static Node*
+commas(Com *com, Node *n)
+{
+	Node *t;
+
+	if(n == Z)
+		return n;
+	switch(n->op){
+	case OREGISTER:
+	case OINDREG:
+	case OCONST:
+	case ONAME:
+	case OSTRING:
+		/* leaf */
+		return n;
+
+	case OCOMMA:
+		t = commas(com, n->left);
+		if(com->n >= nelem(com->t))
+			fatal(n, "comma list overflow");
+		com->t[com->n++] = t;
+		return commas(com, n->right);
+
+	case OFUNC:
+		n->left = commas(com, n->left);
+		n->right = comargs(com, n->right);
+		return n;
+
+	case OCOND:
+		n->left = commas(com, n->left);
+		comma(n->right->left);
+		comma(n->right->right);
+		return n;
+
+	case OANDAND:
+	case OOROR:
+		n->left = commas(com, n->left);
+		comma(n->right);
+		return n;
+
+	case ORETURN:
+		comma(n->left);
+		return n;
+	}
+	n->left = commas(com, n->left);
+	if(n->right != Z)
+		n->right = commas(com, n->right);
+	return n;
+}
+
+static void
+comma(Node *n)
+{
+	Com com;
+	Node *nn;
+
+	com.n = 0;
+	nn = commas(&com, n);
+	if(com.n > 0){
+if(debug['y'])print("n=%d\n", com.n);
+if(debug['y']) prtree(nn, "res");
+		if(nn != n)
+			*n = *nn;
+		while(com.n > 0){
+if(debug['y']) prtree(com.t[com.n-1], "tree");
+			nn = new1(OXXX, Z, Z);
+			*nn = *n;
+			n->op = OCOMMA;
+			n->type = nn->type;
+			n->left = com.t[--com.n];
+			n->right = nn;
+			n->lineno = n->left->lineno;
+		}
+if(debug['y']) prtree(n, "final");
+	}else if(n != nn)
+		fatal(n, "odd tree");
+}
+
+/*
  *	general rewrite
  *	(IND(ADDR x)) ==> x
  *	(ADDR(IND x)) ==> x
@@ -934,7 +1045,8 @@ loop:
 			if(n->op == OCONST)
 				break;
 		}
-		if(nocast(l->type, n->type)) {
+		if(nocast(l->type, n->type) &&
+		   (!typefd[l->type->etype] || typeu[l->type->etype] && typeu[n->type->etype])) {
 			l->type = n->type;
 			*n = *l;
 		}
@@ -1342,6 +1454,7 @@ useless:
 	else
 		snprint(cmpbuf, sizeof cmpbuf, "%T %s %s",
 			lt, cmps[relindex(n->op)], xbuf);
+if(debug['y']) prtree(n, "strange");
 	warn(n, "useless or misleading comparison: %s", cmpbuf);
 	return 0;
 }

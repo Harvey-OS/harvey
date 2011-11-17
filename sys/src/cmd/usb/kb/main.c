@@ -16,7 +16,7 @@ enum
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-dkm] [-a n] [-N nb] [dev...]\n", argv0);
+	fprint(2, "usage: %s [-bdkm] [-a n] [-N nb] [dev...]\n", argv0);
 	threadexitsall("usage");
 }
 
@@ -52,6 +52,9 @@ threadmain(int argc, char **argv)
 	case 'N':
 		devid = atoi(EARGF(usage()));		/* ignore dev number */
 		USED(devid);
+		break;
+	case 'b':
+		as = seprint(as, ae, " -b");
 		break;
 	default:
 		usage();

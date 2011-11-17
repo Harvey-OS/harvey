@@ -519,7 +519,7 @@ newlist(Node *l, Node *r)
 }
 
 void
-suallign(Type *t)
+sualign(Type *t)
 {
 	Type *l;
 	long o, w;
@@ -581,7 +581,7 @@ suallign(Type *t)
 		return;
 
 	default:
-		diag(Z, "unknown type in suallign: %T", t);
+		diag(Z, "unknown type in sualign: %T", t);
 		break;
 	}
 }
@@ -1180,12 +1180,6 @@ paramconv(Type *t, int f)
 {
 
 	switch(t->etype) {
-	case TUNION:
-	case TSTRUCT:
-		if(t->width <= 0)
-			diag(Z, "incomplete structure: %s", t->tag->name);
-		break;
-
 	case TARRAY:
 		t = typ(TIND, t->link);
 		t->width = types[TIND]->width;
@@ -1283,6 +1277,8 @@ pdecl(int c, Type *t, Sym *s)
 		diag(Z, "parameter cannot have class: %s", s->name);
 		c = CPARAM;
 	}
+	if(typesu[t->etype] && t->width <= 0)
+		diag(Z, "incomplete structure: %s", t->tag->name);
 	adecl(c, t, s);
 }
 

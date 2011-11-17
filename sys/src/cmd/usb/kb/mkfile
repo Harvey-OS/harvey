@@ -2,7 +2,9 @@
 
 TARG=kb
 OFILES=main.$O
-LIBDOFILES=kb.$O
+LIBDOFILES=kb.$O\
+	hid.$O
+
 HFILES=\
 	../lib/usb.h\
 	hid.h\

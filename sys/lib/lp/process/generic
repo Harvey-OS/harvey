@@ -193,7 +193,7 @@ case empty
 	echo file is empty >[1=2]
 case cannot
 	echo cannot open file >[1=2]
-case English short extended alef limbo [Aa]scii assembler c latin rc sh \
+case English Cyrillic short extended alef limbo [Aa]scii assembler c latin rc sh \
     as mail email message/rfc822 manual HTML
 	switch ($LPCLASS) {
 	case *post*
