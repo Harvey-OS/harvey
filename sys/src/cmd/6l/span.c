@@ -1385,7 +1385,7 @@ found:
 		q = p->pcond;
 		if(q) {
 			v = q->pc - p->pc - 2;
-			if(v < -128 && v > 127)
+			if(v < -128 || v > 127)
 				diag("loop too far: %P", p);
 			*andptr++ = op;
 			*andptr++ = v;
