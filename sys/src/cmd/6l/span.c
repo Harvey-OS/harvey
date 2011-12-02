@@ -1574,7 +1574,7 @@ asmins(Prog *p)
 		/*
 		 * as befits the whole approach of the architecture,
 		 * the rex prefix must appear before the first opcode byte
-		 * (and thus after any 66/67/f2/f3 prefix bytes, but
+		 * (and thus after any 66/67/f2/f3/26/2e/3e prefix bytes, but
 		 * before the 0f opcode escape!), or it might be ignored.
 		 * note that the handbook often misleadingly shows 66/f2/f3 in `opcode'.
 		 */
@@ -1583,7 +1583,7 @@ asmins(Prog *p)
 		n = andptr - and;
 		for(np = 0; np < n; np++) {
 			c = and[np];
-			if(c != 0x66 && c != 0xf2 && c != 0xf3 && c != 0x67)
+			if(c != 0xf2 && c != 0xf3 && (c < 0x64 || c > 0x67) && c != 0x2e && c != 0x3e && c != 0x26)
 				break;
 		}
 		memmove(and+np+1, and+np, n-np);
