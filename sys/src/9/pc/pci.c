@@ -17,6 +17,8 @@ struct
 	int	ptr;
 }PCICONS;
 
+int pcivga;
+
 int
 pcilog(char *fmt, ...)
 {
@@ -365,6 +367,7 @@ pcibusmap(Pcidev *root, ulong *pmema, ulong *pioa, int wrreg)
 	}
 }
 
+/* side effect: if a video controller is seen, set pcivga non-zero */
 static int
 pcilscan(int bno, Pcidev** list)
 {
@@ -425,9 +428,11 @@ pcilscan(int bno, Pcidev** list)
 			 * and work out the sizes.
 			 */
 			switch(p->ccrb) {
+			case 0x03:		/* display controller */
+				pcivga = 1;
+				/* fall through */
 			case 0x01:		/* mass storage controller */
 			case 0x02:		/* network controller */
-			case 0x03:		/* display controller */
 			case 0x04:		/* multimedia device */
 			case 0x07:		/* simple comm. controllers */
 			case 0x08:		/* base system peripherals */
@@ -721,13 +726,16 @@ pcirouting(void)
 		if(p[0] == '$' && p[1] == 'P' && p[2] == 'I' && p[3] == 'R')
 			break;
 
-	if(p >= (uchar *)KADDR(0xfffff))
+	if(p >= (uchar *)KADDR(0xfffff)) {
+		print("no PCI intr routing table found\n");
 		return;
+	}
 
 	r = (Router *)p;
 
-	// print("PCI interrupt routing table version %d.%d at %.6uX\n",
-	//	r->version[0], r->version[1], (ulong)r & 0xfffff);
+	if (0)
+		print("PCI interrupt routing table version %d.%d at %#.6luX\n",
+			r->version[0], r->version[1], (ulong)r & 0xfffff);
 
 	tbdf = (BusPCI << 24)|(r->bus << 16)|(r->devfn << 8);
 	sbpci = pcimatchtbdf(tbdf);
