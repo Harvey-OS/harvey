@@ -72,7 +72,7 @@ enum {
 					 ((p)<<PartSHIFT)|((t)<<TypeSHIFT))
 
 
-static void
+void
 sdaddpart(SDunit* unit, char* name, uvlong start, uvlong end)
 {
 	SDpart *pp;
@@ -386,6 +386,18 @@ sdadddevs(SDev *sdev)
 // 	snprint(buf, sizeof buf, "%c", sdev->idno);
 // 	unconfigure(buf);
 // }
+
+void
+sdaddallconfs(void (*addconf)(SDunit *))
+{
+	int i, u;
+	SDev *sdev;
+
+	for(i = 0; i < nelem(devs); i++)		/* each controller */
+		for(sdev = devs[i]; sdev; sdev = sdev->next)
+			for(u = 0; u < sdev->nunit; u++)	/* each drive */
+				(*addconf)(sdev->unit[u]);
+}
 
 static int
 sd2gen(Chan* c, int i, Dir* dp)

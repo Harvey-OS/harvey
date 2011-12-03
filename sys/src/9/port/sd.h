@@ -126,6 +126,9 @@ enum {
 
 /* devsd.c */
 extern void sdadddevs(SDev*);
+extern void sdaddconf(SDunit*);
+extern void sdaddallconfs(void (*f)(SDunit*));
+extern void sdaddpart(SDunit*, char*, uvlong, uvlong);
 extern int sdsetsense(SDreq*, int, int, int, int);
 extern int sdmodesense(SDreq*, uchar*, void*, int);
 extern int sdfakescsi(SDreq*, void*, int);
