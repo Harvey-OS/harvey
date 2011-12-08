@@ -727,7 +727,7 @@ pcirouting(void)
 			break;
 
 	if(p >= (uchar *)KADDR(0xfffff)) {
-		print("no PCI intr routing table found\n");
+		// print("no PCI intr routing table found\n");
 		return;
 	}
 
