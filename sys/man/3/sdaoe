@@ -76,7 +76,6 @@ aoedev=e!#æ/aoe/42.0
 .\" .IR vblade (1),
 .IR aoe (3),
 .IR sd (3),
-.IR 9load (8),
 .\" .IR cec (8),
 .IR snoopy (8)
 .SH BUGS

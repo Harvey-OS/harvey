@@ -151,8 +151,7 @@ to state
 .SH SOURCE
 .B /sys/src/9/pc/sdiahci.c
 .SH SEE ALSO
-.IR sd (3),
-.IR 9load (8)
+.IR sd (3)
 .br
 .BR http://download.intel.com/technology/serialata/pdf/rev1_2.pdf .
 .SH BUGS
