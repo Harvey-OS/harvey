@@ -18,6 +18,7 @@
 
 static Symbol	*symtab[Nhash+1];
 static int	tl_lex(void);
+extern int tl_peek(int);
 
 extern YYSTYPE	tl_yylval;
 extern char	yytext[];
@@ -54,9 +55,76 @@ int
 tl_yylex(void)
 {	int c = tl_lex();
 #if 0
-	printf("c = %d\n", c);
+	printf("c = %c (%d)\n", c, c);
 #endif
 	return c;
+}
+
+static int
+is_predicate(int z)
+{	char c, c_prev = z;
+	char want = (z == '{') ? '}' : ')';
+	int i = 0, j, nesting = 0;
+	char peek_buf[512];
+
+	c = tl_peek(i++);	/* look ahead without changing position */
+	while ((c != want || nesting > 0) && c != -1 && i < 2047)
+	{	if (islower((int) c))
+		{	peek_buf[0] = c;
+			j = 1;
+			while (j < (int) sizeof(peek_buf) && isalnum((int)(c = tl_peek(i))))
+			{	peek_buf[j++] = c;
+				i++;
+			}
+			c = 0;	/* make sure we don't match on z or want on the peekahead */
+			if (j >= (int) sizeof(peek_buf))
+			{	peek_buf[j-1] = '\0';
+				fatal("name '%s' in ltl formula too long", peek_buf);
+			}
+			peek_buf[j] = '\0';
+			if (strcmp(peek_buf, "always") == 0
+			||  strcmp(peek_buf, "eventually") == 0
+			||  strcmp(peek_buf, "until") == 0
+			||  strcmp(peek_buf, "next") == 0)
+			{	return 0;
+			}
+		} else
+		{	char c_nxt = tl_peek(i);
+			if (((c == 'U' || c == 'V' || c == 'X') && !isalnum_(c_prev) && !isalnum_(c_nxt))
+			||  (c == '<' && c_nxt == '>')
+			||  (c == '[' && c_nxt == ']'))
+			{	return 0;
+		}	}
+
+		if (c == z)
+		{	nesting++;
+		}
+		if (c == want)
+		{	nesting--;
+		}
+		c_prev = c;
+		c = tl_peek(i++);
+	}
+	return 1;
+}
+
+static void
+read_upto_closing(int z)
+{	char c, want = (z == '{') ? '}' : ')';
+	int i = 0, nesting = 0;
+
+	c = tl_Getchar();
+	while ((c != want || nesting > 0) && c != -1 && i < 2047) /* yytext is 2048 */
+	{	yytext[i++] = c;
+		if (c == z)
+		{	nesting++;
+		}
+		if (c == want)
+		{	nesting--;
+		}
+		c = tl_Getchar();
+	}
+	yytext[i] = '\0';
 }
 
 static int
@@ -74,6 +142,17 @@ tl_lex(void)
 
 	} while (c == ' ');	/* '\t' is removed in tl_main.c */
 
+	if (c == '{' || c == '(')	/* new 6.0.0 */
+	{	if (is_predicate(c))
+		{	read_upto_closing(c);
+			tl_yylval = tl_nn(PREDICATE,ZN,ZN);
+			tl_yylval->sym = tl_lookup(yytext);
+			return PREDICATE;
+	}	}
+
+	if (c == '}')
+	{	tl_yyerror("unexpected '}'");
+	}
 	if (islower(c))
 	{	tl_getword(c, isalnum_);
 		if (strcmp("true", yytext) == 0)
@@ -82,10 +161,28 @@ tl_lex(void)
 		if (strcmp("false", yytext) == 0)
 		{	Token(FALSE);
 		}
+		if (strcmp("always", yytext) == 0)
+		{	Token(ALWAYS);
+		}
+		if (strcmp("eventually", yytext) == 0)
+		{	Token(EVENTUALLY);
+		}
+		if (strcmp("until", yytext) == 0)
+		{	Token(U_OPER);
+		}
+#ifdef NXT
+		if (strcmp("next", yytext) == 0)
+		{	Token(NEXT);
+		}
+#endif
+		if (strcmp("not", yytext) == 0)
+		{	Token(NOT);
+		}
 		tl_yylval = tl_nn(PREDICATE,ZN,ZN);
 		tl_yylval->sym = tl_lookup(yytext);
 		return PREDICATE;
 	}
+
 	if (c == '<')
 	{	c = tl_Getchar();
 		if (c == '>')

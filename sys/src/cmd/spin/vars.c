@@ -110,6 +110,7 @@ checkvar(Symbol *s, int n)
 	}	}
 	lineno = oln;
 	Fname  = ofnm;
+
 	return 1;
 }
 
@@ -145,7 +146,7 @@ cast_val(int t, int v, int w)
 	}
 
 	if (v != i+s+ (int) u)
-	{	char buf[32]; sprintf(buf, "%d->%d (%d)", v, i+s+u, t);
+	{	char buf[64]; sprintf(buf, "%d->%d (%d)", v, i+s+u, t);
 		non_fatal("value (%s) truncated in assignment", buf);
 	}
 	return (int)(i+s+u);
@@ -159,9 +160,12 @@ setglobal(Lextok *v, int m)
 	else
 	{	int n = eval(v->lft);
 		if (checkvar(v->sym, n))
-		{	v->sym->val[n] = cast_val(v->sym->type, m, v->sym->nbits);
-			v->sym->setat = depth;
-	}	}
+		{	int oval = v->sym->val[n];
+			int nval = cast_val(v->sym->type, m, v->sym->nbits);
+			v->sym->val[n] = nval;
+			if (oval != nval)
+			{	v->sym->setat = depth;
+	}	}	}
 	return 1;
 }
 
@@ -215,7 +219,12 @@ dumpglobals(void)
 			continue;
 
 		if (sp->type == STRUCT)
-		{	dump_struct(sp, sp->name, 0);
+		{	if ((verbose&4) && !(verbose&64)
+			&&  (sp->setat < depth
+			&&   jumpsteps != depth))
+			{	continue;
+			}
+			dump_struct(sp, sp->name, 0);
 			continue;
 		}
 		for (j = 0; j < sp->nel; j++)
@@ -227,13 +236,15 @@ dumpglobals(void)
 			if ((verbose&4) && !(verbose&64)
 			&&  (sp->setat < depth
 			&&   jumpsteps != depth))
-				continue;
+			{	continue;
+			}
+
 			dummy->sym = sp;
 			dummy->lft->val = j;
 			/* in case of cast_val warnings, do this first: */
 			prefetch = getglobal(dummy);
 			printf("\t\t%s", sp->name);
-			if (sp->nel > 1) printf("[%d]", j);
+			if (sp->nel > 1 || sp->isarray) printf("[%d]", j);
 			printf(" = ");
 			sr_mesg(stdout, prefetch,
 				sp->type == MTYPE);
@@ -266,7 +277,7 @@ dumpglobals(void)
 					depth, colpos);
 				printf("(state 0)\t[printf('MSC: globvar\\\\n')]\n");
 				printf("\t\t%s", sp->name);
-				if (sp->nel > 1) printf("[%d]", j);
+				if (sp->nel > 1 || sp->isarray) printf("[%d]", j);
 				printf(" = %s\n", Buf);
 	}	}	}
 }
@@ -303,8 +314,8 @@ dumplocal(RunList *r)
 			dummy->lft->val = i;
 
 			printf("\t\t%s(%d):%s",
-				r->n->name, r->pid, z->name);
-			if (z->nel > 1) printf("[%d]", i);
+				r->n->name, r->pid - Have_claim, z->name);
+			if (z->nel > 1 || z->isarray) printf("[%d]", i);
 			printf(" = ");
 			sr_mesg(stdout, getval(dummy), z->type == MTYPE);
 			printf("\n");
@@ -341,7 +352,7 @@ dumplocal(RunList *r)
 				printf("(state 0)\t[printf('MSC: locvar\\\\n')]\n");
 				printf("\t\t%s(%d):%s",
 					r->n->name, r->pid, z->name);
-				if (z->nel > 1) printf("[%d]", i);
+				if (z->nel > 1 || z->isarray) printf("[%d]", i);
 				printf(" = %s\n", Buf);
 	}	}	}
 }

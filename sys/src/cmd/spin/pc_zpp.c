@@ -16,14 +16,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include "spin.h"
 
 #ifdef PC
 enum cstate { PLAIN, IN_STRING, IN_QUOTE, S_COMM, COMMENT, E_COMM };
 
 #define MAXNEST	32
 #define MAXDEF	128
-#define MAXLINE	512
-#define GENEROUS 4096
+#define MAXLINE	2048
+#define GENEROUS 8192
 
 #define debug(x,y)	if (verbose) printf(x,y)
 
@@ -43,7 +44,7 @@ static struct Defines {
 static int process(char *, int, char *);
 static int zpp_do(char *);
 
-extern char *emalloc(int);	/* main.c */
+extern char *emalloc(size_t);	/* main.c */
 
 static int
 do_define(char *p)
@@ -116,7 +117,7 @@ more:		in2 = strstr(startat, d[i].src);
 
 			if (strlen(in1)+strlen(d[i].trg)+strlen(in2+j) >= GENEROUS)
 			{
-				printf("spin: circular macro expansion %s -> %s ?\n",
+				printf("spin: macro expansion overflow %s -> %s ?\n",
 					d[i].src, d[i].trg);
 				return in1;
 			}
@@ -230,8 +231,9 @@ do_if(char *p)
 }
 
 static int
-do_else(char *unused)
+do_else(char *p)
 {
+	debug("zpp: do_else %s", p);
 	if_truth[if_depth] = 1-if_truth[if_depth];
 	printing[if_depth] = printing[if_depth-1]&&if_truth[if_depth];
 
@@ -312,13 +314,29 @@ in_comment(char *p)
 }
 
 static int
+strip_cpp_comments(char *p)
+{	char *q;
+
+	q = strstr(p, "//");
+	if (q)
+	{	if (q > p && *(q-1) == '\\')
+		{	return strip_cpp_comments(q+1);
+		}
+		*q = '\n';
+		*(q+1) = '\0';
+		return 1;
+	}
+	return 0;
+}
+
+static int
 zpp_do(char *fnm)
 {	char buf[2048], buf2[MAXLINE], *p; int n, on;
 	FILE *inp; int lno = 0, nw_lno = 0;
 
 	if ((inp = fopen(fnm, "r")) == NULL)
-	{	fprintf(stdout, "spin: error, '%s': No such file\n", fnm);
-		return 0;	/* 4.1.2 was stderr */
+	{	fprintf(stdout, "spin: error: No file '%s'\n", fnm);
+		exit(1);	/* 4.1.2 was stderr */
 	}
 	printing[0] = if_truth[0] = 1;
 	fprintf(outpp, "#line %d \"%s\"\n", lno+1, fnm);
@@ -327,7 +345,8 @@ zpp_do(char *fnm)
 		on = 0; nw_lno = 0;
 		while (n > 2 && buf[n-2] == '\\')
 		{	buf[n-2] = '\0';
-feedme:			if (!fgets(buf2, MAXLINE, inp))
+feedme:
+			if (!fgets(buf2, MAXLINE, inp))
 			{	debug("zpp: unexpected EOF ln %d\n", lno);
 				return 0;	/* switch to cpp */
 			}
@@ -339,6 +358,10 @@ feedme:			if (!fgets(buf2, MAXLINE, inp))
 			strcat(buf, buf2);
 			n = (int) strlen(buf);
 		}
+
+		if (strip_cpp_comments(&buf[on]))
+			n = (int) strlen(buf);
+
 		if (in_comment(&buf[on]))
 		{	buf[n-1] = '\0'; /* eat newline */
 			on = n-1; nw_lno = 1;
@@ -360,7 +383,7 @@ feedme:			if (!fgets(buf2, MAXLINE, inp))
 int
 try_zpp(char *fnm, char *onm)
 {	int r;
-	if ((outpp = fopen(onm, "w")) == NULL)
+	if ((outpp = fopen(onm, MFLAGS)) == NULL)
 		return 0;
 	r = zpp_do(fnm);
 	fclose(outpp);
@@ -390,6 +413,27 @@ process(char *q, int lno, char *fnm)
 	for (p = q; *p; p++)
 		if (*p != ' ' && *p != '\t')
 			break;
+
+	if (strncmp(p, "line", 4) == 0)
+	{	p += 4;
+		while (*p == ' ' || *p == '\t')
+		{	p++;
+		}
+		lno = atoi(p);
+		return 1;	/* line directive */
+	}
+	if (isdigit((int) *p))
+	{	lno = atoi(p);
+		return 1;
+	}
+	if (strncmp(p, "error", 5) == 0)
+	{	printf("spin: %s", p);
+		exit(1);
+	}
+	if (strncmp(p, "warning", 7) == 0)
+	{	printf("spin: %s", p);
+		return 1;
+	}
 	for (i = 0; i < (int) (sizeof(s)/sizeof(struct Directives)); i++)
 		if (!strncmp(s[i].directive, p, s[i].len))
 		{	if (s[i].interp

@@ -28,6 +28,14 @@ static int	ismatch(Node *, Node *);
 extern void fatal(char *, char *);
 int	sameform(Node *, Node *);
 
+void
+ini_cache(void)
+{
+	stored = (Cache *) 0;
+	Caches = 0;
+	CacheHits = 0;
+}
+
 #if 0
 void
 cache_dump(void)

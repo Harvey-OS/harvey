@@ -90,7 +90,6 @@ static Slicer	*slicer;
 static Slicer	*rel_vars;	/* all relevant variables */
 static int	AST_Changes;
 static int	AST_Round;
-static FSM_state no_state;
 static RPN	*rpn;
 static int	in_recv = 0;
 
@@ -145,7 +144,7 @@ name_def_indices(Lextok *n, int code)
 {
 	if (!n || !n->sym) return;
 
-	if (n->sym->nel != 1)
+	if (n->sym->nel > 1 || n->sym->isarray)
 		def_use(n->lft, code);		/* process the index */
 
 	if (n->sym->type == STRUCT		/* and possible deeper ones */
@@ -503,7 +502,7 @@ AST_mutual(Lextok *a, Lextok *b, int toplevel)
 	if (strcmp(as->name, bs->name) != 0)
 		return 0;
 
-	if (as->type == STRUCT && a->rgt && b->rgt)
+	if (as->type == STRUCT && a->rgt && b->rgt)	/* we know that a and b are not null */
 		return AST_mutual(a->rgt->lft, b->rgt->lft, 0);
 
 	return 1;
@@ -545,14 +544,14 @@ AST_other(AST *a)	/* check chan params in asgns and recvs */
 			case 'r':
 				/* guess sends where name may originate */
 				for (cl = chanlist; cl; cl = cl->nxt)	/* all sends */
-				{	int a = AST_nrpar(cl->s);
-					int b = AST_nrpar(t->step->n);
-					if (a != b)	/* matching nrs of params */
+				{	int aa = AST_nrpar(cl->s);
+					int bb = AST_nrpar(t->step->n);
+					if (aa != bb)	/* matching nrs of params */
 						continue;
 
-					a = AST_ord(cl->s, cl->n);
-					b = AST_ord(t->step->n, u->n);
-					if (a != b)	/* same position in parlist */
+					aa = AST_ord(cl->s, cl->n);
+					bb = AST_ord(t->step->n, u->n);
+					if (aa != bb)	/* same position in parlist */
 						continue;
 
 					AST_add_alias(cl->n, 4); /* RCV assume possible match */
@@ -692,9 +691,7 @@ AST_relevant(Lextok *n)
 	}
 
 	for (a = ast; a; a = a->nxt)		/* all other stmnts */
-	{	if (strcmp(a->p->n->name, ":never:") != 0
-		&&  strcmp(a->p->n->name, ":trace:") != 0
-		&&  strcmp(a->p->n->name, ":notrace:") != 0)
+	{	if (a->p->b != N_CLAIM && a->p->b != E_TRACE && a->p->b != N_TRACE)
 		for (f = a->fsm; f; f = f->nxt)
 		for (t = f->t; t; t = t->nxt)
 		{	if (!(t->relevant&1))
@@ -786,10 +783,8 @@ AST_tagruns(void)
 	 */
 
 	for (a = ast; a; a = a->nxt)
-	{	if (strcmp(a->p->n->name, ":never:") == 0
-		||  strcmp(a->p->n->name, ":trace:") == 0
-		||  strcmp(a->p->n->name, ":notrace:") == 0
-		||  strcmp(a->p->n->name, ":init:") == 0)
+	{	if (a->p->b == N_CLAIM || a->p->b == I_PROC
+		||  a->p->b == E_TRACE || a->p->b == N_TRACE)
 		{	a->relevant |= 1;	/* the proctype is relevant */
 			continue;
 		}
@@ -823,9 +818,9 @@ AST_report(AST *a, Element *e)	/* ALSO deduce irrelevant vars */
 		printf("spin: redundant in proctype %s (for given property):\n",
 			a->p->n->name);
 	}
-	printf("      line %3d %s (state %d)",
-		e->n?e->n->ln:-1,
+	printf("      %s:%d (state %d)",
 		e->n?e->n->fn->name:"-",
+		e->n?e->n->ln:-1,
 		e->seqno);
 	printf("	[");
 	comment(stdout, e->n, 0);
@@ -1075,7 +1070,7 @@ AST_track(Lextok *now, int code)	/* called from main.c */
 
 	case NAME:
 		name_AST_track(now, code);
-		if (now->sym->nel != 1)
+		if (now->sym->nel > 1 || now->sym->isarray)
 			AST_track(now->lft, USE|code);	/* index */
 		break;
 
@@ -1569,7 +1564,8 @@ AST_ctrl(AST *a)
 			{	t->relevant &= ~2;	/* clear mark */
 				if (verbose&32)
 				{	printf("\t\tnomark ");
-					comment(stdout, t->step->n, 0);
+					if (t->step && t->step->n)
+						comment(stdout, t->step->n, 0);
 					printf("\n");
 	}		}	}
 
@@ -1601,7 +1597,8 @@ AST_ctrl(AST *a)
 			t->relevant |= 2;	/* lift */
 			if (verbose&32)
 			{	printf("\t\t\tliftmark ");
-				comment(stdout, t->step->n, 0);
+				if (t->step && t->step->n)
+					comment(stdout, t->step->n, 0);
 				printf("\n");
 			}
 			AST_spread(a, t->to);	/* and spread to all guards */
@@ -1621,10 +1618,9 @@ AST_control_dep(void)
 {	AST *a;
 
 	for (a = ast; a; a = a->nxt)
-		if (strcmp(a->p->n->name, ":never:") != 0
-		&&  strcmp(a->p->n->name, ":trace:") != 0
-		&&  strcmp(a->p->n->name, ":notrace:") != 0)
-			AST_ctrl(a);
+	{	if (a->p->b != N_CLAIM && a->p->b != E_TRACE && a->p->b != N_TRACE)
+		{	AST_ctrl(a);
+	}	}
 }
 
 static void
@@ -1634,9 +1630,7 @@ AST_prelabel(void)
 	FSM_trans *t;
 
 	for (a = ast; a; a = a->nxt)
-	{	if (strcmp(a->p->n->name, ":never:") != 0
-		&&  strcmp(a->p->n->name, ":trace:") != 0
-		&&  strcmp(a->p->n->name, ":notrace:") != 0)
+	{	if (a->p->b != N_CLAIM && a->p->b != E_TRACE && a->p->b != N_TRACE)
 		for (f = a->fsm; f; f = f->nxt)
 		for (t = f->t; t; t = t->nxt)
 		{	if (t->step
@@ -1692,8 +1686,7 @@ AST_slice(void)
 	int spurious = 0;
 
 	if (!slicer)
-	{	non_fatal("no slice criteria (or no claim) specified",
-		(char *) 0);
+	{	printf("spin: warning: no slice criteria found (no assertions and no claim)\n");
 		spurious = 1;
 	}
 	AST_dorelevant();		/* mark procs refered to in remote refs */
@@ -1730,9 +1723,7 @@ void
 AST_store(ProcList *p, int start_state)
 {	AST *n_ast;
 
-	if (strcmp(p->n->name, ":never:") != 0
-	&&  strcmp(p->n->name, ":trace:") != 0
-	&&  strcmp(p->n->name, ":notrace:") != 0)
+	if (p->b != N_CLAIM && p->b != E_TRACE && p->b != N_TRACE)
 	{	n_ast = (AST *) emalloc(sizeof(AST));
 		n_ast->p = p;
 		n_ast->i_st = start_state;
@@ -1809,12 +1800,10 @@ AST_par_init(void)	/* parameter passing -- hidden assignments */
 	int cnt;
 
 	for (a = ast; a; a = a->nxt)
-	{	if (strcmp(a->p->n->name, ":never:") == 0
-		||  strcmp(a->p->n->name, ":trace:") == 0
-		||  strcmp(a->p->n->name, ":notrace:") == 0
-		||  strcmp(a->p->n->name, ":init:") == 0)
-			continue;			/* have no params */
-
+	{	if (a->p->b == N_CLAIM || a->p->b == I_PROC
+		||  a->p->b == E_TRACE || a->p->b == N_TRACE)
+		{	continue;			/* has no params */
+		}
 		cnt = 0;
 		for (f = a->p->p; f; f = f->rgt)	/* types */
 		for (t = f->lft; t; t = t->rgt)		/* formals */
@@ -1845,9 +1834,8 @@ AST_var_init(void)		/* initialized vars (not chans) - hidden assignments */
 	}	}
 
 	for (a = ast; a; a = a->nxt)
-	{	if (strcmp(a->p->n->name, ":never:") != 0
-		&&  strcmp(a->p->n->name, ":trace:") != 0
-		&&  strcmp(a->p->n->name, ":notrace:") != 0)	/* claim has no locals */
+	{	if (a->p->b != N_CLAIM
+		&&  a->p->b != E_TRACE && a->p->b != N_TRACE)	/* has no locals */
 		for (walk = all_names; walk; walk = walk->next)	
 		{	sp = walk->entry;
 			if (sp
@@ -2261,6 +2249,7 @@ AST_dominant(void)
 	FSM_trans *t;
 	AST *a;
 	int oi;
+	static FSM_state no_state;
 #if 0
 	find dominators
 	Aho, Sethi, & Ullman, Compilers - principles, techniques, and tools

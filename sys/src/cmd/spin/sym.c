@@ -14,14 +14,19 @@
 
 extern Symbol	*Fname, *owner;
 extern int	lineno, depth, verbose, NamesNotAdded, deadvar;
+extern int	has_hidden, m_loss, old_scope_rules;
 extern short	has_xu;
+extern char	CurScope[MAXSCOPESZ];
 
 Symbol	*context = ZS;
 Ordered	*all_names = (Ordered *)0;
 int	Nid = 0;
 
+Lextok *Mtype = (Lextok *) 0;
+
 static Ordered	*last_name = (Ordered *)0;
 static Symbol	*symtab[Nhash+1];
+static Lextok *runstmnts = ZN;
 
 static int
 samename(Symbol *a, Symbol *b)
@@ -44,31 +49,77 @@ hash(char *s)
 	return h&Nhash;
 }
 
+void
+disambiguate(void)
+{	Ordered *walk;
+	Symbol *sp;
+
+	if (old_scope_rules)
+		return;
+
+	/* if the same name appears in two different scopes,
+	   prepend the scope_prefix to the names */
+
+	for (walk = all_names; walk; walk = walk->next)
+	{	sp = walk->entry;
+		if (sp->type != 0
+		&&  sp->type != LABEL
+		&&  strlen((const char *)sp->bscp) > 1)
+		{	char *n = (char *) emalloc(strlen((const char *)sp->name)
+				+ strlen((const char *)sp->bscp) + 1);
+			sprintf(n, "%s%s", sp->bscp, sp->name);
+			sp->name = n;	/* discord the old memory */
+	}	}
+}
+
 Symbol *
 lookup(char *s)
 {	Symbol *sp; Ordered *no;
 	int h = hash(s);
 
-	for (sp = symtab[h]; sp; sp = sp->next)
-		if (strcmp(sp->name, s) == 0
-		&&  samename(sp->context, context)
-		&&  samename(sp->owner, owner))
-			return sp;		/* found */
+	if (old_scope_rules)
+	{	/* same scope - global refering to global or local to local */
+		for (sp = symtab[h]; sp; sp = sp->next)
+		{	if (strcmp(sp->name, s) == 0
+			&&  samename(sp->context, context)
+			&&  samename(sp->owner, owner))
+			{	return sp;		/* found */
+		}	}
+	} else
+	{	/* added 6.0.0: more traditional, scope rule */
+		for (sp = symtab[h]; sp; sp = sp->next)
+		{	if (strcmp(sp->name, s) == 0
+			&&  samename(sp->context, context)
+			&&  (strcmp((const char *)sp->bscp, CurScope) == 0
+			||   strncmp((const char *)sp->bscp, CurScope, strlen((const char *)sp->bscp)) == 0)
+			&&  samename(sp->owner, owner))
+			{
+				if (!samename(sp->owner, owner))
+				{	printf("spin: different container %s\n", sp->name);
+					printf("	old: %s\n", sp->owner?sp->owner->name:"--");
+					printf("	new: %s\n", owner?owner->name:"--");
+				/*	alldone(1);	*/
+				}
+				return sp;		/* found */
+	}	}	}
 
-	if (context)				/* in proctype */
+	if (context)				/* in proctype, refers to global */
 	for (sp = symtab[h]; sp; sp = sp->next)
-		if (strcmp(sp->name, s) == 0
+	{	if (strcmp(sp->name, s) == 0
 		&& !sp->context
 		&&  samename(sp->owner, owner))
-			return sp;		/* global */
+		{	return sp;		/* global */
+	}	}
 
 	sp = (Symbol *) emalloc(sizeof(Symbol));
-	sp->name = (char *) emalloc((int) strlen(s) + 1);
+	sp->name = (char *) emalloc(strlen(s) + 1);
 	strcpy(sp->name, s);
 	sp->nel = 1;
 	sp->setat = depth;
 	sp->context = context;
 	sp->owner = owner;			/* if fld in struct */
+	sp->bscp = (unsigned char *) emalloc(strlen((const char *)CurScope)+1);
+	strcpy((char *)sp->bscp, CurScope);
 
 	if (NamesNotAdded == 0)
 	{	sp->next = symtab[h];
@@ -108,8 +159,6 @@ trackvar(Lextok *n, Lextok *m)
 		sp->hidden |= (4|8); /* not known bit-equiv */
 	}
 }
-
-Lextok *runstmnts = ZN;
 
 void
 trackrun(Lextok *n)
@@ -151,11 +200,11 @@ checkrun(Symbol *parnm, int posno)
 		strcpy(buf2, (!(res&4))?"bit":"byte");
 		sputtype(buf, parnm->type);
 		i = (int) strlen(buf);
-		while (buf[--i] == ' ') buf[i] = '\0';
-		if (strcmp(buf, buf2) == 0) return;
+		while (i > 0 && buf[--i] == ' ') buf[i] = '\0';
+		if (i == 0 || strcmp(buf, buf2) == 0) return;
 		prehint(parnm);
 		printf("proctype %s, '%s %s' could be declared",
-			parnm->context->name, buf, parnm->name);
+			parnm->context?parnm->context->name:"", buf, parnm->name);
 		printf(" '%s %s'\n", buf2, parnm->name);
 	}
 }
@@ -178,9 +227,9 @@ setptype(Lextok *n, int t, Lextok *vis)	/* predefined types */
 
 	while (n)
 	{	if (n->sym->type && !(n->sym->hidden&32))
-		{ lineno = n->ln; Fname = n->fn;
-		  non_fatal("redeclaration of '%s'", n->sym->name);
-		  lineno = oln;
+		{	lineno = n->ln; Fname = n->fn;
+			fatal("redeclaration of '%s'", n->sym->name);
+			lineno = oln;
 		}
 		n->sym->type = (short) t;
 
@@ -201,14 +250,15 @@ setptype(Lextok *n, int t, Lextok *vis)	/* predefined types */
 				n->sym->name);
 		}
 		if (vis)
-		{	if (strncmp(vis->sym->name, ":hide:", 6) == 0)
+		{	if (strncmp(vis->sym->name, ":hide:", (size_t) 6) == 0)
 			{	n->sym->hidden |= 1;
+				has_hidden++;
 				if (t == BIT)
 				fatal("bit variable (%s) cannot be hidden",
 					n->sym->name);
-			} else if (strncmp(vis->sym->name, ":show:", 6) == 0)
+			} else if (strncmp(vis->sym->name, ":show:", (size_t) 6) == 0)
 			{	n->sym->hidden |= 2;
-			} else if (strncmp(vis->sym->name, ":local:", 7) == 0)
+			} else if (strncmp(vis->sym->name, ":local:", (size_t) 7) == 0)
 			{	n->sym->hidden |= 64;
 			}
 		}
@@ -268,7 +318,13 @@ void
 setxus(Lextok *p, int t)
 {	Lextok *m, *n;
 
-	has_xu = 1; 
+	has_xu = 1;
+
+	if (m_loss && t == XS)
+	{	printf("spin: warning, %s:%d, xs tag not compatible with -m (message loss)\n",
+			(p->fn != NULL) ? p->fn->name : "stdin", p->ln);
+	}
+
 	if (!context)
 	{	lineno = p->ln;
 		Fname = p->fn;
@@ -276,6 +332,7 @@ setxus(Lextok *p, int t)
 	}
 	for (m = p; m; m = m->rgt)
 	{	Lextok *Xu_new = (Lextok *) emalloc(sizeof(Lextok));
+		Xu_new->uiid = p->uiid;
 		Xu_new->val = t;
 		Xu_new->lft = m->lft;
 		Xu_new->sym = context;
@@ -296,8 +353,6 @@ setxus(Lextok *p, int t)
 		}
 	}
 }
-
-Lextok *Mtype = (Lextok *) 0;
 
 void
 setmtype(Lextok *m)
@@ -332,7 +387,7 @@ setmtype(Lextok *m)
 	}
 	lineno = oln;
 	if (cnt > 256)
-	fatal("too many mtype elements (>255)", (char *)0);
+		fatal("too many mtype elements (>255)", (char *)0);
 }
 
 int
@@ -389,11 +444,11 @@ symvar(Symbol *sp)
 	printf("\t");
 	if (sp->owner) printf("%s.", sp->owner->name);
 	printf("%s", sp->name);
-	if (sp->nel > 1) printf("[%d]", sp->nel);
+	if (sp->nel > 1 || sp->isarray == 1) printf("[%d]", sp->nel);
 
 	if (sp->type == CHAN)
 		printf("\t%d", (sp->ini)?sp->ini->val:0);
-	else if (sp->type == STRUCT) /* Frank Weil, 2.9.8 */
+	else if (sp->type == STRUCT && sp->Snm != NULL) /* Frank Weil, 2.9.8 */
 		printf("\t%s", sp->Snm->name);
 	else
 		printf("\t%d", eval(sp->ini));
@@ -408,8 +463,13 @@ symvar(Symbol *sp)
 
 	if (sp->Nid < 0)	/* formal parameter */
 		printf("\t<parameter %d>", -(sp->Nid));
+	else if (sp->type == MTYPE)
+		printf("\t<constant>");
+	else if (sp->isarray)
+		printf("\t<array>");
 	else
 		printf("\t<variable>");
+
 	if (sp->type == CHAN && sp->ini)
 	{	int i;
 		for (m = sp->ini->rgt, i = 0; m; m = m->rgt)
@@ -423,6 +483,9 @@ symvar(Symbol *sp)
 			if (m->rgt) printf("\t");
 		}
 	}
+
+if (1)	printf("\t{scope %s}", sp->bscp);
+
 	printf("\n");
 }
 
@@ -440,10 +503,9 @@ chname(Symbol *sp)
 	if (sp->context) printf("%s-", sp->context->name);
 	if (sp->owner) printf("%s.", sp->owner->name);
 	printf("%s", sp->name);
-	if (sp->nel > 1) printf("[%d]", sp->nel);
+	if (sp->nel > 1 || sp->isarray == 1) printf("[%d]", sp->nel);
 	printf("\t");
 }
-
 
 static struct X {
 	int typ; char *nm;

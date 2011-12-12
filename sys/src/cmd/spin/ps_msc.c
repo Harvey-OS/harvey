@@ -12,14 +12,12 @@
 /* The Postscript generation code below was written by Gerard J. Holzmann */
 /* in June 1997. Parts of the prolog template are based on similar boiler */
 /* plate in the Tcl/Tk distribution. This code is used to support Spin's  */
-/* option M for generating a Postscript file from a simulation run.       */
+/* option -M for generating a Postscript file from a simulation run.      */
 
 #include "spin.h"
 #include "version.h"
 
-#ifdef PC
-extern void free(void *);
-#endif
+/* extern void free(void *); */
 
 static char *PsPre[] = {
 	"%%%%Pages: (atend)",
@@ -110,8 +108,8 @@ static char *PsPre[] = {
 	0,
 };
 
-int MH  = 600;		/* page height - can be scaled */
-int oMH = 600;		/* page height - not scaled */
+static int MH  = 600;	/* page height - can be scaled */
+static int oMH = 600;	/* page height - not scaled */
 #define MW	500	/* page width */
 #define LH	100	/* bottom margin */
 #define RH	100	/* right margin */
@@ -146,7 +144,7 @@ putlegend(void)
 	fprintf(pfd, "0.000 0.000 0.000 setrgbcolor AdjustColor\n");
 	fprintf(pfd, "%d %d [\n", MW/2, LH+oMH+ 5*HH);
 	fprintf(pfd, "    (%s -- %s -- MSC -- %d)\n] 10 -0.5 0.5 0 ",
-		Version, oFname?oFname->name:"", pspno);
+		SpinVersion, oFname?oFname->name:"", pspno);
 	fprintf(pfd, "false DrawText\ngrestore\n");
 }
 
@@ -181,11 +179,11 @@ putprelude(void)
 {	char snap[256]; FILE *fd;
 
 	sprintf(snap, "%s.ps", oFname?oFname->name:"msc");
-	if (!(pfd = fopen(snap, "w")))
+	if (!(pfd = fopen(snap, MFLAGS)))
 		fatal("cannot create file '%s'", snap);
 
 	fprintf(pfd, "%%!PS-Adobe-2.0\n");
-	fprintf(pfd, "%%%%Creator: %s\n", Version);
+	fprintf(pfd, "%%%%Creator: %s\n", SpinVersion);
 	fprintf(pfd, "%%%%Title: MSC %s\n", oFname?oFname->name:"--");
 	fprintf(pfd, "%%%%BoundingBox: 119 154 494 638\n");
 	ntimes(pfd, 0, 1, PsPre);
@@ -204,6 +202,7 @@ putprelude(void)
 		while (fgets(snap, 256, fd)) TotSteps++;
 		fclose(fd);
 	}
+	TotSteps += 10;
 	R = (int   *) emalloc(TotSteps * sizeof(int));
 	D = (int   *) emalloc(TotSteps * sizeof(int));
 	M = (short *) emalloc(TotSteps * sizeof(short));
@@ -227,6 +226,7 @@ putpostlude(void)
 		pspno, oFname?oFname->name:"msc");
 	exit(0);
 }
+
 void
 psline(int x0, int iy0, int x1, int iy1, float r, float g, float b, int w)
 {	int y0 = MH-iy0;
@@ -260,11 +260,10 @@ putgrid(int p)
 {	int i;
 
 	for (i = p ; i >= 0; i--)
-		if (!ProcLine[i])
-		{	psline(i,0, i,MH-1,
-				(float) 0.4, (float) 0.4, (float) 1.0,  1);
+	{	if (!ProcLine[i])
+		{	psline(i, 0, i, MH-1, (float) (0.4), (float) (0.4), (float) (1.0), 1);
 			ProcLine[i] = 1;
-		}
+	}	}
 }
 
 void
@@ -320,7 +319,7 @@ spitbox(int x, int dx, int y, char *s)
 	} else
 	{	r = (float) 1.; g = (float) 1.; b = (float) 0.;
 		if (!dx
-		&&  sscanf(s, "%d:%s", &a, d) == 2	/* was &d */
+		&&  sscanf(s, "%d:%250s", &a, d) == 2	/* was &d */
 		&&  a >= 0 && a < TotSteps)
 		{	if (!I[a]
 			||  strlen(I[a]) <= strlen(s))
@@ -386,7 +385,7 @@ putpages(void)
 		}
 		if (L[i])
 		{	spitbox(M[i], 0, i, L[i]);
-			free(L[i]);
+			/* free(L[i]); */
 			lasti = i;
 		}
 	}
@@ -397,10 +396,9 @@ void
 putbox(int x)
 {
 	if (ldepth >= TotSteps)
-	{	putpostlude();
-		fprintf(stderr, "max length of %d steps exceeded\n",
+	{	fprintf(stderr, "max length of %d steps exceeded - ps file truncated\n",
 			TotSteps);
-		fatal("postscript file truncated", (char *) 0);
+		putpostlude();
 	}
 	M[ldepth] = x;
 	if (x > maxx) maxx = x;

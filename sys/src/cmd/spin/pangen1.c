@@ -8,11 +8,14 @@
 /* Software written by Gerard J. Holzmann.  For tool documentation see:   */
 /*             http://spinroot.com/                                       */
 /* Send all bug-reports and/or questions to: bugs@spinroot.com            */
+/* (c) 2007: small additions for V5.0 to support multi-core verifications */
 
 #include "spin.h"
 #include "y.tab.h"
 #include "pangen1.h"
 #include "pangen3.h"
+#include "pangen6.h"
+#include <assert.h>
 
 extern FILE	*tc, *th, *tt;
 extern Label	*labtab;
@@ -20,9 +23,10 @@ extern Ordered	*all_names;
 extern ProcList	*rdy;
 extern Queue	*qtab;
 extern Symbol	*Fname;
-extern int	lineno, verbose, Pid, separate;
+extern int	lineno, verbose, Pid, separate, old_scope_rules, nclaims;
 extern int	nrRdy, nqs, mst, Mpars, claimnr, eventmapnr;
 extern short	has_sorted, has_random, has_provided;
+extern Queue	*ltab[];
 
 int	Npars=0, u_sync=0, u_async=0, hastrack = 1;
 short	has_io = 0;
@@ -36,9 +40,10 @@ static int	doglobal(char *, int);
 static void	dohidden(void);
 static void	do_init(FILE *, Symbol *);
 static void	end_labs(Symbol *, int);
-static void	put_ptype(char *, int, int, int);
+static void	put_ptype(char *, int, int, int, enum btypes);
 static void	tc_predef_np(void);
 static void	put_pinit(ProcList *);
+static void	multi_init(void);
        void	walk_struct(FILE *, int, char *, Symbol *, char *, char *, char *);
 
 static void
@@ -47,6 +52,21 @@ reverse_names(ProcList *p)
 	if (!p) return;
 	reverse_names(p->nxt);
 	fprintf(th, "   \"%s\",\n", p->n->name);
+}
+static void
+reverse_types(ProcList *p)
+{
+	if (!p) return;
+	reverse_types(p->nxt);
+	fprintf(th, "   %d,	/* %s */\n", p->b, p->n->name);
+}
+
+static int
+blog(int n)	/* for small log2 without rounding problems */
+{	int m=1, r=2;
+
+	while (r < n) { m++; r *= 2; }
+	return 1+m;
 }
 
 void
@@ -57,9 +77,19 @@ genheader(void)
 	{	putunames(th);
 		goto here;
 	}
-
+	/* 5.2.3: gcc 3 no longer seems to compute sizeof at compile time */
+	fprintf(th, "#define WS		%d /* word size in bytes */\n", (int) sizeof(void *));
 	fprintf(th, "#define SYNC	%d\n", u_sync);
 	fprintf(th, "#define ASYNC	%d\n\n", u_async);
+	fprintf(th, "#ifndef NCORE\n");
+	fprintf(th, "	#ifdef DUAL_CORE\n");
+	fprintf(th, "		#define NCORE	2\n");
+	fprintf(th, "	#elif QUAD_CORE\n");
+	fprintf(th, "		#define NCORE	4\n");
+	fprintf(th, "	#else\n");
+	fprintf(th, "		#define NCORE	1\n");
+	fprintf(th, "	#endif\n");
+	fprintf(th, "#endif\n");
 
 	putunames(th);
 
@@ -67,6 +97,11 @@ genheader(void)
 	for (p = rdy, i=0; p; p = p->nxt, i++)
 		fprintf(tc, "%s (short) Air%d", (p!=rdy)?",":"", i);
 	fprintf(tc, ", (short) Air%d", i);	/* np_ */
+	if (nclaims > 1)
+	{	fprintf(tc, "\n#ifndef NOCLAIM\n");
+		fprintf(tc, "	, (short) Air%d", i+1);	/* Multi */
+		fprintf(tc, "\n#endif\n\t");
+	}
 	fprintf(tc, " };\n");
 
 	fprintf(th, "char *procname[] = {\n");
@@ -74,18 +109,86 @@ genheader(void)
 	fprintf(th, "   \":np_:\",\n");
 	fprintf(th, "};\n\n");
 
+	fprintf(th, "enum btypes { NONE=%d, N_CLAIM=%d,", NONE, N_CLAIM);
+	fprintf(th, " I_PROC=%d, A_PROC=%d,", I_PROC, A_PROC);
+	fprintf(th, " P_PROC=%d, E_TRACE=%d, N_TRACE=%d };\n",
+		P_PROC, E_TRACE, N_TRACE);
+	fprintf(th, "int Btypes[] = {\n");
+		reverse_types(rdy);
+	fprintf(th, "   0	/* :np_: */\n");
+	fprintf(th, "};\n\n");
+
 here:
 	for (p = rdy; p; p = p->nxt)
-		put_ptype(p->n->name, p->tn, mst, nrRdy+1);
+		put_ptype(p->n->name, p->tn, mst, nrRdy+1, p->b);
 		/* +1 for np_ */
-	put_ptype("np_", nrRdy, mst, nrRdy+1);
+	put_ptype("np_", nrRdy, mst, nrRdy+1, 0);
+
+	if (nclaims > 1)
+	{	/* this is the structure that goes into the state-vector
+		 * instead of the actual never claims
+		 * this assumes that the claims do not have any local variables
+		 * this claim records the types and states of all subclaims in an array
+		 * NB: not sure if we need the first 3 fields in this structure
+		 *     it's here for now to avoid breaking some possible dependence
+		 * in the calculations above, we were already taking into account
+		 * that there is one never-claim, which will now be this one
+		 */
+
+		i = blog(mst);
+		fprintf(th, "\n");
+		fprintf(th, "#ifndef NOCLAIM\n");
+		fprintf(th, "	#undef VERI\n");
+		fprintf(th, "	#define VERI	%d\n", nrRdy+1);
+		fprintf(th, "	#define Pclaim	P%d\n\n", nrRdy+1);
+		fprintf(th, "typedef struct P%d {\n", nrRdy+1);
+		fprintf(th, "	unsigned _pid : 8; /* always zero */\n");
+		fprintf(th, "	unsigned _t   : %d; /* active-claim type  */\n",
+			blog(nrRdy+1));
+		fprintf(th, "	unsigned _p   : %d; /* active-claim state */\n",
+			i);
+		fprintf(th, "	unsigned _n   : %d; /* active-claim index */\n",
+			blog(nclaims));
+		if (i <= 255)	/* in stdint.h = UCHAR_MAX from limits.h */
+		{	fprintf(th, "	uchar c_cur[NCLAIMS]; /* claim-states */\n");
+		} else if (i <= 65535)	/* really USHRT_MAX from limits.h */
+		{	fprintf(th, "	ushort c_cur[NCLAIMS]; /* claim-states */\n");
+		} else	/* the most unlikely case */
+		{	fprintf(th, "	uint c_cur[NCLAIMS]; /* claim-states */\n");
+		}
+		fprintf(th, "} P%d;\n", nrRdy+1);
+		fprintf(th, "uchar spin_c_typ[NCLAIMS]; /* claim-types */\n");
+		fprintf(th, "	#define Air%d	(0)\n\n", nrRdy+1);
+		fprintf(th, "#endif\n");
+		/*
+		 * find special states as:
+		 *	stopstate [ claimnr ][ curstate ] == 1
+		 *	accpstate [ claimnr ][ curstate ]
+		 *	progstate [ claimnr ][ curstate ]
+		 *	reached   [ claimnr ][ curstate ]
+		 *	visstate  [ claimnr ][ curstate ]
+		 *	loopstate [ claimnr ][ curstate ]
+		 *	mapstate  [ claimnr ][ curstate ]
+		 */
+	} else
+	{	fprintf(th, "\n#define Pclaim	P0\n");
+		fprintf(th, "#ifndef NCLAIMS\n");
+		fprintf(th, "	#define NCLAIMS 1\n");
+		fprintf(th, "#endif\n");
+		fprintf(th, "uchar spin_c_typ[NCLAIMS]; /* claim-types */\n");
+	}
 
 	ntimes(th, 0, 1, Head0);
 
 	if (separate != 2)
 	{	extern void c_add_stack(FILE *);
+		extern void c_stack_size(FILE *);
 
 		ntimes(th, 0, 1, Header);
+		fprintf(th, "#define StackSize	(");
+			c_stack_size(th);
+		fprintf(th, ")\n");
+
 		c_add_stack(th);
 		ntimes(th, 0, 1, Header0);
 	}
@@ -96,7 +199,13 @@ here:
 
 	hastrack = c_add_sv(th);
 
+	fprintf(th, "#ifdef TRIX\n");
+	fprintf(th, "	/* room for 512 proc+chan ptrs, + safety margin */\n");
+	fprintf(th, "	char *_ids_[MAXPROC+MAXQ+4];\n");
+	fprintf(th, "#else\n");
 	fprintf(th, "	uchar sv[VECTORSZ];\n");
+	fprintf(th, "#endif\n");
+
 	fprintf(th, "} State");
 #ifdef SOLARIS
 	fprintf(th,"\n#ifdef GCC\n");
@@ -104,6 +213,23 @@ here:
 	fprintf(th, "\n#endif\n\t");
 #endif
 	fprintf(th, ";\n\n");
+
+	fprintf(th, "#ifdef TRIX\n");
+	fprintf(th, "typedef struct TRIX_v6 {\n");
+	fprintf(th, "	uchar *body; /* aligned */\n");
+	fprintf(th, "#ifndef BFS\n");
+	fprintf(th, "	short modified;\n");
+	fprintf(th, "#endif\n");
+	fprintf(th, "	short psize;\n");
+	fprintf(th, "	short parent_pid;\n");
+	fprintf(th, "	struct TRIX_v6 *nxt;\n");
+	fprintf(th, "} TRIX_v6;\n");
+	fprintf(th, "TRIX_v6 *freebodies;\n");
+	fprintf(th, "TRIX_v6 *processes[MAXPROC+1];\n");
+	fprintf(th, "TRIX_v6 *channels[MAXQ+1]; \n");
+	fprintf(th, "long _p_count[MAXPROC];\n");
+	fprintf(th, "long _c_count[MAXPROC];\n");
+	fprintf(th, "#endif\n\n");
 
 	fprintf(th, "#define HAS_TRACK	%d\n", hastrack);
 
@@ -114,16 +240,52 @@ here:
 void
 genaddproc(void)
 {	ProcList *p;
-	int i = 0;
+	int i = 0, j;
 
-	if (separate ==2) goto shortcut;
+	if (separate == 2) goto shortcut;
 
-	fprintf(tc, "int\naddproc(int n");
-	for (i = 0; i < Npars; i++)
+	fprintf(tc, "\n#ifdef TRIX\n");
+	fprintf(tc, "int what_p_size(int);\n");
+	fprintf(tc, "int what_q_size(int);\n\n");
+	/* the number of processes just changed by 1 (up or down) */
+	/* this means that the channel indices move up or down by one slot */
+	/* not all new channels may have a valid index yet, but we move */
+	/* all of them anyway, as if they existed */
+	fprintf(tc, "void\nre_mark_all(int whichway)\n");
+	fprintf(tc, "{	int j;\n");
+	fprintf(tc, "	#ifdef V_TRIX\n");
+	fprintf(tc, "		printf(\"%%d: re_mark_all channels %%d\\n\", depth, whichway);\n");
+	fprintf(tc, "	#endif\n");
+	fprintf(tc, "	#ifndef BFS\n");
+	fprintf(tc, "	for (j = 0; j < now._nr_qs; j++)\n");
+	fprintf(tc, "		channels[j]->modified = 1; /* channel index moved */\n");
+	fprintf(tc, "	#endif\n");
+	fprintf(tc, "	#ifndef TRIX_ORIG\n");
+	fprintf(tc, "	if (whichway > 0)\n");
+	fprintf(tc, "	{	for (j = now._nr_pr + now._nr_qs - 1; j >= now._nr_pr; j--)\n");
+	fprintf(tc, "			now._ids_[j] = now._ids_[j-1];\n");
+	fprintf(tc, "	} else\n");
+	fprintf(tc, "	{	for (j = now._nr_pr; j < now._nr_pr + now._nr_qs; j++)\n");
+	fprintf(tc, "			now._ids_[j] = now._ids_[j+1];\n");
+	fprintf(tc, "	}\n");
+	fprintf(tc, "	#endif\n");
+	fprintf(tc, "}\n");
+
+	fprintf(tc, "#endif\n\n");
+
+	fprintf(tc, "int\naddproc(int calling_pid, int n");
+	for (/* i = 0 */; i < Npars; i++)
 		fprintf(tc, ", int par%d", i);
 
 	ntimes(tc, 0, 1, Addp0);
 	ntimes(tc, 1, nrRdy+1, R5); /* +1 for np_ */
+
+	if (nclaims > 1)
+	{	fprintf(tc, "#ifndef NOCLAIM\n");
+		ntimes(tc, nrRdy+1, nrRdy+2, R5);
+		fprintf(tc, "#endif\n");
+	}
+
 	ntimes(tc, 0, 1, Addp1);
 
 	if (has_provided)
@@ -132,6 +294,9 @@ genaddproc(void)
 		fprintf(tt, "{\n\tswitch(ot) {\n");
 	}
 shortcut:
+	if (nclaims > 1)
+	{	multi_init();
+	}
 	tc_predef_np();
 	for (p = rdy; p; p = p->nxt)
 	{	Pid = p->tn;
@@ -167,13 +332,18 @@ genother(void)
 
 	switch (separate) {
 	case 2:
-		if (claimnr >= 0)
-		ntimes(tc, claimnr, claimnr+1, R0); /* claim only */
+		if (nclaims > 0)
+		{	for (p = rdy; p; p = p->nxt)
+			{	if (p->b == N_CLAIM)
+				{	ntimes(tc, p->tn, p->tn+1, R0); /* claims only */
+		}	}	}
 		break;
 	case 1:
 		ntimes(tc,     0,    1, Code0);
-		ntimes(tc, 0, claimnr, R0);	/* all except claim */
-		ntimes(tc, claimnr+1, nrRdy, R0);
+		for (p = rdy; p; p = p->nxt)
+		{	if (p->b != N_CLAIM)
+			{	ntimes(tc, p->tn, p->tn+1, R0); /* all except claims */
+		}	}
 		break;
 	case 0:
 		ntimes(tc,     0,    1, Code0);
@@ -186,44 +356,53 @@ genother(void)
 
 	switch (separate) {
 	case 2:
-		if (claimnr >= 0)
-		ntimes(tc, claimnr, claimnr+1, R0a); /* claim only */
+		if (nclaims > 0)
+		{	for (p = rdy; p; p = p->nxt)
+			{	if (p->b == N_CLAIM)
+				{	ntimes(tc, p->tn, p->tn+1, R0a); /* claims only */
+		}	}	}
 		return;
 	case 1:
-		ntimes(tc, 0, claimnr, R0a);	/* all except claim */
-		ntimes(tc, claimnr+1, nrRdy, R0a);
+		for (p = rdy; p; p = p->nxt)
+		{	if (p->b != N_CLAIM)
+			{	ntimes(tc, p->tn, p->tn+1, R0a); /* all except claims */
+		}	}
 		fprintf(tc, "	if (state_tables)\n");
-		fprintf(tc, "		ini_claim(%d, 0);\n", claimnr);
+		fprintf(tc, "		ini_claim(%d, 0);\n", claimnr);	/* the default claim */
+		if (acceptors == 0)
+		{	acceptors = 1;	/* assume at least 1 acceptstate */
+		}
 		break;
 	case 0:
 		ntimes(tc, 0, nrRdy, R0a);	/* all */
 		break;
 	}
 
-	ntimes(tc, 0,     1, R0b);
-	if (separate == 1 && acceptors == 0)
-		acceptors = 1;	/* assume at least 1 acceptstate */
 	ntimes(th, acceptors,   acceptors+1,   Code1);
 	ntimes(th, progressors, progressors+1, Code3);
 	ntimes(th, nrRdy+1, nrRdy+2, R2); /* +1 for np_ */
 
-	fprintf(tc, "	iniglobals();\n");
-	ntimes(tc, 0,     1, Code2a);
-	ntimes(tc, 0,     1, Code2b);	/* bfs option */
-	ntimes(tc, 0,     1, Code2c);
+	ntimes(tc, 0,     1, Code2a);	/* dfs, bfs */
+	ntimes(tc, 0,     1, Code2c);	/* multicore */
+	ntimes(tc, 0,     1, Code2d);
+
+	fprintf(tc, "void\ndo_reach(void)\n{\n");
 	ntimes(tc, 0,     nrRdy, R4);
 	fprintf(tc, "}\n\n");
 
-	fprintf(tc, "void\n");
-	fprintf(tc, "iniglobals(void)\n{\n");
+	fprintf(tc, "void\niniglobals(int calling_pid)\n{\n");
+	ntimes(tc, 1, u_sync+u_async+1, R3); /* because nqs is still 0 */
+	fprintf(tc, "\tMaxbody = max(Maxbody, sizeof(State)-VECTORSZ);\n");
+	fprintf(tc, "\tif ((Maxbody %% WS) != 0)\n");
+	fprintf(tc, "\t	Maxbody += WS - (Maxbody %% WS);\n\n");
+
+	/* after the value of Maxbody has settled */
 	if (doglobal("", INIV) > 0)
 	{	fprintf(tc, "#ifdef VAR_RANGES\n");
 		(void) doglobal("logval(\"", LOGV);
 		fprintf(tc, "#endif\n");
 	}
-	ntimes(tc, 1, nqs+1, R3);
-	fprintf(tc, "\tMaxbody = max(Maxbody, sizeof(State)-VECTORSZ);");
-	fprintf(tc, "\n}\n\n");
+	fprintf(tc, "}\n\n");
 }
 
 void
@@ -248,13 +427,13 @@ end_labs(Symbol *s, int i)
 	Label *l;
 	int j; char foo[128];
 
-	if ((i == claimnr && separate == 1)
-	||  (i != claimnr && separate == 2))
+	if ((pid_is_claim(i) && separate == 1)
+	|| (!pid_is_claim(i) && separate == 2))
 		return;
 
 	for (l = labtab; l; l = l->nxt)
 	for (j = 0; ln[j].n; j++)
-		if (strncmp(l->s->name, ln[j].s, ln[j].n) == 0
+	{	if (strncmp(l->s->name, ln[j].s, ln[j].n) == 0
 		&&  strcmp(l->c->name, s->name) == 0)
 		{	fprintf(tc, "\t%s[%d][%d] = 1;\n",
 				ln[j].t, i, l->e->seqno);
@@ -272,8 +451,7 @@ end_labs(Symbol *s, int i)
 				Fname  = l->e->n->fn;
 				printf("spin: %3d:%s, warning, %s - is invisible\n",
 					lineno, Fname?Fname->name:"-", foo);
-			}
-		}	
+	}	}	}	
 	/* visible states -- through remote refs: */
 	for (l = labtab; l; l = l->nxt)
 		if (l->visible
@@ -305,7 +483,7 @@ prehint(Symbol *s)
 
 	n = (s->context != ZS)?s->context->ini:s->ini;
 	if (n)
-	printf("line %3d %s, ", n->ln, n->fn->name);
+	printf("line %s:%d, ", n->fn->name, n->ln);
 }
 
 void
@@ -338,7 +516,7 @@ checktype(Symbol *sp, char *s)
 	{	if (!(verbose&32)) return;
 		sputtype(buf, sp->type);
 		i = (int) strlen(buf);
-		while (buf[--i] == ' ') buf[i] = '\0';
+		while (i > 0 && buf[--i] == ' ') buf[i] = '\0';
 		prehint(sp);
 		if (sp->context)
 			printf("proctype %s:", s);
@@ -361,12 +539,12 @@ checktype(Symbol *sp, char *s)
 	}
 }
 
-int
-dolocal(FILE *ofd, char *pre, int dowhat, int p, char *s)
+static int
+dolocal(FILE *ofd, char *pre, int dowhat, int p, char *s, enum btypes b)
 {	int h, j, k=0; extern int nr_errs;
 	Ordered *walk;
 	Symbol *sp;
-	char buf[64], buf2[128], buf3[128];
+	char buf[128], buf2[128], buf3[128];
 
 	if (dowhat == INIV)
 	{	/* initialize in order of declaration */
@@ -390,7 +568,8 @@ dolocal(FILE *ofd, char *pre, int dowhat, int p, char *s)
 			if (sp->context
 			&& !sp->owner
 			&&  sp->type == Types[j]
-			&&  ((h == 0 && sp->nel == 1) || (h == 1 && sp->nel > 1))
+			&&  ((h == 0 && (sp->nel == 1 && sp->isarray == 0))
+			||   (h == 1 && (sp->nel  > 1 || sp->isarray == 1)))
 			&&  strcmp(s, sp->context->name) == 0)
 			{	switch (dowhat) {
 				case LOGV:
@@ -409,7 +588,7 @@ dolocal(FILE *ofd, char *pre, int dowhat, int p, char *s)
 					k++;
 					break;
 				}
-				if (strcmp(s, ":never:") == 0)
+				if (b == N_CLAIM)
 				{	printf("error: %s defines local %s\n",
 						s, sp->name);
 					nr_errs++;
@@ -426,7 +605,7 @@ c_chandump(FILE *fd)
 
 	if (!qtab)
 	{	fprintf(fd, "void\nc_chandump(int unused) ");
-		fprintf(fd, "{ unused = unused++; /* avoid complaints */ }\n");
+		fprintf(fd, "{ unused++; /* avoid complaints */ }\n");
 		return;
 	}
 
@@ -465,8 +644,18 @@ c_chandump(FILE *fd)
 
 void
 c_var(FILE *fd, char *pref, Symbol *sp)
-{	char buf[256];
+{	char *ptr, buf[256];
 	int i;
+
+	if (!sp)
+	{	fatal("cannot happen - c_var", 0);
+	}
+
+	ptr = sp?sp->name:"";
+	if (!old_scope_rules)
+	{	while (*ptr == '_' || isdigit((int)*ptr))
+		{	ptr++;
+	}	}
 
 	switch (sp->type) {
 	case STRUCT:
@@ -480,30 +669,29 @@ c_var(FILE *fd, char *pref, Symbol *sp)
 	case SHORT: case INT:
 	case UNSIGNED:
 		sputtype(buf, sp->type);
-		if (sp->nel == 1)
+		if (sp->nel == 1 && sp->isarray == 0)
 		{	fprintf(fd, "\tprintf(\"\t%s %s:\t%%d\\n\", %s%s);\n",
-				buf, sp->name, pref, sp->name);
+				buf, ptr, pref, sp->name);
 		} else
 		{	fprintf(fd, "\t{\tint l_in;\n");
 			fprintf(fd, "\t\tfor (l_in = 0; l_in < %d; l_in++)\n", sp->nel);
 			fprintf(fd, "\t\t{\n");
 			fprintf(fd, "\t\t\tprintf(\"\t%s %s[%%d]:\t%%d\\n\", l_in, %s%s[l_in]);\n",
-						buf, sp->name, pref, sp->name);
+						buf, ptr, pref, sp->name);
 			fprintf(fd, "\t\t}\n");
 			fprintf(fd, "\t}\n");
 		}
 		break;
 	case CHAN:
-		if (sp->nel == 1)
-		{  fprintf(fd, "\tprintf(\"\tchan %s (=%%d):\tlen %%d:\\t\", ",
-			sp->name);
+		if (sp->nel == 1 && sp->isarray == 0)
+		{  fprintf(fd, "\tprintf(\"\tchan %s (=%%d):\tlen %%d:\\t\", ", ptr);
 		   fprintf(fd, "%s%s, q_len(%s%s));\n",
 			pref, sp->name, pref, sp->name);
 		   fprintf(fd, "\tc_chandump(%s%s);\n", pref, sp->name);
 		} else
 		for (i = 0; i < sp->nel; i++)
 		{  fprintf(fd, "\tprintf(\"\tchan %s[%d] (=%%d):\tlen %%d:\\t\", ",
-			sp->name, i);
+			ptr, i);
 		   fprintf(fd, "%s%s[%d], q_len(%s%s[%d]));\n",
 			pref, sp->name, i, pref, sp->name, i);
 		   fprintf(fd, "\tc_chandump(%s%s[%d]);\n",
@@ -518,9 +706,7 @@ c_splurge_any(ProcList *p)
 {	Ordered *walk;
 	Symbol *sp;
 
-	if (strcmp(p->n->name, ":never:") != 0
-	&&  strcmp(p->n->name, ":trace:") != 0
-	&&  strcmp(p->n->name, ":notrace:") != 0)
+	if (p->b != N_CLAIM && p->b != E_TRACE && p->b != N_TRACE)
 	for (walk = all_names; walk; walk = walk->next)
 	{	sp = walk->entry;
 		if (!sp->context
@@ -541,9 +727,7 @@ c_splurge(FILE *fd, ProcList *p)
 	Symbol *sp;
 	char pref[64];
 
-	if (strcmp(p->n->name, ":never:") != 0
-	&&  strcmp(p->n->name, ":trace:") != 0
-	&&  strcmp(p->n->name, ":notrace:") != 0)
+	if (p->b != N_CLAIM && p->b != E_TRACE && p->b != N_TRACE)
 	for (walk = all_names; walk; walk = walk->next)
 	{	sp = walk->entry;
 		if (!sp->context
@@ -583,8 +767,6 @@ c_wrapper(FILE *fd)	/* allow pan.c to print out global sv entries */
 	fprintf(fd, "	switch(tp) {\n");
 	for (p = rdy; p; p = p->nxt)
 	{	fprintf(fd, "	case %d:\n", p->tn);
-		fprintf(fd, "	\tprintf(\"local vars proc %%d (%s):\\n\", pid);\n",
-			p->n->name);
 		if (c_splurge_any(p))
 		{	fprintf(fd, "	\tprintf(\"local vars proc %%d (%s):\\n\", pid);\n",
 				p->n->name);
@@ -633,8 +815,9 @@ doglobal(char *pre, int dowhat)
 				checktype(sp, (char *) 0);
 				cnt++; /* fall through */
 			case PUTV:
-				do_var(tc, dowhat, (sp->hidden&1)?"":"now.", sp,
-				"", " = ", ";\n");
+				do_var(tc, dowhat,
+					(sp->hidden&1)?"":"now.", sp,
+					"", " = ", ";\n");
 				break;
 	}	}	}
 	return cnt;
@@ -665,15 +848,25 @@ void
 do_var(FILE *ofd, int dowhat, char *s, Symbol *sp,
 	char *pre, char *sep, char *ter)
 {	int i;
+	char *ptr = sp?sp->name:"";
+
+	if (!sp)
+	{	fatal("cannot happen - do_var", 0);
+	}
 
 	switch(dowhat) {
 	case PUTV:
-
 		if (sp->hidden&1) break;
 
 		typ2c(sp);
 		break;
+
 	case LOGV:
+		if (!old_scope_rules)
+		{	while (*ptr == '_' || isdigit((int)*ptr))
+			{	ptr++;
+		}	}
+		/* fall thru */
 	case INIV:
 		if (sp->type == STRUCT)
 		{	/* struct may contain a chan */
@@ -682,13 +875,16 @@ do_var(FILE *ofd, int dowhat, char *s, Symbol *sp,
 		}
 		if (!sp->ini && dowhat != LOGV)	/* it defaults to 0 */
 			break;
-		if (sp->nel == 1)
-		{	fprintf(ofd, "\t\t%s%s%s%s",
-				pre, s, sp->name, sep);
-			if (dowhat == LOGV)
+		if (sp->nel == 1 && sp->isarray == 0)
+		{	if (dowhat == LOGV)
+			{	fprintf(ofd, "\t\t%s%s%s%s",
+					pre, s, ptr, sep);
 				fprintf(ofd, "%s%s", s, sp->name);
-			else
+			} else
+			{	fprintf(ofd, "\t\t%s%s%s%s",
+					pre, s, sp->name, sep);
 				do_init(ofd, sp);
+			}
 			fprintf(ofd, "%s", ter);
 		} else
 		{	if (sp->ini && sp->ini->ntyp == CHAN)
@@ -722,42 +918,31 @@ do_var(FILE *ofd, int dowhat, char *s, Symbol *sp,
 
 static void
 do_init(FILE *ofd, Symbol *sp)
-{	int i; extern Queue *ltab[];
+{	int i; 
 
 	if (sp->ini
 	&&  sp->type == CHAN
 	&& ((i = qmake(sp)) > 0))
 	{	if (sp->ini->ntyp == CHAN)
-			fprintf(ofd, "addqueue(%d, %d)",
-			i, ltab[i-1]->nslots == 0);
-		else
-			fprintf(ofd, "%d", i);
+		{	fprintf(ofd, "addqueue(calling_pid, %d, %d)",
+				i, ltab[i-1]->nslots == 0);
+		} else
+		{	fprintf(ofd, "%d", i);
+		}
 	} else
-		putstmnt(ofd, sp->ini, 0);
-}
-
-static int
-blog(int n)	/* for small log2 without rounding problems */
-{	int m=1, r=2;
-
-	while (r < n) { m++; r *= 2; }
-	return 1+m;
+	{	putstmnt(ofd, sp->ini, 0);
+	}
 }
 
 static void
-put_ptype(char *s, int i, int m0, int m1)
+put_ptype(char *s, int i, int m0, int m1, enum btypes b)
 {	int k;
 
-	if (strcmp(s, ":init:") == 0)
-		fprintf(th, "#define Pinit	((P%d *)this)\n", i);
-
-	if (strcmp(s, ":never:") != 0
-	&&  strcmp(s, ":trace:") != 0
-	&&  strcmp(s, ":notrace:") != 0
-	&&  strcmp(s, ":init:")  != 0
-	&&  strcmp(s, "_:never_template:_") != 0
-	&&  strcmp(s, "np_")     != 0)
-		fprintf(th, "#define P%s	((P%d *)this)\n", s, i);
+	if (b == I_PROC)
+	{	fprintf(th, "#define Pinit	((P%d *)this)\n", i);
+	} else if (b == P_PROC || b == A_PROC)
+	{	fprintf(th, "#define P%s	((P%d *)this)\n", s, i);
+	}
 
 	fprintf(th, "typedef struct P%d { /* %s */\n", i, s);
 	fprintf(th, "	unsigned _pid : 8;  /* 0..255 */\n");
@@ -765,14 +950,14 @@ put_ptype(char *s, int i, int m0, int m1)
 	fprintf(th, "	unsigned _p   : %d; /* state    */\n", blog(m0));
 	LstSet = ZS;
 	nBits = 8 + blog(m1) + blog(m0);
-	k = dolocal(tc, "", PUTV, i, s);	/* includes pars */
+	k = dolocal(tc, "", PUTV, i, s, b);	/* includes pars */
 
 	c_add_loc(th, s);
 
 	fprintf(th, "} P%d;\n", i);
 	if ((!LstSet && k > 0) || has_state)
 		fprintf(th, "#define Air%d	0\n", i);
-	else
+	else if (LstSet || k == 0)			/* 5.0, added condition */
 	{	fprintf(th, "#define Air%d	(sizeof(P%d) - ", i, i);
 		if (k == 0)
 		{	fprintf(th, "%d", (nBits+7)/8);
@@ -813,6 +998,7 @@ tc_predef_np(void)
 	fprintf(th, "#define _NP_	%d\n", i);
 /*	if (separate == 2) fprintf(th, "extern ");	*/
 	fprintf(th, "uchar reached%d[3];  /* np_ */\n", i);
+	fprintf(th, "uchar *loopstate%d;  /* np_ */\n", i);
 
 	fprintf(th, "#define nstates%d	3 /* np_ */\n", i);
 	fprintf(th, "#define endstate%d	2 /* np_ */\n\n", i);
@@ -831,6 +1017,48 @@ tc_predef_np(void)
 }
 
 static void
+multi_init(void)
+{	ProcList *p;
+	Element	*e;
+	int i = nrRdy+1;
+	int ini, j;
+	int nrc = nclaims;
+
+	fprintf(tc, "#ifndef NOCLAIM\n");
+	fprintf(tc, "\tcase %d:	/* claim select */\n", i);
+	for (p = rdy, j = 0; p; p = p->nxt, j++)
+	{	if (p->b == N_CLAIM)
+		{	e = p->s->frst;
+			ini = huntele(e, e->status, -1)->seqno;
+
+			fprintf(tc, "\t\tspin_c_typ[%d] = %d; /* %s */\n",
+				j, p->tn, p->n->name);
+			fprintf(tc, "\t\t((P%d *)pptr(h))->c_cur[%d] = %d;\n",
+				i, j, ini);
+			fprintf(tc, "\t\treached%d[%d]=1;\n", p->tn, ini);
+
+			/* the default initial claim is first one in model */
+			if (--nrc == 0)	
+			{ fprintf(tc, "\t\t((P%d *)pptr(h))->_t = %d;\n", i, p->tn);
+			  fprintf(tc, "\t\t((P%d *)pptr(h))->_p = %d;\n", i, ini);
+			  fprintf(tc, "\t\t((P%d *)pptr(h))->_n = %d; /* %s */\n",
+				i, j, p->n->name);
+			  fprintf(tc, "\t\tsrc_claim = src_ln%d;\n", p->tn);
+			  fprintf(tc, "#ifndef BFS\n");
+			  fprintf(tc, "\t\tif (whichclaim == -1 && claimname == NULL)\n");
+			  fprintf(tc, "\t\t\tprintf(\"0: Claim %s (%d), from state %d\\n\");\n",
+				p->n->name, p->tn, ini);
+			  fprintf(tc, "#endif\n");
+			}
+	}	}
+	fprintf(tc, "\t\tif (whichclaim != -1)\n");
+	fprintf(tc, "\t\t{	select_claim(whichclaim);\n");
+	fprintf(tc, "\t\t}\n");
+	fprintf(tc, "\t\tbreak;\n\n");
+	fprintf(tc, "#endif\n");
+}
+
+static void
 put_pinit(ProcList *P)
 {	Lextok	*fp, *fpt, *t;
 	Element	*e = P->s->frst;
@@ -839,29 +1067,30 @@ put_pinit(ProcList *P)
 	int	 i = P->tn;
 	int	ini, j, k;
 
-	if (i == claimnr
+	if (pid_is_claim(i)
 	&&  separate == 1)
 	{	fprintf(tc, "\tcase %d:	/* %s */\n", i, s->name);
 		fprintf(tc, "\t\tini_claim(%d, h);\n", i);
 		fprintf(tc, "\t\tbreak;\n");
 		return;
 	}
-	if (i != claimnr
+	if (!pid_is_claim(i)
 	&&  separate == 2)
 		return;
 
 	ini = huntele(e, e->status, -1)->seqno;
 	fprintf(th, "#define start%d	%d\n", i, ini);
-	if (i == claimnr)
-	fprintf(th, "#define start_claim	%d\n", ini);
 	if (i == eventmapnr)
 	fprintf(th, "#define start_event	%d\n", ini);
 
 	fprintf(tc, "\tcase %d:	/* %s */\n", i, s->name);
 
 	fprintf(tc, "\t\t((P%d *)pptr(h))->_t = %d;\n", i, i);
-	fprintf(tc, "\t\t((P%d *)pptr(h))->_p = %d;", i, ini);
-	fprintf(tc, " reached%d[%d]=1;\n", i, ini);
+	fprintf(tc, "\t\t((P%d *)pptr(h))->_p = %d;\n", i, ini);
+	fprintf(tc, "\t\treached%d[%d]=1;\n", i, ini);
+	if (P->b == N_CLAIM)
+	{	fprintf(tc, "\t\tsrc_claim = src_ln%d;\n", i);
+	}
 
 	if (has_provided)
 	{	fprintf(tt, "\tcase %d: /* %s */\n\t\t", i, s->name);
@@ -879,7 +1108,7 @@ put_pinit(ProcList *P)
 	for (fp  = p, j=0; fp; fp = fp->rgt)
 	for (fpt = fp->lft; fpt; fpt = fpt->rgt, j++)
 	{	t = (fpt->ntyp == ',') ? fpt->lft : fpt;
-		if (t->sym->nel != 1)
+		if (t->sym->nel > 1 || t->sym->isarray)
 		{	lineno = t->ln;
 			Fname  = t->fn;
 			fatal("array in parameter list, %s",
@@ -898,10 +1127,10 @@ put_pinit(ProcList *P)
 		fprintf(tc, " = par%d;\n", j);
 	}
 	fprintf(tc, "\t\t/* locals: */\n");
-	k = dolocal(tc, "", INIV, i, s->name);
+	k = dolocal(tc, "", INIV, i, s->name, P->b);
 	if (k > 0)
 	{	fprintf(tc, "#ifdef VAR_RANGES\n");
-		(void) dolocal(tc, "logval(\"", LOGV, i, s->name);
+		(void) dolocal(tc, "logval(\"", LOGV, i, s->name, P->b);
 		fprintf(tc, "#endif\n");
 	}
 
@@ -939,7 +1168,7 @@ huntele(Element *f, int o, int stopat)
 	int cnt=0; /* a precaution against loops */
 
 	if (e)
-	for (cnt = 0; cnt < 200 && e->n; cnt++)
+	for ( ; cnt < 200 && e->n; cnt++)
 	{
 		if (e->seqno == stopat)
 			break;
@@ -992,7 +1221,7 @@ typ2c(Symbol *sp)
 		nBits += sp->nbits;
 		break;
 	case BIT:
-		if (sp->nel == 1 && !(sp->hidden&1))
+		if (sp->nel == 1 && sp->isarray == 0 && !(sp->hidden&1))
 		{	fprintf(th, "\tunsigned %s : 1", sp->name);
 			LstSet = sp; 
 			nBits++;
@@ -1031,7 +1260,7 @@ typ2c(Symbol *sp)
 		fatal("variable %s undeclared", sp->name);
 	}
 
-	if (sp->nel != 1)
+	if (sp->nel > 1 || sp->isarray)
 		fprintf(th, "[%d]", sp->nel);
 	fprintf(th, ";\n");
 }
@@ -1124,6 +1353,22 @@ genaddqueue(void)
 
 	ntimes(tc, 0, 1, Addq1);
 
+	fprintf(tc, "#ifdef TRIX\n");
+	fprintf(tc, "int\nwhat_p_size(int t)\n{\tint j;\n");
+	fprintf(tc, "	switch (t) {\n");
+	ntimes(tc, 0, nrRdy+1, R5); /* +1 for np_ */
+	fprintf(tc, "	default: Uerror(\"bad proctype\");\n");
+	fprintf(tc, "	}\n	return j;\n}\n\n");
+
+	fprintf(tc, "int\nwhat_q_size(int t)\n{\tint j;\n");
+	fprintf(tc, "	switch (t) {\n");
+	for (j = 0; j < nqs+1; j++)
+	{	fprintf(tc, "	case %d: j = sizeof(Q%d); break;\n", j, j);
+	}
+	fprintf(tc, "	default: Uerror(\"bad qtype\");\n");
+	fprintf(tc, "	}\n	return j;\n}\n");
+	fprintf(tc, "#endif\n\n");
+
 	if (has_random)
 	{	fprintf(th, "int Q_has(int");
 		for (j = 0; j < Mpars; j++)
@@ -1159,7 +1404,7 @@ genaddqueue(void)
 	fprintf(tc, "void\nqsend(int into, int sorted");
 	for (j = 0; j < Mpars; j++)
 		fprintf(tc, ", int fld%d", j);
-	fprintf(tc, ")\n");
+	fprintf(tc, ", int args_given)\n");
 	ntimes(tc, 0, 1, Addq11);
 
 	for (q = qtab; q; q = q->nxt)
@@ -1202,6 +1447,12 @@ genaddqueue(void)
 		sprintf(buf0, "((Q%d *)z)->contents[j].fld", q->qid);
 		for (j = 0; j < q->nflds; j++)
 			fprintf(tc, "\t\t%s%d = fld%d;\n", buf0, j, j);
+		fprintf(tc, "\t\tif (args_given != %d)\n", q->nflds);
+		fprintf(tc, "\t\t{	if (args_given > %d)\n", q->nflds);
+		fprintf(tc, "\t\t		uerror(\"too many parameters in send stmnt\");\n");
+		fprintf(tc, "\t\t	else\n");
+		fprintf(tc, "\t\t		uerror(\"too few parameters in send stmnt\");\n");
+		fprintf(tc, "\t\t}\n");
 		fprintf(tc, "\t\tbreak;\n");
 	}
 	ntimes(tc, 0, 1, Addq2);
@@ -1266,9 +1517,10 @@ genaddqueue(void)
 	fprintf(th, "void qsend(int, int");
 	for (j = 0; j < Mpars; j++)
 		fprintf(th, ", int");
-	fprintf(th, ");\n");
+	fprintf(th, ", int);\n");
 
-	fprintf(th, "#define Addproc(x)	addproc(x");
+	fprintf(th, "#define Addproc(x)	addproc(256, x");
+	/* 256 is param outside the range of valid pids */
 	for (j = 0; j < Npars; j++)
 		fprintf(th, ", 0");
 	fprintf(th, ")\n");

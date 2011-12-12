@@ -21,6 +21,7 @@ extern int	verbose, lineno, xspin, jumpsteps, depth, merger, cutoff;
 extern int	nproc, nstop, Tval, ntrail, columns;
 extern short	Have_claim, Skip_claim;
 extern void ana_src(int, int);
+extern char	**trailfilename;
 
 int	TstOnly = 0, pno;
 
@@ -88,10 +89,18 @@ match_trail(void)
 	 *	leader.tra
 	 */
 
-	if (ntrail)
-		sprintf(snap, "%s%d.trail", oFname->name, ntrail);
-	else
-		sprintf(snap, "%s.trail", oFname->name);
+	if (trailfilename)
+	{	if (strlen(*trailfilename) < sizeof(snap))
+		{	strcpy(snap, (const char *) *trailfilename);
+		} else
+		{	fatal("filename %s too long", *trailfilename);
+		}
+	} else
+	{	if (ntrail)
+			sprintf(snap, "%s%d.trail", oFname->name, ntrail);
+		else
+			sprintf(snap, "%s.trail", oFname->name);
+	}
 
 	if ((fd = fopen(snap, "r")) == NULL)
 	{	snap[strlen(snap)-2] = '\0';	/* .tra */
@@ -188,16 +197,36 @@ okay:
 				pno - Have_claim, i, nst, dothis->n->ntyp);
 			lost_trail();
 		}
+
+		if (!xspin && (verbose&32))
+		{	printf("i=%d pno %d\n", i, pno);
+		}
+
 		for (X = run; X; X = X->nxt)
 		{	if (--i == pno)
 				break;
 		}
+
 		if (!X)
-		{	printf("%3d: no process %d ", depth, pno - Have_claim);
-			printf("(state %d)\n", nst);
-			lost_trail();
+		{	if (verbose&32)
+			{	printf("%3d: no process %d (step %d)\n", depth, pno - Have_claim, nst);
+				printf(" max %d (%d - %d + %d) claim %d",
+					nproc - nstop + Skip_claim,
+					nproc, nstop, Skip_claim, Have_claim);
+				printf("active processes:\n");
+				for (X = run; X; X = X->nxt)
+				{	printf("\tpid %d\tproctype %s\n", X->pid, X->n->name);
+				}
+				printf("\n");
+				continue;	
+			} else
+			{	printf("%3d:\tproc  %d (?) ", depth, pno);
+				lost_trail();
+			}
+		} else
+		{	X->pc  = dothis;
 		}
-		X->pc  = dothis;
+
 		lineno = dothis->n->ln;
 		Fname  = dothis->n->fn;
 
@@ -271,7 +300,7 @@ keepgoing:		if (dothis->merge_start)
 		}	}
 
 		if (Have_claim && X && X->pid == 0
-		&&  dothis && dothis->n
+		&&  dothis->n
 		&&  lastclaim != dothis->n->ln)
 		{	lastclaim = dothis->n->ln;
 			if (columns == 2)

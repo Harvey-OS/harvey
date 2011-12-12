@@ -12,7 +12,7 @@
 #include "spin.h"
 #include "y.tab.h"
 
-#define MAXDSTEP	1024	/* was 512 */
+#define MAXDSTEP	2048	/* was 512 */
 
 char	*NextLab[64];
 int	Level=0, GenCode=0, IsGuard=0, TestOnly=0;
@@ -21,7 +21,7 @@ static int	Tj=0, Jt=0, LastGoto=0;
 static int	Tojump[MAXDSTEP], Jumpto[MAXDSTEP], Special[MAXDSTEP];
 static void	putCode(FILE *, Element *, Element *, Element *, int);
 
-extern int	Pid, claimnr, separate, OkBreak;
+extern int	Pid, separate, OkBreak;
 
 static void
 Sourced(int n, int special)
@@ -59,7 +59,7 @@ Mopup(FILE *fd)
 			if (Tojump[j] == Jumpto[i])
 				break;
 		if (j == Tj)
-		{	char buf[12];
+		{	char buf[16];
 			if (Jumpto[i] == OkBreak)
 			{	if (!LastGoto)
 				fprintf(fd, "S_%.3d_0:	/* break-dest */\n",
@@ -164,7 +164,7 @@ CollectGuards(FILE *fd, Element *e, int inh)
 			break;
 		case ELSE:
 			if (inh++ > 0) fprintf(fd, " || ");
-/* 4.2.5 */		if (Pid != claimnr)
+/* 4.2.5 */		if (!pid_is_claim(Pid))
 				fprintf(fd, "(boq == -1 /* else */)");
 			else
 				fprintf(fd, "(1 /* else */)");
@@ -184,17 +184,17 @@ CollectGuards(FILE *fd, Element *e, int inh)
 		case 's':
 			if (inh++ > 0) fprintf(fd, " || ");
 			fprintf(fd, "("); TestOnly=1;
-/* 4.2.1 */		if (Pid != claimnr) fprintf(fd, "(boq == -1) && ");
+/* 4.2.1 */		if (!pid_is_claim(Pid)) fprintf(fd, "(boq == -1) && ");
 			putstmnt(fd, ee->n, ee->seqno);
 			fprintf(fd, ")"); TestOnly=0;
 			break;
 		case 'c':
 			if (inh++ > 0) fprintf(fd, " || ");
 			fprintf(fd, "("); TestOnly=1;
-			if (Pid != claimnr)
+			if (!pid_is_claim(Pid))
 				fprintf(fd, "(boq == -1 && ");
 			putstmnt(fd, ee->n->lft, e->seqno);
-			if (Pid != claimnr)
+			if (!pid_is_claim(Pid))
 				fprintf(fd, ")");
 			fprintf(fd, ")"); TestOnly=0;
 			break;
@@ -245,7 +245,7 @@ putcode(FILE *fd, Sequence *s, Element *nxt, int justguards, int ln, int seqno)
 	case 's':
 		fprintf(fd, "if (");
 #if 1
-/* 4.2.1 */	if (Pid != claimnr) fprintf(fd, "(boq != -1) || ");
+/* 4.2.1 */	if (!pid_is_claim(Pid)) fprintf(fd, "(boq != -1) || ");
 #endif
 		fprintf(fd, "!("); TestOnly=1;
 		putstmnt(fd, s->frst->n, s->frst->seqno);
@@ -253,7 +253,7 @@ putcode(FILE *fd, Sequence *s, Element *nxt, int justguards, int ln, int seqno)
 		break;
 	case 'c':
 		fprintf(fd, "if (!(");
-		if (Pid != claimnr) fprintf(fd, "boq == -1 && ");
+		if (!pid_is_claim(Pid)) fprintf(fd, "boq == -1 && ");
 		TestOnly=1;
 		putstmnt(fd, s->frst->n->lft, s->frst->seqno);
 		fprintf(fd, "))\n\t\t\tcontinue;"); TestOnly=0;

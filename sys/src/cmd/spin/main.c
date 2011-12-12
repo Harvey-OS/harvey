@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include "spin.h"
 #include "version.h"
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <signal.h>
 /* #include <malloc.h> */
 #include <time.h>
@@ -29,6 +31,7 @@ extern Symbol	*context;
 extern char	*claimproc;
 extern void	repro_src(void);
 extern void	qhide(int);
+extern char	CurScope[MAXSCOPESZ];
 
 Symbol	*Fname, *oFname;
 
@@ -40,12 +43,16 @@ int	s_trail, ntrail, verbose, xspin, notabs, rvopt;
 int	no_print, no_wrapup, Caccess, limited_vis, like_java;
 int	separate;	/* separate compilation */
 int	export_ast;	/* pangen5.c */
-int	inlineonly;	/* show inlined code */
-int	seedy;		/* be verbose about chosen seed */
+int	old_scope_rules;	/* use pre 5.3.0 rules */
+int	split_decl = 1, product, Strict;
 
-int	dataflow = 1, merger = 1, deadvar = 1, ccache = 1;
+int	merger = 1, deadvar = 1;
+int	ccache = 0; /* oyvind teig: 5.2.0 case caching off by default */
 
 static int preprocessonly, SeedUsed;
+static int seedy;	/* be verbose about chosen seed */
+static int inlineonly;	/* show inlined code */
+static int dataflow = 1;
 
 #if 0
 meaning of flags on verbose:
@@ -61,33 +68,44 @@ meaning of flags on verbose:
 static char	Operator[] = "operator: ";
 static char	Keyword[]  = "keyword: ";
 static char	Function[] = "function-name: ";
-static char	**add_ltl  = (char **)0;
-static char	**ltl_file = (char **)0;
-static char	**nvr_file = (char **)0;
+static char	**add_ltl  = (char **) 0;
+static char	**ltl_file = (char **) 0;
+static char	**nvr_file = (char **) 0;
+static char	*ltl_claims = (char *) 0;
+static FILE	*fd_ltl = (FILE *) 0;
 static char	*PreArg[64];
 static int	PreCnt = 0;
 static char	out1[64];
-static void	explain(int);
 
+char	**trailfilename;	/* new option 'k' */
+
+void	explain(int);
+
+	/* to use visual C++:
+		#define CPP	"CL -E/E"
+	   or call spin as:	"spin -PCL  -E/E"
+
+	   on OS2:
+		#define CPP	"icc -E/Pd+ -E/Q+"
+	   or call spin as:	"spin -Picc -E/Pd+ -E/Q+"
+	*/
 #ifndef CPP
-		/* OS2:		"spin -Picc -E/Pd+ -E/Q+"    */
-		/* Visual C++:	"spin -PCL  -E/E             */
-#ifdef PC
-#define CPP	"gcc -E -x c"	/* most systems have gcc anyway */
-				/* else use "cpp" */
-#else
-#ifdef SOLARIS
-#define CPP	"/usr/ccs/lib/cpp"
-#else
-#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
-#define CPP	"cpp"
-#else
-#define CPP	"/bin/cpp"	/* classic Unix systems */
-#endif
-#endif
+	#if defined(PC) || defined(MAC)
+		#define CPP	"gcc -E -x c"	/* most systems have gcc or cpp */
+		/* if gcc-4 is available, this setting is modified below */
+	#else
+		#ifdef SOLARIS
+			#define CPP	"/usr/ccs/lib/cpp"
+		#else
+			#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+				#define CPP	"cpp"
+			#else
+				#define CPP	"/bin/cpp"	/* classic Unix systems */
+			#endif
+		#endif
+	#endif
 #endif
 
-#endif
 static char	*PreProc = CPP;
 extern int	depth; /* at least some steps were made */
 
@@ -114,15 +132,35 @@ alldone(int estatus)
 
 void
 preprocess(char *a, char *b, int a_tmp)
-{	char precmd[512], cmd[1024]; int i;
+{	char precmd[1024], cmd[2048]; int i;
+#if defined(WIN32) || defined(WIN64)
+	struct _stat x;
+/*	struct stat x;	*/
+#endif
 #ifdef PC
 	extern int try_zpp(char *, char *);
-	if (PreCnt == 0 && try_zpp(a, b)) goto out;
+	if (PreCnt == 0 && try_zpp(a, b))
+	{	goto out;
+	}
+#endif
+#if defined(WIN32) || defined(WIN64)
+	if (strncmp(PreProc, "gcc -E -x c", strlen("gcc -E -x c")) == 0)
+	{	if (stat("/bin/gcc-4.exe", (struct stat *)&x) == 0	/* for PCs with cygwin */
+		||  stat("c:/cygwin/bin/gcc-4.exe", (struct stat *)&x) == 0)
+		{	PreProc = "gcc-4 -E -x c";
+		} else if (stat("/bin/gcc-3.exe", (struct stat *)&x) == 0
+		       ||  stat("c:/cygwin/bin/gcc-3.exe", (struct stat *)&x) == 0)
+		{	PreProc = "gcc-3 -E -x c";
+	}	}
 #endif
 	strcpy(precmd, PreProc);
 	for (i = 1; i <= PreCnt; i++)
 	{	strcat(precmd, " ");
 		strcat(precmd, PreArg[i]);
+	}
+	if (strlen(precmd) > sizeof(precmd))
+	{	fprintf(stdout, "spin: too many -D args, aborting\n");
+		alldone(1);
 	}
 	sprintf(cmd, "%s %s > %s", precmd, a, b);
 	if (system((const char *)cmd))
@@ -135,23 +173,6 @@ preprocess(char *a, char *b, int a_tmp)
 out:
 #endif
 	if (a_tmp) (void) unlink((const char *) a);
-}
-
-FILE *
-cpyfile(char *src, char *tgt)
-{	FILE *inp, *out;
-	char buf[1024];
-
-	inp = fopen(src, "r");
-	out = fopen(tgt, "w");
-	if (!inp || !out)
-	{	printf("spin: cannot cp %s to %s\n", src, tgt);
-		alldone(1);
-	}
-	while (fgets(buf, 1024, inp))
-		fprintf(out, "%s", buf);
-	fclose(inp);
-	return out;
 }
 
 void
@@ -168,25 +189,30 @@ usage(void)
 	printf("\t-d produce symbol-table information\n");
 	printf("\t-Dyyy pass -Dyyy to the preprocessor\n");
 	printf("\t-Eyyy pass yyy to the preprocessor\n");
+	printf("\t-e compute synchronous product of multiple never claims (modified by -L)\n");
 	printf("\t-f \"..formula..\"  translate LTL ");
 	printf("into never claim\n");
-	printf("\t-F file  like -f, but with the LTL ");
-	printf("formula stored in a 1-line file\n");
+	printf("\t-F file  like -f, but with the LTL formula stored in a 1-line file\n");
 	printf("\t-g print all global variables\n");
-	printf("\t-h  at end of run, print value of seed for random nr generator used\n");
+	printf("\t-h at end of run, print value of seed for random nr generator used\n");
 	printf("\t-i interactive (random simulation)\n");
 	printf("\t-I show result of inlining and preprocessing\n");
 	printf("\t-J reverse eval order of nested unlesses\n");
 	printf("\t-jN skip the first N steps ");
 	printf("in simulation trail\n");
+	printf("\t-k fname use the trailfile stored in file fname, see also -t\n");
+	printf("\t-L when using -e, use strict language intersection\n");
 	printf("\t-l print all local variables\n");
 	printf("\t-M print msc-flow in Postscript\n");
 	printf("\t-m lose msgs sent to full queues\n");
-	printf("\t-N file use never claim stored in file\n");
+	printf("\t-N fname use never claim stored in file fname\n");
 	printf("\t-nN seed for random nr generator\n");
+	printf("\t-O use old scope rules (pre 5.3.0)\n");
 	printf("\t-o1 turn off dataflow-optimizations in verifier\n");
 	printf("\t-o2 don't hide write-only variables in verifier\n");
 	printf("\t-o3 turn off statement merging in verifier\n");
+	printf("\t-o4 turn on rendezvous optiomizations in verifier\n");
+	printf("\t-o5 turn on case caching (reduces size of pan.m, but affects reachability reports)\n");
 	printf("\t-Pxxx use xxx for preprocessing\n");
 	printf("\t-p print all statements\n");
 	printf("\t-qN suppress io for queue N in printouts\n");
@@ -194,7 +220,7 @@ usage(void)
 	printf("\t-S1 and -S2 separate pan source for claim and model\n");
 	printf("\t-s print send events\n");
 	printf("\t-T do not indent printf output\n");
-	printf("\t-t[N] follow [Nth] simulation trail\n");
+	printf("\t-t[N] follow [Nth] simulation trail, see also -k\n");
 	printf("\t-Uyyy pass -Uyyy to the preprocessor\n");
 	printf("\t-uN stop a simulation run after N steps\n");
 	printf("\t-v verbose, more warnings\n");
@@ -205,7 +231,7 @@ usage(void)
 }
 
 void
-optimizations(char nr)
+optimizations(int nr)
 {
 	switch (nr) {
 	case '1':
@@ -250,31 +276,6 @@ optimizations(char nr)
 	}
 }
 
-#if 0
-static int
-Rename(const char *old, char *new)
-{	FILE *fo, *fn;
-	char buf[1024];
-
-	if ((fo = fopen(old, "r")) == NULL)
-	{	printf("spin: cannot open %s\n", old);
-		return 1;
-	}
-	if ((fn = fopen(new, "w")) == NULL)
-	{	printf("spin: cannot create %s\n", new);
-		fclose(fo);
-		return 2;
-	}
-	while (fgets(buf, 1024, fo))
-		fputs(buf, fn);
-
-	fclose(fo);
-	fclose(fn);
-
-	return 0;	/* success */
-}
-#endif
-
 int
 main(int argc, char *argv[])
 {	Symbol *s;
@@ -285,16 +286,15 @@ main(int argc, char *argv[])
 	yyin  = stdin;
 	yyout = stdout;
 	tl_out = stdout;
+	strcpy(CurScope, "_");
 
-	/* unused flags: e, w, x, y, z, A, G, I, L, O, Q, R, S, T, W */
+	/* unused flags: y, z, G, L, Q, R, W */
 	while (argc > 1 && argv[1][0] == '-')
 	{	switch (argv[1][1]) {
-
 		/* generate code for separate compilation: S1 or S2 */
 		case 'S': separate = atoi(&argv[1][2]);
 			  /* fall through */
 		case 'a': analyze  = 1; break;
-
 		case 'A': export_ast = 1; break;
 		case 'B': no_wrapup = 1; break;
 		case 'b': no_print = 1; break;
@@ -305,6 +305,7 @@ main(int argc, char *argv[])
 		case 'd': dumptab =  1; break;
 		case 'E': PreArg[++PreCnt] = (char *) &argv[1][2];
 			  break;
+		case 'e': product++; break; /* see also 'L' */
 		case 'F': ltl_file = (char **) (argv+2);
 			  argc--; argv++; break;
 		case 'f': add_ltl = (char **) argv;
@@ -315,34 +316,42 @@ main(int argc, char *argv[])
 		case 'I': inlineonly = 1; break;
 		case 'J': like_java = 1; break;
 		case 'j': jumpsteps = atoi(&argv[1][2]); break;
+		case 'k': s_trail = 1;
+			  trailfilename = (char **) (argv+2);
+			  argc--; argv++; break;
+		case 'L': Strict++; break; /* modified -e */
 		case 'l': verbose +=  2; break;
 		case 'M': columns = 2; break;
 		case 'm': m_loss   =  1; break;
 		case 'N': nvr_file = (char **) (argv+2);
 			  argc--; argv++; break;
 		case 'n': T = atoi(&argv[1][2]); tl_terse = 1; break;
+		case 'O': old_scope_rules = 1; break;
 		case 'o': optimizations(argv[1][2]);
 			  usedopts = 1; break;
 		case 'P': PreProc = (char *) &argv[1][2]; break;
 		case 'p': verbose +=  4; break;
-		case 'q': if (isdigit(argv[1][2]))
+		case 'q': if (isdigit((int) argv[1][2]))
 				qhide(atoi(&argv[1][2]));
 			  break;
 		case 'r': verbose +=  8; break;
 		case 's': verbose += 16; break;
 		case 'T': notabs = 1; break;
 		case 't': s_trail  =  1;
-			  if (isdigit(argv[1][2]))
+			  if (isdigit((int)argv[1][2]))
 				ntrail = atoi(&argv[1][2]);
 			  break;
 		case 'U': PreArg[++PreCnt] = (char *) &argv[1][0];
 			  break;	/* undefine */
 		case 'u': cutoff = atoi(&argv[1][2]); break;	/* new 3.4.14 */
 		case 'v': verbose += 32; break;
-		case 'V': printf("%s\n", Version);
+		case 'V': printf("%s\n", SpinVersion);
 			  alldone(0);
 			  break;
 		case 'w': verbose += 64; break;
+#if 0
+		case 'x': split_decl = 0; break;	/* experimental */
+#endif
 		case 'X': xspin = notabs = 1;
 #ifndef PC
 			  signal(SIGPIPE, alldone); /* not posix... */
@@ -355,9 +364,10 @@ main(int argc, char *argv[])
 		}
 		argc--; argv++;
 	}
+
 	if (usedopts && !analyze)
 		printf("spin: warning -o[123] option ignored in simulations\n");
-	
+
 	if (ltl_file)
 	{	char formula[4096];
 		add_ltl = ltl_file-2; add_ltl[1][1] = 'f';
@@ -365,41 +375,42 @@ main(int argc, char *argv[])
 		{	printf("spin: cannot open %s\n", *ltl_file);
 			alldone(1);
 		}
-		fgets(formula, 4096, tl_out);
+		if (!fgets(formula, 4096, tl_out))
+		{	printf("spin: cannot read %s\n", *ltl_file);
+		}
 		fclose(tl_out);
 		tl_out = stdout;
 		*ltl_file = (char *) formula;
 	}
 	if (argc > 1)
-	{	char cmd[128], out2[64];
+	{	FILE *fd = stdout;
+		char cmd[512], out2[512];
 
 		/* must remain in current dir */
 		strcpy(out1, "pan.pre");
 
 		if (add_ltl || nvr_file)
-			strcpy(out2, "pan.___");
-
-		if (add_ltl)
-		{	tl_out = cpyfile(argv[1], out2);
-			nr_errs = tl_main(2, add_ltl);	/* in tl_main.c */
-			fclose(tl_out);
-			preprocess(out2, out1, 1);
-		} else if (nvr_file)
-		{	FILE *fd; char buf[1024];
-			
-			if ((fd = fopen(*nvr_file, "r")) == NULL)
-			{	printf("spin: cannot open %s\n",
-					*nvr_file);
+		{	sprintf(out2, "%s.nvr", argv[1]);
+			if ((fd = fopen(out2, MFLAGS)) == NULL)
+			{	printf("spin: cannot create tmp file %s\n",
+					out2);
 				alldone(1);
 			}
-			tl_out = cpyfile(argv[1], out2);
-			while (fgets(buf, 1024, fd))
-				fprintf(tl_out, "%s", buf);
-			fclose(tl_out);
+			fprintf(fd, "#include \"%s\"\n", argv[1]);
+		}
+
+		if (add_ltl)
+		{	tl_out = fd;
+			nr_errs = tl_main(2, add_ltl);
+			fclose(fd);
+			preprocess(out2, out1, 1);
+		} else if (nvr_file)
+		{	fprintf(fd, "#include \"%s\"\n", *nvr_file);
 			fclose(fd);
 			preprocess(out2, out1, 1);
 		} else
-			preprocess(argv[1], out1, 0);
+		{	preprocess(argv[1], out1, 0);
+		}
 
 		if (preprocessonly)
 			alldone(0);
@@ -409,8 +420,8 @@ main(int argc, char *argv[])
 			alldone(1);
 		}
 
-		if (strncmp(argv[1], "progress", 8) == 0
-		||  strncmp(argv[1], "accept", 6) == 0)
+		if (strncmp(argv[1], "progress", (size_t) 8) == 0
+		||  strncmp(argv[1], "accept", (size_t) 6) == 0)
 			sprintf(cmd, "_%s", argv[1]);
 		else
 			strcpy(cmd, argv[1]);
@@ -428,9 +439,10 @@ main(int argc, char *argv[])
 			printf("spin: missing argument to -f\n");
 			alldone(1);
 		}
-		printf("%s\n", Version);
-		printf("reading input from stdin:\n");
+		printf("%s\n", SpinVersion);
+		fprintf(stderr, "spin: error, no filename specified");
 		fflush(stdout);
+		alldone(1);
 	}
 	if (columns == 2)
 	{	extern void putprelude(void);
@@ -444,7 +456,7 @@ main(int argc, char *argv[])
 		verbose += (8+16);
 	if (columns == 2 && limited_vis)
 		verbose += (1+4);
-	Srand(T);	/* defined in run.c */
+	Srand((unsigned int) T);	/* defined in run.c */
 	SeedUsed = T;
 	s = lookup("_");	s->type = PREDEF; /* write-only global var */
 	s = lookup("_p");	s->type = PREDEF;
@@ -454,6 +466,23 @@ main(int argc, char *argv[])
 
 	yyparse();
 	fclose(yyin);
+
+	if (ltl_claims)
+	{	Symbol *r;
+		fclose(fd_ltl);
+		if (!(yyin = fopen(ltl_claims, "r")))
+		{	fatal("cannot open %s", ltl_claims);
+		}
+		r = oFname;
+		oFname = Fname = lookup(ltl_claims);
+		lineno = 0;
+		yyparse();
+		fclose(yyin);
+		oFname = Fname = r;
+		if (0)
+		{	(void) unlink(ltl_claims);
+	}	}
+
 	loose_ends();
 
 	if (inlineonly)
@@ -471,6 +500,35 @@ main(int argc, char *argv[])
 	return 0;
 }
 
+void
+ltl_list(char *nm, char *fm)
+{
+	if (analyze || dumptab)	/* when generating pan.c only */
+	{	if (!ltl_claims)
+		{	ltl_claims = "_spin_nvr.tmp";
+			if ((fd_ltl = fopen(ltl_claims, MFLAGS)) == NULL)
+			{	fatal("cannot open tmp file %s", ltl_claims);
+			}
+			tl_out = fd_ltl;
+		}
+
+		add_ltl = (char **) emalloc(5 * sizeof(char *));
+		add_ltl[1] = "-c";
+		add_ltl[2] = nm;
+		add_ltl[3] = "-f";
+		add_ltl[4] = (char *) emalloc(strlen(fm)+4);
+		strcpy(add_ltl[4], "!(");
+		strcat(add_ltl[4], fm);
+		strcat(add_ltl[4], ")");
+		/* add_ltl[4] = fm; */
+
+		nr_errs += tl_main(4, add_ltl);
+
+		fflush(tl_out);
+		/* should read this file after the main file is read */
+	}
+}
+
 int
 yywrap(void)	/* dummy routine */
 {
@@ -481,13 +539,13 @@ void
 non_fatal(char *s1, char *s2)
 {	extern char yytext[];
 
-	printf("spin: line %3d %s, Error: ",
-		lineno, Fname?Fname->name:"nofilename");
+	printf("spin: %s:%d, Error: ",
+		oFname?oFname->name:"nofilename", lineno);
 	if (s2)
 		printf(s1, s2);
 	else
 		printf(s1);
-	if (yytext && strlen(yytext)>1)
+	if (strlen(yytext)>1)
 		printf(" near '%s'", yytext);
 	printf("\n");
 	nr_errs++;
@@ -497,24 +555,35 @@ void
 fatal(char *s1, char *s2)
 {
 	non_fatal(s1, s2);
+	(void) unlink("pan.b");
+	(void) unlink("pan.c");
+	(void) unlink("pan.h");
+	(void) unlink("pan.m");
+	(void) unlink("pan.t");
+	(void) unlink("pan.pre");
 	alldone(1);
 }
 
 char *
-emalloc(int n)
+emalloc(size_t n)
 {	char *tmp;
+	static unsigned long cnt = 0;
 
 	if (n == 0)
 		return NULL;	/* robert shelton 10/20/06 */
 
 	if (!(tmp = (char *) malloc(n)))
+	{	printf("spin: allocated %ld Gb, wanted %d bytes more\n",
+			cnt/(1024*1024*1024), (int) n);
 		fatal("not enough memory", (char *)0);
+	}
+	cnt += (unsigned long) n;
 	memset(tmp, 0, n);
 	return tmp;
 }
 
 void
-trapwonly(Lextok *n, char *unused)
+trapwonly(Lextok *n /* , char *unused */)
 {	extern int realread;
 	short i = (n->sym)?n->sym->type:0;
 
@@ -555,6 +624,7 @@ nn(Lextok *s, int t, Lextok *ll, Lextok *rl)
 {	Lextok *n = (Lextok *) emalloc(sizeof(Lextok));
 	static int warn_nn = 0;
 
+	n->uiid = is_inline();	/* record origin of the statement */
 	n->ntyp = (short) t;
 	if (s && s->fn)
 	{	n->ln = s->ln;
@@ -679,13 +749,13 @@ rem_var(Symbol *a, Lextok *b, Symbol *c, Lextok *ndx)
 #endif
 }
 
-static void
+void
 explain(int n)
 {	FILE *fd = stdout;
 	switch (n) {
 	default:	if (n > 0 && n < 256)
-				fprintf(fd, "'%c' = '", n);
-			fprintf(fd, "%d'", n);
+				fprintf(fd, "'%c' = ", n);
+			fprintf(fd, "%d", n);
 			break;
 	case '\b':	fprintf(fd, "\\b"); break;
 	case '\t':	fprintf(fd, "\\t"); break;
@@ -698,6 +768,16 @@ explain(int n)
 	case 'R':	fprintf(fd, "recv poll %s", Operator); break;
 	case '@':	fprintf(fd, "@"); break;
 	case '?':	fprintf(fd, "(x->y:z)"); break;
+#if 1
+	case NEXT:	fprintf(fd, "X"); break;
+	case ALWAYS:	fprintf(fd, "[]"); break;
+	case EVENTUALLY: fprintf(fd, "<>"); break;
+	case IMPLIES:	fprintf(fd, "->"); break;
+	case EQUIV:	fprintf(fd, "<->"); break;
+	case UNTIL:	fprintf(fd, "U"); break;
+	case WEAK_UNTIL: fprintf(fd, "W"); break;
+	case IN: fprintf(fd, "%sin", Keyword); break;
+#endif
 	case ACTIVE:	fprintf(fd, "%sactive",	Keyword); break;
 	case AND:	fprintf(fd, "%s&&",	Operator); break;
 	case ASGN:	fprintf(fd, "%s=",	Operator); break;
@@ -776,3 +856,5 @@ explain(int n)
 	case UNLESS:	fprintf(fd, "%sunless",	Keyword); break;
 	}
 }
+
+

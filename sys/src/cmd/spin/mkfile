@@ -14,6 +14,7 @@ SPIN_OS=\
 	pangen4.$O\
 	pangen5.$O\
 	pangen6.$O\
+	pangen7.$O\
 	pc_zpp.$O\
 	ps_msc.$O\
 	reprosrc.$O\
@@ -53,4 +54,4 @@ $TL_OS:		tl.h
 
 main.$O pangen2.$O ps_msc.$O:	version.h
 pangen1.$O:			pangen1.h pangen3.h
-pangen2.$O:			pangen2.h pangen4.h pangen5.h
+pangen2.$O:			pangen2.h pangen4.h pangen5.h pangen6.h

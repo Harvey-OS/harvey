@@ -185,9 +185,11 @@ sa_snd(Queue *q, Lextok *n)	/* sorted asynchronous */
 	for (j = 0, m = n->rgt; m && j < q->nflds; m = m->rgt, j++)
 	{	New = cast_val(q->fld_width[j], eval(m->lft), 0);
 		Old = q->contents[i*q->nflds+j];
-		if (New == Old) continue;
-		if (New >  Old) break;			/* inner loop */
-		if (New <  Old) goto found;
+		if (New == Old)
+			continue;
+		if (New >  Old)
+			break;	/* inner loop */
+		goto found;	/* New < Old */
 	}
 found:
 	for (j = q->qlen-1; j >= i; j--)
@@ -383,7 +385,7 @@ s_snd(Queue *q, Lextok *n)
 	return 1;
 }
 
-void
+static void
 channm(Lextok *n)
 {	char lbuf[512];
 
@@ -394,7 +396,11 @@ channm(Lextok *n)
 	else if (n->sym->type == STRUCT)
 	{	Symbol *r = n->sym;
 		if (r->context)
-			r = findloc(r);
+		{	r = findloc(r);
+			if (!r)
+			{	strcat(Buf, "*?*");
+				return;
+		}	}
 		ini_struct(r);
 		printf("%s", r->name);
 		strcpy(lbuf, "");
@@ -462,7 +468,7 @@ typedef struct QH {
 	int	n;
 	struct	QH *nxt;
 } QH;
-QH *qh;
+static QH *qh;
 
 void
 qhide(int q)
@@ -483,7 +489,7 @@ qishidden(int q)
 
 static void
 sr_talk(Lextok *n, int v, char *tr, char *a, int j, Queue *q)
-{	char s[64];
+{	char s[128];
 
 	if (qishidden(eval(n->lft)))
 		return;
@@ -510,9 +516,20 @@ sr_talk(Lextok *n, int v, char *tr, char *a, int j, Queue *q)
 	}
 
 	if (j == 0)
-	{	whoruns(1);
-		printf("line %3d %s %s",
-			n->ln, n->fn->name, s);
+	{	char snm[128];
+		whoruns(1);
+		{	char *ptr = n->fn->name;
+			char *qtr = snm;
+			while (*ptr != '\0')
+			{	if (*ptr != '\"')
+				{	*qtr++ = *ptr;
+				}
+				ptr++;
+			}
+			*qtr = '\0';
+			printf("%s:%d %s",
+				snm, n->ln, s);
+		}
 	} else
 		printf(",");
 	sr_mesg(stdout, v, q->fld_width[j] == MTYPE);
@@ -572,10 +589,15 @@ doq(Symbol *s, int n, RunList *r)
 			continue;
 		if (q->nslots == 0)
 			continue; /* rv q always empty */
+#if 0
+		if (q->qlen == 0)	/* new 7/10 -- dont show if queue is empty */
+		{	continue;
+		}
+#endif
 		printf("\t\tqueue %d (", q->qid);
 		if (r)
 		printf("%s(%d):", r->n->name, r->pid - Have_claim);
-		if (s->nel != 1)
+		if (s->nel > 1 || s->isarray)
 		  printf("%s[%d]): ", s->name, n);
 		else
 		  printf("%s): ", s->name);
@@ -609,7 +631,10 @@ nochan_manip(Lextok *p, Lextok *n, int d)
 		}	
 	}
 
-	if (!n || n->ntyp == LEN || n->ntyp == RUN)
+	/* ok on the rhs of an assignment: */
+	if (!n || n->ntyp == LEN || n->ntyp == RUN
+	||  n->ntyp == FULL  || n->ntyp == NFULL
+	||  n->ntyp == EMPTY || n->ntyp == NEMPTY)
 		return;
 
 	if (n->sym && n->sym->type == CHAN)
@@ -627,6 +652,120 @@ nochan_manip(Lextok *p, Lextok *n, int d)
 	nochan_manip(p, n->rgt, 1);
 }
 
+typedef struct BaseName {
+	char *str;
+	int cnt;
+	struct BaseName *nxt;
+} BaseName;
+BaseName *bsn;
+
+void
+newbasename(char *s)
+{	BaseName *b;
+
+/*	printf("+++++++++%s\n", s);	*/
+	for (b = bsn; b; b = b->nxt)
+		if (strcmp(b->str, s) == 0)
+		{	b->cnt++;
+			return;
+		}
+	b = (BaseName *) emalloc(sizeof(BaseName));
+	b->str = emalloc(strlen(s)+1);
+	b->cnt = 1;
+	strcpy(b->str, s);
+	b->nxt = bsn;
+	bsn = b;
+}
+
+void
+delbasename(char *s)
+{	BaseName *b, *prv = (BaseName *) 0;
+
+	for (b = bsn; b; prv = b, b = b->nxt)
+	{	if (strcmp(b->str, s) == 0)
+		{	b->cnt--;
+			if (b->cnt == 0)
+			{	if (prv)
+				{	prv->nxt = b->nxt;
+				} else
+				{	bsn = b->nxt;
+			}	}
+/*	printf("---------%s\n", s);	*/
+			break;
+	}	}
+}
+
+void
+checkindex(char *s, char *t)
+{	BaseName *b;
+
+/*	printf("xxx Check %s (%s)\n", s, t);	*/
+	for (b = bsn; b; b = b->nxt)
+	{
+/*		printf("	%s\n", b->str);	*/
+		if (strcmp(b->str, s) == 0)
+		{	non_fatal("do not index an array with itself (%s)", t);
+			break;
+	}	}
+}
+
+void
+scan_tree(Lextok *t, char *mn, char *mx)
+{	char sv[512];
+	char tmp[32];
+	int oln = lineno;
+
+	if (!t) return;
+
+	lineno = t->ln;
+
+	if (t->ntyp == NAME)
+	{	strcat(mn, t->sym->name);
+		strcat(mx, t->sym->name);
+		if (t->lft)		/* array index */
+		{	strcat(mn, "[]");
+			newbasename(mn);
+				strcpy(sv, mn);		/* save */
+				strcpy(mn, "");		/* clear */
+				strcat(mx, "[");
+				scan_tree(t->lft, mn, mx);	/* index */
+				strcat(mx, "]");
+				checkindex(mn, mx);	/* match against basenames */
+				strcpy(mn, sv);		/* restore */
+			delbasename(mn);
+		}
+		if (t->rgt)	/* structure element */
+		{	scan_tree(t->rgt, mn, mx);
+		}
+	} else if (t->ntyp == CONST)
+	{	strcat(mn, "1"); /* really: t->val */
+		sprintf(tmp, "%d", t->val);
+		strcat(mx, tmp);
+	} else if (t->ntyp == '.')
+	{	strcat(mn, ".");
+		strcat(mx, ".");
+		scan_tree(t->lft, mn, mx);
+	} else
+	{	strcat(mn, "??");
+		strcat(mx, "??");
+	}
+	lineno = oln;
+}
+
+void
+no_nested_array_refs(Lextok *n)	/* a [ a[1] ] with a[1] = 1, causes trouble in pan.b */
+{	char mn[512];
+	char mx[512];
+
+/*	printf("==================================ZAP\n");	*/
+	bsn = (BaseName *) 0;	/* start new list */
+	strcpy(mn, "");
+	strcpy(mx, "");
+
+	scan_tree(n, mn, mx);
+/*	printf("==> %s\n", mn);	*/
+}
+
 void
 no_internals(Lextok *n)
 {	char *sp;
@@ -641,4 +780,6 @@ no_internals(Lextok *n)
 	||  (strlen(sp) == strlen("_p") && strcmp(sp, "_p") == 0))
 	{	fatal("attempt to assign value to system variable %s", sp);
 	}
+
+	no_nested_array_refs(n);
 }

@@ -48,7 +48,7 @@ struct{
 	Xglob, "Xglob",
 	Xrdfn, "Xrdfn",
 	Xsimple, "Xsimple",
-	Xrdfn, "Xrdfn",
+	Xsub, "Xsub",
 	Xqdol, "Xqdol",
 0};
 

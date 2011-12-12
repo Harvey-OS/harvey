@@ -19,7 +19,7 @@ typedef struct UType {
 } UType;
 
 extern	Symbol	*Fname;
-extern	int	lineno, depth, Expand_Ok;
+extern	int	lineno, depth, Expand_Ok, has_hidden, in_for;
 
 Symbol	*owner;
 
@@ -33,14 +33,16 @@ void
 setuname(Lextok *n)
 {	UType *tmp;
 
+	if (!owner)
+		fatal("illegal reference inside typedef", (char *) 0);
+
 	for (tmp = Unames; tmp; tmp = tmp->nxt)
 		if (!strcmp(owner->name, tmp->nm->name))
 		{	non_fatal("typename %s was defined before",
 				tmp->nm->name);
 			return;
 		}
-	if (!owner) fatal("illegal reference inside typedef",
-		(char *) 0);
+
 	tmp = (UType *) emalloc(sizeof(UType));
 	tmp->nm = owner;
 	tmp->cn = n;
@@ -102,21 +104,22 @@ setutype(Lextok *p, Symbol *t, Lextok *vis)	/* user-defined types */
 	{	lineno = n->ln;
 		Fname = n->fn;
 		if (n->sym->type)
-		non_fatal("redeclaration of '%s'", n->sym->name);
+			fatal("redeclaration of '%s'", n->sym->name);
 
 		if (n->sym->nbits > 0)
-		non_fatal("(%s) only an unsigned can have width-field",
-			n->sym->name);
+			non_fatal("(%s) only an unsigned can have width-field",
+				n->sym->name);
 
 		if (Expand_Ok)
 			n->sym->hidden |= (4|8|16); /* formal par */
 
 		if (vis)
-		{	if (strncmp(vis->sym->name, ":hide:", 6) == 0)
-				n->sym->hidden |= 1;
-			else if (strncmp(vis->sym->name, ":show:", 6) == 0)
+		{	if (strncmp(vis->sym->name, ":hide:", (size_t) 6) == 0)
+			{	n->sym->hidden |= 1;
+				has_hidden++;
+			} else if (strncmp(vis->sym->name, ":show:", (size_t) 6) == 0)
 				n->sym->hidden |= 2;
-			else if (strncmp(vis->sym->name, ":local:", 7) == 0)
+			else if (strncmp(vis->sym->name, ":local:", (size_t) 7) == 0)
 				n->sym->hidden |= 64;
 		}
 		n->sym->type = STRUCT;	/* classification   */
@@ -196,6 +199,7 @@ Rval_struct(Lextok *n, Symbol *v, int xinit)	/* n varref, v valref */
 		fatal("non-zero 'rgt' on non-structure", 0);
 
 	ix = eval(tmp->lft);
+/*	printf("%d: ix: %d (%d) %d\n", depth, ix, tl->nel, tl->val[ix]); */
 	if (ix >= tl->nel || ix < 0)
 		fatal("indexing error \'%s\'", tl->name);
 
@@ -222,10 +226,12 @@ Lval_struct(Lextok *n, Symbol *v, int xinit, int a)  /* a = assigned value */
 		fatal("indexing error \'%s\'", tl->name);
 
 	if (tl->nbits > 0)
-		a = (a & ((1<<tl->nbits)-1));	
-	tl->val[ix] = a;
-	tl->setat = depth;
+		a = (a & ((1<<tl->nbits)-1));
 
+	if (a != tl->val[ix])
+	{	tl->val[ix] = a;
+		tl->setat = depth;
+	}
 	return 1;
 }
 
@@ -246,7 +252,7 @@ is_lst:
 	for (fp = n; fp; fp = fp->rgt)
 	for (tl = fp->lft; tl; tl = tl->rgt)
 	{	if (tl->sym->type == STRUCT)
-		{	if (tl->sym->nel != 1)
+		{	if (tl->sym->nel > 1 || tl->sym->isarray)
 				fatal("array of structures in param list, %s",
 					tl->sym->name);
 			cnt += Cnt_flds(tl->sym->Slst);
@@ -266,9 +272,9 @@ Sym_typ(Lextok *t)
 		return s->type;
 
 	if (!t->rgt
-	||  !t->rgt->ntyp == '.'
+	||   t->rgt->ntyp != '.'	/* gh: had ! in wrong place */
 	||  !t->rgt->lft)
-		return STRUCT;	/* not a field reference */
+		return STRUCT;		/* not a field reference */
 
 	return Sym_typ(t->rgt->lft);
 }
@@ -315,6 +321,7 @@ cpnn(Lextok *s, int L, int R, int S)
 	if (!s) return ZN;
 
 	d = (Lextok *) emalloc(sizeof(Lextok));
+	d->uiid = s->uiid;
 	d->ntyp = s->ntyp;
 	d->val  = s->val;
 	d->ln   = s->ln;
@@ -353,7 +360,7 @@ full_name(FILE *fd, Lextok *n, Symbol *v, int xinit)
 		goto out;
 	}
 	fprintf(fd, ".%s", tl->name);
-out:	if (tmp->sym->nel > 1)
+out:	if (tmp->sym->nel > 1 || tmp->sym->isarray == 1)
 	{	fprintf(fd, "[%d]", eval(tmp->lft));
 		hiddenarrays = 1;
 	}
@@ -391,7 +398,7 @@ struct_name(Lextok *n, Symbol *v, int xinit, char *buf)
 	}
 	sprintf(lbuf, ".%s", tl->name);
 	strcat(buf, lbuf);
-	if (tmp->sym->nel > 1)
+	if (tmp->sym->nel > 1 || tmp->sym->isarray == 1)
 	{	sprintf(lbuf, "[%d]", eval(tmp->lft));
 		strcat(buf, lbuf);
 	}
@@ -405,10 +412,10 @@ walk2_struct(char *s, Symbol *z)
 	extern void Done_case(char *, Symbol *);
 
 	ini_struct(z);
-	if (z->nel == 1)
+	if (z->nel == 1 && z->isarray == 0)
 		sprintf(eprefix, "%s%s.", s, z->name);
 	for (ix = 0; ix < z->nel; ix++)
-	{	if (z->nel > 1)
+	{	if (z->nel > 1 || z->isarray == 1)
 			sprintf(eprefix, "%s%s[%d].", s, z->name, ix);
 		for (fp = z->Sval[ix]; fp; fp = fp->rgt)
 		for (tl = fp->lft; tl; tl = tl->rgt)
@@ -426,10 +433,10 @@ walk_struct(FILE *ofd, int dowhat, char *s, Symbol *z, char *a, char *b, char *c
 	int ix;
 
 	ini_struct(z);
-	if (z->nel == 1)
+	if (z->nel == 1 && z->isarray == 0)
 		sprintf(eprefix, "%s%s.", s, z->name);
 	for (ix = 0; ix < z->nel; ix++)
-	{	if (z->nel > 1)
+	{	if (z->nel > 1 || z->isarray == 1)
 			sprintf(eprefix, "%s%s[%d].", s, z->name, ix);
 		for (fp = z->Sval[ix]; fp; fp = fp->rgt)
 		for (tl = fp->lft; tl; tl = tl->rgt)
@@ -443,7 +450,7 @@ walk_struct(FILE *ofd, int dowhat, char *s, Symbol *z, char *a, char *b, char *c
 void
 c_struct(FILE *fd, char *ipref, Symbol *z)
 {	Lextok *fp, *tl;
-	char pref[256], eprefix[256];
+	char pref[256], eprefix[300];
 	int ix;
 
 	ini_struct(z);
@@ -452,7 +459,7 @@ c_struct(FILE *fd, char *ipref, Symbol *z)
 	for (fp = z->Sval[ix]; fp; fp = fp->rgt)
 	for (tl = fp->lft; tl; tl = tl->rgt)
 	{	strcpy(eprefix, ipref);
-		if (z->nel > 1)
+		if (z->nel > 1 || z->isarray == 1)
 		{	/* insert index before last '.' */
 			eprefix[strlen(eprefix)-1] = '\0';
 			sprintf(pref, "[ %d ].", ix);
@@ -476,7 +483,7 @@ dump_struct(Symbol *z, char *prefix, RunList *r)
 	ini_struct(z);
 
 	for (ix = 0; ix < z->nel; ix++)
-	{	if (z->nel > 1)
+	{	if (z->nel > 1 || z->isarray == 1)
 			sprintf(eprefix, "%s[%d]", prefix, ix);
 		else
 			strcpy(eprefix, prefix);
@@ -484,7 +491,7 @@ dump_struct(Symbol *z, char *prefix, RunList *r)
 		for (fp = z->Sval[ix]; fp; fp = fp->rgt)
 		for (tl = fp->lft; tl; tl = tl->rgt)
 		{	if (tl->sym->type == STRUCT)
-			{	char pref[256];
+			{	char pref[300];
 				strcpy(pref, eprefix);
 				strcat(pref, ".");
 				strcat(pref, tl->sym->name);
@@ -498,7 +505,7 @@ dump_struct(Symbol *z, char *prefix, RunList *r)
 					if (r)
 					printf("%s(%d):", r->n->name, r->pid);
 					printf("%s.%s", eprefix, tl->sym->name);
-					if (tl->sym->nel > 1)
+					if (tl->sym->nel > 1 || tl->sym->isarray == 1)
 						printf("[%d]", jx);
 					printf(" = ");
 					sr_mesg(stdout, tl->sym->val[jx],
@@ -579,8 +586,10 @@ mk_explicit(Lextok *n, int Ok, int Ntyp)
 	int i, cnt; extern int IArgs;
 
 	if (n->sym->type != STRUCT
+	||  in_for
 	||  is_explicit(n))
 		return n;
+
 
 	if (n->rgt
 	&&  n->rgt->ntyp == '.'

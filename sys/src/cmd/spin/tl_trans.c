@@ -15,7 +15,7 @@
 #include "tl.h"
 
 extern FILE	*tl_out;
-extern int	tl_errs, tl_verbose, tl_terse, newstates;
+extern int	tl_errs, tl_verbose, tl_terse, newstates, state_cnt;
 
 int	Stack_mx=0, Max_Red=0, Total=0;
 
@@ -50,6 +50,24 @@ static void	mk_red(Node *);
 static void	ng(Symbol *, Symbol *, Node *, Node *, Node *);
 static void	push_stack(Graph *);
 static void	sdump(Node *);
+
+void
+ini_trans(void)
+{
+	Stack_mx = 0;
+	Max_Red = 0;
+	Total = 0;
+
+	Mapped = (Mapping *) 0;
+	Nodes_Set = (Graph *) 0;
+	Nodes_Stack = (Graph *) 0;
+
+	memset(dumpbuf, 0, sizeof(dumpbuf));
+	Red_cnt  = 0;
+	Lab_cnt  = 0;
+	Base     = 0;
+	Stack_sz = 0;
+}
 
 static void
 dump_graph(Graph *g)
@@ -101,9 +119,8 @@ pop_stack(void)
 
 static char *
 newname(void)
-{	static int cnt = 0;
-	static char buf[32];
-	sprintf(buf, "S%d", cnt++);
+{	static char buf[32];
+	sprintf(buf, "S%d", state_cnt++);
 	return buf;
 }
 
@@ -342,7 +359,7 @@ static void
 fsm_trans(Graph *p, int count, char *curnm)
 {	Graph	*r;
 	Symbol	*s;
-	char	prefix[128], nwnm[128];
+	char	prefix[128], nwnm[256];
 
 	if (!p->outgoing)
 		addtrans(p, curnm, False, "accept_all");
@@ -722,6 +739,8 @@ out:
 		push_stack(g);
 		break;
 	case V_OPER:
+		Assert(now->rgt != ZN, now->ntyp);
+		Assert(now->lft != ZN, now->ntyp);
 		Assert(now->rgt->nxt == ZN, now->ntyp);
 		Assert(now->lft->nxt == ZN, now->ntyp);
 		n1 = now->rgt;
@@ -759,6 +778,7 @@ out:
 
 #ifdef NXT
 	case NEXT:
+		Assert(now->lft != ZN, now->ntyp);
 		nx = dupnode(now->lft);
 		nx->nxt = g->Next;
 		g->Next = nx;
