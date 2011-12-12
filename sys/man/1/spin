@@ -3,103 +3,23 @@
 spin - verification tool for models of concurrent systems
 .SH SYNOPSIS
 .B spin
-.B -a
 [
-.B -m
-]
-[
-.BI -P cpp
+.I options
 ]
 .I file
-.PP
-.B spin
-[
-.B -bglmprsv
-]
-[
-.BI -n N
-]
-[
-.BI -P cpp
-]
-.I file
-.PP
-.B spin
-.B -c
-[
-.B -t
-]
-[
-.BI -P cpp
-]
-.I file
-.PP
-.B spin
-.B -d
-[
-.BI -P cpp
-]
-.I file
-.PP
-.B spin
-.B -f
-.I ltl
-.PP
-.B spin
-.B -F
-.I file
-.PP
-.B spin
-.B -i
-[
-.B -bglmprsv
-]
-[
-.BI -n N
-]
-[
-.BI -P cpp
-]
-.I file
-.PP
-.B spin
-.B -M
-[
-.B -t
-]
-[
-.BI -P cpp
-]
-.I file
-.PP
-.B spin
-.BR -t [ \fIN ]
-[
-.B -bglmprsv
-]
-[
-.BI -j N
-]
-[
-.BI -P cpp
-]
-.I file
-.PP
+.br
 .B spin
 .B -V
 .SH DESCRIPTION
 .I Spin
 is a tool for analyzing the logical consistency of
-asynchronous systems, specifically distributed software
-amd communication protocols.
-A verification model of the system is first specified
-in a guarded command language called
-.IR Promela .
-This specification language, described in the reference,
-allows for the modeling of dynamic creation of
-asynchronous processes,
-nondeterministic case selection, loops, gotos, local and
-global variables.
+asynchronous systems, specifically distributed software,
+multi-threaded systems, and communication protocols.
+A model of the system is specified
+in a guarded command language called Promela (process meta language).
+This modeling language supports dynamic creation of
+processes, nondeterministic case selection, loops, gotos,
+local and global variables.
 It also allows for a concise specification of logical
 correctness requirements, including, but not restricted
 to requirements expressed in linear temporal logic.
@@ -110,21 +30,30 @@ Given a Promela model stored in
 can perform interactive, guided, or random simulations
 of the system's execution.
 It can also generate a C program that performs an exhaustive
-or approximate verification of the correctness requirements
-for the system.
+verification of the correctness requirements for the system.
+The main options supported are as follows. (You can always get
+a full list of current options with the command "spin --").
 .
+.TF -Exxx
+.PD
 .TP
 .B -a
-Generate a verifier (model checker) for the specification.
-The output is written into a set of C files, named
+Generate a verifier (a model checker) for the specification.
+The output is written into a set of C files named
 .BR pan.[cbhmt] ,
 that can be compiled
 .RB ( "pcc pan.c" )
 to produce an executable verifier.
 The online
 .I spin
-manuals (see below) contain
+manuals contain
 the details on compilation and use of the verifiers.
+.
+.TP
+.B -b
+Do not execute
+.I printf
+statements in a simulation run.
 .
 .TP
 .B -c
@@ -133,6 +62,15 @@ chart for a random or guided (when combined with
 .BR -t )
 simulation run. See also option
 .BR -M .
+.
+.TP
+.B -Dxxx
+Pass
+.I -Dxxx
+to the preprocessor (see also
+.I -E
+and
+.IR -I ).
 .
 .TP
 .B -d
@@ -146,6 +84,21 @@ a variable or as a parameter.  For message channels, the data types
 of the message fields are listed.
 For structure variables, the third field defines the
 name of the structure declaration that contains the variable.
+.
+.TP
+.B -Exxx
+Pass
+.I xxx
+to the preprocessor (see also
+.I -D
+and
+.IR -I ).
+.
+.TP
+.B -e
+If the specification contains multiple never claims, or ltl properties,
+compute the synchronous product of all claims and write the result
+to the standard output.
 .
 .TP
 .BI -f " ltl"
@@ -176,6 +129,9 @@ If the formula contains spaces, it should be quoted to form a
 single argument to the
 .I spin
 command.
+.br
+This option has largely been replaced with the support
+for inline specification of ltl formula, in Spin version 6.0.
 .
 .TP
 .BI -F " file"
@@ -201,11 +157,54 @@ Option
 is meant to solve those problems.)
 .
 .TP
+.B -g
+In combination with option
+.BR -p ,
+print all global variable updates in a simulation run.
+.
+.TP
+.B -h
+At the end of a simulation run, print the value of the seed
+that was used for the random number generator.
+By specifying the same seed with the
+.B -n
+option, the exact
+run can be repeated later.
+.
+.TP
+.B -I
+Show the result of inlining and preprocessing.
+.
+.TP
 .B -i
 Perform an interactive simulation, prompting the user at
 every execution step that requires a nondeterministic choice
 to be made.  The simulation proceeds without user intervention
 when execution is deterministic.
+.
+.TP
+.BI -j N
+Skip printing for the first
+.I N
+steps in a simulation run.
+.
+.TP
+.B -J
+Reverse the evaluation order for nested unless statements,
+e.g., to match the way in which Java handles exceptions.
+.
+.TP
+.BI -k " file"
+Use the file name
+.I file
+as the trail-file, see also
+.BR -t .
+.
+.TP
+.B -l
+In combination with option
+.BR -p ,
+include all local variable updates in the output of a simulation run.
 .
 .TP
 .B -M
@@ -237,60 +236,56 @@ and the integer
 .IR N .
 .
 .TP
-.B -t
-Perform a guided simulation, following the error trail that
-was produces by an earlier verification run, see the online manuals
-for the details on verification.
+.BI -N " file"
+Use the never claim stored in
+.I file
+to generate the verified (see
+.BR -a ).
 .
 .TP
-.B -V
-Prints the
-.I spin
-version number and exits.
-.
-.PP
-With only a filename as an argument and no options,
-.I spin
-performs a random simulation of the model specified in
-the file (standard input is the default if the filename is omitted).
-If option
-.B -i
-is added, the simulation is
-.IR interactive ,
-or if option
-.B -t
-is added, the simulation is
-.IR guided .
-.PP
-The simulation normally does not generate output, except what is generated
-explicitly by the user within the model with
-.I printf
-statements, and some details about the final state that is
-reached after the simulation completes.
-The group of options
-.B -bglmprsv
-sets the desired level of information that the user wants
-about a random, guided, or interactive simulation run.
-Every line of output normally contains a reference to the source
-line in the specification that generated it.
+.BI -O
+Use the original scope rules from pre-Spin version 6.
 .
 .TP
-.B -b
-Suppress the execution of
-.I printf
-statements within the model.
+.BI -o [123]
+Turn off data-flow optimization (
+.IR -o1 ).
+Do not hide write-only variables (
+.I -o2
+) during verification.
+Turn off statement merging (
+.I -o3
+) during verification.
+Turn on rendezvous optimization (
+.I -o4
+) during verification.
+Turn on case caching (
+.I -o5
+) to reduce the size of pan.m,
+but losing accuracy in reachability reports.
+.
 .TP
-.B -g
-Show at each time step the current value of global variables.
+.BI -O
+Use the scope rules pre-version 6.0. In this case there are only two
+possible levels of scope for all data declarations: global, or proctype local.
+In version 6.0 and later there is a third level of scope: inlines or blocks.
+.
 .TP
-.B -l
-In combination with option
-.BR -p ,
-show the current value of local variables of the process.
+.BI -P xxx
+Use the command
+.I xxx
+for preprocessing instead of the standard C preprocessor.
+.
 .TP
 .B -p
-Show at each simulation step which process changed state,
-and what source statement was executed.
+Include all statement executions in the output of simulation runs.
+.
+.TP
+.BI -q N
+Suppress the output generated for channel
+.B N
+during simulation runs.
+.
 .TP
 .B -r
 Show all message-receive events, giving
@@ -298,34 +293,88 @@ the name and number of the receiving process
 and the corresponding the source line number.
 For each message parameter, show
 the message type and the message channel number and name.
+.
 .TP
 .B -s
-Show all message-send events.
+Include all send operations in the output of simulation runs.
+.
+.TP
+.B -T
+Do not automatically indent the
+.I printf
+output of process
+.I i
+with
+.I i
+tabs.
+.
+.TP
+.B -t[\f2N\f1]
+Perform a guided simulation, following the [\f2N\f1th] error trail that
+was produces by an earlier verification run, see the online manuals
+for the details on verification. By default the error trail is looked for
+in a file with the same basename as the model, and with extension .trail.
+See also
+.BR -k .
+.
 .TP
 .B -v
 Verbose mode, add some more detail, and generate more
 hints and warnings about the model.
+.
+.TP
+.B -V
+Prints the
+.I spin
+version number and exit.
+.
+.PP
+With only a filename as an argument and no option flags,
+.I spin
+performs a random simulation of the model specified in
+the file.
+This normally does not generate output, except what is generated
+explicitly by the user within the model with
+.I printf
+statements, and some details about the final state that is
+reached after the simulation completes.
+The group of options
+.B -bgilmprstv
+is used to set the desired level of information that the user wants
+about a random, guided, or interactive simulation run.
+Every line of output normally contains a reference to the source
+line in the specification that generated it.
+If option
+.B -i
+is included, the simulation i
+.IR interactive ,
+or if option
+.B -t
+or
+.BI -k file
+is added, the simulation is
+.IR guided .
+.
 .SH SOURCE
 .B /sys/src/cmd/spin
 .SH SEE ALSO
 .in +4
 .ti -4
-.BR http://spinroot.com :
-.BR GettingStarted.pdf ,
-.BR Roadmap.pdf ,
-.BR Manual.pdf ,
-.BR WhatsNew.pdf ,
-.B Exercises.pdf
+.B http://spinroot.com/spin/Man/
 .br
 .in -4
 G.J. Holzmann,
-.IR "Design and Validation of Computer Protocols" ,
-Prentice Hall, 1991.
+.IR "The Spin Model Checker (Primer and Reference Manual)" ,
+Addison-Wesley, Reading, Mass., 2004.
+.br
+—, `The model checker Spin,'
+.IR "IEEE Trans. on SE" ,
+Vol, 23, No. 5, May 1997.
 .br
 —, `Design and validation of protocols: a tutorial,'
 .IR "Computer Networks and ISDN Systems" ,
 Vol. 25, No. 9, 1993, pp. 981-1017.
 .br
-—, `The model checker Spin,'
-.IR "IEEE Trans. on SE" ,
-Vol, 23, No. 5, May 1997.
+—,
+.IR "Design and Validation of Computer Protocols" ,
+Prentice Hall, Englewood Cliffs, NJ, 1991.

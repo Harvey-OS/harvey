@@ -1,6 +1,6 @@
 /***** spin: pangen2.c *****/
 
-/* Copyright (c) 1989-2003 by Lucent Technologies, Bell Laboratories.     */
+/* Copyright (c) 1989-2009 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
 /* No guarantee whatsoever is expressed or implied by the distribution of */
 /* this code.  Permission is given to distribute this code provided that  */
@@ -8,6 +8,7 @@
 /* Software written by Gerard J. Holzmann.  For tool documentation see:   */
 /*             http://spinroot.com/                                       */
 /* Send all bug-reports and/or questions to: bugs@spinroot.com            */
+/* (c) 2007: small additions for V5.0 to support multi-core verifications */
 
 #include "spin.h"
 #include "version.h"
@@ -20,24 +21,25 @@
 
 #define blurb(fd, e)	{ fprintf(fd, "\n"); if (!merger) fprintf(fd, "\t\t/* %s:%d */\n", \
 				e->n->fn->name, e->n->ln); }
-#define tr_map(m, e)	{ if (!merger) fprintf(tt, "\t\ttr_2_src(%d, %s, %d);\n", \
+#define tr_map(m, e)	{ if (!merger) fprintf(tt, "\t\ttr_2_src(%d, \"%s\", %d);\n", \
 				m, e->n->fn->name, e->n->ln); }
 
 extern ProcList	*rdy;
 extern RunList	*run;
 extern Symbol	*Fname, *oFname, *context;
 extern char	*claimproc, *eventmap;
-extern int	lineno, verbose, Npars, Mpars;
+extern int	lineno, verbose, Npars, Mpars, nclaims;
 extern int	m_loss, has_remote, has_remvar, merger, rvopt, separate;
-extern int	Ntimeouts, Etimeouts, deadvar;
-extern int	u_sync, u_async, nrRdy;
+extern int	Ntimeouts, Etimeouts, deadvar, old_scope_rules;
+extern int	u_sync, u_async, nrRdy, Unique;
 extern int	GenCode, IsGuard, Level, TestOnly;
 extern short	has_stack;
 extern char	*NextLab[];
 
-FILE	*tc, *th, *tt, *tm, *tb;
+FILE	*tc, *th, *tt, *tb;
+static FILE	*tm;
 
-int	OkBreak = -1;
+int	OkBreak = -1, has_hidden = 0; /* has_hidden set in sym.c and structs.c */
 short	nocast=0;	/* to turn off casts in lvalues */
 short	terse=0;	/* terse printing of varnames */
 short	no_arrays=0;
@@ -52,9 +54,7 @@ short	has_xu=0;	/* spec contains xr or xs assertions */
 short	has_unless=0;	/* spec contains unless statements */
 short	has_provided=0;	/* spec contains PROVIDED clauses on procs */
 short	has_code=0;	/* spec contains c_code, c_expr, c_state */
-short	_isok=0;	/* checks usage of predefined variable _ */
 short	evalindex=0;	/* evaluate index of var names */
-short	withprocname=0;	/* prefix local varnames with procname */
 int	mst=0;		/* max nr of state/process */
 int	claimnr = -1;	/* claim process, if any */
 int	eventmapnr = -1; /* event trace, if any */
@@ -74,8 +74,11 @@ static int	TPE[2], EPT[2];
 static int	uniq=1;
 static int	multi_needed, multi_undo;
 static short	AllGlobal=0;	/* set if process has provided clause */
+static short	withprocname=0;	/* prefix local varnames with procname */
+static short	_isok=0;	/* checks usage of predefined variable _ */
 
 int	has_global(Lextok *);
+void	Fatal(char *, char *);
 static int	getweight(Lextok *);
 static int	scan_seq(Sequence *);
 static void	genconditionals(void);
@@ -98,12 +101,31 @@ fproc(char *s)
 	return -1;
 }
 
+int
+pid_is_claim(int p)	/* Pid (p->tn) to type (p->b) */
+{	ProcList *r;
+
+	for (r = rdy; r; r = r->nxt)
+	{	if (r->tn == p) return (r->b == N_CLAIM);
+	}
+	printf("spin: error, cannot find pid %d\n", p);
+	return 0;
+}
+
 static void
 reverse_procs(RunList *q)
 {
 	if (!q) return;
 	reverse_procs(q->nxt);
-	fprintf(tc, "	Addproc(%d);\n", q->tn);
+	fprintf(tc, "		Addproc(%d);\n", q->tn);
+}
+
+static void
+forward_procs(RunList *q)
+{
+	if (!q) return;
+	fprintf(tc, "		Addproc(%d);\n", q->tn);
+	forward_procs(q->nxt);
 }
 
 static void
@@ -111,6 +133,15 @@ tm_predef_np(void)
 {
 	fprintf(th, "#define _T5	%d\n", uniq++);
 	fprintf(th, "#define _T2	%d\n", uniq++);
+
+	if (Unique < (1 << (8*sizeof(unsigned char)) ))	/* was uniq before */
+	{	fprintf(th, "#define T_ID	unsigned char\n");
+	} else if (Unique < (1 << (8*sizeof(unsigned short)) ))
+	{	fprintf(th, "#define T_ID	unsigned short\n");
+	} else
+	{	fprintf(th, "#define T_ID	unsigned int\n");
+	}
+
 	fprintf(tm, "\tcase  _T5:\t/* np_ */\n");
 
 	if (separate == 2)
@@ -151,51 +182,72 @@ static struct {
 void
 gensrc(void)
 {	ProcList *p;
+	int i;
 
-	if (!(tc = fopen(Cfile[0].nm[separate], "w"))		/* main routines */
-	||  !(th = fopen(Cfile[1].nm[separate], "w"))		/* header file   */
-	||  !(tt = fopen(Cfile[2].nm[separate], "w"))		/* transition matrix */
-	||  !(tm = fopen(Cfile[3].nm[separate], "w"))		/* forward  moves */
-	||  !(tb = fopen(Cfile[4].nm[separate], "w")))	/* backward moves */
+	disambiguate();		/* avoid name-clashes between scopes */
+
+	if (!(tc = fopen(Cfile[0].nm[separate], MFLAGS))		/* main routines */
+	||  !(th = fopen(Cfile[1].nm[separate], MFLAGS))		/* header file   */
+	||  !(tt = fopen(Cfile[2].nm[separate], MFLAGS))		/* transition matrix */
+	||  !(tm = fopen(Cfile[3].nm[separate], MFLAGS))		/* forward  moves */
+	||  !(tb = fopen(Cfile[4].nm[separate], MFLAGS)))	/* backward moves */
 	{	printf("spin: cannot create pan.[chtmfb]\n");
 		alldone(1);
 	}
 
-	fprintf(th, "#define Version	\"%s\"\n", Version);
-	fprintf(th, "#define Source	\"%s\"\n\n", oFname->name);
+	fprintf(th, "#define SpinVersion	\"%s\"\n", SpinVersion);
+	fprintf(th, "#define PanSource	\"");
+	for (i = 0; oFname->name[i] != '\0'; i++)
+	{	char c = oFname->name[i];
+		if (c == '\\' || c == ' ') /* Windows path */
+		{	fprintf(th, "\\");
+		}
+		fprintf(th, "%c", c);
+	}
+	fprintf(th, "\"\n\n");
+
+	fprintf(th, "#define G_long	%d\n", (int) sizeof(long));
+	fprintf(th, "#define G_int	%d\n", (int) sizeof(int));
+
+	fprintf(th, "#ifdef WIN64\n");
+	fprintf(th, "	#define ONE_L	((unsigned long) 1)\n");
+	fprintf(th, "	#define long	long long\n");
+	fprintf(th, "#else\n");
+	fprintf(th, "	#define ONE_L	(1L)\n");
+	fprintf(th, "#endif\n");
+
 	if (separate != 2)
-	fprintf(th, "char *TrailFile = Source; /* default */\n");
+	{	fprintf(th, "char *TrailFile = PanSource; /* default */\n");
+		fprintf(th, "char *trailfilename;\n");
+	}
 
 	fprintf(th, "#if defined(BFS)\n");
-	fprintf(th, "#ifndef SAFETY\n");
-	fprintf(th, "#define SAFETY\n");
-	fprintf(th, "#endif\n");
-	fprintf(th, "#ifndef XUSAFE\n");
-	fprintf(th, "#define XUSAFE\n");
-	fprintf(th, "#endif\n");
+	fprintf(th, "	#ifndef SAFETY\n");
+	fprintf(th, "		#define SAFETY\n");
+	fprintf(th, "	#endif\n");
+	fprintf(th, "	#ifndef XUSAFE\n");
+	fprintf(th, "		#define XUSAFE\n");
+	fprintf(th, "	#endif\n");
 	fprintf(th, "#endif\n");
 
 	fprintf(th, "#ifndef uchar\n");
-	fprintf(th, "#define uchar	unsigned char\n");
+	fprintf(th, "	#define uchar	unsigned char\n");
 	fprintf(th, "#endif\n");
 	fprintf(th, "#ifndef uint\n");
-	fprintf(th, "#define uint	unsigned int\n");
+	fprintf(th, "	#define uint	unsigned int\n");
 	fprintf(th, "#endif\n");
 
 	if (sizeof(void *) > 4)	/* 64 bit machine */
-	{	fprintf(th, "#ifndef HASH32\n");
-		fprintf(th, "#define HASH64\n");
+	{	fprintf(th, "#if !defined(HASH32) && !defined(HASH64)\n");
+		fprintf(th, "	#define HASH64\n");
 		fprintf(th, "#endif\n");
 	}
-#if 0
-	if (sizeof(long)==sizeof(int))
-		fprintf(th, "#define long	int\n");
-#endif
+
 	if (separate == 1 && !claimproc)
 	{	Symbol *n = (Symbol *) emalloc(sizeof(Symbol));
 		Sequence *s = (Sequence *) emalloc(sizeof(Sequence));
 		claimproc = n->name = "_:never_template:_";
-		ready(n, ZN, s, 0, ZN);
+		ready(n, ZN, s, 0, ZN, N_CLAIM);
 	}
 	if (separate == 2)
 	{	if (has_remote)
@@ -212,15 +264,21 @@ gensrc(void)
 
 	fprintf(th, "#define DELTA	%d\n", DELTA);
 	fprintf(th, "#ifdef MA\n");
+	fprintf(th, "	#if NCORE>1 && !defined(SEP_STATE)\n");
+	fprintf(th, "	#define SEP_STATE\n");
+	fprintf(th, "	#endif\n");
 	fprintf(th, "#if MA==1\n"); /* user typed -DMA without size */
-	fprintf(th, "#undef MA\n#define MA	100\n");
+	fprintf(th, "	#undef MA\n");
+	fprintf(th, "	#define MA	100\n");
 	fprintf(th, "#endif\n#endif\n");
 	fprintf(th, "#ifdef W_XPT\n");
-	fprintf(th, "#if W_XPT==1\n"); /* user typed -DW_XPT without size */
-	fprintf(th, "#undef W_XPT\n#define W_XPT 1000000\n");
-	fprintf(th, "#endif\n#endif\n");
+	fprintf(th, "	#if W_XPT==1\n"); /* user typed -DW_XPT without size */
+	fprintf(th, "		#undef W_XPT\n");
+	fprintf(th, "		#define W_XPT 1000000\n");
+	fprintf(th, "	#endif\n");
+	fprintf(th, "#endif\n");
 	fprintf(th, "#ifndef NFAIR\n");
-	fprintf(th, "#define NFAIR	2	/* must be >= 2 */\n");
+	fprintf(th, "	#define NFAIR	2	/* must be >= 2 */\n");
 	fprintf(th, "#endif\n");
 	if (Ntimeouts)
 	fprintf(th, "#define NTIM	%d\n", Ntimeouts);
@@ -230,6 +288,8 @@ gensrc(void)
 	fprintf(th, "#define REM_VARS	1\n");
 	if (has_remote)
 	fprintf(th, "#define REM_REFS	%d\n", has_remote); /* not yet used */
+	if (has_hidden)
+	fprintf(th, "#define HAS_HIDDEN	%d\n", has_hidden);
 	if (has_last)
 	fprintf(th, "#define HAS_LAST	%d\n", has_last);
 	if (has_sorted)
@@ -239,8 +299,11 @@ gensrc(void)
 	if (has_random)
 	fprintf(th, "#define HAS_RANDOM	%d\n", has_random);
 	fprintf(th, "#define HAS_CODE\n");	/* doesn't seem to cause measurable overhead */
+	fprintf(th, "#if defined(RANDSTORE) && !defined(RANDSTOR)\n");
+	fprintf(th, "	#define RANDSTOR	RANDSTORE\n"); /* xspin uses RANDSTORE... */
+	fprintf(th, "#endif\n");
 	if (has_stack)
-	fprintf(th, "#define HAS_STACK\n");
+	fprintf(th, "#define HAS_STACK	%d\n", has_stack);
 	if (has_enabled)
 	fprintf(th, "#define HAS_ENABLED	1\n");
 	if (has_unless)
@@ -256,7 +319,7 @@ gensrc(void)
 	||  has_badelse
 	||  has_last)
 	{	fprintf(th, "#ifndef NOREDUCE\n");
-		fprintf(th, "#define NOREDUCE	1\n");
+		fprintf(th, "	#define NOREDUCE	1\n");
 		fprintf(th, "#endif\n");
 	}
 	if (has_np)
@@ -265,18 +328,31 @@ gensrc(void)
 	fprintf(th, "#define MERGED	1\n");
 
 doless:
-	fprintf(th, "#ifdef NP	/* includes np_ demon */\n");
+	fprintf(th, "#if !defined(HAS_LAST) && defined(BCS)\n");
+	fprintf(th, "	#define HAS_LAST	1 /* use it, but */\n");
+	fprintf(th, "	#ifndef STORE_LAST\n"); /* unless the user insists */
+	fprintf(th, "		#define NO_LAST	1 /* dont store it */\n");
+	fprintf(th, "	#endif\n");
+	fprintf(th, "#endif\n");
+
+	fprintf(th, "#if defined(BCS) && defined(BITSTATE)\n");
+	fprintf(th, "	#ifndef NO_CTX\n");
+	fprintf(th, "		#define STORE_CTX	1\n");
+	fprintf(th, "	#endif\n");
+	fprintf(th, "#endif\n");
+
+	fprintf(th, "#ifdef NP\n");
 	if (!has_np)
-	fprintf(th, "#define HAS_NP	2\n");
-	fprintf(th, "#define VERI	%d\n",	nrRdy);
-	fprintf(th, "#define endclaim	3 /* none */\n");
+	fprintf(th, "	#define HAS_NP	2\n");
+	fprintf(th, "	#define VERI	%d	/* np_ */\n",	nrRdy);
 	fprintf(th, "#endif\n");
 	if (claimproc)
-	{	claimnr = fproc(claimproc);
-		/* NP overrides claimproc */
-		fprintf(th, "#if !defined(NOCLAIM) && !defined NP\n");
-		fprintf(th, "#define VERI	%d\n",	claimnr);
-		fprintf(th, "#define endclaim	endstate%d\n",	claimnr);
+	{	claimnr = fproc(claimproc);	/* the default claim */
+		fprintf(th, "#ifndef NOCLAIM\n");
+		fprintf(th, "	#define NCLAIMS	%d\n", nclaims);
+		fprintf(th, "	#ifndef NP\n");
+		fprintf(th, "		#define VERI	%d\n", claimnr);
+		fprintf(th, "	#endif\n");
 		fprintf(th, "#endif\n");
 	}
 	if (eventmap)
@@ -291,7 +367,7 @@ doless:
 	fprintf(th, "	char *fnm; int from; int upto;\n");
 	fprintf(th, "} S_F_MAP;\n");
 
-	fprintf(tc, "/*** Generated by %s ***/\n", Version);
+	fprintf(tc, "/*** Generated by %s ***/\n", SpinVersion);
 	fprintf(tc, "/*** From source: %s ***/\n\n", oFname->name);
 
 	ntimes(tc, 0, 1, Pre0);
@@ -304,6 +380,10 @@ doless:
 	case 2:	fprintf(tc, "#include \"pan_t.h\"\n"); break;
 	}
 
+	fprintf(tc, "#ifdef LOOPSTATE\n");
+	fprintf(tc, "double cnt_loops;\n");
+	fprintf(tc, "#endif\n");
+
 	fprintf(tc, "State	A_Root;	/* seed-state for cycles */\n");
 	fprintf(tc, "State	now;	/* the full state-vector */\n");
 	plunk_c_fcts(tc);	/* State can be used in fcts */
@@ -314,9 +394,9 @@ doless:
 		fprintf(tc, "extern int verbose; extern long depth;\n");
 
 	fprintf(tc, "#ifndef NOBOUNDCHECK\n");
-	fprintf(tc, "#define Index(x, y)\tBoundcheck(x, y, II, tt, t)\n");
+	fprintf(tc, "	#define Index(x, y)\tBoundcheck(x, y, II, tt, t)\n");
 	fprintf(tc, "#else\n");
-	fprintf(tc, "#define Index(x, y)\tx\n");
+	fprintf(tc, "	#define Index(x, y)\tx\n");
 	fprintf(tc, "#endif\n");
 
 	c_preview();	/* sets hastrack */
@@ -335,7 +415,7 @@ doless:
 		fprintf(tt, "}\n\n");
 		fprintf(tt, "void\nputpeg(int n, int m)\n");
 		fprintf(tt, "{	printf(\"%%5d\ttrans %%4d \", m, n);\n");
-		fprintf(tt, "	printf(\"file %%s line %%3d\\n\",\n");
+		fprintf(tt, "	printf(\"%%s:%%d\\n\",\n");
 		fprintf(tt, "		T_SRC[n].fl, T_SRC[n].ln);\n");
 		fprintf(tt, "}\n");
 		if (!merger)
@@ -360,12 +440,12 @@ doless:
 
 		fprintf(tm, "#define rand	pan_rand\n");
 		fprintf(tm, "#if defined(HAS_CODE) && defined(VERBOSE)\n");
-		fprintf(tm, "	printf(\"Pr: %%d Tr: %%d\\n\", II, t->forw);\n");
+		fprintf(tm, "	cpu_printf(\"Pr: %%d Tr: %%d\\n\", II, t->forw);\n");
 		fprintf(tm, "#endif\n");
 		fprintf(tm, "	switch (t->forw) {\n");
 	} else
 	{	fprintf(tt, "#ifndef PEG\n");
-		fprintf(tt, "#define tr_2_src(m,f,l)\n");
+		fprintf(tt, "	#define tr_2_src(m,f,l)\n");
 		fprintf(tt, "#endif\n");
 		fprintf(tt, "void\nset_claim(void)\n{\tTrans *T;\n");
 		fprintf(tt, "\textern Trans ***trans;\n");
@@ -374,7 +454,7 @@ doless:
 
 		fprintf(tm, "#define rand	pan_rand\n");
 		fprintf(tm, "#if defined(HAS_CODE) && defined(VERBOSE)\n");
-		fprintf(tm, "	printf(\"Pr: %%d Tr: %%d\\n\", II, forw);\n");
+		fprintf(tm, "	cpu_printf(\"Pr: %%d Tr: %%d\\n\", II, forw);\n");
 		fprintf(tm, "#endif\n");
 		fprintf(tm, "	switch (forw) {\n");
 	}
@@ -404,11 +484,12 @@ doless:
 	fprintf(tb, "	case  0: goto R999; /* nothing to undo */\n");
 
 	for (p = rdy; p; p = p->nxt)
-		putproc(p);
-
+	{	putproc(p);
+	}
 
 	if (separate != 2)
-	{	fprintf(th, "struct {\n");
+	{
+		fprintf(th, "struct {\n");
 		fprintf(th, "	int tp; short *src;\n");
 		fprintf(th, "} src_all[] = {\n");
 		for (p = rdy; p; p = p->nxt)
@@ -416,9 +497,12 @@ doless:
 				p->tn, p->tn);
 		fprintf(th, "	{ 0, (short *) 0 }\n");
 		fprintf(th, "};\n");
-		fprintf(th, "short *frm_st0;\n");	/* records src states for transitions in never claim */
-	} else
-	{	fprintf(th, "extern short *frm_st0;\n");
+
+		fprintf(th, "S_F_MAP *flref[] = {\n");	/* 5.3.0 */
+		for (p = rdy; p; p = p->nxt)
+		{	fprintf(th, "	src_file%d%c\n", p->tn, p->nxt?',':' ');
+		}
+		fprintf(th, "};\n");
 	}
 
 	gencodetable(th);
@@ -456,18 +540,27 @@ doless:
 		if (!run) fatal("no runable process", (char *)0);
 		fprintf(tc, "void\n");
 		fprintf(tc, "active_procs(void)\n{\n");
+#if 1
+		fprintf(tc, "	if (!permuted) {\n");
 			reverse_procs(run);
+		fprintf(tc, "	} else {\n");
+			forward_procs(run);
+		fprintf(tc, "	}\n");
+#else
+			reverse_procs(run);
+#endif
 		fprintf(tc, "}\n");
 		ntimes(tc, 0, 1, Dfa);
 		ntimes(tc, 0, 1, Xpt);
 
 		fprintf(th, "#define NTRANS	%d\n", uniq);
 		fprintf(th, "#ifdef PEG\n");
-		fprintf(th, "long peg[NTRANS];\n");
+		fprintf(th, "	long peg[NTRANS];\n");
 		fprintf(th, "#endif\n");
-
+		fprintf(th, "void select_claim(int);\n");
 		if (u_sync && !u_async)
-			spit_recvs(th, tc);
+		{	spit_recvs(th, tc);
+		}
 	} else
 	{	genheader();
 		fprintf(th, "#define FORWARD_MOVES\t\"pan_t.m\"\n");
@@ -475,9 +568,9 @@ doless:
 		fprintf(th, "#define TRANSITIONS\t\"pan_t.t\"\n");
 		fprintf(tc, "extern int Maxbody;\n");
 		fprintf(tc, "#if VECTORSZ>32000\n");
-		fprintf(tc, "extern int proc_offset[];\n");
+		fprintf(tc, "	extern int proc_offset[];\n");
 		fprintf(tc, "#else\n");
-		fprintf(tc, "extern short proc_offset[];\n");
+		fprintf(tc, "	extern short proc_offset[];\n");
 		fprintf(tc, "#endif\n");
 		fprintf(tc, "extern uchar proc_skip[];\n");
 		fprintf(tc, "extern uchar *reached[];\n");
@@ -491,7 +584,7 @@ doless:
 		fprintf(tc, "\textern State now;\n");
 		fprintf(tc, "\textern void set_claim(void);\n\n");
 		fprintf(tc, "#ifdef PROV\n");
-		fprintf(tc, "#include PROV\n");
+		fprintf(tc, "	#include PROV\n");
 		fprintf(tc, "#endif\n");
 		fprintf(tc, "\tset_claim();\n");
 		genother();
@@ -509,8 +602,6 @@ doless:
 		fprintf(tc, "int\nrev_claim(int backw)\n{ return 0; }\n");
 		fprintf(tc, "#include TRANSITIONS\n");
 	}
-	if (separate != 1)
-		ntimes(tc, 0, 1, Nvr1);
 
 	if (separate != 2)
 	{	c_wrapper(tc);
@@ -537,13 +628,13 @@ dolen(Symbol *s, char *pre, int pid, int ai, int qln)
 	fprintf(tc, "%s(", pre);
 	if (!(s->hidden&1))
 	{	if (s->context)
-			fprintf(tc, "((P%d *)this)->", pid);
+			fprintf(tc, "(int) ( ((P%d *)this)->", pid);
 		else
-			fprintf(tc, "now.");
+			fprintf(tc, "(int) ( now.");
 	}
 	fprintf(tc, "%s", s->name);
-	if (qln > 1) fprintf(tc, "[%d]", ai);
-	fprintf(tc, ")");
+	if (qln > 1 || s->isarray) fprintf(tc, "[%d]", ai);
+	fprintf(tc, ") )");
 }
 
 struct AA {	char TT[9];	char CC[8]; };
@@ -717,7 +808,7 @@ putproc(ProcList *p)
 {	Pid = p->tn;
 	Det = p->det;
 
-	if (Pid == claimnr
+	if (pid_is_claim(Pid)
 	&&  separate == 1)
 	{	fprintf(th, "extern uchar reached%d[];\n", Pid);
 #if 0
@@ -727,16 +818,16 @@ putproc(ProcList *p)
 			Pid, p->s->maxel, p->n->name);
 #endif
 		fprintf(th, "extern short src_ln%d[];\n", Pid);
+		fprintf(th, "extern uchar *loopstate%d;\n", Pid);
 		fprintf(th, "extern S_F_MAP src_file%d[];\n", Pid);
 		fprintf(th, "#define endstate%d	%d\n",
 			Pid, p->s->last?p->s->last->seqno:0);
-		fprintf(th, "#define src_claim	src_ln%d\n", claimnr);
-
 		return;
 	}
-	if (Pid != claimnr
+	if (!pid_is_claim(Pid)
 	&&  separate == 2)
 	{	fprintf(th, "extern short src_ln%d[];\n", Pid);
+		fprintf(th, "extern uchar *loopstate%d;\n", Pid);
 		return;
 	}
 
@@ -744,15 +835,19 @@ putproc(ProcList *p)
 
 	fprintf(th, "\n#define nstates%d	%d\t/* %s */\n",
 		Pid, p->s->maxel, p->n->name);
-	if (Pid == claimnr)
-	fprintf(th, "#define nstates_claim	nstates%d\n", Pid);
 	if (Pid == eventmapnr)
 	fprintf(th, "#define nstates_event	nstates%d\n", Pid);
 
-	fprintf(th, "#define endstate%d	%d\n",
-		Pid, p->s->last->seqno);
-	fprintf(tm, "\n		 /* PROC %s */\n", p->n->name);
-	fprintf(tb, "\n		 /* PROC %s */\n", p->n->name);
+	fprintf(th, "#define endstate%d	%d\n", Pid, p->s->last?p->s->last->seqno:0);
+
+	if (p->b == N_CLAIM || p->b == E_TRACE || p->b == N_TRACE)
+	{	fprintf(tm, "\n		 /* CLAIM %s */\n", p->n->name);
+		fprintf(tb, "\n		 /* CLAIM %s */\n", p->n->name);
+	}
+	else
+	{	fprintf(tm, "\n		 /* PROC %s */\n", p->n->name);
+		fprintf(tb, "\n		 /* PROC %s */\n", p->n->name);
+	}
 	fprintf(tt, "\n	/* proctype %d: %s */\n", Pid, p->n->name);
 	fprintf(tt, "\n	trans[%d] = (Trans **)", Pid);
 	fprintf(tt, " emalloc(%d*sizeof(Trans *));\n\n", p->s->maxel);
@@ -761,7 +856,6 @@ putproc(ProcList *p)
 	{	fprintf(th, "\n#define in_s_scope(x_y3_)	0");
 		fprintf(tc, "\n#define in_r_scope(x_y3_)	0");
 	}
-
 	put_seq(p->s, 2, 0);
 	if (Pid == eventmapnr)
 	{	fprintf(th, "\n\n");
@@ -947,8 +1041,8 @@ put_sub(Element *e, int Tt0, int Tt1)
 	if (e->n->ntyp == D_STEP)
 	{	int inherit = (e->status&(ATOM|L_ATOM));
 		fprintf(tm, "\tcase %d: ", uniq++);
-		fprintf(tm, "/* STATE %d - line %d %s - [",
-			e->seqno, e->n->ln, e->n->fn->name);
+		fprintf(tm, "/* STATE %d - %s:%d - [",
+			e->seqno, e->n->fn->name, e->n->ln);
 		comment(tm, e->n, 0);
 		fprintf(tm, "] */\n\t\t");
 
@@ -1024,7 +1118,7 @@ typedef struct CaseCache {
 	struct CaseCache *nxt;
 } CaseCache;
 
-CaseCache *casing[6];
+static CaseCache *casing[6];
 
 static int
 identical(Lextok *p, Lextok *q)
@@ -1076,6 +1170,9 @@ advance(Element *e, int stopat)
 	if (stopat)
 	while (f && f->seqno != stopat)
 	{	f = findnext(f);
+		if (!f)
+		{	break;
+		}
 		switch (f->n->ntyp) {
 		case GOTO:
 		case '.':
@@ -1084,8 +1181,7 @@ advance(Element *e, int stopat)
 			break;
 		default:
 			return f;
-		}
-	}
+	}	}
 	return (Element *) 0;
 }
 
@@ -1107,18 +1203,16 @@ equiv_merges(Element *a, Element *b)
 	if (!stopat_a && !stopat_b)
 		return 1;
 
-	for (;;)
-	{
-		f = advance(a, stopat_a);
-		g = advance(b, stopat_b);
-		if (!f && !g)
-			return 1;
-		if (f && g)
-			return identical(f->n, g->n);
-		else
-			return 0;
-	}
-	return 1;
+	f = advance(a, stopat_a);
+	g = advance(b, stopat_b);
+
+	if (!f && !g)
+		return 1;
+
+	if (f && g)
+		return identical(f->n, g->n);
+
+	return 0;
 }
 
 static CaseCache *
@@ -1258,18 +1352,18 @@ check_needed(void)
 }
 
 static void
-doforward(FILE *tm, Element *e)
+doforward(FILE *tm_fd, Element *e)
 {	FSM_use *u;
 
-	putstmnt(tm, e->n, e->seqno);
+	putstmnt(tm_fd, e->n, e->seqno);
 
 	if (e->n->ntyp != ELSE && Det)
-	{	fprintf(tm, ";\n\t\tif (trpt->o_pm&1)\n\t\t");
-		fprintf(tm, "\tuerror(\"non-determinism in D_proctype\")");
+	{	fprintf(tm_fd, ";\n\t\tif (trpt->o_pm&1)\n\t\t");
+		fprintf(tm_fd, "\tuerror(\"non-determinism in D_proctype\")");
 	}
 	if (deadvar && !has_code)
 	for (u = e->dead; u; u = u->nxt)
-	{	fprintf(tm, ";\n\t\t/* dead %d: %s */  ",
+	{	fprintf(tm_fd, ";\n\t\t/* dead %d: %s */  ",
 			u->special, u->var->name);
 
 		switch (u->special) {
@@ -1281,10 +1375,10 @@ doforward(FILE *tm, Element *e)
 			}
 			if (e->n->ntyp != 'r')
 			{	XZ.sym = u->var;
-				fprintf(tm, "\n#ifdef HAS_CODE\n");
-				fprintf(tm, "\t\tif (!readtrail)\n");
-				fprintf(tm, "#endif\n\t\t\t");
-				putname(tm, "", &XZ, 0, " = 0");
+				fprintf(tm_fd, "\n#ifdef HAS_CODE\n");
+				fprintf(tm_fd, "\t\tif (!readtrail)\n");
+				fprintf(tm_fd, "#endif\n\t\t\t");
+				putname(tm_fd, "", &XZ, 0, " = 0");
 				break;
 			} /* else fall through */
 		case 1:		/* dead after read -- add asgn of rval -- needs bup */
@@ -1292,20 +1386,20 @@ doforward(FILE *tm, Element *e)
 			CnT[YZcnt]++;		/* this step added bups */
 			if (multi_oval)
 			{	check_needed();
-				fprintf(tm, "(trpt+1)->bup.ovals[%d] = ",
+				fprintf(tm_fd, "(trpt+1)->bup.ovals[%d] = ",
 					multi_oval-1);
 				multi_oval++;
 			} else
-				fprintf(tm, "(trpt+1)->bup.oval = ");
-			putname(tm, "", &YZ[YZmax], 0, ";\n");
-			fprintf(tm, "#ifdef HAS_CODE\n");
-			fprintf(tm, "\t\tif (!readtrail)\n");
-			fprintf(tm, "#endif\n\t\t\t");
-			putname(tm, "", &YZ[YZmax], 0, " = 0");
+				fprintf(tm_fd, "(trpt+1)->bup.oval = ");
+			putname(tm_fd, "", &YZ[YZmax], 0, ";\n");
+			fprintf(tm_fd, "#ifdef HAS_CODE\n");
+			fprintf(tm_fd, "\t\tif (!readtrail)\n");
+			fprintf(tm_fd, "#endif\n\t\t\t");
+			putname(tm_fd, "", &YZ[YZmax], 0, " = 0");
 			YZmax++;
 			break;
 	}	}
-	fprintf(tm, ";\n\t\t");
+	fprintf(tm_fd, ";\n\t\t");
 }
 
 static int
@@ -1412,7 +1506,7 @@ case_cache(Element *e, int a)
 {	int bupcase = 0, casenr = uniq, fromcache = 0;
 	CaseCache *Cached = (CaseCache *) 0;
 	Element *f, *g;
-	int j, nrbups, mark, target;
+	int j, nrbups, mark, ntarget;
 	extern int ccache;
 
 	mark = (e->status&ATOM); /* could lose atomicity in a merge chain */
@@ -1439,15 +1533,15 @@ case_cache(Element *e, int a)
 	fprintf(tt, "\ttrans[%d][%d]\t= ", Pid, e->seqno);
 
 	if (ccache
-	&&  Pid != claimnr
+	&&  !pid_is_claim(Pid)
 	&&  Pid != eventmapnr
 	&& (Cached = prev_case(e, Pid)))
 	{	bupcase = Cached->b;
 		casenr  = Cached->m;
 		fromcache = 1;
 
-		fprintf(tm, "/* STATE %d - line %d %s - [",
-			e->seqno, e->n->ln, e->n->fn->name);
+		fprintf(tm, "/* STATE %d - %s:%d - [",
+			e->seqno, e->n->fn->name, e->n->ln);
 		comment(tm, e->n, 0);
 		fprintf(tm, "] (%d:%d - %d) same as %d (%d:%d - %d) */\n",
 			e->merge_start, e->merge, e->merge_in,
@@ -1457,8 +1551,8 @@ case_cache(Element *e, int a)
 		goto gotit;
 	}
 
-	fprintf(tm, "\tcase %d: /* STATE %d - line %d %s - [",
-		uniq++, e->seqno, e->n->ln, e->n->fn->name);
+	fprintf(tm, "\tcase %d: /* STATE %d - %s:%d - [",
+		uniq++, e->seqno, e->n->fn->name, e->n->ln);
 	comment(tm, e->n, 0);
 	nrbups = (e->merge || e->merge_start) ? nrhops(e) : nr_bup(e);
 	fprintf(tm, "] (%d:%d:%d - %d) */\n\t\t",
@@ -1467,7 +1561,7 @@ case_cache(Element *e, int a)
 	if (nrbups > MAXMERGE-1)
 		fatal("merge requires more than 256 bups", (char *)0);
 
-	if (e->n->ntyp != 'r' && Pid != claimnr && Pid != eventmapnr)
+	if (e->n->ntyp != 'r' && !pid_is_claim(Pid) && Pid != eventmapnr)
 		fprintf(tm, "IfNotBlocked\n\t\t");
 
 	if (multi_needed != 0 || multi_undo != 0)
@@ -1482,18 +1576,29 @@ case_cache(Element *e, int a)
 	memset(CnT, 0, sizeof(CnT));
 	YZmax = YZcnt = 0;
 
-/* NEW 4.2.6 */
-	if (Pid == claimnr)
-	{
-		fprintf(tm, "\n#if defined(VERI) && !defined(NP)\n\t\t");
-		fprintf(tm, "{	static int reported%d = 0;\n\t\t", e->seqno);
-		/* source state changes in retrans and must be looked up in frm_st0[t->forw] */
+/* new 4.2.6, revised 6.0.0 */
+	if (pid_is_claim(Pid))
+	{	fprintf(tm, "\n#if defined(VERI) && !defined(NP)\n");
+fprintf(tm, "#if NCLAIMS>1\n");
+		fprintf(tm, "\t\t{	static int reported%d = 0;\n", e->seqno);
+		fprintf(tm, "\t\t	int nn = (int) ((Pclaim *)this)->_n;\n\t\t");
 		fprintf(tm, "	if (verbose && !reported%d)\n\t\t", e->seqno);
-		fprintf(tm, "	{	printf(\"depth %%d: Claim reached state %%d (line %%d)\\n\",\n\t\t");
-		fprintf(tm, "			depth, frm_st0[t->forw], src_claim[%d]);\n\t\t", e->seqno);
+		fprintf(tm, "	{\tprintf(\"depth %%ld: Claim %%s (%%d), state %%d (line %%d)\\n\",\n\t\t");
+		fprintf(tm, "	\t\tdepth, procname[spin_c_typ[nn]], nn, ");
+		fprintf(tm, "(int) ((Pclaim *)this)->_p, src_claim[ (int) ((Pclaim *)this)->_p ]);\n\t\t");
 		fprintf(tm, "		reported%d = 1;\n\t\t", e->seqno);
 		fprintf(tm, "		fflush(stdout);\n\t\t");
 		fprintf(tm, "}	}\n");
+fprintf(tm, "#else\n");
+		fprintf(tm, "{	static int reported%d = 0;\n\t\t", e->seqno);
+		fprintf(tm, "	if (verbose && !reported%d)\n\t\t", e->seqno);
+		fprintf(tm, "	{	printf(\"depth %%d: Claim, state %%d (line %%d)\\n\",\n\t\t");
+		fprintf(tm, "			(int) depth, (int) ((Pclaim *)this)->_p, ");
+		fprintf(tm, "src_claim[ (int) ((Pclaim *)this)->_p ]);\n\t\t");
+		fprintf(tm, "		reported%d = 1;\n\t\t", e->seqno);
+		fprintf(tm, "		fflush(stdout);\n\t\t");
+		fprintf(tm, "}	}\n");
+fprintf(tm, "#endif\n");
 		fprintf(tm, "#endif\n\t\t");
 	}
 /* end */
@@ -1504,32 +1609,32 @@ case_cache(Element *e, int a)
 	doforward(tm, e);
 
 	if (e->merge_start)
-		target = e->merge_start;
+		ntarget = e->merge_start;
 	else
-		target = e->merge;
+		ntarget = e->merge;
 
-	if (target)
+	if (ntarget)
 	{	f = e;
 
 more:		if (f->n->ntyp == GOTO)
 		{	g = get_lab(f->n, 1);
-			if (g->seqno == target)
+			if (g->seqno == ntarget)
 				f = g;
 			else
-				f = huntele(g, f->status, target);
+				f = huntele(g, f->status, ntarget);
 		} else
 			f = f->nxt;
 
 
-		if (f && f->seqno != target)
+		if (f && f->seqno != ntarget)
 		{	if (!f->merge && !f->merge_single)
 			{	fprintf(tm, "/* stop at bad hop %d, %d */\n\t\t",
-					f->seqno, target);
+					f->seqno, ntarget);
 				goto out;
 			}
 			fprintf(tm, "/* merge: ");
 			comment(tm, f->n, 0);
-			fprintf(tm,  "(%d, %d, %d) */\n\t\t", f->merge, f->seqno, target);
+			fprintf(tm,  "(%d, %d, %d) */\n\t\t", f->merge, f->seqno, ntarget);
 			fprintf(tm, "reached[%d][%d] = 1;\n\t\t", Pid, f->seqno);
 			YZcnt++;
 			lab_transfer(e, f);
@@ -1547,8 +1652,8 @@ out:
 	multi_needed = 0;
 	didcase = 0;
 
-	if (target)
-		lastfirst(target, e, casenr); /* mergesteps only */
+	if (ntarget)
+		lastfirst(ntarget, e, casenr); /* mergesteps only */
 
 	dobackward(e, casenr);			/* the original step */
 
@@ -1758,8 +1863,8 @@ put_seq(Sequence *s, int Tt0, int Tt1)
 				{	fprintf(tt, "#if 0\n\t/* dead link: */\n");
 					deadlink = 1;
 					if (verbose&32)
-					printf("spin: line %3d  %s, Warning: condition is always false\n",
-						g->n->ln, g->n->fn?g->n->fn->name:"");
+					printf("spin: warning, %s:%d: condition is always false\n",
+						g->n->fn?g->n->fn->name:"", g->n->ln);
 				} else
 					deadlink = 0;
 				if (0) printf("			settr %d %d\n", a, 0);
@@ -1867,7 +1972,7 @@ find_target(Element *e)
 	case BREAK:
 		if (e->nxt)
 		{	f = find_target(huntele(e->nxt, e->status, -1));
-			break;	/* 4.3.0 -- was missing */
+			break;	/* new 5.0 -- was missing */
 		}
 		/* else fall through */
 	default:
@@ -1888,6 +1993,26 @@ target(Element *e)
 }
 
 static int
+seq_has_el(Sequence *s, Element *g)		/* new to version 5.0 */
+{	Element *f;
+	SeqList *h;
+
+	for (f = s->frst; f; f = f->nxt)	/* g in same atomic? */
+	{	if (f == g)
+		{	return 1;
+		}
+		if (f->status & CHECK3)
+		{	continue;
+		}
+		f->status |= CHECK3; /* protect against cycles */
+		for (h = f->sub; h; h = h->nxt)
+		{	if (h->this && seq_has_el(h->this, g))
+			{	return 1;
+	}	}	}
+	return 0;
+}
+
+static int
 scan_seq(Sequence *s)
 {	Element *f, *g;
 	SeqList *h;
@@ -1896,20 +2021,22 @@ scan_seq(Sequence *s)
 	{	if ((f->status&CHECK2)
 		||  has_global(f->n))
 			return 1;
-		if (f->n->ntyp == GOTO)	/* may reach other atomic */
-		{
-#if 0
-			/* if jumping from an atomic without globals into
-			 * one with globals, this does the wrong thing
+		if  (f->n->ntyp == GOTO	/* may exit or reach other atomic */
+		&& !(f->status & D_ATOM))	/* cannot jump from d_step */
+		{	/* consider jump from an atomic without globals into
+			 * an atomic with globals
 			 * example by Claus Traulsen, 22 June 2007
 			 */
 			g = target(f);
+#if 1
+			if (g && !seq_has_el(s, g)) /* not internal to this atomic/dstep */
+
+#else
 			if (g
 			&& !(f->status & L_ATOM)
 			&& !(g->status & (ATOM|L_ATOM)))
 #endif
-			{	fprintf(tt, "	/* mark-down line %d */\n",
-					f->n->ln);
+			{	fprintf(tt, "\t/* mark-down line %d status %d = %d */\n", f->n->ln, f->status, (f->status & D_ATOM));
 				return 1; /* assume worst case */
 		}	}
 		for (h = f->sub; h; h = h->nxt)
@@ -1937,9 +2064,25 @@ glob_args(Lextok *n)
 	return result;
 }
 
+static int
+proc_is_safe(const Lextok *n)
+{	ProcList *p;
+	/* not safe unless no local var inits are used */
+	/* note that a local variable init could refer to a global */
+
+	for (p = rdy; p; p = p->nxt)
+	{	if (strcmp(n->sym->name, p->n->name) == 0)
+		{	/* printf("proc %s safety: %d\n", p->n->name, p->unsafe); */
+			return (p->unsafe != 0);
+	}	}
+/*	non_fatal("bad call to proc_is_safe", (char *) 0);	*/
+	/* cannot happen */
+	return 0;
+}
+
 int
 has_global(Lextok *n)
-{	Lextok *v; extern int runsafe;
+{	Lextok *v;
 
 	if (!n) return 0;
 	if (AllGlobal) return 1;	/* global provided clause */
@@ -1975,7 +2118,8 @@ has_global(Lextok *n)
 			return 0;
 		return 1;
 
-	case RUN: return 1-runsafe;
+	case RUN:
+		return proc_is_safe(n);
 
 	case C_CODE: case C_EXPR:
 		return glob_inline(n->sym->name);
@@ -2021,7 +2165,7 @@ Bailout(FILE *fd, char *str)
 	else if (IsGuard)
 		fprintf(fd, "%s%s", NextLab[Level], str);
 	else
-		fprintf(fd, "Uerror(\"block in step seq\")%s", str);
+		fprintf(fd, "Uerror(\"block in d_step seq\")%s", str);
 }
 
 #define cat0(x)   	putstmnt(fd,now->lft,m); fprintf(fd, x); \
@@ -2070,12 +2214,14 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		else
 			fprintf(fd, "((trpt->tau)&1)");
 		if (GenCode)
-		 printf("spin: line %3d, warning: 'timeout' in d_step sequence\n",
-			lineno);
+		 printf("spin: warning, %s:%d, 'timeout' in d_step sequence\n",
+			Fname->name, lineno);
 		/* is okay as a guard */
 		break;
 
 	case RUN:
+		if (now->sym == NULL)
+			Fatal("internal error pangen2.c", (char *) 0);
 		if (claimproc
 		&&  strcmp(now->sym->name, claimproc) == 0)
 			fatal("claim %s, (not runnable)", claimproc);
@@ -2087,16 +2233,15 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		  fatal("'run' in d_step sequence (use atomic)",
 			(char *)0);
 
-		fprintf(fd,"addproc(%d", fproc(now->sym->name));
+		fprintf(fd,"addproc(II, %d", fproc(now->sym->name));
 		for (v = now->lft, i = 0; v; v = v->rgt, i++)
 		{	cat2(", ", v->lft);
 		}
 		check_param_count(i, now);
 
 		if (i > Npars)
-		{	printf("\t%d parameters used, max %d expected\n", i, Npars);
-			fatal("too many parameters in run %s(...)",
-			now->sym->name);
+		{	/* printf("\t%d parameters used, max %d expected\n", i, Npars); */
+			fatal("too many parameters in run %s(...)", now->sym->name);
 		}
 		for ( ; i < Npars; i++)
 			fprintf(fd, ", 0");
@@ -2180,7 +2325,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 
 	case 's':
 		if (Pid == eventmapnr)
-		{	fprintf(fd, "if ((ot == EVENT_TRACE && _tp != 's') ");
+		{	fprintf(fd, "if ((II == -EVENT_TRACE && _tp != 's') ");
 			putname(fd, "|| _qid+1 != ", now->lft, m, "");
 			for (v = now->rgt, i=0; v; v = v->rgt, i++)
 			{	if (v->lft->ntyp != CONST
@@ -2208,10 +2353,16 @@ putstmnt(FILE *fd, Lextok *now, int m)
 			break;
 		}
 		if (has_xu)
-		{	fprintf(fd, "\n#ifndef XUSAFE\n\t\t");
-			putname(fd, "if (q_claim[", now->lft, m, "]&2) ");
-			putname(fd, "q_S_check(", now->lft, m, ", II);");
-			fprintf(fd, "\n#endif\n\t\t");
+		{	fprintf(fd, "\n#if !defined(XUSAFE) && !defined(NOREDUCE)\n\t\t");
+			putname(fd, "if (q_claim[", now->lft, m, "]&2)\n\t\t");
+			putname(fd, "{	q_S_check(", now->lft, m, ", II);\n\t\t");
+			fprintf(fd, "}\n");
+			if (has_sorted && now->val == 1)
+			{	putname(fd, "\t\tif (q_claim[", now->lft, m, "]&1)\n\t\t"); /* &1 iso &2 */
+				fprintf(fd, "{	uerror(\"sorted send on xr channel violates po reduction\");\n\t\t");
+				fprintf(fd, "}\n");
+			}
+			fprintf(fd, "#endif\n\t\t");
 		}
 		fprintf(fd, "if (q_%s",
 			(u_sync > 0 && u_async == 0)?"len":"full");
@@ -2256,9 +2407,9 @@ putstmnt(FILE *fd, Lextok *now, int m)
 			printf("	%d msg parameters sent, %d expected\n", i, Mpars);
 			fatal("too many pars in send", "");
 		}
-		for ( ; i < Mpars; i++)
+		for (j = i; i < Mpars; i++)
 			fprintf(fd, ", 0");
-		fprintf(fd, ")");
+		fprintf(fd, ", %d)", j);
 		if (u_sync)
 		{	fprintf(fd, ";\n\t\t");
 			if (u_async)
@@ -2274,7 +2425,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 
 	case 'r':
 		if (Pid == eventmapnr)
-		{	fprintf(fd, "if ((ot == EVENT_TRACE && _tp != 'r') ");
+		{	fprintf(fd, "if ((II == -EVENT_TRACE && _tp != 'r') ");
 			putname(fd, "|| _qid+1 != ", now->lft, m, "");
 			for (v = now->rgt, i=0; v; v = v->rgt, i++)
 			{	if (v->lft->ntyp != CONST
@@ -2342,10 +2493,13 @@ putstmnt(FILE *fd, Lextok *now, int m)
 			break;
 		}
 		if (has_xu)
-		{	fprintf(fd, "\n#ifndef XUSAFE\n\t\t");
-			putname(fd, "if (q_claim[", now->lft, m, "]&1) ");
-			putname(fd, "q_R_check(", now->lft, m, ", II);");
-			fprintf(fd, "\n#endif\n\t\t");
+		{	fprintf(fd, "\n#if !defined(XUSAFE) && !defined(NOREDUCE)\n\t\t");
+			putname(fd, "if (q_claim[", now->lft, m, "]&1)\n\t\t");
+			putname(fd, "{	q_R_check(", now->lft, m, ", II);\n\t\t");
+			if (has_random && now->val != 0)
+			fprintf(fd, "	uerror(\"rand receive on xr channel violates po reduction\");\n\t\t");
+			fprintf(fd, "}\n");
+			fprintf(fd, "#endif\n\t\t");
 		}
 		if (u_sync)
 		{	if (now->val >= 2)
@@ -2415,6 +2569,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 				fprintf(fd, ", 0, 0");
 			fprintf(fd, "))) ");
 			Bailout(fd, "");
+ if (!GenCode) {
 			fprintf(fd, ";\n\t\t");
 			if (multi_oval)
 			{	check_needed();
@@ -2424,6 +2579,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 			} else
 				fprintf(fd, "(trpt+1)->bup.oval = ");
 			fprintf(fd, "XX");
+ }
 		}
 
 		if (has_enabled)
@@ -2485,7 +2641,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 					&&  v->lft->ntyp != EVAL
 					&&  v->lft->sym
 					&&  v->lft->sym->type != STRUCT	/* not a struct */
-					&&  v->lft->sym->nel == 1	/* not an array */
+					&&  (v->lft->sym->nel == 1 && v->lft->sym->isarray == 0) /* not array */
 					&&  strcmp(v->lft->sym->name, "_") != 0)
 					for (w = v->rgt; w; w = w->rgt)
 						if (v->lft->sym == w->lft->sym)
@@ -2501,6 +2657,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 
 			if (v->lft->ntyp != CONST
 			&&  v->lft->ntyp != EVAL
+			&&  v->lft->sym != NULL
 			&&  strcmp(v->lft->sym->name, "_") != 0)
 			{	nocast=1;
 				_isok++;
@@ -2515,6 +2672,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 
 			if (v->lft->ntyp != CONST
 			&&  v->lft->ntyp != EVAL
+			&&  v->lft->sym != NULL
 			&& strcmp(v->lft->sym->name, "_") != 0
 			&&  (v->lft->ntyp != NAME
 			||   v->lft->sym->type != CHAN))
@@ -2748,14 +2906,16 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		break;
 
 	case C_CODE:
-		fprintf(fd, "/* %s */\n\t\t", now->sym->name);
+		if (now->sym)
+			fprintf(fd, "/* %s */\n\t\t", now->sym->name);
 		if (has_enabled)
 			fprintf(fd, "if (TstOnly) return 1;\n\t\t");
-		if (!GenCode)	/* not in d_step */
-		{	fprintf(fd, "sv_save();\n\t\t");
-			/* store the old values for reverse moves */
-		}
-		plunk_inline(fd, now->sym->name, 1);
+
+		if (now->sym)
+			plunk_inline(fd, now->sym->name, 1, GenCode);
+		else
+			Fatal("internal error pangen2.c", (char *) 0);
+
 		if (!GenCode)
 		{	fprintf(fd, "\n");	/* state changed, capture it */
 			fprintf(fd, "#if defined(C_States) && (HAS_TRACK==1)\n");
@@ -2768,7 +2928,7 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		if (has_enabled)
 			fprintf(fd, "if (TstOnly) return 1;\n\t\t");
 
-		cat3("assert(", now->lft, ", ");
+		cat3("spin_assert(", now->lft, ", ");
 		terse = nocast = 1;
 		cat3("\"", now->lft, "\", II, tt, t)");
 		terse = nocast = 0;
@@ -2797,16 +2957,30 @@ putstmnt(FILE *fd, Lextok *now, int m)
 		break;
 
 	default:
-		printf("spin: bad node type %d (.m) - line %d\n",
-			now->ntyp, now->ln);
+		printf("spin: error, %s:%d, bad node type %d (.m)\n",
+			now->fn->name, now->ln, now->ntyp);
 		fflush(tm);
 		alldone(1);
 	}
 }
 
+char *
+simplify_name(char *s)
+{	char *t = s;
+
+	if (!old_scope_rules)
+	{	while (*t == '_' || isdigit((int)*t))
+		{	t++;
+	}	}
+
+	return t;
+}
+
 void
 putname(FILE *fd, char *pre, Lextok *n, int m, char *suff) /* varref */
 {	Symbol *s = n->sym;
+	char *ptr;
+
 	lineno = n->ln; Fname = n->fn;
 
 	if (!s)
@@ -2824,7 +2998,7 @@ putname(FILE *fd, char *pre, Lextok *n, int m, char *suff) /* varref */
 
 	if (!s->type)
 	{	if (strcmp(pre, ".") != 0)
-		non_fatal("undeclared variable '%s'", s->name);
+			fatal("undeclared variable '%s'", s->name);
 		s->type = INT;
 	}
 
@@ -2845,22 +3019,29 @@ putname(FILE *fd, char *pre, Lextok *n, int m, char *suff) /* varref */
 				fatal("attempt to read value of '_'", 0);
 	}	}
 
-	if (withprocname
-	&&  s->context
-	&&  strcmp(pre, "."))
-		fprintf(fd, "%s:", s->context->name);
+	ptr = s->name;
+
+	if (s->type != PREDEF)	/* new 6.0.2 */
+	{	if (withprocname
+		&&  s->context
+		&&  strcmp(pre, "."))
+		{	fprintf(fd, "%s:", s->context->name);
+			ptr = simplify_name(ptr);
+		} else
+		{	if (terse)
+			{	ptr = simplify_name(ptr);
+	}	}	}
 
 	if (evalindex != 1)
-		fprintf(fd, "%s", s->name);
+		fprintf(fd, "%s", ptr);
 
-	if (s->nel != 1)
+	if (s->nel > 1 || s->isarray == 1)
 	{	if (no_arrays)
-		{
-		non_fatal("ref to array element invalid in this context",
-			(char *)0);
-		printf("\thint: instead of, e.g., x[rs] qu[3], use\n");
-		printf("\tchan nm_3 = qu[3]; x[rs] nm_3;\n");
-		printf("\tand use nm_3 in sends/recvs instead of qu[3]\n");
+		{	non_fatal("ref to array element invalid in this context",
+				(char *)0);
+			printf("\thint: instead of, e.g., x[rs] qu[3], use\n");
+			printf("\tchan nm_3 = qu[3]; x[rs] nm_3;\n");
+			printf("\tand use nm_3 in sends/recvs instead of qu[3]\n");
 		}
 		/* an xr or xs reference to an array element
 		 * becomes an exclusion tag on the array itself -
@@ -2885,11 +3066,27 @@ putname(FILE *fd, char *pre, Lextok *n, int m, char *suff) /* varref */
 			|| (!n->lft && s->nel > 0))
 			{	cat3("[", n->lft, "]");
 			} else
-			{	cat3("[ Index(", n->lft, ", ");
+			{	/* attempt to catch arrays that are indexed with an array element in the same array
+				 * this causes trouble in the verifier in the backtracking
+				 * e.g., restoring a[?] in the assignment: a [a[1]] = x where a[1] == 1
+				 * but it is hard when the array is inside a structure, so the names dont match
+				 */
+#if 0
+				if (n->lft->ntyp == NAME)
+				{	printf("%4d: Basename %s	index %s\n",
+						n->lft->ln, s->name, n->lft->sym->name);
+				}
+#endif
+				cat3("[ Index(", n->lft, ", ");
 				fprintf(fd, "%d) ]", s->nel);
-			}
-		}
-	}
+		}	}
+	} else
+	{	if (n->lft	/* effectively a scalar, but with an index */
+		&& (n->lft->ntyp != CONST
+		||  n->lft->val != 0))
+		{	fatal("ref to scalar '%s' using array index", (char *) ptr);
+	}	}
+
 	if (s->type == STRUCT && n->rgt && n->rgt->lft)
 	{	putname(fd, ".", n->rgt->lft, m, "");
 	}

@@ -202,10 +202,11 @@ netlogctl(Fs *f, char* s, int n)
 		else
 			f->alog->iponlyset = 1;
 		free(cb);
+		poperror();
 		return;
 
 	default:
-		cmderror(cb, "unknown ip control message");
+		cmderror(cb, "unknown netlog control message");
 	}
 
 	for(i = 1; i < cb->nf; i++){

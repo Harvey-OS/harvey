@@ -21,7 +21,10 @@ int	tl_errs    = 0;
 int	tl_verbose = 0;
 int	tl_terse   = 0;
 int	tl_clutter = 0;
+int	state_cnt = 0;
+
 unsigned long	All_Mem = 0;
+char	*claim_name;
 
 static char	uform[4096];
 static int	hasuform=0, cnt=0;
@@ -35,6 +38,15 @@ tl_Getchar(void)
 	if (cnt < hasuform)
 		return uform[cnt++];
 	cnt++;
+	return -1;
+}
+
+int
+tl_peek(int n)
+{
+	if (cnt+n < hasuform)
+	{	return uform[cnt+n];
+	}
 	return -1;
 }
 
@@ -79,16 +91,33 @@ tl_stats(void)
 int
 tl_main(int argc, char *argv[])
 {	int i;
-	extern int verbose, xspin;
-	tl_verbose = verbose;
+	extern int /* verbose, */ xspin;
+
+	tl_verbose = 0; /* was: tl_verbose = verbose; */
 	tl_clutter = 1-xspin;	/* use -X -f to turn off uncluttering */
 
+	newstates  = 0;
+	state_cnt  = 0;
+	tl_errs    = 0;
+	tl_terse   = 0;
+	All_Mem = 0;
+	memset(uform, 0, sizeof(uform));
+	hasuform=0;
+	cnt=0;
+	claim_name = (char *) 0;
+
+	ini_buchi();
+	ini_cache();
+	ini_rewrt();
+	ini_trans();
+
 	while (argc > 1 && argv[1][0] == '-')
-	{	switch (argv[1][1]) {
+	{
+		switch (argv[1][1]) {
 		case 'd':	newstates = 1;	/* debugging mode */
 				break;
 		case 'f':	argc--; argv++;
-				for (i = 0; i < argv[1][i]; i++)
+				for (i = 0; argv[1][i]; i++)
 				{	if (argv[1][i] == '\t'
 					||  argv[1][i] == '\"'
 					||  argv[1][i] == '\n')
@@ -100,6 +129,10 @@ tl_main(int argc, char *argv[])
 		case 'v':	tl_verbose++;
 				break;
 		case 'n':	tl_terse = 1;
+				break;
+		case 'c':	argc--; argv++;
+				claim_name = (char *) emalloc(strlen(argv[1])+1);
+				strcpy(claim_name, argv[1]);
 				break;
 		default :	printf("spin -f: saw '-%c'\n", argv[1][1]);
 				goto nogood;

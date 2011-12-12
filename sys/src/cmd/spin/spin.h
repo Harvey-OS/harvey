@@ -1,6 +1,6 @@
 /***** spin: spin.h *****/
 
-/* Copyright (c) 1989-2003 by Lucent Technologies, Bell Laboratories.     */
+/* Copyright (c) 1989-2009 by Lucent Technologies, Bell Laboratories.     */
 /* All Rights Reserved.  This software is for educational purposes only.  */
 /* No guarantee whatsoever is expressed or implied by the distribution of */
 /* this code.  Permission is given to distribute this code provided that  */
@@ -16,12 +16,16 @@
 #include <string.h>
 #include <ctype.h>
 
+enum	    { INIV, PUTV, LOGV };	/* for pangen[14].c */
+enum btypes { NONE, N_CLAIM, I_PROC, A_PROC, P_PROC, E_TRACE, N_TRACE };
+
 typedef struct Lextok {
 	unsigned short	ntyp;	/* node type */
 	short	ismtyp;		/* CONST derived from MTYP */
 	int	val;		/* value attribute */
 	int	ln;		/* line number */
 	int	indstep;	/* part of d_step sequence */
+	int	uiid;		/* inline id, if non-zero */
 	struct Symbol	*fn;	/* file name */
 	struct Symbol	*sym;	/* symbol reference */
         struct Sequence *sq;	/* sequence */
@@ -54,6 +58,8 @@ typedef struct Symbol {
 				  64=treat as if local; 128=read at least once
 				 */
 	unsigned char	colnr;	/* for use with xspin during simulation */
+	unsigned char	isarray; /* set if decl specifies array bound */
+	unsigned char	*bscp;	/* block scope */
 	int	nbits;		/* optional width specifier */
 	int	nel;		/* 1 if scalar, >1 if array   */
 	int	setat;		/* last depth value changed   */
@@ -124,7 +130,7 @@ typedef struct Element {
 	int	merge_single;
 	short	merge_in;	/* nr of incoming edges */
 	short	merge_mark;	/* state was generated in merge sequence */
-	unsigned char	status;	/* used by analyzer generator  */
+	unsigned int	status;	/* used by analyzer generator  */
 	struct FSM_use	*dead;	/* optional dead variable list */
 	struct SeqList	*sub;	/* subsequences, for compounds */
 	struct SeqList	*esc;	/* zero or more escape sequences */
@@ -148,6 +154,7 @@ typedef struct Label {
 	Symbol	*s;
 	Symbol	*c;
 	Element	*e;
+	int	uiid;		/* non-zero if label appears in an inline */
 	int	visible;	/* label referenced in claim (slice relevant) */
 	struct Label	*nxt;
 } Label;
@@ -162,6 +169,7 @@ typedef struct RunList {
 	int	tn;		/* ordinal of type */
 	int	pid;		/* process id      */
 	int	priority;	/* for simulations only */
+	enum btypes b;		/* the type of process */
 	Element	*pc;		/* current stmnt   */
 	Sequence *ps;		/* used by analyzer generator */
 	Lextok	*prov;		/* provided clause */
@@ -174,8 +182,10 @@ typedef struct ProcList {
 	Lextok	*p;		/* parameters */
 	Sequence *s;		/* body       */
 	Lextok	*prov;		/* provided clause */
+	enum btypes b;		/* e.g., claim, trace, proc */
 	short	tn;		/* ordinal number */
-	short	det;		/* deterministic */
+	unsigned char	det;	/* deterministic */
+	unsigned char   unsafe;	/* contains global var inits */
 	struct ProcList	*nxt;	/* linked list */
 } ProcList;
 
@@ -194,7 +204,8 @@ typedef	Lextok *Lexptr;
 #define DONE2	 16		/* used in putcode and main*/
 #define D_ATOM	 32		/* deterministic atomic    */
 #define ENDSTATE 64		/* normal endstate         */
-#define CHECK2	128
+#define CHECK2	128		/* status bits for remote ref check */
+#define CHECK3	256		/* status bits for atomic jump check */
 
 #define Nhash	255    		/* slots in symbol hash-table */
 
@@ -216,12 +227,17 @@ typedef	Lextok *Lexptr;
 
 #define SOMETHINGBIG	65536
 #define RATHERSMALL	512
+#define MAXSCOPESZ	1024
 
 #ifndef max
 #define max(a,b) (((a)<(b)) ? (b) : (a))
 #endif
 
-enum	{ INIV, PUTV, LOGV };	/* for pangen[14].c */
+#ifdef PC
+	#define MFLAGS	"wb"
+#else
+	#define MFLAGS	"w"
+#endif
 
 /***** prototype definitions *****/
 Element	*eval_sub(Element *);
@@ -239,7 +255,7 @@ Lextok	*rem_lab(Symbol *, Lextok *, Symbol *);
 Lextok	*rem_var(Symbol *, Lextok *, Symbol *, Lextok *);
 Lextok	*tail_add(Lextok *, Lextok *);
 
-ProcList *ready(Symbol *, Lextok *, Sequence *, int, Lextok *);
+ProcList *ready(Symbol *, Lextok *, Sequence *, int, Lextok *, enum btypes);
 
 SeqList	*seqlist(Sequence *, SeqList *);
 Sequence *close_seq(int);
@@ -250,7 +266,7 @@ Symbol	*has_lab(Element *, int);
 Symbol	*lookup(char *);
 Symbol	*prep_inline(Symbol *, Lextok *);
 
-char	*emalloc(int);
+char	*emalloc(size_t);
 long	Rand(void);
 
 int	any_oper(Lextok *, int);
@@ -274,12 +290,14 @@ int	has_typ(Lextok *, int);
 int	in_bound(Symbol *, int);
 int	interprint(FILE *, Lextok *);
 int	printm(FILE *, Lextok *);
+int	is_inline(void);
 int	ismtype(char *);
 int	isproctype(char *);
 int	isutype(char *);
 int	Lval_struct(Lextok *, Symbol *, int, int);
 int	main(int, char **);
 int	pc_value(Lextok *);
+int	pid_is_claim(int);
 int	proper_enabler(Lextok *);
 int	putcode(FILE *, Sequence *, Element *, int, int, int);
 int	q_is_sync(Lextok *);
@@ -321,6 +339,7 @@ void	check_param_count(int, Lextok *);
 void	checkrun(Symbol *, int);
 void	comment(FILE *, Lextok *, int);
 void	cross_dsteps(Lextok *, Lextok *);
+void	disambiguate(void);
 void	doq(Symbol *, int, RunList *);
 void	dotag(FILE *, char *);
 void	do_locinits(FILE *);
@@ -355,7 +374,7 @@ void	pickup_inline(Symbol *, Lextok *);
 void	plunk_c_decls(FILE *);
 void	plunk_c_fcts(FILE *);
 void	plunk_expr(FILE *, char *);
-void	plunk_inline(FILE *, char *, int);
+void	plunk_inline(FILE *, char *, int, int);
 void	prehint(Symbol *);
 void	preruse(FILE *, Lextok *);
 void	prune_opts(Lextok *);
@@ -378,15 +397,17 @@ void	setptype(Lextok *, int, Lextok *);
 void	setuname(Lextok *);
 void	setutype(Lextok *, Symbol *, Lextok *);
 void	setxus(Lextok *, int);
+void	show_lab(void);
 void	Srand(unsigned);
 void	start_claim(int);
 void	struct_name(Lextok *, Symbol *, int, char *);
 void	symdump(void);
 void	symvar(Symbol *);
+void	sync_product(void);
 void	trackchanuse(Lextok *, Lextok *, int);
 void	trackvar(Lextok *, Lextok *);
 void	trackrun(Lextok *);
-void	trapwonly(Lextok *, char *);	/* spin.y and main.c */
+void	trapwonly(Lextok * /* , char * */);	/* spin.y and main.c */
 void	typ2c(Symbol *);
 void	typ_ck(int, int, char *);
 void	undostmnt(Lextok *, int);

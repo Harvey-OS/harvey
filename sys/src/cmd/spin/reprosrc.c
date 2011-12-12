@@ -96,7 +96,7 @@ repro_seq(Sequence *s)
 				doindent();
 				if (e->n->ntyp == C_CODE)
 				{	printf("c_code ");
-					plunk_inline(stdout, e->n->sym->name, 1);
+					plunk_inline(stdout, e->n->sym->name, 1, 1);
 				} else if (e->n->ntyp == 'c'
 				       &&  e->n->lft->ntyp == C_EXPR)
 				{	printf("c_expr { ");
