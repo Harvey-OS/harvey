@@ -106,10 +106,16 @@ parsereportdesc(HidRepTempl *temp, uchar *repdesc, int repsz)
 		case HidInput:
 			for(j = 0; j <nk; j++)
 				ifs[n].kind[j] = ks[j];
-			if(nk < ifs[n].count)
+			if(nk != 0 && nk < ifs[n].count)
 				for(l = j; l <ifs[n].count; l++)
 					ifs[n].kind[l] = ks[j-1];
 			n++;
+			if(n < MaxIfc){
+				ifs[n].count = ifs[n-1].count;	/* inherit values */
+				ifs[n].nbits = ifs[n-1].nbits;
+			}
+			if(ifs[n].nbits == 0)
+				ifs[n].nbits = 1;
 			nk = 0;
 			break;
 		}
@@ -175,7 +181,7 @@ dumpreport(HidRepTempl *templ)
 	fprint(2, "\n");
 }
 
-/* could cache indices after parsing the descriptor */
+/* could precalculate indices after parsing the descriptor */
 int
 hidifcval(HidRepTempl *templ, int kind, int n)
 {

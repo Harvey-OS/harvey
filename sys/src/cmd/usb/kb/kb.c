@@ -159,11 +159,11 @@ setfirstconfig(KDev* f, int eid, uchar *desc, int descsz)
 	if(nr < 0)
 		return -1;
 	if(kbdebug && nr > 0){
-		fprint(2, "report descriptor: ");
+		fprint(2, "report descriptor:");
 		for(i = 0; i < nr; i++){
-			fprint(2, " %#2.2ux ", desc[i]);
-			if(i!= 0 && i%8 == 0)
-				fprint(2, "\n");
+			if(i%8 == 0)
+				fprint(2, "\n\t");
+			fprint(2, "%#2.2ux ", desc[i]);
 		}
 		fprint(2, "\n");
 	}

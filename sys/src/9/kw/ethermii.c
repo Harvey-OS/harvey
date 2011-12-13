@@ -81,14 +81,18 @@ miimiw(Mii* mii, int r, int data)
 int
 miireset(Mii* mii)
 {
-	int bmcr;
+	int bmcr, phyno;
 
 	if(mii == nil || mii->ctlr == nil || mii->curphy == nil)
 		return -1;
-	bmcr = mii->mir(mii, mii->curphy->phyno, Bmcr);
+	phyno = mii->curphy->phyno;
+	bmcr = mii->mir(mii, phyno, Bmcr);
 	bmcr |= BmcrR;
-	mii->miw(mii, mii->curphy->phyno, Bmcr, bmcr);
-	microdelay(1);
+	mii->miw(mii, phyno, Bmcr, bmcr);
+
+//	microdelay(1);
+	while(mii->mir(mii, phyno, Bmcr) & BmcrR)
+		;
 
 	return 0;
 }
