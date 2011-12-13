@@ -1,9 +1,12 @@
 .TH MKUSBBOOT 8
 .SH NAME
-mkusbboot - generate bootable USB disk image
+mkusbboot - generate bootable USB or other disk image for PC
 .SH SYNOPSIS
 .B mkusbboot
 [
+.B -b
+.I boot
+] [
 .B -p
 .I proto
 ] [
@@ -30,6 +33,10 @@ prototype file
 .I proto
 and files in
 .BR /sys/lib/sysconfig/usb .
+The default
+.I boot
+program is
+.BR /386/9loadusb .
 .PP
 The image will be exactly
 .IB size *1,000,000
@@ -51,7 +58,7 @@ as a CPU server with serial console on
 (with optional VGA)
 or
 .B amd64
-machines, when copied to a USB disk.
+machines, when copied to a (possibly USB) disk.
 There is an
 .I nvram
 partition, initially zeroed.
@@ -61,6 +68,13 @@ Create a bootable USB flash drive from the local Plan 9 installation.
 .EX
 mkusbboot
 pump <image >/dev/sdU0.0/data
+.EE
+.PP
+Create a bootable disk from the local Plan 9 installation.
+.IP
+.EX
+mkusbboot -b /386/9load
+pump <image >/dev/sdC0/data
 .EE
 .SH FILES
 .TF /srv/fscons.open
@@ -79,7 +93,7 @@ default
 .I proto
 .TP
 .B /env/objtype
-architecture of the boot programs in the disk image
+architecture of the default kernel in the disk image
 .TP
 .B /tmp/9load
 .PD 0
@@ -97,6 +111,7 @@ files created while executing
 .SH SEE ALSO
 .IR usb (4),
 .IR boot (8),
+.IR 9boot (8),
 .IR diskparts (8),
 .IR loadfossil (8),
 .IR partfs (8),

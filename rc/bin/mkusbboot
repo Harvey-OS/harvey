@@ -15,7 +15,7 @@ quantum=1000000
 size=1900
 
 fn usage {
-	echo usage: $argv0 '[-p proto] [-r root] [-s 10⁶-bytes]' >[1=2]
+	echo usage: $argv0 '[-b boot] [-p proto] [-r root] [-s 10⁶-bytes]' >[1=2]
 	exit usage
 }
 
@@ -27,8 +27,10 @@ fn sigint sighup sigterm {
 # process arguments
 done=0
 argv0=$0
+boot=/386/9loadusb
 while (~ $done 0 && ! ~ $#* 0 && ~ $1 -*) {
 	switch ($1) {
+	case -b;	boot=$2; shift
 	case -p;	proto=$2; shift
 	case -r;	srcroot=$2; shift
 	case -s;	size=$2; shift
@@ -57,13 +59,12 @@ cd /dev/sdXX
 
 # prep it: lay down mbr, fdisk partitions, 9 partitions
 echo -n mbr+fdisk+prep... >[1=2]
-disk/mbr -m /$objtype/mbr data
+disk/mbr -m /386/mbr data
 disk/fdisk -baw data
 disk/prep -bw -a^(9fat nvram fscfg fossil) plan9 >/dev/null
 
 # populate 9fat, nvram, fsconfig
 echo -n 9fat... >[1=2]
-cp /$objtype/9loadusb /tmp/9load	# force format to use the name `9load'
 switch ($objtype) {
 case 386
 	k=/$objtype/9pccpuf.gz
@@ -73,12 +74,13 @@ case *
 	echo $0: 'can''t cope with architecture' $objtype >[1=2]
 	exit unknown-arch
 }
-disk/format -b /$objtype/pbslba -d -r 2 9fat /tmp/9load $k \
+cp $boot /tmp/9load		# force format to record the name `9load'
+disk/format -b /386/pbslba -d -r 2 9fat /tmp/9load $k \
 	$syscfg/usb/plan9.ini >[2=1] |
 	grep -v '^(add .* at clust |Init|type |Adding file|used )'
+rm -f /tmp/9load
 cp /dev/zero nvram >[2]/dev/null
 cp /dev/zero fscfg >[2]/dev/null
-rm -f /tmp/9load
 
 # fill the fossil
 9fs $srcfs
