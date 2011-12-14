@@ -1,7 +1,7 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-
+#include <disk.h>
 #include "scsireq.h"
 
 extern Biobuf bout;

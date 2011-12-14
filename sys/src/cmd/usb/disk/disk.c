@@ -9,6 +9,7 @@
 #include <ctype.h>
 #include <fcall.h>
 #include <thread.h>
+#include <disk.h>
 #include "scsireq.h"
 #include "usb.h"
 #include "usbfs.h"
