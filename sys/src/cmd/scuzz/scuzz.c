@@ -1,7 +1,7 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-
+#include <disk.h>
 #include "scsireq.h"
 
 enum {					/* fundamental constants/defaults */
@@ -30,7 +30,7 @@ typedef struct {
 	char *help;
 } ScsiCmd;
 
-static ScsiCmd scsicmd[];
+static ScsiCmd scsicmds[];
 
 static vlong
 vlmin(vlong a, vlong b)
@@ -1518,7 +1518,7 @@ cmdhelp(ScsiReq *rp, int argc, char *argv[])
 		p = argv[0];
 	else
 		p = 0;
-	for(cp = scsicmd; cp->name; cp++){
+	for(cp = scsicmds; cp->name; cp++){
 		if(p == 0 || strcmp(p, cp->name) == 0)
 			Bprint(&bout, "%s\n", cp->help);
 	}
@@ -1601,7 +1601,7 @@ cmdopen(ScsiReq *rp, int argc, char *argv[])
 	return status;
 }
 
-static ScsiCmd scsicmd[] = {
+static ScsiCmd scsicmds[] = {
 	{ "ready",	cmdready,	1,		/*[0x00]*/
 	  "ready",
 	},
@@ -1908,7 +1908,7 @@ main(int argc, char *argv[])
 		switch(ac = parse(ap, av, nelem(av))){
 
 		default:
-			for(cp = scsicmd; cp->name; cp++){
+			for(cp = scsicmds; cp->name; cp++){
 				if(strcmp(cp->name, av[0]) == 0)
 					break;
 			}

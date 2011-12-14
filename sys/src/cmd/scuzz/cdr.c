@@ -1,6 +1,6 @@
 #include <u.h>
 #include <libc.h>
-
+#include <disk.h>
 #include "scsireq.h"
 
 long
