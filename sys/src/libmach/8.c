@@ -68,7 +68,7 @@ Mach mi386 =
 	"setSB",	/* static base register name (bogus anyways) */
 	0,		/* static base register value */
 	0x1000,		/* page size */
-	0x80100000ULL,	/* kernel base */
+	0xF0100000ULL,	/* kernel base */
 	0xF0000000ULL,	/* kernel text mask */
 	0x7FFFFFFFULL,	/* user stack top */
 	1,		/* quantization of pc */

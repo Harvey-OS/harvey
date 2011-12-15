@@ -94,19 +94,25 @@ main(int argc, char *argv[])
 		exits(0);
 	if (!textsym(&s, 0))
 		error(0, "no text symbols");
-	tbase = s.value & ~(mach->pgsize-1);	/* align down to page */
-	print("KTZERO %.8llux\n", tbase);
+
+	tbase = mach->kbase;
+	if(tbase != s.value & ~0xFFF)
+		print("warning: kbase %.8llux != tbase %.8llux\n",
+			tbase, s.value&~0xFFF);
+	print("KTZERO %.8llux PGSIZE %dKb\n", tbase, mach->pgsize/1024);
 	/*
 	 * Accumulate counts for each function
 	 */
 	cp = 0;
 	k = 0;
-	for (i = 0, j = (s.value-tbase)/PCRES+2; j < n; i++) {
+	for (i = 0, j = 2; j < n; i++) {
 		name = s.name;		/* save name */
 		if (!textsym(&s, i))	/* get next symbol */
 			break;
+		s.value -= tbase;
+		s.value /= PCRES;
 		sum = 0;
-		while (j < n && j*PCRES < s.value-tbase)
+		while (j < n && j < s.value)
 			sum += data[j++];
 		if (sum) {
 			cp = realloc(cp, (k+1)*sizeof(struct COUNTER));

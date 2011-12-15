@@ -14,6 +14,7 @@ int		output = 0;
 ulong	outchan = CMAP8;
 Image	**allims;
 Image	**allmasks;
+Rawimage	**allimages;
 int		which;
 int		defaultcolor = 1;
 
@@ -52,7 +53,12 @@ eresized(int new)
 	border(screen, r, -Border, nil, ZP);
 	r.min.x += allims[which]->r.min.x - allims[0]->r.min.x;
 	r.min.y += allims[which]->r.min.y - allims[0]->r.min.y;
-	drawop(screen, r, allims[which], allmasks[which], allims[which]->r.min, S);
+	if(which > 0 && allimages[which]->gifflags & TRANSP)
+		drawop(screen, r, allims[which], allmasks[which],
+			allims[which]->r.min, SoverD);
+	else
+		drawop(screen, r, allims[which], allmasks[which],
+			allims[which]->r.min, S);
 	flushimage(display, 1);
 }
 
@@ -229,7 +235,7 @@ addalpha(Rawimage *i)
  * r is used only for reference; the image is already in c.
  */
 void
-whiteout(Rawimage *r, Rawimage *c)
+blackout(Rawimage *r, Rawimage *c)
 {
 	int i, trindex;
 	uchar *rp, *cp;
@@ -241,9 +247,9 @@ whiteout(Rawimage *r, Rawimage *c)
 		for(i=0; i<r->chanlen; i++){
 			if(*rp == trindex){
 				*cp++ = 0x00;
-				*cp++ = 0xFF;
-				*cp++ = 0xFF;
-				*cp++ = 0xFF;
+				*cp++ = 0x00;
+				*cp++ = 0x00;
+				*cp++ = 0x00;
 			}else{
 				*cp++ = 0xFF;
 				cp += 3;
@@ -254,7 +260,7 @@ whiteout(Rawimage *r, Rawimage *c)
 		for(i=0; i<r->chanlen; i++){
 			if(*rp == trindex){
 				*cp++ = 0x00;
-				*cp++ = 0xFF;
+				*cp++ = 0x00;
 			}else{
 				*cp++ = 0xFF;
 				cp++;
@@ -349,6 +355,7 @@ show(int fd, char *name)
 		}
 	}
 
+	allimages = images;
 	allims = ims;
 	allmasks = masks;
 	loopcount = images[0]->gifloopcount;
@@ -380,7 +387,7 @@ show(int fd, char *name)
 	if(nineflag){
 		if(images[0]->gifflags&TRANSP){
 			addalpha(rgbv[0]);
-			whiteout(images[0], rgbv[0]);
+			blackout(images[0], rgbv[0]);
 		}
 		chantostr(buf, outchan);
 		print("%11s %11d %11d %11d %11d ", buf,
@@ -392,7 +399,7 @@ show(int fd, char *name)
 	}else if(cflag){
 		if(images[0]->gifflags&TRANSP){
 			addalpha(rgbv[0]);
-			whiteout(images[0], rgbv[0]);
+			blackout(images[0], rgbv[0]);
 		}
 		if(writerawimage(1, rgbv[0]) < 0){
 			fprint(2, "gif: %s: write error: %r\n", name);
@@ -403,6 +410,7 @@ show(int fd, char *name)
     Return:
 	allims = nil;
 	allmasks = nil;
+	allimages = nil;
 	for(k=0; images[k]; k++){
 		for(j=0; j<images[k]->nchans; j++)
 			free(images[k]->chans[j]);
