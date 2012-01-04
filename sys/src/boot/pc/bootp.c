@@ -407,7 +407,7 @@ tftpread(int ctlrno, Netaddr *a, Tftp *tftp, int dlen)
 		udpsend(ctlrno, a, buf, sizeof(buf));
 
 		len = udprecv(ctlrno, a, tftp, dlen);
-		if(len <= sizeof(tftp->header)){
+		if(len < sizeof(tftp->header)){
 			if(debug)
 				print("tftpread: too short %d <= %d\n",
 					len, sizeof(tftp->header));
