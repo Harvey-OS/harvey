@@ -609,7 +609,11 @@ recvfile(int fd, char *name, char *mode)
 				name);
 			goto error;
 		}
-		if(n <= Hdrsize) {
+		/*
+		 * NB: not `<='; just a header is legal and happens when
+		 * file being read is a multiple of segment-size bytes long.
+		 */
+		if(n < Hdrsize) {
 			syslog(dbg, flog,
 				"tftpd: short read from network, reading %s",
 				name);
