@@ -2372,7 +2372,9 @@ scanpci(void)
 			continue;
 		}
 
-		ctlr = smalloc(sizeof(Ctlr));
+		ctlr = malloc(sizeof(Ctlr));
+		if (ctlr == nil)
+			panic("ohci: out of memory");
 		ctlr->pcidev = p;
 		ctlr->ohci = vmap(mem, p->mem[0].size);
 		dprint("scanpci: ctlr %#p, ohci %#p\n", ctlr, ctlr->ohci);
