@@ -222,7 +222,8 @@ for input
 .IB file .c ,
 and not on standard output.
 .PP
-The compilers support several extensions to ANSI C:
+The compilers support several extensions to 1989 ANSI C,
+some of which were adopted in later ANSI C standards:
 .TF \|
 .PD
 .TP
@@ -482,7 +483,9 @@ The default search order for include files
 differs to that of
 .IR cpp (1).
 .PP
-Some features of C99, the 1999 ANSI C standard,
+Some new features of C99, the 1999 ANSI C standard,
+are implemented.
+No new features of C11, the 2011 ANSI C standard,
 are implemented.
 .PP
 .B switch

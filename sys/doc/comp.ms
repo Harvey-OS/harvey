@@ -25,7 +25,7 @@ almost all the utilities are written.
 .SH
 Source
 .PP
-The language accepted by the compilers is the core ANSI C language
+The language accepted by the compilers is the core 1989 ANSI C language
 with some modest extensions,
 a greatly simplified preprocessor,
 a smaller library that includes system calls and related facilities,
@@ -1075,8 +1075,9 @@ main(int argc, char *argv[])
 .SH
 Extensions
 .PP
-The compiler has several extensions to ANSI C, all of which are used
+The compiler has several extensions to 1989 ANSI C, all of which are used
 extensively in the system source.
+Some of these have been adopted in later ANSI C standards.
 First,
 .I structure
 .I displays
