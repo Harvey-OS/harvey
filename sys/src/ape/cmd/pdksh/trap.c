@@ -115,6 +115,8 @@ gettrap(name, igncase)
 			return &sigtraps[n];
 		return NULL;
 	}
+	if (strncasecmp(name, "sig", 3) == 0)
+		name += 3;
 	for (p = sigtraps, i = SIGNALS+1; --i >= 0; p++)
 		if (p->name && (igncase ? strcasecmp(p->name, name) == 0
 					: strcmp(p->name, name) == 0))
