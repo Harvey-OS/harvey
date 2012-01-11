@@ -507,12 +507,13 @@ sendfile(int fd, char *name, char *mode, int opts)
 	uchar buf[Maxsegsize+Hdrsize];
 	char errbuf[Maxerr];
 
+	file = -1;
 	syslog(dbg, flog, "tftpd %d send file '%s' %s to %s",
 		pid, name, mode, raddr);
 	name = sunkernel(name);
 	if(name == 0){
 		nak(fd, 0, "not in our database");
-		return;
+		goto error;
 	}
 
 	notify(catcher);
@@ -521,7 +522,7 @@ sendfile(int fd, char *name, char *mode, int opts)
 	if(file < 0) {
 		errstr(errbuf, sizeof errbuf);
 		nak(fd, 0, errbuf);
-		return;
+		goto error;
 	}
 	block = 0;
 	rexmit = Ackok;
@@ -547,7 +548,7 @@ sendfile(int fd, char *name, char *mode, int opts)
 			if(n < 0) {
 				errstr(errbuf, sizeof errbuf);
 				nak(fd, 0, errbuf);
-				return;
+				goto error;
 			}
 			txtry = 0;
 		}
@@ -573,6 +574,8 @@ sendfile(int fd, char *name, char *mode, int opts)
 		if(ret != blksize+Hdrsize && rexmit == Ackok)
 			break;
 	}
+	syslog(dbg, flog, "tftpd %d done sending file '%s' %s to %s",
+		pid, name, mode, raddr);
 error:
 	close(fd);
 	close(file);
