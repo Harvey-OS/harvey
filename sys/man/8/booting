@@ -24,9 +24,9 @@ reboots the machine;
 other methods of rebooting are mentioned for some machines.
 .SS PCs
 To boot a PC, it is necessary to get
-.B /386/9load
+.B /386/9boot
 or
-.B /386/9pxeload
+.B /386/9load
 loaded into memory.
 There are many ways to do this.  A Plan 9 boot floppy prepared by
 .B format
@@ -36,16 +36,22 @@ will load
 .B 9load
 when the PC is reset or powered on.
 Other methods are described in 
-.IR 9load (8).
-.B 9load
+.IR 9boot (8).
+.I 9boot
+or
+.I 9load
 then locates and loads a Plan 9 kernel, using configuration information
-from the file
+from the matching file in
+.B /cfg/pxe
+.RI ( 9boot )
+or the file
 .B plan9.ini
 stored in the
 .B 9fat
-configuration partition or on a DOS file system.
+configuration partition or on a DOS file system
+.RI ( 9load ).
 See 
-.IR 9load (8)
+.IR 9boot (8)
 for details.
 .PP
 Once the kernel is booted, it behaves like the others.
@@ -149,13 +155,21 @@ The kernels
 .L bootf
 parameters)
 are
+.TF /arm/9beagl
+.TP
 .L /arm/9gd
-for the Marvell PXA168-based Guruplug Display,
+for the Marvell PXA168-based Guruplug Display
+.TP
 .L /arm/9plug
-for all Marvell Kirkwood plugs (Sheevaplug, Guruplug, Dreamplug, Openrd, etc.),
-and
+for other Marvell Kirkwoods (Sheevaplug, Guruplug, Dreamplug, Openrd, etc.)
+.TP
 .L /arm/9beagle
-for TI OMAP3 boards (IGEPv2 from ISEE, Gumstix Overo).
+for TI OMAP3 boards (IGEPv2 from ISEE, Gumstix Overo)
+.TP
+.L /arm/9ts
+for Trimslice systems, which contain the Nvidia Tegra 2
+.PD
+.LP
 In the following,
 replace
 .I MAC
@@ -247,15 +261,26 @@ type this after
 \&'bootp 0x80310000; bootp 0x80300000 /cfg/pxe/\fIMAC\fP; go 0x80310000'
 .EE
 .PP
+For Trimslice systems,
+type this as one line after
+.LR "setenv bootcmd" :
+.IP
+.EX
+\&'dhcp; dhcp; tftpboot 0x410000;
+	tftpboot 0x400000 /cfg/pxe/\fIMAC\fP; go 0x410000'
+.EE
+.PP
 Thereafter, the boards will automatically boot via BOOTP and TFTP
 when reset.
 .
 .SH "SEE ALSO"
 .IR ndb (6),
-.IR 9load (8),
+.IR 9boot (8),
 .IR boot (8),
 .IR init (8),
 .IR plan9.ini (8)
 .SH SOURCE
 Sources for the various boot programs are under
-.BR /sys/src/boot .
+.B /sys/src/boot
+and
+.BR /sys/src/9/pcboot .
