@@ -26,13 +26,13 @@ TEXT cachedinv_sw(SB), $-4
 
 	/* set cache size select */
 TEXT setcachelvl(SB), $-4
-	MCR	CpSC, CpIDcssel, R0, C(CpID), C(CpIDid), 0
+	MCR	CpSC, CpIDcssel, R0, C(CpID), C(CpIDidct), 0
 	ISB
 	RET
 
 	/* return cache sizes */
 TEXT getwayssets(SB), $-4
-	MRC	CpSC, CpIDcsize, R0, C(CpID), C(CpIDid), 0
+	MRC	CpSC, CpIDcsize, R0, C(CpID), C(CpIDidct), 0
 	RET
 
 /*
@@ -152,9 +152,9 @@ TEXT wholecache+0(SB), $-4
 
 	/* get cache sizes */
 	SLL	$1, R8, R0	/* R0 = (cache - 1) << 1 */
-	MCR	CpSC, CpIDcssel, R0, C(CpID), C(CpIDid), 0 /* set cache size select */
+	MCR	CpSC, CpIDcssel, R0, C(CpID), C(CpIDidct), 0 /* set cache size select */
 	ISB
-	MRC	CpSC, CpIDcsize, R0, C(CpID), C(CpIDid), 0 /* get cache sizes */
+	MRC	CpSC, CpIDcsize, R0, C(CpID), C(CpIDidct), 0 /* get cache sizes */
 
 	/* compute # of ways and sets for this cache level */
 	SRA	$3, R0, R5	/* R5 (ways) = R0 >> 3 */
