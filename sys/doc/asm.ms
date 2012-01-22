@@ -930,6 +930,7 @@ which allows 64-bit literals.
 The external registers in Plan 9's C are allocated from
 .CW R15
 down.
+.PP
 There are many new instructions, including the MMX and XMM media instructions,
 and conditional move instructions.
 MMX registers are
@@ -972,13 +973,18 @@ the registers might be 64 bits.
 The assembler often accepts the handbook's name to ease conversion
 of existing code (but remember that the operand order is uniformly
 source then destination).
+.PP
 C's
-.CW "long long"
+.CW long
+.CW long
 type is 64 bits, but passed and returned by value, not by reference.
 More notably, C pointer values are 64 bits, and thus
-.CW "long long"
+.CW long
+.CW long
 and
-.CW "unsigned long long"
+.CW unsigned
+.CW long
+.CW long
 are the only integer types wide enough to hold a pointer value.
 The C compiler and library use the XMM floating-point instructions, not
 the old 387 ones, although the latter are implemented by assembler and loader.
@@ -1300,6 +1306,11 @@ and the static base register is
 .CW R0
 is the return register and also the register holding
 the first argument to a subroutine.
+The external registers in Plan 9's C are allocated from
+.CW R10
+down.
+.CW R11
+is used by the loader as a temporary register.
 The assembler supports the
 .CW CPSR
 and
