@@ -119,17 +119,19 @@ ucfree(void* v)
 }
 
 void*
-ucalloc(usize size)
+ucallocalign(usize size, int align, int span)
 {
-	assert(size < ucpool.minarena-128);
+	void *v;
 
-	return poolallocalign(&ucpool, size, 32, 0, 0);
+	assert(size < ucpool.minarena-128);
+	v = poolallocalign(&ucpool, size, align, 0, span);
+	if(v)
+		memset(v, 0, size);
+	return v;
 }
 
 void*
-ucallocalign(usize size, int align, int span)
+ucalloc(usize size)
 {
-	assert(size < ucpool.minarena-128);
-
-	return poolallocalign(&ucpool, size, align, 0, span);
+	return ucallocalign(size, 32, 0);
 }
