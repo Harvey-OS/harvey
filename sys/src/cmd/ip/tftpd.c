@@ -370,6 +370,65 @@ optlog(char *bytes, char *p, int dlen)
 	syslog(dbg, flog, "%s", bytes);
 }
 
+/*
+ * replace one occurrence of %[ICE] with ip, cfgpxe name, or ether mac, resp.
+ * we can't easily use $ because u-boot has stranger quoting rules than sh.
+ */
+char *
+mapname(char *file)
+{
+	int nf;
+	char *p, *newnm, *cur, *arpf, *ln, *remip, *bang;
+	char *fields[4];
+	Biobuf *arp;
+
+	p = strchr(file, '%');
+	if (p == nil || p[1] == '\0')
+		return strdup(file);
+
+	remip = strdup(raddr);
+	newnm = mallocz(strlen(file) + Maxpath, 1);
+	if (remip == nil || newnm == nil)
+		sysfatal("out of memory");
+
+	bang = strchr(remip, '!');
+	if (bang)
+		*bang = '\0';			/* remove !port */
+
+	memmove(newnm, file, p - file);		/* copy up to % */
+	cur = newnm + strlen(newnm);
+	switch(p[1]) {
+	case 'I':
+		strcpy(cur, remip);		/* remote's IP */
+		break;
+	case 'C':
+		strcpy(cur, "/cfg/pxe/");
+		cur += strlen(cur);
+		/* fall through */
+	case 'E':
+		/* look up remote's IP in /net/arp to get mac. */
+		arpf = smprint("%s/arp", net);
+		arp = Bopen(arpf, OREAD);
+		free(arpf);
+		if (arp == nil)
+			break;
+		/* read lines looking for remip in 3rd field of 4 */
+		while ((ln = Brdline(arp, '\n')) != nil) {
+			ln[Blinelen(arp)-1] = 0;
+			nf = tokenize(ln, fields, nelem(fields));
+			if (nf >= 4 && strcmp(fields[2], remip) == 0) {
+				strcpy(cur, fields[3]);
+				break;
+			}
+		}
+		Bterm(arp);
+		break;
+	}
+	strcat(newnm, p + 2);			/* tail following %x */
+	free(remip);
+	return newnm;
+}
+
 void
 doserve(int fd)
 {
@@ -391,6 +450,9 @@ doserve(int fd)
 	p = mode;
 	while(*p && dlen--)
 		p++;
+
+	file = mapname(file);	/* we don't free the result; minor leak */
+
 	if(dlen == 0) {
 		nak(fd, 0, "bad tftpmode");
 		close(fd);

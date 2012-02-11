@@ -250,6 +250,17 @@ transfers files to systems that are booting.
 It runs as user
 .B none
 and can only access files with global read permission.
+.L %C
+in a file name is replaced with the name of the
+booting system's
+.L /cfg/pxe
+file.
+Similarly,
+.L %E
+becomes the booting system's Ethernet MAC address
+and
+.L %I
+becomes its IP address.
 The options are:
 .TP
 .B d
@@ -295,5 +306,5 @@ Restricts access to only those files rooted in the
 .B /sys/src/cmd/ip
 .SH "SEE ALSO"
 .IR ndb (6),
-.IR 9load (8),
+.IR 9boot (8),
 .IR booting (8)
