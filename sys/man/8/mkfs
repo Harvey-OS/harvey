@@ -180,6 +180,18 @@ srv newfs
 mount -c /srv/newfs /n/newfs
 disk/mkext -u -d /n/newfs < arch
 .EE
+.PP
+Copy a subtree,
+.IR from-dir ,
+to another,
+.IR to-dir ,
+with greater fidelity than
+.IR dircp :
+.IP
+.EX
+disk/mkfs -a -s from-dir /sys/lib/sysconfig/proto/allproto |
+	disk/mkext -ud to-dir
+.EE
 .SH SOURCE
 .B /sys/src/cmd/disk/mkfs.c
 .br
