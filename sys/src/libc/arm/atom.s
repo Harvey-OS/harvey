@@ -1,4 +1,3 @@
-
 /*
  * int cas(ulong *p, ulong ov, ulong nv);
  */
@@ -8,7 +7,6 @@
 
 TEXT	cas+0(SB),0,$12		/* r0 holds p */
 TEXT	casp+0(SB),0,$12	/* r0 holds p */
-TEXT	casl+0(SB),0,$12	/* r0 holds p */
 	MOVW	ov+4(FP), R1
 	MOVW	nv+8(FP), R2
 spincas:
@@ -24,6 +22,7 @@ fail:
 	MOVW	$0, R0
 	RET
 
+TEXT _xinc(SB), $0	/* void	_xinc(long *); */
 TEXT ainc(SB), $0	/* long ainc(long *); */
 spinainc:
 	LDREX(0,3)	/*	LDREX	0(R0),R3	*/
@@ -34,7 +33,8 @@ spinainc:
 	MOVW	R3, R0
 	RET
 
-TEXT adec(SB), $0	/* long ainc(long *); */
+TEXT _xdec(SB), $0	/* long _xdec(long *); */
+TEXT adec(SB), $0	/* long adec(long *); */
 spinadec:
 	LDREX(0,3)	/*	LDREX	0(R0),R3	*/
 	SUB	$1,R3
@@ -50,6 +50,6 @@ TEXT loadlinked(SB), $0	/* long loadlinked(long *); */
 
 TEXT storecond(SB), $0	/* int storecond(long *, long); */
 	MOVW	ov+4(FP), R3
-	STREX(0,3,4)	/*	STREX	0(R0),R3,R0	*/
+	STREX(0,3,0)	/*	STREX	0(R0),R3,R0	*/
 	RSB	$1, R0
 	RET
