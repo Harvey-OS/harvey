@@ -135,18 +135,26 @@ char*	addsub[2] =
 int
 armclass(long w)
 {
-	int op;
+	int op, done;
 
 	op = (w >> 25) & 0x7;
 	switch(op) {
 	case 0:	/* data processing r,r,r */
 		op = ((w >> 4) & 0xf);
 		if(op == 0x9) {
-			op = 48+16;		/* mul */
+			op = 48+16;		/* mul, swp or *rex */
+			if((w & 0x0ff00fff) == 0x01900f9f) {
+				op = 93;	/* ldrex */
+				break;
+			}
+			if((w & 0x0ff00ff0) == 0x01800f90) {
+				op = 94;	/* strex */
+				break;
+			}
 			if(w & (1<<24)) {
 				op += 2;
 				if(w & (1<<22))
-					op++;	/* swap */
+					op++;	/* swpb */
 				break;
 			}
 			if(w & (1<<23)) {	/* mullu */
@@ -174,6 +182,28 @@ armclass(long w)
 		op = (48) + ((w >> 21) & 0xf);
 		break;
 	case 2:	/* load/store byte/word i(r) */
+		if ((w & 0xffffff8f) == 0xf57ff00f) {	/* barriers, clrex */
+			done = 1;
+			switch ((w >> 4) & 7) {
+			case 1:
+				op = 95;	/* clrex */
+				break;
+			case 4:
+				op = 96;	/* dsb */
+				break;
+			case 5:
+				op = 97;	/* dmb */
+				break;
+			case 6:
+				op = 98;	/* isb */
+				break;
+			default:
+				done = 0;
+				break;
+			}
+			if (done)
+				break;
+		}
 		op = (48+24) + ((w >> 22) & 0x1) + ((w >> 19) & 0x2);
 		break;
 	case 3:	/* load/store byte/word (r)(r) */
@@ -188,7 +218,7 @@ armclass(long w)
 	case 7:	/* coprocessor crap */
 		op = (48+24+4+4+2+2) + ((w >> 3) & 0x2) + ((w >> 20) & 0x1);
 		break;
-	default:
+	default:	  
 		op = (48+24+4+4+2+2+4+4);
 		break;
 	}
@@ -823,8 +853,18 @@ static Opcode opcodes[] =
 	"MULL%C%S",	armdpi, 0,	"R%M,R%s,(R%n,R%d)",
 	"MULAL%C%S",	armdpi, 0,	"R%M,R%s,(R%n,R%d)",
 
-/* 48+24+4+4+2+2+4+4 */
+/* 48+24+4+4+2+2+4+4 = 92 */
 	"UNK",		armunk, 0,	"",
+
+/* 93 */
+	"LDREX",	armdpi, 0,	"(R%n),R%d",
+	"STREX",	armdpi, 0,	"R%s,(R%n),R%d",
+	"CLREX",	armunk, 0,	"",
+
+/* 96 */
+	"DSB",		armunk, 0,	"",
+	"DMB",		armunk, 0,	"",
+	"ISB",		armunk, 0,	"",
 };
 
 static void
