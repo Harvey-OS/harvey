@@ -1345,6 +1345,7 @@ tcphangup(Conv *s)
 		return commonerror();
 	if(ipcmp(s->raddr, IPnoaddr) != 0) {
 		if(!waserror()){
+			memset(&seg, 0, sizeof seg);
 			seg.flags = RST | ACK;
 			seg.ack = tcb->rcv.nxt;
 			tcb->rcv.una = 0;
@@ -1413,6 +1414,7 @@ sndsynack(Proto *tcp, Limbo *lp)
 		panic("sndrst: version %d", lp->version);
 	}
 
+	memset(&seg, 0, sizeof seg);
 	seg.seq = lp->iss;
 	seg.ack = lp->irs+1;
 	seg.flags = SYN|ACK;
@@ -1960,6 +1962,7 @@ tcpiput(Proto *tcp, Ipifc*, Block *bp)
 
 	h4 = (Tcp4hdr*)(bp->rp);
 	h6 = (Tcp6hdr*)(bp->rp);
+	memset(&seg, 0, sizeof seg);
 
 	if((h4->vihl&0xF0)==IP_VER4) {
 		version = V4;
@@ -2445,6 +2448,7 @@ tcpoutput(Conv *s)
 	f = s->p->f;
 	tpriv = s->p->priv;
 	version = s->ipversion;
+	memset(&seg, 0, sizeof seg);
 
 	for(msgs = 0; msgs < 100; msgs++) {
 		tcb = (Tcpctl*)s->ptcl;
@@ -2657,6 +2661,7 @@ tcpsendka(Conv *s)
 	tcb = (Tcpctl*)s->ptcl;
 
 	dbp = nil;
+	memset(&seg, 0, sizeof seg);
 	seg.urg = 0;
 	seg.source = s->lport;
 	seg.dest = s->rport;
