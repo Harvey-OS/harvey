@@ -61,7 +61,7 @@ struct	Prog
 struct	Case
 {
 	Case*	link;
-	long	val;
+	vlong	val;
 	long	label;
 	char	def;
 	char isv;
@@ -70,7 +70,7 @@ struct	Case
 
 struct	C1
 {
-	long	val;
+	vlong	val;
 	long	label;
 };
 

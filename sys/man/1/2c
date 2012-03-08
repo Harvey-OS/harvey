@@ -488,13 +488,6 @@ are implemented.
 No new features of C11, the 2011 ANSI C standard,
 are implemented.
 .PP
-.B switch
-expressions may not be either signedness of
-.B vlong
-on 32-bit architectures
-.RI ( 8c
-at least).
-.PP
 The implementation of
 .B vlong
 assignment can use a static location
