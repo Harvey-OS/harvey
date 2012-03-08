@@ -10,7 +10,7 @@ swit1(C1 *q, int nc, long def, Node *n)
 	if(nc < 5) {
 		for(i=0; i<nc; i++) {
 			if(debug['W'])
-				print("case = %.8lux\n", q->val);
+				print("case = %.8llux\n", q->val);
 			gopcode(OEQ, n->type, n, nodconst(q->val));
 			patch(p, q->label);
 			q++;
@@ -22,7 +22,7 @@ swit1(C1 *q, int nc, long def, Node *n)
 	i = nc / 2;
 	r = q+i;
 	if(debug['W'])
-		print("case > %.8lux\n", r->val);
+		print("case > %.8llux\n", r->val);
 	gopcode(OGT, n->type, n, nodconst(r->val));
 	sp = p;
 	gbranch(OGOTO);
@@ -31,7 +31,7 @@ swit1(C1 *q, int nc, long def, Node *n)
 	swit1(q, i, def, n);
 
 	if(debug['W'])
-		print("case < %.8lux\n", r->val);
+		print("case < %.8llux\n", r->val);
 	patch(sp, pc);
 	swit1(r+1, nc-i-1, def, n);
 }

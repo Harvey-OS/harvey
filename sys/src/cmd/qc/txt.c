@@ -15,6 +15,7 @@ ginit(void)
 	thestring = "power";
 	exregoffset = REGEXT;
 	exfregoffset = FREGEXT;
+	newvlongcode = 1;
 	listinit();
 	nstring = 0;
 	mnstring = 0;
@@ -26,6 +27,8 @@ ginit(void)
 	firstp = P;
 	lastp = P;
 	tfield = types[TLONG];
+
+	typeswitch = typechlv;
 
 	zprog.link = P;
 	zprog.as = AGOK;
