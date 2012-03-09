@@ -45,7 +45,7 @@ doswit(int g, Node *n)
 		def = breakpc;
 	for(i=0; i<nc-1; i++)
 		if(iq[i].val == iq[i+1].val)
-			diag(n, "duplicate cases in switch %ld", iq[i].val);
+			diag(n, "duplicate cases in switch %lld", iq[i].val);
 	swit1(iq, nc, def, g, n);
 }
 

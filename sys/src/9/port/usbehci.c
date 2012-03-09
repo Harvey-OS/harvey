@@ -1657,7 +1657,7 @@ portreset(Hci *hp, int port, int on)
 	 * usb 2 spec: reset must finish within 20 ms.
 	 * linux says spec says it can take 50 ms. for hubs.
 	 */
-	for(i = 0; *portscp & Psreset && i < 10; i++)
+	for(i = 0; *portscp & Psreset && i < 50; i++)
 		delay(10);
 	if (*portscp & Psreset)
 		iprint("ehci %#p: port %d didn't reset within %d ms; sts %#lux\n",

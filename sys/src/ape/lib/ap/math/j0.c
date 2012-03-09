@@ -123,7 +123,7 @@ static double q4[] = {
 	1.0,
 };
 
-static
+static void
 asympt(double arg)
 {
 	double zsq, n, d;
