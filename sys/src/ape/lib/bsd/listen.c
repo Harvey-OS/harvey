@@ -109,6 +109,7 @@ listenproc(Rock *r, int fd)
 		close(dfd);
 	}
 	exit(0);
+	return 0;
 }
 
 int

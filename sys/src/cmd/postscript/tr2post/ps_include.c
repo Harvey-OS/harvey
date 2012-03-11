@@ -11,7 +11,7 @@ extern int curfontsize;
 typedef struct {long start, end;} Section;
 static char *buf;
 
-static
+static void
 copy(Biobufhdr *fin, Biobufhdr *fout, Section *s) {
 	int cond;
 	if (s->end <= s->start)

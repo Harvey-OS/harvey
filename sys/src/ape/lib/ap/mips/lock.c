@@ -128,6 +128,8 @@ retry:
 			}
 		}
 		return 0;
+	default:
+		return 0;
 	}	
 }
 
@@ -168,5 +170,7 @@ retry:
 			}
 		}
 		return 1;
+	default:
+		return 0;
 	}	
 }

@@ -165,6 +165,7 @@ for(i=0, procp=procstack; i<nproc; ++i, ++procp)
 sprintf(junk, "spurious return from process %d", pid);
 fatal(junk);
 /*NOTREACHED*/
+return -1;
 }
 
 static int

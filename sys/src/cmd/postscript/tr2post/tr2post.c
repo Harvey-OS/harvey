@@ -95,6 +95,7 @@ cleanup(void) {
 	remove(tmpfilename);
 }
 
+void
 main(int argc, char *argv[]) {
 	Biobuf *binp;
 	Biobufhdr *Binp;
