@@ -438,4 +438,5 @@ char buf[100];
 sprintf(buf, "line %d of file %s: %s",
 		yylineno, filestack[ninclude-1].fname, s);
 fatal(buf);
+return 0;
 }

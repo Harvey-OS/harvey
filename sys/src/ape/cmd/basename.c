@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 
+void
 main(int argc, char **argv)
 {
 	char *f, *b, *s;

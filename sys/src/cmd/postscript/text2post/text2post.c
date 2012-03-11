@@ -469,6 +469,7 @@ finish(void) {
 
 }
 
+void
 main(int argc, char *argv[]) {
 	int i;
 	char *t;
