@@ -59,23 +59,6 @@ typedef struct {
 	ulong	entsize;	/* entry size if table */
 } Shdr;
 
-typedef struct {
-	u8int	ident[16];	/* ident bytes */
-	u16int	type;		/* file type */
-	u16int	machine;	/* target machine */
-	u32int	version;	/* file version */
-	u64int	elfentry;	/* start address */
-	u64int	phoff;		/* phdr file offset */
-	u64int	shoff;		/* shdr file offset */
-	u32int	flags;		/* file flags */
-	u16int	ehsize;		/* sizeof ehdr */
-	u16int	phentsize;	/* sizeof phdr */
-	u16int	phnum;		/* number phdrs */
-	u16int	shentsize;	/* sizeof shdr */
-	u16int	shnum;		/* number shdrs */
-	u16int	shstrndx;	/* shdr string index */
-} E64hdr;
-
 enum {
 	/* Ehdr codes */
 	MAG0 = 0,		/* ident[] indexes */
