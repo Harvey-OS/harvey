@@ -129,21 +129,10 @@ typedef struct Ctlr {
 extern PhysUart i8250physuart;
 
 static Ctlr i8250ctlr[] = {
-{	.io	= (u32int*)PHYSCONS,		/* UART3 in TI terminology */
+{	.io	= (u32int*)PHYSCONS,
 	.irq	= 74,
 	.tbdf	= -1,
 	.poll	= 0, },
-
-/* these exist, but I don't think they're connected to anything external */
-//{	.io	= (u32int*)PHYSUART0,
-//	.irq	= 72,
-//	.tbdf	= -1,
-//	.poll	= 0, },
-//
-//{	.io	= (u32int*)PHYSUART1,
-//	.irq	= 73,
-//	.tbdf	= -1,
-//	.poll	= 0, },
 };
 
 static Uart i8250uart[] = {
@@ -153,21 +142,6 @@ static Uart i8250uart[] = {
 	.phys	= &i8250physuart,
 	.console= 1,
 	.next	= nil, },
-
-/* these exist, but I don't think they're connected to anything external */
-//{	.regs	= &i8250ctlr[0],
-//	.name	= "COM1",
-//	.freq	= 3686000,	/* Not used, we use the global i8250freq */
-//	.phys	= &i8250physuart,
-//	.special= 0,
-//	.next	= &i8250uart[1], },
-//
-//{	.regs	= &i8250ctlr[1],
-//	.name	= "COM2",
-//	.freq	= 3686000,	/* Not used, we use the global i8250freq */
-//	.phys	= &i8250physuart,
-//	.special= 0,
-//	.next	= &i8250uart[2], },
 };
 
 #define csr8r(c, r)	((c)->io[r])
