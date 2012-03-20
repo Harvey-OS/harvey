@@ -42,13 +42,7 @@ For example,
 .IR vac (1)
 uses a
 .B vac:
-prefix, while
-.IR vbackup (8)
-uses prefixes corresponding to the file system
-types: 
-.BR ext2: ,
-.BR ffs: ,
-and so on.
+prefix.
 .SS "Files and Directories
 Venti accepts blocks up to 56 kilobytes in size.  
 By convention, Venti clients use hash trees of blocks to
@@ -292,7 +286,7 @@ The message bodies are:
 .IR pad [1]
 .IR count [2]
 .br
-.B VtRead
+.B VtRread
 .IR tag [1]
 .IR data []
 .IP
