@@ -19,6 +19,9 @@ HFILES=\
 BIN=/$objtype/bin
 </sys/src/cmd/mkone
 
+../5c/enam.c: ../5c/5.out.h
+	@ { cd ../5c; mk enam.c }
+
 enam.$O:	../5c/enam.c
 	$CC $CFLAGS ../5c/enam.c
 
