@@ -15,7 +15,7 @@ struct	Vlong
 
 void	abort(void);
 
-/* needed by profiler; can't be profiled */
+/* needed by profiler (notably ../port/profile.c); can't be profiled */
 #pragma profile off
 
 void
@@ -129,6 +129,8 @@ _v2f(Vlong x)
 }
 
 
+#pragma profile off		/* needed by profiler; can't be profiled */
+
 static void
 dodiv(Vlong num, Vlong den, Vlong *q, Vlong *r)
 {
@@ -201,6 +203,8 @@ _divvu(Vlong *q, Vlong n, Vlong d)
 	dodiv(n, d, q, 0);
 }
 
+#pragma profile on
+
 void
 _modvu(Vlong *r, Vlong n, Vlong d)
 {
@@ -212,6 +216,8 @@ _modvu(Vlong *r, Vlong n, Vlong d)
 	}
 	dodiv(n, d, 0, r);
 }
+
+#pragma profile off		/* needed by profiler; can't be profiled */
 
 static void
 vneg(Vlong *v)
@@ -245,6 +251,9 @@ _divv(Vlong *q, Vlong n, Vlong d)
 	if(nneg != dneg)
 		vneg(q);
 }
+
+#pragma profile on
+
 
 void
 _modv(Vlong *r, Vlong n, Vlong d)
@@ -503,6 +512,8 @@ _sl2v(Vlong *ret, long sl)
 	ret->hi = t >> 31;
 }
 
+#pragma profile off		/* needed by profiler; can't be profiled */
+
 void
 _ul2v(Vlong *ret, ulong ul)
 {
@@ -512,6 +523,8 @@ _ul2v(Vlong *ret, ulong ul)
 	ret->lo = t;
 	ret->hi = 0;
 }
+
+#pragma profile on
 
 void
 _si2v(Vlong *ret, int si)
@@ -605,6 +618,8 @@ _v2uh(Vlong rv)
 	return rv.lo & 0xffff;
 }
 
+#pragma profile off		/* needed by profiler; can't be profiled */
+
 long
 _v2sl(Vlong rv)
 {
@@ -618,6 +633,8 @@ _v2ul(Vlong rv)
 
 	return rv.lo;
 }
+
+#pragma profile on
 
 long
 _v2si(Vlong rv)
@@ -645,11 +662,15 @@ _eqv(Vlong lv, Vlong rv)
 	return lv.lo == rv.lo && lv.hi == rv.hi;
 }
 
+#pragma profile off		/* needed by profiler; can't be profiled */
+
 int
 _nev(Vlong lv, Vlong rv)
 {
 	return lv.lo != rv.lo || lv.hi != rv.hi;
 }
+
+#pragma profile on
 
 int
 _ltv(Vlong lv, Vlong rv)
