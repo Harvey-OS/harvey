@@ -61,8 +61,8 @@ CFLAGS=$CFLAGS -I/sys/src/cmd
 6obj.$O: /sys/src/cmd/6c/6.out.h
 7obj.$O: /sys/src/cmd/7c/7.out.h
 8obj.$O: /sys/src/cmd/8c/8.out.h
-9obj.$O: /sys/src/cmd/9c/9.out.h
+# 9obj.$O: /sys/src/cmd/9c/9.out.h
 kobj.$O: /sys/src/cmd/kc/k.out.h
 qobj.$O: /sys/src/cmd/qc/q.out.h
-uobj.$O: uc/u.out.h
+# uobj.$O: uc/u.out.h
 vobj.$O: /sys/src/cmd/vc/v.out.h
