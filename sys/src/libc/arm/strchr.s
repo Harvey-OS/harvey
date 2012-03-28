@@ -1,4 +1,4 @@
-TEXT strchr(SB), $-4
+TEXT strchr(SB), $0
 	MOVBU	c+4(FP), R1
 	CMP	$0, R1
 	BEQ	_null

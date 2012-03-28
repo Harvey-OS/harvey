@@ -242,7 +242,7 @@ seconds.
 Set the frequency for interpreting clock ticks to be
 .I freq
 ticks per second.
-.PP
+.SS "Statistics and Dynamic Status"
 The rest of the files contain (mostly) read-only strings.
 Each string has a fixed length: a
 .IR read (2)
