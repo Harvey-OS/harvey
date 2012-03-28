@@ -5,9 +5,9 @@ N = 3
 TMP = 3					/* N and TMP don't overlap */
 TMP1 = 4
 
-TEXT memcpy(SB), $-4
+TEXT memcpy(SB), $0
 	B	_memmove
-TEXT memmove(SB), $-4
+TEXT memmove(SB), $0
 _memmove:
 	MOVW	R(TS), to+0(FP)		/* need to save for return value */
 	MOVW	from+4(FP), R(FROM)

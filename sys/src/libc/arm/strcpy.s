@@ -1,4 +1,4 @@
-TEXT strcpy(SB), $-4
+TEXT strcpy(SB), $0
 	MOVW		R0, to+0(FP)	/* need to save for return value */
 	MOVW		from+4(FP), R1
 	MOVW		$0xFF, R2	/* mask */

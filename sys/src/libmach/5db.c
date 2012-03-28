@@ -61,7 +61,7 @@ static	int	arminstlen(Map*, uvlong);
  */
 Machdata armmach =
 {
-	{0, 0, 0, 0xD},		/* break point */
+	{0x70, 0x00, 0x20, 0xD1},		/* break point */	/* D1200070 */
 	4,			/* break point size */
 
 	leswab,			/* short to local byte order */
@@ -210,6 +210,10 @@ armclass(long w)
 		op = (48+24+4) + ((w >> 22) & 0x1) + ((w >> 19) & 0x2);
 		break;
 	case 4:	/* block data transfer (r)(r) */
+		if ((w & 0xfe50ffff) == 0xf8100a00) {	/* v7 RFE */
+			op = 99;
+			break;
+		}
 		op = (48+24+4+4) + ((w >> 20) & 0x1);
 		break;
 	case 5:	/* branch / branch link */
@@ -632,19 +636,16 @@ armaddr(Map *map, Rgetter rget, Instr *i)
 	char buf[8];
 	ulong rn;
 
-	sprint(buf, "R%ld", (i->w >> 16) & 0xf);
+	snprint(buf, sizeof(buf), "R%ld", (i->w >> 16) & 0xf);
 	rn = rget(map, buf);
 
-	if((i->w & (1<<24)) == 0) {			/* POSTIDX */
-		sprint(buf, "R%ld", rn);
-		return rget(map, buf);
-	}
+	if((i->w & (1<<24)) == 0)			/* POSTIDX */
+		return rn;
 
 	if((i->w & (1<<25)) == 0) {			/* OFFSET */
-		sprint(buf, "R%ld", rn);
 		if(i->w & (1U<<23))
-			return rget(map, buf) + (i->w & BITS(0,11));
-		return rget(map, buf) - (i->w & BITS(0,11));
+			return rn + (i->w & BITS(0,11));
+		return rn - (i->w & BITS(0,11));
 	} else {					/* REGOFF */
 		ulong index = 0;
 		uchar c;
@@ -856,6 +857,7 @@ static Opcode opcodes[] =
 /* 48+24+4+4+2+2+4+4 = 92 */
 	"UNK",		armunk, 0,	"",
 
+	/* new v7 arch instructions */
 /* 93 */
 	"LDREX",	armdpi, 0,	"(R%n),R%d",
 	"STREX",	armdpi, 0,	"R%s,(R%n),R%d",
@@ -865,6 +867,9 @@ static Opcode opcodes[] =
 	"DSB",		armunk, 0,	"",
 	"DMB",		armunk, 0,	"",
 	"ISB",		armunk, 0,	"",
+
+/* 99 */
+	"RFEV7%P%a",	armbdt, 0,	"(R%n)",
 };
 
 static void

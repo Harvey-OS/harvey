@@ -22,7 +22,7 @@ typedef unsigned int	u32int;
 typedef unsigned long long u64int;
 
 /* VFP FCR */
-#define	FPINEX	(1<<12)
+#define	FPINEX	(1<<12)			/* trap enables for exceptions */
 #define	FPUNFL	(1<<11)
 #define	FPOVFL	(1<<10)
 #define	FPZDIV	(1<<9)
@@ -37,7 +37,7 @@ typedef unsigned long long u64int;
 #define	FPPDBL	0
 #define	FPPMASK	0
 /* FSR */
-#define	FPAINEX	(1<<4)
+#define	FPAINEX	(1<<4)			/* accrued exceptions */
 #define	FPAUNFL	(1<<3)
 #define	FPAOVFL	(1<<2)
 #define	FPAZDIV	(1<<1)

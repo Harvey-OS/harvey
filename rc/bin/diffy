@@ -1,5 +1,5 @@
 #!/bin/rc
-# diffy [diff-opts] file... - diff file against yesterday's version(s)
+# diffy [diff-opts] [file...] - diff file against yesterday's version(s)
 rfork e
 diffopts=()
 while(! ~ $#* 0 && ~ $1 -* && ! ~ $1 --){
@@ -10,5 +10,7 @@ if(~ $1 --)
 	shift
 if(! ~ $#* 1)
 	diffopts=($diffopts -m)
+if (~ $#* 0)
+	* = (.)
 for(f)
 	diff $diffopts `{yesterday $f} $f

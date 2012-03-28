@@ -1229,6 +1229,8 @@ doprof1(void)
 	s->value = n*4;
 }
 
+static int brcond[] = {ABEQ, ABNE, ABCS, ABCC, ABMI, ABPL, ABVS, ABVC, ABHI, ABLS, ABGE, ABLT, ABGT, ABLE};
+
 void
 doprof2(void)
 {
@@ -1283,7 +1285,7 @@ doprof2(void)
 			}
 
 			/*
-			 * BL	profin, R2
+			 * BL	profin
 			 */
 			q = prg();
 			q->line = p->line;
@@ -1323,6 +1325,7 @@ doprof2(void)
 				p->link = q;
 				p = q;
 			}
+
 			/*
 			 * RET
 			 */
@@ -1330,21 +1333,46 @@ doprof2(void)
 			q->as = ARET;
 			q->from = p->from;
 			q->to = p->to;
+			q->cond = p->cond;
 			q->link = p->link;
+			q->reg = p->reg;
 			p->link = q;
 
-			/*
-			 * BL	profout
-			 */
-			p->as = ABL;
-			p->from = zprg.from;
-			p->to = zprg.to;
-			p->to.type = D_BRANCH;
-			p->cond = ps4;
-			p->to.sym = s4;
+			if(p->scond != 14) {
+				q = prg();
+				q->as = ABL;
+				q->from = zprg.from;
+				q->to = zprg.to;
+				q->to.type = D_BRANCH;
+				q->cond = ps4;
+				q->to.sym = s4;
+				q->link = p->link;
+				p->link = q;
 
-			p = q;
+				p->as = brcond[p->scond^1];	/* complement */
+				p->scond = 14;
+				p->from = zprg.from;
+				p->to = zprg.to;
+				p->to.type = D_BRANCH;
+				p->cond = q->link->link;	/* successor of RET */
+				p->to.offset = q->link->link->pc;
 
+				p = q->link->link;
+			} else {
+
+				/*
+				 * BL	profout
+				 */
+				p->as = ABL;
+				p->from = zprg.from;
+				p->to = zprg.to;
+				p->to.type = D_BRANCH;
+				p->cond = ps4;
+				p->to.sym = s4;
+				p->scond = 14;
+
+				p = q;
+			}
 			continue;
 		}
 	}

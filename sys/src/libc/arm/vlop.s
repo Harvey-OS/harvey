@@ -1,4 +1,4 @@
-TEXT	_mulv(SB), $0
+TEXT	_mulv(SB), 1, $0
 	MOVW	4(FP),R8	/* l0 */
 	MOVW	8(FP),R11	/* h0 */
 	MOVW	12(FP),R4	/* l1 */
