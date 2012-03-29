@@ -753,10 +753,10 @@ plan9.bell-labs.com ip	204.178.31.2
 >
 .EE
 .LP
-Print the names of all systems that boot via PXE.
+Print the names of all PCs that boot via PXE.
 .IP
 .EX
-% ndb/query -a bootf /386/9pxeload sys
+% ndb/query -a bootf /386/9boot sys
 .EE
 .SH FILES
 .TF /lib/ndb/local.*xxx

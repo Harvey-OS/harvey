@@ -24,7 +24,7 @@ reboots the machine;
 other methods of rebooting are mentioned for some machines.
 .SS PCs
 To boot a PC, it is necessary to get
-.B /386/9boot
+.B /386/9load
 or
 .B /386/9load
 loaded into memory.
@@ -36,14 +36,14 @@ will load
 .B 9load
 when the PC is reset or powered on.
 Other methods are described in 
-.IR 9boot (8).
-.I 9boot
+.IR 9load (8).
+.I 9load
 or
 .I 9load
 then locates and loads a Plan 9 kernel, using configuration information
 from the matching file in
 .B /cfg/pxe
-.RI ( 9boot )
+.RI ( 9load )
 or the file
 .B plan9.ini
 stored in the
@@ -51,7 +51,7 @@ stored in the
 configuration partition or on a DOS file system
 .RI ( 9load ).
 See 
-.IR 9boot (8)
+.IR 9load (8)
 for details.
 .PP
 Once the kernel is booted, it behaves like the others.
@@ -179,6 +179,12 @@ in lower case
 .L ether
 .I ndb
 attribute).
+If loading from a non-Plan-9
+TFTP server,
+replace
+.L %C
+with
+.BI /cfg/pxe/ MAC.
 .PP
 First, establish a
 .I /cfg/pxe
@@ -223,8 +229,8 @@ type this at U-boot once:
 .EX
 setenv bootdelay 2
 # \fItype the next two lines as one\fP
-setenv bootcmd 'bootp; bootp; tftp 0x1000 /cfg/pxe/\fIMAC\fP; bootp;
-	tftp 0x800000; go 0x800000'
+setenv bootcmd 'bootp; bootp; tftp 0x1000 %C; bootp; tftp 0x800000;
+	go 0x800000'
 saveenv
 .EE
 .PP
@@ -234,7 +240,7 @@ do the same but type this after
 instead:
 .IP
 .EX
-\&'dhcp; tftpboot; tftpboot 0x1000 /cfg/pxe/\fIMAC\fP; bootz 0x500000'
+\&'dhcp; tftpboot; tftpboot 0x1000 %C; bootz 0x500000'
 .EE
 .PP
 For Kirkwood Guruplugs,
@@ -242,7 +248,7 @@ type this after
 .LR "setenv bootcmd" :
 .IP
 .EX
-\&'dhcp 0x800000; tftp 0x1000 /cfg/pxe/\fIMAC\fP; go 0x800000'
+\&'dhcp 0x800000; tftp 0x1000 %C; go 0x800000'
 .EE
 .PP
 For IGEPv2 boards,
@@ -250,7 +256,7 @@ type this after
 .LR "setenv bootcmd" :
 .IP
 .EX
-\&'tftp 0x80300000 /cfg/pxe/\fIMAC\fP; dhcp 0x80310000; go 0x80310000'
+\&'tftp 0x80300000 %C; dhcp 0x80310000; go 0x80310000'
 .EE
 .PP
 For Gumstix Overo boards,
@@ -258,16 +264,15 @@ type this after
 .LR "setenv bootcmd" :
 .IP
 .EX
-\&'bootp 0x80310000; bootp 0x80300000 /cfg/pxe/\fIMAC\fP; go 0x80310000'
+\&'bootp 0x80310000; bootp 0x80300000 %C; go 0x80310000'
 .EE
 .PP
 For Trimslice systems,
-type this as one line after
+type this after
 .LR "setenv bootcmd" :
 .IP
 .EX
-\&'dhcp; dhcp; tftpboot 0x410000;
-	tftpboot 0x400000 /cfg/pxe/\fIMAC\fP; go 0x410000'
+\&'dhcp; dhcp; tftpboot 0x410000; tftpboot 0x400000 %C; go 0x410000'
 .EE
 .PP
 Thereafter, the boards will automatically boot via BOOTP and TFTP
@@ -275,7 +280,7 @@ when reset.
 .
 .SH "SEE ALSO"
 .IR ndb (6),
-.IR 9boot (8),
+.IR 9load (8),
 .IR boot (8),
 .IR init (8),
 .IR plan9.ini (8)

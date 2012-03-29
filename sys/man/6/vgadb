@@ -416,7 +416,7 @@ entries.
 .IR ndb (2),
 .IR vga (3),
 .IR ndb (6),
-.IR 9load (8),
+.IR 9boot (8),
 .IR vga (8)
 .br
 Richard E. Ferraro,

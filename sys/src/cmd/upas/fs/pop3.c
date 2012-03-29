@@ -130,7 +130,11 @@ pop3pushtls(Pop *pop)
 		return "server did not provide TLS certificate";
 	}
 	sha1(conn.cert, conn.certlen, digest, nil);
-	if(!pop->thumb || !okThumbprint(digest, pop->thumb)){
+	/*
+	 * don't do this any more.  our local it people are rotating their
+	 * certificates faster than we can keep up.
+	 */
+	if(0 && (!pop->thumb || !okThumbprint(digest, pop->thumb))){
 		fmtinstall('H', encodefmt);
 		close(fd);
 		free(conn.cert);

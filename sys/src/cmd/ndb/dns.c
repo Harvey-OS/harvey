@@ -25,6 +25,8 @@ typedef struct Mfile	Mfile;
 typedef struct Job	Job;
 typedef struct Network	Network;
 
+extern	ulong	start;
+
 int vers;		/* incremented each clone/attach */
 
 static volatile int stop;
@@ -113,6 +115,20 @@ usage(void)
 	fprint(2, "usage: %s [-FnorRst] [-a maxage] [-f ndb-file] [-N target] "
 		"[-T forwip] [-x netmtpt] [-z refreshprog]\n", argv0);
 	exits("usage");
+}
+
+void
+justremount(char *service, char *mntpt)
+{
+	int f;
+
+	f = open(service, ORDWR);
+	if(f < 0)
+		abort(); 	/* service */;
+	while (mount(f, -1, mntpt, MAFTER, "") < 0) {
+		dnslog("dns mount -a on %s failed: %r", mntpt);
+		sleep(5000);
+	}
 }
 
 void
@@ -211,9 +227,10 @@ main(int argc, char *argv[])
 		sysfatal("%s exists; another dns instance is running",
 			servefile);
 	free(dir);
-//	unmount(servefile, mntpt);
-//	remove(servefile);
 
+	/* don't unmount here; could deadlock */
+//	while (unmount(servefile, mntpt) >= 0)
+//		;
 	mountinit(servefile, mntpt);	/* forks, parent exits */
 
 	srand(now*getpid());
@@ -226,11 +243,18 @@ main(int argc, char *argv[])
 	 * fork without sharing heap.
 	 * parent waits around for child to die, then forks & restarts.
 	 * child may spawn udp server, notify procs, etc.; when it gets too
-	 * big, it kills itself and any children.
-	 * /srv/dns and /net/dns remain open and valid.
+	 * big or too old, it kills itself and any children.
+	 *
+	 * /srv/dns remains open and valid, but /net/dns was only mounted in
+	 * a child's separate namespace from 9p service, to avoid a deadlock
+	 * from serving our own namespace, so we must remount it upon restart,
+	 * in a separate process and namespace.
 	 */
 	for (;;) {
-		kid = rfork(RFPROC|RFFDG|RFNOTEG);
+		start = time(nil);
+		/* don't unmount here; could deadlock */
+//		unmount(servefile, mntpt);
+		kid = rfork(RFPROC|RFFDG|RFNOTEG|RFNAMEG);
 		switch (kid) {
 		case -1:
 			sysfatal("fork failed: %r");
@@ -239,14 +263,14 @@ main(int argc, char *argv[])
 				dnudpserver(mntpt);
 			if(sendnotifies)
 				notifyproc();
-			io();
+			io();		/* serve 9p; return implies restart */
 			_exits("restart");
-		default:
-			while ((pid = waitpid()) != kid && pid != -1)
-				continue;
-			break;
 		}
-		dnslog("dns restarting");
+		sleep(1000);	/* wait for 9p service to start */
+		justremount(servefile, mntpt);
+		while ((pid = waitpid()) != kid && pid != -1)
+			continue;
+		dnslog("restarting");
 	}
 }
 
@@ -280,11 +304,11 @@ mountinit(char *service, char *mntpt)
 
 	if(pipe(p) < 0)
 		abort(); /* "pipe failed" */;
-	/* copy namespace to avoid a deadlock */
-	switch(rfork(RFFDG|RFPROC|RFNAMEG)){
+	switch(rfork(RFFDG|RFPROC)){
 	case 0:			/* child: hang around and (re)start main proc */
 		close(p[1]);
 		procsetname("%s restarter", mntpt);
+		mfd[0] = mfd[1] = p[0];
 		break;
 	case -1:
 		abort(); /* "fork failed\n" */;
@@ -304,12 +328,13 @@ mountinit(char *service, char *mntpt)
 
 		/*
 		 *  put ourselves into the file system
+		 *  it's too soon; we need 9p service running.
 		 */
-		if(mount(p[1], -1, mntpt, MAFTER, "") < 0)
-			fprint(2, "dns mount failed: %r\n");
+//		if(mount(p[1], -1, mntpt, MAFTER, "") < 0)
+//			dnslog("dns mount -a on %s failed: %r", mntpt);
+		close(p[1]);
 		_exits(0);
 	}
-	mfd[0] = mfd[1] = p[0];
 }
 
 Mfile*

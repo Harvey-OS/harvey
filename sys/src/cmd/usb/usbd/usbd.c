@@ -731,6 +731,10 @@ cfswrite(Usbfs*, Fid *, void *data, long cnt, vlong )
 		werrstr("reset not implemented");
 		return -1;
 	}
+	if(strncmp(buf, "exit", 4) == 0){
+		threadexitsall(nil);
+		return cnt;
+	}
 	if(tokenize(buf, toks, nelem(toks)) != 2){
 		werrstr("usage: debug|fsdebug n");
 		return -1;
@@ -744,7 +748,7 @@ cfswrite(Usbfs*, Fid *, void *data, long cnt, vlong )
 	else if(strcmp(toks[0], "diskargs") == 0)
 		setdrvargs("disk", toks[1]);
 	else{
-		werrstr("unkown ctl '%s'", buf);
+		werrstr("unknown ctl '%s'", buf);
 		return -1;
 	}
 	fprint(2, "%s: debug %d fsdebug %d\n", argv0, usbdebug, usbfsdebug);
