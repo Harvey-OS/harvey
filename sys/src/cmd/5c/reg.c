@@ -1125,7 +1125,7 @@ RtoB(int r)
 int
 BtoR(long b)
 {
-	b &= 0x01fcL;
+	b &= 0x01fcL;	// excluded R9 and R10 for m and g
 	if(b == 0)
 		return 0;
 	return bitno(b);

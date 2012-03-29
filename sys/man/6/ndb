@@ -186,7 +186,7 @@ attribute.
 .TP
 .B bootf
 file to download for initial bootstrap;
-.B /386/9pxeload
+.B /386/9boot
 to boot a PC via PXE.
 .TP
 .B ipnet
@@ -344,7 +344,7 @@ first database file searched
 .IR con (1),
 .IR dial (2),
 .IR ndb (2),
-.IR 9load (8),
+.IR 9boot (8),
 .IR booting (8),
 .IR dhcpd (8),
 .IR ipconfig (8),

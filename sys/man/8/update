@@ -119,7 +119,7 @@ prototype files.
 .B /rc/bin/pc/*
 .SH "SEE ALSO"
 .IR kfs (4),
-.IR 9load (8),
+.IR 9boot (8),
 .IR mkfs (8),
 .IR prep (8),
 .IR sd (3)

@@ -412,7 +412,11 @@ starttls(Imap *imap, TLSconn *connp)
 		return -1;
 	}
 	sha1(connp->cert, connp->certlen, digest, nil);
-	if(!imap->thumb || !okThumbprint(digest, imap->thumb)){
+	/*
+	 * don't do this any more.  our local it people are rotating their
+	 * certificates faster than we can keep up.
+	 */
+	if(0 && (!imap->thumb || !okThumbprint(digest, imap->thumb))){
 		close(sfd);
 		werrstr("server certificate %.*H not recognized",
 			SHA1dlen, digest);

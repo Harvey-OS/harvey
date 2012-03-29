@@ -176,7 +176,11 @@ vmwarelinear(VGAscr* scr, int, int)
 	if(p == nil)
 		error(err[0]? err: "no vmware vga card found");
 
-	vgalinearaddr(scr, vmrd(vm, Rfbstart), vmrd(vm, Rfbsize));
+	/*
+	 * empirically, 2*fbsize enables 1280x1024x32, not just 1024x768x32.
+	 * is fbsize in bytes or pixels?
+	 */
+	vgalinearaddr(scr, vmrd(vm, Rfbstart), 2*vmrd(vm, Rfbsize));
 	if(scr->apsize)
 		addvgaseg("vmwarescreen", scr->paddr, scr->apsize);
 }
