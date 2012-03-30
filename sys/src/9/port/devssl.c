@@ -1055,6 +1055,7 @@ sslwrite(Chan *c, void *a, long n, vlong)
 	char *p, *np, *e, buf[128];
 	uchar *x;
 
+	x = nil;
 	s = dstate[CONV(c->qid)];
 	if(s == 0)
 		panic("sslwrite");
@@ -1130,6 +1131,10 @@ sslwrite(Chan *c, void *a, long n, vlong)
 	if(p)
 		*p++ = 0;
 
+	if(waserror()){
+		free(x);
+		nexterror();
+	}
 	if(strcmp(buf, "fd") == 0){
 		s->c = buftochan(p);
 
@@ -1149,9 +1154,8 @@ sslwrite(Chan *c, void *a, long n, vlong)
 
 		s->state = Sclear;
 		s->maxpad = s->max = (1<<15) - s->diglen - 1;
-		if(strcmp(p, "clear") == 0){
-			goto out;
-		}
+		if(strcmp(p, "clear") == 0)
+			goto outx;
 
 		if(s->in.secret && s->out.secret == 0)
 			setsecret(&s->out, s->in.secret, s->in.slen);
@@ -1192,17 +1196,21 @@ sslwrite(Chan *c, void *a, long n, vlong)
 		m = (strlen(p)*3)/2;
 		x = smalloc(m);
 		t = dec64(x, m, p, strlen(p));
+		if(t <= 0)
+			error(Ebadarg);
 		setsecret(&s->in, x, t);
-		free(x);
 	} else if(strcmp(buf, "secretout") == 0 && p != 0) {
 		m = (strlen(p)*3)/2 + 1;
 		x = smalloc(m);
 		t = dec64(x, m, p, strlen(p));
+		if(t <= 0)
+			error(Ebadarg);
 		setsecret(&s->out, x, t);
-		free(x);
 	} else
 		error(Ebadarg);
-
+outx:
+	free(x);
+	poperror();
 out:
 	qunlock(&s->in.ctlq);
 	qunlock(&s->out.q);

@@ -120,9 +120,16 @@ main(int argc, char **argv)
 	case 'v':
 		info.volumename = atom(EARGF(usage()));
 		break;
+	case 'x':
+		info.flags |= CDpbs;
+		info.loader = EARGF(usage());
+		break;
 	default:
 		usage();
 	}ARGEND
+
+	if(info.flags & CDpbs && !(info.flags & CDbootnoemu))
+		usage();
 
 	if(mk9660 && (fix || now || maxsize))
 		usage();
@@ -206,9 +213,11 @@ main(int argc, char **argv)
 
 	if(cd->bootimage){
 		findbootimage(cd, &iroot);
+		if(cd->loader)
+			findloader(cd, &iroot);
 		Cupdatebootcat(cd);
 	}
-		
+
 	/* create Joliet tree */
 	if(cd->flags & CDjoliet)
 		copydirec(&jroot, &iroot);
@@ -263,6 +272,8 @@ Dofix:
 		 */
 		newnull = Cputdumpblock(cd);
 	}
+	if(info.flags & CDpbs)
+		Cfillpbs(cd);
 
 	/*
 	 * Write _conform.map.
@@ -336,7 +347,7 @@ Dofix:
 		writedumpdirs(cd, &idumproot, Cputisodir);
 		if(cd->flags & CDjoliet)
 			writedumpdirs(cd, &jdumproot, Cputjolietdir);
-	
+
 		/*
 		 * Patch in new root directory entry.
 		 */

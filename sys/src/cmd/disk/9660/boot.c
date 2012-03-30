@@ -196,10 +196,27 @@ Cupdatebootcat(Cdimg *cd)
 }
 
 void
+Cfillpbs(Cdimg *cd)
+{
+	uvlong o;
+	int n;
+
+	if(cd->bootdirec == nil || cd->loaderdirec == nil)
+		return;
+	o = Cwoffset(cd);
+	Cwseek(cd, 3 + cd->bootdirec->block * Blocksize); /* jmp over magic */
+
+	Cputnl(cd, cd->loaderdirec->block, 4);		/* ptr to loader */
+	n = (cd->loaderdirec->length + Blocksize - 1) / Blocksize;
+	Cputnl(cd, n, 4);				/* loader size */
+	Cputnl(cd, Blocksize, 4);			/* loader size */
+	Cwseek(cd, o);
+}
+
+void
 findbootimage(Cdimg *cd, Direc *root)
 {
 	Direc *d;
-
 	d = walkdirec(root, cd->bootimage);
 	if(d == nil){
 		fprint(2, "warning: did not encounter boot image\n");
@@ -207,4 +224,17 @@ findbootimage(Cdimg *cd, Direc *root)
 	}
 
 	cd->bootdirec = d;
+}
+
+void
+findloader(Cdimg *cd, Direc *root)
+{
+	Direc *d;
+
+	d = walkdirec(root, cd->loader);
+	if(d == nil){
+		fprint(2, "warning: did not encounter boot loader\n");
+		return;
+	}
+	cd->loaderdirec = d;
 }

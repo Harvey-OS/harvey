@@ -661,6 +661,10 @@ kbdinit(void)
 	/* disable mouse */
 	if (outbyte(Cmd, 0x60) < 0 || outbyte(Data, ccc) < 0)
 		print("i8042: kbdinit mouse disable failed\n");
+
+	/* set typematic rate/delay (0 -> delay=250ms & rate=30cps) */
+	if(outbyte(Data, 0xf3) < 0 || outbyte(Data, 0) < 0)
+		print("i8042: kbdinit set typematic rate failed\n");
 }
 
 void
