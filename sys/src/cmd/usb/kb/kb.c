@@ -275,6 +275,13 @@ ptrrepvals(KDev *kd, Chain *ch, int *px, int *py, int *pb)
 	static char buts[] = {0x0, 0x2, 0x1};
 
 	c = ch->e / 8;
+
+	/* sometimes there is a report id, sometimes not */
+	if(c == kd->templ.sz + 1)
+		if(ch->buf[0] == kd->templ.id)
+			ch->b += 8;
+		else
+			return -1;
 	parsereport(&kd->templ, ch);
 
 	if(kbdebug)
@@ -354,7 +361,6 @@ ptrwork(void* a)
 		ch.e = 8 * c;
 		if(f->ptrvals(f, &ch, &x, &y, &b) < 0)
 			continue;
-
 		if(f->accel){
 			x = scale(f, x);
 			y = scale(f, y);
@@ -619,6 +625,11 @@ kbstart(Dev *d, Ep *ep, Kin *in, void (*f)(void*), KDev *kd)
 	kd->in = in;
 	kd->dev = d;
 	res = -1;
+	kd->ep = openep(d, ep->id);
+	if(kd->ep == nil){
+		fprint(2, "kb: %s: openep %d: %r\n", d->dir, ep->id);
+		return;
+	}
 	if(!kd->bootp)
 		res= setfirstconfig(kd, ep->id, desc, sizeof desc);
 	if(res > 0)
@@ -632,11 +643,6 @@ kbstart(Dev *d, Ep *ep, Kin *in, void (*f)(void*), KDev *kd)
 		}
 	}else if(kbdebug)
 		dumpreport(&kd->templ);
-	kd->ep = openep(d, ep->id);
-	if(kd->ep == nil){
-		fprint(2, "kb: %s: openep %d: %r\n", d->dir, ep->id);
-		return;
-	}
 	if(opendevdata(kd->ep, OREAD) < 0){
 		fprint(2, "kb: %s: opendevdata: %r\n", kd->ep->dir);
 		closedev(kd->ep);

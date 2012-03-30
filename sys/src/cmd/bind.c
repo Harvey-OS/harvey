@@ -47,6 +47,6 @@ main(int argc, char *argv[])
 void
 usage(void)
 {
-	fprint(2, "usage: bind [-b|-a|-c|-bc|-ac] new old\n");
+	fprint(2, "usage: bind [-q] [-b|-a|-c|-bc|-ac] new old\n");
 	exits("usage");
 }

@@ -31,7 +31,7 @@ get8bits(Chain *ch, int nbits)
 	else
 		high = 0;
 	ch->b += nbits;
-	return high | low;
+	return MSK(nbits)&(high | low);
 }
 
 static void
@@ -52,25 +52,42 @@ getbits(void *p, Chain *ch, int nbits)
 		*vp = get8bits(ch, nbi);
 }
 
-/* TODO check report id, when it does appear (not all devices) */
 int
 parsereportdesc(HidRepTempl *temp, uchar *repdesc, int repsz)
 {
-	int i, j, l, n, isptr, hasxy, hasbut, nk;
+	int i, j, l, n, isptr, hasxy, hasbut, nk, ncoll;
 	int ks[MaxVals];
 	HidInterface *ifs;
 
 	ifs = temp->ifcs;
 	isptr = 0;
 	hasxy = hasbut = 0;
+	ncoll = 0;
 	n = 0;
 	nk = 0;
 	memset(ifs, 0, sizeof *ifs * MaxIfc);
-	for(i = 0; i < repsz / 2; i += 2){
-		if(n == MaxIfc || repdesc[i] == HidEnd)
+	for(i = 0; i < repsz; i += 2){
+		if(n == MaxIfc)
 			break;
+		if(repdesc[i] == HidEnd){
+			i--;
+			ncoll--;
+			if(ncoll == 0)
+				break;
+		}
 
 		switch(repdesc[i]){
+		case HidReportId:
+			switch(repdesc[i+1]){
+			case HidReportApp:
+				temp->id = repdesc[i+1];
+				break;
+			default:
+				fprint(2, "report type %#ux bad\n",
+					repdesc[i+1]);
+				return -1;
+			}
+			break;
 		case HidTypeUsg:
 			switch(repdesc[i+1]){
 			case HidX:
@@ -118,9 +135,16 @@ parsereportdesc(HidRepTempl *temp, uchar *repdesc, int repsz)
 				ifs[n].nbits = 1;
 			nk = 0;
 			break;
+		case HidCollection:
+			ncoll++;
+			break;
 		}
 	}
 	temp->nifcs = n;
+	for(i = 0; i < n; i++)
+		temp->sz += temp->ifcs[i].nbits * temp->ifcs[i].count;
+	temp->sz = (temp->sz + 7) / 8;
+	
 	if(isptr && hasxy && hasbut)
 		return 0;
 	fprint(2, "bad report: isptr %d, hasxy %d, hasbut %d\n",

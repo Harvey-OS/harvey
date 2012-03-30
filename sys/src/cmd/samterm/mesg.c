@@ -33,10 +33,7 @@ void
 rcv(void)
 {
 	int c;
-	static state = 0;
-	static count = 0;
-	static i = 0;
-	static int errs = 0;
+	static int count = 0, errs = 0, i = 0, state = 0;
 
 	while((c=rcvchar()) != -1)
 		switch(state){
@@ -645,10 +642,17 @@ hsetsnarf(int nc)
 	if(n >= 0){
 		if(!s1)
 			n = 0;
-		s1 = realloc(s1, n+1);
-		if (!s1)
-			panic("realloc");
-		s1[n] = 0;
+		if(n > SNARFSIZE){
+			s1 = strdup("<snarf too long>");
+			if (!s1)
+				panic("strdup");
+			n = strlen(s1);
+		}else{
+			s1 = realloc(s1, n+1);
+			if (!s1)
+				panic("realloc");
+			s1[n] = 0;
+		}
 		snarflen = n;
 		outTs(Tsetsnarf, n);
 		if(n>0 && write(1, s1, n)!=n)

@@ -95,17 +95,22 @@ struct HidInterface {
 };
 
 struct HidRepTempl{
+	int	id;				/* id which may not be present */
+	uint	sz;				/* in bytes */
 	int	nifcs;
 	HidInterface ifcs[MaxIfc];
 };
 
 enum {
 	/* report types */
+
+	HidReportApp	= 0x01,
 	HidTypeUsgPg	= 0x05,
 	HidPgButts	= 0x09,
 
 	HidTypeRepSz	= 0x75,
 	HidTypeCnt	= 0x95,
+	HidCollection	= 0xa1,
 
 	HidTypeUsg	= 0x09,
 	HidPtr		= 0x01,
@@ -116,7 +121,7 @@ enum {
 	HidInput	= 0x81,
 	HidReportId	= 0x85,
 
-	HidEnd		= 0x0c,
+	HidEnd		= 0xc0,
 };
 
 void	dumpreport(HidRepTempl *templ);

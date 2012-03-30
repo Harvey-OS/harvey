@@ -1,4 +1,7 @@
 .TH ENCODE 2
+.EQ
+delim $$
+.EN
 .SH NAME
 dec64, enc64, dec32, enc32, dec16, enc16, encodefmt \- encoding byte arrays as strings
 .SH SYNOPSIS
@@ -27,7 +30,6 @@ int	enc16(char *out, int lim, uchar *in, int n)
 .B
 int	encodefmt(Fmt*)
 .SH DESCRIPTION
-.PP
 .IR Enc16 ,
 .I enc32
 and
@@ -37,6 +39,10 @@ encoded string (without the null) or -1 if the encoding fails.
 The encoding fails if
 .IR lim ,
 the length of the output buffer, is too small.
+They require
+$2 n + 1$, ${ 8 n + 4 } over 5 + 1$ and
+$4 { { n + 2 } over 3 } + 1$ bytes,
+respectively.
 .PP
 .IR Dec16 ,
 .I dec32
@@ -54,7 +60,7 @@ and
 .IR print (2)
 to print encoded representations of byte arrays.
 The verbs are
-.TP
+.TP 3
 .B H
 base 16 (i.e. hexadecimal). The default encoding is
 in upper case.  The
@@ -71,15 +77,12 @@ base 64 (same as MIME)
 The length of the array is specified as
 .IR f2 .
 For example, to display a 15 byte array as hex:
+.IP
 .EX
+char x[15];
 
-    char x[15];
-
-    fmtinstall('H', encodefmt);
-    print("%.*H\\n", sizeof x, x);
-
+fmtinstall('H', encodefmt);
+print("%.*H\\n", sizeof x, x);
 .EE
 .SH SOURCE
-.B /sys/src/libc/port/u32.c
-.br
-.B /sys/src/libc/port/u64.c
+.B /sys/src/libc/port/u[136][246].c

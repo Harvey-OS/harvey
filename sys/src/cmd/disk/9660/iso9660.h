@@ -114,8 +114,10 @@ struct Cdimg {
 	uvlong bootcatptr;
 	ulong bootcatblock;
 	uvlong bootimageptr;
+	Direc *loaderdirec;
 	Direc *bootdirec;
 	char *bootimage;
+	char *loader;
 	
 	Biobuf brd;
 	Biobuf bwr;
@@ -134,6 +136,7 @@ enum {	/* Cdimg->flags, Cdinfo->flags */
 	CDdump = 1<<5,
 	CDbootable = 1<<6,
 	CDbootnoemu = 1<<7,
+	CDpbs= 1<<8,
 };
 
 typedef struct Tx Tx;
@@ -157,11 +160,8 @@ struct Cdinfo {
 	char *preparer;
 	char *application;
 	char *bootimage;
+	char *loader;
 };
-
-//enum {
-//	Blocklen = 2048,		/* unused */
-//};
 
 /*
  * This is a doubly binary tree.
@@ -294,7 +294,9 @@ void Cputbootvol(Cdimg*);
 void Cputbootcat(Cdimg*);
 void Cupdatebootvol(Cdimg*);
 void Cupdatebootcat(Cdimg*);
+void Cfillpbs(Cdimg*);
 void findbootimage(Cdimg*, Direc*);
+void findloader(Cdimg*, Direc*);
 
 /* cdrdwr.c */
 Cdimg *createcd(char*, Cdinfo);
