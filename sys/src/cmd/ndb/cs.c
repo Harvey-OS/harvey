@@ -163,6 +163,7 @@ Network network[] = {
 	{ "icmp",	iplookup,	iptrans,	1 },
 	{ "icmpv6",	iplookup,	iptrans,	1 },
 	{ "rudp",	iplookup,	iptrans,	1 },
+	{ "ssh",	iplookup,	iptrans,	1 },
 	{ "telco",	telcolookup,	telcotrans,	1 },
 	{ 0 },
 };

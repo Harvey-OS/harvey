@@ -1252,7 +1252,7 @@ isointerrupt(Ctlr *ctlr, Ep *ep, Qio *io, Td *td, int)
 static void
 interrupt(Ureg *, void *arg)
 {
-	Td *td, *ntd, *td0;
+	Td *td, *ntd;
 	Hci *hp;
 	Ctlr *ctlr;
 	ulong status, curred;
@@ -1261,36 +1261,33 @@ interrupt(Ureg *, void *arg)
 	hp = arg;
 	ctlr = hp->aux;
 	ilock(ctlr);
-	status = ctlr->ohci->intrsts;
-	status &= ctlr->ohci->intrenable;
+	ctlr->ohci->intrdisable = Mie;
+	coherence();
+	status = ctlr->ohci->intrsts & ctlr->ohci->intrenable;
 	status &= Oc|Rhsc|Fno|Ue|Rd|Sf|Wdh|So;
 	frno = TRUNC(ctlr->ohci->fmnumber, Ntdframes);
-	if((status & Wdh) != 0){
+	if(status & Wdh){
 		/* lsb of donehead has bit to flag other intrs.  */
 		td = pa2ptr(ctlr->hcca->donehead & ~0xF);
-	}else
-		td = nil;
-	td0 = td;
 
-	for(i = 0; td != nil && i < 1024; i++){
-		if(0)ddprint("ohci tdinterrupt: td %#p\n", td);
-		ntd = pa2ptr(td->nexttd & ~0xF);
-		td->nexttd = 0;
-		if(td->ep == nil || td->io == nil)
-			panic("ohci: interrupt: ep %#p io %#p", td->ep, td->io);
-		ohciinterrupts[td->ep->ttype]++;
-		if(td->ep->ttype == Tiso)
-			isointerrupt(ctlr, td->ep, td->io, td, frno);
-		else
-			qhinterrupt(ctlr, td->ep, td->io, td, frno);
-		td = ntd;
+		for(i = 0; td != nil && i < 1024; i++){
+			if(0)ddprint("ohci tdinterrupt: td %#p\n", td);
+			ntd = pa2ptr(td->nexttd & ~0xF);
+			td->nexttd = 0;
+			if(td->ep == nil || td->io == nil)
+				panic("ohci: interrupt: ep %#p io %#p",
+					td->ep, td->io);
+			ohciinterrupts[td->ep->ttype]++;
+			if(td->ep->ttype == Tiso)
+				isointerrupt(ctlr, td->ep, td->io, td, frno);
+			else
+				qhinterrupt(ctlr, td->ep, td->io, td, frno);
+			td = ntd;
+		}
+		if(i >= 1024)
+			print("ohci: bug: more than 1024 done Tds?\n");
+		ctlr->hcca->donehead = 0;
 	}
-	if(i == 1024)
-		print("ohci: bug: more than 1024 done Tds?\n");
-
-	if(pa2ptr(ctlr->hcca->donehead & ~0xF) != td0)
-		print("ohci: bug: donehead changed before ack\n");
-	ctlr->hcca->donehead = 0;
 
 	ctlr->ohci->intrsts = status;
 	status &= ~Wdh;
@@ -1313,6 +1310,7 @@ interrupt(Ureg *, void *arg)
 	}
 	if(status != 0)
 		print("ohci interrupt: unhandled sts 0x%.8lux\n", status);
+	ctlr->ohci->intrenable = Mie | Wdh | Ue;
 	iunlock(ctlr);
 }
 
@@ -2496,8 +2494,9 @@ shutdown(Hci *hp)
 	ctlr = hp->aux;
 
 	ilock(ctlr);
-	ctlr->ohci->intrenable = 0;
+	ctlr->ohci->intrdisable = Mie;
 	ctlr->ohci->control = 0;
+	coherence();
 	delay(100);
 	iunlock(ctlr);
 }
