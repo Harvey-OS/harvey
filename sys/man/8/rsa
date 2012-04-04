@@ -2,7 +2,7 @@
 .SH NAME
 rsagen, rsafill, asn12rsa, rsa2pub, rsa2ssh, rsa2x509 \- generate and format rsa keys
 .SH SYNOPSIS
-.B rsagen
+.B auth/rsagen
 [
 .B -b
 .I nbits
@@ -12,12 +12,12 @@ rsagen, rsafill, asn12rsa, rsa2pub, rsa2ssh, rsa2x509 \- generate and format rsa
 .I tag
 ]
 .PP
-.B rsafill
+.B auth/rsafill
 [
 .I file
 ]
 .PP
-.B asn12rsa
+.B auth/asn12rsa
 [
 .B -t
 .I tag
@@ -26,17 +26,17 @@ rsagen, rsafill, asn12rsa, rsa2pub, rsa2ssh, rsa2x509 \- generate and format rsa
 .I file
 ]
 .PP
-.B rsa2pub
+.B auth/rsa2pub
 [
 .I file
 ]
 .PP
-.B rsa2ssh
+.B auth/rsa2ssh
 [
 .I file
 ]
 .PP
-.B rsa2x509
+.B auth/rsa2x509
 [
 .B -e
 .I expiretime
@@ -86,10 +86,10 @@ parameters derived from the other attributes, cached to speed decryption
 .PD
 .LP
 All the numbers are in hexadecimal except
-.I size ,
+.IR size ,
 which is decimal.
 An RSA public key omits the attributes beginning with
-.L ! .
+.LR ! .
 A key may have other attributes as well (for example, a
 .B service
 attribute identifying how this key is typically used),
@@ -235,8 +235,9 @@ ssh unix
 .SH SOURCE
 .B /sys/src/cmd/auth
 .SH "SEE ALSO
+.IR ssh (1),
 .IR factotum (4),
-.IR pem (8),
-.IR ssh (1)
+.IR dsa (8),
+.IR pem (8)
 .SH BUGS
 There are too many key formats.

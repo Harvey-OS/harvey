@@ -3,7 +3,7 @@
 #include "9.h"
 
 typedef struct Srv Srv;
-typedef struct Srv {
+struct Srv {
 	int	fd;
 	int	srvfd;
 	char*	service;
@@ -11,7 +11,7 @@ typedef struct Srv {
 
 	Srv*	next;
 	Srv*	prev;
-} Srv;
+};
 
 static struct {
 	VtLock*	lock;
