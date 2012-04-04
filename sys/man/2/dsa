@@ -136,4 +136,5 @@ are provided to manage signature storage.
 .IR rsa (2),
 .IR sechash (2),
 .IR prime (2),
-.IR rand (2)
+.IR rand (2),
+.IR dsa (8)

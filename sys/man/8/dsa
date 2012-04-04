@@ -1,0 +1,171 @@
+.EQ
+delim $$
+.EN
+.TH DSA 8
+.SH NAME
+dsagen, asn12dsa, dsa2pub, dsa2ssh \- generate and format dsa keys
+.SH SYNOPSIS
+.B auth/dsagen
+.\" [
+.\" .B -b
+.\" .I nbits
+.\" ]
+[
+.B -t
+.I tag
+]
+.PP
+.B auth/asn12dsa
+[
+.B -t
+.I tag
+]
+[
+.I file
+]
+.PP
+.B auth/dsa2pub
+[
+.I file
+]
+.PP
+.B auth/dsa2ssh
+[
+.B -c
+.I comment
+] [
+.I file
+]
+.SH DESCRIPTION
+Plan 9 represents a DSA (Digital Signature Algorithm)
+key as an attribute-value pair list
+prefixed with the string
+.BR key ;
+this is the generic key format used by
+.IR factotum (4).
+A full DSA private key has the following attributes:
+.TF secret
+.TP
+.B proto
+must be
+.B dsa
+.TP
+.B !secret
+decryption key
+.TP
+.B p
+modulus, a large prime
+.TP
+.B q
+group order, another large prime that divides
+.I p
+- 1.
+.TP
+.B alpha
+group generator
+.TP
+.B key
+$"alpha" sup secret ~ mod ~ p$
+.PD
+.LP
+All the numbers are in hexadecimal.
+A DSA public key omits the attributes beginning with
+.LR ! .
+A key may have other attributes as well (for example, a
+.B service
+attribute identifying how this key is typically used),
+but to these utilities such attributes are merely comments.
+.PP
+For example, a private key and corresponding public key might look like this
+(with [⋯] indicating elisions and \e marking line breaks for readability):
+.IP
+.EX
+key proto=dsa p=D5[⋯]DB q=C2[⋯]E7 alpha=44[⋯]9B key=C1[⋯]3F \e
+	!secret=9E[⋯]3B
+key proto=dsa p=D5[⋯]DB q=C2[⋯]E7 alpha=44[⋯]9B key=C1[⋯]3F
+.EE
+.LP
+Note that the order of the attributes does not matter.
+.PP
+.I Dsagen
+prints a randomly generated DSA private key
+whose
+.B n
+has exactly
+.I nbits
+(default 1024)
+significant bits.
+If
+.I tag
+is specified, it is printed between
+.B key
+and
+.BR proto=dsa ;
+typically,
+.I tag
+is a sequence of attribute-value comments describing the key.
+.PP
+.I Asn12dsa
+reads an DSA private key stored as ASN.1
+encoded in the binary Distinguished Encoding Rules (DER)
+and prints a Plan 9 DSA key,
+inserting
+.I tag
+exactly as
+.I dsagen
+does.
+ASN.1/DER is a popular key format on Unix and Windows;
+it is often encoded in text form using the Privacy Enhanced Mail (PEM) format
+in a section labeled as an
+.RB `` DSA
+.B PRIVATE
+.BR KEY .''
+The command:
+.IP
+.EX
+auth/pemdecode 'DSA PRIVATE KEY' | auth/asn12dsa
+.EE
+.LP
+extracts the key section from a textual ASN.1/DER/PEM key
+into binary ASN.1/DER format and then
+converts it to a Plan 9 DSA key.
+.PP
+.I Dsa2pub
+reads a Plan 9 DSA public or private key,
+removes the private attributes, and prints the resulting public key.
+Comment attributes are preserved.
+.PP
+.I Dsa2ssh
+reads a Plan 9 DSA public or private key and prints the public portion 
+in the format used by SSH:
+.L ssh-dss
+and a long base-64 encoded number.
+.EQ
+delim @@
+.EN
+For compatibility with external SSH implementations, the public keys in
+.B /sys/lib/ssh/keyring
+and
+.B $home/lib/keyring
+are stored in this format.
+.br
+.ne 4
+.SH EXAMPLES
+Generate a fresh key and configure a remote Unix system to
+allow use of that key for logins:
+.IP
+.EX
+auth/dsagen -t 'service=ssh' >key
+auth/dsa2ssh key | ssh unix 'cat >>.ssh/authorized_keys'
+cat key >/mnt/factotum/ctl
+ssh unix
+.EE
+.SH SOURCE
+.B /sys/src/cmd/auth
+.SH "SEE ALSO
+.IR ssh (1),
+.IR factotum (4),
+.IR pem (8),
+.IR rsa (8)
+.SH BUGS
+There are too many key formats.

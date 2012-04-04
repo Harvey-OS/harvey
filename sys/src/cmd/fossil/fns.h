@@ -39,7 +39,7 @@ uchar*	blockRollback(Block*, uchar*);
 void	blockSetIOState(Block*, int);
 Block*	_blockSetLabel(Block*, Label*);
 int	blockSetLabel(Block*, Label*, int);
-int	blockWrite(Block*);
+int	blockWrite(Block*, int);
 
 Disk*	diskAlloc(int);
 int	diskBlockSize(Disk*);

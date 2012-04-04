@@ -9,7 +9,7 @@ enum {
 typedef struct Ubox Ubox;
 typedef struct User User;
 
-typedef struct User {
+struct User {
 	char*	uid;
 	char*	uname;
 	char*	leader;
@@ -19,11 +19,11 @@ typedef struct User {
 	User*	next;			/* */
 	User*	ihash;			/* lookup by .uid */
 	User*	nhash;			/* lookup by .uname */
-} User;
+};
 
 #pragma varargck type "U"   User*
 
-typedef struct Ubox {
+struct Ubox {
 	User*	head;
 	User*	tail;
 	int	nuser;
@@ -31,7 +31,7 @@ typedef struct Ubox {
 
 	User*	ihash[NUserHash];	/* lookup by .uid */
 	User*	nhash[NUserHash];	/* lookup by .uname */
-} Ubox;
+};
 
 static struct {
 	VtLock*	lock;

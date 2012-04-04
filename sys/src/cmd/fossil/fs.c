@@ -204,8 +204,8 @@ superWrite(Block* b, Super* super, int forceWrite)
 	superPack(super, b->data);
 	blockDirty(b);
 	if(forceWrite){
-		while(!blockWrite(b)){
-			/* BUG: what should really happen here? */
+		while(!blockWrite(b, Waitlock)){
+			/* this should no longer happen */
 			fprint(2, "%s: could not write super block; "
 				"waiting 10 seconds\n", argv0);
 			sleep(10*1000);

@@ -1133,7 +1133,7 @@ rTversion(Msg* m)
 		/*
 		 * Currently, the only defined version
 		 * is "9P2000"; ignore any later versions.
-          	 */
+		 */
 		v = strtol(&t->version[2], 0, 10);
 		if(v >= 2000){
 			r->version = VERSION9P;
