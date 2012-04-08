@@ -1,9 +1,8 @@
 # /sys/lib/dist/mkfile
-src9=/n/sources/plan9		# what to export
-dist=/sys/lib/dist		# where this machinery lives
-scr=/n/other/dist		# scratch space before copying to web.protect
-# import /sys/lib/dist/web.protect from the outside
-x=`{setup}
+
+<defs
+
+x=`{setup}	# import /sys/lib/dist/web.protect from the outside
 
 cd:V: $scr/plan9.iso
 

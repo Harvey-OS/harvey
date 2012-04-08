@@ -1,0 +1,9 @@
+#!/bin/rc
+# defs - definitions for the mkfile
+src9=/n/sources/plan9		# what to export
+dist=/sys/lib/dist		# where this machinery lives
+scr=/n/other/dist		# scratch space before copying to web.protect
+
+srccpy=/n/other/srcs.copy
+srcbin=/n/other/srcs.bin
+srcs=/n/sources/plan9
