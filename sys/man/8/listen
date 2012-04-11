@@ -68,6 +68,21 @@ the network with the name of the service or port.
 For example,
 an inbound call on the TCP network for port 565 executes service
 .BR tcp565 .
+These programs are
+.IR exec ed
+with arguments consisting of
+service
+(e.g.,
+.LR tcp25 ),
+protocol
+(e.g.,
+.LR tcp ),
+and the directory of this network connection,
+with the network connection's
+.B data
+file bound to
+.B /dev/cons
+and opened read/write as file descriptors 0, 1 and 2.
 .PP
 At least the following services are available in
 .BR /bin/service .

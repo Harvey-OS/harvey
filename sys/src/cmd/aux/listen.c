@@ -518,10 +518,12 @@ newcall(int fd, char *proto, char *dir, Service *s)
 	if(!quiet){
 		if(dir != nil){
 			p = remoteaddr(dir);
-			syslog(0, listenlog, "%s call for %s on chan %s (%s)", proto, s->serv, dir, p);
+			syslog(0, listenlog, "%s call for %s on chan %s (%s)",
+				proto, s->serv, dir, p);
 			free(p);
 		} else
-			syslog(0, listenlog, "%s call for %s on chan %s", proto, s->serv, dir);
+			syslog(0, listenlog, "%s call for %s on chan %s",
+				proto, s->serv, dir);
 	}
 
 	snprint(data, sizeof data, "%s/data", dir);
