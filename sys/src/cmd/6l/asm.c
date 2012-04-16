@@ -264,7 +264,7 @@ asmb(void)
 		lputl(0x06L);			/* protections = RW */
 		lputl(INITRND);			/* alignment */
 
-		lputl(0L);			/* data - type = PT_NULL */
+		lputl(0L);			/* symbols - type = PT_NULL */
 		lputl(HEADR+textsize+datsize);	/* file offset */
 		lputl(0L);
 		lputl(0L);
