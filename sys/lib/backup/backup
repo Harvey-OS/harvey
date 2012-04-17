@@ -1,20 +1,26 @@
 #!/bin/rc
-# backup [-n] [-d dev] [-s set] - backup venti arenas to disc set using dev
+# backup [-np] [-d dev] [-s set] - backup venti arenas to disc set using dev
 #	and record that.  also print recent fossil dump scores.
+#
+# it would be good to have some way to cope with truncated tracks left
+# by write errors causing fewer tracks than expected to fit on a disc.
+
 rfork ne
 cd /sys/lib/backup
 . funcs
 bind -a . /bin
 
 done=0
+print=yes
 while (~ $done 0 && ! ~ $#* 0 && ~ $1 -*) {
 	switch ($1) {
 	case -d;	rdev=$2; shift
 	case -n;	debug=yes		# don't dump; use with -s test
+	case -p;	print=no
 	case -s;	set=$2 ; shift
 	case --;	done = 1		# no break in rc, alas
 	case -*
-		echo usage: $0 '[-n] [-d dev] [-s set]' >[1=2]
+		echo usage: $0 '[-np] [-d dev] [-s set]' >[1=2]
 		exit usage
 	}
 	shift
@@ -51,7 +57,10 @@ fn backup1 {
 	disc1arenas=()
 	if (! ~ $disc1trks 0)
 		disc1arenas=`{sed $disc1trks^q arenas}
-	if (! ~ $#disc1arenas 0 && ! ~ $disc1trks 0 && backupdisc $disc1arenas){
+	if (! ~ $#disc1arenas 0 && ! ~ $disc1trks 0) {
+		backupdisc $disc1arenas
+		quitonfailure $status
+
 		tracks = `{hoc -e $tracks+$#disc1arenas}
 		if (test $tracks -ge $ntracks) {
 			disc=`{hoc -e $disc+1}
@@ -80,7 +89,7 @@ if (test -s disc)
 if not
 	updprog
 
-if (! ~ $debug yes && ~ $set set1) {
+if (! ~ $debug yes && ~ $set set1 && ~ $print yes) {
 	9fs log
 	# don't hang in lp
 	tail -50 /n/$fs/sys/log/fs.archive |

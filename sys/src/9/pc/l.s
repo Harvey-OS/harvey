@@ -17,6 +17,8 @@
 #define HLT		BYTE $0xF4
 #define INVLPG	BYTE $0x0F; BYTE $0x01; BYTE $0x39	/* INVLPG (%ecx) */
 #define WBINVD	BYTE $0x0F; BYTE $0x09
+#define FXSAVE		BYTE $0x0f; BYTE $0xae; BYTE $0x00  /* SSE FP save */
+#define FXRSTOR		BYTE $0x0f; BYTE $0xae; BYTE $0x08  /* SSE FP restore */
 
 /*
  * Macros for calculating offsets within the page directory base
@@ -754,13 +756,8 @@ _aamloop:
  * FNxxx variations) so WAIT instructions must be explicitly placed in the
  * code as necessary.
  */
-#define	FPOFF(l)						 ;\
-	MOVL	CR0, AX 					 ;\
-	ANDL	$0xC, AX			/* EM, TS */	 ;\
-	CMPL	AX, $0x8					 ;\
-	JEQ 	l						 ;\
+#define	FPOFF							 ;\
 	WAIT							 ;\
-l:								 ;\
 	MOVL	CR0, AX						 ;\
 	ANDL	$~0x4, AX			/* EM=0 */	 ;\
 	ORL	$0x28, AX			/* NE=1, TS=1 */ ;\
@@ -772,7 +769,7 @@ l:								 ;\
 	MOVL	AX, CR0
 	
 TEXT fpoff(SB), $0				/* disable */
-	FPOFF(l1)
+	FPOFF
 	RET
 
 TEXT fpinit(SB), $0				/* enable and init */
@@ -787,15 +784,19 @@ TEXT fpinit(SB), $0				/* enable and init */
 	WAIT
 	RET
 
-TEXT fpsave(SB), $0				/* save state and disable */
-	MOVL	p+0(FP), AX
+/* fpx87save(&fpstateptr) */
+TEXT fpx87save(SB), $0				/* save state and disable */
+	MOVL	p+0(FP), AX			/* points to pointer */
+	MOVL	(AX), AX			/* now points to state buffer */
 	FSAVE	0(AX)				/* no WAIT */
-	FPOFF(l2)
+	FPOFF
 	RET
 
-TEXT fprestore(SB), $0				/* enable and restore state */
+/* fpx87restore(&fpstateptr) */
+TEXT fpx87restore(SB), $0			/* enable and restore state */
 	FPON
-	MOVL	p+0(FP), AX
+	MOVL	p+0(FP), AX			/* points to pointer */
+	MOVL	(AX), AX			/* now points to state buffer */
 	FRSTOR	0(AX)
 	WAIT
 	RET
@@ -804,15 +805,34 @@ TEXT fpstatus(SB), $0				/* get floating point status */
 	FSTSW	AX
 	RET
 
+/* fpenv(&fpstateptr) */
 TEXT fpenv(SB), $0				/* save state without waiting */
-	MOVL	p+0(FP), AX
+	MOVL	p+0(FP), AX			/* points to pointer */
+	MOVL	(AX), AX			/* now points to state buffer */
 	FSTENV	0(AX)
 	RET
 
 TEXT fpclear(SB), $0				/* clear pending exceptions */
 	FPON
 	FCLEX					/* no WAIT */
-	FPOFF(l3)
+	FPOFF
+	RET
+
+/* fpssesave(&fpstateptr) */
+TEXT fpssesave(SB), $0				/* save state and disable */
+	MOVL	p+0(FP), AX			/* points to pointer */
+	MOVL	(AX), AX			/* now points to state buffer */
+	FXSAVE					/* no WAIT */
+	FPOFF
+	RET
+
+/* fpsserestore(&fpstateptr) */
+TEXT fpsserestore(SB), $0				/* enable and restore state */
+	FPON
+	MOVL	p+0(FP), AX			/* points to pointer */
+	MOVL	(AX), AX			/* now points to state buffer */
+	FXRSTOR
+	WAIT
 	RET
 
 /*

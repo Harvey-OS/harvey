@@ -4,7 +4,7 @@ backup, tobackup, dumparenas, restore \- backup venti arenas to blu-ray discs or
 .SH SYNOPSIS
 .B backup
 [
-.B -n
+.B -np
 ] [
 .B -d
 .I dev
@@ -69,7 +69,10 @@ run on the default dump set,
 .LR set1 ,
 will also print the last few
 .I fossil
-dump scores.
+dump scores
+unless the
+.B -p
+option is given.
 .PP
 .I Tobackup
 prints the names of all the sealed arenas not yet backed up to a disc

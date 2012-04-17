@@ -466,13 +466,36 @@ static char* mathmsg[] =
 };
 
 static void
+mathstate(ulong *status, ulong *pc, ulong *control)
+{
+	ulong sts, fpc, ctl;
+	FPanystate *f = (FPanystate *)up->fpsave.addr;
+
+	if(fpsave == fpx87save){
+		sts = f->status;
+		fpc = f->pc;
+		ctl = f->control;
+	} else {
+		sts = f->fsw;
+		fpc = f->fpuip;
+		ctl = f->fcw;
+	}
+	if(status)
+		*status = sts;
+	if(pc)
+		*pc = fpc;
+	if(control)
+		*control = ctl;
+}
+
+static void
 mathnote(void)
 {
 	int i;
-	ulong status;
+	ulong status, pc;
 	char *msg, note[ERRMAX];
 
-	status = up->fpsave.status;
+	mathstate(&status, &pc, nil);
 
 	/*
 	 * Some attention should probably be paid here to the
@@ -495,8 +518,27 @@ mathnote(void)
 			msg = "invalid operation";
 	}
 	snprint(note, sizeof note, "sys: fp: %s fppc=0x%lux status=0x%lux",
-		msg, up->fpsave.pc, status);
+		msg, pc, status);
 	postnote(up, 1, note, NDebug);
+}
+
+static void
+fpexit(void)
+{
+	free(up->fpsave.addr);
+	up->fpsave.addr = nil;
+}
+
+static void*
+fpalloc(void)
+{
+	if(up->fpsave.addr == nil) {
+		up->fpsave.addr = fpsave == fpx87save? smalloc(sizeof(FPstate)):
+			mallocalign(sizeof(FPssestate), FPalign, 0, 0);
+		if (up->fpsave.addr)
+			up->fpexit = fpexit;
+	}
+	return up->fpsave.addr;
 }
 
 /*
@@ -505,6 +547,8 @@ mathnote(void)
 static void
 matherror(Ureg *ur, void*)
 {
+	ulong status, pc;
+
 	/*
 	 *  a write cycle to port 0xF0 clears the interrupt latch attached
 	 *  to the error# line from the 387
@@ -512,15 +556,18 @@ matherror(Ureg *ur, void*)
 	if(!(m->cpuiddx & 0x01))
 		outb(0xF0, 0xFF);
 
+	fpalloc();
+
 	/*
 	 *  save floating point state to check out error
 	 */
 	fpenv(&up->fpsave);
 	mathnote();
 
-	if((ur->pc & 0xf0000000) == KZERO)
-		panic("fp: status %ux fppc=0x%lux pc=0x%lux",
-			up->fpsave.status, up->fpsave.pc, ur->pc);
+	if((ur->pc & 0xf0000000) == KZERO){
+		mathstate(&status, &pc, nil);
+		panic("fp: status %#lux fppc=%#lux pc=%#lux", status, pc, ur->pc);
+	}
 }
 
 /*
@@ -529,6 +576,8 @@ matherror(Ureg *ur, void*)
 static void
 mathemu(Ureg *ureg, void*)
 {
+	ulong status, control;
+
 	if(up->fpstate & FPillegal){
 		/* someone did floating point in a note handler */
 		postnote(up, 1, "sys: floating point in note handler", NDebug);
@@ -536,6 +585,7 @@ mathemu(Ureg *ureg, void*)
 	}
 	switch(up->fpstate){
 	case FPinit:
+		fpalloc();
 		fpinit();
 		up->fpstate = FPactive;
 		break;
@@ -547,7 +597,8 @@ mathemu(Ureg *ureg, void*)
 		 * More attention should probably be paid here to the
 		 * exception masks and error summary.
 		 */
-		if((up->fpsave.status & ~up->fpsave.control) & 0x07F){
+		mathstate(&status, nil, &control);
+		if((status & ~control) & 0x07F){
 			mathnote();
 			break;
 		}
@@ -623,7 +674,8 @@ procsave(Proc *p)
 			 * until the process runs again and generates an
 			 * emulation fault to activate the FPU.
 			 */
-			fpsave(&p->fpsave);
+			if(p->fpsave.addr != nil)
+				fpsave(&p->fpsave);
 		}
 		p->fpstate = FPinactive;
 	}
