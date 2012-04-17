@@ -35,5 +35,5 @@ $LIBU:
 	mk clean
 
 devtab.c: usbdb ../lib/usb.h mkdev
-	mkdev >$target
+	./mkdev >$target
 

@@ -37,6 +37,11 @@ enum {
 
 	Qmax = 16,
 };
+
+enum {
+	CR4Osfxsr = 1 << 9,
+};
+
 enum {				/* cpuid standard function codes */
 	Highstdfunc = 0,	/* also returns vendor string */
 	Procsig,
@@ -837,6 +842,15 @@ cpuidentify(void)
 		putcr4(cr4);
 		if(m->cpuiddx & Mce)
 			rdmsr(0x01, &mct);
+	}
+
+	if(m->cpuiddx & Fxsr){			/* have sse fp? */
+		fpsave = fpssesave;
+		fprestore = fpsserestore;
+		putcr4(getcr4() | CR4Osfxsr);
+	} else {
+		fpsave = fpx87save;
+		fprestore = fpx87restore;
 	}
 
 	cputype = t;

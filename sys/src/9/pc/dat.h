@@ -2,7 +2,10 @@ typedef struct BIOS32si	BIOS32si;
 typedef struct BIOS32ci	BIOS32ci;
 typedef struct Conf	Conf;
 typedef struct Confmem	Confmem;
+typedef union FPanystate FPanystate;
 typedef struct FPsave	FPsave;
+typedef struct FPssestate FPssestate;
+typedef struct FPstate	FPstate;
 typedef struct ISAConf	ISAConf;
 typedef struct Label	Label;
 typedef struct Lock	Lock;
@@ -67,7 +70,7 @@ enum
 	FPillegal=	0x100,
 };
 
-struct	FPsave
+struct	FPstate			/* x87 fpu state */
 {
 	ushort	control;
 	ushort	r1;
@@ -82,6 +85,34 @@ struct	FPsave
 	ushort	oselector;
 	ushort	r5;
 	uchar	regs[80];	/* floating point registers */
+};
+
+struct	FPssestate			/* SSE fp state */
+{
+	ushort	fcw;		/* control */
+	ushort	fsw;		/* status */
+	ushort	ftw;		/* tag */
+	ushort	fop;		/* opcode */
+	ulong	fpuip;		/* pc */
+	ushort	cs;		/* pc segment */
+	ushort	r1;		/* reserved */
+	ulong	fpudp;		/* data pointer */
+	ushort	ds;		/* data pointer segment */
+	ushort	r2;
+	ulong	mxcsr;		/* MXCSR register state */
+	ulong	mxcsr_mask;	/* MXCSR mask register */
+	uchar	xregs[480];	/* extended registers */
+};
+
+#define FPalign	16	/* required for FXSAVE */
+
+union FPanystate {
+	FPstate;
+	FPssestate;
+};
+
+struct FPsave {
+	FPanystate *addr;	/* addr of fp state if it is alloced */ 
 };
 
 struct Confmem
@@ -293,6 +324,7 @@ enum {
 //	Pse2	= 1<<17,	/* more page size extensions */
 	Clflush = 1<<19,
 	Mmx	= 1<<23,
+	Fxsr	= 1<<24,	/* have SSE FXSAVE/FXRSTOR */
 	Sse	= 1<<25,	/* thus sfence instr. */
 	Sse2	= 1<<26,	/* thus mfence & lfence instr.s */
 };

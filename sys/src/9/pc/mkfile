@@ -92,10 +92,10 @@ $p%.gz:D:	$p%
 	strip -o /fd/1 9pccd | gzip -9 >9pccd.gz
 
 
-install:V:	$p$CONF $p$CONF.gz
-	cp $p$CONF $p$CONF.gz /$objtype/
+install:V:	$p$CONF
+	cp $p$CONF /$objtype/
 	for(i in $EXTRACOPIES)
-		import $i / /n/$i && cp $p$CONF $p$CONF.gz /n/$i/$objtype/
+		import $i / /n/$i && cp $p$CONF /n/$i/$objtype/
 
 <../boot/bootmkfile
 <../port/portmkfile

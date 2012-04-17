@@ -17,12 +17,19 @@ unmount /mnt/cd >[2]/dev/null
 cdfs -d $1 || exit
 shift
 
+grep next /mnt/cd/ctl
+echo -n 'nwa ok? '
+ok=`{read}
+if (! ~ $ok [Yy]*)
+	exit bad-nwa
+
 cd $fsroot/dev/fs
 for (name) {
 	grep next /mnt/cd/ctl
-	if (! {venti/rdarena arena0 $name |
-	    pump -i 65536 -o 1048576 -k 51200 -d 10 >/mnt/cd/wd/$name})
-		exit
+	venti/rdarena arena0 $name |
+		pump -i 65536 -o 1048576 -k 51200 -d 10 >/mnt/cd/wd/$name
+	quitonfailure $status
+
 #	ls -l /mnt/cd
 	if (test -e '/env/fn#dumpdone' -a -e '/env/set')
 		dumpdone arena0 $name

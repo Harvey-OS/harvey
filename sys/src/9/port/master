@@ -2,6 +2,7 @@
 
 $	pnp
 /	root
+9	p9am
 A	audio
 A	uda1341
 B	bridge
@@ -57,6 +58,7 @@ y	pcmcia
 μ	moipv6
 ⁲	twsi
 ↔	usbcons
+☹	bios
 霞	kasumi
 
 α	local use
