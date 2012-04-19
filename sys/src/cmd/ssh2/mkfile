@@ -1,0 +1,75 @@
+</$objtype/mkfile
+
+TARG=\
+	netssh\
+	rsa2ssh2\
+	ssh\
+	sshsession\
+
+HFILES=\
+	netssh.h\
+	ssh2.h\
+
+CIPHEROFILES=\
+	cipher3des.$O\
+	cipherblowfish.$O\
+	cipherrc4.$O\
+	cipheraes.$O\
+
+FSOFILES=\
+	dh.$O\
+	pubkey.$O\
+	transport.$O\
+
+COMMON=\
+	esmprint.$O\
+	common.$O\
+
+CFILES=`{echo *.c}
+
+BIN=/$objtype/bin
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${FSOFILES:%.$O=%.c}\
+	${CIPHEROFILES:%.$O=%.c}\
+	${TARG:%=%.c}\
+
+</sys/src/cmd/mkmany
+
+${TARG:%=$O.%}: $COMMON
+
+new:V:
+	rm -f /bin/sshsession /bin/aux/sshsession
+	mk install
+
+$O.rsa2ssh2 $O.ssh2key: transport.$O
+
+$O.ssh: dial.$O
+
+$O.netssh: $CIPHEROFILES $FSOFILES dial.thread.$O
+
+$BIN/sshsession:VQ: $BIN/aux/sshsession
+	;
+
+$BIN/aux/sshsession: $O.sshsession
+	cp $O.sshsession $BIN/aux/sshsession
+
+# $BIN/sshswitch:VQ: $BIN/aux/sshswitch
+# 	;
+#
+# $BIN/aux/sshswitch: $O.sshswitch
+# 	cp $O.sshswitch $BIN/aux/sshswitch
+
+analysis:V: magic.out long.funcs
+
+#dup:V: dup.out
+#dup.out dup.sum dup.xpr dup.pro:D: $HFILES $CFILES
+#	dup -t3 -xp *.c >dup.out
+
+magic.out:D: $HFILES $CFILES
+	magic >$target
+
+long.funcs:D: $CFILES
+	funclen *.c | sort -nr | awk '$1 > 24' >$target

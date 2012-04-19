@@ -765,6 +765,7 @@ get1 mach
 get2 mach
 get4 mach
 get8 mach
+geta mach
 leswab mach
 leswal mach
 leswav mach
@@ -777,6 +778,7 @@ put1 mach
 put2 mach
 put4 mach
 put8 mach
+puta mach
 setmap mach
 unusemap mach
 calloc malloc
@@ -1234,11 +1236,13 @@ strspn strcat
 strstr strcat
 strtok strcat
 s_alloc string
+s_allocinstack string
 s_append string
 s_array string
 s_copy string
 s_error string
 s_free string
+s_freeinstack string
 s_getline string
 s_grow string
 s_incref string
@@ -1248,6 +1252,7 @@ s_new string
 s_newalloc string
 s_parse string
 s_putc string
+s_rdinstack string
 s_read string
 s_read_line string
 s_reset string

@@ -1,0 +1,5 @@
+#!/bin/rc
+# print lines containing magic numbers
+g '[^0-9A-Za-z_]([2-9]|[0-9][0-9]+)[^0-9x]' |
+	grep -v '\.h:|#include|fprint\(2,|return (0|1|-1);' |
+	sed 's/:[	 ]+/: /'

@@ -47,6 +47,11 @@ diskparts diskparts
 dmaon diskparts
 disksim disksim
 drawterm drawterm
+asn12dsa dsa
+dsa dsa
+dsa2pub dsa
+dsa2ssh dsa
+dsagen dsa
 fossilcons fossilcons
 exsort fs
 fs fs
@@ -102,6 +107,7 @@ tcp7 listen
 tcp9 listen
 tcp993 listen
 tcp995 listen
+loadfossil loadfossil
 lp lp
 dump9660 mk9660
 mk9660 mk9660

@@ -41,8 +41,6 @@ if(! test -e /srv/dns)
 # auth/keyfs -wp -m /mnt/keys /adm/keys >/dev/null >[2=1]
 # auth/cron >>/sys/log/cron >[2=1] &
 
-# sshtun
-
 # keep other bootes processes from creating capabilities
 rm -f '#¤/caphash'
 
@@ -54,6 +52,8 @@ rm -f '#¤/caphash'
 #	mv /rc/bin/service/il566 /rc/bin/service/_il566
 #	mv /rc/bin/service/tcp567 /rc/bin/service/_tcp567
 # }
+
+# netssh
 
 # start listeners if it hasn't already been done (dicey check)
 if(! netstat -n | grep -s 'tcp.*Listen.* (7|9|21|22|23|25|110|113|565|993|17007|17009|17010) .*')
