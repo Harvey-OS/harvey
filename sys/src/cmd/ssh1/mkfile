@@ -4,7 +4,7 @@ HFILES=ssh.h
 
 TARG=\
 	scp\
-	ssh\
+	ssh1\
 	sshnet\
 	sshserve\
 
@@ -46,7 +46,7 @@ UPDATE=\
 
 </sys/src/cmd/mkmany
 
-$O.ssh: \
+$O.ssh1: \
 	$AUTHOFILES\
 	$CIPHEROFILES\
 	agent.$O\

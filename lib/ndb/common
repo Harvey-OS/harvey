@@ -5,19 +5,28 @@
 #
 # real dns root server ips
 #
-dom=A.ROOT-SERVERS.NET ip=198.41.0.4
-dom=B.ROOT-SERVERS.NET ip=128.9.0.107
-dom=C.ROOT-SERVERS.NET ip=192.33.4.12
-dom=D.ROOT-SERVERS.NET ip=128.8.10.90
-dom=E.ROOT-SERVERS.NET ip=192.203.230.10
-dom=F.ROOT-SERVERS.NET ip=192.5.5.241
-dom=G.ROOT-SERVERS.NET ip=192.112.36.4
-dom=H.ROOT-SERVERS.NET ip=128.63.2.53
-dom=I.ROOT-SERVERS.NET ip=192.36.148.17
-dom=J.ROOT-SERVERS.NET ip=198.41.0.10
-dom=K.ROOT-SERVERS.NET ip=193.0.14.129
-dom=L.ROOT-SERVERS.NET ip=199.7.83.42		# nov 2007
-dom=M.ROOT-SERVERS.NET ip=202.12.27.33
+dom=a.root-servers.net ip=198.41.0.4
+dom=b.root-servers.net ip=128.9.0.107
+dom=c.root-servers.net ip=192.33.4.12
+dom=d.root-servers.net ip=128.8.10.90
+dom=e.root-servers.net ip=192.203.230.10
+dom=f.root-servers.net ip=192.5.5.241
+dom=g.root-servers.net ip=192.112.36.4
+dom=h.root-servers.net ip=128.63.2.53
+dom=i.root-servers.net ip=192.36.148.17
+dom=j.root-servers.net ip=198.41.0.10
+dom=k.root-servers.net ip=193.0.14.129
+dom=l.root-servers.net ip=199.7.83.42		# nov 2007
+dom=m.root-servers.net ip=202.12.27.33
+
+# dom=a.root-servers.net ipv6=2001:503:ba3e::2:30
+# dom=f.root-servers.net ipv6=2001:500:2f::f
+# dom=h.root-servers.net ipv6=2001:500:1::803f:235
+# dom=i.root-servers.net ipv6=2001:7fe::53
+# dom=j.root-servers.net ipv6=2001:503:c27::2:30
+# dom=k.root-servers.net ipv6=2001:7fd::1
+# dom=l.root-servers.net ipv6=2001:500:3::42
+# dom=m.root-servers.net ipv6=2001:dc3::35
 
 dom=a.gtld-servers.net ip=192.5.6.30
 dom=b.gtld-servers.net ip=192.33.14.30
@@ -32,6 +41,9 @@ dom=j.gtld-servers.net ip=192.48.79.30
 dom=k.gtld-servers.net ip=192.52.178.30
 dom=l.gtld-servers.net ip=192.41.162.30
 dom=m.gtld-servers.net ip=192.55.83.30
+
+# dom=a.gtld-servers.net ipv6=2001:503:a83e::2:30
+# dom=b.gtld-servers.net ipv6=2001:503:231d::2:30
 
 #
 # spam defense.  unfortunately, arin doesn't give negative
@@ -183,7 +195,7 @@ tcp=netstat port=15
 tcp=chargen port=19
 tcp=ftp-data port=20
 tcp=ftp port=21
-tcp=ssh port=22
+tcp=ssh port=22		# v2 nowadays
 tcp=telnet port=23
 tcp=smtp port=25
 tcp=time port=37
@@ -261,7 +273,7 @@ tcp=infsigner port=6671
 tcp=infcsigner port=6672
 tcp=inflogin port=6673
 tcp=bandt port=7330
-tcp=face port=32000
+tcp=ccnx port=9695
 tcp=dhashgate port=11978
 tcp=exportfs port=17007
 tcp=rexexec port=17009
@@ -277,14 +289,13 @@ tcp=glenglenda7 port=17026
 tcp=glenglenda8 port=17027
 tcp=glenglenda9 port=17028
 tcp=glenglenda10 port=17029
-tcp=nupasimap port=17030
-tcp=nupasimaps port=17031
 tcp=flyboy port=17032
 tcp=venti port=17034
 tcp=wiki port=17035
 tcp=vica port=17036
 tcp=aan port=17037
-
+tcp=ssh1 port=17122		# v1
+tcp=face port=32000
 
 # testing
 tcp=9fsa port=18008
@@ -314,12 +325,15 @@ udp=sip port=5060
 udp=bandt2 port=7331		# viaducts
 udp=oradius port=1812
 udp=radius port=1812
+udp=ccnx port=9695
 udp=dhash port=11977
 udp=ulctl port=12666
 udp=uldata port=12667
 udp=dldata port=12668
 
 gre=ppp port=34827
+
+ssh=ssh port=22
 
 #
 # authdom declarations need to be visible on the inside network,
@@ -332,7 +346,7 @@ auth=www.9netics.com authdom=9netics.com
 auth=newcpu.9netics.net authdom=9netics.net
 auth=mordor.tip9ug.jp authdom=tip9ug.jp
 
-# for geoff's ipv6 testing
+# for geoff's external ipv6 testing
 auth=9grid.hamnavoe.com
 	authdom=hamnavoe.com
 	authdom=9grid.hamnavoe.com

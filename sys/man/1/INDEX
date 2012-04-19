@@ -7,6 +7,7 @@ intro 0intro
 6a 2a
 7a 2a
 8a 2a
+9a 2a
 ka 2a
 qa 2a
 va 2a
@@ -17,6 +18,7 @@ va 2a
 6c 2c
 7c 2c
 8c 2c
+9c 2c
 kc 2c
 qc 2c
 vc 2c
@@ -27,6 +29,7 @@ vc 2c
 6l 2l
 7l 2l
 8l 2l
+9l 2l
 kl 2l
 ql 2l
 vl 2l
@@ -54,6 +57,7 @@ light bitsyload
 params bitsyload
 pencal bitsyload
 prompter bitsyload
+bsplit bsplit
 bundle bundle
 cal cal
 calendar calendar
@@ -275,10 +279,8 @@ sprog spell
 spin spin
 split split
 src src
-scp ssh
-ssh ssh
-sshnet ssh
-sshserve ssh
+ssh1 ssh1
+ssh2 ssh2
 start stop
 stop stop
 strings strings
@@ -290,6 +292,8 @@ syscall syscall
 tail tail
 dircp tar
 tar tar
+tarcat tarsplit
+tarsplit tarsplit
 tbl tbl
 tcs tcs
 tee tee
@@ -298,6 +302,7 @@ tel tel
 test test
 thesaurus thesaurus
 time time
+tinyurl tinyurl
 touch touch
 tr tr
 trace trace

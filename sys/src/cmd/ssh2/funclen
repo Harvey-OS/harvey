@@ -1,0 +1,39 @@
+#!/bin/rc
+# funclen [file]... - print lengths of C functions in file(s)
+#	assumes the one true brace style (V7 kernel style).
+#	added some slight tolerance for bogus styles.
+exec awk '
+/^(#|\/\/)|;[\t ]*$|\\$|"\)|^[\t ]*\*/	{ next }
+/^((static|void|unsigned|int|u?v?long|double|char|struct[\t ]+[a-z_0-9]+)[\t ]*)*(\*[\t ]*)*[a-zA-Z0-9_µμ]+( +__P)? *\(/ {
+	# function name
+	paren = index($0, "(")
+	prelude = substr($0, 1, paren-1)
+	n = split(prelude, fields)
+	funcname = fields[n]
+}
+/^{/ {						# function or struct start
+	if (funcname == "")
+		next
+	if (start != 0)
+		print "unclosed function " funcname " at " FILENAME ":" FNR \
+			>"/fd/2"
+	start = FNR
+	file = FILENAME
+}
+/^}[^();]*($|\/\*|\/\/)/ && $0 !~ "^}[^*/]*[;={]" {
+	# function end, not struct end
+	if (start == 0 || file != FILENAME || funcname == "")
+		print "unopened function or macro end at " \
+			FILENAME ":" FNR >"/fd/2"
+	else
+		print FNR - start "\t" FILENAME ":" start "," FNR "\t" \
+			funcname "()"
+	start = 0				# function has ended
+	funcname = ""
+}
+END {
+	if (start != 0)
+		print "unclosed function " funcname " at " FILENAME ":" FNR \
+			>"/fd/2"
+}
+' $*

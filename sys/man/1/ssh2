@@ -1,0 +1,322 @@
+.TH SSH2 1
+.SH NAME
+ssh, sshsession, rsa2ssh2 \- encrypted login and copy with foreign systems via SSHv2
+.SH SYNOPSIS
+.B ssh
+[
+.B -adIiKkmrvx
+] [
+.B -l
+.I user
+] [
+.B -n
+.I dir
+] [
+.B -z
+.I attribute=value
+]
+system
+[
+.I cmd
+[
+.I args
+] ]
+.PP
+.B aux/sshsession
+[
+.B -t
+] [
+.B -n
+.I namespace
+] [
+.B -R
+.I dir
+] [
+.B -r
+.I dir
+] [
+.B -s
+.I command
+] [
+.B -S
+.I srvpt
+]
+.PP
+.B rsa2ssh2
+[
+.I file
+]
+.SH DESCRIPTION
+These programs collectively implement communication via SSH v2 over TCP.
+All of the encryption, authentication, and SSH protocol are handled by
+.IR ssh (4).
+.PP
+.I Ssh
+dials a remote
+.I system
+and runs a shell (or some other command) there.
+.L "ssh root@hannibal"
+will result in a command prompt on the machine
+.B hannibal
+logged in as
+.BR root .
+If
+.I ssh
+does not find an SSH server in
+.BR /net ,
+it runs
+.I netssh
+(see
+.IR ssh (4))
+to start one.
+.I Ssh
+dials the remote SSH server and exchanges encryption keys with
+the server using Diffie-Hellman key exchange.
+.PP
+A
+.B clone
+file and
+.B connect
+message protocol
+similar to that of
+.IR ip (3)
+creates a session in the established connection.
+In the course of session creation,
+.I ssh
+first attempts to authenticate the user with the server using
+public key authentication.
+If that fails, it prompts for a password, and attempts to
+authenticate with password authentication.
+It also passes across the value of the environment variable
+.B TERM
+as would be set if
+.I ssh
+is run inside of
+.IR vt (1).
+.LP
+Per
+.IR con (1),
+typing a control-\e will result in a
+.B >>>
+prompt.
+There are currently only four commands that can be issued at that prompt:
+.B c
+to continue the session,
+.B h
+to print a list of the available commands,
+.B r
+to toggle the suppression of carriage returns, and
+.B q
+to close the session.
+.LP
+Options are:
+.TF "-i -
+.TP
+.B -a -v -x
+No-ops included for compatibility with
+.I scp
+(see
+.IR ssh1 (1)).
+.TP
+.B -d
+Increase the amount of debugging output.
+.TP
+.B -i -I
+Sets
+.I ssh
+to interactive
+.RB ( -i )
+or non-interactive
+.RI ( -I )
+mode.
+This determines whether the user is prompted for a password
+if none is found in factotum.
+Without either of these options,
+.I ssh
+uses interactive mode if run in a term window.
+.TP
+.B -k
+Skip the attempt to authenticate using public key authentication.
+.TP
+.B -K
+Don't fall back to password authentication.
+If the public key authentication fails,
+.I ssh
+will exit.
+.TP
+.B -l
+Use
+.I user
+name on the remote system
+(deprecated).
+.TP
+.B -m
+Remove the special meaning of control-\e.
+This is needed by
+.I scp
+to prevent that character in files being copied from triggering the
+special command mode.
+.TP
+.B -n
+Specify the network directory of an alternate network to use.
+The default is
+.BR /net .
+.TP
+.B -r
+Strip carriage return characters coming from the remote system.
+This will normally be desired when running in a
+.IR rio (1)
+window or from within
+.IR win (1)
+in
+.IR acme (1).
+It is normally not used when running
+.I ssh
+from within
+.IR vt (1).
+.TP
+.B -z
+Used to specify which of several possible keys to use.
+.PD
+.
+.SS "Server-side Daemon"
+.I Sshsession
+implements the server side of an SSH connection
+and is suitable for running by
+.IR listen (8)
+or
+.IR listen1 ;
+it is not normally run directly by the user.
+Like
+.IR ssh ,
+it does all of its SSH communication through
+.IR ssh (4).
+.I Sshsession
+starts a shell or a requested command when a remote
+system authenticates and requests a new connection and session.
+.LP
+A system-wide SSH listener can be run by creating a file
+.BR /rc/bin/service.auth/ssh22
+that invokes
+.IR sshsession :
+.IP
+.EX
+#!/bin/rc
+# ssh22
+exec aux/sshsession $3 >>/sys/log/sshdebug >[2=1]
+.EE
+.LP
+.ne 3
+then ensuring that
+.B /rc/bin/cpurc
+contains
+.IP
+.EX
+netssh -s ssh
+aux/listen -t /rc/bin/service.auth -d /rc/bin/service ssh
+.EE
+.LP
+When invoked with no options,
+.I sshsession
+runs as an SSH server.
+Options are:
+.TF -S
+.TP
+.B -n
+Use a
+.I namespace
+other than the default
+.B /lib/namespace
+when starting the shell or running the requested command.
+.TP
+.B -r
+Run the SSH session in
+.IR dir .
+.TP
+.B -R
+Like
+.B -r
+but also prevent any arguments, in the command to be executed,
+from accessing files outside this directory;
+primarily used to limit what
+.I scp
+can access.
+.TP
+.B -s
+Execute
+.I command
+instead of
+.BR /bin/rc .
+.TP
+.B -S
+Create
+.BI /srv/ srvpt
+if an SSH server is not already mounted in
+.BR /net .
+.TP
+.B -t
+Trust
+.I sshsession
+and run it in the same namespace as the
+.I listen
+that started it.
+.PD
+.LP
+A private SSH listener can be run by starting
+.I netssh
+(see
+.IR ssh (4))
+then running
+.IR listen1 :
+.IP
+.EX
+if (! test -e /net/ssh) netssh -s ssh
+aux/listen1 -t 'ssh!*!2222' aux/sshsession
+.EE
+.
+.SS Keys
+.I Rsa2ssh2
+converts an RSA key to one suitable for use with SSH v2 on Unix systems.
+The following command will extract the public part of the key and add it to the
+.B authorized_keys
+file on a remote Unix system:
+.IP
+.EX
+grep 'proto=rsa' /mnt/factotum/ctl | rsa2ssh2 |
+	ssh2 user@unix 'cat >>.ssh/authorized_keys'
+.EE
+.SH FILES
+.TF /sys/lib/ssh/keyring
+.TP
+.B /sys/lib/ssh/keyring
+System-wide known host public keys.
+.TP
+.B $home/lib/keyring
+Per-user known host public keys.
+.TP
+.B /env/nosshkeyverify
+.SH SOURCE
+.B /sys/src/cmd/ssh2
+.SH "SEE ALSO"
+.IR con (1),
+.IR cpu (1),
+.IR secstore (1),
+.IR ssh1 (1),
+.IR vt (1),
+.IR factotum (4),
+.IR ssh (4),
+.IR listen (8),
+.br
+RFCs 4250, 4251, 4252, 4253, 4254, and 4419
+.SH BUGS
+.I Sshsession
+shouldn't have to run as the host owner and using
+.IR factotum (4)
+correctly would permit this.
+.PP
+The SSH v2 protocol is a classic second system:
+over-engineered,
+overly complicated,
+misdesigned
+and
+jammed full of pointless goodies.
