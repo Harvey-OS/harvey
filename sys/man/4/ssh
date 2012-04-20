@@ -374,7 +374,7 @@ Creating a key and putting it in
 can be done by:
 .IP
 .EX
-rsagen >key; read -m key >/mnt/factotum/ctl
+auth/rsagen >key; read -m key >/mnt/factotum/ctl
 .EE
 .LP
 The key file will normally be loaded when
@@ -384,11 +384,9 @@ is started, either by way of
 or directly in the user's
 .BR lib/profile .
 See
-.IR ssh (4)
+.IR ssh2 (1)
 for
-.I rsa2ssh2
-(see
-.IR ssh2 (1)).
+.IR rsa2ssh2 .
 .LP
 The command
 .IP

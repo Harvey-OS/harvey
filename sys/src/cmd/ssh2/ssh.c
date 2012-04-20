@@ -114,6 +114,27 @@ parseargs(void)
 }
 
 static void
+catcher(void *, char *s)
+{
+	if (strstr(s, "alarm") != nil)
+		noted(NCONT);
+	else
+		noted(NDFLT);
+}
+
+static int
+timedmount(int fd, int afd, char *mntpt, int flag, char *aname)
+{
+	int oalarm, ret;
+
+	notify(catcher);
+	oalarm = alarm(5*1000);		/* don't get stuck here */
+	ret = mount(fd, afd, mntpt, flag, aname);
+	alarm(oalarm);
+	return ret;
+}
+
+static void
 mounttunnel(char *srv)
 {
 	int fd;
@@ -124,8 +145,10 @@ mounttunnel(char *srv)
 	if (fd < 0) {
 		if (debug)
 			fprint(2, "%s: can't open %s: %r\n", argv0, srv);
-	} else if (mount(fd, -1, "/net", MBEFORE, "") < 0)
-		sysfatal("can't mount in /net: %r");
+	} else if (timedmount(fd, -1, netdir, MBEFORE, "") < 0) {
+		fprint(2, "can't mount %s on %s: %r\n", srv, netdir);
+		close(fd);
+	}
 }
 
 static void
@@ -423,7 +446,7 @@ static void
 remotecmd(int argc, char *argv[], int conn, int chan, char *buf, int size)
 {
 	int i;
-	char *path, *q;
+	char *path, *q, *ep;
 
 	path = esmprint("%s/ssh/%d/%d/request", netdir, conn, chan);
 	reqfd = open(path, OWRITE);
@@ -435,17 +458,17 @@ remotecmd(int argc, char *argv[], int conn, int chan, char *buf, int size)
 		else
 			fprint(reqfd, "shell %s", buf);
 	else {
-		q = buf;
 		assert(size >= Bigbufsz);
+		ep = buf + Bigbufsz;
+		q = seprint(buf, ep, "exec");
 		for (i = 0; i < argc; ++i)
-			q = seprint(q, buf + Bigbufsz, " %s", argv[i]);
-		if (q < buf + Bigbufsz)
-			fprint(reqfd, "exec%s", buf);
-		else {
+			q = seprint(q, ep, " %q", argv[i]);
+		if (q >= ep) {
 			fprint(2, "%s: command too long\n", argv0);
 			fprint(reqfd, "close");
 			bail("cmd too long");
 		}
+		write(reqfd, buf, q - buf);
 	}
 }
 
@@ -460,20 +483,31 @@ main(int argc, char *argv[])
 		notefd = keyfd = -1;
 	whichkey = nil;
 	ARGBEGIN {
-	case 'a':
-	case 'v':
-	case 'x':
+	case 'A':			/* auth protos */
+	case 'c':			/* ciphers */
+		fprint(2, "%s: sorry, -%c is not supported\n", argv0, ARGC());
+		break;
+	case 'a':			/* compat? */
+	case 'C':			/* cooked mode */
+	case 'f':			/* agent forwarding */
+	case 'p':			/* force pty */
+	case 'P':			/* force no pty */
+	case 'R':			/* force raw mode on pty */
+	case 'v':			/* scp compat */
+	case 'w':			/* send window-size changes */
+	case 'x':			/* unix compat: no x11 forwarding */
 		break;
 	case 'd':
 		debug++;
 		break;
-	case 'I':
+	case 'I':			/* non-interactive */
 		iflag = 0;
 		break;
-	case 'i':		/* Used by scp */
+	case 'i':			/* interactive: scp & rx do it */
 		iflag = 1;
 		break;
 	case 'l':
+	case 'u':
 		user = EARGF(usage());
 		break;
 	case 'k':
@@ -518,7 +552,7 @@ main(int argc, char *argv[])
 	if ((n = rfork(RFPROC|RFMEM|RFFDG|RFNOWAIT)) == 0)
 		keyproc(buf, sizeof buf);
 	chpid = n;
-	atnotify(handler,1);
+	atnotify(handler, 1);
 
 	/* connect and learn connection number */
 	conn = connect(buf, sizeof buf);
