@@ -210,6 +210,7 @@ threadmain(int argc, char *argv[])
 	if (rfork(RFNOTEG) < 0)
 		fprint(2, "%s: rfork(NOTEG) failed: %r\n", argv0);
 	server(mntpt, srvpt);
+	threadexits(nil);
 }
 
 int
@@ -282,7 +283,11 @@ server(char *mntpt, char *srvpt)
 	ctlfile = createfile(rootfile, "ctl", uid, 0666, (void*)Qctl);
 	keysfile = createfile(rootfile, "keys", uid, 0600, (void *)Qreqrem);
 
-	threadpostmountsrv(&netsshsrv, srvpt, mntpt, MAFTER);
+	/*
+	 * needs to be MBEFORE in case there are previous, now defunct,
+	 * netssh processes mounted in mntpt.
+	 */
+	threadpostmountsrv(&netsshsrv, srvpt, mntpt, MBEFORE);
 
 	p = esmprint("%s/cs", mntpt);
 	fd = open(p, OWRITE);

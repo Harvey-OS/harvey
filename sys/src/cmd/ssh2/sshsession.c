@@ -110,7 +110,7 @@ mounttunnel(int ctlfd)
 		hangup(ctlfd);
 		exits("open");
 	}
-	if (mount(fd, -1, "/net", MBEFORE, "") < 0) {
+	if (mount(fd, -1, netdir, MBEFORE, "") < 0) {
 		syslog(0, "ssh", "can't mount in /net: %r");
 		hangup(ctlfd);
 		exits("can't mount");
