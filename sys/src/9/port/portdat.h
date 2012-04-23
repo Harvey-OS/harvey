@@ -707,7 +707,6 @@ struct Proc
 	void	*kparg;
 
 	FPsave	fpsave;		/* address of this is known by db */
-	void	(*fpexit)(void); /* if non-nil, called by pexit */
 	int	scallnr;	/* sys call number - known by db */
 	Sargs	s;		/* address of this is known by db */
 	int	nerrlab;
