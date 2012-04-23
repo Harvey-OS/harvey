@@ -20,6 +20,7 @@
 #define	PGROUND(s)	ROUND(s, BY2PG)
 #define CACHELINESZ	32			/* pentium & later */
 #define	BLOCKALIGN	8
+#define FPalign		16			/* required for FXSAVE */
 
 /*
  * In 32-bit mode, the MAXMACH limit is 32 without

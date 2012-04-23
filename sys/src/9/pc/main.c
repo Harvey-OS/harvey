@@ -466,10 +466,10 @@ static char* mathmsg[] =
 };
 
 static void
-mathstate(ulong *status, ulong *pc, ulong *control)
+mathstate(ulong *stsp, ulong *pcp, ulong *ctlp)
 {
 	ulong sts, fpc, ctl;
-	FPanystate *f = (FPanystate *)up->fpsave.addr;
+	FPsave *f = &up->fpsave;
 
 	if(fpsave == fpx87save){
 		sts = f->status;
@@ -480,12 +480,12 @@ mathstate(ulong *status, ulong *pc, ulong *control)
 		fpc = f->fpuip;
 		ctl = f->fcw;
 	}
-	if(status)
-		*status = sts;
-	if(pc)
-		*pc = fpc;
-	if(control)
-		*control = ctl;
+	if(stsp)
+		*stsp = sts;
+	if(pcp)
+		*pcp = fpc;
+	if(ctlp)
+		*ctlp = ctl;
 }
 
 static void
@@ -517,28 +517,36 @@ mathnote(void)
 		}else
 			msg = "invalid operation";
 	}
-	snprint(note, sizeof note, "sys: fp: %s fppc=0x%lux status=0x%lux",
+	snprint(note, sizeof note, "sys: fp: %s fppc=%#lux status=%#lux",
 		msg, pc, status);
 	postnote(up, 1, note, NDebug);
 }
 
-static void
-fpexit(void)
+static int
+fpstatesize(void)
 {
-	free(up->fpsave.addr);
-	up->fpsave.addr = nil;
+	return fpsave == fpx87save? sizeof(FPstate): sizeof(FPssestate);
 }
 
-static void*
-fpalloc(void)
+void
+fpssesave(FPsave *fps)
 {
-	if(up->fpsave.addr == nil) {
-		up->fpsave.addr = fpsave == fpx87save? smalloc(sizeof(FPstate)):
-			mallocalign(sizeof(FPssestate), FPalign, 0, 0);
-		if (up->fpsave.addr)
-			up->fpexit = fpexit;
-	}
-	return up->fpsave.addr;
+	void *afps;
+
+	afps = (void *)ROUND(((uintptr)fps), FPalign);
+	fpssesave0(afps);
+	memmove(fps, afps, sizeof(FPssestate) - FPalign);
+}
+
+void
+fpsserestore(FPsave *fps)
+{
+	void *afps;
+
+	afps = (void *)ROUND(((uintptr)fps), FPalign);
+	memmove(afps, fps, sizeof(FPssestate) - FPalign);
+	fpsserestore0(afps);
+	memmove(fps, afps, sizeof(FPssestate) - FPalign);
 }
 
 /*
@@ -555,8 +563,6 @@ matherror(Ureg *ur, void*)
 	 */
 	if(!(m->cpuiddx & 0x01))
 		outb(0xF0, 0xFF);
-
-	fpalloc();
 
 	/*
 	 *  save floating point state to check out error
@@ -585,7 +591,6 @@ mathemu(Ureg *ureg, void*)
 	}
 	switch(up->fpstate){
 	case FPinit:
-		fpalloc();
 		fpinit();
 		up->fpstate = FPactive;
 		break;
@@ -606,7 +611,7 @@ mathemu(Ureg *ureg, void*)
 		up->fpstate = FPactive;
 		break;
 	case FPactive:
-		panic("math emu pid %ld %s pc 0x%lux", 
+		panic("math emu pid %ld %s pc %#lux",
 			up->pid, up->text, ureg->pc);
 		break;
 	}
@@ -674,8 +679,7 @@ procsave(Proc *p)
 			 * until the process runs again and generates an
 			 * emulation fault to activate the FPU.
 			 */
-			if(p->fpsave.addr != nil)
-				fpsave(&p->fpsave);
+			fpsave(&p->fpsave);
 		}
 		p->fpstate = FPinactive;
 	}
