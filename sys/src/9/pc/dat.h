@@ -254,6 +254,7 @@ struct Mach
 	uvlong	tscticks;
 	int	pdballoc;
 	int	pdbfree;
+	FPsave	*fpsavalign;
 
 	vlong	mtrrcap;
 	vlong	mtrrdef;

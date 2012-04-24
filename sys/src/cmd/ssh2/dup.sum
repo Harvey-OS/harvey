@@ -2,12 +2,12 @@
 Summary:
 Reporting parameterized matches of at least 3 lines.
 15 files
-7203 lines in original code,
-6239 lines after pruning white space and comments.
+7206 lines in original code,
+6242 lines after pruning white space and comments.
 
-2223 lines were involved in 621 matches
+2244 lines were involved in 621 matches
 These constitute 36 percent of the ncsl.
-Approximately 1400 lines are redundant,or 22 percent of the ncsl.
+Approximately 1408 lines are redundant,or 23 percent of the ncsl.
 
 match length: number of matches of that length
 	   3: 269
@@ -15,11 +15,11 @@ match length: number of matches of that length
 	   5:  36
 	   6:  47
 	   7:  22
-	   8:  13
+	   8:  14
 	   9:  13
 	  10:   6
 	  11:   5
-	  12:   3
+	  12:   2
 	  14:   4
 	  15:   1
 	  16:   4
