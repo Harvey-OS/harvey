@@ -531,3 +531,6 @@ overly complicated,
 misdesigned
 and
 jammed full of pointless goodies.
+.PP
+Host key verification is broken, so it's disabled temporarily
+until it's fixed.
