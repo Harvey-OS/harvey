@@ -80,10 +80,12 @@ for(i in $f) @ {
 }
 
 # flush the last bit of possible fossil traffic
-echo -n venti...
-venti/sync -h localhost >[2]/dev/null &
-venti/sync  >[2]/dev/null &
-sleep 5
+if (ls /srv | grep -s fossil) {
+	echo -n venti...
+	venti/sync -h localhost >[2]/dev/null &
+	venti/sync  >[2]/dev/null &
+	sleep 5
+}
 
 for (i in $k){
 	echo -n $i... 
@@ -108,6 +110,7 @@ bind /tmp /bin
 # put this in a shell function so this rc script doesn't get read
 # when it's no longer accessible
 fn x {
+	rfork s
 	echo
 	echo -n halting...
 	for(i in $f) @ {
