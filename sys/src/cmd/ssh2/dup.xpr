@@ -18,9 +18,9 @@ percent of file involved, #lines in file involved; file2,filename2
       28, 11; 3,cipherrc4.c:
       28, 11; 3,cipherrc4.c:
 
-19, 150, 60; 5,5
-      30, 240; 5,dh.c:
-      30, 240; 5,dh.c:
+18, 150, 60; 5,5
+      29, 240; 5,dh.c:
+      29, 240; 5,dh.c:
 
 7, 28, 9; 6,6
       13, 56; 6,dial.c:
@@ -30,9 +30,9 @@ percent of file involved, #lines in file involved; file2,filename2
       8, 34; 7,dial.thread.c:
       8, 34; 7,dial.thread.c:
 
-22, 639, 316; 9,9
-      34, 992; 9,netssh.c:
-      34, 992; 9,netssh.c:
+22, 646, 316; 9,9
+      35, 1000; 9,netssh.c:
+      35, 1000; 9,netssh.c:
 
 5, 10, 3; 10,10
       10, 20; 10,pubkey.c:

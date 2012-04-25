@@ -599,11 +599,6 @@ doauth(int cfd1, char *whichkey)
 	}
 	if (nopw)
 		return -1;
-	/*
-	up = auth_getuserpasswd(iflag? auth_getkey: nil,
-		"proto=pass service=ssh server=%q user=%q !password?",
-		remote, user);
-	 */
 	up = auth_getuserpasswd(iflag? auth_getkey: nil,
 		"proto=pass service=ssh server=%q user=%q", remote, user);
 	if (up == nil) {
@@ -613,6 +608,7 @@ doauth(int cfd1, char *whichkey)
 	n = fprint(cfd1, "ssh-userauth k %s %s", user, up->passwd);
 	if (n >= 0)
 		return 0;
+
 	path[0] = '\0';
 	fd2path(cfd1, path, sizeof path);
 	fprint(2, "%s: auth ctl msg `ssh-userauth k %s <password>' for %s: %r\n",
