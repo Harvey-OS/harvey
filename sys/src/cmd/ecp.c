@@ -176,8 +176,10 @@ static int
 bio(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects, int mustseek)
 {
 	int xfered;
+	char *tail;
 	ulong toread, bytes = sects * sectsz;
 	static int reblocked = 0;
+	static char magic[] = "\235any old ☺ rubbish\173";
 
 	if (mustseek) {
 		if (!fp->seekable)
@@ -188,10 +190,22 @@ bio(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects, int mustseek)
 	if ((long)blocksize != blocksize || (long)bytes != bytes)
 		sysfatal("i/o count too big: %lud", bytes);
 
+	SET(tail);
+	if (rdwr == read) {
+		strcpy(buff, magic);
+		tail = buff + bytes - sizeof magic;
+		strcpy(tail, magic);
+	}
 	werrstr("");
 	xfered = (*rdwr)(fp->fd, buff, bytes);
-	if (xfered == bytes)
+	if (xfered == bytes) {
+		/* don't trust the hardware; it may lie */
+		if (rdwr == read &&
+		    (strcmp(buff, magic) == 0 || strcmp(tail, magic) == 0))
+			fprint(2, "%s: `good' read didn't change buffer\n",
+				argv0);
 		return Enone;			/* did as we asked */
+	}
 	if (xfered < 0)
 		return Eio;			/* out-and-out i/o error */
 	/*

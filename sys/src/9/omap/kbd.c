@@ -1,5 +1,5 @@
 /*
- * simulated keyboard input for omap35 with no keyboard (except via uart or usb)
+ * simulated keyboard input for systems with none (except via uart or usb)
  *
  * gutted version of ps2 version from ../pc
  */

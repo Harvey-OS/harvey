@@ -10,10 +10,6 @@
 #include	"reboot.h"
 #include	"mp.h"
 
-enum {
-	Less_power_slower = 1,
-};
-
 Mach *m;
 
 /*
@@ -35,6 +31,7 @@ char *confval[MAXCONF];
 int nconf;
 uchar *sp;	/* user stack of init proc */
 int delaylink;
+int always_idle;
 
 static void
 options(void)
@@ -81,90 +78,52 @@ extern void (*i8237alloc)(void);
 void
 main(void)
 {
-cgapost(0);
 	mach0init();
-cgapost(1);
 	options();
-cgapost(2);
 	ioinit();
-cgapost(3);
 	i8250console();
-cgapost(4);
 	quotefmtinstall();
-cgapost(5);
 	screeninit();
 
 	print("\nPlan 9\n");
 
-cgapost(6);
 	trapinit0();
-cgapost(7);
 	mmuinit0();
 
-cgapost(0x10);
 	kbdinit();
-cgapost(0x11);
 	i8253init();
-cgapost(0x12);
 	cpuidentify();
-cgapost(0x13);
 	meminit();
-cgapost(0x14);
 	confinit();
-cgapost(0x15);
 	archinit();
-cgapost(0x16);
 	xinit();
-cgapost(0x17);
 	if(i8237alloc != nil)
 		i8237alloc();
-cgapost(0x18);
 	trapinit();
-cgapost(0x19);
 	printinit();
-cgapost(0x1a);
 	cpuidprint();
-cgapost(0x1b);
 	mmuinit();
-cgapost(0x1c);
 	if(arch->intrinit)	/* launches other processors on an mp */
 		arch->intrinit();
-cgapost(0x1d);
 	timersinit();
-cgapost(0x1e);
 	mathinit();
-cgapost(0x1f);
 	kbdenable();
-cgapost(0x20);
 	if(arch->clockenable)
 		arch->clockenable();
-cgapost(0x21);
 	procinit0();
-cgapost(0x22);
 	initseg();
 	if(delaylink){
-cgapost(0x23);
 		bootlinks();
-cgapost(0x24);
 		pcimatch(0, 0, 0);
 	}else
-{
-cgapost(0x25);
 		links();
-}
-cgapost(0x26);
 	conf.monitor = 1;
 	chandevreset();
-cgapost(0x60);
 	pageinit();
-cgapost(0x61);
 	i8253link();
-cgapost(0x62);
 	swapinit();
-cgapost(0x63);
 	userinit();
 	active.thunderbirdsarego = 1;
-cgapost(0x99);
 	schedinit();
 }
 
@@ -215,14 +174,12 @@ init0(void)
 
 	up->nerrlab = 0;
 
-cgapost(0x70);
 	spllo();
 
 	/*
 	 * These are o.k. because rootinit is null.
 	 * Then early kproc's will have a root and dot.
 	 */
-cgapost(0x71);
 	up->slash = namec("#/", Atodir, 0, 0);
 	pathclose(up->slash->path);
 	up->slash->path = newpath("/");
@@ -231,7 +188,6 @@ cgapost(0x71);
 	chandevinit();
 
 	if(!waserror()){
-cgapost(0x72);
 		snprint(buf, sizeof(buf), "%s %s", arch->id, conffile);
 		ksetenv("terminal", buf, 0);
 		ksetenv("cputype", "386", 0);
@@ -246,9 +202,7 @@ cgapost(0x72);
 		}
 		poperror();
 	}
-cgapost(0x73);
 	kproc("alarm", alarmkproc, 0);
-cgapost(0x9);
 	touser(sp);
 }
 
@@ -966,13 +920,13 @@ idlehands(void)
 	/*
 	 * we used to halt only on single-core setups. halting in an smp system 
 	 * can result in a startup latency for processes that become ready.
-	 * if less_power_slower is true, we care more about saving energy
+	 * if always_idle is zero, we care more about saving energy
 	 * than reducing this latency.
 	 *
-	 * the performance loss of less_power_slower seems to be minute
+	 * the performance loss with always_idle == 0 seems to be slight
 	 * and it reduces lock contention (thus system time and real time)
 	 * on many-core systems with large values of NPROC.
 	 */
-	if(conf.nmach == 1 || Less_power_slower)
+	if(conf.nmach == 1 || always_idle == 0)
 		halt();
 }
