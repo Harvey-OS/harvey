@@ -101,21 +101,21 @@ Mach mpower64 =
 {
 	"power64",
 	MPOWER64,		/* machine type */
-	power64reglist,	/* register set */
-	REGSIZE,	/* number of bytes in register set */
-	FPREGSIZE,	/* number of bytes in FP register set */
-	"PC",		/* name of PC */
-	"SP",		/* name of SP */
-	"LR",		/* name of link register */
-	"setSB",	/* static base register name */
-	0,		/* value */
-	0x1000,		/* page size */
-	0x80000000ULL,	/* kernel base */
-	0,		/* kernel text mask */
-	0x7FFFFFFFULL,	/* user stack top */
-	4,		/* quantization of pc */
-	8,		/* szaddr */
-	8,		/* szreg */
-	4,		/* szfloat */
-	8,		/* szdouble */
+	power64reglist,		/* register set */
+	REGSIZE,		/* number of bytes in register set */
+	FPREGSIZE,		/* number of bytes in FP register set */
+	"PC",			/* name of PC */
+	"SP",			/* name of SP */
+	"LR",			/* name of link register */
+	"setSB",		/* static base register name */
+	0,			/* value */
+	0x100000,		/* page size (TODO, too many choices) */
+	0xffffffff80000000ull,	/* kernel base (TODO, likely incorrect) */
+	0xf000000000000000ull,	/* kernel text mask (TODO, likely incorrect) */
+	0x00007ffffff00000ull,	/* user stack top (TODO, likely incorrect) */
+	4,			/* quantization of pc */
+	8,			/* szaddr */
+	8,			/* szreg */
+	4,			/* szfloat */
+	8,			/* szdouble */
 };

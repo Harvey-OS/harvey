@@ -31,7 +31,7 @@ char *confval[MAXCONF];
 int nconf;
 uchar *sp;	/* user stack of init proc */
 int delaylink;
-int always_idle;
+int idle_spin, idle_if_nproc;
 
 static void
 options(void)
@@ -78,11 +78,17 @@ extern void (*i8237alloc)(void);
 void
 main(void)
 {
+	cgapost(0);
 	mach0init();
+cgapost(1);
 	options();
+cgapost(2);
 	ioinit();
+cgapost(3);
 	i8250console();
+cgapost(4);
 	quotefmtinstall();
+cgapost(5);
 	screeninit();
 
 	print("\nPlan 9\n");
@@ -119,11 +125,15 @@ main(void)
 		links();
 	conf.monitor = 1;
 	chandevreset();
+	cgapost(0xcd);
+
 	pageinit();
 	i8253link();
 	swapinit();
 	userinit();
 	active.thunderbirdsarego = 1;
+
+	cgapost(0x99);
 	schedinit();
 }
 
@@ -174,12 +184,14 @@ init0(void)
 
 	up->nerrlab = 0;
 
+cgapost(0x70);
 	spllo();
 
 	/*
 	 * These are o.k. because rootinit is null.
 	 * Then early kproc's will have a root and dot.
 	 */
+cgapost(0x71);
 	up->slash = namec("#/", Atodir, 0, 0);
 	pathclose(up->slash->path);
 	up->slash->path = newpath("/");
@@ -188,6 +200,7 @@ init0(void)
 	chandevinit();
 
 	if(!waserror()){
+cgapost(0x72);
 		snprint(buf, sizeof(buf), "%s %s", arch->id, conffile);
 		ksetenv("terminal", buf, 0);
 		ksetenv("cputype", "386", 0);
@@ -202,7 +215,9 @@ init0(void)
 		}
 		poperror();
 	}
+cgapost(0x73);
 	kproc("alarm", alarmkproc, 0);
+	cgapost(0x9);
 	touser(sp);
 }
 
@@ -920,13 +935,14 @@ idlehands(void)
 	/*
 	 * we used to halt only on single-core setups. halting in an smp system 
 	 * can result in a startup latency for processes that become ready.
-	 * if always_idle is zero, we care more about saving energy
+	 * if idle_spin is zero, we care more about saving energy
 	 * than reducing this latency.
 	 *
-	 * the performance loss with always_idle == 0 seems to be slight
+	 * the performance loss with idle_spin == 0 seems to be slight
 	 * and it reduces lock contention (thus system time and real time)
 	 * on many-core systems with large values of NPROC.
 	 */
-	if(conf.nmach == 1 || always_idle == 0)
+	if(conf.nmach == 1 || idle_spin == 0 ||
+	    idle_if_nproc && conf.nmach >= idle_if_nproc)
 		halt();
 }
