@@ -102,15 +102,17 @@ syminit(int fd, Fhdr *fp)
 	Bseek(&b, fp->symoff, 0);
 	nsym = 0;
 	size = 0;
+	if((fp->_magic && (fp->magic & HDR_MAGIC)) || mach->szaddr == 8)
+		svalsz = 8;
+	else
+		svalsz = 4;
 	for(p = symbols; size < fp->symsz; p++, nsym++) {
-		if(fp->_magic && (fp->magic & HDR_MAGIC)){
-			svalsz = 8;
+		if(svalsz == 8){
 			if(Bread(&b, &vl, 8) != 8)
 				return symerrmsg(8, "symbol");
 			p->value = beswav(vl);
 		}
 		else{
-			svalsz = 4;
 			if(Bread(&b, &l, 4) != 4)
 				return symerrmsg(4, "symbol");
 			p->value = (u32int)beswal(l);

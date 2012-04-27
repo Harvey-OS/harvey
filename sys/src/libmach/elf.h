@@ -47,6 +47,17 @@ typedef struct {
 } Phdr;
 
 typedef struct {
+	u32int	type;		/* entry type */
+	u32int	flags;		/* entry flags */
+	u64int	offset;		/* file offset */
+	u64int	vaddr;		/* virtual address */
+	u64int	paddr;		/* physical address */
+	u64int	filesz;		/* file size */
+	u64int	memsz;		/* memory size */
+	u64int	align;		/* memory/file alignment */
+} P64hdr;
+
+typedef struct {
 	ulong	name;		/* section name */
 	ulong	type;		/* SHT_... */
 	ulong	flags;		/* SHF_... */
@@ -58,6 +69,19 @@ typedef struct {
 	ulong	addralign;	/* memory alignment */
 	ulong	entsize;	/* entry size if table */
 } Shdr;
+
+typedef struct {
+	u32int	name;		/* section name */
+	u32int	type;		/* SHT_... */
+	u64int	flags;		/* SHF_... */
+	u64int	addr;		/* virtual address */
+	u64int	offset;		/* file offset */
+	u64int	size;		/* section size */
+	u32int	link;		/* misc info */
+	u32int	info;		/* misc info */
+	u64int	addralign;	/* memory alignment */
+	u64int	entsize;	/* entry size if table */
+} S64hdr;
 
 enum {
 	/* Ehdr codes */
