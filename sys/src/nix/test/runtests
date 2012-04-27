@@ -1,0 +1,37 @@
+#!/bin/rc
+
+echo tests...
+cd /sys/src/nix/test
+. tools
+failed=()
+tests=[0-9]*
+if(test -e k[0-9]*)
+	tests=($tests k[0-9]*)
+for(t in $tests){
+	cd $t || fail cannot cd into test $t
+	if(test -e FAIL)
+		failed=($failed $t)
+	if not{
+		if(! test -e output && ! test -e FAIL) {
+			echo running test $t
+			if(test -x kern && ! test -e koutput){
+				log running kern for test $t
+				if(! kern >koutput >[2=1]){
+					touch FAIL
+					fail test $t failed
+				}
+				reboot
+			}
+			if(! runtest>output >[2=1]){
+				touch FAIL
+				fail test $t failed
+			}
+			echo test $t ok
+		}
+	}
+	cd ..
+}
+if(! ~ $#failed 0)
+	echo tests $failed failed
+if not
+	echo all tests passed

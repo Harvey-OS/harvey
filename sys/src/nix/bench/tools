@@ -1,0 +1,37 @@
+fn fail  {
+	echo $* >[1=2]
+	exit fail
+}
+
+fn log {
+	echo $*
+	echo $* >/dev/cons
+}
+
+
+fn repeatforallnumcores {
+	test -e kern || fail no kernel bench
+	test -e 003048ff2106 || fail no pxe file
+	test -e koutput || fail no koutput
+	test -e output || fail no output
+
+	NC=`{grep '^bootfile' 003048ff2106 | awk '{print $NF}'}
+	if(~ $NC 32){
+		cp output output.32
+		cp KMESG KMESG.32
+		exit ''
+	}
+	@{
+		NNC=`{echo $NC + 1|hoc}
+		mv 003048ff2106 003048ff2106_
+		sed 's/-ck .*/-ck '^$NNC^' '^$NNC^'/' < 003048ff2106_ >003048ff2106
+		
+		mv output output.$NC
+		mv KMESG KMESG.$NC
+		cp 003048ff2106 /cfg/pxe
+#		mv koutput koutput.$NC
+		echo reboot to run `{pwd} with $NNC cores...
+		reboot
+	@} >'#c/cons' >[2]'#c/cons'
+	status=''
+}

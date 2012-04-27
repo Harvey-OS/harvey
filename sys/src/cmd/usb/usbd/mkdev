@@ -1,0 +1,115 @@
+#!/bin/rc
+rfork e
+
+DB=usbdb
+HDR=../lib/usb.h
+
+subs=`{	grep '^	Cl.*' $HDR | 
+		sed -e 's/.*Cl([a-z]+)[ 	]+=[ 	]+([0-9]+).*/-e s.\1,.\2,./' |
+		tr A-Z a-z
+}
+cat<<EOF
+/* machine generated. do not edit */
+#include <u.h>
+#include <libc.h>
+#include <thread.h>
+#include "usb.h"
+#include "usbd.h"
+
+EOF
+
+awk '
+/^#|^$/	{ next }
+collect && /^[^ \t]/{
+	collect = 0;
+}
+$0 ~ /^(embed|auto)/{
+	section = $0;
+	collect = 1;
+	next;
+}
+collect {
+	if(section ~ "embed"){
+		printf("extern int %smain(Dev*, int, char**);\n", $1);
+	}
+}
+' $DB
+cat <<EOF
+
+Devtab devtab[] = {
+	/* device, entrypoint, {csp, csp, csp csp}, vid, did */
+EOF
+
+awk '
+/^#|^$/	{ next }
+collect && /^[^ \t]/{
+	collect = 0;
+}
+$0 ~ /^(embed|auto)/{
+	section = $0;
+	collect = 1;
+	next;
+}
+collect {
+	printf("	{\"%s\"", $1);
+	if(section ~ "embed"){
+		fns[nfns++] = $1;
+		printf(",\t%smain", $1);
+	} else
+		printf(", nil");
+	printf(",\t{");
+	ncsp = 0;
+	vid="-1";
+	did="-1";
+	args="";
+	for(i = 2; i <= NF; i++)
+		if($i ~ "^args="){
+			sub("args=", "", $i);
+			for(j = i; j <= NF; j++)
+				if(j > i)
+					args = args  " " $j;
+				else
+					args = $j
+		}
+	for(i = 2; i <= NF; i++){
+		if($i ~ "^csp="){
+			ncsp++;
+			sub("csp=", "", $i);
+			printf("%s, ", $i);
+		} else
+		if($i ~ "^subclass="){
+			ncsp++;
+			sub("subclass=", "", $i);
+			printf("DSC|%s, ", $i);
+		} else
+		if($i ~ "^class="){
+			ncsp++;
+			sub("class=", "", $i);
+			printf("DCL|%s, ", $i);
+		} else
+		if($i ~ "^proto="){
+			ncsp++;
+			sub("proto=", "", $i);
+			printf("DPT|%s, ", $i);
+		} else
+		if($i ~ "^vid="){
+			sub("vid=", "", $i);
+			vid=$i
+		} else
+		if($i ~ "did="){
+			sub("did=", "", $i);
+			did=$i
+		}
+	}
+	for(i = ncsp; i < 4; i++)
+		printf("0, ");
+	printf("}, %s, %s, \"%s\"},\n", vid, did, args);
+}
+' $DB | sed $subs
+
+cat <<EOF
+	{nil, nil,	{0, 0, 0, 0, }, -1, -1, nil},
+};
+
+/* end of machine generated */
+EOF

@@ -1,0 +1,41 @@
+</$objtype/mkfile
+
+TARG=5c
+OFILES=\
+	cgen.$O\
+	enam.$O\
+	list.$O\
+	mul.$O\
+	peep.$O\
+	pgen.$O\
+	pswt.$O\
+	reg.$O\
+	sgen.$O\
+	swt.$O\
+	txt.$O\
+
+HFILES=\
+	gc.h\
+	5.out.h\
+	../cc/cc.h\
+
+LIB=../cc/cc.a$O
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+$LIB:
+	cd ../cc
+	mk install
+	mk clean
+
+%.$O: ../cc/%.c
+	$CC $CFLAGS ../cc/$stem.c
+
+t:V:	$O.out
+	$O.out -S t
+	$LD -o t.out t.$O
+	t.out
+
+enam.c: 5.out.h
+	rc mkenam

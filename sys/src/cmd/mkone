@@ -1,0 +1,67 @@
+LDFLAGS=
+YFLAGS=-d
+AFLAGS=
+
+default:V:	$O.out
+
+all:V:	$O.out
+
+$O.out:	$OFILES $LIB
+	$LD $LDFLAGS -o $target $prereq
+
+%.$O:	$HFILES		# don't combine with following %.$O rules
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.$O:	%.g
+	$GC $GFLAGS $stem.g
+
+%.$O:	%.s
+	$AS $AFLAGS $stem.s
+
+y.tab.h y.tab.c:	$YFILES
+	$YACC $YFLAGS $prereq
+
+lex.yy.c:	$LFILES
+	$LEX $LFLAGS $prereq
+
+install:V:	$BIN/$TARG
+
+$BIN/$TARG:	$O.out
+	mkdir -p $BIN
+	cp $prereq $BIN/$TARG
+
+installall:V:
+	for(objtype in $CPUS)
+		mk install
+
+allall:V:
+	for(objtype in $CPUS)
+		mk all
+
+nuke:V:
+	rm -f *.[$OS] [$OS].out y.tab.? lex.yy.c y.debug y.output *.acid $TARG
+
+clean:V:
+	rm -f *.[$OS] [$OS].out y.tab.? lex.yy.c y.debug y.output $TARG $CLEANFILES
+
+safeinstall:V: $O.out
+	test -e $BIN/$TARG && mv $BIN/$TARG $BIN/_$TARG
+	cp $prereq $BIN/$TARG
+
+update:V:
+	update $UPDATEFLAGS $UPDATE
+
+safeinstallall:V:
+	for (objtype in $CPUS)
+		mk safeinstall
+
+%.acid: %.$O $HFILES
+	$CC $CFLAGS -a $stem.c >$target
+
+%.man:	$MAN/$stem
+	cp $stem.man $MAN/$stem
+
+man:V:	$TARG.man
+

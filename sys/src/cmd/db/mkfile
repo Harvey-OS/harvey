@@ -1,0 +1,22 @@
+</$objtype/mkfile
+
+TARG=db
+OFILES=\
+	command.$O\
+	expr.$O\
+	format.$O\
+	input.$O\
+	main.$O\
+	output.$O\
+	pcs.$O\
+	print.$O\
+	runpcs.$O\
+	setup.$O\
+	regs.$O\
+	trcrun.$O\
+
+HFILES=defs.h\
+	fns.h\
+
+BIN=/$objtype/bin
+< /sys/src/cmd/mkone

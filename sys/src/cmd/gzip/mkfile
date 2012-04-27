@@ -1,0 +1,15 @@
+</$objtype/mkfile
+
+HFILES=\
+	gzip.h\
+	zip.h\
+
+TARG=\
+	gzip\
+	gunzip\
+	zip\
+	unzip\
+
+BIN=/$objtype/bin
+
+</sys/src/cmd/mkmany

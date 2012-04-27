@@ -1,0 +1,21 @@
+BUILTINS=
+</$objtype/mkfile
+
+BIN=/$objtype/bin/fs
+TARG=tarfs tpfs v6fs 32vfs cpiofs tapfs v10fs zipfs
+OFILES=\
+	fs.$O\
+	util.$O
+
+HFILES=\
+	tapefs.h\
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=%.c}\
+
+</sys/src/cmd/mkmany
+
+zipfs.$O:	zip.h

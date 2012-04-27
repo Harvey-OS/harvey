@@ -1,0 +1,15 @@
+#!/bin/rc
+
+# change the boot sequence to run benchs.
+
+# remove output from all benchs:
+#  rm -f [0-9]*/^(koutput output FAIL KMESG) k[0-9]*/^(koutput output FAIL KMESG)
+
+# remove output from some benchs, to rerun them:
+# for(t in 93 94 95) rm -f $t/^(koutput output FAIL KMESG)
+
+
+# arrange for them to run after rebooting
+cp runbenchs /cfg/$sysname/runbenchs 
+runbenchs
+

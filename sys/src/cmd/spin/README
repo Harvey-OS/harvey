@@ -1,0 +1,11 @@
+the latest version of spin is always
+available via:
+	http://spinroot.com/spin/whatispin.html
+
+to make the sources compile with the mkfile on Plan 9
+the following changes were made:
+
+	omitted memory.h from spin.h
+	changed /lib/cpp to /bin/cpp in main.c
+	simplified non_fatal() in main.c to remove
+	use of yychar

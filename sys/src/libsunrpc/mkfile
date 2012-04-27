@@ -1,0 +1,30 @@
+</$objtype/mkfile
+
+PROTO=\
+	mount3.$O\
+	nfs3.$O\
+	portmap.$O\
+
+OFILES=\
+	authunix.$O\
+	client.$O\
+	emalloc.$O\
+	error.$O\
+	fd.$O\
+	fmt.$O\
+	net.$O\
+	prog.$O\
+	rpc.$O\
+	server.$O\
+	suncall.$O\
+	udp.$O\
+	$PROTO\
+
+HFILES=\
+	/sys/include/sunrpc.h\
+
+LIB=/$objtype/lib/libsunrpc.a
+
+</sys/src/cmd/mksyslib
+
+mount3.$O: /sys/include/nfs3.h

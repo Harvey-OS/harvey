@@ -1,0 +1,79 @@
+</$objtype/mkfile
+
+HFILES=\
+	/sys/include/httpd.h\
+	httpsrv.h\
+
+TARG=\
+	httpd\
+	imagemap\
+	man2html\
+	save\
+	netlib_find\
+	netlib_history\
+	webls\
+	wikipost\
+
+XTARG=\
+	httpd\
+	imagemap\
+	netlib_find\
+	netlib_history\
+	man2html\
+	save\
+	wikipost\
+
+LIB=libhttps.a$O
+
+LIBS=libhttps.a$O
+LIBSOFILES=\
+	anonymous.$O\
+	content.$O\
+	emem.$O\
+	hints.$O\
+	init.$O\
+	log.$O\
+	redirect.$O\
+	sendfd.$O\
+	authorize.$O\
+
+BIN=/$objtype/bin/ip/httpd
+
+UPDATE=\
+	$HFILES\
+	${LIBSOFILES:%.$O=%.c}\
+	${XTARG:%=%.c}\
+
+</sys/src/cmd/mkmany
+
+trial: $O.netlib_history
+	# should first   mount -b /srv/histnetlib /usr/web/historic
+	echo '
+	' | $O.netlib_history GET HTTP/1.0 xxx 'file=fp%2Fdtoa.c.gz'
+
+trial2: $O.netlib_find
+	echo "\n" | $O.netlib_find GET HTTP/1.0 xxx 'db=1&pat=Hearing' > /tmp/search
+	sed 17q /tmp/search
+
+$LIBS:	$LIBSOFILES
+	ar vu $LIBS $newprereq
+	rm $newprereq
+	# rm $newmember - cannot do this because of mk race
+
+
+re:N: v.re
+	v.re redirect.urls
+
+none:VQ:
+	echo usage: mk all, install, installall, '$O'.cmd, cmd.install, or cmd.installall
+	echo usage: mk safeinstall, safeinstallall, cmd.safeinstallall, or cmd.safeinstallall
+
+$O.9down: 9down.$O whois.$O classify.$O $LIB
+	$LD -o $target $prereq
+
+$O.test9down: 9down4e.$O whois.$O classify.$O $LIB
+	$LD -o $target $prereq
+
+$O.testclassify: testclassify.$O whois.$O classify.$O $LIB
+	$LD -o $target $prereq
+

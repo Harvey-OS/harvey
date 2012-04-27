@@ -1,0 +1,29 @@
+</$objtype/mkfile
+
+TARG=5l
+OFILES=\
+	asm.$O\
+	list.$O\
+	noop.$O\
+	obj.$O\
+	optab.$O\
+	pass.$O\
+	span.$O\
+	enam.$O\
+	compat.$O\
+
+HFILES=\
+	l.h\
+	../5c/5.out.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+../5c/enam.c: ../5c/5.out.h
+	@ { cd ../5c; mk enam.c }
+
+enam.$O:	../5c/enam.c
+	$CC $CFLAGS ../5c/enam.c
+
+x:V:	$O.out
+	$O.out -la -o/dev/null x.5

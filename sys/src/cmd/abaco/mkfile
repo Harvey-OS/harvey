@@ -1,0 +1,52 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin
+
+TARG=abaco
+
+OFILES=\
+	cols.$O\
+	exec.$O\
+	html.$O\
+	main.$O\
+	page.$O\
+	rows.$O\
+	scrl.$O\
+	tabs.$O\
+	text.$O\
+	time.$O\
+	urls.$O\
+	util.$O\
+	wind.$O\
+
+HFILES=\
+	dat.h\
+	fns.h\
+	tcs.h\
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+
+</sys/src/cmd/mkone
+
+charsets.txt:
+	hget http://www.iana.org/assignments/character-sets | sed 's///' > charsets.txt
+
+tcs.h: charsets.awk charsets.txt tcs.txt
+	charsets.awk charsets.txt tcs.txt > tcs.h
+
+syms:V:
+	8c -a $CFLAGS main.c > syms
+	8c -aa ????.c >> syms
+
+tgz:V:
+	cd ..
+	tar c abaco | gzip -9 > $home/src/tar/abaco_^`{date -n}^.tgz
+
+dist:
+	9fs sources
+	mk clean
+	cd ..
+	tar c $TARG | gzip -9 > /n/sources/contrib/fgb/abaco-test.tgz

@@ -1,0 +1,43 @@
+</$objtype/mkfile
+
+TARG=dump9660 mk9660
+
+OFILES=
+
+DFILES=\
+	boot.$O\
+	cdrdwr.$O\
+	conform.$O\
+	direc.$O\
+	dump.$O\
+	dump9660.$O\
+	ichar.$O\
+	jchar.$O\
+	path.$O\
+	plan9.$O\
+	rune.$O\
+	sysuse.$O\
+	util.$O\
+	write.$O\
+
+HFILES=iso9660.h
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${DFILES:%.$O=%.c}\
+	dump9660.c\
+	mk9660.rc\
+	${TARG:%=/386/bin/disk/%}\
+
+BIN=/$objtype/bin/disk
+</sys/src/cmd/mkmany
+
+$O.dump9660: $DFILES
+
+mk9660.$O:V:
+	# nothing
+
+$O.mk9660: mk9660.rc
+	cp mk9660.rc $target

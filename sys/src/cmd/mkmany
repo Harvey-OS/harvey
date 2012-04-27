@@ -1,0 +1,85 @@
+PROGS=${TARG:%=$O.%}
+MANFILES=${TARG:%=%.man}
+LDFLAGS=
+YFLAGS=-d
+
+none:VQ:
+	echo usage: mk all, install, installall, '$O'.cmd, cmd.install, or cmd.installall
+
+all:V:	$PROGS
+
+$O.%:	%.$O $OFILES $LIB
+	$LD $LDFLAGS -o $target $prereq
+
+%.$O:	$HFILES		# don't combine with following %.$O rules
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.$O:	%.g
+	$GC $GFLAGS $stem.g
+
+%.$O:	%.s
+	$AS $AFLAGS $stem.s
+
+y.tab.h y.tab.c:	$YFILES
+	$YACC $YFLAGS $prereq
+
+lex.yy.c:	$LFILES
+	$LEX $LFLAGS $prereq
+
+%.install:V:	$BIN/%
+
+$BIN/%:	$O.%
+	mkdir -p $BIN
+	cp $O.$stem $BIN/$stem
+
+%.installall:V:
+	for (objtype in $CPUS)
+		mk $stem.install
+
+install:V:
+	for (i in $TARG)
+		mk $MKFLAGS $i.install
+
+installall:V:
+	for(objtype in $CPUS)
+		mk $MKFLAGS install
+
+%.safeinstall:V:
+	mk $O.$stem
+	test -e $BIN/$stem && mv $BIN/$stem $BIN/_$stem
+	mk $stem.install
+
+%.safeinstallall:V:
+	for(objtype in $CPUS)
+		mk $MKFLAGS $stem.safeinstall
+
+safeinstall:V:
+	for(i in $TARG)
+		mk $MKFLAGS $i.safeinstall
+
+safeinstallall:V:
+	for (objtype in $CPUS)
+		mk safeinstall
+
+update:V:
+	update $UPDATEFLAGS $UPDATE
+
+# [$OS].??* avoids file names like 9.h
+nuke:V:
+	rm -f *.[$OS] y.tab.? lex.yy.c y.debug y.output [$OS].??* *.acid $TARG
+
+clean:V:
+	rm -f *.[$OS] *.a[$OS] y.tab.? lex.yy.c y.debug y.output [$OS].??* $TARG $CLEANFILES
+
+%.clean:V:
+	rm -f $stem.[$OS] [$OS].$stem $stem.acid $stem
+
+%.acid: %.$O $HFILES
+	$CC $CFLAGS -a $stem.c >$target
+
+%.man:	$MAN/$stem
+	cp $stem.man $MAN/$stem
+
+man:V:	$MANFILES

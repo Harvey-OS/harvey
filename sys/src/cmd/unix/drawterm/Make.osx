@@ -1,0 +1,20 @@
+# Mac OS X
+PTHREAD=	# for Mac
+AR=ar
+AS=as
+RANLIB=ranlib
+CC=gcc
+CFLAGS=-m32 -Wall -Wno-missing-braces -ggdb -I$(ROOT) -I$(ROOT)/include -I$(ROOT)/kern -c -D_THREAD_SAFE $(PTHREAD) -O2
+O=o
+OS=posix
+GUI=osx
+LDADD=-ggdb -framework Carbon -framework QuickTime
+LDFLAGS=$(PTHREAD) -m32
+TARG=drawterm
+AUDIO=none
+
+all: default
+
+libmachdep.a:
+	arch=`uname -m|sed 's/i.86/386/;s/Power Macintosh/power/'`; \
+	(cd posix-$$arch &&  make)

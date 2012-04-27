@@ -1,0 +1,136 @@
+CONF=beagle
+CONFLIST=beagle
+
+# allegedly u-boot uses the bottom 3MB (up to 0x300000) so avoid that,
+# and leave 64K for plan9.ini.  loadaddr must match KTZERO in mem.h.
+# 0xc0310000 has worked, 0x80310000 should work but doesn't yet.
+loadaddr=0xc0310000
+
+objtype=arm
+</$objtype/mkfile
+p=9
+
+DEVS=`{rc ../port/mkdevlist $CONF}
+
+PORT=\
+	alarm.$O\
+	alloc.$O\
+	allocb.$O\
+	auth.$O\
+	cache.$O\
+	chan.$O\
+	dev.$O\
+	edf.$O\
+	fault.$O\
+	latin1.$O\
+	mul64fract.$O\
+	rebootcmd.$O\
+	page.$O\
+	parse.$O\
+	pgrp.$O\
+	portclock.$O\
+	print.$O\
+	proc.$O\
+	qio.$O\
+	qlock.$O\
+	segment.$O\
+	swap.$O\
+	sysfile.$O\
+	sysproc.$O\
+	taslock.$O\
+	tod.$O\
+	xalloc.$O\
+
+OBJ=\
+	l.$O\
+	lexception.$O\
+	lproc.$O\
+	arch.$O\
+	clock.$O\
+	fpi.$O\
+	fpiarm.$O\
+	fpimem.$O\
+	kbd.$O\
+	main.$O\
+	mmu.$O\
+	random.$O\
+	trap.$O\
+	$CONF.root.$O\
+	$CONF.rootc.$O\
+	$DEVS\
+	$PORT\
+
+LIB=\
+	/$objtype/lib/libmemlayer.a\
+	/$objtype/lib/libmemdraw.a\
+	/$objtype/lib/libdraw.a\
+	/$objtype/lib/libip.a\
+	/$objtype/lib/libsec.a\
+	/$objtype/lib/libmp.a\
+	/$objtype/lib/libc.a\
+
+9:V: $p$CONF s$p$CONF
+
+$p$CONF:DQ:	$CONF.c $OBJ $LIB mkfile
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	echo '# linking raw kernel'
+	$LD -o $target -H0 -R4096 -T$loadaddr -l $OBJ $CONF.$O $LIB
+
+s$p$CONF:DQ:	$CONF.$O $OBJ $LIB
+	echo '# linking kernel with symbols'
+#	$LD -o $target -R4096 -T$loadaddr -l -a $OBJ $CONF.$O $LIB >$target.list
+	$LD -o $target -R4096 -T$loadaddr -l $OBJ $CONF.$O $LIB
+	size $target
+
+$p$CONF.gz:D:	$p$CONF
+	gzip -9 <$p$CONF >$target
+
+$OBJ: $HFILES
+
+install:V: /$objtype/$p$CONF
+
+/$objtype/$p$CONF:D: $p$CONF s$p$CONF
+	{ cp -x $p$CONF s$p$CONF /$objtype } &
+	wait
+	touch $target
+
+<../boot/bootmkfile
+<../port/portmkfile
+<|../port/mkbootrules $CONF
+
+CFLAGS= -I. -I../port $CFLAGS	# hack to compile private sysproc.c (e.g.)
+
+arch.$O clock.$O fpiarm.$O main.$O mmu.$O screen.$O sdscsi.$O syscall.$O \
+	trap.$O: /$objtype/include/ureg.h
+
+archomap.$O devether.$0 ether9221.$O: etherif.h ../port/netif.h
+archomap.$O devflash.$O flashbeagle.$O flashigep.$O: ../port/flashif.h
+ecc.$O flashbeagle.$O flashigep.$O: ../port/nandecc.h io.h
+fpi.$O fpiarm.$O fpimem.$O: fpi.h
+l.$O lexception.$O lproc.$O mmu.$O: arm.s arm.h mem.h
+l.$O rebootcode.$O: cache.v7.s
+main.$O: errstr.h init.h reboot.h
+devdss.$O devmouse.$O mouse.$O screen.$O: screen.h
+devusb.$O: ../port/usb.h
+usbehci.$O usbohci.$O usbuhci.$O: ../port/usb.h usbehci.h uncached.h
+
+init.h:D:	../port/initcode.c init9.s
+	$CC ../port/initcode.c
+	$AS init9.s
+	$LD -l -R1 -s -o init.out init9.$O initcode.$O /$objtype/lib/libc.a
+	{echo 'uchar initcode[]={'
+	 xd -1x <init.out |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > init.h
+
+reboot.h:D:	rebootcode.s cache.v7.s arm.s arm.h mem.h
+	$AS rebootcode.s
+	# -lc is only for memmove.  -T arg is PADDR(REBOOTADDR)
+#	$LD -l -a -s -T0x100 -R4 -o reboot.out rebootcode.$O -lc >reboot.list
+	$LD -l -s -T0x100 -R4 -o reboot.out rebootcode.$O -lc
+	{echo 'uchar rebootcode[]={'
+	 xd -1x reboot.out |
+		sed -e '1,2d' -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > reboot.h
+errstr.h:D:	../port/mkerrstr ../port/error.h
+	rc ../port/mkerrstr > errstr.h

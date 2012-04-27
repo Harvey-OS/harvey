@@ -1,0 +1,97 @@
+</$objtype/mkfile
+
+TARG=\
+	8prefix\
+	9pcon\
+	accupoint\
+	acidleak\
+	apm\
+	astarld\
+	cddb\
+	clog\
+	consolefs\
+	data2s\
+	depend\
+	disksim\
+	getflags\
+	lines\
+	listen\
+	listen1\
+	mklatinkbd\
+	ms2\
+	msexceltables\
+	mswordstrings\
+	mouse\
+	nfsmount\
+	olefs\
+	pcmcia\
+	portmap\
+	rdwr\
+	reboot\
+	searchfs\
+	statusbar\
+	stub\
+	timesync\
+	trampoline\
+	usage\
+	write\
+	zerotrunc\
+
+BIN=/$objtype/bin/aux
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=%.c}\
+
+</sys/src/cmd/mkmany
+
+DIRS=mnihongo\
+	flashfs\
+	gps\
+	na\
+	vga
+
+all:V:	$DIRS
+
+$DIRS:V:
+	for (i in $DIRS) @{
+		echo mk $i
+		cd $i
+		mk all
+	}
+
+install:V:	installdirs
+
+nuke:V:	nukedirs
+
+installdirs:V:
+	for (i in $DIRS) @{
+		echo mk $i
+		cd $i
+		mk install
+	}
+
+clean:V:
+	for (i in $DIRS) @{
+		echo clean $i
+		cd $i
+		mk clean
+	}
+	rm -f [$OS].* *.[$OS]
+
+nukedirs:V:
+	for (i in $DIRS) @{
+		echo nuke $i
+		cd $i
+		mk nuke
+	}
+
+update:V:
+	update $UPDATEFLAGS $UPDATE
+	for (i in $DIRS) @{
+		echo update $i
+		cd $i
+		mk 'UPDATEFLAGS='$"UPDATEFLAGS update
+	}

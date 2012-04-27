@@ -1,0 +1,19 @@
+objtype=amd64
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libc.a
+OFILES=\
+	thr.$O\
+
+HFILES=\
+	/sys/include/libc.h\
+	/sys/include/tos.h\
+	dat.h\
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+
+</sys/src/cmd/mksyslib
+

@@ -1,0 +1,41 @@
+#!/bin/rc
+
+# $proxy is typically set to tailfan's address.
+ipnet=`{grep 'ip=' /net/ndb | sed 's/^.*ip=([0-9]+\.[0-9]+\.[0-9]+\.).*$/\1/'}
+if (~ $proxy $ipnet^*){
+	# Use a proxy
+	echo import $proxy /net /net
+	import $proxy /net /net
+}
+
+switch($fs){
+case ''
+	echo you must set the environment variable fs
+	exit 0
+}
+if (! test -e /mnt/factotum) {
+	if (test -e /srv/factotum) {
+		mount -b /srv/factotum /mnt
+	}
+	if not {
+		auth/factotum -u
+	}
+}
+srv -m $fs $fs /n/fs
+bind -b /n/fs/arm/bin /bin
+bind -b /n/fs/rc/bin /bin
+bind -a /n/fs/lib /lib
+bind -b /n/fs/sys /sys
+bind -a /n/fs/usr /usr
+bind -c /n/fs/mail /mail
+bind -c /n/fs/acme /acme
+user=`{cat /dev/user}
+home=/usr/$user
+bind -a /n/fs/usr/$user /usr/$user
+bind -cb /usr/$user/tmp /tmp
+bind -b /usr/$user/bin/rc /bin
+bind -b /usr/$user/bin/arm /bin
+bind -a /n/fs/lib/font/bit/lucidasans /lib/font/bit/lucidasans 
+bind -a /n/fs/lib/font/bit/lucida /lib/font/bit/lucida
+bind -a /n/fs/lib/font/bit/misc /lib/font/bit/misc
+#service=cpu aux/listen -t /bin/service

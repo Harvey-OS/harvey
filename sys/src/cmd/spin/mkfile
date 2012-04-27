@@ -1,0 +1,57 @@
+</$objtype/mkfile
+
+TARG=spin
+
+SPIN_OS=\
+	dstep.$O\
+	flow.$O\
+	guided.$O\
+	main.$O\
+	mesg.$O\
+	pangen1.$O\
+	pangen2.$O\
+	pangen3.$O\
+	pangen4.$O\
+	pangen5.$O\
+	pangen6.$O\
+	pangen7.$O\
+	pc_zpp.$O\
+	ps_msc.$O\
+	reprosrc.$O\
+	run.$O\
+	sched.$O\
+	spinlex.$O\
+	structs.$O\
+	sym.$O\
+	vars.$O\
+	y.tab.$O\
+
+TL_OS=\
+	tl_buchi.$O\
+	tl_cache.$O\
+	tl_lex.$O\
+	tl_main.$O\
+	tl_mem.$O\
+	tl_parse.$O\
+	tl_rewrt.$O\
+	tl_trans.$O\
+
+OFILES=$SPIN_OS $TL_OS
+
+YFILES=spin.y
+
+HFILES=y.tab.h
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+CC=pcc -c
+CFLAGS=-B -D_POSIX_SOURCE
+YFLAGS=-S -d
+
+$SPIN_OS:	spin.h
+$TL_OS:		tl.h
+
+main.$O pangen2.$O ps_msc.$O:	version.h
+pangen1.$O:			pangen1.h pangen3.h
+pangen2.$O:			pangen2.h pangen4.h pangen5.h pangen6.h

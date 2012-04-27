@@ -1,0 +1,74 @@
+</$objtype/mkfile
+
+TARG=jpg\
+	gif\
+	togif\
+	ppm\
+	toppm\
+	png\
+	topng\
+	yuv\
+	ico\
+	toico\
+	bmp\
+	tga\
+	v210\
+
+IMFILES=\
+	torgbv.$O\
+	totruecolor.$O\
+	writerawimage.$O\
+
+HFILES=imagefile.h\
+
+LIB=
+
+BIN=/$objtype/bin
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${IMFILES:%.$O=%.c}\
+	readjpg.c\
+	readgif.c\
+	writegif.c\
+	onechan.c\
+	readppm.c\
+	multichan.c\
+	readpng.c\
+	writepng.c\
+	rgbycc.c\
+	rgbrgbv.c\
+	readtga.c\
+	${TARG:%=%.c}\
+
+</sys/src/cmd/mkmany
+c=`{sed -n 's/^O=//p' /$cputype/mkfile}
+
+$O.tga:		$IMFILES readtga.$O tga.$O
+$O.jpg:		$IMFILES readjpg.$O jpg.$O
+$O.gif:		$IMFILES readgif.$O gif.$O
+$O.togif:	writegif.$O onechan.$O togif.$O torgbv.$O
+$O.ppm:		$IMFILES readppm.$O ppm.$O
+$O.toppm:	writeppm.$O multichan.$O toppm.$O
+$O.png:		$IMFILES readpng.$O png.$O
+$O.topng:	writepng.$O topng.$O
+$O.yuv:		$IMFILES readyuv.$O yuv.$O
+$O.bmp:		$IMFILES readbmp.$O bmp.$O
+$O.v210:	$IMFILES readv210.$O v210.$O
+
+torgbv.$O:	ycbcr.h rgbv.h
+
+ycbcr.h:	rgbycc.c
+	$c^c rgbycc.c
+	$c^l -o $c.rgbycc rgbycc.$c
+	$c.rgbycc > ycbcr.h
+
+rgbv.h:	rgbrgbv.c
+	$c^c rgbrgbv.c
+	$c^l -o $c.rgbrgbv rgbrgbv.$c
+	$c.rgbrgbv > rgbv.h
+
+nuke:V:	nuke-headers
+
+nuke-headers:V:
+	rm -f rgbv.h ycbcr.h

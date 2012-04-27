@@ -1,0 +1,20 @@
+</$objtype/mkfile
+
+TARG=execnet
+
+OFILES=\
+	client.$O\
+	fs.$O\
+	main.$O\
+	note.$O\
+
+HFILES=dat.h
+
+BIN=/$objtype/bin
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=/386/bin/%}\
+
+</sys/src/cmd/mkone

@@ -1,0 +1,97 @@
+PORTFILES=`{../port/mkfilelist ../port}
+^($PORTFILES)\.$O:R:	'../port/\1.c'
+	$CC $CFLAGS -I. ../port/$stem1.c
+
+IPFILES=`{../port/mkfilelist ../ip}
+^($IPFILES)\.$O:R:	'../ip/\1.c' ../ip/ip.h ../ip/ipv6.h
+	$CC $CFLAGS -I. ../ip/$stem1.c
+
+%.$O:	%.s
+	$AS $AFLAGS $stem.s
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.acid:	%.c
+	$CC $CFLAGS -a $stem.c >$stem.acid
+
+%.acid:	../ip/%.c
+	$CC $CFLAGS -a -I.  ../ip/$stem.c >$stem.acid
+
+%.acid:	../port/%.c
+	$CC $CFLAGS -a -I. ../port/$stem.c >$stem.acid
+
+installall:V:
+	for(i in $CONFLIST)
+		mk 'CONF='$i install
+
+all:V:
+	for(i in $CONFLIST)
+		mk 'CONF='$i
+
+clean:V:
+	rm -f *.[$OS] *.root.s *.rootc.c cfs.h fs.h init.h conf.h *.out *.m errstr.h
+	for(i in $CONFLIST $CRAPLIST)
+		mk $i.clean
+
+%.clean:V:
+	rm -f $stem.c [9bz]$stem [9bz]$stem.gz s[9bz]$stem boot$stem.* *.acid
+
+nuke:V:	clean
+	rm -f ../boot/libboot.a$O *.elf *.rr
+
+%.$O:	/$objtype/include/u.h ../port/lib.h mem.h dat.h fns.h io.h ../port/error.h ../port/portdat.h ../port/portfns.h
+
+../port/systab.h:	/sys/src/libc/9syscall/sys.h ../port/mksystab
+	rc ../port/mksystab > ../port/systab.h
+
+$CONF.$O:	$CONF.c
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+
+$CONF.c:	../port/mkdevc $CONF
+	rc ../port/mkdevc $CONF > $CONF.c
+	{echo 'uchar configfile[]={'
+	 xd -1x $CONF |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo 0,
+	 echo '};'} >> $CONF.c
+
+errstr.h:	../port/mkerrstr ../port/error.h
+	rc ../port/mkerrstr > errstr.h
+
+../port/latin1.h:	/lib/keyboard
+	aux/mklatinkbd /lib/keyboard > ../port/latin1.h
+
+%.db:		main.$O
+	$CC -s$stem main.c | dbfmt > $stem.db
+
+alloc.$O:	/sys/include/pool.h
+devmnt.$O:	/sys/include/fcall.h
+proc.$O:	errstr.h
+devroot.$O:	errstr.h
+devaoe.$O:	/$objtype/include/ureg.h
+devfs.$O:	/$objtype/include/ureg.h
+devsd.$O:	/$objtype/include/ureg.h
+sdscsi.$O:	/$objtype/include/ureg.h
+trap.$O:	/$objtype/include/ureg.h
+devproc.$O:	/$objtype/include/ureg.h
+main.$O:	init.h
+trap.$O:	../port/systab.h
+devpipe.$O:	../port/netif.h
+netif.$O:	../port/netif.h
+devuart.$O:	../port/netif.h
+devmouse.$O:	screen.h /sys/include/memdraw.h
+devdraw.$O:	screen.h /sys/include/memdraw.h
+screen.$O:	screen.h /sys/include/memdraw.h
+latin1.$O:	../port/latin1.h
+thwack.$O:	../port/thwack.h
+unthwack.$O:	../port/thwack.h
+devsdp.$O:	../port/thwack.h
+devproc.$O sysproc.$O:	/sys/include/tos.h
+devproc.$O edf.$O proc.$O: /sys/include/trace.h
+
+boot$CONF.out: $CONF print.$O $BOOTDIR/boot.c $BOOTLIB
+	$BOOTDIR/mkboot $CONF > boot$CONF.c
+	$CC $CFLAGS boot$CONF.c
+	$CC $CFLAGS ../boot/printstub.c
+	$LD -o boot$CONF.out boot$CONF.$O $BOOTLIB printstub.$O

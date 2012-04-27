@@ -1,0 +1,18 @@
+</$objtype/mkfile
+
+TARG=ext2srv
+OFILES=\
+	xfssrv.$O\
+	xfile.$O\
+	ext2fs.$O\
+	ext2subs.$O\
+	chat.$O\
+	iobuf.$O\
+
+HFILES=dat.h\
+	fns.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+xfssrv.$O:	errstr.h

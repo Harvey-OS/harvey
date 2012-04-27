@@ -1,0 +1,212 @@
+#!/bin/rc
+# lp - enqueues the file to be printed and starts the daemon, when necessary.
+# Make changes to /sys/src/cmd/lp/lp.rc;
+# changes made directly to /rc/bin/lp will be lost.
+
+rfork en	# so that environment and name space are not polluted
+# 
+# put 'fn sigexit { rm /tmp/lpcrap; exit interrupted }' into processes that create /tmp/lpcrap.
+
+ifs=' 	
+'		# set ifs in case it is munged in user's environment
+
+LPLIB=/sys/lib/lp		# lp scripts directories and configuration file are here
+LPBIN=/$cputype/bin/aux		# lp specific binaries are here
+LPSPOOL=$LPLIB/queue		# lp queues
+LPLOGDIR=$LPLIB/log		# lp logs
+
+$LPLIB/bin/lpscratch
+x=$status
+if(! ~ $x '') exit $x
+
+# build /bin from the ground up
+bind /$cputype/bin /bin			# general compiled binaries
+bind -a /rc/bin /bin			# general rc scripts
+# This needs to be fixed for the real thing
+bind -a $LPLIB/bin /bin			# lp specific rc scripts
+bind -a $LPBIN /bin				# lp specific compiled binaries
+path=(/bin)
+
+if (! test -w /tmp) bind -bc $LPLIB/tmp /tmp
+
+USAGE='usage:	lp [-d printer] [-p process] [options] [files]
+		lp [-d printer] -q
+		lp [-d printer] -k jobnos
+
+		options include:
+		-D			turn on debugging output
+		-H			no header
+		-L			landscape mode
+		-M<mach>	print on machine <mach>
+		-Q			put task only into the queue
+		-R			restart printer daemon
+		-c<n>		make <n> copies
+		-f<font.size>	specify font and size
+		-i<src>		take media from <src> input bin
+		-l<n>		print <n> lines per logical page
+		-m<n>		magnify <n> times
+		-n<n>		print <n> logical pages per physical page
+		-o<i-j,k>	print only pages i-j and k
+		-r			reverse pages
+		-u<userid>	print as <userid>
+		-x<n>		x page offset in inches
+		-y<n>		y page offset in inches
+'
+
+# umask 000	# this doesn't work in plan 9
+if (~ $#sysname 0)
+	THIS_HOST=plan9
+if not {
+	THIS_HOST=`{ndb/query sys $sysname dom}
+	if(~ $#THIS_HOST 0)
+		THIS_HOST=$sysname
+}
+
+LPMACHID=$THIS_HOST
+THIS_USERID=$user
+LPUSERID=$THIS_USERID
+LPLOC=''
+
+# Set default printer to be output device
+if (~ $#LPDEST 0 && test -f $LPLIB/defdevice) LPDEST=`{cat $LPLIB/defdevice}
+
+# option parameters
+COPIES=1
+FONT=''
+IBIN=''
+KILLFLAG=0
+LAND=''
+LINES=''
+LPQ=0
+MAG=''
+NOHEAD=''
+NPAG=''
+OLIST=''
+POINT=''
+RESET=''
+REVERSE=''
+QONLY=''
+TRAY=''
+XOFF=''
+YOFF=''
+
+# Process options
+flagfmt='D,H,L,Q,R,r,q,M mach,c copies,d printer,f font.size,i src,k jobnos,l lines,m magnify,n lpages,o pages,p proc,u userid,x offset,y offset'
+argv0=lp
+
+if(! ifs=() eval `{aux/getflags $*}) {
+	echo $USAGE
+	exit usage
+}
+if(~ $flagd '?'){
+	awk 'BEGIN {print "device       location  host                   class"}
+/^[^#]/	{ printf "%-12s %-9s %-22s %s\n", $1, $2, $3, $6 }' $LPLIB/devices
+	exit
+}
+if(~ $flagp '?'){
+	ls $LPLIB/process
+	exit
+}
+
+if (! ~ $#flagD 0) { DEBUG=1; flag x + }; if not { DEBUG=''; flag x - }
+if (! ~ $#flagH 0) NOHEAD=1
+if (! ~ $#flagL 0) LAND=1
+if (! ~ $#flagM 0 && ~ $LPUSERID daemon) LPMACHID=$flagM
+if (! ~ $#flagQ 0) QONLY=1
+if (! ~ $#flagR 0) RESET=1
+if (! ~ $#flagc 0) COPIES=$flagc
+if(! ~ $#flagd 0) LPDEST=$flagd
+if (! ~ $#flagf 0) eval `{echo $flagf | sed -e 's/([^.]*)\.([0-9.]*)/FONT=\1;POINT=\2;/'}
+if (! ~ $#flagi 0) IBIN=$flagi
+if (! ~ $#flagk 0) KILLFLAG=1
+if (! ~ $#flagl 0) LINES=$flagl
+if (! ~ $#flagm 0) MAG=$flagm
+if (! ~ $#flagn 0) NPAG=$flagn
+if (! ~ $#flago 0) OLIST=-o^$flago
+if (! ~ $#flagp 0) LPPROC=$flagp
+if (! ~ $#flagq 0) LPQ=1
+if (! ~ $#flagr 0) REVERSE=1
+if (! ~ $#flagu 0) LPUSERID=$flagu
+if (! ~ $#flagx 0) XOFF=$flagx
+if (! ~ $#flagy 0) YOFF=$flagy
+
+if (~ $#LPDEST 0) {
+	echo 'Set environment variable LPDEST or use the
+''-d printer'' option to set the destination.' >[1=2]
+	exit 'LPDEST not set'
+}
+if (~ $LPDEST */*) {	# handles MHCC destinations like mh/lino
+	LPLOC=`{echo $LPDEST|sed 's/^(.*)\/(.*)/\1/'}
+	LPDEST=`{echo $LPDEST|sed 's/^(.*)\/(.*)/\2/'}
+}
+
+# look up device, get info
+LPDLINE=`{grep '^'$LPDEST'[ 	]' $LPLIB/devices}
+if (! ~ $status '') {
+	echo 'device '$LPDEST' is not in '$LPLIB'/devices' >[1=2]
+	exit 'LPDEST is bad'
+}
+LOC=$LPDLINE(2)
+DEST_HOST=$LPDLINE(3)
+OUTDEV=$LPDLINE(4)
+SPEED=$LPDLINE(5)
+LPCLASS=$LPDLINE(6)
+if (~ $#LPPROC 0) LPPROC=$LPDLINE(7)
+SPOOLER=$LPDLINE(8)
+STAT=$LPDLINE(9)
+KILL=$LPDLINE(10)
+DAEMON=$LPDLINE(11)
+SCHED=$LPDLINE(12)
+
+if (~ $LPCLASS *nohead*)
+	NOHEAD=1
+if (~ $LPCLASS *duplex*)
+	DUPLEX=1
+
+if (~ $#SCHED 0) SCHED=FIFO	# everyone uses FIFO
+if (~ $KILLFLAG 1)
+	switch ($KILL) {
+	case -;	echo kill option not available on $LPDEST >[1=2]
+		exit 'kill n/a'
+	case *;	bind -b $LPLIB/kill /bin
+		exec $KILL $*
+		exit 'kill command '"$KILL"' not found'
+	}
+if (~ $LPQ 1)
+	switch ($STAT) {
+	case -;	echo queue status option not available on $LPDEST >[1=2]
+		exit 'stat option not available'
+	case *;	bind -b $LPLIB/stat /bin
+		exec $STAT $* < /dev/null
+		exit 'stat command '"$STAT"' not found'
+	}
+DATE=`{date}
+LPLOG=$LPLOGDIR/$LPDEST
+if (! test -e $LPLOG) {
+	>$LPLOG
+	chmod +rwa $LPLOG >[2]/dev/null
+}
+
+if (~ $RESET '') {
+	switch ($SPOOLER) {
+	case -;	echo spooler does not exist for $LPDEST >[1=2]
+		exit 'no spooler'
+	case *;	bind -b $LPLIB/spooler /bin
+		if (~ $#* 0) $SPOOLER
+		if not $SPOOLER $*
+	}
+}
+if not {
+	echo restarting daemon for printer $LPDEST >[1=2]
+	UNLOCK $LPSPOOL/$LPDEST
+	sleep 5
+}
+
+# run daemon
+if (~ $QONLY '') {
+	if (! ~ $DAEMON -) {
+		bind -b $LPLIB/daemon /bin
+		$DAEMON $* >>$LPLOG >[2=1] &
+	}
+}
+exit ''

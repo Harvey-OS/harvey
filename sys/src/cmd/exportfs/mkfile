@@ -1,0 +1,18 @@
+</$objtype/mkfile
+
+TARG=exportfs
+OFILES=\
+	exportfs.$O\
+	exportsrv.$O\
+	pattern.$O\
+
+HFILES=exportfs.h\
+
+BIN=/$objtype/bin
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+
+</sys/src/cmd/mkone

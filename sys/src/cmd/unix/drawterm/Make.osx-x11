@@ -1,0 +1,21 @@
+# Mac OS X
+PTHREAD=	# for Mac
+AR=ar
+AS=as
+RANLIB=ranlib
+X11=/usr/X11R6
+CC=gcc
+CFLAGS=-Wall -Wno-missing-braces -ggdb -I$(ROOT) -I$(ROOT)/include -I$(ROOT)/kern -c -I$(X11)/include -D_THREAD_SAFE $(PTHREAD) -O2
+O=o
+OS=posix
+GUI=x11
+LDADD=-L$(X11)/lib -lX11 -ggdb
+LDFLAGS=$(PTHREAD)
+TARG=drawterm
+AUDIO=none
+
+all: default
+
+libmachdep.a:
+	arch=`uname -m|sed 's/i.86/386/;s/Power Macintosh/power/'`; \
+	(cd posix-$$arch &&  make)

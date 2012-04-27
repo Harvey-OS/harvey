@@ -1,0 +1,37 @@
+</$objtype/mkfile
+
+TARG=dhcpd\
+	dhcpleases\
+
+DOFILES=\
+	dhcpd.$O\
+	db.$O\
+	ndb.$O\
+	ping.$O\
+
+IOFILES=\
+	dhcpleases.$O\
+	db.$O\
+	ping.$O\
+
+HFILES=dat.h ../dhcp.h ../icmp.h
+
+BIN=/$objtype/bin/ip
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${DOFILES:%.$O=%.c}\
+	${IOFILES:%.$O=%.c}\
+
+</sys/src/cmd/mkmany
+
+$O.dhcpd: $DOFILES
+	$LD -o $target $DOFILES
+
+$O.dhcpleases: $IOFILES
+	$LD -o $target $IOFILES
+
+$O.testping: testping.$O ping.$O
+	$LD -o $target $prereq
+

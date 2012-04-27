@@ -1,0 +1,98 @@
+</$objtype/mkfile
+
+LIBS=\
+	lib9p\
+	libString\
+	libauth\
+	libauthsrv\
+	libavl\
+	libbin\
+	libbio\
+	libc\
+	libcomplete\
+	libcontrol\
+	libdisk\
+	libdraw\
+	liberror\
+	libflate\
+	libframe\
+	libgeometry\
+	libhtml\
+	libhttpd\
+	libip\
+	liblex\
+	libmach\
+	libmemdraw\
+	libmemlayer\
+	libmp\
+	libndb\
+	liboventi\
+	libplumb\
+	libregexp\
+	libscribble\
+	libsec\
+	libseg\
+	libstdio\
+	libsunrpc\
+	libthread\
+	libtube\
+	libventi\
+	libworker\
+
+CMDS=cmd\
+	games\
+
+SUBSYS=ape\
+	/acme\
+
+none:VQ:
+	echo mk all, install, clean, nuke, release, kernels, or libs
+
+all install clean nuke:VQ:
+	date
+	for (i in $LIBS $SUBSYS $CMDS) @{
+		cd $i
+		echo cd $i
+		mk $target
+	}
+	date
+
+installall:V:
+	echo "installall not supported"
+
+release:V:
+	mk nuke
+	rm -f /$objtype/lib/ape/*.a
+	rm -f /$objtype/lib/*.a
+	mk install
+	mk clean
+
+kernels:V:
+	for (i in 9 boot) @{
+		cd $i
+		mk clean
+		mk install
+		mk clean
+	}
+
+libs:V:
+	date
+	for (i in $LIBS) @{
+		cd $i
+		mk clean
+		mk install
+		mk clean
+	}
+	date
+
+cleanlibs:V:
+	for (i in $LIBS) @{
+		cd $i
+		mk clean
+	}
+
+updatelibs:V:
+	for (i in $LIBS) @{
+		cd $i
+		mk update
+	}

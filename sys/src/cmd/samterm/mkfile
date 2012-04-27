@@ -1,0 +1,36 @@
+</$objtype/mkfile
+
+TARG=samterm
+OFILES=main.$O\
+	icons.$O\
+	menu.$O\
+	mesg.$O\
+	rasp.$O\
+	scroll.$O\
+	flayer.$O\
+	io.$O\
+	plan9.$O\
+
+HFILES=samterm.h\
+	flayer.h\
+	/sys/include/frame.h\
+
+LIB=	/$objtype/lib/libdraw.a\
+	/$objtype/lib/libframe.a\
+
+BIN=/$objtype/bin/aux
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+
+</sys/src/cmd/mkone
+
+CFLAGS=-I../sam $CFLAGS
+
+mesg.$O:	../sam/mesg.h
+
+syms:V:
+	$CC -a $CFLAGS main.c		 > syms
+	for(i in *.c) $CC -aa $CFLAGS $i >> syms

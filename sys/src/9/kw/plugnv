@@ -1,0 +1,83 @@
+# plugnv - sheeva plug, openrd-client, guruplug, dreamplug and others based on
+#	marvell's kirkwood soc.  includes compiled-in nvram.
+dev
+	root
+	cons
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	rtc
+	arch
+	ssl
+	tls
+	cap
+	kprof
+	aoe
+	sd
+	fs
+	flash
+	twsi
+#	pnp		pci
+
+	ether		netif
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum inferno
+
+##	draw		screen vga vgax
+##	mouse		mouse
+##	vga
+#	kbmap
+##	kbin
+
+	uart
+	usb
+
+link
+	ether1116	ethermii
+	archkw
+	ethermedium
+# no flash yet for guruplug nor dreamplug; it keeps changing, and
+# on the dreamplug, flash is spi instead of nand.
+	flashkw		ecc
+	loopbackmedium
+	netdevmedium
+	usbehci		usbehcikw
+
+ip
+	tcp
+	udp
+	ipifc
+	icmp
+	icmp6
+	ipmux
+
+misc
+	rdb
+	coproc
+	sdaoe		sdscsi
+	softfpu
+	syscall
+	uartkw
+	ucalloc
+##	vgavesa
+
+port
+	int cpuserver = 1;
+	int i8250freq = 3686000;
+
+boot cpu
+	tcp
+#	paq
+
+bootdir
+	boot$CONF.out boot
+	/arm/bin/ip/ipconfig
+	/arm/bin/auth/factotum
+#	/arm/bin/paqfs
+	/arm/bin/usb/usbd
+# compiled-in nvram is a hack and only needed if flash is inaccessible,
+# usb won't work, and we don't have coraid access.  it should not be used
+# on outside machines.
+	nvram

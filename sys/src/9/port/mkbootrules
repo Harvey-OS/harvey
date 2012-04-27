@@ -1,0 +1,59 @@
+#!/bin/rc
+
+rfork e
+if(~ $#CONF 0)
+	CONF=$1
+awk -v 'objtype='$objtype -v 'CONF='$CONF '
+BEGIN { nfs = 0 }
+/^$/{
+	next;
+}
+/^#/{
+	next;
+}
+collect && /^[^ \t]/{
+	collect = 0;
+}
+collect && section ~ "bootdir" {
+	if(NF >= 2)
+		x = $2;
+	else{
+		x = $1;
+		sub(/.*\//, "", x);
+	}
+	fsname[nfs] = x;
+	x = $1;
+	gsub(/[^a-zA-Z0-9_]/, "_", x);
+	fs[nfs] = x;
+	file[nfs] = $1;
+	nfs++;
+}
+$0 ~ /^[^ \t]/{
+	if($0 ~ "bootdir"){
+		section = $0;
+		collect = 1;
+	}
+	next;
+}
+
+END{
+	printf "%s.root.s:D:", CONF;
+	for(i=0; i<nfs; i++)
+		printf " %s", file[i];
+	printf "\n";
+	printf "\t../port/mkrootall \\\n";
+	for(i=0; i<nfs; i++)
+		printf "\t\t%s %s %s\\\n", fsname[i], fs[i], file[i];
+	printf "\t>$target\n";
+
+	printf "%s.rootc.c:D:", CONF;
+	for(i=0; i<nfs; i++)
+		printf " %s", file[i];
+	printf "\n";
+	printf "\t../port/mkrootc \\\n";
+	for(i=0; i<nfs; i++)
+		printf "\t\t%s %s %s\\\n", fsname[i], fs[i], file[i];
+	printf "\t>$target\n";
+}
+
+' $*

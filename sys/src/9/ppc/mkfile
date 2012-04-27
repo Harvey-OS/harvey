@@ -1,0 +1,108 @@
+CONF=ucu
+CONFLIST=blast ucu
+
+loadaddr = 0x80100000
+
+objtype=power
+</$objtype/mkfile
+p=9
+
+DEVS=`{rc ../port/mkdevlist $CONF}
+
+PORT=\
+	alarm.$O\
+	alloc.$O\
+	allocb.$O\
+	auth.$O\
+	cache.$O\
+	chan.$O\
+	dev.$O\
+	edf.$O\
+	fault.$O\
+	latin1.$O\
+	log.$O\
+	rebootcmd.$O\
+	page.$O\
+	parse.$O\
+	pgrp.$O\
+	portclock.$O\
+	print.$O\
+	proc.$O\
+	qio.$O\
+	qlock.$O\
+	rdb.$O\
+	segment.$O\
+	swap.$O\
+	sysfile.$O\
+	sysproc.$O\
+	taslock.$O\
+	tod.$O\
+	xalloc.$O\
+
+OBJ=\
+	l.$O\
+	clock.$O\
+	main.$O\
+	mmu.$O\
+	random.$O\
+	trap.$O\
+	$CONF.root.$O\
+	$CONF.rootc.$O\
+	$DEVS\
+	$PORT\
+
+HFILES=\
+	dat.h\
+	errstr.h\
+	etherif.h\
+	fns.h\
+	init.h\
+	io.h\
+	mem.h\
+
+LIB=\
+	/$objtype/lib/libmemlayer.a\
+	/$objtype/lib/libmemdraw.a\
+	/$objtype/lib/libdraw.a\
+	/$objtype/lib/libc.a\
+	/$objtype/lib/libsec.a\
+
+ETHER=`{echo devether.c ether*.c | sed 's/\.c/.'$O'/g'}
+VGA=`{echo devvga.c screen.c vga*.c | sed 's/\.c/.'$O'/g'}
+SDEV=`{echo devsd.c sd*.c | sed 's/\.c/.'$O'/g'}
+
+CFLAGS=$CFLAGS -D$CONF'conf='$CONF
+AFLAGS=$AFLAGS -D$CONF'conf='$CONF
+
+it:V: $p$CONF
+
+9blast:	$CONF.c $OBJ $LIB
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	$LD -o $target -T$loadaddr -R4096 -l $OBJ $CONF.$O $LIB
+	size $p$CONF
+
+9ucu:	$CONF.c $OBJ $LIB
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	$LD -R0x1000 -H5 -o $target -T$loadaddr -l $OBJ $CONF.$O $LIB
+
+install:V: $p$CONF
+	cp $p$CONF /$objtype/$p$CONF
+
+<../boot/bootmkfile
+<../port/portmkfile
+<|../port/mkbootrules $CONF
+
+clock.$O devether.$O main.$O trap.$O:	/$objtype/include/ureg.h
+
+%.$O:	$HFILES
+
+$ETHER: 			etherif.h ../port/netif.h
+
+init.h:	../port/initcode.c init9.s
+	$CC ../port/initcode.c
+	$AS init9.s
+	$LD -l -s -R4 -o init.out init9.$O initcode.$O /power/lib/libc.a
+	{echo 'uchar initcode[]={'
+	 strip < init.out | xd -1x |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > init.h

@@ -1,0 +1,37 @@
+</$objtype/mkfile
+
+TARG=ipconfig\
+
+OFILES=\
+	main.$O\
+	ipv6.$O\
+	ppp.$O\
+
+HFILES=\
+	../dhcp.h\
+	../icmp.h\
+	ipconfig.h\
+	/sys/include/ip.h\
+
+BIN=/$objtype/bin/ip
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+
+</sys/src/cmd/mkone
+
+safeinstall:V: $O.out
+	if(test -e $BIN/___ipconfig)
+		mv $BIN/___ipconfig $BIN/____ipconfig
+	if(test -e $BIN/__ipconfig)
+		mv $BIN/__ipconfig $BIN/___ipconfig
+	if(test -e $BIN/_ipconfig)
+		mv $BIN/_ipconfig $BIN/__ipconfig
+	mv $BIN/ipconfig $BIN/_ipconfig
+	cp $O.out $BIN/ipconfig
+
+safeinstallall:V:
+	for (objtype in $CPUS)
+		mk safeinstall

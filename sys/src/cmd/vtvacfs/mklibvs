@@ -1,0 +1,3 @@
+#!/bin/rc
+cp /sys/src/cmd/venti/srv/libvs.a$O .
+ar d libvs.a$O cache.o

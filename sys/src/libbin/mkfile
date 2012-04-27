@@ -1,0 +1,16 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libbin.a
+OFILES=\
+	bin.$O\
+
+HFILES=\
+	/sys/include/bin.h\
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
+
+</sys/src/cmd/mksyslib

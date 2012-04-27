@@ -1,0 +1,16 @@
+objtype=amd64
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libseg.a
+OFILES=\
+	seg.$O\
+
+HFILES=/sys/include/seg.h
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
+
+</sys/src/cmd/mksyslib

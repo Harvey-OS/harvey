@@ -1,0 +1,24 @@
+</$objtype/mkfile
+
+TARG=9660srv
+
+OFILES=\
+	main.$O\
+	9660srv.$O\
+	xfile.$O\
+	iobuf.$O\
+	data.$O\
+
+HFILES=dat.h fns.h
+BIN=/$objtype/bin
+
+UPDATE=\
+	mkfile\
+	${OFILES:%.$O=%.c}\
+	$HFILES\
+
+</sys/src/cmd/mkone
+
+$O.out:
+
+9660srv.$O: iso9660.h

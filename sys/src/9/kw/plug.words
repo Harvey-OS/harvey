@@ -1,0 +1,97 @@
+global scale sheevaplug & guruplug
+
+marvell 88f6281 (feroceon kirkwood) SoC
+arm926ej-s rev 1 [56251311] (armv5tejl) 1.2GHz cpu
+
+l1 I & D VIVT caches 16K each: 4-way, 128 sets, 32-byte lines
+	l1 D is write-through, l1 I is write-back
+unified l2 PIPT cache 256K: 4-way, 2048 sets, 32-byte lines
+	potentially 512K: 8-way
+
+apparently the mmu walks the page tables in dram and won't look in the
+l2 cache.  there is no hardware cache coherence, thus the l1 caches
+need to be flushed or invalidated when mmu mappings change, but l2
+only needs to be flushed or invalidated around dma operations and page
+table changes, and only the affected dma buffers and descriptors or
+page table entries need to be flushed or invalidated in l2.
+
+we arrange that device registers are uncached.
+
+be aware that cache operations act on cache lines (of CACHELINESZ
+bytes) as atomic units, so if you invalidate one word of a cache line,
+you invalidate the entire cache line, whether it's been written back
+(is clean) or not (is dirty).  mixed data structures with parts
+maintained by hardware and other parts by software are especially
+tricky.  we try to pad the initial hardware parts so that the software
+parts start in a new cache line.
+
+there are no video controllers so far, so this port is a cpu
+kernel only.
+
+512MB of dram at physical address 0
+512MB of nand flash
+16550 uart for console
+see http://www.marvell.com/files/products/embedded_processors/kirkwood/\
+	FS_88F6180_9x_6281_OpenSource.pdf, stored locally as
+	/public/doc/marvell/88f61xx.kirkwood.pdf
+
+If you plan to use flash, it would be wise to avoid touching the first
+megabyte, which contains u-boot, right up to 0x100000.  There's a
+linux kernel from there to 0x400000, if you care.  You'll also likely
+want to use paqfs rather than fossil or kfs for file systems in flash
+since there is no wear-levelling.
+
+The code is fairly heavy-handed with the use of barrier instructions
+(BARRIERS in assembler, coherence in C), partly in reaction to bad
+experience doing Power PC ports, but also just as precautions against
+modern processors, which may feel free to execute instructions out of
+order or some time later, store to memory out of order or some time
+later, otherwise break the model of traditional sequential processors,
+or any combination of the above.
+
+this plan 9 port is based on the port of native inferno to the
+sheevaplug by Salva Peiró (saoret.one@gmail.com) and Mechiel Lukkien
+(mechiel@ueber.net).
+
+___
+
+# type this once at u-boot, replacing 00504301c49e with your plug's
+# mac address; thereafter the plug will pxe boot:
+setenv bootdelay 2
+setenv bootcmd 'bootp; bootp; tftp 0x1000 /cfg/pxe/00504301c49e; bootp; tftp 0x800000; go 0x800000'
+saveenv
+
+# see /cfg/pxe/example-kw
+
+
+	physical mem map
+
+hex addr size	what
+----
+0	 512MB	sdram
+c8010000 2K	cesa sram
+
+	virtual mem map (from cpu address map & mmu mappings)
+
+hex addr size	what
+----
+0	 512MB	user process address space
+60000000 512MB	kzero, mapped to 0
+90000000 256MB	pcie mem	# identity mapped by u-boot
+d0000000 1MB	internal regs default address at reset
+d8000000 128MB	nand flash	# 512MB addressed through this (guru)
+f0000000 16MB	pcie i/o	# mapped to 0xc0000000 by u-boot
+f1000000 1MB 	internal regs (on-chip devices) as mapped by u-boot
+f1000000 64K	dram regs
+f1010000 64K	uart, flashes, rtc, gpio, etc.
+f1030000 64K	crypto accelerator (cesa)
+f1040000 64K	pcie regs
+f1050000 64K	usb otg regs (ehci-like)
+f1070000 64K	gbe regs
+f1080000 64K	non-ahci sata regs
+f1090000 64K	sdio regs
+f8000000 16MB	spi flash	# mapped to 0 by u-boot
+f9000000 8MB	nand flash	# identity mapped by u-boot (sheeva/openrd)
+fb000000 64KB	crypto engine	# identity mapped by u-boot
+ff000000 16MB	boot rom	# identity mapped by u-boot
+... 		as per physical map

@@ -1,0 +1,37 @@
+#!/bin/rc
+
+switch($#*){
+case [012]
+	echo usage: mkextract [-u] field n file... >[1=2]
+	exit 1
+}
+
+switch($1){
+case -u
+	flag=$1; shift
+case *
+	flag=''
+}
+
+field=$1
+n=$2
+shift 2
+
+fn select {
+	awk '
+
+		BEGIN			{ doprint=0 }
+		/^$/			{ next }
+		/^#/			{ next }
+		doprint && /^[^	]/	{ doprint=0 }
+		doprint			{ print $'^$n^' }
+		$1 ~ "^'^$field^'$"	{ doprint=1; next }
+	' $*
+}
+
+switch($flag){
+case -u
+	select $* | sort -u
+case *
+	select $*
+}

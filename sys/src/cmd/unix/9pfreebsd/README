@@ -1,0 +1,134 @@
+
+This package implements Plan 9's IL and 9fs client for FreeBSD 3.2.
+
+> Getting the software
+
+  9pfreebsd.tgz
+
+> Installation
+
+  0. unpack:
+	mkdir ~/9pfreebsd
+	cd ~/9pfreebsd
+	zcat 9pfreebsd.tgz | tar -xf -
+
+     this creates the file freebsd-3.2.il-kernel.patch and the
+     directory mount_9fs.
+
+  1. get a fresh copy of the kernel. for example:
+	cp -r /usr/src/sys ~/9pfreebsd/freebsd-3.2
+
+  2. apply the patch:
+	cd ~/9pfreebsd/freebsd-3.2
+	patch -p0 < ../freebsd-3.2.il-kernel.patch
+
+  3. build a new kernel:
+	cd ~/9pfreebsd/freebsd-3.2/i386/conf
+	config IL
+	cd ../../compile/IL; make depend; make
+
+  4. boot the new kernel:
+	cp -p /kernel /kernel.good
+	cp ~/9pfreebsd/freebsd-3.2/compile/IL/kernel /kernel
+	reboot
+
+  5. build mount_9fs:
+	cd ~/9pfreebsd; make
+
+> Using IL
+
+  1. connect via IL:
+
+	  if( (s = socket(AF_INET, SOCK_SEQPACKET, IPPROTO_IL)) < 0 ) {
+	    perror("socket");    
+	    exit(1);
+	  }
+	
+	  bzero(&sin, sizeof(sin));
+	  sin.sin_family = AF_INET;
+	  sin.sin_addr.s_addr = dest_addr;
+	  sin.sin_port = htons(dest_port);
+	  if( connect(s, (struct sockaddr *)&sin, sizeof(sin)) < 0 ) {
+	    perror("connect");
+	    exit(1);
+	  }
+
+  2. listen via IL:
+
+	  if( (s = socket(AF_INET, SOCK_SEQPACKET, IPPROTO_IL)) < 0 ) {
+	    perror("socket");    
+	    exit(1);
+	  }
+	
+	  bzero(&sin, sizeof(sin));
+	  sin.sin_family = AF_INET;
+	  sin.sin_addr.s_addr = INADDR_ANY;
+	  sin.sin_port = htons(port_number);
+	
+	  if( bind(s, (struct sockaddr *)&sin, sizeof(sin)) < 0 ) {
+	    perror("bind");
+	    exit(1);
+	  }
+	
+	  if( listen(s, 5) < 0 ) {
+	    perror("listen");
+	    exit(1);
+	  }
+	
+	  len = sizeof(sin);
+	  if ( (c = accept(s, (struct sockaddr *)& sin, &len)) < 0 ) {
+	    perror("accept");
+	    exit(1);
+	  }
+  
+
+> Using 9fs 
+
+  1. limitations:
+
+     The current implementation is mostly tested with a single user on
+     the client. No one else can access the mounted file system except
+     the authenticator. But two users can mount the same file system
+     on the client with different nodes. This is not yet tested much.
+
+  2. mapping plan9 usernames to UNIX uids
+
+     Mount_9fs requires a translation between plan9 usernames and UNIX
+     uids. /etc/9uid.conf contains the map. The format is:
+
+		plan9_username	unix_uid
+
+     Not all plan9 users have to have an UNIX account on the
+     client. Just give them a unique uid which can be non-existent in
+     /etc/passwd.
+
+  3. mounting 9fs:
+
+     To mount by a regular user, the root has to set vfs.usermount to 1
+     first (sysctl -w vfs.usermount=1). Then follow the steps below.
+
+     To mount by root:
+	
+	mount_9fs -u 9user@9auth_server 9fileserver:path node
+
+     This mounts "path" on 9fileserver on local "node" on behalf of
+     "9user". Plan9 authentication server "9auth_server" is
+     contacted to obtain a ticket.
+
+     mount_9fs will prompt for "9username"'s plan9 password.
+
+     umount works as usual.
+
+     Only the caller of mount_9fs has access to the mounted file system.
+
+  4. WARNING:
+
+     The password is stored in kernel memory and can be read via kmem.
+
+> Bugs and Fixes:
+
+  You are welcome to contact dong@research.bell-labs.com for bug
+  reports and fixes.
+
+
+

@@ -1,0 +1,28 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libregexp.a
+OFILES=\
+	regcomp.$O\
+	regerror.$O\
+	regexec.$O\
+	regsub.$O\
+	regaux.$O\
+	rregexec.$O\
+	rregsub.$O\
+
+HFILES=/sys/include/regexp.h\
+	regcomp.h\
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
+
+</sys/src/cmd/mksyslib
+
+test: test.$O $OFILES
+	$LD -o test $prereq
+
+test2: test2.$O $OFILES
+	$LD -o test2 $prereq

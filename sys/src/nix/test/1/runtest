@@ -1,0 +1,12 @@
+#!/bin/rc
+
+rfork ne
+
+# import rc functions popular among scripts, e.g. fail
+#
+. ../tools
+
+# make sure we have 32 cores running
+ncores=`{wc -l /dev/sysstat | sed 's,/.*,,'}
+~ $ncores 32 || fail does not have 32 cores
+

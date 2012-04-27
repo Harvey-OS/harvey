@@ -1,0 +1,51 @@
+</$objtype/mkfile
+
+MYLIBFILES=\
+	vacfile\
+#	patch\
+	vacfs\
+	vtfile\
+	vtcache
+
+#V=/sys/src/libventi
+#VC=/sys/src/cmd/venti/srv
+#
+#VLIB=${V}/file.$O\
+#	${VC}/trace.$O\
+#	${VC}/utils.$O\
+#	${VC}/stats.$O\
+#	${VC}/icache.$O\
+#	${VC}/httpd.$O\
+#	${VC}/index.$O\
+#	${VC}/clump.$O\
+#	${VC}/zblock.$O\
+#	${VC}/graph.$O\
+#	${VC}/ifile.$O\
+
+VLIB=/sys/src/cmd/venti/srv/libvs.a$O
+
+LIB=${MYLIBFILES:%=%.$O} ${VLIB} /sys/src/cmd/vac/pack.$O /sys/src/cmd/vac/error.$O
+
+HFILES=\
+	/sys/include/venti.h\
+	/sys/src/cmd/vac/stdinc.h\
+	/sys/src/cmd/vac/vac.h\
+	/sys/src/cmd/vac/dat.h\
+	/sys/src/cmd/vac/fns.h\
+	/sys/src/cmd/vac/error.h\
+
+TARG=vtvacfs
+BIN=/$objtype/bin
+
+CFILES=${TARG:%=%.c} ${MYLIBFILES:%=%.c}
+
+UPDATE=\
+	mkfile\
+	$CFILES\
+	$HFILES\
+	${TARG:%=/386/bin/%}
+
+default:V: all
+
+</sys/src/cmd/mkmany
+

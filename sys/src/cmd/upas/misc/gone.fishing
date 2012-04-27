@@ -1,0 +1,19 @@
+#!/bin/rc
+# gone.fishing local!$user /mail/box/$user/mbox - vacation responder
+#	as pipeto script
+
+# standard library.  saves the message on standard input in $TMP.msg and
+# parses it into /mail/fs/mbox/1.
+. /mail/lib/pipeto.lib $*
+
+{cat $TMP.msg; echo} >>/mail/box/$USER/gone.mail
+
+message=/mail/box/$USER/gone.msg
+if (! test -e $message)
+	message=/mail/lib/gone.msg
+
+MAILTO=`{cat $D/replyto}
+grep '^'$"MAILTO'$' /mail/box/$USER/gone.addrs >/dev/null >[2=1] || {
+	echo $MAILTO >>/mail/box/$USER/gone.addrs
+	mail $MAILTO <$message
+}

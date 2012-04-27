@@ -1,0 +1,75 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libdraw.a
+
+OFILES=\
+	alloc.$O\
+	allocimagemix.$O\
+	arith.$O\
+	bezier.$O\
+	border.$O\
+	buildfont.$O\
+	bytesperline.$O\
+	chan.$O\
+	cloadimage.$O\
+	computil.$O\
+	creadimage.$O\
+	debug.$O\
+	defont.$O\
+	draw.$O\
+	drawrepl.$O\
+	egetrect.$O\
+	ellipse.$O\
+	emenuhit.$O\
+	event.$O\
+	fmt.$O\
+	font.$O\
+	freesubfont.$O\
+	getdefont.$O\
+	getrect.$O\
+	getsubfont.$O\
+	icossin.$O\
+	icossin2.$O\
+	init.$O\
+	keyboard.$O\
+	line.$O\
+	menuhit.$O\
+	mkfont.$O\
+	mouse.$O\
+	newwindow.$O\
+	openfont.$O\
+	poly.$O\
+	loadimage.$O\
+	readcolmap.$O\
+	readimage.$O\
+	readsubfont.$O\
+	rectclip.$O\
+	replclipr.$O\
+	rgb.$O\
+	scroll.$O\
+	string.$O\
+	stringbg.$O\
+	stringsubfont.$O\
+	stringwidth.$O\
+	subfont.$O\
+	subfontcache.$O\
+	subfontname.$O\
+	unloadimage.$O\
+	window.$O\
+	writecolmap.$O\
+	writeimage.$O\
+	writesubfont.$O\
+
+HFILES=\
+	/sys/include/draw.h\
+	/sys/include/event.h\
+	/sys/include/mouse.h\
+	/sys/include/keyboard.h
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
+
+</sys/src/cmd/mksyslib

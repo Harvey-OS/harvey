@@ -1,0 +1,46 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libc.a
+
+OFILES=\
+	dofmt.$O\
+	dorfmt.$O\
+	errfmt.$O\
+	fltfmt.$O\
+	fmt.$O\
+	fmtfd.$O\
+	fmtlock.$O\
+	fmtprint.$O\
+	fmtquote.$O\
+	fmtrune.$O\
+	fmtstr.$O\
+	fmtvprint.$O\
+	fprint.$O\
+	print.$O\
+	runefmtstr.$O\
+	runeseprint.$O\
+	runesmprint.$O\
+	runesnprint.$O\
+	runesprint.$O\
+	runevseprint.$O\
+	runevsmprint.$O\
+	runevsnprint.$O\
+	seprint.$O\
+	smprint.$O\
+	snprint.$O\
+	sprint.$O\
+	vfprint.$O\
+	vseprint.$O\
+	vsmprint.$O\
+	vsnprint.$O\
+
+HFILES=/sys/include/libc.h\
+	fmtdef.h\
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}
+
+</sys/src/cmd/mksyslib
+

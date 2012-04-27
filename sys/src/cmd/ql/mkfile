@@ -1,0 +1,28 @@
+</$objtype/mkfile
+
+TARG=ql
+OFILES=\
+	asm.$O\
+	asmout.$O\
+	list.$O\
+	noop.$O\
+	obj.$O\
+	optab.$O\
+	pass.$O\
+	span.$O\
+	enam.$O\
+	cnam.$O\
+	sched.$O\
+	compat.$O\
+
+HFILES=\
+	l.h\
+	../qc/q.out.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+enam.$O:	../qc/enam.c
+	$CC $CFLAGS ../qc/enam.c
+cnam.c:	l.h
+	rc mkcname

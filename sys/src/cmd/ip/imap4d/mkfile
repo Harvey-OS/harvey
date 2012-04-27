@@ -1,0 +1,31 @@
+</$objtype/mkfile
+
+OFILES=\
+	auth.$O\
+	copy.$O\
+	csquery.$O\
+	date.$O\
+	fetch.$O\
+	imap4d.$O\
+	list.$O\
+	mbox.$O\
+	msg.$O\
+	mutf7.$O\
+	nodes.$O\
+	folder.$O\
+	search.$O\
+	store.$O\
+	utils.$O\
+	debug.$O\
+
+HFILES=imap4d.h\
+	fns.h\
+
+TARG=imap4d
+BIN=/$objtype/bin/ip
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+
+</sys/src/cmd/mkone

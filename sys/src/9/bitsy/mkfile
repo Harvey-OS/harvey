@@ -1,0 +1,140 @@
+CONF=bitsy
+CONFLIST=bitsy
+
+objtype=arm
+</$objtype/mkfile
+p=9
+
+DEVS=`{rc ../port/mkdevlist $CONF}
+
+PORT=\
+	alarm.$O\
+	alloc.$O\
+	allocb.$O\
+	auth.$O\
+	cache.$O\
+	chan.$O\
+	dev.$O\
+	edf.$O\
+	fault.$O\
+	latin1.$O\
+	mul64fract.$O\
+	rebootcmd.$O\
+	page.$O\
+	parse.$O\
+	pgrp.$O\
+	portclock.$O\
+	print.$O\
+	proc.$O\
+	qio.$O\
+	qlock.$O\
+	segment.$O\
+	swap.$O\
+	sysfile.$O\
+	sysproc.$O\
+	taslock.$O\
+	tod.$O\
+	xalloc.$O\
+
+OBJ=\
+	l.$O\
+	clock.$O\
+	defont.$O\
+	fpi.$O\
+	fpiarm.$O\
+	fpimem.$O\
+	main.$O\
+	mmu.$O\
+	power.$O\
+	random.$O\
+	sa1110dma.$O\
+	screen.$O\
+	trap.$O\
+	$CONF.root.$O\
+	$CONF.rootc.$O\
+	$DEVS\
+	$PORT\
+
+LIB=\
+	/$objtype/lib/libmemlayer.a\
+	/$objtype/lib/libmemdraw.a\
+	/$objtype/lib/libdraw.a\
+	/$objtype/lib/libip.a\
+	/$objtype/lib/libc.a\
+	/$objtype/lib/libsec.a\
+	/$objtype/lib/libip.a\
+
+size:VQ: $p$CONF
+	ls -l $p$CONF|sed 's/^[^ ]+ [^ ]+ [^ ]+ [^ ]+ [^ ]+ ([^ ]+).*/load ram 0xc0008000 \1/'
+	echo load kernel
+	echo !xms /sys/src/9/bitsy/^$p$CONF
+	echo jump 0xc0008010
+
+acid:VQ:
+	echo acid -lmap s9bitsy
+
+$p$CONF:	$OBJ $CONF.c $LIB /arm/inflate
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	$LD -o $target -H5 -R4 -T0xC0008010 -l $OBJ $CONF.$O $LIB
+	$LD -o s$target -R4 -T0xC0008010 -l $OBJ $CONF.$O $LIB
+	gzip $target
+	cat /arm/inflate $target.gz > $target
+	echo the boot loader misses the last 12 bytes >> $target
+	rm $target.gz
+
+install:V:	$p$CONF paqdisk
+	if(test -d /n/once/arm){
+		cp $p$CONF /n/once/arm/$p$CONF
+		cp s$p$CONF /n/once/arm/s$p$CONF
+		cp paqdisk /n/once/arm/paqdisk
+	}
+	if not
+		status=''
+	# 9fs lookout && cp $p$CONF /n/lookout/$objtype/$p$CONF
+
+installkern:V:	$p$CONF
+	cp $p$CONF /$objtype/$p$CONF
+	cp s$p$CONF /$objtype/s$p$CONF
+
+<../boot/bootmkfile
+<../port/portmkfile
+<|../port/mkbootrules $CONF
+
+init.h:D:	../port/initcode.c init9.s
+	$CC ../port/initcode.c
+	$AS init9.s
+	$LD -l -R1 -s -o init.out init9.$O initcode.$O /arm/lib/libc.a
+	{echo 'uchar initcode[]={'
+	 xd -1x <init.out |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > init.h
+
+clock.$O:	/$objtype/include/ureg.h
+devether.$O:	/$objtype/include/ureg.h ../port/netif.h
+devpcmcia.$O:	/$objtype/include/ureg.h
+fpi.$O:		fpi.h
+fpiarm.$O:	/$objtype/include/ureg.h fpi.h
+fpimem.$O:	fpi.h
+main.$O:	/$objtype/include/ureg.h errstr.h init.h
+mmu.$O:		/$objtype/include/ureg.h
+power.$O:	/$objtype/include/ureg.h
+scu.$O:		/$objtype/include/ureg.h
+sa1110dma.$O:	/$objtype/include/ureg.h
+screen.$O:	gamma.h
+sdata.$O:	/$objtype/include/ureg.h
+trap$O:		/$objtype/include/ureg.h
+wavelan.$O:	/$objtype/include/ureg.h wavelan.c wavelan.h ../pc/wavelan.h
+
+paqdisk:V:
+	rm -fr armpaq
+	mkdir armpaq
+	cd armpaq
+	disk/mkfs -d . /sys/lib/sysconfig/proto/armpaqproto
+	mkpaqfs -o ../paqdisk
+	cd ..
+	echo load ramdisk
+	echo !xms /sys/src/9/bitsy/paqdisk
+
+bitsy.clean:
+	rm -rf armpaq $p$CONF s$p$CONF paqdisk $CONF.c boot$CONF.c ../boot/libboot.a5
+

@@ -1,0 +1,39 @@
+</$objtype/mkfile
+
+TARG=usbd
+OFILES=\
+	usbd.$O\
+	dev.$O\
+	devtab.$O\
+
+HFILES=\
+	usbd.h\
+	../lib/usb.h\
+	../lib/usbfs.h\
+
+LIBD=../lib/usbdev.a$O
+LIBU=../lib/usb.a$O
+LIB=\
+	$LIBD\
+	$LIBU\
+
+UPDATE=\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	mkfile\
+	/sys/man/3/usb\
+
+BIN=/$objtype/bin/usb
+</sys/src/cmd/mkone
+
+CFLAGS=-I../lib $CFLAGS
+CLEANFILES=devtab.c
+
+$LIBU:
+	cd ../lib
+	mk install
+	mk clean
+
+devtab.c: usbdb ../lib/usb.h mkdev
+	mkdev >$target
+

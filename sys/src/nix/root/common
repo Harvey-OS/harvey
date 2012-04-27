@@ -1,0 +1,303 @@
+#
+#	The master for this file is /n/fs/lib/ndb/common
+#
+
+#
+# real dns root server ips
+#
+dom=A.ROOT-SERVERS.NET ip=198.41.0.4
+dom=B.ROOT-SERVERS.NET ip=128.9.0.107
+dom=C.ROOT-SERVERS.NET ip=192.33.4.12
+dom=D.ROOT-SERVERS.NET ip=128.8.10.90
+dom=E.ROOT-SERVERS.NET ip=192.203.230.10
+dom=F.ROOT-SERVERS.NET ip=192.5.5.241
+dom=G.ROOT-SERVERS.NET ip=192.112.36.4
+dom=H.ROOT-SERVERS.NET ip=128.63.2.53
+dom=I.ROOT-SERVERS.NET ip=192.36.148.17
+dom=J.ROOT-SERVERS.NET ip=198.41.0.10
+dom=K.ROOT-SERVERS.NET ip=193.0.14.129
+dom=L.ROOT-SERVERS.NET ip=198.32.64.12	# old
+			ip=199.7.83.42	# new, nov 2007
+dom=M.ROOT-SERVERS.NET ip=202.12.27.33
+
+dom=a.gtld-servers.net ip=192.5.6.30
+dom=b.gtld-servers.net ip=192.33.14.30
+dom=c.gtld-servers.net ip=192.26.92.30
+dom=d.gtld-servers.net ip=192.31.80.30
+dom=e.gtld-servers.net ip=192.12.94.30
+dom=f.gtld-servers.net ip=192.35.51.30
+dom=g.gtld-servers.net ip=192.42.93.30
+dom=h.gtld-servers.net ip=192.54.112.30
+dom=i.gtld-servers.net ip=192.43.172.30
+dom=j.gtld-servers.net ip=192.48.79.30
+dom=k.gtld-servers.net ip=192.52.178.30
+dom=l.gtld-servers.net ip=192.41.162.30
+dom=m.gtld-servers.net ip=192.55.83.30
+
+#
+# spam defense.  unfortunately, arin doesn't give negative
+# rcodes for these non-routable addresses.  we'll do it for them.
+#
+dom=10.in-addr.arpa soa=		# rfc1918 zones
+	dom=16.172.in-addr.arpa soa=
+	dom=17.172.in-addr.arpa soa=
+	dom=18.172.in-addr.arpa soa=
+	dom=19.172.in-addr.arpa soa=
+	dom=20.172.in-addr.arpa soa=
+	dom=21.172.in-addr.arpa soa=
+	dom=22.172.in-addr.arpa soa=
+	dom=23.172.in-addr.arpa soa=
+	dom=24.172.in-addr.arpa soa=
+	dom=25.172.in-addr.arpa soa=
+	dom=26.172.in-addr.arpa soa=
+	dom=27.172.in-addr.arpa soa=
+	dom=28.172.in-addr.arpa soa=
+	dom=29.172.in-addr.arpa soa=
+	dom=30.172.in-addr.arpa soa=
+	dom=31.172.in-addr.arpa soa=
+	dom=168.192.in-addr.arpa soa=
+	dom=0.in-addr.arpa soa=		# rfc3330 zones
+	dom=127.in-addr.arpa soa=
+	dom=254.169.in-addr.arpa soa=
+	dom=2.0.192.in-addr.arpa soa=
+	dom=255.255.255.255.in-addr.arpa soa=
+	dom=d.f.ip6.arpa soa=		# rfc4193 recommendation
+	dom=0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa soa= # rfc4291 zones
+	dom=1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa soa=
+	dom=8.e.f.ip6.arpa soa=
+	dom=9.e.f.ip6.arpa soa=
+	dom=a.e.f.ip6.arpa soa=
+	dom=b.e.f.ip6.arpa soa=
+	refresh=3600 ttl=3600
+	ns=ns1.cs.bell-labs.com
+	ns=ns2.cs.bell-labs.com
+
+#
+#  ip protocol numbers
+#
+protocol=reserved	ipv4proto=0
+protocol=icmp		ipv4proto=1
+protocol=igmp		ipv4proto=2
+protocol=ggp		ipv4proto=3
+protocol=ip		ipv4proto=4
+protocol=st		ipv4proto=5
+protocol=tcp		ipv4proto=6
+protocol=ucl		ipv4proto=7
+protocol=egp		ipv4proto=8
+protocol=igp		ipv4proto=9
+protocol=bbn-rcc-mon	ipv4proto=10
+protocol=nvp-ii		ipv4proto=11
+protocol=pup		ipv4proto=12
+protocol=argus		ipv4proto=13
+protocol=emcon		ipv4proto=14
+protocol=xnet		ipv4proto=15
+protocol=chaos		ipv4proto=16
+protocol=udp		ipv4proto=17
+protocol=mux		ipv4proto=18
+protocol=dcn-meas	ipv4proto=19
+protocol=hmp		ipv4proto=20
+protocol=prm		ipv4proto=21
+protocol=xns-idp	ipv4proto=22
+protocol=trunk-1	ipv4proto=23
+protocol=trunk-2	ipv4proto=24
+protocol=leaf-1		ipv4proto=25
+protocol=leaf-2		ipv4proto=26
+protocol=rdp		ipv4proto=27
+protocol=irtp		ipv4proto=28
+protocol=iso-tp4	ipv4proto=29
+protocol=netblt		ipv4proto=30
+protocol=mfe-nsp	ipv4proto=31
+protocol=merit-inp	ipv4proto=32
+protocol=sep		ipv4proto=33
+protocol=3pc		ipv4proto=34
+protocol=idpr		ipv4proto=35
+protocol=xtp		ipv4proto=36
+protocol=ddp		ipv4proto=37
+protocol=idpr-cmtp	ipv4proto=38
+protocol=tp++		ipv4proto=39
+protocol=il		ipv4proto=40
+protocol=sip		ipv4proto=41
+protocol=sdrp		ipv4proto=42
+protocol=sip-sr		ipv4proto=43
+protocol=sip-frag	ipv4proto=44
+protocol=idrp		ipv4proto=45
+protocol=rsvp		ipv4proto=46
+protocol=gre		ipv4proto=47
+protocol=mhrp		ipv4proto=48
+protocol=bna		ipv4proto=49
+protocol=sipp-esp	ipv4proto=50
+protocol=sipp-ah	ipv4proto=51
+protocol=i-nlsp		ipv4proto=52
+protocol=swipe		ipv4proto=53
+protocol=nhrp		ipv4proto=54
+protocol=any		ipv4proto=61
+protocol=cftp		ipv4proto=62
+protocol=any		ipv4proto=63
+protocol=sat-expak	ipv4proto=64
+protocol=kryptolan	ipv4proto=65
+protocol=rvd		ipv4proto=66
+protocol=ippc		ipv4proto=67
+protocol=any		ipv4proto=68
+protocol=sat-mon	ipv4proto=69
+protocol=visa		ipv4proto=70
+protocol=ipcv		ipv4proto=71
+protocol=cpnx		ipv4proto=72
+protocol=cphb		ipv4proto=73
+protocol=wsn		ipv4proto=74
+protocol=pvp		ipv4proto=75
+protocol=br-sat-mon	ipv4proto=76
+protocol=sun-nd		ipv4proto=77
+protocol=wb-mon		ipv4proto=78
+protocol=wb-expak	ipv4proto=79
+protocol=iso-ip		ipv4proto=80
+protocol=vmtp		ipv4proto=81
+protocol=secure-vmtp	ipv4proto=82
+protocol=vines		ipv4proto=83
+protocol=ttp		ipv4proto=84
+protocol=nsfnet-igp	ipv4proto=85
+protocol=dgp		ipv4proto=86
+protocol=tcf		ipv4proto=87
+protocol=igrp		ipv4proto=88
+protocol=ospfigp	ipv4proto=89	protocol=ospf
+protocol=sprite-rpc	ipv4proto=90
+protocol=larp		ipv4proto=91
+protocol=mtp		ipv4proto=92
+protocol=ax.25		ipv4proto=93
+protocol=ipip		ipv4proto=94
+protocol=micp		ipv4proto=95
+protocol=scc-sp		ipv4proto=96
+protocol=etherip	ipv4proto=97
+protocol=encap		ipv4proto=98
+protocol=any		ipv4proto=99
+protocol=gmtp		ipv4proto=100
+protocol=rudp		ipv4proto=254	# unofficial
+
+#
+#  services
+#
+tcp=cs port=1
+tcp=echo port=7
+tcp=discard port=9
+tcp=systat port=11
+tcp=daytime port=13
+tcp=netstat port=15
+tcp=chargen port=19
+tcp=ftp-data port=20
+tcp=ftp port=21
+tcp=ssh port=22
+tcp=telnet port=23
+tcp=smtp port=25
+tcp=time port=37
+tcp=whois port=43
+tcp=dns port=53
+tcp=domain port=53
+tcp=uucp port=64
+tcp=gopher port=70
+tcp=rje port=77
+tcp=finger port=79
+tcp=http port=80
+tcp=link port=87
+tcp=supdup port=95
+tcp=hostnames port=101
+tcp=iso-tsap port=102
+tcp=x400 port=103
+tcp=x400-snd port=104
+tcp=csnet-ns port=105
+tcp=pop-2 port=109
+tcp=pop3 port=110
+tcp=portmap port=111
+tcp=uucp-path port=117
+tcp=nntp port=119
+tcp=netbios port=139
+tcp=imap4 port=143
+tcp=imap port=143
+tcp=NeWS port=144
+tcp=print-srv port=170
+tcp=z39.50 port=210
+tcp=fsb port=400
+tcp=sysmon port=401
+tcp=proxy port=402
+tcp=proxyd port=404
+tcp=https port=443
+tcp=cifs port=445
+tcp=ssmtp port=465
+tcp=rexec port=512 restricted=
+tcp=login port=513 restricted=
+tcp=shell port=514 restricted=
+tcp=printer port=515
+tcp=ncp port=524
+tcp=courier port=530
+tcp=cscan port=531
+tcp=uucp port=540
+tcp=snntp port=563
+tcp=9fs port=564
+tcp=whoami port=565
+tcp=guard port=566
+tcp=ticket port=567
+tcp=fmclient port=729
+tcp=imaps port=993
+tcp=pop3s port=995
+tcp=ingreslock port=1524
+tcp=pptp port=1723
+tcp=nfs port=2049
+tcp=webster port=2627
+tcp=weather port=3000
+tcp=sip port=5060
+tcp=sips port=5061
+tcp=secstore port=5356
+tcp=vnc-http port=5800
+tcp=vnc port=5900
+tcp=Xdisplay port=6000
+tcp=styx port=6666
+tcp=mpeg port=6667
+tcp=rstyx port=6668
+tcp=infdb port=6669
+tcp=infsigner port=6671
+tcp=infcsigner port=6672
+tcp=inflogin port=6673
+tcp=bandt port=7330
+tcp=face port=32000
+tcp=dhashgate port=11978
+tcp=exportfs port=17007
+tcp=rexexec port=17009
+tcp=ncpu port=17010
+tcp=cpu port=17013
+tcp=venti port=17034
+tcp=wiki port=17035
+tcp=vica port=17036
+
+udp=echo port=7
+udp=tacacs port=49
+udp=tftp port=69
+udp=bootpc port=68
+udp=bootp port=67
+udp=domain port=53
+udp=dns port=53
+udp=portmap port=111
+udp=ntp port=123
+udp=netbios-ns port=137
+udp=snmp port=161
+udp=ikev2 port=500
+udp=syslog port=514
+udp=rip port=520
+udp=dhcp6c port=546
+udp=dhcp6s port=547
+udp=nfs port=2049
+udp=bfs port=2201
+udp=virgil port=2202
+udp=sip port=5060
+udp=bandt2 port=7331
+udp=oradius port=1812
+udp=radius port=1812
+udp=dhash port=11977
+udp=ulctl port=12666
+udp=uldata port=12667
+udp=dldata port=12668
+
+gre=ppp port=34827
+
+#
+# authdom declarations need to be visible on the inside network,
+# even for outside machines.  putting them here ensures
+# their visibility everywhere.
+#

@@ -1,0 +1,40 @@
+objtype=mips
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libc.a
+SFILES=\
+	argv0.s\
+	atom.s\
+	getcallerpc.s\
+	getfcr.s\
+	main9.s\
+	main9p.s\
+	memccpy.s\
+	memchr.s\
+	memcmp.s\
+	memmove.s\
+	memset.s\
+	setjmp.s\
+	strchr.s\
+	strcmp.s\
+	strcpy.s\
+	tas.s\
+	vlop.s\
+
+CFILES=\
+	cycles.c\
+	lock.c\
+	notejmp.c\
+	sqrt.c\
+	vlrt.c\
+
+HFILES=/sys/include/libc.h
+
+OFILES=${CFILES:%.c=%.$O} ${SFILES:%.s=%.$O}
+
+UPDATE=mkfile\
+	$HFILES\
+	$CFILES\
+	$SFILES\
+
+</sys/src/cmd/mksyslib

@@ -1,0 +1,202 @@
+beagleboard rev c3:
+cortex-a8 cpu: arm v7-a arch. rev 3, 500MHz, dual-issue
+OMAP3530-GP rev 2, CPU-OPP2 L3-165MHz
+OMAP3 Beagle board + LPDDR/NAND
+DRAM:  256 MB
+NAND:  256 MiB
+Board revision C
+Serial #784200230000000004013f790401d018
+
+igepv2 board:
+cortex-a8 cpu: arm v7-a arch. rev 3, 720MHz, dual-issue
+OMAP3530-GP ES3.1, CPU-OPP2 L3-165MHz
+IGEP v2.x rev. B + LPDDR/ONENAND
+DRAM:  512 MB
+Muxed OneNAND(DDP) 512MB 1.8V 16-bit (0x58)
+OneNAND version = 0x0031
+Chip support all block unlock
+Chip has 2 plane
+Scanning device for bad blocks
+Bad eraseblock 3134 at 0x187c0000
+Bad eraseblock 3135 at 0x187e0000
+OneNAND: 512 MB
+
+omap3530 SoC
+CORE_CLK runs at 26MHz
+see spruf98d from ti.com (/public/doc/ti/omap35x.ref.spruf98d.pdf)
+
+separate i & d tlbs, each 32 entries
+	can invalidate i, d or both tlbs by { all, mva, or asid match }
+
+i & d L1 caches, 16K each, 4 ways, 64 sets, 64-byte lines
+	i is VIPT, d is PIPT
+	no `test and clean D & U all' operations
+	no prefetching, no cache maintenance
+	can invalidate i, d or both cache but not D & U all
+	can invalidate entire i-cache only
+	can clean or invalidate by set and way data/unified cache
+unified L2 PIPT cache, 256K, 8 ways, 512 sets, 64-byte lines
+no hardware cache coherence
+
+l3 interconnect firewalls are all off at boot time, except for a bit of
+	secure ram
+sram at 0x40200000 size 1MB
+l4 interconnect firewalls seem to be sane at boot time
+
+___
+The state of the Beagleboard/IGEPv2 (TI OMAP35 SoC, Cortex-A8) port.
+
+Plan 9 runs on the IGEPv2 and Gumstix Overo boards.
+
+On the Beagleboard, Plan 9 is not yet usable but it gets as far as
+trying to access the USB ethernet (since the Beagleboard has no
+built-in ethernet and must use USB ethernet).
+
+IGEP & Gumstix Ethernet
+
+The smsc9221 ethernet consumes a lot of system time.  The design
+decision to use fifos rather than buffer rings and to not incorporate
+dma into the ethernet controller is probably responsible.  With only a
+single core, running the 9221 consumes a lot of the available CPU
+time.  It's probably worth trying to use the system dma controller again.
+
+USB
+
+The ohci and ehci controllers are seen, but no devices yet.
+
+There are four USB errata that need to be looked into for the igepv2
+(silicon 3.1) at least.  From the omap3530 errata (rev e):
+
+- 3.1.1.130 only one usb dma channel (rx or tx) can be active
+	at one time: use interrupt mode instead
+- 3.1.1.144 otg soft reset doesn't work right
+- 3.1.1.183 ohci and ehci controllers cannot work concurrently
+- §3.1.3 usb limitations: all ports must be configured to identical speeds
+	(high vs full/low)
+
+Flash
+
+access to nand flash would be handy for nvram and paqfs or sacfs file
+systems.
+
+In the flash, x-loader occupies up to 0x20000, then u-boot from
+0x80000 to 0x1e0000, and there's a linux kernel after that (if you
+care).  The beagle's flash chip is a micron pop 2Gb nand
+mt29f2g16abdhc-et (physical marking jw256), and the igep's is a
+samsung onenand.
+
+VFPv3 Floating Point
+
+The Cortex-A8 has VFPv3 floating point, which uses different opcodes
+than 5c/5l currently generate.  New 5c or 5l is in the works.
+
+Video
+
+The display subsystem for omap3 (dss) is divided into 3 parts, called lcd,
+video and dsi (ignoring the various accelerators).  The system only
+supports the lcd via dvi interface so far because it's the only one we
+have been able to test.  1280x1024x16 is the default resolution, this
+might be changed.  Writing to /dev/dssctl (e.g., echo 1024x768x16
+>/dev/dssctl) changes the resolution.  Currently the system does not
+use the rfbi since it seems like an unnecessary optimisation at this
+point.  Per Odlund wrote the first draft of the video driver for a
+Google Summer of Code project.
+
+Stray Interrupts
+
+IRQs 56 and 57 are I2C.  83, 86 and 94 are MMC.
+
+___
+
+The code is fairly heavy-handed with the use of barrier instructions
+(BARRIERS in assembler, coherence in C), partly in reaction to bad
+experience doing Power PC ports, but also just as precautions against
+modern processors, which may feel free to execute instructions out of
+order or some time later, store to memory out of order or some time
+later, otherwise break the model of traditional sequential processors,
+or any combination of the above.
+___
+
+There are a few rough edges:
+
+- the clock.c scheduling rate (HZ) is quite approximate.  The OMAP
+timers are complex, but one could eventually do better (or just let
+timesync compensate).
+
+- User processes are limited to 512MB virtual (mainly by the IGEPv2 Ethernet
+being at 0x2c000000), which isn't a problem since Beagleboards only
+have 256MB of dram and IGEPv2s have 512MB, and we don't want to swap.
+
+- might use ucalloc.c to allocate uncached scratch space for generated code
+in coproc.c.
+
+- the C implementation of cache primitives failed with mmu off; still true?
+
+- unlock, setup: protect module register target APE (PM_RT) per spruf98c §1.6.7
+
+- setup mpp (multi-purpose pins)?
+
+___
+	memory map (mostly from omap35x ref)
+hex addr	size	what
+----
+0		16MB	physical address of flash registers, buffers
+20000000	16MB	virtual address of flash registers, buffers
+2c000000	?	smc 9221 ethernet
+38000000	16MB	256MB (beagle) or 512MB (igep) nand flash mapped here
+
+40000000	112K	boot rom, top of user space
+40200000	64K	sram
+
+48000000	16MB	L4 core
+48002000	8K	system control (scm)
+48004000	16K	clock manager
+48040000	8K	L4-core config
+48050000	4K	graphics
+48062000	4K	usb tll
+48064000	1K	usb uhh_config
+48064400	1K	ohci
+48064800	1K	ehci
+4806a000	8K	8250 uart0
+4806c000	8K	8250 uart1
+48086000	4K	gptimer10
+48088000	4K	gptimer11
+4809c000	8K	mmc/sd goo
+480ab000	8K	hs usb otg
+480ad000	8K	mmc/sd goo
+480b4000	8K	mmc/sd goo
+480c7000		device intr controller
+48200000	2K	intr ctlr (intc)
+
+48300000	256K	L4-wakeup
+48304000	4K	gptimer12
+48318000	8K	gptimer1
+
+49000000	1MB	L4 peripherals
+49020000	8K	8250 uart2 (with exposed connector for console)
+49032000	4K	gptimer2
+49034000	4K	gptimer3
+⋯
+49040000	4K	gptimer9
+49050000	8K	gpio2
+⋯
+49058000	8K	gpio6
+
+50000000	64K	graphics accelerator
+
+68000000	1K	L3 config (rt)
+68004000	1K	L3 hs usb host
+68004400	1K	L3 hs usb otg
+68005400	1K	L3 graphics
+68006800	1K	L4-core config
+68010000		L3 protection mechanism
+
+6e000000	?	gpmc
+
+80000000	256MB	dram on beagle
+		512MB	dram on igep
+
+c0000000	1GB	kernel virtual space, mapped to 80000000
+
+apparently the vector address (0 or 0xffff0000) is virtual,
+so we're expected to map it to ram.

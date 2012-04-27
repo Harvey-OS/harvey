@@ -1,0 +1,69 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libstdio.a
+OFILES=\
+	_IO_getc.$O\
+	_IO_putc.$O\
+	clearerr.$O\
+	dtoa.$O\
+	fclose.$O\
+	fdopen.$O\
+	feof.$O\
+	ferror.$O\
+	fflush.$O\
+	fgetc.$O\
+	fgetpos.$O\
+	fgets.$O\
+	fileno.$O\
+	fopen.$O\
+	fprintf.$O\
+	fputc.$O\
+	fputs.$O\
+	fread.$O\
+	freopen.$O\
+	fscanf.$O\
+	fseek.$O\
+	fseeko.$O\
+	fsetpos.$O\
+	ftell.$O\
+	ftello.$O\
+	fwrite.$O\
+	getc.$O\
+	gets.$O\
+	printf.$O\
+	putc.$O\
+	puts.$O\
+	rewind.$O\
+	scanf.$O\
+	sclose.$O\
+	setbuf.$O\
+	setvbuf.$O\
+	snprintf.$O\
+	sopenr.$O\
+	sopenw.$O\
+	sprintf.$O\
+	sscanf.$O\
+	tmpfile.$O\
+	tmpnam.$O\
+	ungetc.$O\
+	vfprintf.$O\
+	vfscanf.$O\
+	vprintf.$O\
+	vsnprintf.$O\
+	vsprintf.$O\
+
+HFILES=/sys/include/stdio.h\
+	iolib.h\
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
+
+</sys/src/cmd/mksyslib
+# this code really can't handle any flow-analysis warnings
+CFLAGS=
+
+test:V:	$OFILES
+	ar vu libstdio.a $OFILES

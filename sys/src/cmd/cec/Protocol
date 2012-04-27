@@ -1,0 +1,93 @@
+Coraid Ethernet Console (cec)
+
+Abstract
+
+The Coraid Ethernet Console (cec) implements a bidirectional conversation
+over raw ethernet frames with provisions for retransmission and discovery.  
+Like serial consoles, each machine has a single shared interface per service
+type,  but any number connections can be made from any machine connected to 
+the same physical network.  The communications from the various connections
+will be interleaved.  The first implementation of cec is for console communications
+to Coraid appliances.
+
+Outline
+
+1. Packet format
+2. The Tdiscover packet and Toffer reply.
+3.  Initializing a connection. Tinit[abc]
+4.  The connection.  Tdata and Tack
+5.  Closing the connection.  Treset
+
+1. Packet Format
+
+All cec packets are follow the layout implied by the following structure
+
+	struct Pkt {
+		uchar	dst[6];		// destination ethernet address
+		uchar	src[6];		// source ethernet address
+		uchar	etype[2];		// service type
+		uchar	type;		// type of packet.
+		uchar	conn;		// unique connection id.
+		uchar	seq;		// packet sequence number
+		uchar	len;		// data length.
+		uchar	data[1500];
+	};
+
+The packet types are as follows:
+
+	enum {
+		Tinita,
+		Tinitb,
+		Tinitc,
+		Tdata,
+		Tack,
+		Tdiscover,
+		Toffer,
+		Treset,
+	};
+
+2. The Tdiscover packet and Toffer reply.
+
+The Tdiscover packet is used to discover the avaliable cec devices on the local
+network.  The packet sent is of the form
+
+	Tdiscover = {
+	[dest]	0xffffffff,
+	[src]	mac of local interface,
+	[etype]	service type,
+	[type]	Tdiscover,
+	[seq]	0,
+	[len]	0,
+	[data]	0,
+	}
+
+The reply to the Tdiscover packet is of type Toffer which differes from
+Tdiscover in that data and len may be set.  The contents of data is application
+specific.
+
+3.  Initializing a connection. Tinit[abc]
+
+A connection is initialized by the following conversation: In addition
+to the fields set for the Tdiscover packet, the client sends a packet
+of type Tinita with the conntag of its choice.  The server responds to
+Tinita with a packet of type Tinitb.  And finally the client sents a
+Tinitc packet back to the server, completing the connection.
+
+4.  The connection.  Tdata and Tack
+
+Data is sent from the client to the console server with the Tdata packet.
+The seq field is incremented for each data packet sent.  Thus data packets
+may be transmitted if lost.  The data is whatever data the client has to
+send to the server, up to 255 bytes.  Typically, however, each keystroke
+is sent in a seperate packet.  The len field is the length of the
+data.
+
+The server responds to a Tdata message with a Tack message with the 
+same seq sequence number.
+
+5.  Closing the connection.  Treset
+
+Either the server of the client may send a Treset message to close the 
+connection.  There is no response to a Treset message, however any
+information associated with that connection (conntag) is discarded 
+when the Treset message is recieved.

@@ -1,0 +1,21 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libframe.a
+OFILES=\
+	frbox.$O\
+	frdraw.$O\
+	frdelete.$O\
+	frinit.$O\
+	frinsert.$O\
+	frptofchar.$O\
+	frselect.$O\
+	frstr.$O\
+	frutil.$O\
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
+
+< /sys/src/cmd/mksyslib

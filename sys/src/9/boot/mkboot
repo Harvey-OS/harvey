@@ -1,0 +1,101 @@
+#!/bin/rc
+#
+#  this file configures a boot program (/boot) for a kernel.
+#
+if(! ~ $#* 1){
+	echo usage: mkboot file >[1=2]
+	exit 1
+}
+
+cat <<'---'
+#include <u.h>
+#include <libc.h>
+#include "../boot/boot.h"
+
+Method	method[]={
+---
+
+#
+#  configure all remote methods, i.e. all methods in the 'boot' section
+#
+#  EXAMPLE
+#	boot
+#		incon
+#		9600
+#		19200
+#
+../port/mkextract boot 0 $* | awk '{
+	printf "	{ \""  "" $1 "\", "\
+	"config" $1 ", "\
+	"connect" $1 ", "
+	print fieldn(2) " },"
+	}
+
+	func fieldn(n,	s,i)
+	{
+		s = $0
+		while (n > 1) {
+			sub(/^[ \t]*/, "", s)
+			if (substr(s, 1, 1) == "\"") {
+				sub(/^"[^\"]*"/, "", s)
+			} else {
+				sub(/^[^ \t]*/, "", s)
+			}
+			n--
+		}
+		sub(/^[ \t]*/, "", s)
+		if (substr(s, 1, 1) == "\"") {
+			i = index(substr(s, 2), "\"")
+			if (i > 0)
+				return substr(s, 1, i+1)
+			else
+				return s
+		} else {
+			sub(/[ \t].*/, "", s)
+			return s
+		}
+	}'
+
+cat <<'---'
+	{ 0 },
+};
+---
+
+awk '
+	BEGIN	{ cpuflag = 0; bootprog = "boot"; bootdisk = "#S/sdC0/"; rootdir = "/root"; }
+	$0 ~ "^boot" && $2=="cpu"\
+		{ cpuflag = 1
+		  if(NF == 4 && $3 == "boot")
+			bootdisk = $4
+		}
+	$0 ~ "^boot" && $2=="rootdir" && NF==3\
+		{ rootdir = $3 }
+	$0 ~ "^boot" && ($2=="bboot" || $2=="romboot" || $2=="dosboot")\
+		{ cpuflag = 1;  bootprog = $2; }
+	$0 ~ "^boot" && $2=="boot" && NF==3\
+		{ bootdisk = $3 }
+	END 	{ print "int cpuflag = " cpuflag ";"
+		  print "char* rootdir = \"" rootdir "\";"
+		  print "char* bootdisk = \"" bootdisk "\";"
+		  print "extern void " bootprog "(int, char**);"
+		  print "void"
+		  print "main(int argc, char **argv)"
+		  print "{"
+		  print "\t" bootprog "(argc, argv);"
+		  print "}"
+		}
+' $1
+
+#
+#  configure in a cache file system if a 
+# /386/bin/root appears in the bootdir section.
+#
+../port/mkextract bootdir 0 $* | awk '
+	BEGIN			{ cfs = 0 }
+	$1 ~ "bin/cfs$"	{ cfs = 1 }
+	END			{ if(cfs)
+					print "int (*cfs)(int) = cache;"
+				  else
+					print "int (*cfs)(int) = 0;"
+				}
+	'

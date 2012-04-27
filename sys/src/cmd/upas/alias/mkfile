@@ -1,0 +1,21 @@
+</$objtype/mkfile
+
+TARG=aliasmail
+
+OFILES=aliasmail.$O\
+
+LIB=../common/libcommon.a$O\
+
+HFILES=../common/common.h\
+	 ../common/sys.h\
+
+
+BIN=/$objtype/bin/upas
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+
+</sys/src/cmd/mkone
+CFLAGS=$CFLAGS -I../common

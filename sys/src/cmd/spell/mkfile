@@ -1,0 +1,46 @@
+</$objtype/mkfile
+
+TARG=sprog
+OFILES=sprog.$O\
+
+HFILES =\
+	code.h\
+
+BIN=/$objtype/bin/aux
+</sys/src/cmd/mkone
+cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+
+all:V:	lib 
+
+lib:	amspell brspell
+	for (i in $prereq) cp $i /sys/lib/$i
+
+brspell: $cpuobjtype.pcode  list british local stop
+	$cpuobjtype.pcode list british local stop >$target
+
+amspell: $cpuobjtype.pcode  list american local stop
+	$cpuobjtype.pcode list american local stop >$target
+
+$cpuobjtype.pcode:	pcode.c $HFILES
+	objtype=$cputype
+	mk pcode.$cputype
+
+pcode.$cputype:	pcode.$O $HFILES
+	$LD -o $O.pcode pcode.$O
+
+installall:V:
+	for(objtype in $CPUS) mk install
+	cp spell.rc /rc/bin/spell
+	mk lib
+
+nuke:V:
+	rm -f *.[$OS] [$OS].out [$OS].pcode y.tab.? y.debug y.output $TARG
+	rm -f amspell brspell
+
+clean:V:
+	rm -f *.[$OS] [$OS].out [$OS].pcode y.tab.? y.debug y.output $TARG
+
+test:V:	$O.out brspell
+	time ./$O.out -b -f brspell </dev/null >y
+	time ./$O.out -b -f brspell <x >z
+	cmp y z

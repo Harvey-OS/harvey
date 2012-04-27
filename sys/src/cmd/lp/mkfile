@@ -1,0 +1,31 @@
+</$objtype/mkfile
+
+TARG=lpdsend \
+	lpsend \
+	LOCK \
+	lpdaemon
+
+OFILES=
+
+HFILES=
+
+BIN=/$objtype/bin/aux
+</sys/src/cmd/mkmany
+CFLAGS=-Dplan9
+
+installall:V:	/sys/lib/lp/bin/lpsend.rc
+
+/sys/lib/lp/bin/lpsend.rc:	lpsend.rc
+	cp $target $prereq
+	
+$O.lpdsend:	lpdsend.$O
+	pcc -o $target lpdsend.$O
+
+lpdsend.$O:	lpdsend.c
+	pcc -c -D_POSIX_SOURCE -D_BSD_EXTENSION -D_NET_EXTENSION -DPLAN9  -'DMAXHOSTNAMELEN=64' lpdsend.c
+
+$O.lpdaemon:	lpdaemon.$O
+	pcc -o $target lpdaemon.$O
+
+lpdaemon.$O:	lpdaemon.c
+	pcc -c -D_POSIX_SOURCE -DPLAN9  lpdaemon.c

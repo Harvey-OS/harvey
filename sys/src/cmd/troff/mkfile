@@ -1,0 +1,60 @@
+</$objtype/mkfile
+
+TARG=troff
+OFILES=n1.$O\
+	n2.$O\
+	n3.$O\
+	n4.$O\
+	n5.$O\
+	t6.$O\
+	n6.$O\
+	n7.$O\
+	n8.$O\
+	n9.$O\
+	t10.$O\
+	n10.$O\
+	t11.$O\
+	ni.$O\
+	hytab.$O\
+	suftab.$O\
+	dwbinit.$O\
+
+HFILES=tdef.h\
+	fns.h\
+	ext.h\
+	dwbinit.h\
+
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+CFLAGS=-c -DSTRICT -DUNICODE
+CC=pcc
+
+TMACDIR='"sys/lib/tmac/tmac."'
+FONTDIR="sys/lib/troff/font"
+NTERMDIR='"sys/lib/troff/term/tab."'
+TEXHYPHENS='"sys/lib/texmf/tex/generic/hyphen/hyphen.tex"'
+DWBHOME='"/"'
+TDEVNAME='"utf"'
+NDEVNAME='"utf"'
+
+$O.out:	$OFILES
+	pcc -o $target $prereq
+
+ni.$O:	ni.c $HFILES
+	$CC $CFLAGS -DTMACDIR'='$TMACDIR ni.c
+
+t10.$O:	t10.c $HFILES
+	$CC $CFLAGS -DTDEVNAME'='$TDEVNAME t10.c
+
+n1.$O:	n1.c $HFILES
+	$CC $CFLAGS -DFONTDIR'='$FONTDIR -DNTERMDIR'='$NTERMDIR -DTEXHYPHENS'='$TEXHYPHENS -DALTHYPHENS'='$TEXHYPHENS -DDWBHOME'='$DWBHOME n1.c
+
+n10.$O:	n10.c $HFILES
+	$CC $CFLAGS -DNDEVNAME'='$NDEVNAME n10.c
+
+n8.$O:	n8.c $HFILES
+	$CC $CFLAGS -DTEXHYPHENS'='$TEXHYPHENS n8.c
+
+dwbinit.$O:	dwbinit.c
+	$CC $CFLAGS -DDWBHOME'='$DWBHOME dwbinit.c

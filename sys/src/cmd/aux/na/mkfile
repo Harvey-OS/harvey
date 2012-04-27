@@ -1,0 +1,13 @@
+</$objtype/mkfile
+
+TARG=na
+HFILES=\
+	na.h\
+
+OFILES=\
+	y.tab.$O\
+
+YFILES=na.y\
+
+BIN=/$objtype/bin/aux
+</sys/src/cmd/mkone

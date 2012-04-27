@@ -1,0 +1,36 @@
+</$objtype/mkfile
+
+TARG=page
+
+HFILES=page.h
+OFILES=\
+	cache.$O\
+	filter.$O\
+	gfx.$O\
+	gs.$O\
+	page.$O\
+	pdf.$O\
+	ps.$O\
+	rotate.$O\
+	util.$O\
+	view.$O\
+
+LIB=/$objtype/lib/libdraw.a
+
+UPDATE=\
+	mkfile\
+	${OFILES:%.$O=%.c}\
+	pdfprolog.ps\
+	$HFILES\
+	/sys/man/1/page\
+	/386/bin/page\
+
+</sys/src/cmd/mkone
+
+BIN=/$objtype/bin
+
+pdfprolog.c: pdfprolog.ps
+	cat pdfprolog.ps | sed 's/.*/"&\\n"/g' >pdfprolog.c
+
+pdf.$O: pdfprolog.c
+

@@ -1,0 +1,45 @@
+</$objtype/mkfile
+
+
+TARG=\
+	fscmd\
+	fsfmt\
+	9pix\
+
+OFILES=\
+	dbg.$O\
+	mblk.$O\
+	dblk.$O\
+	fblk.$O\
+	attr.$O\
+	fsys.$O\
+	tools.$O\
+
+IXOFILES=\
+	ixcall.$O\
+	ix.$O\
+	9p.$O\
+	cfg.$O\
+
+HFILES=\
+	dbg.h\
+	conf.h\
+	dk.h\
+	fns.h\
+	ix.h\
+	net.h\
+	all.h\
+
+# not ready for install
+BIN=.
+
+default:V:all
+
+</sys/src/cmd/mkmany
+
+$O.9pix: 9pix.$O $OFILES $IXOFILES $LIB
+	$LD $LDFLAGS -o $target $prereq
+
+fns:V:
+	c/f2p *.c >fns.h
+

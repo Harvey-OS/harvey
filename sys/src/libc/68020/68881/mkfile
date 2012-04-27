@@ -1,0 +1,31 @@
+objtype=68020
+</68020/mkfile
+CFLAGS=-I/sys/ninclude $CFLAGS
+
+LIB=/$objtype/lib/lib68881.a
+SFILES=\
+	acos.s\
+	asin.s\
+	atan.s\
+	cos.s\
+	cosh.s\
+	exp.s\
+	fabs.s\
+	log.s\
+	log10.s\
+	pow10.s\
+	sin.s\
+	sinh.s\
+	sqrt.s\
+	tan.s\
+	tanh.s\
+
+OFILES=${SFILES:%.s=%.$O}
+
+UPDATE=mkfile\
+	$SFILES\
+
+</sys/src/cmd/mksyslib
+
+installall:V:
+	mk install

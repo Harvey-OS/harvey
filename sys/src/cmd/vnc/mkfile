@@ -1,0 +1,68 @@
+</$objtype/mkfile
+
+TARG=vncs vncv
+BIN=/$objtype/bin
+
+OFILES=\
+	proto.$O\
+	auth.$O\
+
+SOFILES=\
+	devdraw.$O\
+	devmouse.$O\
+	devcons.$O\
+	screen.$O\
+	exporter.$O\
+	dev.$O\
+	chan.$O\
+	compat.$O\
+	exportfs.$O\
+	kbds.$O\
+	latin1.$O\
+	rre.$O\
+	rlist.$O\
+
+COFILES=\
+	draw.$O\
+	kbdv.$O\
+	color.$O\
+	wsys.$O\
+
+HFILES=\
+	vnc.h\
+	screen.h\
+	compat.h\
+	errstr.h\
+	kbd.h\
+	latin1.h\
+	vncv.h\
+	vncs.h\
+
+CLEANFILES=\
+	latin1.h
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${SOFILES:%.$O=%.c}\
+	${COFILES:%.$O=%.c}\
+	${TARG:%=%.c}\
+
+
+default:V:	all
+
+</sys/src/cmd/mkmany
+
+$O.vncs:	$SOFILES
+
+$O.vncv:	$COFILES
+
+latin1.h: /lib/keyboard /bin/aux/mklatinkbd
+	aux/mklatinkbd /lib/keyboard > latin1.h
+
+errstr.h:	error.h
+	sed 's/extern //;s,;.*/\* (.*) \*/, = "\1";,' < error.h > errstr.h
+
+kbds.$O:	ksym2utf.h
+kbdv.$O:	utf2ksym.h

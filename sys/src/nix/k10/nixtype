@@ -1,0 +1,5 @@
+trap.c:261: 	tos->kcycles += t - up->kentry;
+trap.c:262: 	tos->pcycles = up->pcycles;
+trap.c:263: 	tos->pid = up->pid;
+trap.c:268: 	tos->core = mp->machno;	
+trap.c:269: 	tos->nixtype = mp->nixtype;

@@ -1,0 +1,97 @@
+</$objtype/mkfile
+
+TARG = 	6in4\
+	dhcpclient\
+	ftpd\
+	gping\
+	hogports\
+	httpfile\
+	linklocal\
+	ping\
+	pppoe\
+	pptp\
+	pptpd\
+	rarpd\
+	rexexec\
+	rip\
+	rlogind\
+	telnet\
+	telnetd\
+	tftpd\
+	traceroute\
+	udpecho\
+	wol\
+
+DIRS=ftpfs dhcpd httpd ipconfig ppp imap4d snoopy
+
+BIN=/$objtype/bin/ip
+HFILES=dhcp.h arp.h glob.h icmp.h telnet.h
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=%.c}\
+
+</sys/src/cmd/mkmany
+
+all:V:	$DIRS
+
+$DIRS:V:
+	for (i in $DIRS) @{
+		echo mk $i
+		cd $i
+		mk all
+	}
+
+install:V:	installdirs
+
+installdirs:V:
+	for (i in $DIRS) @{
+		echo mk $i
+		cd $i
+		mk install
+	}
+
+update:V:
+	update $UPDATEFLAGS $UPDATE
+	for (i in $DIRS) @{
+		echo update $i
+		cd $i
+		mk 'UPDATEFLAGS='$"UPDATEFLAGS update
+	}
+
+clean:V:
+	for (i in $DIRS) @{
+		echo clean $i
+		cd $i
+		mk clean
+	}
+	rm -f [$OS].* *.[$OS]
+
+nuke:V:
+	for (i in $DIRS) @{
+		echo nuke $i
+		cd $i
+		mk nuke
+	}
+	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG
+
+$O.fakearp:	fakearp.$O getether.$O
+	$LD -o $target $prereq
+
+telnetd.$O:	telnet.h
+
+telnet.$O:	telnet.h
+
+$O.ftpd:	ftpd.$O glob.$O
+	$LD -o $target $prereq
+
+$BIN/telnet:V:	$O.telnet
+	cp $prereq /$objtype/bin/telnet
+
+$BIN/snoopy:V:	$O.snoopy
+	cp $prereq /$objtype/bin/snoopy
+
+$BIN/sniffer:V:	$O.sniffer
+	cp $prereq /$objtype/bin/sniffer

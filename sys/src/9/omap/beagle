@@ -1,0 +1,82 @@
+# beagle, igepv2, gumstix overo omap35 boards
+dev
+	root
+	cons
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	arch
+	ssl
+	tls
+	bridge		log
+	sdp		thwack unthwack
+	cap
+	kprof
+#	aoe
+#	sd
+	fs
+#	flash
+
+	ether		netif
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum inferno
+
+	draw		screen
+	dss
+	kbmap
+	kbin
+	mouse
+
+	uart
+	usb
+
+link
+	archomap
+	ethermedium
+#	flashbeagle	ecc
+#	flashigep
+	loopbackmedium
+	netdevmedium
+
+	ether9221
+## avoid tickling errata 3.1.1.183
+##	usbohci
+	usbehci		usbehciomap
+
+ip
+	tcp
+	udp
+	ipifc
+	icmp
+	icmp6
+	ipmux
+	gre
+	esp
+
+misc
+	rdb
+	coproc
+	dma
+	mouse
+#	sdaoe		sdscsi
+	softfpu
+	syscall
+	uarti8250
+	ucalloc
+	ucallocb
+
+port
+	int cpuserver = 1;
+	int i8250freq = 3686000;
+
+boot cpu
+	tcp
+
+bootdir
+	boot$CONF.out boot
+	/arm/bin/ip/ipconfig ipconfig
+	/arm/bin/auth/factotum factotum
+	/arm/bin/usb/usbd
+	nvram

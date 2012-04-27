@@ -1,0 +1,59 @@
+dev
+	root
+	cons
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	ssl
+	cap
+	kprof
+	uart
+
+	ether		netif
+	ip		arp chandial ip ipv6 ipaux iproute netif netlog nullmedium pktmedium ptclbsum inferno
+	ce
+
+link
+	ethersaturn
+	ethermedium
+	netdevmedium
+
+misc
+	uartsaturn
+	saturntimer
+	msaturn
+
+ip
+	tcp
+	udp
+	ipifc
+	icmp
+	icmp6
+
+port
+	int cpuserver = 1;
+
+boot cpu
+	tcp
+
+bootdir
+	/power/bin/rc
+	/rc/lib/rcmain
+	/power/bin/bind
+	/power/bin/sed
+	/power/bin/srv
+	/power/bin/cat
+	/power/bin/cp
+	/power/bin/rm
+	/power/bin/echo
+	/power/bin/mount
+	/power/bin/sleep
+	/power/bin/auth/factotum
+	/power/bin/ip/ipconfig
+	/power/bin/ls
+	/power/bin/ps
+	/power/bin/auth/wrkey
+	/sys/lib/sysconfig/blast/boot

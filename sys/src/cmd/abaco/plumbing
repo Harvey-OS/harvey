@@ -1,0 +1,10 @@
+# to update: cp /usr/$user/lib/plumbing /mnt/plumb/rules
+
+editor = acme
+
+include basic
+
+type is text
+data    matches 'https?://[a-zA-Z0-9_@\-]+([.:][a-zA-Z0-9_@\-]+)*/?[a-zA-Z0-9_?,%#~&/\-+=]+([:.][a-zA-Z0-9_?,''%#~&/\-+=;]+)*'
+plumb to web
+plumb client window -dx 900 -dy 800 abaco

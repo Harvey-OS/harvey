@@ -1,0 +1,61 @@
+</$objtype/mkfile
+
+BIN=/$objtype/bin
+TARG=cwfs$FS
+OFILES=\
+	9p1.$O\
+	9p1lib.$O\
+	9p2.$O\
+	auth.$O\
+	chk.$O\
+	con.$O\
+	config.$O\
+	console.$O\
+	cw.$O\
+	data.$O\
+	dentry.$O\
+	fworm.$O\
+	iobuf.$O\
+	juke.$O\
+	main.$O\
+	malloc.$O\
+	mworm.$O\
+	net.$O\
+	pc.$O\
+	scsi.$O\
+	sub.$O\
+	time.$O\
+	uidgid.$O\
+	wren.$O\
+
+HFILES=\
+	../32bit.h\
+	../64bit.h\
+	../9p1.h\
+	../all.h\
+	dat.h\
+	../io.h\
+	../portdat.h\
+	../portfns.h\
+
+# SRC=${OBJ:%.$O=../%.c}
+CFLAGS=$CFLAGS -I..
+
+default:V: $O.cwfs$FS
+
+</sys/src/cmd/mkmany
+
+%.$O:	../%.c
+	$CC $CFLAGS ../$stem.c
+%.$O:	../%.s
+	$AS $AFLAGS ../$stem.s
+
+acid: ${OFILES:%.acid=../%.c}
+
+$O.cwfs$FS: conf.c $OFILES
+	$CC $CFLAGS -DDATE'='`{date -n} conf.c
+	$LD -o $target $OFILES conf.$O
+	size $target
+
+test:V: 8.cwfs$FS
+	cputype=debug $prereq -a 'tcp!*!1234' </dev/null

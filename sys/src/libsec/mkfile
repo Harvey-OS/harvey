@@ -1,0 +1,41 @@
+</$objtype/mkfile
+
+DIRS=port $CPUS
+
+default:V:	all
+
+install all:V:
+	for(i in port $objtype)@{
+		echo $i
+		cd $i
+		mk $MKFLAGS $target
+	}
+
+clean:V:
+	for(i in $DIRS)@{
+		echo $i
+		cd $i
+		mk $MKFLAGS $target
+	}
+
+nuke:V: clean
+	rm -f /$objtype/lib/libsec.a
+
+update:V:
+	for(i in $DIRS)@{
+		echo $i
+		cd $i
+		mk $MKFLAGS update
+	}
+	update $UPDATEFLAGS /386/lib/libsec.a
+
+installall:V:
+	for(objtype in $CPUS) mk $MKFLAGS install
+
+everything:V:
+	rm -f */*.[012456789kqv]
+	for(objtype in 386)@{
+		echo $objtype
+		mk $MKFLAGS install
+	}
+	rm -f */*.[012456789kqv]

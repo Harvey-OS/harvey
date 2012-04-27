@@ -1,0 +1,70 @@
+# do not edit; automatically generated
+
+$	pnp
+/	root
+A	audio
+A	uda1341
+B	bridge
+C	ce
+D	ssl
+E	sdp
+F	flash
+F	ppcflash
+G	gs1
+I	ip
+K	kprof
+L	lpt
+M	mnt
+P	arch
+S	sd
+T	lm78
+V	tv
+X	loopback
+Y	pccard
+a	tls
+b	irq
+c	cons
+d	dup
+e	env
+f	floppy
+g	segment
+i	draw
+k	fs
+l	ether
+m	mouse
+m	penmouse
+p	proc
+q	qmux
+r	rtc
+r	µc
+s	srv
+t	uart
+u	usb
+v	dss
+v	lcd
+v	vga
+w	wd
+x	xenstore
+y	i82365
+y	pcmcia
+|	pipe
+¤	cap
+æ	aoe
+Ι	kbin
+Λ	lml
+α	acpi
+κ	kbmap
+μ	moipv6
+⁲	twsi
+↔	usbcons
+霞	kasumi
+
+α	local use
+β	local use
+γ	local use
+δ	local use
+ε	local use
+ζ	local use
+η	local use
+θ	local use
+ι	local use

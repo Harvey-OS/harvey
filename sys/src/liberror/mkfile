@@ -1,0 +1,15 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/liberror.a
+OFILES=\
+	error.$O\
+
+HFILES=/sys/include/error.h
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${LIB:/$objtype/%=/386/%}\
+
+</sys/src/cmd/mksyslib

@@ -1,0 +1,24 @@
+</$objtype/mkfile
+
+LIB=libcommon.a$O
+OFILES=aux.$O\
+	become.$O\
+	mail.$O\
+	process.$O\
+	libsys.$O\
+	config.$O\
+	appendfiletombox.$O\
+
+HFILES=common.h\
+	sys.h\
+
+UPDATE=\
+	mkfile\
+	${OFILES:%.$O=%.c}\
+	$HFILES\
+
+</sys/src/cmd/mklib
+
+nuke:V:
+	mk clean
+	rm -f libcommon.a[$OS]

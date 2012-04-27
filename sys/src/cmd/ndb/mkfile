@@ -1,0 +1,101 @@
+# cs & dns mkfile
+</$objtype/mkfile
+
+TARG =	\
+	mkdb\
+	query\
+	mkhash\
+	mkhosts\
+	cs\
+	csquery\
+	dns\
+	dnsquery\
+	dnstcp\
+	dnsdebug\
+	ipquery\
+	inform\
+
+
+DNSOBJ = dns.$O dnudpserver.$O dn.$O dnresolve.$O dblookup.$O dnserver.$O dnnotify.$O\
+	 dnarea.$O convM2DNS.$O convDNS2M.$O
+
+DNSTCPOBJ = dnstcp.$O dn.$O dnresolve.$O dblookup.$O dnserver.$O\
+	 dnarea.$O convM2DNS.$O convDNS2M.$O
+
+DNSDEBUGOBJ = dnsdebug.$O dn.$O dnresolve.$O dblookup.$O dnserver.$O\
+	 dnarea.$O convM2DNS.$O convDNS2M.$O
+
+HFILES = dns.h /$objtype/lib/libndb.a
+
+BIN=/$objtype/bin/ndb
+
+</sys/src/cmd/mkmany
+
+$O.dns: $DNSOBJ
+	$LD -o $target $prereq
+
+# print it in landscape orientation; it's way more useful than 80 columns
+calls.dns:D: ${DNSOBJ:%.$O=%.c}
+	calls -w 132 -f main $prereq >$target
+
+$O.dnstcp: $DNSTCPOBJ
+	$LD -o $target $prereq
+
+$O.dnsdebug: $DNSDEBUGOBJ
+	$LD -o $target $prereq
+
+$O.cs: cs.$O
+	$LD -o $target $prereq
+
+$O.testipinfo: testipinfo.$O ipinfo.$O
+	$LD -o $target $prereq
+
+push: $O.dns $O.dnsdebug $O.dnstcp
+	import lookout / /n/lookout
+	cp $O.dns /n/lookout/$objtype/bin/ndb/dns
+	cp $O.dnsdebug /n/lookout/$objtype/bin/ndb/dnsdebug
+	cp $O.dnstcp /n/lookout/$objtype/bin/ndb/dnstcp
+	unmount /n/lookout
+	import boundary / /n/boundary
+	cp $O.dns /n/boundary/$objtype/bin/ndb/dns
+	cp $O.dnsdebug /n/boundary/$objtype/bin/ndb/dnsdebug
+	cp $O.dnstcp /n/boundary/$objtype/bin/ndb/dnstcp
+	unmount /n/boundary
+
+cs.safeinstall:V: $O.cs
+	if(test -e $BIN/ooocs)
+		mv $BIN/ooocs $BIN/oooocs
+	if(test -e $BIN/oocs)
+		mv $BIN/oocs $BIN/ooocs
+	if(test -e $BIN/ocs)
+		mv $BIN/ocs $BIN/oocs
+	mv $BIN/cs $BIN/ocs
+	cp $O.cs $BIN/cs
+
+dns.safeinstall:V: $O.dns
+	if(test -e $BIN/ooodns)
+		mv $BIN/ooodns $BIN/oooodns
+	if(test -e $BIN/oodns)
+		mv $BIN/oodns $BIN/ooodns
+	if(test -e $BIN/odns)
+		mv $BIN/odns $BIN/oodns
+	mv $BIN/dns $BIN/odns
+	cp $O.dns $BIN/dns
+
+%.safeinstallall:V:
+	for (objtype in $CPUS)
+		mk $stem.safeinstall
+
+dns.update:V:
+	SRC=`{echo $DNSOBJ|sed 's/\.'$O'/.c/g'}
+	update $UPDATEFLAGS dns.h $SRC
+
+%.update:V:
+	update $UPDATEFLAGS $stem.c
+
+update:V:
+	mk clean
+	T=`{echo $TARG|sed 's/( |$)/.update /g'}
+	mk 'UPDATEFLAGS='$"UPDATEFLAGS $T
+	update $UPDATEFLAGS mkfile
+

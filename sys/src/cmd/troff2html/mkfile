@@ -1,0 +1,14 @@
+</$objtype/mkfile
+
+TARG=troff2html
+HFILES=chars.h
+OFILES=troff2html.$O\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+CFLAGS=$CFLAGS -DLUCENT
+
+outsideinstall:V: /386/bin/troff2html
+	9fs outside
+	cp /386/bin/troff2html /n/outside/386/bin/troff2html
+

@@ -1,0 +1,41 @@
+</$objtype/mkfile
+
+TARG=cfs
+COMMONOBJ=\
+	disk.$O\
+	bcache.$O\
+	inode.$O\
+	lru.$O\
+	file.$O\
+
+OFILES=cfs.$O $COMMONOBJ
+
+HFILES=\
+	bcache.h\
+	cformat.h\
+	disk.h\
+	file.h\
+	inode.h\
+	lru.h\
+	stats.h\
+
+CFILES=${OFILES:%.$O=%.c}
+
+UPDATE=mkfile\
+	/386/bin/$TARG\
+	$HFILES\
+	$CFILES\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone
+
+cfs.$O:		cformat.h inode.h bcache.h disk.h lru.h file.h
+file.$O:	cformat.h inode.h bcache.h disk.h lru.h file.h
+disk.$O:	cformat.h inode.h bcache.h disk.h lru.h
+bcache.$O:	cformat.h bcache.h lru.h
+main.$O:	cformat.h bcache.h disk.h lru.h
+inode.$O:	cformat.h inode.h bcache.h disk.h lru.h
+lru.$O:		lru.h
+
+clean:V:
+	rm -f *.[$OS] [$OS].* cfs cfsck

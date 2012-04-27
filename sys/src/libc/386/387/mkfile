@@ -1,0 +1,14 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/lib387.a
+
+OFILES=\
+	atan.$O\
+	tan.$O\
+	atan2.$O\
+	exp.$O\
+	asin.$O\
+	log.$O\
+	sin.$O\
+
+</sys/src/cmd/mksyslib

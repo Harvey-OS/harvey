@@ -1,0 +1,37 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libsec.a
+
+CFILES = des.c desmodes.c desECB.c desCBC.c des3ECB.c des3CBC.c\
+	aes.c blowfish.c \
+	hmac.c md5.c md5block.c md4.c sha1.c sha1block.c\
+	sha2_64.c sha2_128.c sha2block64.c sha2block128.c\
+	sha1pickle.c md5pickle.c\
+	rc4.c\
+	genrandom.c prng.c fastrand.c nfastrand.c\
+	probably_prime.c smallprimetest.c genprime.c dsaprimes.c\
+	gensafeprime.c genstrongprime.c\
+	rsagen.c rsafill.c rsaencrypt.c rsadecrypt.c rsaalloc.c \
+	rsaprivtopub.c x509.c decodepem.c \
+	eggen.c egencrypt.c egdecrypt.c egalloc.c egprivtopub.c \
+	egsign.c egverify.c \
+	dsagen.c dsaalloc.c dsaprivtopub.c dsasign.c dsaverify.c \
+	tlshand.c thumb.c readcert.c \
+
+ALLOFILES=${CFILES:%.c=%.$O}
+
+# cull things in the per-machine directories from this list
+OFILES=	`{rc ./reduce $O $objtype $ALLOFILES}
+
+HFILES=/sys/include/libsec.h
+
+CFLAGS=$CFLAGS -I../../libmp/port
+
+UPDATE=mkfile\
+	$HFILES\
+	$CFILES\
+
+</sys/src/cmd/mksyslib
+
+$O.rsatest: rsatest.$O
+	$LD -o $target $prereq

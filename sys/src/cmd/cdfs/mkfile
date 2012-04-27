@@ -1,0 +1,16 @@
+</$objtype/mkfile
+
+TARG=cdfs
+
+OFILES=\
+	buf.$O\
+	main.$O\
+	mmc.$O\
+
+HFILES=\
+	dat.h\
+	fns.h\
+	../scuzz/scsireq.h\
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone

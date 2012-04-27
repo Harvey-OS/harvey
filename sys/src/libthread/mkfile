@@ -1,0 +1,80 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libthread.a
+
+OFILES=\
+	$objtype.$O\
+	channel.$O\
+	chanprint.$O\
+	create.$O\
+	debug.$O\
+	dial.$O\
+	exec.$O\
+	exit.$O\
+	id.$O\
+	iocall.$O\
+	ioclose.$O\
+	iodial.$O\
+	ioopen.$O\
+	ioproc.$O\
+	ioread.$O\
+	ioreadn.$O\
+	iosleep.$O\
+	iowrite.$O\
+	kill.$O\
+	lib.$O\
+	main.$O\
+	note.$O\
+	ref.$O\
+	rendez.$O\
+	sched.$O\
+
+CFILES=\
+	386.c\
+	alpha.c\
+	amd64.c\
+	arm.c\
+	channel.c\
+	chanprint.c\
+	create.c\
+	debug.c\
+	dial.c\
+	example.c\
+	exec.c\
+	exit.c\
+	id.c\
+	iocall.c\
+	ioclose.c\
+	iodial.c\
+	ioopen.c\
+	ioproc.c\
+	ioread.c\
+	ioreadn.c\
+	iowrite.c\
+	kill.c\
+	lib.c\
+	main.c\
+	mips.c\
+	note.c\
+	power.c\
+	rendez.c\
+	sched.c\
+	test.c\
+	tprimes.c\
+
+HFILES=\
+	/sys/include/thread.h\
+	threadimpl.h\
+
+UPDATE=mkfile\
+	/386/lib/libthread.a\
+	$HFILES\
+	$CFILES\
+	$SFILES\
+
+all:V:	$LIB sched.acid channel.acid
+
+</sys/src/cmd/mksyslib
+
+$O.tprimes: tprimes.$O $LIB
+	$LD -o $target $prereq

@@ -1,0 +1,22 @@
+</$objtype/mkfile
+BIN=/$objtype/bin
+
+TARG=snap snapfs
+OFILES=\
+	read.$O\
+	take.$O\
+	util.$O\
+	write.$O\
+
+HFILES=snap.h
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=%.c}\
+	${TARG:%=/386/bin/%}\
+
+LIB=/$objtype/lib/lib9p.a
+
+</sys/src/cmd/mkmany

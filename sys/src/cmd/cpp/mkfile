@@ -1,0 +1,17 @@
+</$objtype/mkfile
+
+TARG=cpp
+OFILES=\
+	cpp.$O\
+	lex.$O\
+	nlist.$O\
+	tokens.$O\
+	macro.$O\
+	eval.$O\
+	include.$O\
+	hideset.$O\
+
+HFILES=cpp.h
+
+BIN=/$objtype/bin
+</sys/src/cmd/mkone

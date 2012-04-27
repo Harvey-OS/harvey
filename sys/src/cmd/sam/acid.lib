@@ -1,0 +1,104 @@
+defn saminit()
+{
+	if !access("/sys/src/cmd/sam/cmd.acid") then
+		rc("cd /sys/src/cmd/sam && mk cmd.acid");
+	include("/sys/src/cmd/sam/cmd.acid");
+}
+
+defn printrunestring(addr, len)
+{
+	loop 1,len do {
+		print(*(addr\r));
+		addr = addr+2;
+	}
+}
+
+defn runestring(addr, len)
+{
+	local s;
+	
+	s = "";
+	loop 1,len do {
+		s = s + *(addr\r);
+		addr = addr+2;
+	}
+	return s;
+}
+
+defn string(s)
+{
+	complex String s;
+	return runestring(s.s, s.n);
+}
+
+defn filemenu(f)
+{
+	complex File f;
+	local s;
+	
+	s = "";
+	if f != *cmd then {
+		if f.mod then
+			s = s + "'";
+		else 
+			s = s + " ";
+		if f.rasp != 0 then
+			s = s + "+";
+		else
+			s = s + "-";
+		if f == *curfile then
+			s = s + ".";
+		else
+			s = s + " ";
+		s = s + " ";
+	}
+	s = s + string(f.name);
+	print("file(", f\X, ") // ", s, "\n");
+}
+
+defn files()
+{
+	local i, f, fx, fp;
+	
+	fx = (List)file;
+	if fx.nused == 0 then
+		filemenu(*cmd);
+	i = 0;
+	loop 1,fx.nused do {
+		f = (File)fx.g.filep[i];
+		filemenu(f);
+		i = i+1;
+	}
+}
+
+defn range(r)
+{
+	complex Range r;
+	
+	if r.p1 == r.p2 then
+		return itoa(r.p1, "#%d");
+	return itoa(r.p1, "#%d")+"-"+itoa(r.p2, "#%d");
+}
+
+defn file(f)
+{
+	complex File f;
+	
+	filemenu(f);
+	print("\t$=#", f.nc\D, " .=", range(f.dot.r), " buffer(", f\X, ")\n");
+	if f == *cmd then {
+		print("\tcmdpt=#", *cmdpt\D, " cmdptadv=#", *cmdptadv\D, "\n");
+	}
+}
+
+defn buffer(b)
+{
+	complex Buffer b;
+	
+	print("buffer(", b\X, "): c=", b.c\X, " nc=", b.nc\D, "\n");
+	print("cache: ==(");
+	print(runestring(b.c, b.nc));
+	print(")==\n");
+}
+
+print("/sys/lib/acid/sam");

@@ -1,0 +1,24 @@
+</$objtype/mkfile
+
+HFILES=paqfs.h
+
+TARG=mkpaqfs\
+	paqfs\
+
+OFILES=
+
+PROGS=${TARG:%=$O.%}
+
+BIN=/$objtype/bin
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=%.c}\
+	${TARG:%=/386/bin/%}\
+
+
+all:V:
+
+< /sys/src/cmd/mkmany
+

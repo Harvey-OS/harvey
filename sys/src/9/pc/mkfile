@@ -1,0 +1,192 @@
+CONF=pc
+CONFLIST=pc pccpu pcf pcdisk # pccpuf pcauth
+CRAPLIST=pccd pcflop
+EXTRACOPIES=
+#EXTRACOPIES=lookout boundary	# copy to these servers on install
+
+objtype=386
+</$objtype/mkfile
+p=9
+
+# must match mem.h
+APBOOTSTRAP=0xF0003000
+KTZERO=0xF0100020
+
+DEVS=`{rc ../port/mkdevlist $CONF}
+
+PORT=\
+	alarm.$O\
+	alloc.$O\
+	allocb.$O\
+	auth.$O\
+	cache.$O\
+	chan.$O\
+	dev.$O\
+	edf.$O\
+	fault.$O\
+	latin1.$O\
+	page.$O\
+	parse.$O\
+	pgrp.$O\
+	portclock.$O\
+	print.$O\
+	proc.$O\
+	qio.$O\
+	qlock.$O\
+	rdb.$O\
+	rebootcmd.$O\
+	segment.$O\
+	swap.$O\
+	sysfile.$O\
+	sysproc.$O\
+	taslock.$O\
+	tod.$O\
+	xalloc.$O\
+
+OBJ=\
+	l.$O\
+	plan9l.$O\
+	cga.$O\
+	i8253.$O\
+	i8259.$O\
+	kbd.$O\
+	main.$O\
+	memory.$O\
+	mmu.$O\
+	random.$O\
+	syscallfmt.$O\
+	trap.$O\
+	$CONF.root.$O\
+	$CONF.rootc.$O\
+	$DEVS\
+	$PORT\
+
+LIB=\
+	/$objtype/lib/libmemlayer.a\
+	/$objtype/lib/libmemdraw.a\
+	/$objtype/lib/libdraw.a\
+	/$objtype/lib/libip.a\
+	/$objtype/lib/libc.a\
+	/$objtype/lib/libsec.a\
+	/$objtype/lib/libmp.a\
+
+ETHER=`{echo devether.c ether*.c | sed 's/\.c/.'$O'/g'}
+VGA=`{echo devvga.c screen.c vga*.c | sed 's/\.c/.'$O'/g'}
+SDEV=`{echo devsd.c sd*.c | sed 's/\.c/.'$O'/g'}
+
+$p$CONF:	$CONF.c $OBJ $LIB
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	$LD -o $target -T$KTZERO -l $OBJ $CONF.$O $LIB
+	size $target
+
+# don't strip the gzipped kernels -- too frustrating when that's all you have!
+$p%.gz:D:	$p%
+	gzip -9 <$p$stem >$p$stem.gz
+
+
+# pcflop and pccd need all the space they can get
+9pcflop.gz:D: 9pcflop
+	strip -o /fd/1 9pcflop | gzip -9 >9pcflop.gz
+
+9pccd.gz:D: 9pccd
+	strip -o /fd/1 9pccd | gzip -9 >9pccd.gz
+
+
+install:V:	$p$CONF $p$CONF.gz
+	cp $p$CONF $p$CONF.gz /$objtype/
+	for(i in $EXTRACOPIES)
+		import $i / /n/$i && cp $p$CONF $p$CONF.gz /n/$i/$objtype/
+
+<../boot/bootmkfile
+<../port/portmkfile
+<|../port/mkbootrules $CONF
+
+$ETHER: 			etherif.h ../port/netif.h
+ether8003.$O ether8390.$O:	ether8390.h
+$VGA mouse.$O:			screen.h /sys/include/memdraw.h
+devfloppy.$O: 			floppy.h
+archmp.$O mp.$O:		apbootstrap.h
+apic.$O archmp.$O mp.$O:	mp.h
+$SDEV:				../port/sd.h
+sd53c8xx.$O:			sd53c8xx.i
+sdiahci.$O:			ahci.h
+devaoe.$O sdaoe.$O:		../port/aoe.h
+main.$O:			init.h reboot.h
+wavelan.$O:			wavelan.c ../pc/wavelan.c ../pc/wavelan.h
+etherwavelan.$O:		etherwavelan.c ../pc/wavelan.h
+devusb.$O usbuhci.$O usbohci.$O usbehci.$O: ../port/usb.h
+trap.$O:			/sys/include/tos.h
+uartaxp.$O:			uartaxp.i
+etherm10g.$O:			etherm10g2k.i etherm10g4k.i
+
+init.h:D:		../port/initcode.c init9.c
+	$CC ../port/initcode.c
+	$CC init9.c
+	$LD -l -R1 -s -o init.out init9.$O initcode.$O /386/lib/libc.a
+	{echo 'uchar initcode[]={'
+	 xd -1x <init.out |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > init.h
+
+reboot.h:D:	rebootcode.s
+	$AS rebootcode.s
+	$LD -l -s -T0x11000 -R4 -o reboot.out rebootcode.$O
+	{echo 'uchar rebootcode[]={'
+	 xd -1x reboot.out |
+		sed -e '1,2d' -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > reboot.h
+
+apbootstrap.h:	apbootstrap.s mem.h
+	$AS $prereq
+	$LD -o apbootstrap.out -T$APBOOTSTRAP -R4 -l -s apbootstrap.$O
+	{echo 'uchar apbootstrap[]={'
+	 xd -1x apbootstrap.out |
+		sed -e '1,2d' -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > $target
+
+sd53c8xx.i:	sd53c8xx.n
+	aux/na $prereq > $target
+
+uartaxp.i:	a100p.cp
+	{echo 'static uchar uartaxpcp[] = {'
+	 xd -1x $prereq |
+		sed -e 's/^[0-9a-f]+ //' -e '/^$/d' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'
+	} > $target
+
+acid:V:
+	8c -a -w -I. i8253.c>acid
+
+%.checkether:VQ:
+	for (i in ether*.c){
+		x=`{echo $i | sed 's/\.c//'}
+		if(! ~ $x ether8390 && ! grep -s '^	'^$x^'([ 	]|$)' $stem)
+			echo $x not included in $stem
+	}
+	exit 0
+
+%.checkvga:VQ:
+	for (i in vga*.c){
+		x=`{echo $i | sed 's/\.c//'}
+		if(! ~ $x vga vgax vgasavage && ! grep -s '^	'^$x^'([ 	]|$)' $stem)
+			echo $x not included in $stem
+	}
+	exit 0
+
+checkdist:VQ:
+	for(i in pcdisk pcflop)
+	for(j in checkvga checkether)
+		mk $i.$j
+
+%.clean:V:
+	rm -f $stem.c [9bz]$stem [9bz]$stem.gz boot$stem.* reboot.h apbootstrap.h init.h
+
+# testing
+9load:D: /usr/rsc/boot/$O.load 9pcload
+	cat $prereq >$target
+
+9load.flp: 9load
+	disk/format -b /386/pbs -df $target $prereq
+
+$p$CONF.flp: /386/9load plan9.ini $p$CONF.gz
+	disk/format -b /386/pbs -df $target $prereq

@@ -1,0 +1,33 @@
+BOOTDIR=../boot
+BOOTLIB=$BOOTDIR/libboot.a$O
+
+BOOTFILES=\
+	bootauth.$O\
+	aux.$O\
+	boot.$O\
+	bootcache.$O\
+	bootip.$O\
+	local.$O\
+	embed.$O\
+	settime.$O\
+	sac.$O\
+	paq.$O\
+	printstub.$O\
+
+$BOOTLIB(%.$O):N:	%.$O
+
+$BOOTLIB:	${BOOTFILES:%=$BOOTLIB(%)}
+	names=`{membername $newprereq}
+	ar vu $BOOTLIB $names
+	rm $names
+
+$BOOTFILES:	$BOOTDIR/boot.h
+
+%.$O:	$BOOTDIR/%.c
+	$CC -I$BOOTDIR $CFLAGS $BOOTDIR/$stem.c
+
+boot$CONF.out: ../mk/parse $CONF print.$O $BOOTDIR/boot.c $BOOTLIB
+	awk -f ../mk/parse -- -mkbootconf $CONF > boot$CONF.c
+	$CC $CFLAGS boot$CONF.c
+	$CC $CFLAGS ../boot/printstub.c
+	$LD -o boot$CONF.out boot$CONF.$O $BOOTLIB printstub.$O

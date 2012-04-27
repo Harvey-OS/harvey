@@ -1,0 +1,13 @@
+</$objtype/mkfile
+
+TARG=unesc
+OFILES=unesc.$O\
+
+BIN=/$objtype/bin/upas
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+
+</sys/src/cmd/mkone

@@ -1,0 +1,56 @@
+</$objtype/mkfile
+
+TARG=factotum\
+	fgui\
+
+PROTO=\
+	apop.$O\
+	chap.$O\
+	dsa.$O\
+	httpdigest.$O\
+	p9any.$O\
+	p9cr.$O\
+	p9sk1.$O\
+	pass.$O\
+	rsa.$O\
+	wep.$O\
+
+FOFILES=\
+	$PROTO\
+	attr.$O\
+	confirm.$O\
+	conv.$O\
+	ctl.$O\
+	fs.$O\
+	key.$O\
+	log.$O\
+	main.$O\
+	pkcs1.$O\
+	proto.$O\
+	rpc.$O\
+	secstore.$O\
+	util.$O\
+	xio.$O\
+
+HFILES=\
+	dat.h\
+
+LIB=/$objtype/lib/libauth.a /$objtype/lib/libauthsrv.a
+BIN=/$objtype/bin/auth
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${FOFILES:%.$O=%.c}\
+	fgui.c\
+
+</sys/src/cmd/mkmany
+
+$O.factotum: $FOFILES
+	$LD -o $target $prereq
+
+$O.fgui: fgui.$O
+	$LD -o $target $prereq
+
+$O.test: test.$O
+	$LD -o $target $prereq

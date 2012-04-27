@@ -1,0 +1,15 @@
+# If the existence of this mkfile screws something up, rename it.	-rsc
+
+master:DV:
+	{
+	echo '# do not edit; automatically generated'
+	echo
+	echo '
+		X , s/Dev (.*)devtab.*{.*\n	L?''(.*)''/DEV \1 \2\n/
+		X ,x g/^DEV/ p
+	' | sam -d ../*/dev*.c >[2]/dev/null |
+	awk '/^DEV/ { printf("%s\t%s\n", $3, $2); }' |
+	sort -u
+	echo
+	cat master.local
+	} >master

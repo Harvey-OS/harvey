@@ -1,0 +1,20 @@
+</$objtype/mkfile
+
+TARG=expect\
+	pass\
+	drain\
+	at\
+
+OFILES=
+
+BIN=/$objtype/bin/dial
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=%.c}\
+	/sys/man/1/con\
+
+</sys/src/cmd/mkmany
+

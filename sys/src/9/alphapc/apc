@@ -1,0 +1,66 @@
+dev
+	root
+	cons
+	arch
+	pnp		pci
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+#	rtc
+	ssl
+	cap
+	kprof
+#	loopback
+
+	ether		netif
+	ip		arp chandial inferno ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum
+
+	draw		screen vga vgax
+	mouse		mouse
+	vga
+
+	sd
+	floppy		dma
+
+	audio		dma
+	uart
+
+link
+	ether2114x	pci
+	ethermedium
+
+misc
+	arch164
+
+	sdata		pci sdscsi
+#	sd53c8xx	pci sdscsi
+
+	uarti8250
+
+	vgargb524	=cur
+	vgas3		+cur
+	vgas3		+cur vgasavage
+	vgatvp3026	=cur
+
+ip
+	tcp
+	udp
+	ipifc
+	icmp
+	icmp6
+
+port
+	int cpuserver = 0;
+
+boot
+	tcp
+
+bootdir
+	bootapc.out boot
+	/alpha/bin/disk/kfs
+	/alpha/bin/auth/factotum
+	/alpha/bin/ip/ipconfig
+

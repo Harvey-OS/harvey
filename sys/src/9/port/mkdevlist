@@ -1,0 +1,46 @@
+#!/bin/rc
+
+awk -v 'objtype='$objtype '
+BEGIN{
+	if(ARGC < 2)
+		exit;
+	collect = isdev = 0;
+}
+
+/^[ \t]*$/{
+	next;
+}
+/^#/{
+	next;
+}
+collect && /^[^	\t]/{
+	collect = isdev = 0;
+}
+collect && $0 ~ /[^ \t]+/{
+	if(isdev)
+		obj["dev" $1 "'.$O'"]++;
+	else
+		obj[$1 "'.$O'"]++;
+	for(i = 2; i <= NF; i++){
+		if($i !~ "[+=-].*")
+			obj[$i "'.$O'"]++;
+	}
+}
+$0 ~ /^[^ \t]/{
+	if($1 ~ "dev"){
+		isdev = 1;
+		collect = 1;
+	}
+	else if($1 ~ "misc" || $1 ~ "link" || $1 ~ "ip")
+		collect = 1;
+	next;
+}
+
+END{
+	x = ""
+	for(i in obj)
+		x = x i "\n";
+	if(objtype ~ "386" && obj["pci" "'.$O'"])
+		x = x "bios32'.$O' \n";
+	printf x;
+}' $*

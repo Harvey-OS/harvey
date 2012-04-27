@@ -1,0 +1,14 @@
+Bugs:
+	* fix text selection and double clicking;
+
+Not Bugs:
+	* complaints like "gif: decode <stdin> failed: ReadGIF: can't recognize format ��"
+	  are caused by sites that return a jpeg and send Content-Type: image/gif.
+
+Not implented:
+	* frame's borders and scroll are ignored
+	* Image: maps
+	* table atributes
+	* css
+	* Js
+

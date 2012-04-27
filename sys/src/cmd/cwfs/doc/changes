@@ -1,0 +1,68 @@
+	changes to Ken's file server to make this 63-bit file server
+
+		Geoff Collyer
+		July—October 2004
+
+note: 2⁶⁳=9,223,372,036,854,775,808 or 8EB (9.2×10ⁱ⁸)
+
+• identified longs that refer to offsets, sizes and block numbers, and
+changed them to type Off (vlong); fixed all print formats to match.
+fixed byte-swapping for the 'x' config to match.
+
+• fixed VLONG 9p1 message packing and unpacking macros to actually
+handle 64-bit offsets and sizes.
+
+• implemented triple-indirect blocks.  affected code in
+	dev/cw.c	port/con.c	port/dentry.c	port/sub.c
+	port/chk.c	port/console.c	port/portdat.h
+
+• Fri Aug  6 16:50:59 PDT 2004
+	; ./sizes
+	Plan 9 v4 63-bit file server
+		sizeof(Dentry) = 124
+		sizeof(Cache)  =  88
+
+• added long(er) file name components (56 bytes), long enough for all but one
+  name in my /.longnames file (68-byte .xml name).
+
+• Fri Aug  6 21:43:41 PDT 2004
+	; ./sizes
+	Plan 9 v4 63-bit file server sizes
+		sizeof(Dentry) = 160
+		sizeof(Cache)  =  88
+
+• touched up lib.h (from libc.h) to bring it up to date with formatting
+  functions, verbs & flags.
+• check now reports stack usage: 320 bytes upon entry to fsck first time,
+  92 bytes of stack per recursion.  given 16000 bytes of stack,
+  that's 170 recursions maximum.
+• booted xtc (terminal) from fs64 (used fs64 as main file system)
+
+note: current file server with triple-indirect blocks at 4k block size
+	has a maximum file size of ~505GB (5.42×10ⁱⁱ).
+	with quadruple-indirect blocks, max would be ~275TB @ 4k block size.
+
+• got igbe fs driver working (a couple small changes)
+• eliminated some gotos (started with 580, down to 454)
+• added quadruple indirect blocks: lets us reach 2⁶⁳ with a 32kB block size
+• got igbe boot driver & pxe booting working
+• on-disk qid paths are now Offs, but 9p1 qids on the wire are still ulongs
+• generalised & parameterised indirect block implementation
+• tested with plain w0 fs, cached fake worm on w0, cw jukebox (hp 160fx)
+• ip directories in fs & fs64 are identical except for whitespace and
+  goto-elimination
+• replaced most of nemo's ide code with newer ide code lifted from 9load,
+  then from cpu kernel (sdata.c & support).  this brings us dma, rwm & lba48,
+  finds ide controllers by itself, even pci ones, & copes with dead drives
+  (i.e., doesn't panic).
+• fixed long-standing bug that caused a 5-second delay before each console
+  prompt on systems without a serial console.
+• further type parameterisation: Userid (short), Timet (long), Devsize (vlong).
+    Comment on v7 kernel portability work, quoting scj & dmr from BSTJ v57
+    #6 part 2., p. 2038: ``The important data types used within the
+    system were identified and specified using typedef: disk offsets,
+    absolute times, internal device names, and the like.  This effort was
+    carried out by K. Thompson.''
+• corrected compat.h dependencies in mkfiles
+• eliminated all warnings
+• implemented truncation via wstat

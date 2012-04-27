@@ -1,0 +1,45 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libventi.a
+
+OFILES=\
+	cache.$O\
+	client.$O\
+	conn.$O\
+	dial.$O\
+	debug.$O\
+	dtype.$O\
+	entry.$O\
+	fcall.$O\
+	fcallfmt.$O\
+	file.$O\
+	hangup.$O\
+	log.$O\
+	mem.$O\
+	packet.$O\
+	parsescore.$O\
+	queue.$O\
+	root.$O\
+	rpc.$O\
+	scorefmt.$O\
+	send.$O\
+	server.$O\
+	srvhello.$O\
+	strdup.$O\
+	string.$O\
+	time.$O\
+	version.$O\
+	zero.$O\
+	zeroscore.$O\
+
+HFILES=\
+	/sys/include/venti.h\
+
+</sys/src/cmd/mksyslib
+
+send.$O: queue.h
+server.$O: queue.h
+queue.$O: queue.h
+
+CFLAGS=$CFLAGS -I.
+

@@ -1,0 +1,22 @@
+</$objtype/mkfile
+
+TARG=fdisk prep
+
+YFILES=calc.y
+HFILES=edit.h
+OFILES=\
+	edit.$O\
+	y.tab.$O\
+
+BIN=/$objtype/bin/disk
+
+UPDATE=\
+	mkfile\
+	/sys/man/8/prep\
+	edit.c\
+	${TARG:%=%.c}\
+	$HFILES\
+	$YFILES\
+	${TARG:%=/386/bin/disk/%}\
+
+</sys/src/cmd/mkmany

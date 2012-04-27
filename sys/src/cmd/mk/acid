@@ -1,0 +1,664 @@
+sizeof_1_ = 8;
+aggr _1_
+{
+	'D' 0 llength;
+	'D' 4 hlength;
+};
+
+defn
+_1_(addr) {
+	complex _1_ addr;
+	print("	llength	", addr.llength, "\n");
+	print("	hlength	", addr.hlength, "\n");
+};
+
+sizeof_2_ = 8;
+aggr _2_
+{
+	'V' 0 length;
+	{
+	'D' 0 llength;
+	'D' 4 hlength;
+	};
+};
+
+defn
+_2_(addr) {
+	complex _2_ addr;
+	print("	length	", addr.length, "\n");
+	print("_1_ {\n");
+		_1_(addr+0);
+	print("}\n");
+};
+
+UTFmax = 3;
+Runesync = 128;
+Runeself = 128;
+Runeerror = 128;
+sizeofFconv = 24;
+aggr Fconv
+{
+	'X' 0 out;
+	'X' 4 eout;
+	'D' 8 f1;
+	'D' 12 f2;
+	'D' 16 f3;
+	'D' 20 chr;
+};
+
+defn
+Fconv(addr) {
+	complex Fconv addr;
+	print("	out	", addr.out\X, "\n");
+	print("	eout	", addr.eout\X, "\n");
+	print("	f1	", addr.f1, "\n");
+	print("	f2	", addr.f2, "\n");
+	print("	f3	", addr.f3, "\n");
+	print("	chr	", addr.chr, "\n");
+};
+
+sizeofTm = 40;
+aggr Tm
+{
+	'D' 0 sec;
+	'D' 4 min;
+	'D' 8 hour;
+	'D' 12 mday;
+	'D' 16 mon;
+	'D' 20 year;
+	'D' 24 wday;
+	'D' 28 yday;
+	'a' 32 zone;
+	'D' 36 tzoff;
+};
+
+defn
+Tm(addr) {
+	complex Tm addr;
+	print("	sec	", addr.sec, "\n");
+	print("	min	", addr.min, "\n");
+	print("	hour	", addr.hour, "\n");
+	print("	mday	", addr.mday, "\n");
+	print("	mon	", addr.mon, "\n");
+	print("	year	", addr.year, "\n");
+	print("	wday	", addr.wday, "\n");
+	print("	yday	", addr.yday, "\n");
+	print("	zone	", addr.zone, "\n");
+	print("	tzoff	", addr.tzoff, "\n");
+};
+
+PNPROC = 1;
+PNGROUP = 2;
+sizeofLock = 4;
+aggr Lock
+{
+	'D' 0 val;
+};
+
+defn
+Lock(addr) {
+	complex Lock addr;
+	print("	val	", addr.val, "\n");
+};
+
+sizeofQLp = 12;
+aggr QLp
+{
+	'D' 0 inuse;
+	'A' QLp 4 next;
+	'C' 8 state;
+};
+
+defn
+QLp(addr) {
+	complex QLp addr;
+	print("	inuse	", addr.inuse, "\n");
+	print("	next	", addr.next\X, "\n");
+	print("	state	", addr.state, "\n");
+};
+
+sizeofQLock = 16;
+aggr QLock
+{
+	Lock 0 lock;
+	'D' 4 locked;
+	'A' QLp 8 $head;
+	'A' QLp 12 $tail;
+};
+
+defn
+QLock(addr) {
+	complex QLock addr;
+	print("Lock lock {\n");
+	Lock(addr.lock);
+	print("}\n");
+	print("	locked	", addr.locked, "\n");
+	print("	$head	", addr.$head\X, "\n");
+	print("	$tail	", addr.$tail\X, "\n");
+};
+
+sizeofRWLock = 20;
+aggr RWLock
+{
+	Lock 0 lock;
+	'D' 4 readers;
+	'D' 8 writer;
+	'A' QLp 12 $head;
+	'A' QLp 16 $tail;
+};
+
+defn
+RWLock(addr) {
+	complex RWLock addr;
+	print("Lock lock {\n");
+	Lock(addr.lock);
+	print("}\n");
+	print("	readers	", addr.readers, "\n");
+	print("	writer	", addr.writer, "\n");
+	print("	$head	", addr.$head\X, "\n");
+	print("	$tail	", addr.$tail\X, "\n");
+};
+
+RFNAMEG = 1;
+RFENVG = 2;
+RFFDG = 4;
+RFNOTEG = 8;
+RFPROC = 16;
+RFMEM = 32;
+RFNOWAIT = 64;
+RFCNAMEG = 1024;
+RFCENVG = 2048;
+RFCFDG = 4096;
+RFREND = 8192;
+sizeofQid = 8;
+aggr Qid
+{
+	'U' 0 path;
+	'U' 4 vers;
+};
+
+defn
+Qid(addr) {
+	complex Qid addr;
+	print("	path	", addr.path, "\n");
+	print("	vers	", addr.vers, "\n");
+};
+
+sizeofDir = 116;
+aggr Dir
+{
+	'a' 0 name;
+	'a' 28 uid;
+	'a' 56 gid;
+	Qid 84 qid;
+	'U' 92 mode;
+	'D' 96 atime;
+	'D' 100 mtime;
+	{
+	'V' 104 length;
+	{
+	'D' 104 llength;
+	'D' 108 hlength;
+	};
+	};
+	'u' 112 type;
+	'u' 114 dev;
+};
+
+defn
+Dir(addr) {
+	complex Dir addr;
+	print("	name	", addr.name, "\n");
+	print("	uid	", addr.uid, "\n");
+	print("	gid	", addr.gid, "\n");
+	print("Qid qid {\n");
+	Qid(addr.qid);
+	print("}\n");
+	print("	mode	", addr.mode, "\n");
+	print("	atime	", addr.atime, "\n");
+	print("	mtime	", addr.mtime, "\n");
+	print("_2_ {\n");
+		_2_(addr+104);
+	print("}\n");
+	print("	type	", addr.type, "\n");
+	print("	dev	", addr.dev, "\n");
+};
+
+sizeofWaitmsg = 112;
+aggr Waitmsg
+{
+	'a' 0 pid;
+	'a' 12 time;
+	'a' 48 msg;
+};
+
+defn
+Waitmsg(addr) {
+	complex Waitmsg addr;
+	print("	pid	", addr.pid, "\n");
+	print("	time	", addr.time, "\n");
+	print("	msg	", addr.msg, "\n");
+};
+
+Bsize = 8192;
+Bungetsize = 4;
+Bmagic = 3227993;
+Beof = -1;
+Bbad = -2;
+Binactive = 0;
+Bractive = 1;
+Bwactive = 2;
+Bracteof = 3;
+sizeofBiobufhdr = 52;
+aggr Biobufhdr
+{
+	'D' 0 icount;
+	'D' 4 ocount;
+	'D' 8 rdline;
+	'D' 12 runesize;
+	'D' 16 state;
+	'D' 20 fid;
+	'D' 24 flag;
+	'V' 28 offset;
+	'D' 36 bsize;
+	'X' 40 bbuf;
+	'X' 44 ebuf;
+	'X' 48 gbuf;
+};
+
+defn
+Biobufhdr(addr) {
+	complex Biobufhdr addr;
+	print("	icount	", addr.icount, "\n");
+	print("	ocount	", addr.ocount, "\n");
+	print("	rdline	", addr.rdline, "\n");
+	print("	runesize	", addr.runesize, "\n");
+	print("	state	", addr.state, "\n");
+	print("	fid	", addr.fid, "\n");
+	print("	flag	", addr.flag, "\n");
+	print("	offset	", addr.offset, "\n");
+	print("	bsize	", addr.bsize, "\n");
+	print("	bbuf	", addr.bbuf\X, "\n");
+	print("	ebuf	", addr.ebuf\X, "\n");
+	print("	gbuf	", addr.gbuf\X, "\n");
+};
+
+sizeofBiobuf = 8248;
+aggr Biobuf
+{
+	{
+	'D' 0 icount;
+	'D' 4 ocount;
+	'D' 8 rdline;
+	'D' 12 runesize;
+	'D' 16 state;
+	'D' 20 fid;
+	'D' 24 flag;
+	'V' 28 offset;
+	'D' 36 bsize;
+	'X' 40 bbuf;
+	'X' 44 ebuf;
+	'X' 48 gbuf;
+	};
+	'a' 52 b;
+};
+
+defn
+Biobuf(addr) {
+	complex Biobuf addr;
+	print("Biobufhdr {\n");
+		Biobufhdr(addr+0);
+	print("}\n");
+	print("	b	", addr.b, "\n");
+};
+
+sizeof_3_ = 4;
+aggr _3_
+{
+	'X' 0 sp;
+	'X' 0 rsp;
+};
+
+defn
+_3_(addr) {
+	complex _3_ addr;
+	print("	sp	", addr.sp\X, "\n");
+	print("	rsp	", addr.rsp\X, "\n");
+};
+
+sizeof_4_ = 4;
+aggr _4_
+{
+	'X' 0 ep;
+	'X' 0 rep;
+};
+
+defn
+_4_(addr) {
+	complex _4_ addr;
+	print("	ep	", addr.ep\X, "\n");
+	print("	rep	", addr.rep\X, "\n");
+};
+
+sizeofResub = 8;
+aggr Resub
+{
+	{
+	'X' 0 sp;
+	'X' 0 rsp;
+	};
+	{
+	'X' 4 ep;
+	'X' 4 rep;
+	};
+};
+
+defn
+Resub(addr) {
+	complex Resub addr;
+	print("_3_ {\n");
+		_3_(addr+0);
+	print("}\n");
+	print("_4_ {\n");
+		_4_(addr+4);
+	print("}\n");
+};
+
+sizeofReclass = 132;
+aggr Reclass
+{
+	'X' 0 end;
+	'a' 4 spans;
+};
+
+defn
+Reclass(addr) {
+	complex Reclass addr;
+	print("	end	", addr.end\X, "\n");
+	print("	spans	", addr.spans, "\n");
+};
+
+sizeof_5_ = 4;
+aggr _5_
+{
+	'A' Reclass 0 cp;
+	'u' 0 r;
+	'D' 0 subid;
+	'X' 0 right;
+};
+
+defn
+_5_(addr) {
+	complex _5_ addr;
+	print("	cp	", addr.cp\X, "\n");
+	print("	r	", addr.r, "\n");
+	print("	subid	", addr.subid, "\n");
+	print("	right	", addr.right\X, "\n");
+};
+
+sizeof_6_ = 4;
+aggr _6_
+{
+	'X' 0 left;
+	'X' 0 next;
+};
+
+defn
+_6_(addr) {
+	complex _6_ addr;
+	print("	left	", addr.left\X, "\n");
+	print("	next	", addr.next\X, "\n");
+};
+
+sizeofReinst = 12;
+aggr Reinst
+{
+	'D' 0 type;
+	{
+	'A' Reclass 4 cp;
+	'u' 4 r;
+	'D' 4 subid;
+	'A' Reinst 4 right;
+	};
+	{
+	'A' Reinst 8 left;
+	'A' Reinst 8 next;
+	};
+};
+
+defn
+Reinst(addr) {
+	complex Reinst addr;
+	print("	type	", addr.type, "\n");
+	print("_5_ {\n");
+		_5_(addr+4);
+	print("}\n");
+	print("_6_ {\n");
+		_6_(addr+8);
+	print("}\n");
+};
+
+sizeofReprog = 2176;
+aggr Reprog
+{
+	'A' Reinst 0 startinst;
+	'a' 4 class;
+	'a' 2116 firstinst;
+};
+
+defn
+Reprog(addr) {
+	complex Reprog addr;
+	print("	startinst	", addr.startinst\X, "\n");
+	print("	class	", addr.class, "\n");
+	print("	firstinst	", addr.firstinst, "\n");
+};
+
+complex Biobuf bout;
+sizeofBufblock = 16;
+aggr Bufblock
+{
+	'A' Bufblock 0 next;
+	'X' 4 start;
+	'X' 8 end;
+	'X' 12 current;
+};
+
+defn
+Bufblock(addr) {
+	complex Bufblock addr;
+	print("	next	", addr.next\X, "\n");
+	print("	start	", addr.start\X, "\n");
+	print("	end	", addr.end\X, "\n");
+	print("	current	", addr.current\X, "\n");
+};
+
+sizeofWord = 8;
+aggr Word
+{
+	'X' 0 s;
+	'A' Word 4 next;
+};
+
+defn
+Word(addr) {
+	complex Word addr;
+	print("	s	", addr.s\X, "\n");
+	print("	next	", addr.next\X, "\n");
+};
+
+sizeofEnvy = 8;
+aggr Envy
+{
+	'X' 0 name;
+	'A' Word 4 values;
+};
+
+defn
+Envy(addr) {
+	complex Envy addr;
+	print("	name	", addr.name\X, "\n");
+	print("	values	", addr.values\X, "\n");
+};
+
+complex Envy envy;
+sizeofRule = 44;
+aggr Rule
+{
+	'X' 0 target;
+	'A' Word 4 $tail;
+	'X' 8 recipe;
+	'd' 12 attr;
+	'd' 14 line;
+	'X' 16 file;
+	'A' Word 20 alltargets;
+	'D' 24 rule;
+	'A' Reprog 28 pat;
+	'X' 32 prog;
+	'A' Rule 36 chain;
+	'A' Rule 40 next;
+};
+
+defn
+Rule(addr) {
+	complex Rule addr;
+	print("	target	", addr.target\X, "\n");
+	print("	$tail	", addr.$tail\X, "\n");
+	print("	recipe	", addr.recipe\X, "\n");
+	print("	attr	", addr.attr, "\n");
+	print("	line	", addr.line, "\n");
+	print("	file	", addr.file\X, "\n");
+	print("	alltargets	", addr.alltargets\X, "\n");
+	print("	rule	", addr.rule, "\n");
+	print("	pat	", addr.pat\X, "\n");
+	print("	prog	", addr.prog\X, "\n");
+	print("	chain	", addr.chain\X, "\n");
+	print("	next	", addr.next\X, "\n");
+};
+
+complex Rule rules;
+complex Rule metarules;
+complex Rule patrule;
+sizeofArc = 64;
+aggr Arc
+{
+	'd' 0 flag;
+	'X' 4 n;
+	'A' Rule 8 r;
+	'X' 12 stem;
+	'X' 16 prog;
+	'a' 20 match;
+	'A' Arc 60 next;
+};
+
+defn
+Arc(addr) {
+	complex Arc addr;
+	print("	flag	", addr.flag, "\n");
+	print("	n	", addr.n\X, "\n");
+	print("	r	", addr.r\X, "\n");
+	print("	stem	", addr.stem\X, "\n");
+	print("	prog	", addr.prog\X, "\n");
+	print("	match	", addr.match, "\n");
+	print("	next	", addr.next\X, "\n");
+};
+
+sizeofNode = 20;
+aggr Node
+{
+	'X' 0 name;
+	'D' 4 time;
+	'u' 8 flags;
+	'A' Arc 12 prereqs;
+	'A' Node 16 next;
+};
+
+defn
+Node(addr) {
+	complex Node addr;
+	print("	name	", addr.name\X, "\n");
+	print("	time	", addr.time, "\n");
+	print("	flags	", addr.flags, "\n");
+	print("	prereqs	", addr.prereqs\X, "\n");
+	print("	next	", addr.next\X, "\n");
+};
+
+sizeofJob = 40;
+aggr Job
+{
+	'A' Rule 0 r;
+	'A' Node 4 n;
+	'X' 8 stem;
+	'X' 12 match;
+	'A' Word 16 p;
+	'A' Word 20 np;
+	'A' Word 24 t;
+	'A' Word 28 at;
+	'D' 32 nproc;
+	'A' Job 36 next;
+};
+
+defn
+Job(addr) {
+	complex Job addr;
+	print("	r	", addr.r\X, "\n");
+	print("	n	", addr.n\X, "\n");
+	print("	stem	", addr.stem\X, "\n");
+	print("	match	", addr.match\X, "\n");
+	print("	p	", addr.p\X, "\n");
+	print("	np	", addr.np\X, "\n");
+	print("	t	", addr.t\X, "\n");
+	print("	at	", addr.at\X, "\n");
+	print("	nproc	", addr.nproc, "\n");
+	print("	next	", addr.next\X, "\n");
+};
+
+complex Job jobs;
+sizeofSymtab = 16;
+aggr Symtab
+{
+	'd' 0 space;
+	'X' 4 name;
+	'X' 8 value;
+	'A' Symtab 12 next;
+};
+
+defn
+Symtab(addr) {
+	complex Symtab addr;
+	print("	space	", addr.space, "\n");
+	print("	name	", addr.name\X, "\n");
+	print("	value	", addr.value\X, "\n");
+	print("	next	", addr.next\X, "\n");
+};
+
+S_VAR = 0;
+S_TARGET = 1;
+S_TIME = 2;
+S_PID = 3;
+S_NODE = 4;
+S_AGG = 5;
+S_BITCH = 6;
+S_NOEXPORT = 7;
+S_OVERRIDE = 8;
+S_OUTOFDATE = 9;
+S_MAKEFILE = 10;
+S_MAKEVAR = 11;
+S_EXPORTED = 12;
+S_BULKED = 13;
+S_WESET = 14;
+S_INTERNAL = 15;
+complex Word readenv:w;
+complex Word encodenulls:w;
+complex Word encodenulls:$head;
+complex Envy exportenv:e;
+complex Word exportenv:w;
+complex Symtab exportenv:sy;
+complex Dir dirtime:d;
+complex Waitmsg waitfor:wm;
+complex Bufblock execsh:buf;
+complex Envy execsh:e;
+complex Envy pipecmd:e;
+complex Dir chgtime:sbuf;
+complex Resub rcopy:match;
+complex Dir mkdirstat:buf;
