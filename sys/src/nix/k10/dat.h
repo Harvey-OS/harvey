@@ -406,13 +406,14 @@ extern char*rolename[];
 /*
  * Horrid.
  */
-#ifdef _DBGC_
+#ifdef __DBGC_
 #define DBGFLG		(dbgflg[_DBGC_])
 #else
 #define DBGFLG		(0)
 #endif /* _DBGC_ */
 
-#define DBG(...)	if(!DBGFLG){}else dbgprint(__VA_ARGS__)
+//#define DBG(...)	if(!DBGFLG){}else dbgprint(__VA_ARGS__)
+#define DBG(...)
 
 extern char dbgflg[256];
 

@@ -25,12 +25,12 @@
 %.$O:	dat.h ../port/portdat.h
 %.$O:	fns.h ../port/portfns.h
 
-alloc.$O:	/sys/include/pool.h
+alloc.$O:	$TOP/sys/include/pool.h
 chan.$O:	../port/error.h
 dev.$O:		../port/error.h
 devcap.$O:	../port/error.h
-devcap.$O:	/sys/include/libsec.h
-devcons.$O:	/sys/include/authsrv.h /sys/include/pool.h
+devcap.$O:	$TOP/sys/include/libsec.h
+devcons.$O:	$TOP/sys/include/authsrv.h $TOP/sys/include/pool.h
 devdup.$O:	../port/error.h
 devenv.$O:	../port/error.h
 devkprof.$O:	../port/error.h
@@ -38,40 +38,40 @@ devmnt.$O:	../port/error.h
 devpipe.$O:	../port/error.h
 devprobe.$O:	../port/netif.h probe.h
 devproc.$O:	../port/error.h ../port/edf.h
-devproc.$O:	/sys/include/tos.h /sys/include/trace.h /$objtype/include/ureg.h
+devproc.$O:	$TOP/sys/include/tos.h $TOP/sys/include/trace.h /$objtype/include/ureg.h
 devsd.$O:	../port/error.h ../port/sd.h
 devsrv.$O:	../port/error.h
 devssl.$O:	../port/error.h
-devssl.$O:	/sys/include/libsec.h
+devssl.$O:	$TOP/sys/include/libsec.h
 devtab.$O:	../port/error.h
 devtls.$O:	../port/error.h
-devtls.$O:	/sys/include/libsec.h
+devtls.$O:	$TOP/sys/include/libsec.h
 devuart.$O:	../port/error.h
 devwd.$O:	../port/error.h
 edf.$O:		../port/error.h ../port/edf.h
-edf.$O:		/sys/include/trace.h
+edf.$O:		$TOP/sys/include/trace.h
 ethermii.$O:	../port/ethermii.h ../port/netif.h
 fault.$O:	../port/error.h
 image.$O:	../port/error.h
-initcode.$O:	/sys/include/libc.h
+initcode.$O:	$TOP/sys/include/libc.h
 latin1.$O:	../port/latin1.h
 netif.$O:	../port/error.h ../port/netif.h
 parse.$O:	../port/error.h
 pgrp.$O:	../port/error.h
 portclock.$O:	/$objtype/include/ureg.h
 proc.$O:	../port/error.h ../port/edf.h errstr.h
-proc.$O:	/sys/include/trace.h
+proc.$O:	$TOP/sys/include/trace.h
 qio.$O:		../port/error.h
 rdb.$O:		/$objtype/include/ureg.h
 rebootcmd.$O:	../port/error.h
-rebootcmd.$O:	/sys/include/a.out.h
+rebootcmd.$O:	$TOP/sys/include/a.out.h
 segment.$O:	../port/error.h
 swap.$O:	../port/error.h
 sysauth.$O:	../port/error.h
-sysauth.$O:	/sys/include/authsrv.h
+sysauth.$O:	$TOP/sys/include/authsrv.h
 sysfile.$O:	../port/error.h
 sysproc.$O:	../port/error.h ../port/edf.h
-sysproc.$O:	/sys/include/a.out.h
+sysproc.$O:	$TOP/sys/include/a.out.h
 sysseg.$O:	../port/error.h
 taslock.$O:	../port/edf.h
 
