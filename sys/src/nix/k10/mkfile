@@ -1,3 +1,4 @@
+TOP=../../../../
 CONF=k8cpu
 CONFLIST=k8cpu
 
@@ -7,7 +8,7 @@ CONFLIST=k8cpu
 OTHERCOPIES=''
 
 objtype=amd64
-</$objtype/mkfile
+<$TOP/$objtype/mkfile
 p=9
 
 
@@ -38,7 +39,7 @@ install:QV:	$p$CONF $p$CONF.gz
 	}
 	echo done
 
-init.out:	init9.$O initcode.$O /$objtype/lib/libc.a
+init.out:	init9.$O initcode.$O $TOP/$objtype/lib/libc.a
 	$LD -l -R1 -s -o init.out init9.$O initcode.$O -lc
 
 l32p.$O:	${objtype}l.h
@@ -53,22 +54,22 @@ ${objtype}l.h:	$objtype.h
 	rc ../mk/mkenum $objtype.h > $target
 
 apic.$O:	apic.h io.h
-devarch.$O:	../port/error.h /$objtype/include/ureg.h
+devarch.$O:	../port/error.h $TOP/$objtype/include/ureg.h
 fpu.$O:		amd64.h
-fpu.$O:		/$objtype/include/ureg.h
+fpu.$O:		$TOP/$objtype/include/ureg.h
 ioapic.$O:	apic.h io.h
-main.$O:	/sys/include/pool.h init.h
+main.$O:	$TOP/sys/include/pool.h init.h
 memory.$O:	amd64.h
 mmu.$O:		amd64.h
 mp.$O:		apic.h
 sipi.$O:	apic.h sipi.h
 svm.$O:		amd64.h
-svm.$O:		/$objtype/include/ureg.h
-syscall.$O:	../port/error.h /sys/src/libc/9syscall/sys.h
-syscall.$O:	/sys/include/tos.h /$objtype/include/ureg.h
+svm.$O:		$TOP/$objtype/include/ureg.h
+syscall.$O:	../port/error.h $TOP/sys/src/libc/9syscall/sys.h
+syscall.$O:	$TOP//sys/include/tos.h $TOP/$objtype/include/ureg.h
 syscall.$O:	amd64.h
 trap.$O:	../port/error.h io.h
-trap.$O:	/sys/include/tos.h /$objtype/include/ureg.h
+trap.$O:	$TOP//sys/include/tos.h $TOP/$objtype/include/ureg.h
 
 devaoe.$O:	../port/error.h ../port/netif.h ../ip/ip.h
 devaoe.$O:	../386/aoe.h etherif.h

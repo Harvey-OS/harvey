@@ -1,4 +1,5 @@
-</sys/src/mkfile.proto
+MKSHELL=rc
+<$NXM/sys/src/mkfile.proto
 
 CC=6c
 GC=6g
