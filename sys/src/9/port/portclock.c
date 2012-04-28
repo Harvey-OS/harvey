@@ -172,7 +172,6 @@ timerintr(Ureg *u, Tval)
 	Timers *tt;
 	uvlong when, now;
 	int count, callhzclock;
-	static int sofar;
 
 	intrcount[m->machno]++;
 	callhzclock = 0;
