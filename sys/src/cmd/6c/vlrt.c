@@ -178,52 +178,32 @@ slowdodiv(Vlong num, Vlong den, Vlong *q, Vlong *r)
 	}
 }
 
+/* conservative */
+unsigned long long V2uv(Vlong *n)
+{
+	unsigned long long ret = n->uv.w32.hi;
+	ret <<= 32;
+	ret |= n->uv.w32.lo;
+	return ret;
+}
+
+void uv2V(unsigned long long num, Vlong *n)
+{
+	n->uv.w32.hi = num >> 32;
+	n->uv.w32.lo = num;
+}
+
 static void
 dodiv(Vlong num, Vlong den, Vlong *qp, Vlong *rp)
 {
-	uint n;
-	Vlong x, q, r;
+	unsigned long long lnum, lden, lq, lr;
 
-	if(den.uv.w32.hi > num.uv.w32.hi || (den.uv.w32.hi == num.uv.w32.hi && den.uv.w32.lo > num.uv.w32.lo)){
-		if(qp) {
-			qp->uv.w32.hi = 0;
-			qp->uv.w32.lo = 0;
-		}
-		if(rp) {
-			rp->uv.w32.hi = num.uv.w32.hi;
-			rp->uv.w32.lo = num.uv.w32.lo;
-		}
-		return;
-	}
-
-	if(den.uv.w32.hi != 0){
-		q.uv.w32.hi = 0;
-		n = num.uv.w32.hi/den.uv.w32.hi;
-		_mul64by32(&x, den, n);
-		if(x.uv.w32.hi > num.uv.w32.hi || (x.uv.w32.hi == num.uv.w32.hi && x.uv.w32.lo > num.uv.w32.lo))
-			slowdodiv(num, den, &q, &r);
-		else {
-			q.uv.w32.lo = n;
-			_subv(&r, num, x);
-		}
-	} else {
-		if(num.uv.w32.hi >= den.uv.w32.lo){
-			q.uv.w32.hi = n = num.uv.w32.hi/den.uv.w32.lo;
-			num.uv.w32.hi -= den.uv.w32.lo*n;
-		} else {
-			q.uv.w32.hi = 0;
-		}
-		q.uv.w32.lo = _div64by32(num, den.uv.w32.lo, &r.uv.w32.lo);
-		r.uv.w32.hi = 0;
-	}
-	if(qp) {
-		qp->uv.w32.lo = q.uv.w32.lo;
-		qp->uv.w32.hi = q.uv.w32.hi;
-	}
-	if(rp) {
-		rp->uv.w32.lo = r.uv.w32.lo;
-		rp->uv.w32.hi = r.uv.w32.hi;
-	}
+	lnum = V2uv(&num);
+	lden = V2uv(&den);
+	lq = lnum / lden;
+	lr = lnum % lden;
+	uv2V(lq, qp);
+	uv2V(lr, rp);
 }
 
 void

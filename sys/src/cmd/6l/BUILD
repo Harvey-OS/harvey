@@ -1,1 +1,2 @@
-9c   -I../6c -I . -I ../../../include/ -I ../../../../amd64/include *.c
+9c -I . *.c
+9l -o 6l *.o

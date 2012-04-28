@@ -1,0 +1,3 @@
+(cd sys/src/cmd/6a && sh BUILD)
+(cd sys/src/cmd/6l && sh BUILD)
+(cd sys/src/cmd/6c && sh BUILD)
