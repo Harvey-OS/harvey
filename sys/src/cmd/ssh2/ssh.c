@@ -479,6 +479,7 @@ main(int argc, char *argv[])
 	int conn, chan, n;
 	char buf[Copybufsz];
 
+	quotefmtinstall();
 	reqfd = dfd1 = cfd1 = dfd2 = cfd2 = consfd = kconsfd = cctlfd =
 		notefd = keyfd = -1;
 	whichkey = nil;
