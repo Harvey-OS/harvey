@@ -15,15 +15,15 @@ struct	Vlong
 		{
 			uint	lo;
 			uint	hi;
-		};
+		}w32;
 		struct
 		{
 			ushort	lols;
 			ushort	loms;
 			ushort	hils;
 			ushort	hims;
-		};
-	};
+		}w16;
+	}uv;
 };
 
 void	abort(void);
@@ -33,15 +33,15 @@ void _subv(Vlong*, Vlong, Vlong);
 void
 _d2v(Vlong *y, double d)
 {
-	union { double d; struct Vlong; } x;
+	union { double d; struct Vlong V; } x;
 	uint xhi, xlo, ylo, yhi;
 	int sh;
 
 	x.d = d;
 
-	xhi = (x.hi & 0xfffff) | 0x100000;
-	xlo = x.lo;
-	sh = 1075 - ((x.hi >> 20) & 0x7ff);
+	xhi = (x.V.uv.w32.hi & 0xfffff) | 0x100000;
+	xlo = x.V.uv.w32.lo;
+	sh = 1075 - ((x.V.uv.w32.hi >> 20) & 0x7ff);
 
 	ylo = 0;
 	yhi = 0;
@@ -74,7 +74,7 @@ _d2v(Vlong *y, double d)
 			yhi = d;	/* causes something awful */
 		}
 	}
-	if(x.hi & SIGN(32)) {
+	if(x.V.uv.w32.hi & SIGN(32)) {
 		if(ylo != 0) {
 			ylo = -ylo;
 			yhi = ~yhi;
@@ -82,8 +82,8 @@ _d2v(Vlong *y, double d)
 			yhi = -yhi;
 	}
 
-	y->hi = yhi;
-	y->lo = ylo;
+	y->uv.w32.hi = yhi;
+	y->uv.w32.lo = ylo;
 }
 
 void
@@ -96,15 +96,15 @@ _f2v(Vlong *y, float f)
 double
 _v2d(Vlong x)
 {
-	if(x.hi & SIGN(32)) {
-		if(x.lo) {
-			x.lo = -x.lo;
-			x.hi = ~x.hi;
+	if(x.uv.w32.hi & SIGN(32)) {
+		if(x.uv.w32.lo) {
+			x.uv.w32.lo = -x.uv.w32.lo;
+			x.uv.w32.hi = ~x.uv.w32.hi;
 		} else
-			x.hi = -x.hi;
-		return -((long)x.hi*4294967296. + x.lo);
+			x.uv.w32.hi = -x.uv.w32.hi;
+		return -((long)x.uv.w32.hi*4294967296. + x.uv.w32.lo);
 	}
-	return (long)x.hi*4294967296. + x.lo;
+	return (long)x.uv.w32.hi*4294967296. + x.uv.w32.lo;
 }
 
 float
@@ -122,10 +122,10 @@ slowdodiv(Vlong num, Vlong den, Vlong *q, Vlong *r)
 	uint numlo, numhi, denhi, denlo, quohi, quolo, t;
 	int i;
 
-	numhi = num.hi;
-	numlo = num.lo;
-	denhi = den.hi;
-	denlo = den.lo;
+	numhi = num.uv.w32.hi;
+	numlo = num.uv.w32.lo;
+	denhi = den.uv.w32.hi;
+	denlo = den.uv.w32.lo;
 
 	/*
 	 * get a divide by zero
@@ -169,12 +169,12 @@ slowdodiv(Vlong num, Vlong den, Vlong *q, Vlong *r)
 	}
 
 	if(q) {
-		q->lo = quolo;
-		q->hi = quohi;
+		q->uv.w32.lo = quolo;
+		q->uv.w32.hi = quohi;
 	}
 	if(r) {
-		r->lo = numlo;
-		r->hi = numhi;
+		r->uv.w32.lo = numlo;
+		r->uv.w32.hi = numhi;
 	}
 }
 
@@ -184,45 +184,45 @@ dodiv(Vlong num, Vlong den, Vlong *qp, Vlong *rp)
 	uint n;
 	Vlong x, q, r;
 
-	if(den.hi > num.hi || (den.hi == num.hi && den.lo > num.lo)){
+	if(den.uv.w32.hi > num.uv.w32.hi || (den.uv.w32.hi == num.uv.w32.hi && den.uv.w32.lo > num.uv.w32.lo)){
 		if(qp) {
-			qp->hi = 0;
-			qp->lo = 0;
+			qp->uv.w32.hi = 0;
+			qp->uv.w32.lo = 0;
 		}
 		if(rp) {
-			rp->hi = num.hi;
-			rp->lo = num.lo;
+			rp->uv.w32.hi = num.uv.w32.hi;
+			rp->uv.w32.lo = num.uv.w32.lo;
 		}
 		return;
 	}
 
-	if(den.hi != 0){
-		q.hi = 0;
-		n = num.hi/den.hi;
+	if(den.uv.w32.hi != 0){
+		q.uv.w32.hi = 0;
+		n = num.uv.w32.hi/den.uv.w32.hi;
 		_mul64by32(&x, den, n);
-		if(x.hi > num.hi || (x.hi == num.hi && x.lo > num.lo))
+		if(x.uv.w32.hi > num.uv.w32.hi || (x.uv.w32.hi == num.uv.w32.hi && x.uv.w32.lo > num.uv.w32.lo))
 			slowdodiv(num, den, &q, &r);
 		else {
-			q.lo = n;
+			q.uv.w32.lo = n;
 			_subv(&r, num, x);
 		}
 	} else {
-		if(num.hi >= den.lo){
-			q.hi = n = num.hi/den.lo;
-			num.hi -= den.lo*n;
+		if(num.uv.w32.hi >= den.uv.w32.lo){
+			q.uv.w32.hi = n = num.uv.w32.hi/den.uv.w32.lo;
+			num.uv.w32.hi -= den.uv.w32.lo*n;
 		} else {
-			q.hi = 0;
+			q.uv.w32.hi = 0;
 		}
-		q.lo = _div64by32(num, den.lo, &r.lo);
-		r.hi = 0;
+		q.uv.w32.lo = _div64by32(num, den.uv.w32.lo, &r.uv.w32.lo);
+		r.uv.w32.hi = 0;
 	}
 	if(qp) {
-		qp->lo = q.lo;
-		qp->hi = q.hi;
+		qp->uv.w32.lo = q.uv.w32.lo;
+		qp->uv.w32.hi = q.uv.w32.hi;
 	}
 	if(rp) {
-		rp->lo = r.lo;
-		rp->hi = r.hi;
+		rp->uv.w32.lo = r.uv.w32.lo;
+		rp->uv.w32.hi = r.uv.w32.hi;
 	}
 }
 
@@ -230,9 +230,9 @@ void
 _divvu(Vlong *q, Vlong n, Vlong d)
 {
 
-	if(n.hi == 0 && d.hi == 0) {
-		q->hi = 0;
-		q->lo = n.lo / d.lo;
+	if(n.uv.w32.hi == 0 && d.uv.w32.hi == 0) {
+		q->uv.w32.hi = 0;
+		q->uv.w32.lo = n.uv.w32.lo / d.uv.w32.lo;
 		return;
 	}
 	dodiv(n, d, q, 0);
@@ -242,9 +242,9 @@ void
 _modvu(Vlong *r, Vlong n, Vlong d)
 {
 
-	if(n.hi == 0 && d.hi == 0) {
-		r->hi = 0;
-		r->lo = n.lo % d.lo;
+	if(n.uv.w32.hi == 0 && d.uv.w32.hi == 0) {
+		r->uv.w32.hi = 0;
+		r->uv.w32.lo = n.uv.w32.lo % d.uv.w32.lo;
 		return;
 	}
 	dodiv(n, d, 0, r);
@@ -254,12 +254,12 @@ static void
 vneg(Vlong *v)
 {
 
-	if(v->lo == 0) {
-		v->hi = -v->hi;
+	if(v->uv.w32.lo == 0) {
+		v->uv.w32.hi = -v->uv.w32.hi;
 		return;
 	}
-	v->lo = -v->lo;
-	v->hi = ~v->hi;
+	v->uv.w32.lo = -v->uv.w32.lo;
+	v->uv.w32.hi = ~v->uv.w32.hi;
 }
 
 void
@@ -267,15 +267,15 @@ _divv(Vlong *q, Vlong n, Vlong d)
 {
 	long nneg, dneg;
 
-	if(n.hi == (((long)n.lo)>>31) && d.hi == (((long)d.lo)>>31)) {
-		q->lo = (long)n.lo / (long)d.lo;
-		q->hi = ((long)q->lo) >> 31;
+	if(n.uv.w32.hi == (((long)n.uv.w32.lo)>>31) && d.uv.w32.hi == (((long)d.uv.w32.lo)>>31)) {
+		q->uv.w32.lo = (long)n.uv.w32.lo / (long)d.uv.w32.lo;
+		q->uv.w32.hi = ((long)q->uv.w32.lo) >> 31;
 		return;
 	}
-	nneg = n.hi >> 31;
+	nneg = n.uv.w32.hi >> 31;
 	if(nneg)
 		vneg(&n);
-	dneg = d.hi >> 31;
+	dneg = d.uv.w32.hi >> 31;
 	if(dneg)
 		vneg(&d);
 	dodiv(n, d, q, 0);
@@ -288,15 +288,15 @@ _modv(Vlong *r, Vlong n, Vlong d)
 {
 	long nneg, dneg;
 
-	if(n.hi == (((long)n.lo)>>31) && d.hi == (((long)d.lo)>>31)) {
-		r->lo = (long)n.lo % (long)d.lo;
-		r->hi = ((long)r->lo) >> 31;
+	if(n.uv.w32.hi == (((long)n.uv.w32.lo)>>31) && d.uv.w32.hi == (((long)d.uv.w32.lo)>>31)) {
+		r->uv.w32.lo = (long)n.uv.w32.lo % (long)d.uv.w32.lo;
+		r->uv.w32.hi = ((long)r->uv.w32.lo) >> 31;
 		return;
 	}
-	nneg = n.hi >> 31;
+	nneg = n.uv.w32.hi >> 31;
 	if(nneg)
 		vneg(&n);
-	dneg = d.hi >> 31;
+	dneg = d.uv.w32.hi >> 31;
 	if(dneg)
 		vneg(&d);
 	dodiv(n, d, 0, r);
@@ -309,24 +309,24 @@ _rshav(Vlong *r, Vlong a, int b)
 {
 	long t;
 
-	t = a.hi;
+	t = a.uv.w32.hi;
 	if(b >= 32) {
-		r->hi = t>>31;
+		r->uv.w32.hi = t>>31;
 		if(b >= 64) {
 			/* this is illegal re C standard */
-			r->lo = t>>31;
+			r->uv.w32.lo = t>>31;
 			return;
 		}
-		r->lo = t >> (b-32);
+		r->uv.w32.lo = t >> (b-32);
 		return;
 	}
 	if(b <= 0) {
-		r->hi = t;
-		r->lo = a.lo;
+		r->uv.w32.hi = t;
+		r->uv.w32.lo = a.uv.w32.lo;
 		return;
 	}
-	r->hi = t >> b;
-	r->lo = (t << (32-b)) | (a.lo >> b);
+	r->uv.w32.hi = t >> b;
+	r->uv.w32.lo = (t << (32-b)) | (a.uv.w32.lo >> b);
 }
 
 void
@@ -334,24 +334,24 @@ _rshlv(Vlong *r, Vlong a, int b)
 {
 	uint t;
 
-	t = a.hi;
+	t = a.uv.w32.hi;
 	if(b >= 32) {
-		r->hi = 0;
+		r->uv.w32.hi = 0;
 		if(b >= 64) {
 			/* this is illegal re C standard */
-			r->lo = 0;
+			r->uv.w32.lo = 0;
 			return;
 		}
-		r->lo = t >> (b-32);
+		r->uv.w32.lo = t >> (b-32);
 		return;
 	}
 	if(b <= 0) {
-		r->hi = t;
-		r->lo = a.lo;
+		r->uv.w32.hi = t;
+		r->uv.w32.lo = a.uv.w32.lo;
 		return;
 	}
-	r->hi = t >> b;
-	r->lo = (t << (32-b)) | (a.lo >> b);
+	r->uv.w32.hi = t >> b;
+	r->uv.w32.lo = (t << (32-b)) | (a.uv.w32.lo >> b);
 }
 
 void
@@ -359,89 +359,89 @@ _lshv(Vlong *r, Vlong a, int b)
 {
 	uint t;
 
-	t = a.lo;
+	t = a.uv.w32.lo;
 	if(b >= 32) {
-		r->lo = 0;
+		r->uv.w32.lo = 0;
 		if(b >= 64) {
 			/* this is illegal re C standard */
-			r->hi = 0;
+			r->uv.w32.hi = 0;
 			return;
 		}
-		r->hi = t << (b-32);
+		r->uv.w32.hi = t << (b-32);
 		return;
 	}
 	if(b <= 0) {
-		r->lo = t;
-		r->hi = a.hi;
+		r->uv.w32.lo = t;
+		r->uv.w32.hi = a.uv.w32.hi;
 		return;
 	}
-	r->lo = t << b;
-	r->hi = (t >> (32-b)) | (a.hi << b);
+	r->uv.w32.lo = t << b;
+	r->uv.w32.hi = (t >> (32-b)) | (a.uv.w32.hi << b);
 }
 
 void
 _andv(Vlong *r, Vlong a, Vlong b)
 {
-	r->hi = a.hi & b.hi;
-	r->lo = a.lo & b.lo;
+	r->uv.w32.hi = a.uv.w32.hi & b.uv.w32.hi;
+	r->uv.w32.lo = a.uv.w32.lo & b.uv.w32.lo;
 }
 
 void
 _orv(Vlong *r, Vlong a, Vlong b)
 {
-	r->hi = a.hi | b.hi;
-	r->lo = a.lo | b.lo;
+	r->uv.w32.hi = a.uv.w32.hi | b.uv.w32.hi;
+	r->uv.w32.lo = a.uv.w32.lo | b.uv.w32.lo;
 }
 
 void
 _xorv(Vlong *r, Vlong a, Vlong b)
 {
-	r->hi = a.hi ^ b.hi;
-	r->lo = a.lo ^ b.lo;
+	r->uv.w32.hi = a.uv.w32.hi ^ b.uv.w32.hi;
+	r->uv.w32.lo = a.uv.w32.lo ^ b.uv.w32.lo;
 }
 
 void
 _vpp(Vlong *l, Vlong *r)
 {
 
-	l->hi = r->hi;
-	l->lo = r->lo;
-	r->lo++;
-	if(r->lo == 0)
-		r->hi++;
+	l->uv.w32.hi = r->uv.w32.hi;
+	l->uv.w32.lo = r->uv.w32.lo;
+	r->uv.w32.lo++;
+	if(r->uv.w32.lo == 0)
+		r->uv.w32.hi++;
 }
 
 void
 _vmm(Vlong *l, Vlong *r)
 {
 
-	l->hi = r->hi;
-	l->lo = r->lo;
-	if(r->lo == 0)
-		r->hi--;
-	r->lo--;
+	l->uv.w32.hi = r->uv.w32.hi;
+	l->uv.w32.lo = r->uv.w32.lo;
+	if(r->uv.w32.lo == 0)
+		r->uv.w32.hi--;
+	r->uv.w32.lo--;
 }
 
 void
 _ppv(Vlong *l, Vlong *r)
 {
 
-	r->lo++;
-	if(r->lo == 0)
-		r->hi++;
-	l->hi = r->hi;
-	l->lo = r->lo;
+	r->uv.w32.lo++;
+	if(r->uv.w32.lo == 0)
+		r->uv.w32.hi++;
+	l->uv.w32.hi = r->uv.w32.hi;
+	l->uv.w32.lo = r->uv.w32.lo;
 }
 
 void
 _mmv(Vlong *l, Vlong *r)
 {
 
-	if(r->lo == 0)
-		r->hi--;
-	r->lo--;
-	l->hi = r->hi;
-	l->lo = r->lo;
+	if(r->uv.w32.lo == 0)
+		r->uv.w32.hi--;
+	r->uv.w32.lo--;
+	l->uv.w32.hi = r->uv.w32.hi;
+	l->uv.w32.lo = r->uv.w32.lo;
 }
 
 void
@@ -449,67 +449,67 @@ _vasop(Vlong *ret, void *lv, void fn(Vlong*, Vlong, Vlong), int type, Vlong rv)
 {
 	Vlong t, u;
 
-	u.lo = 0;
-	u.hi = 0;
+	u.uv.w32.lo = 0;
+	u.uv.w32.hi = 0;
 	switch(type) {
 	default:
 		abort();
 		break;
 
 	case 1:	/* schar */
-		t.lo = *(schar*)lv;
-		t.hi = t.lo >> 31;
+		t.uv.w32.lo = *(schar*)lv;
+		t.uv.w32.hi = t.uv.w32.lo >> 31;
 		fn(&u, t, rv);
-		*(schar*)lv = u.lo;
+		*(schar*)lv = u.uv.w32.lo;
 		break;
 
 	case 2:	/* uchar */
-		t.lo = *(uchar*)lv;
-		t.hi = 0;
+		t.uv.w32.lo = *(uchar*)lv;
+		t.uv.w32.hi = 0;
 		fn(&u, t, rv);
-		*(uchar*)lv = u.lo;
+		*(uchar*)lv = u.uv.w32.lo;
 		break;
 
 	case 3:	/* short */
-		t.lo = *(short*)lv;
-		t.hi = t.lo >> 31;
+		t.uv.w32.lo = *(short*)lv;
+		t.uv.w32.hi = t.uv.w32.lo >> 31;
 		fn(&u, t, rv);
-		*(short*)lv = u.lo;
+		*(short*)lv = u.uv.w32.lo;
 		break;
 
 	case 4:	/* ushort */
-		t.lo = *(ushort*)lv;
-		t.hi = 0;
+		t.uv.w32.lo = *(ushort*)lv;
+		t.uv.w32.hi = 0;
 		fn(&u, t, rv);
-		*(ushort*)lv = u.lo;
+		*(ushort*)lv = u.uv.w32.lo;
 		break;
 
 	case 9:	/* int */
-		t.lo = *(int*)lv;
-		t.hi = t.lo >> 31;
+		t.uv.w32.lo = *(int*)lv;
+		t.uv.w32.hi = t.uv.w32.lo >> 31;
 		fn(&u, t, rv);
-		*(int*)lv = u.lo;
+		*(int*)lv = u.uv.w32.lo;
 		break;
 
 	case 10:	/* uint */
-		t.lo = *(uint*)lv;
-		t.hi = 0;
+		t.uv.w32.lo = *(uint*)lv;
+		t.uv.w32.hi = 0;
 		fn(&u, t, rv);
-		*(uint*)lv = u.lo;
+		*(uint*)lv = u.uv.w32.lo;
 		break;
 
 	case 5:	/* long */
-		t.lo = *(long*)lv;
-		t.hi = t.lo >> 31;
+		t.uv.w32.lo = *(long*)lv;
+		t.uv.w32.hi = t.uv.w32.lo >> 31;
 		fn(&u, t, rv);
-		*(long*)lv = u.lo;
+		*(long*)lv = u.uv.w32.lo;
 		break;
 
 	case 6:	/* uint */
-		t.lo = *(uint*)lv;
-		t.hi = 0;
+		t.uv.w32.lo = *(uint*)lv;
+		t.uv.w32.hi = 0;
 		fn(&u, t, rv);
-		*(uint*)lv = u.lo;
+		*(uint*)lv = u.uv.w32.lo;
 		break;
 
 	case 7:	/* vlong */
@@ -526,9 +526,9 @@ _p2v(Vlong *ret, void *p)
 {
 	long t;
 
-	t = (uint)p;
-	ret->lo = t;
-	ret->hi = 0;
+	t = (unsigned long long)p;
+	ret->uv.w32.lo = t;
+	ret->uv.w32.hi = ((unsigned long long)p)>>32;
 }
 
 void
@@ -537,8 +537,8 @@ _sl2v(Vlong *ret, long sl)
 	long t;
 
 	t = sl;
-	ret->lo = t;
-	ret->hi = t >> 31;
+	ret->uv.w32.lo = t;
+	ret->uv.w32.hi = t >> 31;
 }
 
 void
@@ -547,8 +547,8 @@ _ul2v(Vlong *ret, uint ul)
 	long t;
 
 	t = ul;
-	ret->lo = t;
-	ret->hi = 0;
+	ret->uv.w32.lo = t;
+	ret->uv.w32.hi = 0;
 }
 
 void
@@ -557,8 +557,8 @@ _si2v(Vlong *ret, int si)
 	long t;
 
 	t = si;
-	ret->lo = t;
-	ret->hi = t >> 31;
+	ret->uv.w32.lo = t;
+	ret->uv.w32.hi = t >> 31;
 }
 
 void
@@ -567,8 +567,8 @@ _ui2v(Vlong *ret, uint ui)
 	long t;
 
 	t = ui;
-	ret->lo = t;
-	ret->hi = 0;
+	ret->uv.w32.lo = t;
+	ret->uv.w32.hi = 0;
 }
 
 void
@@ -577,8 +577,8 @@ _sh2v(Vlong *ret, long sh)
 	long t;
 
 	t = (sh << 16) >> 16;
-	ret->lo = t;
-	ret->hi = t >> 31;
+	ret->uv.w32.lo = t;
+	ret->uv.w32.hi = t >> 31;
 }
 
 void
@@ -587,8 +587,8 @@ _uh2v(Vlong *ret, uint ul)
 	long t;
 
 	t = ul & 0xffff;
-	ret->lo = t;
-	ret->hi = 0;
+	ret->uv.w32.lo = t;
+	ret->uv.w32.hi = 0;
 }
 
 void
@@ -597,8 +597,8 @@ _sc2v(Vlong *ret, long uc)
 	long t;
 
 	t = (uc << 24) >> 24;
-	ret->lo = t;
-	ret->hi = t >> 31;
+	ret->uv.w32.lo = t;
+	ret->uv.w32.hi = t >> 31;
 }
 
 void
@@ -607,8 +607,8 @@ _uc2v(Vlong *ret, uint ul)
 	long t;
 
 	t = ul & 0xff;
-	ret->lo = t;
-	ret->hi = 0;
+	ret->uv.w32.lo = t;
+	ret->uv.w32.hi = 0;
 }
 
 long
@@ -616,7 +616,7 @@ _v2sc(Vlong rv)
 {
 	long t;
 
-	t = rv.lo & 0xff;
+	t = rv.uv.w32.lo & 0xff;
 	return (t << 24) >> 24;
 }
 
@@ -624,7 +624,7 @@ long
 _v2uc(Vlong rv)
 {
 
-	return rv.lo & 0xff;
+	return rv.uv.w32.lo & 0xff;
 }
 
 long
@@ -632,7 +632,7 @@ _v2sh(Vlong rv)
 {
 	long t;
 
-	t = rv.lo & 0xffff;
+	t = rv.uv.w32.lo & 0xffff;
 	return (t << 16) >> 16;
 }
 
@@ -640,107 +640,107 @@ long
 _v2uh(Vlong rv)
 {
 
-	return rv.lo & 0xffff;
+	return rv.uv.w32.lo & 0xffff;
 }
 
 long
 _v2sl(Vlong rv)
 {
 
-	return rv.lo;
+	return rv.uv.w32.lo;
 }
 
 long
 _v2ul(Vlong rv)
 {
 
-	return rv.lo;
+	return rv.uv.w32.lo;
 }
 
 long
 _v2si(Vlong rv)
 {
 
-	return rv.lo;
+	return rv.uv.w32.lo;
 }
 
 long
 _v2ui(Vlong rv)
 {
 
-	return rv.lo;
+	return rv.uv.w32.lo;
 }
 
 int
 _testv(Vlong rv)
 {
-	return rv.lo || rv.hi;
+	return rv.uv.w32.lo || rv.uv.w32.hi;
 }
 
 int
 _eqv(Vlong lv, Vlong rv)
 {
-	return lv.lo == rv.lo && lv.hi == rv.hi;
+	return lv.uv.w32.lo == rv.uv.w32.lo && lv.uv.w32.hi == rv.uv.w32.hi;
 }
 
 int
 _nev(Vlong lv, Vlong rv)
 {
-	return lv.lo != rv.lo || lv.hi != rv.hi;
+	return lv.uv.w32.lo != rv.uv.w32.lo || lv.uv.w32.hi != rv.uv.w32.hi;
 }
 
 int
 _ltv(Vlong lv, Vlong rv)
 {
-	return (long)lv.hi < (long)rv.hi || 
-		(lv.hi == rv.hi && lv.lo < rv.lo);
+	return (long)lv.uv.w32.hi < (long)rv.uv.w32.hi || 
+		(lv.uv.w32.hi == rv.uv.w32.hi && lv.uv.w32.lo < rv.uv.w32.lo);
 }
 
 int
 _lev(Vlong lv, Vlong rv)
 {
-	return (long)lv.hi < (long)rv.hi || 
-		(lv.hi == rv.hi && lv.lo <= rv.lo);
+	return (long)lv.uv.w32.hi < (long)rv.uv.w32.hi || 
+		(lv.uv.w32.hi == rv.uv.w32.hi && lv.uv.w32.lo <= rv.uv.w32.lo);
 }
 
 int
 _gtv(Vlong lv, Vlong rv)
 {
-	return (long)lv.hi > (long)rv.hi || 
-		(lv.hi == rv.hi && lv.lo > rv.lo);
+	return (long)lv.uv.w32.hi > (long)rv.uv.w32.hi || 
+		(lv.uv.w32.hi == rv.uv.w32.hi && lv.uv.w32.lo > rv.uv.w32.lo);
 }
 
 int
 _gev(Vlong lv, Vlong rv)
 {
-	return (long)lv.hi > (long)rv.hi || 
-		(lv.hi == rv.hi && lv.lo >= rv.lo);
+	return (long)lv.uv.w32.hi > (long)rv.uv.w32.hi || 
+		(lv.uv.w32.hi == rv.uv.w32.hi && lv.uv.w32.lo >= rv.uv.w32.lo);
 }
 
 int
 _lov(Vlong lv, Vlong rv)
 {
-	return lv.hi < rv.hi || 
-		(lv.hi == rv.hi && lv.lo < rv.lo);
+	return lv.uv.w32.hi < rv.uv.w32.hi || 
+		(lv.uv.w32.hi == rv.uv.w32.hi && lv.uv.w32.lo < rv.uv.w32.lo);
 }
 
 int
 _lsv(Vlong lv, Vlong rv)
 {
-	return lv.hi < rv.hi || 
-		(lv.hi == rv.hi && lv.lo <= rv.lo);
+	return lv.uv.w32.hi < rv.uv.w32.hi || 
+		(lv.uv.w32.hi == rv.uv.w32.hi && lv.uv.w32.lo <= rv.uv.w32.lo);
 }
 
 int
 _hiv(Vlong lv, Vlong rv)
 {
-	return lv.hi > rv.hi || 
-		(lv.hi == rv.hi && lv.lo > rv.lo);
+	return lv.uv.w32.hi > rv.uv.w32.hi || 
+		(lv.uv.w32.hi == rv.uv.w32.hi && lv.uv.w32.lo > rv.uv.w32.lo);
 }
 
 int
 _hsv(Vlong lv, Vlong rv)
 {
-	return lv.hi > rv.hi || 
-		(lv.hi == rv.hi && lv.lo >= rv.lo);
+	return lv.uv.w32.hi > rv.uv.w32.hi || 
+		(lv.uv.w32.hi == rv.uv.w32.hi && lv.uv.w32.lo >= rv.uv.w32.lo);
 }

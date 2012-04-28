@@ -83,7 +83,7 @@ codgen(Node *n, Node *nn)
 		regopt(sp);
 	
 	if(thechar=='6' || thechar=='7' || thechar=='9' || hasdoubled)	/* [sic] */
-		maxargsafe = round(maxargsafe, 8);
+		maxargsafe = p9round(maxargsafe, 8);
 	sp->to.offset += maxargsafe;
 }
 

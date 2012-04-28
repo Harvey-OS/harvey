@@ -110,14 +110,14 @@ doswit(Node *n)
 			q++;
 		}
 		qsort(iql,  q-iql, sizeof(C1), swcmp);
-if(0){for(int k=0; k<(q-iql); k++)print("nh=%ld k=%d h=%#llux l=%#llux lab=%ld\n", nh, k, (vlong)iqh[nh].val,  (vlong)iql[k].val, iql[k].label);}
+		if(0){int k;for(k=0; k<(q-iql); k++)print("nh=%ld k=%d h=%#llux l=%#llux lab=%ld\n", nh, k, (vlong)iqh[nh].val,  (vlong)iql[k].val, iql[k].label);}
 		iqh[nh].label = pc;
 		nh++;
 		swit1(iql, q-iql, def, vr[0]);
 		i = j;
 	}
 	patch(hsb, pc);
-if(0){for(int k=0; k<nh; k++)print("k*=%d h=%#llux lab=%ld\n", k, (vlong)iqh[k].val,  iqh[k].label);}
+	if(0){int k;for(k=0; k<nh; k++)print("k*=%d h=%#llux lab=%ld\n", k, (vlong)iqh[k].val,  iqh[k].label);}
 	swit1(iqh, nh, def, vr[1]);
 }
 

@@ -116,7 +116,7 @@ esac
 
 # N.B. Must use temp file to avoid pipe; pipe loses status.
 xtmp=/tmp/9c.$$.$USER.out
-$cc -I . -I $NXM/sys/include -I $NXM/amd64/include $cflags "$@" 2>$xtmp
+$cc -DPLAN9PORT -I$PLAN9/include $cflags "$@" 2>$xtmp
 status=$?
 quiet $xtmp
 rm -f $xtmp

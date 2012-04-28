@@ -534,7 +534,7 @@ sualign(Type *t)
 			if(l->nbits) {
 				if(l->shift <= 0) {
 					l->shift = -l->shift;
-					w = round(w, tfield->width);
+					w = p9round(w, tfield->width);
 					o = w;
 					w += tfield->width;
 				}
@@ -587,7 +587,7 @@ sualign(Type *t)
 }
 
 long
-round(long v, int w)
+p9round(long v, int w)
 {
 	int r;
 

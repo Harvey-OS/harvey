@@ -1014,7 +1014,7 @@ no:
  * return log(n) if n is a power of 2 constant
  */
 int
-log2(uvlong v)
+p9log2(uvlong v)
 {
 	int s, i;
 	uvlong m;

@@ -59,8 +59,8 @@ struct	Node
 	char	op;
 	char	oldop;
 	char xcast;
-	char	class;
-	char	etype;
+	uchar	class;
+	uchar	etype;
 	char	complex;
 	char	addable;
 	char	scale;
@@ -84,7 +84,7 @@ struct	Sym
 	char	*name;
 	ushort	block;
 	ushort	sueblock;
-	char	class;
+	uchar	class;
 	char	sym;
 	char	aused;
 	char	sig;
@@ -108,7 +108,7 @@ struct	Decl
 	long	offset;
 	short	val;
 	ushort	block;
-	char	class;
+	uchar	class;
 	char	aused;
 };
 #define	D	((Decl*)0)
@@ -125,7 +125,7 @@ struct	Type
 	long	lineno;
 	schar	shift;
 	char	nbits;
-	char	etype;
+	uchar	etype;
 	char	garb;
 };
 
@@ -618,7 +618,7 @@ void	pdecl(int, Type*, Sym*);
 Decl*	push(void);
 Decl*	push1(Sym*);
 Node*	revertdcl(void);
-long	round(long, int);
+long	p9round(long, int);
 int	rsametype(Type*, Type*, int, int);
 int	sametype(Type*, Type*);
 ulong	sign(Sym*);
@@ -694,7 +694,7 @@ void	typeext(Type*, Node*);
 void	typeext1(Type*, Node*);
 int	side(Node*);
 int	vconst(Node*);
-int	log2(uvlong);
+int	p9log2(uvlong);
 int	vlog(Node*);
 int	topbit(ulong);
 void	simplifyshift(Node*);

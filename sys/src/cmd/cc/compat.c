@@ -17,7 +17,7 @@ calloc(ulong m, ulong n)
 }
 
 void*
-realloc(void*, ulong)
+realloc(void*u1, ulong u2)
 {
 	fprint(2, "realloc called\n");
 	abort();
@@ -25,7 +25,7 @@ realloc(void*, ulong)
 }
 
 void
-free(void*)
+free(void*v)
 {
 }
 
@@ -42,6 +42,6 @@ mallocz(ulong size, int clr)
 }
 
 void
-setmalloctag(void*, ulong)
+setmalloctag(void*u1, ulong u2)
 {
 }
