@@ -1,0 +1,360 @@
+#!/bin/sh
+
+test -f $PLAN9/config && . $PLAN9/config
+libsl=""
+frameworks=""
+doautolib=true
+doautoframework=true
+verbose=false
+
+nmflags=""
+extralibs="-lm"
+tag="${SYSNAME:-`uname`}-${OBJTYPE:-`uname -m`}"
+case "$tag" in
+*FreeBSD*)
+	ld=${CC9:-gcc}
+	userpath=true
+	extralibs="$extralibs -lutil"
+	case "`uname -r`" in
+	5.2.*)
+		extralibs="$extralibs -lkse"
+		;;
+	[5-9].*)
+		extralibs="$extralibs -lpthread"
+		;;
+	esac
+	;;
+*BSD*)
+	ld=${CC9:-gcc}
+	userpath=true
+	extralibs="$extralibs -lutil"
+	;;
+*OSF1*)
+	ld=${CC9:-cc}
+	userpath=true
+	extralibs="$extralibs -lutil"
+	nmflags="-B"
+	;;
+*Linux*)
+	ld=${CC9:-gcc}
+	userpath=true
+	extralibs="$extralibs -lutil"
+	case "${SYSVERSION:-`uname -r`}" in
+	2.6.*)
+		extralibs="$extralibs -lpthread"
+		;;
+	esac
+	;;
+*Darwin*x86_64*)
+	ld="${CC9:-gcc} -m64"
+	;;
+*Darwin*)
+	ld="${CC9:-gcc} -m32"
+	;;
+*SunOS*)
+	ld="${CC9:-cc} -g"
+	extralibs="$extralibs -lrt -lpthread -lsocket -lnsl"
+	# Record paths to shared libraries to avoid needing LD_LIBRARY_PATH 
+	for i in "$libsl $@"
+	do
+		case "$i" in
+		-L*)
+			s=`echo $i | sed 's/-L/-R/'`
+			extralibs="$extralibs $s"
+			;;
+		esac
+	done
+	case "${SYSVERSION:-`uname -r`}" in
+	5.[67])
+		echo do not know how to link right thread library on "$tag" 1>&2
+		;;
+	5.8)
+		# Some trickery is needed to force use of
+		# alternate thread lib from /usr/lib/lwp
+		# Likely, this only works with sun cc,
+		# for other compiler/loader we would need other flags.
+		ld="$ld -i"
+		extralibs="$extralibs /usr/lib/lwp/libthread.so -R/usr/lib/lwp:/usr/lib"
+		;;
+	esac
+	;;
+*AIX*)
+	ld=${CC9:-gcc}
+	nmflags="-B"
+	;;
+*)
+	echo do not know how to link on "$tag" 1>&2
+	exit 1
+esac
+
+if [ "x$1" = "x-l" ]
+then
+	shift
+	doautolib=false
+	doautoframework=false
+elif [ "x$1" = "x-v" ]
+then
+	shift
+	verbose=true
+fi
+
+target=a.out
+if [ "x$1" = "x-o" ]
+then
+	target=$2
+fi
+
+if $doautolib
+then
+	ofiles=""
+	lpaths="$PLAN9/lib"
+	for i
+	do
+		case "$i" in
+		*.[ao])
+			ofiles="$ofiles $i"
+			;;
+		-L*)
+			l=`echo $i | sed 's/-L//'`
+			lpaths="$lpaths $l"
+		esac
+	done
+	
+	if $verbose
+	then
+		echo "ofiles $ofiles"
+		echo "lpaths $lpaths"
+	fi
+
+	autolibs=""
+	if [ "x$ofiles" != "x" ]
+	then
+		a=`
+			nm $nmflags $ofiles |
+			grep '__p9l_autolib_[a-zA-Z0-9+-]*$' |
+			sed 's/.*__p9l_autolib_//' |
+			sort -u
+		`
+		for i in $a
+		do
+			autolibs="$autolibs $i"
+			eval "need$i=true"
+		done
+	fi
+	if $verbose
+	then
+		echo "autolibs1 $autolibs"
+	fi
+
+	# fetch dependencies out of libraries
+	workq="$autolibs"
+	while [ "x$workq" != "x" ]
+	do
+		w="$workq"
+		workq=""
+		for i in $w
+		do
+			# can't trust the libraries about using
+			# libthread or libdraw - we might not be linking with
+			# those object files.
+			a=""
+			for lpath in $lpaths
+			do
+				b=`
+					nm $lpath/lib$i.a 2>/dev/null |
+					grep '__p9l_autolib_[a-zA-Z0-9+-]*$' |
+					sed 's/.*__p9l_autolib_//' |
+					sort -u |
+					egrep -v '^(thread|draw)$'
+				`
+				a="$a $b"
+			done
+			# fix up libraries that really need draw
+			if [ "x$i" = "xmemdraw" -o "x$i" = "xmemlayer" -o "x$i" = "xframe" ]
+			then
+				a="$a draw"
+			fi
+			okayfn="true"
+			for j in $a
+			do
+				if eval "[ x\$need$j = x ]"
+				then
+					autolibs="$autolibs $j"
+					workq="$workq $j"
+					eval "need$j=true"
+				fi
+				if [ $j != $i ]
+				then
+					okayfn="$okayfn && have$j"
+				fi
+			done
+			if $verbose
+			then
+				echo "can$i: $okayfn"
+			fi
+			eval "can$i() { $okayfn; }"
+		done
+	done
+	if $verbose
+	then
+		echo "autolibs $autolibs"
+	fi
+
+	for i in $autolibs
+	do
+		eval "have$i() { false; }"
+	done
+	havethread() { false; }
+	havesec() { false; }
+	canmemlayer() { havedraw; }
+
+	# now find correct order
+	libsl=""
+	while [ "x$autolibs" != x ]
+	do
+		stillneed=""
+		didnothing=true
+		for i in $autolibs
+		do
+			if eval "can$i"
+			then
+				libsl="-l$i $libsl"
+				eval "have$i() { true; }"
+				didnothing=false
+			else
+				stillneed="$stillneed $i"
+			fi
+		done
+		# break cycle by setting the last library on the list
+		# to have no dependencies
+		if $didnothing
+		then
+			j="xxx"
+			for i in $autolibs
+			do
+				j=$i
+			done
+			echo "dependency cycle: $autolibs; breaking with $j"
+			eval "can$j() { true; }"
+		fi
+		autolibs="$stillneed"
+	done
+	if $verbose
+	then
+		echo "liborder $libsl"
+	fi
+	libsl="$libsl -l9"
+
+	# cycle: lib9 expects p9main, which is defined in libthread.  oops.
+	if havethread
+	then
+		libsl="$libsl -lthread -l9"
+	fi
+
+	# cycle: lib9 netcrypt uses libsec
+	if havesec
+	then
+		libsl="$libsl -lsec -l9"
+	fi
+
+	if [ "x$needndb" = xtrue -a '(' -f /usr/lib/libresolv.a -o -f /usr/lib/libresolv.dylib ')' ]
+	then
+		libsl="$libsl -lresolv"
+	fi
+
+	if [ "x$needX11" = xtrue -a "x$WSYSTYPE" != xnowsys ]
+	then
+		if [ "x$X11" = "x" ]
+		then
+			X11=/usr/X11R6
+		fi
+		# x86_64 seems to put its 64-bit libraries in lib64.
+		if [ "${OBJTYPE:-`uname -m`}" = "x86_64" ]
+		then
+			libsl="$libsl -L$X11/lib64"
+		fi
+		libsl="$libsl -L$X11/lib -lX11"
+	fi
+fi
+if $doautoframework
+then
+	ofiles=""
+	for i
+	do
+		case "$i" in
+		*.[ao])
+			ofiles="$ofiles $i"
+			;;
+		esac
+	done
+
+	# echo "ofiles $ofiles"
+	autoframeworks=""
+	if [ "x$ofiles" != "x" ]
+	then
+		a=`
+			nm $ofiles |
+			grep '__p9l_autoframework_[a-zA-Z0-9+-]*$' |
+			sed 's/.*__p9l_autoframework_//' |
+			sort -u
+		`
+		for i in $a
+		do
+			autoframeworks="$autoframeworks $i"
+			eval "need$i=true"
+		done
+	fi
+
+	if $verbose
+	then
+		echo "autoframeworks $autoframeworks"
+	fi
+
+	for i in $autoframeworks
+	do
+		eval "have$i() { false; }"
+	done
+
+	frameworks=""
+	for i in $autoframeworks
+	do	
+		frameworks="-framework $i $frameworks"
+	done
+fi
+
+case "$userpath" in
+true)
+	for i in "$libsl $@"
+	do
+		case "$i" in
+		-L*)
+			s=`echo $i | sed 's/-L/-Wl,-rpath,/'`
+			extralibs="$extralibs $s"
+			;;
+		esac
+	done
+	;;
+esac
+
+if $verbose
+then
+	echo $ld -L$PLAN9/lib "$@" $libsl $extralibs $frameworks
+fi
+
+xtmp=/tmp/9l.$$.$USER.out
+xxout() {
+	sed 's/.*: In function `[^:]*: *//' $xtmp | egrep . | 
+	egrep -v 'is (often|almost always) misused|is dangerous, better use' 
+	rm -f $xtmp
+}
+
+if $ld -L$PLAN9/lib "$@" $libsl $extralibs $frameworks >$xtmp 2>&1
+then
+	xxout
+	exit 0
+else
+	xxout
+	rm -f $target
+	exit 1
+fi
+
