@@ -1,10 +1,11 @@
-<$TOP/$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=`{ls *.[cy] | sed '/\.tab\.c$/d;s/..$//'}
-HFILES=$TOP/$objtype/include/u.h $TOP/sys/include/libc.h
+HFILES=$NXM/$objtype/include/u.h $NXM/sys/include/libc.h
 BIN=$home/bin/$objtype
 PROGS=${TARG:%=$O.%}
 LDFLAGS=
 YFLAGS=-d
 
-<$TOP/sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany

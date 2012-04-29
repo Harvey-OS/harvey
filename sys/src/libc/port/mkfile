@@ -1,6 +1,7 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
-LIB=/$objtype/lib/libc.a
+LIB=$NXM/$objtype/lib/libc.a
 CFILES=\
 	_assert.c\
 	abs.c\
@@ -120,12 +121,12 @@ ALLOFILES=${CFILES:%.c=%.$O}
 # cull things in the per-machine directories from this list
 OFILES=	`{rc ./reduce $O $objtype $ALLOFILES}
 
-HFILES=/sys/include/libc.h
+HFILES=$NXM/sys/include/libc.h
 
 UPDATE=mkfile\
 	$HFILES\
 	$CFILES\
 
-</sys/src/cmd/mksyslib
+<$NXM/sys/src/cmd/mksyslib
 
-profile.$O: /sys/include/tos.h
+profile.$O: $NXM/sys/include/tos.h

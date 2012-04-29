@@ -1,6 +1,7 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
-LIB=/$objtype/lib/libc.a
+LIB=$NXM/$objtype/lib/libc.a
 
 OFILES=\
 	dofmt.$O\
@@ -34,7 +35,7 @@ OFILES=\
 	vsmprint.$O\
 	vsnprint.$O\
 
-HFILES=/sys/include/libc.h\
+HFILES=$NXM/sys/include/libc.h\
 	fmtdef.h\
 
 UPDATE=\
@@ -42,5 +43,5 @@ UPDATE=\
 	$HFILES\
 	${OFILES:%.$O=%.c}
 
-</sys/src/cmd/mksyslib
+<$NXM/sys/src/cmd/mksyslib
 

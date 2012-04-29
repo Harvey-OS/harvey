@@ -1,5 +1,8 @@
+MKSHELL=rc
+
+</$NXM/$objtype/mkfile
+
 NPROC=1
-</$objtype/mkfile
 
 install:V:
 	SYS=`{sed '/^#define._X[123]/d; s/#define.([A-Z0-9_]*).*/\1/' sys.h}
@@ -132,8 +135,9 @@ install:V:
 		}} > $i.s
 		$AS $i.s
 	}
-	ar vu /$objtype/lib/libc.a *.$O
+	ar -rvu ${NXM}/$objtype/lib/libc.a *.$O
 	rm -f *.$O *.s
+	exit 0
 
 nuke clean:V:
 	rm -f *.[$OS]

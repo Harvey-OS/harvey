@@ -54,6 +54,7 @@ ethermii.$O:	../port/ethermii.h ../port/netif.h
 fault.$O:	../port/error.h
 image.$O:	../port/error.h
 initcode.$O:	$TOP/sys/include/libc.h
+	6c ../port/initcode.c
 latin1.$O:	../port/latin1.h
 netif.$O:	../port/error.h ../port/netif.h
 parse.$O:	../port/error.h

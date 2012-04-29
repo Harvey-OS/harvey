@@ -1,5 +1,5 @@
 MKSHELL=rc
-<$NXM/sys/src/mkfile.proto
+<${NXM}/sys/src/mkfile.proto
 
 CC=6c
 GC=6g
@@ -7,3 +7,4 @@ LD=6l
 O=6
 AS=6a
 CFLAGS=-I $NXM/amd64/include -I $NXM/sys/include
+MKSHELL=rc

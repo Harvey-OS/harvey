@@ -75,7 +75,7 @@ void	touch(char*);
 void	update(int, Node*);
 void	usage(void);
 Word	*varsub(char**);
-int	waitfor(char*);
+//int	waitfor(char*);
 int	waitup(int, int*);
 Word	*wdup(Word*);
 int	work(Node*, Node*, Arc*);

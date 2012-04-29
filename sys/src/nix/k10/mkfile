@@ -1,6 +1,6 @@
-TOP=../../../../
-CONF=k8cpu
-CONFLIST=k8cpu
+MKSHELL=rc
+CONF=k8cpuserial
+CONFLIST=k8cpuserial
 
 # override with the list of paths where to put extra
 # copies of the kernel. for each word $w in OTHERCOPIES,
@@ -8,7 +8,7 @@ CONFLIST=k8cpu
 OTHERCOPIES=''
 
 objtype=amd64
-<$TOP/$objtype/mkfile
+<$NXM/$objtype/mkfile
 p=9
 
 
@@ -39,7 +39,7 @@ install:QV:	$p$CONF $p$CONF.gz
 	}
 	echo done
 
-init.out:	init9.$O initcode.$O $TOP/$objtype/lib/libc.a
+init.out:	init9.$O initcode.$O $NXM/$objtype/lib/libc.a
 	$LD -l -R1 -s -o init.out init9.$O initcode.$O -lc
 
 l32p.$O:	${objtype}l.h
@@ -54,22 +54,22 @@ ${objtype}l.h:	$objtype.h
 	rc ../mk/mkenum $objtype.h > $target
 
 apic.$O:	apic.h io.h
-devarch.$O:	../port/error.h $TOP/$objtype/include/ureg.h
+devarch.$O:	../port/error.h $NXM/$objtype/include/ureg.h
 fpu.$O:		amd64.h
-fpu.$O:		$TOP/$objtype/include/ureg.h
+fpu.$O:		$NXM/$objtype/include/ureg.h
 ioapic.$O:	apic.h io.h
-main.$O:	$TOP/sys/include/pool.h init.h
+main.$O:	$NXM/sys/include/pool.h init.h
 memory.$O:	amd64.h
 mmu.$O:		amd64.h
 mp.$O:		apic.h
 sipi.$O:	apic.h sipi.h
 svm.$O:		amd64.h
-svm.$O:		$TOP/$objtype/include/ureg.h
-syscall.$O:	../port/error.h $TOP/sys/src/libc/9syscall/sys.h
-syscall.$O:	$TOP//sys/include/tos.h $TOP/$objtype/include/ureg.h
+svm.$O:		$NXM/$objtype/include/ureg.h
+syscall.$O:	../port/error.h $NXM/sys/src/libc/9syscall/sys.h
+syscall.$O:	$NXM//sys/include/tos.h $NXM/$objtype/include/ureg.h
 syscall.$O:	amd64.h
 trap.$O:	../port/error.h io.h
-trap.$O:	$TOP//sys/include/tos.h $TOP/$objtype/include/ureg.h
+trap.$O:	$NXM//sys/include/tos.h $NXM/$objtype/include/ureg.h
 
 devaoe.$O:	../port/error.h ../port/netif.h ../ip/ip.h
 devaoe.$O:	../386/aoe.h etherif.h
@@ -85,7 +85,6 @@ etherm10g.$O:	../port/error.h ../port/netif.h
 etherm10g.$O:	etherif.h io.h
 etherm10g.$O:	../386/etherm10g2k.i ../386/etherm10g4k.i
 i8259.$O:	io.h
-kbd.$O:		../port/error.h io.h
 pci.$O:		io.h
 sdaoe.$O:	../port/error.h ../port/netif.h ../port/sd.h
 sdaoe.$O:	../386/aoe.h etherif.h io.h
