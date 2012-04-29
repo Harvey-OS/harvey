@@ -135,7 +135,7 @@ install:V:
 		}} > $i.s
 		$AS $i.s
 	}
-	ar -rvu ${NXM}/$objtype/lib/libc.a *.$O
+	9ar -rvu ${NXM}/$objtype/lib/libc.a *.$O
 	rm -f *.$O *.s
 	exit 0
 

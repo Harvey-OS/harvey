@@ -1,8 +1,8 @@
-</$objtype/mkfile
+<$NXM/$objtype/mkfile
 
 TARG=`{ls *.[cy] | sed '/\.tab\.c$/d;s/..$//'}
-HFILES=/$objtype/include/u.h /sys/include/libc.h /sys/include/bio.h
-BIN=/$objtype/bin
+HFILES=$NXM/$objtype/include/u.h $NXM/sys/include/libc.h $NXM/sys/include/bio.h
+BIN=$NXM/$objtype/bin
 PROGS=${TARG:%=$O.%}
 LDFLAGS=
 YFLAGS=-d
@@ -116,10 +116,10 @@ installall:V:
 	mv $stem1.tab.c $stem1.c
 
 $BIN/init:	$O.init
-	cp $prereq /$objtype/init
+	cp $prereq $NXM/$objtype/init
 
 $O.cj:	cj.$O
-	$LD $LDFLAGS -o $O.cj cj.$O /$objtype/lib/libjpg.a
+	$LD $LDFLAGS -o $O.cj cj.$O $NXM/$objtype/lib/libjpg.a
 
 %.update:V:
 	update $stem.c /386/bin/$stem

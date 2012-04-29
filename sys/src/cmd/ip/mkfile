@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG = 	6in4\
 	dhcpclient\
@@ -22,9 +23,10 @@ TARG = 	6in4\
 	udpecho\
 	wol\
 
-DIRS=ftpfs dhcpd httpd ipconfig ppp imap4d snoopy
+#DIRS=ftpfs dhcpd httpd ipconfig ppp imap4d snoopy
+DIRS=ipconfig 
 
-BIN=/$objtype/bin/ip
+BIN=$NXM/$objtype/bin/ip
 HFILES=dhcp.h arp.h glob.h icmp.h telnet.h
 
 UPDATE=\
@@ -33,7 +35,7 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${TARG:%=%.c}\
 
-</sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany
 
 all:V:	$DIRS
 
@@ -88,10 +90,10 @@ $O.ftpd:	ftpd.$O glob.$O
 	$LD -o $target $prereq
 
 $BIN/telnet:V:	$O.telnet
-	cp $prereq /$objtype/bin/telnet
+	cp $prereq $NXM/$objtype/bin/telnet
 
 $BIN/snoopy:V:	$O.snoopy
-	cp $prereq /$objtype/bin/snoopy
+	cp $prereq $NXM/$objtype/bin/snoopy
 
 $BIN/sniffer:V:	$O.sniffer
-	cp $prereq /$objtype/bin/sniffer
+	cp $prereq $NXM/$objtype/bin/sniffer

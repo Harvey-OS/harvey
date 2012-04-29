@@ -1,6 +1,7 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
-LIB=/$objtype/lib/libip.a
+LIB=$NXM/$objtype/lib/libip.a
 OFILES=\
 	eipfmt.$O\
 	equivip.$O\
@@ -15,12 +16,13 @@ OFILES=\
 	ptclbsum.$O\
 
 HFILES=\
-	/sys/include/ip.h
+	$NXM/sys/include/ip.h
+MKSHELL=rc
 
 UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
-	${LIB:/$objtype/%=/386/%}\
+	${LIB:$NXM/$objtype/%=/386/%}\
 
-</sys/src/cmd/mksyslib
+<$NXM/sys/src/cmd/mksyslib

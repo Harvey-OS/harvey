@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=ftpfs
 HFILES=ftpfs.h
@@ -6,11 +7,11 @@ OFILES=ftpfs.$O\
 	proto.$O\
 	file.$O\
 
-BIN=/$objtype/bin
+BIN=$NXM/$objtype/bin
 
 UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
 
-</sys/src/cmd/mkone
+<$NXM/sys/src/cmd/mkone
