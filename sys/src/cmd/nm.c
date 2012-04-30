@@ -23,6 +23,16 @@ int	sflag;
 int	uflag;
 int	Tflag;
 
+
+typedef struct  Sym     Sym;
+struct  Sym
+{
+        vlong   value;
+        uint    sig;
+        char    type;
+        char    *name;
+};
+
 Sym	**fnames;		/* file path translation table */
 Sym	**symptr;
 int	nsym;

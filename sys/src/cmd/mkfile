@@ -13,7 +13,7 @@ OUTOFDATE=old
 
 NOMK=$NOTSYS|$BUGGERED|$OUTOFDATE
 
-cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+cpuobjtype=`{sed -n 's/^O=//p' $NXM/$cputype/mkfile}
 MKDIRS=`{echo */mkfile | sed 's,/mkfile,,g'}
 
 DIRS=`{ls -ld $MKDIRS | sed '/^d/!d; s/.* //; /^('$NOMK')$/d'}
