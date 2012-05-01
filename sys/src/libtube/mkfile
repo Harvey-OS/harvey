@@ -1,18 +1,18 @@
 MKSHELL=rc
 objtype=amd64
-</$objtype/mkfile
+<$NXM/$objtype/mkfile
 
-LIB=/$objtype/lib/libtube.a
+LIB=$NXM/$objtype/lib/libtube.a
 OFILES=\
 	tube.$O\
 	namedtube.$O\
 
-HFILES=/sys/include/tube.h
+HFILES=$NXM/sys/include/tube.h
 
 UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
-	${LIB:/$objtype/%=/386/%}\
+	${LIB:$NXM/$objtype/%=/386/%}\
 
-</sys/src/cmd/mksyslib
+<$NXM/sys/src/cmd/mksyslib

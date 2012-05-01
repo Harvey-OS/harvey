@@ -19,7 +19,9 @@ _stringnwidth(Font *f, char *s, Rune *r, int len)
 	}else
 		sptr = &s;
 	if(r == nil){
-		r = L"";
+		/* what do do? */
+		exits("AH!");
+		//r = L"";
 		rptr = nil;
 	}else
 		rptr = &r;

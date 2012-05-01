@@ -1,7 +1,7 @@
 MKSHELL=rc
-</$objtype/mkfile
+<$NXM/$objtype/mkfile
 
-LIB=/$objtype/lib/libmemdraw.a
+LIB=$NXM/$objtype/lib/libmemdraw.a
 OFILES=\
 	alloc.$O\
 	arc.$O\
@@ -29,7 +29,7 @@ UPDATE=\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
 
-</sys/src/cmd/mksyslib
+<$NXM/sys/src/cmd/mksyslib
 
 $O.drawtime: drawtime.$O $LIB
 	$LD -o $target $prereq

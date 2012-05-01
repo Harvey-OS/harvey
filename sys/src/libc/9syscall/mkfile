@@ -6,6 +6,7 @@ NPROC=1
 
 install:V:
 	mksys $objtype
+	6a *.s
 	9ar rvu $NXM/$objtype/lib/libc.a *.$O
 	rm -f *.$O *.s
 

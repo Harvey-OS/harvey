@@ -1,7 +1,7 @@
 MKSHELL=rc
-</$objtype/mkfile
+<$NXM/$objtype/mkfile
 
-LIB=/$objtype/lib/libString.a
+LIB=$NXM/$objtype/lib/libString.a
 
 OFILES=\
 	s_alloc.$O\
@@ -22,12 +22,12 @@ OFILES=\
 	s_tolower.$O\
 	s_unique.$O\
 
-HFILES=/sys/include/String.h
+HFILES=$NXM/sys/include/String.h
 
 UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
-	${LIB:/$objtype/%=/386/%}\
+	${LIB:$NXM/$objtype/%=/386/%}\
 
-</sys/src/cmd/mksyslib
+<$NXM/sys/src/cmd/mksyslib

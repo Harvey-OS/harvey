@@ -1,7 +1,7 @@
 MKSHELL=rc
-</$objtype/mkfile
+<$NXM/$objtype/mkfile
 
-LIB=/$objtype/lib/libventi.a
+LIB=$NXM/$objtype/lib/libventi.a
 
 OFILES=\
 	cache.$O\
@@ -34,9 +34,9 @@ OFILES=\
 	zeroscore.$O\
 
 HFILES=\
-	/sys/include/venti.h\
+	$NXM/sys/include/venti.h\
 
-</sys/src/cmd/mksyslib
+<$NXM/sys/src/cmd/mksyslib
 
 send.$O: queue.h
 server.$O: queue.h

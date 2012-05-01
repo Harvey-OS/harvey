@@ -1,7 +1,7 @@
 MKSHELL=rc
-</$objtype/mkfile
+<$NXM/$objtype/mkfile
 
-LIB=/$objtype/lib/libscribble.a
+LIB=$NXM/$objtype/lib/libscribble.a
 
 OFILES=\
 	li_recognizer.$O\
@@ -18,11 +18,11 @@ UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
-	${LIB:/$objtype/%=/386/%}\
+	${LIB:$NXM/$objtype/%=/386/%}\
 
 all:V:	$LIB syms
 
-< /sys/src/cmd/mksyslib
+< $NXM/sys/src/cmd/mksyslib
 
 syms: $HFILES
 	$CC -a li_recognizer.c	>syms

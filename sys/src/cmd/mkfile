@@ -41,6 +41,8 @@ dirs:V:
 	}
 
 all:V:	$PROGS dirs
+	echo $TARG
+	echo $PROGS
 
 ^([$OS])\.(.*):R:	\2.\1
 	$stem1^l $LDFLAGS -o $target $stem2.$stem1

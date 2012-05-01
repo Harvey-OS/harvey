@@ -1,16 +1,16 @@
 MKSHELL=rc
-</$objtype/mkfile
+<$NXM/$objtype/mkfile
 
-LIB=/$objtype/lib/libworker.a
+LIB=$NXM/$objtype/lib/libworker.a
 OFILES=\
 	worker.$O\
 
-HFILES=/sys/include/worker.h
+HFILES=$NXM/sys/include/worker.h
 
 UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
-	${LIB:/$objtype/%=/386/%}\
+	${LIB:$NXM/$objtype/%=/386/%}\
 
-</sys/src/cmd/mksyslib
+<$NXM/sys/src/cmd/mksyslib

@@ -1,7 +1,7 @@
 MKSHELL=rc
-</$objtype/mkfile
+<$NXM/$objtype/mkfile
 
-LIB=/$objtype/lib/libmemlayer.a
+LIB=$NXM/$objtype/lib/libmemlayer.a
 
 OFILES=\
 	draw.$O\
@@ -18,13 +18,13 @@ OFILES=\
 	unload.$O\
 
 HFILES=\
-	/sys/include/memlayer.h\
-	/sys/include/memdraw.h\
-	/sys/include/draw.h
+	$NXM/sys/include/memlayer.h\
+	$NXM/sys/include/memdraw.h\
+	$NXM/sys/include/draw.h
 
 UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
 
-</sys/src/cmd/mksyslib
+<$NXM/sys/src/cmd/mksyslib

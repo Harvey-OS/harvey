@@ -1,7 +1,7 @@
 MKSHELL=rc
-</$objtype/mkfile
+<$NXM/$objtype/mkfile
 
-LIB=/$objtype/lib/libhttpd.a
+LIB=$NXM/$objtype/lib/libhttpd.a
 OFILES=\
 	alloc.$O\
 	checkcontent.$O\
@@ -22,13 +22,13 @@ OFILES=\
 	urlunesc.$O\
 
 HFILES=\
-	/sys/include/httpd.h\
+	$NXM/sys/include/httpd.h\
 	escape.h\
 
 UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
-	${LIB:/$objtype/%=/386/%}\
+	${LIB:$NXM/$objtype/%=/386/%}\
 
-</sys/src/cmd/mksyslib
+<$NXM/sys/src/cmd/mksyslib

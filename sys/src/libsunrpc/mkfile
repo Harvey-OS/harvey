@@ -1,5 +1,5 @@
 MKSHELL=rc
-</$objtype/mkfile
+<$NXM/$objtype/mkfile
 
 PROTO=\
 	mount3.$O\
@@ -22,10 +22,10 @@ OFILES=\
 	$PROTO\
 
 HFILES=\
-	/sys/include/sunrpc.h\
+	$NXM/sys/include/sunrpc.h\
 
-LIB=/$objtype/lib/libsunrpc.a
+LIB=$NXM/$objtype/lib/libsunrpc.a
 
-</sys/src/cmd/mksyslib
+<$NXM/sys/src/cmd/mksyslib
 
-mount3.$O: /sys/include/nfs3.h
+mount3.$O: $NXM/sys/include/nfs3.h

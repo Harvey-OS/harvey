@@ -1,17 +1,17 @@
 MKSHELL=rc
 objtype=amd64
-</$objtype/mkfile
+<$NXM/$objtype/mkfile
 
-LIB=/$objtype/lib/libseg.a
+LIB=$NXM/$objtype/lib/libseg.a
 OFILES=\
 	seg.$O\
 
-HFILES=/sys/include/seg.h
+HFILES=$NXM/sys/include/seg.h
 
 UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
-	${LIB:/$objtype/%=/386/%}\
+	${LIB:$NXM/$objtype/%=/386/%}\
 
-</sys/src/cmd/mksyslib
+<$NXM/sys/src/cmd/mksyslib

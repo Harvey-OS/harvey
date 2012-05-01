@@ -1,7 +1,7 @@
 MKSHELL=rc
-</$objtype/mkfile
+<$NXM/$objtype/mkfile
 
-LIB=/$objtype/lib/libhtml.a
+LIB=$NXM/$objtype/lib/libhtml.a
 
 OFILES=\
 	build.$O\
@@ -10,13 +10,13 @@ OFILES=\
 	utils.$O\
 
 HFILES=\
-	/sys/include/html.h\
+	$NXM/sys/include/html.h\
 	impl.h\
 
 UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
-	${LIB:/$objtype/%=/386/%}\
+	${LIB:$NXM/$objtype/%=/386/%}\
 
-</sys/src/cmd/mksyslib
+<$NXM/sys/src/cmd/mksyslib

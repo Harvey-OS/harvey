@@ -1,7 +1,7 @@
 MKSHELL=rc
-</$objtype/mkfile
+<$NXM/$objtype/mkfile
 
-LIB=/$objtype/lib/liboventi.a
+LIB=$NXM/$objtype/lib/liboventi.a
 
 SYS=plan9
 
@@ -31,11 +31,11 @@ UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
-	${LIB:/$objtype/%=/386/%}\
+	${LIB:$NXM/$objtype/%=/386/%}\
 
 CFLAGS=$CFLAGS
 
-</sys/src/cmd/mksyslib
+<$NXM/sys/src/cmd/mksyslib
 
 $O.vttest: vttest.$O $OFILES
 	$LD $LDFLAGS -o $target $prereq

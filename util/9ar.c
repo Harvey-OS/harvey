@@ -173,7 +173,6 @@ readar(Biobuf *bp, int objtype, vlong end, int doautos)
 static	int
 processprog(Prog *p, int doautos)
 {
-print("processprog: %s\n", p->id);
 	if(p->kind == aNone)
 		return 1;
 	if(p->sym < 0 || p->sym >= NNAMES)
@@ -317,7 +316,6 @@ nextar(Biobuf *bp, int offset, char *buf)
 	struct ar_hdr a;
 	int i, r;
 	long arsize;
-print("NEXTAR: ");
 	if (offset&01)
 		offset++;
 	Bseek(bp, offset, 0);
@@ -332,7 +330,6 @@ print("NEXTAR: ");
 	arsize = strtol(a.size, 0, 0);
 	if (arsize&1)
 		arsize++;
-print("element %s size %d\n", buf, arsize);
 	return arsize + SAR_HDR;
 }
 
@@ -871,7 +868,6 @@ scanobj(Biobuf *b, Arfile *ap, long size)
 	vlong offset;
 	Dir *d;
 	static int lastobj = -1;
-print("scanobj\n");
 	if (!allobj)			/* non-object file encountered */
 		return;
 	offset = Boffset(b);
@@ -920,7 +916,6 @@ objsym(Sym *s, void *p)
 	n = strlen(s->name);
 	as->name = armalloc(n+1);
 	strcpy(as->name, s->name);
-print("add %s\n", s->name);
 	if(s->type == 'T' && duplicate(as->name)) {
 		dupfound = 1;
 		fprint(2, "duplicate text symbol: %s\n", as->name);
