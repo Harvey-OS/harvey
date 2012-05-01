@@ -7,4 +7,4 @@ obj.o \
 optab.o \
 pass.o \
 span.o
-cp 6l $NXM/amd64/bin
+cp 6l $NXM/xbin
