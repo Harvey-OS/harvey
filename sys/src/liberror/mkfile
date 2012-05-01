@@ -1,3 +1,4 @@
+MKSHELL=rc
 </$objtype/mkfile
 
 LIB=/$objtype/lib/liberror.a

@@ -1,3 +1,4 @@
+MKSHELL=rc
 <$NXM/$objtype/mkfile
 
 LIB=$NXM/$objtype/lib/libthread.a
