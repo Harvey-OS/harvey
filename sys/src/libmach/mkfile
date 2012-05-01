@@ -1,3 +1,4 @@
+MKSHELL=rc
 <$NXM/$objtype/mkfile
 
 LIB=$NXM/$objtype/lib/libmach.a
@@ -10,35 +11,8 @@ FILES=\
 	access\
 	machdata\
 	setmach\
-	v\
-	k\
-	u\
-	q\
-	0\
-	2\
-	5\
 	6\
-	7\
-	8\
-	9\
-	vdb\
-	kdb\
-	udb\
-	qdb\
-	2db\
-	5db\
-	7db\
-	8db\
-	vobj\
-	kobj\
-	uobj\
-	2obj\
-	5obj\
 	6obj\
-	7obj\
-	8obj\
-	9obj\
-	qobj\
 	vcodas\
 
 HFILES=$NXM/sys/include/mach.h elf.h obj.h
@@ -59,9 +33,7 @@ CFLAGS=$CFLAGS -I$NXM/sys/src/cmd
 2obj.$O: $NXM/sys/src/cmd/2c/2.out.h
 5obj.$O: $NXM/sys/src/cmd/5c/5.out.h
 6obj.$O: $NXM/sys/src/cmd/6c/6.out.h
-7obj.$O: $NXM/sys/src/cmd/7c/7.out.h
 8obj.$O: $NXM/sys/src/cmd/8c/8.out.h
-9obj.$O: $NXM/sys/src/cmd/9c/9.out.h
 kobj.$O: $NXM/sys/src/cmd/kc/k.out.h
 qobj.$O: $NXM/sys/src/cmd/qc/q.out.h
 uobj.$O:  uc/u.out.h

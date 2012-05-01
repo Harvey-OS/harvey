@@ -1,11 +1,10 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=\
 	8prefix\
 	9pcon\
-	accupoint\
 	acidleak\
-	apm\
 	astarld\
 	cddb\
 	clog\
@@ -18,7 +17,6 @@ TARG=\
 	listen\
 	listen1\
 	mklatinkbd\
-	ms2\
 	msexceltables\
 	mswordstrings\
 	mouse\
@@ -37,7 +35,7 @@ TARG=\
 	write\
 	zerotrunc\
 
-BIN=/$objtype/bin/aux
+BIN=$NXM/$objtype/bin/aux
 
 UPDATE=\
 	mkfile\
@@ -45,10 +43,13 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${TARG:%=%.c}\
 
-</sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany
 
-DIRS=mnihongo\
+DIRS=\
 	flashfs\
+
+UNUSEDDIRS=\
+	mnihongo\
 	gps\
 	na\
 	vga

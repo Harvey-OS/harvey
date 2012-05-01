@@ -7,7 +7,7 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
-#include "/sys/src/cmd/8c/8.out.h"
+#include "../8c/8.out.h"
 
 typedef struct Sym Sym;
 struct Sym

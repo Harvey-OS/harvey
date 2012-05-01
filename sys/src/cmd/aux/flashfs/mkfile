@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=\
 	mkflashfs\
@@ -19,10 +20,10 @@ ALLOBJ=\
 HFILES=\
 	flashfs.h
 
-LIB=/$objtype/lib/lib9p.a
-BIN=/$objtype/bin/aux
+LIB=$NXM/$objtype/lib/lib9p.a
+BIN=$NXM/$objtype/bin/aux
 
-</sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany
 
 $O.mkflashfs: mkfs.$O devfs.$O utils.$O
 	$LD -o $target $prereq
