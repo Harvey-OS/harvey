@@ -1,47 +1,80 @@
-#include	"cc.h"
-#include	"compat"
+#include "cc.h"
 
-/*
- * fake mallocs
- */
-void*
-malloc(ulong n)
+int
+myaccess(char *f)
 {
-	return alloc(n);
+	return access(f, AEXIST);
 }
 
 void*
-calloc(ulong m, ulong n)
+mysbrk(ulong size)
 {
-	return alloc(m*n);
+	return malloc(size);
 }
 
-void*
-realloc(void*u1, ulong u2)
+int
+mycreat(char *n, int p)
 {
-	fprint(2, "realloc called\n");
-	abort();
-	return 0;
+
+	return create(n, 1, p);
 }
 
-void
-free(void*v)
+int
+mywait(int *s)
 {
+	int p;
+	Waitmsg *w;
+
+	if((w = wait()) == nil)
+		return -1;
+	else{
+		p = w->pid;
+		*s = 0;
+		if(w->msg[0])
+			*s = 1;
+		free(w);
+		return p;
+	}
 }
 
-/* needed when profiling */
-void*
-mallocz(ulong size, int clr)
+int
+mydup(int f1, int f2)
 {
-	void *v;
-
-	v = alloc(size);
-	if(clr && v != nil)
-		memset(v, 0, size);
-	return v;
+	return dup(f1,f2);
 }
 
-void
-setmalloctag(void*u1, ulong u2)
+int
+mypipe(int *fd)
 {
+	return pipe(fd);
+}
+
+int
+systemtype(int sys)
+{
+	return sys & Plan9;
+}
+
+int
+pathchar(void)
+{
+	return '/';
+}
+
+char*
+mygetwd(char *path, int len)
+{
+	return getwd(path, len);
+}
+
+int
+myexec(char *path, char *argv[])
+{
+	return exec(path, argv);
+}
+
+int
+myfork(void)
+{
+	return fork();
 }

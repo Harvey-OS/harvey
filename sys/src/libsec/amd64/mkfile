@@ -1,11 +1,12 @@
+MKSHELL=rc
 objtype=amd64
-</$objtype/mkfile
+<$NXM/$objtype/mkfile
 
-LIB=/$objtype/lib/libsec.a
+LIB=$NXM/$objtype/lib/libsec.a
 OFILES=	\
 
-HFILES=/sys/include/libsec.h
+HFILES=$NXM/sys/include/libsec.h
 
 UPDATE=mkfile
 
-</sys/src/cmd/mksyslib
+<$NXM/sys/src/cmd/mksyslib

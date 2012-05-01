@@ -18,8 +18,10 @@ BOOTFILES=\
 $BOOTLIB(%.$O):N:	%.$O
 
 $BOOTLIB:	${BOOTFILES:%=$BOOTLIB(%)}
+	echo $newprereq
 	names=`{membername $newprereq}
-	ar vu $BOOTLIB $names
+	echo $names
+	9ar vu $BOOTLIB $names
 	rm $names
 
 $BOOTFILES:	$BOOTDIR/boot.h

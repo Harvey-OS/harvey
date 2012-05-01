@@ -20,7 +20,7 @@ MKSHELL=rc
 %.db:	main.$O
 	$CC -s$stem main.c | dbfmt > $stem.db
 
-%.$O:	/$objtype/include/u.h
+%.$O:	$NXM/$objtype/include/u.h
 %.$O:	../port/lib.h
 %.$O:	mem.h
 %.$O:	dat.h ../port/portdat.h
@@ -39,7 +39,7 @@ devmnt.$O:	../port/error.h
 devpipe.$O:	../port/error.h
 devprobe.$O:	../port/netif.h probe.h
 devproc.$O:	../port/error.h ../port/edf.h
-devproc.$O:	$NXM/sys/include/tos.h $NXM/sys/include/trace.h /$objtype/include/ureg.h
+devproc.$O:	$NXM/sys/include/tos.h $NXM/sys/include/trace.h $NXM/$objtype/include/ureg.h
 devsd.$O:	../port/error.h ../port/sd.h
 devsrv.$O:	../port/error.h
 devssl.$O:	../port/error.h
@@ -55,16 +55,16 @@ ethermii.$O:	../port/ethermii.h ../port/netif.h
 fault.$O:	../port/error.h
 image.$O:	../port/error.h
 initcode.$O:	$NXM/sys/include/libc.h
-	6c ../port/initcode.c
+	6c $CFLAGS ../port/initcode.c
 latin1.$O:	../port/latin1.h
 netif.$O:	../port/error.h ../port/netif.h
 parse.$O:	../port/error.h
 pgrp.$O:	../port/error.h
-portclock.$O:	/$objtype/include/ureg.h
+portclock.$O:	$NXM/$objtype/include/ureg.h
 proc.$O:	../port/error.h ../port/edf.h errstr.h
 proc.$O:	$NXM/sys/include/trace.h
 qio.$O:		../port/error.h
-rdb.$O:		/$objtype/include/ureg.h
+rdb.$O:		$NXM/$objtype/include/ureg.h
 rebootcmd.$O:	../port/error.h
 rebootcmd.$O:	$NXM/sys/include/a.out.h
 segment.$O:	../port/error.h
@@ -77,11 +77,11 @@ sysproc.$O:	$NXM/sys/include/a.out.h
 sysseg.$O:	../port/error.h
 taslock.$O:	../port/edf.h
 
-../port/latin1.h:	/lib/keyboard
-	aux/mklatinkbd /lib/keyboard > $target
+../port/latin1.h:	$NXM/lib/keyboard
+	aux/mklatinkbd $NXM/lib/keyboard > $target
 
-../port/systab.c:	../mk/parse /sys/src/libc/9syscall/sys.h
-	awk -f ../mk/parse -- -mksystab /sys/src/libc/9syscall/sys.h $CONF > $target
+../port/systab.c:	../mk/parse $NXM/sys/src/libc/9syscall/sys.h
+	awk -f ../mk/parse -- -mksystab $NXM/sys/src/libc/9syscall/sys.h $CONF > $target
 
 systab.$O:	../port/systab.c
 	$CC $CFLAGS -I. ../port/systab.c

@@ -1,4 +1,6 @@
 MKSHELL=rc
+# where to put this?
+CFLAGS=-I $NXM/sys/include -I $NXM/$objtype/include
 CONF=k8cpuserial
 CONFLIST=k8cpuserial
 

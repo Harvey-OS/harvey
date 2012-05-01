@@ -6,7 +6,7 @@
 
 #include "../port/error.h"
 
-#include "/sys/src/libc/9syscall/sys.h"
+#include "../../libc/9syscall/sys.h"
 
 #include <tos.h>
 
