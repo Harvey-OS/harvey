@@ -74,9 +74,9 @@ boot cpu
 	tcp
 
 rootdir
-	bootk8cpu.out boot
-	/amd64/bin/auth/factotum factotum
-	/amd64/bin/ip/ipconfig ipconfig
+	bootk8cpuserial.out boot
+#	/amd64/bin/auth/factotum factotum
+#	/amd64/bin/ip/ipconfig ipconfig
 	../root/nvram nvram
 
 conf

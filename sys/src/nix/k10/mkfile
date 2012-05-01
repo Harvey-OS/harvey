@@ -85,6 +85,7 @@ etherm10g.$O:	../port/error.h ../port/netif.h
 etherm10g.$O:	etherif.h io.h
 etherm10g.$O:	../386/etherm10g2k.i ../386/etherm10g4k.i
 i8259.$O:	io.h
+kbd.$O:                ../port/error.h io.h
 pci.$O:		io.h
 sdaoe.$O:	../port/error.h ../port/netif.h ../port/sd.h
 sdaoe.$O:	../386/aoe.h etherif.h io.h

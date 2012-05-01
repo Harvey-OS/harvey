@@ -83,7 +83,7 @@ BEGIN{
 			}
 			l = listolate(c, "|");
 			if(l != ""){
-				o = o "^(" l ")\\.$O:R:	" dir "/\\1.c\n";
+				o = o "^(" l ")\\\\.$O:R:	" dir "/\\\\1.c\n";
 				o = o "\t$CC $CFLAGS " s " " dir "/$stem1.c\n";
 			}
 		}

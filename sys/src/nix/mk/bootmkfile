@@ -1,3 +1,4 @@
+MKSHELL=rc
 BOOTDIR=../boot
 BOOTLIB=$BOOTDIR/libboot.a$O
 

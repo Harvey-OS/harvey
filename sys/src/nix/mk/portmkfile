@@ -1,3 +1,4 @@
+MKSHELL=rc
 %.$O:	%.s
 	$AS $AFLAGS $stem.s
 
