@@ -20,7 +20,7 @@
 #define PTEIO		(Dom0|L1AP(Krw)|Section)
 
 /* wave at the user; clobbers R1 & R7; needs R12 (SB) set */
-#define WAVE(c) \
+#define PUTC(c) \
 	ISB; \
 	MOVW	$PHYSCONS, R7; \
 	MOVW	$(c), R1; \

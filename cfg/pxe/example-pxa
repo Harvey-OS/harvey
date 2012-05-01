@@ -3,6 +3,7 @@ nvram=/boot/nvram
 nvroff=0
 nvrlen=512
 nobootprompt=tcp
+readparts=1
 
 # aoeif=ether0
 # aoedev=e!#æ/aoe/1.0

@@ -6,3 +6,4 @@ nobootprompt=tcp
 
 # aoeif=ether0
 # aoedev=e!#æ/aoe/1.0
+readparts=1

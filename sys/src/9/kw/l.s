@@ -76,7 +76,7 @@ _dwbinv1:
 	BNE	_dwbinv1
 	BARRIERS
 
-WAVE('\r')
+PUTC('\r')
 	/* clear Mach */
 	MOVW	$PADDR(MACHADDR), R4		/* address of Mach */
 _machZ:
@@ -90,7 +90,7 @@ _machZ:
 	 */
 
 	/* clear all PTEs first, to provide a default */
-WAVE('\n')
+PUTC('\n')
 	MOVW	$PADDR(L1+L1X(0)), R4		/* address of PTE for 0 */
 _ptenv0:
 	ZEROPTE()
@@ -135,7 +135,7 @@ _ptekrw:					/* set PTEs for 512MiB */
 	 */
 	MOVW	$(PHYSDRAM | (128*1024*1024)), R13
 
-WAVE('P')
+PUTC('P')
 	/* set the domain access control */
 	MOVW	$Client, R0
 	BL	dacput(SB)
@@ -148,12 +148,12 @@ WAVE('P')
 	BL	pidput(SB)		/* paranoia */
 
 	/* the little dance to turn the MMU & caches on */
-WAVE('l')
+PUTC('l')
 	BL	cacheuwbinv(SB)
 	BL	mmuinvalidate(SB)
 	BL	mmuenable(SB)
 
-WAVE('a')
+PUTC('a')
 	/* warp the PC into the virtual map */
 	MOVW	$KZERO, R0
 	BL	_r15warp(SB)
@@ -174,7 +174,7 @@ WAVE('a')
 
 	BL	cacheuwbinv(SB)
 
-WAVE('n')
+PUTC('n')
 	/* undo double map of 0, KZERO */
 	MOVW	$PADDR(L1+L1X(0)), R4		/* address of PTE for 0 */
 	MOVW	$0, R0
@@ -190,7 +190,7 @@ _ptudbl:
 	MCR	CpSC, 0, R0, C(CpTLB), C(CpTLBinvu), CpTLBinv
 	BARRIERS
 
-WAVE(' ')
+PUTC(' ')
 	/* pass Mach to main and set up the stack */
 	MOVW	$(MACHADDR), R0			/* Mach */
 	MOVW	R0, R13
@@ -212,7 +212,7 @@ TEXT _reset(SB), 1, $-4
 	BIC	$(CpCwb|CpCicache|CpCdcache|CpCalign), R0
 	MCR     CpSC, 0, R0, C(CpCONTROL), C(0)
 	BARRIERS
-WAVE('R')
+PUTC('R')
 
 	/* redo double map of 0, KZERO */
 	MOVW	$(L1+L1X(0)), R4		/* address of PTE for 0 */
@@ -228,7 +228,7 @@ _ptrdbl:
 	BNE	_ptrdbl
 
 	BARRIERS
-WAVE('e')
+PUTC('e')
 	MOVW	$0, R0
 	MCR	CpSC, 0, R0, C(CpTLB), C(CpTLBinvd), CpTLBinv
 	MCR	CpSC, 0, R0, C(CpTLB), C(CpTLBinvu), CpTLBinv
@@ -246,19 +246,19 @@ WAVE('e')
 	BL	mmuinvalidate(SB)
 	BL	mmudisable(SB)
 
-WAVE('s')
+PUTC('s')
 	/* set new reset vector */
 	MOVW	$0, R2
 	MOVW	$0xe59ff018, R3			/* MOVW 0x18(R15), R15 */
 	MOVW	R3, (R2)
-WAVE('e')
+PUTC('e')
 
 	MOVW	$PHYSBOOTROM, R3
 	MOVW	R3, 0x20(R2)			/* where $0xe59ff018 jumps to */
 	BARRIERS
-WAVE('t')
-WAVE('\r')
-WAVE('\n')
+PUTC('t')
+PUTC('\r')
+PUTC('\n')
 
 	/* ...and jump to it */
 	MOVW	R2, R15				/* software reboot */
