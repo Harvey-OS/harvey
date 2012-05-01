@@ -1,4 +1,4 @@
-</${NXM}/${objtype}/mkfile
+</$NXM/$objtype/mkfile
 
 MKSHELL=rc
 PORTDIRS=9sys 9syscall fmt port thr

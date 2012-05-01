@@ -16,17 +16,16 @@ func main(){
 	lines := strings.Split(string(s), "\n")
 	for _, line := range lines {
 		ass := "TEXT "
-		filename := ""
-		ll := strings.Split(line, "\t")
+		ll := strings.Fields(line)
 		if len(ll) < 3 {
 			continue
 		}
-		name := ll[1]
+		name := strings.ToLower(ll[1])
+		filename := name + ".s"
 		if name == "seek" {
 			ass = ass + "_"
-			filename = filename + "_"
+			filename = "_" + filename
 		}
-		filename = filename + name + ".s"
 		ass = ass + fmt.Sprintf("%s(SB), 1, $0\n", name)
 		ass = ass + "\tMOVQ RARG, a0+0(FP)\n\tMOVQ $" + ll[2]
 		ass = ass + ", RARG\n\tSYSCALL\n\tRET\n"

@@ -5,6 +5,13 @@ MKSHELL=rc
 NPROC=1
 
 install:V:
+	mksys $objtype
+	9ar rvu $NXM/$objtype/lib/libc.a *.$O
+	rm -f *.$O *.s
+
+# historical. Did not work on OSX due to obscure errors. 
+# Slow, hard to read and understand, fragile. To hell with it.
+oldinstall:V:
 	SYS=`{sed '/^#define._X[123]/d; s/#define.([A-Z0-9_]*).*/\1/' sys.h}
 	for(I in $SYS) {
 		i=`{echo $I|tr A-Z a-z}
@@ -137,7 +144,6 @@ install:V:
 	}
 	9ar rvu ${NXM}/$objtype/lib/libc.a *.$O
 	rm -f *.$O *.s
-	exit 0
 
 nuke clean:V:
 	rm -f *.[$OS]
