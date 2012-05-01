@@ -4,7 +4,6 @@ MKSHELL=rc
 TARG = 	6in4\
 	dhcpclient\
 	ftpd\
-	gping\
 	hogports\
 	httpfile\
 	linklocal\

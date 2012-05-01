@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 DIRS=port $CPUS
 
@@ -12,7 +13,7 @@ install all:V:
 	}
 
 nuke:V: clean
-	rm -f /$objtype/lib/libmp.a
+	rm -f $NXM/$objtype/lib/libmp.a
 
 clean:V:
 	for(i in $DIRS)@{
@@ -26,7 +27,7 @@ update:V:
 		cd $i
 		mk $MKFLAGS $target
 	}
-	update /386/lib/libmp.a
+	update $NXM/386/lib/libmp.a
 
 installall:V:
 	for(objtype in $CPUS) mk $MKFLAGS install
@@ -39,16 +40,16 @@ everything:V:
 	}
 	rm -f */*.[012456789kvx]
 
-test.$O: test.c /$objtype/include/u.h /sys/include/mp.h port/dat.h
+test.$O: test.c $NXM/$objtype/include/u.h $NXM/sys/include/mp.h port/dat.h
 	$CC -Iport test.c
 
-$O.test: test.$O /$objtype/lib/libmp.a
+$O.test: test.$O $NXM/$objtype/lib/libmp.a
 	$LD -o $O.test test.$O
 
-bigtest.$O: bigtest.c /$objtype/include/u.h /sys/include/mp.h port/dat.h
+bigtest.$O: bigtest.c $NXM/$objtype/include/u.h $NXM/sys/include/mp.h port/dat.h
 	$CC -Iport bigtest.c
 
-$O.bigtest: bigtest.$O /$objtype/lib/libmp.a
+$O.bigtest: bigtest.$O $NXM/$objtype/lib/libmp.a
 	$LD -o $O.bigtest bigtest.$O
 
 allout:

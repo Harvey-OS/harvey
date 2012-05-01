@@ -1,6 +1,7 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
-LIB=/$objtype/lib/lib9p.a
+LIB=$NXM/$objtype/lib/lib9p.a
 OFILES=\
 	auth.$O\
 	dirread.$O\
@@ -18,15 +19,15 @@ OFILES=\
 	uid.$O\
 	util.$O\
 
-HFILES=/sys/include/9p.h
+HFILES=$NXM/sys/include/9p.h
 
 UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
-	${LIB:/$objtype/%=/386/%}\
+	${LIB:$NXM/$objtype/%=/386/%}\
 
-</sys/src/cmd/mksyslib
+<$NXM/sys/src/cmd/mksyslib
 
 $O.ramfs: ramfs.$O $LIB
 	$LD -o $target $prereq

@@ -1,6 +1,6 @@
-</$objtype/mkfile
+<$NXM/$objtype/mkfile
 
-LIB=/$objtype/lib/libthread.a
+LIB=$NXM/$objtype/lib/libthread.a
 
 OFILES=\
 	$objtype.$O\
@@ -63,18 +63,18 @@ CFILES=\
 	tprimes.c\
 
 HFILES=\
-	/sys/include/thread.h\
+	$NXM/sys/include/thread.h\
 	threadimpl.h\
 
 UPDATE=mkfile\
-	/386/lib/libthread.a\
+	$NXM/386/lib/libthread.a\
 	$HFILES\
 	$CFILES\
 	$SFILES\
 
 all:V:	$LIB sched.acid channel.acid
 
-</sys/src/cmd/mksyslib
+<$NXM/sys/src/cmd/mksyslib
 
 $O.tprimes: tprimes.$O $LIB
 	$LD -o $target $prereq

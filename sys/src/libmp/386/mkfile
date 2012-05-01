@@ -1,7 +1,8 @@
+MKSHELL=rc
 objtype=386
-</386/mkfile
+<$NXM/386/mkfile
 
-LIB=/$objtype/lib/libmp.a
+LIB=$NXM/$objtype/lib/libmp.a
 SFILES=\
 	mpvecadd.s\
 	mpvecdigmuladd.s\
@@ -9,7 +10,7 @@ SFILES=\
 	mpvecsub.s\
 	mpdigdiv.s\
 
-HFILES=/$objtype/include/u.h /sys/include/mp.h ../port/dat.h
+HFILES=$NXM/$objtype/include/u.h $NXM/sys/include/mp.h ../port/dat.h
 
 OFILES=${SFILES:%.s=%.$O}
 
@@ -17,4 +18,4 @@ UPDATE=mkfile\
 	$HFILES\
 	$SFILES\
 
-</sys/src/cmd/mksyslib
+<$NXM/sys/src/cmd/mksyslib

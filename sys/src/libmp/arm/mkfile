@@ -1,13 +1,14 @@
+MKSHELL=rc
 objtype=arm
-</$objtype/mkfile
+<$NXM/$objtype/mkfile
 
-LIB=/$objtype/lib/libmp.a
+LIB=$NXM/$objtype/lib/libmp.a
 OFILES=	\
 
-HFILES=/$objtype/include/u.h /sys/include/mp.h ../port/dat.h
+HFILES=$NXM/$objtype/include/u.h $NXM/sys/include/mp.h ../port/dat.h
 
 UPDATE=\
 	mkfile\
 	$HFILES\
 
-</sys/src/cmd/mksyslib
+<$NXM/sys/src/cmd/mksyslib

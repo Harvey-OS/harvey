@@ -1215,7 +1215,7 @@ gethunk(void)
 		if(thunk >= 25L*NHUNK)
 			nh = 25L*NHUNK;
 	}
-	h = mysbrk(nh);
+	h = malloc(nh); //mysbrk(nh);
 	if(h == (char*)-1) {
 		diag("out of memory");
 		errorexit();

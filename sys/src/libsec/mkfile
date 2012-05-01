@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 DIRS=port $CPUS
 
@@ -19,7 +20,7 @@ clean:V:
 	}
 
 nuke:V: clean
-	rm -f /$objtype/lib/libsec.a
+	rm -f $NXM/$objtype/lib/libsec.a
 
 update:V:
 	for(i in $DIRS)@{
@@ -27,7 +28,7 @@ update:V:
 		cd $i
 		mk $MKFLAGS update
 	}
-	update $UPDATEFLAGS /386/lib/libsec.a
+	update $UPDATEFLAGS $NXM/386/lib/libsec.a
 
 installall:V:
 	for(objtype in $CPUS) mk $MKFLAGS install

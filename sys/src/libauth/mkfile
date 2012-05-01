@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 LIB=/$objtype/lib/libauth.a
 OFILES=\
@@ -20,7 +21,7 @@ OFILES=\
 	noworld.$O\
 
 HFILES=\
-	/sys/include/auth.h\
+	$NXM/sys/include/auth.h\
 	authlocal.h\
 
 UPDATE=\
@@ -29,4 +30,4 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${LIB:/$objtype/%=/386/%}\
 
-</sys/src/cmd/mksyslib
+<$NXM/sys/src/cmd/mksyslib
