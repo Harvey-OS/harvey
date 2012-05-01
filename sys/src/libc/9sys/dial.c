@@ -283,13 +283,10 @@ pickuperr(char *besterr, char *err)
 		strcpy(besterr, err);
 }
 
-static void
+static int
 catcher(void *, char *s)
 {
-	if (strstr(s, "alarm") != nil)
-		noted(NCONT);
-	else
-		noted(NDFLT);
+	return strstr(s, "alarm") != nil;
 }
 
 /*
@@ -314,7 +311,7 @@ dialmulti(DS *ds, Dest *dp)
 			--dp->nkid;
 		else if (kid == 0) {
 			/* only in kid, to avoid atnotify callbacks in parent */
-			notify(catcher);
+			atnotify(catcher, 1);
 
 			*besterr = '\0';
 			rv = call(clone, dest, ds, dp, &dp->conn[kidme]);
