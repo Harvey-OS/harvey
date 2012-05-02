@@ -13,7 +13,7 @@
 typedef struct {
 	union{
 		struct {
-			Exec;		/* a.out.h */
+			Exec exec;		/* a.out.h */
 			uvlong hdr[1];
 		};
 		Ehdr;			/* elf.h */

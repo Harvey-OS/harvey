@@ -1,3 +1,33 @@
+// Inferno utils/nm/nm.c
+// http://code.google.com/p/inferno-os/source/browse/utils/nm/nm.c
+//
+//	Copyright © 1994-1999 Lucent Technologies Inc.  All rights reserved.
+//	Portions Copyright © 1995-1997 C H Forsyth (forsyth@terzarima.net)
+//	Portions Copyright © 1997-1999 Vita Nuova Limited
+//	Portions Copyright © 2000-2007 Vita Nuova Holdings Limited (www.vitanuova.com)
+//	Portions Copyright © 2004,2006 Bruce Ellis
+//	Portions Copyright © 2005-2007 C H Forsyth (forsyth@terzarima.net)
+//	Revisions Copyright © 2000-2007 Lucent Technologies Inc. and others
+//	Portions Copyright © 2009 The Go Authors. All rights reserved.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
 /*
  * nm.c -- drive nm
  */
@@ -6,6 +36,7 @@
 #include <ar.h>
 #include <bio.h>
 #include <mach.h>
+#include "../libmach/obj.h"
 
 enum{
 	CHUNK	=	256	/* must be power of 2 */
@@ -20,18 +51,10 @@ int	gflag;
 int	hflag;
 int	nflag;
 int	sflag;
+int	Sflag;
 int	uflag;
 int	Tflag;
-
-
-typedef struct  Sym     Sym;
-struct  Sym
-{
-        vlong   value;
-        uint    sig;
-        char    type;
-        char    *name;
-};
+int	tflag;
 
 Sym	**fnames;		/* file path translation table */
 Sym	**symptr;
@@ -40,7 +63,7 @@ Biobuf	bout;
 
 int	cmp(void*, void*);
 void	error(char*, ...);
-void	execsyms(int);
+//void	execsyms(int);
 void	psym(Sym*, void*);
 void	printsyms(Sym**, long);
 void	doar(Biobuf*);
@@ -69,7 +92,9 @@ main(int argc, char *argv[])
 	case 'h':	hflag = 1; break;
 	case 'n':	nflag = 1; break;
 	case 's':	sflag = 1; break;
+	case 'S':	nflag = Sflag = 1; break;
 	case 'u':	uflag = 1; break;
+	case 't':	tflag = 1; break;
 	case 'T':	Tflag = 1; break;
 	} ARGEND
 	if (argc == 0)
@@ -102,31 +127,34 @@ void
 doar(Biobuf *bp)
 {
 	int offset, size, obj;
-	char membername[SARNAME];
+	char name[SARNAME];
 
 	multifile = 1;
 	for (offset = Boffset(bp);;offset += size) {
-		size = nextar(bp, offset, membername);
+		size = nextar(bp, offset, name);
 		if (size < 0) {
-			error("phase error on ar header %ld", offset);
+			error("phase error on ar header %d", offset);
 			return;
 		}
 		if (size == 0)
 			return;
-		if (strcmp(membername, symname) == 0)
+		if (strcmp(name, symname) == 0)
 			continue;
 		obj = objtype(bp, 0);
 		if (obj < 0) {
+			// perhaps foreign object
+			if(strlen(name) > 2 && strcmp(name+strlen(name)-2, ".o") == 0)
+				return;
 			error("inconsistent file %s in %s",
-					membername, filename);
+					name, filename);
 			return;
 		}
 		if (!readar(bp, obj, offset+size, 1)) {
 			error("invalid symbol reference in file %s",
-					membername);
+					name);
 			return;
 		}
-		filename = membername;
+		filename = name;
 		nsym=0;
 		objtraverse(psym, 0);
 		printsyms(symptr, nsym);
@@ -142,9 +170,11 @@ dofile(Biobuf *bp)
 	int obj;
 
 	obj = objtype(bp, 0);
+/*
 	if (obj < 0)
 		execsyms(Bfildes(bp));
 	else
+ */
 	if (readobj(bp, obj)) {
 		nsym = 0;
 		objtraverse(psym, 0);
@@ -163,11 +193,15 @@ cmp(void *vs, void *vt)
 
 	s = vs;
 	t = vt;
-	if(nflag)
+	if(nflag)	// sort on address (numeric) order
 		if((*s)->value < (*t)->value)
 			return -1;
 		else
 			return (*s)->value > (*t)->value;
+#if 0
+	if(sflag)	// sort on file order (sequence)
+		return (*s)->sequence - (*t)->sequence;
+#endif
 	return strcmp((*s)->name, (*t)->name);
 }
 /*
@@ -189,18 +223,19 @@ zenter(Sym *s)
 	fnames[s->value] = s;
 }
 
+#if 0
 /*
  * get the symbol table from an executable file, if it has one
  */
 void
 execsyms(int fd)
 {
-	Fhdr f;
+	Fhdr *f;
 	Sym *s;
-	long n;
+	int32 n;
 
 	seek(fd, 0, 0);
-	if (crackhdr(fd, &f) == 0) {
+	if (f = crackhdr(filename, 0) == 0) {
 		error("Can't read header for %s", filename);
 		return;
 	}
@@ -213,6 +248,7 @@ execsyms(int fd)
 
 	printsyms(symptr, nsym);
 }
+#endif
 
 void
 psym(Sym *s, void* p)
@@ -271,14 +307,13 @@ psym(Sym *s, void* p)
 void
 printsyms(Sym **symptr, long nsym)
 {
-	int i, wid;
+	int i, j, wid;
 	Sym *s;
 	char *cp;
 	char path[512];
 
-	if(!sflag)
-		qsort(symptr, nsym, sizeof(*symptr), cmp);
-	
+	qsort(symptr, nsym, sizeof(*symptr), (void*)cmp);
+
 	wid = 0;
 	for (i=0; i<nsym; i++) {
 		s = symptr[i];
@@ -286,15 +321,17 @@ printsyms(Sym **symptr, long nsym)
 			wid = 8;
 		else if (s->value >= 0x100000000LL && wid == 8)
 			wid = 16;
-	}	
+	}
 	for (i=0; i<nsym; i++) {
 		s = symptr[i];
 		if (multifile && !hflag)
 			Bprint(&bout, "%s:", filename);
+/*
 		if (s->type == 'z') {
 			fileelem(fnames, (uchar *) s->name, path, 512);
 			cp = path;
 		} else
+ */
 			cp = s->name;
 		if (Tflag)
 			Bprint(&bout, "%8ux ", s->sig);
@@ -302,7 +339,21 @@ printsyms(Sym **symptr, long nsym)
 			Bprint(&bout, "%*llux ", wid, s->value);
 		else
 			Bprint(&bout, "%*s ", wid, "");
-		Bprint(&bout, "%c %s\n", s->type, cp);
+		if(Sflag) {
+			vlong siz;
+
+			siz = 0;
+			for(j=i+1; j<nsym; j++) {
+				if(symptr[j]->type != 'a' && symptr[j]->type != 'p') {
+					siz = symptr[j]->value - s->value;
+					break;
+				}
+			}
+			if(siz > 0)
+				Bprint(&bout, "%*llud ", wid, siz);
+		}
+		Bprint(&bout, "%c %s", s->type, cp);
+		Bprint(&bout, "\n");
 	}
 }
 
