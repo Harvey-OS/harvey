@@ -35,6 +35,14 @@ struct  Sym
 
 #define islocal(t)	((t)=='a' || (t)=='p')
 
+/* convenience */
+int isar(Biobuf *bp);
+int nextar(Biobuf *bp, int offset, char *buf);
+int objtype(Biobuf *bp, char **name);
+int readar(Biobuf *bp, int objtype, vlong end, int doautos);
+void objtraverse(void (*fn)(Sym*, void*), void *pointer);
+int readobj(Biobuf *bp, int objtype);
+
 /* Back to you ... */
 typedef enum Kind		/* variable defs and references in obj */
 {
