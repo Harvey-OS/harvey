@@ -110,4 +110,4 @@ sipi.h:		l64sipi.$O
 
 ../root/nvram: 
 	dd -if /dev/zero -of ../root/nvram -bs 512 -count 1
-	nvram=../root/nvram auth/wrkey
+#	nvram=../root/nvram auth/wrkey
