@@ -1,0 +1,41 @@
+/*
+ * return from user-mode exception.
+ * expects new SPSR in R0.  R13 must point to ureg->type.
+ */
+_rfue:
+TEXT rfue(SB), 1, $-4
+//	CPSID
+//	BIC	$PsrMbz, R0		/* force little-endian upon return */
+	MOVW	R0, SPSR		/* ... */
+
+	/*
+	 * order on stack is type, psr, pc, but RFEV7 needs pc, psr.
+	 * step on type and previous word to hold temporary values.
+	 * we could instead change the order in which psr & pc are pushed.
+	 */
+	MOVW	4(R13), R1		/* psr */
+	MOVW	8(R13), R2		/* pc */
+	MOVW	R2, 4(R13)		/* pc */
+	MOVW	R1, 8(R13)		/* psr */
+
+	MOVM.DB.S (R13), [R0-R14]	/* restore user registers */
+	ADD	$4, R13			/* pop type, sp -> pc */
+
+#ifdef OLDWAY
+	ADD	$(2*4), R13		/* pop past ureg->{type+psr} to pc */
+	/*
+	 * this used to work on arm arch v[567] and still works on cpu 0.
+	 * for some reason it sometimes sets PsrBigend on cpu 1.
+	 * Ureg's tail was:
+	 *
+	 * typedef struct Ureg {
+	 * 	⋯
+	 * 	ulong	type;	/* of exception */
+	 * 	ulong	psr;
+	 * 	ulong	pc;	/* interrupted addr */
+	 * } Ureg;
+	 */
+	RFE				/* MOVM.IA.S.W (R13), [R15] */
+#endif
+//	SETEND(0)
+	RFEV7W(13)

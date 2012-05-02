@@ -1,0 +1,19 @@
+see §5.4.40 (p.142) pllx_* (2 regs)
+
+out of u-boot, these are the settings:
+---
+pllx	base 0x4003e80c:
+		enabled, no locked
+		divp == 0 (post divider == 2^0 == 1)
+		divn == 1000 (feedback divider)
+		divm == 12 (input divider)
+	misc 0x100: pllx_cpcon == 1		[ should be 12 ]
+super cclk divider 0x80000000:
+	enabled
+	dividend == 0 (thus 1)
+	divisor == 0 (thus 1)
+super sclk divider 0x0:
+	disabled
+	dividend == 0 (thus 1)
+	divisor == 0 (thus 1)
+---
