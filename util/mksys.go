@@ -21,10 +21,12 @@ func main(){
 			continue
 		}
 		name := strings.ToLower(ll[1])
+		if name == "exits" {
+			name = "_" + name
+		}
 		filename := name + ".s"
 		if name == "seek" {
-			ass = ass + "_"
-			filename = "_" + filename
+			name = "_" + name
 		}
 		ass = ass + fmt.Sprintf("%s(SB), 1, $0\n", name)
 		ass = ass + "\tMOVQ RARG, a0+0(FP)\n\tMOVQ $" + ll[2]
