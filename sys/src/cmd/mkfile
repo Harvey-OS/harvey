@@ -45,7 +45,8 @@ all:V:	$PROGS dirs
 	echo $PROGS
 
 ^([$OS])\.(.*):R:	\2.\1
-	$stem1^l $LDFLAGS -o $target $stem2.$stem1
+	$stem1^l -o $target $stem2.$stem1
+#	$stem1^l $LDFLAGS -o $target $stem2.$stem1
 
 .*\.[$OS]:R:	$HFILES
 

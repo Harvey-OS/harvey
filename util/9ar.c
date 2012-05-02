@@ -177,6 +177,7 @@ processprog(Prog *p, int doautos)
 		return 1;
 	if(p->sym < 0 || p->sym >= NNAMES)
 		return 0;
+printf("$s\n", p->sym->name);
 	switch(p->kind)
 	{
 	case aName:
