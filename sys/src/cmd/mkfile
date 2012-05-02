@@ -45,7 +45,7 @@ all:V:	$PROGS dirs
 	echo $PROGS
 
 ^([$OS])\.(.*):R:	\2.\1
-	$stem1^l $LDFLAGS -o $target $stem2.$stem1
+	$stem1^l -o $target $stem2.$stem1
 
 .*\.[$OS]:R:	$HFILES
 
@@ -122,7 +122,7 @@ $BIN/init:	$O.init
 	cp $prereq $NXM/$objtype/init
 
 $O.cj:	cj.$O
-	$LD $LDFLAGS -o $O.cj cj.$O $NXM/$objtype/lib/libjpg.a
+	$LD -o $O.cj cj.$O $NXM/$objtype/lib/libjpg.a
 
 %.update:V:
 	update $stem.c /386/bin/$stem

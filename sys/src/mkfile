@@ -21,7 +21,6 @@ LIBS=\
 	libhttpd\
 	libip\
 	liblex\
-	libmach\
 	libmemdraw\
 	libmemlayer\
 	libmp\
@@ -39,6 +38,7 @@ LIBS=\
 	libworker\
 
 NO=	libstdio\
+	libmach\
 
 CMDS=cmd\
 	games\
