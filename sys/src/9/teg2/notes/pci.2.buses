@@ -1,0 +1,78 @@
+
+Plan 9 from Bell Labs
+
+127 holes free 213327872 bytes free
+l1: int split i&d, 4 ways 256 sets 32 bytes/line; can WB; can write-allocate; l1 I policy VIPT
+l2: ext unified,   8 ways 512 sets 32 bytes/line; can WT; can WB; can write-allocate
+fp: arm arch VFPv3+ with null subarch
+1000 mips (single-issue), 1980 mips (dual-issue)
+cpu0: 1000MHz ARM Cortex-A9
+pci: 0x80000000: nvidia, rev 0xa0 class 0x060000 misc 0x00010008
+pci->ioaddrs  0x20000101
+pci->ioaddrhi 0x80408040
+pci->memaddrs 0x8ff09000
+scanning pci bus 0...tbdf 0xc000000 probe 0x80104000 failed
+tbdf 0xc000800 probe 0x80104800 failed
+tbdf 0xc001000 probe 0x80105000 failed
+tbdf 0xc001800 probe 0x80105800 failed
+tbdf 0xc002000 probe 0x80106000 failed
+tbdf 0xc002800 probe 0x80106800 failed
+tbdf 0xc003000 probe 0x80107000 failed
+tbdf 0xc003800 probe 0x80107800 failed
+tbdf 0xc004000 probe 0x80108000 failed
+tbdf 0xc004800 probe 0x80108800 failed
+tbdf 0xc005000 probe 0x80109000 failed
+tbdf 0xc005800 probe 0x80109800 failed
+tbdf 0xc006000 probe 0x8010a000 failed
+tbdf 0xc006800 probe 0x8010a800 failed
+tbdf 0xc007000 probe 0x8010b000 failed
+tbdf 0xc007800 probe 0x8010b800 failed
+scanning pci bus 1...tbdf 0xc010000 probe 0x80114000 ok
+tbdf 0xc010000 probe 0x80114010 ok
+tbdf 0xc010000 probe 0x80114010 ok
+tbdf 0xc010000 probe 0x80114010 ok
+tbdf 0xc010000 probe 0x80114010 ok
+tbdf 0xc010000 probe 0x80114010 ok
+tbdf 0xc010000 probe 0x80114014 ok
+tbdf 0xc010000 probe 0x80114014 ok
+tbdf 0xc010000 probe 0x80114014 ok
+tbdf 0xc010000 probe 0x80114014 ok
+tbdf 0xc010000 probe 0x80114014 ok
+tbdf 0xc010000 probe 0x80114018 ok
+tbdf 0xc010000 probe 0x80114018 ok
+tbdf 0xc010000 probe 0x80114018 ok
+tbdf 0xc010000 probe 0x80114018 ok
+tbdf 0xc010000 probe 0x80114018 ok
+tbdf 0xc010000 probe 0x8011401c ok
+tbdf 0xc010000 probe 0x8011401c ok
+tbdf 0xc010000 probe 0x8011401c ok
+tbdf 0xc010000 probe 0x8011401c ok
+tbdf 0xc010000 probe 0x8011401c ok
+tbdf 0xc010000 probe 0x80114020 ok
+tbdf 0xc010000 probe 0x80114020 ok
+tbdf 0xc010000 probe 0x80114020 ok
+tbdf 0xc010000 probe 0x80114020 ok
+tbdf 0xc010000 probe 0x80114020 ok
+tbdf 0xc010000 probe 0x80114024 ok
+tbdf 0xc010000 probe 0x80114024 ok
+tbdf 0xc010000 probe 0x80114024 ok
+tbdf 0xc010000 probe 0x80114024 ok
+tbdf 0xc010000 probe 0x80114024 ok
+tbdf 0xc010800 probe 0x80114800 failed
+tbdf 0xc011000 probe 0x80115000 failed
+tbdf 0xc011800 probe 0x80115800 failed
+tbdf 0xc012000 probe 0x80116000 failed
+tbdf 0xc012800 probe 0x80116800 failed
+tbdf 0xc013000 probe 0x80117000 failed
+tbdf 0xc013800 probe 0x80117800 failed
+tbdf 0xc014000 probe 0x80118000 failed
+tbdf 0xc014800 probe 0x80118800 failed
+tbdf 0xc015000 probe 0x80119000 failed
+tbdf 0xc015800 probe 0x80119800 failed
+tbdf 0xc016000 probe 0x8011a000 failed
+tbdf 0xc016800 probe 0x8011a800 failed
+tbdf 0xc017000 probe 0x8011b000 failed
+tbdf 0xc017800 probe 0x8011b800 failed
+scanning pci bus 2...tbdf 0xc020000 probe 0x80124000 failed
+tbdf 0xc020800 probe 0x80124800 
+

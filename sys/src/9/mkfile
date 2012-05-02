@@ -1,9 +1,12 @@
 ARCH=\
 	alphapc\
 	bitsy\
+	kw\
 	mtx\
+	omap\
 	pc\
 	ppc\
+	teg2\
 	
 all:V:
 	for(i in $ARCH)@{

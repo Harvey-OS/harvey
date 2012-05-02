@@ -92,7 +92,6 @@ extern int	nip;
 extern int	plan9;
 extern int	dupl_disc;
 
-extern Conf	conf;
 extern int	myifc;
 extern char	*vs;
 
