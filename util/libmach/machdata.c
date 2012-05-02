@@ -2,10 +2,9 @@
  * Debugger utilities shared by at least two architectures
  */
 
-#include <u.h>
-#include <libc.h>
+#include <lib9.h>
 #include <bio.h>
-#include <mach.h>
+#include "mach.h"
 
 #define STARTSYM	"_main"
 #define PROFSYM		"_mainp"
@@ -83,6 +82,8 @@ symoff(char *buf, int n, uvlong v, int space)
 	if (v == 0 || r == 0)
 		return snprint(buf, n, "%llux", v);
 	if (s.type != 't' && s.type != 'T' && delta >= 4096)
+		return snprint(buf, n, "%llux", v);
+	else if (strcmp(s.name, ".string") == 0)
 		return snprint(buf, n, "%llux", v);
 	else if (delta)
 		return snprint(buf, n, "%s+%lux", s.name, delta);

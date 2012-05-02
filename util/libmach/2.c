@@ -1,10 +1,10 @@
 /*
  * 68020 definition
  */
-#include <u.h>
-#include "/68020/include/ureg.h"
+#include <lib9.h>
+#include "ureg2.h"
 #include <bio.h>
-#include <mach.h>
+#include "mach.h"
 
 #define	MAXREG	0
 #define	MINREG	0
@@ -75,9 +75,9 @@ Mach m68020 =
 	"a6base",	/* static base register name */
 	0,		/* value */
 	0x2000,		/* page size */
-	0x80000000ULL,	/* kernel base */
-	0x80000000ULL,	/* kernel text mask */
-	0x7FFFFFFFULL,	/* user stack top */
+	0x80000000U,	/* kernel base */
+	0x80000000U,	/* kernel text mask */
+	0x7FFFFFFFU,	/* user stack top */
 	2,		/* quantization of pc */
 	4,		/* szaddr */
 	4,		/* szreg */

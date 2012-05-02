@@ -1,8 +1,6 @@
-#include <u.h>
-#include <libc.h>
+#include <lib9.h>
 #include <bio.h>
-#include <mach.h>
-#include "obj.h"
+#include "mach.h"
 
 #define	HUGEINT	0x7fffffff
 #define	NNAME	20		/* a relic of the past */
@@ -25,10 +23,10 @@ struct hist {				/* Stack of include files & #line directives */
 
 struct file {				/* Per input file header to history stack */
 	uvlong	addr;			/* address of first text sym */
-	union {
+	/* union { */
 		Txtsym	*txt;		/* first text symbol */
 		Sym	*sym;		/* only during initilization */
-	};
+	/* }; */
 	int	n;			/* size of history stack */
 	Hist	*hist;			/* history stack */
 };
@@ -37,7 +35,7 @@ static	int	debug = 0;
 
 static	Sym	**autos;		/* Base of auto variables */
 static	File	*files;			/* Base of file arena */
-static	int	fmax;			/* largest file path index */
+static	int	fpmax;			/* largest file path index */
 static	Sym	**fnames;		/* file names path component table */
 static	Sym	**globals;		/* globals by addr table */
 static	Hist	*hist;			/* base of history stack */
@@ -143,8 +141,8 @@ syminit(int fd, Fhdr *fp)
 				p->type = 'm';
 				nauto++;
 			}
-			else if(p->value > fmax)
-				fmax = p->value;	/* highest path index */
+			else if(p->value > fpmax)
+				fpmax = p->value;	/* highest path index */
 			break;
 		case 'a':
 		case 'p':
@@ -163,7 +161,7 @@ syminit(int fd, Fhdr *fp)
 		}
 	}
 	if (debug)
-		print("NG: %ld NT: %d NF: %d\n", nglob, ntxt, fmax);
+		print("NG: %ld NT: %d NF: %d\n", nglob, ntxt, fpmax);
 	if (fp->sppcsz) {			/* pc-sp offset table */
 		spoff = (uchar *)malloc(fp->sppcsz);
 		if(spoff == 0) {
@@ -190,6 +188,8 @@ syminit(int fd, Fhdr *fp)
 		}
 		pclineend = pcline+fp->lnpcsz;
 	}
+	if(fp->type == FARM)	/* thumb pc table */
+		thumbpctab(&b, fp);
 	return nsym;
 }
 
@@ -282,7 +282,7 @@ cleansyms(void)
 	if(fnames)
 		free(fnames);
 	fnames = 0;
-	fmax = 0;
+	fpmax = 0;
 
 	if(files)
 		free(files);
@@ -372,12 +372,12 @@ buildtbls(void)
 			return 0;
 		}
 	}
-	fnames = malloc((fmax+1)*sizeof(*fnames));
+	fnames = malloc((fpmax+1)*sizeof(*fnames));
 	if (!fnames) {
 		werrstr("can't malloc file name table");
 		return 0;
 	}
-	memset(fnames, 0, (fmax+1)*sizeof(*fnames));
+	memset(fnames, 0, (fpmax+1)*sizeof(*fnames));
 	files = malloc(nfiles*sizeof(*files));
 	if(!files) {
 		werrstr("can't malloc file table");
@@ -876,7 +876,7 @@ pathcomp(char *s, int n)
 {
 	int i;
 
-	for(i = 0; i <= fmax; i++)
+	for(i = 0; i <= fpmax; i++)
 		if(fnames[i] && strncmp(s, fnames[i]->name, n) == 0)
 			return i;
 	return -1;

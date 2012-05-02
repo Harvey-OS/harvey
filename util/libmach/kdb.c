@@ -1,7 +1,6 @@
-#include <u.h>
-#include <libc.h>
+#include <lib9.h>
 #include <bio.h>
-#include <mach.h>
+#include "mach.h"
 
 /*
  * Sparc-specific debugger interface
@@ -85,16 +84,16 @@ sparcexcep(Map *map, Rgetter rget)
 }
 
 	/* Sparc disassembler and related functions */
+typedef struct instr Instr;
 
 struct opcode {
 	char	*mnemonic;
-	void	(*f)(struct instr*, char*);
+	void	(*f)(Instr*, char*);
 	int	flag;
 };
 
 static	char FRAMENAME[] = ".frame";
 
-typedef struct instr Instr;
 
 struct instr {
 	uchar	op;		/* bits 31-30 */
@@ -151,130 +150,138 @@ static void	loadcsr(Instr*, char*);
 static void	trap(Instr*, char*);
 
 static struct opcode sparcop0[8] = {
-	[0]	"UNIMP",	unimp,	0,	/* page 137 */
-	[2]	"B",		bra,	0,	/* page 119 */
-	[4]	"SETHI",	sethi,	0,	/* page 104 */
-	[6]	"FB",		fbra,	0,	/* page 121 */
-	[7]	"CB",		cbra,	0,	/* page 123 */
+	"UNIMP",	unimp,	0,	/* page 137 */	/* 0 */
+		"",		0,	0,		/* 1 */
+	"B",		bra,	0,	/* page 119 */	/* 2 */
+		"",		0,	0,		/* 3 */
+	"SETHI",	sethi,	0,	/* page 104 */	/* 4 */
+		"",		0,	0,		/* 5 */
+	"FB",		fbra,	0,	/* page 121 */	/* 6 */
+	"CB",		cbra,	0,	/* page 123 */	/* 7 */
 };
 
 static struct opcode sparcop2[64] = {
-	[0x00]	"ADD",		add,	0,	/* page 108 */
-	[0x10]	"ADDCC",	add,	0,
-	[0x08]	"ADDX",		add,	0,
-	[0x18]	"ADDXCC",	add,	0,
-
-	[0x20]	"TADD",		add,	0,	/* page 109 */
-	[0x22]	"TADDCCTV",	add,	0,
-
-	[0x04]	"SUB",		add,	0,	/* page 110 */
-	[0x14]	"SUBCC",	cmp,	0,
-	[0x0C]	"SUBX",		add,	0,
-	[0x1C]	"SUBXCC",	add,	0,
-
-	[0x21]	"TSUB",		add,	0,	/* page 111 */
-	[0x23]	"TSUBCCTV",	add,	0,
-
-	[0x24]	"MULSCC",	add,	0,	/* page 112 */
-
-	[0x0A]	"UMUL",		add,	0,	/* page 113 */
-	[0x0B]	"SMUL",		add,	0,
-	[0x1A]	"UMULCC",	add,	0,
-	[0x1B]	"SMULCC",	add,	0,
-
-	[0x0E]	"UDIV",		add,	0,	/* page 115 */
-	[0x0F]	"SDIV",		add,	0,
-	[0x1E]	"UDIVCC",	add,	0,
-	[0x1F]	"SDIVCC",	add,	0,
-
-	[0x01]	"AND",		add,	0,	/* page 106 */
-	[0x11]	"ANDCC",	add,	0,
-	[0x05]	"ANDN",		add,	0,
-	[0x15]	"ANDNCC",	add,	0,
-	[0x02]	"OR",		add,	0,
-	[0x12]	"ORCC",		add,	0,
-	[0x06]	"ORN",		add,	0,
-	[0x16]	"ORNCC",	add,	0,
-	[0x03]	"XOR",		add,	0,
-	[0x13]	"XORCC",	add,	0,
-	[0x07]	"XORN",		add,	0,
-	[0x17]	"XORNCC",	add,	0,
-
-	[0x25]	"SLL",		shift,	0,	/* page 107 */
-	[0x26]	"SRL",		shift,	0,
-	[0x27]	"SRA",		shift,	0,
-
-	[0x3C]	"SAVE",		add,	0,	/* page 117 */
-	[0x3D]	"RESTORE",	add,	0,
-
-	[0x38]	"JMPL",		jmpl,	0,	/* page 126 */
-
-	[0x39]	"RETT",		add,	0,	/* page 127 */
-
-	[0x3A]	"T",		trap,	0,	/* page 129 */
-
-	[0x28]	"rdy",		rd,	0,	/* page 131 */
-	[0x29]	"rdpsr",	rd,	0,
-	[0x2A]	"rdwim",	rd,	0,
-	[0x2B]	"rdtbr",	rd,	0,
-
-	[0x30]	"wry",		wr,	0,	/* page 133 */
-	[0x31]	"wrpsr",	wr,	0,
-	[0x32]	"wrwim",	wr,	0,
-	[0x33]	"wrtbr",	wr,	0,
-
-	[0x3B]	"flush",	add,	0,	/* page 138 */
-
-	[0x34]	"FPOP",		fpop,	0,	/* page 140 */
-	[0x35]	"FPOP",		fpop,	0,
+	"ADD",		add,	0,	/* page 108 */	/* 0x00 */
+	"AND",		add,	0,	/* page 106 */	/* 0x01 */
+	"OR",		add,	0,			/* 0x02 */
+	"XOR",		add,	0,			/* 0x03 */
+	"SUB",		add,	0,	/* page 110 */	/* 0x04 */
+	"ANDN",		add,	0,			/* 0x05 */
+	"ORN",		add,	0,			/* 0x06 */
+	"XORN",		add,	0,			/* 0x07 */
+	"ADDX",		add,	0,			/* 0x08 */
+	"",		0,	0,			/* 0x09 */
+	"UMUL",		add,	0,	/* page 113 */	/* 0x0a */
+	"SMUL",		add,	0,			/* 0x0b */
+	"SUBX",		add,	0,			/* 0x0c */
+	"",		0,	0,			/* 0x0d */
+	"UDIV",		add,	0,	/* page 115 */	/* 0x0e */
+	"SDIV",		add,	0,			/* 0x0f */
+	"ADDCC",	add,	0,			/* 0x10 */
+	"ANDCC",	add,	0,			/* 0x11 */
+	"ORCC",		add,	0,			/* 0x12 */
+	"XORCC",	add,	0,			/* 0x13 */
+	"SUBCC",	cmp,	0,			/* 0x14 */
+	"ANDNCC",	add,	0,			/* 0x15 */
+	"ORNCC",	add,	0,			/* 0x16 */
+	"XORNCC",	add,	0,			/* 0x17 */
+	"ADDXCC",	add,	0,			/* 0x18 */
+	"",		0,	0,			/* 0x19 */
+	"UMULCC",	add,	0,			/* 0x1a */
+	"SMULCC",	add,	0,			/* 0x1b */
+	"SUBXCC",	add,	0,			/* 0x1c */
+	"",		0,	0,			/* 0x1d */
+	"UDIVCC",	add,	0,			/* 0x1e */
+	"SDIVCC",	add,	0,			/* 0x1f */
+	"TADD",		add,	0,	/* page 109 */	/* 0x20 */
+	"TSUB",		add,	0,	/* page 111 */	/* 0x21 */
+	"TADDCCTV",	add,	0,			/* 0x22 */
+	"TSUBCCTV",	add,	0,			/* 0x23 */
+	"MULSCC",	add,	0,	/* page 112 */	/* 0x24 */
+	"SLL",		shift,	0,	/* page 107 */	/* 0x25 */
+	"SRL",		shift,	0,			/* 0x26 */
+	"SRA",		shift,	0,			/* 0x27 */
+	"rdy",		rd,	0,	/* page 131 */	/* 0x28 */
+	"rdpsr",	rd,	0,			/* 0x29 */
+	"rdwim",	rd,	0,			/* 0x2a */
+	"rdtbr",	rd,	0,			/* 0x2b */
+	"",		0,	0,			/* 0x2c */
+	"",		0,	0,			/* 0x2d */
+	"",		0,	0,			/* 0x2e */
+	"",		0,	0,			/* 0x2f */
+	"wry",		wr,	0,	/* page 133 */	/* 0x30 */
+	"wrpsr",	wr,	0,			/* 0x31 */
+	"wrwim",	wr,	0,			/* 0x32 */
+	"wrtbr",	wr,	0,			/* 0x33 */
+	"FPOP",		fpop,	0,	/* page 140 */	/* 0x34 */
+	"FPOP",		fpop,	0,			/* 0x35 */
+	"",		0,	0,			/* 0x36 */
+	"",		0,	0,			/* 0x37 */
+	"JMPL",		jmpl,	0,	/* page 126 */	/* 0x38 */
+	"RETT",		add,	0,	/* page 127 */	/* 0x39 */
+	"T",		trap,	0,	/* page 129 */	/* 0x3a */
+	"flush",	add,	0,	/* page 138 */	/* 0x3b */
+	"SAVE",		add,	0,	/* page 117 */	/* 0x3c */
+	"RESTORE",	add,	0,			/* 0x3d */
 };
 
 static struct opcode sparcop3[64]={
-	[0x09]	"ldsb",		load,	0,	/* page 90 */
-	[0x19]	"ldsba",	loada,	0,
-	[0x0A]	"ldsh",		load,	0,
-	[0x1A]	"ldsha",	loada,	0,
-	[0x01]	"ldub",		load,	0,
-	[0x11]	"lduba",	loada,	0,
-	[0x02]	"lduh",		load,	0,
-	[0x12]	"lduha",	loada,	0,
-	[0x00]	"ld",		load,	0,
-	[0x10]	"lda",		loada,	0,
-	[0x03]	"ldd",		load,	0,
-	[0x13]	"ldda",		loada,	0,
-
-	[0x20]	"ldf",		loadf,	0,	/* page 92 */
-	[0x23]	"lddf",		loadf,	0,
-	[0x21]	"ldfsr",	loadf,0,
-
-	[0x30]	"ldc",		loadc,	0,	/* page 94 */
-	[0x33]	"lddc",		loadc,	0,
-	[0x31]	"ldcsr",	loadcsr,0,
-
-	[0x05]	"stb",		store,	0,	/* page 95 */
-	[0x15]	"stba",		storea,	0,
-	[0x06]	"sth",		store,	0,
-	[0x16]	"stha",		storea,	0,
-	[0x04]	"st",		store,	0,
-	[0x14]	"sta",		storea,	0,
-	[0x07]	"std",		store,	0,
-	[0x17]	"stda",		storea,	0,
-
-	[0x24]	"stf",		storef,	0,	/* page 97 */
-	[0x27]	"stdf",		storef,	0,
-	[0x25]	"stfsr",	storef,0,
-	[0x26]	"stdfq",	storef,0,
-
-	[0x34]	"stc",		loadc,	0,	/* page 99 */
-	[0x37]	"stdc",		loadc,	0,
-	[0x35]	"stcsr",	loadcsr,0,
-	[0x36]	"stdcq",	loadcsr,0,
-
-	[0x0D]	"ldstub",	store,	0,	/* page 101 */
-	[0x1D]	"ldstuba",	storea,	0,
-
-	[0x0F]	"swap",		load,	0,	/* page 102 */
-	[0x1F]	"swapa",	loada,	0,
+	"ld",		load,	0,			/* 0x00 */
+	"ldub",		load,	0,			/* 0x01 */
+	"lduh",		load,	0,			/* 0x02 */
+	"ldd",		load,	0,			/* 0x03 */
+	"st",		store,	0,			/* 0x04 */
+	"stb",		store,	0,	/* page 95 */	/* 0x05 */
+	"sth",		store,	0,			/* 0x06 */
+	"std",		store,	0,			/* 0x07 */
+	"",		0,	0,			/* 0x08 */
+	"ldsb",		load,	0,	/* page 90 */	/* 0x09 */
+	"ldsh",		load,	0,			/* 0x0a */
+	"",		0,	0,			/* 0x0b */
+	"",		0,	0,			/* 0x0c */
+	"ldstub",	store,	0,	/* page 101 */	/* 0x0d */
+	"",		0,	0,			/* 0x0e */
+	"swap",		load,	0,	/* page 102 */	/* 0x0f */
+	"lda",		loada,	0,			/* 0x10 */
+	"lduba",	loada,	0,			/* 0x11 */
+	"lduha",	loada,	0,			/* 0x12 */
+	"ldda",		loada,	0,			/* 0x13 */
+	"sta",		storea,	0,			/* 0x14 */
+	"stba",		storea,	0,			/* 0x15 */
+	"stha",		storea,	0,			/* 0x16 */
+	"stda",		storea,	0,			/* 0x17 */
+	"",		0,	0,			/* 0x18 */
+	"ldsba",	loada,	0,			/* 0x19 */
+	"ldsha",	loada,	0,			/* 0x1a */
+	"",		0,	0,			/* 0x1b */
+	"",		0,	0,			/* 0x1c */
+	"ldstuba",	storea,	0,			/* 0x1d */
+	"",		0,	0,			/* 0x1e */
+	"swapa",	loada,	0,			/* 0x1f */
+	"ldf",		loadf,	0,	/* page 92 */	/* 0x20 */
+	"ldfsr",	loadf,0,			/* 0x21 */
+	"",		0,	0,			/* 0x22 */
+	"lddf",		loadf,	0,			/* 0x23 */
+	"stf",		storef,	0,	/* page 97 */	/* 0x24 */
+	"stfsr",	storef,0,			/* 0x25 */
+	"stdfq",	storef,0,			/* 0x26 */
+	"stdf",		storef,	0,			/* 0x27 */
+	"",		0,	0,			/* 0x28 */
+	"",		0,	0,			/* 0x29 */
+	"",		0,	0,			/* 0x2a */
+	"",		0,	0,			/* 0x2b */
+	"",		0,	0,			/* 0x2c */
+	"",		0,	0,			/* 0x2d */
+	"",		0,	0,			/* 0x2e */
+	"",		0,	0,			/* 0x2f */
+	"ldc",		loadc,	0,	/* page 94 */	/* 0x30 */
+	"ldcsr",	loadcsr,0,			/* 0x31 */
+	"",		0,	0,			/* 0x32 */
+	"lddc",		loadc,	0,			/* 0x33 */
+	"stc",		loadc,	0,	/* page 99 */	/* 0x34 */
+	"stcsr",	loadcsr,0,			/* 0x35 */
+	"stdcq",	loadcsr,0,			/* 0x36 */
+	"stdc",		loadc,	0,			/* 0x37 */
 };
 
 #pragma	varargck	argpos	bprint	2
@@ -535,60 +542,60 @@ unimp(Instr *i, char *m)
 }
 
 static char	*bratab[16] = {	/* page 91 */
-	[0X8]	"A",
-	[0X0]	"N",
-	[0X9]	"NE",
-	[0X1]	"E",
-	[0XA]	"G",
-	[0X2]	"LE",
-	[0XB]	"GE",
-	[0X3]	"L",
-	[0XC]	"GU",
-	[0X4]	"LEU",
-	[0XD]	"CC",
-	[0X5]	"CS",
-	[0XE]	"POS",
-	[0X6]	"NEG",
-	[0XF]	"VC",
-	[0X7]	"VS",
+	"N",		/* 0x0 */
+	"E",		/* 0x1 */
+	"LE",		/* 0x2 */
+	"L",		/* 0x3 */
+	"LEU",		/* 0x4 */
+	"CS",		/* 0x5 */
+	"NEG",		/* 0x6 */
+	"VS",		/* 0x7 */
+	"A",		/* 0x8 */
+	"NE",		/* 0x9 */
+	"G",		/* 0xa */
+	"GE",		/* 0xb */
+	"GU",		/* 0xc */
+	"CC",		/* 0xd */
+	"POS",		/* 0xe */
+	"VC",		/* 0xf */
 };
 
 static char	*fbratab[16] = {	/* page 91 */
-	[0X8]	"A",
-	[0X0]	"N",
-	[0X7]	"U",
-	[0X6]	"G",
-	[0X5]	"UG",
-	[0X4]	"L",
-	[0X3]	"UL",
-	[0X2]	"LG",
-	[0X1]	"NE",
-	[0X9]	"E",
-	[0XA]	"UE",
-	[0XB]	"GE",
-	[0XC]	"UGE",
-	[0XD]	"LE",
-	[0XE]	"ULE",
-	[0XF]	"O",
+	"N",		/* 0x0 */
+	"NE",		/* 0x1 */
+	"LG",		/* 0x2 */
+	"UL",		/* 0x3 */
+	"L",		/* 0x4 */
+	"UG",		/* 0x5 */
+	"G",		/* 0x6 */
+	"U",		/* 0x7 */
+	"A",		/* 0x8 */
+	"E",		/* 0x9 */
+	"UE",		/* 0xa */
+	"GE",		/* 0xb */
+	"UGE",		/* 0xc */
+	"LE",		/* 0xd */
+	"ULE",		/* 0xe */
+	"O",		/* 0xf */
 };
 
 static char	*cbratab[16] = {	/* page 91 */
-	[0X8]	"A",
-	[0X0]	"N",
-	[0X7]	"3",
-	[0X6]	"2",
-	[0X5]	"23",
-	[0X4]	"1",
-	[0X3]	"13",
-	[0X2]	"12",
-	[0X1]	"123",
-	[0X9]	"0",
-	[0XA]	"03",
-	[0XB]	"02",
-	[0XC]	"023",
-	[0XD]	"01",
-	[0XE]	"013",
-	[0XF]	"012",
+	"N",		/* 0x0 */
+	"123",		/* 0x1 */
+	"12",		/* 0x2 */
+	"13",		/* 0x3 */
+	"1",		/* 0x4 */
+	"23",		/* 0x5 */
+	"2",		/* 0x6 */
+	"3",		/* 0x7 */
+	"A",		/* 0x8 */
+	"0",		/* 0x9 */
+	"03",		/* 0xa */
+	"02",		/* 0xb */
+	"023",		/* 0xc */
+	"01",		/* 0xd */
+	"013",		/* 0xe */
+	"012",		/* 0xf */
 };
 
 static void

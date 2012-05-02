@@ -2,10 +2,9 @@
  * 9obj.c - identify and parse a PowerPC-64 object file
  *	forsyth@terzarima.net
  */
-#include <u.h>
-#include <libc.h>
+#include <lib9.h>
 #include <bio.h>
-#include <mach.h>
+#include "mach.h"
 #include "9c/9.out.h"
 #include "obj.h"
 
@@ -23,7 +22,7 @@ static void skip(Biobuf*, int);
 int
 _is9(char *s)
 {
-	return  (s[0]&0377) == ANAME			/* ANAME */
+	return  (s[0]&0377) == ANAME				/* ANAME */
 		&& (s[1]&0377) == ANAME>>8
 		&& s[2] == D_FILE			/* type */
 		&& s[3] == 1				/* sym */
@@ -36,10 +35,10 @@ _read9(Biobuf *bp, Prog *p)
 	int as, n, c;
 	Addr a;
 
-	as = Bgetc(bp);					/* as(low) */
+	as = Bgetc(bp);			/* as(low) */
 	if(as < 0)
 		return 0;
-	c = Bgetc(bp);					/* as(high) */
+	c = Bgetc(bp);		/* as(high) */
 	if(c < 0)
 		return 0;
 	as |= ((c & 0xff) << 8);
@@ -74,8 +73,8 @@ _read9(Biobuf *bp, Prog *p)
 		p->kind = aText;
 	else if(as == AGLOBL)
 		p->kind = aData;
-	n = Bgetc(bp);					/* reg and flag */
-	skip(bp, 4);					/* lineno(4) */
+	n = Bgetc(bp);	/* reg and flag */
+	skip(bp, 4);		/* lineno(4) */
 	a = addr(bp);
 	if(n & 0x40)
 		addr(bp);
@@ -93,10 +92,10 @@ addr(Biobuf *bp)
 	vlong off;
 	long l;
 
-	a.type = Bgetc(bp);				/* a.type */
-	skip(bp,1);					/* reg */
-	a.sym = Bgetc(bp);				/* sym index */
-	a.name = Bgetc(bp);				/* sym type */
+	a.type = Bgetc(bp);	/* a.type */
+	skip(bp,1);		/* reg */
+	a.sym = Bgetc(bp);	/* sym index */
+	a.name = Bgetc(bp);	/* sym type */
 	switch(a.type){
 	default:
 	case D_NONE: case D_REG: case D_FREG: case D_CREG:
@@ -119,7 +118,7 @@ addr(Biobuf *bp)
 			l |= Bgetc(bp) << 16;
 			l |= Bgetc(bp) << 24;
 			off = ((vlong)l << 32) | (off & 0xFFFFFFFF);
-			a.type = D_CONST;		/* perhaps */
+			a.type = D_CONST;	/* perhaps */
 		}
 		if(off < 0)
 			off = -off;

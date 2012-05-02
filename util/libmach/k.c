@@ -1,14 +1,14 @@
 /*
  * sparc definition
  */
-#include <u.h>
+#include <lib9.h>
 #include <bio.h>
-#include "/sparc/include/ureg.h"
-#include <mach.h>
+#include "uregk.h"
+#include "mach.h"
 
 #define	REGOFF(x)	(ulong)(&((struct Ureg *) 0)->x)
 
-#define R1		REGOFF(r1)
+#define R1		REGOFF(u0.r1)
 #define R7		REGOFF(r7)
 #define PC		REGOFF(pc)
 #define	R15		REGOFF(r15)
@@ -22,7 +22,7 @@ Reglist sparcreglist[] = {
 	{"TBR",		REGOFF(tbr),	RINT|RRDONLY, 'X'},
 	{"PSR",		REGOFF(psr),	RINT|RRDONLY, 'X'},
 	{"PC",		REGOFF(pc),	RINT, 'X'},
-	{"R1",		REGOFF(r1),	RINT, 'X'},
+	{"R1",		REGOFF(u0.r1),	RINT, 'X'},
 	{"R2",		REGOFF(r2),	RINT, 'X'},
 	{"R3",		REGOFF(r3),	RINT, 'X'},
 	{"R4",		REGOFF(r4),	RINT, 'X'},
@@ -107,9 +107,8 @@ Mach msparc =
 	"setSB",	/* static base register name */
 	0,		/* value */
 	0x1000,		/* page size */
-	0xE0000000ULL,	/* kernel base */
-	0xE0000000ULL,	/* kernel text mask */
-	0x7FFFFFFFULL,	/* user stack top */
+	0xE0000000,	/* kernel base */
+	0,		/* kernel text mask */
 	4,		/* quantization of pc */
 	4,		/* szaddr */
 	4,		/* szreg */

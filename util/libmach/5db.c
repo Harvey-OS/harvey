@@ -1,7 +1,6 @@
-#include <u.h>
-#include <libc.h>
+#include <lib9.h>
 #include <bio.h>
-#include <mach.h>
+#include "mach.h"
 
 static int debug = 0;
 
@@ -61,7 +60,7 @@ static	int	arminstlen(Map*, uvlong);
  */
 Machdata armmach =
 {
-	{0x70, 0x00, 0x20, 0xD1},		/* break point */	/* D1200070 */
+	{0, 0, 0, 0xD},		/* break point */
 	4,			/* break point size */
 
 	leswab,			/* short to local byte order */
@@ -135,26 +134,18 @@ char*	addsub[2] =
 int
 armclass(long w)
 {
-	int op, done;
+	int op;
 
 	op = (w >> 25) & 0x7;
 	switch(op) {
 	case 0:	/* data processing r,r,r */
 		op = ((w >> 4) & 0xf);
 		if(op == 0x9) {
-			op = 48+16;		/* mul, swp or *rex */
-			if((w & 0x0ff00fff) == 0x01900f9f) {
-				op = 93;	/* ldrex */
-				break;
-			}
-			if((w & 0x0ff00ff0) == 0x01800f90) {
-				op = 94;	/* strex */
-				break;
-			}
+			op = 48+16;		/* mul */
 			if(w & (1<<24)) {
 				op += 2;
 				if(w & (1<<22))
-					op++;	/* swpb */
+					op++;	/* swap */
 				break;
 			}
 			if(w & (1<<23)) {	/* mullu */
@@ -182,38 +173,12 @@ armclass(long w)
 		op = (48) + ((w >> 21) & 0xf);
 		break;
 	case 2:	/* load/store byte/word i(r) */
-		if ((w & 0xffffff8f) == 0xf57ff00f) {	/* barriers, clrex */
-			done = 1;
-			switch ((w >> 4) & 7) {
-			case 1:
-				op = 95;	/* clrex */
-				break;
-			case 4:
-				op = 96;	/* dsb */
-				break;
-			case 5:
-				op = 97;	/* dmb */
-				break;
-			case 6:
-				op = 98;	/* isb */
-				break;
-			default:
-				done = 0;
-				break;
-			}
-			if (done)
-				break;
-		}
 		op = (48+24) + ((w >> 22) & 0x1) + ((w >> 19) & 0x2);
 		break;
 	case 3:	/* load/store byte/word (r)(r) */
 		op = (48+24+4) + ((w >> 22) & 0x1) + ((w >> 19) & 0x2);
 		break;
 	case 4:	/* block data transfer (r)(r) */
-		if ((w & 0xfe50ffff) == 0xf8100a00) {	/* v7 RFE */
-			op = 99;
-			break;
-		}
 		op = (48+24+4+4) + ((w >> 20) & 0x1);
 		break;
 	case 5:	/* branch / branch link */
@@ -222,7 +187,7 @@ armclass(long w)
 	case 7:	/* coprocessor crap */
 		op = (48+24+4+4+2+2) + ((w >> 3) & 0x2) + ((w >> 20) & 0x1);
 		break;
-	default:	  
+	default:
 		op = (48+24+4+4+2+2+4+4);
 		break;
 	}
@@ -485,10 +450,10 @@ armco(Opcode *o, Instr *i)		/* coprocessor instructions */
 	p = (i->w >> 5) & 0x7;
 	if(i->w&(1<<4)) {
 		op = (i->w >> 21) & 0x07;
-		snprint(buf, sizeof(buf), "#%x, #%x, R%d, C(%d), C(%d), #%x", cp, op, i->rd, i->rn, i->rs, p);
+		snprint(buf, sizeof(buf), "#%x, #%x, R%d, C(%d), C(%d), #%x\n", cp, op, i->rd, i->rn, i->rs, p);
 	} else {
 		op = (i->w >> 20) & 0x0f;
-		snprint(buf, sizeof(buf), "#%x, #%x, C(%d), C(%d), C(%d), #%x", cp, op, i->rd, i->rn, i->rs, p);
+		snprint(buf, sizeof(buf), "#%x, #%x, C(%d), C(%d), C(%d), #%x\n", cp, op, i->rd, i->rn, i->rs, p);
 	}
 	format(o->o, i, buf);
 }
@@ -636,16 +601,19 @@ armaddr(Map *map, Rgetter rget, Instr *i)
 	char buf[8];
 	ulong rn;
 
-	snprint(buf, sizeof(buf), "R%ld", (i->w >> 16) & 0xf);
+	sprint(buf, "R%ld", (i->w >> 16) & 0xf);
 	rn = rget(map, buf);
 
-	if((i->w & (1<<24)) == 0)			/* POSTIDX */
-		return rn;
+	if((i->w & (1<<24)) == 0) {			/* POSTIDX */
+		sprint(buf, "R%ld", rn);
+		return rget(map, buf);
+	}
 
 	if((i->w & (1<<25)) == 0) {			/* OFFSET */
+		sprint(buf, "R%ld", rn);
 		if(i->w & (1U<<23))
-			return rn + (i->w & BITS(0,11));
-		return rn - (i->w & BITS(0,11));
+			return rget(map, buf) + (i->w & BITS(0,11));
+		return rget(map, buf) - (i->w & BITS(0,11));
 	} else {					/* REGOFF */
 		ulong index = 0;
 		uchar c;
@@ -854,22 +822,8 @@ static Opcode opcodes[] =
 	"MULL%C%S",	armdpi, 0,	"R%M,R%s,(R%n,R%d)",
 	"MULAL%C%S",	armdpi, 0,	"R%M,R%s,(R%n,R%d)",
 
-/* 48+24+4+4+2+2+4+4 = 92 */
+/* 48+24+4+4+2+2+4+4 */
 	"UNK",		armunk, 0,	"",
-
-	/* new v7 arch instructions */
-/* 93 */
-	"LDREX",	armdpi, 0,	"(R%n),R%d",
-	"STREX",	armdpi, 0,	"R%s,(R%n),R%d",
-	"CLREX",	armunk, 0,	"",
-
-/* 96 */
-	"DSB",		armunk, 0,	"",
-	"DMB",		armunk, 0,	"",
-	"ISB",		armunk, 0,	"",
-
-/* 99 */
-	"RFEV7%P%a",	armbdt, 0,	"(R%n)",
 };
 
 static void

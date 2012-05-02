@@ -1,7 +1,6 @@
-#include <u.h>
-#include <libc.h>
+#include <lib9.h>
 #include <bio.h>
-#include <mach.h>
+#include "mach.h"
 
 /*
  * PowerPC-specific debugger interface,
@@ -20,7 +19,7 @@ static	int	powerdas(Map*, uvlong, char*, int);
  */
 Machdata powermach =
 {
-	{0x02, 0x8f, 0xff, 0xff},		/* break point */	/* BUG */
+	{0x07f, 0xe0, 0x00, 0x08},		/* breakpoint (tw 31,r0,r0) */
 	4,			/* break point size */
 
 	beswab,			/* short to local byte order */
@@ -73,6 +72,7 @@ static char *excname[] =
 	"privileged instruction",
 	"trap",
 	"illegal operation",
+	"breakpoint",	/* 20 */
 };
 
 static char*
@@ -113,11 +113,11 @@ typedef struct {
 	uchar	bi;		/* bits 11-15 */
 	uchar	bo;		/* bits 6-10 */
 	uchar	crbd;		/* bits 6-10 */
-	union {
+	/* union { */
 		short	d;	/* bits 16-31 */
 		short	simm;
 		ushort	uimm;
-	};
+	/*}; */
 	uchar	fm;		/* bits 7-14 */
 	uchar	fra;		/* bits 11-15 */
 	uchar	frb;		/* bits 16-20 */
@@ -137,10 +137,10 @@ typedef struct {
 	uchar	ra;		/* bits 11-15 */
 	uchar	rb;		/* bits 16-20 */
 	uchar	rc;		/* bit 31 */
-	union {
+	/* union { */
 		uchar	rs;	/* bits 6-10 */
 		uchar	rd;
-	};
+	/*};*/
 	uchar	sh;		/* bits 16-20 */
 	ushort	spr;		/* bits 11-20 */
 	uchar	to;		/* bits 6-10 */
@@ -295,7 +295,7 @@ pglobal(Instr *i, uvlong off, int anyoff, char *reg)
 	uvlong off1;
 
 	if(findsym(off, CANY, &s) &&
-	   off-s.value < 4096 &&
+	   s.value-off < 4096 &&
 	   (s.class == CDATA || s.class == CTEXT)) {
 		if(off==s.value && s.name[0]=='$'){
 			off1 = 0;
@@ -322,7 +322,7 @@ address(Instr *i)
 {
 	if (i->ra == REGSP && plocal(i) >= 0)
 		return;
-	if (i->ra == REGSB && mach->sb && pglobal(i, mach->sb+i->imm64, 0, "(SB)"))
+	if (i->ra == REGSB && mach->sb && pglobal(i, mach->sb+i->imm64, 0, "(SB)") >= 0)
 		return;
 	if(i->simm < 0)
 		bprint(i, "-%x(R%d)", -i->simm, i->ra);
@@ -602,7 +602,7 @@ sub(Opcode *o, Instr *i)
 }
 
 static void
-qdiv(Opcode *o, Instr *i)
+qmuldiv(Opcode *o, Instr *i)
 {
 	format(o->mnemonic, i, nil);
 	if(i->op == 31)
@@ -672,7 +672,7 @@ static	char	ir2[] = "R%a,R%d";		/* reverse of IBM order */
 static	char	ir3[] = "R%b,R%a,R%d";
 static	char	ir3r[] = "R%a,R%b,R%d";
 static	char	il3[] = "R%b,R%s,R%a";
-static	char	il2u[] = "%I,R%d,R%a";
+static	char	il2u[] = "%I,R%a,R%d";
 static	char	il3s[] = "$%k,R%s,R%a";
 static	char	il2[] = "R%s,R%a";
 static	char	icmp3[] = "R%a,R%b,%D";
@@ -750,10 +750,10 @@ static Opcode opcodes[] = {
 	{31,	454,	ALL,	"DCCCI",	dcb,	0},
 	{31,	966,	ALL,	"ICCCI",	dcb,	0},
 
-	{31,	489,	OEM,	"DIVD%V%C",	qdiv,	ir3},	/* 64 */
-	{31,	457,	OEM,	"DIVDU%V%C",	qdiv,	ir3},	/* 64 */
-	{31,	491,	OEM,	"DIVW%V%C",	qdiv,	ir3},
-	{31,	459,	OEM,	"DIVWU%V%C",	qdiv,	ir3},
+	{31,	489,	OEM,	"DIVD%V%C",	qmuldiv,	ir3},	/* 64 */
+	{31,	457,	OEM,	"DIVDU%V%C",	qmuldiv,	ir3},	/* 64 */
+	{31,	491,	OEM,	"DIVW%V%C",	qmuldiv,	ir3},
+	{31,	459,	OEM,	"DIVWU%V%C",	qmuldiv,	ir3},
 
 	{31,	310,	ALL,	"ECIWX",	ldx,	0},
 	{31,	438,	ALL,	"ECOWX",	stx,	0},
@@ -857,8 +857,6 @@ static Opcode opcodes[] = {
 	{31,	659,	ALL,	"MOVW",		gen,	"SEG(R%b),R%d"},
 	{31,	323,	ALL,	"MOVW",		gen,	"DCR(%Q),R%d"},
 	{31,	451,	ALL,	"MOVW",		gen,	"R%s,DCR(%Q)"},
-	{31,	259,	ALL,	"MOVW",		gen,	"DCR(R%a),R%d"},
-	{31,	387,	ALL,	"MOVW",		gen,	"R%s,DCR(R%a)"},
 	{31,	144,	ALL,	"MOVFL",	gen,	"R%s,%m,CR"},
 	{63,	70,	ALL,	"MTFSB0%C",	gencc,	"%D"},
 	{63,	38,	ALL,	"MTFSB1%C",	gencc,	"%D"},
@@ -878,7 +876,7 @@ static Opcode opcodes[] = {
 	{31,	11,	ALL,	"MULHWU%C",	gencc,	ir3},
 	{31,	235,	OEM,	"MULLW%V%C",	gencc,	ir3},
 
-	{7,	0,	0,	"MULLW",	qdiv,	"%i,R%a,R%d"},
+	{7,	0,	0,	"MULLW",	qmuldiv,	"%i,R%a,R%d"},
 
 	{31,	476,	ALL,	"NAND%C",	gencc,	il3},
 	{31,	104,	OEM,	"NEG%V%C",	neg,	ir2},

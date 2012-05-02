@@ -2,10 +2,10 @@
  * PowerPC definition
  *	forsyth@terzarima.net
  */
-#include <u.h>
+#include <lib9.h>
 #include <bio.h>
-#include "/power/include/ureg.h"
-#include <mach.h>
+#include "uregq.h"
+#include "mach.h"
 
 
 #define	REGOFF(x)	(ulong) (&((struct Ureg *) 0)->x)
@@ -111,10 +111,10 @@ Mach mpower =
 	"LR",		/* name of link register */
 	"setSB",	/* static base register name */
 	0,		/* value */
-	0x100000,	/* page size */
-	0x80000000ULL,	/* kernel base */
-	0xF0000000ULL,	/* kernel text mask */
-	0x7FFFFFFFULL,	/* user stack top */
+	0x1000,		/* page size */
+	0x80000000U,	/* kernel base */
+	0xF0000000U,	/* kernel text mask */
+	0x7FFFFFFFU,	/* user stack top */
 	4,		/* quantization of pc */
 	4,		/* szaddr */
 	4,		/* szreg */

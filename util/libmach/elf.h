@@ -1,5 +1,5 @@
 /*
- *	Definitions needed for accessing ELF headers
+ *	Definitions needed for  accessing Irix ELF headers
  */
 typedef struct {
 	uchar	ident[16];	/* ident bytes */
@@ -19,23 +19,6 @@ typedef struct {
 } Ehdr;
 
 typedef struct {
-	u8int	ident[16];	/* ident bytes */
-	u16int	type;		/* file type */
-	u16int	machine;	/* target machine */
-	u32int	version;	/* file version */
-	u64int	elfentry;	/* start address */
-	u64int	phoff;		/* phdr file offset */
-	u64int	shoff;		/* shdr file offset */
-	u32int	flags;		/* file flags */
-	u16int	ehsize;		/* sizeof ehdr */
-	u16int	phentsize;	/* sizeof phdr */
-	u16int	phnum;		/* number phdrs */
-	u16int	shentsize;	/* sizeof shdr */
-	u16int	shnum;		/* number shdrs */
-	u16int	shstrndx;	/* shdr string index */
-} E64hdr;
-
-typedef struct {
 	int	type;		/* entry type */
 	ulong	offset;		/* file offset */
 	ulong	vaddr;		/* virtual address */
@@ -45,17 +28,6 @@ typedef struct {
 	int	flags;		/* entry flags */
 	int	align;		/* memory/file alignment */
 } Phdr;
-
-typedef struct {
-	int	type;		/* entry type */
-	int flags; 		/* how consistent of them */
-	uvlong	offset;		/* file offset */
-	uvlong	vaddr;		/* virtual address */
-	uvlong	paddr;		/* physical address */
-	uvlong	filesz;		/* file size */
-	uvlong	memsz;		/* memory size */
-	uvlong	align;		/* memory/file alignment */
-} Phdr64;
 
 typedef struct {
 	ulong	name;		/* section name */
@@ -69,19 +41,6 @@ typedef struct {
 	ulong	addralign;	/* memory alignment */
 	ulong	entsize;	/* entry size if table */
 } Shdr;
-
-typedef struct {
-	ulong	name;		/* section name */
-	ulong	type;		/* SHT_... */
-	uvlong	flags;		/* SHF_... */
-	uvlong	addr;		/* virtual address */
-	uvlong	offset;		/* file offset */
-	uvlong	size;		/* section size */
-	ulong	link;		/* misc info */
-	ulong	info;		/* misc info */
-	uvlong	addralign;	/* memory alignment */
-	uvlong	entsize;	/* entry size if table */
-} Shdr64;
 
 enum {
 	/* Ehdr codes */
@@ -121,8 +80,7 @@ enum {
 	S370 = 9,		/* Amdhal	*/
 	SPARC64 = 18,		/* Sun SPARC v9 */
 	POWER = 20,		/* PowerPC */
-	POWER64 = 21,		/* PowerPC64 */
-	ARM = 40,		/* ARM */
+	ARM = 40,			/* ARM */
 	AMD64 = 62,		/* Amd64 */
 
 	NO_VERSION = 0,		/* version, ident[VERSION] */

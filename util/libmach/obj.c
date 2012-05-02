@@ -2,11 +2,10 @@
  * obj.c
  * routines universal to all object files
  */
-#include <u.h>
-#include <libc.h>
+#include <lib9.h>
 #include <bio.h>
 #include <ar.h>
-#include <mach.h>
+#include "mach.h"
 #include "obj.h"
 
 #define islocal(t)	((t)=='a' || (t)=='p')
@@ -20,29 +19,24 @@ enum
 	HASHMUL	= 79L,
 };
 
-int	
-	_is6(char*),
-	_read6(Biobuf*, Prog*);
-#if 0
-	_is2(char*),		/* in [$OS].c */
+int	_is2(char*),		/* in [$OS].c */
 	_is5(char*),
+	_is6(char*),
 	_is7(char*),
 	_is8(char*),
 	_is9(char*),
 	_isk(char*),
 	_isq(char*),
 	_isv(char*),
-	_isu(char*),
 	_read2(Biobuf*, Prog*),
 	_read5(Biobuf*, Prog*),
+	_read6(Biobuf*, Prog*),
 	_read7(Biobuf*, Prog*),
 	_read8(Biobuf*, Prog*),
 	_read9(Biobuf*, Prog*),
 	_readk(Biobuf*, Prog*),
 	_readq(Biobuf*, Prog*),
-	_readv(Biobuf*, Prog*),
-	_readu(Biobuf*, Prog*);
-#endif
+	_readv(Biobuf*, Prog*);
 
 typedef struct Obj	Obj;
 typedef struct Symtab	Symtab;
@@ -56,19 +50,23 @@ struct	Obj		/* functions to handle each intermediate (.$O) file */
 
 static Obj	obj[] =
 {			/* functions to identify and parse each type of obj */
-	[ObjAmd64]	"amd64 .6",	_is6, _read6,
-#if 0
-	[Obj68020]	"68020 .2",	_is2, _read2,
-	[ObjArm]	"arm .5",	_is5, _read5,
-	[ObjAlpha]	"alpha .7",	_is7, _read7,
-	[Obj386]	"386 .8",	_is8, _read8,
-	[ObjSparc]	"sparc .k",	_isk, _readk,
-	[ObjPower]	"power .q",	_isq, _readq,
-	[ObjMips]	"mips .v",	_isv, _readv,
-	[ObjSparc64]	"sparc64 .u",	_isu, _readu,
-	[ObjPower64]	"power64 .9",	_is9, _read9,
-#endif
-	[Maxobjtype]	0, 0
+	/*[Obj68020]*/	"68020 .2",	_is2, _read2,
+	/*[ObjSparc]*/	"sparc .k",	_isk, _readk,
+	/*[ObjMips]*/	"mips .v",	_isv, _readv,
+	/*[Obj386]*/	"386 .8",	_is8, _read8,
+	/*[Obj960]*/	{0, 0,},
+	/*[Obj3210]*/	{0, 0,},
+	/*[ObjMips2]*/	{0, 0,},
+	/*[Obj29000]*/	{0, 0,},
+	/*[ObjArm]*/	"arm .5",	_is5, _read5,
+	/*[ObjPower]*/	"power .q",	_isq, _readq,
+	/*[ObjMips2le]*/	{0, 0,},
+	/*[ObjAlpha]*/	{0, 0,},
+	/*[ObjSparc64]*/	{0, 0,},
+	/*[ObjAmd64]*/	"amd64 .6",	_is6, _read6,
+	/*[ObjSpim]*/	{0, 0,},
+	/*[ObjPower64]*/	"power64 .9",	_is9, _read9,
+	/*[Maxobjtype]*/	0, 0
 };
 
 struct	Symtab

@@ -1,4 +1,6 @@
-#include <u.h>
+#include <lib9.h>
+#include <bio.h>
+#include "mach.h"
 
 /*
  * big-endian short

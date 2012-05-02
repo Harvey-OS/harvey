@@ -1,10 +1,9 @@
 /*
  * file map routines
  */
-#include <u.h>
-#include <libc.h>
+#include <lib9.h>
 #include <bio.h>
-#include <mach.h>
+#include "mach.h"
 
 Map *
 newmap(Map *map, int n)
@@ -89,11 +88,13 @@ attachproc(int pid, int kflag, int corefd, Fhdr *fp)
 	map = newmap(0, 4);
 	if (!map)
 		return 0;
-	if(kflag)
+	if(kflag) {
 		regs = "kregs";
-	else
+		mode = OREAD;
+	} else {
 		regs = "regs";
-	mode = ORDWR;
+		mode = ORDWR;
+	}
 	if (mach->regsize) {
 		sprint(buf, "/proc/%d/%s", pid, regs);
 		fd = open(buf, mode);
@@ -167,4 +168,36 @@ loadmap(Map *map, int fd, Fhdr *fp)
 	map->seg[1].inuse = 1;
 	map->seg[1].name = "data";
 	return map;
+}
+
+Map*
+attachremt(int fd, Fhdr *f)
+{
+	Map *m;
+	ulong txt;
+
+	m = newmap(0, 3);
+	if (m == 0)
+		return 0;
+
+	/* Space for mach structures */
+	txt = f->txtaddr;
+	if(txt > 8*4096)
+		txt -= 8*4096;
+
+	setmap(m, fd, txt, f->txtaddr+f->txtsz, txt, "*text");
+	/*setmap(m, fd, f->dataddr, 0xffffffff, f->dataddr, "*data");*/ /* pc heap is < KTZERO */
+	setmap(m, fd, 4096, 0xffffffff, 4096, "*data");
+	setmap(m, fd, 0x0, mach->regsize, 0, "kreg");
+
+	return m;
+}
+
+void
+setmapio(Map *map, int i, Rsegio get, Rsegio put)
+{
+	if (map != 0 && 0 <= i && i < map->nsegs) {
+		map->seg[i].mget = get;
+		map->seg[i].mput = put;
+	}
 }

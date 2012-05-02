@@ -1,5 +1,4 @@
-#include <u.h>
-#include <libc.h>
+#include <lib9.h>
 #include <bio.h>
 #include <mach.h>
 
@@ -41,34 +40,39 @@ Machdata m68020mach =
 #define BPTTRAP	4		/* breakpoint gives illegal inst */
 
 static char * excep[] = {
-	[2]	"bus error",
-	[3]	"address error",
-	[4]	"illegal instruction",
-	[5]	"zero divide",
-	[6]	"CHK",
-	[7]	"TRAP",
-	[8]	"privilege violation",
-	[9]	"Trace",
-	[10]	"line 1010",
-	[11]	"line 1011",
-	[13]	"coprocessor protocol violation",
-	[24]	"spurious",
-	[25]	"incon",
-	[26]	"tac",
-	[27]	"auto 3",
-	[28]	"clock",
-	[29]	"auto 5",
-	[30]	"parity",
-	[31]	"mouse",
-	[32]	"system call",
-	[33]	"system call 1",
-	[48]	"FPCP branch",
-	[49]	"FPCP inexact",
-	[50]	"FPCP zero div",
-	[51]	"FPCP underflow",
-	[52]	"FPCP operand err",
-	[53]	"FPCP overflow",
-	[54]	"FPCP signal NAN",
+	0,			/* 0 */
+	0,			/* 1 */
+	"bus error",		/* 2 */
+	"address error",	/* 3 */
+	"illegal instruction",	/* 4 */
+	"zero divide",		/* 5 */
+	"CHK",			/* 6 */
+	"TRAP",			/* 7 */
+	"privilege violation",	/* 8 */
+	"Trace",		/* 9 */
+	"line 1010",		/* 10 */
+	"line 1011",		/* 11 */
+	0,			/* 12 */
+	"coprocessor protocol violation",	/* 13 */
+	0,0,0,0,0,0,0,0,0,0,	/* 14-23 */
+	"spurious",		/* 24 */
+	"incon",		/* 25 */
+	"tac",			/* 26 */
+	"auto 3",		/* 27 */
+	"clock",		/* 28 */
+	"auto 5",		/* 29 */
+	"parity",		/* 30 */
+	"mouse",		/* 31 */
+	"system call",		/* 32 */
+	"system call 1",	/* 33 */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,	/* 34-47 */
+	"FPCP branch",		/* 48 */
+	"FPCP inexact",		/* 49 */
+	"FPCP zero div",	/* 50 */
+	"FPCP underflow",	/* 51 */
+	"FPCP operand err",	/* 52 */
+	"FPCP overflow",	/* 53 */
+	"FPCP signal NAN",	/* 54 */
 };
 
 static int m68020vec;
@@ -370,14 +374,14 @@ struct	operand
 {
 	int	eatype;
 	short	ext;
-	union {
+	/*union {*/
 		long	immediate;	/* sign-extended integer byte/word/long */
-		struct	{		/* index mode displacements */
+		/*struct	{*/		/* index mode displacements */
 			long	disp;
 			long	outer;
-		};
+		/*};*/
 		char	floater[24];	/* floating point immediates */
-	};
+	/*};*/
 };
 
 struct	inst

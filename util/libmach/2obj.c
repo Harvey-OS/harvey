@@ -1,8 +1,7 @@
 /*
  * 2obj.c - identify and parse a 68020 object file
  */
-#include <u.h>
-#include <libc.h>
+#include <lib9.h>
 #include <bio.h>
 #include <mach.h>
 #include "2c/2.out.h"

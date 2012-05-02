@@ -2,8 +2,7 @@
  * qobj.c - identify and parse a PowerPC object file
  *	forsyth@terzarima.net
  */
-#include <u.h>
-#include <libc.h>
+#include <lib9.h>
 #include <bio.h>
 #include <mach.h>
 #include "qc/q.out.h"

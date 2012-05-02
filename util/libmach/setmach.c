@@ -1,7 +1,6 @@
-#include	<u.h>
-#include	<libc.h>
+#include	<lib9.h>
 #include	<bio.h>
-#include	<mach.h>
+#include	"mach.h"
 		/* table for selecting machine-dependent parameters */
 
 typedef	struct machtab Machtab;
@@ -18,7 +17,7 @@ struct machtab
 
 extern	Mach		mmips, msparc, m68020, mi386, mamd64,
 			marm, mmips2be, mmips2le, mpower, mpower64, malpha, msparc64;
-extern	Machdata	mipsmach, mipsmachle, sparcmach, m68020mach, i386mach,
+extern	Machdata	mipsmach, sparcmach, m68020mach, i386mach,
 			armmach, mipsmach2le, powermach, alphamach, sparc64mach;
 
 /*
@@ -46,12 +45,6 @@ Machtab	machines[] =
 		AMIPS,
 		&mmips2le,
 		&mipsmach2le, 	},
-	{	"mipsLE",				/*plan 9 mips little endian*/
-		FMIPSLE,
-		0,
-		AMIPS,
-		&mmips,
-		&mipsmachle, 	},
 	{	"mips",				/*plan 9 mips*/
 		FMIPS,
 		FMIPSB,
@@ -118,18 +111,6 @@ Machtab	machines[] =
 		APOWER64,
 		&mpower64,
 		&powermach,	},
-	{	"alpha",			/*Alpha*/
-		FALPHA,
-		FALPHAB,
-		AALPHA,
-		&malpha,
-		&alphamach,	},
-	{	"sparc64",			/*plan 9 sparc64 */
-		FSPARC64,
-		FSPARCB,			/* XXX? */
-		ASPARC64,
-		&msparc64,
-		&sparc64mach,	},
 	{	0		},		/*the terminator*/
 };
 

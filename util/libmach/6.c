@@ -1,11 +1,10 @@
 /*
  * amd64 definition
  */
-#include <u.h>
-#include <libc.h>
+#include <lib9.h>
 #include <bio.h>
-#include "/amd64/include/ureg.h"
-#include <mach.h>
+#include "ureg6.h"
+#include "mach.h"
 
 #define	REGOFF(x)	offsetof(struct Ureg, x)
 
@@ -105,10 +104,10 @@ Mach mamd64=
 	0,			/* link register */
 	"setSB",		/* static base register name (bogus anyways) */
 	0,			/* static base register value */
-	0x200000,		/* page size */
-	0xfffffffff0110000ull,	/* kernel base */
-	0xffff800000000000ull,	/* kernel text mask */
-	0x00007ffffffff000ull,	/* user stack top */
+	0x1000,			/* page size */
+	0xFFFFFFFF80110000U,	/* kernel base */
+	0xFFFF800000000000U,	/* kernel text mask */
+	0x00007FFFFFFFF000U,	/* user stack top */
 	1,			/* quantization of pc */
 	8,			/* szaddr */
 	4,			/* szreg */

@@ -1,10 +1,8 @@
 /*
  * 8obj.c - identify and parse a 386 object file
  */
-#include <u.h>
-#include <libc.h>
+#include <lib9.h>
 #include <bio.h>
-#include <mach.h>
 #include "8c/8.out.h"
 #include "obj.h"
 
@@ -44,12 +42,9 @@ _read8(Biobuf *bp, Prog* p)
 		return 0;
 	as |= ((c & 0xff) << 8);
 	p->kind = aNone;
-	p->sig = 0;
 	if(as == ANAME || as == ASIGNAME){
-		if(as == ASIGNAME){
-			Bread(bp, &p->sig, 4);
-			p->sig = leswal(p->sig);
-		}
+		if(as == ASIGNAME)
+			skip(bp, 4);	/* signature */
 		p->kind = aName;
 		p->type = type2char(Bgetc(bp));		/* type */
 		p->sym = Bgetc(bp);			/* sym */

@@ -2,10 +2,9 @@
  * PowerPC 64 definition
  *	forsyth@vitanuova.com
  */
-#include <u.h>
-#include <libc.h>
+#include <lib9.h>
 #include <bio.h>
-#include "/power64/include/ureg.h"
+#include "ureg9.h"
 #include <mach.h>
 
 
@@ -20,7 +19,7 @@
 Reglist power64reglist[] = {
 	{"CAUSE",	REGOFF(cause),	RINT|RRDONLY,	'Y'},
 	{"TRAP",	REGOFF(cause),	RINT|RRDONLY,	'Y'},	/* alias for acid */
-//	{"MSR",	REGOFF(msr),	RINT|RRDONLY,	'Y'},
+	{"MSR",	REGOFF(msr),	RINT|RRDONLY,	'Y'},
 	{"PC",		REGOFF(pc),	RINT,		'Y'},
 	{"LR",		REGOFF(lr),	RINT,		'Y'},
 	{"CR",		REGOFF(cr),	RINT,		'X'},
@@ -110,9 +109,9 @@ Mach mpower64 =
 	"setSB",	/* static base register name */
 	0,		/* value */
 	0x1000,		/* page size */
-	0x80000000ULL,	/* kernel base */
+	0x80000000U,	/* kernel base */
 	0,		/* kernel text mask */
-	0x7FFFFFFFULL,	/* user stack top */
+	0x7FFFFFFFU,	/* user stack top */
 	4,		/* quantization of pc */
 	8,		/* szaddr */
 	8,		/* szreg */

@@ -2,10 +2,9 @@
  * functions to read and write an executable or file image
  */
 
-#include <u.h>
-#include <libc.h>
+#include <lib9.h>
 #include <bio.h>
-#include <mach.h>
+#include "mach.h"
 
 static	int	mget(Map*, uvlong, void*, int);
 static	int	mput(Map*, uvlong, void*, int);
@@ -208,6 +207,8 @@ mget(Map *map, uvlong addr, void *buf, int size)
 		werrstr("unreadable map");
 		return -1;
 	}
+	if (s->mget)
+		return s->mget(s, addr, off, buf, size);
 	for (i = j = 0; i < 2; i++) {	/* in case read crosses page */
 		k = spread(s, (void*)((uchar *)buf+j), size-j, off+j);
 		if (k < 0) {
@@ -236,6 +237,8 @@ mput(Map *map, uvlong addr, void *buf, int size)
 		werrstr("unwritable map");
 		return -1;
 	}
+	if (s->mput)
+		return s->mput(s, addr, off, buf, size);
 
 	seek(s->fd, off, 0);
 	for (i = j = 0; i < 2; i++) {	/* in case read crosses page */
