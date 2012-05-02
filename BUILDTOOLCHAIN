@@ -2,3 +2,4 @@
 (cd sys/src/cmd/6l && sh BUILD)
 (cd sys/src/cmd/6c && sh BUILD)
 (cd util && sh BUILD9ar)
+(cd util && sh BUILD)

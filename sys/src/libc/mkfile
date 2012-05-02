@@ -1,10 +1,10 @@
+MKSHELL=rc
 </$NXM/$objtype/mkfile
 
-MKSHELL=rc
 PORTDIRS=9sys 9syscall fmt port thr
 DIRS=$PORTDIRS $CPUS
 OLDCPUS=68000 68020 sparc
-
+CPUS=amd64
 all install:V:
 	for(i in $PORTDIRS $objtype)@{
 		echo $i

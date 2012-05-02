@@ -3,7 +3,8 @@
 #
 
 OS=5678qv
-CPUS=amd64 arm alpha 386 power mips
+#CPUS=amd64 arm alpha 386 power mips
+CPUS=amd64
 CFLAGS=-FTVw
 GFLAGS=
 LEX=lex
