@@ -3,7 +3,6 @@ MKSHELL=rc
 
 TARG = 	6in4\
 	dhcpclient\
-	ftpd\
 	hogports\
 	httpfile\
 	linklocal\
@@ -21,6 +20,9 @@ TARG = 	6in4\
 	traceroute\
 	udpecho\
 	wol\
+
+NO=\
+	ftpd\
 
 #DIRS=ftpfs dhcpd httpd ipconfig ppp imap4d snoopy
 DIRS=ipconfig 

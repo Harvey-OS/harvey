@@ -28,7 +28,6 @@ LIBS=\
 	liboventi\
 	libplumb\
 	libregexp\
-	libscribble\
 	libsec\
 	libseg\
 	libsunrpc\
@@ -36,9 +35,10 @@ LIBS=\
 	libtube\
 	libventi\
 	libworker\
+	libmach\
 
 NO=	libstdio\
-	libmach\
+	libscribble\
 
 CMDS=cmd\
 	games\
