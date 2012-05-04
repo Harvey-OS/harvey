@@ -306,7 +306,6 @@ main(u32int ax, u32int bx)
 	mmuinit();
 
 	ioinit();
-	kbdinit();
 	meminit();
 	confinit();
 	archinit();
@@ -342,7 +341,6 @@ main(u32int ax, u32int bx)
 	sipi();
 
 	timersinit();
-	kbdenable();
 	fpuinit();
 	psinit(conf.nproc);
 	initimage();

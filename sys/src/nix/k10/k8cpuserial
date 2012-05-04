@@ -77,7 +77,7 @@ rootdir
 	bootk8cpuserial.out boot
 #	/amd64/bin/auth/factotum factotum
 #	/amd64/bin/ip/ipconfig ipconfig
-	../root/nvram nvram
+#	../root/nvram nvram
 
 conf
 	int cpuserver = 1;

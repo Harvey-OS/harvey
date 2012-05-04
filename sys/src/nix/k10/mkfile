@@ -26,7 +26,8 @@ $p$CONF:	$CONF.c $OBJ $LIB
 	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
 	$LD -o $target -T0xfffffffff0110000 -R4096 -l $OBJ $CONF.$O $LIB
 	$LD -o $target.elf -H5 -8 -T0xfffffffff0110000 -l $OBJ $CONF.$O $LIB
-	size $target
+	ls -l 9k*
+	echo NOT DOING 9size $target
 
 $p$CONF.gz:	$p$CONF
 	strip -o /fd/1 $p$CONF | gzip -9 > $p$CONF.gz
