@@ -1,6 +1,9 @@
-#include <lib9.h>
+#include <u.h>
+#include <libc.h>
 #include <bio.h>
 #include <ctype.h>
+
+#pragma	lib	"../cc/cc.a$O"
 
 #ifndef	EXTERN
 #define EXTERN	extern
@@ -19,15 +22,15 @@ typedef	struct	Bits	Bits;
 
 #define	NHUNK		50000L
 #define	BUFSIZ		8192
-#define	NSYMB		500
+#define	NSYMB		1500
 #define	NHASH		1024
 #define	STRINGSZ	200
 #define	HISTSZ		20
-#define YYMAXDEPTH	500
+#define YYMAXDEPTH	1500
 #define	NTERM		10
 #define	MAXALIGN	7
 
-#define	SIGN(n)		((vlong)1<<(n-1))
+#define	SIGN(n)		(1ULL<<(n-1))
 #define	MASK(n)		(SIGN(n)|(SIGN(n)-1))
 
 #define	BITS	5
@@ -48,17 +51,16 @@ struct	Node
 	double	fconst;		/* fp constant */
 	vlong	vconst;		/* non fp const */
 	char*	cstring;	/* character string */
-	ushort*	rstring;	/* rune string */
+	Rune*	rstring;	/* rune string */
 
 	Sym*	sym;
 	Type*	type;
 	long	lineno;
 	char	op;
-
 	char	oldop;
-	char	xcast;
-	char	class;
-	char	etype;
+	char xcast;
+	uchar	class;
+	uchar	etype;
 	char	complex;
 	char	addable;
 	char	scale;
@@ -82,7 +84,7 @@ struct	Sym
 	char	*name;
 	ushort	block;
 	ushort	sueblock;
-	char	class;
+	uchar	class;
 	char	sym;
 	char	aused;
 	char	sig;
@@ -106,7 +108,7 @@ struct	Decl
 	long	offset;
 	short	val;
 	ushort	block;
-	char	class;
+	uchar	class;
 	char	aused;
 };
 #define	D	((Decl*)0)
@@ -123,7 +125,7 @@ struct	Type
 	long	lineno;
 	schar	shift;
 	char	nbits;
-	char	etype;
+	uchar	etype;
 	char	garb;
 };
 
@@ -292,6 +294,7 @@ enum
 	OINDEX,
 	OFAS,
 	OREGPAIR,
+	OEXREG,
 
 	OEND
 };
@@ -333,6 +336,12 @@ enum
 	TFILE,
 	TOLD,
 	NALLTYPES,
+
+	/*
+	 * bootstrapping
+	 */
+//	TRUNE = TUINT,
+	TRUNE = sizeof(Rune)==4? TUINT: TUSHORT,
 };
 enum
 {
@@ -475,6 +484,7 @@ EXTERN	int	packflg;
 EXTERN	int	fproundflg;
 EXTERN	int	profileflg;
 EXTERN	int	ncontin;
+EXTERN	int	newvlongcode;
 EXTERN	int	canreach;
 EXTERN	int	warnreach;
 EXTERN	Bits	zbits;
@@ -505,6 +515,7 @@ extern	char	typechlvp[];
 extern	char	typechlp[];
 extern	char	typechlpfd[];
 
+EXTERN	char*	typeswitch;
 EXTERN	char*	typeword;
 EXTERN	char*	typecmplx;
 
@@ -514,7 +525,7 @@ extern	ulong	thash3;
 extern	ulong	thash[];
 
 /*
- *	Inferno.c/Posix.c/Nt.c
+ *	compat.c/unix.c/windows.c
  */
 int	mywait(int*);
 int	mycreat(char*, int);
@@ -532,7 +543,6 @@ void*	mysbrk(ulong);
  *	parser
  */
 int	yyparse(void);
-int	mpatof(char*, double*);
 int	mpatov(char*, vlong*);
 
 /*
@@ -603,21 +613,17 @@ void	edecl(int, Type*, Sym*);
 Type*	fnproto(Node*);
 Type*	fnproto1(Node*);
 void	markdcl(void);
-Type*	paramconv(Type*, int, int);
+Type*	paramconv(Type*, int);
 void	pdecl(int, Type*, Sym*);
 Decl*	push(void);
 Decl*	push1(Sym*);
 Node*	revertdcl(void);
-#undef round
-#define	round	ccround
-#undef log2
-#define	log2	cclog2
-long	round(long, int);
+long	p9round(long, int);
 int	rsametype(Type*, Type*, int, int);
 int	sametype(Type*, Type*);
 ulong	sign(Sym*);
 ulong	signature(Type*);
-void	suallign(Type*);
+void	sualign(Type*);
 void	tmerge(Type*, Sym*);
 void	walkparam(Node*, int);
 void	xdecl(int, Type*, Sym*);
@@ -635,6 +641,8 @@ int	tcomo(Node*, int);
 int	tcomx(Node*);
 int	tlvalue(Node*);
 void	constas(Node*, Type*, Type*);
+Node*	uncomma(Node*);
+Node*	uncomargs(Node*);
 
 /*
  * con.c
@@ -686,7 +694,7 @@ void	typeext(Type*, Node*);
 void	typeext1(Type*, Node*);
 int	side(Node*);
 int	vconst(Node*);
-int	log2(uvlong);
+int	p9log2(uvlong);
 int	vlog(Node*);
 int	topbit(ulong);
 void	simplifyshift(Node*);
@@ -738,7 +746,7 @@ void	gclean(void);
 void	gextern(Sym*, Node*, long, long);
 void	ginit(void);
 long	outstring(char*, long);
-long	outlstring(ushort*, long);
+long	outlstring(Rune*, long);
 void	sextern(Sym*, Node*, long, long);
 void	xcom(Node*);
 long	exreg(Type*);

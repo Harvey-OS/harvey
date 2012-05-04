@@ -8,12 +8,14 @@
 	struct
 	{
 		Type*	t;
-		char	c;
+		uchar	c;
 	} tycl;
 	struct
 	{
 		Type*	t1;
 		Type*	t2;
+		Type*	t3;
+		uchar	c;
 	} tyty;
 	struct
 	{
@@ -853,9 +855,9 @@ lstring:
 	LLSTRING
 	{
 		$$ = new(OLSTRING, Z, Z);
-		$$->type = typ(TARRAY, types[TUSHORT]);
-		$$->type->width = $1.l + sizeof(ushort);
-		$$->rstring = (ushort*)$1.s;
+		$$->type = typ(TARRAY, types[TRUNE]);
+		$$->type->width = $1.l + sizeof(Rune);
+		$$->rstring = (Rune*)$1.s;
 		$$->sym = symstring;
 		$$->etype = TARRAY;
 		$$->class = CSTATIC;
@@ -865,16 +867,16 @@ lstring:
 		char *s;
 		int n;
 
-		n = $1->type->width - sizeof(ushort);
+		n = $1->type->width - sizeof(Rune);
 		s = alloc(n+$2.l+MAXALIGN);
 
 		memcpy(s, $1->rstring, n);
 		memcpy(s+n, $2.s, $2.l);
-		*(ushort*)(s+n+$2.l) = 0;
+		*(Rune*)(s+n+$2.l) = 0;
 
 		$$ = $1;
 		$$->type->width += $2.l;
-		$$->rstring = (ushort*)s;
+		$$->rstring = (Rune*)s;
 	}
 
 zelist:
@@ -895,16 +897,22 @@ sbody:
 	{
 		$<tyty>$.t1 = strf;
 		$<tyty>$.t2 = strl;
+		$<tyty>$.t3 = lasttype;
+		$<tyty>$.c = lastclass;
 		strf = T;
 		strl = T;
 		lastbit = 0;
 		firstbit = 1;
+		lastclass = CXXX;
+		lasttype = T;
 	}
 	edecl '}'
 	{
 		$$ = strf;
 		strf = $<tyty>2.t1;
 		strl = $<tyty>2.t2;
+		lasttype = $<tyty>2.t3;
+		lastclass = $<tyty>2.c;
 	}
 
 zctlist:
@@ -995,7 +1003,7 @@ complex:
 		if($$->link != T)
 			diag(Z, "redeclare tag: %s", $2->name);
 		$$->link = $4;
-		suallign($$);
+		sualign($$);
 	}
 |	LSTRUCT sbody
 	{
@@ -1003,7 +1011,7 @@ complex:
 		sprint(symb, "_%d_", taggen);
 		$$ = dotag(lookup(), TSTRUCT, autobn);
 		$$->link = $2;
-		suallign($$);
+		sualign($$);
 	}
 |	LUNION ltag
 	{
@@ -1020,7 +1028,7 @@ complex:
 		if($$->link != T)
 			diag(Z, "redeclare tag: %s", $2->name);
 		$$->link = $4;
-		suallign($$);
+		sualign($$);
 	}
 |	LUNION sbody
 	{
@@ -1028,7 +1036,7 @@ complex:
 		sprint(symb, "_%d_", taggen);
 		$$ = dotag(lookup(), TUNION, autobn);
 		$$->link = $2;
-		suallign($$);
+		sualign($$);
 	}
 |	LENUM ltag
 	{

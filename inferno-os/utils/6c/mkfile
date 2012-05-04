@@ -1,6 +1,8 @@
-</$objtype/mkfile
+<../../mkconfig
 
+TARG=6ca
 TARG=6c
+
 OFILES=\
 	cgen.$O\
 	enam.$O\
@@ -21,18 +23,21 @@ HFILES=\
 	6.out.h\
 	../cc/cc.h\
 
-LIB=../cc/cc.a$O
+LIBS=cc bio 9		# order is important
 
-BIN=/$objtype/bin
-</sys/src/cmd/mkone
+BIN=$ROOT/$OBJDIR/bin
 
-$LIB:
+<$ROOT/mkfiles/mkone-$SHELLTYPE
+
+CFLAGS=	$CFLAGS -I../include
+
+$ROOT/$OBJDIR/lib/libcc.a:
 	cd ../cc
-	mk install
-	mk clean
+	mk $MKFLAGS install
+	mk $MKFLAGS clean
 
 %.$O: ../cc/%.c
-	$CC $CFLAGS ../cc/$stem.c
+	$CC -I. $CFLAGS ../cc/$stem.c
 
-bound.$O:	bound.h
-
+#enam.c:	6.out.h
+#	rc mkenam

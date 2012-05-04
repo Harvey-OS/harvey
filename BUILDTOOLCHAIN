@@ -1,5 +1,4 @@
-(cd sys/src/cmd/6a && sh BUILD)
-(cd sys/src/cmd/6l && sh BUILD)
-(cd sys/src/cmd/6c && sh BUILD)
-(cd util && sh BUILD9ar)
+(cd util/6a && sh BUILD)
+(cd util/6l && sh BUILD)
+(cd util/6c && sh BUILD)
 (cd util && sh BUILD)

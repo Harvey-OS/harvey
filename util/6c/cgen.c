@@ -303,7 +303,7 @@ cgen(Node *n, Node *nn)
 				c = r->vconst;
 				if(c < 0)
 					c = -c;
-				v = log2(c);
+				v = p9log2(c);
 				if(v < 0)
 					break;
 				/* fall thru */
@@ -439,9 +439,10 @@ cgen(Node *n, Node *nn)
 			if(o == OLDIV || o == OLMOD)
 				zeroregm(&nod1);
 			if(r->addable < INDEXED || r->op == OCONST) {
-				regsalloc(&nod3, r);
+				regalloc(&nod3, r, Z);
 				cgen(r, &nod3);
 				gopcode(o, n->type, &nod3, Z);
+				regfree(&nod3);
 			} else
 				gopcode(o, n->type, r, Z);
 		} else {
@@ -610,7 +611,7 @@ cgen(Node *n, Node *nn)
 				c = r->vconst;
 				if(c < 0)
 					c = -c;
-				v = log2(c);
+				v = p9log2(c);
 				if(v < 0)
 					break;
 				/* fall thru */

@@ -79,7 +79,7 @@ struct	Var
 	vlong	offset;
 	Sym*	sym;
 	char	name;
-	char	etype;
+	uchar	etype;
 };
 
 struct	Reg

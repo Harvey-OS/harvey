@@ -203,8 +203,8 @@ compile(char *file, char **defs, int ndef)
 	if((debug['a'] || debug['Z']) && !debug['n']) {
 		if (first) {
 			outfile = 0;
-			Binit(&outbuf, mydup(1, -1), OWRITE);
-			mydup(2, 1);
+			Binit(&outbuf, dup(1, -1), OWRITE);
+			dup(2, 1);
 		}
 	} else {
 		c = mycreat(outfile, 0664);
@@ -469,7 +469,7 @@ l1:
 				yyerror("missing '");
 				peekc = c1;
 			}
-			yylval.vval = convvtox(c, TUSHORT);
+			yylval.vval = convvtox(c, TRUNE);
 			return LUCONST;
 		}
 		if(c == '"') {
@@ -543,15 +543,15 @@ l1:
 			c = escchar('"', 1, 0);
 			if(c == EOF)
 				break;
-			cp = allocn(cp, c1, sizeof(ushort));
-			*(ushort*)(cp + c1) = c;
-			c1 += sizeof(ushort);
+			cp = allocn(cp, c1, sizeof(Rune));
+			*(Rune*)(cp + c1) = c;
+			c1 += sizeof(Rune);
 		}
 		yylval.sval.l = c1;
 		do {
-			cp = allocn(cp, c1, sizeof(ushort));
-			*(ushort*)(cp + c1) = 0;
-			c1 += sizeof(ushort);
+			cp = allocn(cp, c1, sizeof(Rune));
+			*(Rune*)(cp + c1) = 0;
+			c1 += sizeof(Rune);
 		} while(c1 & MAXALIGN);
 		yylval.sval.s = cp;
 		return LLSTRING;
@@ -890,7 +890,8 @@ caseout:
 	}
 	*cp = 0;
 	peekc = c;
-	if(mpatof(symb, &yylval.dval)) {
+	yylval.dval = strtod(symb, nil);
+	if(isInf(yylval.dval, 1) || isInf(yylval.dval, -1)) {
 		yyerror("overflow in float constant");
 		yylval.dval = 0;
 	}
@@ -1028,7 +1029,7 @@ getnsc(void)
 	} else
 		c = GETC();
 	for(;;) {
-		if(!isspace(c))
+		if(c >= Runeself || !isspace(c))
 			return c;
 		if(c == '\n') {
 			lineno++;
@@ -1072,7 +1073,7 @@ loop:
 		 */
 		i = 2;
 		if(longflg)
-			i = 4;
+			i = 6;
 		l = 0;
 		for(; i>0; i--) {
 			c = getc();
@@ -1102,7 +1103,7 @@ loop:
 		 */
 		i = 2;
 		if(longflg)
-			i = 5;
+			i = 8;
 		l = c - '0';
 		for(; i>0; i--) {
 			c = getc();

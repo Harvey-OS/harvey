@@ -1014,7 +1014,7 @@ no:
  * return log(n) if n is a power of 2 constant
  */
 int
-log2(uvlong v)
+p9log2(uvlong v)
 {
 	int s, i;
 	uvlong m;
@@ -1485,6 +1485,7 @@ Init	onamesinit[] =
 	OINDEX,		0,	"INDEX",
 	OFAS,		0,	"FAS",
 	OREGPAIR,	0,	"REGPAIR",
+	OEXREG,		0,	"EXREG",
 	OEND,		0,	"END",
 	-1,		0,	0,
 };
@@ -1951,6 +1952,7 @@ tinit(void)
 	
 	/* 32-bit defaults */
 	typeword = typechlp;
+	typeswitch = typechl;
 	typecmplx = typesuv;
 }
 
