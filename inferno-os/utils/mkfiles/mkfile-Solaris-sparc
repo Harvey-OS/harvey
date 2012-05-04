@@ -1,0 +1,58 @@
+TARGMODEL=	Posix
+TARGSHTYPE=	sh
+CPUS=		sparc
+
+O=		o
+OS=		o
+
+AR=		ar
+ARFLAGS=	cvru
+
+YACC=		iyacc
+YFLAGS=		-d
+
+AS=             gcc
+ASFLAGS=        -c
+
+CC=gcc
+CFLAGS=	-c\
+		-g\
+		-O\
+		-munaligned-doubles\
+		-threads\
+		-Wimplicit\
+		-I$ROOT/Solaris/sparc/include\
+		-I$ROOT/include\
+		-I/usr/openwin/share/include\
+
+ANSICPP=
+LD=		gcc
+LDFLAGS=-L/usr/openwin/lib\
+
+SYSLIBS=
+EMULIBS=	-lthread -lsocket -lm -lX11 -lXext -lnsl -lposix4
+
+# use the following settings in order to use the native sun C compiler
+# rather than gcc.
+# this has not been tested in this release.
+
+# AS=		cc
+# ASFLAGS=	-c
+# 
+# CC=		cc
+# CFLAGS=		-c\
+# 		-mt\
+# 		-g\
+# 		-w\
+# 		-xCC \
+# 		-Xa\
+# 		-I$ROOT/Solaris/sparc/include\
+# 		-I$ROOT/include\
+# 		-I/usr/openwin/share/include\
+# 
+# LD=		cc
+# LDFLAGS=	-mt\
+# 		-L/usr/openwin/lib\
+# 
+# SYSLIBS=
+# EMULIBS=	-lsunmath -lsocket -lm -lX11 -lXext -lnsl -lposix4

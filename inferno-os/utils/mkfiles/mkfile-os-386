@@ -1,0 +1,24 @@
+TARGMODEL=	Inferno
+TARGSHTYPE=	sh
+CPUS=		386
+OBJDIR=		Inferno/386		#force everything to point to inferno directory
+
+O=		8
+OS=		8
+
+AR=		iar
+ARFLAGS=	vu
+ARPREFIX=
+
+AS=		8a
+ASFLAGS=
+
+CC=		8c
+CFLAGS=		-wFV -I$ROOT/Inferno/386/include -I$ROOT/include
+ANSICPP= -p
+
+LD=		8l
+LDFLAGS=
+
+YACC=		iyacc
+YFLAGS=		-d

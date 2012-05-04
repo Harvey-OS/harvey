@@ -1,0 +1,54 @@
+#
+#	Rules for updating a library with Nt rcsh
+#
+LIBDIR=$ROOT/$OBJDIR/lib
+LIBRARY=$LIBDIR/$LIB
+LIBOBJ=${OFILES:%=$LIBRARY(%)}
+
+default:V:	all
+
+all install:V:	$LIBRARY
+
+installall:V:
+	for (objtype in $CPUS)
+		mk $MKFLAGS install
+
+clean:V:	clean-std	
+
+nuke:V:		nuke-std
+
+LIB1=${LIBRARY:%=$ARPREFIX%}
+
+$LIBRARY:	$LIBOBJ $OFILES
+	$AR $ARFLAGS $LIB1 $OFILES
+
+$LIBRARY(%.$O):N:	%.$O
+
+%.$O:	$HFILES		# don't combine with following %.$O rules
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.$O:	%.s
+	$AS $ASFLAGS $stem.s
+
+y.tab.h y.tab.c:	$YFILES
+	$YACC $YFLAGS $prereq
+
+clean-std:V:
+	rm -f *.$O y.tmp.*
+	rm -f y.tab.? y.output y.error *.pdb *.pch
+
+nuke-std:V:	clean-std
+	rm -f y.tab.? y.output y.error *.pdb *.pch
+	rm -f $LIBRARY
+
+#nuke-std:V:	clean-std $LIBDIR/fake.lib
+#	rm -f y.tab.? y.output y.error *.pdb *.pch
+#	cp $LIBDIR/fake.lib $LIBRARY
+#
+#$LIBDIR/fake.lib:
+#	echo 'void axzzzzzzz(void) { return; }' > fooxx.c
+#	$CC $CFLAGS fooxx.c
+#	$AR $ARFLAGS -out:$target fooxx.obj
+#	rm -f fooxx.*

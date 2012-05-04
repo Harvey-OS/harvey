@@ -1,0 +1,40 @@
+libs=${LIBS:%=$ROOT/$OBJDIR/lib/lib%.a}
+TARGPROG=$TARG.exe
+
+all:V:	$O.out
+
+install:V:	$BIN/$TARGPROG
+
+installall:V:
+	for objtype in $CPUS
+	do
+		mk $MKFLAGS install
+	done
+
+nuke:V:	nuke-std
+
+clean:V: clean-std
+
+$O.out:	$OFILES $libs
+	$LD $LDFLAGS -out:$target $OFILES $libs $SYSLIBS
+
+%.$O:	$HFILES		# don't combine with following %.$O rules
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.$O:	%.s
+	$AS $ASFLAGS $stem.s
+
+y.tab.h y.tab.c:	$YFILES
+	$YACC $YFLAGS $YFILES
+
+clean-std:V:
+	rm -f *.$O *.exe $O.out y.tmp.*
+	rm -f y.tab.? y.debug y.output *.pdb *.pch
+
+nuke-std:V:	clean-std
+	rm -f y.tab.? y.debug y.output *.pdb *.pch
+
+$BIN/%:	$O.out
+	rm -f $BIN/$stem && cp $O.out $BIN/$stem

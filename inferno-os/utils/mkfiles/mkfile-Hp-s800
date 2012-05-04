@@ -1,0 +1,33 @@
+TARGMODEL=	Posix
+TARGSHTYPE=	sh
+CPUS=		s800
+
+O=		o
+OS=		o
+
+AR=		ar
+ARFLAGS=	cvru
+
+AS=		c89 -c
+ASFLAGS=
+
+CC=		c89 -c
+CFLAGS=		-D_HPUX_SOURCE \
+		-D_REENTRANT \
+		+u4 \
+		+e \
+		-w\
+		+DA1.0\
+		-xCC \
+		-Xa\
+		-I$ROOT/Hp/s800/include\
+		-I$ROOT/include\
+
+ANSICPP=
+LD=		c89
+LDFLAGS=	-s -L/usr/openwin/lib
+
+SYSLIBS=	-lm -lX11 -lcma
+
+YACC=		iyacc
+YFLAGS=		-d

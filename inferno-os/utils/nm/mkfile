@@ -1,0 +1,14 @@
+<../../mkconfig
+
+TARG=inm	# inferno nm
+
+OFILES=\
+	nm.$O\
+
+LIBS=mach bio 9		# order is important.
+
+BIN=$ROOT/$OBJDIR/bin
+
+<$ROOT/mkfiles/mkone-$SHELLTYPE
+
+CFLAGS=	$CFLAGS -I. -I../include

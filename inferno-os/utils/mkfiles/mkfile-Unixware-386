@@ -1,0 +1,40 @@
+SYSTARG=	Unixware
+TARGMODEL=	Posix
+TARGSHTYPE=	sh
+OBJTYPE=386
+
+
+A=		a
+O=		o
+OS=		o
+
+
+AR=		ar
+ARFLAGS=	ruvs
+
+AS=		cc -c
+ASFLAGS=
+
+CC=		cc -c
+# cannot use -O and -g without compiler warnings
+
+CFLAGS=\
+		$CFLAGS\
+		-g\
+		-I$ROOT/$SYSTARG/$OBJTYPE/include\
+		-I$ROOT/include\
+
+ANSICPP=
+LD=		cc
+LDFLAGS=\
+		$LDFLAGS\
+		-L$ROOT/$SYSTARG/$OBJTYPE/lib\
+		-L/usr/openwin/lib\
+		-L/usr/X11R6/lib\
+
+LDSYSLIBS=	-lm -lX11
+
+RANLIB=		true
+
+YACC=		iyacc
+YFLAGS=		-d

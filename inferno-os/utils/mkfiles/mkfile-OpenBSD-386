@@ -1,0 +1,30 @@
+TARGMODEL=	Posix
+TARGSHTYPE=	sh
+CPUS=		386
+
+O=		o
+OS=		o
+
+AR=		ar
+ARFLAGS=	ruvs
+
+AS=		cc -c
+ASFLAGS=
+
+CC=		cc -c
+CFLAGS=	-g\
+		-O\
+		-Wno-deprecated-declarations -Wuninitialized -Wunused -Wreturn-type -Wimplicit\
+		-I$ROOT/OpenBSD/386/include\
+		-I$ROOT/include\
+ 		-I/usr/X11R6/include\
+		-DOPENBSD_386 -fno-stack-protector
+
+ANSICPP=
+LD=		cc
+LDFLAGS=	-L/usr/X11R6/lib
+
+SYSLIBS=
+
+YACC=		iyacc
+YFLAGS=		-d

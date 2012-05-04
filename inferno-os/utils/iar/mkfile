@@ -1,0 +1,18 @@
+<../../mkconfig
+
+TARG=iar	# inferno archiver
+
+OFILES=	ar.$O\
+	$TARGMODEL.$O\
+
+HFILES=	../include/a.out.h\
+	../../include/bio.h\
+	../include/mach.h\
+
+LIBS=mach bio 9		# libbio.a uses lib9.a so order matters.
+
+BIN=$ROOT/$OBJDIR/bin
+
+<../mkfiles/mkone-$SHELLTYPE
+
+CFLAGS=	$CFLAGS -I../include

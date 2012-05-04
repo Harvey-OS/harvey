@@ -1,0 +1,47 @@
+#
+#	Rules for updating a library with sh
+#
+LIBDIR=$ROOT/$OBJDIR/lib
+LIBRARY=$LIBDIR/$LIB
+LIBOBJ=${OFILES:%=$LIBRARY(%)}
+
+default:V:	all
+
+all install:V:	$LIBRARY
+
+installall:V:
+	for objtype in $CPUS
+	do
+		mk $MKFLAGS install
+	done
+
+clean:V:	clean-std	
+
+nuke:V:		nuke-std
+
+$LIBRARY:	$LIBOBJ
+	$AR $ARFLAGS $target $newmember
+
+$LIBRARY(%.$O):N:	%.$O
+
+%.$O:	$HFILES		# don't combine with following %.$O rules
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.$O:	%.s
+	$AS $ASFLAGS $stem.s
+
+%.$O:	%.S$MACOSINF
+	$AS $ASFLAGS -o $target $stem.S
+
+y.tab.h y.tab.c:	$YFILES
+	$YACC $YFLAGS $prereq
+
+clean-std:V:
+	rm -f $O.out
+	rm -f `echo $OS | sed 's/./ *.&/g'`
+
+nuke-std:V:	clean-std
+	rm -f y.tab.? y.output y.error
+	rm -f $LIBRARY

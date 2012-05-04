@@ -1,0 +1,36 @@
+TARGMODEL=	Posix
+TARGSHTYPE=	sh
+CPUS=		386
+
+O=		o
+OS=		o
+
+AR=		ar
+ARFLAGS=	cvru
+
+AS=		cc
+ASFLAGS=	-c
+
+CC=		cc
+CFLAGS=		-c\
+		-mt\
+		-g\
+		-fstore\
+		-w\
+		-xCC \
+		-Xa\
+		-I$ROOT/Solaris/386/include\
+		-I$ROOT/include\
+		-I/usr/openwin/share/include\
+
+ANSICPP=
+LD=		cc
+LDFLAGS=	$LDFLAGS\
+		-mt\
+		-L/usr/openwin/lib\
+
+SYSLIBS=
+EMULIBS=	-lnsl -lsocket -lX11 -lm -lposix4
+
+YACC=		iyacc
+YFLAGS=		-d

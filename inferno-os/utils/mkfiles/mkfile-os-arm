@@ -1,0 +1,26 @@
+TARGMODEL=	Inferno
+TARGSHTYPE=	sh
+CPUS=		arm
+OBJDIR=		Inferno/arm		#force everything to point to inferno directory
+
+O=		5
+OS=		5
+
+AR=		iar
+ARFLAGS=	vu
+ARPREFIX=
+
+AS=		5a
+ASFLAGS=
+
+CC=		5c
+CFLAGS=		-wFV -I$ROOT/Inferno/arm/include -I$ROOT/include
+ANSICPP= -p
+
+LD=		5l
+LDFLAGS=
+
+SYSLIBS=	#-lc
+
+YACC=		iyacc
+YFLAGS=		-d

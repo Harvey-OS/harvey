@@ -1,0 +1,53 @@
+BINTARG=${TARG:%=$DISBIN/%}
+MODDIR=$ROOT/module
+SYS_MODULE=${SYSMODULES:%=$MODDIR/%}
+
+JROOT=$ROOT/java
+LIMBOINCL=-I$MODDIR -I$JROOT/module
+LIMBOFLAGS=-C
+JPATH=$JROOT/pkg
+CLASSPATH=	# make sure it's not set
+
+all:V:		$TARG
+
+install:V:	$BINTARG
+
+installall:V:	install
+
+clean:V: 	clean-std
+
+nuke:V:		nuke-std
+
+$DISBIN/%.dis:	%.dis
+	rm -f $DISBIN/$stem.dis && cp $stem.dis $DISBIN/$stem.dis
+
+%.dis:		$MODULES $SYS_MODULE
+
+%.dis:		%.b
+	limbo $LIMBOFLAGS $LIMBOINCL -gw $stem.b
+
+#%.s:		%.b
+#	limbo $LIMBOFLAGS $LIMBOINCL -w -G -S $stem.b
+
+%.class:    %.java
+	$JAVAC -classpath $JPATH $stem.java
+
+%.dis: %.class
+	j2d $stem.class
+
+%.install:V:	$DISBIN/%.dis
+%.installall:V:	$DISBIN/%.dis
+
+clean-std:V:
+	rm -f *.dis *.sbl *.s *.class
+
+nuke-std:V:	clean-std nuke-std-$SHELLTYPE
+
+nuke-std-rc nuke-std-nt:V:
+	rm -f $BINTARG
+
+nuke-std-sh:V:
+	for j in $TARG
+	do
+		rm -f $DISBIN/$j
+	done

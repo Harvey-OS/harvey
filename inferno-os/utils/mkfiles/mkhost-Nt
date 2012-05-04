@@ -1,0 +1,14 @@
+
+#	Variables for host system type = Nt (or Windows 95)
+
+SHELLTYPE=	nt
+SHELLNAME=	rcsh
+HOSTMODEL=	Nt
+OSTARG=		os
+
+DATA2S=		data2s
+NDATE=		ndate
+KSIZE=		ksize
+AWK=		awk
+
+#COMSPEC=	$ROOT/$SYSHOST/$OBJTYPE/bin/rcsh.exe

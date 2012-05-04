@@ -1,0 +1,12 @@
+
+#	Variables for host system type = Hp
+
+SHELLTYPE=	sh
+SHELLNAME=	/bin/sh
+HOSTMODEL=	Posix
+OSTARG=		os
+
+DATA2S=		data2s
+NDATE=		ndate
+KSIZE=		ksize
+AWK=		awk
