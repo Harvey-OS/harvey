@@ -93,7 +93,7 @@ BEGIN{
 		s = ARGV[argc] ".root.s:D:";
 		for(i = 1; i < section["rootdir"]; i++)
 			s = s " " src[i];
-		s = s "\n\t../mk/mkrootall\\\n";
+		s = s "\n\trc ../mk/mkrootall\\\n";
 		for(i = 1; i < section["rootdir"]; i++)
 			s = s "\t\t" name[i] " " cname[i] " " src[i] "\\\n";
 		s = s "\t>$target\n";
@@ -196,10 +196,9 @@ function mksystab(					a, i, f, n, s, t){
 	s = s "#include \"mem.h\"\n";
 	s = s "#include \"dat.h\"\n";
 	s = s "#include \"fns.h\"\n\n";
-	s = s "#include \"/sys/src/libc/9syscall/sys.h\"\n\n";
-
+	s = s "#include \"../../../../sys/src/libc/9syscall/sys.h\"\n\n";
 	t = "";
-	while(getline < "/sys/src/libc/9syscall/sys.h"){
+	while(getline < "../../../../sys/src/libc/9syscall/sys.h"){
 		if($1 != "#define" || NF != 3)
 			continue;
 

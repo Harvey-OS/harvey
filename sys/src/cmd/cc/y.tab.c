@@ -1,8 +1,8 @@
 
-#line	2	"/sys/src/cmd/cc/cc.y"
+#line	2	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 #include "cc.h"
 
-#line	4	"/sys/src/cmd/cc/cc.y"
+#line	4	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 typedef union 	{
 	Node*	node;
 	Sym*	sym;
@@ -107,11 +107,10 @@ YYSTYPE	yyval;
 #define	LINLINE	57416
 #define YYEOFCODE 1
 #define YYERRCODE 2
-#define YYEMPTY (-2)
 
-#line	1183	"/sys/src/cmd/cc/cc.y"
+#line	1183	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 
-short	yyexca[] =
+static	const	short	yyexca[] =
 {-1, 1,
 	1, -1,
 	-2, 181,
@@ -178,7 +177,7 @@ short	yyexca[] =
 #define	YYNPROD	246
 #define	YYPRIVATE 57344
 #define	YYLAST	1239
-short	yyact[] =
+static	const	short	yyact[] =
 {
  177, 308, 313, 346, 211, 209,  87,   4,   5,  42,
  311, 205,  89, 327, 258, 326, 268, 259,  81,  54,
@@ -305,7 +304,7 @@ short	yyact[] =
  155, 151, 150, 148, 149, 145, 146, 147, 152, 153,
  154, 155, 151, 150, 148, 149, 145, 146, 147
 };
-short	yypact[] =
+static	const	short	yypact[] =
 {
 -1000, 943,-1000, 234,-1000,-1000, 978, 978, 943,  22,
   22,  20,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,
@@ -350,7 +349,7 @@ short	yypact[] =
 -1000,-1000, 534, 350, 348,-1000, 759,-1000, -20, 534,
 -1000
 };
-short	yypgo[] =
+static	const	short	yypgo[] =
 {
    0,   9, 199, 298, 302,  23, 195, 200, 500,  25,
  112, 183, 286,   6,  18,  45,   2,  47,  11,   1,
@@ -361,7 +360,7 @@ short	yypgo[] =
   26, 406, 405,  27, 402,  16, 401, 400, 399, 397,
  395, 394, 393,  29, 389
 };
-short	yyr1[] =
+static	const	short	yyr1[] =
 {
    0,  50,  50,  51,  51,  54,  56,  51,  53,  57,
   53,  53,  31,  31,  32,  32,  32,  32,  26,  26,
@@ -389,7 +388,7 @@ short	yyr1[] =
    6,   6,   4,   4,   4,   4,   4,   4,   4,   5,
    5,   5,  17,  38,   1,   1
 };
-short	yyr2[] =
+static	const	short	yyr2[] =
 {
    0,   0,   2,   2,   3,   0,   0,   6,   1,   0,
    4,   3,   1,   3,   1,   3,   4,   4,   2,   3,
@@ -417,7 +416,7 @@ short	yyr2[] =
    1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
    1,   1,   1,   1,   1,   1
 };
-short	yychk[] =
+static	const	short	yychk[] =
 {
 -1000, -50, -51, -52, -58, -13, -12,  -6,  -8,  77,
   81,  85,  44,  58,  73,  69,  70,  86,  82,  65,
@@ -462,7 +461,7 @@ short	yychk[] =
    4,   4,  63, -16,  93, -19,   4,   4, -16,  93,
  -19
 };
-short	yydef[] =
+static	const	short	yydef[] =
 {
    1,  -2,   2,   0, 182, 192, 183, 184, 185,   0,
    0,   0, 207, 223, 224, 225, 226, 227, 228, 229,
@@ -507,7 +506,7 @@ short	yydef[] =
   97,  98,  -2,   0,   0,  87,  99,  91,   0,  -2,
   89
 };
-short	yytok1[] =
+static	const	short	yytok1[] =
 {
    1,   0,   0,   0,   0,   0,   0,   0,   0,   0,
    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
@@ -523,7 +522,7 @@ short	yytok1[] =
    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
    0,   0,   0,  95,  21,  96,  98
 };
-short	yytok2[] =
+static	const	short	yytok2[] =
 {
    2,   3,   7,   8,   9,  10,  11,  12,  13,  14,
   15,  16,  19,  20,  24,  25,  28,  29,  30,  31,
@@ -534,35 +533,43 @@ short	yytok2[] =
   80,  81,  82,  83,  84,  85,  86,  87,  88,  89,
   90,  91,  92
 };
-long	yytok3[] =
+static	const	long	yytok3[] =
 {
    0
 };
 #define YYFLAG 		-1000
 #define YYERROR		goto yyerrlab
-#define	yyclearin	yychar = YYEMPTY
+#define YYACCEPT	return(0)
+#define YYABORT		return(1)
+#define	yyclearin	yychar = -1
 #define	yyerrok		yyerrflag = 0
 
 #ifdef	yydebug
 #include	"y.debug"
 #else
 #define	yydebug		0
-char*	yytoknames[1];		/* for debugging */
-char*	yystates[1];		/* for debugging */
+static	const	char*	yytoknames[1];		/* for debugging */
+static	const	char*	yystates[1];		/* for debugging */
 #endif
 
 /*	parser for yacc output	*/
-
+#ifdef YYARG
+#define	yynerrs		yyarg->yynerrs
+#define	yyerrflag	yyarg->yyerrflag
+#define yyval		yyarg->yyval
+#define yylval		yyarg->yylval
+#else
 int	yynerrs = 0;		/* number of errors */
 int	yyerrflag = 0;		/* error recovery flag */
+#endif
 
 extern	int	fprint(int, char*, ...);
 extern	int	sprint(char*, char*, ...);
 
-char*
+static const char*
 yytokname(int yyc)
 {
-	static char x[16];
+	static char x[10];
 
 	if(yyc > 0 && yyc <= sizeof(yytoknames)/sizeof(yytoknames[0]))
 	if(yytoknames[yyc-1])
@@ -571,10 +578,10 @@ yytokname(int yyc)
 	return x;
 }
 
-char*
+static const char*
 yystatname(int yys)
 {
-	static char x[16];
+	static char x[10];
 
 	if(yys >= 0 && yys < sizeof(yystates)/sizeof(yystates[0]))
 	if(yystates[yys])
@@ -583,17 +590,23 @@ yystatname(int yys)
 	return x;
 }
 
-int yychar;
-
-int
+static long
+#ifdef YYARG
+yylex1(struct Yyarg *yyarg)
+#else
 yylex1(void)
+#endif
 {
-	long *t3p;
+	long yychar;
+	const long *t3p;
 	int c;
 
+#ifdef YYARG	
+	yychar = yylex(yyarg);
+#else
 	yychar = yylex();
+#endif
 	if(yychar <= 0) {
-		yychar = 0;
 		c = yytok1[0];
 		goto out;
 	}
@@ -621,23 +634,26 @@ out:
 	if(c == 0)
 		c = yytok2[1];	/* unknown char */
 	if(yydebug >= 3)
-		fprint(2, "lex %.4ux %s\n", yychar, yytokname(c));
+		fprint(2, "lex %.4lux %s\n", yychar, yytokname(c));
 	return c;
 }
 
-int yystate;
-
 int
+#ifdef YYARG
+yyparse(struct Yyarg *yyarg)
+#else
 yyparse(void)
+#endif
 {
 	struct
 	{
 		YYSTYPE	yyv;
 		int	yys;
 	} yys[YYMAXDEPTH], *yyp, *yypt;
-	short *yyxi;
-	int yyj, yym, yyn, yyg;
-	int yyc;
+	const short *yyxi;
+	int yyj, yym, yystate, yyn, yyg;
+	long yychar;
+#ifndef YYARG
 	YYSTYPE save1, save2;
 	int save3, save4;
 
@@ -645,10 +661,10 @@ yyparse(void)
 	save2 = yyval;
 	save3 = yynerrs;
 	save4 = yyerrflag;
+#endif
 
 	yystate = 0;
-	yychar = YYEMPTY;
-	yyc = YYEMPTY;
+	yychar = -1;
 	yynerrs = 0;
 	yyerrflag = 0;
 	yyp = &yys[-1];
@@ -663,16 +679,18 @@ ret1:
 	goto ret;
 
 ret:
+#ifndef YYARG
 	yylval = save1;
 	yyval = save2;
 	yynerrs = save3;
 	yyerrflag = save4;
+#endif
 	return yyn;
 
 yystack:
 	/* put a state and value onto the stack */
 	if(yydebug >= 4)
-		fprint(2, "char %s in %s", yytokname(yyc), yystatname(yystate));
+		fprint(2, "char %s in %s", yytokname(yychar), yystatname(yystate));
 
 	yyp++;
 	if(yyp >= &yys[YYMAXDEPTH]) {
@@ -686,15 +704,18 @@ yynewstate:
 	yyn = yypact[yystate];
 	if(yyn <= YYFLAG)
 		goto yydefault; /* simple state */
-	if(yyc < 0)
-		yyc = yylex1();
-	yyn += yyc;
+	if(yychar < 0)
+#ifdef YYARG
+		yychar = yylex1(yyarg);
+#else
+		yychar = yylex1();
+#endif
+	yyn += yychar;
 	if(yyn < 0 || yyn >= YYLAST)
 		goto yydefault;
 	yyn = yyact[yyn];
-	if(yychk[yyn] == yyc) { /* valid shift */
-		yyc = YYEMPTY;
-		yychar = YYEMPTY;
+	if(yychk[yyn] == yychar) { /* valid shift */
+		yychar = -1;
 		yyval = yylval;
 		yystate = yyn;
 		if(yyerrflag > 0)
@@ -706,8 +727,12 @@ yydefault:
 	/* default state action */
 	yyn = yydef[yystate];
 	if(yyn == -2) {
-		if(yyc < 0)
-			yyc = yylex1();
+		if(yychar < 0)
+#ifdef YYARG
+		yychar = yylex1(yyarg);
+#else
+		yychar = yylex1();
+#endif
 
 		/* look through exception table */
 		for(yyxi=yyexca;; yyxi+=2)
@@ -715,26 +740,24 @@ yydefault:
 				break;
 		for(yyxi += 2;; yyxi += 2) {
 			yyn = yyxi[0];
-			if(yyn < 0 || yyn == yyc)
+			if(yyn < 0 || yyn == yychar)
 				break;
 		}
 		yyn = yyxi[1];
-		if(yyn < 0) {
-			yychar = YYEMPTY;
+		if(yyn < 0)
 			goto ret0;
-		}
 	}
 	if(yyn == 0) {
 		/* error ... attempt to resume parsing */
 		switch(yyerrflag) {
 		case 0:   /* brand new error */
 			yyerror("syntax error");
-			if(yydebug >= 2) {
+			if(yydebug >= 1) {
 				fprint(2, "%s", yystatname(yystate));
-				fprint(2, "saw %s\n", yytokname(yyc));
+				fprint(2, "saw %s\n", yytokname(yychar));
 			}
 			goto yyerrlab;
-yyerrlab:
+		yyerrlab:
 			yynerrs++;
 
 		case 1:
@@ -761,11 +784,10 @@ yyerrlab:
 
 		case 3:  /* no shift yet; clobber input char */
 			if(yydebug >= 2)
-				fprint(2, "error recovery discards %s\n", yytokname(yyc));
-			if(yyc == YYEOFCODE)
+				fprint(2, "error recovery discards %s\n", yytokname(yychar));
+			if(yychar == YYEOFCODE)
 				goto ret1;
-			yyc = YYEMPTY;
-			yychar = YYEMPTY;
+			yychar = -1;
 			goto yynewstate;   /* try again in the same state */
 		}
 	}
@@ -789,12 +811,12 @@ yyerrlab:
 	switch(yym) {
 		
 case 3:
-#line	77	"/sys/src/cmd/cc/cc.y"
+#line	77	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		dodecl(xdecl, lastclass, lasttype, Z);
 	} break;
 case 5:
-#line	82	"/sys/src/cmd/cc/cc.y"
+#line	82	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		lastdcl = T;
 		firstarg = S;
@@ -809,12 +831,12 @@ case 5:
 		argmark(yypt[-0].yyv.node, 0);
 	} break;
 case 6:
-#line	96	"/sys/src/cmd/cc/cc.y"
+#line	96	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		argmark(yypt[-2].yyv.node, 1);
 	} break;
 case 7:
-#line	100	"/sys/src/cmd/cc/cc.y"
+#line	100	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		Node *n;
 
@@ -825,64 +847,64 @@ case 7:
 			codgen(yypt[-0].yyv.node, yypt[-4].yyv.node);
 	} break;
 case 8:
-#line	112	"/sys/src/cmd/cc/cc.y"
+#line	112	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		dodecl(xdecl, lastclass, lasttype, yypt[-0].yyv.node);
 	} break;
 case 9:
-#line	116	"/sys/src/cmd/cc/cc.y"
+#line	116	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yypt[-0].yyv.node = dodecl(xdecl, lastclass, lasttype, yypt[-0].yyv.node);
 	} break;
 case 10:
-#line	120	"/sys/src/cmd/cc/cc.y"
+#line	120	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		doinit(yypt[-3].yyv.node->sym, yypt[-3].yyv.node->type, 0L, yypt[-0].yyv.node);
 	} break;
 case 13:
-#line	128	"/sys/src/cmd/cc/cc.y"
+#line	128	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OIND, yypt[-0].yyv.node, Z);
 		yyval.node->garb = simpleg(yypt[-1].yyv.lval);
 	} break;
 case 15:
-#line	136	"/sys/src/cmd/cc/cc.y"
+#line	136	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = yypt[-1].yyv.node;
 	} break;
 case 16:
-#line	140	"/sys/src/cmd/cc/cc.y"
+#line	140	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OFUNC, yypt[-3].yyv.node, yypt[-1].yyv.node);
 	} break;
 case 17:
-#line	144	"/sys/src/cmd/cc/cc.y"
+#line	144	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OARRAY, yypt[-3].yyv.node, yypt[-1].yyv.node);
 	} break;
 case 18:
-#line	153	"/sys/src/cmd/cc/cc.y"
+#line	153	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = dodecl(adecl, lastclass, lasttype, Z);
 	} break;
 case 19:
-#line	157	"/sys/src/cmd/cc/cc.y"
+#line	157	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = yypt[-1].yyv.node;
 	} break;
 case 20:
-#line	163	"/sys/src/cmd/cc/cc.y"
+#line	163	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		dodecl(adecl, lastclass, lasttype, yypt[-0].yyv.node);
 		yyval.node = Z;
 	} break;
 case 21:
-#line	168	"/sys/src/cmd/cc/cc.y"
+#line	168	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yypt[-0].yyv.node = dodecl(adecl, lastclass, lasttype, yypt[-0].yyv.node);
 	} break;
 case 22:
-#line	172	"/sys/src/cmd/cc/cc.y"
+#line	172	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		long w;
 
@@ -891,7 +913,7 @@ case 22:
 		yyval.node = contig(yypt[-3].yyv.node->sym, yyval.node, w);
 	} break;
 case 23:
-#line	180	"/sys/src/cmd/cc/cc.y"
+#line	180	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = yypt[-2].yyv.node;
 		if(yypt[-0].yyv.node != Z) {
@@ -901,218 +923,218 @@ case 23:
 		}
 	} break;
 case 26:
-#line	197	"/sys/src/cmd/cc/cc.y"
+#line	197	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		dodecl(pdecl, lastclass, lasttype, yypt[-0].yyv.node);
 	} break;
 case 28:
-#line	207	"/sys/src/cmd/cc/cc.y"
+#line	207	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		lasttype = yypt[-0].yyv.type;
 	} break;
 case 30:
-#line	212	"/sys/src/cmd/cc/cc.y"
+#line	212	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		lasttype = yypt[-0].yyv.type;
 	} break;
 case 32:
-#line	218	"/sys/src/cmd/cc/cc.y"
+#line	218	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		lastfield = 0;
 		edecl(CXXX, lasttype, S);
 	} break;
 case 34:
-#line	226	"/sys/src/cmd/cc/cc.y"
+#line	226	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		dodecl(edecl, CXXX, lasttype, yypt[-0].yyv.node);
 	} break;
 case 36:
-#line	233	"/sys/src/cmd/cc/cc.y"
+#line	233	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		lastbit = 0;
 		firstbit = 1;
 	} break;
 case 37:
-#line	238	"/sys/src/cmd/cc/cc.y"
+#line	238	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OBIT, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 38:
-#line	242	"/sys/src/cmd/cc/cc.y"
+#line	242	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OBIT, Z, yypt[-0].yyv.node);
 	} break;
 case 39:
-#line	250	"/sys/src/cmd/cc/cc.y"
+#line	250	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = (Z);
 	} break;
 case 41:
-#line	257	"/sys/src/cmd/cc/cc.y"
+#line	257	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OIND, (Z), Z);
 		yyval.node->garb = simpleg(yypt[-0].yyv.lval);
 	} break;
 case 42:
-#line	262	"/sys/src/cmd/cc/cc.y"
+#line	262	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OIND, yypt[-0].yyv.node, Z);
 		yyval.node->garb = simpleg(yypt[-1].yyv.lval);
 	} break;
 case 45:
-#line	271	"/sys/src/cmd/cc/cc.y"
+#line	271	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OFUNC, yypt[-3].yyv.node, yypt[-1].yyv.node);
 	} break;
 case 46:
-#line	275	"/sys/src/cmd/cc/cc.y"
+#line	275	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OARRAY, yypt[-3].yyv.node, yypt[-1].yyv.node);
 	} break;
 case 47:
-#line	281	"/sys/src/cmd/cc/cc.y"
+#line	281	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OFUNC, (Z), Z);
 	} break;
 case 48:
-#line	285	"/sys/src/cmd/cc/cc.y"
+#line	285	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OARRAY, (Z), yypt[-1].yyv.node);
 	} break;
 case 49:
-#line	289	"/sys/src/cmd/cc/cc.y"
+#line	289	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = yypt[-1].yyv.node;
 	} break;
 case 51:
-#line	296	"/sys/src/cmd/cc/cc.y"
+#line	296	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OINIT, invert(yypt[-1].yyv.node), Z);
 	} break;
 case 52:
-#line	302	"/sys/src/cmd/cc/cc.y"
+#line	302	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OARRAY, yypt[-1].yyv.node, Z);
 	} break;
 case 53:
-#line	306	"/sys/src/cmd/cc/cc.y"
+#line	306	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OELEM, Z, Z);
 		yyval.node->sym = yypt[-0].yyv.sym;
 	} break;
 case 56:
-#line	315	"/sys/src/cmd/cc/cc.y"
+#line	315	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OLIST, yypt[-2].yyv.node, yypt[-1].yyv.node);
 	} break;
 case 58:
-#line	320	"/sys/src/cmd/cc/cc.y"
+#line	320	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OLIST, yypt[-1].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 61:
-#line	328	"/sys/src/cmd/cc/cc.y"
+#line	328	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OLIST, yypt[-1].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 62:
-#line	333	"/sys/src/cmd/cc/cc.y"
+#line	333	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = Z;
 	} break;
 case 63:
-#line	337	"/sys/src/cmd/cc/cc.y"
+#line	337	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = invert(yypt[-0].yyv.node);
 	} break;
 case 65:
-#line	345	"/sys/src/cmd/cc/cc.y"
+#line	345	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OPROTO, yypt[-0].yyv.node, Z);
 		yyval.node->type = yypt[-1].yyv.type;
 	} break;
 case 66:
-#line	350	"/sys/src/cmd/cc/cc.y"
+#line	350	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OPROTO, yypt[-0].yyv.node, Z);
 		yyval.node->type = yypt[-1].yyv.type;
 	} break;
 case 67:
-#line	355	"/sys/src/cmd/cc/cc.y"
+#line	355	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(ODOTDOT, Z, Z);
 	} break;
 case 68:
-#line	359	"/sys/src/cmd/cc/cc.y"
+#line	359	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OLIST, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 69:
-#line	365	"/sys/src/cmd/cc/cc.y"
+#line	365	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = invert(yypt[-1].yyv.node);
-	//	if($2 != Z)
-	//		$$ = new(OLIST, $2, $$);
+	//	if(yypt[-1].yyv.node != Z)
+	//		yyval.node = new(OLIST, yypt[-1].yyv.node, yyval.node);
 		if(yyval.node == Z)
 			yyval.node = new(OLIST, Z, Z);
 	} break;
 case 70:
-#line	374	"/sys/src/cmd/cc/cc.y"
+#line	374	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = Z;
 	} break;
 case 71:
-#line	378	"/sys/src/cmd/cc/cc.y"
+#line	378	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OLIST, yypt[-1].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 72:
-#line	382	"/sys/src/cmd/cc/cc.y"
+#line	382	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OLIST, yypt[-1].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 74:
-#line	389	"/sys/src/cmd/cc/cc.y"
+#line	389	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OLIST, yypt[-1].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 75:
-#line	395	"/sys/src/cmd/cc/cc.y"
+#line	395	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OCASE, yypt[-1].yyv.node, Z);
 	} break;
 case 76:
-#line	399	"/sys/src/cmd/cc/cc.y"
+#line	399	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OCASE, Z, Z);
 	} break;
 case 77:
-#line	403	"/sys/src/cmd/cc/cc.y"
+#line	403	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OLABEL, dcllabel(yypt[-1].yyv.sym, 1), Z);
 	} break;
 case 78:
-#line	409	"/sys/src/cmd/cc/cc.y"
+#line	409	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = Z;
 	} break;
 case 80:
-#line	414	"/sys/src/cmd/cc/cc.y"
+#line	414	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OLIST, yypt[-1].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 82:
-#line	421	"/sys/src/cmd/cc/cc.y"
+#line	421	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = yypt[-0].yyv.node;
 	} break;
 case 84:
-#line	427	"/sys/src/cmd/cc/cc.y"
+#line	427	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		markdcl();
 	} break;
 case 85:
-#line	431	"/sys/src/cmd/cc/cc.y"
+#line	431	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = revertdcl();
 		if(yyval.node)
@@ -1121,14 +1143,14 @@ case 85:
 			yyval.node = yypt[-0].yyv.node;
 	} break;
 case 86:
-#line	439	"/sys/src/cmd/cc/cc.y"
+#line	439	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OIF, yypt[-2].yyv.node, new(OLIST, yypt[-0].yyv.node, Z));
 		if(yypt[-0].yyv.node == Z)
 			warn(yypt[-2].yyv.node, "empty if body");
 	} break;
 case 87:
-#line	445	"/sys/src/cmd/cc/cc.y"
+#line	445	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OIF, yypt[-4].yyv.node, new(OLIST, yypt[-2].yyv.node, yypt[-0].yyv.node));
 		if(yypt[-2].yyv.node == Z)
@@ -1137,10 +1159,10 @@ case 87:
 			warn(yypt[-4].yyv.node, "empty else body");
 	} break;
 case 88:
-#line	452	"/sys/src/cmd/cc/cc.y"
+#line	452	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 { markdcl(); } break;
 case 89:
-#line	453	"/sys/src/cmd/cc/cc.y"
+#line	453	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = revertdcl();
 		if(yyval.node){
@@ -1152,23 +1174,23 @@ case 89:
 		yyval.node = new(OFOR, new(OLIST, yypt[-4].yyv.node, new(OLIST, yypt[-6].yyv.node, yypt[-2].yyv.node)), yypt[-0].yyv.node);
 	} break;
 case 90:
-#line	464	"/sys/src/cmd/cc/cc.y"
+#line	464	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OWHILE, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 91:
-#line	468	"/sys/src/cmd/cc/cc.y"
+#line	468	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(ODWHILE, yypt[-2].yyv.node, yypt[-5].yyv.node);
 	} break;
 case 92:
-#line	472	"/sys/src/cmd/cc/cc.y"
+#line	472	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(ORETURN, yypt[-1].yyv.node, Z);
 		yyval.node->type = thisfn->link;
 	} break;
 case 93:
-#line	477	"/sys/src/cmd/cc/cc.y"
+#line	477	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OCONST, Z, Z);
 		yyval.node->vconst = 0;
@@ -1183,203 +1205,203 @@ case 93:
 		yyval.node = new(OSWITCH, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 94:
-#line	491	"/sys/src/cmd/cc/cc.y"
+#line	491	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OBREAK, Z, Z);
 	} break;
 case 95:
-#line	495	"/sys/src/cmd/cc/cc.y"
+#line	495	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OCONTINUE, Z, Z);
 	} break;
 case 96:
-#line	499	"/sys/src/cmd/cc/cc.y"
+#line	499	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OGOTO, dcllabel(yypt[-1].yyv.sym, 0), Z);
 	} break;
 case 97:
-#line	503	"/sys/src/cmd/cc/cc.y"
+#line	503	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OUSED, yypt[-2].yyv.node, Z);
 	} break;
 case 98:
-#line	507	"/sys/src/cmd/cc/cc.y"
+#line	507	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OSET, yypt[-2].yyv.node, Z);
 	} break;
 case 99:
-#line	512	"/sys/src/cmd/cc/cc.y"
+#line	512	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = Z;
 	} break;
 case 101:
-#line	518	"/sys/src/cmd/cc/cc.y"
+#line	518	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = Z;
 	} break;
 case 103:
-#line	525	"/sys/src/cmd/cc/cc.y"
+#line	525	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OCAST, yypt[-0].yyv.node, Z);
 		yyval.node->type = types[TLONG];
 	} break;
 case 105:
-#line	533	"/sys/src/cmd/cc/cc.y"
+#line	533	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OCOMMA, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 107:
-#line	540	"/sys/src/cmd/cc/cc.y"
+#line	540	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OMUL, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 108:
-#line	544	"/sys/src/cmd/cc/cc.y"
+#line	544	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(ODIV, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 109:
-#line	548	"/sys/src/cmd/cc/cc.y"
+#line	548	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OMOD, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 110:
-#line	552	"/sys/src/cmd/cc/cc.y"
+#line	552	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OADD, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 111:
-#line	556	"/sys/src/cmd/cc/cc.y"
+#line	556	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OSUB, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 112:
-#line	560	"/sys/src/cmd/cc/cc.y"
+#line	560	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OASHR, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 113:
-#line	564	"/sys/src/cmd/cc/cc.y"
+#line	564	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OASHL, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 114:
-#line	568	"/sys/src/cmd/cc/cc.y"
+#line	568	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OLT, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 115:
-#line	572	"/sys/src/cmd/cc/cc.y"
+#line	572	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OGT, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 116:
-#line	576	"/sys/src/cmd/cc/cc.y"
+#line	576	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OLE, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 117:
-#line	580	"/sys/src/cmd/cc/cc.y"
+#line	580	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OGE, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 118:
-#line	584	"/sys/src/cmd/cc/cc.y"
+#line	584	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OEQ, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 119:
-#line	588	"/sys/src/cmd/cc/cc.y"
+#line	588	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(ONE, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 120:
-#line	592	"/sys/src/cmd/cc/cc.y"
+#line	592	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OAND, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 121:
-#line	596	"/sys/src/cmd/cc/cc.y"
+#line	596	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OXOR, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 122:
-#line	600	"/sys/src/cmd/cc/cc.y"
+#line	600	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OOR, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 123:
-#line	604	"/sys/src/cmd/cc/cc.y"
+#line	604	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OANDAND, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 124:
-#line	608	"/sys/src/cmd/cc/cc.y"
+#line	608	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OOROR, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 125:
-#line	612	"/sys/src/cmd/cc/cc.y"
+#line	612	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OCOND, yypt[-4].yyv.node, new(OLIST, yypt[-2].yyv.node, yypt[-0].yyv.node));
 	} break;
 case 126:
-#line	616	"/sys/src/cmd/cc/cc.y"
+#line	616	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OAS, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 127:
-#line	620	"/sys/src/cmd/cc/cc.y"
+#line	620	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OASADD, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 128:
-#line	624	"/sys/src/cmd/cc/cc.y"
+#line	624	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OASSUB, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 129:
-#line	628	"/sys/src/cmd/cc/cc.y"
+#line	628	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OASMUL, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 130:
-#line	632	"/sys/src/cmd/cc/cc.y"
+#line	632	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OASDIV, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 131:
-#line	636	"/sys/src/cmd/cc/cc.y"
+#line	636	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OASMOD, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 132:
-#line	640	"/sys/src/cmd/cc/cc.y"
+#line	640	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OASASHL, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 133:
-#line	644	"/sys/src/cmd/cc/cc.y"
+#line	644	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OASASHR, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 134:
-#line	648	"/sys/src/cmd/cc/cc.y"
+#line	648	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OASAND, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 135:
-#line	652	"/sys/src/cmd/cc/cc.y"
+#line	652	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OASXOR, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 136:
-#line	656	"/sys/src/cmd/cc/cc.y"
+#line	656	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OASOR, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 138:
-#line	663	"/sys/src/cmd/cc/cc.y"
+#line	663	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OCAST, yypt[-0].yyv.node, Z);
 		dodecl(NODECL, CXXX, yypt[-3].yyv.type, yypt[-2].yyv.node);
@@ -1387,83 +1409,83 @@ case 138:
 		yyval.node->xcast = 1;
 	} break;
 case 139:
-#line	670	"/sys/src/cmd/cc/cc.y"
+#line	670	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OSTRUCT, yypt[-1].yyv.node, Z);
 		dodecl(NODECL, CXXX, yypt[-5].yyv.type, yypt[-4].yyv.node);
 		yyval.node->type = lastdcl;
 	} break;
 case 141:
-#line	679	"/sys/src/cmd/cc/cc.y"
+#line	679	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OIND, yypt[-0].yyv.node, Z);
 	} break;
 case 142:
-#line	683	"/sys/src/cmd/cc/cc.y"
+#line	683	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OADDR, yypt[-0].yyv.node, Z);
 	} break;
 case 143:
-#line	687	"/sys/src/cmd/cc/cc.y"
+#line	687	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OPOS, yypt[-0].yyv.node, Z);
 	} break;
 case 144:
-#line	691	"/sys/src/cmd/cc/cc.y"
+#line	691	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(ONEG, yypt[-0].yyv.node, Z);
 	} break;
 case 145:
-#line	695	"/sys/src/cmd/cc/cc.y"
+#line	695	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(ONOT, yypt[-0].yyv.node, Z);
 	} break;
 case 146:
-#line	699	"/sys/src/cmd/cc/cc.y"
+#line	699	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OCOM, yypt[-0].yyv.node, Z);
 	} break;
 case 147:
-#line	703	"/sys/src/cmd/cc/cc.y"
+#line	703	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OPREINC, yypt[-0].yyv.node, Z);
 	} break;
 case 148:
-#line	707	"/sys/src/cmd/cc/cc.y"
+#line	707	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OPREDEC, yypt[-0].yyv.node, Z);
 	} break;
 case 149:
-#line	711	"/sys/src/cmd/cc/cc.y"
+#line	711	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OSIZE, yypt[-0].yyv.node, Z);
 	} break;
 case 150:
-#line	715	"/sys/src/cmd/cc/cc.y"
+#line	715	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OSIGN, yypt[-0].yyv.node, Z);
 	} break;
 case 151:
-#line	721	"/sys/src/cmd/cc/cc.y"
+#line	721	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = yypt[-1].yyv.node;
 	} break;
 case 152:
-#line	725	"/sys/src/cmd/cc/cc.y"
+#line	725	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OSIZE, Z, Z);
 		dodecl(NODECL, CXXX, yypt[-2].yyv.type, yypt[-1].yyv.node);
 		yyval.node->type = lastdcl;
 	} break;
 case 153:
-#line	731	"/sys/src/cmd/cc/cc.y"
+#line	731	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OSIGN, Z, Z);
 		dodecl(NODECL, CXXX, yypt[-2].yyv.type, yypt[-1].yyv.node);
 		yyval.node->type = lastdcl;
 	} break;
 case 154:
-#line	737	"/sys/src/cmd/cc/cc.y"
+#line	737	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OFUNC, yypt[-3].yyv.node, Z);
 		if(yypt[-3].yyv.node->op == ONAME)
@@ -1472,34 +1494,34 @@ case 154:
 		yyval.node->right = invert(yypt[-1].yyv.node);
 	} break;
 case 155:
-#line	745	"/sys/src/cmd/cc/cc.y"
+#line	745	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OIND, new(OADD, yypt[-3].yyv.node, yypt[-1].yyv.node), Z);
 	} break;
 case 156:
-#line	749	"/sys/src/cmd/cc/cc.y"
+#line	749	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(ODOT, new(OIND, yypt[-2].yyv.node, Z), Z);
 		yyval.node->sym = yypt[-0].yyv.sym;
 	} break;
 case 157:
-#line	754	"/sys/src/cmd/cc/cc.y"
+#line	754	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(ODOT, yypt[-2].yyv.node, Z);
 		yyval.node->sym = yypt[-0].yyv.sym;
 	} break;
 case 158:
-#line	759	"/sys/src/cmd/cc/cc.y"
+#line	759	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OPOSTINC, yypt[-1].yyv.node, Z);
 	} break;
 case 159:
-#line	763	"/sys/src/cmd/cc/cc.y"
+#line	763	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OPOSTDEC, yypt[-1].yyv.node, Z);
 	} break;
 case 161:
-#line	768	"/sys/src/cmd/cc/cc.y"
+#line	768	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OCONST, Z, Z);
 		yyval.node->type = types[TINT];
@@ -1507,7 +1529,7 @@ case 161:
 		yyval.node->cstring = strdup(symb);
 	} break;
 case 162:
-#line	775	"/sys/src/cmd/cc/cc.y"
+#line	775	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OCONST, Z, Z);
 		yyval.node->type = types[TLONG];
@@ -1515,7 +1537,7 @@ case 162:
 		yyval.node->cstring = strdup(symb);
 	} break;
 case 163:
-#line	782	"/sys/src/cmd/cc/cc.y"
+#line	782	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OCONST, Z, Z);
 		yyval.node->type = types[TUINT];
@@ -1523,7 +1545,7 @@ case 163:
 		yyval.node->cstring = strdup(symb);
 	} break;
 case 164:
-#line	789	"/sys/src/cmd/cc/cc.y"
+#line	789	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OCONST, Z, Z);
 		yyval.node->type = types[TULONG];
@@ -1531,7 +1553,7 @@ case 164:
 		yyval.node->cstring = strdup(symb);
 	} break;
 case 165:
-#line	796	"/sys/src/cmd/cc/cc.y"
+#line	796	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OCONST, Z, Z);
 		yyval.node->type = types[TDOUBLE];
@@ -1539,7 +1561,7 @@ case 165:
 		yyval.node->cstring = strdup(symb);
 	} break;
 case 166:
-#line	803	"/sys/src/cmd/cc/cc.y"
+#line	803	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OCONST, Z, Z);
 		yyval.node->type = types[TFLOAT];
@@ -1547,7 +1569,7 @@ case 166:
 		yyval.node->cstring = strdup(symb);
 	} break;
 case 167:
-#line	810	"/sys/src/cmd/cc/cc.y"
+#line	810	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OCONST, Z, Z);
 		yyval.node->type = types[TVLONG];
@@ -1555,7 +1577,7 @@ case 167:
 		yyval.node->cstring = strdup(symb);
 	} break;
 case 168:
-#line	817	"/sys/src/cmd/cc/cc.y"
+#line	817	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OCONST, Z, Z);
 		yyval.node->type = types[TUVLONG];
@@ -1563,7 +1585,7 @@ case 168:
 		yyval.node->cstring = strdup(symb);
 	} break;
 case 171:
-#line	828	"/sys/src/cmd/cc/cc.y"
+#line	828	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OSTRING, Z, Z);
 		yyval.node->type = typ(TARRAY, types[TCHAR]);
@@ -1574,7 +1596,7 @@ case 171:
 		yyval.node->class = CSTATIC;
 	} break;
 case 172:
-#line	838	"/sys/src/cmd/cc/cc.y"
+#line	838	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		char *s;
 		int n;
@@ -1591,7 +1613,7 @@ case 172:
 		yyval.node->cstring = s;
 	} break;
 case 173:
-#line	856	"/sys/src/cmd/cc/cc.y"
+#line	856	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OLSTRING, Z, Z);
 		yyval.node->type = typ(TARRAY, types[TRUNE]);
@@ -1602,7 +1624,7 @@ case 173:
 		yyval.node->class = CSTATIC;
 	} break;
 case 174:
-#line	866	"/sys/src/cmd/cc/cc.y"
+#line	866	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		char *s;
 		int n;
@@ -1619,17 +1641,17 @@ case 174:
 		yyval.node->rstring = (Rune*)s;
 	} break;
 case 175:
-#line	883	"/sys/src/cmd/cc/cc.y"
+#line	883	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = Z;
 	} break;
 case 178:
-#line	891	"/sys/src/cmd/cc/cc.y"
+#line	891	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(OLIST, yypt[-2].yyv.node, yypt[-0].yyv.node);
 	} break;
 case 179:
-#line	897	"/sys/src/cmd/cc/cc.y"
+#line	897	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.tyty.t1 = strf;
 		yyval.tyty.t2 = strl;
@@ -1643,7 +1665,7 @@ case 179:
 		lasttype = T;
 	} break;
 case 180:
-#line	910	"/sys/src/cmd/cc/cc.y"
+#line	910	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.type = strf;
 		strf = yypt[-2].yyv.tyty.t1;
@@ -1652,32 +1674,32 @@ case 180:
 		lastclass = yypt[-2].yyv.tyty.c;
 	} break;
 case 181:
-#line	919	"/sys/src/cmd/cc/cc.y"
+#line	919	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		lastclass = CXXX;
 		lasttype = types[TINT];
 	} break;
 case 183:
-#line	927	"/sys/src/cmd/cc/cc.y"
+#line	927	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.tycl.t = yypt[-0].yyv.type;
 		yyval.tycl.c = CXXX;
 	} break;
 case 184:
-#line	932	"/sys/src/cmd/cc/cc.y"
+#line	932	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.tycl.t = simplet(yypt[-0].yyv.lval);
 		yyval.tycl.c = CXXX;
 	} break;
 case 185:
-#line	937	"/sys/src/cmd/cc/cc.y"
+#line	937	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.tycl.t = simplet(yypt[-0].yyv.lval);
 		yyval.tycl.c = simplec(yypt[-0].yyv.lval);
 		yyval.tycl.t = garbt(yyval.tycl.t, yypt[-0].yyv.lval);
 	} break;
 case 186:
-#line	943	"/sys/src/cmd/cc/cc.y"
+#line	943	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.tycl.t = yypt[-1].yyv.type;
 		yyval.tycl.c = simplec(yypt[-0].yyv.lval);
@@ -1686,59 +1708,59 @@ case 186:
 			diag(Z, "duplicate types given: %T and %Q", yypt[-1].yyv.type, yypt[-0].yyv.lval);
 	} break;
 case 187:
-#line	951	"/sys/src/cmd/cc/cc.y"
+#line	951	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.tycl.t = simplet(typebitor(yypt[-1].yyv.lval, yypt[-0].yyv.lval));
 		yyval.tycl.c = simplec(yypt[-0].yyv.lval);
 		yyval.tycl.t = garbt(yyval.tycl.t, yypt[-0].yyv.lval);
 	} break;
 case 188:
-#line	957	"/sys/src/cmd/cc/cc.y"
+#line	957	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.tycl.t = yypt[-1].yyv.type;
 		yyval.tycl.c = simplec(yypt[-2].yyv.lval);
 		yyval.tycl.t = garbt(yyval.tycl.t, yypt[-2].yyv.lval|yypt[-0].yyv.lval);
 	} break;
 case 189:
-#line	963	"/sys/src/cmd/cc/cc.y"
+#line	963	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.tycl.t = simplet(yypt[-0].yyv.lval);
 		yyval.tycl.c = simplec(yypt[-1].yyv.lval);
 		yyval.tycl.t = garbt(yyval.tycl.t, yypt[-1].yyv.lval);
 	} break;
 case 190:
-#line	969	"/sys/src/cmd/cc/cc.y"
+#line	969	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.tycl.t = simplet(typebitor(yypt[-1].yyv.lval, yypt[-0].yyv.lval));
 		yyval.tycl.c = simplec(yypt[-2].yyv.lval|yypt[-0].yyv.lval);
 		yyval.tycl.t = garbt(yyval.tycl.t, yypt[-2].yyv.lval|yypt[-0].yyv.lval);
 	} break;
 case 191:
-#line	977	"/sys/src/cmd/cc/cc.y"
+#line	977	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.type = yypt[-0].yyv.tycl.t;
 		if(yypt[-0].yyv.tycl.c != CXXX)
 			diag(Z, "illegal combination of class 4: %s", cnames[yypt[-0].yyv.tycl.c]);
 	} break;
 case 192:
-#line	985	"/sys/src/cmd/cc/cc.y"
+#line	985	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		lasttype = yypt[-0].yyv.tycl.t;
 		lastclass = yypt[-0].yyv.tycl.c;
 	} break;
 case 193:
-#line	992	"/sys/src/cmd/cc/cc.y"
+#line	992	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		dotag(yypt[-0].yyv.sym, TSTRUCT, 0);
 		yyval.type = yypt[-0].yyv.sym->suetag;
 	} break;
 case 194:
-#line	997	"/sys/src/cmd/cc/cc.y"
+#line	997	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		dotag(yypt[-0].yyv.sym, TSTRUCT, autobn);
 	} break;
 case 195:
-#line	1001	"/sys/src/cmd/cc/cc.y"
+#line	1001	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.type = yypt[-2].yyv.sym->suetag;
 		if(yyval.type->link != T)
@@ -1747,7 +1769,7 @@ case 195:
 		sualign(yyval.type);
 	} break;
 case 196:
-#line	1009	"/sys/src/cmd/cc/cc.y"
+#line	1009	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		taggen++;
 		sprint(symb, "_%d_", taggen);
@@ -1756,18 +1778,18 @@ case 196:
 		sualign(yyval.type);
 	} break;
 case 197:
-#line	1017	"/sys/src/cmd/cc/cc.y"
+#line	1017	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		dotag(yypt[-0].yyv.sym, TUNION, 0);
 		yyval.type = yypt[-0].yyv.sym->suetag;
 	} break;
 case 198:
-#line	1022	"/sys/src/cmd/cc/cc.y"
+#line	1022	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		dotag(yypt[-0].yyv.sym, TUNION, autobn);
 	} break;
 case 199:
-#line	1026	"/sys/src/cmd/cc/cc.y"
+#line	1026	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.type = yypt[-2].yyv.sym->suetag;
 		if(yyval.type->link != T)
@@ -1776,7 +1798,7 @@ case 199:
 		sualign(yyval.type);
 	} break;
 case 200:
-#line	1034	"/sys/src/cmd/cc/cc.y"
+#line	1034	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		taggen++;
 		sprint(symb, "_%d_", taggen);
@@ -1785,7 +1807,7 @@ case 200:
 		sualign(yyval.type);
 	} break;
 case 201:
-#line	1042	"/sys/src/cmd/cc/cc.y"
+#line	1042	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		dotag(yypt[-0].yyv.sym, TENUM, 0);
 		yyval.type = yypt[-0].yyv.sym->suetag;
@@ -1794,18 +1816,18 @@ case 201:
 		yyval.type = yyval.type->link;
 	} break;
 case 202:
-#line	1050	"/sys/src/cmd/cc/cc.y"
+#line	1050	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		dotag(yypt[-0].yyv.sym, TENUM, autobn);
 	} break;
 case 203:
-#line	1054	"/sys/src/cmd/cc/cc.y"
+#line	1054	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		en.tenum = T;
 		en.cenum = T;
 	} break;
 case 204:
-#line	1059	"/sys/src/cmd/cc/cc.y"
+#line	1059	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.type = yypt[-5].yyv.sym->suetag;
 		if(yyval.type->link != T)
@@ -1818,110 +1840,110 @@ case 204:
 		yyval.type = en.tenum;
 	} break;
 case 205:
-#line	1071	"/sys/src/cmd/cc/cc.y"
+#line	1071	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		en.tenum = T;
 		en.cenum = T;
 	} break;
 case 206:
-#line	1076	"/sys/src/cmd/cc/cc.y"
+#line	1076	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.type = en.tenum;
 	} break;
 case 207:
-#line	1080	"/sys/src/cmd/cc/cc.y"
+#line	1080	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.type = tcopy(yypt[-0].yyv.sym->type);
 	} break;
 case 209:
-#line	1087	"/sys/src/cmd/cc/cc.y"
+#line	1087	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.lval = typebitor(yypt[-1].yyv.lval, yypt[-0].yyv.lval);
 	} break;
 case 210:
-#line	1092	"/sys/src/cmd/cc/cc.y"
+#line	1092	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.lval = 0;
 	} break;
 case 211:
-#line	1096	"/sys/src/cmd/cc/cc.y"
+#line	1096	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.lval = typebitor(yypt[-1].yyv.lval, yypt[-0].yyv.lval);
 	} break;
 case 216:
-#line	1108	"/sys/src/cmd/cc/cc.y"
+#line	1108	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.lval = typebitor(yypt[-1].yyv.lval, yypt[-0].yyv.lval);
 	} break;
 case 219:
-#line	1118	"/sys/src/cmd/cc/cc.y"
+#line	1118	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		doenum(yypt[-0].yyv.sym, Z);
 	} break;
 case 220:
-#line	1122	"/sys/src/cmd/cc/cc.y"
+#line	1122	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		doenum(yypt[-2].yyv.sym, yypt[-0].yyv.node);
 	} break;
 case 223:
-#line	1129	"/sys/src/cmd/cc/cc.y"
+#line	1129	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 { yyval.lval = BCHAR; } break;
 case 224:
-#line	1130	"/sys/src/cmd/cc/cc.y"
+#line	1130	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 { yyval.lval = BSHORT; } break;
 case 225:
-#line	1131	"/sys/src/cmd/cc/cc.y"
+#line	1131	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 { yyval.lval = BINT; } break;
 case 226:
-#line	1132	"/sys/src/cmd/cc/cc.y"
+#line	1132	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 { yyval.lval = BLONG; } break;
 case 227:
-#line	1133	"/sys/src/cmd/cc/cc.y"
+#line	1133	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 { yyval.lval = BSIGNED; } break;
 case 228:
-#line	1134	"/sys/src/cmd/cc/cc.y"
+#line	1134	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 { yyval.lval = BUNSIGNED; } break;
 case 229:
-#line	1135	"/sys/src/cmd/cc/cc.y"
+#line	1135	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 { yyval.lval = BFLOAT; } break;
 case 230:
-#line	1136	"/sys/src/cmd/cc/cc.y"
+#line	1136	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 { yyval.lval = BDOUBLE; } break;
 case 231:
-#line	1137	"/sys/src/cmd/cc/cc.y"
+#line	1137	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 { yyval.lval = BVOID; } break;
 case 232:
-#line	1140	"/sys/src/cmd/cc/cc.y"
+#line	1140	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 { yyval.lval = BAUTO; } break;
 case 233:
-#line	1141	"/sys/src/cmd/cc/cc.y"
+#line	1141	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 { yyval.lval = BSTATIC; } break;
 case 234:
-#line	1142	"/sys/src/cmd/cc/cc.y"
+#line	1142	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 { yyval.lval = BEXTERN; } break;
 case 235:
-#line	1143	"/sys/src/cmd/cc/cc.y"
+#line	1143	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 { yyval.lval = BTYPEDEF; } break;
 case 236:
-#line	1144	"/sys/src/cmd/cc/cc.y"
+#line	1144	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 { yyval.lval = BTYPESTR; } break;
 case 237:
-#line	1145	"/sys/src/cmd/cc/cc.y"
+#line	1145	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 { yyval.lval = BREGISTER; } break;
 case 238:
-#line	1146	"/sys/src/cmd/cc/cc.y"
+#line	1146	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 { yyval.lval = 0; } break;
 case 239:
-#line	1149	"/sys/src/cmd/cc/cc.y"
+#line	1149	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 { yyval.lval = BCONSTNT; } break;
 case 240:
-#line	1150	"/sys/src/cmd/cc/cc.y"
+#line	1150	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 { yyval.lval = BVOLATILE; } break;
 case 241:
-#line	1151	"/sys/src/cmd/cc/cc.y"
+#line	1151	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 { yyval.lval = 0; } break;
 case 242:
-#line	1155	"/sys/src/cmd/cc/cc.y"
+#line	1155	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(ONAME, Z, Z);
 		if(yypt[-0].yyv.sym->class == CLOCAL)
@@ -1936,7 +1958,7 @@ case 242:
 		yypt[-0].yyv.sym->aused = 1;
 	} break;
 case 243:
-#line	1170	"/sys/src/cmd/cc/cc.y"
+#line	1170	"/Users/rminnich/src/nxm/sys/src/cmd/cc/cc.y"
 {
 		yyval.node = new(ONAME, Z, Z);
 		yyval.node->sym = yypt[-0].yyv.sym;
