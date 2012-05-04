@@ -504,7 +504,7 @@ function mkport(					array){
 }
 
 function mklib(						array){
-	arrayify(array, "lib", "/$objtype/lib/", ".a", 1);
+	arrayify(array, "lib", "$NXM/$objtype/lib/", ".a", 1);
 
 	return listolate(array," ");
 }
