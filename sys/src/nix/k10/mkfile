@@ -43,7 +43,7 @@ install:QV:	$p$CONF $p$CONF.gz
 	echo done
 
 init.out:	init9.$O initcode.$O $NXM/$objtype/lib/libc.a
-	$LD -l -R1 -s -o init.out init9.$O initcode.$O -lc
+	$LD -l -R1 -s -o init.out init9.$O initcode.$O $NXM/amd64/lib/libc.a
 
 l32p.$O:	${objtype}l.h
 l64idt.$O:	${objtype}l.h
