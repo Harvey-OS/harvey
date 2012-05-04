@@ -1077,7 +1077,7 @@ zaddr(Gen *a, int s)
 	if(a->offset != 0) {
 		t |= T_OFFSET;
 		l = a->offset;
-		if((vlong)l != a->offset)
+		if(a->offset >> 32)
 			t |= T_64;
 	}
 	if(s != 0)
