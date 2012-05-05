@@ -7,7 +7,7 @@ NPROC=1
 install:V:
 	mksys $objtype
 	6a *.s
-	9ar rvu $NXM/$objtype/lib/libc.a *.$O
+	ar rvu $NXM/$objtype/lib/libc.a *.$O
 	rm -f *.$O *.s
 
 # historical. Did not work on OSX due to obscure errors. 
@@ -143,7 +143,7 @@ oldinstall:V:
 		}} > $i.s
 		$AS $i.s
 	}
-	9ar rvu ${NXM}/$objtype/lib/libc.a *.$O
+	ar rvu ${NXM}/$objtype/lib/libc.a *.$O
 
 nuke clean:V:
 	rm -f *.[$OS]
