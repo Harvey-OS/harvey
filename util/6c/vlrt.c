@@ -200,10 +200,14 @@ dodiv(Vlong num, Vlong den, Vlong *qp, Vlong *rp)
 
 	lnum = V2uv(&num);
 	lden = V2uv(&den);
-	lq = lnum / lden;
-	lr = lnum % lden;
-	uv2V(lq, qp);
-	uv2V(lr, rp);
+	if(qp) {
+		lq = lnum / lden;
+		uv2V(lq, qp);
+	}
+	if(rp) {
+		lr = lnum % lden;
+		uv2V(lr, rp);
+	}
 }
 
 void
