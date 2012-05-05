@@ -4,4 +4,4 @@ echo MAKE SURE PLAN9 is set
 NXM=`pwd`
 export NXM
 #PATH=$PATH:~/src/plan9port/bin/
-PATH=$NXM/xbin:$PLAN9/bin:$PATH
+PATH=$PATH:$PLAN9/bin:
