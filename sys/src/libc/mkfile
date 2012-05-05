@@ -1,5 +1,5 @@
 MKSHELL=rc
-</$NXM/$objtype/mkfile
+<$NXM/$objtype/mkfile
 
 PORTDIRS=9sys 9syscall fmt port thr
 DIRS=$PORTDIRS $CPUS
