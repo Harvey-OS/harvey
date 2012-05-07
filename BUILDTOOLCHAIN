@@ -1,4 +1,6 @@
+PATH=$PATH:$PLAN9/bin
 (cd util/6a && sh BUILD)
 (cd util/6l && sh BUILD)
 (cd util/6c && sh BUILD)
 (cd util && sh BUILD)
+(cd inferno-os && sh BUILD)

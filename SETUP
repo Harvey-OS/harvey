@@ -1,7 +1,7 @@
+echo MAKE SURE PLAN9 is set
 objtype=amd64
 export objtype
-echo MAKE SURE PLAN9 is set
 NXM=`pwd`
 export NXM
 #PATH=$PATH:~/src/plan9port/bin/
-PATH=$PATH:$PLAN9/bin:
+PATH=$NXM/xbin:$PLAN9/bin:$PATH:$PLAN9/bin:
