@@ -1817,7 +1817,7 @@ layout(Node *f, Node *t, int c, int cv, Node *cn)
 int
 immconst(Node *n)
 {
-	long v;
+	int32 v;
 
 	if(n->op != OCONST || !typechlpv[n->type->etype])
 		return 0;

@@ -494,7 +494,7 @@ int
 zaddr(uchar *p, Adr *a, Sym *h[])
 {
 	int c, t, i;
-	long l;
+	int32 l;
 	Sym *s;
 	Auto *u;
 

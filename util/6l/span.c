@@ -315,8 +315,8 @@ asmlc(void)
 int
 oclass(Adr *a)
 {
-	vlong v;
-	long l;
+	int64 v;
+	int32 l;
 
 	if(a->type >= D_INDIR || a->index != D_NONE) {
 		if(a->index != D_NONE && a->scale == 0) {
@@ -494,6 +494,13 @@ oclass(Adr *a)
 			if(v >= -128 && v <= 127)
 				return Yi8;
 			l = v;
+			/* for systems where sizeof(ulong) == 8 */
+			if ((v >>32) == 0) {
+				if (v & 0x80000000)
+					return Ys32;	/* can sign extend */
+				return Yi32;	/* unsigned */
+			}
+			/* leave this in as it works on sizeof(ulong) == 4 */
 			if((vlong)l == v)
 				return Ys32;	/* can sign extend */
 			if((v>>32) == 0)
