@@ -18,9 +18,9 @@ percent of file involved, #lines in file involved; file2,filename2
       28, 11; 3,cipherrc4.c:
       28, 11; 3,cipherrc4.c:
 
-19, 152, 60; 5,5
-      30, 244; 5,dh.c:
-      30, 244; 5,dh.c:
+18, 150, 60; 5,5
+      29, 240; 5,dh.c:
+      29, 240; 5,dh.c:
 
 7, 28, 9; 6,6
       13, 56; 6,dial.c:
@@ -31,20 +31,20 @@ percent of file involved, #lines in file involved; file2,filename2
       8, 34; 7,dial.thread.c:
 
 22, 646, 316; 9,9
-      34, 998; 9,netssh.c:
-      34, 998; 9,netssh.c:
+      35, 1000; 9,netssh.c:
+      35, 1000; 9,netssh.c:
 
 5, 10, 3; 10,10
       10, 20; 10,pubkey.c:
       10, 20; 10,pubkey.c:
 
-7, 39, 15; 12,12
-      13, 68; 12,ssh.c:
-      13, 68; 12,ssh.c:
+7, 36, 12; 12,12
+      12, 65; 12,ssh.c:
+      12, 65; 12,ssh.c:
 
-7, 28, 7; 13,13
-      13, 54; 13,sshsession.c:
-      13, 54; 13,sshsession.c:
+5, 20, 6; 13,13
+      9, 38; 13,sshsession.c:
+      9, 38; 13,sshsession.c:
 
 6, 12, 3; 14,14
       11, 24; 14,transport.c:
@@ -66,9 +66,9 @@ percent of file involved, #lines in file involved; file2,filename2
       2, 15; 5,dh.c:
       2, 9; 6,dial.c:
 
-29, 252, 33; 6,7
-      58, 247; 6,dial.c:
-      56, 239; 7,dial.thread.c:
+30, 257, 33; 6,7
+      59, 252; 6,dial.c:
+      57, 244; 7,dial.thread.c:
 
 0, 10, 3; 8,9
       40, 6; 8,esmprint.c:
@@ -82,8 +82,8 @@ percent of file involved, #lines in file involved; file2,filename2
       12, 7; 11,rsa2ssh2.c:
       1, 7; 12,ssh.c:
 
-2, 22, 6; 12,13
-      4, 23; 12,ssh.c:
+2, 20, 5; 12,13
+      4, 20; 12,ssh.c:
       5, 20; 13,sshsession.c:
 
 0, 3, 1; 13,14
@@ -122,8 +122,8 @@ percent of file involved, #lines in file involved; file2,filename2
       4, 19; 6,dial.c:
       1, 17; 9,netssh.c:
 
-2, 53, 23; 9,12
-      2, 58; 9,netssh.c:
+2, 54, 23; 9,12
+      2, 59; 9,netssh.c:
       8, 40; 12,ssh.c:
 
 3, 8, 1; 11,14
@@ -142,9 +142,9 @@ percent of file involved, #lines in file involved; file2,filename2
       1, 6; 7,dial.thread.c:
       10, 6; 11,rsa2ssh2.c:
 
-1, 36, 10; 9,13
-      1, 39; 9,netssh.c:
-      7, 32; 13,sshsession.c:
+1, 33, 9; 9,13
+      1, 36; 9,netssh.c:
+      7, 29; 13,sshsession.c:
 
 1, 5, 2; 10,14
       3, 6; 10,pubkey.c:
@@ -154,9 +154,9 @@ percent of file involved, #lines in file involved; file2,filename2
       10, 6; 2,cipherblowfish.c:
       1, 6; 7,dial.thread.c:
 
-1, 5, 2; 7,12
-      1, 3; 7,dial.thread.c:
-      1, 6; 12,ssh.c:
+1, 11, 3; 7,12
+      3, 12; 7,dial.thread.c:
+      2, 10; 12,ssh.c:
 
 0, 6, 2; 9,14
       0, 6; 9,netssh.c:
@@ -170,21 +170,21 @@ percent of file involved, #lines in file involved; file2,filename2
       8, 6; 1,cipheraes.c:
       1, 6; 7,dial.thread.c:
 
-2, 17, 5; 6,12
+2, 16, 5; 6,12
       3, 13; 6,dial.c:
-      4, 20; 12,ssh.c:
+      3, 17; 12,ssh.c:
 
-1, 9, 3; 7,13
-      2, 10; 7,dial.thread.c:
-      2, 7; 13,sshsession.c:
+1, 6, 2; 7,13
+      2, 7; 7,dial.thread.c:
+      1, 4; 13,sshsession.c:
 
 2, 10, 2; 0,7
       23, 10; 0,cipher3des.c:
       2, 10; 7,dial.thread.c:
 
-2, 13, 5; 6,13
-      4, 16; 6,dial.c:
-      2, 10; 13,sshsession.c:
+1, 10, 4; 6,13
+      3, 13; 6,dial.c:
+      2, 7; 13,sshsession.c:
 
 1, 6, 1; 7,14
       1, 6; 7,dial.thread.c:
