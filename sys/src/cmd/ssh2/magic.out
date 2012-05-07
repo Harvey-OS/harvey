@@ -78,7 +78,7 @@ dial.c:171: char *fields[5];			/* pid + 3 times + error */
 dial.c:177: if (n < 4)
 dial.c:188: strncpy(conn->err, fields[4], sizeof conn->err);
 dial.c:209: char exitsts[2*ERRMAX];
-dial.c:384: bleft = sizeof dp->addrlist - 2;	/* 2 is room for \n\0 */
+dial.c:381: bleft = sizeof dp->addrlist - 2;	/* 2 is room for \n\0 */
 dial.thread.c:22: Defstksize	= 8192,
 dial.thread.c:24: Maxstring	= 128,
 dial.thread.c:25: Maxpath		= 256,
@@ -232,7 +232,7 @@ pubkey.c:221: fprint(fd, "%s %d %.10M %.10M\n", host, mpsignif(key->n),
 rsa2ssh2.c:54: e = strtomp(ep+4, nil, 16, nil);
 rsa2ssh2.c:55: n = strtomp(np+3, nil, 16, nil);
 rsa2ssh2.c:61: sysfatal("base-64 encoding failed\n");
-ssh.c:131: oalarm = alarm(5*1000);		/* don't get stuck here */
+ssh.c:130: oalarm = alarm(5*1000);		/* don't get stuck here */
 ssh.c:163: //		for (fd = 3; fd < 40; fd++)
 ssh.c:219: if (buf[n-1] == ('u' & 037))
 ssh.c:251: write(kconsfd, buf+5, n);
@@ -254,10 +254,10 @@ ssh.c:319: fprint(kconsfd, "%s\n", buf+5);
 ssh.c:405: ds = netmkaddr(remote, dir, "22");		/* tcp port 22 is ssh */
 ssh.c:579: char buf[64];
 ssh.c:583: return strlen(buf) >= 9 && strcmp(buf+strlen(buf)-9, "/dev/cons") == 0;
-sshsession.c:223: errfd = 2;
-sshsession.c:406: q += 4;
-sshsession.c:420: q += 4;
-sshsession.c:470: dup(datafd, 2);
+sshsession.c:228: errfd = 2;
+sshsession.c:411: q += 4;
+sshsession.c:425: q += 4;
+sshsession.c:475: dup(datafd, 2);
 transport.c:42: p->rlength += 4;
 transport.c:50: *data += 4;
 transport.c:68: p->rlength += 4;
