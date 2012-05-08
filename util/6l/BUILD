@@ -1,3 +1,4 @@
+sh $NXM/buildconfig
 9c -g -I . *.c ../6c/enam.c
 9l -o 6l \
 asm.o \
