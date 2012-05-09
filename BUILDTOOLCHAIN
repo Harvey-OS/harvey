@@ -1,3 +1,4 @@
+rm xbin/ar xbin/nm
 PATH=$PATH:$PLAN9/bin
 (cd util/6a && sh BUILD)
 (cd util/6l && sh BUILD)
