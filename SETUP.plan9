@@ -1,0 +1,5 @@
+objtype=amd64
+NXM=`{pwd}
+aux/stub /bin/mksys
+bind xbin/mksys.plan9 /bin/mksys
+bind  $NXM/amd64 /amd64 

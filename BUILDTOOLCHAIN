@@ -1,5 +1,6 @@
 rm xbin/ar xbin/nm
 PATH=$PATH:$PLAN9/bin
+sh $NXM/buildconfig
 (cd util/6a && sh BUILD)
 (cd util/6l && sh BUILD)
 (cd util/6c && sh BUILD)

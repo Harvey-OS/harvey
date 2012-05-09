@@ -1,0 +1,133 @@
+#!/bin/rc
+
+	objtype = $*
+	SYS=`{sed '/^#define._X[123]/d; s/#define.([A-Z0-9_]*).*/\1/' sys.h}
+	for(I in $SYS) {
+		i=`{echo $I|tr A-Z a-z}
+		n=`{sed -n '/[ 	]'$I'[ 	]/s/.*	//p' sys.h}
+		if(~ $i exits) i=_exits
+		{switch($objtype){
+		case 68000 68020
+			echo TEXT $i'(SB)', 1, '$0'
+			echo MOVL '$'$n, R0
+			echo TRAP '$0'
+			echo RTS
+		case mips
+			echo TEXT $i'(SB)', 1, '$0'
+			echo MOVW R1, '0(FP)'
+			echo MOVW '$'$n, R1
+			echo SYSCALL
+			if(~ $i seek) {
+				echo 'MOVW $-1,R5
+				BNE R1,R5,4(PC)
+				MOVW a+0(FP),R5
+				MOVW R1,0(R5)
+				MOVW R1,4(R5)'
+			}
+			echo RET
+		case mips2
+			echo TEXT $i'(SB)', 1, '$0'
+			echo MOVW R1, '0(FP)'
+			echo MOVW '$'$n, R1
+			echo ADD '$4',R29
+			echo SYSCALL
+			echo ADD '$-4',R29
+			echo RET
+		case spim
+			echo TEXT $i'(SB)', 1, '$0'
+			echo MOVW R1, '0(FP)'
+			echo MOVW '$'$n, R1
+			echo ADD '$4',R29
+			echo SYSCALL
+			echo ADD '$-4',R29
+			if(~ $i seek) {		# untested so far - geoff
+				echo 'MOVW $-1,R5
+				BNE R1,R5,4(PC)
+				MOVW a+0(FP),R5
+				MOVW R1,0(R5)
+				MOVW R1,4(R5)'
+			}
+			echo RET
+		case 386
+			echo TEXT $i'(SB)', 1, '$0'
+			echo MOVL '$'$n, AX
+			echo INT '$'64
+			if(~ $i seek) {
+				echo 'CMPL AX,$-1
+				JNE 4(PC)
+				MOVL a+0(FP),CX
+				MOVL AX,0(CX)
+				MOVL AX,4(CX)'
+			}
+			echo RET
+		case amd64
+			if(~ $i seek)
+				echo TEXT _seek'(SB)', 1, '$0'
+			if not
+				echo TEXT $i'(SB)', 1, '$0'
+			echo MOVQ RARG, 'a0+0(FP)'
+			echo MOVQ '$'$n, RARG
+			echo SYSCALL
+			echo RET
+		case sparc sparc64
+			echo TEXT $i'(SB)', 1, '$0'
+			echo MOVW R7, '0(FP)'
+			echo MOVW '$'$n, R7
+			echo TA R0
+			if(~ $i seek) {
+				echo 'CMP R7,$-1
+				BNE 4(PC)
+				MOVW a+0(FP),R8
+				MOVW R7,0(R8)
+				MOVW R7,4(R8)'
+			}
+			echo RETURN
+		case 3210
+			echo TEXT $i'(SB)', 1, '$0'
+			echo MOVW R3, '0(FP)'
+			echo MOVW '$'$n, R3
+			echo WORD '$0x06000000'
+			echo RETURN
+		case 29000
+			echo TEXT $i'(SB)', 1, '$0'
+			echo MOVL R69, '0(FP)'
+			echo MOVL '$'$n, R69
+			echo EMULATE 0
+			echo RET
+		case arm
+			echo TEXT $i'(SB)', 1, '$0'
+			echo MOVW R0, '0(FP)'
+			echo MOVW '$'$n, R0
+			echo SWI 0
+			if(~ $i seek) {
+				echo 'CMP $-1,R0
+				BNE 4(PC)
+				MOVW a+0(FP),R1
+				MOVW R0,0(R1)
+				MOVW R0,4(R1)'
+			}
+			echo RET
+		case power
+			echo TEXT $i'(SB)', 1, '$0'
+			echo MOVW R3, '0(FP)'
+			echo MOVW '$'$n, R3
+			echo SYSCALL
+			if(~ $i seek) {
+				echo 'CMP R3,$-1
+				BNE 4(PC)
+				MOVW a+0(FP),R8
+				MOVW R3,0(R8)
+				MOVW R3,4(R8)'
+			}
+			echo RETURN
+		case alpha
+			j=$i
+			if(~ $i seek) j=_seek
+			echo TEXT $j'(SB)', 1, '$0'
+			echo MOVL R0, '0(FP)'
+			echo MOVQ '$'$n, R0
+			echo CALL_PAL '$'0x83
+			echo RET
+		}} > $i.s
+		$AS $i.s
+	}
