@@ -27,6 +27,8 @@ BEGIN{
 	}
 
 	o = "";
+	if(!oargc)
+		printf "MKSHELL=rc\n";
 	if(!oargc || ("-mkdevlist" in oargv)){
 		s = mkdevlist();
 		if(!("-mkdevlist" in oargv) || (oargc > 1))
@@ -83,7 +85,7 @@ BEGIN{
 			}
 			l = listolate(c, "|");
 			if(l != ""){
-				o = o "^(" l ")\\\\.$O:R:	" dir "/\\\\1.c\n";
+				o = o "^(" l ")\\.$O:R:	" dir "/\\1.c\n";
 				o = o "\t$CC $CFLAGS " s " " dir "/$stem1.c\n";
 			}
 		}
