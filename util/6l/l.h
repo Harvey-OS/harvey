@@ -388,3 +388,4 @@ void	xdefine(char*, int, vlong);
 void	xfol(Prog*);
 int	zaddr(uchar*, Adr*, Sym*[]);
 void	zerosig(char*);
+void Lflag(char*);
