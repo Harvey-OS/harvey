@@ -3,7 +3,6 @@
  *	8a mbr.s; 8l -o mbr -l -H3 -T0x0600 mbr.8
  */
 #include "x16.h"
-#include "mem.h"
 
 /*#define FLOPPY	1		/* test on a floppy */
 #define TRACE(C)	PUSHA;\

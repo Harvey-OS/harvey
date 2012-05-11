@@ -14,7 +14,6 @@
  * the LBA of the root directory.
  */
 #include "x16.h"
-#include "mem.h"
 
 #define LOADSEG		(0x10000/16)	/* where to load code (64KB) */
 #define LOADOFF		0
