@@ -39,9 +39,9 @@ LIBS=\
 
 NO=	libstdio\
 	libscribble\
+	games\
 
 CMDS=cmd\
-	games\
 
 SUBSYS=
 
