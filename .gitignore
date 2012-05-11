@@ -93,3 +93,4 @@ sys/src/cmd/._cp
 sys/src/cmd/creepy/9pix
 sys/src/cmd/creepy/fscmd
 sys/src/cmd/creepy/fsfmt
+sys/src/cmd/syscall/tab.h
