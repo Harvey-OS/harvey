@@ -383,7 +383,7 @@ Lflag(char *arg)
 		}
 		libdir = p;
 	}
-	libdir[nlibdir++] = arg;
+	libdir[nlibdir++] = strdup(arg);
 }
 
 void
@@ -820,12 +820,12 @@ ldobj(int f, long c, char *pn)
 	int v, o, r, skip, mode;
 	Sym *h[NSYM], *s, *di;
 	ulong sig;
-	static int files;
+	static int files = 0;
 	static char **filen;
 	char **nfilen;
 
-	if((files&15) == 0){
-		nfilen = malloc((files+16)*sizeof(char*));
+	if((files&511) == 0){
+		nfilen = malloc((files+512)*sizeof(char*));
 		memmove(nfilen, filen, files*sizeof(char*));
 		free(filen);
 		filen = nfilen;
