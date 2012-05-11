@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 LIB=usb.a$O
 OFILES=\
@@ -19,7 +20,7 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	mkfile\
 
-</sys/src/cmd/mklib
+<$NXM/sys/src/cmd/mklib
 
 install:V:	$LIB
 	date

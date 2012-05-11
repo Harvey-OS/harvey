@@ -1,11 +1,12 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=troff2html
 HFILES=chars.h
 OFILES=troff2html.$O\
 
-BIN=/$objtype/bin
-</sys/src/cmd/mkone
+BIN=$NXM/$objtype/bin
+<$NXM/sys/src/cmd/mkone
 CFLAGS=$CFLAGS -DLUCENT
 
 outsideinstall:V: /386/bin/troff2html

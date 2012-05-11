@@ -1,7 +1,8 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=mnihongo
 OFILES=mnihongo.$O
 
-BIN=/$objtype/bin/aux
-</sys/src/cmd/mkone
+BIN=$NXM/$objtype/bin/aux
+<$NXM/sys/src/cmd/mkone

@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 LIBOFILES=\
 	arena.$O\
@@ -46,7 +47,7 @@ LIB=$SLIB # /$objtype/lib/libventi.a
 HFILES=	dat.h\
 	fns.h\
 	stdinc.h\
-	/sys/include/venti.h\
+	$NXM/sys/g/include/venti.h\
 	/sys/include/httpd.h\
 
 TARG=\
@@ -73,13 +74,13 @@ TARG=\
 
 OFILES=
 
-BIN=/$objtype/bin/venti
+BIN=$NXM/$objtype/bin/venti
 
 it:V: $O.venti
 
 CLEANFILES=$CLEANFILES $SLIB
 
-</sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany
 
 CFLAGS=$CFLAGS -I.
 

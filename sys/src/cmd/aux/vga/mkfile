@@ -1,5 +1,6 @@
-< /$objtype/mkfile
-BIN=/$objtype/bin/aux
+MKSHELL=rc
+<$NXM/$objtype/mkfile
+BIN=$NXM/$objtype/bin/aux
 
 TARG=vga
 OFILES=\
@@ -74,6 +75,6 @@ UPDATE=\
 	riva_tbl.h\
 
 
-</sys/src/cmd/mkone
+<$NXM/sys/src/cmd/mkone
 
 nvidia.$O:	riva_tbl.h

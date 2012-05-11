@@ -1,5 +1,6 @@
+MKSHELL=rc
 # cs & dns mkfile
-</$objtype/mkfile
+<$NXM/$objtype/mkfile
 
 TARG =	\
 	mkdb\
@@ -25,11 +26,11 @@ DNSTCPOBJ = dnstcp.$O dn.$O dnresolve.$O dblookup.$O dnserver.$O\
 DNSDEBUGOBJ = dnsdebug.$O dn.$O dnresolve.$O dblookup.$O dnserver.$O\
 	 dnarea.$O convM2DNS.$O convDNS2M.$O
 
-HFILES = dns.h /$objtype/lib/libndb.a
+HFILES = dns.h $NXM/$objtype/lib/libndb.a
 
-BIN=/$objtype/bin/ndb
+BIN=$NXM/$objtype/bin/ndb
 
-</sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany
 
 $O.dns: $DNSOBJ
 	$LD -o $target $prereq

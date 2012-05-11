@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 LIB=libmap.a$O
 OFILES=aitoff.$O\
@@ -42,7 +43,7 @@ OFILES=aitoff.$O\
 
 HFILES=../map.h\
 
-</sys/src/cmd/mklib
+<$NXM/sys/src/cmd/mklib
 CFLAGS=$CFLAGS -I..
 
 nuke:V:

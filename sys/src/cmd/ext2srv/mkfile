@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=ext2srv
 OFILES=\
@@ -12,7 +13,7 @@ OFILES=\
 HFILES=dat.h\
 	fns.h\
 
-BIN=/$objtype/bin
-</sys/src/cmd/mkone
+BIN=$NXM/$objtype/bin
+<$NXM/sys/src/cmd/mkone
 
 xfssrv.$O:	errstr.h

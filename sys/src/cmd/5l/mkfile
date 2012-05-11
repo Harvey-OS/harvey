@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=5l
 OFILES=\
@@ -16,8 +17,8 @@ HFILES=\
 	l.h\
 	../5c/5.out.h\
 
-BIN=/$objtype/bin
-</sys/src/cmd/mkone
+BIN=$NXM/$objtype/bin
+<$NXM/sys/src/cmd/mkone
 
 ../5c/enam.c: ../5c/5.out.h
 	@ { cd ../5c; mk enam.c }

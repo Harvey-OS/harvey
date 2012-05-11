@@ -1,9 +1,10 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=plumber plumb
 
-BIN=/$objtype/bin
-</sys/src/cmd/mkmany
+BIN=$NXM/$objtype/bin
+<$NXM/sys/src/cmd/mkmany
 
 PLUMBER=plumber.$O fsys.$O match.$O rules.$O
 PLUMB=plumb.$O

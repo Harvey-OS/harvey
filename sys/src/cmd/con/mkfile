@@ -1,11 +1,12 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=con\
 	xms\
 	xmr\
 	hayes\
 
-BIN=/$objtype/bin
+BIN=$NXM/$objtype/bin
 
 UPDATE=\
 	mkfile\
@@ -13,6 +14,6 @@ UPDATE=\
 	${TARG:%=%.c}\
 	/sys/man/1/con\
 
-</sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany
 
 

@@ -56,7 +56,7 @@
 #define	DYAD	57401
 #define	UTILDE	57402
 
-#line	17	"/sys/src/cmd/eqn/eqn.y"
+#line	17	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 #include "e.h"
 
 int	yylex(void);
@@ -72,9 +72,9 @@ YYSTYPE	yyval;
 #define YYEOFCODE 1
 #define YYERRCODE 2
 
-#line	140	"/sys/src/cmd/eqn/eqn.y"
+#line	140	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 
-short	yyexca[] =
+static	const	short	yyexca[] =
 {-1, 0,
 	1, 3,
 	-2, 0,
@@ -85,7 +85,7 @@ short	yyexca[] =
 #define	YYNPROD	90
 #define	YYPRIVATE 57344
 #define	YYLAST	469
-short	yyact[] =
+static	const	short	yyact[] =
 {
    4, 103, 119,  45,  27, 118, 104,   2, 102,  41,
   42,  43,  44,  65,  80,  81,  79,  66,  67,  68,
@@ -135,7 +135,7 @@ short	yyact[] =
   62,  57,  58,  59,  60,  55,  56,  63,  61,  64,
   54,  62,  57,  58,  59,  60,  55,  56,  63
 };
-short	yypact[] =
+static	const	short	yypact[] =
 {
  241,-1000, 288,-1000,  26,-1000, 335,-1000,-1000,-1000,
 -1000,-1000,-1000,-1000,-1000,-1000, 380, 380, 380, 380,
@@ -152,13 +152,13 @@ short	yypact[] =
  380,-1000, 380,-1000,-1000,-1000, 288,  50, -14,  26,
 -1000
 };
-short	yypgo[] =
+static	const	short	yypgo[] =
 {
    0, 122,   6,   0, 117,   2, 116, 114, 111, 110,
  109, 108, 106,  98,  93,  92,  91,  89,  87,  75,
   73,  65,  51,   4,  47,  35,  16,  30,   1,  28
 };
-short	yyr1[] =
+static	const	short	yyr1[] =
 {
    0,   1,   1,   1,   2,   2,   2,   2,   4,   5,
    5,   6,   6,   3,   3,   3,   3,   3,   3,   3,
@@ -170,7 +170,7 @@ short	yyr1[] =
   17,  17,  25,  25,  23,  29,  23,  27,  27,  27,
   27,  28,  28,   7,   8,   8,   8,   8,  26,  26
 };
-short	yyr2[] =
+static	const	short	yyr2[] =
 {
    0,   1,   1,   0,   1,   2,   2,   1,   2,   2,
    0,   2,   0,   3,   1,   1,   1,   1,   1,   1,
@@ -182,7 +182,7 @@ short	yyr2[] =
    2,   2,   1,   2,   4,   0,   6,   1,   1,   1,
    1,   1,   3,   2,   1,   1,   1,   2,   1,   1
 };
-short	yychk[] =
+static	const	short	yychk[] =
 {
 -1000,  -1,  -2,   2,  -3,  16,  61,   5,   4,   6,
    7,   8,  17,  19,  20,  21,  15,  -7,  -8,  43,
@@ -199,7 +199,7 @@ short	yychk[] =
   36,  -6,  33,  -5,  62, -23,  -2, -28,  -3,  -3,
   62
 };
-short	yydef[] =
+static	const	short	yydef[] =
 {
   -2,  -2,   1,   2,   4,   7,   0,  14,  15,  16,
   17,  18,  19,  20,  21,  22,   0,   0,   0,   0,
@@ -216,7 +216,7 @@ short	yydef[] =
    0,  39,   0,  34,  51,  73,  82,   0,   9,  11,
   76
 };
-short	yytok1[] =
+static	const	short	yytok1[] =
 {
    1,   0,   0,   0,   0,   0,   0,   0,   0,   0,
    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
@@ -232,7 +232,7 @@ short	yytok1[] =
    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
    0,   0,   0,  61,   0,  62
 };
-short	yytok2[] =
+static	const	short	yytok2[] =
 {
    2,   3,   4,   5,   6,   7,   8,   9,  10,  11,
   12,  13,  14,  15,  16,  17,  18,  19,  20,  21,
@@ -241,7 +241,7 @@ short	yytok2[] =
   42,  43,  44,  45,  46,  47,  48,  49,  50,  51,
   52,  53,  54,  55,  56,  57,  58,  59,  60
 };
-long	yytok3[] =
+static	const	long	yytok3[] =
 {
    0
 };
@@ -256,19 +256,25 @@ long	yytok3[] =
 #include	"y.debug"
 #else
 #define	yydebug		0
-char*	yytoknames[1];		/* for debugging */
-char*	yystates[1];		/* for debugging */
+static	const	char*	yytoknames[1];		/* for debugging */
+static	const	char*	yystates[1];		/* for debugging */
 #endif
 
 /*	parser for yacc output	*/
-
+#ifdef YYARG
+#define	yynerrs		yyarg->yynerrs
+#define	yyerrflag	yyarg->yyerrflag
+#define yyval		yyarg->yyval
+#define yylval		yyarg->yylval
+#else
 int	yynerrs = 0;		/* number of errors */
 int	yyerrflag = 0;		/* error recovery flag */
+#endif
 
-char*
+static const char*
 yytokname(int yyc)
 {
-	static char x[16];
+	static char x[10];
 
 	if(yyc > 0 && yyc <= sizeof(yytoknames)/sizeof(yytoknames[0]))
 	if(yytoknames[yyc-1])
@@ -277,10 +283,10 @@ yytokname(int yyc)
 	return x;
 }
 
-char*
+static const char*
 yystatname(int yys)
 {
-	static char x[16];
+	static char x[10];
 
 	if(yys >= 0 && yys < sizeof(yystates)/sizeof(yystates[0]))
 	if(yystates[yys])
@@ -289,14 +295,22 @@ yystatname(int yys)
 	return x;
 }
 
-long
+static long
+#ifdef YYARG
+yylex1(struct Yyarg *yyarg)
+#else
 yylex1(void)
+#endif
 {
 	long yychar;
-	long *t3p;
+	const long *t3p;
 	int c;
 
+#ifdef YYARG	
+	yychar = yylex(yyarg);
+#else
 	yychar = yylex();
+#endif
 	if(yychar <= 0) {
 		c = yytok1[0];
 		goto out;
@@ -330,23 +344,29 @@ out:
 }
 
 int
+#ifdef YYARG
+yyparse(struct Yyarg *yyarg)
+#else
 yyparse(void)
+#endif
 {
 	struct
 	{
 		YYSTYPE	yyv;
 		int	yys;
 	} yys[YYMAXDEPTH], *yyp, *yypt;
-	short *yyxi;
+	const short *yyxi;
 	int yyj, yym, yystate, yyn, yyg;
+	long yychar;
+#ifndef YYARG
 	YYSTYPE save1, save2;
 	int save3, save4;
-	long yychar;
 
 	save1 = yylval;
 	save2 = yyval;
 	save3 = yynerrs;
 	save4 = yyerrflag;
+#endif
 
 	yystate = 0;
 	yychar = -1;
@@ -364,10 +384,12 @@ ret1:
 	goto ret;
 
 ret:
+#ifndef YYARG
 	yylval = save1;
 	yyval = save2;
 	yynerrs = save3;
 	yyerrflag = save4;
+#endif
 	return yyn;
 
 yystack:
@@ -388,7 +410,11 @@ yynewstate:
 	if(yyn <= YYFLAG)
 		goto yydefault; /* simple state */
 	if(yychar < 0)
+#ifdef YYARG
+		yychar = yylex1(yyarg);
+#else
 		yychar = yylex1();
+#endif
 	yyn += yychar;
 	if(yyn < 0 || yyn >= YYLAST)
 		goto yydefault;
@@ -407,7 +433,11 @@ yydefault:
 	yyn = yydef[yystate];
 	if(yyn == -2) {
 		if(yychar < 0)
-			yychar = yylex1();
+#ifdef YYARG
+		yychar = yylex1(yyarg);
+#else
+		yychar = yylex1();
+#endif
 
 		/* look through exception table */
 		for(yyxi=yyexca;; yyxi+=2)
@@ -431,7 +461,8 @@ yydefault:
 				printf("%s", yystatname(yystate));
 				printf("saw %s\n", yytokname(yychar));
 			}
-yyerrlab:
+			goto yyerrlab;
+		yyerrlab:
 			yynerrs++;
 
 		case 1:
@@ -485,256 +516,256 @@ yyerrlab:
 	switch(yym) {
 		
 case 1:
-#line	24	"/sys/src/cmd/eqn/eqn.y"
+#line	24	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { putout(yypt[-0].yyv); } break;
 case 2:
-#line	25	"/sys/src/cmd/eqn/eqn.y"
+#line	25	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { ERROR "syntax error" WARNING; } break;
 case 3:
-#line	26	"/sys/src/cmd/eqn/eqn.y"
+#line	26	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { eqnreg = 0; } break;
 case 5:
-#line	30	"/sys/src/cmd/eqn/eqn.y"
+#line	30	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { eqnbox(yypt[-1].yyv, yypt[-0].yyv, 0); } break;
 case 6:
-#line	31	"/sys/src/cmd/eqn/eqn.y"
+#line	31	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { eqnbox(yypt[-1].yyv, yypt[-0].yyv, 1); } break;
 case 7:
-#line	32	"/sys/src/cmd/eqn/eqn.y"
+#line	32	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { lineup(0); } break;
 case 8:
-#line	35	"/sys/src/cmd/eqn/eqn.y"
+#line	35	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = yypt[-0].yyv; lineup(1); } break;
 case 9:
-#line	38	"/sys/src/cmd/eqn/eqn.y"
+#line	38	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = yypt[-0].yyv; } break;
 case 10:
-#line	39	"/sys/src/cmd/eqn/eqn.y"
+#line	39	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = 0; } break;
 case 11:
-#line	42	"/sys/src/cmd/eqn/eqn.y"
+#line	42	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = yypt[-0].yyv; } break;
 case 12:
-#line	43	"/sys/src/cmd/eqn/eqn.y"
+#line	43	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = 0; } break;
 case 13:
-#line	46	"/sys/src/cmd/eqn/eqn.y"
+#line	46	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = yypt[-1].yyv; } break;
 case 14:
-#line	47	"/sys/src/cmd/eqn/eqn.y"
+#line	47	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { text(QTEXT, (char *) yypt[-0].yyv); } break;
 case 15:
-#line	48	"/sys/src/cmd/eqn/eqn.y"
+#line	48	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { text(CONTIG, (char *) yypt[-0].yyv); } break;
 case 16:
-#line	49	"/sys/src/cmd/eqn/eqn.y"
+#line	49	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { text(SPACE, (char *) 0); } break;
 case 17:
-#line	50	"/sys/src/cmd/eqn/eqn.y"
+#line	50	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { text(THIN, (char *) 0); } break;
 case 18:
-#line	51	"/sys/src/cmd/eqn/eqn.y"
+#line	51	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { text(TAB, (char *) 0); } break;
 case 19:
-#line	52	"/sys/src/cmd/eqn/eqn.y"
+#line	52	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { funny(SUM); } break;
 case 20:
-#line	53	"/sys/src/cmd/eqn/eqn.y"
+#line	53	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { funny(PROD); } break;
 case 21:
-#line	54	"/sys/src/cmd/eqn/eqn.y"
+#line	54	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { funny(UNION); } break;
 case 22:
-#line	55	"/sys/src/cmd/eqn/eqn.y"
+#line	55	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { funny(INTER); } break;
 case 23:
-#line	56	"/sys/src/cmd/eqn/eqn.y"
+#line	56	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { boverb(yypt[-2].yyv, yypt[-0].yyv); } break;
 case 24:
-#line	57	"/sys/src/cmd/eqn/eqn.y"
+#line	57	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { mark(yypt[-0].yyv); } break;
 case 25:
-#line	58	"/sys/src/cmd/eqn/eqn.y"
+#line	58	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { size(yypt[-1].yyv, yypt[-0].yyv); } break;
 case 26:
-#line	59	"/sys/src/cmd/eqn/eqn.y"
+#line	59	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { font(yypt[-1].yyv, yypt[-0].yyv); } break;
 case 27:
-#line	60	"/sys/src/cmd/eqn/eqn.y"
+#line	60	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { fatbox(yypt[-0].yyv); } break;
 case 28:
-#line	61	"/sys/src/cmd/eqn/eqn.y"
+#line	61	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { sqrt(yypt[-0].yyv); } break;
 case 29:
-#line	62	"/sys/src/cmd/eqn/eqn.y"
+#line	62	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 {ps -= deltaps;} break;
 case 30:
-#line	62	"/sys/src/cmd/eqn/eqn.y"
+#line	62	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { subsup(yypt[-4].yyv, yypt[-1].yyv, yypt[-0].yyv); } break;
 case 31:
-#line	63	"/sys/src/cmd/eqn/eqn.y"
+#line	63	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 {ps -= deltaps;} break;
 case 32:
-#line	63	"/sys/src/cmd/eqn/eqn.y"
+#line	63	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { subsup(yypt[-3].yyv, 0, yypt[-0].yyv); } break;
 case 33:
-#line	64	"/sys/src/cmd/eqn/eqn.y"
+#line	64	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 {ps -= deltaps;} break;
 case 34:
-#line	64	"/sys/src/cmd/eqn/eqn.y"
+#line	64	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { integral(yypt[-4].yyv, yypt[-1].yyv, yypt[-0].yyv); } break;
 case 35:
-#line	65	"/sys/src/cmd/eqn/eqn.y"
+#line	65	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 {ps -= deltaps;} break;
 case 36:
-#line	65	"/sys/src/cmd/eqn/eqn.y"
+#line	65	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { integral(yypt[-3].yyv, 0, yypt[-0].yyv); } break;
 case 37:
-#line	66	"/sys/src/cmd/eqn/eqn.y"
+#line	66	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { integral(yypt[-0].yyv, 0, 0); } break;
 case 38:
-#line	67	"/sys/src/cmd/eqn/eqn.y"
+#line	67	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 {ps -= deltaps;} break;
 case 39:
-#line	67	"/sys/src/cmd/eqn/eqn.y"
+#line	67	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { fromto(yypt[-4].yyv, yypt[-1].yyv, yypt[-0].yyv); } break;
 case 40:
-#line	68	"/sys/src/cmd/eqn/eqn.y"
+#line	68	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 {ps -= deltaps;} break;
 case 41:
-#line	68	"/sys/src/cmd/eqn/eqn.y"
+#line	68	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { fromto(yypt[-3].yyv, 0, yypt[-0].yyv); } break;
 case 42:
-#line	69	"/sys/src/cmd/eqn/eqn.y"
+#line	69	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { paren(yypt[-2].yyv, yypt[-1].yyv, yypt[-0].yyv); } break;
 case 43:
-#line	70	"/sys/src/cmd/eqn/eqn.y"
+#line	70	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { paren(yypt[-1].yyv, yypt[-0].yyv, 0); } break;
 case 44:
-#line	71	"/sys/src/cmd/eqn/eqn.y"
+#line	71	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { diacrit(yypt[-1].yyv, yypt[-0].yyv); } break;
 case 45:
-#line	72	"/sys/src/cmd/eqn/eqn.y"
+#line	72	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { move(FWD, yypt[-1].yyv, yypt[-0].yyv); } break;
 case 46:
-#line	73	"/sys/src/cmd/eqn/eqn.y"
+#line	73	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { move(UP, yypt[-1].yyv, yypt[-0].yyv); } break;
 case 47:
-#line	74	"/sys/src/cmd/eqn/eqn.y"
+#line	74	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { move(BACK, yypt[-1].yyv, yypt[-0].yyv); } break;
 case 48:
-#line	75	"/sys/src/cmd/eqn/eqn.y"
+#line	75	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { move(DOWN, yypt[-1].yyv, yypt[-0].yyv); } break;
 case 49:
-#line	76	"/sys/src/cmd/eqn/eqn.y"
+#line	76	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { pile(yypt[-0].yyv); ct = yypt[-0].yyv; } break;
 case 50:
-#line	77	"/sys/src/cmd/eqn/eqn.y"
+#line	77	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 {yyval=ct;} break;
 case 51:
-#line	77	"/sys/src/cmd/eqn/eqn.y"
+#line	77	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { matrix(yypt[-3].yyv); ct = yypt[-3].yyv; } break;
 case 52:
-#line	80	"/sys/src/cmd/eqn/eqn.y"
+#line	80	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { setintegral(); } break;
 case 53:
-#line	83	"/sys/src/cmd/eqn/eqn.y"
+#line	83	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = atoi((char *) yypt[-1].yyv); } break;
 case 54:
-#line	84	"/sys/src/cmd/eqn/eqn.y"
+#line	84	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = atoi((char *) yypt[-1].yyv); } break;
 case 55:
-#line	85	"/sys/src/cmd/eqn/eqn.y"
+#line	85	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = atoi((char *) yypt[-1].yyv); } break;
 case 56:
-#line	86	"/sys/src/cmd/eqn/eqn.y"
+#line	86	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = atoi((char *) yypt[-1].yyv); } break;
 case 57:
-#line	88	"/sys/src/cmd/eqn/eqn.y"
+#line	88	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = HAT; } break;
 case 58:
-#line	89	"/sys/src/cmd/eqn/eqn.y"
+#line	89	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = VEC; } break;
 case 59:
-#line	90	"/sys/src/cmd/eqn/eqn.y"
+#line	90	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = DYAD; } break;
 case 60:
-#line	91	"/sys/src/cmd/eqn/eqn.y"
+#line	91	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = BAR; } break;
 case 61:
-#line	92	"/sys/src/cmd/eqn/eqn.y"
+#line	92	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = LOWBAR; } break;
 case 62:
-#line	93	"/sys/src/cmd/eqn/eqn.y"
+#line	93	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = HIGHBAR; } break;
 case 63:
-#line	94	"/sys/src/cmd/eqn/eqn.y"
+#line	94	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = UNDER; } break;
 case 64:
-#line	95	"/sys/src/cmd/eqn/eqn.y"
+#line	95	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = DOT; } break;
 case 65:
-#line	96	"/sys/src/cmd/eqn/eqn.y"
+#line	96	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = TILDE; } break;
 case 66:
-#line	97	"/sys/src/cmd/eqn/eqn.y"
+#line	97	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = UTILDE; } break;
 case 67:
-#line	98	"/sys/src/cmd/eqn/eqn.y"
+#line	98	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = DOTDOT; } break;
 case 68:
-#line	101	"/sys/src/cmd/eqn/eqn.y"
+#line	101	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = ((char *)yypt[-0].yyv)[0]; } break;
 case 69:
-#line	102	"/sys/src/cmd/eqn/eqn.y"
+#line	102	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = '{'; } break;
 case 70:
-#line	105	"/sys/src/cmd/eqn/eqn.y"
+#line	105	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = ((char *)yypt[-0].yyv)[0]; } break;
 case 71:
-#line	106	"/sys/src/cmd/eqn/eqn.y"
+#line	106	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = '}'; } break;
 case 74:
-#line	113	"/sys/src/cmd/eqn/eqn.y"
+#line	113	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { column(yypt[-3].yyv, DEFGAP); } break;
 case 75:
-#line	114	"/sys/src/cmd/eqn/eqn.y"
+#line	114	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 {yyval=atoi((char*)yypt[-0].yyv);} break;
 case 76:
-#line	114	"/sys/src/cmd/eqn/eqn.y"
+#line	114	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { column(yypt[-5].yyv, yypt[-3].yyv); } break;
 case 77:
-#line	117	"/sys/src/cmd/eqn/eqn.y"
+#line	117	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = startcol(LCOL); } break;
 case 78:
-#line	118	"/sys/src/cmd/eqn/eqn.y"
+#line	118	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = startcol(CCOL); } break;
 case 79:
-#line	119	"/sys/src/cmd/eqn/eqn.y"
+#line	119	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = startcol(RCOL); } break;
 case 80:
-#line	120	"/sys/src/cmd/eqn/eqn.y"
+#line	120	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = startcol(COL); } break;
 case 81:
-#line	123	"/sys/src/cmd/eqn/eqn.y"
+#line	123	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { lp[ct++] = yypt[-0].yyv; } break;
 case 82:
-#line	124	"/sys/src/cmd/eqn/eqn.y"
+#line	124	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { lp[ct++] = yypt[-0].yyv; } break;
 case 83:
-#line	127	"/sys/src/cmd/eqn/eqn.y"
+#line	127	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { yyval = ps; setsize((char *) yypt[-0].yyv); } break;
 case 84:
-#line	130	"/sys/src/cmd/eqn/eqn.y"
+#line	130	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { static char R[]="R"; setfont(R); } break;
 case 85:
-#line	131	"/sys/src/cmd/eqn/eqn.y"
+#line	131	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { static char I[]="I"; setfont(I); } break;
 case 86:
-#line	132	"/sys/src/cmd/eqn/eqn.y"
+#line	132	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { static char B[]="B"; setfont(B); } break;
 case 87:
-#line	133	"/sys/src/cmd/eqn/eqn.y"
+#line	133	"/Users/rminnich/src/nxm/sys/src/cmd/eqn/eqn.y"
 { setfont((char *)yypt[-0].yyv); } break;
 	}
 	goto yystack;  /* stack new state and value */

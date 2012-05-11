@@ -1,3 +1,4 @@
+MKSHELL=rc
 <$NXM/$objtype/mkfile
 
 TARG=factotum\
@@ -36,7 +37,7 @@ HFILES=\
 	dat.h\
 
 LIB=$NXM/$objtype/lib/libauth.a $NXM/$objtype/lib/libauthsrv.a
-BIN=$NXM/$objtype/bin/auth
+BIN=$NXM$NXM/$objtype/bin/auth
 
 UPDATE=\
 	mkfile\

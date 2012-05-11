@@ -1,5 +1,6 @@
-</$objtype/mkfile
-BIN=/$objtype/bin/fossil
+MKSHELL=rc
+<$NXM/$objtype/mkfile
+BIN=$NXM/$objtype/bin/fossil
 
 TARG=fossil flchk flfmt conf last
 
@@ -98,7 +99,7 @@ test:V: all
 #	unmount /n/fossil
 #	rm /srv/fossil
 
-</sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany
 
 $LIB(%.$O):N: %.$O
 $LIB:	${LIBOFILES:%=$LIB(%)}

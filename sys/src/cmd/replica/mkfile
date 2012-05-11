@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 SCRIPTS=\
 	changes\
@@ -30,13 +31,13 @@ UPDATE=\
 	$HFILES\
 	applychanges.c\
 	updatedb.c\
-	${TARG:%=/386/bin/replica/%}\
+	${TARG:%=$NXM/386/bin/replica/%}\
 	${SCRIPTS:%=/rc/bin/replica/%}\
 	/rc/bin/replica/defs\
 
 
-BIN=/$objtype/bin/replica
-</sys/src/cmd/mkmany
+BIN=$NXM/$objtype/bin/replica
+<$NXM/sys/src/cmd/mkmany
 
 $O.applychanges: revproto.$O
 

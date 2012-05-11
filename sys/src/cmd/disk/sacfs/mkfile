@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 HFILES=sac.h\
 	ssort.h\
@@ -11,9 +12,9 @@ OFILES=
 
 PROGS=${TARG:%=$O.%}
 
-BIN=/$objtype/bin/disk
+BIN=$NXM/$objtype/bin/disk
 
-< /sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany
 
 $O.mksacfs:	sac.$O ssort6.$O
 

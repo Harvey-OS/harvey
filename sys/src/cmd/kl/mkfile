@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=kl
 OFILES=\
@@ -17,8 +18,8 @@ HFILES=\
 	l.h\
 	../kc/k.out.h\
 
-BIN=/$objtype/bin
-</sys/src/cmd/mkone
+BIN=$NXM/$objtype/bin
+<$NXM/sys/src/cmd/mkone
 
 enam.$O:	../kc/enam.c
 	$CC $CFLAGS ../kc/enam.c

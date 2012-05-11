@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=wikifs
 
@@ -13,7 +14,7 @@ COFILES=\
 
 OFILES=fs.$O $COFILES
 
-BIN=/$objtype/bin
+BIN=$NXM/$objtype/bin
 LIB=/$objtype/lib/lib9p.a #/$objtype/lib/libdebugmalloc.a
 
 UPDATE=\
@@ -21,7 +22,7 @@ UPDATE=\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
 
-</sys/src/cmd/mkone
+<$NXM/sys/src/cmd/mkone
 
 $O.wiki2html: wiki2html.$O $COFILES
 	$LD -o $target $prereq

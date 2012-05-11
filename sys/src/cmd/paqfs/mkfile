@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 HFILES=paqfs.h
 
@@ -9,16 +10,16 @@ OFILES=
 
 PROGS=${TARG:%=$O.%}
 
-BIN=/$objtype/bin
+BIN=$NXM/$objtype/bin
 UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
 	${TARG:%=%.c}\
-	${TARG:%=/386/bin/%}\
+	${TARG:%=$NXM/386/bin/%}\
 
 
 all:V:
 
-< /sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany
 

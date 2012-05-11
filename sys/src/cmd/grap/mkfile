@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=grap
 OFILES=\
@@ -22,8 +23,8 @@ YFILES=grap.y\
 
 LFILES=grapl.lx\
 
-BIN=/$objtype/bin
-</sys/src/cmd/mkone
+BIN=$NXM/$objtype/bin
+<$NXM/sys/src/cmd/mkone
 CC=pcc
 LD=pcc
 YFLAGS = -d -S

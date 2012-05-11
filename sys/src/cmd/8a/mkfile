@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=8a
 OFILES=\
@@ -12,15 +13,15 @@ HFILES=\
 
 YFILES=a.y\
 
-BIN=/$objtype/bin
+BIN=$NXM/$objtype/bin
 UPDATE=\
 	mkfile\
 	a.y\
 	lex.c\
 	a.h\
-	${TARG:%=/386/bin/%}\
+	${TARG:%=$NXM/386/bin/%}\
 
-< /sys/src/cmd/mkone
+<$NXM/sys/src/cmd/mkone
 YFLAGS=-D1 -d
 
 lex.$O:	../cc/macbody ../cc/lexbody ../cc/compat

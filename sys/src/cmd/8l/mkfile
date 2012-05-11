@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=8l
 OFILES=\
@@ -15,16 +16,16 @@ HFILES=\
 	l.h\
 	../8c/8.out.h\
 
-BIN=/$objtype/bin
+BIN=$NXM/$objtype/bin
 CFILES=${OFILES:%.$O=%.c}
 CFILES=${CFILES:enam.c=../8c/enam.c}
 UPDATE=\
 	mkfile\
 	$HFILES\
 	$CFILES\
-	${TARG:%=/386/bin/%}\
+	${TARG:%=$NXM/386/bin/%}\
 
-</sys/src/cmd/mkone
+<$NXM/sys/src/cmd/mkone
 
 enam.$O:	../8c/enam.c
 	$CC $CFLAGS ../8c/enam.c

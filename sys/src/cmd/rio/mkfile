@@ -1,5 +1,6 @@
-</$objtype/mkfile
-BIN=/$objtype/bin
+MKSHELL=rc
+<$NXM/$objtype/mkfile
+BIN=$NXM/$objtype/bin
 
 TARG=rio
 OFILES=\
@@ -21,10 +22,10 @@ UPDATE=\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
 
-</sys/src/cmd/mkone
+<$NXM/sys/src/cmd/mkone
 
-$O.out:	/$objtype/lib/libdraw.a /$objtype/lib/libframe.a \
-	/$objtype/lib/libthread.a /$objtype/lib/libplumb.a /$objtype/lib/libc.a
+$O.out: $NXM/$objtype/lib/libdraw.a $NXM/$objtype/lib/libframe.a \
+ $NXM/$objtype/lib/libthread.a $NXM/$objtype/lib/libplumb.a $NXM/$objtype/lib/libc.a
 syms:V:
 	$CC -a $CFLAGS rio.c	> syms
 	$CC -aa $CFLAGS *.c 	>>syms

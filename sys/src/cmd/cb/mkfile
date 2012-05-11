@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=cb
 OFILES=\
@@ -8,11 +9,11 @@ OFILES=\
 HFILES=cb.h\
 	cbtype.h\
 
-BIN=/$objtype/bin
+BIN=$NXM/$objtype/bin
 
 UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
 
-< /sys/src/cmd/mkone
+<$NXM/sys/src/cmd/mkone

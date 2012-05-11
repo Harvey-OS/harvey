@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=	fs\
 
@@ -16,7 +17,7 @@ LIB=../common/libcommon.a$O\
 HFILES= ../common/common.h\
 	dat.h
 
-BIN=/$objtype/bin/upas
+BIN=$NXM/$objtype/bin/upas
 
 UPDATE=\
 	mkfile\
@@ -24,5 +25,5 @@ UPDATE=\
 	${TARG:%=%.c}\
 	${OFILES:%.$O=%.c}\
 
-</sys/src/cmd/mkone
+<$NXM/sys/src/cmd/mkone
 CFLAGS=$CFLAGS -I/sys/include -I../common

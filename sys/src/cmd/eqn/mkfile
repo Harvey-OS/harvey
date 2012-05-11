@@ -1,4 +1,5 @@
-< /$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=eqn
 OFILES=main.$O\
@@ -30,8 +31,8 @@ YFILES=eqn.y\
 HFILES=e.h\
 	y.tab.h\
 
-BIN=/$objtype/bin
-</sys/src/cmd/mkone
+BIN=$NXM/$objtype/bin
+<$NXM/sys/src/cmd/mkone
 CC=pcc
 LD=pcc
 YFLAGS=-d -S

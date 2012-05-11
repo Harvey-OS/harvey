@@ -1,12 +1,13 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=addhash bayes msgtok
 HFILES=
 OFILES=
 LIB=
 
-BIN=/$objtype/bin/upas
-</sys/src/cmd/mkmany
+BIN=$NXM/$objtype/bin/upas
+<$NXM/sys/src/cmd/mkmany
 
 # msg tokenizer
 $O.regen: regcomp.$O dfa.$O

@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 # order matters here.  build lib first and usbd last.
 DIRS=\
@@ -28,7 +29,7 @@ install installall safeinstall safeinstallall:V:
 	for (i in $DIRS) @{
 		cd $i && mk $target
 	}
-	cp probe /$objtype/bin/usb/probe
+	cp probe $NXM/$objtype/bin/usb/probe
 
 update:V:
 	update $UPDATEFLAGS $UPDATE

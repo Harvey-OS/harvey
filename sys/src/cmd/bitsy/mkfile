@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=\
 	bitsyload\
@@ -8,8 +9,8 @@ TARG=\
 	light\
 	params\
 
-BIN=/$objtype/bin/bitsy
-</sys/src/cmd/mkmany
+BIN=$NXM/$objtype/bin/bitsy
+<$NXM/sys/src/cmd/mkmany
 
 light.$O:V:
 	# nothing

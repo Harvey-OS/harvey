@@ -1,7 +1,8 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 HFILES=\
-	/sys/include/httpd.h\
+	$NXM/sys/g/include/httpd.h\
 	httpsrv.h\
 
 TARG=\
@@ -37,14 +38,14 @@ LIBSOFILES=\
 	sendfd.$O\
 	authorize.$O\
 
-BIN=/$objtype/bin/ip/httpd
+BIN=$NXM/$objtype/bin/ip/httpd
 
 UPDATE=\
 	$HFILES\
 	${LIBSOFILES:%.$O=%.c}\
 	${XTARG:%=%.c}\
 
-</sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany
 
 trial: $O.netlib_history
 	# should first   mount -b /srv/histnetlib /usr/web/historic

@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG = smtpd\
 	smtp\
@@ -12,7 +13,7 @@ HFILES=../common/common.h\
 	smtpd.h\
 	smtp.h\
 
-BIN=/$objtype/bin/upas
+BIN=$NXM/$objtype/bin/upas
 UPDATE=\
 	greylist.c\
 	mkfile\
@@ -25,7 +26,7 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${TARG:%=%.c}\
 
-</sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany
 CFLAGS=$CFLAGS -I../common -D'SPOOL="/mail"'
 
 $O.smtpd:	smtpd.tab.$O rmtdns.$O spam.$O rfc822.tab.$O greylist.$O

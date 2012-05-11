@@ -11,7 +11,7 @@
 char 	errbuf[ERRMAX];
 ulong	nofunc;
 
-#include "/sys/src/libc/9syscall/sys.h"
+#include "sys/src/libc/9syscall/sys.h"
 
 
 char*	sysctab[] =

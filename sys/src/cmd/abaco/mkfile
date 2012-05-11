@@ -1,6 +1,7 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
-BIN=/$objtype/bin
+BIN=$NXM/$objtype/bin
 
 TARG=abaco
 
@@ -29,7 +30,7 @@ UPDATE=\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
 
-</sys/src/cmd/mkone
+<$NXM/sys/src/cmd/mkone
 
 charsets.txt:
 	hget http://www.iana.org/assignments/character-sets | sed 's///' > charsets.txt

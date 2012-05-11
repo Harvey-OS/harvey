@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 
 TARG=\
@@ -35,7 +36,7 @@ BIN=.
 
 default:V:all
 
-</sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany
 
 $O.9pix: 9pix.$O $OFILES $IXOFILES $LIB
 	$LD $LDFLAGS -o $target $prereq

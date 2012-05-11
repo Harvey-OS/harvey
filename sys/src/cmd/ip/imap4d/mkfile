@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 OFILES=\
 	auth.$O\
@@ -22,10 +23,10 @@ HFILES=imap4d.h\
 	fns.h\
 
 TARG=imap4d
-BIN=/$objtype/bin/ip
+BIN=$NXM/$objtype/bin/ip
 UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
 
-</sys/src/cmd/mkone
+<$NXM/sys/src/cmd/mkone

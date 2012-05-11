@@ -1,13 +1,14 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=unesc
 OFILES=unesc.$O\
 
-BIN=/$objtype/bin/upas
+BIN=$NXM/$objtype/bin/upas
 
 UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
 
-</sys/src/cmd/mkone
+<$NXM/sys/src/cmd/mkone

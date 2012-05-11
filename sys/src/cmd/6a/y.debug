@@ -1,18 +1,18 @@
-char*	yytoknames[] =
+static	char*	yytoknames[] =
 {
 	"$end",
 	"error",
 	"$unk",
-	"'|'",
-	"'^'",
-	"'&'",
-	"'<'",
-	"'>'",
-	"'+'",
-	"'-'",
-	"'*'",
-	"'/'",
-	"'%'",
+	" |",
+	" ^",
+	" &",
+	" <",
+	" >",
+	" +",
+	" -",
+	" *",
+	" /",
+	" %",
 	"LTYPE0",
 	"LTYPE1",
 	"LTYPE2",
@@ -45,52 +45,52 @@ char*	yytoknames[] =
 	"LNAME",
 	"LLAB",
 	"LVAR",
-	"':'",
-	"';'",
-	"'='",
-	"','",
-	"'('",
-	"')'",
-	"'$'",
-	"'~'",
+	" :",
+	" ;",
+	" =",
+	" ,",
+	" (",
+	" )",
+	" $",
+	" ~",
 };
-char*	yystates[] =
+static	const	char*	yystates[] =
 {
 	0, /*0*/
-	"$accept: prog . $end \nprog: prog . line \n", /*1*/
+	"$accept:  prog.$end \nprog:  prog.line \n", /*1*/
 	0, /*2*/
-	"line: LLAB . ':' $$3 line \n", /*3*/
-	"line: LNAME . ':' $$5 line \ninst: LNAME . '=' expr \n", /*4*/
+	"line:  LLAB.: $$3 line \n", /*3*/
+	"line:  LNAME.: $$5 line \ninst:  LNAME.= expr \n", /*4*/
 	0, /*5*/
-	"line: inst . ';' \n", /*6*/
-	"line: error . ';' \n", /*7*/
-	"inst: LVAR . '=' expr \n", /*8*/
+	"line:  inst.; \n", /*6*/
+	"line:  error.; \n", /*7*/
+	"inst:  LVAR.= expr \n", /*8*/
 	0, /*9*/
-	"inst: LTYPE1 . nonrem \n", /*10*/
-	"inst: LTYPE2 . rimnon \n", /*11*/
-	"inst: LTYPE3 . rimrem \n", /*12*/
-	"inst: LTYPE4 . remrim \n", /*13*/
-	"inst: LTYPER . nonrel \n", /*14*/
-	"inst: LTYPED . spec1 \n", /*15*/
-	"inst: LTYPET . spec2 \n", /*16*/
-	"inst: LTYPEC . spec3 \n", /*17*/
+	"inst:  LTYPE1.nonrem \n", /*10*/
+	"inst:  LTYPE2.rimnon \n", /*11*/
+	"inst:  LTYPE3.rimrem \n", /*12*/
+	"inst:  LTYPE4.remrim \n", /*13*/
+	"inst:  LTYPER.nonrel \n", /*14*/
+	"inst:  LTYPED.spec1 \n", /*15*/
+	"inst:  LTYPET.spec2 \n", /*16*/
+	"inst:  LTYPEC.spec3 \n", /*17*/
 	0, /*18*/
-	"inst: LTYPES . spec5 \n", /*19*/
-	"inst: LTYPEM . spec6 \n", /*20*/
-	"inst: LTYPEI . spec7 \n", /*21*/
-	"inst: LTYPEXC . spec8 \n", /*22*/
-	"inst: LTYPEX . spec9 \n", /*23*/
+	"inst:  LTYPES.spec5 \n", /*19*/
+	"inst:  LTYPEM.spec6 \n", /*20*/
+	"inst:  LTYPEI.spec7 \n", /*21*/
+	"inst:  LTYPEXC.spec8 \n", /*22*/
+	"inst:  LTYPEX.spec9 \n", /*23*/
 	0, /*24*/
 	0, /*25*/
 	0, /*26*/
-	"inst: LNAME '=' . expr \n", /*27*/
+	"inst:  LNAME =.expr \n", /*27*/
 	0, /*28*/
 	0, /*29*/
-	"inst: LVAR '=' . expr \n", /*30*/
+	"inst:  LVAR =.expr \n", /*30*/
 	0, /*31*/
 	0, /*32*/
 	0, /*33*/
-	"nonrem: ',' . rem \n", /*34*/
+	"nonrem:  ,.rem \n", /*34*/
 	0, /*35*/
 	0, /*36*/
 	0, /*37*/
@@ -104,40 +104,40 @@ char*	yystates[] =
 	0, /*45*/
 	0, /*46*/
 	0, /*47*/
-	"omem: '(' . LLREG ')' \nomem: '(' . LSP ')' \nomem: '(' . LLREG '*' con ')' \nomem: '(' . LLREG ')' '(' LLREG '*' con ')' \ncon: '(' . expr ')' \n", /*48*/
+	"omem:  (.LLREG ) \nomem:  (.LSP ) \nomem:  (.LLREG * con ) \nomem:  (.LLREG ) ( LLREG * con ) \ncon:  (.expr ) \n", /*48*/
 	0, /*49*/
 	0, /*50*/
 	0, /*51*/
-	"con: '-' . con \n", /*52*/
-	"con: '+' . con \n", /*53*/
-	"con: '~' . con \n", /*54*/
+	"con:  -.con \n", /*52*/
+	"con:  +.con \n", /*53*/
+	"con:  ~.con \n", /*54*/
 	0, /*55*/
 	0, /*56*/
 	0, /*57*/
 	0, /*58*/
 	0, /*59*/
-	"imm: '$' . con \nimm: '$' . nam \nimm: '$' . LSCONST \nimm: '$' . LFCONST \nimm: '$' . '(' LFCONST ')' \nimm: '$' . '-' LFCONST \n", /*60*/
+	"imm:  $.con \nimm:  $.nam \nimm:  $.LSCONST \nimm:  $.LFCONST \nimm:  $.( LFCONST ) \nimm:  $.- LFCONST \n", /*60*/
 	0, /*61*/
-	"rimrem: rim . ',' rem \n", /*62*/
+	"rimrem:  rim., rem \n", /*62*/
 	0, /*63*/
-	"remrim: rem . ',' rim \n", /*64*/
+	"remrim:  rem., rim \n", /*64*/
 	0, /*65*/
-	"nonrel: ',' . rel \n", /*66*/
+	"nonrel:  ,.rel \n", /*66*/
 	0, /*67*/
-	"rel: con . '(' LPC ')' \n", /*68*/
+	"rel:  con.( LPC ) \n", /*68*/
 	0, /*69*/
 	0, /*70*/
-	"con: '(' . expr ')' \n", /*71*/
+	"con:  (.expr ) \n", /*71*/
 	0, /*72*/
-	"spec1: nam . '/' con ',' imm \n", /*73*/
+	"spec1:  nam./ con , imm \n", /*73*/
 	0, /*74*/
-	"spec2: mem . ',' imm \nspec2: mem . ',' con ',' imm \n", /*75*/
+	"spec2:  mem., imm \nspec2:  mem., con , imm \n", /*75*/
 	0, /*76*/
-	"spec3: ',' . rom \n", /*77*/
+	"spec3:  ,.rom \n", /*77*/
 	0, /*78*/
 	0, /*79*/
 	0, /*80*/
-	"rom: '*' . reg \nrom: '*' . omem \n", /*81*/
+	"rom:  *.reg \nrom:  *.omem \n", /*81*/
 	0, /*82*/
 	0, /*83*/
 	0, /*84*/
@@ -147,149 +147,149 @@ char*	yystates[] =
 	0, /*88*/
 	0, /*89*/
 	0, /*90*/
-	"spec5: rim . ',' rem \nspec5: rim . ',' rem ':' LLREG \n", /*91*/
+	"spec5:  rim., rem \nspec5:  rim., rem : LLREG \n", /*91*/
 	0, /*92*/
-	"spec6: rim . ',' rem \nspec6: rim . ',' rem ':' LSREG \n", /*93*/
+	"spec6:  rim., rem \nspec6:  rim., rem : LSREG \n", /*93*/
 	0, /*94*/
 	0, /*95*/
 	0, /*96*/
-	"spec8: reg . ',' rem ',' con \n", /*97*/
+	"spec8:  reg., rem , con \n", /*97*/
 	0, /*98*/
-	"spec9: imm . ',' rem ',' reg \n", /*99*/
+	"spec9:  imm., rem , reg \n", /*99*/
 	0, /*100*/
 	0, /*101*/
-	"line: LLAB ':' $$3 . line \n", /*102*/
-	"line: LNAME ':' $$5 . line \n", /*103*/
+	"line:  LLAB : $$3.line \n", /*102*/
+	"line:  LNAME : $$5.line \n", /*103*/
 	0, /*104*/
 	0, /*105*/
 	0, /*106*/
 	0, /*107*/
-	"omem: con '(' . LLREG ')' \nomem: con '(' . LSP ')' \nomem: con '(' . LLREG '*' con ')' \nomem: con '(' . LLREG ')' '(' LLREG '*' con ')' \n", /*108*/
-	"omem: '(' LLREG . ')' \nomem: '(' LLREG . '*' con ')' \nomem: '(' LLREG . ')' '(' LLREG '*' con ')' \n", /*109*/
-	"omem: '(' LSP . ')' \n", /*110*/
-	"con: '(' expr . ')' \nexpr: expr . '+' expr \nexpr: expr . '-' expr \nexpr: expr . '*' expr \nexpr: expr . '/' expr \nexpr: expr . '%' expr \nexpr: expr . '<' '<' expr \nexpr: expr . '>' '>' expr \nexpr: expr . '&' expr \nexpr: expr . '^' expr \nexpr: expr . '|' expr \n", /*111*/
-	"nmem: nam '(' . LLREG '*' con ')' \n", /*112*/
+	"omem:  con (.LLREG ) \nomem:  con (.LSP ) \nomem:  con (.LLREG * con ) \nomem:  con (.LLREG ) ( LLREG * con ) \n", /*108*/
+	"omem:  ( LLREG.) \nomem:  ( LLREG.* con ) \nomem:  ( LLREG.) ( LLREG * con ) \n", /*109*/
+	"omem:  ( LSP.) \n", /*110*/
+	"con:  ( expr.) \nexpr:  expr.+ expr \nexpr:  expr.- expr \nexpr:  expr.* expr \nexpr:  expr./ expr \nexpr:  expr.% expr \nexpr:  expr.< < expr \nexpr:  expr.> > expr \nexpr:  expr.& expr \nexpr:  expr.^ expr \nexpr:  expr.| expr \n", /*111*/
+	"nmem:  nam (.LLREG * con ) \n", /*112*/
 	0, /*113*/
 	0, /*114*/
 	0, /*115*/
-	"nam: LNAME offset . '(' pointer ')' \n", /*116*/
-	"nam: LNAME '<' . '>' offset '(' LSB ')' \n", /*117*/
-	"offset: '+' . con \n", /*118*/
-	"offset: '-' . con \n", /*119*/
+	"nam:  LNAME offset.( pointer ) \n", /*116*/
+	"nam:  LNAME <.> offset ( LSB ) \n", /*117*/
+	"offset:  +.con \n", /*118*/
+	"offset:  -.con \n", /*119*/
 	0, /*120*/
 	0, /*121*/
 	0, /*122*/
 	0, /*123*/
 	0, /*124*/
-	"imm: '$' '(' . LFCONST ')' \ncon: '(' . expr ')' \n", /*125*/
-	"imm: '$' '-' . LFCONST \ncon: '-' . con \n", /*126*/
-	"rimrem: rim ',' . rem \n", /*127*/
-	"remrim: rem ',' . rim \n", /*128*/
+	"imm:  $ (.LFCONST ) \ncon:  (.expr ) \n", /*125*/
+	"imm:  $ -.LFCONST \ncon:  -.con \n", /*126*/
+	"rimrem:  rim ,.rem \n", /*127*/
+	"remrim:  rem ,.rim \n", /*128*/
 	0, /*129*/
-	"rel: con '(' . LPC ')' \n", /*130*/
+	"rel:  con (.LPC ) \n", /*130*/
 	0, /*131*/
 	0, /*132*/
-	"spec1: nam '/' . con ',' imm \n", /*133*/
-	"spec2: mem ',' . imm \nspec2: mem ',' . con ',' imm \n", /*134*/
+	"spec1:  nam /.con , imm \n", /*133*/
+	"spec2:  mem ,.imm \nspec2:  mem ,.con , imm \n", /*134*/
 	0, /*135*/
 	0, /*136*/
 	0, /*137*/
-	"rel: con '(' . LPC ')' \nomem: con '(' . LLREG ')' \nomem: con '(' . LSP ')' \nomem: con '(' . LLREG '*' con ')' \nomem: con '(' . LLREG ')' '(' LLREG '*' con ')' \n", /*138*/
+	"rel:  con (.LPC ) \nomem:  con (.LLREG ) \nomem:  con (.LSP ) \nomem:  con (.LLREG * con ) \nomem:  con (.LLREG ) ( LLREG * con ) \n", /*138*/
 	0, /*139*/
-	"spec5: rim ',' . rem \nspec5: rim ',' . rem ':' LLREG \n", /*140*/
-	"spec6: rim ',' . rem \nspec6: rim ',' . rem ':' LSREG \n", /*141*/
+	"spec5:  rim ,.rem \nspec5:  rim ,.rem : LLREG \n", /*140*/
+	"spec6:  rim ,.rem \nspec6:  rim ,.rem : LSREG \n", /*141*/
 	0, /*142*/
-	"spec8: reg ',' . rem ',' con \n", /*143*/
-	"spec9: imm ',' . rem ',' reg \n", /*144*/
+	"spec8:  reg ,.rem , con \n", /*143*/
+	"spec9:  imm ,.rem , reg \n", /*144*/
 	0, /*145*/
 	0, /*146*/
-	"expr: expr '+' . expr \n", /*147*/
-	"expr: expr '-' . expr \n", /*148*/
-	"expr: expr '*' . expr \n", /*149*/
-	"expr: expr '/' . expr \n", /*150*/
-	"expr: expr '%' . expr \n", /*151*/
-	"expr: expr '<' . '<' expr \n", /*152*/
-	"expr: expr '>' . '>' expr \n", /*153*/
-	"expr: expr '&' . expr \n", /*154*/
-	"expr: expr '^' . expr \n", /*155*/
-	"expr: expr '|' . expr \n", /*156*/
-	"omem: con '(' LLREG . ')' \nomem: con '(' LLREG . '*' con ')' \nomem: con '(' LLREG . ')' '(' LLREG '*' con ')' \n", /*157*/
-	"omem: con '(' LSP . ')' \n", /*158*/
+	"expr:  expr +.expr \n", /*147*/
+	"expr:  expr -.expr \n", /*148*/
+	"expr:  expr *.expr \n", /*149*/
+	"expr:  expr /.expr \n", /*150*/
+	"expr:  expr %.expr \n", /*151*/
+	"expr:  expr <.< expr \n", /*152*/
+	"expr:  expr >.> expr \n", /*153*/
+	"expr:  expr &.expr \n", /*154*/
+	"expr:  expr ^.expr \n", /*155*/
+	"expr:  expr |.expr \n", /*156*/
+	"omem:  con ( LLREG.) \nomem:  con ( LLREG.* con ) \nomem:  con ( LLREG.) ( LLREG * con ) \n", /*157*/
+	"omem:  con ( LSP.) \n", /*158*/
 	0, /*159*/
-	"omem: '(' LLREG '*' . con ')' \n", /*160*/
+	"omem:  ( LLREG *.con ) \n", /*160*/
 	0, /*161*/
 	0, /*162*/
-	"nmem: nam '(' LLREG . '*' con ')' \n", /*163*/
-	"nam: LNAME offset '(' . pointer ')' \n", /*164*/
+	"nmem:  nam ( LLREG.* con ) \n", /*163*/
+	"nam:  LNAME offset (.pointer ) \n", /*164*/
 	0, /*165*/
 	0, /*166*/
 	0, /*167*/
-	"imm: '$' '(' LFCONST . ')' \n", /*168*/
+	"imm:  $ ( LFCONST.) \n", /*168*/
 	0, /*169*/
 	0, /*170*/
 	0, /*171*/
-	"rel: con '(' LPC . ')' \n", /*172*/
-	"spec1: nam '/' con . ',' imm \n", /*173*/
+	"rel:  con ( LPC.) \n", /*172*/
+	"spec1:  nam / con., imm \n", /*173*/
 	0, /*174*/
-	"spec2: mem ',' con . ',' imm \n", /*175*/
+	"spec2:  mem , con., imm \n", /*175*/
 	0, /*176*/
 	0, /*177*/
 	0, /*178*/
-	"spec8: reg ',' rem . ',' con \n", /*179*/
-	"spec9: imm ',' rem . ',' reg \n", /*180*/
+	"spec8:  reg , rem., con \n", /*179*/
+	"spec9:  imm , rem., reg \n", /*180*/
 	0, /*181*/
 	0, /*182*/
 	0, /*183*/
 	0, /*184*/
 	0, /*185*/
-	"expr: expr '<' '<' . expr \n", /*186*/
-	"expr: expr '>' '>' . expr \n", /*187*/
+	"expr:  expr < <.expr \n", /*186*/
+	"expr:  expr > >.expr \n", /*187*/
 	0, /*188*/
 	0, /*189*/
 	0, /*190*/
 	0, /*191*/
-	"omem: con '(' LLREG '*' . con ')' \n", /*192*/
+	"omem:  con ( LLREG *.con ) \n", /*192*/
 	0, /*193*/
-	"omem: '(' LLREG ')' '(' . LLREG '*' con ')' \n", /*194*/
-	"omem: '(' LLREG '*' con . ')' \n", /*195*/
-	"nmem: nam '(' LLREG '*' . con ')' \n", /*196*/
-	"nam: LNAME offset '(' pointer . ')' \n", /*197*/
+	"omem:  ( LLREG ) (.LLREG * con ) \n", /*194*/
+	"omem:  ( LLREG * con.) \n", /*195*/
+	"nmem:  nam ( LLREG *.con ) \n", /*196*/
+	"nam:  LNAME offset ( pointer.) \n", /*197*/
 	0, /*198*/
 	0, /*199*/
 	0, /*200*/
-	"nam: LNAME '<' '>' offset . '(' LSB ')' \n", /*201*/
+	"nam:  LNAME < > offset.( LSB ) \n", /*201*/
 	0, /*202*/
 	0, /*203*/
-	"spec1: nam '/' con ',' . imm \n", /*204*/
-	"spec2: mem ',' con ',' . imm \n", /*205*/
-	"spec5: rim ',' rem ':' . LLREG \n", /*206*/
-	"spec6: rim ',' rem ':' . LSREG \n", /*207*/
-	"spec8: reg ',' rem ',' . con \n", /*208*/
-	"spec9: imm ',' rem ',' . reg \n", /*209*/
+	"spec1:  nam / con ,.imm \n", /*204*/
+	"spec2:  mem , con ,.imm \n", /*205*/
+	"spec5:  rim , rem :.LLREG \n", /*206*/
+	"spec6:  rim , rem :.LSREG \n", /*207*/
+	"spec8:  reg , rem ,.con \n", /*208*/
+	"spec9:  imm , rem ,.reg \n", /*209*/
 	0, /*210*/
 	0, /*211*/
-	"omem: con '(' LLREG ')' '(' . LLREG '*' con ')' \n", /*212*/
-	"omem: con '(' LLREG '*' con . ')' \n", /*213*/
-	"omem: '(' LLREG ')' '(' LLREG . '*' con ')' \n", /*214*/
+	"omem:  con ( LLREG ) (.LLREG * con ) \n", /*212*/
+	"omem:  con ( LLREG * con.) \n", /*213*/
+	"omem:  ( LLREG ) ( LLREG.* con ) \n", /*214*/
 	0, /*215*/
-	"nmem: nam '(' LLREG '*' con . ')' \n", /*216*/
+	"nmem:  nam ( LLREG * con.) \n", /*216*/
 	0, /*217*/
-	"nam: LNAME '<' '>' offset '(' . LSB ')' \n", /*218*/
+	"nam:  LNAME < > offset (.LSB ) \n", /*218*/
 	0, /*219*/
 	0, /*220*/
 	0, /*221*/
 	0, /*222*/
 	0, /*223*/
 	0, /*224*/
-	"omem: con '(' LLREG ')' '(' LLREG . '*' con ')' \n", /*225*/
+	"omem:  con ( LLREG ) ( LLREG.* con ) \n", /*225*/
 	0, /*226*/
-	"omem: '(' LLREG ')' '(' LLREG '*' . con ')' \n", /*227*/
+	"omem:  ( LLREG ) ( LLREG *.con ) \n", /*227*/
 	0, /*228*/
-	"nam: LNAME '<' '>' offset '(' LSB . ')' \n", /*229*/
-	"omem: con '(' LLREG ')' '(' LLREG '*' . con ')' \n", /*230*/
-	"omem: '(' LLREG ')' '(' LLREG '*' con . ')' \n", /*231*/
+	"nam:  LNAME < > offset ( LSB.) \n", /*229*/
+	"omem:  con ( LLREG ) ( LLREG *.con ) \n", /*230*/
+	"omem:  ( LLREG ) ( LLREG * con.) \n", /*231*/
 	0, /*232*/
-	"omem: con '(' LLREG ')' '(' LLREG '*' con . ')' \n", /*233*/
+	"omem:  con ( LLREG ) ( LLREG * con.) \n", /*233*/
 	0, /*234*/
 	0, /*235*/
 };

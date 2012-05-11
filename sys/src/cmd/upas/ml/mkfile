@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=ml\
 	mlowner\
@@ -18,7 +19,7 @@ HFILES=$UHFILES\
 
 LIB=../common/libcommon.a$O\
 
-BIN=/$objtype/bin/upas
+BIN=$NXM/$objtype/bin/upas
 
 UPDATE=\
 	mkfile\
@@ -27,7 +28,7 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	../smtp/rfc822.y\
 
-</sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany
 CFLAGS=$CFLAGS -I../common
 
 $O.ml: ../smtp/rfc822.tab.$O

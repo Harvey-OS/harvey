@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 OFILES=\
 	blocksort.$O\
@@ -26,7 +27,7 @@ HFILES=\
 	plan9.h\
 
 LIB=libbzip2.a$O
-</sys/src/cmd/mksyslib
+<$NXM/sys/src/cmd/mksyslib
 
 CFLAGS=-FV -p -DPLAN9
 

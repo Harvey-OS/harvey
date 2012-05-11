@@ -1,7 +1,8 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=vncs vncv
-BIN=/$objtype/bin
+BIN=$NXM/$objtype/bin
 
 OFILES=\
 	proto.$O\
@@ -52,7 +53,7 @@ UPDATE=\
 
 default:V:	all
 
-</sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany
 
 $O.vncs:	$SOFILES
 

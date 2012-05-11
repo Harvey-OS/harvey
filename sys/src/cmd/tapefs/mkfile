@@ -1,7 +1,8 @@
+MKSHELL=rc
 BUILTINS=
-</$objtype/mkfile
+<$NXM/$objtype/mkfile
 
-BIN=/$objtype/bin/fs
+BIN=$NXM/$objtype/bin/fs
 TARG=tarfs tpfs v6fs 32vfs cpiofs tapfs v10fs zipfs
 OFILES=\
 	fs.$O\
@@ -16,6 +17,6 @@ UPDATE=\
 	${OFILES:%.$O=%.c}\
 	${TARG:%=%.c}\
 
-</sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany
 
 zipfs.$O:	zip.h

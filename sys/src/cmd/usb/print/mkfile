@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=print
 LIB=../lib/usb.a$O
@@ -11,8 +12,8 @@ OFILES=\
 	main.$O\
 	print.$O\
 
-BIN=/$objtype/bin/usb
-</sys/src/cmd/mkone
+BIN=$NXM/$objtype/bin/usb
+<$NXM/sys/src/cmd/mkone
 CFLAGS=-I../lib $CFLAGS
 
 $LIB:

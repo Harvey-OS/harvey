@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 LIB=../libplot.a$O
 OFILES=box.$O\
@@ -37,4 +38,4 @@ OFILES=box.$O\
 
 HFILES=mplot.h\
 
-</sys/src/cmd/mklib
+<$NXM/sys/src/cmd/mklib

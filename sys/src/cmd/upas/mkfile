@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 LIBS=common
 PROGS=smtp alias fs ned misc q send scanmail pop3 ml marshal vf filterkit unesc bayes

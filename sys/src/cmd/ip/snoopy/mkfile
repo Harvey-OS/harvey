@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=snoopy
 PROTOS=\
@@ -57,7 +58,7 @@ HFILES=dat.h\
 
 YFILES=filter.y
 
-BIN=/$objtype/bin
+BIN=$NXM/$objtype/bin
 UPDATE=\
 	mkfile\
 	dat.h\
@@ -66,9 +67,9 @@ UPDATE=\
 
 CLEANFILES=protos.c protos.h
 
-</sys/src/cmd/mkone
+<$NXM/sys/src/cmd/mkone
 
-convM2DNS.$O:		/sys/src/cmd/ndb/convM2DNS.c
+convM2DNS.$O:		$NXM/sys/g/src/cmd/ndb/convM2DNS.c
 	$CC $CFLAGS	/sys/src/cmd/ndb/convM2DNS.c
 
 protos.h:D: mkfile

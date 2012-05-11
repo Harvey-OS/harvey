@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=ppp
 OFILES=ppp.$O\
@@ -12,13 +13,13 @@ OFILES=ppp.$O\
 
 HFILES=ppp.h\
 
-BIN=/$objtype/bin/ip
+BIN=$NXM/$objtype/bin/ip
 UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
 
-</sys/src/cmd/mkone
+<$NXM/sys/src/cmd/mkone
 
 safeinstall: $O.out
 	mv $BIN/$TARG $BIN/o$TARG

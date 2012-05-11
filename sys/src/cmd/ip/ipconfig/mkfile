@@ -1,3 +1,4 @@
+MKSHELL=rc
 <$NXM/$objtype/mkfile
 
 TARG=ipconfig\
@@ -13,7 +14,7 @@ HFILES=\
 	ipconfig.h\
 	$NXM/sys/include/ip.h\
 
-BIN=$NXM/$objtype/bin/ip
+BIN=$NXM$NXM/$objtype/bin/ip
 
 UPDATE=\
 	mkfile\

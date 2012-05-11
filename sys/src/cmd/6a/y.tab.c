@@ -1,8 +1,8 @@
 
-#line	2	"/sys/src/cmd/6a/a.y"
+#line	2	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 #include "a.h"
 
-#line	4	"/sys/src/cmd/6a/a.y"
+#line	4	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 typedef union 	{
 	Sym	*sym;
 	vlong	lval;
@@ -51,8 +51,7 @@ YYSTYPE	yyval;
 #define	LVAR	57377
 #define YYEOFCODE 1
 #define YYERRCODE 2
-#define YYEMPTY (-2)
-short	yyexca[] =
+static	const	short	yyexca[] =
 {-1, 1,
 	1, -1,
 	-2, 0,
@@ -61,7 +60,7 @@ short	yyexca[] =
 #define	YYPRIVATE 57344
 #define	yydebug	1
 #define	YYLAST	515
-short	yyact[] =
+static	const	short	yyact[] =
 {
   47,  36,  59,  45,  46,   2, 116,  49,  78,  60,
  235, 192,  57, 234, 111,  68,  53, 126,  84,  82,
@@ -116,7 +115,7 @@ short	yyact[] =
  152, 153, 147, 148, 149, 150, 151, 154, 152, 153,
  147, 148, 149, 150, 151
 };
-short	yypact[] =
+static	const	short	yypact[] =
 {
 -1000, 294,-1000,  79,  70,-1000,  75,  74,  69,  66,
  337, 252, 252,  60, 379,  87, 444, 180, 315, 252,
@@ -143,14 +142,14 @@ short	yypact[] =
 -1000,-1000,-1000,-1000,-1000, 187,-1000, 435,-1000, -22,
  435, -38,-1000, -41,-1000,-1000
 };
-short	yypgo[] =
+static	const	short	yypgo[] =
 {
    0,   0,  14, 299,   6, 168,   2,   1,   7,  20,
   93,  12,   8,   3,   4, 184, 292, 167, 285, 284,
  281, 279, 277, 276, 271, 270, 263, 259, 256, 249,
  248, 232,   5, 227, 226, 196
 };
-short	yyr1[] =
+static	const	short	yyr1[] =
 {
    0,  31,  31,  33,  32,  34,  32,  32,  32,  32,
   35,  35,  35,  35,  35,  35,  35,  35,  35,  35,
@@ -165,7 +164,7 @@ short	yyr1[] =
    3,   3,   3,   1,   1,   1,   1,   1,   1,   2,
    2,   2,   2,   2,   2,   2,   2,   2,   2,   2
 };
-short	yyr2[] =
+static	const	short	yyr2[] =
 {
    0,   0,   2,   0,   4,   0,   4,   1,   2,   2,
    3,   3,   2,   2,   2,   2,   2,   2,   2,   2,
@@ -180,7 +179,7 @@ short	yyr2[] =
    1,   1,   1,   1,   1,   2,   2,   2,   3,   1,
    3,   3,   3,   3,   3,   4,   4,   3,   3,   3
 };
-short	yychk[] =
+static	const	short	yychk[] =
 {
 -1000, -31, -32,  44,  43,  47, -35,   2,  45,  14,
   15,  16,  17,  18,  22,  20,  23,  19,  21,  24,
@@ -207,7 +206,7 @@ short	yychk[] =
   -6,  35,  36,  -1,  -7,  35,  51,  11,  51,  33,
   11,  -1,  51,  -1,  51,  51
 };
-short	yydef[] =
+static	const	short	yydef[] =
 {
    1,  -2,   2,   0,   0,   7,   0,   0,   0,  28,
    0,   0,   0,   0,   0,   0,   0,   0,  28,   0,
@@ -234,7 +233,7 @@ short	yydef[] =
   40,  46,  48,  52,  53,   0,  87,   0,  94,   0,
    0,   0,  96,   0,  92,  88
 };
-short	yytok1[] =
+static	const	short	yytok1[] =
 {
    1,   0,   0,   0,   0,   0,   0,   0,   0,   0,
    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
@@ -250,42 +249,50 @@ short	yytok1[] =
    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
    0,   0,   0,   0,   4,   0,  53
 };
-short	yytok2[] =
+static	const	short	yytok2[] =
 {
    2,   3,  14,  15,  16,  17,  18,  19,  20,  21,
   22,  23,  24,  25,  26,  27,  28,  29,  30,  31,
   32,  33,  34,  35,  36,  37,  38,  39,  40,  41,
   42,  43,  44,  45
 };
-long	yytok3[] =
+static	const	long	yytok3[] =
 {
    0
 };
 #define YYFLAG 		-1000
 #define YYERROR		goto yyerrlab
-#define	yyclearin	yychar = YYEMPTY
+#define YYACCEPT	return(0)
+#define YYABORT		return(1)
+#define	yyclearin	yychar = -1
 #define	yyerrok		yyerrflag = 0
 
 #ifdef	yydebug
 #include	"y.debug"
 #else
 #define	yydebug		0
-char*	yytoknames[1];		/* for debugging */
-char*	yystates[1];		/* for debugging */
+static	const	char*	yytoknames[1];		/* for debugging */
+static	const	char*	yystates[1];		/* for debugging */
 #endif
 
 /*	parser for yacc output	*/
-
+#ifdef YYARG
+#define	yynerrs		yyarg->yynerrs
+#define	yyerrflag	yyarg->yyerrflag
+#define yyval		yyarg->yyval
+#define yylval		yyarg->yylval
+#else
 int	yynerrs = 0;		/* number of errors */
 int	yyerrflag = 0;		/* error recovery flag */
+#endif
 
 extern	int	fprint(int, char*, ...);
 extern	int	sprint(char*, char*, ...);
 
-char*
+static const char*
 yytokname(int yyc)
 {
-	static char x[16];
+	static char x[10];
 
 	if(yyc > 0 && yyc <= sizeof(yytoknames)/sizeof(yytoknames[0]))
 	if(yytoknames[yyc-1])
@@ -294,10 +301,10 @@ yytokname(int yyc)
 	return x;
 }
 
-char*
+static const char*
 yystatname(int yys)
 {
-	static char x[16];
+	static char x[10];
 
 	if(yys >= 0 && yys < sizeof(yystates)/sizeof(yystates[0]))
 	if(yystates[yys])
@@ -306,17 +313,23 @@ yystatname(int yys)
 	return x;
 }
 
-int yychar;
-
-int
+static long
+#ifdef YYARG
+yylex1(struct Yyarg *yyarg)
+#else
 yylex1(void)
+#endif
 {
-	long *t3p;
+	long yychar;
+	const long *t3p;
 	int c;
 
+#ifdef YYARG	
+	yychar = yylex(yyarg);
+#else
 	yychar = yylex();
+#endif
 	if(yychar <= 0) {
-		yychar = 0;
 		c = yytok1[0];
 		goto out;
 	}
@@ -344,23 +357,26 @@ out:
 	if(c == 0)
 		c = yytok2[1];	/* unknown char */
 	if(yydebug >= 3)
-		fprint(2, "lex %.4ux %s\n", yychar, yytokname(c));
+		fprint(2, "lex %.4lux %s\n", yychar, yytokname(c));
 	return c;
 }
 
-int yystate;
-
 int
+#ifdef YYARG
+yyparse(struct Yyarg *yyarg)
+#else
 yyparse(void)
+#endif
 {
 	struct
 	{
 		YYSTYPE	yyv;
 		int	yys;
 	} yys[YYMAXDEPTH], *yyp, *yypt;
-	short *yyxi;
-	int yyj, yym, yyn, yyg;
-	int yyc;
+	const short *yyxi;
+	int yyj, yym, yystate, yyn, yyg;
+	long yychar;
+#ifndef YYARG
 	YYSTYPE save1, save2;
 	int save3, save4;
 
@@ -368,10 +384,10 @@ yyparse(void)
 	save2 = yyval;
 	save3 = yynerrs;
 	save4 = yyerrflag;
+#endif
 
 	yystate = 0;
-	yychar = YYEMPTY;
-	yyc = YYEMPTY;
+	yychar = -1;
 	yynerrs = 0;
 	yyerrflag = 0;
 	yyp = &yys[-1];
@@ -386,16 +402,18 @@ ret1:
 	goto ret;
 
 ret:
+#ifndef YYARG
 	yylval = save1;
 	yyval = save2;
 	yynerrs = save3;
 	yyerrflag = save4;
+#endif
 	return yyn;
 
 yystack:
 	/* put a state and value onto the stack */
 	if(yydebug >= 4)
-		fprint(2, "char %s in %s", yytokname(yyc), yystatname(yystate));
+		fprint(2, "char %s in %s", yytokname(yychar), yystatname(yystate));
 
 	yyp++;
 	if(yyp >= &yys[YYMAXDEPTH]) {
@@ -409,15 +427,18 @@ yynewstate:
 	yyn = yypact[yystate];
 	if(yyn <= YYFLAG)
 		goto yydefault; /* simple state */
-	if(yyc < 0)
-		yyc = yylex1();
-	yyn += yyc;
+	if(yychar < 0)
+#ifdef YYARG
+		yychar = yylex1(yyarg);
+#else
+		yychar = yylex1();
+#endif
+	yyn += yychar;
 	if(yyn < 0 || yyn >= YYLAST)
 		goto yydefault;
 	yyn = yyact[yyn];
-	if(yychk[yyn] == yyc) { /* valid shift */
-		yyc = YYEMPTY;
-		yychar = YYEMPTY;
+	if(yychk[yyn] == yychar) { /* valid shift */
+		yychar = -1;
 		yyval = yylval;
 		yystate = yyn;
 		if(yyerrflag > 0)
@@ -429,8 +450,12 @@ yydefault:
 	/* default state action */
 	yyn = yydef[yystate];
 	if(yyn == -2) {
-		if(yyc < 0)
-			yyc = yylex1();
+		if(yychar < 0)
+#ifdef YYARG
+		yychar = yylex1(yyarg);
+#else
+		yychar = yylex1();
+#endif
 
 		/* look through exception table */
 		for(yyxi=yyexca;; yyxi+=2)
@@ -438,26 +463,24 @@ yydefault:
 				break;
 		for(yyxi += 2;; yyxi += 2) {
 			yyn = yyxi[0];
-			if(yyn < 0 || yyn == yyc)
+			if(yyn < 0 || yyn == yychar)
 				break;
 		}
 		yyn = yyxi[1];
-		if(yyn < 0) {
-			yychar = YYEMPTY;
+		if(yyn < 0)
 			goto ret0;
-		}
 	}
 	if(yyn == 0) {
 		/* error ... attempt to resume parsing */
 		switch(yyerrflag) {
 		case 0:   /* brand new error */
 			yyerror("syntax error");
-			if(yydebug >= 2) {
+			if(yydebug >= 1) {
 				fprint(2, "%s", yystatname(yystate));
-				fprint(2, "saw %s\n", yytokname(yyc));
+				fprint(2, "saw %s\n", yytokname(yychar));
 			}
 			goto yyerrlab;
-yyerrlab:
+		yyerrlab:
 			yynerrs++;
 
 		case 1:
@@ -484,11 +507,10 @@ yyerrlab:
 
 		case 3:  /* no shift yet; clobber input char */
 			if(yydebug >= 2)
-				fprint(2, "error recovery discards %s\n", yytokname(yyc));
-			if(yyc == YYEOFCODE)
+				fprint(2, "error recovery discards %s\n", yytokname(yychar));
+			if(yychar == YYEOFCODE)
 				goto ret1;
-			yyc = YYEMPTY;
-			yychar = YYEMPTY;
+			yychar = -1;
 			goto yynewstate;   /* try again in the same state */
 		}
 	}
@@ -512,179 +534,179 @@ yyerrlab:
 	switch(yym) {
 		
 case 3:
-#line	35	"/sys/src/cmd/6a/a.y"
+#line	35	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		if(yypt[-1].yyv.sym->value != pc)
 			yyerror("redeclaration of %s", yypt[-1].yyv.sym->name);
 		yypt[-1].yyv.sym->value = pc;
 	} break;
 case 5:
-#line	42	"/sys/src/cmd/6a/a.y"
+#line	42	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yypt[-1].yyv.sym->type = LLAB;
 		yypt[-1].yyv.sym->value = pc;
 	} break;
 case 10:
-#line	53	"/sys/src/cmd/6a/a.y"
+#line	53	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yypt[-2].yyv.sym->type = LVAR;
 		yypt[-2].yyv.sym->value = yypt[-0].yyv.lval;
 	} break;
 case 11:
-#line	58	"/sys/src/cmd/6a/a.y"
+#line	58	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		if(yypt[-2].yyv.sym->value != yypt[-0].yyv.lval)
 			yyerror("redeclaration of %s", yypt[-2].yyv.sym->name);
 		yypt[-2].yyv.sym->value = yypt[-0].yyv.lval;
 	} break;
 case 12:
-#line	63	"/sys/src/cmd/6a/a.y"
+#line	63	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 { outcode(yypt[-1].yyv.lval, &yypt[-0].yyv.gen2); } break;
 case 13:
-#line	64	"/sys/src/cmd/6a/a.y"
+#line	64	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 { outcode(yypt[-1].yyv.lval, &yypt[-0].yyv.gen2); } break;
 case 14:
-#line	65	"/sys/src/cmd/6a/a.y"
+#line	65	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 { outcode(yypt[-1].yyv.lval, &yypt[-0].yyv.gen2); } break;
 case 15:
-#line	66	"/sys/src/cmd/6a/a.y"
+#line	66	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 { outcode(yypt[-1].yyv.lval, &yypt[-0].yyv.gen2); } break;
 case 16:
-#line	67	"/sys/src/cmd/6a/a.y"
+#line	67	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 { outcode(yypt[-1].yyv.lval, &yypt[-0].yyv.gen2); } break;
 case 17:
-#line	68	"/sys/src/cmd/6a/a.y"
+#line	68	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 { outcode(yypt[-1].yyv.lval, &yypt[-0].yyv.gen2); } break;
 case 18:
-#line	69	"/sys/src/cmd/6a/a.y"
+#line	69	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 { outcode(yypt[-1].yyv.lval, &yypt[-0].yyv.gen2); } break;
 case 19:
-#line	70	"/sys/src/cmd/6a/a.y"
+#line	70	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 { outcode(yypt[-1].yyv.lval, &yypt[-0].yyv.gen2); } break;
 case 20:
-#line	71	"/sys/src/cmd/6a/a.y"
+#line	71	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 { outcode(yypt[-1].yyv.lval, &yypt[-0].yyv.gen2); } break;
 case 21:
-#line	72	"/sys/src/cmd/6a/a.y"
+#line	72	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 { outcode(yypt[-1].yyv.lval, &yypt[-0].yyv.gen2); } break;
 case 22:
-#line	73	"/sys/src/cmd/6a/a.y"
+#line	73	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 { outcode(yypt[-1].yyv.lval, &yypt[-0].yyv.gen2); } break;
 case 23:
-#line	74	"/sys/src/cmd/6a/a.y"
+#line	74	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 { outcode(yypt[-1].yyv.lval, &yypt[-0].yyv.gen2); } break;
 case 24:
-#line	75	"/sys/src/cmd/6a/a.y"
+#line	75	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 { outcode(yypt[-1].yyv.lval, &yypt[-0].yyv.gen2); } break;
 case 25:
-#line	76	"/sys/src/cmd/6a/a.y"
+#line	76	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 { outcode(yypt[-1].yyv.lval, &yypt[-0].yyv.gen2); } break;
 case 26:
-#line	77	"/sys/src/cmd/6a/a.y"
+#line	77	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 { outcode(yypt[-1].yyv.lval, &yypt[-0].yyv.gen2); } break;
 case 27:
-#line	78	"/sys/src/cmd/6a/a.y"
+#line	78	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 { outcode(yypt[-1].yyv.lval, &yypt[-0].yyv.gen2); } break;
 case 28:
-#line	81	"/sys/src/cmd/6a/a.y"
+#line	81	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = nullgen;
 		yyval.gen2.to = nullgen;
 	} break;
 case 29:
-#line	86	"/sys/src/cmd/6a/a.y"
+#line	86	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = nullgen;
 		yyval.gen2.to = nullgen;
 	} break;
 case 30:
-#line	93	"/sys/src/cmd/6a/a.y"
+#line	93	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = yypt[-2].yyv.gen;
 		yyval.gen2.to = yypt[-0].yyv.gen;
 	} break;
 case 31:
-#line	100	"/sys/src/cmd/6a/a.y"
+#line	100	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = yypt[-2].yyv.gen;
 		yyval.gen2.to = yypt[-0].yyv.gen;
 	} break;
 case 32:
-#line	107	"/sys/src/cmd/6a/a.y"
+#line	107	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = yypt[-1].yyv.gen;
 		yyval.gen2.to = nullgen;
 	} break;
 case 33:
-#line	112	"/sys/src/cmd/6a/a.y"
+#line	112	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = yypt[-0].yyv.gen;
 		yyval.gen2.to = nullgen;
 	} break;
 case 34:
-#line	119	"/sys/src/cmd/6a/a.y"
+#line	119	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = nullgen;
 		yyval.gen2.to = yypt[-0].yyv.gen;
 	} break;
 case 35:
-#line	124	"/sys/src/cmd/6a/a.y"
+#line	124	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = nullgen;
 		yyval.gen2.to = yypt[-0].yyv.gen;
 	} break;
 case 36:
-#line	131	"/sys/src/cmd/6a/a.y"
+#line	131	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = nullgen;
 		yyval.gen2.to = yypt[-0].yyv.gen;
 	} break;
 case 37:
-#line	136	"/sys/src/cmd/6a/a.y"
+#line	136	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = nullgen;
 		yyval.gen2.to = yypt[-0].yyv.gen;
 	} break;
 case 38:
-#line	143	"/sys/src/cmd/6a/a.y"
+#line	143	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = yypt[-4].yyv.gen;
 		yyval.gen2.from.scale = yypt[-2].yyv.lval;
 		yyval.gen2.to = yypt[-0].yyv.gen;
 	} break;
 case 39:
-#line	151	"/sys/src/cmd/6a/a.y"
+#line	151	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = yypt[-2].yyv.gen;
 		yyval.gen2.to = yypt[-0].yyv.gen;
 	} break;
 case 40:
-#line	156	"/sys/src/cmd/6a/a.y"
+#line	156	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = yypt[-4].yyv.gen;
 		yyval.gen2.from.scale = yypt[-2].yyv.lval;
 		yyval.gen2.to = yypt[-0].yyv.gen;
 	} break;
 case 41:
-#line	164	"/sys/src/cmd/6a/a.y"
+#line	164	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = nullgen;
 		yyval.gen2.to = yypt[-0].yyv.gen;
 	} break;
 case 42:
-#line	169	"/sys/src/cmd/6a/a.y"
+#line	169	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = nullgen;
 		yyval.gen2.to = yypt[-0].yyv.gen;
 	} break;
 case 45:
-#line	180	"/sys/src/cmd/6a/a.y"
+#line	180	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = yypt[-2].yyv.gen;
 		yyval.gen2.to = yypt[-0].yyv.gen;
 	} break;
 case 46:
-#line	185	"/sys/src/cmd/6a/a.y"
+#line	185	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = yypt[-4].yyv.gen;
 		yyval.gen2.to = yypt[-2].yyv.gen;
@@ -693,13 +715,13 @@ case 46:
 		yyval.gen2.from.index = yypt[-0].yyv.lval;
 	} break;
 case 47:
-#line	195	"/sys/src/cmd/6a/a.y"
+#line	195	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = yypt[-2].yyv.gen;
 		yyval.gen2.to = yypt[-0].yyv.gen;
 	} break;
 case 48:
-#line	200	"/sys/src/cmd/6a/a.y"
+#line	200	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = yypt[-4].yyv.gen;
 		yyval.gen2.to = yypt[-2].yyv.gen;
@@ -708,32 +730,32 @@ case 48:
 		yyval.gen2.to.index = yypt[-0].yyv.lval;
 	} break;
 case 49:
-#line	210	"/sys/src/cmd/6a/a.y"
+#line	210	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = yypt[-1].yyv.gen;
 		yyval.gen2.to = nullgen;
 	} break;
 case 50:
-#line	215	"/sys/src/cmd/6a/a.y"
+#line	215	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = yypt[-0].yyv.gen;
 		yyval.gen2.to = nullgen;
 	} break;
 case 51:
-#line	220	"/sys/src/cmd/6a/a.y"
+#line	220	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = yypt[-2].yyv.gen;
 		yyval.gen2.to = yypt[-0].yyv.gen;
 	} break;
 case 52:
-#line	227	"/sys/src/cmd/6a/a.y"
+#line	227	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = yypt[-4].yyv.gen;
 		yyval.gen2.to = yypt[-2].yyv.gen;
 		yyval.gen2.from.offset = yypt[-0].yyv.lval;
 	} break;
 case 53:
-#line	235	"/sys/src/cmd/6a/a.y"
+#line	235	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = yypt[-2].yyv.gen;
 		yyval.gen2.to = yypt[-0].yyv.gen;
@@ -742,36 +764,36 @@ case 53:
 		yyval.gen2.to.offset = yypt[-4].yyv.gen.offset;
 	} break;
 case 54:
-#line	244	"/sys/src/cmd/6a/a.y"
+#line	244	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = nullgen;
 		yyval.gen2.to = nullgen;
 	} break;
 case 55:
-#line	249	"/sys/src/cmd/6a/a.y"
+#line	249	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen2.from = yypt[-0].yyv.gen;
 		yyval.gen2.to = nullgen;
 	} break;
 case 60:
-#line	262	"/sys/src/cmd/6a/a.y"
+#line	262	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = yypt[-0].yyv.gen;
 	} break;
 case 61:
-#line	266	"/sys/src/cmd/6a/a.y"
+#line	266	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = yypt[-0].yyv.gen;
 	} break;
 case 66:
-#line	278	"/sys/src/cmd/6a/a.y"
+#line	278	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = D_BRANCH;
 		yyval.gen.offset = yypt[-3].yyv.lval + pc;
 	} break;
 case 67:
-#line	284	"/sys/src/cmd/6a/a.y"
+#line	284	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		if(pass == 2)
@@ -781,7 +803,7 @@ case 67:
 		yyval.gen.offset = yypt[-0].yyv.lval;
 	} break;
 case 68:
-#line	293	"/sys/src/cmd/6a/a.y"
+#line	293	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = D_BRANCH;
@@ -789,56 +811,56 @@ case 68:
 		yyval.gen.offset = yypt[-1].yyv.sym->value + yypt[-0].yyv.lval;
 	} break;
 case 69:
-#line	302	"/sys/src/cmd/6a/a.y"
+#line	302	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = yypt[-0].yyv.lval;
 	} break;
 case 70:
-#line	307	"/sys/src/cmd/6a/a.y"
+#line	307	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = yypt[-0].yyv.lval;
 	} break;
 case 71:
-#line	312	"/sys/src/cmd/6a/a.y"
+#line	312	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = yypt[-0].yyv.lval;
 	} break;
 case 72:
-#line	317	"/sys/src/cmd/6a/a.y"
+#line	317	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = yypt[-0].yyv.lval;
 	} break;
 case 73:
-#line	322	"/sys/src/cmd/6a/a.y"
+#line	322	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = D_SP;
 	} break;
 case 74:
-#line	327	"/sys/src/cmd/6a/a.y"
+#line	327	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = yypt[-0].yyv.lval;
 	} break;
 case 75:
-#line	332	"/sys/src/cmd/6a/a.y"
+#line	332	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = yypt[-0].yyv.lval;
 	} break;
 case 76:
-#line	339	"/sys/src/cmd/6a/a.y"
+#line	339	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = D_CONST;
 		yyval.gen.offset = yypt[-0].yyv.lval;
 	} break;
 case 77:
-#line	345	"/sys/src/cmd/6a/a.y"
+#line	345	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = yypt[-0].yyv.gen;
 		yyval.gen.index = yypt[-0].yyv.gen.type;
@@ -850,56 +872,56 @@ case 77:
 		 */
 	} break;
 case 78:
-#line	356	"/sys/src/cmd/6a/a.y"
+#line	356	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = D_SCONST;
 		memcpy(yyval.gen.sval, yypt[-0].yyv.sval, sizeof(yyval.gen.sval));
 	} break;
 case 79:
-#line	362	"/sys/src/cmd/6a/a.y"
+#line	362	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = D_FCONST;
 		yyval.gen.dval = yypt[-0].yyv.dval;
 	} break;
 case 80:
-#line	368	"/sys/src/cmd/6a/a.y"
+#line	368	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = D_FCONST;
 		yyval.gen.dval = yypt[-1].yyv.dval;
 	} break;
 case 81:
-#line	374	"/sys/src/cmd/6a/a.y"
+#line	374	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = D_FCONST;
 		yyval.gen.dval = -yypt[-0].yyv.dval;
 	} break;
 case 84:
-#line	386	"/sys/src/cmd/6a/a.y"
+#line	386	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = D_INDIR+D_NONE;
 		yyval.gen.offset = yypt[-0].yyv.lval;
 	} break;
 case 85:
-#line	392	"/sys/src/cmd/6a/a.y"
+#line	392	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = D_INDIR+yypt[-1].yyv.lval;
 		yyval.gen.offset = yypt[-3].yyv.lval;
 	} break;
 case 86:
-#line	398	"/sys/src/cmd/6a/a.y"
+#line	398	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = D_INDIR+D_SP;
 		yyval.gen.offset = yypt[-3].yyv.lval;
 	} break;
 case 87:
-#line	404	"/sys/src/cmd/6a/a.y"
+#line	404	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = D_INDIR+D_NONE;
@@ -909,7 +931,7 @@ case 87:
 		checkscale(yyval.gen.scale);
 	} break;
 case 88:
-#line	413	"/sys/src/cmd/6a/a.y"
+#line	413	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = D_INDIR+yypt[-6].yyv.lval;
@@ -919,19 +941,19 @@ case 88:
 		checkscale(yyval.gen.scale);
 	} break;
 case 89:
-#line	422	"/sys/src/cmd/6a/a.y"
+#line	422	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = D_INDIR+yypt[-1].yyv.lval;
 	} break;
 case 90:
-#line	427	"/sys/src/cmd/6a/a.y"
+#line	427	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = D_INDIR+D_SP;
 	} break;
 case 91:
-#line	432	"/sys/src/cmd/6a/a.y"
+#line	432	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = D_INDIR+D_NONE;
@@ -940,7 +962,7 @@ case 91:
 		checkscale(yyval.gen.scale);
 	} break;
 case 92:
-#line	440	"/sys/src/cmd/6a/a.y"
+#line	440	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = D_INDIR+yypt[-6].yyv.lval;
@@ -949,12 +971,12 @@ case 92:
 		checkscale(yyval.gen.scale);
 	} break;
 case 93:
-#line	450	"/sys/src/cmd/6a/a.y"
+#line	450	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = yypt[-0].yyv.gen;
 	} break;
 case 94:
-#line	454	"/sys/src/cmd/6a/a.y"
+#line	454	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = yypt[-5].yyv.gen;
 		yyval.gen.index = yypt[-3].yyv.lval;
@@ -962,7 +984,7 @@ case 94:
 		checkscale(yyval.gen.scale);
 	} break;
 case 95:
-#line	463	"/sys/src/cmd/6a/a.y"
+#line	463	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = yypt[-1].yyv.lval;
@@ -970,7 +992,7 @@ case 95:
 		yyval.gen.offset = yypt[-3].yyv.lval;
 	} break;
 case 96:
-#line	470	"/sys/src/cmd/6a/a.y"
+#line	470	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.gen = nullgen;
 		yyval.gen.type = D_STATIC;
@@ -978,97 +1000,97 @@ case 96:
 		yyval.gen.offset = yypt[-3].yyv.lval;
 	} break;
 case 97:
-#line	478	"/sys/src/cmd/6a/a.y"
+#line	478	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.lval = 0;
 	} break;
 case 98:
-#line	482	"/sys/src/cmd/6a/a.y"
+#line	482	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.lval = yypt[-0].yyv.lval;
 	} break;
 case 99:
-#line	486	"/sys/src/cmd/6a/a.y"
+#line	486	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.lval = -yypt[-0].yyv.lval;
 	} break;
 case 101:
-#line	493	"/sys/src/cmd/6a/a.y"
+#line	493	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.lval = D_AUTO;
 	} break;
 case 104:
-#line	501	"/sys/src/cmd/6a/a.y"
+#line	501	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.lval = yypt[-0].yyv.sym->value;
 	} break;
 case 105:
-#line	505	"/sys/src/cmd/6a/a.y"
+#line	505	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.lval = -yypt[-0].yyv.lval;
 	} break;
 case 106:
-#line	509	"/sys/src/cmd/6a/a.y"
+#line	509	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.lval = yypt[-0].yyv.lval;
 	} break;
 case 107:
-#line	513	"/sys/src/cmd/6a/a.y"
+#line	513	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.lval = ~yypt[-0].yyv.lval;
 	} break;
 case 108:
-#line	517	"/sys/src/cmd/6a/a.y"
+#line	517	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.lval = yypt[-1].yyv.lval;
 	} break;
 case 110:
-#line	524	"/sys/src/cmd/6a/a.y"
+#line	524	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.lval = yypt[-2].yyv.lval + yypt[-0].yyv.lval;
 	} break;
 case 111:
-#line	528	"/sys/src/cmd/6a/a.y"
+#line	528	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.lval = yypt[-2].yyv.lval - yypt[-0].yyv.lval;
 	} break;
 case 112:
-#line	532	"/sys/src/cmd/6a/a.y"
+#line	532	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.lval = yypt[-2].yyv.lval * yypt[-0].yyv.lval;
 	} break;
 case 113:
-#line	536	"/sys/src/cmd/6a/a.y"
+#line	536	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.lval = yypt[-2].yyv.lval / yypt[-0].yyv.lval;
 	} break;
 case 114:
-#line	540	"/sys/src/cmd/6a/a.y"
+#line	540	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.lval = yypt[-2].yyv.lval % yypt[-0].yyv.lval;
 	} break;
 case 115:
-#line	544	"/sys/src/cmd/6a/a.y"
+#line	544	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.lval = yypt[-3].yyv.lval << yypt[-0].yyv.lval;
 	} break;
 case 116:
-#line	548	"/sys/src/cmd/6a/a.y"
+#line	548	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.lval = yypt[-3].yyv.lval >> yypt[-0].yyv.lval;
 	} break;
 case 117:
-#line	552	"/sys/src/cmd/6a/a.y"
+#line	552	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.lval = yypt[-2].yyv.lval & yypt[-0].yyv.lval;
 	} break;
 case 118:
-#line	556	"/sys/src/cmd/6a/a.y"
+#line	556	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.lval = yypt[-2].yyv.lval ^ yypt[-0].yyv.lval;
 	} break;
 case 119:
-#line	560	"/sys/src/cmd/6a/a.y"
+#line	560	"/Users/rminnich/src/nxm/sys/src/cmd/6a/a.y"
 {
 		yyval.lval = yypt[-2].yyv.lval | yypt[-0].yyv.lval;
 	} break;

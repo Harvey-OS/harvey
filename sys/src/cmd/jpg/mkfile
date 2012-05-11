@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=jpg\
 	gif\
@@ -23,7 +24,7 @@ HFILES=imagefile.h\
 
 LIB=
 
-BIN=/$objtype/bin
+BIN=$NXM/$objtype/bin
 UPDATE=\
 	mkfile\
 	$HFILES\
@@ -41,7 +42,7 @@ UPDATE=\
 	readtga.c\
 	${TARG:%=%.c}\
 
-</sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany
 c=`{sed -n 's/^O=//p' /$cputype/mkfile}
 
 $O.tga:		$IMFILES readtga.$O tga.$O

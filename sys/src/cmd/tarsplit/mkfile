@@ -1,6 +1,7 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
-BIN=/$objtype/bin
+BIN=$NXM/$objtype/bin
 TARG=\
 	tarcat\
 	tarsplit\
@@ -8,4 +9,4 @@ TARG=\
 HFILES=tar.h
 OFILES=tarsub.$O
 
-</sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany

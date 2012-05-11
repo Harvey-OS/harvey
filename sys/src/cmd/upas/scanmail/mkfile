@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=scanmail\
 	testscan
@@ -10,14 +11,14 @@ HFILES=	spam.h\
 
 LIB=	../common/libcommon.a$O\
 
-BIN=/$objtype/bin/upas
+BIN=$NXM/$objtype/bin/upas
 UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
 	${TARG:%=%.c}\
 
-</sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany
 CFLAGS=$CFLAGS -I../common
 
 scanmail.$O:	scanmail.c

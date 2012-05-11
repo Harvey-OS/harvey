@@ -1,4 +1,5 @@
-</$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=sprog
 OFILES=sprog.$O\
@@ -6,8 +7,8 @@ OFILES=sprog.$O\
 HFILES =\
 	code.h\
 
-BIN=/$objtype/bin/aux
-</sys/src/cmd/mkone
+BIN=$NXM/$objtype/bin/aux
+<$NXM/sys/src/cmd/mkone
 cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
 
 all:V:	lib 
@@ -41,6 +42,6 @@ clean:V:
 	rm -f *.[$OS] [$OS].out [$OS].pcode y.tab.? y.debug y.output $TARG
 
 test:V:	$O.out brspell
-	time ./$O.out -b -f brspell </dev/null >y
+	time ./$O.out -b -f brspell <$NXM/dev/null >y
 	time ./$O.out -b -f brspell <x >z
 	cmp y z

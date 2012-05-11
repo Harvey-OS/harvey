@@ -1,4 +1,5 @@
-< /$objtype/mkfile
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 TARG=diff
 OFILES=\
@@ -9,5 +10,5 @@ OFILES=\
 
 HFILES=diff.h
 
-BIN=/$objtype/bin
-</sys/src/cmd/mkone
+BIN=$NXM/$objtype/bin
+<$NXM/sys/src/cmd/mkone
