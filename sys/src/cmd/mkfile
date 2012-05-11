@@ -5,7 +5,7 @@ TARG=`{ls *.[cy] | sed '/\.tab\.c$/d;s/..$//'}
 HFILES=$NXM/$objtype/include/u.h $NXM/sys/include/libc.h $NXM/sys/include/bio.h
 BIN=$NXM/$objtype/bin
 PROGS=${TARG:%=$O.%}
-LDFLAGS=
+LDFLAGS=-L $NXM/$objtype/lib
 YFLAGS=-d
 
 NOTSYS=sml|dup|.+\..+
@@ -45,8 +45,7 @@ all:V:	$PROGS dirs
 	echo $PROGS
 
 ^([$OS])\.(.*):R:	\2.\1
-	$stem1^l -o $target $stem2.$stem1
-#	$stem1^l $LDFLAGS -o $target $stem2.$stem1
+	$stem1^l $LDFLAGS -o $target $stem2.$stem1
 
 .*\.[$OS]:R:	$HFILES
 
