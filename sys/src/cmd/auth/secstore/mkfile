@@ -1,5 +1,5 @@
-</$objtype/mkfile
-BIN=/$objtype/bin/auth
+<$NXM/$objtype/mkfile
+BIN=$NXM/$objtype/bin/auth
 HFILES =\
 	SConn.h\
 	secstore.h\
@@ -21,7 +21,7 @@ UPDATE=\
 	${TARG:%=%.c}\
 	${DEBUG:%=%.c}\
 	mkfile\
-	/sys/man/1/secstore\
+	$NXM/sys/man/1/secstore\
 
 default:V: all
 
@@ -48,4 +48,4 @@ secureidcheck.$O: ../secureidcheck.c
 $O.secchk: secchk.$O secureidcheck.$O
 	$LD -o $target $prereq
 
-</sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany

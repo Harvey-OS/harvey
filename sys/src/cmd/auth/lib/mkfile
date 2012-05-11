@@ -1,4 +1,4 @@
-</$objtype/mkfile
+<$NXM/$objtype/mkfile
 
 
 LIB=../lib.$O.a
@@ -19,12 +19,12 @@ OFILES=\
 	getexpiration.$O\
 
 
-HFILES=/sys/include/auth.h /sys/include/authsrv.h ../authcmdlib.h
+HFILES=$NXM/sys/include/auth.h $NXM/sys/include/authsrv.h ../authcmdlib.h
 
 UPDATE=\
 	mkfile\
 	$HFILES\
 	${OFILES:%.$O=%.c}\
 
-</sys/src/cmd/mksyslib
+<$NXM/sys/src/cmd/mksyslib
 CFLAGS=$CFLAGS -I..

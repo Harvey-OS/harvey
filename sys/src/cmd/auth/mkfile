@@ -2,6 +2,8 @@
 #
 #		programs
 #
+MKSHELL=rc
+
 TARG=\
 	as\
 	asn12dsa\
