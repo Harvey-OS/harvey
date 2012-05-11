@@ -23,6 +23,7 @@ UPDATE=\
 	${DEBUG:%=%.c}\
 	mkfile\
 	$NXM/sys/g/man/1/secstore\
+	$NXM/sys/man/1/secstore\
 
 default:V: all
 
