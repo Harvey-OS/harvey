@@ -1041,7 +1041,7 @@ vlog(Node *n)
 	if(typefd[n->type->etype])
 		goto bad;
 
-	return log2(n->vconst);
+	return p9log2(n->vconst);
 
 bad:
 	return -1;
