@@ -85,3 +85,11 @@ sys/src/cmd/pic/picy.c
 sys/src/cmd/rc/x.tab.h
 sys/src/cmd/upas/smtp/rfc822.tab.c
 sys/src/cmd/upas/smtp/smtpd.tab.c
+
+#random?
+Users/
+amd64/init
+sys/src/cmd/._cp
+sys/src/cmd/creepy/9pix
+sys/src/cmd/creepy/fscmd
+sys/src/cmd/creepy/fsfmt

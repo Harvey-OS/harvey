@@ -17,7 +17,7 @@
 #CC=cc
 CFLAGS=-g -I.
 LD=cc
-LDFLAGS=
+LDFLAGS=-L $NXM/$objtype/lib
 LDTAIL=
 
 OFILES=\

@@ -1,7 +1,7 @@
 MKSHELL=rc
 PROGS=${TARG:%=$O.%}
 MANFILES=${TARG:%=%.man}
-LDFLAGS=
+LDFLAGS=-L $NXM/$objtype/lib
 YFLAGS=-d
 
 none:VQ:

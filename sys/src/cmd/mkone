@@ -1,4 +1,4 @@
-LDFLAGS=
+LDFLAGS=-L $NXM/$objtype/lib
 YFLAGS=-d
 AFLAGS=
 
