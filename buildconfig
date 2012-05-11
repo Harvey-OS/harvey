@@ -1,2 +1,2 @@
-rm $NXM/xbin/ar
-rm $NXM/xbin/nm
+rm -f $NXM/xbin/ar
+rm -f $NXM/xbin/nm
