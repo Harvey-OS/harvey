@@ -36,10 +36,10 @@ UPDATE=\
 <$NXM/sys/src/cmd/mkmany
 
 $O.faxreceive: $RECEIVE
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 
 $O.faxsend: $SEND
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 
 install.rc:V:
 	mkdir /sys/lib/fax

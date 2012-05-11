@@ -36,5 +36,5 @@ $LIB:
 
 t:V:	$O.out
 	$O.out -S t
-	$LD -o t.out t.$O
+	$LD $LDFLAGS -o t.out t.$O
 	t.out

@@ -70,11 +70,11 @@ none:VQ:
 	echo usage: mk safeinstall, safeinstallall, cmd.safeinstallall, or cmd.safeinstallall
 
 $O.9down: 9down.$O whois.$O classify.$O $LIB
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 
 $O.test9down: 9down4e.$O whois.$O classify.$O $LIB
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 
 $O.testclassify: testclassify.$O whois.$O classify.$O $LIB
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 

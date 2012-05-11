@@ -52,4 +52,4 @@ $cpuobjtype.maketab:	y.tab.h maketab.c
 	mk maketab.$cputype
 
 maketab.$cputype:V:	y.tab.h maketab.$O
-	$LD -o $O.maketab maketab.$O
+	$LD $LDFLAGS -o $O.maketab maketab.$O

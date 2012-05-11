@@ -10,7 +10,7 @@ YFLAGS=-d
 
 NOTSYS=sml|dup|.+\..+
 BUGGERED=awk|bitsy|bzip2|compress|cpp|hoc|jpg|unix|postscript|qi|rio|sam|samterm|scat|srvold9p|usb|vnc
-RUNEBUGGERED=acme|dict|htmlfmt
+RUNEBUGGERED=acme|dict|htmlfmt|page
 PCCBUGGERED=eqn|grap|graph|gs|lp|map|nroff|pic|plot|spin|tbl|troff
 OUTOFDATE=old
 
@@ -124,7 +124,7 @@ $BIN/init:	$O.init
 	cp $prereq $NXM/$objtype/init
 
 $O.cj:	cj.$O
-	$LD -o $O.cj cj.$O $NXM/$objtype/lib/libjpg.a
+	$LD $LDFLAGS -o $O.cj cj.$O $NXM/$objtype/lib/libjpg.a
 
 %.update:V:
 	update $stem.c /386/bin/$stem

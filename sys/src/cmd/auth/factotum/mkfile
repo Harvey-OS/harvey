@@ -37,7 +37,7 @@ HFILES=\
 	dat.h\
 
 LIB=$NXM/$objtype/lib/libauth.a $NXM/$objtype/lib/libauthsrv.a
-BIN=$NXM$NXM/$objtype/bin/auth
+BIN=$NXM/$objtype/bin/auth
 
 UPDATE=\
 	mkfile\
@@ -48,10 +48,10 @@ UPDATE=\
 <$NXM/sys/src/cmd/mkmany
 
 $O.factotum: $FOFILES
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 
 $O.fgui: fgui.$O
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 
 $O.test: test.$O
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq

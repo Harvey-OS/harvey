@@ -24,4 +24,4 @@ UPDATE=\
 CFLAGS=$CFLAGS '-DDEFAULT='$DEFAULT
 
 $O.dblook: dblook.$O facedb.$O util.$O
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq

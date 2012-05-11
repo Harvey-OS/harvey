@@ -26,4 +26,4 @@ UPDATE=\
 CFLAGS=$CFLAGS
 
 $O.out: $OFILES
-	$LD -o $target  $LDFLAGS $OFILES
+	$LD $LDFLAGS -o $target  $LDFLAGS $OFILES

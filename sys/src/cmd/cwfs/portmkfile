@@ -55,7 +55,7 @@ acid: ${OFILES:%.acid=../%.c}
 
 $O.cwfs$FS: conf.c $OFILES
 	$CC $CFLAGS -DDATE'='`{date -n} conf.c
-	$LD -o $target $OFILES conf.$O
+	$LD $LDFLAGS -o $target $OFILES conf.$O
 #	size $target
 
 test:V: 8.cwfs$FS

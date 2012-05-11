@@ -81,14 +81,14 @@ nuke:V:
 	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG
 
 $O.fakearp:	fakearp.$O getether.$O
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 
 telnetd.$O:	telnet.h
 
 telnet.$O:	telnet.h
 
 $O.ftpd:	ftpd.$O glob.$O
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 
 $BIN/telnet:V:	$O.telnet
 	cp $prereq $NXM/$objtype/bin/telnet

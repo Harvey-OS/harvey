@@ -28,18 +28,18 @@ UPDATE=\
 default:V: all
 
 $O.aescbc: aescbc.$O util.$O
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 $O.descbc: descbc.$O util.$O
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 
 $O.secstore: secstore.$O  $OFILES
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 
 $O.secstored: secstored.$O dirls.$O secureidcheck.$O $OFILES
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 
 $O.secuser: secuser.$O $OFILES
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 
 secstore.$O secstored.$O $OFILES: $HFILES
 
@@ -48,6 +48,6 @@ secureidcheck.$O: ../secureidcheck.c
 
 # debugging
 $O.secchk: secchk.$O secureidcheck.$O
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 
 <$NXM/sys/src/cmd/mkmany

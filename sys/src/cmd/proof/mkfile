@@ -13,4 +13,4 @@ BIN=$NXM/$objtype/bin
 <$NXM/sys/src/cmd/mkone
 
 $O.pout: $OFILES
-	$LD -o $O.pout -p $OFILES
+	$LD $LDFLAGS -o $O.pout -p $OFILES

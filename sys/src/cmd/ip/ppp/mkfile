@@ -26,4 +26,4 @@ safeinstall: $O.out
 	cp $O.out $BIN/$TARG
 
 $O.testppp: testppp.$O
-	$LD -o $O.testppp $prereq
+	$LD $LDFLAGS -o $O.testppp $prereq

@@ -33,23 +33,23 @@ BIN=$NXM/$objtype/bin/ndb
 <$NXM/sys/src/cmd/mkmany
 
 $O.dns: $DNSOBJ
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 
 # print it in landscape orientation; it's way more useful than 80 columns
 calls.dns:D: ${DNSOBJ:%.$O=%.c}
 	calls -w 132 -f main $prereq >$target
 
 $O.dnstcp: $DNSTCPOBJ
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 
 $O.dnsdebug: $DNSDEBUGOBJ
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 
 $O.cs: cs.$O
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 
 $O.testipinfo: testipinfo.$O ipinfo.$O
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 
 push: $O.dns $O.dnsdebug $O.dnstcp
 	import lookout / /n/lookout

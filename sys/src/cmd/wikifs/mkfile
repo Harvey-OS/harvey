@@ -15,7 +15,7 @@ COFILES=\
 OFILES=fs.$O $COFILES
 
 BIN=$NXM/$objtype/bin
-LIB=/$objtype/lib/lib9p.a #/$objtype/lib/libdebugmalloc.a
+LIB=$NXM/$objtype/lib/lib9p.a #/$objtype/lib/libdebugmalloc.a
 
 UPDATE=\
 	mkfile\
@@ -25,10 +25,10 @@ UPDATE=\
 <$NXM/sys/src/cmd/mkone
 
 $O.wiki2html: wiki2html.$O $COFILES
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 
 $O.wiki2text: wiki2text.$O $COFILES
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
 
 $O.owikifs: ofs.$O $COFILES
-	$LD -o $target $prereq
+	$LD $LDFLAGS -o $target $prereq
