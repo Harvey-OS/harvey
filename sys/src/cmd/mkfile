@@ -9,10 +9,12 @@ LDFLAGS=-L $NXM/$objtype/lib
 YFLAGS=-d
 
 NOTSYS=sml|dup|.+\..+
-BUGGERED=unix|postscript
+BUGGERED=awk|bitsy|bzip2|compress|cpp|hoc|jpg|unix|postscript|qi|rio|sam|samterm|scat|srvold9p|usb|vnc
+RUNEBUGGERED=acme|dict|htmlfmt
+PCCBUGGERED=eqn|grap|graph|gs|lp|map|nroff|pic|plot|spin|tbl|troff
 OUTOFDATE=old
 
-NOMK=$NOTSYS|$BUGGERED|$OUTOFDATE
+NOMK=$NOTSYS|$BUGGERED|$RUNEBUGGERED|$PCCBUGGERED|$OUTOFDATE
 
 cpuobjtype=`{sed -n 's/^O=//p' $NXM/$cputype/mkfile}
 MKDIRS=`{echo */mkfile | sed 's,/mkfile,,g'}

@@ -67,8 +67,8 @@ extern	Mach	m68020;
 extern	Mach	mi386;
 extern	Mach	mamd64;
 extern	Mach	marm;
-extern	Mach	mpower;
-extern	Mach	mpower64;
+//extern	Mach	mpower;
+//extern	Mach	mpower64;
 extern	Mach	malpha;
 
 ExecTable exectab[] =
@@ -190,15 +190,15 @@ ExecTable exectab[] =
 		sizeof(Exec)+8,
 		nil,
 		commonllp64 },
-	{ Q_MAGIC,			/* PowerPC q.out & boot image */
-		"power plan 9 executable",
-		"power plan 9 dlm",
-		FPOWER,
-		1,
-		&mpower,
-		sizeof(Exec),
-		beswal,
-		common },
+//	{ Q_MAGIC,			/* PowerPC q.out & boot image */
+//		"power plan 9 executable",
+//		"power plan 9 dlm",
+//		FPOWER,
+//		1,
+//		&mpower,
+//		sizeof(Exec),
+//		beswal,
+//		common },
 	{ ELF_MAG,			/* any elf64 */
 		"elf 64-bit executable",
 		nil,
@@ -621,10 +621,12 @@ print("swab it up\n");
 		mach = &mmips;
 		fp->type = FMIPS;
 		break;
+/* NO
 	case POWER:
 		mach = &mpower;
 		fp->type = FPOWER;
 		break;
+*/
 	case AMD64:
 		mach = &mamd64;
 		fp->type = FAMD64;

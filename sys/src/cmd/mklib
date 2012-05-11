@@ -1,3 +1,4 @@
+MKSHELL=rc
 AFLAGS=
 YFLAGS=-d
 

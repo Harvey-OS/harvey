@@ -18,6 +18,6 @@ UPDATE=\
 	${TARG:%=%.c}\
 	${TARG:%=$NXM/386/bin/%}\
 
-LIB=/$objtype/lib/lib9p.a
+LIB=$NXM/$objtype/lib/lib9p.a
 
 <$NXM/sys/src/cmd/mkmany

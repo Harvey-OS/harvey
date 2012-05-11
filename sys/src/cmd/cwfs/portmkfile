@@ -1,3 +1,4 @@
+MKSHELL=rc
 <$NXM/$objtype/mkfile
 
 BIN=$NXM/$objtype/bin
@@ -55,7 +56,7 @@ acid: ${OFILES:%.acid=../%.c}
 $O.cwfs$FS: conf.c $OFILES
 	$CC $CFLAGS -DDATE'='`{date -n} conf.c
 	$LD -o $target $OFILES conf.$O
-	size $target
+#	size $target
 
 test:V: 8.cwfs$FS
 	cputype=debug $prereq -a 'tcp!*!1234' </dev/null

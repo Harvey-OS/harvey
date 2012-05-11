@@ -1,6 +1,6 @@
 MKSHELL=rc
 <$NXM/$objtype/mkfile
-CFLAGS=-I/sys/src/libc/9syscall $CFLAGS
+CFLAGS=-I $NXM/sys/src/libc/9syscall $CFLAGS
 
 TARG=syscall
 OFILES=syscall.$O\
@@ -16,7 +16,7 @@ UPDATE=\
 
 <$NXM/sys/src/cmd/mkone
 
-SYSCALL=/sys/src/libc/9syscall/sys.h
+SYSCALL=$NXM/sys/src/libc/9syscall/sys.h
 
 tab.h:	$SYSCALL
 	sed '/#define._X[0-9_]/d;

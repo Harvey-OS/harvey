@@ -47,8 +47,8 @@ LIB=$SLIB # /$objtype/lib/libventi.a
 HFILES=	dat.h\
 	fns.h\
 	stdinc.h\
-	$NXM/sys/g/include/venti.h\
-	/sys/include/httpd.h\
+	$NXM/sys/include/venti.h\
+	$NXM/sys/include/httpd.h\
 
 TARG=\
 	mmventi\

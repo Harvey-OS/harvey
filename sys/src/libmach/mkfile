@@ -13,7 +13,6 @@ FILES=\
 	v\
 	k\
 	u\
-	q\
 	0\
 	2\
 	5\
@@ -23,7 +22,6 @@ FILES=\
 	vdb\
 	kdb\
 	udb\
-	qdb\
 	2db\
 	5db\
 	7db\
@@ -37,8 +35,11 @@ FILES=\
 	7obj\
 	8obj\
 	9obj\
-	qobj\
 	vcodas\
+
+NO=	q\
+	qdb\
+	qobj\
 
 HFILES=$NXM/sys/include/mach.h elf.h obj.h
 

@@ -10,7 +10,7 @@ LIBFILES=\
 LIB=${LIBFILES:%=%.$O}
 
 HFILES=\
-	/sys/include/venti.h\
+	$NXM/sys/include/venti.h\
 	stdinc.h\
 	error.h\
 	vac.h\

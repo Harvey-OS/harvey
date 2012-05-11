@@ -1,3 +1,4 @@
+MKSHELL=rc
 default:V: all
 
 all allall first default clean nuke install installall safeinstall safeinstallall update man:V:
