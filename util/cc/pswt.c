@@ -53,7 +53,7 @@ doswit(Node *n)
 		if(isv)
 			q->val = c->val;
 		else
-			q->val = (long)c->val;	/* cast ensures correct value for 32-bit switch on 64-bit architecture */
+			q->val = (int32)c->val;	/* cast ensures correct value for 32-bit switch on 64-bit architecture */
 		q++;
 	}
 	qsort(iq, nc, sizeof(C1), swcmp);
@@ -105,7 +105,7 @@ doswit(Node *n)
 		for(j = i; j < nc; j++){
 			if((iq[j].val>>32) != iqh[nh].val)
 				break;
-			q->val = (long)iq[j].val;
+			q->val = (int32)iq[j].val;
 			q->label = iq[j].label;
 			q++;
 		}
@@ -194,5 +194,5 @@ ieeedtod(Ieee *ieee, double native)
 	fr = modf(fr*f, &ho);
 	ieee->l = ho;
 	ieee->l <<= 16;
-	ieee->l |= (long)(fr*f);
+	ieee->l |= (int32)(fr*f);
 }

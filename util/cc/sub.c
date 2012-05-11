@@ -1141,10 +1141,10 @@ bitno(long b)
 	return 0;
 }
 
-long
-typebitor(long a, long b)
+int32
+typebitor(int32 a, int32 b)
 {
-	long c;
+	int32 c;
 
 	c = a | b;
 	if(a & b)

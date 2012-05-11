@@ -353,8 +353,8 @@ int	cond(int);
 int	com64(Node*);
 void	com64init(void);
 void	bool64(Node*);
-long	lo64v(Node*);
-long	hi64v(Node*);
+int32	lo64v(Node*);
+int32	hi64v(Node*);
 Node*	lo64(Node*);
 Node*	hi64(Node*);
 

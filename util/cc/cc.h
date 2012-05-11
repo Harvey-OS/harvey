@@ -34,7 +34,7 @@ typedef	struct	Bits	Bits;
 #define	MASK(n)		(SIGN(n)|(SIGN(n)-1))
 
 #define	BITS	5
-#define	NVAR	(BITS*sizeof(ulong)*8)
+#define	NVAR	(BITS*sizeof(uint32)*8)
 struct	Bits
 {
 	ulong	b[BITS];
@@ -448,7 +448,7 @@ EXTERN	Io*	iostack;
 EXTERN	long	lastbit;
 EXTERN	char	lastclass;
 EXTERN	Type*	lastdcl;
-EXTERN	long	lastfield;
+EXTERN	int32	lastfield;	/* set to node->vconst in dcl.c */
 EXTERN	Type*	lasttype;
 EXTERN	long	lineno;
 EXTERN	long	nearln;
@@ -698,7 +698,7 @@ int	p9log2(uvlong);
 int	vlog(Node*);
 int	topbit(ulong);
 void	simplifyshift(Node*);
-long	typebitor(long, long);
+int32	typebitor(int32, int32);
 void	diag(Node*, char*, ...);
 void	warn(Node*, char*, ...);
 void	yyerror(char*, ...);

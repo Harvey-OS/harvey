@@ -568,8 +568,11 @@ preemptfor(Proc *p)
 	 */
 	for(rr = 0; rr < 2; rr++)
 		for(i = 0; i < MACHMAX; i++){
+		/*	color not working
 			j = pickcore(p->color, i);
 			if((mp = sys->machptr[j]) != nil && mp->online && mp->nixtype == NIXTC){
+		  */
+			if((mp = sys->machptr[i]) != nil && mp->online && mp->nixtype == NIXTC){
 				if(mp == m)
 					continue;
 				/*
@@ -656,8 +659,11 @@ found:
 			goto loop;
 	}else{
 		for(i = 0; i < MACHMAX; i++){
+		/*	color not working
 			j = pickcore(p->color, i);
 			if((mp = sys->machptr[j]) != nil && mp->online && mp->nixtype == NIXTC)
+		  */
+			if((mp = sys->machptr[i]) != nil && mp->online && mp->nixtype == NIXTC)
 				if(mp != m && mp->proc == nil)
 					break;
 		}

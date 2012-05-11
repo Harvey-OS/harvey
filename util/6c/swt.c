@@ -395,11 +395,7 @@ zaddr(Biobuf *b, Adr *a, int s)
 		if(a->offset != 0) {
 			t |= T_OFFSET;
 			l = a->offset;
-			/* this test breaks on OSX! */
 			if((vlong)l != a->offset)
-				t |= T_64;
-			/* this one does not! */
-			if (a->offset >> 32)
 				t |= T_64;
 		}
 		break;

@@ -1,4 +1,4 @@
-</$objtype/mkfile
+<$NXM/$objtype/mkfile
 
 TARG=factotum\
 	fgui\
@@ -35,8 +35,8 @@ FOFILES=\
 HFILES=\
 	dat.h\
 
-LIB=/$objtype/lib/libauth.a /$objtype/lib/libauthsrv.a
-BIN=/$objtype/bin/auth
+LIB=$NXM/$objtype/lib/libauth.a $NXM/$objtype/lib/libauthsrv.a
+BIN=$NXM/$objtype/bin/auth
 
 UPDATE=\
 	mkfile\
@@ -44,7 +44,7 @@ UPDATE=\
 	${FOFILES:%.$O=%.c}\
 	fgui.c\
 
-</sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany
 
 $O.factotum: $FOFILES
 	$LD -o $target $prereq

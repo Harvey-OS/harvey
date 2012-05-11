@@ -441,7 +441,7 @@ regind(Node *n, Node *nn)
 void
 naddr(Node *n, Adr *a)
 {
-	long v;
+	int32 v;	/* a->offset is vlong */
 
 	a->type = D_NONE;
 	if(n == Z)
@@ -1439,7 +1439,7 @@ gpseudo(int a, Sym *s, Node *n)
 int
 sconst(Node *n)
 {
-	long v;
+	int32 v;	/* vconst is vlong */
 
 	if(n->op == OCONST && !typefd[n->type->etype]) {
 		v = n->vconst;
