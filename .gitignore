@@ -55,3 +55,18 @@ Thumbs.db
 # random
 tags
 *~
+
+# plan 9 mk generated files
+sys/src/nix/port/latin1.h
+sys/src/nix/port/systab.c
+sys/src/nix/root/nvram
+sys/src/cmd/bc.tab.c
+sys/src/cmd/bc.tab.h
+sys/src/nix/k10/sipi.h
+inferno-os/mkconfig
+9k8*
+sys/src/nix/k10/amd64l.h
+sys/src/nix/k10/*.out
+sys/src/nix/k10/errstr.h
+sys/src/nix/k10/init.h
+sys/src/nix/k10/*.root.s
