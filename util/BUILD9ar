@@ -1,3 +1,0 @@
-9c -I $NXM/util/libmach $NXM//util/libmach/6obj.c 
-9c 9ar.c
-9l -o $NXM/xbin/9ar 9ar.o 6obj.o 

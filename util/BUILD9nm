@@ -1,3 +1,0 @@
-9c -I $NXM/sys/src/libmach $NXM/sys/src/libmach/6obj.c 
-9c 9nm.c
-9l -o $NXM/amd64/bin/9nm 9nm.o 6obj.o 
