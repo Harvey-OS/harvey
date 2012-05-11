@@ -1,4 +1,4 @@
-</$objtype/mkfile
+<$NXM/$objtype/mkfile
 #
 #		programs
 #
@@ -48,10 +48,10 @@ OTHEROFILES=\
 	secureidcheck.$O\
 	userpasswd.$O\
 
-HFILES=/sys/include/auth.h /sys/include/authsrv.h authcmdlib.h
+HFILES=$NXM/sys/include/auth.h $NXM/sys/include/authsrv.h authcmdlib.h
 
 LIB=lib.$O.a
-BIN=/$objtype/bin/auth
+BIN=$NXM/$objtype/bin/auth
 CLIB=`{ls lib/*.c}
 
 UPDATE=\
@@ -61,7 +61,7 @@ UPDATE=\
 	${OTHEROFILES:%.$O=%.c}\
 	${TARG:%=%.c}\
 
-</sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany
 
 all:V:	$DIRS
 
@@ -123,10 +123,10 @@ $O.authsrv $O.guard.srv: secureidcheck.$O
 rsa2ssh.$O rsafill.$O rsa2x509.$O rsa2pub.$O rsa2csr.$O: rsa2any.h
 
 $BIN/netkey:V:	$O.netkey
-	cp $O.netkey /$objtype/bin/netkey
+	cp $O.netkey $NXM/$objtype/bin/netkey
 
 $BIN/passwd:V:	$O.passwd
-	cp $O.passwd /$objtype/bin/passwd
+	cp $O.passwd $NXM/$objtype/bin/passwd
 
 $BIN/status:V:
 	cp status $target

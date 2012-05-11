@@ -70,3 +70,6 @@ sys/src/nix/k10/*.out
 sys/src/nix/k10/errstr.h
 sys/src/nix/k10/init.h
 sys/src/nix/k10/*.root.s
+sys/src/nix/k10/k8*.c
+sys/src/nix/k10/bootk8*.c
+amd64/bin
