@@ -1,6 +1,6 @@
-</$objtype/mkfile
+<$NXM/$objtype/mkfile
 
-BIN=/$objtype/bin
+BIN=$NXM/$objtype/bin
 TARG=cwfs$FS
 OFILES=\
 	9p1.$O\
@@ -43,7 +43,7 @@ CFLAGS=$CFLAGS -I..
 
 default:V: $O.cwfs$FS
 
-</sys/src/cmd/mkmany
+<$NXM/sys/src/cmd/mkmany
 
 %.$O:	../%.c
 	$CC $CFLAGS ../$stem.c
