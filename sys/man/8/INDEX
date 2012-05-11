@@ -1,11 +1,10 @@
 0intro 0intro
 intro 0intro
 6in4 6in4
-9load 9load
-9loadask 9load
-9loadusb 9load
-9pxeload 9load
-ld 9load
+9boot 9boot
+9bootpbs 9boot
+9load 9boot
+9loadusb 9boot
 9pcon 9pcon
 aan aan
 aliasmail aliasmail
@@ -138,6 +137,12 @@ newuser newuser
 nfsserver nfsserver
 pcnfsd nfsserver
 portmapper nfsserver
+9loadask old9load
+9loadusb old9load
+9pxeload old9load
+ld old9load
+old9load old9load
+old9load: 9load old9load
 partfs partfs
 pci pci
 pcmcia pcmcia
