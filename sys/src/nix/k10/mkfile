@@ -25,8 +25,8 @@ OBJ=$MACH $CONF.root.$O $DEVS $PORT
 # there's just way too much magic in all this stuff. I can't find out how/where LIB is defined.
 $p$CONF:	$CONF.c $OBJ $LIB
 	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
-	$LD -o $target -T0xfffffffff0110000 -R4096 -l $OBJ $CONF.$O $LIB /amd64/lib/libc.a
-	$LD -o $target.elf -H5 -8 -T0xfffffffff0110000 -l $OBJ $CONF.$O $LIB /amd64/lib/libc.a
+	$LD -L $NXM/$objtype/lib -o $target -T0xfffffffff0110000 -R4096 -l $OBJ $CONF.$O $LIB $NXM/amd64/lib/libc.a
+	$LD -L $NXM/$objtype/lib -o $target.elf -H5 -8 -T0xfffffffff0110000 -l $OBJ $CONF.$O $LIB $NXM/amd64/lib/libc.a
 	ls -l 9k*
 	echo NOT DOING 9size $target
 
