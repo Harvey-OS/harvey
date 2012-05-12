@@ -1,0 +1,37 @@
+# loadusb - 9loadusb as a variant of 9pccpu.
+#	has to fit in bottom 640K, currently is about 310K.
+dev
+	root
+	cons
+	arch
+	rtc
+# order matters: bios must precede sd
+	bios
+	sd
+
+	uart
+
+misc
+	bootld
+	conf
+	dir
+	diskload
+	dosboot
+	fs
+	inflate
+	nomtrr
+	parts
+	pci
+	rand
+	realmode
+	stub
+	uarti8250
+
+	sdbios		pci sdscsi
+
+port
+	int cpuserver = 1;
+# disabling the clock makes 9loadusb run faster, but also breaks
+# (timed) keyboard input, alas.
+#	int noclock = 1;
+	char hellomsg[] = "bios (usb) loader";

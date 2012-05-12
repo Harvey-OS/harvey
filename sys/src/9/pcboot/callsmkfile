@@ -1,0 +1,72 @@
+PORTC=\
+	../port/alarm.c\
+	../port/alloc.c\
+	../port/allocb.c\
+	auth.c\
+	chan.c\
+	conf.c\
+	../port/dev.c\
+	../port/devroot.c\
+	../port/devuart.c\
+	../port/edf.c\
+	../port/latin1.c\
+	../port/netif.c\
+	../port/page.c\
+	../port/parse.c\
+	../port/pgrp.c\
+	../port/portclock.c\
+	../port/print.c\
+	../port/proc.c\
+	../port/qio.c\
+	../port/qlock.c\
+	../port/rdb.c\
+	../port/rebootcmd.c\
+	../port/segment.c\
+	../port/taslock.c\
+	../port/tod.c\
+	../port/xalloc.c\
+
+IPC=../ip/arp.c\
+	../ip/chandial.c\
+	../ip/devip.c\
+	../ip/ethermedium.c\
+	../ip/icmp.c\
+	../ip/icmp6.c\
+	../ip/inferno.c\
+	../ip/ip.c\
+	../ip/ipaux.c\
+	../ip/ipifc.c\
+	../ip/ipmux.c\
+	../ip/iproute.c\
+	../ip/ipv6.c\
+	../ip/loopbackmedium.c\
+	../ip/netdevmedium.c\
+	../ip/netlog.c\
+	../ip/ptclbsum.c\
+	../ip/udp.c\
+
+# print it in landscape orientation; it's way more useful than 80 columns
+disk.calls:D: main.c $CONF.c $PORTC \
+	boot.c cga.c devarch.c devcons.c devrtc.c \
+	diskload.c fault.c i8253.c i8259.c \
+	kbd.c memory.c mmu.c multiboot.c pci.c \
+	stub.c trap.c uarti8250.c \
+	warp64.c $CONF.rootc.c			#  ${DEVS:%.$O=%.c}
+	calls -w 132 -f main -I. -I../pc -I../port -I../ip $prereq |
+		grep -v '\[external\]' >main.$target
+	calls -w 132 -f bootloadproc -I. -I../pc -I../port -I../ip $prereq |
+		grep -v '\[external\]' >bootloadproc.$target
+	calls -w 132 -I. -I../pc -I../port -I../ip $prereq |
+		grep -v '\[external\]' >$target
+pxe.calls:D: main.c $CONF.c $IPC $PORTC \
+	boot.c cga.c devarch.c devcons.c devether.c devrtc.c \
+	ethermii.c ether82563.c fault.c i8253.c i8259.c \
+	kbd.c memory.c mmu.c multiboot.c pci.c \
+	pxeload.c rand.c stub.c trap.c uarti8250.c \
+	warp64.c $CONF.rootc.c			#  ${DEVS:%.$O=%.c}
+	calls -w 132 -f main -I. -I../pc -I../port -I../ip $prereq |
+		grep -v '\[external\]' >main.$target
+	calls -w 132 -f bootloadproc -I. -I../pc -I../port -I../ip $prereq |
+		grep -v '\[external\]' >bootloadproc.$target
+	calls -w 132 -I. -I../pc -I../port -I../ip $prereq |
+		grep -v '\[external\]' >$target

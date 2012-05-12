@@ -24,7 +24,7 @@ reboots the machine;
 other methods of rebooting are mentioned for some machines.
 .SS PCs
 To boot a PC, it is necessary to get
-.B /386/9load
+.B /386/9boot
 or
 .B /386/9load
 loaded into memory.
@@ -36,14 +36,14 @@ will load
 .B 9load
 when the PC is reset or powered on.
 Other methods are described in 
-.IR 9load (8).
-.I 9load
+.IR 9boot (8).
+.I 9boot
 or
 .I 9load
 then locates and loads a Plan 9 kernel, using configuration information
 from the matching file in
 .B /cfg/pxe
-.RI ( 9load )
+.RI ( 9boot )
 or the file
 .B plan9.ini
 stored in the
@@ -51,7 +51,7 @@ stored in the
 configuration partition or on a DOS file system
 .RI ( 9load ).
 See 
-.IR 9load (8)
+.IR 9boot (8)
 for details.
 .PP
 Once the kernel is booted, it behaves like the others.
@@ -280,7 +280,7 @@ when reset.
 .
 .SH "SEE ALSO"
 .IR ndb (6),
-.IR 9load (8),
+.IR 9boot (8),
 .IR boot (8),
 .IR init (8),
 .IR plan9.ini (8)

@@ -1,0 +1,37 @@
+# load - 9load (not 9pxeload) as a variant of 9pccpu.
+#	has to fit in bottom 640K, currently is about 378K.
+dev
+	root
+	cons
+	arch
+	rtc
+#	floppy
+	sd
+
+	uart
+
+misc
+	bootld
+	conf
+	dir
+	diskload
+#	dma
+	dosboot
+	fs
+	inflate
+	nomtrr
+	parts
+	pci
+	rand
+	stub
+	uarti8250
+
+	sdata		pci sdscsi
+	sd53c8xx	pci sdscsi
+	sdmylex		pci sdscsi
+	sdiahci		pci sdscsi
+#	sdflop
+
+port
+	int cpuserver = 1;
+	char hellomsg[] = "disk loader";
