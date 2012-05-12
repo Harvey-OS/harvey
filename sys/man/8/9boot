@@ -78,21 +78,27 @@ at location
 .B 0x7C00
 (31K).
 .I 9boot
-begins execution at virtual address
-.B 0x80007C00
-and reads a
+reads a
 .IR plan.ini (8)
 file from
 .B /cfg/pxe
 via PXE,
 then loads the named
 .I bootfile
-via PXE,
-using each ethernet in sequence,
+via TFTP,
+trying each ethernet in sequence,
 at the entry address specified by the header,
 usually virtual
 .BR 0xF0100020 .
-After loading, control is passed to the entry location.
+After loading,
+.I 9boot
+creates a Gnu Multiboot header in low memory for
+the benefit of the loaded kernel
+and
+control is passed to the entry location.
+So far, only
+.B amd64
+kernels expect Multiboot headers.
 .PP
 .I 9load
 is a similar bootstrap program,
@@ -132,10 +138,10 @@ detects whether the BIOS supports LBA and
 acts appropriately, defaulting to CHS mode
 when LBA is not present.
 The PBSs cannot do this due to code size limitations.
-The Plan 9 MBR is suitable for booting non-Plan 9
+The Plan 9 MBR is suitable for booting non-Plan-9
 operating systems,
 and (modulo the large disk constraints just described)
-non-Plan 9 MBRs are suitable for booting Plan 9.
+non-Plan-9 MBRs are suitable for booting Plan 9.
 .PP
 .I 9load
 begins execution at virtual address
@@ -313,7 +319,7 @@ can be located via a DHCP server,
 where
 .I ether
 is the lower-case MAC address of a recognised ethernet adapter,
-the contents are obtained and used as a
+the contents are obtained by TFTP and used as a
 .IR plan9.ini .
 .PP
 .I 9load
@@ -326,7 +332,7 @@ In order to find configuration information,
 searches all units on devices
 .\" .BR fd
 .\" and
-.BI sd Cn \fR
+.B sd?[0-9]*
 (all
 .B sd
 devices),
@@ -391,7 +397,7 @@ If there was no
 option,
 .I 9load
 searches
-.BI sd Cn \fR
+.B sd?[0-9]*
 FAT partitions for a kernel
 (any file named
 .B 9pc*
@@ -455,6 +461,14 @@ may be read for NVRAM contents or
 or
 .IR kfs (4)
 file systems can be mounted as the root file system.
+On ISO 9660 CDs,
+.I 9load
+treats the contents of a file named
+.B /bootdisk.img
+as a 
+.B 9fat
+partition,
+and it is assumed to contain the image of a FAT file system.
 A more extensive partitioning is typically done by
 .I fdisk
 and
@@ -469,7 +483,7 @@ or
 cannot parse partition tables,
 as it lacks disk drivers, so add
 .L readparts=
-to your
+to the machine's
 .B /cfg/pxe
 file, per
 .IR plan9.ini (8),
@@ -495,25 +509,27 @@ for information on ensuring this.
 these programs reside here
 .TP
 .BI /cfg/pxe
-directory of
-.I plan9.ini
+directory of configuration
+.RI ( plan9.ini )
 files on your TFTP server
 .PP
 .IB "FAT-filesystem" :\e9load
 .br
 .IB "FAT-filesystem" :\eplan9.ini
-.br
-.IB "FAT-filesystem" :\eplan9\eplan9.ini
+.\" .br
+.\" .IB "FAT-filesystem" :\eplan9\eplan9.ini
 .SH SOURCE
-.TF /sys/src/9/pcboot
+.TF "/sys/src/9/^(pc port ip)"
 .PD 0
 .TP
 .B /sys/src/boot/pc
-first-stage disk boot sectors
+first-stage disk boot sectors (MBR, PBS)
 .TP
 .B /sys/src/9/pcboot
+PC-bootstrap-specific source
 .TP
-.B /sys/src/9/pc
+.B /sys/src/9/^(pc port ip)
+common kernel source
 .PD
 .SH "SEE ALSO"
 .IR cons (3),

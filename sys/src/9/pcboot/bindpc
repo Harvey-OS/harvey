@@ -1,0 +1,33 @@
+#!/bin/rc
+# bindpc pfx sfx - bind files from ../pc into .
+# creating lots of stubs with aux/stub bogs down eventually, alas.
+if (test -e etherigbe.c)
+	exit ''
+
+rfork e
+thisboot=`{basename `{pwd}}
+boot=../$thisboot
+echo bindpc $*
+pfx=$1
+sfx=$2
+
+# mostly for mk clean or *.clean
+if (~ $#pfx 0)
+	pfx=''
+if (~ $#sfx 0)
+	sfx=''
+
+bind -bc $boot $boot
+
+# duplicate $pfx as $pfx$sfx
+cfgs=`{ls -d $pfx^* | grep -v '\.|mkfile|'^$sfx^'$'}
+aux/stub -d /tmp/blank
+for (f in $cfgs)
+	aux/stub /tmp/blank/$f$sfx
+bind -a /tmp/blank .
+for (f in $cfgs)
+	bind $f $f$sfx
+bind -a ../pc $boot
+
+# bind systab.h ../port/systab.h
+exit ''

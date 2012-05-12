@@ -1,0 +1,12 @@
+#!/bin/rc
+# unbindpc - unbind files from ../pc into .
+if (! test -e etherigbe.c)
+	exit ''
+
+rfork e
+for (f in `{ls -d pc?*pxe | grep -v '\.'})
+	unmount $f >[2]/dev/null
+unmount .
+unmount /tmp/blank
+# unmount ../port/systab.h
+exit ''

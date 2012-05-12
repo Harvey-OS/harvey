@@ -165,7 +165,7 @@ A
 .IR swap (8)
 swap partition.
 .PD
-.PP
+.SS "fdisk and prep"
 .I Fdisk
 edits the PC partition table and is usually
 invoked with a disk like
@@ -478,7 +478,7 @@ Set the partition type.  If it is not given,
 .I fdisk
 will display a list of choices and then prompt for it.
 .PD
-.PP
+.SS "format and pbs"
 .I Format
 prepares for use the disk partition or the floppy diskette in the file named
 .IR disk ,
@@ -617,7 +617,7 @@ option prints debugging information.
 The file
 .B /386/pbs
 is an example of a suitable
-.I bfile
+.I bootblock
 to make the disk a boot disk.
 It gets loaded by the BIOS at 0x7C00,
 reads the first sector of the
@@ -632,7 +632,9 @@ The file
 .B /386/pbslba
 is similar, but because it uses LBA addressing (not supported
 by older BIOSes), it can access more than the first 8.5GB of the disk.
-.PP
+.B /386/pbsraw
+is suitable for CDs.
+.SS mbr
 .I Mbr
 installs a new boot block in sector 0 (the master boot record)
 of a disk such as
@@ -733,6 +735,7 @@ assembler source for
 .IR sd (3),
 .IR usb (4),
 .IR 9boot (8),
+.IR mk9660 (8),
 .IR mkusbboot (8),
 .IR partfs (8)
 .SH BUGS

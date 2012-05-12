@@ -39,9 +39,9 @@ install:V:
 	for (i in $TARG)
 		mk $MKFLAGS $i.install
 
-%.install:V:	$BIN/%
-	for (fs in lookout boundary piestand bovril)
-		9fs $fs && cp $prereq /n/$fs/$prereq
+#%.install:V:	$BIN/%
+#	for (fs in lookout boundary piestand bovril)
+#		9fs $fs && cp $prereq /n/$fs/$prereq
 
 $BIN/%:	%
 	cp $stem $BIN/$stem
