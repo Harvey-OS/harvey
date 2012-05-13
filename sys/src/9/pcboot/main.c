@@ -291,11 +291,8 @@ init0(void)
 		poperror();
 	}
 	kproc("alarm", alarmkproc, 0);
-	kproc("bootload", bootloadproc, 0);
-
-//	touser(sp);	/* user mode isn't really implemented in the boot */
-	for (;;)
-		sched();
+	bootloadproc(0);
+	panic("bootloadproc returned");
 }
 
 void
