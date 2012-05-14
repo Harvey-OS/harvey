@@ -505,7 +505,7 @@ _dumpstack(Ureg *ureg)
 	int x;
 	char *s;
 
-	if (Dumpstack) {
+	if (!Dumpstack) {
 		print("no stack dump\n");
 		return;
 	}
