@@ -14,7 +14,7 @@ dev +dev
 	kprof
 #	pmc	pmcio
 	segment
-	acpi
+	acpi rdwr
 	tube
 	zp
 	ws
@@ -54,7 +54,7 @@ link +dev
 
 misc +dev
 #	cache
-	mp		apic ioapic msi pci sipi
+	mp		apic ioapic msi pci sipi rdwr
 
 #
 #boot cpu

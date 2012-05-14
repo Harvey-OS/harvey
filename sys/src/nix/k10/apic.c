@@ -79,12 +79,16 @@ Mach	*xlapicmachptr[Napic];		/* maintained, but unused */
 static u32int
 apicrget(int r)
 {
+	if (! apicbase)
+		panic("apicrget: no apic");
 	return *((u32int*)(apicbase+r));
 }
 
 static void
 apicrput(int r, u32int data)
 {
+	if (! apicbase)
+		panic("apicrput: no apic");
 	*((u32int*)(apicbase+r)) = data;
 }
 

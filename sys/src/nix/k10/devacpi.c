@@ -17,9 +17,6 @@
  * for the user-level interpreter.
  */
 
-
-#define l16get(p)	(((p)[1]<<8)|(p)[0])
-#define l32get(p)	(((u32int)l16get(p+2)<<16)|l16get(p))
 static Atable* acpifadt(uchar*, int);
 static Atable* acpitable(uchar*, int);
 static Atable* acpimadt(uchar*, int);
@@ -100,16 +97,33 @@ acpiregid(char *s)
 	return -1;
 }
 
-static u64int
-l64get(u8int* p)
+/* Proposed functions for safely getting ACPI table elements. */
+static u64int acpi64get(u8int *p, int offset, int length)
 {
-	/*
-	 * Doing this as a define
-	 * #define l64get(p)	(((u64int)l32get(p+4)<<32)|l32get(p))
-	 * causes 8c to abort with "out of fixed registers" in
-	 * rsdlink() below.
-	 */
-	return (((u64int)l32get(p+4)<<32)|l32get(p));
+	if ((offset + sizeof(u64int)) > length)
+		return 0;
+	return l64get(p + offset);
+}
+
+static u32int acpi32get(u8int *p, int offset, int length)
+{
+	if ((offset + sizeof(u32int)) > length)
+		return 0;
+	return l32get(p + offset);
+}
+
+static u16int acpi16get(u8int *p, int offset, int length)
+{
+	if ((offset + sizeof(u16int)) > length)
+		return 0;
+	return l16get(p + offset);
+}
+
+static u8int acpi8get(u8int *p, int offset, int length)
+{
+	if ((offset + sizeof(u8int)) > length)
+		return 0;
+	return p[offset];
 }
 
 static u8int
@@ -553,11 +567,12 @@ dumpfadt(Fadt *fp)
 }
 
 static Atable*
-acpifadt(uchar *p, int)
+acpifadt(uchar *p, int length)
 {
 	Fadt *fp;
 
 	fp = &fadt;
+	DBG("acpifadt %p\n", p);
 	fp->facs = l32get(p + 36);
 	fp->dsdt = l32get(p + 40);
 	fp->pmprofile = p[45];
@@ -595,17 +610,21 @@ acpifadt(uchar *p, int)
 	fp->iapcbootarch = l16get(p+109);
 	fp->flags = l32get(p+112);
 	gasget(&fp->resetreg, p+116);
-	fp->resetval = p[128];
-	fp->xfacs = l64get(p+132);
-	fp->xdsdt = l64get(p+140);
-	gasget(&fp->xpm1aevtblk, p+148);
-	gasget(&fp->xpm1bevtblk, p+160);
-	gasget(&fp->xpm1acntblk, p+172);
-	gasget(&fp->xpm1bcntblk, p+184);
-	gasget(&fp->xpm2cntblk, p+196);
-	gasget(&fp->xpmtmrblk, p+208);
-	gasget(&fp->xgpe0blk, p+220);
-	gasget(&fp->xgpe1blk, p+232);
+
+	/* and here is where qemu shows us this doesn't have to exist */
+	if (length > 235) {
+		fp->resetval = p[128];
+		fp->xfacs = l64get(p+132);
+		fp->xdsdt = l64get(p+140);
+		gasget(&fp->xpm1aevtblk, p+148);
+		gasget(&fp->xpm1bevtblk, p+160);
+		gasget(&fp->xpm1acntblk, p+172);
+		gasget(&fp->xpm1bcntblk, p+184);
+		gasget(&fp->xpm2cntblk, p+196);
+		gasget(&fp->xpmtmrblk, p+208);
+		gasget(&fp->xgpe0blk, p+220);
+		gasget(&fp->xgpe1blk, p+232);
+	}
 
 	dumpfadt(fp);
 	if(fp->xfacs != 0)

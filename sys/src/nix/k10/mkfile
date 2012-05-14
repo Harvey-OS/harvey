@@ -66,6 +66,7 @@ main.$O:	$NXM/sys/include/pool.h init.h
 memory.$O:	amd64.h
 mmu.$O:		amd64.h
 mp.$O:		apic.h
+rdwr.$O:	apic.h
 sipi.$O:	apic.h sipi.h
 svm.$O:		amd64.h
 svm.$O:		$NXM/$objtype/include/ureg.h

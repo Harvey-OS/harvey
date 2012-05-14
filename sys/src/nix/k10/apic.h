@@ -80,9 +80,9 @@ extern	Apic	xlapic[Napic];
 extern	Apic	xioapic[Napic];
 extern	Mach	*xlapicmachptr[Napic];		/* maintained, but unused */
 
-#define l16get(p)	(((p)[1]<<8)|(p)[0])
-#define	l32get(p)	(((u32int)l16get(p+2)<<16)|l16get(p))
-#define	l64get(p)	(((u64int)l32get(p+4)<<32)|l32get(p))
+u16int l16get(u8int *p);
+u32int l32get(u8int *p);
+u64int l64get(u8int *p);
 
 extern void apicdump(void);
 extern void apictimerenab(void);
