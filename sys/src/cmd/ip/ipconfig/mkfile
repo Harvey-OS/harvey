@@ -14,7 +14,7 @@ HFILES=\
 	ipconfig.h\
 	$NXM/sys/include/ip.h\
 
-BIN=$NXM$NXM/$objtype/bin/ip
+BIN=$NXM/$objtype/bin/ip
 
 UPDATE=\
 	mkfile\

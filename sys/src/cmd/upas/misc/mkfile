@@ -9,8 +9,8 @@ installall:VQ:	install
 	;
 
 install:V: mail go.fishing gone.msg gone.fishing
-	cp mail go.fishing /rc/bin
-	cp gone.msg gone.fishing /mail/lib || echo 'Unable to copy gone.msg and gone.fishing to /mail/lib. This may not be important.'
+#	cp mail go.fishing /rc/bin
+#	cp gone.msg gone.fishing /mail/lib || echo 'Unable to copy gone.msg and gone.fishing to /mail/lib. This may not be important.'
 
 safeinstall:V: install
 
