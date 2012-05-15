@@ -538,10 +538,16 @@ dumpfadt(Fadt *fp)
 }
 
 static Atable*
-acpifadt(uchar *p, int length)
+acpifadt(uchar *pp, int length)
 {
 	Fadt *fp;
 
+	/* now as it happens the FADT (others too?) can be 
+	 * too small. So malloc one, copy what you have to it, 
+	 * and use that. And what is the max size anyway? 
+	 */
+	uchar *p = mallocz(256, 1);
+	memmove(p, pp, length);
 	fp = &fadt;
 	DBG("acpifadt %p\n", p);
 	fp->facs = l32get(p + 36);
@@ -582,20 +588,17 @@ acpifadt(uchar *p, int length)
 	fp->flags = l32get(p+112);
 	gasget(&fp->resetreg, p+116);
 
-	/* and here is where qemu shows us this doesn't have to exist */
-	if (length > 235) {
-		fp->resetval = p[128];
-		fp->xfacs = l64get(p+132);
-		fp->xdsdt = l64get(p+140);
-		gasget(&fp->xpm1aevtblk, p+148);
-		gasget(&fp->xpm1bevtblk, p+160);
-		gasget(&fp->xpm1acntblk, p+172);
-		gasget(&fp->xpm1bcntblk, p+184);
-		gasget(&fp->xpm2cntblk, p+196);
-		gasget(&fp->xpmtmrblk, p+208);
-		gasget(&fp->xgpe0blk, p+220);
-		gasget(&fp->xgpe1blk, p+232);
-	}
+	fp->resetval = p[128];
+	fp->xfacs = l64get(p+132);
+	fp->xdsdt = l64get(p+140);
+	gasget(&fp->xpm1aevtblk, p+148);
+	gasget(&fp->xpm1bevtblk, p+160);
+	gasget(&fp->xpm1acntblk, p+172);
+	gasget(&fp->xpm1bcntblk, p+184);
+	gasget(&fp->xpm2cntblk, p+196);
+	gasget(&fp->xpmtmrblk, p+208);
+	gasget(&fp->xgpe0blk, p+220);
+	gasget(&fp->xgpe1blk, p+232);
 
 	dumpfadt(fp);
 	if(fp->xfacs != 0)
@@ -608,6 +611,7 @@ acpifadt(uchar *p, int length)
 	else
 		loaddsdt(fp->dsdt);
 
+	free(p);
 	return nil;	/* can be unmapped once parsed */
 }
 
