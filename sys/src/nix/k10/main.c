@@ -33,6 +33,7 @@ static int oargblen;
 
 static int maxcores = 1024;	/* max # of cores given as an argument */
 static int numtcs = 32;		/* initial # of TCs */
+static int cgaconsole = 0; 	/* eventually, set from cmdline */
 
 char dbgflg[256];
 static int vflag = 0;
@@ -253,7 +254,8 @@ main(u32int ax, u32int bx)
 	 * needs m->machno, sys->machptr[] set, and
 	 * also 'up' set to nil.
 	 */
-	cgapost(sizeof(uintptr)*8);
+	if (cgaconsole)
+		cgapost(sizeof(uintptr)*8);
 	memset(m, 0, sizeof(Mach));
 	m->machno = 0;
 	m->online = 1;
@@ -277,9 +279,13 @@ main(u32int ax, u32int bx)
 	m->cpuhz = 2000000000ll;
 	m->cpumhz = 2000;
 
-	cgainit();
+	if (cgaconsole)
+		cgainit();
 	i8250console("0");
-	consputs = cgaconsputs;
+	if (cgaconsole)
+		consputs = cgaconsputs;
+	else
+		consputs = uartputs;
 
 	vsvminit(MACHSTKSZ, NIXTC);
 
