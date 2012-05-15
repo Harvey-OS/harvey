@@ -1,3 +1,4 @@
+. $NXM/buildconfig
 (cd lib9 && mk clean)
 (cd libbio && mk clean)
 (cd utils/libmach && mk clean)
