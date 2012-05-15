@@ -97,35 +97,6 @@ acpiregid(char *s)
 	return -1;
 }
 
-/* Proposed functions for safely getting ACPI table elements. */
-static u64int acpi64get(u8int *p, int offset, int length)
-{
-	if ((offset + sizeof(u64int)) > length)
-		return 0;
-	return l64get(p + offset);
-}
-
-static u32int acpi32get(u8int *p, int offset, int length)
-{
-	if ((offset + sizeof(u32int)) > length)
-		return 0;
-	return l32get(p + offset);
-}
-
-static u16int acpi16get(u8int *p, int offset, int length)
-{
-	if ((offset + sizeof(u16int)) > length)
-		return 0;
-	return l16get(p + offset);
-}
-
-static u8int acpi8get(u8int *p, int offset, int length)
-{
-	if ((offset + sizeof(u8int)) > length)
-		return 0;
-	return p[offset];
-}
-
 static u8int
 mget8(uintptr p, void*)
 {
