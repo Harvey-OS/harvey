@@ -37,6 +37,10 @@ typedef struct Vctl	Vctl;
 #define	BOOTARGSLEN	(3584-0x200-BOOTLINELEN)
 #define	MAXCONF		100
 
+enum {
+	Promptsecs	= 60,
+};
+
 char *confname[MAXCONF];
 char *confval[MAXCONF];
 int nconf;

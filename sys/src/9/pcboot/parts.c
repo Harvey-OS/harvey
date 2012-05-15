@@ -479,6 +479,7 @@ rdgeom(PSDunit *unit)
 	n = readfile(ctl, buf, Maxfile);
 	if (n < 0) {
 		print("rdgeom: can't read %s\n", ctl);
+		free(buf);
 		return;
 	}
 	buf[n] = 0;
@@ -532,6 +533,7 @@ setpartitions(char *name, Chan *ctl, Chan *data)
 	partbuf = malloc(Maxsec);
 	partition(unit);
 	free(unit->part);
+	unit->part = nil;
 }
 
 /*
