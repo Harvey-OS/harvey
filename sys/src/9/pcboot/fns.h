@@ -26,6 +26,7 @@ void warp64(uvlong);
 int bootpass(Boot *b, void *vbuf, int nbuf);
 
 /* conf.c */
+void askbootfile(char *buf, int len, char **bootfp, int secs, char *def);
 void addconf(char *fmt, ...);
 int dotini(char *inibuf);
 

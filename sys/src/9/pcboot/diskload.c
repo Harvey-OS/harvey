@@ -128,8 +128,10 @@ addsdev(Dir *dirp)
 	buf = smalloc(Maxfile + 1);
 	snprint(ctl, sizeof ctl, "#S/%s/ctl", dirp->name);
 	n = readfile(ctl, buf, Maxfile);
-	if (n < 0)
+	if (n < 0) {
+		free(buf);
 		return -1;
+	}
 	buf[n] = 0;
 
 	lines = getfields(buf, line, nelem(line), 0, "\r\n");
@@ -194,15 +196,6 @@ findonekernel(Bootfs *fs)
 		print("\n");
 	}
 	return kerns == 1? bootfile: nil;
-}
-
-void
-askbootfile(char *buf, int len, char **bootfp)
-{
-	getstr("Boot from", buf, len, "sdC0!9fat!9pccpu", 60);
-	trimnl(buf);
-	if (bootfp)
-		kstrdup(bootfp, buf);
 }
 
 int
@@ -331,7 +324,7 @@ trydiskboot(char *disk)
 	if(isconf("bootfile")) {
 		kstrdup(&bootfile, getconf("bootfile"));
 		if(strcmp(bootfile, "manual") == 0)
-			askbootfile(fat, sizeof fat, &bootfile);
+			askbootfile(fat, sizeof fat, &bootfile, 0, "");
 
 		/* pass arguments to kernels that can use them */
 		strecpy(BOOTLINE, BOOTLINE+BOOTLINELEN, bootfile);
@@ -344,7 +337,8 @@ trydiskboot(char *disk)
 		snprint(fat, sizeof fat, "#S/%s/kernel", disk);
 		partboot(fat);
 		/* last resort: ask the user */
-		askbootfile(fat, sizeof fat, &bootfile);
+		askbootfile(fat, sizeof fat, &bootfile, Promptsecs,
+			"sdC0!9fat!9pccpu");
 	}
 	trybootfile(bootfile, &fs);
 
@@ -365,6 +359,7 @@ bootloadproc(void *)
 	Chan *sdch;
 	Dir *dirp, *dp;
 
+	memset(sdevs, 0, sizeof sdevs);
 	sdch = nil;
 	while(waserror()) {
 		print("error caught at top level in bootload\n");
@@ -406,7 +401,7 @@ bootloadproc(void *)
 	}
 	USED(sdch);
 	for (;;) {
-		askbootfile(kern, sizeof kern, nil);
+		askbootfile(kern, sizeof kern, nil, 0, "");
 		trybootfile(kern, nil);
 	}
 	// poperror();

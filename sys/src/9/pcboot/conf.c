@@ -141,6 +141,15 @@ getstr(char *prompt, char *buf, int size, char *def, int timeout)
 	return 0;
 }
 
+void
+askbootfile(char *buf, int len, char **bootfp, int secs, char *def)
+{
+	getstr("\nBoot from", buf, len, def, secs);
+	trimnl(buf);
+	if (bootfp)
+		kstrdup(bootfp, buf);
+}
+
 int
 isconf(char *name)
 {
@@ -152,6 +161,7 @@ isconf(char *name)
 	return 0;
 }
 
+/* result is not malloced, unlike user-mode getenv() */
 char*
 getconf(char *name)
 {

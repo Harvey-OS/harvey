@@ -1068,19 +1068,21 @@ getkernname(Openeth *oe, Bootp *rep, Kernname *kp)
 	 */
 	dotini(ini);
 	i8250console();		/* configure serial port with defaults */
-	kp->edev = nil;
-	kp->bootfile = getconf("bootfile");
-	if (kp->bootfile == nil) {
-		getstr("\nBoot from:", buf, sizeof(buf), "ether0!/386/9pccpu",
-			60);
-		trimnl(buf);
-		kstrdup(&kp->bootfile, buf);
-	}
-	// print("kp->bootfile %s\n", kp->bootfile);
+
+	kp->edev = kp->bootfile = nil;
+	p = getconf("bootfile");
+	if (p)
+		kstrdup(&kp->bootfile, p);
+	if (kp->bootfile == nil)
+		askbootfile(buf, sizeof buf, &kp->bootfile, Promptsecs,
+			"ether0!/386/9pccpu");
+	if (strcmp(kp->bootfile, "manual") == 0)
+		askbootfile(buf, sizeof buf, &kp->bootfile, 0, "");
+
 	p = strchr(kp->bootfile, '!');
 	if (p != nil) {
-		kp->edev = kp->bootfile;
 		*p++ = '\0';
+		kp->edev = kp->bootfile;
 		kp->bootfile = nil;
 		kstrdup(&kp->bootfile, p);
 		if (strncmp(kp->edev, ethernm, sizeof ethernm - 1) != 0) {
