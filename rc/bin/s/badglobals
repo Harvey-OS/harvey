@@ -1,0 +1,22 @@
+#!/bin/rc
+#
+# check out that we seem to use our globals
+#
+rfork e
+
+NOT READY
+
+if(~ $#* 0 ){
+	echo usage: $0 files >[1=2]
+	exit usage
+}
+
+for(o in $*){
+	nms=`{nm $o | grep ' [TDBtdb] ' | awk '{print $NF}'}
+	for(n in $nms){
+		c=`{echo $o | sed 's/\.[0-9]$/.c/'}
+		grep '(^'^$n^[^a-z0-9A-Z_]')|(^[^a-z0-9A-Z_]'^$n^'[^a-z0-9A-Z_])' $c
+	}
+}
+exit ''
+

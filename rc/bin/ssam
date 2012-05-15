@@ -1,0 +1,12 @@
+#!/bin/rc
+t=/tmp/ssam.$pid
+
+fn exit () {
+	rm -f $t
+}
+cat > $t
+{
+	for (c in $*)	{ echo $c }
+	echo q
+} | sam -d $t >[2] /dev/null
+rm -f $t

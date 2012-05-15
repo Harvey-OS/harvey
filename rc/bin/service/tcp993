@@ -1,0 +1,3 @@
+#!/bin/rc
+
+exec tlssrv -c/sys/lib/ssl/cert.pem -limap4d -r`{cat $3/remote} /bin/ip/imap4d -pdplan9.bell-labs.com -r`{cat $3/remote}>[2]/sys/log/imap4d

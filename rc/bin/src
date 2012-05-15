@@ -1,0 +1,55 @@
+#!/bin/rc
+
+rfork e
+path=(/bin/)
+
+sym = 'threadmain?z
+	main?z'
+
+fn dbsrc{
+	echo $sym | db $1 | sed '1d;/symbol not found/d;s/.*\(\) //'
+}
+
+fn go{
+	type=`{file <$1 | sed 's/stdin: //'}
+	switch($type){
+	case 'rc executable file'
+		plumbit $1 '(rc executable)'
+	case *executable* *'plan 9 boot image'*
+		plumbit  `{dbsrc $1} '(executable)'
+	case *
+		echo 'src: can''t find source for '$1 - unrecognized type $type >[1=2]
+	}
+}
+
+fn plumbit{B $1}
+
+fn usage{
+	echo usage: 'src [-n] [-s symbol] executable ...'>[1=2]
+	exit usage
+}
+
+while(~ $1 -*)
+	switch($1){
+	case -n
+		shift
+		fn plumbit {echo $1}
+	case -s
+		shift
+		# add main in case symbol is undefined
+		sym=$1'?z
+			main?z'
+		shift
+	case -*
+		usage
+	}
+
+if(~ $#* 0) usage
+
+for(i){
+	if(test -f $i) go $i
+	if not if(test -f /bin/$i) go /bin/$i
+	if not if(test -f /bin/*/$i) go /bin/*/$i
+	if not if(test -f /bin/*/*/$i) go /bin/*/*/$i
+	if not echo 'src: can''t find '$i
+}

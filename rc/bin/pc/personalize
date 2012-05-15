@@ -1,0 +1,7 @@
+#!/bin/rc
+
+switch($#*){
+case 1
+	user=$1
+}
+disk/mkfs -s /n/emelie /sys/lib/sysconfig/proto/usrproto

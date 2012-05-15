@@ -1,0 +1,94 @@
+#!/bin/rc
+# ipv6on [netdir ndbfile [gwv4]] - configure an interface for ipv6,
+#	once ipv4 is configured.
+if (! ~ $#* 0 2 3) {
+	echo usage: $0 '[netdir ndbfile [gw-v4-name]]' >[1=2]
+	exit usage
+}
+rfork e
+if (~ $#* 0) {
+	netdir=/net
+	ndbf=/lib/ndb/local
+	gw=`{ndb/ipquery sys $sysname ipgw | sed 's/ipgw=//'}
+}
+if not {
+	netdir=$1
+	ndbf=$2
+	if (~ $#* 2)
+		# gw=()
+		gw=`{ndb/ipquery sys $sysname ipgw | sed 's/ipgw=//'}
+	if not
+		gw=$3
+}
+if (~ $netdir /net) {
+	xsfx=()
+	xdir=()
+}
+if not {
+	xsfx=(-x `{echo $netdir | sed 's;^/net;;'})
+	xdir=(-x $netdir)
+}
+
+fn nonnil {		# variable
+	if (~ $#$1 0) {
+		echo ipv6on: no ip for $1 >[1=2]
+		exit no-ip
+	}
+	if (! ~ $#$1 1) {
+		echo ipv6on: multiple ips for $1 >[1=2]
+		exit multiple-ips
+	}
+}
+
+#
+# configure v6 for link-local addresses (fe80::) & multicast (ff02::)
+#
+if (! ip/ipconfig -6 $xdir ether $netdir/ether?)
+	exit 'ipconfig -6 failed'
+ip/ipconfig $xdir ether $netdir/ether? ra6 recvra 1
+
+mev6=`{ndb/query -f $ndbf sys $sysname ipv6}
+if (~ $#sysname 0 || ~ $sysname '')
+	mev6=`{ndb/query -f $ndbf sys $sysname ip | grep :}
+# mev4=`{ndb/query -f $ndbf sys $sysname ip | grep -v :}
+
+# for testing
+mylnk=`{ip/linklocal `{cat $netdir/ether?/addr}}
+nonnil mylnk
+
+if (~ $#gw 1) {
+	if (~ $gw [0-9]*.[0-9]*.[0-9]*.[0-9]*)
+		gwv4 = $gw
+	if (~ $#gwv4 0 || ~ $gwv4 '')		# assume namev6 and name
+		gwv4=`{ndb/query -f $ndbf sys $gw ip}
+	gwv6=`{ndb/query -f $ndbf sys $gw ipv6}
+
+	if (! ~ $#gwv4 0) {
+		# echo ping gw $gwv4...
+		# load arp cache with gw mac
+		ip/ping -qn 3 $netdir/icmp!$gwv4 >/dev/null >[2=1] &
+		sleep 1					# wait for ping
+
+		gweth=`{grep '* '^$gwv4^' ' $netdir/arp | awk '{print $4}' }
+		nonnil gweth >[2]/dev/null	# don't frighten users
+		gwlnk=`{ip/linklocal $gweth}
+		nonnil gwlnk >[2]/dev/null
+	}
+}
+nonnil mev6
+#
+# configure my global v6 addresses
+#
+ip/ipconfig $xdir ether $netdir/ether?	add $mev6 /64
+ip/ipconfig $xdir loopback /dev/null	add $mev6 /128
+
+if (~ $#gw 1) {
+	if (~ $#gwv6 0 || ~ $gwv6 '')
+		gwv6=`{ip/linklocal $gweth}
+	nonnil gwv6
+	#
+	# add default v6 route to v6 addr of v4 gw
+	#
+	echo add :: /0 $gwv6 >$netdir/iproute	# need not be link-local
+}
+exit ''

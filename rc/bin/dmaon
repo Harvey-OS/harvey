@@ -1,0 +1,7 @@
+#!/bin/rc
+# dmaon - turn on ide dma, if possible
+rfork e
+for (ctl in /dev/sd[C-H]?/ctl)
+	if (test -e $ctl && grep -s '^config .* dma ' $ctl &&
+	    ! grep -s '^config (848A|.* dma 00000000 )' $ctl)
+		echo 'dma on' >$ctl

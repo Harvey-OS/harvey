@@ -1,0 +1,31 @@
+#!/bin/rc
+# kmem [kernel] - print summary of allocate blocks in running kernel
+rfork e
+if(! ~ $#* 0 1){
+	echo 'usage: kmem [kernel]' >[1=2]
+	exit usage
+}
+
+if(~ $#* 1)
+	binary=$1
+
+echo 'kinit(); blocksummary()' | acid -k -lkernel -lpool -lleak $pid $binary | awk '
+	$1 == "block" {
+		addr=$6
+		size=$3
+		alloc=$4
+		total[alloc] += size
+		count[alloc]++
+	}
+	$1 == "summary" { 
+		alloc=$2
+		cnt=$3
+		size=$4
+		total[alloc] += size
+		count[alloc] += cnt
+	}
+	END{
+		for(i in count)
+			printf("%6d %11d %s\n", count[i], total[i], i);
+	}
+' | sort -nr

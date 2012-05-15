@@ -1,0 +1,126 @@
+#!/bin/rc
+# fax [-v] telephone-number recipient [file ...] - send files via fax
+rfork e
+view=no
+stdin=no
+
+fn usage {
+	echo 'usage: fax [-v] telephone-number recipient [file ...]' >[1=2]
+	exit usage
+}
+
+switch($1){
+case -v
+	view=yes
+	shift
+}
+
+switch ($#*) {
+case 0 1
+	usage
+case 2
+	stdin=yes
+}
+telno=`{echo $1|sed 's/[ \-]//g'}
+shift
+
+if (! ~ $telno [0-9]* +[0-9]*)
+	usage
+
+# our old phone system needed *9 to get outside; the new one just needs 9
+switch($telno){
+case ???????
+	telno='9,'^$telno
+case ??????????
+	telno='9,1'^$telno
+case 1??????????
+	telno='9,'^$telno
+case 011*
+	telno='9,'^$telno
+case +*
+	telno=`{echo $telno | sed 's/\+/9,011/'}
+}
+
+recip=$1
+shift
+
+script=/tmp/fax.$pid
+header=/tmp/faxh.$pid
+user=`{cat /dev/user}
+tmp=/tmp/fax.g3.$pid
+tmpin=/tmp/fax.in.$pid
+tmpps=/tmp/fax.ps.$pid
+tel=`{grep '\) '$user /lib/tel}
+myname=`{echo $tel | sed 's/ \(.*//'}
+if (~ $#myname 0)
+	myname=''
+ext=`{echo $tel | sed 's/.*\) [^ ]* [^ ]* ([^ ]*).*/\1/'}
+
+fn sigexit {
+	rm -f $tmp.* $script $header $header.* $tmpin $tmpps
+}
+fn sigint {
+	sigexit
+	exit interrupt
+}
+
+# gather input into a file
+switch($stdin){
+case yes
+	cat >$tmpin
+	infiles=$tmpin
+case *
+	infiles=($*)
+}
+
+# convert to g3
+g3files=()
+a=1
+for(i in $infiles){
+	switch(`{file $i}){
+	case *:*g3* *:*fax*
+		g3files=($g3files $i)
+	case *:*postscript
+		gs -dSAFER '-sDEVICE=dfaxlow' '-sOUTPUTFILE='$tmp'.'$#a'.%03d' \
+			-dNOPAUSE -dQUIET $i quit.ps
+		g3files=($g3files $tmp.$#a.*)
+	case *
+		lp -dstdout $i >$tmpps
+		gs -dSAFER '-sDEVICE=dfaxlow' '-sOUTPUTFILE='$tmp'.'$#a'.%03d' \
+			-dNOPAUSE -dQUIET $tmpps quit.ps
+		g3files=($g3files $tmp.$#a.*)
+	}
+	a=($a 1)		# count by increasing list length
+}
+
+pages=`{echo $g3files|wc -w}
+
+# use delimiters that are unlikely to be supplied in arguments
+{
+	echo -n s∮FAXddd∮
+	echo -n `{date}		# treat `{} output list specially
+	echo ∮
+	echo s∮FAXFFF∮$"myname^∮
+	echo s∮FAXEEE∮$"user^∮
+	echo s∮FAXVVV∮$"ext^∮
+	echo s∮FAXTTT∮$"recip^∮
+	echo s∮FAXfff∮$"telno^∮
+	echo s∮FAXPPP∮$"pages^∮
+} >>$script
+sed -f $script /sys/lib/fax/h.ps >$header
+
+gs -dSAFER '-sDEVICE=dfaxlow' '-sOUTPUTFILE='$header'.%03d' \
+	-dNOPAUSE -dQUIET $header quit.ps
+
+files=()
+for(i in $header.* $g3files){
+	files=($files -f $i)
+}
+
+switch($view){
+case yes
+	page $header.* $g3files
+case *
+	upas/qer $files /mail/faxoutqueue fax $user $telno	</dev/null
+	rx fax /sys/lib/fax/faxgoose				</dev/null
+}

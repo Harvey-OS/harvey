@@ -1,0 +1,40 @@
+#!/bin/rc
+# Usage: install [options] srcfile dstfile
+# Usage: install srcfile dstfile owner group mode
+
+fn usage {
+	echo 'usage: install [-c|-m mode] srcfile dstfile' >[1=2]
+	exit 1
+}
+
+mode=775
+while(! ~ $#* 0){
+	switch($1){
+	case -c
+		;
+	case -m
+		mode=$2
+		shift
+	case -*
+		usage
+	case *
+		switch($#*) {
+		case 2
+			;
+		case 5
+			mode=$5	# backward compatibility
+		case *
+			usage
+		}
+		srcfile=$1
+		dstfile=$2
+		if (! test -f $dstfile || ! cmp -s $srcfile $dstfile) {
+			cp $srcfile $dstfile
+			chmod $mode $dstfile
+			chmod g+w $dstfile
+		}
+		exit 0
+	}
+	shift
+}
+usage

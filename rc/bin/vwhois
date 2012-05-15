@@ -1,0 +1,17 @@
+#!/bin/rc
+
+rfork e
+
+box=mbox
+if(! test -d /mail/fs/$box)
+	box=`{ls -p /mail/fs | grep -v ctl | sed 1q}
+if(~ $#box 0)
+	box=mbox	# we tried
+
+if(~ $#box 1 && test -f /mnt/plumb/seemail || test -f /mnt/term/mnt/plumb/seemail){
+	for(i)
+		plumb -dseemail -a 'filetype=vwhois digest='$i.$pid' mailtype=new sender='$i /mail/fs/$box/XXXvwhois
+}
+if not for (i){
+	echo vwhois: vwhois: vwhois: delivered `{cat /dev/user} From $i '(vwho)' >> /sys/log/mail
+}

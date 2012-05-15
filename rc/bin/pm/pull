@@ -1,0 +1,55 @@
+#!/bin/rc
+
+rfork en
+
+if (~ $#PKGROOT 0) {
+	PKGROOT=/
+}
+
+if (~ $#ROOT 0) {
+	ROOT=/
+}
+
+if (~ $#PKGSERVER 0) {
+	PKGSERVER=`{ndb/query -a pm srvlist srv}
+	if(~ $#PKGSERVER 0 )
+		PKGSERVER=jfloren.net
+}
+
+fn fail {
+	echo $* >[1=2]
+	exit fail
+}
+
+if (~ $#* 0) {
+	fail Need at least one package name
+}
+
+cd $PKGROOT^/contrib/packages || fail 'dir not found'
+names=()
+for(name in $*) {
+	if(~ $name */*){
+		names=($names $name)
+	}
+	if not {
+		names=($names $name/*)
+	}
+}
+for (PKGNAME in $names) {
+	@{	
+		# Go to the directory if it exists
+		if(! cd $PKGROOT^/contrib/packages/^$PKGNAME)
+			fail $PKGNAME: No such package in $PKGROOT^/contrib/packages
+
+		{
+			for(p in $PKGSERVER){
+					echo '{' echo $PKGNAME: retrieving from $p...
+					echo hget -o root.tgz \
+					http://$p/contrib/packages/$PKGNAME/root.tgz ' }||'
+			}
+			echo exit no
+		} | rc || fail $PKGNAME: cannot download from known servers
+		echo $PKGNAME: retrieved
+	}
+}
+exit ''

@@ -1,0 +1,54 @@
+#!/bin/rc
+
+rfork e
+if(! test -d /n/sources/patch){
+	rfork n
+	9fs sources
+}
+
+pref=''
+builtin cd /n/sources/patch || {
+	echo 'can''t cd /n/sources/patch' >[2=1]
+	exit no-sources
+}
+
+if(~ $1 applied saved sorry maybe){
+	pref=$1^'/'
+	shift
+}
+if(~ $#* 0)
+	*=(`{
+		if(~ $pref *?*)
+			builtin cd $pref
+		ls -t | grep -v '^(applied|saved|sorry|maybe)$'
+	})
+
+trunc=(sed 5q)
+if(~ $#* 1)
+	trunc=cat
+
+{
+for(i in $*){
+	i=$pref^$i
+	if(test -f $i/origls)
+		cat $i/origls | awk '{$NF="'$i'"; print}'
+	if not
+		ls -ld $i
+	if(patch/okay $i){
+		if(test -r $i/email)
+			echo from `{cat $i/email}
+		cat $i/files | awk '{print "	" $1}'
+		cat $i/readme | sed 's/^/	/' | $trunc
+		if(test -f $i/notes){
+			echo
+			cat $i/notes
+		}
+	}
+	if not
+		echo '	'bad patch: $status >[2=1]
+	echo
+}
+} >/tmp/patchtmp.$pid
+
+cat /tmp/patchtmp.$pid
+rm -f /tmp/patchtmp.$pid

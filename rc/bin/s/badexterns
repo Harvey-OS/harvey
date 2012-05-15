@@ -1,0 +1,21 @@
+#!/bin/rc
+#
+# check out externs used just in one place; and warn.
+#
+rfork e
+
+if(~ $#* 0 1){
+	echo usage: $0 files >[1=2]
+	exit usage
+}
+
+nms=`{ {for(o in $*){ nm $o | grep ' [TDB] ' }} | awk '{print $NF}' | sort -u}
+
+nm $* >/tmp/nmout
+for(n in $nms){
+	if(~ `{grep ' '^$n^'$' /tmp/nmout | wc -l} 1)
+		grep ' '^$n^'$' /tmp/nmout 
+}
+rm /tmp/nmout
+exit ''
+

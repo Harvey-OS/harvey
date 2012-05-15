@@ -1,0 +1,25 @@
+#!/bin/rc
+
+rfork e
+
+opts=()
+files=()
+argv0=$0
+while(! ~ $#* 0){
+	switch($1){
+	case -e
+		opts=($opts $1 $2)
+		shift
+	case -[cfinsv]
+		opts=($opts $1)
+	case -q
+		opts=($opts -s)
+	case -*
+		echo $argv0 $1 not supported >[2=1]
+		exit 'not supported'
+	case *
+		files=($files $1)
+	}
+	shift
+}
+exec /$cputype/bin/grep $opts $files

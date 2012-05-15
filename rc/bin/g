@@ -1,0 +1,16 @@
+#!/bin/rc
+
+if(~ $#* 0 1){
+       what=$1
+       if(~ $#what 0)
+               what=`{cat}
+       files=()
+       for(f in *){
+               if(file -m $"f | grep -s text/ )
+                       files=($files $"f)
+       }
+
+       if(! ~ $#files 0)
+               grep -n -- $what $files /dev/null
+}
+if not grep -n $* /dev/null

@@ -1,0 +1,85 @@
+#!/bin/rc
+rfork e
+
+fn xchmod { 
+	chmod $* >[2]/dev/null
+}
+
+if(~ $#* 0 1 2){
+	echo 'usage: patch/create name email file... [< description]' >[1=2]
+	exit usage
+}
+
+if(! echo $1 | grep -s '^[a-z_0-9.\-]+$'){
+	echo 'bad name: [a-z0-9._\-]+ only' >[1=2]
+	exit usage
+}
+if(! echo $2 | grep -s '^(-|[A-Za-z0-9.\-+]+@[A-Za-z0-9.\-+]+)$'){
+	echo 'bad email: [a-z0-9.-+] only; use ''-'' to not leave an email address.' >[1=2]
+	exit usage
+}
+
+if(! test -d /n/sources/patch){
+	rfork n
+	9fs sources
+}
+
+patch=$1
+email=$2
+shift
+shift
+d=/n/sources/patch/$patch
+if(! mkdir $d){
+	echo mkdir $d failed >[1=2]
+	exit mkdir
+}
+if(! ~ $email -){
+	echo $email >$d/email
+}
+
+xchmod o-w $d
+>$d/readme
+>$d/files
+>$d/notes
+for(i in $*){
+	i=`{cleanname -d `{pwd} $i}
+	if(! test -f $i){
+		echo error: cannot find $i >[1=2]
+		rm -rf $d
+		exit oops
+	}
+	short=`{basename $i}
+	uniq=$short
+	n=0
+	while(test -f $d/$uniq){
+		uniq=$short.$n
+		n=`{echo 1+$n | hoc}
+	}
+	cp $i $d/$uniq
+	if(test -f /n/sources/plan9/$i){
+		if(cmp -s /n/sources/plan9/$i $i)
+			echo warning: new file $i does not differ from sources >[1=2]
+		cp /n/sources/plan9/$i $d/$uniq.orig
+	}
+	if not
+		echo warning: new file $i not on sources >[1=2]
+	echo $i $uniq >>$d/files
+}
+@{builtin cd $d && xchmod ug+rw * && xchmod a+r *}
+
+if(~ `{cat /proc/$pid/fd | awk 'NR==2{print $NF}'} */dev/cons && test -w /dev/consctl){
+	>/dev/consctl {
+		echo holdon
+		cat >$d/readme
+	}
+}
+if not
+	cat >$d/readme
+
+if(! test -s $d/readme){
+	echo 'no description given; aborting' >[1=2]
+	rm -rf $d
+	exit oops
+}
+
+echo $d

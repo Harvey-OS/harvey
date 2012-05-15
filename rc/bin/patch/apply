@@ -1,0 +1,79 @@
+#!/bin/rc
+
+rfork e
+
+if(! ~ $#* 1){
+	echo 'usage: patch/apply patch-name' >[1=2]
+	exit usage
+}
+
+if(! test -d /n/sources/patch){
+	rfork n
+	9fs sources
+}
+
+if(! test -d /n/sources/patch/$1){
+	echo 'no such patch' /n/sources/patch/$1 >[1=2]
+	exit nopatch
+}
+
+builtin cd /n/sources/patch/$1 || exit nopatch
+if(! patch/okay .){
+	echo 'bad patch: '$status >[1=2]
+	exit badpatch
+}
+
+if(! echo >.tmp || ! rm .tmp){
+	echo no write permission >[1=2]
+	exit 'no write permission'
+}
+
+echo -n merge... >[1=2]
+fn xxx {
+	if(! test -f $1)
+		cp $2 $2.new
+	if not
+		ape/diff3 -m $1 $2.orig $2 >$2.new
+	if(grep -s '^<<<<' $2.new){
+		echo conflicts merging $1';' see `{pwd}^/$2.new >[1=2]
+		
+		touch failed
+	}
+}
+rm -f failed
+cat files | sed 's/^/xxx /' | rc
+if(test -f failed){
+	echo exiting without changes >[1=2]
+	exit failed
+}
+
+echo -n backup... >[1=2]
+fn xxx {
+	# echo cp $1 $2.backup
+	cp $1 $2.backup
+}
+cat files | sed 's/^/xxx /' |rc
+
+echo -n copy... >[1=2]
+fn xxx {
+	# echo cp $2.new $1
+	cp $2.new $1 || touch failed
+}
+cat files | sed 's/^/xxx /' | rc
+
+fn xxx {
+	# echo cp $2.backup $1
+	cp $2.backup $1
+}
+
+if(test -f failed){
+	echo copying failed, restoring backups >[1=2]
+	cat files | sed 's/^/xxx /' | rc
+	exit failed
+}
+
+echo >[1=2]
+
+echo to update sources: >[1=2]
+cat files | awk '{print "	update " $1 }' >[1=2]
+

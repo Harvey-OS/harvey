@@ -1,0 +1,31 @@
+#!/bin/rc
+
+rfork en
+
+if(! ~ $#* 0 1) {
+	echo 'Usage: doc2txt [file.doc]' >[1=2]
+	exit usage
+}
+
+switch($#*){
+case 0
+	cat >/tmp/doc2txt.$pid
+	file=/tmp/doc2txt.$pid
+case 1
+	file=$1
+}
+aux/olefs $file || { 
+	echo 'doc2txt: couldn''t mount word document' >[1=2]
+	rm -f /tmp/doc2txt.$pid
+	exit word
+}
+
+if(! test -f /mnt/doc/WordDocument) {
+	echo 'doc2txt: is an msoffice doc but not a word document' >[1=2]
+	rm -f /tmp/doc2txt.$pid
+	exit worddoc
+}
+
+aux/mswordstrings /mnt/doc/WordDocument | tcs -f microsoft -t utf |fmt  | uniq
+unmount /mnt/doc
+rm -f /tmp/doc2txt.$pid

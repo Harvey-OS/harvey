@@ -1,0 +1,138 @@
+#!/bin/rc
+# fshalt [-r] - sync (flush) and, if possible, halt all file servers
+#	and optionally reboot
+rfork nes
+kerncopy=()
+reboot=no
+switch ($#*) {
+case 0
+case 1
+	reboot=yes
+case *
+	echo usage: $0 '[-r]' >[1=2]
+	exit usage
+}
+
+path=(/bin)
+builtin cd /
+9fs boot		# in case of odd namespace
+ramfs			# stash files here that we'll need after the fs halts
+
+setrtc
+
+# turn off graphics, if any
+if (test -e '#v/vgactl' && test -e '#P/realmode') {
+	vgatype=`{read '#v/vgactl'}
+	if (! ~ $vgatype(2) cga) {
+		prompt=''
+		kill rio | rc -i &
+		sleep 2
+		aux/vga -l text
+	}
+}
+
+fn isbootable {
+	test -e $1 && ~ `{file $1} *' plan 9 boot image'
+}
+fn usekernel {
+	kerncopy=kern
+	cp $1 /tmp/$kerncopy && echo -n using kernel $1...
+}
+
+# make a copy of the right kernel
+if (~ $reboot yes) {
+	kern=`{echo $terminal |
+		sed 's;^([^ ]+) .*/([^/]+)$;/n/boot/'$cputype'/9\2;'}
+	if (isbootable $kern)
+		usekernel $kern
+	if not {
+		# $kern is probably a raw binary, try s^name as boot image
+		kern=`{ echo $kern | sed 's;.*/;&s;' }
+		if (isbootable $kern)
+			usekernel $kern
+		if not
+			echo -n using default kernel...
+	}
+}
+
+# start venti flushing
+venti/sync -h localhost >[2]/dev/null &
+venti/sync  >[2]/dev/null &
+
+unmount /mnt/consoles >[2]/dev/null
+kill consolefs | rc			# don't compete with /mnt/consoles
+sleep 1
+
+f=`{ls /srv/fscons*>[2]/dev/null}
+k=`{ls /srv/kfs*cmd >[2]/dev/null|sort -r}
+
+echo -n syncing...
+for(i in $f) @ {
+	echo -n $i...
+	{
+		echo
+		dial/drain &
+		sleep 2
+		echo fsys all sync
+		if(! dial/expect -t 120 ': ')
+			echo -n 'not synced...' > /dev/cons
+	} < $i >> $i
+}
+
+# flush the last bit of possible fossil traffic
+echo -n venti...
+venti/sync -h localhost >[2]/dev/null &
+venti/sync  >[2]/dev/null &
+sleep 5
+
+for (i in $k){
+	echo -n $i... 
+	switch($i){
+	case /srv/kfs.cmd
+		disk/kfscmd sync
+	case *
+		disk/kfscmd -n `{echo $i | sed -n 's%/srv/kfs.(.*).cmd%\1%p'} sync
+	}
+	sleep 2
+}
+
+# halting (binaries we run can't be on the fs we're halting)
+builtin cd /bin
+cp dial/expect echo disk/kfscmd rc sed /tmp
+builtin cd /tmp
+mkdir /tmp/lib
+cp /rc/lib/rcmain /tmp/lib
+bind /tmp /rc
+bind /tmp /bin
+
+# put this in a shell function so this rc script doesn't get read
+# when it's no longer accessible
+fn x {
+	echo
+	echo -n halting...
+	for(i in $f) @ {
+		echo -n $i...
+		{
+			echo fsys all halt
+			if(! expect -t 60 ': ')
+				echo -n 'not halted...' > /dev/cons
+		} < $i >> $i
+	}
+	
+	for (i in $k){
+		echo -n $i... 
+		switch($i){
+		case /srv/kfs.cmd
+			kfscmd halt
+		case *
+			kfscmd -n `{echo $i | sed -n 's%/srv/kfs.(.*).cmd%\1%p'} halt
+		}
+	}
+	echo
+	echo done halting
+
+	if (~ $reboot yes)
+		echo reboot $kerncopy >'#c/reboot'
+}
+
+x

@@ -1,0 +1,24 @@
+#!/bin/rc
+# usbstart - start appropriate usb flavour
+if(test -r '#u'/usb) {
+	if(! test -r /dev/usb)
+		bind -a '#u' /dev
+
+	# /boot/boot may have started usbd, which starts all usb drivers
+	if (! ps | grep -s ' usbd$')
+		usb/usbd
+}
+if not if(test -r '#U'/usb0) {
+	if(! test -r /dev/usb0)
+		bind -a '#U' /dev
+
+	# /boot/boot may have started usbd, usb/kb or usb/disk
+	if (! ps | grep -s ' usbd$')
+		usb/usbd
+	usb/usbmouse -a 2
+	if (! ps | grep -s ' kb$')
+		usb/kb -k
+	usb/usbaudio -s usbaudio.$sysname -V
+	# usb/print
+}
+exit ''

@@ -1,0 +1,120 @@
+#!/bin/rc
+
+rfork en
+
+if (~ $#PKGROOT 0) {
+	PKGROOT=/
+}
+
+if (~ $#ROOT 0) {
+	ROOT=/
+}
+
+USAGE='usage: install [-v] [-f] package'
+flagfmt='v,f'
+
+if(! ifs=() eval `{aux/getflags $*}) {
+	echo $USAGE
+	exit usage
+}
+verb=''
+force=n
+flags=''
+if(! ~ $#flagv 0) {
+	verb=v
+	flags=-v
+}
+if(! ~ $#flagf 0) {
+	force=y
+	flags=($flags -f)
+}
+
+if (~ $#* 0) {
+	echo Need at least one package name
+	exit 'invalid arg'
+}
+
+fn checkoverwrites {
+	 ovw=n
+	 for(f in `{tar ztf root.tgz | grep -v '/$' | sed 's/^root//'}){
+	 	if(test -e $ROOT$f){
+	 		echo $PKGNAME: $f already exists >[1=2]
+			# copy it to .old?
+	 		ovw=y
+	 	}
+	 }
+	 if(~ $ovw y){
+	 	echo aborting because of overwritten files. >[1=2]
+	 	echo run with -f to force install >[1=2]
+	 	exit overwrites
+	 }
+
+}
+
+fn fail {
+	echo $* >[1=2]
+	exit fail
+}
+
+if (! test -e $ROOT^/contrib/packages/installed) {
+	touch $ROOT^/contrib/packages/installed
+}
+
+cd $PKGROOT^/contrib/packages || exit 'dir not found'
+names=()
+for(name in $*) {
+	if(~ $name */*){
+		names=($names $name)
+	}
+	if not {
+		names=($names $name/*)
+	}
+}
+for (PKGNAME in $names) {
+	@{
+		echo '###Installing package '^$PKGNAME^'###'
+		
+		# Go to the directory if it exists
+		cd $PKGROOT^/contrib/packages/^$PKGNAME || fail $PKGNAME: No such package in $PKGROOT^/contrib/packages
+		
+		if (grep '^'^$PKGNAME^'$' $ROOT^/contrib/packages/installed >[2=1] >/dev/null) {
+			echo $PKGNAME^: already installed, skipping.
+		}
+		if not {
+			# You need to do mk pull before running mk install
+			if(! pm/pull $PKGNAME){
+				test -e root.tgz || fail $PKGNAME: pull failed
+			}
+			# Install all the dependencies
+			for (i in `{cat dep}) {
+				if (! grep $i $ROOT^/contrib/packages/installed >[2=1] >/dev/null) {
+					@{
+					echo $PKGNAME^: Also installing dependency: $i
+						cd $PKGROOT^/contrib/packages/$i
+						pm/pull $i || fail $i: pull failed
+						pm/install $i || fail $i: install failed
+					}
+				} 
+				if not {
+					echo $i^' is already installed, skipping'
+				}
+			}
+			if(! ~ $force y)
+				checkoverwrites
+
+			echo $PKGNAME: Unpacking the root archive...
+			tar xzTf root.tgz || fail $PKGNAME: unpack failed.
+			test -d root || fail $PKGNAME: root not found.
+			{ @{builtin cd root && tar cif /fd/1 .} | @ {builtin cd $ROOT && tar x$verb^Tf /fd/0}
+			} || fail  $PKGNAME: unpack failed.
+			rm -fr root
+			tar ztf root.tgz > root.lst || fail $PKGNAME: list.
+			rm -f root.tgz
+			# inform the world that this package is now installed
+			echo $PKGNAME >> $ROOT^/contrib/packages/installed
+			sort $ROOT^/contrib/packages/installed > $ROOT^/contrib/packages/installed.new
+			mv $ROOT^/contrib/packages/installed.new $ROOT^/contrib/packages/installed
+			echo $PKGNAME^: installed.
+		}
+	}
+}

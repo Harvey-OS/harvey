@@ -1,0 +1,86 @@
+#!/bin/rc
+# mkusbboot - make a bootable standalone plan 9 image to copy to a usb disk.
+#
+# due to name clashes in /srv, will only work on a machine
+# without a fossil named `fossil' already running.
+
+rfork en
+syscfg=/sys/lib/sysconfig
+proto=$syscfg/proto/stand-usb
+srcroot=/n/boot
+quantum=1000000
+# size of image in $quantum-byte units.  1900 is enough for production system
+# (fs, /n/boot, ~1.2GB); 900 is ample for our install image
+# (sources, /n/sources/plan9, ~370MB).
+size=1900
+
+fn usage {
+	echo usage: $argv0 '[-p proto] [-r root] [-s 10⁶-bytes]' >[1=2]
+	exit usage
+}
+
+fn sigint sighup sigterm {
+	rm -f /tmp/9load
+	exit note
+}
+
+# process arguments
+done=0
+argv0=$0
+while (~ $done 0 && ! ~ $#* 0 && ~ $1 -*) {
+	switch ($1) {
+	case -p;	proto=$2; shift
+	case -r;	srcroot=$2; shift
+	case -s;	size=$2; shift
+	case --;	done=1			# no break in rc, alas
+	case -*;	usage
+	}
+	shift
+}
+if (! ~ $#* 0)
+	usage
+
+# special case sources
+if (~ $srcroot /n/*)
+	srcfs=`{ echo $srcroot | sed 's;^/n/([^/]+).*;\1;' }
+if (~ $srcfs sources)
+	size=900
+
+# make empty disk image file of maximum size
+echo -n 'image: ' >[1=2]
+dd -ibs $quantum -obs $quantum -oseek `{hoc -e $size'-1'} -count 1 -quiet 1 \
+	</dev/zero >image
+
+# partition it
+disk/partfs image
+cd /dev/sdXX
+
+# prep it: lay down mbr, fdisk partitions, 9 partitions
+echo -n mbr+fdisk+prep... >[1=2]
+disk/mbr -m /$objtype/mbr data
+disk/fdisk -baw data
+disk/prep -bw -a^(9fat nvram fscfg fossil) plan9 >/dev/null
+
+# populate 9fat, nvram, fsconfig
+echo -n 9fat... >[1=2]
+cp /$objtype/9loadusb /tmp/9load	# force format to use the name `9load'
+switch ($objtype) {
+case 386
+	k=/$objtype/9pccpuf.gz
+case amd64
+	k=/$objtype/9k8cpu
+case *
+	echo $0: 'can''t cope with architecture' $objtype >[1=2]
+	exit unknown-arch
+}
+disk/format -b /$objtype/pbslba -d -r 2 9fat /tmp/9load $k \
+	$syscfg/usb/plan9.ini >[2=1] |
+	grep -v '^(add .* at clust |Init|type |Adding file|used )'
+cp /dev/zero nvram >[2]/dev/null
+cp /dev/zero fscfg >[2]/dev/null
+rm -f /tmp/9load
+
+# fill the fossil
+9fs $srcfs
+echo -n load fossil... >[1=2]
+exec loadfossil /dev/sdXX/fossil $srcroot $proto $syscfg/usb/fossil.conf

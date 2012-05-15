@@ -1,0 +1,14 @@
+#!/bin/rc
+rfork e
+
+if(~ $1 '-'*){
+	echo 'usage: pxeof [host ...]' >[1=2] 
+	exit usage
+}
+for(i)
+	for(e in `{ndb/query -m sys $i ether}){
+		pxe = /cfg/pxe/$e
+		if(test -e $pxe)
+			B $pxe
+	}
+exit ''

@@ -1,0 +1,37 @@
+#!/bin/rc
+
+rfork e
+
+if(! ~ $#* 2) {
+	echo 'usage: setup.disk /dev/sdC0 plan9.ini' >[1=2]
+	exit usage
+}
+
+disk=$1
+ini=$2
+if(! test -d  $disk) {
+	echo disk directory not found >[1=2]
+	exit fat
+}
+if(! test -f $ini) {
+	echo plan9.ini not found >[1=2]
+	exit ini
+}
+
+
+disk/fdisk -wa $disk/data
+if(! test -f $disk/plan9) {
+	echo could not create plan 9 partition >[1=2]
+	exit noplan9
+}
+
+disk/prep -cwa $disk/plan9
+if(! test -f $disk/fs) {
+	echo did not create fs partition '(weird)' >[1=2]
+	exit nofs
+}
+
+disk/kfs -rb4096 -f $disk/fs
+pc/setup.9fat $disk/9fat $ini
+pc/update
+pc/personalize

@@ -1,0 +1,10 @@
+#!/bin/rc
+
+rfork e
+ifs='
+'
+
+for(i in `{ls /dev/wsys}) {
+	echo window -r `{syscall -o read 0 buf 59 < $i/window >[2] /dev/null |
+	sed 's/............//; s/^ *//; s/  */ /g'} `{cat $i/label}
+}

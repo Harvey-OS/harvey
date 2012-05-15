@@ -1,0 +1,18 @@
+#!/bin/rc
+
+rfork e
+if(! ~ $#* 2){ 
+	echo 'usage: dosmnt N mntpt' >[1=2]
+	exit usage
+}
+
+x=(`{ls /dev/sd??/dos* >[2]/dev/null |uniq})
+if(test $#x -lt $1){
+	echo 'not that many dos disks' >[1=2]
+	exit usage
+}
+
+if(! test -f /srv/dos)
+	dossrv >/dev/null </dev/null >[2]/dev/null
+
+mount -c /srv/dos $2 $x($1)

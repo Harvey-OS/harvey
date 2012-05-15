@@ -1,0 +1,10 @@
+#!/bin/rc
+# start abaco and its prerequisites
+rfork n
+
+# outside && bind /net.alt /net
+
+webfs
+webcookies
+echo -n useragent netscape 1.0 >/mnt/web/ctl
+exec /$cputype/bin/abaco $*

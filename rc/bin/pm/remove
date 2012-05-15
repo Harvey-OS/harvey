@@ -1,0 +1,66 @@
+#!/bin/rc
+
+rfork en
+
+fn fail {
+	echo $* >[1=2]
+	exit fail
+}
+
+if (~ $#PKGROOT 0) {
+	PKGROOT=/
+}
+
+if (~ $#ROOT 0) {
+	ROOT=/
+}
+
+if (~ $#* 0) {
+	echo Need at least one package name to remove.
+	exit 'invalid arg'
+}
+
+if (! test -e $ROOT^/contrib/packages/installed) {
+	touch $ROOT^/contrib/packages/installed
+}
+
+cd $PKGROOT^/contrib/packages || exit 'dir not found'
+names=()
+for(name in $*) {
+	if(~ $name */*){
+		names=($names $name)
+	}
+	if not {
+		names=($names $name/*)
+	}
+}
+for (PKGNAME in $names) {
+	@{
+		echo '###Removing package '^$PKGNAME^'###'
+		
+		# Go to the directory if it exists
+		cd $PKGROOT^/contrib/packages/^$PKGNAME || fail $PKGNAME: No such package in $PKGROOT^/contrib/packages
+		
+		if (! grep $PKGNAME $ROOT^/contrib/packages/installed >[2=1] >/dev/null) { 
+			echo $PKGNAME^: Already removed!
+		}
+		if not {
+			grep -v '^'^$PKGNAME^'$' $ROOT^/contrib/packages/installed> /tmp/installed-removed
+			cp /tmp/installed-removed $ROOT^/contrib/packages/installed 
+
+			rms=()
+			files=''
+			if(test -e root.tgz)
+				files=`{tar ztf root.tgz | sed 's/^root//g'}
+			if not
+				files=`{cat root.lst | sed 's/^root//g'}
+			for(f in $files){
+				rms=($f $rms)
+			}
+			for(f in $rms){
+				rm -f $ROOT$f
+			}
+		}
+	}
+}
+exit ''

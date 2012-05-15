@@ -1,0 +1,87 @@
+#!/bin/rc
+# iwhois [-n] domain - print registration data for domain
+rfork e
+if (~ $#* 1 && ~ $1 -n)
+	noboiler=yes
+person=`{echo $1|sed s/@.*//}
+fn boilerplate { sed -n '/^[	 ]*[A-Za-z][A-Za-z]*:$/,$p' $* }
+
+switch($1){
+case *@*
+	machine=`{echo $1|sed s/.*@//}
+case *.ca
+	machine=whois.cira.ca
+	fn boilerplate { grep -v ':[	 ]*$' $* }
+case *.us
+	machine=whois.nic.us
+	fn boilerplate { sed '/^>* Whois database was last updated on/,$d' $* }
+case *.co.uk *.net.uk *.org.uk
+	machine=whois.nic.uk
+	fn boilerplate { sed '/^ +WHOIS database last updated at/,$d' $* }
+case *.ac.uk
+	machine=whois.ja.net
+case *.au
+	machine=whois.aunic.net
+	fn boilerplate { grep -v ':[	 ]*$' $* }
+case *.be
+	machine=whois.dns.be
+	person='-T dn '^$person
+	fn boilerplate { cat $* }
+case *.cn
+	machine=whois.cnnic.net.cn
+	fn boilerplate { cat $* }
+case *.de
+	machine=whois.denic.de
+	person='-T dn '^$person
+	fn boilerplate { cat $* }
+case *.dk
+	machine=whois.dk-hostmaster.dk
+	fn boilerplate { grep -v '^#' $* }
+case *.es
+	echo no known whois server for .es
+	exit
+case *.fr
+	machine=whois.nic.fr
+	fn boilerplate { grep -v '^%%' $* }
+case *.in
+	machine=whois.inregistry.net
+	fn boilerplate { cat $* }
+case *.jp
+	machine=whois.jprs.jp
+	person=$person^'/e'
+	fn boilerplate { cat $* }
+case *.se
+	machine=whois.nic-se.se
+	fn boilerplate { grep -v '^#' $* | uniq }
+case [0-9]*.[0-9]*.[0-9]*.[0-9]*
+	machine=whois.arin.net
+	fn boilerplate { cat $* }
+case *
+	machine=whois.internic.net	# alternate: whois.networksolutions.com
+	fn boilerplate { cat $* }
+}
+if (~ $noboiler yes)
+	fn boilerplate { cat $* }
+file=/tmp/iwhois$pid
+fn sigexit {
+	rm -f $file
+}
+echo $person | telnet -nr tcp!$machine!whois > $file
+x=`{ sed -n -e 's/.*Whois Server: (.*)/\1/p' \
+	-e 's;.*ReferralServer: whois://(.*)(:43)?;\1;p' $file }
+switch($#x){
+case 0
+	;			# e.g., for .ca
+case 1
+	# chase the referral chain
+	echo $person | telnet -nr tcp!$x!whois > $file
+case *
+#	echo $0: buggery: `{echo $x | tr ' ' '\12' | sort -u} >[1=2]
+	echo $person | telnet -nr tcp!^$x(1)^!whois > $file
+}
+if (test ! -s $file) {
+	echo $0: broken whois server tcp!$x!whois returned no data >[1=2]
+	exit broken
+}
+boilerplate $file
+rm $file

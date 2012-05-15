@@ -1,0 +1,35 @@
+#!/bin/rc
+# set up any disk partitions
+rfork e
+if (! test -e /dev/sdctl)
+	bind -b '#S' /dev
+bind -a /bin/disk /bin >[2]/dev/null		# work with /boot too
+
+# set up any /dev/sd partitions.
+# note that really big disks (e.g., aoe devices) may have no mbr
+# partition table because the mbr partition table can't cope with large
+# block numbers, so we may have to examine the data file with prep if
+# there's no plan9 file.  beware that `disk/prep -p data' on a disk with
+# no plan 9 partition table will delete all extant partitions.
+for(disk in /dev/sd*) {
+	if(test -f $disk/data && test -f $disk/ctl)
+		{ fdisk -p $disk/data |
+			grep -v '^delpart ' >$disk/ctl } >[2]/dev/null
+	if(test -f $disk/plan9)
+		parts=($disk/plan9*)
+	if not
+		parts=($disk/data)
+	for(part in $parts)
+		if(test -f $part)
+			 { prep -p $part |
+				grep -v '^delpart ' >$disk/ctl } >[2]/dev/null
+}
+
+sysname=`{cat /dev/sysname}
+
+# set up any fs(3) partitions
+if (! test -e /dev/fs/ctl && test -e '#k/fs')
+	bind -b '#k' /dev
+if (~ $#sysname 1 && ! ~ $sysname '' &&
+    test -r /cfg/$sysname/fsconfig && test -w /dev/fs/ctl)
+	read -m /cfg/$sysname/fsconfig >/dev/fs/ctl

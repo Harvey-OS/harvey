@@ -1,0 +1,34 @@
+#!/bin/rc
+#
+# generate list of HFILES and dependencies for each .$O
+#
+rfork e
+
+if(~ $#* 0 1){
+	echo usage: $0 files >[1=2]
+	exit usage
+}
+
+cs=$*
+hdrs=`{grep -h '^#include[ 	]*"' $cs | sed 's/#include[ 	]*"([^"]+)".*/\1/' | sort -u}
+
+echo 'HFILES=\'
+
+all=()
+for(h in $hdrs){
+	nh=`{grep '^#include[ 	]*"'^$h^'"' $cs | wc -l}
+	if(~ $nh $#cs){
+		echo '	'^$h^'\'
+		all=($all $h)
+	}
+}
+
+for(c in $cs){
+	hs=`{grep -h '^#include[ 	]*"' $c | sed 's/#include[ 	]*"([^"]+)".*/\1/' }
+	echo -n `{echo $c | sed 's/\.c$/.$O:/'}
+	for(h in $hs)
+		if(! ~ $h $all)
+			echo -n ' '^$h
+	echo
+}
+exit ''

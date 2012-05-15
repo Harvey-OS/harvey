@@ -1,0 +1,18 @@
+#!/bin/rc
+
+rfork e
+part=`{ls /dev/fs/9fat /dev/sd*/9fat >[2]/dev/null}
+if(~ $#part 0) {
+	echo 'no 9fat partition found' >[1=2]
+	exit no.9fat
+}
+
+part=$part(1)
+
+if(! test -f /srv/dos)
+	dossrv >/dev/null </dev/null >[2]/dev/null
+
+unmount /n/9fat >/dev/null >[2]/dev/null
+mount -c /srv/dos /n/9fat $part
+unmount /n/9 >/dev/null >[2]/dev/null
+mount -c /srv/dos /n/9 $part

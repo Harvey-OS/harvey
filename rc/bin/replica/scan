@@ -1,0 +1,18 @@
+#!/bin/rc
+
+rfork en
+
+fn usage {
+	echo 'usage: replica/scan replica-name [paths]' >[1=2]
+	exit usage
+}
+
+. /rc/bin/replica/defs $*
+
+need serverroot serverexclude serverproto serverdb serverlog 
+
+must servermount
+replica/updatedb -r^$serverroot $serverexclude -p^$serverproto $serverdb >>$serverlog
+ndb=`{echo $serverdb | sed 's;(.*)/(.*);\1/n\2;'}
+odb=`{echo $serverdb | sed 's;(.*)/(.*);\1/_\2;'}
+replica/compactdb $serverdb >$ndb && mv $serverdb $odb && mv $ndb $serverdb

@@ -1,0 +1,55 @@
+tmp=()
+
+fn fatal {
+	if(! ~ $#tmp 0)
+		rm -f $tmp
+	echo $* >[1=2]
+	exit $"*
+}
+
+fn must {
+	$* || fatal $"*^': '^$status
+}
+
+fn need {
+	for(i)
+		if(~ $$i UNCONFIGURED)
+			fatal $name^' does not set $'^$i
+}
+
+opt=()
+while(! ~ $#* 0 && ~ $1 -*){
+	if(~ $1 -s -c){	# take one argument 
+		opt=($opt $1)
+		shift
+	}
+	opt=($opt $1)
+	shift
+}
+if(~ $1 --)
+	shift
+if(~ $#* 0)
+	usage
+name=$1
+shift
+paths=($*)
+
+if(! ~ $name /* ./* ../*)
+	name=$home/lib/replica/$name
+
+if(! test -x $name)
+	fatal no such replica $name
+
+cfgopt=()
+applyopt=()
+fn servermount { status='' }
+fn clientmount { status='' }
+fn serverupdate { status='' }
+for (i in clientroot clientproto clientdb clientexclude serverroot serverlog serverproto)
+	$i=UNCONFIGURED
+. $name
+
+if(! ~ $#serverexclude 0)
+	serverexclude=-x^$serverexclude
+if(! ~ $#clientexclude 0)
+	clientexclude=-x^$clientexclude

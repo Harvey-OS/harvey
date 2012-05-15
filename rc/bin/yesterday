@@ -1,0 +1,157 @@
+#!/bin/rc
+
+rfork e
+
+
+smon='s/Jan/01/
+	s/Feb/02/
+	s/Mar/03/
+	s/Apr/04/
+	s/May/05/
+	s/Jun/06/
+	s/Jul/07/
+	s/Aug/08/
+	s/Sep/09/
+	s/Oct/10/
+	s/Nov/11/
+	s/Dec/12/'
+
+fn usage {
+	echo 'usage: yesterday [-abcCdDs] [-[[[yy]yy]mm]dd] [-n daysago] file ...' >[1=2]
+	exit 'usage'
+}
+
+fn Xcp {
+	echo cp $1 $2
+	cp $1 $2
+}
+
+fn Xdiff {
+	echo diff $1 $2
+	diff $1 $2
+}
+fn Xdiffn {
+	echo diff -n $1 $2
+	diff -n $1 $2
+}
+fn Xadiff {
+	echo /acme/bin/adiff $1 $2
+	/acme/bin/adiff $1 $2
+}
+
+fn Xcarefulcp {
+	if(! cmp -s $1 $2) Xcp $1 $2
+}
+
+fn Xecho {
+	echo $1
+}
+
+fn Xbind {
+	echo bind $1 $2
+	bind $1 $2
+}
+
+year=`{date|sed 's/.* //'}
+copy=Xecho
+last=()
+defdump=dump
+while(! ~ $#* 0 && ~ $1 -* && ! ~ $1 --){
+	switch($1){
+	case -a
+		copy=Xadiff
+		shift
+	case -b
+		copy=Xbind
+		shift
+	case -c
+		copy=Xcp
+		shift
+	case -d
+		copy=Xdiff
+		shift
+	case -D
+		copy=Xdiffn
+		shift
+	case -C
+		copy=Xcarefulcp
+		shift
+	case -s
+		defdump=snap
+		shift
+	case -n*
+		if(~ $1 -n){
+			if(~ $#* 1)
+				usage
+			shift
+			days=$1
+		}
+		if not
+			days=`{echo $1 | sed 's/^-.//'}
+		last=`{date `{hoc -e `{date -n} ^ '-'$days'*60*60*24'} | \
+				sed -e 's%... (...) (..) ..:..:.. ... (....)%\3/\1\2%' -e 'y/ /0/' -e $smon}
+		shift
+	case -?
+		mon=`{date|sed -e 's/^....(...).*/\1/' -e $smon}
+		last=$year/$mon ^`{echo $1|sed 's/^-/0/'}
+		shift
+	case -??
+		mon=`{date|sed -e 's/^....(...).*/\1/' -e $smon}
+		last=$year/$mon ^`{echo $1|sed 's/^-//'}
+		shift
+	case -????
+		last=$year/ ^ `{echo $1|sed 's/^-//'}
+		shift
+	case -??????
+		last=`{echo $year|sed 's/..$//'} ^ `{echo $1|sed 's/^-(..)/\1\//'}
+		shift
+	case -????????
+		last=`{echo $1|sed 's/^-(....)/\1\//'}
+		shift
+	case *
+		usage
+	}
+}
+if(! ~ $#* 0 && ~ $1 --)
+	shift
+
+if(~ $#* 0)
+	usage
+
+dir=`{pwd}
+if(! ~ $status ''){
+	echo 'yesterday: can''t find directory' >[1=2]
+	exit 'pwd failed'
+}
+
+for(i){
+	xpath=`{cleanname -d $dir -- $i}
+	xdump=$defdump
+	dumppath=$xpath
+	if(~ $xpath /n/*/*){
+		xdump=`{echo $xpath | sed 's:/n/([^/]+)/.*:\1'$defdump':'}
+		dumppath=`{echo $xpath | sed 's:/n/[^/]+(/.*):\1:'}
+	}
+	if(! test -e /n/$xdump/$year)
+		9fs $xdump
+
+	if(~ $#last 0){
+		xlast=`{ls /n/$xdump/$year|sed -n '$p'}
+		switch($defdump){
+		case snap
+			xlast=`{ls $xlast|sed -n '$p'}
+		}
+	}
+	if not
+		xlast=/n/$xdump/$last
+
+	if(! test -e $xlast){
+		echo 'yesterday:' \
+			`{echo $xlast|sed 's/.n.'$defdump'.(....).(..)(..)/\1 \2 \3/'} \
+			'is not a backup day for' $xdump >[1=2]
+		exit 'bad date'
+	}
+	
+	$copy $xlast^$dumppath $xpath
+}
+exit ''

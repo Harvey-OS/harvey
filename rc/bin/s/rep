@@ -1,0 +1,12 @@
+#!/bin/rc
+rfork e
+tmp=/tmp/rep.$pid
+if(~ $#* 0){
+	echo usage $0 from to....
+	exit usage
+}
+orig=$1
+shift
+cat >$tmp ; for(f in $*) { cat $tmp | sed s/$orig/$"f/g}
+rm -f $tmp
+exit ''

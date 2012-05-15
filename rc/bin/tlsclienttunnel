@@ -1,0 +1,7 @@
+#!/bin/rc
+
+if(! ~ $#* 3){
+	echo 'usage: tlsclienttunnel cryptaddr plainaddr cert.thumb' >[1=2]
+	exit usage
+}
+aux/listen1 -t $2 /bin/tlsclient -t $3 $1 &

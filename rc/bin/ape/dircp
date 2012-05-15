@@ -1,0 +1,9 @@
+#!/bin/rc
+# dircp src dest - copy a tree with ape's tar
+switch($#*){
+case 2
+	@{cd $1 && tar cf /fd/1 .} | @{cd $2 && tar xf /fd/0}
+case *
+	echo usage: dircp from to >[1=2]
+	exit usage
+}

@@ -1,0 +1,90 @@
+#!/bin/rc
+view=no
+stdin=no
+
+switch($1){
+case -v
+	view=yes
+	shift
+}
+
+switch($#*){
+case 0 1
+	echo usage: $0 telephone-number recipient [files]
+	exit 0
+case 2
+	stdin=yes
+}
+
+telno=$1
+shift
+
+recip=$1
+shift
+
+script=/tmp/fax.$pid
+header=/tmp/faxh.$pid
+user=`{cat /dev/user}
+tmp=/tmp/page.$pid
+tmpin=/tmp/page.in.$pid
+tel=`{grep '\) '$user /lib/tel}
+myname=`{echo $tel | sed 's/ \(.*//'}
+ext=`{echo $tel | sed 's/.*\) [^ ]* [^ ]* ([^ ]*).*/\1/'}
+
+fn sigint{
+	#rm -f $tmp.* $tmpin.* $script $header $header.*
+	exit interrupt
+	
+}
+
+# gs insists on reading its standard input, so we read quit.ps to cut it off.
+switch($stdin){
+case yes
+	cat > $tmpin
+	gs -dSAFER '-sDEVICE=dfaxlow' '-sOUTPUTFILE='$tmp'.%.3d' -dNOPAUSE -dQUIET $tmpin quit.ps
+case *
+	gs -dSAFER '-sDEVICE=dfaxlow' '-sOUTPUTFILE='$tmp'.%.3d' -dNOPAUSE -dQUIET $* quit.ps
+}
+
+pages=`{echo $tmp.*|wc -w}
+
+# use delimiters that are unlikely to be supplied in arguments
+echo -n s∮FAXddd∮	 >$script
+echo -n `{date}		>>$script
+echo ∮			>>$script
+echo -n s∮FAXFFF∮	>>$script
+echo -n $myname 	>>$script
+echo ∮			>>$script
+echo -n s∮FAXEEE∮	>>$script
+echo -n $user 		>>$script
+echo ∮			>>$script
+echo -n s∮FAXVVV∮	>>$script
+echo -n $ext 		>>$script
+echo ∮			>>$script
+echo -n s∮FAXTTT∮	>>$script
+echo -n $recip 		>>$script
+echo ∮			>>$script
+echo -n s∮FAXfff∮	>>$script
+echo -n $telno 		>>$script
+echo ∮			>>$script
+echo -n s∮FAXPPP∮	>>$script
+echo -n $pages 		>>$script
+echo ∮			>>$script
+sed -f $script /sys/lib/fax/h.ps > $header
+
+gs -dSAFER '-sDEVICE=dfaxlow' '-sOUTPUTFILE='$header'.%.3d' -dNOPAUSE -dQUIET $header quit.ps
+
+files=()
+for(i in $header.* $tmp.*){
+	files=($files -f $i)
+}
+
+switch($view){
+case no
+	upas/qer $files /mail/faxoutqueue fax $user $telno < /dev/null
+	rx fax /sys/lib/fax/faxgoose
+case yes
+	page $header.* $tmp.*
+}
+
+#rm -f $tmp.* $header $script $header.* $tmpin

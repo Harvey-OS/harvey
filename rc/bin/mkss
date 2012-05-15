@@ -1,0 +1,16 @@
+#!/bin/rc
+
+# TODO 
+# take scripts from standard input
+# make it possible to install scripts to rc bin instead.
+
+if(! ~ $#* 1){
+	echo usage: $0 scriptname >[1=2]
+	exit usage	
+}
+
+echo '#!/bin/rc
+' >$home/bin/rc/$1
+plumb $home/bin/rc/$1
+
+chmod 0755 $home/bin/rc/$1

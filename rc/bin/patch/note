@@ -1,0 +1,35 @@
+#!/bin/rc
+
+rfork e
+if(! ~ $#* 1){
+	echo 'usage: patch/note patch-name' >[1=2]
+	exit usage
+}
+
+if(! test -d /n/sources/patch){
+	rfork n
+	9fs sources
+}
+
+if(! test -d /n/sources/patch/$1){
+	echo 'no such patch' /n/sources/patch/$1 >[1=2]
+	exit nopatch
+}
+
+builtin cd /n/sources/patch/$1 || exit nopatch
+if(! patch/okay .){
+	echo 'bad patch: '$status >[1=2]
+	exit badpatch
+}
+
+if(~ `{cat /proc/$pid/fd | awk 'NR==2{print $NF}'} */dev/cons && ~ `{ls -l /dev/consctl | awk '{print $1}'} *w*){
+	>/dev/consctl {
+		echo holdon
+		{echo `{date} `{cat /dev/user}
+		cat |sed 's/^/    /'; echo } >>notes
+	}
+}
+if not
+	{echo `{date} `{cat /dev/user}
+	cat |sed 's/^/    /'; echo } >>notes
+

@@ -1,0 +1,66 @@
+#!/bin/rc
+# C system - connect to system's console
+rfork en
+oflag=()
+opt=-r
+while(~ $1 -*)
+	switch($1){
+	case -r
+		shift
+		opt=''
+	case -O -o
+		oflag=-O
+		shift
+	case *
+		opt=-r
+		shift
+	}
+
+switch($1){
+case ella
+	exec C office0
+	exit
+case erika
+	exec C office1
+	exit
+case *
+	# look for server in /lib/ndb
+	server=`{ndb/query sys $1 console}
+	switch($server){
+	case ''
+		echo C: unknown console server for $1
+		exit 1
+	}
+}
+
+# can't cpu to old servers any more
+switch($server){
+case dinar bones
+	ssh $server C $1
+	exit 0
+}
+
+if(! test -e /mnt/consoles/$1){
+	switch($sysname){
+	case $server
+		mount /srv/consoles /mnt/consoles
+	case *
+		import $oflag $server /mnt/consoles
+	}
+}
+
+if(! test -e /mnt/consoles/$1 && test -e /srv/consoles)
+	mount /srv/consoles /mnt/consoles
+
+if(! test -e /mnt/consoles/$1){
+	echo console not found
+	exit 'console not found'
+}
+
+if (test -w /dev/label) {
+	olab=`{cat /dev/label}
+	label $1
+}
+con -l $opt /mnt/consoles/$1
+if (test -w /dev/label)
+	label $olab

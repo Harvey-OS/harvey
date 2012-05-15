@@ -1,0 +1,6 @@
+#!/bin/rc
+# label word ... - write words into our label, if any
+if (test -w /dev/label)
+	echo -n $* > /dev/label
+if not if (test -w   /mnt/term/dev/label)
+	echo -n $* > /mnt/term/dev/label

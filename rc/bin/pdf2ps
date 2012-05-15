@@ -1,0 +1,53 @@
+#!/bin/rc
+# pdf2ps [gs-options] [input.pdf] [output.ps] - generate PS from PDF
+rfork e
+
+fn cleanup { }
+fn usage {
+	echo 'usage: pdf2ps [gs-options] [input.pdf] [output.ps]' >[1=2]
+	exit usage
+}
+
+lang=(-'dLanguageLevel=2')
+opt=()
+while(! ~ $#* 0 && ~ $1 -* && ! ~ $1 - --){
+	if(~ $1 '-dLanguageLevel='*)
+		lang=()
+	opt=($opt $1)
+	shift
+}
+if(~ $1 --)
+	shift
+
+switch($#*){
+case 0
+	fin=-
+	fout=-
+case 1
+	fin=$1
+	fout=-
+case 2
+	fin=$1
+	fout=$2
+case *
+	usage
+}
+
+if(~ $fin -){
+	# fin=/tmp/pdf2ps.$pid.^`{date -n}
+	# fn cleanup { rm -f $fin }
+	# cat >$tmp
+	fin=/fd/0
+}
+if(~ $fout -)
+	fout=/fd/1
+
+# Doing an inital `save' helps keep fonts from being flushed between
+# pages.  We have to include the options twice because -I only takes
+# effect if it appears before other options.
+
+gs $opt -dSAFER -dNOPAUSE -dBATCH -q -s'DEVICE=pswrite' \
+	$opt $lang \
+	-s'OutputFile='$fout -c save pop -f $fin
+
+cleanup

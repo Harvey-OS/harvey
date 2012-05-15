@@ -1,0 +1,97 @@
+#!/bin/rc
+
+# List packages.
+# Options:
+#	-v 		- displays detailed information about the packages
+#	-i		- displays those packages which are installed
+#	[category]	- display only those packages listed in the specified category
+
+rfork en
+
+if (~ $#PKGROOT 0) {
+	PKGROOT=/
+}
+
+if (~ $#ROOT 0) {
+	ROOT=/
+}
+
+ifs=' 	
+'		# set ifs in case it is munged in user's environment
+
+VERBOSE=0
+LISTING=0
+
+USAGE='usage:	list [-v] [-i] [-l] [category]'
+flagfmt='v,i,l'
+
+if(! ifs=() eval `{aux/getflags $*}) {
+	echo $USAGE
+	exit usage
+}
+
+if (! ~ $#flagv 0) VERBOSE=1
+if (! ~ $#flagi 0) INSTALLED=1
+if (! ~ $#flagl 0) LISTING=1
+
+fn doprint {
+		if (~ $VERBOSE 1) echo -n '• '
+		if( ~ $LISTING 1)
+			echo $1:
+		if not
+			echo $1
+		if (~ $VERBOSE 1) {
+			cat $1^/README
+			echo '======================'
+		}
+		if (~ $LISTING 1){
+			sed -e 's,^root,,'  $ROOT/contrib/packages/$1/root.lst |
+				grep -v '/$'
+			echo
+		}
+}
+
+if (! test -e $ROOT^/contrib/packages/installed) {
+	touch $ROOT^/contrib/packages/installed
+}
+
+if (~ $INSTALLED 1) {
+	@{ cd $PKGROOT^/contrib/packages/
+		if (~ $VERBOSE 1) echo '======================'
+		if (~ $#* 0) {
+			for (i in `{cat $ROOT^/contrib/packages/installed}) {
+					doprint $i
+			}
+		}
+		if not {
+			for (j in $*) {
+				for (i in `{cat $ROOT^/contrib/packages/installed | grep '^'^$j}) {
+					doprint $i
+				}
+			}
+		}
+	}
+	exit ''
+}
+if not {
+	if (~ $#* 0) {
+		@{ cd $PKGROOT^/contrib/packages/
+			if (~ $VERBOSE 1) echo '======================'
+			for (i in `{ls -d */*}) {
+				doprint $i
+			}
+		}
+	}
+	if not {
+		@{ cd $PKGROOT^/contrib/packages/
+			if (~ $VERBOSE 1) echo '======================'
+			for (j in $*) {
+				for (i in `{ls -d $j^/*}) {
+					doprint $i
+				}
+			}
+		}
+		exit ''
+	}
+}
+exit ''

@@ -1,0 +1,100 @@
+#!/bin/rc
+# window [many options] cmd [arg...] - create new window and run cmd in it
+rfork e
+fn checkwsys{
+	if(~ $wsys ''){
+		echo  'window: $wsys not defined'
+		exit bad
+	}
+}
+
+# original version used mount to do the work
+fn oldway{
+	switch($#*){
+	case 0 1
+		echo usage: window '''minx miny maxx maxy''' cmd args ...
+		exit usage
+	}
+	
+	checkwsys
+	
+	dir = /mnt/wsys
+	srv = $wsys
+	
+	rfork ne
+	{
+		if(x=`{cat /dev/ppid}; mount $srv $dir N`{{echo $x $1 }| sed 's/^ //g;s/ +/,/g'}){
+			shift
+			bind -b $dir /dev
+			echo -n `{basename $1} > /dev/label >[2] /dev/null
+			exec $* < /dev/cons > /dev/cons >[2] /dev/cons
+		}
+	}&
+}
+
+# if argument is of form '100 100 200 200' or '100,100,200,200' use old way
+if(~ $1 *[0-9][' ,'][0-9]*){
+	oldway $*
+	exit
+}
+
+# geometry parameters are:
+#	-r 0 0 100 100
+#	-dx n
+#	-dy n
+#	-minx n
+#	-miny n
+#	-maxx n
+#	-maxy n
+# where n can be a number, to set the value, or +number or -number to change it
+
+# find wctl file
+fn getwctl{
+	if(~ $wctl ''){
+		if(test -f /dev/wctl) echo /dev/wctl
+		if not if(test -f /mnt/term/dev/wctl) echo /mnt/term/dev/wctl
+		if not if(~ $service cpu) echo /mnt/term/srv/riowctl.*.*
+		if not {
+			echo window: '$wctl' not defined >[1=2]
+			exit usage
+		}
+	}
+	if not echo $wctl
+}
+
+# use mount to make local window
+if(~ $1 -m){
+	shift
+
+	checkwsys
+	
+	dir = /mnt/wsys
+	srv = $wsys
+	rfork ne
+	{
+		unmount /mnt/acme /dev >[2]/dev/null
+		if(mount $srv $dir 'new -pid '^`{cat /dev/ppid}^' '$"*){
+			bind -b $dir /dev
+			# toss geometry parameters to find command
+			while(~ $1 -*)
+				switch($1){
+				case -dx -dy -minx -miny -maxx -maxy
+					shift 2
+				case -r
+					shift 5
+				case -scroll
+					shift
+				case -noscroll
+					shift
+				case -hide
+					shift
+				}
+			if(~ $#* 0) cmd = rc
+			if not cmd = $*
+			echo -n `{basename $cmd(1)} > /dev/label >[2] /dev/null
+			exec $cmd < /dev/cons > /dev/cons >[2] /dev/cons
+		}
+	}&
+}
+
+if not echo new -cd `{pwd} $* >> `{getwctl}

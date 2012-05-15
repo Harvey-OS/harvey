@@ -1,0 +1,62 @@
+#!/bin/rc
+
+if(! ~ $#* 1) {
+	echo usage: fedex 123456789012 >[1=2]
+	exit usage
+}
+
+rfork e
+
+fn bgrep{
+pattern=`{echo $1 | sed 's;/;\\&;'}
+shift
+
+@{ echo 'X {
+$
+a
+
+.
+}
+X ,x/(.+\n)+\n/ g/'$pattern'/p' |
+sam -d $* >[2]/dev/null
+}
+}
+
+fn awk2 {
+	awk 'NR%2==1 { a=$0; } 
+		NR%2==0 { b=$0; printf("%-30s %s\n", a, b); }
+	' $*
+}
+
+fn awk3 {
+	awk '{line[NR] = $0}
+	END{
+		i = 4;
+		while(i < NR){
+			what=line[i++];
+			when=line[i];
+			comment="";
+			if(!(when ~ /..\/..\/.... ..:../)){
+				# out of sync
+				printf("%s\n", what);
+				continue;
+			}
+			i++;
+			if(!(line[i+1] ~ /..\/..\/.... ..:../) &&
+				(i+2 > NR || line[i+2] ~ /..\/..\/.... ..:../)){
+				what = what ", " line[i++];
+			}
+			printf("%s  %s\n", when, what);
+		}
+	}' $*
+}
+
+# hget 'http://www.fedex.com/cgi-bin/track_it?airbill_list='$1'&kurrent_airbill='$1'&language=english&cntry_code=us&state=0' |
+hget 'http://www.fedex.com/Tracking?action=track&language=english&cntry_code=us&initial=x&mps=y&tracknumbers='$1 |
+	htmlfmt >/tmp/fedex.$pid
+sed -n '/Tracking number/,/^$/p' /tmp/fedex.$pid | awk2
+echo
+sed -n '/Reference number/,/^$/p' /tmp/fedex.$pid | awk2
+echo
+sed -n '/Date.time/,/^$/p' /tmp/fedex.$pid | sed 1,4d | fmt -l 4000 | sed 's/ [A-Z][A-Z] /&\n/g'
+rm /tmp/fedex.$pid

@@ -1,0 +1,20 @@
+#!/bin/rc
+# psu - ps for just one user
+rfork e
+flags=()
+while (! ~ $#* 0 && ~ $1 -*) {
+	flags = ($flags $1)
+	shift
+}
+
+# sed -n p rather than grep so that we get buffered writes.
+# this is a huge difference in drawterm.
+switch($#*){
+case 0
+	ps $flags | sed -n '/^'$user' /p'
+case 1
+	ps $flags | sed -n '/^'$1' /p'
+case *
+	echo Usage: psu '[ps-flags] [ user ]' >[1=2]
+	exit usage
+}

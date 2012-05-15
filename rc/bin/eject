@@ -1,0 +1,9 @@
+#!/bin/rc
+switch($1){
+case 0
+	echo eject > /dev/fd0ctl
+case 1
+	echo eject > /dev/fd1ctl
+case *
+	echo eject > /dev/fd0ctl
+}

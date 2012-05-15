@@ -1,0 +1,95 @@
+#!/bin/rc
+
+rfork e
+
+flagfmt='a,b,c,d,s,f binary,r res,x width'
+args='name | pid list'
+if(! ifs=() eval `{aux/getflags $*} || ~ $#* 0){
+	aux/usage
+	exit usage
+}
+
+conflicting=($flagb $flagc $flags)
+if(~ $#conflicting 2 || ~ $#conflicting 3){
+	echo 'can only use one of -b, -c or -s' >[1=2]
+	exit usage
+}
+
+leakflags=()
+if(~ $#flags 1)
+	leakflags=($leakflags -s)
+if(~ $#flaga 1)
+	leakflags=($leakflags -a)
+if(~ $#flagc 1)
+	leakflags=($leakflags -c)
+if(~ $#flagd 1)
+	leakflags=($leakflags -d)
+if(~ $#flagf 1)
+	leakflags=($leakflags -f $flagf)
+
+acidleakflags=()
+if(~ $#flagb 1)
+	acidleakflags=($acidleakflags -b)
+if(~ $#flagr 1)
+	acidleakflags=($acidleakflags -r $flagr)
+if(~ $#flagx 1)
+	acidleakflags=($acidleakflags -x $flagx)
+
+if(! test -d /proc/$1) {
+	# x=`{psu | awk '$NF=="'$1'" {print $2}'}
+	x=`{psu | grep ' '$1'$' | sed 's/^[^ ]+ +([0-9]+).*/\1/'}
+	if(~ $#x 0) {
+		echo 'no processes named '$1 >[1=2]
+		exit usage
+	}
+	echo leak $leakflags $acidleakflags $x
+	exit
+}
+
+pidlist=`{echo $"* | tr ' ' ,}
+
+echo 'leakdump({'$pidlist'})' | acid -lpool -lleak $1 $flagf | 
+{
+	if(~ $#flaga 1 && ~ $#flagd 1)
+		grep 'block|free'
+	if not
+	if(~ $#flaga 1)
+		grep block
+	if not
+	if(~ $#flagd 1)
+		grep free 
+	if not
+		aux/acidleak $acidleakflags $flagf
+} |
+{
+	if(~ $#flags 1)
+		awk '{print $4}' |
+			sort | uniq -c | sort -nr |
+			sed 's! *(.*) (0x.*)!src(\2); // \1!'
+	if not
+	if(~ $#flagc 1)
+		awk 'BEGIN {
+				for(i=0; i<16; i++)
+					_unhex[sprintf("%x", i)] = _unhex[sprintf("%X", i)] = i
+			}
+			function unhex(s, i, v) {
+				sub("^0[xX]0*","",s)
+				for (i=1; i<=length(s); i++)
+					v = v*16 + _unhex[substr(s,i,1)]
+				return v
+			}
+			{	sum[$4] += unhex($3);
+				count[$4]++;
+				alloc[$4] = $6;
+			}
+			END {
+				for (v in sum) {
+					printf("src(%s);\t// %d\t%d\t%d\t%s\n", v, sum[v], count[v], sum[v] / count[v], alloc[v])
+					total += sum[v]
+				}
+				printf("// %d\n", total);
+			}
+		'  | sort -nr +2
+	if not
+		cat
+}	

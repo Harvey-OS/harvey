@@ -1,0 +1,8 @@
+#!/bin/rc
+rfork e
+for(i){
+	if (test -f $home/lib/tel)
+		grep -i $i $home/lib/tel
+	grep -hi $i /lib/tel /lib/areacodes
+}
+exit ''

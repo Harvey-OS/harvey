@@ -1,0 +1,15 @@
+#!/bin/rc
+
+flagfmt='c,d,p,r,t,u,v,x'
+args='archive [files ...]'
+
+if(! ifs=() eval `{aux/getflags $*} || ~ $#* 0) {
+	aux/usage
+	exit usage
+}
+
+key=''
+for(i in c d p r t x u v)
+	if(f=flag$i ~ $#$f 1)
+		key=$key$i
+exec /$cputype/bin/ar $key $*

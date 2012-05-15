@@ -1,0 +1,8 @@
+#!/bin/rc
+U=`{cat /dev/user}
+if(~ $#* 1){
+	U=$1
+}
+ps | sed -n '/^'$U' .* Broken/s%[^ ]*  *%~>/proc/%
+s%  *.* (.*)%/ctl # \1%
+s%~%echo kill%p'

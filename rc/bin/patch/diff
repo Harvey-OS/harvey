@@ -1,0 +1,45 @@
+#!/bin/rc
+# patch/diff [-w] patch-name
+rfork e
+fn usage {
+	echo 'usage: patch/diff [-bmnwz] patch-name' >[1=2]
+	exit usage
+}
+
+dopts=(-c)
+while (! ~ $#* 0 && ~ $1 -*) {
+	switch ($1) {
+	case -[bmnw]
+		dopts=($dopts $1)
+	case -z
+		dopts=()
+	case *
+		usage
+	}
+	shift
+}
+if(! ~ $#* 1)
+	usage
+
+if(! test -d /n/sources/patch){
+	rfork n
+	9fs sources
+}
+
+if(! test -d /n/sources/patch/$1){
+	echo 'no such patch' /n/sources/patch/$1 >[1=2]
+	exit nopatch
+}
+
+builtin cd /n/sources/patch/$1 || exit nopatch
+if(! patch/okay .){
+	echo 'bad patch: '$status >[1=2]
+	exit badpatch
+}
+
+d=/n/sources/patch/$1
+fn xxx {
+	echo $1
+	diff $dopts $2.orig $d/$2 | sed 's/^/	/'
+}
+cat files | sed 's/^/xxx /' | rc

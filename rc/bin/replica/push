@@ -1,0 +1,18 @@
+#!/bin/rc
+
+rfork en
+
+fn usage {
+	echo 'usage: replica/push [-nv] replica-name [paths]' >[1=2]
+	exit usage
+}
+
+. /rc/bin/replica/defs $*
+
+need clientproto clientexclude cfgopt clientdb clientroot serverroot paths
+
+must servermount
+must clientmount
+exec replica/applychanges -p $clientproto $clientexclude $opt $cfgopt \
+	$clientdb $clientroot $serverroot $paths
+

@@ -1,0 +1,95 @@
+#!/bin/rc
+# pci [-bv] - dump pci configuration
+rfork e
+fn verbose {
+	if (! test -f /lib/pci)
+		echo $0: no /lib/pci >[1=2]
+	awk '
+
+	function lower(s) {
+		gsub(/A/, "a", s)
+		gsub(/B/, "b", s)
+		gsub(/C/, "c", s)
+		gsub(/D/, "d", s)
+		gsub(/E/, "e", s)
+		gsub(/F/, "f", s)
+		return s
+	}
+	BEGIN{
+		file="/lib/pci"
+		FS="\t"
+		while(getline <file > 0){
+			if(/^;/) continue
+			if(/^[0-9a-fA-F]/){
+				vid=lower($1)
+				vendor[vid] = $2
+			}
+			if(/^	[0-9a-fA-F]/){
+				did=lower($2)
+				id[vid "/" did] = $3
+			}
+		}
+		FS = " "
+	}
+
+	{
+		print $0
+		vid = $4
+		sub(/\/.*/, "", vid)
+		if(vid in vendor){
+			s = vendor[vid]
+			if($4 in id)
+				s = s " " id[$4]
+			print "\t" s
+		}
+	}
+'
+}
+fn usage {
+	echo usage: $1 '[-bv]' >[1=2]
+	exit usage
+}
+
+filter=cat
+bridges=yes
+done=0
+while (~ $done 0 && ! ~ $#* 0 && ~ $1 -*) {
+	if (~ $1 -*b*)
+		bridges=no
+	if (~ $1 -*v*)
+		filter=verbose
+	switch ($1) {
+	case --
+		done = 1		# no break in rc, alas
+	case -*[~bv]*
+		usage $0
+	}
+	shift
+}
+if (! ~ $#* 0)
+	usage $0
+
+builtin cd '#$/pci' && grep . *ctl | {
+	if (~ $bridges no)
+		sed /:06/d
+	if not
+		cat
+	} |
+	sed '
+	s/ctl:/:	/
+	t noop
+: noop
+	s/:	01/:	disk 01/
+	s/:	02/:	net  02/
+	s/:	03/:	vid  03/
+	s/:	04/:	aud  04/
+	s/:	05/:	mem  05/
+	s/:	06/:	brg  06/
+	s/:	07/:	ser  07/
+	s/:	0c\.03/:	usb  0c.03/
+	s/:	0c\.05/:	smb  0c.05/
+	s/:	0d/:	rad  0d/
+	s/:	10/:	cryp 10/
+	t
+	s/	/	---  /
+' | $filter

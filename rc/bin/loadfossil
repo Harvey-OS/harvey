@@ -1,0 +1,105 @@
+#!/bin/rc
+# loadfossil - populate a fossil partition or file
+#
+# due to name clashes in /srv, will only work on a machine
+# without a fossil named `fossil' already running.
+
+rfork en
+
+fn killfossil {
+	sleep 1
+	unmount /n/f &
+	sleep 1
+	rm -f /srv/^(fossil fossil.open fscons fscons.open)
+	kill fossil | rc
+	sleep 1
+}
+
+fn sendexpect {		# send expect timeout
+	echo $1
+	if(! dial/expect -qt $3 $2)
+		echo -n 'no '^$"1^'...' > /dev/cons
+}
+
+fn usage {
+	echo usage: $argv0 partition root proto fossil.conf >[1=2]
+	exit usage
+}
+
+fn sigexit {
+	rm -f /tmp/fossil-no-list.conf
+	exit
+}
+fn sigint sighup sigterm {
+	rm -f /tmp/fossil-no-list.conf
+	killfossil
+	exit note
+}
+
+# process arguments
+if (! ~ $#* 4)
+	usage
+argv0=$0
+fosspart=$1
+srcroot=$2
+proto=$3
+fossconf=$4
+
+if (test -e /srv/fossil -o -e /srv/fossil.open) {
+	echo $0: /srv/fossil* exists, not safe to start a new one >[1=2]
+	exit fossil-already-running
+}
+
+# initialise fossil
+fossil/flfmt -y $fosspart
+
+# install listen-less config for fossil creation
+{
+	grep -v '^listen ' $fossconf
+	echo create /active/adm adm sys d775
+	echo create /active/adm/users adm sys 664
+} >/tmp/fossil-no-list.conf
+fossil/conf -w $fosspart /tmp/fossil-no-list.conf
+
+# start fossil
+fossil/fossil -f $fosspart
+mount -cC /srv/fossil.open /n/f
+
+# set up /adm/users
+cp /adm/users /n/f/adm
+{
+	echo
+	dial/drain &
+	sleep 2
+	sendexpect 'users -r /active/adm/users' ': ' 5
+} </srv/fscons.open >>/srv/fscons.open
+
+# remount with new users
+unmount /n/f
+mount -cC /srv/fossil.open /n/f
+
+# populate fossil
+@ {
+	# logs are boring, make them all appear empty
+	chmod +arw /tmp/empty-log >/tmp/empty-log
+	cd $srcroot/sys/log && {
+		for (f in [0-9a-z]* */*)
+			if (! ~ $f httpd mkfile smtpdb timesync.d vac year)
+				bind /tmp/empty-log $f
+	}
+	cd /tmp
+	disk/mkfs -u $srcroot/adm/users -U -d /n/f -s $srcroot $proto
+}
+
+# stop fossil gracefully
+{
+	echo
+	dial/drain &
+	sleep 2
+	sendexpect 'fsys all sync' ': ' 120
+	sendexpect 'fsys all halt' ': ' 5
+} </srv/fscons.open >>/srv/fscons.open
+killfossil
+
+# install permanent fossil configuration
+fossil/conf -w $fosspart $fossconf

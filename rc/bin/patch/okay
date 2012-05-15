@@ -1,0 +1,14 @@
+#!/bin/rc
+
+rfork e
+if(! ~ $#* 1){
+	echo usage: patch/okay dir >[1=2]
+	exit usage
+}
+
+i=$1
+if(! test -s $i/files || ! test -s $i/readme)
+	exit 'missing files'
+if(grep -v '^/[_a-zA-Z0-9.\-+/:]+ [_a-zA-Z0-9.\-+:]+$' $i/files)
+	exit 'bad file list' 
+exit 0

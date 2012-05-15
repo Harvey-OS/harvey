@@ -1,0 +1,101 @@
+#!/bin/rc
+
+# Serve Unix u9fs over SSH
+#
+# Basically, try each of the following until you find one that works:
+#
+#	srvssh unix
+#	srvssh -r unix
+#	srvssh -R unix
+#	srvssh -r -s unix
+#	srvssh -R -s unix
+#
+# and then never look back.  Note that "srvssh unix" should always
+# work.  It's just that if you're talking with certain sshd's, you'll get
+# hit by Nagle's algorithm and need to explore the other flags.
+
+# When using ssh to start u9fs, the only way to turn off
+# Nagle's algorithm (which kills the performance of RPC-based
+# protocols like 9P) is to allocate a pseudo-terminal.  The
+# command ssh -Rmp attempts to allocate a pseudo-terminal and
+# then put it in a transparent mode.  Especially when
+# connected to older SSH daemons, the connection ends up not
+# quite transparent.  To get around this, we explicity set the tty
+# mode on the command line as well.  The hope is that -Rmp makes
+# the connection transparent enough for the Tversion, and the stty
+# command will do the rest.  If -Rmp doesn't make the connection
+# transparent enough for the Tversion (but the stty commands do 
+# make the connection fully transparent) then add "-s 5" to the srv
+# command to tell it to wait 5 seconds before sending the Tversion.
+# That should be enough time for the stty to take effect.
+
+rfork e
+
+fn usage {
+	echo 'usage: srvssh [-R] [-r] [-s] [-u u9fspath] system [srvname [mtpt]]' >[1=2]
+	exit usage
+}
+
+rawhack=''
+sleephack=()
+u9fspath=u9fs
+rawflags=''
+
+while(~ $1 -*){
+	switch($1){
+	case -r
+		rawflags='-Rmp'
+		shift
+	case -R
+		rawflags='-Rmp'
+		rawhack=('stty raw -echo '';''')
+		shift
+	case -s
+		sleephack=(-s 5)
+		shift
+	case -u
+		shift
+		u9fspath=$1
+		shift
+	case -u*
+		u9fspath=`{echo $1 | sed s/-u//}
+		shift
+	case *
+		usage
+	}
+}
+
+if(! ~ $#* 1 2 3)
+	usage
+
+switch($#*){
+case 1
+	srv=$1
+	mtpt=/n/$1
+case 2
+	srv=$2
+	mtpt=/n/$1
+case 3
+	srv=$2
+	mtpt=$3
+}
+
+x=(srv $sleephack -e \
+	'ssh '$rawflags' '$1' '$rawhack' '$u9fspath' -na none -u ''$''USER -l ''$''HOME/u9fs.log' \
+	$srv $mtpt)
+$x
+
+# Sometimes /srv/whatever can be a closed pipe, in which case
+# srv will have been killed for writing to it, without a chance to
+# defend itself.  Rerun it in this case.
+
+ss=$status
+if(~ $ss *'write on closed pipe'*){
+	rm -f /srv/$srv
+	$x
+	ss=$status
+}
+
+if(! ~ $ss '')
+	echo srvssh: $ss >[1=2]
+exit $ss

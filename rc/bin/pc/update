@@ -1,0 +1,20 @@
+#!/bin/rc
+
+if(~ $#fileserver 0) {
+	echo set '$fileserver' >[1=2]	
+	exit no
+}
+if(~ $fileserver kfs) {
+	echo pc/update shouldn''''t be run from kfs >[1=2]
+	echo 'run:' >[1=2]
+	echo '	fileserver=network-server pc/update' >[1=2]
+	exit no
+}
+flag e +
+echo updating files
+9fs $fileserver
+disk/mkfs -s /n/$fileserver /n/$fileserver/sys/lib/sysconfig/proto/portproto
+9fat:
+cp /n/$fileserver/386/9pcdisk /n/9fat/9pcdisk
+cp /n/$fileserver/386/9load /n/9fat/9load
+unmount /n/9fat

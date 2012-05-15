@@ -1,0 +1,43 @@
+#!/bin/rc
+# ps2pdf - convert PostScript to PDF
+rfork e
+
+fn usage {
+	echo 'usage: ps2pdf [gs-options] [input.ps [output.pdf]]' >[1=2]
+	exit usage
+}
+
+# gs's pdfwrite sometimes emits bad pdf at level 1.2,
+# but 1.4 seems to work fine.
+compat=(-'dCompatibilityLevel=1.2')
+opt=()
+while(! ~ $#* 0 && ~ $1 -* && ! ~ $1 - --){
+	if(~ $1 '-dCompatibilityLevel='*)
+		compat=()
+	opt=($opt $1)
+	shift
+}
+if(~ $1 --)
+	shift
+
+switch($#*){
+case 0
+	fin='-'
+	fout='-'
+case 1
+	fin=$1
+	fout='-'
+case 2
+	fin=$1
+	fout=$2
+case *
+	usage
+}
+
+# We have to include the options twice because -I only takes effect
+# if it appears before other options.
+
+gscmd=( gs $opt -dSAFER -dNOPAUSE -dBATCH -q -s'DEVICE=pdfwrite' \
+	$opt $compat \
+	-s'OutputFile='$fout -c .setpdfwrite -f $fin)
+exec $gscmd

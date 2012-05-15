@@ -1,0 +1,34 @@
+#!/bin/rc
+
+rfork en
+
+if(! ~ $#libreplica 1)
+	libreplica=$home/lib/replica
+
+fn usage {
+	echo 'usage: replica/setupdirs' >[1=2]
+	exit usage
+}
+
+fn fatal {
+	echo $* >[1=2]
+	exit $"*
+}
+
+fn must {
+	$* || fatal $"*^': '^$status
+}
+
+if(! ~ $#* 0)
+	usage
+
+for (i in \
+	$libreplica\
+	$libreplica/db\
+	$libreplica/db/client\
+	$libreplica/db/server\
+	$libreplica/log\
+	$libreplica/cfg)
+	if(! test -d $i)
+		must mkdir -p $i
+

@@ -1,0 +1,16 @@
+#!/bin/rc
+# set up a shell running in an approximate POSIX 1003.2 environment
+rfork en
+fn sigterm{}
+HOME=$home
+bind -b /rc/bin/ape /bin
+bind -b /$cputype/bin/ape /bin
+if(test -d /$cputype/bin/pub)
+	bind -a /$cputype/bin/pub /bin
+if(test -d /$cputype/bin/X11){
+	bind -a /$cputype/bin/X11 /bin
+	if(test ! -e /env/DISPLAY)
+		DISPLAY=:0.0
+}
+
+/bin/sh $*

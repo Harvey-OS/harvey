@@ -1,0 +1,77 @@
+#!/bin/rc
+# cpu server start up
+date > /env/boottime
+
+# mount points
+mntgen -s slashn && chmod 666 /srv/slashn
+
+# name translation, cs sets /dev/sysname
+ndb/cs
+sysname=`{cat /dev/sysname}
+
+# parallelism for mk
+NPROC = `{wc -l </dev/sysstat}
+
+# site-specific startup
+if(test -e /rc/bin/cpurc.local)
+	. /rc/bin/cpurc.local
+
+if (~ $#sysname 0 || ~ $sysname '') {
+	sysname = helix			# default
+	echo -n $sysname >/dev/sysname
+}
+prompt=($sysname^'# ' '	')
+
+# cpu-specific startup
+if(test -e /cfg/$sysname/cpurc)
+	. /cfg/$sysname/cpurc
+
+# start up internet if we don't already have an address
+if(! grep u /net/ipselftab | grep -sv 127.0.0.1)
+	ip/ipconfig
+if(! grep -s 127.0.0.1 /net/ipselftab)
+	ip/ipconfig loopback /dev/null 127.1
+
+# if we're not a server, start a dns resolver
+if(! test -e /srv/dns)
+	ndb/dns -r
+
+# If you are on an auth server, start these before listening:
+#
+# auth/keyfs -wp -m /mnt/keys /adm/keys >/dev/null >[2=1]
+# auth/cron >>/sys/log/cron >[2=1] &
+#
+# also rename some files:
+#
+# if(! test -e /rc/bin/service.auth/tcp567){
+#	mv /rc/bin/service.auth/authsrv.il566 /rc/bin/service.auth/il566
+#	mv /rc/bin/service.auth/authsrv.tcp567 /rc/bin/service.auth/tcp567
+#	mv /rc/bin/service/il566 /rc/bin/service/_il566
+#	mv /rc/bin/service/tcp567 /rc/bin/service/_tcp567
+# }
+
+# start listeners if it hasn't already been done (dicey check)
+if(! netstat -n | grep -s 'tcp.*Listen.* (7|9|21|22|23|25|110|113|565|993|17007|17009|17010) .*')
+	aux/listen -q tcp
+# we don't use IL, maybe you do
+if(! netstat -n | grep -v 17008 | grep -s il.*Listen)
+	aux/listen -q il
+
+if(! ps|grep -s timesync) {
+	aux/timesync -n pool.ntp.org
+	if (test -e '#r/rtc') @ {
+		sleep 10			# let timesync correct the time
+		awk '{print $1}' /dev/time >'#r/rtc'	# fix hw clock
+	} &
+}
+
+# cpu-specific late startup
+if(test -e /cfg/$sysname/cpustart)
+	. /cfg/$sysname/cpustart
+
+# mode of /proc/*/ctl is inherited across rfork, and sets modes on
+# other /proc files, such as note, so let listen be killed.
+dontkill '^(ipconfig|factotum|mntgen|venti|fossil|cs|dns|reboot)$'
+
+# echo `{date} $sysname >>/sys/log/boot
+exit ''

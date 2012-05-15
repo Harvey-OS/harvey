@@ -1,0 +1,9 @@
+#!/bin/rc
+# dircp src dest - copy a tree with tar
+switch($#*){
+case 2
+	@ {builtin cd $1 && tar cif /fd/1 .} | @ {builtin cd $2 && tar xTf /fd/0}
+case *
+	echo usage: dircp from to >[1=2]
+	exit usage
+}

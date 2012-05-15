@@ -1,0 +1,35 @@
+#!/bin/rc
+
+rfork e
+if(! ~ $#* 1){
+	echo 'usage: patch/undo patch-name' >[1=2]
+	exit usage
+}
+
+if(! test -d /n/sources/patch){
+	rfork n
+	9fs sources
+}
+
+if(! test -d /n/sources/patch/$1){
+	echo 'no such patch' /n/sources/patch/$1 >[1=2]
+	exit nopatch
+}
+
+d=$1
+builtin cd /n/sources/patch/$1 || exit nopatch
+if(! patch/okay .){
+	echo 'bad patch: '$status >[1=2]
+	exit badpatch
+}
+
+fn xxx {
+	if(cmp $2.new $1){
+		echo cp /n/sources/patch/$d/$2.backup $1
+		cp $2.backup $1
+	}
+	if not
+		echo $1 has changed since patch was applied! >[2=1]
+}
+cat files | sed 's/^/xxx /' |rc
+

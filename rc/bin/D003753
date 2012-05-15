@@ -1,0 +1,11 @@
+#!/bin/rc
+rfork e
+flop=/dev/fd0disk
+if(! test -r $flop)
+	flop='#f'/fd0disk
+if(! test -f /srv/dos)
+	dossrv >/dev/null </dev/null >[2]/dev/null
+unmount /n/a:>[2]/dev/null
+mount -c /srv/dos /n/a: $flop
+unmount /n/a >[2]/dev/null
+mount -c /srv/dos /n/a $flop

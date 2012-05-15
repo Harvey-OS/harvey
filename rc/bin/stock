@@ -1,0 +1,14 @@
+#!/bin/rc
+
+stock=ALU
+
+if(! ~ $#* 0) stock=`{echo $*|tr a-z A-Z|sed 's/ /+/g'}
+
+hget 'http://download.finance.yahoo.com/d/quotes.csv?s='^$stock^'&f=snl1d1c1v&e=.exe' |
+	sed 's/ +"/"/;s///' |
+	switch(`{date}){
+	case *'Apr 1 '*
+		sed 's/("ALU","ALCATEL LUCENT"),([^,]*),(.*)$/\1,72.35,\3/'
+	case *
+		cat
+	}

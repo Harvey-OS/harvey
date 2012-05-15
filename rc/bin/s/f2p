@@ -1,0 +1,6 @@
+#!/bin/rc
+
+cat $* | ssam	', y/.+\n[π∏∆∂A-Za-z0-9_]+\(.*\n/c// '  \
+		', s/\n([π∏∆∂A-Za-z0-9_]+\()/	\1/g'	', p'  | \
+grep -v '^static' | grep -v threadmain | sed -e 's/$/;/' -e 's/^/extern /' | sort +2
+exit ''

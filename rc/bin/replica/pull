@@ -1,0 +1,58 @@
+#!/bin/rc
+
+rfork en
+
+fn usage {
+	echo 'usage: replica/pull [-nv] [-c name] [-s name] replica-name [paths]' >[1=2]
+	exit usage
+}
+
+. /rc/bin/replica/defs $*
+
+need clientlog serverlog clientdb clientroot serverroot
+
+# mount the server file system, update the log
+must servermount
+must serverupdate
+must clientmount
+
+# download the log
+n=`{ls -l $clientlog >[2]/dev/null |awk '{print $6}'}
+s=`{ls -l $serverlog >[2]/dev/null |awk '{print $6}'}
+if(~ $n 0 || ~ $#n 0 || test $s -lt $n){
+	if(test -e $clientlog) must rm $clientlog
+	must fcp $serverlog $clientlog
+}
+if not{
+	m=`{echo $n-1024 | hoc}
+	if(~ $m -*)
+		m=0
+	cmp -s $serverlog $clientlog $m $m
+	x=$status
+	switch($x){
+	case *': EOF'
+		must tail +^$n^c $serverlog >>$clientlog
+	case *': differ'
+		must rm $clientlog
+		must fcp $serverlog $clientlog
+	case ''
+		;
+	case *
+		fatal cmp: $x
+	}
+}
+
+# normally we'd do this after applylog, but we want
+# applylog to be the last thing in this script, so we'll
+# do it here instead, compacting changes from the
+# _last_ applylog.
+
+ndb=`{echo $clientdb | sed 's;(.*)/(.*);\1/_\2;'}
+must replica/compactdb $clientdb >$ndb
+mv $ndb $clientdb
+
+# mount the client file system, apply the log
+# this is the last thing in the script and is execed so that
+# if replica/pull is overwritten nothing bad will happen.
+# applylog takes care of itself as far as protection against being overwritten.
+exec replica/applylog $opt $applyopt $clientdb $clientroot $serverroot $paths <$clientlog

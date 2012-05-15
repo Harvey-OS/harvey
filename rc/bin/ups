@@ -1,0 +1,32 @@
+#!/bin/rc
+# ups - look up a UPS tracking number
+rfork en
+
+if(! ~ $#* 1) {
+	echo usage: ups 1ZA41W190338680961 >[1=2]
+	exit usage
+}
+
+hget 'http://wwwapps.ups.com/WebTracking/processInputRequest?tracknum='^$1^ \
+	'&TypeOfInquiryNumber=T' >/tmp/ups.1
+
+sed 's/<[Tt][Dd]>/& «TD»/g; s/<[Tt][Rr]>/&<td> «TR» /g' /tmp/ups.1 |
+	htmlfmt >/tmp/ups.2
+sam -d /tmp/ups.2 >[2] /dev/null <<'!'
+/^Tracking results.*/p
+.,$d
+/Help/d
+1,.d
+$-2,$d
+/Status:/+1
+.,/«TR»/-2d
+,s/\n/ /g
+,s/«TR»/\n/g
+,s/«TD»/	/g
+,s/ *	 */	/g
+,s/^[ 	]*//g
+,s/[ 	]*$//g
+,s/\n\n+/\n\n/g
+,p
+!
+echo

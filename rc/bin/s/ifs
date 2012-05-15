@@ -1,0 +1,4 @@
+#!/bin/rc
+cat $* | sed -e 's/(if|for|while) \(/\1(/' -e 's/\) {/){/' -e 's/} else/}else/' -e 's/else {/else{/' \
+	-e 's/enum ?{/enum\n{/' \
+	-e 's/^struct ?([^{]+){/struct\n\1 {/'

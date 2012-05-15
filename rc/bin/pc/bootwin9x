@@ -1,0 +1,115 @@
+#!/bin/rc
+
+dosdisk=`{ls /dev/sd??/dos >[2]/dev/null | sed 1q | sed 's!.*/(.*)/dos!\1!'}
+if(~ $#dosdisk 0 || ! c: || ! test -f /n/c:/autoexec.bat || ! test -f /n/c:/config.sys) {
+	echo 'Could not find autoexec.bat or config.sys on the first FAT disk.' >[1=2]
+	exit
+}
+
+for (i in autoexec config msdos)
+	if(test -f /n/c:/$i.p9) {
+		echo 'A Plan 9 backup already exists; will not edit system files again.' >[1=2]
+		exit
+	}
+
+for (i in autoexec.bat config.sys msdos.sys)
+	if(! cp /n/c:/$i /n/c:/^`{echo $i | sed 's/\.(bat|sys)$/.p9/'}) {
+		echo 'Could not back up '^$i^'; will not continue.' >[1=2]
+		exit
+	}
+
+if(! test -d /n/c:/plan9 && ! mkdir /n/c:/plan9) {
+	echo 'Could not create directory /n/c:/plan9.' >[1=2]
+	exit
+}
+
+if(! cp /386/^(9load ld.com) /386/9pcdisk /n/c:/plan9) {
+	echo 'Could not copy Plan 9 boot files into /n/c:/plan9.' >[1=2]
+	exit
+}
+
+chmod +w /n/c:/autoexec.bat /n/c:/config.sys /n/c:/msdos.sys
+
+if(grep -si 'Plan ?9' /n/c:/config.sys || grep -si 'Plan ?9' /n/c:/autoexec.bat) {
+	echo 'Plan 9 entries already in config.sys or autoexec.bat.' >[1=2]
+	echo 'Not changing them; refer to Plan 9 install documentation' >[1=2]
+	echo 'to configure manually.' >[1=2]
+	exit
+}
+
+if(! grep -si '\[menu\]' /n/c:/config.sys) {
+	{
+		echo 1
+		echo i
+		echo '[menu]'
+		echo 'menuitem=windows, Windows'
+		echo 'menudefault=windows'
+		echo ''
+		echo '[common]'
+		echo ''
+		echo '[windows]'
+		echo .
+		echo w
+		echo q
+	} | ed /n/c:/config.sys >/dev/null >[2]/dev/null
+}
+
+{
+	echo 1
+	echo '/\[[Mm][Ee][Nn][Uu]\]'
+	echo '?^[Mm][Ee][Nn][Uu][Ii][Tt][Ee][Mm]='
+	echo a
+	echo 'menuitem=plan9, Plan 9 from Bell Labs'
+	echo .
+	echo '$'
+	echo a
+	echo ''
+	echo '[plan9]'
+	echo ''
+	echo .
+	echo w
+	echo q
+} | ed /n/c:/config.sys >/dev/null >[2]/dev/null
+
+{
+	echo 1
+	echo i
+	echo '@echo off'
+	echo 'if %config%==plan9 goto plan9'
+	echo 'goto notplan9'
+	echo ':plan9'
+	echo 'plan9\ld '^$dosdisk^'!dos!plan9/9load'
+	echo ':notplan9'
+	echo .
+	echo w
+	echo q
+} | ed /n/c:/autoexec.bat >/dev/null >[2]/dev/null
+
+fn zeroopt {
+	if(grep -s '^'^$1^'=1' /n/c:/msdos.sys) {
+		{
+			echo '/^'^$1^'=1/s/=1/=0/'
+			echo w
+			echo q
+		} | ed /n/c:/msdos.sys >/dev/null >[2]/dev/null
+	}
+	if not if (grep -s '^'^$1^'=0' /n/c:/msdos.sys)
+		;
+	if not {
+		{
+			echo 1
+			echo i
+			echo '[Options]'
+			echo 'Logo=0'
+			echo .
+			echo w
+			echo q
+		} | ed /n/c:/msdos.sys >/dev/null >[2]/dev/null
+	}
+}
+
+if(grep -si '^\[paths\]' /n/c:/msdos.sys){	# Windows 9x rather than DOS
+	zeroopt Logo
+}
+
+exit

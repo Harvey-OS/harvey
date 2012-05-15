@@ -1,0 +1,10 @@
+#!/bin/rc
+# dontkill regexp - mark invoker's processes with names matching regexp
+#	as not killable when the kernel runs out of memory
+if (! ~ $#* 1) {
+	echo $0 regexp >[1=2]
+	exit usage
+}
+# see /sys/src/9/port/proc.c:/^killbig
+pids=`{psu | awk '$NF ~ /'$1'/ {print $2}'}
+~ $#pids 0 || chmod -w /proc/^$pids^/ctl
