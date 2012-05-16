@@ -287,18 +287,18 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	uintptr textlim, datalim, bsslim, entry, stack;
 	static int colorgen;
 
-
 	file = nil;
 	elem = nil;
 	switch(flags & EXFLG){
 	case EXTC:
 	case EXXC:
-	case 0:
 		break;
 	case EXAC:
 		up->ac = getac(up, -1);
 		break;
 	default:
+		if (! flags) /* special case */
+			break;
 		up->ac = getac(up, flags);
 	}
 	if (up->ac)
