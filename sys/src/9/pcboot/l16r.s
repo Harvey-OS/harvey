@@ -25,37 +25,6 @@
 TEXT _start16r(SB), $0
 	CLI				/* interrupts off */
 
-	/* make the jump conditional to keep 8l from moving _multibootheader */
-	LWI(1, rAX)
-	SUBI(1, rAX)
-	JEQ	pastmboothdr
-
-/*
- * Must be 4-byte aligned & within 8K of the image's start.
- */
-	NOP
-	NOP
-#include "mboot.s"
-
-TEXT _hello(SB), $0
-	BYTE $'\r';
-	BYTE $'\n';
-	BYTE $'P'; BYTE $'l'; BYTE $'a'; BYTE $'n';
-	BYTE $' '; BYTE $'9'; BYTE $' '; BYTE $'f';
-	BYTE $'r'; BYTE $'o'; BYTE $'m'; BYTE $' ';
-	BYTE $'B'; BYTE $'e'; BYTE $'l'; BYTE $'l';
-	BYTE $' '; BYTE $'L'; BYTE $'a'; BYTE $'b';
-	BYTE $'s'; 
-	BYTE $'\z';
-
-TEXT _DI(SB), $0
-	BYTE $0; BYTE $0; BYTE $0; BYTE $0;
-
-TEXT _ES(SB), $0
-	BYTE $0; BYTE $0; BYTE $0; BYTE $0;
-
-	/* continued from before _multibootheader */
-pastmboothdr:
 	MFSR(rCS, rAX)
 	MTSR(rAX, rDS)			/* set the data segment */
 
@@ -246,3 +215,20 @@ _real:
 	MTSR(rAX, rSS)
 
 	FARJUMP32(SELECTOR(2, SELGDT, 0), _start32p-KZERO(SB))
+
+TEXT _hello(SB), $0
+	BYTE $'\r';
+	BYTE $'\n';
+	BYTE $'P'; BYTE $'l'; BYTE $'a'; BYTE $'n';
+	BYTE $' '; BYTE $'9'; BYTE $' '; BYTE $'f';
+	BYTE $'r'; BYTE $'o'; BYTE $'m'; BYTE $' ';
+	BYTE $'B'; BYTE $'e'; BYTE $'l'; BYTE $'l';
+	BYTE $' '; BYTE $'L'; BYTE $'a'; BYTE $'b';
+	BYTE $'s'; 
+	BYTE $'\z';
+
+TEXT _DI(SB), $0
+	LONG $0
+
+TEXT _ES(SB), $0
+	LONG $0

@@ -1,5 +1,5 @@
 # make 9boot(pbs) and 9load(usb)
-# inherit KTZERO, START, MBOOT, CONF, BASE and SFX from mkfile
+# inherit KTZERO, START, CONF, BASE and SFX from mkfile
 x=`{bindpc $BASE $SFX}
 CONFLIST=$CONF
 EXTRACOPIES=piestand lookout bovril boundary 
@@ -39,7 +39,6 @@ OBJ=\
 	$START\
 	l32p.$O\
 	l32v.$O\
-	$MBOOT\
 	l64p.$O\
 	realmode0.$O\
 	l.$O\
@@ -102,7 +101,6 @@ devcons.$O:	/sys/include/authsrv.h
 devfloppy.$O:	floppy.h
 inflate.$O:	/sys/include/flate.h
 main.$O:	reboot.h
-l16r.$O mbootstart.$O:	mboot.s
 sd53c8xx.$O:	sd53c8xx.i
 sdiahci.$O:	ahci.h
 trap.$O:	/sys/include/tos.h

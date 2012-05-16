@@ -1080,7 +1080,7 @@ init(Vga* vga, Ctlr* ctlr)
 	ctlr->flag |= Ulinear;
 
 	/*
-	 * Set the right bppShitf based on depth
+	 * Set the right bppShift based on depth
 	 */
 
 	switch(mode->z) {
