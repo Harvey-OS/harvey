@@ -75,6 +75,7 @@ rootdir
 	/rc/lib/rcmain
 	/amd64/bin/echo echo
 	/amd64/bin/date date
+	/amd64/bin/execac execac
 	/amd64/bin/ls ls
 	/amd64/bin/ps ps
 	/amd64/bin/bind bind
