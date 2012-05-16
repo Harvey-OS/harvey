@@ -1,5 +1,8 @@
 #!/boot/rc -m /boot/rcmain
-/boot/echo Morning
-# boot script for file servers, including standalone ones
-path=(/boot /$cputype/bin /rc/bin .)
+/boot/bind /boot /bin
+echo Morning
+bind -a /$cputype/bin /bin
+bind -a /rc/bin /bin
+bind -a . /bin
+bind '#p' /proc
 exec /boot/rc -m/boot/rcmain -i
