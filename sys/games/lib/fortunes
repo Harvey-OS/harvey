@@ -4292,3 +4292,4 @@ User Modification Interface: UIM is currently down for maintenance.
 people who program actually have a lot to learn from the fashion industry. -someone on hacker news
 Does that say 25 or 29? - rae;  It says PH1. - jmk
 "The advantage of being an Ethernet device is so strong that even the plip interface (the interface that uses the printer ports) declares itself as [one]" - some linux book
+Error: Dependency is not satisfiable: libpython2.7 (>= 2.7)
