@@ -275,12 +275,16 @@ dumpreg(void *u)
 	ndnr();
 }
 
-char *rolename[] = 
+char *rolename(int role)
 {
-	[NIXAC]	"AC",
-	[NIXTC]	"TC",
-	[NIXKC]	"KC",
-	[NIXXC]	"XC",
+	char *name = "Invalid role";
+	switch(role) {
+	case NIXAC: name = "AC"; break;
+	case NIXTC: name = "TC"; break;
+	case NIXKC: name = "KC"; break;
+	case NIXXC: name = "XC"; break;
+	}
+	return name;
 };
 
 void

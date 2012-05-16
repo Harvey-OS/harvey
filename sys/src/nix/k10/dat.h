@@ -398,9 +398,6 @@ extern register Proc* up;			/* R14 */
 
 extern uintptr kseg0;
 
-extern char*rolename[];
-
-
 #pragma	varargck	type	"P"	uintmem
 
 /*

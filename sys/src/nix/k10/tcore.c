@@ -25,9 +25,10 @@ getac(Proc *p, int core)
 	int i;
 	Mach *mp;
 
+	DBG("getac: core %d\n", core);
 	mp = nil;
 	if(core == 0)
-		panic("can't getac for a %s", rolename[NIXTC]);
+		panic("can't getac for a %s", rolename(NIXTC));
 	lock(&nixaclock);
 	if(waserror()){
 		unlock(&nixaclock);
@@ -37,6 +38,8 @@ getac(Proc *p, int core)
 		if(core >= MACHMAX)
 			error("no such core");
 		mp = sys->machptr[core];
+		DBG("Core %d mp %p online %p proc %p\n", core, mp, 
+				mp ? mp->online : 0, mp ? mp->proc : nil);
 		if(mp == nil || mp->online == 0 || mp->proc != nil)
 			error("core not online or busy");
 		if(mp->nixtype != NIXAC)
@@ -275,7 +278,7 @@ runacore(void)
 					print("before PF:\n");
 					print("AC:\n");
 					dumpptepg(4, up->ac->pml4->pa);
-					print("\n%s:\n", rolename[NIXTC]);
+					print("\n%s:\n", rolename(NIXTC));
 					dumpptepg(4, m->pml4->pa);
 				}
 				trap(ureg);

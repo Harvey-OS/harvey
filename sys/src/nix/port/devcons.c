@@ -975,7 +975,7 @@ consread(Chan *c, void *buf, long n, vlong off)
 				bp += NUMSIZE;
 				readnum(0, bp, NUMSIZE, 0, NUMSIZE); /* sched # */
 				bp += NUMSIZE;
-				bp = strecpy(bp, e, rolename[mp->nixtype]);
+				bp = strecpy(bp, e, rolename(mp->nixtype));
 				*bp++ = '\n';
 			}
 		if(waserror()){

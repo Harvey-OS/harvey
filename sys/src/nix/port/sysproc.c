@@ -290,16 +290,19 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 
 	file = nil;
 	elem = nil;
-	switch(flags){
+	switch(flags & EXFLG){
 	case EXTC:
 	case EXXC:
+	case 0:
 		break;
 	case EXAC:
 		up->ac = getac(up, -1);
 		break;
 	default:
-		error("unknown execac flag");
+		up->ac = getac(up, flags);
 	}
+	if (up->ac)
+		DBG("execac: ac is %p, core %d\n", up->ac, up->ac->machno);
 	if(waserror()){
 		DBG("execac: failing: %s\n", up->errstr);
 		free(file);
@@ -657,6 +660,8 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 		up->prepagemem = 1;
 	}
 
+	DBG("execac: prepagemem %d, up->ac %p, up->ac->core %d\n", 
+			up->prepagement, up->ac, up->ac ? up->ac->core: -1);
 	DBG("execac up %#p done\n"
 		"textsz %lx datasz %lx bsssz %lx hdrsz %lx\n"
 		"textlim %ullx datalim %ullx bsslim %ullx\n", up,

@@ -85,6 +85,7 @@ rootdir
 	$NXM/amd64/bin/ps ps
 	$NXM/amd64/bin/bind bind
 	$NXM/amd64/bin/cat cat
+	$NXM/amd64/bin/ratrace ratrace
 	$NXM/amd64/bin/sleep sleep
 	$NXM/amd64/bin/auth/factotum factotum
 	$NXM/amd64/bin/ip/ipconfig ipconfig

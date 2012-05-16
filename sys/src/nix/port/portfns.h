@@ -396,6 +396,7 @@ void		zgrow(Segment*);
 int		ziofmt(Fmt*);
 int		zputaddr(Segment*, uintptr);
 ulong		µs(void);
+char		*rolename(int);
 
 #pragma		varargck	argpos	iprint		1
 #pragma		varargck	argpos	panic		1

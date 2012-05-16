@@ -132,7 +132,7 @@ squidboy(int apicno)
 	m->rdtsc = rdtsc();
 
 	print("cpu%d color %d role %s tsc %lld\n",
-		m->machno, corecolor(m->machno), rolename[m->nixtype], m->rdtsc);
+		m->machno, corecolor(m->machno), rolename(m->nixtype), m->rdtsc);
 	switch(m->nixtype){
 	case NIXAC:
 		acmmuswitch();

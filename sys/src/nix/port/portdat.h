@@ -664,11 +664,15 @@ enum
 };
 
 /* execac */
+/* note: if all bits are set, it probably means they set -1, meaning
+ * any core. So can't use 3 << 28 for EXXC. 
+ */
 enum
 {
-	EXTC = 0,	/* exec on time-sharing */
-	EXAC,		/* want an AC for the exec'd image */
-	EXXC,		/* want an XC for the exec'd image */
+	EXTC = (1<<28),	/* exec on time-sharing */
+	EXAC = (2<<28),/* want an AC for the exec'd image */
+	EXXC = (4<<28),	/* want an XC for the exec'd image */
+	EXFLG = (7<<28),
 };
 
 
