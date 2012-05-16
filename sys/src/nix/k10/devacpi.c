@@ -601,15 +601,25 @@ acpifadt(uchar *pp, int length)
 	gasget(&fp->xgpe1blk, p+232);
 
 	dumpfadt(fp);
-	if(fp->xfacs != 0)
-		loadfacs(fp->xfacs);
-	else
-		loadfacs(fp->facs);
 
-	if(fp->xdsdt == ((u64int)fp->dsdt)) /* acpica */
-		loaddsdt(fp->xdsdt);
-	else
-		loaddsdt(fp->dsdt);
+	/* If xfacs or xdsdt are either nil
+	 * or different from their 32-bit
+	 * counter-parts, then go with
+	 * the 32-bit addresses (as the
+	 * ACPICA does), since those are
+	 * tested by BIOS manufacturers.
+	 */
+	if(!fp->xfacs)
+		fp->xfacs = (u64int)fp->facs;
+	else if(fp->facs && fp->xfacs != (u64int)fp->facs)
+		fp->xfacs = (u64int)fp->facs;
+	loadfacs(fp->xfacs);
+
+	if(!fp->xdsdt)
+		fp->xdsdt = (u64int)fp->dsdt;
+	else if(fp->dsdt && fp->xdsdt != (u64int)fp->dsdt)
+		fp->xdsdt = (u64int)fp->dsdt;
+	loaddsdt(fp->xdsdt);
 
 	free(p);
 	return nil;	/* can be unmapped once parsed */

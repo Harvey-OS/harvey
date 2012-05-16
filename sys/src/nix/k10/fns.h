@@ -236,6 +236,13 @@ extern int i8259irqenable(int);
 extern int i8259isr(int);
 
 /*
+ * rdwr.c
+ */
+extern u16int l16get(u8int *p);
+extern u32int l32get(u8int *p);
+extern u64int l64get(u8int *p);
+
+/*
  * mp.c
  */
 extern void mpsinit(int);

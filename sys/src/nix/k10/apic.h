@@ -80,10 +80,6 @@ extern	Apic	xlapic[Napic];
 extern	Apic	xioapic[Napic];
 extern	Mach	*xlapicmachptr[Napic];		/* maintained, but unused */
 
-u16int l16get(u8int *p);
-u32int l32get(u8int *p);
-u64int l64get(u8int *p);
-
 extern void apicdump(void);
 extern void apictimerenab(void);
 extern void ioapicdump(void);
