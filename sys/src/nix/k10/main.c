@@ -193,6 +193,7 @@ nixsquids(void)
 	Mach *mp;
 	int i;
 	uvlong now, start;
+print("NIXSQUIDSD, MACMACH %d\n", MACHMAX);
 
 	for(i = 1; i < MACHMAX; i++)
 		if((mp = sys->machptr[i]) != nil && mp->online){
@@ -284,8 +285,6 @@ main(u32int ax, u32int bx)
 	i8250console("0");
 	if (cgaconsole)
 		consputs = cgaconsputs;
-	else
-		consputs = uartputs;
 
 	vsvminit(MACHSTKSZ, NIXTC);
 
