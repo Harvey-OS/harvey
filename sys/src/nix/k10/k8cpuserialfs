@@ -80,6 +80,7 @@ rootdir
 	$NXM/rc/lib/rcmain
 	$NXM/amd64/bin/echo echo
 	$NXM/amd64/bin/date date
+	$NXM/amd64/bin/execac execac
 	$NXM/amd64/bin/ls ls
 	$NXM/amd64/bin/ps ps
 	$NXM/amd64/bin/bind bind
