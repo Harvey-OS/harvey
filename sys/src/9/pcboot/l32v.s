@@ -68,6 +68,7 @@ TEXT hlt(SB), $0
 	HLT
 	RET
 
+#ifdef UNUSED
 /*
  */
 TEXT _warp9o(SB), $0
@@ -118,6 +119,7 @@ TEXT _stop32pg<>(SB), $0
 	JMP*	BP
 
 	JMP	_idle
+#endif
 
 /*
  *  input a byte

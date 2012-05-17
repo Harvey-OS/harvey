@@ -91,18 +91,18 @@ _floppyend:
 /*
  * Check for APM1.2 BIOS support.
  */
-_apmstart:
 	LWI(0x5304, rAX)		/* disconnect anyone else */
 	CLR(rBX)
 	BIOSCALL(0x15)
+	JCS	_apmfail
 
 	LWI(0x5303, rAX)		/* connect */
 	CLR(rBX)
 	CLC
 	BIOSCALL(0x15)
-
 	JCC	_apmpush
-	LW(_ES(SB), rAX)
+_apmfail:
+	LW(_ES(SB), rAX)		/* no support */
 	MTSR(rAX, rES)
 	LW(_DI(SB), rDI)
 	JCS	_apmend
@@ -137,8 +137,6 @@ _apmend:
  * ES/DI on failure. Consequently they may not be valid
  * at _e820end:.
  */
-
-_e820start:
 	SW(rDI, _DI(SB))		/* save DI */
 	CLR(rAX)			/* write terminator */
 	STOSW
@@ -158,7 +156,7 @@ _e820loop:
 	LLI(0x534D4150, rDX)		/* signature - ASCII "SMAP" */
 	LLI(0x0000E820, rAX)		/* function code */
 
-	BIOSCALL(0x15)
+	BIOSCALL(0x15)			/* writes 20 bytes at (es,di) */
 
 	JCS	_e820pop		/* some kind of error */
 	LLI(0x534D4150, rDX)

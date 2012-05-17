@@ -55,11 +55,11 @@ root.bz2:Q: boot.bz2
 # binding 9loadusb onto 9load will store the name 9loadusb in the
 # generated fat filesystem.  the same is true for plan9.ini.cd and plan9.ini.
 
-9load: /386/9loadlite
+9load: /386/9load
 	cp $prereq $target
 #	if (test -e /386/9loadnousb)
 #		cp  /386/9loadnousb $target	# cater to old bioses
-	cp /386/9loadlitedebug 9loaddebug
+	cp /386/9loaddebug 9loaddebug
 
 ndisk: 9load /sys/src/9/pc/9pcflop.gz plan9.ini /lib/vgadb
 	dd -if /dev/zero -of ndisk -bs 1024 -count 1440 >[2]/dev/null
@@ -76,7 +76,7 @@ cddisk:DV: 9load /sys/src/9/pc/9pcflop.gz plan9.ini.cd /lib/vgadb
 	cp -x plan9.ini.cd subst/plan9.ini
 	dd -if /dev/zero -of cddisk -bs 1024 -count 2880 >[2]/dev/null
 	disk/format -t 3½QD -f -b /386/pbs -d cddisk \
-		9load /sys/src/9/pc/^(9pcflop.gz 9pccd.gz) \
+		/sys/src/9/pc/^(9pcflop.gz 9pccd.gz) \
 		subst/plan9.ini /lib/vgadb
 	ls -l cddisk
 
