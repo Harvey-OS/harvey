@@ -10,7 +10,6 @@
 #include	<a.out.h>
 #include 	<trace.h>
 
-
 void
 sysrfork(Ar0* ar0, va_list list)
 {
@@ -300,6 +299,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 		if (! flags) /* special case */
 			break;
 		up->ac = getac(up, flags);
+		flags = EXAC; /* gross */
 	}
 	if (up->ac)
 		DBG("execac: ac is %p, core %d\n", up->ac, up->ac->machno);
@@ -661,7 +661,7 @@ execac(Ar0* ar0, int flags, char *ufile, char **argv)
 	}
 
 	DBG("execac: prepagemem %d, up->ac %p, up->ac->core %d\n", 
-			up->prepagement, up->ac, up->ac ? up->ac->core: -1);
+			up->prepagemem, up->ac, up->ac ? up->ac->machno: -1);
 	DBG("execac up %#p done\n"
 		"textsz %lx datasz %lx bsssz %lx hdrsz %lx\n"
 		"textlim %ullx datalim %ullx bsslim %ullx\n", up,
