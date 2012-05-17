@@ -193,7 +193,7 @@ nixsquids(void)
 	Mach *mp;
 	int i;
 	uvlong now, start;
-print("NIXSQUIDSD, MACMACH %d\n", MACHMAX);
+	DBG("NIXSQUIDSD, MACMACH %d\n", MACHMAX);
 
 	for(i = 1; i < MACHMAX; i++)
 		if((mp = sys->machptr[i]) != nil && mp->online){
