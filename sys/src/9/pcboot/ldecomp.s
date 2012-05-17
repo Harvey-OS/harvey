@@ -35,12 +35,9 @@ TEXT origin(SB), $0
 	MOVW	CS, AX
 	MOVW	AX, DS
 
-	/* from ../l16r.s */
 	LWI(0, rAX)			/* always put stack in first 64k */
 	MTSR(rAX, rSS)
 	LWI(origin(SB), rSP)		/* set the stack pointer */
-
-	DELAY
 
 	LWI(0x2401, rAX)		/* enable a20 line */
 	BIOSCALL(0x15)
@@ -66,9 +63,6 @@ _cgamode3:
 	LWI(_hello(SB), rSI)
 	CALL	_cgaputs(SB)
 
-/*
- * start of transplanted apm & e820 scan code from l16r.s
- */
 	LLI(BIOSTABLES, rAX)	/* tables in low memory, not after end */
 	OPSIZE; ANDL $~(BY2PG-1), AX
 	OPSIZE; SHRL $4, AX
@@ -81,7 +75,6 @@ _cgamode3:
 /*
  * Check for APM1.2 BIOS support.
  */
-	DELAY
 	LWI(0x5304, rAX)		/* disconnect anyone else */
 	CLR(rBX)
 	BIOSCALL(0x15)
@@ -96,7 +89,6 @@ _apmfail:
 	LW(_ES(SB), rAX)		/* no support */
 	MTSR(rAX, rES)
 	LW(_DI(SB), rDI)
-	DELAY
 	JCS	_apmend
 
 _apmpush:
@@ -110,7 +102,6 @@ _apmpush:
 	LW(_ES(SB), rAX)
 	MTSR(rAX, rES)
 	LW(_DI(SB), rDI)
-	DELAY
 
 	LWI(0x5041, rAX)		/* first 4 bytes are APM\0 */
 	STOSW
@@ -131,7 +122,7 @@ _apmend:
  * at _e820end:.
  */
 	SW(rDI, _DI(SB))		/* save DI */
-	CLR(rAX)			/* write terminator (for APM?) */
+	CLR(rAX)			/* write terminator */
 	STOSW
 	STOSW
 
@@ -180,11 +171,7 @@ _e820pop:
 	LW(_DI(SB), rDI)
 	CLR(rAX)
 	MTSR(rAX, rES)
-	DELAY
 _e820end:
-/*
- * end of transplanted apm & e820 scan code from l16r.s
- */
 
 /*
  * 	goto protected mode

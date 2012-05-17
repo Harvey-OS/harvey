@@ -548,4 +548,5 @@ but usually by the same source code.
 .B bios
 and
 .B sdB
-usually only work on the first LBA device in the BIOS's list of boot devices.
+usually only work on the first LBA device in the BIOS's list of boot devices,
+if they work at all.

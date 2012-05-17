@@ -331,6 +331,7 @@ void
 warp9(ulong entry)
 {
 //	prstackuse(0);			/* debugging */
+	mkmultiboot();
 	impulse();
 
 	/* get out of KZERO space, turn off paging and jump to entry */

@@ -21,12 +21,14 @@ $scr/%.iso:D: $src9/dist/replica/plan9.log
 	@ { cd pc; mk cddisk }
 	rm -f $target
 	bind pc/cddisk cdstub/bootdisk.img
+	bind /386/9load cdstub/9load
+	bind /386/pbsraw cdstub/pbsraw
 	if(! test -f $src9/bootdisk.img)
 		bind -a cdstub $src9
 	title=`{date | sed 's/(...) (...) (..) (..:..):.. (...) (....)/Plan 9 - \2 \3 \6 \4/'}
 	title=$"title
 	echo 'CD:' $title
-	disk/mk9660 -9cj -v $title -s $src9 -b bootdisk.img $target
+	disk/mk9660 -9cj -v $title -s $src9 -B pbsraw -x 9load $target
 
 # copy compressed file from scratch space to the distribution, carefully
 $dist/web.protect/%.iso.bz2:	$scr/%.iso.bz2
@@ -144,11 +146,11 @@ $scr/contrib.iso:DV:
 
 rebuild:V:
 	chmod +l build.lock >>build.lock
-	rebuild <build.lock
+	lock build.lock rebuild
 
 rebuild-mail:V:
 	chmod +l build.lock >>build.lock
-	rebuild <build.lock
+	lock build.lock rebuild
 	datemail 'nightly build errors' 9trouble <buildit.out
 	datemail 'nightly build differences' 9trouble <checkbuild.out
 	status=''
