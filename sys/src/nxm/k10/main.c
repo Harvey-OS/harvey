@@ -71,6 +71,11 @@ options(int argc, char* argv[])
 		}
 	}
 	vflag = dbgflg['v'];
+	if (argc > 0 && ! strcmp(argv[0], "cga")){
+		cgaconsole = 1;
+		argc--;
+		argv++;
+	}
 	if(argc > 0){
 		maxcores = strtol(argv[0], 0, 0);
 		argc--;
