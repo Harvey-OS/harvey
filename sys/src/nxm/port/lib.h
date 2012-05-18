@@ -117,20 +117,26 @@ extern	int	sprint(char*, char*, ...);
 
 #pragma	varargck	type	"lld"	vlong
 #pragma	varargck	type	"llx"	vlong
+#pragma	varargck	type	"llb"	vlong
 #pragma	varargck	type	"lld"	uvlong
 #pragma	varargck	type	"llx"	uvlong
+#pragma	varargck	type	"llb"	uvlong
 #pragma	varargck	type	"ld"	long
 #pragma	varargck	type	"lx"	long
+#pragma	varargck	type	"lb"	long
 #pragma	varargck	type	"ld"	ulong
 #pragma	varargck	type	"lx"	ulong
+#pragma	varargck	type	"lb"	ulong
 #pragma	varargck	type	"d"	int
 #pragma	varargck	type	"x"	int
 #pragma	varargck	type	"c"	int
 #pragma	varargck	type	"C"	int
+#pragma	varargck	type	"b"	int
 #pragma	varargck	type	"d"	uint
 #pragma	varargck	type	"x"	uint
 #pragma	varargck	type	"c"	uint
 #pragma	varargck	type	"C"	uint
+#pragma	varargck	type	"b"	uint
 #pragma	varargck	type	"s"	char*
 #pragma	varargck	type	"q"	char*
 #pragma	varargck	type	"S"	Rune*
