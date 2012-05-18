@@ -1,5 +1,5 @@
 #!/bin/rc
-
+# termrc
 if(~ $#debug 1 && ~ $debug yes)
 	flag x +
 if not
@@ -118,4 +118,3 @@ if(~ $#mouseport 1) {
 			echo -n 'hwblank off' >'#v/vgactl' >[2]/dev/null
 	}
 }
-
