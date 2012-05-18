@@ -2,7 +2,7 @@ MKSHELL=rc
 # where to put this?
 CFLAGS=-I $NXM/sys/include -I $NXM/$objtype/include
 CONF=k8cpuserial
-CONFLIST=k8cpuserial
+CONFLIST=k8cpuserial k8cpuserialfs
 
 # override with the list of paths where to put extra
 # copies of the kernel. for each word $w in OTHERCOPIES,
