@@ -1,0 +1,23 @@
+#!/bin/rc
+rfork e
+cmd=$1
+echo '#' $1
+echo measuring $1... >'#c/cons'
+rm -f /tmp/bench.time
+rc -c $cmd >'#c/cons'	# warm cache and be able to see the output of the cmd...
+echo >/dev/sysstat
+for(i in `{seq 10}){
+	time rc -c $cmd >/dev/null >>[2]/tmp/bench.time
+	tail -1 /tmp/bench.time
+	tail -1 /tmp/bench.time >'#c/cons'
+}
+cp /dev/sysstat /tmp/sysstat
+sed 's/[sur]//g' </tmp/bench.time |
+	awk 'BEGIN{u=0.0; s=0.0; t=0.0}
+	{u += $1; s += $2; t += $3}
+	END{printf("times %g %g %g\n", u/NR, s/NR, t/NR);}'
+rm -f /tmp/bench.time
+cat /dev/debug
+echo #/dev/sysstat for 10 runs
+cat /tmp/sysstat
+exit ''

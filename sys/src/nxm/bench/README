@@ -1,0 +1,85 @@
+This is performance measurement for nix.
+
+Each directory named with a number  represents a single measure to be taken.
+(e.g., 1/ 2/ ...)
+A bench directory may be also named k1, k2, k....
+All k benchs run affter all std. benchs. They are meant to install ad-hoc
+kernels for measurement.
+
+The script actually running the benchs is runbenchs, which should be run from
+cpustart during the machine boot process only if it's found at /cfg/$sysname
+That is, include
+	test -x /cfg/$sysname/runbenchs && /cfg/$sysname/runbenchs
+in your  cpustart file.
+
+It is not meant to start the bench sequence by hand.
+To (re)run all the benchmarks, you should run ./Benchs instead.
+
+See 1/ for a template. Copy it to your own and tweak it at will.
+
+To start benchs, run the script ./Benchs in clu, which would
+change the boot sequence such that the machine starts to run benchs
+(perhaps installing different kernels and rebooting) until all ones
+have been run or one has failed.
+
+Each directory must contain:
+
+- kern:	a script used to compile and install a kernel.
+ if no such file is found, no new kernel is installed. the current one
+ is used. Otherwise, the indicated kernel is installed and the machine
+ reboots using this kernel.
+
+- runbench: a script used to run a bench. This is mandatory.
+
+- whichever other files must be available for the benchs to run.
+
+Benchs generate within each test directory whichever files they want.
+By convention, repeated times measured get into TIMES, and debug counters
+get into COUNTERS. The last line in TIMES reports the average.
+Repeated timing is done by Time. See the bench in ./1 as a template.
+
+
+As a result of running an to control when to run them, these files are
+generated:
+- koutput:	a file keeping the output for a kern that did run
+- output:	a file keeping the output for a test that did run,
+		this includes also /dev/debug and /dev/sysstat
+- FAIL:		an empty file, reporting that a test did fail.
+- KMESG:	copy of /dev/kmesg after booting a installed kernel
+
+BEWARE that if you install a kernel for a bench then that kernel is used
+for all following ones.
+As a convention, benchs installing a kernel should be named k0, k1, ...
+test 1 installs the std kernel, so that all benchs use the regular kernel.
+
+The Time script used to measure the mean of repeated runs also gathers the
+output of /dev/debug, and the cumulative value of /dev/sysstat for 10 runs.
+
+To create benchs for the same test using multiple parameter values, create
+different directories for each value. That we we keep the output for each one
+in a different place, under control. For example:
+
+Replicating bench 1 for 1 to 32 cores, the first one is going to be bench #31:
+
+First create and adapt the first benchmark
+mkdir 31
+dircp 1 31
+rm -f 31/^(koutput output FAIL KMESG)
+B 31/kern
+B 31/runbench
+
+Now replicate this one, changing the parameter for each of the new ones:
+for(x in `{seq 31}){ d=`{echo $x + 31|hoc} {mkdir  $d; dircp 31 $d; sed 's/ck 1$/ck '^$x^'/' < 31/003048ff2106 >$d/003048ff2106}}
+
+Then run ./Benchs
+
+for(x in `{seq 30}){ d=`{echo $x + 67|hoc} ; nc=`{echo $x + 2 | hoc}; echo dir  $d  echo $nc cores ;  ;  sed 's/ck 2$/ck '^$nc^'/'  < 67/003048ff2106 >$d/003048ff2106}
+
+Beware that many benchs are made assuming the kernel is implemented in a
+certain way, at least, those depending on a particular kernel.
+That means that, for example, if you clear benchs 1-99, you might have to
+rely on /n/nixdump/2012/0123/sys/src/nix sources; otherwise the kernel might
+not compile, or you might be measuring something else.
+
+In short: feel free to clear only the benchmarks you are responsible for.
+You should know what you are measuring in any case.

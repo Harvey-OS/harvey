@@ -1,0 +1,15 @@
+#!/bin/rc
+
+# change the boot sequence to run tests.
+
+# remove stale state from tests:
+rm -f [0-9]*/^(koutput output FAIL) k[0-9]*/^(koutput output FAIL)
+
+# arrange for them to run after rebooting
+if(test -e /cfg/$sysname/_runtests)
+	mv /cfg/$sysname/_runtests /cfg/$sysname/runtests 
+if(! test -x /cfg/$sysname/runtests){
+	echo there is no  /cfg/$sysname/runtests 
+	exit no
+}
+reboot

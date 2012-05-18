@@ -1,0 +1,20 @@
+# sleep 2
+0.00u 0.02s 2.02r 	 rc -c sleep 2
+0.00u 0.03s 2.02r 	 rc -c sleep 2
+0.00u 0.02s 2.02r 	 rc -c sleep 2
+0.00u 0.01s 2.03r 	 rc -c sleep 2
+0.00u 0.03s 2.02r 	 rc -c sleep 2
+0.00u 0.02s 2.02r 	 rc -c sleep 2
+0.00u 0.02s 2.02r 	 rc -c sleep 2
+0.00u 0.04s 2.02r 	 rc -c sleep 2
+0.00u 0.02s 2.02r 	 rc -c sleep 2
+0.00u 0.04s 2.03r 	 rc -c sleep 2
+times 0 0.025 2.022
+#cat /dev/debug
+steal 1
+donate 0
+locks 965080
+glare 6450
+inglare 8840
+qlock 73101
+qlockq 66

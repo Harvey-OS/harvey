@@ -1,9 +1,0 @@
-fn fail  {
-	echo $* >[1=2]
-	exit fail
-}
-
-fn log {
-	echo $*
-	echo $* >/dev/cons
-}

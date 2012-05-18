@@ -1,0 +1,61 @@
+#!/bin/rc
+
+rfork e
+rfork n
+
+cd /sys/src/nix/test
+../nix
+pass=PASS
+
+fn fatal {
+	echo $* >[1=2]
+	exit fatal
+}
+
+fn Mk {
+	6c -FVTw $1.c && 6l -o 6.$1 $1.6
+}
+
+rm -f  *.out *.6 6.*
+
+Mk execac || fatal execac
+
+files=`{ls [a-z]*.c [a-z]*.rc >[2]/dev/null| grep -v  'execac'| grep -v '\*' }
+
+if(test -x *.rc)
+	chmod +x *.rc
+
+for(t in $files){
+	f=`{echo $t|sed 's/\.c$//'}
+	cmd=()
+	if(~ $t *.c){
+		Mk $f
+		cmd = `{grep '^//TEST:' $t | sed 's/..TEST://'}
+	}
+	if(~ $t *.rc)
+		cmd=`{grep '^#TEST:' $t | sed 's/.TEST://'}
+	if(~ $#cmd 0){
+		if(~ $t *.c)
+			cmd = 6.$f
+		if not
+			cmd = $t
+	}
+	echo $cmd
+	echo $cmd | rc >$f.out >[2=1]
+	test -e $f.ok || cp $f.out $f.ok
+	if(diff<{sort $f.ok | sed 's/0x[a-z0-9]+//g'} <{sort $f.out | sed 's/0x[a-z0-9]+//g'}){
+		echo pass
+		rm $f.out
+	}
+	if not{
+		echo fail
+		pass=FAIL
+	}
+	echo
+}
+
+echo
+echo tests $pass
+rm -f *.6 6.*
+
+

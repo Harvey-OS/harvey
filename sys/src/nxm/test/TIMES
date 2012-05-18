@@ -1,0 +1,136 @@
+A program creating 50 threads, each one making 500 system calls
+that are a nop:
+
+6.nc -s -> using syscalls
+6.nc -n -> using nixcalls
+T .... -> in TC
+T -c n .... -> in AC
+
+;; 
+;; 
+;; time T -c 8 6.nc -s
+ 6.nc=2 [6.nc nicc 25267 tctime 672 actime 149322]
+ nix=20.01u 0.11s 0.20r 	 T -c 8 6.nc -s ...
+;; time T -c 9 6.nc -s
+ 6.nc=2 [6.nc nicc 25267 tctime 3891 actime 133053]
+ nix=20.00u 0.08s 0.20r 	 T -c 9 6.nc -s ...
+;; time T -c 10 6.nc -n
+ 6.nc=143 [6.nc nicc 408 tctime 1219 actime 4013]
+ nix=2790.00u 0.01s 0.03r 	 T -c 10 6.nc -n ...
+;; time T -c 11 6.nc -n
+ 6.nc=147 [6.nc nicc 413 tctime 1226 actime 4137]
+ nix=2910.00u 0.03s 0.04r 	 T -c 11 6.nc -n ...
+;; time T 6.nc -s
+ nix=9980.00u 0.00s 0.02r 	 T 6.nc -s
+;; time T 6.nc -s
+ nix=9990.00u 0.01s 0.01r 	 T 6.nc -s
+;; time T 6.nc -n
+0.00u 0.00s 0.06r 	 T 6.nc -n
+;;  nix=22831time T 6.nc -n
+0.01u 0.00s 0.06r 	 T 6.nc -n
+;;  nix=20953
+
+
+init: starting /bin/rc
+/*
+ !6c -FVTw nc.c && 6l -o 6.nc nc.6
+ */
+
+
+#include <u.h>
+#include <libc.h>
+
+static int dosyscall;
+extern int sysr1(void);
+
+void
+thr(int , void *[])
+{
+	int i, n;
+
+	for(i = 0; i < 500; i++){
+		if(dosyscall)
+			n = sysr1();
+		else
+			n = tsyscall(gettid(), gettid());
+		USED(n);
+		if(0)print("t%d: rc %d\n", gettid(), n);
+	}
+}
+
+void
+thrmain(int argc, void *argv[])
+{
+	int i, id;
+
+	for(i = 0; i < 50; i++){
+		if(0)print("t%d: arg[%d] = %s\n", gettid(), i, argv[i]);
+		id = newthr("thr", thr, argc, argv);
+		USED(id);
+		if(0)print("t%d: newthr %d\n", gettid(), id);
+	}
+}
+
+void
+main(int argc, char *argv[])
+{
+	ARGBEGIN{
+	case 's':
+		dosyscall = 1;
+		break;
+	case 'n':
+		dosyscall = 0;
+		break;
+	}ARGEND;
+
+	nixsyscall();
+	newthr("thrmain", thrmain, argc, argv);
+	sysfatal("newthr returns");
+}
+
+
+DONT TAKE THESE TOO SERIOUSLY:
+
+The time to print in the console is likely to make them false (or is it not?)
+
+Each process eating its full quantum prints its name:
+ lc >/tmp/x
+ rc rc lc;; 
+;; pwd
+/sys/src/9kronsc
+;; cd k8
+;; mk clean >/tmp/f >[2=1]
+ rc rc rc rc rc rc mk rc rc rc mk rc rc rc mk #l0t etherread4 ls ls #l0t sed sed rc rc mk rc rc rc mk rc rc mk;; 
+;; mk >/tmp/f > cs[2=1]
+ rc rc mk mk mk rc mk mk #l0t etherread4 rc etherread4 mk etherread4 rc mk mk rc mk mk mk etherread4 mk mk etherread4 mk rc rc etherread4 rc etherread4 rc etherread4 mk mk etherread4 rc etherread4 rc rc mk rc mk mk etherread4 rc etherread4 rc etherread4 mk rc rc etherread4 #l0t mk rc mk etherread4 mk etherread4 rc etherread4 rc rc etherread4 awk rc rc mk etherread4 #l0t rc rc rc rc rc etherread4 rc etherread4 rc etherread4 rc etherread4 rc etherread4 6a etherread4 awk rc rc 6a 6c rc 6a rc rc rc rc 6c 6c 6c 6a 6c 6a rc 6c 6c 6c rc 6c rc rc mk 6c rc rc 6c 6c 6c etherread4 6c 6c 6c 6c 6c etherread4 #l0t etherread4 etherread4 6c 6c 6c 6c etherread4 6c 6c etherread4 #l0t 6c 6c 6c 6c etherread4 6c etherread4 6c etherread4 6c etherread4 6c etherread4 6c 6c etherread4 6c etherread4 6c etherread4 6c etherread4 6c etherread4 6c etherread4 6c 6c 6c 6c 6c 6c 6c 6c 6c 6c 6c etherread4 6c etherread4 6c 6c 6c 6c 6c 6c 6c 6c 6c 6c 6c 6c 6c etherread4 6c 6c 6c etherread4 6c etherread4 6c etherread4 6c etherread4 6c 6c 6c 6c 6c etherread4 6c 6c etherread4 6c 6c 6c 6c etherread4 6c 6c etherread4 6c 6c 6c 6c 6c 6c 6c 6c 6c 6c 6c 6c 6c 6c 6c 6c 6c etherread4 6c 6c 6c etherread4 6c 6c 6c 6c 6c 6c 6c 6c 6c 6c 6c 6c etherread4 #l0t 6c 6c 6c etherread4 6c 6c 6c 6c 6c rc 6c 6c 6c etherread4 6c etherread4 6c rc 6c 6c 6c 6c 6c 6c rc 6c rc 6c 6c 6c rc rc rc rc rc rc 6c rc rc rc 6c 6c 6c 6c rc rc 6c 6c 6c rc mk;; ;; 
+
+each process prints how many quanta fully consumed before exiting,
+if that number is not 0.
+;; mk >/tmp/f
+ 6a=2 6a=2 rc=1mk: no recipe to make 'random.6' in directory /sys/src/9kronsc/k8
+ rc=1 awk=2 awk=5 awk=4 rc=4 rc=1 6c=3 rc=5 6c=6 6c=14 rc=2 rc=3 6c=6 rc=1 6c=9 rc=5 6c=14 rc=2 6c=12 6c=16 6c=19 rc=6 6c=14 rc=5 6c=8 6c=16 rc=4 rc=1 6c=7 rc=6 mk=8;; 
+
+lc in k8 dir:
+
+ls=19,  mc=3 lc=1;; ;; 
+
+
+And these are for those process that got NO
+interrupt at all in its quanta.
+Again, full # of quanta where that happen.
+Those with number 1 could be because of their last quantum.
+
+;; lc
+386      boot     k8       libtube  port     test.old
+9kron    include  libc     man      root     w
+TODO     ip       libseg   mk       test     words
+;; 
+;; pwd
+/sys/src/9kron
+;; cd k8
+;; mk clean >/tmp/f
+ mk=1;; 
+;; mk >/tmp/f
+mk: no recipe to make 'kbd.6' in directory /sys/src/9kron/k8
+ awk=2 rc=1 rc=1 6c=1 rc=1 rc=1 rc=1 6c=1 6c=1 rc=1 mk=1;; 
+;; ;; 
