@@ -25,6 +25,7 @@ static int mpeisabus = -1;
 extern int i8259elcr;			/* mask of level-triggered interrupts */
 /* static */ Apic mpapic[MaxAPICNO+1];
 /* static */ int machno2apicno[MaxAPICNO+1];	/* inverse map: machno -> APIC ID */
+/* static */ Apic ioapic[MaxAPICNO+1];
 static Ref mpvnoref;			/* unique vector assignment */
 static int mpmachno = 1;
 static Lock mpphysidlock;
@@ -161,7 +162,7 @@ mkioapic(PCMPioapic* p)
 	if((va = vmap(p->addr, 1024)) == nil)
 		return 0;
 
-	apic = &mpapic[apicno];
+	apic = &ioapic[apicno];
 	apic->type = PcmpIOAPIC;
 	apic->apicno = apicno;
 	apic->addr = va;
@@ -217,7 +218,7 @@ mkiointr(PCMPintr* p)
 	}
 	if ((unsigned)p->apicno >= nelem(mpapic))
 		panic("mkiointr: apic %d out of range", p->apicno);
-	aintr->apic = &mpapic[p->apicno];
+	aintr->apic = &ioapic[p->apicno];
 	aintr->next = bus->aintr;
 	bus->aintr = aintr;
 

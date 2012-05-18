@@ -113,6 +113,7 @@ enum {					/* Tcr */
 	Macv15		= 0x38800000,	/* RTL8100E */
 //	Macv19		= 0x3c000000,	/* dup Macv12a: RTL8111c-gr */
 	Macv25		= 0x28000000,	/* RTL8168D */
+	Macv2c		= 0x2c000000,	/* RTL8168E */
 	Ifg0		= 0x01000000,	/* Interframe Gap 0 */
 	Ifg1		= 0x02000000,	/* Interframe Gap 1 */
 };
@@ -737,6 +738,7 @@ rtl8169init(Ether* edev)
 	case Macv14:
 	case Macv15:
 	case Macv25:
+	case Macv2c:
 		break;
 	}
 
@@ -1091,6 +1093,7 @@ vetmacv(Ctlr *ctlr, uint *macv)
 	case Macv14:
 	case Macv15:
 	case Macv25:
+	case Macv2c:
 		break;
 	}
 	return 0;
