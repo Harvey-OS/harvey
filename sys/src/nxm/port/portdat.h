@@ -181,6 +181,12 @@ enum
 	Bpktck	=	(1<<5),		/* packet checksum */
 };
 
+/* process attributes */
+enum
+{
+	LINUX	=	(1<<0),		/* Linux compatibility mode */
+};
+
 struct Block
 {
 	Block*	next;
