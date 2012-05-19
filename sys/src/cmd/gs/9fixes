@@ -1,0 +1,1 @@
+gdevpsft.c: limit range of doubles before converting to integers.
