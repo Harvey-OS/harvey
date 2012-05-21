@@ -151,6 +151,7 @@ amd64 +dev
 	fpu
 	i8254
 	i8259
+	kbd
 	main
 	map
 	memory
@@ -173,6 +174,7 @@ port
 	edf
 	fault
 	image
+	latin1
 	nixcall
 	page
 	pager

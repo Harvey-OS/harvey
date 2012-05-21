@@ -336,6 +336,10 @@ main(u32int ax, u32int bx)
 	trapinit();
 	printinit();
 
+	/* putting kbd back */
+	if (cgaconsole)
+		kbdinit();
+
 	/*
 	 * This is necessary with GRUB and QEMU.
 	 * Without it an interrupt can occur at a weird vector,
@@ -352,6 +356,8 @@ main(u32int ax, u32int bx)
 
 	timersinit();
 	fpuinit();
+	if (cgaconsole)
+		kbdenable();
 	psinit(conf.nproc);
 	initimage();
 	links();
