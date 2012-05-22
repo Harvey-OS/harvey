@@ -32,7 +32,7 @@ Join split lines.
 Print code in the so-called K&R style used in
 .IR "The C Programming Language" .
 .TP 
-.B -l length
+.B -l
 Split lines that are longer than
 .IR length .
 .PD

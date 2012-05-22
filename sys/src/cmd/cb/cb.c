@@ -4,35 +4,34 @@
 #include "cb.h"
 #include "cbtype.h"
 
+static void
+usage(void)
+{
+	fprint(2, "usage: cb [-sj] [-l width]\n");
+	exits("usage");
+}
+
 void
 main(int argc, char *argv[])
 {
 	Biobuf stdin, stdout;
 
-	while (--argc > 0 && (*++argv)[0] == '-'){
-		switch ((*argv)[1]){
-		case 's':
-			strict = 1;
-			continue;
-		case 'j':
-			join = 1;
-			continue;
-		case 'l':
-			if((*argv)[2] != '\0'){
-				maxleng = atoi( &((*argv)[2]) );
-			}
-			else{
-				maxleng = atoi(*++argv);
-				argc--;
-			}
-			maxtabs = maxleng/TABLENG - 2;
-			maxleng -= (maxleng + 5)/10;
-			continue;
-		default:
-			fprint(2, "cb: illegal option %c\n", (*argv)[1]);
-			exits("boom");
-		}
-	}
+	ARGBEGIN{
+	case 'j':
+		join = 1;
+		break;
+	case 'l':
+		maxleng = atoi(EARGF(usage()));
+		maxtabs = maxleng/TABLENG - 2;
+		maxleng -= (maxleng + 5)/10;
+		break;
+	case 's':
+		strict = 1;
+		break;
+	default:
+		usage();
+	}ARGEND
+
 	Binit(&stdout, 1, OWRITE);
 	output = &stdout;
 	if (argc <= 0){
@@ -42,10 +41,8 @@ main(int argc, char *argv[])
 		Bterm(input);
 	} else {
 		while (argc-- > 0){
-			if ((input = Bopen( *argv, OREAD)) == 0){
-				fprint(2, "cb: cannot open input file %s\n", *argv);
-				exits("boom");
-			}
+			if ((input = Bopen(*argv, OREAD)) == 0)
+				sysfatal("can't open input file %s: %r", *argv);
 			work();
 			Bterm(input);
 			argv++;

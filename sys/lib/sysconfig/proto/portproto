@@ -169,13 +169,13 @@ sys
 				tab.utf
 				tab.37
 	log
-		cs	666 sys sys	/sys/lib/pcdist/disk/empty
-		dns	666 sys sys	/sys/lib/pcdist/disk/empty
-		mail	666 sys sys	/sys/lib/pcdist/disk/empty
-		smtp	666 sys sys	/sys/lib/pcdist/disk/empty
-		smtpd	666 sys sys	/sys/lib/pcdist/disk/empty
-		listen	666 sys sys	/sys/lib/pcdist/disk/empty
-		ipboot	666 sys sys	/sys/lib/pcdist/disk/empty
+		cs	666 sys sys	/sys/lib/dist/pc/emptyfile
+		dns	666 sys sys	/sys/lib/dist/pc/emptyfile
+		mail	666 sys sys	/sys/lib/dist/pc/emptyfile
+		smtp	666 sys sys	/sys/lib/dist/pc/emptyfile
+		smtpd	666 sys sys	/sys/lib/dist/pc/emptyfile
+		listen	666 sys sys	/sys/lib/dist/pc/emptyfile
+		ipboot	666 sys sys	/sys/lib/dist/pc/emptyfile
 	man
 		fonts
 		1pub
