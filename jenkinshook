@@ -1,0 +1,14 @@
+#!/bin/bash
+echo "WARNING:This will fail if $NXM/xbin is in your PATH"
+set -e
+go version
+9c --version
+sh BUILDTOOLCHAIN
+. SETUP
+cd sys/src
+mk nuke
+mk libs
+mk install
+cd nxm/k10
+mk nuke
+mk
