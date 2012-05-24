@@ -3,6 +3,7 @@ echo "WARNING:This will fail if $NXM/xbin is in your PATH"
 set -e
 go version
 9c --version
+cp inferno-os/mkconfig.jenkins inferno-os/mkconfig
 sh BUILDTOOLCHAIN
 . SETUP
 cd sys/src
