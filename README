@@ -1,8 +1,13 @@
 How to build:
 
 * Make sure you have Go and Plan 9 Ports installed
-* Copy inferno/mkconfig.proto to inferno/mkconfig and edit the ROOT, SYSHOST, and OBJTYPE variables
+* Copy inferno-os/mkconfig.proto to inferno-os/mkconfig and edit the ROOT, SYSHOST, and OBJTYPE variables
 * Run "sh BUILDTOOLCHAIN"
 * Run ". SETUP"
 * cd sys/src; mk libs; cd cmd; mk install # this gets the libraries and commands
 * cd $NXM/sys/src/nix/k10; mk # build the kernel
+
+If you intend on contributing code:
+
+* Run "make" in the top level directory.
+* Make sure you set "user.name" and "user.email" in your git configuration!
