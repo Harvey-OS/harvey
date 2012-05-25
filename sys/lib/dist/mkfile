@@ -160,13 +160,13 @@ scansources-mail:V:
 
 worldwritable-mail:V:
 	test -e $src9
-	@ {cd /n/sources; /usr/rsc/bin/$cputype/lsr -t -d} |
+	@ {cd /n/sources; /sys/lib/dist/rsc/bin/$cputype/lsr -t -d} |
 		awk '$2 ~ /[2367]$/' | grep -vf ok-writable |
 		datemail 'WRITABLE FILES ON SOURCES' 9trouble || status=''
 	status=''
 	@ {
 		cd $src9
-		/usr/rsc/bin/$cputype/lsr -t -d $src9
+		/sys/lib/dist/rsc/bin/$cputype/lsr -t -d $src9
 	} |
 		awk '$2 ~ /[2367][^2367].$/' |
 		datemail 'non-group-writable files on sources' 9trouble
@@ -176,7 +176,7 @@ worldwritable-mail:V:
 	rfork n
 	9fs boot
 	test -e /n/boot/sys
-	/usr/rsc/bin/$cputype/lsr -t -d /n/boot/sys /n/boot/lib |
+	/sys/lib/dist/rsc/bin/$cputype/lsr -t -d /n/boot/sys /n/boot/lib |
 		grep -v '/lib/audio/|/sys/src/cmd/vac/test/' | # give us a break
 		awk '$2 ~ /[2367][^2367].$/' |
 		datemail 'non-group-writable files on fs' 9trouble

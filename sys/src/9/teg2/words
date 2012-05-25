@@ -1,5 +1,5 @@
 this is a plan 9 port to the Trimslice with tegra2 soc: dual-core,
-dual-issue 1GHz Cortex-A9 system.
+dual-issue 1GHz Cortex-A9 system (v7a arch).
 
 dram is 1GB at 0.
 linux believes that u-boot runs in the bottom 4MB.

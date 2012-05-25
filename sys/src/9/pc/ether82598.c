@@ -583,34 +583,31 @@ rproc(void *v)
 	e = v;
 	c = e->ctlr;
 	m = c->nrd - 1;
-	rdh = 0;
-loop:
-	replenish(c, rdh);
-	im(c, Irx0);
-	sleep(&c->rrendez, rim, c);
-loop1:
-	c->rim = 0;
-	if(c->nrd - c->rdfree >= 16)
+	for (rdh = 0; ; rdh = Next(rdh, m)) {
 		replenish(c, rdh);
-	r = c->rdba + rdh;
-	if(!(r->status & Rdd))
-		goto loop;		/* UGH */
-	b = c->rb[rdh];
-	c->rb[rdh] = 0;
-	b->wp += r->length;
-	b->lim = b->wp;		/* lie like a dog */
-	if(!(r->status & Ixsm)){
-		if(r->status & Ipcs)
-			b->flag |= Bipck;
-		if(r->status & Tcpcs)
-			b->flag |= Btcpck | Budpck;
-		b->checksum = r->cksum;
+		im(c, Irx0);
+		sleep(&c->rrendez, rim, c);
+		do {
+			c->rim = 0;
+			if(c->nrd - c->rdfree >= 16)
+				replenish(c, rdh);
+			r = c->rdba + rdh;
+		} while(!(r->status & Rdd));
+		b = c->rb[rdh];
+		c->rb[rdh] = 0;
+		b->wp += r->length;
+		b->lim = b->wp;		/* lie like a dog */
+		if(!(r->status & Ixsm)){
+			if(r->status & Ipcs)
+				b->flag |= Bipck;
+			if(r->status & Tcpcs)
+				b->flag |= Btcpck | Budpck;
+			b->checksum = r->cksum;
+		}
+//		r->status = 0;
+		etheriq(e, b, 1);
+		c->rdfree--;
 	}
-//	r->status = 0;
-	etheriq(e, b, 1);
-	c->rdfree--;
-	rdh = Next(rdh, m);
-	goto loop1;			/* UGH */
 }
 
 static void
