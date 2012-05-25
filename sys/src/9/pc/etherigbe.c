@@ -820,8 +820,10 @@ igbelproc(void* arg)
 	edev = arg;
 	ctlr = edev->ctlr;
 	for(;;){
-		if(ctlr->mii == nil || ctlr->mii->curphy == nil)
+		if(ctlr->mii == nil || ctlr->mii->curphy == nil) {
+			sched();
 			continue;
+		}
 
 		/*
 		 * To do:
