@@ -278,13 +278,10 @@ Finally, it's important to have a three-button mouse with Plan 9.
 The system currently works only with mice on the PS/2 port or USB.
 Serial mouse support should return before long.
 .PP
-Once you have Plan 9 installed (see the wiki's installation document)
-run the program
-.CW ld
-from DOS
-or use a boot disk.  See
+Once you have Plan 9 installed (see the wiki's installation document),
+use PXE or a boot disk to load the system.  See
 .I booting (8),
-.I 9load (8),
+.I 9boot (8),
 and
 .I prep (8)
 for more information.
@@ -370,7 +367,6 @@ There are many features of the system-on-a-chip
 that it does not exploit.
 There are currently drivers for
 a Fast Ethernet interface,
-.\" USB
 and the console serial port;
 we hope to add crypto acceleration, and a video driver.
 .SH
@@ -386,7 +382,21 @@ Initially, there are drivers for the SMSC 9221 100Mb/s Ethernet
 interface in the IGEPv2 and Overo,
 and the console serial port;
 we hope to add USB, flash memory and video drivers.
-.
+.SH
+The Nvidia Tegra2 operating system
+.PP
+This is an ARM kernel for the dual Cortex-A9 processors
+in the Nvidia Tegra2 system-on-a-chip
+and it emulates pre-VFPv3 floating-point and
+CAS (compare-and-swap) instructions
+(the hardware has VFP3 floating-point but
+.CW 5l
+doesn't generate the new opcodes yet).
+It runs on the Compulab Trimslice.
+There are many features of the system-on-a-chip that it does not exploit.
+Initially, there are drivers for the Ethernet interface
+and the console serial port;
+we hope to add USB, flash memory and video drivers.
 .
 .ig
 .SH
