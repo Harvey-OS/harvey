@@ -13,3 +13,5 @@ mk install
 cd nxm/k10
 mk nuke
 mk
+echo "Mission Success"
+exit 0
