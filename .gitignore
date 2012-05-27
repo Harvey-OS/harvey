@@ -17,6 +17,7 @@ xbin/6l
 xbin/ar
 xbin/data2s
 xbin/mksys
+xbin/mklatinkbd
 xbin/nm
 6.out
 6.*

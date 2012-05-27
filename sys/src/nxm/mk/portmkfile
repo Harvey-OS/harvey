@@ -78,7 +78,7 @@ sysseg.$O:	../port/error.h
 taslock.$O:	../port/edf.h
 
 ../port/latin1.h:	$NXM/lib/keyboard
-	aux/mklatinkbd $NXM/lib/keyboard > $target
+	mklatinkbd $NXM/lib/keyboard > $target
 
 ../port/systab.c:	../mk/parse $NXM/sys/src/libc/9syscall/sys.h
 	awk -f ../mk/parse -- -mksystab $NXM/sys/src/libc/9syscall/sys.h $CONF > $target
