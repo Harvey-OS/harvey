@@ -219,6 +219,14 @@ noerrorsleft(void)
 	}
 }
 
+int
+badsyscall(int scallnr)
+{
+	if(scallnr >= nsyscall || systab[scallnr].f == nil)
+		return 1;
+
+	return 0;
+}
 /* it should be unsigned. FIXME */
 void
 syscall(int badscallnr, Ureg* ureg)
@@ -274,7 +282,7 @@ syscall(int badscallnr, Ureg* ureg)
 	up->nerrlab = 0;
 	ar0 = zar0;
 	if(!waserror()){
-		if(scallnr >= nsyscall || systab[scallnr].f == nil){
+		if(badsyscall(scallnr)){
 			pprint("bad sys call number %d pc %#llux\n",
 				scallnr, ureg->ip);
 			postnote(up, 1, "sys: bad sys call", NDebug);
@@ -304,14 +312,20 @@ syscall(int badscallnr, Ureg* ureg)
 		poperror();
 	}
 	else{
+		char *syscallname = "INVALID";
+		ar0.i = -1;
 		/* failure: save the error buffer for errstr */
 		e = up->syserrstr;
 		up->syserrstr = up->errstr;
 		up->errstr = e;
+		/* this used to panic the kernel on a bad system call # */
+		if(!badsyscall(scallnr)){
+			syscallname = systab[scallnr].n;
+			ar0 = systab[scallnr].r;
+		}
 		if(DBGFLG && up->pid == 1)
 			iprint("%s: syscall %s error %s\n",
-				up->text, systab[scallnr].n, up->syserrstr);
-		ar0 = systab[scallnr].r;
+				up->text, syscallname, up->syserrstr);
 	}
 
 	/*
