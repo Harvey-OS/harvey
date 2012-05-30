@@ -217,7 +217,7 @@ recvACK(int netfd)
 		if (*jobbuf == '\0')
 			error(1, "read failed\n");
 		else
-			error(1, "received <0x%x> instead\n", *jobbuf);
+			error(1, "received <%#x> instead\n", (uchar)*jobbuf);
 		rv = 0;
 	} else rv = 1;
 	alarm(0);
