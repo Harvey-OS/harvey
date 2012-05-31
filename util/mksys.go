@@ -29,7 +29,7 @@ func main(){
 			name = "_" + name
 		}
 		ass = ass + fmt.Sprintf("%s(SB), 1, $0\n", name)
-		ass = ass + "\tMOVQ RARG, a0+0(FP)\n\tMOVQ $" + ll[2]
+		ass = ass + "\tMOVQ RARG, a0+0(FP)\n\tMOVQ $(0x8000|"+ll[2]+")"
 		ass = ass + ", RARG\n\tSYSCALL\n\tRET\n"
 		err = ioutil.WriteFile(filename, []byte(ass), 0666)
 		if err != nil {

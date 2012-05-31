@@ -231,7 +231,7 @@ badsyscall(int scallnr)
 void
 syscall(int badscallnr, Ureg* ureg)
 {
-	unsigned int scallnr = (unsigned int) badscallnr;
+	unsigned int scallnr = (u8int) badscallnr;
 	char *e;
 	uintptr	sp;
 	int s;
