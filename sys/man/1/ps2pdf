@@ -15,6 +15,9 @@ ps2pdf, pdf2ps \- convert between PostScript and PDF
 .PP
 .B pdf2ps
 [
+.B -e
+]
+[
 .I gs-options
 ]
 [
@@ -37,6 +40,11 @@ If neither
 nor
 .I output-file
 is not specified, they read from standard input and write to standard output.
+.PP
+Under
+.BR -e ,
+.I pdf2ps
+emits Encapsulated Postscript (eps).
 .PP
 The
 .I gs-options
