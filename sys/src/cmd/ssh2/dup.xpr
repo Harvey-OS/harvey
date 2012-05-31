@@ -18,9 +18,9 @@ percent of file involved, #lines in file involved; file2,filename2
       28, 11; 3,cipherrc4.c:
       28, 11; 3,cipherrc4.c:
 
-18, 150, 60; 5,5
-      29, 240; 5,dh.c:
-      29, 240; 5,dh.c:
+19, 152, 60; 5,5
+      30, 244; 5,dh.c:
+      30, 244; 5,dh.c:
 
 7, 28, 9; 6,6
       13, 56; 6,dial.c:
@@ -66,9 +66,9 @@ percent of file involved, #lines in file involved; file2,filename2
       2, 15; 5,dh.c:
       2, 9; 6,dial.c:
 
-30, 257, 33; 6,7
-      59, 252; 6,dial.c:
-      57, 244; 7,dial.thread.c:
+33, 279, 33; 6,7
+      64, 273; 6,dial.c:
+      62, 265; 7,dial.thread.c:
 
 0, 10, 3; 8,9
       40, 6; 8,esmprint.c:

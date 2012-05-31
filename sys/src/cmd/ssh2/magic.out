@@ -245,15 +245,15 @@ ssh.c:270: n = readn(keyfd, buf+5, n);
 ssh.c:273: buf[n+5] = 0;
 ssh.c:278: fprint(kconsfd, "%s\n", buf+5);
 ssh.c:292: if (size < 6)
-ssh.c:307: n = read(keyfd, buf, 5);		/* reading /net/ssh/keys */
-ssh.c:310: buf[5] = 0;
-ssh.c:311: n = strtol(buf+1, nil, 10);
-ssh.c:312: n = readn(keyfd, buf+5, n);
-ssh.c:313: buf[n+5] = 0;
-ssh.c:319: fprint(kconsfd, "%s\n", buf+5);
-ssh.c:405: ds = netmkaddr(remote, dir, "22");		/* tcp port 22 is ssh */
-ssh.c:579: char buf[64];
-ssh.c:583: return strlen(buf) >= 9 && strcmp(buf+strlen(buf)-9, "/dev/cons") == 0;
+ssh.c:306: n = read(keyfd, buf, 5);		/* reading /net/ssh/keys */
+ssh.c:309: buf[5] = 0;
+ssh.c:310: n = strtol(buf+1, nil, 10);
+ssh.c:311: n = readn(keyfd, buf+5, n);
+ssh.c:312: buf[n < 0? 5: n+5] = 0;
+ssh.c:318: fprint(kconsfd, "%s\n", buf+5);
+ssh.c:404: ds = netmkaddr(remote, dir, "22");		/* tcp port 22 is ssh */
+ssh.c:578: char buf[64];
+ssh.c:582: return strlen(buf) >= 9 && strcmp(buf+strlen(buf)-9, "/dev/cons") == 0;
 sshsession.c:228: errfd = 2;
 sshsession.c:411: q += 4;
 sshsession.c:425: q += 4;

@@ -214,7 +214,7 @@
 
 #39. 3 ncsl lines
 	12,ssh.c:268,270
-	12,ssh.c:310,312
+	12,ssh.c:309,311
 	0 parameters
 
 #40. 10 ncsl lines
@@ -485,8 +485,8 @@
 	0 parameters
 
 #89. 4 ncsl lines
-	12,ssh.c:421,424
-	12,ssh.c:440,443
+	12,ssh.c:420,423
+	12,ssh.c:439,442
 	1 parameters
  	1. cfd1,	cfd2
 
@@ -520,53 +520,53 @@
 	0 parameters
 
 #95. 3 ncsl lines
-	6,dial.c:141,144
-	9,netssh.c:2435,2438
+	7,dial.thread.c:177,180
+	13,sshsession.c:152,155
 	0 parameters
 
 #96. 3 ncsl lines
-	5,dh.c:808,811
-	9,netssh.c:2221,2224
+	6,dial.c:141,144
+	13,sshsession.c:152,155
 	0 parameters
 
 #97. 3 ncsl lines
 	6,dial.c:141,144
-	9,netssh.c:2221,2224
+	9,netssh.c:2435,2438
 	0 parameters
 
 #98. 3 ncsl lines
-	7,dial.thread.c:177,180
+	5,dh.c:808,811
 	9,netssh.c:2221,2224
 	0 parameters
 
 #99. 3 ncsl lines
-	5,dh.c:808,811
-	9,netssh.c:2435,2438
+	6,dial.c:141,144
+	9,netssh.c:2221,2224
 	0 parameters
 
 #100. 3 ncsl lines
-	5,dh.c:808,811
-	6,dial.c:141,144
+	7,dial.thread.c:177,180
+	9,netssh.c:2221,2224
 	0 parameters
 
 #101. 3 ncsl lines
 	5,dh.c:808,811
-	7,dial.thread.c:177,180
+	13,sshsession.c:152,155
 	0 parameters
 
 #102. 3 ncsl lines
 	5,dh.c:808,811
-	13,sshsession.c:152,155
+	9,netssh.c:2435,2438
 	0 parameters
 
 #103. 3 ncsl lines
+	5,dh.c:808,811
 	6,dial.c:141,144
-	13,sshsession.c:152,155
 	0 parameters
 
 #104. 3 ncsl lines
+	5,dh.c:808,811
 	7,dial.thread.c:177,180
-	13,sshsession.c:152,155
 	0 parameters
 
 #105. 10 ncsl lines
@@ -590,12 +590,12 @@
 
 #108. 3 ncsl lines
 	6,dial.c:275,278
-	13,sshsession.c:152,155
+	9,netssh.c:2221,2224
 	0 parameters
 
 #109. 3 ncsl lines
 	6,dial.c:275,278
-	9,netssh.c:2221,2224
+	13,sshsession.c:152,155
 	0 parameters
 
 #110. 3 ncsl lines
@@ -880,7 +880,7 @@
 
 #156. 4 ncsl lines
 	9,netssh.c:879,882
-	12,ssh.c:392,396
+	12,ssh.c:391,395
 	1 parameters
  	1. threadexits,	bail
 
@@ -890,13 +890,13 @@
 	0 parameters
 
 #158. 3 ncsl lines
-	12,ssh.c:531,533
+	12,ssh.c:530,532
 	13,sshsession.c:220,222
 	0 parameters
 
 #159. 3 ncsl lines
 	9,netssh.c:195,197
-	12,ssh.c:531,533
+	12,ssh.c:530,532
 	0 parameters
 
 #160. 6 ncsl lines
@@ -1204,7 +1204,7 @@
  	1. 'k',	'i'
 
 #207. 4 ncsl lines
-	12,ssh.c:501,504
+	12,ssh.c:500,503
 	13,sshsession.c:196,199
 	1 parameters
  	1. 'I',	'i'
@@ -1222,7 +1222,7 @@
 
 #210. 3 ncsl lines
 	12,ssh.c:278,280
-	12,ssh.c:319,322
+	12,ssh.c:318,321
 	0 parameters
 
 #211. 4 ncsl lines
@@ -1704,12 +1704,12 @@
 
 #296. 3 ncsl lines
 	9,netssh.c:1254,1256
-	12,ssh.c:332,334
+	12,ssh.c:331,333
 	0 parameters
 
 #297. 3 ncsl lines
 	9,netssh.c:2218,2220
-	12,ssh.c:332,334
+	12,ssh.c:331,333
 	0 parameters
 
 #298. 3 ncsl lines
@@ -1719,42 +1719,42 @@
 
 #299. 3 ncsl lines
 	9,netssh.c:2564,2567
-	12,ssh.c:472,475
+	13,sshsession.c:333,336
 	0 parameters
 
 #300. 3 ncsl lines
-	9,netssh.c:1505,1508
-	12,ssh.c:472,475
+	9,netssh.c:2564,2567
+	12,ssh.c:471,474
 	0 parameters
 
 #301. 3 ncsl lines
-	9,netssh.c:2564,2567
+	12,ssh.c:471,474
 	13,sshsession.c:333,336
 	0 parameters
 
 #302. 3 ncsl lines
-	12,ssh.c:472,475
-	13,sshsession.c:333,336
+	9,netssh.c:1505,1508
+	12,ssh.c:471,474
 	0 parameters
 
 #303. 3 ncsl lines
 	6,dial.c:164,167
-	12,ssh.c:282,286
+	13,sshsession.c:307,310
 	0 parameters
 
 #304. 3 ncsl lines
 	6,dial.c:164,167
-	7,dial.thread.c:149,152
+	12,ssh.c:282,286
 	0 parameters
 
 #305. 3 ncsl lines
 	6,dial.c:164,167
-	12,ssh.c:151,154
+	7,dial.thread.c:149,152
 	0 parameters
 
 #306. 3 ncsl lines
 	6,dial.c:164,167
-	13,sshsession.c:307,310
+	12,ssh.c:151,154
 	0 parameters
 
 #307. 3 ncsl lines
@@ -2371,7 +2371,7 @@
 
 #418. 5 ncsl lines
 	12,ssh.c:73,77
-	12,ssh.c:411,415
+	12,ssh.c:410,414
 	1 parameters
  	1. fd,	nfd
 
@@ -3007,7 +3007,7 @@
 
 #528. 5 ncsl lines
 	9,netssh.c:177,181
-	12,ssh.c:500,504
+	12,ssh.c:499,503
 	1 parameters
  	1. 'k',	'I'
 
@@ -3035,7 +3035,7 @@
 
 #533. 3 ncsl lines
 	9,netssh.c:802,804
-	12,ssh.c:332,334
+	12,ssh.c:331,333
 	0 parameters
 
 #534. 3 ncsl lines
@@ -3107,12 +3107,12 @@
 
 #547. 3 ncsl lines
 	9,netssh.c:734,737
-	12,ssh.c:472,475
+	13,sshsession.c:333,336
 	0 parameters
 
 #548. 3 ncsl lines
 	9,netssh.c:734,737
-	13,sshsession.c:333,336
+	12,ssh.c:471,474
 	0 parameters
 
 #549. 3 ncsl lines
@@ -3131,23 +3131,23 @@
 	0 parameters
 
 #552. 3 ncsl lines
-	6,dial.c:164,167
 	12,ssh.c:243,246
+	13,sshsession.c:307,310
 	0 parameters
 
 #553. 3 ncsl lines
+	9,netssh.c:390,393
+	13,sshsession.c:307,310
+	0 parameters
+
+#554. 3 ncsl lines
 	6,dial.c:164,167
 	9,netssh.c:390,393
 	0 parameters
 
-#554. 3 ncsl lines
-	9,netssh.c:390,393
-	13,sshsession.c:307,310
-	0 parameters
-
 #555. 3 ncsl lines
+	6,dial.c:164,167
 	12,ssh.c:243,246
-	13,sshsession.c:307,310
 	0 parameters
 
 #556. 3 ncsl lines
@@ -3193,12 +3193,12 @@
 
 #564. 4 ncsl lines
 	11,rsa2ssh2.c:20,24
-	12,ssh.c:473,477
+	12,ssh.c:472,476
 	0 parameters
 
 #565. 4 ncsl lines
 	9,netssh.c:164,168
-	12,ssh.c:473,477
+	12,ssh.c:472,476
 	1 parameters
  	1. threadmain,	main
 
@@ -3246,7 +3246,7 @@
 
 #573. 4 ncsl lines
 	12,ssh.c:283,288
-	12,ssh.c:337,345
+	12,ssh.c:336,344
 	1 parameters
  	1. keyproc,	bidircopy
 
@@ -3461,26 +3461,26 @@
  	1. sl,	0
 
 #609. 4 ncsl lines
+	9,netssh.c:2434,2438
+	13,sshsession.c:151,155
+	0 parameters
+
+#610. 4 ncsl lines
+	9,netssh.c:2220,2224
+	13,sshsession.c:151,155
+	0 parameters
+
+#611. 4 ncsl lines
 	6,dial.c:519,526
 	9,netssh.c:2220,2224
 	1 parameters
  	1. sl,	0
 
-#610. 4 ncsl lines
+#612. 4 ncsl lines
 	7,dial.thread.c:516,523
 	9,netssh.c:2220,2224
 	1 parameters
  	1. sl,	0
-
-#611. 4 ncsl lines
-	9,netssh.c:2220,2224
-	13,sshsession.c:151,155
-	0 parameters
-
-#612. 4 ncsl lines
-	9,netssh.c:2434,2438
-	13,sshsession.c:151,155
-	0 parameters
 
 #613. 4 ncsl lines
 	0,cipher3des.c:27,31
