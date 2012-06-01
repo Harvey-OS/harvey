@@ -184,7 +184,8 @@ enum
 /* process attributes */
 enum
 {
-	LINUX	=	(1<<0),		/* Linux compatibility mode */
+	Linux	=	(1<<0),		/* Linux compatibility mode */
+	LinuxExec = 	(1<<1),		/* Linux exec in progress */
 };
 
 struct Block

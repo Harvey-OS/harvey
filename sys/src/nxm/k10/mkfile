@@ -19,8 +19,9 @@ p=9
 <| awk -f ../mk/parse $CONF
 <../mk/bootmkfile
 <../mk/portmkfile
+<../mk/linuxmkfile
 
-OBJ=$MACH $CONF.root.$O $DEVS $PORT
+OBJ=$MACH $CONF.root.$O $DEVS $PORT $LINUX
 
 # there's just way too much magic in all this stuff. I can't find out how/where LIB is defined.
 $p$CONF:	$CONF.c $OBJ $LIB
@@ -101,6 +102,10 @@ devtube.$O:	../port/tube.h
 syssem.$O: ../port/tube.h
 devacpi.$O: acpi.h
 physalloc.$O: acpi.h
+
+linuxarchsys.$O: ../linux/linuxsystab.h
+linuxsyscall.$O: ../linux/linuxsystab.h
+linuxsysemu.$O: ../linux/linuxsystab.h
 
 sipi.h:		l64sipi.$O
 	$LD -o l64sipi.out -T0xfffffffff0003000 -R4 -l -s $prereq

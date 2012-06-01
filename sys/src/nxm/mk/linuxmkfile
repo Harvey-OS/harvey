@@ -1,0 +1,11 @@
+MKSHELL=rc
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.$O:	$NXM/$objtype/include/u.h
+%.$O:	../port/linuxsystab.h
+%.$O:	mem.h
+
+linuxarchsys.$O:	$NXM/sys/include/pool.h
+linuxsyscall.$O:	../port/error.h
+linuxsysemu.$O:		../port/error.h

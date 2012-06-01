@@ -53,6 +53,12 @@ BEGIN{
 			s = "PORT=" s;
 		o = o s "\n";
 	}
+	if((!oargc || ("-mklinux" in oargv) ) && ("linux" in section)){
+		s = mklinux();
+		if(!("-mklinux" in oargv) || (oargc > 1))
+			s = "LINUX=" s;
+		o = o s "\n";
+	}
 	if("dbgflg" in section){
 		for(i = 1; i < section["dbgflg"]; i++){
 			n = split(line["dbgflg", i], a);
@@ -497,6 +503,12 @@ function mkrules(dir, exists, ameta, cmeta, flags,		f, i, s, t){
 		s = s "\t" t " -D'_DBGC_='" dbgc[$0] "'' " dir "/" f "\n";
 	}
 	return s;
+}
+
+function mklinux(					array){
+	arrayify(array, "linux", "", ".$O", 1);
+
+	return listolate(array, " ");
 }
 
 function mkport(					array){

@@ -199,6 +199,11 @@ port
 	syszio
 	syscallfmt
 
+linux
+	linuxsysemu
+	linuxarchsys
+	linuxsyscall
+
 #
 #dir
 # pc		-.I.
@@ -207,6 +212,7 @@ dir
 	386
 	ip
 	port
+	linux
 
 lib
 	libc

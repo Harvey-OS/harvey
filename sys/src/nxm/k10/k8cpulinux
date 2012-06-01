@@ -73,11 +73,22 @@ misc +dev
 boot cpu
 	tcp
 
+
 rootdir
-	bootk8cpuserial.out boot
-	../../../../amd64/bin/auth/factotum factotum
-	../../../../amd64/bin/ip/ipconfig ipconfig
+	boot.fs boot
+	$NXM/amd64/bin/rc rc
+	$NXM/rc/lib/rcmain
+	$NXM/amd64/bin/echo echo
+	$NXM/amd64/bin/date date
+	$NXM/amd64/bin/linux linux
+	$NXM/amd64/bin/ls ls
+	$NXM/amd64/bin/ps ps
+	$NXM/amd64/bin/bind bind
+	$NXM/amd64/bin/cat cat
+	$NXM/amd64/bin/ratrace ratrace
+	$NXM/amd64/bin/sleep sleep
 	../root/nvram nvram
+	../root/testlinux.out testlinux.out
 
 conf
 	int cpuserver = 1;
@@ -86,6 +97,7 @@ conf
 #dbgflg
 #	chan		'c'
 #	apic		'A'
+#	acpi		'C'
 #	hpet		'H'
 #	ht		'H'
 #	ioapic		'I'

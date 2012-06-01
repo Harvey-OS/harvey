@@ -180,6 +180,11 @@ port
 	syszio
 	nixcall
 
+linux
+	linuxsysemu
+	linuxarchsys
+	linuxsyscall
+
 #
 #dir
 # pc		-.I.
@@ -188,6 +193,7 @@ dir
 	386
 	ip
 	port
+	linux
 
 lib
 	libc
