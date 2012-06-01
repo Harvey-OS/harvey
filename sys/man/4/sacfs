@@ -56,4 +56,11 @@ mounts itself on
 .SH SOURCE
 .B /sys/src/cmd/disk/sacfs/sacfs.c
 .SH "SEE ALSO"
+.IR paqfs (4),
 .IR mksacfs (8)
+.SH BUGS
+.I Sacfs
+pre-dates 9P2000 and no longer compiles;
+see
+.IR paqfs (4)
+instead.
