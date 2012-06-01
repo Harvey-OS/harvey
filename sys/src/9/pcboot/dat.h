@@ -519,6 +519,7 @@ struct Boot {
 
 extern int	debugload;
 extern Apminfo	apm;
+extern Chan	*conschan;
 extern char	*defaultpartition;
 extern int	iniread;
 extern u32int	memstart;

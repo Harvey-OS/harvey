@@ -282,7 +282,7 @@ keyprompt(char *buf, int size, int n)
 	}
 }
 
-/* talk the undocumented /net/ssh/keys protcol */
+/* talk the undocumented /net/ssh/keys protocol */
 static void
 keyproc(char *buf, int size)
 {
@@ -291,9 +291,8 @@ keyproc(char *buf, int size)
 
 	if (size < 6)
 		exits("keyproc buffer too small");
-	keyfd = -1;
 	p = esmprint("%s/ssh/keys", netdir);
-	keyfd = open(p, OREAD);
+	keyfd = open(p, ORDWR);
 	if (keyfd < 0) {
 		chpid = 0;
 		sysfatal("failed to open ssh keys in %s: %r", p);
@@ -310,7 +309,7 @@ keyproc(char *buf, int size)
 	buf[5] = 0;
 	n = strtol(buf+1, nil, 10);
 	n = readn(keyfd, buf+5, n);
-	buf[n+5] = 0;
+	buf[n < 0? 5: n+5] = 0;
 	free(p);
 
 	switch (*buf) {
