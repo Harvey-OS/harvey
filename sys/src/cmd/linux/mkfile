@@ -1,0 +1,13 @@
+<$NXM/$objtype/mkfile
+
+TARG=linux
+OFILES= \
+	vdso.$O\
+	callmain.$O\
+
+#LIB=libmach/libmach.a  \
+
+HFILES=
+
+BIN=$NXM/$objtype/bin
+<$NXM/sys/src/cmd/mkmany

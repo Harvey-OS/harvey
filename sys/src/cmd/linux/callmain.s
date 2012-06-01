@@ -1,0 +1,20 @@
+	TEXT	callmain+0(SB),0,$16
+	MOVQ	BP,CX
+	MOVQ	stack+8(FP),BP
+	MOVQ	BP, SP
+	MOVQ	$0x0, AX
+	MOVQ	$0x0, BX
+	MOVQ	$0x0, DX
+	MOVQ	$0x0, R8
+	MOVQ	$0x0, R9
+	MOVQ	$0x0, R10
+	MOVQ	$0x512, R11
+	MOVQ	$0x0, R12
+	MOVQ	$0x0, R13
+	MOVQ	$0x0, R14
+	MOVQ	$0x0, R15
+	MOVQ	$0x0, DI
+	MOVQ	$0x0, SI
+	JMP	,CX
+	RET	,
+	END	,
