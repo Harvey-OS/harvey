@@ -1,0 +1,190 @@
+// amd64
+
+defn acidinit()
+{
+	bplist = {};
+	bpfmt = 'b';
+
+	srcpath = {
+		"./",
+		"/sys/src/libc/port/",
+		"/sys/src/libc/9sys/",
+		"/sys/src/libc/amd64/"
+	};
+
+	srcfiles = {};		// list of loaded files
+	srctext = {};		// the text of the files
+}
+
+defn gpr()
+{
+	print("AX    ", *AX, "\n");
+	print("BX    ", *BX, "\n");
+	print("CX    ", *CX, "\n");
+	print("DX    ", *DX, "\n");
+	print("DI    ", *DI, "\n"); 
+	print("SI    ", *SI, "\n");
+	print("BP    ", *BP, "\n");
+	print("R8    ", *R8, "\n");
+	print("R9    ", *R9, "\n");
+	print("R10   ", *R10, "\n");
+	print("R11   ", *R11, "\n");
+	print("R12   ", *R12, "\n");
+	print("R13   ", *R13, "\n");
+	print("R14   ", *R14, "\n");
+	print("R15   ", *R15, "\n");
+}
+
+defn spr()
+{
+	print("DS  ", *DS, "  ES  ", *ES, "  FS  ", *FS, "  GS  ", *GS, "\n");
+	print("TYPE  ", *TYPE, "\n");
+	print("ERROR ", *ERROR, "\n");
+	print("PC    ", *PC, "\n");
+	print("CS    ", *CS, "\n");
+	print("FLAGS ", *FLAGS, "\n");
+	print("SP    ", *SP, "\n");
+	print("SS    ", *SS, "\n");
+}
+
+defn x87r()
+{
+	print("FCW  ", *FCW, "  FSW  ", *FSW, "  FTW  ", *FTW, "  FOP  ", *FOP, "\n");
+	print("RIP  ", *RIP, "   RDP  ", *RDP, "\n");
+	print("M0   ", *M0, "\n");
+	print("M1   ", *M1, "\n");
+	print("M2   ", *M2, "\n");
+	print("M3   ", *M3, "\n");
+	print("M4   ", *M4, "\n");
+	print("M5   ", *M5, "\n");
+	print("M6   ", *M6, "\n");
+	print("M7   ", *M7, "\n");
+}
+
+defn xmmr()
+{
+	print("MXCSR  ", *MXCSR, "   MXCSRMASK  ", *MXCSRMASK, "\n");
+	print("X0   ", *X0, "\n");
+	print("X1   ", *X1, "\n");
+	print("X2   ", *X2, "\n");
+	print("X3   ", *X3, "\n");
+	print("X4   ", *X4, "\n");
+	print("X5   ", *X5, "\n");
+	print("X6   ", *X6, "\n");
+	print("X7   ", *X7, "\n");
+	print("X8   ", *X8, "\n");
+	print("X9   ", *X9, "\n");
+	print("X10  ", *X10, "\n");
+	print("X11  ", *X11, "\n");
+	print("X12  ", *X12, "\n");
+	print("X13  ", *X13, "\n");
+	print("X14  ", *X14, "\n");
+	print("X15  ", *X15, "\n");
+}
+
+defn fpr()
+{
+	xmmr();
+}
+
+defn regs()
+{
+	gpr();
+	spr();
+}
+
+defn pstop(pid)
+{
+	local l;
+	local pc;
+
+	pc = *PC;
+
+	print(pid,": ", reason(*TRAP), "\t");
+	print(fmt(pc, 'a'), "\t", fmt(pc, 'i'), "\n");
+
+	if notes then {
+		if notes[0] != "sys: breakpoint" then {
+			print("Notes pending:\n");
+			l = notes;
+			while l do {
+				print("\t", head l, "\n");
+				l = tail l;
+			}
+		}
+	}
+}
+
+defn lstk()				// trace with locals
+{
+	_stk(*PC, *SP, 0, 1);
+}
+
+defn stk()
+{
+	_stk(*PC, *SP, 0, 0);
+}
+
+aggr Ureg
+{
+	'W' 0 ax;
+	'W' 8 bx;
+	'W' 16 cx;
+	'W' 24 dx;
+	'W' 32 si;
+	'W' 40 di;
+	'W' 48 bp;
+	'W' 56 r8;
+	'W' 64 r9;
+	'W' 72 r10;
+	'W' 80 r11;
+	'W' 88 r12;
+	'W' 96 r13;
+	'W' 104 r14;
+	'W' 112 r15;
+	'u' 120 ds;
+	'u' 122 es;
+	'u' 124 fs;
+	'u' 126 gs;
+	'W' 128 type;
+	'W' 136 error;
+	'W' 144 ip;
+	'W' 152 cs;
+	'W' 160 flags;
+	'W' 168 sp;
+	'W' 176 ss;
+};
+
+defn
+Ureg(addr) {
+	complex Ureg addr;
+	print("	ax	", addr.ax, "\n");
+	print("	bx	", addr.bx, "\n");
+	print("	cx	", addr.cx, "\n");
+	print("	dx	", addr.dx, "\n");
+	print("	si	", addr.si, "\n");
+	print("	di	", addr.di, "\n");
+	print("	bp	", addr.bp, "\n");
+	print("	r8	", addr.r8, "\n");
+	print("	r9	", addr.r9, "\n");
+	print("	r10	", addr.r10, "\n");
+	print("	r11	", addr.r11, "\n");
+	print("	r12	", addr.r12, "\n");
+	print("	r13	", addr.r13, "\n");
+	print("	r14	", addr.r14, "\n");
+	print("	r15	", addr.r15, "\n");
+	print("	ds	", addr.ds, "\n");
+	print("	es	", addr.es, "\n");
+	print("	fs	", addr.fs, "\n");
+	print("	gs	", addr.gs, "\n");
+	print("	type	", addr.type, "\n");
+	print("	error	", addr.error, "\n");
+	print("	ip	", addr.ip, "\n");
+	print("	cs	", addr.cs, "\n");
+	print("	flags	", addr.flags, "\n");
+	print("	sp	", addr.sp, "\n");
+	print("	ss	", addr.ss, "\n");
+};
+sizeofUreg = 184;
+
+print("/sys/lib/acid/amd64");

@@ -1,0 +1,163 @@
+// 386 support
+
+defn acidinit()			// Called after all the init modules are loaded
+{
+	bplist = {};
+	bpfmt = 'b';
+
+	srcpath = {
+		"./",
+		"/sys/src/libc/port/",
+		"/sys/src/libc/9sys/",
+		"/sys/src/libc/386/"
+	};
+
+	srcfiles = {};			// list of loaded files
+	srctext = {};			// the text of the files
+}
+
+defn linkreg(addr)
+{
+	return 0;
+}
+
+defn stk()				// trace
+{
+	_stk(*PC, *SP, 0, 0);
+}
+
+defn lstk()				// trace with locals
+{
+	_stk(*PC, *SP, 0, 1);
+}
+
+defn gpr()		// print general(hah hah!) purpose registers
+{
+	print("AX\t", *AX, " BX\t", *BX, " CX\t", *CX, " DX\t", *DX, "\n");
+	print("DI\t", *DI, " SI\t", *SI, " BP\t", *BP, "\n");
+}
+
+defn spr()				// print special processor registers
+{
+	local pc;
+	local cause;
+
+	pc = *PC;
+	print("PC\t", pc, " ", fmt(pc, 'a'), "  ");
+	pfl(pc);
+	print("SP\t", *SP, " ECODE ", *ECODE, " EFLAG ", *EFLAGS, "\n");
+	print("CS\t", *CS, " DS\t ", *DS, " SS\t", *SS, "\n");
+	print("GS\t", *GS, " FS\t ", *FS, " ES\t", *ES, "\n");
+	
+	cause = *TRAP;
+	print("TRAP\t", cause, " ", reason(cause), "\n");
+}
+
+defn regs()				// print all registers
+{
+	spr();
+	gpr();
+}
+
+defn fpr()
+{
+	print("F0\t",  *F0, "\n");
+	print("F1\t",  *F1, "\n");
+	print("F2\t",  *F2, "\n");
+	print("F3\t",  *F3, "\n");
+	print("F4\t",  *F4, "\n");
+	print("F5\t",  *F5, "\n");
+	print("F6\t",  *F6, "\n");
+	print("F7\t",  *F7, "\n");
+	print("control\t", *fmt(E0, 'x'), "\n");
+	print("status\t", *fmt(E1, 'x'), "\n");
+	print("tag\t", *fmt(E2, 'x'), "\n");
+	print("ip offset\t", *fmt(E3, 'X'), "\n");
+	print("cs selector\t", *fmt(E4, 'x'), "\n");
+	print("opcode\t", *fmt(E4>>8, 'x'), "\n");
+	print("data operand offset\t", *fmt(E5, 'x'), "\n");
+	print("operand selector\t", *fmt(E6, 'x'), "\n");
+}
+
+defn mmregs()
+{
+	print("MM0\t", *MM0, " MM1\t", *MM1, "\n");
+	print("MM2\t", *MM2, " MM3\t", *MM3, "\n");
+	print("MM4\t", *MM4, " MM5\t", *MM5, "\n");
+	print("MM6\t", *MM6, " MM7\t", *MM7, "\n");
+}
+
+defn pstop(pid)
+{
+	local l;
+	local pc;
+
+	pc = *PC;
+
+	print(pid,": ", reason(*TRAP), "\t");
+	print(fmt(pc, 'a'), "\t", fmt(pc, 'i'), "\n");
+
+	if notes then {
+		if notes[0] != "sys: breakpoint" then {
+			print("Notes pending:\n");
+			l = notes;
+			while l do {
+				print("\t", head l, "\n");
+				l = tail l;
+			}
+		}
+	}
+}
+
+aggr Ureg
+{
+	'X' 0 di;
+	'X' 4 si;
+	'X' 8 bp;
+	'X' 12 nsp;
+	'X' 16 bx;
+	'X' 20 dx;
+	'X' 24 cx;
+	'X' 28 ax;
+	'X' 32 gs;
+	'X' 36 fs;
+	'X' 40 es;
+	'X' 44 ds;
+	'X' 48 trap;
+	'X' 52 ecode;
+	'X' 56 pc;
+	'X' 60 cs;
+	'X' 64 flags;
+	{
+	'X' 68 usp;
+	'X' 68 sp;
+	};
+	'X' 72 ss;
+};
+
+defn
+Ureg(addr) {
+	complex Ureg addr;
+	print("	di	", addr.di, "\n");
+	print("	si	", addr.si, "\n");
+	print("	bp	", addr.bp, "\n");
+	print("	nsp	", addr.nsp, "\n");
+	print("	bx	", addr.bx, "\n");
+	print("	dx	", addr.dx, "\n");
+	print("	cx	", addr.cx, "\n");
+	print("	ax	", addr.ax, "\n");
+	print("	gs	", addr.gs, "\n");
+	print("	fs	", addr.fs, "\n");
+	print("	es	", addr.es, "\n");
+	print("	ds	", addr.ds, "\n");
+	print("	trap	", addr.trap, "\n");
+	print("	ecode	", addr.ecode, "\n");
+	print("	pc	", addr.pc, "\n");
+	print("	cs	", addr.cs, "\n");
+	print("	flags	", addr.flags, "\n");
+	print("	sp	", addr.sp, "\n");
+	print("	ss	", addr.ss, "\n");
+};
+sizeofUreg = 76;
+
+print("/sys/lib/acid/386");

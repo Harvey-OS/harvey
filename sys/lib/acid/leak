@@ -1,0 +1,188 @@
+//
+// usage: acid -l pool -l leak
+//
+include("/sys/src/libc/port/pool.acid");
+
+defn
+dumppool(p, sum)
+{
+	complex Pool p;
+	a = p.arenalist;
+
+	print("A: ", p.arenalist\X, "\n");
+	while a != 0 && a < 0xff000000 do {
+		complex Arena a;
+		dumparena(a, sum);
+		a = a.down;
+	}
+}
+
+defn
+dumparena(arena, sum)
+{
+	local atail, b, nb;
+
+	atail = A2TB(arena);
+	complex Bhdr arena;
+	b = a;
+	print("B: ", b\X, " ", atail\X, "\n");
+	while b < atail && b.magic != ARENATAIL_MAGIC do {
+		dumpblock(b, sum);
+		nb = B2NB(b);
+		if nb == b then {
+			print("B2NB(", b\X, ") = b\n");
+			b = atail;	// end loop
+		}
+		if nb > atail then {
+			b = (Bhdr)(b+4);
+			print("lost at block ", (b-4)\X, ", scanning forward\n");
+			while b < atail && b.magic != ALLOC_MAGIC && b.magic != FREE_MAGIC do
+				b = (Bhdr)(b+4);
+			print("stopped at ", b\X, " ", *b\X, "\n");
+		}else
+			b = nb;
+	}
+	if b != atail then
+		print("found wrong tail to arena ", arena\X, " wanted ", atail\X, "\n");
+}
+
+defn
+isptr(a)
+{
+	if end <= a && a < xbloc then
+		return 1;
+	if 0xdefff000 <= a && a < 0xdffff000 then
+		return 1;
+	return 0;
+}
+
+lastalloc = 0;
+lastcount = 0;
+lastsize = 0;
+defn
+emitsum()
+{
+	if lastalloc then
+		print("summary ", lastalloc\a, " ", lastcount\D, " ", lastsize\D, "\n");
+	lastalloc = 0;
+	lastcount = 0;
+	lastsize = 0;
+}
+
+defn
+dumpblock(addr, sum)
+{
+	complex Bhdr addr;
+
+	if addr.magic == ALLOC_MAGIC || (!sum && addr.magic == FREE_MAGIC) then {
+		local a, x, s;
+
+		a = addr;
+		complex Alloc a;
+
+		x = addr+8;
+		if sum then {
+			if *(addr+8) != lastalloc then {
+				emitsum();
+				lastalloc = *(addr+8);
+			}
+			lastcount = lastcount+1;
+			lastsize = lastsize+a.size;
+		}else{
+			if addr.magic == ALLOC_MAGIC then
+				s = "block";
+			else
+				s = "free";
+			print(s, " ", addr\X, " ", a.size\X, " ");
+			print(*(addr+8)\X, " ", *(addr+12)\X, " ",
+				*(addr+8)\a, " ", *(addr+12)\a, "\n");
+		}
+	}
+}
+
+defn
+dumprange(s, e, type)
+{
+	local x, y;
+
+	print("range ", type, " ", s\X, " ", e\X, "\n");
+	x = s;
+	while x < e do {
+		y = *(x\X);
+		if isptr(y) then print("data ", x\X, " ", y\X, " ", type, "\n");
+		x = x + 4;
+	}
+}
+
+defn
+stacktop()
+{
+	local e, m;
+	
+	m = map();
+	while m != {} do {
+		e = head m;
+		if e[0] == "*data" then
+			return e[2];
+		m = tail m;
+	}
+	return 0xdffff000;
+}
+			
+defn
+dumpmem()
+{
+	local s, top;
+
+	xbloc = *bloc;
+	// assume map()[1] is "data" 
+	dumprange(map()[1][1], end, "bss");	// bss
+	dumprange(end, xbloc, "alloc");	// allocated
+
+	top = stacktop() - 8;
+	if top-0x01000000 < *SP && *SP < top then
+		s = *SP;
+	else
+		s = top-32*1024;
+
+	dumprange(s, top, "stack");
+}
+
+defn
+dumpregs()
+{
+	dumprange(0, sizeofUreg, "reg");
+}
+
+
+defn
+leakdump(l)
+{
+	print("==LEAK BEGIN==\n");
+	dumppool(*mainmem, 0);
+	dumpmem();
+	dumpregs();
+	while l != {} do {
+		setproc(head l);
+		dumpregs();
+		l = tail l;
+	}
+	print("==LEAK END==\n");
+}
+
+defn
+blockdump()
+{
+	print("==BLOCK BEGIN==\n");
+	dumppool(*mainmem, 0);
+	print("==BLOCK END==\n");
+}
+
+defn
+blocksummary()
+{
+	print("==BLOCK BEGIN==\n");
+	dumppool(*mainmem, 1);
+	emitsum();
+	print("==BLOCK END==\n");
+}
