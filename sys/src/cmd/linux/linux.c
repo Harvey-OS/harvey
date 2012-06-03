@@ -64,8 +64,51 @@ extern void *phdr(void);
 int auxc = 0;
 Elf64_auxv_t aux[32];
 
+/* oops! */
+#define AT_BASE_PLATFORM 24		/* String identifying real platforms.*/
+#define AT_RANDOM       25              /* Address of 16 random bytes.  */
+#define AT_EXECFN       31              /* Filename of executable.  */
+
+
+char *names[] = {
+[AT_NULL] "AT_NULL",
+[AT_IGNORE] "AT_IGNORE",
+[AT_EXECFD] "AT_EXECFD",
+[AT_PHDR] "AT_PHDR",
+[AT_PHENT] "AT_PHENT",
+[AT_PHNUM] "AT_PHNUM",
+[AT_PAGESZ] "AT_PAGESZ",
+[AT_BASE] "AT_BASE",
+[AT_FLAGS] "AT_FLAGS",
+[AT_ENTRY] "AT_ENTRY",
+[AT_NOTELF] "AT_NOTELF",
+[AT_UID] "AT_UID",
+[AT_EUID] "AT_EUID",
+[AT_GID] "AT_GID",
+[AT_EGID] "AT_EGID",
+[AT_CLKTCK] "AT_CLKTCK",
+[AT_PLATFORM] "AT_PLATFORM",
+[AT_HWCAP] "AT_HWCAP",
+[AT_FPUCW] "AT_FPUCW",
+[AT_DCACHEBSIZE] "AT_DCACHEBSIZE",
+[AT_ICACHEBSIZE] "AT_ICACHEBSIZE",
+[AT_UCACHEBSIZE] "AT_UCACHEBSIZE",
+[AT_IGNOREPPC] "AT_IGNOREPPC",
+[AT_BASE_PLATFORM] "AT_BASE_PLATFORM",
+[AT_RANDOM] "AT_RANDOM",
+[AT_EXECFN] "AT_EXECFN",
+[AT_SYSINFO] "AT_SYSINFO",
+[AT_SYSINFO_EHDR] "AT_SYSINFO_EHDR",
+[AT_L1I_CACHESHAPE] "AT_L1I_CACHESHAPE",
+[AT_L1D_CACHESHAPE] "AT_L1D_CACHESHAPE",
+[AT_L2_CACHESHAPE] "AT_L2_CACHESHAPE",
+[AT_L3_CACHESHAPE] "AT_L3_CACHESHAPE",
+};
+
+
 void naux(int type, u64int val) 
 {
+	print("NAUX: Set %d to %s/%#x\n", auxc, names[type], val);
 	aux[auxc].a_type = type;
 	aux[auxc].a_un.a_val = val;
 	auxc++;
@@ -73,19 +116,33 @@ void naux(int type, u64int val)
 
 /*
  * Elf64 binaries.
+ * Really, libmach is too limited. It can not handle 
+ * more special stuff like more than 2 loadable segments,
+ * TLS, etc. We're going to have to replace it with 
+ * something else.
  */
-Phdr *
-hdr(void)
+Phdr64 *
+hdr(int fd)
 {
-	Ehdr *ep;
-	Phdr *ph;
+	Ehdr64 *ep;
+	Phdr64 *ph;
 	int i;
 
 	ep = exechdr();
 	ph = phdr();
 	fprint(2,"elf add %d entries at %p\n", ep->phnum, ph);
-	for(i = 0; i < ep->phnum; i++)
-		fprint(2,"%d: type %d va %p pa %p \n", i, ph[i].type, ph[i].vaddr, ph[i].paddr);
+	for(i = 0; i < ep->phnum; i++) {
+		fprint(2,"%d: type %#x va %p pa %p \n", i, ph[i].type, ph[i].vaddr, ph[i].paddr);
+		if (ph[i].type == 7){ /* TLS */
+			int n;
+			memset((void *)ph[i].vaddr, 0, ph[i].memsz);
+			n = pread(fd, (void *)ph[i].vaddr, 
+					ph[i].filesz, ph[i].offset);
+			if (n < ph[i].filesz){
+				print("%r\n");
+			}
+		}
+	}
 	/* GNU ELF is weird. GNUSTACK is the last phdr and it's confusing libmach. */
 	naux(AT_PHNUM, ep->phnum-1);
 	naux(AT_PHDR, (u64int)ph);
@@ -160,7 +217,7 @@ main(int argc, char *argv[])
 	naux(AT_EGID, 0x64);
 	naux(AT_HWCAP, 0x4);
 	naux(AT_SYSINFO, (u64int)vdso);
-	hdr(); 
+	naux(AT_NULL, 0);
 
 
 	fprint(2, "textseg is %d and dataseg is %d\n", textseg, dataseg);
@@ -187,6 +244,7 @@ main(int argc, char *argv[])
 	print("Text copied out\n");
 	pread(fd, datap, fp.datsz, fp.datoff);
 	print("Data copied out\n");
+	hdr(fd); 
 	/* DEBUGGING
 	hangpath = smprint("/proc/%d/ctl", getpid());
 

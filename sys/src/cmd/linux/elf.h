@@ -19,6 +19,34 @@ typedef struct {
 } Ehdr;
 
 typedef struct {
+	uchar	ident[16];	/* ident bytes */
+	ushort	type;		/* file type */
+	ushort	machine;	/* target machine */
+	int	version;	/* file version */
+	uvlong	elfentry;	/* start address */
+	uvlong	phoff;		/* phdr file offset */
+	uvlong	shoff;		/* shdr file offset */
+	int	flags;		/* file flags */
+	ushort	ehsize;		/* sizeof ehdr */
+	ushort	phentsize;	/* sizeof phdr */
+	ushort	phnum;		/* number phdrs */
+	ushort	shentsize;	/* sizeof shdr */
+	ushort	shnum;		/* number shdrs */
+	ushort	shstrndx;	/* shdr string index */
+} Ehdr64;
+
+typedef struct {
+	int	type;		/* entry type */
+	int flags; 		/* how consistent of them */
+	uvlong	offset;		/* file offset */
+	uvlong	vaddr;		/* virtual address */
+	uvlong	paddr;		/* physical address */
+	uvlong	filesz;		/* file size */
+	uvlong	memsz;		/* memory size */
+	uvlong	align;		/* memory/file alignment */
+} Phdr64;
+
+typedef struct {
 	int	type;		/* entry type */
 	ulong	offset;		/* file offset */
 	ulong	vaddr;		/* virtual address */
