@@ -146,16 +146,18 @@ linuxbrk(Ar0* ar0, va_list list)
 //	void linuxsbrk(Ar0* ar0, va_list list);
 	uintptr ibrk(uintptr addr, int seg);
 	void sysbrk_(Ar0*, va_list);
-	uintptr va;
+	uintptr va, newva;
 	//void *arg[1];
 	va = va_arg(list, uintptr);
 	if (up->attr & 128) print("%d:linuxbrk va %#p: ", up->pid, (void *)va);
 	//arg[0] = va;
 	//sysbrk_(ar0, (va_list) arg);
-	va = ibrk(va, BSEG);
+	newva = ibrk(va, BSEG);
 	/* it is possible, though unlikely, that libc wants exactly the value it asked for. Plan 9 is returning rounded-up-to-next-page values. */
 	if (va)	
 		ar0->v = (void *)va;
+	else
+		ar0->v = (void *)newva;
 	if (up->attr & 128) print("returns %#p\n", va);
 
 }

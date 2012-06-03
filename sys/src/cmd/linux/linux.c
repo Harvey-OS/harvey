@@ -164,8 +164,8 @@ main(int argc, char *argv[])
 
 
 	fprint(2, "textseg is %d and dataseg is %d\n", textseg, dataseg);
-	fprint(2, "base %#llx end %#llx off %#llx \n", map->seg[0].b, map->seg[0].e, map->seg[2].f);
-	fprint(2, "base %#llx end %#llx off %#llx \n", map->seg[1].b, map->seg[1].e, map->seg[1].f);
+	fprint(2, "base %#llx end %#llx off %#llx \n", map->seg[textseg].b, map->seg[textseg].e, map->seg[textseg].f);
+	fprint(2, "base %#llx end %#llx off %#llx \n", map->seg[dataseg].b, map->seg[dataseg].e, map->seg[dataseg].f);
 	fprint(2, "txtaddr %#llx dataaddr %#llx entry %#llx txtsz %#lx datasz %#lx bsssz %#lx\n", 
 		fp.txtaddr, fp.dataddr, fp.entry, fp.txtsz, fp.datsz, fp.bsssz);
 
@@ -178,6 +178,9 @@ main(int argc, char *argv[])
 	if (brk(bssp) < 0){
 		exits("no brk");
 	}
+
+	/* clear out bss ... */
+	memset(bssp, 0, fp.bsssz);
 
 	/* now the big fun. Just copy it out */
 	pread(fd, textp, fp.txtsz, fp.txtoff);

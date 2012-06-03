@@ -79,7 +79,7 @@ rootdir
 	$NXM/amd64/bin/rc rc
 	$NXM/rc/lib/rcmain
 	$NXM/amd64/bin/echo echo
-	$NXM/amd64/bin/date date
+	$NXM/amd64/bin/acid acid
 	$NXM/amd64/bin/linux linux
 	$NXM/amd64/bin/ls ls
 	$NXM/amd64/bin/ps ps
