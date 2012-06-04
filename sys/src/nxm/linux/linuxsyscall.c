@@ -54,7 +54,7 @@ linuxsyscall(unsigned int, Ureg* ureg)
 	up->insyscall = 1;
 	up->pc = ureg->ip;
 	up->dbgreg = ureg;
-	up->attr |= 128;
+	up->attr |= 0xff;
 
 	if(up->procctl == Proc_tracesyscall){
 		up->procctl = Proc_stopme;

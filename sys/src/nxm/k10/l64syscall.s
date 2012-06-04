@@ -87,6 +87,7 @@ _linuxsyscallreturn:
 	MOVQ	(24+4*8)(SP),SI
 	MOVQ	(24+3*8)(SP),DX
 	MOVQ	(24+1*8)(SP),BX
+	MOVQ	(24+0*8)(SP),AX
 	MOVQ	48(SP), SP			/* sp */
 	POPQ	R13
 	POPQ	RUSER

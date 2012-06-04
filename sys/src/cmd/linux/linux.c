@@ -133,15 +133,6 @@ hdr(int fd)
 	fprint(2,"elf add %d entries at %p\n", ep->phnum, ph);
 	for(i = 0; i < ep->phnum; i++) {
 		fprint(2,"%d: type %#x va %p pa %p \n", i, ph[i].type, ph[i].vaddr, ph[i].paddr);
-		if (ph[i].type == 7){ /* TLS */
-			int n;
-			memset((void *)ph[i].vaddr, 0, ph[i].memsz);
-			n = pread(fd, (void *)ph[i].vaddr, 
-					ph[i].filesz, ph[i].offset);
-			if (n < ph[i].filesz){
-				print("%r\n");
-			}
-		}
 	}
 	/* GNU ELF is weird. GNUSTACK is the last phdr and it's confusing libmach. */
 	naux(AT_PHNUM, ep->phnum-1);
