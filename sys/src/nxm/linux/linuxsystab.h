@@ -3,6 +3,7 @@ typedef void Syscall(Ar0*, va_list);
 Syscall linuxuname;
 Syscall	linuxbrk;
 Syscall linuxopen;
+Syscall linuxclose;
 Syscall syssegbrk;
 Syscall linuxwritev;
 Syscall linuxsocketcall;
@@ -29,6 +30,7 @@ Syscall arch_prctl;
 extern Syscall sys_write;
 extern Syscall sys_read;
 extern Syscall sysopen;
+extern Syscall sysclose;
 extern Syscall syspread;
 
 struct syscall {
@@ -41,7 +43,8 @@ struct syscall {
 struct syscall linuxsystab[] = {
 	[0]	{"read", sys_read, 3, {.i = 0}},
 	[1]		{"write", sys_write, 3, {.i = -1}},
-	[2]		{"linuxopen", sysopen, 2, {.i = -1}},
+	[2]		{"linuxopen", linuxopen, 2, {.i = -1}},
+	[3] 		{"linuxclose", sysclose, 1, {.i = -1}},
 	[102]		{"getuid", linuxgeteuid, 0, {.i = -1}},
 	[12]		{"linuxbrk", linuxbrk, 1, {.i = -1}},
 	[104]		{"getgid", linuxgeteuid, 0, {.i = -1}},
@@ -62,7 +65,6 @@ struct syscall linuxsystab[] = {
 //	[221]	{"futex", futex, 1, {.i = 0}},
 	[158] {"arch_prctl", arch_prctl, 2, {.p = (void *)-1}},
 
-	[3] {"close", nil, 1, {.p = (void *)-1}},
 	[4] {"stat", nil, 1, {.p = (void *)-1}},
 	[5] {"fstat", nil, 1, {.p = (void *)-1}},
 	[6] {"lstat", nil, 1, {.p = (void *)-1}},
@@ -359,3 +361,4 @@ struct syscall linuxsystab[] = {
 };
 
 int nlinuxsyscall = nelem(linuxsystab);
+

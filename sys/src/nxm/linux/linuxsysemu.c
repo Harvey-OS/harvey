@@ -165,13 +165,26 @@ linuxbrk(Ar0* ar0, va_list list)
 void
 linuxopen(Ar0 *ar0, va_list list)
 {
+	va_list s = list;
 	char *aname;
 	int omode;
 	void sysopen(Ar0 *, va_list);
 	aname = va_arg(list, char*);
 	omode = va_arg(list, int);
+	print("linuxopen: %s %x\n", aname, omode);
 	USED(aname,omode);
-	sysopen(ar0, list);
+	sysopen(ar0, s);
+	print("linuxopen: returns %d\n", ar0->i);
+}
+
+void
+linuxclose(Ar0 *ar0, va_list list)
+{
+	int fd;
+	void sysclose(Ar0 *, va_list);
+	fd = va_arg(list, int);
+	USED(fd);
+	sysclose(ar0, list);
 }
 
 void

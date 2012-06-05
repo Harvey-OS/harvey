@@ -66,6 +66,15 @@ TEXT linuxsyscallreturn(SB), 1, $-4
 	MOVQ	16(SP), AX			/* Ureg.ax */
 	MOVQ	(16+6*8)(SP), BP		/* Ureg.bp */
 _linuxsyscallreturn:
+	MOVQ	(16+11*8)(SP),R12
+	MOVQ	(16+9*8)(SP),R10
+	MOVQ	(16+8*8)(SP),R9
+	MOVQ	(16+7*8)(SP),R8
+	MOVQ	(16+6*8)(SP),BP
+	MOVQ	(16+5*8)(SP),DI
+	MOVQ	(16+4*8)(SP),SI
+	MOVQ	(16+3*8)(SP),DX
+	MOVQ	(16+1*8)(SP),BX
 	ADDQ	$(17*8), SP			/* registers + arguments */
 
 	CLI
@@ -78,16 +87,6 @@ _linuxsyscallreturn:
 	MOVQ	24(SP), CX			/* ip */
 	MOVQ	40(SP), R11			/* flags */
 
-	MOVQ	(24+11*8)(SP),R12
-	MOVQ	(24+9*8)(SP),R10
-	MOVQ	(24+8*8)(SP),R9
-	MOVQ	(24+7*8)(SP),R8
-	MOVQ	(24+6*8)(SP),BP
-	MOVQ	(24+5*8)(SP),DI
-	MOVQ	(24+4*8)(SP),SI
-	MOVQ	(24+3*8)(SP),DX
-	MOVQ	(24+1*8)(SP),BX
-	MOVQ	(24+0*8)(SP),AX
 	MOVQ	48(SP), SP			/* sp */
 	POPQ	R13
 	POPQ	RUSER

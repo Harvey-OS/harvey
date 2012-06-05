@@ -108,7 +108,7 @@ char *names[] = {
 
 void naux(int type, u64int val) 
 {
-	print("NAUX: Set %d to %s/%#x\n", auxc, names[type], val);
+	fprint(2,"NAUX: Set %d to %s/%#x\n", auxc, names[type], val);
 	aux[auxc].a_type = type;
 	aux[auxc].a_un.a_val = val;
 	auxc++;
@@ -154,6 +154,7 @@ main(int argc, char *argv[])
 	ulong bsssize, bssbase;
 	char *ctlpath;
 	void (*f)(int argc, char *argv[]);
+	void callmain(void *, void*);
 	Fhdr fp;
 	Map *map;
 	int textseg, dataseg;
@@ -183,7 +184,7 @@ main(int argc, char *argv[])
 
 	fd = open(argv[0], OREAD);
 	if (fd < 0)
-		errexit(smprint("Can't open %s\n", argv[1]));
+		errexit(smprint("Can't open %s\n", argv[0]));
 
 	if (crackhdr(fd, &fp) < 0)
 		errexit("crackhdr failed");
@@ -222,7 +223,7 @@ main(int argc, char *argv[])
 	textp = (void *)fp.txtaddr;
 	datap = (void *)fp.dataddr;
 	bssp = (void *)bssbase;
-	print("bssp is %p\n", bssp);
+	fprint(2,"bssp is %p\n", bssp);
 	if (brk(bssp) < 0){
 		exits("no brk");
 	}
@@ -232,9 +233,9 @@ main(int argc, char *argv[])
 
 	/* now the big fun. Just copy it out */
 	pread(fd, textp, fp.txtsz, fp.txtoff);
-	print("Text copied out\n");
+	fprint(2,"Text copied out\n");
 	pread(fd, datap, fp.datsz, fp.datoff);
-	print("Data copied out\n");
+	fprint(2,"Data copied out\n");
 	hdr(fd); 
 	/* DEBUGGING
 	hangpath = smprint("/proc/%d/ctl", getpid());
@@ -256,8 +257,11 @@ main(int argc, char *argv[])
 	/* av is going to become the start of the stack. */
 	/* this is where argc goes. */
 	av[0] = (char *)argc;
-	for(i = 0; i < argc; i++)
+	fprint(2, "============>%d args\n", argc);
+	for(i = 0; i < argc; i++){
+		fprint(2,"Arg %d: %s\n", i,argv[i]);
 		av[i+1] = argv[i];
+	}
 	i++;
 	av[i++] = nil;
 	av[i++] = "LANG=C";
@@ -286,7 +290,7 @@ main(int argc, char *argv[])
 	}
 */
 	f = (void *)fp.entry;
-	print("Call entry point %p\n", (void *)f);
+	fprint(2,"Call entry point %p\n", (void *)f);
 	callmain(f, av);
 	return 0;
 
