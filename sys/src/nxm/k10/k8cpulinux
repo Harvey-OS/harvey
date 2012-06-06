@@ -75,7 +75,7 @@ boot cpu
 
 
 rootdir
-	boot.fs boot
+	linuxboot.fs boot
 	$NXM/amd64/bin/rc rc
 	$NXM/rc/lib/rcmain
 	$NXM/amd64/bin/echo echo
