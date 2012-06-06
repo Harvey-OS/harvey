@@ -75,7 +75,12 @@ TEXT _intrr<>(SB), 1, $-4			/* so ktrace can pop frame */
 	 *	not restoring it gives back the bad segment selector bug
 	 */
 	MOVW	22(SP), GS
+	/* Linux needs 64-bit FS for thread local storage. 
+	 * 16-bit FS is an utterly useless register anyway. So don't
+	 * bother reloading it.
+	 * consider removing all loads of the 16-bit segments.
 	MOVW	20(SP), FS
+	 */
 	MOVW	18(SP), ES
 	MOVW	16(SP), DS
 	MOVQ	8(SP), RMACH

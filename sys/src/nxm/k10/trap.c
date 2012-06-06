@@ -469,6 +469,7 @@ dumpgpr(Ureg* ureg)
 	iprint("ds  %#4.4ux   es  %#4.4ux   fs  %#4.4ux   gs  %#4.4ux\n",
 		ureg->ds, ureg->es, ureg->fs, ureg->gs);
 	iprint("ureg fs\t%#ux\n", *(unsigned int *)&ureg->ds);
+	iprint("up->tls\t%#p\n", up->tls);
 	iprint("type\t%#llux\n", ureg->type);
 	iprint("error\t%#llux\n", ureg->error);
 	iprint("pc\t%#llux\n", ureg->ip);
@@ -639,8 +640,8 @@ faultamd64(Ureg* ureg, void*)
 		 */
 		if(!user && (!insyscall || up->nerrlab == 0))
 			panic("fault: %#llux\n", addr);
-		sprint(buf, "sys: trap: fault %s addr=%#llux",
-			read? "read": "write", addr);
+		sprint(buf, "sys: trap: fault %s addr=%#llux, FS=%#llux",
+			read? "read": "write", addr, rdmsr(FSbase));
 		postnote(up, 1, buf, NDebug);
 		if(insyscall)
 			error(buf);

@@ -11,7 +11,10 @@ TEXT touser(SB), 1, $-4
 	MOVQ	$SSEL(SiUDS, SsRPL3), AX
 	MOVW	AX, DS
 	MOVW	AX, ES
+	/*
+	 * FS is used for TLS. Don't touch!
 	MOVW	AX, FS
+ 	 */
 	MOVW	AX, GS
 
 	MOVQ	$(UTZERO+0x28), CX		/* ip */
@@ -63,6 +66,27 @@ _linuxsyscallentry:
 	CALL	linuxsyscall(SB)
 
 TEXT linuxsyscallreturn(SB), 1, $-4
+#ifdef NOTNOW
+	/* we do the TLS setup in linuxsyscall.c. 
+	 * Leave this here in case we ever think it should be done
+	 * here. 
+	 */
+	/* this is the time to set up TLS */
+	/* TLS is held in proc->tls, offset 32 */
+	/* we need to pull it into DX:AX, set C0000100 into CX,
+	 * and do a WRMSR
+	 */
+	/* consider pushing RUSER (above) and popping it here. */
+	XORL	AX, AX
+	MOVW	AX, FS
+	BYTE $0x65; MOVQ 0, RMACH		/* m-> (MOVQ GS:0x0, R15) */
+	MOVQ	16(RMACH), RUSER		/* m->proc */
+	MOVQ	32(RUSER), AX			/* m->proc->tls */
+	MOVQ	AX, DX
+	SHRQ	$32, DX
+	MOVL	$0xC0000100, CX
+	WRMSR
+#endif
 	MOVQ	16(SP), AX			/* Ureg.ax */
 	MOVQ	(16+6*8)(SP), BP		/* Ureg.bp */
 _linuxsyscallreturn:
@@ -77,11 +101,14 @@ _linuxsyscallreturn:
 	MOVQ	(16+1*8)(SP),BX
 	ADDQ	$(17*8), SP			/* registers + arguments */
 
+	/* the CLI should maybe be done sooner */
 	CLI
 	SWAPGS
 	MOVW	0(SP), DS
 	MOVW	2(SP), ES
+	/* This breaks TLS. 
 	MOVW	4(SP), FS
+	*/
 	MOVW	6(SP), GS
 
 	MOVQ	24(SP), CX			/* ip */
@@ -136,7 +163,10 @@ _syscallreturn:
 	SWAPGS
 	MOVW	0(SP), DS
 	MOVW	2(SP), ES
+	/* Linux system calls can be interleaved with NIX
+	 * system calls. This would break TLS if we left it in.
 	MOVW	4(SP), FS
+	 */
 	MOVW	6(SP), GS
 
 	MOVQ	24(SP), CX			/* ip */
