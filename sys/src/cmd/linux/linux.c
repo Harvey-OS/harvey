@@ -127,6 +127,7 @@ hdr(int fd)
 	Ehdr64 *ep;
 	Phdr64 *ph;
 	int i;
+	static char random[16];
 
 	ep = exechdr();
 	ph = phdr();
@@ -137,6 +138,7 @@ hdr(int fd)
 	/* GNU ELF is weird. GNUSTACK is the last phdr and it's confusing libmach. */
 	naux(AT_PHNUM, ep->phnum-1);
 	naux(AT_PHDR, (u64int)ph);
+	naux(AT_RANDOM, (u64int)random);
 
 	return ph;
 }
@@ -209,7 +211,6 @@ main(int argc, char *argv[])
 	naux(AT_EGID, 0x64);
 	naux(AT_HWCAP, 0x4);
 	naux(AT_SYSINFO, (u64int)vdso);
-	naux(AT_NULL, 0);
 
 
 	fprint(2, "textseg is %d and dataseg is %d\n", textseg, dataseg);
@@ -237,6 +238,7 @@ main(int argc, char *argv[])
 	pread(fd, datap, fp.datsz, fp.datoff);
 	fprint(2,"Data copied out\n");
 	hdr(fd); 
+	naux(AT_NULL, 0);
 	/* DEBUGGING
 	hangpath = smprint("/proc/%d/ctl", getpid());
 
