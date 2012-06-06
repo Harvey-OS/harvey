@@ -22,21 +22,19 @@ arch_prctl(Ar0*ar, va_list list)
 	code = va_arg(list, int);
 	va = va_arg(list, uintptr);
 	if (up->attr & 128) print("%d:arch_prctl code %x va %p: ", up->pid, code, va);
-	if (code < ARCH_SET_GS || code > ARCH_GET_GS)
+	/* GS is not an option */
+	if (code < ARCH_SET_FS || code > ARCH_GET_FS)
 		error("Bad code!");
 	/* always make sure it's a valid address, no matter what the command */
 	validaddr((void *)va, 8, code > ARCH_SET_FS);
 	
 	if (code > ARCH_SET_FS) {
-		uvlong val; 
-		val = rdmsr(code == ARCH_GET_FS ? 0xC0000100 : 0xC0000101);
-		memmove((void *)va, &val, sizeof(uvlong));
-		if (up->attr & 128) print("get %#p\n", (void *)val);
+		memmove((void *)va, &up->tls, sizeof(uvlong));
+		if (up->attr & 128) print("get %#p\n", up->tls);
 	} else {
-		if (code == ARCH_SET_GS)
-			error("Can't set GS yet");
-		wrmsr(code == ARCH_SET_FS ? 0xC0000100 : 0xC0000101, va);
-		if (up->attr & 128) print("set\n");
+		up->tls = (void *)va;
+		//wrmsr(code == ARCH_SET_FS ? 0xC0000100 : 0xC0000101, va);
+		if (up->attr & 128) print("set %p\n", (void *)va);
 	}
 
 	ar->i = 0;

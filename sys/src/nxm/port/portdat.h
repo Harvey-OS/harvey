@@ -777,6 +777,7 @@ struct Proc
 	Label	sched;		/* known to l.s */
 	char	*kstack;	/* known to l.s */
 	void	*dbgreg;	/* known to l.s User registers for devproc */
+	void	*tls;		/* known to l.s thread local storage (Linux)*/
 	u64int	attr;		/* known to l.s Attributes */
 	Mach	*mach;		/* machine running this proc */
 	char	*text;
