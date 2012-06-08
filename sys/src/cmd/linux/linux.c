@@ -270,7 +270,6 @@ main(int argc, char *argv[])
 	i++;
 	av[i++] = nil;
 	av[i++] = "LANG=C";
-	av[i++] = "MALLOC_MMAP_MAX_=0";
 	av[i++] = nil;
 	/* now just copy the aux array over av */
 	memcpy(&av[i], aux, sizeof(aux));
