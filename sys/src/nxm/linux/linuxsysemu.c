@@ -87,57 +87,6 @@ linuxuname(Ar0*ar, va_list list)
 	ar->i = 0;
 }
 
-/* this was in port/sysseg.c and was copied here. */
-/* There are a few special bits for CNK needs. */
-void
-linuxsbrk(Ar0* ar0, va_list list)
-{
-	uintptr addr;
-	uintptr ibrk(uintptr addr, int seg);
-	extern Segment *heapseg;
-	int i;
-
-	addr = PTR2UINT(va_arg(list, void*));
-
-	if (! heapseg){
-		print("linuxsbrk: no heap set up yet\n");
-		error("No heap set up yet");
-	}
-
-	if(addr == 0){
-		ar0->p = heapseg->top;
-		return;
-	}
-
-	if (addr < heapseg->top){
-		print("linuxsbrk: can't shrink heap\n");
-		error("can't shrink heap");
-	}
-
-	/* now this is a hack ... but we're going to assume this thing is not
-	 * only mapped but the TLB is set up for it. 
-	 *
-	heapseg->top = addr;
-	ar0->p = heapseg->top;
-	return;
-	*/
-
-	/* find the index of the heap segment; call ibrk with that segment. */
-	/* consider flagging heapseg by base address or p==v, but it's too soon to know 
-	 * if that is a universal test and I hate to do a strcmp on each linuxsbrk
-	 */
-	for(i = 0; i < NSEG; i++) {
-		if (heapseg == up->seg[i])
-			break;
-	}
-	/* isn't life grand? The heap is already mapped. So just grow the end of heap pointer but no need to 
-	 * allocate a page. 
-	 */
-	if (i < NSEG)
-		ar0->p = ibrk(addr, i);
-	if (up->attr & 128) print("%d:linuxsbrk for %p returns %p\n", up->pid, addr, ar0->p);
-}
-
 /* special case: interpretation of '0' is done in USER MODE on Plan 9 */
 /* but old deprecated sysbrk_ does what we need */
 void
@@ -171,10 +120,8 @@ linuxopen(Ar0 *ar0, va_list list)
 	void sysopen(Ar0 *, va_list);
 	aname = va_arg(list, char*);
 	omode = va_arg(list, int);
-	print("linuxopen: %s %x\n", aname, omode);
 	USED(aname,omode);
 	sysopen(ar0, s);
-	print("linuxopen: returns %d\n", ar0->i);
 }
 
 void
@@ -340,18 +287,22 @@ void linuxmmap(Ar0 *ar0, va_list list)
 	if (up->attr & 128) print("%d:CNK: mmap %p %#x %#x %#x %d %#ulx\n", up->pid, v, length, prot, flags, fd, offset);
 	if (fd == -1){
 		unsigned char *newv, *oldv;
-		uintptr args[1];
-		args[0] = 0;
-		linuxsbrk(ar0, (va_list) args);
-		if (up->attr & 128) print("%d:mmap anon: current is %p\n", up->pid, ar0->v);
-		oldv =ar0->v;
-		newv =  ((unsigned char *)oldv) + length;
-		if (up->attr & 128) print("%d:mmap anon: ask for %p\n", up->pid, newv);
-		args[0] = (uintptr) newv;
-		linuxsbrk(ar0, (va_list) args);
-		if (up->attr & 128) print("%d:mmap anon: new is %p\n", up->pid, ar0->v);
+		uintptr ret;
+		oldv = (void *)ibrk(0, BSEG);
+
+		if (up->attr & 128)
+			print("%d:mmap anon: current is %p\n", up->pid, oldv);
+		newv =  oldv + length;
+		if (up->attr & 128)
+			print("%d:mmap anon: ask for %p\n", up->pid, newv);
+		ret = ibrk(newv, BSEG);
+		if (up->attr & 128)
+			print("%d:mmap anon: new is %p\n", up->pid, ret);
 		/* success means "return the old pointer" ... */
-		ar0->v = oldv;
+		if ((uintptr) -1 != ret)
+			ar0->v = oldv;
+		else
+			ar0->i = ret;
 		return;
 	}
 		

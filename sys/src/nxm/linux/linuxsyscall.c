@@ -54,21 +54,22 @@ linuxsyscall(unsigned int, Ureg* ureg)
 	up->insyscall = 1;
 	up->pc = ureg->ip;
 	up->dbgreg = ureg;
-	up->attr |= 0xff;
 
 	if(up->procctl == Proc_tracesyscall){
 		up->procctl = Proc_stopme;
 		procctl(up);
 	}
 	scallnr = ureg->ax;
-print("# %d\n", scallnr);
-print("%#ullx %#ullx %#ullx %#ullx %#ullx %#ullx \n", 
+#ifdef BREAKINCASEOFEMERGENCY
+	print("# %d\n", scallnr);
+	print("%#ullx %#ullx %#ullx %#ullx %#ullx %#ullx \n", 
 		ureg->di,
 		ureg->si,
 		ureg->dx,
 		ureg->r10,
 		ureg->r8,
 		ureg->r9);
+#endif
 	up->scallnr = scallnr;
 
 	if(scallnr == 56)
