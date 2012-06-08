@@ -272,7 +272,6 @@ couldbe4k(ExecTable *mp)
 	}
 	free(d);
 	for (f = exectab; f->magic; f++)
-print("try %s\n", f->name);
 		if(f->magic == M_MAGIC) {
 			f->name = "mips plan 9 executable on mips2 kernel";
 			return f;
@@ -301,16 +300,13 @@ crackhdr(int fd, Fhdr *fp)
 	ulong magic;
 
 	fp->type = FNONE;
-print("CREACK\n");
 	nb = read(fd, (char *)&d.e, sizeof(d.e));
 	if (nb <= 0)
 		return 0;
 
-print("NB %d\n", nb);
 	ret = 0;
 	magic = beswal(d.e.magic);		/* big-endian */
 	for (mp = exectab; mp->magic; mp++) {
-print("try %s\n", mp->name);
 		if (nb < mp->hsize)
 			continue;
 
@@ -608,7 +604,6 @@ elfdotout(int fd, Fhdr *fp, ExecHdr *hp)
 		werrstr("bad ELF encoding - not big or little endian");
 		return 0;
 	}
-print("swab it up\n");
 	ep->type = swab(ep->type);
 	ep->machine = swab(ep->machine);
 	ep->version = swal(ep->version);
@@ -669,7 +664,6 @@ print("swab it up\n");
 		return 0;
 	}
 	hswal(ph, phsz/sizeof(ulong), swal);
-print("install them\n");
 	/* find text, data and symbols and install them */
 	it = id = is = -1;
 	for(i = 0; i < ep->phnum; i++) {
@@ -702,7 +696,6 @@ elf64dotout(int fd, Fhdr *fp, ExecHdr *hp)
 	ushort (*swab)(ushort);
 	Ehdr64 *ep;
 	int i, it, id, is, phsz, memsz;
-print("ELF64DOTOUT\n");
 	/* bitswap the header according to the DATA format */
 	ep = &hp->e;
 	if(ep->ident[CLASS] != ELFCLASS64) {
@@ -752,7 +745,6 @@ print("ELF64DOTOUT\n");
 	fp->hdrsz = (ep->ehsize+ep->phnum*ep->phentsize+16)&~15;
 	switch(ep->machine) {
 	case AMD64:
-print("AMD64\n");
 		mach = &mamd64;
 		fp->type = FAMD64;
 		break;
@@ -787,7 +779,6 @@ print("AMD64\n");
 		else if(ph[i].type == NOPTYPE && is == -1)
 			is = i;
 	}
-print("done scan, %d %d %d\n", it, id, is);
 
 	/* for now, we only support 4G and smaller text and data segments. Anyone with anything
 	 * larger needs a brain scan anyway 
@@ -800,7 +791,6 @@ print("done scan, %d %d %d\n", it, id, is);
 	setdata(fp, ph[id].vaddr, ph[id].filesz, memsz, msfs);
 	if(is != -1)
 		setsym(fp, ph[is].filesz, 0, ph[is].memsz, ph[is].offset);
-print("ALL WENT WELL\n");
 	//free(ph);
 	return 1;
 }

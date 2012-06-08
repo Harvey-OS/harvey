@@ -241,9 +241,7 @@ main(int argc, char *argv[])
 
 	/* now the big fun. Just copy it out */
 	pread(fd, textp, fp.txtsz, fp.txtoff);
-	write(2,"Text...", 7);
 	pread(fd, datap, fp.datsz, fp.datoff);
-	write(2,"Data...", 7);
 	/* DEBUGGING
 
 	fprint(2, "Open %s\n", hangpath);
@@ -262,9 +260,7 @@ main(int argc, char *argv[])
 	/* av is going to become the start of the stack. */
 	/* this is where argc goes. */
 	av[0] = (char *)argc;
-	//fprint(2, "============>%d args\n", argc);
 	for(i = 0; i < argc; i++){
-		//fprint(2,"Arg %d: %s\n", i,argv[i]);
 		av[i+1] = argv[i];
 	}
 	i++;
