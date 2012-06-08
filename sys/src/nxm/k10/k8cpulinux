@@ -93,7 +93,8 @@ rootdir
 	$NXM/sys/lib/acid/port port
 	$NXM/sys/lib/acid/amd64 amd64
 	../root/nvram nvram
-	../root/testlinux.out testlinux.out
+	../root/hello.out hello.out
+#	../root/testlinux.out testlinux.out
 
 conf
 	int cpuserver = 1;

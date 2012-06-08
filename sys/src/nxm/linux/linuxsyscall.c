@@ -174,7 +174,7 @@ print("%#ullx %#ullx %#ullx %#ullx %#ullx %#ullx \n",
 		splhi();
 	}
 	kexit(ureg);
-	/* we the FSbase set here, not in kexit, as it is
+	/* we set the FSbase set here, not in kexit, as it is
 	 * linux-specific
 	 */
 	wrmsr(FSbase, (ulong) up->tls);

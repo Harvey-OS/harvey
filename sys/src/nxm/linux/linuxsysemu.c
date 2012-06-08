@@ -696,39 +696,6 @@ void linuxclone(Ar0 *ar0, va_list list)
 	ar0->i = pid;
 }
 
-/* get app segment mapping. Not the gasm you think, you dirty-minded person. 
- */
-/* we are going to deprecate this call. It was only there for libraries (dcmf, MPI) that needed
- * the huge physical segment. I think nowadays that is a bad idea. 
- */
-void gasm(Ar0 *, va_list)
-{
-#ifdef NOMORE
-	void seginfo(int seg, u32int *va, u64int *pa, u32int *len);
-	u64int *pa;
-	int whichseg;
-	int corenum;
-	u32int *va;
-	u32int *slen;
-
-	whichseg = va_arg(list, int);
-	corenum = va_arg(list, int);
-	va = va_arg(list, u32int *);
-	pa = va_arg(list, u64int *);
-	slen = va_arg(list, u32int *);
-	validaddr(va, sizeof(*va), 1);
-	validaddr(pa, sizeof(*pa), 1);
-	validaddr(slen, sizeof(*slen), 1);
-
-	if (up->attr & 128) print("%d:gasm: %#x %#x %p %p %p\n", up->pid, whichseg, corenum, va, pa, slen);
-
-	/* we can not run any more without devsegment. Sorry. */
-	seginfo(whichseg, va, pa, slen);
-	if (up->attr & 128) print("%d:gasm: %#x %#llx %#x\n", up->pid, *va, *pa, *slen);
-	ar0->i = 0;
-#endif
-}
-
 void timeconv(ulong l, struct timeval *t)
 {
 	u32int ms;

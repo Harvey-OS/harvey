@@ -63,6 +63,10 @@ extern void *phdr(void);
  */
 int auxc = 0;
 Elf64_auxv_t aux[32];
+/* don't malloc stack. The brk calls go behind the allocator and screw it
+ * up.
+ */
+unsigned char stack[64*1024];
 
 /* oops! */
 #define AT_BASE_PLATFORM 24		/* String identifying real platforms.*/
@@ -162,7 +166,7 @@ main(int argc, char *argv[])
 	int textseg, dataseg;
 	int i;
 	u32int breakpoint = 0;
-	char **av, **stack;
+	char **av;
 	int debugctl = 2;
 	char cmd[2];
 	extern void vdso(void);
@@ -225,22 +229,22 @@ main(int argc, char *argv[])
 	datap = (void *)fp.dataddr;
 	bssp = (void *)bssbase;
 	fprint(2,"bssp is %p\n", bssp);
+	//hangpath = smprint("/proc/%d/ctl", getpid());
+	hdr(fd); 
+	naux(AT_NULL, 0);
+	/* NO print's past this point if you want to live. */
 	if (brk(bssp) < 0){
 		exits("no brk");
 	}
-
 	/* clear out bss ... */
 	memset(bssp, 0, fp.bsssz);
 
 	/* now the big fun. Just copy it out */
 	pread(fd, textp, fp.txtsz, fp.txtoff);
-	fprint(2,"Text copied out\n");
+	write(2,"Text...", 7);
 	pread(fd, datap, fp.datsz, fp.datoff);
-	fprint(2,"Data copied out\n");
-	hdr(fd); 
-	naux(AT_NULL, 0);
+	write(2,"Data...", 7);
 	/* DEBUGGING
-	hangpath = smprint("/proc/%d/ctl", getpid());
 
 	fprint(2, "Open %s\n", hangpath);
 	hang = open(hangpath, OWRITE);
@@ -253,15 +257,14 @@ main(int argc, char *argv[])
 
 	*/
 
-	stack = malloc(64*1024);
-	av = &stack[15*1024];
+	av = (char **)&stack[15*1024];
 	/* gnu is odd. they start out knowing args are on stack (sort of) */
 	/* av is going to become the start of the stack. */
 	/* this is where argc goes. */
 	av[0] = (char *)argc;
-	fprint(2, "============>%d args\n", argc);
+	//fprint(2, "============>%d args\n", argc);
 	for(i = 0; i < argc; i++){
-		fprint(2,"Arg %d: %s\n", i,argv[i]);
+		//fprint(2,"Arg %d: %s\n", i,argv[i]);
 		av[i+1] = argv[i];
 	}
 	i++;
@@ -271,7 +274,7 @@ main(int argc, char *argv[])
 	av[i++] = nil;
 	/* now just copy the aux array over av */
 	memcpy(&av[i], aux, sizeof(aux));
-	fprint(2, "env %p *env %p\n", &av[argc+2], av[argc+2]);
+	//fprint(2, "env %p *env %p\n", &av[argc+2], av[argc+2]);
 	/* set the breakpoint */
 #ifdef NOT
 	if (breakpoint){
@@ -292,7 +295,7 @@ main(int argc, char *argv[])
 	}
 */
 	f = (void *)fp.entry;
-	fprint(2,"Call entry point %p\n", (void *)f);
+	//fprint(2,"Call entry point %p\n", (void *)f);
 	callmain(f, av);
 	return 0;
 
