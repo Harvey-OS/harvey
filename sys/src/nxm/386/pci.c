@@ -452,7 +452,6 @@ pcicfginit(void)
 	}
 
 	list = &pciroot;
-print("PCI: config type %d, configuring ...\n", pcicfgmode);
 	for(bno = 0; bno <= Maxbus; bno++) {
 		sbno = bno;
 		bno = pcilscan(bno, list);
