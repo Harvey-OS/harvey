@@ -112,7 +112,8 @@ static int
 pcilscan(int bno, Pcidev** list)
 {
 	Pcidev *p, *head, *tail;
-	int dno, fno, i, hdt, l, maxfno, maxubn, sbn, tbdf, ubn;
+	int dno, fno, i, hdt, maxfno, maxubn, sbn, tbdf, ubn;
+	u32int l;
 
 	maxubn = bno;
 	head = nil;
@@ -423,7 +424,8 @@ pcireservemem(void)
 static void
 pcicfginit(void)
 {
-	int sbno, bno, n;
+	int sbno, bno;
+	u32int n;
 	Pcidev **list, *p;
 
 	if(pcicfgmode != -1)
@@ -436,26 +438,21 @@ pcicfginit(void)
 
 	fmtinstall('T', tbdffmt);
 
-	/*
-	 * Try to determine if PCI Mode1 configuration implemented.
-	 * (Bits [30:24] of PciADDR must be 0, according to the spec.)
-	 * Mode2 won't appear in 64-bit machines.
+	/* Delete the test for pcicfgmode for two reasons: 
+	 * 1. in 12 years of coreboot work, we never found a type 2
+	 * machine that did not do type 1 anyway
+	 * 2. Everyone has done type 1 for at least 12 years.
+	 * 3. qemu doesn't get the test right for some reason. 
 	 */
-	n = inl(PciADDR);
-	if(!(n & 0x7F000000)){
-		outl(PciADDR, 0x80000000);
-		outb(PciADDR+3, 0);
-		if(inl(PciADDR) & 0x80000000)
-			pcicfgmode = 1;
-	}
-	outl(PciADDR, n);
-	
+	pcicfgmode = 1;
 	if(pcicfgmode < 0){
+		print("PCI: Warning: no configuration mode, ignoring PCI.\n");
 		unlock(&pcicfginitlock);
 		return;
 	}
 
 	list = &pciroot;
+print("PCI: config type %d, configuring ...\n", pcicfgmode);
 	for(bno = 0; bno <= Maxbus; bno++) {
 		sbno = bno;
 		bno = pcilscan(bno, list);
