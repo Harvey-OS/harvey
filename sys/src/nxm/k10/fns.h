@@ -67,7 +67,7 @@ int	incref(Ref*);
 void	insb(int, void*, int);
 ushort	ins(int);
 void	inss(int, void*, int);
-ulong	inl(int);
+u32int	inl(int);
 void	insl(int, void*, int);
 int	intrdisable(void*);
 void*	intrenable(int, void (*)(Ureg*, void*), void*, int, char*);
