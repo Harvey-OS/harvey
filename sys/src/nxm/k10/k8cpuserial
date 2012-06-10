@@ -42,6 +42,7 @@ ip +dev
 
 link +dev
 	ether8169	pci ethermii
+	ether8139	pci ethermii
 	ether82557	pci
 	ether82563	pci
 	etherigbe	pci ethermii
