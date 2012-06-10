@@ -5,7 +5,6 @@ TARG=`{ls *.[cy] | sed '/\.tab\.c$/d;s/..$//'}
 HFILES=$NXM/$objtype/include/u.h $NXM/sys/include/libc.h
 BIN=$home/bin/$objtype
 PROGS=${TARG:%=$O.%}
-LDFLAGS=-L $NXM/$objtype/lib
 YFLAGS=-d
 
 <$NXM/sys/src/cmd/mkmany

@@ -4,6 +4,7 @@ MKSHELL=rc
 CC=6c
 GC=6g
 LD=6l
+LDFLAGS=-L $NXM/$objtype/lib
 O=6
 AS=6a
 CFLAGS=-I $NXM/amd64/include -I $NXM/sys/include -I $NXM
