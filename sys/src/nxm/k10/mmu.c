@@ -765,12 +765,23 @@ mmuphysaddr(uintptr va)
 
 Page mach0pml4;
 
+static void
+nxeon(void)
+{
+       uint idres[4];
+
+       /* on intel64, cpuid 0x8::1 DX bit 20 means "Nxe bit in Efer allowed" */
+       cpuid(0x80000001, 0, idres);
+       if (idres[3] & (1<<20))
+               wrmsr(Efer, rdmsr(Efer) | Nxe);
+}
+
 void
 mmuinit(void)
 {
 	uchar *p;
 	Page *page;
-	u64int o, pa, r, sz;
+	u64int o, pa, sz;
 
 	archmmu();
 	DBG("mach%d: %#p pml4 %#p npgsz %d\n", m->machno, m, m->pml4, m->npgsz);
@@ -788,9 +799,7 @@ mmuinit(void)
 		m->pml4->pa = PADDR(p);
 		m->pml4->daddr = mach0pml4.daddr;	/* # of user mappings in pml4 */
 
-		r = rdmsr(Efer);
-		r |= Nxe;
-		wrmsr(Efer, r);
+		nxeon();
 		cr3put(m->pml4->pa);
 		DBG("m %#p pml4 %#p\n", m, m->pml4);
 		return;
@@ -802,9 +811,7 @@ mmuinit(void)
 
 	m->pml4 = page;
 
-	r = rdmsr(Efer);
-	r |= Nxe;
-	wrmsr(Efer, r);
+	nxeon();
 
 	/*
 	 * Set up the various kernel memory allocator limits:
