@@ -4,6 +4,6 @@ if [ -f $NXM/xbin/ar ]; then
 	rm -f $NXM/xbin/ar
 fi
 
-if [ -f $NXM/xbin/ar ]; then
+if [ -f $NXM/xbin/nm ]; then
 	rm -f $NXM/xbin/nm
 fi
