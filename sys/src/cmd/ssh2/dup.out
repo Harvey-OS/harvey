@@ -4,24 +4,23 @@
 	1 parameters
  	1. nbit,	1024
 
-#2. 6 ncsl lines
-	9,netssh.c:122,128
-	9,netssh.c:138,144
-	2 parameters
- 	1. id,	p
- 	2. sshlog,	sshdebug
+#2. 9 ncsl lines
+	9,netssh.c:570,579
+	9,netssh.c:862,870
+	1 parameters
+ 	1. dataq,	reqq
 
 #3. 5 ncsl lines
-	9,netssh.c:400,405
-	9,netssh.c:881,886
-	1 parameters
- 	1. stlisconn,	readdata
-
-#4. 5 ncsl lines
 	9,netssh.c:321,326
 	9,netssh.c:932,937
 	1 parameters
  	1. stopen,	stwrite
+
+#4. 5 ncsl lines
+	9,netssh.c:400,405
+	9,netssh.c:881,886
+	1 parameters
+ 	1. stlisconn,	readdata
 
 #5. 3 ncsl lines
 	9,netssh.c:321,324
@@ -34,236 +33,239 @@
 	0 parameters
 
 #7. 3 ncsl lines
-	9,netssh.c:560,563
-	9,netssh.c:881,884
-	0 parameters
-
-#8. 3 ncsl lines
-	9,netssh.c:321,324
-	9,netssh.c:560,563
-	0 parameters
-
-#9. 3 ncsl lines
-	9,netssh.c:560,563
-	9,netssh.c:932,935
-	0 parameters
-
-#10. 3 ncsl lines
-	9,netssh.c:560,563
-	9,netssh.c:1261,1264
-	0 parameters
-
-#11. 3 ncsl lines
 	9,netssh.c:485,488
 	9,netssh.c:560,563
 	0 parameters
 
-#12. 3 ncsl lines
+#8. 3 ncsl lines
+	9,netssh.c:560,563
+	9,netssh.c:1261,1264
+	0 parameters
+
+#9. 3 ncsl lines
 	9,netssh.c:400,403
 	9,netssh.c:560,563
 	0 parameters
 
-#13. 4 ncsl lines
+#10. 3 ncsl lines
+	9,netssh.c:321,324
+	9,netssh.c:560,563
+	0 parameters
+
+#11. 3 ncsl lines
+	9,netssh.c:560,563
+	9,netssh.c:932,935
+	0 parameters
+
+#12. 3 ncsl lines
+	9,netssh.c:560,563
+	9,netssh.c:881,884
+	0 parameters
+
+#13. 6 ncsl lines
+	9,netssh.c:122,128
+	9,netssh.c:138,144
+	2 parameters
+ 	1. id,	p
+ 	2. sshlog,	sshdebug
+
+#14. 4 ncsl lines
 	9,netssh.c:320,324
 	9,netssh.c:1260,1264
 	1 parameters
  	1. freeme,	buf
 
-#14. 3 ncsl lines
+#15. 3 ncsl lines
 	9,netssh.c:1056,1058
 	9,netssh.c:1260,1262
 	0 parameters
 
-#15. 3 ncsl lines
-	9,netssh.c:2158,2160
-	9,netssh.c:2441,2443
+#16. 3 ncsl lines
+	9,netssh.c:2157,2159
+	9,netssh.c:2440,2442
 	0 parameters
 
-#16. 6 ncsl lines
+#17. 6 ncsl lines
 	9,netssh.c:617,622
 	9,netssh.c:943,948
 	1 parameters
  	1. "stread",	"stwrite"
 
-#17. 4 ncsl lines
+#18. 4 ncsl lines
 	5,dh.c:583,587
 	5,dh.c:625,629
 	1 parameters
  	1. p,	r
 
-#18. 30 ncsl lines
+#19. 30 ncsl lines
 	6,dial.c:361,405
 	7,dial.thread.c:367,411
 	1 parameters
  	1. rv,	dfd
 
-#19. 9 ncsl lines
-	9,netssh.c:2678,2687
-	9,netssh.c:2763,2772
-	0 parameters
-
 #20. 5 ncsl lines
-	9,netssh.c:2613,2618
-	9,netssh.c:2709,2714
+	9,netssh.c:2625,2630
+	9,netssh.c:2719,2724
 	0 parameters
 
 #21. 5 ncsl lines
-	9,netssh.c:2639,2644
-	9,netssh.c:2731,2735
+	9,netssh.c:2638,2643
+	9,netssh.c:2730,2734
 	0 parameters
 
 #22. 5 ncsl lines
-	9,netssh.c:2626,2631
-	9,netssh.c:2720,2725
+	9,netssh.c:2651,2656
+	9,netssh.c:2740,2745
 	0 parameters
 
 #23. 5 ncsl lines
-	9,netssh.c:2665,2670
-	9,netssh.c:2752,2757
+	9,netssh.c:2664,2669
+	9,netssh.c:2751,2756
 	0 parameters
 
 #24. 5 ncsl lines
-	9,netssh.c:2652,2657
-	9,netssh.c:2741,2746
+	9,netssh.c:2612,2617
+	9,netssh.c:2708,2713
 	0 parameters
 
-#25. 3 ncsl lines
-	9,netssh.c:1824,1827
-	9,netssh.c:1988,1991
+#25. 9 ncsl lines
+	9,netssh.c:2677,2686
+	9,netssh.c:2762,2771
 	0 parameters
 
-#26. 8 ncsl lines
-	9,netssh.c:1085,1093
-	9,netssh.c:1275,1282
-	2 parameters
- 	1. "writectlproc",	"writereqremproc"
- 	2. "bad connection",	"Invalid connection"
+#26. 3 ncsl lines
+	9,netssh.c:1823,1826
+	9,netssh.c:1987,1990
+	0 parameters
 
-#27. 7 ncsl lines
-	9,netssh.c:748,754
-	9,netssh.c:1275,1281
-	1 parameters
- 	1. "readreqrem",	"writereqremproc"
-
-#28. 6 ncsl lines
+#27. 6 ncsl lines
 	9,netssh.c:414,420
 	9,netssh.c:893,898
 	2 parameters
  	1. "stlisconn",	"readdata"
  	2. cl,	c
 
-#29. 6 ncsl lines
+#28. 6 ncsl lines
 	9,netssh.c:414,420
 	9,netssh.c:499,504
 	2 parameters
  	1. "stlisconn",	"stlischan"
  	2. cl,	c
 
-#30. 6 ncsl lines
+#29. 6 ncsl lines
 	9,netssh.c:414,420
 	9,netssh.c:1382,1387
 	2 parameters
  	1. "stlisconn",	"writedataproc"
  	2. cl,	c
 
-#31. 9 ncsl lines
-	9,netssh.c:570,579
-	9,netssh.c:862,870
-	1 parameters
- 	1. dataq,	reqq
-
-#32. 8 ncsl lines
-	9,netssh.c:1592,1599
-	9,netssh.c:3170,3177
+#30. 8 ncsl lines
+	9,netssh.c:1085,1093
+	9,netssh.c:1275,1282
 	2 parameters
- 	1. e,	x
- 	2. x,	e
+ 	1. "writectlproc",	"writereqremproc"
+ 	2. "bad connection",	"Invalid connection"
 
-#33. 4 ncsl lines
-	9,netssh.c:1592,1595
-	9,netssh.c:1596,1599
+#31. 7 ncsl lines
+	9,netssh.c:748,754
+	9,netssh.c:1275,1281
 	1 parameters
- 	1. e,	x
+ 	1. "readreqrem",	"writereqremproc"
 
-#34. 4 ncsl lines
-	9,netssh.c:1596,1599
-	9,netssh.c:3170,3173
-	0 parameters
-
-#35. 4 ncsl lines
+#32. 4 ncsl lines
 	9,netssh.c:1012,1015
 	9,netssh.c:1021,1024
 	1 parameters
  	1. authkey,	password
 
+#33. 8 ncsl lines
+	9,netssh.c:1591,1598
+	9,netssh.c:3169,3176
+	2 parameters
+ 	1. e,	x
+ 	2. x,	e
+
+#34. 4 ncsl lines
+	9,netssh.c:1591,1594
+	9,netssh.c:3173,3176
+	0 parameters
+
+#35. 4 ncsl lines
+	9,netssh.c:1591,1594
+	9,netssh.c:1595,1598
+	1 parameters
+ 	1. e,	x
+
 #36. 4 ncsl lines
-	9,netssh.c:3170,3173
-	9,netssh.c:3174,3177
+	9,netssh.c:3169,3172
+	9,netssh.c:3173,3176
 	1 parameters
  	1. x,	e
 
 #37. 4 ncsl lines
-	9,netssh.c:1592,1595
-	9,netssh.c:3174,3177
+	9,netssh.c:1595,1598
+	9,netssh.c:3169,3172
 	0 parameters
 
 #38. 3 ncsl lines
-	9,netssh.c:1792,1794
-	9,netssh.c:1799,1801
+	9,netssh.c:1791,1793
+	9,netssh.c:1798,1800
 	0 parameters
 
-#39. 3 ncsl lines
+#39. 9 ncsl lines
+	9,netssh.c:1240,1248
+	9,netssh.c:1451,1459
+	2 parameters
+ 	1. Closing,	Closed
+ 	2. Closed,	Closing
+
+#40. 3 ncsl lines
 	12,ssh.c:268,270
 	12,ssh.c:309,311
 	0 parameters
 
-#40. 10 ncsl lines
+#41. 10 ncsl lines
 	6,dial.c:281,291
 	7,dial.thread.c:185,195
 	0 parameters
 
-#41. 4 ncsl lines
+#42. 4 ncsl lines
 	9,netssh.c:525,528
 	9,netssh.c:850,853
 	0 parameters
 
-#42. 4 ncsl lines
+#43. 4 ncsl lines
 	9,netssh.c:850,853
 	9,netssh.c:919,922
 	0 parameters
 
-#43. 3 ncsl lines
+#44. 3 ncsl lines
 	9,netssh.c:396,398
 	9,netssh.c:815,817
 	0 parameters
 
-#44. 6 ncsl lines
-	9,netssh.c:2361,2366
-	9,netssh.c:2422,2427
+#45. 6 ncsl lines
+	9,netssh.c:2360,2365
+	9,netssh.c:2421,2426
 	2 parameters
  	1. dataq,	reqq
  	2. datatl,	reqtl
 
-#45. 4 ncsl lines
+#46. 4 ncsl lines
 	9,netssh.c:806,809
 	9,netssh.c:837,840
 	1 parameters
  	1. Connection,	Subchannel
 
-#46. 4 ncsl lines
+#47. 4 ncsl lines
 	9,netssh.c:767,770
 	9,netssh.c:877,880
 	1 parameters
  	1. "Key file collision",	nil
 
-#47. 4 ncsl lines
+#48. 4 ncsl lines
 	9,netssh.c:844,847
 	9,netssh.c:877,880
-	0 parameters
-
-#48. 3 ncsl lines
-	9,netssh.c:806,808
-	9,netssh.c:844,846
 	0 parameters
 
 #49. 3 ncsl lines
@@ -271,49 +273,47 @@
 	9,netssh.c:877,879
 	0 parameters
 
-#50. 9 ncsl lines
-	9,netssh.c:1240,1248
-	9,netssh.c:1451,1459
-	2 parameters
- 	1. Closing,	Closed
- 	2. Closed,	Closing
+#50. 3 ncsl lines
+	9,netssh.c:806,808
+	9,netssh.c:844,846
+	0 parameters
 
-#51. 9 ncsl lines
+#51. 4 ncsl lines
+	9,netssh.c:1319,1326
+	9,netssh.c:1348,1351
+	1 parameters
+ 	1. "shell",	"exec"
+
+#52. 9 ncsl lines
 	9,netssh.c:159,168
 	11,rsa2ssh2.c:15,24
 	2 parameters
  	1. "usage: %s [-dkv] [-m mntpt] [-s srvpt]\n",	"usage: %s [file]\n"
  	2. threadmain,	main
 
-#52. 3 ncsl lines
+#53. 3 ncsl lines
 	9,netssh.c:159,161
 	12,ssh.c:24,26
 	0 parameters
 
-#53. 3 ncsl lines
+#54. 3 ncsl lines
 	9,netssh.c:159,161
 	13,sshsession.c:26,28
 	0 parameters
 
-#54. 4 ncsl lines
-	9,netssh.c:1319,1326
-	9,netssh.c:1348,1351
-	1 parameters
- 	1. "shell",	"exec"
-
 #55. 3 ncsl lines
-	9,netssh.c:337,339
-	9,netssh.c:978,980
-	0 parameters
-
-#56. 3 ncsl lines
 	9,netssh.c:337,339
 	9,netssh.c:731,733
 	0 parameters
 
+#56. 3 ncsl lines
+	9,netssh.c:337,339
+	9,netssh.c:978,980
+	0 parameters
+
 #57. 3 ncsl lines
-	9,netssh.c:1875,1877
-	9,netssh.c:1907,1909
+	9,netssh.c:1874,1876
+	9,netssh.c:1906,1908
 	0 parameters
 
 #58. 4 ncsl lines
@@ -323,7 +323,7 @@
 
 #59. 4 ncsl lines
 	9,netssh.c:388,391
-	9,netssh.c:674,677
+	9,netssh.c:969,972
 	1 parameters
  	1. nil,	"deferredinit failed"
 
@@ -334,7 +334,7 @@
 
 #61. 4 ncsl lines
 	9,netssh.c:388,391
-	9,netssh.c:969,972
+	9,netssh.c:674,677
 	1 parameters
  	1. nil,	"deferredinit failed"
 
@@ -386,7 +386,7 @@
 
 #71. 3 ncsl lines
 	9,netssh.c:605,608
-	9,netssh.c:1534,1537
+	9,netssh.c:1533,1536
 	0 parameters
 
 #72. 4 ncsl lines
@@ -451,18 +451,18 @@
 	1 parameters
  	1. "no proto=dsa key in factotum",	"no key (p) found"
 
-#83. 3 ncsl lines
+#83. 6 ncsl lines
+	9,netssh.c:2151,2156
+	9,netssh.c:2194,2199
+	2 parameters
+ 	1. SSH_DISCONNECT_KEY_EXCHANGE_FAILED,	SSH_DISCONNECT_SERVICE_NOT_AVAILABLE
+ 	2. "Key exchange failure",	"Unknown service type"
+
+#84. 3 ncsl lines
 	9,netssh.c:1333,1335
 	9,netssh.c:1334,1336
 	(overlap; region has 3 nonoverlapping matching 1-ncsl-line segments)
 	0 parameters
-
-#84. 6 ncsl lines
-	9,netssh.c:2152,2157
-	9,netssh.c:2195,2200
-	2 parameters
- 	1. SSH_DISCONNECT_KEY_EXCHANGE_FAILED,	SSH_DISCONNECT_SERVICE_NOT_AVAILABLE
- 	2. "Key exchange failure",	"Unknown service type"
 
 #85. 3 ncsl lines
 	6,dial.c:328,330
@@ -498,78 +498,48 @@
  	2. "no proto=rsa key in factotum",	"no proto=dsa key in factotum"
 
 #91. 6 ncsl lines
-	9,netssh.c:1731,1736
-	9,netssh.c:1918,1923
+	9,netssh.c:1730,1735
+	9,netssh.c:1917,1922
 	1 parameters
  	1. remfd,	fd
 
 #92. 8 ncsl lines
-	9,netssh.c:2092,2099
-	9,netssh.c:2254,2261
+	9,netssh.c:2091,2098
+	9,netssh.c:2253,2260
 	1 parameters
  	1. SSH_MSG_NEWKEYS,	SSH_MSG_IGNORE
 
 #93. 6 ncsl lines
-	9,netssh.c:2254,2259
-	9,netssh.c:2529,2534
+	9,netssh.c:2253,2258
+	9,netssh.c:2528,2533
 	0 parameters
 
 #94. 3 ncsl lines
-	7,dial.thread.c:177,180
-	9,netssh.c:2435,2438
+	6,dial.c:141,144
+	13,sshsession.c:152,155
 	0 parameters
 
 #95. 3 ncsl lines
-	7,dial.thread.c:177,180
-	13,sshsession.c:152,155
+	5,dh.c:808,811
+	9,netssh.c:2220,2223
 	0 parameters
 
 #96. 3 ncsl lines
 	6,dial.c:141,144
-	13,sshsession.c:152,155
+	9,netssh.c:2220,2223
 	0 parameters
 
 #97. 3 ncsl lines
-	6,dial.c:141,144
-	9,netssh.c:2435,2438
+	5,dh.c:808,811
+	13,sshsession.c:152,155
 	0 parameters
 
 #98. 3 ncsl lines
 	5,dh.c:808,811
-	9,netssh.c:2221,2224
-	0 parameters
-
-#99. 3 ncsl lines
-	6,dial.c:141,144
-	9,netssh.c:2221,2224
-	0 parameters
-
-#100. 3 ncsl lines
-	7,dial.thread.c:177,180
-	9,netssh.c:2221,2224
-	0 parameters
-
-#101. 3 ncsl lines
-	5,dh.c:808,811
-	13,sshsession.c:152,155
-	0 parameters
-
-#102. 3 ncsl lines
-	5,dh.c:808,811
-	9,netssh.c:2435,2438
-	0 parameters
-
-#103. 3 ncsl lines
-	5,dh.c:808,811
 	6,dial.c:141,144
 	0 parameters
 
-#104. 3 ncsl lines
-	5,dh.c:808,811
-	7,dial.thread.c:177,180
-	0 parameters
-
-#105. 10 ncsl lines
+#99. 10 ncsl lines
 	0,cipher3des.c:28,39
 	2,cipherblowfish.c:42,53
 	3 parameters
@@ -577,35 +547,65 @@
  	2. des3CBCencrypt,	bfCBCencrypt
  	3. decrypt3des,	decryptblowfish
 
-#106. 5 ncsl lines
+#100. 5 ncsl lines
 	0,cipher3des.c:28,33
 	3,cipherrc4.c:24,29
 	1 parameters
  	1. encrypt3des,	encryptrc4
 
-#107. 3 ncsl lines
+#101. 3 ncsl lines
 	5,dh.c:808,811
 	6,dial.c:275,278
 	0 parameters
 
-#108. 3 ncsl lines
+#102. 3 ncsl lines
 	6,dial.c:275,278
-	9,netssh.c:2221,2224
+	9,netssh.c:2220,2223
 	0 parameters
 
-#109. 3 ncsl lines
+#103. 3 ncsl lines
 	6,dial.c:275,278
 	13,sshsession.c:152,155
 	0 parameters
 
-#110. 3 ncsl lines
+#104. 3 ncsl lines
+	5,dh.c:808,811
+	9,netssh.c:2434,2437
+	0 parameters
+
+#105. 3 ncsl lines
 	6,dial.c:275,278
-	9,netssh.c:2435,2438
+	9,netssh.c:2434,2437
+	0 parameters
+
+#106. 3 ncsl lines
+	6,dial.c:141,144
+	9,netssh.c:2434,2437
+	0 parameters
+
+#107. 3 ncsl lines
+	5,dh.c:808,811
+	7,dial.thread.c:177,180
+	0 parameters
+
+#108. 3 ncsl lines
+	7,dial.thread.c:177,180
+	9,netssh.c:2434,2437
+	0 parameters
+
+#109. 3 ncsl lines
+	7,dial.thread.c:177,180
+	9,netssh.c:2220,2223
+	0 parameters
+
+#110. 3 ncsl lines
+	7,dial.thread.c:177,180
+	13,sshsession.c:152,155
 	0 parameters
 
 #111. 6 ncsl lines
-	9,netssh.c:2272,2277
-	9,netssh.c:2512,2517
+	9,netssh.c:2271,2276
+	9,netssh.c:2511,2516
 	1 parameters
  	1. "kex crypto algorithm mismatch (Established)",	"kex crypto algorithm mismatch (Initting)"
 
@@ -629,65 +629,70 @@
 	1 parameters
  	1. xconn,	chnum
 
-#115. 16 ncsl lines
-	6,dial.c:14,44
-	7,dial.thread.c:24,49
-	1 parameters
- 	1. pid,	cfd
-
-#116. 12 ncsl lines
-	9,netssh.c:2703,2715
-	9,netssh.c:2735,2747
+#115. 12 ncsl lines
+	9,netssh.c:2702,2714
+	9,netssh.c:2734,2746
 	3 parameters
  	1. kexes,	cryptos
  	2. foundk,	foundc2
  	3. kexalg,	nsccrypt
 
-#117. 12 ncsl lines
-	9,netssh.c:2703,2715
-	9,netssh.c:2725,2736
+#116. 12 ncsl lines
+	9,netssh.c:2702,2714
+	9,netssh.c:2724,2735
 	3 parameters
  	1. kexes,	cryptos
  	2. foundk,	foundc1
  	3. kexalg,	ncscrypt
 
-#118. 4 ncsl lines
-	9,netssh.c:2703,2706
-	9,netssh.c:2757,2760
+#117. 4 ncsl lines
+	9,netssh.c:2702,2705
+	9,netssh.c:2745,2748
 	1 parameters
  	1. kexes,	macnames
 
-#119. 4 ncsl lines
-	9,netssh.c:2703,2706
-	9,netssh.c:2746,2749
+#118. 4 ncsl lines
+	9,netssh.c:2702,2705
+	9,netssh.c:2756,2759
 	1 parameters
  	1. kexes,	macnames
+
+#119. 3 ncsl lines
+	9,netssh.c:2682,2684
+	9,netssh.c:2683,2685
+	(overlap; region has 3 nonoverlapping matching 1-ncsl-line segments)
+	0 parameters
 
 #120. 3 ncsl lines
-	9,netssh.c:2683,2685
-	9,netssh.c:2684,2686
-	(overlap; region has 3 nonoverlapping matching 1-ncsl-line segments)
+	9,netssh.c:2682,2684
+	9,netssh.c:2768,2770
 	0 parameters
 
 #121. 3 ncsl lines
 	9,netssh.c:2683,2685
-	9,netssh.c:2769,2771
+	9,netssh.c:2767,2769
 	0 parameters
 
 #122. 3 ncsl lines
-	9,netssh.c:2684,2686
+	9,netssh.c:2767,2769
 	9,netssh.c:2768,2770
-	0 parameters
-
-#123. 3 ncsl lines
-	9,netssh.c:2768,2770
-	9,netssh.c:2769,2771
 	(overlap; region has 3 nonoverlapping matching 1-ncsl-line segments)
 	0 parameters
 
+#123. 16 ncsl lines
+	9,netssh.c:2604,2620
+	9,netssh.c:2630,2646
+	6 parameters
+ 	1. "received KEX algs: %s",	"received C2S crypto algs: %s"
+ 	2. kexes,	cryptos
+ 	3. foundk,	foundc1
+ 	4. "kex algs not in kexes",	"c2s crypto algs not in cryptos"
+ 	5. kexalg,	ncscrypt
+ 	6. "received host key algs: %s",	"received S2C crypto algs: %s"
+
 #124. 16 ncsl lines
-	9,netssh.c:2605,2621
-	9,netssh.c:2644,2660
+	9,netssh.c:2604,2620
+	9,netssh.c:2643,2659
 	6 parameters
  	1. "received KEX algs: %s",	"received S2C crypto algs: %s"
  	2. kexes,	cryptos
@@ -697,47 +702,42 @@
  	6. "received host key algs: %s",	"received C2S MAC algs: %s"
 
 #125. 16 ncsl lines
-	9,netssh.c:2605,2621
-	9,netssh.c:2631,2647
-	6 parameters
- 	1. "received KEX algs: %s",	"received C2S crypto algs: %s"
- 	2. kexes,	cryptos
- 	3. foundk,	foundc1
- 	4. "kex algs not in kexes",	"c2s crypto algs not in cryptos"
- 	5. kexalg,	ncscrypt
- 	6. "received host key algs: %s",	"received S2C crypto algs: %s"
-
-#126. 3 ncsl lines
-	9,netssh.c:2082,2084
-	9,netssh.c:2216,2218
-	0 parameters
-
-#127. 4 ncsl lines
-	9,netssh.c:2142,2145
-	9,netssh.c:2176,2179
+	6,dial.c:14,44
+	7,dial.thread.c:24,49
 	1 parameters
- 	1. SSH_MSG_KEXDH_INIT,	SSH_MSG_SERVICE_REQUEST
+ 	1. pid,	cfd
 
-#128. 4 ncsl lines
-	9,netssh.c:2142,2145
-	9,netssh.c:2549,2552
-	1 parameters
- 	1. SSH_MSG_KEXDH_INIT,	SSH_MSG_USERAUTH_SUCCESS
-
-#129. 6 ncsl lines
+#126. 6 ncsl lines
 	9,netssh.c:1233,1238
 	9,netssh.c:1491,1496
 	1 parameters
  	1. ch,	sc
 
-#130. 3 ncsl lines
+#127. 3 ncsl lines
 	9,netssh.c:1233,1235
-	9,netssh.c:2334,2336
+	9,netssh.c:2333,2335
+	0 parameters
+
+#128. 4 ncsl lines
+	9,netssh.c:2141,2144
+	9,netssh.c:2548,2551
+	1 parameters
+ 	1. SSH_MSG_KEXDH_INIT,	SSH_MSG_USERAUTH_SUCCESS
+
+#129. 4 ncsl lines
+	9,netssh.c:2141,2144
+	9,netssh.c:2175,2178
+	1 parameters
+ 	1. SSH_MSG_KEXDH_INIT,	SSH_MSG_SERVICE_REQUEST
+
+#130. 3 ncsl lines
+	9,netssh.c:2081,2083
+	9,netssh.c:2215,2217
 	0 parameters
 
 #131. 6 ncsl lines
-	9,netssh.c:2320,2325
-	9,netssh.c:2329,2334
+	9,netssh.c:2319,2324
+	9,netssh.c:2328,2333
 	1 parameters
  	1. SSH_MSG_CHANNEL_OPEN_CONFIRMATION,	SSH_MSG_CHANNEL_OPEN_FAILURE
 
@@ -753,16 +753,16 @@
  	1. "/net",	"/net.alt"
 
 #134. 4 ncsl lines
-	6,dial.c:100,103
-	7,dial.thread.c:106,109
-	1 parameters
- 	1. "/net.alt",	"/net"
-
-#135. 4 ncsl lines
 	6,dial.c:90,93
 	7,dial.thread.c:116,119
 	1 parameters
  	1. "/net",	"/net.alt"
+
+#135. 4 ncsl lines
+	6,dial.c:100,103
+	7,dial.thread.c:106,109
+	1 parameters
+ 	1. "/net.alt",	"/net"
 
 #136. 4 ncsl lines
 	6,dial.c:90,93
@@ -771,8 +771,8 @@
  	1. "/net",	"/net.alt"
 
 #137. 6 ncsl lines
-	9,netssh.c:3195,3200
-	9,netssh.c:3201,3206
+	9,netssh.c:3194,3199
+	9,netssh.c:3200,3205
 	1 parameters
  	1. dataq,	reqq
 
@@ -782,60 +782,54 @@
 	0 parameters
 
 #139. 4 ncsl lines
-	9,netssh.c:699,702
-	9,netssh.c:974,977
-	1 parameters
- 	1. readreqrem,	writereqremproc
-
-#140. 4 ncsl lines
-	9,netssh.c:2330,2333
-	9,netssh.c:2407,2410
-	1 parameters
- 	1. SSH_MSG_CHANNEL_OPEN_FAILURE,	SSH_MSG_CHANNEL_REQUEST
-
-#141. 4 ncsl lines
-	9,netssh.c:2321,2324
-	9,netssh.c:2407,2410
+	9,netssh.c:2320,2323
+	9,netssh.c:2406,2409
 	1 parameters
  	1. SSH_MSG_CHANNEL_OPEN_CONFIRMATION,	SSH_MSG_CHANNEL_REQUEST
 
-#142. 5 ncsl lines
-	9,netssh.c:2369,2373
-	9,netssh.c:2378,2382
+#140. 4 ncsl lines
+	9,netssh.c:2329,2332
+	9,netssh.c:2406,2409
+	1 parameters
+ 	1. SSH_MSG_CHANNEL_OPEN_FAILURE,	SSH_MSG_CHANNEL_REQUEST
+
+#141. 5 ncsl lines
+	9,netssh.c:2368,2372
+	9,netssh.c:2377,2381
 	1 parameters
  	1. SSH_MSG_CHANNEL_EOF,	SSH_MSG_CHANNEL_CLOSE
 
+#142. 4 ncsl lines
+	9,netssh.c:2320,2323
+	9,netssh.c:2377,2380
+	1 parameters
+ 	1. SSH_MSG_CHANNEL_OPEN_CONFIRMATION,	SSH_MSG_CHANNEL_CLOSE
+
 #143. 4 ncsl lines
-	9,netssh.c:2330,2333
-	9,netssh.c:2378,2381
+	9,netssh.c:2329,2332
+	9,netssh.c:2377,2380
 	1 parameters
  	1. SSH_MSG_CHANNEL_OPEN_FAILURE,	SSH_MSG_CHANNEL_CLOSE
 
 #144. 4 ncsl lines
-	9,netssh.c:2321,2324
-	9,netssh.c:2378,2381
-	1 parameters
- 	1. SSH_MSG_CHANNEL_OPEN_CONFIRMATION,	SSH_MSG_CHANNEL_CLOSE
-
-#145. 4 ncsl lines
-	9,netssh.c:2378,2381
-	9,netssh.c:2407,2410
+	9,netssh.c:2377,2380
+	9,netssh.c:2406,2409
 	1 parameters
  	1. SSH_MSG_CHANNEL_CLOSE,	SSH_MSG_CHANNEL_REQUEST
 
-#146. 4 ncsl lines
-	9,netssh.c:2330,2333
-	9,netssh.c:2369,2372
-	1 parameters
- 	1. SSH_MSG_CHANNEL_OPEN_FAILURE,	SSH_MSG_CHANNEL_EOF
-
-#147. 4 ncsl lines
-	9,netssh.c:2321,2324
-	9,netssh.c:2369,2372
+#145. 4 ncsl lines
+	9,netssh.c:2320,2323
+	9,netssh.c:2368,2371
 	1 parameters
  	1. SSH_MSG_CHANNEL_OPEN_CONFIRMATION,	SSH_MSG_CHANNEL_EOF
 
-#148. 8 ncsl lines
+#146. 4 ncsl lines
+	9,netssh.c:2329,2332
+	9,netssh.c:2368,2371
+	1 parameters
+ 	1. SSH_MSG_CHANNEL_OPEN_FAILURE,	SSH_MSG_CHANNEL_EOF
+
+#147. 8 ncsl lines
 	9,netssh.c:192,199
 	13,sshsession.c:217,224
 	3 parameters
@@ -843,39 +837,45 @@
  	2. nokeyverify,	tflag
  	3. 0,	1
 
+#148. 4 ncsl lines
+	9,netssh.c:699,702
+	9,netssh.c:974,977
+	1 parameters
+ 	1. readreqrem,	writereqremproc
+
 #149. 3 ncsl lines
-	9,netssh.c:803,805
-	9,netssh.c:970,972
-	0 parameters
-
-#150. 3 ncsl lines
-	9,netssh.c:803,805
-	12,ssh.c:241,243
-	0 parameters
-
-#151. 3 ncsl lines
-	9,netssh.c:803,805
-	9,netssh.c:980,982
-	0 parameters
-
-#152. 3 ncsl lines
 	9,netssh.c:733,735
 	9,netssh.c:803,805
 	0 parameters
 
-#153. 3 ncsl lines
+#150. 3 ncsl lines
 	9,netssh.c:389,391
 	9,netssh.c:803,805
 	0 parameters
 
-#154. 3 ncsl lines
+#151. 3 ncsl lines
 	9,netssh.c:675,677
 	9,netssh.c:803,805
 	0 parameters
 
+#152. 3 ncsl lines
+	9,netssh.c:803,805
+	9,netssh.c:1710,1712
+	0 parameters
+
+#153. 3 ncsl lines
+	9,netssh.c:803,805
+	9,netssh.c:980,982
+	0 parameters
+
+#154. 3 ncsl lines
+	9,netssh.c:803,805
+	12,ssh.c:241,243
+	0 parameters
+
 #155. 3 ncsl lines
 	9,netssh.c:803,805
-	9,netssh.c:1711,1713
+	9,netssh.c:970,972
 	0 parameters
 
 #156. 4 ncsl lines
@@ -885,8 +885,8 @@
  	1. threadexits,	bail
 
 #157. 5 ncsl lines
-	9,netssh.c:2219,2224
-	9,netssh.c:2433,2438
+	9,netssh.c:2218,2223
+	9,netssh.c:2432,2437
 	0 parameters
 
 #158. 3 ncsl lines
@@ -904,152 +904,152 @@
 	9,netssh.c:977,982
 	0 parameters
 
-#161. 15 ncsl lines
+#161. 3 ncsl lines
+	9,netssh.c:1154,1156
+	9,netssh.c:1456,1458
+	0 parameters
+
+#162. 3 ncsl lines
+	9,netssh.c:1154,1156
+	9,netssh.c:1245,1247
+	0 parameters
+
+#163. 3 ncsl lines
+	9,netssh.c:1154,1156
+	9,netssh.c:1502,1504
+	0 parameters
+
+#164. 3 ncsl lines
+	9,netssh.c:1154,1156
+	9,netssh.c:1195,1197
+	0 parameters
+
+#165. 15 ncsl lines
 	0,cipher3des.c:1,17
 	3,cipherrc4.c:1,17
 	2 parameters
  	1. DES3state,	RC4state
  	2. init3des,	initrc4
 
-#162. 14 ncsl lines
+#166. 14 ncsl lines
 	2,cipherblowfish.c:1,16
 	3,cipherrc4.c:1,16
 	2 parameters
  	1. BFstate,	RC4state
  	2. initblowfish,	initrc4
 
-#163. 14 ncsl lines
+#167. 14 ncsl lines
 	0,cipher3des.c:1,16
 	2,cipherblowfish.c:1,16
 	2 parameters
  	1. DES3state,	BFstate
  	2. init3des,	initblowfish
 
-#164. 8 ncsl lines
+#168. 8 ncsl lines
 	0,cipher3des.c:1,8
 	1,cipheraes.c:1,8
 	0 parameters
 
-#165. 8 ncsl lines
+#169. 8 ncsl lines
 	1,cipheraes.c:1,8
 	3,cipherrc4.c:1,8
 	0 parameters
 
-#166. 8 ncsl lines
+#170. 8 ncsl lines
 	1,cipheraes.c:1,8
 	2,cipherblowfish.c:1,8
 	0 parameters
 
-#167. 8 ncsl lines
+#171. 8 ncsl lines
 	11,rsa2ssh2.c:1,8
 	14,transport.c:1,8
 	2 parameters
  	1. auth,	libsec
  	2. authsrv,	ip
 
-#168. 7 ncsl lines
-	1,cipheraes.c:1,7
-	14,transport.c:1,7
-	0 parameters
-
-#169. 7 ncsl lines
-	0,cipher3des.c:1,7
-	14,transport.c:1,7
-	0 parameters
-
-#170. 7 ncsl lines
-	3,cipherrc4.c:1,7
-	14,transport.c:1,7
-	0 parameters
-
-#171. 7 ncsl lines
-	2,cipherblowfish.c:1,7
-	14,transport.c:1,7
-	0 parameters
-
 #172. 7 ncsl lines
 	1,cipheraes.c:1,7
-	11,rsa2ssh2.c:1,7
-	1 parameters
- 	1. libsec,	auth
+	14,transport.c:1,7
+	0 parameters
 
 #173. 7 ncsl lines
 	0,cipher3des.c:1,7
+	14,transport.c:1,7
+	0 parameters
+
+#174. 7 ncsl lines
+	3,cipherrc4.c:1,7
+	14,transport.c:1,7
+	0 parameters
+
+#175. 7 ncsl lines
+	2,cipherblowfish.c:1,7
+	14,transport.c:1,7
+	0 parameters
+
+#176. 7 ncsl lines
+	1,cipheraes.c:1,7
 	11,rsa2ssh2.c:1,7
 	1 parameters
  	1. libsec,	auth
 
-#174. 7 ncsl lines
+#177. 7 ncsl lines
+	0,cipher3des.c:1,7
+	11,rsa2ssh2.c:1,7
+	1 parameters
+ 	1. libsec,	auth
+
+#178. 7 ncsl lines
 	3,cipherrc4.c:1,7
 	11,rsa2ssh2.c:1,7
 	1 parameters
  	1. libsec,	auth
 
-#175. 7 ncsl lines
+#179. 7 ncsl lines
 	2,cipherblowfish.c:1,7
 	11,rsa2ssh2.c:1,7
 	1 parameters
  	1. libsec,	auth
 
-#176. 6 ncsl lines
+#180. 6 ncsl lines
 	2,cipherblowfish.c:1,6
 	7,dial.thread.c:4,9
 	1 parameters
  	1. mp,	ctype
 
-#177. 6 ncsl lines
+#181. 6 ncsl lines
 	3,cipherrc4.c:1,6
 	7,dial.thread.c:4,9
 	1 parameters
  	1. mp,	ctype
 
-#178. 6 ncsl lines
+#182. 6 ncsl lines
 	0,cipher3des.c:1,6
 	7,dial.thread.c:4,9
 	1 parameters
  	1. mp,	ctype
 
-#179. 6 ncsl lines
+#183. 6 ncsl lines
 	1,cipheraes.c:1,6
 	7,dial.thread.c:4,9
 	1 parameters
  	1. mp,	ctype
 
-#180. 6 ncsl lines
+#184. 6 ncsl lines
 	7,dial.thread.c:4,9
 	14,transport.c:1,6
 	1 parameters
  	1. ctype,	mp
 
-#181. 6 ncsl lines
+#185. 6 ncsl lines
 	7,dial.thread.c:4,9
 	11,rsa2ssh2.c:1,6
 	1 parameters
  	1. ctype,	mp
 
-#182. 3 ncsl lines
+#186. 3 ncsl lines
 	6,dial.c:4,6
 	7,dial.thread.c:4,6
-	0 parameters
-
-#183. 3 ncsl lines
-	9,netssh.c:1154,1156
-	9,netssh.c:1502,1504
-	0 parameters
-
-#184. 3 ncsl lines
-	9,netssh.c:1154,1156
-	9,netssh.c:1195,1197
-	0 parameters
-
-#185. 3 ncsl lines
-	9,netssh.c:1154,1156
-	9,netssh.c:1456,1458
-	0 parameters
-
-#186. 3 ncsl lines
-	9,netssh.c:1154,1156
-	9,netssh.c:1245,1247
 	0 parameters
 
 #187. 3 ncsl lines
@@ -1057,32 +1057,37 @@
 	9,netssh.c:1488,1491
 	0 parameters
 
-#188. 3 ncsl lines
-	9,netssh.c:2459,2461
-	14,transport.c:189,191
-	0 parameters
-
-#189. 5 ncsl lines
-	9,netssh.c:628,632
-	9,netssh.c:759,763
-	0 parameters
-
-#190. 44 ncsl lines
+#188. 44 ncsl lines
 	6,dial.c:497,556
 	7,dial.thread.c:494,553
 	0 parameters
 
-#191. 3 ncsl lines
+#189. 3 ncsl lines
+	9,netssh.c:2458,2460
+	14,transport.c:189,191
+	0 parameters
+
+#190. 5 ncsl lines
+	9,netssh.c:628,632
+	9,netssh.c:759,763
+	0 parameters
+
+#191. 33 ncsl lines
+	6,dial.c:439,478
+	7,dial.thread.c:443,482
+	0 parameters
+
+#192. 3 ncsl lines
 	9,netssh.c:913,915
 	9,netssh.c:931,933
 	0 parameters
 
-#192. 4 ncsl lines
+#193. 4 ncsl lines
 	9,netssh.c:137,141
 	9,netssh.c:155,159
 	0 parameters
 
-#193. 35 ncsl lines
+#194. 35 ncsl lines
 	5,dh.c:839,881
 	5,dh.c:848,890
 	(overlap; region has 5 nonoverlapping matching 7-ncsl-line segments)
@@ -1098,7 +1103,7 @@
  	9. 'E',	'F'
  	10. nc2sik,	ns2cik
 
-#194. 28 ncsl lines
+#195. 28 ncsl lines
 	5,dh.c:839,872
 	5,dh.c:857,890
 	(overlap; region has 2 nonoverlapping matching 14-ncsl-line segments)
@@ -1112,7 +1117,7 @@
  	7. 'D',	'F'
  	8. ns2cek,	ns2cik
 
-#195. 21 ncsl lines
+#196. 21 ncsl lines
 	5,dh.c:839,863
 	5,dh.c:866,890
 	6 parameters
@@ -1123,7 +1128,7 @@
  	5. 'C',	'F'
  	6. nc2sek,	ns2cik
 
-#196. 14 ncsl lines
+#197. 14 ncsl lines
 	5,dh.c:839,854
 	5,dh.c:875,890
 	4 parameters
@@ -1132,17 +1137,12 @@
  	3. 'B',	'F'
  	4. ns2civ,	ns2cik
 
-#197. 7 ncsl lines
+#198. 7 ncsl lines
 	5,dh.c:839,845
 	5,dh.c:884,890
 	2 parameters
  	1. 'A',	'F'
  	2. nc2siv,	ns2cik
-
-#198. 33 ncsl lines
-	6,dial.c:439,478
-	7,dial.thread.c:443,482
-	0 parameters
 
 #199. 14 ncsl lines
 	1,cipheraes.c:69,83
@@ -1158,24 +1158,24 @@
 
 #200. 6 ncsl lines
 	5,dh.c:173,178
-	5,dh.c:194,199
-	2 parameters
- 	1. " p=",	" key="
- 	2. "no key (p) found",	"no key (y) found"
-
-#201. 6 ncsl lines
-	5,dh.c:173,178
 	5,dh.c:187,192
 	2 parameters
  	1. " p=",	" alpha="
  	2. "no key (p) found",	"no key (g) found"
 
-#202. 6 ncsl lines
+#201. 6 ncsl lines
 	5,dh.c:173,178
 	5,dh.c:180,185
 	2 parameters
  	1. " p=",	" q="
  	2. "no key (p) found",	"no key (q) found"
+
+#202. 6 ncsl lines
+	5,dh.c:173,178
+	5,dh.c:194,199
+	2 parameters
+ 	1. " p=",	" key="
+ 	2. "no key (p) found",	"no key (y) found"
 
 #203. 6 ncsl lines
 	5,dh.c:106,111
@@ -1209,20 +1209,20 @@
 	1 parameters
  	1. 'I',	'i'
 
-#208. 4 ncsl lines
+#208. 3 ncsl lines
+	12,ssh.c:278,280
+	12,ssh.c:318,321
+	0 parameters
+
+#209. 4 ncsl lines
 	9,netssh.c:1470,1473
-	9,netssh.c:2397,2400
+	9,netssh.c:2396,2399
 	1 parameters
  	1. sc,	ch
 
-#209. 3 ncsl lines
+#210. 3 ncsl lines
 	9,netssh.c:588,590
 	9,netssh.c:874,876
-	0 parameters
-
-#210. 3 ncsl lines
-	12,ssh.c:278,280
-	12,ssh.c:318,321
 	0 parameters
 
 #211. 4 ncsl lines
@@ -1284,62 +1284,62 @@
 
 #221. 3 ncsl lines
 	9,netssh.c:980,982
-	9,netssh.c:1711,1713
+	12,ssh.c:241,243
 	0 parameters
 
 #222. 3 ncsl lines
-	9,netssh.c:1711,1713
+	9,netssh.c:970,972
 	12,ssh.c:241,243
 	0 parameters
 
 #223. 3 ncsl lines
-	9,netssh.c:980,982
+	9,netssh.c:733,735
 	12,ssh.c:241,243
 	0 parameters
 
 #224. 3 ncsl lines
-	9,netssh.c:970,972
-	9,netssh.c:1711,1713
+	9,netssh.c:389,391
+	12,ssh.c:241,243
 	0 parameters
 
 #225. 3 ncsl lines
-	9,netssh.c:970,972
+	9,netssh.c:675,677
 	12,ssh.c:241,243
 	0 parameters
 
 #226. 3 ncsl lines
-	9,netssh.c:733,735
+	9,netssh.c:1710,1712
 	12,ssh.c:241,243
 	0 parameters
 
 #227. 3 ncsl lines
-	9,netssh.c:733,735
-	9,netssh.c:1711,1713
+	9,netssh.c:675,677
+	9,netssh.c:1710,1712
 	0 parameters
 
 #228. 3 ncsl lines
 	9,netssh.c:389,391
-	9,netssh.c:1711,1713
+	9,netssh.c:1710,1712
 	0 parameters
 
 #229. 3 ncsl lines
-	9,netssh.c:389,391
-	12,ssh.c:241,243
+	9,netssh.c:733,735
+	9,netssh.c:1710,1712
 	0 parameters
 
 #230. 3 ncsl lines
-	9,netssh.c:675,677
-	12,ssh.c:241,243
+	9,netssh.c:970,972
+	9,netssh.c:1710,1712
 	0 parameters
 
 #231. 3 ncsl lines
-	9,netssh.c:675,677
-	9,netssh.c:1711,1713
+	9,netssh.c:980,982
+	9,netssh.c:1710,1712
 	0 parameters
 
 #232. 4 ncsl lines
 	9,netssh.c:1195,1198
-	9,netssh.c:1456,1459
+	9,netssh.c:1502,1505
 	0 parameters
 
 #233. 4 ncsl lines
@@ -1349,17 +1349,17 @@
 
 #234. 4 ncsl lines
 	9,netssh.c:1195,1198
-	9,netssh.c:1502,1505
+	9,netssh.c:1456,1459
 	0 parameters
 
 #235. 3 ncsl lines
-	9,netssh.c:1682,1684
-	9,netssh.c:3198,3200
+	9,netssh.c:1681,1683
+	9,netssh.c:3197,3199
 	0 parameters
 
 #236. 3 ncsl lines
-	9,netssh.c:1682,1684
-	9,netssh.c:3204,3206
+	9,netssh.c:1681,1683
+	9,netssh.c:3203,3205
 	0 parameters
 
 #237. 9 ncsl lines
@@ -1374,235 +1374,241 @@
  	1. "ssh-userath auth failed (not Established)",	nil
  	2. writectlproc,	writedataproc
 
-#239. 3 ncsl lines
-	9,netssh.c:1703,1705
+#239. 4 ncsl lines
+	10,pubkey.c:182,185
+	10,pubkey.c:195,198
+	1 parameters
+ 	1. "%s: new key file changed names? %s to %s\n",	"%s: error renaming %s to %s: %r\n"
+
+#240. 3 ncsl lines
+	9,netssh.c:1702,1704
 	12,ssh.c:288,290
 	0 parameters
 
-#240. 6 ncsl lines
+#241. 6 ncsl lines
 	9,netssh.c:685,690
 	9,netssh.c:718,724
 	2 parameters
  	1. Qlocal,	Qtcp
  	2. "::!0\n",	"-1\n"
 
-#241. 3 ncsl lines
+#242. 3 ncsl lines
 	5,dh.c:445,448
-	9,netssh.c:1812,1821
+	9,netssh.c:1811,1820
 	0 parameters
 
-#242. 5 ncsl lines
+#243. 5 ncsl lines
 	2,cipherblowfish.c:42,47
 	3,cipherrc4.c:24,29
 	1 parameters
  	1. encryptblowfish,	encryptrc4
 
-#243. 7 ncsl lines
+#244. 7 ncsl lines
 	6,dial.c:482,488
 	7,dial.thread.c:486,492
 	0 parameters
 
-#244. 3 ncsl lines
+#245. 3 ncsl lines
 	14,transport.c:74,76
 	14,transport.c:110,112
 	0 parameters
 
-#245. 4 ncsl lines
+#246. 4 ncsl lines
 	9,netssh.c:343,346
 	9,netssh.c:702,705
 	1 parameters
  	1. Qclone,	Qstatus
 
-#246. 6 ncsl lines
+#247. 6 ncsl lines
 	5,dh.c:180,185
 	5,dh.c:194,199
 	2 parameters
  	1. " q=",	" key="
  	2. "no key (q) found",	"no key (y) found"
 
-#247. 6 ncsl lines
+#248. 6 ncsl lines
 	5,dh.c:180,185
 	5,dh.c:187,192
 	2 parameters
  	1. " q=",	" alpha="
  	2. "no key (q) found",	"no key (g) found"
 
-#248. 4 ncsl lines
-	9,netssh.c:2730,2733
-	9,netssh.c:2762,2765
-	1 parameters
- 	1. foundc1,	foundm2
-
 #249. 4 ncsl lines
-	9,netssh.c:2730,2733
-	9,netssh.c:2751,2754
-	1 parameters
- 	1. foundc1,	foundm1
-
-#250. 4 ncsl lines
-	9,netssh.c:2719,2722
-	9,netssh.c:2762,2765
+	9,netssh.c:2718,2721
+	9,netssh.c:2761,2764
 	1 parameters
  	1. foundpka,	foundm2
 
-#251. 4 ncsl lines
-	9,netssh.c:2719,2722
-	9,netssh.c:2751,2754
+#250. 4 ncsl lines
+	9,netssh.c:2718,2721
+	9,netssh.c:2750,2753
 	1 parameters
  	1. foundpka,	foundm1
 
-#252. 4 ncsl lines
-	9,netssh.c:2740,2743
-	9,netssh.c:2762,2765
+#251. 4 ncsl lines
+	9,netssh.c:2739,2742
+	9,netssh.c:2761,2764
 	1 parameters
  	1. foundc2,	foundm2
 
-#253. 4 ncsl lines
-	9,netssh.c:2740,2743
-	9,netssh.c:2751,2754
+#252. 4 ncsl lines
+	9,netssh.c:2739,2742
+	9,netssh.c:2750,2753
 	1 parameters
  	1. foundc2,	foundm1
 
+#253. 4 ncsl lines
+	9,netssh.c:2729,2732
+	9,netssh.c:2761,2764
+	1 parameters
+ 	1. foundc1,	foundm2
+
 #254. 4 ncsl lines
-	9,netssh.c:2708,2711
-	9,netssh.c:2762,2765
+	9,netssh.c:2729,2732
+	9,netssh.c:2750,2753
+	1 parameters
+ 	1. foundc1,	foundm1
+
+#255. 4 ncsl lines
+	9,netssh.c:2707,2710
+	9,netssh.c:2761,2764
 	1 parameters
  	1. foundk,	foundm2
 
-#255. 4 ncsl lines
-	9,netssh.c:2708,2711
-	9,netssh.c:2751,2754
+#256. 4 ncsl lines
+	9,netssh.c:2707,2710
+	9,netssh.c:2750,2753
 	1 parameters
  	1. foundk,	foundm1
 
-#256. 3 ncsl lines
+#257. 3 ncsl lines
 	6,dial.c:423,425
 	7,dial.thread.c:426,428
 	0 parameters
-
-#257. 7 ncsl lines
-	9,netssh.c:1242,1248
-	9,netssh.c:1499,1505
-	1 parameters
- 	1. Closed,	Closing
 
 #258. 7 ncsl lines
 	9,netssh.c:1453,1459
 	9,netssh.c:1499,1505
 	0 parameters
 
-#259. 4 ncsl lines
+#259. 7 ncsl lines
+	9,netssh.c:1242,1248
+	9,netssh.c:1499,1505
+	1 parameters
+ 	1. Closed,	Closing
+
+#260. 4 ncsl lines
 	13,sshsession.c:370,373
 	13,sshsession.c:378,381
 	0 parameters
 
-#260. 3 ncsl lines
+#261. 3 ncsl lines
 	9,netssh.c:1254,1256
-	9,netssh.c:2218,2220
+	9,netssh.c:2217,2219
 	0 parameters
 
-#261. 5 ncsl lines
+#262. 5 ncsl lines
 	14,transport.c:129,134
 	14,transport.c:174,183
 	1 parameters
  	1. finish_packet,	undo_packet
 
-#262. 4 ncsl lines
+#263. 4 ncsl lines
 	10,pubkey.c:35,38
 	10,pubkey.c:49,52
 	0 parameters
 
-#263. 4 ncsl lines
+#264. 4 ncsl lines
 	9,netssh.c:600,603
 	9,netssh.c:1229,1232
 	0 parameters
 
-#264. 3 ncsl lines
+#265. 3 ncsl lines
 	5,dh.c:298,300
 	5,dh.c:433,435
 	0 parameters
 
-#265. 3 ncsl lines
+#266. 3 ncsl lines
 	6,dial.c:361,363
 	6,dial.c:417,419
 	0 parameters
 
-#266. 3 ncsl lines
+#267. 3 ncsl lines
 	5,dh.c:109,111
 	5,dh.c:131,133
 	0 parameters
 
-#267. 3 ncsl lines
+#268. 3 ncsl lines
 	5,dh.c:131,133
 	5,dh.c:197,199
 	0 parameters
 
-#268. 3 ncsl lines
+#269. 3 ncsl lines
 	5,dh.c:131,133
 	5,dh.c:190,192
 	0 parameters
 
-#269. 3 ncsl lines
+#270. 3 ncsl lines
 	5,dh.c:131,133
 	5,dh.c:183,185
 	0 parameters
 
-#270. 3 ncsl lines
+#271. 3 ncsl lines
 	5,dh.c:131,133
 	5,dh.c:176,178
 	0 parameters
 
-#271. 3 ncsl lines
+#272. 3 ncsl lines
 	5,dh.c:118,120
 	5,dh.c:131,133
 	0 parameters
 
-#272. 3 ncsl lines
+#273. 3 ncsl lines
 	5,dh.c:131,133
 	5,dh.c:164,166
 	0 parameters
 
-#273. 3 ncsl lines
+#274. 3 ncsl lines
 	5,dh.c:131,133
 	5,dh.c:208,210
 	0 parameters
 
-#274. 3 ncsl lines
-	9,netssh.c:2904,2906
-	9,netssh.c:2921,2923
-	0 parameters
-
 #275. 3 ncsl lines
-	9,netssh.c:2890,2892
-	9,netssh.c:2921,2923
+	9,netssh.c:2903,2905
+	9,netssh.c:2920,2922
 	0 parameters
 
-#276. 4 ncsl lines
+#276. 3 ncsl lines
+	9,netssh.c:2889,2891
+	9,netssh.c:2920,2922
+	0 parameters
+
+#277. 4 ncsl lines
 	9,netssh.c:525,528
 	9,netssh.c:919,922
 	0 parameters
 
-#277. 4 ncsl lines
-	9,netssh.c:427,430
-	9,netssh.c:926,929
-	1 parameters
- 	1. "top level listen conn poisoned",	nil
-
 #278. 4 ncsl lines
-	9,netssh.c:427,430
-	9,netssh.c:908,911
-	1 parameters
- 	1. "top level listen conn poisoned",	nil
-
-#279. 4 ncsl lines
 	9,netssh.c:767,770
 	9,netssh.c:844,847
 	1 parameters
  	1. "Key file collision",	nil
 
-#280. 22 ncsl lines
-	9,netssh.c:2624,2647
-	9,netssh.c:2637,2660
+#279. 4 ncsl lines
+	9,netssh.c:427,430
+	9,netssh.c:926,929
+	1 parameters
+ 	1. "top level listen conn poisoned",	nil
+
+#280. 4 ncsl lines
+	9,netssh.c:427,430
+	9,netssh.c:908,911
+	1 parameters
+ 	1. "top level listen conn poisoned",	nil
+
+#281. 22 ncsl lines
+	9,netssh.c:2623,2646
+	9,netssh.c:2636,2659
 	(overlap; region has 2 nonoverlapping matching 12-ncsl-line segments)
 	8 parameters
  	1. foundpka,	foundc1
@@ -1614,9 +1620,9 @@
  	7. ncscrypt,	nsccrypt
  	8. "received S2C crypto algs: %s",	"received C2S MAC algs: %s"
 
-#281. 17 ncsl lines
-	9,netssh.c:2719,2736
-	9,netssh.c:2730,2747
+#282. 17 ncsl lines
+	9,netssh.c:2718,2735
+	9,netssh.c:2729,2746
 	(overlap; region has 2 nonoverlapping matching 10-ncsl-line segments)
 	4 parameters
  	1. foundpka,	foundc1
@@ -1624,65 +1630,60 @@
  	3. foundc1,	foundc2
  	4. ncscrypt,	nsccrypt
 
-#282. 9 ncsl lines
-	9,netssh.c:2730,2738
-	9,netssh.c:2740,2749
+#283. 9 ncsl lines
+	9,netssh.c:2729,2737
+	9,netssh.c:2739,2748
 	3 parameters
  	1. foundc1,	foundc2
  	2. ncscrypt,	nsccrypt
  	3. cryptos,	macnames
 
-#283. 4 ncsl lines
+#284. 4 ncsl lines
 	9,netssh.c:497,501
 	9,netssh.c:1273,1277
 	1 parameters
  	1. "stlischan",	"writereqremproc"
 
-#284. 4 ncsl lines
+#285. 4 ncsl lines
 	9,netssh.c:1065,1068
-	9,netssh.c:1829,1832
+	9,netssh.c:1828,1831
 	1 parameters
  	1. "sleeping for auth",	"awaiting establishment"
 
-#285. 3 ncsl lines
+#286. 3 ncsl lines
 	9,netssh.c:680,682
 	9,netssh.c:878,880
 	0 parameters
 
-#286. 3 ncsl lines
+#287. 3 ncsl lines
 	9,netssh.c:680,682
 	9,netssh.c:845,847
 	0 parameters
 
-#287. 5 ncsl lines
+#288. 5 ncsl lines
 	9,netssh.c:907,911
 	9,netssh.c:925,929
 	1 parameters
  	1. "sending EOF1 to channel listener",	"sending EOF2 to channel listener"
 
-#288. 3 ncsl lines
+#289. 3 ncsl lines
 	9,netssh.c:659,661
 	9,netssh.c:963,965
 	0 parameters
 
-#289. 3 ncsl lines
+#290. 3 ncsl lines
 	9,netssh.c:637,639
 	9,netssh.c:963,965
 	0 parameters
 
-#290. 3 ncsl lines
+#291. 3 ncsl lines
 	6,dial.c:141,144
 	7,dial.thread.c:177,180
 	0 parameters
 
-#291. 3 ncsl lines
+#292. 3 ncsl lines
 	6,dial.c:141,144
 	6,dial.c:275,278
-	0 parameters
-
-#292. 3 ncsl lines
-	9,netssh.c:1812,1821
-	9,netssh.c:1840,1844
 	0 parameters
 
 #293. 8 ncsl lines
@@ -1692,38 +1693,37 @@
  	1. rv,	dfd
 
 #294. 3 ncsl lines
-	5,dh.c:445,448
-	9,netssh.c:1840,1844
+	9,netssh.c:1811,1820
+	9,netssh.c:1839,1843
 	0 parameters
 
-#295. 4 ncsl lines
-	10,pubkey.c:182,185
-	10,pubkey.c:195,198
-	1 parameters
- 	1. "%s: new key file changed names? %s to %s\n",	"%s: error renaming %s to %s: %r\n"
+#295. 3 ncsl lines
+	5,dh.c:445,448
+	9,netssh.c:1839,1843
+	0 parameters
 
 #296. 3 ncsl lines
-	9,netssh.c:1254,1256
+	9,netssh.c:2217,2219
 	12,ssh.c:331,333
 	0 parameters
 
 #297. 3 ncsl lines
-	9,netssh.c:2218,2220
+	9,netssh.c:1254,1256
 	12,ssh.c:331,333
 	0 parameters
 
 #298. 3 ncsl lines
 	9,netssh.c:1505,1508
-	9,netssh.c:2564,2567
+	9,netssh.c:2563,2566
 	0 parameters
 
 #299. 3 ncsl lines
-	9,netssh.c:2564,2567
+	9,netssh.c:2563,2566
 	13,sshsession.c:333,336
 	0 parameters
 
 #300. 3 ncsl lines
-	9,netssh.c:2564,2567
+	9,netssh.c:2563,2566
 	12,ssh.c:471,474
 	0 parameters
 
@@ -1762,40 +1762,40 @@
 	12,ssh.c:114,118
 	0 parameters
 
-#308. 8 ncsl lines
-	9,netssh.c:1262,1270
-	9,netssh.c:1370,1378
+#308. 4 ncsl lines
+	9,netssh.c:164,168
+	13,sshsession.c:183,187
 	1 parameters
- 	1. writereqremproc,	writedataproc
+ 	1. threadmain,	main
 
-#309. 8 ncsl lines
+#309. 4 ncsl lines
+	11,rsa2ssh2.c:20,24
+	13,sshsession.c:183,187
+	0 parameters
+
+#310. 8 ncsl lines
 	9,netssh.c:1071,1079
 	9,netssh.c:1262,1270
 	1 parameters
  	1. writectlproc,	writereqremproc
 
-#310. 4 ncsl lines
+#311. 8 ncsl lines
+	9,netssh.c:1262,1270
+	9,netssh.c:1370,1378
+	1 parameters
+ 	1. writereqremproc,	writedataproc
+
+#312. 4 ncsl lines
 	9,netssh.c:401,405
 	9,netssh.c:1370,1374
 	1 parameters
  	1. stlisconn,	writedataproc
 
-#311. 4 ncsl lines
+#313. 4 ncsl lines
 	9,netssh.c:401,405
 	9,netssh.c:1071,1075
 	1 parameters
  	1. stlisconn,	writectlproc
-
-#312. 4 ncsl lines
-	11,rsa2ssh2.c:20,24
-	13,sshsession.c:183,187
-	0 parameters
-
-#313. 4 ncsl lines
-	9,netssh.c:164,168
-	13,sshsession.c:183,187
-	1 parameters
- 	1. threadmain,	main
 
 #314. 6 ncsl lines
 	1,cipheraes.c:47,53
@@ -1804,16 +1804,16 @@
  	1. encryptaes,	decryptaes
 
 #315. 4 ncsl lines
+	9,netssh.c:1767,1771
+	9,netssh.c:2074,2078
+	1 parameters
+ 	1. hangupconn,	establish
+
+#316. 4 ncsl lines
 	7,dial.thread.c:140,144
 	7,dial.thread.c:228,233
 	1 parameters
  	1. freedest,	intrcallprocs
-
-#316. 4 ncsl lines
-	9,netssh.c:1768,1772
-	9,netssh.c:2075,2079
-	1 parameters
- 	1. hangupconn,	establish
 
 #317. 5 ncsl lines
 	9,netssh.c:1132,1138
@@ -1822,12 +1822,12 @@
  	1. "connect handshake failed: ",	"accept handshake failed: "
 
 #318. 3 ncsl lines
-	9,netssh.c:600,602
+	9,netssh.c:1229,1231
 	9,netssh.c:1366,1368
 	0 parameters
 
 #319. 3 ncsl lines
-	9,netssh.c:1229,1231
+	9,netssh.c:600,602
 	9,netssh.c:1366,1368
 	0 parameters
 
@@ -1910,73 +1910,73 @@
  	1. "writereqremproc",	"writedataproc"
 
 #333. 3 ncsl lines
-	9,netssh.c:845,847
-	9,netssh.c:963,965
+	9,netssh.c:667,669
+	9,netssh.c:680,682
 	0 parameters
 
 #334. 3 ncsl lines
-	9,netssh.c:659,661
-	9,netssh.c:845,847
+	9,netssh.c:667,669
+	9,netssh.c:878,880
 	0 parameters
 
 #335. 3 ncsl lines
+	9,netssh.c:637,639
 	9,netssh.c:667,669
-	9,netssh.c:845,847
 	0 parameters
 
 #336. 3 ncsl lines
-	9,netssh.c:667,669
-	9,netssh.c:963,965
+	9,netssh.c:637,639
+	9,netssh.c:878,880
 	0 parameters
 
 #337. 3 ncsl lines
-	9,netssh.c:659,661
-	9,netssh.c:667,669
+	9,netssh.c:637,639
+	9,netssh.c:680,682
 	0 parameters
 
 #338. 3 ncsl lines
-	9,netssh.c:667,669
-	9,netssh.c:680,682
+	9,netssh.c:659,661
+	9,netssh.c:878,880
 	0 parameters
 
 #339. 3 ncsl lines
+	9,netssh.c:659,661
 	9,netssh.c:680,682
-	9,netssh.c:963,965
 	0 parameters
 
 #340. 3 ncsl lines
 	9,netssh.c:659,661
-	9,netssh.c:680,682
+	9,netssh.c:667,669
 	0 parameters
 
 #341. 3 ncsl lines
-	9,netssh.c:878,880
+	9,netssh.c:667,669
 	9,netssh.c:963,965
 	0 parameters
 
 #342. 3 ncsl lines
-	9,netssh.c:659,661
 	9,netssh.c:878,880
+	9,netssh.c:963,965
 	0 parameters
 
 #343. 3 ncsl lines
-	9,netssh.c:667,669
-	9,netssh.c:878,880
+	9,netssh.c:680,682
+	9,netssh.c:963,965
 	0 parameters
 
 #344. 3 ncsl lines
-	9,netssh.c:637,639
 	9,netssh.c:667,669
+	9,netssh.c:845,847
 	0 parameters
 
 #345. 3 ncsl lines
-	9,netssh.c:637,639
-	9,netssh.c:878,880
+	9,netssh.c:845,847
+	9,netssh.c:963,965
 	0 parameters
 
 #346. 3 ncsl lines
-	9,netssh.c:637,639
-	9,netssh.c:680,682
+	9,netssh.c:659,661
+	9,netssh.c:845,847
 	0 parameters
 
 #347. 3 ncsl lines
@@ -1990,8 +1990,8 @@
 	0 parameters
 
 #349. 6 ncsl lines
-	9,netssh.c:2092,2097
-	9,netssh.c:2529,2534
+	9,netssh.c:2091,2096
+	9,netssh.c:2528,2533
 	0 parameters
 
 #350. 3 ncsl lines
@@ -2001,12 +2001,12 @@
 
 #351. 3 ncsl lines
 	5,dh.c:626,629
-	9,netssh.c:1840,1844
+	9,netssh.c:1811,1820
 	0 parameters
 
 #352. 3 ncsl lines
 	5,dh.c:626,629
-	9,netssh.c:1812,1821
+	9,netssh.c:1839,1843
 	0 parameters
 
 #353. 3 ncsl lines
@@ -2016,12 +2016,12 @@
 
 #354. 3 ncsl lines
 	5,dh.c:584,587
-	9,netssh.c:1840,1844
+	9,netssh.c:1811,1820
 	0 parameters
 
 #355. 3 ncsl lines
 	5,dh.c:584,587
-	9,netssh.c:1812,1821
+	9,netssh.c:1839,1843
 	0 parameters
 
 #356. 3 ncsl lines
@@ -2031,12 +2031,12 @@
 
 #357. 3 ncsl lines
 	5,dh.c:802,805
-	9,netssh.c:1840,1844
+	9,netssh.c:1811,1820
 	0 parameters
 
 #358. 3 ncsl lines
 	5,dh.c:802,805
-	9,netssh.c:1812,1821
+	9,netssh.c:1839,1843
 	0 parameters
 
 #359. 3 ncsl lines
@@ -2050,8 +2050,8 @@
 	0 parameters
 
 #361. 3 ncsl lines
-	9,netssh.c:2783,2789
-	9,netssh.c:3083,3087
+	9,netssh.c:2782,2788
+	9,netssh.c:3082,3086
 	0 parameters
 
 #362. 4 ncsl lines
@@ -2078,52 +2078,52 @@
 	0 parameters
 
 #366. 3 ncsl lines
-	10,pubkey.c:37,39
-	14,transport.c:207,209
+	9,netssh.c:1236,1238
+	9,netssh.c:2374,2376
 	0 parameters
 
 #367. 3 ncsl lines
-	10,pubkey.c:217,219
+	10,pubkey.c:37,39
 	14,transport.c:207,209
 	0 parameters
 
 #368. 3 ncsl lines
+	10,pubkey.c:217,219
+	14,transport.c:207,209
+	0 parameters
+
+#369. 3 ncsl lines
 	10,pubkey.c:37,39
 	10,pubkey.c:217,219
 	0 parameters
 
-#369. 3 ncsl lines
-	9,netssh.c:1236,1238
-	9,netssh.c:2375,2377
-	0 parameters
-
 #370. 4 ncsl lines
-	9,netssh.c:2605,2608
-	9,netssh.c:2631,2634
+	9,netssh.c:2604,2607
+	9,netssh.c:2630,2633
 	1 parameters
  	1. "received KEX algs: %s",	"received C2S crypto algs: %s"
 
 #371. 4 ncsl lines
-	9,netssh.c:2605,2608
-	9,netssh.c:2644,2647
+	9,netssh.c:2604,2607
+	9,netssh.c:2643,2646
 	1 parameters
  	1. "received KEX algs: %s",	"received S2C crypto algs: %s"
 
 #372. 4 ncsl lines
-	9,netssh.c:2605,2608
-	9,netssh.c:2657,2660
+	9,netssh.c:2604,2607
+	9,netssh.c:2656,2659
 	1 parameters
  	1. "received KEX algs: %s",	"received C2S MAC algs: %s"
 
 #373. 4 ncsl lines
-	9,netssh.c:2605,2608
-	9,netssh.c:2670,2673
+	9,netssh.c:2604,2607
+	9,netssh.c:2669,2672
 	1 parameters
  	1. "received KEX algs: %s",	"received S2C MAC algs: %s"
 
 #374. 4 ncsl lines
-	9,netssh.c:2605,2608
-	9,netssh.c:2618,2621
+	9,netssh.c:2604,2607
+	9,netssh.c:2617,2620
 	1 parameters
  	1. "received KEX algs: %s",	"received host key algs: %s"
 
@@ -2148,28 +2148,28 @@
 	0 parameters
 
 #379. 3 ncsl lines
-	9,netssh.c:2175,2177
-	9,netssh.c:2215,2217
+	9,netssh.c:2164,2166
+	9,netssh.c:2174,2176
 	0 parameters
 
 #380. 3 ncsl lines
-	9,netssh.c:2165,2167
-	9,netssh.c:2215,2217
+	9,netssh.c:2164,2166
+	9,netssh.c:2214,2216
 	0 parameters
 
 #381. 3 ncsl lines
-	9,netssh.c:2165,2167
-	9,netssh.c:2175,2177
+	9,netssh.c:2174,2176
+	9,netssh.c:2214,2216
 	0 parameters
 
 #382. 3 ncsl lines
-	9,netssh.c:2279,2281
-	9,netssh.c:2519,2521
+	9,netssh.c:2278,2280
+	9,netssh.c:2518,2520
 	0 parameters
 
 #383. 4 ncsl lines
-	9,netssh.c:2084,2088
-	9,netssh.c:2239,2243
+	9,netssh.c:2083,2087
+	9,netssh.c:2238,2242
 	1 parameters
  	1. negotiating,	established
 
@@ -2185,13 +2185,7 @@
 	1 parameters
  	1. fillinds,	dialmulti
 
-#386. 5 ncsl lines
-	5,dh.c:252,257
-	5,dh.c:396,401
-	1 parameters
- 	1. rsa_sign,	dss_sign
-
-#387. 11 ncsl lines
+#386. 11 ncsl lines
 	1,cipheraes.c:29,41
 	1,cipheraes.c:35,47
 	(overlap; region has 3 nonoverlapping matching 5-ncsl-line segments)
@@ -2201,18 +2195,24 @@
  	3. initaes192,	initaes256
  	4. 192,	256
 
-#388. 6 ncsl lines
+#387. 6 ncsl lines
 	1,cipheraes.c:29,35
 	1,cipheraes.c:41,47
 	2 parameters
  	1. initaes128,	initaes256
  	2. 128,	256
 
-#389. 5 ncsl lines
+#388. 5 ncsl lines
 	5,dh.c:213,218
 	5,dh.c:380,385
 	1 parameters
  	1. rsa_ks,	dss_ks
+
+#389. 5 ncsl lines
+	5,dh.c:252,257
+	5,dh.c:396,401
+	1 parameters
+ 	1. rsa_sign,	dss_sign
 
 #390. 6 ncsl lines
 	9,netssh.c:606,612
@@ -2239,8 +2239,8 @@
  	1. freedest,	intrcallprocs
 
 #394. 4 ncsl lines
-	9,netssh.c:2222,2226
-	9,netssh.c:2450,2454
+	9,netssh.c:2221,2225
+	9,netssh.c:2449,2453
 	1 parameters
  	1. nochans,	reader0
 
@@ -2275,16 +2275,16 @@
  	1. shutdown,	parseargs
 
 #400. 4 ncsl lines
-	0,cipher3des.c:27,31
 	6,dial.c:519,526
+	13,sshsession.c:151,155
 	1 parameters
- 	1. cs,	sl
+ 	1. sl,	0
 
 #401. 4 ncsl lines
-	0,cipher3des.c:27,31
 	7,dial.thread.c:516,523
+	13,sshsession.c:151,155
 	1 parameters
- 	1. cs,	sl
+ 	1. sl,	0
 
 #402. 4 ncsl lines
 	0,cipher3des.c:27,31
@@ -2293,16 +2293,16 @@
  	1. cs,	0
 
 #403. 4 ncsl lines
+	0,cipher3des.c:27,31
 	6,dial.c:519,526
-	13,sshsession.c:151,155
 	1 parameters
- 	1. sl,	0
+ 	1. cs,	sl
 
 #404. 4 ncsl lines
+	0,cipher3des.c:27,31
 	7,dial.thread.c:516,523
-	13,sshsession.c:151,155
 	1 parameters
- 	1. sl,	0
+ 	1. cs,	sl
 
 #405. 6 ncsl lines
 	5,dh.c:496,501
@@ -2310,18 +2310,18 @@
 	0 parameters
 
 #406. 3 ncsl lines
-	9,netssh.c:2237,2239
-	9,netssh.c:2388,2390
+	9,netssh.c:2236,2238
+	9,netssh.c:2387,2389
 	0 parameters
 
 #407. 3 ncsl lines
 	5,dh.c:797,799
-	9,netssh.c:600,602
+	9,netssh.c:1229,1231
 	0 parameters
 
 #408. 3 ncsl lines
 	5,dh.c:797,799
-	9,netssh.c:1229,1231
+	9,netssh.c:600,602
 	0 parameters
 
 #409. 3 ncsl lines
@@ -2331,12 +2331,12 @@
 
 #410. 3 ncsl lines
 	5,dh.c:581,583
-	9,netssh.c:600,602
+	9,netssh.c:1229,1231
 	0 parameters
 
 #411. 3 ncsl lines
 	5,dh.c:581,583
-	9,netssh.c:1229,1231
+	9,netssh.c:600,602
 	0 parameters
 
 #412. 3 ncsl lines
@@ -2350,13 +2350,13 @@
 	0 parameters
 
 #414. 3 ncsl lines
-	9,netssh.c:600,602
 	9,netssh.c:1213,1215
+	9,netssh.c:1229,1231
 	0 parameters
 
 #415. 3 ncsl lines
+	9,netssh.c:600,602
 	9,netssh.c:1213,1215
-	9,netssh.c:1229,1231
 	0 parameters
 
 #416. 3 ncsl lines
@@ -2376,51 +2376,51 @@
  	1. fd,	nfd
 
 #419. 3 ncsl lines
+	12,ssh.c:186,188
+	12,ssh.c:190,194
+	0 parameters
+
+#420. 3 ncsl lines
 	9,netssh.c:817,819
 	9,netssh.c:828,830
 	0 parameters
 
-#420. 4 ncsl lines
+#421. 4 ncsl lines
 	9,netssh.c:602,605
 	9,netssh.c:875,878
 	1 parameters
  	1. p,	d
 
-#421. 4 ncsl lines
+#422. 4 ncsl lines
 	12,ssh.c:150,154
 	12,ssh.c:281,286
 	1 parameters
  	1. fd,	kconsfd
 
-#422. 9 ncsl lines
+#423. 9 ncsl lines
 	9,netssh.c:1095,1104
 	9,netssh.c:1283,1291
 	1 parameters
  	1. Numbsz,	10
 
-#423. 3 ncsl lines
+#424. 3 ncsl lines
 	9,netssh.c:1095,1097
 	9,netssh.c:1389,1391
 	0 parameters
 
-#424. 3 ncsl lines
-	9,netssh.c:1932,1934
-	9,netssh.c:2005,2007
-	0 parameters
-
 #425. 3 ncsl lines
-	6,dial.c:347,349
-	7,dial.thread.c:377,379
-	0 parameters
-
-#426. 3 ncsl lines
 	6,dial.c:347,349
 	6,dial.c:371,373
 	0 parameters
 
+#426. 3 ncsl lines
+	6,dial.c:347,349
+	7,dial.thread.c:377,379
+	0 parameters
+
 #427. 3 ncsl lines
-	12,ssh.c:186,188
-	12,ssh.c:190,194
+	9,netssh.c:1931,1933
+	9,netssh.c:2004,2006
 	0 parameters
 
 #428. 4 ncsl lines
@@ -2429,20 +2429,20 @@
 	1 parameters
  	1. winner,	naddrs
 
-#429. 5 ncsl lines
+#429. 3 ncsl lines
+	9,netssh.c:837,839
+	9,netssh.c:844,846
+	0 parameters
+
+#430. 5 ncsl lines
 	9,netssh.c:1320,1328
 	9,netssh.c:1349,1353
 	1 parameters
  	1. "pty-req",	"exec"
 
-#430. 3 ncsl lines
-	9,netssh.c:837,839
-	9,netssh.c:844,846
-	0 parameters
-
 #431. 3 ncsl lines
-	9,netssh.c:1866,1870
-	9,netssh.c:1975,1979
+	9,netssh.c:1865,1869
+	9,netssh.c:1974,1978
 	0 parameters
 
 #432. 7 ncsl lines
@@ -2470,8 +2470,8 @@
  	2. "EE386BFB5A899FA5AE9F24117C4B1FE649286651ECE65381",	"EE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3D"
 
 #436. 16 ncsl lines
-	9,netssh.c:2740,2757
-	9,netssh.c:2751,2768
+	9,netssh.c:2739,2756
+	9,netssh.c:2750,2767
 	(overlap; region has 2 nonoverlapping matching 10-ncsl-line segments)
 	4 parameters
  	1. foundc2,	foundm1
@@ -2480,59 +2480,59 @@
  	4. ncsmac,	nscmac
 
 #437. 9 ncsl lines
-	9,netssh.c:2730,2738
-	9,netssh.c:2751,2760
+	9,netssh.c:2729,2737
+	9,netssh.c:2750,2759
 	3 parameters
  	1. foundc1,	foundm1
  	2. ncscrypt,	ncsmac
  	3. cryptos,	macnames
 
 #438. 9 ncsl lines
-	9,netssh.c:2719,2728
-	9,netssh.c:2751,2760
+	9,netssh.c:2718,2727
+	9,netssh.c:2750,2759
 	3 parameters
  	1. foundpka,	foundm1
  	2. pkalg,	ncsmac
  	3. cryptos,	macnames
 
 #439. 7 ncsl lines
-	9,netssh.c:2708,2715
-	9,netssh.c:2751,2758
+	9,netssh.c:2707,2714
+	9,netssh.c:2750,2757
 	2 parameters
  	1. foundk,	foundm1
  	2. kexalg,	ncsmac
 
 #440. 6 ncsl lines
-	9,netssh.c:2730,2735
-	9,netssh.c:2762,2768
-	2 parameters
- 	1. foundc1,	foundm2
- 	2. ncscrypt,	nscmac
-
-#441. 6 ncsl lines
-	9,netssh.c:2719,2725
-	9,netssh.c:2762,2768
-	2 parameters
- 	1. foundpka,	foundm2
- 	2. pkalg,	nscmac
-
-#442. 6 ncsl lines
-	9,netssh.c:2740,2746
-	9,netssh.c:2762,2768
-	2 parameters
- 	1. foundc2,	foundm2
- 	2. nsccrypt,	nscmac
-
-#443. 6 ncsl lines
-	9,netssh.c:2708,2714
-	9,netssh.c:2762,2768
+	9,netssh.c:2707,2713
+	9,netssh.c:2761,2767
 	2 parameters
  	1. foundk,	foundm2
  	2. kexalg,	nscmac
 
+#441. 6 ncsl lines
+	9,netssh.c:2729,2734
+	9,netssh.c:2761,2767
+	2 parameters
+ 	1. foundc1,	foundm2
+ 	2. ncscrypt,	nscmac
+
+#442. 6 ncsl lines
+	9,netssh.c:2718,2724
+	9,netssh.c:2761,2767
+	2 parameters
+ 	1. foundpka,	foundm2
+ 	2. pkalg,	nscmac
+
+#443. 6 ncsl lines
+	9,netssh.c:2739,2745
+	9,netssh.c:2761,2767
+	2 parameters
+ 	1. foundc2,	foundm2
+ 	2. nsccrypt,	nscmac
+
 #444. 19 ncsl lines
-	9,netssh.c:2650,2670
-	9,netssh.c:2663,2683
+	9,netssh.c:2649,2669
+	9,netssh.c:2662,2682
 	(overlap; region has 2 nonoverlapping matching 12-ncsl-line segments)
 	7 parameters
  	1. foundc2,	foundm1
@@ -2544,148 +2544,148 @@
  	7. ncsmac,	nscmac
 
 #445. 10 ncsl lines
-	9,netssh.c:2611,2621
-	9,netssh.c:2663,2673
+	9,netssh.c:2610,2620
+	9,netssh.c:2662,2672
 	4 parameters
  	1. foundk,	foundm1
  	2. "kex algs not in kexes",	"c2s mac algs not in cryptos"
  	3. kexalg,	ncsmac
  	4. "received host key algs: %s",	"received S2C MAC algs: %s"
 
-#446. 3 ncsl lines
-	5,dh.c:511,513
-	5,dh.c:727,729
-	0 parameters
+#446. 4 ncsl lines
+	9,netssh.c:674,677
+	9,netssh.c:732,735
+	1 parameters
+ 	1. "deferredinit failed",	nil
 
 #447. 4 ncsl lines
-	9,netssh.c:969,972
+	9,netssh.c:674,677
 	9,netssh.c:979,982
 	1 parameters
  	1. "deferredinit failed",	nil
 
 #448. 4 ncsl lines
+	9,netssh.c:969,972
+	9,netssh.c:979,982
+	1 parameters
+ 	1. "deferredinit failed",	nil
+
+#449. 4 ncsl lines
 	9,netssh.c:732,735
 	9,netssh.c:969,972
 	1 parameters
  	1. nil,	"deferredinit failed"
 
-#449. 4 ncsl lines
-	9,netssh.c:674,677
-	9,netssh.c:732,735
-	1 parameters
- 	1. "deferredinit failed",	nil
-
-#450. 4 ncsl lines
-	9,netssh.c:674,677
-	9,netssh.c:979,982
-	1 parameters
- 	1. "deferredinit failed",	nil
+#450. 3 ncsl lines
+	9,netssh.c:667,669
+	9,netssh.c:979,981
+	0 parameters
 
 #451. 3 ncsl lines
+	9,netssh.c:667,669
 	9,netssh.c:732,734
-	9,netssh.c:845,847
 	0 parameters
 
 #452. 3 ncsl lines
-	9,netssh.c:845,847
+	9,netssh.c:680,682
 	9,netssh.c:979,981
 	0 parameters
 
 #453. 3 ncsl lines
-	9,netssh.c:667,669
+	9,netssh.c:680,682
 	9,netssh.c:732,734
 	0 parameters
 
 #454. 3 ncsl lines
-	9,netssh.c:667,669
+	9,netssh.c:878,880
 	9,netssh.c:979,981
 	0 parameters
 
 #455. 3 ncsl lines
-	9,netssh.c:680,682
 	9,netssh.c:732,734
+	9,netssh.c:878,880
 	0 parameters
 
 #456. 3 ncsl lines
-	9,netssh.c:680,682
+	9,netssh.c:637,639
 	9,netssh.c:979,981
 	0 parameters
 
 #457. 3 ncsl lines
+	9,netssh.c:637,639
 	9,netssh.c:732,734
-	9,netssh.c:878,880
 	0 parameters
 
 #458. 3 ncsl lines
-	9,netssh.c:878,880
+	9,netssh.c:659,661
 	9,netssh.c:979,981
 	0 parameters
 
 #459. 3 ncsl lines
-	9,netssh.c:637,639
+	9,netssh.c:659,661
 	9,netssh.c:732,734
 	0 parameters
 
 #460. 3 ncsl lines
-	9,netssh.c:637,639
+	9,netssh.c:963,965
 	9,netssh.c:979,981
 	0 parameters
 
 #461. 3 ncsl lines
-	9,netssh.c:659,661
 	9,netssh.c:732,734
+	9,netssh.c:963,965
 	0 parameters
 
 #462. 3 ncsl lines
-	9,netssh.c:659,661
+	9,netssh.c:845,847
 	9,netssh.c:979,981
 	0 parameters
 
 #463. 3 ncsl lines
 	9,netssh.c:732,734
-	9,netssh.c:963,965
+	9,netssh.c:845,847
 	0 parameters
 
-#464. 3 ncsl lines
-	9,netssh.c:963,965
-	9,netssh.c:979,981
-	0 parameters
-
-#465. 4 ncsl lines
+#464. 4 ncsl lines
 	9,netssh.c:1325,1328
 	9,netssh.c:1342,1345
 	1 parameters
  	1. "pty-req",	"shell"
 
-#466. 4 ncsl lines
+#465. 4 ncsl lines
 	9,netssh.c:1342,1345
 	9,netssh.c:1350,1353
 	1 parameters
  	1. "shell",	"exec"
 
-#467. 4 ncsl lines
+#466. 4 ncsl lines
 	5,dh.c:175,178
 	5,dh.c:196,199
 	1 parameters
  	1. "no key (p) found",	"no key (y) found"
 
-#468. 4 ncsl lines
+#467. 4 ncsl lines
 	5,dh.c:175,178
 	5,dh.c:189,192
 	1 parameters
  	1. "no key (p) found",	"no key (g) found"
 
-#469. 4 ncsl lines
+#468. 4 ncsl lines
 	5,dh.c:175,178
 	5,dh.c:182,185
 	1 parameters
  	1. "no key (p) found",	"no key (q) found"
 
-#470. 4 ncsl lines
+#469. 4 ncsl lines
 	5,dh.c:108,111
 	5,dh.c:175,178
 	1 parameters
  	1. "no key (n) found",	"no key (p) found"
+
+#470. 3 ncsl lines
+	5,dh.c:511,513
+	5,dh.c:727,729
+	0 parameters
 
 #471. 5 ncsl lines
 	5,dh.c:107,111
@@ -2724,24 +2724,24 @@
 
 #477. 6 ncsl lines
 	9,netssh.c:944,949
-	9,netssh.c:1277,1282
-	1 parameters
- 	1. "invalid connection",	"Invalid connection"
-
-#478. 6 ncsl lines
-	9,netssh.c:944,949
 	9,netssh.c:1087,1093
 	1 parameters
  	1. "invalid connection",	"bad connection"
 
+#478. 6 ncsl lines
+	9,netssh.c:944,949
+	9,netssh.c:1277,1282
+	1 parameters
+ 	1. "invalid connection",	"Invalid connection"
+
 #479. 5 ncsl lines
 	9,netssh.c:618,622
-	9,netssh.c:1087,1092
+	9,netssh.c:1277,1281
 	0 parameters
 
 #480. 5 ncsl lines
 	9,netssh.c:618,622
-	9,netssh.c:1277,1281
+	9,netssh.c:1087,1092
 	0 parameters
 
 #481. 5 ncsl lines
@@ -2756,7 +2756,7 @@
 
 #483. 3 ncsl lines
 	6,dial.c:202,204
-	9,netssh.c:2689,2691
+	9,netssh.c:2688,2690
 	0 parameters
 
 #484. 6 ncsl lines
@@ -2767,8 +2767,8 @@
  	2. dh_client11,	dh_client141
 
 #485. 5 ncsl lines
-	9,netssh.c:1812,1823
-	9,netssh.c:1840,1846
+	9,netssh.c:1811,1822
+	9,netssh.c:1839,1845
 	1 parameters
  	1. negotiate,	deferredinit
 
@@ -2778,17 +2778,17 @@
 	0 parameters
 
 #487. 3 ncsl lines
-	5,dh.c:445,448
+	5,dh.c:626,629
 	6,dial.c:203,206
 	0 parameters
 
 #488. 3 ncsl lines
-	5,dh.c:584,587
+	5,dh.c:445,448
 	6,dial.c:203,206
 	0 parameters
 
 #489. 3 ncsl lines
-	5,dh.c:626,629
+	5,dh.c:584,587
 	6,dial.c:203,206
 	0 parameters
 
@@ -2798,8 +2798,8 @@
 	0 parameters
 
 #491. 3 ncsl lines
-	9,netssh.c:2690,2693
-	9,netssh.c:2930,2933
+	9,netssh.c:2689,2692
+	9,netssh.c:2929,2932
 	0 parameters
 
 #492. 4 ncsl lines
@@ -2808,22 +2808,22 @@
 	0 parameters
 
 #493. 7 ncsl lines
-	9,netssh.c:2886,2892
-	9,netssh.c:2900,2906
+	9,netssh.c:2885,2891
+	9,netssh.c:2899,2905
 	0 parameters
 
 #494. 3 ncsl lines
-	9,netssh.c:1808,1810
+	9,netssh.c:1807,1809
 	14,transport.c:207,209
 	0 parameters
 
 #495. 3 ncsl lines
-	9,netssh.c:1808,1810
+	9,netssh.c:1807,1809
 	10,pubkey.c:37,39
 	0 parameters
 
 #496. 3 ncsl lines
-	9,netssh.c:1808,1810
+	9,netssh.c:1807,1809
 	10,pubkey.c:217,219
 	0 parameters
 
@@ -2834,101 +2834,93 @@
 
 #498. 4 ncsl lines
 	5,dh.c:558,562
-	9,netssh.c:1697,1701
+	9,netssh.c:1696,1700
 	1 parameters
  	1. ret,	sc
 
 #499. 5 ncsl lines
-	9,netssh.c:2175,2179
-	9,netssh.c:2548,2552
+	9,netssh.c:2174,2178
+	9,netssh.c:2547,2551
 	1 parameters
  	1. SSH_MSG_SERVICE_REQUEST,	SSH_MSG_USERAUTH_SUCCESS
 
 #500. 3 ncsl lines
-	9,netssh.c:2165,2167
-	9,netssh.c:2548,2550
+	9,netssh.c:2214,2216
+	9,netssh.c:2547,2549
 	0 parameters
 
 #501. 3 ncsl lines
-	9,netssh.c:2215,2217
-	9,netssh.c:2548,2550
+	9,netssh.c:2164,2166
+	9,netssh.c:2547,2549
 	0 parameters
 
-#502. 11 ncsl lines
-	9,netssh.c:2717,2728
-	9,netssh.c:2738,2749
-	4 parameters
- 	1. pkas,	cryptos
- 	2. foundpka,	foundc2
- 	3. pkalg,	nsccrypt
- 	4. cryptos,	macnames
-
-#503. 9 ncsl lines
-	9,netssh.c:2717,2726
-	9,netssh.c:2728,2736
-	3 parameters
- 	1. pkas,	cryptos
- 	2. foundpka,	foundc1
- 	3. pkalg,	ncscrypt
-
-#504. 9 ncsl lines
-	9,netssh.c:2706,2715
-	9,netssh.c:2717,2726
-	3 parameters
- 	1. kexes,	pkas
- 	2. foundk,	foundpka
- 	3. kexalg,	pkalg
-
-#505. 7 ncsl lines
+#502. 7 ncsl lines
 	9,netssh.c:1279,1285
 	9,netssh.c:1385,1391
 	0 parameters
 
-#506. 6 ncsl lines
+#503. 6 ncsl lines
 	9,netssh.c:370,375
 	9,netssh.c:946,951
 	1 parameters
  	1. "bad connection",	"invalid connection"
 
-#507. 4 ncsl lines
-	9,netssh.c:946,949
+#504. 4 ncsl lines
+	9,netssh.c:370,373
 	9,netssh.c:1385,1388
 	1 parameters
- 	1. "invalid connection",	"Invalid connection"
+ 	1. "bad connection",	"Invalid connection"
 
-#508. 4 ncsl lines
+#505. 4 ncsl lines
 	9,netssh.c:370,373
 	9,netssh.c:1279,1282
 	1 parameters
  	1. "bad connection",	"Invalid connection"
 
-#509. 4 ncsl lines
-	9,netssh.c:370,373
+#506. 4 ncsl lines
+	9,netssh.c:946,949
 	9,netssh.c:1385,1388
 	1 parameters
- 	1. "bad connection",	"Invalid connection"
+ 	1. "invalid connection",	"Invalid connection"
 
-#510. 7 ncsl lines
+#507. 7 ncsl lines
+	9,netssh.c:896,902
+	9,netssh.c:1089,1096
+	0 parameters
+
+#508. 7 ncsl lines
 	9,netssh.c:502,508
 	9,netssh.c:1089,1096
 	1 parameters
  	1. "bad channel",	"bad connection"
 
-#511. 7 ncsl lines
-	9,netssh.c:896,902
-	9,netssh.c:1089,1096
-	0 parameters
-
-#512. 4 ncsl lines
+#509. 4 ncsl lines
 	9,netssh.c:1089,1093
 	9,netssh.c:1385,1388
 	1 parameters
  	1. "bad connection",	"Invalid connection"
 
-#513. 4 ncsl lines
+#510. 4 ncsl lines
 	9,netssh.c:370,373
 	9,netssh.c:1089,1093
 	0 parameters
+
+#511. 4 ncsl lines
+	9,netssh.c:370,373
+	9,netssh.c:502,505
+	1 parameters
+ 	1. "bad connection",	"bad channel"
+
+#512. 4 ncsl lines
+	9,netssh.c:370,373
+	9,netssh.c:896,899
+	0 parameters
+
+#513. 4 ncsl lines
+	9,netssh.c:502,505
+	9,netssh.c:946,949
+	1 parameters
+ 	1. "bad channel",	"invalid connection"
 
 #514. 4 ncsl lines
 	9,netssh.c:896,899
@@ -2938,9 +2930,9 @@
 
 #515. 4 ncsl lines
 	9,netssh.c:502,505
-	9,netssh.c:946,949
+	9,netssh.c:1279,1282
 	1 parameters
- 	1. "bad channel",	"invalid connection"
+ 	1. "bad channel",	"Invalid connection"
 
 #516. 4 ncsl lines
 	9,netssh.c:896,899
@@ -2948,36 +2940,34 @@
 	1 parameters
  	1. "bad connection",	"Invalid connection"
 
-#517. 4 ncsl lines
-	9,netssh.c:502,505
-	9,netssh.c:1279,1282
-	1 parameters
- 	1. "bad channel",	"Invalid connection"
-
-#518. 4 ncsl lines
-	9,netssh.c:370,373
-	9,netssh.c:896,899
-	0 parameters
-
-#519. 4 ncsl lines
-	9,netssh.c:370,373
-	9,netssh.c:502,505
-	1 parameters
- 	1. "bad connection",	"bad channel"
-
-#520. 3 ncsl lines
+#517. 3 ncsl lines
 	9,netssh.c:370,372
-	9,netssh.c:752,754
+	9,netssh.c:620,622
 	0 parameters
 
-#521. 3 ncsl lines
-	9,netssh.c:752,754
+#518. 3 ncsl lines
+	9,netssh.c:502,504
+	9,netssh.c:620,622
+	0 parameters
+
+#519. 3 ncsl lines
+	9,netssh.c:620,622
 	9,netssh.c:896,898
 	0 parameters
 
-#522. 3 ncsl lines
+#520. 3 ncsl lines
+	9,netssh.c:620,622
+	9,netssh.c:1385,1387
+	0 parameters
+
+#521. 3 ncsl lines
 	9,netssh.c:502,504
 	9,netssh.c:752,754
+	0 parameters
+
+#522. 3 ncsl lines
+	9,netssh.c:752,754
+	9,netssh.c:896,898
 	0 parameters
 
 #523. 3 ncsl lines
@@ -2987,23 +2977,33 @@
 
 #524. 3 ncsl lines
 	9,netssh.c:370,372
-	9,netssh.c:620,622
+	9,netssh.c:752,754
 	0 parameters
 
-#525. 3 ncsl lines
-	9,netssh.c:620,622
-	9,netssh.c:896,898
-	0 parameters
+#525. 11 ncsl lines
+	9,netssh.c:2716,2727
+	9,netssh.c:2737,2748
+	4 parameters
+ 	1. pkas,	cryptos
+ 	2. foundpka,	foundc2
+ 	3. pkalg,	nsccrypt
+ 	4. cryptos,	macnames
 
-#526. 3 ncsl lines
-	9,netssh.c:502,504
-	9,netssh.c:620,622
-	0 parameters
+#526. 9 ncsl lines
+	9,netssh.c:2716,2725
+	9,netssh.c:2727,2735
+	3 parameters
+ 	1. pkas,	cryptos
+ 	2. foundpka,	foundc1
+ 	3. pkalg,	ncscrypt
 
-#527. 3 ncsl lines
-	9,netssh.c:620,622
-	9,netssh.c:1385,1387
-	0 parameters
+#527. 9 ncsl lines
+	9,netssh.c:2705,2714
+	9,netssh.c:2716,2725
+	3 parameters
+ 	1. kexes,	pkas
+ 	2. foundk,	foundpka
+ 	3. kexalg,	pkalg
 
 #528. 5 ncsl lines
 	9,netssh.c:177,181
@@ -3012,8 +3012,8 @@
  	1. 'k',	'I'
 
 #529. 4 ncsl lines
-	9,netssh.c:2369,2372
-	9,netssh.c:2407,2410
+	9,netssh.c:2368,2371
+	9,netssh.c:2406,2409
 	1 parameters
  	1. SSH_MSG_CHANNEL_EOF,	SSH_MSG_CHANNEL_REQUEST
 
@@ -3040,7 +3040,7 @@
 
 #534. 3 ncsl lines
 	9,netssh.c:802,804
-	9,netssh.c:2218,2220
+	9,netssh.c:2217,2219
 	0 parameters
 
 #535. 7 ncsl lines
@@ -3191,28 +3191,29 @@
 	9,netssh.c:805,807
 	0 parameters
 
-#564. 4 ncsl lines
-	11,rsa2ssh2.c:20,24
-	12,ssh.c:472,476
-	0 parameters
-
-#565. 4 ncsl lines
-	9,netssh.c:164,168
-	12,ssh.c:472,476
-	1 parameters
- 	1. threadmain,	main
-
-#566. 6 ncsl lines
+#564. 6 ncsl lines
 	9,netssh.c:123,129
 	9,netssh.c:139,145
 	1 parameters
  	1. sshlog,	sshdebug
 
-#567. 4 ncsl lines
-	14,transport.c:22,26
-	14,transport.c:214,218
+#565. 4 ncsl lines
+	9,netssh.c:401,405
+	9,netssh.c:735,739
 	1 parameters
- 	1. init_packet,	dump_packet
+ 	1. stlisconn,	readreqrem
+
+#566. 4 ncsl lines
+	9,netssh.c:401,405
+	9,netssh.c:2564,2568
+	1 parameters
+ 	1. stlisconn,	reader
+
+#567. 4 ncsl lines
+	9,netssh.c:933,937
+	9,netssh.c:1506,1510
+	1 parameters
+ 	1. stwrite,	stflush
 
 #568. 4 ncsl lines
 	9,netssh.c:606,610
@@ -3221,28 +3222,27 @@
  	1. stread,	stflush
 
 #569. 4 ncsl lines
-	9,netssh.c:933,937
-	9,netssh.c:1506,1510
-	1 parameters
- 	1. stwrite,	stflush
-
-#570. 4 ncsl lines
 	9,netssh.c:322,326
 	9,netssh.c:1506,1510
 	1 parameters
  	1. stopen,	stflush
 
-#571. 4 ncsl lines
-	9,netssh.c:401,405
-	9,netssh.c:2565,2569
+#570. 4 ncsl lines
+	14,transport.c:22,26
+	14,transport.c:214,218
 	1 parameters
- 	1. stlisconn,	reader
+ 	1. init_packet,	dump_packet
+
+#571. 4 ncsl lines
+	11,rsa2ssh2.c:20,24
+	12,ssh.c:472,476
+	0 parameters
 
 #572. 4 ncsl lines
-	9,netssh.c:401,405
-	9,netssh.c:735,739
+	9,netssh.c:164,168
+	12,ssh.c:472,476
 	1 parameters
- 	1. stlisconn,	readreqrem
+ 	1. threadmain,	main
 
 #573. 4 ncsl lines
 	12,ssh.c:283,288
@@ -3400,97 +3400,97 @@
  	3. read,	write
 
 #598. 11 ncsl lines
-	9,netssh.c:2592,2605
-	9,netssh.c:2691,2703
+	9,netssh.c:2591,2604
+	9,netssh.c:2690,2702
 	1 parameters
  	1. validatekexs,	validatekexc
 
-#599. 4 ncsl lines
+#599. 3 ncsl lines
+	9,netssh.c:387,389
+	9,netssh.c:728,730
+	0 parameters
+
+#600. 4 ncsl lines
 	9,netssh.c:654,657
 	9,netssh.c:716,719
 	1 parameters
  	1. Qclone,	Qtcp
 
-#600. 4 ncsl lines
+#601. 4 ncsl lines
 	9,netssh.c:654,657
 	9,netssh.c:697,700
 	1 parameters
  	1. Qclone,	Qreqrem
 
-#601. 4 ncsl lines
+#602. 4 ncsl lines
 	9,netssh.c:697,700
 	9,netssh.c:716,719
 	1 parameters
  	1. Qreqrem,	Qtcp
 
-#602. 3 ncsl lines
-	9,netssh.c:387,389
-	9,netssh.c:654,656
-	0 parameters
-
 #603. 3 ncsl lines
-	9,netssh.c:387,389
-	9,netssh.c:697,699
-	0 parameters
-
-#604. 3 ncsl lines
-	9,netssh.c:654,656
-	9,netssh.c:728,730
-	0 parameters
-
-#605. 3 ncsl lines
-	9,netssh.c:387,389
-	9,netssh.c:728,730
-	0 parameters
-
-#606. 3 ncsl lines
 	9,netssh.c:716,718
 	9,netssh.c:728,730
 	0 parameters
 
+#604. 3 ncsl lines
+	9,netssh.c:387,389
+	9,netssh.c:654,656
+	0 parameters
+
+#605. 3 ncsl lines
+	9,netssh.c:654,656
+	9,netssh.c:728,730
+	0 parameters
+
+#606. 3 ncsl lines
+	9,netssh.c:387,389
+	9,netssh.c:697,699
+	0 parameters
+
 #607. 4 ncsl lines
-	6,dial.c:519,526
-	9,netssh.c:2434,2438
-	1 parameters
- 	1. sl,	0
+	9,netssh.c:2433,2437
+	13,sshsession.c:151,155
+	0 parameters
 
 #608. 4 ncsl lines
-	7,dial.thread.c:516,523
-	9,netssh.c:2434,2438
+	6,dial.c:519,526
+	9,netssh.c:2433,2437
 	1 parameters
  	1. sl,	0
 
 #609. 4 ncsl lines
-	9,netssh.c:2434,2438
-	13,sshsession.c:151,155
-	0 parameters
+	7,dial.thread.c:516,523
+	9,netssh.c:2433,2437
+	1 parameters
+ 	1. sl,	0
 
 #610. 4 ncsl lines
-	9,netssh.c:2220,2224
-	13,sshsession.c:151,155
-	0 parameters
+	6,dial.c:519,526
+	9,netssh.c:2219,2223
+	1 parameters
+ 	1. sl,	0
 
 #611. 4 ncsl lines
-	6,dial.c:519,526
-	9,netssh.c:2220,2224
+	7,dial.thread.c:516,523
+	9,netssh.c:2219,2223
 	1 parameters
  	1. sl,	0
 
 #612. 4 ncsl lines
-	7,dial.thread.c:516,523
-	9,netssh.c:2220,2224
-	1 parameters
- 	1. sl,	0
+	9,netssh.c:2219,2223
+	13,sshsession.c:151,155
+	0 parameters
 
 #613. 4 ncsl lines
 	0,cipher3des.c:27,31
-	9,netssh.c:2220,2224
+	9,netssh.c:2219,2223
 	1 parameters
  	1. cs,	0
 
 #614. 4 ncsl lines
 	0,cipher3des.c:27,31
-	9,netssh.c:2434,2438
+	9,netssh.c:2433,2437
 	1 parameters
  	1. cs,	0
 
