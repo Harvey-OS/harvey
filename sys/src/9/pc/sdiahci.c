@@ -1823,8 +1823,7 @@ iaahcimode(Pcidev *p)
 {
 	dprint("iaahcimode: %ux %ux %ux\n", pcicfgr8(p, 0x91), pcicfgr8(p, 92),
 		pcicfgr8(p, 93));
-	pcicfgw16(p, 0x92, pcicfgr32(p, 0x92) | 0xf);	/* ports 0-3 */
-//	pcicfgw8(p, 0x93, pcicfgr32(p, 9x93) | 3);	/* ports 4-5 */
+	pcicfgw16(p, 0x92, pcicfgr16(p, 0x92) | 0x3f);	/* ports 0-5 */
 	return 0;
 }
 
@@ -1838,7 +1837,7 @@ iasetupahci(Ctlr *c)
 	c->lmmio[0x4/4] |= 1 << 31;	/* enable ahci mode (ghc register) */
 	c->lmmio[0xc/4] = (1 << 6) - 1;	/* 5 ports. (supposedly ro pi reg.) */
 
-	/* enable ahci mode; from ich9 datasheet */
+	/* enable ahci mode and 6 ports; from ich9 datasheet */
 	pcicfgw16(c->pci, 0x90, 1<<6 | 1<<5);
 }
 
@@ -1946,7 +1945,6 @@ iapnp(void)
 	memset(olds, 0xff, sizeof olds);
 	p = nil;
 	head = tail = nil;
-loop:
 	while((p = pcimatch(p, 0, 0)) != nil){
 		type = didtype(p);
 		if (type == -1 || p->mem[Abar].bar == 0)
@@ -1989,7 +1987,7 @@ loop:
 		}
 		n = newctlr(c, s, nunit);
 		if(n < 0)
-			goto loop;
+			continue;
 		niadrive += n;
 		niactlr++;
 		if(head)

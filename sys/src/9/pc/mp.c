@@ -736,8 +736,8 @@ mpintrenablex(Vctl* v, int tbdf)
 	}
 	if(bus == nil){
 		typenm = type < 0 || type >= nelem(buses)? "": buses[type];
-		panic("mpintrenablex: can't find bus type %d (%s) for "
-			"irq %d %s busno %d", type, typenm, v->irq, v->name, bno);
+		print("mpintrenablex: can't find bus type %d (%s) for irq %d "
+			"%s busno %d\n", type, typenm, v->irq, v->name, bno);
 		return -1;
 	}
 

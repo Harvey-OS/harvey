@@ -1520,8 +1520,7 @@ stflush(Req *r)
 		or->fid->file->name, or->aux);
 	if (!or->aux)
 		respond(or, "interrupted");
-	else if (or->ifcall.type == Topen && (qidpath & Qtypemask) == Qlisten &&
-	    (qidpath >> Levshift) == Connection ||
+	else if (or->ifcall.type == Topen && (qidpath & Qtypemask) == Qlisten ||
 	    or->ifcall.type == Tread && (qidpath & Qtypemask) == Qdata &&
 	    (qidpath >> Levshift) == Subchannel ||
 	    or->ifcall.type == Tread && (qidpath & Qtypemask) == Qreqrem)
