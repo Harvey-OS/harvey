@@ -1,9 +1,3 @@
 set -e
-
-if [ -f $NXM/xbin/ar ]; then
-	rm -f $NXM/xbin/ar
-fi
-
-if [ -f $NXM/xbin/nm ]; then
-	rm -f $NXM/xbin/nm
-fi
+rm -f $NXM/xbin/ar
+rm -f $NXM/xbin/nm
