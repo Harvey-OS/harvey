@@ -82,17 +82,6 @@ linuxsyscall(unsigned int, Ureg* ureg)
 	if(!waserror()){
 		int printarg;
 		char *name = scallnr < nlinuxsyscall ? linuxsystab[scallnr].n : "Unknown";
-		if(scallnr >= nlinuxsyscall || linuxsystab[scallnr].f == nil){
-			pprint("bad linux sys call number %d(%s) pc %#ullx max %d\n",
-				scallnr, name, ureg->ip, nlinuxsyscall);
-			postnote(up, 1, "sys: bad sys call", NDebug);
-			error(Ebadarg);
-		}
-
-		if(sp < (USTKTOP-BIGPGSZ) || sp > (USTKTOP-sizeof(up->arg)-BY2SE))
-			validaddr(UINT2PTR(sp), sizeof(up->arg)+BY2SE, 0);
-
-		up->psstate = linuxsystab[scallnr].n;
 
 		linuxargs[0] = ureg->di;
 		linuxargs[1] = ureg->si;
@@ -100,6 +89,30 @@ linuxsyscall(unsigned int, Ureg* ureg)
 		linuxargs[3] = ureg->r10;
 		linuxargs[4] = ureg->r8;
 		linuxargs[5] = ureg->r9;
+
+		if(scallnr >= nlinuxsyscall){
+			pprint("bad linux sys call number %d(%s) pc %#ullx max %d\n",
+				scallnr, name, ureg->ip, nlinuxsyscall);
+			postnote(up, 1, "sys: bad sys call", NDebug);
+			error(Ebadarg);
+		}
+
+		if(linuxsystab[scallnr].f == nil){
+			char badsys[ERRMAX];
+			pprint("bad linux sys call number %d(%s) pc %#ullx max %d\n",
+				scallnr, name, ureg->ip, nlinuxsyscall);
+			sprint(badsys, "linux:%d %#ullx %#ullx %#ullx %#ullx %#ullx %#ullx", 
+				scallnr,
+				linuxargs[0], linuxargs[1], linuxargs[2],
+				linuxargs[3], linuxargs[4], linuxargs[5]);
+			postnote(up, 1, badsys, NDebug);
+			error(Ebadarg);
+		}
+
+		if(sp < (USTKTOP-BIGPGSZ) || sp > (USTKTOP-sizeof(up->arg)-BY2SE))
+			validaddr(UINT2PTR(sp), sizeof(up->arg)+BY2SE, 0);
+
+		up->psstate = linuxsystab[scallnr].n;
 
 		if (up->attr & 16) {print("%d:linux: %s: pc %#p ", up->pid, linuxsystab[scallnr].n,(void *)ureg->ip);
 			for(printarg = 0; printarg < linuxsystab[scallnr].narg; printarg++)
