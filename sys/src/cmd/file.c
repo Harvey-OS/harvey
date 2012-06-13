@@ -607,10 +607,11 @@ Filemagic long0tab[] = {
 	/* 0xcafebabe */
 	0xbebafeca,	0xFFFFFFFF,	"Mach-O universal executable\n", OCTET,
 	/*
-	 * venti & fossil magic numbers are stored big-endian on disk,
+	 * these magic numbers are stored big-endian on disk,
 	 * thus the numbers appear reversed in this table.
 	 */
 	0xad4e5cd1,	0xFFFFFFFF,	"venti arena\n", OCTET,
+	0x2bb19a52,	0xFFFFFFFF,	"paq archive\n", OCTET,
 };
 
 int
@@ -644,7 +645,7 @@ struct Fileoffmag {
  */
 Fileoffmag longofftab[] = {
 	/*
-	 * venti & fossil magic numbers are stored big-endian on disk,
+	 * these magic numbers are stored big-endian on disk,
 	 * thus the numbers appear reversed in this table.
 	 */
 	256*1024, 0xe7a5e4a9, 0xFFFFFFFF, "venti arenas partition\n", OCTET,

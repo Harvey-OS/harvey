@@ -70,5 +70,4 @@ sectors.
 .B /sys/src/cmd/aux/flashfs
 .SH "SEE ALSO"
 .IR paqfs (4),
-.IR sacfs (4),
 .IR mkflashfs (8)
