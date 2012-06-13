@@ -888,6 +888,7 @@ newproc(void)
 	p->tctime = 0ULL;
 	p->ac = nil;
 	p->nfullq = 0;
+	p->tls = nil;
 	memset(&p->PMMU, 0, sizeof p->PMMU);
 	return p;
 }

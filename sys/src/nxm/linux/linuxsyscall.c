@@ -188,10 +188,6 @@ linuxsyscall(unsigned int, Ureg* ureg)
 		splhi();
 	}
 	kexit(ureg);
-	/* we set the FSbase set here, not in kexit, as it is
-	 * linux-specific
-	 */
-	wrmsr(FSbase, (ulong) up->tls);
 }
 
 void*

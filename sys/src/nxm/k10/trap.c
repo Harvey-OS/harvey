@@ -300,6 +300,12 @@ kexit(Ureg*)
 	 * Be sure it has the right cyclefreq.
 	 */
 	tos->cyclefreq = mp->cyclefreq;
+	/* Set thread local storage, used now in both Linux
+	 * and Go processes. We can trivially check against
+	 * 0 as that is never a valid value.
+	 */
+	if (up->tls)
+		wrmsr(FSbase, (ulong) up->tls);
 }
 
 void

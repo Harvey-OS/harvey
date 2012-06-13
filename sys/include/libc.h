@@ -690,6 +690,7 @@ extern	int	segflush(void*, ulong);
 extern	int	segfree(void*, ulong);
 extern	int	semacquire(long*, int);
 extern	long	semrelease(long*, long);
+extern	int	settls(ulong *);
 extern	int	sleep(long);
 extern	int	stat(char*, uchar*, int);
 extern	int	tsemacquire(long*, ulong);

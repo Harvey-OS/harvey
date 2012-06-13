@@ -57,3 +57,4 @@
 #define	ZIOPWRITE	58
 #define	ZIOFREE		59
 #define	TSEMACQUIRE	60
+#define SETTLS		61
