@@ -679,7 +679,8 @@ rtl8169init(Ether* edev)
 	cplusc |= /*Rxchksum|*/Mulrw;
 	switch(ctlr->macv){
 	default:
-		return -1;
+		print("rtl8169: unsupported macv %#ux\n", ctlr->macv);
+		break;	/* perhaps it just works */
 	case Macv01:
 		ctlr->mtps = HOWMANY(Mps, 32);
 		break;
