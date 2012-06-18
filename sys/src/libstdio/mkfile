@@ -64,7 +64,7 @@ UPDATE=\
 
 <$NXM/sys/src/cmd/mksyslib
 # this code really can't handle any flow-analysis warnings
-CFLAGS=
+# CFLAGS=
 
 test:V:	$OFILES
 	ar vu libstdio.a $OFILES

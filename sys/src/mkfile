@@ -37,8 +37,7 @@ LIBS=\
 	libworker\
 	libmach\
 
-NO=	libstdio\
-	libscribble\
+NO=\
 	games\
 
 CMDS=cmd\
