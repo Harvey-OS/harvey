@@ -37,6 +37,7 @@ ALLOFILES=\
 	strcoll.$O\
 	strcpy.$O\
 	strcspn.$O\
+	strdup.$O\
 	strftime.$O\
 	strlen.$O\
 	strncat.$O\

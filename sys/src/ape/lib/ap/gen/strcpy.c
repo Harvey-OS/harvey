@@ -2,7 +2,7 @@
 #define	N	10000
 
 static void*
-memccpy(void *a1, void *a2, int c, unsigned long n)
+pmemccpy(void *a1, void *a2, int c, size_t n)
 {
 	char *s1, *s2;
 
@@ -22,7 +22,7 @@ strcpy(char *s1, const char *s2)
 	char *os1;
 
 	os1 = s1;
-	while(!memccpy(s1, s2, 0, N)) {
+	while(!pmemccpy(s1, s2, 0, N)) {
 		s1 += N;
 		s2 += N;
 	}
