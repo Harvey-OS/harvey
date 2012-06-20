@@ -76,8 +76,7 @@ There are four USB errata that need to be looked into for the igepv2
 
 Flash
 
-access to nand flash would be handy for nvram and paqfs or sacfs file
-systems.
+access to nand flash would be handy for nvram and paqfs file systems.
 
 In the flash, x-loader occupies up to 0x20000, then u-boot from
 0x80000 to 0x1e0000, and there's a linux kernel after that (if you

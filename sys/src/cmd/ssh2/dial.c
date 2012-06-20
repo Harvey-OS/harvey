@@ -46,7 +46,7 @@ struct Conn {
 
 	int	dfd;
 	int	cfd;
-	char	dir[NETPATHLEN];
+	char	dir[NETPATHLEN+1];
 	char	err[ERRMAX];
 };
 struct Dest {
@@ -185,7 +185,8 @@ notedeath(Dest *dp, char *exitsts)
 				closeopenfd(&conn->dfd);
 				closeopenfd(&conn->cfd);
 			}
-			strncpy(conn->err, fields[4], sizeof conn->err);
+			strncpy(conn->err, fields[4], sizeof conn->err - 1);
+			conn->err[sizeof conn->err - 1] = '\0';
 			conn->dead = 1;
 			return;
 		}
@@ -225,8 +226,10 @@ fillinds(DS *ds, Dest *dp)
 	conn = &dp->conn[dp->winner];
 	if (ds->cfdp)
 		*ds->cfdp = conn->cfd;
-	if (ds->dir)
+	if (ds->dir) {
 		strncpy(ds->dir, conn->dir, NETPATHLEN);
+		ds->dir[NETPATHLEN] = '\0';
+	}
 	return conn->dfd;
 }
 
@@ -250,7 +253,8 @@ connectwait(Dest *dp, char *besterr)
 	for (conn = dp->conn; conn < dp->connend; conn++)
 		if (conn - dp->conn != dp->winner && conn->dead &&
 		    conn->err[0]) {
-			strncpy(besterr, conn->err, ERRMAX);
+			strncpy(besterr, conn->err, ERRMAX-1);
+			conn->err[ERRMAX-1] = '\0';
 			break;
 		}
 	return dp->winner;

@@ -103,12 +103,12 @@ tryabsdate(char **fields, int nf, Tm *now, Tm *tm)
 	int i, mer = HR24, bigval = -1;
 	long flg = 0, ty;
 	char *p;
-	char upzone[32];
 	Datetok *tp;
 
 	now = localtime(time(0));	/* default to local time (zone) */
 	tm->tzoff = now->tzoff;
-	strncpy(tm->zone, now->zone, sizeof tm->zone);
+	strncpy(tm->zone, now->zone, sizeof tm->zone - 1);
+	tm->zone[sizeof tm->zone - 1] = '\0';
 
 	tm->mday = tm->mon = tm->year = -1;	/* mandatory */
 	tm->hour = tm->min = tm->sec = 0;
@@ -145,11 +145,11 @@ tryabsdate(char **fields, int nf, Tm *now, Tm *tm)
 		case Tz:
 			tm->tzoff = FROMVAL(tp);
 			/* tm2sec needs the name in upper case */
-			strcpy(upzone, fields[i]);
-			for (p = upzone; *p; p++)
+			strncpy(tm->zone, fields[i], sizeof tm->zone - 1);
+			tm->zone[sizeof tm->zone - 1] = '\0';
+			for (p = tm->zone; *p; p++)
 				if (isascii(*p) && islower(*p))
 					*p = toupper(*p);
-			strncpy(tm->zone, upzone, sizeof tm->zone);
 			break;
 		case Ignore:
 			break;

@@ -76,16 +76,16 @@ dial.c:17: Maxcsreply	= 64*80,	/* this is probably overly generous */
 dial.c:22: Maxconnms	= 2*60*1000,	/* 2 minutes */
 dial.c:171: char *fields[5];			/* pid + 3 times + error */
 dial.c:177: if (n < 4)
-dial.c:188: strncpy(conn->err, fields[4], sizeof conn->err);
-dial.c:209: char exitsts[2*ERRMAX];
-dial.c:381: bleft = sizeof dp->addrlist - 2;	/* 2 is room for \n\0 */
+dial.c:188: strncpy(conn->err, fields[4], sizeof conn->err - 1);
+dial.c:210: char exitsts[2*ERRMAX];
+dial.c:385: bleft = sizeof dp->addrlist - 2;	/* 2 is room for \n\0 */
 dial.thread.c:22: Defstksize	= 8192,
 dial.thread.c:24: Maxstring	= 128,
 dial.thread.c:25: Maxpath		= 256,
 dial.thread.c:27: Maxcsreply	= 64*80,	/* this is probably overly generous */
 dial.thread.c:32: Maxconnms	= 2*60*1000,	/* 2 minutes */
 dial.thread.c:57: int	kidthrids[64];		/* one per addr; ought to be enough */
-dial.thread.c:387: bleft = sizeof dp->addrlist - 2;	/* 2 is room for \n\0 */
+dial.thread.c:393: bleft = sizeof dp->addrlist - 2;	/* 2 is room for \n\0 */
 netssh.c:48: PKA *pkas[3];
 netssh.c:71: char uid[32];
 netssh.c:175: case '9':
