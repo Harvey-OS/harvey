@@ -47,7 +47,7 @@ struct DS {
 
 struct Conn {
 	int	cfd;
-	char	dir[NETPATHLEN];
+	char	dir[NETPATHLEN+1];
 };
 struct Dest {
 	DS	*ds;
@@ -257,16 +257,20 @@ recvresults(Dest *dp, int block)
 				dp->windfd = tup->dfd;
 				if (ds->cfdp)
 					*ds->cfdp = tup->cfd;
-				if (ds->dir)
+				if (ds->dir) {
 					strncpy(ds->dir, tup->conndir,
 						NETPATHLEN);
+					ds->dir[NETPATHLEN] = '\0';
+				}
 				intrcallprocs(dp);
 			} else {
 				close(tup->dfd);
 				close(tup->cfd);
 			}
-		else if (dp->err[0] == '\0' && tup->err)
-			strncpy(dp->err, tup->err, ERRMAX);
+		else if (dp->err[0] == '\0' && tup->err) {
+			strncpy(dp->err, tup->err, ERRMAX - 1);
+			dp->err[ERRMAX - 1] = '\0';
+		}
 		free(tup->conndir);
 		free(tup->err);
 		free(tup);
@@ -327,8 +331,10 @@ call1(char *clone, char *rem, Dest *dp, Conn *conn)
 
 	if (ds->cfdp)
 		*ds->cfdp = conn->cfd;
-	if (ds->dir)
+	if (ds->dir) {
 		strncpy(ds->dir, conn->dir, NETPATHLEN);
+		ds->dir[NETPATHLEN] = '\0';
+	}
 	return dfd;
 }
 

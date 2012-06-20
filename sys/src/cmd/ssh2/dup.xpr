@@ -6,9 +6,9 @@ percent of file involved, #lines in file involved; file2,filename2
       26, 11; 0,cipher3des.c:
       26, 11; 0,cipher3des.c:
 
-36, 28, 5; 1,1
-      61, 48; 1,cipheraes.c:
-      61, 48; 1,cipheraes.c:
+40, 31, 5; 1,1
+      70, 55; 1,cipheraes.c:
+      70, 55; 1,cipheraes.c:
 
 7, 4, 1; 2,2
       13, 8; 2,cipherblowfish.c:
@@ -30,9 +30,9 @@ percent of file involved, #lines in file involved; file2,filename2
       8, 34; 7,dial.thread.c:
       8, 34; 7,dial.thread.c:
 
-22, 647, 316; 9,9
-      34, 996; 9,netssh.c:
-      34, 996; 9,netssh.c:
+22, 643, 316; 9,9
+      34, 998; 9,netssh.c:
+      34, 998; 9,netssh.c:
 
 5, 10, 3; 10,10
       10, 20; 10,pubkey.c:
@@ -66,9 +66,9 @@ percent of file involved, #lines in file involved; file2,filename2
       2, 15; 5,dh.c:
       2, 9; 6,dial.c:
 
-30, 257, 33; 6,7
-      59, 252; 6,dial.c:
-      57, 244; 7,dial.thread.c:
+33, 281, 33; 6,7
+      64, 275; 6,dial.c:
+      62, 267; 7,dial.thread.c:
 
 0, 10, 3; 8,9
       40, 6; 8,esmprint.c:
@@ -98,9 +98,9 @@ percent of file involved, #lines in file involved; file2,filename2
       25, 20; 1,cipheraes.c:
       51, 20; 3,cipherrc4.c:
 
-0, 3, 1; 5,7
-      0, 3; 5,dh.c:
-      1, 3; 7,dial.thread.c:
+1, 7, 2; 5,7
+      1, 7; 5,dh.c:
+      2, 7; 7,dial.thread.c:
 
 0, 15, 6; 7,9
       3, 13; 7,dial.thread.c:
