@@ -27,6 +27,19 @@
  * return is in %ax
  */
 
+/* this gets a little ugly. On entry, we saved r15-13 onto user stack. 
+ * We need to pull them off and move them into ureg. It's very hard to
+ * do this in the assembly, very easy to do it here.
+ */
+void
+popr15r14r13(Ureg* ureg)
+{
+	u64int *r15r14r13 = (u64int *)ureg->sp;
+	ureg->r13 = *r15r14r13++;
+	ureg->r14 = *r15r14r13++;
+	ureg->r15 = *r15r14r13++;
+	ureg->sp = (uintptr) r15r14r13;
+}
 void
 linuxsyscall(unsigned int, Ureg* ureg)
 {
@@ -48,6 +61,7 @@ linuxsyscall(unsigned int, Ureg* ureg)
 
 	cycles(&up->kentry);
 
+	popr15r14r13(ureg);
 	m->syscall++;
 	up->nsyscall++;
 	up->nqsyscall++;
@@ -60,6 +74,7 @@ linuxsyscall(unsigned int, Ureg* ureg)
 		procctl(up);
 	}
 	scallnr = ureg->ax;
+#undef BREAKINCASEOFEMERGENCY
 #ifdef BREAKINCASEOFEMERGENCY
 	print("# %d\n", scallnr);
 	print("%#ullx %#ullx %#ullx %#ullx %#ullx %#ullx \n", 

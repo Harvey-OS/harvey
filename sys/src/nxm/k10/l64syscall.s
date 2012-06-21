@@ -28,6 +28,16 @@ TEXT touser(SB), 1, $-4
 TEXT linuxsyscallentry(SB), 1, $-4
 _linuxsyscallentry:
 	SWAPGS
+	/* Wow, this is messy. LInux is callee-save. But we can't save these
+	 * to kernel stack until we use them. So we push them onto user stack,
+	 * and in linuxsyscall we pop them into uregs. On return, down below,
+	 * we restore them from uregs. We used to just push them here and pop
+	 * them below, but that made it impossible to manage notes, as the stack frame
+	 * was not compatible at that point between normal NxM syscalls and Linux
+	 * syscalls.
+	 * see, e.g., 01814caee60a687c700d4f7303ddad8138a9c7e8 to see how it used to
+	 * be done if you are curious.
+	 */
 	PUSHQ	RMACH
 	PUSHQ	RUSER
 	PUSHQ	R13
@@ -90,6 +100,10 @@ TEXT linuxsyscallreturn(SB), 1, $-4
 	MOVQ	16(SP), AX			/* Ureg.ax */
 	MOVQ	(16+6*8)(SP), BP		/* Ureg.bp */
 _linuxsyscallreturn:
+	/* aka RMACH and RUSER */
+	MOVQ	(16+14*8)(SP),R15
+	MOVQ	(16+13*8)(SP),R14
+	MOVQ	(16+12*8)(SP),R13
 	MOVQ	(16+11*8)(SP),R12
 	MOVQ	(16+9*8)(SP),R10
 	MOVQ	(16+8*8)(SP),R9
@@ -115,9 +129,6 @@ _linuxsyscallreturn:
 	MOVQ	40(SP), R11			/* flags */
 
 	MOVQ	48(SP), SP			/* sp */
-	POPQ	R13
-	POPQ	RUSER
-	POPQ	RMACH
 
 	BYTE $0x48; SYSRET			/* SYSRETQ */
 

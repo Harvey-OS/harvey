@@ -1,0 +1,27 @@
+MKSHELL=rc
+<$NXM/$objtype/mkfile
+
+TARG = 	badsyscall\
+
+DIRS=
+
+BIN=$NXM/$objtype/bin/regress
+HFILES=
+
+UPDATE=\
+	mkfile\
+	callbadsys.s\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+	${TARG:%=%.c}\
+
+<$NXM/sys/src/cmd/mkmany
+
+clean:V:
+	rm -f [$OS].* *.[$OS]
+
+nuke:V:
+	rm -f *.[$OS] y.tab.? y.debug y.output [$OS].$TARG $TARG
+
+$O.badsyscall:	badsyscall.$O callbadsys.$O
+	$LD $LDFLAGS -o $target $prereq
