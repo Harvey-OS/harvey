@@ -274,6 +274,7 @@ main(u32int ax, u32int bx)
 	active.exiting = 0;
 	active.nbooting = 0;
 	asminit();
+	/* called again later. It's not possible to do a print here. */
 	multiboot(ax, bx, 0);
 	options(oargc, oargv);
 	crapoptions();
@@ -296,7 +297,7 @@ main(u32int ax, u32int bx)
 	sys->nmach = 1;			
 
 	fmtinit();
-	print("\nNIX\n");
+	print("\nNxM\n");
 	if(vflag){
 		print("&ax = %#p, ax = %#ux, bx = %#ux\n", &ax, ax, bx);
 		multiboot(ax, bx, vflag);
