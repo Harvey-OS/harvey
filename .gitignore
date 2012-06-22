@@ -86,6 +86,7 @@ sys/src/cmd/pic/picy.c
 sys/src/cmd/rc/x.tab.h
 sys/src/cmd/upas/smtp/rfc822.tab.c
 sys/src/cmd/upas/smtp/smtpd.tab.c
+sys/src/libscribble/syms
 
 #random?
 Users/
@@ -95,3 +96,12 @@ sys/src/cmd/creepy/9pix
 sys/src/cmd/creepy/fscmd
 sys/src/cmd/creepy/fsfmt
 sys/src/cmd/syscall/tab.h
+
+#things people may do for a local root
+bin
+tmp
+sys/src/cmd/unix/u9fs/u9fs
+lib/namespace
+adm
+lib/ndb
+n
