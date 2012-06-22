@@ -9,6 +9,7 @@
 #include <libc.h>
 #include <bio.h>
 #include <mach.h>
+#include <ureg.h>
 #include "elf.h"
 
 enum {
@@ -153,10 +154,28 @@ usage(void)
 	errexit(smprint("usage: linux [-b] [breakpoint] [-p p==v base] [a]rgstosyscall [s]yscall [u]regsbefore [U]uregsafter [f]aultpower [F]aultpowerregs elf\n"));
 }
 
+/* only implements pipe */
+
 void
 handler(void *v, char *s)
 {
-	fprint(2, "handler: %p %s\n", v, s);
+        char *f[7];
+	u64int parm[7];
+	struct Ureg* u = v;
+        int i, n, nf;
+
+	if (strncmp(s, "linux:", 6))
+		noted(NDFLT);
+	s += 6;
+	nf = tokenize(s, f, nelem(f));
+
+	for(i = 0; i < nelem(parm); i++)
+		parm[i] = strtoull(f[i], 0, 0);
+	switch(parm[0]){
+		case 22:
+			u->ax = pipe((void*)(parm[1]));
+			break;
+	}
 	noted(NCONT);
 }
 
@@ -239,6 +258,10 @@ main(int argc, char *argv[])
 	//hangpath = smprint("/proc/%d/ctl", getpid());
 	hdr(fd); 
 	naux(AT_NULL, 0);
+	if (notify(handler)){
+		fprint(2, "%r\n");
+		exits("notify fails");
+	}
 	if (notify(handler)){
 		fprint(2, "%r\n");
 		exits("notify fails");

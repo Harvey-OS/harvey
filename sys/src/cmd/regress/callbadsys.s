@@ -3,7 +3,7 @@
  */
 	TEXT	callbadsys+0(SB),0,$0
 	MOVQ RARG, a0+0(FP)
-	MOVL	a1+8(FP),DI
+	MOVQ	a1+8(FP),DI
 	MOVQ	a2+16(FP),SI
 	MOVQ	a3+24(FP),DX
 	MOVQ	a4+32(FP),R10
