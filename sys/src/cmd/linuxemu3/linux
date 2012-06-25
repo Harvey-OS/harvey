@@ -1,0 +1,114 @@
+#!/bin/rc
+
+arg0=$0
+DISPLAY=:0
+HOME=/tmp
+PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/X11R6/bin:/usr/games
+
+x=''
+e=/bin/linuxemu
+r=/sys/lib/linux
+
+fn eprint {
+	echo $arg0: $* >[1=2]
+}
+
+fn usage {
+	echo usage: $arg0 [-h] [-d...] [-u uid] [-g gid] [-startx] [-display :n] [-e emubin] [-r linuxroot] command [args ...] >[1=2]
+	exit usage
+}
+
+# extract options
+o=()
+while(~ $1 -*){
+	switch($1){
+	case -h
+		usage
+	case -r
+		shift
+		r=$1
+	case -e
+		shift
+		e=$1
+	case -startx
+		x=1
+	case -display
+		shift
+		DISPLAY=$1
+	case -[ug]
+		o=($o $1 $2)
+		shift
+	case -*
+		o=($o $1)
+	}
+	shift
+}
+
+switch($#*){
+case 0
+	usage
+}
+
+if(! ~ $x ''){
+	# find free local display
+	d=(`{{seq 0 32; {echo /srv/UD.X* | sed 's!/srv/UD\.X!!g; s!\ !\
+	!g; s!\*!!g;'}} | sort | uniq -c | awk '/^\ *1\ /{print $2}'})
+	d=$d(1)
+	X11/equis -ac :$d &
+	k=/proc/$apid/notepg
+	$arg0 -e $e -r $r -display :$d $o $*
+	{echo kill >$k} >/dev/null >[2=1]
+	exit
+}
+
+# rewrite the path so it would accessible after binding $r to /
+fn ninepath {
+	if(~ $1 /* && test -e $1 && ! test -e $r/$1){
+		echo /9$1
+	}
+	if not {
+		echo $1
+	}
+}
+
+w=`{pwd}
+r=`{cleanname -d $w $r}
+if(! test -d $r){
+	eprint bad rootpath: $r
+	exit rootpath
+}
+e=`{cleanname -d $w $e}
+if(! test -x $e){
+	eprint bad emubin: $e
+	exit emubin
+}
+e=`{ninepath $e}
+p=`{ninepath $w}
+a=($e $o)
+while(! ~ $#* 0){
+	x=`{ninepath $1}
+	a=($a $"x)
+	shift
+}
+
+# bind the required plan9 stuff
+rfork n
+mntgen $r
+bind -a '#P' /dev
+for(d in /9 /dev /proc /net /env /srv /n /mnt /tmp){
+	t=$r^$d
+	switch($d){
+	case /tmp /env /srv
+		bind -c $d $t
+	case /9
+		bind / $t
+	case *
+		bind $d $t
+	}
+}
+
+# change root and run the emulator
+builtin cd /
+bind $r /
+builtin cd $p
+exec $a

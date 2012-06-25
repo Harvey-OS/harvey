@@ -1,0 +1,117 @@
+SYSCALLS
+
+on linux/i386, the machine code puts the arguments of a syscall in the
+registers AX, BX, CX, DX, DI, SI and makes a soft interrupt 0x80.
+
+as the plan9 kernel doesnt care about the interrupt vector 0x80 it
+sends a note to the process that traped and if not handled kills it.
+in a note handler, it is possible to access the machine state of the
+process when the trap/interrupt happend from the ureg argument.
+
+in linuxemu, we install a note handler that checks if the trap was a
+linux syscall and call our handler function from our systab. 
+
+after our syscall handler returned, we move the program counter
+in the machine state structure after the int 0x80 instruction and
+continue execution by accepting the note as handled with a call to
+noted(NCONT).
+
+todo automatic conversion to a plan9 function call the number of
+arguments and the function name of the handler must be known.  this
+information is provided by the linuxcalltab input file that is feed trough
+linuxcalltab.awk to build neccesary tables.
+
+the linux specific syscall handling and argument conversion done in
+linuxcall.c only.  the idea is to later add support for other syscall
+personalities like bsd without having to change the handler code.
+
+
+MEMORY
+
+unlike shared libraries wich are position independent, binaries have to be
+loaded to a fixed address location. (elf supports position independent
+programs that can be loaded everywhere, but its not used on i386)
+
+the emulator doesnt need to load and relocate shared libraries itself. this is
+done my the runtime linker (/lib/ld-linux.so). it just needs to load
+the binary and the runtime linker to ther prefered location and jump into
+the entry point. then the runtime linker will parse the elf sections of the
+binary and call mmap to load further shared libraries.
+
+the first thing we need is an implementation of mmap that allows us
+to copy files to fixed addresses into memory. to do that on plan9,
+segments are used.
+
+its is not possible to create a segment for every memory mapping
+because plan9 limits the number of segments per process to a small
+number.  instead we create a fixed number of segments and
+expand/shrink them on demand.  the linux stack area is fixed size and
+uses the fact thet plan9 doesnt allocate physical memory until pages
+are touched.
+
+here are 3 segments created for a linux process:
+
+"private" is used for all MAP_PRIVATE mappings and can be shared if
+processes run in same address space. code, data and files is mapped there.
+
+"shared" for shared memory mappings.
+
+"stack" is like "private", but lives just below the plan9 stack segment.
+this is needed because glibc expands the stack down by mmap() pages
+below the current stack area. we cannot use the plan9 stack segment
+because that segment is copied on rfork and is never shared between
+processes.
+
+the data structures of the emulator itself ("kernel memory") need to
+be shared for all processes even if the linux process runs in its own
+private address space, so the plan9 Bss and Data segments are made
+shared on startup by copying the contents of the original segment into a
+temporary file, segdetach() it and segattach() a new shared segments
+on the same place and copy the data back in from the file.
+
+with this memory layout, it is possible for the linux process to damage
+data structures in the emulator. but we seem to be lucky for now :)
+
+
+USER PROCESSES (UPROCS)
+
+linuxemu does not switch ans schedule linux processes itself. every user
+process has its own plan9 process. memory sharing semantics is translated
+to rfork flags on fork/clone.
+
+we have a global process table of Uproc structures to track states and
+resources for all user processes:
+
+fs: filesystem mount table
+fdtab: the filedescriptor table
+mem: memory mappings
+signal: signal handler and queue
+trace: debug trace buffer
+
+resources that can be shared are reference counted and get freed when
+the last process referencing them exits.
+
+
+KERNEL PROCESSES (KPROCS)
+
+if we needs to defer work or do asynchronous i/o it can spawn a
+kernel process with kprocfork. kernel processes dont have a Uproc
+structure associated and have the userspace memory segments detached
+therfor cant access userspace memory.
+
+bufprocs and timers are implemented with kernel processes.
+
+
+DEVICES
+
+ealier versions mapped linux files directly to plan9 files.  this made
+the implementation of ioctls, symlinks, remove on close, and
+select/poll hard and also had problems with implementing fork sharing
+semantics.
+
+current linuxemu does it all by itself.  here is a global device table
+of Udev structures.  devices can implement all i/o related syscalls by
+providing a function pointer in ther Udev.  when a device has to deal
+with asynchronous io on real plan9 files it uses bufprocs.
+
+

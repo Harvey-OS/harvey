@@ -1,0 +1,620 @@
+2008-08-16
+Creation of a CHANGES file
+
+A entry starts with the date followed by a newline and then
+the content follows. Usualy, the first line after the date
+is some short description and then a loger follows.
+To terminate the entry, intert two newlines at the end.
+
+So this entry serves as an exampe. Hope this is simple enougth :-)
+
+
+2008-08-16
+New debugging implemented
+
+Debug code removed from mem.c and trap.c and rewrote in
+acid. See the DEBUGGING section in the HOWTO file for further
+information.
+
+
+2008-08-17
+Fontconfig crash fixed, Debug code fixes
+
+libfontconfig mapped some config files with len == 0, this
+was not handled correctly so it crashed.
+
+the umem() acid function didnt check for zero segment
+pointers so it showd invalid data for the mostly unused
+SEGSHARED segment.
+
+
+2008-08-18
+Some minjor fixes
+
+more checking in memory manager
+sys_[gs]etpgrp implemented for pid != current->pid
+renamed emu.c to main.c
+set UID/GID/EUID/EGID in AUXVEC on exec()
+
+
+
+2008-08-21
+Making prof(1) work (at least dont let it crash)
+
+mem.c: convertseg():
+
+Peplaced read() calls to pread() to prevent profiling related crash.
+The problem was that convertseg() detaches the DATA segment reattaches
+a new one and used read() to get the contents back.  read() was a
+profiled function and the profiler finds its structures cleared to
+zero and crashes.  We now use pread() that is a unprofiled assembly
+syscall stub.
+
+Still, child processes and kprocs are not currently profiled.
+
+
+2008-08-22
+AF_UNIX client sockets implemented
+
+Its a little bit of a hack. We do the AF_UNIX handling like APE
+does so we can interact with the ported Xservers Xbr and equis.
+
+
+2008-08-23
+Work arround for mozilla GPFAULT bug
+
+If a process is notified that he has pending signals with the
+"sig" message and if the note interrupts the execution of a
+INT 0x80 instruction, a syscall in the handler causes mystic
+crashes i dont understand.
+
+The work arround detects the condition and delays the
+handling of the signals returning back to userspace.
+
+I could reproduce the condition and this hack seems
+to work. I should write some testcase to analyze this
+condition further. Maybe its some kernel bug.
+
+
+2008-08-23
+Minjor file related fixes/cleanups
+
+- Implemented in miscdev.c for writable /dev/zero
+- sys_umask() now returns the previous umask
+- default umask set to 022
+- sys_umask() sys_cwd() moved from proc.c to file.c
+
+
+2008-08-24
+linuxemu.rc script updated
+
+- resolve relative rootpath
+- generate /etc files for hostname and resolv.conf if not readable
+- removed enviroment user->USER home->HOME conversion in main.c
+
+
+2008-09-10
+Better work arround for mozilla GPFAULT bug
+
+The problem arises because of the handling of notes in Plan9 kernel.
+
+It happens if linux code does a syscall while here are usernotes (like
+the "sig" ones) queued in the process note[] array.  Then the trap()
+function in the kernel will enqueue the trap in the queue and the user
+note gets handled first.
+
+Now, after we have done a syscall in the note handler of the user
+signal, notify() gets called in the kernel that detects the next note
+to be a trap and thinks the note handler itself caused it and kills
+the process.
+
+I suggested a patch that makes sure traps get enqued on the head of
+the note[] array so that they get handled before a user note but its
+not decided to be applied yet so here is the work arround.
+
+The work arround avoids posting notes to a process that could possibly
+cause a trap in the future before the usernote gets handled.  (this
+excluded all linux code because it can issure a syscall anytime) The
+only time it is save to post notes is if we are in linuxemu syscall
+handler.
+
+This is mostly the case anyway when notes are used to interrupt
+blocking syscalls (waking a process sleeping in a sigsuspend for
+example)
+
+Linuxcode that would spin in a endless loop will not be interrupted by
+notes/signals anymore.
+
+
+2008-09-20
+Minjor stuff
+
+Masking more fp-errors in trap.c. (To get some dos game running in
+bochs)
+
+prboom and zsnes was bumpy sometimes because our select() didnt set
+the struct timeval *tvp to the time the select call did not slept.
+
+I stat function pointer was removed from the Ufile struct and all the *dev.c
+files. I have no need to return custom stats from the devices right now
+(except for /dev/zero (mode & 0222)) so i move the only case where its
+needed into the hackish dir2statmode function in p9dev.c. Here is also
+an fd field added to the generic Ufile scruct because most of all devices
+use plan9 filedescriptors at some point and we use it in fstat(). Saves some
+casting and fstat can use the fd (when its available) to make a dirstat() and
+convert to linux format.
+
+For the postnote stuff mentiond in the last changes entry, here is a global
+flag in main.c (notehack = 1) to enable/disable the work arround.
+
+
+2008-09-21
+atime/mtime, AT_CLKTCK
+
+new syscalls
+- sys_utime
+- sys_utimes
+- sys_times
+
+the AT_CLKTCK entry in exec is set to _tos->cyclefreq
+now.
+
+
+2008-10-05
+faster death proc detection
+
+Using linuxemu from terminal caused huge network load
+because we did a lookup of /proc/# on every timer round.
+
+now we keep open filedescriptors for /proc/#/args and
+/proc/#/note in the proc structure and only check for
+dead procs every second.
+
+
+2008-10-05
+sound (/dev/dsp)
+
+OSS sound implemented, its only tested with some SDL
+apps (zsnes, prboom).
+
+The output frequency is hardcoded at 44100 Hz and 2
+channels stereo at the moment.
+
+
+2008-10-20
+dsp, stat, mkfile, -d, dns, fs
+
+dspdev detects output frequency now and implement more
+ioctls.
+
+here is an universal Ustat and Udirent structs to separate
+the linux formats from driver code.
+
+big chnage in all devices, added indirection layer fs.c that
+has some kind of mapping from path -> device and forwards
+filesystem calls to device drivers. now drivers can return
+correct stat information.
+
+this is needed for implementing /dev/pts later.
+
+removed the /etc/(hosts resolve.conf) generation code from
+linuxemu.rc because they dont work in some cases and
+cause maintence nightmares.
+
+use the -d switch for turning on trace to stderr. so we dont
+need to always change the if(0) from trace.c and recompile.
+
+force compiler flags in mkfile, the -T from new mkone breaks
+build on current distribution.
+
+
+2008-10-27
+lots of fixes
+
+- off by one error basepath()
+- chmod used access which resolves always to link target
+- runlink
+- the note hack broke sigprocmask, and sometimes failed
+   to interrupt a sleepproc(). this is now handled in
+   interruptproc(). (this makes drawterm work on linuxemu)
+- write() to pty was not synchronized/not blocking that
+   caused some apps to spin in write() or others to drop
+   characters (curses).
+
+
+2008-10-28
+grow filedescriptor table in dup2
+
+- if the new fd supplied is out if range, dont return error but
+   grow the fdtab so it fits in. (this make configure work)
+
+2008-11-15
+lots of changes
+
+- Updated HOWTO
+
+- included <ureg.h> in some modules. this fixed the type
+   signature errors of 8l when compiling with -T flag.
+
+- fixed bug in exec()
+   exec needs to run outside the the note context, because it
+   is deleting memory segments and that can cause the removal
+   of the stack segment as well. we have to set current->syscall
+   to nil to avoid getting a note posted that could interrupt us in
+   the middle of some malloc() or something.
+
+- sys_pipe() FD_CLOEXEC
+   sys_pipe() create the filedescriptors with FD_CLOEXEC bit
+   set as open() does. this is wrong and caused gimp plugins
+   to fail.
+
+- new signal handling code
+   signal.c has changed a bit. now CLONE_THREAD procs
+   share a signal queue and proc() uses wantsignal() to
+   figure out what process to interrupt.
+
+- restartable syscalls
+   re process SA_RESTART flag now and are able to restart syscalls
+   that got interrupted by such signals. sleepproc() returns -ERESTART
+   by default now. sys_poll() and sys_sleep() will return -EINTR in
+   any case.
+
+- fs reorganized, [sg]etxattr added, p9cwd added as an optimization
+   to avoid walks().
+
+- ptydev emits SIGINTR to process group, added tty to Uproc.
+
+- added fddev (/dev/fd)
+
+- exitproc() now emits SIGCHLD.
+
+- mem.c: addrok() now takes a prot flags parameter so we can test
+   for expected memory protection too.
+
+- profme(): profiling support for child processes added
+
+- initialization completly moved in main()
+
+- fchmod, fchown, ftruncate moved to file.c
+
+
+2008-10-19
+just code dressing...
+
+renamed some files, added typedef for Ureg, abstracted syscall specific
+code in linuxcall.c, more tracing...
+
+
+2009-02-06
+Fixed the opera fork() no more threads bug
+
+There was a problem of dns resolver zombie processes created by
+operseemed that used up all the process table due to incomplete
+implementation of clone().  Linux specified a exit signal in the lower
+byte of the clone- flags parameter to tell if the process should hang
+arround as zombie so that the parent can wait for it.  If no signal is
+specified here, then the process should exit without becoming a
+zombie.  Here is also the case that the parent ignores the SIGCHLD
+signal or has SA_NOCHLDWAIT flags on the SIGCHLD set.  In that case
+the child should also purge itself.  I implemented reparenting,
+because i suspected the bug there but this was not the case.
+
+Here is a new uprocs() acid function that dumps the proctab.
+
+
+2009-02-18
+Minjor changes
+
+Added anonymous area merging to reduce the area count and removed
+redundant clearmem calls. Changed Uwaitq lock from QLock to normal
+spinlock. Removed some trace() calls.
+
+The biggest change is that linuxemu.rc now is able to start equis. This
+simplyfies writing wrapper scripts to start a browser or other X11 apps.
+
+
+2009-03-25
+Simplyfied area merging in memory manager
+
+Areas are doubly linked now so its easier to get the previous area for
+mergearea().
+
+
+2009-03-30
+Fixed man-bug. (Restarting syscalls)
+
+Restarting syscalls failed if the singal that was send to the interrupted
+process was blocked. This is fixed now.
+
+
+2009-04-01
+fixed awd-bug (use builtin cd), make errors more verbose in exec.c
+
+bla
+
+2009-05-11
+fix pipeseek, added pread64, pwrite64 syscalls.
+
+forgot to return -ESPIPE on seekpipe.
+implemented pread64/pwrite64 (needed by git).
+
+
+2009-07-25
+random stuff
+
+- incred bufproc read and queuesize to 4K/64K (fixes links2 -g hang)
+- reuse buffers in bufproc
+- cleanup timer stuff, introduce 5ms min sleep time, avoid interrupt note
+- fix sys_select() to always modify tv
+- fix format mismatch in nextsignal
+- dont combine in sys_readv/sys_writev
+- fix open in devdsp.c
+- s/memcpy/memmove/g
+- dont reset segment registers for signal handlers
+- possibly more that i forgot... use history(1)
+
+
+2009-07-27
+fixed audio delay
+
+keeping track of how many samples (time) has been submitted
+to /dev/audio already and wait when the buffer grows over some
+treshold. this removes the audio delay from games :)
+
+
+2009-07-29
+doc
+
+put documentation in doc subdirectory.
+
+
+2009-07-31
+mremap, segbrk shrinking, pagesize, doc
+
+rewrote mremap implementation to correctly clear area for shrinking.
+handles more error cases and checks for overlap. this fixes the gimp
+invalid pointer bug.
+
+removed segment shrinking with segbrk as this feature may be removed
+in newer kernel versions as it introduced a bug where it is possible to
+unmap pages while the kernel touches them and cause a panic.
+
+removed the ROUNDPAGE() macro from dat.h. heres a pagealign()
+function in mem.c now and the global variable pagesize that is initialized
+in main.
+
+some documentation cleanups.
+
+
+2009-08-24
+dspdev improvements.
+
+do some linear interpolation in audio resampling to get better sound quality.
+avoid copy when no resampling is required.  reflect queue full in
+GETOSPACE ioctl. cleanup code to avoid vlong calculations.
+
+
+2009-08-26
+bugs
+
+fixed uninitialized values in stat wich caused -EOVERFLOW on linux
+kernel build.  removed wakeableproc() (changes in signal.c, ptydev.c,
+bufproc.c, poll.c).  fixed sigsuspend race.  simpler waitq code (uses
+lesser memory too).  fixed waitpid race.  added /dev/dsp0 to dspdev
+(makes mikmod work).  fixed rfork/notify crash.
+
+
+2009-08-30
+mplayer, bb, audacity play cursor, bugs
+
+refactored timers, alarm and deadproccheck into one timerproc and
+removed timer.c. every Uproc has a timeout field now that is the
+time in nanoseconds when the timeout expires. on expiration, the
+timerproc sets the value to zero and does a wakeup on the
+timed out process. a process sets/resets its timeout with
+settimeout(delta). the remaining time in ms can be queried with
+timeoutremain().
+
+fixed missing protection flags in setupstack.
+
+more acurate GETOSPACE (mplayer, bb) and new GETOPTR
+ioctl (needed for audacity play cursor) in dspdev.c.
+
+handle kill note as SIGKILL in trap.c.
+
+handle illegal instruction as SIGILL as pass/restore sigcontext
+(needed for mplayer runtime SSE check).
+
+sys_sigreturn now uses current->ureg->sp to find the restore
+information.
+
+preallocate all Uprocs.
+
+
+2009-09-06
+cleanup
+
+removed dev argument from fdgetfile()
+
+return correct -ENOSOCK in socketcall()
+
+fixed pread/pwrite, dev->read/dev-write now take a offset
+argument.
+
+fixed time diff overflow in dspdev
+
+
+2009-09-08
+fuckup, O_TRUNC, restaring syscalls, rc, getdents
+
+fucked up:
+- seek didnt work for whence == 1 as the plan9 seek pointer was
+   never moved in read due to change to pread. this caused cp to
+   corrupt the output file when it skipped null blocks.
+- basepath in fs.c was broken
+- readv/writev didnt increment the file offset
+
+what we have now is that file.c does all the offset tracking, and
+devices provide a size() function that returns the actual file size.
+
+added O_TRUNC for open.
+
+signal restarting sometimes resulted in returning -ERESTART to
+userspace. this could happen when another thread had stolen
+our signal. we now restart the syscall in nextsignal() even if
+here was no signal pending for us.
+
+removed the exitsig function from linuxemu.rc as we can use
+the -terminate option of the xserver to get it shutdown.
+
+read the whole directory, then calculate file offset for directory
+entries. 
+
+
+2009-09-12
+signal handling changes, acid, rc
+
+
+2009-09-20
+sockets, basepath, alarm
+
+fixed error in basepath (*ps vs ps) and implemented nonblocking connect,
+server sockets, socketpair, sys_alarm
+
+
+2009-10-13
+lots of changes
+
+simplified locking by making process wakeup non blocking.
+to not miss wakeups, the to be suspended proc should call wakeme(1)
+before it goes to sleep.
+
+timers for alarm/itimer have been moved to the per "process" signal
+data. current->timeout is still local to the current "thread".
+
+sys_kill() now makes sure we only send one signal per "process".
+
+syscall restarting now can use the Urestart (current->restart)
+structure to remember state.  (implemented for nanosleep, poll and
+select)
+
+changed default to non tracing.
+
+pty now handles winsize changes. fixing current tty changing. (ssh bug,
+rxvt bug)
+
+added /dev/random and /dev/urandom to miscdev.
+
+more ioctls for dspdev.
+
+enforce non reentancy for traps.
+
+
+2009-10-15
+fixed sys_brk()
+
+we now use a separate segment for the BSS and dont intermix mmap and brk.
+thanks jibanes for reporting!
+
+
+2010-02-27
+futex, TLS, mprotect
+
+implemented sys_futex() finally
+
+changed tls to use the new /dev/gdt interface to change its
+process segment descriptors
+
+fixed mprotect
+
+
+20010-04-30
+linuxemu.rc gone, documentation
+
+removed linuxemu.rc and replaced it with linux.
+
+usage: linux [-h] [-d...] [-u uid] [-g gid] [-startx] [-display :n] [-e emubin] [-r linuxroot] command [args ...]
+
+linuxroot is now an optional parameter (-r). it will default to /sys/lib/linux.
+
+dont hide /lib/tls anymore and bind devarch. if you dont want to
+patch your kernel with the segdescr patch and use mroot[-linuxemu].tbz
+you can rename /lib/tls to /lib/_tls_disabled_.
+
+
+2010-05-02
+exit_group, exec, futex, waitpid, quoted arguments
+
+properly implement exit_group and zap all threads. notify
+all parent threads.
+
+zap threads in exec.
+
+implement FUTEX_REQUEUE and FUTEX_CMP_REQUEUE.
+
+handle WALL, WCLONE and WNOHANG in waitpid.
+
+preserve quoted arguments to linux.
+
+
+2010-05-11
+select/poll and EBADF, execve malloc, set_thread_area, initproc, SIGSTOP/SIGCONT, 
+tty, getsid, getpeeraddr, /proc
+
+select and poll never return -EBADF but ignore the offending
+filedescriptor. this is wrong in the manpage! (this was needed
+to survive the python configure script)
+
+handle malloc errors in execve and dont panic when elf
+loading fails but kill the process.
+
+detect empty descriptors in set_thread_area so descriptors
+can be freed.
+
+move some of the initialization from main to initproc.
+
+SIGSTOP/SIGCONT handling now works for thread groups. for this
+we now have stopproc() and contproc() that are called from the
+signal code when SIGSTOP or SIGCONT signal is received. each Uproc
+now has a traceproc callback that is called when we enter or
+exit the kernel. zapthreads() and stopproc() use this to get all threads
+in the wanted state. for stopped procs, waiting happens in
+the signal code so calling handlesignals() of a stopped proc will
+block until it gets killed or continued.
+
+new fields in Uproc:
+traceproc, tracearg - called when entering or exiting the kernel
+wstate - current wait state of this process. WEXITED, WSTOPPED, WCONTINUED.
+wevent - like wstate, but reset by waitpid
+comm - double null terminated string array. first entry is the full exe name
+followd by the exeve arguments.
+
+heres a new format %S for signal numbers.
+
+the per thread tty is gone. the tty is now in the per process signal queue.
+gettty() and settty() can be used to modify it. ptydev now allows opening
+the slave tty multiple times. (fixes midnight commander error)
+
+implemented sys_getsid().
+
+fix AF_INET padding and byte order for getpeername socketcall.
+
+implemented /proc (procdev). fddev is gone. /dev/tty handled by
+ptydev now. this makes pkill, ps, top and inkscape work!
+
+
+2010-05-28
+fixed pipe filedescriptor leak in AF_UNIX
+
+we leaked the sock->other descriptor when failing to connect
+a AF_UNIX socket. thanks yarikos for reporting!
+
+
+2011-08-05
+rename to existing symlink target bug, profine -> profile
+
+renaming a symlink to a existing symlink would cause the
+file file to be renamed to .udir.L.udir.L....
+
+fix profine/profile typo
+

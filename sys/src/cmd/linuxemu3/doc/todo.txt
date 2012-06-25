@@ -1,0 +1,14 @@
+- AF_INET6
+	i dont need that too yet
+
+- VDSO
+	we could gain quite a performance hit when we can avoid
+	the trapping overhead and let linux-code directly jump
+	in linuxemu handler.
+
+- dsp / mixer
+	implement mixer ioctls in devdsp
+	mmap and trigger caps for quake
+
+- ptrace
+	implement ptrace support so we can use native debugger

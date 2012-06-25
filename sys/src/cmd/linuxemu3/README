@@ -1,0 +1,138 @@
+INTRO
+
+Linuxemu is a program that can execute Linux/i386 ELF binaries on
+Plan9.  It was started by Russ Cox and development was continued by
+me.  Its opensource, I dont care what you are doing with it, but maybe
+Russ does, i don't know :-)
+
+If you found some bugs or have some other improvements/ideas send a
+email to:
+
+cinap_lenrek AT gmx DOT de
+
+
+SOURCE
+
+linuxemu is available on sources. On Plan9 do:
+
+% 9fs sources
+% cp /n/sources/contrib/cinap_lenrek/linuxemu3.tgz .
+
+Another source is my server on the web:
+
+% hget http://9hal.ath.cx/usr/cinap_lenrek/linuxemu3.tgz >linuxemu3.tgz
+
+
+DOCUMENTATION
+
+documentation is provided in the doc directory:
+
+doc/linuxemu.txt
+doc/todo.txt
+
+
+COMPILE
+
+% tar xzf linuxemu3.tgz
+% cd linuxemu3
+% mk
+
+
+INSTALL
+
+% mk install
+
+
+BOOTSTRAP
+
+You need a linux rootfilesystem packed in a tarball. Go!
+get some linux rootfs:
+
+http://9hal.ath.cx/usr/cinap_lenrek/mroot.tbz
+http://9hal.ath.cx/usr/cinap_lenrek/mroot-linuxemu.tbz
+
+the -linuxemu version contains no symlinks and can be extracted with
+plain plan9 tools bunzip/tar so you can skip the BOOTSTRAP section.
+:-)
+
+You can create your own with debootstrap on debian linux...  or help
+me write a installer that unpacks and installs slackware on plan9...
+In any case, linuxemu is not hardwared to any linux distribution!
+
+Extract your linux rootfilesystem with the static linked gnutar from
+the bootstrap directory.  (This will create all the fake symlinks for
+you)
+
+% 8.out bootstrap/tar xf /tmp/mroot.tar 
+
+
+RUNNING
+
+Then you can use the linux script to "chroot" into your linux
+rootfs. the linux script is neccesary because for linux programs
+to run shared libraries from your linux root have to appear at /lib
+and /usr/lib and configuration files are expected to be in /etc.
+the script will build a private namespace and bind the linuxroot
+over the plan9 root. the original plan9 namespace is mounted to /9.
+
+% linux -r ./mroot /bin/bash -i
+
+if you omit the -r option, the linuxroot defaults to /sys/lib/linux. you
+may put your linux root there or add a bind to your $home/lib/profile.
+
+You should change /etc/resolv.conf to match your network nameserver
+setup.  Also, you may want to edit /etc/apt/sources.list to change the
+debian mirror.
+
+
+DEBUGGING
+
+If linuxemu crashes, use acid to figure out whats going on:
+
+% mk acid
+% acid -l linuxemu.acid <pid>
+
+then you can issue the following commands:
+
+ustk()				dump a (userspace) stacktrace for the current thread
+umem(Current())		dump the memory mappings
+ufds(Current())			dump the filedescriptor table
+utrace(Current())		dump the internal tracebuffer (enabled by -d option)
+
+use xasm()/xcasm() for disassembly for linux code.
+
+You can also enable full trace logging:
+
+% linux -r ./mroot -dd /bin/bash -i >[2]/tmp/linuxemu.log
+
+This slows linuxemu down.  In case of race conditions, it often
+happens that the bug disapears when doing full trace logging!
+
+
+NPTL/thread-local storage
+
+If you get one of these errors:
+
+"cannot set up thread-local storage: cannot set up LDT for thread-local storage"
+
+this is glibc/libpthread complaining!  the problem is the following:
+glibc on i386 decided at some point to use the extra segment registers
+GS and FS as an indirection pointer for thread local storage.  the
+operating system kernel therfor must have a mechanism to let userspace
+change descriptor table entries and swap them in/out on context
+switch.
+
+to make it work here are several options:
+
+1) recompile and link the program with a pre NPTL version of glibc.
+
+2) on some distributions, a non-tls version of libc/libpthread is available.
+in my debian mroot, the NPTL version is in /lib/tls, the older version
+is in /lib. by renaming /lib/tls to /lib/_tls_disabled_ the loader will
+use the non-tls version.
+
+3) i made a kernel patch that adds support for per process descriptors to
+plan9:
+/n/sources/contrib/cinap_lenrek/segdescpatch
+http://9hal.ath.cx/usr/cinap_lenrek/segdescpatch.tgz
+it will add the files gdt and ldt to devarch (#P).

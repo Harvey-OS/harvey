@@ -1,0 +1,67 @@
+</$objtype/mkfile
+
+TARG=linuxemu
+BIN=$home/bin/$objtype
+RCBIN=$home/bin/rc
+CFLAGS=-FTVw
+
+OFILES=\
+	bits.$O \
+	bufproc.$O \
+	error.$O \
+	exec.$O \
+	file.$O \
+	fs.$O \
+	main.$O \
+	mem.$O \
+	poll.$O \
+	proc.$O \
+	signal.$O \
+	stat.$O \
+	time.$O \
+	tls.$O \
+	trace.$O \
+	trap.$O \
+	linuxcall.$O \
+	consdev.$O \
+	dspdev.$O \
+	miscdev.$O \
+	pipedev.$O \
+	ptydev.$O \
+	rootdev.$O \
+	sockdev.$O \
+	procdev.$O \
+
+
+HFILES=fns.h dat.h linux.h
+
+CLEANFILES=linuxcalltab.out linuxdat.acid
+
+</sys/src/cmd/mkone
+
+linuxcalltab.out:	linuxcalltab linuxcalltab.awk
+	./linuxcalltab.awk <linuxcalltab >$target
+
+linuxcall.$O:	linuxcalltab.out
+
+linuxdat.acid: $HFILES main.c trace.c signal.c mem.c file.c
+	rm -f $target
+	for(i in main.c){
+		$CC -a $i >>$target
+	}
+	for(i in bufproc.c error.c exec.c file.c fs.c mem.c poll.c \
+		proc.c signal.c stat.c time.c tls.c trace.c trap.c \
+		consdev.c dspdev.c miscdev.c pipedev.c \
+		ptydev.c rootdev.c sockdev.c procdev.c){
+		$CC -aa $i >>$target
+	}
+
+$RCBIN/linux:	linux
+	cp linux $RCBIN/linux
+	
+acid:V:	linuxdat.acid
+
+install:V:	$RCBIN/linux
+	
+
+

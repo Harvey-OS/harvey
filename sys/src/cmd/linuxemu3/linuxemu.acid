@@ -1,0 +1,218 @@
+include("linuxdat.acid");
+
+_asmlines = 30;
+
+defn xasm(addr)
+{
+	local bound;
+
+	bound = fnbound(addr);
+
+	addr = fmt(addr, 'i');
+	loop 1,_asmlines do {
+		print(fmt(addr, 'a'), " ", fmt(addr, 'X'));
+		print("\t", *addr++, "\n");
+		if bound != {} && addr > bound[1] then {
+			lasmaddr = addr;
+			return {};
+		}
+	}
+	lasmaddr = addr;
+}
+
+defn xcasm()
+{
+	xasm(lasmaddr);
+}
+
+defn Current()
+{
+	return **pcurrent;
+}
+
+defn pidhash(pid)
+{
+	return (pid - 1) % MAXPROC;
+}
+
+defn uprocn(n)
+{
+	p=proctab.proc + n*sizeofUproc;
+	complex Uproc p;
+	if p.tid > 0 then
+		return p;
+	return 0;
+}
+
+defn uproc(tid)
+{
+	if tid > 0 then {
+		p = proctab.proc + pidhash(tid) * sizeofUproc;
+		complex Uproc p;
+		if p.tid == tid then
+			return p;
+	}
+	return 0;
+}
+
+defn umem(p)
+{
+	local x, m, s, a, l, f;
+	complex Uproc p;
+
+	m = p.mem;
+	complex Space m;
+
+	x = 0;
+	loop 1,SEGMAX do {
+		s = m.seg[x];
+		if s then {
+			complex Seg s;
+
+			a = s.areas;
+			l = 0;
+			complex Area a;
+
+			print(s.addr.base\X, "-", s.addr.top\X, " < ", s.limit\X, "\t");
+			mem(segname[x], "s");
+			while a do {
+				if l && l.addr.top < a.addr.base then {
+					print(l.addr.top\X, "-", a.addr.base\X, "\t*FREE*\n");
+				}
+				print(a.addr.base\X, "-", a.addr.top\X, "\t", a.prot\X, "\t");
+				f = a.filemap;
+				complex Filemap f;
+				if f then {
+					print(f.offset\X, "@");
+					mem(f.path, "s");
+				} else {
+					print("*ANON*\n");
+				}
+				l = a;
+				a = a.next;
+			}
+		}
+		x = x + 1;
+	}
+}
+
+defn addr2area(p, addr)
+{
+	local m, s, a, x;
+	complex Uproc p;
+
+	m = p.mem;
+	complex Space m;
+
+	x = 0;
+	loop 1,SEGMAX do {
+		s = m.seg[x];
+		if s then {
+			complex Seg s;
+
+			a = s.areas;
+			complex Area a;
+
+			while a do {
+				if addr >= a.addr.base  && addr < a.addr.top then {
+					return a;
+				}
+				a = a.next;
+			}
+		}
+		x = x+1;
+	}
+	return 0;
+}
+
+defn ustk()
+{
+	local p, pc, sp, a, f, o;
+
+	p = Current();
+
+	pc = p.ureg.pc\X;
+	sp = p.ureg.bp\X;
+
+	while sp do {
+		print(sp, "\t");
+		a = addr2area(p, pc);
+		if a && a.filemap then {
+			f = a.filemap;
+			complex Filemap f;
+
+			o = f.offset + (pc - a.addr.base);
+
+			print(pc, "\t", o\X, "@");
+			mem(f.path, "s");
+		} else {
+			print(pc, "\n");
+		}
+		sp = sp[0];
+		pc = sp[1];
+	}	
+}
+
+defn utrace(p)
+{
+	local t, i, x, s;
+	complex Uproc p;
+
+	t = p.trace;
+	complex Tracebuf t;
+
+	if t then {
+		i = t.wp;
+		loop 1,256 do {
+			s = t.lines + ((i % 256) * 80);
+			mem(s, "s");
+			i = i + 1;
+		}
+	}
+}
+
+defn ufds(p)
+{
+	local t, d, i, f;
+	complex Uproc p;
+
+	t = p.fdtab;
+	complex Fdtab t;
+
+	print("count=", t.nfd\D, "\n");
+	i = 0;
+	loop 1,t.nfd do {
+		d = t.fd + (i * sizeofFd);
+		complex Fd d;
+
+		if d.file then {
+			f = d.file;
+			complex Ufile f;
+
+			print("[", i\D, "]\tfile=", f\X, ", flags=", d.flags\D, " ref=", f.ref, " mode=", f.mode\X, " dev=", f.dev\D);
+			if f.fd >= 0 then {
+				print(" fd=", f.fd\D);
+			}
+			if f.path then {
+				print(" path=");
+				mem(f.path, "s");
+			} else {
+				print("\n");
+			}
+		}
+		i = i + 1;
+	}
+}
+
+defn uprocs()
+{
+	i=0;
+	loop 1,MAXPROC do {
+		p=uprocn(i);
+		if p then {
+			print("[", i\D, "] ", p\X, " state=", p.state, " pid=", p.pid, " tid=", p.tid, " ppid=", p.ppid," pgrp=", p.pgid, " wstate=", p.wstate, " kpid=", p.kpid, " syscall=");
+			mem(p.syscall, "s");
+		}
+		i = i + 1;
+	}
+}
