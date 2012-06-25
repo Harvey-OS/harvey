@@ -1,3 +1,7 @@
+2012-06-24
+Start changes for amd64. There was a gratuitous change from pc to ip, and
+we run with it here. 
+
 2008-08-16
 Creation of a CHANGES file
 

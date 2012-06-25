@@ -57,7 +57,7 @@ handletrap(void *v, char *m)
 		memset(&si, 0, sizeof(si));
 		si.signo = SIGILL;
 		si.code = ILL_ILLOPC;
-		si.fault.addr = (void*)p->ureg->pc;
+		si.fault.addr = (void*)p->ureg->ip;
 		sendsignal(p, &si, 0);
 		goto handled;
 	}
@@ -66,7 +66,7 @@ handletrap(void *v, char *m)
 		memset(&si, 0, sizeof(si));
 		si.signo = SIGFPE;
 		si.code = FPE_INTDIV;
-		si.fault.addr = (void*)p->ureg->pc;
+		si.fault.addr = (void*)p->ureg->ip;
 		sendsignal(p, &si, 0);
 		goto handled;
 	}
@@ -75,7 +75,7 @@ handletrap(void *v, char *m)
 		memset(&si, 0, sizeof(si));
 		si.signo = SIGFPE;
 		si.code = FPE_INTOVF;
-		si.fault.addr = (void*)p->ureg->pc;
+		si.fault.addr = (void*)p->ureg->ip;
 		sendsignal(p, &si, 0);
 		goto handled;
 	}

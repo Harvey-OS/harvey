@@ -445,26 +445,6 @@ setcomm(char *exe, char *name, char *argv[])
 	current->ncomm = p - buf;
 }
 
-static void
-clinote(struct Ureg *ureg)
-{
-	jmp_buf jmp;
-	ulong pc;
-	ulong sp;
-	ulong ax;
-
-	pc = ureg->pc;
-	sp = ureg->sp;
-	ax = ureg->ax;
-
-	if(!setjmp(jmp))
-		notejmp(ureg, jmp, 1);
-
-	ureg->pc = pc;
-	ureg->sp = sp;
-	ureg->ax = ax;
-}
-
 struct kexecveargs
 {
 	char		*name;
@@ -609,12 +589,12 @@ again:
 
 	memset(&u, 0, sizeof(u));
 	u.sp = (ulong)stack;
-	u.pc = (ulong)ex.ientry;
+	u.ip = (ulong)ex.ientry;
 	current->ureg = &u;
 	current->syscall = nil;
 	phase++;
 
-	trace("kexecve(): startup pc=%lux sp=%lux", current->ureg->pc, current->ureg->sp);
+	trace("kexecve(): startup pc=%lux sp=%lux", current->ureg->ip, current->ureg->sp);
 
 errout:
 	switch(phase){

@@ -309,3 +309,6 @@ void ptydevinit(void);
 void consdevinit(void);
 void procdevinit(void);
 
+/* arch-dependent */
+void clinote(struct Ureg *);
+void linuxret(int);

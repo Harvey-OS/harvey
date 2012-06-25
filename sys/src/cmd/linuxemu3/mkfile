@@ -1,15 +1,17 @@
-</$objtype/mkfile
+MKHSELL=rc
+</$NXM/$objtype/mkfile
 
 TARG=linuxemu
 BIN=$home/bin/$objtype
 RCBIN=$home/bin/rc
-CFLAGS=-FTVw
+CFLAGS+=-FTVw
 
 OFILES=\
-	bits.$O \
+	bits$O.$O \
 	bufproc.$O \
 	error.$O \
 	exec.$O \
+	$objtype.$O \
 	file.$O \
 	fs.$O \
 	main.$O \
@@ -37,7 +39,7 @@ HFILES=fns.h dat.h linux.h
 
 CLEANFILES=linuxcalltab.out linuxdat.acid
 
-</sys/src/cmd/mkone
+<$NXM/sys/src/cmd/mkone
 
 linuxcalltab.out:	linuxcalltab linuxcalltab.awk
 	./linuxcalltab.awk <linuxcalltab >$target
