@@ -11,6 +11,8 @@
 #include <mach.h>
 #include <ureg.h>
 #include "elf.h"
+#include "fns.h"
+#include "dat.h"
 
 enum {
 	DumpCall = 16,		/* dump args and return (including errors) */
@@ -174,6 +176,10 @@ handler(void *v, char *s)
 	switch(parm[0]){
 		case 22:
 			u->ax = pipe((void*)(parm[1]));
+			break;
+		case 218:
+			u->ax = sys_set_tid_address((int*)(parm[1]));
+			print("got back from set_tid_address\n");
 			break;
 	}
 	noted(NCONT);

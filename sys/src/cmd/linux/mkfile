@@ -4,6 +4,7 @@ TARG=linux
 OFILES= \
 	vdso.$O\
 	callmain.$O\
+	proc.$O\
 
 #LIB=libmach/libmach.a  \
 
