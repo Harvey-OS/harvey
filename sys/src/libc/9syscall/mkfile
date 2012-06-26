@@ -146,7 +146,7 @@ oldinstall:V:
 	ar rvu ${NXM}/$objtype/lib/libc.a *.$O
 
 nuke clean:V:
-	rm -f *.[$OS]
+	rm -f *.[$OS] *.s
 
 installall:V:
 	for(objtype in $CPUS) mk install
