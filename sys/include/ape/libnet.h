@@ -3,7 +3,7 @@
 #ifndef _NET_EXTENSION
    This header file is not defined in ANSI or POSIX
 #endif
-#pragma lib "/$M/lib/ape/libnet.a"
+#pragma lib "ape/libnet.a"
 
 #define NETPATHLEN 40
 

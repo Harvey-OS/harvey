@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #endif
 
-#pragma lib "/$M/lib/ape/libap.a"
+#pragma lib "ape/libap.a"
 
 /*
  * stat structure, used by stat(2) and fstat(2)
@@ -71,7 +71,7 @@ extern int fstat(int, struct stat *);
 extern int chmod(const char *, mode_t);
 
 #ifdef _BSD_EXTENSION
-#pragma lib "/$M/lib/ape/libbsd.a"
+#pragma lib "ape/libbsd.a"
 extern int	lstat(char *, struct stat *);
 extern int	symlink(char *, char *);
 extern int	readlink(char *, char*, int);

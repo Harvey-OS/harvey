@@ -1,4 +1,4 @@
-#pragma lib "/$M/lib/ape/libap.a"
+#pragma lib "ape/libap.a"
 /* input modes */
 #define BRKINT	0x001
 #define ICRNL	0x002

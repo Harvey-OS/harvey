@@ -1,6 +1,6 @@
 #ifndef	__DIRENT_H
 #define	__DIRENT_H
-#pragma lib "/$M/lib/ape/libap.a"
+#pragma lib "ape/libap.a"
 /*
  * this must be a power of 2 and a multiple of all the ones in the system
  */

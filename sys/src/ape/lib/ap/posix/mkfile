@@ -1,0 +1,17 @@
+MKSHELL=rc
+APE=$NXM/sys/src/ape
+<$APE/config
+LIB=$NXM/$objtype/lib/ape/libap.a
+OFILES=\
+	getgrent.$O\
+	getpwent.$O\
+	locale.$O\
+	mkfifo.$O\
+	pathconf.$O\
+	sigset.$O\
+	sysconf.$O\
+	tzset.$O\
+
+<$NXM/sys/src/cmd/mksyslib
+
+CFLAGS=-c $CFLAGS -D_POSIX_SOURCE

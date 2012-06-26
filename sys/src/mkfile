@@ -42,23 +42,21 @@ NO=\
 
 CMDS=cmd\
 
-SUBSYS=
+SUBSYS=ape\
 
-NOSUBSY=ape\
-	/acme\
+NOSUBSYS=/acme\
 
 none:VQ:
 	echo mk all, install, clean, nuke, release, kernels, or libs
 
 all install clean nuke:VQ:
 	date
-	for (i in $LIBS $CMDS) @{
+	for (i in $LIBS $SUBSYS $CMDS) @{
 		cd $i
 		echo cd $i
 		mk $target
 	}
 	date
-#	for (i in $LIBS $SUBSYS $CMDS) @{
 
 installall:V:
 	echo "installall not supported"

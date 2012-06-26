@@ -3,7 +3,7 @@
 #ifndef _REGEXP_EXTENSION
     This header file is an extension to ANSI/POSIX
 #endif
-#pragma lib "/$M/lib/ape/libregexp.a"
+#pragma lib "ape/libregexp.a"
 
 #ifdef	UTF
 #define	Runeself	0xA0

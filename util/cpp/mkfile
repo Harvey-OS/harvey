@@ -1,0 +1,21 @@
+MKSHELL=rc
+CC=9c
+LD=9l
+O=o
+OS=$O
+
+TARG=cpp
+OFILES=\
+	cpp.$O\
+	lex.$O\
+	nlist.$O\
+	tokens.$O\
+	macro.$O\
+	eval.$O\
+	include.$O\
+	hideset.$O\
+
+HFILES=cpp.h
+
+BIN=$NXM/xbin
+<$NXM/sys/src/cmd/mkone

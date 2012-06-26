@@ -1,0 +1,25 @@
+This is a Plan 9 port of pdksh version 5.2.14, a public
+domain implementation of the Korn shell.
+
+The entirety of the code is in the public domain.
+There were two non-public domain pieces (sigact.[ch]
+and aclocal.m4) but they are gone.
+
+This has not been significantly tested under Plan 9 for
+lack (not want) of a complete Perl distribution with
+which to run the test suite.
+
+THIS IS NOT A COMPLETE PDKSH DISTRIBUTION.
+This is only the source code required to compile and
+run the shell under Plan 9.  For revision history and
+any other information, look at the web page mentioned
+in the README file.
+
+Russ Cox <rsc@plan9.bell-labs.com>
+March 2000
+
+12 June 2000: rsc: Added -I flag so you can 
+	bind pdksh over rc for use in mk,
+	a dubious justification.
+
+31 Dec 2002: rsc: Killed all ifdefs.

@@ -1,0 +1,14 @@
+MKSHELL=rc
+APE=$NXM/sys/src/ape
+<$APE/config
+
+LIB=$NXM/$objtype/lib/ape/libl.a
+OFILES=allprint.$O\
+	main.$O\
+	reject.$O\
+	yyless.$O\
+	yywrap.$O\
+
+<$NXM/sys/src/cmd/mksyslib
+
+CFLAGS=-c $CFLAGS -D_RESEARCH_SOURCE

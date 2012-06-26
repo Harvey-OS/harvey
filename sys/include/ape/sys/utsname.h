@@ -1,6 +1,6 @@
 #ifndef __UTSNAME
 #define __UTSNAME
-#pragma lib "/$M/lib/ape/libap.a"
+#pragma lib "ape/libap.a"
 
 struct utsname {
 	char	*sysname;

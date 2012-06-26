@@ -3,7 +3,7 @@
 #ifndef _RESEARCH_SOURCE
    This header file is not defined in ANSI or POSIX
 #endif
-#pragma lib "/$M/lib/ape/libv.a"
+#pragma lib "ape/libv.a"
 
 #ifdef __cplusplus
 extern "C" {

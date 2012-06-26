@@ -1,0 +1,22 @@
+MKSHELL=rc
+APE=$NXM/sys/src/ape
+<$APE/config
+
+LIB=$NXM/$objtype/lib/ape/libv.a
+
+OFILES=getpass.$O\
+	tty.$O\
+	rand.$O\
+	nrand.$O\
+	getfields.$O\
+	min.$O\
+	max.$O\
+	error.$O\
+	nap.$O
+
+<$NXM/sys/src/cmd/mksyslib
+
+CFLAGS=-c $CFLAGS
+
+%.$O:	$FAMILY/%.c
+	$CC $CFLAGS $prereq

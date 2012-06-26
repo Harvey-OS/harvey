@@ -1,6 +1,6 @@
 #ifndef __MATH
 #define __MATH
-#pragma lib "/$M/lib/ape/libap.a"
+#pragma lib "ape/libap.a"
 
 /* a HUGE_VAL appropriate for IEEE double-precision */
 /* the correct value, 1.797693134862316e+308, causes a ken overflow */

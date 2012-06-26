@@ -1,6 +1,6 @@
 #ifndef __SETJMP_H
 #define __SETJMP_H
-#pragma lib "/$M/lib/ape/libap.a"
+#pragma lib "ape/libap.a"
 
 typedef int jmp_buf[10];
 #ifdef _POSIX_SOURCE

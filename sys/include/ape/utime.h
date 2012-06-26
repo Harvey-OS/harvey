@@ -1,7 +1,7 @@
 #ifndef __UTIME_H
 #define __UTIME_H
 
-#pragma lib "/$M/lib/ape/libap.a"
+#pragma lib "ape/libap.a"
 
 struct utimbuf
 {

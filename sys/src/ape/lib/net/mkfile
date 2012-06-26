@@ -1,0 +1,14 @@
+MKSHELL=rc
+APE=$NXM/sys/src/ape
+<$APE/config
+
+LIB=$NXM/$objtype/lib/ape/libnet.a
+OFILES=dial.$O\
+	announce.$O\
+	netmkaddr.$O\
+	hangup.$O\
+	
+
+<$NXM/sys/src/cmd/mksyslib
+
+CFLAGS=-c $CFLAGS -D_POSIX_SOURCE -D_RESEARCH_SOURCE -D_NET_EXTENSION

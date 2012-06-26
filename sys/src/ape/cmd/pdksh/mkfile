@@ -1,0 +1,44 @@
+MKSHELL=rc
+APE=$NXM/sys/src/ape
+<$APE/config
+
+BIN=$NXM/$objtype/bin/ape
+TARG=sh
+
+OFILES=\
+	alloc.$O\
+	c_ksh.$O\
+	c_sh.$O\
+	c_test.$O\
+	c_ulimit.$O\
+	eval.$O\
+	exec.$O\
+	expr.$O\
+	history.$O\
+	io.$O\
+	jobs.$O\
+	lex.$O\
+	mail.$O\
+	main.$O\
+	misc.$O\
+	path.$O\
+	shf.$O\
+	syn.$O\
+	table.$O\
+	trap.$O\
+	tree.$O\
+	tty.$O\
+	var.$O\
+	version.$O
+
+# Autolib doesn't get this right on the alpha, and I don't understand why. -rsc
+LIB=$NXM/$objtype/lib/ape/libap.a $NXM/$objtype/lib/ape/libbsd.a
+
+<$NXM/sys/src/cmd/mkone
+
+LD=$9LD
+LDFLAGS=$9LDFLAGS
+CFLAGS=$CFLAGS -I. -DHAVE_CONFIG_H -c
+
+$O.out: $OFILES $LIB
+	$LD -o $target $prereq

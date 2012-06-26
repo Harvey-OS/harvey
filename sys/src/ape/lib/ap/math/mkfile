@@ -1,0 +1,28 @@
+MKSHELL=rc
+APE=$NXM/sys/src/ape
+<$APE/config
+LIB=$NXM/$objtype/lib/ape/libap.a
+OFILES=\
+	asin.$O\
+	atan.$O\
+	atan2.$O\
+	erf.$O\
+	exp.$O\
+	fabs.$O\
+	floor.$O\
+	fmod.$O\
+	gamma.$O\
+	hypot.$O\
+	j0.$O\
+	j1.$O\
+	jn.$O\
+	log.$O\
+	pow.$O\
+	sin.$O\
+	sinh.$O\
+	tan.$O\
+	tanh.$O\
+
+<$NXM/sys/src/cmd/mksyslib
+
+CFLAGS=-c $CFLAGS -D_POSIX_SOURCE

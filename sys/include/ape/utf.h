@@ -1,13 +1,13 @@
 #ifndef _UTF_H_
 #define _UTF_H_ 1
-#pragma lib "/$M/lib/ape/libutf.a"
+#pragma lib "ape/libutf.a"
 #pragma src "/sys/src/ape/lib/utf"
 
 #if defined(__cplusplus)
 extern "C" { 
 #endif
 
-typedef unsigned int Rune;	/* 32 bits */
+typedef unsigned short Rune;	/* 32 bits */
 
 enum
 {

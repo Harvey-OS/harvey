@@ -1,6 +1,6 @@
 #ifndef __SYSTIME_H
 #define __SYSTIME_H
-#pragma lib "/$M/lib/ape/libap.a"
+#pragma lib "ape/libap.a"
 
 #ifndef __TIMEVAL__
 #define __TIMEVAL__

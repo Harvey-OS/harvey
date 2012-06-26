@@ -15,10 +15,12 @@ xbin/6a
 xbin/6c
 xbin/6l
 xbin/ar
+xbin/cpp
 xbin/data2s
 xbin/mksys
 xbin/mklatinkbd
 xbin/nm
+xbin/pcc
 6.out
 6.*
 o.out
@@ -87,6 +89,9 @@ sys/src/cmd/rc/x.tab.h
 sys/src/cmd/upas/smtp/rfc822.tab.c
 sys/src/cmd/upas/smtp/smtpd.tab.c
 sys/src/libscribble/syms
+sys/src/ape/lib/ap/syscall/*.s
+sys/src/ape/lib/ap/syscall/sys.h
+sys/src/ape/cmd/make/gram.c
 
 #random?
 Users/

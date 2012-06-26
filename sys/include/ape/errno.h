@@ -1,6 +1,6 @@
 #ifndef __ERRNO
 #define __ERRNO
-#pragma lib "/$M/lib/ape/libap.a"
+#pragma lib "ape/libap.a"
 
 extern int errno;
 

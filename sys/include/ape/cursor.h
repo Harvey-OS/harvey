@@ -4,7 +4,7 @@
 
 #ifndef	__CURSOR_H_
 #define	__CURSOR_H_
-#include "/sys/include/cursor.h"
+#include "../cursor.h"
 
 #endif
 

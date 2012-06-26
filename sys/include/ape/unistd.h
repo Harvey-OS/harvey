@@ -3,7 +3,7 @@
 #ifndef _POSIX_SOURCE
    This header file is not defined in pure ANSI
 #endif
-#pragma lib "/$M/lib/ape/libap.a"
+#pragma lib "ape/libap.a"
 
 #define _POSIX_VERSION	199309L
 #define _POSIX_ASYNC_IO -1

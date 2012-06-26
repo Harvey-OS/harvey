@@ -132,7 +132,7 @@ main(int argc, char *argv[])
 			HEADTYPE = 2;
 	}
 
-	Lflag(smprint("/amd64/lib"));
+	Lflag(smprint("%s/amd64/lib", getenv("NXM")));
 
 	switch(HEADTYPE) {
 	default:
@@ -655,7 +655,7 @@ addlib(char *obj)
 	}
 
 	for(; i<histfrogp; i++) {
-		snprint(comp, sizeof comp, histfrog[i]->name+1);
+		snprint(comp, sizeof comp, "%s", histfrog[i]->name+1);
 		for(;;) {
 			p = strstr(comp, "$O");
 			if(p == 0)
@@ -683,7 +683,7 @@ addlib(char *obj)
 	}
 
 	if (search) {
-		// try dot, then -L "libdir", then /amd64/lib
+		// try dot, then -L "libdir", then $NXM/amd64/lib
 		for (i = 0; i < nlibdir; i++) {
 			snprint(pname, sizeof pname, "%s/%s", libdir[i], name);
 			if (access(pname, AEXIST) >= 0)

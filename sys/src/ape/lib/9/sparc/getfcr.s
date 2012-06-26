@@ -1,0 +1,27 @@
+TEXT	getfsr(SB), $0
+	SUB	$4, R1
+	MOVW	FSR, (R1)
+	MOVW	(R1), R7
+	ADD	$4, R1
+	RETURN
+
+TEXT	setfsr(SB), $0
+	SUB	$4, R1
+	MOVW	R7, (R1)
+	MOVW	(R1), FSR
+	ADD	$4, R1
+	RETURN
+
+TEXT	setfcr(SB), $0
+	SUB	$4, R1
+	MOVW	R7, (R1)
+	MOVW	(R1), FSR
+	ADD	$4, R1
+	RETURN
+
+TEXT	getfcr(SB), $0
+	SUB	$4, R1
+	MOVW	FSR, (R1)
+	MOVW	(R1), R7
+	ADD	$4, R1
+	RETURN

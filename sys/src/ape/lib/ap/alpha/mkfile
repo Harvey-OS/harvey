@@ -1,0 +1,24 @@
+MKSHELL=rc
+APE=$NXM/sys/src/ape
+<$APE/config
+LIB=$NXM/$objtype/lib/ape/libap.a
+OFILES=\
+	_seek.$O\
+	cycles.$O\
+	divl.$O\
+	divq.$O\
+	getfcr.$O\
+	lock.$O\
+	main9.$O\
+	main9p.$O\
+	memcpy.$O\
+	memmove.$O\
+	memset.$O\
+	notetramp.$O\
+	setjmp.$O\
+	tas.$O\
+
+<$NXM/sys/src/cmd/mksyslib
+
+CFLAGS=-c $CFLAGS -D_POSIX_SOURCE -D_PLAN9_SOURCE
+

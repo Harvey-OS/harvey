@@ -1,0 +1,10 @@
+MKSHELL=rc
+<$NXM/$objtype/mkfile
+
+#	ptyfs\	# for X11, not going to bother
+TARG=\
+	stty\
+	tar\
+
+BIN=$NXM/$objtype/bin/ape
+<$NXM/sys/src/cmd/mkmany

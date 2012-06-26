@@ -1,6 +1,6 @@
 #ifndef __WAIT_H
 #define __WAIT_H
-#pragma lib "/$M/lib/ape/libap.a"
+#pragma lib "ape/libap.a"
 
 /* flag bits for third argument of waitpid */
 #define WNOHANG		0x1

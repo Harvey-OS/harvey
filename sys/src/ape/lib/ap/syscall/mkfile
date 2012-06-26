@@ -1,0 +1,37 @@
+MKSHELL=rc
+NPROC=1
+<$NXM/$objtype/mkfile
+
+all:V: install
+
+install:V: ../../../../libc/9syscall/sys.h
+	cp $prereq .
+	mksys $objtype
+	sed 's/TEXT _exits/TEXT exits/' _exits.s >exits.s
+	rm _*.s
+	for(s in *.s)
+		sed 's/TEXT (.+)\(SB\)/TEXT _\1(SB)/;' $s | tr [a-z] [A-Z] > _^$s
+	mv _seek.s __seek.s
+	$AS _*.s
+	ar vu $NXM/$objtype/lib/ape/libap.a *.$O
+
+oldinstall:V: genall gencall
+	rc genall
+
+# ugh. sources's build process can't hack absolute path names.
+# we're in $NXM/sys/src/ape/lib/ap/syscall.
+gencall:D: ../../../../libc/9syscall/mkfile	# $NXM/sys/src/libc/9syscall/mkfile
+	{
+		echo '#!/bin/rc'
+		sed -n -e 's/seek/_SEEK/g' -e '/switch/,/\$AS /p' $prereq
+	} >$target
+	chmod +x $target
+
+nuke clean:V:
+	rm -f *.[$OS] *.s gencall sys.h
+
+installall:V:
+	for(objtype in $CPUS) mk install
+
+update:V:
+	update $UPDATEFLAGS mkfile

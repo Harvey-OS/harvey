@@ -1,6 +1,6 @@
 #ifndef __STRING_H_
 #define __STRING_H_
-#pragma lib "/$M/lib/ape/libap.a"
+#pragma lib "ape/libap.a"
 
 #include <stddef.h>
 

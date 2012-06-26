@@ -5,7 +5,7 @@
     This header file is an extension to ANSI/POSIX
 #endif
 
-#pragma lib "/$M/lib/ape/libbsd.a"
+#pragma lib "ape/libbsd.a"
 
 /*-
  * Copyright (c) 1980, 1983, 1988 Regents of the University of California.

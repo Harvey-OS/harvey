@@ -1,0 +1,37 @@
+#!/bin/rc
+switch($objtype){
+case mips
+	echo G_strcat.$O 9_strchr.$O 9_strcmp.$O 9_strcpy.$O G_strlen.$O\
+	G_strncmp.$O G_strrchr.$O 9_memchr.$O 9_memcmp.$O 9_memmove.$O\
+	9_memset.$O 9_getfcr.$O 9_vlop.$O 9_vlrt.$O
+
+case 68020
+	echo 9_strcat.$O 9_strchr.$O 9_strcmp.$O 9_strcpy.$O 9_strlen.$O\
+	G_strncmp.$O G_strrchr.$O 9_memchr.$O 9_memcmp.$O 9_memcpy.$O\
+	9_memmove.$O 9_memset.$O 9_vlop.$O 9_vlrt.$O
+
+case 386
+	echo 9_strcat.$O 9_strchr.$O G_strcmp.$O 9_strcpy.$O 9_strlen.$O\
+	G_strncmp.$O G_strrchr.$O 9_memchr.$O 9_memcmp.$O 9_memcpy.$O\
+	9_memmove.$O 9_memset.$O 9_vlop.$O 9_vlrt.$O
+
+case arm
+	echo 9_strcat.$O 9_strchr.$O G_strcmp.$O 9_strcpy.$O 9_strlen.$O\
+	G_strncmp.$O G_strrchr.$O 9_memchr.$O 9_memcmp.$O\
+	9_memmove.$O 9_memset.$O 9_vlop.$O 9_vlrt.$O 9_div.$O
+
+case sparc
+	echo G_strcat.$O 9_strchr.$O 9_strcmp.$O 9_strcpy.$O G_strlen.$O\
+	G_strncmp.$O G_strrchr.$O 9_memchr.$O 9_memcmp.$O 9_memmove.$O\
+	9_memset.$O 9_muldiv.$O 9_vlop.$O 9_vlrt.$O
+
+case alpha
+	echo G_strcat.$O G_strchr.$O G_strcmp.$O G_strcpy.$O G_strlen.$O\
+	G_strncmp.$O G_strrchr.$O G_memchr.$O G_memcmp.$O 9_memmove.$O\
+	9_memset.$O 9_memcpy.$O 9_getfcr.$O 9_divl.$O 9_divq.$O
+
+case power
+	echo G_strcat.$O G_strchr.$O G_strcmp.$O G_strcpy.$O G_strlen.$O\
+	G_strncmp.$O G_strrchr.$O G_memchr.$O 9_memcmp.$O 9_memmove.$O\
+	9_memset.$O 9_getfcr.$O 9_vlop.$O 9_vlrt.$O
+}

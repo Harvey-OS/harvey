@@ -3,7 +3,7 @@
 #if !defined(_RESEARCH_SOURCE) && !defined(_PLAN9_SOURCE)
     This header file is an extension to ANSI/POSIX
 #endif
-#pragma lib "/$M/lib/ape/lib9.a"
+#pragma lib "ape/lib9.a"
 
 #include <u.h>		/* ick; need Rune defined below */
 

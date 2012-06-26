@@ -5,7 +5,7 @@
 #ifndef	__DRAW_H_
 #define	__DRAW_H_
 #pragma src "/sys/src/ape/lib/draw"
-#pragma lib "/$M/lib/ape/libdraw.a"
+#pragma lib "ape/libdraw.a"
 
 #include <u.h>
 #include <fmt.h>

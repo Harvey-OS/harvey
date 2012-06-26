@@ -1,0 +1,57 @@
+MKSHELL=rc
+APE=$NXM/sys/src/ape
+<$APE/config
+
+TARG=basename\
+	cc\
+	dirname\
+	kill\
+	uname
+
+DIRS=\
+	diff\
+	expr\
+	make\
+	patch\
+	pdksh\
+	sed\
+
+BIN=$APEBIN
+<$NXM/sys/src/cmd/mkmany
+
+CFLAGS=-c $CFLAGS -D_POSIX_SOURCE
+
+all:V:	$DIRS
+
+install:V:	install.dir install.rc
+
+installall:V:	installall.dir
+
+clean:V:	clean.dir
+
+nuke:V:		nuke.dir
+
+%.dir:V:
+	for (i in $DIRS) @{
+		cd $i
+		echo '----'$i'----'
+		mk $stem
+	}
+
+$DIRS:V:
+	for (i in $target) @{
+		cd $i
+		echo '----'$i'----'
+		mk all
+	}
+
+cc.$O: cc.c
+	mk -f $NXM/sys/src/cmd/mkfile cc.$O
+
+$O.cc: cc.$O
+	mk -f $NXM/sys/src/cmd/mkfile $O.cc
+
+install.rc:V: $BIN/psh
+
+$BIN/%: %.rc
+	cp -x $stem.rc $BIN/$stem
