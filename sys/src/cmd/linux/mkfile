@@ -2,13 +2,16 @@
 
 TARG=linux
 OFILES= \
-	vdso.$O\
 	callmain.$O\
+	trace.$O\
 	proc.$O\
+#	mem.$O\
 
 #LIB=libmach/libmach.a  \
 
-HFILES=
+HFILES=\
+	fns.h\
+	dat.h\
 
 BIN=$NXM/$objtype/bin
 <$NXM/sys/src/cmd/mkmany

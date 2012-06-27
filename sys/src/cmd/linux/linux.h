@@ -19,6 +19,11 @@ enum {
 };
 
 enum {
+	PAGESIZE	= 0x1000,
+};
+
+
+enum {
 	F_DUPFD		= 0,
 	F_GETFD,
 	F_SETFD,

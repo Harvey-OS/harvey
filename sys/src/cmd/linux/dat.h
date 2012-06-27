@@ -6,3 +6,5 @@ struct Uproc {
 };
 
 Uproc uproc;
+
+extern int debug;

@@ -1,9 +1,11 @@
 /* derived from the hare machcnk program, heavily nodified.
- * this is a "shepherd". It lives in low user memory, code at 2M, data at 4M. 
- * Linux programs must be linked to run starting at 6M at least. Stack is shared. 
- * This program is linked with vdso.s, which provides the vdso for the linux programs. 
- * That vdso address is copied to a 4k-aligned address and then put into the naux vector. 
- * We avoid using segattach for now, hopefully forever. 
+ * This is a "shepherd". It lives in low user memory, code at 2M, data at 4M. 
+ * It was inspired by the lguest program, which works in a similar way,
+ * although lguest lives in very high memory.
+ * Linux programs must be linked to run starting at 6M at least.
+ * Stack is shared.
+ * The command for linking programs on linux is:
+ * cc -static -Xlinker -Ttext-segment=0x800000 code.c
  */
 #include <u.h>
 #include <libc.h>
@@ -18,11 +20,13 @@ enum {
 	DumpCall = 16,		/* dump args and return (including errors) */
 	DumpUregsBefore = 32,	/* dump uregs before system call */
 	DumpUregsAfter = 64,	/* dump uregs after system call */
-	PersyscallInfo = 128,	/* print per-system-call info for CNK-only system calls */
+	PersyscallInfo = 128,	/* print per-system-call info */
 };
 
 #define RND(size,up) (((size)+(up)-1) & ~((up)-1))
 #define RNDM(size) ((size+0xfffff)&0xfff00000)
+
+int debug = 1;
 
 int
 verbose(void){
@@ -40,7 +44,7 @@ typedef struct
   union
     {
       u64int a_val;           /* Integer value */
-      /* We use to have pointer elements added here.  We cannot do that,
+      /* We used to have pointer elements added here.  We cannot do that,
          though, since it does not work when using 64-bit definitions
          on 32-bit platforms and vice versa.  */
     } a_un;
@@ -142,7 +146,9 @@ hdr(int fd)
 	for(i = 0; i < ep->phnum; i++) {
 		fprint(2,"%d: type %#x va %p pa %p \n", i, ph[i].type, ph[i].vaddr, ph[i].paddr);
 	}
-	/* GNU ELF is weird. GNUSTACK is the last phdr and it's confusing libmach. */
+	/* GNU ELF is weird.
+	 * GNUSTACK is the last phdr and it's confusing libmach.
+	 */
 	naux(AT_PHNUM, ep->phnum-1);
 	naux(AT_PHDR, (u64int)ph);
 	naux(AT_RANDOM, (u64int)random);
@@ -165,7 +171,6 @@ handler(void *v, char *s)
 	u64int parm[7];
 	struct Ureg* u = v;
         int i, n, nf;
-
 	if (strncmp(s, "linux:", 6))
 		noted(NDFLT);
 	s += 6;
@@ -174,12 +179,26 @@ handler(void *v, char *s)
 	for(i = 0; i < nelem(parm); i++)
 		parm[i] = strtoull(f[i], 0, 0);
 	switch(parm[0]){
+#ifdef MMAP_IN_USER
+		/* This fails really badly. I don't know why.
+		 * It returns the right value and userspace sees the
+		 * right value but glibc gets really confused past that point
+		 * and all subsequent system calls have really bogus values.
+		 * For now, leave it in the kernel.
+		 */
+		case 9:
+			u->ax = linux_mmap(parm[1], parm[2], parm[3], 
+					parm[4], parm[5], parm[6]);
+			break;
+		case 11:
+			u->ax = linux_munmap(parm[1], parm[2]);
+			break;
+#endif
 		case 22:
 			u->ax = pipe((void*)(parm[1]));
 			break;
 		case 218:
 			u->ax = sys_set_tid_address((int*)(parm[1]));
-			print("got back from set_tid_address\n");
 			break;
 	}
 	noted(NCONT);
@@ -201,11 +220,10 @@ main(int argc, char *argv[])
 	char **av;
 	int debugctl = 2;
 	char cmd[2];
-	extern void vdso(void);
 
 	ARGBEGIN{
 	case 'b':	breakpoint = strtoul(EARGF(usage()), 0, 0); break;
-	/* weird. No longer in the code? */
+	/* weird. Symbolic names are no longer in the code? */
 	case 'f':	debugctl |= 4; break;
 	case 'F':	debugctl |= 8; break;
 	case 's':	debugctl |= DumpCall; break;
@@ -246,13 +264,14 @@ main(int argc, char *argv[])
 	naux(AT_GID, 0x64);
 	naux(AT_EGID, 0x64);
 	naux(AT_HWCAP, 0x4);
-	naux(AT_SYSINFO, (u64int)vdso);
-
 
 	fprint(2, "textseg is %d and dataseg is %d\n", textseg, dataseg);
-	fprint(2, "base %#llx end %#llx off %#llx \n", map->seg[textseg].b, map->seg[textseg].e, map->seg[textseg].f);
-	fprint(2, "base %#llx end %#llx off %#llx \n", map->seg[dataseg].b, map->seg[dataseg].e, map->seg[dataseg].f);
-	fprint(2, "txtaddr %#llx dataaddr %#llx entry %#llx txtsz %#lx datasz %#lx bsssz %#lx\n", 
+	fprint(2, "base %#llx end %#llx off %#llx \n",
+		map->seg[textseg].b, map->seg[textseg].e, map->seg[textseg].f);
+	fprint(2, "base %#llx end %#llx off %#llx \n",
+		map->seg[dataseg].b, map->seg[dataseg].e, map->seg[dataseg].f);
+	fprint(2, "txtaddr %#llx dataaddr %#llx entry %#llx txtsz"
+			"%#lx datasz %#lx bsssz %#lx\n", 
 		fp.txtaddr, fp.dataddr, fp.entry, fp.txtsz, fp.datsz, fp.bsssz);
 
 	bssbase = fp.dataddr + RNDM( fp.datsz + fp.bsssz),
@@ -273,7 +292,7 @@ main(int argc, char *argv[])
 		exits("notify fails");
 	}
 	/* NO print's past this point if you want to live. */
-	if (brk(bssp) < 0){
+	if (brk(bssp + fp.bsssz) < 0){
 		exits("no brk");
 	}
 	/* clear out bss ... */
