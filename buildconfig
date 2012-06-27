@@ -1,3 +1,4 @@
 set -e
 rm -f $NXM/xbin/ar
 rm -f $NXM/xbin/nm
+set -v
