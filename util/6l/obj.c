@@ -132,7 +132,7 @@ main(int argc, char *argv[])
 			HEADTYPE = 2;
 	}
 
-	Lflag(smprint("%s/amd64/lib", getenv("NXM")));
+	Lflag(smprint("%s/amd64/lib", (a = getenv("NXM")) == 0 ? "" : a));
 
 	switch(HEADTYPE) {
 	default:

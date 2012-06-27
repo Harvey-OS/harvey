@@ -9,8 +9,10 @@ install:V: ../../../../libc/9syscall/sys.h
 	mksys $objtype
 	sed 's/TEXT _exits/TEXT exits/' _exits.s >exits.s
 	rm _*.s
-	for(s in *.s)
+	for(s in *.s){
 		sed 's/TEXT (.+)\(SB\)/TEXT _\1(SB)/;' $s | tr [a-z] [A-Z] > _^$s
+		rm $s
+	}
 	mv _seek.s __seek.s
 	$AS _*.s
 	ar vu $NXM/$objtype/lib/ape/libap.a *.$O
