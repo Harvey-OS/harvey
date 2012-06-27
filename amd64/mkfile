@@ -7,5 +7,6 @@ LD=6l
 O=6
 AS=6a
 LDFLAGS=-L$NXM/$objtype/lib
-CFLAGS=-I $NXM/$objtype/include -I $NXM/sys/include -I $NXM
+CFLAGS=-I $NXM/$objtype/include -I $NXM/sys/include
+INCLUDE=$NXM
 MKSHELL=rc
