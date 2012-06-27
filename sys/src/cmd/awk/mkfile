@@ -1,5 +1,7 @@
 MKSHELL=rc
-<$NXM/$objtype/mkfile
+APE=$NXM/sys/src/ape
+<$APE/config
+#<$NXM/$objtype/mkfile
 
 TARG=awk
 OFILES=re.$O\
@@ -29,11 +31,11 @@ UPDATE=\
 	${TARG:%=$NXM/386/bin/%}\
 
 <$NXM/sys/src/cmd/mkone
-CFLAGS=-c -D_REGEXP_EXTENSION -D_RESEARCH_SOURCE -D_BSD_EXTENSION -DUTF
+CFLAGS=-c $CFLAGS -D_REGEXP_EXTENSION -D_RESEARCH_SOURCE -D_BSD_EXTENSION -DUTF
 YFLAGS=-S -d -v
 CC=pcc
 LD=pcc
-cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
+cpuobjtype=`{sed -n 's/^O=//p' $NXM/$cputype/mkfile}
 
 y.tab.h awkgram.c:	$YFILES
 	$YACC -o awkgram.c $YFLAGS $prereq

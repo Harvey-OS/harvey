@@ -1,0 +1,11 @@
+MKSHELL=rc
+<${NXM}/sys/src/mkfile.proto
+
+CC=9c
+GC=6g
+LD=9l
+O=o
+AS=9a
+MKSHELL=rc
+
+<$PLAN9/src/mkhdr

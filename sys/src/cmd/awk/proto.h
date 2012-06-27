@@ -22,6 +22,10 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ****************************************************************/
 
+#ifdef PLAN9PORT
+#define getline p9getline
+#endif
+
 extern	int	yywrap(void);
 extern	void	setfname(Cell *);
 extern	int	constnode(Node *);

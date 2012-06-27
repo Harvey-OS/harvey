@@ -24,6 +24,7 @@ xbin/pcc
 6.out
 6.*
 o.out
+o.*
 y.debug
 util/6a/6a
 util/6c/6c

@@ -9,4 +9,5 @@ cp mksys $NXM/xbin
 9l -o ../xbin/mklatinkbd mklatinkbd.o
 9c pcc.c
 9l -o ../xbin/pcc pcc.o
+(cd cpp && mk clean)
 (cd cpp && mk install)

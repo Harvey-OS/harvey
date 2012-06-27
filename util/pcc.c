@@ -16,6 +16,7 @@ Objtype objtype[] = {
 	{"68020",	"2c", "2l", "2", "2.out"},
 	{"arm",		"5c", "5l", "5", "5.out"},
 	{"amd64",	"6c", "6l", "6", "6.out"},
+	{"amd64/unix", "9c", "9l", "o", "o.out"},
 	{"alpha",	"7c", "7l", "7", "7.out"},
 	{"386",		"8c", "8l", "8", "8.out"},
 	{"power64",	"9c", "9l", "9", "9.out"},
@@ -51,12 +52,14 @@ main(int argc, char *argv[])
 {
 	Objtype *ot;
 	char *s, *suf, *ccpath;
-	char *oname, *root;
+	char *tname, *oname;
+	char *root;
 	int i, cppn, ccn, oflag;
 
 	oflag = 0;
 	ot = findoty();
 	oname = ot->oname;
+	tname = ot->name;
 	root = "";
 	append(&cpp, "cpp");
 	append(&cpp, "-D__STDC__=1");	/* ANSI says so */
@@ -70,9 +73,7 @@ main(int argc, char *argv[])
 			break;
 		case 'r':
 			root = smprint("%s", ARGF());
-			s = ot->name;
-			ot->name = smprint("/%s/%s", root, s);
-//			free(s);
+			ot->name = smprint("/%s/%s", root, tname);
 			break;
 		case 'c':
 			cflag = 1;
@@ -172,7 +173,13 @@ main(int argc, char *argv[])
 				append(&cc, oname);
 			else
 				append(&cc, changeext(srcs.strings[i], ot->o));
-			dopipe("cpp", &cpp, ccpath, &cc);
+			/* unices use gcc: an overgrown cpp */
+			if(strstr(tname, "unix")) {
+				append(&cc, srcs.strings[i]);
+				doexec(ccpath, &cc);
+			}
+			else
+				dopipe("cpp", &cpp, ccpath, &cc);
 		}
 		cpp.n = cppn;
 		cc.n = ccn;
@@ -184,7 +191,9 @@ main(int argc, char *argv[])
 			append(&ld, ldargs.strings[i]);
 		for(i = 0; i < objs.n; i++)
 			append(&ld, objs.strings[i]);
-		append(&ld, smprint("/%s/lib/ape/libap.a", ot->name));
+		/* unices need no ape support */
+		if(strstr(tname, "unix") == 0)
+			append(&ld, smprint("/%s/lib/ape/libap.a", ot->name));
 		doexec(smprint("%s", ot->ld), &ld);
 		if(objs.n == 1){
 			/* prevent removal of a library */
