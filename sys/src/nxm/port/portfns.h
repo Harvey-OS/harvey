@@ -136,6 +136,7 @@ long		hostownerwrite(char*, long);
 void		hzsched(void);
 Block*		iallocb(int);
 void		iallocsummary(void);
+uintptr		ibrk(uintptr, int);
 void		ilock(Lock*);
 void		initimage(void);
 int		iprint(char*, ...);

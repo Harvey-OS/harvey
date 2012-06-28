@@ -93,7 +93,6 @@ void
 linuxbrk(Ar0* ar0, va_list list)
 {
 //	void linuxsbrk(Ar0* ar0, va_list list);
-	uintptr ibrk(uintptr addr, int seg);
 	void sysbrk_(Ar0*, va_list);
 	uintptr va, newva;
 	//void *arg[1];
@@ -270,14 +269,18 @@ returnok(Ar0*, va_list)
 
 /* void  *  mmap(void *start, size_t length, int prot , int flags, int fd,
        off_t offset); */
-/* They are using this as a poor man's malloc. */
+/* can be a malloc or a true map of a file. fd == -1 is a malloc */
 
 void linuxmmap(Ar0 *ar0, va_list list)
 {
 	void *v;
-	int length, prot, flags, fd;
+	int length, prot, flags, fd, nn;
 	ulong offset;
 	void linuxsbrk(Ar0* ar0, va_list list);
+        Chan *c;
+	uintptr newv, oldv;
+	uintptr ret;
+
 	v = va_arg(list, void *);
 	length = va_arg(list, int);
 	prot = va_arg(list, int);
@@ -285,29 +288,42 @@ void linuxmmap(Ar0 *ar0, va_list list)
 	fd = va_arg(list, int);
 	offset = va_arg(list, ulong);
 	if (up->attr & 128) print("%d:CNK: mmap %p %#x %#x %#x %d %#ulx\n", up->pid, v, length, prot, flags, fd, offset);
-	if (fd == -1){
-		unsigned char *newv, *oldv;
-		uintptr ret;
-		oldv = (void *)ibrk(0, BSEG);
+	/* if we are going to use the fd make sure it's valid */
+	if (fd > -1)
+        	c = fdtochan(fd, OREAD, 1, 1);
 
-		if (up->attr & 128)
-			print("%d:mmap anon: current is %p\n", up->pid, oldv);
-		newv =  oldv + length;
-		if (up->attr & 128)
-			print("%d:mmap anon: ask for %p\n", up->pid, newv);
-		ret = ibrk(newv, BSEG);
-		if (up->attr & 128)
-			print("%d:mmap anon: new is %p\n", up->pid, ret);
-		/* success means "return the old pointer" ... */
-		if ((uintptr) -1 != ret)
-			ar0->v = oldv;
-		else
-			ar0->i = ret;
+        if(waserror()){
+                cclose(c);
+                nexterror();
+	}
+
+	/* allocate the memory we need. We might allocate more than needed. */
+	oldv = ibrk(0, BSEG);
+
+	if (up->attr & 128)
+		print("%d:mmap anon: current is %p\n", up->pid, oldv);
+	newv =  oldv + length;
+	if (up->attr & 128)
+		print("%d:mmap anon: ask for %p\n", up->pid, newv);
+	ret = ibrk(newv, BSEG);
+	if (up->attr & 128)
+		print("%d:mmap anon: new is %p\n", up->pid, ret);
+
+	if (fd == -1){
+		ar0->p = oldv;
+		poperror();
 		return;
 	}
-		
-	ar0->i = -1;
-	
+
+	while (length > 0){
+		nn = c->dev->read(c, (void *)oldv, length, offset);
+		offset += nn;
+		length -= nn;
+		oldv += nn;
+	}
+	poperror();
+	cclose(c);
+	ar0->p = oldv;
 }
 
 
