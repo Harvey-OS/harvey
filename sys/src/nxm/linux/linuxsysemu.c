@@ -278,7 +278,7 @@ void linuxmmap(Ar0 *ar0, va_list list)
 	ulong offset;
 	void linuxsbrk(Ar0* ar0, va_list list);
         Chan *c;
-	uintptr newv, oldv;
+	uintptr newv, oldv, iop;
 	uintptr ret;
 
 	v = va_arg(list, void *);
@@ -287,7 +287,8 @@ void linuxmmap(Ar0 *ar0, va_list list)
 	flags = va_arg(list, int);
 	fd = va_arg(list, int);
 	offset = va_arg(list, ulong);
-	if (up->attr & 128) print("%d:CNK: mmap %p %#x %#x %#x %d %#ulx\n", up->pid, v, length, prot, flags, fd, offset);
+	if (up->attr & 128)
+		print("%d:CNK: mmap %p %#x %#x %#x %d %#ulx\n", up->pid, v, length, prot, flags, fd, offset);
 	/* if we are going to use the fd make sure it's valid */
 	if (fd > -1)
         	c = fdtochan(fd, OREAD, 1, 1);
@@ -315,15 +316,20 @@ void linuxmmap(Ar0 *ar0, va_list list)
 		return;
 	}
 
+	iop = oldv;
 	while (length > 0){
 		nn = c->dev->read(c, (void *)oldv, length, offset);
+		if (nn <= 0)
+			break;
 		offset += nn;
 		length -= nn;
 		oldv += nn;
 	}
 	poperror();
 	cclose(c);
-	ar0->p = oldv;
+	if (up->attr & 128)
+		print("%d:mmap file at %p\n", up->pid, iop);
+	ar0->p = iop;
 }
 
 
