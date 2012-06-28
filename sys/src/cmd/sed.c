@@ -1050,7 +1050,7 @@ dosub(Rune *rhsbuf)
 			sp = place(sp, loc1, loc2);
 			continue;
 		}
-		if (c == 0xFFFF && (c = *rp++) >= '1' && c < MAXSUB + '0') {
+		if (c == Runemax && (c = *rp++) >= '1' && c < MAXSUB + '0') {
 			n = c-'0';
 			if (subexp[n].rsp && subexp[n].rep) {
 				sp = place(sp, subexp[n].rsp, subexp[n].rep);
