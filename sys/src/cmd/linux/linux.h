@@ -344,3 +344,5 @@ struct linux_timespec
 	long	tv_nsec;
 };
 
+int sys_getrlimit(long resource, void *rlim);
+int sys_setrlimit(long resource, void *rlim);

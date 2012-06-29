@@ -5,6 +5,7 @@ OFILES= \
 	callmain.$O\
 	trace.$O\
 	proc.$O\
+	rlimit.$O\
 #	mem.$O\
 
 #LIB=libmach/libmach.a  \

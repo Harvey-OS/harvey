@@ -15,6 +15,7 @@
 #include "elf.h"
 #include "fns.h"
 #include "dat.h"
+#include "linux.h"
 
 enum {
 	DumpCall = 16,		/* dump args and return (including errors) */
@@ -178,24 +179,16 @@ handler(void *v, char *s)
 
 	for(i = 0; i < nelem(parm); i++)
 		parm[i] = strtoull(f[i], 0, 0);
+	/* TODO soon: use linuxsystab.h */
 	switch(parm[0]){
-#ifdef MMAP_IN_USER
-		/* This fails really badly. I don't know why.
-		 * It returns the right value and userspace sees the
-		 * right value but glibc gets really confused past that point
-		 * and all subsequent system calls have really bogus values.
-		 * For now, leave it in the kernel.
-		 */
-		case 9:
-			u->ax = linux_mmap(parm[1], parm[2], parm[3], 
-					parm[4], parm[5], parm[6]);
-			break;
-		case 11:
-			u->ax = linux_munmap(parm[1], parm[2]);
-			break;
-#endif
 		case 22:
 			u->ax = pipe((void*)(parm[1]));
+			break;
+		case 97:
+			u->ax = sys_getrlimit((long)(parm[1]), (void *)parm[2]);
+			break;
+		case 160:
+			u->ax = sys_setrlimit((long)(parm[1]), (void *)parm[2]);
 			break;
 		case 218:
 			u->ax = sys_set_tid_address((int*)(parm[1]));
@@ -223,7 +216,7 @@ main(int argc, char *argv[])
 
 	ARGBEGIN{
 	case 'b':	breakpoint = strtoul(EARGF(usage()), 0, 0); break;
-	/* weird. Symbolic names are no longer in the code? */
+	/* weird. Symbolic names are no longer in the code? Lossage from the CNK project. */
 	case 'f':	debugctl |= 4; break;
 	case 'F':	debugctl |= 8; break;
 	case 's':	debugctl |= DumpCall; break;
