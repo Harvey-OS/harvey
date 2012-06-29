@@ -2,6 +2,7 @@ MKSHELL=rc
 <$NXM/$objtype/mkfile
 
 TARG = 	badsyscall\
+		float\
 
 DIRS=
 

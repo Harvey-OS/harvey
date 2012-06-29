@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <utf.h>
 
 /*
  * Use the FSS-UTF transformation proposed by posix.
@@ -7,12 +8,14 @@
  *	Tx	10xxxxxx	6 free bits
  *	T1	110xxxxx	5 free bits
  *	T2	1110xxxx	4 free bits
+ *	T3	11110xxx	3 free bits
  *
  *	Encoding is as follows.
  *	From hex	Thru hex	Sequence		Bits
- *	00000000	0000007F	T0			7
- *	00000080	000007FF	T1 Tx			11
- *	00000800	0000FFFF	T2 Tx Tx		16
+ *	00000000	0000007F	T1		7
+ *	00000080	000007FF	T2 Tx		11
+ *	00000800	0000FFFF	T3 Tx Tx		16
+ *	00010000	0010FFFF	T4 Tx Tx	Tx	20 (and change)
  */
 
 int
@@ -25,7 +28,7 @@ mblen(const char *s, size_t n)
 int
 mbtowc(wchar_t *pwc, const char *s, size_t n)
 {
-	int c, c1, c2;
+	int c, c1, c2, c3;
 	long l;
 
 	if(!s)
@@ -70,6 +73,24 @@ mbtowc(wchar_t *pwc, const char *s, size_t n)
 		return 3;
 	}
 
+	if(n < 4)
+		goto bad;
+	if(UTFmax >= 4) {
+		c3 = (s[3] ^ 0x80) & 0xff;
+		if(c3 & 0xC0)
+			goto bad;
+		if(c < 0xf8) {
+			l = ((((((c << 6) | c1) << 6) | c2) << 6) | c3) & 0x3fffff;
+			if(l <= 0x10000)
+				goto bad;
+			if(l > Runemax)
+				goto bad;
+			if(pwc)
+				*pwc = l;
+			return 4;
+		}
+	}
+
 	/*
 	 * bad decoding
 	 */
@@ -86,7 +107,9 @@ wctomb(char *s, wchar_t wchar)
 	if(!s)
 		return 0;
 
-	c = wchar & 0xFFFF;
+	c = wchar;
+	if(c > Runemax)
+		c = Runeerror;
 	if(c < 0x80) {
 		s[0] = c;
 		return 1;
@@ -98,10 +121,17 @@ wctomb(char *s, wchar_t wchar)
 		return 2;
 	}
 
-	s[0] = 0xE0 |  (c >> 12);
-	s[1] = 0x80 | ((c >> 6) & 0x3F);
-	s[2] = 0x80 |  (c & 0x3F);
-	return 3;
+	if(c < 0x10000){
+		s[0] = 0xE0 |  (c >> 12);
+		s[1] = 0x80 | ((c >> 6) & 0x3F);
+		s[2] = 0x80 |  (c & 0x3F);
+		return 3;
+	}
+	s[0] = 0xf0 | c >> 18;
+	s[1] = 0x80 | (c >> 12) & 0x3F;
+	s[2] = 0x80 | (c >> 6) & 0x3F;
+	s[3] = 0x80 | (c & 0x3F);
+	return 4;
 }
 
 size_t
@@ -117,7 +147,7 @@ mbstowcs(wchar_t *pwcs, const char *s, size_t n)
 				break;
 			s++;
 		} else {
-			d = mbtowc(pwcs, s, 3);
+			d = mbtowc(pwcs, s, UTFmax);
 			if(d <= 0)
 				return (size_t)((d<0) ? -1 : i);
 			s += d;
@@ -133,10 +163,10 @@ wcstombs(char *s, const wchar_t *pwcs, size_t n)
 	int i, d;
 	long c;
 	char *p, *pe;
-	char buf[3];
+	char buf[UTFmax];
 
 	p = s;
-	pe = p+n-3;
+	pe = p+n-UTFmax;
 	while(p < pe) {
 		c = *pwcs++;
 		if(c < 0x80)
@@ -146,20 +176,16 @@ wcstombs(char *s, const wchar_t *pwcs, size_t n)
 		if(c == 0)
 			return p-s;
 	}
-	while(p < pe+3) {
+	while(p < pe+UTFmax) {
 		c = *pwcs++;
 		d = wctomb(buf, c);
-		if(p+d <= pe+3) {
-			*p++ = buf[0];
-			if(d > 1) {
-				*p++ = buf[2];
-				if(d > 2)
-					*p++ = buf[3];
-			}
+		if(p+d <= pe+UTFmax) {
+			for(i = 0; i < d; i++)
+				p[i] = buf[i];
+			p += d;
 		}
 		if(c == 0)
 			break;
 	}
 	return p-s;
 }
-
