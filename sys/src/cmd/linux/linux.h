@@ -19,9 +19,15 @@ enum {
 };
 
 enum {
-	PAGESIZE	= 0x1000,
-};
+	HZ = 100,
+	PAGESIZE = 0x1000,
 
+	MAXPROC	= 128,
+	MAXFD	= 256,
+
+	USTACK	= 8*1024*1024,
+	KSTACK	= 8*1024,
+};
 
 enum {
 	F_DUPFD		= 0,

@@ -4,7 +4,6 @@ dev +dev
 	arch
 	env
 	pipe
-	poll
 	proc
 	mnt
 	srv
@@ -91,11 +90,10 @@ rootdir
 	$NXM/amd64/bin/ramfs ramfs
 	$NXM/amd64/bin/ratrace ratrace
 	$NXM/amd64/bin/sleep sleep
-	$NXM/amd64/bin/regress/polltest polltest
 	$NXM/sys/lib/acid/port port
 	$NXM/sys/lib/acid/amd64 amd64
 	../root/nvram nvram
-#	../root/hello.out hello.out
+	../root/hello.out hello.out
 #	../root/testlinux.out testlinux.out
 
 conf
