@@ -24,6 +24,11 @@ enum {
 	PersyscallInfo = 128,	/* print per-system-call info */
 };
 
+enum {
+	StackKB = 1024,
+	KiB	= 1024,
+};
+
 #define RND(size,up) (((size)+(up)-1) & ~((up)-1))
 #define RNDM(size) ((size+0xfffff)&0xfff00000)
 
@@ -74,7 +79,7 @@ Elf64_auxv_t aux[32];
 /* don't malloc stack. The brk calls go behind the allocator and screw it
  * up.
  */
-unsigned char stack[64*1024];
+unsigned char stack[StackKB*KiB];
 
 /* oops! */
 #define AT_BASE_PLATFORM 24		/* String identifying real platforms.*/
@@ -303,7 +308,8 @@ main(int argc, char *argv[])
 
 	*/
 
-	av = (char **)&stack[15*1024];
+	/* all this other junk goes in the last KiB */
+	av = (char **)&stack[(StackKB-1)*KiB];
 	/* gnu is odd. they start out knowing args are on stack (sort of) */
 	/* av is going to become the start of the stack. */
 	/* this is where argc goes. */
