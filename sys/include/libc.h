@@ -677,6 +677,7 @@ extern	int	semacquire(long*, int);
 extern	long	semrelease(long*, long);
 extern	int	sleep(long);
 extern	int	stat(char*, uchar*, int);
+extern	int	tsemacquire(long*, ulong);
 extern	Waitmsg*	wait(void);
 extern	int	waitpid(void);
 extern	long	write(int, void*, long);
