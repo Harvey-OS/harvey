@@ -7,6 +7,7 @@
 int handled = 0;
 int back = 0;
 int inhandler = 0;
+int badsys = 0;
 char *msg = "Writing from NxM program to stdout via linux write(2)\n";
 
 void
@@ -20,6 +21,10 @@ handler(void *v, char *s)
 	inhandler = 1;
 	fprint(2, "handler: %p %s\n", v, s);
 	handled++;
+	if (strncmp(s, "sys: bad sys call", 17)==0 && badsys){
+		badsys = 0;
+		noted(NCONT);
+	}
 	if (strncmp(s, "linux:", 6))
 		noted(NDFLT);
 	s += 6;
@@ -35,6 +40,8 @@ handler(void *v, char *s)
 	inhandler = 0;
 	noted(NCONT);
 }
+
+void
 main(int argc, char *argv[])
 {
 	uvlong callbadsys(uvlong, ...);
@@ -63,11 +70,12 @@ main(int argc, char *argv[])
 	read(fd[1], data, 3);
 	fprint(2, "read from pipe is %d (should be 3); data is :%s:\n", ret, data);
 	/* now try a bad linux system call */
+	badsys = 1;
 	callbadsys(0x3FFF);
 	fprint(2, "Handled %d\n", handled);
 	back++;
 
 	if (!handled)
 		exits("badsyscall test fails");
-	return 0;
+	exits(nil);
 }

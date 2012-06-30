@@ -280,10 +280,6 @@ main(int argc, char *argv[])
 		fprint(2, "%r\n");
 		exits("notify fails");
 	}
-	if (notify(handler)){
-		fprint(2, "%r\n");
-		exits("notify fails");
-	}
 	/* NO print's past this point if you want to live. */
 	if (brk(bssp + fp.bsssz) < 0){
 		exits("no brk");
