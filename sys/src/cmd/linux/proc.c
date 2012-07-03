@@ -7,5 +7,5 @@
 int sys_set_tid_address(int *tidptr)
 {
 	uproc.cleartidptr = tidptr;
-	return getpid();
+	return uproc.pid;
 }

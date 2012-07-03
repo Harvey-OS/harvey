@@ -285,6 +285,7 @@ main(int argc, char *argv[])
 		fprint(2, "%r\n");
 		exits("notify fails");
 	}
+	uproc.pid = getpid();
 	/* NO print's past this point if you want to live. */
 	if (brk(bssp + fp.bsssz) < 0){
 		exits("no brk");
