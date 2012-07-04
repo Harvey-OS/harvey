@@ -1,6 +1,6 @@
 .TH 6IN4 8
 .SH NAME
-6in4 - configure and run automatic or manual 6to4 tunnel of IPv6 through IPv4
+6in4 - 6to4 tunnel of IPv6 through IPv4
 .SH SYNOPSIS
 .B ip/6in4
 [
@@ -17,7 +17,7 @@
 ] ] ]
 .SH DESCRIPTION
 .I 6in4
-sets up and maintains a tunnel of IPv6 traffic through an IPv4 connection.
+sets up and operates a tunnel of IPv6 traffic through an IPv4 connection.
 .PP
 .I Local6
 and
@@ -72,7 +72,7 @@ permit any remote IPv4 address as the far end of a tunnel.
 This is likely to be useful for the server side of a tunnel.
 .TP
 .B -g
-use the tunnel as the default route for global IPv6 addresses
+add a default route to the tunnel for global IPv6 addresses.
 .TP
 .B -x
 use the network mounted at

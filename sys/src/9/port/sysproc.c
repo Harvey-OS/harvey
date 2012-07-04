@@ -1036,7 +1036,7 @@ static int
 tsemacquire(Segment *s, long *addr, ulong ms)
 {
 	int acquired, timedout;
-	ulong t;
+	ulong t, elms;
 	Sema phore;
 
 	if(canacquire(addr))
@@ -1056,13 +1056,13 @@ tsemacquire(Segment *s, long *addr, ulong ms)
 			break;
 		t = m->ticks;
 		tsleep(&phore, semawoke, &phore, ms);
-		if(TK2MS(m->ticks - t) >= ms){
+		elms = TK2MS(m->ticks - t);
+		poperror();
+		if(elms >= ms){
 			timedout = 1;
-			poperror();
 			break;
 		}
-		ms -= TK2MS(m->ticks - t);
-		poperror();
+		ms -= elms;
 	}
 	semdequeue(s, &phore);
 	coherence();	/* not strictly necessary due to lock in semdequeue */
@@ -1126,7 +1126,8 @@ syssemrelease(ulong *arg)
 
 	if((s = seg(up, (ulong)addr, 0)) == nil)
 		error(Ebadarg);
+	/* delta == 0 is a no-op, not a release */
 	if(delta < 0 || *addr < 0)
 		error(Ebadarg);
-	return semrelease(s, addr, arg[1]);
+	return semrelease(s, addr, delta);
 }
