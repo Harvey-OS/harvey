@@ -5,9 +5,12 @@
  */
 
 TEXT	cas+0(SB),0,$12		/* r0 holds p */
+	B	_casp		/* must not fall through; would push LR again */
 TEXT	casp+0(SB),0,$12	/* r0 holds p */
+_casp:
 	MOVW	ov+4(FP), R1
 	MOVW	nv+8(FP), R2
+	BARRIERS
 spincas:
 	LDREX(0,3)	/*	LDREX	0(R0),R3	*/
 	CMP.S	R3, R1
@@ -15,8 +18,8 @@ spincas:
 	STREX(2,0,4)	/*	STREX	0(R0),R2,R4	*/
 	CMP.S	$0, R4
 	BNE	spincas
-	MOVW	$1, R0
 	BARRIERS
+	MOVW	$1, R0
 	RET
 fail:
 	CLREX

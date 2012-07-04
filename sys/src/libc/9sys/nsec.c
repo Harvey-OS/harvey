@@ -36,7 +36,8 @@ nsec(void)
 	 */
 
 	/* First, look if we've opened it for this particular pid */
-	pid = _tos->pid;
+	if((pid = _tos->pid) == 0)		/* 9vx bug, perhaps? */
+		_tos->pid = pid = getpid();
 	do{
 		f = -1;
 		for(i = 0; i < nelem(fds); i++)

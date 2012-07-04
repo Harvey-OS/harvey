@@ -280,7 +280,7 @@
 #define Noexecsmall	1			/* L2: no execute */
 #define Small		0x00000002		/* L2 4KB */
 /*
- * next 4 bits (Buffered, Cached, L2wralloc & L2sharable) must be set in
+ * next 3 bits (Buffered, Cached, L2wralloc) & L2sharable must be set in
  * l2 ptes for memory containing locks because LDREX/STREX require them.
  */
 #define Buffered	0x00000004		/* L[12]: 0 write-thru, 1 -back */
