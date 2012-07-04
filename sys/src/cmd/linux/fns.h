@@ -10,3 +10,5 @@ void tprint(char *fmt, ...);
 #pragma varargck argpos tprint 1
 #define trace if(debug)tprint
 
+uintptr calllinuxnoted(int);
+

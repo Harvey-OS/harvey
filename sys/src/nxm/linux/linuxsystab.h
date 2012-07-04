@@ -32,6 +32,7 @@ extern Syscall sys_read;
 extern Syscall sysopen;
 extern Syscall sysclose;
 extern Syscall syspread;
+Syscall sysnoted;
 
 struct syscall {
 	char*	n;
@@ -360,6 +361,8 @@ struct syscall linuxsystab[] = {
 	[297] {"rt_tgsigqueueinfo", nil, 1, {.p = (void *)-1}},
 	[298] {"perf_event_open", nil, 1, {.p = (void *)-1}},
 	[299] {"recvmmsg", nil, 1, {.p = (void *)-1}},
+	/* they won't get here for at least a year */
+	[1024] {"noted", sysnoted, 1, {.p = (void *)-1}},
 
 };
 

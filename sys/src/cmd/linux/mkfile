@@ -3,6 +3,7 @@
 TARG=linux
 OFILES= \
 	callmain.$O\
+	calllinuxnoted.$O\
 	trace.$O\
 	proc.$O\
 	rlimit.$O\

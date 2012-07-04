@@ -76,10 +76,6 @@ extern void *phdr(void);
  */
 int auxc = 0;
 Elf64_auxv_t aux[32];
-/* don't malloc stack. The brk calls go behind the allocator and screw it
- * up.
- */
-unsigned char stack[StackKB*KiB];
 
 /* oops! */
 #define AT_BASE_PLATFORM 24		/* String identifying real platforms.*/
@@ -178,7 +174,7 @@ handler(void *v, char *s)
 	struct Ureg* u = v;
         int i, n, nf;
 	if (strncmp(s, "linux:", 6))
-		noted(NDFLT);
+		calllinuxnoted(NDFLT);
 	s += 6;
 	nf = tokenize(s, f, nelem(f));
 
@@ -199,11 +195,15 @@ handler(void *v, char *s)
 			u->ax = sys_set_tid_address((int*)(parm[1]));
 			break;
 	}
-	noted(NCONT);
+	calllinuxnoted(NCONT);
 }
 
 main(int argc, char *argv[])
 {
+	/* keep our stack on the main stack. Avoids lots of
+	 * validaddr calls
+	 */
+	unsigned char stack[StackKB*KiB];
 	int fd, ctl;
 	unsigned char  *textp, *datap, *bssp;
 	ulong bsssize, bssbase;

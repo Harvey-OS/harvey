@@ -189,8 +189,8 @@ linuxsyscall(unsigned int, Ureg* ureg)
 	up->insyscall = 0;
 	up->psstate = 0;
 
-	if(scallnr == NOTED)
-		noted(ureg, *(uintptr*)(sp+BY2SE));
+	if(scallnr == 1024)
+		noted(ureg, linuxargs[0]);
 
 	splhi();
 
