@@ -211,7 +211,6 @@ struct Mach
 	int	cpumhz;
 	uvlong	cpuhz;			/* speed of cpu */
 	uvlong	cyclefreq;		/* Frequency of user readable cycle counter */
-	Lock	clklck;
 
 	/* vfp3 fpu */
 	int	havefp;
