@@ -1,0 +1,67 @@
+.TH LOADFOSSIL 8
+.SH NAME
+loadfossil - populate a fossil filesystem
+.SH SYNOPSIS
+.B loadfossil
+.I fossil
+.I root
+.I proto
+.I fossil.conf
+.SH DESCRIPTION
+.I Loadfossil
+formats the partition (or file)
+.IR fossil
+as a
+.IR fossil (4)
+file system,
+populates it with files from
+.I root
+using the
+.IR mkfs (8)
+prototype file
+.I proto
+and installs the configuration in
+.IR fossil.conf .
+.PP
+Simply declaring
+.LR "fsys main config"
+in
+.I fossil.conf
+takes the device name from
+.L "fossil -f"
+and avoids wiring it into the configuration.
+.SH EXAMPLES
+Create a standalone
+.I fossil
+root filesystem for a laptop from the local Plan 9 installation.
+.IP
+.EX
+sc=/sys/lib/sysconfig
+loadfossil /dev/sdC0/fossil /n/boot $sc/proto/stand-usb \e
+	$sc/usb/fossil.conf
+.EE
+.SH FILES
+.TF /srv/fscons.open
+.PD 0
+.TP
+.B /srv/fossil
+.TP
+.B /srv/fossil.open
+.TP
+.B /srv/fscons
+.TP
+.B /srv/fscons.open
+files created while executing
+.SH SOURCE
+.B /rc/bin/loadfossil
+.SH SEE ALSO
+.IR fossilcons (8),
+.IR mkusbboot (8),
+.IR prep (8)
+.SH BUGS
+Due to name clashes in
+.BR /srv ,
+should be run only on machines with no running
+.I fossil
+instance named
+.LR fossil .

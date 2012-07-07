@@ -1,0 +1,150 @@
+.TH FS 4
+.SH NAME
+fs \- file server, dump
+.SH SYNOPSIS
+.I none
+.SH DESCRIPTION
+The file server was the main file system for Plan 9.
+It was a stand-alone system that ran on
+a separate computer.
+It served the Plan 9 protocol via the IL/IP
+protocols on Ethernets.
+The name of the main file server at Murray Hill was
+.BR emelie .
+.PP
+The file server normally requires all users except
+.L none
+to provide authentication tickets on each
+.IR attach (5).
+This can be disabled using the
+.B noauth
+configuration command (see
+.IR fsconfig (8)).
+.PP
+The group numbered 9999, normally called
+.BR noworld ,
+is special
+on the file server.  Any user belonging to that group has
+attenuated access privileges.  Specifically, when checking such
+a user's access to files, the file's permission bits are first ANDed
+with 0770 for normal files or 0771 for directories.  The effect is
+to deny world access permissions to
+.B noworld
+users, except
+when walking directories.
+.PP
+The user
+.B none
+is always allowed to attach to
+.B emelie
+without authentication but has minimal permissions.
+.PP
+.B Emelie
+maintains three file systems
+on a combination of disks and
+write-once-read-many (WORM) magneto-optical disks.
+.TP
+.B other
+is a simple disk-based file system similar to
+.IR kfs (4) .
+.TP
+.B main
+is a worm-based file system with a disk-based
+look-aside cache.
+The disk cache holds
+modified worm blocks
+to overcome the write-once property of the worm.
+The cache also holds recently accessed
+non-modified blocks to
+speed up the effective access time of the worm.
+Occasionally
+(usually daily at 5AM) the modified blocks in the
+disk cache are
+.IR dumped .
+At this time,
+traffic to the file system is halted and the
+modified blocks are relabeled to the unwritten
+portion of the worm.
+After the dump,
+the file system traffic is continued and
+the relabeled blocks are copied to the worm by
+a background process.
+.TP
+.B dump
+Each time the main file system is dumped,
+its root is appended to a subdirectory of the dump file system.
+Since the dump file system is not mirrored with a disk
+cache,
+it is read-only.
+The name of the newly added root is created from the date
+of the dump:
+.BI / yyyy / mmdds\f1.
+Here
+.I yyyy
+is the full year,
+.I mm
+is the month number,
+.I dd
+is the day number and
+.I s
+is a sequence number if more than
+one dump is done in a day.
+For the first dump,
+.I s
+is null.
+For the subsequent dumps
+.I s
+is 1, 2, 3, etc.
+.sp
+The root of the main file system
+that is frozen on the first dump
+of March 1, 1992
+will be named
+.B /1992/0301/
+in the dump file system.
+.SH EXAMPLES
+Place the root of the
+.B dump
+file system on
+.B /n/dump
+and show the modified times of the MIPS C compiler
+over all dumps in February, 1992:
+.IP
+.EX
+9fs dump
+ls -l /n/dump/1992/02??/mips/bin/vc
+.EE
+.PP
+To get only one line of output for each version of the compiler:
+.IP
+.EX
+ls -lp /n/dump/1992/02??/mips/bin/vc | uniq
+.EE
+.PP
+Make the
+.B other
+file system available in directory
+.BR /n/emelieother :
+.IP
+.EX
+mount -c /srv/boot /n/emelieother other
+.EE
+.SH SOURCE
+.B /sys/src/fs
+.SH SEE ALSO
+.IR yesterday (1),
+.IR cwfs (4),
+.IR srv (4),
+.IR fs (8)
+.br
+Sean Quinlan,
+``A Cached WORM File System'',
+.I
+Software \- Practice and Experience,
+December, 1991
+.SH BUGS
+For the moment, the file server serves both the old (third edition) and new (fourth
+edition) versions of 9P, deciding which to serve by sniffing the first packet on each
+connection.
+.PP
+Required IL, thus now deprecated.

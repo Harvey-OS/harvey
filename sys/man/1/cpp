@@ -1,0 +1,119 @@
+.TH CPP 1
+.SH NAME
+cpp \- C language preprocessor
+.SH SYNOPSIS
+.B cpp
+[
+.I option ...
+]
+[
+.I ifile
+[
+.I ofile
+]
+]
+.SH DESCRIPTION
+.I Cpp\^
+interprets ANSI C preprocessor directives
+and does macro substitution.
+The input
+.I ifile
+and output
+.I ofile
+default to standard input and standard output respectively.
+.PP
+The options are:
+.TP
+.BI -D name\^
+.PD 0
+.TP
+.BI -D name=def\^
+.TP
+.BI -I dir\^
+Same as in
+.IR 2c "(1): add
+.I dir
+to the search for
+.CW search
+directives.
+.PD
+.TP
+.B -M
+Generate no output except a list of include files
+in a form suitable for specifying dependencies to
+.IR mk (1).
+Use twice to list files in angle brackets.
+.TP
+.B -N
+Turn off default include directories.  All must be
+specified with
+.BR -I ,
+or in the environment variable
+.BR include .
+Without this option,
+.B /$objtype/include
+and
+.B /sys/include
+are used as the last two searched directories for include directives,
+where
+.B $objtype
+is read from the environment.
+.TP
+.B -V
+Print extra debugging information.
+.TP
+.B -P
+Do not insert
+.RB `` #line ''
+directives into the output.
+.TP
+.B -+
+Understand C++ comments.
+.TP
+.B -.
+Inhibit include search in the source's directory.
+.TP
+.B -i
+Print the list of directories searched when
+.I #include
+is found.
+Last listed are searched first.
+.PD
+.PP
+In the absence of the
+.B -P
+option, the processed text output is sprinkled
+with lines that show the original input line numbering:
+.IP
+.B #line
+.I linenumber
+.L
+"\fIifile\fP"
+.PP
+The command reads the environment variable
+.IR include
+and adds its (blank-separated) list of directories to
+the standard search path for
+.CW #include
+directives.  They are looked at before any directories specified with
+.BR -I ,
+which are looked at before the default directories.
+.PP
+The input language is as described in the ANSI C standard.
+The standard Plan 9 C compilers do not use
+.IR cpp ;
+they contain their own simple but adequate preprocessor, so
+.I cpp
+is usually superfluous.
+.SH FILES
+.TF /objtype/include
+.TP
+.B /sys/include
+directory for machine-independent include files
+.TP
+.B /$objtype/include
+directory for machine-dependent include files
+.SH SOURCE
+.B /sys/src/cmd/cpp
+.SH SEE ALSO
+.IR 2c (1)

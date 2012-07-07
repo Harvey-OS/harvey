@@ -1,0 +1,404 @@
+.TH NAMESPACE 4
+.SH NAME
+namespace \- structure of conventional file name space
+.SH SYNOPSIS
+none
+.SH DESCRIPTION
+After a user's profile has run, the file name space should adhere
+to a number of conventions if the system is to behave normally.
+This manual page documents those conventions by traversing the
+file hierarchy and describing the points of interest.
+It also serves as a guide to where things reside in the file system proper.
+The traversal is far from exhaustive.
+.PP
+First, here is the appearance of the file server as it appears before
+any mounts or bindings.
+.TF /sys/src/cmd
+.TP
+.B /
+The root directory.
+.TP
+.B /adm
+The administration directory for the file server.
+.TP
+.B /adm/users
+List of users known to the file server; see
+.IR users (6).
+.TP
+.B /adm/keys
+Authentication keys for users.
+.TP
+.B /adm/netkeys
+SecureNet keys for users; see
+.IR securenet (8).
+.TP
+.B /adm/timezone
+Directory of timezone files; see
+.IR ctime (2).
+.TP
+.B /adm/timezone/EST.EDT
+Time zone description for Eastern Time.  Other such files are in this directory too.
+.TP
+.B /adm/timezone/timezone
+Time zone description for the local time zone; a copy of one of the other files in this directory.
+.TP
+.B /bin
+.TP
+.B /dev
+.TP
+.B /env
+.TP
+.B /fd
+.TP
+.B /net
+.TP
+.B /proc
+.TP
+.B /srv
+.TP
+.B /tmp
+All empty unwritable directories, place holders for mounted services and directories.
+.TP
+.B /mnt
+A directory containing mount points for applications.
+.TP
+.B /n
+A directory containing mount points for file trees imported from
+remote systems.
+.TP
+.B /386
+.TP
+.B /68000
+.TP
+.B /68020
+.TP
+.B /alpha
+.TP
+.B /arm
+.TP
+.B /mips
+.TP
+.B /power
+.TP
+.B /sparc
+Each CPU architecture supported by Plan 9 has a directory in the root containing
+architecture-specific files, to be selected according to
+.B $objtype
+or
+.B $cputype
+(see
+.IR 2c (1)
+and
+.IR init (8)).
+Here we list only those for
+.BR /386 .
+.TP
+.B /386/init
+The initialization program used during bootstrapping; see
+.IR init (8).
+.TP
+.B /386/bin
+Directory containing binaries for the Intel x86 architecture.
+.TP
+.B "/386/bin/aux
+.TP
+.B /386/bin/ip
+.TP
+etc.
+Subdirectories of
+.B /386/bin
+containing auxiliary tools and collecting related programs.
+.TP
+.B /386/lib
+Directory of object code libraries as used by
+.B 8l
+(see
+.IR 2l (1)).
+.TP
+.B /386/include
+Directory of x86-specific C include files.
+.TP
+.B /386/9*
+The files in
+.B /386
+beginning with a
+.B 9
+are binaries of the operating system or its bootstrap loader.
+.TP
+.B /386/mkfile
+Selected by
+.IR mk (1)
+when
+.B $objtype
+is
+.BR 386 ,
+this file configures
+.B mk
+to compile for the Intel x86 architecture.
+.TP
+.B /rc
+Isomorphic to the architecture-dependent directories, this holds executables
+and libraries for the shell,
+.IR rc (1).
+.TP
+.B /rc/bin
+Directory of shell executable files.
+.TP
+.B /rc/lib
+Directory of shell libraries.
+.TP
+.B /rc/lib/rcmain
+Startup code for
+.IR rc (1).
+.TP
+.B /lib
+Collections of data, generally not parts of programs.
+.TP
+.B /lib/mammals
+.TP
+.B /lib/sky
+.TP
+etc.
+Databases.
+.TP
+.B /lib/ndb
+The network database used by the networking software; see
+.IR ndb (6)
+and
+.IR ndb (8).
+.TP
+.B /lib/namespace
+The file used by
+.B newns
+(see
+.IR auth (2))
+to establish the default name space; see
+.IR namespace (6).
+.TP
+.B /lib/font/bit
+Bitmap font files.
+.TP
+.B /lib/font/hershey
+Vector font files.
+.TP
+.B /lib/rfc
+Directory of Internet `Requests For Comments',
+ranging from trivia to specifications.
+.TP
+.B /lib/rfc/grabrfc
+Maintains RFC collection; usually run from
+.IR cron
+(see
+.IR auth (8)).
+.TP
+.B /sys
+System software.
+.TP
+.B /sys/include
+Directory of machine-independent C include files.
+.TP
+.B /sys/lib
+Pieces of programs not easily held in the various
+.BR bins .
+.TP
+.B /sys/lib/acid
+Directory of
+.IR acid (1)
+load modules.
+.TP
+.B /sys/lib/dist
+Software used to assemble the distribution's installation floppy.
+.TP
+.B /sys/lib/troff
+Directory of
+.IR troff (1)
+font tables and macros.
+.TP
+.B /sys/lib/yaccpar
+The
+.IR yacc (1)
+parser.
+.TP
+.B /sys/man
+The manual.
+.TP
+.B /sys/doc
+Other system documentation.
+.TP
+.B /sys/log
+Log files created by various system services.
+.TP
+.B /sys/src
+Top-level directory of system sources.
+.TP
+.B /sys/src/cmd
+Source to the commands in the
+.B bin
+directories.
+.TP
+.B /sys/src/9
+Source to the operating system for terminals and CPU servers.
+.TP
+.B /sys/src/fs
+Source to the operating system for file servers.
+.TP
+.B /sys/src/lib*
+Source to the libraries.
+.TP
+.B /usr
+A directory containing home directories of users.
+.TP
+.B /mail
+Directory of electronic mail; see
+.IR mail (1).
+.TP
+.B /mail/box
+Directory of users' mail box files.
+.TP
+.B /mail/lib
+Directory of alias files, etc.
+.TP
+.B /acme
+Directory of tools for
+.IR acme (1).
+.TP
+.B /cron
+Directory of files for
+.IR cron (8).
+.TP
+.BI /cfg/ system
+.IR System -specific
+files, often addenda to their namesakes,
+notably
+.BR cpurc ,
+.BR termrc ,
+.BR namespace ,
+and
+.BR consoledb .
+.PD
+.PP
+The following files and directories are modified in the standard
+name space, as defined by
+.B /lib/namespace
+(see
+.IR namespace (6)).
+.TF /sys/src/cmd
+.TP
+.B /
+The root of the name space.  It is a kernel device,
+.IR root (3),
+serving a number of local mount points such as
+.B /bin
+and
+.B /dev
+as well as the bootstrap program
+.BR /boot .
+Unioned with
+.B /
+is the root of the main file server.
+.TP
+.B /boot
+Compiled into the operating system kernel, this file establishes
+the connection to the main file server and starts
+.BR init ;
+see
+.IR boot (8)
+and
+.IR init (8).
+.TP
+.B /bin
+Mounted here is a union directory composed of
+.BR /$objtype/bin ,
+.BR /rc/bin ,
+.BR $home/$objtype/bin ,
+etc., so
+.B /bin
+is always the directory containing the appropriate executables
+for the current architecture.
+.TP
+.B /dev
+Mounted here is a union directory containing I/O devices such as the
+console
+.RI ( cons (3)),
+the interface to the raster display
+.RI ( draw (3)),
+etc.
+The window system,
+.IR rio (1),
+prefixes
+this directory with its own version,
+overriding many device
+files with its own, multiplexed simulations of them.
+.TP
+.B /env
+Mounted here is the environment device,
+.IR env (3),
+which holds environment variables such as
+.BR $cputype .
+.TP
+.B /net
+Mounted here is a union directory formed of all the network devices
+available.
+.TP
+.B /net/cs
+The communications point for the connection server,
+.B ndb/cs
+(see
+.IR ndb (8)).
+.TP
+.B /net/dns
+The communications point for the Domain Name Server,
+.B ndb/dns
+(see
+.IR ndb (8)).
+.TP
+.B /net/tcp
+.TP
+.B /net/udp
+Directories holding the IP protocol devices
+(see
+.IR ip (3)).
+.TP
+.B /proc
+Mounted here is the process device,
+.IR proc (3),
+which provides debugging access to active processes.
+.TP
+.B /fd
+Mounted here is the dup device,
+.IR dup (3),
+which holds pseudonyms for open file descriptors.
+.TP
+.B /srv
+Mounted here is the service registry,
+.IR srv (3),
+which holds connections to file servers.
+.TP
+.B /srv/boot
+The communication channel to the main file server for the machine.
+.TP
+.B /mnt/factotum
+Mount point for
+.IR factotum (4).
+.TP
+.B /mnt/wsys
+Mount point for the window system.
+.TP
+.B /mnt/term
+Mount point for the terminal's name space as seen by the CPU server
+after a
+.IR cpu (1)
+command.
+.TP
+.B /n/kremvax
+A place where machine
+.BR kremvax 's
+name space may be mounted.
+.TP
+.B /tmp
+Mounted here is each user's private
+.B tmp, 
+.BR $home/tmp .
+.SH SEE ALSO
+.IR intro (1),
+.IR namespace (6)

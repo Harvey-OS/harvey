@@ -1,0 +1,98 @@
+.TH SNAP 6
+.SH NAME
+snap \- process snapshots
+.SH DESCRIPTION
+Process snapshots are used to
+save a process image for debugging on 
+another machine or at another time.
+They are like old Unix core dumps but 
+can hold multiple process images and
+are smaller.
+.PP
+The first line of a snapshot begins with the prefix
+``process snapshot'' and often contains
+other information as well, such as creation time,
+user name, system name, cpu type, and kernel type.
+This information is intended for humans, not programs.
+Programs reading snapshots should only
+check that this line begins with the specified prefix.
+.PP
+Throughout the rest of the snapshot, decimal strings are
+always right-justified, blank-padded to at least 11 characters,
+and followed by a single space character.
+.PP
+The rest of the snapshot is one or more records,
+each of which begins with a one-line header.
+This header is a decimal process id followed by
+an identification string, which denotes the type of
+data in the record.
+.PP
+Records of type 
+.BR fd ,
+.BR fpregs ,
+.BR kregs ,
+.BR noteid ,
+.BR ns ,
+.BR proc ,
+.BR regs ,
+.BR segment ,
+and
+.BR status 
+are all formatted as a decimal number 
+.I n
+followed by 
+.I n
+bytes of data.
+This data is the contents of the file
+of the same name found in 
+.BR /proc .
+.PP
+The format of the 
+.B mem
+and 
+.B text
+sections is not as simple.
+These sections contain one or more page descriptions.
+Each describes a one kilobyte page of data.
+If the section is not a multiple of a kilobyte in size,
+the last page will be shorter.
+Each description begins with a one-byte
+flag.
+If the flag is
+.BR r ,
+then it is followed by
+a page of binary data.
+If the flag is
+.BR z ,
+then the data is understood to be zeros,
+and is omitted.
+If the flag is 
+.B m 
+or 
+.BR t ,
+then it is followed by two decimal strings 
+.I p
+and
+.IR o ,
+indicating that this page is the same
+as the page at offset
+.I o
+of the memory or text
+segment for process 
+.IR p .
+This data must have been previously
+described in the snapshot, and the offset
+must be a multiple of a kilobyte.
+.PP
+It is not guaranteed that any of the sections
+described above be in a process snapshot,
+although the snapshot quickly becomes useless when
+too much is missing.
+.PP
+Memory and text images may be incomplete.
+The memory or text file for a given process
+may be split across multiple disjoint sections
+in the snapshot.
+.SH SEE ALSO
+.IR proc (3),
+.IR snap (4).

@@ -1,0 +1,88 @@
+.TH CPURC 8
+.SH NAME
+cpurc, cpurc.local, termrc, termrc.local \- boot scripts
+.SH SYNOPSIS
+.B cpurc
+.br
+.B cpurc.local
+.PP
+.B termrc
+.br
+.B termrc.local
+.SH DESCRIPTION
+After the kernel boots, it execs
+.B /boot
+(see
+.IR root (3)),
+which in turn execs
+.BR /$cputype/init .
+.IR Init (8)
+sets the
+.B $service
+environment variable to
+.B cpu
+or
+.BR terminal ,
+and then invokes the appropriate
+.B rc
+script to bring the system up.
+.PP
+Based on the values of
+.B $sysname
+and
+.B $terminal
+these scripts start appropriate network processes and
+administrative daemons and enable swapping.
+.I Cpurc
+sets
+.B /env/boottime
+to the time
+.I cpurc
+was executed and
+.B /env/NPROC
+to a value suitable for parallel compilation in
+.IR mk (1).
+.PP
+If an executable file
+.B /bin/termrc.local
+exists,
+.I termrc
+will execute it.
+If an executable file
+.B /cfg/$sysname/termrc
+exists for the machine named
+.BR $sysname ,
+.I termrc
+will execute it next.
+Automatic initialization of the mouse and
+VGA on a PC is suppressed, if the user is
+.BR none .
+These files should be edited by local installations
+to reflect the configuration of their systems.
+.PP
+On CPU servers, read
+.L cpurc
+for
+.L termrc
+in the previous paragraph.
+.SH FILES
+.TF /cfg/$sysname/termrc
+.TP
+.B /cfg/$sysname/cpurc
+machine-specific boot script for
+.I cpurc
+.TP
+.B /cfg/$sysname/termrc
+machine-specific boot script for
+.I termrc
+.SH SOURCE
+.B /rc/bin/*rc
+.br
+.B /rc/bin/*rc.local
+.br
+.B /cfg/$sysname/*rc
+.SH "SEE ALSO"
+.IR srv (4),
+.IR namespace (6),
+.IR init (8),
+.IR listen (8)

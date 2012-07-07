@@ -1,0 +1,299 @@
+.TH DHCPD 8
+.SH NAME
+dhcpd, dhcpleases, rarpd, tftpd \- Internet booting
+.SH SYNOPSIS
+.PP
+.B ip/dhcpd
+.RB [ -dmnprsSZ ]
+.RB [ -f
+.IR ndb-file ]
+.RB [ -M
+.IR secs ]
+.RB [ -x
+.IR netmtpt ]
+.RB [ -Z
+.IR secs ]
+[
+.I address
+.I n
+] ...
+.PP
+.B ip/dhcpleases
+.PP
+.B ip/rarpd
+.RB [ -d ]
+.RB [ -e
+.IR etherdev ]
+.RB [ -x
+.IR netmtpt ]
+.PP
+.B ip/tftpd
+.RB [ -dr ]
+.RB [ -h
+.IR homedir ]
+.RB [ -x
+.IR netmtpt ]
+.SH DESCRIPTION
+These programs support booting over the Internet.
+They should all be run on the same server to
+allow other systems to be booted.
+.I Dhcpd
+and
+.I tftpd
+are used to boot everything;
+.I rarpd
+is an extra piece just for Suns.
+.PP
+.I Dhcpd
+runs the
+.SM BOOTP
+and
+.SM DHCP
+protocols.
+Clients use these protocols to obtain configuration information.
+This information comes from attribute/value pairs in the network database
+(see
+.IR ndb (6)
+and
+.IR ndb (8)).
+DHCP requests are honored both for static addresses found in
+the NDB and for dynamic addresses listed in the command line.
+DHCP requests are honored if either:
+.br
+\- there exists an NDB entry
+containing both the ethernet address of the requester and
+an IP address on the originating network or subnetwork.
+.br
+\- a free dynamic address exists on the originating network or subnetwork.
+.PP
+A BOOTP request is honored if all of the following are true:
+.br
+\- there exists an NDB entry
+containing both the ethernet address of the requester and
+an IP address on the originating network or subnetwork.
+.br
+\- the entry contains a
+.B bootf=
+attribute
+.br
+\- the file in the
+.B bootf=
+attribute is readable.
+.PP
+Dynamic addresses are specified on the command line as a list
+of addresses and number pairs.
+For example,
+.EX
+	ip/dhcpd 10.1.1.12 10 10.2.1.70 12
+.EE
+directs
+.I dhcpd
+to return dynamic addresses 10.1.1.12 through 10.1.1.21 inclusive
+and 10.2.1.70 through 10.2.1.81 inclusive.
+.PP
+.I Dhcpd
+maintains a record of all dynamic addresses in the directory
+.BR /lib/ndb/dhcp ,
+one file per address.
+If multiple servers have access to this common directory,
+they will correctly coordinate their actions.
+.PP
+Attributes come from either the NDB entry for the system, the entry for its
+subnet, or the entry for its network.  The system entry has precedence,
+then the subnet, then the network.
+The NDB attributes used are:
+.TF ipmask
+.TP
+.B ip
+the IP address
+.TP
+.B ipmask
+the IP mask
+.TP
+.B ipgw
+the default IP gateway
+.TP
+.B dom
+the domain name of the system
+.TP
+.B fs
+the default Plan 9 name server
+.TP
+.B auth
+the default Plan 9 authentication server
+.TP
+.B dns
+a domain name server
+.TP
+.B ntp
+a network time protocol server
+.TP
+.B time
+a time server
+.TP
+.B wins
+a
+.SM NETBIOS
+name server
+.TP
+.B www
+a World Wide Web proxy
+.TP
+.B pop3
+a POP3 mail server
+.TP
+.B smtp
+an SMTP mail server
+.TP
+.B bootf
+the default boot file;
+see
+.IR ndb (6)
+.PD
+.PP
+.I Dhcpd
+will answer
+.SM BOOTP
+requests only if it has been specifically targeted or if it
+has read access to the boot file for the requester.  That means that the requester
+must specify a boot file in the request or one has to exist in NDB for
+.I dhcpd
+to answer.
+.I Dhcpd
+will answer all
+.SM DHCP
+requests for which it can associate an IP address with the
+requester.
+The options are:
+.TP
+.B d
+Print debugging to standard output.
+.TP
+.B f
+Specify a file other than
+.B /lib/ndb/local
+as the network database.
+.TP
+.B m
+Mute: don't reply to requests, just log them and what
+.I dhcpd
+would have done.
+.TP
+.B M
+Use
+.I secs
+as the minimum lease time for dynamic addresses.
+.TP
+.B n
+Don't answer
+.SM BOOTP
+requests.
+.TP
+.B p
+Answer
+.SM DHCP
+requests from
+.SM PPTP
+clients only.
+.TP
+.B r
+Mute static addresses: don't reply to requests for static addresses,
+just log them and what
+.I dhcpd
+would have done.
+.TP
+.B s
+Sleep 2 seconds before answering requests for static addresses.
+This is used to make a server be a backup only.
+.TP
+.B S
+Sleep 2 seconds before answering requests for dynamic addresses.
+.TP
+.B x
+The IP stack to use is mounted at 
+.IR netmtpt .
+The default is
+.BR /net .
+.TP
+.B Z
+Use
+.I secs
+as the minimum lease time for static addresses.
+.PD
+.PP
+.I Dhcpleases
+prints out the currently valid DHCP leases found in the
+.B /lib/ndb/dhcp
+directory.
+.PP
+.I Rarpd
+performs the Reverse Address Resolution Protocol, translating
+Ethernet addresses into IP addresses.
+The options are:
+.TP
+.B d
+Print debugging to standard output.
+.TP
+.B e
+Use the Ethernet mounted at
+.BI /net/ etherdev\f1.
+.TP
+.B x
+The IP stack to use is mounted at 
+.IR netmtpt .
+The default is
+.BR /net .
+.PD
+.PP
+.I Tftpd
+transfers files to systems that are booting.
+It runs as user
+.B none
+and can only access files with global read permission.
+The options are:
+.TP
+.B d
+Print debugging to standard output.
+.TP
+.B x
+The IP stack to use is mounted at 
+.IR netmtpt .
+The default is
+.BR /net .
+.TP
+.B h
+Change directory to
+.IR homedir .
+The default is
+.BR /lib/tftpd .
+All requests for files with non-rooted file names are served starting at this
+directory with the exception of files of the form
+.BR xxxxxxxx.SUNyy .
+These are Sparc kernel boot files where
+.B xxxxxxxx
+is the hex IP address of the machine requesting the kernel and
+.B yy
+is an architecture identifier.
+.I Tftpd
+looks up the file in the network database using
+.I ipinfo
+(see
+.IR ndb (2))
+and responds with the boot file specified for that particular
+machine.
+If no boot file is specified, the transfer fails.
+.I Tftpd
+supports only octet mode.
+.TP
+.B r
+Restricts access to only those files rooted in the
+.IR homedir .
+.PD
+.SH FILES
+.BR /lib/ndb/dhcp "    directory of dynamic address files
+.SH SOURCE
+.B /sys/src/cmd/ip
+.SH "SEE ALSO"
+.IR ndb (6),
+.IR 9load (8),
+.IR booting (8)

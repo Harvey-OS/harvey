@@ -1,0 +1,254 @@
+.TH VGA 3 
+.SH NAME
+vga \- VGA controller device
+.SH SYNOPSIS
+.nf
+.B bind #v /dev
+
+.B /dev/vgabios
+.B /dev/vgactl
+.B /dev/vgaovl
+.B /dev/vgaovlctl
+.fi
+.SH DESCRIPTION
+The VGA device allows configuration of a graphics controller
+on a PC.
+.B Vgactl
+allows control over higher-level settings such as display height, width, depth,
+controller and hardware-cursor type.
+Along with the I/O-port registers
+provided by
+.IR arch (3),
+it is used to implement configuration and setup of VGA controller cards.
+This is usually performed by
+.IR vga (8).
+.PP
+.B Vgabios
+provides read-only access to the low 640kB of memory,
+where the VGA and other BIOS ROMs are located.
+.PP
+Writing strings to 
+.B vgactl
+configures the VGA device.
+The following are valid commands.
+.TP
+.BI size " X" x Y x "Z chan"
+Set the size of the screen image to be
+.I X 
+pixels wide
+and
+.I Y 
+pixels high.
+Each pixel is 
+.I Z 
+bits as specified by 
+.IR chan ,
+whose format is described in
+.IR image (6).
+.TP
+.BI actualsize " X" x Y
+Set the physical size of the display to be
+.I X
+pixels wide by
+.I Y 
+pixels high.
+This message is optional;
+it is used to implement panning and to accommodate
+displays that require the in-memory screen image
+to have certain alignment properties.
+For example, a 1400x1050 screen with a 1408x1050 in-memory image
+will use 
+.B "size 1408x1050
+but
+.BR "actualsize 1400x1050" .
+.TP
+.BI panning " mode"
+Depending on whether
+.I mode
+is 
+.B on
+or
+.BR off ,
+enable or disable panning in a virtual screen.
+If panning is on and the screen's
+.B size
+is larger than its
+.BR actualsize ,
+the displayed portion of the screen will pan to follow the mouse.
+Setting the panning mode after the first attach of the
+.B #i
+driver has no effect.
+.TP
+.BI type " ctlr"
+Set the type of VGA controller being used.
+.I Ctlr
+is one of 
+.BR ark200pv ,
+.BR clgd542x ,
+.BR clgd546x ,
+.BR ct65545 ,
+.BR cyber938x ,
+.BR hiqvideo ,
+.BR mach64xx ,
+.BR mga2164w ,
+.BR neomagic ,
+.BR nvidia ,
+.BR s3 ,
+and
+.BR t2r4 .
+.IP
+Note that this list does not indicate the full set of VGA chips
+supported. For example,
+.B s3
+includes the 86C801/5, 86C928, Vision864, and Vision964.
+It is the job of
+.IR vga (8)
+to recognize which particular chip is being used and to initialize it
+appropriately.
+.TP
+.BI hwgc " gc"
+Set the type of hardware graphics cursor being used.
+.I Gc
+is one of
+.BR ark200pvhwgc ,
+.BR bt485hwgc ,
+.BR clgd542xhwgc ,
+.BR clgd546xhwgc ,
+.BR ct65545hwgc ,
+.BR cyber938xhwgc ,
+.BR hiqvideohwgc ,
+.BR mach64xxhwgc ,
+.BR mga2164whwgc ,
+.BR neomagichwgc ,
+.BR nvidiahwgc ,
+.BR rgb524hwgc ,
+.BR s3hwgc ,
+.BR t2r4hwgc ,
+.BR tvp3020hwgc ,
+and
+.BR tvp3026hwgc .
+A value of
+.B off
+disables the cursor.
+There is no software cursor.
+.TP
+.BI palettedepth " d"
+Set the number of bits of precision used by the 
+VGA palette to 
+.IR d ,
+which must be either 
+.B 6
+or
+.BR 8 .
+.TP
+.B blank
+Blank the screen.
+This consists of setting the hardware
+color map to all black as well as, on some controllers, setting the
+VGA hsync and vsync signals so as to turn off
+VESA DPMS-compliant monitors.
+The screen also blanks after 30 minutes of inactivity.
+The screen can be unblanked by moving the mouse.
+.TP
+.BI blanktime " minutes"
+Set the timeout before the
+screen blanks; the default is 30 minutes.
+If
+.I minutes
+is zero, blanking is disabled.
+.TP
+.BI hwaccel " mode"
+Depending on whether
+.I mode
+is 
+.B on
+or
+.BR off ,
+enable or disable whether hardware acceleration
+(currently for rectangle filling and moving)
+used by the graphics engine.
+The default setting is
+.BR on .
+.TP
+.BI hwblank " mode"
+Depending on whether
+.I mode
+is
+.B on
+or
+.BR off ,
+enable or disable the use of DPMS blanking
+(see
+.B blank
+above).
+.TP
+.BI linear " size align"
+Use a linear screen aperture of size
+.I size
+aligned on an
+.IR align -byte
+boundary.
+.TP
+.B drawinit
+Initialize the graphics hardware.
+This must be sent after setting the
+.BR type .
+.PP
+Reading
+.B vgactl
+returns the current settings, one per line.
+.PP
+Some VGA cards support overlay graphics.
+Writing strings to
+.B vgaovlctl
+configures such cards.
+The following are valid overlay control commands:
+.TP
+.BI openctl
+opens the overlay device.
+.TP
+.BI configure " w h format"
+allocates resources inside the driver to support an overlay area
+of width
+.I w
+and height
+.I h
+pixels.  Currently, the only supported
+.I format
+is
+.B YUYV
+packed.
+In
+.B YUYV
+two pixels are encoded by their separate Y values
+and their combined U and V values.
+The size of the two pixels is 32 bits.
+.TP
+.BI enable " x y w h"
+enables drawing data on the display through the overlay mode.  The data
+is drawn at position
+.IR x , y
+and has a width and height of
+.IR w , h
+respectively.
+.TP
+.BI closectl
+terminates overlay control.
+.PP
+Overlay data can be written to
+.BR vgaovl .
+.SH EXAMPLES
+The following disables hardware acceleration.
+.IP
+.EX
+echo hwaccel off > /dev/vgactl
+.EE
+.SH SOURCE
+.B /sys/src/9/pc/devvga.c
+.SH SEE ALSO
+.IR arch (3),
+.IR vga (8)
+.SH BUGS
+The hardware graphics cursor on the
+.B et4000
+does not work in 2x8-bit mode.

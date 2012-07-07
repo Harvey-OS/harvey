@@ -1,0 +1,127 @@
+.TH SEND 8
+.SH NAME
+send \- mail routing and delivery
+.SH SYNOPSIS
+.PP
+.B upas/send
+[
+.B -b
+] [
+.B -i
+] [
+.B -r
+] [
+.B -x
+] [
+.B -#
+] [
+.I mailaddr ...
+]
+.SH DESCRIPTION
+.I Send
+is not normally run directly by the user.  Instead, mail protocol
+agents like
+.I smtpd
+(see
+.IR smtp (8))
+and mail preparers like
+.IR marshal (1)
+fork and execute
+.IR send .
+.PP
+.I Send
+reads a message from standard input and disposes of it in one
+of four ways:
+.IP \(bu 3
+If
+.I mailaddr
+refers to a local mailbox, it appends it to the
+recipient's mailbox.
+.IP \(bu
+If
+.I mailaddr
+is remote, it queues the mail for remote delivery.
+.IP \(bu
+If the
+.B -r
+option is given and the mail is undeliverable, it
+returns the mail to the sender.
+.IP \(bu
+if the
+.B -r
+option is not given and the mail is undeliverable, it
+appends the mail to
+.BI /mail/box/ username /dead.letter
+and prints a message to standard error.
+.PP
+The file
+.B /mail/lib/rewrite
+determines exactly how to deliver or queue the mail.
+The decision is based purely on the recipient address.
+.PP
+The options are:
+.TF -b
+.TP
+.B -b
+suppresses the addition of the
+.B To:
+line.
+.TP
+.B -i
+let the message input be terminated by a line
+containing only a period, for
+compatibility with
+old mailers.
+.TP
+.B -x
+do not send mail, but instead report
+the full mail address of the recipient.
+.TP
+.B -#
+do not send mail, but instead report
+what command would be used to send the mail.
+.TP
+.B -r
+input is via a pipe from another program.
+Expect a From
+line at the start of the message to provide the
+name of the sender and timestamp.  This implies
+the
+.B -b
+option.
+.PD
+.PP
+.I Send
+uses the login name as the reply address.
+.SH FILES
+.TF /mail/box/*/dead.letter
+.TP
+.B /sys/log/mail
+mail log file
+.TP
+.B /mail/box/*/dead.letter
+unmailable text
+.TP
+.B /mail/lib/rewrite
+rules for handling addresses
+.TP
+.B /mail/box/*/names
+personal alias files
+.TP
+.B /mail/lib/namefiles
+lists names of files containing system aliases
+.SH SOURCE
+.TP
+.B /sys/src/cmd/upas/send
+.SH "SEE ALSO"
+.IR aliasmail (8),
+.IR faces (1),
+.IR filter (1),
+.IR mail (1),
+.IR marshal (1),
+.IR mlmgr (1),
+.IR nedmail (1),
+.IR qer (8),
+.IR rewrite (6),
+.IR smtp (8),
+.IR upasfs (4)

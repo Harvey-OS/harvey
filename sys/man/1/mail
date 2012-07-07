@@ -1,0 +1,164 @@
+.TH MAIL 1
+.SH NAME
+mail, go.fishing \- mail and mailboxes
+.SH SYNOPSIS
+.B mail
+[
+.I arg ...
+]
+.PP
+.B go.fishing
+.SH DESCRIPTION
+.PP
+Mail is a shell script that invokes
+.IR nedmail (1),
+the mail reader,
+when no recipients appear on the command line and
+.IR marshal (1),
+the mail preparer,
+otherwise.
+All command line options are passed through.
+See the man pages for those two commands for
+more details.
+.PP
+Incoming mail for a user
+.I username
+is put in the file
+.BI /mail/box/ username /mbox
+unless either the file
+.BI /mail/box/ username /forward
+or
+.BI /mail/box/ username /pipeto
+exists.
+The mailbox must have append-only and exclusive-access mode
+(see
+.IR chmod (1)).
+A user must create his or her own mailbox using the
+.B -c
+option of
+.IR nedmail (1).
+Mailboxes are created writable (append-only) but not readable by others.
+.PP
+If the file
+.BI /mail/box/ username /forward
+exists and is readable by everyone, incoming mail
+will be forwarded to the addresses contained in the first line of the file.
+The file may contain multiple addresses.
+Forwarding loops are caught and resolved by local delivery.
+.PP
+If the file
+.BI /mail/box/ username /pipeto
+exists and is readable and executable by everyone,
+it will be run for each incoming message for the user.
+The message will be piped to it rather
+than appended to his/her mail box.
+The file is run as user
+.BR none .
+Its two arguments are the 
+with arguments of the destination address
+(e.g.,
+.BR local!gremlin )
+and the user's mail box path
+(e.g.,
+.BR /mail/box/gremlin/mbox )
+.SS Auto-answer
+.PP
+To use 
+.I mail
+as an answering machine while you are away,
+run
+.IR go.fishing ,
+which will create
+.B /mail/box/$user/gone.fishing
+as a flag for
+.B pipeto
+processing,
+and truncate
+.BR /mail/box/$user/gone.addrs .
+Any existing
+.B pipeto
+file that uses
+.B /mail/lib/pipeto.lib
+will invoke the
+.I gone.fishing
+machinery when it calls
+.B spool
+or
+.BR spool-tagged-spam .
+.PP
+If
+.B /mail/box/$user/gone.msg
+exists, it
+will be sent (just once) to everyone who
+sends you mail that lists your address in a
+.L To
+or
+.L Cc
+header;
+if not,
+.B /mail/lib/gone.msg
+will be sent.
+Upon your return, remove
+.B /mail/box/$user/gone.fishing
+to stop automatic responses.
+.SH FILES
+.TF /mail/box/$user/gone.fishing
+.TP
+.B /sys/log/mail
+mail log file
+.TP
+.B /mail/box/*
+mail directories
+.TP
+.B /mail/box/*/mbox
+mailbox files
+.TP
+.B /mail/box/*/forward
+forwarding address(es)
+.TP
+.B /mail/box/*/pipeto
+mail filter
+.TP
+.B /mail/box/*/L.reading
+mutual exclusion lock for multiple mbox readers
+.TP
+.B /mail/box/*/L.mbox
+mutual exclusion lock for altering mbox
+.TP
+.B /lib/face/48x48x?
+directories of icons for
+.I seemail
+.TP
+.B /mail/lib/pipeto.lib
+helper functions for pipeto files
+.TP
+.B /mail/lib/gone.msg
+default vacation message
+.TP
+.B /mail/lib/gone.fishing
+auto-responder as
+.I pipeto
+script
+.TP
+.B /mail/box/$user/gone.fishing
+flag to active gone processing
+.TP
+.B /mail/box/$user/gone.addrs
+list of senders answered by
+.I gone.fishing
+.SH SOURCE
+.B /rc/bin/mail
+.br
+.B /rc/bin/go.fishing
+.SH "SEE ALSO"
+.IR aliasmail (8),
+.IR faces (1),
+.IR filter (1),
+.IR marshal (1),
+.IR mlmgr (1),
+.IR nedmail (1),
+.IR qer (8),
+.IR rewrite (6),
+.IR send (8),
+.IR smtp (8),
+.IR upasfs (4)

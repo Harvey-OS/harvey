@@ -1,0 +1,49 @@
+.TH TEL 1
+.SH NAME
+tel, iwhois \- look in phone book
+.SH SYNOPSIS
+.B tel
+.I key ...
+.PP
+.B iwhois
+.IR name [ \fL@\f2domain ]
+.SH DESCRIPTION
+.I Tel
+looks up
+.I key
+in a private telephone book,
+.BR $home/lib/tel ,
+and in the public telephone book,
+.BR /lib/tel .
+It uses
+.IR grep
+(with the
+.B -i
+option to ignore case differences), so the key may be any part of a
+name or number.  Customarily, the telephone book contains names,
+userids, home numbers, and office numbers of users.  It also contains
+a directory of area codes and miscellaneous people of general
+interest.
+.PP
+.I Iwhois
+looks up names in the Internet NIC's personnel database.
+.I Name
+should be a surname optionally followed by a comma and given name.
+A different server can be chosen by appending to the name an
+.B @
+followed by the server's domain name.
+.SH FILES
+.TF /lib/areacodes
+.TP
+.B /lib/areacodes
+Telephone area codes database.
+.TP
+.B /lib/tel
+Public telephone number database.
+.TP
+.B $home/lib/tel
+Personal telephone number database.
+.SH SOURCE
+.B /rc/bin/tel
+.br
+.B /rc/bin/iwhois

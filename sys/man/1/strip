@@ -1,0 +1,31 @@
+.TH STRIP 1
+.SH NAME
+strip \- remove symbols from binary files
+.SH SYNOPSIS
+.B strip
+.I file ...
+.PP
+.B strip
+.B -o
+.I ofile
+.I file
+.SH DESCRIPTION
+.I Strip
+removes symbol table segments from executable files,
+rewriting the files in place.
+Stripping a file requires write permission of the file
+and the directory it is in.
+.PP
+If the
+.B -o
+flag is given, 
+the single input file
+.I file
+is stripped and the result written to
+.IR ofile .
+.I File
+is unchanged.
+.SH SOURCE
+.B /sys/src/cmd/strip.c
+.SH "SEE ALSO"
+.IR a.out (6)

@@ -1,0 +1,58 @@
+.TH DUP 3 
+.SH NAME
+dup \- dups of open files
+.SH SYNOPSIS
+.nf
+.B bind #d /fd
+
+.B /fd/0
+.B /fd/0ctl
+.B /fd/1
+.B /fd/1ctl
+\&...
+.fi
+.SH DESCRIPTION
+The
+.I dup
+device serves a one-level directory containing files whose
+names are decimal numbers.
+Each such file also has an associated control file.
+A file of name
+.I n
+corresponds to open file descriptor
+.I n
+in the current process.
+.PP
+An
+.IR open (2)
+of file
+.I n
+results in a file descriptor identical to
+what would be returned from a system call
+.IB dup ( n ,
+.BR -1) .
+Note that the result is no longer a file in the
+.I dup
+device.
+.PP
+The
+.I stat
+operation returns information about the device file, not the open file it points to.
+A stat of
+.BI #d/ n
+will contain
+.I n
+for the name, 0 for the length, and 0400, 0200, or 0600
+for the mode, depending on whether the dup target is open
+for reading, writing, or both.
+.PP
+A file of name
+.IB n ctl
+may be read to discover the properties of the associated file descriptor, in format identical to that of the
+.B fd
+file in
+.IR proc (3).
+.SH SEE ALSO
+.IR dup (2)
+.SH SOURCE
+.B /sys/src/9/port/devdup.c

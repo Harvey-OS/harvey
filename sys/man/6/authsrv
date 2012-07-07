@@ -1,0 +1,726 @@
+.TH AUTHSRV 6
+.SH NAME
+authsrv, p9any, p9sk1, p9sk2 \- authentication protocols
+.SH DESCRIPTION
+This manual page describes
+the protocols used to authorize connections, confirm the identities
+of users and machines, and maintain the associated databases.
+The machine that provides these services is called the
+.I authentication server
+(AS).
+The AS may be a stand-alone machine or a general-use machine such as a CPU server.
+The network database
+.IR ndb (6)
+holds for each public machine, such as a CPU server or
+file server, the name of the authentication server that machine uses.
+.PP
+Each machine contains three values important to authentication; a 56-bit DES
+key, a 28-byte authentication ID, and a 48-byte authentication domain name.
+The ID is a user name and identifies who is currently responsible for the
+kernel running on that machine.
+The domain name identifies the machines across which the ID is valid.
+Together, the ID and domain name identify the owner of a key.
+.PP
+When a terminal boots,
+.IR factotum (4)
+prompts for user name and password.
+The user name becomes the terminal's authentication ID. 
+The password is converted using
+.I passtokey
+(see
+.IR authsrv (2))
+into a 56-bit DES key and saved in memory.
+The authentication domain is set to the null string.
+If possible,
+.I factotum
+validates the key with the AS
+before saving it.
+For Internet machines the correct AS to ask is found using
+.IR dhcpd (8).
+.PP
+When a CPU or file server boots, 
+.I factotum
+reads the key, ID, and domain name from
+non-volatile RAM.
+This allows servers to reboot without operator intervention.
+.PP
+The details of any authentication are mixed with the semantics
+of the particular service they are authenticating so we describe
+them one case at a time. The following definitions will be used
+in the descriptions:
+.TF nullx
+.TP
+.I Ks
+server's host ID's key
+.TP
+.I Kc
+client's host ID's key
+.TP
+.I Kn
+a nonce key created for a ticket
+.RB ( key )
+.TP
+.IR K { m }
+message
+.I m
+encrypted with key
+.I K
+.TP
+.I CHc
+an 8-byte random challenge from a client
+.RB ( chal )
+.TP
+.I CHs
+an 8-byte random challenge from a server
+.RB ( chal )
+.TP
+.I IDs
+server's ID
+.RB ( authid )
+.TP
+.I DN
+server's authentication domain name
+.RB ( authdom )
+.TP
+.I IDc
+client's ID
+.RB ( hostid ,
+.BR cuid )
+.TP
+.I IDr
+client's desired ID on server
+.RB ( uid ,
+.BR suid )
+.PD
+.PP
+The parenthesized names are the ones used in the
+.B Ticketreq
+and
+.B Ticket
+structures in
+.BR <authsrv.h> .
+.PP
+The message type constants
+.IR AuthTreq ,
+.IR AuthChal ,
+.IR AuthPass ,
+.IR AuthOK ,
+.IR AuthErr ,
+.IR AuthMod ,
+.IR AuthApop ,
+.IR AuthOKvar ,
+.IR AuthChap ,
+.IR AuthMSchap ,
+.IR AuthCram ,
+and
+.IR AuthVNC
+.RB ( type )
+are defined in
+.BR <authsrv.h> ,
+as are the encrypted message types
+.IR AuthTs ,
+.IR AuthAs ,
+.IR AuthAc ,
+.IR AuthTp ,
+and
+.IR AuthHr
+.RB ( num ).
+.SS "Ticket Service
+When a client and server wish to authenticate to each other,
+they do so using
+.I tickets
+issued by the AS.
+Obtaining tickets from the AS
+is the client's responsibility.
+.PP
+The protocol to obtain a ticket pair is:
+.TP
+.IR C \(-> A
+.IR AuthTreq ,
+.IR IDs ,
+.IR DN ,
+.IR CHs ,
+.IR IDc ,
+.IR IDr
+.sp -\n(PDu
+.TP
+.IR A \(-> C
+.IR AuthOK ,
+.IR Kc { AuthTc ,
+.IR CHs ,
+.IR IDc ,
+.IR IDr ,
+.IR Kn },
+.IR Ks { AuthTs ,
+.IR CHs ,
+.IR IDc ,
+.IR IDr ,
+.IR Kn }
+.PP
+The two tickets are identical except for their type fields
+and the keys with which they are encrypted.
+The client and server can each decrypt one of the tickets,
+establishing a shared secret
+.IR Kn .
+.PP
+The
+tickets can be viewed as a statement by the
+AS that
+``a client possessing the
+.I Kn
+key is allowed to authenticate as
+.IR IDr .''
+.PP
+The presence of the server challenge
+.I CHs
+in the ticket allows the server to verify the freshness
+of the ticket pair.
+.PP
+The AS sets the
+.I IDr
+in the tickets to the requested
+.I IDr
+only if
+.I IDc
+is allowed to
+.I "speak for
+.RI ( q.v. )
+.IR IDr .
+If not,
+the AS sets
+.I IDr
+to the empty string.
+.PP
+If the users
+.I IDc
+or
+.I IDs
+do not exist,
+the AS silently generates one-time
+random keys to use in place of
+.I Kc
+or
+.IR Ks ,
+so that clients cannot probe the AS
+to learn whether a user name is valid.
+.SS "P9sk1
+The Plan 9 shared key protocol
+.I p9sk1
+allows a client and server to authenticate each other.
+The protocol is:
+.TP
+.IR C \(-> S
+.I CHc
+.br
+The client starts by sending a random challenge to the server.
+.TP
+.IR S \(-> C
+.IR AuthTreq ,
+.IR IDs ,
+.IR DN ,
+.IR CHs ,
+.IR \- ,
+.IR \-
+.br
+The server replies with a ticket request giving its
+id and authentication domain along with its own 
+random challenge.
+.TP
+.IR C \(-> S
+.IR Ks { AuthTs ,
+.IR CHs ,
+.IR IDc ,
+.IR IDr ,
+.IR Kn },
+.IR Kn { AuthAc ,
+.IR CHs }
+.br
+The client adds 
+.I IDc
+and
+.I IDr
+to the ticket request and obtains a ticket pair
+from the AS as described above.
+The client relays the server's ticket along with
+an 
+.IR authenticator ,
+the
+.I AuthAc
+message.
+The authenticator proves to the server that the
+client knows
+.I Kn
+and is therefore allowed to authenticate as
+.IR IDr .
+(The inclusion of
+.IR CHs
+in the authenticator avoids replay attacks.)
+.TP
+.IR S \(-> C
+.IR Kn { AuthAs ,
+.IR CHc }
+.br
+The server replies with its own authenticator,
+proving to the client that it also knows
+.I Kn
+and therefore 
+.I Ks .
+.PD
+.PP
+.I P9sk2
+is an older variant of 
+.I p9sk1
+used only when connecting to pre-9P2000 remote
+execution services.
+It omits the first message and last 
+messages and therefore does not
+authenticate the server to the client.
+.SS "P9any
+.I P9any
+is the standard Plan 9 authentication protocol.
+It consists of a negotiation to determine a common
+protocol, followed by the agreed-upon protocol.
+.PP
+The negotiation protocol is:
+.TP
+.IR S \(-> C
+.B v.2
+.IB proto@authdom
+.IB proto@authdom
+.I ...
+.sp -\n(PDu
+.TP
+.IR C \(-> S
+.I proto
+.I dom
+.sp -\n(PDu
+.TP
+.IR S \(-> C
+.B OK
+.PP
+Each message is a NUL-terminated UTF string.
+The server begins by sending a list of
+.IR proto ,
+.I authdom
+pairs it is willing to use.
+The client
+responds with its choice.
+Requiring the client to wait for the final
+.B OK
+ensures that the client will not start
+the chosen protocol until the server is ready.
+.PP
+The above is version 2 of the protocol.
+Version 1,
+no longer used,
+omitted the first message's
+.B v.2
+prefix
+and the 
+.B OK
+message.
+.PP
+The
+.I p9any
+protocol is the protocol used by all
+Plan 9 services.
+The file server runs it over special
+authentication files
+(see
+.IR fauth (2)
+and
+.IR attach (5)).
+Other services, such as
+.IR cpu (1)
+and
+.IR exportfs (4),
+run
+.I p9any
+over the network and then 
+use
+.I Kn
+to derive an
+.IR ssl (3)
+key to encrypt the rest of their communications.
+.SS "Password Change
+Users connect directly to the AS
+to change their passwords.
+The protocol is:
+.TP
+.IR C \(-> A
+.IR AuthPass ,
+.IR IDc ,
+.IR DN ,
+.IR CHc ,
+.IR IDc ,
+.IR IDc
+.br
+The client sends a password change ticket request.
+.TP
+.IR A \(-> C
+.IR Kc { AuthTp ,
+.IR CHc ,
+.IR IDc ,
+.IR IDc ,
+.IR Kn }
+.br
+The server responds with a ticket containing the key
+.I Kn
+encrypted with the client's key
+.IR Kc
+.TP
+.IR C \(-> A
+.IR Kn { AuthPass ,
+.IR old ,
+.IR new ,
+.IR changesecret ,
+.IR secret }
+.br
+The client decrypts the ticket using the old password
+and then sends back an encrypted password request
+.RB ( Passwordreq
+structure)
+containing the old password and the new password.
+If
+.I changesecret
+is set, the AS also changes
+the user's 
+.IR secret ,
+the password used for non-Plan 9 authentications.
+.TP
+.IR A \(-> C
+.I AuthOK
+or
+.IR AuthErr ,
+64-byte error message
+.br
+The AS responds with simply
+.I AuthOK
+or with
+.I AuthErr
+followed by a 64-byte error message.
+.SS "Authentication Database
+An
+.IR ndb (2)
+database file 
+.B /lib/ndb/auth
+exists for the AS.
+This database maintains ``speaks for'' relationships, i.e.,
+it lists which users may speak for other users when
+authtenticating.
+The attribute types used by the AS are
+.B hostid
+and
+.BR uid .
+The value in the
+.B hostid
+is a client host's ID.
+The values in the
+.B uid
+pairs in the same entry list which users that host ID
+make speak for.
+A uid value of
+.B *
+means the host ID may speak for all users.
+A uid value of
+.BI ! user
+means the host ID may not speak for
+.IR user .
+For example:
+.PP
+.EX
+hostid=bootes
+	uid=!sys uid=!adm uid=*
+.EE
+.PP
+is interpreted as
+.B bootes
+may speak for any user except
+.B sys
+and
+.BR adm .
+This property is used heavily on CPU servers.
+.SS "Foreign Protocols
+The AS accepts ticket request
+messages of types other than
+.I AuthTreq
+to allow users to
+authenticate using non-Plan 9 protocols.
+In these situations, the server communicates
+directly with the AS.
+Some protocols must begin without knowing the
+client's name.  They ignore the client name in the
+ticket request.
+All the protocols end
+with the AS sending
+an
+.I AuthOK
+message containing a server ticket and authenticator.
+.PP
+.I AuthOK
+messages
+always have a fixed but context-dependent size.
+The occasional variable-length OK message starts with a
+.I AuthOKvar
+byte and a five-byte space-padded decimal length of the
+data that follows.
+.PP
+Anywhere an
+.I AuthOK
+message is expected, a
+.I AuthErr
+message may be substituted.
+.de Ok
+.sp -\n(PDu
+.TP
+.IR A \(-> S
+.IR AuthOK ,
+.IR Ks { \\$1 ,
+.IR IDs ,
+.IR DN ,
+.IR CHs ,
+.IR IDs ,
+.IR IDc ,
+.IR Kn },
+.IR Kn { AuthTs ,
+.IR CHs }
+..
+.PP
+.TP
+.IR S \(-> A
+.IR AuthChal ,
+.IR IDs ,
+.IR DN ,
+.IR CHs ,
+.IR IDs ,
+.IR IDc
+.sp -\n(PDu
+.TP
+.IR A \(-> S
+.IR AuthOK ,
+.IR challenge
+.sp -\n(PDu
+.TP
+.IR S \(-> A
+.IR response
+.Ok AuthChal
+.IP
+This protocol allows the use of 
+handheld authenticators such as SecureNet
+keys and SecureID tokens
+in programs such as
+.IR ssh (1)
+and
+.I ftpd
+(see
+.IR ipserv (8)).
+.IP
+.I Challenge
+and
+.I response 
+are text strings,
+.SM NUL -padded
+to 16 bytes
+.RB ( NETCHLEN ).
+The
+.I challenge
+is a random five-digit decimal number.
+When using a SecureNet key or
+.I netkey
+(see
+.IR passwd (1)),
+the 
+.I response
+is an eight-digit decimal or hexadecimal number
+that is an encryption of the challenge
+using the user's DES key.
+.IP
+When using a SecureID token,
+the challenge is ignored.
+The response is the user's PIN followed by
+the six-digit number currently displayed
+on the token.
+In this case, the AS
+queries an external RADIUS server
+to check the response.
+Use of a RADIUS server requires an entry in
+the authentication database.  For example:
+.IP
+.EX
+    radius=server-name secret=xyzzy
+        uid=howard rid=trickey
+        uid=sape   rid=smullender
+.EE
+.IP
+In this example, the secret
+.B xyzzy
+is the hash key used in talking to the RADIUS server.
+The
+.BR uid / rid
+lines map from Plan 9 user ids to RADIUS ids.
+Users not listed are assumed to have the
+same id in both places.
+.TP
+.IR S \(-> A
+AuthApop ,
+.IR IDs ,
+.IR DN ,
+.IR CHs ,
+.IR \- ,
+.IR \-
+.sp -\n(PDu
+.TP
+.IR A \(-> S
+.IR AuthOKvar ,
+.IR challenge
+.sp -\n(PDu
+.TP
+.IR S \(-> A 
+AuthApop ,
+.IR IDs ,
+.IR DN ,
+.IR CHs ,
+.IR IDc ,
+.IR IDc ;
+hexadecimal MD5 checksum
+.Ok AuthApop
+.IP
+This protocol implements APOP authentication
+(see
+.IR pop3 (8)).
+After receiving a ticket request of type
+.IR AuthApop ,
+the AS generates a random challenge
+of the form
+.BI < random @ domain >\fR.
+The client then replies with a new ticket request
+giving the user name
+followed by the MD5 checksum of
+the challenge concatenated with the user's secret.
+If the response is correct, the authentication
+server sends back a ticket
+and authenticator.
+If the response is incorrect, the client may repeat the
+ticket request/MD5 checksum message to try again.
+.IP
+The 
+.I AuthCram
+protocol runs identically to the
+.I AuthApop
+protocol, except that the expected MD5 checksum
+is the keyed MD5 hash using the user's secret as the key
+(see
+.I hmac_md5
+in
+.IR sechash (2)).
+.TP
+.IR S \(-> A
+.IR AuthChap ,
+.IR IDs ,
+.IR DN ,
+.IR CHs ,
+.IR \- ,
+.IR \-
+.sp -\n(PDu
+.TP
+.IR A \(-> S
+.I challenge
+.sp -\n(PDu
+.TP
+.IR S \(-> A
+.IR pktid ,
+.IR IDc ,
+.IR response
+.Ok AuthChap
+.IP
+This protocol implements CHAP authentication
+(see
+.IR ppp (8)).
+The
+.I challenge
+is eight random bytes.
+The response is a 16-byte MD5 checksum
+over the packet id, user's secret, and challenge.
+The reply packet is defined as 
+.B OChapreply
+in
+.BR <authsrv.h> .
+.TP
+.IR S \(-> A
+.IR AuthMSchap ,
+.IR IDs ,
+.IR DN ,
+.IR CHs ,
+.IR \- ,
+.IR \-
+.sp -\n(PDu
+.TP
+.IR A \(-> S
+.I challenge
+.sp -\n(PDu
+.TP
+.IR S \(-> A
+.IR IDc ,
+.IR lm-response ,
+.IR nt-response
+.Ok AuthMschap
+.IP
+This protocol implements Microsoft's MS-CHAP
+authentication
+(see
+.IR ppp (8)).
+The
+.I challenge
+is eight random bytes.
+The two responses are Microsofts LM and NT hashes.
+Only the NT hash may be used to authenticate,
+as the LM hash is considered too weak.
+The reply packet is defined as
+.B OMSchapreply
+in
+.BR <authsrv.h> .
+.TP
+.IR S \(-> A
+.IR AuthVNC ,
+.IR IDs ,
+.IR DN ,
+.IR CHs ,
+.IR IDs ,
+.IR IDc
+.sp -\n(PDu
+.TP
+.IR A \(-> S
+.IR AuthOKvar ,
+.I challenge
+.sp -\n(PDu
+.TP
+.IR S \(-> A
+.I response
+.Ok
+.IP
+This protocol implements VNC authentication
+(see
+.I vncs
+in
+.IR vnc (1)).
+The challenge is 16 random bytes, and the response
+is a DES ECB encryption of the challenge.
+The method by which VNC converts the user's
+secret into a DES key is weak, 
+considering only the first eight bytes of the secret.
+.PD
+.SH FILES
+.TF /lib/ndb/auth.*xxx
+.TP
+.B /lib/ndb/auth
+database file
+.TP
+.B /lib/ndb/auth.*
+hash files for
+.B /lib/ndb/auth
+.SH SEE ALSO
+.IR auth (2),
+.IR fauth (2),
+.IR cons (3),
+.IR attach (5),
+.IR auth (8)

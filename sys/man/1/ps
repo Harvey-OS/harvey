@@ -1,0 +1,113 @@
+.TH PS 1
+.SH NAME
+ps, psu \- process status
+.SH SYNOPSIS
+.B ps
+[
+.B -apr
+]
+.PP
+.B psu
+[
+.B -apr
+]
+[
+.I user
+]
+.SH DESCRIPTION
+.I Ps
+prints information about processes.
+.I Psu
+prints only information about processes started by
+.I user
+(default
+.BR $user ).
+.PP
+For each process reported,
+the user,
+process id,
+user time,
+system time,
+size,
+state,
+and command name are printed.
+State is one of the following:
+.TP \w'\fLno\ \fIresource\ \ \ 'u
+.B Moribund
+Process has exited and is about to have its
+resources reclaimed.
+.TP
+.B Ready
+on the queue of processes ready to be run.
+.TP
+.B Scheding
+about to be run.
+.TP
+.B Running
+running.
+.TP
+.B Queueing
+waiting on a queue for a resource.
+.TP
+.B Wakeme
+waiting for I/O or some other kernel event to wake it up.
+.TP
+.B Broken
+dead of unnatural causes; lingering
+so that it can be examined.
+.TP
+.B Stopped
+stopped.
+.TP
+.B Stopwait
+waiting for another process to stop.
+.TP
+.B Fault
+servicing a page fault.
+.TP
+.B Idle
+waiting for something to do (kernel processes only).
+.TP
+.B New
+being created.
+.TP
+.B Pageout
+paging out some other process.
+.TP
+.I Syscall
+performing the named system call.
+.TP
+.BI no " resource
+waiting for more of a critical
+.IR resource .
+.PD
+.PP
+The
+.B -r
+flag causes
+.I ps
+to print, before the user time, the elapsed real time for the process.
+.PP
+The
+.B -p
+flag causes
+.I ps
+to print, after the system time, the baseline and current priorities of each process.
+.PP
+The
+.B -a
+flag causes
+.I ps
+to print the arguments for the process.  Newlines in arguments will be translated to spaces for display.
+.SH FILES
+.B /proc/*/status
+.SH SOURCE
+.B /sys/src/cmd/ps.c
+.br
+.B /rc/bin/psu
+.SH "SEE ALSO"
+.IR acid (1),
+.IR db (1),
+.IR kill (1), 
+.IR ns (1),
+.IR proc (3)

@@ -1,0 +1,123 @@
+.TH SLEEP 9
+.SH NAME
+sleep, wakeup, tsleep, return0 \- process synchronisation
+.SH SYNOPSIS
+.ta \w'\fLvoid 'u
+.B
+void	sleep(Rendez *r, int (*f)(void*), void *arg)
+.PP
+.B
+void	wakeup(Rendez *r)
+.PP
+.B
+void	tsleep(Rendez *r, int (*f)(void*), void *arg, int ms)
+.PP
+.B
+int	return0(void *arg)
+.PP
+.SH DESCRIPTION
+A process running in the kernel can use these functions to
+synchronise with an interrupt handler or another kernel process.
+In particular, they are used by device drivers to wait for an event to be signalled on
+receipt of an interrupt.
+(In practice, they are most often used indirectly, through
+.IR qio (9)
+for instance.)
+.PP
+The caller of
+.I sleep
+and a caller of
+.I wakeup
+share a
+.B Rendez
+structure, to provide a rendezvous point between them
+to synchronise on an event.
+.I Sleep
+uses a condition function
+.I f
+that returns true if the event has occurred.
+.PP
+.I Sleep
+evaluates
+.IB f ( arg ).
+If true, the event has happened and
+.I sleep
+returns immediately.
+Otherwise,
+.I sleep
+blocks on the event variable
+.IR r ,
+awaiting
+.IR wakeup .
+.PP
+.I Wakeup
+is called by either a process or an interrupt handler to wake any process
+sleeping at
+.IR r ,
+signifying that the corresponding condition is true (the event has occurred).
+It has no effect if there is no sleeping process.
+.PP
+.I Tsleep
+is similar to
+.IR sleep ,
+except that if the condition
+.IB f ( arg )
+is false and the caller does sleep,
+and nothing else wakes it within
+.I ms
+millliseconds,
+the system will wake it.
+.IR Tsleep 's
+caller must check its environment to decide whether timeout or the event
+occurred.
+The timing provided by
+.I tsleep
+is imprecise, but adequate in practice for the normal use of protecting against
+lost interrupts and otherwise unresponsive devices or software.
+.PP
+.I Return0
+ignores its arguments and returns zero. It is commonly used as
+the predicate
+.I f
+in a call to
+.I tsleep
+to obtain a time delay, using a
+.B Rendez
+variable
+.B sleep
+in the
+.B Proc
+structure, for example:
+.IP
+.B tsleep(&up->sleep, return0, nil, 10);
+.PP
+Both
+.I sleep
+and
+.I tsleep
+can be interrupted by
+.IR swiproc
+(see
+.IR kproc (9)),
+causing a non-local goto through a call to
+.IR error (9).
+.SH DIAGNOSTICS
+There can be at most one process waiting on a
+.BR Rendez ,
+and if two processes collide, the system will
+.IR panic (9)
+.RB (`` "double sleep" '').
+Access to a
+.B Rendez
+must therefore be serialised by some other mechanism, usually
+.IR qlock (9).
+.SH SOURCE
+.B /sys/src/9/port/proc.c
+.SH SEE ALSO
+.IR lock (9),
+.IR qlock (9),
+.IR delay (9)
+.br
+``Process Sleep and Wakeup on a Shared-memory Multiprocessor'',
+in
+.I "Plan 9 Programmer's Manual: Volume 2".

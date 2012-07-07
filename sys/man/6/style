@@ -1,0 +1,109 @@
+.TH STYLE 6
+.SH NAME
+style \- Plan 9 coding conventions for C
+.SH DESCRIPTION
+Plan 9 C code has its own conventions.
+You would do well to follow them.
+Here are a few:
+.IP • 3
+don't use
+.L //
+comments; some old Plan 9 code does, but we're converting it as we touch it.
+We do sometimes use
+.L //
+to comment-out a few lines of code.
+.IP •
+avoid
+.BR goto s.
+.IP •
+no tabs expanded to spaces.
+.IP •
+surround a binary operator (particular a low precedence one) with spaces;
+don't try to write the most compact code possible
+but rather the most readable.
+.IP •
+parenthesize expressions involving arithmetic and bit-wise operators;
+otherwise don't parenthesize heavily (e.g., as in Pascal).
+.IP •
+no white space before opening braces.
+.IP •
+no white space after the keywords
+.LR if ,
+.LR for ,
+.LR while ,
+etc.
+.IP •
+no braces around single-line blocks (e.g.,
+.LR if ,
+.LR for ,
+and
+.L while
+bodies).
+.IP •
+integer-valued functions return -1 on error, 0 or positive on success.
+.IP •
+functions that return errors should set
+.IR errstr (2).
+.IP •
+variable and function names are all lowercase, with no underscores.
+.IP •
+.B enum
+or
+.BR #define d
+constants should be Uppercase (or UPPERCASE).
+.IP •
+.B struct
+tags are Uppercase, with matching
+.BR typedef s.
+.IP •
+automatic variables (local variables inside a function) are
+never initialized at declaration.
+.IP •
+follow the standard idioms: use
+.L "x < 0"
+not
+.LR "0 > x" ,
+etc.
+.IP •
+don't write
+.L !strcmp
+(nor
+.LR !memcmp ,
+etc.)
+nor
+.LR "if(memcmp(a, b, c))" ;
+always explicitly compare the result of string or memory
+comparison with zero using a relational operator.
+.PP
+Ultimately, the goal is to write code that fits in with the other code
+around it and the system as a whole.  If the file you are editing
+already deviates from these guidelines, do what it does.  After you
+edit a file, a reader should not be able to tell just from coding
+style which parts you worked on.
+.SS COMMENTS
+If your code is readable, you shouldn't need many comments.  A line or
+two comment above a function explaining what it does is always welcome.
+.PP
+Comment any code you find yourself wondering about for more than 2
+seconds, even if it's to say that you don't understand what's going
+on.  Explain why.
+.PP
+Don't use commenting as an excuse for writing confusing code.  Rewrite
+the code to make it clear.
+.SS EFFICIENCY
+Do the simple thing.  Don't optimize unless you've measured the code
+and it is too slow.  Fix the data structures and the algorithms
+instead of going for little 5% tunings.
+.SH SEE ALSO
+``Notes on Programming in C'', Rob Pike,
+.br
+.B http://www.literateprogramming.com/pikestyle.pdf
+.SH BUGS
+Some programs use very different styles, for example,
+.IR rc .
+.PP
+Some programs and programmers diverge from the above rules due to
+habits formed long before these rules.
+Notably, some programs have a single space after a keyword and
+before an opening brace,
+and some initialize automatic variables at declaration.

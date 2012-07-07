@@ -1,0 +1,93 @@
+.TH ZIOREAD 2
+.SH NAME
+zioread, ziowrite, ziopread, ziopwrite, ziofree \- zero-copy read and write
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
+.nf
+.ft L
+typedef struct Zio Zio;
+struct Zio
+{
+	void*	data;
+	ulong	size;
+};
+.fi
+.PP
+.B
+int ziopread(int fd, Zio io[], int nio, usize count, vlong offset);
+.PP
+.B
+int ziopwrite(int fd, Zio io[], int nio, vlong offset);
+.PP
+.B
+int zioread(int fd, Zio io[], int nio, usize count);
+.PP
+.B
+int ziowrite(int fd, Zio io[], int nio);
+.PP
+.B
+void ziofree(Zio io[], int nio);
+.SH DESCRIPTION
+These functions supplement the standard read and write operations of
+.IR read (2)
+with facilities for zero-copy I/O.
+The set of I/O buffers used should be allocated within ZIO segments, see
+.IR segment (3),
+or data will be copied during I/O. But they can refer to any other segment as well.
+.PP
+.B Zio
+structures passed as an argument represent a series of zero-copy buffers
+for the call. For
+.I ziowrite
+they should refer to actual data. For
+.I zioread
+the system fills them to reflect where the read data stands. In both cases,
+.I nio
+is the number of entries in the
+.I io
+array, and
+.I fd
+is the file descriptor where to perform I/O. The
+.I count
+argument to
+.I zioread
+limits the total ammount of data that may be retrieved.
+The return value reflects the number of entries used in the
+.I io
+array.
+.PP
+.I Ziopread
+and
+.I ziopwrite
+are similar to
+.I zioread
+and
+.I ziowrite
+but specify the offset where to read or write.
+.PP
+.I ziofree
+is a convenience system call to notify buffer owners that they are no longer
+in use. Using it is equivalent of locating the
+.B free
+files for the segments involved and then writing the
+.I io
+addresses there.
+.SH SOURCE
+.B /sys/src/libc/9sys/zioread.c
+.br
+.B /sys/src/libc/9sys/ziowrite.c
+.br
+.B /sys/src/nix/port/syszio.c
+.SH SEE ALSO
+.IR intro (2),
+.IR read (2),
+and
+.IR segment (3).
+.SH DIAGNOSTICS
+These functions set
+.IR errstr .
+.SH BUGS
+Experimental, just like everything else.

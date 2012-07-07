@@ -1,0 +1,529 @@
+.TH PROC 3
+.SH NAME
+proc \- running processes
+.SH SYNOPSIS
+.nf
+.B bind #p /proc
+.sp 0.3v
+.B /proc/trace
+.BI /proc/ n /args
+.BI /proc/ n /core
+.BI /proc/ n /ctl
+.BI /proc/ n /fd
+.BI /proc/ n /fpregs
+.BI /proc/ n /kregs
+.BI /proc/ n /mem
+.BI /proc/ n /note
+.BI /proc/ n /noteid
+.BI /proc/ n /notepg
+.BI /proc/ n /ns
+.BI /proc/ n /proc
+.BI /proc/ n /profile
+.BI /proc/ n /regs
+.BI /proc/ n /segment
+.BI /proc/ n /status
+.BI /proc/ n /text
+.BI /proc/ n /wait
+\&...
+.fi
+.SH DESCRIPTION
+The
+.I proc
+device serves a two-level directory structure.
+The first level contains the
+.B trace
+file (see below) and numbered directories
+corresponding to pids of live processes;
+each such directory contains a set of files
+representing the corresponding process.
+.PP
+The
+.B mem
+file contains the current memory image of the process.
+A read or write at offset
+.IR o ,
+which must be a valid virtual address,
+accesses bytes from address
+.IR o
+up to the end of the memory segment containing
+.IR o .
+Kernel virtual memory, including the kernel stack for the process and
+saved user registers (whose addresses are machine-dependent),
+can be accessed through
+.BR mem .
+Writes are permitted only while the process is in the
+.B Stopped
+state and only to user addresses or registers.
+.PP
+The read-only
+.B core
+file contains the AC number for the process, or 0 if the process is at a TC.
+.PP
+The read-only
+.B proc
+file contains the kernel per-process
+structure.
+Its main use is to recover the kernel stack and program counter
+for kernel debugging.
+.PP
+The files
+.BR regs ,
+.BR fpregs ,
+and
+.BR kregs
+hold representations of the user-level registers, floating-point registers,
+and kernel registers in machine-dependent form.
+The
+.B kregs
+file is read-only.
+.PP
+The read-only
+.B fd
+file lists the open file descriptors of the process.
+The first line of the file is its current directory; subsequent lines list, one per line,
+the open files, giving the decimal file descriptor number; whether the file is open for read
+.RB ( r ),
+write,
+.RB ( w ),
+or both
+.RB ( rw );
+the type, device number, and qid of the file; its I/O unit (the amount of data
+that may be transferred on the file as a contiguous piece; see
+.IR iounit (2)),
+its I/O offset; and its name at the time it was opened.
+.PP
+The read-only
+.B ns
+file contains a textual representation of the process's file name space, in the format of
+.IR namespace (6)
+accepted by
+.B newns
+(see
+.IR auth (2)).
+The last line of the file identifies the current working directory of the process, in the form of a
+.B cd
+command
+(see
+.IR rc (1)).
+The information in this file is based on the names files had when the name space was assembled,
+so the names it contains may be inaccessible if the files have been subsequently renamed or rearranged.
+.PP
+The read-only
+.B segment
+file contains a textual display of the memory segments
+attached to the process.  Each line has multiple fields:
+the type of segment (\c
+.BR Stack ,
+.BR Text ,
+.BR Data ,
+.BR Bss ,
+etc.); one-letter flags such as
+.B R
+for read-only, if any;
+starting virtual address, in hexadecimal;
+ending virtual address, and reference count.
+.PP
+The read-only
+.B status
+file contains a string with twelve fields, each followed by a space.
+The fields are:
+.IP \-
+the process name and user name, each 27 characters left justified
+.IP \-
+the process state, 11 characters left justified (see
+.IR ps (1))
+.IP \-
+the six 11-character numbers also held in the process's
+.B #c/cputime
+file
+.IP \-
+the amount of memory used by the process, except its stack,
+in units of 1024 bytes
+.IP \-
+the base and current scheduling priority, each 11 character numbers
+.IP \-
+the number of traps for the process
+.IP \-
+the number of system calls made by the process
+.IP \-
+the number of inter-core calls made by the process.
+.PP
+The read-only
+.B args
+file contains the arguments of the program when it was created by
+.IR exec (2).
+If the program was not created by
+.BR exec ,
+such as by
+.IR fork (2),
+its
+.B args
+file will be empty.
+The format of the file is a list of quoted strings suitable for
+.BR tokenize ;
+see
+.IR getfields (2).
+.PP
+The
+.B text
+file is a pseudonym for the file
+from which the process was executed;
+its main use is to recover the symbol table of the process.
+.PP
+The
+.B wait
+file may be read to recover
+records from the exiting children of the process in the format of
+.B await
+(see
+.IR wait (2)).
+If the process has no extant children, living or exited,
+a read of
+.B wait
+will block.
+It is an error for a process to attempt to read its own
+.B wait
+file when it has no children.
+When a process's
+.B wait
+file is being read,
+the process will draw an error
+if it attempts an
+.B await
+system call; similarly, if a process is in an
+.B await
+system call, its
+.B wait
+file cannot be read by any process.
+.PP
+The read-only
+.B profile
+file contains the instruction frequency count information used for multiprocess profiling; see
+.B tprof
+in
+.IR prof (1).
+The information is gleaned by sampling the program's user-level program counter
+at interrupt time.
+.PP
+Strings written to the
+.B note
+file will be posted as a note to the process
+(see
+.IR notify (2)).
+The note should be less than
+.B ERRLEN-1
+characters long;
+the last character is reserved for a terminating NUL character.
+A read of at least
+.B ERRLEN
+characters will retrieve the oldest note posted to the
+process and prevent its delivery to the process.
+The
+.B notepg
+file is similar, but the note will be delivered to all the
+processes in the target process's
+.I note group
+(see
+.IR fork (2)).
+However, if the process doing the write is in the group,
+it will not receive the note.
+The
+.B notepg
+file is write-only.
+.PP
+The textual
+.B noteid
+file may be read to recover an integer identifying the note group of the process
+(see
+.B RFNOTEG
+in
+.IR fork (2)).
+The file may be written to cause the process to change to another note group,
+provided the group exists and is owned by the same user.
+.PP
+The file
+.B /proc/trace
+can be opened once and read to see trace events from processes that have
+had the string
+.B trace
+written to their
+.B ctl
+file.
+Each event produces, in native machine format, the
+.IR pid ,
+a
+.IR type ,
+and a
+.I "time stamp"
+(see
+.B /sys/include/trace.h
+and
+.BR /sys/src/cmd/trace.c ).
+.
+.SS Control messages
+Textual messages written to the
+.B ctl
+file control the execution of the process.
+Some require that the process is in a particular state
+and return an error if it is not.
+.TP 10n
+.B stop
+Suspend execution of the process, putting it in the
+.B Stopped
+state.
+.TP 10n
+.B start
+Resume execution of a
+.B Stopped
+process.
+.TP 10n
+.B waitstop
+Do not affect the process directly but, like all other messages ending with
+.BR stop ,
+block the process writing the
+.B ctl
+file until the target process is in the
+.B Stopped
+state or exits.
+Also like other
+.B stop
+control messages,
+if the target process would receive a note while the message is pending,
+it is instead stopped and the debugging process is resumed.
+.TP 10n
+.B startstop
+Allow a
+.B Stopped
+process to resume, and then do a
+.B waitstop
+action.
+.TP 10n
+.B hang
+Set a bit in the process so that,
+when it completes an
+.IR exec (2)
+system call, it will enter the
+.B Stopped
+state before returning to user mode.
+This bit is inherited across
+.IR fork (2)
+and
+.IR exec (2).
+.TP 10n
+.B "close\ \fIn
+Close file descriptor
+.I n
+in the process.
+.TP 10n
+.B closefiles
+Close all open file descriptors in the process.
+.TP 10n
+.B nohang
+Clear the hang bit.
+.TP 10n
+.B noswap
+Don't allow this process to be swapped out.  This should
+be used carefully and sparingly or the system could run
+out of memory.  It is meant for processes that can't be
+swapped, like the ones implementing the swap device and for
+processes containing sensitive data.
+.TP 10n
+.B kill
+Kill the process the next time it crosses the user/kernel boundary.
+.TP 10n
+.B private
+Make it impossible to read the process's user memory.
+This property is inherited on fork, cleared on
+.IR exec (2),
+and is not otherwise resettable.
+.TP 10n
+.B "pri\ \fIn
+Set the base priority for the process to the integer
+.IR n .
+.TP 10n
+.B "wired\ \fIn
+Wire the process to processor
+.IR n .
+.TP 10n
+.B "core\ \fIn
+Send the process to AC number
+.IR n ,
+if
+.I n
+is greater than zero. Send it back to a TC if
+.I n
+is zero. Send the process to any AC if
+.I n
+is less than zero.
+.TP 10n
+.B trace
+Without an argument, toggle trace event generation for this process into
+.B /proc/trace
+(see below).
+With a zero argument, tracing for the proc is turned off, with a non-zero numeric
+argument, it is turned on.
+.TP 10n
+.B "period\ \fInu
+Set the real-time scheduling period of the process to
+.IR nu ,
+where
+.I n
+is an optionally signed number containing an optional decimal point and
+.I u
+is one of
+.BR s ,
+.BR ms ,
+.BR us ,
+.BR µs ,
+.BR ns ,
+or
+empty.  The time is interpreted, respectively, as
+.IR seconds ,
+.IR milliseconds ,
+.IR microseconds ,
+.IR microseconds ,
+.IR nanoseconds ,
+or, in the case of an absent units specifier, as
+.IR nanoseconds .
+If the time specifier is signed, it is interpreted as an increment or decrement
+from a previously set value.  See also the
+.B admit
+command below.
+.TP 10n
+.B "deadline\ \fInu
+Set the real-time deadline interval of the process to
+.IR nu ,
+where
+.I n
+and
+.I u
+are interpreted as for
+.B period
+above.
+.TP 10n
+.B "cost\ \fInu
+Set the real-time cost (maximum CPU time per period) of the process to
+.IR nu ,
+where
+.I n
+and
+.I u
+are interpreted as for
+.B period
+above.
+.TP 10n
+.B "sporadic
+Use sporadic scheduling for the real-time process.  The description of the
+.B admit
+command below contains further details.
+.TP 10n
+.B "yieldonblock
+Make the real-time process yield on blocking I/O.
+  The description of the
+.B admit
+command below contains further details.
+.TP 10n
+.B "admit
+Given real-time
+.IR period ,
+.I deadline
+and
+.I cost
+are set (an unset
+.I deadline
+will set
+.I deadline
+to
+.IR period ),
+perform a schedulability test and start scheduling the process as a real-time
+process if the test succeeds.  If the test fails, the
+.B write
+will fail with error set to the reason for failure.
+.TP 10n
+.B event
+Add a user event to the
+.B /proc/trace
+file.
+.PD
+.
+.SS Real-time scheduling
+.I Real-time
+processes are periodically
+.IR released ,
+giving them a higher priority than non-real-time processes until they either
+give up the processor voluntarily, they exhaust their CPU allocation, or they reach their
+.IR deadline .
+The moment of release is dictated by the
+.I period
+and whether the process is
+.I sporadic
+or not.
+Non-sporadic processes are called
+.I periodic
+and they are released precisely at intervals of their period (but periods can be skipped
+if the process blocks on I/O).
+Sporadic processes are released whenever they become
+runnable (after being blocked by
+.IR sleep ()
+or I/O), but always at least an interval of
+.I period
+after the previous release.
+.PP
+The
+.I deadline
+of a real-time process specifies that the process must complete within the first
+.I deadline
+seconds of its
+.IR period .
+The dealine must be less than or equal to the period.
+If it is not specified, it is set to the period.
+.PP
+The
+.I cost
+of a real-time process describes the maximum CPU time the process may use per period.
+.PP
+A real-time process can give up the CPU before its deadline is reached
+or its allocation is exhausted.
+It does this by calling
+.IR sleep (0).
+If
+.I yieldonblock
+is specified, it also does it by executing any blocking system call.
+.I Yieldonblock
+is assumed for
+.I sporadic
+processes.
+.PP
+Of the released processes,
+the one with the earliest deadline has the highest priority.
+Care should be taken using spin locks (see
+.IR lock (2))
+because a real-time process spinning on a lock will not give up the processor until
+its CPU allocation is exhausted; this is unlikely to be the desired behavior.
+.PP
+When a real-time process reaches its deadline or exhausts its CPU allocation, it remains
+schedulable, but at a very low priority.
+.PP
+The priority is interpreted by Plan 9's multilevel process scheduler.
+Priorities run from 0 to 19, with higher
+numbers representing higher priorities.
+A process has a base priority and
+a running priority which is less than or equal to the base priority.
+As a process uses up more of its allocated time, its priority is lowered.
+Unless
+explicitly set, user processes have base priority 10, kernel processes
+13.
+Children inherit the parent's base priority.
+.SH FILES
+.nf
+.B /sys/src/9/*/mem.h
+.B /sys/src/9/*/dat.h
+.B /sys/include/trace.h
+.fi
+.SH SEE ALSO
+.IR trace (1),
+.IR debugger (2),
+.IR mach (2),
+.IR cons (3)
+.SH SOURCE
+.B /sys/src/9/port/devproc.c

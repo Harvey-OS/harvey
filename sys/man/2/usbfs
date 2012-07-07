@@ -1,0 +1,341 @@
+.TH USBFS 2
+.SH NAME
+usbreadbuf,
+usbfsadd,
+usbfsdel,
+usbdirread,
+usbfsinit,
+usbdirfs,
+usbfs \- USB device driver file system library
+.SH SYNOPSIS
+.EX
+.ta 8n +8n +8n +8n +8n +8n +8n
+#include <u.h>
+#include <libc.h>
+#include <thread.h>
+#include "../lib/usb.h"
+#include "../lib/usbfs.h"
+.sp 0.3v
+enum {
+	Hdrsize	= 128,		/* plenty of room for headers */
+	Msgsize	= 8 * 1024,
+	Bufsize	= Hdrsize + Msgsize,
+	Namesz = 40,
+	Errmax = 128,
+	ONONE = ~0,		/* omode in Fid when not open */
+};
+.sp 0.3v
+struct Fid {
+	int	fid;
+	Qid	qid;
+	int	omode;
+	Fid*	next;
+	void*	aux;
+};
+.sp 0.3v
+struct Usbfs {
+	char	name[Namesz];
+	uvlong	qid;
+	Dev*	dev;
+	void*	aux;
+.sp 0.3v
+	int	(*walk)(Usbfs *fs, Fid *f, char *name);
+	void	(*clone)(Usbfs *fs, Fid *of, Fid *nf);
+	void	(*clunk)(Usbfs *fs, Fid *f);
+	int	(*open)(Usbfs *fs, Fid *f, int mode);
+	long	(*read)(Usbfs *fs, Fid *f,
+			void *data, long count, vlong offset);
+	long	(*write)(Usbfs *fs, Fid*f,
+			void *data, long count, vlong offset);
+	int	(*stat)(Usbfs *fs, Qid q, Dir *d);
+	void	(*end)(Usbfs *fs);
+};
+.sp 0.3v
+typedef int (*Dirgen)(Usbfs*, Qid, int, Dir*, void*);
+.sp 0.3v
+long	usbreadbuf(void *data, long count,
+		vlong offset, void *buf, long n);
+void	usbfsadd(Usbfs *dfs);
+void	usbfsdel(Usbfs *dfs);
+int	usbdirread(Usbfs*f, Qid q, char *data, long cnt,
+		vlong off, Dirgen gen, void *arg);
+void	usbfsinit(char* srv, char *mnt, Usbfs *f, int flag);
+void	usbfsdirdump(void);
+.sp 0.3v
+extern char Enotfound[], Etoosmall[], Eio[], Eperm[], Ebadcall[],
+	Ebadfid[], Einuse[], Eisopen[], Ebadctl[];
+.sp 0.3v
+extern Usbfs usbdirfs;
+extern int usbfsdebug;
+.EE
+.SH DESCRIPTION
+This library provides an alternative to
+.IR 9p (2)
+for implementing a file server within a USB driver.
+Drivers using this
+library may be embedded into
+.IR usbd (4).
+It may be also desirable to use this library when drivers are
+not embedded because it is tailored to work well with the
+library for handling USB devices.
+.PP
+A USB file system is described by a
+.I Usbfs
+structure.
+In most cases, the driver is not responsible for the root of the
+file tree.
+It is customary that a driver creates a file server
+for each device handled and links all of them to a root directory
+implemented by the
+.I usbdirfs
+file system implemented by the library.
+This root directory is bound to
+.B /dev
+in most cases.
+.PP
+.I Usbdirfs
+implements a root directory populated by named file trees,
+each one described by a
+.B Usbfs
+structure.
+.PP
+The field
+.B Usbfs.name
+contains the name for the root directory of the file system, usually
+a directory seen at
+.BI /dev/ name
+when the driver is embedded.
+.PP
+.B Usbfs.qid
+maintains a value used to decorate qids for the file tree.
+This may be ignored when
+.I usbdirfs
+is not used.
+Otherwise,
+.I usbdirfs
+assigns a unique value kept at the high 32 bits of
+.B Qid.path
+for all files on each file tree bound to it.
+Each
+.I Usbfs
+server must bitwise OR
+.B Usbfs.qid
+to all
+.B Qid.path
+values returned by its functions.
+In the same way,
+functions usually clear bits in
+.B Usbfs.qid
+before processing
+.B Qid.path
+values supplied as input.
+.PP
+The USB device handled by a file tree is referenced from
+.B Usbfs.dev
+(and a reference must be counted for it).
+This permits the following functions to quickly locate the device of
+interest, and also permits releasing the device when
+no request is outstanding.
+.PP
+The field
+.B Usbfs.aux
+is for the device to use.
+The rest of the fields implement the 9P protocol for the device.
+Not all the operations need be implemented.
+Only
+.IR walk ,
+.IR open ,
+.IR read ,
+.IR write ,
+and
+.IR stat ,
+must be implemented (and their corresponding fields in
+.B Usbfs
+may never be
+.BR nil ).
+These functions must return -1 upon failure
+and set the error string to reflect the cause of a failure.
+.PP
+In all the functions, a 9P fid is represented by a
+.B Fid
+structure.
+It contains the 9P
+.IR fid ,
+the corresponding
+.IR qid ,
+and an auxiliary pointer for the driver to use.
+Open
+.IR fid s
+have a valid open mode in
+.I omode
+while others have
+.B ONONE
+to indicate that the
+.I fid
+is not open.
+The library takes care of which
+fids
+exist and which ones do not.
+.PP
+.I Walk
+must walk
+.I f
+to
+.I name
+(a single name, not a file path)
+in the supplied
+.IR fs .
+Its implementation should update the qid in
+.I f
+to reflect the walk.
+This function must bitwise OR any returned Qid with
+.B Usbfs.qid ,
+if
+.I usbdirfs
+is used.
+.PP
+.I Clone
+must clone fid
+.I of
+onto
+.I nf
+so that,
+upon successful completion,
+.I nf
+also refers to the file that
+.I f
+refers to.
+An implementation must update the Qid of the cloned
+fid.
+If this function is not supplied, the library copies the
+.I aux
+field to the cloned fid.
+.PP
+.I Clunk
+clunks
+.IR f .
+It usually releases data kept in the
+.I aux
+field, but may be
+set to
+.B nil
+otherwise.
+.PP
+.I Open
+prepares the fid
+.I f
+for I/O according to
+.IR mode .
+The open mode in the fid is updated by the library upon return.
+The library checks trivial cases like opening already-open fids.
+The implementation performs most permission checking.
+.PP
+.I Read
+reads up to
+.I count
+bytes into
+.I data
+starting at
+.I offset
+in the file referenced by
+.IR f .
+.I Write
+is the counterpart.
+To read from directories,
+the function
+.I usbdirread
+may be called.
+It returns the return value of
+.I read
+or -1.
+.I usbdirread
+calls
+.I gen
+to iterate through files as needed.
+The
+.B Dirgen
+function will be called with index values of 0
+and up to ask for the first file and following files.
+To read from data already in buffers, the function
+.I usbreadbuf
+may help.
+It must be given the arguments supplied
+by the user, plus the buffer and buffer size.
+.PP
+.I Stat
+must fill
+.I d
+with the directory entry for the file identified by
+.IR q.
+As an aid,
+.I d
+is initialized to fake access and modification times,
+and user and group ids.
+Also, the field
+.B name
+in
+.I d
+is initialized to point to a 40-byte buffer.
+If the file name fits,
+it may be copied directly into
+.B d->name
+without allocating memory for that purpose.
+Otherwise
+.B d->name
+must be initialized to point to static memory.
+.PP
+The function
+.I end
+is called upon termination of the file tree to
+release resources.
+.PP
+Calling
+.I usbfsinit
+starts a file server for
+.I f
+that mounts itself at
+.I mnt
+and posts
+.I srv
+at
+.IR srv (3).
+In most cases, the file system supplied is
+.IR usbdirfs .
+The
+.I flag
+is used for
+.IR mount
+(see
+.IR bind (2)).
+Once
+.I usbdirfs
+is started, calls to
+.IR usbfsadd
+add a file tree implemented by
+.I dfs
+to the root directory of
+.I usbdirfs
+and
+calls to
+.I usbfsdel
+remove that binding (and release resources including
+the reference to the USB device).
+.PP
+Various error strings are declared as an aid.
+The global
+.B usbfsdebug
+may be set to trigger diagnostics and protocol tracing.
+.SH EXAMPLE
+See
+.B /sys/src/cmd/usb/disk
+for an example driver that uses this library.
+Looking at an example is strongly suggested
+to see how reference counts for the USB device
+and the file system are handled.
+.SH SOURCE
+.B /sys/src/cmd/usb/lib
+.SH "SEE ALSO"
+.IR usb (2),
+.IR usb (3),
+.IR usb (4),
+.IR usbd (4)

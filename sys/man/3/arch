@@ -1,0 +1,144 @@
+.TH ARCH 3
+.SH NAME
+arch \- architecture-specific information and control
+.SH SYNOPSIS
+.nf
+.B bind -a #P /dev
+.sp 0.3v
+.B /dev/archctl
+.B /dev/cputype
+.B /dev/ioalloc
+.B /dev/iob
+.B /dev/iol
+.B /dev/iow
+.B /dev/irqalloc
+.SH DESCRIPTION
+This device presents textual information about PC hardware and allows
+user-level control of the I/O ports on x86-class and DEC Alpha machines.
+.PP
+Reads from
+.I cputype
+recover the processor type and clock rate in MHz in the first line, followed
+by further lines with CPU information values as provided by the processor.
+Reads from
+.I archctl
+yield at least data of this form:
+.IP
+.EX
+cpu AMD64 2201 pge
+pge on
+coherence mfence
+cmpswap cmpswap486
+i8253set on
+cache default uc
+cache 0x0 1073741824 wb
+cache 0x3ff00000 1048576 uc
+.EE
+.LP
+Where
+.L AMD64
+is the processor type,
+.L 2201
+is the processor speed in MHz,
+and
+.L pge
+is present only if the `page global extension' capability is present;
+the next line reflects its setting.
+.L coherence
+is followed by one of
+.LR mb386 ,
+.LR mb586 ,
+.L mfence
+or
+.LR nop ,
+showing the form of memory barrier used by the kernel.
+.L cmpswap
+is followed by
+.L cmpswap386
+or
+.LR cmpswap486 ,
+reflecting the form of `compare and swap' used by the kernel.
+.L i8253set
+is a flag, indicating the need to explicitly set
+the Intel 8253 or equivalent timer.
+There may be lines starting with
+.L cache
+that reflect the state of memory caching via MTRRs
+(memory-type region registers).
+The second word on the line is
+.L default
+or a C-style number which is the base physical address of the region;
+the third is a C-style length of the region;
+and the fourth is one of
+.LR uc
+(for uncachable),
+.LR wb
+(write-back),
+.LR wc
+(write-combining),
+.LR wp
+(write-protected),
+or
+.LR wt
+(write-through).
+A region may be a subset of another region, and the smaller region
+takes precedence.
+This may be used to make I/O registers uncachable
+in the midst of a write-combining region mostly used
+for a video framebuffer, for example.
+Control messages may be written to
+.I archctl
+and use the same syntax as the data read from
+.IR archctl .
+Known commands include
+.LR cache ,
+.LR coherence ,
+.LR i8253set ,
+and
+.LR pge .
+.
+.PP
+Reads from
+.I ioalloc
+return I/O ranges used by each device, one line
+per range.
+Each line contains three fields separated by white space: first address
+in hexadecimal,
+last address, name of device.
+.PP
+Reads from
+.I irqalloc
+return the enabled interrupts, one line per
+interrupt.  Each line contains three fields separated by white space:
+the trap number, the IRQ it is assigned to, and the name of
+the device using it.
+.PP
+Reads and writes to
+.IR iob ,
+.IR iow ,
+and
+.I iol
+cause 8-bit wide, 16-bit wide, and 32-bit wide requests to
+I/O ports.
+The port accessed is determined by the byte offset of the
+file descriptor.
+.SH EXAMPLE
+The following code reads from an x86 byte I/O port.
+.IP
+.EX
+uchar
+inportb(unsigned port)
+{
+    uchar data;
+
+    if(iobfd == -1)
+        iobfd = open("#P/iob", ORDWR);
+
+    seek(iobfd, port, 0);
+    if(read(iobfd, &data, sizeof(data)) != sizeof(data))
+        sysfatal("inportb(0x%4.4ux): %r", port);
+    return data;
+}
+.EE
+.SH SOURCE
+.B /sys/src/9/pc/devarch.c

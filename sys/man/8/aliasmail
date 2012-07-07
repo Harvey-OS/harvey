@@ -1,0 +1,61 @@
+.TH ALIASMAIL 8
+.SH NAME
+aliasmail \-  expand system wide mail aliases
+.SH SYNOPSIS
+.B upas/aliasmail
+.I arg ...
+.SH DESCRIPTION
+.PP
+.I Aliasmail 
+expands mail aliases, its arguments, according to alias files.
+.I Aliasmail
+is normally invoked by a rule in the
+upas rewrite file,
+.IR rewrite (6).
+.PP
+If a line of an alias file begins with
+.BR #include ,
+the line is replaced by the contents of the file whose name follows.
+Other lines, beginning with
+.B #
+are ignored as comment.
+.PP
+Otherwise, lines begin with a name.
+The rest of a name line gives the expansion.
+The expansion may contain multiple addresses and may be continued
+to another line by appending a backslash.
+Items are separated by white space.
+.PP
+The alias files are searched in the order they are
+listed, one per line, in
+.BR /mail/lib/namefiles .
+If the name is not found, the expansion is taken to be
+.BI local! name\f1.
+Under the
+.B -f
+option,
+alias files listed in
+.B /mail/lib/fromfiles
+are consulted instead,
+and the domain part only of the expansion is printed.
+.SH FILES
+.TF /mail/lib/namefiles
+.TP
+.B /mail/lib/namefiles
+names of system alias files
+.SH SOURCE
+.TP
+.B /sys/src/cmd/upas/alias
+.SH "SEE ALSO"
+.IR faces (1),
+.IR filter (1),
+.IR mail (1),
+.IR marshal (1),
+.IR mlmgr (1),
+.IR nedmail (1),
+.IR qer (8),
+.IR rewrite (6),
+.IR send (8),
+.IR smtp (8),
+.IR upasfs (4)
+

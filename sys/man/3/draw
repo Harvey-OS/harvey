@@ -1,0 +1,791 @@
+.TH DRAW 3 
+.SH NAME
+draw \- screen graphics
+.SH SYNOPSIS
+.nf
+.B bind -a #i /dev
+
+.B /dev/draw/new
+
+.BI /dev/draw/ n /ctl
+.BI /dev/draw/ n /data
+.BI /dev/draw/ n /colormap
+.BI /dev/draw/ n /refresh
+
+.ft L
+#include <u.h>
+#include <draw.h>
+
+.ta \w'ushort 'u
+ushort	BGSHORT(uchar *p)
+ulong	BGLONG(uchar *p)
+void	BPSHORT(uchar *p, ushort v)
+void	BPLONG(uchar *p, ulong v)
+.ft P
+.fi
+.SH DESCRIPTION
+The
+.I draw
+device serves a three-level file system 
+providing an interface to the graphics facilities of the system.
+Each client of the device connects by opening
+.B /dev/draw/new
+and reading 12 strings, each 11 characters wide followed by a blank:
+the connection number
+.RI ( n ),
+the image id
+.RI ( q.v. )
+of the display image (always zero),
+the
+channel format
+of the image,
+the
+.BR min.x ,
+.BR min.y ,
+.BR max.x ,
+and
+.B max.y
+of the display image,
+and the
+.BR min.x ,
+.BR min.y ,
+.BR max.x ,
+and
+.B max.y 
+of the clipping rectangle. 
+The channel format string is described in 
+.IR image (6),
+and the other fields are decimal numbers.
+.PP
+The client can then open the directory
+.BI /dev/draw/ n /
+to access the
+.BR ctl ,
+.BR data ,
+.BR colormap ,
+and
+.B refresh
+files associated with the connection.
+.PP
+Via the 
+.B ctl
+and
+.B draw 
+files, the
+.I draw
+device provides access to 
+images and font caches
+in its private storage,
+as described in 
+.IR graphics (2).
+Each image is identified by a 4-byte integer, its
+.IR id .
+.PP
+Reading the
+.B ctl 
+file yields 12 strings formatted as in
+.BR /dev/draw/new ,
+but for the current image rather
+than the display image.
+The current image may be set by writing a
+binary image id to the
+.B ctl
+file.
+.PP
+A process can write messages to 
+.B data
+to allocate and free images, fonts, and subfonts;
+read or write portions of the images;
+and draw line segments and character
+strings in the images.
+All graphics requests are clipped to their images.
+Some messages return a response to be recovered by 
+reading the
+.B data 
+file.
+.PP
+The format of messages written to
+.B data
+is a single letter
+followed by binary parameters;
+multibyte integers are transmitted with the low order byte first.
+The
+.B BPSHORT
+and
+.B BPLONG
+macros place correctly formatted two- and four-byte integers into a character
+buffer.
+.B BGSHORT
+and
+.B BGLONG
+retrieve values from a character buffer.
+Points are two four-byte numbers:
+.IR x ,
+.IR y .
+Rectangles are four four-byte numbers: min 
+.IR x ,
+min
+.IR y ,
+max
+.IR x ,
+and max
+.IR y .
+Images, screens, and fonts have 32-bit identifiers.
+In the discussion of the protocol below,
+the distinction between identifier and actual image, screen, or font
+is not made, so that
+``the object
+.IR id ''
+should be interpreted as 
+``the object with identifier
+.IR id ''.
+The definitions of constants used in the description below can be found in
+.BR draw.h .
+.PP
+The following requests are accepted by the
+.B data
+file.
+The numbers in brackets give the length in bytes of the parameters.
+.HP .5i
+.B A
+.IR id [4]
+.IR imageid [4]
+.IR fillid [4]
+.IR public [1]
+.br
+Allocate a new
+.B Screen
+(see
+.IR window (2))
+with
+screen identifier
+.I id
+using
+backing store image
+.IR imageid ,
+filling it initially
+with data from image
+.IR fillid .
+If the
+.I public
+byte is non-zero, the screen can 
+be accessed from other processes
+using the
+.B publicscreen
+interface.
+.HP
+.B b 
+.IR id [4]
+.IR screenid [4]
+.IR refresh [1]
+.IR chan [4]
+.IR repl [1]
+.IR r [4*4]
+.IR clipr [4*4]
+.IR color [4]
+.br
+Allocate an image with a given 
+.I id 
+on the
+screen named by
+.IR screenid .
+The image will have rectangle
+.I r 
+and clipping rectangle
+.IR clipr .
+If 
+.I repl
+is non-zero, the image's replicate 
+bit will be set (see
+.IR draw (2)).
+.IP
+.I Refresh
+specifies the method to be used to draw the window
+when it is uncovered.
+.B Refbackup
+causes the server to maintain a backing store,
+.B Refnone 
+does not refresh the image,
+and
+.B Refmesg
+causes a message to be sent via
+the
+.B refresh 
+file
+.RI ( q.v. ).
+.IP
+The image format is described by
+.IR chan ,
+a binary version of the channel format string.
+Specifically, the image format is the catenation of up to four
+8-bit numbers, each describing a particular image channel.
+Each of these 8-bit numbers contains a channel type in its
+high nibble and a bit count in its low nibble.
+The channel type is one of
+.BR CRed ,
+.BR CGreen ,
+.BR CBlue ,
+.BR CGrey ,
+.BR CAlpha ,
+.BR CMap ,
+and
+.BR CIgnore .
+See
+.IR image (6).
+.IP
+.I Color
+is the catenation of four 8-bit numbers
+specifying the red, green, blue, and alpha
+channels of the color that the new image should
+be initially filled with.
+The red channel is in the highest 8 bits, and
+the alpha in the lowest.
+Note that color is always in this format, independent of 
+the image format.
+.HP
+.B c
+.IR dstid [4]
+.IR repl [1]
+.IR clipr [4*4]
+.br
+Change the replicate bit and clipping rectangle of the 
+image
+.IR dstid .
+This overrides whatever settings were specified in
+the allocate message.
+.HP
+.B d
+.IR dstid [4]
+.IR srcid [4]
+.IR maskid [4]
+.IR dstr [4*4]
+.IR srcp [2*4]
+.IR maskp [2*4]
+.br
+Use the 
+.B draw
+operator to combine the rectangle 
+.I dstr
+of 
+image
+.I dstid 
+with a 
+rectangle of image
+.IR srcid ,
+using a rectangle of image
+.IR maskid
+as an alpha mask to further control blending.
+The three rectangles are congruent and aligned such that
+the upper left corner
+.I dstr
+in image
+.I dstid
+corresponds to
+the point 
+.I srcp
+in image
+.I srcid
+and
+the point
+.I maskp
+in image
+.IR maskid .
+See
+.IR draw (2).
+.HP
+.B D
+.IR debugon [1]
+.br
+If
+.I debugon
+is non-zero, enable debugging output.
+If zero, disable it.
+The meaning of ``debugging output'' is implementation dependent.
+.HP
+.B e
+.IR dstid [4]
+.IR srcid [4]
+.IR c [2*4]
+.IR a [4]
+.IR b [4]
+.IR thick [4]
+.IR sp [2*4]
+.IR alpha [4]
+.IR phi [4]
+.br
+Draw an ellipse in image
+.I dst
+centered on the point
+.I c
+with horizontal and vertical semiaxes
+.I a
+and
+.IR b .
+The ellipse is drawn using the image
+.IR src ,
+with
+the point
+.I sp
+in 
+.I src
+aligned with
+.I c
+in
+.IR dst .
+The ellipse is drawn with thickness
+.RI 1+2× thick .
+.IP
+If the high bit of
+.I alpha
+is set, 
+only the arc of the ellipse from degree angles
+.I alpha
+to
+.I phi 
+is drawn.
+For the purposes of drawing the arc,
+.I alpha
+is treated as a signed 31-bit number
+by ignoring its high bit.
+.HP
+.B E
+.IR dstid [4]
+.IR srcid [4]
+.IR center [2*4]
+.IR a [4]
+.IR b [4]
+.IR thick [4]
+.IR sp [2*4]
+.IR alpha [4]
+.IR phi [4]
+.br
+Draws an ellipse or arc as the
+.B e
+message, but rather than outlining it, fills
+the corresponding sector using the image
+.IR srcid .
+The 
+.I thick 
+field is ignored, but must be non-negative.
+.HP
+.B f
+.IR id [4]
+.br
+Free the resources associated with the image
+.IR id .
+.HP
+.B F
+.IR id [4]
+.br
+Free the the screen with the specified
+.IR id .
+Windows on the screen must be freed separately.
+.HP
+.B i
+.IR id [4]
+.IR n [4]
+.IR ascent [1]
+.br
+Treat the image
+.I id
+as a font cache of 
+.I n
+character cells, each with
+ascent
+.IR ascent .
+.HP
+.B l
+.IR cacheid [4]
+.IR srcid [4]
+.IR index [2]
+.IR r [4*4]
+.IR sp [2*4]
+.IR left [1]
+.IR width [1]
+.br
+Load a character into the font cache associated with image
+.I cacheid
+at cache position
+.IR index .
+The character data is drawn in rectangle
+.I r
+of the font cache image
+and is fetched from
+the congruent rectangle in image
+.I srcid
+with upper left corner
+.IR sp .
+.I Width
+specifies the width of the character\(emthe spacing from this character to the next\(emwhile
+.I left
+specifies
+the horizontal distance from the left side
+of the character to the left side of the cache image.
+The dimensions of the image of the character are defined by
+.IR r .
+.HP
+.B L
+.IR dstid [4]
+.IR p0 [2*4]
+.IR p1 [2*4]
+.IR end0 [4]
+.IR end1 [4]
+.IR thick [4]
+.IR srcid [4]
+.IR sp [2*4]
+.br
+Draw a line of thickness
+.RI 1+2× thick
+in image
+.I dstid
+from point
+.I p0
+to
+.IR p1 .
+The line is drawn using the image
+.IR srcid ,
+translated so that point
+.I sp
+in
+.I srcid
+aligns with
+.I p0
+in 
+.IR dstid .
+The 
+.I end0
+and
+.I end1
+fields specify whether the corresponding
+line end should be a square, a disc,
+or an arrow head.
+See 
+.I line
+in
+.IR draw (2)
+for more details.
+.HP
+.B N
+.IR id [4]
+.IR in [1]
+.IR j [1]
+.IR name [ j ]
+.br
+If 
+.I in
+is non-zero, associate the image
+.I id
+with the string
+.IR name .
+If 
+.I in
+is zero and 
+.I name
+already corresponds to the
+image
+.IR id ,
+the association is deleted.
+.HP
+.B n
+.IR id [4]
+.IR j [1]
+.IR name [ j ]
+.br
+Introduce the identifier 
+.I id
+to correspond to the image named
+by the string
+.IR name .
+.HP
+.B o
+.IR id [4]
+.IR r.min [2*4]
+.IR scr [2*4]
+.br
+Position the window 
+.I id
+so that its upper left corner is at the
+point
+.I scr
+on its screen.
+Simultaneously change its internal (logical) coordinate system
+so that the point
+.I log
+corresponds to the upper left corner of the window.
+.HP
+.B O
+.IR op [1]
+.br
+Set the compositing operator to
+.I op
+for the next draw operation.
+(The default is
+.BR SoverD ).
+.HP
+.B p
+.IR dstid [4]
+.IR n [2]
+.IR end0 [4]
+.IR end1 [4]
+.IR thick [4]
+.IR srcid [4]
+.IR sp [2*4]
+.IR dp [2*2*(n+1)]
+.br
+Draw a polygon of thickness
+.RI 1+2× thick .
+It is conceptually equivalent to a series of
+.I n
+line-drawing messages (see
+.B L
+above)
+joining adjacent points in the list of points
+.IR dp .
+The source image
+.I srcid
+is translated so that the point
+.I sp
+in
+.I srcid
+aligns with the first point
+in the list
+.IR dp .
+The polygon need not be closed: 
+.I end0
+and
+.I end1
+specify the line endings for the first and
+last point on the polygon.
+All interior lines have rounded ends
+to make smooth joins.
+.HP
+.B P
+.IR dstid [4]
+.IR n [2]
+.IR wind [4]
+.IR ignore [2*4]
+.IR srcid [4]
+.IR sp [2*4]
+.IR dp [2*2*(n+1)]
+.br
+Draw a polygon as the
+.B p
+message, but
+fill it rather than outlining it.
+The winding rule parameter
+.I wind
+resolves ambiguities about what to fill if the polygon is self-intersecting.
+If
+.I wind
+is
+.BR ~0 ,
+a pixel is inside the polygon if the polygon's winding number about the point
+is non-zero.
+If
+.I wind
+is
+.BR 1 ,
+a pixel is inside if the winding number is odd.
+Complementary values (0 or ~1) cause outside pixels to be filled.
+The meaning of other values is undefined.
+The polygon is closed with a line if necessary.
+.HP
+.B r
+.IR id [4]
+.IR r [4*4]
+.br
+Cause the next read of the
+.B data
+file to return the image pixel data corresponding to the
+rectangle
+.I r
+in image
+.IR id .
+.HP
+.B s
+.IR dstid [4]
+.IR srcid [4]
+.IR fontid [4]
+.IR p [2*4]
+.IR clipr [4*4]
+.IR sp [2*4]
+.IR n [2]
+.IR n*(index [2])
+.br
+Draw in the image
+.I dstid
+the text string specified by the 
+.I n 
+cache
+.I indices
+into font
+.IR fontid ,
+starting with the upper left corner at point
+.I p
+in image
+.IR dstid .
+The image drawn is taken from image
+.IR srcid ,
+translated to align
+.I sp
+in
+.I srcid
+with
+.I dp
+in
+.IR dstid.
+All drawing is confined to the clipping rectangle
+.I clipr 
+in
+.IR dstid .
+.HP
+.B x
+.IR dstid [4]
+.IR srcid [4]
+.IR fontid [4]
+.IR dp [2*4]
+.IR clipr [4*4]
+.IR sp [2*4]
+.IR n [2]
+.IR bgid [4]
+.IR bp [2*4]
+.IR n*(index [2])
+.br
+Like the string drawing 
+.B s
+command, but fill the background of each character
+with pixels from image
+.IR bgid .
+The image
+.I bgid
+is translated so that the point
+.I bp
+aligns with the
+point 
+.I dp
+in 
+.IR dstid .
+.HP
+.B S
+.IR id [4]
+.IR chan [4]
+Attach to the public screen with the specified
+.IR id .
+It is an error if the screen does not exist, is not public, or does not
+have the channel descriptor
+.I chan
+for its associated image.
+.HP
+.B t
+.IR top [1]
+.IR n [2]
+.IR n*id [4]
+.br
+Send 
+.I n
+windows to the top (if
+.I t
+is non-zero) or bottom (if
+.I t
+is zero) of the window stack.
+The window is specified by the list of
+.I n
+image
+.IR id s
+are moved as a group, maintaining their own order within the stack.
+.HP
+.B v
+.br
+Flush changes from a soft screen, if any, to the display buffer.
+.HP
+.B y
+.IR id [4]
+.IR r [4*4]
+.IR buf [x*1]
+.br
+.ti -0.5i
+.B Y
+.IR id [4]
+.IR r [4*4]
+.IR buf [x*1]
+.br
+Replace the rectangle 
+.I r
+of pixels in image
+.I id
+with the pixel data in 
+.IR buf .
+The pixel data must be in the format dictated by
+.IR id 's
+image channel descriptor (see
+.IR image (6)).
+The 
+.B y
+message uses uncompressed data,
+while the
+.B Y
+message uses compressed data. 
+In either case, 
+it is an error to include more data than necessary.
+.PP
+Reading the
+.B colormap
+returns the system color map used on 8-bit displays.
+Each color map entry consists of a single line containing
+four space-separated decimal strings.
+The first is an index into the map, and the remaining three are
+the red, green, and blue values associated with that index.
+The color map can be changed by writing entries in the
+above format to
+the 
+.B colormap
+file.
+Note that changing the system color map 
+does not change the color map used for
+calculations involving
+.B m8
+images, which is immutable.
+.PP
+The
+.B refresh
+file is read-only.
+As windows owned by the client are uncovered,
+if they cannot be refreshed by the server (such as when they have
+refresh functions associated with them), a message is made available
+on the
+.B refresh
+file reporting what needs to be repainted by the client.
+The message has five decimal integers formatted as in the
+.B ctl
+message: the image id of the window and the coordinates of the rectangle
+that should be refreshed.
+.SH SOURCE
+.B /sys/src/9/port/devdraw.c
+.br
+.B /sys/src/libmemdraw
+.SH DIAGNOSTICS
+Most messages to
+.B draw
+can return errors;
+these can be detected by a system call error
+on the
+.IR write (see
+.IR read (2))
+of the data containing the erroneous message.
+The most common error is a failure to allocate
+because of insufficient free resources.  Most other errors occur
+only when the protocol is mishandled by the application.
+.IR Errstr (2)
+will report details.
+.SH BUGS
+The 
+.B Refmesg
+refresh method is not fully implemented.
+.br
+The
+.B colormap
+files only reference the system color map, and as 
+such should be called
+.B /dev/colormap
+rather than
+.BI /dev/draw/ n /colormap\f1.

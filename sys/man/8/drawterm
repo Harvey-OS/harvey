@@ -1,0 +1,117 @@
+.TH DRAWTERM 8
+.SH NAME
+drawterm \- connect to Plan 9 CPU servers from other operating systems
+.SH SYNOPSIS
+.B drawterm
+[
+.B -d
+]
+[
+.B -a
+.I authaddr
+]
+[
+.B -c
+.I cpuaddr
+]
+[
+.B -e
+.I encryption-hash-algs
+]
+[
+.B -k
+.I keypattern
+]
+[
+.B -s
+.I secstoreaddr
+]
+[
+.B -u
+.I user
+]
+[
+.B -C
+.I cmd args ...
+]
+.SH DESCRIPTION
+.I Drawterm
+is
+.I not
+a Plan 9 program.
+It is a program that users of non-Plan 9 systems can use
+to establish graphical
+.IR cpu (1)
+connections with Plan 9 CPU servers.
+Just as a real Plan 9 terminal does,
+.I drawterm
+serves its local name space
+as well as some devices (the keyboard, mouse, and screen)
+to a remote CPU server, which mounts this name space
+on
+.B /mnt/term
+and starts a shell.
+Typically, either explicitly or via the profile, one uses the shell
+to start
+.IR rio (1).
+.PP
+By default,
+drawterm
+uses the CPU server
+.B $cpu
+or
+.BR cpu .
+and the authentication server
+.B $auth
+or
+.BR auth .
+The
+.BR -a ,
+.BR -c ,
+and
+.B -s
+options specify alternate authentication, CPU and
+.I secstore
+servers,
+respectively.
+(Edit the source to set appropriate local defaults.)
+.PP
+.I Cmd
+is a command to be executed remotely.
+Options
+.LR e ,
+.LR k ,
+and
+.L u
+have the same meaning as in
+.IR cpu (1).
+.PP
+Drawterm has been ported to
+FreeBSD,
+Irix,
+Linux,
+NetBSD,
+and
+Windows.
+Binaries can be downloaded from
+.BR http://swtch.com/drawterm/ .
+.SH SOURCE
+.B /sys/src/cmd/unix/drawterm
+.SH DIAGNOSTICS
+Drawterm prints most diagnostics in its own window.
+.SH "SEE ALSO
+.IR cpu (1),
+.IR rio (1)
+.SH BUGS
+Although at first
+.I drawterm
+may seem like a Plan 9 terminal, in fact it is just a way to provide a CPU server
+with some terminal devices.
+The difference is important because one cannot run terminal-resident programs
+when using
+.IR drawterm .
+The illusion can be improved by delicate adjustments in
+.BR /usr/$user/lib/profile .
+.PP
+It would be nice to be able to change the default servers
+without recompiling.

@@ -1,0 +1,58 @@
+.TH FLOOR 2
+.SH NAME
+fabs, fmod, floor, ceil \- absolute value, remainder, floor, ceiling functions
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
+.B
+double floor(double x)
+.PP
+.B
+double ceil(double x)
+.PP
+.B
+double fabs(double x)
+.PP
+.B
+double fmod(double x, double y)
+.SH DESCRIPTION
+.I Fabs
+returns the absolute value
+.RI | \|x\| |.
+.PP
+.I Floor
+returns the
+largest integer
+not greater than
+.IR x .
+.PP
+.I Ceil
+returns the
+smallest integer
+not less than
+.IR x .
+.PP
+.I Fmod
+returns
+.I x
+if
+.I y
+is zero, otherwise the number
+.I f
+with the same sign as
+.IR x ,
+such that
+.I "x = iy + f\|"
+for some integer
+.IR i ,
+and
+.RI | \|f\| |
+<
+.RI | \|y\| |.
+.SH SOURCE
+.B /sys/src/libc/port
+.SH SEE ALSO
+.IR abs (2),
+.IR frexp (2)

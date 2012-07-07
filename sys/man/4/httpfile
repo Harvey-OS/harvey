@@ -1,0 +1,86 @@
+.TH HTTPFILE 4
+.SH NAME
+httpfile \- serve a single web file
+.SH SYNOPSIS
+.B httpfile
+[
+.B -9d
+]
+[
+.B -c
+.I count
+]
+[
+.B -f
+.I file
+]
+[
+.B -m
+.I mtpt
+]
+[
+.B -s
+.I srvname
+]
+[
+.B -x
+.I net
+]
+.I url
+.SH DESCRIPTION
+.I Httpfile
+serves the web page specified by the URL
+.I url
+as a new file
+.I file
+in the directory
+.IR mtpt .
+The default
+.I file
+is the last path element of the URL,
+and the default
+.I mtpt
+is the current directory.
+.PP
+.I Httpfile
+does not download large files all at once.
+Instead, it requests 64-kilobyte blocks as they are
+needed to satisfy reads, caching a few blocks in memory at a time.
+.PP
+The 
+.B -D
+and
+.B -d
+options enable a trace of the 9P traffic
+and general debugging messages.
+.PP
+The
+.B -s
+option causes 
+.I httpfile
+to post the 9P service as
+.BI /srv/ srvname
+and disables the default mount.
+.PP
+The
+.B -x
+option specifies an alternate network directory
+.RI ( e.g., 
+.BR /net.alt ).
+.PP
+The
+.B -c
+option sets the number of file blocks kept cached in memory (default 32).
+.SH EXAMPLE
+Mount an ISO image on a web server:
+.IP
+.EX
+ip/httpfile http://www.9grid.de/plan9/plan9.iso
+9660srv
+mount /srv/9660 /n/iso plan9.iso
+.EE
+.SH SOURCE
+.B /sys/src/cmd/ip/httpfile.c
+.SH "SEE ALSO
+.IR hget (1),
+.IR webfs (4)

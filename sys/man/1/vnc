@@ -1,0 +1,237 @@
+.TH VNC 1
+.SH NAME
+vncs, vncv \- remote frame buffer server and viewer for Virtual Network Computing (VNC)
+.SH SYNOPSIS
+.B vncs
+[
+.B -v
+]
+[
+.B -c
+.I cert
+]
+[
+.B -d
+.BI : display
+]
+[
+.B -g
+.IB width x height
+]
+[
+.B -p
+.I pixfmt
+]
+[
+.B -x
+.I net
+]
+[
+.I cmd
+[
+.I args
+...
+]
+]
+.PP
+.B vncs
+.B -k
+.BI : display
+[
+.B -x
+.I net
+]
+.PP
+.B vncv
+[
+.B -cstv
+]
+[
+.B -e
+.I encodings
+]
+[
+.B -k
+.I keypattern
+]
+.IR host [\fL: n ]
+.SH DESCRIPTION
+VNC is a lightweight protocol
+for accessing graphical applications
+remotely.  The protocol allows one or more
+clients to connect to a server.
+While connected, clients display the frame buffer
+presented by the server and can send mouse events,
+keyboard events, and exchange snarf buffers.
+The server persists across viewer sessions, so that
+the virtual application can be accessed from various locations
+as its owner moves around.
+.PP
+VNC displays have names of the form
+.IB host : n \fR,
+where
+.I host
+is the machine's network name and
+.I n
+is a small integer identifier; display
+.I n
+is served on TCP port
+.RI 5900+ n .
+.PP
+.I Vncs
+starts a new virtual frame buffer in memory, simulating
+a Plan 9 terminal running
+.I cmd
+.IR args ,
+by default an interactive shell.
+As viewers connect, each is authenticated using a 
+(rather breakable) challenge-response protocol using
+the user's Inferno/POP password.
+.PP
+The options are:
+.TF "\fL-p \fIpixfmt"
+.PD
+.TP
+.B -c \fIcert
+start TLS on each viewer connection using the certificate
+in the file
+.IR cert .
+The corresponding private key must be loaded into
+the server's
+.IR factotum (4).
+When serving TLS connections, the base port is
+35729 rather than 5900.
+.TP
+.B -d :\fIn
+run on display
+.I n ;
+without this option, the server searches
+for an unused display.
+.TP
+.B -g \fIwidth\fBx\fIheight\fR
+set the virtual frame buffer to be
+.IB width x height
+(default
+1024x768)
+pixels.
+.TP
+.B -p \fIpixfmt
+set the virtual frame buffer's internal pixel format to
+.I pixfmt
+(default
+.BR r5g6b5 ).
+.TP
+.B -v
+print verbose output to standard error.
+.TP
+.B -x \fInet
+announce on an alternate network interface.
+Because of the weak authentication protocol and
+default lack of encryption, this option must
+be accompanied by
+.BR -c .
+.PD
+.PP
+The command
+.B vncs
+.B -k
+.BI : n
+kills the VNC server running on display
+.IR n .
+.PP
+.I Vncv
+provides access to remote display
+.IB host : n \fR.
+It resizes its window to be the smaller of the
+remote frame buffer size and the local screen.
+.PP
+The options are:
+.TP
+.B -c
+when connecting to 8-bit displays, request
+.B r4g4b4
+pixels rather than 
+.B r3g3b2
+pixels.
+This takes up more bandwidth but usually gives
+significantly better matching to the Plan 9 color map.
+.TP
+.B -e \fIencodings
+set the ordered list of allowed frame buffer update encodings.
+The default (and full) set is
+.B copyrect
+.B corre
+.B hextile
+.B rre
+.BR raw .
+The encodings should be given as a single space-separated argument
+(quoted when using the shell).
+.TP
+.B -k \fIkeypattern
+add 
+.I keypattern
+to the pattern used to select a key from 
+.IR factotum (4).
+.TP
+.B -s
+share the display with extant viewers;
+by default extant viewers are closed
+when a new viewer connects.
+.TP
+.B -t
+start TLS on the connection.
+.TP
+.B -v
+print verbose output to standard error.
+.PD
+.PP
+The VNC protocol represents keyboard input as
+key up/down events.
+Plan 9 does not expose the state of the
+Ctl and Shift keys except as it can be inferred
+from receipt of control or shifted characters.
+It does not expose the state of the Alt key at all,
+since the Alt key is used to compose Unicode characters
+(see
+.IR keyboard (6)).
+.I Vncv
+correctly handles the sending of control and shifted
+characters.
+To support systems that use key sequences like Alt-X
+(or worse, Alt-mouse-click), typing the Plan 9 compose
+sequences
+.B Alt
+.B Z
+.B A
+(for Alt), 
+.B Alt
+.B Z
+.B C
+(for Ctrl),
+and
+.B Alt
+.B Z
+.B S
+(for Shift)
+will send a ``key down'' message for
+the given key.
+A corresponding ``key up'' message
+will be sent after the next key is pressed,
+or when the sequence is retyped,
+whichever happens first.
+.SH SOURCE
+.B /sys/src/cmd/vnc
+.SH "SEE ALSO
+.IR drawterm (8)
+.br
+.B http://www.uk.research.att.com/vnc
+.SH BUGS
+If the remote frame buffer is larger than the local screen,
+only the upper left corner can be accessed.
+.PP
+.I Vncv
+does no verification of the TLS certificate presented
+by the server.
+.PP
+.I Vncv
+supports only version 3.3 of the RFB protocol.

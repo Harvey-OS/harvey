@@ -1,0 +1,114 @@
+.TH MKUSBBOOT 8
+.SH NAME
+mkusbboot - generate bootable USB disk image
+.SH SYNOPSIS
+.B mkusbboot
+[
+.B -p
+.I proto
+] [
+.B -r
+.I root
+] [
+.B -s
+.I size
+]
+.SH DESCRIPTION
+.I Mkusbboot
+generates a bootable disk image,
+called
+.BR image ,
+from the filesystem at
+.I root
+(by default
+.BR /n/boot ),
+.\" but could be
+.\" .BR /n/sources/plan9 ),
+using the
+.IR mkfs (8)
+prototype file
+.I proto
+and files in
+.BR /sys/lib/sysconfig/usb .
+.PP
+The image will be exactly
+.IB size *1,000,000
+bytes long.
+By default, it will be 1,900,000,000 bytes long,
+so it should fit on so-called 2 GB
+USB devices.
+When building from
+.BR /n/sources/plan9 ,
+the image defaults to 900,000,000 bytes long, to fit so-called 1 GB USB devices.
+.PP
+The image contains
+.I 9fat
+and
+.IR fossil (4)
+file systems and is configured to be bootable
+as a CPU server with serial console on
+.B 386
+(with optional VGA)
+or
+.B amd64
+machines, when copied to a USB disk.
+There is an
+.I nvram
+partition, initially zeroed.
+.SH EXAMPLES
+Create a bootable USB flash drive from the local Plan 9 installation.
+.IP
+.EX
+mkusbboot
+pump <image >/dev/sdU0.0/data
+.EE
+.SH FILES
+.TF /srv/fscons.open
+.TP
+.B image
+the resulting disk image
+.TP
+.B /sys/lib/sysconfig/usb
+.B plan9.ini
+and
+.B fossil.conf
+for the generated system
+.TP
+.B /sys/lib/sysconfig/proto/stand-usb
+default
+.I proto
+.TP
+.B /env/objtype
+architecture of the boot programs in the disk image
+.TP
+.B /tmp/9load
+.PD 0
+.TP
+.B /srv/fossil
+.TP
+.B /srv/fossil.open
+.TP
+.B /srv/fscons
+.TP
+.B /srv/fscons.open
+files created while executing
+.SH SOURCE
+.B /rc/bin/mkusbboot
+.SH SEE ALSO
+.IR usb (4),
+.IR boot (8),
+.IR diskparts (8),
+.IR loadfossil (8),
+.IR partfs (8),
+.IR plan9.ini (8),
+.IR prep (8)
+.SH BUGS
+Due to name clashes in
+.BR /srv ,
+should be run only on machines with no running
+.I fossil
+instance named
+.LR fossil .
+.PP
+Not all BIOSes can reliably read from USB devices.
+Your mileage may vary.

@@ -1,0 +1,793 @@
+.TH NDB 8
+.SH NAME
+query, ipquery, mkhash, mkdb, mkhosts, cs, csquery, dns, dnstcp, dnsquery, dnsdebug, inform \- network database
+.SH SYNOPSIS
+.B ndb/query
+[
+.B -am
+] [
+.B -f
+.I dbfile
+]
+.I "attr value"
+[
+.I rattr
+.\" [
+.\" .I reps
+.\" ]
+]
+.br
+.B ndb/ipquery
+.I "attr value"
+.I rattr...
+.br
+.B ndb/mkhash
+.I "file attr"
+.br
+.B ndb/mkdb
+.br
+.B ndb/mkhosts
+[
+.I domain
+[
+.I dbfile
+] ]
+.br
+.B ndb/cs
+[
+.B -4n
+] [
+.B -f
+.I dbfile
+] [
+.B -x
+.I netmtpt
+]
+.br
+.B ndb/csquery
+[
+.B -s
+]
+[
+.I server
+[
+.I addr...
+]
+]
+.br
+.B ndb/dns
+[
+.B -norRs
+] [
+.B -a
+.I maxage
+] [
+.B -f
+.I dbfile
+] [
+.B -N
+.I target
+] [
+.B -x
+.I netmtpt
+] [
+.B -z
+.I program
+]
+.br
+.B ndb/dnstcp
+[
+.B -rR
+] [
+.B -f
+.I dbfile
+] [
+.B -x
+.I netmtpt
+] [
+.I conn-dir
+]
+.br
+.B ndb/dnsquery
+.br
+.B ndb/dnsdebug
+[
+.B -rx
+] [
+.B -f
+.I dbfile
+] [ [
+.BI @ server
+]
+.I domain-name
+[
+.I type
+] ]
+.br
+.B ndb/inform
+[
+.B -x
+.I netmtpt
+]
+.SH DESCRIPTION
+The network database holds administrative information used by
+network programs such as
+.IR dhcpd (8),
+.IR ipconfig (8),
+.IR con (1),
+etc.
+.PP
+.I Ndb/query
+searches the database
+.I dbfile
+.RB ( /lib/ndb/local
+by default)
+for an attribute of type
+.I attr
+and value
+.IR value .
+If
+.I rattr
+is not specified, all entries matched by the search are printed.
+If
+.I rattr
+is specified, the value of the first pair with attribute
+.I rattr
+of all the matched entries normally is printed.
+Under
+.B -m
+and
+.IR rattr ,
+the values of all pairs with a
+.I rattr
+attribute within the first matching entry are printed.
+Under
+.B -a
+and
+.IR rattr ,
+all values of pairs with a
+.I rattr
+attribute within all entries are printed.
+.PP
+.I Ndb/ipquery
+uses
+.I ndbipinfo
+(see
+.IR ndb (2))
+to search for the values of the attributes
+.I rattr
+corresponding to the system
+with entries of attribute type
+.I attr
+and
+value
+.IR value .
+.PP
+.I Ndb/inform
+sends an RFC2136 DNS
+.I inform
+packet to a nameserver to associate the host's IPv4 address with its DNS name.
+This is required if the domain's nameserver is
+a Microsoft Windows Active Directory controller.
+.SS "Database maintenance"
+.I Ndb/mkhash
+creates a hash file for all entries with attribute
+.I attr
+in database file
+.IR file .
+The hash files are used by
+.I ndb/query
+and by the ndb library routines.
+.PP
+.I Ndb/mkdb
+is used in concert with
+.IR awk (1)
+scripts to convert
+uucp systems files and IP host files
+into database files.
+It is very specific to the situation at Murray Hill.
+.PP
+When the database files change underfoot,
+.I ndb/cs
+and
+.I ndb/dns
+track them properly.  Nonetheless, to keep the database searches efficient
+it is necessary to run
+.I ndb/mkhash
+whenever the files are modified.
+It may be profitable to control this by a frequent
+.IR cron (8)
+job.
+.PP
+.I Ndb/mkhosts
+generates a BSD style
+.BR hosts ,
+.BR hosts.txt ,
+and
+.B hosts.equiv
+files from an ndb data base file specified on the
+command line (default
+.BR /lib/ndb/local ).
+For local reasons the files are called
+.BR hosts.1127 ,
+.BR astro.txt ,
+and
+.BR hosts.equiv .
+.SS "Connection service"
+.I Ndb/cs
+is a server used by
+.IR dial (2)
+to translate network names.
+It is started at boot time.
+It finds out what networks are configured
+by looking for
+.B /net/*/clone
+when it starts.
+It can also be told about networks by writing to
+.B /net/cs
+a message of the form:
+.IP
+.B "add net1 net2 ..."
+.PP
+.I Ndb/cs
+also sets the system name in
+.B /dev/sysname
+if it can figure it out.
+The options are:
+.TF -n
+.TP
+.B -4
+Only look up IPv4 addresses (A records) when consulting DNS.
+The default is to also look up v6 addresses (AAAA records).
+Writing
+.L ipv6
+to
+.B /net/cs
+will toggle IP v6 look-ups.
+.TP
+.B -f
+supplies the name of the data base file to use,
+default
+.BR /lib/ndb/local .
+.TP
+.B -n
+causes cs to do nothing but set the system name.
+.TP
+.B -x
+specifies the mount point of the
+network.
+.PD
+.PP
+.I Ndb/csquery
+queries
+.I ndb/cs
+to see how it resolves addresses.
+.I Ndb/csquery
+prompts for addresses and prints what
+.I ndb/cs
+returns.
+.I Server
+defaults to
+.BR /net/cs .
+If any
+.I addrs
+are specified,
+.I ndb/csquery
+prints their translations and immediately exits.
+The exit status will be nil only if all addresses
+were successfully translated.
+The
+.B -s
+flag sets exit status without printing any results.
+.br
+.ne 4
+.SS "Domain name service"
+.I Ndb/dns
+serves
+.I ndb/cs
+and remote systems by translating Internet domain names.
+.I Ndb/dns
+is started at boot time.
+By default
+.I dns
+serves only requests written to
+.BR /net/dns .
+Programs must
+.I seek
+to offset 0 before reading or writing
+.B /net/dns
+or
+.BR /net/cs .
+The options are:
+.TF -n
+.TP
+.B -a
+sets the maximum time in seconds that an unreferenced
+domain name will remain cached.
+The default is one hour (3600).
+.TP
+.B -f
+supplies the name of the data base file to use,
+default
+.BR /lib/ndb/local .
+.TP
+.B -n
+whenever a DNS zone that we serve changes, send UDP NOTIFY
+messages to any dns slaves for that zone
+(see the
+.L dnsslave
+attribute below).
+.TP
+.B -N
+sets the goal for the number of domain names cached to
+.I target
+rather than the default of 8,000.
+.TP
+.B -o
+used with
+.BR -s ,
+.B -o
+causes
+.I dns
+to assume that it straddles inside and outside networks
+and that the outside network is mounted on
+.BR /net.alt .
+Queries for inside addresses will be sent via
+.B /net/udp
+(or
+.B /net/tcp
+in response to truncated replies)
+and those for outside addresses via
+.B /net.alt/udp
+(or
+.BR /net.alt/tcp ).
+This makes
+.I dns
+suitable for serving non-Plan-9 systems in an organization with
+firewalls, DNS proxies, etc.,
+particularly if they don't work very well.
+See `Straddling Server' below for details.
+.TP
+.B -r
+act as a resolver only:
+send `recursive' queries, asking the other servers
+to complete lookups.
+If present,
+.B /env/DNSSERVER
+must be a space-separated list of such DNS servers' IP addresses,
+otherwise optional
+.IR ndb (6)
+.B dns
+attributes name DNS servers to forward queries to.
+.TP
+.B -R
+ignore the `recursive' bit on incoming requests.
+Do not complete lookups on behalf of remote systems.
+.TP
+.B -s
+also answer domain requests sent to UDP port 53.
+.TP
+.B -x
+specifies the mount point of the
+network.
+.TP
+.B -z
+whenever we receive a UDP NOTIFY message, run
+.I program
+with the domain name of the area as its argument.
+.PD
+.PP
+When the
+.B -r
+option is specified, the servers used come from the
+.I dns
+attribute in the database.  For example, to specify a set of dns servers that
+will resolve requests for systems on the network
+.IR mh-net :
+.IP
+.EX
+ipnet=mh-net ip=135.104.0.0 ipmask=255.255.0.0
+	dns=ns1.cs.bell-labs.com
+	dns=ns2.cs.bell-labs.com
+dom=ns1.cs.bell-labs.com ip=135.104.1.11
+dom=ns2.cs.bell-labs.com ip=135.104.1.12
+.EE
+.LP
+The server for a domain is indicated by a database entry containing
+both a
+.I dom
+and a
+.I ns
+attribute.
+.IP
+.EX
+dom=
+	ns=A.ROOT-SERVERS.NET
+	ns=B.ROOT-SERVERS.NET
+	ns=C.ROOT-SERVERS.NET
+dom=A.ROOT-SERVERS.NET ip=198.41.0.4
+dom=B.ROOT-SERVERS.NET ip=128.9.0.107
+dom=C.ROOT-SERVERS.NET ip=192.33.4.12
+.EE
+.LP
+The last three lines provide a mapping for the
+server names to their ip addresses.  This is only
+a hint and will be superseded from whatever is learned
+from servers owning the domain.
+.SS "Authoritative Name Servers"
+You can also serve a subtree of the domain name space from the local
+database.  You indicate subtrees that you would like to serve by adding an
+.B soa=
+attribute to the root entry.
+For example, the Bell Labs CS research domain is:
+.IP
+.EX
+dom=cs.bell-labs.com soa=
+	refresh=3600 ttl=3600
+	ns=plan9.bell-labs.com
+	ns=ns1.cs.bell-labs.com
+	ns=ns2.cs.bell-labs.com
+	mb=presotto@plan9.bell-labs.com
+	mx=mail.research.bell-labs.com pref=20
+	mx=plan9.bell-labs.com pref=10
+	dnsslave=nslocum.cs.bell-labs.com
+	dnsslave=vex.cs.bell-labs.com
+.EE
+.LP
+Here, the
+.B mb
+entry is the mail address of the person responsible for the
+domain (default
+.BR postmaster ).
+The
+.B mx
+entries list mail exchangers for the domain name and
+.B refresh
+and
+.B ttl
+define the area refresh interval and the minimum TTL for
+records in this domain.
+The
+.B dnsslave
+entries specify slave DNS servers that should be notified
+when the domain changes.  The notification also requires
+the
+.B -n
+flag.
+.
+.SS "Reverse Domains"
+You can also serve reverse lookups (returning the name that
+goes with an IP address) by adding an
+.B soa=
+attribute to the entry defining the root of the reverse space.
+.PP
+For example, to provide reverse lookup for all addresses in
+starting with
+.L 135.104
+or
+.LR fd00:: ,
+.I ndb
+must contain a record like:
+.IP
+.EX
+dom=104.135.in-addr.arpa soa=
+	dom=d.f.ip6.arpa soa=	# special case, rfc 4193
+	refresh=3600 ttl=3600
+	ns=plan9.bell-labs.com
+	ns=ns1.cs.bell-labs.com
+	ns=ns2.cs.bell-labs.com
+.EE
+.LP
+Notice the form of the reverse address.
+For IPv4, it's the bytes of the address range you are serving reversed
+and expressed in decimal, and with
+.L .in-addr.arpa
+appended.
+For IPv6, it's the nibbles (4-bit fields) of the address range you are serving
+reversed and expressed in hexadecimal, and with
+.L .ip6.arpa
+appended.
+These are the standard forms for a domain name in a PTR record.
+.PP
+If such an
+.B soa
+entry exists in the database, reverse addresses will
+automatically be generated from any IP addresses in the database
+that are under this root.  For example
+.IP
+.EX
+dom=ns1.cs.bell-labs.com ip=135.104.1.11
+.EE
+.LP
+will automatically create both forward and reverse entries for
+.BR ns1.cs.bell-labs.com .
+Unlike other DNS servers, there's no way to generate
+inconsistent forward and reverse entries.
+.SS "Classless reverse delegation"
+Following RFC 2317, it is possible to serve reverse DNS data
+for IPv4 subnets smaller than /24.
+Declare the non-/24 subnet, the reverse domain and the individual systems.
+.PP
+For example,
+this is how to serve RFC-2317
+.B ptr
+records for the subnet
+.LR 65.14.39.128/123 .
+.IP
+.EX
+ipnet=our-t1 ip=65.14.39.128 ipmask=/123
+dom=128.39.14.65.in-addr.arpa soa=
+	refresh=3600 ttl=3600
+	ns=ns1.our-domain.com
+	ns=ns2.our-domain.com
+ip=65.14.39.129 dom=router.our-domain.com
+.EE
+.
+.SS "Delegating Name Service Authority"
+Delegation of a further subtree to another set of name servers
+is indicated by an
+.B soa=delegated
+attribute.
+.IP
+.EX
+dom=bignose.cs.research.bell-labs.com
+	soa=delegated
+	ns=anna.cs.research.bell-labs.com
+	ns=dj.cs.research.bell-labs.com
+.EE
+.LP
+Nameservers within the delegated domain (as in this example)
+must have their IP addresses listed elsewhere in
+.I ndb
+files.
+.
+.SS "Wildcards, MX and CNAME records"
+Wild-carded domain names can also be used.
+For example, to specify a mail forwarder for all Bell Labs research systems:
+.IP
+.EX
+dom=*.research.bell-labs.com
+	mx=research.bell-labs.com
+.EE
+.LP
+`Cname' aliases may be established by adding a
+.B cname
+attribute giving the real domain name;
+the name attached to the
+.B dom
+attribute is the alias.
+`Cname' aliases are severely restricted;
+the aliases may have no other attributes than
+.B dom
+and are daily further restricted in their use by new RFCs.
+.IP
+.EX
+cname=anna.cs.bell-labs.com dom=www.cs.bell-labs.com
+.EE
+.PP
+makes
+.BI www. ...
+a synonym for the canonical name
+.BI anna. ... .
+.SS "Straddling Server"
+Many companies have an inside network
+protected from outside access with firewalls.
+They usually provide internal `root' DNS servers
+(of varying reliability and correctness)
+that serve internal domains and pass on DNS queries for
+outside domains to the outside, relaying the results
+back and caching them for future use.
+Some companies don't even let DNS queries nor replies through
+their firewalls at all, in either direction.
+.PP
+In such a situation, running
+.B "dns -so"
+on a machine that imports access to the outside network via
+.B /net.alt
+from a machine that straddles the firewalls,
+or that straddles the firewalls itself,
+will let internal machines query such a machine
+and receive answers from outside nameservers for outside addresses
+and inside nameservers for inside addresses, giving the appearance
+of a unified domain name space,
+while bypassing the corporate DNS proxies or firewalls.
+This is different from running
+.B "dns -s"
+and
+.B "dns -sRx /net.alt -f /lib/ndb/external"
+on the same machine,
+which keeps the inside and outside namespaces entirely separate.
+.PP
+Under
+.BR -o ,
+several
+.I sys
+names are significant:
+.BR inside-dom ,
+.BR inside-ns ,
+and
+.BR outside-ns .
+.I Inside-dom
+should contain a series of
+.B dom
+pairs naming domains internal to the organization.
+.I Inside-ns
+should contain a series of
+.B ip
+pairs naming the internal DNS `root' servers.
+.I Outside-ns
+should contain a series of
+.B ip
+pairs naming the external DNS servers to consult.
+.SS "Zone Transfers and TCP"
+.I Dnstcp
+is invoked,
+usually from
+.BR /rc/bin/service/tcp53 ,
+to answer DNS queries with long answers via TCP,
+notably to transfer a zone within the database
+.I dbfile
+(default
+.BR /lib/ndb/local )
+to its invoker on the network at
+.I netmtpt
+(default
+.BR /net ).
+Standard input will be read for DNS requests and the DNS answers
+will appear on standard output.
+Recursion is disabled by
+.BR -R ;
+acting as a pure resolver is enabled by
+.BR -r .
+If
+.I conn-dir
+is provided, it is assumed to be a directory within
+.IB netmtpt /tcp
+and is used to find the caller's address.
+.SS "DNS Queries and Debugging"
+.I Ndb/dnsquery
+can be used to query
+.I ndb/dns
+to see how it resolves requests.
+.I Ndb/dnsquery
+prompts for commands of the form
+.IP
+.I "domain-name request-type"
+.LP
+where
+.I request-type
+can be
+.BR ip ,
+.BR ipv6 ,
+.BR mx ,
+.BR ns ,
+.BR cname ,
+.BR ptr ....
+In the case of the inverse query type,
+.BR ptr ,
+.I dnsquery
+will reverse the ip address and tack on the
+.B .in-addr.arpa
+if necessary.
+.PP
+.I Ndb/dnsdebug
+is like
+.I ndb/dnsquery
+but bypasses the local server.
+It communicates via UDP (and sometimes TCP) with the domain name servers
+in the same way that the local resolver would and displays
+all packets received.
+The query can be specified on the command line or
+can be prompted for.
+The queries look like those of
+.I ndb/dnsquery
+with one addition.
+.I Ndb/dnsdebug
+can be directed to query a particular name server by
+the command
+.BI @ name-server\f1.
+From that point on, all queries go to that name server
+rather than being resolved by
+.IR dnsdebug .
+The
+.B @
+command returns query resolution to
+.IR dnsdebug .
+Finally, any command preceded by a
+.BI @ name-server
+sets the name server only for that command.
+.PP
+Normally
+.I dnsdebug
+uses the
+.B /net
+interface and the database file
+.BR /lib/ndb/local.
+The
+.B -f
+option supplies the name of the data base file to use.
+The
+.B -r
+option is the same as for
+.IR ndb/dns .
+The
+.B -x
+option directs
+.I dnsdebug
+to use the
+.B /net.alt
+interface and
+.B /lib/ndb/external
+database file.
+.SH EXAMPLES
+Look up
+.B helix
+in
+.IR ndb .
+.IP
+.EX
+% ndb/query sys helix
+sys=helix dom=helix.research.bell-labs.com bootf=/mips/9powerboot
+	ip=135.104.117.31 ether=080069020427
+.EE
+.br
+.ne 8
+.LP
+Look up
+.B plan9.bell-labs.com
+and its IP address in the DNS.
+.IP
+.EX
+% ndb/dnsquery
+> plan9.bell-labs.com ip
+plan9.bell-labs.com ip	204.178.31.2
+> 204.178.31.2 ptr
+2.31.178.204.in-addr.arpa ptr	plan9.bell-labs.com
+2.31.178.204.in-addr.arpa ptr	ampl.com
+>
+.EE
+.LP
+Print the names of all systems that boot via PXE.
+.IP
+.EX
+% ndb/query -a bootf /386/9pxeload sys
+.EE
+.SH FILES
+.TF /lib/ndb/local.*xxx
+.TP
+.B /env/DNSSERVER
+resolver's DNS servers' IP addresses.
+.TP
+.B /lib/ndb/local
+first database file searched
+.TP
+.B /lib/ndb/local.*
+hash files for
+.B /lib/ndb/local
+.TP
+.B /srv/cs
+service file for
+.I ndb/cs
+.TP
+.B /net/cs
+where
+.B /srv/cs
+gets mounted
+.TP
+.B /srv/dns
+service file for
+.I ndb/dns
+.TP
+.B /net/dns
+where
+.B /srv/dns
+gets mounted
+.SH SOURCE
+.B /sys/src/cmd/ndb
+.SH SEE ALSO
+.IR ndb (2),
+.IR ndb (6)
+.SH BUGS
+.I Ndb
+databases are case-sensitive;
+ethernet addresses must be in lower-case hexadecimal.

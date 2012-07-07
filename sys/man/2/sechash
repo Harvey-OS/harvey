@@ -1,0 +1,203 @@
+.TH SECHASH 2
+.SH NAME
+md4, md5,
+sha1, sha2_224, sha2_256, sha2_384, sha2_512,
+aes, hmac_x, hmac_md5,
+hmac_sha1, hmac_sha2_224, hmac_sha2_256, hmac_sha2_384, hmac_sha2_512,
+hmac_aes, md5pickle, md5unpickle,
+sha1pickle, sha1unpickle \- cryptographically secure hashes
+.SH SYNOPSIS
+.nr Wd \w'\fLDS* \fP'u
+.nr In \w'\fLDS*   \fP'u
+.ta \n(Wdu \w'\fLSHA1state* \fP'u +\n(Wdu +\n(Wdu +\n(Wdu +\n(Wdu
+.
+.de Ti
+.PP
+.in +\\n(Inu
+.ti -\\n(Inu
+.B
+.nh
+..
+.
+.ft L
+.nf
+#include <u.h>
+#include <libc.h>
+#include <mp.h>
+#include <libsec.h>
+#define DS DigestState	/* only to abbreviate SYNOPSIS */
+.fi
+.
+.Ti
+DS*	md4(uchar *data, ulong dlen, uchar *digest, DS *state)
+.Ti
+DS*	md5(uchar *data, ulong dlen, uchar *digest, DS *state)
+.PP
+.B
+char*	md5pickle(MD5state *state)
+.PP
+.B
+MD5state*	md5unpickle(char *p);
+.Ti
+DS*	sha1(uchar *data, ulong dlen, uchar *digest, DS *state)
+.PP
+.B
+char*	sha1pickle(SHA1state *state)
+.PP
+.B
+SHA1state*	sha1unpickle(char *p);
+.Ti
+DS*	sha2_224(uchar *data, ulong dlen, uchar *digest, DS *state)
+.Ti
+DS*	sha2_256(uchar *data, ulong dlen, uchar *digest, DS *state)
+.Ti
+DS*	sha2_384(uchar *data, ulong dlen, uchar *digest, DS *state)
+.Ti
+DS*	sha2_512(uchar *data, ulong dlen, uchar *digest, DS *state)
+.Ti
+DS*	aes(uchar *data, ulong dlen, uchar *digest, DS *state)
+.Ti
+DS*	hmac_x(uchar *p, ulong len, uchar *key, ulong klen, uchar *digest, DS *s, DS*(*x)(uchar*, ulong, uchar*, DS*), int xlen)
+.Ti
+DS*	hmac_md5(uchar *data, ulong dlen, uchar *key, ulong klen, uchar *digest, DS *state)
+.Ti
+DS*	hmac_sha1(uchar *data, ulong dlen, uchar *key, ulong klen, uchar *digest, DS *state)
+.Ti
+DS*	hmac_sha2_224(uchar *data, ulong dlen, uchar *key, ulong klen, uchar *digest, DS *state)
+.Ti
+DS*	hmac_sha2_256(uchar *data, ulong dlen, uchar *key, ulong klen, uchar *digest, DS *state)
+.Ti
+DS*	hmac_sha2_384(uchar *data, ulong dlen, uchar *key, ulong klen, uchar *digest, DS *state)
+.Ti
+DS*	hmac_sha2_512(uchar *data, ulong dlen, uchar *key, ulong klen, uchar *digest, DS *state)
+.Ti
+DS*	hmac_aes(uchar *data, ulong dlen, uchar *key, ulong klen, uchar *digest, DS *state)
+.SH DESCRIPTION
+.DT
+We support several secure hash functions.  The output of a
+hash is called a
+.IR digest .
+A hash is secure if, given the hashed data and the digest,
+it is difficult to predict the change to the digest resulting
+from some change to the data without rehashing
+the whole data.  Therefore, if a secret is part of the hashed
+data, the digest can be used as an integrity check of the data by anyone
+possessing the secret.
+.PP
+The routines
+.IR md4 ,
+.IR md5 ,
+.IR sha1 ,
+.IR sha2_224 ,
+.IR sha2_256 ,
+.IR sha2_384 ,
+.IR sha2_512 ,
+.IR aes ,
+.IR hmac_md5 ,
+.IR hmac_sha1 ,
+.IR hmac_sha2_224 ,
+.IR hmac_sha2_256 ,
+.IR hmac_sha2_384 ,
+.IR hmac_sha2_512 ,
+and
+.I hmac_aes
+differ only in the length of the resulting digest
+and in the security of the hash.
+.I Sha2_*
+and
+.I hmac_sha2_*
+are the SHA-2 functions; the number after the final underscore
+is the number of bits in the resulting digest.
+Usage for each is the same.
+The first call to the routine should have
+.B nil
+as the
+.I state
+parameter.  This call returns a state which can be used to chain
+subsequent calls.
+The last call should have digest
+.RL non- nil .
+.I Digest
+must point to a buffer of at least the size of the digest produced.
+This last call will free the state and copy the result into
+.IR digest .
+.PP
+The constants
+.IR MD4dlen ,
+.IR MD5dlen ,
+.IR SHA1dlen ,
+.IR SHA2_224dlen ,
+.IR SHA2_256dlen ,
+.IR SHA2_384dlen,
+.IR SHA2_512dlen ,
+and
+.I AESdlen
+define the lengths of the digests.
+.PP
+.IR Hmac_md5 ,
+.IR hmac_sha1 ,
+.IR hmac_sha2_224 ,
+.IR hmac_sha2_256 ,
+.IR hmac_sha2_384 ,
+.IR hmac_sha2_512 ,
+and
+.I hmac_aes
+are used slightly differently.  These hash algorithms are keyed and require
+a key to be specified on every call.
+The digest lengths for these hashes are the obvious ones from
+the above list of length constants.
+These routines all call
+.I hmac_x
+internally, but
+.I hmac_x
+is not intended for general use.
+.PP
+The functions
+.I md5pickle
+and
+.I sha1pickle
+marshal the state of a digest for transmission.
+.I Md5unpickle
+and
+.I sha1unpickle
+unmarshal a pickled digest.
+All four routines return a pointer to a newly
+.IR malloc (2)'d
+object.
+.SH EXAMPLES
+To hash a single buffer using
+.IR md5 :
+.IP
+.EX
+uchar digest[MD5dlen];
+
+md5(data, len, digest, nil);
+.EE
+.PP
+To chain a number of buffers together,
+bounded on each end by some secret:
+.IP
+.EX
+char buf[256];
+uchar digest[MD5dlen];
+DigestState *s;
+
+s = md5("my password", 11, nil, nil);
+while((n = read(fd, buf, 256)) > 0)
+	md5(buf, n, nil, s);
+md5("drowssap ym", 11, digest, s);
+.EE
+.SH SOURCE
+.B /sys/src/libsec
+.SH SEE ALSO
+.IR aes (2),
+.IR blowfish (2),
+.IR des (2),
+.IR elgamal (2),
+.IR rc4 (2),
+.IR rsa (2)
+.PD 0
+.TF /lib/rfc/rfc2104
+.TP
+.B /lib/rfc/rfc2104
+HMAC specification

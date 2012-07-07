@@ -1,0 +1,316 @@
+.TH REPLICA 8
+.SH NAME
+applychanges, applylog, compactdb, updatedb \- simple client-server replica management
+.SH SYNOPSIS
+.B replica/compactdb
+.I db
+.br
+.B replica/updatedb
+[
+.B -cl
+]
+[
+.B -p
+.I proto
+]
+[
+.B -r
+.I root
+]
+[
+.B -t
+.I now
+.I n
+]
+[
+.B -u
+.I uid
+]
+[
+.B -x
+.I path
+] ...
+.I db
+.br
+.B replica/applylog
+[
+.B -nuv
+]
+[
+.B -c
+.I name
+]...
+[
+.B -s
+.I name
+]...
+.I clientdb
+.I clientroot
+.I serverroot
+[
+.I path ...
+]
+.br
+.B replica/applychanges
+[
+.B -nuv
+]
+[
+.B -p
+.I proto
+]
+[
+.B -x
+.I path
+] ...
+.I clientdb
+.I clientroot
+.I serverroot
+[
+.I path ...
+]
+.SH DESCRIPTION
+These four tools collectively provide simple log-based
+client-server replica management.
+The shell scripts described in
+.IR replica (1)
+provide a more polished interface.
+.PP
+Both client and server maintain textual databases of file system
+metadata.  Each line is of the form
+.ift .sp 0.5
+.ifn .sp
+\h'0.25i'
+.I path
+.I mode
+.I uid
+.I gid
+.I mtime
+.I length
+.ift .sp 0.5
+.ifn .sp
+Later entries for a
+.I path
+supersede previous ones.
+A line with the string
+.B REMOVED
+in the
+.I mode
+field annuls all previous entries for that
+.IR path .
+The entries in a file are typically kept sorted by
+.I path
+but need not be.
+These properties facilitate updating the database atomically
+by appending to it.
+.I Compactdb
+reads in a database and writes out an equivalent one,
+sorted by path and without outdated or annulled records.
+.PP
+A replica is further described on the server by a textual
+log listing creation and deletion of files and changes
+to file contents and metadata.
+Each line is of the form:
+.ift .sp 0.5
+.ifn .sp
+\h'0.25i'
+.I time
+.I gen
+.I verb
+.I path
+.I serverpath
+.I mode
+.I uid
+.I gid
+.I mtime
+.I length
+.ift .sp 0.5
+.ifn .sp
+The
+.I time
+and
+.I gen
+fields are both decimal numbers, providing an ordering 
+for log entries so that incremental tools need not process
+the whole log each time they are run.
+The
+.IR verb ,
+a single character,
+describes the event:
+addition of a file
+.RB ( a ),
+deletion of a file
+.RB ( d ),
+a change to a file's contents
+.RB ( c ),
+or a change to a file's metadata
+.RB ( m ).
+.I Path
+is the file path on the client;
+.I serverpath
+the path on the server (these are different when the
+optional fifth field in a proto file line is given;
+see
+.IR proto (2)).
+.IR Mode ,
+.IR uid ,
+.IR gid ,
+and
+.I mtime
+are the files metadata as in the
+.B Dir
+structure (see
+.IR stat (5)).
+For deletion events, the metadata is that of the deleted file.
+For other events, the metadata is that after the event.
+.PP
+.I Updatedb
+scans the file system rooted at
+.I root
+for changes not present in
+.IR db ,
+noting them by appending new entries to the database
+and by writing log events to standard output.
+The
+.B -c
+option causes
+.I updatedb
+to consider only file and metadata changes, ignoring file additions and deletions.
+By default, the log events have
+.I time
+set to the current system time
+and use incrementing 
+.I gen
+numbers starting at 0.
+The
+.B -t
+option can be used to specify a different time and starting number.
+If the
+.B -u
+option is given, all database entries and log events will use
+.I uid
+rather than the actual uids.
+The
+.B -x
+option (which may be specified multiple times) excludes the named path
+and all its children from the scan.
+If the
+.B -l
+option is given, the database is not changed and the
+.I time
+and
+.I gen
+fields are omitted from the log events;
+the resulting output is intended to be a human-readable
+summary of file system activity since the last scan.
+.PP
+.I Applylog
+is used to propagate changes from server to client.
+It applies the changes listed in a log
+(read from standard input)
+to the file system rooted at
+.IR clientroot ,
+copying files when necessary from the file system rooted at
+.IR serverroot .
+By default,
+.I applylog
+does not attempt to set the uid on files; the
+.B -u
+flag enables this.
+.I Applylog
+will not overwrite local changes made to replicated files.
+When it detects such conflicts, by default it prints an error describing
+the conflict and takes no action.
+If the
+.B -c
+flag is given, 
+.I applylog
+still takes no action for files beginning with the given names,
+but does so silently and will not
+report the conflicts in the future.
+(The conflict is resolved in favor of the client.)
+The
+.B -s
+is similar but causes 
+.I applylog
+to overwrite the local changes.
+(The conflict is resolved in favor of the server.)
+.PP
+.I Applychanges
+is, in some sense, the opposite of
+.IR applylog ;
+it scans the client file system for changes, and applies
+those changes to the server file system.
+.I Applychanges
+will not overwrite remote changes made to replicated files.
+For example, if a file is copied from server to client and subsequently
+changed on both server and client,
+.I applychanges
+will not copy the client's new version to the server, because
+the server also has a new version.
+.I Applychanges
+and
+.I applylog
+detect the same conflicts; to resolve conflicts reported by
+.IR applychanges ,
+invoke
+.I applylog
+with the
+.B -c
+or
+.B -s 
+flags.
+.SH EXAMPLE
+One might
+keep a client kfs file system up-to-date
+against a server file system using these tools.
+First, connect to a CPU server with a high-speed
+network connection to the file server and scan
+the server file system, updating the server database and log:
+.EX
+    repl=$home/lib/replica
+    proto=/sys/lib/sysconfig/proto/portproto
+    db=$repl/srv.portproto.db
+    log=$repl/srv.portproto.log
+
+    9fs $fs
+    replica/updatedb -p $proto -r /n/$fs -x $repl $db >>$log
+    replica/compactdb $db >/tmp/a && mv /tmp/a $db
+.EE
+.PP
+Then, update the client file system:
+.EX
+    repl=$home/lib/replica
+    db=$repl/cli.portproto.db
+    log=$repl/srv.portproto.log
+
+    9fs $fs
+    9fs kfs
+    replica/applylog $db /n/kfs /n/$fs <$log
+    replica/compactdb $db >/tmp/a && mv /tmp/a $db
+.EE
+.PP
+The
+.B $repl
+directory is excluded from the sync so that multiple
+clients can each have their own local database.
+The shell scripts in
+.B /rc/bin/replica
+are essentially a further development of this example.
+.PP
+The Plan 9 distribution update program
+operates similarly, but omits the first scan;
+it is assumed that the Plan 9 developers run
+scans manually when the distribution
+file system changes.
+The manual page
+.IR replica (1)
+describes this in full.
+.SH SEE ALSO
+.IR replica (1)
+.SH BUGS
+These tools assume that 
+.I mtime
+combined with
+.I length
+is a good indicator of changes to a file's contents.

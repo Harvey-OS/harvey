@@ -1,0 +1,460 @@
+.TH USB 2
+.SH NAME
+usbcmd,
+classname,
+closedev,
+configdev,
+devctl,
+finddevs,
+loaddevstr,
+matchdevcsp,
+opendev,
+opendevdata,
+openep,
+startdevs,
+unstall,
+class,
+subclass,
+proto,
+CSP \- USB device driver library
+.SH SYNOPSIS
+.EX
+.ta 8n +8n +8n +8n +8n +8n +8n
+#include <u.h>
+#include <libc.h>
+#include <thread.h>
+#include "../lib/usb.h"
+.sp 0.3v
+struct Dev {
+	Ref;
+	char*	dir;		/* path for the endpoint dir */
+	int	id;		/* usb id for device or ep. number */
+	int	dfd;		/* descriptor for the data file */
+	int	cfd;		/* descriptor for the control file */
+	int	maxpkt;		/* cached from usb description */
+	Usbdev*	usb;		/* USB description */
+	void*	aux;		/* for the device driver */
+	void	(*free)(void*);	/* idem. to release aux */
+};
+.sp 0.3v
+struct Usbdev {
+	ulong	csp;		/* USB class/subclass/proto */
+	int	vid;		/* vendor id */
+	int	did;		/* product (device) id */
+	int	dno;		/* device release number */
+	char*	vendor;
+	char*	product;
+	char*	serial;
+	int	ls;		/* low speed */
+	int	class;		/* from descriptor */
+	int	nconf;		/* from descriptor */
+	Conf*	conf[Nconf];	/* configurations */
+	Ep*	ep[Nep];	/* all endpoints in device */
+	Desc*	ddesc[Nddesc];	/* (raw) device specific descriptors */
+};
+.sp 0.3v
+struct Ep {
+	uchar	addr;		/* endpt address */
+	uchar	dir;		/* direction, Ein/Eout */
+	uchar	type;		/* Econtrol, Eiso, Ebulk, Eintr */
+	uchar	isotype;	/* Eunknown, Easync, Eadapt, Esync */
+	int	id;
+	int	maxpkt;		/* max. packet size */
+	Conf*	conf;		/* the endpoint belongs to */
+	Iface*	iface;		/* the endpoint belongs to */
+};
+.sp 0.3v
+struct Altc {
+	int	attrib;
+	int	interval;
+	void*	aux;		/* for the driver program */
+};
+.sp 0.3v
+struct Iface {
+	int 	id;		/* interface number */
+	ulong	csp;		/* USB class/subclass/proto */
+	Altc*	altc[Naltc];
+	Ep*	ep[Nep];
+	void*	aux;		/* for the driver program */
+};
+.sp 0.3v
+struct Conf {
+	int	cval;		/* value for set configuration */
+	int	attrib;
+	int	milliamps;	/* maximum power in this config. */
+	Iface*	iface[Niface];	/* up to 16 interfaces */
+};
+.sp 0.3v
+struct Desc {
+	Conf*	conf;		/* where this descriptor was read */
+	Iface*	iface;		/* last iface before desc in conf. */
+	Ep*	ep;		/* last endpt before desc in conf. */
+	Altc*	altc;		/* last alt.c. before desc in conf. */
+	DDesc	data;		/* unparsed standard USB descriptor */
+};
+.sp 0.3v
+struct DDesc {
+	uchar	bLength;
+	uchar	bDescriptorType;
+	uchar	bbytes[1];
+	/* extra bytes allocated here to keep the rest of it */
+};
+.sp 0.3v
+#define Class(csp)	((csp)&0xff)
+#define Subclass(csp)	(((csp)>>8)&0xff)
+#define Proto(csp)	(((csp)>>16)&0xff)
+#define CSP(c, s, p)	((c) | ((s)<<8) | ((p)<<16))
+#define	GET2(p)		...
+#define	PUT2(p,v)	...
+#define	GET4(p)		...
+#define	PUT4(p,v)	...
+#define dprint	 if(usbdebug)fprint
+#define ddprint if(usbdebug > 1)fprint
+.sp 0.3v
+int	Ufmt(Fmt *f);
+char*	classname(int c);
+void	closedev(Dev *d);
+int	configdev(Dev *d);
+int	devctl(Dev *dev, char *fmt, ...);
+void*	emallocz(ulong size, int zero);
+char*	estrdup(char *s);
+int	finddevs(int (*matchf)(char*,void*), void *farg, char** dirs, int ndirs);
+char*	hexstr(void *a, int n);
+char*	loaddevstr(Dev *d, int sid);
+int	matchdevcsp(char *info, void *a);
+Dev*	opendev(char *fn);
+int	opendevdata(Dev *d, int mode);
+Dev*	openep(Dev *d, int id);
+void	startdevs(char *args, char *argv[], int argc,
+		int (*mf)(char*,void*), void*ma, int (*df)(Dev*,int,char**));
+int	unstall(Dev *dev, Dev *ep, int dir);
+int	usbcmd(Dev *d, int type, int req,
+		int value, int index, uchar *data, int count);
+.sp 0.3v
+extern int usbdebug;	/* more messages for bigger values */
+.EE
+.SH DESCRIPTION
+This library provides convenience structures and functions to write
+USB device drivers.
+It is not intended for user programs using USB devices.
+See
+.IR usb (3)
+for a description of the interfaces provided for that purpose.
+For drivers that provide a file system and may be embedded into
+.IR usbd ,
+the library includes a file system implementation toolkit described in
+.IR usbfs (2).
+.PP
+Usb drivers rely on
+.IR usb (3)
+to perform I/O through USB as well as on
+.IR usbd (4)
+to perform the initial configuration for the device's setup endpoint.
+The rest of the work is up to the driver and is where this library may help.
+.PP
+In most cases, a driver locates the devices of interest and configures them
+by calling
+.I startdevs
+and
+then sets up additional endpoints as needed (by calling
+.IR openep )
+to finally perform I/O by reading and writing the
+data files for the endpoints.
+.PP
+An endpoint as provided by
+.IR usb (3)
+is represented by a
+.B Dev
+data structure.
+The setup endpoint for a
+device represents the USB device, because it is the means to
+configure and operate the device.
+This structure is reference counted.
+Functions creating
+.B Devs
+adjust the number of references to one, initially.
+The driver is free to call
+.IR incref
+(in
+.IR lock (2))
+to add references and
+.I closedev
+to drop references (and release resources when the last one vanishes).
+As an aid to the driver, the field
+.B aux
+may keep driver-specific data and the function
+.B free
+will be called (if not null) to release the
+.B aux
+structure when the reference count goes down to zero.
+.PP
+.I Dev.dir
+holds the path for the endpoint's directory.
+.PP
+The field
+.B id
+keeps the device number for setup endpoints and the endpoint number
+for all other endpoints.
+For example, it would be
+.B 3
+for
+.B /dev/usb/ep3.0
+and
+.B 1
+for
+.BR /dev/usb/ep3.1 .
+It is easy to remember this because the former is created to operate
+on the device, while the later has been created as a particular endpoint
+to perform I/O.
+.PP
+Fields
+.B dfd
+and
+.B cfd
+keep the data and
+control file descriptors, respectively.
+When a
+.B Dev
+is created the control file is open, initially.
+Opening the data
+file requires calling
+.I opendevdata
+with the appropriate mode.
+.PP
+When the device configuration information has been loaded (see below),
+.B maxpkt
+holds the maximum packet size (in bytes) for the endpoint and
+.B usb
+keeps the rest of the USB information.
+.PP
+Most of the information in
+.B usb
+comes from parsing
+various device and configuration descriptors provided by the device,
+by calling one of the functions described later.
+Only descriptors unknown
+to the library are kept unparsed at
+.B usb.ddesc
+as an aid for the driver
+(which should know how to parse them and what to do with the information).
+.SS Configuration
+.I Startdevs
+is a wrapper that locates devices of interest, loads their configuration
+information, and starts a
+.IR thread (2)'s
+.I proc
+for each device located so that it executes
+.I f
+as its main entry point. The entry point is called with a pointer to
+the
+.B Dev
+for the device it has to process,
+.BR argc ,
+and
+.BR argv .
+Devices are located either from the arguments (after options) in
+.IR argv ,
+if any,
+or by calling the helper function
+.I mf
+with the argument
+.I ma
+to determine (for each device available) if the device belongs to
+the driver or not. If the function returns -1 then the device is not for us.
+.PP
+In many cases,
+.I matchdevcsp
+may be supplied as
+.I mf
+along with a (null terminated) vector of CSP values supplied as
+.IR ma .
+This function returns 0 for any device with a CSP matching one in the
+vector supplied as an argument and -1 otherwise.
+In other cases (eg., when a particular vendor and device ids are the
+ones identifying the device) the driver must include its own function
+and supply it as an argument to
+.IR startdevs .
+The first argument of the function corresponds to the information
+known about the device (the second line in its
+.B ctl
+file).
+.I Openep
+creates the endpoint number
+.I id
+for the device
+.I d
+and returns a
+.B Dev
+structure to operate on it (with just the control file open).
+.PP
+.I Opendev
+creates a
+.B Dev
+for the endpoint with directory
+.IR fn .
+Usually, the endpoint is a setup endpoint representing a device. The endpoint
+control file is open, but the data file is not. The USB description is void.
+In most cases drivers call
+.I startdevs
+and
+.I openep
+and do not call this function directly.
+.PP
+.I Configdev
+opens the data file for the device supplied and
+loads and parses its configuration information.
+After calling it, the device is ready for I/O and the USB description in
+.B Dev.usb
+is valid.
+When using
+.IR startdevs
+it is not desirable to call this function (because
+.IR startdevs
+already calls it).
+.PP
+Control requests for an endpoint may be written by calling
+.I devctl
+in the style of
+.IR print (2).
+It is better not to call
+.I print
+directly because the control request should be issued as a single
+.I write
+system call.
+See
+.IR usb (3)
+for a list of available control requests (not to be confused with
+USB control transfers performed on a control endpoint).
+.SS Input/Output
+.I Opendevdata
+opens the data file for the device according to the given
+.IR mode .
+The mode must match that of the endpoint, doing otherwise is considered
+an error.
+Actual I/O is performed by reading/writing the descriptor kept in the
+.B dfd
+field of
+.BR Dev .
+.PP
+For control endpoints,
+it is not necessary to call
+.I read
+and
+.I write
+directly.
+Instead,
+.I usbcmd
+issues a USB control request to the device
+.I d
+(not to be confused with a
+.IR usb (3)
+control request sent to its control file).
+.I Usbcmd
+retries the control request several times upon failure because some devices
+require it.
+The format of requests is fixed per the USB standard:
+.I type
+is the type of request and
+.I req
+identifies the request. Arguments
+.I value
+and
+.I index
+are parameters to the request and the last two arguments,
+.I data
+and
+.IR count ,
+are similar to
+.I read
+and
+.I write
+arguments.
+However,
+.I data
+may be
+.B nil
+if no transfer (other than the control request) has to take place.
+The library header file includes numerous symbols defined to help writing
+the type and arguments for a request.
+.PP
+The return value from
+.I usbcmd
+is the number of bytes transferred, zero to indicate a stall and -1
+to indicate an error.
+.PP
+A common request is to unstall an endpoint that has been stalled
+due to some reason by the device (eg., when read or write indicate
+a count of zero bytes read or written on the endpoint). The function
+.I unstall
+does this.
+It is given the device that stalled the endpoint,
+.IR dev ,
+the
+stalled endpoint,
+.IR ep ,
+and the direction of the stall (one of
+.B Ein
+or
+.BR Eout ).
+The function takes care of notifying the device of the unstall as well
+as notifying the kernel.
+.SS Tools
+.I Class
+returns the class part of the number given, representing a CSP.
+.I Subclass
+does the same for the device subclass and
+.I Proto
+for the protocol.
+The counterpart is
+.IR CSP ,
+which builds a CSP from the device class, subclass, and protocol.
+For some classes,
+.I classname
+knows the name (for those with constants in the library header file).
+.PP
+The macros
+.I GET2
+and
+.I PUT2
+get and put a (little-endian) two-byte value and are useful to
+parse descriptors and replies for control requests.
+.PP
+Functions
+.I emallocz
+and
+.I estrdup
+are similar to
+.I mallocz
+and
+.I strdup
+but abort program operation upon failure.
+.PP
+The function
+.I Ufmt
+is a format routine suitable for
+.IR fmtinstall (2)
+to print a
+.B Dev
+data structure.
+The auxiliary
+.I hexstr
+returns a string representing a dump (in hexadecimal) of
+.I n
+bytes starting at
+.IR a .
+The string is allocated using
+.IR malloc (2)
+and memory must be released by the caller.
+.PP
+.I Loaddevstr
+returns the string obtained by reading the device string descriptor number
+.IR sid .
+.SH SOURCE
+.B /sys/src/cmd/usb/lib
+.SH "SEE ALSO"
+.IR usbfs (2),
+.IR usb (3),
+.IR usb (4),
+.IR usbd (4).
+.SH BUGS
+Not heavily exercised yet.

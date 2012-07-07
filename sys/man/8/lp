@@ -1,0 +1,126 @@
+.TH LP 8 
+.SH NAME
+lp \- PostScript preprocessors
+.SH DESCRIPTION
+These programs are part of the
+.IR lp (1)
+suite.
+Each corresponds to a
+.I process
+in the
+.BI -p process
+option of
+.I lp
+and exists as an
+.IR rc (1)
+script in
+.B /sys/lib/lp/process
+that provides an interface to a PostScript conversion program in
+.BR /$cputype/bin/aux .
+The list of processors follows;
+after each description is a bracketed list of
+.I lp
+options to which the processor responds:
+.TF \fIp9bitpos\fP
+.TP
+.I dpost
+converts
+.IR troff (1)
+output for device
+.SM post
+to PostScript.
+This is used for files troff'ed on our
+.SM UNIX
+systems that do not handle
+.SM UTF
+characters.
+.RB [ DLcimnorxy ]
+.TP
+.I dvipost
+converts
+.IR tex (1)
+output to PostScript.
+.RB [ Lcinor ]
+.TP
+.I g3post
+converts CCITT Group 3 FAX data to PostScript.
+.RB [ DLm ]
+.TP
+.I gifpost
+converts GIF image data to PostScript.
+.RB [ DLm ]
+.TP
+.I generic
+is the default processor.
+It uses
+.IR file (1)
+to determine the type of input and executes the correct
+processor for a given (input, printer) pair.
+.TP
+.I hpost
+adds a header page to the beginning of a PostScript printer
+job so that it may be separated from other jobs in the output bin.
+The header has the image of the job's owner from the directory of faces (see
+.IR face (6)).
+Page reversal is also done in this processor.
+.TP
+.I jpgpost
+converts JPEG image data to PostScript.
+.RB [ DLm ]
+.TP
+.I noproc
+passes files through untouched.
+.TP
+.I p9bitpost
+.na
+converts a Plan 9 image to PostScript, such as
+.B /dev/screen
+for the whole screen,
+.B /dev/window
+for that window's data,
+and
+.B /dev/wsys/.../window
+for some other window's data.
+.RB [ DLm ]
+.ad
+.TP
+.I pdfpost
+converts PDF data to PostScript.
+.TP
+.I post
+passes PostScript through, adding option patches for paper tray information.
+This does not always work with PostScript generated on other systems.
+.TP
+.I ppost
+converts
+.SM UTF
+text to PostScript.
+.RB [ DLcfilmnorxy ]
+.TP
+.I tr2post
+converts
+.IR troff (1)
+output for device
+.SM utf
+(the default) to PostScript.
+See
+.B /sys/lib/troff/font/devutf
+directory for troff font width table descriptions.
+See also the
+.B /sys/lib/postscript/troff
+directory for mappings of
+troff
+.SM UTF
+character space to PostScript
+font space.
+.RB [ DLcimnorxy ]
+.SH SOURCE
+.B /sys/src/cmd/postscript
+.SH SEE ALSO
+.IR lp (1)
+.SH BUGS
+The
+.I file
+command is not always smart enough to deal with certain file
+types.
+There are PostScript conversion programs that do not have processors to drive them.

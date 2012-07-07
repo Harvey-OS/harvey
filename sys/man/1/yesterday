@@ -1,0 +1,156 @@
+.TH YESTERDAY 1
+.SH NAME
+yesterday, diffy \- print file names from the dump
+.SH SYNOPSIS
+.B yesterday
+[
+.B -abcCdDs
+] [
+.B -n
+.I daysago
+] [
+.I \-date
+]
+.I files ...
+.PP
+.B diffy
+[
+.B -abcefmnrw
+]
+.I files ...
+.SH DESCRIPTION
+.I Yesterday
+prints the names of the
+.I files
+from the most recent dump.
+Since dumps are done early in the morning,
+yesterday's files are really in today's dump.
+For example, if today is March 17, 1992,
+.IP
+.EX
+yesterday /adm/users
+.EE
+.PP
+prints
+.IP
+.EX
+/n/dump/1992/0317/adm/users
+.EE
+.PP
+In fact, the implementation is to select the most recent dump in
+the current year, so the dump selected may not be from today.
+.PP
+When presented with a path of the form
+.BI /n/ fs / path \fR,
+.I yesterday
+will look for
+dump files of the form
+\fL/n/\fIfs\fLdump/\fIyyyy\fL/\fIhhmm\fL/\fIpath\fR.
+.PP
+By default, 
+.I yesterday
+prints the names of the dump files corresponding to the named files.
+The first set of options changes this behavior.
+.TP
+.B -a
+Run
+.IR acme (1)'s
+.I adiff
+to compare the dump files with the named files.
+.TP
+.B -b
+Bind the dump files over the named files.
+.TP
+.B -c
+Copy the dump files over the named files.
+.TP
+.B -C
+Copy the dump files over the named files only when
+they differ.
+.TP
+.B -d
+Run 
+.B diff
+to compare the dump files with the named files.
+.TP
+.B -D
+Run 
+.B diff
+.B -n
+to compare the dump files with the named files.
+.PP
+The
+.I date
+option selects other day's dumps, with a format of
+1, 2, 4, 6, or 8 digits of the form
+.IR d,
+.IR dd ,
+.IR mmdd ,
+.IR yymmdd ,
+or
+.IR yyyymmdd .
+.PP
+The
+.B -n
+option selects the dump
+.I daysago
+prior to the current day.
+.PP
+The
+.B -s
+option selects the most recent snapshot instead of the most
+recent archived dump.  Snapshots may occur more frequently
+than dumps.
+.PP
+.I Yesterday
+does not guarantee that the string it prints represents an existing file.
+.PP
+.I Diffy
+runs
+.IR diff (1)
+with the given options
+to compare yesterday's version of each of the named files
+with today's.
+.SH EXAMPLES
+.PP
+Back up to yesterday's MIPS binary of
+.BR vc :
+.IP
+.EX
+yesterday -c /mips/bin/vc
+.EE
+.PP
+Temporarily back up to March 1's MIPS C library to see if a program
+runs correctly when loaded with it:
+.IP
+.EX
+yesterday -b -0301 /mips/lib/libc.a
+rm v.out
+mk
+v.out
+.EE
+.PP
+Find what has changed in the C library since March 1:
+.IP
+.EX
+yesterday -d -0301 /sys/src/libc/port/*.c
+.EE
+.PP
+Find what has changed in the source tree today:
+.IP
+.EX
+diffy -r /sys/src
+.EE
+.SH FILES
+.B /n/dump
+.SH SOURCE
+.B /rc/bin/yesterday
+.br
+.B /rc/bin/diffy
+.SH SEE ALSO
+.IR history (1),
+.IR bind (1),
+.IR diff (1),
+.IR fs (4).
+.SH BUGS
+It's hard to use this command without singing.

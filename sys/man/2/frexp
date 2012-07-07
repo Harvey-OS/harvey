@@ -1,0 +1,47 @@
+.TH FREXP 2
+.SH NAME
+frexp, ldexp, modf \- split into mantissa and exponent
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
+.B
+double frexp(double value, int *eptr)
+.PP
+.B
+double ldexp(double value, int exp)
+.PP
+.B
+double modf(double value, double *iptr)
+.SH DESCRIPTION
+.I Frexp
+returns the mantissa of
+.I value
+and stores the exponent indirectly through
+.IR eptr ,
+so that
+.I value
+=
+.if t .IR frexp ( value )×2\u\s-2 (*eptr) \s0\d
+.if n .IR frexp ( value )*2** (*eptr).
+.PP
+.I Ldexp
+returns the quantity
+.if t .IR value ×2\u\s-2 exp \s0\d.
+.if n .IR value *2** exp.
+.PP
+.I Modf
+returns the signed fractional part of
+.I value
+and stores the integer part indirectly
+through
+.IR iptr .
+.SH SOURCE
+.B /sys/src/libc/port/frexp.c
+.SH SEE ALSO
+.IR intro (2)
+.SH DIAGNOSTICS
+.I Ldexp
+returns 0 for underflow and the appropriately signed infinity
+for overflow.

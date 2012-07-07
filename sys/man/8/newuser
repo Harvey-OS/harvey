@@ -1,0 +1,118 @@
+.TH NEWUSER 8
+.SH NAME
+newuser \- adding a new user
+.SH SYNOPSIS
+.B /sys/lib/newuser
+.SH DESCRIPTION
+To establish a new user on Plan 9, add the user to
+.B /adm/users
+by running the
+.I uname
+command on the console of the file server
+(see
+.IR users (6)
+and
+.IR fossilcons (8)).
+Next, give the user a password using
+.I auth/changeuser
+on the console of the authentication server (see
+.IR auth (8)).
+At this point, the user can bootstrap a terminal using the new name and
+password.
+The terminal will only get as far as running
+.BR rc ,
+however, as no
+.B profile
+exists for the user.
+.PP
+The
+.IR rc (1)
+script
+.B /sys/lib/newuser
+sets up a sensible environment for a new user of Plan 9.
+Once the terminal is running
+.BR rc ,
+type
+.IP
+.EX
+/sys/lib/newuser
+.EE
+.PP
+to build the necessary directories in
+.BR /usr/$user ,
+create
+.BR /mail/box/$user/mbox ,
+.BR /cron/$user/cron ,
+a reasonable initial profile in
+.BR /usr/$user/lib/profile
+and
+plumbing rules in
+.BR /usr/$user/lib/plumbing
+(see
+.IR plumber (4)).
+The script then runs the profile which, as its last step, brings up
+.IR rio (1).
+At this point the user's environment is established and running.
+(There is no need to reboot.)
+It may be prudent at this point to run
+.IR passwd (1)
+to change the password, depending on how the initial password was chosen.
+.PP
+The
+.B profile
+built by
+.B /sys/lib/newuser
+looks like this:
+.IP
+.EX
+bind -a $home/bin/rc /bin
+bind -a $home/bin/$cputype /bin
+bind -c tmp /tmp
+font = /lib/font/bit/pelm/euro.9.font
+switch($service){
+case terminal
+	plumber
+	upas/fs
+	echo -n accelerated > '#m/mousectl'
+	echo -n 'res 3' > '#m/mousectl'
+	prompt=('term% ' '	')
+	fn term%{ $* }
+	exec rio
+case cpu
+	if (test -e /mnt/term/mnt/wsys) {
+		# rio already running
+		wsys = /mnt/term^`{cat /mnt/term/env/wsys}
+		bind -a /mnt/term/mnt/wsys /dev
+		echo -n $sysname > /dev/label
+	}
+	bind /mnt/term/dev/cons /dev/cons
+	bind /mnt/term/dev/consctl /dev/consctl
+	bind -a /mnt/term/dev /dev
+	prompt=('cpu% ' '	')
+	fn cpu%{ $* }
+	upas/fs
+	news
+	if (! test -e /mnt/term/mnt/wsys) {
+		# cpu call from drawterm
+		font=/lib/font/bit/pelm/latin1.8.font
+		auth/factotum
+		plumber
+		exec rio
+	}
+case con
+	prompt=('cpu% ' '	')
+	news
+}
+.EE
+.PP
+Sites may make changes to
+.B /sys/lib/newuser
+that reflect the properties of the local environment.
+.SH "SEE ALSO"
+.IR passwd (1),
+.IR rio (1),
+.IR namespace (4),
+.IR fossil (4),
+.IR users (6),
+.IR auth (8),
+.IR fossilcons (8).

@@ -1,0 +1,220 @@
+.TH 2L 1 
+.SH NAME
+0l, 1l, 2l, 5l, 6l, 7l, 8l, kl, ql, vl \- loaders
+.SH SYNOPSIS
+.B 2l
+[
+.I option ...
+]
+[
+.I file ...
+]
+.br
+etc.
+.SH DESCRIPTION
+These commands
+load the named
+.I files
+into executable files for the corresponding architectures; see
+.IR 2c (1)
+for the correspondence between an architecture and the character
+.RB ( 1 ,
+.RB 2 ,
+etc.) that specifies it.
+The files should be object files or libraries (archives of object files)
+for the appropriate architecture.
+Also, a name like
+.BI -l ext
+represents the library
+.BI lib ext .a
+in
+.BR /$objtype/lib ,
+where
+.I objtype
+is one of
+.BR 68000 ,
+etc. as listed in
+.IR 2c (1).
+The libraries must have tables of contents
+(see
+.IR ar (1)).
+.PP
+In practice, 
+.B -l
+options are rarely necessary as the header files for
+the libraries cause their archives to be included automatically in the load
+(see
+.IR 2c (1)).
+For example, any program that includes header file
+.B libc.h
+causes the loader
+to search the C library
+.BR /$objtype/lib/libc.a .
+Also, the loader creates an undefined symbol
+.B _main
+(or
+.B _mainp
+if profiling is enabled) to force loading of the
+startup linkage from the C library.
+.PP
+The order of search to resolve undefined symbols is to load all files and libraries
+mentioned explicitly on the command line, and then to resolve remaining symbols
+by searching in topological order
+libraries mentioned in header files included by files already loaded.
+When scanning such libraries, the algorithm is to scan each library repeatedly until
+no new undefined symbols are picked up, then to start on the next library.  Thus if library
+.I A
+needs
+.I B
+which needs
+.I A
+again, it may be necessary to mention
+.I A
+explicitly so it will be read a second time.
+.PP
+The loader options are:
+.TP 0.75i
+.B -l
+(As a bare option.)
+Suppress the default loading of the startup linkage and libraries
+specified by header files.
+.TP
+.BI -o " out"
+Place output in file
+.IR out .
+Default is
+.IB O .out\f1,
+where
+.I O
+is the first letter of the loader name.
+.TP
+.B -p
+Insert profiling code into the executable output; no special action is needed
+during compilation or assembly.
+.TP
+.B -e
+Insert (\fLe\fPmbedded) tracing code into the executable output; no special action is needed
+during compilation or assembly.
+The added code calls
+.L _tracein
+at function entries
+and
+.L _traceout
+at function exits.
+.TP
+.B -s
+Strip the symbol tables from the output file.
+.TP
+.B -a
+Print the object code in assembly language, with addresses.
+.TP
+.B -v
+Print debugging output that annotates the activities of the load.
+.TP
+.BI -M
+.RI ( Kl
+only) Generate instructions rather than calls to emulation routines
+for multiply and divide.
+.TP
+.BI -E symbol
+The entry point for the binary is
+.I symbol
+(default
+.BR _main ;
+.B _mainp
+under
+.BR -p ).
+.TP
+.BI -x " [ file ]"
+Produce an export table in the executable.
+The optional
+.I file
+restricts the exported symbols to those listed in the file.
+See
+.IR dynld (2).
+.TP
+.BI -u " [ file ]"
+Produce an export table, import table
+and a dynamic load section in the executable.
+The optional
+.I file
+restricts the imported symbols to those listed in the file.
+See
+.IR dynld (2).
+.TP
+.B -t
+(\c
+.I 5l
+and
+.I vl
+only)
+Move strings into the text segment.
+.TP
+.BI -H n
+Executable header is type
+.IR n .
+The meaning of the types is architecture-dependent; typically
+type 1 is Plan 9 boot format and type 2 is the
+regular Plan 9 format, the default.  These are reversed on the MIPS.
+The Next boot format is 3.  Type 4 in
+.I vl
+creates a MIPS executable for an SGI Unix system.
+.TP
+.BI -T t
+The text segment starts at address
+.IR t .
+.TP
+.BI -D d
+The data segment starts at address
+.IR d .
+.TP
+.BI -R r
+The text segment is rounded to a multiple of
+.I r
+(if
+.I r
+is nonzero).
+.PP
+The numbers in the above options can begin with
+.L 0x
+or
+.L 0
+to change the default base from decimal to hexadecimal or octal.
+The defaults for the values depend on the compiler and the
+header type.
+.PP
+The loaded image has several symbols inserted by the loader:
+.B etext
+is the address of the end of the text segment;
+.B bdata
+is the address of the beginning of the data segment;
+.B edata
+is the address of the end of the data segment;
+and
+.B end
+is the address of the end of the bss segment, and of the program.
+.SH FILES
+.TF /$objtype/lib
+.TP
+.B /$objtype/lib
+for
+.BI -l lib
+arguments.
+.SH SOURCE
+.B /sys/src/cmd/2l
+etc.
+.SH "SEE ALSO"
+.IR 2c (1),
+.IR 2a (1),
+.IR ar (1),
+.IR nm (1),
+.IR db (1),
+.IR prof (1)
+.PP
+Rob Pike,
+``How to Use the Plan 9 C Compiler''
+.SH BUGS
+The list of loaders given above is only partial,
+not all architectures are supported on all systems,
+some have been retired and some
+are provided by third parties.

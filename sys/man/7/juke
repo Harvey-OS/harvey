@@ -1,0 +1,369 @@
+.TH JUKE 7
+.SH NAME
+juke \- music jukebox
+.SH SYNOPSIS
+.B juke
+[
+.B \-t
+]
+[
+.B \-w
+]
+[
+.B \-h
+.I srvhost
+]
+[
+.B \-s
+.I srvname
+]
+.ift .sp 0.5
+.ifn .sp
+.B games/jukebox
+[
+.B \-t
+]
+[
+.B \-w
+]
+.ift .sp 0.5
+.ifn .sp
+.B games/jukefs
+[
+.B \-m
+.I mountpoint
+]
+[
+.B \-s
+.I srvname
+]
+[
+.I mapfile
+]
+.SH DESCRIPTION
+.I Jukebox
+controls a playlist server
+(see
+.IR playlistfs (7))
+through a graphical user interface.  It connects to a music database server which reads a set of
+.I map
+files that describe recordings and their location.  Currently, there is
+one set of maps, mostly for classical music, with some jazz and other stuff
+thrown in.  These are served by
+.BR jukefs ,
+which presents a file system conventionally mounted at
+.BR /mnt/juke .
+The playlist, explained below, is managed by a file system implemented by
+.IR playlistfs (7)
+and normally mounted on
+.BR /mnt .
+.PP
+.I Jukebox
+is most easily started through the
+.I juke
+shell script.
+.PP
+.I Jukebox
+has four windows, which can be selected by clicking the appropriate tab
+at the top of the window.
+.PP
+Above the tab are nine buttons and a volume slider.  The
+.ift buttons, shown below,
+.ifn buttons
+are named, from left to right,
+.IR Exit ,
+.IR Pause ,
+.IR Play ,
+.IR Halt ,
+.IR Back ,
+.IR Forward ,
+.IR Root ,
+.IR Delete ,
+and
+.IR Help .
+The buttons are
+.I active
+when they are displayed in dark green (or red).  When they are pale blue
+they are
+.IR inactive .
+The Exit button is always active; it exits the program (but leaves the playlist and music database
+servers running).
+.PP
+The
+.I browse
+window is for browsing through the music and selecting music to play.
+Browsing down in the music hierarchy is done by clicking button one on
+an item.  Clicking button three goes back up.
+Clicking button two recursively adds all files below the selected item to
+the
+.IR "play list" .
+.PP
+The selected music is displayed in the
+.I playlist 
+window.
+The track currently playing is shown in the
+.I playing
+window.
+.PP
+The
+.I Root
+button browses back to the root.
+.PP
+The
+.I Delete
+button empties the playlist.
+.PP
+The
+.I Help
+displays a minimal on-line manual.
+.PP
+.I Play
+starts playing at the beginning of the play list, or at the selected track in
+the play list.
+.PP
+During play,
+.IR Pause ,
+.IR Stop ,
+.IR Back ,
+and
+.I Forward
+are active.
+.I Back
+and
+.I Forward
+go back or forward a track at a time.  The other buttons do the obvious thing.
+.PP
+The
+.B \-t
+flag chooses a tiny font, useful for handhelds.
+.PP
+The
+.B \-w
+flag creates the jukebox in a new window.  Normally, the jukebox takes over
+the window in which it is invoked.
+.PP
+The
+.B \-s
+flag specifies the name under which the file descriptors of the playlist and databse servers are posted
+in /srv.  This allows two or more play list servers to exist on one platform, e.g., when
+there are several audio devices.  The default value of the flag is
+.B $\f2user\fP
+for a playlist server at
+.B /srv/playlistfs.$\f2user\fP
+and a database server at
+.BR /srv/jukefs.$\f2user\fP .
+.sp
+.LP
+.B Jukefs
+reads a set of
+.I maps
+describing the music data, builds an in-memory database, and provides
+lookup service to
+.IR jukebox .
+The default map is
+.BR /sys/lib/music/map .
+It consists of a hierarchical set of
+.IR objects .
+Each object has a type, a value, zero or more attribute-value
+pairs and zero or more subobjects.    An object consists of the
+type, followed by its contents between curly brackets.
+Attribute value pairs consist
+of a single line containing an attribute name, an equals sign, and
+a value.
+The value of an object is any text not containing curly brackets or equals
+signs.  Here is an example:
+.EX
+.ps -2
+.vs -2p
+.sp
+category {
+	composer = mahler
+
+	Gustav Mahler
+	(1860 — 1911)
+
+	work {
+		path {classic/mahler}
+		class = symphonic
+		orchestra = rfo
+		conductor = Waart,~Edo~de
+
+		Symphony Nº 5 in c♯ (RFO, Vienna)
+		performance{
+			Radio Filharmonisch Orkest Holland
+			Edo de Waart, conductor
+
+			recorded: Musikverein, Vienna, May 6, 1996
+		}
+		command {number}
+		track {
+			Trauermarsch (In gemessenem Schritt. Streng. Wie ein Kondukt)
+			time {13:55}
+			file {034.pac}
+		}
+		track {
+			Stürmisch bewegt, mit größter Vehemenz
+			time {15:34}
+			file {035.pac}
+		}
+		track {
+			Scherzo (Kräftig, nicht zu schnell)
+			time {18:54}
+			file {036.pac}
+		}
+		track {
+			Adagietto (Sehr Langsam)
+			time {10:01}
+			file {037.pac}
+		}
+		track {
+			Rondo–Finale (Allegro)
+			time {15:44}
+			file {038.pac}
+		}
+	}
+}
+.EE
+.LP
+This example shows a
+.I category
+object for the composer Gustav Mahler (the value consists of the two
+lines `Gustav Mahler' and `(1860 — 1911)') with one subobject, a
+.I work
+object whose value is `Symphony Nº 5 in c♯ (RFO, Vienna)'.  The work object
+contains six subobjects: one
+.I performance
+object and five
+.I track
+objects.
+.PP
+.I Category
+objects must contain exactly one attribute-value pair.  The attribute
+names a subobject of the root under which this category object will
+be placed.  Gustav Mahler, thus, will be placed in
+Root→composer.
+.IR Work ,
+.IR Recording ,
+.IR Part ,
+and
+.IR Track ,
+objects all describe named containers for subunits.
+A
+.IR Lyrics ,
+.IR Performance ,
+or
+.IR Soloists
+object adds information to a
+.IR Work ,
+.IR Recording ,
+.IR Part ,
+or
+.IR Track ,
+object.  It should only contain text.
+The same is true for a
+.I Time
+object; however, it should only be used adjacent to
+.I File
+objects and it should contain the running time of that file (this
+is for future use).
+.PP
+A
+.I File
+object specifies a file to be played.  When the
+.I Select
+button is pressed, all file objects contained hierarchically in the
+selected object are added to the playlist.
+.PP
+There are a number of pseudo objects:
+.I Command
+may contain either
+.I sort
+or
+.IR number .
+The
+.I sort
+command sorts the subobjects of the object it appears in by
+.I key
+or textual content.
+The
+.I number
+commands prepends numbers to the texts of its subobjects
+(e.g., for the parts in a symphony)
+.PP
+An
+.I Include
+object is replaced by the contents of the named file.
+.PP
+A
+.I Key
+object specifies a key for sorting subobjects.
+.PP
+Finally, a
+.I Path
+object specifies a path to be prepended to the files named in
+hierarchically contained
+.I File
+objects.
+.PP
+The attribute-value value pairs arrange for entries to be made of the
+current object in a
+.I Category
+object named by the attribute directly under the root.
+.sp
+.LP
+The interface to the browsing database is through a file system
+implemented by
+.BR jukefs .
+The file system synthesises a directory per object.  Each directory contains a set of files
+describing the object's attributes:
+.TP
+.B children
+contains a new-line separated list of subobject names.  For each name,
+.I x
+the directory
+.BI /mnt/juke/ x
+describes the subobject.
+.TP
+.B digest
+contains a one-line summary of the object
+.TP
+.B files
+is a new-line separated list of file objects contained in this object.
+Each line consists of object name and file name.
+.TP
+.B fulltext
+is the fulltextual value of the object.
+.TP
+.B key
+contains the key by which objects are sorted
+.TP
+.B miniparentage
+is a one-line summary of the objects and the path leading to it from the root.
+This is the line displayed in the playlist and bottom browse windows of
+.BR games/jukebox .
+.TP
+.B parent
+is the object reference to the parent of this object.
+.TP
+.B parentage
+is a full description of the path leading to this object and the object itself.
+This is the string displayed in the top of the Browse and Playing windows
+of
+.BR games/jukebox .
+.TP
+.B text
+is the text field of the object.
+.TP
+.B type
+is the type of the object
+.LP
+.SH FILES
+.BR /sys/lib/music/map :
+Default map file
+.BR /mnt/juke :
+Default mount point for the music database.
+.SH SOURCE
+.B /sys/src/games/music
+.SH SEE ALSO
+.IR playlistfs (7),
+.IR audio (7)

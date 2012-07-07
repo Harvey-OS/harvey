@@ -1,0 +1,431 @@
+.TH FSCONFIG 8
+.SH NAME
+fsconfig \- configuring a file server
+.SH SYNOPSIS
+.B service
+.I name
+.PP
+.B config
+.I device
+.PP
+.B nvram
+.I device
+.PP
+.B filsys
+.I name
+.I device
+.PP
+.B ip
+.I ipaddr
+.PP
+.B ipgw
+.I ipaddr
+.PP
+.B ipmask
+.I ipaddr
+.PP
+.B ipauth
+.I ipaddr
+.PP
+.B ipsntp
+.I ipaddr
+.PP
+.B ream
+.I name
+.PP
+.B recover
+.I name
+.PP
+.B allow
+.PP
+.B readonly
+.PP
+.B noauth
+.PP
+.B noattach
+.PP
+.B copyworm
+.PP
+.B copydev
+.I from-dev
+.I to-dev
+.PP
+.B halt
+.PP
+.B end
+.SH DESCRIPTION
+When an
+.IR fs (4)
+file server's configuration has not been set,
+or by explicit request early in the server's initialization (see
+.IR fs (8)),
+the server enters `config mode'.  The commands described here
+apply only in that mode.  They establish configuration constants
+that are typically valid for the life of the server, and therefore
+need be run only once.  If the non-volatile RAM on the server
+gets erased, it will be necessary to recreate the configuration.
+.SS Syntax
+In these commands,
+.I ipaddr
+is an IP address in the form
+.BR 111.103.94.19
+and
+.I name
+is a text string without white space.
+The syntax of a
+.I device
+is more complicated:
+.TP
+.BI w n1 . n2 . n3
+Defines a SCSI disk on target (unit) id
+.IR n2 ,
+controller (host adapter)
+.IR n1 ,
+and LUN (logical unit number)
+.IR n3 .
+A single number specifies a target, while two numbers specify
+.IB target . lun\f1,
+with the missing numbers defaulting to zero.
+Any one of the numbers may be replaced by
+.BI < m - n >
+to represent the values
+.I m
+through
+.I n
+inclusive.
+.I M
+may be greater than
+.IR n .
+For example,
+.B (w<1-4>)
+is the concatenation of SCSI targets 1 through 4.
+.TP
+.BI h n1 . n2 . n3
+.I H
+is similar to
+.IR w ,
+but for IDE or ATA disks,
+and the controllers must be specified in
+.BR plan9.ini .
+.I Lun
+is ignored.
+.I Target
+0 is an IDE master
+and 1 is a slave.
+Instead of specifying
+.I controller
+and
+.IR target
+separately,
+one may omit the
+.I controller
+and specify a target of
+.IB controller-number *2
+.B +
+.IR target-number ,
+thus
+.B h2
+is equivalent to
+.B h1.0.0
+(second IDE controller, master drive).
+.TP
+.BI m n1 . n2 . n3
+.I M
+is similar to
+.IR h ,
+but for SATA drives connected to Marvell 
+88SX[56]0[48][01] controllers.
+There is no need to specify the controllers in 
+.B plan9.ini
+as they are autodiscovered.
+Hot-swapping drives is not currently supported.
+Similar target naming rules apply as for IDE controllers.
+However the controller-number is multiplied by the number of 
+drives the controller supports rather than 2.
+Thus
+.B m9
+is equivalent to
+.B m1.1.0
+(second controller, second drive),
+if the first controller supports 8 drives.
+.TP
+.BI l n1 . n2 . n3
+.TP
+.BI r n1 . n2 . n3
+The same as
+.BR w ,
+but leaving a single block at the beginning for a label
+.BI ( l ),
+or not.
+Only
+.I n2
+is really of interest,
+and refers to a side of a WORM disc.
+These are only really relevant when used as
+.I device3
+in the
+.B j
+device (see below).
+.TP
+.BI ( device... )
+A pseudo-device formed from the concatenation of the
+.I devices
+in the list.  The devices are
+.I not
+blank- or comma-separated.
+.TP
+.BI [ device... ]
+A pseudo-device formed from the block-wise interleaving of the
+.I devices
+in the list.  The size of the result is the number of devices times
+the size of the smallest device.
+.TP
+.BI { device... }
+A pseudo-device formed from the mirroring of the first
+.I device
+in the list onto all the others.
+The size of the result is the size of the smallest device.
+One might think of this as RAID 1,
+and
+.B [
+.B ]
+as RAID 0,
+though neither includes any fancy recovery mechanisms.
+Each block is written to all the devices,
+starting with the rightmost in the list and working leftward.
+A block is read from the first device that provides it without error,
+starting with the leftmost in the list and working rightward.
+.TP
+.BI p device . n1 . n2
+A partition starting at
+.IR n1 %
+from the beginning of
+.I device
+with a length
+.IR n2 %
+of the size of the device.
+Parenthesize
+.I device
+if it contains periods.
+.TP
+.BI x device
+A pseudo-device that contains the byte-swapped contents of
+.IR device .
+Since the file server writes integers to disk in its native byte order,
+it can be necessary to use this device to read file systems written
+by processors of the other byte order.
+.TP
+.BR j (\f2device1\ device2\f1...)\f2device3
+.I Device1
+is the SCSI juke box interface.
+The
+.IR device2 s
+are the SCSI drives in the jukebox and
+.I device3
+represents the demountable platters in the juke box.
+.TP
+.BI f device
+A pseudo-WORM disk: blocks on
+.I device
+can be written only once and may not be read unless written.
+.TP
+.BI c device1device2
+A cached WORM.  The first
+.I device
+is the cache, the second the WORM.
+.TP
+.BI o
+(Letter o) The read-only (dump) file system
+of the most-recently defined cached WORM file system.
+.SS Configuration
+The
+.B service
+command sets the textual name of the server as known in
+the network databases.
+.PP
+The configuration information is stored in block zero on a
+device whose device string is written in non-volatile RAM.
+The
+.B config
+and
+.B nvram
+commands identify the
+.I device
+on which the information is recorded.
+The
+.B config
+command also erases any previous configuration.
+.PP
+The
+.I filsys
+command configures a file system on
+.I device
+and calls it
+.IR name .
+.I Name
+is used as the specifier in
+.B attach
+messages to connect to that file system.
+(The file system
+.B main
+is the one attached to if the specifier is null; see
+.IR attach (5)).
+.PP
+The rest of the configuration commands record IP addresses:
+the file server's address
+.RI ( ip ),
+the local gateway's
+.RI ( ipgw ),
+the local authentication server's
+.RI ( ipauth ),
+the local subnet mask
+.RI ( ipmask ),
+and the address of a system running an SNTP server
+.RI ( ipsntp ).
+.I Ipauth
+is no longer used.
+If the server has more than one network interface,
+a digit may be appended to the keywords
+.BR ip ,
+.B ipgw
+and
+.B ipmask
+to indicate the interface number;
+zero is the default.
+.SS "One-time actions"
+.PP
+The
+.I ream
+command initializes the named file system.  It overwrites
+any previous file system on the same device
+and creates an empty root directory
+on the device.
+If
+.I name
+is
+.BR main ,
+the file server, until the next reboot,
+will accept
+.B wstat
+messages
+(see
+.IR stat (5))
+that change the owner and group of files,
+to enable initializing a fresh file system from a
+.IR mkfs (8)
+archive.
+.PP
+For the
+.I recover
+command, the
+named file system
+must be a cached WORM.
+.I Recover
+clears the associated magnetic cache and initializes the file
+system, effectively resetting its contents to the last dump.
+.PP
+.I Allow
+turns off all permission checking; use with caution.
+.PP
+.I Readonly
+disables all writing to all devices.
+This is useful for trying dangerous experiments.
+.PP
+.I Noauth
+disables authentication.
+.PP
+.I Noattach
+prevents attachs.
+.PP
+.I Copyworm
+will copy a file system named
+.I main
+to one named
+.IR output ,
+block by block,
+and loop.
+It knows how to read a fake worm file system.
+.PP
+.I Copydev
+will copy the device
+.I from-dev
+to the device
+.IR to-dev .
+block by block,
+and panic.
+.PP
+.I Halt
+will cause the server to
+.I immediately
+exit and reboot.
+.PP
+The various configuration commands only record what to do; they write
+no data to disk.  The command
+.I end
+exits config mode and begins running the file server proper.
+The server will then perform whatever I/O is required to establish
+the configuration.
+.SH EXAMPLE
+Initialize a file server
+.B kgbsun
+with a single file system interleaved between SCSI targets 3 and 4.
+.IP
+.EX
+service kgbsun
+config w3
+filsys main [w<3-4>]
+ream main
+.EE
+.PP
+Initialize a file server
+.B kremvax
+with a single disk on target 0 partitioned as a cached pseudo-WORM
+file system with the cache on the third quarter of the drive
+and the pseudo-WORM on the interleave of the first, second, and
+fourth quarters.
+.IP
+.EX
+service kremvax
+config p(w0)50.1
+filsys main cp(w0)50.25f[p(w0)0.25p(w0)25.25p(w0)75.25]
+filsys dump o
+ream main
+.EE
+.PP
+A complete and complex example:
+initialize a file server
+.I fsb
+with a single SCSI disk on target 0 for a scratch file system,
+a cached WORM file system with cache disk on target 2 and
+an optical-disc jukebox on targets 4 (robotics) and 5 (one optical drive),
+and another cached WORM file system with cache disk on target 3
+and another optical-disc jukebox on a second SCSI bus at targets 3 and 4.
+Both jukeboxes contain 16 slots of optical discs.
+It has two Ethernet interfaces and can reach an SNTP server on the first one.
+.IP
+.EX
+service fsb
+config w0
+filsys main cw2j(w4w5)(l<0-31>)
+filsys dump o
+filsys hp40fx cw3j(w1.<3-4>.0)(l<0-31>)
+filsys hp40fxdump o
+filsys other w0
+ipauth 0.0.0.0
+ipsntp 10.9.0.3
+ip0 10.9.0.2
+ipgw0 10.9.0.3
+ipmask0 255.255.0.0
+ip1 10.0.0.2
+ipgw1 10.0.0.1
+ipmask1 255.255.0.0
+ream main
+ream hp40fx
+ream other
+end
+.EE
+.SH SOURCE
+.BR /sys/src/fs/port/config.c
+.SH "SEE ALSO
+Ken Thompson,
+``The Plan 9 File Server''.

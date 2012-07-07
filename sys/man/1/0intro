@@ -1,0 +1,397 @@
+.TH INTRO 1
+.SH NAME
+intro \- introduction to Plan 9
+.SH DESCRIPTION
+Plan 9 is a distributed computing environment assembled from
+separate machines acting as terminals,
+CPU servers, and file servers.
+A user works at a terminal, running a window system on a raster display.
+Some windows are connected to CPU servers; the intent is that heavy computing
+should be done in those windows but it is also possible to compute on the terminal.
+A separate file server provides file storage for terminals and
+CPU servers alike.
+.SS Name Spaces
+In Plan 9, almost all objects look like files.
+The object retrieved by a given name is determined by a mapping called the
+.IR "name space" .
+A quick tour of the standard name space is in
+.IR namespace (4).
+Every program running in Plan 9 belongs to a
+.I process group
+(see
+.I rfork
+in
+.IR fork (2)),
+and the name space for each process group can be independently
+customized.
+.PP
+A name space is hierarchically structured.
+A full file name (also called a
+.IR "full path name" )
+has the form
+.IP
+.RI / e1 / e2 /.../ en
+.PP
+This represents an object in a tree of files: the tree has a root,
+represented by the first
+.LR / ;
+the root has a child file named
+.IR e1 ,
+which in turn has child
+.IR e2 ,
+and so on; the descendent
+.I en
+is the object represented by the path name.
+.PP
+There are a number of Plan 9
+.I services
+available, each of which provides a tree of files.
+A name space is built by
+.I binding
+services (or subtrees of services) to names in the name-space-so-far.
+Typically, a user's home file server is bound to the root of the name space,
+and other services are bound to conventionally named subdirectories.
+For example, there is a service resident in the operating system for accessing
+hardware devices and that is bound to
+.B /dev
+by convention.
+Kernel services have names (outside the name space) that are a
+.L #
+sign followed by a single letter;
+for example,
+.B #c
+is conventionally bound to
+.BR /dev .
+.PP
+Plan 9 has
+.IR "union directories" :
+directories made of several directories all bound to the
+same name.
+The directories making up a union directory are ordered in a list.
+When the bindings are made
+(see
+.IR bind (1)),
+flags specify whether a newly bound member goes at the head or the tail of the list
+or completely replaces the list.
+To look up a name in a union directory, each member directory is searched
+in list order until the name is found.
+A bind
+flag specifies whether file creation is allowed in a member directory:
+a file created in the union directory goes in
+the first member directory in list order that allows creation, if any.
+.PP
+The glue that holds Plan 9 together is a network protocol called
+.IR 9P ,
+described in section 5 of this manual.
+All Plan 9 servers read and respond to 9P requests to navigate through
+a file tree and to perform operations such as reading and writing
+files within the tree.
+.SS Booting
+When a terminal is powered on or reset,
+it must be told the name of a file server to boot from,
+the operating system kernel to boot,
+and a user name and password.
+How this dialog proceeds is environment- and machine-dependent.
+Once it is complete,
+the terminal loads a Plan 9 kernel,
+which sets some environment variables (see
+.IR env (3))
+and builds an initial name space.
+See
+.IR namespace (4),
+.IR boot (8),
+and
+.IR init (8)
+for details, but some important aspects of the initial name space are:
+.IP \(bu
+The environment variable
+.B $cputype
+is set to the name of the kernel's CPU's architecture: one of
+.BR alpha ,
+.BR mips ,
+.BR sparc ,
+.B power
+(Power PC),
+.BR 386
+(386, 486, Pentium, ...)
+etc.
+The environment variable
+.B $objtype
+is initially the same as
+.BR $cputype .
+.IP \(bu
+The environment variable
+.B $terminal
+is set to a description of the machine running the kernel,
+such as
+.BR "generic pc" .
+Sometimes the middle word of
+.B $terminal
+encodes the file from which the kernel is booted;
+e.g.
+.B "alpha apc axp
+is bootstrapped from
+.BR /alpha/bapc .
+.IP \(bu
+The environment variable
+.B $service
+is set to
+.BR terminal .
+(Other ways of accessing Plan 9 may set
+.B $service
+to one of
+.BR cpu ,
+.BR con ,
+or
+.BR rx .)
+.IP \(bu
+The environment variable
+.B $user
+is set to the name of the user who booted the terminal.
+The environment variable
+.B $home
+is set to that user's home directory.
+.IP \(bu
+.B /$cputype/bin
+and
+.B /rc/bin
+are unioned into
+.BR /bin .
+.PD
+.PP
+After booting, the terminal runs the command interpreter,
+.IR rc (1),
+on
+.B /usr/$user/lib/profile
+after moving to the user's home directory.
+.PP
+Here is a typical profile:
+.IP
+.EX
+bind -a $home/bin/rc /bin
+bind -a $home/bin/$cputype /bin
+bind -c $home/tmp /tmp
+font = /lib/font/bit/pelm/euro.9.font
+upas/fs
+switch($service){
+case terminal
+	plumber
+	prompt=('term% ' '	')
+	exec rio -f $font
+case cpu
+	bind /mnt/term/dev/cons /dev/cons
+	bind /mnt/term/dev/consctl /dev/consctl
+	bind -a /mnt/term/mnt/wsys /dev
+	prompt=('cpu% ' '	')
+	news
+case con
+	prompt=('cpu% ' '	')
+	news
+}
+.EE
+.PD
+.PP
+The first three lines replace
+.B /tmp
+with a
+.B tmp
+in the user's home directory
+and union personal
+.B bin
+directories with
+.BR /bin ,
+to be searched after the standard
+.B bin
+directories.
+The next starts the mail file system; see
+.IR mail (1).
+Then different things happen, depending on the
+.B $service
+environment variable,
+such as running the window system
+.IR rio (1)
+on a terminal.
+.PP
+To do heavy work such as compiling, the
+.IR cpu (1)
+command connects a window to a CPU server;
+the same environment variables are set (to different values)
+and the same profile is run.
+The initial directory is the current directory in the terminal window
+where
+.I cpu
+was typed.
+The value of
+.B $service
+will be
+.BR cpu ,
+so the second arm of the profile switch is executed.
+The root of the terminal's name space is accessible through
+.BR /mnt/term ,
+so the
+.I bind
+is a way of making the window system's graphics interface (see
+.IR draw (3))
+available to programs running on the CPU server.
+The
+.IR news (1)
+command reports current Plan 9 affairs.
+.PP
+The third possible service type,
+.BR con ,
+is set when the CPU server is called from a non-Plan-9 machine,
+such as through
+.I telnet
+(see
+.IR con (1)).
+.SS Using Plan 9
+The user commands of Plan 9 are reminiscent of those in Research Unix, version 10.
+There are a number of differences, however.
+.PP
+The standard shell is
+.IR rc (1),
+not the Bourne shell.
+The most noticeable differences appear only when programming and macro processing.
+.PP
+The character-delete character is backspace, and the line-kill character is
+control-U; these cannot be changed.
+.PP
+DEL is the interrupt character: typing it sends an interrupt to processes running in that window.
+See
+.IR keyboard (6)
+for instructions on typing characters like DEL on the various keyboards.
+.PP
+If a program dies with something like an address error, it enters a `Broken'
+state.  It lingers, available for debugging with
+.IR db (1)
+or
+.IR acid (1).
+.I Broke
+(see
+.IR kill (1))
+cleans up broken processes.
+.PP
+The standard editor is one of
+.IR acme (1)
+or
+.IR sam (1).
+There is a variant of
+.I sam
+that permits running the file-manipulating part of
+.I sam
+on a non-Plan-9 system:
+.IP
+.EX
+sam -r tcp!kremvax
+.EE
+.PP
+For historical reasons,
+.I sam
+uses a tab stop setting of 8 spaces, while the other editors and window systems use 4 spaces.
+These defaults can be overridden by setting the value of the environment variable
+.B $tabstop
+to the desired number of spaces per tab.
+.PP
+Machine names may be prefixed by the network name,
+here
+.BR tcp ;
+and
+.B net
+for the system default.
+.PP
+Login connections and remote execution on non-Plan-9 machines are usually
+done by saying, for example,
+.IP
+.EX
+con kremvax
+.EE
+.PP
+or
+.IP
+.EX
+rx deepthought chess
+.EE
+.PP
+(see
+.IR con (1)).
+.PP
+.I 9fs 
+connects to file systems of remote systems
+(see
+.IR srv (4)).
+For example,
+.IP
+.EX
+9fs kremvax
+.EE
+.PP
+sets things up so that the root of
+.BR kremvax 's
+file tree is visible locally in
+.BR /n/kremvax .
+.PP
+.IR Faces (1)
+gives graphical notification of arriving mail.
+.PP
+The Plan 9 file server has an integrated backup facility.
+The command
+.IP
+.EX
+9fs dump
+.EE
+.PP
+binds to
+.B /n/dump
+a tree containing the daily backups on the file server.
+The dump tree has years as top level file names, and month-day
+as next level file names.
+For example,
+.B /n/dump/2000/0120
+is the root of the file system as it appeared at dump time on
+January 20, 2000.
+If more than one dump is taken on the same day, dumps after
+the first have an extra digit.
+To recover the version of this file as it was on June 15, 1999,
+.IP
+.EX
+cp /n/dump/1999/0615/sys/man/1/0intro .
+.EE
+.PP
+or use
+.IR yesterday (1).
+.SH SEE ALSO
+This section for general publicly accessible commands.
+.br
+Section (2) for library functions, including system calls.
+.br
+Section (3) for kernel devices (accessed via
+.IR bind (1)).
+.br
+Section (4) for file services (accessed via
+.IR mount ).
+.br
+Section (5) for the Plan 9 file protocol.
+.br
+Section (6) for file formats.
+.br
+Section (7) for databases and database access programs.
+.br
+Section (8) for things related to administering Plan 9.
+.br
+.B /sys/doc
+for copies of papers referenced in this manual.
+.PP
+The back of this volume has a permuted index to aid searches.
+.SH DIAGNOSTICS
+Upon termination each program returns a string called the
+.IR "exit status" .
+It was either supplied by a call to
+.IR exits (2)
+or was written to the command's
+.BI /proc/ pid /note
+file
+(see
+.IR proc (3)),
+causing an abnormal termination.
+The empty string is customary for successful execution;
+a non-empty string gives a clue to the failure of the command.

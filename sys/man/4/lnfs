@@ -1,0 +1,64 @@
+.TH LNFS 4
+.SH NAME
+lnfs \- long name file system
+.SH SYNOPSIS
+.B lnfs
+[
+.B -r
+]
+[
+.B -s
+.I srvname
+]
+.I mountpoint
+.br
+.B unlnfs
+.I mountpoint
+.SH DESCRIPTION
+.I Lnfs
+starts a process that mounts itself (see
+.IR bind (2))
+on
+.IR mountpoint .
+It presents a filtered view of the files under the mount
+point, allowing users to use long file names
+on file servers that do not support file names
+longer than 27 bytes.
+.PP
+The names used in the underlying file system are
+the base32 encoding of the md5 hash of the longer
+file name.  The user need not know the mapping
+since
+.I lnfs
+does all the work.
+.I Lnfs
+maintains a file
+.B .longnames
+in the directory
+.I mountpoint
+to record the long file names.
+.PP
+The options are:
+.TP
+.B -r
+allow only read access to the file system
+.TP
+.B -s
+provide a service name,
+.IR srvname ,
+to post in
+.BR /srv .
+Without this option, no posting is performed.
+.PP
+.I Unlnfs
+renames files with shortened names to their actual long names.
+It is useful once you have moved to a file server with true long name support.
+.SH FILES
+.B .longnames
+.SH SOURCE
+.B /sys/src/cmd/lnfs.c
+.PP
+.B /sys/src/cmd/unlnfs.c
+.SH BUGS
+This exists only to shame us into getting a real long
+name file server working.

@@ -1,0 +1,336 @@
+.TH HTTPD 8
+.SH NAME
+httpd, save, imagemap, man2html, webls \- HTTP server
+.SH SYNOPSIS
+.B ip/httpd/httpd
+.RB [ -a
+.IR srvaddr ]
+.RB [ -c
+.I cert
+.RB [ -C
+.IR certchain ]]
+.RB [ -d
+.IR domain ]
+.RB [ -n
+.IR namespace ]
+.RB [ -w
+.IR webroot ]
+.PP
+.B ip/httpd/save
+.RB [ -b
+.IR inbuf ]
+.RB [ -d
+.IR domain ]
+.RB [ -r
+.IR remoteip ]
+.RB [ -w
+.IR webroot ]
+.RB [ -N
+.IR netdir ]
+.I method version uri
+.RI [ search ]
+.br
+.B ip/httpd/imagemap
+.I ...
+.br
+.B ip/httpd/man2html
+.I ...
+.br
+.B ip/httpd/webls
+.I ...
+.SH DESCRIPTION
+.I Httpd
+serves the
+.I webroot
+directory of the file system described by
+.I namespace
+(default
+.BR /lib/namespace.httpd ),
+using version 1.1 of the HTTP protocol.
+It announces the service
+.I srvaddr
+(default
+.BR tcp!*!http ),
+and listens for incoming calls.
+If an X.509 certificate is supplied with the
+.B -c
+option, then the service is instead
+.BR tcp!*!https .
+There should already be a factotum
+holding the corresponding private key.
+If the specified certificate has been signed
+by a certificate authority, the
+.B -C
+option may be used to specify a file
+containing a chain of signed certificates.
+.PP
+.I Httpd
+supports only the GET and HEAD methods of the HTTP protocol;
+some magic programs support POST as well.
+Persistent connections are supported for HTTP/1.1 or later clients;
+all connections close after a magic command is executed.
+The Content-type
+(default
+.BR application/octet-stream )
+and Content-encoding
+(default
+.BR binary )
+of a file are determined by looking for suffixes of the file name in
+.BR /sys/lib/mimetype .
+.SS Redirection
+.PP
+Each requested URI is looked up in a redirection table, read from
+.BR /sys/lib/httpd.rewrite .
+Fields are separated by spaces and tabs.
+Anything following a
+.L #
+is ignored.
+The first field of each line is a URI;
+the second a replacement path.
+If a prefix of the URI matches a redirection path,
+the URI is rewritten using the corresponding replacement path
+instead of the prefix,
+and a temporary redirect is sent to the HTTP client.
+If the replacement path does not specify a server name,
+and the request has no explicit host,
+then
+.I domain
+is the host name used in the redirection.
+The prefix can either be a domain root like
+.B http://system/
+(which matches that URL only)
+or a path like
+.B /who/rob
+(which matches that path no matter what
+the requested server),
+but not both:
+.B http://system/who/rob
+will never match a request.
+If the first field ends in a slash, this is an exact match;
+otherwise it is a prefix match.
+The first field is a literal string, matched against
+each file prefix of each URL.
+The most specific, i.e., longest,
+pattern wins, and is applied once (there is no rescanning),
+except for the following exceptions.
+.I Httpd
+matches only the prefix and not subordinate pages
+if a replacement is prefixed with 
+.LR > .
+.I Httpd
+omits the unmatched part of the original URI
+from the rewritten URI if the replacement is prefixed with 
+.LR * .
+This permits many-to-one mappings; for example,
+to send all references to an old subtree to a single error page.
+.PP
+.I Httpd
+handles replacements prefixed with 
+.L @ 
+internally,
+treating the request as if it were for the replacement
+(without the
+.BR @ )
+but not informing the client of the rewritten name.
+Replacement URLs prefixed with 
+.L =
+generate a permanent redirection instead of a temporary one.
+.I Httpd
+checks to see if this file has changed once every 50 new TCP connections.
+HTTP 1.1 persistent connection implies many pages
+may come in one browser connection, so to kick-start
+.IR httpd ,
+try
+.IP
+.EX
+for(i in `{seq 50}) hget http://www.your-domain.com/ >/dev/null
+.EE
+.SS "Access Control"
+.PP
+Before opening any file,
+.I httpd
+looks for a file in the same directory called
+.BR .httplogin .
+If the file exists, the directory is considered
+locked and the client must specify a user name
+and password matching a pair in the file.
+.B .httplogin
+contains a list of space or newline separated tokens, each
+possibly delimited by single quotes.  The first
+is a domain name presented to the HTTP client.
+The rest are pairs of user name and password.
+Thus, there can be many user name/password pairs
+valid for a directory.
+.br
+.ne 3
+.SS "Auxiliaries (magic)"
+.PP
+If the requested URI begins with
+.BI  /magic/ server /\f1,
+.I httpd
+executes the file
+.BI /bin/ip/httpd/ server
+to finish servicing the request.
+All the auxiliaries take the same arguments.
+.IR Method
+and
+.IR version
+are those received on the first line of the request.
+.I Uri
+is the remaining portion of the requested URI.
+.I Inbuf
+contains the rest of the bytes read by the server,
+and
+.I netdir
+is the network directory for the connection.
+There are routines for processing command arguments,
+parsing headers, etc. in the httpd library,
+.BR /sys/src/cmd/ip/httpd/libhttpd.a.$O .
+See
+.B httpd.h
+in that directory and existing magic commands for more details.
+.PP
+.I Save
+writes a line to
+.BI /usr/web/save/ uri .data
+and returns the contents of
+.BI /usr/web/save/ uri .html.
+Both files must be accessible for the request to succeed.
+The saved line includes the current time
+and either the search string from a HEAD or GET
+or the first line of the body from a POST.
+It is used to record form submissions.
+.PP
+.I Imagemap
+processes an HTML imagemap query.
+It looks up the point
+.I search
+in the image map file given by 
+.IR uri ,
+and returns a redirection to the appropriate page.
+The map file defaults to NCSA format.
+Any entries after a line starting with the word
+.B #cern
+are interpreted in CERN format.
+.PP
+.I Man2html
+converts
+.IR man (6)
+format manual pages into html.
+It includes some abilities to search the manuals.
+.PP
+.I Webls
+produces directory listings on the fly, with
+output in the style of
+.IR ls (1).
+.B /sys/lib/webls.allowed
+and
+.B /sys/lib/webls.denied
+contain regular expressions describing
+what parts of
+.I httpd's
+namespace may and may not be listed, respectively.
+.B Webls.denied
+is first searched to see if access is by default
+denied.  If so
+.B webls.allowed
+is then searched to see if access is explicitly allowed.
+Thus one can have very general expressions in the
+denied list (like
+.BR .* ),
+yet still allow exceptions.  If
+.B webls.denied
+does not exist or is unreadable, 
+all accesses are assumed to be denied unless
+explicitly allowed in
+.B webls.allowed.
+.PP
+Other sites will note that if neither
+.B webls.denied
+nor
+.B webls.allowed
+exist, any portion of
+.I httpd's
+namespace can be listed (however,
+.I webls
+will always endeavor to prevent listing of `.' and `..').
+If
+.B webls.allowed
+exists but
+.B webls.denied
+does not, any directory to be listed must be described
+by a regular expression in
+.BR webls.allowed .
+Similarly, if
+.B webls.denied
+exists but
+.B webls.allowed
+does not, any directory to be listed must
+.I not
+be described by a regular expression in
+.BR webls.denied .
+If both exist, a directory is listable if either
+it doesn't appear in
+.BR webls.denied ,
+or it appears in both
+.B webls.denied
+and
+.BR webls.allowed .
+In other words,
+.B webls.allowed
+overrides
+.BR webls.denied .
+If a listing for a directory is requested and access
+is denied, or another error occurs, a simple error
+page is returned.
+.SH EXAMPLES
+These are all examples of how to use
+.BR httpd.rewrite .
+.PP
+A local redirection:
+.RS
+.EX
+/netlib/c++/idioms/index.html.Z /netlib/c++/idioms/index.html
+.EE
+.RE
+.PP
+Redirection to another site:
+.RS
+.EX
+/netlib/lapack/lawns		=http://netlib.org/lapack/lawns
+http://inferno.bell-labs.com	=http://www.vitanuova.com
+.EE
+.RE
+.PP
+Root directory for virtual host:
+.RS
+.EX
+http://www.ampl.com		/cm/cs/what/ampl
+.EE
+.RE
+.SH FILES
+.TF /sys/lib/httpd.rewrite
+.TP
+.B /sys/lib/mimetype
+content type description file
+.TP
+.B /lib/namespace.httpd
+default namespace file for httpd
+.TP
+.B /sys/lib/httpd.rewrite
+redirection file
+.TP
+.B /sys/lib/webls.allowed
+regular expressions describing explicitly listable pathnames; overrides
+.B webls.denied
+.TP
+.B /sys/lib/webls.denied
+regular expressions describing explicitly unlistable pathnames
+.SH SOURCE
+.B /sys/src/cmd/ip/httpd
+.SH "SEE ALSO"
+.I newns
+in
+.IR auth (2),
+.IR listen (8),
+.IR rsa (8)

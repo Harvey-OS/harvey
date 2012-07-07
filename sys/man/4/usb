@@ -1,0 +1,514 @@
+.TH USB 4
+.SH NAME
+audio,
+ccid,
+disk,
+ether,
+kb,
+print,
+probe,
+serial,
+usbeject,
+usbfat:
+\- Universal Serial Bus device drivers
+.SH SYNOPSIS
+.B usb/kb
+[
+.B -dkm
+] [
+.B -a
+.I accel
+] [
+.I dev ...
+]
+.PP
+.B usb/disk
+[
+.B -Dd
+] [
+.B -m
+.I mnt
+] [
+.B -s
+.I srv
+] [
+.I dev ...
+]
+.PP
+.B usbfat:
+[
+.I disk ...
+]
+.PP
+.B usbeject
+[
+.I disk ...
+]
+.PP
+.B usb/audio
+[
+.B -dpV
+] [
+.B -m
+.I mnt
+] [
+.B -s
+.I srv
+] [
+.B -v
+.I vol
+] [
+.I dev
+]
+.PP
+.B usb/ether
+[
+.B -Dd
+] [
+.B -m
+.I mnt
+] [
+.B -s
+.I srv
+] [
+.I dev ...
+]
+.PP
+.B usb/serial
+[
+.B -Dd
+] [
+.B -m
+.I mnt
+] [
+.B -s
+.I srv
+] [
+.I dev ...
+]
+.PP
+.B usb/print
+[
+.B -d
+] [
+.I dev ...
+]
+.PP
+.B usb/ccid
+[
+.B -d
+]
+.ig
+.PP
+.B usb/ibuddy
+[
+.B -Dd
+] [
+.B -m
+.I mnt
+] [
+.B -s
+.I srv
+] [
+.I dev ...
+]
+..
+.B usb/probe
+.SH DESCRIPTION
+These programs drive USB devices of specific classes via
+.IR usb (3).
+Usually they are started by
+.IR usbd (4)
+upon attachment of the device to the bus.
+Less often, users start them manually, depending on
+.IR usbd (4)'s
+configuration.
+Usually,
+.I kb
+and
+.I disk
+are started by
+.I usbd
+and other programs are started by hand.
+.PP
+Without arguments, the drivers handle all the devices (of
+the appropriate USB class) found on the bus.
+To make a driver handle only certain devices, supply as arguments
+the paths for the directories of the devices
+(actually of their zero endpoints).
+.PP
+Drivers that provide file systems accept options
+.B -s
+and
+.B -m
+to instruct them to post a 9P connection at
+.IR srv (3)
+with the given name and/or to mount themselves at
+.IR mnt .
+When embedded into
+.IR usbd
+these options may not be used.
+In this case,
+the file tree supplied by the device driver is
+available through the file system provided by
+.IR usbd ,
+usually mounted at
+.B /dev
+and reachable through the 9P connection posted at
+.BR /srv/usb .
+.PP
+Options
+.B -d
+and
+.B -D
+present on most drivers trigger debug diagnostics and
+file system debugging diagnostics.
+Repeating any one of these may increase verbosity.
+.PP
+To help locate devices of interest,
+.I probe
+lists all the USB devices available,
+including those with no driver started.
+.SS Keyboards and mice
+.I Kb
+supports USB keyboards and mice either as separate USB devices
+or as a single combined USB device.
+Scan codes from the keyboard are sent to
+.B /dev/kbin
+to let the kernel process them.
+Mouse events are sent to
+.B /dev/mousein
+in the same way.
+.PP
+The following options are understood:
+.TF -k
+.TP
+.B \-a
+Accelerate the mouse to level
+.I n
+(similar to the kernel mouse driver acceleration).
+.TP
+.B \-k
+Serve just the keyboard (and not the mouse).
+.TP
+.B \-m
+Serve just the mouse (and not the keyboard).
+.SS Disks
+.I Disk
+configures and manages USB mass storage devices. It
+provides a file system (usually seen at
+.BR /dev )
+that includes one directory per storage device, named
+.BI sdU N . M
+in correspondence with the usb device number and the storage
+unit number (or LUN).
+For example, LUN number 2 on
+.B /dev/usb/ep3.0
+can be accessed through
+.BR /dev/sdU3.2 .
+.PP
+The storage device directory contains the usual files
+served by
+.IR sd (3):
+.BR data ,
+.BR raw ,
+and
+.BR ctl .
+.PP
+The
+.B ctl
+file supplies the device
+geometry when read.
+.PP
+The script
+.B usbfat:
+mounts the FAT file systems in the DOS partitions of the named
+.IR disk s;
+if none, it mounts those file systems found at
+.BR /dev/sdU*.*/data .
+When more than one partition is found, a suffix is appended to
+the disk name to identify the partition number.
+The script
+.B usbeject
+undoes the effect. If no argument is given, it unmounts all USB
+disks. An argument
+.BI sdU N
+unmounts all partitions from disk with USB target
+.IR N .
+.ig
+An argument
+.BI sdU N . M
+or
+.BI sdU N . M . P
+.\" TODO: fill in missing words
+..
+.SS Printers
+.I Print
+provides a single file can be written to print on a USB printer.
+Options are similar to those of
+.IR disk .
+The file is also bound at
+.B /dev/lp
+as is customary.
+.SS Ethernet adapters
+.I Ether
+provides a file interface similar to that of
+.IR ether (3)
+for each USB Ethernet adapter found.
+The name of an Ethernet device is
+.BI etherU N
+where
+.I N
+is the device name.
+When started manually, the file interface is mounted at
+.B /net
+as is customary.
+.
+.SS Serial and JTAG ports
+.I Serial
+provides a file system (usually mounted at
+.BR /dev )
+that includes one directory per USB serial port, named
+.BI eiaU N
+or
+.BI eiaU N . M.
+In this directory there are two files,
+.BR eiaU ,
+similar to
+.BI eia N
+in
+.IR uart (3),
+and
+.BR eiaUctl ,
+which admits writes in the same format as
+.BI eia N ctl
+in
+.IR uart (3).
+Reading from
+.B eiaUctl
+gives the serial port's settings in the same format as
+.BI eia N status
+in
+.IR uart (3).
+Options are similar to those of
+.IR disk .
+.PP
+JTAG ports are similar
+but the files are named
+.B jtag
+and
+.BR jtagctl .
+.
+.SS Audio devices
+.I Usbaudio
+configures and manages a USB audio device.
+It implements a file system,
+normally mounted on
+.BI /dev ,
+but this can be changed with
+.BR \-m ,
+containing files
+.BR volume ,
+.BR audioctl ,
+.BR audio ,
+and
+.BR audioin .
+The names
+.B volume
+and
+.B audio
+maintain backward compatibility with the Soundblaster driver.
+.PP
+The
+.B \-V
+option (verbose)
+causes
+.I audio
+to print information about the device on startup.
+The
+.B \-s
+option specifies a name for a file descriptor to be posted in
+.BR /srv .
+The
+.B \-v
+options sets initial
+.IR volume .
+.PP
+Reading
+.B volume
+or
+.B audioctl
+yields the device's settings.
+The data format of
+.B volume
+is compatible with the Soundblaster and produces output in this
+format:
+.IP
+.EX
+audio out 65
+treb out 0
+bass out 0
+speed out 44100
+.EE
+.PP
+This file can be written using the same syntax.
+The keyword
+.L out
+may be omitted.
+Settings are given as percentages of the range,
+except for speed which is in Hz.
+.PP
+The file
+.B audioctl
+provides more information, using up to 6 columns of 12 characters each.
+From left to right, the fields are:
+.IR "control name" ,
+.I in
+or
+.IR out ,
+.IR "current value" ,
+.IR "minimum value" ,
+.IR maximum ,
+and
+.IR resolution .
+There are 3, 5, or 6 columns present.
+Maxima and resolution are omitted when they are not available or not applicable.
+The resolution for
+.I speed
+is reported as 1 (one) if the sampling frequency is continuously variable.
+It is absent if it is settable at a fixed number of discrete values only.
+.PP
+When all values from
+.B audioctl
+have been read, a zero-length buffer is returned
+(the usual end-of-file indication).
+A new
+.I read
+will then block until one of the settings changes,
+then report its new value.
+.PP
+The file
+.B audioctl
+can be written like
+.BR volume .
+.PP
+Audio data is written to
+.B audio
+and read from
+.BR audioin .
+The data format is little-endian,
+samples ordered primarily by time and
+secondarily by channel.
+Samples occupy the minimum integral number of bytes.
+Read and write operations of arbitrary size are allowed.
+.
+.SS Ccid
+.I Ccid
+discovers and configures SIM or SAM cards using the CCID standard.
+It provides a file system (usually mounted at
+.BR /dev )
+that includes three files,
+.BI ctl ,
+.B raw
+and
+.BI rpc .
+Reading from
+.B ctl
+a description of the smartcard reader capabilities is printed.
+.B raw
+is just intended for debugging.
+Reads and writes to the
+raw file send and receive raw CCID packets.
+Smart cards identify themselves by giving out an ATR,
+an array of characters describing the card uniquely.
+Users of the driver write the ATR to the
+.B rpc
+file and are blocked until a card with that ATR is seen.
+From then on they can do ICC RPCs using whatever
+language the smart card speaks. A small write cancels
+an outstanding RPC.
+.PP
+The driver takes care of powering the card adequately, based
+on its ATR, and tunnelling the RPCs through the USB device.
+Only slot 0 is supported.
+.PP
+When the smartcard disappears,
+all reads and write fail until the file is reopened and
+a new ATR is written to it.
+.
+.ig
+.SS Ibuddy
+.PP
+Ibuddy supports a USB I-buddy toy, a little winged-demon.
+The driver provides one directory per attached toy with a single
+.BR ctl
+file to control the device.
+Directories are named
+.BR ibuddyN ,
+being
+.I N
+the corresponding usb device number.
+When read, the
+.BR ctl
+file provides the state of the device in this form:
+.IP
+.EX
+hips right|left
+wings open|close
+red on|off
+green on|off
+blue on|off
+heart on|off
+.EE
+.PP
+Each line describes the status of one feature.
+.IR  Red ,
+.IR  blue ,
+and
+.IR  green
+are the different leds in the head of
+the toy.
+.IR  Heart
+represents the red led in the chest of
+the toy.
+.IR  Wings
+represents the status of the wings, which
+can be closed or open.
+.IR  Hips
+represents the orientation
+of the toy (left or right, from the figure's point of view).
+.PP
+Lines can be written to the
+.BR ctl
+file to command the device.
+Multiple lines (six at most) can be written
+at once, with one action per line.
+..
+.SH SOURCE
+.B /sys/src/cmd/usb
+.SH "SEE ALSO"
+.IR kbin (3),
+.IR mouse (3),
+.IR sd (3),
+.IR uart (3),
+.IR usb (3),
+.IR usbd (4),
+.IR partfs (8)
+.SH BUGS
+The various device drivers are generic USB drivers and
+may work only for certain devices on each class.
+.PP
+USB ATA storage devices are not supported.
+.PP
+The Ethernet device works only for certain ASIX-based cards and for CDC devices.
+Both the Ethernet and printer drivers have not
+been tested and it is likely they will fail.
+.PP
+The serial driver works only for the Prolific chip and Ftdi,
+and control of the
+.B dcd
+and
+.B dsr
+signals and some of the extra features are unimplemented.
+For Ftdi, only the Sheevaplug and Guruplug have been tried.
+There is support for the EHCI debug port, but it loses bytes.

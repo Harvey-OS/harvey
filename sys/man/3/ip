@@ -1,0 +1,1269 @@
+.TH IP 3
+.SH NAME
+ip, esp, gre, icmp, icmpv6, ipmux, rudp, tcp, udp \- network protocols over IP
+.SH SYNOPSIS
+.nf
+.2C
+.B bind -a #I\fIspec\fP /net
+.sp 0.3v
+.B /net/ipifc
+.B /net/ipifc/clone
+.B /net/ipifc/stats
+.BI /net/ipifc/ n
+.BI /net/ipifc/ n /status
+.BI /net/ipifc/ n /ctl
+\&...
+.sp 0.3v
+.B /net/arp
+.B /net/bootp
+.B /net/iproute
+.B /net/ipselftab
+.B /net/log
+.B /net/ndb
+.sp 0.3v
+.B /net/esp
+.B /net/gre
+.B /net/icmp
+.B /net/icmpv6
+.B /net/ipmux
+.B /net/rudp
+.B /net/tcp
+.B /net/udp
+.sp 0.3v
+.B /net/tcp/clone
+.B /net/tcp/stats
+.BI /net/tcp/ n
+.BI /net/tcp/ n /data
+.BI /net/tcp/ n /ctl
+.BI /net/tcp/ n /local
+.BI /net/tcp/ n /remote
+.BI /net/tcp/ n /status
+.BI /net/tcp/ n /listen
+\&...
+.1C
+.fi
+.SH DESCRIPTION
+The
+.I ip
+device provides the interface to Internet Protocol stacks.
+.I Spec
+is an integer from 0 to 15 identifying a stack.
+Each stack implements IPv4 and IPv6.
+Each stack is independent of all others:
+the only information transfer between them is via programs that
+mount multiple stacks.
+Normally a system uses only one stack.
+However multiple stacks can be used for debugging
+new IP networks or implementing firewalls or proxy
+services.
+.PP
+All addresses used are 16-byte IPv6 addresses.
+IPv4 addresses are a subset of the IPv6 addresses and both standard
+.SM ASCII
+formats are accepted.
+In binary representation, all v4 addresses start with the 12 bytes, in hex:
+.IP
+.EX
+00 00 00 00 00 00 00 00 00 00 ff ff
+.EE
+.
+.SS "Configuring interfaces
+Each stack may have multiple interfaces and each interface
+may have multiple addresses.
+The
+.B /net/ipifc
+directory contains a
+.B clone
+file, a
+.B stats
+file, and numbered subdirectories for each physical interface.
+.PP
+Opening the
+.B clone
+file reserves an interface.
+The file descriptor returned from the
+.IR open (2)
+will point to the control file,
+.BR ctl ,
+of the newly allocated interface.
+Reading
+.B ctl
+returns a text string representing the number of the interface.
+Writing
+.B ctl
+alters aspects of the interface.
+The possible
+.I ctl
+messages are those described under
+.B "Protocol directories"
+below and these:
+.TF "\fLbind loopback\fR"
+.PD
+.
+.\" from devip.c
+.
+.TP
+.BI "bind ether " path
+Treat the device mounted at
+.I path
+as an Ethernet medium carrying IP and ARP packets
+and associate it with this interface.
+The kernel will
+.IR dial (2)
+.IR path !0x800
+and
+.IR path !0x806
+and use the two connections for IPv4 and
+ARP respectively.
+.TP
+.B "bind pkt
+Treat this interface as a packet interface.  Assume
+a user program will read and write the
+.I data
+file to receive and transmit IP packets to the kernel.
+This is used by programs such as
+.IR ppp (8)
+to mediate IP packet transfer between the kernel and
+a PPP encoded device.
+.TP
+.BI "bind netdev " path
+Treat this interface as a packet interface.
+The kernel will open
+.I path
+and read and write the resulting file descriptor
+to receive and transmit IP packets.
+.TP
+.BI "bind loopback "
+Treat this interface as a local loopback.  Anything
+written to it will be looped back.
+.
+.\" from ipifc.c
+.
+.TP
+.B "unbind
+Disassociate the physical device from an IP interface.
+.TP
+.BI add\  "local mask remote mtu " proxy
+.PD 0
+.TP
+.BI try\  "local mask remote mtu " proxy
+.PD
+Add a local IP address to the interface.
+.I Try
+adds the
+.I local
+address as a tentative address
+if it's an IPv6 address.
+The
+.IR mask ,
+.IR remote ,
+.IR mtu ,
+and
+.B proxy
+arguments are all optional.
+The default
+.I mask
+is the class mask for the local address.
+The default
+.I remote
+address is
+.I local
+ANDed with
+.IR mask .
+The default
+.I mtu
+(maximum transmission unit)
+is 1514 for Ethernet and 4096 for packet media.
+The
+.I mtu
+is the size in bytes of the largest packet that this interface can send.
+.IR Proxy ,
+if specified, means that this machine should answer
+ARP requests for the remote address.
+.IR Ppp (8)
+does this to make remote machines appear
+to be connected to the local Ethernet.
+.TP
+.BI remove\  "local mask"
+Remove a local IP address from an interface.
+.TP
+.BI mtu\  n
+Set the maximum transfer unit for this device to
+.IR n .
+The mtu is the maximum size of the packet including any
+medium-specific headers.
+.TP
+.BI reassemble
+Reassemble IP fragments before forwarding to this interface
+.TP
+.BI iprouting\  n
+Allow
+.RI ( n
+is missing or non-zero) or disallow
+.RI ( n
+is 0) forwarding packets between this interface and
+others.
+.
+.\" remainder from netif.c (thus called from devether.c),
+.\" except add6 and ra6 from ipifc.c
+.
+.TP
+.B bridge
+Enable bridging (see
+.IR bridge (3)).
+.TP
+.B promiscuous
+Set the interface into promiscuous mode,
+which makes it accept all incoming packets,
+whether addressed to it or not.
+.TP
+.BI "connect " type
+marks the Ethernet packet
+.I type
+as being in use, if not already in use
+on this interface.
+A
+.I type
+of -1 means `all' but appears to be a no-op.
+.TP
+.BI addmulti\  Media-addr
+Treat the multicast
+.I Media-addr
+on this interface as a local address.
+.TP
+.BI remmulti\  Media-addr
+Remove the multicast address
+.I Media-addr
+from this interface.
+.TP
+.B scanbs
+Make the wireless interface scan for base stations.
+.TP
+.B headersonly
+Set the interface to pass only packet headers, not data too.
+.
+.\" remainder from ipifc.c; tedious, so put them last
+.
+.TP
+.BI "add6 " "v6addr pfx-len [onlink auto validlt preflt]"
+Add the local IPv6 address
+.I v6addr
+with prefix length
+.I pfx-len
+to this interface.
+See RFC 2461 §6.2.1 for more detail.
+The remaining arguments are optional:
+.RS
+.TF "\fIonlink\fR"
+.TP
+.I onlink
+flag: address is `on-link'
+.TP
+.I auto
+flag: autonomous
+.TP
+.I validlt
+valid life-time in seconds
+.TP
+.I preflt
+preferred life-time in seconds
+.RE
+.PD
+.TP
+.BI "ra6 " "keyword value ..."
+Set IPv6 router advertisement (RA) parameter
+.IR keyword 's
+.IR value .
+Known
+.IR keyword s
+and the meanings of their values follow.
+See RFC 2461 §6.2.1 for more detail.
+Flags are true iff non-zero.
+.RS
+.TF "\fLreachtime\fR"
+.TP
+.B recvra
+flag: receive and process RAs.
+.TP
+.B sendra
+flag: generate and send RAs.
+.TP
+.B mflag
+flag: ``Managed address configuration'',
+goes into RAs.
+.TP
+.B oflag
+flag: ``Other stateful configuration'',
+goes into RAs.
+.TP
+.B maxraint
+``maximum time allowed between sending unsolicited multicast''
+RAs from the interface, in ms.
+.TP
+.B minraint
+``minimum time allowed between sending unsolicited multicast''
+RAs from the interface, in ms.
+.TP
+.B linkmtu
+``value to be placed in MTU options sent by the router.''
+Zero indicates none.
+.TP
+.B reachtime
+sets the Reachable Time field in RAs sent by the router.
+``Zero means unspecified (by this router).''
+.TP
+.B rxmitra
+sets the Retrans Timer field in RAs sent by the router.
+``Zero means unspecified (by this router).''
+.TP
+.B ttl
+default value of the Cur Hop Limit field in RAs sent by the router.
+Should be set to the ``current diameter of the Internet.''
+``Zero means unspecified (by this router).''
+.TP
+.B routerlt
+sets the Router Lifetime field of RAs sent from the interface, in ms.
+Zero means the router is not to be used as a default router.
+.PD
+.RE
+.PP
+Reading the interface's
+.I status
+file returns information about the interface, one line for each
+local address on that interface.  The first line
+has 9 white-space-separated fields: device, mtu, local address,
+mask, remote or network address, packets in, packets out, input errors,
+output errors.  Each subsequent line contains all but the device and mtu.
+See
+.I readipifc
+in
+.IR ip (2).
+.
+.SS "Routing
+The file
+.I iproute
+controls information about IP routing.
+When read, it returns one line per routing entry.
+Each line contains six white-space-separated fields:
+target address, target mask, address of next hop, flags,
+tag, and interface number.
+The entry used for routing an IP packet is the one with
+the longest mask for which destination address ANDed with
+target mask equals the target address.
+The one-character flags are:
+.TF m
+.TP
+.B 4
+IPv4 route
+.TP
+.B 6
+IPv6 route
+.TP
+.B i
+local interface
+.TP
+.B b
+broadcast address
+.TP
+.B u
+local unicast address
+.TP
+.B m
+multicast route
+.TP
+.B p
+point-to-point route
+.PD
+.PP
+The tag is an arbitrary, up to 4 character, string.  It is normally used to
+indicate what routing protocol originated the route.
+.PP
+Writing to
+.B /net/iproute
+changes the route table.  The messages are:
+.TF "\fLtag \fIstring\fR"
+.PD
+.TP
+.B flush
+Remove all routes.
+.TP
+.BI tag\  string
+Associate the tag,
+.IR string ,
+with all subsequent routes added via this file descriptor.
+.TP
+.BI add\  "target mask nexthop"
+Add the route to the table.  If one already exists with the
+same target and mask, replace it.
+.TP
+.BI remove\  "target mask"
+Remove a route with a matching target and mask.
+.
+.SS "Address resolution
+The file
+.B /net/arp
+controls information about address resolution.
+The kernel automatically updates the v4 ARP and v6 Neighbour Discovery
+information for Ethernet interfaces.
+When read, the file returns one line per address containing the
+type of medium, the status of the entry (OK, WAIT), the IP
+address, and the medium address.
+Writing to
+.B /net/arp
+administers the ARP information.
+The control messages are:
+.TF "\fLdel \fIIP-addr\fR"
+.PD
+.TP
+.B flush
+Remove all entries.
+.TP
+.BI add\  "type IP-addr Media-addr"
+Add an entry or replace an existing one for the
+same IP address.
+.TP
+.BI del\  "IP-addr"
+Delete an individual entry.
+.PP
+ARP entries do not time out.  The ARP table is a
+cache with an LRU replacement policy.  The IP stack
+listens for all ARP requests and, if the requester is in
+the table, the entry is updated.
+Also, whenever a new address is configured onto an
+Ethernet, an ARP request is sent to help
+update the table on other systems.
+.PP
+Currently, the only medium type is
+.BR ether .
+.br
+.ne 3
+.
+.SS "Debugging and stack information
+If any process is holding
+.B /net/log
+open, the IP stack queues debugging information to it.
+This is intended primarily for debugging the IP stack.
+The information provided is implementation-defined;
+see the source for details.  Generally, what is returned is error messages
+about bad packets.
+.PP
+Writing to
+.B /net/log
+controls debugging.  The control messages are:
+.TF "\fLclear \fIarglist\fR"
+.PD
+.TP
+.BI set\  arglist
+.I Arglist
+is a space-separated list of items for which to enable debugging.
+The possible items are:
+.BR ppp ,
+.BR ip ,
+.BR fs ,
+.BR tcp ,
+.BR icmp ,
+.BR udp ,
+.BR compress ,
+.BR gre ,
+.BR tcpwin ,
+.BR tcprxmt ,
+.BR udpmsg ,
+.BR ipmsg ,
+and
+.BR esp .
+.TP
+.BI clear\  arglist
+.I Arglist
+is a space-separated list of items for which to disable debugging.
+.TP
+.BI only\  addr
+If
+.I addr
+is non-zero, restrict debugging to only those
+packets whose source or destination is that
+address.
+.PP
+The file
+.B /net/ndb
+can be read or written by
+programs.  It is normally used by
+.IR ipconfig (8)
+to leave configuration information for other programs
+such as
+.B dns
+and
+.B cs
+(see
+.IR ndb (8)).
+.B /net/ndb
+may contain up to 1024 bytes.
+.PP
+The file
+.B /net/ipselftab
+is a read-only file containing all the IP addresses
+considered local.  Each line in the file contains
+three white-space-separated fields: IP address, usage count,
+and flags.  The usage count is the number of interfaces to which
+the address applies.  The flags are the same as for routing
+entries.
+Note that the `IPv4 route' flag will never be set.
+.br
+.ne 3
+.
+.SS "Protocol directories
+The
+.I ip
+device
+supports IP as well as several protocols that run over it:
+TCP, UDP, RUDP, ICMP, GRE, and ESP.
+TCP and UDP provide the standard Internet
+protocols for reliable stream and unreliable datagram
+communication.
+RUDP is a locally-developed reliable datagram protocol based on UDP.
+ICMP is IP's catch-all control protocol used to send
+low level error messages and to implement
+.IR ping (8).
+GRE is a general encapsulation protocol.
+ESP is the encapsulation protocol for IPsec.
+IL provided a reliable datagram service for communication
+between Plan 9 machines over IPv4, but is no longer part of the system.
+.PP
+Each protocol is a subdirectory of the IP stack.
+The top level directory of each protocol contains a
+.B clone
+file, a
+.B stats
+file, and subdirectories numbered from zero to the number of connections
+opened for this protocol.
+.PP
+Opening the
+.B clone
+file reserves a connection.  The file descriptor returned from the
+.IR open (2)
+will point to the control file,
+.BR ctl ,
+of the newly allocated connection.
+Reading
+.B ctl
+returns a text
+string representing the number of the
+connection.
+Connections may be used either to listen for incoming calls
+or to initiate calls to other machines.
+.PP
+A connection is controlled by writing text strings to the associated
+.B ctl
+file.
+After a connection has been established data may be read from
+and written to
+.BR data .
+A connection can be actively established using the
+.B connect
+message (see also
+.IR dial (2)).
+A connection can be established passively by first
+using an
+.B announce
+message (see
+.IR dial (2))
+to bind to a local port and then
+opening the
+.B listen
+file (see
+.IR dial (2))
+to receive incoming calls.
+.PP
+The following control messages are supported:
+.TF "\fLremmulti \fIip\fR"
+.PD
+.TP
+.BI connect\  ip-address ! port "!r " local
+Establish a connection to the remote
+.I ip-address
+and
+.IR port .
+If
+.I local
+is specified, it is used as the local port number.
+If
+.I local
+is not specified but
+.B !r
+is, the system will allocate
+a restricted port number (less than 1024) for the connection to allow communication
+with Unix
+.B login
+and
+.B exec
+services.
+Otherwise a free port number starting at 5000 is chosen.
+The connect fails if the combination of local and remote address/port pairs
+are already assigned to another port.
+.TP
+.BI announce\  X
+.I X
+is a decimal port number or
+.LR * .
+Set the local port
+number to
+.I X
+and accept calls to
+.IR X .
+If
+.I X
+is
+.LR * ,
+accept
+calls for any port that no process has explicitly announced.
+The local IP address cannot be set.
+.B Announce
+fails if the connection is already announced or connected.
+.TP
+.BI bind\  X
+.I X
+is a decimal port number or
+.LR * .
+Set the local port number to
+.IR X .
+This exists to support emulation
+of BSD sockets by the APE libraries (see
+.IR pcc (1))
+and is not otherwise used.
+.\" this is gone
+.\" .TP
+.\" .BI backlog\  n
+.\" Set the maximum number of unanswered (queued) incoming
+.\" connections to an announced port to
+.\" .IR n .
+.\" By default
+.\" .I n
+.\" is set to five.  If more than
+.\" .I n
+.\" connections are pending,
+.\" further requests for a service will be rejected.
+.TP
+.BI ttl\  n
+Set the time to live IP field in outgoing packets to
+.IR n .
+.TP
+.BI tos\  n
+Set the service type IP field in outgoing packets to
+.IR n .
+.TP
+.B ignoreadvice
+Don't break (UDP) connections because of ICMP errors.
+.TP
+.BI addmulti\  "ifc-ip [ mcast-ip ]"
+Treat
+.I ifc-ip
+on this multicast interface as a local address.
+If
+.I mcast-ip
+is present,
+use it as the interface's multicast address.
+.TP
+.BI remmulti\  ip
+Remove the address
+.I ip
+from this multicast interface.
+.PP
+Port numbers must be in the range 1 to 32767.
+.PP
+Several files report the status of a
+connection.
+The
+.B remote
+and
+.B local
+files contain the IP address and port number for the remote and local side of the
+connection.  The
+.B status
+file contains protocol-dependent information to help debug network connections.
+On receiving and error or EOF reading or writing the
+.B data
+file, the
+.B err
+file contains the reason for error.
+.PP
+A process may accept incoming connections by
+.IR open (2)ing
+the
+.B listen
+file.
+The
+.B open
+will block until a new connection request arrives.
+Then
+.B open
+will return an open file descriptor which points to the control file of the
+newly accepted connection.
+This procedure will accept all calls for the
+given protocol.
+See
+.IR dial (2).
+.
+.SS TCP
+TCP connections are reliable point-to-point byte streams; there are no
+message delimiters.
+A connection is determined by the address and port numbers of the two
+ends.
+TCP
+.B ctl
+files support the following additional messages:
+.TF "\fLkeepalive\fI n\fR"
+.PD
+.TP
+.B hangup
+close down this TCP connection
+.TP
+.BI keepalive \ n
+turn on keep alive messages.
+.IR N ,
+if given, is the milliseconds between keepalives
+(default 30000).
+.TP
+.BI checksum \ n
+emit TCP checksums of zero if
+.I n
+is zero; otherwise, and by default,
+TCP checksums are computed and sent normally.
+.TP
+.BI tcpporthogdefense \ onoff
+.I onoff
+of
+.L on
+enables the TCP port-hog defense for all TCP connections;
+.I onoff
+of
+.L off
+disables it.
+The defense is a solution to hijacked systems staking out ports
+as a form of denial-of-service attack.
+To avoid stateless TCP conversation hogs,
+.I ip
+picks a TCP sequence number at random for keepalives.
+If that number gets acked by the other end,
+.I ip
+shuts down the connection.
+Some firewalls,
+notably ones that perform stateful inspection,
+discard such out-of-specification keepalives,
+so connections through such firewalls
+will be killed after five minutes
+by the lack of keepalives.
+.
+.SS UDP
+UDP connections carry unreliable and unordered datagrams.  A read from
+.B data
+will return the next datagram, discarding anything
+that doesn't fit in the read buffer.
+A write is sent as a single datagram.
+.PP
+By default, a UDP connection is a point-to-point link.
+Either a
+.B connect
+establishes a local and remote address/port pair or
+after an
+.BR announce ,
+each datagram coming from a different remote address/port pair
+establishes a new incoming connection.
+However, many-to-one semantics is also possible.
+.PP
+If, after an
+.BR announce ,
+the message
+.L headers
+is written to
+.BR ctl ,
+then all messages sent to the announced port
+are received on the announced connection prefixed
+with the corresponding structure,
+declared in
+.BR <ip.h> :
+.IP
+.EX
+typedef struct Udphdr Udphdr;
+struct Udphdr
+{
+	uchar	raddr[16];	/* V6 remote address and port */
+	uchar	laddr[16];	/* V6 local address and port */
+	uchar	ifcaddr[16];	/* V6 interface address (receive only) */
+	uchar	rport[2];	/* remote port */
+	uchar	lport[2];	/* local port */
+};
+.EE
+.PP
+Before a write, a user must prefix a similar structure to each message.
+The system overrides the user specified local port with the announced
+one.  If the user specifies an address that isn't a unicast address in
+.BR /net/ipselftab ,
+that too is overridden.
+Since the prefixed structure is the same in read and write, it is relatively
+easy to write a server that responds to client requests by just copying new
+data into the message body and then writing back the same buffer that was
+read.
+.PP
+In this case (writing
+.L headers
+to the
+.I ctl
+file),
+no
+.I listen
+nor
+.I accept
+is needed;
+otherwise,
+the usual sequence of
+.IR announce ,
+.IR listen ,
+.I accept
+must be executed before performing I/O on the corresponding
+.I data
+file.
+.
+.SS RUDP
+RUDP is a reliable datagram protocol based on UDP,
+currently only for IPv4.
+Packets are delivered in order.
+RUDP does not support
+.BR listen .
+One must write either
+.L connect
+or
+.L announce
+followed immediately by
+.L headers
+to
+.BR ctl .
+.PP
+Unlike TCP, the reboot of one end of a connection does
+not force a closing of the connection.  Communications will
+resume when the rebooted machine resumes talking.  Any unacknowledged
+packets queued before the reboot will be lost.  A reboot can
+be detected by reading the
+.B err
+file.  It will contain the message
+.IP
+.BI hangup\  address ! port
+.PP
+where
+.I address
+and
+.I port
+are of the far side of the connection.
+Retransmitting a datagram more than 10 times
+is treated like a reboot:
+all queued messages are dropped, an error is queued to the
+.B err
+file, and the conversation resumes.
+.PP
+RUDP
+.I ctl
+files accept the following messages:
+.TF "\fLranddrop \fI[ percent ]\fR"
+.TP
+.B headers
+Corresponds to the
+.L headers
+format of UDP.
+.TP
+.BI "hangup " "IP port"
+Drop the connection to address
+.I IP
+and
+.IR port .
+.TP
+.BI "randdrop " "[ percent ]"
+Randomly drop
+.I percent
+of outgoing packets.
+Default is 10%.
+.
+.SS ICMP
+ICMP is a datagram protocol for IPv4 used to exchange control requests and
+their responses with other machines' IP implementations.
+ICMP is primarily a kernel-to-kernel protocol, but it is possible
+to generate `echo request' and read `echo reply' packets from user programs.
+.
+.SS ICMPV6
+ICMPv6 is the IPv6 equivalent of ICMP.
+If, after an
+.BR announce ,
+the message
+.L headers
+is written to
+.BR ctl ,
+then before a write,
+a user must prefix each message with a corresponding structure,
+declared in
+.BR <ip.h> :
+.IP
+.EX
+/*
+ *  user level icmpv6 with control message "headers"
+ */
+typedef struct Icmp6hdr Icmp6hdr;
+struct Icmp6hdr {
+	uchar	unused[8];
+	uchar	laddr[IPaddrlen];	/* local address */
+	uchar	raddr[IPaddrlen];	/* remote address */
+};
+.EE
+.PP
+In this case (writing
+.L headers
+to the
+.I ctl
+file),
+no
+.I listen
+nor
+.I accept
+is needed;
+otherwise,
+the usual sequence of
+.IR announce ,
+.IR listen ,
+.I accept
+must be executed before performing I/O on the corresponding
+.I data
+file.
+.
+.SS GRE
+GRE is the encapsulation protocol used by PPTP.
+The kernel implements just enough of the protocol
+to multiplex it.
+Our implementation encapsulates in IPv4, per RFC 1702.
+.B Announce
+is not allowed in GRE, only
+.BR connect .
+Since GRE has no port numbers, the port number in the connect
+is actually the 16 bit
+.B eproto
+field in the GRE header.
+.PP
+Reads and writes transfer a
+GRE datagram starting at the GRE header.
+On write, the kernel fills in the
+.B eproto
+field with the port number specified
+in the connect message.
+.br
+.ne 3
+.
+.SS ESP
+ESP is the Encapsulating Security Payload (RFC 1827, obsoleted by RFC 4303)
+for IPsec (RFC 4301).
+We currently implement only tunnel mode, not transport mode.
+It is used to set up an encrypted tunnel between machines.
+Like GRE, ESP has no port numbers.  Instead, the
+port number in the
+.B connect
+message is the SPI (Security Association Identifier (sic)).
+IP packets are written to and read from
+.BR data .
+The kernel encrypts any packets written to
+.BR data ,
+appends a MAC, and prefixes an ESP header before
+sending to the other end of the tunnel.
+Received packets are checked against their MAC's,
+decrypted, and queued for reading from
+.BR data .
+In the following,
+.I secret
+is the hexadecimal encoding of a key,
+without a leading
+.LR 0x .
+The control messages are:
+.TF "\fLesp \fIalg secret\fR"
+.PD
+.TP
+.BI esp\  "alg secret
+Encrypt with the algorithm,
+.IR alg ,
+using
+.I secret
+as the key.
+Possible algorithms are:
+.BR null ,
+.BR des_56_cbc ,
+.BR des3_cbc ,
+and eventually
+.BR aes_128_cbc ,
+and
+.BR aes_ctr .
+.TP
+.BI ah\  "alg secret
+Use the hash algorithm,
+.IR alg ,
+with
+.I secret
+as the key for generating the MAC.
+Possible algorithms are:
+.BR null ,
+.BR hmac_sha1_96 ,
+.BR hmac_md5_96 ,
+and eventually
+.BR aes_xcbc_mac_96 .
+.TP
+.B header
+Turn on header mode.  Every buffer read from
+.B data
+starts with 4 unused bytes, and the first 4 bytes
+of every buffer written to
+.B data
+are ignored.
+.TP
+.B noheader
+Turn off header mode.
+.
+.SS "IP packet filter
+The directory
+.B /net/ipmux
+looks like another protocol directory.
+It is a packet filter built on top of IP.
+Each numbered
+subdirectory represents a different filter.
+The connect messages written to the
+.I ctl
+file describe the filter. Packets matching the filter can be read on the
+.B data
+file.  Packets written to the
+.B data
+file are routed to an interface and transmitted.
+.PP
+A filter is a semicolon-separated list of
+relations.  Each relation describes a portion
+of a packet to match.  The possible relations are:
+.TF "\fLdata[\fIn\fL:\fIm\fL]=\fIexpr\fR "
+.PD
+.TP
+.BI proto= n
+the IP protocol number must be
+.IR n .
+.TP
+.BI data[ n : m ]= expr
+bytes
+.I n
+through
+.I m
+following the IP packet must match
+.IR expr .
+.TP
+.BI iph[ n : m ]= expr
+bytes
+.I n
+through
+.I m
+of the IP packet header must match
+.IR expr .
+.TP
+.BI ifc= expr
+the packet must have been received on an interface whose address
+matches
+.IR expr .
+.TP
+.BI src= expr
+The source address in the packet must match
+.IR expr .
+.TP
+.BI dst= expr
+The destination address in the packet must match
+.IR expr .
+.PP
+.I Expr
+is of the form:
+.TP
+.I \	value
+.TP
+.IB \	value | value | ...
+.TP
+.IB \	value & mask
+.TP
+.IB \	value | value & mask
+.PP
+If a mask is given, the relevant field is first ANDed with
+the mask.  The result is compared against the value or list
+of values for a match.  In the case of
+.BR ifc ,
+.BR dst ,
+and
+.B src
+the value is a dot-formatted IP address and the mask is a dot-formatted
+IP mask.  In the case of
+.BR data ,
+.B iph
+and
+.BR proto ,
+both value and mask are strings of 2 hexadecimal digits representing
+8-bit values.
+.PP
+A packet is delivered to only one filter.
+The filters are merged into a single comparison tree.
+If two filters match the same packet, the following
+rules apply in order (here '>' means is preferred to):
+.IP 1)
+protocol > data > source > destination > interface
+.IP 2)
+lower data offsets > higher data offsets
+.IP 3)
+longer matches > shorter matches
+.IP 4)
+older > younger
+.PP
+So far this has just been used to implement a version of
+OSPF in Inferno
+and 6to4 tunnelling.
+.br
+.ne 5
+.
+.SS Statistics
+The
+.B stats
+files are read only and contain statistics useful to network monitoring.
+.br
+.ne 12
+.PP
+Reading
+.B /net/ipifc/stats
+returns a list of 19 tagged and newline-separated fields representing:
+.EX
+.ft 1
+.2C
+.in +0.25i
+forwarding status (0 and 2 mean forwarding off,
+	1 means on)
+default TTL
+input packets
+input header errors
+input address errors
+packets forwarded
+input packets for unknown protocols
+input packets discarded
+input packets delivered to higher level protocols
+output packets
+output packets discarded
+output packets with no route
+timed out fragments in reassembly queue
+requested reassemblies
+successful reassemblies
+failed reassemblies
+successful fragmentations
+unsuccessful fragmentations
+fragments created
+.in -0.25i
+.1C
+.ft
+.EE
+.br
+.ne 16
+.PP
+Reading
+.B /net/icmp/stats
+returns a list of 26 tagged and newline-separated fields representing:
+.EX
+.ft 1
+.2C
+.in +0.25i
+messages received
+bad received messages
+unreachables received
+time exceededs received
+input parameter problems received
+source quenches received
+redirects received
+echo requests received
+echo replies received
+timestamps received
+timestamp replies received
+address mask requests received
+address mask replies received
+messages sent
+transmission errors
+unreachables sent
+time exceededs sent
+input parameter problems sent
+source quenches sent
+redirects sent
+echo requests sent
+echo replies sent
+timestamps sent
+timestamp replies sent
+address mask requests sent
+address mask replies sent
+.in -0.25i
+.1C
+.EE
+.PP
+Reading
+.B /net/tcp/stats
+returns a list of 11 tagged and newline-separated fields representing:
+.EX
+.ft 1
+.2C
+.in +0.25i
+maximum number of connections
+total outgoing calls
+total incoming calls
+number of established connections to be reset
+number of currently established connections
+segments received
+segments sent
+segments retransmitted
+retransmit timeouts
+bad received segments
+transmission failures
+.in -0.25i
+.1C
+.EE
+.PP
+Reading
+.B /net/udp/stats
+returns a list of 4 tagged and newline-separated fields representing:
+.EX
+.ft 1
+.2C
+.in +0.25i
+datagrams received
+datagrams received for bad ports
+malformed datagrams received
+datagrams sent
+.in -0.25i
+.1C
+.EE
+.PP
+Reading
+.B /net/gre/stats
+returns a list of 1 tagged number representing:
+.EX
+.ft 1
+.in +0.25i
+header length errors
+.in -0.25i
+.EE
+.SH "SEE ALSO"
+.IR dial (2),
+.IR ip (2),
+.IR bridge (3),
+.\" .IR ike (4),
+.IR ndb (6),
+.IR listen (8)
+.br
+.PD 0
+.TF "\fL/lib/rfc/rfc2822"
+.TP
+.B /lib/rfc/rfc2460
+IPv6
+.TP
+.B /lib/rfc/rfc4291
+IPv6 address architecture
+.TP
+.B /lib/rfc/rfc4443
+ICMPv6
+.SH SOURCE
+.B /sys/src/9/ip
+.SH BUGS
+.I Ipmux
+has not been heavily used and should be considered experimental.
+It may disappear in favor of a more traditional packet filter in the future.

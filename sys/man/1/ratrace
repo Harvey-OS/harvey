@@ -1,0 +1,63 @@
+.TH RATRACE 1
+.SH NAME
+ratrace \- trace process system calls
+.SH SYNOPSIS
+.B ratrace
+[
+.I -o tracefile
+]
+[
+.I pid
+] | [
+.I -c command
+]
+.SH DESCRIPTION
+.I Ratrace
+shows the system calls executed by a process,
+either the one with
+.I pid
+or a fresh invocation of
+.IR command .
+.PP
+Trace output is determined by the kernel, not
+.IR ratrace .
+Certain fixed rules apply.
+Trace output by default goes to file descriptor 2.
+Option \fB-o\fP can be used to switch trace output to \fItracefile\fP.
+.PP
+The first four fields of the output are
+pid, text name, system call name, and the PC of the user program.
+Data is always printed as
+.IB pointer /\c
+"\fIstring\fP",
+where the
+.I string
+is the first 32 bytes of the data, with
+.L \&.
+replacing non-printing ASCII characters
+(printing characters are those between ASCII space (SP) and delete (DEL), exclusive).
+Return values follow an
+.LR = ,
+and include the integer return value,
+the
+.I errstr
+(with "" if there is no
+.IR errstr ),
+and
+the start and stop times for the system call in nanoseconds.
+The times are exclusive of the overhead for tracing.
+.SH FILES
+.BI /proc/ pid /syscall
+.br
+.BI /proc/ pid /ctl
+.SH SOURCE
+.B /sys/src/cmd/ratrace.c
+.SH "SEE ALSO"
+.IR acid (1),
+.IR db (1),
+.IR proc (3)
+.SH BUGS
+The printing of the data is too limited in length;
+printing
+.L \&.
+instead of something more sensible is limiting.

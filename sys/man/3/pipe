@@ -1,0 +1,52 @@
+.TH PIPE 3 
+.SH NAME
+pipe \- two-way interprocess communication
+.SH SYNOPSIS
+.B bind #|
+.I dir
+.nf
+
+.IB dir /data
+.IB dir /data1
+.fi
+.SH DESCRIPTION
+.PP
+An
+.IR attach (5)
+of this device allocates two new cross-connected I/O streams,
+.IB dir /data
+and
+.IB dir /data1\f1.
+.PP
+Data written to one channel becomes available for reading at
+the other.
+Write boundaries are preserved: each read terminates
+when the read buffer is full or after reading the last byte
+of a write, whichever comes first.
+.PP
+Writes are atomic up to a certain size, typically 32768 bytes,
+that is, each write will be delivered in a single read by the
+recipient, provided the receiving buffer is large enough.
+.PP
+If there are multiple writers, each
+.I write
+is guaranteed to be available in a contiguous piece at the other
+end of the pipe.
+If there are multiple readers, each read will return data from only
+one write.
+.PP
+The
+.IR pipe (2)
+system call performs an
+.I attach
+of this device and returns file descriptors to the new pipe's
+.B data
+and
+.B data1
+files.
+The files are open with mode
+.BR ORDWR .
+.SH "SEE ALSO"
+.IR pipe (2)
+.SH SOURCE
+.B /sys/src/9/port/devpipe.c

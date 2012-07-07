@@ -1,0 +1,404 @@
+.TH FSCANF 2
+.SH NAME
+fscanf, scanf, sscanf, vfscanf \- scan formatted input
+.SH SYNOPSIS
+.B "#include <u.h>
+.br
+.B "#include <stdio.h>"
+.PP
+.B
+int fscanf(FILE *f, char *format, ...)
+.PP
+.B
+int scanf(char *format, ... )
+.PP
+.B
+int sscanf(char *s, char *format, ...)
+.PP
+.B
+int vfscanf(FILE *stream, char *format, char *args)
+.SH DESCRIPTION
+.I Fscanf
+reads from the named input stream
+.I f
+(see
+.IR fopen (2))
+under control of the string pointed to by
+.I format
+that specifies the admissible input sequences and how they are to be converted
+for assignment, using subsequent arguments as pointers to the objects
+to receive the converted input.
+If there are insufficient arguments for the format, the behavior is undefined.
+If the format is exhausted while arguments remain, the excess arguments
+are evaluated (as always) but are otherwise ignored.
+.PP
+.I Scanf
+and
+.I sscanf
+are the same, but they read from
+.I stdin
+and the character string
+.IR s ,
+respectively.
+.I Vfscanf
+is like
+.IR scanf ,
+except the
+.I args
+argument is a pointer to an argument in an argument list of the
+calling function and the effect is as if the calling function's
+argument list from that point on is passed to the scanf routines.
+.PP
+The format is composed of zero or more directives:
+one or more white-space characters; an ordinary character (not
+.BR % );
+or a conversion specification.
+Each conversion specification is introduced by the character
+.BR %.
+After the
+.BR % ,
+the following appear in sequence:
+.PP
+.RS
+An optional assignment-suppressing character
+.BR * .
+.PP
+An optional decimal integer that specifies the maximum field width.
+.PP
+An optional
+.BR h ,
+.B l
+(ell) or
+.B L
+indicating the size of the receiving object.
+The conversion specifiers
+.BR d ,
+.BR i ,
+and
+.B n
+shall be preceded by
+.B h
+if the corresponding argument is a pointer to
+.B short
+rather than a pointer to
+.BR int ,
+or by
+.B l
+if it is a pointer to
+.BR long .
+Similarly, the conversion specifiers
+.BR o ,
+.BR u ,
+and
+.B x
+shall be preceded by
+.B h
+if the corresponding argument is a pointer to
+.B unsigned
+.B short
+rather than a pointer to
+.BR unsigned ,
+or by
+.B l
+if it is a pointer to
+.B unsigned
+.BR long .
+Finally, the conversion specifiers
+.BR e ,
+.BR f ,
+and
+.B g
+shall be preceded by
+.B l
+if the corresponding argument is a pointer to
+.B double
+rather than a pointer to
+.BR float ,
+or by
+.B L
+if it is a pointer to
+.B long
+.BR double .
+If an
+.BR h ,
+.BR l ,
+or
+.B L
+appears with any other conversion specifier, the behavior is undefined.
+.PP
+A character that specifies the type of conversion to be applied.
+The valid conversion specifiers are described below.
+.RE
+.PP
+.I Fscanf
+executes each directive of the format in turn.
+If a directive fails, as detailed below,
+.I fscanf
+returns.
+Failures are described as input failures (due to the unavailability
+of input),
+or matching failures (due to inappropriate input).
+.PP
+A directive composed of white space is executed by reading input up
+to the first non-white-space character (which remains unread),
+or until no more characters can be read.
+.PP
+A directive that is an ordinary character is executed by reading
+the next character from the stream.
+If if differs from the one comprising the directive,
+the directive fails, and the differing and subsequent characters
+remain unread.
+.PP
+A directive that is a conversion specification defines a set of
+matching input sequences, as described below for each specifier.
+A conversion specification is executed in the following steps:
+.PP
+Input white-space characters (as specified by
+.IR isspace ,
+see
+.IR ctype (2))
+are skipped, unless the specification includes a
+.BR [ ,
+.BR c ,
+or
+.B n
+specifier.
+.PP
+An input item is read from the stream,
+unless the specification includes an
+.B n
+specifier.
+An input item is defined as the longest sequence of input characters
+(up to any specified maximum field width) which is an initial
+subsequence of a matching sequence.
+The first character, if any, after the input item remains unread.
+If the length of the input item is zero, the execution of
+the directive fails: this condition is a matching failure,
+unless an error prevented input from the stream,
+in which case it is an input failure.
+.PP
+Except in the case of a
+.B %
+specifier, the input item (or, in the case of a
+.B %n
+directive, the count of input characters)
+is converted to a type appropriate to the conversion specifier.
+If the input item is not a matching sequence, the execution of
+the directive fails: this condition is a matching failure.
+Unless assignment suppression was indicated by a
+.BR * ,
+the result of the conversion is placed in the object pointed to by the
+first argument following the
+.I format
+argument that has not already received a conversion result.
+If this object does not have an appropriate type,
+or if the result of the conversion cannot be represented
+in the space provided, the behavior is undefined.
+.PP
+The following conversion specifiers are valid:
+.TP 6
+.B d
+Matches an optionally signed decimal integer,
+whose format is the same as expected for the subject sequence
+of the
+.I strtol
+(see
+.IR atof (2))
+function with 10 for the
+.B base
+argument.
+The corresponding argument shall be a pointer to
+.BR int .
+.TP
+.B i
+Matches an optionally signed decimal integer,
+whose format is the same as expected for the subject sequence
+of the
+.I strtol
+function with 0 for the
+.B base
+argument.
+The corresponding argument shall be a pointer to
+.BR int .
+.TP
+.B o
+Matches an optionally signed octal integer,
+whose format is the same as expected for the subject sequence
+of the
+.I strtoul
+(see
+.IR atof (2))
+function with 8 for the
+.B base
+argument.
+The corresponding argument shall be a pointer to
+.B unsigned
+.BR int .
+.TP
+.B u
+Matches an optionally signed decimal integer,
+whose format is the same as expected for the subject sequence
+of the
+.I strtoul
+function with 10 for the
+.B base
+argument.
+The corresponding argument shall be a pointer to
+.B unsigned
+.BR int .
+.TP
+.B x
+Matches an optionally signed hexadecimal integer,
+whose format is the same as expected for the subject sequence
+of the
+.I strtoul
+function with 16 for the
+.B base
+argument.
+The corresponding argument shall be a pointer to
+.B unsigned
+.BR int .
+.TP
+.BR e , f , g
+Matches an optionally signed floating-point number, whose format is
+the same as expected for the subject string of the
+.I strtod
+(see
+.IR atof (2))
+function.
+The corresponding argument shall be a pointer to
+.BR float .
+.TP
+.B s
+Matches a sequence of non-white-space characters.
+The corresponding argument shall be a pointer to the initial
+character of an array large enough to accept the sequence
+and a terminating NUL (0) character, which will be added automatically.
+.TP
+.B [
+Matches a nonempty sequence of characters from a set of expected
+characters (the
+.IR scanset ).
+The corresponding argument shall be a pointer to the initial
+character of an array large enough to accept the sequence and a terminating
+NUL character, which will be added automatically.
+The conversion specifier includes all subsequent characters in the
+.I format
+string, up to and including the matching right brace
+.RB ( ] ).
+The characters between the brackets (the
+.IR scanlist )
+comprise the scanset, unless the character after the left bracket
+is a circumflex
+.RB ( ^ ),
+in which case the scanset contains all characters that do not appear
+in the scanlist between the circumflex and the right bracket.
+As a special case, if the conversion specifier begins with
+.B []
+or
+.BR [^] ,
+the right bracket character is in the scanlist and the next
+right bracket character is the matching right bracket
+that ends the specification.
+If a
+.B -
+character is in the scanlist and is not the first, nor the second
+where the first character is a
+.BR ^ ,
+nor the last character, the behavior is implementation-defined
+(in Plan 9: the scanlist includes all characters in the
+.SM ASCII
+(sic)
+range between the two characters on either side of the
+.BR - ).
+.TP
+.B c
+Matches a sequence of characters of the number specified by the field width
+(1 if no field width is present in the directive).
+The corresponding argument shall be a pointer to the initial character
+of an array large enough to accept the sequence.
+No NUL character is added.
+.TP
+.B P
+Matches an implementation-defined set of sequences,
+which should be the same as the set of sequences that may be
+produced by the
+.B %P
+conversion of the
+.IR fprintf (2)
+function
+(in Plan 9, a hexadecimal number).
+The corresponding argument shall be a pointer to a pointer to
+.BR void .
+The interpretation of the input item is implementation defined;
+however, for any input item other than a value converted earlier
+during the same program execution, the behavior of the
+.B %P
+conversion is undefined.
+.TP
+.B n
+No input is consumed.
+The corresponding argument shall be a pointer to integer into which
+is written the number of characters read from the input stream so far
+by this call to
+.IR fscanf .
+Execution of a
+.B %n
+directive does not increment the assignment count returned at the
+completion of
+.IR fscanf .
+.TP
+.B %
+Matches a single
+.BR % ;
+no conversion or assignment occurs.
+The complete conversion specification shall be
+.BR %% .
+.PD
+.PP
+If a conversion specification is invalid, the behavior is undefined.
+.PP
+The conversion specifiers
+.BR E ,
+.BR G ,
+and
+.B X
+are also valid and behave the same as, respectively,
+.BR e ,
+.BR g ,
+and
+.BR x .
+.PP
+If end-of-file is encountered during input, conversion is terminated.
+If end-of-file occurs before any characters matching the current
+directive have been read (other than leading white space,
+where permitted), execution of the current directive terminates with
+an input failure;
+otherwise, unless execution of the current directive is terminated
+with a matching failure, execution of the following directive
+(if any) is terminated with an input failure.
+.PP
+If conversion terminates on a conflicting input character,
+the offending input character is left unread in the input stream.
+Trailing white space (including newline characters) is left unread
+unless matched by a directive.
+The success of literal matches and suppressed assignments is not
+directly determinable other than via the
+.B %n
+directive.
+.PP
+The return value from
+.I fscanf
+is the number of input items assigned, which can be fewer than
+provided for, or even zero, in the event of an early matching failure.
+However, if an input failure occurs before any conversion,
+.B EOF
+is returned.
+.SH SOURCE
+.B /sys/src/libstdio
+.SH "SEE ALSO"
+.IR fopen (2),
+.IR fgetc (2)
+.SH BUGS
+Does not know about
+.SM UTF.

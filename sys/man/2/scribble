@@ -1,0 +1,162 @@
+.TH SCRIBBLE 2
+.SH NAME
+scribblealloc,
+recognize \- character recognition
+.SH SYNOPSIS
+.PP
+.EX
+.ta 4n +4n +4n +4n +4n +4n +4n +4n +4n +4n
+#include <u.h>
+#include <libc.h>
+#include <draw.h>
+#include <scribble.h>
+
+Scribble	*scribblealloc(void);
+Rune		recognize(Scribble *);
+.EE
+.SH DESCRIPTION
+.PP
+The scribble library implements simple character recognition.
+All characters are drawn using a single stroke of the pen (mouse button 1)
+as on a palmtop computer.
+A reference card is in
+.BR /sys/src/libscribble/quickref.gif .
+.PP
+The library is not really intended for standalone use.  Its primary
+use is by the scribble graphical control (see
+.IR control (2)).
+.PP
+.B Scribblealloc
+allocates and returns an appropriately initialized
+.B Scribble
+structure:
+.IP
+.EX
+.ta 4n +4n +4n +4n +4n +4n +4n +4n +4n +4n
+#define	CS_LETTERS			0
+#define	CS_DIGITS			1
+#define	CS_PUNCTUATION	2
+
+struct Scribble {
+	/* private state */
+	Point			*pt;
+	int			ppasize;
+	Stroke	   ps;
+	Graffiti		*graf;
+	int			capsLock;
+	int			puncShift;
+	int			tmpShift;
+	int			ctrlShift;
+	int			curCharSet;
+};
+.EE
+.PP
+This structure encodes the points making up the stroke
+to be recognized, as well as the \f2character group\fP in which
+the stroke should be searched.
+.PP
+There are three such groups:
+.IR letters ,
+.IR digits ,
+and
+.IR punctuation .
+The current group is encoded in the
+.B curCharSet
+field of the
+.B Scribble
+structure.
+Special strokes are recognized to switch between groups.
+In addition, the charater recognized is influenced by
+.I mode
+parameters and modifies them.
+These are identified by the
+.BR capsLock ,
+.BR puncShift ,
+.BR tmpShift ,
+and
+.B ctrlShift
+fields of the
+.B Scribble
+structure.
+When
+.B puncShift
+is non-zero, the character is recognized in the punctuation
+character set.
+Similarly,
+when the character recognized is printable and
+.B ctrlShift
+is set, the associated control character is returned as if the
+control key were depressed,
+and when the character is a letter and
+.B capsLock
+or
+.B tmpShift
+is set, the upper-case version is returned.
+The
+.B puncShift
+and
+.B tmpShift
+flags are turned off
+once a character has been recognized; the others are left set.
+.PP
+The character to be recognized is encoded as an array of pen_points in the
+.B ps
+field.
+To allow easy drawing of the stroke as it is drawn,
+the
+.I pt
+and
+.I ppasize
+fields are available to the application code for storing an array
+of points for a call to
+.B poly
+(see
+.IR draw (2)).
+.PP
+.I Recognize
+recognizes the character provided in the
+.B ps
+field of the
+.B Scribble
+structure; it
+returns the rune or zero if nothing was recognized.
+.SH FILES
+.B /sys/src/libscribble/quickref.gif
+serves as a quick reference card.
+.PP
+.B /sys/lib/scribble/classifiers
+contains the stroke definitions.
+.SH SOURCE
+.B /sys/src/libscribble
+.PP
+This library is adapted from software reproduced by permission:
+.PP
+.B Graffiti.c
+is based on the file
+.B Scribble.c
+copyrighted
+by Keith Packard:
+.IP
+Copyright © 1999 Keith Packard
+.PP
+Permission to use, copy, modify, distribute, and sell this software and its
+documentation for any purpose is hereby granted without fee, provided that
+the above copyright notice appear in all copies and that both that
+copyright notice and this permission notice appear in supporting
+documentation, and that the name of Keith Packard not be used in
+advertising or publicity pertaining to distribution of the software without
+specific, written prior permission.  Keith Packard makes no
+representations about the suitability of this software for any purpose.  It
+is provided "as is" without express or implied warranty.
+.PP
+Portions of the software Copyright © 1994 by Sun Microsystems Computer Company.
+.PP
+Portions of the software Copyright © 2000 by Compaq Computer Corporation.
+.SH SEE ALSO
+.B Keyboard
+and
+.B prompter
+in
+.IR bitsyload (1),
+.IR draw (2),
+.IR control (2)

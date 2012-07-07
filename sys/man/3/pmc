@@ -1,0 +1,96 @@
+.TH PMC 3 
+.SH NAME
+pmc \- performance monitoring counters
+.SH SYNOPSIS
+.nf
+.B bind '#ε' /dev
+
+.BI #ε/core0000/ctrdesc
+.BI #ε/core0000/ctr00
+.BI #ε/core0000/ctr00ctl
+.BI #ε/core0000/ctr01
+.BI #ε/core0000/ctr01ctl
+ ...
+.BI #ε/core0001/ctr00
+.BI #ε/core0001/ctr00ctl
+.BI #ε/core0001/ctr01
+.BI #ε/core0001/ctr01ctl
+ ...
+.fi
+.SH DESCRIPTION
+.PP
+The
+.I pmc
+device serves a two-level directory, giving
+access to the hardware counters on the
+different cores.
+There is a directory per core,
+.B coreNNNN,
+containing files
+pertaining to that core.
+.PP
+The
+.B ctrNN
+files provide access to the value of the counters.
+The corresponding control file configures the counter.
+It accepts the following commands:
+.TP
+.B reset
+Clears the configuration for the counter disabling any possible
+feature it has.
+.TP
+.B user
+The counter only runs when the processor is in user space.
+.TP
+.B os
+The counter only runs when the processor is in the kernel.
+.TP
+.BI "set configuration
+Sets the counter configuration. The detail of what the configuration
+means is left to the specific implementation of the counter. Reading the
+.B ctrdesc
+file, gives back some common possible configurations for
+this particular driver and processor, one per line.
+.TP
+.BI enable
+Enables the counter which both makes it to start running and enables
+any other way to access the counter from user space, like special
+instructions.
+.PP
+Any change to or from the counters or the configurations is seen
+as soon as possible. In the worst case, it is guaranteed that the values
+read or set are at least as fresh as the last time a process went in or out
+of the kernel on that core.
+.PP
+Configure the counter 0 to count L2 misses in the kernel.
+.EX
+	% bind '#ε' /dev
+	% cat /dev/ctrdesc
+		locked instr
+		SMI intr
+		data access
+		data miss
+		L1 DTLB miss
+		L2 DTLB miss
+		L1 DTLB hit
+		L2 hit
+		L2 miss
+		instr miss
+		L1 ITLB miss
+		L2 ITLB miss
+		DRAM access
+		L3 miss
+	% echo reset > /dev/core0000/ctr00ctl
+	% echo kernel > /dev/core0000/ctr00ctl
+	% echo set L2 miss > /dev/core0000/ctr00ctl
+	% echo enable > /dev/core0000/ctr00ctl
+	% cat /dev/core0000/ctr00
+		0x00000000000003e5
+	%
+.EE
+.SH "SEE ALSO
+.IR pmc (2)
+.SH SOURCE
+.B /sys/src/9/port/pmc.h
+.B /sys/src/9/port/devpmc.c
+.B /sys/src/9/k8/pmcio.c

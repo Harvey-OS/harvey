@@ -1,0 +1,189 @@
+.TH LP 1 
+.SH NAME
+lp \- printer output
+.SH SYNOPSIS
+.B lp
+[
+.I option ...
+]
+[
+.I file ...
+]
+.SH DESCRIPTION
+.I Lp
+is a generalized output printing service.
+It can be used to queue files for printing,
+check a queue, or kill jobs in a queue.
+The options are:
+.TF -d\ \fIde\fP
+.TP
+.BI -d " dest"
+Select the destination printer.
+If
+.I dest
+is
+.LR ? ,
+list the currently available printers.
+In the absence of
+.LR -d ,
+the destination is taken from the environment variable
+.BR LPDEST .
+Destination
+.L stdout
+is the standard output.
+Destination
+.L safari
+is
+.L /dev/lpt1data
+line printer port on a 386 machine, assumed
+to be connected to a PostScript printer.
+Destinations 
+.L hpdeskjet
+and
+.L bjc240l
+are also
+.L /dev/lpt1data
+but assumed to be connected to an HP Deskjet 670 or
+Canon BJC-240.
+.I Lp
+can print to any printer supported by
+Ghostscript using syntax
+.BI gs!device
+where
+.I device
+is a Ghostscript output device.
+See
+.IR gs (1)
+and the 
+.L canonbjc240l 
+entry in
+.LR /sys/lib/lp/devices .
+.TP
+.B -k
+Kill the job(s) given as subsequent arguments, instead of file names,
+for the given destination.
+.TP
+.BI -p " proc"
+The given processor is invoked.
+The default processor is
+.LR generic ,
+which tries to do the right thing for regular text, 
+.IR troff (1)
+output, or 
+.IR tex (1)
+output.
+If no processing is desired
+.L noproc
+may be specified.
+.TP
+.B -q
+Print the queue for the given destination.
+For some devices, include printer status.
+.TP
+.B -R
+Stops and restarts the printer daemon.
+If the printer is wedged, it is often useful to cycle the power on the printer
+before running this command.
+.PD
+.PP
+The remaining options may be used to affect the output at a given device.
+These options may not be applicable to all devices.
+.TF "-p\ \fIpr\fP"
+.TP
+.BI -c " n"
+Print
+.I n
+copies.
+.TP
+.BI -f " font"
+Set the font (default
+.LR CW.11 ).
+.TP
+.BI -H
+Suppress printing of header page.
+.TP
+.BI -i " n"
+Select paper input tray.
+.I n
+may be a number 0-9, the word
+.L man
+for the manual feed slot, and/or
+.L simplex
+or
+.L duplex
+to get single or double sided output.
+Multiple input tray options may be specified if they are
+separated by commas.
+.TP
+.BI -l " n"
+Set the number of lines per page to
+.IR n .
+.TP
+.B -L
+Print pages in landscape mode (i.e. turned 90 degrees).
+.TP
+.BI -m " v"
+Set magnification to
+.IR v .
+.TP
+.BI -n " n"
+Print
+.I n
+logical pages per physical page.
+.TP
+.BI -o " list"
+Print only pages whose page numbers appear in
+the comma-separated
+.I list
+of numbers and ranges.
+A range
+.IB n - m
+means pages
+.I n
+through
+.IR m ;
+a range
+.BI - n
+means from the beginning to page
+.IR n ;
+a range
+.IB n -
+means from page
+.I n
+to the end. 
+.TP
+.B -r
+Reverse the order of page printing.
+.TP
+.BI -x " v"
+Set the horizontal
+offset of the print image, measured in inches.
+.TP
+.BI -y " v"
+Set the vertical
+offset of the print image, measured in inches.
+.SH EXAMPLES
+.TP 0
+.L
+eqn paper | troff -ms | lp -dsafari
+Typeset and print a paper containing equations.
+.TP
+.L
+pr -l100 file | lp -l100 -fCW.8
+Print a file in a small font at 100 lines per page.
+.TP
+.L
+lp -dstdout /dev/windows/3/window > doc.ps
+Convert an image to a postscript file.
+.SH SOURCE
+.nf
+.B /rc/bin/lp
+.B /sys/src/cmd/lp
+.SH SEE ALSO
+.IR lp (8)
+.br
+P. Glick,
+``A Guide to the Lp Printer Spooler''.
+.SH BUGS
+Not all options work with all output devices.
+Any user can kill any job.

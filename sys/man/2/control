@@ -1,0 +1,1948 @@
+.TH CONTROL 2
+.SH NAME
+Control,
+Controlset,
+activate,
+closecontrol,
+closecontrolset,
+controlcalled,
+controlwire,
+createbox,
+createboxbox,
+createbutton,
+createcolumn,
+createentry,
+createkeyboard,
+createlabel,
+createmenu,
+createradiobutton,
+createrow,
+createscribble,
+createslider,
+createstack,
+createtab,
+createtext,
+createtextbutton,
+ctlerror,
+ctlmalloc,
+ctlrealloc,
+ctlstrdup,
+ctlprint,
+deactivate,
+freectlfont,
+freectlimage,
+initcontrols,
+namectlfont,
+namectlimage,
+newcontrolset,
+resizecontrolset
+\- interactive graphical controls
+.SH SYNOPSIS
+.EX
+.ta 4n +4n +4n +4n +4n +4n +4n
+#include <u.h>
+#include <libc.h>
+#include <draw.h>
+#include <thread.h>
+#include <keyboard.h>
+#include <mouse.h>
+#include <control.h>
+.sp 0.3
+typedef struct Control Control;
+typedef struct Controlset Controlset;
+.sp 0.3
+struct Control
+{
+	char		*name;
+	Rectangle	rect;	/* area on screen */
+	Rectangle	size;	/* min/max Dx, Dy (not a rect) */
+	Channel	*event;	/* chan(char*) to client */
+	Channel	*data;	/* chan(char*) to client */
+	\&...
+};
+.sp 0.3
+struct Controlset
+{
+	\&...
+	Channel		*ctl;
+	Channel		*data;
+	\&...
+	int	clicktotype;
+	\&...
+};
+.sp 0.3
+void		initcontrols(void)
+.sp 0.3
+Controlset*	newcontrolset(Image *i, Channel *kc, Channel *mc, Channel *rc)
+.sp 0.3
+void		closecontrolset(Controlset *cs)
+.sp 0.3
+int		namectlfont(Font *font, char *name)
+.sp 0.3
+int		freectlfont(char *name)
+.sp 0.3
+int		namectlimage(Image *image, char *name)
+.sp 0.3
+int		freectlimage(char *name)
+.sp 0.3
+Control*	createbox(Controlset *cs, char *name)
+.sp 0.3
+Control*	createboxbox(Controlset *cs, char *name)
+.sp 0.3
+Control*	createbutton(Controlset *cs, char *name)
+.sp 0.3
+Control*	createcolumn(Controlset*, char*)
+.sp 0.3
+Control*	createentry(Controlset *cs, char *name)
+.sp 0.3
+Control*	createkeyboard(Controlset *cs, char *name)
+.sp 0.3
+Control*	createlabel(Controlset *cs, char *name)
+.sp 0.3
+Control*	createmenu(Controlset *cs, char *name)
+.sp 0.3
+Control*	createradiobutton(Controlset *cs, char *name)
+.sp 0.3
+Control*	createrow(Controlset*, char*)
+.sp 0.3
+Control*	createscribble(Controlset *cs, char *name)
+.sp 0.3
+Control*	createslider(Controlset *cs, char *name)
+.sp 0.3
+Control*	createstack(Controlset*, char*)
+.sp 0.3
+Control*	createtab(Controlset*, char *)
+.sp 0.3
+Control*	createtext(Controlset *cs, char *name)
+.sp 0.3
+Control*	createtextbutton(Controlset *cs, char *name)
+.sp 0.3
+void		closecontrol(Control *c)
+.sp 0.3
+int		ctlprint(Control*, char*, ...);
+.sp 0.3
+void		ctlerror(char *fmt, ...)
+.sp 0.3
+Control*	controlcalled(char *name)
+.sp 0.3
+void		controlwire(Control *c, char *cname, Channel *ch)
+.sp 0.3
+void		activate(Control *c)
+.sp 0.3
+void		deactivate(Control *c)
+.sp 0.3
+void		resizecontrolset(Controlset *cs)
+.sp 0.3
+void*		ctlmalloc(uint n)
+.sp 0.3
+void*		ctlrealloc(void *p, uint n)
+.sp 0.3
+char*		ctlstrdup(char *s)
+.sp 0.3
+int		ctldeletequits;
+.EE
+.SH DESCRIPTION
+This library provides a set of interactive
+controls for graphical displays: buttons, sliders, text entry boxes, and so on.
+It also provides aggregator
+.BR Control s:
+boxes, columns, rows and stacks of
+.BR Control s.
+A stack is a collection of co-located
+.BR Control s,
+of which one is normally visible.
+A
+.B Controlset
+collects a group of
+.BR Control s
+that share mouse and keyboard.  Each
+.B Controlset
+has a separate thread of control that processes keyboard and mouse events as
+well as commands to be passed on to the
+.BR Control s.
+Since each
+.B Controlset
+uses a thread, programs using the control library must
+be linked with the thread library,
+.IR thread (2).
+.PP
+.BR Control s
+are manipulated by reading and writing to the control channel,
+.BR ctl ,
+of their
+.BR Controlset .
+.BR Channel s
+are defined in
+.IR thread (2).
+Each
+.B Control
+has two output channels:
+.B Event
+delivers messages about actions within the control (such as a button press) and
+.B data
+delivers (if requested by an appropriate write to
+.BR ctl )
+control-specific data such as the contents of a field.
+.PP
+The library provides a simple mechanism for automatic layout:
+the minimum and maximum sizes of each simple control can be specified.
+.BR Boxbox ,
+.BR row ,
+.B column
+and
+.B stack
+.BR Control s
+then use these sizes to lay out their constituent
+.BR Control s
+when called upon
+to do so.  See the description of these grouping
+.BR Control s
+for further details.
+.SS "Message format
+All messages are represented as
+.SM UTF\c
+-8
+text.
+Numbers are formatted in decimal, and strings are transmitted in the
+quoted form of
+.IR quote (2).
+.PP
+Messages sent to a
+.B Controlset
+are of the form,
+.IP
+.IR sender :
+.I destination
+.I verb
+.RI [ argument
+\&... ]
+.LP
+The sender (and the colon following it) may be ommitted.
+For example, the initial field of a text entry control called
+.I entry
+could be set by sending the message,
+.IP
+.B "entry value 'Hello, world!'
+.PP
+to its
+.BR Controlset 's
+.B ctl
+file.
+This message contains the verb
+.B value
+and the single argument
+.B "Hello, world!"
+.PP
+To make it easy to write messages, the function
+.IR chanprint
+(see
+.IR thread (2))
+can be used to print formatted text to a
+.BR Controlset 's
+channel.
+.PP
+The
+.B %q
+and
+.B %Q
+formats are convenient for properly quoting string arguments,
+as in
+.IP
+.EX
+chanprint(e->event, "value %q", "Don't touch!");
+.EE
+.PP
+It is wise to use
+.B %q
+always instead of
+.BR %s
+when sending messages, and avoid dealing with the quoting explicitly.
+In the other direction,
+.B tokenize
+(see
+.IR getfields (2))
+parses these messages and interprets the quotes correctly.
+.PP
+The destination of a message can be a named control, or a set of controls identified
+by name or type.  The command
+.IP
+.B "'entry slider' show
+.PP
+(note the quotation) sends the `show' command to the entry named
+.I entry
+and all controls of type
+.IR slider .
+If there were a control whose name was
+.I slider
+that control would also be shown.
+.LP
+\f2
+Note that we are still experimenting with destination names.
+One proposal is that
+a destination of the form
+\fR"`name1 name2 ⋯ type1 type2 ⋯'\fP
+selects all controls of the named types in the control hierarchies (of columns, rows and
+stacks) whose names precede the types.
+.LP
+Messages sent by a control on its
+.B event
+channel are of the form
+.IP
+.IB sender :
+.IB event
+.PP
+The
+.I sender
+is the name of the control sending the message;
+the
+.I event
+describes the event.  Its format can often be controlled by setting the
+.BR Control 's
+.IR "format string" .
+For example, when the user types a newline at a text entry
+.B Control
+named
+.BR entry,
+the control sends the message
+.IP
+.B entry:\ value\ 'Hello\ again!'
+on its
+.B event
+channel.
+.SS "Initialization and Control sets
+After
+.B initdraw
+(see
+.IR graphics (2))
+is called,
+the function
+.I initcontrols
+should be called to initialize the library.
+It calls
+.I quotefmtinstall
+to install the
+.B %q
+and
+.B %Q
+formats; see
+.IR quote (2).
+.PP
+Each control is represented by a
+.B Control
+data structure and is associated with a
+.B Controlset
+that groups a set of controls sharing mouse, keyboard, and display.
+Most applications will need only one
+.BR Controlset ;
+only those with multiple windows or unusual configurations will need
+more than one.
+The function
+.I newcontrolset
+creates a
+.BR Controlset .
+Its arguments are the image (usually a window)
+on which its controls will appear, typically the
+.B screen
+variable in the draw library, and three channels:
+.BR kc ,
+a channel of
+.B Runes
+from the keyboard;
+.BR mc ,
+a channel of
+.B Mouse
+structures from the mouse;
+and
+.BR rc ,
+a channel of
+.B int
+that indicates when the window has been resized.
+Any of the channels may be nil,
+in which case
+.I newcontrolset
+will call
+.B initkeyboard
+and/or
+.B initmouse
+(see
+.IR keyboard (2)
+and
+.IR mouse (2))
+to initialize the keyboard and mouse
+and connect them to the control set.
+The mouse and resize channels must both be nil or both be non-nil.
+.PP
+The function
+.I closecontrolset
+frees all the controls in the control set and tears down all the associated threads.
+It does not close the mouse and keyboard.
+.PP
+The public elements of a
+.B Controlset
+are the flag
+.BR clicktotype ,
+and the
+.I ctl
+and
+.I data
+channels.
+.PP
+.I Clicktotype
+is zero by default.
+If it is set to non-zero, the controls
+in the set will acquire `focus' by the click-to-type paradigm.
+Otherwise, focus is always given to the control under the mouse.
+.PP
+Commands for controls are sent through the
+.BR Controlset 's
+.I ctl
+channel.
+One special command is recognized by the
+.B Controlset
+itself:  Sending
+the string
+.B sync
+to the
+.I ctl
+channel causes tha string to be echoed to the
+.BR Controlset 's
+.I data
+channel when all commands up to the
+.I sync
+command have been processed.  The string is
+allocated and must be freed (see
+.IR malloc (2)).
+Synchronization is necessary between sending a command, for example, to resize
+all controls, and using their
+.I rect
+fields.
+.PP
+The function
+.I resizecontrolset
+must be provided by the user.
+When the associated window is resized, the library will call
+.I resizecontrolset
+with the affected
+.BR Controlset ;
+the function should reconnect to and redraw the window.
+.PP
+If all windows are organized in a hierachy of
+.IR boxboxes ,
+.IR columns ,
+.I rows
+and
+.IR stacks ,
+and minimum and maximum sizes have already been supplied, only
+the top control needs to be resized (see the
+.I rect
+command below).
+.SS "Fonts and images
+Fonts and images must be given names so they may be referenced
+in messages.
+The functions
+.I namectlfont
+and
+.I namectlimage
+associate a (unique) name with the specified font or image.
+The association is removed by
+.I freectlfont
+and
+.IR freectlimage .
+The font or image is not freed by these functions, however.
+.PP
+The function
+.I initcontrols
+establishes name bindings for all the colors mentioned in
+.BR <draw.h> ,
+such as
+.BR black ,
+.BR white ,
+.BR red ,
+.BR yellow ,
+etc., as well as masks
+.B transparent
+and
+.BR opaque .
+It also sets the name
+.B font
+to refer to the default
+.B font
+variable set up by
+.BR initdraw .
+.SS Creation
+Each type of control has an associated creation function:
+.IR createbutton ,
+.IR createentry ,
+etc.,
+whose arguments are the
+.B Controlset
+to attach it to and a globally unique name for it.
+A control may be destroyed by calling
+.IR closecontrol .
+.PP
+The function
+.I controlcalled
+returns a pointer to the
+.B Control
+with the given
+.IR name ,
+or nil if no such control exists.
+.SS Configuration
+After a control is created, it must be configured using the control-specific
+commands documented below.
+Commands are sent to the
+.B ctl
+channel of the
+.BR Controlset .
+Multiple commands may be sent in a single message; newline characters
+separate commands.
+For an example, see the implementation of
+.I resizecontrolset
+in the
+.B EXAMPLES
+section.
+Note that newline is a separator, not a terminator; the final command
+does not need a newline.
+.PP
+Messages sent to the
+.I ctl
+channel are delivered to all controls that match the
+.I destination
+field.  This field is a set of names separated by spaces, tabs or newlines.
+A control matches the destination if its name or its type is among the set.
+.PP
+The recipient of a message ignores the initial
+.IB sender :
+field of the message, if present,
+making it possible to send messages generated on an
+.B event
+channel directly to another control's
+.B ctl
+channel.
+.SS Activation
+When they are created, controls are disabled: they do not respond to
+user input.
+Not all controls need to be responsive;
+for example, labels are static and a text display
+might show a log of messages but not be useful to edit.
+But buttons, entry boxes, and other text displays should be active.
+.PP
+To enable a control, call the
+.I activate
+function, which
+specifies that the
+.B Control
+.I c
+should respond to mouse and keyboard events;
+.I deactivate
+turns it off again.
+.PP
+Controls can be either
+.I revealed
+(default) or
+.IR hidden .
+When a control is hidden, it will not receive mouse or keyboard events
+and state changes or
+.I show
+commands will be ignored until the control is once again
+.IR revealed .
+Control hiding is particularly useful when different controls are overlayed,
+revealing only the `top' one.
+.PP
+The function
+.I controlwire
+permits rearrangement of the channels associated with a
+.BR Control .
+The channel
+.I cname
+(one of
+\f5"data"\fP
+or
+\f5"event"\fP)
+of
+.B Control
+.I c
+is reassigned to the channel
+.IR ch .
+There are several uses for this operation:
+one may reassign all the
+.B event
+channels to a single channel, in effect multiplexing all the events onto
+a single channel;
+or connect the
+.B event
+channel of a slider to the
+.B ctl
+channel for delivery to a text display (after setting the format for the slider's messages
+to name the destination control and the appropriate syntax for the rest of the command)
+to let the slider act as a scroll bar for the text without rerouting the messages explicitly.
+.SS Controls
+The following sections document the individual controls in alphabetical order.
+The layout of each section is a brief description of the control's behavior,
+followed by the messages it sends on
+.BR event ,
+followed by the messages it accepts via the
+.B ctl
+channel.
+The
+.B event
+messages are triggered
+.I only
+by mouse or keyboard action; messages to the
+.B ctl
+file do not cause events to be generated.
+.PP
+All controls accept the following messages:
+.TF \fLreveal
+.TP
+.BI rect " minx miny maxx maxy
+Set the bounding rectangle for the control on the display.
+The syntax generated by the
+.B %R
+print format of the draw library is also acceptable for the coordinates.
+.TP
+.BR size " [ \f2minΔx minΔy maxΔx maxΔy\fP ]
+Set the minimum and maximum size for automatic layout in
+.IR columns ,
+.I rows
+and
+.IR stacks .
+Without its four arguments, this command is ignored by primitive controls
+and used by grouping controls to calculate their minimum and maximum sizes
+by examining those of their constituent members.
+If all primitive controls have been assigned a size, a single size request addressed
+to the top of a layout hierarchy will assign sizes to all grouping
+.BR Control s.
+.TP
+.B hide
+Disable drawing of the control and ignore mouse and keyboard events
+until the control is once again revealed.
+Grouping
+.BR Control s
+(\f2column\fP, \f2row\fP, and \f2stack\fP) pass the
+request down to their constituent
+.BR Control s.
+.TP
+.B reveal
+This is the opposite of
+.BR hide :
+the
+.B Control
+is displayed and mouse and keyboard operations resume.
+Grouping
+.BR Control s
+(\f2column\fP, \f2row\fP, and \f2stack\fP) pass the
+request down to their constituent
+.BR Control s.
+The
+.B reveal
+command for
+.I stacks
+takes an optional argument naming the
+.B Control
+to be revealed; all
+other
+.BR Control s
+will be hidden.
+.TP
+.B show
+Display the
+.B Control
+on its screen if not hidden.
+Some actions will also cause the
+.BR Control s
+to show themselves automatically
+(but never when the
+.B control
+is hidden).
+Grouping
+.BR Control s
+(\f2column\fP, \f2row\fP, and \f2stack\fP) pass the
+request down to their constituent
+.BR Control s.
+.PD
+.PP
+Many messages are common between multiple
+.BR Control s.
+Such messages are described in detail here to avoid repetition.
+In the individual descriptions, only the syntax is presented.
+.TF "\fLformat fmt"
+.TP
+.BI align " n
+Specify the alignment of (some part of) the
+.BR Control 's
+display within its rectangle.
+For textual
+.BR control s,
+the alignment specifies where the text should appear.
+For multiline text, the alignment refers to each line within its box,
+and only the
+horizontal part is honored.
+For other
+.BR Control s,
+the alignment affects the appearance of the display in
+a reasonable way.
+The valid alignments are words with obvious interpretations:
+.BR upperleft ,
+.BR uppercenter ,
+.BR upperright ,
+.BR centerleft ,
+.BR center ,
+.BR centerright ,
+.BR lowerleft, 
+.BR lowercenter ,
+and
+.BR lowerright .
+.TP
+.BI border " n
+Inset the
+.B Control
+(or separate constituent
+.BR Control s
+in
+.IR boxbox ,
+.I column
+and
+.I row
+.BR Control s
+after the next
+.I rect
+command) within its rectangle by
+.I n
+pixels, default zero.
+.TP
+.BI bordercolor " name
+Paint the border of the control with the named color, default black.
+.TP
+.BI focus " n
+The
+.B Control
+now has (if
+.I n
+is non-zero) or does not have ( if
+.I n
+is zero) focus.
+Most
+.BR Control s
+ignore the message; there are plans to make them react.
+.TP
+.BI format " fmt
+Set the format of `value' messages sent on the
+.B event
+channel.
+By default, the format is
+.B \&"%q: value %q"
+for string-valued
+.BR Control s,
+.B \&"%q: value %d"
+for integer-valued
+.B Control s
+such as buttons,
+and
+.B \&"%q: value 0x%x"
+for the keyboard and scribble
+.BR Control s.
+The
+.B %q
+prints the name of the
+.BR Control ;
+the rest the value.
+Any supplied format string must be type-equivalent to the default for that
+.BR Control . 
+.TP
+.BI image " name
+.TP
+.BI light " name
+.TP
+.BI mask " name
+Many controls set a background image or color for display.
+The
+.B image
+message sets the image.
+The
+.B mask
+and
+.B light
+images together specify how the
+.B Control
+shows it is enabled:
+the
+.B light
+is printed through the
+.B mask
+when the state is `on' or `pressed'.
+Otherwise, the image appears unmodified.
+The default image is white; mask opaque; light yellow.
+.TP
+.BI font " name
+.TP
+.BI textcolor " name
+These commands set the font and color for displaying text.
+The defaults are the default
+.B font
+set up by the draw library, and black.
+.TP
+.BI value " v
+Set the value of the
+.BR Control .
+Textual images accept an arbitrary string;
+others an integral value.
+.SS Box
+A box is a trivial control that does nothing more than pass keyboard, mouse,
+and focus messages back on its
+.B event
+channel.
+Keyboard characters are sent in the format
+.IP
+.EX
+boxname: key 0x\f2nn
+.EE
+.PP
+where
+.I nn
+is the hexadecimal value of the character.
+Mouse messages are sent in the format
+.IP
+.EX
+boxname: mouse [\f2x\fP \f2y\fP] \f2but\fP \f2msec\fP
+.EE
+.PP
+where
+.IR x ,
+.IR y ,
+.IR but ,
+and
+.I msec
+are the various fields of the
+.B Mouse
+structure.
+The focus message is just
+.IP
+.EX
+boxname: focus \f2n\f1
+.EE
+.PP
+where
+.I n
+is 0 if the box has lost focus, 1 if it has acquired it.
+.PP
+The box displays within its rectangle
+an image, under mask, with specified alignment.
+The control messages it accepts are:
+.TF "\fLalign a"
+.TP
+.BI align " a
+Controls the placement of the image in the rectangle (unimplemented).
+.TP
+.BI border " b
+.TP
+.BI bordercolor " name
+.TP
+.BI focus " n
+.TP
+.BI hide
+.TP
+.BI image " name
+.TP
+.BI rect " minx miny maxx maxy
+.TP
+.BI reveal
+.TP
+.BI show
+.TP
+.BI size " minΔx minΔy maxΔx maxΔy
+.PD
+.SS Boxbox
+A
+.B boxbox
+allows a set of controls (``boxes'')
+to be displayed in rows and columns within the
+rectangle of the
+.IR boxbox .
+The maximum of the minimum heights of the constituent controls determines the
+number of rows to be displayed.  The number of columns is the minimum that
+allows all
+.BR Control s
+to be displayed.  This aggregator works well for collections
+of buttons, labels, or textbuttons that all have a fixed height.
+.TF "\fLadd name ..."
+.TP
+.BI add " name ...
+adds the named control to the box of controls.  The display order
+is determined by the order of adding.  The first named control is top left,
+the second goes below it, etc.
+It is possible to add one control to multiple grouping controls but
+the layout of the result will be quite unpredictable.
+.TP
+.BI border " width
+.TP
+.BI bordercolor " color
+.TP
+.B hide
+This command is passed on to the member controls.
+.TP
+.BR image " color
+Background color displayed between member controls.
+.TP
+.B reveal
+This command is passed on to the member controls.
+.TP
+.BI separation " width
+Set the separation between member controls to
+.I n
+pixels.
+.TP
+.BI rect " minx miny maxx maxy
+The member controls are layed out within the given rectangle according to
+the minimum and maximum sizes given.  If the rectangle is not large enough
+for the minimum a fatal error is currently generated.
+If the controls at their maximum size are not big enough to fit, they are top-left justified
+at their maximum size in the space given.
+Otherwise, controls will get their minimum size and be enlarged proportional
+to the extra size given by the maximum until they fit given rectangle.
+The members are separated by borders of the width established by
+.IR borderwidth .
+.TP
+.BI remove " name
+Remove the named
+control from the box.
+.TP
+.B show
+This command is passed on to the member controls.
+Show also (re)displays background and borders.
+.TP
+.BR size " \f2minΔx minΔy maxΔx maxΔy\fP
+.PD
+.SS Button
+A button is a simple control that toggles its state when mouse button 1 is pressed on its rectangle.
+Each state change triggers an event message:
+.IP
+.EX
+buttonname: value \f2n\fP
+.EE
+where
+.I n
+encodes the mouse buttons used to make the selection.
+.PP
+The button displays an image (which may of course be a simple color)
+and illuminates in the standard way when it is `on'.
+The control messages it accepts are:
+.TF "\fLborder b"
+.TP
+.BI align " a
+Controls the placement of the image in the rectangle (unimplemented).
+.TP
+.BI border " b
+.TP
+.BI bordercolor " name
+.TP
+.BI focus " n
+.TP
+.BI format " fmt
+.TP
+.BI hide
+.TP
+.BI image " name
+.TP
+.BI light " name
+.TP
+.BI mask " name
+.TP
+.BI rect " minx miny maxx maxy
+.TP
+.BI reveal
+.TP
+.B show
+.TP
+.BI size " minΔx minΔy maxΔx maxΔy
+.TP
+.BI value " n
+Set the button to `on' (if
+.I n
+is non-zero) or `off' (if
+.I n
+is zero).
+.PD
+.SS Column
+A column is a grouping control which lays out its members vertically,
+from top to bottom.  Currently, columns ignore mouse and keyboard
+events, but there are plans to allow dragging the borders (when they
+have non-zero width) between constituent members.
+.TF "\fLadd name .."
+.TP
+.BI add " name ...
+adds the named control to the column of controls.  The vertical order
+is determined by the order of adding.  The first named control goes at
+the top.  It is possible to add one control to multiple grouping controls but
+the layout of the result will be quite unpredictable.
+.TP
+.BI border " width
+Set the border between members to the width given.
+.TP
+.BI bordercolor " color
+.TP
+.B hide
+.TP
+.BR image " color
+Background color displayed between member controls.
+.TP
+.B reveal
+.TP
+.BI separation " width
+Set the separation between member controls to
+.I n
+pixels.
+.TP
+.B show
+These three commands are passed on to the member controls.
+Show also (re)displays the borders between members.
+.TP
+.BI rect " minx miny maxx maxy
+The member controls are layed out within the given rectangle according to
+the minimum and maximum sizes given.  If the rectangle is not large enough
+for the minimum a fatal error is currently generated.  However, see the example
+at the end of this man page.
+If the controls at their maximum size are not big enough to fit, they are centered
+at their maximum size in the space given.
+Otherwise, controls will get their minimum size and be enlarged proportional
+to the extra size given by the maximum until they fit given rectangle.
+The members are separated by borders of the width established by
+.IR borderwidth .
+.TP
+.BI remove " name
+Remove the named control from the column.
+.TP
+.BR size " [ \f2minΔx minΔy maxΔx maxΔy\fP ]
+Without arguments, this command computes the minimum and
+maximum size of a column by adding the minimum and maximum
+heights to set
+.I minΔy
+and
+.IR maxΔy ,
+and it finds the largest minimum and maximum widths to set
+.I minΔy
+and
+.IR maxΔy .
+When called with arguments, it simply sets the minimum and maximum
+sizes to those given.
+.PD
+.SS Entry
+The entry control manages a single line of editable text.
+When the user hits a carriage return anywhere
+in the text, the control generates the event message,
+.IP
+.EX
+entryname: value \f2s\fP
+.EE
+.PP
+with
+.I s
+the complete text of the entry box.
+.PP
+The cursor can be moved by clicking button 1; at the moment,
+there is no way to select characters, only a typing position.
+Some control characters have special actions:
+control-H (backspace) deletes the character before the cursor;
+control-U clears the line; and
+control-V pastes the snarf buffer at the typing position.
+Most important, carriage return sends the text to the event channel.
+.PP
+To enter passwords and other secret text without displaying the
+contents, set the font to one in which all characters are the same.
+The easiest way to do this is to make a font containing only one character,
+at position 0 (NUL), since that position is used to render all
+characters not otherwise defined in the font (see
+.IR draw (2)).
+The file
+.B /lib/font/bit/lucm/passwd.9.font
+defines such a font.
+.PP
+The control messages the entry control accepts are:
+.TF "\fLborder b"
+.TP
+.BI align " a
+Controls the placement of the text in the rectangle.
+.TP
+.BI border " b
+.TP
+.BI bordercolor " name
+.TP
+.BI data
+After receiving this message, the entry will send its value to its
+.B data
+channel as an unadorned, unquoted string.
+.TP
+.BI focus " n
+When it receives focus, the entry box displays a typing cursor.
+When it does not have focus, the cursor is not displayed.
+.TP
+.BI font " name
+.TP
+.BI format " fmt
+.TP
+.BI hide
+.TP
+.BI image " name
+.TP
+.BI rect " minx miny maxx maxy
+.TP
+.B reveal
+.TP
+.B show
+.TP
+.BI size " minΔx minΔy maxΔx maxΔy
+.TP
+.BI textcolor " name
+.TP
+.BI value " s
+Set the string displayed in the entry box.
+.PD
+.SS Keyboard
+The keyboard control implements a simulated keyboard useful on palmtop devices.
+Keystrokes, generated by mouse button 1 on the simulated keys,
+are sent as event messages:
+.IP
+.EX
+keyboardname: value 0x\f2nn\f1
+.EE
+.PP
+where
+.I nn
+is the hexadecimal Unicode value of the character.
+Shift, control, and caps lock are handled by the keyboard control itself;
+shift and control affect only the next regular keystroke.
+The Alt key is unimplemented; it will become equivalent to the standard Plan 9
+key for synthesizing non-ASCII characters.
+.PP
+There are two special keys,
+.B Scrib
+and
+.BR Menu ,
+which return values
+.B 0x10000
+and
+.BR 0x10001 .
+.PP
+The image, mask, light rules are used to indicate that a key is pressed,
+but to aid clumsy fingers the keystroke is not generated until the key is released,
+so it is possible to slide the pointer to a different key to correct for bad aim.
+.PP
+The control messages the keyboard accepts are:
+.TF "\fLfont"
+.TP
+.BI border " b
+.TP
+.BI bordercolor " name
+.TP
+.BI focus " n
+.TP
+.BI font " name1 name2
+Sets the font for the keys.
+If only one font is named, it is used for all keys.
+If two are named, the second is used for key caps with special names such
+as Shift and Enter.
+(Good choices on the Bitsy are
+.B /lib/font/bit/lucidasans/boldlatin1.6.font
+for the first and
+.B /lib/font/bit/lucidasans/unicode.6.font
+for the second argument.)
+If neither is specified, both will be set to the default global font.
+.TP
+.BI format " fmt
+.TP
+.BI hide
+.TP
+.BI image " name
+.TP
+.BI light " name
+.TP
+.BI mask " name
+.TP
+.BI rect " minx miny maxx maxy
+.TP
+.BI reveal
+.TP
+.B show
+.TP
+.BI size " minx miny maxx maxy
+.PD
+.SS Label
+A label is like a textbutton
+.RI ( q.v. )
+that does not react, but whose value is the text it displays.
+The control messages it accepts are:
+.TF "\fLvalue s"
+.TP
+.BI align " a
+Controls the placement of the image in the rectangle.
+.TP
+.BI border " b
+.TP
+.BI bordercolor " name
+.TP
+.BI focus " n
+.TP
+.BI font " name
+.TP
+.BI hide
+.TP
+.BI image " name
+.TP
+.BI rect " minx miny maxx maxy
+.TP
+.BI reveal
+.TP
+.B show
+.TP
+.BI size " minx miny maxx maxy
+.TP
+.BI textcolor " name
+.TP
+.BI value " s
+The value is a string that can be modified only by sending this message to the
+.B ctl
+file.
+.PD
+.SS Menu
+A menu is a pop-up window containing a set of textual selections.
+When a selection is made, it removes itself from the screen and reports the selection
+by value:
+.IP
+.EX
+menuname: value \f2n\fP
+.EE
+.PP
+If no selection is made, no message is reported.
+Because it creates a window, programs using a menu must have their
+.B screen
+variable (see
+.IR graphics (2)
+and
+.IR window (2))
+set up to be refreshed properly.
+The easiest way to do this is to call
+.B getwindow
+with refresh argument
+.B Refbackup
+(see
+.IR graphics (2));
+most programs use
+.BR Refnone .
+.PP
+The control messages accepted by a menu are:
+.TF "\fLwindow n"
+.TP
+.BI add " text
+Add a line of
+.I text
+to the end of the menu.
+.TP
+.BI align " a
+Controls the left-right placement of the text in its rectangle.
+.TP
+.BI border " b
+.TP
+.BI bordercolor " name
+.TP
+.BI focus " n
+.TP
+.BI font " name
+.TP
+.BI format " fmt
+.TP
+.BI hide
+.TP
+.BI image " name
+.TP
+.BI rect " minx miny maxx maxy
+.TP
+.BI reveal
+.TP
+.BI size " minx miny maxx maxy
+Only the origin of the rectangle is significant; menus calculate the appropriate size.
+.TP
+.BI selectcolor " name
+Set the color in which to highlight selected lines; default yellow.
+.TP
+.BI selecttextcolor " name
+Set the color in which to draw the text in selected lines; default black.
+.TP
+.B show
+Display the menu. Not usually needed unless the menu is changed while visible; use
+.I window
+instead.
+.TP
+.B window
+.TP
+.BI window " n
+With no arguments, toggle the menu's visibility; otherwise make it visible (1) or invisible (0).
+When the selection is made, the menu will remove its window automatically.
+.PD
+.SS Radiobutton
+The radiobutton assembles a group of buttons or textbuttons into a
+single control with a numeric value.
+Its value is \-1 if none of the constituent buttons is pressed; otherwise
+it is the index, starting at zero, of the button that is pressed.
+Only one button may be pressed; the radiobutton manipulates its
+buttons to guarantee this.
+State changes trigger an event message:
+.IP
+.EX
+radiobuttonname: value \f2n\fP
+.EE
+.PP
+Buttons are added to the radio button using the
+.B add
+message; there is no way to remove them, although they may be turned off
+independently using
+.IR deactivate .
+The index reported in the value is defined by the order
+in which the buttons are added.
+The constituent buttons should be configured and layed out in the usual way;
+the rectangle of the radiobutton is used only to `catch' mouse events and
+should almost always correspond to the bounding box of the constituent
+buttons.
+In other words, the geometry is not maintained automatically.
+.PP
+The control messages the radiobutton accepts are:
+.TF "\fLadd name"
+.TP
+.BI add " name
+Add the control with the specified
+.I name
+to the radiobutton.
+.TP
+.BI focus " n
+.TP
+.BI format " fmt
+.TP
+.BI hide
+.TP
+.BI rect " minx miny maxx maxy
+.TP
+.BI reveal
+.TP
+.BI size " minx miny maxx maxy
+.TP
+.B show
+.TP
+.BI value " n
+.PD
+.SS Row
+A row groups a number of member controls left to right in a rectangle.
+Rows behave exactly like columns with the roles of
+.I x
+and
+.I y
+interchanged.
+.PP
+The control messages it accepts are:
+.TF "\fLfont"
+.TP
+.BI add " name ...
+.TP
+.BI border " width
+.TP
+.BI bordercolor " color
+.TP
+.BI hide
+.TP
+.BR image " color
+.TP
+.BI rect " minx miny maxx maxy
+.TP
+.BI remove " name
+.TP
+.BI reveal
+.TP
+.BI separation " width
+.TP
+.BI show
+.TP
+.BR size " [ \f2minΔx minΔy maxΔx maxΔy\fP ]
+.PD
+.SS Scribble
+The scribble control provides a region in which strokes drawn with mouse button
+1 are interpreted as characters in the manner of
+.IR scribble (2).
+In most respects, including the format of its event messages, it is equivalent
+to a keyboard control.
+.PP
+The control messages it accepts are:
+.TF "\fLlinecolor \fIname\f(CW "
+.TP
+.BI align " a
+Controls the placement of the image in the rectangle (unimplemented).
+.TP
+.BI border " b
+.TP
+.BI bordercolor " name
+.TP
+.BI focus " n
+.TP
+.BI font " name
+Used to display the indicia.
+.TP
+.BI hide
+.TP
+.BI image " name
+.TP
+.BI linecolor " name
+The color in which to draw the strokes; default black.
+.TP
+.BI rect " minx miny maxx maxy
+.TP
+.BI reveal
+.TP
+.BI size " minx miny maxx maxy
+.TP
+.B show
+.PD
+.SS Stack
+A stack groups a number of member controls in the same shared rectangle.
+Only one of these controls will be visible (revealed), the others are hidden.
+.PP
+The control messages it accepts are:
+.TF "\fLreveal [\f2n\fP]"
+.TP
+.BI hide
+.TP
+.BI rect " minx miny maxx maxy
+.TP
+.BI remove " name
+.TP
+.BR reveal " [ \f2n\fP ]
+Without argument,
+.B reveal
+is the opposite of
+.BR hide :
+it makes its selected control visible after it was hidden.
+With an argument, it makes the
+.IR n 'th
+added control visible, hiding all others.
+.TP
+.BI show
+.TP
+.BR size " [ \f2minΔx minΔy maxΔx maxΔy\fP ]
+Without argument,
+.I size
+computes the maximum of the minimum and maximum sizes of
+its constituent controls.  With arguments, it sets the size to the
+given values.
+.PD
+.SS Slider
+A slider controls an integer value by dragging the mouse with a button.
+Configured appropriately, it can serve as a scroll bar with the standard
+Plan 9 behavior.
+When the value changes, an event message is sent:
+.IP
+.EX
+slidername: value \f2n\f1
+.EE
+.PP
+The slider is a good candidate for connecting to another control
+by setting its format and rewiring its
+.B event
+channel to the other's
+.B ctl
+channel.
+.PP
+The geometry of the slider is defined by three numbers:
+.B max
+is a number representing the range of the slider;
+.B vis
+is a number representing how much of what is being controlled is visible;
+and
+.B value
+is a number representing the value of the slider within its range.
+For example, if the slider is managing a textual display of 1000 lines, with
+18 visible, and the first visible line (numbered starting form 0) is 304,
+.B max
+will be 1000,
+.B vis
+will be 18, and
+.B value
+will be 304.
+The
+.I indicator
+is the visual representation of the
+.I vis
+portion of the controlled object.
+.PP
+The control messages the slider accepts are:
+.TF "\fLabsolute n"
+.TP
+.BI absolute " n
+If
+.I n
+is zero,
+the slider behaves like a Plan 9 scroll bar:
+button 2 sets absolute position, button 1 decreases the value,
+and button 3 increases it.
+If
+.I n
+is non-zero, all buttons behave like button 2, setting the absolute value.
+.TP
+.BI border " b
+.TP
+.BI bordercolor " name
+.TP
+.BI clamp " end n
+The
+.I end
+is either the word
+.B high
+or
+.BR low ;
+.I n
+sets whether that end is clamped or not.
+If it is clamped, that end of the indicator is always at its supremum.
+A standard scroll bar has neither end clamped; a volume slider would
+have its low end clamped.
+If the low end is clamped, the value of the slider is represented by the
+high end of the indicator; otherwise it is represented by the low end.
+.TP
+.BI focus " n
+.TP
+.BI format " fmt
+.TP
+.BI hide
+.TP
+.BI image " name
+.TP
+.BI indicatorcolor " name
+Set the color in which to draw the indicator; default black.
+.TP
+.BI max " n
+Set the maximum value of the range covered by the slider.
+.TP
+.BI orient " dir
+The string
+.I dir
+begins either
+.B hor
+or
+.B ver
+to specify the orientation of the slider.
+The default is vertical.
+The value always increases to the right for horizontal sliders and
+downwards for vertical sliders.
+.TP
+.BI rect " minx miny maxx maxy
+.TP
+.BI reveal
+.TP
+.BI size " minx miny maxx maxy
+.TP
+.B show
+.TP
+.BI value " n
+.TP
+.BI vis " n
+Set the visible area shown by the indicator.
+.PD
+.SS Tab
+A tab control combines radiobottuns with a stack of windows giving the
+appearance of tabbed controls.  Currently, the tabs are positioned at the
+top of the stack.  The radiobutton consists of textbuttons, the stack
+can be composed of any type of control.
+.PP
+Control messages are
+.TF "\fLformat fmt"
+.TP
+.BI add " button control button control ...
+Adds a button to the radiobutton, and an associated control to the stack.
+Buttons and controls are numbered in the order of addition.  There is
+no remove operation.
+.TP
+.BI border " b
+.TP
+.BI bordercolor " color
+.TP
+.BI focus " n
+.TP
+.BI format " fmt
+When a format string is defined, the tab control reports which tab
+is selected using the format string (which must print a
+.B char*
+and an
+.BR int ). 
+.TP
+.BI image " color
+Color between member controls.
+.TP
+.BI separation " n
+Spacing between buttons in the radiobutton and between the row of
+buttons and the stack below it.
+.TP
+.BI rect " n n n n
+.TP
+.B hide
+.TP
+.B reveal
+.TP
+.BI size " n n n n
+.TP
+.B show
+.TP
+.BI value " n
+Value must be an integer indicating which tab to bring to the top.
+.PD
+.SS Text
+A text control presents a set of lines of text.
+The text cannot be edited with the keyboard, but can be
+changed by control messages.
+(A more interactive text control will be created eventually.)
+The mouse can be used to select lines of text.
+The only event message reports a state change in the selection of a line:
+.IP
+.EX
+textname: select \f2n\f1 \f2s\f1
+.EE
+.PP
+states that line
+.I n
+has changed its selection state to
+.IR s ,
+either zero (unselected) or non-zero (selected).
+The non-zero value encodes the mouse buttons that were down
+when the selection occurred.
+.PP
+The control messages the text control accepts are:
+.TF "\fLselectmode \fIs\fP "
+.TP
+.BI accumulate " s
+.TP
+.BI accumulate " n s
+.TP
+.BI add " s
+.TP
+.BI add " n s
+With one argument, append the string
+.I s
+as a new last line of the control; if
+.I n
+is specified, add the line
+.I before
+the current line
+.IR n ,
+making the new line number
+.IR n.
+The lines are zero indexed and
+.I n
+can be no greater than the current number of lines.
+.I Add
+refreshes the display, but
+.I accumulate
+does not, to avoid n-squared behavior when assembling a piece of text.
+.TP
+.BI align " a
+Controls the placement of each line of text left-to-right in its rectangle.
+Vertically, lines are tightly packed with separation set by the font's interline
+spacing.
+.TP
+.BI border " b
+.TP
+.BI bordercolor " name
+.TP
+.BI clear
+Delete all text.
+.TP
+.BI delete " n
+Delete line
+.IR n .
+.TP
+.BI focus " n
+.TP
+.BI font " name
+.TP
+.BI image " name
+.TP
+.BI rect " minx miny maxx maxy
+.TP
+.BI replace " n s
+Replace line
+.I n
+by the string
+.IR s .
+.TP
+.BI reveal
+.TP
+.BI scroll " n
+If
+.I n
+is non-zero, the text will automatically scroll so the last line is always visible
+when new text is added.
+.TP
+.BI select " n m
+Set the selection state of line
+.I n
+to
+.IR m .
+.TP
+.BI selectcolor " name
+Set the color in which to highlight selected lines; default yellow.
+.TP
+.BI selectmode " s
+The string
+.I s
+is either
+.B single
+or
+.BR multi .
+If
+.BR single ,
+the default,
+only one line may be selected at a time; when a line is selected,
+other lines are unselected.
+If
+.BR multi ,
+the selection state of individual lines can be toggled independently.
+.TP
+.BI size " minx miny maxx maxy
+.TP
+.B show
+.TP
+.BI textcolor " name
+.TP
+.BI topline " n
+Scroll the text so the top visible line is number
+.IR n .
+.TP
+.BI value " s
+Delete all the text in the control and then add the single line
+.IR s .
+.PD
+.SS Textbutton
+A textbutton is a textual variant of a plain button.
+Each state change triggers an event message:
+.IP
+.EX
+textbuttonname: value \f2n\fP
+.EE
+.LP
+where
+.I n
+encodes the mouse buttons used to make the selection.
+.PP
+Like a regular button, the value of a textbutton is an integer; the
+.I text
+is the string that appears in the button.
+It uses the image, light, mask method of indicating its state;
+moreover, the color of the text can be set to change when the button is pressed.
+The control messages it accepts are:
+.TF "\fLalign a"
+.TP
+.BI align " a
+Controls the placement of the text in the rectangle.
+.TP
+.BI border " b
+.TP
+.BI bordercolor " name
+.TP
+.BI focus " n
+.TP
+.BI font " name
+.TP
+.BI format " fmt
+.TP
+.B hide
+.TP
+.BI image " name
+.TP
+.BI light " name
+.TP
+.BI mask " name
+.TP
+.BI pressedtextcolor " name
+Set the color in which to display text when the textbutton is pressed.
+.TP
+.BI rect " minx miny maxx maxy
+.TP
+.B reveal
+.TP
+.BI size " minx miny maxx maxy
+.TP
+.B show
+.TP
+.BI text " s
+Set the text displayed in the button.
+.TP
+.BI textcolor " name
+.TP
+.BI value " n
+Set the button to `on' (if
+.I n
+is non-zero) or `off' (if
+.I n
+is zero).
+.SS "Helper functions
+The function
+.I ctlerror
+is called when the library encounters an error.
+It prints the formatted message and exits the program.
+.PP
+The functions
+.IR ctlmalloc ,
+.IR ctlrealloc ,
+.IR ctlstrdup ,
+and
+.I ctlrunestrdup
+are packagings of the corresponding C library functions.
+They call
+.I ctlerror
+if they fail to allocate memory, and
+.I ctlmalloc
+zeros the memory it returns.
+.PP
+Finally, for debugging, if the global variable
+.I ctldeletequits
+is set to a non-zero value, typing a
+.SM DEL
+will cause the program to call
+.IP
+.EX
+ctlerror("delete");
+.EE
+.SS Caveat
+This library is very new and is still missing a number of important features.
+The details are all subject to change.
+Another level of library that handles geometry and has sensible default
+appearances for the controls would be useful.
+.PP
+One unusual design goal of this library was to make the controls themselves
+easy to implement.
+The reader is encouraged
+to create new controls by adapting the source to existing ones.
+.SH EXAMPLES
+This example creates two entry boxes,
+.BR top
+and
+.BR bot ,
+and copies the contents of one to the other whenever a newline is typed.
+.PP
+.EX
+#include <u.h>
+#include <libc.h>
+#include <thread.h>
+#include <draw.h>
+#include <mouse.h>
+#include <keyboard.h>
+#include <control.h>
+.sp 0.4v
+Controlset *cs;
+.sp 0.4v
+int ctldeletequits = 1;
+.sp 0.4v
+void
+resizecontrolset(Controlset*)
+{
+	int i;
+	Rectangle r, r1, r2;
+.sp 0.4v
+	if(getwindow(display, Refnone) < 0)
+		sysfatal("resize failed: %r");
+	r = insetrect(screen->r, 10);
+	r1 = r;
+	r2 = r;
+	r1.max.y = r1.min.y+1+font->height+1;
+	r2.min.y = r1.max.y+10;
+	r2.max.y = r2.min.y+1+font->height+1;
+	chanprint(cs->ctl, "top rect %R\entop show", r1);
+	chanprint(cs->ctl, "bot rect %R\enbot show", r2);
+}
+.sp 0.4v
+void
+threadmain(int argc, char *argv[])
+{
+	char *s, *args[3];
+	Channel *c;
+	Control *top, *bot;
+	int n;
+.sp 0.4v
+	initdraw(0, 0, "example");
+	initcontrols();
+	cs = newcontrolset(screen, nil, nil, nil);
+	cs->clicktotype = 1;
+.sp 0.4v
+	top = createentry(cs, "top");
+	chanprint(cs->ctl, "top image paleyellow");
+	chanprint(cs->ctl, "top border 1");
+	bot = createentry(cs, "bot");
+	chanprint(cs->ctl, "bot image paleyellow");
+	chanprint(cs->ctl, "bot border 1");
+.sp 0.4v
+	c = chancreate(sizeof(char*), 0);
+	controlwire(top, "event", c);
+	controlwire(bot, "event", c);
+.sp 0.4v
+	activate(top);
+	activate(bot);
+	resizecontrolset(cs);
+.sp 0.4v
+	for(;;){
+		s = recvp(c);
+		n = tokenize(s, args, nelem(args));
+		if(n==3 && strcmp(args[1], "value")==0){
+			if(strcmp(args[0], "top:") == 0)
+				chanprint(cs->ctl, "bot value %q", args[2]);
+			else
+				chanprint(cs->ctl, "top value %q", args[2]);
+		}
+	}
+	threadexitsall(nil);
+}
+.EE
+.PP
+A richer variant couples a text entry box to a slider.
+Since the value of a slider is its numerical setting, as a decimal number,
+all that needs changing is the setup of
+.BR bot :
+.PP
+.EX
+	bot = createslider(cs, "bot");
+	chanprint(cs->ctl, "bot border 1");
+	chanprint(cs->ctl, "bot image paleyellow");
+	chanprint(cs->ctl, "bot indicatorcolor red");
+	chanprint(cs->ctl, "bot max 100");
+	chanprint(cs->ctl, "bot clamp low 1");
+	chanprint(cs->ctl, "bot orient horizontal");
+.EE
+.PP
+The rest is the same.
+Of course, the value of the entry box is only meaningful to the slider
+if it is also a decimal number.
+.PP
+Finally, we can avoid processing events altogether by cross-coupling
+the controls.  Replace the rest of
+.B threadmain
+with this:
+.PP
+.EX
+	chanprint(cs->ctl, "bot format %q", "%q: top value %q");
+	chanprint(cs->ctl, "top format %q", "%q: bot value %q");
+.sp 0.4v
+	controlwire(top, "event", cs->ctl);
+	controlwire(bot, "event", cs->ctl);
+.sp 0.4v
+	activate(top);
+	activate(bot);
+	resizecontrolset(cs);
+.sp 0.4v
+	for(;;)
+		yield();
+	threadexitsall(nil);
+.EE
+.SH SOURCE
+.B /sys/src/libcontrol
+.SH SEE ALSO
+.IR draw (2),
+.IR frame (2),
+.IR graphics (2),
+.IR quote (2),
+.IR thread (2)
+.SH BUGS
+The library is strict about matters of formatting, argument count in messages,
+etc., and calls
+.I ctlerror
+in situations where it may be fine to ignore the error and continue.

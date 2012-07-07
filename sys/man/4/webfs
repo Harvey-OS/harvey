@@ -1,0 +1,308 @@
+.TH WEBFS 4
+.SH NAME
+webfs \- world wide web file system
+.SH SYNOPSIS
+.B webfs
+[
+.B -c
+.I cookiefile
+]
+[
+.B -m
+.I mtpt
+]
+[
+.B -s
+.I service
+]
+.SH DESCRIPTION
+.I Webfs
+presents a file system interface to the parsing and retrieving
+of URLs.
+.I Webfs
+mounts itself at
+.I mtpt
+(default
+.BR /mnt/web ),
+and, if 
+.I service
+is specified, will post a service file descriptor
+in 
+.BR /srv/\fIservice .
+.PP
+.I Webfs
+presents a three-level file system suggestive
+of the network protocol hierarchies
+.IR ip (3)
+and
+.IR ether (3).
+.PP
+The top level contains three files:
+.BR ctl ,
+.BR cookies ,
+and
+.BR clone .
+.PP
+The
+.B ctl
+file is used to maintain parameters global to the instance of
+.IR webfs .
+Reading the 
+.B ctl
+file yields the current values of the parameters.
+Writing strings of the form
+.RB `` attr " " value ''
+sets a particular attribute.
+Attributes are:
+.TP
+.B chatty9p
+The
+.B chatty9p
+flag used by the 9P library, discussed in
+.IR 9p (2).
+.B 0
+is no debugging,
+.B 1
+prints 9P message traces on standard error,
+and values above
+.B 1
+present more debugging, at the whim of the library.
+The default for this and the following debug flags is 
+.BR 0 .
+.TP
+.B fsdebug
+This variable is the level of debugging output about the file system module.
+.TP
+.B cookiedebug
+This variable is the level of debugging output about the cookie module.
+.TP
+.B urldebug
+This variable is the level of debugging output about URL parsing.
+.TP
+.B acceptcookies
+This flag controls whether to accept cookies presented by remote web servers.
+(Cookies are described below, in the discussion of the
+.B cookies
+file.)
+The values
+.B on
+and
+.B off
+are synonymous with
+.B 1
+and
+.BR 0 .
+The default is
+.BR on .
+.TP
+.B sendcookies
+This flag controls whether to present stored cookies to remote web servers.
+The default is
+.BR on .
+.TP
+.B redirectlimit
+Web servers can respond to a request with a message
+redirecting to another page.
+.I Webfs
+makes no effort to determine whether it is in an infinite
+redirect loop.
+Instead, it gives up after this many redirects.
+The default is
+.BR 10 .
+.TP
+.B useragent
+.I Webfs
+sends the value of this attribute in its
+.B User-Agent:
+header in its HTTP requests.
+The default is
+.RB `` "webfs/2.0 (plan 9)" .''
+.PD
+.PP
+The top-level directory also contains
+numbered directories corresponding to connections, which
+may be used to fetch a single URL.
+To allocate a connection, open the
+.B clone
+file and read a number 
+.I n
+from it.
+After opening, the
+.B clone
+file is equivalent to the file
+.IB n /ctl \fR.
+A connection is assumed closed once all files in its directory
+have been closed, and is then will be reallocated.
+.PP
+Each connection has its own private set of
+.BR acceptcookies ,
+.BR sendcookies ,
+.BR redirectlimit ,
+and
+.B useragent
+variables, initialized to the defaults set in the
+root's
+.B ctl
+file.  The per-connection
+.B ctl
+file allows editing the variables for this particular connection.
+.PP
+Each connection also has a URL string variable
+.B url
+associated with it.
+This URL may be an absolute URL such as
+.I http://www.lucent.com/index.html
+or a relative URL such as
+.IR ../index.html .
+The
+.B baseurl
+string variable sets the URL against which relative URLs
+are interpreted.
+Once the URL has been set,
+its pieces can be retrieved via individual files in the
+.B parsed
+directory.
+.I Webfs
+parses the following URL syntaxes; names in italics are
+the names of files in the
+.B parsed
+directory.
+.IP
+\fIscheme\f5:\fIschemedata
+.br
+\f5http://\fIhost\f5/\fIpath\fR[\f5?\fIquery\fR][\f5#\fIfragment\fR]
+.br
+\f5ftp://\fR[\fIuser\fR[\f5:\fIpassword\fR]\f5@\fR]\fP\f5\fIhost\f5/\fIpath\fR[\f5;type=\fIftptype\fR]
+.br
+\f5file:\fIpath
+.LP
+If there is associated data to be
+posted with the request, it can be written to
+.BR postbody .
+Finally, opening
+.B body
+initiates the request.
+The resulting data may be read from
+.B body
+as it arrives.
+After the request has been executed, the MIME content type
+may be read from the
+.B contenttype
+file.
+.PP
+The top-level
+.B cookies
+file contains the internal set of HTTP cookies, which
+are used by HTTP servers to associate requests with persistent
+state such as user profiles.
+It may be edited as an ordinary text file.
+Multiple instances of
+.I webfs
+and
+.IR webcookies (4)
+share cookies by keeping their internal set
+consistent with the
+.I cookiefile
+(default
+.BR $home/lib/webcookies ),
+which has the same format.
+.PP
+These files contain one line per cookie;
+each cookie comprises some number of
+.IB attr = value
+pairs.
+Cookie attributes are:
+.TP
+.BI name= name
+The name of the cookie on the remote server.
+.TP
+.BI value= value
+The value associated with that name on the remote server.
+The actual data included when a cookie is sent back
+to the server is
+.IB \fR``\fIname = value\fR''
+(where, confusingly,
+.I name
+and
+.I value
+are the values associated with the
+.B name
+and
+.B value
+attributes.
+.TP
+.BI domain= domain
+If
+.I domain
+is an IP address, the cookie can only be used for URLs
+with
+.I host
+equal to that IP address.
+Otherwise,
+.I domain
+must be a pattern beginning with a dot, and
+the cookie can only be used for URLs with a
+.I host
+having
+.I domain
+as a suffix.
+For example, a cookie with
+.B domain=.bell-labs.com
+may be used on hosts
+.I www.bell-labs.com
+and
+.IR www.research.bell-labs.com
+(but not
+.IR www.not-bell-labs.com ).
+.TP
+.BI path= path
+The cookie can only be used for URLs with a path
+beginning with
+.IR path .
+.TP
+.BI version= version
+The version of the HTTP cookie specification, specified by the server.
+.TP
+.BI comment= comment
+A comment, specified by the server.
+.TP
+.BI expire= expire
+The cookie expires at time
+.IR expire ,
+which is a decimal number of seconds since the epoch.
+.TP
+.B secure=1
+The cookie may only be used over secure
+.RB ( https )
+connections.
+Secure connections are currently unimplemented.
+.TP
+.B explicitdomain=1
+The domain associated with this cookie was set by
+the server (rather than inferred from a URL).
+.TP
+.B explicitpath=1
+The path associated with this cookie was set by the
+server (rather than inferred from a URL).
+.TP
+.B netscapestyle=1
+The server presented the cookie in ``Netscape style,'' which
+does not conform to the cookie standard, RFC2109.
+It is assumed that when presenting the cookie to the server,
+it must be sent back in Netscape style as well.
+.PD
+.SH EXAMPLE
+.B /sys/src/cmd/webfs/webget.c
+is a simple client.
+.SH SOURCE
+.B /sys/src/cmd/webfs
+.SH SEE ALSO
+.IR hget (1),
+.IR webcookies (4)
+.SH BUGS
+It's not clear what the relationship between
+.IR hget ,
+.I webcookies
+and
+.I webfs
+should be.

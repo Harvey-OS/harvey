@@ -1,0 +1,45 @@
+.TH LENS 1
+.SH NAME
+lens \- interactive screen magnifier
+.SH SYNOPSIS
+.B lens
+.SH DESCRIPTION
+.I Lens
+presents a magnified view in its window of an arbitrary area on the screen.
+The default magnification is 4 (showing each pixel as a 4×4 pixel block in
+.IR lens 's
+window). This may be changed by typing a digit on the keyboard (with
+.B 0
+standing for 10), or by using the
+.B +
+and
+.B -
+keys to increase or decrease the magnification by one unit.
+The lower limit is ×1; the upper ×16.
+.PP
+The interface to indicate what area to magnify is dictated by the mouse multiplexing rules of
+.IR rio (1).
+Start by pressing mouse button 1 in the
+.I lens
+window and dragging, with the button pressed, to the center of the area to magnify.
+.I Lens
+will update the display as the mouse moves.
+Releasing the button freezes the
+.I lens
+display.
+The magnified view is static\(ema snapshot, not a movie\(embut typing a space or
+.B .
+key  in the
+.I lens
+window will refresh the
+display, as will changing the magnification.
+.PP
+To make counting pixels easier, typing a
+.B g
+toggles whether a checkerboard grid is imposed on the magnified area.
+.PP
+Button 3 brings up a menu of actions.
+.SH SOURCE
+.B /sys/src/cmd/lens.c
+.SH BUGS
+There should be an easier way to indicate what to magnify.

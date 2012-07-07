@@ -1,0 +1,168 @@
+.TH ERROR 9
+.SH NAME
+error, nexterror, poperror, waserror \- error handling functions
+.SH SYNOPSIS
+.ta \w'\fLchar* 'u
+.B
+void	error(char*)
+.PP
+.B
+void	nexterror(void)
+.PP
+.B
+void	poperror(void)
+.PP
+.B
+int	waserror(void)
+.SH DESCRIPTION
+The kernel handles error conditions using non-local gotos,
+similar to
+.IR setjmp (2),
+but using a stack of error labels to implement nested exception handling.
+This simplifies many of the internal interfaces by eliminating the need
+for returning and checking error codes at every level of the call stack,
+at the cost of requiring kernel routines to adhere to a strict discipline.
+.PP
+Each process has in its defining kernel
+.B Proc
+structure a stack of labels,
+.B NERR
+(currently 64)  elements deep.
+A kernel function that must perform a clean up or recovery action on an error
+makes a stylised call to
+.IR waserror ,
+.IR nexterror
+and
+.IR poperror :
+.IP
+.EX
+.DT
+if(waserror()){
+	/* recovery action */
+	nexterror();
+}
+/* normal action */
+poperror();
+.EE
+.PP
+When called in the normal course of events,
+.I waserror
+registers an error handling block by pushing its label onto the stack,
+and returns zero.
+The return value of
+.I waserror
+should be tested as shown above.
+If non-zero (true), the calling function should perform the needed
+error recovery, ended by a call to
+.I nexterror
+to transfer control to the next location on the error stack.
+Typical recovery actions include deallocating memory, unlocking resources, and
+resetting state variables.
+.PP
+Within the recovery block,
+after handling an error condition, there must normally
+be a call to
+.I nexterror
+to transfer control to any error recovery lower down in the stack.
+The main exception is in the outermost function in a process,
+which must not call
+.I nexterror
+(there being nothing further on the stack), but calls
+.I pexit
+(see
+.IR kproc (9))
+instead,
+to terminate the process.
+.PP
+When the need to recover a particular resource has passed,
+a function that has called
+.I waserror
+must
+remove the corresponding label from the stack by calling
+.IR poperror .
+This
+must
+be done before returning from the function; otherwise, a subsequent call to
+.I error
+will return to an obsolete activation record, with unpredictable but unpleasant consequences.
+.PP
+.I Error
+copies the given error message, which is limited to
+.B ERRMAX
+bytes, into the
+.B Proc.error
+of the current process,
+enables interrupts by calling
+.I spllo
+.RI ( native
+only),
+and finally calls
+.I nexterror
+to start invoking the recovery procedures currently stacked by
+.IR waserror .
+The file
+.B /sys/src/9/port/error.h
+offer a wide selection of predefined error messages, suitable for almost any occasion.
+The message set by the most recent call to
+.I error
+can be obtained within the kernel by examining
+.B up->error
+and in an application, by using the
+.L %r
+directive of
+.IR sys-print (2).
+.PP
+A complex function can have nested error handlers.
+A
+.I waserror
+block will follow the acquisition of a resource, releasing it
+on error before calling
+.I nexterror,
+and a
+.I poperror
+will precede its release in the normal case.
+For example:
+.IP
+.EX
+.DT
+void
+outer(Thing *t)
+{
+    qlock(t);
+    if(waserror()){      /* A */
+        qunlock(t);
+        nexterror();
+    }
+    m = mallocz(READSTR, 0);
+    if(m == nil)
+        error(Enomem);
+    if(waserror()){     /* B */
+        free(m);
+        nexterror();    /* invokes A */
+    }
+    inner(t);
+    poperror();         /* pops B */
+    free(m);
+    poperror();         /* pops A */
+    qunlock(t);
+}
+.sp 1v
+void
+inner(Thing *t)
+{
+    if(t->bad)
+        error(Egreg);   /* error() call returns to B */
+    t->valid++;
+}
+.EE
+.SH SOURCE
+.B /sys/src/9/port/proc.c
+.SH CAVEATS
+The description above has many instances of
+.IR should ,
+.IR will ,
+.I must
+and
+.IR "must not" .
+.SH SEE ALSO
+.IR panic (9)

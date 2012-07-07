@@ -1,0 +1,265 @@
+.TH FS 3
+.SH NAME
+fs \- file system devices
+.SH SYNOPSIS
+.nf
+.B bind -b #k /dev
+.sp 0.3v
+.B /dev/fs
+.B /dev/fs/ctl
+.B /dev/fs/...
+.B /dev/\fInew\fP
+.fi
+.SH DESCRIPTION
+The
+.I fs
+driver builds complex disk files out of simpler disk files.
+Inspired by the Plan 9 file server kernel's configuration strings,
+it provides device mirroring, partitioning, interleaving, and catenation
+for disk-based services like
+.IR fossil (4)
+or
+.IR venti (8).
+.PP
+The device is intended to be bound at
+.B /dev
+and initially contains a directory named
+.BR fs ,
+which in turn contains a
+.B ctl
+file and one file per configured device.
+.PP
+Most control messages introduce a new device, here named
+.IR new .
+The
+.I file
+arguments are interpreted in the name space of the writing process.
+.PP
+The device name
+.I new
+may be a single filename component (containing no slashes);
+in this case, the device is created under
+.BR #k/fs .
+If
+.I new
+instead has the format
+.IB dir / file,
+the device is made available at
+.BI #k/ dir / file.
+The directory
+.I dir
+goes away when the last device on it is removed with the
+.B del
+control message,
+but
+.B #k/fs
+will never be removed.
+.TF "del \fIold
+.PD
+.TP
+.BI cat " new files" \fR...
+The device
+.I new
+corresponds to the catenation of
+.IR files .
+.TP
+.BI inter " new files" \fR...
+The device
+.I new
+corresponds to the block interleaving of
+.IR files ;
+an 8192-byte block size is assumed.
+.TP
+.BI mirror " new files" \fR...
+The device
+.I new
+corresponds to a RAID-1-like mirroring of
+.IR files .
+Writes to
+.BI new
+are handled by sequentially writing the same data to the
+.I files
+from right to left (the reverse of
+the order in the control message).
+A failed write causes an eventual error return
+but does not prevent the rest of the writes
+to the other devices of the mirror set.
+Reads from
+.BI new
+are handled by sequentially reading from the
+.I files
+from left to right until one succeeds.
+The length of the mirror device is the minimum of the lengths of the
+.IR files .
+.TP
+.BI part " new file offset length"
+.PD 0
+.TP
+.BI part " new offset end
+.PD
+In the first form,
+the device
+.I new
+corresponds to the
+.I length
+units starting at
+.I offset
+in
+.IR file .
+If
+.IR offset + length
+reaches past the end of
+.IR file ,
+.I length
+is silently reduced to fit.
+Units are bytes.
+In the second form,
+a previous
+.B disk
+request must have defined the source
+.I file
+for further requests and the end of the device
+is determined by the
+.I end
+offset in the source file, and not by the device
+length. Units are as defined in the previous
+.B disk
+request. This form is accepted for compatibility with
+.IR fdisk
+(in
+.IR prep (8))
+and
+.IR sd (3)
+devices.
+.TP
+.BI del " old
+Removes the device named
+.IR old .
+The device will still be seen while in use.
+Further I/O attempts will fail with an error indication stating that
+the device is gone.
+When
+.I old
+is
+.IB dir /*\fR,
+all devices under
+.I dir
+are removed.
+.TP
+.BI disk " dir [ n file ]
+makes
+.I dir
+implicit in new device names (i.e., it makes
+.I new
+mean
+.IB dir / new
+by default).
+Optional argument
+.I n
+specifies the default unit (sector) size in bytes and the default source
+.I file
+for further partition devices.
+Default values are restored when the control file is closed.
+.TP
+.B clear
+Discard all
+.I fs
+device definitions.
+.PD
+.LP
+If the variable
+.B fsconfig
+is set in
+.IR plan9.ini (8),
+.I fs
+will read its configuration from the file
+.B $fsconfig
+on the first attach.
+This is useful when the machine boots from a local file server that uses
+.IR fs .
+.SH EXAMPLES
+Use a previously partitioned disk,
+.BR /dev/sdC0 ,
+making
+partition files available under
+.BR /dev/sdC0parts :
+.IP
+.EX
+{
+	echo disk sdC0parts 512 /dev/sdC0/data
+	disk/fdisk -p /dev/sdC0/data
+	# now create plan 9 partitions
+	echo disk sdC0parts 512 /dev/sdC0parts/plan9
+	disk/prep -p /dev/sdC0parts/plan9
+} > /dev/fs/ctl
+.EE
+.LP
+Mirror the two disks
+.B /dev/sdC0/data
+and
+.B /dev/sdD0/data
+as
+.BR /dev/fs/m0 ;
+similarly, mirror
+.B /dev/sdC1/data
+and
+.B /dev/sdD1/data
+as
+.BR /dev/fs/m1 :
+.IP
+.EX
+echo mirror m0 /dev/sdC0/data /dev/sdD0/data >/dev/fs/ctl
+echo mirror m1 /dev/sdC1/data /dev/sdD1/data >/dev/fs/ctl
+.EE
+.LP
+Interleave the two mirrored disks to create
+.BR /dev/fs/data :
+.IP
+.EX
+echo inter data /dev/fs/m0 /dev/fs/m1 >/dev/fs/ctl
+.EE
+.LP
+Run
+.IR kfs (4)
+on the interleaved device:
+.IP
+.EX
+disk/kfs -f /dev/fs/data
+.EE
+.LP
+Save the configuration:
+.IP
+.EX
+cp /dev/fs/ctl /dev/fd0disk
+.EE
+.LP
+To load the configuration automatically at boot time,
+add this to
+.IR plan9.ini :
+.IP
+.EX
+fsconfig=/dev/fd0disk
+.EE
+.SH "SEE ALSO"
+.I read
+in
+.IR cat (1),
+.IR dd (1),
+.IR sd (3),
+.IR fossil (4),
+.IR fs (8),
+.IR plan9.ini (8),
+.IR prep (8),
+.IR venti (8)
+.SH SOURCE
+.B /sys/src/9/port/devfs.c
+.SH BUGS
+Mirrors are RAID-like but not RAID.
+There is no fancy recovery mechanism and
+no automatic initial copying from a master drive to its mirror drives.
+.PP
+Each
+.I write
+system call on
+.B ctl
+may transmit at most one command.

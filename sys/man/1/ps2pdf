@@ -1,0 +1,90 @@
+.TH PS2PDF 1
+.SH NAME
+ps2pdf, pdf2ps \- convert between PostScript and PDF
+.SH SYNOPSIS
+.B ps2pdf
+[
+.I gs-options
+]
+[
+.I input-file
+[
+.I output-file
+]
+]
+.PP
+.B pdf2ps
+[
+.I gs-options
+]
+[
+.I input-file
+[
+.I output-file
+]
+]
+.SH DESCRIPTION
+.I Ps2pdf
+and
+.I pdf2ps
+convert from PostScript to PDF and back by invoking
+.IR gs (1).
+If
+.I output-file
+is not specified, they write to standard output.
+If neither
+.I input-file
+nor
+.I output-file
+is not specified, they read from standard input and write to standard output.
+.PP
+The
+.I gs-options
+are passed to Ghostscript unaltered.
+The most useful option to
+.I ps2pdf
+is
+.BR -dCompatibilityLevel=\fIlevel ,
+which sets the version of PDF to be written.
+The default is
+.BR 1.2 ;
+.B 1.3
+and
+.B 1.4
+are also possible.
+Similarly, the most useful option to
+.I pdf2ps
+is
+.BR -dLanguageLevel=\fIlevel ,
+which sets the version of PostScript to be written.
+The default is
+.BR 2 ;
+.B 1
+and
+.B 3
+are also possible.
+.PP
+.I Ps2pdf
+produces output competitive with
+Adobe Distiller in most cases, and it
+accepts all the embedded PDF-generation hints that Adobe Distiller does.
+.PP
+.I Pdf2ps
+produces a PostScript file containing one large bitmap
+per page.  For a more direct and smaller translation,
+use Adobe Acrobat's
+.B -toPostScript
+command-line option.
+.SH SOURCE
+.B /rc/bin/ps2pdf
+.br
+.B /rc/bin/pdf2ps
+.SH SEE ALSO
+.IR gs (1)
+.SH BUGS
+.IR Gs 's
+.I pdfwrite
+sometimes emits bad PDF at the default level 1.2.
+Adding
+.BR '-dCompatibilityLevel=1.4'
+should cure it.

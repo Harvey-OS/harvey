@@ -1,0 +1,32 @@
+.TH CHDIR 2
+.SH NAME
+chdir \- change working directory
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
+.B
+int chdir(char *dirname)
+.SH DESCRIPTION
+.I Chdir
+changes the working directory
+of the invoking process to
+.IR dirname .
+The working directory is the starting point for
+evaluating file names that do not begin with
+.L /
+or
+.LR # ,
+as explained in
+.IR intro (2).
+When Plan 9 boots, the initial process has
+.L /
+for its working directory.
+.SH SOURCE
+.B /sys/src/libc/9syscall
+.SH SEE ALSO
+.IR intro (2)
+.SH DIAGNOSTICS
+Sets
+.IR errstr .

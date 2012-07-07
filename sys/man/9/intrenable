@@ -1,0 +1,106 @@
+.TH INTRENABLE 9
+.SH NAME
+intrenable, intrdisable \- enable (disable) an interrupt handler
+.SH SYNOPSIS
+.ta \w'\fLvoid* 'u
+.B
+void intrenable(int v, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
+.PP
+.B
+void intrdisable(int v, void (*f)(Ureg*, void*), void* a, int tbdf, char *name)
+.SH DESCRIPTION
+.I Intrenable
+registers
+.I f
+to be called by the kernel's interrupt controller driver each time
+an interrupt denoted by
+.I v
+occurs, and unmasks the corresponding interrupt in the interrupt controller.
+The encoding of
+.I v
+is platform-dependent; it is often an interrupt vector number, but
+can be more complex.
+.I Tbdf
+is a platform-dependent value that might further qualify
+.IR v .
+It might for instance
+denote the type of bus, bus instance, device number and function
+(following the PCI device indexing scheme), hence its name,
+but can have platform-dependent meaning.
+.I Name
+is a string that should uniquely identify the corresponding device (eg, \f5"uart0"\fP);
+again it is usually platform-dependent.
+.I Intrenable
+supports sharing of interrupt levels when the hardware does.
+.PP
+Almost invariably
+.I f
+is a function defined in a device driver to carry out the device-specific work associated with a given interrupt.
+The pointer
+.I a
+is passed to
+.IR f ;
+typically it points to the driver's data for a given device or controller.
+It also passes
+.I f
+a
+.B Ureg*
+value that
+contains the registers saved by the interrupt handler (the
+contents are platform specific;
+see the platform's include file
+.BR "ureg.h" ).
+.PP
+.I F
+is invoked by underlying code in the kernel that is invoked directly from the hardware vectors.
+It is therefore not running in any process (see
+.IR kproc (9);
+indeed, on many platforms
+the current process pointer
+.RB ( up )
+will be nil.
+There are many restrictions on kernel functions running outside a process, but a fundamental one is that
+they must not
+.IR sleep (9),
+although they often call
+.B wakeup
+to signal the occurrence of an event associated with the interrupt.
+.IR Qio (9)
+and other manual pages note which functions are safe for
+.I f
+to call.
+.PP
+The interrupt controller driver does whatever is
+required to acknowledge or dismiss the interrupt signal in the interrupt controller,
+before calling
+.IR f ,
+for edge-triggered interrupts,
+and after calling
+.IR f
+for level-triggered ones.
+.I F
+is responsible for deal with the cause of the interrupt in the device, including any
+acknowledgement required in the device, before it returns.
+.PP
+.I Intrdisable
+removes any registration previously made by
+.I intrenable
+with matching parameters, and if no other
+interrupt is active on
+.IR v ,
+it masks the interrupt in the controller.
+Device drivers that are not dynamically configured tend to call
+.I intrenable
+during reset or initialisation (see
+.IR dev (9)),
+but can call it at any appropriate time, and
+instead of calling
+.I intrdisable
+they can simply enable or disable interrupts in the device as required.
+.SH SOURCE
+.B /sys/src/9/*/trap.c
+.SH SEE ALSO
+.IR malloc (9),
+.IR qio (9),
+.IR sleep (9),
+.IR splhi (9)

@@ -1,0 +1,109 @@
+.TH PARSECMD 9
+.SH NAME
+parsecmd, cmderror, lookupcmd \- parse device commands
+.SH SYNOPSIS
+.ta \w'\fLCmdbuf* 'u
+.B
+Cmdbuf*	parsecmd(char *a, int n)
+.PP
+.B
+void		cmderror(Cmdbuf *cb, char *s)
+.PP
+.B
+Cmdtab*		lookupcmd(Cmdbuf *cb, Cmdtab *ctab, int nctab)
+.SH DESCRIPTION
+.I Parsecmd
+is an interface to
+.I tokenize
+(see
+.IR getfields (2)),
+that safely parses a command, with blank-separated fields, as might be
+written to a device's
+.B ctl
+file.
+The buffer
+.I a
+and count
+.I n
+can be those passed to the driver's
+.I write
+function.
+.I Parsecmd
+converts the byte array (which might not be null-terminated) to a null-terminated string,
+trimming any trailing new line,
+before invoking
+.I tokenize
+to break the string into arguments, interpreting blank and tab as field separators
+when they are not quoted
+(in the style of
+.IR rc (1)).
+It returns a pointer to a dynamically-allocated
+.B Cmdbuf
+structure,
+which holds a copy of the string as
+modified by
+.IR parsefields ,
+and the resulting fields; it is defined as follows:
+.IP
+.EX
+.ta 6n +\w'char* 'u
+typedef
+struct Cmdbuf
+{
+	char	buf[128];
+	char	*f[16];
+	int	nf;
+} Cmdbuf;
+.EE
+.PP
+The array
+.B f
+holds the field pointers;
+.B nf
+gives the number of fields.
+.B Cmdbuf
+is allocated by
+.I smalloc
+(see
+.IR malloc (9)),
+and the caller is responsible for freeing it using
+.IR free .
+.I Cmderror
+prepends the given format with the original command,
+then calls
+.IR error (9).
+.PP
+Command strings may be turned into a (typically enumerated)
+integer with 
+.IR lookupcmd .
+The catchall
+.L *
+matches any text.  Unrecognized commands, or commands
+given an unacceptable number of arguments generate a
+call to
+.IR error .
+The definition is as follows
+.IP
+.EX
+.ta 6n +\w'char* 'u
+struct Cmdtab
+{
+	int	index;
+	char	*cmd;
+	int	narg;
+};
+.EE
+.PP
+The integer
+.B index
+is the number returned on command match.
+The string
+.B cmd
+is the command name, and
+.B narg
+is 0 (indicating a varadic function) or the
+number of arguments.
+.SH SOURCE
+.B /sys/src/9/port/parse.c
+.br
+.B /emu/port/dev.c

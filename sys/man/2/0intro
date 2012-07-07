@@ -1,0 +1,457 @@
+.TH INTRO 2
+.SH NAME
+intro \- introduction to library functions
+.SH SYNOPSIS
+.nf
+.B #include <u.h>
+.PP
+.B #include <libc.h>
+.PP
+.B #include <auth.h>
+.PP
+.B #include <bio.h>
+.PP
+.B #include <draw.h>
+.PP
+.B #include <fcall.h>
+.PP
+.B #include <frame.h>
+.PP
+.B #include <mach.h>
+.PP
+.B #include <ndb.h>
+.PP
+.B #include <regexp.h>
+.PP
+.B #include <stdio.h>
+.PP
+.B #include <thread.h>
+.fi
+.SH DESCRIPTION
+This section describes functions
+in various libraries.
+For the most part, each library is defined by a single C include
+file, such as those listed above, and a single archive file containing
+the library proper.  The name of the archive is
+.BI /$objtype/lib/lib x .a \f1,
+where
+.I x
+is the base of the include file name, stripped of a leading
+.B lib
+if present.
+For example,
+.B <draw.h>
+defines the contents of library
+.BR /$objtype/lib/libdraw.a ,
+which may be abbreviated when named to the loader as
+.BR -ldraw .
+In practice, each include file contains a
+.B #pragma
+that directs the loader to pick up the associated archive
+automatically, so it is rarely necessary to tell the loader
+which
+libraries a program needs.
+.PP
+The library to which a function belongs is defined by the
+header file that defines its interface.
+The `C library',
+.IR libc ,
+contains most of the basic subroutines such
+as
+.IR strlen .
+Declarations for all of these functions are
+in
+.BR <libc.h> ,
+which must be preceded by
+.RI ( needs )
+an include of
+.BR <u.h> .
+The graphics library,
+.IR draw ,
+is defined by
+.BR <draw.h> ,
+which needs
+.B <libc.h>
+and
+.BR <u.h> .
+The Buffered I/O library,
+.IR libbio ,
+is defined by
+.BR <bio.h> ,
+which needs
+.B <libc.h>
+and
+.BR <u.h> .
+The ANSI C Standard I/O library,
+.IR libstdio ,
+is defined by
+.BR <stdio.h> ,
+which needs
+.BR <u.h> .
+There are a few other, less commonly used libraries defined on
+individual pages of this section.
+.PP
+The include file
+.BR <u.h> ,
+a prerequisite of several other include files,
+declares the architecture-dependent and -independent types, including:
+.IR uchar ,
+.IR ushort ,
+.IR uint ,
+and
+.IR ulong ,
+the unsigned integer types;
+.IR schar ,
+the signed char type;
+.I vlong
+and
+.IR uvlong ,
+the signed and unsigned very long integral types;
+.IR Rune ,
+the Unicode character type;
+.IR u8int ,
+.IR u16int ,
+.IR u32int ,
+and
+.IR u64int ,
+the unsigned integral types with specific widths;
+.IR uintptr ,
+the unsigned integral type with the same width as a pointer;
+.IR jmp_buf ,
+the type of the argument to
+.I setjmp
+and 
+.IR longjmp ,
+plus macros that define the layout of
+.IR jmp_buf
+(see
+.IR setjmp (2));
+definitions of the bits in the floating-point control register
+as used by
+.IR getfcr (2);
+and
+the macros
+.B va_arg
+and friends for accessing arguments of variadic functions (identical to the
+macros defined in
+.B <stdarg.h>
+in ANSI C).
+.SS "Name space
+Files are collected into a hierarchical organization called a
+.I "file tree
+starting in a
+.I directory
+called the
+.IR root .
+File names, also called
+.IR paths ,
+consist of a number of
+.BR / -separated
+.I "path elements"
+with the slashes corresponding to directories.
+A path element must contain only printable
+characters (those outside the control spaces of
+.SM ASCII
+and Latin-1).
+A path element cannot contain a slash.
+.PP
+When a process presents a file name to Plan 9, it is
+.I evaluated
+by the following algorithm.
+Start with a directory that depends on the first
+character of the path:
+.L /
+means the root of the main hierarchy,
+.L #
+means the separate root of a kernel device's file tree (see Section 3),
+and anything else means the process's current working directory.
+Then for each path element, look up the element
+in the directory, advance to that directory,
+do a possible translation (see below), and repeat.
+The last step may yield a directory or regular file.
+The collection of files reachable from the root is called the
+.I "name space
+of a process.
+.PP
+A program can use
+.I bind
+or
+.I mount
+(see
+.IR bind (2))
+to say that whenever a specified file is reached during evaluation,
+evaluation instead continues from a second specified file.
+Also, the same system calls create
+.IR "union directories" ,
+which are concatenations of ordinary directories
+that are searched sequentially until the desired element is found.
+Using
+.I bind
+and
+.I mount
+to do name space adjustment affects only
+the current process group (see below).
+Certain conventions about the layout of the name space should
+be preserved; see
+.IR namespace (4).
+.SS "File I/O"
+Files are opened for input or output
+by
+.I open
+or
+.I create
+(see
+.IR open (2)).
+These calls return an integer called a
+.IR "file descriptor"
+which identifies the file
+to subsequent I/O calls,
+notably
+.IR read (2)
+and
+.IR write .
+The system allocates the numbers by selecting the lowest unused descriptor.
+They are allocated dynamically; there is no visible limit to the number of file
+descriptors a process may have open.
+They may be reassigned using
+.IR dup (2).
+File descriptors are indices into a
+kernel resident
+.IR "file descriptor table" .
+Each process has an associated file descriptor table.
+In some cases (see
+.I rfork
+in
+.IR fork (2))
+a file descriptor table may be shared by several processes.
+.PP
+By convention,
+file descriptor 0 is the standard input,
+1 is the standard output,
+and 2 is the standard error output.
+With one exception, the operating system is unaware of these conventions;
+it is permissible to close file 0,
+or even to replace it by a file open only for writing,
+but many programs will be confused by such chicanery.
+The exception is that the system prints messages about broken processes
+to file descriptor 2.
+.PP
+Files are normally read or written in sequential order.
+The I/O position in the file is called the
+.IR "file offset"
+and may be set arbitrarily using the
+.IR seek (2)
+system call.
+.PP
+Directories may be opened and read much like regular files.
+They contain an integral number of records, called
+.IR "directory entries" .
+Each entry is a machine-independent representation of
+the information about an existing file in the directory,
+including the name, ownership,
+permission,
+access dates,
+and so on.
+The entry
+corresponding to an arbitrary file can be retrieved by
+.IR stat (2)
+or
+.IR fstat ;
+.I wstat
+and
+.I fwstat
+write back entries, thus changing the properties of a file.
+An entry may be translated into a more convenient, addressable
+form called a
+.B Dir
+structure;
+.IR dirstat ,
+.IR dirfstat,
+.IR dirwstat ,
+and
+.I dirfwstat
+execute the appropriate translations (see
+.IR stat (2)).
+.PP
+New files are made with
+.I create
+(see
+.IR open (2))
+and deleted with
+.IR remove (2).
+Directories may not directly be written;
+.IR create ,
+.IR remove ,
+.IR wstat ,
+and
+.I fwstat
+alter them.
+.PP
+The operating system kernel records the file name used to access each open file or directory.
+If the file is opened by a local name (one that does not begin
+.B /
+or
+.BR # ),
+the system makes the stored name absolute by prefixing
+the string associated with the current directory.
+Similar lexical adjustments are made for path names containing
+.B .
+(dot) or
+.B ..
+(dot-dot).
+By this process, the system maintains a record of the route by which each file was accessed.
+Although there is a possibility for error\(emthe name is not maintained after the file is opened,
+so removals and renamings can confound it\(emthis simple method usually
+permits the system to return, via the
+.IR fd2path (2)
+system call and related calls such as
+.IR getwd (2),
+a valid name that may be used to find a file again.
+This is also the source of the names reported in the name space listing of
+.IR ns (1)
+or
+.B /dev/ns
+(see
+.IR proc (3)).
+.PP
+.IR Pipe (2)
+creates a connected pair of file descriptors,
+useful for bidirectional local communication.
+.SS "Process execution and control"
+A new process is created
+when an existing one calls
+.I rfork
+with the
+.B RFPROC
+bit set, usually just by calling
+.IR fork (2).
+The new (child) process starts out with
+copies of the address space and most other attributes
+of the old (parent) process.
+In particular,
+the child starts out running
+the same program as the parent;
+.IR exec (2)
+will bring in a different one.
+.PP
+Each process has a unique integer process id;
+a set of open files, indexed by file descriptor;
+and a current working directory
+(changed by
+.IR chdir (2)).
+.PP
+Each process has a set of attributes \(em memory, open files,
+name space, etc. \(em that may be shared or unique.
+Flags to
+.IR rfork
+control the sharing of these attributes.
+.PP
+The memory of a process is divided into
+.IR segments .
+Every program has at least a
+.I text
+(instruction) and
+.I stack
+segment.
+Most also have an initialized
+.I data
+segment and a segment of zero-filled data called
+.IR bss .
+Processes may
+.IR segattach (2)
+other segments for special purposes.
+.PP
+A process terminates by calling
+.IR exits (2).
+A parent process may call
+.IR wait (2)
+to wait for some child to terminate.
+A string of status information
+may be passed from
+.I exits
+to
+.IR wait .
+A process can go to sleep for a specified time by calling
+.IR sleep (2).
+.PP
+There is a
+.I notification
+mechanism for telling a process about events such as address faults,
+floating point faults, and messages from other processes.
+A process uses
+.IR notify (2)
+to register the function to be called (the
+.IR "notification handler" )
+when such events occur.
+.SS Multithreading
+By calling
+.I rfork
+with the
+.B RFMEM
+bit set, a program may create several independently executing processes sharing the same
+memory (except for the stack segment, which is unique to each process).
+Where possible according to the ANSI C standard,
+the main C library works properly in multiprocess programs;
+.IR malloc ,
+.IR print ,
+and the other routines use locks (see
+.IR lock (2))
+to synchronize access to their data structures.
+The graphics library defined in
+.B <draw.h>
+is also multi-process capable; details are in
+.IR graphics (2).
+In general, though, multiprocess programs should use some form of synchronization
+to protect shared data.
+.PP
+The thread library, defined in
+.BR <thread.h> ,
+provides support for multiprocess programs.
+It includes a data structure called a
+.B Channel
+that can be used to send messages between processes,
+and coroutine-like
+.IR threads ,
+which enable multiple threads of control within a single process.
+The threads within a process are scheduled by the library, but there is
+no pre-emptive scheduling within a process; thread switching occurs
+only at communication or synchronization points.
+.PP
+Most programs using the thread library
+comprise multiple processes
+communicating over channels, and within some processes,
+multiple threads.  Since Plan 9 I/O calls may block, a system
+call may block all the threads in a process.
+Therefore, a program that shouldn't block unexpectedly will use a process
+to serve the I/O request, passing the result to the main processes
+over a channel when the request completes.
+For examples of this design, see
+.IR ioproc (2)
+or
+.IR mouse (2).
+.SH SEE ALSO
+.IR nm (1), 
+.IR 2l (1), 
+.IR 2c (1)
+.SH DIAGNOSTICS
+Math functions in
+.I libc
+return
+special values when the function is undefined for the
+given arguments or when the value is not representable
+(see
+.IR nan (2)).
+.PP
+Some of the functions in
+.I libc
+are system calls and many others employ system calls in their implementation.
+All system calls return integers,
+with \-1 indicating that an error occurred;
+.IR errstr (2)
+recovers a string describing the error.
+Some user-level library functions also use the
+.I errstr
+mechanism to report errors.
+Functions that may affect the value of the error string are said to ``set
+.IR errstr '';
+it is understood that the error string is altered only if an error occurs.

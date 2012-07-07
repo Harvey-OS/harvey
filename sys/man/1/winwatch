@@ -1,0 +1,46 @@
+.TH WINWATCH 1
+.SH NAME
+winwatch \- monitor rio windows
+.SH SYNOPSIS
+.B winwatch
+[
+.B -e
+.I exclude
+] [
+.B -f
+.I font
+]
+.SH DESCRIPTION
+.I Winwatch
+displays the labels of all current
+.IR rio (4)
+windows, refreshing the display every five seconds.
+Right clicking a window's label unhides, raises and gives focus to that window.
+Typing
+.B q
+or
+DEL
+quits
+.IR winwatch .
+.PP
+If the
+.B -e
+flag
+is given,
+windows matching the regular expression
+.I exclude
+are not shown.
+.SH EXAMPLE
+Excluding winwatch, stats and faces from being showed.
+.IP
+.EX
+% winwatch -e '^(winwatch|stats|faces)'
+.EE
+.SH FILES
+.B /dev/wsys/*/label
+.SH SOURCE
+.B /sys/src/cmd/winwatch.c
+.SH SEE ALSO
+.IR rio (1),
+.IR rio (4),
+.IR regexp (6).

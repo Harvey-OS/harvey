@@ -1,0 +1,754 @@
+.TH PREP 8
+.SH NAME
+prep, fdisk, format, mbr \- prepare disks, floppies and flashes
+.SH SYNOPSIS
+.B disk/prep
+[
+.B -bcfnprw
+]
+[
+.B -a
+.I name
+]...
+[
+.B -s
+.I sectorsize
+]
+.I plan9partition
+.PP
+.B disk/fdisk
+[
+.B -abfprw
+]
+[
+.B -s
+.I sectorsize
+]
+.I disk
+.PP
+.B disk/format
+[
+.B -dfvx
+]
+[
+.B -b
+.I bootblock
+]
+[
+.B -c
+.I csize
+]
+[
+.B -l
+.I label
+]
+[
+.B -r
+.I nresrv
+]
+[
+.B -t
+.I type
+]
+.I disk
+[
+.IR file ...
+]
+.PP
+.B disk/mbr
+[
+.B -9
+]
+[
+.B -m
+.I mbrfile
+]
+.I disk
+.SH DESCRIPTION
+A partition table is stored on a hard disk to specify the division of
+the physical disk into a set of logical units.
+On PCs, the partition table is stored at the end of the master boot record
+of the disk.
+Partitions of type
+.B 0x39
+are Plan 9 partitions.
+The names of PC partitions are chosen by convention from the type:
+.BR dos ,
+.BR plan9 ,
+etc.
+Second and subsequent partitions of the same type on a given disk are given
+unique names by appending a number (or a period and a number if the name
+already ends in a number).
+.PP
+Plan 9 partitions (and Plan 9 disks on non-PCs) are
+themselves divided, using a textual partition table, called the Plan 9 partition table, in the second
+sector of the partition (the first is left for architecture-specific boot data, such as PC boot blocks).
+The table is a sequence of lines of the format
+.BI part " name start end" \fR,
+where
+.I start
+and
+.I end
+name the starting and ending sector.
+Sector 0 is the first sector of the Plan 9 partition or disk,
+regardless of its position in a larger disk.
+Partition extents do not contain the ending sector,
+so a partition from 0 to 5 and a partition from 5 to 10
+do not overlap.
+.PP
+The Plan 9 partition often contains a number of
+conventionally named subpartitions.
+They include:
+.TF arenas
+.TP
+.B 9fat
+A small FAT file system used to hold
+configuration information
+(such as
+.B plan9.ini
+and
+.BR plan9.nvr )
+and kernels.
+This typically begins in the first sector
+of the partition, and contains the partition
+table as a ``reserved'' sector.
+See the discussion of the
+.B -r
+option to
+.IR format .
+.TP
+.B arenas
+A
+.IR venti (8)
+arenas partition.
+.TP
+.B bloom
+A
+.IR venti (8)
+bloom-filter partition.
+.TP
+.B cache
+A
+.IR cfs (4)
+file system cache.
+.TP
+.B fossil
+A
+.IR fossil (4)
+file system.
+.TP
+.B fs
+A
+.IR kfs (4)
+file system.
+.TP
+.B fscfg
+A few-sector partition used to store an
+.IR fs (3)
+configuration.
+.TP
+.B isect
+A
+.IR venti (8)
+index section.
+.TP
+.B nvram
+A one-sector partition used to simulate non-volatile RAM on PCs.
+.TP
+.B other
+A non-archived
+.IR fossil (4)
+file system.
+.TP
+.B swap
+A
+.IR swap (8)
+swap partition.
+.PD
+.PP
+.I Fdisk
+edits the PC partition table and is usually
+invoked with a disk like
+.B /dev/sdC0/data
+as its argument, while
+.I prep
+edits the Plan 9 partition table
+and is usually invoked with a disk partition
+like
+.B /dev/sdC0/plan9
+as its argument.
+.I Fdisk
+works in units of disk ``cylinders'': the cylinder
+size in bytes is printed when
+.I fdisk
+starts.
+.I Prep
+works in units of disk sectors, which are almost always 512 bytes.
+.I Fdisk
+and
+.I prep
+share most of their options:
+.TF -a
+.PD
+.TP
+.B -a
+Automatically partition the disk.
+.I Fdisk
+will create a Plan 9
+partition in the largest unused area on the disk,
+doing nothing if a
+Plan 9 partition already exists.
+If no other partition on the disk is marked active (i.e. marked as the boot partition),
+.I fdisk
+will mark the new partition active.
+.IR Prep 's
+.B -a
+flag takes the name of a partition to create.
+(See the list above for partition names.)
+It can be repeated to specify a list of partitions to create.
+If the disk is currently unpartitioned,
+.I prep
+will create the named partitions on the disk,
+attempting to use the entire disk in a sensible manner.
+The partition names must be from the list given above.
+.TP
+.B -b
+Start with a blank disk, ignoring any extant partition table.
+.TP
+.B -p
+Print a sequence of commands that when sent to the disk device's
+.B ctl
+file
+will bring the partition
+table information kept by
+the
+.IR sd (3)
+driver up to date.
+Then exit.
+.I Prep
+will check to see if it is being called with a disk partition
+(rather than an entire disk) as its argument; if so, it
+will translate the printed sectors by the partition's offset
+within the disk.
+Since
+.I fdisk
+operates on a table of unnamed partitions,
+it assigns names based on the partition type
+(e.g.,
+.BR plan9 ,
+.BR dos ,
+.BR ntfs ,
+.BR linux ,
+.BR linuxswap )
+and resolves collisions by appending a numbered suffix.
+(e.g.,
+.BR dos ,
+.BR dos.1 ,
+.BR dos.2 ).
+.TP
+.B -r
+In the absence of the
+.B -p
+and
+.B -w
+flags,
+.I prep
+and
+.I fdisk
+enter an interactive partition editor;
+the
+.B -r
+flag runs the editor in read-only mode.
+.TP
+.BI -s " sectorsize"
+Specify the disk's sector size.
+In the absence of this flag,
+.I prep
+and
+.I fdisk
+look for a disk
+.B ctl
+file and read it to find the disk's sector size.
+If the
+.B ctl
+file cannot be found, a message is printed and
+a sector size of 512 bytes is assumed.
+.TP
+.B -w
+Write the partition table to the disk and exit.
+This is useful when used in conjunction with
+.B -a
+or
+.BR -b .
+.PP
+If neither the
+.B -p
+flag nor the
+.B -w
+flag is given,
+.I prep
+and
+.I fdisk
+enter an interactive partition editor that
+operates on named partitions.
+The PC partition table distinguishes between
+primary partitions, which can be listed in the boot
+sector at the beginning of the disk,
+and secondary (or extended) partitions, arbitrarily
+many of which may be chained together in place
+of a primary partition.
+Primary partitions are named
+.BR p \fIn\fR,
+secondary partitions
+.BR s \fIn\fR.
+The number of primary partitions plus number of contiguous chains of
+secondary partitions cannot exceed four.
+.PP
+The commands are as follows.
+In the descriptions, read ``sector'' as ``cylinder'' when using
+.IR fdisk .
+.TF ".\fI newdot
+.PD
+.TP
+.B "a\fR \fIname\fR [ \fIstart\fR [ \fIend\fR ] ]"
+Create a partition named
+.I name
+starting at sector offset
+.I start
+and ending at offset
+.IR end .
+The new partition will not be created if
+it overlaps an extant partition.
+If
+.I start
+or
+.I end
+are omitted,
+.I prep
+and
+.I fdisk
+will prompt for them.
+In
+.IR fdisk ,
+the newly created partition has type
+.RB `` PLAN9 ;''
+to set a different type, use the
+.B t
+command (q.v.).
+.I Start
+and
+.I end
+may be expressions using the operators
+.BR + ,
+.BR - ,
+.BR * ,
+and
+.BR / ,
+numeric constants, and the
+pseudovariables
+.B .
+and
+.BR $ .
+At the start of the program,
+.B .
+is set to zero; each time a partition is
+created, it is set to the end sector
+of the new partition.
+It can also be explicitly set using the
+.B .
+command.
+When evaluating
+.IR start ,
+.B $
+is set to one past the last disk sector.
+When evaluating
+.IR end ,
+.B $
+is set to the maximum value that
+.I end
+can take on without running off the disk
+or into another partition.
+Numeric constants followed by
+.LR k ,
+.LR m ,
+.LR g ,
+or
+.LR t
+(or upper-case equivalents)
+are scaled to the respective size in kilo-, mega-, giga-, or tera-bytes.
+Finally, the expression
+.IB n %
+evaluates to
+.RI ( n × disksize )/100.
+As examples,
+.L "a . .+20%"
+creates a new partition starting at
+.B .
+that takes up a fifth of the disk,
+.L "a . .+21G"
+creates a new partition starting at
+.B .
+that takes up 21 gigabytes (21×2\u\s-130\s0\d bytes),
+and
+.L "a 1000 $"
+creates a new partition starting at
+sector 1000 and
+extending as far as possible.
+.TP
+.B ".\fR \fInewdot"
+Set the value of the variable
+.B .
+to
+.IR newdot ,
+which is an arithmetic expression as described
+in the discussion of the
+.B a
+command.
+.TP
+.BI d " name"
+Delete the named partition.
+.TP
+.B h
+Print a help message listing command synopses.
+.TP
+.B p
+Print the disk partition table.
+Unpartitioned regions are also listed.
+The table consists of a number of lines containing
+partition name, beginning and ending sectors,
+and total size.
+A
+.B '
+is prefixed to the names of partitions
+whose entries have been modified but not written to disk.
+.I Fdisk
+adds to the end of each line a textual partition type,
+and places a
+.B *
+next to the name of the active partition
+(see the
+.B A
+command below).
+.TP
+.B P
+Print the partition table in the format accepted by the disk's
+.B ctl
+file, which is also the format of the output of the
+.B -p
+option.
+.TP
+.B w
+Write the partition table to disk.
+.I Prep
+will also inform the kernel of the changed
+partition table.
+The write will fail if any programs have any
+of the disk's partitions open.
+If the write fails (for this or any other reason),
+.I prep
+and
+.I fdisk
+will attempt to restore the partition table to
+its former state.
+.TP
+.B q
+Quit the program.
+If the partition table has been modified but not written,
+a warning is printed.
+Typing
+.B q
+again will quit the program.
+.PP
+.I Fdisk
+also has the following commands.
+.TF "t \fR[\fI type \fR]
+.PD
+.TP
+.BI A " name
+Set the named partition active.
+The active partition is the one whose boot block is used
+when booting a PC from disk.
+.TP
+.B e
+Print the names of empty slots in the partition table, i.e., the
+valid names to use when creating a new partition.
+.TP
+.BI t " \fR[\fI type \fR]
+Set the partition type.  If it is not given,
+.I fdisk
+will display a list of choices and then prompt for it.
+.PD
+.PP
+.I Format
+prepares for use the floppy diskette or hard disk partition in the file named
+.IR disk ,
+for example
+.B /dev/fd0disk
+or
+.BR /dev/sdC0/9fat .
+The options are:
+.TP
+.B -f
+Do not physically format the disc. Used
+to install a FAT file system on a
+previously formatted disc. If
+.I disk
+is not a floppy device, this flag is a no-op.
+.TP
+.B -t
+specify a density and type of disk to be prepared.
+The possible
+.I types
+are:
+.RS
+.TP
+.B 3½DD
+3½" double density, 737280 bytes
+.TP
+.B 3½HD
+3½" high density, 1474560 bytes
+.TP
+.B 5¼DD
+5¼" double density, 368640 bytes
+.TP
+.B 5¼HD
+5¼"  high density, 1146880 bytes
+.TP
+.B hard
+fixed disk
+.PD
+.PP
+The default when
+.I disk
+is a floppy drive is the highest possible on the device.
+When
+.I disk
+is a regular file, the default is
+.BR 3½HD .
+When
+.I disk
+is an
+.IR sd (3)
+device, the default is
+.BR hard .
+.RE
+.TP
+.B -d
+initialize a FAT file system on the
+.IR disk .
+.TP
+.B -b
+use the contents of
+.I bootblock
+as a bootstrap block
+to be installed in sector 0.
+.PD
+.PP
+The remaining options have effect only when
+.B -d
+is specified:
+.TP
+.B -c
+use a FAT cluster size of
+.I csize
+sectors when creating the FAT.
+.TP
+.B -l
+add a
+.I label
+when creating the FAT file system.
+.TP
+.BI -r
+mark the first
+.I nresrv
+sectors of the partition as ``reserved''.
+Since the first sector always contains the
+FAT parameter block, this really marks
+the
+.IR nresrv -1
+sectors starting at sector 1 as ``reserved''.
+When formatting the
+.B 9fat
+partition,
+.B -r
+.B 2
+should be used to jump over the partition table sector.
+.PD
+.PP
+Again under
+.BR -d ,
+any
+.I files
+listed are added, in order,
+to the root
+directory of the FAT file system.  The files are
+contiguously allocated.
+If a file is named
+.BR 9load ,
+it will be created with the
+.B SYSTEM
+attribute set so that
+.IR dossrv (4)
+keeps it contiguous when modifying it.
+.PP
+.I Format
+checks for a number of common mistakes; in particular,
+it will refuse to format a
+.B 9fat
+partition unless
+.B -r
+is specified with
+.I nresrv
+larger than two.
+It also refuses to format a raw
+.IR sd (3)
+partition that begins at offset zero in the disk.
+(The beginning of the disk should contain an
+.I fdisk
+partition table with master boot record,
+not a FAT file system or boot block.)
+Both checks are disabled by the
+.B -x
+option.
+The
+.B -v
+option prints debugging information.
+.PP
+The file
+.B /386/pbs
+is an example of a suitable
+.I bfile
+to make the disk a boot disk.
+It gets loaded by the BIOS at 0x7C00,
+reads the first sector of the
+root directory into address 0x7E00, and looks for
+a directory entry named
+.BR 9LOAD .
+If it finds such an entry,
+it uses
+single sector reads to load the file into address 0x10000 and then
+jumps to the loaded file image.
+The file
+.B /386/pbslba
+is similar, but because it uses LBA addressing (not supported
+by older BIOSes), it can access more than the first 8.5GB of the disk.
+.PP
+.I Mbr
+installs a new boot block in sector 0 (the master boot record)
+of a disk such as
+.BR /dev/sdC0/data .
+If
+.I mbrfile
+contains more than one sector of `boot block',
+the rest will be copied into the first track of the
+disk, if it fits.
+This boot block should not be confused with the
+boot block used by
+.IR format ,
+which goes in sector 0 of a partition.
+Typically, the boot block in the master boot record
+scans the PC partition table to find an active
+partition and then executes the boot block for
+that partition.
+The partition boot block then loads a bootstrap
+program such as
+.IR 9load (8),
+which then loads the operating system.
+If MS-DOS or Windows 9[58] is already installed
+on your hard disk, the master boot record
+already has a suitable boot block.
+Otherwise,
+.B /386/mbr
+is an appropriate
+.IR mbrfile .
+It detects and uses LBA addressing when available
+from the BIOS (the same could not
+be done in the case of
+.B pbs
+due to space considerations).
+If the
+.I mbrfile
+is not specified, a boot block is installed that
+prints a message explaining that the disk is not bootable.
+The
+.B -9
+option initialises the partition table to consist of one
+.BR plan9
+partition which spans the entire disc starting at the end of the
+first track.
+.SH EXAMPLES
+Initialize the kernel disk driver with the partition information
+from the FAT boot sectors.
+If Plan 9 partitions exist, pass that partition information as well.
+.IP
+.EX
+for(disk in /dev/sd??) {
+	if(test -f $disk/data && test -f $disk/ctl)
+		disk/fdisk -p $disk/data >$disk/ctl
+	for(part in $disk/plan9*)
+		if(test -f $part)
+			disk/prep -p $part >$disk/ctl
+}
+.EE
+.PP
+Create a Plan 9 boot floppy on a previously formatted diskette.
+.IP
+.EX
+disk/format -b /386/pbs -df /dev/fd0disk \e
+	/386/9load /tmp/plan9.ini /386/9pcf.gz
+.EE
+.PP
+Initialize the blank hard disk
+.BR /dev/sdC0/data .
+.IP
+.EX
+disk/mbr -m /386/mbr /dev/sdC0/data
+disk/fdisk -baw /dev/sdC0/data
+disk/prep -bw -a^(9fat nvram fossil cache swap) /dev/sdC0/plan9
+disk/format -b /386/pbslba -d -r 2 /dev/sdC0/9fat \e
+	/386/9load /386/9pcf /tmp/plan9.ini
+.EE
+.SH FILES
+.TF /386/mbr.bootmgr
+.TP
+.B /386/mbr
+.TP
+.B /386/mbr.bootmgr
+self-configuring `smart boot manager'
+.SH SOURCE
+.TF /n/sources/extra/bootmgr.tgz
+.TP
+.B /sys/src/cmd/disk/prep
+.TP
+.B /sys/src/boot/pc
+.TP
+.B /n/sources/extra/bootmgr.tgz
+.I nasm
+assembler source for
+.B /386/mbr.bootmgr
+.SH SEE ALSO
+.IR floppy (3),
+.IR sd (3),
+.IR usb (4),
+.IR 9load (8),
+.IR mkusbboot (8),
+.IR partfs (8)
+.SH BUGS
+.I Format
+can create FAT12 and FAT16
+file systems, but not FAT32 file systems.
+The boot block can only read from
+FAT12 and FAT16 file systems.
+.PP
+If
+.L "prep -p"
+doesn't find a Plan 9 partition table,
+it will emit commands to delete
+.I all
+extant partitions.
+Similarly,
+.L "fdisk -p"
+will delete all partitions,
+including
+.LR data ,
+if there are no partitions defined in the MBR.

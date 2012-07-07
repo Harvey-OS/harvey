@@ -1,0 +1,30 @@
+.TH SWAP 8
+.SH NAME
+swap \- establish a swap file
+.SH SYNOPSIS
+.B swap
+.I file 
+.SH DESCRIPTION
+.I Swap
+establishes a file or device for the system to swap on.
+If
+.I file
+is a device, the device is used directly; if a directory,
+a unique file is created in that directory on which to swap.
+The environment variable
+.B swap
+is set to the full name of the resulting file.
+The number of blocks available in the file or device
+must be at least the number of swap blocks configured
+at system boot time.
+.PP
+If a swap channel has already been set and no blocks
+are currently valid in the file the old file will be
+closed and then replaced. If any blocks are valid on
+the device an error is returned instead.
+.SH SOURCE
+.B /sys/src/cmd/swap.c
+.SH BUGS
+Swapping to a file served by a local user-level process, such as
+.IR kfs (4),
+can lead to deadlock; use raw devices or remote files instead.

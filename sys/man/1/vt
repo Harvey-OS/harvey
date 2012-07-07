@@ -1,0 +1,135 @@
+.TH VT 1 
+.SH NAME
+vt \- emulate a VT-100 or VT-220 terminal
+.SH SYNOPSIS
+.B vt
+[
+.B -2abcx
+]
+[
+.B -f
+.I font
+] [
+.B -l
+.I log
+]
+.SH DESCRIPTION
+.I Vt
+replaces a
+.I rio
+window with a fresh instance of the shell,
+.IR rc (1),
+running within an emulation of a DEC VT-100 terminal.
+To exit
+.IR vt ,
+exit the
+.B rc
+it starts.
+.SS Options
+.TF m
+.TP
+.B 2
+.TP
+.B a
+.TP
+.B x
+change
+.I vt
+to emulate a VT-220, ANSI, or XTerm terminal respectively.
+.TP
+.B b
+changes the color scheme to white text on a black background,
+but potentially with colors from escape sequences.
+.TP
+.B c
+changes the color scheme to monochrome (no colors).
+.TP
+.B f
+sets the
+.IR font .
+.TP
+.B l
+names a
+.I log
+file for the session.
+.SS Menus
+The right button has a menu with the following entries to provide
+the sort of character processing expected by non-Plan 9 systems:
+.TF cooked
+.TP
+.B 24x80
+Resize the
+.I vt
+window to hold 24 rows of 80 columns.
+.TP
+.B crnl
+Print a newline (linefeed) character after receiving a carriage return from the host.
+.TP
+.B cr
+Do not print a newline after carriage return.
+.TP
+.B nlcr
+Print a carriage return after receiving a newline from the host.
+.TP
+.B nl
+Do not print a carriage return after newline.
+.TP
+.B raw
+Enter raw (no echo, no interpretation) character mode for input.
+.TP
+.B cooked
+Leave raw mode.
+.TP
+.B exit
+Exit
+.IR vt .
+.PD
+.PP
+The middle button has a menu with the following entries:
+.TF right_key
+.TP
+.B backup
+Move the display back one screenful.
+.TP
+.B forward
+Move the display forward one screenful.
+(These are a poor substitute for a scroll bar.)
+.TP
+.B reset
+Display the last screenful; the same as going
+.B forward
+to the end.
+.TP
+.B clear
+Clear the screen.  Previous contents can be recovered using
+.BR backup .
+.TP
+.B send
+Send the contents of the
+.B rio
+snarf buffer, just as
+.B send
+in the
+.B rio
+menu.
+.TP
+.B scroll
+Make new lines visible as they appear at the bottom.
+.TP
+.B page
+When the page fills, pause and wait for a character to be typed before proceeding.
+The down arrow key advances a page without sending the character to the host.
+.PD
+.SH SOURCE
+.B /sys/src/cmd/vt
+.SH BUGS
+This program is used only for communicating with foreign systems,
+so it is not
+as rich an emulation as its equivalent in other environments.
+.PP
+Use care in setting raw and newline modes when connecting to Unix systems
+via
+.IR con (1)
+or
+.IR ssh (1).
+It may also be necessary to set the emulator into raw mode.

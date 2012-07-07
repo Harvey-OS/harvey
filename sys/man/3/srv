@@ -1,0 +1,74 @@
+.TH SRV 3 
+.SH NAME
+srv \- server registry
+.SH SYNOPSIS
+.nf
+.B bind #s /srv
+
+.BI #s/ service1
+.BI #s/ service2
+ ...
+.fi
+.SH DESCRIPTION
+The
+.I srv
+device provides a one-level directory holding
+already-open channels to services.
+In effect,
+.I srv
+is a bulletin board on which processes may post open file descriptors
+to make them available to other processes.
+.PP
+To install a channel, create
+a new file such as
+.B /srv/myserv
+and then write a text string (suitable for
+.IR strtoul ;
+see
+.IR atof (2))
+giving the file descriptor number of an open file.
+Any process may then open
+.B /srv/myserv
+to acquire another reference to the open file that was registered.
+.PP
+An entry in
+.I srv
+holds a reference to the associated file even if no process has the
+file open.  Removing the file from
+.B /srv
+releases that reference.
+.PP
+It is an error to write more than one number into a server file,
+or to create a file with a name that is already being used.
+.SH EXAMPLE
+To drop one end of a pipe into
+.BR /srv ,
+that is, to create a named pipe:
+.IP
+.EX
+int fd, p[2];
+char buf[32];
+
+pipe(p);
+fd = create("/srv/namedpipe", OWRITE, 0666);
+fprint(fd, "%d", p[0]);
+close(fd);
+close(p[0]);
+fprint(p[1], "hello");
+.EE
+.PP
+At this point, any process may open and read
+.B /srv/namedpipe
+to receive the
+.B hello
+string.  Data written to
+.B /srv/namedpipe
+can be received by executing
+.IP
+.EX
+read(p[1], buf, sizeof buf);
+.EE
+.PP
+in the above process.
+.SH SOURCE
+.B /sys/src/9/port/devsrv.c

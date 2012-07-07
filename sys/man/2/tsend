@@ -1,0 +1,188 @@
+.TH TSEND 2
+.SH NAME
+tsend, trecv, newtube, talt, nbtsend, nbtrecv \- optimistic user level channels
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.br
+.B #include <tube.h>
+.PP
+.B
+void freetube(Tube *t);
+.PP
+.B
+int nbtrecv(Tube *t, void *p);
+.PP
+.B
+int nbtsend(Tube *t, void *p);
+.PP
+.B
+Tube* newtube(ulong msz, ulong n);
+.PP
+.B
+int talt(Talt a[], int na);
+.PP
+.B
+void trecv(Tube *t, void *p);
+.PP
+.B
+void tsend(Tube *t, void *p);
+.PP
+.B
+Tube* namedtube(char *name,ulong msz,int n, int mkit);
+.PP
+.B
+int namedtubedebug;
+.SH DESCRIPTION
+These functions provide an abstraction similar to
+.I Channels
+as found in
+.IR thread (2).
+However,
+.I Tubes
+are always buffered and are optimistic, they will not require entering the
+kernel to communicate if the operation may proceed, and they are to be used
+between processes.
+.PP
+.I Newtube
+creates a tube using
+.I msz
+as the element size, with buffering for
+.I n
+messages. Tubes cannot be unbuffered.
+.PP
+.I Freetube
+releases the resources held by a tube. It may not be called while the tube is in use.
+.PP
+.I Tsend
+and
+.I nbtsend
+send a message pointed to by
+.I p
+through a tube
+.IR t.
+They do not enter the kernel if the message may be sent without blocking. See
+.I upsem (2)
+to learn how to tune if busy waiting is performed and for how long.
+If the message may not be sent without blocked (after perhaps performing a busy
+waiting),
+.I tsend
+enters the kernel and blocks until it may proceed.
+.I Nbtsend
+returns -1 in this case, and 0 otherwise.
+.PP
+.I Trecv
+and
+.I nbtrecv
+are the counterparts of
+.I tsend
+and
+.IR nbtsend .
+They
+receive a message from the tube
+.I t
+(copying it at the location pointed to by
+.IR p ).
+If there is a message in the tube (perhaps after performing a busy wait), they do not enter the kernel.
+See
+.IR upsem (2)
+to learn how to tune the busy wait period.
+If the operation may not proceed,
+.I tsend
+enters the kernel and blocks until it can, and
+.I nbtsend
+returns -1.
+.I Nbtsend
+returns 0 otherwise.
+.PP
+.I Talt
+tries to perform any of the requests implied by the array
+.I a
+and blocks only if none of them may proceed. If an operation may proceed,
+it does not block and does not enter the kernel (unless it implies waking up another process).
+The return value is the index in
+.I a
+for the operation performed. The array contains
+.I n
+different
+.I Talt
+entries:
+.EX
+enum
+{
+	TSND,
+	TRCV,
+	TNBSND,
+	TNBRCV,
+	TNOP
+};
+
+typedef struct Talt Talt;
+struct Talt
+{
+	Tube*	t;
+	void*	m;
+	int	op;
+};
+.EE
+.PP
+Each entry must have
+.I t
+pointing to a tube,
+.I m
+pointing to a message to be sent or received, and
+.I op
+containing one of
+.I TSND
+(for sending),
+.I TRCV
+(for receiving),
+.I TNBSND
+(for sending without blocking),
+.I TNBRCV
+(for receiving without blocking),
+or
+.I TNOP
+(for ignoring the entry).
+.PP
+.I Namedtube
+uses
+.IR segment (2)
+to hold tubes for sharing between otherwise unrelated processes.
+The function locates a shared tube within a shared memory segment, identified by
+.IR name .
+When
+.I mkit
+is non zero, the requested tube (and the implied segment) is created if it does not
+exist. Otherwise, the function returns nil upon failure.
+.PP
+The tube
+.I name
+must be of the form
+.EX
+	segname!tubename
+.EE
+(or simply
+.IR tubename ).
+Here,
+.I segname
+identifies the shared memory segment storing the tubes. This segment should not
+be written externally, or
+.I namedtube
+will fail.
+.I Tubename
+is a single word naming a tube within the segment. If the segment name is not supplied,
+.B tubes
+is assumes by default as the segment name.
+.SH SOURCE
+.B /sys/src/libtube
+
+.SH SEE ALSO
+.IR fork (2),
+.IR thread (2),
+and
+.IR upsem (2).
+.SH DIAGNOSTICS
+These functions set
+.IR errstr .

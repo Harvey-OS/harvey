@@ -1,0 +1,106 @@
+.TH SNAP 4
+.SH NAME
+snap, snapfs \- create and mount process snapshots
+.SH SYNOPSIS
+.B snap 
+[
+.B -o
+.I file
+]
+.I pid...
+.PP
+.B snapfs
+[
+.B -a
+]
+[
+.B -m 
+.I mtpt
+]
+[
+.B -s
+.I service
+]
+.I file...
+.SH DESCRIPTION
+.I Snap
+and 
+.I snapfs
+allow one to save and restore (static) process images,
+usually for debugging
+on a different machine or at a different time.
+.PP
+.I Snap
+writes a snapshot 
+(see 
+.IR snap (6))
+of the named processes to
+.I file 
+(default standard output).
+If 
+.I pid
+is a text string
+rather than a process id,
+.I snap
+will save all processes with
+that name that
+are owned by the current user.
+Both memory and text images are saved.
+.PP
+.I Snapfs
+is a file server that
+recreates the
+.B /proc
+directories for the processes in the snapshot.
+By default, it mounts the new directories
+into 
+.B /proc
+before the current entries.
+The 
+.B -m
+option can be used to specify
+an alternate mountpoint,
+while
+.B -a
+will cause it to mount the new directories
+after the current entries.
+The 
+.B -s
+option causes it to serve requests via
+.BI /srv/ service.
+.SH EXAMPLE
+Suppose
+.I page
+has hung viewing Postscript on your terminal, but the author is gone for the rest of
+the month and you want to make sure the process
+is still around for debugging on his return.
+You can save the errant processes with
+.IP
+.EX
+snap -o page.snap `{psu | awk '$NF ~ /page|gs/ {print $2}'}
+.EE
+.PP
+When the author returns, he can add the process images to his name space
+by running
+.IP
+.EX
+snapfs page.snap
+.EE
+.PP
+and then use a conventional
+debugger to debug them.
+.SH SOURCE
+.B /sys/src/cmd/snap
+.SH SEE ALSO
+.IR acid (1),
+.IR db (1),
+.IR proc (3),
+.IR snap (6)
+.SH BUGS
+The snapshots take up about as much disk space
+as the processes they contain did memory.
+Compressing them when not in use is recommended,
+as is storing them on a rewritable disk.
+.PP
+.I Pid
+as a non-numeric string is unimplemented; it has to be a number.

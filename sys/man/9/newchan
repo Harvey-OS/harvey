@@ -1,0 +1,225 @@
+.TH NEWCHAN 9
+.SH NAME
+newchan, chanfree, cclose, eqqid, eqchan, isdir, fdtochan, namec \- channel operations
+.SH SYNOPSIS
+.ta \w'\fLChan* 'u
+.B
+Chan*	newchan(void)
+.PP
+.B
+void	chanfree(Chan *c)
+.PP
+.B
+int	eqqid(Qid a, Qid b)
+.PP
+.B
+int	eqchan(Chan *a, Chan *b, int pathonly)
+.PP
+.B
+void	isdir(Chan *c)
+.PP
+.B
+Chan*	fdtochan(Fgrp *f, int fd, int mode, int chkmnt, int iref)
+.PP
+.B
+Chan*	namec(char *pathname, int amode, int omode, ulong perm)
+.PP
+.B
+void	cclose(Chan *c)
+.SH DESCRIPTION
+A value of type
+.B Chan
+represents a kernel channel for I/O and name space operations.
+It has the following public structure:
+.IP
+.EX
+typedef struct Chan{
+	ushort    type;       /* driver name */
+	ulong     dev;        /* instance number */
+	ushort    mode;       /* open mode */
+	ushort    flag;       /* COPEN set once opened */
+	ulong     offset;     /* current file offset */
+	Qid       qid;        /* unique id (path, vers) */
+	Path*     path;	/* name by which it was accessed */
+.EE
+.PP
+.I Newchan
+returns a pointer to a newly allocated channel (sleeping if necessary until memory is available).
+Device drivers do not normally call
+.IR newchan
+directly, but instead allocate channels using either
+.IR devattach ,
+when a process attaches to the device's root,
+or
+.IR devclone ,
+when an existing channel is cloned;
+see
+.IR devattach (9).
+.PP
+.I Chanfree
+frees the channel structure
+.I c
+for reuse.
+.PP
+.I Eqqid
+returns 1 if
+.B Qid
+values
+.I a
+and
+.I b
+are equal
+(ie,
+both their
+.B path
+and
+.B vers
+members are equal);
+it returns 0 otherwise.
+.PP
+.I Eqchan
+returns 1 if
+.I a
+and
+.I b
+have the same
+.BR qid ,
+.BR type
+and
+.BR dev
+members
+(ie, they represent the same file);
+it returns 0 otherwise.
+If
+.I pathonly
+is non-zero, the comparison of the two
+.B qid
+members compares only their
+.B path
+values,
+ignoring the version field
+.BR vers .
+.PP
+.I Isdir
+checks that a given channel
+.I c
+is a directory.
+If so, it returns;
+otherwise, it generates an
+.IR error (9),
+.BR Enotdir .
+.PP
+The
+.B Fgrp
+structure represents an array of open files, each
+represented by a
+.BR Chan ,
+indexed by integer file descriptors.
+A given
+.B Fgrp
+can be shared between processes.
+.PP
+.I Fdtochan
+returns a pointer to the
+.B Chan
+corresponding to file descriptor
+.I fd
+in file descriptor group
+.I f
+(almost invariably
+.BR up->fgrp ,
+the file descriptor group for the current process).
+If
+.I mode
+is a valid mode for
+.IR sys-open (2),
+typically
+.BR OREAD ,
+.B OWRITE
+or
+.BR ORDWR ,
+it must correspond to the mode with which
+.I fd
+was originally opened; if
+.I mode
+is
+.BR -1 ,
+no check is made.
+If
+.I chkmnt
+is non-zero,
+.I c
+must not be a channel in use by the mount driver
+.IR mnt (3).
+On successful return, if
+.I iref
+is non-zero, the channel's reference count has been incremented.
+.I Fdtochan
+calls
+.IR error (9)
+if it detects invalid uses, in particular an invalid file descriptor
+.IR fd .
+.PP
+.I Namec
+looks up a
+.I pathname
+in the current name space and returns a channel.
+.I Amode
+determines the mode of look up, and must be one of the constants below:
+.TF Aaccess
+.PD
+.TP
+.B Aaccess
+Access file for information, as in the stat command or call.
+.TP
+.B Atodir
+Access file as directory (the
+.B QTDIR
+bit of its
+.B qid.type
+must be set).
+.TP
+.B Aopen
+Access for I/O.
+.TP
+.B Amount
+Access directory to be mounted upon.
+.TP
+.B Acreate
+File is to be created.
+.PP
+If
+.I amode
+is
+.B Aopen
+or
+.BR Acreate ,
+.I omode
+should be a mode suitable for
+.IR sys-open (2);
+if
+.BR Acreate ,
+.I perm
+should be valid file permissions.
+In all other cases,
+.I omode
+and
+.I perm
+can be zero.
+.PP
+.I Cclose
+decrements the reference count on
+.IR c ;
+if no further references remain, it
+calls the corresponding device's
+.B Dev.close
+to close the channel, and frees
+.IR c .
+.SH DIAGNOSTICS
+Most functions call
+.IR error (9)
+on any sort of error.
+.SH SOURCE
+.B /sys/src/9/port/chan.c
+.SH SEE ALSO
+.IR ref (9)

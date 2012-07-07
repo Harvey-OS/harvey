@@ -1,0 +1,221 @@
+.TH DOSSRV 4
+.SH NAME
+dossrv, 9660srv, a:, b:, c:, d:, 9fat:, dosmnt, eject \- DOS and ISO9660 file systems
+.SH SYNOPSIS
+.B dossrv
+[
+.B -rsv
+] [
+.B -f
+.I file
+] [
+.I service
+]
+.PP
+.B 9660srv
+[
+.B -9Jsv
+] [
+.B -c
+.I clusters
+] [
+.B -f
+.I file
+] [
+.I service
+]
+.PP
+.B a:
+.PP
+.B b:
+.PP
+.B c:
+.PP
+.B 9fat:
+.PP
+.B dosmnt
+.I n
+.I mtpt
+.PP
+.B eject
+[
+.I n
+]
+.SH DESCRIPTION
+.I Dossrv
+is a file server that interprets DOS file systems.
+A single instance of
+.I dossrv
+can provide access to multiple DOS disks simultaneously.
+.PP
+.I Dossrv
+posts a file descriptor named
+.I service
+(default
+.BR dos )
+in the
+.B /srv
+directory.
+To access the DOS file system on a device, use
+.B mount
+with the
+.I spec
+argument
+(see
+.IR bind (1))
+the name of the file holding raw DOS file system, typically the disk.
+If
+.I spec
+is undefined in the
+.BR mount ,
+.I dossrv
+will use
+.I file
+as the default name for the device holding the DOS system.
+.PP
+Normally
+.I dossrv
+creates a pipe to act as the communications channel between
+itself and its clients.
+The
+.B -s
+flag instructs
+.I dossrv
+to use its standard input and output instead.
+The kernels use this option if they are booting from a DOS disk.
+This flag also prevents the creation of an explicit service file in
+.BR /srv .
+.PP
+The
+.B -v
+flag causes verbose output for debugging, while
+the
+.B -r
+flag makes the file system read-only.
+.PP
+The shell script
+.I a:
+contains
+.IP
+.EX
+unmount /n/a: >[2] /dev/null
+mount -c /srv/dos /n/a: /dev/fd0disk
+.EE
+.LP
+and is therefore a shorthand for mounting a floppy disk in drive A.
+The scripts
+.I b:
+and
+.I dosmnt
+are similar,
+mounting the second floppy disk
+and the
+.IR n th
+non-floppy DOS partition,
+respectively.
+.I C:
+and
+.I d:
+call
+.I dosmnt
+in an attempt to name the drives in
+the same order that Microsoft operating systems do.
+.I 9fat:
+provides access to the FAT component of the Plan 9 partition (see
+.IR prep (8)).
+.PP
+The file attribute flags used by the DOS file system
+do not map directly to those used by Plan 9.
+Since there is no concept of user or group,
+permission changes via
+.B wstat
+(see
+.IR stat (2))
+will fail unless the same (read, write, execute) permissions
+are specified for user, group, and other.
+For example, removing write permission in Plan 9
+corresponds to setting the read-only
+attribute in the DOS file system.
+Most of the other DOS attributes
+are not accessible.
+.PP
+Setting the exclusive use flag (DMEXCL)
+in Plan 9 corresponds to setting the
+system use attribute in the DOS file system.
+Such files are not actually restricted to exclusive use,
+but do merit special treatment that
+helps in the creation of boot disks:
+when 
+.I dossrv
+allocates a new block for such a file
+(caused, say, by a write that fills the file's
+last allocated block), it succeeds only if it can
+arrange for the file to be stored
+contiguously on disk.
+.PP
+Since other operating systems do not
+guarantee that system files are laid
+out contiguously, the DMAPPEND mode
+bit is set in file stat information
+only when the file is currently contiguous.
+Attempts to set the DMAPPEND mode bit
+explicitly will cause 
+.I dossrv
+to try to make the file contiguous,
+succeeding only if this is possible.
+.PP
+.I 9660srv
+is similar to
+.I dossrv
+in specification, except that it interprets ISO9660 CD-ROM
+file systems instead of DOS file systems.
+Some CDs contain multiple directory trees describing
+the same set of files.
+.IR 9660srv 's
+first choice in such a case is a standard ISO9660 tree
+with Plan 9 system use fields;
+the second choice is a Microsoft ``Joliet'' tree, which
+allows long file names and Unicode characters;
+the third choice is a standard ISO9660 or High Sierra tree.
+The
+.B -9
+flag causes
+.I 9660srv
+to ignore the Plan 9 system use fields,
+while the
+.B -J
+flag causes it to
+ignore the Joliet tree.
+The
+.B -c
+option sets the size of the RAM cache to
+.I clusters
+clusters of 128KB.
+The default
+.I clusters
+is 16,
+but a value of 5600 will cache an entire CD incrementally.
+.PP
+If the floppy drive has an ejection motor,
+.I eject
+will spit out the floppy from drive
+.IR n ,
+default 0.
+.SH EXAMPLE
+Mount a floppy disk with a DOS file system on it.
+.IP
+.EX
+a:
+.EE
+.SH "SEE ALSO"
+.IR kfs (4)
+.SH SOURCE
+.B /sys/src/cmd/dossrv
+.br
+.B /sys/src/cmd/9660srv
+.br
+.B /rc/bin/eject
+.SH BUGS
+The overloading of the semantics of
+the DMEXCL and DMAPPEND
+bits can be confusing.

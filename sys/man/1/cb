@@ -1,0 +1,49 @@
+.TH CB 1
+.SH NAME
+cb \- C program beautifier
+.SH SYNOPSIS
+.B cb
+[
+.B -9js
+]
+[
+.B -l
+.I length
+]
+[
+.I file
+\&...
+]
+.SH DESCRIPTION
+.I Cb
+reads syntactically correct C programs from
+from its input or the given files, and writes them to its stdout
+with a more visually pleasing spacing and indentation.
+.I Cb
+understands no C++ syntax bar newline-terminated comments;
+and by default all user new-lines are preserved in the output.
+.PP
+The options are:
+.TP
+.B -j
+Join split lines.
+.TP 
+.B -s
+Print code in the so-called K&R style used in
+.IR "The C Programming Language" .
+.TP 
+.B -l length
+Split lines that are longer than
+.IR length .
+.TP
+.B -9
+prints code close to Plan 9 style.
+.PD
+.SH SOURCE
+.B /sys/src/cmd/cb
+.SH BUGS
+.I Cb
+does not reformat structure initializers.
+.br
+Punctuation hidden in macros can cause
+indentation errors.

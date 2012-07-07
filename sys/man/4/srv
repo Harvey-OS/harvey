@@ -1,0 +1,338 @@
+.TH SRV 4 
+.SH NAME
+srv, srvold9p, 9fs, srvssh \- start network file service
+.SH SYNOPSIS
+.B srv
+[
+.B -abcCemnq
+] [
+.B -s
+.I seconds
+]
+.RI [ net !] system\c
+.RI [! service ]
+[
+.I srvname
+[
+.I mtpt
+] ]
+.PP
+.B srvssh
+[
+.B -r
+]
+[
+.B -R
+]
+[
+.B -s
+]
+[
+.B -u
+.I u9fspath
+]
+.I system
+[
+.I srvname
+[
+.I mtpt
+] ]
+.PP
+.B 9fs
+.RI [ net !] system
+.RI [ mountpoint ]
+.PP
+.in +0.5i
+.ti -0.5i
+.B srvold9p
+[
+.B -abcCdF
+] [
+.B -p
+.I servicename
+] [
+.B -s
+|
+.B -m
+.I mountpoint
+] [
+.B -u
+.I user
+] [
+.B -x
+.I command
+|
+.B -n
+.I network-addr
+|
+.B -f
+.I file
+]
+.br
+.in -0.5i
+.SH DESCRIPTION
+.I Srv
+dials the given machine and initializes the connection to serve the
+9P protocol.
+By default, it connects to the
+.L 9fs
+(9P)
+service, which for TCP is port 564.
+It then creates in
+.B /srv
+a file named
+.IR srvname .
+Users can then
+.B mount
+(see
+.IR bind (1))
+the service, typically on a name in
+.BR /n ,
+to access the files provided by the remote machine.
+If
+.I srvname
+is omitted, the first argument to
+.I srv
+is used.
+Option
+.B m
+directs
+.I srv
+to mount the service on
+.BI /n/ system
+or onto
+.I mtpt
+if it is given.
+Option
+.B q
+suppresses complaints if the
+.B /srv
+file already exists.
+The 
+.BR a ,
+.BR b ,
+.BR c ,
+.BR C ,
+and
+.B n
+options are used to control the mount flags as in
+.I mount
+(see
+.IR bind (1)).
+The
+.B e
+option causes
+.I srv
+to treat
+.I system
+as a shell command to be executed rather than
+an address to be dialed.
+The
+.B s
+option causes
+.I srv
+to sleep for the specified number of seconds
+after establishing the connection
+before posting and mounting it.
+This is sometimes needed by
+.IR srvssh .
+.PP
+The specified
+.I service
+must serve 9P.  Usually
+.I service
+can be omitted; when calling some
+non-Plan-9 systems, a
+.I service
+such as
+.B u9fs
+must be mentioned explicitly.
+.PP
+The
+.I 9fs
+command does the
+.I srv
+and the
+.I mount
+necessary to make available the files of
+.I system
+on network
+.IR net .
+The files are mounted on
+.IR mountpoint ,
+if given;
+otherwise they are mounted on
+.BI /n/ system\f1.
+If
+.I system
+contains
+.L /
+characters, only the last element of
+.I system
+is used in the
+.B /n
+name.
+.PP
+.I 9fs
+recognizes some special names, such as
+.B dump
+to make the dump file system available on
+.BR /n/dump .
+.I 9fs
+is an
+.IR rc (1)
+script; examine it to see what local conventions apply.
+.PP
+.I Srvssh
+is an
+.IR rc (1)
+command that
+connects to a remote Unix system via 
+.IR ssh (1)
+and starts
+.IR u9fs (4).
+The
+.B -u
+option specifies the path to the
+.B u9fs
+binary on the remote system.
+(By default, an unrooted path of
+.B u9fs
+is used; if the binary is in the path of
+the remote SSH server, you don't need the
+.B -u
+option.)
+For information about the other options,
+see the introductory comment in
+.BR /rc/bin/srvssh .
+The arguments are the same as
+.IR srv .
+.PP
+.I Srvold9p
+is a compatibilty hack to allow Fourth Edition Plan 9 systems
+to connect to older 9P servers.
+It functions as a variant of
+.I srv
+that performs a version translation on the 9P messages on the underlying connection.
+Some of its options are the same as those of
+.IR srv ;
+the special ones are:
+.TF "-x commandxx"
+.PD
+.TP
+.B -d
+Enable debugging.
+.TP
+.B -F
+Insert a special (internal) filter process to the connection to maintain
+message boundaries; usually only needed on TCP connections.
+.TP
+.BI -p\  servicename
+Post the service under
+.IR srv (3)
+as
+.BI /srv/ servicename\f1.
+.TP
+.BI -u\  user
+When connecting to the remote server, log in as
+.IR user .
+Since
+.I srvold9p
+does no authentication, and since new kernels cannot authenticate to
+old services, the likeliest value of
+.I user
+is
+.BR none .
+.TP
+.BI -x\  command
+Run
+.I command
+and use its standard input and output as the 9P service connection.
+If the
+.I command
+string contains blanks, it should be quoted.
+.TP
+.BI -n\  network-addr
+Dial
+.I network-addr
+to establish the connection.
+.TP
+.BI -f\  file
+Use
+.I file
+(typically an existing
+.IR srv (3)
+file) as the connection.
+.PP
+.I Srvold9p
+is run automatically when a
+.IR cpu (1)
+call is received on the service port for the old protocol.
+.SH EXAMPLES
+To see kremvax's and deepthought's files in
+.B /n/kremvax
+and
+.BR /n/deepthought :
+.IP
+.EX
+9fs kremvax
+9fs hhgttg /n/deepthought
+.EE
+.PP
+To mount as user
+.B none
+a connection to an older server kgbsun:
+.IP
+.EX
+srvold9p -u none -m /n/kgbsun -p kgbsun -n il!kgbsun
+.EE
+.PP
+Other windows may then mount the connection directly:
+.IP
+.EX
+mount /srv/kgbsun /n/kgbsun
+.EE
+.PP
+To connect to an instance of the Unix server
+.IR u9fs (4)
+started via
+.IR ssh (1):
+.IP
+.EX
+srvssh unix
+.EE
+.SH FILES
+.TF /srv/*
+.TP
+.B /srv/*
+ports to file systems and servers posted by
+.I srv
+and
+.I 9fs
+.SH SOURCE
+.B /sys/src/cmd/srv.c
+.br
+.B /rc/bin/9fs
+.br
+.B /rc/bin/srvssh
+.br
+.B /sys/src/cmd/srvold9p
+.SH "SEE ALSO"
+.IR bind (1),
+.IR auth (2),
+.IR dial (2),
+.IR srv (3),
+.IR exportfs (4),
+.IR import (4),
+.IR ftpfs (4),
+.IR u9fs (4)
+.SH BUGS
+.I Srv
+does not explicitly report failures of
+.I auth_proxy
+(see
+.IR auth (2));
+.I mount
+(see
+.IR bind (1))
+does.

@@ -1,0 +1,71 @@
+.TH AINC 2
+.SH NAME
+ainc, adec, cas32, cas, casp, casl, cas64, mfence \- atomic operations
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
+.nf
+.B
+int ainc(int *p)
+.PP
+.B
+int adec(int *p)
+.PP
+.B
+int cas(uint *p, int ov, int nv)
+.PP
+.B
+int casp(void **p, void *ov, void *nv)
+.PP
+.B
+int casul(ulong *p, ulong ov, ulong nv)
+.PP
+.B
+int cas32(u32int *p, u32int ov, u32int nv)
+.PP
+.B
+int cas64(u64int *p, u64int ov, u64int nv)
+.PP
+.B
+void mfence(void)
+.SH DESCRIPTION
+These functions provide access to atomic operations, useful for
+synchronization.
+.PP
+.I Ainc
+and
+.I adec
+atomically
+increment and decrement (respectively) the integer pointed to by
+.IR p ,
+and return the resulting value after the operation.
+.PP
+.I Cas
+performs a compare and swap on the word pointed to by
+.IR p ,
+provided that the value is still
+.I ov
+(the old value), so that the new value is
+.IR nv .
+Functions
+.IR cas32 ,
+.IR cas64 ,
+.IR casp ,
+and
+.I casul
+do the same for 32-bit values, 64-bit values, pointers, and unsigned long
+integers.
+.PP
+.I Mfence
+sets a memory fence so that all outstanding memory operations are performed
+before returning from it.
+.SH SOURCE
+.B /sys/src/libc/386/atom.s
+.br
+.B /sys/src/libc/amd64/atom.s
+.SH SEE ALSO
+.IR incref (2).
+.SH BUGS
+Some of them may not be implemented for some architectures.

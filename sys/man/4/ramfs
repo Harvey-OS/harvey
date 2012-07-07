@@ -1,0 +1,89 @@
+.TH RAMFS 4
+.SH NAME
+ramfs  \- memory file system
+.SH SYNOPSIS
+.B ramfs
+[
+.B -Dipsu
+]
+[
+.B -m
+.I mountpoint
+]
+[
+.B -S
+.I srvname
+]
+.SH DESCRIPTION
+.I Ramfs
+starts a process that mounts itself (see
+.IR bind (2))
+on
+.I mountpoint
+(default
+.BR /tmp ).
+The
+.I ramfs
+process implements a file tree rooted at
+.IR dir ,
+keeping all files in memory.
+Initially the file tree is empty.
+.PP
+The
+.B -D
+option enables a trace of general debugging messages.
+.PP
+The
+.B -i
+flag tells
+.I ramfs
+to use file descriptors 0 and 1 for its communication channel
+rather than create a pipe.
+This makes it possible to use
+.I ramfs
+as a file server on a remote machine: the file descriptors 0
+and 1 will be the network channel from
+.I ramfs
+to the client machine.
+.PP
+The
+.B -p
+flag causes
+.I ramfs
+to make its memory `private'
+(see
+.IR proc (3))
+so that its files are not accessible through the debugging interface.
+.PP
+The
+.B -s
+.RB ( -S )
+flag causes
+.I ramfs
+to post its channel on
+.B /srv/ramfs
+.RB ( /srv/ \fIsrvname\fR)
+rather than mounting it on
+.IR mountpoint ,
+enabling multiple clients to access its files.
+However, it does not authenticate its clients and its
+implementation of groups is simplistic, so
+it should not be used for precious data.
+.PP
+The
+.B -u
+option permits
+.I ramfs
+to consume as much memory as needed;
+without it,
+.I ramfs
+will limit its consumption to some arbitrary amount,
+currently 768MB (enough to hold a CD image).
+.PP
+This program is useful mainly as an example of how
+to write a user-level file server.
+It can also be used to provide high-performance temporary files.
+.SH SOURCE
+.B /sys/src/cmd/ramfs.c
+.SH "SEE ALSO"
+.IR bind (2)

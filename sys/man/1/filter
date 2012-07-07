@@ -1,0 +1,320 @@
+.TH FILTER 1
+.SH NAME
+filter, list, deliver, token, vf \-  filtering mail
+.SH SYNOPSIS
+.B upas/filter
+[
+.B -bh
+]
+.I rcvr
+.I mailbox
+[
+.I "regexp file
+] ...
+.PP
+.B upas/list
+[
+.B -d
+]
+.B add|check
+.I patternfile
+.I addressfile ...
+.PP
+.B upas/deliver
+.I recipient
+.I fromfile
+.I mbox
+.PP
+.B upas/token
+.I key
+[
+.I tokenfile
+]
+.PP
+.B upas/vf
+[
+.B -r
+]
+[
+.B -s
+.I savefile
+]
+.SH DESCRIPTION
+A user may filter all incoming mail by creating
+a world readable/executable file
+.BI /mail/box/ username /pipeto.
+If the file is a shell script, it can use the
+commands described here to implement a filter.
+.PP
+.I Filter
+provides simple mail filtering.
+The first two arguments are the recipient's address and mailbox, that is,
+the same arguments provided to
+.BR pipeto .
+The remaining arguments are all pairs of a regular expression and a file name.
+With no flags, the sender's address is matched against each
+regular expression starting with the first.  If the expression
+matches, then the message is delivered to the file whose name
+follows the expression.  The file must be world writable and should
+be append only.
+A message that matches none of the expressions is delivered into
+the user's standard mail box.
+.PP
+By default,
+.I filter
+matches each regular expression against the message's sender.
+The
+.B -h
+flag causes
+.I filter
+to match against the entire header,
+and the
+.B -b
+flag causes
+.I filter
+to match against the entire message (header and body).
+.PP
+For example, to delete any messages of precedence bulk, place in
+your
+.B pipeto
+file:
+.IP
+.EX
+/bin/upas/filter -h $1 $2 'Precedence: bulk' /dev/null
+.EE
+.PP
+Three other commands exist which, combined by an
+.IR rc (1)
+script, allow you to build your own filter.
+.PP
+.I List
+takes two verbs;
+.B check
+and
+.BR add .
+.B Check
+directs
+.I list
+to check each address contained in the
+.IR addressfile s
+against a list of patterns in
+.IR patternfile .
+Patterns come in four forms:
+.TF ~\fIregular-expression\fP
+.PD
+.TP
+.B ~\fIregular-expression\fP
+If any address matches the regular expression,
+.I list
+returns successfully.
+.TP
+.BR =\fIstring\fP .
+If any address exactly matches
+.IR string ,
+.I list
+returns successfully.
+.TP
+.B !~\fIregular-expression\fP
+If any address matches the regular expression
+and no other address matches a non `!' rule,
+.I list
+returns error status "!match".
+.TP
+.B !=\fIstring\fP
+If any address exactly matches
+.I string
+and no other address matches a non `!' rule,
+.I list
+returns error status "!match".
+.PP
+If no addresses match a pattern,
+.I list
+returns "no match".
+.PP
+The pattern file may also contain lines of the form
+.IP
+.EX
+#include filename
+.EE
+.LP
+to allow pattern files to include other pattern files.
+All pattern matches are case insensitive.
+.I List
+searches the pattern file (and its includes) in order.
+The first matching pattern determines the action.
+.PP
+.I List
+.B add
+directs
+.I list
+to add a pattern to
+.I patternfile
+for each address in the
+.I addressfiles
+that doesh't already match a pattern.
+.PP
+.IR Token ,
+with only one argument, prints to standard output a unique token
+created from the current date and
+.IR key .
+With two arguments, it checks
+.I token
+against tokens created over the last 10 days with
+.IR key .
+If a match is found, it returns successfully.
+.PP
+.I Deliver
+delivers into mail box
+.I mbox
+the message read from standard input.
+It obeys standard mail file locking and logging
+conventions.
+.PP
+.B /sys/src/cmd/upas/filterkit/pipeto.sample
+is a sample
+.B pipeto
+using the filter kit.
+.PP
+A sample
+.BR pipefrom ,
+.BR /sys/src/cmd/upas/filterkit/pipefrom.sample ,
+is provided which adds all addresses of your outgoing
+mail to your pattern file.
+You should copy it into a directory that normally gets
+bound by your profile onto
+.BR /bin .
+.PP
+.I Vf
+(virus filter)
+takes a mail message as standard input
+and searches for executable MIME attachments,
+either rewriting them to be non-executable or
+rejecting the message.
+The behavior depends on the attachment's file name
+extension and MIME content type.
+.B /sys/lib/mimetype
+contains the list of known extensions and MIME content types.
+The fifth field of each line specifies the
+safety of a particular file type:
+.B y
+(yes),
+.B m
+(maybe; treated same as yes),
+.B n
+(no),
+.B p
+(previous),
+or
+.B r
+(reject).
+.I Vf
+allows attachments with safety
+.B y
+or
+.B m
+to pass through unaltered.
+Attachments with safety
+.B n
+both are wrapped in extra MIME headers
+and have
+.B .suspect
+appended to their file names, to avoid
+automatic execution by mail readers.
+Attachments with safety
+.B r
+(currently,
+.BR .bat ,
+.BR .com ,
+.BR .exe ,
+and
+.BR .scr ,
+all Microsoft executable extensions)
+are taken as
+cause for the entire message to be rejected.
+A safety of
+.B p
+(used for the
+.B x-gunzip
+mime type)
+causes the previous extension to be tested,
+so that
+.B x.tar.gz
+is treated the same as
+.BR x.tar .
+.PP
+If
+.B /mail/lib/validateattachment
+exists and is executable,
+.B vf
+runs it on all attachments with safety
+.B n
+(attachments it would normally sanitize).
+If
+.IR validateattachment 's
+exit status contains the string
+.LR discard ,
+.I vf
+rejects the entire message.
+If the status contains the string
+.LR accept ,
+.I vf
+does not sanitize the attachment.
+Otherwise,
+.I vf
+sanitizes the attachment as before.
+The standard
+.I validateattachment
+uses
+.IR file (1)
+to determine the file type.
+It accepts text and image files
+and discards messages containing
+executables or
+.I zip
+(see
+.IR gzip (1))
+archives of executables.
+.PP
+The
+.B -r
+option causes
+.I vf
+not to sanitize MIME attachments, but instead to
+reject messages it determines to be viruses.
+The
+.B -s
+option causes
+.I vf
+to log all attachments of safety
+.B r
+in the mail box
+.IR savefile .
+.SH FILES
+.TF /mail/lib/validateattachment
+.TP
+.B /mail/box/*/pipeto
+mail filter
+.TP
+.B /sys/lib/mimetype
+MIME content types
+.TP
+.B /mail/lib/validateattachment
+attachment checker
+.SH SOURCE
+.B /sys/src/cmd/upas/send
+.br
+.B /sys/src/cmd/upas/filterkit
+.br
+.B /sys/src/cmd/upas/vf
+.SH "SEE ALSO"
+.IR aliasmail (8),
+.IR faces (1),
+.IR mail (1),
+.IR marshal (1),
+.IR mlmgr (1),
+.IR nedmail (1),
+.IR qer (8),
+.IR rewrite (6),
+.IR send (8),
+.IR smtp (8),
+.IR upasfs (4)

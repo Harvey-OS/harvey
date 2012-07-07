@@ -1,0 +1,154 @@
+.TH LIB 9
+.SH NAME
+lib \- C library functions used by the kernel
+.SH SYNOPSIS
+.B
+#include "../port/lib.h"
+.SH DESCRIPTION
+A small collection of functions from the normal Plan 9 C
+library is used in the kernel.
+Only a subset is made available by declarations in
+.BR lib.h ,
+which must be included instead of the usual
+.BR <libc.h> .
+Here is a list of the manual pages, and the functions from them declared
+by
+.B lib.h
+for kernel use:
+.IR
+.TP
+.IR abs (2)
+.br
+.I abs
+.TP
+.IR atoi (2)
+.br
+.IR atoi ,
+.IR strtol ,
+.IR strtoul ,
+.IR strtoll ,
+and
+.I strtoull
+.TP
+.IR cleanname (2)
+.br
+.I cleanname
+.TP
+.IR encode (2)
+.IR dec64
+and
+.I encodefmt
+.TP
+.IR fmtinstall (2)
+.br
+.BR Fmt ,
+.IR fmtinstall ,
+.IR fmtprint
+and
+.IR fmtstrcpy
+.TP
+.I getcallerpc (2)
+.br
+.I getcallerpc
+.TP
+.I getfields (2)
+.br
+.I getfields
+and
+.I tokenize
+(see also
+.IR parsecmd (9))
+.TP
+.IR quote (2)
+.br
+for
+.IR quotefmtinstall
+.TP
+.IR print (2)
+.br
+.IR print ,
+.IR seprint ,
+.IR snprint ,
+.IR sprint ,
+.IR vseprint
+and
+.IR vsnprint ,
+.TP
+.IR memory (2)
+.br
+.IR memccpy ,
+.IR memchr ,
+.IR memcmp ,
+.IR memmove
+and
+.IR memset
+.TP
+.IR rune (2)
+.br
+.IR chartorune ,
+.IR runetochar ,
+.IR runelen ,
+.IR utflen
+and
+.IR utfrune
+.TP
+.IR open (2)
+.br
+values
+.BR OCEXEC ,
+.BR OEXCL ,
+.BR OEXEC ,
+.BR ORCLOSE ,
+.BR ORDWR ,
+.BR OREAD ,
+.BR OTRUNC
+and
+.BR OWRITE ,
+.TP
+.IR stat (2)
+.br
+data structures
+.BR Dir
+and
+.BR Qid ,
+and values
+.B DMDIR
+etc.
+and
+.B QTDIR
+etc.
+.TP
+.IR strcat (2)
+.br
+.IR strcat ,
+.IR strchr ,
+.IR strcmp ,
+.IR strcpy ,
+.IR strecpy ,
+.IR strlen ,
+.IR strncat ,
+.IR strncmp ,
+.IR strncpy ,
+.IR strrchr
+and
+.IR strstr
+.TP
+.IR wait (2)
+.br
+data structure
+.B Waitmsg
+.PP
+.B lib.h
+also defines
+.B ERRMAX
+(the limit in bytes for error strings)
+and
+.B KNAMELEN
+(fixed-length limit in bytes for device driver file names)
+.PP
+A few other libraries such as
+.IR memdraw (2)
+and
+.IR mp (2)
+are called by specialised kernel components and drivers but they use
+the normal include file for each library.

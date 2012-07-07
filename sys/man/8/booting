@@ -1,0 +1,261 @@
+.TH BOOTING 8
+.SH NAME
+booting \- bootstrapping procedures
+.SH SYNOPSIS
+none
+.SH DESCRIPTION
+This manual page collects the incantations required to bootstrap Plan 9 machines.
+Some of the information here is specific to the installation at Bell Labs;
+some is generic.
+.PP
+If a CPU server is up, BOOTP/DHCP and TFTP will run from there;
+if not, the necessary files and services must be available on a separate machine,
+such as a Unix system, to use these protocols for bootstrapping.
+.PP
+Be sure to read
+.IR boot (8)
+to understand what happens after the kernel is loaded.
+.SS Terminals
+To bootstrap a diskless terminal or a CPU server, a file server must be running.
+PCs can boot from a floppy disk or any FAT16 partition.
+On all the terminals, typing two control-T's followed by a lower-case
+.B r
+reboots the machine;
+other methods of rebooting are mentioned for some machines.
+.SS PCs
+To boot a PC, it is necessary to get
+.B /386/9load
+or
+.B /386/9pxeload
+loaded into memory.
+There are many ways to do this.  A Plan 9 boot floppy prepared by
+.B format
+(see
+.IR prep (8))
+will load
+.B 9load
+when the PC is reset or powered on.
+Other methods are described in 
+.IR 9load (8).
+.B 9load
+then locates and loads a Plan 9 kernel, using configuration information
+from the file
+.B plan9.ini
+stored in the
+.B 9fat
+configuration partition or on a DOS file system.
+See 
+.IR 9load (8)
+for details.
+.PP
+Once the kernel is booted, it behaves like the others.
+See
+.IR boot (8)
+for details.
+.SS Alpha PCs
+Alpha PCs must be booted via TFTP using the SRM console.
+If the system has ARC firmware instead, SRM may be downloaded from
+.IP
+.EX
+http://www.compaq.com/
+.EE
+.PP
+You must configure the SRM firmware to load the file
+.BR /alpha/bootalphapc .
+The following commands may be used (replace
+.B ewa0
+with the name of your ethernet device, if different):
+.IP
+.EX
+set boot_reset ON
+set boot_file /alpha/bootalphapc
+set bootdef_dev ewa0
+set ewa0_inet_init bootp
+set ewa0_protocols BOOTP
+.EE
+.PP
+This secondary bootstrap program will first load the file
+.BR /alpha/conf/ <IP-address>
+(substituting the IP address of the system as obtained via bootp).
+This file is expected to be in
+.IR plan9.ini (8)
+format (the file
+.B /alpha/conf/10.0.0.2
+may be used as a template).
+It then loads the kernel via tftp, using the value of
+.B bootfile
+to tell it which file to load; this should be
+.B /alpha/9apc
+for terminals.
+.SS CPU Servers
+The Plan 9 CPU servers are multi-user, so they do not request a user name
+when booting.
+On the CPU servers, typing a control-P on the console reboots the machine.
+.SS PC CPU Server
+Proceed as for the PC terminal, but load
+.B /386/9pccpu
+or
+.BR /386/9pccpudisk .
+.SS Alpha PC CPU Server
+Proceed as for the Alpha PC terminal, but use
+.B /alpha/9apccpu
+as the value of
+.BR bootfile .
+.SS SGI Challenge multiprocessor CPU Server
+The Challenge ROM monitor can boot from the Ethernet.
+To boot from the Ethernet, type
+.IP
+.EX
+.B bootp()/mips/9ch
+.EE
+.PP
+or use the ROM command
+.B setenv
+to set the variable
+.B bootfile
+to that same string and type
+.BR boot .
+To load a different file, tell
+.B bootp
+which file to load,
+and to force the download to come from a particular system,
+.BR bootp()system:file .
+Any arguments after
+.B bootp()file
+are passed to
+.BR /boot .
+If you are running a Plan 9
+.SM BOOTP
+server (see
+.IR dhcpd (8)),
+the file name can be omitted and the
+file specified by the
+.B bootf
+parameter for the machine in
+.B /lib/ndb
+will be downloaded by default.
+.PP
+Once the kernel is loaded,
+it prompts for the Ethernet
+protocol to use to reach the root file server; request the default.
+.
+.SS ARM CPU Servers
+All ARM systems are started by
+.I U-boot
+using similar commands.
+The kernels
+(and thus
+.I ndb
+.L bootf
+parameters)
+are
+.L /arm/9gd
+for the Marvell PXA168-based Guruplug Display,
+.L /arm/9plug
+for all Marvell Kirkwood plugs (Sheevaplug, Guruplug, Dreamplug, Openrd, etc.),
+and
+.L /arm/9beagle
+for TI OMAP3 boards (IGEPv2 from ISEE, Gumstix Overo).
+In the following,
+replace
+.I MAC
+with your board's MAC address without colons,
+in lower case
+(the format of the
+.L ether
+.I ndb
+attribute).
+.PP
+First, establish a
+.I /cfg/pxe
+(\c
+.IR plan9.ini )
+file for the new CPU server.
+For Kirkwood plugs,
+.IP
+.EX
+cd /cfg/pxe; cp example-kw \fIMAC
+.EE
+.PP
+and edit
+.L /cfg/pxe/\fIMAC
+to taste.
+For PXA plugs, replace
+.L kw
+with
+.LR pxa ;
+for OMAP boards, replace
+.L kw
+with
+.LR omap
+and
+be sure to edit the line for
+.L ether0
+to set
+.IP
+.EX
+ea=\fIMAC
+.EE
+.PP
+Second,
+configure
+.I U-boot
+to load the appropriate kernel and
+.I /cfg/pxe
+file at suitable addresses and start the kernel.
+For Sheevaplugs and Openrd boards,
+type this at U-boot once:
+.IP
+.EX
+setenv bootdelay 2
+# \fItype the next two lines as one\fP
+setenv bootcmd 'bootp; bootp; tftp 0x1000 /cfg/pxe/\fIMAC\fP; bootp;
+	tftp 0x800000; go 0x800000'
+saveenv
+.EE
+.PP
+For Guruplugs Displays,
+do the same but type this after
+.L "setenv bootcmd"
+instead:
+.IP
+.EX
+\&'dhcp; tftpboot; tftpboot 0x1000 /cfg/pxe/\fIMAC\fP; bootz 0x500000'
+.EE
+.PP
+For Kirkwood Guruplugs,
+type this after
+.LR "setenv bootcmd" :
+.IP
+.EX
+\&'dhcp 0x800000; tftp 0x1000 /cfg/pxe/\fIMAC\fP; go 0x800000'
+.EE
+.PP
+For IGEPv2 boards,
+type this after
+.LR "setenv bootcmd" :
+.IP
+.EX
+\&'tftp 0x80300000 /cfg/pxe/\fIMAC\fP; dhcp 0x80310000; go 0x80310000'
+.EE
+.PP
+For Gumstix Overo boards,
+type this after
+.LR "setenv bootcmd" :
+.IP
+.EX
+\&'bootp 0x80310000; bootp 0x80300000 /cfg/pxe/\fIMAC\fP; go 0x80310000'
+.EE
+.PP
+Thereafter, the boards will automatically boot via BOOTP and TFTP
+when reset.
+.
+.SH "SEE ALSO"
+.IR ndb (6),
+.IR 9load (8),
+.IR boot (8),
+.IR init (8),
+.IR plan9.ini (8)
+.SH SOURCE
+Sources for the various boot programs are under
+.BR /sys/src/boot .

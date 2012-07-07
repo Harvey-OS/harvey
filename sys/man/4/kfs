@@ -1,0 +1,136 @@
+.TH KFS 4
+.SH NAME
+kfs \- disk file system
+.SH SYNOPSIS
+.B disk/kfs
+[
+.B -rc
+] [
+.B -b
+.I n
+] [
+.B -f
+.I file
+] [
+.B -n
+.I name
+] [
+.B -p
+.I perm
+] [
+.B -s
+] [
+.B -B
+.I nbuf
+]
+.SH DESCRIPTION
+.I Kfs
+is an old, local user-level file server for a Plan 9 terminal with a disk.
+It maintains a hierarchical Plan 9 file system on the disk
+and offers
+9P (see
+.IR intro (5))
+access to it.
+.I Kfs
+begins by
+checking the file system for consistency,
+rebuilding the free list, and placing a file descriptor in
+.BI /srv/ name\f1,
+where
+.I name
+is the service name (default
+.BR kfs ).
+If the file system is inconsistent,
+the user is asked for permission to ream
+.RI ( q.v. )
+the disk.
+The file system is not checked if it is reamed.
+.PP
+The options are
+.TF "n name"
+.TP
+.BI "b " n
+If the file system is reamed, use
+.I n
+byte blocks.
+Larger blocks make the file system faster
+and less space efficient.
+.B 1024
+and
+.B 4096
+are good choices.
+.I N
+must be a multiple of 512.
+.TP
+.B c
+Do not check the file system.
+.TP
+.BI "f " file
+Use
+.I file
+as the disk.
+The default is 
+.BR /dev/sdC0/fs .
+.TP
+.BI "n " name
+Use
+.RI kfs. name
+as the name of the service.
+.TP
+.BI "p " perm
+Use
+.I perm
+as the initial permissions for the
+command channel
+.BI /srv/ service .cmd\fR;
+the default is 660.
+.TP
+.B r
+Ream the file system, erasing all of the old data
+and adding all blocks to the free list.
+.TP
+.B s
+Post file descriptor zero in
+.BI /srv/ service
+and read and write protocol messages on file descriptor one.
+.TP
+.B B
+Allocate 
+.I nbuf
+in-memory file system blocks.
+The default is as many as will fit in 10% of memory
+or two megabytes, whichever is smaller.
+.PD
+.SH EXAMPLES
+Create a file system with service name
+.I kfs.local
+and mount it on
+.BR /n/kfs .
+.IP
+.EX
+% disk/kfs -rb4096 -nlocal
+% mount -c /srv/kfs.local /n/kfs
+.EE
+.PP
+.SH FILES
+.TF /dev/sdC0/fs
+.TP
+.B /dev/sdC0/fs
+Default file holding blocks.
+.SH SOURCE
+.B /sys/src/cmd/disk/kfs
+.SH "SEE ALSO"
+.IR fossil (4),
+.IR kfscmd (8),
+.IR mkfs (8),
+.IR prep (8),
+.IR sd (3)
+.SH BUGS
+For the moment,
+.I kfs
+serves both the old (third edition) and new (fourth
+edition) versions of 9P, deciding which to serve by sniffing the first packet on each
+connection.
+.LP
+.I Kfs
+doesn't allow creating files with component names longer than 28 bytes.

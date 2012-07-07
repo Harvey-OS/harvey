@@ -1,0 +1,153 @@
+.TH SEGMENT 3 
+.SH NAME
+segment \- long lived memory segments
+.SH SYNOPSIS
+.nf
+.B bind '#g' /mnt/segment
+
+.BI #g/ segn
+.BI #g/ segn /ctl
+.BI #g/ segn /data
+.BI #g/ segn /free
+ ...
+.fi
+.SH DESCRIPTION
+.PP
+The
+.I segment
+device provides a 2-level file system representing
+long-lived sharable segments that processes may
+.IR segattach (2).
+The name of the directory is the
+.I class
+argument to
+.IR segattach .
+.PP
+New segments are created under the top level
+using
+.B create
+(see
+.IR open (2)).
+The
+.B DMDIR
+bit must be set in the permissions.
+.IR Remove (2)'ing
+the directory makes the segment no longer
+available for
+.IR segattach .
+However, the segment will continue to exist until all
+processes using it either exit or
+.I segdetach
+it.
+.PP
+Within each segment directory are three files,
+.BR data ,
+.BR ctl ,
+and
+.BR free .
+Reading and writing
+.B data
+affects the contents of the segment.
+Reading and writing 
+.B ctl
+retrieves and sets the segment's properties.
+The
+.B free
+file is used to manage deallocation of buffers for zero-copy.
+.PP
+There are only three control messages, which sets the segment's
+virtual address and length in bytes:
+.EX
+	addr \fIaddress length\fP
+	umsg \fIaddress length\fP
+	kmsg \fIaddress length\fP
+.EE
+The first one creates a shared segment. The second one creates a shared segment
+for use with zero-copy. The third one creates a shared segment for use with
+zero copy, identified as the one for use by the kernel. See below for an explanation.
+.I Address
+is automatically rounded down to a page boundary and
+.I length
+is rounded up to end the segment at a page boundary.
+If the address given is zero, the system picks a unique address
+(system-wide) for the segment.
+The segment will reside at the same virtual address in
+all processes sharing it.
+When the segment
+is attached using
+.IR segattach,
+the address and length arguments are ignored in the call;
+they are defined only by the
+control message.
+Once the address and length are set, they cannot be reset.
+.PP
+Reading the control file
+returns a message of the same format with the segment's actual
+start address and length.
+.PP
+Opening
+.B data
+or reading
+.B ctl
+before setting the virtual address yields the error
+``segment not yet allocated''.
+.PP
+The permissions check when
+.IR segattach ing
+is equivalent to the one performed when opening
+.B data
+with mode ORDWR.
+.PP
+Segments for zero copy (either
+.I umsg
+or
+.I kmsg
+segments) make use of the
+.B free
+file to control data buffers for zero-copy. Each process exchanging zero-copy
+buffers must attach at least to a
+.I kmsg
+segment, also known as a KZIO (Kernel zero-copy I/O) segment. It might also attach
+to one or more
+.I umsg
+segments, also known as ZIO (zero-copy I/O) segments. ZIO system calls assume
+that addresses contained in ZIO (or KZIO) segments may be exchanged for I/O without
+requiring data copies. This is not so for addresses referring to any other segment.
+.PP
+Allocation of buffers within a ZIO segment is handled by the process that created
+the segment. Other processes, and the kernel, are expected only to use such buffers,
+but they do not allocate or deallocate buffers directly. Allocation of buffers within a KZIO
+segment is handled only the kernel. User processes are expected to use such buffers, but
+not to allocate or deallocate them.
+.PP
+When a buffer is no longer in use, the
+.B free
+file can be used to write its virtual address. As a result, the kernel will notify
+any process reading such file of the address for the, now unused, data buffer. If the
+address refers to a KZIO segment, the kernel handles deallocation on its own.
+.SH EXAMPLE
+.PP
+Create a one megabyte segment at address 0x10000000:
+.EX
+	% bind '#g' /mnt/segment
+	% mkdir /mnt/segment/example
+	% echo 'va 0x10000000 0x100000' > /mnt/segment/example/ctl
+.EE
+.PP
+Put the string ``hi mom'' at the start of the segment:
+.EX
+	% echo -n hi mom > /mnt/segment/example/data
+.EE
+.PP
+Attach the segment to a process:
+.EX
+{
+	ulong va;
+
+	va = segattach(0, "example", 0, 0);
+}
+.EE
+.SH "SEE ALSO
+.IR segattach (2)
+.SH SOURCE
+.B /sys/src/9/port/devsegment.c

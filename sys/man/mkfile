@@ -1,0 +1,110 @@
+< /sys/man/fonts
+
+LIB=/sys/lib/man
+
+default:V: check
+
+indices:V:
+	for (i in [0-9] [1-9][0-9]){
+		$LIB/secindex $i > $i/INDEX
+		$LIB/mkhtmlindex $i > $i/INDEX.html
+	}
+	mk lookindex
+	$LIB/mksearchindex > searchindex	# index for man2html searches
+
+permind:V:
+	rm -f /sys/lib/man/permind/toc
+	{
+		echo .am TH
+		echo .tm '\\$1' '\\$2' '\\n%'
+		echo ..
+		for (i in [1-9][0-9]){
+			builtin cd $i
+			for(j in [a-z0-9]*)
+				switch($i/$j){
+				case 1/tbl
+					tbl $j
+				case 1/eqn 3/realtime 6/auth
+					eqn $j
+				case 1/pic
+					pic $j
+				case 1/grap
+					grap $j | pic
+				case *
+					cat $j
+				}
+			builtin cd ..
+		}
+	} | troff -$MAN > /dev/null >[2] /sys/lib/man/permind/toc
+	builtin cd $LIB/permind
+	rm -f out
+	mk out > /dev/null >[2] /dev/null
+
+old-check:V: checksource
+	awk -f $LIB/checkman.awk [0-9]/* [1-9][0-9]/* | sed '/\/(cda|av|midi|pub|weather|service\.9net|isdn)(\/|\))/d'
+
+punccheck:
+	grep -n '^\.[IB][^PRIB].+[.;,:]$' [0-9]/* [1-9][0-9]/* | grep -v '\.\.\.'
+
+check:V: indices checksource
+	awk -f $LIB/checkman.awk [0-9]/* [1-9][0-9]/* 
+
+checksource:QV:
+	sam -d >[2]/dev/null <<'!'
+	f input
+	< cat [0-9]/[0-9a-z]* [1-9][0-9]/* 
+	B output
+	b input
+	,x/^\.SH SOURCE/ .,/^\.SH/ x g/^\.B/t "output
+	b output
+	,x/^\.B.? / d
+	,x/ .*/d
+	,s/.+/if(! test -f & \&\& ! test -d &) echo no such SOURCE file '&'/g
+	,>rc
+	!
+
+lookindex:V:
+	builtin cd $LIB/lookman
+	mkindex
+
+
+print.out:V: permind
+	{
+		{echo -n $FONTS; cat $LIB/title} | troff
+		{echo -n $FONTS; cat $LIB/trademarks} | troff -ms
+		{echo -n $FONTS; echo ' '} | troff
+		{echo -n $FONTS; cat $LIB/preface4} | troff -ms
+		{echo -n $FONTS; echo ' '} | troff
+		{echo -n $FONTS; cat $LIB/preface3} | troff -ms
+		{echo -n $FONTS; echo ' '} | troff
+		{echo -n $FONTS; cat $LIB/preface} | troff -ms
+		{echo -n $FONTS; echo ' '} | troff
+		{
+			for (i in [0-9] [1-9][0-9]){
+				builtin cd $i
+				for(j in [a-z0-9]*)
+					switch($i/$j){
+					case 1/tbl
+						tbl $j
+					case 1/eqn 6/auth
+						eqn $j
+					case 1/pic
+						pic $j
+					case 1/grap
+						grap $j | pic
+					case *
+						cat $j
+					}
+				builtin cd ..
+			}
+		} | troff -$MAN
+		{echo -n $FONTS; echo ' '} | troff
+		{echo -n $FONTS; echo ' '} | troff
+		cat $LIB/permind/out
+		{echo -n $FONTS; echo ' '} | troff
+		{echo -n $FONTS; echo ' '} | troff
+		{echo -n $FONTS; cat $LIB/colophon} | troff
+	} > print.out
+
+clean:V:
+	rm -f man.out

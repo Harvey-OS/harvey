@@ -1,0 +1,235 @@
+.TH LEAK 1
+.SH NAME
+leak, kmem, umem \- help find memory leaks
+.SH SYNOPSIS
+.B leak
+[
+.B -abcds
+]
+[
+.B -f
+.I binary
+]
+[
+.B -r
+.I res
+]
+[
+.B -x
+.I width
+]
+.I pid ...
+.PP
+.B kmem
+[
+.I kernel
+]
+.PP
+.B umem
+.I pid
+[
+.I textfile
+]
+.SH DESCRIPTION
+.I Leak
+examines the named processes, which
+should be sharing their data and bss segments,
+for memory leaks.
+It uses a mark and sweep-style algorithm to 
+determine which allocated blocks are no longer
+reachable from the set of root pointers.
+The set of root pointers is created by looking through
+the shared bss segment as well as each process's registers.
+.PP
+Unless directed otherwise,
+.I leak
+prints, for each block, a line with seven space-separated fields:
+the string
+.BR block ,
+the address of the block,
+the size of the block, 
+the first two words of the block,
+and the function names represented by the first two words of the block.
+Usually, the first two words of the block
+contain the malloc and realloc tags
+(see
+.IR malloc (2)),
+useful for finding who allocated the leaked blocks.
+.PP
+If the
+.B -s
+or the
+.B -c
+option is given,
+.I leak 
+will instead present a sequence of
+.IR acid (1)
+commands that show each leaky allocation site.
+With
+.B -s
+a comment appears next to each command to 
+indicate how many lost blocks were allocated
+at that point in the program.
+With
+.B -c
+the comments are extended to indicate also the total
+number of bytes lost at that point in the program,
+and an additional comment line gives the
+overall total number of bytes.
+.PP
+If the
+.B -a
+option is given,
+.I leak 
+will print information as decribed above,
+but for all allocated blocks,
+not only leaked ones.
+If the
+.B -d
+option is given,
+.I leak 
+will print information as decribed above,
+but for all free blocks,
+i.e. those freed,
+or those that are not yet
+in use (fragmentation?).
+The
+.B -a
+and
+.B -d
+options can be combined.
+.PP
+If the
+.B -b
+option is given,
+.I leak
+will print a Plan 9 image file
+graphically summarizing the memory arenas.
+In the image, each pixel represents
+.I res
+(default 8)
+bytes.
+The color code is:
+.TP "\w'\fIbright blue\fR   'u
+.I "dark blue
+Completely allocated.
+.TP
+.I "bright blue
+Contains malloc headers.
+.TP
+.I "bright red
+Contains malloc headers for leaked memory.
+.TP
+.I "dark red
+Contains leaked memory.
+.TP
+.I "yellow
+Completely free
+.TP
+.I "white
+Padding to fill out the image.
+.PD
+The bright pixels representing headers help in 
+counting the number of blocks.
+Magnifying the images with
+.IR lens (1)
+is often useful.
+.PP
+If given a name rather than a list of process ids,
+.I leak
+echoes back a command-line with process ids of every process
+with that name.
+.PP
+The
+.B -f
+option specifies a binary to go on the 
+.IR acid (1)
+command-line used to inspect the
+processes, and is only necessary
+when inspecting processes started
+from stripped binaries.
+.PP
+.I Umem
+prints a summary of all allocated blocks in the process with id
+.IR pid .
+Each line of the summary gives the count and total size of 
+blocks allocated at an allocation point.
+The list is sorted by count in decreasing order.
+.I Umem
+prints summarizes all allocations, not just 
+memory leaks, but it is faster and requires less memory than 
+.I leak .
+.PP
+.I Kmem
+is like
+.I umem
+but prints a summary for the running kernel.
+.SH EXAMPLES
+List lost blocks in 
+.IR 8.out .
+This depends on the fact that there is only
+once instance of 
+.I 8.out
+running; if there were more, the output of
+.B "leak -s 8.out
+would need editing before sending to the shell.
+.IP
+.EX
+% leak -s 8.out
+leak -s 229 230
+% leak -s 8.out | rc
+src(0x0000bf1b); // 64
+src(0x000016f5); // 7
+src(0x0000a988); // 7
+%
+.EE
+.LP
+View the memory usage graphic for the window system.
+.IP
+.EX
+% leak -b rio | rc | page
+.EE
+.PP
+List the top allocation points in the kernel,
+first by count and then by total size:
+.IP
+.EX
+% kmem | sed 10q
+% kmem | sort -nr +1 | sed 10q
+.EE
+.SH SOURCE
+.B /sys/lib/acid/leak
+.br
+.B /sys/src/cmd/aux/acidleak.c
+.br
+.B /rc/bin/leak
+.br
+.B /rc/bin/kmem
+.br
+.B /rc/bin/umem
+.SH SEE ALSO
+.IR getcallerpc (2),
+.I setmalloctag
+in
+.IR malloc (2)
+.SH BUGS
+.I Leak
+and
+.I kmem
+depend on the internal structure of the
+libc pool memory allocator (see 
+.IR pool (2)).
+Since the ANSI/POSIX environment uses a different
+allocator,
+.I leak
+will not work on APE programs.
+.PP
+.I Leak
+is not speedy, and
+.I acidleak
+can consume more memory than the process(es) being examined.
+.PP
+These commands require
+.B /sys/src/libc/port/pool.acid
+to be present and generated from
+.BR pool.c .

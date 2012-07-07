@@ -1,0 +1,66 @@
+.TH FAUTH 2
+.SH NAME
+fauth \- set up authentication on a file descriptor to a file server
+.SH SYNOPSIS
+.nf
+.PP
+.ft L
+#include <u.h>
+#include <libc.h>
+.PP
+.ft P
+.B
+int   fauth(int fd, char *aname)
+.SH DESCRIPTION
+.PP
+.I Fauth
+is used to establish authentication for the current user to access
+the resources available through the 9P connection represented by
+.IR fd .
+The return value is a file descriptor, conventionally called
+.BR afd ,
+that is subsequently used to negotiate the authentication protocol
+for the server, typically using
+.IR auth_proxy
+or
+.IR fauth_proxy
+(see
+.IR auth (2)).
+After successful authentication,
+.B afd
+may be passed as the second argument to a subsequent
+.B mount
+call (see
+.IR bind (2)),
+with the same
+.IR aname,
+as a ticket-of-entry for the user.
+.PP
+If
+.I fauth
+returns -1, the error case, that means the file server does not require
+authentication for the connection, and
+.B afd
+should be set to -1
+in the call to
+.BR mount.
+.PP
+It is rare to use
+.IR fauth
+directly; more commonly
+.I amount
+(see
+.IR auth (2))
+is used.
+.SH SOURCE
+.B /sys/src/libc/9syscall
+.SH SEE ALSO
+.IR attach (5),
+.IR auth (2)
+(particularly
+.BR amount ),
+.IR authsrv (6),
+.IR auth (8)
+.SH DIAGNOSTICS
+Sets
+.IR errstr .

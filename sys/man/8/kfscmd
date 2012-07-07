@@ -1,0 +1,221 @@
+.TH KFSCMD 8
+.SH NAME
+kfscmd, ksync \- kfs administration
+.SH SYNOPSIS
+.B disk/kfscmd
+.RB [ -n
+.IR name ]
+cmd ...
+.PP
+.B disk/ksync
+.SH DESCRIPTION
+.I Kfs
+is a local user-level file server for a Plan 9 terminal with a disk.
+.I Kfscmd
+transmits commands to the
+.I kfs
+server (see
+.IR kfs (4)).
+The
+.B -n
+option changes the name of the kfs service to
+.BI kfs. name
+(by default, full name is just
+.BR kfs ).
+.PP
+.I Ksync
+executes the
+.B sync
+command for all active
+.I kfs
+servers.
+.PP
+The known commands are described below.
+Note that some commands are multiple words and
+should be quoted to appear as a single argument to
+.IR rc (1).
+.TP \w'\fLallowoff\ \fIn'u
+.B allow
+Turn permission checking off (to simplify administration).
+.TP
+.B allowoff
+.TP
+.B disallow
+Turn permission checking on.
+.TP
+.B noauth
+Disable authentication of users.
+.TP
+.B halt
+Write all changed blocks and stop the file system.
+.TP
+.B start
+The opposite of halt; restart the file system.
+.TP
+.B help
+Print the list of commands.
+.TP
+.BI "rename " "file name"
+Change the name of
+.I file
+to
+.IR name .
+.I Name
+may be a single path element or a full path; if it is a full path,
+every element along the path must exist except the last.
+.TP
+.BI "newuser " user
+Add
+.I user
+to
+.B /adm/users
+and make the standard directories needed for booting.
+.TP
+.BI "remove " file
+Remove
+.I file
+and place its blocks on the free list.
+.TP
+.BI "clri " file
+Remove 
+.I file
+but do not place the blocks on the free list.
+This command can be used to remove files that have duplicated blocks.
+The non-duplicate blocks can be retrieved by checking the file system
+with option
+.B f
+(see below).
+.TP
+.BI create \ file\ owner\ group\ mode\  [adl]
+Create the file.  Owner and group are users in
+.B /adm/users
+and mode is an octal number.
+If present,
+.L a
+creates an append only file,
+.L d
+creates a directory, and
+.L l
+creates a file that is exclusive-use.
+.TP
+.B sync
+Write to disk all of the dirty blocks in the memory cache.
+.TP
+.B atime
+Toggle whether atimes are updated as files and directories
+are accessed.  By default, atimes are updated.  On laptops it can be
+useful to turn off atime updates to reduce disk accesses.
+.TP
+.B stats
+Report statistics about the performance of the file system.
+.TP
+.B user
+Re-initialize authentication information by reading
+.BR /adm/users .
+.TP
+.B nowritegroup
+Each time
+.I kfs
+rereads
+.BR /adm/users ,
+it looks for a group named
+.BR write .
+If such a group exists, then the entire file system
+will appear read-only to users not in the group.
+If a write group exists but no one is in it,
+it will be impossible to edit
+.B /adm/users
+to correct the problem.
+To resolve this, the
+.B nowritegroup
+command turns off write group checking until the next
+time
+.B /adm/users
+is reread.
+.TP
+.BI cfs " filsys
+Change the `console' to the named file system (default is the main system).
+.TP
+.B chat
+Toggle tracing of 9P messages.
+.TP
+.B check [cdfpPqrtw]
+Check the file system and print summary information.
+The options are
+.PD 0
+.RS
+.TP
+.B c
+fix bad tags and clear the contents of the block.
+.TP
+.B d
+delete redundant references to a block, fix bad UTF filenames.
+.TP
+.B f
+rebuild the list of free blocks.
+.TP
+.B p
+print the names of directories as they are checked.
+.TP
+.B P
+print the names of all files as they are checked.
+.TP
+.B q
+quiet mode: report errors, but suppress summary information
+.TP
+.B r
+read all of the data blocks and check the tags.
+.TP
+.B t
+fix bad tags.
+.TP
+.B w
+write all of the blocks that are touched.
+.RE
+.PD
+.TP
+.BI listen " [address]
+Start a listener to serve the network at 
+.IR address ,
+default
+.BR tcp!*!564 .
+This feature is intended to facilitate small networks of a couple
+machines in the situation when convenience is more
+important than performance.
+This command is only useful on machines with
+(possibly simulated) NVRAM, which needs to be readable
+to the
+.I kfs
+processes;
+see
+.I readnvram
+in
+.IR authsrv (2).
+The production file server
+(see
+.IR fs (4))
+is strongly encouraged for anything more than casual use.
+.TP
+.B noneattach
+When listening to the network, the default behavior is that the user
+.B none
+may only attach over connections that have already
+authenticated as someone else.
+This prevents just anyone from being
+able to dial your server and attach as
+.BR none .
+The
+.B noneattach
+command toggles whether 
+.B none
+can attach without such a chaperone.
+.PD
+.SH SOURCE
+.B /sys/src/cmd/disk/kfscmd.c
+.br
+.B /$objtype/bin/disk/ksync
+.SH "SEE ALSO"
+.IR kfs (4),
+.IR mkfs (8),
+.IR prep (8),
+.IR sd (3)

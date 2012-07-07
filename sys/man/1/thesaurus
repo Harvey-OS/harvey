@@ -1,0 +1,11 @@
+.TH THESAURUS 1
+.SH NAME
+thesaurus \- search online thesaurus
+.SH SYNOPSIS
+.B thesaurus
+.BI word
+.SH DESCRIPTION
+.I thesaurus
+searches the online thesaurus at http://thesaurus.reference.com
+.SH SOURCE
+.B /rc/bin/thesaurus

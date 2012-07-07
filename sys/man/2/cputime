@@ -1,0 +1,60 @@
+.TH CPUTIME 2
+.SH NAME
+cputime, times, cycles \- cpu time in this process and children
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
+.ta \w'\fLdouble 'u
+.B
+int	times(long t[4])
+.PP
+.B
+double	cputime(void)
+.PP
+.B
+void	cycles(vlong *cyclep)
+.SH DESCRIPTION
+If
+.I t
+is non-null,
+.I times
+fills it in
+with the number of milliseconds spent in user code, system calls,
+child processes in user code, and child processes in system calls.
+.I Cputime
+returns the sum of those same times, converted to seconds.
+.I Times
+returns the elapsed real time, in milliseconds, that the process has been running.
+.PP
+These functions read
+.BR /dev/cputime ,
+opening that file when they are first called.
+.PP
+.I Cycles
+reads the processor's timestamp counter of cycles since reset,
+if any, and stores it via
+.IR cyclep .
+Currently supported architectures are
+.BR 386 ,
+.BR amd64 ,
+and
+.BR power ;
+on all others,
+.I cycles
+will store zero.
+.SH SOURCE
+.B /sys/src/libc/9sys
+.br
+.B /sys/src/libc/*/cycles.[cs]
+.SH SEE ALSO
+.IR exec (2),
+.IR cons (3)
+.SH BUGS
+Only
+.B 386
+processors starting with the Pentium have timestamp counters;
+calling
+.I cycles
+on earlier processors may execute an illegal instruction.

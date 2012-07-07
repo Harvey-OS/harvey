@@ -1,0 +1,130 @@
+.TH CP 1 
+.SH NAME
+cp, fcp, mv  \- copy, move files
+.SH SYNOPSIS
+.B cp
+[
+.B -gux
+]
+.I file1 file2
+.br
+.B cp
+[
+.B -gux
+]
+.I file ... directory
+.PP
+.B fcp
+[
+.B -gux
+]
+.I file1 file2
+.br
+.B fcp
+[
+.B -gux
+]
+.I file ... directory
+.PP
+.B mv
+.I file1 file2
+.br
+.B mv
+.I file ... directory
+.SH DESCRIPTION
+In the first form
+.I file1
+is any name and
+.I file2
+is any name except an existing directory.
+In the second form the commands
+copy or move one or more
+.I files
+into a
+.I directory
+under their original file names, as if by a sequence of 
+commands in the first form.
+Thus
+.L "cp f1 f2 dir
+is equivalent to
+.LR "cp f1 dir/f1; cp f2 dir/f2" .
+.PP
+.I Cp
+copies the contents of plain
+.I file1
+to
+.IR file2 .
+The mode and owner of  
+.I file2
+are preserved if it already
+exists; the mode of
+.I file1
+is used otherwise.
+The
+.B -x
+option sets the mode and modified time of
+.I file2
+from
+.IR file1 ;
+.B -g
+sets the group id; and
+.B -u
+sets the group id and user id (which is usually only possible if the file server is in an administrative mode).
+.PP
+.I Fcp
+behaves like
+.I cp
+but transfers multiple blocks in parallel while copying;
+it is noticeably faster than
+.I cp
+when the files involved are stored on servers connected over long-distance lines.
+It is only appropriate to use
+.I fcp
+with file servers that respect the
+.I offset
+in
+.IR read (5)
+and
+.I write
+messages.
+This includes the disk-based file systems and ramfs
+but excludes most device file systems.
+.PP
+.I Mv
+moves
+.I file1
+to
+.IR file2 .
+If the files are in the same directory, 
+.I file1
+is just renamed;
+otherwise
+.I mv
+behaves like
+.I cp
+.B -x
+followed by
+.B rm
+.IR file1 .
+.I Mv
+will rename directories,
+but it refuses to move a directory into another directory.
+.SH SOURCE
+.B /sys/src/cmd/cp.c
+.br
+.B /sys/src/cmd/fcp.c
+.br
+.B /sys/src/cmd/mv.c
+.SH "SEE ALSO"
+.IR cat (1),
+.I dircp
+in
+.IR tar (1),
+.IR stat (2),
+.IR read (5)
+.SH DIAGNOSTICS
+.IR Cp ,
+.IR fcp ,
+and
+.I mv
+refuse to copy or move files onto themselves.

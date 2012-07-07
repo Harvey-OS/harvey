@@ -1,0 +1,61 @@
+.TH ZP 3 
+.SH NAME
+zp \- two-way zero-copy interprocess communication
+.SH SYNOPSIS
+.B bind #∏
+.I dir
+.nf
+
+.IB dir /data
+.IB dir /data1
+.fi
+.SH DESCRIPTION
+.PP
+An
+.IR attach (5)
+of this device allocates two new cross-connected I/O streams,
+.IB dir /data
+and
+.IB dir /data1\f1.
+.PP
+Data written to one channel becomes available for reading at
+the other. Writes are atomic, no matter the size. Writes from
+shared buffers, see
+.IR segment (3),
+queue data descriptors without copying any data. Writes from other
+segments copies the data into a kernel ZIO segment.
+.PP
+Write boundaries are not preserved. A read terminates when the
+buffer is full, if the first descriptor queued suffices to fill up the buffer
+(in which case remaining data is copied into another shared buffer).
+A read also terminates when copying from another descriptor would
+overflow the buffer, in which case less bytes than requested may be
+returned.
+.PP
+Writes from non-shared segments
+are atomic only up to a certain size, typically 32768 bytes, to
+avoid allocation of too large buffers within the kernel.
+.PP
+If there are multiple writers, each
+.I write
+is guaranteed to be available in a contiguous piece at the other
+end of the pipe.
+.PP
+The
+.IR zp (2)
+system call performs an
+.I attach
+of this device and returns file descriptors to the new pipe's
+.B data
+and
+.B data1
+files.
+The files are open with mode
+.BR ORDWR .
+.SH "SEE ALSO"
+.IR pipe (3),
+.IR pipe (2),
+and
+.IR zp (2).
+.SH SOURCE
+.B /sys/src/9/port/devzp.c

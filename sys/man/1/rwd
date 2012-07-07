@@ -1,0 +1,161 @@
+.TH RWD 1
+.SH NAME
+rwd, conswdir \- maintain remote working directory
+.SH SYNOPSIS
+.B rwd
+.I path
+.PP
+.B conswdir
+[
+.I prog
+]
+.SH DESCRIPTION
+.I Rwd
+and
+.I conswdir
+conspire to keep 
+.IR rio (4)
+and
+.IR acme (4)
+informed about the current directory on
+remote systems during login sessions.
+.I Rio
+and
+.I acme
+include this information in plumb messages sent to
+.IR plumber (4).
+If the remote system's name space is mounted in the
+plumber's name space,
+the end result is that file paths printed during the session
+are plumbable.
+.PP
+.I Rwd
+informs
+.IR rio
+and
+.IR acme
+of directory changes.
+The name of the remote machine is taken from
+the environment variable
+.BR $remotesys .
+.I Rwd
+writes the full path to
+.BR /dev/wdir ;
+writes the last element of the path,
+suffixed by
+.BI @ remotesys \fR,
+to
+.BR /dev/label ;
+and when run inside a 
+.I win
+(see
+.IR acme (1))
+window, changes the window title to
+.IB path /- remotesys
+using
+.BR /dev/acme/ctl .
+.PP
+.I Conswdir
+copies standard input to standard output, looking for in-band messages
+about directory changes.
+The messages are of the form:
+.IP
+.EX
+\e033];\fIpath\fP\e007
+.EE
+.LP
+where
+.B \e033
+and
+.B \e007
+are ASCII escape and bell characters.
+Such messages are removed from the stream and not printed to standard output;
+for each such message
+.I conswdir
+runs
+.I prog
+(default
+.BR /bin/rwd )
+with
+.I path
+as its only argument.
+.SH EXAMPLES
+Add this plumbing rule (see
+.IR plumb (6))
+in order to run commands in the plumber's name space:
+.IP
+.EX
+# have plumber run command
+kind is text
+data matches 'Local (.*)'
+plumb to none
+plumb start rc -c $1
+.EE
+.PP
+Mount a Unix system in your name space and the plumber's:
+.IP
+.EX
+% 9fs unix
+% plumb 'Local 9fs unix'
+.EE
+.LP
+(If you're using acme, execute
+.B "Local 9fs unix
+with the middle button to mount the Unix system in acme's name space.)
+.PP
+Connect to the Unix system, processing in-band directory change messages:
+.IP
+.EX
+% ssh unix | aux/conswdir
+.EE
+.PP
+Add this shell function to your
+.B .profile
+on the Unix system
+to generate directory change messages every time a
+.B cd
+command is executed:
+.IP
+.EX
+H=`hostname | sed 's/\e..*//'`
+_cd () {
+	\ecd $* &&
+	case $- in
+	*i*)
+		_dir=`pwd`
+		echo /n/$H$_dir | awk '{printf("\e033];%s\e007", $1);}'
+	esac
+}
+alias cd=_cd
+.EE
+.PP
+The examples described so far only help for relative
+path names.  Add this plumbing rule to handle rooted names
+like
+.BR /usr/include/stdio.h :
+.IP
+.EX
+# remote rooted path names
+type is text
+wdir matches '/n/unix(/.*)?'
+data matches '/([.a-zA-Z¡-￿0-9_/\e-]*[a-zA-Z¡-￿0-9_/\e-])('$addr')?'
+arg isfile /n/unix/$1
+data set $file
+attr add addr=$3
+plumb to edit
+plumb client window $editor
+.EE
+.SH SOURCE
+.B /rc/bin/rwd
+.br
+.B /sys/src/cmd/aux/conswdir.c
+.SH SEE ALSO
+.IR plumber (4),
+.IR plumb (6),
+.IR srv (4)
+.SH BUGS
+This mechanism is clunky, but Unix and SSH
+make it hard to build a better one.
+.PP
+The escape sequence was chosen because
+it changes the title on xterm windows.

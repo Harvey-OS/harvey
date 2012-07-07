@@ -1,0 +1,183 @@
+.TH NFSSERVER 8
+.SH NAME
+nfsserver, portmapper, pcnfsd \- NFS service
+.SH SYNOPSIS
+.B aux/nfsserver
+[
+.I rpc-options...
+]
+[
+.I nfs-options...
+]
+.br
+.B aux/pcnfsd
+[
+.I rpc-options...
+]
+.br
+.B aux/portmapper
+[
+.I rpc-options...
+]
+.SH DESCRIPTION
+These programs collectively provide NFS access to Plan 9 file servers.
+.IR Nfsserver ,
+.IR pcnfsd ,
+and
+.I portmapper
+run on a Plan 9 CPU server, and should be started in that order.
+All users on client machines have the
+access privileges of the Plan 9 user
+.LR none .
+Currently only NFS version 2 is served.
+.PP
+The
+.I rpc-options
+are all intended for debugging:
+.nr zz \w'\f5-a\f2 addr'+2n/1n
+.TP \n(zz
+.B -r
+Reject: answer all RPC requests by returning the
+.B AUTH_TOOWEAK
+error.
+.TP
+.B -v
+Verbose: show all RPC calls and internal program state, including 9P messages.
+(In any case, the program creates a file
+.BI /srv/ name .chat
+where
+.I name
+is that of the program; echoing
+.L 1
+or
+.L 0
+into this file sets or clears the
+.B -v
+flag dynamically.)
+.TP
+.B -D
+Debug: show all RPC messages (at a lower level than
+.BR -v ).
+This flag may be repeated to get more detail.
+.TP
+.B -C
+Turn off caching: do not answer RPC requests using the
+RPC reply cache.
+.PP
+The
+.I nfs-options
+are:
+.TP \n(zz
+.BI -a " addr"
+Set up NFS service for the 9P server at network address
+.IR addr .
+.TP
+.BI -f " file"
+Set up NFS service for the 9P server at
+.I file
+(typically an entry in
+.BR /srv ).
+.TP
+.B -n
+Do not allow per-user authentication
+(default and mandatory).
+.TP
+.BI -c " file"
+.I File
+contains the uid/gid map configuration.  It is read at startup
+and subsequently every hour (or if
+.L c
+is echoed into
+.BR /srv/nfsserver.chat ).
+Blank lines or lines beginning with
+.L #
+are ignored; lines beginning with
+.L !
+are executed as commands; otherwise lines contain four fields
+separated by white space: a regular expression (in the notation of
+.IR regexp (6))
+for a class of servers, a regular expression for
+a class of clients, a file of user id's (in the format of a Unix
+password file), and a file of group id's (same format).
+.TP
+.B -s
+Expect a network connection on file descriptor 1
+instead of listening for incoming calls.
+.TP
+.B -t
+Listen for incoming TCP calls, rather than UDP calls.
+.PP
+NFS clients must be in the Plan 9
+.B /lib/ndb
+database.
+The machine name is deduced from the IP address via
+.BR ndb/query .
+The machine name specified in the NFS Unix credentials
+is completely ignored.
+.PP
+.I Pcnfsd
+is a toy program that authorizes PC-NFS clients.  All clients
+are mapped to uid=1, gid=1
+.RB ( daemon
+on most systems) regardless of name or password.
+.SH EXAMPLES
+A simple
+.B /lib/ndb/nfs
+might contain:
+.PP
+.EX
+!9fs tcp!ivy
+\&.+  [^.]+\e.cvrd\e.hall\e.edu  /n/ivy/etc/passwd  /n/ivy/etc/group
+.EE
+.PP
+A typical entry in
+.B /rc/bin/cpurc
+might be:
+.PP
+.EX
+aux/nfsserver -a tcp!pie -a tcp!yoshimi -c /lib/ndb/nfs
+aux/pcnfsd
+aux/portmapper
+.EE
+.PP
+Assuming the CPU server's name is
+.BR eduardo ,
+the mount commands on the client would be:
+.PP
+.EX
+/etc/mount -o soft,intr eduardo:pie /n/pie
+/etc/mount -o soft,intr eduardo:yoshimi /n/yoshimi
+.EE
+.PP
+Note that a single instance of
+.I nfsserver
+may provide access to several 9P servers.
+.SH FILES
+.TF /lib/ndb/nfs
+.TP
+.B /lib/ndb/nfs
+List of uid/gid maps.
+.TP
+.B /sys/log/nfs
+Log file.
+.SH SOURCE
+.B /sys/src/cmd/9nfs
+.SH BUGS
+It would be nice to provide authentication for users, but Unix systems
+provide too low a level of security to be trusted in a Plan 9 world.
+.SH SEE ALSO
+.IR nfs (4)
+.br
+RFC1057,
+.I "RPC: Remote Procedure Call Protocol Specification, Version 2,"
+describes Sun's RPC protocol.
+.br
+RFC1094,
+.I "NFS: Network File System Protocol Specification,"
+describes NFS version 2.
+.br
+RFC1813,
+.I "NFS Version 3 Protocol Specification."
+.br
+RFC3530,
+.I "Network File System (NFS) version 4 Protocol."

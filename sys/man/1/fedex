@@ -1,0 +1,27 @@
+.TH FEDEX 1
+.SH NAME
+fedex, ups, usps \- track shipments
+.SH SYNOPSIS
+.B fedex 
+.I tracking-number
+.br
+.B ups 
+.I tracking-number
+.br
+.B usps
+.I tracking-number
+.SH DESCRIPTION
+.I Fedex
+writes available shipment details for the given Federal Express 12-digit
+.I tracking-number
+on the standard output.
+.I Ups
+is similar, but takes a United Parcel Service 18-digit
+.IR tracking-number .
+.I Usps
+takes a US Post Office
+.IR tracking-number .
+.SH SOURCE
+.B /rc/bin
+.SH BUGS
+Redesigns of the source website can break these programs.

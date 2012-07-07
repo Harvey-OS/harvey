@@ -1,0 +1,826 @@
+.TH FS 8
+.SH NAME
+fs, exsort \- file server maintenance
+.SH SYNOPSIS
+.PD 0
+.B help
+[
+.I command ...
+]
+.PP
+.B allow
+.PP
+.B arp
+.I subcommand
+.PP
+.B cfs
+.I filesystem
+.PP
+.B check
+.RI [ options ]
+.PP
+.B clean
+.I file
+[
+.I bno
+[
+.I addr
+] ]
+.PP
+.B clri
+.RI [ file ...]
+.PP
+.B cpu
+.RI [ proc ]
+.PP
+.B create
+.I path uid gid perm
+.RB [ lad ]
+.PP
+.B cwcmd
+.I subcommand
+.PP
+.B date
+.RB [[ +- ]
+.IR seconds ]
+.PP
+.B disallow
+.PP
+.B duallow
+.RI [ uid ]
+.PP
+.B dump
+[
+.I filesystem
+]
+.PP
+.B files
+.PP
+.B flag
+.I flag
+[
+.I channel
+]
+.PP
+.B fstat
+[
+.I files
+]
+.PP
+.B halt
+.PP
+.B hangup
+.I channel
+.PP
+.B newuser
+.I name
+.RI [ options ]
+.PP
+.B noattach
+.PP
+.B passwd
+.PP
+.B printconf
+.PP
+.B profile
+.RB [ 01 ]
+.PP
+.B remove
+.RI [ files ...]
+.PP
+.B route
+.I subcommand
+.PP
+.B "sntp kick"
+.PP
+.BR stat [ admiesw ]
+.PP
+.B stats
+.RB [[ - ]
+.IR flags ...]
+.PP
+.B sync
+.PP
+.B time
+.I command
+.PP
+.B trace
+.RI [ number ]
+.PP
+.B users
+.RI [ file ]
+.PP
+.B version
+.PP
+.B who
+.RI [ user ...]
+.PP
+.B wormeject
+[
+.I tunit
+]
+.PP
+.B wormingest
+[
+.I tunit
+]
+.PP
+.B wormoffline
+.I drive
+.PP
+.B wormonline
+.I drive
+.PP
+.B wormreset
+.PD
+.PP
+.B disk/exsort
+.RB [ -w ]
+.RI [ file ]
+.SH DESCRIPTION
+Except for
+.IR exsort ,
+these commands are available only on the console of an
+.IR fs (4)
+file server.
+.\" .PP
+.\" The console requires the machine's password to be supplied before
+.\" accepting commands.  Typing a control-D will cause
+.\" the server to request
+.\" the password again.
+.PP
+.I Help
+prints a `usage string' for the named
+.IR commands ,
+by default all commands.
+Also, many commands print menus of their options if given
+incorrect or incomplete parameters.
+.PP
+.I Allow
+disables permission checking and allows
+.BR wstat .
+This may help in initializing a file system.
+Use this with caution.
+.PP
+.I Arp
+has two
+.IR subcommands :
+.B print
+prints the contents of the ARP cache and
+.B flush
+flushes it.
+.PP
+.I Cfs
+changes the current file system, that is, the file tree to which
+commands
+.RB ( check ,
+.BR clean ,
+.BR clri ,
+.BR create ,
+.BR cwcmd ,
+.BR dump ,
+.BR newuser ,
+.BR profile ,
+.BR remove ,
+and
+.BR users )
+apply.
+The initial
+.I filesystem
+is
+.BR main .
+.PP
+.I Check
+verifies the consistency of the current file system.
+With no options it checks and reports the status.
+It suspends service while running.
+Options are:
+.TF touch
+.PD
+.TP
+.B rdall
+Read every block in the file system (can take a
+.I long
+time).
+Normally,
+.I check
+will stop short of the actual contents
+of a file and just verify the block addresses.
+.TP
+.B tag
+Fix bad
+.IR tags ;
+each block has a tag that acts as a backwards pointer for
+consistency checking.
+.TP
+.B ream
+Fix bad tags
+and also clear the contents
+of blocks that have bad tags.
+.TP
+.B pfile
+Print every file name.
+.TP
+.B pdir
+Print every directory name.
+.TP
+.B free
+Rebuild the list of free blocks
+with all blocks that are not referenced.
+This option is only useful on non-cache/WORM
+file systems.
+If the filesystem was modified, the summary printed
+at the conclusion of the check may not reflect the true
+state of the freelist and may also print a list of
+.I missing
+blocks.
+These
+.I missing
+blocks are actually on the free list and the true
+state of the filesystem can be determined by running
+.I check
+with no arguments.
+.TP
+.B bad
+Each block address that is out of range or duplicate is cleared.
+Note that only the second and subsequent
+use of a block is cleared.
+Often the problems in a file system are
+caused by one bad file that has a lot of
+garbage block addresses.
+In such a case,
+it is wiser to use
+.I check
+to find the bad file
+(by number of diagnostic messages)
+and then use
+.I clri
+to clear the addresses in that file.
+After that,
+.I check
+can be used to reclaim the free list.
+.TP
+.B touch
+Cause every directory and indirect block not on the current WORM disk
+to be advanced to the current WORM on the next dump.
+This is a discredited idea to try to keep operating
+on the knee of the cache working set.
+Buy more cache disk.
+.TP
+.B trim
+reduces the file system's
+.I fsize
+to fit the device containing the file system.
+This is useful after copying a partially-full file system
+into a slightly smaller device.
+Running
+.B "check free"
+afterward will construct a new free list that contains no
+blocks outside the new, smaller file system.
+.PP
+.I Clean
+prints the block numbers in
+.IR file 's
+directory entry (direct, indirect and doubly indirect)
+and checks the tags of the blocks cited.
+If
+.I bno
+is supplied, the
+.IR bno 'th
+block number (using zero origin)
+is set to
+.I addr
+(defaults to zero).
+Note that only the block numbers in the directory entry itself
+are examined;
+.I clean
+does not recurse through indirect blocks.
+.PP
+.I Clri
+clears the internal directory entry and abandons storage
+associated with
+.IR files .
+It ignores the usual rules for sanity, such as checking against
+removing a non-empty directory.
+A subsequent
+.B check
+.B free
+will place the abandoned storage in the free list.
+.PP
+.I Cpu
+prints the CPU utilization and state of the processes in the file server.
+If the name of a process type argument is given,
+then CPU utilization for only those processes is printed.
+.PP
+.I Create
+creates a file on the current file system.
+.I Uid
+and
+.I gid
+are names or numbers from
+.BR /adm/users .
+.I Perm
+is the low 9 bits of the permission mode of the file, in octal.
+An optional final
+.BR l ,
+.BR a ,
+or
+.BR d
+creates a locked file, append-only file, or directory.
+.PP
+.I Cwcmd
+controls the cached WORM file systems,
+specifically the current file system.
+The subcommands are:
+.TP
+.BI mvstate " state1 state2 " [ platter ]
+States are
+.BR none ,
+.BR dirty ,
+.BR dump ,
+.BR dump1 ,
+.BR error ,
+.BR read ,
+and
+.BR write .
+A
+.B mvstate
+.B dump1
+.B dump
+will cause I/O errors in the last dump to be retried.
+A
+.B mvstate
+.B dump1
+.B write
+will cause I/O errors in the last dump to be retried in
+reallocated slots in the next dump.
+A
+.B mvstate
+.B read
+.B none
+will flush the cache associated with the WORM.
+A
+.B mvstate
+.B dump
+.B write
+aborts the background process dumping to WORM; as a consequence it
+leaves holes in the dump file system.
+Other uses are possible but arcane.
+The optional
+.I platter
+limits affected blocks to those on that platter.
+.TP
+.BR prchain " [\fIstart\fP] [\fIback-flag\fP]
+Print the chain of superblocks for the directory containing the
+roots of the dumped file systems, starting at block number
+.I start
+(default 0) going forward (backwards if
+.I back-flag
+is supplied and is non-zero).
+.TP
+.BR searchtag " [\fIstart\fP] [\fItag\fP] [\fIblocks\fP]
+Reads the WORM device starting at block
+.I start
+and proceeding for
+.I blocks
+blocks (default 1000)
+until it finds a block with numeric tag
+.IR tag .
+.TP
+.BR savecache " [\fIpercent\fP]
+Copy the block numbers, in native endian longwords, of blocks in the
+.B read
+state to the file
+.BR /adm/cache
+for use by
+.BR disk/exsort .
+If an argument is given,
+then that percent (most recently used) of each cache bucket
+is copied.
+.TP
+.BR loadcache " [\fIdskno\fP]
+Read
+.B /adm/cache
+and for every block there on WORM disk side
+.I dskno
+(zero-origin),
+read the block from WORM to the cache.
+If
+.I dskno
+is not supplied, all blocks in
+.B /adm/cache
+are read.
+.TP
+.BR morecache " dskno [\fIcount\fP]
+Read
+.I count
+blocks from the beginning of WORM disk side
+.I dskno
+to the cache.
+If no count is given,
+read all of side
+.IR dskno
+into the cache.
+.TP
+.BR startdump \ [ 01 ]
+Suspend
+.RB ( 0 )
+or restart
+.RB ( 1 )
+the background dump process.
+.TP
+.B touchsb
+Verify that the superblock on the WORM is readable, ignoring the cached copy.
+.TP
+.BR blockcmp " [\fIwbno\fP] [\fIcbno\fP]
+Compares the WORM block
+.I wbno
+with the cache block
+.I cbno
+and prints the first 10 differences, if any.
+.TP
+.B acct
+Prints how many times each user has caused the system to allocate new space on the WORM;
+the units are megabytes.
+.TP
+.B clearacct
+Clears the accounting records for
+.BR acct .
+.PP
+.I Date
+prints the current date.  It may be adjusted
+using
+.BI +- seconds\f1.
+With no sign, it sets the date to the absolute number of seconds
+since 00:00 Jan 1, 1970 GMT; with a sign it trims the current
+time.
+.PP
+.I Disallow
+restores permission checking back to normal after a file system
+has been initialized.
+.PP
+.I Duallow
+sets permissions such that
+the named
+.I user
+can read and search any directories.
+This is the permission necessary to do a
+.IR du (1)
+command anywhere in the file system to discover disk usage.
+.PP
+.I Dump
+starts a dump to WORM immediately for
+the named filesystem,
+or the current filesystem if none is named.
+File service is suspended while the cache is scanned;
+service resumes when the copy to WORM starts.
+.PP
+.I Files
+prints for every connection the number of allocated fids.
+.PP
+.I Fstat
+prints the current status of each named
+.IR file ,
+including uid, gid, wuid (uid of the last user to modify the file),
+size, qid, and disk addresses.
+.PP
+.I Flag
+toggles flags, initially all off:
+.TF authdisablexx
+.TP
+.B allchans
+Print channels in
+.I who
+output.
+.TP
+.B arp
+Report ARP activity.
+.TP
+.B attach
+Report as connections are made to the file server.
+.TP
+.B authdebug
+Report authentications.
+.TP
+.B authdisable
+Disable authentication.
+.TP
+.B chat
+(Very noisy.)  Print all 9P messages to and from the server.
+.TP
+.B error
+Report 9P errors.
+.TP
+.B il
+Report IL errors.
+.TP
+.B route
+Report received RIP packets.
+.TP
+.B ro
+Report I/O on the WORM device.
+.TP
+.B sntp
+Report SNTP activity.
+.PD
+.PP
+If given a second numeric
+.I channel
+argument,
+as reported by
+.IR who ,
+the flag is altered only on that connection.
+.PP
+.I Halt
+does a
+.B sync
+and halts the machine, returning to the boot ROM.
+.PP
+.I Hangup
+clunks all the fids on the named
+.IR channel ,
+which has the same format as in the output of the
+.I who
+command.
+.PP
+.I Newuser
+requires a
+.I name
+argument.
+With no options it adds user
+.IR name ,
+with group leader
+.IR name ,
+to
+.B /adm/users
+and makes the directory
+.BI /usr/ name
+owned by user and group
+.IR name .
+The options are
+.TF =leaderxx
+.TP
+.B ?
+Print the entry for
+.IR name .
+.TP
+.B :
+Add a group: add the name to
+.B /adm/users
+but don't create the directory.
+By convention, groups are numbered starting from 10000, users from 0.
+.TP
+.I newname
+Rename existing user
+.I name
+to
+.IR newname .
+.TP
+.BI = leader
+Change the leader of
+.I name
+to
+.IR leader .
+If
+.I leader
+is missing, remove the existing leader.
+.TP
+.BI + member
+Add
+.I member
+to the member list of
+.IR name .
+.TP
+.BI - member
+Remove existing
+.I member
+from the member list of
+.IR name .
+.PD
+.PP
+After a successful
+.I newuser
+command the file server overwrites
+.B /adm/users
+to reflect the internal state of the user table.
+.PP
+.I Noattach
+disables
+.IR attach (5)
+messages, in particular for system maintenance.
+Previously attached connections are unaffected.
+Another
+.I noattach
+will enable normal behavior.
+.PP
+.I Passwd
+sets the machine's password and writes it in non-volatile RAM.
+.PP
+.I Printconf
+prints the system configuration information.
+.PP
+.I Profile
+.B 1
+clears the profiling buffer and enables profiling;
+.I profile
+.B 0
+stops profiling and writes the data to
+.B /adm/kprofdata
+for use by
+.B kprof
+(see
+.IR prof (1)).
+If a number is not specified, the profiling state toggles.
+.PP
+.I Remove
+removes
+.IR files .
+.PP
+.I Route
+maintains an IP routing table.  The
+.I subcommands
+are:
+.TF "add dest gate mask"
+.TP
+.B add \f2dest gate \fP[\f2mask\fP]
+Add a static route from IP address
+.I dest
+using gateway
+.I gate
+with an optional subnet
+.IR mask .
+.TP
+.B delete \f2dest\fP
+Delete an entry from the routing table.
+.TP
+.B print
+Display the contents of the routing table.
+.TP
+.B ripon
+Enables the table to be filled from RIP packets.
+.TP
+.B ripoff
+Disables the table from being updated by RIP packets.
+.PD
+.PP
+.I Sntp
+.I kick
+queries the SNTP server
+(see
+.IR fsconfig (8))
+and sets the time with its response.
+.PP
+The
+.I stat
+commands are connected with a service or device identified by the
+last character of the name:
+.BR d ,
+SCSI targets;
+.BR e ,
+Ethernet controllers;
+.BR i ,
+IDE/ATA targets;
+.BR m ,
+Marvell SATA targets;
+.BR w ,
+cached WORM.
+The
+.I stata
+command prints overall statistics about the file system.
+The
+.I stats
+command takes an optional argument identifying the characters
+of
+.I stat
+commands to run.  The option is remembered and becomes the
+default for subsequent
+.I stats
+commands if it begins with a minus sign.
+.PP
+.I Sync
+writes dirty blocks in memory to the magnetic disk cache.
+.PP
+.I Time
+reports the time required to execute the
+.IR command .
+.PP
+.I Trace
+with no options prints the set of queue-locks held by each process in
+the file server.  If things are quiescent, there should be no output.
+With an argument
+.I number
+it prints a stack traceback of that process.
+.PP
+.I Users
+uses the contents of
+.I file
+(default
+.BR /adm/users )
+to initialize the file server's internal representation of the users
+structure.
+Incorrectly formatted entries in
+.I file
+will be ignored.
+If file is explicitly
+.BR default ,
+the system builds a minimal functional users table internally;
+this can help recover from disasters.
+If the
+.I file
+cannot be read, you
+.I must
+run
+.IP
+.EX
+users default
+.EE
+.PP
+for the system to function.  The
+.B default
+table looks like this:
+.IP
+.EX
+-1:adm:adm:
+0:none:adm:
+1:tor:tor:
+10000:sys::
+10001:map:map:
+10002:doc::
+10003:upas:upas:
+10004:font::
+10005:bootes:bootes:
+.EE
+.PP
+.I Version
+reports when the file server was last compiled and last rebooted.
+.PP
+.I Who
+reports, one per line, the names of users connected to the file server and the
+status of their connections.
+The first number printed on each line is the channel number of the connection.
+If
+.I users
+are given the output selects connections owned by those users.
+.PP
+.I Wormeject
+moves the WORM disk in slot
+.I tunit
+of the first jukebox to the output shelf.
+.PP
+.I Wormingest
+moves the WORM disk from the input shelf of the first jukebox to slot
+.IR tunit .
+.PP
+.I Wormoffline
+takes
+.I drive
+of the first jukebox out of service;
+.I wormonline
+puts it back in service.
+.PP
+.I Wormreset
+put discs back where the jukebox thinks they belong,
+and does this for all jukeboxes.
+.PP
+When the file server boots, it prints the message
+.IP
+.EX
+for config mode hit a key within 5 seconds
+.EE
+.PP
+If a character is typed within 5 seconds of the message appearing,
+the server will enter config mode.
+See
+.IR fsconfig (8)
+for the commands available in config mode.
+The system also enters config mode if, at boot time,
+the non-volatile RAM does not appear to contain a valid configuration.
+.PP
+.I Exsort
+is a regular command to be run on a CPU server, not on the file server
+console.
+It reads the named
+.I file
+(default
+.BR /adm/cache )
+and sorts the cache disk block numbers contained therein.
+It assumes the numbers are 4-byte integers and guesses the
+endianness by looking at the data.
+It then prints statistics about the cache.
+With option
+.B -w
+it writes the sorted data back to
+.IR file .
+.SH SEE ALSO
+.IR fs (4)
+.br
+Ken Thompson,
+``The Plan 9 File Server''.
+.SH SOURCE
+.B /sys/src/fs
+.br
+.B /sys/src/cmd/disk/exsort.c
+.SH BUGS
+The
+.B worm*
+commands should accept an argument identifying a jukebox.

@@ -1,0 +1,309 @@
+.TH SMTPD 6
+.SH NAME 
+smtpd \- SMTP listener configuration
+.SH DESCRIPTION
+The
+SMTP
+daemon 
+of
+.IR mail (1)
+implements the slave side of the SMTP protocol
+to accept incoming mail on TCP port 25.
+In general, 
+.IR smtpd 's
+default parameters
+are sufficient for internal systems
+on protected networks, but external or
+gateway systems require additional
+security mechanisms.
+The files
+.BR /mail/lib/smtpd.conf ,
+containing configuration parameters,
+and
+.BR /mail/lib/blocked ,
+containing
+banished addresses, provide the means to
+exercise these facilities.
+.SS Input Format
+In both files input lines
+consist of a verb followed by one or more
+parameters.  These tokens are separated by white space or
+commas and all characters following a
+.B #
+are comments.  A
+.B #
+cannot be escaped.  Continuation lines are
+not supported, but verbs that take multiple parameters
+can be restated on many lines and the associated
+parameters accumulate into a single set.
+All token processing is case-insensitive.
+.PP
+Many parameters are
+.IR addresses ,
+either numeric IP addresses in CIDR notation
+or a
+.I "sender address"
+in UUCP-style format.
+.PP
+An IP address in CIDR notation has the form
+.PP
+.EX
+	aaa.bbb.ccc.ddd/mask
+.EE
+.PP
+consisting of a four octet IP address, a slash,
+and a
+.I mask length
+specifying the number of significant high-order bits.
+The lower the mask length, the larger the
+range of addresses covered by the CIDR address;
+see RFC 1878 for a discussion of mask lengths.
+Missing low-order octets are assumed to be zero.
+If a mask length is not given, a mask length of
+16, 24, or 32 is assumed for addresses containing
+two, three, or four octets, respectively.  These
+mask lengths select a class B, class C or Class D
+address block.  Notice that this convention differs
+from the standard treatment, where the default mask length
+depends on the allocation class of the network
+block containing the address.
+.PP
+.I "Sender addresses"
+are specified in UUCP notation as
+follows:
+.PP
+.EX
+	[domain!]...domain!user
+.EE
+.PP
+It is seldom necessary to specify more than one domain.
+When
+.I domain
+is missing or
+.BR * ,
+the address selects the specified user in all domains.
+A
+.I domain
+of the form
+.BI *. domain
+selects the domain and all of its sub-domains.
+For example,
+.B example.com!user
+only matches the account
+.I user
+in domain
+.BR example.com ,
+while
+.B *.example.com!user
+selects that account in
+.B example.com
+and all of its sub-domains.
+When
+.I user
+is omitted or
+.BR * ,
+the address selects all users in the specified domain.
+Finally, when
+.B *
+is the last character of the user name it is a wild-card
+matching all user names beginning with
+.IR user .
+This limited pattern matching capability should be used with care.
+For safety, the sender addresses
+.BR * ,
+.BR ! ,
+.BR *! ,
+.B !*
+and 
+.B *!*
+are ignored.
+.SS /mail/lib/smtpd.conf
+This file contains configuration options
+and parameters describing the local domain.
+Many of the options can also be specified on the command
+line; command line options always override the values in
+this file.
+Configuration options are:
+.PD0
+.TP 10
+.BI defaultdomain " domain"
+The name of the local domain; it is appended to addresses
+lacking a domain qualification.
+This is identical to the
+.B -h
+command line option.
+.TP 10
+.BR norelay \ [ on\f1|\fPoff ]
+If
+.I on
+is specified, relaying is prohibited
+from unauthorized networks to external domains.
+Authorized networks and domains must be specified
+by the
+.B ournets
+and
+.B ourdomains
+verbs described below.  Setting this option on is equivalent to specifying the
+.B -f
+command line flag, but the list of
+networks and domains can only be specified in
+this file.
+.TP 10
+.BR verifysenderdom \ [ on\f1|\fPoff ]
+When
+.IR on ,
+.I smtpd
+verifies that the first domain of the sender's address
+exists.  The test is cursory; it checks only that
+there is a DNS delegation for the domain.
+Setting the option on is equivalent to specifying the
+.B -r
+command line option and
+is useful for detecting some unreturnable
+messages as well as messages with randomly
+generated domain names.
+.TP 10
+.BR saveblockedmsg \ [ on\f1|\fPoff ]
+When
+.IR on ,
+causes copies of blocked messages to be saved
+in subdirectories of
+.BR /mail/queue.dump .
+Directories are named with the date and file names
+are random numbers.
+If this option is
+.I off
+blocked messages are discarded.
+Setting this option on is equivalent to specifying the
+.B -s
+command line option.
+.TP 10
+.BR ournets " \fIIP address\fP [, \fIIP address\fP, ..., \fIIP address\fP]"
+This option specifies trusted
+source networks that are allowed to relay mail to external domains.
+These are usually the internal networks of the local domain, but they
+can also include friendly
+external networks.  Addresses
+are in CIDR notation.
+.TP 10
+.BR ourdomains " \fIdomain\fP [, \fIdomain\fP, ..., \fIdomain\fP]"
+This option specifies destination domains that are allowed
+to receive relayed mail.  These are usually the domains
+served by a gateway system.
+Domain specifications conform to the format
+for sender addresses given above.
+.PD
+.PP
+When the
+.B norelay
+option is enabled or the
+.B -f
+command line option given, 
+relaying is allowed only if the source IP address is in
+.B ournets
+or the destination domain is specified in
+.BR ourdomains .
+.SS Blocked Addresses
+.I Smtpd
+consults
+.B /mail/ratify
+(see
+.IR ratfs (4))
+for a list of banned addresses.
+Messages received from these addresses are
+rejected with a 5\fIxx\fP-series SMTP error code.
+There is no option
+to turn blocking on or off; if 
+.B /mail/ratify
+is mounted,
+.I smtpd
+will use it, even for connections from trusted networks.
+.PP
+The command line format and address specifications
+conform to the notation described above.  If the parameters
+of the verb is sender addresses in UUCP format, the line
+must begin with an
+.B *
+character; if the parameters are one or more IP addresses,
+the
+.B *
+must precede the verb.  Most
+verbs cause messages to be rejected; verbs
+of this class generally select different error
+messages.  The remaining verbs specify addresses that
+are always accepted, in effect overriding blocked addresses.
+The file is processed in order, so an override must
+precede its associated blocked address.
+Supported verbs are:
+.PD0
+.TP 10
+.BR dial " \fIIP address\fP [,..., \fIIP address\fP]"
+The parameters are IP addresses associated with
+dial-up ports.  The rejection message states
+that connections from dial-up ports are not accepted.  Copies
+of messages are never saved.
+.TP 10
+.BR block " \fIaddress\fP [, ... \fIaddress\fP]"
+Messages from addresses
+matching the parameters
+are rejected with an error message saying
+that spam is not accepted.  The message is saved if
+the option is enabled.
+.TP 10
+.BR relay " \fIaddress\fP [, ... \fIaddress\fP]"
+This verb is identical to
+.BR block ,
+but the error message states that
+the message is rejected because the sending
+system is being used as a spam relay.
+.TP
+.BR deny " \fIaddress\fP [, ... \fIaddress\fP]"
+The
+.B deny
+command rejects a message when the 
+sender address matches one of its parameters.
+The rejection message asks the sender to
+contact
+.BR postmaster @
+.I hostdomain
+for further information.
+This verb is usually used to block
+inadvertently abusive traffic, for example,
+mail loops and stuck senders.  Messages are
+never saved.
+.TP
+.BR allow " \fIaddress\fP [, ... \fIaddress\fP]"
+The
+.B allow
+verb negates the effect of subsequent blocking commands.
+It is useful when a large range of addresses contains
+a few legitimate addresses, for example, when
+a mail server is in a Class C network block
+of modem ports.  Rather than enumerate the dial ports, it is
+easier to block the entire Class C with a
+.B dial
+command, and precede it with an override for
+the address of the mail server.  Similarly,
+it is possible to block mail from an entire
+domain while accepting mail from a few friendly
+senders in the domain.
+The verb
+.B accept
+is a synonym for
+.BR allow .
+.PD
+.PP
+.IR Scanmail (8)
+describes spam detection
+software that works well with
+the capabilities described here
+and
+.IR mail (1)
+defines additional 
+.I smtpd
+command line arguments applicable
+to exposed systems.
+.SH "SEE ALSO"
+.IR mail (1),
+.IR ratfs (4),
+.IR scanmail (8)

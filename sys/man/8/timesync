@@ -1,0 +1,110 @@
+.TH TIMESYNC 8
+.SH NAME
+timesync \- synchronize the system clock to a time source
+.SH SYNOPSIS
+.B aux/timesync
+[
+.B -a
+.I accuracy
+]
+[
+.B -S
+.I stratum
+]
+[
+.B -s
+.I netroot
+]
+[
+.B -frnDdLilG
+]
+[
+.I timeserver
+]
+.SH DESCRIPTION
+.B Aux/timesync
+synchronizes the system clock to a time source, by default a
+file server.
+The options are:
+.TP
+.B -f
+synchronize to a file server.  If
+.I timeserver
+is missing, use
+.BR /srv/boot .
+.TP
+.B -r
+synchronize to the local real time clock,
+.BR #r/rtc .
+.TP
+.B -L
+used with
+.B -r
+to indicate the real time clock is in
+local time rather than GMT.  This is
+useful on PCs that also run the 
+Windows OS.
+.TP
+.B -n
+synchronize to an NTP server.  If
+.I timeserver
+is missing, dial the server
+.BR udp!$ntp!ntp .
+.TP
+.B -D
+print debugging to standard error
+.TP
+.B -d
+put file containing last determined clock
+frequency in directory
+.IR dir ,
+default
+.BR /tmp .
+.TP
+.B -i
+stands for impotent.
+.I Timesync
+announces what it would do but doesn't do it.
+This is useful for tracking alternate time sources.
+.TP
+.B -a
+specifies the
+.I accuracy
+in nanoseconds to which the
+clock should be synchronized.  This determines
+how often the reference clock is accessed.
+.TP
+.B -G
+causes
+.I timesync
+to use a gps server (see
+.IR gpsfs (8))
+as a time source.
+.TP
+.B -s
+causes
+.I timesync
+to listen for UDP NTP requests on the
+network rooted at
+.IR netroot .
+Up to 4
+.B -s
+options are allowed.
+.TP
+.B -S
+sets the stratum number to
+.IR stratum .
+.TP
+.B -l
+turns on logging to
+.BR /sys/log/timesync .
+.SH FILES
+.TF /tmp/ts.<sysname>.<type>.timeserver
+.TP
+.B /tmp/ts.<sysname>.<type>.timeserver
+where the last frequency guess is kept
+.TP
+.B /sys/log/timesync
+log file
+.SH SOURCE
+.B /sys/src/cmd/aux/timesync.c

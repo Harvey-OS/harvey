@@ -1,0 +1,25 @@
+.TH PANIC 9
+.SH NAME
+panic \- abandon hope
+.SH SYNOPSIS
+.ta \w'\fLchar* 'u
+.B
+void	panic(char *fmt, ...)
+.SH DESCRIPTION
+.I Panic
+writes a message to the console and
+causes the system to give up the ghost.
+It enables interrupts, dumps the kernel stack,
+and halts the current processor;
+if more than one, others will gradually come to a halt.
+Depending on configuration settings, the platform-dependent
+.I exit
+might reboot the system.
+The format
+.I fmt
+and associated arguments are the same as those for
+.IR print (9).
+.I Panic
+adds a prefix
+.L "panic: "
+and a trailing newline.

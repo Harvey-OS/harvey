@@ -1,0 +1,354 @@
+.TH FOPEN 2
+.SH NAME
+fopen, freopen, fdopen, fileno, fclose, sopenr, sopenw, sclose, fflush, setvbuf, setbuf, fgetpos, ftell, fsetpos, fseek, rewind, feof, ferror, clearerr \- standard buffered input/output package
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <stdio.h>
+.PP
+.ta \w'\fLFILE 'u
+.B
+FILE	*fopen(char *filename, char *mode)
+.PP
+.B
+FILE	*freopen(char *filename, char *mode, FILE *f)
+.PP
+.B
+FILE	*fdopen(int fd, char *mode)
+.PP
+.B
+int	fileno(FILE *f)
+.PP
+.B
+FILE	*sopenr(char *s)
+.PP
+.B
+FILE	*sopenw(void)
+.PP
+.B
+char	*sclose(FILE *f)
+.PP
+.B
+int	fclose(FILE *f)
+.PP
+.B
+int	fflush(FILE *f)
+.PP
+.B
+int	setvbuf(FILE *f, char *buf, int type, long size)
+.PP
+.B
+void	setbuf(FILE *f, char *buf)
+.PP
+.B
+int	fgetpos(FILE *f, long *pos)
+.PP
+.B
+long	ftell(FILE *f)
+.PP
+.B
+int	fsetpos(FILE *f, long *pos)
+.PP
+.B
+int	fseek(FILE *f, long offset, int whence)
+.PP
+.B
+void	rewind(FILE *f)
+.PP
+.B
+int	feof(FILE *f)
+.PP
+.B
+int	ferror(FILE *f)
+.PP
+.B
+void	clearerr(FILE *f)
+.SH DESCRIPTION
+The functions described in this and related pages
+.RI ( fgetc (2),
+.IR fprintf (2),
+.IR fscanf (2),
+and
+.IR tmpfile (2))
+implement the
+ANSI C buffered I/O package with extensions.
+.PP
+A file with associated buffering is called a
+.I stream
+and is declared to be a pointer to a defined type
+.BR FILE .
+.IR  Fopen (2)
+creates certain descriptive data for a stream
+and returns a pointer to designate the stream in all
+further transactions.
+There are three normally open streams with constant
+pointers declared in
+the include file and associated with the standard open files:
+.TP 10n
+.BR stdin
+standard input file
+.br
+.ns
+.TP
+.B stdout
+standard output file
+.br
+.ns
+.TP
+.B stderr
+standard error file
+.PP
+A constant pointer
+.B NULL
+designates no stream at all.
+.PP
+.I Fopen
+opens the file named by
+.I filename
+and associates a stream with it.
+.I Fopen
+returns a pointer to be used to identify
+the stream in subsequent operations, or
+.B NULL
+if the open fails.
+.I Mode
+is a character string having one of the following values:
+.nf
+.ta 8n
+\fL"r"\fP	open for reading
+\fL"w"\fP	truncate to zero length or create for writing
+\fL"a"\fP	append; open or create for writing at end of file
+\fL"r+"\fP	open for update (reading and writing)
+\fL"w+"\fP	truncate to zero length or create for update
+\fL"a+"\fP	append; open or create for update at end of file
+.fi
+.PP
+In addition, each of the above strings can have a
+.L b
+somewhere after the first character,
+meaning `binary file', but this implementation makes no distinction
+between binary and text files.
+.PP
+.I Fclose
+causes the stream pointed to by
+.I f
+to be flushed (see below) and does a
+.I close
+(see
+.IR open (2))
+on the associated file.
+It frees any automatically allocated buffer.
+.I Fclose
+is called automatically on 
+.IR exits (2)
+for all open streams.
+.PP
+.I Freopen
+is like open except that it reuses stream pointer
+.IR f .
+.I Freopen
+first attempts to close any file associated with
+.IR f ;
+it ignores any errors in that close.
+.PP
+.I Fdopen
+associates a stream with an open Plan 9 file descriptor.
+.PP
+.I Fileno
+returns the number of the Plan 9 file descriptor associated with the stream.
+.PP
+.I Sopenr
+associates a read-only stream with a null-terminated string. 
+.PP
+.I Sopenw
+opens a stream for writing.
+No file descriptor is associated with the stream;
+instead, all output is written to the stream buffer.
+.PP
+.I Sclose
+closes a stream opened with
+.I sopenr
+or
+.IR sopenw .
+It returns a pointer to the 0 terminated buffer associated with the stream.
+.PP
+By default, output to a stream is fully buffered: it is accumulated in
+a buffer until the buffer is full, and then
+.I write
+(see
+.IR read (2))
+is used to write the buffer.
+An exception is standard error, which is line buffered:
+output is accumulated in a buffer until
+a newline is written.
+Input is also fully buffered by default; this means that
+.IR read (2)
+is used to fill a buffer as much as it can, and then characters
+are taken from that buffer until it empties.
+.I Setvbuf
+changes the buffering method for file
+.I f
+according to
+.IR type:
+either
+.B _IOFBF
+for fully buffered,
+.B _IOLBF
+for line buffered,
+or
+.B _IONBF
+for unbuffered (each character causes a
+.I read
+or
+.IR write).
+If
+.I buf
+is supplied, it is used as the buffer and
+.I size
+should be its size;
+If
+.I buf
+is zero, a buffer of the given size is allocated (except for the unbuffered case) using
+.IR malloc (2).
+.PP
+.I Setbuf
+is an older method for changing buffering.  If
+.I buf
+is supplied, it changes to fully buffered with the given buffer, which should
+be of size
+.B BUFSIZ
+(defined in
+.BR stdio.h ).
+If
+.I buf
+is zero, the buffering method changes to unbuffered.
+.PP
+.I Fflush
+flushes the buffer of output stream
+.IR f ,
+delivering any unwritten buffered data to the host file.
+.PP
+There is a
+.I file position indicator
+associated with each stream.
+It starts out pointing at the first character (unless the file is opened
+with append mode, in which case the indicator is always ignored).
+The file position indicator is maintained by the reading and writing
+functions described in
+.IR fgetc (2).
+.PP
+.I Fgetpos
+stores the current value of the file position indicator for stream
+.I f
+in the object pointed to by
+.IR pos .
+It returns zero on success, nonzero otherwise.
+.I Ftell
+returns the current value of the file position indicator.
+The file position indicator is to
+be used only as an argument to
+.IR fseek.
+.PP
+.I Fsetpos
+sets the file position indicator for stream
+.I f
+to the value of the object pointed to by
+.IR pos ,
+which shall be a value returned by an earlier call to
+.I fgetpos
+on the same stream.
+It returns zero on success, nonzero otherwise.
+.I Fseek
+obtains a new position, measured in characters from the beginning
+of the file, by adding
+.I offset
+to the position specified by
+.IR whence :
+the beginning of the file if
+.I whence
+is
+.BR SEEK_SET ;
+the current value of the file position indicator for
+.BR SEEK_CUR ;
+and the end-of-file for
+.BR SEEK_END .
+.I Rewind
+sets the file position indicator to the beginning of the file.
+.PP
+An integer constant
+.B EOF
+is returned
+upon end of file or error by integer-valued functions that
+deal with streams.
+.I Feof
+returns non-zero if and only if
+.I f
+is at its end of file.
+.PP
+.I Ferror
+returns non-zero if and only if
+.I f
+is in the error state.  It can get into the error state
+if a system call failed on the associated file
+or a memory allocation failed.
+.I Clearerr
+takes a stream out of the error state.
+.SH SOURCE
+.B /sys/src/libstdio
+.SH "SEE ALSO"
+.IR fprintf (2),
+.IR fscanf (2),
+.IR fgetc (2)
+.br
+.IR open (2), 
+.IR read (2)
+.SH DIAGNOSTICS
+The value
+.B EOF
+is returned uniformly to indicate that a
+.B FILE
+pointer has not been initialized with
+.IR fopen ,
+input (output) has been attempted on an output (input) stream,
+or a
+.B FILE
+pointer designates corrupt or otherwise unintelligible
+.B FILE
+data.
+.br
+Some of these functions set
+.IR errstr .
+.SH BUGS
+Buffering of output can prevent output data
+from being seen until long after it is computed \- perhaps
+never, as when an abort occurs between buffer filling and flushing.
+.br
+Buffering of input can cause a process to consume
+more input than it actually uses.
+This can cause trouble across
+.IR exec (2).
+.br
+Buffering may delay the receipt of a write error until a subsequent
+.I stdio
+writing, seeking, or file-closing call.
+.br
+ANSI says that a file can be fully buffered only if
+the file is not attached to an interactive device.
+In Plan 9 all are fully buffered except standard error.
+.PP
+.IR Fdopen ,
+.IR fileno , 
+.IR sopenr , 
+.IR sopenw ,
+and
+.I sclose
+are not ANSI Stdio functions.
+.PP
+Stdio offers no support for runes or
+.SM UTF
+characters.
+Unless external compatibility is necessary, use
+.IR bio (2),
+which supports
+.SM UTF
+and is smaller, faster, and simpler than Stdio.

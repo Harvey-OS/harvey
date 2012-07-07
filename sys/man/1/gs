@@ -1,0 +1,280 @@
+.TH GS 1
+.\" This file is an edited version of /sys/src/cmd/gs/man/gs.1, to
+.\" document the local installation and remove needless background.
+.de TQ
+.br
+.ns
+.TP \\$1
+..
+.SH NAME 
+gs \- Aladdin Ghostscript (PostScript and PDF language interpreter)
+.SH SYNOPSIS
+.B gs
+[
+.I options
+] [
+.I files
+] ...
+.br
+.SH DESCRIPTION
+Ghostscript is a programming language similar to Adobe Systems'
+PostScript and PDF languages, which are in turn similar to Forth.
+.I Gs
+reads
+.I files
+in sequence and executes them as Ghostscript programs.
+After doing this, it reads further input from the standard input.
+If the
+.I file
+.B -
+is named, however, it represents the standard input, which is read
+in order and not after the files on the command line.
+Each line is interpreted separately.
+The `quit' command, or end-of-file, exits the interpreter.
+.PP
+The interpreter recognizes several switches described below, which may appear
+anywhere in the command line and apply to all files thereafter.
+.PP
+The
+.B -h
+or
+.B -?
+options give help and list the available devices; the default is
+.BR plan9 ,
+which produces compressed image files suitable for viewing with
+.IR page (1)
+(but note that
+.IR page (1)
+will invoke
+.I gs
+automatically; see its manual).
+.PP
+Ghostscript may be built with multiple output devices.  Ghostscript
+normally opens the first one and directs output to it.  To use device xyz
+as the initial output device, include the switch
+.EX
+	-sDEVICE=xyz
+.EE
+in the command line.  This switch must precede the first PostScript
+file and only its first invocation has any effect.
+Output devices can also be selected by the word
+.B selectdevice
+in the input language, or by setting the environment variable
+.BR GS_DEVICE .
+The order of precedence for
+these alternatives, highest to lowest, is:
+.EX
+	selectdevice
+	\f1(command line)\fP
+	GS_DEVICE
+	plan9
+.EE
+.PP
+Normally, output goes
+directly to a scratch file.
+To send the output to a series of files
+.BR foo1.xyz ,
+.BR foo2.xyz ,
+etc., use the switch
+.EX
+	-sOutputFile=foo%d.xyz
+.EE
+The %d may be any
+.I printf
+(see
+.IR fprintf (2))
+format specification.  Each file will receive one page of output.
+If the file name begins with a pipe character,
+the output will be sent as standard input to the following pipeline.
+For example,
+.EX
+	-sOutputFile=|lp
+.EE
+Specifying the file
+.B -
+will send the files to standard output; this also requires enabling the
+.B -q
+option.
+.SS "Initialization files"
+When looking for the initialization files
+.RB ( gs_*.ps ),
+the files related
+to fonts, or the file for the
+.B run
+operator, Ghostscript first looks for the file (if
+it doesn't start with a slash) in the current directory, then in these
+directories in the following order:
+.TP
+1.
+Any directories specified by
+.B -I
+switches in the command
+line (see below);
+.TP
+2.
+Any directories specified by the
+.B GS_LIB
+environment variable;
+.TP
+3.
+The directories
+.BR /sys/lib/ghostscript ,
+.BR /sys/lib/ghostscript/font ,
+and
+.BR /sys/lib/postscript/font .
+.PP
+The
+.B GS_LIB
+or
+.B -I
+parameters may be
+a single directory or a colon-separated list.
+.SS Options
+.TP
+.BI -- " filename arg1 ..."
+Take the next argument as a file name as usual, but take all
+remaining arguments (even if they have the syntactic form of switches)
+and define the name ARGUMENTS in userdict (not systemdict) as an
+array of those strings,
+.I before
+running the file.  When Ghostscript
+finishes executing the file, it exits back to the shell.
+.TP
+.BI -D name = token
+.TQ
+.BI -d name = token
+Define a name in systemdict with the given definition.  The token must
+be exactly one token (as defined by the `token' operator) and must not
+contain any white space.
+.TP
+.BI -D name
+.TQ
+.BI -d name 
+Define a name in systemdict with value=null.
+.TP
+.BI -S name = string
+.TQ
+.BI -s name = string
+Define a name in systemdict with a given string as value.  This is
+different from
+.BR  -d .
+For example,
+.B -dname=35
+is equivalent to the
+program fragment
+.EX
+	/name 35 def 
+.EE
+whereas 
+.B -sname=35
+is equivalent to
+.EX
+	/name (35) def
+.EE
+.TP
+.B -q
+Quiet startup: suppress normal startup messages, and also do the
+equivalent of
+.BR -dQUIET .
+.TP
+.BI -g number1 x number2
+Equivalent to
+.BI -dDEVICEWIDTH= number1 
+and
+.BI -dDEVICEHEIGHT= number2\f1.
+This is for the benefit of devices, such as windows,
+that allow width and height to be specified.
+.TP
+.BI -r number
+.TQ
+.BI -r number1 x number2
+Equivalent to
+.BI -dDEVICEXRESOLUTION= number1 
+and
+\fL-dDEVICE\%YRESOLUTION= \f2\%number2\f1.
+This is for the benefit of devices, such as printers,
+that support multiple X and Y resolutions.
+If only one number is given, it is used for both X and Y resolutions.
+.TP
+.BI -I directories
+Adds the designated list of directories at the head of the
+search path for library files.
+.PP
+Note that gs_init.ps makes systemdict read-only, so the values of names
+defined with -D/d/S/s cannot be changed (although, of course, they can be
+superseded by definitions in userdict or other dictionaries.)
+.SS "Special names"
+.TP
+.B -dBATCH
+Exit after the last file has been processed.
+This is equivalent to listing
+.I quit.ps
+at the end of the list of files.
+.TP
+.B -dDISKFONTS
+Causes individual character outlines to be loaded from the disk
+the first time they are encountered.  (Normally Ghostscript loads all the
+character outlines when it loads a font.)  This may allow loading more
+fonts into RAM, at the expense of slower rendering.
+.TP
+.B -dNOCACHE
+Disables character caching.  Only useful for debugging.
+.TP
+.B -dNOBIND
+Disables the `bind' operator.  Only useful for debugging.
+.TP
+.B -dNODISPLAY
+Suppresses the normal initialization of the output device.
+This may be useful when debugging.
+.TP
+.B -dNOPAUSE
+Disables the prompt and pause at the end of each page.
+This may be desirable for applications where another program
+(e.g.
+.IR page (1))
+is
+`driving' Ghostscript.
+.TP
+.B -dSAFER
+Disables the
+.B deletefile
+and
+.B renamefile
+operators, and the
+ability to open files in any mode other than read-only.  This may be
+desirable for spoolers or other sensitive environments.
+Files in the
+.B /fd
+directory may still be opened for writing.
+.TP
+.B -dWRITESYSTEMDICT
+Leaves systemdict writable.  This is necessary when running
+special utility programs such as font2c and pcharstr, which must bypass
+normal PostScript access protection.
+.TP
+.BI -sDEVICE= device
+Selects an alternate initial output device, as described above.
+.TP
+.BI -sOutputFile= filename
+Selects an alternate output file (or pipe) for the initial output
+device, as described above.
+.SH FILES
+.TP 
+.B /sys/lib/ghostscript/*
+Startup-files, utilities, examples, and basic font definitions.
+.TP 
+.B /sys/lib/ghostscript/fonts/*
+Additional font definitions.
+.SH SOURCE
+.B /sys/src/cmd/gs
+.SH "SEE ALSO"
+.IR page (1),
+.IR ps2pdf (1)
+.br
+The Ghostscript document files in 
+.B doc
+and
+.B man
+subdirectories of the source directory.
+.SH BUGS
+The treatment of standard input is non-standard.

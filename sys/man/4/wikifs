@@ -1,0 +1,339 @@
+.TH WIKIFS 4
+.SH NAME
+wikifs, wikipost \- wiki file system
+.SH SYNOPSIS
+.B wikifs
+[
+.B -DM
+]
+[
+.B -a
+.I announce
+]...
+[
+.B -m
+.I mtpt
+]
+[
+.B -p
+.I perm
+]
+[
+.B -s
+.I service
+]
+.I dir
+.PP
+.B ip/httpd/wikipost
+.RB [ -b
+.IR inbuf ]
+.RB [ -d
+.IR domain ]
+.RB [ -r
+.IR remoteip ]
+.RB [ -w
+.IR webroot ]
+.RB [ -N
+.IR netdir ]
+.I method version uri
+.RI [ search ]
+.SH DESCRIPTION
+A
+.I wiki
+is a web server that facilitates easy editing of the pages it contains.
+.I Wikifs
+presents a wiki in two forms: as web pages to be served
+via
+.IR httpd (8)
+and as text files to be viewed via the
+.IR acme (1)
+wiki client
+(see
+.BR /acme/wiki/guide ).
+.PP
+.I Wikifs
+presents a file system interface to the wiki data stored
+in
+.IR dir .
+By default,
+.I wikifs
+mounts itself at
+.BR /mnt/wiki ;
+the
+.B -m
+flag specifies a different mount point,
+and the
+.B -M
+flag causes
+.I wikifs
+not to mount at all.
+.I Wikifs
+also announces 9P network services on the addresses
+given as arguments to
+.B -a
+options.
+If the
+.B -s
+option is given,
+.I wikifs
+will post a service file descriptor in
+.BI /srv/ service
+with permission
+.I perm
+(default 600).
+The
+.B -D
+flag causes a transcript of the 9P conversation
+to be written to standard error.
+.PP
+The wiki holds both the current pages and also
+all versions of all pages that have ever existed.
+All pages have time stamps associated with them.
+When a user wants to edit a page, he reads the 
+current page from the wiki, noting the time stamp
+on the page.
+When a user writes changes to a page, he includes the time stamp
+of the page he started with.  If the page has been updated
+by someone else while he was editing, the write will fail.
+This is called a ``conflicting write.''
+The submission is still saved in the history, so that
+the user can compare the page he submitted with the changes
+that were made while he was editing.
+.PP
+Each version of each page is described by a text file containing 
+one or more metadata lines followed by the page contents.
+The metadata lines begin with a capital letter specifying the type of data.
+Currently the metadata types are:
+.TP
+.B D
+The date this page was written, in decimal seconds since the epoch.
+.TP
+.B A
+The author of this version of the page.  Typically the rest of the line
+takes the form
+.I name
+.IR ip-address .
+.TP
+.B X
+This page's contents were submitted but rejected due to a
+conflicting write.
+.PD
+.PP
+After the metadata comes the actual page contents; each line of
+page contents is prefixed with a
+.B #
+character.
+.PP
+The directory
+.IB dir /d
+contains all the wiki data.  Typically it is world-writable
+so that
+.I wikifs
+can run as none.
+Each page on the wiki has a unique sequence number
+.IR n ;
+for each page, the
+.B d
+directory contains three files
+.IR n ,
+.IB n .hist \fR,
+and
+.BI L .n \fR.
+The file
+.I n
+holds the current version of the page: the first line of
+.I n
+is the page title, followed by page metadata and contents as described above.
+The append-only file
+.IB n .hist
+holds the history of the page.
+The first line of
+.IB n .hist
+is the title of the page.
+The rest of the file is the metadata and contents of every
+version of the page that has been submitted to the wiki.
+.BI L .n
+is a lock file for the page: it must be 
+held while reading or writing
+.I n
+and
+.IB n .hist \fR.
+The lock files allow multiple instances of
+.I wikifs
+to coexist peacefully.
+Finally, the
+.B map
+file (with associated lock
+.BR L.map )
+provides a mapping from
+sequence numbers to
+to page titles.
+Each map line is a decimal
+.IR n ,
+a single space,
+and then the title.
+Since titles are presented as names by
+.IR wikifs ,
+they cannot contain slashes.
+.PP
+.I Wikifs
+presents a three-level file system.
+The top level contains per-page directories
+named by the page titles with spaces turned
+into underscores.
+Each page also has a number associated with it
+(see the discussion of the wiki data files below).
+The number corresponding to a page may
+also be used to access it, although directory
+listings will always present the title.
+The
+.B new
+file is used to add new or revised pages to the wiki:
+writes to the file should be in the usual textual format:
+a title line, metadata lines, and page contents.
+Once all the contents have been written, a final zero-length
+message should be written to mark the end of the page.
+This last write will return an error if a conflicting
+write has occurred.
+After writing the file, the client may read from
+.B new
+to obtain the canonical title for the page, as presented
+by the file system.
+.PP
+The page directories contain subdirectories representing
+the history of the page, named
+by the decimal time stamp corresponding to each version.
+In addition to these history directories,
+the page directories contain the following files:
+.TP
+.B current
+The current raw data file for the page.
+.TP
+.B diff.html
+A web page listing the contents of every version of
+the page that has ever appeared on the wiki.
+The text is grey by default:
+differences between versions appear in black.
+.TP
+.B edit.html
+A web form for editing the the current version of the page.
+.TP
+.B history.html
+A web page listing the time stamps of the historical versions of the page.
+Each time stamp links to a page showing just
+that version.
+.TP
+.B history.txt
+A textual formatting of the history.  Each time stamp is prefixed with
+the name of the directory corresponding to that version.
+.TP
+.B index.html
+An HTML formatting of the current version of the page.
+.TP
+.B index.txt
+A textual formatting of the current version of the page.
+.TP
+.B werror.html
+An HTML error page to be returned by
+.I wikipost
+on conflicting writes.
+.PD
+.LP
+The HTML files are generated from the templates with the same names
+in
+.IR dir ,
+except that
+.B index.html
+and
+.B index.txt
+are generated from the templates
+.B page.html
+and
+.BR page.txt .
+.PP
+The history directories
+are similar to the page directories but only contain
+.BR current ,
+.BR index.html ,
+and
+.BR index.txt .
+This
+.B index.html
+and
+.B index.txt
+are generated from the templates
+.B oldpage.html
+and
+.BR oldpage.txt .
+.PP
+The
+.IR httpd (8)
+helper program
+.I wikipost
+is used to process editing requests posted
+to the web server by users.
+It expects the posted form to contain these
+(usually hidden) fields:
+.BR TITLE ,
+the title of the page;
+.BR VERSION ,
+the time stamp of the page that is being edited;
+.BR service ,
+the service name associated with this wiki
+.RI ( wikipost
+looks for
+.BI /srv/wiki. service \fR);
+and
+.BR base ,
+the base for wiki URLs in the response.
+.PP
+After mounting the wiki,
+.I wikipost
+writes a page update request to
+.B /mnt/wiki/new
+and then returns the contents of one HTML
+file in
+.BR /mnt/wiki/ title \fR.
+If the write succeeds,
+.I wikipost
+returns
+.BR index.html .
+if the write fails due to a conflicting write,
+.I wikipost
+returns
+.BR werror.html .
+.SH EXAMPLE
+The Plan 9 wiki at Bell Labs is started by running:
+.EX
+.ta +4n
+	wikifs -p 666 -s wiki.plan9 -a tcp!*!wiki /sys/lib/wiki
+.EE
+.PP
+The wiki is mounted for
+.IR httpd (8)
+by an entry in
+.BR /lib/namespace.httpd :
+.EX
+.ta +4n
+	# wiki
+	mount -b #s/wiki.plan9 /usr/web/wiki/plan9
+.EE
+Notice that the wiki service was explicitly posted with
+mode 666 so that
+.I httpd
+(running as none)
+would be able to mount it.
+.PP
+In the Plan 9 distribution, the directory
+.B /sys/lib/wiki
+contains sample files similar to those used
+to start the current Plan 9 wiki.
+.SH SOURCE
+.B /sys/src/cmd/wikifs
+.br
+.B /sys/src/cmd/ip/httpd/wikipost.c
+.SH SEE ALSO
+The original wiki,
+.B http://c2.com/cgi/wiki?WikiWikiWeb
+.br
+.B /acme/wiki/guide

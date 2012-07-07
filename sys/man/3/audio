@@ -1,0 +1,129 @@
+.TH AUDIO 3 
+.SH NAME
+audio \- SoundBlaster or ESS1688 audio controller
+.SH SYNOPSIS
+.nf
+.B bind -a #A /dev
+.sp 0.3v
+.B /dev/audio
+.B /dev/volume
+.fi
+.SH DESCRIPTION
+The audio device serves a one-level directory,
+giving access to the stereo audio ports.
+.B Audio
+is the data file, which can be read or written to use the port.
+Audio data is a sequence of stereo samples, left sample first.
+Each sample is a 16 bit little-endian two's complement integer;
+the default sampling rate is 44.1 kHz.
+Some implementations only support audio output
+and return a zero length when read.
+.PP
+The length of the
+.B audio
+file as returned by
+.IR stat (2)
+represents the number of bytes buffered for input or output.
+This provides some control over record or playback latency.
+.PP
+The file
+.B audiostat
+provides additional timing and latency control.  When read, it returns
+lines of the form
+.IP
+.B "bufsize \f2s\fP buffered \f2b\fP offset \f2o\fP time \f2t\fP
+.PP
+reporting number of bytes
+.I s
+used for DMA operations (i.e., the minimum useful size for reads and writes),
+the number of bytes
+.I b
+currently buffered, and the time
+.I t
+at which offset
+.I o
+was reached.  Using
+.I t
+and
+.IR o ,
+it is possible to calculate at what time a byte with a different offset will
+be recorded or played back.
+.PP
+.B Volume
+is the control file associated with the audio port.
+Each input and output source has an associated stereo volume control,
+ranging from 0 (quiet) to 100 (loud).
+In addition, there are controls for the sampling rate of the D/A and A/D converters
+and for any tone controls.
+Reads
+return lines of the form
+.IP
+.I source
+.B in left
+.I value 
+.B right
+.I value
+.B out left
+.I value
+.B right
+.I value
+.PP
+possibly abbreviated if the values are shared or non-existent.
+For example, if all of the values are shared, the form degenerates to
+.RI ` source
+.IR value '.
+Valid sources depend on the particular audio device,
+though all devices have an
+.B audio
+stereo source, which controls the output volume from the D/A converter
+connected to
+.BR audio .
+.PP
+Writes accept the same format with same abbreviations.
+Writing the string
+.B reset
+sets all of the attributes to their default value,
+and if no attribute is supplied,
+.B audio
+is assumed.
+.PP
+The Sound Blaster 16 (or MCD) is half-duplex and accepts the following controls on its
+.B volume
+file,
+in the format shown above for reads.
+.TF "\fLspeaker in out"
+.TP
+.B audio out
+Data written to audio.
+.TP
+.B synth in out
+MIDI synthesizer.
+.TP
+.B cd in out
+CD player.
+.TP
+.B line in out
+Line-level input.
+.TP
+.B mic in out
+Monaural microphone input.
+.TP
+.B speaker in out
+Monaural internal speaker connection.
+.TP
+.B treb out
+Stereo treble tone control.
+Values less than 50 decrease the treble,
+those greater increase it.
+.TP
+.B bass out
+Stereo bass tone control.
+.TP
+.B speed in out
+Sampling rate for the D/A and A/D converters,
+expressed in Hz.
+Defaults to 44100.
+.SH SOURCE
+.B /sys/src/9/port/devaudio.c
+.SH SEE ALSO
+.IR usb (4)

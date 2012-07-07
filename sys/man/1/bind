@@ -1,0 +1,215 @@
+.TH BIND 1
+.SH NAME
+bind, mount, unmount \- change name space
+.SH SYNOPSIS
+.B bind
+[
+.I option ...
+]
+.I new old
+.PP
+.B mount
+[
+.I option ...
+]
+.I servename old
+[
+.I spec
+]
+.PP
+.B unmount
+[
+.I new
+]
+.I old
+.SH DESCRIPTION
+.I Bind
+and
+.I mount
+modify the file name space of the current process
+and other processes in the same name space group
+(see
+.IR fork (2)).
+For both calls,
+.I old
+is the name of an existing file or directory in the
+current name space where the modification is to be made.
+.PP
+For
+.IR bind ,
+.I new
+is the name of another (or possibly the same)
+existing file or directory in
+the current name space.
+After a successful
+.IR bind ,
+the file name
+.I old
+is an alias for the object originally named by
+.IR new ;
+if the modification doesn't hide it,
+.I new
+will also still refer to its original file.
+The evaluation of
+.I new
+(see
+.IR intro (2))
+happens at the time of the
+.IR bind ,
+not when the binding is later used.
+.PP
+The
+.I servename
+argument to
+.I mount
+is the name of a file that, when opened, yields an
+existing connection to a file server.
+Almost always,
+.I servename
+will be a file in
+.B /srv
+(see
+.IR srv (3)).
+In the discussion below,
+.I new
+refers to the file named by the
+.I new
+argument to
+.I bind
+or the root directory of the service
+available in
+.I servename
+after a
+.IR mount .
+Either both
+.I old
+and
+.I new
+files must be directories,
+or both must not be directories.
+.PP
+Options control aspects of the modification to the name space:
+.TP 10
+(none)
+Replace the
+.I old
+file by the new one.
+Henceforth, an evaluation of
+.I old
+will be translated to the new file.
+If they are directories (for
+.IR mount ,
+this condition is true by definition),
+.I old
+becomes a
+.I "union directory"
+consisting of one directory (the new file).
+.TP
+.B -b
+Both files must be directories.
+Add the new directory to the beginning
+of the union directory represented by the old file.
+.TP
+.B -a
+Both files must be directories.
+Add the new directory to the end
+of the union directory represented by the old file.
+.TP
+.B -c
+This can be used in addition to any of the above to permit
+creation in a union directory.
+When a new file is created in a union directory,
+it is placed in the first element of the union that has been bound or mounted with the
+.B -c
+flag.
+If that directory does not have write permission, the create fails.
+.TP
+.B -C
+(Only in
+.IR mount .)
+By default, file contents are always retrieved from the server.
+With this option, the kernel may instead use a local cache to satisfy
+.IR read (5)
+requests for files accessible through this mount point.
+The currency of cached data for a file is verified at each
+.IR open (5)
+of the file from this client machine.
+.TP
+.B -q
+Exit silently if the
+.B bind
+or
+.B mount
+operation fails.
+.PD
+.PP
+.I Mount
+takes two additional options.
+The first,
+.B -k
+.IR keypattern ,
+constrains the set of 
+.IR factotum (4)
+keys used for an authenticated mount.
+The second,
+.BR -n ,
+causes
+.I mount
+to skip authentication entirely.
+.PP
+The
+.I spec
+argument to
+.I mount
+is passed in the
+.IR attach (5)
+message to the server, and selects among different
+file trees served by the server.
+.PP
+The
+.IR srv (3)
+service registry device, normally bound to
+.BR /srv ,
+is a convenient rendezvous point for services that can be mounted.
+After bootstrap, the file
+.B /srv/boot
+contains the communications port to the file system from which
+the system was loaded.
+.PP
+The effects of
+.I bind
+and
+.I mount
+can be undone with the
+.I unmount
+command.
+If two arguments are given to
+.IR unmount ,
+the effect is to undo a
+.I bind
+or
+.I mount
+with the same arguments.
+If only one argument is given,
+everything bound to or mounted upon
+.I old
+is unmounted.
+.SH EXAMPLES
+To compile a program with the C library from July 16, 1992:
+.IP
+.EX
+mount /srv/boot /n/dump dump
+bind /n/dump/1992/0716/mips/lib/libc.a /mips/lib/libc.a
+mk
+.EE
+.SH SOURCE
+.B /sys/src/cmd/bind.c
+.br
+.B /sys/src/cmd/mount.c
+.br
+.B /sys/src/cmd/unmount.c
+.SH SEE ALSO
+.IR bind (2),
+.IR open (2),
+.IR srv (3),
+.IR srv (4)

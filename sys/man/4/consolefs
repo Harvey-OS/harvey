@@ -1,0 +1,253 @@
+.TH CONSOLEFS 4
+.SH NAME
+consolefs, C, clog  \- file system for console access
+.SH SYNOPSIS
+.B aux/consolefs
+[
+.B -m
+.I mntpt
+] [
+.B -c
+.I consoledb
+]
+.PP
+.B C
+.I system
+.PP
+.B aux/clog
+console log
+.I system
+.SH DESCRIPTION
+To ease administration of multiple machines one might attach
+many serial console lines to a single computer.
+.I Consolefs
+is a file system that lets multiple users simultaneously access
+these console lines.
+The consoles and permissions to access them are defined in the
+file
+.I consoledb
+(default
+.BR /lib/ndb/consoledb ).
+The format of
+.I consoledb
+is the same as that of other
+.B /lib/ndb
+files,
+.IR ndb (6).
+Consoles are defined by entries of the form:
+.PP
+.EX
+	console=dirty dev=/dev/eia205
+		uid=bignose
+		gid=support
+		speed=56200
+		cronly=
+.EE
+.PP
+Each
+.IR console / dev
+pair represents the name of a console and the device
+associated with it.
+.I Consolefs
+presents a single level directory with up to three files
+per console:
+.IR console ,
+.IB console ctl\f1,
+and
+.IB console stat\f1.
+Writes of
+.I console
+are equivalent to writes of
+.I dev
+and reads and writes of
+.IB console ctl
+and 
+.IB console stat
+are equivalent to reads and writes of
+.IB dev ctl
+and
+.IB dev stat
+respectively.
+.IB Console ctl
+and
+.IB console stat
+will not exist if the underlying
+.I dev
+does not provide them.
+.I Consolefs
+broadcasts anything it reads from
+.I dev
+to all readers of
+.IR console .
+Therefore, many users can
+.IR con (1)
+to a 
+.IR console ,
+see all output, and enter commands.
+.PP
+The
+.I cronly=
+attribute causes newlines typed by the user to be sent to
+the console as returns.
+The
+.I speed=x
+attribute/value pair specifies a bit rate for the
+console.  The default is 9600 baud.
+The
+.I openondemand=
+attribute causes the console device
+.RI ( dev )
+to be opened only when the corresponding
+.IB mntpt / console
+file is open.
+.PP
+Access to the console is controlled by the
+.I uid
+and
+.I gid
+attributes/value pairs.
+The uid values are user account names.
+The gid values are the names of groups defined in
+.I consolefs
+by entries of the form:
+.PP
+.EX
+	group=support
+		uid=bob
+		uid=carol
+		uid=ted
+		uid=alice
+.EE
+.PP
+Groups are used to avoid excessive typing.  Using
+.I gid=x
+is equivalent to including a
+.I uid=y
+for each user
+.I y
+that is a member of
+.IR x .
+.PP
+To keep users from inadvertently interfering with one another,
+notification is broadcast to all readers whenever a user
+opens or closes
+.IR name .
+For example, if user
+.B boris
+opens a console that users
+.B vlad
+and
+.B barney
+have already opened, all will read the message:
+.PP
+.EX
+	[+boris, vlad, barney]
+.EE
+.PP
+If
+.B vlad
+then closes,
+.B boris
+and 
+.B barney
+will read:
+.PP
+.EX
+	[-vlad, boris, barney]
+.EE
+.PP
+.I Consolefs
+posts the client end of its 9P channel in
+.BR /srv/consolefs
+and mounts this locally in
+.I mntpt
+(default
+.BR /mnt/consoles );
+remote clients must
+.B mount
+(see
+.IR bind (1))
+this file to see the consoles.
+.PP
+The
+.IR rc (1)
+script
+.B C
+automates this procedure.
+It uses
+.IR import (4)
+to connect to
+.B /mnt/consoles
+on the machine connected to all the consoles, then uses
+.IR con (1)
+to connect to the console of the machine
+.IR system.
+The script must be edited at installation
+by the local administration to identify the
+system that holds
+.BR /mnt/consoles .
+.PP
+.I Aux/clog
+opens the file
+.I console
+and writes every line read from it, prefixed
+by the ASCII time to the file
+.IR log .
+.PP
+An example of 2 consoles complete with console logging is:
+.IP
+.EX
+% cat /lib/ndb/consoledb
+group=sys
+	uid=glenda
+console=bootes dev=/dev/eia0 gid=sys
+console=fornax dev=/dev/eia1 gid=sys
+% aux/consolefs
+% ls -p /mnt/consoles
+bootes
+bootesctl
+fornax
+fornaxctl
+% clog /mnt/consoles/fornax /sys/log/fornax &
+% clog /mnt/consoles/bootes /sys/log/bootes &
+.EE
+.PP
+The console server's default name space must 
+mount the consoles for 
+.I C
+to import.
+This can be arranged by adding
+.IP
+.EX
+mount /srv/consoles /mnt/consoles
+.EE
+.LP
+to
+.BR /lib/namespace.$sysname .
+.SH FILES
+.TF /lib/ndb/consoledb
+.TP
+.B /srv/consoles
+Client end of pipe to server.
+.TP
+.B /mnt/consoles
+Default mount point.
+.TP
+.B /lib/ndb/consoledb
+Default user database.
+.SH SOURCE
+.B /sys/src/cmd/aux/consolefs.c
+.br
+.B /rc/bin/C
+.br
+.B /sys/src/cmd/aux/clog.c
+.SH BUGS
+.PP
+Changing the gid's or uid's while
+.I consolefs
+is running
+is detected by
+.IR consolefs .
+However, to add new consoles
+one must restart
+.IR consolefs .

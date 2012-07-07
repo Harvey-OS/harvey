@@ -1,0 +1,317 @@
+.TH CWFS 4
+.SH NAME
+cwfs \- cached-worm file server, dump
+.SH SYNOPSIS
+.B cwfs
+[
+.B -cf
+] [
+.B -a
+.I announce-string
+] ... [
+.B -m
+.I device-map
+]
+.I config-device
+.SH DESCRIPTION
+.I Cwfs
+is a cached-worm file server that runs
+as a user-mode program and can
+maintain file systems created by
+.IR fs (4),
+the original Plan 9 file server
+that had its own kernel and operated
+a standalone system with disks and
+optical-disc jukebox attached.
+Unlike
+.IR fs (4),
+which could only accept 9P connections over IL/IPv4 on Ethernets
+(or over Datakit and Cyclones, long ago),
+.I cwfs
+accepts 9P connections over any network medium and protocol
+that it can announce on,
+by default TCP (over IPv4 or IPv6).
+Given suitable 9P clients,
+one could even run 9P over
+.IR aan (8)
+or
+.IR tls (3).
+.PP
+The stock
+.I cwfs
+implements a 16K file system block size
+and 32-bit disk addresses,
+in order to be compatible with some existing file systems, notably
+.IR emelie 's.
+These parameters can be changed by recompilation.
+.PP
+.I Cwfs
+expects to find the configuration block on
+.IR config-device .
+.PP
+Options are:
+.TF -m
+.TP
+.B -a
+announce on
+.I announce-string
+instead of
+.LR tcp!*!9fs .
+.TP
+.B -c
+use a newer, faster, and incompatible cache-device layout.
+To convert an old file system's cache to the new layout,
+dump the file system, note the last superblock number,
+halt
+.IR cwfs ,
+restart
+.I cwfs
+with
+.BR -cf ,
+.I recover
+the file system, and start
+.I cwfs
+with
+.B -c
+thereafter.
+.TP
+.B -f
+enter the file server's configuration mode
+before starting normal operation.
+.TP
+.B -m
+the file
+.I device-map
+contains a simple device name
+(e.g.,
+.LR w9 )
+and a replacement per line.
+The device name is in the usual
+.I filsys
+notation of
+.IR fsconfig (8).
+The replacement can be the name of an existing file
+(which
+.I cwfs
+will not grow)
+or another such device name.
+For example, the file
+.RS
+.PD
+.IP
+.EX
+w0 /tmp/w0
+h1 w2
+.EE
+.PP
+.PD 0.3v
+would map accesses to device
+.L w0
+to existing file
+.LR /tmp/w0
+and accesses to device
+.L h1
+to device
+.LR w2 ,
+if no file named
+.L w2
+exists.
+.RE
+.PD
+.PP
+The file server normally requires all users except
+.L none
+to provide authentication tickets on each
+.IR attach (5).
+This can be disabled using the
+.B noauth
+configuration command (see
+.IR fsconfig (8)).
+.PP
+The group numbered 9999, normally called
+.BR noworld ,
+is special
+on the file server.  Any user belonging to that group has
+attenuated access privileges.  Specifically, when checking such
+a user's access to files, the file's permission bits are first ANDed
+with 0770 for normal files or 0771 for directories.  The effect is
+to deny world access permissions to
+.B noworld
+users, except
+when walking directories.
+.PP
+The user
+.B none
+is always allowed to attach to
+.B emelie
+without authentication but has minimal permissions.
+.PP
+.B Emelie
+maintains three file systems
+on a combination of disks and
+write-once-read-many (WORM) magneto-optical disks.
+.TP
+.B other
+is a simple disk-based file system similar to
+.IR kfs (4) .
+.TP
+.B main
+is a worm-based file system with a disk-based
+look-aside cache.
+The disk cache holds
+modified worm blocks
+to overcome the write-once property of the worm.
+The cache also holds recently accessed
+non-modified blocks to
+speed up the effective access time of the worm.
+Occasionally
+(usually daily at 5AM) the modified blocks in the
+disk cache are
+.IR dumped .
+At this time,
+traffic to the file system is halted and the
+modified blocks are relabeled to the unwritten
+portion of the worm.
+After the dump,
+the file system traffic is continued and
+the relabeled blocks are copied to the worm by
+a background process.
+.TP
+.B dump
+Each time the main file system is dumped,
+its root is appended to a subdirectory of the dump file system.
+Since the dump file system is not mirrored with a disk
+cache,
+it is read-only.
+The name of the newly added root is created from the date
+of the dump:
+.BI / yyyy / mmdds\f1.
+Here
+.I yyyy
+is the full year,
+.I mm
+is the month number,
+.I dd
+is the day number and
+.I s
+is a sequence number if more than
+one dump is done in a day.
+For the first dump,
+.I s
+is null.
+For the subsequent dumps
+.I s
+is 1, 2, 3, etc.
+.sp
+The root of the main file system
+that is frozen on the first dump
+of March 1, 1992
+will be named
+.B /1992/0301/
+in the dump file system.
+.SS "Changes from fs(4)"
+.IR fs (4)'s
+IP configuration is ignored and the underlying system's is used.
+.PP
+Various other
+.IR fs (4)
+commands have been omitted since they (or equivalents) can now be
+executed directly on the underlying CPU server,
+notably
+.I date
+and
+.I passwd
+(see
+.IR auth/wrkey ).
+.PP
+.IR fs (4)'s
+device names
+.L h
+for IDE disks and
+.L m
+for Marvell SATA disks are not supported; use
+.B -m
+to map wren devices to appropriate names under
+.BR /dev/sd* .
+.PP
+The file server kernel seems to have scanned PCI buses
+in reverse order from the other Plan 9 kernels,
+so systems with multiple SCSI cards may find controller
+numbering reversed.
+.B -m
+can be used to compensate for this if you don't want to change
+.I filsys
+declarations.
+.PP
+The file server kernel's
+.I config
+field in NVRAM was overloaded in recent times to hold a
+.IR secstore (1)
+key for the CPU hostowner.
+Since
+.I cwfs
+runs on a CPU kernel,
+the location of its configuration block must be supplied on the command line.
+.PP
+Disk labels are now implemented for
+.B l
+devices.
+At the first access of a side,
+.I cwfs
+will attempt to read the label and verify that it has the correct side
+number and byte order; if either is wrong, it will issue a warning.
+If the label cannot be read,
+.I cwfs
+will attempt to write a new label.
+.SH EXAMPLES
+Place the root of the
+.B dump
+file system on
+.B /n/dump
+and show the modified times of the MIPS C compiler
+over all dumps in February, 1992:
+.IP
+.EX
+cwfs w0
+9fs dump
+ls -l /n/dump/1992/02??/mips/bin/vc
+.EE
+.PP
+To get only one line of output for each version of the compiler:
+.IP
+.EX
+ls -lp /n/dump/1992/02??/mips/bin/vc | uniq
+.EE
+.SH SOURCE
+.B /sys/src/cmd/cwfs
+.SH SEE ALSO
+.IR yesterday (1),
+.IR fs (3),
+.IR sd (3),
+.IR fossil (4),
+.IR fs (4),
+.IR srv (4),
+.IR fs (8),
+.IR fsconfig (8)
+.br
+Sean Quinlan,
+``A Cached WORM File System'',
+.I
+Software \- Practice and Experience,
+December, 1991
+.br
+Ken Thompson,
+Geoff Collyer,
+``The 64-bit Standalone Plan 9 File Server''
+.SH BUGS
+For the moment,
+the file server serves both the old (9P1) and new (9P2000) versions of 9P,
+deciding which to serve by sniffing the first packet on each connection.
+.PP
+File system block size and disk address size (32- or 64-bit) are fixed
+at compilation time, and this is not easily changed.
+.PP
+.I Cwfs
+is probably not the right choice of file server for new file systems.
+It's intended to cope with existing file systems on optical jukeboxes
+or images thereof.

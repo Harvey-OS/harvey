@@ -1,0 +1,99 @@
+.TH DISKSIM 8
+.SH NAME
+disksim \- disk simulator
+.SH SYNOPSIS
+.B aux/disksim
+[
+.B -r
+]
+[
+.B -f
+.I file
+]
+[
+.B -s
+.I srvname
+]
+[
+.B -m
+.I mtpt
+]
+[
+.I diskname
+]
+.SH DESCRIPTION
+.I Disksim
+presents an in-memory disk in the manner of the
+.IR sd (3)
+device on
+.IB mtpt / diskname
+(default
+.BR /dev/sdXX ).
+The disk is initialized to zeros;
+non-zeroed blocks written to the disk are kept in memory.
+.PP
+When setting disk geometry with the
+.B geometry
+control message,
+the arguments are
+sectors, sector size, cylinders, heads, and sectors per track.
+The last three may be zero for LBA disk simulations,
+but must be present.
+.PP
+The
+.B -f
+option causes
+.I disksim
+to use
+.I file
+as the initial contents of the disk rather than a zeroed image.
+Changes made to the disk are written back to
+.I file
+unless the
+.B -r
+option is given.
+.PP
+The
+.B -s
+option causes
+.I disksim
+to post its 9P service at
+.BI /srv/ service \fR.
+.SH EXAMPLES
+.I Disksim
+can be used to test programs such as
+.I fdisk
+and
+.IR prep (8)
+that expect
+.IR sd (3)
+disks:
+.IP
+.EX
+aux/disksim
+echo geometry 40000 512 0 0 0 >/dev/sdXX/ctl # 20MB
+disk/mbr /dev/sdXX/data
+disk/fdisk -baw /dev/sdXX/data
+disk/prep /dev/sdXX/plan9
+.EE
+.PP
+.I Disksim
+is useful for creating very large but mostly zeroed files
+for testing other programs.
+Test
+.IR tar (1)'s
+handling of large files:
+.IP
+.EX
+for(i in sdXX sdYY sdZZ) aux/disksim $i
+echo geometry 40000000 512 0 0 0 >/dev/sdXX/ctl # 20GB
+echo geometry 10000000 512 0 0 0 >/dev/sdYY/ctl # 5GB
+echo geometry 20000000 512 0 0 0 >/dev/sdZZ/ctl # 10GB
+tar cf /dev/sdXX/data /dev/sdYY/data /dev/sdZZ/data
+tar tvf /dev/sdXX/data
+.EE
+.SH SOURCE
+.B /sys/src/cmd/aux/disksim.c
+.SH SEE ALSO
+.IR sd (3),
+.IR prep (8)

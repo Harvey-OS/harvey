@@ -1,0 +1,99 @@
+.TH AR 6
+.SH NAME
+ar \- archive (library) file format
+.SH SYNOPSIS
+.B #include <ar.h>
+.SH DESCRIPTION
+The archive command
+.IR ar (1)
+is used to combine several files into
+one.
+Archives are used mainly as libraries to be searched
+by the loaders
+.IR 2l (1)
+.I et al.
+.PP
+A file produced by
+.I ar
+has a magic string at the start,
+followed by the constituent files, each preceded by a file header.
+The magic number and header layout as described in the
+include file are:
+.IP
+.EX
+.ta \w'#define 'u +\w'SAR_HDR 'u
+.ec %
+#define	ARMAG	"!<arch>\n"
+#define	SARMAG	8
+
+#define	ARFMAG	"`\n"
+
+struct ar_hdr {
+	char	name[16];
+	char	date[12];
+	char	uid[6];
+	char	gid[6];
+	char	mode[8];
+	char	size[10];
+	char	fmag[2];
+};
+#define	SAR_HDR	60
+.ec \
+.EE
+.LP
+The
+.B name
+is a blank-padded string.
+The
+.L fmag
+field contains
+.L ARFMAG
+to help verify the presence of a header.
+The other fields are left-adjusted, blank-padded numbers.
+They are decimal except for
+.LR mode ,
+which is octal.
+The date is the modification date of the file (see
+.IR stat (2))
+at the time of its insertion into the archive.
+The mode is the low 9 bits of the file permission mode.
+The length of the header is
+.LR SAR_HDR .
+Because the
+.L ar_hdr
+structure is padded in an architecture-dependent manner,
+the structure should never be read or written as a unit;
+instead, each field should be read or written independently.
+.PP
+Each file begins on an even (0 mod 2) boundary;
+a newline is inserted between files if necessary.
+Nevertheless 
+.B size
+reflects the
+actual size of the file exclusive of padding.
+.PP
+When all members of an archive are object files of
+the same architecture,
+.B ar
+automatically adds an extra file, named
+.BR __.SYMDEF ,
+as the first member of the archive.  This file
+contains an index used by the loaders to locate all
+externally defined text and data symbols in the archive.
+.PP
+There is no provision for empty areas in an archive
+file.
+.SH "SEE ALSO"
+.IR ar (1), 
+.IR 2l (1), 
+.IR nm (1),
+.IR stat (2)
+.SH BUGS
+The
+.B uid
+and
+.B gid
+fields are unused in Plan 9.
+They provide compatibility with Unix
+.I ar
+format.

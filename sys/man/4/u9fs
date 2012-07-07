@@ -1,0 +1,289 @@
+.TH U9FS 4
+.SH NAME
+u9fs \- serve 9P from Unix
+.SH SYNOPSIS
+.B u9fs
+[
+.B -Dnz
+]
+[
+.B -a
+.I authtype
+]
+[
+.B -A
+.I autharg
+]
+[
+.B -l
+.I logfile
+]
+[
+.B -m
+.I msize
+]
+[
+.B -u
+.I onlyuser
+]
+.I fsroot
+.SH DESCRIPTION
+.I U9fs
+is
+.I not
+a Plan 9 program.  Instead it is a program that
+serves Unix files to Plan 9 machines using the 9P protocol
+(see
+.IR intro (5)).
+It is typically invoked on a
+Unix machine by
+.B inetd
+with its standard input and output connected to a
+network connection, typically TCP on an Ethernet.
+It typically runs as user
+.B root
+and multiplexes access to multiple Plan 9 clients over the single wire.
+It assumes Plan 9 uids match Unix login names,
+and changes to the corresponding Unix effective uid when processing requests.
+Characters in file and directory names unacceptable to Plan 9 are translated
+into a three-character sequence:
+.L \e
+followed by two hexadecimal digits.
+.I U9fs
+serves both 9P1 (the 9P protocol as used by
+the second and third editions of Plan 9) and 9P2000.
+.PP
+The options are:
+.TF "\fL-A \fIautharg"
+.PD
+.TP
+.B -D
+Write very chatty debugging output to the log file (see
+.B -l
+option below).
+.TP
+.B -n
+Signals that
+.I u9fs
+is
+.I not
+being invoked with a network connection
+on standard input and output, and thus should
+not try to determine the remote address of the connection.
+This is useful when
+.I u9fs
+is not invoked from
+.I inetd
+(see examples below).
+.TP
+.B -z
+Truncate the log file on startup.  This is useful mainly when debugging
+with
+.BR -D .
+.TP
+.BI -a " authtype
+Sets the authentication method to be used.
+.I Authtype
+should be
+.BR rhosts ,
+.BR none ,
+or
+.BR p9any .
+The default is
+.BR rhosts ,
+which uses the
+.I ruserok
+library call to authenticate users by entries in
+.B /etc/hosts.equiv
+or
+.BR $HOME/.rhosts .
+This default is discouraged for all but the most controlled networks.
+Specifying
+.B none
+turns off authentication altogether.
+This is useful when
+.I u9fs
+is not invoked from
+.I inetd
+(see examples below, or
+.I srvssh
+in
+.IR srv (4)).
+Specifying
+.B p9any
+uses the fourth edition Plan 9 authentication mechanisms.
+The file
+.BR /etc/u9fs.key ,
+or
+.I autharg
+if specified
+(see the
+.B -A
+option),
+is consulted for the authentication data
+and should be suitably protected.
+This file must contain exactly three lines:
+.I secret
+(plaintext password),
+.I u9fs-user
+(user id),
+and
+.I plan9-auth.dom
+(authentication domain).
+.RS
+.LP
+Finally,
+.I factotum
+must be taught a key of the form:
+.LP
+.EX
+.B
+key proto=p9sk1 dom=\fIplan9-auth.dom\fP user=\fIu9fs-user\fP !password=\fIsecret\fP
+.EE
+.RE
+.TP
+.BI -A " autharg
+Used to specify an argument to the authentication method.
+See the authentication descriptions above.
+.TP
+.BI -l " logfile
+Specifies the file which should contain debugging output
+and other messages.
+The out-of-the-box compile-time default is
+.BR /tmp/u9fs.log .
+.TP
+.BI -m " msize
+Set
+.I msize
+for 9P2000
+(see
+.IR open (5)).
+.TP
+.BI -u " user
+Treat all attaches as coming from
+.IR user .
+This is useful in some cases when running without
+.IR inetd ;
+see the examples.
+.PP
+If
+.I fsroot
+is specified,
+.I u9fs
+will serve only that tree; othwise, it will serve the entire Unix
+file system.
+.SH EXAMPLES
+.PP
+Plan 9 calls 9P file service
+.B 9fs
+with TCP port number 564.
+Set up this way on a machine called, say,
+.BR kremvax ,
+.I u9fs
+may be connected to the name space of a Plan 9 process by
+.IP
+.EX
+9fs kremvax
+.EE
+.PP
+For more information on this procedure, see
+.IR srv (4)
+and
+.IR bind (1).
+.PP
+By default,
+.I u9fs
+serves the entire file system of the Unix machine.
+It forbids access to devices
+because the program is single-threaded and may block unpredictably.
+Using the
+.B attach
+specifier
+.B device
+connects to a file system identical to the usual system except
+it only permits device access (and may block unpredictably):
+.IP
+.EX
+srv tcp!kremvax!9fs
+mount -c /srv/tcp!kremvax!9fs /n/kremvax device
+.EE
+.PP
+(The
+.B 9fs
+command
+does not accept an attach specifier.)
+Even so,
+device access may produce unpredictable
+results if the block size of the device is greater than 8192,
+the maximum data size of a 9P message.
+.PP
+The source to
+.I u9fs
+is in the Plan 9 directory
+.BR /sys/src/cmd/unix/u9fs .
+To install
+.I u9fs
+on a Unix system with an ANSI C compiler, copy the source to a directory on that system
+and run
+.BR make .
+Then install the binary in
+.BR /usr/etc/u9fs .
+Add this line to
+.BR inetd.conf :
+.IP
+.EX
+9fs     stream  tcp     nowait  root   /usr/etc/u9fs   u9fs
+.EE
+.PP
+and this to
+.BR services :
+.IP
+.EX
+9fs     564/tcp       9fs  # Plan 9 fs
+.EE
+.LP
+Due to a bug in their
+IP software, some systems will not accept the service name
+.BR 9fs ,
+thinking it
+a service number because of the initial digit.
+If so, run the service as
+.B u9fs
+or
+.BR 564 .
+.PP
+On systems where listeners cannot be started,
+.IR execnet (4)
+is useful for running
+.I u9fs
+via other network mechanisms; the script
+.I srvssh
+in
+.IR srv (4)
+provides this for the
+.I ssh
+protocol.
+.SH SOURCE
+.B /sys/src/cmd/unix/u9fs
+.SH DIAGNOSTICS
+Problems are reported to the
+log file specified with the
+.B -l
+option (default
+.BR /tmp/u9fs.log ).
+The
+.B -D
+flag enables chatty debugging.
+.SH SEE ALSO
+.IR bind (1),
+.IR execnet (4),
+.IR srv (4),
+.IR ip (3),
+.IR nfsserver (8)
+.SH BUGS
+The implementation of devices is unsatisfactory.
+.LP
+Semantics like remove-on-close or the
+atomicity of
+.B wstat
+are hard to provide exactly.

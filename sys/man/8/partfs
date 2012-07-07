@@ -1,0 +1,87 @@
+.TH PARTFS 8
+.SH NAME
+partfs \- serve file, with partitions
+.SH SYNOPSIS
+.B disk/partfs
+[
+.B -Dr
+] [
+.B -d
+.I diskname
+] [
+.B -m
+.I mtpt
+] [
+.B -p
+.I 9load-parts
+] [
+.B -s
+.I srvname
+]
+.I diskimage
+.SH DESCRIPTION
+.I Partfs
+presents the file
+.I diskimage
+in the manner of
+.IR sd (3)
+on
+.IB mtpt / diskname
+(default
+.BR /dev/sdXX ).
+Changes made to the disk are written through to
+.I diskimage
+unless the
+.B -r
+option is given.
+.PP
+When setting disk geometry with the
+.B geometry
+control message,
+the arguments are
+sectors and sector size.
+.PP
+The
+.B -m
+option causes
+.I partfs
+to mount its synthetic file system at
+.I mtpt
+instead of
+.BR /dev .
+.PP
+The
+.B -p
+option causes
+.I partfs
+to treat
+.I 9load-parts
+as a partition environment variable constructed by
+.IR 9load (8)
+and adds the defined partitions.
+This is used primarily by
+.IR boot (8)
+to assist booting from USB disks.
+.PP
+The
+.B -s
+option causes
+.I partfs
+to post its 9P service at
+.BI /srv/ service \fR.
+.SH EXAMPLES
+Partition a USB flash device:
+.IP
+.EX
+disk/partfs /dev/sdU0.0/data
+disk/mbr -m /386/mbr /dev/sdXX/data
+disk/fdisk -baw /dev/sdXX/data
+disk/prep /dev/sdXX/plan9
+.EE
+.SH SOURCE
+.B /sys/src/cmd/disk/partfs.c
+.SH SEE ALSO
+.IR fs (3),
+.IR sd (3),
+.IR disksim (8),
+.IR prep (8)

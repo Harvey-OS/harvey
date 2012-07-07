@@ -1,0 +1,16 @@
+0intro 0intro
+intro 0intro
+attach attach
+auth attach
+clunk clunk
+error error
+flush flush
+create open
+open open
+read read
+write read
+remove remove
+stat stat
+wstat stat
+version version
+walk walk

@@ -1,0 +1,120 @@
+.TH MOUSE 8
+.SH NAME
+aux/mouse, aux/accupoint \- configure a mouse to a port
+.SH SYNOPSIS
+.B aux/mouse
+[
+.B -b
+.I baud
+] [
+.B -d
+.I type
+] [
+.B -n
+]
+.I port
+.PP
+.B aux/accupoint
+.SH DESCRIPTION
+.B Mouse
+queries a mouse on a serial or PS2 port for
+its type and then configures the port and the
+mouse to be used to control the cursor.
+.PP
+.I Port
+can be either a port number (e.g. 
+.B 0
+or
+.BR 1 )
+or the string
+.B ps2
+or
+.BR ps2intellimouse .
+The initialization can be automated by setting
+.BR mouseport
+in
+.IR plan9.ini (8),
+which will enable a call to
+.I mouse
+in
+.B termrc
+(see
+.IR cpurc (8)).
+.PP
+The option
+.B -d
+provides a default mouse type should
+.B mouse
+fail to determine it.  The
+types are:
+.IP C
+Logitech type C mouse
+.IP W
+Logitech type W mouse
+.IP M
+Microsoft compatible mouse
+.PP
+The
+.B -n
+flag queries the mouse and reports its type but does not set the device type.
+.PP
+The
+.B -b
+flag sets the baud rate for communication; it is effectual only for serial mice.
+.SH
+.I Accupoint
+is a process, to be used with
+.IR pipefile (1),
+that processes events from an AccuPoint II pointing device
+with four buttons, such as on Toshiba Portégé 3440CT and 3480CT
+laptops, converting events on the two extra buttons
+(which appear as buttons 4 and 5 in the
+.IR mouse (3)
+interface) into a simulation of button 2.
+These extra buttons on laptops are in turn simulations of Intellimouse
+scrolling buttons and have peculiar properties: they generate
+only `down' events that repeat automatically, like a keypad, in
+an approximation of the Intellimouse scroll wheel.
+.I Accupoint
+overcomes this behavior to produce a reasonable approximation of
+a normal mouse button 2:
+it makes left button act like a regular button 2, but is slow to release (the
+program must wait for a repeat time before it knows the button has been released),
+while the right button generates a fast button 2 `click'.
+To use
+.IR accupoint ,
+add a line like this to
+.B /usr/$user/lib/profile
+or to a system-dependent configuration script in
+.B termrc
+(see
+.IR cpurc (8)):
+.EX
+.IP
+pipefile -dr /bin/aux/accupoint /dev/mouse
+.EE
+.PP
+Before running
+.IR accupoint ,
+the mouse should be configured as an
+.B intellimouse
+or
+.BR ps2intellimouse .
+.SH SOURCE
+.B /sys/src/cmd/aux/mouse.c
+.br
+.B /sys/src/cmd/aux/accupoint.c
+.SH SEE ALSO
+.IR cons (3),
+.IR cpurc (8),
+.IR pipefile (1).
+.SH BUGS
+Due to the limitations of
+.IR pipefile (1),
+when running
+.I accupoint
+it is difficult restart
+.IR rio (1)
+if it has exited.
+
+

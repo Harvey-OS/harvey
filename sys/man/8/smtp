@@ -1,0 +1,260 @@
+.TH SMTP 8
+.SH NAME
+smtp, smtpd \-  mail transport
+.SH SYNOPSIS
+.in +0.5i
+.ti -0.5i
+.B upas/smtp
+[
+.B -aAdfips
+] [
+.B -b
+.I busted-mx
+] ... [
+.B -g
+.I gateway
+] [
+.B -h
+.I host
+] [
+.B -u
+.I user
+] [
+.BI . domain
+]
+.I destaddr
+.I sender
+.I rcpt-list
+.in -0.5i
+.PP
+.in +0.5i
+.ti -0.5i
+.B upas/smtpd
+[
+.B -adDfrg
+] [
+.B -c
+.I certfile
+] [
+.B -h
+.I mydom
+] [
+.B -k
+.I evilipaddr
+] [
+.B -m
+.I mailer
+] [
+.B -n
+.I netdir
+]
+.in -0.5i
+.SH DESCRIPTION
+.I Smtp
+sends the mail message from standard input
+to the users
+.I rcpt-list
+on the host at network address
+.I address
+using the Simple Mail Transfer Protocol.
+The options are:
+.TF -
+.PD
+.TP
+.B -a
+if the server supports PLAIN or LOGIN authentication,
+authenticate to the server using a password from
+.IR factotum (4).
+See RFCs 3207 and 2554.
+This option implies
+.BR -s .
+.TP
+.B -A
+autistic server: don't wait for an SMTP greeting banner
+but immediately send a
+.L NOOP
+command to provoke the server into responding.
+.TP
+.B -b
+ignore
+.I busted-mx
+when trying MX hosts.
+May be repeated.
+.TP
+.B -d
+turn on debugging to standard error.
+.TP
+.B -f
+just filter the converted message to standard
+output rather than sending it.
+.TP
+.B -g
+makes
+.I gateway
+the system to pass the message to if
+.I smtp
+can't find an address nor MX entry for the destination system.
+.TP
+.B -h
+use
+.I host
+as the local system name;
+it may be fully-qualified or not.  If not
+specified, it will default to the contents of
+.BR /dev/sysname .
+.TP
+.B -i
+under
+.BR -a ,
+authenticate even if we can't start TLS.
+.TP
+.B -p
+ping: just verify that the users named in the
+.I rcpt-list
+are valid users at
+.IR destaddr ;
+don't send any mail.
+.TP
+.B -s
+if the server supports the ESMTP extension to use TLS encryption, turn it on for
+this session.  See RFC3207 for details.
+.TP
+.B -u
+specify a user name to be used in authentication.  The default name is
+the current login id.
+.PD
+.PP
+Finally if
+.I .domain
+is given, it is appended to the end of any unqualified system names
+in the envelope or header.
+.
+.PP
+.I Smtpd
+receives a message using the Simple Mail Transfer Protocol.
+Standard input and output are the protocol connection.
+SMTP authentication by
+.I login
+and
+.I cram-md5
+protocols is supported; authenticated connections are permitted to relay.
+.PP
+The options are:
+.TF -
+.PD
+.TP
+.B -a
+requires that all clients authenticate to be able to send mail.
+.TP
+.B -c
+specifies a certificate to use for TLS.  Without this
+option, the capability to start TLS will not be advertised.
+.TP
+.B -d
+turns on debugging output,
+with each connection's output going to a uniquely-named file in
+.BR /sys/log/smtpdb .
+.TP
+.B -D
+sleeps for 15 seconds usually at the start of the SMTP dialogue;
+this deters some spammers.
+Connections from Class A networks frequented by spammers will incur
+a longer delay.
+.TP
+.B -f
+prevents relaying from non-trusted networks.
+It also tags messages from non-trusted sites when they deliver mail
+from an address in a domain we believe we represent.
+.TP
+.B -g
+turns on grey/white list processing.  All mail is rejected (with a
+retry code) unless the sender's IP address is on the whitelist,
+.BR /mail/grey/whitelist ,
+an append only file.
+Addresses can be added to the whitelist by the administrator.  However,
+the usual way for addresses to be added is by
+.I smtpd
+itself.
+Whenever a message is received and the sender's address isn't on the whitelist,
+.I smtpd
+first looks for the file
+.BI /mail\%/grey\%/tmp\%/\| local\% /\| remote\% /\| recipient\fP,
+where
+.I local
+and
+.I remote
+are IP addresses of the local and remote systems, respectively.
+If it exists and was created more than a few minutes go,
+the remote address is added to the whitelist.
+If not, the file is created and the mail is rejected with a `try again' code.
+The expectation is that spammers will not retry for more than a few minutes
+and that others will.
+.TP
+.B -h
+specifies the receiving domain.  If this flag is not specified, the
+receiving domain is inferred from the host name.
+.TP
+.B -k
+causes connections from the host at
+the IP address,
+.IR evilipaddr ,
+to be dropped at program startup.  Multiple addresses
+can be specified with several
+.B -k
+options.  This option should be used carefully;
+it is intended to lessen the effects of denial of
+service attacks or broken mailers which continually
+connect.  The connections are not logged and the
+remote system is not notified via the protocol.
+.TP
+.B -m
+set the
+.I mailer
+to which
+.I smtpd
+passes a received message.
+The default is
+.BR /bin/upas/send .
+.TP
+.B -n
+specifies the name of the network directory assigned to the incoming connection.
+This is used to determine the peer IP address.  If this flag is not
+specified, the peer address is determined using standard input.
+.TP
+.B -p
+permits clients to authenticate using protocols which transfer
+the password in the clear, e.g.
+.I login
+protocol. This should only be used if the connection has
+previously encrypted using e.g.
+.IR tlssrv (8).
+.TP
+.B -r
+turns on forward DNS validation of non-trusted sender address.
+.TP
+.B -s
+causes copies of blocked messages to be saved in a sub-directory of
+.BR /mail/queue.dump .
+.PP
+.I Smtpd
+is normally run by a network listener such as
+.IR listen (8).
+Most of the command line options are more conveniently
+specified in the smtpd configuration file stored in
+.BR /mail/lib/smtpd.conf .
+.SH SOURCE
+.TP
+.B /sys/src/cmd/upas/smtp
+.SH "SEE ALSO"
+.IR aliasmail (8),
+.IR faces (1),
+.IR filter (1),
+.IR mail (1),
+.IR marshal (1),
+.IR mlmgr (1),
+.IR nedmail (1),
+.IR qer (8),
+.IR rewrite (6),
+.IR send (8),
+.IR tlssrv (8),
+.IR upasfs (4)

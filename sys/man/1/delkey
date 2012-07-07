@@ -1,0 +1,42 @@
+.TH DELKEY 1
+.SH NAME
+delkey \- delete keys from factotum
+.SH SYNOPSIS
+.B delkey
+[
+.B -f
+]
+.I pattern
+.SH DESCRIPTION
+.I Delkey
+shows the user each key stored in
+.IR factotum (4)
+and matching the
+.IR pattern ,
+prompting for whether the key should be deleted.
+At each prompt, typing a response beginning with
+.B y
+deletes the key, typing a response beginning with
+.B q
+aborts the listing,
+and any other response skips over the key.
+.PP
+The
+.B -f
+option disables the prompting; all keys matching the pattern are deleted.
+.PP
+When run on a CPU server,
+.I delkey
+uses the terminal's factotum, if present, instead of the server's factotum.
+.SH FILES
+.TP
+.B /mnt/term/mnt/factotum
+First choice for
+.I factotum
+to use
+.TP
+.B /mnt/factotum
+Second choice
+.PP
+.SH SOURCE
+.B /rc/bin/delkey

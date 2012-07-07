@@ -1,0 +1,68 @@
+.TH TRAMPOLINE 8
+.SH NAME
+trampoline \- forward incoming calls to another address
+.SH SYNOPSIS
+.B aux/trampoline
+[
+.B -9
+]
+[
+.B -a
+.I altaddr
+]
+[
+.B -m
+.I netdir
+]
+.I addr
+.SH DESCRIPTION
+.I Trampoline
+can be used in a service file (see
+.IR listen (8))
+to link an incoming call to
+another address that provides the service, typically on another machine.
+.PP
+.I Trampoline
+dials
+.I addr
+and copies data between that connection
+and its own standard input and output.
+.PP
+The options are:
+.TP
+.B -9
+The connection carries only 9P messages.  In this case
+.I trampoline
+will relay whole messages at a time.
+.TP
+.BI -a " altaddr
+Dial
+.I altaddr
+and relay between the two network connections,
+ignoring standard input and output.
+.TP
+.BI -m " netdir
+Restrict forwarding to particular machines.
+.I Netdir
+must be the incoming call directory.
+.I Trampoline
+finds the caller's MAC address
+.I m
+and checks that
+.IR ndb (6)
+contains an entry with
+.BI ether= m
+and the attribute
+.BR trampok .
+If no such entry is found, the call is rejected.
+.PD
+.SH FILES
+.TF /sys/log/trampoline
+.TP
+.B /sys/log/trampoline
+logs rejected calls
+.SH SOURCE
+.B /sys/src/cmd/aux/trampoline.c
+.SH SEE ALSO
+.IR dial (2),
+.IR listen (8)

@@ -1,0 +1,158 @@
+.TH PATCH 1
+.SH NAME
+patch \- simple patch creation and tracking system
+.SH SYNOPSIS
+.B patch/create
+.I name
+.I email
+.I files ...
+[
+.B < 
+.I description
+]
+.PP
+.B patch/list
+[
+.I name ...
+]
+.PP
+.B patch/diff
+.I name
+.PP
+.B patch/apply
+.I name
+.PP
+.B patch/undo
+.I name
+.PP
+.B patch/note
+.I name 
+[
+.B <
+.I note
+]
+.SH DESCRIPTION
+These scripts are a simple patch submission and tracking system
+used to propose additions or changes to Plan 9.
+There is no guarantee that any patch will be accepted, nor
+that it will be accepted verbatim.
+Each patch has a 
+.I name
+(lowercase letters, numbers, dash, dot, and underscore only)
+and is stored in
+.BI /n/sources/patch/ name.
+.PP
+.I Patch/create
+creates a new patch consisting of the changes to
+the listed files from the distribution, reading
+a description of the patch from standard input:
+please provide an explanation of what the change is supposed to do,
+some context, and a rationale for the change.
+Test data or pointers to same to verify that the fix works are also welcome.
+When sending a patch, follow these guidelines:
+.IP • 3
+Before preparing the patch, run
+.I replica/pull
+and base your patch on current distribution source code.
+.IP •
+If this is a bug fix, explain the bug clearly.
+Don't assume the bug is obvious from the fix.
+.IP •
+If this is a new feature, explain it clearly.
+Don't assume it is obvious from the change.
+.IP •
+Make the new code look as much like the old code as possible:
+don't make gratuitous changes, and do follow the style of the old code.
+See
+.IR style (6)
+for the canonical Plan 9 coding style.
+.IP •
+If your patch changes externally-visible behaviour,
+update the manual page.
+.PP
+The
+.I email
+address, if not
+.LR - ,
+will be sent notification messages when the patch is applied, rejected,
+or commented on.
+If rejected, the e-mail will contain a note explaining why and
+probably listing suggested changes and encouraging you to resubmit.
+.PP
+.I Patch/list
+displays information about the named patches,
+or all currently pending patches if none are specified.
+.PP
+.I Patch/diff
+shows a patch as diffs between the original
+source files and the patched source files.
+.PP
+.I Patch/apply
+applies the patch to the current source tree.
+It is intended to be run by the Plan 9 developers with
+.B pie
+as their root file system.
+If the source has changed since the patch was
+created,
+.I apply
+will report the conflict and not change any files.
+Before changing any files,
+.I patch/apply
+makes backup copies of the current source tree's
+files.  The backups are stored in the patch directory.
+.PP
+.I Patch/undo
+will copy the backups saved by
+.I patch/apply
+back into the source tree.
+It will not restore a backup if the file
+being replaced is not byte-identical to the one
+created by 
+.I patch/apply.
+.SH EXAMPLES
+Propose a change to
+.IR pwd ,
+which you have modified locally:
+.IP
+.EX
+% patch/create pwd-errors user@host.dom /sys/src/cmd/pwd.c
+Fix pwd to print errors to fd 2 rather than 1.
+^D
+% 
+.EE
+.PP
+Then the developers at Bell Labs run
+.IP
+.EX
+patch/diff pwd-errors
+.EE
+.PP
+to inspect the change (possibly viewing
+.B /n/sources/patch/pwd-errors/pwd.c
+to see the larger context).
+To make the change, they run
+.IP
+.EX
+patch/apply pwd-errors
+.EE
+.LP
+Otherwise they run
+.IP
+.EX
+% patch/note pwd-errors
+Pwd should definitely print errors to fd 1 because ...
+^D
+% 
+.EE
+.PP
+to add a note to the 
+.B /n/sources/pwd-errors/notes
+file.
+.SH FILES
+.B /n/sources/patch
+.SH SOURCE
+.B /rc/bin/patch
+.SH SEE ALSO
+.IR diff (1)
+.br
+.B http://plan9.bell-labs.com/wiki/plan9/How_to_contribute

@@ -1,0 +1,77 @@
+.TH SYSCALL 1 
+.SH NAME
+syscall \- test a system call
+.SH SYNOPSIS
+.B syscall
+[
+.B -osx
+]
+.I entry
+[
+.I arg ...
+]
+.SH DESCRIPTION
+.I Syscall
+invokes the system call
+.I entry
+with the given arguments.
+(Some functions, such as
+.I write
+and
+.IR read (2),
+although not strictly system calls, are valid
+.IR entries .)
+It prints the return value and the error string, if there was an error.
+An argument is either an integer constant as in C (its value is passed),
+a string (its address is passed),
+or the literal
+.B buf
+(a pointer to a 1MB buffer is passed).
+.PP
+If
+.B -o
+is given, the contents of the 1MB buffer are printed as a zero-terminated string
+after the system call is done.
+The
+.B -x
+and
+.B -s
+options are similar, but
+.B -x
+formats the data as hexadecimal bytes, while
+.B -s
+interprets the data as a
+.IR stat (5)
+message and formats it similar to the style of
+.B ls
+.B -lqm
+(see
+.IR ls (1)),
+with extra detail about the modify and access times.
+.SH EXAMPLES
+Write a string to standard output:
+.IP
+.EX
+syscall write 1 hello 5
+.EE
+.PP
+Print information about the file connected to standard input:
+.IP
+.EX
+syscall -s fstat 0 buf 1024
+.EE
+.SH SOURCE
+.B /sys/src/cmd/syscall
+.SH "SEE ALSO"
+Section 2 of this manual.
+.SH DIAGNOSTICS
+If
+.I entry
+is not known to
+.IR syscall ,
+the exit status is
+.LR unknown .
+If the system call succeeds, the exit status is null;
+otherwise the exit status is the string that
+.IR errstr (2)
+returns.

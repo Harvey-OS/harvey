@@ -1,0 +1,84 @@
+.TH SDAOE 3
+.SH NAME
+sdaoe \- ATA-over-Ethernet (AoE) storage device interface
+.SH SYNOPSIS
+.nf
+.B bind -a #S /dev
+.BI "echo config switch on spec " l " type aoe//dev/aoe/" shelf\fB.\fPslot " >/dev/sdctl"
+.BI "echo config switch off spec " l " >/dev/sdctl"
+.sp 0.3v
+.BI /dev/sd l 0/ctl
+.BI /dev/sd l 0/raw
+.BI /dev/sd l 0/data
+\&...
+.sp 0.3v
+.fi
+.B addaoe
+.I letter
+.I unit
+.SH DESCRIPTION
+.I Sdaoe
+has a few quirks because
+network-attached storage can't be enumerated as directly-attached storage can.
+The default first controller letter for AoE devices is
+.LR e .
+Each
+.B sdaoe
+device must be configured explicitly.
+.PP
+.I Addaoe
+packages up the
+.L "switch on"
+invocation as an
+.I rc
+script.
+.PP
+To boot from an AoE root, the
+.B sd
+device must be configured on boot by either PXE booting or
+booting from directly-attached storage and adding two configuration lines to
+.IR plan9.ini (8)
+for
+.BR aoeif ,
+listing the names of the Ethernet interface(s) to use,
+and
+.BI aoedev= letter !#æ/aoe/ lun.
+.SH EXAMPLES
+To configure target (LUN)
+.B 42.0
+on
+.BR #S/sde0 ,
+.IP
+.EX
+echo config switch on spec e type aoe//dev/aoe/42.0 >/dev/sdctl
+.EE
+.PP
+To turn this device off,
+.IP
+.EX
+echo config switch off spec e >/dev/sdctl
+.EE
+.PP
+To boot using target
+.B 42.0
+as
+.B #S/sde0
+and as root,
+over Ethernet interfaces 0 and 1,
+.IP
+.EX
+aoeif=ether0 ether1
+aoedev=e!#æ/aoe/42.0
+.EE
+.SH SOURCE
+.B /sys/src/9/port/sdaoe.c
+.SH SEE ALSO
+.\" .IR vblade (1),
+.IR aoe (3),
+.IR sd (3),
+.IR 9load (8),
+.\" .IR cec (8),
+.IR snoopy (8)
+.SH BUGS
+It is not currently possible to boot from an AoE target without an
+external bootstrap like PXE.

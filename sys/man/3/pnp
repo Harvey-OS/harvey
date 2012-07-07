@@ -1,0 +1,146 @@
+.TH PNP 3 
+.SH NAME
+pnp \- Plug 'n' Play ISA and PCI Interfaces
+.SH SYNOPSIS
+.nf
+.B bind -a '#$' /dev
+.sp 0.3v
+.BI /dev/pci/ bus\fL.\fPdev\fL.\fPfn ctl
+.BI /dev/pci/ bus\fL.\fPdev\fL.\fPfn raw
+.sp 0.3v
+.BI /dev/pnp/ctl
+.BI /dev/pnp/csn n ctl
+.BI /dev/pnp/csn n raw
+\&...
+.sp 0.3v
+.fi
+.SH DESCRIPTION
+.PP
+This device provides a limited interface to the PCI bus and
+Plug 'n' Play ISA devices.
+.SS PCI Interface
+.PP
+PCI devices are addressed logically by a bus number,
+a device number on that bus, and a function number
+within the device.
+The set of all such device functions may be enumerated
+by traversing the
+.B /dev/pci
+directory; the driver serves two files for each function.
+These are a control file
+.RL ( /dev/pci/\fIbus\fP.\fIdev\fP.\fIfn\fPctl )
+which may be read for a textual summary of the device function,
+and a `raw' file
+.RL ( /dev/pci/\fIbus\fP.\fIdev\fP.\fIfn\fPraw )
+which may be used to read or write the raw contents of PCI configuration space.
+.PP
+The first field of a PCI control file contains the class, sub-class and
+programming interface values for the device function, expressed
+as 2-digit hexadecimal values, and separated by periods.
+The second field yields the vendor ID and device ID, each as 4-digit
+hex numbers, separated by a slash.
+The third field is the associated interrupt line in decimal.
+The remainder of the line enumerates any valid base address
+registers for the function, using two fields for each.
+In the first field, the index of the register is followed by
+a colon, and then the value of the register itself.
+The following field gives the associated size of the memory
+(or I/O space) that is mapped by the register.
+.SS Plug 'n' Play
+.PP
+Plug 'n' Play ISA devices are discovered by sending a fixed `unlock' sequence
+over an I/O port, and then reading back data from another port.
+An arbitration algorithm is used to separate out the individual
+cards and enumerate them in turn.
+Each card is assigned a unique number, called a CSN, in the range 1-255 as a
+result of enumeration.
+Cards also have a fixed 64 bit identification number, set by the
+manufacturer, which is used by the arbitration algorithm to
+resolve conflicts.
+The first 32 bits describe the type of the card, and the second
+32 bits form a serial number for the particular instance of that card type.
+When formatted textually, it appears as 3 upper-case letters
+(typically representing the manufacturer),
+followed by 4 hex digits, then a period, then 8 hex digits.
+The substring before the period is the card type, and the substring
+after the period is the serial number.
+.PP
+The enumeration algorithm needs to be enabled by specifying the
+port number to write the unlock sequence out on.
+This can be configured to take place at boot time by adding a line
+like the following to
+.IR plan9.ini :
+.IP
+.EX
+pnp0=port=0x203
+.EE
+.PP
+Here
+.B port
+should be chosen to not conflict with any existing devices.
+It must be in the range
+.BR 0x203-0x3ff .
+Alternatively, one can use the following command:
+.IP
+.EX
+echo port 0x203 >/dev/pnp/ctl
+.EE
+.PP
+Note that a side-effect of PnP enumeration is to reset the configuration
+state of all such cards; any settings made by a Plug and Play BIOS will be lost.
+Reading the file
+.B /dev/pnp/ctl
+returns one of the strings
+.B "enabled\fI port\fP"
+or
+.BR "disabled" .
+.PP
+For each enumerated card, two files are served in
+.BR /dev/pnp .
+A control file
+.RL ( /dev/pnp/csn\fIn\fPctl )
+may be read to determine the ID of the card, and a raw file
+.RL ( /dev/pnp/csn\fIn\fPraw )
+may be read to obtain the configuration data associated with the card.
+It is intended that the control file should take commands which set the
+various configurable resources of the card, but this has not been
+implemented yet.
+.PP
+A mechanism is provided for configuring cards via
+.IR plan9.ini (8).
+A line of the form
+.BI pnp n = "idstring ..."
+will cause the driver to look for the card named by
+.I idstring
+and, if found, assign it the CSN
+.IR n .
+The intention is that
+any additional text after the idstring is interpreted as if it
+was written to the card's
+.B ctl
+file, but this is not yet implemented.
+.SH EXAMPLES
+.PP
+To list all PCI functions:
+.IP
+.EX
+cat /dev/pci/*ctl
+.EE
+.PP
+To find just the PCI video card (class 3):
+.IP
+.EX
+grep '^03' /dev/pci/*ctl
+.EE
+.SH SOURCE
+.B /sys/src/9/port/devpnp.c
+.SH SEE ALSO
+.IR pci (8)
+.SH BUGS
+Access to the I/O and memory regions of a PCI device is not provided.
+.PP
+The ability to set a Plug 'n' Play card's configurable settings has not been
+implemented.
+.PP
+There should be a user program for identifying and configuring
+Plug 'n' Play cards.

@@ -1,0 +1,119 @@
+.TH PUMP 1
+.SH NAME
+pump \- copy asynchronously via a large circular buffer
+.SH SYNOPSIS
+.B pump
+[
+.B -b
+.I iando
+] [
+.B -d
+.I sleepms
+] [
+.B -f
+.I ofile
+] [
+.B -i
+.I ireadsize
+] [
+.B -k
+.I KB-buf
+] [
+.B -o
+.I owritesize
+] [
+.B -s
+.I start-KB
+] [
+.I file
+\&... ]
+.SH DESCRIPTION
+.I Pump
+copies
+.IR files
+(or standard input if none)
+to standard output
+by using two processes,
+one reading and one writing,
+sharing a large circular buffer,
+thus permitting the reading process to
+get ahead of the writing process if the
+output device is slow (e.g., an optical disc).
+This in turn can keep the output device busy.
+The pipeline
+.L "dd | dd"
+can approximate this, but pipe buffering is limited to 64K
+bytes, which is fairly modest.
+.PP
+Options are:
+.TF \fL-m
+.TP
+.B -b
+sets the size of
+.I read
+and
+.I write
+operations to
+.I iando
+bytes.
+The default size is 8 kilobytes.
+.TP
+.B -d
+causes the output process to sleep for
+.I sleepms
+milliseconds initially, giving the reading
+process time to accumulate data in the buffer.
+.TP
+.B -f
+writes
+.I ofile
+rather than standard output
+.TP
+.B -i
+sets the size of
+.I read
+operations to
+.I ireadsize
+bytes.
+.TP
+.B -k
+allocates a circular buffer of
+.I KB-buf
+kilobytes rather than the default
+5000 kilobytes.
+.TP
+.B -o
+sets the size of
+.I write
+operations to
+.I owritesize
+bytes.
+.TP
+.B -s
+prevents output until
+.I start-KB
+kilobytes have been read.
+.SH EXAMPLES
+Append a
+.IR venti (8)
+arena to a DVD or BD quickly.
+.PD 0
+.IP
+.EX
+cdfs
+venti/rdarena arena0 arena.3 |
+	pump -b 65536 -k 51200 >/mnt/cd/wd/arena.3
+.EE
+.PD
+.\" .SH FILES
+.SH SOURCE
+.B /sys/src/cmd/pump.c
+.SH SEE ALSO
+.IR cp (1),
+.IR dd (1),
+.IR ecp (1),
+.IR cdfs (4)
+.SH BUGS
+.I Pump
+processes spin while waiting for the circular buffer
+to fill or drain.

@@ -1,0 +1,16 @@
+.TH MTIME 1
+.SH NAME
+mtime \- print file modification time
+.SH SYNOPSIS
+.B mtime
+.I file ...
+.SH DESCRIPTION
+.I Mtime
+prints the modification time (in seconds since the epoch) and name
+of each
+.IR file .
+.SH SOURCE
+.B /sys/src/cmd/mtime.c
+.SH SEE ALSO
+.IR du (1),
+.IR seconds (1)

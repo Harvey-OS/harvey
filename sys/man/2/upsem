@@ -1,0 +1,82 @@
+.TH UPSEM 2
+.SH NAME
+upsem, downsem, altsems, semstats \- optimistic user level semaphores
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
+.B
+void upsem(int *s);
+.PP
+.B
+int downsem(int *s, int dontblock);
+.PP
+.B
+int altsems(inst *ss[], int n);
+.PP
+.B
+void semstats(void)
+.PP
+.B extern int semtrytimes;
+.SH DESCRIPTION
+.IR Upsem ,
+.IR downsem ,
+and 
+.I altsems
+provide an interface for optimistic semaphores that work without entering the
+kernel when they can proceed, and call the kernel only when it is really necessary
+(e.g., to block or to unblock another process).
+.PP
+A semaphore is an integer kept at memory, shared among synchronizing processes.
+Initialization is done by the user program using either zero or a positive number. After that,
+only these functions should be used to operate on it.
+.PP
+.I Downsem
+tries to acquire one unit from the semaphore. If it can proceed, the call works without
+calling the kernel. When it cannot proceed, the global
+.I semtrytimes
+controls for how long (how many times) the function will try to acquire without entering the
+kernel. If this fails, the kernel is entered to block the process until it can be acquired.
+.PP
+.I Upsem
+releases one unit into the semaphore. If a process is waiting, it will take it and proceed.
+Otherwise, the unit is kept in the semaphore for further
+.I downsem
+calls. The call does not enter the kernel unless a process must be awaken.
+.PP
+.I Altsems
+tries to perform a
+.I downsem
+in any one of the semaphores pointed to by pointers in
+.I ss
+(there are
+.I n
+entries in that array). If no semaphore can be acquired, and the operation has been
+attempted for
+.IR semtrytimes ,
+the kernel is entered and the process blocks until it can proceed. Otherwise, the
+operation is performed without calling the kernel.
+.PP
+The semaphore's value is negative when there are processes waiting for it,
+and zero or positive otherwise.
+.PP
+.I Semstats
+prints several statistics for debugging, and may be useful to learn if the
+processes using the semaphores (any semaphore) did enter the kernel or not and
+how many times they did.
+.SH SOURCE
+.B /sys/src/libc/9sys/upsem.c
+and
+.B /sys/src/9/port/syssem.c
+.SH SEE ALSO
+.IR fork (2),
+.IR lock (2),
+.IR rendezvous (2),
+.IR segattach (2),
+.IR thread (2),
+and
+.IR semacquire (2).
+.SH DIAGNOSTICS
+These functions set
+.IR errstr .

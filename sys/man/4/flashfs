@@ -1,0 +1,74 @@
+.TH FLASHFS 4
+.SH NAME
+flashfs \- journalling file system for flash memory
+.SH SYNOPSIS
+.B aux/flashfs
+[
+.B -Dr
+] [
+.B -n
+.I nsect
+] [
+.B -z
+.I sectsize
+]
+[
+.B -f
+.I file
+]
+[
+.B -m
+.I mountpoint
+]
+.SH DESCRIPTION
+.I Flashfs
+interprets the journal-based file system created by
+.IR mkflashfs (8)
+and stored in
+.I file
+(default
+.BR /dev/flash/fs )
+so that it can be mounted into a Plan 9 file system.
+.I Flashfs
+is typically used to create a stand alone file system from
+a small persistent storage device, such as an erasable flash memory.
+It does not authenticate its clients and assumes each group
+has a single member with the same name.
+.PP
+The
+.B -s
+option causes
+.I flashfs
+to post its channel on
+.BR #s/flashfs .
+.I Flashfs
+mounts itself on
+.IR mountpoint
+(default
+.BR /n/brzr ).
+The
+.B -D
+option turns on 9P debugging output.
+The
+.B -r
+option makes the file system read-only.
+.PP
+The files and directory structure are divided into
+.I sectsize
+(default
+.BR 4096 )
+byte blocks.
+Larger blocks make large files more compact but take longer to access.
+Supplying the
+.B -n
+option forces
+.I file
+to contain exactly
+.I nsect
+sectors.
+.SH SOURCE
+.B /sys/src/cmd/aux/flashfs
+.SH "SEE ALSO"
+.IR paqfs (4),
+.IR sacfs (4),
+.IR mkflashfs (8)

@@ -1,0 +1,101 @@
+.TH AES 2
+.SH NAME
+setupAESstate, aesCBCencrypt, aesCBCdecrypt, aesCTRencrypt, aesCTRdecrypt, setupAESXCBCstate, aesXCBCmac - advanced encryption standard (rijndael)
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.br
+.B #include <mp.h>
+.br
+.B #include <libsec.h>
+.PP
+.in +0.5i
+.ti -0.5i
+.B
+void	aes_encrypt(ulong rk[], int Nr, uchar pt[16], uchar ct[16]);
+.PP
+.B
+void	aes_decrypt(ulong rk[], int Nr, uchar ct[16], uchar pt[16]);
+.PP
+.B
+void	setupAESstate(AESstate *s, uchar key[], int keybytes, uchar *ivec)
+.PP
+.B
+void	aesCBCencrypt(uchar *p, int len, AESstate *s)
+.PP
+.B
+void	aesCBCdecrypt(uchar *p, int len, AESstate *s)
+.PP
+.B
+void	aesCTRencrypt(uchar *p, int len, AESstate *s)
+.PP
+.B
+void	aesCTRdecrypt(uchar *p, int len, AESstate *s)
+.PP
+.B
+void	setupAESXCBCstate(AESstate *s)
+.PP
+.B
+void	aesXCBCmac(uchar *p, int len, AESstate *s)
+.SH DESCRIPTION
+AES (a.k.a. Rijndael) has replaced DES as the preferred
+block cipher.
+.I Aes_encrypt
+and
+.I aes_decrypt
+are the block ciphers, corresponding to
+.IR des (2)'s
+.IR block_cipher .
+.IR SetupAESstate ,
+.IR aesCBCencrypt ,
+and
+.I aesCBCdecrypt
+implement cipher-block-chaining encryption.
+.I AesCTRencrypt
+and
+.I aesCTRdecrypt
+implement counter mode, per RFC 3686;
+they are identical operations.
+.I setupAESXCBCstate
+and
+.I aesXCBCmac
+implement AES XCBC message authentication, per RFC 3566.
+All ciphering is performed in place.
+.I Keybytes
+should be 16, 24, or 32.
+The initialization vector
+.I ivec
+of
+.I AESbsize
+bytes should be random enough to be unlikely to be reused
+but does not need to be
+cryptographically strongly unpredictable.
+.SH SOURCE
+.B /sys/src/libsec
+.SH SEE ALSO
+.I aescbc
+in
+.IR secstore (1),
+.IR mp (2),
+.IR blowfish (2),
+.IR des (2),
+.IR dsa (2),
+.IR elgamal (2),
+.IR rc4 (2),
+.IR rsa (2),
+.IR sechash (2),
+.IR prime (2),
+.IR rand (2)
+.br
+.B http://csrc.nist.gov/publications/fips/fips197/fips-197.pdf
+.SH BUGS
+The functions
+.IR aes_encrypt ,
+.IR aes_decrypt ,
+.IR aesCTRencrypt ,
+.IR aesCTRdecrypt ,
+.IR setupAESXCBCstate ,
+and
+.IR aesXCBCmac
+have not yet been verified by running test vectors through them.

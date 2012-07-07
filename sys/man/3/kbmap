@@ -1,0 +1,70 @@
+.TH KBMAP 3 
+.SH NAME
+kbmap \- keyboard map
+.SH SYNOPSIS
+.nf
+.B bind -a #κ /dev
+
+.B /dev/kbmap
+.fi
+.SH DESCRIPTION
+.PP
+The
+.I kbmap
+device serves a one-level directory containing a single file,
+.BR kbmap ,
+representing the kernel's mapping of
+keyboard scan codes to Unicode characters
+(see
+.IR cons (3)
+and
+.IR keyboard (6)).
+.PP
+Reads return the current contents of the map.
+Each entry is one line containing three 11 character numeric fields, each followed by a space:
+a table number, an index into the table (scan code), and the decimal value
+of the corresponding Unicode character (0 if none).
+The table numbers are platform dependent; they typically distinguish
+between unshifted and shifted keys.
+The scan code values are hardware dependent and can vary
+from keyboard to keyboard.
+.PP
+Writes to the file change the map.
+Lines written to the file must contain three space-separated fields,
+representing the table number, scan code index, and Unicode character.
+Values are taken to be decimal unless they start with
+.B 0x
+(hexadecimal) or
+.B 0
+(octal).
+The Unicode character can also be represented as
+.BI ' x
+where
+.I x
+gives the UTF-8 representation of the character
+(see
+.IR utf (6)),
+or as 
+.BI ^ X
+to represent a control character.
+.PP
+The Unicode character can also be
+.BI M n
+to represent mouse button
+.IR n .
+The map
+.B /sys/lib/kbmap/mouse-fn
+maps the F1 through F5 keys to the three mouse buttons and the two
+scroll wheel buttons.
+Similarly, 
+.B mouse-csa
+maps the left Control, Start, and Alt keys to the three mouse buttons.
+These maps are useful on laptops without three-button mice.
+.SH "SEE ALSO"
+.IR cons (3),
+.IR keyboard (6),
+.IR utf (6)
+.SH FILES
+.B /sys/lib/kbmap/*
+.SH SOURCE
+.B /sys/src/9/port/devkbmap.c

@@ -1,0 +1,210 @@
+.TH NFS 4
+.SH NAME
+nfs \- Sun network file system client
+.SH SYNOPSIS
+.B nfs
+[
+.B -DRv
+]
+[
+.B -p
+.I perm
+]
+[
+.B -s
+.I srvname
+]
+[
+.B -u
+.I passwd
+.I group
+]
+.I addr1
+[
+.I addr2
+]
+.PP
+.B aux/portmap
+[
+.B -R
+]
+.I host
+.I cmd
+...
+.PP
+.B aux/nfsmount
+[
+.B -R
+]
+.I host
+.I cmd
+...
+.SH DESCRIPTION
+.I Nfs
+translates between the Sun network file system protocol (NFS)
+and 9P, allowing 9P clients to mount file systems on NFS servers.
+NFS servers comprise two separate services: a mount service used to
+obtain the initial file handle, and a file service used to perform
+actual file system operations.
+The Sun port mapper service is typically used to find these two services.
+If one address is given, it is taken to be the address of a port mapper service;
+.I nfs
+queries the port mapper to find the addresses
+of the NFS mount service and file service.
+If two addresses are given, the port mapper is bypassed;
+.I addr1
+is used as the address of the NFS mount service,
+and
+.I addr2
+is used as the address of the file service.
+.PP
+The options are:
+.TP
+.B -D
+print all 9P messages.
+.TP
+.B -R
+print all NFS messages.
+.TP
+.B -v
+print verbose information about session startup.
+.TP
+.B -p \fIperm
+set the posted service file to have mode
+.IR perm ,
+which is assumed to be octal;
+the default is
+.BR 600 .
+.TP
+.B -s \fIsrvname
+post the service as
+.BI /srv/ srvname \fR;
+the default is
+.BI /srv/ addr1 \fR.
+.TP
+.B -u \fIpasswd\fR \fIgroup
+translate user and group names using the 
+.I passwd
+and
+.I group
+files, which are in the traditional Unix format.
+The translation is used to present names for
+user and group in
+.IR stat (5)
+and
+.I wstat
+messages.
+The translation is also used to
+choose the user and group credentials
+to present for a user.
+Without this option, users and groups are presented
+as decimal numbers, and everyone attaches as uid \-1
+.RB ( nobody
+on most Unix systems).
+.PP
+.I Portmap
+and
+.I nfsmount
+are test programs to perform port mapper and NFS mount RPCs.
+They
+are useful mainly to help debug problems with
+starting 
+.I nfs
+itself.
+The 
+.B -R
+option causes them to print all RPC messages sent and received.
+.PP
+.I Portmap
+queries a Sun RPC portmap server, which maps integer
+(program, version, protocol) triples to port numbers.
+Program and version are Sun RPC defined, while protocol
+is typically TCP (6) or UDP (17).
+The commands are:
+.TP
+.B null
+a no-op
+.TP
+.B dump
+print the entire map
+.TP
+.B set \fIprog\fP \fIvers\fP \fIproto\fP \fIport\fP
+add an entry to (or replace an entry in) the map
+.TP
+.B unset \fIprog\fP \fIvers\fP \fIproto\fP \fIport\fP
+remove an entry from the map
+.TP
+.B getport \fIprog\fP \fIvers\fP \fIproto\fP
+look for an entry with \fIprog\fP, \fIvers\fP, \fIproto\fP
+in the map, and return the corresponding port
+.PD
+The default command is
+.BR dump .
+For running NFS over UDP, there must be an entry
+for the NFS v3 mount daemon (100005, 3, 17) and the
+NFS v3 server itself (100003, 3, 17).  
+.PP
+.I Nfsmount
+queries a Sun NFS mount server, which authenticates (ha!)
+connections and hands out file handles naming the root of
+an exported file system.  This handle is used as the basis
+for a conversation with the NFS service daemon itself.
+The commands are:
+.TP
+.B null
+a no-op
+.TP
+.B export
+dump the export table;
+each line is a path followed by a list of machines or groups
+allowed to mount that path
+.TP
+.B mnt \fIpath\fR
+attempt to acquire a file handle for \fIpath\fR.
+the request has user and group id 1001 and
+.L gnot
+as the system name.
+.TP
+.B umnt \fIpath\fR
+notify the mount daemon that a particular path is being
+unmounted by the requesting system
+.TP
+.B umntall
+notify the mount daemon that all paths mounted by the
+requesting system are being unmounted
+.TP
+.B dump
+should also dump an export table, but typically 
+does nothing
+.PD
+.SH EXAMPLE
+We use this in our
+.B /rc/bin/9fs
+script to mount all the home directories served by
+.IR bopp :
+.IP
+.EX
+case bopp
+	if(! test -f /srv/bopp)
+		nfs -p 666 -u /lib/ndb/1127.passwd /lib/ndb/1127.group bopp
+	unmount /n/bopp >[2]/dev/null
+	for(i in u0 u1 u2 u3 u4 u5 u6 u7 u8 u9)
+		mount -a /srv/bopp /n/bopp /$i
+.EE
+.SH SOURCE
+.B /sys/src/cmd/nfs.c
+.br
+.B /sys/src/libsunrpc
+.SH "SEE ALSO
+.IR nfsserver (8),
+.IR srv (4)
+.SH BUGS
+The authentication employed by NFS is laughable.
+The server simply trusts the uid, gid, and group list
+presented by the client.
+.PP
+.I Nfs
+speaks only NFS version 3.
+Older operating systems typically
+have reasonable NFS version 2 servers
+but crash when serving version 3.

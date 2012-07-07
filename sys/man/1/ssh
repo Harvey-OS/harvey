@@ -1,0 +1,346 @@
+.TH SSH 1
+.SH NAME
+ssh, sshnet, scp, sshserve \- secure login and file copy from/to Unix or Plan 9
+.SH SYNOPSIS
+.B ssh
+[
+.B -CfiImPpRrw
+]
+[
+.B -A
+.I authlist
+]
+[
+.B -c
+.I cipherlist
+]
+[
+.B -[lu]
+.I user
+]
+.RI [ user\fB@ ] host
+[
+.I cmd
+[
+.I args
+\&... ]]
+.PP
+.B sshnet
+[
+.B -A
+.I authlist
+]
+[
+.B -c
+.I cipherlist
+]
+[
+.B -m
+.I mtpt
+]
+[
+.B -s
+.I service
+]
+.RI [ user\fB@ ] host
+.PP
+.B scp
+[host:]file [host:]file
+.br
+.B scp
+[host:]file ... [host:]dir
+.PP
+.B aux/sshserve
+[
+.B -p
+]
+.I address
+.SH DESCRIPTION
+.I Ssh
+allows authenticated login over an encrypted channel to hosts that
+support the ssh protocol (see the RFCs listed below for encryption and
+authentication details).
+.LP
+.I Ssh
+takes the host name of the machine to connect to as its mandatory argument.
+It may be specified as a domain name or an IP address.
+Normally, login is attempted using the user name from /dev/user.
+.PP
+Command-line options are:
+.TP
+.B -C
+force input to be read in cooked mode:
+``line at a time'' with local echo.
+.TP
+.B -f
+enable agent forwarding.
+With this flag,
+.I ssh
+uses SSH's agent forwarding protocol to allow
+programs running on the remote server to
+interact with
+.IR factotum (4)
+to perform RSA authentication.
+.TP
+.B -i
+force interactive mode.
+In interactive mode, 
+.I ssh
+prompts for passwords and confirmations of
+new host keys when necessary.
+(In non-interactive mode, password requests
+are rejected and unrecognized host keys are 
+cause for disconnecting.)
+By default, 
+.I ssh 
+runs in interactive mode only when its 
+input file descriptor is 
+.BR /dev/cons .
+.TP
+.B -I
+force non-interactive mode.
+.TP
+.B -m
+disable the 
+.RB control- \e
+menu, described below.
+.TP
+.B -p
+force pseudoterminal request.
+The
+.I ssh
+protocol, grounded in Unix tradition,
+differentiates between connections
+that request controlling pseudoterminals
+and those that do not.
+By default, 
+.I ssh
+requests a pseudoterminal only when no
+.I command
+is given.
+.TP
+.B -P
+force no pseudoterminal request.
+.TP
+.B -r
+strip carriage returns.
+.TP
+.B -R
+put the allocated pseudoterminal, if any, in raw mode.
+.TP
+.B -w
+notify the remote side whenever the window changes size.
+.TP
+.BR - [ lu ] "\fI user
+specify user name.
+This option is deprecated in favor of the
+.IB user @ hostname
+syntax.
+.TP
+.B "-A\fI authlist
+specify an ordered space-separated list of authentication protocols to try.
+The full set of authentication protocols is
+.B rsa
+(RSA using
+.IR factotum (4)
+to moderate key usage),
+.B password
+(use a password gathered from factotum),
+and
+.B tis
+(challenge-response).
+The default list is all three in that order.
+.TP
+.B "-c\fI cipherlist
+specify an ordered space-separated list of allowed ciphers to use when encrypting the channel.
+The full set of ciphers is
+.B des
+(standard DES),
+.B 3des
+(a somewhat doubtful variation on triple DES),
+.B blowfish
+(Bruce Schneier's Blowfish),
+.B rc4
+(RC4),
+and
+.B none
+(no encryption).
+The default cipher list is 
+.B blowfish
+.B rc4
+.BR 3des .
+.PD
+.PP
+The
+.RB control\- \e
+character is a local escape, as in
+.IR con (1).
+It prompts with
+.BR >>> .
+Legitimate responses to the prompt are
+.TP
+.B q
+Exit.
+.TP
+.B .
+Return from the escape.
+.TP
+.B !cmd
+Run the command with the network connection as its
+standard input and standard output.
+Standard error will go to the screen.
+.TP
+.B r
+Toggle printing of carriage returns.
+.PD
+.LP
+If no command is specified,
+a login session is started on the remote
+host.
+Otherwise, the command is executed with its arguments.
+.LP
+.I Ssh
+establishes a connection with an ssh daemon on the remote host.
+The daemon sends to 
+.I ssh
+its RSA public host key and session key.
+Using these,
+.I ssh
+sends a session key which, presumably, only the
+daemon can decipher.  After this, both sides start encrypting their
+data with this session key.
+.LP
+When the daemon's host key has been received,
+.I ssh
+looks it up in 
+.B $home/lib/keyring
+and in 
+.BR /sys/lib/ssh/keyring .
+If
+the key is found there, and it matches the received key,
+.I ssh
+is satisfied.  If not,
+.I ssh
+reports this and offers to add the key to
+.BR $home/lib/keyring .
+.LP
+Over the encrypted channel,
+.I ssh
+attempts to convince the daemon to accept the call
+using the listed authentication protocols
+(see the
+.B -A
+option above).
+.LP
+The preferred way to authenticate is a
+.IR netkey -style
+challenge/response or via a SecurID token.
+.I Ssh
+users on other systems than Plan 9 should enable \s-2TIS_A\s0uthentication.
+.LP
+When the connection is authenticated, the given command line,
+(by default, a login shell) is executed on the remote host.
+.sp 1
+The SSH protocol allows clients to make outgoing TCP calls via the server.
+.I Sshnet
+establishes an SSH connection and, rather than execute a remote command,
+presents the remote server's TCP stack as a network stack
+(see the discussion of TCP in
+.IR ip (3))
+mounted at
+.I mtpt
+(default
+.BR /net ),
+optionally posting a 9P service
+descriptor for the new file system as
+.IB /srv/ service \fR.
+The
+.B -A
+and
+.B -c
+arguments are as in
+.IR ssh .
+.sp 1
+.I Scp
+uses
+.I ssh
+to copy files from one host to another.  A remote file is identified by
+a host name, a colon and a file name (no spaces).
+.I Scp
+can copy files from remote hosts and to remote hosts.
+.sp 1
+.I Sshserve
+is the server that services
+.I ssh
+calls from remote hosts. 
+The 
+.B -A
+and
+.B -c
+options set valid authentication methods and ciphers
+as in
+.IR ssh ,
+except that there is no
+.B rsa
+authentication method.
+Unlike in
+.IR ssh ,
+the list is not ordered: the server presents a set and the client makes the choice.
+The default sets are
+.B tis
+and
+.B blowfish
+.B rc4
+.BR 3des .
+By default, users start with the namespace defined in
+.BR /lib/namespace .
+Users in group
+.B noworld
+in
+.B /adm/users
+start with the namespace defined in
+.BR /lib/namespace.noworld .
+.I Sshserve
+does not provide the TCP forwarding functionality used
+by
+.IR sshnet ,
+because many Unix clients present
+this capability in an insecure manner.
+.PP
+.I Sshserve
+requires that
+.IR factotum (4)
+hold the host key,
+identified by having attributes
+.B proto=rsa
+.BR service=sshserve .
+To generate a host key:
+.IP
+.EX
+auth/rsagen -t 'service=sshserve' >/mnt/factotum/ctl
+.EE
+.LP
+To extract the public part of the host key in the form
+used by SSH key rings:
+.IP
+.EX
+grep 'service=sshserve' /mnt/factotum/ctl | auth/rsa2ssh
+.EE
+.SH FILES
+.TP
+.B /sys/lib/ssh/keyring
+System key ring file containing public keys for remote ssh clients and servers.
+.TP
+.B /usr/\fIuser\fP/lib/keyring
+Personal key ring file containing public keys for remote ssh clients and
+servers.
+.SH SOURCE
+.B /sys/src/cmd/ssh
+.SH "SEE ALSO"
+.B /lib/rfc/rfc425[0-6]
+.br
+.IR factotum (4),
+.IR authsrv (6),
+.IR rsa (8)
+.SH BUGS
+Only version 1 of the SSH protocol is implemented.

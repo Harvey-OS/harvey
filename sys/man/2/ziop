@@ -1,0 +1,72 @@
+.TH ZIOP 2
+.SH NAME
+ziop \- create a zero-copy interprocess pipe
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
+.B
+int ziop(int fd[2])
+.SH DESCRIPTION
+.I ZIOP
+creates a buffered channel for zero-copy interprocess I/O communication.
+Unlike conventional pipes, the buffers are supplied by the writers and
+.I ziop
+queues only buffer descriptors.
+.PP
+Two file descriptors are returned in
+.IR fd .
+Data written to
+.B fd[1]
+is available for reading from
+.B fd[0]
+and data written to
+.B fd[0]
+is available for reading from
+.BR fd[1] .
+.PP
+After the pipe has been established,
+cooperating processes
+created by subsequent
+.IR fork (2)
+calls may pass data through the
+pipe with
+.I zread
+and
+.I zwrite
+calls (also with
+.I read
+and
+.I write
+system calls).
+.PP
+Refer to
+.IR zp (3)
+for properties of the communication channel (Note, to the man page, not
+to the infamous president).
+.PP
+When all the data has been read from a pipe and the writer has closed the pipe or exited,
+.IR read (2)
+will return 0 bytes.  Writes to a pipe with no reader will generate a note
+.BR "sys: write on closed pipe" .
+.SH SOURCE
+.B /sys/src/libc/9sys/ziop.c
+.SH SEE ALSO
+.IR intro (2),
+.IR zioread (2),
+.IR zp (2)
+.SH DIAGNOSTICS
+Sets
+.IR errstr .
+.SH BUGS
+If a read or a write of a pipe is interrupted, some unknown
+number of bytes may have been transferred.
+.br
+When a read from a pipe returns 0 bytes, it usually means end of file
+but is indistinguishable from reading the result of an explicit
+write of zero bytes.
+.br
+The writer is not flow-controlled, other than by the availability of
+buffers.
+

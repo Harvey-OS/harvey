@@ -1,0 +1,139 @@
+.TH MLMGR 1
+.SH NAME
+ml, mlmgr, mlowner \-  unmoderated mailing lists
+.SH SYNOPSIS
+.B upas/mlmgr -c
+.I listname
+.PP
+.B upas/mlmgr -ar
+.I listname
+.I address
+.PP
+.B upas/ml
+[
+.B -r 
+.I replyto-address
+]
+.I addressfile
+.I listname
+.PP
+.B upas/mlowner
+.I addressfile
+.I listname
+.SH DESCRIPTION
+.I Mlmgr
+creates and updates unmoderated mailing lists.
+The
+.B -c
+option creates mail directories for both
+.I listname
+and
+.IB listname -owner\f1,\fP
+each containing a
+.B pipeto
+file.
+Messages mailed to
+.I listname
+are sent to all members of the mailing list.
+Any
+.B Reply-to:
+and
+.B Precedence:
+fields are
+removed from the messages and new ones are added
+directing replies to
+.I listname
+and specifying bulk precedence.  The envelope address for
+error replies is set to
+.BR /dev/null .
+.PP
+The mailing list membership is the file
+.BR /mail/box/\fIlistname\fP/address-list .
+This file is an add/remove log.  Each line
+represents a single address.  Lines beginning
+with a hash
+.RB ( # )
+are comments.
+Lines beginning with an exclamation point
+.RB ( ! )
+are removals.
+All other lines are additions.
+.PP
+Addition and removal entries can be appended using the
+.B -a
+and
+.B -r
+options to
+.IR mlmgr .
+However, they are normally appended as a consequence of
+user requests.
+.PP
+To be added or removed from the list, a user
+may send a message to
+.IB listname -owner
+containing a key word in
+the header or body.  The key words are:
+.IP
+subscribe - add my
+.B From:
+address to the list
+.IP
+remove - remove my
+.B From:
+address from the list
+.IP
+unsubscribe - remove my
+.B From:
+address from the list
+.PP
+Addition and removal events cause notification messages to
+be sent to the added/removed address.   In the case of
+addition, the message describes how to be removed.
+.PP
+.I Ml
+and
+.I mlowner
+are the programs that receive messages for
+.I listname
+and
+.IB listname -owner
+respectively.
+Appropriate calls to them are inserted in the
+.B pipeto
+files created by
+.IR mlmgr .
+.PP
+.IR Ml 's
+.B -r
+option
+sets the
+.B Reply-to:
+field in the mail sent out by
+.I ml.
+.SH FILES
+.TF /mail/box/\fI<listname>\fP/address-list
+.TP
+.B  /mail/box/\fI<listname>\fP
+list's mailbox directory
+.TP
+.B /mail/box/\fI<listname>\fP-owner
+owner's mailbox directory
+.TP
+.B  /mail/box/\fI<listname>\fP/address-list
+log of mailing list deletions and additions
+.SH SOURCE
+.TP
+.B /sys/src/cmd/upas/ml
+.SH "SEE ALSO"
+.IR aliasmail (8),
+.IR faces (1),
+.IR filter (1),
+.IR mail (1),
+.IR marshal (1),
+.IR nedmail (1),
+.IR qer (8),
+.IR rewrite (6),
+.IR send (8),
+.IR smtp (8),
+.IR upasfs (4)
+

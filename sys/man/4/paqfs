@@ -1,0 +1,102 @@
+.TH PAQFS 4
+.SH NAME
+paqfs  \- compressed read-only file system
+.SH SYNOPSIS
+.B paqfs
+[
+.B -disv
+]
+[
+.B -c
+.I cachesize
+]
+[
+.B -m
+.I mtpt
+]
+[
+.B -M
+.I mesgsize
+]
+[
+.B -S
+.I srvname
+]
+.I paqfile
+.SH DESCRIPTION
+.I Paqfs
+interprets the compressed read-only file system created by
+.IR mkpaqfs (8)
+and stored in
+.I paqfile
+so that it can be mounted into a Plan 9 file system.
+.I Paqfs
+is typically used to create a stand alone file system for
+a small persistent storage device, such as a flash ROM.
+It does not authenticate its clients and assumes each group
+has a single member with the same name.
+.PP
+Options to 
+.I paqfs
+are:
+.TP
+.BI -c " cachesize
+The number of file system blocks to cache in memory. The default is 20 blocks.
+.TP
+.BI -M " mesgsize
+The maximum 9P message size. The default is sufficient for 8K byte read message.
+.TP
+.B -d
+Output various debugging information to
+.IR stderr .
+.TP
+.B -i
+Use file descriptors 0 and 1 as the 9P communication channel rather than create a pipe.
+.TP
+.B -q
+Suppress the output of the archive creation date and fingerprint to
+.IR stderr .
+.TP
+.BI -m " mtpt
+The location to mount the file system. The default is
+.BR /n/paq .
+.TP
+.B -s
+Post the 9P channel on
+.BR #s/\fIsrvname\fR ,
+default
+.BR #s/paqfs ,
+rather than
+mounting it on
+.IR mtpt .
+.TP
+.B -S
+The name to post in
+.BR #s .
+The default is
+.BR paqfs .
+.TP
+.B -p
+Both post the 9P channel in
+.B #s
+and
+mount the
+.I paqfile
+in to the filesystem.
+.TP
+.B -v
+Verify the integrity of the
+.IR paqfile .
+Before mounting the file system, the
+entire file is parsed and the 
+.I sha1
+checksum of the file system data is compared to the checksum embedded in the file.
+This option enables the use of
+.I paqfs
+with files that consist of a 
+.I paq
+file system concatenated with additional data.
+.SH SOURCE
+.B /sys/src/cmd/paqfs/paqfs.c
+.SH "SEE ALSO"
+.IR mkpaqfs (8)

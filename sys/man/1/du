@@ -1,0 +1,137 @@
+.TH DU 1
+.SH NAME
+du \- disk usage
+.SH SYNOPSIS
+.B du
+[
+.B -aefhnqstu
+] [
+.B -b
+.I size
+] [
+.B -p
+.I SI-prefix
+] [
+.I file ...
+]
+.SH DESCRIPTION
+.I Du
+gives the number of Kbytes allocated to data blocks
+of named
+.I files
+and, recursively, of files in named directories.
+It assumes storage is quantized in units of 1024 bytes (Kbytes) by default.
+Other values can be set by the
+.B -b
+option;
+.I size
+is the number of bytes, optionally suffixed
+.B k
+to specify multiplication by 1024.
+If
+.I file
+is missing,
+the current directory is used.
+The count for a directory includes the counts of the
+contained files and directories.
+.PP
+The
+.B -a
+option prints the number of blocks
+for every file in a directory.
+Normally counts are printed only for contained directories.
+.PP
+The
+.B -f
+option suppresses the printing of warning messages.
+.PP
+The
+.B -n
+option prints the size in bytes and the name of each file; it sets
+.BR -a .
+.PP
+The
+.B -t
+option prints, in the format of
+.B du
+.BR -n ,
+the modified time of
+each file rather than the size.
+If the options
+.B -tu
+are specified then the accessed time is printed.
+.PP
+The
+.B -q
+option prints, in the format of
+.B du
+.BR -n ,
+the QID path of
+each file rather than the size.
+.PP
+The
+.B -s
+option causes
+.I du
+to descend the hierarchy as always, but to print only a summary line
+for each
+.IR file .
+.PP
+The
+.B -e
+option causes
+.I du
+to print values (sizes, times or QID paths)
+in `scientific notation' via
+.IR print (2)'s
+.BR %g .
+.PP
+The
+.B -h
+option causes
+.I du
+to print values (sizes, times or QID paths)
+in scientific notation,
+scaled to less than 1024, and with a suitable SI prefix
+(e.g.,
+.L G
+for binary gigabytes).
+.PP
+The
+.B -p
+option causes
+.I du
+to print values (sizes, times or QID paths)
+in units of
+.IR SI-prefix .
+Case is ignored when looking up
+.IR SI-prefix .
+An empty
+.IR SI-prefix
+corresponds to a scale factor of 1 (e.g., print sizes in bytes).
+.\" .PP
+.\" The
+.\" .B -r
+.\" option causes
+.\" .I du
+.\" to read and discard every byte of every file encountered.
+.SH EXAMPLES
+Print the size of
+.L /tmp
+in fractional binary gigabytes:
+.IP
+.EX
+% du -sepg /tmp
+\&.6960154	/tmp
+.EE
+.LP
+Print the size of
+.L /tmp
+in bytes and in scientific notation:
+.IP
+.EX
+% du -sep '' /tmp
+7.473408e+08	/tmp
+.EE
+.SH SOURCE
+.B /sys/src/cmd/du.c

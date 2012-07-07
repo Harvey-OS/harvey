@@ -1,0 +1,535 @@
+.TH USB 3
+.EQ
+delim $$
+.EN
+.SH NAME
+usb \- USB Host Controller Interface
+.SH SYNOPSIS
+.nf
+.B bind -a #u /dev
+.PP
+.nf
+.B /dev/usb
+.B /dev/usb/ctl
+.BI /dev/usb/ep N . M
+.BI /dev/usb/ep N . M /data
+.BI /dev/usb/ep N . M /ctl
+\&...
+.fi
+.SH DESCRIPTION
+The Universal Serial Bus is a complex yet popular bus
+for connecting all kind of devices to a computer.
+It is a four-wire tree-shaped bus that provides both communication and (limited)
+power to devices.
+Branching points in the tree are provided by devices called
+.IR hubs .
+Hubs provide ports where USB devices (also hubs) can be attached.
+.PP
+Most PCs have one or more USB controllers called
+.I host
+controllers.
+Each one has a built-in hub called a
+.I "root hub"
+providing several ports.
+In some cases, more hubs are built-in
+and attached to a root hub port.
+The topology of the network is a tree with at most
+127 nodes, counting both internal and leaf nodes.
+.PP
+Host controllers come in four flavours:
+UHCI and OHCI for USB 1 (up to 12 Mb/s),
+EHCI for USB 2 (up to 480 Mb/s)
+and
+XHCI for USB 3 (up to 5 Gb/s).
+We currently support all but XHCI, which is still quite new.
+.PP
+The USB bus is fully controlled by the host; all devices are polled.
+Hubs are passive in the sense that they do not poll the devices attached
+to them.
+The host polls those devices and the hubs merely route the messages.
+.PP
+Devices may be added to or removed from the bus at any time.
+When a device is attached, the host queries it to determine its type and speed.
+The querying process is standardized.
+The first level of querying is the same for all devices,
+the next is somewhat specialized
+for particular classes of devices (such as mice, keyboards, or audio devices).
+Specialization continues as subclasses and subsubclasses are explored.
+.PP
+Enumeration of the bus and initial configuration of devices is done
+by a user level program,
+.IR usbd (4).
+Device drivers are implemented by separate user programs, although
+some of them may be statically linked into
+.IR usbd .
+.PP
+The kernel device described in this page is responsible for providing
+I/O for using the devices through so called
+.IR endpoints .
+Access to the host controller is hidden from user programs, which see
+just a set of endpoints.
+After system initialization, some endpoints
+are created by the device to permit I/O to root hubs.
+All other devices must be configured by
+.IR usbd .
+.SS Devices and Endpoints
+A device includes one or more functions (e.g., audio output,
+volume control buttons, mouse input, etc.)
+Communication with device functions is performed
+by some combination of
+issuing control requests to, sending data to, and receiving data from
+device
+.IR endpoints .
+Endpoints can be understood as addresses in the bus.
+There are several types:
+.TF "\fIIsochronous
+.TP
+.I Control
+Their main use is to configure devices.
+Writing a message with a specific format
+(specified in the USB specification)
+issues a request to the device.
+If the request implies a reply,
+a read can be made next to retrieve the requested data (if the write succeeded).
+.TP
+.I Interrupt
+Used to send and receive messages to or from a specific device function
+(e.g., to read events from a mouse).
+.TP
+.I Bulk
+Used to send and receive larger amounts of data through streams
+(e.g., to write blocks to a disk).
+.TP
+.I Isochronous
+Used to send and receive data in a timely manner
+(e.g., to write audio samples to a speaker).
+.PD
+.PP
+All USB devices include at least
+a control endpoint to perform device configuration.
+This is called the
+.I setup
+endpoint or
+.IR "endpoint zero" .
+After configuring a device, other endpoints may be created
+as dictated by the device to perform actual I/O.
+.SS Operation
+Bus enumeration and device configuration is performed by
+.IR usbd (4)
+and not by this driver.
+The driver provides an interface
+to access existing endpoints (initially those for the built-in root hubs),
+to create and configure other ones, and to perform I/O through them.
+.PP
+Each directory
+.BI /dev/usb/ep N . M
+represents an endpoint, where
+.I N
+is a number identifying a device and
+.I M
+is a number identifying one of its endpoints.
+.PP
+For each device attached to the bus, and configured by
+.IR usbd (4),
+an endpoint zero (a
+.I setup
+endpoint)
+is provided at
+.BI /dev/usb/ep N .0
+for configuring the device.
+This is always a control endpoint and represents the device itself.
+.PP
+The device driver may use the setup endpoint
+to issue control requests and perhaps to create more endpoints for the device.
+Each new endpoint created has its own directory as said above.
+For example, if the driver for the device
+.BI /dev/usb/ep N . 0
+creates the endpoint number 3 for that device, a directory
+.BI /dev/usb/ep N .3
+will be available to access that endpoint.
+.PP
+All endpoint directories contain two files:
+.B data
+and
+.BR ctl .
+The former has mode bit
+.B DMEXCL
+set and can be open by only one process at a time.
+.SS data
+.PP
+The
+.B data
+file is used to perform actual I/O.
+In general, reading from it retrieves
+data from the endpoint and writing into it sends data to the endpoint.
+For control endpoints, writing to this file issues a control request
+(which may include data); if the request retrieves data from the device,
+a following read on the file will provide such data.
+.PP
+USB errors reported by the endpoint upon I/O failures
+are passed to the user process through the error string.
+I/O stalls not resulting from an error, usually
+an indication from the device, are reported by indicating that the
+number of bytes transferred has been zero.
+In most cases, the correct course of action after noticing the stall
+is for the device driver to issue a `clear halt' request (see
+.I unstall
+in
+.IR usb (2))
+to resume I/O.
+The most common error is
+.L crc/timeout
+indicating problems in communication with the device (eg., a physical
+detach of the device or a wiring problem).
+.PP
+For control and isochronous transfers, there is an implicit
+timeout performed by the kernel and it is not necessary for applications
+to place their own timers.
+For other transfer types, the kernel will not time out any operation
+by default
+(but see the
+.L timeout
+control request).
+.SS "ctl and status"
+.PP
+The
+.B ctl
+file can be read to learn about the endpoint.
+It contains information that can be used
+to locate a particular device (or endpoint).
+It also accepts writes with textual control requests described later.
+.PP
+This may result from the read of an endpoint control file:
+.IP
+.EX
+.I "(the first line is wrapped to make it fit here)"
+.ft L
+enabled control rw speed full maxpkt 64 pollival 0
+	samplesz 0 hz 0 hub 1 port 3 busy
+storage csp 0x500608 vid 0x951 did 0x1613 Kingston 'DT 101 II'
+.ft
+.EE
+.LP
+The first line contains status information.
+The rest is information supplied by
+.IR usbd (4)
+as an aid to locate devices.
+The status information includes:
+.TF "\fREndpoint mode
+.PD
+.TP
+Device state
+One of
+.BR config ,
+.BR enabled ,
+and
+.BR detached .
+An endpoint starts in the
+.B config
+state, and accepts control commands written to its
+.B ctl
+file to configure the endpoint.
+When configured, the
+state is
+.B enabled
+and the
+.B data
+file is used as described above (several control requests can still
+be issued to its
+.B ctl
+file, but most will not be accepted from now on).
+Upon severe errors, perhaps a physical
+detachment from the bus, the endpoint enters the
+.B detached
+state and no further I/O is accepted on it.
+Files for an endpoint (including its directory)
+vanish when the device is detached and its files are no longer open.
+Root hubs may not be detached.
+.TP
+Endpoint type
+.BR control ,
+.BR iso ,
+.BR interrupt ,
+or
+.BR bulk ,
+indicating the type of transfer supported by the endpoint.
+.TP
+Endpoint mode
+One of
+.BR r ,
+.BR w ,
+or
+.BR rw ,
+depending on the direction of the endpoint (in, out, or inout).
+.TP
+Speed
+.BR low
+(1.5 Mb/s),
+.BR full
+(12 Mb/s),
+or
+.BR high
+(480 Mb/s).
+.TP
+Maximum packet size
+Used when performing I/O on the data file.
+.TP
+Polling interval
+The polling period expressed as a number of µframes
+(for high-speed endpoints) or frames (for low- and full-speed endpoints).
+Note that a µframe takes 125 µs while a frame takes 1 ms.
+This is only of relevance for interrupt and isochronous endpoints.
+This value determines how often I/O happens.
+Note that the control request adjusting the polling interval does
+.I not
+use these units, to make things easier for USB device drivers.
+.TP
+Sample size
+Number of bytes per I/O sample (isochronous endpoints only).
+.TP
+Frequency
+Number of samples per second (Hertz).
+.TP
+Hub address
+Device address of the hub where the device is attached.
+.TP
+Port number
+Port number (in the hub) where the device is attached.
+.TP
+Usage
+.L busy
+while the data file is open and
+.L idle
+otherwise.
+This is useful to avoid disturbing endpoints already run
+by a device driver.
+.LP
+The second line contains information describing the device:
+.TF "\fRDevice strings
+.PD
+.TP
+Class name
+As provided by the device itself.
+.TP
+CSP
+Class, Subclass, and Protocol for the device.
+If the device contains different functions and has more CSPs,
+all of them will be listed.
+The first one is that of the device itself.
+For example,
+a mouse and keyboard combo may identify itself as a keyboard but
+then include two CSPs, one for the keyboard and another one for the mouse.
+.TP
+Vid and Did
+Vendor and device identifiers.
+.TP
+Device strings
+Provided by the device and identifying the manufacturer and type of device.
+.LP
+For example, to find a mouse not yet in use by a driver, scan the
+.B ctl
+files for
+.BR enabled ,
+.BR idle ,
+and
+.BR "csp 0x020103" .
+A mouse belongs to class 3 (in the least significant byte),
+.IR "human interface device" ,
+subclass 1,
+.IR boot ,
+protocol 2,
+.I mouse
+(protocol 1 would be the keyboard).
+USB class, subclass and proto codes can be found at
+.BR http://www.usb.org .
+.SS Control requests
+Endpoint control files accept the following requests.
+In most cases
+the driver does not issue them, leaving the task to either
+.IR usbd (4)
+or the usb driver library documented in
+.IR usb (2).
+.TF "\fLsamplehz\fI n
+.TP
+.B detach
+Prevent further I/O on the device (delete the endpoint)
+and remove its file interface as soon as no process is using their files.
+.TP
+.BI maxpkt " n"
+Set the maximum packet size to
+.I n
+bytes.
+.TP
+.BI pollival " n"
+Only for interrupt and isochronous endpoints.
+Set the polling interval as a function of the value
+.I n
+given by the endpoint descriptor.
+The interval value used is the period
+.I n
+in bus time units for low- and full-speed interrupt endpoints.
+Otherwise, the actual interval is
+$2 sup n$
+and not
+.IR n .
+Bus time units are 1 ms for low- and full-speed endpoints and 125 µs for
+high-speed endpoints.
+In most cases, the device driver may ignore
+all this and issue the control request supplying the
+polling interval value as found
+in the endpoint descriptor.
+The kernel adjusts the value according
+to the endpoint configuration and converts it into the number of
+frames or µframes between two consecutive polls.
+.TP
+.BI samplesz " n"
+Use
+.I n
+as the number of bytes per sample.
+.TP
+.BI hz " n"
+Use
+.I n
+as the number of samples per second.
+.TP
+.BI ntds " n"
+Use
+.I n
+as the number of transactions per frame (or µframe), as reported
+by the descriptor.
+.TP
+.B clrhalt
+Clear the halt condition for an endpoint.
+Used to recover from a stall caused by a device to signal its driver
+(usually due to an unknown request or a failure to complete one).
+.TP
+.BI info " string"
+Replaces description information in
+.B ctl
+with
+.IR string .
+.IR Usbd (4)
+uses this to add device descriptions.
+.TP
+.B address
+Tell this driver that the device has been given an address,
+which causes the device to enter the
+.I enabled
+state.
+.TP
+.BI name " str"
+Generates an additional file name,
+.I str ,
+for the
+.B data
+file of the endpoint.
+This file name appears in the root directory of the
+.L #u
+tree.
+For example, this is used by the audio device
+driver to make the
+.B data
+file also available as
+.BR /dev/audio .
+.TP
+.BI debug " n"
+Enable debugging of the endpoint.
+.I N
+is an integer;
+larger values make diagnostics more verbose.
+.L 0
+stops debugging diagnostics.
+.L 1
+causes just problem reports.
+Bigger values report almost everything.
+.TP
+.BI timeout " n"
+Enable time-outs for the endpoint.
+Transfers are timed out by the kernel after
+.I n
+ms.
+This should not be used for control and isochronous endpoints,
+which are always timed out.
+.PD
+.LP
+Setup endpoints
+(those represented by
+.BI ep N .0
+directories)
+also accept the following requests:
+.TP
+.BI new " n type mode"
+Creates a new endpoint with number
+.I n
+of the given
+.IR type
+(\c
+.BR ctl ,
+.BR bulk ,
+.BR intr ,
+or
+.BR iso ).
+.I Mode
+may be
+.BR r ,
+.BR w ,
+or
+.BR rw ,
+which creates, respectively, an input, output, or input/output endpoint.
+.TP
+.B "speed {low|full|high}
+Set the endpoint speed to full, low, or high, respectively.
+.TP
+.B hub
+Tell this driver that the endpoint corresponds to a hub device.
+.PD
+.PP
+Setup endpoints for hub devices also accept his request:
+.TP
+.B "newdev {low|full|high} \fIport\fP
+Create a new setup endpoint to represent a new device.
+The first argument is the device speed.
+.I Port
+is the port number where the device is attached
+(the hub is implied by the endpoint where the control request is issued).
+.PD
+.PP
+The file
+.B /dev/usb/ctl
+provides all the information provided by the various
+.B ctl
+files when read.
+It accepts several requests that refer to
+the entire driver and not to particular endpoints:
+.TF "\fLdebug \fIn"
+.TP
+.B "debug \fIn\fP
+Sets the global debug flag to
+.IR n .
+.TP
+.B dump
+Dumps data structures for inspection.
+.SH FILES
+.TF #u/usb
+.TP
+.B #u/usb
+root of the USB interface
+.SH SOURCE
+.B /sys/src/9/pc/usb.h
+.br
+.B /sys/src/9/pc/devusb.c
+.br
+.B /sys/src/9/pc/usb?hci.c
+.SH "SEE ALSO"
+.IR usb (2),
+.IR usb (4),
+.IR usbd (4),
+.IR plan9.ini (8)
+.SH BUGS
+USB controllers limit the speed of all their ports
+to that of the slowest device connected to any one of them.
+.PP
+Isochronous input streams are not implemented for OHCI.
+.PP
+Some EHCI controllers drop completion interrupts and so must
+be polled, which hurts throughput.

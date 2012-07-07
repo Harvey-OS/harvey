@@ -1,0 +1,45 @@
+.TH KEYS.WHO 6
+.SH NAME
+keys.who \- biographic information for key holders
+.SH DESCRIPTION
+When
+.I auth/changeuser
+(see
+.IR auth (8))
+creates or modifies an account, it writes a line of
+biographical information to
+.BR /adm/keys.who .
+The line contains the following fields, separated by
+.L |
+characters:
+.TP
+.I name
+login name
+.TP
+.I postid
+company-wide user name
+.TP
+.I "full name
+full name of the user
+.TP
+.I dept
+department of the user
+.TP
+.I email...
+one or more fields containing email addresses 
+to be notified when the key is about to expire
+.PD
+.PP
+The program
+.IR auth/warning ,
+which has fallen into disrepair,
+once read
+.I keys.who
+and mailed expiry warnings.
+.SH EXAMPLE
+.EX
+rsc|rscox|Russell S Cox|11276|rsc|dmr|rob
+.EE
+.SH "SEE ALSO
+.IR keyfs (4),
+.IR auth (8)

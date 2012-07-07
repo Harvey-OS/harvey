@@ -1,0 +1,47 @@
+.TH MP3DEC 1
+.SH NAME
+mp3dec \- decode audio MPEG files (layers 1, 2 and 3)
+.SH SYNOPSIS
+.B mp3dec
+[
+.B -o
+.I outfile
+]
+[
+.I file
+\&...
+]
+.SH DESCRIPTION
+.I Mp3dec
+decodes one or more MPEG audio files, writing
+16-bit stereo linear PCM sample data to
+.I outfile
+(default
+.BR /dev/audio ).
+If no files are named,
+.I mp3dec
+reads standard input.
+.PP
+In the absence of the
+.B -o
+option,
+.I mp3dec
+also opens
+.BR /dev/volume
+and sets the sample rate for playback to
+match the audio stream.
+When writing to
+.IR outfile ,
+.I mp3dec
+prints a warning to standard error
+if the stream rate is not 44100 Hz.
+.SH SOURCE
+.B /sys/src/games/mp3dec
+.SH "SEE ALSO"
+.IR mp3enc (1),
+.IR juke (7),
+.IR playlistfs (7)
+.br
+.B http://www.underbit.com/products/mad/
+.SH BUGS
+It's another GNU behemoth, lightly tamed.

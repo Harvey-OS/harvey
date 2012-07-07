@@ -1,0 +1,112 @@
+.TH FILE 1
+.SH NAME
+file \- determine file type
+.SH SYNOPSIS
+.B file
+[
+.B -m
+]
+[
+.I file
+\&...
+]
+.SH DESCRIPTION
+.I File
+performs a series of tests on its argument
+.I files
+in an attempt to classify their contents by language or purpose.
+If no arguments are given, the classification is performed
+on standard input.
+.PP
+If the
+.B -m
+flag is given, 
+.I file
+outputs an
+appropriate MIME
+.B Content-Type
+specification describing the
+.B type
+and
+.B subtype
+of each file.
+.PP
+The file types it looks for include
+directory,
+device file,
+zero-filled file,
+empty file,
+Plan 9 executable,
+PAC audio file,
+.B cpio
+archive,
+.B tex
+.B dvi
+file,
+archive symbol table,
+archive,
+.B rc
+script,
+.B sh
+script,
+PostScript,
+.B troff
+output file for various devices,
+mail box,
+GIF,
+FAX,
+object code,
+C and Alef source,
+assembler source,
+compressed files,
+encrypted file,
+English text,
+compressed image,
+image,
+subfont,
+and
+font.
+.PP
+If a file has no apparent format,
+.I file
+looks at the character set it uses to classify it according to
+.SM ASCII\c
+,
+extended
+.SM ASCII\c
+, Latin
+.SM ASCII\c
+, or
+.SM UTF
+holding one or more of the following blocks of the Unicode Standard:
+Extended Latin,
+Greek,
+Cyrillic,
+Armenian,
+Hebrew,
+Arabic,
+Devanagari,
+Bengali,
+Gurmukhi,
+Gujarati,
+Oriya,
+Tamil,
+Telugu,
+Kannada,
+Malayalam,
+Thai,
+Lao,
+Tibetan,
+Georgian,
+Japanese,
+Chinese,
+or Korean.
+.PP
+If all else fails,
+.I file
+decides its input is
+binary.
+.SH SOURCE
+.B /sys/src/cmd/file.c
+.SH BUGS
+It can make mistakes.

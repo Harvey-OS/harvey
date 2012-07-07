@@ -1,0 +1,107 @@
+.TH SECSTORE 8
+.SH NAME
+secstored, secuser \- secstore commands
+.SH SYNOPSIS
+.br
+.B auth/secstored
+.RB [ -R ]
+[
+.BI -S " servername"
+] [
+.BI -s " address"
+] [
+.BI -x " network"
+] [
+.B -v
+]
+.PP
+.B auth/secuser
+[
+.B -v
+]
+.I username
+.SH DESCRIPTION
+.I Secstored
+serves requests from
+.IR secstore (1).
+By default it listens on port
+.BR tcp!*!5356 ;
+the
+.B -s
+option specifies an alternative
+.IR address .
+In the connection protocol,
+.I secstored
+describes itself as service
+.BR secstore ,
+but the
+.B -S
+option can specify a different
+.IR servername .
+The
+.B -R
+option supplements the password check with a
+call to a RADIUS server, for checking hardware
+tokens or other validation.
+The
+.B -x
+option specifies an alternative
+.I network
+to the default
+.BR /net .
+By default,
+.I secstored
+puts itself into the background;
+the
+.B -v
+option enables a verbose debugging mode that suppresses that.
+.PP
+.I Secuser
+is an administrative command that runs on the
+secstore machine, normally the authserver,
+to create new accounts and
+to change status on existing accounts.
+It prompts for account information such as
+password and expiration date, writing to
+.BI /adm/secstore/who/ user
+for a given secstore
+.IR user .
+The directory
+.B /adm/secstore
+should be created mode 770 with owner or group allowing access to the user
+that runs
+.IR secstored .
+The
+.B -v
+option makes the command chattier.
+.PP
+By default,
+.I secstored
+warns the client if no account exists.
+If you prefer to obscure this information, use
+.I secuser
+to create an account
+.BR FICTITIOUS .
+.SH FILES
+.TF /adm/secstore/store/user/
+.TP
+.BI /adm/secstore/who/ user
+.I secstore
+account name, expiration date, verifier
+.TP
+.BI /adm/secstore/store/ user /
+.I user 's
+file storage
+.TP
+.B /lib/ndb/auth
+for mapping local userid to RADIUS userid
+.TP
+.B /sys/log/secstore
+log file (if it does not exist,
+.I secstored
+logs to
+.BR /dev/cons )
+.SH SOURCE
+.B /sys/src/cmd/auth/secstore
+.SH SEE ALSO
+.IR secstore (1)

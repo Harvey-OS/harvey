@@ -1,0 +1,59 @@
+.TH REF 9
+.SH NAME
+Ref, incref, decref \- reference counts
+.SH SYNOPSIS
+.ta \w'\fLchar* 'u
+.PP
+.B
+int	incref(Ref *r)
+.PP
+.B
+int	decref(Ref *r)
+.SH DESCRIPTION
+A
+.B Ref
+structure holds a reference count for a data structure:
+.IP
+.EX
+typedef struct
+struct Ref
+{
+    Lock;
+    long ref;
+} Ref;
+.EE
+.PP
+The reference count proper is found in
+.BR ref ;
+the
+.B Lock
+prevents concurrent updates
+(see
+.IR lock (9)).
+.PP
+.I Incref
+atomically increments the reference count
+.IR r ,
+and returns the new count.
+.PP
+.I Decref
+atomically decrements the reference count
+.IR r ,
+and returns the new count.
+.SH EXAMPLES
+Release a structure containing a
+.B Ref
+on last use.
+.IP
+.EX
+if(decref(s) == 0)
+	free(s);
+.EE
+.SH DIAGNOSTICS
+.I Decref
+will
+.IR panic (9)
+if the count goes negative,
+revealing a reference counting bug.
+.SH SOURCE
+.B /sys/src/9/port/chan.c

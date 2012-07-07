@@ -1,0 +1,213 @@
+.TH FGETC 2
+.SH NAME
+fgetc, getc, getchar, fputc, putc, putchar, ungetc, fgets, gets, fputs, puts, fread, fwrite \- Stdio input and output
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <stdio.h>
+.ta \w'\fLlong 'u
+.PP
+.B
+int	fgetc(FILE *f)
+.PP
+.B
+int	getc(FILE *f)
+.PP
+.B
+int	getchar(void)
+.PP
+.B
+int	fputc(int c, FILE *f)
+.PP
+.B
+int	putc(int c, FILE *f)
+.PP
+.B
+int	putchar(int c)
+.PP
+.B
+int	ungetc(int c, FILE *f)
+.PP
+.B
+char	*fgets(char *s, int n, FILE *f)
+.PP
+.B
+char	*gets(char *s)
+.PP
+.B
+int	fputs(char *s, FILE *f)
+.PP
+.B
+int	puts(char *s)
+.PP
+.B
+long	fread(void *ptr, long itemsize, long nitems, FILE *stream)
+.PP
+.B
+long	fwrite(void *ptr, long itemsize, long nitems, FILE *stream)
+.SH DESCRIPTION
+The functions described here work on open Stdio streams (see
+.IR fopen ).
+.PP
+.I Fgetc
+returns as an
+.B int
+the next
+.B unsigned
+.B char
+from input stream
+.IR f .
+If the stream is at end-of-file, the end-of-file indicator for the
+stream is set and
+.I fgetc
+returns
+.BR EOF .
+If a read error occurs, the error indicator for the stream is set and
+.I fgetc
+returns
+.BR EOF .
+.I Getc
+is like
+.I fgetc
+except that it is implemented as a macro.
+.I Getchar
+is like
+.I getc
+except that it always reads from
+.BR stdin .
+.PP
+.I Ungetc
+pushes character
+.I c
+back onto the input stream
+.BR f .
+The pushed-back character will be returned by subsequent reads in
+the reverse order of their pushing.
+A successful intervening
+.IR fseek ,
+.IR fsetpos ,
+or
+.I rewind
+on
+.I f
+discards any pushed-back characters for
+.IR f .
+One character of push-back is guaranteed.
+.I Ungetc
+returns the character pushed back (converted to
+.B unsigned
+.BR char ),
+or
+.B EOF
+if the operation fails.
+A successful call to
+.I ungetc
+clears the end-of-file indicator for the stream.
+The file position indicator for the stream after reading or discarding
+all pushed-back characters is the same as it was before the
+characters were pushed back.
+.PP
+.I Fputc
+writes character
+.I c
+(converted to
+.B unsigned
+.BR char )
+to output stream
+.IR f
+at the position indicated by the position indicator for the stream
+and advances the indicator appropriately.
+If the file cannot support positioning requests, or if the stream was
+opened with append mode, the character is appended to the output stream.
+.I Fputc
+returns the character written or
+.B EOF
+if there was a write error.
+.I Putc
+is like
+.IR fputc
+but is implemented as a macro.
+.I Putchar
+is like
+.I putc
+except that it always writes to
+.BR stdout .
+.PP
+All other input takes place as if characters were read by successive
+calls to
+.I fgetc
+and all other output takes place as if characters were written by
+successive calls to
+.IR fputc .
+.PP
+.I Fgets
+reads up to and including the next newline, but not past end-of-file
+or more than
+.IR n -1
+characters, from stream
+.I f
+into array
+.IR s .
+A null character is written immediately after the last character read
+into the array (if any characters are read at all).
+.I Fgets
+returns
+.I s
+if successful, otherwise a null pointer.
+.I Gets
+is similar to
+.IR fgets
+except that it always reads from
+.B stdin
+and it discards the terminating newline, if any.
+.I Gets
+does not check for overflow of the receiving array, so its use is deprecated.
+.PP
+.I Fputs
+writes the string
+.I s
+to  stream
+.IR f ,
+returning
+.B EOF
+if a write error occurred, otherwise a nonnegative value.
+The terminating null character is not written.
+.I Puts
+is the same, writing to
+.BR stdout .
+.PP
+.I Fread
+reads from the named input
+.IR stream 
+at most
+.I nitems
+of data of size
+.I itemsize
+and the type of
+.I *ptr
+into a block beginning at
+.IR ptr .
+It returns the number of items actually read.
+.PP
+.I Fwrite
+appends to the named output
+.I stream
+at most
+.I nitems
+of data of size
+.I itemsize
+and the type of
+.I *ptr
+from a block beginning at
+.IR ptr .
+It returns the number of items actually written.
+.SH SOURCE
+.B /sys/src/libstdio
+.SH "SEE ALSO"
+.IR read (2), 
+.IR fopen (2),
+.IR bio (2)
+.SH BUGS
+Stdio does not handle
+.SM UTF
+or runes; use Bio instead.

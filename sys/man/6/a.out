@@ -1,0 +1,252 @@
+.TH A.OUT 6
+.SH NAME
+a.out \- object file format
+.SH SYNOPSIS
+.B #include <a.out.h>
+.SH DESCRIPTION
+An executable Plan 9 binary file has up to six sections:
+a header, the program text, the data,
+a symbol table, a PC/SP offset table (MC68020 only),
+and finally a PC/line number table.
+The header, given by a structure in
+.BR <a.out.h> ,
+contains 4-byte integers in big-endian order:
+.PP
+.EX
+.ta \w'#define  'u +\w'_MAGIC(b)  'u +\w'_MAGIC(10)  'u +4n +4n +4n +4n
+typedef struct Exec {
+	long	magic;	/* magic number */
+	long	text;	/* size of text segment */
+	long	data;	/* size of initialized data */
+	long	bss;	/* size of uninitialized data */
+	long	syms;	/* size of symbol table */
+	long	entry;	/* entry point */
+	long	spsz;	/* size of pc/sp offset table */
+	long	pcsz;	/* size of pc/line number table */
+} Exec;
+#define	_MAGIC(b)	((((4*b)+0)*b)+7)
+#define	A_MAGIC	_MAGIC(8)	/* 68020 */
+#define	I_MAGIC	_MAGIC(11)	/* intel 386 */
+#define	J_MAGIC	_MAGIC(12)	/* intel 960 */
+#define	K_MAGIC	_MAGIC(13)	/* sparc */
+#define	V_MAGIC	_MAGIC(16)	/* mips 3000 */
+#define	X_MAGIC	_MAGIC(17)	/* att dsp 3210 */
+#define	M_MAGIC	_MAGIC(18)	/* mips 4000 */
+#define	D_MAGIC	_MAGIC(19)	/* amd 29000 */
+#define	E_MAGIC	_MAGIC(20)	/* arm 7-something */
+#define	Q_MAGIC	_MAGIC(21)	/* powerpc */
+#define	N_MAGIC	_MAGIC(22)	/* mips 4000 LE */
+#define	L_MAGIC	_MAGIC(23)	/* dec alpha */
+.EE
+.DT
+.PP
+Sizes are expressed in bytes.
+The size of the header is not included in any of the other sizes.
+.PP
+When a Plan 9 binary file is executed,
+a memory image of three segments is
+set up: the text segment, the data segment, and the stack.
+The text segment begins at a virtual address which is
+a multiple of the machine-dependent page size.
+The text segment consists of the header and the first
+.B text
+bytes of the binary file.
+The
+.B entry
+field gives the virtual address of the entry point of the program.
+The data segment starts at the first page-rounded virtual address
+after the text segment.
+It consists of the next
+.B data
+bytes of the binary file, followed by
+.B bss
+bytes initialized to zero.
+The stack occupies the highest possible locations
+in the core image, automatically growing downwards.
+The bss segment may be extended by
+.IR brk (2).
+.PP
+The next
+.B syms
+(possibly zero)
+bytes of the file contain symbol table
+entries, each laid out as:
+.IP
+.EX
+uchar value[4];
+char  type;
+char  name[\f2n\fP];   /* NUL-terminated */
+.EE
+.PP
+The
+.B value
+is in big-endian order and
+the size of the
+.B name
+field is not pre-defined: it is a zero-terminated array of
+variable length.
+.PP
+The
+.B type
+field is one of the following characters with the high bit set:
+.RS
+.TP
+.B T
+text segment symbol
+.PD0
+.TP
+.B t
+static text segment symbol
+.TP
+.B L
+leaf function text segment symbol
+.TP
+.B l
+static leaf function text segment symbol
+.TP
+.B D
+data segment symbol
+.TP
+.B d
+static data segment symbol
+.TP
+.B B
+bss segment symbol
+.TP
+.B b
+static bss segment symbol
+.TP
+.B a
+automatic (local) variable symbol
+.TP
+.B p
+function parameter symbol
+.RE
+.PD
+.PP
+A few others are described below.
+The symbols in the symbol table appear in the same order
+as the program components they describe.
+.PP
+The Plan 9 compilers implement a virtual stack frame pointer rather
+than dedicating a register;
+moreover, on the MC680X0 architectures
+there is a variable offset between the stack pointer and the
+frame pointer.
+Following the symbol table,
+MC680X0 executable files contain a
+.BR spsz -byte
+table encoding the offset
+of the stack frame pointer as a function of program location;
+this section is not present for other architectures.
+The PC/SP table is encoded as a byte stream.
+By setting the PC to the base of the text segment
+and the offset to zero and interpreting the stream,
+the offset can be computed for any PC.
+A byte value of 0 is followed by four bytes that hold, in big-endian order,
+a constant to be added to the offset.
+A byte value of 1 to 64 is multiplied by four and added, without sign
+extension, to the offset.
+A byte value of 65 to 128 is reduced by 64, multiplied by four, and
+subtracted from the offset.
+A byte value of 129 to 255 is reduced by 129, multiplied by the quantum
+of instruction size
+(e.g. two on the MC680X0),
+and added to the current PC without changing the offset.
+After any of these operations, the instruction quantum is added to the PC.
+.PP
+A similar table, occupying
+.BR pcsz -bytes,
+is the next section in an executable; it is present for all architectures.
+The same algorithm may be run using this table to
+recover the absolute source line number from a given program location.
+The absolute line number (starting from zero) counts the newlines
+in the C-preprocessed source seen by the compiler.
+Three symbol types in the main symbol table facilitate conversion of the absolute
+number to source file and line number:
+.RS
+.TP
+.B f
+source file name components
+.TP
+.B z
+source file name
+.TP
+.B Z
+source file line offset
+.RE
+.PP
+The
+.B f
+symbol associates an integer (the
+.B value
+field of the `symbol') with
+a unique file path name component (the
+.B name
+of the `symbol').
+These path components are used by the
+.B z
+symbol to represent a file name: the
+first byte of the name field is always 0; the remaining
+bytes hold a zero-terminated array of 16-bit values (in big-endian order)
+that represent file name components from
+.B f
+symbols.
+These components, when separated by slashes, form a file name.
+The initial slash of a file name is recorded in the symbol table by an
+.B f
+symbol; when forming file names from
+.B z
+symbols an initial slash is not to be assumed.
+The
+.B z
+symbols are clustered, one set for each object file in the program,
+before any text symbols from that object file.
+The set of
+.B z
+symbols for an object file form a
+.I history stack
+of the included source files from which the object file was compiled.
+The value associated with each
+.B z
+symbol is the absolute line number at which that file was included in the source;
+if the name associated with the
+.B z
+symbol is null, the symbol represents the end of an included file, that is,
+a pop of the history stack.
+If the value of the
+.B z
+symbol is 1 (one),
+it represents the start of a new history stack.
+To recover the source file and line number for a program location,
+find the text symbol containing the location
+and then the first history stack preceding the text symbol in the symbol table.
+Next, interpret the PC/line offset table to discover the absolute line number
+for the program location.
+Using the line number, scan the history stack to find the set of source
+files open at that location.
+The line number within the file can be found using the line numbers
+in the history stack.
+The
+.B Z
+symbols correspond to
+.B #line
+directives in the source; they specify an adjustment to the line number
+to be printed by the above algorithm.  The offset is associated with the
+first previous
+.B z
+symbol in the symbol table.
+.SH "SEE ALSO"
+.IR db (1), 
+.IR acid (1), 
+.IR 2a (1), 
+.IR 2l (1), 
+.IR nm (1), 
+.IR strip (1),
+.IR mach (2),
+.IR symbol (2)
+.SH BUGS
+There is no type information in the symbol table; however, the
+.B -a
+flags on the compilers will produce symbols for
+.IR acid (1).

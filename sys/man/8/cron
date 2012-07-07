@@ -1,0 +1,128 @@
+.TH CRON 8
+.SH NAME
+cron \- clock daemon
+.SH SYNOPSIS
+.B auth/cron
+[
+.B -c
+]
+.SH DESCRIPTION
+.I Cron
+executes commands at specified dates and times according
+to instructions in the files
+.BI /cron/ user /cron\f1.
+It runs only on an authentication server.
+Option
+.B -c
+causes
+.I cron
+to create
+.BI /cron/ user
+and
+.BI /cron/ user /cron
+for the current user;
+it can be run from any Plan 9 machine.
+.PP
+Blank lines and lines beginning with
+.B #
+in these files are ignored.
+Entries are lines with fields
+.IP
+.I
+minute hour day month weekday host command
+.PP
+.I Command
+is a string, which may contain spaces, that is passed to an
+.IR rc (1)
+running on
+.I host
+for execution.
+The first five fields are integer patterns for
+.PD0
+.RS
+.TP \w'month\ of\ year\ \ 'u
+minute
+0\-59
+.TP
+hour
+0\-23
+.TP
+day of month
+1\-31
+.TP
+month of year
+1\-12
+.TP
+day of week
+0\-6; 0=Sunday
+.PD
+.RE
+.PP
+The syntax for these patterns is
+.IP
+.EX
+time  : '*'
+      | range
+range : number
+      | number '-' number
+      | range ',' range
+.EE
+.PP
+Each number must be in the appropriate range.
+Hyphens specify inclusive ranges of valid times;
+commas specify lists of valid time ranges.
+.PP
+To run the job,
+.I cron
+calls
+.I host
+and authenticates remote execution, equivalent to running
+.B rx
+.I host
+.I command
+(see
+.IR con (1)).
+The user's profile is run with
+.B $service
+set to
+.BR rx .
+If
+.I host
+is
+set to
+.BR local ,
+.I cron
+will run the command as
+.I user
+on the local machine without using
+.BR rx .
+.PP
+.I Cron
+is not a reliable service.
+It skips commands if it cannot reach
+.I host
+within two minutes, or if the
+.I cron
+daemon is
+not running at the appropriate time.
+.SH EXAMPLES
+Here is the job that mails system news.
+.IP
+.EX
+% cat /cron/upas/cron
+# send system news
+15 8-17,21 * * *	helix	/mail/lib/mailnews
+%
+.EE
+.SH FILES
+.TF /cron/lock
+.TP
+.B /cron/lock
+lock file to prevent multiple
+.IR cron s
+running
+.SH SOURCE
+.B /sys/src/cmd/auth/cron.c
+.SH "SEE ALSO"
+.IR con (1),
+.IR rc (1)

@@ -1,0 +1,36 @@
+.TH PRIVALLOC 2
+.SH NAME
+privalloc, privfree \- per-process private storage management
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.ta \w'voidmmm'u
+.PP
+.B
+void**	privalloc(void)
+.PP
+.B
+void	privfree(void **p)
+.SH DESCRIPTION
+.I Privalloc
+returns a pointer to a per-process private storage location.
+The location is not shared among processes,
+even if they share the same data segments.
+It returns
+.B nil
+if there are no free slots available.
+.PP
+.I Privfree
+releases a location allocated with
+.IR privalloc .
+It is legal to call
+.I privfree
+with
+.I p
+set to
+.BR nil .
+.SH SOURCE
+.B /sys/src/libc/9sys/privalloc.c
+.SH SEE ALSO
+.IR exec (2)

@@ -1,0 +1,150 @@
+.TH OBJECT 2
+.SH NAME
+objtype, readobj, objtraverse, isar, nextar, readar \- object file interpretation functions
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.br
+.B #include <bio.h>
+.br
+.B #include <mach.h>
+.PP
+.ta \w'\fLmachines 'u
+.B
+int  objtype(Biobuf *bp, char **name)
+.PP
+.B
+int  readobj(Biobuf *bp, int objtype)
+.PP
+.B
+void  objtraverse(void(*)(Sym*, void*), void*)
+.PP
+.B
+int isar(Biobuf *bp)
+.PP
+.B
+int nextar(Biobuf *bp, int offset, char *buf)
+.PP
+.B
+int readar(Biobuf *bp, int objtype, int end)
+.SH DESCRIPTION
+These functions provide machine-independent access to object files
+in a directory or an archive.
+.IR Mach (2)
+and
+.IR symbol (2)
+describe additional library functions
+for interpreting executable files and executing images.
+.PP
+Object files contain no formal symbol table; instead, references
+to symbols must be extracted from the encoded object representation
+and resolved.  The resulting symbol information is loaded
+into a dummy symbol table where it is available for processing by an
+application.  The organization of the dummy symbol
+table is identical
+to that produced by the loader and described in
+.IR symbol (2)
+and
+.IR a.out (6):
+a vector of
+.B Sym
+data structures defining the name, type and relative offset of
+each symbol.
+.PP
+.I Objtype
+reads the header at the current position of the
+file associated with
+.I bp
+(see
+.IR Bio (2))
+to see if it is an intermediate object file.
+If it is, a code indicating the architecture type of the file
+is returned and the second argument, if it is non-zero,
+is set pointing to a string describing the type of the file.
+If the header does not indicate an object file,
+\-1 is returned.
+The header may be at the start of an object
+file or at the beginning of an archive member.  The
+file is rewound to its starting
+position after decoding the header.
+.PP
+.I Readobj
+constructs a symbol table for the object file associated with
+.IR bp .
+The second argument contains the type code produced by
+function
+.IR objtype .
+The file must be positioned at the start of the object file.
+Each invocation of
+.I readobj
+destroys the symbol definitions for any previous file.
+.PP
+.I Objtraverse
+scans the symbol table previously built by
+.I readobj
+or
+.IR readar  .
+.I Objtraverse
+requires two arguments:
+the address of a call-back function and a
+generic pointer.  The call-back function
+is invoked once for each symbol in the symbol table with
+the address of a
+.I Sym
+data structure as the first argument and the
+generic pointer as the second.
+.PP
+.I Isar
+reads the header at the current point in the file
+associated with
+.I bp
+and returns 1 if it is an archive or zero otherwise.
+The file is positioned at the end of the archive
+header and at the beginning of the first member of the archive.
+.PP
+.I Nextar
+extracts information describing the archive member stored
+at
+.I offset
+in the file associated with
+.IR bp .
+If the header describing the member can be
+extracted and decoded, the size of the member is
+returned.  Adding this value to
+.I offset
+yields the offset of the beginning of the next member
+in the archive.  On return the input file is positioned
+at the end of the member header
+and the name of the member is stored in
+.IR buf ,
+a buffer of
+.B SARNAME
+characters.
+If there are no more members,
+.I nextar
+returns zero; a negative return indicates a missing
+or malformed header.
+.PP
+.I Readar
+constructs the symbol table of the object file stored
+at the current position in the archive associated with
+.IR bp .
+This function operates exactly as
+.IR readobj ;
+the only difference is the extra argument,
+.IR end ,
+specifying the offset to the beginning of the
+next member in the archive.
+.I Readar
+leaves the file positioned at that point.
+.SH SOURCE
+.B /sys/src/libmach
+.SH "SEE ALSO"
+.IR mach (2),
+.IR symbol (2),
+.IR bio (2),
+.IR a.out (6)
+.SH DIAGNOSTICS
+These routines set
+.IR errstr .

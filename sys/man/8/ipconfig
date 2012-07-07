@@ -1,0 +1,395 @@
+.TH IPCONFIG 8
+.SH NAME
+ipconfig, rip, linklocal, ipv6on \- Internet configuration and routing
+.SH SYNOPSIS
+.in +0.25i
+.ti -0.25i
+.B ip/ipconfig
+.RB [ -6DGNOPdnpruX ]
+.RB [ -b
+.IR baud ]
+.RB [ -c
+.IR ctl ]
+.RB [ -g
+.IR gateway ]
+.RB [ -h
+.IR host ]
+.RB [ -m
+.IR mtu ]
+.RB [ -o
+.IR dhcp-opt ]
+.RB [ -x
+.IR netmtpt ]
+[
+.I type
+[
+.I device
+]\|]
+.RI [ verb ]
+[
+.I local
+[
+.I mask
+[
+.I remote
+[
+.I file-server
+[
+.I auth
+]\|]\|]\|]\|]
+.PP
+.B ip/rip
+.RB [ -bdr ]
+.RB [ -x
+.IR netmtpt ]
+.PP
+.B ip/linklocal
+[
+.B -t
+.I gwipv4
+]
+.I mac
+\&...
+.PP
+.B ipv6on
+[
+.I netmtpt
+.I ndbfile
+[
+.I gwipv4
+]\|]
+.SH DESCRIPTION
+.I Ipconfig
+binds a device interface (default
+.BR /net/ether0 )
+to a mounted IP stack (default
+.BR /net )
+and configures the interface with a local address and optionally
+a mask, a remote address, a file server and an authentication server address.
+The addresses can be specified in the command line or obtained via DHCP.
+If DHCP is requested, it will also obtain the addresses of DNS
+servers, NTP servers, gateways, a Plan 9 file server,
+and a Plan 9 authentication server.
+If this is the first non-loopback
+interface on the IP stack, the information will be written to
+.B /net/ndb
+in the form of an
+.IR ndb (8)
+entry.
+.PP
+.I Type
+may be
+.BR ether ,
+.BR gbe ,
+.BR ppp ,
+.BR pkt ,
+or
+.BR loopback .
+The
+.B gbe
+type is equivalent to
+.B ether
+except that it allows jumbo packets (up to ~9KB).
+The
+.B pkt
+interface passes all IP packets to and from a user program.
+For
+.B ppp
+the device can be any byte stream device.
+.PP
+The verb (default
+.IR add )
+determines the action performed.  The usual verbs are:
+.TF remove
+.TP
+.B add
+if the device is not bound to the IP stack, bind it.
+Add the given local address, mask, and remote address to the interface.
+An interface may have multiple addresses.
+.TP
+.B remove
+remove the address from the device interface.
+.TP
+.B unbind
+unbind the device interface and all its addresses from the
+IP stack.
+.PD
+.PP
+The IPv6-specific verbs, which take different arguments, are:
+.TP
+.BI "add6 " "prefix pfx-len onlink auto validlt preflt"
+sets the named IPv6 parameters; see
+.IR ip (3)
+for more detail.
+.TP
+.BI "ra6 " "[ keyword value ] ..."
+sets IPv6 router advertisement parameter
+.IR keyword 's
+.IR value .
+See
+.IR ip (3)
+for more detail.
+Setting
+.I recvra
+non-zero also forks a process to
+receive and process router advertisements.
+Setting
+.I sendra
+non-zero also
+enables IP routing on the interface,
+forks a process to send router advertisements,
+and if no
+.I recvra
+process is running, forks one.
+.PD
+.PP
+The options are:
+.TF M
+.PD
+.TP
+.B 6
+if adding an address (the default action),
+add the IPv6 link-local address.
+.TP
+.B b
+the baud rate to use on a serial line
+when configuring
+.BR PPP .
+.TP
+.B c
+write the control string
+.I ctl
+to the ethernet device control file before starting to configure it.
+May be repeated to specify multiple control writes.
+.TP
+.B d
+use DHCP to determine any unspecified configuration parameters.
+.TP
+.B D
+turn on debugging.
+.TP
+.B g
+the default gateway.
+.TP
+.B G
+use only generic DHCP options.  Without this option,
+.I ipconfig
+adds to requests a Vendor Class option with value
+.BI plan9_$ cputype
+and also requests vendor specific options 128 and 129 which we
+interpret as the Plan 9 file server and auth server.
+Replies to these options contain a list of IP addresses for possible
+file servers and auth servers.
+.TP
+.B h
+the hostname to add to DHCP requests.  Some DHCP
+servers, such as the one used by Comcast, will not respond
+unless a correct hostname is in the request.
+.TP
+.B m
+the maximum IP packet size to use on this interface.
+.TP
+.B n
+determine parameters but don't configure the interface.
+.TP
+.B N
+look in
+.B /lib/ndb
+for the IP parameters.  This only works if the
+interface is an ethernet.  It uses the ethernet address to find
+a matching entry.
+.TP
+.B O
+addresses specified on the command line override those obtained via DHCP.
+A command line address of 0 implies no override.
+.TP
+.B p
+write configuration information to
+.BR /net/ndb ,
+even if other network interfaces are already configured
+.TP
+.B P
+do not write configuration information to
+.BR /net/ndb ,
+even if this is the first network interface to be configured
+.TP
+.B r
+by default,
+.I ipconfig
+exits after trying DHCP for 15 seconds with no answer.
+This option directs
+.I ipconfig
+instead to fork a background process that keeps trying forever.
+.TP
+.B u
+disable IPv6 duplicate discovery detection,
+which removes any existing ARP table entry for one of our IPv6 addresses
+before adding new ones.
+.TP
+.B x
+use the IP stack mounted at
+.I netmtpt
+instead of at
+.BR /net .
+.TP
+.B X
+don't fork a process to keep the DHCP lease alive.
+.TP
+.B o
+adds
+.I dhcpoption
+to the list of paramters requested of the DHCP server.  The
+result will appear in
+.B /net/ndb
+should this be the first interface.  The known options are:
+.RS
+.LP
+.ft L
+arptimeout, baddr, bflen, bootfile, clientid, cookie, discovermask,
+discoverrouter, dns, dom, dumpfile, etherencap, extpath, finger,
+homeagent, impress, ipaddr, ipforward, ipgw, ipmask, irc, lease, log,
+lpr, maxdatagram, maxmsg, message, mtu, name, netbiosdds, netbiosns,
+netbiosscope, netbiostype, ni, nisdomain, nisplus, nisplusdomain,
+nntp, nonlocal, ntp, overload, params, pathplateau, pathtimeout,
+policyfilter, pop3, rebindingtime, renewaltime, rl, rootpath, rs,
+serverid, smtp, st, staticroutes, stdar, subnetslocal, supplymask,
+swap, sys, tcpka, tcpkag, tcpttl, tftp, time, timeoff, trailerencap,
+ttl, type, vendorclass, www, xdispmanager, xfont
+.RE
+.IP
+The options
+.BR ipmask ,
+.BR ipgw ,
+.BR dns ,
+.BR sys ,
+and
+.B ntp
+are always requested.
+.TF M
+.PD
+.PP
+If DHCP is requested, a process is forked
+off to renew the lease before it
+runs out.  If the lease does run out, this
+process will remove any configured addresses
+from the interface.
+.PP
+.I Rip
+runs the routing protocol RIP.
+It listens for RIP packets on connected networks and
+updates the kernel routing tables.
+The options are:
+.TF M
+.PD
+.TP
+.B b
+broadcasts routing information onto the networks.
+.TP
+.B n
+gathers routing information but doesn't write to the
+route table.  This is useful with
+.B \-d
+to debug a network.
+.TP
+.B x
+use the IP stack mounted at
+.I netmtpt
+instead of at
+.BR /net .
+.TP
+.B d
+turn on (voluminous) debugging.
+.PP
+.I Linklocal
+prints the IPv6 EUI-64-based link-local address derived from the given
+.I mac
+address.
+Given
+.BR -t ,
+.I linklocal
+instead prints the
+.I 6to4
+EUI-64-based IPv6 address derived from
+.I mac
+and
+.I 6to4
+gateway
+.IR gwipv4 .
+.PP
+.I Ipv6on
+uses the network database at
+.I ndbfile
+to configure the network mounted on
+.I netmtpt
+with a link-local address (derived from its MAC address)
+and attempts to add a default IPv6 route to the local
+IPv4 gateway's IPv6 address.
+If
+.I gwipv4
+is supplied, it will be used as the gateway's IPv4 address.
+.SH EXAMPLES
+Configure Ethernet 0 as the primary IP interface.
+Get all addresses via DHCP.  Start up a connection server
+and DNS resolver for this IP stack.
+.IP
+.EX
+% bind -b '#l0' /net
+% bind -a '#I0' /net
+% ip/ipconfig
+% ndb/cs
+% ndb/dns -r
+.EE
+.PP
+Add a second address to the stack.
+.IP
+.EX
+% ip/ipconfig ether /net/ether0 add 12.1.1.2 255.255.255.0
+.EE
+.PP
+At Bell Labs, our primary IP stack is always to the company's internal
+firewall-protected network.  The following creates an external
+IP stack to directly access the outside Internet.  Note that the
+connection server uses a different set of
+.I ndb
+files.  This prevents us from confusing inside and outside name/address
+bindings.
+.IP
+.EX
+% bind -b '#l1' /net.alt
+% bind -b '#I1' /net.alt
+% ip/ipconfig -x /net.alt -g 204.178.31.1 ether /net.alt/ether1\\
+	204.178.31.6 255.255.255.0
+% ndb/cs -x /net.alt -f /lib/ndb/external
+% ndb/dns -sx /net.alt -f /lib/ndb/external
+% aux/listen -d /rc/bin/service.alt /net.alt/tcp
+.EE
+.PP
+Get all addresses via DHCP.
+Configure the IPv6 link-local address automatically
+and listen for router announcements.
+.IP
+.EX
+ip/ipconfig -6 
+ip/ipconfig ra6 recvra 1
+.EE
+.SH FILES
+.B /sys/log/v6routeradv
+.SH SOURCE
+.B /sys/src/cmd/ip/ipconfig
+.br
+.B /sys/src/cmd/ip/rip.c
+.br
+.B /sys/src/cmd/ip/linklocal.c
+.br
+.B /rc/bin/ipv6on
+.SH "SEE ALSO"
+.IR ether (3),
+.IR ip (3),
+.IR loopback (3),
+.IR ndb (6),
+.IR 6in4 (8),
+.IR dhcpd (8),
+.IR ppp (8)
+.br
+.B /lib/rfc/rfc2373
+for IPv6's modified EUI-64

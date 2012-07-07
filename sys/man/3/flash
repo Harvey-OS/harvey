@@ -1,0 +1,173 @@
+.TH FLASH 3
+.SH NAME
+flash \- flash memory
+.SH SYNOPSYS
+.nf
+.BI "bind -a #F" \fR[\fPn\fR]\fP " /dev"
+.sp 0.3v
+.B /dev/flash
+.BI /dev/flash/ part
+.BI /dev/flash/ part ctl
+.fi
+.SH DESCRIPTION
+The flash memory device serves a two-level directory,
+giving access to files representing part or all of a bank of flash memory.
+A platform might have more than one bank of flash, numbered starting from 0.
+The attach specifier
+.I n
+is a decimal integer that selects a particular bank of flash (default: 0).
+Both NOR and NAND flash is supported.
+For both types of flash,
+the driver gives a read/write/erase interface to the raw flash device,
+which can impose constraints on operations beyond those imposed by the driver.
+Other drivers such as
+.IR ftl (3)
+or
+.IR logfs (3)
+implement any higher-level format required,
+including ECC for NAND flash, for instance.
+.PP
+The top level directory contains a single directory named
+.B flash
+for bank 0, and
+.BI flash n
+for each other bank
+.IR n .
+It contains two files for each partition:
+a data file
+.I part
+and an associated control file
+.IB part ctl ,
+where
+.I part
+is the name of the partition.
+Each partition represents a region of flash memory that starts and ends
+on a flash segment (erase unit) boundary.
+The system initially creates a single standard partition
+.B flash
+representing the whole of flash memory, and the corresponding control file
+.BR flashctl .
+Other partitions can be created by writing to
+.B flashctl
+as described below.
+.PP
+The data file
+.I part
+provides read and write access to the bytes on the system's flash memory.
+Bytes can be read and written on any byte boundary:
+the interface hides any alignment restrictions.
+A read returns the value of the bytes at the current file offset,
+where zero is the start of the partition.
+A write reprograms the flash to the given byte values, at the current
+file offset (relative to the start of the partition), using the physical
+device's reprogramming algorithm.
+An erased flash byte is logically
+.B 0xFF
+(regardless of the conventions of the physical flash device).
+A write can change a bit with value 1 to a 0,
+but cannot change a 0 bit to 1;
+that can only be done by erasing one or more flash segments.
+NAND flash typically has restrictions on the number of writes
+allowed to a page before requiring a block erase.
+.\" bad idea:
+.\" Reads and writes are unbuffered.
+.PP
+The control file
+.IB part ctl
+can be read and written.
+A read returns several lines containing decimal and hexadecimal numbers
+(separated by white space)
+revealing the characteristics of memory within the partition.
+The first line gives the 
+the manufacturer ID,  the flash device ID, the memory width in bytes,
+and a string giving the flash type
+(currently either
+.B nor
+or
+.BR nand ).
+Subsequent lines give characteristics of each group of erase units
+within the partition,
+where the erase units within a group have the same properties.
+Each line gives the start and end (as byte addresses)
+of the erase units in the region
+that lie within the partition,
+followed by the size in bytes of each erase unit, which is followed
+for NAND flash by the size in bytes of a page.
+The sizes for NAND flash include the extra bytes per page
+typically used to hold an ECC and block status.
+A write contains one of the following textual commands:
+.TF "erase al"
+.TP
+.BI add " name start end"
+Create a new partition that ranges from
+.I start
+to
+.I end
+within the current partition.
+Each value must be numeric (decimal, octal or hexadecimal)
+and a multiple of the erase unit size.
+.I Name
+must not be the name of an existing partition.
+On success, new files
+.I name
+and
+.IB name ctl
+will appear in the parent
+.B flash
+directory.
+.TP
+.B erase all
+Erase the whole flash partition, setting all bytes to
+.BR 0xFF ,
+except those that are hardware write-protected.
+.TP
+.BI erase " offset"
+Erase the segment that begins at the given
+.I offset
+within the partition,
+setting all bytes to
+.BR 0xFF ,
+except those that are hardware write-protected.
+The
+.I offset
+is given in bytes, but must be a multiple
+of the segment (erase unit) size.
+.TP
+.BR protectboot " [ " off " ]"
+By default the system prevents erase unit 0 of the flash from being
+erased or written, assuming it
+contains the primary bootstrap.
+Writing this command with parameter
+.B off
+removes that protection.
+Writing
+.B protectboot
+with any other parameter (or none) restores the protection.
+Note that a manufacturer might also have locked the flash in hardware,
+and that protection must be removed in a device-dependent way.
+.TP
+.B sync
+If the underlying device must buffer or cache (current devices do not),
+flush the buffer(s).
+.PD
+.PP
+The syntax of all numbers is that of
+.I strtoul
+(in
+.IR atof (2));
+the default base is 10.
+.SH SOURCE
+.B /sys/src/*/devflash.c
+.br
+.B /sys/src/*/flash*.c
+.SH SEE ALSO
+.IR flashfs (4),
+.IR paqfs (4)
+.SH DIAGNOSTICS
+A write will return an error if
+an attempt is made to change a 0 bit to 1,
+or if the flash memory fails to be programmed correctly.
+.SH BUGS
+The flash cannot be written if the kernel is executing directly from flash,
+because the physical flash cannot be read during programming,
+and the driver does not copy the programming code to DRAM.

@@ -1,0 +1,699 @@
+.TH DEVATTACH 9
+.SH NAME
+devattach, devclone, devdir, devgen, devwalk, devdirread, devstat, devopen, devbread, devbwrite, devcreate, devremove, devwstat, devreset, devinit, devshutdown, openmode \- common device driver support
+.SH SYNOPSIS
+.nf
+.ta \w'\fLBlock* 'u +10n
+.B
+typedef int
+.B
+Devgen(Chan *c, char *name, Dirtab *tab, int ntab, int i, Dir *dp)
+.PP
+.B
+Chan*	devattach(int tc, char *spec)
+.PP
+.B
+Chan*	devclone(Chan *c)
+.PP
+.B
+void	devdir(Chan *c, Qid qid, char *n, long length,
+.B
+		char *user, long perm, Dir *dp)
+.PP
+.B
+int	devgen(Chan *c, char *name, Dirtab *tab, int ntab,
+.B
+		int i, Dir *dp)
+.PP
+.B
+Walkqid* devwalk(Chan *c, Chan *nc, char **name, int nname,
+.B
+		Dirtab *tab, int ntab, Devgen *gen)
+.PP
+.B
+void	devstat(Chan *c, uchar *db, int n, Dirtab *tab,
+.B
+		int ntab, Devgen *gen)
+.PP
+.B
+long	devdirread(Chan *c, char *d, long n, Dirtab *tab,
+.B
+		int ntab, Devgen *gen)
+.PP
+.B
+Chan*	devopen(Chan *c, int omode, Dirtab *tab,
+.B
+		int ntab, Devgen *gen)
+.PP
+.B
+Block*	devbread(Chan *c, long n, ulong offset)
+.PP
+.B
+long	devbwrite(Chan *c, Block *bp, ulong offset)
+.PP
+.B
+void	devcreate(Chan*, char*, int, ulong)
+.PP
+.B
+void	devremove(Chan*)
+.PP
+.B
+void	devwstat(Chan*, uchar*, int)
+.PP
+.B
+void	devreset(void)
+.PP
+.B
+void	devinit(void)
+.PP
+.B
+void	devshutdown(void)
+.PP
+.B
+int	openmode(ulong mode)
+.SH DESCRIPTION
+Device drivers call these functions to carry out essential tasks and default actions.
+They do most of the name space management
+for a driver that serves a simple name space
+(eg, data and control files),
+leaving the driver to concentrate on the device-specific details
+of the I/O requests.
+More complex drivers also make good use of them at the leaves
+of their name space, and to help manage the
+.B Chan
+structures correctly.
+.PP
+A device has an associated
+.IR type ,
+represented as a Unicode character (`rune') that identifies the device
+inside and outside the kernel.
+It appears as the value of the
+.B type
+field in the
+.B Dir
+resulting from a
+.IR sys-stat (2)
+of any file provided by the device.
+A device is named outside the kernel using
+a path name starting with
+.B #
+followed by the device character
+(eg,
+.B c
+in
+.B #c
+for the console).
+Any subsequent characters before
+the next '/' or end of string is the `device specifier',
+interpreted solely by the device itself.
+.PP
+.I Devattach
+returns a new channel representing
+the root of the file tree
+corresponding to device type
+.IR tc ,
+with device specifier
+.IR spec .
+It is normally called by a driver's
+.I attach
+function (see
+.IR dev (9)).
+The
+.B qid
+for the new channel is
+.BR "(Qid){0,0,QTDIR}" ,
+suitable for a root directory for many devices, but
+a device driver is free to change it (provided the
+.B QTDIR
+bit remains in the
+.BR Qid.type ).
+.PP
+.I Devclone
+returns a new channel that is a copy of
+.IR c .
+An attempt to clone an open channel causes a
+.IR panic (9).
+.PP
+The
+.L Dir
+structure is shown below:
+.IP
+.EX
+typedef
+struct Dir
+{
+    /* system-modified data */
+    ushort  type;   /* server type */
+    uint    dev;    /* server subtype */
+    /* file data */
+    Qid     qid;    /* unique id from server */
+    ulong   mode;   /* permissions */
+    ulong   atime;  /* last read time */
+    ulong   mtime;  /* last write time */
+    vlong   length; /* file length */
+    char    *name;  /* last element of path */
+    char    *uid;   /* owner name */
+    char    *gid;   /* group name */
+    char    *muid;  /* last modifier name */
+} Dir;
+.EE
+.PP
+This
+.B Dir
+structure corresponds directly to the Limbo
+.B Dir
+adt described in
+.IR sys-stat (2).
+.PP
+Given a channel and assorted other information, 
+.I devdir
+initialises a Dir structure at
+.IR dp .
+.I Devdir
+supplies the following data itself:
+.RS
+.TF length
+.TP
+.B atime
+last access time (set to current time)
+.TP
+.B mtime
+last modification time (set to kernel creation date)
+.TP
+.B gid
+group name (set to
+.IR eve (9))
+.TP
+.B length
+length in bytes (set to zero, which
+is normal for most devices)
+.RE
+.PD
+.PP
+Note that
+.I devdir
+assigns the values of
+.I name
+and
+.I user
+directly to fields of
+.BI * dp,
+and consequently those values must remain valid until the last use of
+.BI * dp.
+(Sometimes that requires the use of an auxiliary buffer, such as
+.BR up->genbuf .)
+If channel
+.I c
+corresponds to a file descriptor on which Styx is served,
+.I devdir
+sets both the flag bit
+.B QTMOUNT
+in
+.IB dp ->qid.type
+and the flag bit
+.B DMMOUNT
+in
+.IB dp ->mode
+(see
+.I export
+in
+.IR sys-dial (2)
+and
+.I mount
+in
+.IR sys-bind (2)).
+.PP
+A simple name space can be represented in a driver by an array of
+.B Dirtab
+structures.
+The array is typically static when the names and permissions
+are static, but can be dynamically allocated and initialised if required.
+The structure of
+.B Dirtab
+is shown below:
+.IP
+.EX
+typedef
+struct Dirtab
+{
+        char    name[KNAMELEN];
+        Qid     qid;
+        vlong   length;
+        long    perm;
+} Dirtab;
+.EE
+.PP
+The name
+.RB ` . '
+.I must
+appear as the first entry in a
+.B Dirtab
+if the default
+.I devgen
+function is used.
+On the other hand, the name
+.RB ` .. '
+must never appear in a
+.B Dirtab
+table.
+Drivers that support a directory hierarchy must walk up the hierarchy towards
+the root when their
+.I walk
+function receives
+.RB ` .. '
+as a file name component.
+The name
+.RB ` . '
+is never seen by a driver.
+.PP
+The
+.IR devdirread ,
+.IR devopen ,
+.IR devstat ,
+and
+.IR devwalk
+functions all take a
+.I gen
+function argument,
+of type
+.BR Devgen ,
+which they invoke to retrieve the items in
+a
+.B Chan
+that represents a directory.
+.I Gen
+takes a channel
+.I c
+(a directory),
+a file
+.I name
+(which is nil except during
+.IR devwalk ),
+an array of
+.B Dirtab
+structures
+.I tab
+of length
+.IR ntab ,
+and a table index
+.IR i .
+The functions calling
+.I gen
+expect it to place the
+.IR i 'th
+entry in the directory into
+.IR \f5*\fPdp .
+It should return 1
+if the call was successful,
+-1 if
+.I i
+is beyond the index of the last directory entry,
+or 0 if there is no entry at
+.IR i ,
+but there are entries beyond it.
+When
+.I i
+has the special value
+.B DEVDOTDOT
+then
+.I gen
+should set
+.IR \f5*\fPdp
+to reflect the parent of
+.IR c ;
+if
+.I c
+is a one-level device directory, then `..' is equivalent to `.'.
+Custom implementations of
+.I gen
+often ignore
+.IR devtab ,
+and instead return their own dynamically generated
+set of directory entries from some other source.
+Exceptionally, during
+.I devwalk
+a non-nil
+.I name
+is provided: it is the name being looked up, and a device-specific
+.I gen
+can short-circuit the search by returning -1 if the name does not exist,
+or filling in
+.IR \f5*\fPdp
+and returning 1 if it does exist.
+.PP
+The function
+.I devgen
+is compatible with
+.BR Devgen ;
+it returns the
+.IR i 'th
+entry in
+.IR devtab ,
+and can be used to provide a simple, static
+set of directory entries.
+.PP
+.I Devwalk
+walks channel
+.I c
+to the file in the device named by the path encoded in
+.IR name ,
+which is an array of strings of length
+.IR nname .
+It provides the interface to
+.IR walk (5)
+within the kernel, and that specification must be well understood to appreciate
+all the nuances of its interface.
+Fortunately, in nearly all device drivers, a device's
+.I walk
+function typically passes its parameters on to
+.I devwalk
+(adding the device's own
+.B Dirtab
+array as the the value of
+.IR tab ),
+and simply returning the result of
+.IR devwalk .
+.PP
+.I Devwalk
+walks
+.I c
+using the given set of names, and if the walk is successful, the
+channel
+.I nc
+will refer to the result of the walk
+(specifically,
+.IB nc ->qid
+is set to the Qid for the file).
+If
+.I nc
+is nil,
+.I devwalk
+will allocate a new channel itself, that is initially a clone of
+.IR c .
+As in
+.IR walk (5),
+.I devwalk
+can return a partial result,
+represented by
+a dynamically allocated value of the following structure:
+.IP
+.EX
+struct Walkqid
+{
+    Chan  *clone;
+    int   nqid;
+    Qid   qid[1];	/* actually nname in length */
+};
+.EE
+.PP
+The value must be freed after use.
+For each element of
+.I name ,
+.I devwalk
+passes
+the
+.I tab
+parameter to
+.I gen
+together with the currently-sought element of
+.IR name .
+If the first element is not found,
+.I devwalk
+returns nil; otherwise, it returns a
+.B Walkqid
+value in which
+.B nqid
+elements of the array
+.B qid
+are set to the qids (see
+.IR intro (5))
+of each valid element of
+.IR name .
+If all
+.I nname
+elements were successfully traversed, then
+.B nqid
+will have the value
+.IR nname ,
+and
+.B clone
+will refer to the result of the walk,
+which is either
+.I nc
+if given, or
+the new channel allocated by
+.IR devwalk .
+Otherwise, at least one element succeeded and
+.B nqid
+is less than
+.I nname
+and
+.B clone
+is nil.
+On an error or incomplete walk,
+the error string is set to the error that stopped the walk (eg,
+.B Enonexist
+or
+.BR Enotdir ).
+.PP
+.I Devstat
+fills the array of bytes
+.I db
+with data in the format produced by
+.IR stat (5)
+that describes the file
+referenced by channel
+.IR c ,
+which must have a corresponding entry
+returned by
+.IR gen
+(ie, an entry with matching
+.BR Qid.path ).
+If
+.I c
+is a communications channel connecting a Styx server to a current mount point,
+the
+.B DMMOUNT
+bit is set in the resulting
+.BR Dir.mode ,
+and
+.B QTMOUNT
+is set in
+.BR Dir.qid.type .
+As in
+.IR stat (5),
+the length of the data written to
+.I db
+varies; if more than
+.I n
+bytes are needed,
+.I devstat
+raises the
+.IR error (9)
+.BR Ebadarg .
+Otherwise, it returns the number of bytes in
+.I db
+actually used.
+.PP
+If an entry with the desired qid is not found in the table, but
+.I c
+corresponds to a directory
+(ie,
+.B QTDIR
+is set in
+.IR c\f5->qid.type\fP ),
+it is taken to be a
+.I stat
+of a notional directory containing the files listed in
+.IR tab .
+.I Dirstat
+then builds the corresponding Dir structure:
+its
+.B Dir.name
+is taken from
+.IR c\f5->path->elem\fP ;
+the length is
+.BI DIRLEN*nelem(tab) ;
+and
+.B Dir.perm
+is 0555 (read-execute for all).
+.PP
+.I Devdirread
+calls
+.I gen
+to obtain successive
+.B Dir
+structures representing entries in the open directory
+.IR c .
+These are converted to standard format (see
+.I convD2M
+in
+.IR fcall (2))
+and placed in the buffer
+.IR b .
+It returns the number of bytes in the result.
+At most
+.I n
+bytes will be returned, in multiples of
+.BR DIRLEN .
+Because the kernel maintains the current offset in
+.IR c ,
+successive calls to
+.I devdirread
+return successive directory components.
+.PP
+.I Devopen
+is called to check and complete a request to open channel
+.I c
+for I/O according to
+.IR omode
+(the open mode of
+.IR sys-open (2)).
+It calls
+.I gen
+to obtain successive directory entries
+which it searches
+for a Qid matching that of
+.IR c ,
+and ensures that the current user has permission to open
+.I c
+with the given mode,
+.IR omode ,
+and that the mode itself is valid
+(see
+.I openmode
+below).
+Permission is checked against the permission in the
+matching entry.
+If no matching Qid is found, it is assumed
+that the notional parent directory of the files represented in
+.I tab
+is to be opened.
+Such a directory is deemed to have mode
+0555, allowing access by any user.
+A directory can only be opened for reading
+.RB ( OREAD ).
+.I Devopen
+returns the channel
+.I c
+on success.
+Last, it sets the bit
+.B COPEN
+in
+.B Chan.flag
+to mark
+.I c
+as open.
+This convention can always be relied upon by the driver's
+.I close
+function to tell if an open succeeded.
+On the otherhand,
+if the open request was unsuccessful,
+.I devopen
+raises an appropriate
+.IR error (9)
+and does not return.
+.PP
+.I Devbread
+returns a
+.B Block
+(see
+.IR allocb (9))
+containing up to
+.I n
+bytes read,
+using
+.BI "devtab[" c "->type]->read" ,
+from
+.I c
+starting at the given
+.IR offset .
+The read pointer in the returned
+.B Block
+points to the start of the data;
+the write pointer points to the next available byte.
+.PP
+.I Devbwrite
+writes the data in
+.B Block
+.I bp
+to the file
+.I c
+at the given
+.IR offset ,
+using the write function
+.BI "devtab[" c "->type]->write" .
+It then frees the block list
+.I bp
+before
+returning the number of bytes written.
+.PP
+Most built-in devices do not allow
+.IR create ,
+.IR remove
+or
+.I wstat
+on their files.
+.IR Devcreate ,
+.I devremove
+and
+.I devwstat
+are stubs that raise an
+.IR error (9),
+.BR Eperm .
+They can be named directly in a device driver's device
+switch (the
+.B Dev
+structure in
+.BR /sys/src/9/port/portdat.h :
+see
+.IR dev (9)).
+.PP
+.IR Devreset ,
+.I devinit
+and
+.I devshutdown
+are also stubs;
+they do nothing.
+A device driver puts them in its
+.B Dev
+structure when it need take no action on device reset, initialisation, or shut down.
+.PP
+.I Openmode
+is used by a driver that does not use
+.IR devopen ,
+to check the open mode it receives in its open
+routine.
+.I Openmode
+returns mode
+.IR o ,
+the mode parameter to
+.IR sys-open (2)
+or
+.IR sys-create ,
+shorn of
+.BR OTRUNC
+and similar options,
+and reduced to one of
+.BR OREAD ,
+.BR OWRITE
+or
+.BR ORDWR .
+In particular,
+.B OEXEC
+becomes
+.B OREAD
+within the kernel.
+.I Openmode
+raises an
+.IR error (9)
+.B Ebadarg
+instead of returning, if
+.I o
+is an invalid mode (eg, reserved bits set).
+.SH SOURCE
+.B /sys/src/9/port/dev.c
+.SH SEE ALSO
+.IR allocb (9),
+.IR eve (9),
+.IR qio (9)

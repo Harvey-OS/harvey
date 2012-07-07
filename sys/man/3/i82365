@@ -1,0 +1,41 @@
+.TH I82365 3 
+.SH NAME
+i82365 \- Personal Computer Memory Card Interface Association (PCMCIA) device
+.SH SYNOPSIS
+.nf
+.B bind -a #y /dev
+
+.B /dev/pcm0attr
+.B /dev/pcm0ctl
+.B /dev/pcm0mem
+.B /dev/pcm1attr
+.B /dev/pcm1ctl
+.B /dev/pcm1mem
+.fi
+.SH DESCRIPTION
+The
+.I i82365
+driver provides an interface to an Intel
+82365-compatible PCMCIA interface chip.
+This chip supports up to 2 PCMCIA slots, 0
+and 1.
+Reading
+.B pcm[01]attr
+returns the contents of attribute memory.
+Reading or writing
+.B pcm[01]mem
+reads or writes RAM on the card.
+Reading
+.B pcm[01]ctl
+returns the card's status.
+.PP
+This driver must be included to use PCMCIA
+devices such as the NE4100 Ethernet card.
+The individual card drivers make calls to routines
+in the PCMCIA driver.
+.SH SOURCE
+.B /sys/src/9/pc/devi82365.c
+.SH "SEE ALSO"
+.IR plan9.ini (8)
+.SH BUGS
+There is no driver for the Databook PCMCIA interface chip.

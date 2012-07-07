@@ -1,0 +1,217 @@
+.TH VGA 8
+.SH NAME
+vga \- configure a VGA card
+.SH SYNOPSIS
+.B aux/vga
+[
+.B -BcdilpvV
+]
+[
+.B -b
+.I bios-string
+]
+[
+.B -m
+.I monitor
+]
+[
+.B -x
+.I file
+]
+[
+.I mode
+[
+.I size
+]
+]
+.SH DESCRIPTION
+.I Vga
+configures a VGA controller for various display sizes and depths.
+Using the monitor type specified in
+.B /env/monitor
+(default
+.BR vga )
+and the
+.I mode
+given as argument
+(default
+.BR 640x480x1 ), 
+.I vga
+uses the database of known VGA controllers and monitors in
+.B /lib/vgadb
+(see
+.IR vgadb (6))
+to configure
+the display via the devices provided by
+.IR vga (3).
+The options are:
+.TP
+.BI -b " bios-string"
+use the VGA database entry corresponding to
+.I bios-string
+(e.g. 
+\fL0xC0045="Stealth 64 DRAM Vers. 2.02"\fR)
+rather than looking for identifying strings in the BIOS
+memory.
+.TP
+.B -B
+dump the BIOS memory (in hex) to standard output and exit.
+.TP
+.B -c
+disable the use of the hardware graphics cursor.
+.TP
+.B -d
+include the color palette in whatever actions are performed,
+usually printing the contents.
+.TP
+.B -i
+when used with
+.B -p
+display the register values that will be loaded.
+.TP
+.B -l
+load the desired mode.
+.TP
+.BI -m " monitor"
+override the
+.B /env/monitor
+value.
+.B /env/monitor
+is usually set by including it in the
+.B plan9.ini
+file read by the PC boot program
+.IR 9load (8).
+.TP
+.B -p
+print the current or expected register values at appropriate points depending on
+other options.
+.TP
+.B -v
+print a trace of the functions called.
+.TP
+.B -V
+print a verbose trace of the functions called.
+.TP
+.BI -x " file"
+use 
+.I file
+as the VGA database rather than
+.BR /lib/vgadb .
+.PP
+.I Mode
+is of the form
+.IB X x Y x Z
+, where
+.IR X ,
+.IR Y ,
+and
+.I Z
+are numbers specifying the display height, width, and depth respectively.
+The mode must appear in 
+.B /lib/vgadb
+as a value for one of the monitor entries.
+The usual modes are
+.BR 640x480x[18] ,
+.BR 800x600x[18] ,
+.BR 1024x768x[18][i] ,
+.BR 1280x1024x[18][i] ,
+.BR 1376x1024x8 ,
+and
+.BR 1600x1200x8 .
+A trailing
+.L i
+indicates interlaced operation.
+The default mode is
+.BR 640x480x8 .
+.I Size
+is of the form
+.I X x Y
+and configures the display to have a virtual
+screen of the given size.
+The physical screen will pan to follow the mouse.
+This is useful on displays with small screens,
+such as laptops, but can be confusing.
+.PP
+Using the monitor name
+.B vesa
+instructs
+.I vga
+to use VESA BIOS calls to configure the display.
+Also, if our VGA controller can't be found in
+.IR vgadb ,
+.I vga
+will try the VESA calls.
+There are no entries for the
+.B vesa
+monitor in 
+.IR vgadb .
+For a list of available VESA modes, use
+.IP
+.EX
+aux/vga -m vesa -p
+.EE
+.PP
+Loading the special mode
+.BR text :
+.IP
+.EX
+aux/vga -l text
+.EE
+.PP
+switches out of graphics mode back into text mode.
+It uses the VESA BIOS.
+.SH EXAMPLES
+Change the display resolution:
+.IP
+.EX
+aux/vga -l 1600x1200x8
+.EE
+.PP
+Print the current VGA controller registers.
+It is usually best to redirect the output of a
+.B -p
+command to a file to prevent confusion caused by using the VGA
+controller while trying to dump its state:
+.IP
+.EX
+aux/vga -p >/tmp/x
+.EE
+.PP
+Force the VGA controller to a known state:
+.IP
+.EX
+aux/vga -m vga -l
+.EE
+.PP
+Print the current VGA controller state and what would be loaded
+into it for a new resolution, but don't do the load:
+.IP
+.EX
+aux/vga -ip 1376x1024x8 >/tmp/x
+.EE
+.PP
+.SH FILES
+.TF /env/monitor
+.TP
+.B /env/monitor
+display type (default
+.IR vga ).
+.TP
+.B /lib/vgadb
+VGA configuration file.
+.SH SOURCE
+.B /sys/src/cmd/aux/vga
+.SH SEE ALSO
+.IR vga (3),
+.IR vgadb (6),
+.IR 9load (8)
+.SH BUGS
+.B Aux/vga
+makes every effort possible to verify that the mode it is about
+to load is valid and will bail out with an error message 
+before setting any registers if it encounters a problem.
+However, things can go wrong, especially when playing with a
+new VGA controller or monitor setting.
+It is useful in such cases to have
+the above command for setting the controller to a known state
+at your fingertips.

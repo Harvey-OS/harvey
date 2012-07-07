@@ -1,0 +1,67 @@
+.TH RDBFS 4
+.SH NAME
+rdbfs \- remote kernel debugging file system
+.SH SYNOPSIS
+.B rdbfs
+[
+.B -d
+]
+[
+.B -p 
+.I pid
+]
+[
+.B -t
+.I text
+]
+[
+.I device
+]
+.SH DESCRIPTION
+.I Rdbfs
+presents in 
+.BI /proc/ pid
+(default
+.BR /proc/1 )
+a set of process files for debugging
+a kernel over the serial line 
+.I device
+(default 
+.BR /dev/eia0 ).
+.PP
+The 
+.B text
+file presented is just a copy of
+.I text
+(default
+.BR /386/9pc ).
+It can usually be ignored, since
+the debuggers open kernel
+files directly rather than
+using
+.BI /proc/ n /text\fR.
+.PP
+Kernels can be remotely debugged  only when they are
+suspended and serving
+a textual debugging protocol over their serial lines.
+Typing 
+.RB `` ^t^td ''
+.RB (control- t ", control-" t ", d)"
+at the console will cause the kernel to enter
+this mode when it `panics'.
+Typing 
+.RB `` ^t^tD '' 
+causes the kernel to enter this mode immediately.
+.PP
+Because the debugging protocol is textual, a console
+provided by
+.IR consolefs (4)
+may be substituted for the serial device.
+.SH SOURCE
+.B /sys/src/cmd/rdbfs.c
+.br
+.B /sys/src/9/port/rdb.c
+.SH "SEE ALSO"
+.IR acid (1),
+.IR db (1),
+.IR consolefs (4)

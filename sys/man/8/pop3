@@ -1,0 +1,168 @@
+.TH POP3 8
+.SH NAME
+pop3, imap4d \- Internet mail servers
+.SH SYNOPSIS
+.PP
+.B upas/pop3
+[
+.B -d
+.I debugfile
+][
+.B -a
+.I mailbox
+][
+.B -r
+.I peeraddr
+][
+.B -t
+.I tlscertfile
+][
+.B -p
+]
+.PP
+.B ip/imap4d
+.RB [ -acpv ]
+.RB [ -d
+.IR smtpdomain ]
+.RB [ -s
+.IR servername ]
+.SH DESCRIPTION
+These programs support remote access to mail across the Internet.
+All expect the network connection to be standard input, output, and error.
+They are normally started from scripts in
+.B /rc/bin/service
+(see
+.IR listen (8)).
+.PP
+.I Pop3
+provides access to a user's mailboxes via the POP3 protocol.
+The options are:
+.TP 4
+.B -d
+create
+.I debugfile
+and write debugging output to it
+.TP
+.B -a
+causes pop3 to assume that it it already authenticated
+and to read
+.I mailbox
+immediately
+.TP
+.B -r
+causes
+.I pop3
+to create the file
+.B /mail/ratify/trusted/\fIpeeraddr\fP#32
+to allow subsequent SMTP sessions from that
+address.  See
+.IR ratfs (4)
+for details.
+.TP
+.B -t
+get the local TLS certificate from the file
+.IR tlscertfile .
+.TP
+.B -p
+allow passwords in the clear for authenticating the connection
+.PP
+.I Imap4d
+provides access to a user's mailboxes via the IMAP4rev1 protocol.
+Only files rooted in
+.BI /mail/box/ username /
+are accessible.
+The list of subscribed mailboxes is contained in
+.BI /mail/box/ username /imap.subscribed ,
+and initially contains only
+.BR INBOX ,
+IMAP's name for the user's mailbox.
+A shadow file,
+.IB mailbox .imp ,
+is created for each mailbox examined.
+.PP
+.IR Imap4d 's
+options are:
+.TP 4
+.B a
+Assume the user is already authenticated.
+By default, the user must authenticate using
+CRAM-MD5 or
+.IR securenet (8)
+challenge/response authentication.
+.TP
+.B c
+Allow plan 9 challenge response authentication.
+.TP
+.B p
+Allow login authentication.  This option
+should only be enabled for servers using
+an encrypted connection, such as SSL,
+and when enabled, all non-encrypted connections should be disallowed.
+.I Imap4d
+does not enforce this policy.
+.TP
+.B v
+Turn on verbose output to the debug file.
+.TP
+.B s
+The server's name.
+If none is provided,
+.B cs
+(see
+.IR ndb (8))
+is queried or
+.B /env/sysname
+is used.
+.TP
+.B d
+The local mail domain.
+Defaults to the server
+.B /env/site
+in the mail server's domain.
+.PP
+For both
+.I imap4d
+and
+.IR pop3 ,
+the password used to authenticate the connection is the APOP
+secret held by
+.IR keyfs (4)
+running on the authentication server.
+.SH FILES
+.TF /mail/box/username/imap.subscrib
+.TP
+.B /sys/log/imap4d
+debugging output
+.TP
+.BI /mail/box/ username / mailbox
+.TP
+.BI /mail/box/ username / mailbox .imp
+.TP
+.BI /mail/box/ username /imap.subscribed
+.SH SOURCE
+.B /sys/src/cmd/upas/pop3
+.br
+.B /sys/src/cmd/ip/imap4d
+.SH "SEE ALSO"
+.IR aliasmail (8),
+.IR faces (1),
+.IR filter (1),
+.IR mail (1),
+.IR marshal (1),
+.IR mlmgr (1),
+.IR nedmail (1),
+.IR qer (8),
+.IR rewrite (6),
+.IR send (8),
+.IR upasfs (4)
+.SH BUGS
+Usually messages flagged for deletion with
+.B DELE
+are not actually deleted until the client sends a
+.B QUIT
+command to end the conversation.
+.I Pop3
+implements a non-standard command
+.B SYNC
+that deletes messages flagged for deletion
+without ending the conversation.

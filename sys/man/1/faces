@@ -1,0 +1,124 @@
+.TH FACES 1
+.SH NAME
+faces, seemail, vwhois \-  mailbox interface
+.SH SYNOPSIS
+.B faces
+[
+.B -ih
+] [
+.B -m
+.I maildir
+]
+.br
+.B seemail
+.br
+.B vwhois
+.I person
+\&...
+.SH DESCRIPTION
+The
+.I faces
+command monitors incoming mail and
+displays in its window a representation of the user's mail box
+using a small image for each message.
+The image is typically a portrait of the sender. Which image to 
+display is determined by two directories /usr/$user/lib/face 
+and /lib/face. Entries in /usr/$user/lib/face take priority over 
+those in /lib/face. See 
+.IR face (6),
+for how these directories are organised.
+.PP
+If the user is running
+.IR plumber (4),
+.I faces
+reacts to plumb messages to the
+.B seemail
+port,
+typically from
+.BR upas/fs ,
+and is thus notified of message additions and deletions.
+.PP
+Right-clicking on a message icon causes that message to be `plumbed' to
+.BR showmail .
+A typical plumb action will be to display the message, such as by
+the rule
+.EX
+    plumb start window mail -s $0
+.EE
+The
+.IR acme (1)
+mail reader listens to the
+.B showmail
+port automatically.
+.PP
+If the user is not running
+.IR plumber ,
+.I faces
+reads the log file
+.F /sys/log/mail
+and right-clicking has no effect.
+.PP
+If arrows are visible, clicking on them will scroll the display.
+Middle-clicking on the arrows scrolls to the end.
+.PP
+Starting
+.B faces
+with the
+.B -i
+flag causes
+.B faces
+to read the messages in
+.BR /mail/fs/mbox
+— or the mailboxes specified with the
+.B -m
+flag —
+upon startup.
+.PP
+The
+.B -m
+option directs
+.I faces
+to watch for messages arriving in
+.I maildir
+instead of
+.BR /mail/fs/mbox .
+Multiple
+.B -m
+flags may be used to watch multiple mailboxes.
+.PP
+The
+.B -h
+flag causes a different, venerable behavior in which
+the window displays the history of messages received
+rather than the current state of the mail box.
+In particular, faces are not removed from the screen when messages are deleted.
+Also, in this mode clicking button 1 in the display will clear the window.
+.PP
+.I Seemail
+is an
+.IR rc (1)
+script that invokes
+.B faces
+.BR -h .
+.PP
+.I Vwhois
+tells
+.I faces
+to display the icons of the named
+.IR persons ,
+without sending a message.
+.SH FILES
+.BR /mail/fs/mbox   "   mail directory.
+.SH SOURCE
+.B /sys/src/cmd/faces
+.br
+.B /rc/bin/seemail
+.br
+.B /rc/bin/vwhois
+.SH "SEE ALSO"
+.IR mail (1),
+.IR marshal (1),
+.IR nedmail (1),
+.IR plumber (4),
+.IR face (6),
+.IR plumb (6)

@@ -1,0 +1,52 @@
+.TH MKPAQFS 8
+.SH NAME
+mkpaqfs \- make a compressed read-only file system
+.SH SYNOPSIS
+.B mkpaqfs
+[
+.B -u
+] [
+.B -b
+.I blocksize
+] [
+.B -l
+.I label
+] [
+.B -o
+.I file
+] [
+.I source
+]
+.SH DESCRIPTION
+.I Mkpaqfs
+copies files from the file tree
+.I source
+(default
+.BR . )
+to the
+.IR paqfs (4)
+file system archive
+.IR file .
+.PP
+The files and directory structure are divided into
+.I blocksize
+(default
+.BR 4096 )
+byte blocks.
+Larger blocks make large files more compact but take longer to access.
+.I Blocksize
+must be in the range of 512 bytes to 52K bytes.
+If the
+.B -u
+option is set, the blocks are not compressed.
+Otherwise each block is compressed using the
+.IR flate (2)
+compression algorithm.
+The
+.B -l
+option embeds a label of up to 32 bytes within the file header and may be
+useful for identifying the file system.
+.SH SOURCE
+.B /sys/src/cmd/paqfs/mkpaqfs.c
+.SH "SEE ALSO"
+.IR paqfs (4)

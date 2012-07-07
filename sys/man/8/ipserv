@@ -1,0 +1,195 @@
+.TH IPSERV 8
+.SH NAME
+telnetd, rlogind, rexexec, ftpd \- Internet remote access daemons
+.SH SYNOPSIS
+.B ip/telnetd
+.RB [ -adnptN ]
+.RB [ -u
+.IR user ]
+.PP
+.B ip/rlogind
+.PP
+.B ip/rexexec
+.PP
+.B ip/ftpd
+.RB [ -aAde ]
+.RB [ -n
+.IR namepace-file ]
+.PP
+.SH DESCRIPTION
+These programs support remote access across the Internet.  All expect the
+network connection to be standard input, output, and error.  They are normally
+started from scripts in
+.B /rc/bin/service
+(see
+.IR listen (8)).
+.PP
+.I Telnetd
+allows login from a remote client.
+There are three types of login:
+.TF anonymo
+.TP
+.I normal
+Normal users log in by encrypting and returning a
+challenge printed by
+.IR telnetd .
+The user can use either the
+.IR netkey
+program
+(see
+.IR passwd (1))
+or a  SecureNet handheld authenticator to encrypt the challenge.
+.B /lib/namespace
+defines the namespace.
+.TP
+.I noworld
+Users in group
+.B noworld
+in
+.BR /adm/users
+authenticate with a password in the clear.
+.B /lib/namespace.noworld
+defines the namespace.
+.TP
+.I anonymous
+User
+.B none
+requires no authentication.
+.B /lib/namespace
+defines the namespace.
+.PD
+.PP
+.IR Telnetd 's
+options are:
+.TP 4
+.B a
+allow anonymous login by
+.B none
+.TP
+.B d
+print debugging to standard error
+.TP
+.B p
+don't originate any telnet control codes
+.TP
+.B n
+turn on local character echoing and imply the
+.B p
+option
+.TP
+.B t
+trusted, that is, don't authenticate
+.TP
+.B u
+use
+.I user
+as the local account name
+.TP
+.B N
+permit connections by `noworld' users only.
+.PD
+.PP
+.I Rlogind
+logs in using the BSD remote login protocol.
+.I Rlogind
+execs
+.I telnetd
+.B -nu
+after completing its initial handshake.
+.PP
+.I Rexexec
+executes a command locally for a remote client.  It uses the
+standard Plan 9 authentication (see
+.IR authsrv (6)).
+.PP
+.I Ftpd
+runs the Internet file transfer protocol.  Users may transfer
+files in either direction between the local and
+remote machines.
+As for
+.IR telnetd ,
+there are three types of login:
+.TF anonymo
+.TP
+.I normal
+Normal users authenticate
+via the same challenge/response as for
+.IR telnetd .
+.BI /usr/ username /lib/namespace.ftp
+or, if that file does not exist,
+.B /lib/namespace
+defines the namespace.
+.TP
+.I noworld
+Users in group
+.B noworld
+in
+.B /adm/users
+login using a password in the clear.
+.B /lib/namespace.noworld
+defines the namespace.
+.TP
+.I anonymous
+Users
+.B anonymous
+and
+.B none
+require no authentication.
+The argument to the
+.B \-n
+option (default
+.IR /lib/namespace.ftp )
+defines the namespace.
+Anonymous users may only store files in the subtree
+below
+.BR /incoming .
+.PD
+.PP
+.IR Ftpd 's
+options are:
+.TP 4
+.B a
+allow anonymous access
+.TP
+.B A
+allow
+.I only
+anonymous access
+.TP
+.B d
+write debugging output to standard error
+.TP
+.B e
+treat any user as anonymous
+.TP
+.B n
+the namespace for anonymous users (default
+.BR /lib/namespace.ftp )
+.PP
+To preserve intended protections in shared file trees,
+any directory containing a file
+.I .httplogin
+is locked by
+.IR ftpd;
+see
+.IR httpd (8).
+.PP
+.SH FILES
+.B /lib/namepace
+.br
+.BI /usr/ username /lib/namespace.ftp
+.br
+.B /lib/namespace.world
+.br
+.B /lib/namespace.ftp
+.SH SOURCE
+.B /sys/src/cmd/ip/telnetd.c
+.br
+.B /sys/src/cmd/ip/rlogind.c
+.br
+.B /sys/src/cmd/ip/rexexec.c
+.br
+.B /sys/src/cmd/ip/ftpd.c
+.SH "SEE ALSO"
+.IR ftpfs (4),
+.IR pop3 (8)

@@ -1,0 +1,168 @@
+.TH SEGATTACH 2
+.SH NAME
+segattach, segdetach, segfree \- map/unmap a segment in virtual memory
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
+.ta \w'\fLlong 'u
+.B
+void*	segattach(int attr, char *class, void *va, ulong len)
+.PP
+.B
+int	segdetach(void *addr)
+.PP
+.B
+int	segfree(void *va, ulong len)
+.PP
+.SH DESCRIPTION
+.I Segattach
+creates a new memory segment, adds it
+to the calling process's address space, and returns its lowest address.
+Segments belong to system-dependent classes.
+Segment classes
+.B memory
+(plain memory)
+and
+.B shared
+(shared memory)
+are available on all systems.
+.PP
+Shared segments are inherited by the children of the attaching process
+and remain untouched across a
+.IR fork (2).
+An
+.IR exec (2)
+will release a shared segment if it overlaps the segments
+in the file being
+.IR exec'ed ;
+otherwise the segment will be inherited.
+.PP
+Some machines provide a segment class
+.BR lock .
+Lock segments allow access to special lock hardware provided
+by some multiprocessors, in particular the SGI Power Series machines.
+.PP
+Systems may also provide interfaces to special hardware devices like
+frame buffers through the
+.I segattach
+interface.
+Device memory mapped by this method is typically uncached by default.
+.PP
+If the specified
+.I class
+is unknown,
+.I segattach
+draws an error.
+.PP
+.I Attr
+specifies the new segment's attributes.
+The only attributes implemented on all classes of segment is
+.BR SG_RONLY ,
+which allows only read access on the segment, and
+.BR SG_CEXEC ,
+which causes the segment to be detached when the process does an
+.IR exec (2).
+Specific devices may implement
+attributes to control caching and allocation, but these will vary
+between devices.
+.PP
+.I Va
+and
+.I len
+specify the position of the segment in the process's address space.
+.I Va
+is rounded down to the nearest page boundary and
+.IB va + len
+is rounded up.
+The system does not permit segments to overlap.
+If
+.I va
+is zero, the system will choose a suitable address.
+.PP
+.I Segdetach
+removes a segment from a process's address space. Memory used by
+the segment is freed.
+.I Addr
+may be any address within the bounds of the segment.
+.PP
+The system will not permit the initial stack segment to be detached
+from the address space.
+.PP
+.I Segfree
+tells the system that it may free any physical memory within the span
+.RI [ va ,
+.IR va+len ),
+but leaves that portion of the process's address space valid.
+The system will not free any memory outside that span,
+and may not free all or even any of the specified memory.
+If free'd memory is later referenced,
+it will be initialized as appropriate for the segment type.
+For example data and text segments will be read from the executable file,
+and bss segments will be filled with zero bytes.
+.PP
+The MIPS R2000 and R3000 have no hardware instructions
+to implement locks.  The following method can be used
+to build them from software.
+First, try to
+.I segattach
+a segment of class
+.BR lock .
+If this succeeds, the machine is an SGI Power Series and
+the memory contains hardware locks.
+Each 4096-byte page has 64
+.B long
+words at its beginning; each word implements
+a test-and-set semaphore when read; the low bit of the word
+is zero on success, one on failure.
+If the
+.I segattach
+fails, there is no hardware support but the operating system
+helps:
+Any
+.B COP3
+instruction will be trapped by the kernel and interpreted
+as a test-and-set.
+In the trap,
+.B R1
+points to a
+.BR long ;
+on return,
+.B R1
+is greater or equal zero on success, negative on failure.
+The following assembly language implements such a test-and-set.
+.IP
+.EX
+.ta 8n +8n +8n +8n +8n +8n +8n
+/*
+ *	MIPS test and set
+ */
+	TEXT	tas(SB), $0
+	MOVW	R1, sema+0(FP)	/* save arg on stack */
+btas:
+	MOVW	sema+0(FP), R1
+	MOVB	R0, 1(R1)
+	NOR	R0, R0, R0	/* NOP */
+	WORD	$(023<<26)	/* MFC3 R0, R0 */
+	BLTZ	R1, btas
+	RET
+.EE
+.SH SOURCE
+.B /sys/src/libc/9syscall
+.SH SEE ALSO
+.IR lock (2),
+.IR segbrk (2),
+.IR segflush (2)
+.br
+.BR /proc/*/segment
+.SH DIAGNOSTICS
+These functions set
+.IR errstr .
+.I Segattach
+returns
+.B (void*)-1
+on error.
+.SH BUGS
+There is a small fixed limit on the number of segments that may be attached,
+as well as a maximum segment size.

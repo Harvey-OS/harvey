@@ -1,0 +1,173 @@
+.TH MARSHAL 1
+.SH NAME
+marshal \- formatting and sending mail
+.SH SYNOPSIS
+.B upas/marshal
+[
+.B -[aA]
+.I attachment
+] [
+.B -C
+.I copyaddr
+] [
+.B -nrx#
+] [
+.B -R
+.I reply-msg
+] [
+.B -s
+.I subject
+] [
+.B -t
+.I mime-type
+] [
+.I mailaddr ...
+]
+.SH DESCRIPTION
+.I Marshal
+builds a mail message from standard input and passes it,
+if the body is non-empty,
+for transmission or delivery to
+.BI /mail/box/ username /pipefrom
+if it exists, otherwise to
+.BR /bin/upas/send .
+The message format is both RFC 822 and
+MIME conformant, so
+.I marshal
+adds any required headers not already in the message, prefixed by
+the contents of
+.BI /mail/box/ username /headers\f1.
+This allows the addition of personal headers like
+.B From:
+lines with a full name or a different
+return address.
+Command line options direct marshal to add a subject line
+and append attachments.  The arguments to
+.I marshal
+are the addresses of the recipients.
+.PP
+When running in a
+.IR rio (1)
+window,
+.I marshal
+automatically puts the window into hold mode (see
+.IR rio (1));
+this means that the message can be edited freely,
+because nothing will be sent to
+.I marshal
+until the ESC key is hit to exit hold mode.
+.PP
+The options are:
+.TF "-a file"
+.TP
+.BI -a file
+directs
+.I marshal
+to append 
+.I file
+as a mime attachment.
+Unless explicitly specified by the
+.B -t
+option, the type of the attachment is determined
+by running the
+.IR file (1)
+command.
+.TP
+.BI -A file
+is like
+.B -a
+but the message disposition is marked as
+.I inline
+directing any mail reader to display the attachment
+(if it can) when the mail message is read.
+.TP
+.BI -C copyaddr
+adds a
+.B Cc:
+header with
+.I copyaddr
+and also adds
+.I copyaddr
+as a recipient.
+.TP
+.BI -n
+intentionally no standard input
+.TP
+.B -#xr
+are all passed as command line options to the
+.I send
+that
+.I marshal
+invokes.
+.TP
+.BI -R replymsg
+tells marshal what message this one is in reply to.
+.I Replymsg
+is an
+.IR upasfs (4)
+directory containing the message.
+.I Marshal
+uses any message id in this message in its
+.B In-Reply-To
+field.  It also passes the directory to
+.BI /mail/box/ username /pipefrom
+in the
+.B replymsg
+environment variable.  Thus,
+.B pipefrom
+can alter the message to somehow match
+the reply to the message it is replying to.
+.TP
+.BI -s subject
+adds a
+.B Subject:
+header line to the message if one does not
+already exist.
+.TP
+.BI -t type
+sets the content type for the attachments from
+all subsequent
+.B -a
+and
+.B -A
+options.
+.PD
+.PP
+.I Marshal
+also expands any user mail aliases contained in
+.BI /mail/box/ username /names.
+The format of the alias file is the same as that
+for system aliases, see
+.IR aliasmail (8).
+.PP
+.I Marshal
+uses the login name as the reply address.  This
+can be overriden using the environment variable
+.BR upasname .
+Its value will become both the envelope
+and
+.B From:
+mailbox name.
+For example:
+.IP
+.EX
+upasname=natasha@kremvax.com upas/mail boris@squirrel.com
+.EE
+.SH FILES
+.TP
+.B /mail/box/*/dead.letter
+.SH SOURCE
+.TP
+.B /sys/src/cmd/upas/marshal
+.SH "SEE ALSO"
+.IR aliasmail (8),
+.IR faces (1),
+.IR filter (1),
+.IR mail (1),
+.IR mlmgr (1),
+.IR nedmail (1),
+.IR qer (8),
+.IR rewrite (6),
+.IR send (8),
+.IR smtp (8),
+.IR upasfs (4)

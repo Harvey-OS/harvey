@@ -1,0 +1,341 @@
+.TH REPLICA 1
+.SH NAME
+changes, pull, push, scan \- client-server replica management
+.SH SYNOPSIS
+.B replica/pull
+[
+.B -nv
+]
+[
+.B -c
+.I name
+]...
+[
+.B -s
+.I name
+]...
+.I name
+[
+.I path
+...
+]
+.br
+.B replica/push
+[
+.B -nv
+]
+.I name
+[
+.I path
+...
+]
+.br
+.B replica/changes
+.I name
+[
+.I path
+...
+]
+.br
+.B replica/scan
+.I name
+[
+.I path
+...
+]
+.SH DESCRIPTION
+These shell scripts provide a simple log-based client-server replica management.
+The server keeps a log of changes made to its file system,
+and clients synchronize by reading the log and applying these changes locally.
+.PP
+These scripts are a polished interface to the low-level tools described in
+.IR replica (8).
+See
+.IR replica (8)
+for details on the inner workings of replica management.
+These tools were written primarily as the fourth
+edition Plan 9 distribution mechanism, but they
+have wider applicability.
+For example, they could be used to synchronize one's
+home directory between a laptop and a central file server.
+.PP
+Replicas are described by configuration files.
+The
+.I name
+in all the replica commands is a configuration
+file.  Paths that do not begin with
+.BR / ,
+.BR ./ ,
+or
+.B ../
+are assumed to be relative to
+.BR $home/lib/replica .
+Configuration files are described below.
+.PP
+.I Replica/scan
+is the only one of these programs that does not
+need to be run on the client.
+It scans the server file system for changes
+and appends entries for those changes into the server log.
+Typically it is run on a machine with a fast network
+connection to the server file system.
+.PP
+.I Replica/pull
+copies changes from the server to the client,
+while
+.I replica/push
+copies changes from the client to the server.
+(Both run on the client.)
+If a list of
+.I paths
+is given, only changes to those paths or their children are copied.
+The
+.B -v
+flag causes
+.I pull
+or
+.I push
+to print a summary of what it is doing.
+Each status line is of the form
+.ift .sp 0.5
+.ifn .sp
+\h'0.25i'
+.I verb
+.I path
+.I serverpath
+.I mode
+.I uid
+.I gid
+.I mtime
+.I length
+.ift .sp 0.5
+.ifn .sp
+.I Verb
+describes the event:
+addition of a file
+.RB ( a ),
+deletion of a file
+.RB ( d ),
+a change to a file's contents
+.RB ( c ),
+or a change to a file's metadata
+.RB ( m ).
+.I Path
+is the file path on the client;
+.I serverpath
+is the file path on the server.
+.IR Mode ,
+.IR uid ,
+.IR gid ,
+and
+.I mtime
+are the file's metadata as in the
+.B Dir
+structure (see
+.IR stat (5)).
+For deletion events, the metadata is that of the deleted file.
+For other events, the metadata is that after the event.
+The
+.B -n
+flag causes
+.I pull
+or
+.I push
+to print the summary but not actually carry out the actions.
+.PP
+.I Push
+and
+.I pull
+are careful to notice simultaneous changes to a file or
+its metadata on both client and server.
+Such simultaneous changes are called
+.IR conflicts .
+Here, simultaneous does not mean at the same instant
+but merely that both changes were carried out without knowledge
+of the other.
+For example, if a client and server both make changes to a file
+without an intervening
+.I push
+or
+.IR pull ,
+the next
+.I push
+or
+.I pull
+will report an update/update conflict.
+If a conflict is detected, both files are left the same.
+The
+.B -c
+flag to
+.I pull
+specifies that conflicts for paths beginning with
+.I name
+should be resolved using the client's copy,
+while
+.B -s
+specifies the server's copy.
+The 
+.B -c
+and
+.B -s
+options may be repeated.
+.PP
+.I Replica/changes
+prints a list of local changes made on the client
+that have not yet been pushed to the server.
+It is like
+.I push
+with the
+.B -n
+flag, except that it does not check for conflicts
+and thus does not require the server to be available.
+.PP
+The replica configuration file is an
+.IR rc (1)
+script that must define the following functions and variables:
+.TP
+.B servermount
+A function that mounts the server; run on both client and server.
+.TP
+.B serverupdate
+A function that rescans the server for changes.
+Typically this command dials a CPU server known
+to be close to the file server and runs
+.I replica/scan
+on that well-connected machine.
+.TP
+.B serverroot
+The path to the root of the replicated file
+system on the server, as it will be in the name space
+after running
+.BR servermount .
+.TP
+.B serverlog
+The path to the server's change log, after running
+.BR servermount .
+.TP
+.B serverproto
+The path to the proto file describing the server's files,
+after running
+.BR servermount .
+Only used by
+.IR scan .
+.TP
+.B serverdb
+The path to the server's file database, after running
+.BR servermount .
+Only used by
+.IR scan .
+.TP
+.B clientmount
+A function to mount the client file system; run only on the client.
+.TP
+.B clientroot
+The path to the root of the replicated file system on the client,
+after running
+.BR clientmount .
+.TP
+.B clientlog
+The path to the client's copy of the server log file.
+The client log is maintained by
+.IR pull .
+.TP
+.B clientproto
+The path to the proto file describing the client's files.
+Only used by
+.IR changes .
+Often just a copy of
+.BR $serverproto .
+.TP
+.B clientdb
+The path to the client's file database, after running
+.BR clientmount .
+.TP
+.B clientexclude
+A (potentially empty) list of paths to exclude from 
+synchronization.  A typical use of this is to exclude
+the client database and log files.
+These paths are relative to the root of the replicated file system.
+.PD
+.PP
+As an example, the Plan 9 distribution replica configuration looks like:
+.EX
+    fn servermount { 9fs sources; bind /n/sources/plan9 /n/dist }
+    fn serverupdate { status='' }
+    serverroot=/n/dist
+    s=/n/dist/dist/replica
+    serverlog=$s/plan9.log
+    serverproto=$s/plan9.proto
+
+    fn clientmount { 9fs kfs }
+    clientroot=/n/kfs
+    c=/n/kfs/dist/replica
+    clientlog=$c/client/plan9.log
+    clientproto=$c/plan9.proto
+    clientdb=$c/client/plan9.db
+    clientexclude=(dist/replica/client)
+.EE
+.PP
+(Since the Plan 9 developers run
+.I scan
+manually to update the log, the clients need not do anything
+to rescan the file system.
+Thus 
+.B serverupdate
+simply returns successfully.)
+.PP
+The fourth edition Plan 9 distribution uses these
+tools to synchronize installations with the central
+server at Bell Labs.
+The replica configuration files and metadata are kept
+in 
+.BR /dist/replica .
+To update your system, make sure you are connected
+to the internet and run
+.EX
+    replica/pull /dist/replica/network
+.EE
+If conflicts are reported (say you have made local changes to 
+.B /rc/bin/cpurc
+and
+.BR /rc/bin/termrc ,
+but only want to keep the
+.B cpurc
+changes),
+use
+.EX
+    replica/pull -c rc/bin/cpurc -s rc/bin/termrc /dist/replica/network
+.EE
+to instruct
+.I pull
+to ignore the server's change to 
+.BR cpurc .
+.PP
+The script
+.B /usr/glenda/bin/rc/pull
+runs 
+.I pull
+with the
+.B -v
+flag and with
+.B /dist/replica/network
+inserted at the right point on the command line.
+Logged in as glenda, one can repeat the above example with:
+.EX
+    pull -c rc/bin/cpurc -s rc/bin/termrc
+.EE
+.PP
+To see a list of changes made to the local file system
+since installation, run
+.EX
+    replica/changes /dist/replica/network
+.EE
+(Although the script is called 
+.IR network ,
+since 
+.I changes
+is a local-only operation, the network need not be configured.)
+.SH SOURCE
+.B /rc/bin/replica
+.SH SEE ALSO
+.IR replica (8)

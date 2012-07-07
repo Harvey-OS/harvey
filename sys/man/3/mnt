@@ -1,0 +1,72 @@
+.TH MNT 3 
+.SH NAME
+mnt \- attach to 9P servers
+.SH SYNOPSIS
+.nf
+.B #M
+.fi
+.SH DESCRIPTION
+The
+.I mount driver
+is used by the
+.B mount
+system call
+(but not
+.BR bind ;
+see
+.IR bind (2))
+to connect the name space of a process to
+the service provided by a 9P server over a communications channel.
+After the
+.BR mount ,
+system calls involving files in that portion of the name space will
+be converted by the mount driver into the appropriate
+9P messages to the server.
+.PP
+The
+.I mount
+system call issues
+.I session
+and
+.IR attach (5)
+messages to the server to identify and validate the user of the connection.
+Each distinct user of a connection must mount it separately;
+the mount driver multiplexes the access of the various users and their
+processes to the service.
+.PP
+File-oriented system calls are converted by the kernel into messages in the 9P protocol.
+Within the kernel, 9P is implemented by procedure calls to the
+various kernel device drivers.
+The mount driver translates these procedure calls into remote procedure calls
+to be transmitted as messages over the communication channel to the server.
+Each message is implemented by a write
+of the corresponding protocol message to the server channel
+followed by a read on the server channel to get the reply.
+Errors in the reply message are turned into system call error returns.
+.PP
+A
+.IR read (2)
+or
+.IR write
+system call on a file served by the mount driver
+may be translated
+into more than one
+message,
+since there is a maximum data size for a 9P message.
+The system call
+will return when the specified number of bytes have been transferred
+or a short reply is returned.
+.PP
+The string
+.L #M
+is an illegal file name,
+so this device can only be accessed directly by the kernel.
+.SH "SEE ALSO"
+.IR bind (2)
+.SH SOURCE
+.B /sys/src/9/port/devmnt.c
+.SH BUGS
+When mounting a service through the mount driver,
+that is, when the channel being multiplexed is itself
+a file being served by the mount driver,
+large messages may be broken in two.

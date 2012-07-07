@@ -1,0 +1,340 @@
+.TH CONF 10.6
+.SH NAME
+conf \- native and hosted kernel configuration file
+.SH DESCRIPTION
+Plan 9 kernels are built for a given target
+.I platform
+using platform-specific code in directory
+.BI /sys/src/9/ platform
+and portable code in
+.BR /sys/src/9/port ,
+.B /sys/src/9/ip
+and elsewhere.
+Existing
+.I platforms
+include
+.B alphapc
+for the DEC Alpha,
+.B iPAQ
+for the Compaq iPAQ,
+.B pc
+for the Intel x86,
+and
+.B ppc
+for the IBM/Motorola PowerPC.
+Each
+.I platform
+can have several different kernels with different configurations.
+A given configuration is built in the platform's directory using the
+.IR mk (1)
+command:
+.IP
+.EX
+mk 'CONF=\fIconf\fP'
+.EE
+.PP
+where
+.I conf
+is a text file that specifies drivers, protocols and other parameters for that
+particular kernel:
+a parts list.
+The result of a successful
+.I mk
+is
+an executable or bootable file with a name determined by the
+.IR platform 's
+.BR mkfile ,
+typically
+.BI 9 conf.
+.PP
+A kernel configuration file has several sections of the form
+.IP
+.EX
+.I "label"
+.IR "	item" " [ " "subitem ..." " ]"
+\&	...
+.EE
+.PP
+Each section begins with a
+.I label
+at the start of a line, which names a configuration
+category, followed by
+a list of each
+.I item
+to select from that category,
+one line per item, with white space (ie, blank or tab) at the start of the line.
+An
+.I item
+line can optionally list one or more
+.I subitems
+that must be included in the kernel to support it.
+A line that starts with a
+.L #
+is a comment.
+Empty lines are ignored.
+.PP
+.I Labels
+are chosen from the following set, listed in the order
+in which they conventionally appear in a configuration file:
+.TF etherxx
+.TP
+.B dev
+Device drivers
+.TP
+.B ip
+IP protocols (native kernels only) taken from
+.B ../ip
+.TP
+.B link
+Hardware-specific parts of device drivers.
+.TP
+.B misc
+Architecture-specific files; specific VGA and SCSI interfaces
+.TP
+.B lib
+Libraries to link with the kernel
+.TP
+.B port
+C code and declarations to include as-is in the generated configuration file
+.TP
+.B boot
+Configuration for
+.IR boot (8)
+.TP
+.B bootdir
+List of files and directories to put in the
+.B boot
+directory of
+.IR root (3).
+.PD
+.PP
+When an
+.I item
+is listed
+under a given
+.I label
+it causes a corresponding component to be included in the kernel.
+The details depend on the
+.IR label ,
+as discussed below.
+Each
+.I subitem
+represents a kernel subcomponent required by the corresponding
+.IR item .
+Both items and subitems can be either portable (platform-independent)
+or platform-specific.
+The source file for a given item or subitem
+is sought in the platform-directory
+(for platform-specific code), and
+in directories
+.BR ../port
+and
+.BR ../ip ,
+under control of the platform's
+.BR mkfile
+and
+.B ../port/portmkfile
+(which is included by
+.BR mkfile ).
+Resulting object files are left in the
+.I platform
+directory.
+.PP
+Outside the
+.B dev
+section,
+each item and subitem
+.I x
+causes the kernel image to include the code compiled from
+.IB x .c ,
+(or
+.IB x .s
+for assembly-language support),
+or
+.IB portdir / x .c ,
+where
+.I portdir
+is one of the portable directories mentioned above.
+In the
+.B dev
+section, an item
+.I x
+corresponds instead to the driver source file
+.BI dev x .c
+in the current (platform-specific)
+directory or a portable driver
+.IB portdir /dev x .c .
+Subitems are handled as in any other section.
+Typically they are auxiliary files that are needed by the associated driver.
+.PP
+For instance, in a native kernel
+the portable driver for the
+.B draw
+device uses platform-specific code from
+.BR screen.c .
+That can be represented as follows:
+.IP
+.EX
+dev
+	draw	screen
+.EE
+.PP
+Each item
+.I x
+in the
+.B ip
+section
+corresponds to a protocol implementation compiled from
+.BI ../ip/ x .c .
+Any subitems
+are dealt with in the same way as in the
+.B dev
+section.
+.PP
+The
+.B link
+section provides a way for hardware-specific
+parts of drivers to link at runtime to the hardware-invariant part of a device
+drivers.
+For each item
+.IR x ,
+the kernel will call the function
+.IB x link
+during its initialisation.
+Typically that function makes itself known to the device driver by
+calling a function provided by that driver,
+passing the address of a interface-specific data structure or linkage table.
+For example,
+.B ethersmc
+is an interface-specific component:
+.IP
+.EX
+link
+	\fR...\fP
+	ethersmc
+.EE
+.PP
+and its source file
+.B ethersmc.c
+provides a function
+.B ethersmclink
+that
+calls
+.B addethercard
+in the interface-invariant part of the driver,
+.BR devether.c :
+.IP
+.EX
+void
+ethersmclink(void)
+{
+	addethercard("smc91cXX", reset);
+}
+.EE
+.PP
+The
+.B boot
+section configures
+.IR boot (8),
+the first user program run by the kernel.
+Each line in the section names a possible boot method (see
+.IR boot (8)
+for the current list).
+The first will be the default.
+Also by default,
+.B /boot
+will run
+.B /bin/termrc
+from
+.IR cpurc (8),
+with
+.B bootdisk
+set to
+.BR #S/sdC0/ .
+To change the defaults, the line (or lines) containing a
+.B boot
+label can be given some options:
+.RS
+.TP
+.B "boot cpu"
+.br
+The kernel is a cpu server: run
+.B /bin/cpurc
+not
+.B /bin/termrc
+(see
+.IR cpurc (8)).
+.TP
+.BI "boot cpu boot " disk
+Use
+.I disk
+as the default
+.BR bootdisk .
+.RE
+.PP
+The
+.B lib
+section lists the libraries to include when linking the kernel,
+in an order that satisfies any dependencies amongst them.
+Each item
+.I x
+corresponds to
+.BI /$objtype/lib x .a ,
+a target-specific library
+produced by compiling the C source code in
+.BI /sys/src/lib item,
+where
+.B objtype
+is set in the platform's
+.B mkfile
+to the target system's object type
+(eg,
+.BR 386 ,
+.BR power ,
+etc).
+.PP
+An item in the
+.B bootdir
+section
+has one of the forms:
+.IP
+.EX
+.I name
+.I "source name"
+.EE
+.PP
+where
+.I name
+and
+.I source
+are path names (often absolute path names).
+The kernel's initial root file system (see
+.IR root (3))
+will contain a file or directory with the given
+.IR name .
+The contents will come from the file
+.I name
+(which must exist) unless an explicit
+.I source
+file is given.
+.PP
+The
+.B port
+section usually contains initialisations for kernel-specific values.
+The most common one is
+.IP
+.EX
+	int cpuserver = \fIn\fP;
+.EE
+.PP
+where
+.I n
+is non-zero for cpu servers and file servers, and zero otherwise.
+.SH FILES
+.B /sys/src/9/port/mkdevc
+.br
+.B /sys/src/9/port/mkdevlist
+.br
+.B /sys/src/9/port/mkroot
+.SH SEE ALSO
+.IR mk (1)

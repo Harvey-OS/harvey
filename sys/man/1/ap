@@ -1,0 +1,16 @@
+.TH AP 1
+.SH NAME
+ap \- fetch Associated Press news articles
+.SH SYNOPSIS
+.B ap
+[
+.BI article-name
+]
+.SH DESCRIPTION
+.I ap
+fetches Associated Press news articles from http://www.newsday.com.
+Without any arguments it provides a two column list of article keys and descriptions.
+When invoked with an article key it fetches that article.
+.PP
+.SH SOURCE
+.B /rc/bin/ap

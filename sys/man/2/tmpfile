@@ -1,0 +1,60 @@
+.TH TMPFILE 2
+.SH NAME
+tmpfile, tmpnam \- Stdio temporary files
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <stdio.h>
+.PP
+.ta \w'\fLFILE 'u
+.B
+FILE	*tmpfile(void)
+.PP
+.B
+char	*tmpnam(char *s)
+.SH DESCRIPTION
+.I Tmpfile
+creates a temporary file that will automatically
+be removed when the file is closed or the program exits.
+The return value is a Stdio
+.B FILE*
+opened in update mode (see
+.IR fopen (2)).
+.PP
+.I Tmpnam
+generates a string that is a valid file name and that is not
+the same as the name of an existing file.
+If
+.I s
+is zero, it returns a pointer to a string which may be overwritten by
+subsequent calls to
+.IR tmpnam .
+If
+.I s
+is non-zero, it should point to an array of at least
+.B L_tmpnam
+(defined in
+.BR <stdio.h> )
+characters, and the answer will be copied there.
+.SH FILES
+.TF /tmp/tf000000000000
+.TP
+.B /tmp/tf000000000000
+template for
+.I tmpfile
+file names.
+.TP
+.B /tmp/tn000000000000
+template for
+.I tmpnam
+file names.
+.SH SOURCE
+.B /sys/src/libstdio
+.SH BUGS
+The files created by
+.I tmpfile
+are not removed until
+.IR exits (2)
+is executed; in particular, they are not removed on
+.I fclose
+or if the program terminates abnormally.

@@ -1,0 +1,218 @@
+.TH FTPFS 4
+.SH NAME
+ftpfs  \- file transfer protocol (FTP) file system
+.SH SYNOPSIS
+.B ftpfs
+[
+.B -/dqnt
+]
+[
+.B -m
+.I mountpoint
+]
+[
+.B -a
+.I password
+]
+[
+.B -e
+.I ext
+]
+[
+.B -k
+.I keyspec
+]
+[
+.B -o
+.I os
+]
+[
+.B -r
+remoteroot
+]
+.I system
+.SH DESCRIPTION
+.I Ftpfs
+dials the TCP file transfer protocol (FTP) port, 21, on
+.I system
+and mounts itself (see
+.IR bind (2))
+on
+.I mountpoint
+(default
+.BR /n/ftp )
+to provide access via FTP to files on the remote machine.
+.I Ftpfs
+attempts to use FTP's `passive' mode
+but falls back to using `active' mode if that fails.
+If required by the remote machine,
+.I ftpfs
+will ask
+.IR factotum (4)
+for a key matching the pattern
+.IP
+.EX
+proto=pass service=ftp server=\fIsystem\fP user? !password? \fIkeyspec\fP
+.EE
+.PP
+(If
+.I factotum
+does not have such a key,
+.I factotum
+will prompt the user for one.)
+.PP
+The user names
+.B ftp
+and
+.B anonymous
+conventionally offer guest/read-only access to
+machines.
+Anonymous FTP may be called without using factotum
+by using the
+.B -a
+option and specifying the
+.IR password .
+.PP
+By default the file seen at the mount point is the user's
+remote home directory if he has one.
+The option
+.B -/
+forces the mount point to correspond to the
+remote root.
+The option
+.B -r
+forces the mount point to correspond to the
+remote directory
+.IR remoteroot .
+.PP
+To avoid seeing startup messages from the server use option
+.BR -q .
+To see all messages from the server use option
+.BR -d .
+.PP
+Some systems will hangup an ftp connection that has no activity
+for a given period.  The
+.BR -K
+option causes ftp to send a NOP command every 15 seconds to attempt
+to keep the connection open.  This command can cause some servers to
+hangup, so you'll have to feel your way.
+.PP
+The
+.B -t
+option causes
+.I ftpfs
+to negotiate TLS encryption with the server.
+.PP
+To terminate the connection,
+.B unmount
+(see
+.IR bind (1))
+the mount point.
+.PP
+Since there is no specified format for metadata retrieved
+in response to an FTP directory request,
+.I ftpfs
+has to apply heuristics to steer the interpretation.  Sometimes,
+though rarely, these heuristics fail.  The following options are
+meant as last resorts to try to steer interpretation.
+.PP
+A major clue to the heuristics is the operating system at the other
+end.  Normally this can be determined automatically using the
+FTP SYST command.  However, in some cases the server doesn't implement
+the SYST command.  The
+.B -o
+option will force the case by specifying the name of the operating
+system.  Known system types are:
+.BR UNIX ,
+.BR SUN ,
+.BR TOPS ,
+.BR Plan9 ,
+.BR VM ,
+.BR VMS ,
+.BR MVS ,
+.BR NetWare ,
+.BR OS/2 ,
+.BR TSO ,
+and
+.BR WINDOWS_NT .
+.PP
+Some systems and/or FTP servers return directory listings that don't
+include the file extension.  The
+.B -e
+option allows the user to specify an extension to append to all
+remote files (other than directories).
+.PP
+Finally, there are two FTP commands to retrieve the contents of a
+directory, LIST and NLST.  LIST is approximately equivalent to
+.L ls -l
+and NLST to
+.LR ls .
+.I Ftpfs
+normally uses LIST.  However, some FTP servers interpret LIST
+to mean, give a wordy description of the file.
+.I Ftpfs
+normally notices this and switches to using NLST.  However, in
+some rare cases, the user must force the use of NLST with the
+.B -n
+option.
+.SH EXAMPLE
+You want anonymous FTP access to the system
+.BR export.lcs.mit.edu .
+The first
+.IR import (4)
+command is only necessary if your machine does not have access to the
+desired system, but another, called
+.B gateway
+in this example, does.
+.IP
+.EX
+import gateway /net
+ftpfs -a yourname@yourmachine export.lcs.mit.edu
+.EE
+.SH SOURCE
+.B /sys/src/cmd/ip/ftpfs
+.SH "SEE ALSO"
+.IR bind (2)
+.SH BUGS
+Symbolic links on remote Unix systems will always have mode 0777
+and a length of 8.
+.PP
+After connecting to a TOPS-20 system, the mount point will contain
+only one directory, usually
+.BR /n/ftp/PS:<ANONYMOUS> .
+However, walking to any valid directory on that machine will succeed
+and cause that directory entry to appear under the mount point.
+.PP
+.I Ftpfs
+caches files and directories.  A directory will fall from the cache
+after 5 quiescent minutes or if the local user changes the
+directory by writing or removing a file.
+Otherwise, remote
+changes to the directory that occur after the directory has
+been cached might not be immediately visible.
+Attempting to walk to
+.IB directory /.flush.ftpfs
+will flush
+.I directory
+from the cache, thus forcing
+.I ftpfs
+to re-read it.
+.PP
+There is no way to issue the appropriate commands to handle special synthetic
+FTP file types such as directories
+that automatically return a
+.B tar
+of their contents.
+.PP
+.I Ftpfs
+makes copies in
+.B /tmp
+of files being transferred,
+so its effects might not be immediate.
+If there is enough main memory, you might want to run
+.IR ramfs (4)
+first.
+.PP
+Filenames containing spaces will confuse
+.I ftpfs
+(and other FTP clients).

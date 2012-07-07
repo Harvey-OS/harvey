@@ -1,0 +1,20 @@
+.TH REBOOT 8
+.SH NAME
+reboot \- reboot the system upon loss of remote file server connection
+.SH SYNOPSIS
+.B aux/reboot
+[
+.I file
+]
+.SH DESCRIPTION
+.I Reboot
+stats
+.IR file ,
+default
+.BR /$\fIcputype\fP/lib ,
+once every five minutes.  If the stat fails, rather than timing out,
+.I reboot
+reboots the system.  This is used to restart diskless cpu
+servers whenever their file server connection is broken.
+.SH SOURCE
+.B /sys/src/cmd/aux/reboot.c

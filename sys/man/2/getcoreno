@@ -1,0 +1,28 @@
+.TH GETCORENO 2
+.SH NAME
+getcore \- get core number and role
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
+.B
+int	getcoreno(int *rolep)
+.SH DESCRIPTION
+.I Getcoreno
+returns the number for the core used by the process and, if
+.I rlope
+is not nil, fills the pointed integer with the core role, one of:
+.I NIXTC
+(time-sharing core),
+.I NIXAC
+(application core), and
+.I NIXKC
+(kernel core).
+It uses
+.I tos
+and does not perform any system call or trap.
+.SH SOURCE
+.B /sys/src/libc/9sys/getcoreno.c
+.SH SEE ALSO
+.IR cons (3)

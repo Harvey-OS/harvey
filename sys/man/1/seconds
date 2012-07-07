@@ -1,0 +1,48 @@
+.TH SECONDS 1 
+.SH NAME
+seconds \- convert human-readable date (and time) to seconds since epoch
+.SH SYNOPSIS
+.B seconds
+.I date
+\&...
+.SH DESCRIPTION
+.I Seconds
+prints the number of seconds since 1 Jan 1970
+corresponding to one or more human-readable
+.IR date s.
+Each
+.I date
+must be
+.I one
+argument;
+it will usually be necessary to enclose it in quotes.
+.PP
+.I Seconds
+accepts a somewhat wider range of input than just output from
+.IR date (1).
+The main requirement is that the date must be fully specified,
+with a day of month, month and year
+in any order.
+The month must be an English name (or abbreviation),
+not a number, and the year must contain 4 digits.
+Unambiguous time-zone names are understood (i.e., not
+.LR IST )
+or time zones may be written as
+.IR ±hhmm .
+Case is ignored.
+.SH EXAMPLES
+Print the names of all files under
+.L \&.
+modified since the start of 23 May 2011.
+.IP
+.EX
+du -ta | awk '$1 >= '^`{seconds '23 may 2011'}^' {print $2}'
+.EE
+.SH SEE ALSO
+.IR date (1),
+.IR du (1),
+.IR mtime (1),
+.IR ctime (2)
+.SH BUGS
+All-numeric dates, popular in the USA, are simply ambiguous,
+more so if the year is truncated to 2 digits.

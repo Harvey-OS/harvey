@@ -1,0 +1,489 @@
+.TH 9LOAD 8
+.SH NAME
+9load, 9pxeload, 9loadusb, 9loadask, ld \- PC bootstrap program
+.SH SYNOPSIS
+.I "(Under MS-DOS)
+.br
+.RI [ drive\f(CW:\fP ][ path ] ld
+[
+.I 9load
+]
+.SH DESCRIPTION
+.I 9load
+and
+.I ld
+are programs that reside in a FAT file system and bootstrap Plan 9.
+.I 9load
+loads the kernel, but it cannot be run from DOS; use
+.I ld
+to bootstrap (by starting
+.IR 9load )
+if DOS is running.
+.I 9load
+is run automatically by the boot procedures described below;
+it cannot be run directly by hand.
+.I 9pxeload
+is a version of
+.I 9load
+that can be booted using the PXE download (BOOTP/DHCP followed by TFTP)
+found in some ethernet card BIOSes.
+.I 9loadusb
+is a version that will use only the BIOS's device drivers,
+and thus can load from USB devices.
+In contrast,
+.I 9load
+will
+.I not
+use BIOS device drivers.
+.I 9loadask
+is a version that asks on the console (too early for serial ports, alas)
+if you want to use BIOS drivers to boot.
+There are three bootstrap sequences:
+.IP \-
+BIOS, MBR, disk partition PBS,
+.IR 9load ,
+kernel
+.IP \-
+BIOS, floppy PBS,
+.IR 9load ,
+kernel
+.IP \-
+BIOS, MBR, DOS,
+.IR ld ,
+.IR 9load ,
+kernel.
+.PP
+Details follow.
+.PP
+.I 9load
+is a bootstrap program that loads and starts a program,
+typically the kernel, on a PC.
+It is run by the PC partition boot sector program (PBS),
+which usually resides in the first
+sector of the active partition.
+A copy of the Plan 9 PBS is kept in
+.BR /386/pbs ,
+but due to the ``cylinder-head-sector'' (CHS) addressing mode of old BIOSes, it can only
+operate up to 8.5GB into the disk.
+Plan 9 partitions further into the disk
+can only be booted using
+.BR /386/pbslba ,
+and then only if the machine's BIOS supports
+linear block addressing (LBA) mode for disk transfers.
+.PP
+When booting from floppy or hard disk, the BIOS loads the
+first sector of the medium at location
+.BR 0x7C00 .
+In the case of a floppy, this is the PBS.
+In the case of a hard disk, it is the master boot record (MBR).
+The MBR copies itself to address
+.BR 0x600 ,
+finds the active partition and loads its PBS at address
+.BR 0x7C00 .
+A copy of the Plan 9 MBR is kept in
+.BR /386/mbr ;
+some commercial MBRs cannot read sectors
+past 2GB.
+The Plan 9 MBR can read sectors up to 8.5GB into
+the disk, and further if the BIOS supports LBA.
+The single file
+.B /386/mbr
+detects whether the BIOS supports LBA and
+acts appropriately, defaulting to CHS mode
+when LBA is not present.
+The PBSs cannot do this due to code size considerations.
+The Plan 9 MBR is suitable for booting non-Plan 9
+operating systems,
+and (modulo the large disk constraints just described)
+non-Plan 9 MBRs are suitable for booting Plan 9.
+.PP
+Thus the default sequence is: BIOS, MBR, PBS,
+.IR 9load ,
+kernel.
+.PP
+Because it contains many device drivers for different
+disks and networks,
+.I 9load
+is larger than 64K and cannot be run as a DOS
+.RB `` .com ''
+executable.
+A stripped-down version that knows about disks but not networks,
+called
+.I ld
+(really
+.BR ld.com ),
+fits in 64K and can be used under DOS to load and start a program (default
+.IR 9load )
+from the FAT16 partition.
+Its command line argument is of the same format as the
+.I bootfile
+specifiers described below.
+This profusion of loaders is unfortunate, but at least
+.I ld
+and
+.I 9load
+are compiled from the same source.
+.PP
+.I 9load
+begins execution at virtual address
+.B 0x80010000
+(64K) and
+loads the
+.I bootfile
+at the entry address specified by the header,
+usually virtual
+.BR 0xF0100020 .
+After loading, control is passed to the entry location.
+.PP
+In summary,
+Plan 9 can be booted on a PC three different ways:
+either by booting MS-DOS and using
+.I ld
+to start
+.I 9load
+in the appropriate directory,
+by booting directly from a Plan 9 boot floppy or disk
+partition
+prepared using
+.B format
+to install the appropriate files and bootstrap sectors
+(see
+.IR prep (8)),
+or by using a PXE-capable BIOS to boot
+.I 9pxeload
+directly over the ethernet.
+.SS Bootfile
+The
+.IR bootfile ,
+which may be compressed with
+.IR gzip (1),
+can be specified to
+.I 9load
+as a
+.B bootfile=
+entry in
+.IR plan9.ini ,
+or if booting from the ethernet, by a BOOTP server
+(see
+.B "Kernel loading"
+below).
+If the
+.B plan9.ini
+file contains multiple
+.B bootfile=
+entries,
+.I 9load
+will present a numerical menu of the choices; type
+the corresponding number to select an entry.
+.PP
+The format of the
+.I bootfile
+name is
+.IB device ! file
+or
+.IB device ! partition ! file\f1.
+If
+.BI ! file
+is omitted, the default for the particular
+.I device
+is used.
+Supported
+.I devices
+are
+.TF \fLethern
+.PD
+.TP
+.BI fd n
+An MS-DOS floppy disk.
+.I N
+specifies the floppy drive, either
+0 or 1.
+The
+.I bootfile
+is the contents of the MS-DOS
+.IR file .
+There is no default file.
+For compatibility with hard disks, a
+.I partition
+may be given, but only
+.B dos
+is recognized:
+.BI fd0!dos! file\f1.
+.TP
+.BI ether n
+Ethernet.
+.I N
+specifies the Ethernet device number.
+If a
+.I partition
+is specified, it is taken to be the name of a host machine
+from which to load the kernel.
+.I file
+is determined by the
+.B /lib/ndb
+(see
+.IR ndb (6))
+entry for this PC.
+.TP
+.BI sd Cn
+Non-floppy disk.
+The device name format is described in
+.IR sd (3).
+A
+.I partition
+must be given and must
+name a partition containing a FAT file system.
+The name
+.B dos
+refers to the first DOS partition on a given device.
+It is common for Plan 9 partitions to contain a small
+FAT file system for configuration.
+By convention, this partition is called
+.BR 9fat .
+There is no default partition or pathname.
+.TP
+.B bios0
+(Not in
+.IR 9pxeload .)
+.I 9load
+loads from a FAT file system on
+the first LBA device
+in the BIOS's list of devices to try to boot from,
+using the BIOS INT 13 calls also used by
+.IR pbslba .
+It does not understand any form of partition table;
+see the EXAMPLES in
+.IR prep (8)
+for how to format such a device.
+This is mostly useful for booting from USB devices so far.
+.TP
+.B sdB0
+(Not in
+.IR 9pxeload .)
+A special case of
+.BI sd Cn
+that uses
+.B bios0
+to read from a FAT file system.
+Partitions are understood.
+.SS Kernel loading
+When
+.I 9load
+starts running at physical address
+.BR 0x10000 ,
+it switches to 32-bit mode.
+It then double maps the first 16Mb of physical memory to
+virtual addresses
+.B 0
+and
+.BR 0x80000000 .
+Physical memory from
+.B 0x300000
+upwards is used as data space.
+.PP
+.I 9pxeload
+differs slightly in operation from
+.IR 9load .
+It is initially loaded by the PXE BIOS at physical address
+.BR 0x7C00 .
+Only devices which can be automatically configured,
+e.g. most PCI ethernet adapters,
+will be recognised.
+If the file
+.BI /cfg/pxe/ XXXXXXXXXXXX
+can be located via a DHCP server,
+where
+.I XXXXXXXXXXXX
+is the MAC address of a recognised ethernet adapter,
+the contents are obtained and used as a
+.IR plan9.ini .
+.PP
+Next, in order to find configuration information,
+.I 9load
+searches all units on devices
+.BR fd
+and
+.BI sd Cn \fR,
+in that order, for a file called
+.B plan9\eplan9.ini
+or
+.B plan9.ini
+(see
+.IR plan9.ini (8))
+on a partition named
+.B dos
+or
+.BR 9fat .
+If one is found, searching stops and the file is read into memory
+at physical address
+.B 0x1200
+where it can be found later by any loaded
+.IR bootfile .
+Some options in
+.B plan9.ini
+are used by
+.IR 9load :
+.TF bootfile=manual
+.TP
+.B console
+.TP
+.B baud
+Specifies the console device and baud rate if not a display.
+.TP
+.BI ether n
+Ethernet interfaces. These can be used to load the
+.I bootfile
+over a network.
+Probing for Ethernet interfaces is too prone to error.
+.TP
+.BI bootfile= bootfile
+Specifies the
+.IR bootfile .
+This option is overridden by a command-line argument.
+.TP
+.B bootfile=auto
+Default.
+.TP
+.B bootfile=local
+Like
+.IR auto ,
+but do not attempt to load over the network.
+.TP
+.B bootfile=manual
+After determining which devices are available for loading from,
+enter prompt mode.
+.PD
+.PP
+When the search for
+.B plan9.ini
+is done,
+.I 9load
+proceeds to determine which bootfile to load.
+If there was no
+.I bootfile
+option,
+.I 9load
+chooses a default
+from the following prioritized device list:
+.EX
+	fd sd ether
+.EE
+.I 9load
+then attempts to load the
+.I bootfile
+unless
+the
+.B bootfile=manual
+option was given, in which case prompt mode is entered immediately.
+If the default device is
+.BR fd ,
+.I 9load
+will prompt the user for input before proceeding with the
+default bootfile load after 5 seconds;
+this prompt is omitted if
+a command-line argument or
+.I bootfile
+option
+was given.
+.PP
+.I 9load
+prints the list of available
+.IR device s
+and
+enters prompt mode on encountering any error
+or if directed to do so by a
+.B bootfile=manual
+option.
+In prompt mode, the user is required to type
+a
+.IB bootfile
+in response to the
+.L "Boot from:
+prompt.
+.SS Other facilities and caveats
+.I 9load
+parses the master boot record and Plan 9 partition tables
+(see
+.IR prep (8)),
+leaving partitioning information appended to the
+in-memory contents of
+.I plan9.ini
+for the
+.IR bootfile .
+This is used by
+.IR sd (3)
+to initialize partitions so that
+.IR fossil (4)
+or
+.IR kfs (4)
+file systems can be mounted as the root file system.
+A more extensive partitioning is typically done by
+.I fdisk
+and
+.I prep
+as part of
+.I termrc
+or
+.I cpurc
+(see
+.IR cpurc (8)).
+.PP
+A
+control-P
+character typed at any time on the console causes
+.B 9load
+to perform a hardware reset
+(Ctrl-Alt-Del can also be used on a PC keyboard).
+.PP
+When loaded from a PBS (rather than from
+.IR ld.com ),
+.I 9load
+must be contiguously allocated on
+the disk.
+See
+.IR dossrv (4)
+for information on ensuring this.
+.SH FILES
+.RI [ drive\f(CW:\fP ][ path ]\c
+.B 9load
+.br
+.RI [ drive\f(CW:\fP ][ path ]\c
+.B ld
+.br
+.IB "FAT-filesystem" :\eplan9\eplan9.ini
+.br
+.IB "FAT-filesystem" :\eplan9.ini
+.TF /cfg/pxe
+.TP
+.B /386
+most of these binaries reside here
+.TP
+.BI /cfg/pxe
+directory of
+.I plan9.ini
+files on your TFTP server
+.SH SOURCE
+.B /sys/src/boot/pc
+.SH "SEE ALSO"
+.IR booting (8),
+.IR dhcpd (8),
+.IR plan9.ini (8),
+.IR prep (8)
+.SH BUGS
+Much of the work done by
+.B 9load
+is duplicated by the loaded kernel.
+.PP
+If
+.I ld
+detects an installed MS-DOS Extended Memory Manager,
+it attempts to de-install it, but the technique
+used may not always work.
+It is safer not to install the Extended Memory Manager before running
+.IR ld .
+.PP
+BIOS bugs force some limitions on reading via the BIOS.
+.B bios0
+and
+.B sdB0
+only work on the first LBA device in the BIOS's list of boot devices.

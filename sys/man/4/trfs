@@ -1,0 +1,90 @@
+.TH TRFS 4
+.SH NAME
+trfs  \-  translate spaces and other runes in file names file system
+.SH SYNOPSIS
+.B trfs
+[
+.B -Dv
+]
+[
+.B -\fIRune\fP
+]
+[
+.B -s
+.I srvfile
+]
+[
+.B -n
+.I addr
+]
+.I servename
+.SH DESCRIPTION
+.I Trfs
+translates 9P requests exchanged between a client and a file
+server. The translation replaces spaces seen in remote file names 
+to a different rune. The same is done with left and right parenthesis,
+ampersands and single quotes.
+.PP
+The rune used instead of space within file names
+can be selected by specifying it as an option.
+.PP
+.I Trfs
+reaches the server through the
+.I servename
+file or through a network connection to the 
+.I addr
+address given to the
+.B -n
+option. 
+The client mounts the file posted by
+.I trfs
+in
+.IR srv (4).
+The file posted is named
+.B /srv/trfs
+by default, but it can be 
+.B /srv/\fIsrvfile\fP 
+when the option
+.B -s
+is used, and also
+.B /srv/\fIaddr\fP when the option
+.B -n
+is given.
+.PP
+Option
+.B -v
+instructs
+.I trfs
+to print to standard error a human readable copy of messages exchanged. This
+makes
+.I trfs
+useful to debug file servers. The
+.B -D
+option enables debug messages.
+.SH EXAMPLE
+These examples dial a foreign system, start
+.IR trfs ,
+and mount it at
+.B /n/remote.
+Names like
+.B "/n/remote/music/alan parsons" 
+that contaning blanks
+would be renamed to names like
+.B "/n/remote/music/alan␣parsons."
+.PP
+.EX
+	srv tcp!foreign
+	trfs -s foreign.tr /srv/tcp!foreign
+	mount -c /srv/foreign.tr /n/remote
+
+	trfs -n tcp!foreign
+	mount -c /srv/tcp!foreign /n/remote
+.EE
+.SH SOURCE
+.B /sys/src/cmd/trfs.c
+.SH BUGS
+Spaces in remote file names are not caught when found inside file
+names or other media. The rune used instead of space might be used
+in remote file names leading to confussion. The same happens with remaining
+runes subject to translation.
+

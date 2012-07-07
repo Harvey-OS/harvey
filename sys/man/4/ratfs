@@ -1,0 +1,174 @@
+.TH RATFS 4
+.SH NAME
+ratfs  \- mail address ratification file system
+.SH SYNOPSIS
+.B ratfs
+[
+.B -d
+] [
+.B -c
+.I configuration
+] [
+.B -f
+.I classification
+] [
+.B -m
+.I mountpoint
+]
+.SH DESCRIPTION
+.I Ratfs
+starts a process that mounts itself (see
+.IR bind (2))
+on
+.I mountpoint
+(default
+.BR /mail/ratify ).
+.I Ratfs
+is a persistent representation of the local network
+configuration and spam blocking list.  Without it
+each instance of
+.IR smtpd (6)
+would need to reread and parse a multimegabyte list
+of addresses and accounts.
+.PP
+.I Ratfs
+serves a control file,
+.BR ctl ,
+and several top level directories:
+.BR trusted ,
+.BR deny ,
+.BR dial ,
+.BR block ,
+.BR delay ,
+and
+.BR allow .
+.PP
+The control file is write only and accepts three
+possible commands:
+.TF "debug file
+.TP
+.B reload
+rereads
+.I classification
+and
+.I configuration
+.TP
+.B debug \fIfile\fP
+creates
+.I file
+and sends debugging output to it.
+.TP
+.B nodebug
+closes the debug file and turns off debugging
+.PD
+.PP
+The directory
+.B trusted
+serves a file for each IP range from which all mail
+is trusted.  The names of the files are CIDR blocks;
+an IP address or an IP address followed by
+.BR #\fIn\fP ,
+where
+.I n
+is the number of bits to match.
+To check if any IP address falls in a trusted
+range, it is sufficient to open the file whose
+name is the IP address.
+For example, if
+.B trusted
+contains only the file
+.BR 135.104.0.0#16 ,
+an attempt to open the file 135.104.9.1 will
+succeed while opening 10.1.1.1 will fail.
+To determine the particular range matched,
+.B dirfstat
+(see stat (2))
+the open file and the
+.B name
+field will be the matching CIDR range.
+.PP
+The trusted ranges come both from the
+.B ournet
+entries in the file
+.I configuration
+(default
+.BR /mail/lib/blocked )
+and from creates, typically done by
+.B imap4d
+(see
+.IR ipserv (8))
+and
+.B pop3
+(see
+.IR mail (1))
+whenever they are used to read someone's mail.
+.PP
+The remaining directories,
+.BR allow ,
+.BR block ,
+.BR delay ,
+.BR deny ,
+and
+.BR dial ,
+represent the contents of the
+.I classification 
+(default
+.BR /mail/lib/smtpd.conf.ext ).
+Each contains two directories;
+.B ip
+and
+.BR account .
+The
+.B ip
+directory has the same open semantics as the 
+.B trusted
+directory, i.e., to check if an IP address falls
+in that category, try to open a file whose
+name is the IP address.
+The
+.B account
+directory is similar but is used for matching
+strings.  Each file in the directory represents
+a regular expression.  To see if one of the
+strings matches one of the regular expressions,
+try to open the file whose name is the string.
+If it succeeds, then there is a regular expression
+that matches.  To determine the regular expression,
+.B fstat
+the open file.  The
+.B name
+field will be the regular expression.
+.PP
+There is a direct mapping from entries in
+.I classification
+and files under
+.BR allow ,
+.BR block ,
+.BR delay ,
+.BR deny ,
+and
+.BR dial.
+A configuration file entry of the form:
+.EX
+	dial	135.104.9.0/24
+.EE
+corresponds to the file
+.BR dial/ip/135.104.9.0#24 .
+An entry of the form
+.EX
+	*block	.*!gre
+.EE
+corresponds to the file
+.BR block/account/.*!gre .
+.PP
+Both the configuration file and control file formats
+are described in
+.IR smtpd (6).
+.SH SOURCE
+.B /sys/src/cmd/ratfs
+.SH "SEE ALSO"
+.IR mail (1)
+.IR smtpd (6)
+.IR scanmail (8)
+
+

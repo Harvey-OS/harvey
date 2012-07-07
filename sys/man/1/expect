@@ -1,0 +1,172 @@
+.TH EXPECT 1
+.SH NAME
+at, drain, expect, pass \- dialer scripting tools
+.SH SYNOPSIS
+.B dial/at
+[
+.B -q
+] [
+.B -t
+.I seconds
+]
+atcommand
+.br
+.B dial/expect
+[
+.B -iq
+] [
+.B -t
+.I seconds
+]
+.I goodstring
+[
+.IR badstring ...
+]
+.br
+.B dial/drain
+.br
+.B dial/pass
+[
+.B -q
+]
+.SH DESCRIPTION
+These commands are used to write telephone dialing
+scripts, mostly for PPP sessions.  They all expect standard input and
+output to be connected to a communications device, e.g,
+a serial line to a modem.  They communicate with the user using
+.BR /dev/cons .
+.PP
+.I At
+sends
+.B atcommand
+to the modem prefixed with the string
+.BR at .
+It then reads from the modem expecting an AT response. 
+.I At
+will return success if it gets and
+.B OK
+of
+.B CONNECT
+response.  Otherwise it will return the response as an
+error status.  The options are:
+.TP
+.B -t
+set the timeout to
+.IR seconds .
+The default is 300.
+.TP
+.B -q
+don't write to
+.B /dev/cons
+what is read from standard in.  The default is
+to copy everything through.
+.PD
+.PP
+.I Expect
+reads standard input looking for one of the strings given
+as arguments.  Reading the first string causes a successul exit
+status.  Reading any of the others causes an exit status equal to
+the string.  The command also terminates on a timeout.  The options
+are:
+.TP
+.B -t
+set the timeout to
+.IR seconds .
+The default is 300.
+.TP
+.B -i
+ignore case when doing the matches.
+.TP
+.B -q
+don't write to
+.B /dev/cons
+what is read from standard in.  The default is
+to copy everything through.
+.PD
+.PP
+.I Pass
+copies input from
+.B /dev/cons
+to standard output.
+It terminates on a newline.  The only flag is
+.B -q
+and means the same as it does for
+.IR expect .
+.PP
+.I Drain
+discards any input waiting on standard input.  It
+is used to sync up the stream at the start of dialing
+or after an error.
+.SH EXAMPLE
+The following
+.B rc
+script dials out through a Hayes compatible modem on
+.B /dev/eia1
+and lets the user type in a user name and password
+before starting
+.BR ppp .
+.EX
+#!/bin/rc
+dev=/dev/eia1
+telno=18005551212
+
+fn initfn {
+	dial/drain
+	echo +++
+	dial/at zh0
+}
+
+fn dialfn {
+	dial/drain
+	dial/at dt^$telno
+}
+{
+	# set up uart
+	if( test -e $dev^ctl ){
+		echo -n b^$baud
+		echo -n m1	# cts/rts flow control
+		echo -n q64000	# big buffer
+		echo -n n1	# nonblocking writes
+		echo -n r1	# rts on
+		echo -n d1	# dtr on
+		echo -n c1	# handup when we lose dcd
+	} > $dev^ctl
+
+	# get the modem's attention
+	while( ! initfn )
+		sleep 1
+
+	# dial
+	while( ! dialfn )
+		sleep 30
+		
+	if( ! dial/expect -it 60 'username:' ){
+		echo can''t connect >[1=2]
+		exit connect
+	}
+	dial/pass
+	if( ! dial/expect -it 60 'password:' ){
+		echo can''t connect >[1=2]
+		exit connect
+	}
+	dial/pass
+	if( ! dial/expect -t 60 'ppp or telnet:' ){
+		echo can''t connect >[1=2]
+		exit connect
+	}
+	echo ppp
+	dial/expect -t 5 something
+	echo connected >[1=2]
+
+	# start ppp
+	ip/ppp $primary -f
+} < $dev > $dev
+.EE
+.SH FILES
+.B /rc/bin/ipconf/*
+example dialer scripts for ppp
+.SH SOURCE
+.B /sys/src/cmd/dial/*.c
+.SH SEE ALSO
+.IR ppp (8),
+.IR telco (4)

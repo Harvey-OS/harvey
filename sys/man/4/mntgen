@@ -1,0 +1,30 @@
+.TH MNTGEN 4
+.SH NAME
+mntgen  \-  automatically generate mount points for file systems
+.SH SYNOPSIS
+.B mntgen
+[
+.B -s
+.I service
+]
+[
+.I mnt
+]
+.SH DESCRIPTION
+.I Mntgen
+mounts itself on
+.I mnt
+(default
+.BR /n )
+after the current contents,
+creating subdirectories on demand as they are accessed.
+It is intended to supply mount points automatically.
+.PP
+The
+.B -s
+option causes
+.I mntgen
+to post a 9P service file in
+.BI /srv/ service \fR.
+.SH SOURCE
+.B /sys/src/cmd/mntgen.c

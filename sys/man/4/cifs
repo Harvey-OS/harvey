@@ -1,0 +1,188 @@
+.TH CIFS 4
+.SH NAME
+cifs - Microsoft™ Windows network filesystem client
+.SH SYNOPSIS
+.B cifs
+[
+.B -bdDiv
+] [
+.B -a
+.I auth-method
+] [
+.B -s
+.I srvname
+] [
+.B -n
+.I called-name
+] [
+.B -k
+.I keyparam
+] [
+.B -m
+.I mntpnt
+]
+.I host
+[
+.I share ...
+]
+.SH DESCRIPTION
+.I Cifs
+translates between Microsoft's file-sharing protocol
+(a.k.a. CIFS or SMB) and 9P, allowing Plan9 clients to mount file systems
+(shares or trees in MS terminology) published by such servers.
+.PP
+The root of the mounted directory contains one subdirectory per share,
+always named in lower case, and a few virtual files of mixed case which
+give additional server, session, share, and user information.
+The arguments are:
+.TF "-a\fI auth-method"
+.PD
+.TP
+.BI -a " auth-method"
+.I Cifs
+authenticates using
+.L BNTLM
+by default, but alternative strategies may be
+selected using this option.
+.I Cifs
+eschews cleartext authentication, however
+it may be enabled with the
+.L plain
+auth method.
+The list of currently-supported methods is printed
+if no method name is supplied.
+.IP
+.I "Windows server 2003"
+requires the
+.B BNTLMv2
+method by default, though it can be configured to be more flexible.
+.TP
+.B -b
+Enable file ownership resolution in
+.IR stat (2)
+calls.
+This requires an open and close per file and thus will slow
+.I cifs
+considerably; its use is not recommended.
+.TP
+.B -d
+CIFS packet debug.
+.TP
+.B -D
+9P request debug.
+.TP
+.BI -k " keyparam"
+lists extra parameters which will be passed to
+.IR factotum (4)
+to select a specific key.
+The remote servers's domain is always included in the keyspec,
+under the assumption
+that all servers in a Windows domain share an authentication domain;
+thus
+.I cifs
+expects keys in
+.I factotum
+of the form:
+.RS
+.IP
+.EX
+key proto=pass dom=THEIR-DOMAIN service=cifs
+	user=MY-USERNAME !password=XYZZY
+.EE
+.RE
+.TP
+.BI -m " mntpnt"
+set the mount point for the remote filesystem;
+the default is
+.BI /n/ host.
+.TP
+.BI -n " called-name"
+The CIFS protocol requires clients to know the NetBios name of the
+server they are attaching to, the
+.IR Icalled-name .
+If this is not specified on the command line,
+.I cifs
+attempts to discover this name from the remote server.
+If this fails it will then try
+.IR host ,
+and finally it will try the name
+.LR *SMBSERVER .
+.TP
+.BI -s " srvname"
+post the service as
+.BI /srv/ srvname.
+.TP
+.I host
+The address of the remote server to connect to.
+.TP
+.I share
+A list of share names to attach on the remote server; if none is given,
+.I cifs
+will attempt to attach all shares published by the remote host.
+.SS "Synthetic Files"
+Several synthetic files appear in the root of the mounted filesystem:
+.TF Workstations
+.PD
+.TP
+.B Shares
+Contains a list of the currently attached shares,
+with fields giving the share name,  disk free space / capacity, the share type,
+and a descriptive comment from the server.
+.TP
+.B Connection
+Contains the username used for authentication,
+server's called name, server's domain,
+server's OS, the time slip between the local host and the server,
+the Maximum Transfer Unit (MTU) the server requested, and optionally a flag
+indicating only guest access has been granted.
+The second line contains a list of capabilities offered by the server which is
+mainly of use for debugging
+.IR cifs .
+.TP
+.B Users
+Each line contains a user's name, the user's full name,
+and a descriptive comment.
+.TP
+.B Groups
+Each line gives a group's name, and a list of the names of the users who
+are members of that group.
+.TP
+.B Sessions
+Lists the users authenticated, the client machine's NetBios name or IP address,
+the time since the connection was established,
+and the time for which the connection has been idle.
+.TP
+.B Domains
+One line per domain giving the domain name and a descriptive comment.
+.TP
+.B Workstations
+One line per domain giving the domain name and a descriptive comment,
+the version number of the OS it is running, and comma-separated list of flags
+giving the features of that OS.
+.TP
+.B Dfsroot
+Top level DFS routing giving the DFS link type, time to live of the data,
+proximity of the server, the Netbios or DNS name and
+a physical path or a machine that this maps to.
+.IP
+DNS paths are usually assigned dynamicially as a form of load balancing.
+.SH SOURCE
+.B /sys/src/cmd/cifs
+.SH SEE ALSO
+.IR factotum (4),
+.IR aquarela (8)
+.SH BUGS
+NetApp Filer compatibility has not yet been tested; there may not be any.
+.PP
+DFS support is unfinished.
+.PP
+Kerberos authentication is unfinished.
+.PP
+NetBios name resolution is not supported, though it is now rarely used.
+.PP
+.I Cifs
+has only been tested against
+.IR aquarela (8),
+Windows 95, NT4.0sp6,
+Windows server 2003, WinXP pro, Samba 3.0, and Samba 2.0 (Pluto VideoSpace).
+No support is attempted for servers predating NT 4.0.

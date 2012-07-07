@@ -1,0 +1,82 @@
+.TH IOSTATS 4
+.SH NAME
+iostats \- file system to measure I/O
+.SH SYNOPSIS
+.B iostats
+[
+.B -d
+]
+[
+.B -f
+.I dbfile
+]
+.I cmd
+[
+.I args...
+]
+.SH DESCRIPTION
+.I Iostats
+is a user-level file server that interposes itself between a program
+and the regular file server, which
+allows it to gather statistics of file system
+use at the level of the Plan 9 file system protocol, 9P.
+After a program
+exits a report is printed on standard error.
+.PP
+The report consists of three sections.
+The first section reports the amount
+of user data in
+.B read
+and
+.B write
+messages sent by the program and the average rate at
+which the data was transferred.
+The
+.B protocol
+line reports the amount
+of data sent as message headers, that is,
+protocol overhead.
+The
+.B rpc
+line reports the
+total number of file system transactions.
+.PP
+The second section gives
+the number of messages, the fastest, slowest, and average turn around
+time and the amount of data involved with each 9P
+message type.
+The final section gives an I/O summary for each file used
+by the program in terms of opens, reads and writes.
+.PP
+If the
+.B -d
+flag is present, a debugging log including all traffic
+is written to
+.I dbfile
+(default
+.BR iostats.out ).
+.SH EXAMPLE
+Display summary of file I/O incurred by
+.IR ls (1):
+.IP
+.EX
+iostats ls
+.EE
+.PP
+Start a new shell, displaying all 9P traffic caused by the shell or its children:
+.IP
+.EX
+iostats -df /fd/1 rc
+.EE
+.SH SOURCE
+.B /sys/src/cmd/iostats
+.SH SEE ALSO
+.IR dup (3)
+.SH BUGS
+Poor clock resolution means that large amounts of I/O must be done to
+get accurate rate figures.
+.PP
+Can be fooled by programs that do fresh mounts outside its purview,
+or by the use of names of files with content that can vary by process (e.g.,
+.LR #d ,
+.LR /dev/cons ).

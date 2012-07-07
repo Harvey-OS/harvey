@@ -1,0 +1,209 @@
+.TH MP3ENC 1
+.SH NAME
+mp3enc \- create mp3 audio files
+.SH SYNOPSIS
+.in +0.5i
+.ti -0.5i
+.B games/mp3enc
+[
+.B -hprv
+] [
+.B -b
+.I bitrate
+] [
+.B -B
+.I bitrate
+] [
+.B -m
+.I mode
+] [
+.B -q
+q ] [
+.B -s
+.I sfreq
+] [
+.B -V
+.I q
+] [
+.I "long or silly options"
+]
+.in -0.5i
+.SH DESCRIPTION
+.I Mp3enc
+compresses audio on standard input,
+normally PCM-encoded,
+and produces MP3-encoded audio on standard output.
+By default, the MP3 file will use `constant bit-rate' (CBR)
+encoding, but that can be changed via
+.B --abr
+(average bitrate desired, ABR)
+or
+.BR -v
+(variable bitrate, VBR).
+.SS Options
+.TF "\fB-b \fP"
+.TP
+.B -b
+set minimum allowed
+.I bitrate
+in Kb/s for VBR, default 32Kb/s.
+For CBR,
+set the exact bitrate in Kb/s, which defaults to 128Kb/s.
+.TP
+.B -B
+set maximum allowed
+.I bitrate
+in Kb/s for VBR, default 256Kb/s.
+.TP
+.BI -h
+same as
+.LR "-q 2" .
+.TP
+.B -m
+.I mode
+may be
+(s)tereo,
+(j)oint,
+(f)orce
+or
+(m)ono
+(default j).
+.B force
+forces mid/side stereo on all frames.
+.TP
+.B -p
+add CRC error protection (adds an additional 16 bits per frame to the stream).
+This seems to break playback.
+.TP
+.B -q
+sets output quality to
+.I q
+(see
+.BR -V ).
+.TP
+.B -r
+input is raw pcm
+.TP
+.B -s
+set sampling frequency of input file (in KHz) to
+.IR sfreq ,
+default is 44.1.
+.TP
+.B -v
+use variable bitrate (VBR) encoding
+.TP
+.B -V
+set quality setting for VBR to
+.IR q .
+Default
+.I q
+is 4;
+0 produces highest-quality and largest files, and
+9 produces lowest-quality and smallest files.
+.SS Long options
+.TF "\fB--resample sfreq \fP"
+.TP
+.BI --abr " bitrate"
+sets average
+.I bitrate
+desired in Kb/s, instead of setting quality,
+and generates ABR encoding.
+.TP
+.BI --resample " sfreq"
+set sampling frequency of output file (in KHz) to
+.IR sfreq ,
+default is input sfreq.
+.TP
+.BI --mp3input
+.I input
+is an MP3 file
+.
+.SS Silly options
+.TF --nohist
+.TP
+.BI -f
+same as
+.LR "-q 7" .
+Such a deal. 
+.TP
+.BI -o
+mark as non-original (i.e. do not set the original bit)
+.TP
+.BI -c
+mark as copyright
+.TP
+.BI -k
+disable sfb=21 cutoff
+.TP
+.BI -e " emp"
+de-emphasis n/5/c
+(default n)
+.TP
+.BI -d
+allow channels to have different blocktypes
+.TP
+.BI -t
+disable Xing VBR informational tag
+.TP
+.BI -a
+autoconvert from stereo to mono file for mono encoding
+.TP
+.BI -x
+force byte-swapping of input (see
+.IR dd (1)
+instead)
+.TP
+.BI -S
+don't print progress report, VBR histograms
+.TP
+.BI --athonly
+only use the ATH for masking
+.TP
+.BI --nohist
+disable VBR histogram display
+.TP
+.BI --voice
+experimental voice mode
+.
+.SH EXAMPLES
+Encode a
+.L .wav
+file as highest-quality MP3.
+.IP
+.EX
+games/mp3enc -q 0 -b 320
+.EE
+.LP
+Create a fixed 128Kb/s MP3 file from a
+.L .wav
+file.
+.IP
+.EX
+games/mp3enc -h <foo.wav >foo.mp3
+.EE
+.LP
+Streaming from stereo 44.1KHz raw PCM data, encoding mono at 16KHz
+(you may not need
+.IR dd ):
+.IP
+.EX
+dd -conv swab | games/mp3enc -a -r -m m --resample 16 -b 24
+.EE
+.SH SOURCE
+.B /sys/src/games/mp3enc
+.SH SEE ALSO
+.IR dd (1),
+.IR mp3dec (1),
+.IR audio (3),
+.IR cdfs (4),
+.IR audio (7),
+.IR juke (7),
+.IR playlistfs (7)
+.br
+.B http://www.sulaco.org/mp3
+.SH BUGS
+Quality is much better than encoders based on the ISO routines,
+but still not as good as the FhG encoder.
+.PP
+It's a GNU behemoth, lightly rehabilitated.
+There are zillions of undocumented options.

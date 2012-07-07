@@ -1,0 +1,86 @@
+.TH DMAINIT 10 x86
+.SH NAME
+dmainit, dmasetup, dmadone, dmaend, dmacount \- platform-specific DMA support
+.SH SYNOPSIS
+.ta \w'\fLushort 'u
+.B
+void	dmainit(int chan)
+.PP
+.B
+long	dmasetup(int chan, void *va, long len, int isread)
+.PP
+.B
+int	dmadone(int chan)
+.PP
+.B
+void	dmaend(int chan)
+.PP
+.B
+int	dmacount(int chan)
+.PP
+.SH DESCRIPTION
+These functions manage DMA on a bus that uses ISA-style DMA controllers.
+They were originally devised for the x86 platform, but the same interface, and similar code,
+is used by other platforms that use similar controllers.
+They compensate as best they can for the limitations of older DMA implementations
+(eg, alignment, boundary and length restrictions).
+There are 8 DMA channels:
+0 to 3 are byte-oriented; 4 to 7 are word-oriented (16-bit words).
+.PP
+.I Dmainit
+must be called early in a driver's initialisation to prepare
+.I chan
+for use.
+Amongst other things, it allocates a page-sized buffer to help circumvent hardware
+restrictions on DMA addressing.
+.PP
+.I Dmasetup
+prepares DMA channel
+.IR chan
+for a transfer between a device configured to use it
+and the virtual address
+.IR va .
+(The transfer is started by issuing a command to the device.)
+If
+.I va
+lies outside the kernel address space,
+the transfer crosses a 64k boundary,
+or exceeds the 16 Mbyte limit imposed by some DMA controllers,
+the transfer will be split into page-sized transfers using the buffer previously allocated by
+.IR dmainit .
+If
+.I isread
+is true (non-zero), data is to be transferred from
+.I chan
+to
+.IR va ;
+if false, data is transferred from
+.I va
+to
+.IR chan .
+In all cases,
+.I dmasetup
+returns the number of bytes to be transferred.
+That value (rather than
+.IR len )
+must be given to the device in the read or write request that starts the transfer.
+.PP
+.I Dmadone
+returns true (non-zero) if
+.I chan
+is idle.
+.PP
+.I Dmaend
+must be called at the end of every DMA operation.
+It disables
+.IR chan ,
+preventing further access to the previously associated memory and,
+if a low-memory buffer was required for input, transfers its contents
+to the appropriate part of the target buffer.
+.PP
+.I Dmacount
+returns the number of bytes that were last transferred by channel
+.IR chan .
+The count is always even for word-oriented DMA channels.
+.SH SOURCE
+.B /sys/src/9/pc/dma.c

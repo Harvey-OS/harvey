@@ -1,0 +1,124 @@
+.TH SSL 3 
+.SH NAME
+ssl \- SSL record layer
+.SH SYNOPSIS
+.nf
+.B bind -a #D /net
+
+.B /net/ssl/clone
+.BI /net/ssl/ n 
+.BI /net/ssl/ n /ctl
+.BI /net/ssl/ n /data
+.BI /net/ssl/ n /encalgs
+.BI /net/ssl/ n /hashalgs
+.BI /net/ssl/ n /secretin
+.BI /net/ssl/ n /secretout
+.fi
+.SH DESCRIPTION
+The SSL device provides the interface to the Secure Socket Layer
+device implementing the record layer protocol of SSLv2
+(but not the handshake protocol, which is responsible for
+mutual authentication and key exchange.)
+The
+.I ssl
+device can be thought of as a filter providing optional encryption
+and anti-tampering.
+.PP
+The top level directory contains a
+.B clone
+file and subdirectories numbered from zero to the number of connections
+configured.
+Opening the
+.B clone
+file reserves a connection.  The file descriptor returned from the
+.IR open (2)
+will point to the control file,
+.BR ctl ,
+of the newly allocated connection.  Reading the
+.B ctl
+file returns a text
+string representing the number of the
+connection.
+.PP
+A connection is controlled by writing text strings to the associated
+.B ctl
+file.  After a connection has been established data may be read from
+and written to the data file.
+.PP
+The SSL protocol provides a stream connection that preserves
+.BR read / write
+boundaries.  As long as reads always specify buffers that are
+of equal or greater lengths than the writes at the other end of the
+connection, one write will correspond to one read.
+.PP
+Options are set by writing control messages to the
+.B ctl
+file of the connection.
+.PP
+The following control messages are supported:
+.TP
+.BI fd \ open-file-descriptor
+Run the SSL protocol over the existing file descriptor.
+.TP
+.BI alg \ cryptoalgs
+Connections start in
+.B alg clear
+which means no encryption or digesting.
+Writing
+.B alg sha
+to the control file turns on SHA-1 digest authentication
+for the data channel.
+Similarly, writing
+.B alg rc4_128
+enables encryption.
+Both can be turned on at once by
+.BR "alg sha rc4_128" .
+The digest mode
+.B sha
+may be replaced by
+.BR md5 .
+The encryption mode
+.B rc4_128
+may be replaced by
+.BR rc4_40 ,
+.BR rc4_128 ,
+.BR rc4_256 ,
+.BR des_40_ecb ,
+.BR des_40_cbc ,
+.BR des_56_ecb ,
+and
+.BR des_56_cbc .
+The mode may be changed at any time during the connection.
+.TP
+.BI secretin \ base64-secret
+The secret for decrypting and authenticating incoming messages
+can be specified either as a base64 encoded string by writing to the
+control file, or as a binary byte string using the interface below.
+.TP
+.BI secretout \ base64-secret
+The secret for encrypting and hashing outgoing messages
+can be specified either as a base64 encoded string by writing to the
+control file, or as a binary byte string using the interface below.
+.PP
+Before enabling digesting or encryption, shared secrets must be agreed upon with
+the remote side, one for each direction of transmission,
+and loaded as shown above or by writing to the files
+.I secretin
+and
+.IR secretout .
+If either the incoming or outgoing secret is not specified, the other secret
+is assumed to work for both directions.
+.PP
+The encryption and hash algoritms actually included in the kernel
+may be smaller than the set presented here.  Reading
+.I encalgs
+and 
+.I hashalgs
+will give the actual space-separated list of algorithms implemented.
+.SH "SEE ALSO"
+.IR listen (8),
+.IR dial (2)
+.SH SOURCE
+.B /sys/src/9/port/devssl.c
+.SH BUGS
+Messages longer than 4096 bytes are truncated.

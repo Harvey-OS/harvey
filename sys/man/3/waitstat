@@ -1,0 +1,51 @@
+.TH WAITSTAT 3 
+.SH NAME
+waitstat \- kernel waiting times profiling
+.SH SYNOPSIS
+.nf
+.B bind -a #W /dev
+.sp
+.B /dev/wsctl
+.B /dev/wsdata
+.fi
+.SH DESCRIPTION
+The
+.I waitstat
+device provides profiling
+data for the operating system kernel regarding waiting times (usecs) for locks, mostly.
+.PP
+The file
+.B wsdata
+holds one line per program counter where a wait of interest happen. The fields
+report the type of waiting event, the program counter, the number of times waiting
+did happen there, the maximum waiting time, and the total waiting time.
+.PP
+The file
+.B wsdata
+controls profiling for this device.
+Writing the string
+.B start
+to
+.B wsctl
+begins profiling;
+.B stop
+terminates it.  The message
+.B clear
+restarts profiling after zeroing the counts.
+.SH EXAMPLE
+The following
+.IR rc (1)
+script runs a test program while profiling the kernel
+and reports the results.
+.sp
+.EX
+	bind -a '#W' /dev
+	echo start > /dev/wsctl
+	runtest
+	echo stop > /dev/wsctl
+	cat /dev/wsdata
+.EE
+.SH SOURCE
+.B /sys/src/9/port/devws.c
+.SH SEE ALSO
+.IR kprof (3)

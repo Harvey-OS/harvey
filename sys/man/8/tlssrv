@@ -1,0 +1,152 @@
+.TH TLSSRV 8
+.SH NAME
+tlssrv, tlsclient, tlssrvtunnel, tlsclienttunnel \- TLS server and client
+.SH SYNOPSIS
+.PP
+.B tlssrv
+[
+.B -c
+.I cert.pem
+]
+[
+.B -l
+.I
+logfile
+]
+[
+.B -r
+.I remotesys
+]
+.I cmd
+[
+.I args ...
+]
+.PP
+.B tlsclient
+[
+.B -t
+.I trustedkeys
+]
+[
+.B -x
+.I excludedkeys
+]
+.I address
+.PP
+.B tlssrvtunnel
+.I plain-addr
+.I crypt-addr
+.I cert.pem
+.PP
+.B tlsclienttunnel
+.I crypt-addr
+.I plain-addr
+.I trustedkeys
+.SH DESCRIPTION
+.I Tlssrv
+is a helper program, typically exec'd in a
+.B /bin/service
+file to establish an SSL or TLS connection before launching
+.I cmd
+.IR args ;
+a typical command might start the IMAP or HTTP server.
+.I Cert.pem
+is the server certificate;
+.IR factotum (4)
+should hold the corresponding private key.
+The specified
+.I logfile
+is by convention the same as for the target server.
+.I Remotesys
+is mainly used for logging.
+.PP
+.I Tlsclient
+is the reverse of
+.IR tlssrv :
+it dials
+.IR address ,
+starts TLS,
+and then relays 
+between the network connection
+and standard input and output.
+If the
+.B -t
+flag
+(and, optionally, the
+.B -x
+flag)
+is given, the remote server must present a key
+whose SHA1 hash is listed in
+the file
+.I trustedkeys
+but not in the file
+.IR excludedkeys .
+See
+.IR thumbprint (6)
+for more information.
+.PP
+.I Tlssrvtunnel
+and
+.I tlsclienttunnel
+use these tools and
+.I listen1
+(see
+.IR listen (8))
+to provide TLS network tunnels, allowing legacy
+application to take advantage of TLS encryption.
+.SH EXAMPLES
+Listen for TLS-encrypted IMAP by creating a server certificate
+.B /sys/lib/tls/imap.pem
+and a listener script
+.B /bin/service.auth/tcp993
+containing:
+.IP
+.EX
+#!/bin/rc
+exec tlssrv -c/sys/lib/tls/imap.pem -limap4d -r`{cat $3/remote} \e
+    /bin/ip/imap4d -p -dyourdomain -r`{cat $3/remote} \e
+    >[2]/sys/log/imap4d
+.EE
+.PP
+Interact with the server, putting the appropriate hash into
+.B /sys/lib/tls/mail
+and running:
+.IP
+.EX
+tlsclient -t /sys/lib/tls/mail tcp!server!imaps
+.EE
+.PP
+Create a TLS-encrypted VNC connection from a client on
+.B kremvax
+to a server on
+.BR moscvax :
+.IP
+.EX
+mosc% vncs -d :3
+mosc% tlssrvtunnel tcp!moscvax!5903 tcp!*!12345 \e
+        /usr/you/lib/cert.pem
+krem% tlsclienttunnel tcp!moscvax!12345 tcp!*!5905 \e
+        /usr/you/lib/cert.thumb
+krem% vncv kremvax:5
+.EE
+.LP
+(The port numbers passed to the VNC tools are offset by 5900 from the
+actual TCP port numbers.)
+.SH FILES
+.TP
+.B /sys/lib/tls
+.SH SOURCE
+.B /sys/src/cmd/tlssrv.c
+.br
+.B /sys/src/cmd/tlsclient.c
+.br
+.B /rc/bin/tlssrvtunnel
+.br
+.B /rc/bin/tlsclienttunnel
+.SH "SEE ALSO"
+.IR factotum (4),
+.IR listen (8),
+.IR rsa (8)
+.br
+Unix's
+.I stunnel

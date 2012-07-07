@@ -1,0 +1,237 @@
+.TH TELCO 4
+.SH NAME
+telco, faxreceive, faxsend, fax, telcofax, telcodata \- telephone dialer network
+.SH SYNOPSIS
+.B telco
+[
+.B -p
+] [
+.B -i
+.I source-id
+] [
+.B -v
+]
+.I dialer-devs
+.PP
+.B aux/faxsend
+.I address
+.I page1
+\&...
+.PP
+.B aux/faxreceive
+[
+.B -s
+.I spool-dir
+] [
+.B -v
+]
+.PP
+.B fax
+[
+.B -v
+]
+.I telno
+.I recipient
+[
+.I files
+]
+.PP
+.B service/telcofax
+.PP
+.B service/telcodata
+.SH DESCRIPTION
+.I Telco
+is a file server that provides a network interface to
+Hayes telephone dialers.
+The interface is the same as that provided by
+.IR ip (3)
+and can be used by any program that makes network connections using
+.IR dial (2).
+The network addresses used by
+.I telco
+are telephone
+numbers.
+.PP
+The options are
+.TP
+.B -p
+use pulse dialing
+.TP 
+.B -v
+verbose: write to the log file all communications with
+the dialer.
+.TP 
+.B -i
+specify a
+.I source-id
+to be used during FAX transfers
+.PP
+Some control of outgoing calls can be encoded
+in the address.
+Normally, addresses are of the form
+.IB telco ! number\f1,
+where 
+.I number
+is a decimal telephone number.
+However, commas in the telephone number can be used to insert
+pauses in the dialing process.
+Dialing options can be added to the end of the address, separated
+by
+.BR ! 's.
+The dialing options are
+.TF baudrate
+.TP
+.B compress
+turn on compression (default off)
+.TP
+.I baudrate
+a decimal number representing the highest baud
+rate with which to make the call
+.TP
+.B fax
+to make a Class 2 facsimile call (used by programs such as
+.IR faxsend )
+.PD
+.PP
+.I Telco
+also answers incoming calls.
+Upon receiving a facsimile call,
+.I telco
+starts the script
+.BR /rc/bin/service/telcofax .
+For data calls it starts
+.BR /rc/bin/service/telcodata .
+Each is started with the network connection as both standard
+input and standard output and with two arguments,
+the file name of the network connection, e.g.,
+.BR /net/telco/0/data ,
+and the type of modem.
+Currently, the only modem types supported are:
+.TF ATT14400
+.TP
+.B MT1432
+Multitech's 14400 baud modem
+.TP
+.B MT2834
+Multitech's 28800 baud modem
+.TP
+.B ATT14400
+the 14400 baud modem in Safaris
+.TP
+.B VOCAL
+the 14400 baud Vocal modem
+.PD
+.PP
+All other modems are assumed to be compatible with the standard
+Hayes command subset.
+.PP
+.I Faxreceive
+is normally started by
+.BR /rc/bin/service/telcofax .
+It reads and spools a CCITT Group 3 (G3) encoded FAX, and then starts the
+script
+.BR /sys/lib/fax/receiverc ,
+passing it four arguments: the spool file name,
+.B Y
+(for success) or
+.BR N ,
+the number of pages, and the id string passed by the caller.
+This script sends by
+.IR mail (1)
+notification to a list of recipients kept in the file
+.BR /mail/faxqueue/faxrecipients ;
+the script and the list
+should be edited to match local needs.
+.I Faxreceive's
+options are:
+.TP
+.B -s
+specify a different spool directory; the default is
+.BR /mail/faxqueue .
+.TP
+.B -v
+verbose: write to the log file all communications with
+the modem.
+.PP
+.I Faxsend
+transmits a FAX to
+.IR address .
+.I Page1
+and all arguments that follow
+are names of files containing G3 encoded
+FAX images, one per page.
+.PP
+.I Fax
+is a shell script that converts to G3 format
+PostScript, G3, text, or other files acceptable to
+.IR lp (1)
+and queues the result
+to be transmitted to a FAX machine.
+A standard cover sheet, derived from
+.BR /sys/lib/fax/h.ps ,
+is sent before the message.
+.I Telno
+is the destination telephone number.
+.I Recipient
+is the name of the recipient to be placed
+on the cover sheet.
+If no
+.I files
+are specified, standard input is converted and sent.
+The
+.B -v
+option invokes
+.IR page (1)
+on the generated G3 files
+instead of transmitting them via FAX machine.
+.SH EXAMPLE
+Start the dialer on a PC, then use
+.I con
+to phone out.
+.IP
+.EX
+telco /dev/eia1
+con -l telco!18005551212
+.EE
+.PP
+The connection will be made at the highest
+negotiable baud rate.  To use the
+best negotiable compression scheme as well:
+.IP
+.EX
+con -l telco!18005551212!compress
+.EE
+.SH FILES
+.B /mail/faxqueue/*
+.br
+.B /rc/bin/service/telcodata
+.br
+.B /rc/bin/service/telcofax
+.br
+.B /sys/log/telco
+.br
+.B /sys/lib/fax/receiverc
+.br
+.B /mail/faxqueue/faxrecipients
+.br
+.B /sys/lib/fax/h.ps
+.br
+.B /sys/log/fax
+.SH SOURCE
+.B /sys/src/cmd/telco/*
+.br
+.B /sys/src/cmd/fax/*
+.SH "SEE ALSO"
+.IR con (1),
+.IR ip (3)
+.SH BUGS
+.PP
+These programs require the Class 2 facsimile interface.  This means that
+.I faxsend
+and
+.I faxreceive
+will not work on most portable computers since they have Class 1
+interfaces.
+.PP
+The modem specific information is currently built into the source.
+This should be in a user modifiable file.

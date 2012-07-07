@@ -1,0 +1,124 @@
+.TH CFS 4
+.SH NAME
+cfs \- cache file system
+.SH SYNOPSIS
+.B cfs
+.B -s
+.RB [ -dknrS ]
+.RB [ -f
+.IR partition ]
+.PP
+.B cfs
+.B -a
+.I netaddr
+.RB [ -dknrS ]
+.RB [ -f
+.IR partition ]
+.RI [ mtpt ]
+.PP
+.B cfs
+.B -F
+.I srvfile
+.RB [ -dknrS ]
+.RB [ -f
+.IR partition ]
+.RI [ mtpt ]
+.SH DESCRIPTION
+.I Cfs
+is a user-level file server that caches data from remote
+files onto a local disk.
+It is normally started by the kernel at boot time, though users may start
+it manually.
+.I Cfs
+is interposed between the kernel and a network connection to a
+remote file server to improve the
+efficiency of access across slow network connections such as modem
+lines.
+On each open of a file
+.I cfs
+checks the consistency of cached information and discards any old
+information for that file.
+.PP
+.I Cfs
+mounts onto
+.I mtpt
+(default
+.BR / )
+after connecting to the file server.
+.PP
+The options are:
+.TF -
+.PD
+.TP
+.BI "a " netaddr
+dial the destination
+.I netaddr
+to connect to a remote file server.
+Exclusive with
+.BR -F .
+.TP
+.B d
+turn on debugging.
+.TP
+.BI "f " partition
+use file
+.I partition
+as the cache disk partition.
+.TP
+.BI "F " srvfile
+open
+.I srvfile
+(often a file under
+.BR /srv )
+to connect to a remote file server.
+Exclusive with
+.BR -a .
+.TP
+.B k
+keep cache contents even if they might have come from a different server.
+.I Cfs
+will obey
+.B -r
+even if
+.B -k
+is given.
+.TP
+.B n
+mount the remote file server without authentication;
+often useful with
+.BR -F .
+.TP
+.B r
+reformat the cache disk partition.
+.TP
+.B s
+the connection to the remote file server is on file
+descriptors 0 and 1.
+.TP
+.B S
+turn on statistics gathering.  A file called
+.B cfsctl
+at the root of the caching file system can be read to get
+statistics concerning number of calls/bytes on client and server
+sides and latencies.
+.PP
+All 9P messages except
+.BR read ,
+.BR clone ,
+and
+.B walk
+(see
+.IR intro (5))
+are passed through
+.I cfs
+unchanged to the remote server.
+If possible, a
+.B read
+is satisfied by cached data.
+Otherwise, the file server is queried for any missing data.
+.SH FILES
+.TP
+.B /dev/sdC0/cache
+Default file used for storing cached data.
+.SH SOURCE
+.B /sys/src/cmd/cfs

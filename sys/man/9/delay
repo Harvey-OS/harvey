@@ -1,0 +1,41 @@
+.TH DELAY 9
+.SH NAME
+delay, microdelay, addclock0link \- small delays, clock interrupts
+.SH SYNOPSIS
+.ta \w'\fLvoid 'u
+.B
+void	delay(int n)
+.PP
+.B
+void	microdelay(int n)
+.PP
+.B
+void	addclock0link(void(*clockf)(void))
+.SH DESCRIPTION
+.I Delay
+busy waits for
+.I n
+milliseconds, forced to be at least one millisecond.
+.PP
+.I Microdelay
+is similar, but busy waits for
+.IR n
+microseconds.
+.PP
+For delays on the order of clock ticks,
+.I tsleep
+(see
+.IR sleep (9))
+provides a better alternative to the busy waiting of these routines.
+.PP
+.I Addclock0link
+adds
+.I clockf
+to a list of functions to be executed at each clock interrupt on
+the first processor.
+.SH SOURCE
+.B /sys/src/9/port/portclock.c
+.br
+.B /sys/src/9/*/clock.c
+.SH SEE ALSO
+.IR sleep (9)

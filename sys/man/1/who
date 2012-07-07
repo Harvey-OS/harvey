@@ -1,0 +1,22 @@
+.TH WHO 1 
+.SH NAME
+who, whois \- who is using the machine
+.SH SYNOPSIS
+.B who
+.PP
+.B whois
+.I person
+.SH DESCRIPTION
+.I Who
+prints the name of everyone with a non-Exiting process
+on the current machine.
+.PP
+.I Whois
+looks in
+.B /adm/whois
+and
+.B /adm/users
+to find out more information about
+.IR person .
+.SH SOURCE
+.B /rc/bin/who

@@ -1,0 +1,75 @@
+.TH USERS 6
+.SH NAME
+users \- file server user list format
+.SH DESCRIPTION
+The permanent file servers each maintain a private list of users
+and groups, in
+.B /adm/users
+by convention.
+Each line in the file has the format
+.IP
+.IB id : name : leader :\fImembers\fP
+.PP
+where
+.I name
+and
+.I leader
+are printable strings excluding the characters
+.LR ? ,
+.LR = ,
+.LR + ,
+.LR - ,
+.LR / ,
+and
+.LR : ,
+and
+.I members
+is a comma-separated list of such strings.
+Such a line defines a user and a group with the given
+.IR name ;
+the group has a group leader given by
+.I leader
+and group members given by the user names in
+.IR members .
+The
+.I leader
+field may be empty,
+in which case any group member is a group leader.
+The
+.I members
+field may be empty.
+.PP
+Lines beginning with
+.L #
+are ignored.
+.PP
+The
+.I id
+in a line is an identifier used in the on-disk structures maintained
+by a file server; there should be no duplicate
+.IR id s
+in the file.
+In
+.IR fossil (4),
+.IR id s
+are arbitrary text strings, typically the same as
+.IR name .
+In older Plan 9 file servers,
+.IR id s
+are small decimal numbers.
+In those, 
+a negative
+.I id
+is special: a user with a negative
+.I id
+cannot attach to the file server.
+The file
+.B /adm/users
+itself is owned by user
+.I adm
+and write protected to others,
+so it can only be changed via console commands.
+.SH "SEE ALSO"
+.IR intro (5),
+.IR stat (5),
+.IR fossilcons (8)

@@ -1,0 +1,292 @@
+.TH AUTH 8
+.SH NAME
+changeuser, convkeys, convkeys2, printnetkey, status, enable, disable, authsrv, guard.srv, debug, wrkey, login, newns, none, as \- maintain or query authentication databases
+.SH SYNOPSIS
+.B auth/changeuser
+.RB [ -np ]
+.I user
+.PP
+.B auth/convkeys
+.RB [ -p ]
+.I keyfile
+.PP
+.B auth/convkeys2
+.RB [ -p ]
+.I keyfile
+.PP
+.B auth/printnetkey
+.I user
+.PP
+.B auth/status
+.I user
+.PP
+.B auth/enable
+.I user
+.PP
+.B auth/disable
+.I user
+.PP
+.B auth/authsrv
+.PP
+.B auth/guard.srv
+.PP
+.B auth/debug
+.PP
+.B auth/wrkey
+.PP
+.B auth/login
+.I user
+.PP
+.B auth/newns
+[
+.B -ad
+] [
+.B -n
+.I namespace
+]
+.I command
+.I arg
+\&...
+.PP
+.B auth/none
+[
+.B -n
+.I namespace
+]
+.I command
+.I arg
+\&...
+.PP
+.B auth/as
+.I user
+.I command
+.SH DESCRIPTION
+These administrative commands run only on the authentication server.
+.IR Changeuser
+manipulates an authentication database file system served by
+.IR keyfs (4)
+and used by file servers.
+There are two authentication databases,
+one holding information about Plan 9 accounts
+and one holding SecureNet keys.
+A
+.I user
+need not be installed in both databases
+but must be installed in the Plan 9 database to connect to a Plan 9 service.
+.PP
+.I Changeuser
+installs or changes
+.I user
+in an authentication database.
+It does not install a user on a Plan 9 file server; see
+.IR fs (8)
+for that.
+.PP
+Option
+.B -p
+installs
+.I user
+in the Plan 9 database.
+.I Changeuser
+asks twice for a password for the new
+.IR user .
+If the responses do not match
+or the password is too easy to guess
+the
+.I user
+is not installed.
+.I Changeuser
+also asks for an APOP secret.
+This secret is used in the APOP (RFC1939),
+CRAM (RFC2195), and
+Microsoft challenge/response protocols used for
+POP3, IMAP, and VPN access.
+.PP
+Option
+.B -n
+installs
+.I user
+in the SecureNet database and prints out a key for the SecureNet box.
+The key is chosen by
+.IR changeuser .
+.PP
+If neither option
+.B -p
+or option
+.B -n
+is given,
+.I changeuser
+installs the
+.I user
+in the Plan 9 database.
+.PP
+.I Changeuser
+prompts for
+biographical information such as email address,
+user name, sponsor and department number and
+appends it to the file
+.B /adm/netkeys.who
+or
+.BR /adm/keys.who .
+.PP
+.I Convkeys
+re-encrypts the key file
+.IR keyfile .
+Re-encryption is performed in place.
+Without the
+.B -p
+option
+.I convkeys
+uses the key stored in NVRAM
+to decrypt the file, and encrypts it using the new key.
+By default, 
+.I convkeys
+prompts twice for the new password.
+The
+.B -p
+forces
+.I convkeys
+to also prompt for the old password.
+The format of
+.I keyfile
+is described in
+.IR keyfs (4).
+.PP
+The format of the key file changed between Release 2
+and 3 of Plan 9.
+.I Convkeys2
+is like
+.IR convkeys .
+However, in addition to rekeying, it converts from
+the previous format to the Release 3 format.
+.PP
+.I Printnetkey
+displays the network key as it should be entered into the
+hand-held Securenet box.
+.PP
+.I Status
+is a shell script that prints out everything known about
+a user and the user's key status.
+.PP
+.I Enable/disable
+are shell scripts that enable/disable both the Plan 9 and
+Netkey keys for individual users.
+.PP
+.I Authsrv
+is the program, run only on the authentication server, that handles ticket requests
+on TCP port 567.
+It is started
+by an incoming call to the server
+requesting a conversation ticket; its standard input and output
+are the network connection.
+.I Authsrv
+executes the authentication server's end of the appropriate protocol as
+described in
+.IR authsrv (6).
+.PP
+.I Guard.srv
+is similar.  It is called whenever a foreign (e.g. Unix) system wants
+to do a SecureNet challenge/response authentication.
+.SS Anywhere commands
+.PP
+The remaining commands need not be run on an authentication server.
+.PP
+.I Debug
+attempts to authenticate using each
+.B p9sk1
+key found in
+.I factotum
+and prints progress reports.
+.PP
+.I Wrkey
+prompts for a machine key, host owner, and host domain and stores them in
+local non-volatile RAM.
+.PP
+.I Login
+allows a user to change his authenticated id to
+.IR user .
+.I Login
+sets up a new namespace from
+.BR /lib/namespace ,
+starts a
+.IR factotum (4)
+under the new id and
+.IR exec s
+.IR rc (1)
+under the new id.
+.PP
+.I Newns
+sets up a new namespace from
+.I namespace
+(default
+.BR /lib/namespace )
+and
+.IR exec s
+its arguments.
+If there are no arguments, it
+.IR exec s
+.BR /bin/rc .
+Under
+.BR -a ,
+.I newns
+adds to the current namespace instead of constructing a new one.
+The
+.BR -d
+option enables debugging output.
+.PP
+.I None
+sets up a new namespace from
+.I namespace
+(default
+.BR /lib/namespace )
+as the user
+.I none
+and
+.IR exec s
+its arguments under the new id.
+If there are no arguments, it
+.IR exec s
+.BR /bin/rc .
+It's an easy way to run a command as
+.IR none .
+.PP
+.I As
+executes
+.I command
+as
+.IR user .
+.I Command
+is a single argument to
+.IR rc ,
+containing an arbitrary
+.I rc
+command.
+This only works for the hostowner and only if
+.L #¤/caphash
+still exists.
+.SH FILES
+.TF /sys/lib/httppasswords
+.TP
+.B /lib/ndb/auth
+Speaksfor relationships and mappings for
+RADIUS server id's.
+.TP
+.B /adm/keys.who
+List of users in the Plan 9 database.
+.TP
+.B /adm/netkeys.who
+List of users in the SecureNet database.
+.TP
+.B /sys/lib/httppasswords
+List of realms and passwords for HTTP access.
+.SH SOURCE
+.B /sys/src/cmd/auth
+.SH "SEE ALSO"
+.IR passwd (1),
+.I readnvram
+in
+.IR authsrv (2),
+.IR keyfs (4),
+.IR securenet (8)
+.SH BUGS
+Only CPU kernels permit changing userid.

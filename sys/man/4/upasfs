@@ -1,0 +1,351 @@
+.TH UPASFS 4
+.SH NAME
+upasfs, startupasfs \- mail file server
+.SH SYNOPSIS
+.B upas/fs
+[
+.B -f
+.I mailbox
+] [
+.B -bnps
+] [
+.B -m
+.I mntpoint
+]
+.PP
+.B startupasfs
+.SH DESCRIPTION
+.I Fs
+is a user level file system that reads mailboxes and presents them as a file
+system.
+A user normally starts
+.I fs
+in his/her profile after starting
+.IR plumber (4)
+and before starting
+a window system, such as
+.IR rio (1)
+or
+.IR acme (1).
+The file system is used by
+.I nedmail
+and
+.IR acme (1)'s
+mail reader to parse messages.
+.I Fs
+also generates plumbing messages used by
+.IR biff
+and
+.IR faces (1)
+to provide mail announcements.
+.PP
+.I Startupasfs
+is a shell script suitable for use in one's profile.
+It runs
+.B "fs -s"
+for the invoking user if none is already running,
+and always mounts the user's posted
+.I fs
+on
+.BR /mail/fs .
+.PP
+The mailbox itself becomes a directory under
+.BR /mail/fs .
+Each message in the mailbox becomes a numbered directory in the
+mailbox directory, and each attachment becomes a numbered directory
+in the message directory.  Since an attachment may itself be a mail message,
+this structure can recurse ad nauseam.
+.PP
+Each message and attachment directory contains the files:
+.TP 1.4i
+.B body
+.PD 0
+the message minus the RFC822 style headers
+.TP
+.B cc
+the address(es) from the CC: header
+.TP
+.B date
+the date in the message, or if none, the time of delivery
+.TP
+.B digest
+an SHA1 digest of the message contents
+.TP
+.B disposition
+.B inline
+or
+.B file
+.TP
+.B filename
+a name to use to file an attachment
+.TP
+.B from
+the from address in the From: header, or if none,
+the address on the envelope.
+.TP
+.B header
+the RFC822 headers
+.TP
+.B info
+described below, essentially a summary of the header info
+.TP
+.B inreplyto
+contents of the
+.B in-reply-to:
+header
+.TP
+.B mimeheader
+the mime headers
+.TP
+.B raw
+the undecoded MIME message
+.TP
+.B rawbody
+the undecoded message body
+.TP
+.B rawheader
+the undecoded message header
+.TP
+.B replyto
+the address to send any replies to.
+.TP
+.B subject
+the contents of the subject line
+.TP
+.B to
+the address(es) from the To: line.
+.TP
+.B type
+the MIME content type
+.TP
+.B unixheader
+the envelope header from the mailbox
+.PD
+.PP
+The
+.B info
+file contains the following information, one item per line.  Lists
+of addresses are single-space separated.
+.LP
+.2C
+.PD 0
+.LP
+.TP 2i
+.I "sender address
+.TP
+.I "recipient addresses
+.TP
+.I "cc addresses
+.TP
+.I "reply address
+.TP
+.I "envelope date
+.TP
+.I "subject
+.TP
+.I "MIME content type
+.TP
+.I "MIME disposition
+.TP
+.I filename
+.TP
+.I "SHA1 digest
+.TP
+.I "bcc addresses
+.TP
+.I "in-reply-to: contents
+.TP
+.I "RFC822 date
+.TP
+.I "message senders
+.TP
+.I "message id
+.TP
+.I "number of lines in body
+.LP
+.1C
+.PD
+.PP
+Deleting message directories causes the message to be removed from
+the mailbox.
+.PP
+The mailbox is reread and the structure updated
+whenever the mailbox changes.  Message directories are
+not renumbered.
+.PP
+The file
+.B /mail/fs/ctl
+is used to direct
+.I fs
+to open/close new mailboxes or to delete groups of messages atomically.
+The messages that can be written to this file are:
+.TF "delete\fI mboxname number ...\fP
+.TP
+.BI open " path mboxname"
+opens a new mailbox.
+.I path
+is the file to open, and
+.I mboxname
+is the name that appears under
+.BR /mail/fs .
+.TP
+.BI close " mboxname"
+close
+.IR mboxname .
+The close takes affect only after all files open under
+.BI /mail/fs/ mboxname
+have been closed.
+.TP
+.BI delete " mboxname number ..."
+Delete the messages with the given numbers from
+.IR mboxname.
+.PD
+.PP
+The options are:
+.TF "-f\fI file
+.TP
+.BI -f file
+use
+.I file
+as the mailbox instead of the default,
+.BI /mail/box/ username /mbox.
+.PD 0
+.TP
+.B -b
+stands for biffing.  Each time new mail
+is received, a message is printed to standard
+output containing the sender address, subject,
+and number of bytes.  It is intended for
+people telnetting in who want mail announcements.
+.TP
+.B -n
+Don't open a mailbox initially.  Overridden by -f.
+.TP
+.B -p
+turn off plumbing.  Unless this is specified,
+.I fs
+sends a message to the plumb port,
+.BR seemail ,
+from source
+.B mailfs
+for each message received or deleted.
+The message contains the attributes
+.BI sender= "<contents of " from " file>,"
+.BR filetype=mail ,
+.BR "mailtype=deleted\fI or \fPnew" ,
+and
+.BI length= "<message length in bytes>."
+The contents of the message is the full path
+name of the directory representing the message.
+.TP
+.B -s
+causes
+.I fs
+to post itself in
+.B /srv
+with a name of the form
+.BI /srv/upasfs. user.
+.TP
+.B -m
+specifies a mount point other than
+.BR /mail/fs .
+.PD
+.PP
+.I Fs
+will exit once all references to its directory
+have disappeared.
+.PP
+.I Fs
+interprets mailbox file names of the form
+.BI / proto / host / user
+to mean access an account on
+.I host
+using the given protocol.
+Authentication is delegated to
+.IR factotum (4).
+The final
+.BI / user
+may be omitted, in which case
+the user name is gleaned from the key held by
+.IR factotum .
+The following protocols are supported:
+.PP
+.TF apoptls
+.TP
+.B pop
+cleartext POP with password authentication
+.TP
+.B apop
+cleartext POP with challenge-response (APOP) authentication
+.TP
+.B pops
+.TP
+.B poptls
+TLS-encrypted POP with password authentication
+.TP
+.B apops
+.TP
+.B apoptls
+TLS-encrypted POP with challenge-response (APOP) authentication
+.TP
+.B imap
+cleartext IMAP
+.TP
+.B imaps
+TLS-encrypted IMAP
+.PD
+.PP
+The two IMAP protocols allow an optional fourth field
+specifying a mailbox name, for example
+.BR /imap/server/user/stored .
+.PP
+.B Poptls
+and
+.B apoptls
+connect to port 110 in plaintext and start TLS using the POP
+STLS command.
+.B Pops
+and
+.B apops
+connect to port 995 and start TLS before initiating the POP conversation.
+.B Imaps
+connects to port 993 and starts TLS before initiating the IMAP conversation.
+There should probably be an
+.B imaptls
+protocol as well.
+.RB ( Imaptls
+would connect to port 143 in plaintext and start TLS using the IMAP
+STARTTLS command.
+(That's the nice thing about standards\(emthere's so many to choose from.))
+.SH FILES
+.TF /mail/box/*/dead.letter
+.TP
+.B /mail/box/*
+mail directories
+.TP
+.B /mail/box/*/mbox
+mailbox files
+.TP
+.B /mail/box/*/L.reading
+mutual exclusion lock for multiple mbox readers
+.TP
+.B /mail/box/*/L.mbox
+mutual exclusion lock for altering mbox
+.br
+.ne 3
+.SH SOURCE
+.B /sys/src/cmd/upas/fs
+.br
+.B /rc/bin/startupasfs
+.SH "SEE ALSO"
+.IR aliasmail (8),
+.IR faces (1),
+.IR filter (1),
+.IR mail (1),
+.IR marshal (1),
+.IR mlmgr (1),
+.IR nedmail (1),
+.IR qer (8),
+.IR rewrite (6),
+.IR send (8),
+.IR upasfs (4)

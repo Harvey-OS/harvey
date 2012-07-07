@@ -1,0 +1,39 @@
+.TH MKFLASHFS 8
+.SH NAME
+mkflashfs \- make a journalling file system for flash memory
+.SH SYNOPSIS
+.B aux/mkflashfs
+[
+.B -n
+.I nsect
+] [
+.B -z
+.I sectsize
+]
+.I file
+.SH DESCRIPTION
+.I Mkflashfs
+creates an empty journalling file system in
+.IR file ,
+typically
+.BR /dev/flash/flash .
+.PP
+The files and directory structure are divided into
+.I sectsize
+(default
+.BR 4096 )
+byte blocks.
+Larger blocks make large files more compact but take longer to access.
+Supplying the
+.B -n
+option forces
+.I file
+to contain exactly
+.I nsect
+sectors.
+.SH SOURCE
+.B /sys/src/cmd/aux/flashfs/mkflashfs.c
+.SH "SEE ALSO"
+.IR flashfs (4),
+.IR paqfs (4),
+.IR sacfs (4)

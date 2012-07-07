@@ -1,0 +1,312 @@
+.TH GAMES 1
+.SH NAME
+4s, 5s, festoon, juggle, life, mahjongg, memo, sokoban, sudoku \- time wasters
+.SH SYNOPSIS
+.B games/4s
+.br
+.B games/5s
+.br
+.B games/festoon
+[
+.B -pet
+] [
+.I sentences
+[
+.I percent-invented-nouns
+] ]
+.br
+.B games/juggle
+[
+.B -d
+.I delay
+] [
+.B -h
+.I hands
+] [
+.I start
+]
+.I pattern
+.br
+.B games/life
+.I startfile
+.br
+.B games/mahjongg
+[
+.B -c
+] [
+.B -f
+] [
+.B -b
+.I background
+] [
+.B -t 
+.I tileset
+] [
+.B -l
+.I layout
+]
+.br
+.B games/memo
+[
+.B -h
+]
+.br
+.B games/sokoban
+[
+.I level
+]
+.br
+.B games/sudoku
+.SH DESCRIPTION
+There are a few games in
+.BR /bin/games :
+.TF mahjongg
+.PD
+.TP
+.BR 4s , " 5s"
+Try to fill complete rows using 4-square or 5-square tiles.
+Move tiles left or right by moving the mouse.
+Rotate tiles with buttons 1 and 3.
+Drop tiles for more points with button 2 or the space bar.
+Keys
+.LR a
+and 
+.LR j
+move left,
+.LR s
+and 
+.LR k
+rotate left,
+.LR d
+and 
+.LR l
+rotate right,
+.LR f
+and 
+.LR ;
+move right.
+.LR z ,
+.LR p
+and
+.LR Esc
+toggle suspend/resume.
+.LR q ,
+.LR Del
+and
+.LR control-D
+quit.
+.TP
+.B festoon
+Generate an official-looking but utterly nonsensical bureaucratic report as
+.L "pic | eqn | tbl | troff -mm"
+input.
+Options
+.BR -p ,
+.B -e
+and
+.B -t
+add gibberish diagrams, equations and tables.
+.TP
+.B juggle
+Display the juggling
+.I pattern
+using the optional initial
+.I start
+pattern.
+The number of hands involved (default 2) can be specified with
+.BR -h ,
+and
+.I delay
+can be used to speed up or slow down the action (default is 20).
+Try the pattern 333333441333333 or 333353505151512333333
+or YWUSQOMKIGECA
+(see
+.BR http://seehuhn.de/jong/theory.html ).
+.TP
+.B life
+Play the game of Life, given an initial position.
+There is a library of interesting initial positions;
+the library is consulted if
+.I startfile
+cannot be found.
+.TP
+.B mahjongg
+Remove all tiles
+from the board. Click on tiles with the same face that
+are not blocked by others. A blocked tile is one that is partially or
+fully covered on top or has neighbouring tiles to the left and right.
+The game finishes when either all tiles are gone or there are no
+more moves left. The arguments are for changing background
+.RB (-b),
+tile
+.RB (-t)
+and layout
+.RB (-l)
+images;
+.RB -c
+selects a true-color buffer image, for use with
+drawterm or in case selecting a tile obscures it completely;
+.RB -f
+causes mahjongg to indicate non-blocked tiles on mouse-over.
+The 
+.LR N
+key will generate a new level, 
+.LR R
+restarts the current one. 
+.LR Q
+and 
+.LR Del
+quit, 
+.LR H
+gives a hint, either trying to match the currently selected tile, or if no tile is
+selected finding out the first available tile.
+.LR U
+and
+.LR Bksp
+undo the last move,
+.LR C
+tries to solve the level.
+.TP
+.B memo
+Remove all tiles from the board.
+At first, pictures of various Bell Labs employees, Lucent Technologies' logo, and Glenda will appear.
+Memorize the sequence, then click to hide them and begin.
+Use the mouse to select two tiles.
+If they are the same, the tiles will disappear, otherwise the tiles will flip back and you will get a chance to try again.
+Button 3 generates a memu allowing you to restart, switch between easy and hard modes, and exit.
+The
+.B -h
+option sets the game to hard mode.
+Once the game has been completed, a message pops up with how long it took to win.
+Use the button 3 menu to choose a mode, or click to play again.
+.TP
+.B sokoban
+Guide Glenda through a room full of walls, pebbles and holes to put
+the pebbles in.  Your goal is to arrange all pebbles into holes by
+pushing them around, but you can only push a pebble if there is no
+wall or another pebble blocking the way.
+Arrow keys move Glenda up-down-left-right.  
+.LR N 
+and 
+.LR P 
+keys switch between
+the next and previous levels, 
+.LR R
+restarts the current level.  
+.LR Del 
+and
+.LR Q
+quit.  Button 3 invokes a menu to restart the current level, load different level sets, and en- and disable animation of multi-step moves.
+Button 2 lets you change between levels. 
+Button 1 lets you do multi-step moves and pushes,
+by clicking it on the destination where you want Glenda to go.
+Glenda will only move if it can reach the destination.
+For a multi-step push the pebble must be next to Glenda,
+the destination must be on the same row or column,
+and there must be a free place next to the destination
+where the pebble can be pushed to.
+Otherwise, if possible, Glenda will walk to the destination without pushing the pebble.
+.I Sokoban
+accepts a level file as its argument.
+.TP
+.B sudoku
+.I Sudoku
+is a puzzle game from Japan.  The goal of the game is to
+fill the numbers 1 to 9 in all squares of the 9x9 board following a
+few simple rules: no digit should repeat on the same row and column,
+and no digit should repeat in the same 3x3 boxes outlined with thicker
+lines.  The board is initially filled with a partial solution which
+can be used for inferring digits for the empty squares.  The top row
+of the board contains the digits 1 through 9, clicking on one of those
+digits selects that number for placement on the board, clicking it
+again will deselect that digit.  Clicking on an empty square will then
+affix the square with the selected digit or, if no digit is selected
+empty the square.
+.IP
+Button 3 presents a menu with the following options:
+.RS \w'\fLfireworksXX'u
+.TP \w'\fLOffsetXX'u
+.B New
+autogenerate a new, random board
+.TP
+.B Check
+mark in red any digits not placed according to the rules
+.TP
+.B Solve
+present the board's solution
+.TP
+.B Clear
+clear the board to its starting (or last loaded) state
+.TP
+.B Save
+save the current board to
+.B /tmp/sudoku-save
+.TP
+.B Load
+load the last saved board from
+.B /tmp/sudoku-save
+.TP
+.B Print
+print the current board and solution in a format
+suitable for addition in the
+.I sudoku
+library to
+.B /tmp/sudoku-board
+.TP
+.B Offline
+pretty-print the board for off-line solving to
+.B /tmp/sudoku-print
+.TP
+.B Exit
+quit the game
+.RE
+.IP
+Button 2 presents a list of
+.I sudoku
+boards of varying degrees of difficulty from
+.BR /sys/games/lib/sudoku/boards .
+.IP
+Pressing the
+.B Q
+key quits
+.IR sudoku .
+.SH FILES
+.TF /sys/games/lib/mahjongg/*
+.TP
+.B /sys/games/lib/[45]scores
+score files of
+.I 4s
+and
+.I 5s
+.TP
+.B /sys/games/lib/life/*
+interesting starting positions
+.TP
+.B /sys/games/lib/mahjongg/*
+image sprites, levels and backgrounds used by
+.I mahjongg
+.TP
+.B /lib/face/*
+tiles for
+.I memo
+.TP
+.B /sys/games/lib/sokoban/*
+image sprites and levels used by
+.I sokoban
+.TP
+.B /sys/games/lib/sudoku/*
+images and boards used by
+.I sudoku
+.SH SOURCE
+.B /sys/src/games
+.SH BUGS
+In
+.I 4s
+and
+.IR 5s ,
+mouse warping (when the game is resumed,
+and when a new tile appears) does not happen when
+the mouse cursor is outside the game window.
+Those who prefer to use the keyboard without the mouse
+cursor blocking the view (or being warped all the time)
+may consider this a feature.

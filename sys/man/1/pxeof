@@ -1,0 +1,16 @@
+.TH PXEOF 1
+.SH NAME
+pxeof \- get the /cfg/pxe initialization file(s) of a host
+.SH SYNOPSIS
+.B pxeof sysname...
+.SH DESCRIPTION
+.I Pxeof
+takes a list of system names as an argument and then finds the
+ethernet address that correspond to that system name in the
+.IR ndb (2)
+database. It then uses
+.IR plumb (1) 
+on the configuration files corresponding to those ethernet addresses in
+the /cfg/pxe directory.
+.SH SOURCE
+.B /rc/bin/pxeof

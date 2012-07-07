@@ -1,0 +1,72 @@
+.TH XALLOC 9
+.SH NAME
+xalloc, xspanalloc, xfree \- basic memory management
+.SH SYNOPSIS
+.ta \w'\fLvoid* 'u
+.B
+void*	xalloc(ulong size)
+.PP
+.B
+void*	xspanalloc(ulong size, int align, ulong span)
+.PP
+.B
+void	xfree(void *p)
+.SH DESCRIPTION
+.I Xalloc
+and
+.I xfree
+are primitives used by higher-level memory allocators in the kernel,
+such as
+.IR malloc (9).
+They are not intended for use directly by most kernel routines.
+The main exceptions are routines that permanently allocate large structures,
+or need the special alignment properties guaranteed by
+.IR xspanalloc .
+.PP
+.I Xalloc
+returns a pointer to a range of size bytes of memory. The memory will be zero filled and aligned on a 8 byte
+.RB ( BY2V )
+address. If the memory is not available,
+.B xalloc
+returns a null pointer.
+.PP
+.I Xspanalloc
+allocates memory given alignment and spanning constraints.
+The block returned will contain
+.I size
+bytes, aligned on a boundary that is
+.BI "0 mod" " align,"
+in such a way that the memory in the block does not
+span an address that is
+.BI "0 mod" " span."
+.I Xspanalloc
+is intended for use
+allocating hardware data structures (eg, page tables) or I/O buffers
+that must satisfy specific alignment restrictions.
+If
+.I xspanalloc
+cannot allocate memory to satisfy the given constraints, it will
+.IR panic (9).
+The technique it uses can sometimes cause memory to be wasted.
+Consequently,
+.I xspanalloc
+should be used sparingly.
+.PP
+.I Xfree
+frees the block of memory at
+.IR p ,
+which must be an address previously returned by
+.I xalloc
+(not
+.IR xspanalloc ).
+.SS Allocation status
+Some memory allocation statistics are written to the console in response to
+the debugging sequence
+.LR "control-T control-T x" .
+The output includes the total free space, the number of free holes,
+and a summary of active holes.
+Each line shows `address top size'.
+.SH SOURCE
+.B /sys/src/9/port/xalloc.c
+.SH SEE ALSO
+.IR malloc (9)

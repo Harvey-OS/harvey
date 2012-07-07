@@ -1,0 +1,46 @@
+.TH EVE 9
+.SH NAME
+eve, iseve \- privileged user
+.SH SYNOPSIS
+.ta \w'\fLchar* 'u
+.B
+char	eve[NAMELEN] = "bootes";
+.PP
+.B
+int	iseve(void)
+.SH DESCRIPTION
+.I Eve
+is a null-terminated string containing the name of the owner of
+the Plan 9 system (sometimes called the `host owner',
+see
+.IR cons (3)).
+The identity is set on a terminal to the name of the user who logs in.
+It is set on a CPU server to the
+.I authid
+obtained either from NVRAM or by a console prompt.
+The initial process created by system initialisation is given the
+.I eve
+identity.
+.PP
+.I Iseve
+returns true if the current user is
+.IR eve .
+Several drivers use
+.I iseve
+to check the caller's identity
+before granting permission to perform certain actions.
+For example, the console driver allows only the user
+.I eve
+to write a new identity into the
+.B /dev/user
+file.
+The privileges are strictly local and do not extend into the network
+(in particular, to file servers—even ones running on the local machine).
+.SH SOURCE
+.B /sys/src/9/port/auth.c
+.SH SEE ALSO
+.IR auth (2),
+.IR cap (3),
+.IR cons (3),
+.IR auth (6),
+.IR auth (8)

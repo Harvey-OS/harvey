@@ -1,0 +1,269 @@
+.TH GPSFS 8
+.SH NAME
+gpsfs, gpsevermore \- GPS time and position service
+.SH SYNOPSIS
+.B aux/gpsfs
+[
+.B -d
+.I device
+]
+[
+.B -b
+.I baud
+]
+[
+.B -s
+.I srvname
+]
+[
+.B -m
+.I mntpt
+]
+.PP
+.B aux/gpsevermore
+[
+.B -d
+.I device
+]
+[
+.B -b
+.I baud
+]
+[
+.B -n
+.I baud
+]
+[
+.B -l
+.I location
+]
+.SH DESCRIPTION
+.B Aux/gpsfs
+reads an NMEA-compatible serial GPS (Global Positioning System)
+device and provides time and position
+through a file system, by default mounted on
+.B /mnt
+and implementing
+.BR /mnt/gps .
+.PP
+It implements four files in the
+.B gps
+directory:
+.BR position ,
+.BR time ,
+.BR satellites ,
+and
+.BR raw .
+.PP
+The read-only
+.B position
+file contains one line of information in 9 tab-separated fields:
+.TF "\fImagnetic deviation
+.PD
+.TP
+.I "fix quality
+0 means position data invalid, 1 means a 2D position is available, 2 means a 3D position is available.
+The value is 8, 9, or 10, respectively, when the fix data comes from a file rather than an actual GPS.
+.TP
+.I "zulu time
+universal coordinated time encoded as hhmmss followed by the character 'Z'.
+.TP
+.I "system time
+time and date converted to the format of
+.IR time (2).
+.TP
+.I longitude
+in degrees, east of Greenwich is positive, west negative.
+.TP
+.I latitude
+in degrees, positive is north, negative south of the equator.
+.TP
+.I altitude
+above sea level, in meters.
+.TP
+.I course
+degrees, clockwise from true north.
+.TP
+.I "ground speed
+in km/h
+.TP
+.I "magnetic deviation
+(not provided by all GPSs), in degrees, positive is westerly, negative easterly.
+.PP
+The read-only
+.B time
+file contains one line of information in 4 tab-separated fields:
+.TF "\fIsystem time
+.PD
+.TP
+.I "gps time
+in
+.IR time (2)
+format.
+.TP
+.I "gps time
+in
+.I nsec
+(see
+.IR time (2))
+format (ms accuracy).
+.TP
+.I "system time
+in
+.I nsec
+format.  This is the system time at the time of the
+.I "gps time
+sample.  The difference between this and the previous field is used in clock
+synchronization.  See
+.IR timesync (8).
+.TP
+.I validity
+the character
+.B A
+meaning sample valid and usable for clock synchronization.  The other values are
+not usable for clock sync:
+.B B
+means valid sample from file playback,
+.B V
+means invalid sample, and
+.B W
+means invalid playback sample.
+.PP
+The read-only
+.B satellites
+file contains information about the current satellite constellation.  It consists
+of one line of general information, followed by zero or more lines, one for each satellite in use.
+The first line contains two fields:
+.TF "\fIsatellites in view
+.PD
+.TP
+.I "fix quality
+same as in the
+.B position
+file.
+.TP
+.I "satellites in view
+number of satellites above the horizon
+.PP
+Subsequent lines have four fields:
+.TF "\fIelevation
+.PD
+.TP
+.I prn
+satellite ID
+.TP
+.I elevation
+above the horizon, degrees.
+.TP
+.I azimuth
+direction, degrees from true north
+.TP
+.I snr
+Signal to noise ratio, 0 - 99 dB
+.PP
+The contents of these files are refreshed once per second when reading from an actual GPS,
+and once per 100 ms (giving a speed up of a factor 10) when playing back from file.
+.PP
+The read-only
+.B raw
+file can be read to obtain a copy of the raw NMEA GPS output.
+.I Gpsfs
+keeps an internal buffer of 8KB, so the reader must keep up with the output
+(typically 500 or so bytes per second).
+.PP
+The
+.B \-d
+flag establishes the device the GPS samples are read from.  If the device file is not
+a serial interface,
+.I gpsfs
+assumes playback from file and modifies quality parameters as such.
+.PP
+The
+.B \-b
+flag specifies the baud rate of the serial line.  The standard baud rate for NMEA
+GPS is 4800 baud, but many device allow changing to higher speeds.
+.PP
+The
+.B \-s
+flag specifies the name under which the
+.I gpsfs
+service is posted in
+.BR /srv .
+.PP
+The
+.B \-m
+flag specifies a mount mount other than
+.BR /mnt .
+.SS Evermore
+.B Aux/gpsevermore
+is used to configure GPSs using an Evermore chipset.
+.PP
+The
+.B \-d
+flag specifies the serial device to the GPS.
+.PP
+The
+.B \-b
+flag specifies the baud rate of the serial line.  The standard baud rate for NMEA
+GPS is 4800 baud, but many device allow changing to higher speeds.
+.PP
+The
+.B \-n
+flag specifies the speed to set the GPS to.  When the command finishes, the
+GPS should be read (and configured) at the new speed.
+.PP
+The
+.B \-l
+flag is sued to specify the location to initialize the GPS to.  The format is
+.B dd:mm:ssX
+or
+.B dd:mm.mmmX
+or
+.BR dd.dddX ,
+where
+.B dd
+stands for degrees (one or more digits),
+.B mm
+for minutes and
+.B ss
+for seconds of arc.
+.B X
+is one of
+.BR W ,
+.BR E ,
+.B N
+or
+.BR S .
+Longitudes come with
+.B W
+or
+.BR E ,
+latitudes with
+.B N
+or
+.BR S .
+The
+.B \-l
+flag is followed by two such fields, one for longitude, one for latitude.  They may be
+given in a single argument (separated by white space), or in two arguments, in either order.
+Initialization time is taken from
+.IR time (2).
+.SH "SEE ALSO
+.IR timesync (8),
+.IR time (2)
+.SH FILES
+.TF /mnt/gps/satellites
+.TP
+.B /mnt/gps/position
+position, time, speed and heading
+.TP
+.B /mnt/gps/satellites
+satellites in view
+.TP
+.B /mnt/gps/time
+GPS time (millisecond accuracy)
+.TP
+.B /dev/eia0
+default GPS device
+.SH SOURCE
+.B /sys/src/cmd/aux/gps

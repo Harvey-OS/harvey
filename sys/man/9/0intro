@@ -1,0 +1,53 @@
+.TH INTRO 9
+.SH NAME
+intro \- introduction to kernel functions
+.SH DESCRIPTION
+This section of the manual
+describes the functions publicly available to the authors of
+kernel code, particularly device drivers (real and virtual).
+This section will eventually be much expanded, but this makes a start.
+.PP
+The
+.SM SYNOPSIS
+subsections do not show the header files needed for
+the standard kernel declarations.
+The primary combinations summarised below:
+.IP
+.RS
+.ta \w'\fL#include 'u
+.nf
+.B
+#include	"u.h"
+.B
+#include	"../port/lib.h"
+.B
+#include	"mem.h"
+.B
+#include	"dat.h"
+.B
+#include	"fns.h"
+.B
+#include	"../port/error.h"
+.PP
+.I "furthermore, added in IP code:"
+.br
+.B
+#include "../ip/ip.h"
+.PP
+.I "furthermore, in hardware device drivers:"
+.br
+.B
+#include "io.h"
+.br
+.B
+#include "ureg.h"
+.PP
+.I "furthermore, in network interfaces or ether drivers:"
+.B
+#include "../port/netif.h"
+.fi
+.RE
+.PP
+There might also be specific include files needed by
+drivers on particular platforms or to use specialised kernel interfaces.
+The easiest method is to check the source of likely-looking drivers nearby.

@@ -1,0 +1,497 @@
+.TH 2C 1
+.SH NAME
+0c, 1c, 2c, 5c, 6c, 7c, 8c, kc, qc, vc \- C compilers
+.SH SYNOPSIS
+.B 2c
+[
+.I option ...
+]
+[
+.I file ...
+]
+.br
+etc.
+.SH DESCRIPTION
+These commands compile the named C
+.I files
+into object files for the corresponding architecture.
+If there are multiple C
+.IR files ,
+the compilers will attempt to keep
+.B $NPROC
+compilations running concurrently.
+Associated with each compiler is a string
+.IR objtype ,
+for example
+.TF "6c amd64 "
+.PD
+.TP
+.B "0c spim
+little-endian MIPS 3000 family
+.TP
+.B "1c 68000
+Motorola MC68000
+.TP
+.B "2c 68020
+Motorola MC68020
+.TP
+.B "5c arm
+little-endian ARM
+.TP
+.B "6c amd64
+AMD64 and compatibles (e.g., Intel EM64T)
+.TP
+.B "7c alpha
+Digital Alpha APX
+.TP
+.B "8c 386
+Intel i386, i486, Pentium, etc.
+.TP
+.B "kc sparc
+Sun SPARC
+.TP
+.B "qc power
+Power PC
+.TP
+.B "vc mips
+big-endian MIPS 3000 family
+.PP
+The compilers handle most preprocessing directives themselves; a complete
+preprocessor is available in
+.IR cpp (1),
+which must be run separately.
+.PP
+Let the first letter of the compiler name be
+.IR O =
+.BR 0 ,
+.BR 1 ,
+.BR 2 ,
+.BR 5 ,
+.BR 6 ,
+.BR 7 ,
+.BR 8 ,
+.BR k ,
+.BR q ,
+or
+.BR v .
+The output object files end in
+.RI . O .
+The letter is also the prefix of related programs:
+.IB O a
+is the assembler,
+.IB O l
+is the loader.
+Plan 9 conventionally sets the
+.B $objtype
+environment variable to the
+.I objtype
+string appropriate to the current machine's type.
+Plan 9 also conventionally has
+.RI / objtype
+directories, which contain among other things:
+.BR include ,
+for machine-dependent include files;
+.BR lib ,
+for public object code libraries;
+.BR bin ,
+for public programs;
+and
+.BR mkfile ,
+for preconditioning
+.IR mk (1).
+.PP
+The compiler options are:
+.TF Dname
+.PD
+.TP
+.BI -o " obj"
+Place output in file
+.I obj
+(allowed only if there is just one input file).
+Default is to take the last element of the input file name,
+strip any trailing
+.BR .c ,
+and append
+.RI . O .
+.TP
+.B -w
+Print warning messages about unused variables, etc.
+.TP
+.B -B
+Accept functions without a new-style
+ANSI C function prototype.
+By default, the compilers reject functions
+used without a defined prototype,
+although ANSI C permits them.
+.TP
+.BI -D\*S name=def
+.br
+.ns
+.TP
+.BI -D \*Sname
+Define the
+.I name
+to the preprocessor,
+as if by
+.LR #define .
+If no definition is given, the name is defined as
+.LR 1 .
+.TP
+.BI -F
+Enable type-checking of calls to
+.IR print (2)
+and other formatted print routines.  See the discussion
+of extensions, below.
+.TP
+.BI -I \*Sdir
+An
+.L #include
+file whose name does not begin with
+slash
+or is enclosed in double quotes
+is always
+sought first in the directory
+of the
+.I file
+argument.  If this fails,
+the
+.I -.
+flag is given or the name is enclosed in
+.BR <> ,
+it is then sought
+in directories named in
+.B -I
+options,
+then in
+.BR /sys/include ,
+and finally in
+.BR /$objtype/include .
+.TP
+.B -.
+Suppress the automatic searching for include files in
+the directory of the file argument.
+.TP
+.B -N
+Suppress automatic registerization and optimization.
+.TP
+.B -S
+Print an assembly language version of the object code
+on standard output as well as generating the
+.RI . O
+file.
+.TP
+.B -T
+Pass type signatures on all external and global entities.
+The signature is based on the C
+.B signof
+operator.
+See
+.IR dynld (2).
+.TP
+.B -V
+By default, the compilers are non-standardly lax about type equality between
+.B void*
+values and other pointers; this flag requires ANSI C conformance.
+.TP
+.B -p
+Invoke a standard ANSI C preprocessor before compiling.
+.TP
+.B -a
+Instead of compiling, print on standard output acid functions (see
+.IR acid (1))
+for examining structures declared in the source files.
+.TP
+.B -aa
+Like
+.B -a
+except suppress information about structures
+declared in included header files.
+.TP
+.B -n
+When used with
+.B -a
+or
+.BR -aa ,
+places acid functions in
+.IB file .acid
+for input
+.IB file .c ,
+and not on standard output.
+.PP
+The compilers support several extensions to ANSI C:
+.TF \|
+.PD
+.TP
+\-
+A structure or union may contain unnamed substructures and subunions.
+The fields of the substructures or
+subunions can then be used as if they were members of the parent
+structure or union (the resolution of a name conflict is unspecified).
+When a pointer to the outer structure or union is used in a context
+that is only legal for the unnamed substructure, the compiler promotes
+the type and adjusts the pointer value to point at the substructure.
+If the unnamed structure or union is of a type with a tag name specified by a
+.B typedef
+statement,
+the unnamed structure or union can be explicitly referenced
+by <struct variable>.<tagname>.
+.TP
+\-
+A structure value can be formed with an expression such as
+.EX
+    (struct S){v1, v2, v3}
+.EE
+where the list elements are values for the fields of struct
+.BR S .
+.TP
+\-
+Array initializers can specify the indices of the array in square
+brackets, as
+.EX
+    int a[] = { [3] 1, [10] 5 };
+.EE
+which initializes the third and tenth elements of the eleven-element array
+.BR a .
+.TP
+\-
+Structure initializers can specify the structure element by using the name
+following a period, as
+.EX
+    struct { int x; int y; } s = { .y 1, .x 5 };
+.EE
+which initializes elements
+.B y
+and then
+.B x
+of the structure
+.BR s .
+These forms also accept the new ANSI C notation, which includes an equal sign:
+.EX
+    int a[] = { [3] = 1, [10] = 5 };
+    struct { int x; int y; } s = { .y = 1, .x = 5 };
+.EE
+.TP
+\-
+A global variable can be dedicated to a register
+by declaring it
+.B "extern register"
+in
+.I all
+modules and libraries.
+.TP
+\-
+A
+.B #pragma
+of the form
+.EX
+    #pragma lib "libbio.a"
+.EE
+records that the program needs to be loaded with file
+.BR /$objtype/lib/libbio.a ;
+such lines, typically placed in library header files, obviate the
+.B -l
+option of the loaders.  To help identify files in non-standard directories,
+within the file names in the
+.B #pragmas
+the string
+.B $M
+represents the name of the architecture
+(e.g.,
+.BR mips )
+and
+.B $O
+represents its identifying character
+(e.g.,
+.BR v ).
+.TP
+\-
+A
+.B #pragma
+of the form
+.EX
+    #pragma varargck argpos error 2
+.EE
+tells the compiler that the second argument to
+.B error
+is a
+.BR print -like
+format string (see
+.IR print (2))
+that identifies the handling of subsequent arguments.
+The
+.B #pragma
+.EX
+    #pragma varargck type "s" char*
+.EE
+says that the format verb
+.B s
+processes an argument of type
+.BR char *.
+The
+.B #pragma
+.EX
+    #pragma varargck flag 'c'
+.EE
+says that
+.B c
+is a flag character.
+These
+.B #pragmas
+are used, if the
+.B -F
+option is enabled, to type-check calls to
+.B print
+and other such routines.
+.TP
+\-
+A
+.B #pragma
+with any of the following forms:
+.EX
+    #pragma incomplete \fItype\fP
+    #pragma incomplete struct \fItag\fP
+    #pragma incomplete union \fItag\fP
+.EE
+where
+.I type
+is a
+.BR typedef 'd
+name for a structure or union type, and
+.I tag
+is a structure or union tag,
+tells the compiler that
+the corresponding type
+should have its signature calculated as an incomplete type
+even if it is subsequently fully defined.
+This allows the type signature mechanism to work in the presence
+of opaque types declared in header files, with their full definitions
+visible only to the code which manipulates them.
+With some imported software it might be necessary to turn off the
+signature generation completely for a large body of code (typically
+at the start and end of a particular include file).
+If
+.I type
+is the word
+.BR _off_ ,
+signature generation is turned off; if
+.I type
+is the word
+.BR _on_ ,
+the compiler will generate signatures.
+.TP
+\-
+The C++ comment
+.RB ( //
+to end of line)
+is accepted as well as the normal
+convention of
+.B /*
+.BR */ .
+.TP
+\-
+The compilers accept
+.B long
+.B long
+variables as a 64-bit type.
+The standard header typedefs this to
+.BR vlong .
+Arithmetic on
+.B  vlong
+values is usually emulated by a run-time library,
+though in at least
+.IR 8c ,
+only division and modulus use the run-time library
+and the other operators generate in-line code
+(and
+.I uvlong-expression
+.I divison-or-modulus
+.BI "(1<<" constant )
+will turn into in-line bit operations,
+as is done for shorter
+.I unsigned
+expressions).
+.SH EXAMPLE
+For the 68020, produce a program
+.B prog
+from C files
+.BR main.c
+and
+.BR sub.c :
+.IP
+.EX
+2c -FVw main.c sub.c
+2l -o prog main.2 sub.2
+.EE
+.SH FILES
+.TF /$objtype/include
+.TP
+.B /sys/include
+system area for machine-independent
+.B #include
+directives.
+.TP
+.B /$objtype/include
+system area for machine-dependent
+.B #include
+directives.
+.SH SOURCE
+.TF /sys/src/cmd/2c,\ etc.
+.TP
+.B /sys/src/cmd/cc
+machine-independent part
+.TP
+.BR /sys/src/cmd/2c ,\ etc.
+machine-dependent part
+.SH "SEE ALSO"
+.IR 2a (1),
+.IR 2l (1),
+.IR cpp (1),
+.IR mk (1),
+.IR nm (1),
+.IR pcc (1),
+.IR db (1),
+.IR acid (1)
+.\" .IR ansitize (1)
+.PP
+Rob Pike,
+``How to Use the Plan 9 C Compiler''
+.SH BUGS
+The list of compilers given above is only partial,
+not all architectures are supported on all systems,
+some have been retired and some
+are provided by third parties.
+.PP
+The default preprocessor only handles
+.LR #define ,
+.LR #include ,
+.LR #undef ,
+.LR #ifdef ,
+.LR #line ,
+and
+.LR #ifndef .
+For a full ANSI preprocessor, use
+the
+.B p
+option.
+.PP
+The default search order for include files
+differs to that of
+.IR cpp (1).
+.PP
+Some features of C99, the 1999 ANSI C standard,
+are implemented.
+.PP
+.B switch
+expressions may not be either signedness of
+.B vlong
+on 32-bit architectures
+.RI ( 8c
+at least).
+.PP
+The implementation of
+.B vlong
+assignment can use a static location
+and this can be disturbed by interrupts
+(e.g., notes)
+.RI ( 8c
+at least).

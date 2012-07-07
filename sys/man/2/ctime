@@ -1,0 +1,129 @@
+.TH CTIME 2
+.SH NAME
+ctime, localtime, gmtime, asctime, tm2sec, timezone \- convert date and time
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
+.ta \w'\fLchar* 'u
+.B
+char*	ctime(long clock)
+.PP
+.B
+Tm*	localtime(long clock)
+.PP
+.B
+Tm*	gmtime(long clock)
+.PP
+.B
+char*	asctime(Tm *tm)
+.PP
+.B
+long	tm2sec(Tm *tm)
+.PP
+.B
+/env/timezone
+.SH DESCRIPTION
+.I Ctime
+converts a time
+.I clock
+such as returned by
+.IR time (2)
+into
+.SM ASCII
+(sic)
+and returns a pointer to a
+30-byte string
+in the following form.
+All the fields have constant width.
+.PP
+.B
+	Wed Aug  5 01:07:47 EST 1973\en\e0
+.PP
+.I Localtime
+and
+.I gmtime
+return pointers to structures containing
+the broken-down time.
+.I Localtime
+corrects for the time zone and possible daylight savings time;
+.I gmtime
+converts directly to GMT.
+.I Asctime
+converts a broken-down time to
+.SM ASCII
+and returns a pointer
+to a 30-byte string.
+.IP
+.EX
+.ta 6n +\w'char 'u +\w'zone[4];    'u
+typedef
+struct {
+	int	sec;	/* seconds (range 0..59) */
+	int	min;	/* minutes (0..59) */
+	int	hour;	/* hours (0..23) */
+	int	mday;	/* day of the month (1..31) */
+	int	mon;	/* month of the year (0..11) */
+	int	year;	/* year A.D. \- 1900 */
+	int	wday;	/* day of week (0..6, Sunday = 0) */
+	int	yday;	/* day of year (0..365) */
+	char	zone[4];	/* time zone name */
+	int	tzoff;	/* time zone delta from GMT */
+} Tm;
+.EE
+.PP
+.I Tm2sec
+converts a broken-down time to
+seconds since the start of the epoch.
+It ignores
+.BR wday ,
+and assumes the local time zone
+if
+.B zone
+is not
+.BR GMT .
+.PP
+When local time is first requested,
+the program consults the
+.B timezone
+environment variable to determine the time zone and
+converts accordingly.
+(This variable is set at system boot time by
+.IR init (8).)
+The
+.B timezone
+variable contains
+the normal time zone name and its difference from GMT
+in seconds followed by an alternate (daylight) time zone name and
+its difference followed by a newline.
+The remainder is a list of pairs of times
+(seconds past the start of 1970, in the first time zone)
+when the alternate time zone applies.
+For example:
+.IP
+.EX
+EST -18000 EDT -14400
+ 9943200 25664400 41392800 57718800 ...
+.EE
+.PP
+Greenwich Mean Time is represented by
+.IP
+.EX
+GMT 0
+.EE
+.SH SOURCE
+.B /sys/src/libc/9sys
+.SH "SEE ALSO"
+.IR date (1),
+.IR time (2),
+.IR init (8)
+.SH BUGS
+The return values point to static data
+whose content is overwritten by each call.
+.br
+Daylight Savings Time is ``normal'' in the Southern hemisphere.
+.br
+These routines are not equipped to handle non-\c
+.SM ASCII
+text, and are provincial anyway.

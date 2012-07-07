@@ -1,0 +1,53 @@
+.TH STUB 8
+.SH NAME
+stub \- provide mount point stubs
+.SH SYNOPSIS
+.B aux/stub
+[
+.B -Dd
+]
+.I path/name
+.SH DESCRIPTION
+.I Aux/stub
+union mounts itself before
+.I path
+in the name space.
+It serves a file system containing a single entry,
+.IR name ,
+with file mode 0.
+The intent is to provide a place to bind or mount other resources.
+The options are:
+.TP
+.B -D
+print all 9P messages
+.TP
+.B -d
+make
+.I name
+a directory; by default it is a file
+.PD
+.SH EXAMPLE
+Use
+.I stub
+and
+.I sshnet
+(see
+.IR ssh (1))
+to create a new network protocol
+.RB `` mit ''
+that is actually TCP tunneled via SSH to a machine
+at MIT:
+.IP
+.EX
+% sshnet -m /net.alt amsterdam.lcs.mit.edu
+% aux/stub -d /net/mit
+% bind /net.alt/tcp /net/mit
+% con -l mit!plan9.bell-labs.com!whoami
+connected to mit!plan9.bell-labs.com!whoami on /net/mit/0
+i am 204.178.31.2 sysname achille you are 18.26.4.9 port 1248
+% 
+.EE
+.SH SOURCE
+.B /sys/src/cmd/aux/stub.c
+.SH SEE ALSO
+.IR mntgen (4)

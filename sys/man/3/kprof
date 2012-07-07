@@ -1,0 +1,66 @@
+.TH KPROF 3 
+.SH NAME
+kprof \- kernel profiling
+.SH SYNOPSIS
+.nf
+.B bind -a #K /dev
+.sp
+.B /dev/kpctl
+.B /dev/kpdata
+.fi
+.SH DESCRIPTION
+The
+.I kprof
+device provides simple profiling
+data for the operating system kernel.   The data accumulates by
+recording the program counter of the kernel at each `tick' of the
+system clock.
+.PP
+The file
+.B kpdata
+holds the accumulated counts as 4-byte integers in big-endian
+byte order.
+The size of the file depends on the size of kernel text.
+The first count
+holds the total number of clock ticks during profiling;
+the second the number of ticks that occurred while the kernel
+was running.  The rest each hold the number of ticks
+the kernel program counter was within the
+corresponding 8-byte range of kernel text, starting from the base
+of kernel text.
+.PP
+The file
+.B kpctl
+controls profiling.
+Writing the string
+.B start
+to
+.B kpctl
+begins profiling;
+.B stop
+terminates it.  The message
+.B startclr
+restarts profiling after zeroing the array of counts.
+.PP
+The program
+.I kprof
+(see
+.IR prof (1))
+formats the data for presentation.
+.SH EXAMPLE
+The following
+.IR rc (1)
+script runs a test program while profiling the kernel
+and reports the results.
+.sp
+.EX
+	bind -a '#K' /dev
+	echo start > /dev/kpctl
+	runtest
+	echo stop > /dev/kpctl
+	kprof /386/9pcdisk /dev/kpdata
+.EE
+.SH SOURCE
+.B /sys/src/9/port/devkprof.c
+.SH SEE ALSO
+.IR prof (1)

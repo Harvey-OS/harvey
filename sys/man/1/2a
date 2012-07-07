@@ -1,0 +1,60 @@
+.TH 2A 1 
+.SH NAME
+0a, 1a, 2a, 5a, 6a, 7a, 8a, ka, qa, va \- assemblers
+.SH SYNOPSIS
+.B 2a
+[
+.I option ...
+]
+[
+.I name ...
+]
+.br
+etc.
+.SH DESCRIPTION
+These programs
+assemble the named files into object files
+for the corresponding architectures; see
+.IR 2c (1)
+for the correspondence between an architecture and the character
+.RB ( 1 ,
+.RB 2 ,
+etc.) that specifies it.
+The assemblers handle the most common C preprocessor directives and the associated
+command-line options
+.BR -D
+and
+.BR -I .
+Other options are:
+.TP
+.BI -o " obj"
+Place output in file
+.I obj
+(allowed only if there is just one input file).
+Default is to take the last element of the input path name,
+strip any trailing
+.BR .s ,
+and append
+.RI . O ,
+where
+.I O
+is first letter of the assembler's name.
+.SH FILES
+The directory
+.B /sys/include
+is searched for include files after
+machine-dependent files in
+.BR /$objtype/include .
+.SH SOURCE
+.BR /sys/src/cmd/2a ,
+etc.
+.SH SEE ALSO
+.IR 2c (1),
+.IR 2l (1).
+.PP
+Rob Pike, ``A manual for the Plan 9 assembler''
+.SH BUGS
+The list of assemblers given above is only partial,
+not all architectures are supported on all systems,
+some have been retired and some
+are provided by third parties.

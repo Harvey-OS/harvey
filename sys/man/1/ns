@@ -1,0 +1,44 @@
+.TH NS 1
+.SH NAME
+ns \- display name space
+.SH SYNOPSIS
+.B ns
+[
+.B -r
+] [
+.I pid
+]
+.SH DESCRIPTION
+.I Ns
+prints a representation of the file name space of the process with the named
+.IR pid ,
+or by default itself.
+The output is in the form of an
+.IR rc (1)
+script that could, in principle, recreate the name space.
+The output is produced by reading and reformatting the contents of
+.BI /proc/ pid /ns .
+.PP
+By default,
+.I ns
+rewrites the names of network data files to represent the network
+address that data file is connected to, for example replacing
+.B /net/tcp/82/data
+with
+.BR tcp!123.122.121.9 .
+The
+.B -r
+flag suppresses this rewriting.
+.SH FILES
+.B /proc/*/ns
+.SH SOURCE
+.B /sys/src/cmd/ns.c
+.SH "SEE ALSO"
+.IR ps (1),
+.IR proc (3),
+.IR namespace (4),
+.IR namespace (6)
+.SH BUGS
+The names of files printed by
+.I ns
+will be inaccurate if a file or directory it includes has been renamed.

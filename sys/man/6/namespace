@@ -1,0 +1,95 @@
+.TH NAMESPACE 6
+.SH NAME
+namespace \- name space description file
+.SH DESCRIPTION
+Namespace files describe how to construct a name space from scratch,
+an operation normally performed by the
+.I newns
+or
+.I addns
+subroutines
+(see
+.IR auth (2))
+which is typically called by
+.IR init (8).
+Each line specifies one name space operation.
+Spaces and tabs separate arguments to operations;
+no quotes or escapes are recognized.
+Blank lines and lines with
+.B #
+as the first non-space character are ignored.
+Environment variables of the form
+.BI $ name
+are expanded within arguments,
+where
+.I name
+is a
+.SM UTF
+string terminated by white space, a
+.BR / ,
+or a
+.BR $ .
+.PP
+The known operations and their arguments are:
+.TF 0
+.TP
+.BR mount \ [ -abcC ]\ \fIservename\  old " \fR[\fIspec\fR\^\^]
+Mount
+.I servename
+on
+.IR old .
+.TP
+.BR bind \ [ -abcC "]  \fInew old
+Bind
+.I new
+on
+.IR old .
+.TP
+.BR import \ [ -abc ]\ \fIhost\fR\ "[\fIremotepath\fR\^\^] \fImountpoint\fR
+Import
+.I remotepath
+from machine
+.I server
+and attach it to
+.IR mountpoint .
+.TP
+.BI cd \ dir
+Change the working directory to
+.IR dir .
+.TP
+.BR unmount \ [ \fInew\fR ]\ \fIold
+Unmount
+.I new
+from
+.IR old ,
+or everything mounted on
+.I old
+if
+.I new
+is missing.
+.TP
+.BR clear
+Clear the name space with
+.BR rfork(RFCNAMEG) .
+.TP
+.BI . \ path
+Execute the namespace file 
+.IR path .
+Note that
+.I path
+must be present in the name space being built.
+.PD
+.PP
+The options for
+.IR bind ,
+.IR mount ,
+and
+.I import
+are interpreted as in
+.IR bind (1)
+and
+.IR import (4).
+.SH "SEE ALSO"
+.IR bind (1),
+.IR namespace (4),
+.IR init (8)

@@ -1,0 +1,312 @@
+.TH ALLOCB 9
+.SH NAME
+allocb, iallocb, freeb, freeblist, BLEN, blocklen, concatblock, copyblock, trimblock, packblock, padblock, pullblock, pullupblock, adjustblock, checkb \- data block management
+.SH SYNOPSIS
+.ta \w'\fLBlock* 'u
+.B
+Block*	allocb(int size)
+.PP
+.B
+Block*	iallocb(int size)
+.PP
+.B
+void	freeb(Block *b)
+.PP
+.B
+void	freeblist(Block *b)
+.PP
+.B
+long	BLEN(Block *b)
+.PP
+.B
+int	blocklen(Block *b)
+.PP
+.B
+Block*	concatblock(Block *b)
+.PP
+.B
+Block*	copyblock(Block *b, int n)
+.PP
+.B
+Block*	trimblock(Block *b, int offset, int n)
+.PP
+.B
+Block*	packblock(Block *b)
+.PP
+.B
+Block*	padblock(Block *b, int n)
+.PP
+.B
+int	pullblock(Block **bph, int n)
+.PP
+.B
+Block*	pullupblock(Block *b, int n)
+.PP
+.B
+Block*	adjustblock(Block *b, int n)
+.PP
+.B
+void	checkb(Block *b, char *msg)
+.SH DESCRIPTION
+A
+.B Block
+provides a receptacle for data:
+.IP
+.EX
+.DT
+typedef
+struct Block
+{
+    Block*  next;
+    Block*  list;
+    uchar*  rp;     /* first unconsumed byte */
+    uchar*  wp;     /* first empty byte */
+    uchar*  lim;    /* 1 past the end of the buffer */
+    uchar*  base;   /* start of the buffer */
+    void    (*free)(Block*);
+    ulong   flag;
+} Block;
+.EE
+.PP
+Each
+.B Block
+has an associated buffer, located at
+.BR base ,
+and accessed via
+.B wp
+when filling the buffer, or
+.B rp
+when fetching data from it.
+Each pointer should be incremented to reflect the amount of data written or read.
+A
+.B Block
+is empty when
+.B rp
+reaches
+.BR wp .
+The pointer
+.B lim
+bounds the allocated space.
+Some operations described below accept lists of
+.BR Block s,
+which are
+chained via their
+.B next
+pointers, with a null pointer ending the list.
+.B Blocks
+are usually intended for a
+.B Queue
+(see
+.IR qio (9)),
+but can be used independently.
+.PP
+A
+.B Block
+and its buffer are normally allocated by one call to
+.IR malloc (9)
+and aligned on an 8 byte (\fLBY2V\fP) boundary.
+Some devices with particular allocation constraints
+(eg, requiring certain addresses for DMA) might allocate their own
+.B Block
+and buffer;
+.B free
+must then point to a function that can deallocate the specially allocated
+.BR Block .
+.PP
+Many
+.B Block
+operations cannot be used in interrupt handlers
+because they either
+.IR sleep (9)
+or raise an
+.IR error (9).
+Of operations that allocate blocks, only
+.IR iallocb
+is usable.
+.PP
+.I Allocb
+allocates a
+.B Block
+of at least
+.IR size
+bytes.
+The block
+is initially empty:
+.B rp
+and
+.B wp
+point to the start of the data.
+If it cannot allocate memory,
+.I allocb
+raises an
+.IR error (9);
+it cannot be used by an interrupt handler.
+.PP
+.IR Iallocb
+is similar to
+.IR allocb
+but is intended for use by interrupt handlers,
+and returns a null pointer if no memory is available.
+It also limits its allocation to a quota allocated at system initialisation to interrupt-time buffering.
+.PP
+.I Freeb
+frees a single
+.B Block
+(and its buffer).
+.PP
+.I Freeblist
+frees the whole
+list of blocks headed by
+.IR b .
+.PP
+.I BLEN
+returns the number of unread bytes in a single block
+.IR b ;
+it is implemented as a macro.
+.PP
+.I Blocklen
+returns the number of bytes of unread data in the whole list of blocks headed by
+.IR b .
+.PP
+.I Concatblock
+returns
+.I b
+if it is not a list, and otherwise
+returns a single
+.B Block
+containing all the data in the list of blocks
+.IR b ,
+which it frees.
+.PP
+.I Copyblock
+by contrast returns a single
+.B Block
+containing a copy of the first
+.I n
+bytes of data in the block list
+.IR b ,
+padding with zeroes if the list contained less than
+.I n
+bytes.
+The list
+.I b
+is unchanged.
+.PP
+.I Padblock
+can pad a single
+.B Block
+at either end, to reserve space for protocol headers or trailers.
+If
+.IR n ≥ 0 ,
+it inserts
+.I n
+bytes at the start of the block,
+setting the read pointer
+.B rp
+to point to the new space.
+If
+.IR n < 0 ,
+it adds
+.I n
+bytes at the end of the block,
+leaving the write pointer
+.B wp
+pointing at the new space.
+In both cases, it allocates a new
+.B Block
+if necessary, freeing the old, and
+it always returns a pointer to the resulting
+.BR Block .
+.PP
+.I Trimblock
+trims the list
+.I b
+to contain no more than
+.I n
+bytes starting at
+.I offset
+bytes into the data of the original list.
+It returns a new list, freeing unneeded parts of the old.
+If no data remains, it returns a null pointer.
+.PP
+.I Packblock
+examines each
+.B Block
+in the list
+.IR b ,
+reallocating any block in the list that has four times more available space than actual data.
+It returns a pointer to the revised list.
+.PP
+.I Pullblock
+discards up to
+.I n
+bytes from the start of the list headed by
+.BI * bph \f1.\f0
+Unneeded blocks are freed.
+.I Pullblock
+sets
+.BI * bph
+to point to the new list head
+and returns the number of bytes discarded (which might be less than
+.IR n ).
+It is used by transport protocols to discard ack'd data at
+the head of a retransmission queue.
+.PP
+.I Pullupblock
+rearranges the data in the list of blocks
+.I b
+to ensure that there are at least
+.I n
+bytes of contiguous data in the first block,
+and returns a pointer to the new list head.
+It frees any blocks that it empties.
+It returns a null pointer if there is not enough data in the list.
+.PP
+.I Adjustblock
+ensures that the block
+.I b
+has at least
+.I n
+bytes of data, reallocating or padding with zero if necessary.
+It returns a pointer to the new
+.BR Block .
+(If
+.I n
+is negative, it frees the block and returns a null pointer.)
+.PP
+.I Checkb
+does some consistency checking of
+the state of
+.IR b ;
+a
+.IR panic (9)
+results if things look grim.
+It is intended for internal use by the queue I/O routines (see
+.IR qio (9))
+but could be used elsewhere.
+.PP
+The only functions that can be called at interrupt level are
+.IR iallocb ,
+.IR freeb ,
+.IR freeblist ,
+.IR BLEN ,
+.IR blocklen ,
+.IR trimblock
+and
+.IR pullupblock .
+The others allocate memory and can potentially block.
+.SH DIAGNOSTICS
+Many functions directly or indirectly can raise an
+.IR error (9),
+and callers must therefore provide for proper error recovery
+as described therein to prevent memory leaks and other bugs.
+Except for
+.IR iallocb ,
+any functions that allocate new blocks or lists
+are unsuitable for use by interrupt handlers.
+.IR Iallocb
+returns a null pointer when it runs out of memory.
+.SH SOURCE
+.B /sys/src/9/port/allocb.c
+.SH SEE ALSO
+.IR qio (9)

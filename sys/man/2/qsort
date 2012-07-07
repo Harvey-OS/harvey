@@ -1,0 +1,33 @@
+.TH QSORT 2
+.SH NAME
+qsort \- quicker sort
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
+.B
+.nf
+void qsort(void *base, long nel, long width,
+.B
+	    int (*compar)(void*, void*))
+.fi
+.SH DESCRIPTION
+.I Qsort
+(quicker sort)
+sorts an array into nondecreasing order.
+The first argument is a pointer to the base of the data;
+the second is the number of elements;
+the third is the width of an element
+in bytes;
+the last is the name of a comparison routine
+to be called with pointers
+to elements being compared.
+The routine must return
+an integer less than, equal to, or greater than 0
+according as the first argument is to be considered
+less than, equal to, or greater than the second.
+.SH SOURCE
+.B /sys/src/libc/port/qsort.c
+.SH "SEE ALSO"
+.IR sort (1)

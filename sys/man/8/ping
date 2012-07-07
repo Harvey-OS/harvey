@@ -1,0 +1,204 @@
+.TH PING 8
+.SH NAME
+ping, gping, traceroute, hogports \- probe the Internet
+.SH SYNOPSIS
+.B ip/ping
+[
+.B -6aflqr
+] [
+.B -i
+.I interval
+] [
+.B -n
+.I count
+] [
+.B -s
+.I size
+] [
+.B -w
+.I waittime
+]
+.I destination
+.PP
+.B ip/gping
+[
+.B -r
+] [
+.B -l
+] [
+.B -i
+.I interval
+]
+.I destination
+[
+.I destination
+\&... ]
+.PP
+.B ip/traceroute
+[
+.B -dn
+][
+.B -a
+.I n
+][
+.B -h
+.I nbuck
+][
+.B -t
+.I sttl
+]
+.I dest
+.PP
+.B ip/hogports
+.B [\fImtpt\fP/]\fIproto\fP!\fIaddress\fP!\fIstartport\fP[-\fIendport\fP]
+.SH DESCRIPTION
+.I Ping
+sends ICMP echo request messages to a system.
+It can be used to determine the network delay
+and whether or not the destination is up.
+By default, a line is written to standard output for
+each request.
+If a reply is received the line contains the request
+id (starting at 0 and incrementing), the round trip time
+for this request, the average round trip time, and the time
+to live in the reply packet.  If no reply is received the line
+contains the word "lost", the request id, and the average round
+trip time.
+.PP
+If a reply is received for each request,
+.I ping
+returns successfully. Otherwise it returns an error status of
+"lost messages".
+.PP
+The options are:
+.TP
+.B 6
+force the use of IPv6's ICMP,
+.BR icmpv6 ,
+instead of IPv4's ICMP.
+.I Ping
+tries to determine which version of IP to use automatically.
+.TP
+.B a
+adds the IP source and destination addresses to each report.
+.TP
+.B f
+send messages as fast as possible (flood).
+.TP
+.B i
+sets the time between messages
+to be
+.I interval
+milliseconds, default 1000 ms.
+.TP
+.B l
+causes only lost messages to be reported.
+.TP
+.B n
+requests that a total of
+.I count
+messages be sent, default 32.
+.TP
+.B q
+suppresses any output (i.e. be quiet).
+.TP
+.B r
+randomizes the delay with a minimum extra delay of 0 ms and a
+maximum extra delay of the selected interval.
+.TP
+.B s
+sets the length of the message to be
+.I size
+bytes, ICMP header included.
+The size cannot be smaller than 32 or
+larger than 8192.  The default is 64.
+.TP
+.B w
+sets the additional time in milliseconds to wait
+after all packets are sent.
+.PP
+.I Gping
+is a
+.I ping
+with a graphical display.  It
+presents separate graphs for each destination
+specified.
+.PP
+The options are:
+.TP
+.B r
+display round trip time in seconds.
+This is the default.
+.TP
+.B l
+display percentage of lost messages.
+A message is considered lost if not
+replied to in 10 seconds.  The percentage
+is an exponentially weighted average.
+.TP
+.B i
+sets the time between messages
+to be
+.I interval
+milliseconds, default 5000 ms.
+.PP
+Graphs can be dropped and added using
+the button 3 menu.  Clicking button 1
+on a datapoint displays the value of the
+datapoint and the time it was recorded.
+.PP
+.I Traceroute
+displays the IP addresses and average round trip times to all
+routers between the machine it is run on and
+.IR dest .
+It does this by sending packets to
+.I dest
+with increasing times to live (TTL) in their headers.
+Each router that a packet expires at replies with an ICMP
+warning message.
+The options are:
+.TP
+.B d
+print debugging to standard error
+.TP
+.B n
+just print out IP numbers, don't try to
+look up the names of the routers.
+.TP
+.B a
+make
+.I n
+attempts at each TTL value (default 3).
+.TP
+.B t
+set the starting TTL value to
+.I sttl
+(default 1).
+.TP
+.B h
+print out a histogram of times from request
+to response at each TTL value.  The histogram
+contains
+.I nbuck
+buckets.
+.PD
+.PP
+.I Hogports
+announces on a range of ports to keep them from other processes.
+For example, to keep anyone from making a vncserver visible on
+the network mounted at
+.BR /net.alt :
+.EX
+
+	ip/hogports /net.alt/tcp!*!5900-5950
+.EE
+.SH SOURCE
+.B /sys/src/cmd/ip/ping.c
+.br
+.B /sys/src/cmd/ip/gping.c
+.br
+.B /sys/src/cmd/ip/traceroute.c
+.br
+.B /sys/src/cmd/ip/hogports.c
+.SH SEE ALSO
+.IR ip (3)

@@ -1,0 +1,106 @@
+.TH CHMOD 1 
+.SH NAME
+chmod \- change mode
+.SH SYNOPSIS
+.B chmod
+.I mode file ...
+.SH DESCRIPTION
+The mode of
+each named file
+is changed
+according to
+.IR mode,
+which may be an octal number or a symbolic change to the existing mode.
+A
+.I mode
+is an octal
+number constructed
+from the OR of the
+following modes.
+.TF 0000
+.TP
+0400
+read by owner
+.TP
+0200
+write by owner
+.TP
+0100
+execute (search in directory) by owner
+.TP
+0070
+read, write, execute (search) by group
+.TP
+0007
+read, write, execute (search) by others
+.PD
+.PP
+A symbolic
+.I mode
+has the form:
+.IP
+.RI [who]
+.I op permission
+.PP
+The
+.I who
+part is a combination
+of the letters 
+.B u
+(for user's permissions),
+.B g
+(group)
+and
+.B o
+(other).
+The letter
+.B a
+stands for
+.BR ugo .
+If
+.I who
+is omitted,
+the default is
+.BR a .
+.PP
+.I Op
+can be
+.B +
+to add
+.I permission
+to the file's mode,
+.B -
+to take away
+.IR permission ,
+and
+.B =
+to assign
+.I permission
+absolutely
+(all other bits will
+be reset).
+.PP
+.I Permission
+is any combination of the letters
+.B r
+(read),
+.B w
+(write),
+.B x
+(execute),
+.B a
+(append only),
+.B l
+(exclusive access),
+and
+.B t
+(temporary file).
+.PP
+Only the owner of a file or the group leader of its group
+may change the file's mode.
+.SH SOURCE
+.B /sys/src/cmd/chmod.c
+.SH "SEE ALSO"
+.IR ls (1),
+.IR stat (2),
+.IR stat (5)

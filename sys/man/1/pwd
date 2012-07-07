@@ -1,0 +1,38 @@
+.TH PWD 1
+.SH NAME
+pwd, pbd \- working directory
+.SH SYNOPSIS
+.B pwd
+.br
+.B pbd
+.SH DESCRIPTION
+.I Pwd
+prints the path name of the working (current) directory.
+.I Pwd
+is guaranteed to return the same path that was used to
+enter the directory.
+If, however, the name space has changed, or directory names
+have been changed, this path name may no longer be valid.
+(See
+.IR fd2path (2)
+for a description of
+.BR pwd 's
+mechanism.)
+.PP
+.I Pbd
+prints the base name of the working (current) directory.
+It prints no final newline and is intended for applications
+such as constructing shell prompts.
+.SH SOURCE
+.B /sys/src/cmd/pwd.c
+.br
+.B /sys/src/cmd/pbd.c
+.SH SEE ALSO
+.I cd
+in
+.IR rc (1),
+.IR bind (1),
+.IR intro (2),
+.IR getwd (2),
+.IR fd2path (2)
+

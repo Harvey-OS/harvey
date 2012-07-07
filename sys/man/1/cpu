@@ -1,0 +1,204 @@
+.TH CPU 1
+.SH NAME
+cpu \- connection to CPU server
+.SH SYNOPSIS
+.B cpu
+[
+.B -h
+.I server
+] [
+.B -u
+.I user
+] [
+.B -a
+.I auth-method
+] [
+.B -P
+.I patternfile
+] [
+.B -e
+.I encryption-hash-algs
+] [
+.B -k
+.I keypattern
+] [
+.B -c
+.I cmd args ...
+]
+.PP
+.B cpu
+[
+.B -R
+|
+.B -O
+]
+.SH DESCRIPTION
+.I Cpu
+starts an
+.IR rc (1)
+running on the
+.I server
+machine, or the machine named in the
+.B $cpu
+environment variable if there is no
+.B -h
+option.
+.IR Rc 's
+standard input, output, and error files will be
+.B /dev/cons
+in the name space where the
+.I cpu
+command was invoked.
+Normally,
+.I cpu
+is run in an
+.IR rio (1)
+window on a terminal, so
+.IR rc
+output goes to that window, and input comes from the keyboard
+when that window is current.
+.IR Rc 's
+current directory is
+the working directory of the
+.I cpu
+command itself.
+.PP
+The name space for the new
+.I rc
+is an analogue of the name space where the
+.I cpu
+command was invoked:
+it is the same except for architecture-dependent bindings such as
+.B /bin
+and the use of fast paths to file servers, if available.
+.PP
+If a
+.B -u
+argument is present,
+.I cpu
+uses the argument as the remote user id.
+.PP
+If a
+.B -c
+argument is present, the remainder of the command line is executed by
+.I rc
+on the server, and then
+.I cpu
+exits.
+.PP
+If a
+.B -P
+argument is present, the
+.I patternfile
+is passed to
+.IR exportfs (4)
+to control how much of the local name space will be exported to
+the remote system.
+.PP
+The
+.B -a
+command allows the user to specify the authentication mechanism used
+when connecting to the remote system.  The two possibilities for
+.I auth-method
+are:
+.TF netkey
+.TP
+.B p9
+This is the default.  Authentication is done using the standard Plan 9
+mechanisms, (see
+.IR authsrv (6)).
+No user interaction is required.
+.TP
+.B netkey
+Authentication is done using challenge/response and a hand held
+authenticator or the
+.I netkey
+program
+(see
+.IR passwd (1)).
+The user must encrypt the challenge and type the encryption
+back to
+.IR cpu .
+This is used if the local host is in a different protection domain than
+the server or if the user wants to log into the server as a different
+user.
+.PD
+.PP
+The
+.B -e
+option specifies an encryption and/or hash algorithm to
+use for the connection.  If both are specified, they must
+be space separated and comprise a single argument, so they
+must be quoted if in a shell command.  The default is
+.L rc4_256
+encryption and
+.L sha1
+hashing.  See
+.IR ssl (3)
+for details on possible algorithms.  The argument
+.L clear
+specifies no encryption algorithm and can be used to talk
+to older versions of the
+.I cpu
+service.
+.PP
+The
+.B -k
+flag specifies a key pattern to use to restrict the keys
+selected by the
+.I auth_proxy
+call used for authentication.
+.PP
+The name space is built by running
+.B /usr/$user/lib/profile
+with the root of the invoking name space bound to
+.BR /mnt/term .
+The
+.B service
+environment variable is set to
+.BR cpu ;
+the
+.B cputype
+and
+.B objtype
+environment variables reflect the server's architecture.
+.PP
+The
+.B -R
+flag causes
+.I cpu
+to run the server (remote) side of the protocol.
+It is run from service files such as
+.BR /bin/service/tcp17010 .
+The
+.B -O
+flag is similar but simulates the pre-9P2000 version
+of the 
+.I cpu
+protocol.
+.SH FILES
+The name space of the terminal side of the
+.I cpu
+command is mounted, via
+.IR exportfs (4),
+on the CPU side on directory
+.BR /mnt/term .
+The files such as
+.B /dev/cons
+are bound to their standard locations from there.
+.SH SOURCE
+.B /sys/src/cmd/cpu.c
+.SH SEE ALSO
+.IR rc (1) ,
+.IR rio (1) ,
+.IR exportfs (4)
+.SH BUGS
+Binds and mounts done after the terminal
+.B lib/profile
+is run are not reflected in the new name space.
+.PP
+When using the
+.B -a
+option to `log in' as another user, be aware that
+resources in the local name space will be made
+available to that user.

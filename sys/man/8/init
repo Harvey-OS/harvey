@@ -1,0 +1,87 @@
+.TH INIT 8
+.SH NAME
+init \- initialize machine upon booting
+.SH SYNOPSIS
+.B /$cputype/init
+[
+.B -ctm
+] [
+.I command ...
+]
+.SH DESCRIPTION
+.I Init
+initializes the machine: it establishes the name space (see
+.IR namespace (4)
+and
+.I newns
+in
+.IR auth (2)),
+and environment (see
+.IR env (3))
+and starts a shell 
+.RI ( rc (1))
+on the console.
+If a
+.I command
+is supplied, that is run instead of the shell.
+On a CPU server the invoked shell runs
+.IR cpurc (8)
+before accepting commands on the console;
+on a terminal, it runs
+.IR termrc
+and then the user's profile.
+Options
+.B -t
+(terminal)
+and
+.B -c
+(CPU)
+force the behavior to correspond to the specified service class.
+Otherwise
+.I init
+uses the value of the environment variable
+.B $service
+to decide the service class.
+.PP
+.I Init
+sets environment variables
+.B $service
+(either to the incoming value or according to
+.B -t
+or
+.BR -c ),
+.B $objtype
+(to the value of
+.BR $cputype ),
+.B $user
+(to the contents of
+.BR #c/user ),
+and
+.B $timezone
+(to the contents of
+.BR /adm/timezone/local ).
+.PP
+With option
+.B -m
+.I init
+starts only an interactive shell
+regardless of the
+.I command
+or service class.
+.PP
+On a CPU server,
+.I init
+requires the machine's password to be supplied before starting
+.I rc
+on the console.
+.PP
+.I Init
+is invoked by
+.IR boot (8),
+which sets the arguments as appropriate.
+.SH SOURCE
+.B /sys/src/cmd/init.c
+.SH "SEE ALSO"
+.IR rc (1),
+.IR auth (2),
+.IR boot (8)

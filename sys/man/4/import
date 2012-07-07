@@ -1,0 +1,202 @@
+.TH IMPORT 4
+.SH NAME
+import \- import a name space from a remote system
+.SH SYNOPSIS
+.B import
+[
+.I options
+]
+.I system
+.I file
+[
+.I mountpoint
+]
+.PP
+.B import
+.B -B
+[
+.I options
+]
+.I mountpoint
+[
+.I cmd
+[
+.I args ...
+]
+]
+.SH DESCRIPTION
+.I Import
+allows an arbitrary
+.I file
+on a remote
+.I system
+to be imported into the local name space.
+Usually
+.I file
+is a directory, so the complete
+file tree under the directory is made available.
+.PP
+A process is started on the
+remote machine, with authority of the user of
+.IR import ,
+to perform work for the local machine using the
+.IR exportfs (4)
+service.
+The default port used is TCP 17007.
+If
+.I mountpoint
+is omitted
+.I import
+uses the name of the remote
+.I file
+as the local mount point.
+.PP
+The options are:
+.TF "-s namexxx"
+.PD
+.TP
+.B -a -b -c -C
+Control the construction of union directories, as in
+.I mount
+and
+.IR bind (1).
+Only valid when 
+.I file
+is a directory.
+.TP
+.B -A
+Skip the authentication protocol.
+This is useful for connecting to foreign systems like Inferno.
+.TP
+.B -B
+Run in ``backwards'' mode, described below.
+.TP
+.B -E \fIenc
+Push an authentication protocol on its network connection.
+The supported protocols are
+.B clear
+(the default, no protocol)
+and
+.BR ssl .
+There are plans to make
+.B tls
+available.
+.TP
+.B -e '\fIenc auth\fR'
+Specify the encryption and authentication algorithms to use for
+encrypting the wire traffic
+(see
+.IR ssl (3)).
+The defaults are
+.B rc4_256
+and
+.BR sha1 .
+.TP
+.B -k \fIkeypattern
+Use
+.I keypattern
+to select a key to authenticate to the remote side
+(see
+.IR auth (2)).
+.TP
+.B -o -O
+These equivalent flags run
+.I import
+in a pre-9P2000 compatibility mode to import from ancient servers.
+.TP
+.B -p
+Push the
+.IR aan (8)
+filter onto the connection to protect against
+temporary network outages.
+.TP
+.B -s \fIname
+Post the connection's mountable file descriptor as
+.BI /srv/ name\fR.
+.PD
+.PP
+The 
+.B -B
+option runs
+.I import
+in ``backwards'' mode.
+In this mode,
+.I import
+runs a
+.I p9any
+authentication (as server) over its file descriptor 0
+(expected to be an incoming network connection from
+.B exportfs
+.BR -B ),
+mounts the connection onto
+.IR mntpt ,
+and optionally runs
+.I cmd
+.IR args .
+.SH EXAMPLES
+Assume a machine
+.B kremvax
+that has IP interfaces for the company intranet and the global
+internet mounted on
+.I /net
+and
+.I /net.alt
+respectively.
+Any machine inside the company can get telnet out to the global
+internet using:
+.IP
+.EX
+import -a kremvax /net.alt
+telnet /net.alt/tcp!ucbvax
+.EE
+.PP
+Suppose that the machine
+.B moscvax
+has access to a private file server containing public web pages
+that need to be served by the less-trusted server
+.BR webvax .
+.B Webvax
+runs the following listener 
+(see
+.IR listen (8))
+on TCP port 999:
+.IP
+.EX
+#!/bin/rc
+import -B -s rowebfs /usr/web /bin/restarthttpd
+.EE
+.PP
+When
+.B moscvax
+boots, it runs
+.IP
+.EX
+exportfs -R -r /usr/web -B tcp!webvax!999
+.EE
+.PP
+to serve a read-only copy of
+.B /usr/web
+to
+.BR webvax .
+When
+.B webvax
+gets the call, 
+.B import
+mounts the served tree onto its own
+.B /usr/web
+and then runs
+.B /bin/restarthttpd
+to restart
+.IR httpd (8).
+.SH SOURCE
+.B /sys/src/cmd/import.c
+.SH SEE ALSO
+.IR bind (1),
+.IR ssl (3),
+.IR exportfs (4),
+.IR srv (4),
+.IR aan (8),
+.IR listen (8),
+.B cs
+in
+.IR ndb (8)

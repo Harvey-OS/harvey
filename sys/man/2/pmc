@@ -1,0 +1,47 @@
+.TH PMC 2
+.SH NAME
+confpmc, rdpmc \- access to perfomance counters on this processor
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
+.B
+int confpmc(int core, int index, int mode, char *desc)
+.PP
+.B
+uvlong rdpmc(int index)
+.SH DESCRIPTION
+.I Confpmc
+configures the counter
+.I index
+on core
+.I core
+setting the configuration according to the configuration string,
+.I desc
+whic is architecture dependant and the
+.I mode,
+which can be an OR of three values:
+.TP
+.BR PmcOs
+the counter only counts while in kernel space,
+.TP
+.BR PmcUser
+the counter only counts while in user space,
+.TP
+.BR PmcEnable
+enables the counter.
+.PP
+.I Rdpmc
+reads the counter
+.I index
+if possible using special instructions or mapped memory and defaulting
+to reading the corresponding file if unavailable.
+.SH SOURCE
+.B /sys/src/libc/amd64/rdpmc.s
+.br
+.B /sys/src/libc/port/confpmc.c
+.br
+.B /sys/src/libc/port/rdpmc.c
+.SH SEE ALSO
+.IR pmc (3)

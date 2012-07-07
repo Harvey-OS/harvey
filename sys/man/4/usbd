@@ -1,0 +1,245 @@
+.TH USBD 4
+.SH NAME
+usbd \- Universal Serial Bus daemon
+.SH SYNOPSIS
+.B usbd
+[
+.B -Dd
+]
+[
+.B -s
+.I srv
+]
+[
+.B -m
+.I mnt
+]
+[
+.I hub...
+]
+.SH DESCRIPTION
+.I Usbd
+complements
+.IR usb (3)
+to provide USB I/O for device drivers.
+It enumerates the bus, polling
+hub ports to detect device attachments and detachments, performs
+initial configuration of setup endpoints, and writes extra information into
+.IR usb (3)
+endpoint control files, to ease device location.
+.PP
+By default,
+.I usbd
+opens all setup endpoints found at
+.B #u/usb
+(which correspond to built-in hubs initialized by the kernel during boot).
+Paths to directories representing setup endpoints for hubs can be given
+as arguments to restrict
+.I usbd
+operation to such hubs.
+.PP
+When a device is attached,
+depending upon a configuration file compiled into
+.I usbd ,
+the appropriate device driver may be started without
+user intervention.
+This mechanism can be used to statically link some USB device drivers into
+.I usbd
+itself.
+Initial configuration for setup endpoints is performed independently
+of this configuration.
+.PP
+.I Usbd
+provides a file interface used to change debugging flags, and also used by
+USB device drivers statically linked into
+.IR usbd .
+By default, the file system is mounted (after) at
+.B /dev
+and a 9P connection is posted at
+.BR /srv/usb .
+.PP
+Besides files provided by device drivers, the file
+.B usbdctl
+is always present in the file interface.
+It accepts these control requests:
+.TF "fsdebug\fI n
+.TP
+.BI debug " n"
+Sets the debugging level to
+.IR n .
+.TP
+.BI fsdebug " n"
+Sets the file system debugging level to
+.IR n .
+.TP
+.B dump
+Prints the list of devices and file systems known by
+.IR usbd .
+.PD
+.PP
+.I Usbd
+recognizes the following options:
+.TF "-m\fI mnt
+.TP
+.B -d
+Print debugging diagnostics.
+Repeating the option increases verbosity.
+.TP
+.B -D
+Print debugging diagnostics for the file system interface.
+.TP
+.BI -m " mnt"
+Mount the served file system at
+.IR mnt .
+.TP
+.BI -s " srv"
+Post a 9P connection at
+.BI #s/ srv.
+.PD
+.SS Configuration
+.PP
+.I Usbd
+can be configured to start drivers for devices matching one or more CSPs
+(hex representation of USB class, subclass and protocol), class,
+subclass, protocol, vendor id, or device id.
+When a new device is attached,
+.I usbd
+scans the configuration and, if an entry matches the device descriptor, starts
+the driver.
+If no driver is configured, the setup endpoint for the device is left
+configured to let the user start the driver by hand.
+.PP
+Configuration is via compilation
+because one of the options is to embed (link) the driver into the
+.I usbd
+binary.
+If the driver is embedded,
+.I usbd
+creates a process for it and calls its main entry point.
+Otherwise,
+.I usbd
+tries to locate the driver binary in
+.B /bin/usb
+and creates a process to execute it.
+.PP
+The configuration file,
+.BR usbdb ,
+has two sections:
+.B embed
+and
+.BR auto .
+Each section includes lines to configure particular drivers.
+A driver may have more than one line if necessary.
+Each line includes the name of the
+driver (the base name of the binary) and one or more attributes of the form
+.IP
+.IR name = value
+.PP
+The following attributes exist:
+.TF subclass
+.TP
+.B class
+.I Value
+may be the name of the class
+or a number identifying the device class (using C syntax).
+The following class names are known:
+.BR audio ,
+.BR comms ,
+.BR hid ,
+.BR printer ,
+.BR storage ,
+.BR hub ,
+and
+.BR data .
+.TP
+.B subclass
+.I Value
+is the number of the device subclass.
+.TP
+.B proto
+.I Value
+is the number of the device protocol.
+.TP
+.B csp
+.I Value
+is the hexadecimal number describing the CSP for the device.
+.TP
+.B vid
+.I Value
+is the vendor id.
+.TP
+.B did
+.I Value
+is the device id.
+.TP
+.B args
+This must be the last field.
+The value is the rest of the line,
+and is supplied as arguments to the driver process.
+.PD
+.LP
+Several environment variables can be used to alter the behaviour of
+.IR usbd ,
+for example, for use in
+.IR plan9.ini (8).
+.B usbdebug
+sets a debug level (zero for no diagnostics and positive
+values for increasing verbosity).
+.B kbargs
+overrides the keyboard arguments as specified by the configuration file.
+.B diskargs
+overrides the disk arguments in the same way.
+.SH EXAMPLE
+This configuration file links
+.B usb/kb
+into
+.I usbd
+when it is compiled.
+It arranges for the driver's entry point,
+.B kbmain
+in this case,
+to be called for any device with CSPs matching either
+.B 0x010103
+or
+.BR 0x020103 .
+Option
+.B -d
+will be supplied as command line arguments for
+.BR kbmain .
+This configuration also arranges for
+.B /bin/usb/disk
+to start (with no arguments) whenever a device of class
+.B storage
+is attached.
+.IP
+.EX
+embed
+	kb	csp=0x010103 csp=0x020103	args=-d
+auto
+	disk	class=storage	args=
+.EE
+.SH FILES
+.TF /srv/usb
+.TP
+.B /srv/usb
+9P connection to the driver file system.
+.TP
+.B /dev
+mount point for the driver file system.
+.TP
+.B /sys/src/cmd/usb/usbd/usbdb
+Configuration file deciding which devices are included into
+.I usbd
+and which ones are started automatically.
+.SH SOURCE
+.B /sys/src/cmd/usb/usbd
+.SH "SEE ALSO"
+.IR usb (2),
+.IR usb (3),
+.IR usb (4)
+.SH BUGS
+.I Usbd
+is not supposed to be restarted.
+This is arguable.
+.PP
+Not heavily exercised yet.

@@ -1,0 +1,281 @@
+.TH PPP 8
+.SH NAME
+ppp, pppoe, pptp, pptpd \- point-to-point protocol
+.SH SYNOPSIS
+.B ip/ppp
+[
+.B -CPScdfu
+] [
+.B -b
+.I baud
+] [
+.B -k
+.I keyspec
+] [
+.B -m
+.I mtu
+] [
+.B -M
+.I chatfile
+] [
+.B -p
+.I dev
+] [
+.B -x
+.I netmntpt
+] [
+.B -t
+.I modemcmd
+] [
+.I local
+[
+.I remote
+] ]
+.PP
+.B ip/pppoe
+[
+.B -Pd
+]
+[
+.B -A
+.I acname
+]
+[
+.B -S
+.I srvname
+]
+[
+.B -k
+.I keyspec
+]
+[
+.B -m
+.I mtu
+]
+[
+.B -x
+.I pppnetmntpt
+]
+[
+.I ether
+]
+.PP
+.B ip/pptp
+[
+.B -dP
+]
+[
+.B -k
+.I keyspec
+]
+[
+.B -w
+.I window
+]
+[
+.B -x
+.I pppnetmntpt
+]
+.I server
+.PP
+.B ip/pptpd
+[
+.B -d
+] [
+.B -p
+.I pppnetmtpt
+] [
+.B -w
+.I window
+] [
+.B -D
+.I fraction
+]
+.I tcp-dir
+.SH DESCRIPTION
+The Point-to-Point Protocol is used to encapsulate Internet Protocol packets
+in IPv4 packets
+for transfer over serial lines or other protocol connections.
+.I Ppp
+can run either as a client or, with the
+.I \-S
+option, as a server.  The only differences between a client and a server is
+that the server will not believe any local address the client tries to
+supply it and that the server always initiates the authentication of the
+client.
+.PP
+With no option,
+.I ppp
+communicates with the remote system via standard input and output.
+This is useful if a program wants to use
+.I ppp
+in a communications stream.  However, the normal mode is to
+specify a communications device, usually a serial line with a modem.
+.PP
+PPP supports the following options:
+.TP
+.B b
+set the baud rate on the communications device
+.TP
+.B f
+make PPP add HDLC framing.  This is necessary when using
+PPP over a serial line or a TCP connection
+.TP
+.B k
+add
+.I keyspec
+to the
+.IR factotum (4)
+key pattern when looking for a user name and password
+for authentication; the default key pattern is
+.B "proto=pass" "service=ppp"
+.TP
+.B m
+set the maximum transfer unit (default 1450)
+.TP
+.B P
+use this as the primary IP interface; set the default
+route through this interface and write its configuration
+to
+.B /net/ndb
+.TP
+.B p
+communicate over
+.I dev
+instead of standard I/O
+.TP
+.B u
+before starting the PPP protocol with the remote end, shuttle
+bytes between the device and standard I/O until an EOF on standard
+input.  This allows a user to start
+.I ppp
+and then type commands at a modem before
+.I ppp
+takes over
+.TP
+.B S
+run as a server
+.TP
+.B t
+before starting the PPP protocol, write
+.I modemcmd
+to the device
+.TP
+.B x
+use the IP stack mounted at
+.I netmntpt
+.TP
+.B M
+chat with the modem as specified in the chat file.  Each line in
+the chat file contains a string that is transmitted to the modem
+and the response expected (e.g. 'AT' 'OK')
+.TP
+.B c
+disallow packet compression
+.TP
+.B C
+disallow ip header compression
+.PD
+.PP
+If both the
+.I local
+and
+.I remote
+addresses are specified, don't ask the other end for either
+or believe it if it supplies one.  If either is missing, get
+it from the remote end.
+.PP
+.I Pppoe
+is a PPP over ethernet (PPPoE) client.
+It invokes
+.I ppp
+to start a PPP conversation which is
+tunneled in PPPoE packets on 
+the ethernet device mounted at 
+.I etherdir
+(default
+.BR /net/ether0 ).
+The 
+.I pppoe -specific
+options are:
+.TP
+.B A
+insist on an access concentrator named
+.I acname
+during PPPoE discovery
+.TP
+.B S
+insist on a service named
+.I srvname
+during PPPoE discovery
+.TP
+.B d
+write debugging output to standard error,
+and pass
+.B -d
+to 
+.I ppp
+.PD
+.PP
+The other options are relayed to 
+.IR ppp .
+.PP
+.I Pptp
+is a client for a PPTP encrypted tunnel.
+.I Server
+is the name of the server to dial.
+.I Pptp
+takes the same options as
+.IR pppoe ,
+except for the lack of a
+.B -m
+option and the addition of a
+.B -w
+option.
+The
+.B -w
+option specifies the local send window size
+(default 16) in packets.
+.PP
+.I Pptpd
+is the server side of a PPTP encrypted tunnel.
+.I Tcpdir
+is the directory of a TCP connection to the client.
+The TCP connection is used to control the tunnel while
+packets are sent back and forth using PPP inside of
+GRE packets.
+The options are:
+.TP
+.B d
+write debugging output to standard error.
+.TP
+.B p
+use the IP stack mounted at
+.I pppnetmtpt
+to terminate the PPP connection.
+.TP
+.B w
+set the receive window to
+.IR window .
+.TP
+.B D
+drop
+.I fraction
+of the received packets.  This is used for testing.
+.PD
+.SH SOURCE
+.B /sys/src/cmd/ip/ppp
+.br
+.B /sys/src/cmd/ip/pptpd.c
+.br
+.B /sys/src/cmd/ip/pppoe.c
+.SH SEE ALSO
+.I gre
+in
+.IR ip (3)
+.SH BUGS
+.I Ppp
+should use factotum to execute
+the client side of the challenge-reponse
+protocol, but instead it reads a password
+from factotum and runs the protocol itself.

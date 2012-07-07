@@ -1,0 +1,161 @@
+.TH SDAHCI 3
+.SH NAME
+sdahci \- AHCI (Advanced Host Controller Interface) SATA (Serial ATA) storage device drivers
+.SH SYNOPSIS
+.nf
+.B bind -a #S /dev
+.sp 0.3v
+.BI /dev/sdctl
+.sp 0.3v
+.BI /dev/sd En /ctl
+.BI /dev/sd En /raw
+.BI /dev/sd En /data
+\&...
+.fi
+.SH DESCRIPTION
+The
+.I sdahci
+driver provides access to AHCI devices via the
+.IR sd (3)
+interface.
+The AHCI programming interface supports up to 32
+hot-swappable ATAPI or hard disk-like devices per controller.
+The legacy IDE interface provided by
+.B sdata.c
+supports up to four drives which are not hot-swappable.
+Controller drive letters are assigned from
+.L E
+onward.
+.PP
+AHCI controllers are detected automatically.
+Currently Intel and AMD controllers are detected.
+Intel controllers need to have AHCI enabled in the BIOS.
+For
+.L ich
+parts this typically means enabling
+enhanced mode and AHCI.
+For ESB (Enterprise South Bridge) -based
+parts, only enhanced mode needs to be enabled.
+Intel
+.BR ich9 -based
+AHCI does not support hot swapping and
+drives must be connected to the lowest-numbered free port.
+.PP
+The top level control file,
+.BR /dev/sdctl ,
+supports the following control messages for
+.IR sdahci :
+.TF "\fLiahci idprint"
+.TP
+.B iahci debug
+Toggle debug messages.  Default is off.
+.TP
+.B iahci idprint
+Toggle printing of drive identification messages.  Default is on.
+Prints short messages when a drive is identified or removed.
+.TP
+.B iahci aprint
+Print verbose ATAPI debugging messages.  Default is off.
+.PD
+.PP
+The device-level
+.B ctl
+file supports:
+.TF \fLsmartdisable
+.TP
+.B flushcache
+Send the ATA/ATAPI
+.B FLUSH CACHE
+command
+.RB ( 0xe7
+or
+.BR 0xea ).
+This command may take up to 60 seconds to complete.
+.TP
+.B identify
+Send the ATA/ATAPI
+.B IDENTIFY DEVICE
+command
+.RB ( 0xec ).
+If device information has changed, the new size,
+features and serial will be noted.
+If changed, I/O on existing file
+descriptors will result in the error string
+.LR "media or partition has changed" .
+.TP
+.BI "mode " speed
+Change the connection
+.I speed
+to one of
+.BR auto ,
+.BR satai
+or
+.BR sataii .
+.TP
+.B nop
+Send the ATA
+.B NOP
+command
+.RB ( 0 )
+if the device supports it. Per standard, the result is always an error.
+.TP
+.B smart
+Send the ATA/ATAPI
+.B SMART RETURN STATUS
+command
+.RB ( 0xda ).
+This will fail unless SMART is enabled on the drive.
+.TP
+.B smartdisable
+Disable SMART on the drive.  SMART is a persistent property of the drive.
+.TP
+.B smartenable
+Enable SMART on the drive.
+.TP
+.BI "state " state
+Force a transition to the named
+.IR state .
+The states are:
+.RS
+.TF portreset
+.TP
+.B null
+ignored (may only be reached manually);
+.TP
+.B missing
+not detected;
+.TP
+.B new
+powered down or newly discovered;
+.TP
+.B ready
+ready for commands;
+.TP
+.B reset
+being reset gently;
+.TP
+.B portreset
+being fully reset;
+.TP
+.B offline
+device failed
+.B portreset
+(a port reset will be attempted periodically).
+.RE
+.PD
+.PP
+For devices present at boot, the transition is from state
+.B new
+to state
+.BR ready .
+.SH SOURCE
+.B /sys/src/9/pc/sdiahci.c
+.SH SEE ALSO
+.IR sd (3),
+.IR 9load (8)
+.br
+.BR http://download.intel.com/technology/serialata/pdf/rev1_2.pdf .
+.SH BUGS
+None of enclosure management, LED control and port multipliers are supported.
+.PP
+ATAPI devices may not be reset when they have outstanding commands.

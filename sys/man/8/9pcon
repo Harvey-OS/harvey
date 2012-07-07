@@ -1,0 +1,160 @@
+.TH 9PCON 8
+.SH NAME
+9pcon \- 9P to text translator
+.SH SYNOPSIS
+.B aux/9pcon
+[
+.B -cn
+]
+[
+.B -m
+.I msize
+]
+.I service
+.SH DESCRIPTION
+.I 9pcon
+provides a textual interface to 
+.IR service ,
+a conventional 9P server.
+By default, 
+.I 9pcon
+interprets
+.I service
+as a file to be opened.
+The 
+.B -c
+flag causes
+.I 9pcon
+to interpret
+.I service
+as a command to run which will carry out a
+(binary) 9P 
+conversation over file descriptors 0 and 1.
+The
+.B -n
+flag
+causes
+.I 9pcon
+to interpret
+.I service
+as a network address to dial.
+.PP
+Once the connection is established, 
+.I 9pcon
+prints R-messages as they arrive from the server,
+and sends T-messages as they are typed on standard input.
+There is no prompt.
+Lines beginning with # are ignored.
+The syntax for T-messages is one of:
+.IP
+.B Tversion
+.I msize
+.I version
+.br
+.B Tauth
+.I afid
+.I uname
+.I aname
+.br
+.B Tattach
+.I fid
+.I afid
+.I uname
+.I aname
+.br
+.B Twalk
+.I fid
+.I newfid
+.I wname...
+.br
+.B Topen
+.I fid
+.I mode
+.br
+.B Tcreate
+.I fid
+.I name
+.I perm
+.I mode
+.br
+.B Tread
+.I fid
+.I offset
+.I count
+.br
+.B Twrite
+.I fid
+.I offset
+.I data
+.br
+.B Tclunk
+.I fid
+.br
+.B Tremove
+.I fid
+.br
+.B Tstat
+.I fid
+.br
+.B Twstat
+.I fid
+.I name
+.I uid
+.I gid
+.I mode
+.I mtime
+.I length
+.br
+.B Tflush
+.I oldtag
+.LP
+See
+.IR intro (5)
+for a description of the fields in each message.
+For the most part, the syntax mirrors the description
+of the messages in section 5.
+The exceptions are that
+the tags on the T-messages are added automatically;
+.BR Twalk 's
+.I nwname
+count is inferred from the number of
+.I wnames
+given;
+and
+.BR Twstat 's
+.I dir
+is in expanded form rather than being an opaque byte sequence.
+Note that since commands are parsed with
+.B tokenize
+(see
+.IR getfields (2)),
+it is easy to pass empty strings for absent
+.IR name ,
+.IR uid ,
+and
+.I gid
+fields.
+To ease specifying default integer fields, the
+.B Twstat
+message recognizes
+.B ~0
+in the
+.IR mode ,
+.IR mtime ,
+and
+.I length
+arguments.
+For example,
+.EX
+    Twstat 101 '' '' sys ~0 ~0 ~0
+.EE
+sends a
+.I wstat
+message that attempts to change the group id associated with fid 101.
+.SH SOURCE
+.B /sys/src/cmd/aux/9pcon.c
+.SH SEE ALSO
+.IR intro (5)
+.SH BUGS
+There should be a flag to wait for responses,
+to facilitate scripting.

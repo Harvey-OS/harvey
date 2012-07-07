@@ -1,0 +1,106 @@
+.TH LOCK 9
+.SH NAME
+lock, canlock, ilock, iunlock, unlock \- spin locks
+.SH SYNOPSIS
+.ta \w'\fLvoid 'u
+.B
+void    lock(Lock *l)
+.PP
+.B
+int     canlock(Lock *l)
+.PP
+.B
+void    unlock(Lock *l)
+.PP
+.B
+void    ilock(Lock *l)
+.PP
+.B
+void    iunlock(Lock *l)
+.SH DESCRIPTION
+These primitives control access to shared
+resources using spin locks.
+They in turn are used to build higher-level synchronisation mechanisms
+such as those described in
+.IR sleep (9),
+.IR qlock (9)
+and
+.IR qio (9).
+They should be used only to protect short critical sections
+that update shared data structures.
+.PP
+.I Lock
+loops repeatedly attempting acquire the spin lock
+.I l
+until it succeeds.
+.I Lock
+should not be used to lock a structure shared with an interrupt handler
+unless interrupts are disabled by
+.IR splhi (9)
+before attempting the lock;
+it is better to use
+.IR ilock ,
+below.
+.PP
+.I Canlock
+is non-blocking.
+Only one attempt is made for the lock.
+It returns non-zero if the lock was successfully acquired; 0 otherwise.
+.PP
+.I Unlock
+releases the lock
+.IR l .
+A lock must be unlocked only by the locking process.
+.PP
+When called by a process, the functions above temporarily boost its priority
+to the highest priority,
+.BR PriLock ;
+its original priority is restored at the end of the critical section by
+.IR unlock .
+On a uniprocessor, if
+.I l
+is unavailable,
+.I lock
+can reschedule unless interrupts are disabled before entering
+.I lock
+or there is no current process (eg, when executing the scheduler).
+.PP
+.I Ilock
+disables interrupts before attempting to acquire the lock.
+It should be used to lock a resource shared between a process and an interrupt handler.
+On a uniprocessor, disabling interrupts is sufficient to exclude an interrupt handler
+from the critical section,
+and on a multiprocessor the spin lock excludes an interrupt handler running on another processor.
+.I Ilock
+never reschedules the caller, nor must a caller allow itself to be rescheduled
+(eg, by calling
+.IR sleep (9))
+before releasing the lock.
+.PP
+.I Iunlock
+releases a lock previously got by
+.IR ilock .
+.SH DIAGNOSTICS
+The lock functions
+guard against the possibility of never acquiring the lock by capping the number of lock attempts.
+If the limit is reached, a message of
+the following form is written on the console:
+.IP
+.EX
+lock loop on \fIlock-address\fP key \fIkey-value\fP pc \fIcaller-pc\fP held by pc \fIlock-pc\fP
+.EE
+.PP
+Most lock loops represent deadlocks caused by failing to unlock a resource,
+attempting to lock (eg, by recursive call) a resource already held by the process,
+inconsistent locking and unlocking of nested resources, using a spin-lock
+to guard code that reschedules, using
+.I lock
+not
+.I ilock
+to interlock with an interrupt routine, and similar blunders.
+.SH SOURCE
+.B /sys/src/9/port/taslock.c
+.br
+.B /sys/src/9/*/l.s
+.SH SEE ALSO
+.IR qlock (9)

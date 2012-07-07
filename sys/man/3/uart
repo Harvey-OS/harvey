@@ -1,0 +1,135 @@
+.TH UART 3 
+.SH NAME
+uart, eia \- serial communication control
+.SH SYNOPSIS
+.nf
+.B bind -a #t /dev
+
+.B /dev/eia0
+.B /dev/eia0ctl
+.B /dev/eia0status
+.B /dev/eia1
+.B /dev/eia1ctl
+.B /dev/eia1status
+\&...
+.fi
+.SH DESCRIPTION
+.PP
+The serial line devices serve a one-level directory,
+giving access to the serial ports.
+Device
+.I n
+is accessed through
+.BI eia n
+(the data file),
+.BI eia n ctl
+(the control file), and
+.BI eia n status
+(the read-only status file).
+Reads of the data file will block until at least one byte is available.
+The
+control file
+configures the port.
+It accepts the following commands:
+.TP
+.BI b n
+Set the baud rate to
+.IR n .
+.TP
+.BI c n
+Set hangup on DCD if
+.I n
+is non-zero; else clear it.
+.TP
+.BI d n
+Set DTR if
+.I n
+is non-zero;
+else clear it.
+.TP
+.BI e n
+Set hangup on DSR if
+.I n
+is non-zero; else clear it.
+.TP
+.B f
+Flush output queue.
+.TP
+.B h
+Close input and output queues.
+.TP
+.BI i n
+Enable/disable the FIFOs.
+If
+.I n
+is zero the FIFOs are disabled;
+otherwise
+.I n
+is taken as a trigger level for the FIFOs.
+The trigger levels supported are device dependant,
+but usually include 1, 4 and 8.
+An unrecognised,
+but non-zero,
+value of
+.I n
+causes the maximum-supported trigger level to be set.
+.TP
+.BI k n
+Send a break lasting
+.I n
+milliseconds.
+.TP
+.BI l n
+Set number of bits per byte to
+.IR n .
+Legal values are 5, 6, 7, or 8.
+.TP
+.BI m n
+Obey modem CTS signal if
+.I n
+is non-zero;
+else clear it.
+.TP
+.B n
+Make writes non-blocking.
+.TP
+.BI p c
+Set parity to odd if
+.I c
+is
+.BR o ,
+to even if
+.I c
+is
+.BR e ;
+else set no parity.
+.TP
+.BI q n
+Set input and output queue limits to
+.IR n .
+.TP
+.BI r n
+Set RTS if
+.I n
+is non-zero;
+else clear it.
+.TP
+.BI s n
+Set number of stop bits to
+.IR n .
+Legal values are 1 or 2.
+.TP
+.BI w n
+Set the uart clock timer to
+n times 100us.
+.IP
+.PP
+The status
+files contain a textual representation of the status of the line, in the format of the
+commands used on the
+control
+file.
+.SH SOURCE
+.B /sys/src/9/port/devuart.c
+.br
+.B /sys/src/9/*/uart*.c

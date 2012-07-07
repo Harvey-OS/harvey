@@ -1,0 +1,315 @@
+.TH CON 1
+.SH NAME
+con, telnet, rx, hayes, xms, xmr \- remote login, execution, and XMODEM file transfer
+.SH SYNOPSIS
+.B con
+[
+.B -CdnrRsTv
+]
+[
+.B -b
+.I baud
+]
+[
+.B -l
+[
+.I user
+]
+]
+[
+.B -S
+.I svc
+]
+[
+.B -c
+.I cmd
+]
+.RI [ net !] machine
+.PP
+.B telnet
+[
+.B -dCrn
+]
+[
+.B -s
+.I svc
+]
+.RI [ net !] machine
+.PP
+.B rx
+[
+.B -eTr
+]
+[
+.B -l
+.I user
+]
+.RI [ net !] machine
+[
+.I command-word ...
+]
+.PP
+.B hayes
+[
+.B -pv
+]
+.I number
+[
+.I device
+]
+.PP
+.B xms
+[
+.B -1p
+]
+.I file
+.PP
+.B xmr
+.I file
+.SH DESCRIPTION
+.I Con
+connects to the computer whose network address is
+.IR net ! machine
+and logs in if possible.
+With no options, the account name used on the remote system is the same
+as that on the local system.
+Standard input and output go to the local machine.
+.PP
+Options are:
+.TP
+.B -b
+sets the baud rate of a dial-up connection to
+.IR baud .
+.TP
+.B -n
+if the input is a file or pipe, do not hang up the connection when EOF is received,
+but instead wait for the remote end to hang up.
+.TP
+.B -l
+with an argument causes
+.I user
+to be used as the account name on the remote system
+when performing BSD
+.I rlogin
+authentication.
+Without an argument this option disables automatic login
+and a normal login session ensues.
+.TP
+.B -C
+forces cooked mode, that is, local echo.
+.TP
+.B -c
+runs
+.I cmd
+as if it had been typed as a command from the escape mode.
+.TP
+.B -v
+(verbose mode) causes information about connection attempts
+to be output to standard error.  This can be useful when
+trying to debug network connectivity.
+.TP
+.B -d
+causes debugging information to be output to standard error.
+.TP
+.B -r
+suppresses printing of any carriage return followed by a new line.
+This is useful since carriage return is a printable character in
+Plan 9.
+.TP
+.B -R
+translates newlines to carriage returns and
+.IR "vice versa" .
+.TP
+.B -T
+translates incoming carriage returns to newlines.
+.TP
+.B -s
+strips received characters to 7 bits to forestall
+misinterpretation of
+.SM ASCII
+with parity as
+.SM UTF\c
+\&.
+.TP
+.B -S
+Post a pipe as
+.BI /srv/ svc
+and connect it to standard input and output.
+This can be used with
+.B -n
+to create a standing connection that
+.IR consolefs (4),
+for example,
+can then open.
+For
+.IR telnet ,
+this option is
+.BR -s .
+.PP
+The
+.RB control\- \e
+character is a local escape.
+It prompts with
+.BR >>> .
+Legitimate responses to the prompt are
+.TP
+.B i
+Send a quit [sic] signal to the remote machine.
+.PD0
+.TP
+.B q
+Exit.
+.TP
+.B b
+Send a break.
+.TP
+.B .
+Return from the escape.
+.TP
+.B !cmd
+Run the command with the network connection as its
+standard input and standard output.
+Standard error will go to the screen.
+This is useful for transmitting and receiving files
+over the connections using programs such as
+.IR xms .
+.TP
+.B r
+Toggle printing of carriage returns.
+.PD
+.PP
+.I Telnet
+is similar to con, but uses the
+.I telnet
+protocol to communicate with the remote machine.
+It shares
+.I con's
+.BR -C ,
+.BR -d ,
+.BR -n ,
+and
+.BR -r
+options.
+.PP
+.I Rx
+executes one shell command
+on the remote machine as if logged in there,
+but with local standard input and output.
+A rudimentary shell environment is provided.
+If the target is a Plan 9 machine,
+.B $service
+there will be
+.BR rx .
+Options are:
+.TP
+.B \-e
+a zero length message will not be written to the
+connection when standard input is closed.
+.TP
+.B \-l
+runs as
+.I user
+on the remote machine if the remote is a BSD machine.
+.TP
+.B \-r
+same as for
+.I con
+.TP
+.B -T
+same as for
+.I con
+.PD
+.PP
+Network addresses for both
+.I con
+and
+.I rx
+have the form
+.IB network ! machine\f1.
+Supported networks are those listed in
+.BR /net .
+.PP
+.I Hayes
+dials
+.I number
+on a Hayes-compatible modem,
+.IR device .
+Under
+.BR -p ,
+it uses pulse dialing.
+Upon connecting,
+bytes are copied bidirectionally
+between the connection and standard input and output.
+.PP
+The commands
+.I xms
+and
+.I xmr
+respectively send and receive a single file using the
+XMODEM protocol.
+They use standard input and standard output for communication
+and are intended for use with
+.IR con .
+The
+.B -1
+option to
+.I xms
+causes it to use kilobyte packet size of 1024 bytes.
+The
+.B -p
+option causes it to print a progress
+message every ten kilobytes.
+.SH EXAMPLES
+.TP
+.L
+rx kremvax cat file1 >file2
+Copy remote
+.I file1
+to local
+.IR file2 .
+.TP
+.L
+rx kremvax cat file1 '>file2'
+Copy remote
+.I file1
+to remote
+.IR file2.
+.TP
+.L
+eqn paper | rx kremvax troff -ms | rx deepthought lp
+Parallel processing:
+do each stage of a pipeline on a different machine.
+.SH SOURCE
+.TF /sys/src/cmd/ip/telnet.c
+.TP
+.B /sys/src/cmd/rx.c
+.TP
+.B /sys/src/cmd/ip/telnet.c
+.TP
+.B /sys/src/cmd/con
+for all other commands
+.SH SEE ALSO
+.IR cpu (1),
+.IR ssh (1),
+.IR telco (4)
+.SH BUGS
+.I Con
+and
+.I telnet
+are merely obsolescent;
+the other commands are obsolete and deprecated.
+.PP
+Under
+.IR rx ,
+a program
+that should behave specially towards terminals may not: e.g.,
+remote shells will not prompt.
+Also under
+.IR rx ,
+the remote standard error and standard output are combined 
+and go inseparably to the local standard output.
+.I Rx
+will consume its standard input by copying it to the remote system,
+so redirect it from
+.BR /dev/null
+if that's not what you want.

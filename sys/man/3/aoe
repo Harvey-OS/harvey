@@ -1,0 +1,290 @@
+.TH AOE 3
+.SH NAME
+aoe \- ATA-over-Ethernet (AoE) interface
+.SH SYNOPSIS
+.nf
+.B bind -a #æ /dev
+.sp 0.3v
+.B /dev/aoe/ctl
+.B /dev/aoe/log
+.BI /dev/aoe/ shelf . slot /config
+.BI /dev/aoe/ shelf . slot /ctl
+.BI /dev/aoe/ shelf . slot /devlink/0
+\&...
+.BI /dev/aoe/ shelf . slot /devlink/ i
+.BI /dev/aoe/ shelf . slot /ident
+\&...
+.fi
+.SH DESCRIPTION
+The AoE (ATA-over-Ethernet) interface serves a three-level
+directory providing control and access to AoE targets.
+The interface provided is primarily intended for low-level
+control of the AoE initiator.  See
+.IR sdaoe (3)
+for the standard interface.
+.SS Top-level files
+In order to access AoE targets, one or more Ethernet controllers
+need to be bound to the AoE initiator.  By default, the system
+starts with no interfaces bound.  For automatic binding of interfaces
+on boot, the
+.B aoeif
+configuration variable is set in
+.IR plan9.ini (8).
+Ethernet interfaces are specified as
+.BI ether n\fR,
+not as
+.BI #l n\fR.
+To bind the first and second Ethernet devices on boot, add
+.IP
+.EX
+aoeif=ether0 ether1
+.EE
+.PP
+To bind
+.B ether1
+to a running system:
+.IP
+.EX
+% echo bind '#l1/ether1' >/dev/aoe/ctl
+.EE
+.PP
+And to unbind it
+.IP
+.EX
+% echo unbind '#l1/ether1' >/dev/aoe/ctl
+.EE
+.PP
+When an interface is unbound, targets depending
+on that interface are removed.
+.PP
+Each local interface is called a
+.IR netlink .
+The mapping of
+AoE targets to netlinks is called a
+.IR devlink .
+Each devlink may
+see multiple interfaces per target.
+For example, if the local
+machine has one Ethernet address bound and the target has
+two interfaces on the same Ethernet segment, this will result
+in one netlink and one devlink with two Ethernet addresses.
+AoE frames are sent in round-robin fashion.
+Each successive
+frame is sent on the next address available on the next available
+devlink (local interface).
+.PP
+Normally the initiator automatically discovers and adds new
+device directories on startup.  New devices are not added
+except as new interfaces are bound to the initiator.
+Several messages can be written to
+.B /dev/aoe/ctl
+which alter this behavior:
+.TP
+.BI autodiscover\  toggle
+If toggle is absent,
+the state of
+.B autodiscover
+is toggled.  If it is the string
+.BR on ,
+it is turned on.  Any other string turns
+.B autodisover
+off.
+This option is not useful after Ethernet devices have been bound.
+.TP
+.BI discover\  shelf.slot
+Attempt to find the named target on all bound interfaces.
+.TP
+.BI remove\  shelf.slot
+The converse of
+.BR discover :
+remove the named target if it exists.
+.TP
+.BI rediscover\  toggle
+Allow or disallow rediscovery.
+This allows for automatic discovery of new targets.
+Unfortunately, it also allows automatic modification
+or loss of existing targets.  This option is considered dangerous.
+.br
+.ne 4
+.PP
+Reading
+.B /dev/aoe/ctl
+returns a list of colon-separated lines
+with keywords and their values:
+.TF rediscover
+.PD
+.TP
+.BI debug
+.PD 0
+.TP
+.BI autodiscover
+.TP
+.B rediscover
+Returns the current state of the variable named by the keyword.
+Writing the variable's
+name to the control file toggles the state of that variable.
+.PD
+.TP
+.BI if "n path"
+Path to
+.IR n th
+bound Ethernet device.
+.TP
+.BI if "n ea"
+Ethernet address of this device.
+.TP
+.BI if "n flag"
+A flag of ``Up'' indicates that this interface is available.
+.TP
+.BI if "n lostjumbo"
+Number of consecutive lost jumbograms.
+.TP
+.BI if "n datamtu"
+Incorrect and unused.
+.SS Shelf-and-slot subdirectories
+Once configured, each AoE target is accessed via files in the directory named
+for its shelf and slot.  For example, shelf 42, slot 0 would be
+accessed through the path
+.LR /dev/aoe/42.0 .
+The
+.B ident
+file contains the read-only, verbatim result of the identify unit ATA command.
+The
+.B config
+file contains the target's AoE configuration string.  Writing to this file
+sets the targets configuration string.
+.PP
+Reading a shelf and slot's
+.B ctl
+file returns a list of colon-separated lines
+with the following keywords and values:
+.TF firmware
+.PD
+.TP
+.B state
+``Up'' or ``down''.
+.TP
+.B nopen
+Number of clients using this target.
+.TP
+.B nout
+Number of outstanding AoE frames.
+.TP
+.B nmaxout
+Maximum number of outstanding frames allowed.
+.TP
+.B nframes
+Maximum number of outstanding frames.
+.I Nframes
+is greater than
+.I nmaxout
+when the initiator is reducing the number of in-flight
+frames due to packet loss.  It is assumed that packet
+loss is due to an overwhelmed target and not poor
+network conditions.
+.TP
+.BI maxbcount
+Maximum number of data bytes per AoE frame.  Using
+standard frames,
+.B maxbcount
+is 1024 or two sectors.
+AoE ATA headers are 36 bytes.
+.TP
+.B model
+.PD 0
+.TP
+.B serial
+.TP
+.B firmware
+The respective fields from the ATA
+.B identify unit
+command.
+.PD
+.TP
+.B flag
+List of flags useful for debugging.  The flag
+.B jumbo
+indicates that jumbo frames are accepted, not that
+they are being used.
+.I Maxbcount
+should be consulted for this purpose.
+.PP
+The
+.B data
+file may be read or written like a normal file
+except that reads and writes to this file are converted to
+AoE commands to the target, so transfers should be 512 or 1024 bytes long
+(or a larger multiple of 512 iff jumbo packets are in use).
+The size of this file is the usable size of the target.
+.PP
+The
+.B devlink
+directory contains one file for each interface the target was
+discovered on.  The files are numbers from 0 to
+.I n
+and contain a list of colon-separated lines
+with keywords and their values:
+.TF mintimer
+.PD
+.TP
+.B addr
+A space-separated list of the target's Ethernet addresses visible from
+this interface.
+.TP
+.B npkt
+The number of frames sent on this interface.
+.TP
+.B resent
+The number of frames re-sent.  Frames are re-sent
+when they have been outstanding twice the RTT average.
+.TP
+.B flag
+``Up'' when the netlink is up.
+.TP
+.B rttavg
+.PD 0
+.TP
+.B mintimer
+Minimum timer and RTT average as per
+.IR "Congestion Avoidance and Control" .
+.PD
+.TP
+.B nl path
+Path of the Ethernet device.
+.TP
+.B nl ea
+Ethernet address of the local Ethernet device.
+.TP
+.B nl flag
+``Up'' if the local interface is up.
+.TP
+.B nl lostjumbo
+Number of consecutive jumbograms lost.
+.TP
+.B nl datamtu
+Unused.
+.PP
+.SH SOURCE
+.B /sys/src/9/port/devaoe.c
+.SH SEE ALSO
+.\" .IR cec (1),
+.\" .IR vblade (1),
+.IR sd (3),
+.IR sdaoe (3),
+.IR aoesrv (8),
+.IR snoopy (8)
+.br
+.BR http://www.coraid.com/documents/AoEr10.txt
+.br
+Van Jacobson and Michael J. Karels,
+.IR "``Congestion Avoidance and Control''" ,
+ACM Computer Communication Review;
+Proceedings of the Sigcomm '88 Symposium in Stanford, CA, August, 1988.
+.SH BUGS
+There is no
+.B raw
+file for executing arbitrary commands.
+.PP
+This is a fairly primitive interface;
+.IR sdaoe (3)
+is usually more suitable.

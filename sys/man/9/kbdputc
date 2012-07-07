@@ -1,0 +1,52 @@
+.TH KBDPUTC 9
+.SH NAME
+kbdputc, kbdq \- keyboard interface to \fIcons\fP(3)
+.SH SYNOPSIS
+.ta \w'\f5extern\ \ \f1'u
+.B
+.B
+void	kbdputc(Queue *q, int c)
+.PP
+.B
+extern	Queue *kbdq;
+.SH DESCRIPTION
+This is the internal interface between
+.IR cons (3)
+and the platform-dependent keyboard driver.
+Before calling any of these functions,
+the global variable
+.B kbdq
+must be initialised;
+.IR cons (3)
+does not initialise it.
+This is usually done during system initialisation by the keyboard driver's
+.I kbdinit
+or
+.I kbdenable
+function ,
+as follows:
+.IP
+.EX
+kbdq = qopen(4*1024, 0, 0, 0);
+qnoblock(kbdq, 1);
+.EE
+.PP
+.I Kbdputc
+puts a 16-bit Unicode character
+.I c
+(ie, a `rune')
+on the given
+.IR q ,
+as a sequence of bytes in UTF-8 encoding
+(see
+.IR utf (6)).
+It is up to the platform's keyboard driver to map a physical keyboard character,
+or a combination of them (for instance, following
+.IR keyboard (6))
+to a given Unicode character.
+.SH SOURCE
+.B /sys/src/9/*/kbd*.c
+.SH SEE ALSO
+.IR cons (3),
+.IR utf (6),
+.IR qio (9)

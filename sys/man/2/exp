@@ -1,0 +1,62 @@
+.TH EXP 2
+.SH NAME
+exp, log, log10, pow, pow10, sqrt \- exponential, logarithm, power, square root
+.SH SYNOPSIS
+.B #include <u.h>
+.br
+.B #include <libc.h>
+.PP
+.nf
+.B
+double exp(double x)
+.PP
+.B
+double log(double x)
+.PP
+.B
+double log10(double x)
+.PP
+.B
+double pow(double x, double y)
+.PP
+.B
+double pow10(int n)
+.PP
+.B
+double sqrt(double x)
+.fi
+.SH DESCRIPTION
+.I Exp
+returns the exponential function of
+.IR x .
+.PP
+.I Log
+returns the natural logarithm of
+.IR x ;
+.I log10
+returns the base 10 logarithm.
+.PP
+.I Pow
+returns
+.if t .I  x\u\s8y\s10\d
+.if n x^y,
+and
+.I pow10
+returns
+.if t .I  10\u\s8n\s10\d
+.if n 10^n
+as a double.
+.PP
+.I Sqrt
+returns the square root of
+.IR x .
+.SH SOURCE
+All these routines have portable C implementations in
+.BR /sys/src/libc/port .
+Most also have machine-dependent implementations, written either in assembler
+or C, in
+.BR /sys/src/libc/$objtype .
+.SH SEE ALSO
+.IR hypot (2),
+.IR sinh (2),
+.IR intro (2)

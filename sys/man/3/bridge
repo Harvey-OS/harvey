@@ -1,0 +1,171 @@
+.TH BRIDGE 3
+.SH NAME
+bridge \- IPv4 Ethernet bridge
+.SH SYNOPSIS
+.nf
+.B bind -a #B\fIb\fP /net
+
+.B /net/bridge\fIb\fP/ctl
+.B /net/bridge\fIb\fP/cache
+.B /net/bridge\fIb\fP/log
+.B /net/bridge\fIb\fP/stats
+.BI /net/bridge\fIb\fP/ n
+.BI /net/bridge\fIb\fP/ n /ctl
+.BI /net/bridge\fIb\fP/ n /local
+.BI /net/bridge\fIb\fP/ n /status
+.fi
+.SH DESCRIPTION
+The
+.I bridge
+device bridges IPv4 packets amongst Ethernet interfaces.
+The number
+.I b
+in the bind is optional and selects a particular bridge
+(default 0).
+.PP
+The
+.B /net/bridge0
+directory contains
+.BR ctl ,
+.BR cache ,
+.BR log ,
+and
+.B stats
+files, and numbered subdirectories for each physical interface.
+.PP
+Opening the
+.B ctl
+file reserves an interface.
+The file descriptor returned from the
+.IR open (2)
+will point to the control file,
+.BR ctl ,
+of the newly allocated interface.
+Reading
+.B ctl
+returns a text string representing the number of the interface.
+Writing
+.B ctl
+alters aspects of the interface.
+The possible
+.I ctl
+messages are:
+.TF cacheflush
+.PD
+.TP
+.BI "bind ether " "name ownhash path"
+Treat the device mounted at
+.I path
+(e.g.,
+.LR /net/ether0 )
+as an Ethernet medium carrying IPv4 and ARP packets
+and associate it with this bridge (forward its packets to the
+other interfaces associated with this bridge).
+.I Ownhash
+is an `owner hash'.
+.TP
+.BI "bind tunnel " "name ownhash path path2
+Treat the device mounted at
+.I path
+as a network tunnel carrying IPv4 and ARP packets,
+the device mounted at
+.I path2
+as an Ethernet medium carrying IPv4 and ARP packets
+and associate them with this bridge
+(forward its packets to the
+other interfaces associated with this bridge).
+Read packets from the
+.I path
+interface and write them to the
+.I path2
+interface.
+Such tunnels have an MTU of 1400 bytes.
+.TP
+.BI "unbind " "type address [ownhash]"
+Disassociate the interface associated with
+.I address
+from this bridge.
+.I Type
+must be
+.L ether
+or
+.LR tunnel .
+.TP
+.B cacheflush
+Clear the cache of (destination MAC address, port) tuples.
+.TP
+.BI "delay " "delay0 delayn"
+Set the
+.I delay0
+and
+.I delayn
+parameters.
+.I delay0
+is the constant microsecond delay per packet
+and
+.I delayn
+is the microsecond delay per byte.
+.TP
+.BI "set " option
+Set bridge
+.IR option .
+The only known option is
+.LR tcpmss ,
+which limits the TCP Maximum Segment Size of
+TCPv4 packets passing through to 1300 bytes.
+.TP
+.BI "clear " option
+Clear bridge
+.IR option .
+.PP
+Reading
+.I stats
+returns statistics about the bridge.
+.PP
+Reading the
+.I log
+file returns data from the bridge's log
+and will block at end of file awaiting new data.
+.PP
+Reading the
+.B cache
+file prints the cache of (destination MAC address, port) tuples,
+one entry per line.
+The format is:
+the destination MAC (e.g., Ethernet) address in hex,
+port number,
+count of packets from this address,
+count of packets to this address,
+expiry time in seconds since the epoch,
+and
+.L e
+for expired entries or
+.L v
+for valid entries.
+.PP
+In a connection subdirectory,
+.B ctl
+and
+.B local
+don't do anything,
+but
+.B status
+returns a one-line status summary.
+.SH EXAMPLES
+Set up a network bridge between two Ethernets
+.RL ( #l0
+and
+.LR #l1 ).
+.IP
+.EX
+bind -a '#B' /net
+bind -a '#l1' /net
+echo 'bind ether outer 0 /net/ether0' >/net/bridge0/ctl
+echo 'bind ether inner 0 /net/ether1' >/net/bridge0/ctl
+.EE
+.SH "SEE ALSO"
+.IR ip (3)
+.SH SOURCE
+.B /sys/src/9/port/devbridge.c
+.SH BUGS
+Doesn't understand IPv6.

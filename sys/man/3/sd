@@ -1,0 +1,254 @@
+.TH SD 3
+.SH NAME
+sd \- storage device interface
+.SH SYNOPSIS
+.nf
+.B bind #S /dev
+
+.B /dev/sdctl
+.BI /dev/sd Cu /ctl
+.BI /dev/sd Cu /raw
+.BI /dev/sd Cu /data
+\&...
+.fi
+.SH DESCRIPTION
+The storage device interface serves a two-level directory
+giving access to multiple storage units,
+typically ATA(PI) or SCSI discs.
+Each unit
+is accessed via files in the directory named by the controller
+to which it is attached,
+.IR C  ,
+and by its unit number
+.IR u .
+The controller naming convention for ATA(PI) units starts
+with the first controller being named
+.LR C ,
+the second
+.LR D ,
+etc. up to a maximum of 4 controllers
+.RB ([ C-F ]);
+legacy controllers are always 'C' and 'D'.
+There can be a maximum of 2 units per ATA(PI) controller
+.RB ([ 01 ]).
+The controller naming convention for SCSI units starts with
+the first controller being named
+.LR 0 ,
+the second
+.LR 1 ,
+etc. up to a maximum of 16 controllers
+.RB ([ 0-9a-f ]).
+There can be a maximum of 16 units per SCSI controller
+.RB ([ 0-9a-f ]).
+.PP
+Units are not accessed before the first attach.
+Units may be individually attached using the attach specifier,
+for example
+.IP
+.EX
+bind -a '#SsdD0' /dev
+.EE
+.PP
+An attach without a specifier will cause the driver to scan for all possible
+units before processing the rest of the name.
+.PP
+The subdirectory for each unit contains two files,
+.I ctl
+and
+.IR raw .
+In addition,
+if the unit is a direct-access disc of some type
+it may be split into partitions and
+the subdirectory may contain a file per partition.
+By default,
+the partition
+.I data
+will exist for such media.
+.PP
+Partitions are added and deleted by writing to the
+.I ctl
+file
+.IP
+.EX
+part \f2name start-sector end-sector\fP
+delpart \f2name\fP
+.EE
+.PP
+The default
+.I data
+partition may be deleted.
+A partition cannot be deleted if a process has it open.
+If a change of removable media is detected,
+the new media cannot be opened until all open partitions
+on the old media are closed.
+.PP
+Partitions are usually created using
+.I fdisk
+and
+.IR prep (8);
+the convention is to name non-Plan 9 partitions after their corresponding operating systems
+(e.g.,
+.BR /dev/sdC0/dos )
+and Plan 9 partitions according to their function
+(e.g.,
+.BR /dev/sdC0/swap ).
+The example in
+.IR prep (8)
+shows how this is done.
+.PP
+Reading the
+.I ctl
+file returns at least one line of textual information about
+the unit.
+The first line will always be prefixed by
+.B inquiry
+and will give a manufacturer and model number if possible.
+A line prefixed by
+.B config
+will be returned for appropriate media,
+e.g. for ATA(PI) units the remainder of the line contains
+configuration information from the device's
+.I identify
+command (config and capabilities)
+and also the available I/O transfer options;
+this is a diagnostic aid.
+A line prefixed by
+.B geometry
+will be returned for appropriate media;
+at least two numbers will follow,
+the first being the number of sectors contained in the unit
+and the second the sector size in bytes.
+Any remaining information on the
+.B geometry
+line is unit-dependent,
+for instance, head,
+cylinder and sector counts for ATA discs.
+If any partitions are defined for the media,
+their name, start-sector and end-sector will be returned,
+prefixed by
+.BR part .
+.IP
+.EX
+% cat /dev/sdD0/ctl
+inquiry KENWOOD CD-ROM UCR-421  208E10/20/99  7.39  2 M0
+config 85C0 capabilities 0F00 dma 00550004 dmactl 00000000
+geometry 242725 2352
+part data 0 242725
+%
+.EE
+.PP
+The use of DMA and multi-sector read/write commands may be
+enabled and disabled on ATA(PI) units by writing to the
+.B ctl
+file
+.B dma
+and
+.B rwm
+respectively followed by
+.B on
+or
+.BR off .
+For example, to enable DMA on a unit that supports it:
+.IP
+.EX
+% echo 'dma on'>/dev/sd00/ctl
+.EE
+.PP
+If supported by the unit,
+the standby timer may be enabled:
+.IP
+.EX
+% echo 'standby \f2T\fP'>/dev/sdC0/ctl
+.EE
+.PP
+where
+.I T
+is the standby timer period in seconds.
+.I T
+must be between 30 and 1200,
+or can be 0 to disable the timer.
+.PP
+The
+.B raw
+file is used to execute an arbitrary command on the unit at
+a low level.
+This is used by programs such as
+.IR scuzz (8)
+to manipulate devices that do not fit the simple storage model
+or for maintenance purposes.
+The following steps may be taken to execute a command
+.IP \- 3
+Write the command to the
+.I raw
+file;
+.IP \-
+Read or write data associated with the command, according to the direction of the transfer.
+.IP \-
+Read the
+.I raw
+file to retrieve the status of the command,
+returned as a text integer.
+.LP
+Reading
+.B /dev/sdctl
+yields information about each controller,
+one line per controller.
+Writing `\fLconfig \fImessage\fR' to
+.B /dev/sdctl
+passes
+.I message
+to the legacy configuration machinery,
+used to set attributes such as IRQ, port and size.
+Writing `\fIctltype message\fR' to
+.B /dev/sdctl
+passes
+.I message
+to
+.IR ctltype 's
+.B wtopctl
+function with a nil
+.B sdev
+argument,
+where
+.I ctltype
+is a known controller type such as
+.B ata
+or
+.BR scsi .
+Writing `\c
+.BI sd "ctlletter message\fR'
+to
+.B /dev/sdctl
+passes
+.I message
+to
+.BI sd ctlletter\fR's
+.B wtopctl
+function with an
+.B sdev
+argument corresponding to the named controller,
+where
+.I ctlletter
+is a known controller letter such as
+.B C
+or
+.BR 0 .
+.SH SOURCE
+.B /sys/src/9/port/devsd.c
+.br
+.B /sys/src/9/*/sd*.[hc]
+.SH SEE ALSO
+.IR scuzz (8)
+.SH BUGS
+LUNs (logical unit numbers) are not implemented.
+For (S)ATA drives,
+LUNs are not merely ignored but are actively
+prevented from working except for INQUIRY commands.
+.PP
+The 4 controller limit for ATA(PI) is not enforced.
+.PP
+No account is taken of some buggy ATA PCI controllers
+such as the CMD640.
+.PP
+ATA(PI) units come up with DMA and multi-sector read/write
+capability disabled.

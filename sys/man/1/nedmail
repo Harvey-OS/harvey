@@ -1,0 +1,340 @@
+.TH NEDMAIL 1
+.SH NAME
+nedmail \-  reading mail
+.SH SYNOPSIS
+.B upas/nedmail
+[
+.B -nr
+]
+[
+.B -f
+.I mailfile
+]
+[
+.B -s
+.I mailfile
+]
+.PP
+.B upas/nedmail
+.B -c
+.I dir
+.SH DESCRIPTION
+.I Nedmail
+edits a mailbox.
+The default mailbox is
+.BI /mail/box/ username /mbox\f1.
+The
+.B -f
+command line option specifies an alternate mailbox.
+Unrooted path names are interpreted relative to
+.BI /mail/box/ username.
+If the
+.I mailfile
+argument is omitted, the name defaults to
+.BR stored .
+.PP
+The options are:
+.TF "-f mailfile"
+.TP
+.BI -c " dir
+Create a mailbox.  If
+.I dir
+is specified, the new mailbox is created in
+.BI /mail/box/ username / dir /mbox\f1.
+Otherwise, the default mailbox is created.
+.TP
+.B -r
+Reverse: show messages in first-in, first-out order; the default is last-in, first-out.
+.TP
+.B -n
+Make the message numbers the same as the file names in the mail
+box directory.  This implies the
+.B -r
+option.
+.TP
+.BI -f " mailfile"
+Read messages from the specified file (see above) instead of the default mailbox.
+.TP
+.BI -s " mailfile"
+Read a single message file
+.IR mailfile ,
+as produced by
+.IR fs ,
+and treat it as an entire mailbox.
+This is provided for
+use in plumbing rules; see
+.IR faces (1).
+.PD
+.PP
+.I Nedmail
+starts by reading the mail box, printing out the number
+of messages, and then prompting for commands from standard input.
+Commands, as in
+.IR ed (1),
+are of the form
+.RI `[ range ]
+.I command
+.RI [ arguments ]'.
+The command is applied to each message in the (optional) range.
+.PP
+The address range can be:
+.TP 1.4i
+.I address
+to indicate a single message header
+.PD 0
+.TP
+.IB address , address
+to indicate a range of contiguous message headers
+.TP
+.BI g/ expression /
+to indicate all messages whose headers match the regular
+.IR expression .
+.TP
+.BI g% expression %
+to indicate all messages whose contents match the regular
+.IR expression .
+.PD
+.PP
+The addresses can be:
+.TP 1.4i
+.I number
+to indicate a particular message
+.PD 0
+.TP
+.IB address . number
+to indicate a subpart of a particular message
+.TP
+.BI / expression /
+to indicate the next message whose header matches
+.I expression
+.TP
+.BI % expression %
+to indicate the next message whose contents match
+expression
+.TP
+.I "empty or .
+to indicate the current message
+.TP
+.BI - address
+to indicate backwards search or movement
+.PD
+.PP
+Since messages in MIME are hierarchical
+structures, in
+.I nedmail
+all the subparts are individually addressable.
+For example if message 2 contains 3 attachments,
+the attachments are numbered 2.1, 2.2, and 2.3.
+.PP
+The commands are:
+.TP 1.1i
+.BI a " args
+Reply to all addresses in the
+.BR To: ,
+.BR From: ,
+and
+.BR Cc:
+header lines.
+.I Marshal
+is used to format the reply and any arguments the
+user specifies are added to the command line to
+.I marshal
+before the recipient.
+The possibility of making a fool of yourself is very
+high with this command.
+.PD 0
+.TP
+.BI A " args
+Like 
+.B a
+but with the message
+appended to the reply.
+.TP
+.B b
+Print the headers for the next ten messages.
+.TP
+.B d
+Mark message to be deleted upon exiting
+.IR nedmail .
+.TP
+.B f
+Append the message to the file 
+.BI /mail/box/ username / sendername
+where
+.I sendername
+is the account name of the sender.
+.TP
+.B h
+Print the disposition, size in characters, reception time, sender,
+and subject of the message.
+.TP
+.B H
+Print the MIME structure of the message.
+.TP
+.B help
+Print a summary of the commands.
+.TP
+.BI m " person ...
+Forward the message as a mime attachment to the named
+.IR persons .
+.TP
+.BI M " person ...
+Like
+.B m
+but allow the user to type in text to be included
+with the forwarded message.
+.TP
+.B p
+Print message.	An interrupt stops the printing.
+.TP
+.BI r " args
+Reply to the sender of the message.
+.I Marshal
+is used to format the reply.
+If and optional
+.I Args
+are specified, they are added to the command line to
+.I marshal
+before the recipient's address.
+.TP
+.B R " args 
+Like
+.B r
+but with the original message included as an attachment.
+.TP
+.B rf
+Like
+.B r
+but append the message and the reply to the file 
+.BI /mail/box/ username / sendername
+where
+.I sendername
+is the account name of the sender.
+.TP
+.B Rf
+Like 
+.B R
+but append the message and the reply to the file 
+.BI /mail/box/ username / sendername
+where
+.I sendername
+is the account name of the sender.
+.TP
+.BI s " mfile"
+Append the message to the specified mailbox.
+If
+.I mfile
+doesn't start with a `/', it is interpreted relative to the directory in which the mailbox resides.
+If
+.I mfile
+is a directory then the destination is a file in that directry.
+If the MIME header specifies a file name, that one is used.
+Otherwise, one is generated using
+.IR mktemp (2)
+and the string
+.BR att.XXXXXXXXXXX .
+.TP
+.B q
+Put undeleted mail back in the mailbox and stop.
+.TP
+EOT (control-D)
+Same as 
+.BR q .
+.TP
+.BI w " file
+Same as
+.B s
+with the mail header line(s) stripped.  This can be used to
+save binary mail bodies.
+.TP
+.B u
+Remove mark for deletion.
+.TP
+.B x
+Exit, without changing the mailbox file.
+.TP
+.B y
+Synchronize with the mail box.  Any deleted
+messages are purged and any new messages read.
+This is equivalent to quiting nedmail and restarting.
+.TP
+.BI | command
+Run the
+.I command
+with the message body as standard input.
+.TP
+.BI || command
+Run the
+.I command
+with the whole message as standard input.
+.TP
+.BI ! command
+Escape to the shell to do
+.IR command .
+.TP
+.B \&=
+Print the number of the current message.
+.PD
+.PP
+Here's an example of a mail session that looks at a summary
+of the mail messages, saves away an html file added as an
+attachment to a message and then deletes the message:
+.LP
+.EX
+% mail
+7 messages
+: ,h
+1   H  2129	07/22 12:30  noone@madeup.net  "Add Up To 2000 free miles"
+2       504	07/22 11:43  jmk
+3   H   784	07/20 09:05  presotto
+4       822	07/11 09:23  xxx@yyy.net  "You don't call, you don't write..."
+5       193	07/06 16:55  presotto
+6       529	06/01 19:42  jmk
+7       798	09/02  2000  howard
+: 1H
+1       multipart/mixed             2129   from=noone@madeup.net
+ 1.1      text/plain                115    
+ 1.2      text/html                 1705   filename=northwest.htm
+: 1.2w /tmp/northwest.html
+!saved in /tmp/northwest.html
+1.2: d
+1: q
+!1 message deleted
+% 
+.EE
+.PP
+Notice that the delete of message 1.2 deleted the entire message and
+not just the attachment.
+.SH FILES
+.TF /mail/box/*/dead.letter
+.TP
+.B /mail/box/*
+mail directories
+.TP
+.B /mail/box/*/mbox
+mailbox files
+.TP
+.B /mail/box/*/forward
+forwarding address(es)
+.TP
+.B /mail/box/*/pipeto
+mail filter
+.TP
+.B /mail/box/*/L.reading
+mutual exclusion lock for multiple mbox readers
+.TP
+.B /mail/box/*/L.mbox
+mutual exclusion lock for altering mbox
+.SH SOURCE
+.B /sys/src/cmd/upas/ned
+.SH "SEE ALSO"
+.IR mail (1),
+.IR aliasmail (8),
+.IR filter (1),
+.IR marshal (1),
+.IR mlmgr (1),
+.IR nedmail (1),
+.IR upasfs (4),
+.IR smtp (8),
+.IR faces (1),
+.IR rewrite (6)

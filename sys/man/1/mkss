@@ -1,0 +1,20 @@
+.TH MKSS 1
+.SH NAME
+mkss \- create an executable shell script and open it in the editor.
+.SH SYNOPSIS
+.B mkss filename
+.SH DESCRIPTION
+.I Mkss
+creates a shell script with the name specified by
+.I filename
+in $home/bin/rc/, then uses
+.IR plumb (1)
+to send the script to the user's editor. The script's permissions are executable.
+.SH SOURCE
+.B /rc/bin/mkss
+.SH BUGS
+It might be nice if mkss took scripts from stdin, making it possible to quickly turn a bunch of frequently used commands into a shell script. 
+.LP
+Right now
+.I mkss
+is primarily used for making utility scripts. It might be useful to add installing to /rc/bin as an option as well.

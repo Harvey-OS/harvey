@@ -1,0 +1,71 @@
+.TH STATUSBAR 8
+.SH NAME
+statusbar \- display a bar graph status window
+.SH SYNOPSIS
+.B aux/statusbar
+[
+.B -kt
+]
+[
+.B -w
+.I minx,miny,maxx,maxy
+]
+.I title
+.SH DESCRIPTION
+.I Aux/statusbar
+reads textual status lines
+from standard input, converting them into a
+continuously updated bar graph displayed in a new window
+on the screen.
+The
+.I title
+is displayed on a line above the bar graph.
+Each input line is two space-separated decimal numbers:
+the numerator and denominator of a fraction.
+.PP
+.I Statusbar
+exits when it reaches end-of-file on standard input.
+Typing
+.SM DEL
+or control-C
+will also cause it to exit.
+.PP
+The options are:
+.TP
+.B -k
+do not allow typing to cause
+.I statusbar
+to exit
+.TP
+.B -t
+print an ASCII status bar to standard output, using
+backspace to redraw it
+.TP
+.B -w
+set the coordinates of the statusbar window created
+.PD
+.SH EXAMPLE
+The
+.B -v
+option to
+.IR hget (1)
+.\" and the 
+.\" .B -d
+.\" option to
+.\" .IR venti/fmtarenas
+.\" and
+.\" .I venti/fmtisect
+.\" (see
+.\" .IR venti-fmt (8))
+causes it to print status lines suitable for
+input to
+.IR statusbar .
+.PP
+Monitor a long download:
+.IP
+.EX
+hget -v -o bigfile http://server.com/bigfile |[2]
+  aux/statusbar 'big file download'
+.EE
+.SH SOURCE
+.B /sys/src/cmd/aux/statusbar.c

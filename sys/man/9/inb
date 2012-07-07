@@ -1,0 +1,83 @@
+.TH INB 10 x86
+.SH NAME
+inb, ins, inl, outb, outs, outl, insb, inss, insl, outsb, outss, outsl \- programmed I/O
+.SH SYNOPSIS
+.ta \w'\fLushort 'u
+.B
+int	inb(int port)
+.PP
+.B
+ushort	ins(int port)
+.PP
+.B
+ulong	inl(int port)
+.PP
+.B
+void	outb(int port, int value)
+.PP
+.B
+void	outs(int port, ushort value)
+.PP
+.B
+void	outl(int port, ulong value)
+.PP
+.B
+void	insb(int port, void *address, int count)
+.PP
+.B
+void	inss(int port, void *address, int count)
+.PP
+.B
+void	insl(int port, void *address, int count)
+.PP
+.B
+void	outsb(int port, void *address, int count)
+.PP
+.B
+void	outss(int port, void *address, int count)
+.PP
+.B
+void	outsl(int port, void *address, int count)
+.SH DESCRIPTION
+The
+.I x86
+implementation provides functions to allow kernel code
+written in C to access the I/O address space.
+On several other architectures such as the PowerPC and Strongarm,
+the platform-dependent code provides similar functions to access
+devices with an I/O space interface, even when that is memory mapped, to encourage portability of device drivers.
+.PP
+.IR Inb ,
+.I ins
+and
+.I inl
+apply the corresponding hardware instruction to fetch the next byte, short or long
+from the I/O
+.IR port .
+.IR Outb ,
+.I outs
+and
+.I outl
+output a
+.I value
+to the I/O
+.IR port .
+.PP
+The remaining functions transfer
+.I count
+bytes, shorts, or longs using programmed I/O between a memory
+.I address
+and
+.IR port .
+Functions
+.BI ins x
+copy values into memory; functions
+.BI outs x
+copy values from memory.
+The
+.I count
+is in elements, not bytes.
+.SH SOURCE
+.B /sys/src/9/pc/l.s
+.SH SEE ALSO
+.IR dma (9)

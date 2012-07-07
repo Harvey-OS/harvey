@@ -1,0 +1,161 @@
+.TH DOC2TXT 1
+.SH NAME
+doc2txt, doc2ps, wdoc2txt, xls2txt, olefs, mswordstrings, msexceltables
+\- extract printable text from Microsoft documents
+.SH SYNOPSIS
+.B doc2txt
+[
+.I file.doc
+]
+.br
+.B doc2ps
+[
+.I file.doc
+]
+.br
+.B wdoc2txt
+[
+.I file.doc
+]
+.br
+.B xls2txt
+[
+.I file.xls
+]
+.br
+.B aux/olefs
+[
+.B -m
+.I mtpt
+]
+.I file.doc
+.br
+.B aux/mswordstrings 
+.IB mtpt /WordDocument
+.br
+.B aux/msexceltables
+[
+.B -qaDnt
+] [
+.B -d
+.I delim
+] [
+.B -c
+.I column-range
+] [
+.B -w
+.I worksheet-range
+]
+.IB mtpt /Workbook
+.SH DESCRIPTION
+.I Doc2txt
+is an
+.IR rc (1)
+script that uses 
+.I olefs
+and
+.I mswordstrings
+to extract the printable text from the body of a Microsoft Word document
+and write it on the standard output.
+.I Doc2ps
+is similar, but emits PostScript corresponding to the document.
+.I Wdoc2txt
+is similar to
+.IR doc2txt ,
+but uses
+.IR plumb (1)
+to send the output to a new
+.IR acme (1)
+window instead.
+.I Xls2txt
+performs a similar function for Microsoft Excel documents.
+.PP
+Microsoft Office documents are stored in OLE (Object Linking and Embedding)
+format, which is a scaled down version of Microsoft's FAT file system.
+.I Olefs
+presents the contents of an MS Office document as a file system
+on
+.IR mtpt ,
+which defaults to
+.BR /mnt/doc .
+.I Mswordstrings
+or
+.I msexceltables
+may then be used to parse the files inside, extracting
+a text stream.
+.I Msexceltables
+may be given options to control the formatting of its output.
+.TF "\fL-d \fIdelim"
+.TP
+.B -a
+Attempt conversion of non-tabular sheets in the workbook (charts).
+.TP
+.BI -d " delim
+Sets the inter-field delimiter to the string
+.IR delim ,
+by default a single space.
+.TP
+.B -D
+Enables debugging output.
+.TP
+.BI -c " range
+.I Range
+is a comma-separated list of column numbers and ranges.
+Ranges are separated by dashes.
+Limit processing to just those columns named;
+by default all columns are output.
+.TP
+.B -n
+Disables field padding to column width. 
+.TP
+.B -q
+Disable quoting of textural fields (see 
+.IR quote (2).)
+.TP
+.B -t
+Truncate fields to the column width.
+.TP
+.BI -w " range
+.I Range
+is a comma-separated list of worksheet numbers and ranges, this
+limits the sheets output using the same syntax as the
+.B -c
+option above.
+Suppressed chart pages are always included in the sheet count.
+.SH EXAMPLE
+Extract pieces of an MS Excel spreadsheet.
+.PD 0
+.IP
+.EX
+.SM
+aux/olefs report.xls
+msexceltables -q -w 1,7,9-14 -c 3-5 -n -d '@' /mnt/doc/Workbook > rpt.txt
+unmount /mnt/doc
+.EE
+.PD
+.SH SOURCE
+.TF "\fL/sys/src/cmd/aux   "
+.TP
+.B /rc/bin
+.BR doc2txt ,
+.BR doc2ps ,
+.BR wdoc2txt,
+and
+.BR xls2txt
+.TP
+.B /sys/src/cmd/aux
+the others
+.fi
+.PD
+.SH SEE ALSO
+.IR strings (1)
+.br
+``Microsoft Word 97 Binary File Format'',
+at Microsoft's developer (MSDN) home page.
+.br
+``LAOLA Binary Structures'', 
+.B http://user.cs.tu-berlin.de/~schwartz/pmh 
+.br
+``OpenOffice.Org's Excel Documentation'',
+.br
+.B http://sc.openoffice.org/excelfileformat.pdf

@@ -1,0 +1,111 @@
+.TH ETHER 3 
+.SH NAME
+ether \- Ethernet device
+.SH SYNOPSIS
+.nf
+.B bind -a #l\fIn\fP /net
+
+.BI /net/ether n /clone
+.BI /net/ether n /addr
+.BI /net/ether n /ifstats
+.BI /net/ether n /stats
+.BI /net/ether n /[0-7]
+.BI /net/ether n /[0-7]/data
+.BI /net/ether n /[0-7]/ctl
+.BI /net/ether n /[0-7]/ifstats
+.BI /net/ether n /[0-7]/stats
+.BI /net/ether n /[0-7]/type
+.fi
+.SH DESCRIPTION
+The Ethernet interface,
+.BI /net/ether n\f1,
+is a directory
+containing subdirectories, one for each distinct Ethernet packet type,
+and
+.BR clone ,
+.BR addr ,
+.BR ifstats ,
+and
+.B stats
+files.
+.B stats
+and
+.B ifstats
+are the same as in the subdirectories (see below).
+Reading
+.B addr
+returns the MAC address of this interface in hex with no punctuation
+and no trailing newline.
+The number
+.I n
+(optional in the bind)
+is the device number of the card, permitting multiple cards to be used on a single machine.
+.PP
+Each directory contains files to control the associated connection,
+receive and send data,
+and supply statistics.
+Incoming Ethernet packets are demultiplexed by packet type and passed up
+the corresponding open connection.
+Reading from the
+.B data
+file reads packets of that type arriving from the network.
+A read will terminate at packet boundaries.
+Each write to the
+.B data
+file causes a packet to be sent.
+The Ethernet address of the interface is inserted into
+the packet header as the source address.
+.PP
+A connection is assigned to a packet type by opening its
+.B ctl
+file and
+writing 
+.B connect
+.I n
+where
+.I n
+is a decimal integer constant identifying the Ethernet packet type.
+A type of \-1 enables the connection to receive copies of packets of
+all types.  A type of \-2 enables the connection to receive copies of
+the first 64 bytes of packets of all types.
+If multiple connections are assigned to a given packet type
+a copy of each packet is passed up each connection.
+.PP
+Some interfaces also accept unique options when written to the
+.I ctl
+(or
+.IR clone )
+file; see the description of
+.I wavelan
+in
+.IR plan9.ini (8).
+.PP
+Reading the
+.B ctl
+file returns the decimal index of the associated connection, 0 through 7.
+Reading the
+.B type
+file returns the decimal value of the assigned Ethernet packet type.
+Reading the
+.B stats
+file returns status information such as the Ethernet address of the
+card and general statistics, independent of the interface;
+.B ifstats
+contains device-specific data and statistics about the card.
+.PP
+An interface normally receives only those packets whose 
+destination address is that of the interface or is the
+broadcast address,
+.BR ff:ff:ff:ff:ff:ff .
+The interface can be made to receive all packets on the
+network by writing the string 
+.B promiscuous
+to the
+.B ctl
+file. 
+The interface remains promiscuous until the control file is
+closed.
+The extra packets are passed up connections only of types \-1
+and \-2.
+.SH SOURCE
+.B /sys/src/9/*/devether.c
