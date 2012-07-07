@@ -76,6 +76,7 @@ linuxsyscall(unsigned int, Ureg* ureg)
 	scallnr = ureg->ax;
 #undef BREAKINCASEOFEMERGENCY
 #ifdef BREAKINCASEOFEMERGENCY
+	up->attr = 0xff;
 	print("# %d\n", scallnr);
 	print("%#ullx %#ullx %#ullx %#ullx %#ullx %#ullx \n", 
 		ureg->di,
@@ -153,7 +154,7 @@ linuxsyscall(unsigned int, Ureg* ureg)
 		if (scallnr < nlinuxsyscall)
 			ar0 = linuxsystab[scallnr].r;
 		else
-			ar0.i = -1;
+			ar0.p = (uintptr)-1;
 	}
 
 	/* normal amd64 kernel does not have this; remove? */
@@ -176,7 +177,7 @@ linuxsyscall(unsigned int, Ureg* ureg)
 	 * Put return value in frame.
 	 */
 	ureg->ax = ar0.p;
-	if (up->attr & 16)print("%d:Ret from syscall %#lx\n", up->pid, (unsigned long) ar0.p);
+	if (up->attr & 16)print("%d:Ret from syscall %#ullx\n", up->pid,  (u64int) ar0.p);
 	if(up->procctl == Proc_tracesyscall){
 		up->procctl = Proc_stopme;
 		s = splhi();
@@ -196,7 +197,6 @@ linuxsyscall(unsigned int, Ureg* ureg)
 
 	if(scallnr != 56 && (up->procctl || up->nnote))
 		notify(ureg);
-
 	/* if we delayed sched because we held a lock, sched now */
 	if(up->delaysched){
 		sched();

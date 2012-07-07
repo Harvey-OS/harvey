@@ -64,7 +64,7 @@ ibrk(uintptr addr, int seg)
 {
 	Segment *s, *ns;
 	uintptr newtop, rtop;
-	long newsize;
+	uintptr newsize;
 	int i, mapsize;
 	Pte **map;
 	uintmem pgsz;

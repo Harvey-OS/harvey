@@ -88,7 +88,7 @@ rootdir
 	$NXM/amd64/bin/mkdir mkdir
 	$NXM/amd64/bin/mount mount
 	$NXM/amd64/bin/ramfs ramfs
-	$NXM/amd64/bin/ratrace ratrace
+#	$NXM/amd64/bin/ratrace ratrace
 	$NXM/amd64/bin/sleep sleep
 	$NXM/sys/lib/acid/port port
 	$NXM/sys/lib/acid/amd64 amd64

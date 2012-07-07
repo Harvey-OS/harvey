@@ -274,27 +274,30 @@ returnok(Ar0*, va_list)
 void linuxmmap(Ar0 *ar0, va_list list)
 {
 	void *v;
-	int length, prot, flags, fd, nn;
-	ulong offset;
+	uintptr length, prot, flags, fd, nn;
+	u64int offset;
 	void linuxsbrk(Ar0* ar0, va_list list);
-        Chan *c;
+        Chan *c = nil;
 	uintptr newv, oldv, iop;
 	uintptr ret;
 
 	v = va_arg(list, void *);
-	length = va_arg(list, int);
+	length = va_arg(list, uintptr);
 	prot = va_arg(list, int);
 	flags = va_arg(list, int);
 	fd = va_arg(list, int);
-	offset = va_arg(list, ulong);
+	offset = va_arg(list, u64int);
 	if (up->attr & 128)
-		print("%d:CNK: mmap %p %#x %#x %#x %d %#ulx\n", up->pid, v, length, prot, flags, fd, offset);
+		print("%d: mmap %p %#x %#ullx %#x %d %#ulx\n", up->pid, v, length, prot, flags, fd, offset);
 	/* if we are going to use the fd make sure it's valid */
 	if (fd > -1)
         	c = fdtochan(fd, OREAD, 1, 1);
 
         if(waserror()){
-                cclose(c);
+		if (c)
+			cclose(c);
+		if (up->attr & 128)
+			print("%d: mmap failed, return %#ullx\n", up->pid, ar0->p);
                 nexterror();
 	}
 
@@ -309,6 +312,7 @@ void linuxmmap(Ar0 *ar0, va_list list)
 	ret = ibrk(newv, BSEG);
 	if (up->attr & 128)
 		print("%d:mmap anon: new is %p\n", up->pid, ret);
+	nixprepage(BSEG);
 
 	if (fd == -1){
 		ar0->p = oldv;
