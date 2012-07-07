@@ -310,7 +310,7 @@ mmu_kaddr(ulong pa)
 	/* try the easy stuff first (the first case is true most of the time) */
 	if(pa >= PHYSDRAM0 && pa <= PHYSDRAM0+(DRAMTOP-DRAMZERO))
 		return DRAMZERO+(pa-PHYSDRAM0);
-	if(pa >= PHYSFLASH0 && pa <= PHYSFLASH0+(FLASHTOP-FLASHZERO))
+	if(/* pa >= PHYSFLASH0 && */ pa <= PHYSFLASH0+(FLASHTOP-FLASHZERO))
 		return FLASHZERO+(pa-PHYSFLASH0);
 	if(pa >= PHYSNULL0 && pa <= PHYSNULL0+(NULLTOP-NULLZERO))
 		return NULLZERO+(pa-PHYSNULL0);

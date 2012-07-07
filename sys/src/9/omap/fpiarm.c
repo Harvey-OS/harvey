@@ -489,6 +489,14 @@ ldrex(ulong pc, ulong op, Ureg *ur)
 }
 
 void
+clrex(ulong, ulong, Ureg *)
+{
+	ldrexvalid = 0;
+	if(fpemudebug)
+		print("clrex");
+}
+
+void
 strex(ulong pc, ulong op, Ureg *ur)
 {
 	ulong *rp, rn, *rd, *addr;
@@ -523,6 +531,7 @@ struct {
 } specialopc[] = {
 	{ 0x01900f9f, 0x0ff00fff, ldrex },
 	{ 0x01800f90, 0x0ff00ff0, strex },
+	{ 0xf57ff01f, 0xffffffff, clrex },
 	{ 0x0ed00100, 0x0ef08100, casemu },
 	{ 0x00000000, 0x00000000, nil }
 };

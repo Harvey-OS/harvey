@@ -1,6 +1,6 @@
 .TH MKFLASHFS 8
 .SH NAME
-mkflashfs \- make a journalling file system for flash memory
+mkflashfs - make a journalling file system for flash memory
 .SH SYNOPSIS
 .B aux/mkflashfs
 [
@@ -32,7 +32,7 @@ to contain exactly
 .I nsect
 sectors.
 .SH SOURCE
-.B /sys/src/cmd/aux/flashfs/mkflashfs.c
+.B /sys/src/cmd/aux/flashfs
 .SH "SEE ALSO"
 .IR flashfs (4),
 .IR paqfs (4)
