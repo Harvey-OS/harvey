@@ -4,16 +4,16 @@
  * all arithmetic is done in double precision.
  * the FP trap status isn't updated.
  */
-#include	<u.h>
+#include	"u.h"
 #include	"../port/lib.h"
 #include	"mem.h"
 #include	"dat.h"
 #include	"fns.h"
-#include	"io.h"
 
-#include	<ureg.h>
+#include	"ureg.h"
 
-#include "fpi.h"
+#include	"arm.h"
+#include	"fpi.h"
 
 /* undef this if correct kernel r13 isn't in Ureg;
  * check calculation in fpiarm below
@@ -44,7 +44,9 @@ enum {
 	REGPC = 15,
 };
 
-int	fpemudebug = 0;
+enum {
+	fpemudebug = 0,
+};
 
 #undef OFR
 #define	OFR(X)	((ulong)&((Ureg*)0)->X)
@@ -338,10 +340,12 @@ fpemu(ulong pc, ulong op, Ureg *ur, FPsave *ufp)
 			fn = &FR(ufp, rn);
 			if(op & (1<<3)){
 				fm = &fpconst[op&7];
-				tag = 'C';
+				if(fpemudebug)
+					tag = 'C';
 			}else{
 				fm = &FR(ufp, op&7);
-				tag = 'F';
+				if(fpemudebug)
+					tag = 'F';
 			}
 			switch((op>>21)&7){
 			default:
@@ -360,7 +364,8 @@ fpemu(ulong pc, ulong op, Ureg *ur, FPsave *ufp)
 				break;
 			}
 			if(fpemudebug)
-				print("CMPF	%c%d,F%ld =%lux\n", tag, rn, op&7, ur->psr>>28);
+				print("CMPF	%c%d,F%ld =%#lux\n",
+					tag, rn, op&7, ur->psr>>28);
 			return;
 		}
 
@@ -415,10 +420,12 @@ fpemu(ulong pc, ulong op, Ureg *ur, FPsave *ufp)
 
 	if(op & (1<<3)){	/* constant */
 		fm = &fpconst[op&7];
-		tag = 'C';
+		if(fpemudebug)
+			tag = 'C';
 	}else{
 		fm = &FR(ufp, op&7);
-		tag = 'F';
+		if(fpemudebug)
+			tag = 'F';
 	}
 	rd = (op>>12)&7;
 	o = (op>>20)&0xF;
@@ -482,6 +489,14 @@ ldrex(ulong pc, ulong op, Ureg *ur)
 }
 
 void
+clrex(ulong, ulong, Ureg *)
+{
+	ldrexvalid = 0;
+	if(fpemudebug)
+		print("clrex");
+}
+
+void
 strex(ulong pc, ulong op, Ureg *ur)
 {
 	ulong *rp, rn, *rd, *addr;
@@ -516,10 +531,10 @@ struct {
 } specialopc[] = {
 	{ 0x01900f9f, 0x0ff00fff, ldrex },
 	{ 0x01800f90, 0x0ff00ff0, strex },
+	{ 0xf57ff01f, 0xffffffff, clrex },
 	{ 0x0ed00100, 0x0ef08100, casemu },
 	{ 0x00000000, 0x00000000, nil }
 };
-
 
 /*
  * returns the number of FP instructions emulated
@@ -531,13 +546,13 @@ fpiarm(Ureg *ur)
 	FPsave *ufp;
 	int i, n;
 
-	if (up == nil)
+	if(up == nil)
 		panic("fpiarm not in a process");
 	ufp = &up->fpsave;
-		/* because all the state is in the proc structure,
-		 * it need not be saved/restored
-		 */
-	if(up->fpstate != FPactive) {
+	/* because all the state is in the proc structure,
+	 * it need not be saved/restored
+	 */
+	if(up->fpstate != FPactive){
 //		assert(sizeof(Internal) == sizeof(ufp->regs[0]));
 		up->fpstate = FPactive;
 		ufp->control = 0;
@@ -546,10 +561,10 @@ fpiarm(Ureg *ur)
 			FR(ufp, n) = fpconst[0];
 	}
 	for(n=0; ;n++){
-		if(fpemudebug)
-			print("0x%8.8lux ", ur->pc);
 		validaddr(ur->pc, 4, 0);
 		op = *(ulong*)(ur->pc);
+		if(fpemudebug)
+			print("%#lux: %#8.8lux ", ur->pc, op);
 		o = (op>>24) & 0xF;
 		if(condok(ur->psr, op>>28)){
 			for(i = 0; specialopc[i].f; i++)
