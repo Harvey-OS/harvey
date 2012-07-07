@@ -6,7 +6,7 @@
 #include "linux.h"
 
 enum {
-	RLIMIT_CPU,
+	RLIMIT_CPU = 0,
 	RLIMIT_FSIZE,
 	RLIMIT_DATA,
 	RLIMIT_STACK,
@@ -27,8 +27,8 @@ enum {
 
 struct linux_rlimit
 {
-	ulong	rlim_cur;
-	ulong	rlim_max;
+	uvlong	rlim_cur;
+	uvlong	rlim_max;
 };
 
 int sys_getrlimit(long resource, void *rlim)

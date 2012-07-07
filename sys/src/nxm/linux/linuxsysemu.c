@@ -539,8 +539,9 @@ void linuxclone(Ar0 *ar0, va_list list)
 	int flag, i, n, pid;
 	Mach *wm;
 	flags = va_arg(list, u32int);
-	stack = va_arg(list, u32int);
-	if (up->attr & 128) print("%d:CLONE: %#x %#x\n", up->pid, flags, stack);
+	stack = va_arg(list, uintptr);
+	up->attr = 0xfe;
+	if (up->attr & 128) print("%d:CLONE: %#x %#ullx\n", up->pid, flags, stack);
 	if (flags != 0x7d0f00) {
 		print("%d:CLONE: don't know what to do with flags %#x\n", up->pid, flags);
 		ar0->i = -1;
