@@ -135,7 +135,7 @@ sysrfork(Ar0* ar0, va_list list)
 	}
 	for(i = 0; i < NSEG; i++)
 		if(up->seg[i])
-			p->seg[i] = dupseg(up->seg, i, n);
+			p->seg[i] = dupseg(up->seg, i, n, 0);
 	qunlock(&p->seglock);
 	poperror();
 

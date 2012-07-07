@@ -90,7 +90,7 @@ void		dumpstack(void);
 void		dumpzseg(Segment*);
 Fgrp*		dupfgrp(Fgrp*);
 int		duppage(Page*);
-Segment*	dupseg(Segment**, int, int);
+Segment*	dupseg(Segment**, int, int, int);
 void		dupswap(Page*);
 char*		edfadmit(Proc*);
 void		edfinit(Proc*);

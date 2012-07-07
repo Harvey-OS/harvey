@@ -157,7 +157,7 @@ relocateseg(Segment *s, uintptr offset)
 }
 
 Segment*
-dupseg(Segment **seg, int segno, int share)
+dupseg(Segment **seg, int segno, int share, int sharestack)
 {
 	int i, size;
 	Pte *pte;
@@ -178,6 +178,8 @@ dupseg(Segment **seg, int segno, int share)
 		goto sameseg;
 
 	case SG_STACK:
+		if (sharestack)
+			goto sameseg;
 		n = newseg(s->type, s->base, s->size);
 		break;
 
