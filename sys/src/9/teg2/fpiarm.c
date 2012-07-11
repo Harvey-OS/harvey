@@ -15,11 +15,11 @@
 #include	"arm.h"
 #include	"fpi.h"
 
+#define ARM7500			/* emulate old pre-VFP opcodes */
+
 /* undef this if correct kernel r13 isn't in Ureg;
  * check calculation in fpiarm below
  */
-
-#define ARM7500
 
 #define	REG(ur, x) (*(long*)(((char*)(ur))+roff[(x)]))
 #ifdef ARM7500

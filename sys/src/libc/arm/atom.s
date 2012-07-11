@@ -1,11 +1,11 @@
-/*
- * int cas(ulong *p, ulong ov, ulong nv);
- */
-
 #define	CLREX		WORD	$0xf57ff01f
 #define	LDREX(a,r)	WORD	$(0xe<<28|0x01900f9f | (a)<<16 | (r)<<12)
 /* `The order of operands is from left to right in dataflow order' - asm man */
 #define	STREX(v,a,r)	WORD	$(0xe<<28|0x01800f90 | (a)<<16 | (r)<<12 | (v)<<0)
+
+/*
+ * int cas(ulong *p, ulong ov, ulong nv);
+ */
 
 TEXT	cas+0(SB),0,$0		/* r0 holds p */
 TEXT	casp+0(SB),0,$0		/* r0 holds p */
@@ -21,7 +21,7 @@ spincas:
 	MOVW	$1, R0
 	RET
 fail:
-//	CLREX		/* fpiarm in pre-v7 ports needs to emulate this */
+	CLREX
 	MOVW	$0, R0
 	RET
 
