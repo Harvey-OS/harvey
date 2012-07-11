@@ -67,9 +67,6 @@ label: \
 #define CPSMODE(m) WORD $(0xf1020000 | (m)) /* switch to mode m (PsrM*) */
 
 #define	CLREX	WORD	$0xf57ff01f
-#define	LDREX(fp,t)   WORD $(0xe<<28|0x01900f9f | (fp)<<16 | (t)<<12)
-/* `The order of operands is from left to right in dataflow order' - asm man */
-#define	STREX(f,tp,r) WORD $(0xe<<28|0x01800f90 | (tp)<<16 | (r)<<12 | (f)<<0)
 
 /* floating point */
 #define VMRS(fp, cpu) WORD $(0xeef00a10 | (fp)<<16 | (cpu)<<12) /* FP → arm */

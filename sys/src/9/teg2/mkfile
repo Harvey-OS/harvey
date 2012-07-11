@@ -47,7 +47,6 @@ OBJ=\
 	lexception.$O\
 	lproc.$O\
 	arch.$O\
-	atom.$O\
 	clock.$O\
 	clock-tegra.$O\
 	kbd.$O\

@@ -266,7 +266,7 @@ and
 .IR fmtvprint
 may be called to
 help prepare output in custom conversion routines.
-However, these functions clear the width, precision, and flags.
+These functions will preserve width, precision, and flags.
 Both functions return 0 for success and \-1 for failure.
 .PP
 The functions

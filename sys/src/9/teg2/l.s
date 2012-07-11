@@ -11,6 +11,10 @@
 
 #include "arm.s"
 
+#define	LDREX(fp,t)   WORD $(0xe<<28|0x01900f9f | (fp)<<16 | (t)<<12)
+/* `The order of operands is from left to right in dataflow order' - asm man */
+#define	STREX(f,tp,r) WORD $(0xe<<28|0x01800f90 | (tp)<<16 | (r)<<12 | (f)<<0)
+
 #define MAXMB	(KiB-1)			/* last MB has vectors */
 #define TMPSTACK (DRAMSIZE - 64*MiB)	/* used only during cpu startup */
 /* tas/cas strex debugging limits; started at 10000 */
