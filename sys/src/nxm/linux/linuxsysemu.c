@@ -446,109 +446,52 @@ void linuxmprotect(Ar0 *ar0, va_list list)
 	ar0->i = 0;
 }
 
-/* this is a hack. */
-Segment*
-linuxdupseg(Segment **seg, int segno, int share)
-{
-	int i, size;
-	Pte *pte;
-	Segment *n, *s;
-
-	SET(n);
-	s = seg[segno];
-
-	qlock(&s->lk);
-	if(waserror()){
-		qunlock(&s->lk);
-		nexterror();
-	}
-	switch(s->type&SG_TYPE) {
-	case SG_TEXT:		/* New segment shares pte set */
-	case SG_SHARED:
-	case SG_PHYSICAL:
-		goto sameseg;
-
-	case SG_STACK:
-		/* linux wants to share the stack. */
-		if(share){ if (up->attr & 128) print("CLONE STACK IS SHARE\n");
-			goto sameseg;
-		}
-		/* that is all the change */
-if (up->attr & 128) print("CLONE STACK IS NEW\n");
-		n = newseg(s->type, s->base, s->size);
-		break;
-
-	case SG_BSS:		/* Just copy on write */
-		if(share)
-			goto sameseg;
-if (up->attr & 128) print("CLONE NEW BSS\n");
-		n = newseg(s->type, s->base, s->size);
-		break;
-
-	case SG_DATA:		/* Copy on write plus demand load info */
-		if(segno == TSEG){
-			poperror();
-			qunlock(&s->lk);
-			return data2txt(s);
-		}
-
-		if(share)
-			goto sameseg;
-		n = newseg(s->type, s->base, s->size);
-
-		incref(s->image);
-		n->image = s->image;
-		n->fstart = s->fstart;
-		n->flen = s->flen;
-		break;
-	}
-	size = s->mapsize;
-	for(i = 0; i < size; i++)
-		if(pte = s->map[i])
-			n->map[i] = ptecpy(n, pte);
-
-	n->flushme = s->flushme;
-	if(s->ref > 1)
-		procflushseg(s);
-	poperror();
-	qunlock(&s->lk);
-	return n;
-
-sameseg:
-	incref(s);
-	poperror();
-	qunlock(&s->lk);
-	return s;
-}
-
-/* the big problem here is that linux clone wants to allow the user to set the 
- * stack. It's stupid but it's what they do. Linux NPTL pretty much requires it. 
- * we are going to be dumb here for now and assume we only use 
- * RFPROC|RFMEM. 
- * What do we do about stack longer term? It gets a bit weird. 
- * the child process stack is in the data segment. Should we make the 
- * child process stack segment a DATA segment, share the data segment, 
- * and make it a STACK for the child? If we did things right in linuxclone
- * we could remove our private dupseg. 
+enum {
+        CLONE_VM                                = 0x00000100,
+        CLONE_FS                                = 0x00000200,
+        CLONE_FILES                             = 0x00000400,
+        CLONE_SIGHAND                   = 0x00000800,
+        CLONE_PTRACE                    = 0x00002000,
+        CLONE_VFORK                             = 0x00004000,
+        CLONE_PARENT                    = 0x00008000,
+        CLONE_THREAD                    = 0x00010000,
+        CLONE_NEWNS                             = 0x00020000,
+        CLONE_SYSVSEM                   = 0x00040000,
+        CLONE_SETTLS                    = 0x00080000,
+        CLONE_PARENT_SETTID             = 0x00100000,
+        CLONE_CHILD_CLEARTID    = 0x00200000,
+        CLONE_DETACHED                  = 0x00400000,
+        CLONE_UNTRACED                  = 0x00800000,
+        CLONE_CHILD_SETTID              = 0x01000000,
+        CLONE_STOPPED                   = 0x02000000,
+};
+/* 3d0f00 */
+/* current example. 
+clone(child_stack=0x7f0b2c941e70, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7f0b2c9429d0, tls=0x7f0b2c942700, child_tidptr=0x7f0b2c9429d0) = 16078
+ */
+/* from the kernel (the man page is wrong)
+sys_clone(unsigned long clone_flags, unsigned long newsp,
+          void __user *parent_tid, void __user *child_tid, struct pt_regs *regs)
  */
 void linuxclone(Ar0 *ar0, va_list list)
 {
-	void linuxsysrforkchild(Proc* child, Proc* parent, uintptr newsp);
-	u32int flags,  stack;
+	uintptr child_stack, parent_tidptr, child_tidptr;
+	u32int flags;
 	Proc *p;
-	int flag, i, n, pid;
+	int flag = 0, i, n, pid;
 	Mach *wm;
-	flags = va_arg(list, u32int);
-	stack = va_arg(list, uintptr);
-	up->attr = 0xfe;
-	if (up->attr & 128) print("%d:CLONE: %#x %#ullx\n", up->pid, flags, stack);
-	if (flags != 0x7d0f00) {
-		print("%d:CLONE: don't know what to do with flags %#x\n", up->pid, flags);
-		ar0->i = -1;
-		return;
-	}
-	flag = RFPROC | RFMEM;
+	Fgrp *ofg;
+	Pgrp *opg;
+	Rgrp *org;
+	Egrp *oeg;
 
+	flags = va_arg(list, u32int);
+	child_stack = va_arg(list, uintptr);
+	parent_tidptr = va_arg(list, uintptr);
+	child_tidptr = va_arg(list, uintptr);
+	if (up->attr & 128)
+		print("%d:CLONE: %#x %#ullx %#ullx %#ullx\n", up->pid, flags, child_stack, 
+			parent_tidptr, child_tidptr);
 	p = newproc();
 
 	p->trace = up->trace;
@@ -568,10 +511,11 @@ void linuxclone(Ar0 *ar0, va_list list)
 	p->notify = up->notify;
 	p->ureg = up->ureg;
 	p->dbgreg = 0;
-	p->attr = Linux;
+	p->attr = 0xff;
+	p->tls = up->tls;
 
 	/* Make a new set of memory segments */
-	n = flag & RFMEM;
+	n = flags & CLONE_VM;
 	qlock(&p->seglock);
 	if(waserror()){
 		qunlock(&p->seglock);
@@ -579,54 +523,29 @@ void linuxclone(Ar0 *ar0, va_list list)
 	}
 	for(i = 0; i < NSEG; i++)
 		if(up->seg[i])
-			p->seg[i] = linuxdupseg(up->seg, i, n);
+			p->seg[i] = dupseg(up->seg, i, n, 1);
 	qunlock(&p->seglock);
 	poperror();
 
 	/* File descriptors */
-	if(flag & (RFFDG|RFCFDG)) {
-		if(flag & RFFDG)
-			p->fgrp = dupfgrp(up->fgrp);
-		else
-			p->fgrp = dupfgrp(nil);
-	}
-	else {
+	if(flags & CLONE_FILES){
 		p->fgrp = up->fgrp;
 		incref(p->fgrp);
+	} else {
+	  p->fgrp = dupfgrp(up->fgrp);
 	}
 
 	/* Process groups */
-	if(flag & (RFNAMEG|RFCNAMEG)) {
+	if(! (flags & CLONE_THREAD)){
 		p->pgrp = newpgrp();
-		if(flag & RFNAMEG)
-			pgrpcpy(p->pgrp, up->pgrp);
-		/* inherit noattach */
-		p->pgrp->noattach = up->pgrp->noattach;
+		pgrpcpy(p->pgrp, up->pgrp);
+		incref(up->rgrp);
+		p->rgrp = up->rgrp;
 	}
 	else {
 		p->pgrp = up->pgrp;
 		incref(p->pgrp);
-	}
-	if(flag & RFNOMNT)
-		up->pgrp->noattach = 1;
-
-	if(flag & RFREND)
 		p->rgrp = newrgrp();
-	else {
-		incref(up->rgrp);
-		p->rgrp = up->rgrp;
-	}
-
-	/* Environment group */
-	if(flag & (RFENVG|RFCENVG)) {
-		p->egrp = smalloc(sizeof(Egrp));
-		p->egrp->ref = 1;
-		if(flag & RFENVG)
-			envcpy(p->egrp, up->egrp);
-	}
-	else {
-		p->egrp = up->egrp;
-		incref(p->egrp);
 	}
 	p->hang = up->hang;
 	p->procmode = up->procmode;
@@ -634,19 +553,12 @@ void linuxclone(Ar0 *ar0, va_list list)
 	/* Craft a return frame which will cause the child to pop out of
 	 * the scheduler in user mode with the return register zero
 	 */
-	/* fix the stack for linux semantics */
-	linuxsysrforkchild(p, up, stack);
+	sysrforkchild(p, up, linuxsysrforkret, child_stack);
 
 	p->parent = up;
 	p->parentpid = up->pid;
-	if(flag&RFNOWAIT)
-		p->parentpid = 0;
-	else {
-		lock(&up->exl);
-		up->nchild++;
-		unlock(&up->exl);
-	}
-	if((flag&RFNOTEG) == 0)
+
+	if(flags & CLONE_SIGHAND)
 		p->noteid = up->noteid;
 
 	pid = p->pid;

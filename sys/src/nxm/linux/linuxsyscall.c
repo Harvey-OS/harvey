@@ -74,10 +74,10 @@ linuxsyscall(unsigned int, Ureg* ureg)
 		procctl(up);
 	}
 	scallnr = ureg->ax;
-#undef BREAKINCASEOFEMERGENCY
+#define BREAKINCASEOFEMERGENCY
 #ifdef BREAKINCASEOFEMERGENCY
-	up->attr = 0xff;
-	print("# %d\n", scallnr);
+//	up->attr = 0xff;
+	print("(%d)# %d:", up->pid, scallnr);
 	print("%#ullx %#ullx %#ullx %#ullx %#ullx %#ullx \n", 
 		ureg->di,
 		ureg->si,
@@ -178,6 +178,7 @@ linuxsyscall(unsigned int, Ureg* ureg)
 	 */
 	ureg->ax = ar0.p;
 	if (up->attr & 16)print("%d:Ret from syscall %#ullx\n", up->pid,  (u64int) ar0.p);
+	if (up->attr & 128) dumpregs(ureg);
 	if(up->procctl == Proc_tracesyscall){
 		up->procctl = Proc_stopme;
 		s = splhi();
@@ -246,33 +247,4 @@ linuxsysexecregs(uintptr entry, ulong ssize, ulong nargs)
 	/*
 	 */
 	return UINT2PTR(nargs);
-}
-
-void
-linuxsysrforkchild(Proc* child, Proc* parent)
-{
-	Ureg *cureg;
-
-	/* don't clear Linux any more. linux procs can now fork */
-	child->attr &= ~LinuxExec;
-	/*
-	 * Add 3*BY2SE to the stack to account for
-	 *  - the return PC
-	 *  - trap's arguments (syscallnr, ureg)
-	 */
-	child->sched.sp = PTR2UINT(child->kstack+KSTACK-(sizeof(Ureg)+3*BY2SE));
-	child->sched.pc = PTR2UINT(sysrforkret);
-
-	cureg = (Ureg*)(child->sched.sp+3*BY2SE);
-	memmove(cureg, parent->dbgreg, sizeof(Ureg));
-
-	/* Things from bottom of syscall which were never executed */
-	child->psstate = 0;
-	child->insyscall = 0;
-
-	cureg->ax = 0;
-	child->hang = 1;
-
-	dumpregs(cureg);
-	fpusysrforkchild(child, parent);
 }

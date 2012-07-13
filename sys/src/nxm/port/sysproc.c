@@ -190,7 +190,7 @@ sysrfork(Ar0* ar0, va_list list)
 	/* Craft a return frame which will cause the child to pop out of
 	 * the scheduler in user mode with the return register zero
 	 */
-	sysrforkchild(p, up);
+	sysrforkchild(p, up, sysrforkret, 0);
 
 	p->parent = up;
 	p->parentpid = up->pid;

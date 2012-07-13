@@ -173,6 +173,8 @@ handler(void *v, char *s)
 	u64int parm[7];
 	struct Ureg* u = v;
         int i, n, nf;
+write(2, "HANDLER:", 8);
+write(2, s, strlen(s));
 	if (strncmp(s, "linux:", 6))
 		calllinuxnoted(NDFLT);
 	s += 6;

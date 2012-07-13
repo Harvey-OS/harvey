@@ -420,7 +420,7 @@ sysprocsetup(Proc* p)
 }
 
 void
-sysrforkchild(Proc* child, Proc* parent)
+sysrforkchild(Proc* child, Proc* parent, void (*ret)(void), uintptr stack)
 {
 	Ureg *cureg;
 
@@ -430,10 +430,12 @@ sysrforkchild(Proc* child, Proc* parent)
 	 *  - trap's arguments (syscallnr, ureg)
 	 */
 	child->sched.sp = PTR2UINT(child->kstack+KSTACK-(sizeof(Ureg)+3*BY2SE));
-	child->sched.pc = PTR2UINT(sysrforkret);
+	child->sched.pc = PTR2UINT(ret);
 
 	cureg = (Ureg*)(child->sched.sp+3*BY2SE);
 	memmove(cureg, parent->dbgreg, sizeof(Ureg));
+	if (stack)
+		cureg->sp = stack;
 
 	/* Things from bottom of syscall which were never executed */
 	child->psstate = 0;

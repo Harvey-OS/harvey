@@ -353,7 +353,7 @@ int		swapcount(ulong);
 void		swapinit(void);
 void		syscallfmt(int, va_list list);
 void		sysretfmt(int, va_list, Ar0*, uvlong, uvlong);
-void		sysrforkchild(Proc*, Proc*);
+void		sysrforkchild(Proc*, Proc*, void (*rforkret)(void), uintptr);
 void		timeradd(Timer*);
 void		timerdel(Timer*);
 void		timerintr(Ureg*, vlong);

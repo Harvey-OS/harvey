@@ -193,6 +193,7 @@ void	syscallentry(void);
 void	acsyscallentry(void);
 void	syscallreturn(void);
 void	sysrforkret(void);
+void	linuxsysrforkret(void);
 
 #define	waserror()	(up->nerrlab++, setlabel(&up->errlab[up->nerrlab-1]))
 
