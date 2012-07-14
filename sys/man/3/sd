@@ -4,7 +4,7 @@ sd \- storage device interface
 .SH SYNOPSIS
 .nf
 .B bind #S /dev
-
+.sp 0.4v
 .B /dev/sdctl
 .BI /dev/sd Cu /ctl
 .BI /dev/sd Cu /raw
@@ -64,7 +64,7 @@ By default,
 the partition
 .I data
 will exist for such media.
-.PP
+.SS "\fIctl\fP and partitions
 Partitions are added and deleted by writing to the
 .I ctl
 file
@@ -94,17 +94,17 @@ and Plan 9 partitions according to their function
 .BR /dev/sdC0/swap ).
 The example in
 .IR prep (8)
-shows how this is done.
+shows how.
 .PP
 Reading the
 .I ctl
 file returns at least one line of textual information about
 the unit.
 The first line will always be prefixed by
-.B inquiry
+.L inquiry
 and will give a manufacturer and model number if possible.
 A line prefixed by
-.B config
+.L config
 will be returned for appropriate media,
 e.g. for ATA(PI) units the remainder of the line contains
 configuration information from the device's
@@ -113,7 +113,7 @@ command (config and capabilities)
 and also the available I/O transfer options;
 this is a diagnostic aid.
 A line prefixed by
-.B geometry
+.L geometry
 will be returned for appropriate media;
 at least two numbers will follow,
 the first being the number of sectors contained in the unit
@@ -126,7 +126,7 @@ cylinder and sector counts for ATA discs.
 If any partitions are defined for the media,
 their name, start-sector and end-sector will be returned,
 prefixed by
-.BR part .
+.LR part .
 .IP
 .EX
 % cat /dev/sdD0/ctl
@@ -167,9 +167,9 @@ is the standby timer period in seconds.
 .I T
 must be between 30 and 1200,
 or can be 0 to disable the timer.
-.PP
+.SS \fIraw\fP
 The
-.B raw
+.I raw
 file is used to execute an arbitrary command on the unit at
 a low level.
 This is used by programs such as
@@ -188,12 +188,12 @@ Read the
 .I raw
 file to retrieve the status of the command,
 returned as a text integer.
-.LP
+.SS sdctl
 Reading
 .B /dev/sdctl
 yields information about each controller,
 one line per controller.
-Writing `\fLconfig \fImessage\fR' to
+Writing `\fLconfig\fI message\fR' to
 .B /dev/sdctl
 passes
 .I message

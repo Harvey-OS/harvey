@@ -103,6 +103,19 @@ struct SDreq {
 enum {
 	SDnosense	= 0x00000001,
 	SDvalidsense	= 0x00010000,
+
+	SDinq0periphqual= 0xe0,
+	SDinq0periphtype= 0x1f,
+	SDinq1removable	= 0x80,
+
+	/* periphtype values */
+	SDperdisk	= 0,	/* Direct access (disk) */
+	SDpertape	= 1,	/* Sequential eg, tape */
+	SDperpr		= 2,	/* Printer */
+	SDperworm	= 4,	/* Worm */
+	SDpercd		= 5,	/* CD-ROM */
+	SDpermo		= 7,	/* rewriteable MO */
+	SDperjuke	= 8,	/* medium-changer */
 };
 
 enum {

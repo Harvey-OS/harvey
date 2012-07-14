@@ -756,6 +756,10 @@ ataprobe(int cmdport, int ctlport, int irq)
 	int dev, error, rhi, rlo;
 	static int nonlegacy = 'C';
 	
+	if(cmdport == 0) {
+		print("ataprobe: cmdport is 0\n");
+		return nil;
+	}
 	if(ioalloc(cmdport, 8, 0, "atacmd") < 0) {
 		print("ataprobe: Cannot allocate %X\n", cmdport);
 		return nil;
@@ -1589,10 +1593,11 @@ atagenio(Drive* drive, uchar* cmd, int clen)
 		drive->data += 12;
 		return SDok;
 
-	case 0x28:			/* read */
-	case 0x88:
-	case 0x2a:			/* write */
-	case 0x8a:
+	case 0x28:			/* read (10) */
+	case 0x88:			/* long read (16) */
+	case 0x2a:			/* write (10) */
+	case 0x8a:			/* long write (16) */
+	case 0x2e:			/* write and verify (10) */
 		break;
 
 	case 0x5A:
