@@ -18,6 +18,7 @@ enum {
 	Testrdy		= 0x00,
 	Reqsense	= 0x03,
 	Write10		= 0x2a,
+	Writever10	= 0x2e,
 	Readtoc		= 0x43,
 
 	/* sense[2] (key) sense codes */
@@ -273,7 +274,8 @@ scsi(Scsi *s, uchar *cmd, int ccount, void *v, int dcount, int io)
 			/* read toc and media changed */
 			s->nchange++;
 			s->changetime = time(0);
-		} else if(cmd[0] == Write10 && key == Sensenotrdy &&
+		} else if((cmd[0] == Write10 || cmd[0] == Writever10) &&
+		    key == Sensenotrdy &&
 		    code == Lunnotrdy && sense[13] == 0x08) {
 			/* long write in progress, per mmc-6 */
 			tries = 0;

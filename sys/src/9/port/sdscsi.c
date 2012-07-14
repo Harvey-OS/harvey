@@ -93,7 +93,7 @@ scsiverify(SDunit* unit)
 		 * Try to ensure a direct-access device is spinning.
 		 * Don't wait for completion, ignore the result.
 		 */
-		if((unit->inquiry[0] & 0x1F) == 0){
+		if((unit->inquiry[0] & SDinq0periphtype) == SDperdisk){
 			memset(r->cmd, 0, sizeof(r->cmd));
 			r->write = 0;
 			r->cmd[0] = 0x1B;
@@ -403,7 +403,7 @@ again:
 			 */
 			if(r->sense[12] != 0x28 || r->sense[13] != 0)
 				break;
-			if(unit->inquiry[1] & 0x80)
+			if(unit->inquiry[1] & SDinq1removable)
 				unit->sectors = 0;
 			break;
 		case 0x02:		/* not ready */

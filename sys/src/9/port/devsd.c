@@ -185,13 +185,14 @@ sdinitpart(SDunit* unit)
 		sdincvers(unit);
 	}
 
-	if(unit->inquiry[0] & 0xC0)
+	/* device must be connected or not; other values are trouble */
+	if(unit->inquiry[0] & 0xC0)	/* see SDinq0periphqual */
 		return 0;
-	switch(unit->inquiry[0] & 0x1F){
-	case 0x00:			/* DA */
-	case 0x04:			/* WORM */
-	case 0x05:			/* CD-ROM */
-	case 0x07:			/* MO */
+	switch(unit->inquiry[0] & SDinq0periphtype){
+	case SDperdisk:
+	case SDperworm:
+	case SDpercd:
+	case SDpermo:
 		break;
 	default:
 		return 0;
@@ -422,7 +423,7 @@ sd2gen(Chan* c, int i, Dir* dp)
 		perm = &unit->ctlperm;
 		if(emptystr(perm->user)){
 			kstrdup(&perm->user, eve);
-			perm->perm = 0640;
+			perm->perm = 0644;	/* nothing secret in ctl */
 		}
 		devdir(c, q, "ctl", 0, perm->user, perm->perm, dp);
 		rv = 1;
@@ -464,7 +465,7 @@ sd1gen(Chan* c, int i, Dir* dp)
 	switch(i){
 	case Qtopctl:
 		mkqid(&q, QID(0, 0, 0, Qtopctl), 0, QTFILE);
-		devdir(c, q, "sdctl", 0, eve, 0640, dp);
+		devdir(c, q, "sdctl", 0, eve, 0644, dp);	/* no secrets */
 		return 1;
 	}
 	return -1;
@@ -792,7 +793,7 @@ sdbio(Chan* c, int write, char* a, long len, uvlong off)
 		poperror();
 		return 0;
 	}
-	if(!(unit->inquiry[1] & 0x80)){
+	if(!(unit->inquiry[1] & SDinq1removable)){
 		qunlock(&unit->ctl);
 		poperror();
 	}
@@ -802,7 +803,7 @@ sdbio(Chan* c, int write, char* a, long len, uvlong off)
 		error(Enomem);
 	if(waserror()){
 		sdfree(b);
-		if(!(unit->inquiry[1] & 0x80))
+		if(!(unit->inquiry[1] & SDinq1removable))
 			decref(&sdev->r);		/* gadverdamme! */
 		nexterror();
 	}
@@ -844,7 +845,7 @@ sdbio(Chan* c, int write, char* a, long len, uvlong off)
 	sdfree(b);
 	poperror();
 
-	if(unit->inquiry[1] & 0x80){
+	if(unit->inquiry[1] & SDinq1removable){
 		qunlock(&unit->ctl);
 		poperror();
 	}
