@@ -41,7 +41,7 @@ sysrfork(Ar0* ar0, va_list list)
 		error("wired proc cannot move to ac");		
 
 	if((flag&RFPROC) == 0) {
-		if(flag & (RFMEM|RFNOWAIT))
+		if(flag & (RFSTACK|RFMEM|RFNOWAIT))
 			error(Ebadarg);
 		if(flag & (RFFDG|RFCFDG)) {
 			ofg = up->fgrp;
@@ -135,7 +135,7 @@ sysrfork(Ar0* ar0, va_list list)
 	}
 	for(i = 0; i < NSEG; i++)
 		if(up->seg[i])
-			p->seg[i] = dupseg(up->seg, i, n, 0);
+			p->seg[i] = dupseg(up->seg, i, n, flag&RFSTACK);
 	qunlock(&p->seglock);
 	poperror();
 

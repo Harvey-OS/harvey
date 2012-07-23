@@ -601,6 +601,7 @@ enum
 	RFCPREPAGE	= (1<<16),
 	RFCORE		= (1<<17),
 	RFCCORE		= (1<<18),
+	RFSTACK		= (1<<19),
 };
 
 typedef
