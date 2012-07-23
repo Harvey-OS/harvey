@@ -133,6 +133,7 @@ _linuxsyscallreturn:
 	BYTE $0x48; SYSRET			/* SYSRETQ */
 
 TEXT linuxsysrforkret(SB), 1, $-4
+	CALL	linuxclonefinish(SB)
 	MOVQ	$0, AX
 	JMP	_linuxsyscallreturn
 

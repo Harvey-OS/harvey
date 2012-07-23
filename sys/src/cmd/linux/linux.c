@@ -173,8 +173,10 @@ handler(void *v, char *s)
 	u64int parm[7];
 	struct Ureg* u = v;
         int i, n, nf;
-write(2, "HANDLER:", 8);
-write(2, s, strlen(s));
+#ifdef DEBUGHANDLER
+	write(2, "HANDLER:", 8);
+	write(2, s, strlen(s));
+#endif
 	if (strncmp(s, "linux:", 6))
 		calllinuxnoted(NDFLT);
 	s += 6;
@@ -184,18 +186,21 @@ write(2, s, strlen(s));
 		parm[i] = strtoull(f[i], 0, 0);
 	/* TODO soon: use linuxsystab.h */
 	switch(parm[0]){
-		case 22:
-			u->ax = pipe((void*)(parm[1]));
-			break;
-		case 97:
-			u->ax = sys_getrlimit((long)(parm[1]), (void *)parm[2]);
-			break;
-		case 160:
-			u->ax = sys_setrlimit((long)(parm[1]), (void *)parm[2]);
-			break;
-		case 218:
-			u->ax = sys_set_tid_address((int*)(parm[1]));
-			break;
+	case 22:
+		u->ax = pipe((void*)(parm[1]));
+		break;
+	case 97:
+		u->ax = sys_getrlimit((long)(parm[1]), (void *)parm[2]);
+		break;
+	case 160:
+		u->ax = sys_setrlimit((long)(parm[1]), (void *)parm[2]);
+		break;
+	case 202:
+		u->ax = futex((char *)parm);
+		break;
+	case 218:
+		u->ax = sys_set_tid_address((int*)(parm[1]));
+		break;
 	}
 	calllinuxnoted(NCONT);
 }
@@ -288,6 +293,7 @@ main(int argc, char *argv[])
 		exits("notify fails");
 	}
 	uproc.pid = getpid();
+
 	/* NO print's past this point if you want to live. */
 	if (brk(bssp + fp.bsssz) < 0){
 		exits("no brk");
@@ -298,6 +304,10 @@ main(int argc, char *argv[])
 	/* now the big fun. Just copy it out */
 	pread(fd, textp, fp.txtsz, fp.txtoff);
 	pread(fd, datap, fp.datsz, fp.datoff);
+	/* set the breakpoint */
+	if (breakpoint){
+		*(u8int *)breakpoint = 0xf4; // hlt
+	}
 	/* DEBUGGING
 
 	fprint(2, "Open %s\n", hangpath);
@@ -327,12 +337,7 @@ main(int argc, char *argv[])
 	/* now just copy the aux array over av */
 	memcpy(&av[i], aux, sizeof(aux));
 	//fprint(2, "env %p *env %p\n", &av[argc+2], av[argc+2]);
-	/* set the breakpoint */
 #ifdef NOT
-	if (breakpoint){
-		*(u32int *)breakpoint = 0;
-		fprint(2, "Breakpoint set at %#x\n", breakpoint);
-	}
 	fprint(2, "Open %s\n", ctlpath);
 	ctl = open(ctlpath, OWRITE);
 	if (ctl < 0){

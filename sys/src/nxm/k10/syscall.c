@@ -436,7 +436,6 @@ sysrforkchild(Proc* child, Proc* parent, void (*ret)(void), uintptr stack)
 	memmove(cureg, parent->dbgreg, sizeof(Ureg));
 	if (stack)
 		cureg->sp = stack;
-
 	/* Things from bottom of syscall which were never executed */
 	child->psstate = 0;
 	child->insyscall = 0;

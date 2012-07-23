@@ -76,7 +76,7 @@ linuxsyscall(unsigned int, Ureg* ureg)
 	scallnr = ureg->ax;
 #define BREAKINCASEOFEMERGENCY
 #ifdef BREAKINCASEOFEMERGENCY
-//	up->attr = 0xff;
+	//up->attr = 0xff;
 	print("(%d)# %d:", up->pid, scallnr);
 	print("%#ullx %#ullx %#ullx %#ullx %#ullx %#ullx \n", 
 		ureg->di,

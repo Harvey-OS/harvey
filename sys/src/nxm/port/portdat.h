@@ -14,6 +14,7 @@ typedef struct Fastcall Fastcall;
 typedef struct Fgrp	Fgrp;
 typedef struct Image	Image;
 typedef struct Kzio 	Kzio;
+typedef struct Linux	Linux;
 typedef struct Log	Log;
 typedef struct Logflag	Logflag;
 typedef struct Lockstats Lockstats;
@@ -179,13 +180,6 @@ enum
 	Budpck	=	(1<<3),		/* udp checksum */
 	Btcpck	=	(1<<4),		/* tcp checksum */
 	Bpktck	=	(1<<5),		/* packet checksum */
-};
-
-/* process attributes */
-enum
-{
-	Linux	=	(1<<0),		/* Linux compatibility mode */
-	LinuxExec = 	(1<<1),		/* Linux exec in progress */
 };
 
 struct Block
@@ -769,6 +763,12 @@ union Ar0 {
 	void*	v;
 };
 
+struct Linux {
+	uintptr cloneflags;
+	uintptr child_tid_ptr;
+	uintptr parent_tid_ptr;
+};
+
 typedef struct Nixpctl Nixpctl;
 #pragma incomplete Nixpctl
 
@@ -925,6 +925,9 @@ struct Proc
 	int	nqtrap;		/* # of traps in last quantum */
 	int	nqsyscall;	/* # of syscalls in the last quantum */
 	int	nfullq;
+
+	/* Linux compatibility */
+	Linux;
 
 	/*
 	 *  machine specific fpu, mmu and notify

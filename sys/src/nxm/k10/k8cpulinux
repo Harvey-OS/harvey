@@ -81,6 +81,7 @@ rootdir
 	$NXM/amd64/bin/echo echo
 	$NXM/amd64/bin/acid acid
 	$NXM/amd64/bin/linux linux
+	$NXM/amd64/bin/testfork testfork
 	$NXM/amd64/bin/ls ls
 	$NXM/amd64/bin/ps ps
 	$NXM/amd64/bin/bind bind

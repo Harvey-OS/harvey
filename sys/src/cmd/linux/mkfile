@@ -1,9 +1,11 @@
 <$NXM/$objtype/mkfile
 
 TARG=linux
+
 OFILES= \
 	callmain.$O\
 	calllinuxnoted.$O\
+	futex.$O\
 	trace.$O\
 	proc.$O\
 	rlimit.$O\

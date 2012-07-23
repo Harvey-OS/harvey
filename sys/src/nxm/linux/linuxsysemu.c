@@ -465,7 +465,17 @@ enum {
         CLONE_CHILD_SETTID              = 0x01000000,
         CLONE_STOPPED                   = 0x02000000,
 };
-/* 3d0f00 */
+
+/* some code needs to run in the context of the child. No way out. */
+void linuxclonefinish(void)
+{
+	print("linuxclonefinish, pid %d\n", up->pid);
+	if (up->cloneflags & CLONE_CHILD_SETTID){
+		validaddr((void *)up->child_tid_ptr, sizeof(uintptr), 1);
+		*(uintptr *)up->child_tid_ptr = up->pid;
+	}
+}
+
 /* current example. 
 clone(child_stack=0x7f0b2c941e70, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7f0b2c9429d0, tls=0x7f0b2c942700, child_tidptr=0x7f0b2c9429d0) = 16078
  */
@@ -475,7 +485,7 @@ sys_clone(unsigned long clone_flags, unsigned long newsp,
  */
 void linuxclone(Ar0 *ar0, va_list list)
 {
-	uintptr child_stack, parent_tidptr, child_tidptr;
+	uintptr child_stack, parent_tid_ptr, child_tid_ptr;
 	u32int flags;
 	Proc *p;
 	int flag = 0, i, n, pid;
@@ -487,11 +497,11 @@ void linuxclone(Ar0 *ar0, va_list list)
 
 	flags = va_arg(list, u32int);
 	child_stack = va_arg(list, uintptr);
-	parent_tidptr = va_arg(list, uintptr);
-	child_tidptr = va_arg(list, uintptr);
+	parent_tid_ptr = va_arg(list, uintptr);
+	child_tid_ptr = va_arg(list, uintptr);
 	if (up->attr & 128)
 		print("%d:CLONE: %#x %#ullx %#ullx %#ullx\n", up->pid, flags, child_stack, 
-			parent_tidptr, child_tidptr);
+			parent_tid_ptr, child_tid_ptr);
 	p = newproc();
 
 	p->trace = up->trace;
@@ -512,6 +522,9 @@ void linuxclone(Ar0 *ar0, va_list list)
 	p->ureg = up->ureg;
 	p->dbgreg = 0;
 	p->attr = 0xff;
+	p->child_tid_ptr = child_tid_ptr;
+	p->parent_tid_ptr = parent_tid_ptr;
+	p->cloneflags = flags;
 	p->tls = up->tls;
 
 	/* Make a new set of memory segments */
@@ -523,7 +536,7 @@ void linuxclone(Ar0 *ar0, va_list list)
 	}
 	for(i = 0; i < NSEG; i++)
 		if(up->seg[i])
-			p->seg[i] = dupseg(up->seg, i, n, 1);
+			p->seg[i] = dupseg(up->seg, i, n, n);
 	qunlock(&p->seglock);
 	poperror();
 
@@ -578,6 +591,7 @@ void linuxclone(Ar0 *ar0, va_list list)
 	p->fixedpri = up->fixedpri;
 	p->mp = up->mp;
 	wm = up->wired;
+
 	if(wm)
 		procwired(p, wm->machno);
 	ready(p);

@@ -12,3 +12,4 @@ void tprint(char *fmt, ...);
 
 uintptr calllinuxnoted(int);
 
+uintptr futex(va_list);
