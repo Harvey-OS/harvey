@@ -466,6 +466,17 @@ enum {
         CLONE_STOPPED                   = 0x02000000,
 };
 
+void linuxexitproc(void)
+{
+	/* ye gads this seems weird. We're about to tear down the
+	 * process VM! But it might be shared.
+	 */
+	if (up->cloneflags & CLONE_CHILD_CLEARTID){
+		validaddr((void *)up->child_tid_ptr,sizeof(uintptr),1);
+		*(uintptr *)up->child_tid_ptr = 0;
+	}
+	memset(&up->Linux, 0, sizeof(up->Linux));
+}
 /* some code needs to run in the context of the child. No way out. */
 void linuxclonefinish(void)
 {
@@ -474,6 +485,8 @@ void linuxclonefinish(void)
 		validaddr((void *)up->child_tid_ptr, sizeof(uintptr), 1);
 		*(uintptr *)up->child_tid_ptr = up->pid;
 	}
+	/* we need to set tls and other things. */
+	kexit(nil);
 }
 
 /* current example. 
@@ -597,6 +610,10 @@ void linuxclone(Ar0 *ar0, va_list list)
 	ready(p);
 	sched();
 
+	if (flags & CLONE_PARENT_SETTID){
+		validaddr((void *)parent_tid_ptr, sizeof(uintptr), 1);
+		*(uintptr *)parent_tid_ptr = pid;
+	}
 	ar0->i = pid;
 }
 

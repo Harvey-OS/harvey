@@ -1278,6 +1278,7 @@ freebroken(void)
 void
 pexit(char *exitstr, int freemem)
 {
+	void linuxexitproc(void);
 	Proc *p;
 	Segment **s, **es;
 	long utime, stime;
@@ -1385,6 +1386,8 @@ pexit(char *exitstr, int freemem)
 		unlock(&p->exl);
 		if(wq)
 			free(wq);
+
+		linuxexitproc();
 	}
 
 	if(!freemem)
