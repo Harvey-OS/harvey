@@ -549,16 +549,13 @@ share(ulong len)
 {
 	uchar *vastart;
 
-	vastart = sbrk(0);
-	if(vastart == (void*)-1)
-		return 0;
-	vastart += 2*1024*1024;
-
-	if(segattach(0, "shared", vastart, len) == (void*)-1)
-		return 0;
+	vastart = segattach(0, "shared", 0, len);
+	if(vastart== (void*)-1)
+		sysfatal("segattach: %r");
 
 	return vastart;
 }
+
 
 /*
  *  bind a pipe onto consctl and keep reading it to

@@ -112,7 +112,7 @@ ibrk(uintptr addr, int seg)
 		if(ns == 0 || ns == s)
 			continue;
 		if(newtop >= ns->base && newtop < ns->top)
-			error(Esoverlap);
+			pexit(Esoverlap, 1);
 	}
 
 	if(seg == BSEG && newtop >= ROUNDUP(s->top, 1*GiB) + 1*GiB){
@@ -290,7 +290,7 @@ segattach(Proc* p, int attr, char* name, uintptr va, usize len)
 
 	va = va&~(BIGPGSZ-1);
 	if(isoverlap(p, va, len) != nil)
-		error(Esoverlap);
+		pexit(Esoverlap, 1);
 
 	if((len/BIGPGSZ) > ps->size)
 		error("len > segment size");
