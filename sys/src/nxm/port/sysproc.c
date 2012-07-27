@@ -1323,3 +1323,115 @@ syssettls(Ar0* ar0, va_list list)
 	up->tls = addr;
 	ar0->i = 0;
 }
+
+enum {
+	FUTEX_WAIT,
+	FUTEX_WAKE,
+	FUTEX_FD,
+	FUTEX_REQUEUE,
+	FUTEX_CMP_REQUEUE,
+};
+
+struct linux_timespec
+{
+        long    tv_sec;
+        long    tv_nsec;
+};
+/* tons easier than semaphores as
+ * 1. you only have to compare the value -- CMPSW done in user space
+ * 2. mistaken wakeups are ok
+ */
+uintptr
+futex(Ar0* ar0, va_list list)
+{
+	Segment *s;
+	int *addr;
+	unsigned char op;
+	uintptr val;
+	struct linux_timespec *ptime;
+	ulong *addr2;
+	uintptr val3;
+	uintptr err, val2;
+	uvlong ms = (uvlong)-1;
+	Sema phore;
+	int acquired = 0;
+	ulong t;
+
+	addr = va_arg(list, int *);
+	op = va_arg(list, uintptr);
+	val = va_arg(list, uintptr);
+	ptime = va_arg(list, struct linux_timespec *);
+	addr2 = va_arg(list, ulong *);
+	val3 = va_arg(list, uintptr);
+
+	print("(%d)sys_futex(%p, %d, %d, %p, %p, %d)\n", up->pid,addr, op, val,
+				ptime, addr2, val3);
+
+	switch(op){
+	case FUTEX_WAIT:
+		ar0->i = 0;
+		print("(%d)futex(): FUTEX_WAIT addr=%p, val %d\n", up->pid,
+			addr, *addr);
+		validaddr(addr, sizeof(*addr), 0);
+		if((s = seg(up, PTR2UINT(addr), 0)) == nil)
+			error(Ebadarg);
+		if (ptime){
+			validaddr(ptime, sizeof(*ptime), 0);
+			ms = (vlong)ptime->tv_sec * 1000 +
+				ptime->tv_nsec/1000000;
+			if (ms == 0)
+				return;
+		}
+		coherence();
+		if (*addr != val)
+			return;
+
+		semqueue(s, addr, &phore);
+		for(;;){
+			phore.waiting = 1;
+			coherence();
+
+			if (*addr != val){
+				acquired = 1;
+				break;
+			}
+			if(waserror())
+				break;
+			t = sys->ticks;
+			tsleep(&phore, semawoke, &phore, ms);
+			ms -= TK2MS(sys->ticks-t);
+			poperror();
+			if(ms <= 0)
+				break;
+		}
+		semdequeue(s, &phore);
+		/* not strictly necessary due to lock in semdequeue */
+		coherence();
+		if(!phore.waiting)
+			semwakeup(s, addr, 1);
+		if(ms <= 0)
+			return 0;
+		if(!acquired)
+			nexterror();
+		break;
+
+	case FUTEX_WAKE:
+		validaddr(addr, sizeof(*addr), 0);
+	        if((s = seg(up, PTR2UINT(addr), 0)) == nil)
+			error(Ebadarg);
+		print("(%d)sys_futex(): FUTEX_WAKE addr=%p", up->pid, addr);
+		semwakeup(s, addr, val);
+		ar0->i = 1;
+		break;
+
+	case FUTEX_CMP_REQUEUE:
+		pexit("FUTEX_CMP_REQUEUE: not yet", 1);
+		break;
+	case FUTEX_REQUEUE:
+		pexit("FUTEX_REQUEUE: not yet", 1);
+		break;
+	}
+
+out:
+	return err;
+}

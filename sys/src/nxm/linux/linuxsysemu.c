@@ -342,9 +342,6 @@ void linuxprocid(Ar0 *ar0, va_list)
 	ar0->i = 0;
 }
 
-/*Kernel_Ranks2Coords((kernel_coords_t *)_mapcache, _fullSize);*/
-
-
 /* int sigaction(int sig, const struct sigaction *restrict act,
               struct sigaction *restrict oact); */
 
@@ -370,67 +367,6 @@ void rt_sigprocmask(Ar0 *ar0, va_list list)
 	size = va_arg(list, int);
 	if (up->attr & 128) print("%d:sigaction, %d %p %p %d\n", up->pid, how, set, oset, size);
 	ar0->l = 0;
-}
-
-/* damn. Did not want to do futtocks */
-#define FUTEX_WAIT              0
-#define FUTEX_WAKE              1
-#define FUTEX_FD                2
-#define FUTEX_REQUEUE           3
-#define FUTEX_CMP_REQUEUE       4
-#define FUTEX_WAKE_OP           5
-#define FUTEX_LOCK_PI           6
-#define FUTEX_UNLOCK_PI         7
-#define FUTEX_TRYLOCK_PI        8
-#define FUTEX_WAIT_BITSET       9
-#define FUTEX_WAKE_BITSET       10
-
-
-void futex(Ar0 *ar0, va_list list)
-{
-	int *uaddr, op, val;
-	int *uaddr2, val3;
-	struct timespec *timeout;
-	uaddr = va_arg(list,int *);
-	op = va_arg(list, int);
-	val = va_arg(list, int);
-	timeout = va_arg(list, struct timespec *);
-	uaddr2 = va_arg(list, int *);
-	val3 = va_arg(list, int);
-	USED(uaddr);
-	USED(op);
-	USED(val);
-	USED(timeout);
-	USED(uaddr2);
-	USED(val3);
-	if (up->attr & 128) print("%d:futex, uaddr %p op %x val %x uaddr2 %p timeout  %p val3 %x\n", up->pid, 
-			uaddr, op, val, uaddr2, timeout, val);
-	switch(op) {
-		default: 
-			ar0->i = -1;
-			break;
-		case FUTEX_WAIT: 
-			/*
-			 * This  operation atomically verifies that the futex address uaddr
-			 * still contains the value val, and sleeps awaiting FUTEX_WAKE  on
-			 * this  futex  address.   If the timeout argument is non-NULL, its
-			 * contents describe the maximum duration of  the  wait,  which  is
-			 * infinite  otherwise.  The arguments uaddr2 and val3 are ignored.
-			 */
-			validaddr(uaddr, sizeof(*uaddr), 0);
-			if (up->attr & 128) print("%d:futex: value at %p is %#x, val is %#x\n", up->pid, uaddr, *uaddr, val);
-			if (*uaddr != val) {
-				ar0->i = -11;
-				return;
-			}
-			if (timeout) {
-				validaddr(timeout, sizeof(*timeout), 0);
-				if (timeout->tv_sec == timeout->tv_nsec == 0)
-					return;
-			}
-			if (up->attr & 128) print("%d:Not going to sleep\n", up->pid);
-			break;
-	}
 }
 
 /* mprotect is used to set a stack red zone. We may want to use
@@ -480,7 +416,6 @@ void linuxexitproc(void)
 /* some code needs to run in the context of the child. No way out. */
 void linuxclonefinish(void)
 {
-	print("linuxclonefinish, pid %d\n", up->pid);
 	if (up->cloneflags & CLONE_CHILD_SETTID){
 		validaddr((void *)up->child_tid_ptr, sizeof(uintptr), 1);
 		*(uintptr *)up->child_tid_ptr = up->pid;
@@ -489,16 +424,22 @@ void linuxclonefinish(void)
 	kexit(nil);
 }
 
-/* current example. 
-clone(child_stack=0x7f0b2c941e70, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7f0b2c9429d0, tls=0x7f0b2c942700, child_tidptr=0x7f0b2c9429d0) = 16078
- */
-/* from the kernel (the man page is wrong)
-sys_clone(unsigned long clone_flags, unsigned long newsp,
-          void __user *parent_tid, void __user *child_tid, struct pt_regs *regs)
+/*
+OK, from some random glibc assembly code.
+   The kernel expects:
+   rax: system call number
+   rdi: flags
+   rsi: child_stack
+   rdx: TID field in parent
+   r10: TID field in child
+   r8:  thread pointer  
+
+so where is the TLS? It's the "thread pointer". Nothing like consistent naming. 
  */
 void linuxclone(Ar0 *ar0, va_list list)
 {
 	uintptr child_stack, parent_tid_ptr, child_tid_ptr;
+	void * tls;
 	u32int flags;
 	Proc *p;
 	int flag = 0, i, n, pid;
@@ -512,8 +453,10 @@ void linuxclone(Ar0 *ar0, va_list list)
 	child_stack = va_arg(list, uintptr);
 	parent_tid_ptr = va_arg(list, uintptr);
 	child_tid_ptr = va_arg(list, uintptr);
+	tls = va_arg(list, void *);
 	if (up->attr & 128)
-		print("%d:CLONE: %#x %#ullx %#ullx %#ullx\n", up->pid, flags, child_stack, 
+		print("%d:CLONE: %#x %#ullx %#ullx %#ullx\n", up->pid,
+			flags, child_stack, 
 			parent_tid_ptr, child_tid_ptr);
 	p = newproc();
 
@@ -534,12 +477,14 @@ void linuxclone(Ar0 *ar0, va_list list)
 	p->notify = up->notify;
 	p->ureg = up->ureg;
 	p->dbgreg = 0;
-	p->attr = 0xff;
+	//p->attr = 0xff;
 	p->child_tid_ptr = child_tid_ptr;
 	p->parent_tid_ptr = parent_tid_ptr;
 	p->cloneflags = flags;
-	p->tls = up->tls;
-
+	if (flags + CLONE_SETTLS)
+		p->tls = tls;
+	else
+		p->tls = nil;
 	/* Make a new set of memory segments */
 	n = flags & CLONE_VM;
 	qlock(&p->seglock);
@@ -607,13 +552,15 @@ void linuxclone(Ar0 *ar0, va_list list)
 
 	if(wm)
 		procwired(p, wm->machno);
-	ready(p);
-	sched();
 
+	/* must do this BEFORE the child runs :-) */
 	if (flags & CLONE_PARENT_SETTID){
 		validaddr((void *)parent_tid_ptr, sizeof(uintptr), 1);
 		*(uintptr *)parent_tid_ptr = pid;
 	}
+	ready(p);
+	sched();
+
 	ar0->i = pid;
 }
 
