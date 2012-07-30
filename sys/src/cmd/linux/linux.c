@@ -195,9 +195,6 @@ handler(void *v, char *s)
 	case 160:
 		u->ax = sys_setrlimit((long)(parm[1]), (void *)parm[2]);
 		break;
-	case 202:
-		u->ax = futex((char *)parm);
-		break;
 	case 218:
 		u->ax = sys_set_tid_address((int*)(parm[1]));
 		break;
