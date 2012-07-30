@@ -1,5 +1,6 @@
 MKSHELL=rc
-<$NXM/$objtype/mkfile
+APE=$NXM/sys/src/ape
+<$APE/config
 
 TARG=pic
 OFILES=picy.$O\
@@ -26,9 +27,7 @@ YFILES=picy.y\
 
 BIN=$NXM/$objtype/bin
 <$NXM/sys/src/cmd/mkone
-CC=pcc
-LD=pcc
-CFLAGS=-c
+CFLAGS=-c $CFLAGS
 YFLAGS=-S -d
 
 picy.c:	y.tab.c

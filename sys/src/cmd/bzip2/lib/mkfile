@@ -29,7 +29,7 @@ HFILES=\
 LIB=libbzip2.a$O
 <$NXM/sys/src/cmd/mksyslib
 
-CFLAGS=-FV -p -DPLAN9
+CFLAGS=$CFLAGS -FV -p -DPLAN9
 
 clean:V:
 	rm -f *.[$OS] [$OS].out libbzip2.a[$OS]

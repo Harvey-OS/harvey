@@ -37,6 +37,6 @@ $LIBD:V: $LIBDOFILES
 	ar vu $LIBD $newprereq
 	rm $newprereq
 
-scsierrs.c: $NXM/sys/g/lib/scsicodes mkscsierrs
-	mkscsierrs >scsierrs.c
+scsierrs.c: $NXM/sys/lib/scsicodes mkscsierrs
+	rc mkscsierrs >scsierrs.c
 

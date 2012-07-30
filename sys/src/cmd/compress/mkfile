@@ -1,11 +1,10 @@
 MKSHELL=rc
-<$NXM/$objtype/mkfile
+APE=$NXM/sys/src/ape
+<$APE/config
 
 TARG=compress
 OFILES=compress.$O
 
 BIN=$NXM/$objtype/bin
 <$NXM/sys/src/cmd/mkone
-CC=pcc
-LD=pcc
-CFLAGS=-B -c
+CFLAGS=$CFLAGS -B -c

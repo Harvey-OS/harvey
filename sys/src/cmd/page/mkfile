@@ -16,15 +16,15 @@ OFILES=\
 	util.$O\
 	view.$O\
 
-LIB=/$objtype/lib/libdraw.a
+LIB=$NXM/$objtype/lib/libdraw.a
 
 UPDATE=\
 	mkfile\
 	${OFILES:%.$O=%.c}\
 	pdfprolog.ps\
 	$HFILES\
-	/sys/man/1/page\
-	/386/bin/page\
+	$NXM/sys/man/1/page\
+	$NXM/$objtype/bin/page\
 
 <$NXM/sys/src/cmd/mkone
 

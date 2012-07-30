@@ -1,4 +1,4 @@
-#pragma	lib	"/sys/src/cmd/map/libmap/libmap.a$O"
+#pragma	lib	"libmap/libmap.a$O"
 #pragma	src	"/sys/src/cmd/map/libmap"
 
 #ifndef PI

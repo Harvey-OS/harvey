@@ -18,6 +18,7 @@ LIBS=\
 	libflate\
 	libframe\
 	libgeometry\
+	libhtml\
 	libhttpd\
 	libip\
 	liblex\
@@ -30,6 +31,7 @@ LIBS=\
 	libregexp\
 	libsec\
 	libseg\
+	libstdio\
 	libsunrpc\
 	libthread\
 	libtube\

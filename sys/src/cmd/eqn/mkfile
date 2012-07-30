@@ -1,5 +1,6 @@
 MKSHELL=rc
-<$NXM/$objtype/mkfile
+APE=$NXM/sys/src/ape
+<$APE/config
 
 TARG=eqn
 OFILES=main.$O\
@@ -33,10 +34,8 @@ HFILES=e.h\
 
 BIN=$NXM/$objtype/bin
 <$NXM/sys/src/cmd/mkone
-CC=pcc
-LD=pcc
 YFLAGS=-d -S
-CFLAGS=-c
+CFLAGS=-c $CFLAGS
 
 eqn.c:	y.tab.c prevy.tab.h
 	mv y.tab.c $target

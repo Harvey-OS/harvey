@@ -1,5 +1,6 @@
 MKSHELL=rc
-<$NXM/$objtype/mkfile
+APE=$NXM/sys/src/ape
+<$APE/config
 
 TARG=spin
 
@@ -46,8 +47,7 @@ HFILES=y.tab.h
 BIN=$NXM/$objtype/bin
 <$NXM/sys/src/cmd/mkone
 
-CC=pcc -c
-CFLAGS=-B -D_POSIX_SOURCE
+CFLAGS=-c $CFLAGS -B -D_POSIX_SOURCE
 YFLAGS=-S -d
 
 $SPIN_OS:	spin.h

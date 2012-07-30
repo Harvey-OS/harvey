@@ -81,12 +81,17 @@ amd64/bin
 sys/src/cmd/awk/awkgram.c
 sys/src/cmd/awk/y.output
 sys/src/cmd/bc.c
+sys/src/cmd/eqn/eqn.c
 sys/src/cmd/grap/grap.c
 sys/src/cmd/grap/grapl.c
+sys/src/cmd/jpg/rgbv.h
+sys/src/cmd/jpg/ycbcr.h
 sys/src/cmd/page/pdfprolog.c
 sys/src/cmd/pic/picl.c
 sys/src/cmd/pic/picy.c
 sys/src/cmd/rc/x.tab.h
+sys/src/cmd/usb/disk/scsierrs.c
+sys/src/cmd/usb/usbd/devtab.c
 sys/src/cmd/upas/smtp/rfc822.tab.c
 sys/src/cmd/upas/smtp/smtpd.tab.c
 sys/src/libscribble/syms

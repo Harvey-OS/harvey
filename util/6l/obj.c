@@ -65,6 +65,7 @@ main(int argc, char *argv[])
 	memset(debug, 0, sizeof(debug));
 	nerrors = 0;
 	outfile = "6.out";
+	Lflag(".");
 	HEADTYPE = -1;
 	INITTEXT = -1;
 	INITDAT = -1;
@@ -678,14 +679,18 @@ addlib(char *obj)
 			diag("library component too long");
 			return;
 		}
-		strcat(name, "/");
+		if(i > 0 || !search)
+			strcat(name, "/");
 		strcat(name, comp);
 	}
+	cleanname(name);
 
 	if (search) {
 		// try dot, then -L "libdir", then $NXM/amd64/lib
 		for (i = 0; i < nlibdir; i++) {
 			snprint(pname, sizeof pname, "%s/%s", libdir[i], name);
+			if(debug['v'])
+				Bprint(&bso, "searching for %s at %s\n", name, pname);
 			if (access(pname, AEXIST) >= 0)
 				break;
 		}

@@ -14,7 +14,7 @@ OFILES=main.$O\
 
 HFILES=samterm.h\
 	flayer.h\
-	/sys/include/frame.h\
+	$NXM/sys/include/frame.h\
 
 LIB= $NXM/$objtype/lib/libdraw.a\
  $NXM/$objtype/lib/libframe.a\

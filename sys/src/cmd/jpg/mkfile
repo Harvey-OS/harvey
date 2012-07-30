@@ -43,7 +43,9 @@ UPDATE=\
 	${TARG:%=%.c}\
 
 <$NXM/sys/src/cmd/mkmany
-c=`{sed -n 's/^O=//p' /$cputype/mkfile}
+HOSTCC = `{sed -n 's/^CC=//p' $NXM/$cputype/mkfile}
+HOSTLD = `{sed -n 's/^LD=//p' $NXM/$cputype/mkfile}
+HOSTO = `{sed -n 's/^O=//p' $NXM/$cputype/mkfile}
 
 $O.tga:		$IMFILES readtga.$O tga.$O
 $O.jpg:		$IMFILES readjpg.$O jpg.$O
@@ -60,14 +62,14 @@ $O.v210:	$IMFILES readv210.$O v210.$O
 torgbv.$O:	ycbcr.h rgbv.h
 
 ycbcr.h:	rgbycc.c
-	$c^c rgbycc.c
-	$c^l -o $c.rgbycc rgbycc.$c
-	$c.rgbycc > ycbcr.h
+	$HOSTCC rgbycc.c
+	$HOSTLD -o $HOSTO.rgbycc rgbycc.$HOSTO -ldraw
+	$HOSTO.rgbycc > ycbcr.h
 
 rgbv.h:	rgbrgbv.c
-	$c^c rgbrgbv.c
-	$c^l -o $c.rgbrgbv rgbrgbv.$c
-	$c.rgbrgbv > rgbv.h
+	$HOSTCC rgbrgbv.c
+	$HOSTLD -o $HOSTO.rgbrgbv rgbrgbv.$HOSTO -ldraw
+	$HOSTO.rgbrgbv > rgbv.h
 
 nuke:V:	nuke-headers
 

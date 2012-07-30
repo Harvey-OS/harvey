@@ -14,7 +14,7 @@ struct Err
 static Err scsierrs[] = {
 EOF
 
-grep '^[0-9a-c][0-9a-c][0-9a-c][0-9a-c][ 	]' /sys/lib/scsicodes |
+grep '^[0-9a-c][0-9a-c][0-9a-c][0-9a-c][ 	]' $NXM/sys/lib/scsicodes |
 	sed -e 's/^(....) (.*)/	{0x\1,	"\2"},\n/'
 cat <<EOF
 };
