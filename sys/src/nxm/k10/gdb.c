@@ -62,14 +62,13 @@
  */
 #define BUFMAX 400
 enum regnames {
-	EAX = 0, ECX, EDX, EBX, ESP, EBP, ESI, EDI,
-	PC /* also known as eip */,
-	PS /* also known as eflags */,
-	CS, SS, DS, ES, FS, GS,
-	NUM_REGS /* Number of registers. */
+	EAX = 0, EBX, ECX, EDX, SI, DI, BP, SP, 
+	R8, R9, R10, R11, R12, R13, R14, R15, 
+	IP, FLAGS, CS, SS,
+	NUM_REGS
 };
 
-static uint32_t gdb_stub_registers[NUM_REGS];
+static u64int gdb_stub_registers[NUM_REGS];
 
 #define GDB_SIG0         0     /* Signal 0 */
 #define GDB_SIGHUP       1     /* Hangup */
@@ -414,13 +413,13 @@ static void put_packet(char *buffer)
 void x86_exception(Ureg *ureg)
 {
 	int signo;
-	memcpy(gdb_stub_registers, ureg, 8*sizeof(uint32_t));
-	gdb_stub_registers[PC] = ureg->ip;
-	gdb_stub_registers[CS] = info->cs;
-	gdb_stub_registers[PS] = info->flags;
+	memmove(gdb_stub_registers, ureg, NUM_REGS*sizeof(u64int));
+	gdb_stub_registers[IP] = ureg->ip;
+	gdb_stub_registers[CS] = ureg->cs;
+	gdb_stub_registers[FLAGS] = ureg->flags;
 	signo = GDB_UNKNOWN;
-	if (info->vector < ARRAY_SIZE(exception_to_signal)) {
-		signo = exception_to_signal[info->vector];
+	if (ureg->type < nelem(exception_to_signal)) {
+		signo = exception_to_signal[ureg->type];
 	}
 
 	/* reply to the host that an exception has occured */
@@ -450,11 +449,12 @@ void x86_exception(Ureg *ureg)
 			break;
 		case 'G': /* set the value of the CPU registers - return OK */
 			copy_from_hex(&gdb_stub_registers, in_buffer + 1, sizeof(gdb_stub_registers));
-			memcpy(ureg, gdb_stub_registers, 8*sizeof(uint32_t));
-			info->eip    = gdb_stub_registers[PC];
-			info->cs     = gdb_stub_registers[CS];
-			info->eflags = gdb_stub_registers[PS];
-			memcpy(out_buffer, "OK",3);
+			memmove(ureg, gdb_stub_registers, 
+			       NUM_REGS*sizeof(u64int));
+			ureg->ip    = gdb_stub_registers[IP];
+			// NO!		info->cs     = gdb_stub_registers[CS];
+			ureg->flags = gdb_stub_registers[FLAGS];
+			memmove(out_buffer, "OK",3);
 			break;
 		case 'm':
 			/* mAA..AA,LLLL  Read LLLL bytes at address AA..AA */
@@ -464,7 +464,7 @@ void x86_exception(Ureg *ureg)
 				parse_ulong(&ptr, &length)) {
 				copy_to_hex(out_buffer, (void *)addr, length);
 			} else {
-				memcpy(out_buffer, "E01", 4);
+				memmove(out_buffer, "E01", 4);
 			}
 			break;
 		case 'M':
@@ -475,10 +475,10 @@ void x86_exception(Ureg *ureg)
 				parse_ulong(&ptr, &length) &&
 				(*(ptr++) == ':')) {
 				copy_from_hex((void *)addr, ptr, length);
-				memcpy(out_buffer, "OK", 3);
+				memmove(out_buffer, "OK", 3);
 			}
 			else {
-				memcpy(out_buffer, "E02", 4);
+				memmove(out_buffer, "E02", 4);
 			}
 			break;
 		case 's':
@@ -487,19 +487,19 @@ void x86_exception(Ureg *ureg)
 			/* sAA..AA    Step one instruction from AA..AA(optional) */
 			ptr = &in_buffer[1];
 			if (parse_ulong(&ptr, &addr)) {
-				info->eip = addr;
+				ureg->ip = addr;
 			}
 
 			/* Clear the trace bit */
-			info->eflags &= ~(1 << 8);
+			ureg->flags &= ~(1 << 8);
 			/* Set the trace bit if we are single stepping */
 			if (in_buffer[0] == 's') {
-				info->eflags |= (1 << 8);
+				ureg->flags |= (1 << 8);
 			}
 			return;
 			break;
 		case 'D':
-			memcpy(out_buffer, "OK", 3);
+			memmove(out_buffer, "OK", 3);
 			break;
 		case 'k':  /* kill request? */
 			break;

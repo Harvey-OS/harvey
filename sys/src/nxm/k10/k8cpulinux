@@ -155,6 +155,7 @@ amd64 +dev
 	cga
 	crap
 	fpu
+	gdb
 	i8254
 	i8259
 	kbd
