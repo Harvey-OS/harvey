@@ -2,6 +2,7 @@
 #include <libc.h>
 #include <draw.h>
 
+static Rune empty[] = { 0 };
 int
 _stringnwidth(Font *f, char *s, Rune *r, int len)
 {
@@ -19,9 +20,7 @@ _stringnwidth(Font *f, char *s, Rune *r, int len)
 	}else
 		sptr = &s;
 	if(r == nil){
-		/* what do do? */
-		exits("AH!");
-		//r = L"";
+		r = empty;
 		rptr = nil;
 	}else
 		rptr = &r;
