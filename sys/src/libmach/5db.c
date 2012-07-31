@@ -298,7 +298,7 @@ plocal(Instr *i)
  * Print value v as name[+offset]
  */
 static int
-gsymoff(char *buf, int n, long v, int space)
+gsymoff(char *buf, int n, ulong v, int space)
 {
 	Symbol s;
 	int r;
@@ -1011,7 +1011,7 @@ format(char *mnemonic, Instr *i, char *f)
 
 		case 'b':
 			i->curr += symoff(i->curr, i->end-i->curr,
-				i->imm, CTEXT);
+				(ulong)i->imm, CTEXT);
 			break;
 
 		case 'g':

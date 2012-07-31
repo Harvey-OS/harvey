@@ -802,6 +802,7 @@ struct	FILE_STRING
 	"\033E\033",	"HP PCL printer data",		3,	OCTET,
 	"\033&",	"HP PCL printer data",		2,	OCTET,
 	"\033%-12345X",	"HPJCL file",		9,	"application/hpjcl",
+	"\033Lua",		"Lua bytecode",		4,	OCTET,
 	"ID3",			"mp3 audio with id3",	3,	"audio/mpeg",
 	"\211PNG",		"PNG image",		4,	"image/png",
 	"P3\n",			"ppm",				3,	"image/ppm",

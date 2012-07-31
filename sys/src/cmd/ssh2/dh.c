@@ -684,7 +684,9 @@ static int
 dh_client12(Conn *c, Packet *p)
 {
 	int n, retval;
+#ifdef VERIFYKEYS
 	char *newkey;
+#endif
 	char buf[10];
 	uchar *q;
 	uchar h[SHA1dlen];
@@ -692,7 +694,6 @@ dh_client12(Conn *c, Packet *p)
 	Packet *ks, *sig, *pack2;
 	RSApub *srvkey;
 
-	retval = -1;
 	ks = new_packet(c);
 	sig = new_packet(c);
 	pack2 = new_packet(c);
@@ -748,6 +749,8 @@ dh_client12(Conn *c, Packet *p)
 		n = Errnone;
 	else
 		n = verifyhostkey(c, srvkey, sig);
+	retval = -1;
+	USED(retval);
 	switch (n) {
 #ifdef VERIFYKEYS
 	case Errnokey:
@@ -771,7 +774,9 @@ dh_client12(Conn *c, Packet *p)
 	nbsendul(keymbox.mchan, 1);
 	if (retval == 0)
 		genkeys(c, h, k);
+#ifdef VERIFYKEYS
 out:
+#endif
 	mpfree(k);
 	free(ks);
 	free(sig);
