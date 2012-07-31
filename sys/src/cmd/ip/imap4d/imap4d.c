@@ -604,6 +604,8 @@ copyUCmd(char *tg, char *cmd, int uids)
 		Bprint(&bout, "%s NO %s%s bad mailbox\r\n", tg, uid, cmd);
 		return;
 	}
+	if(cistrcmp(mbox, "inbox") == 0)
+		mbox = "mbox";
 	if(!cdExists(mboxDir, mbox)){
 		check();
 		Bprint(&bout, "%s NO [TRYCREATE] %s mailbox does not exist\r\n", tg, cmd);

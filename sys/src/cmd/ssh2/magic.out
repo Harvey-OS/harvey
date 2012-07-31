@@ -55,21 +55,21 @@ dh.c:575: c->x = mprand(128, genrandom, nil);
 dh.c:597: keymbox.msg = smprint("b%04ld%s", strlen(newkey), newkey);
 dh.c:606: keymbox.msg = smprint("%c%04ld%s", n == NoKeyFile || n == NoKey?
 dh.c:616: keymbox.msg = smprint("f%04ld%s", strlen(newkey), newkey);
-dh.c:688: char buf[10];
-dh.c:703: q += nhgetl(q) + 4;
-dh.c:706: k = mpnew(1024);
-dh.c:709: /* Compute H: RFC 4253 */
-dh.c:740: q += nhgetl(q) + 4;
-dh.c:757: keymbox.msg = smprint("f%04ld%s", strlen(newkey), newkey);
-dh.c:761: keymbox.msg = smprint("f%04ld%s", strlen(newkey), newkey);
-dh.c:791: e = mpnew(2048);
-dh.c:792: x = mprand(256, genrandom, nil);
-dh.c:823: char buf[82], *bp, *be;			/* magic 82 */
-dh.c:827: /* Compute 40 bytes (320 bits) of keys: each alg can use what it needs */
-dh.c:895: for (n = 0, bp = buf; n < SHA1dlen*2; ++n)
+dh.c:690: char buf[10];
+dh.c:704: q += nhgetl(q) + 4;
+dh.c:707: k = mpnew(1024);
+dh.c:710: /* Compute H: RFC 4253 */
+dh.c:741: q += nhgetl(q) + 4;
+dh.c:760: keymbox.msg = smprint("f%04ld%s", strlen(newkey), newkey);
+dh.c:764: keymbox.msg = smprint("f%04ld%s", strlen(newkey), newkey);
+dh.c:796: e = mpnew(2048);
+dh.c:797: x = mprand(256, genrandom, nil);
+dh.c:828: char buf[82], *bp, *be;			/* magic 82 */
+dh.c:832: /* Compute 40 bytes (320 bits) of keys: each alg can use what it needs */
 dh.c:900: for (n = 0, bp = buf; n < SHA1dlen*2; ++n)
 dh.c:905: for (n = 0, bp = buf; n < SHA1dlen*2; ++n)
 dh.c:910: for (n = 0, bp = buf; n < SHA1dlen*2; ++n)
+dh.c:915: for (n = 0, bp = buf; n < SHA1dlen*2; ++n)
 dial.c:14: Maxstring	= 128,
 dial.c:15: Maxpath		= 256,
 dial.c:17: Maxcsreply	= 64*80,	/* this is probably overly generous */
@@ -204,21 +204,21 @@ netssh.c:2494: /* SHA1dlen was magic 20 */
 netssh.c:2495: if (np != p->rlength + 4 - nb || c->inmac != -1 && nm != SHA1dlen) {
 netssh.c:2500: p->rlength = n - 4;
 netssh.c:2531: get_string(p, p->payload + 5, buf, Arbbufsz, nil);
-netssh.c:2542: case -2:
-netssh.c:2602: q = p->payload + 17;
-netssh.c:2701: q = p->payload + 17;
-netssh.c:2801: cap = emalloc9p(fromtosz + sizeof(rand)*3 + 1);
-netssh.c:2802: snprint(cap, fromtosz + sizeof(rand)*3 + 1, "%s@%s", from, to);
-netssh.c:2805: enc64(key, sizeof(rand)*3, rand, sizeof(rand));
-netssh.c:2848: werrstr("Password mismatch 2");
-netssh.c:2874: char method[32];
-netssh.c:2937: char key1[DESKEYLEN], key2[DESKEYLEN], method[32];
-netssh.c:3041: ek = strtomp(r+4, nil, 16, nil);
-netssh.c:3042: nk = strtomp(s+3, nil, 16, nil);
-netssh.c:3133: if (c->clonefile->ref <= 2 && c->ctlfile->ref <= 2 &&
-netssh.c:3134: c->datafile->ref <= 2 && c->listenfile->ref <= 2 &&
-netssh.c:3135: c->localfile->ref <= 2 && c->remotefile->ref <= 2 &&
-netssh.c:3136: c->statusfile->ref <= 2)
+netssh.c:2543: case -2:		/* can't happen, now at least */
+netssh.c:2603: q = p->payload + 17;
+netssh.c:2702: q = p->payload + 17;
+netssh.c:2802: cap = emalloc9p(fromtosz + sizeof(rand)*3 + 1);
+netssh.c:2803: snprint(cap, fromtosz + sizeof(rand)*3 + 1, "%s@%s", from, to);
+netssh.c:2806: enc64(key, sizeof(rand)*3, rand, sizeof(rand));
+netssh.c:2849: werrstr("Password mismatch 2");
+netssh.c:2875: char method[32];
+netssh.c:2938: char key1[DESKEYLEN], key2[DESKEYLEN], method[32];
+netssh.c:3042: ek = strtomp(r+4, nil, 16, nil);
+netssh.c:3043: nk = strtomp(s+3, nil, 16, nil);
+netssh.c:3134: if (c->clonefile->ref <= 2 && c->ctlfile->ref <= 2 &&
+netssh.c:3135: c->datafile->ref <= 2 && c->listenfile->ref <= 2 &&
+netssh.c:3136: c->localfile->ref <= 2 && c->remotefile->ref <= 2 &&
+netssh.c:3137: c->statusfile->ref <= 2)
 pubkey.c:12: Arbsz =	256,
 pubkey.c:22: n = strtoul(s, &p, 10);
 pubkey.c:33: n = strtoul(s, &p, 10);

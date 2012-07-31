@@ -2534,12 +2534,13 @@ reader0(Conn *c, Packet *p, Packet *p2)
 			bail(c, p, p2, "msg disconnect");
 		case SSH_MSG_USERAUTH_REQUEST:
 			switch (auth_req(p, c)) {
-			case 0:
+			case 0:			/* success */
 				establish(c);
 				break;
-			case -1:
+			case 1:			/* ok to try again */
+			case -1:		/* failure */
 				break;
-			case -2:
+			case -2:		/* can't happen, now at least */
 				bail(c, p, p2, "in userauth request");
 			}
 			break;
@@ -2892,7 +2893,7 @@ authreqpk(Packet *p, Packet *p2, Conn *c, char *user, uchar *q,
 		add_byte(p2, SSH_MSG_USERAUTH_PK_OK);
 		add_string(p2, alg);
 		add_block(p2, blob, nblob);
-		return 0;
+		return 1;
 	}
 
 	get_string(p, q, sig, Blobsz, &nsig);
