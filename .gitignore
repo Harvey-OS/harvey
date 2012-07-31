@@ -109,7 +109,7 @@ sys/src/cmd/creepy/fsfmt
 sys/src/cmd/syscall/tab.h
 
 #things people may do for a local root
-bin
+/bin
 tmp
 sys/src/cmd/unix/u9fs/u9fs
 lib/namespace
