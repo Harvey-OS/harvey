@@ -116,6 +116,9 @@ sipi.h:		l64sipi.$O
 	     -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
 	 echo '};'} > $target
 
-../root/nvram: 
+../root/nvram:Q:
 	dd -if /dev/zero -of ../root/nvram -bs 512 -count 1
-#	nvram=../root/nvram auth/wrkey
+# BUG: Jenkins needs to be able to provide input.
+#	if(~ $cputype [a-z]*/unix)
+#		nvram=../root/nvram wrkey
+#	if not nvram=../root/nvram auth/wrkey

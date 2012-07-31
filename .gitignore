@@ -21,6 +21,7 @@ xbin/mksys
 xbin/mklatinkbd
 xbin/nm
 xbin/pcc
+xbin/wrkey
 6.out
 6.*
 o.out
