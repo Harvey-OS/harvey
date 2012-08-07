@@ -17,6 +17,7 @@ static	int	nocompress;
 static 	int	pppframing = 1;
 static	int	noipcompress;
 static	int	server;
+static	int noauth;
 static	int	nip;		/* number of ip interfaces */
 static	int	dying;		/* flag to signal to all threads its time to go */
 static	int	primary;	/* this is the primary IP interface */
@@ -332,7 +333,7 @@ newstate(PPP *ppp, Pstate *p, int state)
 
 	if(p->proto == Plcp) {
 		if(state == Sopened)
-			setphase(ppp, Pauth);
+			setphase(ppp, noauth? Pnet : Pauth);
 		else if(state == Sclosed)
 			setphase(ppp, Pdead);
 		else if(p->state == Sopened)
@@ -355,7 +356,7 @@ newstate(PPP *ppp, Pstate *p, int state)
 	}
 
 	if(p->proto == Pipcp && state == Sopened) {
-		if(server && ppp->chap->state != Cauthok)
+		if(server && !noauth && ppp->chap->state != Cauthok)
 			abort();
 
 		err = ipopen(ppp);
@@ -2658,7 +2659,9 @@ int interactive;
 void
 usage(void)
 {
-	fprint(2, "usage: ppp [-cCdfPSu] [-b baud] [-k keyspec] [-m mtu] [-p dev] [-s username] [-x netmntpt] [-t modemcmd] [local-addr [remote-addr]]\n");
+	fprint(2, "usage: ppp [-CPSacdfu] [-b baud] [-k keyspec] [-m mtu] "
+		"[-M chatfile] [-p dev] [-x netmntpt] [-t modemcmd] "
+		"[local-addr [remote-addr]]\n");
 	exits("usage");
 }
 
@@ -2691,6 +2694,9 @@ main(int argc, char **argv)
 	modemcmd = nil;
 
 	ARGBEGIN{
+	case 'a':
+		noauth = 1;
+		break;
 	case 'b':
 		baud = atoi(EARGF(usage()));
 		if(baud < 0)

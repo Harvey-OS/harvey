@@ -4,7 +4,7 @@ ppp, pppoe, pptp, pptpd \- point-to-point protocol
 .SH SYNOPSIS
 .B ip/ppp
 [
-.B -CPScdfu
+.B -CPSacdfu
 ] [
 .B -b
 .I baud
@@ -112,10 +112,20 @@ This is useful if a program wants to use
 in a communications stream.  However, the normal mode is to
 specify a communications device, usually a serial line with a modem.
 .PP
-PPP supports the following options:
+.I Ppp
+supports the following options:
+.TP 3
+.B a
+as server, don't request authentication from the client
 .TP
 .B b
 set the baud rate on the communications device
+.TP
+.B c
+disallow packet compression
+.TP
+.B C
+disallow IP header compression
 .TP
 .B f
 make PPP add HDLC framing.  This is necessary when using
@@ -133,6 +143,11 @@ for authentication; the default key pattern is
 .B m
 set the maximum transfer unit (default 1450)
 .TP
+.B M
+chat with the modem as specified in the chat file.  Each line in
+the chat file contains a string that is transmitted to the modem
+and the response expected (e.g. 'AT' 'OK')
+.TP
 .B P
 use this as the primary IP interface; set the default
 route through this interface and write its configuration
@@ -144,6 +159,14 @@ communicate over
 .I dev
 instead of standard I/O
 .TP
+.B S
+run as a server
+.TP
+.B t
+before starting the PPP protocol, write
+.I modemcmd
+to the device
+.TP
 .B u
 before starting the PPP protocol with the remote end, shuttle
 bytes between the device and standard I/O until an EOF on standard
@@ -153,28 +176,9 @@ and then type commands at a modem before
 .I ppp
 takes over
 .TP
-.B S
-run as a server
-.TP
-.B t
-before starting the PPP protocol, write
-.I modemcmd
-to the device
-.TP
 .B x
 use the IP stack mounted at
 .I netmntpt
-.TP
-.B M
-chat with the modem as specified in the chat file.  Each line in
-the chat file contains a string that is transmitted to the modem
-and the response expected (e.g. 'AT' 'OK')
-.TP
-.B c
-disallow packet compression
-.TP
-.B C
-disallow ip header compression
 .PD
 .PP
 If both the
@@ -196,17 +200,12 @@ the ethernet device mounted at
 (default
 .BR /net/ether0 ).
 The 
-.I pppoe -specific
+.IR pppoe -specific
 options are:
-.TP
+.TP 3
 .B A
 insist on an access concentrator named
 .I acname
-during PPPoE discovery
-.TP
-.B S
-insist on a service named
-.I srvname
 during PPPoE discovery
 .TP
 .B d
@@ -215,6 +214,11 @@ and pass
 .B -d
 to 
 .I ppp
+.TP
+.B S
+insist on a service named
+.I srvname
+during PPPoE discovery
 .PD
 .PP
 The other options are relayed to 
@@ -245,9 +249,14 @@ The TCP connection is used to control the tunnel while
 packets are sent back and forth using PPP inside of
 GRE packets.
 The options are:
-.TP
+.TP 3
 .B d
 write debugging output to standard error.
+.TP
+.B D
+drop
+.I fraction
+of the received packets.  This is used for testing.
 .TP
 .B p
 use the IP stack mounted at
@@ -257,11 +266,6 @@ to terminate the PPP connection.
 .B w
 set the receive window to
 .IR window .
-.TP
-.B D
-drop
-.I fraction
-of the received packets.  This is used for testing.
 .PD
 .SH SOURCE
 .B /sys/src/cmd/ip/ppp
