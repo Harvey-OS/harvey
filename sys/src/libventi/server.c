@@ -180,7 +180,9 @@ vtgetreq(VtSrv *srv)
 	VtReq *r;
 	
 	r = _vtqrecv(srv->q);
-	vtlog(VtServerLog, "<font size=-1>%T %s:</font> vtgetreq %F<br>\n", ((VtSconn*)r->sc)->c->addr, &r->tx);
+	if (r != nil)
+		vtlog(VtServerLog, "<font size=-1>%T %s:</font> vtgetreq %F<br>\n",
+			((VtSconn*)r->sc)->c->addr, &r->tx);
 	return r;
 }
 

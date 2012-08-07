@@ -200,12 +200,6 @@ threadmain(int argc, char *argv[])
 		mfd[0] = p[0];
 		mfd[1] = p[0];
 		srvfd = p[1];
-	}
-
-	procrfork(srv, 0, Stacksize, RFFDG|RFNAMEG|RFNOTEG);
-
-	if(!stdio){
-		close(p[0]);
 		if(defsrv){
 			srvname = smprint("/srv/%s", defsrv);
 			fd = create(srvname, OWRITE|ORCLOSE, 0666);
@@ -215,6 +209,12 @@ threadmain(int argc, char *argv[])
 				sysfatal("write %s: %r", srvname);
 			free(srvname);
 		}
+	}
+
+	procrfork(srv, 0, Stacksize, RFFDG|RFNAMEG|RFNOTEG);
+
+	if(!stdio){
+		close(p[0]);
 		if(defmnt){
 			if(mount(srvfd, -1, defmnt, MREPL|MCREATE, "") < 0)
 				sysfatal("mount %s: %r", defmnt);
