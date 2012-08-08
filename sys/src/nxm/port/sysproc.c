@@ -1364,13 +1364,15 @@ futex(Ar0* ar0, va_list list)
 	addr2 = va_arg(list, ulong *);
 	val3 = va_arg(list, uintptr);
 
-	print("(%d)sys_futex(%p, %d, %d, %p, %p, %d)\n", up->pid,addr, op, val,
+	if (up->attr & 128)
+		print("(%d)sys_futex(%p, %d, %d, %p, %p, %d)\n", up->pid,addr, op, val,
 				ptime, addr2, val3);
 
 	switch(op){
 	case FUTEX_WAIT:
 		ar0->i = 0;
-		print("(%d)futex(): FUTEX_WAIT addr=%p, val %d\n", up->pid,
+		if (up->attr & 128)
+			print("(%d)futex(): FUTEX_WAIT addr=%p, val %d\n", up->pid,
 			addr, *addr);
 		validaddr(addr, sizeof(*addr), 0);
 		if((s = seg(up, PTR2UINT(addr), 0)) == nil)
@@ -1419,7 +1421,8 @@ futex(Ar0* ar0, va_list list)
 		validaddr(addr, sizeof(*addr), 0);
 	        if((s = seg(up, PTR2UINT(addr), 0)) == nil)
 			error(Ebadarg);
-		print("(%d)sys_futex(): FUTEX_WAKE addr=%p", up->pid, addr);
+		if (up->attr & 128)
+			print("(%d)sys_futex(): FUTEX_WAKE addr=%p", up->pid, addr);
 		semwakeup(s, addr, val);
 		ar0->i = 1;
 		break;
@@ -1429,6 +1432,9 @@ futex(Ar0* ar0, va_list list)
 		break;
 	case FUTEX_REQUEUE:
 		pexit("FUTEX_REQUEUE: not yet", 1);
+		break;
+	default: 
+		ar0->i = -38; //ENOSYS;
 		break;
 	}
 

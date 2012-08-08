@@ -32,6 +32,7 @@ extern Syscall sys_read;
 extern Syscall sysopen;
 extern Syscall sysclose;
 extern Syscall syspread;
+extern Syscall linuxsyscallnop;
 Syscall sysnoted;
 
 struct syscall {
@@ -264,8 +265,8 @@ struct syscall linuxsystab[] = {
 	[200] {"tkill", nil, 1, {.p = (void *)-1}},
 	[201] {"time", nil, 1, {.p = (void *)-1}},
 	[202] {"futex", futex, 6, {.p = (void *)-38}}, // ENOSYS
-	[203] {"sched_setaffinity", nil, 1, {.p = (void *)-1}},
-	[204] {"sched_getaffinity", nil, 1, {.p = (void *)-1}},
+	[203] {"sched_setaffinity", linuxsyscallnop, 1, {.i = 0}},
+	[204] {"sched_getaffinity", linuxsyscallnop, 1, {.i = 64}},
 	[205] {"set_thread_area", nil, 1, {.p = (void *)-1}},
 	[206] {"io_setup", nil, 1, {.p = (void *)-1}},
 	[207] {"io_destroy", nil, 1, {.p = (void *)-1}},

@@ -314,7 +314,7 @@ void linuxmmap(Ar0 *ar0, va_list list)
 		print("%d:mmap anon: new is %p\n", up->pid, ret);
 	nixprepage(BSEG);
 
-	if (fd == -1){
+	if (fd == -1 || flags & 0x20){
 		ar0->p = oldv;
 		poperror();
 		return;
@@ -594,4 +594,9 @@ void getrusage(Ar0 *ar0, va_list list)
 	if (up->attr & 128) print("%#x:%#x\n", r->ru_utime.tv_sec, r->ru_stime.tv_sec);
 
 	ar0->i = 0;	
+}
+
+/* for now, we have some things which are just fine returning the default. */
+void linuxsyscallnop(Ar0 *, va_list)
+{
 }
