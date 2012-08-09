@@ -32,7 +32,7 @@ enum {
 #define RND(size,up) (((size)+(up)-1) & ~((up)-1))
 #define RNDM(size) ((size+0xfffff)&0xfff00000)
 
-int debug = 1;
+int debug = 0;
 
 int
 verbose(void){
@@ -121,7 +121,8 @@ char *names[] = {
 
 void naux(int type, u64int val) 
 {
-	fprint(2,"NAUX: Set %d to %s/%#x\n", auxc, names[type], val);
+	if (debug)
+		fprint(2,"NAUX: Set %d to %s/%#x\n", auxc, names[type], val);
 	aux[auxc].a_type = type;
 	aux[auxc].a_un.a_val = val;
 	auxc++;
@@ -144,9 +145,11 @@ hdr(int fd)
 
 	ep = exechdr();
 	ph = phdr();
-	fprint(2,"elf add %d entries at %p\n", ep->phnum, ph);
-	for(i = 0; i < ep->phnum; i++) {
-		fprint(2,"%d: type %#x va %p pa %p \n", i, ph[i].type, ph[i].vaddr, ph[i].paddr);
+	if (debug){
+		fprint(2,"elf add %d entries at %p\n", ep->phnum, ph);
+		for(i = 0; i < ep->phnum; i++) {
+			fprint(2,"%d: type %#x va %p pa %p \n", i, ph[i].type, ph[i].vaddr, ph[i].paddr);
+		}
 	}
 	/* GNU ELF is weird.
 	 * GNUSTACK is the last phdr and it's confusing libmach.
@@ -234,6 +237,7 @@ main(int argc, char *argv[])
 	case 'a':	debugctl |= PersyscallInfo; break;
 	case 'A':	debugctl |= 0xfc; break;
 	case 'S': 	bsssize = strtoul(EARGF(usage()), 0, 0); break;
+	case 'v':	debug++;
 	default:	usage(); break;
 	}ARGEND
 
@@ -267,21 +271,24 @@ main(int argc, char *argv[])
 	naux(AT_EGID, 0x64);
 	naux(AT_HWCAP, 0x4);
 
-	fprint(2, "textseg is %d and dataseg is %d\n", textseg, dataseg);
-	fprint(2, "base %#llx end %#llx off %#llx \n",
-		map->seg[textseg].b, map->seg[textseg].e, map->seg[textseg].f);
-	fprint(2, "base %#llx end %#llx off %#llx \n",
-		map->seg[dataseg].b, map->seg[dataseg].e, map->seg[dataseg].f);
-	fprint(2, "txtaddr %#llx dataaddr %#llx entry %#llx txtsz"
+	if (debug) {
+		fprint(2, "textseg is %d and dataseg is %d\n", textseg, dataseg);
+		fprint(2, "base %#llx end %#llx off %#llx \n",
+			map->seg[textseg].b, map->seg[textseg].e, map->seg[textseg].f);
+		fprint(2, "base %#llx end %#llx off %#llx \n",
+			map->seg[dataseg].b, map->seg[dataseg].e, map->seg[dataseg].f);
+		fprint(2, "txtaddr %#llx dataaddr %#llx entry %#llx txtsz"
 			"%#lx datasz %#lx bsssz %#lx\n", 
-		fp.txtaddr, fp.dataddr, fp.entry, fp.txtsz, fp.datsz, fp.bsssz);
+			fp.txtaddr, fp.dataddr, fp.entry, fp.txtsz, fp.datsz, fp.bsssz);
+	}
 
 	bssbase = fp.dataddr + RNDM( fp.datsz + fp.bsssz),
 
 	textp = (void *)fp.txtaddr;
 	datap = (void *)fp.dataddr;
 	bssp = (void *)bssbase;
-	fprint(2,"bssp is %p\n", bssp);
+	if (debug)
+		fprint(2,"bssp is %p\n", bssp);
 	//hangpath = smprint("/proc/%d/ctl", getpid());
 	hdr(fd); 
 	naux(AT_NULL, 0);
@@ -307,7 +314,8 @@ main(int argc, char *argv[])
 	}
 	/* DEBUGGING
 
-	fprint(2, "Open %s\n", hangpath);
+	if (debug)
+		fprint(2, "Open %s\n", hangpath);
 	hang = open(hangpath, OWRITE);
 	if (hang < 0){
 		errexit(smprint("%s: %r", hangpath));
@@ -333,9 +341,9 @@ main(int argc, char *argv[])
 	av[i++] = nil;
 	/* now just copy the aux array over av */
 	memcpy(&av[i], aux, sizeof(aux));
-	//fprint(2, "env %p *env %p\n", &av[argc+2], av[argc+2]);
 #ifdef NOT
-	fprint(2, "Open %s\n", ctlpath);
+	if (debug)
+		fprint(2, "Open %s\n", ctlpath);
 	ctl = open(ctlpath, OWRITE);
 	if (ctl < 0){
 		errexit(smprint("%s: %r", ctlpath));
