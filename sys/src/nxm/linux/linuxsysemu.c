@@ -312,7 +312,6 @@ void linuxmmap(Ar0 *ar0, va_list list)
 	ret = ibrk(newv, BSEG);
 	if (up->attr & 128)
 		print("%d:mmap anon: new is %p\n", up->pid, ret);
-	nixprepage(BSEG);
 
 	if (fd == -1 || flags & 0x20){
 		ar0->p = oldv;
@@ -320,6 +319,7 @@ void linuxmmap(Ar0 *ar0, va_list list)
 		return;
 	}
 
+	nixprepage(BSEG);
 	iop = oldv;
 	while (length > 0){
 		nn = c->dev->read(c, (void *)oldv, length, offset);
