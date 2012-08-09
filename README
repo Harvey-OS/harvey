@@ -1,6 +1,7 @@
 How to build:
 
 * Make sure you have Go and Plan 9 Ports installed
+* If you are on a 64-bit system, you will need your distro's appropriate 32-bit libs and compilers installed. That's ia32-libs-dev and libc6-dev-i386 on Debian, which will also pull in the multilib gcc.
 * Copy inferno-os/mkconfig.proto to inferno-os/mkconfig and edit the ROOT, SYSHOST, and OBJTYPE variables
 * Run "sh BUILDTOOLCHAIN"
 * Run ". SETUP"
