@@ -167,8 +167,6 @@ usage(void)
 	errexit(smprint("usage: linux [-b] [breakpoint] [-p p==v base] [a]rgstosyscall [s]yscall [u]regsbefore [U]uregsafter [f]aultpower [F]aultpowerregs elf\n"));
 }
 
-/* only implements pipe */
-
 void
 handler(void *v, char *s)
 {
@@ -176,6 +174,7 @@ handler(void *v, char *s)
 	u64int parm[7];
 	struct Ureg* u = v;
         int i, n, nf;
+#undef DEBUGHANDLER
 #ifdef DEBUGHANDLER
 	write(2, "HANDLER:", 8);
 	write(2, s, strlen(s));
@@ -191,6 +190,9 @@ handler(void *v, char *s)
 	switch(parm[0]){
 	case 22:
 		u->ax = pipe((void*)(parm[1]));
+		break;
+	case 79:
+		u->ax = (uintptr) getwd((void *)(parm[1]), (int)(parm[2]));
 		break;
 	case 97:
 		u->ax = sys_getrlimit((long)(parm[1]), (void *)parm[2]);
