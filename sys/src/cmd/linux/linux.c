@@ -13,8 +13,8 @@
 #include <mach.h>
 #include <ureg.h>
 #include "elf.h"
-#include "fns.h"
 #include "dat.h"
+#include "fns.h"
 #include "linux.h"
 
 enum {
@@ -188,6 +188,12 @@ handler(void *v, char *s)
 		parm[i] = strtoull(f[i], 0, 0);
 	/* TODO soon: use linuxsystab.h */
 	switch(parm[0]){
+	case 4:
+		u->ax = linuxstat((char*)(parm[1]), (Linuxstat*)(parm[2]));
+		break;
+	case 21:
+		u->ax = access((char*)(parm[1]), (int)(parm[2]));
+		break;
 	case 22:
 		u->ax = pipe((void*)(parm[1]));
 		break;
@@ -195,6 +201,9 @@ handler(void *v, char *s)
 		/* the linux man page is bullshit. */
 		getwd((void *)(parm[1]), (int)(parm[2]));
 		u->ax = (uintptr) strlen((void *)(parm[1]))+1;
+		break;
+	case 80:
+		u->ax = chdir((char*)(parm[1]));
 		break;
 	case 97:
 		u->ax = sys_getrlimit((long)(parm[1]), (void *)parm[2]);
@@ -204,6 +213,12 @@ handler(void *v, char *s)
 		break;
 	case 218:
 		u->ax = sys_set_tid_address((int*)(parm[1]));
+		break;
+	case 273:
+		u->ax = 0;
+		break;
+	default:
+		fprint(2, "linux: unhandled syscall %d\n", parm[0]);
 		break;
 	}
 	calllinuxnoted(NCONT);
@@ -301,6 +316,8 @@ main(int argc, char *argv[])
 		exits("notify fails");
 	}
 	uproc.pid = getpid();
+
+	free(malloc(1048576));
 
 	/* NO print's past this point if you want to live. */
 	if (brk(bssp + fp.bsssz) < 0){

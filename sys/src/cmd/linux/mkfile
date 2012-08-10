@@ -5,6 +5,7 @@ TARG=linux
 OFILES= \
 	callmain.$O\
 	calllinuxnoted.$O\
+	file.$O\
 	trace.$O\
 	proc.$O\
 	rlimit.$O\
