@@ -115,8 +115,6 @@ linuxsyscall(unsigned int, Ureg* ureg)
 
 		if(linuxsystab[scallnr].f == nil){
 			char badsys[ERRMAX];
-			pprint("bad linux sys call number %d(%s) pc %#ullx max %d\n",
-				scallnr, name, ureg->ip, nlinuxsyscall);
 			sprint(badsys, "linux:%d %#ullx %#ullx %#ullx %#ullx %#ullx %#ullx", 
 				scallnr,
 				linuxargs[0], linuxargs[1], linuxargs[2],

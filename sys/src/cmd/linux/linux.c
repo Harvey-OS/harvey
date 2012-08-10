@@ -192,7 +192,9 @@ handler(void *v, char *s)
 		u->ax = pipe((void*)(parm[1]));
 		break;
 	case 79:
-		u->ax = (uintptr) getwd((void *)(parm[1]), (int)(parm[2]));
+		/* the linux man page is bullshit. */
+		getwd((void *)(parm[1]), (int)(parm[2]));
+		u->ax = (uintptr) strlen((void *)(parm[1]))+1;
 		break;
 	case 97:
 		u->ax = sys_getrlimit((long)(parm[1]), (void *)parm[2]);
