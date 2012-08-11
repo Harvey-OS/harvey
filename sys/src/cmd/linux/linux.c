@@ -174,6 +174,7 @@ handler(void *v, char *s)
 	u64int parm[7];
 	struct Ureg* u = v;
         int i, n, nf;
+	char *cp;
 #undef DEBUGHANDLER
 #ifdef DEBUGHANDLER
 	write(2, "HANDLER:", 8);
@@ -198,10 +199,11 @@ handler(void *v, char *s)
 		u->ax = pipe((void*)(parm[1]));
 		break;
 	case 79:
+		u->ax = -ENOENT;
+		cp = getwd((void *)(parm[1]), (int)(parm[2]));
+		if (cp)
+			u->ax = (uintptr) strlen(cp) + 1;
 		/* the linux man page is bullshit. */
-		getwd((void *)(parm[1]), (int)(parm[2]));
-		u->ax = (uintptr) strlen((void *)(parm[1]))+1;
-		break;
 	case 80:
 		u->ax = chdir((char*)(parm[1]));
 		break;
