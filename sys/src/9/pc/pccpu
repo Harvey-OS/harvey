@@ -30,7 +30,10 @@ dev
 	uart
 	usb
 	kbin
+	kbmap
 	audio
+
+	wd
 
 link
 	realmode
@@ -40,6 +43,7 @@ link
 	ether8003	ether8390
 	ether8139	pci
 	ether8169	pci ethermii
+# should be obsoleted by igbe
 #	ether82543gc	pci
 	ether82563	pci
 	ether82557	pci
@@ -51,7 +55,7 @@ link
 	ethervgbe	pci ethermii
 	ethervt6102	pci ethermii
 	ethervt6105m	pci ethermii
-#	etherm10g	pci ethermii
+	etherm10g	pci ethermii
 	ether82598	pci
 	ethersink
 	ethermedium
@@ -59,6 +63,8 @@ link
 	usbuhci
 	usbohci
 	usbehci		usbehcipc
+
+#	x86watchdog
 
 misc
 	archmp		mp apic mpacpi
@@ -88,13 +94,13 @@ ip
 
 port
 	int cpuserver = 1;
+	int idle_if_nproc = 5;
 
 boot cpu
 	tcp
 
 bootdir
-	bootpccpu.out boot
-	/386/bin/ip/ipconfig ipconfig
+	boot$CONF.out boot
+	/386/bin/ip/ipconfig
 	/386/bin/auth/factotum
 	/386/bin/usb/usbd
-	/386/bin/disk/partfs
