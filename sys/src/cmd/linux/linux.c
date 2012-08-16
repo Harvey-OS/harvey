@@ -258,7 +258,7 @@ main(int argc, char *argv[])
 	case 'a':	debugctl |= PersyscallInfo; break;
 	case 'A':	debugctl |= 0xfc; break;
 	case 'S': 	bsssize = strtoul(EARGF(usage()), 0, 0); break;
-	case 'v':	debug++;
+	case 'v':	debug++; break;
 	default:	usage(); break;
 	}ARGEND
 

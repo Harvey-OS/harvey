@@ -115,12 +115,18 @@ linuxopen(Ar0 *ar0, va_list list)
 {
 	va_list s = list;
 	char *aname;
-	int omode;
+	int flags;
+	int mode;
 	void sysopen(Ar0 *, va_list);
+	void syscreate(Ar0 *, va_list);
 	aname = va_arg(list, char*);
-	omode = va_arg(list, int);
-	USED(aname,omode);
-	sysopen(ar0, s);
+	flags = va_arg(list, int); // O_RDONLY, O_WRONLY, O_CREAT, etc
+	mode = va_arg(list, int); // file perms if used
+	USED(aname, flags, mode);
+	if (flags & 0100) // O_CREAT is set
+		syscreate(ar0, s);
+	else
+		sysopen(ar0, s);
 }
 
 void
