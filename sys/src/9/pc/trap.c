@@ -487,9 +487,9 @@ dumpregs(Ureg* ureg)
 	 */
 	iprint("  CR0 %8.8lux CR2 %8.8lux CR3 %8.8lux",
 		getcr0(), getcr2(), getcr3());
-	if(m->cpuiddx & 0x9A){
+	if(m->cpuiddx & (Mce|Tsc|Pse|Vmex)){
 		iprint(" CR4 %8.8lux", getcr4());
-		if((m->cpuiddx & 0xA0) == 0xA0){
+		if((m->cpuiddx & (Mce|Cpumsr)) == (Mce|Cpumsr)){
 			rdmsr(0x00, &mca);
 			rdmsr(0x01, &mct);
 			iprint("\n  MCA %8.8llux MCT %8.8llux", mca, mct);

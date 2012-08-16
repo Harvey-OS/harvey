@@ -698,7 +698,7 @@ pdbmap(ulong *pdb, ulong pa, ulong va, int size)
 	flag = pa&0xFFF;
 	pa &= ~0xFFF;
 
-	if((MACHP(0)->cpuiddx & 0x08) && (getcr4() & 0x10))
+	if((MACHP(0)->cpuiddx & Pse) && (getcr4() & 0x10))
 		pse = 1;
 	else
 		pse = 0;

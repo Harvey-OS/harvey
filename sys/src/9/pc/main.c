@@ -80,15 +80,10 @@ main(void)
 {
 	cgapost(0);
 	mach0init();
-cgapost(1);
 	options();
-cgapost(2);
 	ioinit();
-cgapost(3);
 	i8250console();
-cgapost(4);
 	quotefmtinstall();
-cgapost(5);
 	screeninit();
 
 	print("\nPlan 9\n");
@@ -184,14 +179,12 @@ init0(void)
 
 	up->nerrlab = 0;
 
-cgapost(0x70);
 	spllo();
 
 	/*
 	 * These are o.k. because rootinit is null.
 	 * Then early kproc's will have a root and dot.
 	 */
-cgapost(0x71);
 	up->slash = namec("#/", Atodir, 0, 0);
 	pathclose(up->slash->path);
 	up->slash->path = newpath("/");
@@ -200,7 +193,6 @@ cgapost(0x71);
 	chandevinit();
 
 	if(!waserror()){
-cgapost(0x72);
 		snprint(buf, sizeof(buf), "%s %s", arch->id, conffile);
 		ksetenv("terminal", buf, 0);
 		ksetenv("cputype", "386", 0);
@@ -215,7 +207,6 @@ cgapost(0x72);
 		}
 		poperror();
 	}
-cgapost(0x73);
 	kproc("alarm", alarmkproc, 0);
 	cgapost(0x9);
 	touser(sp);
@@ -583,7 +574,7 @@ matherror(Ureg *ur, void*)
 	 *  a write cycle to port 0xF0 clears the interrupt latch attached
 	 *  to the error# line from the 387
 	 */
-	if(!(m->cpuiddx & 0x01))
+	if(!(m->cpuiddx & Fpuonchip))
 		outb(0xF0, 0xFF);
 
 	/*
