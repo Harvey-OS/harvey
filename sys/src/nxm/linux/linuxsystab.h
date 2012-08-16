@@ -3,6 +3,7 @@ typedef void Syscall(Ar0*, va_list);
 Syscall linuxuname;
 Syscall	linuxbrk;
 Syscall linuxopen;
+Syscall linuxmkdir;
 Syscall linuxclose;
 Syscall syssegbrk;
 Syscall linuxwritev;
@@ -146,7 +147,7 @@ struct syscall linuxsystab[] = {
 	[80] {"chdir", nil, 1, {.p = (void *)-1}},
 	[81] {"fchdir", nil, 1, {.p = (void *)-1}},
 	[82] {"rename", nil, 1, {.p = (void *)-1}},
-	[83] {"mkdir", nil, 1, {.p = (void *)-1}},
+	[83] {"mkdir", linuxmkdir, 2, {.p = (void *)-1}},
 	[84] {"rmdir", nil, 1, {.p = (void *)-1}},
 	[85] {"creat", nil, 1, {.p = (void *)-1}},
 	[86] {"link", nil, 1, {.p = (void *)-1}},

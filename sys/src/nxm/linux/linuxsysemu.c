@@ -606,3 +606,29 @@ void getrusage(Ar0 *ar0, va_list list)
 void linuxsyscallnop(Ar0 *, va_list)
 {
 }
+
+void
+linuxmkdir(Ar0 *ar0, va_list list)
+{
+	va_list s = list;
+	Chan *c;
+	char *aname;
+	int perm;
+	aname = va_arg(list, char*);
+	perm = va_arg(list, int);
+
+	c = nil;
+	if(waserror()) {
+		if(c != nil)
+			cclose(c);
+		nexterror();
+	}
+	c = namec(validaddr(aname, 1, 0), Acreate, 0, perm|DMDIR);
+	poperror();
+
+	cclose(c);
+	ar0->i = 0;
+	
+
+}
+
