@@ -31,7 +31,7 @@ newseg(int type, uintptr base, u64int size)
 		error(Enovmem);
 
 	pgsz = BIGPGSZ;
-	if(size*BIGPGSZ >= 1*GiB && getpgszi(1*GiB) >= 0 &&
+	if(size*BIGPGSZ >= 1*GiB && m->pgsz[getpgszi(1*GiB)] == 1*GiB &&
 	   (base&(1ULL*GiB-1)) == 0 && ((size*BIGPGSZ)&(1ULL*GiB-1)) == 0){
 		DBG("newseg: using 1G pages\n");
 		pgsz = 1*GiB;

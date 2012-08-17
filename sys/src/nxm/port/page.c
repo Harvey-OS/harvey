@@ -87,9 +87,12 @@ getpgszi(usize size)
 {
 	int si;
 
-	for(si = 0; si < m->npgsz; si++)
+	for(si = 0; si < m->npgsz; si++){
 		if(size == m->pgsz[si])
 			return si;
+		if(size < m->pgsz[si])
+			return si-1;
+	}
 	print("getpgszi: size %#ulx not found\n", size);
 	return -1;
 }
