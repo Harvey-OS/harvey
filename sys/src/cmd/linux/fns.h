@@ -4,6 +4,7 @@ u64int linux_mmap(u64int, u64int, u64int, u64int, u64int, u64int);
 u64int linux_munmap(u64int, u64int);
 
 int linuxstat(char*, Linuxstat*);
+int linuxfcntl(int, int, void*);
 
 /* trace */
 void inittrace(void);

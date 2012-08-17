@@ -198,6 +198,9 @@ handler(void *v, char *s)
 	case 22:
 		u->ax = pipe((void*)(parm[1]));
 		break;
+	case 72:
+		u->ax = linuxfcntl((int)(parm[1]), (int)(parm[2]), (void*)(parm[3]));
+		break;
 	case 79:
 		u->ax = -ENOENT;
 		cp = getwd((void *)(parm[1]), (int)(parm[2]));
