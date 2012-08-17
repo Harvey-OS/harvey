@@ -1,0 +1,63 @@
+.TH WD 3
+.SH NAME
+wd - hardware watchdog timer
+.SH SYNOPSIS
+.nf
+.B bind -a #w /dev
+.sp 0.3v
+.B /dev/wdctl
+.SH DESCRIPTION
+This device presents textual information about hardware watchdog timers
+on PCs and some other machines,
+and allows user-level control of them.
+When enabled, a watchdog timer counts to zero in a few seconds;
+upon reaching zero, it resets the machine with an NMI or equivalent.
+Some process must periodically restart the watchdog to avoid the NMI and
+keep the system alive;
+.IR watchdog (8)
+is one such program.
+.PP
+Reads from
+.I wdctl
+yield data of this form:
+.IP
+.EX
+enabled 3 restarts
+.EE
+.LP
+or
+.IP
+.EX
+disabled 3 restarts
+.EE
+.LP
+Control messages may be written to
+.I wdctl
+and include
+.LR enable ,
+.LR disable ,
+and
+.LR restart .
+.LP
+The watchdog is disabled at system shutdown, and when the last open
+file descriptor for
+.I wdctl
+is closed.
+.SH SOURCE
+.B /sys/src/9/port/devwd.c
+.br
+.B /sys/src/9/*/*watchdog.c
+.SH SEE ALSO
+.IR proc (3),
+.IR watchdog (8)
+.SH BUGS
+On PCs,
+to ensure consistent use of one CPU's timers,
+an
+.L enable
+message wires the issuing process
+(see
+.IR proc (3))
+to a CPU,
+and any subsequent control messages will
+wire the issuing processes to that same CPU.

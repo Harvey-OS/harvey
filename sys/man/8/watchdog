@@ -1,0 +1,18 @@
+.TH WATCHDOG 8
+.SH NAME
+watchdog \- reset the system if it gets stuck
+.SH SYNOPSIS
+.B aux/watchdog
+.SH DESCRIPTION
+.I Watchdog
+writes
+.L restart
+to
+.L #w/wdctl
+at least once per second.
+If the system gets stuck, the hardware watchdog will reset the system via NMI.
+.SH SOURCE
+.B /sys/src/cmd/aux/watchdog.c
+.SH SEE ALSO
+.IR wd (3),
+.IR reboot (8)
