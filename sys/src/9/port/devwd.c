@@ -15,6 +15,7 @@ enum {
 };
 
 static Watchdog *wd;
+static Ref refs;
 static Dirtab wddir[] = {
 	".",		{ Qdir, 0, QTDIR },	0,		0555,
 	"wdctl",	{ Qwdctl, 0 },		0,		0664,
@@ -54,12 +55,24 @@ wdstat(Chan *c, uchar *dp, int n)
 static Chan*
 wdopen(Chan* c, int omode)
 {
-	return devopen(c, omode, wddir, nelem(wddir), devgen);
+	c = devopen(c, omode, wddir, nelem(wddir), devgen);
+	if (c->qid.path == Qwdctl)
+		incref(&refs);
+	return c;
 }
 
 static void
-wdclose(Chan*)
+wdclose(Chan *c)
 {
+	if(c->qid.path == Qwdctl && c->flag&COPEN && decref(&refs) <= 0 && wd)
+		wd->disable();
+}
+
+static void
+wdshutdown(void)
+{
+	if (wd)
+		wd->disable();
 }
 
 static long
@@ -141,7 +154,7 @@ Dev wddevtab = {
 
 	devreset,
 	devinit,
-	devshutdown,
+	wdshutdown,
 	wdattach,
 	wdwalk,
 	wdstat,

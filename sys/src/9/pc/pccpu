@@ -22,49 +22,59 @@ dev
 
 	ether		netif
 	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum386 inferno
+	kbmap
+	kbin
 
 	sd
 	floppy		dma
 	aoe
 
+	audio		dma
 	uart
 	usb
-	kbin
-	kbmap
-	audio
 
 	wd
 
 link
 	realmode
+
+# order of ethernet drivers should match that in ../pcboot/boot so that
+# devices are detected in the same order by bootstraps and kernels
+# and thus given the same controller numbers.
 	ether2000	ether8390
 	ether2114x	pci
+	ether589	etherelnk3
 	ether79c970	pci
 	ether8003	ether8390
 	ether8139	pci
 	ether8169	pci ethermii
 # should be obsoleted by igbe
-#	ether82543gc	pci
+	ether82543gc	pci
 	ether82563	pci
 	ether82557	pci
 	ether83815	pci
 	etherdp83820	pci
+	etherec2t	ether8390
 	etherelnk3	pci
 	etherga620	pci
 	etherigbe	pci ethermii
 	ethervgbe	pci ethermii
 	ethervt6102	pci ethermii
 	ethervt6105m	pci ethermii
-	etherm10g	pci ethermii
-	ether82598	pci
 	ethersink
+	ethersmc	devi82365 cis
+	etherwavelan	wavelan devi82365 cis pci
 	ethermedium
+	etherm10g
+	ether82598	pci
+
 	loopbackmedium
+
 	usbuhci
 	usbohci
 	usbehci		usbehcipc
 
-#	x86watchdog
+	x86watchdog
 
 misc
 	archmp		mp apic mpacpi
