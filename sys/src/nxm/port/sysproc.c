@@ -1306,8 +1306,6 @@ syssemrelease(Ar0* ar0, va_list list)
 /*
  * set tls. Not implemented as a write to /proc/<pid>/ctl
  * because it really ought to be fast.
- * takes an addr and verifies it is valid and writeable
- * for sizeof(ulong)
  */
 void
 syssettls(Ar0* ar0, va_list list)
@@ -1318,7 +1316,6 @@ syssettls(Ar0* ar0, va_list list)
 	 * int settls(long* addr);
 	 */
 	addr = va_arg(list, ulong*);
-	addr = validaddr(addr, sizeof(ulong), 1);
 
 	up->tls = addr;
 	ar0->i = 0;
