@@ -42,6 +42,10 @@ link
 	devpccard
 	devi82365
 	apm		apmjump
+
+# order of ethernet drivers should match that in ../pcboot/boot so that
+# devices are detected in the same order by bootstraps and kernels
+# and thus given the same controller numbers.
 	ether2000	ether8390
 	ether2114x	pci
 	ether589	etherelnk3
@@ -49,8 +53,7 @@ link
 	ether8003	ether8390
 	ether8139	pci
 	ether8169	pci ethermii
-# should be obsoleted by igbe
-#	ether82543gc	pci
+	ether82543gc	pci
 	ether82557	pci
 	ether82563	pci
 	ether83815	pci
@@ -65,16 +68,18 @@ link
 	ethersink
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
+
 	ethermedium
 	pcmciamodem
 	netdevmedium
 	loopbackmedium
+
 	usbuhci
 	usbohci
 	usbehci		usbehcipc
 
 misc
-	archmp		mp apic
+	archmp		mp apic mpacpi
 	mtrr
 
 	sdata		pci sdscsi
@@ -129,10 +134,11 @@ boot boot #S/sdC0/
 	local
 
 bootdir
-	bootpcf.out boot
+	boot$CONF.out boot
 	/386/bin/ip/ipconfig
 	/386/bin/auth/factotum
 	/386/bin/fossil/fossil
 	/386/bin/venti/venti
 	/386/bin/usb/usbd
+# needed to boot from a usb key and use its fossil
 	/386/bin/disk/partfs

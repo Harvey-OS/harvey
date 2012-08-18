@@ -23,8 +23,8 @@ link
 	ether8139	pci
 	ether8169	pci ethermii
 	ether82543gc	pci
-	ether82563	pci
 	ether82557	pci
+	ether82563	pci
 	ether83815	pci
 	etherdp83820	pci
 	etherec2t	ether8390
@@ -37,9 +37,10 @@ link
 #	ethersink
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
-	ethermedium
 	etherm10g
 	ether82598	pci
+
+	ethermedium
 
 misc
 	bootld

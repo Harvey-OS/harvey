@@ -28,6 +28,7 @@ dev
 
 	sd
 	floppy		dma
+	aoe
 	lpt
 
 	audio		dma
@@ -35,7 +36,6 @@ dev
 	i82365		cis
 	uart
 	usb
-	aoe
 
 link
 	realmode
@@ -43,16 +43,21 @@ link
 	devi82365
 	apm		apmjump
 
+# order of ethernet drivers should match that in ../pcboot/boot so that
+# devices are detected in the same order by bootstraps and kernels
+# and thus given the same controller numbers.
 	ether2000	ether8390
 	ether2114x	pci
 	ether589	etherelnk3
 	ether79c970	pci
 	ether8003	ether8390
-	ether8139
+	ether8139	pci
 	ether8169	pci ethermii
-	ether82563	pci
+	ether82543gc	pci
 	ether82557	pci
+	ether82563	pci
 	ether83815	pci
+	etherdp83820	pci
 	etherec2t	ether8390
 	etherelnk3	pci
 	etherga620	pci
@@ -74,7 +79,7 @@ link
 	usbehci		usbehcipc
 
 misc
-	archmp		mp apic
+	archmp		mp apic mpacpi
 	mtrr
 
 	sdata		pci sdscsi
@@ -95,12 +100,13 @@ misc
 	vgacyber938x	+cur
 	vgaet4000	+cur
 	vgahiqvideo	+cur
-	vgai81x	+cur
+	vgai81x		+cur
 	vgamach64xx	+cur
 	vgamga2164w	+cur
 	vgamga4xx	+cur
 	vganeomagic	+cur
 	vganvidia	+cur
+	vgaradeon	+cur
 	vgargb524	=cur
 	vgas3		+cur vgasavage
 	vgat2r4		+cur

@@ -1,4 +1,4 @@
-# pccpuf - pc cpu server with fossil root and maybe venti block store
+# pccpuf - pc cpu server with fossil root, vga and maybe venti block store
 dev
 	root
 	cons
@@ -25,6 +25,8 @@ dev
 	draw		screen vga vgax
 	mouse		mouse
 	vga
+	kbin
+	kbmap
 
 	sd
 	floppy		dma
@@ -32,12 +34,15 @@ dev
 
 	uart
 	usb
-	kbin
 
 link
 	realmode
 	devpccard
 	devi82365
+
+# order of ethernet drivers should match that in ../pcboot/boot so that
+# devices are detected in the same order by bootstraps and kernels
+# and thus given the same controller numbers.
 	ether2000	ether8390
 	ether2114x	pci
 	ether589	etherelnk3
@@ -46,8 +51,8 @@ link
 	ether8139	pci
 	ether8169	pci ethermii
 	ether82543gc	pci
-	ether82563	pci
 	ether82557	pci
+	ether82563	pci
 	ether83815	pci
 	etherdp83820	pci
 	etherec2t	ether8390
@@ -57,19 +62,22 @@ link
 	ethervgbe	pci ethermii
 	ethervt6102	pci ethermii
 	ethervt6105m	pci ethermii
-#	etherm10g	pci
 	ethersink
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
+	etherm10g	pci ethermii
+	ether82598	pci
+
 	ethermedium
 	netdevmedium
 	loopbackmedium
+
 	usbuhci
 	usbohci
 	usbehci		usbehcipc
 
 misc
-	archmp		mp apic
+	archmp		mp apic mpacpi
 	mtrr
 
 	uarti8250
@@ -107,13 +115,13 @@ misc
 ip
 	tcp
 	udp
+	rudp
 	ipifc
 	icmp
 	icmp6
 	gre
 	ipmux
 	esp
-	rudp
 
 port
 	int cpuserver = 1;
@@ -123,11 +131,11 @@ boot cpu boot #S/sdC0/
 	local
 
 bootdir
-	bootpccpuf.out boot
+	boot$CONF.out boot
 	/386/bin/ip/ipconfig
 	/386/bin/auth/factotum
-#	/386/bin/disk/kfs
 	/386/bin/fossil/fossil
 	/386/bin/venti/venti
 	/386/bin/usb/usbd
+# needed to boot from a usb key and use its fossil
 	/386/bin/disk/partfs
