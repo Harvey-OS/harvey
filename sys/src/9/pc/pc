@@ -54,10 +54,9 @@ link
 	ether8003	ether8390
 	ether8139	pci
 	ether8169	pci ethermii
-# should be obsoleted by igbe
 	ether82543gc	pci
-	ether82563	pci
 	ether82557	pci
+	ether82563	pci
 	ether83815	pci
 	etherdp83820	pci
 	etherec2t	ether8390
@@ -70,10 +69,10 @@ link
 	ethersink
 	ethersmc	devi82365 cis
 	etherwavelan	wavelan devi82365 cis pci
-	ethermedium
-	etherm10g
-	ether82598	pci
+#	etherm10g	pci ethermii		# vast firmware
+#	ether82598	pci
 
+	ethermedium
 	pcmciamodem
 	netdevmedium
 	loopbackmedium
@@ -106,7 +105,7 @@ misc
 	vgacyber938x	+cur
 	vgaet4000	+cur
 	vgahiqvideo	+cur
-	vgai81x	+cur
+	vgai81x		+cur
 	vgamach64xx	+cur
 	vgamga2164w	+cur
 	vgamga4xx	+cur
@@ -124,6 +123,7 @@ misc
 ip
 	tcp
 	udp
+	rudp
 	ipifc
 	icmp
 	icmp6
@@ -142,4 +142,5 @@ bootdir
 	/386/bin/ip/ipconfig
 	/386/bin/auth/factotum
 	/386/bin/usb/usbd
+# needed to boot from a usb key and use its fossil
 	/386/bin/disk/partfs
