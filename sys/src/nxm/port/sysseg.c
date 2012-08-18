@@ -115,7 +115,7 @@ ibrk(uintptr addr, int seg)
 			pexit(Esoverlap, 1);
 	}
 
-	if(seg == BSEG && newtop >= ROUNDUP(s->top, 1*GiB) + 1*GiB){
+	if(0 && seg == BSEG && newtop >= ROUNDUP(s->top, 1*GiB) + 1*GiB){
 		DBG("segment using 1G pages\n");
 		/*
 		 * brk the bss up to the 1G boundary, and create
