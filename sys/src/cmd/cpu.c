@@ -60,7 +60,7 @@ struct AuthMethod {
 {
 	{ "p9",		p9auth,		srvp9auth,},
 	{ "netkey",	netkeyauth,	netkeysrvauth,},
-//	{ "none",	noauth,		srvnoauth,},
+	{ "none",	noauth,		srvnoauth,},
 	{ nil,	nil}
 };
 AuthMethod *am = authmethod;	/* default is p9 */
