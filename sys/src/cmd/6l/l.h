@@ -362,6 +362,7 @@ double	ieeedtod(Ieee*);
 long	ieeedtof(Ieee*);
 void	import(void);
 void	ldobj(int, long, char*);
+void	Lflag(char*);
 void	loadlib(void);
 void	listinit(void);
 Sym*	lookup(char*, int);
