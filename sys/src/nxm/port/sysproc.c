@@ -13,6 +13,7 @@
 void
 sysrfork(Ar0* ar0, va_list list)
 {
+	void sysrforkrettrace(void);
 	Proc *p;
 	int flag, i, n, pid;
 	Fgrp *ofg;
@@ -190,7 +191,10 @@ sysrfork(Ar0* ar0, va_list list)
 	/* Craft a return frame which will cause the child to pop out of
 	 * the scheduler in user mode with the return register zero
 	 */
-	sysrforkchild(p, up, sysrforkret, 0);
+	if (up->procctl == Proc_tracesyscall)
+		sysrforkchild(p, up, sysrforkrettrace, 0);
+	else
+		sysrforkchild(p, up, sysrforkret, 0);
 
 	p->parent = up;
 	p->parentpid = up->pid;
@@ -1196,7 +1200,6 @@ tsemacquire(Segment* s, int* addr, long ms)
 	int acquired;
 	ulong t;
 	Sema phore;
-
 	if(canacquire(addr))
 		return 1;
 	if(ms == 0)

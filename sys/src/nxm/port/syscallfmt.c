@@ -373,6 +373,15 @@ sysretfmt(int syscallno, va_list list, Ar0* ar0, uvlong start, uvlong stop)
 			errstr = up->errstr;
 		fmtprint(&fmt, " = %d", ar0->i);
 		break;
+	case RFORK:
+		if (ar0){
+			i = ar0->i;
+			if(ar0->i == -1)
+				errstr = up->errstr;
+		} else
+			i = 0;
+		fmtprint(&fmt, " = %d", i);
+		break;
 	case ALARM:
 	case _WRITE:
 	case PWRITE:

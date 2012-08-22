@@ -188,6 +188,8 @@ _syscallreturn:
 
 	BYTE $0x48; SYSRET			/* SYSRETQ */
 
+TEXT sysrforkrettrace(SB), 1, $-4
+	CALL rforktraceend(SB)
 TEXT sysrforkret(SB), 1, $-4
 	MOVQ	$0, AX
 	JMP	_syscallreturn

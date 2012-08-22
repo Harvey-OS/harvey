@@ -242,6 +242,14 @@ traceend(int scallnr, uintptr sp, Ar0 *ar0, vlong startns, vlong stopns)
 	up->syscalltrace = nil;		
 }
 
+/* special case: leaving sysrfork as a child. We consider 0 time to have passed. 
+ * always return 0.
+ */
+void
+rforktraceend(void)
+{
+	traceend(RFORK, 0, nil, 0, 0);
+}
 /* it should be unsigned. FIXME */
 void
 syscall(int badscallnr, Ureg* ureg)
