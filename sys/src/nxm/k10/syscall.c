@@ -227,6 +227,21 @@ badsyscall(int scallnr)
 
 	return 0;
 }
+
+void
+traceend(int scallnr, uintptr sp, Ar0 *ar0, vlong startns, vlong stopns)
+{
+	int s;
+	up->procctl = Proc_stopme;
+	sysretfmt(scallnr, (va_list)(sp+BY2SE), ar0, startns, stopns);
+	s = splhi();
+	procctl(up);
+	splx(s);
+	if(up->syscalltrace)
+		free(up->syscalltrace);
+	up->syscalltrace = nil;		
+}
+
 /* it should be unsigned. FIXME */
 void
 syscall(int badscallnr, Ureg* ureg)
@@ -342,14 +357,7 @@ syscall(int badscallnr, Ureg* ureg)
 
 	if(up->procctl == Proc_tracesyscall){
 		stopns = todget(nil);
-		up->procctl = Proc_stopme;
-		sysretfmt(scallnr, (va_list)(sp+BY2SE), &ar0, startns, stopns);
-		s = splhi();
-		procctl(up);
-		splx(s);
-		if(up->syscalltrace)
-			free(up->syscalltrace);
-		up->syscalltrace = nil;		
+		traceend(scallnr, sp, &ar0, startns, stopns);
 	}else if(up->procctl == Proc_totc || up->procctl == Proc_toac)
 		procctl(up);
 
