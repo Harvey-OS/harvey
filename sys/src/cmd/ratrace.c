@@ -91,12 +91,14 @@ reader(void *v)
 			char *rf;
 
 			rf = strdup(s->buf);
-         		if (tokenize(rf, a, 8) == 5 &&
-			    strtoul(a[4], 0, 16) & RFPROC)
+         		if (tokenize(rf, a, 8) == 4 &&
+			    strtoul(a[3], 0, 16) & RFPROC){
 				forking = 1;
+			}
 			free(rf);
-		} else if (strstr(s->buf, " Exits") != nil)
+		} else if (strstr(s->buf, " Exits") != nil){
 			exiting = 1;
+		}
 
 		sendp(out, s);	/* print line from /proc/$child/syscall */
 		if (exiting) {
