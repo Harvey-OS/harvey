@@ -1,54 +1,96 @@
-/* from qemu */
-#ifdef TARGET_X86_64
-    /* This corresponds with amd64_register_info[] in gdb/amd64-tdep.c */
-    uint64_t *registers64 = (uint64_t *)mem_buf;
+/****************************************************************************
 
-    if (env->hflags & HF_CS64_MASK) {
-        registers64[0] = tswap64(env->regs[R_EAX]);
-        registers64[1] = tswap64(env->regs[R_EBX]);
-        registers64[2] = tswap64(env->regs[R_ECX]);
-        registers64[3] = tswap64(env->regs[R_EDX]);
-        registers64[4] = tswap64(env->regs[R_ESI]);
-        registers64[5] = tswap64(env->regs[R_EDI]);
-        registers64[6] = tswap64(env->regs[R_EBP]);
-        registers64[7] = tswap64(env->regs[R_ESP]);
-        for(i = 8; i < 16; i++) {
-            registers64[i] = tswap64(env->regs[i]);
-        }
-        registers64[16] = tswap64(env->eip);
+                THIS SOFTWARE IS NOT COPYRIGHTED
 
-        registers = (uint32_t *)&registers64[17];
-        registers[0] = tswap32(env->eflags);
-        registers[1] = tswap32(env->segs[R_CS].selector);
-        registers[2] = tswap32(env->segs[R_SS].selector);
-        registers[3] = tswap32(env->segs[R_DS].selector);
-        registers[4] = tswap32(env->segs[R_ES].selector);
-        registers[5] = tswap32(env->segs[R_FS].selector);
-        registers[6] = tswap32(env->segs[R_GS].selector);
-        /* XXX: convert floats */
-        for(i = 0; i < 8; i++) {
-            memcpy(mem_buf + 16 * 8 + 7 * 4 + i * 10, &env->fpregs[i], 10);
-        }
-        registers[27] = tswap32(env->fpuc); /* fctrl */
-        fpus = (env->fpus & ~0x3800) | (env->fpstt & 0x7) << 11;
-        registers[28] = tswap32(fpus); /* fstat */
-        registers[29] = 0; /* ftag */
-        registers[30] = 0; /* fiseg */
-        registers[31] = 0; /* fioff */
-        registers[32] = 0; /* foseg */
-        registers[33] = 0; /* fooff */
-        registers[34] = 0; /* fop */
-        for(i = 0; i < 16; i++) {
-            memcpy(mem_buf + 16 * 8 + 35 * 4 + i * 16, &env->xmm_regs[i], 16);
-        }
-        registers[99] = tswap32(env->mxcsr);
+   HP offers the following for use in the public domain.  HP makes no
+   warranty with regard to the software or its performance and the
+   user accepts the software "AS IS" with all faults.
 
-        return 8 * 17 + 4 * 7 + 10 * 8 + 4 * 8 + 16 * 16 + 4;
-    }
-#endif
-/* GPL core from coreboot: src/arch/x86/lib/exception.c
- * you don't like the GPL? Just rewrite this code.
- */
+   HP DISCLAIMS ANY WARRANTIES, EXPRESS OR IMPLIED, WITH REGARD
+   TO THIS SOFTWARE INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+   OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+****************************************************************************/
+
+/****************************************************************************
+ *  Header: remcom.c,v 1.34 91/03/09 12:29:49 glenne Exp $
+ *
+ *  Module name: remcom.c $
+ *  Revision: 1.34 $
+ *  Date: 91/03/09 12:29:49 $
+ *  Contributor:     Lake Stevens Instrument Division$
+ *
+ *  Description:     low level support for gdb debugger. $
+ *
+ *  Considerations:  only works on target hardware $
+ *
+ *  Written by:      Glenn Engel $
+ *  ModuleState:     Experimental $
+ *
+ *  NOTES:           See Below $
+ *
+ *  Modified for FreeBSD by Stu Grossman.
+ *
+ *  To enable debugger support, two things need to happen.  One, a
+ *  call to set_debug_traps() is necessary in order to allow any breakpoints
+ *  or error conditions to be properly intercepted and reported to gdb.
+ *  Two, a breakpoint needs to be generated to begin communication.  This
+ *  is most easily accomplished by a call to breakpoint().  Breakpoint()
+ *  simulates a breakpoint by executing a trap #1.
+ *
+ *  The external function exceptionHandler() is
+ *  used to attach a specific handler to a specific 386 vector number.
+ *  It should use the same privilege level it runs at.  It should
+ *  install it as an interrupt gate so that interrupts are masked
+ *  while the handler runs.
+ *  Also, need to assign exceptionHook and oldExceptionHook.
+ *
+ *  Because gdb will sometimes write to the stack area to execute function
+ *  calls, this program cannot rely on using the supervisor stack so it
+ *  uses its own stack area reserved in the int array remcomStack.
+ *
+ *************
+ *
+ *    The following gdb commands are supported:
+ *
+ * command          function                               Return value
+ *
+ *    g             return the value of the CPU registers  hex data or ENN
+ *    G             set the value of the CPU registers     OK or ENN
+ *
+ *    mAA..AA,LLLL  Read LLLL bytes at address AA..AA      hex data or ENN
+ *    MAA..AA,LLLL: Write LLLL bytes at address AA.AA      OK or ENN
+ *
+ *    c             Resume at current address              SNN   ( signal NN)
+ *    cAA..AA       Continue at address AA..AA             SNN
+ *
+ *    s             Step one instruction                   SNN
+ *    sAA..AA       Step one instruction from AA..AA       SNN
+ *
+ *    k             kill
+ *
+ *    ?             What was the last sigval ?             SNN   (signal NN)
+ *
+ *    D             detach                                 OK
+ *
+ * All commands and responses are sent with a packet which includes a
+ * checksum.  A packet consists of
+ *
+ * $<packet info>#<checksum>.
+ *
+ * where
+ * <packet info> :: <characters representing the command or response>
+ * <checksum>    :: < two hex digits computed as modulo 256 sum of <packetinfo>>
+ *
+ * When a packet is received, it is first acknowledged with either '+' or '-'.
+ * '+' indicates a successful transfer.  '-' indicates a failed transfer.
+ *
+ * Example:
+ *
+ * Host:                  Reply:
+ * $m0,10#2a               +$00010203040506070809101112131415#42
+ *
+ ****************************************************************************/
 
 #include "u.h"
 #include "../port/lib.h"
@@ -57,310 +99,96 @@
 #include "fns.h"
 
 #include "ureg.h"
-/* BUFMAX defines the maximum number of characters in inbound/outbound buffers.
- * At least NUM_REGBYTES*2 are needed for register packets
- */
+#include "amd64.h"
+
+void            gdb_handle_exception (struct Ureg*, int, int);
+
+/************************************************************************/
+
+//extern jmp_buf  db_jmpbuf;
+
+/************************************************************************/
+/* BUFMAX defines the maximum number of characters in inbound/outbound buffers*/
+/* at least NUMREGBYTES*2 are needed for register packets */
 #define BUFMAX 400
-enum regnames {
-	EAX = 0, EBX, ECX, EDX, SI, DI, BP, SP, 
-	R8, R9, R10, R11, R12, R13, R14, R15, 
-	IP, FLAGS, CS, SS,
-	NUM_REGS
-};
 
-static u64int gdb_stub_registers[NUM_REGS];
+/* Create private copies of common functions used by the stub.  This prevents
+   nasty interactions between app code and the stub (for instance if user steps
+   into strlen, etc..) */
 
-#define GDB_SIG0         0     /* Signal 0 */
-#define GDB_SIGHUP       1     /* Hangup */
-#define GDB_SIGINT       2     /* Interrupt */
-#define GDB_SIGQUIT      3     /* Quit */
-#define GDB_SIGILL       4     /* Illegal instruction */
-#define GDB_SIGTRAP      5     /* Trace/breakpoint trap */
-#define GDB_SIGABRT      6     /* Aborted */
-#define GDB_SIGEMT       7     /* Emulation trap */
-#define GDB_SIGFPE       8     /* Arithmetic exception */
-#define GDB_SIGKILL      9     /* Killed */
-#define GDB_SIGBUS       10    /* Bus error */
-#define GDB_SIGSEGV      11    /* Segmentation fault */
-#define GDB_SIGSYS       12    /* Bad system call */
-#define GDB_SIGPIPE      13    /* Broken pipe */
-#define GDB_SIGALRM      14    /* Alarm clock */
-#define GDB_SIGTERM      15    /* Terminated */
-#define GDB_SIGURG       16    /* Urgent I/O condition */
-#define GDB_SIGSTOP      17    /* Stopped (signal) */
-#define GDB_SIGTSTP      18    /* Stopped (user) */
-#define GDB_SIGCONT      19    /* Continued */
-#define GDB_SIGCHLD      20    /* Child status changed */
-#define GDB_SIGTTIN      21    /* Stopped (tty input) */
-#define GDB_SIGTTOU      22    /* Stopped (tty output) */
-#define GDB_SIGIO        23    /* I/O possible */
-#define GDB_SIGXCPU      24    /* CPU time limit exceeded */
-#define GDB_SIGXFSZ      25    /* File size limit exceeded */
-#define GDB_SIGVTALRM    26    /* Virtual timer expired */
-#define GDB_SIGPROF      27    /* Profiling timer expired */
-#define GDB_SIGWINCH     28    /* Window size changed */
-#define GDB_SIGLOST      29    /* Resource lost */
-#define GDB_SIGUSR1      30    /* User defined signal 1 */
-#define GDB_SUGUSR2      31    /* User defined signal 2 */
-#define GDB_SIGPWR       32    /* Power fail/restart */
-#define GDB_SIGPOLL      33    /* Pollable event occurred */
-#define GDB_SIGWIND      34    /* SIGWIND */
-#define GDB_SIGPHONE     35    /* SIGPHONE */
-#define GDB_SIGWAITING   36    /* Process's LWPs are blocked */
-#define GDB_SIGLWP       37    /* Signal LWP */
-#define GDB_SIGDANGER    38    /* Swap space dangerously low */
-#define GDB_SIGGRANT     39    /* Monitor mode granted */
-#define GDB_SIGRETRACT   40    /* Need to relinquish monitor mode */
-#define GDB_SIGMSG       41    /* Monitor mode data available */
-#define GDB_SIGSOUND     42    /* Sound completed */
-#define GDB_SIGSAK       43    /* Secure attention */
-#define GDB_SIGPRIO      44    /* SIGPRIO */
+#define strlen  gdb_strlen
+#define strcpy  gdb_strcpy
 
-#define GDB_SIG33        45    /* Real-time event 33 */
-#define GDB_SIG34        46    /* Real-time event 34 */
-#define GDB_SIG35        47    /* Real-time event 35 */
-#define GDB_SIG36        48    /* Real-time event 36 */
-#define GDB_SIG37        49    /* Real-time event 37 */
-#define GDB_SIG38        50    /* Real-time event 38 */
-#define GDB_SIG39        51    /* Real-time event 39 */
-#define GDB_SIG40        52    /* Real-time event 40 */
-#define GDB_SIG41        53    /* Real-time event 41 */
-#define GDB_SIG42        54    /* Real-time event 42 */
-#define GDB_SIG43        55    /* Real-time event 43 */
-#define GDB_SIG44        56    /* Real-time event 44 */
-#define GDB_SIG45        57    /* Real-time event 45 */
-#define GDB_SIG46        58    /* Real-time event 46 */
-#define GDB_SIG47        59    /* Real-time event 47 */
-#define GDB_SIG48        60    /* Real-time event 48 */
-#define GDB_SIG49        61    /* Real-time event 49 */
-#define GDB_SIG50        62    /* Real-time event 50 */
-#define GDB_SIG51        63    /* Real-time event 51 */
-#define GDB_SIG52        64    /* Real-time event 52 */
-#define GDB_SIG53        65    /* Real-time event 53 */
-#define GDB_SIG54        66    /* Real-time event 54 */
-#define GDB_SIG55        67    /* Real-time event 55 */
-#define GDB_SIG56        68    /* Real-time event 56 */
-#define GDB_SIG57        69    /* Real-time event 57 */
-#define GDB_SIG58        70    /* Real-time event 58 */
-#define GDB_SIG59        71    /* Real-time event 59 */
-#define GDB_SIG60        72    /* Real-time event 60 */
-#define GDB_SIG61        73    /* Real-time event 61 */
-#define GDB_SIG62        74    /* Real-time event 62 */
-#define GDB_SIG63        75    /* Real-time event 63 */
-#define GDB_SIGCANCEL    76    /* LWP internal signal */
-#define GDB_SIG32        77    /* Real-time event 32 */
-#define GDB_SIG64        78    /* Real-time event 64 */
-#define GDB_SIG65        79    /* Real-time event 65 */
-#define GDB_SIG66        80    /* Real-time event 66 */
-#define GDB_SIG67        81    /* Real-time event 67 */
-#define GDB_SIG68        82    /* Real-time event 68 */
-#define GDB_SIG69        83    /* Real-time event 69 */
-#define GDB_SIG70        84    /* Real-time event 70 */
-#define GDB_SIG71        85    /* Real-time event 71 */
-#define GDB_SIG72        86    /* Real-time event 72 */
-#define GDB_SIG73        87    /* Real-time event 73 */
-#define GDB_SIG74        88    /* Real-time event 74 */
-#define GDB_SIG75        89    /* Real-time event 75 */
-#define GDB_SIG76        90    /* Real-time event 76 */
-#define GDB_SIG77        91    /* Real-time event 77 */
-#define GDB_SIG78        92    /* Real-time event 78 */
-#define GDB_SIG79        93    /* Real-time event 79 */
-#define GDB_SIG80        94    /* Real-time event 80 */
-#define GDB_SIG81        95    /* Real-time event 81 */
-#define GDB_SIG82        96    /* Real-time event 82 */
-#define GDB_SIG83        97    /* Real-time event 83 */
-#define GDB_SIG84        98    /* Real-time event 84 */
-#define GDB_SIG85        99    /* Real-time event 85 */
-#define GDB_SIG86       100    /* Real-time event 86 */
-#define GDB_SIG87       101    /* Real-time event 87 */
-#define GDB_SIG88       102    /* Real-time event 88 */
-#define GDB_SIG89       103    /* Real-time event 89 */
-#define GDB_SIG90       104    /* Real-time event 90 */
-#define GDB_SIG91       105    /* Real-time event 91 */
-#define GDB_SIG92       106    /* Real-time event 92 */
-#define GDB_SIG93       107    /* Real-time event 93 */
-#define GDB_SIG94       108    /* Real-time event 94 */
-#define GDB_SIG95       109    /* Real-time event 95 */
-#define GDB_SIG96       110    /* Real-time event 96 */
-#define GDB_SIG97       111    /* Real-time event 97 */
-#define GDB_SIG98       112    /* Real-time event 98 */
-#define GDB_SIG99       113    /* Real-time event 99 */
-#define GDB_SIG100      114    /* Real-time event 100 */
-#define GDB_SIG101      115    /* Real-time event 101 */
-#define GDB_SIG102      116    /* Real-time event 102 */
-#define GDB_SIG103      117    /* Real-time event 103 */
-#define GDB_SIG104      118    /* Real-time event 104 */
-#define GDB_SIG105      119    /* Real-time event 105 */
-#define GDB_SIG106      120    /* Real-time event 106 */
-#define GDB_SIG107      121    /* Real-time event 107 */
-#define GDB_SIG108      122    /* Real-time event 108 */
-#define GDB_SIG109      123    /* Real-time event 109 */
-#define GDB_SIG110      124    /* Real-time event 110 */
-#define GDB_SIG111      125    /* Real-time event 111 */
-#define GDB_SIG112      126    /* Real-time event 112 */
-#define GDB_SIG113      127    /* Real-time event 113 */
-#define GDB_SIG114      128    /* Real-time event 114 */
-#define GDB_SIG115      129    /* Real-time event 115 */
-#define GDB_SIG116      130    /* Real-time event 116 */
-#define GDB_SIG117      131    /* Real-time event 117 */
-#define GDB_SIG118      132    /* Real-time event 118 */
-#define GDB_SIG119      133    /* Real-time event 119 */
-#define GDB_SIG120      134    /* Real-time event 120 */
-#define GDB_SIG121      135    /* Real-time event 121 */
-#define GDB_SIG122      136    /* Real-time event 122 */
-#define GDB_SIG123      137    /* Real-time event 123 */
-#define GDB_SIG124      138    /* Real-time event 124 */
-#define GDB_SIG125      139    /* Real-time event 125 */
-#define GDB_SIG126      140    /* Real-time event 126 */
-#define GDB_SIG127      141    /* Real-time event 127 */
-#define GDB_SIGINFO     142    /* Information request */
-#define GDB_UNKNOWN     143    /* Unknown signal */
-#define GDB_DEFAULT     144    /* error: default signal */
-/* Mach exceptions */
-#define GDB_EXC_BAD_ACCESS     145 /* Could not access memory */
-#define GDB_EXC_BAD_INSTRCTION 146 /* Illegal instruction/operand */
-#define GDB_EXC_ARITHMETIC     147 /* Arithmetic exception */
-#define GDB_EXC_EMULATION      148 /* Emulation instruction */
-#define GDB_EXC_SOFTWARE       149 /* Software generated exception */
-#define GDB_EXC_BREAKPOINT     150 /* Breakpoint */
-
-
-
-static unsigned char exception_to_signal[] =
+static int
+strlen (const char *s)
 {
-	[0]  = GDB_SIGFPE,  /* divide by zero */
-	[1]  = GDB_SIGTRAP, /* debug exception */
-	[2]  = GDB_SIGSEGV, /* NMI Interrupt */
-	[3]  = GDB_SIGTRAP, /* Breakpoint */
-	[4]  = GDB_SIGSEGV, /* into instruction (overflow) */
-	[5]  = GDB_SIGSEGV, /* bound instruction */
-	[6]  = GDB_SIGILL,  /* Invalid opcode */
-	[7]  = GDB_SIGSEGV, /* coprocessor not available */
-	[8]  = GDB_SIGSEGV, /* double fault */
-	[9]  = GDB_SIGFPE,  /* coprocessor segment overrun */
-	[10] = GDB_SIGSEGV, /* Invalid TSS */
-	[11] = GDB_SIGBUS,  /* Segment not present */
-	[12] = GDB_SIGBUS,  /* stack exception */
-	[13] = GDB_SIGSEGV, /* general protection */
-	[14] = GDB_SIGSEGV, /* page fault */
-	[15] = GDB_UNKNOWN, /* reserved */
-	[16] = GDB_SIGEMT,  /* coprocessor error */
-	[17] = GDB_SIGBUS,  /* alignment check */
-	[18] = GDB_SIGSEGV, /* machine check */
-	[19] = GDB_SIGFPE,  /* simd floating point exception */
-	[20] = GDB_UNKNOWN,
-	[21] = GDB_UNKNOWN,
-	[22] = GDB_UNKNOWN,
-	[23] = GDB_UNKNOWN,
-	[24] = GDB_UNKNOWN,
-	[25] = GDB_UNKNOWN,
-	[26] = GDB_UNKNOWN,
-	[27] = GDB_UNKNOWN,
-	[28] = GDB_UNKNOWN,
-	[29] = GDB_UNKNOWN,
-	[30] = GDB_UNKNOWN,
-	[31] = GDB_UNKNOWN,
-	[32] = GDB_SIGINT,  /* User interrupt */
-};
+	const char *s1 = s;
 
-static const char hexchars[] = "0123456789abcdef";
-static char in_buffer[BUFMAX];
-static char out_buffer[BUFMAX];
+	while (*s1++ != '\000');
 
-
-static inline void stub_putc(int ch)
-{
-	uartputc(ch);
+	return s1 - s;
 }
 
-static inline int stub_getc(void)
+static char *
+strcpy (char *dst, const char *src)
+{
+	char *retval = dst;
+
+	while ((*dst++ = *src++) != '\000');
+
+	return retval;
+}
+
+static int
+putDebugChar (int c)            /* write a single character      */
+{
+	uartputc(c);
+	return 1;
+}
+
+static int
+getDebugChar (void)             /* read and return a single char */
 {
 	return uartgetc();
 }
 
-static int hex(char ch)
+static const char hexchars[]="0123456789abcdef";
+
+static int
+hex(char ch)
 {
-	if ((ch >= 'a') && (ch <= 'f'))
-		return (ch - 'a' + 10);
-	if ((ch >= '0') && (ch <= '9'))
-		return (ch - '0');
-	if ((ch >= 'A') && (ch <= 'F'))
-		return (ch - 'A' + 10);
+	if ((ch >= 'a') && (ch <= 'f')) return (ch-'a'+10);
+	if ((ch >= '0') && (ch <= '9')) return (ch-'0');
+	if ((ch >= 'A') && (ch <= 'F')) return (ch-'A'+10);
 	return (-1);
 }
 
-/*
- * While we find hexadecimal digits, build an int.
- * False is returned if nothing is parsed true otherwise.
- */
-static int parse_ulong(char **ptr, unsigned long *value)
-{
-	int digit;
-	char *start;
-
-	start = *ptr;
-	*value = 0;
-
-	while((digit = hex(**ptr)) >= 0) {
-		*value = ((*value) << 4) | digit;
-		(*ptr)++;
-	}
-	return start != *ptr;
-}
-
-/* convert the memory pointed to by mem into hex, placing result in buf */
-/* return a pointer to the last char put in buf (null) */
-static void copy_to_hex(char *buf, void *addr, unsigned long count)
-{
-	unsigned char ch;
-	char *mem = addr;
-
-	while(count--) {
-		ch = *mem++;
-		*buf++ = hexchars[ch >> 4];
-		*buf++ = hexchars[ch & 0x0f];
-	}
-	*buf = 0;
-	return;
-}
-
-
-/* convert the hex array pointed to by buf into binary to be placed in mem */
-/* return a pointer to the character AFTER the last byte written */
-static void copy_from_hex(void *addr, char *buf, unsigned long count)
-{
-	unsigned char ch;
-	char *mem = addr;
-
-	while(count--) {
-		ch = hex (*buf++) << 4;
-		ch = ch + hex (*buf++);
-		*mem++ = ch;
-	}
-}
-
-
-/* scan for the sequence $<data>#<checksum>	*/
-
-static int get_packet(char *buffer)
+/* scan for the sequence $<data>#<checksum>     */
+static void
+getpacket (char *buffer)
 {
 	unsigned char checksum;
 	unsigned char xmitcsum;
+	int i;
 	int count;
-	char ch;
+	unsigned char ch;
 
-	/* Wishlist implement a timeout in get_packet */
-	do {
+	do
+	{
 		/* wait around for the start character, ignore all other characters */
-		while ((ch = (stub_getc() & 0x7f)) != '$');
+
+		while ((ch = (getDebugChar () & 0x7f)) != '$');
+
 		checksum = 0;
 		xmitcsum = -1;
 
 		count = 0;
 
 		/* now, read until a # or end of buffer is found */
-		while (count < BUFMAX) {
-			ch = stub_getc() & 0x7f;
+
+		while (count < BUFMAX)
+		{
+			ch = getDebugChar () & 0x7f;
 			if (ch == '#')
 				break;
 			checksum = checksum + ch;
@@ -369,156 +197,467 @@ static int get_packet(char *buffer)
 		}
 		buffer[count] = 0;
 
-		if (ch == '#') {
-			xmitcsum = hex(stub_getc() & 0x7f) << 4;
-			xmitcsum += hex(stub_getc() & 0x7f);
+		if (ch == '#')
+		{
+			xmitcsum = hex (getDebugChar () & 0x7f) << 4;
+			xmitcsum += hex (getDebugChar () & 0x7f);
 
-			if (checksum != xmitcsum) {
-				stub_putc('-');	/* failed checksum */
-			}
-			else {
-				stub_putc('+');	/* successful transfer */
+			if (checksum != xmitcsum)
+				putDebugChar ('-');  /* failed checksum */
+			else
+			{
+				putDebugChar ('+'); /* successful transfer */
+				/* if a sequence char is present, reply the sequence ID */
+				if (buffer[2] == ':')
+				{
+					putDebugChar (buffer[0]);
+					putDebugChar (buffer[1]);
+
+					/* remove sequence chars from buffer */
+
+					count = strlen (buffer);
+					for (i=3; i <= count; i++)
+						buffer[i-3] = buffer[i];
+				}
 			}
 		}
-	} while(checksum != xmitcsum);
-	return 1;
+	}
+	while (checksum != xmitcsum);
 }
 
-/* send the packet in buffer.*/
-static void put_packet(char *buffer)
+/* send the packet in buffer.  */
+
+static void
+putpacket (char *buffer)
 {
 	unsigned char checksum;
 	int count;
-	char ch;
+	unsigned char ch;
 
 	/*  $<packet info>#<checksum>. */
-	do {
-		stub_putc('$');
+	do
+	{
+/*
+ * This is a non-standard hack to allow use of the serial console for
+ * operation as well as debugging.  Simply turn on 'remotechat' in gdb.
+ *
+ * This extension is not part of the Cygnus protocol, is kinda gross,
+ * but gets the job done.
+ */
+
+#ifdef GDB_REMOTE_CHAT
+		putDebugChar ('|');
+		putDebugChar ('|');
+		putDebugChar ('|');
+		putDebugChar ('|');
+#endif
+		putDebugChar ('$');
 		checksum = 0;
 		count = 0;
 
-		while ((ch = buffer[count])) {
-			stub_putc(ch);
+		while ((ch=buffer[count]) != 0)
+		{
+			putDebugChar (ch);
 			checksum += ch;
 			count += 1;
 		}
 
-		stub_putc('#');
-		stub_putc(hexchars[checksum >> 4]);
-		stub_putc(hexchars[checksum % 16]);
-
-	} while ((stub_getc() & 0x7f) != '+');
-
+		putDebugChar ('#');
+		putDebugChar (hexchars[checksum >> 4]);
+		putDebugChar (hexchars[checksum & 0xf]);
+	}
+	while ((getDebugChar () & 0x7f) != '+');
 }
-void x86_exception(Ureg *ureg)
+
+static char  remcomInBuffer[BUFMAX];
+static char  remcomOutBuffer[BUFMAX];
+
+static int
+get_char (uintptr addr)
 {
-	int signo;
-	memmove(gdb_stub_registers, ureg, NUM_REGS*sizeof(u64int));
-	gdb_stub_registers[IP] = ureg->ip;
-	gdb_stub_registers[CS] = ureg->cs;
-	gdb_stub_registers[FLAGS] = ureg->flags;
-	signo = GDB_UNKNOWN;
-	if (ureg->type < nelem(exception_to_signal)) {
-		signo = exception_to_signal[ureg->type];
+	char data;
+
+	if (! waserror()){
+		print("somekinda error in get_char\n");
+		return -1;
+	}
+  
+	validaddr((void *)addr, 1, 0);
+	data = *(u8int *)addr;
+
+	return data & 0xff;
+}
+
+static int
+set_char (uintptr  addr, int val)
+{
+	char data;
+
+	if (! waserror()){
+		print("some kinda error in set_char\n");
+		return -1;
+	}
+	data = val;
+
+	validaddr((void *)addr, 1, 1);
+	poperror();
+	*(u8int *)addr = data;
+
+	return 0;
+}
+
+/* convert the memory pointed to by mem into hex, placing result in buf */
+/* return a pointer to the last char put in buf (null) */
+
+static char *
+mem2hex (uintptr mem, char *buf, int count)
+{
+	int i;
+	int ch;
+
+	for (i=0;i<count;i++) {
+		ch = get_char (mem++);
+		if (ch == -1)
+			return nil;
+		*buf++ = hexchars[ch >> 4];
+		*buf++ = hexchars[ch % 16];
+	}
+	*buf = 0;
+	return(buf);
+}
+
+/* convert the hex array pointed to by buf into binary to be placed in mem */
+/* return a pointer to the character AFTER the last byte written */
+static char *
+hex2mem (char *buf, uintptr mem, int count)
+{
+	int i;
+	int ch;
+	int rv;
+
+	for (i=0;i<count;i++) {
+		ch = hex(*buf++) << 4;
+		ch = ch + hex(*buf++);
+		rv = set_char (mem++, ch);
+		if (rv == -1)
+			return nil;
+	}
+	return(buf);
+}
+
+/* this function takes the 386 exception vector and attempts to
+   translate this number into a unix compatible signal value */
+static int
+computeSignal (int exceptionVector)
+{
+	int sigval;
+	switch (exceptionVector & 0xf)
+	{
+	case 0: sigval = 8; break; /* divide by zero */
+	case 1: sigval = 5; break; /* debug exception */
+	case 3: sigval = 5; break; /* breakpoint */
+	case 4: sigval = 16; break; /* into instruction (overflow) */
+	case 5: sigval = 16; break; /* bound instruction */
+	case 6: sigval = 4; break; /* Invalid opcode */
+	case 7: sigval = 8; break; /* coprocessor not available */
+	case 8: sigval = 7; break; /* double fault */
+	case 9: sigval = 11; break; /* coprocessor segment overrun */
+	case 10: sigval = 5; break; /* Invalid TSS (also single-step) */
+	case 11: sigval = 11; break; /* Segment not present */
+	case 12: sigval = 11; break; /* stack exception */
+	case 13: sigval = 11; break; /* general protection */
+	case 14: sigval = 11; break; /* page fault */
+	case 16: sigval = 7; break; /* coprocessor error */
+	default:
+		sigval = 7;         /* "software generated"*/
+	}
+	return (sigval);
+}
+
+/*
+ * While we find nice hex chars, build an int.
+ * Return number of chars processed.
+ */
+
+static int
+hexToInt(char **ptr, int *intValue)
+{
+	int numChars = 0;
+	int hexValue;
+
+	*intValue = 0;
+
+	while (**ptr)
+	{
+		hexValue = hex(**ptr);
+		if (hexValue >=0)
+		{
+			*intValue = (*intValue <<4) | hexValue;
+			numChars ++;
+		}
+		else
+			break;
+
+		(*ptr)++;
 	}
 
-	/* reply to the host that an exception has occured */
-	out_buffer[0] = 'S';
-	out_buffer[1] = hexchars[(signo>>4) & 0xf];
-	out_buffer[2] = hexchars[signo & 0xf];
-	out_buffer[3] = '\0';
-	put_packet(out_buffer);
+	return (numChars);
+}
 
-	while(1) {
-		unsigned long addr, length;
-		char *ptr;
-		out_buffer[0] = '\0';
-		out_buffer[1] = '\0';
-		if (!get_packet(in_buffer)) {
-			break;
+/*
+ * While we find nice hex chars, build a long.
+ * Return number of chars processed.
+ */
+
+static long
+hexToLong(char **ptr, long *longValue)
+{
+	int numChars = 0;
+	int hexValue;
+
+	*longValue = 0;
+
+	while (**ptr)
+	{
+		hexValue = hex(**ptr);
+		if (hexValue >=0)
+		{
+			*longValue = (*longValue <<4) | hexValue;
+			numChars ++;
 		}
-		switch(in_buffer[0]) {
-		case '?': /* last signal */
-			out_buffer[0] = 'S';
-			out_buffer[1] = hexchars[(signo >> 4) & 0xf];
-			out_buffer[2] = hexchars[signo & 0xf];
-			out_buffer[3] = '\0';
+		else
 			break;
-		case 'g': /* return the value of the cpu registers */
-			copy_to_hex(out_buffer, &gdb_stub_registers, sizeof(gdb_stub_registers));
-			break;
-		case 'G': /* set the value of the CPU registers - return OK */
-			copy_from_hex(&gdb_stub_registers, in_buffer + 1, sizeof(gdb_stub_registers));
-			memmove(ureg, gdb_stub_registers, 
-			       NUM_REGS*sizeof(u64int));
-			ureg->ip    = gdb_stub_registers[IP];
-			// NO!		info->cs     = gdb_stub_registers[CS];
-			ureg->flags = gdb_stub_registers[FLAGS];
-			memmove(out_buffer, "OK",3);
-			break;
-		case 'm':
-			/* mAA..AA,LLLL  Read LLLL bytes at address AA..AA */
-			ptr = &in_buffer[1];
-			if (	parse_ulong(&ptr, &addr) &&
-				(*ptr++ == ',') &&
-				parse_ulong(&ptr, &length)) {
-				copy_to_hex(out_buffer, (void *)addr, length);
-			} else {
-				memmove(out_buffer, "E01", 4);
-			}
-			break;
-		case 'M':
-			/* MAA..AA,LLLL: Write LLLL bytes at address AA.AA return OK */
-			ptr = &in_buffer[1];
-			if (	parse_ulong(&ptr, &addr) &&
-				(*(ptr++) == ',') &&
-				parse_ulong(&ptr, &length) &&
-				(*(ptr++) == ':')) {
-				copy_from_hex((void *)addr, ptr, length);
-				memmove(out_buffer, "OK", 3);
-			}
-			else {
-				memmove(out_buffer, "E02", 4);
-			}
-			break;
-		case 's':
-		case 'c':
-			/* cAA..AA    Continue at address AA..AA(optional) */
-			/* sAA..AA    Step one instruction from AA..AA(optional) */
-			ptr = &in_buffer[1];
-			if (parse_ulong(&ptr, &addr)) {
-				ureg->ip = addr;
-			}
 
-			/* Clear the trace bit */
-			ureg->flags &= ~(1 << 8);
-			/* Set the trace bit if we are single stepping */
-			if (in_buffer[0] == 's') {
-				ureg->flags |= (1 << 8);
-			}
+		(*ptr)++;
+	}
+
+	return (numChars);
+}
+
+#define NUMREGBYTES (sizeof registers)
+#define PC 16
+#define SP 7
+#define FP 6
+#define NUM_REGS 22
+
+/*
+ * This function does all command procesing for interfacing to gdb.
+ */
+void
+gdb_handle_exception (struct Ureg *raw_regs, int type, int code)
+{
+	int    sigval;
+	long   addr;
+	int length;
+	char * ptr;
+	struct x86_64regs {
+		unsigned long rax;
+		unsigned long rbx;
+		unsigned long rcx;
+		unsigned long rdx;
+		unsigned long rsi;
+		unsigned long rdi;
+		unsigned long rbp;
+		unsigned long rsp;
+		unsigned long r8;
+		unsigned long r9;
+		unsigned long r10;
+		unsigned long r11;
+		unsigned long r12;
+		unsigned long r13;
+		unsigned long r14;
+		unsigned long r15;
+		unsigned long rip;
+		unsigned long rflags;
+		unsigned int cs;
+		unsigned int ss;
+	};
+	struct x86_64regs registers;
+
+	registers.rax = raw_regs->ax;
+	registers.rbx = raw_regs->bx;
+	registers.rcx = raw_regs->cx;
+	registers.rdx = raw_regs->dx;
+
+	registers.rsp = raw_regs->sp;
+	registers.rbp = raw_regs->bp;
+	registers.rsi = raw_regs->si;
+	registers.rdi = raw_regs->di;
+
+	registers.r8  = raw_regs->r8;
+	registers.r9  = raw_regs->r9;
+	registers.r10 = raw_regs->r10;
+	registers.r11 = raw_regs->r11;
+	registers.r12 = raw_regs->r12;
+	registers.r13 = raw_regs->r13;
+	registers.r14 = raw_regs->r14;
+	registers.r15 = raw_regs->r15;
+
+	registers.rip = raw_regs->ip;
+	registers.rflags = raw_regs->flags;
+
+	registers.cs = raw_regs->cs;
+	registers.ss = raw_regs->ss;
+
+	/* reply to host that an exception has occurred */
+	sigval = computeSignal (type);
+	ptr = remcomOutBuffer;
+
+	*ptr++ = 'T';
+	*ptr++ = hexchars[sigval >> 4];
+	*ptr++ = hexchars[sigval & 0xf];
+
+	*ptr++ = hexchars[PC >> 4];
+	*ptr++ = hexchars[PC & 0xf];
+	*ptr++ = ':';
+	ptr = mem2hex ((uintptr)&registers.rip, ptr, 8);
+	*ptr++ = ';';
+
+	*ptr++ = hexchars[FP >> 4];
+	*ptr++ = hexchars[FP & 0xf];
+	*ptr++ = ':';
+	ptr = mem2hex ((uintptr)&registers.rbp, ptr, 8);
+	*ptr++ = ';';
+
+	*ptr++ = hexchars[SP >> 4];
+	*ptr++ = hexchars[SP & 0xf];
+	*ptr++ = ':';
+	ptr = mem2hex ((uintptr)&registers.rsp, ptr, 8);
+	*ptr++ = ';';
+
+	*ptr++ = 0;
+
+	putpacket (remcomOutBuffer);
+
+	while (1)
+	{
+		remcomOutBuffer[0] = 0;
+
+		getpacket (remcomInBuffer);
+		switch (remcomInBuffer[0]) 
+		{
+		case '?':
+			remcomOutBuffer[0] = 'S';
+			remcomOutBuffer[1] = hexchars[sigval >> 4];
+			remcomOutBuffer[2] = hexchars[sigval % 16];
+			remcomOutBuffer[3] = 0;
+			break;
+
+		case 'D':               /* detach; say OK and turn off gdb */
+			putpacket(remcomOutBuffer);
 			return;
+
+		case 'g':               /* return the value of the CPU registers */
+			mem2hex ((uintptr)&registers, remcomOutBuffer, NUMREGBYTES);
 			break;
-		case 'D':
-			memmove(out_buffer, "OK", 3);
+
+		case 'G':               /* set the value of the CPU registers - return OK */
+			hex2mem (&remcomInBuffer[1], (uintptr)&registers, NUMREGBYTES);
+			strcpy (remcomOutBuffer, "OK");
 			break;
-		case 'k':  /* kill request? */
-			break;
-		case 'q':  /* query */
-			break;
-		case 'z':  /* z0AAAA,LLLL remove memory breakpoint */
-			   /* z1AAAA,LLLL remove hardware breakpoint */
-			   /* z2AAAA,LLLL remove write watchpoint */
-			   /* z3AAAA,LLLL remove read watchpoint */
-			   /* z4AAAA,LLLL remove access watchpoint */
-		case 'Z':  /* Z0AAAA,LLLL insert memory breakpoint */
-			   /* Z1AAAA,LLLL insert hardware breakpoint */
-			   /* Z2AAAA,LLLL insert write watchpoint */
-			   /* Z3AAAA,LLLL insert read watchpoint */
-			   /* Z4AAAA,LLLL insert access watchpoint */
-			break;
-		default:
+
+		case 'P':               /* Set the value of one register */
+		{
+			int regno;
+
+			ptr = &remcomInBuffer[1];
+
+			if (hexToInt (&ptr, &regno)
+			    && *ptr++ == '='
+			    && regno < NUM_REGS)
+			{
+				/* JG */
+				hex2mem (ptr, (uintptr)&registers + regno * 8, 8);
+				strcpy(remcomOutBuffer,"OK");
+			}
+			else
+				strcpy (remcomOutBuffer, "P01");
 			break;
 		}
-		put_packet(out_buffer);
+		case 'm':       /* mAA..AA,LLLL  Read LLLL bytes at address AA..AA */
+			/* Try to read %x,%x.  */
+
+			ptr = &remcomInBuffer[1];
+
+			if (hexToLong (&ptr, &addr)
+			    && *(ptr++) == ','
+			    && hexToInt (&ptr, &length))
+			{
+				if (mem2hex((uintptr) addr, remcomOutBuffer, length) == nil)
+					strcpy (remcomOutBuffer, "E03");
+				break;
+			}
+			else
+				strcpy (remcomOutBuffer, "E01");
+			break;
+
+		case 'M': /* MAA..AA,LLLL: Write LLLL bytes at address AA.AA return OK */
+
+			/* Try to read '%x,%x:'.  */
+
+			ptr = &remcomInBuffer[1];
+
+			if (hexToLong(&ptr,&addr)
+			    && *(ptr++) == ','
+			    && hexToInt(&ptr, &length)
+			    && *(ptr++) == ':')
+			{
+				if (hex2mem(ptr, (uintptr) addr, length) == nil)
+					strcpy (remcomOutBuffer, "E03");
+				else
+					strcpy (remcomOutBuffer, "OK");
+			}
+			else
+				strcpy (remcomOutBuffer, "E02");
+			break;
+
+			/* cAA..AA    Continue at address AA..AA(optional) */
+			/* sAA..AA   Step one instruction from AA..AA(optional) */
+		case 'c' :
+		case 's' :
+			/* try to read optional parameter, pc unchanged if no parm */
+
+			ptr = &remcomInBuffer[1];
+			if (hexToLong(&ptr,&addr))
+				registers.rip = addr;
+
+
+			/* set the trace bit if we're stepping */
+			if (remcomInBuffer[0] == 's')
+				registers.rflags |= Tf;
+			else
+				registers.rflags &= ~Tf;
+
+			raw_regs->ax = registers.rax;
+			raw_regs->bx = registers.rbx;
+			raw_regs->cx = registers.rcx;
+			raw_regs->dx = registers.rdx;
+
+			raw_regs->sp = registers.rsp;
+			raw_regs->bp = registers.rbp;
+			raw_regs->si = registers.rsi;
+			raw_regs->di = registers.rdi;
+
+			raw_regs->r8  = registers.r8;
+			raw_regs->r9  = registers.r9;
+			raw_regs->r10  = registers.r10;
+			raw_regs->r11  = registers.r11;
+			raw_regs->r12  = registers.r12;
+			raw_regs->r13  = registers.r13;
+			raw_regs->r14  = registers.r14;
+			raw_regs->r15  = registers.r15;
+
+			raw_regs->ip = registers.rip;
+			raw_regs->flags = registers.rflags;
+
+			raw_regs->cs = registers.cs;
+			raw_regs->ss = registers.ss;
+			return;
+
+		} /* switch */
+
+		/* reply to the request */
+		putpacket (remcomOutBuffer);
 	}
 }
+
