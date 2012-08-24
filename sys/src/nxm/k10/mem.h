@@ -62,6 +62,7 @@
 #define UTZERO		(0+2*MiB)		/* first address in user text */
 #define UTROUND(t)	ROUNDUP((t), BIGPGSZ)
 #define USTKTOP		(0x00007ffffffff000ull & ~(BIGPGSZ-1))
+#define USTKTLS		(USTKTOP - 2*sizeof(uintptr)) /* see: tos.h. */
 #define KMBASE		(0x0008000000000000ull)
 #define USTKSIZE		(16*1024*1024)		/* size of user stack */
 #define TSTKTOP		(USTKTOP-USTKSIZE)	/* end of new stack in sysexec */

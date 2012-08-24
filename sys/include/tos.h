@@ -53,6 +53,9 @@ struct Tos
 	int	nixtype;		/* role of the core we are running at */
 	int	core;		/* core we are running at */
 	Callq	callq;		/* NIX queue based system calls */
+	/* Go m and g pointers */
+	void *Go_m;
+	void *Go_g;
 	/* top of stack is here */
 };
 
