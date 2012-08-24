@@ -335,8 +335,13 @@ trap(Ureg* ureg)
 	int clockintr, vno, user;
 	char buf[ERRMAX];
 	Vctl *ctl, *v;
+	extern int gdbactive;
 
 	vno = ureg->type;
+
+	if (gdbactive)
+		gdb_handle_exception (ureg, vno, 0);
+
 
 	m->perf.intrts = perfticks();
 	user = userureg(ureg);

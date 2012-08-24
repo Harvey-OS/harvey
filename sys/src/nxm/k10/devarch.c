@@ -33,6 +33,7 @@ enum {
 	Qiob,
 	Qiow,
 	Qiol,
+	Qgdb,
 	Qbase,
 	Qmapram,
 
@@ -50,10 +51,12 @@ static Dirtab archdir[Qmax] = {
 	"iob",		{ Qiob, 0 },		0,	0660,
 	"iow",		{ Qiow, 0 },		0,	0660,
 	"iol",		{ Qiol, 0 },		0,	0660,
+	"gdb",		{ Qgdb, 0}, 		0,	0660,
 	"mapram",	{ Qmapram, 0 },	0,	0444,
 };
 Lock archwlock;	/* the lock is only for changing archdir */
 int narchdir = Qbase;
+gdbactive = 0;
 
 /*
  * Add a file to the #P listing.  Once added, you can't delete it.
@@ -355,6 +358,9 @@ archread(Chan *c, void *a, long n, vlong offset)
 	case Qdir:
 		return devdirread(c, a, n, archdir, narchdir, devgen);
 
+	case Qgdb:
+		p = gdbactive ? "1" : "0";
+		return readstr(offset, a, n, p);
 	case Qiob:
 		port = offset;
 		checkport(offset, offset+n);
@@ -448,6 +454,18 @@ archwrite(Chan *c, void *a, long n, vlong offset)
 	Rdwrfn *fn;
 
 	switch((ulong)c->qid.path){
+
+	case Qgdb:
+		p = a;
+		if (n != 1)
+			error("Gdb: Write one byte, '1' or '0'");
+		if (*p == '1')
+			gdbactive = 1;
+		else if (*p == '0')
+			gdbactive = 0;
+		else
+			error("Gdb: must be 1 or 0");
+		return 1;
 
 	case Qiob:
 		p = a;

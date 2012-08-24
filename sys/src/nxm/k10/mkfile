@@ -62,6 +62,7 @@ apic.$O:	apic.h io.h
 devarch.$O:	../port/error.h $NXM/$objtype/include/ureg.h
 fpu.$O:		amd64.h
 fpu.$O:		$NXM/$objtype/include/ureg.h
+gdb.$O:		$NXM/$objtype/include/ureg.h
 ioapic.$O:	apic.h io.h
 main.$O:	$NXM/sys/include/pool.h init.h
 memory.$O:	amd64.h

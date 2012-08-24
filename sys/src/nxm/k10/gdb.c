@@ -119,6 +119,8 @@ void            gdb_handle_exception (struct Ureg*, int, int);
 #define strlen  gdb_strlen
 #define strcpy  gdb_strcpy
 
+extern int gdbactive;
+
 static int
 strlen (const char *s)
 {
@@ -149,7 +151,11 @@ putDebugChar (int c)            /* write a single character      */
 static int
 getDebugChar (void)             /* read and return a single char */
 {
-	return uartgetc();
+	char c;
+	c = uartgetc();
+	if (c < 0)
+		error("GDB: uartgetc() is not working");
+	return c;
 }
 
 static const char hexchars[]="0123456789abcdef";
@@ -160,6 +166,7 @@ hex(char ch)
 	if ((ch >= 'a') && (ch <= 'f')) return (ch-'a'+10);
 	if ((ch >= '0') && (ch <= '9')) return (ch-'0');
 	if ((ch >= 'A') && (ch <= 'F')) return (ch-'A'+10);
+	error("hex fails, exiting gdb");
 	return (-1);
 }
 
@@ -277,11 +284,6 @@ get_char (uintptr addr)
 {
 	char data;
 
-	if (! waserror()){
-		print("somekinda error in get_char\n");
-		return -1;
-	}
-  
 	validaddr((void *)addr, 1, 0);
 	data = *(u8int *)addr;
 
@@ -293,14 +295,9 @@ set_char (uintptr  addr, int val)
 {
 	char data;
 
-	if (! waserror()){
-		print("some kinda error in set_char\n");
-		return -1;
-	}
 	data = val;
 
 	validaddr((void *)addr, 1, 1);
-	poperror();
 	*(u8int *)addr = data;
 
 	return 0;
@@ -451,26 +448,26 @@ gdb_handle_exception (struct Ureg *raw_regs, int type, int code)
 	int length;
 	char * ptr;
 	struct x86_64regs {
-		unsigned long rax;
-		unsigned long rbx;
-		unsigned long rcx;
-		unsigned long rdx;
-		unsigned long rsi;
-		unsigned long rdi;
-		unsigned long rbp;
-		unsigned long rsp;
-		unsigned long r8;
-		unsigned long r9;
-		unsigned long r10;
-		unsigned long r11;
-		unsigned long r12;
-		unsigned long r13;
-		unsigned long r14;
-		unsigned long r15;
-		unsigned long rip;
-		unsigned long rflags;
-		unsigned int cs;
-		unsigned int ss;
+		uvlong rax;
+		uvlong rbx;
+		uvlong rcx;
+		uvlong rdx;
+		uvlong rsi;
+		uvlong rdi;
+		uvlong rbp;
+		uvlong rsp;
+		uvlong r8;
+		uvlong r9;
+		uvlong r10;
+		uvlong r11;
+		uvlong r12;
+		uvlong r13;
+		uvlong r14;
+		uvlong r15;
+		uvlong rip;
+		uvlong rflags;
+		uvlong cs;
+		uvlong ss;
 	};
 	struct x86_64regs registers;
 
@@ -499,6 +496,11 @@ gdb_handle_exception (struct Ureg *raw_regs, int type, int code)
 	registers.cs = raw_regs->cs;
 	registers.ss = raw_regs->ss;
 
+	if (waserror()){
+		iprint("GDB stub: that did not go well\n");
+		gdbactive = 0;
+		return;
+	}
 	/* reply to host that an exception has occurred */
 	sigval = computeSignal (type);
 	ptr = remcomOutBuffer;
@@ -529,7 +531,7 @@ gdb_handle_exception (struct Ureg *raw_regs, int type, int code)
 
 	putpacket (remcomOutBuffer);
 
-	while (1)
+	while (gdbactive)
 	{
 		remcomOutBuffer[0] = 0;
 
@@ -545,7 +547,8 @@ gdb_handle_exception (struct Ureg *raw_regs, int type, int code)
 
 		case 'D':               /* detach; say OK and turn off gdb */
 			putpacket(remcomOutBuffer);
-			return;
+			gdbactive = 0;
+			break;
 
 		case 'g':               /* return the value of the CPU registers */
 			mem2hex ((uintptr)&registers, remcomOutBuffer, NUMREGBYTES);
@@ -652,12 +655,14 @@ gdb_handle_exception (struct Ureg *raw_regs, int type, int code)
 
 			raw_regs->cs = registers.cs;
 			raw_regs->ss = registers.ss;
-			return;
+			break;
 
 		} /* switch */
 
 		/* reply to the request */
-		putpacket (remcomOutBuffer);
+		if (gdbactive)
+			putpacket (remcomOutBuffer);
 	}
+	poperror();
 }
 
