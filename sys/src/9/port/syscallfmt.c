@@ -322,15 +322,11 @@ sysretfmt(int syscallno, va_list list, long ret, uvlong start, uvlong stop)
 	errstr = "\"\"";
 	switch(syscallno){
 	default:
-		if(ret == -1)
-			errstr = up->errstr;
-		fmtprint(&fmt, " = %ld", ret);
-		break;
 	case ALARM:
 	case _WRITE:
 	case PWRITE:
 		if(ret == -1)
-			errstr = up->errstr;
+			errstr = up->syserrstr;
 		fmtprint(&fmt, " = %ld", ret);
 		break;
 	case EXEC:
@@ -338,7 +334,7 @@ sysretfmt(int syscallno, va_list list, long ret, uvlong start, uvlong stop)
 	case SEGATTACH:
 	case RENDEZVOUS:
 		if((void *)ret == (void*)-1)
-			errstr = up->errstr;
+			errstr = up->syserrstr;
 		fmtprint(&fmt, " = %#p", (void *)ret);
 		break;
 	case AWAIT:
@@ -350,7 +346,7 @@ sysretfmt(int syscallno, va_list list, long ret, uvlong start, uvlong stop)
 		}
 		else{
 			fmtprint(&fmt, "%#p/\"\" %lud = %ld", a, l, ret);
-			errstr = up->errstr;
+			errstr = up->syserrstr;
 		}
 		break;
 	case _ERRSTR:
@@ -366,7 +362,7 @@ sysretfmt(int syscallno, va_list list, long ret, uvlong start, uvlong stop)
 		}
 		else{
 			fmtprint(&fmt, "\"\" %lud = %ld", l, ret);
-			errstr = up->errstr;
+			errstr = up->syserrstr;
 		}
 		break;
 	case FD2PATH:
@@ -380,7 +376,7 @@ sysretfmt(int syscallno, va_list list, long ret, uvlong start, uvlong stop)
 		}
 		else{
 			fmtprint(&fmt, "\"\" %lud = %ld", l, ret);
-			errstr = up->errstr;
+			errstr = up->syserrstr;
 		}
 		break;
 	case _READ:
@@ -395,7 +391,7 @@ sysretfmt(int syscallno, va_list list, long ret, uvlong start, uvlong stop)
 		}
 		else{
 			fmtprint(&fmt, "/\"\"");
-			errstr = up->errstr;
+			errstr = up->syserrstr;
 		}
 		fmtprint(&fmt, " %ld", l);
 		if(syscallno == PREAD){

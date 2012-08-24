@@ -104,6 +104,7 @@ mpacpiproc(uchar *p, ulong laddr)
 	already = "";
 	f = 0;
 	apic = &mpapic[id];
+	dprint("\tmpacpiproc: apic %#p\n", apic);
 	apic->paddr = laddr;
 	if (nprocid++ == 0) {
 		f = PcmpBP;
@@ -144,11 +145,12 @@ mpacpicpus(Madt *madt)
 	uchar *p;
 
 	laddr = L32GET(madt->addr);
-	dprint("APIC mpacpicpus lapic addr %#lux, flags %#ux\n",
-		laddr, L32GET(madt->flags));
+	dprint("APIC mpacpicpus(%#p) lapic addr %#lux, flags %#ux\n",
+		madt, laddr, L32GET(madt->flags));
 
 	n = L32GET(&madt->sdthdr[4]);
 	p = madt->structures;
+	dprint("\t%d structures at %#p\n",n, p);
 	/* byte 0 is assumed to be type, 1 is assumed to be length */
 	for(i = offsetof(Madt, structures[0]); i < n; i += p[1], p += p[1])
 		switch(p[0]){
@@ -170,42 +172,6 @@ mpacpirsdchecksum(void* addr, int length)
 	return sum == 0? addr: nil;
 }
 
-static void *
-mpacpirsdscan(uchar* addr, int len, char* signature)
-{
-	int sl;
-	uchar *e, *p;
-
-	sl = strlen(signature);
-	e = addr + len - sl;
-	for(p = addr; p < e; p += 16)
-		if(memcmp(p, signature, sl) == 0)
-			return p;
-	return nil;
-}
-
-static void *
-mpacpirsdsearch(char* signature)
-{
-	uintptr p;
-	uchar *bda;
-	Rsd *rsd;
-
-	/*
-	 * Search for the data structure signature:
-	 * 1) in the first KB of the EBDA;
-	 * 2) in the BIOS ROM between 0xE0000 and 0xFFFFF.
-	 */
-	if(strncmp((char*)KADDR(0xFFFD9), "EISA", 4) == 0){
-		bda = BIOSSEG(0x40);
-		p = bda[0x0F]<<8 | bda[0x0E];
-		if(p != 0 &&
-		    (rsd = mpacpirsdscan(KADDR(p), 1024, signature)) != nil)
-			return rsd;
-	}
-	return mpacpirsdscan(BIOSSEG(0xE000), 0x20000, signature);
-}
-
 /* call func for each acpi table found */
 static void
 mpacpiscan(void (*func)(uchar *))
@@ -216,7 +182,7 @@ mpacpiscan(void (*func)(uchar *))
 	Rsd *rsd;
 
 	dprint("ACPI...");
-	if((rsd = mpacpirsdsearch("RSD PTR ")) == nil) {
+	if((rsd = sigsearch("RSD PTR ")) == nil) {
 		dprint("none\n");
 		return;
 	}
