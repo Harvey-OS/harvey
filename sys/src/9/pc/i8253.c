@@ -165,7 +165,7 @@ guesscpuhz(int aalcycles)
 	cpufreq = (vlong)loops*((aalcycles*2*Freq)/x);
 	m->loopconst = (cpufreq/1000)/aalcycles;	/* AAM+LOOP's for 1 ms */
 
-	if(m->havetsc){
+	if(m->havetsc && a != b){  /* a == b means virtualbox has confused us */
 		/* counter goes up by 2*Freq */
 		b = (b-a)<<1;
 		b *= Freq;
@@ -185,6 +185,9 @@ guesscpuhz(int aalcycles)
 		m->cpuhz = cpufreq;
 	}
 
+	/* don't divide by zero in trap.c */
+	if (m->cpumhz == 0)
+		panic("guesscpuhz: zero m->cpumhz");
 	i8253.hz = Freq<<Tickshift;
 }
 

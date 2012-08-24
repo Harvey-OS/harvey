@@ -100,14 +100,16 @@ struct
 static ulong
 lapicr(int r)
 {
-	assert(lapicbase != 0);
+	if(lapicbase == 0)
+		panic("lapicr: no lapic");
 	return *(lapicbase+(r/sizeof(*lapicbase)));
 }
 
 static void
 lapicw(int r, ulong data)
 {
-	assert(lapicbase != 0);
+	if(lapicbase == 0)
+		panic("lapicw: no lapic");
 	*(lapicbase+(r/sizeof(*lapicbase))) = data;
 	data = *(lapicbase+(LapicID/sizeof(*lapicbase)));
 	USED(data);
@@ -170,6 +172,10 @@ lapicinit(Apic* apic)
 
 	if(lapicbase == 0)
 		lapicbase = apic->addr;
+	if(lapicbase == 0) {
+		print("lapicinit: no lapic\n");
+		return;
+	}
 
 	/*
 	 * These don't really matter in Physical mode;
@@ -416,11 +422,17 @@ lapicintroff(void)
 void
 lapicnmienable(void)
 {
-	lapicw(LapicPCINT, ApicNMI);
+	if (lapicbase)
+		lapicw(LapicPCINT, ApicNMI);
+	else
+		print("lapicnmienable: no lapic\n");
 }
 
 void
 lapicnmidisable(void)
 {
-	lapicw(LapicPCINT, ApicIMASK);
+	if (lapicbase)
+		lapicw(LapicPCINT, ApicIMASK);
+	else
+		print("lapicnmidisable: no lapic\n");
 }

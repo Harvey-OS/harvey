@@ -350,7 +350,7 @@ checkmtrr(void)
 	/*
 	 * If there are MTRR registers, snarf them for validation.
 	 */
-	if(!(m->cpuiddx & 0x1000))
+	if(!(m->cpuiddx & Mtrr))
 		return;
 
 	rdmsr(0x0FE, &m->mtrrcap);

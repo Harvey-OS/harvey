@@ -313,6 +313,54 @@ umbscan(void)
 	umbexclude();
 }
 
+static void*
+sigscan(uchar* addr, int len, char* signature)
+{
+	int sl;
+	uchar *e, *p;
+
+	e = addr+len;
+	sl = strlen(signature);
+	for(p = addr; p+sl < e; p += 16)
+		if(memcmp(p, signature, sl) == 0)
+			return p;
+	return nil;
+}
+
+void*
+sigsearch(char* signature)
+{
+	uintptr p;
+	uchar *bda;
+	void *r;
+
+	/*
+	 * Search for the data structure:
+	 * 1) within the first KiB of the Extended BIOS Data Area (EBDA), or
+	 * 2) within the last KiB of system base memory if the EBDA segment
+	 *    is undefined, or
+	 * 3) within the BIOS ROM address space between 0xf0000 and 0xfffff
+	 *    (but will actually check 0xe0000 to 0xfffff).
+	 */
+	bda = BIOSSEG(0x40);
+	if(memcmp(KADDR(0xfffd9), "EISA", 4) == 0){
+		if((p = (bda[0x0f]<<8)|bda[0x0e]) != 0){
+			if((r = sigscan(BIOSSEG(p), 1024, signature)) != nil)
+				return r;
+		}
+	}
+
+	if((p = ((bda[0x14]<<8)|bda[0x13])*1024) != 0){
+		if((r = sigscan(KADDR(p-1024), 1024, signature)) != nil)
+			return r;
+	}
+	/* hack for virtualbox: look in KiB below 0xa0000 */
+	if((r = sigscan(KADDR(0xa0000-1024), 1024, signature)) != nil)
+		return r;
+
+	return sigscan(BIOSSEG(0xe000), 0x20000, signature);
+}
+
 static void
 lowraminit(void)
 {
