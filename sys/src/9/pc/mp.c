@@ -406,6 +406,7 @@ squidboy(Apic* apic)
 	checkmtrr();
 
 	apic->online = 1;
+	coherence();
 
 	lapicinit(apic);
 	lapiconline();
@@ -472,14 +473,14 @@ mpstartap(Apic* apic)
 	 * The offsets are known in the AP bootstrap code.
 	 */
 	apbootp = (ulong*)(APBOOTSTRAP+0x08);
-	*apbootp++ = (ulong)squidboy;
+	*apbootp++ = (ulong)squidboy;	/* assembler jumps here eventually */
 	*apbootp++ = PADDR(pdb);
 	*apbootp = (ulong)apic;
 
 	/*
 	 * Universal Startup Algorithm.
 	 */
-	p = KADDR(0x467);
+	p = KADDR(0x467);		/* warm-reset vector */
 	*p++ = PADDR(APBOOTSTRAP);
 	*p++ = PADDR(APBOOTSTRAP)>>8;
 	i = (PADDR(APBOOTSTRAP) & ~0xFFFF)/16;
@@ -489,7 +490,9 @@ mpstartap(Apic* apic)
 	*p++ = i;
 	*p = i>>8;
 
-	nvramwrite(0x0F, 0x0A);
+	coherence();
+
+	nvramwrite(0x0F, 0x0A);	/* shutdown code: warm reset upon init ipi */
 	lapicstartap(apic, PADDR(APBOOTSTRAP));
 	for(i = 0; i < 1000; i++){
 		if(apic->online)
