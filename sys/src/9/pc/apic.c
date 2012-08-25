@@ -247,6 +247,7 @@ lapicstartap(Apic* apic, int v)
 	int i;
 	ulong crhi;
 
+	/* make apic's processor do a warm reset */
 	crhi = apic->apicno<<24;
 	lapicw(LapicICRHI, crhi);
 	lapicw(LapicICRLO, LapicFIELD|ApicLEVEL|LapicASSERT|ApicINIT);
@@ -254,8 +255,10 @@ lapicstartap(Apic* apic, int v)
 	lapicw(LapicICRLO, LapicFIELD|ApicLEVEL|LapicDEASSERT|ApicINIT);
 	delay(10);
 
+	/* assumes apic is not an 82489dx */
 	for(i = 0; i < 2; i++){
 		lapicw(LapicICRHI, crhi);
+		/* make apic's processor start at v in real mode */
 		lapicw(LapicICRLO, LapicFIELD|ApicEDGE|ApicSTARTUP|(v/BY2PG));
 		microdelay(200);
 	}
