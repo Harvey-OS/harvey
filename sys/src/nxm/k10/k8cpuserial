@@ -54,6 +54,7 @@ link +dev
 #	ht
 
 misc +dev
+	rdb
 #	cache
 	mp		apic ioapic msi pci sipi rdwr
 
