@@ -6,7 +6,6 @@
 
 #include "ureg.h"
 
-#define DBG	if(0)scrprint
 #pragma varargck argpos scrprint 1
 static Ureg ureg;
 
