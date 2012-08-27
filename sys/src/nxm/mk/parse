@@ -410,7 +410,7 @@ function mkdevc(		a, d, i, m, n, s, t, u, name, cname){
 		s = s "void (*mfcupdate)(Chan*, uchar*, int, vlong) = nil;\n";
 		s = s "void (*mfcwrite)(Chan*, uchar*, int, vlong) = nil;\n\n";
 	}
-	if(!("rdb" in misc)){
+	if(!("rdb" in m)){
 		s = s "void\n";
 		s = s "rdb(void)\n";
 		s = s "{\n";
