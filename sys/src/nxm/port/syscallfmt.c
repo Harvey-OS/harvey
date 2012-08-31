@@ -252,7 +252,7 @@ syscallfmt(int syscallno, va_list list)
 		l = va_arg(list, ulong);
 		fmtprint(&fmt, "%#p %ld", v, l);
 		break;
-	case SEMSLEEP:
+/*	case SEMSLEEP:
 	case SEMWAKEUP:
 		v = va_arg(list, int*);
 		fmtprint(&fmt, "%#p", v);
@@ -263,6 +263,7 @@ syscallfmt(int syscallno, va_list list)
 		validaddr(ip, sizeof(int*)*i[0], 0);
 		fmtprint(&fmt, "%#p %d", ip, i[0]);
 		break;
+*/
 	case SEEK:
 		v = va_arg(list, vlong*);
 		i[0] = va_arg(list, int);

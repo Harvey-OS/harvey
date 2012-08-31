@@ -33,7 +33,7 @@
 #define	SEGFREE		32
 #define	SEGFLUSH	33
 #define	RENDEZVOUS	34
-#define	UNMOUNT		35
+#define	UNMOUNT	35
 #define	_WAIT		36
 #define	SEMACQUIRE	37
 #define	SEMRELEASE	38
@@ -48,7 +48,7 @@
 #define	AWAIT		47
 #define	PREAD		50
 #define	PWRITE		51
-#define	SEMSLEEP	52
+#define	TSEMACQUIRE	52
 #define	SEMWAKEUP	53
 #define	SEMALT		54
 #define	EXECAC		55
@@ -56,5 +56,4 @@
 #define	ZIOPREAD	57
 #define	ZIOPWRITE	58
 #define	ZIOFREE		59
-#define	TSEMACQUIRE	60
-#define SETTLS		61
+#define	SETTLS		128
