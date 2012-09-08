@@ -3,6 +3,7 @@ MKSHELL=rc
 
 TARG = 	badsyscall\
 		float\
+		sysstatread\
 
 DIRS=
 

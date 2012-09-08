@@ -823,12 +823,13 @@ consread(Chan *c, void *buf, long n, vlong off)
 	char *b, *bp, ch, *s, *e;
 	char tmp[512];		/* Qswap is 381 bytes at clu */
 	int i, k, id, send;
-	long offset;
+	long offset, nread;
 
 
 	if(n <= 0)
 		return n;
 
+	nread = n;
 	offset = off;
 	switch((ulong)c->qid.path){
 	case Qdir:
@@ -982,7 +983,7 @@ consread(Chan *c, void *buf, long n, vlong off)
 			free(b);
 			nexterror();
 		}
-		n = readstr(offset, buf, n, b);
+		n = readstr(offset, buf, nread, b);
 		free(b);
 		poperror();
 		return n;
