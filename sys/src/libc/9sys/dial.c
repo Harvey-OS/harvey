@@ -227,7 +227,7 @@ fillinds(DS *ds, Dest *dp)
 		*ds->cfdp = conn->cfd;
 	if (ds->dir) {
 		strncpy(ds->dir, conn->dir, NETPATHLEN);
-		ds->dir[NETPATHLEN] = '\0';
+		ds->dir[NETPATHLEN-1] = '\0';
 	}
 	return conn->dfd;
 }

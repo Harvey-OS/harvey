@@ -73,8 +73,10 @@ the path name of a
 that has files for accessing the connection
 is copied into
 .IR dir .
-The path name is guaranteed to be less than 40
-bytes long.
+The path name is guaranteed to be less than
+.L NETPATHLEN
+(40)
+bytes long, including terminating NUL.
 One line directory exists for each possible connection.
 The
 .B data
@@ -281,7 +283,7 @@ int
 bekremvax(void)
 {
 	int dfd, acfd, lcfd;
-	char adir[40], ldir[40];
+	char adir[NETPATHLEN], ldir[NETPATHLEN];
 	int n;
 	char buf[256];
 
