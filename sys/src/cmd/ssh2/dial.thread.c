@@ -260,7 +260,7 @@ recvresults(Dest *dp, int block)
 				if (ds->dir) {
 					strncpy(ds->dir, tup->conndir,
 						NETPATHLEN);
-					ds->dir[NETPATHLEN] = '\0';
+					ds->dir[NETPATHLEN-1] = '\0';
 				}
 				intrcallprocs(dp);
 			} else {
@@ -333,7 +333,7 @@ call1(char *clone, char *rem, Dest *dp, Conn *conn)
 		*ds->cfdp = conn->cfd;
 	if (ds->dir) {
 		strncpy(ds->dir, conn->dir, NETPATHLEN);
-		ds->dir[NETPATHLEN] = '\0';
+		ds->dir[NETPATHLEN-1] = '\0';
 	}
 	return dfd;
 }
