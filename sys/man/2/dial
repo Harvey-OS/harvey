@@ -73,10 +73,12 @@ the path name of a
 that has files for accessing the connection
 is copied into
 .IR dir .
-The path name is guaranteed to be less than
+The path name, including terminating
+.SM NUL\c
+, is guaranteed to fit in
 .L NETPATHLEN
 (40)
-bytes long, including terminating NUL.
+bytes.
 One line directory exists for each possible connection.
 The
 .B data
