@@ -9,6 +9,16 @@
 #include "flayer.h"
 #include "samterm.h"
 
+// Rune is of type uint now.
+// Accomodate for the increase
+// in size of autovariables on
+// the thread stack.
+enum
+{
+	Stack = 64 * 1024,
+};
+int mainstacksize = Stack;
+
 Text	cmd;
 Rune	*scratch;
 long	nscralloc;
