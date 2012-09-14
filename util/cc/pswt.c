@@ -35,20 +35,14 @@ doswit(Node *n)
 		isv |= c->isv;
 		nc++;
 	}
-	if(typev[n->type->etype])
-		isv = 1;
-	else if(isv){
+ 	if(isv && !typev[n->type->etype])
 		warn(n, "32-bit switch expression with 64-bit case constant");
-		isv = 0;
-	}
 
 	iq = alloc(nc*sizeof(C1));
 	q = iq;
 	for(c = cases; c->link != C; c = c->link) {
 		if(c->def)
 			continue;
-		if(c->isv && !isv)
-			continue;	/* can never match */
 		q->label = c->label;
 		if(isv)
 			q->val = c->val;
@@ -118,7 +112,7 @@ doswit(Node *n)
 	}
 	patch(hsb, pc);
 	if(0){int k;for(k=0; k<nh; k++)print("k*=%d h=%#llux lab=%ld\n", k, (vlong)iqh[k].val,  iqh[k].label);}
-	swit1(iqh, nh, def, vr[1]);
+	swit1(iq, nc, def, n);
 }
 
 void
