@@ -32,7 +32,7 @@ IHASHSIZE = 64;
 defn imagecacheline(h) {
 	while h != 0 do {
 		complex Image h;
-		print (h\X, " ", qid(h.qid), " type ", h.type\D, " ref ", h.ref, " next ", h.next\X, " ", cname(h.c.name), "\n");
+		print (h\X, " ", qid(h.qid), " type ", h.type\D, " ref ", h.ref, " next ", h.next\X, " ", path(h.c.path), "\n");
 		h = h.hash;
 	}
 }
@@ -56,9 +56,9 @@ defn chan(c) {
 	print("chan(", c\X, "): ref=", c.ref\D, " #", d.dc\r, c.dev\D, " (", q.path, " ", q.vers\D, " ", q.type\X, ")");
 	print(" fid=", c.fid\D, " iounit=", c.iounit\D);
 	if c.ref != 0 then {
-		print(" ", cname(c.name), " mchan=", c.mchan\X);
+		print(" ", path(c.path), " mchan=", c.mchan\X);
 		if c.mchan != 0 then {
-			print(" ", cname(c.mchan.name));
+			print(" ", path(c.mchan.path));
 		}
 	}
 	print("\n");
@@ -186,7 +186,7 @@ defn procenv(p) {
 
 	e = p.egrp;
 	complex Egrp e;
-	v = e.entries;
+	v = e.ent;
 	while v != 0 do {
 		complex Evalue v;
 		print(*(v.name\s), "=");
@@ -333,7 +333,7 @@ PTEPERTAB = (PTEMAPMEM/BY2PG);
 defn up() {
 	local mach;
 
-	MACHADDR = KZERO+0x4000;
+	MACHADDR = KZERO+0x15000;
 	mach = MACHADDR;
 	complex Mach mach;
 	return mach.externup;
