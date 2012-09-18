@@ -19,6 +19,7 @@ char	*thestring 	= "arm";
  *	-H4				is IXP1200 (raw)
  *	-H5 -T0xC0008010 -R1024		is ipaq
  *	-H6 -R4096			no header with segments padded to pages
+ *	-H7				is elf
  */
 
 static int
@@ -182,6 +183,15 @@ main(int argc, char *argv[])
 			INITDAT = 0;
 		if(INITRND == -1)
 			INITRND = 1024;
+		break;
+	case 7:	/* elf executable */
+		HEADR = rnd(52L+3*32L, 16);
+		if(INITTEXT == -1)
+			INITTEXT = 4096+HEADR;
+		if(INITDAT == -1)
+			INITDAT = 0;
+		if(INITRND == -1)
+			INITRND = 4;
 		break;
 	}
 	if(INITDAT != 0 && INITRND != 0)

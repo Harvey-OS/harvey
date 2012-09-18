@@ -781,6 +781,31 @@ routeflush(Fs *f, Route *r, char *tag)
 	return 0;
 }
 
+Route *
+iproute(Fs *fs, uchar *ip)
+{
+	if(isv4(ip))
+		return v4lookup(fs, ip+IPv4off, nil);
+	else
+		return v6lookup(fs, ip, nil);
+}
+
+static void
+printroute(Route *r)
+{
+	int nifc;
+	char t[5], *iname, ifbuf[5];
+	uchar addr[IPaddrlen], mask[IPaddrlen], gate[IPaddrlen];
+
+	convroute(r, addr, mask, gate, t, &nifc);
+	iname = "-";
+	if(nifc != -1) {
+		iname = ifbuf;
+		snprint(ifbuf, sizeof ifbuf, "%d", nifc);
+	}
+	print(rformat, addr, mask, gate, t, r->tag, iname);
+}
+
 long
 routewrite(Fs *f, Chan *c, char *p, int n)
 {
@@ -791,6 +816,7 @@ routewrite(Fs *f, Chan *c, char *p, int n)
 	uchar mask[IPaddrlen];
 	uchar gate[IPaddrlen];
 	IPaux *a, *na;
+	Route *q;
 
 	cb = parsecmd(p, n);
 	if(waserror()){
@@ -846,6 +872,18 @@ routewrite(Fs *f, Chan *c, char *p, int n)
 		na = newipaux(a->owner, cb->f[1]);
 		c->aux = na;
 		free(a);
+	} else if(strcmp(cb->f[0], "route") == 0) {
+		if(cb->nf < 2)
+			error(Ebadarg);
+		if (parseip(addr, cb->f[1]) == -1)
+			error(Ebadip);
+
+		q = iproute(f, addr);
+		print("%I: ", addr);
+		if(q == nil)
+			print("no route\n");
+		else
+			printroute(q);
 	}
 
 	poperror();

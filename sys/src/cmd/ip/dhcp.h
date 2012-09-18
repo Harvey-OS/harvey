@@ -111,6 +111,10 @@ enum
 	ODtftpserver=		66,
 	ODbootfile=		67,
 
+	ODpxearch=		93,	/* see rfc 4578 */
+	ODpxeni=		94,
+	ODpxeguid=		97,
+
 	/* plan9 vendor info options, v4 addresses only (deprecated) */
 	OP9fsv4=		128,	/* plan9 file servers */
 	OP9authv4=		129,	/* plan9 auth servers */

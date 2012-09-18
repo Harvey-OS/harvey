@@ -30,6 +30,7 @@ typedef unsigned long long int  uint64_t;
 #endif
 
 #include <inttypes.h>		/* for int64_t et al. */
+#include <stdlib.h>
 #include <stdarg.h>		/* for va_list, vararg macros */
 #ifndef va_copy
 #ifdef __va_copy
@@ -41,6 +42,7 @@ typedef unsigned long long int  uint64_t;
 #include <sys/types.h>
 #include <string.h>		/* for memmove */
 #include <unistd.h>		/* for write */
+#include <fcntl.h>
 
 #define ulong p9ulong		/* because sys/types.h has some of these sometimes */
 #define ushort p9ushort

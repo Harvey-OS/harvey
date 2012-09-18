@@ -668,6 +668,9 @@ asmandsz(Adr *a, int r, int rex, int m64)
 
 	rex &= (0x40 | Rxr);
 	v = a->offset;
+	if ((vlong)v != a->offset) 
+		print("asmandsz: Trying to emit %#ullx and 32 bits is not sufficient\n",
+			a->offset);
 	t = a->type;
 	if(a->index != D_NONE) {
 		if(t >= D_INDIR) {

@@ -143,10 +143,10 @@ written to it will be looped back.
 .B "unbind
 Disassociate the physical device from an IP interface.
 .TP
-.BI add\  "local mask remote mtu " proxy
+.BI add\  "local [ mask remote mtu " proxy " ]
 .PD 0
 .TP
-.BI try\  "local mask remote mtu " proxy
+.BI try\  "local [ mask remote mtu " proxy " ]
 .PD
 Add a local IP address to the interface.
 .I Try
@@ -381,7 +381,7 @@ indicate what routing protocol originated the route.
 Writing to
 .B /net/iproute
 changes the route table.  The messages are:
-.TF "\fLtag \fIstring\fR"
+.TF "\fLroute \fItarget\fR"
 .PD
 .TP
 .B flush
@@ -398,6 +398,13 @@ same target and mask, replace it.
 .TP
 .BI remove\  "target mask"
 Remove a route with a matching target and mask.
+.
+.TP
+.BI route\  target
+Print on the console the route to address
+.IR target ,
+if any.
+Primarily a debugging aid.
 .
 .SS "Address resolution
 The file
