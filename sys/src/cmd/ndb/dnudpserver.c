@@ -51,15 +51,17 @@ clientrxmit(DNSmsg *req, uchar *buf)
 				empty = p;
 			continue;
 		}
-		if(req->id == p->id)
-		if(req->qd->owner == p->owner)
-		if(req->qd->type == p->type)
-		if(memcmp(uh, &p->uh, Udphdrsize) == 0)
+		if(req->id == p->id && req->qd != nil &&
+		    req->qd->owner == p->owner && req->qd->type == p->type &&
+		    memcmp(uh, &p->uh, Udphdrsize) == 0)
 			return nil;
 	}
 	if(empty == nil)
 		return nil; /* shouldn't happen: see slave() & Maxactive def'n */
-
+	if(req->qd == nil) {
+		dnslog("clientrxmit: nil req->qd");
+		return nil;
+	}
 	empty->id = req->id;
 	empty->owner = req->qd->owner;
 	empty->type = req->qd->type;
