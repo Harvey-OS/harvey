@@ -260,8 +260,8 @@ install-%:V:
 	unmount /bin/gs || status=''
 	unmount /sys/lib/ghostscript || status=''
 	mk installsrc-$stem
-	cpu -h thresher -c 'mk mips.h' || status=''
-	cpu -h alpha -c 'mk alpha.h' || status=''
+#	cpu -h thresher -c 'mk mips.h' || status=''
+#	cpu -h alpha -c 'mk alpha.h' || status=''
 	mk all
 	mk installall
 	for(i in lib/*.ps)

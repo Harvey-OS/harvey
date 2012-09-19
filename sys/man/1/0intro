@@ -103,11 +103,10 @@ See
 and
 .IR init (8)
 for details, but some important aspects of the initial name space are:
-.IP \(bu
+.IP \(bu 3
 The environment variable
 .B $cputype
 is set to the name of the kernel's CPU's architecture: one of
-.BR alpha ,
 .BR mips ,
 .BR sparc ,
 .B power
@@ -124,14 +123,17 @@ The environment variable
 .B $terminal
 is set to a description of the machine running the kernel,
 such as
-.BR "generic pc" .
+.B generic
+.BR pc .
 Sometimes the middle word of
 .B $terminal
 encodes the file from which the kernel is booted;
-e.g.
-.B "alpha apc axp
+e.g.,
+.B alpha
+.B apc
+.B axp
 is bootstrapped from
-.BR /alpha/bapc .
+.BR /alpha/9apc .
 .IP \(bu
 The environment variable
 .B $service

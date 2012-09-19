@@ -14,7 +14,7 @@ arch \- architecture-specific information and control
 .B /dev/irqalloc
 .SH DESCRIPTION
 This device presents textual information about PC hardware and allows
-user-level control of the I/O ports on x86-class and DEC Alpha machines.
+user-level control of the I/O ports on x86-class machines.
 .PP
 Reads from
 .I cputype

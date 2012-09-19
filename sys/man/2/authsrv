@@ -133,7 +133,7 @@ struct Nvrsafe
 On Sparc, MIPS, and SGI machines this information is
 in non-volatile ram, accessible in the file
 .BR #r/nvram .
-On x86s and Alphas
+On x86s
 .I readnvram
 successively opens the following areas stopping with the
 first to succeed:
