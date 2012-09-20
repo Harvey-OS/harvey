@@ -99,7 +99,7 @@ commands.
 .BI -m machine
 Assume instructions are for the given CPU type
 (any standard architecture name, such as
-.B alpha
+.B amd64
 or
 .BR 386 ,
 plus

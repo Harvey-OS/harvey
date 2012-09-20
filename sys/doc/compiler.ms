@@ -25,12 +25,14 @@ There are many compilers in the series.
 Five of the compilers (Intel 386, AMD64, PowerPC, PowerPC 64-bit, ARM)
 are considered active and are used to compile
 current versions of Plan 9.
-Four of the compilers (MIPS 3000, SPARC, DEC Alpha, and Motorola 68020)
+Three of the compilers (MIPS 3000, SPARC, and Motorola 68020)
 are maintained but are for older machines
 for which we have no current ports of Plan 9;
 other than the MIPS, we are unlikely to port to any such machines.
+The DEC Alpha compiler has been retired.
 Several others (Motorola 68000, Intel 960, AMD 29000) have had only limited use, such as
 to program peripherals or experimental devices.
+Any of the disused compilers could be restored if needed.
 .NH
 Structure
 .LP
@@ -65,7 +67,6 @@ are as follows:
 .Ta Motorola\ 68020 2c 2l 2a
 .Ta ARM 5c 5l 5a
 .Ta AMD64 6c 6l 6a
-.Ta DEC\ Alpha 7c 7l 7a
 .Ta Intel\ 386 8c 8l 8a
 .Ta PowerPC\ 64-bit 9c 9l 9a
 .DE

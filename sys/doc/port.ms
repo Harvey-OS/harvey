@@ -133,35 +133,7 @@ There are a number of obvious optimizations to the code that have
 never been attempted.
 For example, the compiler does not support pipelining.
 The code runs in little-endian mode.
-.SH
-The DEC Alpha compiler
-.PP
-The Alpha compiler is based on a port done by David Hogan while
-studying at the Basser Department of Computer Science, University of Sydney.
-It has been used to build a running version of the operating system, but has
-not been stressed as much as some of the other compilers.
-.PP
-Although the Alpha is a 64-bit architecture, this compiler treats
-.CW int s,
-.CW long s
-and pointers as 32 bits.  Access to the 64-bit operations is available through the
-.CW vlong
-type, as with the other architectures.
-.PP
-The compiler assumes that the target CPU supports the optional byte and
-word memory operations (the ``BWX'' extension).
-If you have an old system, you can generate code without using the extension
-by passing the loader the
-.CW -x
-option.
-.PP
-There are a number of optimizations that the Alpha Architecture Handbook
-recommends, but this compiler does not do.  In particular, there is currently
-no support for the code alignment and code scheduling optimizations.
-.PP
-The compiler tries to conform to IEEE, but some Alpha CPUs do not implement
-all of the rounding and trapping modes in silicon.  Fixing this problem requires
-some software emulation code in the kernel; to date, this has not been attempted.
+.
 .SH
 The PowerPC compiler
 .PP
@@ -182,8 +154,8 @@ The ARM compiler
 The ARM compiler is fairly solid; it has been used for some production
 operating system work including Inferno and the Plan 9 kernel
 for the iPAQ, which uses a StrongArm SA1, and the Sheevaplug,
-Guruplug, Dreamplug and others.
-The compiler supports the ARMv4 architecture;
+Guruplug, Dreamplug, Gumstix Overo, Compulab Trimslice and others.
+The compiler supports the ARMv4 and later 32-bit architectures;
 it does not support the Thumb instruction sets.
 It has been used on ARM7500FE, ARM926 and Cortex-A8 processors
 and the Strongarm SA1 core machines.
@@ -191,11 +163,7 @@ The compiler generates instructions for
 ARM 7500 FPA floating-point coprocessor 1,
 but probably should instead generate VFP 3+ instructions
 for coprocessors 10 and 11.
-.SH
-The AMD 29000 compiler
-.PP
-This compiler was used to port an operating system to an AMD 29240 processor.
-The project is long abandoned, but the compiler lives on.
+.
 .SH
 The Carrera operating system
 .PP
@@ -285,24 +253,7 @@ use PXE or a boot disk to load the system.  See
 and
 .I prep (8)
 for more information.
-.SH
-The Alpha PC operating system
-.PP
-Plan 9 runs on the Alpha PC 164.
-The Alpha port has not been used as much as the others,
-and should be considered a preliminary release.
-.PP
-The port uses the OSF/1 flavor
-of PALcode, and should be booted from the SRM firmware (booting
-from ARC is not supported).
-Supported devices are a subset of the PC ones; currently
-this includes DECchip 2114x-based ethernet cards, S3 VGA cards,
-Sound Blaster 16-compatible audio, floppy drives, and ATA hard disks.
-.PP
-The system has to be booted via tftp.
-See
-.I booting (8)
-for details.
+.
 .SH
 The PowerPC operating system
 .PP
@@ -317,6 +268,9 @@ The kernel has also been ported to the Motorola MTX embedded motherboard;
 that port is included in the distribution.
 The port only works with a 604e processor (the 603e is substantially different)
 and at present only a single CPU is permitted.
+.PP
+We have ports to the Xilinx Virtex 4 and 5 FPGAs
+which use PowerPC 405 and 440 processors, respectively.
 .SH
 The Compaq iPAQ operating system
 .PP

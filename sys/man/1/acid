@@ -60,7 +60,7 @@ at startup; see below.
 .BI -m " machine
 Assume instructions are for the given CPU type
 (one of
-.BR alpha ,
+.BR amd64 ,
 .BR 386 ,
 etc., as listed in
 .IR 2c (1),

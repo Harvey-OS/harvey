@@ -1,6 +1,6 @@
 .TH 2C 1
 .SH NAME
-0c, 1c, 2c, 5c, 6c, 7c, 8c, 9c, kc, qc, vc \- C compilers
+0c, 1c, 2c, 5c, 6c, 8c, 9c, kc, qc, vc \- C compilers
 .SH SYNOPSIS
 .B 2c
 [
@@ -41,9 +41,6 @@ little-endian ARM
 .B "6c amd64
 AMD64 and compatibles (e.g., Intel64)
 .TP
-.B "7c alpha
-Digital Alpha APX
-.TP
 .B "8c 386
 Intel i386, i486, Pentium, etc.
 .TP
@@ -71,7 +68,6 @@ Let the first letter of the compiler name be
 .BR 2 ,
 .BR 5 ,
 .BR 6 ,
-.BR 7 ,
 .BR 8 ,
 .BR 9 ,
 .BR k ,

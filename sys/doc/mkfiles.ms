@@ -529,14 +529,14 @@ target removes the library as well as the
 files removed by the
 .CW clean
 target.  The command
-.RS
-.CW "mk -s clean all"
-.RE
+.P1
+mk -s clean all
+.P2
 causes the existing library to be updated, or
 created if it doesn't already exist.  The command
-.RS
-.CW "mk -s nuke all"
-.RE
+.P1
+mk -s nuke all
+.P2
 forces the library to be rebuilt from scratch.
 .LP
 The mkfile from

@@ -11,8 +11,8 @@ rob@plan9.bell-labs.com
 Machines
 .PP
 There is an assembler for each of the MIPS, SPARC, Intel 386,
-Intel 960, AMD 29000, Motorola 68020 and 68000, Motorola Power PC,
-AMD64, DEC Alpha, and Acorn ARM.
+Intel 960, Motorola 68020 and 68000, Power PC,
+AMD64, and ARM.
 The 68020 assembler,
 .CW 2a ,
 is the oldest and in many ways the prototype.
@@ -1001,66 +1001,7 @@ All parameters less than 8 bytes in length have 8 byte slots reserved on the sta
 to preserve alignment and simplify variable-length argument list access,
 including the first parameter when passed in a register,
 even though bytes 4 to 7 are not initialized.
-.SH
-Alpha
-.PP
-On the Alpha, all registers are 64 bits.  The architecture handles 32-bit values
-by giving them a canonical format (sign extension in the case of integer registers).
-Registers are numbered
-.CW R0
-through
-.CW R31 .
-.CW R0
-holds the return value from subroutines, and also the first parameter.
-.CW R30
-is the stack pointer,
-.CW R29
-is the static base,
-.CW R26
-is the link register, and
-.CW R27
-and
-.CW R28
-are linker temporaries.
-.PP
-Floating point registers are numbered
-.CW F0
-to
-.CW F31 .
-.CW F28
-contains
-.CW 0.5 ,
-.CW F29
-contains
-.CW 1.0 ,
-and
-.CW F30
-contains
-.CW 2.0 .
-.CW F31
-is always
-.CW 0.0
-on the Alpha.
-.PP
-The extension character for
-.CW MOV
-follows DEC's notation:
-.CW B
-for byte (8 bits),
-.CW W
-for word (16 bits),
-.CW L
-for long (32 bits),
-and
-.CW Q
-for quadword (64 bits).
-Byte and ``word'' loads and stores may be made unsigned
-by appending a
-.CW U .
-.CW S
-and
-.CW T
-refer to IEEE floating point single precision (32 bits) and double precision (64 bits), respectively.
+.
 .SH
 Power PC
 .PP
@@ -1435,8 +1376,3 @@ Conversion instructions are also specified by moves:
 .CW MOVFD ,
 and
 .CW MOVDF .
-.SH
-AMD 29000
-.PP
-For details about this assembly language, which was built for the AMD 29240,
-look at the sources or examine compiler output.
