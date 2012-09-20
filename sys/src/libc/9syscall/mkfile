@@ -121,14 +121,6 @@ install:V:
 				MOVW R3,4(R8)'
 			}
 			echo RETURN
-		case alpha
-			j=$i
-			if(~ $i seek) j=_seek
-			echo TEXT $j'(SB)', 1, '$0'
-			echo MOVL R0, '0(FP)'
-			echo MOVQ '$'$n, R0
-			echo CALL_PAL '$'0x83
-			echo RET
 		}} > $i.s
 		$AS $i.s
 	}

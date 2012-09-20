@@ -31,7 +31,6 @@ OFILES=\
 
 CFILES=\
 	386.c\
-	alpha.c\
 	amd64.c\
 	arm.c\
 	channel.c\

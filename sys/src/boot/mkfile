@@ -1,5 +1,4 @@
 ARCH=\
-	alphapc\
 	bitsy\
 	pc\
 

@@ -281,7 +281,7 @@ arbitrary, alphanumeric character:
 .CW k
 for SPARC,
 .CW q
-for Motorola Power PC 630 and 640,
+for 32-bit Power PC,
 .CW v
 for MIPS,
 .CW 0
@@ -291,15 +291,13 @@ for Motorola 68000,
 .CW 2
 for Motorola 68020 and 68040,
 .CW 5
-for Acorn ARM 7500,
+for ARM v5 and later architectures,
 .CW 6
-for AMD 64,
-.CW 7
-for DEC Alpha,
+for AMD64,
 .CW 8
 for Intel 386, and
 .CW 9
-for AMD 29000.
+for 64-bit Power PC.
 The character labels the support tools and files for that architecture.
 For instance, for the 68020 the compiler is
 .CW 2c ,
@@ -569,9 +567,9 @@ which contains general definitions:
 # common mkfile parameters shared by all architectures
 #
 
-OS=v486xq7
-CPUS=mips 386 power alpha
-CFLAGS=-FVw
+OS=5689qv
+CPUS=arm amd64 386 power mips
+CFLAGS=-FTVw
 LEX=lex
 YACC=yacc
 MK=/bin/mk

@@ -58,41 +58,6 @@ Once the kernel is booted, it behaves like the others.
 See
 .IR boot (8)
 for details.
-.SS Alpha PCs
-Alpha PCs must be booted via TFTP using the SRM console.
-If the system has ARC firmware instead, SRM may be downloaded from
-.IP
-.EX
-http://www.compaq.com/
-.EE
-.PP
-You must configure the SRM firmware to load the file
-.BR /alpha/bootalphapc .
-The following commands may be used (replace
-.B ewa0
-with the name of your ethernet device, if different):
-.IP
-.EX
-set boot_reset ON
-set boot_file /alpha/bootalphapc
-set bootdef_dev ewa0
-set ewa0_inet_init bootp
-set ewa0_protocols BOOTP
-.EE
-.PP
-This secondary bootstrap program will first load the file
-.BR /alpha/conf/ <IP-address>
-(substituting the IP address of the system as obtained via bootp).
-This file is expected to be in
-.IR plan9.ini (8)
-format (the file
-.B /alpha/conf/10.0.0.2
-may be used as a template).
-It then loads the kernel via tftp, using the value of
-.B bootfile
-to tell it which file to load; this should be
-.B /alpha/9apc
-for terminals.
 .SS CPU Servers
 The Plan 9 CPU servers are multi-user, so they do not request a user name
 when booting.
@@ -102,11 +67,6 @@ Proceed as for the PC terminal, but load
 .B /386/9pccpu
 or
 .BR /386/9pccpudisk .
-.SS Alpha PC CPU Server
-Proceed as for the Alpha PC terminal, but use
-.B /alpha/9apccpu
-as the value of
-.BR bootfile .
 .SS SGI Challenge multiprocessor CPU Server
 The Challenge ROM monitor can boot from the Ethernet.
 To boot from the Ethernet, type
