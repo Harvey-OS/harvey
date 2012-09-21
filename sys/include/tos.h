@@ -47,7 +47,7 @@ struct Tos
 	uvlong	cyclefreq;	/* cycle clock frequency if there is one, 0 otherwise */
 	vlong	kcycles;	/* cycles spent in kernel */
 	vlong	pcycles;	/* cycles spent in process (kernel + user) */
-	ulong	pid;		/* might as well put the pid here */
+	uvlong	pid;		/* might as well put the pid here */
 	ulong	clock;
 
 	int	nixtype;		/* role of the core we are running at */
