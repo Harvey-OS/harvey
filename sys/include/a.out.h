@@ -25,9 +25,9 @@ struct	Exec
 #define	E_MAGIC		_MAGIC(0, 20)		/* arm */
 #define	Q_MAGIC		_MAGIC(0, 21)		/* powerpc */
 #define	N_MAGIC		_MAGIC(0, 22)		/* mips 4000 LE */
-#define	L_MAGIC		_MAGIC(0, 23)		/* dec alpha */
+#define	L_MAGIC		_MAGIC(0, 23)		/* dec alpha (retired) */
 #define	P_MAGIC		_MAGIC(0, 24)		/* mips 3000 LE */
-#define	U_MAGIC		_MAGIC(0, 25)		/* sparc64 */
+#define	U_MAGIC		_MAGIC(0, 25)		/* sparc64 (retired) */
 #define	S_MAGIC		_MAGIC(HDR_MAGIC, 26)	/* amd64 */
 #define	T_MAGIC		_MAGIC(HDR_MAGIC, 27)	/* powerpc64 */
 #define	R_MAGIC		_MAGIC(HDR_MAGIC, 28)	/* arm64 */
