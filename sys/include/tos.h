@@ -47,15 +47,16 @@ struct Tos
 	uvlong	cyclefreq;	/* cycle clock frequency if there is one, 0 otherwise */
 	vlong	kcycles;	/* cycles spent in kernel */
 	vlong	pcycles;	/* cycles spent in process (kernel + user) */
-	uvlong	pid;		/* might as well put the pid here */
 	ulong	clock;
 
 	int	nixtype;		/* role of the core we are running at */
 	int	core;		/* core we are running at */
 	Callq	callq;		/* NIX queue based system calls */
-	/* Go m and g pointers */
-	void *Go_m;
-	void *Go_g;
+
+	/* Used as TLS data in Go.*/
+	void *Go_g;	/* goroutines */
+	void *Go_m;	/* go threads */
+	uvlong pid;
 	/* top of stack is here */
 };
 

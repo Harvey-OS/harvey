@@ -303,7 +303,7 @@ kexit(Ureg*)
 	/* Set thread local storage, used now in both Linux
 	 * and Go processes. 
 	 */
-	wrmsr(FSbase, (ulong) up->tls);
+	wrmsr(FSbase, (uintptr) up->tls);
 }
 
 void
