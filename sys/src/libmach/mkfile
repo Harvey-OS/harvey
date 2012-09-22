@@ -18,6 +18,7 @@ FILES=\
 	2\
 	5\
 	6\
+	7\
 	8\
 	9\
 	vdb\
@@ -26,6 +27,7 @@ FILES=\
 	qdb\
 	2db\
 	5db\
+	7db\
 	8db\
 	vobj\
 	kobj\
@@ -33,6 +35,7 @@ FILES=\
 	2obj\
 	5obj\
 	6obj\
+	7obj\
 	8obj\
 	9obj\
 	qobj\
@@ -60,6 +63,8 @@ CFLAGS=$CFLAGS -I/sys/src/cmd
 kobj.$O: /sys/src/cmd/kc/k.out.h
 qobj.$O: /sys/src/cmd/qc/q.out.h
 vobj.$O: /sys/src/cmd/vc/v.out.h
+
+7obj.$O: 7c/7.out.h
 
 # 9obj.$O: /sys/src/cmd/9c/9.out.h
 # uobj.$O: uc/u.out.h
