@@ -56,6 +56,7 @@ static Obj	obj[] =
 	[Obj68020]	"68020 .2",	_is2, _read2,
 	[ObjAmd64]	"amd64 .6",	_is6, _read6,
 	[ObjArm]	"arm .5",	_is5, _read5,
+	[ObjAlpha]	"alpha .7",	_is7, _read7,
 	[Obj386]	"386 .8",	_is8, _read8,
 	[ObjSparc]	"sparc .k",	_isk, _readk,
 	[ObjPower]	"power .q",	_isq, _readq,

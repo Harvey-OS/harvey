@@ -11,12 +11,10 @@
  *		i386,
  *		amd64,
  *		sparc,
- *		sparc64,
  *		mips2 (R4000)
  *		arm
  *		powerpc,
  *		powerpc64
- *		alpha
  *		arm64
  */
 enum
@@ -32,9 +30,9 @@ enum
 	M29000,			/* retired */
 	MARM,
 	MPOWER,
-	MALPHA,
+	MALPHA,			/* retired */
 	NMIPS,
-	MSPARC64,
+	MSPARC64,		/* retired */
 	MAMD64,
 	MPOWER64,
 	MARM64,
@@ -59,10 +57,10 @@ enum
 	FPOWER,			/* q.out */
 	FPOWERB,		/* power pc bootable */
 	FMIPS2LE,		/* 0.out */
-	FALPHA,			/* 7.out */
-	FALPHAB,		/* DEC Alpha bootable */
+	FALPHA,			/* retired */
+	FALPHAB,		/* retired DEC Alpha bootable */
 	FMIPSLE,		/* 3k little endian */
-	FSPARC64,		/* u.out */
+	FSPARC64,		/* retired */
 	FAMD64,			/* 6.out */
 	FAMD64B,		/* 6.out bootable */
 	FPOWER64,		/* 9.out */
@@ -82,8 +80,8 @@ enum
 	A29000,			/* retired */
 	AARM,
 	APOWER,
-	AALPHA,
-	ASPARC64,
+	AALPHA,			/* retired */
+	ASPARC64,		/* retired */
 	AAMD64,
 	APOWER64,
 	AARM64,
@@ -99,8 +97,8 @@ enum
 	ObjArm,			/* .5 */
 	ObjPower,		/* .q */
 	ObjMips2le,		/* .0 */
-	ObjAlpha,		/* .7 */
-	ObjSparc64,		/* .u */
+	ObjAlpha,		/* retired */
+	ObjSparc64,		/* retired */
 	ObjAmd64,		/* .6 */
 	ObjSpim,		/* .0 */
 	ObjPower64,		/* .9 */
