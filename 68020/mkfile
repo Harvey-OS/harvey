@@ -1,7 +1,0 @@
-</sys/src/mkfile.proto
-
-CC=2c
-LD=2l
-O=2
-RL=rl
-AS=2a

@@ -1,6 +1,6 @@
 .TH 2L 1 
 .SH NAME
-0l, 1l, 2l, 5l, 6l, 8l, 9l, kl, ql, vl \- loaders
+0l, 2l, 5l, 6l, 8l, 9l, kl, ql, vl \- loaders
 .SH SYNOPSIS
 .B 2l
 [
@@ -32,7 +32,7 @@ in
 where
 .I objtype
 is one of
-.BR 68000 ,
+.BR 386 ,
 etc. as listed in
 .IR 2c (1).
 The libraries must have tables of contents

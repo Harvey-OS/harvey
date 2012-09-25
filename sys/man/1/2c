@@ -1,6 +1,6 @@
 .TH 2C 1
 .SH NAME
-0c, 1c, 2c, 5c, 6c, 8c, 9c, kc, qc, vc \- C compilers
+0c, 2c, 5c, 6c, 8c, 9c, kc, qc, vc \- C compilers
 .SH SYNOPSIS
 .B 2c
 [
@@ -28,9 +28,6 @@ for example
 .TP
 .B "0c spim
 little-endian MIPS 3000 family
-.TP
-.B "1c 68000
-Motorola MC68000
 .TP
 .B "2c 68020
 Motorola MC68020
