@@ -17,50 +17,7 @@ The first section discusses the compiler/assembler/loader suite for each machine
 The second talks about
 the operating system implemented on each of the various
 machines.
-.SH
-The Motorola MC68020 compiler
-.PP
-This is the oldest compiler of the bunch.  Relative to its
-competitors\(emcommercial compilers for the same machine\(emit generates
-quite good code.
-It assumes at least a 68020 architecture: some of the addressing
-modes it generates are not on the 68000 or 68010.
-.PP
-We also use this compiler for the 68040.  Except for a few
-instructions and registers available only from assembly language,
-the only user-visible difference between these machines is in
-floating point.  Our 68020s all have 68881 or 68882 floating
-point units attached, so to execute floating point programs we
-depend on there being appropriate hardware.
-Unfortunately, the 68040 is not quite so thorough in its implementation
-of the IEEE 754 standard or in its provision of built-in instructions
-for the
-transcendental functions.  The latter was easy to get around: we
-don't use them on the 68020 either, but we do have a library,
-.CW -l68881 ,
-that you can use if you need the performance (which can be
-substantial:
-.CW astro
-runs twice as fast).
-We don't use this library by default because we want to run the same
-binaries on both machines and don't want to emulate
-.CW FCOSH
-in the operating system.
-.PP
-The problem with IEEE is nastier.  We didn't really want to deal
-with gradual underflow and all that, especially since we had
-half a dozen machines we'd need to do it on, so on the 68040
-we implement non-trapping underflow as truncation to zero and
-do nothing about denormalized numbers and not-a-numbers.
-This means the 68020
-and the 68040 are not precisely compatible.
-.SH
-The Motorola MC68000 compiler
-.PP
-This compiler is a stripped-down version of the MC68020 compiler
-built for an abortive port to the Dragonball processor on the Palm Pilot.
-It generates position-independent code whose overall quality is much
-poorer than the code for the MC68020.
+.
 .SH
 The MIPS compiler
 .PP
@@ -123,16 +80,6 @@ transcendentals.
 If you want them,
 build the code in
 .CW /sys/src/libc/386/387 .
-.SH
-The Intel i960 compiler
-.PP
-This compiler was built as a weekend hack to let us get the Cyclone
-boards running.  It has only been used to run one program\(emthe on-board
-code in the Cyclone\(emand is therefore likely to be buggy.
-There are a number of obvious optimizations to the code that have
-never been attempted.
-For example, the compiler does not support pipelining.
-The code runs in little-endian mode.
 .
 .SH
 The PowerPC compiler
@@ -164,13 +111,6 @@ ARM 7500 FPA floating-point coprocessor 1,
 but probably should instead generate VFP 3+ instructions
 for coprocessors 10 and 11.
 .
-.SH
-The Carrera operating system
-.PP
-We used to have a number of MIPS R4400 PC-like devices called Carreras,
-with custom-built frame buffers, that we used as terminals.
-They're almost all decommissioned now, but we're including the source as a reference
-in case someone wants to get another MIPS-based system running.
 .SH
 The IBM PC operating system
 .PP

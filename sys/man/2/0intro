@@ -431,8 +431,8 @@ or
 .IR mouse (2).
 .SH SEE ALSO
 .IR nm (1), 
-.IR 2l (1), 
-.IR 2c (1)
+.IR 8l (1), 
+.IR 8c (1)
 .SH DIAGNOSTICS
 Math functions in
 .I libc

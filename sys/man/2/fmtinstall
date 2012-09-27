@@ -298,7 +298,7 @@ All these routines return zero for successful execution.
 Conversion routines that call these functions will work properly
 regardless of whether the output is bytes or runes.
 .PP
-.IR 2c (1)
+.IR 8c (1)
 describes the C directive
 .B #pragma
 .B varargck

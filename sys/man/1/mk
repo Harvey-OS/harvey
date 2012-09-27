@@ -168,13 +168,13 @@ In the recipe of a meta-rule, the environment variable
 contains the string matched by the
 .BR % .
 For example, a meta-rule to compile a C program using
-.IR 2c (1)
+.IR 8c (1)
 might be:
 .IP
 .EX
 %:    %.c
-        2c $stem.c
-        2l -o $stem $stem.2
+        8c $stem.c
+        8l -o $stem $stem.2
 .EE
 .PP
 Meta-rules may contain an ampersand

@@ -31,7 +31,7 @@ The options are:
 .TP
 .BI -I dir\^
 Same as in
-.IR 2c "(1): add
+.IR 8c "(1): add
 .I dir
 to the search for
 .CW search
@@ -116,4 +116,4 @@ directory for machine-dependent include files
 .SH SOURCE
 .B /sys/src/cmd/cpp
 .SH SEE ALSO
-.IR 2c (1)
+.IR 8c (1)

@@ -19,7 +19,7 @@ combined into a single archive file,
 The main use of
 .I ar
 is to create and update library files for the loaders
-.IR 2l (1),
+.IR 8l (1),
 etc.
 It can be used, though, for any similar purpose.
 .PP
@@ -172,7 +172,7 @@ temporaries
 .SH SOURCE
 .B /sys/src/cmd/ar.c
 .SH "SEE ALSO"
-.IR 2l (1), 
+.IR 8l (1), 
 .IR ar (6)
 .SH BUGS
 If the same file is mentioned twice in an argument list,

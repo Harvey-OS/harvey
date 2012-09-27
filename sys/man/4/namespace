@@ -87,7 +87,7 @@ architecture-specific files, to be selected according to
 or
 .B $cputype
 (see
-.IR 2c (1)
+.IR 8c (1)
 and
 .IR init (8)).
 Here we list only those for
@@ -113,7 +113,7 @@ containing auxiliary tools and collecting related programs.
 Directory of object code libraries as used by
 .B 8l
 (see
-.IR 2l (1)).
+.IR 8l (1)).
 .TP
 .B /386/include
 Directory of x86-specific C include files.

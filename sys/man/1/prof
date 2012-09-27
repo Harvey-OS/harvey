@@ -24,7 +24,7 @@ prof, tprof, kprof \- display profiling data
 interprets files produced automatically by programs loaded using the
 .B -p
 option of
-.IR 2l (1)
+.IR 8l (1)
 or other loader.
 The symbol table in the
 named program file
@@ -162,6 +162,6 @@ has no options and cannot present dynamic data.
 .br
 .B /sys/src/cmd/kprof.c
 .SH SEE ALSO
-.IR 2l (1),
+.IR 8l (1),
 .IR exec (2),
 .IR kprof (3)

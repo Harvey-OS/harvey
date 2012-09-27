@@ -63,7 +63,7 @@ Assume instructions are for the given CPU type
 .BR amd64 ,
 .BR 386 ,
 etc., as listed in
-.IR 2c (1),
+.IR 8c (1),
 or
 .B sunsparc
 or
@@ -91,7 +91,7 @@ If the function
 .IR acidinit ()
 is defined, it will be invoked after all libraries have been loaded.
 See
-.IR 2c (1)
+.IR 8c (1)
 for information about creating
 .I acid
 functions for examining data structures.
@@ -470,9 +470,9 @@ acid: cont()
 .SH SOURCE
 .B /sys/src/cmd/acid
 .SH "SEE ALSO"
-.IR 2a (1),
-.IR 2c (1),
-.IR 2l (1),
+.IR 8a (1),
+.IR 8c (1),
+.IR 8l (1),
 .IR mk (1),
 .IR db (1)
 .br

@@ -15,6 +15,7 @@ enum {
 };
 
 static Watchdog *wd;
+static int wdautopet;
 static Ref refs;
 static Dirtab wddir[] = {
 	".",		{ Qdir, 0, QTDIR },	0,		0555,
@@ -32,6 +33,44 @@ addwatchdog(Watchdog *watchdog)
 	wd = watchdog;
 	if(wd)
 		wd->disable();
+}
+
+static void
+wdpet(void)
+{
+	if (wdautopet)
+		wd->restart();
+}
+
+/*
+ * reassure the watchdog from the clock interrupt
+ * until the user takes control of it.
+ */
+static void
+wdautostart(void)
+{
+	if (wdautopet || !wd)
+		return;
+	iprint("watchdog: on with clock strokes\n");
+	wd->enable();
+	wdautopet = 1;
+	addclock0link(wdpet, 200);
+}
+
+static void
+wdautostop(void)
+{
+	if (!wdautopet)
+		return;
+	wdautopet = 0;
+	wd->disable();
+	iprint("watchdog: off\n");
+}
+
+static void
+wdreset(void)
+{
+	wdautostart();
 }
 
 static Chan*
@@ -55,6 +94,7 @@ wdstat(Chan *c, uchar *dp, int n)
 static Chan*
 wdopen(Chan* c, int omode)
 {
+	wdautostop();
 	c = devopen(c, omode, wddir, nelem(wddir), devgen);
 	if (c->qid.path == Qwdctl)
 		incref(&refs);
@@ -152,7 +192,7 @@ Dev wddevtab = {
 	'w',
 	"watchdog",
 
-	devreset,
+	wdreset,
 	devinit,
 	wdshutdown,
 	wdattach,

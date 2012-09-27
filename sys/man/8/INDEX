@@ -114,7 +114,6 @@ mkflashfs mkflashfs
 mkext mkfs
 mkfs mkfs
 mkpaqfs mkpaqfs
-mksacfs mksacfs
 mkusbboot mkusbboot
 aux/accupoint mouse
 aux/mouse mouse
@@ -137,12 +136,6 @@ newuser newuser
 nfsserver nfsserver
 pcnfsd nfsserver
 portmapper nfsserver
-9loadask old9load
-9loadusb old9load
-9pxeload old9load
-ld old9load
-old9load old9load
-old9load: 9load old9load
 partfs partfs
 pci pci
 pcmcia pcmcia
@@ -226,4 +219,5 @@ fmtisect venti-fmt
 syncindex venti-fmt
 venti-fmt venti-fmt
 vga vga
+watchdog watchdog
 wol wol
