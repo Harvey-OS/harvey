@@ -239,8 +239,8 @@ symbol in the symbol table.
 .SH "SEE ALSO"
 .IR db (1), 
 .IR acid (1), 
-.IR 2a (1), 
-.IR 2l (1), 
+.IR 8a (1), 
+.IR 8l (1), 
 .IR nm (1), 
 .IR strip (1),
 .IR mach (2),

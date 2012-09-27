@@ -10,7 +10,7 @@ is used to combine several files into
 one.
 Archives are used mainly as libraries to be searched
 by the loaders
-.IR 2l (1)
+.IR 8l (1)
 .I et al.
 .PP
 A file produced by
@@ -85,7 +85,7 @@ There is no provision for empty areas in an archive
 file.
 .SH "SEE ALSO"
 .IR ar (1), 
-.IR 2l (1), 
+.IR 8l (1), 
 .IR nm (1),
 .IR stat (2)
 .SH BUGS

@@ -48,7 +48,6 @@ ramfs ramfs
 ratfs ratfs
 rdbfs rdbfs
 rio rio
-sacfs sacfs
 snap snap
 snapfs snap
 9fs srv

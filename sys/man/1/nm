@@ -100,7 +100,7 @@ Print only undefined symbols.
 .B /sys/src/cmd/nm.c
 .SH SEE ALSO
 .IR ar (1),
-.IR 2l (1), 
+.IR 8l (1), 
 .IR db (1),
 .IR acid (1),
 .IR a.out (6)

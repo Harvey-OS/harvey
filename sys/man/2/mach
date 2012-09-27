@@ -167,7 +167,7 @@ data structure.
 .I Machbyname
 performs the same selection based
 on the name of a processor class; see
-.IR 2c (1)
+.IR 8c (1)
 for a list of valid names.
 Both functions point global variables
 .I mach
@@ -388,7 +388,7 @@ contained in
 .SH SOURCE
 .B /sys/src/libmach
 .SH "SEE ALSO"
-.IR 2c (1),
+.IR 8c (1),
 .IR symbol (2),
 .IR object (2),
 .IR errstr (2),

@@ -10,11 +10,11 @@ rob@plan9.bell-labs.com
 .SH
 Machines
 .PP
-There is an assembler for each of the MIPS, SPARC, Intel 386,
-Intel 960, Motorola 68020 and 68000, Power PC,
-AMD64, and ARM.
+There is an assembler for each of the MIPS, SPARC, Intel 386, AMD64,
+Power PC, and ARM.
 The 68020 assembler,
 .CW 2a ,
+(no longer distributed)
 is the oldest and in many ways the prototype.
 The assemblers are really just variations of a single program:
 they share many properties such as left-to-right assignment order for
@@ -476,13 +476,6 @@ notation, not Motorola's) see the file
 Despite its name, this file contains an enumeration of the
 instructions that appear in the intermediate files generated
 by the compiler, which correspond exactly to lines of assembly language.
-.PP
-The MC68000 assembler,
-.CW 1a ,
-is essentially the same, honoring the appropriate subset of the instructions
-and addressing modes.
-The definitions of these are, nonetheless, part of
-.CW 2.out.h .
 .SH
 Laying down instructions
 .PP

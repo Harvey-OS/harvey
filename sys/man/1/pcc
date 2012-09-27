@@ -18,11 +18,11 @@ Named files ending with
 are preprocessed with
 .IR cpp (1),
 then compiled with one of the compilers described in
-.IR 2c (1),
+.IR 8c (1),
 as specified by the environment variable
 .BR $objtype .
 The object files are then loaded using one of the loaders described in
-.IR 2l (1).
+.IR 8l (1).
 The options are:
 .TP \w'\fL-D\ \fIname=def\ 'u
 .B "-+
@@ -72,7 +72,7 @@ ANSI function prototypes.
 Enable
 .B void*
 conversion warnings, as in
-.IR 2c (1).
+.IR 8c (1).
 .TP
 .B -v
 Echo the preprocessing, compiling, and loading commands
@@ -133,7 +133,7 @@ are omitted.
 .TP
 .B -F
 Enable vararg type checking as described in 
-.IR 2c (1).
+.IR 8c (1).
 This is of limited use without the appropriate 
 .B #pragma 
 definitions.
@@ -162,9 +162,9 @@ files.
 ANSI C/POSIX library.
 .SH "SEE ALSO"
 .IR cpp (1),
-.IR 2c (1),
-.IR 2a (1),
-.IR 2l (1),
+.IR 8c (1),
+.IR 8a (1),
+.IR 8l (1),
 .IR mk (1),
 .IR nm (1),
 .IR acid (1),

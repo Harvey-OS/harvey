@@ -15,7 +15,7 @@ a number of differences in both the language the Plan 9 compiler
 accepts and in how the compiler is used.
 .PP
 The compiler is really a set of compilers, one for each
-architecture \(em MIPS, SPARC, Motorola 68020, Intel 386, etc. \(em
+architecture \(em MIPS, SPARC, Intel 386, Power PC, ARM, etc. \(em
 that accept a dialect of ANSI C and efficiently produce
 fairly good code for the target machine.
 There is a packaging of the compiler that accepts strict ANSI C for
@@ -114,7 +114,7 @@ abbreviations for
 and so on.
 .PP
 Here is an excerpt from
-.CW /68020/include/u.h :
+.CW /386/include/u.h :
 .P1
 #define nil		((void*)0)
 typedef	unsigned short	ushort;
@@ -286,12 +286,8 @@ for 32-bit Power PC,
 for MIPS,
 .CW 0
 for little-endian MIPS,
-.CW 1
-for Motorola 68000,
-.CW 2
-for Motorola 68020 and 68040,
 .CW 5
-for ARM v5 and later architectures,
+for ARM v5 and later 32-bit architectures,
 .CW 6
 for AMD64,
 .CW 8
@@ -299,39 +295,39 @@ for Intel 386, and
 .CW 9
 for 64-bit Power PC.
 The character labels the support tools and files for that architecture.
-For instance, for the 68020 the compiler is
-.CW 2c ,
+For instance, for the 386 the compiler is
+.CW 8c ,
 the assembler is
-.CW 2a ,
+.CW 8a ,
 the link editor/loader is
-.CW 2l ,
+.CW 8l ,
 the object files are suffixed
-.CW \&.2 ,
+.CW \&.8 ,
 and the default name for an executable file is
-.CW 2.out .
+.CW 8.out .
 Before we can use the compiler we therefore need to know which
 machine we are compiling for.
 The next section explains how this decision is made; for the moment
-assume we are building 68020 binaries and make the mental substitution for
-.CW 2
+assume we are building 386 binaries and make the mental substitution for
+.CW 8
 appropriate to the machine you are actually using.
 .PP
 To convert source to an executable binary is a two-step process.
 First run the compiler,
-.CW 2c ,
+.CW 8c ,
 on the source, say
 .CW file.c ,
 to generate an object file
-.CW file.2 .
+.CW file.8 .
 Then run the loader,
-.CW 2l ,
+.CW 8l ,
 to generate an executable
-.CW 2.out
-that may be run (on a 680X0 machine):
+.CW 8.out
+that may be run (on a 386 machine):
 .P1
-2c file.c
-2l file.2
-2.out
+8c file.c
+8l file.8
+8.out
 .P2
 The loader automatically links with whatever libraries the program
 needs, usually including the standard C library as defined by
@@ -355,7 +351,7 @@ and writes the final executable.
 There is no separate C preprocessor and no assembler in the usual pipeline.
 Instead the intermediate object file
 (here a
-.CW \&.2
+.CW \&.8
 file) is a type of binary assembly language.
 The instructions in the intermediate format are not exactly those in
 the machine.  For example, on the 68020 the object file may specify
@@ -364,7 +360,7 @@ the MOVE instruction \(em MOVE immediate, MOVE quick, MOVE address,
 etc. \(em is most efficient.
 .PP
 The assembler,
-.CW 2a ,
+.CW 8a ,
 is just a translator between the textual and binary
 representations of the object file format.
 It is not an assembler in the traditional sense.  It has limited
@@ -428,8 +424,8 @@ The configuration process is controlled by an environment variable,
 .CW $cputype ,
 with value such as
 .CW mips ,
-.CW 68020 ,
 .CW 386 ,
+.CW arm ,
 or
 .CW sparc .
 For each architecture there is a directory in the root,
@@ -461,7 +457,7 @@ There is a version of
 .CW vc
 compiled for each architecture:
 .CW /mips/bin/vc ,
-.CW /68020/bin/vc ,
+.CW /arm/bin/vc ,
 .CW /sparc/bin/vc ,
 and so on,
 each capable of producing MIPS object files regardless of the native
@@ -1298,7 +1294,7 @@ not for example
 and
 .CW vacid .
 They also support cross-architecture debugging comfortably:
-one may debug a 68020 binary on a MIPS.
+one may debug a 386 binary on a MIPS.
 .PP
 Imagine a program has crashed mysteriously:
 .P1
@@ -1391,7 +1387,7 @@ acid: include("sourcedirectory/syms")
 to read in the relevant definitions.
 (For multi-file source, you need to be a little fancier;
 see
-.I 2c (1)).
+.I 8c (1)).
 This text includes, for each defined compound
 type, a function with that name that may be called with the address of a structure
 of that type to display its contents.
