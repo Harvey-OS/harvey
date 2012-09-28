@@ -341,7 +341,7 @@ rfdalloc(ulong link)
 }
 
 static void
-watchdog(void* arg)
+ethwatchdog(void* arg)
 {
 	Ether *ether;
 	Ctlr *ctlr;
@@ -393,7 +393,7 @@ attach(Ether* ether)
 		 */
 		if((ctlr->eeprom[0x03] & 0x0003) != 0x0003){
 			snprint(name, KNAMELEN, "#l%dwatchdog", ether->ctlrno);
-			kproc(name, watchdog, ether);
+			kproc(name, ethwatchdog, ether);
 		}
 	}
 	unlock(&ctlr->slock);

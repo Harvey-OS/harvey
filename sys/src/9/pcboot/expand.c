@@ -93,7 +93,7 @@ kbdinit(void)
 	int c, try;
 
 	/* wait for a quiescent controller */
-	try = 1000;
+	try = 500;			/* was 1000 */
 	while(try-- > 0 && (c = inb(Status)) & (Outbusy | Inready)) {
 		if(c & Inready)
 			inb(Data);

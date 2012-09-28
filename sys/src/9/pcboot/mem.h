@@ -117,7 +117,7 @@
  * MemMax is the limit of physical memory to scan.
  */
 #define MemMin		(20*MB)	/* don't have PTEs for more allocated yet */
-#define MemMax		(32*MB)
+#define MemMax		(40*MB)
 
 #define Lowmemsz	(640*KB)
 
