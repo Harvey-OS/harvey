@@ -2,7 +2,7 @@
  * 68020 definition
  */
 #include <u.h>
-#include "2c/ureg.h"
+#include "68020/ureg.h"
 #include <bio.h>
 #include <mach.h>
 

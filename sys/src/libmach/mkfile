@@ -12,30 +12,30 @@ FILES=\
 	setmach\
 	v\
 	k\
-	u\
+	sparc64\
 	q\
 	0\
-	2\
+	68020\
 	5\
 	6\
-	7\
+	alpha\
 	8\
 	9\
 	vdb\
 	kdb\
-	udb\
+	sparc64db\
 	qdb\
-	2db\
+	68020db\
 	5db\
-	7db\
+	alphadb\
 	8db\
 	vobj\
 	kobj\
-	uobj\
-	2obj\
+	sparc64obj\
+	68020obj\
 	5obj\
 	6obj\
-	7obj\
+	alphaobj\
 	8obj\
 	9obj\
 	qobj\
@@ -56,13 +56,13 @@ UPDATE=mkfile\
 
 CFLAGS=$CFLAGS -I/sys/src/cmd
 
-2obj.$O: 2c/2.out.h
+68020obj.$O: 68020/2.out.h
 5obj.$O: /sys/src/cmd/5c/5.out.h
 6obj.$O: /sys/src/cmd/6c/6.out.h
-7obj.$O: 7c/7.out.h
+alphaobj.$O: alpha/7.out.h
 8obj.$O: /sys/src/cmd/8c/8.out.h
 9obj.$O: 9c/9.out.h
 kobj.$O: /sys/src/cmd/kc/k.out.h
 qobj.$O: /sys/src/cmd/qc/q.out.h
-uobj.$O: uc/u.out.h
+sparc64obj.$O: sparc64/u.out.h
 vobj.$O: /sys/src/cmd/vc/v.out.h
