@@ -5,7 +5,7 @@
 #include <libc.h>
 #include <bio.h>
 #include <mach.h>
-#include "2c/2.out.h"
+#include "68020/2.out.h"
 #include "obj.h"
 
 typedef struct Addr	Addr;

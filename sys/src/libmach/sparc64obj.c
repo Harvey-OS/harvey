@@ -1,11 +1,11 @@
 /*
- * 7obj.c - identify and parse an alpha object file
+ * uobj.c - identify and parse a sparc64 object file
  */
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
 #include <mach.h>
-#include "7c/7.out.h"
+#include "sparc64/u.out.h"
 #include "obj.h"
 
 typedef struct Addr	Addr;
@@ -17,10 +17,11 @@ struct Addr
 };
 static Addr addr(Biobuf*);
 static char type2char(int);
-static void skip(Biobuf*, int);
+static	void	skip(Biobuf*, int);
+
 
 int
-_is7(char *s)
+_isu(char *s)
 {
 	return  s[0] == ANAME				/* ANAME */
 		&& s[1] == D_FILE			/* type */
@@ -28,8 +29,9 @@ _is7(char *s)
 		&& s[3] == '<';				/* name of file */
 }
 
+
 int
-_read7(Biobuf *bp, Prog *p)
+_readu(Biobuf *bp, Prog *p)
 {
 	int as, n;
 	Addr a;
@@ -42,7 +44,7 @@ _read7(Biobuf *bp, Prog *p)
 	if(as == ANAME || as == ASIGNAME){
 		if(as == ASIGNAME){
 			Bread(bp, &p->sig, 4);
-			p->sig = leswal(p->sig);
+			p->sig = beswal(p->sig);
 		}
 		p->kind = aName;
 		p->type = type2char(Bgetc(bp));		/* type */
@@ -68,7 +70,7 @@ _read7(Biobuf *bp, Prog *p)
 		p->kind = aText;
 	else if(as == AGLOBL)
 		p->kind = aData;
-	skip(bp, 5);		/* reg(1), lineno(4) */
+	skip(bp, 5);		/* reg (1 byte); lineno (4 bytes) */
 	a = addr(bp);
 	addr(bp);
 	if(a.type != D_OREG || a.name != D_STATIC && a.name != D_EXTERN)
@@ -81,31 +83,27 @@ static Addr
 addr(Biobuf *bp)
 {
 	Addr a;
-	vlong off;
+	long off;
 
 	a.type = Bgetc(bp);	/* a.type */
-	skip(bp,1);		/* reg */
+	skip(bp, 1);		/* reg */
 	a.sym = Bgetc(bp);	/* sym index */
 	a.name = Bgetc(bp);	/* sym type */
-	switch(a.type){
+	switch(a.type) {
 	default:
-	case D_NONE: case D_REG: case D_FREG: case D_PREG:
-	case D_FCREG: case D_PCC:
+	case D_NONE: case D_REG: case D_FREG: case D_CREG: case D_PREG:
 		break;
-	case D_OREG:
-	case D_CONST:
 	case D_BRANCH:
-		off = (uvlong)Bgetc(bp);
-		off |= (uvlong)Bgetc(bp) << 8;
-		off |= (uvlong)Bgetc(bp) << 16;
-		off |= (uvlong)Bgetc(bp) << 24;
-		off |= (uvlong)Bgetc(bp) << 32;
-		off |= (uvlong)Bgetc(bp) << 40;
-		off |= (uvlong)Bgetc(bp) << 48;
-		off |= (uvlong)Bgetc(bp) << 56;
+	case D_OREG:
+	case D_ASI:
+	case D_CONST:
+		off = Bgetc(bp);
+		off |= Bgetc(bp) << 8;
+		off |= Bgetc(bp) << 16;
+		off |= Bgetc(bp) << 24;
 		if(off < 0)
 			off = -off;
-		if(a.sym && (a.name==D_PARAM || a.name==D_AUTO))
+		if(a.sym!=0 && (a.name==D_PARAM || a.name==D_AUTO))
 			_offset(a.sym, off);
 		break;
 	case D_SCONST:
@@ -117,6 +115,7 @@ addr(Biobuf *bp)
 	}
 	return a;
 }
+
 
 static char
 type2char(int t)

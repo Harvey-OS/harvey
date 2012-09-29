@@ -3,7 +3,7 @@
  */
 #include <u.h>
 #include <bio.h>
-#include "uc/ureg.h"
+#include "sparc64/ureg.h"
 #include <mach.h>
 
 #define	REGOFF(x)	(ulong)(&((struct Ureg *) 0)->x)

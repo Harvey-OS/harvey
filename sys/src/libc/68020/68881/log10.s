@@ -1,3 +1,0 @@
-	TEXT	log10(SB),$0
-	FLOG10D	a+0(FP),F0
-	RTS
