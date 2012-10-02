@@ -843,9 +843,9 @@ procread(Chan *c, void *va, long n, vlong off)
 		if(sps == 0)
 			sps = statename[p->state];
 		memset(statbuf, ' ', sizeof statbuf);
-		memmove(statbuf+0*KNAMELEN, p->text, strlen(p->text));
-		memmove(statbuf+1*KNAMELEN, p->user, strlen(p->user));
-		memmove(statbuf+2*KNAMELEN, sps, strlen(sps));
+		readstr(0, statbuf+0*KNAMELEN, KNAMELEN-1, p->text);
+		readstr(0, statbuf+1*KNAMELEN, KNAMELEN-1, p->user);
+		readstr(0, statbuf+2*KNAMELEN, 11, sps);
 		j = 2*KNAMELEN + 12;
 
 		for(i = 0; i < 6; i++) {

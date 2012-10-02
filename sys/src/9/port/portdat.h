@@ -792,6 +792,9 @@ extern	char*	sysname;
 extern	uint	qiomaxatomic;
 extern	char*	sysctab[];
 
+	Watchdog*watchdog;
+	int	watchdogon;
+
 enum
 {
 	LRESPROF	= 3,
