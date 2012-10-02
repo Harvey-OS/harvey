@@ -19,7 +19,7 @@ enum
 static void
 usage(void)
 {
-	fprint(2, "usage: %s [-Dd] [-N nb] [-m mnt] [-s srv] [dev...]\n", argv0);
+	fprint(2, "usage: %s [-a addr] [-Dd] [-N nb] [-m mnt] [-s srv] [dev...]\n", argv0);
 	threadexitsall("usage");
 }
 
@@ -61,6 +61,9 @@ threadmain(int argc, char **argv)
 	ae = args+sizeof(args);
 	as = seprint(args, ae, "ether");
 	ARGBEGIN{
+	case 'a':
+		as = seprint(as, ae, " -a %s", EARGF(usage()));
+		break;
 	case 'D':
 		usbfsdebug++;
 		break;

@@ -234,8 +234,11 @@ ctlrinit(Ether *ether)
 
 	d = ether->dev;
 	switch(ether->cid){
-	default:
+	case A8817x:
+	case A88179:
 		fprint(2, "%s: card known but not implemented\n", argv0);
+		/* fall through */
+	default:
 		return -1;
 
 	case A88178:
@@ -467,7 +470,7 @@ asixreset(Ether *ether)
 		if(ip->vid == dev->usb->vid && ip->did == dev->usb->did){
 			ether->cid = ip->cid;
 			if(ctlrinit(ether) < 0){
-				deprint(2, "%s: init failed: %r\n", argv0);
+				deprint(2, "%s: asix init failed: %r\n", argv0);
 				return -1;
 			}
 			deprint(2, "%s: asix reset done\n", argv0);

@@ -55,6 +55,8 @@ enum
 	Tickshift=8,		/* extra accuracy */
 	MaxPeriod=Freq/HZ,
 	MinPeriod=Freq/(100*HZ),
+
+	Wdogms	= 200,		/* ms between strokes */
 };
 
 typedef struct I8253 I8253;
@@ -115,11 +117,41 @@ i8253init(void)
 	}
 }
 
+/*
+ * if the watchdog is running and we're on cpu 0 and ignoring (clock)
+ * interrupts, disable the watchdog temporarily so that the (presumed)
+ * long-running loop to follow will not trigger an NMI.
+ * wdogresume restarts the watchdog if wdogpause stopped it.
+ */
+static int
+wdogpause(void)
+{
+	int turndogoff;
+
+	turndogoff = watchdogon && m->machno == 0 && !islo();
+	if (turndogoff) {
+		watchdog->disable();
+		watchdogon = 0;
+	}
+	return turndogoff;
+}
+
+static void
+wdogresume(int resume)
+{
+	if (resume) {
+		watchdog->enable();
+		watchdogon = 1;
+	}
+}
+
 void
 guesscpuhz(int aalcycles)
 {
-	int loops, incr, x, y;
+	int loops, incr, x, y, dogwason;
 	uvlong a, b, cpufreq;
+
+	dogwason = wdogpause();		/* don't get NMI while busy looping */
 
 	/* find biggest loop that doesn't wrap */
 	incr = 16000000/(aalcycles*HZ*2);
@@ -155,6 +187,7 @@ guesscpuhz(int aalcycles)
 		if(x > Freq/(3*HZ))
 			break;
 	}
+	wdogresume(dogwason);
 
 	/*
  	 *  figure out clock frequency and a loop multiplier for delay().
@@ -286,6 +319,14 @@ i8253read(uvlong *hz)
 void
 delay(int millisecs)
 {
+	if (millisecs > 10*1000)
+		iprint("delay(%d) from %#p\n", millisecs,
+			getcallerpc(&millisecs));
+	if (watchdogon && m->machno == 0 && !islo())
+		for (; millisecs > Wdogms; millisecs -= Wdogms) {
+			delay(Wdogms);
+			watchdog->restart();
+		}
 	millisecs *= m->loopconst;
 	if(millisecs <= 0)
 		millisecs = 1;
@@ -295,6 +336,11 @@ delay(int millisecs)
 void
 microdelay(int microsecs)
 {
+	if (watchdogon && m->machno == 0 && !islo())
+		for (; microsecs > Wdogms*1000; microsecs -= Wdogms*1000) {
+			delay(Wdogms);
+			watchdog->restart();
+		}
 	microsecs *= m->loopconst;
 	microsecs /= 1000;
 	if(microsecs <= 0)

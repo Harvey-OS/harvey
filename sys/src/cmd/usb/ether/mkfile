@@ -7,6 +7,7 @@ OFILES=\
 LIBDOFILES=\
 	ether.$O\
 	asix.$O\
+	smsc.$O\
 	cdc.$O\
 
 HFILES=\

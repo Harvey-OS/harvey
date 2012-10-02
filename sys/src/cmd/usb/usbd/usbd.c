@@ -711,9 +711,21 @@ setdrvargs(char *name, char *args)
 			dt->args = estrdup(args);
 }
 
+static void
+setdrvauto(char *name, int on)
+{
+	Devtab *dt;
+	extern Devtab devtab[];
+
+	for(dt = devtab; dt->name != nil; dt++)
+		if(strstr(dt->name, name) != nil)
+			dt->noauto = !on;
+}
+
 static long
 cfswrite(Usbfs*, Fid *, void *data, long cnt, vlong )
 {
+	char *cmd, *arg;
 	char buf[80];
 	char *toks[4];
 
@@ -736,17 +748,25 @@ cfswrite(Usbfs*, Fid *, void *data, long cnt, vlong )
 		return cnt;
 	}
 	if(tokenize(buf, toks, nelem(toks)) != 2){
-		werrstr("usage: debug|fsdebug n");
+		werrstr("usage: auto|debug|diskargs|fsdebug|kbargs|noauto n");
 		return -1;
 	}
-	if(strcmp(toks[0], "debug") == 0)
-		usbdebug = atoi(toks[1]);
-	else if(strcmp(toks[0], "fsdebug") == 0)
-		usbfsdebug = atoi(toks[1]);
-	else if(strcmp(toks[0], "kbargs") == 0)
-		setdrvargs("kb", toks[1]);
-	else if(strcmp(toks[0], "diskargs") == 0)
-		setdrvargs("disk", toks[1]);
+	cmd = toks[0];
+	arg = toks[1];
+	if(strcmp(cmd, "auto") == 0)
+		setdrvauto(arg, 1);
+	else if(strcmp(cmd, "debug") == 0)
+		usbdebug = atoi(arg);
+	else if(strcmp(cmd, "diskargs") == 0)
+		setdrvargs("disk", arg);
+	else if(strcmp(cmd, "etherargs") == 0)
+		setdrvargs("ether", arg);
+	else if(strcmp(cmd, "fsdebug") == 0)
+		usbfsdebug = atoi(arg);
+	else if(strcmp(cmd, "kbargs") == 0)
+		setdrvargs("kb", arg);
+	else if(strcmp(cmd, "noauto") == 0)
+		setdrvauto(arg, 0);
 	else{
 		werrstr("unknown ctl '%s'", buf);
 		return -1;
@@ -778,26 +798,35 @@ static Usbfs ctlfs =
 };
 
 static void
-args(void)
+getenvint(char *env, int *lp)
 {
 	char *s;
 
-	s = getenv("usbdebug");
-	if(s != nil)
-		usbdebug = atoi(s);
+	s = getenv(env);
+	if (s != nil)
+		*lp = atoi(s);
 	free(s);
-	s = getenv("usbfsdebug");
+}
+
+static void
+getenvdrvargs(char *env, char *argname)
+{
+	char *s;
+
+	s = getenv(env);
 	if(s != nil)
-		usbfsdebug = atoi(s);
+		setdrvargs(argname, s);
 	free(s);
-	s = getenv("kbargs");
-	if(s != nil)
-		setdrvargs("kb", s);
-	free(s);
-	s = getenv("diskargs");
-	if(s != nil)
-		setdrvargs("disk", s);
-	free(s);
+}
+
+static void
+args(void)
+{
+	getenvint("usbdebug",	&usbdebug);
+	getenvint("usbfsdebug",	&usbfsdebug);
+	getenvdrvargs("kbargs",    "kb");
+	getenvdrvargs("diskargs",  "disk");
+	getenvdrvargs("etherargs", "ether");
 }
 
 static void
@@ -812,13 +841,9 @@ extern void usbfsexits(int);
 void
 threadmain(int argc, char **argv)
 {
-	int i;
+	int fd, i, nd;
+	char *err, *mnt, *srv;
 	Dir *d;
-	int fd;
-	int nd;
-	char *err;
-	char *srv;
-	char *mnt;
 
 	srv = "usb";
 	mnt = "/dev";

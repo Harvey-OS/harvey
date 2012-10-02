@@ -14,8 +14,16 @@ enum {
 	Qwdctl,
 };
 
+/*
+ * these are exposed so that delay() and the like can disable the watchdog
+ * before busy looping for a long time.
+ */
+Watchdog*watchdog;
+int	watchdogon;
+
 static Watchdog *wd;
 static int wdautopet;
+static int wdclock0called;
 static Ref refs;
 static Dirtab wddir[] = {
 	".",		{ Qdir, 0, QTDIR },	0,		0555,
@@ -24,21 +32,28 @@ static Dirtab wddir[] = {
 
 
 void
-addwatchdog(Watchdog *watchdog)
+addwatchdog(Watchdog *wdog)
 {
 	if(wd){
 		print("addwatchdog: watchdog already installed\n");
 		return;
 	}
-	wd = watchdog;
+	wd = watchdog = wdog;
 	if(wd)
 		wd->disable();
+}
+
+static int
+wdallowed(void)
+{
+	return getconf("*nowatchdog") == nil;
 }
 
 static void
 wdpet(void)
 {
-	if (wdautopet)
+	/* watchdog could be paused; if so, don't restart */
+	if (wdautopet && watchdogon)
 		wd->restart();
 }
 
@@ -49,12 +64,15 @@ wdpet(void)
 static void
 wdautostart(void)
 {
-	if (wdautopet || !wd)
+	if (wdautopet || !wd || !wdallowed())
 		return;
 	iprint("watchdog: on with clock strokes\n");
 	wd->enable();
-	wdautopet = 1;
-	addclock0link(wdpet, 200);
+	wdautopet = watchdogon = 1;
+	if (!wdclock0called) {
+		addclock0link(wdpet, 200);
+		wdclock0called = 1;
+	}
 }
 
 static void
@@ -62,7 +80,7 @@ wdautostop(void)
 {
 	if (!wdautopet)
 		return;
-	wdautopet = 0;
+	wdautopet = watchdogon = 0;
 	wd->disable();
 	iprint("watchdog: off\n");
 }
@@ -102,17 +120,19 @@ wdopen(Chan* c, int omode)
 }
 
 static void
-wdclose(Chan *c)
+wdshutdown(void)
 {
-	if(c->qid.path == Qwdctl && c->flag&COPEN && decref(&refs) <= 0 && wd)
+	if (wd) {
 		wd->disable();
+		watchdogon = 0;
+	}
 }
 
 static void
-wdshutdown(void)
+wdclose(Chan *c)
 {
-	if (wd)
-		wd->disable();
+	if(c->qid.path == Qwdctl && c->flag&COPEN && decref(&refs) <= 0)
+		wdshutdown();
 }
 
 static long
@@ -170,10 +190,11 @@ wdwrite(Chan* c, void* a, long n, vlong off)
 		if((p = strchr(a, '\n')) != nil)
 			*p = 0;
 
-		if(strncmp(a, "enable", n) == 0)
+		if(strncmp(a, "enable", n) == 0) {
 			wd->enable();
-		else if(strncmp(a, "disable", n) == 0)
-			wd->disable();
+			watchdogon = 1;
+		} else if(strncmp(a, "disable", n) == 0)
+			wdshutdown();
 		else if(strncmp(a, "restart", n) == 0)
 			wd->restart();
 		else

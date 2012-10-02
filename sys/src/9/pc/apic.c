@@ -234,7 +234,7 @@ lapicinit(Apic* apic)
 	/*
 	 * Do not allow acceptance of interrupts until all initialisation
 	 * for this processor is done. For the bootstrap processor this can be
-	 * early duing initialisation. For the application processors this should
+	 * early during initialisation. For the application processors this should
 	 * be after the bootstrap processor has lowered priority and is accepting
 	 * interrupts.
 	lapicw(LapicTPR, 0);
