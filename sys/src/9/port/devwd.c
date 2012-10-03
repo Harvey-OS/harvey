@@ -50,6 +50,16 @@ wdallowed(void)
 }
 
 static void
+wdshutdown(void)
+{
+	if (wd) {
+		wd->disable();
+		watchdogon = 0;
+	}
+}
+
+/* called from clock interrupt, so restart needs ilock internally */
+static void
 wdpet(void)
 {
 	/* watchdog could be paused; if so, don't restart */
@@ -75,14 +85,18 @@ wdautostart(void)
 	}
 }
 
+/*
+ * disable strokes from the clock interrupt.
+ * have to disable the watchdog to mark it `not in use'.
+ */
 static void
 wdautostop(void)
 {
 	if (!wdautopet)
 		return;
-	wdautopet = watchdogon = 0;
-	wd->disable();
-	iprint("watchdog: off\n");
+	wdautopet = 0;
+	wdshutdown();
+	iprint("watchdog: disabled before open\n");
 }
 
 static void
@@ -117,15 +131,6 @@ wdopen(Chan* c, int omode)
 	if (c->qid.path == Qwdctl)
 		incref(&refs);
 	return c;
-}
-
-static void
-wdshutdown(void)
-{
-	if (wd) {
-		wd->disable();
-		watchdogon = 0;
-	}
 }
 
 static void

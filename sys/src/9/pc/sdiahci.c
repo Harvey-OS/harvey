@@ -1613,7 +1613,7 @@ flushcache(Drive *d)
 static int
 iariopkt(SDreq *r, Drive *d)
 {
-	int n, count, try, max, flag, task;
+	int n, count, try, max, flag, task, wormwrite;
 	char *name;
 	uchar *cmd, *data;
 	Aport *p;
@@ -1682,8 +1682,28 @@ retry:
 			r->status = SDcheck;
 			return SDcheck;
 		}
-		print("%s: retry\n", name);
-		goto retry;
+		/*
+		 * write retries cannot succeed on write-once media,
+		 * so just accept any failure.
+		 */
+		wormwrite = 0;
+		switch(d->unit->inquiry[0] & SDinq0periphtype){
+		case SDperworm:
+		case SDpercd:
+			switch(cmd[0]){
+			case 0x0a:		/* write (6?) */
+			case 0x2a:		/* write (10) */
+			case 0x8a:		/* long write (16) */
+			case 0x2e:		/* write and verify (10) */
+				wormwrite = 1;
+				break;
+			}
+			break;
+		}
+		if (!wormwrite) {
+			print("%s: retry\n", name);
+			goto retry;
+		}
 	}
 	if(flag & Ferror){
 		if((task&Eidnf) == 0)

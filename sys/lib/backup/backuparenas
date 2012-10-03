@@ -26,8 +26,10 @@ if (! ~ $ok [Yy]*)
 cd $fsroot/dev/fs
 for (name) {
 	grep next /mnt/cd/ctl
+	# use -o 8192 to avoid devmnt fragmentation if bd drive is imported
 	venti/rdarena arena0 $name |
-		pump -i 65536 -o 1048576 -k 51200 -d 10 >/mnt/cd/wd/$name
+		pump -i 65536 -o 8192 -k 100000 -d 5 >/mnt/cd/wd/$name
+#		pump -i 65536 -o 1048576 -k 51200 -d 10 >/mnt/cd/wd/$name
 	quitonfailure $status
 
 #	ls -l /mnt/cd
