@@ -68,12 +68,12 @@ x86wdenable(void)
 	u32int evntsel;
 
 	wd = &x86wd;
-	lock(wd);
+	ilock(wd);
 	if(wd->inuse){
-		unlock(wd);
+		iunlock(wd);
 		error(Einuse);
 	}
-	unlock(wd);
+	iunlock(wd);
 
 	/*
 	 * keep this process on cpu 0 so we always see the same timers
@@ -102,9 +102,9 @@ x86wdenable(void)
 	    (m->cpuiddx & (Cpuapic|Cpumsr|Tsc)) != (Cpuapic|Cpumsr|Tsc))
 		error(Enodev);
 
-	lock(wd);
+	ilock(wd);
 	if(wd->inuse){
-		unlock(wd);
+		iunlock(wd);
 		error(Einuse);
 	}
 	wd->model = model;
@@ -178,7 +178,7 @@ x86wdenable(void)
 		wrmsr(0xC0010000, 0x00400000|evntsel);
 		break;
 	}
-	unlock(wd);
+	iunlock(wd);
 }
 
 static void
@@ -187,19 +187,19 @@ x86wddisable(void)
 	Wd *wd;
 
 	wd = &x86wd;
-	lock(wd);
+	ilock(wd);
 	if(!wd->inuse){
 		/*
 		 * Can't error, called at boot by addwatchdog().
 		 */
-		unlock(wd);
+		iunlock(wd);
 		return;
 	}
-	unlock(wd);
+	iunlock(wd);
 
 	runoncpu(0);
 
-	lock(wd);
+	ilock(wd);
 	lapicnmidisable();
 	switch(wd->model){
 	case P6:
@@ -215,7 +215,7 @@ x86wddisable(void)
 		break;
 	}
 	wd->inuse = 0;
-	unlock(wd);
+	iunlock(wd);
 }
 
 static void
@@ -228,7 +228,7 @@ x86wdrestart(void)
 	t = interval();
 
 	wd = &x86wd;
-	lock(wd);
+	ilock(wd);
 	switch(wd->model){
 	case P6:
 		wrmsr(0xC1, -t);
@@ -246,7 +246,7 @@ x86wdrestart(void)
 		break;
 	}
 	wd->ticks++;
-	unlock(wd);
+	iunlock(wd);
 }
 
 void
@@ -257,10 +257,10 @@ x86wdstat(char* p, char* ep)
 	uint ticks;
 
 	wd = &x86wd;
-	lock(wd);
+	ilock(wd);
 	inuse = wd->inuse;
 	ticks = wd->ticks;
-	unlock(wd);
+	iunlock(wd);
 
 	if(inuse)
 		seprint(p, ep, "enabled %ud restarts\n", ticks);

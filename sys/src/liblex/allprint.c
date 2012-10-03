@@ -1,5 +1,4 @@
-#include	<u.h>
-#include	<libc.h>
+#include	"/sys/src/cmd/lex/ldefs.h"
 #include	<stdio.h>
 
 extern	FILE*	yyout;
@@ -11,7 +10,7 @@ printable(int c)
 }
 
 void
-allprint(char c)
+allprint(int c)
 {
 
 	switch(c) {
