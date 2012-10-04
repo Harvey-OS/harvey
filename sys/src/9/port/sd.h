@@ -134,8 +134,16 @@ enum {
 	SDnpart		= 16,
 };
 
+/*
+ * Allow the default #defines for sdmalloc & sdfree to be overridden by
+ * system-specific versions.  This can be used to avoid extra copying
+ * by making sure sd buffers are cache-aligned (some ARM systems) or
+ * page-aligned (xen) for DMA.
+ */
+#ifndef sdmalloc
 #define sdmalloc(n)	malloc(n)
 #define sdfree(p)	free(p)
+#endif
 
 /* devsd.c */
 extern void sdadddevs(SDev*);

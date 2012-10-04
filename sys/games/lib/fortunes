@@ -4295,3 +4295,4 @@ Does that say 25 or 29? - rae;  It says PH1. - jmk
 Error: Dependency is not satisfiable: libpython2.7 (>= 2.7)
 That's a lot of ioctls.  Why not just create a new system call, or many system calls, instead?
 In my nightmares I am buffeted by this kind of jargon-ridden empty bullshit; demons sneak into my room and whisper ``efficiency explosions of dynamic risk that cause creative destruction and facilitate innovation.'' - Freddie deBoer on David Brooks
+JFFS2 warning: (1773) jffs2_sum_write_data: Not enough space for summary, padsize = -85
