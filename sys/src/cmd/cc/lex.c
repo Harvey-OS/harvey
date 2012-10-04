@@ -242,14 +242,10 @@ compile(char *file, char **defs, int ndef)
 			close(fd[1]);
 			av[0] = CPP;
 			i = 1;
-			if(debug['.']){
-				sprint(opt, "-.");
-				av[i++] = strdup(opt);
-			}
-			if(debug['+']) {
-				sprint(opt, "-+");
-				av[i++] = strdup(opt);
-			}
+			if(debug['.'])
+				av[i++] = strdup("-.");
+			/* 1999 ANSI C requires recognising // comments */
+			av[i++] = strdup("-+");
 			for(c = 0; c < ndef; c++) {
 				sprint(opt, "-D%s", defs[c]);
 				av[i++] = strdup(opt);
