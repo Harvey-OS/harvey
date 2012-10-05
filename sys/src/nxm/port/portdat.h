@@ -426,6 +426,7 @@ enum
 	SG_STACK	= 03,
 	SG_SHARED	= 04,
 	SG_PHYSICAL	= 05,
+	SG_PV		= 06,		/* P == V (with some caveats */
 
 	SG_CACHED	= 0020,		/* Physseg can be cached */
 	SG_RONLY	= 0040,		/* Segment is read only */
@@ -684,7 +685,7 @@ enum
  */
 enum
 {
-	SSEG, TSEG, DSEG, BSEG, HSEG, ESEG, LSEG, SEG1, SEG2, SEG3, SEG4, NSEG
+	SSEG, TSEG, DSEG, BSEG, HSEG, ESEG, IDSEG, SEG1, SEG2, SEG3, SEG4, NSEG
 };
 
 enum

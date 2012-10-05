@@ -1,9 +1,11 @@
 MKSHELL=rc
 <$NXM/$objtype/mkfile
 
-TARG = 	badsyscall\
-		float\
-		sysstatread\
+TARG = \
+	badsyscall\
+	float\
+	sysstatread\
+	idseg\
 
 DIRS=
 

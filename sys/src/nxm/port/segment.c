@@ -27,8 +27,10 @@ newseg(int type, uintptr base, u64int size)
 	int mapsize;
 	uint pgsz;
 
-	if(size > SEGMAPSIZE*(PTEMAPMEM/BIGPGSZ))
-		error(Enovmem);
+	if(size > SEGMAPSIZE*(PTEMAPMEM/BIGPGSZ)){
+		print("newseg bails out because %ld is too big\n", size);
+		error("newseg: segment size too large (max SEGMAPSIZE bigpages");
+	}
 
 	pgsz = BIGPGSZ;
 	if(size*BIGPGSZ >= 1*GiB && m->pgsz[getpgszi(1*GiB)] == 1*GiB &&

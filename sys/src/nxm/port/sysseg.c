@@ -58,7 +58,61 @@ isphysseg(char *name)
 	return rv;
 }
 
-/* Needs to be non-static for BGP support */
+static uintptr
+idibrk(void)
+{
+	Segment *s, *ns;
+	uintptr rtop;
+	uintptr newsize;
+	int i, mapsize;
+	Pte **map;
+	uintmem pgsz;
+	Page *p = nil;
+	s = up->seg[IDSEG];
+	if(s == 0)
+		error(Ebadarg);
+
+	qlock(&s->lk);
+	if(waserror()) {
+		qunlock(&s->lk);
+		if (p)
+			putpage(p);
+		nexterror();
+	}
+
+	pgsz = m->pgsz[s->pgszi];
+	p = newpage(1, &s, 0, pgsz, -1);
+	if (! p)
+		error("newpage failed in idibrk");
+
+	/* the va is the pa + 1024 * GiB ... */
+	p->va = p->pa + 1024ULL*GiB;
+	rtop = p->va > s->top ? p->va : s->top;
+	newsize = (rtop-s->base)/pgsz;
+	if(newsize > (SEGMAPSIZE*s->ptepertab))
+		error(Enovmem);
+
+	mapsize = HOWMANY(newsize, s->ptepertab);
+	if(mapsize > s->mapsize){
+		map = smalloc(mapsize*sizeof(Pte*));
+		memmove(map, s->map, s->mapsize*sizeof(Pte*));
+		if(s->map != s->ssegmap)
+			free(s->map);
+		s->map = map;
+		s->mapsize = mapsize;
+	}
+
+	s->top = rtop;
+	s->size = newsize;
+	poperror();
+	qunlock(&s->lk);
+	/* we have the page, the va, and all we need.
+	 * just do the mmuput
+	 */
+	mmuput(p->va, p, PTEVALID|PTEWRITE|PTEUSER);
+	return p->va;
+}
+
 uintptr
 ibrk(uintptr addr, int seg)
 {
@@ -175,6 +229,11 @@ syssegbrk(Ar0* ar0, va_list list)
 			ar0->v = UINT2PTR(up->seg[BSEG]->top);
 		return;
 	}
+	if (addr == 1024ULL * GiB){
+		if (!up->seg[IDSEG])
+		  	up->seg[IDSEG] = newseg(SG_PV, 1024ULL * GiB, 
+				SEGMAPSIZE*(PTEMAPMEM/BIGPGSZ));
+	}
 	for(i = 0; i < NSEG; i++) {
 		s = up->seg[i];
 		if(s == nil)
@@ -189,6 +248,9 @@ syssegbrk(Ar0* ar0, va_list list)
 		case SG_DATA:
 		case SG_STACK:
 			error(Ebadarg);
+		case SG_PV:
+			ar0->v = UINT2PTR(idibrk());
+			return;
 		default:
 			addr = PTR2UINT(va_arg(list, void*));
 			ar0->v = UINT2PTR(ibrk(addr, i));

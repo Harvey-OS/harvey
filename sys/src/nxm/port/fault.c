@@ -106,7 +106,8 @@ fixfault(Segment *s, uintptr addr, int read, int dommuput, int color)
 	mmuattr = 0;
 	switch(type) {
 	default:
-		panic("fault");
+		panic("fault: Seg %p(%p,%p)no segment type",
+			s,s->base,s->top);
 		break;
 
 	case SG_TEXT: 			/* Demand load */
@@ -129,6 +130,18 @@ fixfault(Segment *s, uintptr addr, int read, int dommuput, int color)
 		}
 		goto common;
 
+	/* SG_PV is more like PHYS than anything.
+	 * no COW, has to be present.
+	 */
+	case SG_PV:
+		if (*pg == 0)
+			error("Can't fault in a PV page that is not there");
+		if((s->pseg->attr & SG_RONLY) == 0)
+			mmuattr |= PTEWRITE;
+		if((s->pseg->attr & SG_CACHED) == 0)
+			mmuattr |= PTEUNCACHED;
+		(*pg)->modref = PG_MOD|PG_REF;
+		break;
 	case SG_DATA:
 	common:			/* Demand load/pagein/copy on write */
 		if(pagedout(*pg))
