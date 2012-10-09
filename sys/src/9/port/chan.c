@@ -1379,7 +1379,7 @@ namec(char *aname, int amode, int omode, ulong perm)
 		if(t == -1)
 			error(Ebadsharp);
 		if(debugstart && !devtab[t]->attached)
-			print("attach #%C...", devtab[t]->dc);
+			print("#%C...", devtab[t]->dc);
 		c = devtab[t]->attach(up->genbuf+n);
 		if(debugstart && c != nil)
 			devtab[t]->attached = 1;

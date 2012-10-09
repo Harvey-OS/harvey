@@ -62,6 +62,7 @@ venti/sync  >[2]/dev/null &
 unmount /mnt/consoles >[2]/dev/null
 kill consolefs | rc			# don't compete with /mnt/consoles
 kill cron | rc				# unlock /cron/lock
+kill watchdog | rc
 sleep 1
 
 f=`{ls /srv/fscons*>[2]/dev/null}
