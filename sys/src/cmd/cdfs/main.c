@@ -207,8 +207,9 @@ fsremove(Req *r)
 char *
 disctype(Drive *drive)
 {
-	char *type, *rw;
+	char *type, *rw, *laysfx;
 
+	rw = laysfx = "";
 	switch (drive->mmctype) {
 	case Mmccd:
 		type = "cd-";
@@ -219,6 +220,8 @@ disctype(Drive *drive)
 		break;
 	case Mmcbd:
 		type = "bd-";
+		if (drive->laysfx)
+			laysfx = drive->laysfx;
 		break;
 	case Mmcnone:
 		type = "no-disc";
@@ -227,7 +230,6 @@ disctype(Drive *drive)
 		type = "**GOK**";		/* traditional */
 		break;
 	}
-	rw = "";
 	if (drive->mmctype != Mmcnone && drive->dvdtype == nil)
 		if (drive->erasable == Yes)
 			rw = drive->mmctype == Mmcbd? "re": "rw";
@@ -235,7 +237,7 @@ disctype(Drive *drive)
 			rw = "r";
 		else
 			rw = "rom";
-	return smprint("%s%s", type, rw);
+	return smprint("%s%s%s", type, rw, laysfx);
 }
 
 int
@@ -715,7 +717,8 @@ main(int argc, char **argv)
 				close(fd);
 			vflag++;
 			scsiverbose = 2; /* verbose but no Readtoc errs */
-		}
+		} else
+			fprint(2, "%s: can't open /tmp/cdfs.log: %r\n", argv0);
 		break;
 	default:
 		usage();

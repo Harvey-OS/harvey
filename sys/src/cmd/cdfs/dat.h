@@ -6,6 +6,8 @@ enum {
 	BScdxa		= 2336,
 	BSmax		= 2352,
 
+	Maxfeatures	= 512,
+
 	/* scsi peripheral device types, SPC-3 §6.4.2 */
 	TypeDA		= 0,		/* Direct Access (SBC) */
 	TypeSA		= 1,		/* Sequential Access (SSC) */
@@ -99,7 +101,7 @@ enum {
 	Wtraw,
 	Wtlayerjump,
 
-	/* track modes (TODO: also track types?) */
+	/* track modes (determine: are these also track types?) */
 	Tmcdda	= 0,		/* audio cdda */
 	Tm2audio,		/* 2 audio channels */
 	Tmunintr = 4,		/* data, recorded uninterrupted */
@@ -132,6 +134,7 @@ enum {
 	CDNblock = 12,		/* chosen for CD */
 	DVDNblock = 16,		/* DVD ECC block is 16 sectors */
 	BDNblock = 32,		/* BD ECC block (`cluster') is 32 sectors */
+				/* BD-R are write-once in increments of 64KB */
 	/*
 	 * make a single transfer fit in a 9P rpc.  if we don't do this,
 	 * remote access (e.g., via /mnt/term/dev/sd*) fails mysteriously.
@@ -213,6 +216,7 @@ struct Drive
 	/* disc characteristics */
 	int	mmctype;		/* cd, dvd, or bd */
 	char	*dvdtype;		/* name of dvd flavour */
+	char	*laysfx;		/* layer suffix (e.g., -dl) */
 	int	firsttrack;
 	int	invistrack;
 	int	ntrack;
@@ -228,6 +232,7 @@ struct Drive
 	Tristate erasable;		/* writable after erasing? */
 
 	Track	track[Ntrack];
+	ulong	end;			/* # of blks on current disc */
 	ulong	cap;			/* drive capabilities */
 	uchar	blkbuf[BScdda];
 
@@ -236,6 +241,8 @@ struct Drive
 	int	readspeed;
 	int	writespeed;
 	Dev;
+
+	uchar	features[Maxfeatures/8];
 
 	void *aux;		/* kept by driver */
 };

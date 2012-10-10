@@ -168,6 +168,47 @@ rewind(File *fp)
 	repos(fp, 0);
 }
 
+static char magic[] = "\235any old ☺ rubbish\173";
+static char uniq[sizeof magic + 2*sizeof(ulong)];
+
+static char *
+putbe(char *p, ulong ul)
+{
+	*p++ = ul>>24;
+	*p++ = ul>>16;
+	*p++ = ul>>8;
+	*p++ = ul;
+	return p;
+}
+
+/*
+ * generate magic + unique string, add to start & end of buff.
+ * return tail pointer.
+ */
+static char *
+addmagic(char *buff, int bytes)
+{
+	char *p, *tail;
+	static ulong seq;
+
+	strcpy(uniq, magic);
+	p = putbe(uniq + sizeof magic - 1, time(0));
+	putbe(p, ++seq);
+
+	memcpy(buff, uniq, sizeof uniq);
+	tail = buff + bytes - sizeof uniq;
+	memcpy(tail, uniq, sizeof uniq);
+	return tail;
+}
+
+/* verify magic + unique strings in buff */
+static int
+ismagicok(char *buff, char *tail)
+{
+	return  memcmp(buff, uniq, sizeof uniq) == 0 ||
+		memcmp(tail, uniq, sizeof uniq) == 0;
+}
+
 /*
  * transfer (many) sectors.  reblock input as needed.
  * returns Enone if no failures, others on failure with errstr set.
@@ -179,7 +220,6 @@ bio(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects, int mustseek)
 	char *tail;
 	ulong toread, bytes = sects * sectsz;
 	static int reblocked = 0;
-	static char magic[] = "\235any old ☺ rubbish\173";
 
 	if (mustseek) {
 		if (!fp->seekable)
@@ -191,23 +231,20 @@ bio(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects, int mustseek)
 		sysfatal("i/o count too big: %lud", bytes);
 
 	SET(tail);
-	if (rdwr == read) {
-		strcpy(buff, magic);
-		tail = buff + bytes - sizeof magic;
-		strcpy(tail, magic);
-	}
+	if (rdwr == read)
+		tail = addmagic(buff, bytes);
 	werrstr("");
 	xfered = (*rdwr)(fp->fd, buff, bytes);
 	if (xfered == bytes) {
 		/* don't trust the hardware; it may lie */
-		if (rdwr == read &&
-		    (strcmp(buff, magic) == 0 || strcmp(tail, magic) == 0))
+		if (rdwr == read && ismagicok(buff, tail))
 			fprint(2, "%s: `good' read didn't change buffer\n",
 				argv0);
 		return Enone;			/* did as we asked */
 	}
 	if (xfered < 0)
 		return Eio;			/* out-and-out i/o error */
+
 	/*
 	 * Kernel transferred less than asked.  Shouldn't happen;
 	 * probably indicates disk driver error or trying to
@@ -215,6 +252,7 @@ bio(File *fp, Rdwrfn *rdwr, char *buff, Daddr stsect, int sects, int mustseek)
 	 * I/O error that reads zeros past the point of error,
 	 * unless reblocking input and this is a read.
 	 */
+
 	if (rdwr == write)
 		return Eio;
 	if (!reblock) {
