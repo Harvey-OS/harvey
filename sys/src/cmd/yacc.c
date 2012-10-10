@@ -2062,7 +2062,7 @@ swt:
 		if(c != '*')
 			goto swt;
 
-		/* it really is a comment */
+		/* it really is a comment; copy it */
 		Bputrune(faction, c);
 		c = Bgetrune(finput);
 		while(c >= 0) {

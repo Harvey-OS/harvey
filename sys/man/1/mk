@@ -174,7 +174,7 @@ might be:
 .EX
 %:    %.c
         8c $stem.c
-        8l -o $stem $stem.2
+        8l -o $stem $stem.8
 .EE
 .PP
 Meta-rules may contain an ampersand
