@@ -76,8 +76,14 @@ wdautostart(void)
 {
 	if (wdautopet || !wd || !wdallowed())
 		return;
-	iprint("watchdog: on with clock strokes\n");
+	if (waserror()) {
+		iprint("watchdog: enable failed\n");
+		return;
+	}
 	wd->enable();
+	poperror();
+
+	iprint("watchdog: on with clock strokes\n");
 	wdautopet = watchdogon = 1;
 	if (!wdclock0called) {
 		addclock0link(wdpet, 200);
@@ -200,7 +206,12 @@ wdwrite(Chan* c, void* a, long n, vlong off)
 			*p = 0;
 
 		if(strncmp(a, "enable", n) == 0) {
+			if (waserror()) {
+				iprint("watchdog: enable failed\n");
+				nexterror();
+			}
 			wd->enable();
+			poperror();
 			watchdogon = 1;
 		} else if(strncmp(a, "disable", n) == 0)
 			wdshutdown();
