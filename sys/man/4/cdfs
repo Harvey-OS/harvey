@@ -81,6 +81,12 @@ but modern drives will be told to cope with underruns transparently.
 To ensure saturation, copying from a file system
 stored on local disk or memory is recommended.
 .PP
+BD-R discs are `formatted' upon first use,
+for sequential writing with spare sectors
+for hardware defect management,
+so BD drives should not report errors when writing BD-R discs;
+any such errors may be a sign that the laser of an old drive is fading.
+.PP
 To fixate a disc (close a recordable disc by writing
 its permanent table of contents), simply
 remove the
@@ -195,6 +201,8 @@ option causes the time of each track to be appended to the normal output.
 is like
 .B -t
 but prints a final line with the total time.
+.br
+.ne 6
 .SH EXAMPLES
 Backup to a BD-R disc:
 .br
@@ -226,6 +234,7 @@ rm /mnt/cd/wa
 .SH SOURCE
 .B /sys/src/cmd/cdfs
 .SH SEE ALSO
+.IR pump (1),
 .IR sd (3),
 .I 9660srv
 (in
@@ -256,8 +265,7 @@ the cross-product of these tuples:
 (-ROM -R -RW),
 (single-layer dual-layer),
 plus oddities like DVD-RAM.
-Triple-layer BD drives and discs are starting to appear,
-likely to be followed by quad-layer.
+Triple- and quad-layer BD drives and discs are starting to appear.
 .PP
 Only MMC-compliant disc readers and writers
 are supported, but it would be easy to add
