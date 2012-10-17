@@ -1341,8 +1341,8 @@ struct linux_timespec
  * 1. you only have to compare the value -- CMPSW done in user space
  * 2. mistaken wakeups are ok
  */
-uintptr
-futex(Ar0* ar0, va_list list)
+void
+sysfutex(Ar0* ar0, va_list list)
 {
 	Segment *s;
 	int *addr;
@@ -1411,8 +1411,10 @@ futex(Ar0* ar0, va_list list)
 		coherence();
 		if(!phore.waiting)
 			semwakeup(s, addr, 1);
-		if(ms <= 0)
-			return 0;
+		if(ms <= 0){
+			ar0->i = 0;
+			return;
+		}
 		if(!acquired)
 			nexterror();
 		break;
@@ -1439,5 +1441,6 @@ futex(Ar0* ar0, va_list list)
 	}
 
 out:
-	return err;
+	ar0->i = err;
+	return;
 }

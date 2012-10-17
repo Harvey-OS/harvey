@@ -16,7 +16,7 @@ Syscall sigaction;
 Syscall rt_sigprocmask;
 Syscall fstat64;
 Syscall returnok;
-Syscall futex;
+Syscall sysfutex;
 Syscall linuxgetpersonality;
 Syscall linuxr2c;
 Syscall linuxc2r;
@@ -68,7 +68,7 @@ struct syscall linuxsystab[] = {
 	[10]	{"mprotect", linuxmprotect, 1, {.i = 0}},
 	[20]	{"writev", linuxwritev, 1, {.i = 0}},
 //	[197]	{"fstat64", fstat64, 1, {.p = (uintptr)-1}},
-//	[221]	{"futex", futex, 1, {.i = 0}},
+//	[221]	{"futex", sysfutex, 1, {.i = 0}},
 	[158] {"arch_prctl", arch_prctl, 2, {.p = (void *)-1}},
 
 	[4] {"stat", nil, 1, {.p = (void *)-1}},
@@ -265,7 +265,7 @@ struct syscall linuxsystab[] = {
 	[199] {"fremovexattr", nil, 1, {.p = (void *)-1}},
 	[200] {"tkill", nil, 1, {.p = (void *)-1}},
 	[201] {"time", nil, 1, {.p = (void *)-1}},
-	[202] {"futex", futex, 6, {.p = (void *)-38}}, // ENOSYS
+	[202] {"futex", sysfutex, 6, {.p = (void *)-38}}, // ENOSYS
 	[203] {"sched_setaffinity", linuxsyscallnop, 1, {.i = 0}},
 	[204] {"sched_getaffinity", linuxsyscallnop, 1, {.i = 64}},
 	[205] {"set_thread_area", nil, 1, {.p = (void *)-1}},
