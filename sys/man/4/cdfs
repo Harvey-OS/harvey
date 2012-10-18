@@ -270,3 +270,7 @@ Triple- and quad-layer BD drives and discs are starting to appear.
 Only MMC-compliant disc readers and writers
 are supported, but it would be easy to add
 support for early CD writers if desired.
+.PP
+.I Cdfs
+can take some seconds to figure out that it has
+a BD in the drive and how many layers are on the disc.
