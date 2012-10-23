@@ -387,6 +387,7 @@ procopen(Chan *c, int omode)
 		tc->offset = 0;
 		qunlock(&p->debug);
 		poperror();
+		cclose(c);
 		return tc;
 
 	case Qproc:
@@ -1184,8 +1185,10 @@ proctext(Chan *c, Proc *p)
 		error(Eprocdied);
 	}
 
-	if(p->pid != PID(c->qid))
+	if(p->pid != PID(c->qid)){
+		cclose(tc);
 		error(Eprocdied);
+	}
 
 	unlock(i);
 	poperror();

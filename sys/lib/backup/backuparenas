@@ -17,6 +17,17 @@ unmount /mnt/cd >[2]/dev/null
 cdfs -d $1 || exit
 shift
 
+echo -n figuring out disc type...
+for (i in `{seq 1 6}) {
+	m=`{ls -l /mnt/cd | grep bd-r-dl}
+	if (~ $m '' ()) {
+		echo -n .
+		sleep 5
+	}
+}
+echo
+
+ls -l /mnt/cd
 grep next /mnt/cd/ctl
 echo -n 'nwa ok? '
 ok=`{read}

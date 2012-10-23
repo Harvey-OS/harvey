@@ -36,11 +36,11 @@ installall:V:
 		mk $stem
 
 nuke:V:
-	rm -f *.[$OS] y.tab.? y.output y.error
+	rm -f *.[$OS] y.tab.? y.output y.error $CLEANFILES
 	rm -f $LIB
 
 clean:V:
-	rm -f *.[$OS] y.tab.? y.output y.error
+	rm -f *.[$OS] y.tab.? y.output y.error $CLEANFILES
 
 update:V:
 	update $UPDATEFLAGS $UPDATE

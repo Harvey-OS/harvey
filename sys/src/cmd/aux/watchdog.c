@@ -38,11 +38,11 @@ main(int, char **)
 	close(ctl);
 
 	if (fprint(wdog, "enable") < 0)
-		sysfatal("write #w/wdctl: %r");
+		sysfatal("write #w/wdctl enable: %r");
 	for(;;){
 		sleep(300);		/* allows 4.2GHz CPU, with some slop */
 		seek(wdog, 0, 0);
 		if (fprint(wdog, "restart") < 0)
-			sysfatal("write #w/wdctl: %r");
+			sysfatal("write #w/wdctl restart: %r");
 	}
 }
