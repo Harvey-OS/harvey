@@ -14,7 +14,7 @@ int	times(long t[4])
 double	cputime(void)
 .PP
 .B
-void	cycles(vlong *cyclep)
+void	cycles(uvlong *cyclep)
 .SH DESCRIPTION
 If
 .I t
