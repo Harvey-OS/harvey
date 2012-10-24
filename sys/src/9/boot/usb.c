@@ -133,7 +133,7 @@ usbinit(int post)
 	int cnt;
 	static char *usbdv[] = { "/boot/usbd", nil };
 
-	if(access("#u/usb/ctl", 0) < 0 || bind("#u", "/dev", MAFTER) < 0)
+	if(access("#u/usb/ctl", AEXIST) < 0 || bind("#u", "/dev", MAFTER) < 0)
 		return;
 	if(debugboot)
 		fprint(2, "usbinit...");
