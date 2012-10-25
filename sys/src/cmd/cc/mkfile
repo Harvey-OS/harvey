@@ -23,8 +23,8 @@ HFILES=cc.h\
 
 YFILES=cc.y\
 
-CURCC=6c 8c qc vc
-OTHERCC=1c 2c 5c 7c kc
+CURCC=5c 6c 8c qc vc
+OTHERCC=kc
 
 </sys/src/cmd/mklib
 
