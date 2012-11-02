@@ -47,7 +47,7 @@ Argument
 is the orientation that
 .I redraw
 should examine, represented as a unit Quaternion (see
-.IR quaternion(9.2)).
+.IR quaternion (2)).
 The caller may set it to any orientation.
 It will be updated before each call to
 .I redraw

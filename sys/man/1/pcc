@@ -34,7 +34,7 @@ comments.
 Place loader output in file
 .I out
 instead of the default
-.BR 2.out ,
+.BR 8.out ,
 .BR v.out ,
 etc.
 .TP
