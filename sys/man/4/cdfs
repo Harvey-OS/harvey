@@ -245,6 +245,10 @@ rm /mnt/cd/wa
 .TP
 .B http://www.t10.org
 optical disc interface standards
+.br
+in particular,
+.I "Multi-Media Commands"
+(MMC)
 .PD
 .SH BUGS
 Fixating a BD-R disc records only the first track in the disc's TOC.

@@ -199,6 +199,24 @@ typedef struct {
 	ulong	vendor;
 } Aport;
 
+enum {
+	/*
+	 * Aport sstatus bits (actually states):
+	 * 11-8 interface power management
+	 *  7-4 current interface speed (generation #)
+	 *  3-0 device detection
+	 */
+	Intslumber	= 0x600,
+	Intpartpwr	= 0x200,
+	Intactive	= 0x100,
+	Intpm		= 0xf00,
+
+	Devphyoffline	= 4,
+	Devphycomm	= 2,		/* phy communication established */
+	Devpresent	= 1,
+	Devdet		= Devpresent | Devphycomm | Devphyoffline,
+};
+
 /* in host's memory; not memory mapped */
 typedef struct {
 	uchar	*base;

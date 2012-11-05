@@ -701,9 +701,9 @@ ahciwakeup(Aport *p)
 	ushort s;
 
 	s = p->sstatus;
-	if((s & 0xF00) != 0x600)
+	if((s & Intpm) != Intslumber && (s & Intpm) != Intpartpwr)
 		return;
-	if((s & 7) != 1){		/* not (device, no phy) */
+	if((s & Devdet) != Devpresent){	/* not (device, no phy) */
 		iprint("ahci: slumbering drive unwakable %#ux\n", s);
 		return;
 	}
@@ -714,24 +714,30 @@ ahciwakeup(Aport *p)
 }
 
 static int
-ahciconfigdrive(Ahba *h, Aportc *c, int mode)
+ahciconfigdrive(Drive *d)
 {
-	Aportm *m;
+	char *name;
+	Ahba *h;
 	Aport *p;
+	Aportm *m;
 
-	p = c->p;
-	m = c->m;
-
+	h = d->ctlr->hba;
+	p = d->portc.p;
+	m = d->portc.m;
 	if(m->list == 0){
 		setupfis(&m->fis);
 		m->list = malign(sizeof *m->list, 1024);
 		m->ctab = malign(sizeof *m->ctab, 128);
 	}
 
-	if(p->sstatus & 3 && h->cap & Hsss){
+	if (d->unit)
+		name = d->unit->name;
+	else
+		name = nil;
+	if(p->sstatus & (Devphycomm|Devpresent) && h->cap & Hsss){
 		/* device connected & staggered spin-up */
-		dprint("ahci: configdrive:  spinning up ... [%#lux]\n",
-			p->sstatus);
+		dprint("ahci: configdrive: %s: spinning up ... [%#lux]\n",
+			name, p->sstatus);
 		p->cmd |= Apod|Asud;
 		asleep(1400);
 	}
@@ -744,11 +750,14 @@ ahciconfigdrive(Ahba *h, Aportc *c, int mode)
 	p->fishi = 0;
 	p->cmd |= Afre|Ast;
 
-	if((p->sstatus & 0xF0F) == 0x601) /* drive coming up in slumbering? */
+	/* drive coming up in slumbering? */
+	if((p->sstatus & Devdet) == Devpresent &&
+	   ((p->sstatus & Intpm) == Intslumber ||
+	    (p->sstatus & Intpm) == Intpartpwr))
 		ahciwakeup(p);
 
-	/* disable power managment sequence from book. */
-	p->sctl = (3*Aipm) | (mode*Aspd) | (0*Adet);
+	/* "disable power managment" sequence from book. */
+	p->sctl = (3*Aipm) | (d->mode*Aspd) | (0*Adet);
 	p->cmd &= ~Aalpe;
 
 	p->ie = IEM;
@@ -920,12 +929,12 @@ updatedrive(Drive *d)
 		pr = 0;
 	if(cause & Ifatal){
 		ewake = 1;
-		dprint("ahci: updatedrive: fatal\n");
+		dprint("ahci: updatedrive: %s: fatal\n", name);
 	}
 	if(cause & Adhrs){
 		if(p->task & (1<<5|1)){
-			dprint("ahci: Adhrs cause %#lux serr %#lux task %#lux\n",
-				cause, serr, p->task);
+			dprint("ahci: %s: Adhrs cause %#lux serr %#lux task %#lux\n",
+				name, cause, serr, p->task);
 			d->portm.flag |= Ferror;
 			ewake = 1;
 		}
@@ -939,22 +948,23 @@ updatedrive(Drive *d)
 
 	if(cause & (Aprcs|Aifs)){
 		s0 = d->state;
-		switch(p->sstatus & 7){
+		switch(p->sstatus & Devdet){
 		case 0:				/* no device */
 			d->state = Dmissing;
 			break;
-		case 1:				/* device but no phy comm. */
-			if((p->sstatus & 0xF00) == 0x600)
+		case Devpresent:		/* device but no phy comm. */
+			if((p->sstatus & Intpm) == Intslumber ||
+			   (p->sstatus & Intpm) == Intpartpwr)
 				d->state = Dnew; /* slumbering */
 			else
 				d->state = Derror;
 			break;
-		case 3:				/* device & phy comm. estab. */
+		case Devpresent|Devphycomm:
 			/* power mgnt crap for surprise removal */
 			p->ie |= Aprcs|Apcs;	/* is this required? */
 			d->state = Dreset;
 			break;
-		case 4:				/* phy off-line */
+		case Devphyoffline:
 			d->state = Doffline;
 			break;
 		}
@@ -979,6 +989,8 @@ static void
 pstatus(Drive *d, ulong s)
 {
 	/*
+	 * s is masked with Devdet.
+	 *
 	 * bogus code because the first interrupt is currently dropped.
 	 * likely my fault.  serror may be cleared at the wrong time.
 	 */
@@ -986,19 +998,19 @@ pstatus(Drive *d, ulong s)
 	case 0:			/* no device */
 		d->state = Dmissing;
 		break;
-	case 1:			/* device but no phy. comm. */
+	case Devpresent:	/* device but no phy. comm. */
 		break;
-	case 2:			/* should this be missing?  need testcase. */
+	case Devphycomm:	/* should this be missing?  need testcase. */
 		dprint("ahci: pstatus 2\n");
 		/* fallthrough */
-	case 3:			/* device & phy. comm. */
+	case Devpresent|Devphycomm:
 		d->wait = 0;
 		d->state = Dnew;
 		break;
-	case 4:			/* offline */
+	case Devphyoffline:
 		d->state = Doffline;
 		break;
-	case 6:			/* does this make sense? */
+	case Devphyoffline|Devphycomm:	/* does this make sense? */
 		d->state = Dnew;
 		break;
 	}
@@ -1007,10 +1019,10 @@ pstatus(Drive *d, ulong s)
 static int
 configdrive(Drive *d)
 {
-	if(ahciconfigdrive(d->ctlr->hba, &d->portc, d->mode) == -1)
+	if(ahciconfigdrive(d) == -1)
 		return -1;
 	ilock(d);
-	pstatus(d, d->port->sstatus & 7);
+	pstatus(d, d->port->sstatus & Devdet);
 	iunlock(d);
 	return 0;
 }
@@ -1023,7 +1035,7 @@ resetdisk(Drive *d)
 
 	p = d->port;
 	det = p->sctl & 7;
-	stat = p->sstatus & 7;
+	stat = p->sstatus & Devdet;
 	state = (p->cmd>>28) & 0xf;
 	dprint("ahci: resetdisk: icc %#ux  det %d sdet %d\n", state, det, stat);
 
@@ -1033,7 +1045,8 @@ resetdisk(Drive *d)
 		d->portm.flag |= Ferror;
 	clearci(p);			/* satisfy sleep condition. */
 	wakeup(&d->portm);
-	if(stat != 3){		/* device absent or phy not communicating? */
+	if(stat != (Devpresent|Devphycomm)){
+		/* device absent or phy not communicating */
 		d->state = Dportreset;
 		iunlock(d);
 		return;
@@ -1053,7 +1066,7 @@ resetdisk(Drive *d)
 
 		configdrive(d);
 	}
-	dprint("ahci: resetdisk: %s → %s\n",
+	dprint("ahci: %s: resetdisk: %s → %s\n", (d->unit? d->unit->name: nil),
 		diskstates[state], diskstates[d->state]);
 	qunlock(&d->portm);
 }
@@ -1180,7 +1193,7 @@ checkdrive(Drive *d, int i)
 	if(s)
 		d->lastseen = MACHP(0)->ticks;
 	if(s != olds[i]){
-		dprint("%s: status: %04#ux -> %04#ux: %s\n",
+		dprint("%s: status: %06#ux -> %06#ux: %s\n",
 			name, olds[i], s, diskstates[d->state]);
 		olds[i] = s;
 		d->wait = 0;
@@ -1192,16 +1205,16 @@ checkdrive(Drive *d, int i)
 		break;
 	case Dmissing:
 	case Dnew:
-		switch(s & 0x107){
-		case 1:		/* no device (pm), device but no phy. comm. */
+		switch(s & (Intactive | Devdet)){
+		case Devpresent:  /* no device (pm), device but no phy. comm. */
 			ahciwakeup(d->port);
 			/* fall through */
-		case 0:		/* no device */
+		case 0:			/* no device */
 			break;
 		default:
-			dprint("%s: unknown status %04#ux\n", name, s);
+			dprint("%s: unknown status %06#ux\n", name, s);
 			/* fall through */
-		case 0x100:		/* active, no device */
+		case Intactive:		/* active, no device */
 			if(++d->wait&Mphywait)
 				break;
 reset:
@@ -1217,9 +1230,9 @@ reset:
 			resetdisk(d);
 			ilock(d);
 			break;
-		case 0x103:		/* active, device, phy. comm. */
+		case Intactive|Devphycomm|Devpresent:
 			if((++d->wait&Midwait) == 0){
-				dprint("%s: slow reset %04#ux task=%#lux; %d\n",
+				dprint("%s: slow reset %06#ux task=%#lux; %d\n",
 					name, s, d->port->task, d->wait);
 				goto reset;
 			}
@@ -1239,7 +1252,7 @@ reset:
 		/* fallthrough */
 	case Derror:
 	case Dreset:
-		dprint("%s: reset [%s]: mode %d; status %04#ux\n",
+		dprint("%s: reset [%s]: mode %d; status %06#ux\n",
 			name, diskstates[d->state], d->mode, s);
 		iunlock(d);
 		resetdisk(d);
@@ -1250,7 +1263,7 @@ portreset:
 		if(d->wait++ & 0xff && (s & 0x100) == 0)
 			break;
 		/* device is active */
-		dprint("%s: portreset [%s]: mode %d; status %04#ux\n",
+		dprint("%s: portreset [%s]: mode %d; status %06#ux\n",
 			name, diskstates[d->state], d->mode, s);
 		d->portm.flag |= Ferror;
 		clearci(d->port);
@@ -1623,7 +1636,7 @@ iariopkt(SDreq *r, Drive *d)
 	name = d->unit->name;
 	p = d->port;
 
-	aprint("ahci: iariopkt: %02#ux %02#ux %c %d %p\n",
+	aprint("ahci: iariopkt: %04#ux %04#ux %c %d %p\n",
 		cmd[0], cmd[2], "rw"[r->write], r->dlen, r->data);
 	if(cmd[0] == 0x5a && (cmd[2] & 0x3f) == 0x3f)
 		return sdmodesense(r, cmd, d->info, d->infosz);
@@ -2074,7 +2087,7 @@ print("iarctl: nil u->dev->ctlr\n");
 		p = seprint(p, e, "no disk present [%s]\n", diskstates[d->state]);
 	serrstr(o->serror, buf, buf + sizeof buf - 1);
 	p = seprint(p, e, "reg\ttask %#lux cmd %#lux serr %#lux %s ci %#lux "
-		"is %#lux; sig %#lux sstatus %04#lux\n",
+		"is %#lux; sig %#lux sstatus %06#lux\n",
 		o->task, o->cmd, o->serror, buf,
 		o->ci, o->isr, o->sig, o->sstatus);
 	if(d->unit == nil)
