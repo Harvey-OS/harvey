@@ -1119,6 +1119,7 @@ initdrive(Drive *drive)
 	drive->changetime = drive->Scsi.changetime;
 	drive->writeok = No;
 	drive->erasable = drive->recordable = Unset;
+	drive->laysfx = nil;
 	getinvistrack(drive);
 	aux = drive->aux;
 	aux->mmcnwa = -1;
@@ -1203,12 +1204,14 @@ findntracks(Drive *drive, int *firstp, int *lastp)
 	return 0;
 }
 
+/* needs drive->mmctype to be already set */
 static int
 alltrackinfo(Drive *drive, int first, int last)
 {
 	int i;
 	long nwa;
 	vlong cap;
+	char *osfx;
 	Mmcaux *aux;
 	Track *track;
 
@@ -1221,9 +1224,10 @@ alltrackinfo(Drive *drive, int first, int last)
 		}
 	track = &drive->track[last - first];
 	drive->end = track->end;
-	if (vflag && drive->mmctype == Mmcbd) {
+	if (drive->mmctype == Mmcbd) {
 		/* allow for lower apparent capacity due to reserved spares */
 		cap = (vlong)track->end * track->bs;
+		osfx = drive->laysfx;
 		if (cap >= 101*GB)
 			drive->laysfx = "-ql";		/* 128GB nominal */
 		else if (cap >= 51*GB)
@@ -1232,8 +1236,11 @@ alltrackinfo(Drive *drive, int first, int last)
 			drive->laysfx = "-dl";		/* 50GB nominal */
 		else
 			drive->laysfx = "";		/* 25GB nominal */
-		fprint(2, "capacity %,lud sectors (%,lld bytes); bd%s\n",
-			track->end, cap, drive->laysfx);
+		if (vflag)
+			fprint(2, "capacity %,lud sectors (%,lld bytes); bd%s\n",
+				track->end, cap, drive->laysfx);
+		if (osfx == nil || strcmp(osfx, drive->laysfx) != 0)
+			drive->relearn = 1;
 	}
 	nwa = computenwa(drive, first, last);
 	aux = drive->aux;
@@ -1334,7 +1341,8 @@ mmcgettoc(Drive *drive)
 	 * if the disc doesn't appear to be have been changed, and there
 	 * is a disc in this drive, there's nothing to do (the common case).
 	 */
-	if(drive->nchange == drive->Scsi.nchange && drive->changetime != 0)
+	if(drive->nchange == drive->Scsi.nchange && drive->changetime != 0 &&
+	    !drive->relearn)
 		return 0;
 
 	/*
@@ -1348,10 +1356,13 @@ mmcgettoc(Drive *drive)
 	if (findntracks(drive, &first, &last) < 0)
 		return -1;
 	/*
-	 * we could try calling findtracks before finddisctype so that
+	 * we would like to call findtracks before finddisctype so that
 	 * we can `format' bd-rs at the right capacity with explicit spares
-	 * ratio given.
+	 * ratio given, but findtracks needs the disc type to be already set.
+	 * we need to break this circularity.
 	 */
+	drive->relearn = 0;
+	findtracks(drive, first, last);
 	finddisctype(drive, first, last);
 	return findtracks(drive, first, last);
 }

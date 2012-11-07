@@ -17,14 +17,18 @@ unmount /mnt/cd >[2]/dev/null
 cdfs -d $1 || exit
 shift
 
+done=no
 echo -n figuring out disc type...
-for (i in `{seq 1 6}) {
-	m=`{ls -l /mnt/cd | grep bd-r-dl}
-	if (~ $m '' ()) {
-		echo -n .
-		sleep 5
+for (i in `{seq 1 20})
+	if (~ $done no) {
+		m=`{ls -l /mnt/cd | grep bd-r-dl}
+		if (~ $m '' ()) {
+			echo -n .
+			sleep 3
+		}
+		if not
+			done=yes
 	}
-}
 echo
 
 ls -l /mnt/cd
