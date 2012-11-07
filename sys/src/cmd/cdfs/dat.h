@@ -222,6 +222,7 @@ struct Drive
 	int	ntrack;
 	int	nchange;		/* compare with the members in Scsi */
 	ulong	changetime;		/* " */
+	int	relearn;		/* need to re-learn the disc? */
 	int	nameok;
 	int	writeok;		/* writable disc? */
 	/*
