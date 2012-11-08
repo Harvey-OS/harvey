@@ -792,20 +792,18 @@ prof2mmctype(Drive *drive, ushort prof)
 			fprint(2, "getconf profile for bd = %#x\n", prof);
 		/*
 		 * further decode prof to set writability flags.
-		 * mostly for Pioneer BDR-206M.  there may be unnecessary
-		 * future profiles for triple and quad layer; let's hope not.
+		 * mostly for Pioneer BDR-206M.
 		 */
+		drive->erasable = drive->recordable = No;
 		switch (prof) {
 		case 0x40:
-			drive->erasable = drive->recordable = No;
+			break;
 		case 0x41:
 		case 0x42:
-			drive->erasable = No;
 			drive->recordable = Yes;
 			break;
 		case 0x43:
 			drive->erasable = Yes;
-			drive->recordable = No;
 			break;
 		}
 		break;
@@ -906,7 +904,7 @@ getconf(Drive *drive)
 	/* skip header to find feature list */
 	notefeats(drive, resp + 8, datalen - 8);
 
-	if ((prof >> 4) == 4)
+	if (drive->mmctype == Mmcbd)
 		seterrrecov(drive);
 	return datalen;
 }
@@ -1289,6 +1287,8 @@ findtracks(Drive *drive, int first, int last)
 static void
 finddisctype(Drive *drive, int first, int last)
 {
+	char *ty;
+
 	/* deduce disc type */
 	drive->mmctype = Mmcnone;
 	drive->dvdtype = nil;
@@ -1314,8 +1314,13 @@ finddisctype(Drive *drive, int first, int last)
 			print("TBD\n");
 		else
 			print("%d\n", last);
-		fprint(2, "it's a %s disc.  (number of layers may be "
-			"undetermined so far.)\n\n", disctype(drive)); /* leak */
+
+		ty = disctype(drive);
+		fprint(2, "it's a %s disc.", ty);
+		free(ty);
+		if (drive->mmctype == Mmcbd && drive->laysfx == nil)
+			fprint(2, "  (number of layers isn't known yet.)");
+		fprint(2, "\n\n");
 	}
 }
 
@@ -1344,12 +1349,14 @@ mmcgettoc(Drive *drive)
 	if(drive->nchange == drive->Scsi.nchange && drive->changetime != 0 &&
 	    !drive->relearn)
 		return 0;
+	drive->relearn = 0;
 
 	/*
 	 * the disc in the drive may have just been changed,
 	 * so rescan it and relearn all about it.
 	 */
-	if (vflag)
+	if (vflag &&
+	    (drive->nchange != drive->Scsi.nchange || drive->changetime == 0))
 		fprint(2, "\nnew disc in drive\n");
 	initdrive(drive);
 
@@ -1357,13 +1364,14 @@ mmcgettoc(Drive *drive)
 		return -1;
 	/*
 	 * we would like to call findtracks before finddisctype so that
-	 * we can `format' bd-rs at the right capacity with explicit spares
+	 * we can format bd-rs at the right capacity with explicit spares
 	 * ratio given, but findtracks needs the disc type to be already set.
-	 * we need to break this circularity.
+	 * format is called from getconf from finddisctype before getbdstruct.
+	 * luckily, FORMAT UNIT (thus format()) doesn't seem to care when we
+	 * don't provide an explicit spares ratio.
 	 */
-	drive->relearn = 0;
-	findtracks(drive, first, last);
-	finddisctype(drive, first, last);
+	/* calls getdvdstruct, getconf and getbdstruct, in that order */
+	finddisctype(drive, first, last);	/* formats bds at first use */
 	return findtracks(drive, first, last);
 }
 
