@@ -15,7 +15,7 @@ enum {
 	Resettime	= 1000,
 	E2pbusytime	= 1000,
 	Afcdefault	= 0xF830A1,
-//	Hsburst		= 37,
+//	Hsburst		= 37,	/* from original linux driver */
 	Hsburst		= 8,
 	Fsburst		= 129,
 	Defbulkdly	= 0x2000,
@@ -214,7 +214,7 @@ getmac(Dev *d, uchar buf[])
 	if(eepromr(d, MACoffset, ea, Eaddrlen) < 0)
 		return -1;
 	for(i = 0; i < Eaddrlen; i++)
-		if(ea[i] != 0){
+		if(ea[i] != 0 && ea[i] != 0xFF){
 			memmove(buf, ea, Eaddrlen);
 			break;
 		}
@@ -275,7 +275,7 @@ smscbread(Ether *e, Buf *bp)
 	if(rbp->ndata < 4){
 		rbp->rp = rbp->data;
 		rbp->ndata = read(e->epin->dfd, rbp->rp, Doburst? Hsburst*512:
-			sizeof(rbp->data));
+			Maxpkt);
 		if(rbp->ndata < 0)
 			return -1;
 	}
@@ -342,7 +342,15 @@ smscreset(Ether *ether)
 				return -1;
 			}
 			deprint(2, "%s: smsc reset done\n", argv0);
-			ether->aux = emallocz(sizeof(Buf) + Hsburst*512 - Maxpkt, 1);
+			ether->name = "smsc";
+			if(Doburst){
+				ether->bufsize = Hsburst*512;
+				ether->aux = emallocz(sizeof(Buf) +
+					ether->bufsize - Maxpkt, 1);
+			}else{
+				ether->bufsize = Maxpkt;
+				ether->aux = emallocz(sizeof(Buf), 1);
+			}
 			ether->free = smscfree;
 			ether->bread = smscbread;
 			ether->bwrite = smscbwrite;

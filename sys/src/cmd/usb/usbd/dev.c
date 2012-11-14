@@ -65,6 +65,8 @@ devmatch(Devtab *dt, Usbdev *d)
 	int c;
 	Conf *cp;
 
+	if(dt->noauto)
+		return 0;
 	if(dt->vid != -1 && d->vid != dt->vid)
 		return 0;
 	if(dt->did != -1 && d->did != dt->did)

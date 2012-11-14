@@ -113,6 +113,8 @@ char*	getconf(char*);
 uintptr mmukmap(uintptr, uintptr, usize);
 uintptr mmukunmap(uintptr, uintptr, usize);
 extern void* mmuuncache(void*, usize);
+#define sdfree(p) free(p)
+#define sdmalloc(n)	mallocalign(n, CACHELINESZ, 0, 0)
 extern void* ucalloc(usize);
 extern void* ucallocalign(usize size, int align, int span);
 extern Block* ucallocb(int);
