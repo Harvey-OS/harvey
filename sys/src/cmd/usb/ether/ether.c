@@ -174,7 +174,7 @@ allocbuf(Ether *e)
 		qunlock(e);
 	}
 	if(bp == nil){
-		fprint(2, "%s: blocked waiting for allocbuf\n", argv0);
+		deprint(2, "%s: blocked waiting for allocbuf\n", argv0);
 		bp = recvp(e->bc);
 	}
 	bp->rp = bp->data + Hdrsize;
@@ -802,7 +802,7 @@ fswrite(Usbfs *fs, Fid *fid, void *data, long count, vlong)
 		if(e->nblock == 0)
 			sendp(e->wc, bp);
 		else if(nbsendp(e->wc, bp) == 0){
-			fprint(2, "%s: (out) packet lost\n", argv0);
+			deprint(2, "%s: (out) packet lost\n", argv0);
 			e->noerrs++;
 			freebuf(e, bp);
 		}
@@ -1038,7 +1038,7 @@ etherreadproc(void *a)
 					dbp->type = bp->type;
 				}
 				if(nbsendp(e->conns[i]->rc, dbp) == 0){
-					fprint(2, "%s: (in) packet lost\n", argv0);
+					deprint(2, "%s: (in) packet lost\n", argv0);
 					e->nierrs++;
 					freebuf(e, dbp);
 				}
@@ -1142,6 +1142,34 @@ etherinit(Ether *e, int *ei, int *eo)
 	return -1;
 }
 
+static int
+kernelproxy(Ether *e)
+{
+	int ctlfd, n;
+	char eaddr[13];
+
+	ctlfd = open("#l0/ether0/clone", ORDWR);
+	if(ctlfd < 0){
+		deprint(2, "%s: etherusb bind #l0: %r\n", argv0);
+		return -1;
+	}
+	close(e->epin->dfd);
+	close(e->epout->dfd);
+	seprintaddr(eaddr, eaddr+sizeof(eaddr), e->addr);
+	n = fprint(ctlfd, "bind %s #u/usb/ep%d.%d/data #u/usb/ep%d.%d/data %s %d %d",
+		e->name, e->dev->id, e->epin->id, e->dev->id, e->epout->id,
+		eaddr, e->bufsize, e->epout->maxpkt);
+	if(n < 0){
+		deprint(2, "%s: etherusb bind #l0: %r\n", argv0);
+		opendevdata(e->epin, OREAD);
+		opendevdata(e->epout, OWRITE);
+		close(ctlfd);
+		return -1;
+	}
+	close(ctlfd);
+	return 0;
+}
+
 int
 ethermain(Dev *dev, int argc, char **argv)
 {
@@ -1174,6 +1202,7 @@ ethermain(Dev *dev, int argc, char **argv)
 	e->dev = dev;
 	dev->free = etherdevfree;
 	memmove(e->addr, ea, Eaddrlen);
+	e->name = "cdc";
 
 	for(i = 0; i < nelem(ethers); i++)
 		if(ethers[i](e) == 0)
@@ -1188,9 +1217,13 @@ ethermain(Dev *dev, int argc, char **argv)
 		e->bwrite = etherbwrite;
 	if(e->bread == nil)
 		e->bread = etherbread;
+	if(e->bufsize == 0)
+		e->bufsize = Maxpkt;
 
 	if(openeps(e, epin, epout) < 0)
 		return -1;
+	if(kernelproxy(e) == 0)
+		return 0;
 	e->fs = etherfs;
 	snprint(e->fs.name, sizeof(e->fs.name), "etherU%d", devid);
 	e->fs.dev = dev;

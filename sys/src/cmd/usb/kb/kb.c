@@ -21,6 +21,7 @@ enum
 {
 	Awakemsg= 0xdeaddead,
 	Diemsg	= 0xbeefbeef,
+	Dwcidle	= 8,
 };
 
 typedef struct KDev KDev;
@@ -31,6 +32,7 @@ struct KDev
 	Dev*	dev;		/* usb device*/
 	Dev*	ep;		/* endpoint to get events */
 	Kin*	in;		/* used to send events to kernel */
+	int	idle;		/* min time between reports (× 4ms) */
 	Channel*repeatc;	/* only for keyboard */
 	int	accel;		/* only for mouse */
 	int	bootp;		/* has associated keyboard */
@@ -124,13 +126,17 @@ static int ptrrepvals(KDev *kd, Chain *ch, int *px, int *py, int *pb);
 static int
 setbootproto(KDev* f, int eid, uchar *, int)
 {
-	int r, id;
+	int nr, r, id;
 
 	f->ptrvals = ptrbootpvals;
 	r = Rh2d|Rclass|Riface;
 	dprint(2, "setting boot protocol\n");
 	id = f->dev->usb->ep[eid]->iface->id;
-	return usbcmd(f->dev, r, Setproto, Bootproto, id, nil, 0);
+	nr = usbcmd(f->dev, r, Setproto, Bootproto, id, nil, 0);
+	if(nr < 0)
+		return -1;
+	usbcmd(f->dev, r, Setidle, f->idle<<8, id, nil, 0);
+	return nr;
 }
 
 static uchar ignoredesc[128];
@@ -151,7 +157,7 @@ setfirstconfig(KDev* f, int eid, uchar *desc, int descsz)
 	if(nr < 0)
 		return -1;
 	r = Rh2d | Rclass | Riface;
-	nr=usbcmd(f->dev,   r, Setidle,  0, id, nil, 0);
+	nr = usbcmd(f->dev, r, Setidle, f->idle<<8, id, nil, 0);
 	if(nr < 0)
 		return -1;
 	r = Rd2h | Rstd | Riface;
@@ -336,6 +342,7 @@ ptrwork(void* a)
 	Chain ch;
 	KDev* f = a;
 
+	threadsetname("ptr %s", f->in->name);
 	hipri = nerrs = 0;
 	ptrfd = f->ep->dfd;
 	mfd = f->in->fd;
@@ -426,6 +433,7 @@ repeatproc(void* a)
 	ulong l, t, i;
 	uchar esc1, sc;
 
+	threadsetname("kbd repeat");
 	/*
 	 * too many jumps here.
 	 * Rewrite instead of debug, if needed.
@@ -543,6 +551,7 @@ kbdwork(void *a)
 	char err[128];
 	KDev *f = a;
 
+	threadsetname("kbd %s", f->in->name);
 	kbdfd = f->ep->dfd;
 
 	if(f->ep->maxpkt < 3 || f->ep->maxpkt > sizeof buf)
@@ -608,7 +617,7 @@ static void
 kbstart(Dev *d, Ep *ep, Kin *in, void (*f)(void*), KDev *kd)
 {
 	uchar desc[128];
-	int res;
+	int n, res;
 
 	qlock(&inlck);
 	if(in->fd < 0){
@@ -629,6 +638,19 @@ kbstart(Dev *d, Ep *ep, Kin *in, void (*f)(void*), KDev *kd)
 	if(kd->ep == nil){
 		fprint(2, "kb: %s: openep %d: %r\n", d->dir, ep->id);
 		return;
+	}
+	if(in == &kbdin){
+		/*
+		 * DWC OTG controller misses some split transaction inputs.
+		 * Set nonzero idle time to return more frequent reports
+		 * of keyboard state, to avoid losing key up/down events.
+		 */
+		n = read(d->cfd, desc, sizeof desc - 1);
+		if(n > 0){
+			desc[n] = 0;
+			if(strstr((char*)desc, "dwcotg") != nil)
+				kd->idle = Dwcidle;
+		}
 	}
 	if(!kd->bootp)
 		res= setfirstconfig(kd, ep->id, desc, sizeof desc);

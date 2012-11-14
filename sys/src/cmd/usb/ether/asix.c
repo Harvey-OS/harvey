@@ -474,7 +474,9 @@ asixreset(Ether *ether)
 				return -1;
 			}
 			deprint(2, "%s: asix reset done\n", argv0);
+			ether->name = "asix";
 			ether->aux = emallocz(sizeof(Buf), 1);
+			ether->bufsize = Hdrsize+Maxpkt;
 			ether->bread = asixbread;
 			ether->bwrite = asixbwrite;
 			ether->free = asixfree;
