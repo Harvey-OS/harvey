@@ -7,3 +7,5 @@ NXM=`pwd`
 export NXM
 #PATH=$PATH:~/src/plan9port/bin/
 PATH=$NXM/xbin:$PLAN9/bin:$PATH:$PLAN9/bin:.
+# Linux is so smart sometimes, but we'll be using P9P ls which doesn't understand
+alias ls=ls
