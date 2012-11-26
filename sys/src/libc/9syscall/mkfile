@@ -5,14 +5,6 @@ MKSHELL=rc
 NPROC=1
 
 install:V:
-	mksys $objtype
-	6a *.s
-	ar rvu $NXM/$objtype/lib/libc.a *.$O
-	rm -f *.$O *.s
-
-# historical. Did not work on OSX due to obscure errors. 
-# Slow, hard to read and understand, fragile. To hell with it.
-oldinstall:V:
 	SYS=`{sed '/^#define._X[123]/d; s/#define.([A-Z0-9_]*).*/\1/' sys.h}
 	for(I in $SYS) {
 		i=`{echo $I|tr A-Z a-z}
@@ -73,12 +65,13 @@ oldinstall:V:
 			}
 			echo RET
 		case amd64
-			if(~ $i seek)
-				echo TEXT _seek'(SB)', 1, '$0'
+			if(~ $i seek exits)
+				echo TEXT _$i'(SB)', 1, '$0'
 			if not
 				echo TEXT $i'(SB)', 1, '$0'
 			echo MOVQ RARG, 'a0+0(FP)'
 			echo MOVQ '$'$n, RARG
+			echo MOVQ '$'0x8000,AX
 			echo SYSCALL
 			echo RET
 		case sparc sparc64
@@ -143,7 +136,7 @@ oldinstall:V:
 		}} > $i.s
 		$AS $i.s
 	}
-	ar rvu ${NXM}/$objtype/lib/libc.a *.$O
+	ar vu $NXM/$objtype/lib/libc.a *.$O
 
 nuke clean:V:
 	rm -f *.[$OS] *.s
