@@ -138,6 +138,12 @@ install:V:
 	}
 	ar vu $NXM/$objtype/lib/libc.a *.$O
 
+goinstall:V:
+	mksys $objtype
+	6a *.s
+	ar rvu $NXM/$objtype/lib/libc.a *.$O
+	rm -f *.$O *.s
+
 nuke clean:V:
 	rm -f *.[$OS] *.s
 
