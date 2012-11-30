@@ -503,7 +503,7 @@ align(long i, Type *t, int op)
 		o = align(o, t, Ael2);
 		break;
 	}
-	o = round(o, w);
+	o = p9round(o, w);
 	if(debug['A'])
 		print("align %s %ld %T = %ld\n", bnames[op], i, t, o);
 	return o;
@@ -514,6 +514,6 @@ maxround(long max, long v)
 {
 	v += SZ_LONG-1;
 	if(v > max)
-		max = round(v, SZ_LONG);
+		max = p9round(v, SZ_LONG);
 	return max;
 }

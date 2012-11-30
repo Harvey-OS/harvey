@@ -8,12 +8,18 @@
 *.so
 *.a
 *.a6
+*.a8
 *.6
+*.8
 6.out
+8.out
 y.tab.*
 xbin/6a
 xbin/6c
 xbin/6l
+xbin/8a
+xbin/8c
+xbin/8l
 xbin/ar
 xbin/cpp
 xbin/data2s
@@ -24,12 +30,16 @@ xbin/pcc
 xbin/wrkey
 6.out
 6.*
+8.*
 o.out
 o.*
 y.debug
 util/6a/6a
 util/6c/6c
 util/6l/6l
+util/8a/8a
+util/8c/8c
+util/8l/8l
 util/mksys
 
 # Packages #

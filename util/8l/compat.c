@@ -36,7 +36,7 @@ calloc(ulong m, ulong n)
 }
 
 void*
-realloc(void*, ulong)
+realloc(void* unused1, ulong unused2)
 {
 	fprint(2, "realloc called\n");
 	abort();
@@ -52,5 +52,5 @@ mysbrk(ulong size)
 void
 setmalloctag(void *v, ulong pc)
 {
-	USED(v, pc);
+	//USED(v, pc);
 }

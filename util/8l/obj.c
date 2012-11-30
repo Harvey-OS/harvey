@@ -11,6 +11,10 @@ char	symname[]	= SYMDEF;
 char	thechar		= '8';
 char	*thestring 	= "386";
 
+char**  libdir;
+int     nlibdir = 0;
+static int      maxlibdir = 0;
+
 /*
  *	-H0 -T0x40004C -D0x10000000	is garbage unix
  *	-H1 -T0xd0 -R4			is unix coff
@@ -19,6 +23,13 @@ char	*thestring 	= "386";
  *	-H4 -Tx -Rx			is fake MS-DOS .EXE
  *	-H5 -T0x80100020 -R4096		is ELF
  */
+
+void
+usage(void)
+{
+        diag("usage: 6l [-options] objects");
+        errorexit();
+}
 
 static int
 isobjfile(char *f)
@@ -54,6 +65,7 @@ main(int argc, char *argv[])
 	memset(debug, 0, sizeof(debug));
 	nerrors = 0;
 	outfile = "8.out";
+	Lflag(".");
 	HEADTYPE = -1;
 	INITTEXT = -1;
 	INITDAT = -1;
@@ -78,6 +90,9 @@ main(int argc, char *argv[])
 		if(a)
 			HEADTYPE = atolwhex(a);
 		break;
+        case 'L':
+                Lflag(EARGF(usage()));
+                break;
 	case 'T':
 		a = ARGF();
 		if(a)
@@ -112,8 +127,7 @@ main(int argc, char *argv[])
 	} ARGEND
 	USED(argc);
 	if(*argv == 0) {
-		diag("usage: 8l [-options] objects");
-		errorexit();
+		usage();
 	}
 	if(!debug['9'] && !debug['U'] && !debug['B'])
 		debug[DEFAULT] = 1;
@@ -125,6 +139,9 @@ main(int argc, char *argv[])
 		if(debug['9'])
 			HEADTYPE = 2;
 	}
+
+        Lflag(smprint("%s/386/lib", (a = getenv("NXM")) == 0 ? "" : a));
+
 	switch(HEADTYPE) {
 	default:
 		diag("unknown -H option");
@@ -335,6 +352,31 @@ main(int argc, char *argv[])
 }
 
 void
+Lflag(char *arg)
+{
+        char **p;
+	int oldlen;
+
+        if(nlibdir >= maxlibdir) {
+		oldlen = maxlibdir;
+                if (maxlibdir == 0)
+                        maxlibdir = 8;
+                else
+                        maxlibdir *= 2;
+                //p = realloc(libdir, maxlibdir * sizeof(*p));
+		p = malloc(maxlibdir * sizeof(*p));
+		memmove(p, libdir, oldlen);
+		free(libdir);
+                if (p == nil) {
+                        print("too many -L's: %d\n", nlibdir);
+                        usage();
+                }
+                libdir = p;
+        }
+        libdir[nlibdir++] = strdup(arg);
+}
+
+void
 loadlib(void)
 {
 	int i;
@@ -372,20 +414,34 @@ objfile(char *file)
 {
 	long off, esym, cnt, l;
 	int f, work;
+	int i;
 	Sym *s;
 	char magbuf[SARMAG];
+	char libfile[100];
 	char name[100], pname[150];
 	struct ar_hdr arhdr;
 	char *e, *start, *stop;
 
 	if(file[0] == '-' && file[1] == 'l') {
-		if(debug['9'])
-			sprint(name, "/%s/lib/lib", thestring);
-		else
-			sprint(name, "/usr/%clib/lib", thechar);
-		strcat(name, file+2);
-		strcat(name, ".a");
-		file = name;
+                sprint(libfile, "lib");
+                strcat(libfile, file+2);
+                strcat(libfile, ".a");
+//		if(debug['9'])
+//			sprint(name, "/%s/lib/lib", thestring);
+//		else
+//			sprint(name, "/usr/%clib/lib", thechar);
+//		strcat(name, file+2);
+//		strcat(name, ".a");
+//		file = name;
+                for (i = 0; i < nlibdir; i++) {
+                        sprint(name, "%s/", libdir[i]);
+                        strcat(name, libfile);
+                        if (!access(name, AREAD)) {
+                                print("found at %s\n", name);
+                                file = name;
+                                break;
+                        }
+                }
 	}
 	if(debug['v'])
 		Bprint(&bso, "%5.2f ldobj: %s\n", cputime(), file);
@@ -554,8 +610,9 @@ zaddr(uchar *p, Adr *a, Sym *h[])
 void
 addlib(char *obj)
 {
-	char name[1024], comp[256], *p;
+	char name[1024], pname[1024], comp[256], *p;
 	int i;
+	int search = 0;
 
 	if(histfrogp <= 0)
 		return;
@@ -568,15 +625,18 @@ addlib(char *obj)
 		sprint(name, ".");
 		i = 0;
 	} else {
-		if(debug['9'])
-			sprint(name, "/%s/lib", thestring);
-		else
-			sprint(name, "/usr/%clib", thechar);
-		i = 0;
+                sprint(name, "");
+                search = 1;
+                i = 0;
+//		if(debug['9'])
+//			sprint(name, "/%s/lib", thestring);
+//		else
+//			sprint(name, "/usr/%clib", thechar);
+//		i = 0;
 	}
 
 	for(; i<histfrogp; i++) {
-		snprint(comp, sizeof comp, histfrog[i]->name+1);
+		snprint(comp, sizeof comp, "%s", histfrog[i]->name+1);
 		for(;;) {
 			p = strstr(comp, "$O");
 			if(p == 0)
@@ -599,19 +659,35 @@ addlib(char *obj)
 			diag("library component too long");
 			return;
 		}
-		strcat(name, "/");
+		if (i > 0 || !search)
+			strcat(name, "/");
 		strcat(name, comp);
 	}
+        cleanname(name);
+
+        if (search) {
+                // try dot, then -L "libdir", then $NXM/386/lib
+                for (i = 0; i < nlibdir; i++) {
+                        snprint(pname, sizeof pname, "%s/%s", libdir[i], name);
+                        if(debug['v'])
+                                Bprint(&bso, "searching for %s at %s\n", name, pname);
+                        if (access(pname, AEXIST) >= 0)
+                                break;
+                }
+        } else {
+                strcpy(pname, name);
+        }
+
 	for(i=0; i<libraryp; i++)
-		if(strcmp(name, library[i]) == 0)
+		if(strcmp(pname, library[i]) == 0)
 			return;
 	if(libraryp == nelem(library)){
 		diag("too many autolibs; skipping %s", name);
 		return;
 	}
 
-	p = malloc(strlen(name) + 1);
-	strcpy(p, name);
+	p = malloc(strlen(pname) + 1);
+	strcpy(p, pname);
 	library[libraryp] = p;
 	p = malloc(strlen(obj) + 1);
 	strcpy(p, obj);
@@ -729,7 +805,7 @@ ldobj(int f, long c, char *pn)
 	int v, o, r, skip;
 	Sym *h[NSYM], *s, *di;
 	ulong sig;
-	static int files;
+	static int files = 0;
 	static char **filen;
 	char **nfilen;
 
@@ -1163,7 +1239,9 @@ gethunk(void)
 		if(thunk >= 25L*NHUNK)
 			nh = 25L*NHUNK;
 	}
-	h = mysbrk(nh);
+	//h = malloc(nh); //mysbrk(nh);
+	//h = mysbrk(nh);
+	h = sbrk(nh);
 	if(h == (char*)-1) {
 		diag("out of memory");
 		errorexit();

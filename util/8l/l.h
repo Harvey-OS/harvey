@@ -283,6 +283,7 @@ extern	char*	anames[];
 
 int	Aconv(Fmt*);
 int	Dconv(Fmt*);
+void	Lflag(char*);
 int	Pconv(Fmt*);
 int	Rconv(Fmt*);
 int	Sconv(Fmt*);
