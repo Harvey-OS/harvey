@@ -10,10 +10,10 @@
 #define	OPEN_MAX	96
 #undef	LINK_MAX
 #define	LINK_MAX	1
-#undef	NAME_MAX
-#define	NAME_MAX	27
 #undef	PATH_MAX
 #define	PATH_MAX	1023
+#undef	NAME_MAX
+#define	NAME_MAX	PATH_MAX
 #undef	NGROUPS_MAX
 #define	NGROUPS_MAX	32
 #undef	MAX_CANON
