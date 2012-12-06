@@ -3,12 +3,19 @@
 diskparts, dmaon \- prepare disks for use
 .SH SYNOPSIS
 .B diskparts
+[
+.I disk
+\&...
+]
 .br
 .B dmaon
 .SH DESCRIPTION
 .I Diskparts
-configures FDISK and Plan 9 partitions on any disks named
-.BR /dev/sd* ,
+configures FDISK (MBR) and Plan 9 partitions on the named
+.IR disk s
+(\c
+.BR /dev/sd*
+by default),
 then configures
 .IR fs (3)
 by copying

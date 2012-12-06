@@ -1,8 +1,11 @@
 #!/bin/rc
-# set up any disk partitions
+# diskparts [/dev/sd?? ...] - set up any disk partitions
 rfork e
 if (! test -e /dev/sdctl)
 	bind -b '#S' /dev
+if (~ $#* 0)
+	*=`{ls -d /dev/sd* | uniq}
+
 bind -a /bin/disk /bin >[2]/dev/null		# work with /boot too
 
 # set up any /dev/sd partitions.
@@ -11,7 +14,7 @@ bind -a /bin/disk /bin >[2]/dev/null		# work with /boot too
 # block numbers, so we may have to examine the data file with prep if
 # there's no plan9 file.  beware that `disk/prep -p data' on a disk with
 # no plan 9 partition table will delete all extant partitions.
-for(disk in /dev/sd*) {
+for(disk) {
 	if(test -f $disk/data && test -f $disk/ctl)
 		{ fdisk -p $disk/data |
 			grep -v '^delpart ' >$disk/ctl } >[2]/dev/null
