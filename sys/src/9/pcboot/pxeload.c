@@ -15,6 +15,7 @@
 #include	"ureg.h"
 #include	"pool.h"
 #include	"../port/netif.h"
+#include	"etherif.h"
 #include	"../ip/ip.h"
 #include	"pxe.h"
 
@@ -1170,46 +1171,30 @@ etherload(int eth, Kernname *kp)
 }
 
 static int
-nethers(void)
+attacheth(int neth)
 {
-	int neth;
 	char num[4];
 	Chan *cc;
 
-	/* count interfaces */
-	print("attaching ethers:");
-	for (neth = 0; ; neth++) {
-		cc = nil;
-		if (waserror()) {		/* no more interfaces */
-			if (cc)
-				cclose(cc);
-			break;
-		}
-
-		snprint(num, sizeof num, "%d", neth);
-		cc = etherattach(num);
+	cc = nil;
+	if (waserror()) {		/* no more interfaces */
 		if (cc)
 			cclose(cc);
-		poperror();
-		if (cc == nil)
-			break;			/* no more interfaces */
-		print(" %d", neth);
+		return -1;
 	}
-	print("\n");
-	return neth;
+	snprint(num, sizeof num, "%d", neth);
+	cc = etherattach(num);
+	if (cc)
+		cclose(cc);
+	poperror();
+	return cc == nil? -1: 0;
 }
 
 void
 bootloadproc(void *)
 {
-	int eth, neth;
+	int eth, neth, needattach;
 	Kernname kernnm;
-
-	neth = nethers();
-	if(neth <= 0) {
-		print("error counting interfaces, assuming 1\n");
-		neth = 1;
-	}
 
 	srand(TK2MS(m->ticks));			/* for local port numbers */
 	nrand(20480);				/* 1st # is always 0; toss it */
@@ -1219,10 +1204,21 @@ bootloadproc(void *)
 		print("%s\n", up->errstr);
 		tsleep(&up->sleep, return0, 0, 30*1000);
 	}
+	neth = MaxEther;
+	needattach = 1;
 	for (;;) {
 		/* try each interface in turn: first get /cfg/pxe file */
-		for (eth = 0; eth < neth && kernnm.edev == nil; eth++)
+		for (eth = 0; eth < neth && kernnm.edev == nil; eth++) {
+			if (needattach && attacheth(eth) < 0)
+				break;
 			etherload(eth, &kernnm);
+		}
+		if (needattach) {
+			neth = eth;
+			needattach = 0;
+			if (neth == 0)
+				print("no ethernet interfaces found\n");
+		}
 		if (kernnm.edev != nil) {
 			eth = strtol(kernnm.edev + sizeof ethernm - 1, 0, 10);
 			etherload(eth, &kernnm);

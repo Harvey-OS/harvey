@@ -210,6 +210,7 @@ modeled from Inferno's
 .\" write out this way so automatic programs
 .\" don't try to make it into a real man page reference.
 \fIlisten\fR(1).
+.I Listen1
 announces on
 .IR address ,
 running
