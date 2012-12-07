@@ -11,8 +11,8 @@ Caveats:
 
 9boot doesn't scan disks for partition tables since it doesn't contain
 the disk drivers, but `readparts=' in plan9.ini (see
-/sys/src/9/boot/parts.c) will read them.  9load does read partition
-tables.
+/sys/src/9/boot/parts.c) will make the loaded kernel read them early
+on.  9load does read partition tables.
 
 9loadusb seems to hang for two minutes when attempting to read via the
 bios on some bioses (e.g., vmware's), then reports a disk timeout on
