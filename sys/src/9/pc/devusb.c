@@ -337,8 +337,7 @@ epalloc(Hci *hp)
 	if(i == Neps){
 		qunlock(&epslck);
 		free(ep);
-		print("usb: bug: too few endpoints.\n");
-		return nil;
+		panic("usb: epalloc: too few endpoints (%d)", Neps);
 	}
 	ep->idx = i;
 	if(epmax <= i)
