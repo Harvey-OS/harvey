@@ -550,3 +550,7 @@ and
 .B sdB
 usually only work on the first LBA device in the BIOS's list of boot devices,
 if they work at all.
+.PP
+USB keyboards will only work with
+.I 9boot
+if the BIOS emulates a PS/2 keyboard (and that is enabled).

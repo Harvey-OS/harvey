@@ -21,7 +21,7 @@ enum
 
 	/* tunable parameters */
 	Nhcis	= 16,		/* max nb. of HCIs */
-	Neps	= 64,		/* max nb. of endpoints */
+	Neps	= 128,		/* max nb. of endpoints */
 	Maxctllen = 32*1024, /* max allowed sized for ctl. xfers; see Maxdevconf */
 	Xfertmout = 2000,	/* default request time out (ms) */
 
