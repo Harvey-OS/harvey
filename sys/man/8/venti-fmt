@@ -7,8 +7,7 @@ conf,
 fmtarenas,
 fmtbloom,
 fmtindex,
-fmtisect,
-syncindex \- prepare and maintain a venti server
+fmtisect \- prepare and maintain a venti server
 .SH SYNOPSIS
 .PP
 .B venti/fmtarenas

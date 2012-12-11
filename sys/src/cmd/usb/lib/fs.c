@@ -336,6 +336,7 @@ fsioproc(void* a)
 	Fcall *t, *r;
 	Fid *fid;
 
+	threadsetname("fsioproc");
 	dprint(2, "%s: fsioproc pid %d\n", argv0, getpid());
 	while((rpc = recvp(p)) != nil){
 		t = &rpc->t;
@@ -542,6 +543,7 @@ outproc(void*)
 
 	if(once++ != 0)
 		sysfatal("more than one outproc");
+	threadsetname("outproc");
 	for(;;){
 		do
 			rpc = recvp(outc);
@@ -580,6 +582,7 @@ usbfs(void*)
 	if(once++ != 0)
 		sysfatal("more than one usbfs proc");
 
+	threadsetname("usbfs");
 	outc = chancreate(sizeof(Rpc*), 1);
 	procc = chancreate(sizeof(Channel*), 0);
 	endc = chancreate(sizeof(Channel*), 0);

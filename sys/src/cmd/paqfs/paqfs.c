@@ -493,7 +493,7 @@ readdir(Fid *f)
 			off = 0;
 			i++;
 			blockFree(b);
-			b = blockLoad(getl(ptr->data + i*4), DataBlock);
+			b = blockLoad(getl(ptr->data + i*4), DirBlock);
 		}
 	}
 	f->offset = i*blocksize + off;

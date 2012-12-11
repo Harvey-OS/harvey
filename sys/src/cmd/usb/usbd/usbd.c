@@ -642,6 +642,7 @@ work(void *a)
 	int i;
 
 	portc = a;
+	threadsetname("work");
 	hubs = nil;
 	/*
 	 * Receive requests for root hubs

@@ -320,8 +320,14 @@ ptrbootpvals(KDev *kd, Chain *ch, int *px, int *py, int *pb)
 	c = ch->e / 8;
 	if(c < 3)
 		return -1;
-	x = hidifcval(&kd->templ, KindX, 0);
-	y = hidifcval(&kd->templ, KindY, 0);
+	if(kd->templ.nifcs){
+		x = hidifcval(&kd->templ, KindX, 0);
+		y = hidifcval(&kd->templ, KindY, 0);
+	}else{
+		/* no report descriptor for boot protocol */
+		x = ((signed char*)ch->buf)[1];
+		y = ((signed char*)ch->buf)[2];
+	}
 
 	b = maptab[ch->buf[0] & 0x7];
 	if(c > 3 && ch->buf[3] == 1)		/* up */
@@ -342,7 +348,7 @@ ptrwork(void* a)
 	Chain ch;
 	KDev* f = a;
 
-	threadsetname("ptr %s", f->in->name);
+	threadsetname("ptr %s", f->ep->dir);
 	hipri = nerrs = 0;
 	ptrfd = f->ep->dfd;
 	mfd = f->in->fd;
@@ -551,7 +557,7 @@ kbdwork(void *a)
 	char err[128];
 	KDev *f = a;
 
-	threadsetname("kbd %s", f->in->name);
+	threadsetname("kbd %s", f->ep->dir);
 	kbdfd = f->ep->dfd;
 
 	if(f->ep->maxpkt < 3 || f->ep->maxpkt > sizeof buf)
