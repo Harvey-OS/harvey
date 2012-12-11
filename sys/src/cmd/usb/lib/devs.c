@@ -31,6 +31,7 @@ workproc(void *a)
 	int (*f)(Dev*,int,char**);
 
 	pa = a;
+	threadsetname("workproc %s", pa->dev->dir);
 	strecpy(args, args+sizeof(args), pa->args);	/* don't leak */
 	d = pa->dev;
 	f = pa->f;

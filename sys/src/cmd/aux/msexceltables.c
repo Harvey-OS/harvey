@@ -196,9 +196,8 @@ cell(int r, int c, int f, int type, void *val)
 }
 
 struct Tm *
-bifftime(double num)
+bifftime(double t)
 {
-	long long t = num;
 
 	/* Beware - These epochs are wrong, this
 	 * is due to Excel still remaining compatible
