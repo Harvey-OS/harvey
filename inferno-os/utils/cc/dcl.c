@@ -519,7 +519,7 @@ newlist(Node *l, Node *r)
 }
 
 void
-suallign(Type *t)
+sualign(Type *t)
 {
 	Type *l;
 	long o, w;
@@ -534,14 +534,14 @@ suallign(Type *t)
 			if(l->nbits) {
 				if(l->shift <= 0) {
 					l->shift = -l->shift;
-					w = round(w, tfield->width);
+					w = p9round(w, tfield->width);
 					o = w;
 					w += tfield->width;
 				}
 				l->offset = o;
 			} else {
-				if(l->width <= 0)
-				if(l->down != T)
+				if(l->width < 0 ||
+				   l->width == 0 && l->down != T)
 					if(l->sym)
 						diag(Z, "incomplete structure element: %s",
 							l->sym->name);
@@ -581,13 +581,13 @@ suallign(Type *t)
 		return;
 
 	default:
-		diag(Z, "unknown type in suallign: %T", t);
+		diag(Z, "unknown type in sualign: %T", t);
 		break;
 	}
 }
 
 long
-round(long v, int w)
+p9round(long v, int w)
 {
 	int r;
 
@@ -869,7 +869,7 @@ fnproto1(Node *n)
 		dodecl(NODECL, CXXX, n->type, n->left);
 		t = typ(TXXX, T);
 		if(lastdcl != T)
-			*t = *paramconv(lastdcl, 1, 0);
+			*t = *paramconv(lastdcl, 1);
 		return t;
 
 	case ONAME:
@@ -1176,16 +1176,10 @@ dcllabel(Sym *s, int f)
 }
 
 Type*
-paramconv(Type *t, int f, int defining)
+paramconv(Type *t, int f)
 {
 
 	switch(t->etype) {
-	case TUNION:
-	case TSTRUCT:
-		if(t->width <= 0 && defining)
-			diag(Z, "incomplete structure: %s", t->tag->name);
-		break;
-
 	case TARRAY:
 		t = typ(TIND, t->link);
 		t->width = types[TIND]->width;
@@ -1276,13 +1270,15 @@ pdecl(int c, Type *t, Sym *s)
 		diag(Z, "not a parameter: %s", s->name);
 		return;
 	}
-	t = paramconv(t, c==CPARAM, 1);
+	t = paramconv(t, c==CPARAM);
 	if(c == CXXX)
 		c = CPARAM;
 	if(c != CPARAM) {
 		diag(Z, "parameter cannot have class: %s", s->name);
 		c = CPARAM;
 	}
+	if(typesu[t->etype] && t->width <= 0)
+		diag(Z, "incomplete structure: %s", t->tag->name);
 	adecl(c, t, s);
 }
 

@@ -16,8 +16,10 @@ void
 doswit(Node *n)
 {
 	Case *c;
-	C1 *q, *iq;
-	long def, nc, i, isv;
+	C1 *q, *iq, *iqh, *iql;
+	long def, nc, i, j, isv, nh;
+	Prog *hsb;
+	Node *vr[2];
 	int dup;
 
 	def = 0;
@@ -33,19 +35,25 @@ doswit(Node *n)
 		isv |= c->isv;
 		nc++;
 	}
-	if(isv && !typev[n->type->etype])
+	if(typev[n->type->etype])
+		isv = 1;
+	else if(isv){
 		warn(n, "32-bit switch expression with 64-bit case constant");
+		isv = 0;
+	}
 
 	iq = alloc(nc*sizeof(C1));
 	q = iq;
 	for(c = cases; c->link != C; c = c->link) {
 		if(c->def)
 			continue;
+		if(c->isv && !isv)
+			continue;	/* can never match */
 		q->label = c->label;
 		if(isv)
 			q->val = c->val;
 		else
-			q->val = (long)c->val;	/* cast ensures correct value for 32-bit switch on 64-bit architecture */
+			q->val = (int32)c->val;	/* cast ensures correct value for 32-bit switch on 64-bit architecture */
 		q++;
 	}
 	qsort(iq, nc, sizeof(C1), swcmp);
@@ -64,7 +72,53 @@ doswit(Node *n)
 		def = breakpc;
 		nbreak++;
 	}
-	swit1(iq, nc, def, n);
+	if(!isv || ewidth[TIND] > ewidth[TLONG] || n->op == OREGISTER) {
+		swit1(iq, nc, def, n);
+		return;
+	}
+
+	/*
+	 * 64-bit case on 32-bit machine:
+	 * switch on high-order words, and
+	 * in each of those, switch on low-order words
+	 */
+	if(n->op != OREGPAIR)
+		fatal(n, "internal: expected register pair");
+	if(thechar == '8'){	/* TO DO: need an enquiry function */
+		vr[0] = n->left;	/* low */
+		vr[1] = n->right;	/* high */
+	}else{
+		vr[0] = n->right;
+		vr[1] = n->left;
+	}
+	vr[0]->type = types[TLONG];
+	vr[1]->type = types[TLONG];
+	gbranch(OGOTO);
+	hsb = p;
+	iqh = alloc(nc*sizeof(C1));
+	iql = alloc(nc*sizeof(C1));
+	nh = 0;
+	for(i=0; i<nc;){
+		iqh[nh].val = iq[i].val >> 32;
+		q = iql;
+		/* iq is sorted, so equal top halves are adjacent */
+		for(j = i; j < nc; j++){
+			if((iq[j].val>>32) != iqh[nh].val)
+				break;
+			q->val = (int32)iq[j].val;
+			q->label = iq[j].label;
+			q++;
+		}
+		qsort(iql,  q-iql, sizeof(C1), swcmp);
+		if(0){int k;for(k=0; k<(q-iql); k++)print("nh=%ld k=%d h=%#llux l=%#llux lab=%ld\n", nh, k, (vlong)iqh[nh].val,  (vlong)iql[k].val, iql[k].label);}
+		iqh[nh].label = pc;
+		nh++;
+		swit1(iql, q-iql, def, vr[0]);
+		i = j;
+	}
+	patch(hsb, pc);
+	if(0){int k;for(k=0; k<nh; k++)print("k*=%d h=%#llux lab=%ld\n", k, (vlong)iqh[k].val,  iqh[k].label);}
+	swit1(iqh, nh, def, vr[1]);
 }
 
 void
@@ -78,28 +132,28 @@ casf(void)
 }
 
 long
-outlstring(ushort *s, long n)
+outlstring(Rune *s, long n)
 {
-	char buf[2];
-	int c;
+	char buf[UTFmax];
+	int c, i;
 	long r;
 
 	if(suppress)
 		return nstring;
-	while(nstring & 1)
+	while(nstring & (sizeof(Rune)-1))
 		outstring("", 1);
 	r = nstring;
 	while(n > 0) {
 		c = *s++;
 		if(align(0, types[TCHAR], Aarg1)) {
-			buf[0] = c>>8;
-			buf[1] = c;
+			for(i = 0; i < sizeof(Rune); i++)
+				buf[i] = c>>8*(sizeof(Rune) - i - 1);
 		} else {
-			buf[0] = c;
-			buf[1] = c>>8;
+			for(i = 0; i < sizeof(Rune); i++)
+				buf[i] = c>>8*i;
 		}
-		outstring(buf, 2);
-		n -= sizeof(ushort);
+		outstring(buf, sizeof(Rune));
+		n -= sizeof(Rune);
 	}
 	return r;
 }
@@ -140,5 +194,5 @@ ieeedtod(Ieee *ieee, double native)
 	fr = modf(fr*f, &ho);
 	ieee->l = ho;
 	ieee->l <<= 16;
-	ieee->l |= (long)(fr*f);
+	ieee->l |= (int32)(fr*f);
 }

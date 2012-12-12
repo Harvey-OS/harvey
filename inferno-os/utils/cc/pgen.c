@@ -70,8 +70,12 @@ codgen(Node *n, Node *nn)
 	canreach = 1;
 	warnreach = 1;
 	gen(n);
-	if(canreach && thisfn->link->etype != TVOID)
-		warn(Z, "no return at end of function: %s", n1->sym->name);
+	if(canreach && thisfn->link->etype != TVOID){
+		if(debug['B'])
+			warn(Z, "no return at end of function: %s", n1->sym->name);
+		else
+			diag(Z, "no return at end of function: %s", n1->sym->name);
+	}
 	noretval(3);
 	gbranch(ORETURN);
 
@@ -79,7 +83,7 @@ codgen(Node *n, Node *nn)
 		regopt(sp);
 	
 	if(thechar=='6' || thechar=='7' || thechar=='9' || hasdoubled)	/* [sic] */
-		maxargsafe = round(maxargsafe, 8);
+		maxargsafe = p9round(maxargsafe, 8);
 	sp->to.offset += maxargsafe;
 }
 
@@ -105,10 +109,20 @@ supgen(Node *n)
 	warnreach = owarn;
 }
 
+Node*
+uncomma(Node *n)
+{
+	while(n != Z && n->op == OCOMMA) {
+		cgen(n->left, Z);
+		n = n->right;
+	}
+	return n;
+}
+
 void
 gen(Node *n)
 {
-	Node *l, nod;
+	Node *l, nod, rn;
 	Prog *sp, *spc, *spb;
 	Case *cn;
 	long sbc, scc;
@@ -129,6 +143,7 @@ loop:
 		case OLABEL:
 		case OCASE:
 		case OLIST:
+		case OCOMMA:
 		case OBREAK:
 		case OFOR:
 		case OWHILE:
@@ -151,6 +166,7 @@ loop:
 		break;
 
 	case OLIST:
+	case OCOMMA:
 		gen(n->left);
 
 	rloop:
@@ -163,7 +179,7 @@ loop:
 		complex(n);
 		if(n->type == T)
 			break;
-		l = n->left;
+		l = uncomma(n->left);
 		if(l == Z) {
 			noretval(3);
 			gbranch(ORETURN);
@@ -178,6 +194,20 @@ loop:
 			nod.complex = l->complex;
 			cgen(&nod, Z);
 			noretval(3);
+			gbranch(ORETURN);
+			break;
+		}
+		if(newvlongcode && !typefd[n->type->etype]){
+			regret(&rn, n);
+			regfree(&rn);
+			nod = znode;
+			nod.op = OAS;
+			nod.left = &rn;
+			nod.right = l;
+			nod.type = n->type;
+			nod.complex = l->complex;
+			cgen(&nod, Z);
+			noretval(2);
 			gbranch(ORETURN);
 			break;
 		}
@@ -241,16 +271,15 @@ loop:
 		complex(l);
 		if(l->type == T)
 			goto rloop;
-		if(l->op == OCONST)
-		if(typeword[l->type->etype] && l->type->etype != TIND) {
-			casf();
-			cases->val = l->vconst;
-			cases->def = 0;
-			cases->label = pc;
-			cases->isv = typev[l->type->etype];
+		if(l->op != OCONST || !typeswitch[l->type->etype]) {
+			diag(n, "case expression must be integer constant");
 			goto rloop;
 		}
-		diag(n, "case expression must be integer constant");
+		casf();
+		cases->val = l->vconst;
+		cases->def = 0;
+		cases->label = pc;
+		cases->isv = typev[l->type->etype];
 		goto rloop;
 
 	case OSWITCH:
@@ -258,7 +287,7 @@ loop:
 		complex(l);
 		if(l->type == T)
 			break;
-		if(!typeword[l->type->etype] || l->type->etype == TIND) {
+		if(!typeswitch[l->type->etype]) {
 			diag(n, "switch expression must be integer");
 			break;
 		}
@@ -531,6 +560,8 @@ usedset(Node *n, int o)
 int
 bcomplex(Node *n, Node *c)
 {
+	Node *b, nod;
+
 
 	complex(n);
 	if(n->type != T)
@@ -542,6 +573,18 @@ bcomplex(Node *n, Node *c)
 	}
 	if(c != Z && n->op == OCONST && deadheads(c))
 		return 1;
+	/* this is not quite right yet, so ignore it for now */
+	if(0 && newvlongcode && typev[n->type->etype] && machcap(Z)) {
+		b = &nod;
+		b->op = ONE;
+		b->left = n;
+		b->right = new(0, Z, Z);
+		*b->right = *nodconst(0);
+		b->right->type = n->type;
+		b->type = types[TLONG];
+		cgen(b, Z);
+		return 0;
+	}
 	bool64(n);
 	boolgen(n, 1, Z);
 	return 0;

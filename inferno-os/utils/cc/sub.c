@@ -1014,7 +1014,7 @@ no:
  * return log(n) if n is a power of 2 constant
  */
 int
-log2(uvlong v)
+p9log2(uvlong v)
 {
 	int s, i;
 	uvlong m;
@@ -1041,7 +1041,7 @@ vlog(Node *n)
 	if(typefd[n->type->etype])
 		goto bad;
 
-	return log2(n->vconst);
+	return p9log2(n->vconst);
 
 bad:
 	return -1;
@@ -1141,10 +1141,10 @@ bitno(long b)
 	return 0;
 }
 
-long
-typebitor(long a, long b)
+int32
+typebitor(int32 a, int32 b)
 {
-	long c;
+	int32 c;
 
 	c = a | b;
 	if(a & b)
@@ -1485,6 +1485,7 @@ Init	onamesinit[] =
 	OINDEX,		0,	"INDEX",
 	OFAS,		0,	"FAS",
 	OREGPAIR,	0,	"REGPAIR",
+	OEXREG,		0,	"EXREG",
 	OEND,		0,	"END",
 	-1,		0,	0,
 };
@@ -1951,6 +1952,7 @@ tinit(void)
 	
 	/* 32-bit defaults */
 	typeword = typechlp;
+	typeswitch = typechl;
 	typecmplx = typesuv;
 }
 

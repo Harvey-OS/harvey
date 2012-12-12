@@ -337,7 +337,7 @@ void
 dpcheck(Node *n)
 {
 	char *s;
-	Node *a, *b;
+	Node *a = NULL, *b;
 	Tname *l;
 	int i;
 
