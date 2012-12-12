@@ -248,7 +248,10 @@ asmb(void)
 
 		lputl(1L);			/* text - type = PT_LOAD */
 		lputl(HEADR);			/* file offset */
-		lputl(INITTEXT);		/* vaddr */
+		//lputl(INITTEXT);		/* vaddr */
+		/* THIS IS STUPID. But it won't break our system, because we only use ELF in kernel. */
+		/* Grub can't read ELF files properly. We don't care. */
+		lputl(PADDR(INITTEXT));		/* vaddr */ /* GRUB SUCKS */
 		lputl(PADDR(INITTEXT));		/* paddr */
 		lputl(textsize);		/* file size */
 		lputl(textsize);		/* memory size */
