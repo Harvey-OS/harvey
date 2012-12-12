@@ -303,7 +303,7 @@ cgen(Node *n, Node *nn)
 				c = r->vconst;
 				if(c < 0)
 					c = -c;
-				v = log2(c);
+				v = p9log2(c);
 				if(v < 0)
 					break;
 				/* fall thru */
@@ -439,9 +439,10 @@ cgen(Node *n, Node *nn)
 			if(o == OLDIV || o == OLMOD)
 				zeroregm(&nod1);
 			if(r->addable < INDEXED || r->op == OCONST) {
-				regsalloc(&nod3, r);
+				regalloc(&nod3, r, Z);
 				cgen(r, &nod3);
 				gopcode(o, n->type, &nod3, Z);
+				regfree(&nod3);
 			} else
 				gopcode(o, n->type, r, Z);
 		} else {
@@ -610,7 +611,7 @@ cgen(Node *n, Node *nn)
 				c = r->vconst;
 				if(c < 0)
 					c = -c;
-				v = log2(c);
+				v = p9log2(c);
 				if(v < 0)
 					break;
 				/* fall thru */
@@ -1816,7 +1817,7 @@ layout(Node *f, Node *t, int c, int cv, Node *cn)
 int
 immconst(Node *n)
 {
-	long v;
+	int32 v;
 
 	if(n->op != OCONST || !typechlpv[n->type->etype])
 		return 0;
@@ -1886,22 +1887,22 @@ vaddr(Node *n, int a)
 	return 0;
 }
 
-long
+int32
 hi64v(Node *n)
 {
 	if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
-		return (long)(n->vconst) & ~0L;
+		return (int32)(n->vconst) & ~0L;
 	else
-		return (long)((uvlong)n->vconst>>32) & ~0L;
+		return (int32)((uvlong)n->vconst>>32) & ~0L;
 }
 
-long
+int32
 lo64v(Node *n)
 {
 	if(align(0, types[TCHAR], Aarg1))	/* isbigendian */
-		return (long)((uvlong)n->vconst>>32) & ~0L;
+		return (int32)((uvlong)n->vconst>>32) & ~0L;
 	else
-		return (long)(n->vconst) & ~0L;
+		return (int32)(n->vconst) & ~0L;
 }
 
 Node *

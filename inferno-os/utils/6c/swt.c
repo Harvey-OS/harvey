@@ -377,7 +377,7 @@ zname(Biobuf *b, Sym *s, int t)
 void
 zaddr(Biobuf *b, Adr *a, int s)
 {
-	long l;
+	int32 l;
 	int i, t;
 	char *n;
 	Ieee e;
@@ -514,7 +514,7 @@ align(long i, Type *t, int op)
 		o = align(o, t, Ael2);
 		break;
 	}
-	o = round(o, w);
+	o = p9round(o, w);
 	if(debug['A'])
 		print("align %s %ld %T = %ld\n", bnames[op], i, t, o);
 	return o;
@@ -525,6 +525,6 @@ maxround(long max, long v)
 {
 	v += SZ_VLONG-1;
 	if(v > max)
-		max = round(v, SZ_VLONG);
+		max = p9round(v, SZ_VLONG);
 	return max;
 }
