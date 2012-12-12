@@ -53,6 +53,7 @@ link +dev
 #	ht
 
 misc +dev
+	rdb
 #	cache
 	mp		apic ioapic msi pci sipi rdwr
 
@@ -149,6 +150,7 @@ amd64 +dev
 	cga
 	crap
 	fpu
+	gdb
 	i8254
 	i8259
 	kbd
