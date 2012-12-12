@@ -78,10 +78,12 @@ enum {					/* SCSI command codes */
 	ScmdStart	= 0x1B,		/* start/stop unit */
 	ScmdRcapacity	= 0x25,		/* read capacity */
 	ScmdRcapacity16	= 0x9e,		/* long read capacity */
+	ScmdRformatcap	= 0x23,		/* read format capacity */
 	ScmdExtread	= 0x28,		/* extended read (10 bytes) */
 	ScmdRead16	= 0x88,		/* long read (16 bytes) */
-	ScmdWrite16	= 0x8A,		/* long write (16 bytes) */
 	ScmdExtwrite	= 0x2A,		/* extended write (10 bytes) */
+	ScmdExtwritever = 0x2E,		/* extended write and verify (10) */
+	ScmdWrite16	= 0x8A,		/* long write (16 bytes) */
 	ScmdExtseek	= 0x2B,		/* extended seek */
 
 	ScmdSynccache	= 0x35,		/* flush cache */
