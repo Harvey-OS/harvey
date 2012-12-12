@@ -45,7 +45,7 @@ fault(ulong addr, int read)
 	 * in spinning forever.
 	 */
 	if (tries <= 0)
-		panic("faultarm: fault stuck on va %#8.8p read %d\n", addr, read);
+		panic("fault: fault stuck on va %#8.8p read %d\n", addr, read);
 
 	up->psstate = sps;
 	return 0;
