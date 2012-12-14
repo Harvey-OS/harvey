@@ -5,6 +5,7 @@ TARG = 	6in4\
 	dhcpclient\
 	hogports\
 	httpfile\
+	iscsisrv\
 	linklocal\
 	ping\
 	pppoe\
