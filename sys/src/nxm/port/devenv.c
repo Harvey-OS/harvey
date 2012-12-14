@@ -8,6 +8,7 @@
 enum
 {
 	Maxenvsize = 16300,
+	Maxename = sizeof up->genbuf-1,
 };
 
 static Egrp	*envgrp(Chan *c);
@@ -146,6 +147,8 @@ envcreate(Chan *c, char *name, int omode, int)
 
 	if(c->qid.type != QTDIR)
 		error(Eperm);
+	if(strlen(name) > Maxename)
+		error("name too long");
 
 	omode = openmode(omode);
 	eg = envgrp(c);
