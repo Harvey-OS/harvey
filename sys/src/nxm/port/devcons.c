@@ -1133,7 +1133,6 @@ conswrite(Chan *c, void *va, long n, vlong off)
 			rebootcmd(cb->nf-1, cb->f+1);
 			break;
 		case CMpanic:
-			*(ulong*)0=0;
 			panic("/dev/reboot");
 		}
 		poperror();
