@@ -460,7 +460,6 @@ procopen(Chan *c, int omode)
 		return tc;
 
 	case Qproc:
-	case Qkregs:
 	case Qsegment:
 	case Qprofile:
 	case Qfd:
@@ -486,6 +485,7 @@ procopen(Chan *c, int omode)
 	case Qwait:
 	case Qregs:
 	case Qfpregs:
+	case Qkregs:
 	case Qsyscall:
 	case Qcore:
 		nonone(p);
@@ -715,30 +715,49 @@ int2flag(int flag, char *s)
 	*s = '\0';
 }
 
+static char*
+argcpy(char *s, char *p)
+{
+	char *t, *tp, *te;
+	int n;
+
+	n = p - s;
+	if(n > 128)
+		n = 128;
+	if(n <= 0){
+		t = smalloc(1);
+		*t = 0;
+		return t;
+	}
+	t = smalloc(n);
+	tp = t;
+	te = t+n;
+
+	while(tp + 1 < te){
+		for(p--; p>s && p[-1] != 0; p--)
+			;
+		tp = seprint(tp, te, "%q ", p);
+		if(p == s)
+			break;
+	}
+	if(*tp == ' ')
+		*tp = 0;
+	return t;
+}
+
 static int
 procargs(Proc *p, char *buf, int nbuf)
 {
-	int j, k, m;
-	char *a;
-	int n;
+	char *s;
 
-	a = p->args;
-	if(p->setargs){
-		snprint(buf, nbuf, "%s [%s]", p->text, p->args);
-		return strlen(buf);
+	if(p->setargs == 0){
+		s = argcpy(p->args, p->args+p->nargs);
+		free(p->args);
+		p->nargs = strlen(s);
+		p->args = s;
+		p->setargs = 1;
 	}
-	n = p->nargs;
-	for(j = 0; j < nbuf - 1; j += m){
-		if(n <= 0)
-			break;
-		if(j != 0)
-			buf[j++] = ' ';
-		m = snprint(buf+j, nbuf-j, "%q",  a);
-		k = strlen(a) + 1;
-		a += k;
-		n -= k;
-	}
-	return j;
+	return snprint(buf, nbuf, "%s", p->args);
 }
 
 static int
@@ -799,8 +818,12 @@ procread(Chan *c, void *va, long n, vlong off)
 		else
 			return readstr(off, va, n, tpids);
 
-	if((p = psincref(SLOT(c->qid))) == nil || p->pid != PID(c->qid))
+	if((p = psincref(SLOT(c->qid))) == nil)
 		error(Eprocdied);
+	if(p->pid != PID(c->qid)){
+		psdecref(p);
+		error(Eprocdied);
+	}
 
 	switch(QID(c->qid)){
 	default:
@@ -969,11 +992,11 @@ procread(Chan *c, void *va, long n, vlong off)
 		if(sps == 0)
 			sps = statename[p->state];
 		memset(statbuf, ' ', sizeof statbuf);
-		sprint(statbuf, "%-*.*s%-*.*s%-12.11s",
+		j = 2*KNAMELEN + 12;
+		snprint(statbuf, j+1, "%-*.*s%-*.*s%-12.11s",
 			KNAMELEN, KNAMELEN-1, p->text,
 			KNAMELEN, KNAMELEN-1, p->user,
 			sps);
-		j = 2*KNAMELEN + 12;
 
 		for(i = 0; i < 6; i++) {
 			l = p->time[i];
@@ -1195,16 +1218,14 @@ procwrite(Chan *c, void *va, long n, vlong off)
 	case Qargs:
 		if(n == 0)
 			error(Eshort);
-		if(n >= ERRMAX)
+		if(n >= sizeof buf - strlen(p->text) - 1)
 			error(Etoobig);
-		memmove(buf, va, n);
-		args = malloc(n+1);
+		l = snprint(buf, sizeof buf, "%s [%s]", p->text, (char*)va);
+		args = malloc(l+1);
 		if(args == nil)
 			error(Enomem);
-		memmove(args, buf, n);
-		l = n;
-		if(args[l-1] != 0)
-			args[l++] = 0;
+		memmove(args, buf, l);
+		args[l] = 0;
 		free(p->args);
 		p->nargs = l;
 		p->args = args;
