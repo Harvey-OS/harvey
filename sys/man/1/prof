@@ -77,7 +77,7 @@ The size of the buffer
 in
 .I program
 used to hold the profiling
-data, by default 2000 entries,
+data, by default 10000 entries,
 may be controlled by setting the environment variable
 .B profsize
 before running
