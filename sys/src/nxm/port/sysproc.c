@@ -165,7 +165,7 @@ sysrfork(Ar0* ar0, va_list list)
 		incref(p->pgrp);
 	}
 	if(flag & RFNOMNT)
-		up->pgrp->noattach = 1;
+		p->pgrp->noattach = 1;
 
 	if(flag & RFREND)
 		p->rgrp = newrgrp();
