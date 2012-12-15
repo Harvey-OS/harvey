@@ -16,7 +16,8 @@
  * connection.
  */
 
-#define MAXRPC (IOHDRSZ+8192)
+/* practical data limit: maxioatomic - IOHDRSZ */
+#define MAXRPC (IOHDRSZ+6*8192)
 
 struct Mntrpc
 {
@@ -152,14 +153,14 @@ mntversion(Chan *c, u32int msize, char *version, usize returnlen)
 	f.tag = NOTAG;
 	f.msize = msize;
 	f.version = v;
-	msg = malloc(8192+IOHDRSZ);
+	msg = malloc(MAXRPC);
 	if(msg == nil)
 		exhausted("version memory");
 	if(waserror()){
 		free(msg);
 		nexterror();
 	}
-	k = convS2M(&f, msg, 8192+IOHDRSZ);
+	k = convS2M(&f, msg, MAXRPC);
 	if(k == 0)
 		error("bad fversion conversion on send");
 
@@ -178,7 +179,7 @@ mntversion(Chan *c, u32int msize, char *version, usize returnlen)
 	}
 
 	/* message sent; receive and decode reply */
-	n = c->dev->read(c, msg, 8192+IOHDRSZ, c->offset);
+	n = c->dev->read(c, msg, MAXRPC, c->offset);
 	if(n <= 0)
 		error("EOF receiving fversion reply");
 
@@ -957,13 +958,13 @@ mountmux(Mnt *mnt, Mntrpc *r)
 				r->b = nil;
 			}
 			q->done = 1;
-			unlock(mnt);
 			if(mntstats != nil)
 				(*mntstats)(q->request.type,
 					mnt->c, q->stime,
 					q->reqlen + r->replen);
 			if(q != r)
 				wakeup(&q->r);
+			unlock(mnt);
 			return;
 		}
 		l = &q->list;
@@ -1140,7 +1141,7 @@ mntchk(Chan *c)
 	/* This routine is mostly vestiges of prior lives; now it's just sanity checking */
 
 	if(c->mchan == nil)
-		panic("mntchk 1: nil mchan c %s\n", chanpath(c));
+		panic("mntchk 1: nil mchan c %s", chanpath(c));
 
 	mnt = c->mchan->mux;
 
