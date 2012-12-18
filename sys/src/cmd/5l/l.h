@@ -7,6 +7,11 @@
 #define	EXTERN	extern
 #endif
 
+#define	LIBNAMELEN	300
+
+void	addlibpath(char*);
+int	fileexists(char*);
+char*	findlib(char*);
 
 typedef	struct	Adr	Adr;
 typedef	struct	Sym	Sym;
@@ -309,6 +314,7 @@ int	Pconv(Fmt*);
 int	Sconv(Fmt*);
 int	aclass(Adr*);
 void	addhist(long, int);
+void	addlibpath(char*);
 void	append(Prog*, Prog*);
 void	asmb(void);
 void	asmdyn(void);
@@ -336,7 +342,9 @@ long	entryvalue(void);
 void	errorexit(void);
 void	exchange(Prog*);
 void	export(void);
+int	fileexists(char*);
 int	find1(long, int);
+char*	findlib(char*);
 void	follow(void);
 void	gethunk(void);
 void	histtoauto(void);

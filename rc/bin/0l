@@ -1,2 +1,2 @@
 #!/bin/rc
-exec vl -L $*
+exec vl -m $*

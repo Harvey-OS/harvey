@@ -15,6 +15,8 @@
 	if(--cbc <= 0)\
 		cflush(); }
 
+#define	LIBNAMELEN	300
+
 typedef	struct	Adr	Adr;
 typedef	struct	Prog	Prog;
 typedef	struct	Sym	Sym;
@@ -327,6 +329,7 @@ int	Pconv(Fmt*);
 int	Rconv(Fmt*);
 int	Sconv(Fmt*);
 void	addhist(long, int);
+void	addlibpath(char*);
 Prog*	appendp(Prog*);
 void	asmb(void);
 void	asmdyn(void);
@@ -353,8 +356,10 @@ void	dynreloc(Sym*, ulong, int);
 vlong	entryvalue(void);
 void	errorexit(void);
 void	export(void);
+int	fileexists(char*);
 int	find1(long, int);
 int	find2(long, int);
+char*	findlib(char*);
 void	follow(void);
 void	gethunk(void);
 void	histtoauto(void);
