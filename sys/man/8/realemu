@@ -1,0 +1,86 @@
+.TH REALEMU 8
+.SH NAME
+realemu \- software emulation of /dev/realmode
+.SH SYNOPSIS
+.B aux/realemu
+[
+.B -Dpt
+] [
+.B -s
+.I srvname
+] [
+.B -m
+.I mntpt
+]
+.SH DESCRIPTION
+.PP
+Originally, the kernel provided 
+.B /dev/realmode
+and
+.B /dev/realmodemem
+files via
+.IR arch (3) .
+These devices provided access
+to real mode memory and 
+.SM BIOS
+calls.
+.PP
+Interrupts were disabled and the processor switched to
+16-bit "real mode" to fit the
+.SM BIOS
+api.
+If
+.SM BIOS
+reprograms hardware in use or reenables interrupts or
+crashes, the system may freeze or reboot with little ability
+for diagnosis or recovery. To avoid this,
+.I realemu
+emulates 
+.SM BIOS
+by interpreting the code intercepting
+dangerous actions that could compromise the system.
+.PP
+With no arguments,
+.I realemu
+mounts itself before
+.B /dev
+and
+serves
+.BR /dev/realmode .
+Flag
+.B D
+will enable 9P debugging; flag
+.B p
+traces i/o port access;
+.B t
+traces instructions.
+The -s flag causes
+.I realemu
+to post its channel on
+.BI /srv/ mntpt
+and the default
+.I mntpt
+is ignored.
+If 
+.I mntpt
+is given before
+.I srvname
+argument then it is ignored, otherwise it will be used.
+.SH EXAMPLES
+.I Realemu
+is only needed when accessing
+.B /dev/realmode.
+To invoke a subshell so that
+.I realemu
+exits normally after
+.B aux/vga
+completes:
+.IP
+.EX
+; @{rfork n; aux/realemu; aux/vga -m vesa -l $vgasize}
+.EE
+.SH SOURCE
+.B /sys/src/cmd/aux/realemu
+.SH "SEE ALSO"
+.IR vga (8),
+.IR arch (3)
