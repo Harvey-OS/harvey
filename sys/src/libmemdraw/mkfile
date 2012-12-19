@@ -4,6 +4,7 @@ MKSHELL=rc
 LIB=$NXM/$objtype/lib/libmemdraw.a
 OFILES=\
 	alloc.$O\
+	addr.$O\
 	arc.$O\
 	cload.$O\
 	cmap.$O\
@@ -16,6 +17,7 @@ OFILES=\
 	iprint.$O\
 	line.$O\
 	load.$O\
+	memsetchan.$O\
 	openmemsubfont.$O\
 	poly.$O\
 	read.$O\
