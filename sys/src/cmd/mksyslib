@@ -39,7 +39,7 @@ clean:V:
 nuke:V:
 	rm -f *.[$OS] [$OS].out $CLEANFILES $LIB
 
-%.acid: %.$O $HFILES
+%.acid$O: %.$O $HFILES
 	$CC $CFLAGS -a $stem.c >$target
 
 update:V:

@@ -9,7 +9,7 @@ defn acidinit()			// Called after all the init modules are loaded
 		"./",
 		"/sys/src/libc/port/",
 		"/sys/src/libc/9sys/",
-		"/sys/src/libc/68020/"
+		"/sys/src/libc/" + objtype + "/"
 	};
 
 	srcfiles = {};			// list of loaded files
@@ -134,4 +134,6 @@ Ureg(addr) {
 	print("	microstate	", addr.microstate, "\n");
 };
 
+objchar = '2';
+objtype = "68020";
 print("/sys/lib/acid/68020");

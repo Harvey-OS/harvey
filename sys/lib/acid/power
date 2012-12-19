@@ -9,7 +9,7 @@ defn acidinit()			// Called after all the init modules are loaded
 		"./",
 		"/sys/src/libc/port/",
 		"/sys/src/libc/9sys/",
-		"/sys/src/libc/power/"
+		"/sys/src/libc/" + objtype + "/"
 	};
 
 	srcfiles = {};		// list of loaded files
@@ -117,4 +117,6 @@ defn linkreg(addr)
 	return *LR;
 }
 
+objchar = 'q';
+objtype = "power";
 print("/sys/lib/acid/power");

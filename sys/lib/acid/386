@@ -9,7 +9,7 @@ defn acidinit()			// Called after all the init modules are loaded
 		"./",
 		"/sys/src/libc/port/",
 		"/sys/src/libc/9sys/",
-		"/sys/src/libc/386/"
+		"/sys/src/libc/" + objtype + "/"
 	};
 
 	srcfiles = {};			// list of loaded files
@@ -160,4 +160,6 @@ Ureg(addr) {
 };
 sizeofUreg = 76;
 
+objchar = '8';
+objtype = "386";
 print("/sys/lib/acid/386");

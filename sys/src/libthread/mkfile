@@ -73,7 +73,7 @@ UPDATE=mkfile\
 	$CFILES\
 	$SFILES\
 
-all:V:	$LIB sched.acid channel.acid
+all:V:	$LIB sched.acid$O channel.acid$O
 
 <$NXM/sys/src/cmd/mksyslib
 

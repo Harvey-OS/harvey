@@ -43,15 +43,13 @@ main(int argc, char *argv[])
 	mtype = 0;
 	ARGBEGIN{
 	case 'm':
-		mtype = ARGF();
+		mtype = EARGF(usage());
 		break;
 	case 'w':
 		wtflag = 1;
 		break;
 	case 'l':
-		s = ARGF();
-		if(s == 0)
-			usage();
+		s = EARGF(usage());
 		lm[nlm++] = s;
 		break;
 	case 'k':
