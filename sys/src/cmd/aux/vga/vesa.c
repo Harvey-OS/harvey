@@ -1,8 +1,10 @@
 #include <u.h>
 #include <libc.h>
 #include <bio.h>
+#pragma pack on
 #include </386/include/ureg.h>
 typedef struct Ureg Ureg;
+#pragma pack off
 
 #include "pci.h"
 #include "vga.h"
@@ -154,6 +156,9 @@ dbvesamode(char *mode)
 			if(vbemodeinfo(vbe, i, &vm) < 0)
 				continue;
 			if(strcmp(vm.name, mode) == 0)
+				goto havemode;
+			/* accept mode numbers so we can select bit pattern */
+			if(vm.id == strtoul(mode, 0, 0))
 				goto havemode;
 		}
 	}
@@ -510,20 +515,20 @@ vbemodeinfo(Vbe *vbe, int id, Vmode *m)
 	}
 
 	m->xo = m->x = 0;
-	d = 1 << (m->depth - 1);
-	d |= d - 1;
-	c  = ((1<<m->r)-1) << m->ro;
+	d = 1<<m->depth-1;
+	d |= d-1;
+	c = ((1<<m->r)-1) << m->ro;
 	c |= ((1<<m->g)-1) << m->go;
 	c |= ((1<<m->b)-1) << m->bo;
-	x = d ^ c;
-	if(x != 0){
+	if(x = d ^ c){
 		for(; (x & 1) == 0; x >>= 1)
 			m->xo++;
-		for(; x & 1; x >>= 1)
+		for(; (x & 1) == 1; x >>= 1)
 			m->x++;
 	}
 
-	m->chan[0] = o = 0;
+	o = 0;
+	m->chan[0] = 0;
 	while(o < m->depth){
 		if(m->r && m->ro == o){
 			snprint(tmp, sizeof tmp, "r%d%s", m->r, m->chan);
