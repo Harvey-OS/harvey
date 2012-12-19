@@ -29,6 +29,12 @@ loop:
 TEXT	_savearg(SB), 1, $0
 	RET
 
+TEXT	_saveret(SB), 1, $0
+	RET
+
+TEXT	_restorearg(SB), 1, $0
+	RET
+
 TEXT	_callpc(SB), 1, $0
 	MOVL	argp-8(FP), R0
 	RET

@@ -2,8 +2,10 @@
 #include	<libc.h>
 #include	<tos.h>
 
-extern	long	_callpc(void**);
-extern	long	_savearg(void);
+extern	uintptr	_callpc(void**);
+extern	uintptr	_savearg(void);
+extern	uintptr	_saveret(void);
+extern	uintptr	_restorearg(uintptr);
 
 static	ulong	khz;
 static	ulong	perr;
@@ -15,28 +17,27 @@ struct	Plink
 	Plink	*old;
 	Plink	*down;
 	Plink	*link;
-	long	pc;
+	uintptr	pc;
 	long	count;
 	vlong time;
 };
 
 #pragma profile off
 
-ulong
+uintptr
 _profin(void)
 {
 	void *dummy;
-	long pc;
+	uintptr pc;
 	Plink *pp, *p;
-	ulong arg;
+	uintptr arg;
 	vlong t;
 
 	arg = _savearg();
 	pc = _callpc(&dummy);
 	pp = _tos->prof.pp;
 	if(pp == 0 || (_tos->prof.pid && _tos->pid != _tos->prof.pid))
-		return arg;
-
+		return _restorearg(arg);
 	for(p=pp->down; p; p=p->link)
 		if(p->pc == pc)
 			goto out;
@@ -44,7 +45,7 @@ _profin(void)
 	if(p >= _tos->prof.last) {
 		_tos->prof.pp = 0;
 		perr++;
-		return arg;
+		return _restorearg(arg);
 	}
 	_tos->prof.next = p;
 	p->link = pp->down;
@@ -75,17 +76,17 @@ out:
 		p->time = p->time - _tos->clock;
 		break;
 	}
-	return arg;		/* disgusting linkage */
+	return _restorearg(arg);
 }
 
-ulong
+uintptr
 _profout(void)
 {
 	Plink *p;
-	ulong arg;
+	uintptr arg;
 	vlong t;
 
-	arg = _savearg();
+	arg = _saveret();
 	p = _tos->prof.pp;
 	if (p == nil || (_tos->prof.pid != 0 && _tos->pid != _tos->prof.pid))
 		return arg;	/* Not our process */
@@ -131,7 +132,7 @@ _profdump(void)
 		snprint(filename, sizeof filename - 1, "prof.out");
 	f = create(filename, 1, 0666);
 	if(f < 0) {
-		perror("create prof.out");
+		fprint(2, "create prof.out: %r");
 		return;
 	}
 	_tos->prof.pid = ~0;	/* make sure data gets dumped once */
@@ -232,7 +233,7 @@ _profmain(void)
 	char ename[50];
 	int n, f;
 
-	n = 2000;
+	n = 10000;
 	if (_tos->cyclefreq != 0LL){
 		khz = _tos->cyclefreq / 1000;	/* Report times in milliseconds */
 		havecycles = 1;
@@ -240,9 +241,9 @@ _profmain(void)
 	f = open("/env/profsize", OREAD);
 	if(f >= 0) {
 		memset(ename, 0, sizeof(ename));
-		read(f, ename, sizeof(ename)-1);
+		if(read(f, ename, sizeof(ename)-1) > 0)
+			n = atol(ename);
 		close(f);
-		n = atol(ename);
 	}
 	_tos->prof.what = Profuser;
 	f = open("/env/proftype", OREAD);

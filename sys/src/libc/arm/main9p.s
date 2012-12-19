@@ -34,6 +34,12 @@ loop:
 TEXT	_savearg(SB), 1, $0
 	RET
 
+TEXT	_saveret(SB), 1, $0
+	RET
+
+TEXT	_restorearg(SB), 1, $0
+	RET
+
 TEXT	_callpc(SB), 1, $-4
 	MOVW	0(R13), R(arg)
 	RET

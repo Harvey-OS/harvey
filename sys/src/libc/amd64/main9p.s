@@ -27,8 +27,14 @@ TEXT	_savearg(SB), 1, $0
 	MOVQ	RARG, AX
 	RET
 
+TEXT	_saveret(SB), 1, $0
+	RET
+
+TEXT	_restorearg(SB), 1, $0
+	RET				/* we want RARG in RARG */
+
 TEXT	_callpc(SB), 1, $0
-	MOVQ	4(RARG), AX
+	MOVQ	8(RARG), AX
 	RET
 
 DATA	_exits<>+0(SB)/4, $"main"
