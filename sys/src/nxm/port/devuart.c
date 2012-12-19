@@ -89,7 +89,7 @@ uartenable(Uart *p)
 		uartctl(p, "b9600");
 	(*p->phys->enable)(p, 1);
 
-	lock(&uartalloc);
+	ilock(&uartalloc);
 	for(l = &uartalloc.elist; *l; l = &(*l)->elist){
 		if(*l == p)
 			break;
@@ -99,7 +99,7 @@ uartenable(Uart *p)
 		uartalloc.elist = p;
 	}
 	p->enabled = 1;
-	unlock(&uartalloc);
+	iunlock(&uartalloc);
 
 	return p;
 }
@@ -111,7 +111,7 @@ uartdisable(Uart *p)
 
 	(*p->phys->disable)(p);
 
-	lock(&uartalloc);
+	ilock(&uartalloc);
 	for(l = &uartalloc.elist; *l; l = &(*l)->elist){
 		if(*l == p){
 			*l = p->elist;
@@ -119,7 +119,7 @@ uartdisable(Uart *p)
 		}
 	}
 	p->enabled = 0;
-	unlock(&uartalloc);
+	iunlock(&uartalloc);
 }
 
 Uart*
@@ -197,7 +197,7 @@ uartreset(void)
 
 	uartndir = 1 + 3*uartnuart;
 	uartdir = malloc(uartndir * sizeof(Dirtab));
-	if(uartnuart > 0 && uart == nil || uartdir == nil)
+	if(uart == nil || uartdir == nil)
 		panic("uartreset: no memory");
 	dp = uartdir;
 	strcpy(dp->name, ".");
@@ -307,7 +307,7 @@ uartdrained(void* arg)
 static void
 uartdrainoutput(Uart *p)
 {
-	if(!p->enabled)
+	if(!p->enabled || up == nil)
 		return;
 
 	p->drain = 1;
@@ -722,7 +722,7 @@ uartclock(void)
 {
 	Uart *p;
 
-	lock(&uartalloc);
+	ilock(&uartalloc);
 	for(p = uartalloc.elist; p; p = p->elist){
 
 		if(p->phys->poll != nil)
@@ -752,7 +752,7 @@ uartclock(void)
 			iunlock(&p->tlock);
 		}
 	}
-	unlock(&uartalloc);
+	iunlock(&uartalloc);
 }
 
 /*
