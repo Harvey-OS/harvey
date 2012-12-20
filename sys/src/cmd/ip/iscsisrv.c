@@ -1106,16 +1106,69 @@ process(int net, Iscsijustbhdr *bhdr)
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-dr] [-l len] target\n", argv0);
+	fprint(2, "usage: %s [-dr] [-l len] [-a dialstring] target\n", argv0);
 	exits("usage");
 }
 
 void
-main(int argc, char **argv)
+callhandler(void)
+{
+	Iscsijustbhdr justbhdr;
+
+	if (debug)
+		mainmem->flags |= POOL_ANTAGONISM | POOL_PARANOIA | POOL_NOREUSE;
+
+	if (debug)
+		fprint(2, "\nserving target %s\n", targfile);
+	while (readn(net, &justbhdr, sizeof justbhdr) == sizeof justbhdr)
+		process(net, &justbhdr);
+	if (debug)
+		fprint(2, "\ninitiator closed connection\n");
+}
+
+void
+tcpserver(char *dialstring)
 {
 	char dir[40], ndir[40];
 	int ctl, nctl;
-	Iscsijustbhdr justbhdr;
+
+	ctl = announce(dialstring, dir);
+	if (ctl < 0) {
+		fprint(2, "Can't announce on %s: %r\n", dialstring);
+		exits("announce");
+	}
+
+	for (;;) {
+		nctl = listen(dir, ndir);
+		if (nctl < 0) {
+			fprint(2, "Listen failed: %r\n");
+			exits("listen");
+		}
+
+		switch(rfork(RFFDG|RFNOWAIT|RFPROC)) {
+		case -1:
+			close(nctl);
+			fprint(2, "failed to fork, exiting: %r\n");
+			exits("fork");
+		case 0:
+			net = accept(nctl, ndir);
+			if (net < 0) {
+				fprint(2, "Accept failed: %r\n");
+				exits("accept");
+			}
+			callhandler();
+			exits(nil);
+		default:
+			close(nctl);
+		}
+	}
+}
+
+
+void
+main(int argc, char **argv)
+{
+	char *dialstring;
 
 	quotefmtinstall();
 	time0 = time(0);
@@ -1131,6 +1184,9 @@ main(int argc, char **argv)
 	case 'r':
 		rdonly = 1;
 		break;
+	case 'a':
+		dialstring = EARGF(usage());
+		break;
 	default:
 		usage();
 	}ARGEND
@@ -1138,32 +1194,12 @@ main(int argc, char **argv)
 	if (argc != 1)
 		usage();
 	targfile = argv[0];
-	//net = 0;
-	ctl = announce("tcp!*!3260", dir);
-	if (ctl < 0)
-		exits("couldn't announce");
 
-
-	for (;;) {
-		nctl = listen(dir, ndir);
-		if (nctl < 0)
-			exits("couldn't listen");
-
-		switch(rfork(RFFDG|RFNOWAIT|RFPROC)) {
-		case 0:
-			net = accept(nctl, ndir);
-			if (debug)
-				mainmem->flags |= POOL_ANTAGONISM | POOL_PARANOIA | POOL_NOREUSE;
-
-			if (debug)
-				fprint(2, "\nserving target %s\n", targfile);
-			while (readn(net, &justbhdr, sizeof justbhdr) == sizeof justbhdr)
-				process(net, &justbhdr);
-			if (debug)
-				fprint(2, "\ninitiator closed connection\n");
-			exits(nil);
-		default:
-			close(nctl);
-		}
+	if (dialstring) {
+		tcpserver(dialstring);
+		exits(nil);
 	}
+	net = 0;
+	callhandler();
+	exits(nil);
 }
