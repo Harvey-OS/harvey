@@ -52,6 +52,7 @@ UNUSEDDIRS=\
 	mnihongo\
 	gps\
 	na\
+	realemu\
 	vga
 
 all:V:	$DIRS
