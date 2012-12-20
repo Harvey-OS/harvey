@@ -1113,6 +1113,8 @@ usage(void)
 void
 main(int argc, char **argv)
 {
+	char dir[40], ndir[40];
+	int ctl, nctl;
 	Iscsijustbhdr justbhdr;
 
 	quotefmtinstall();
@@ -1136,15 +1138,32 @@ main(int argc, char **argv)
 	if (argc != 1)
 		usage();
 	targfile = argv[0];
-	net = 0;
-	if (debug)
-		mainmem->flags |= POOL_ANTAGONISM | POOL_PARANOIA | POOL_NOREUSE;
+	//net = 0;
+	ctl = announce("tcp!*!3260", dir);
+	if (ctl < 0)
+		exits("couldn't announce");
 
-	if (debug)
-		fprint(2, "\nserving target %s\n", targfile);
-	while (readn(net, &justbhdr, sizeof justbhdr) == sizeof justbhdr)
-		process(net, &justbhdr);
-	if (debug)
-		fprint(2, "\ninitiator closed connection\n");
-	exits(nil);
+
+	for (;;) {
+		nctl = listen(dir, ndir);
+		if (nctl < 0)
+			exits("couldn't listen");
+
+		switch(rfork(RFFDG|RFNOWAIT|RFPROC)) {
+		case 0:
+			net = accept(nctl, ndir);
+			if (debug)
+				mainmem->flags |= POOL_ANTAGONISM | POOL_PARANOIA | POOL_NOREUSE;
+
+			if (debug)
+				fprint(2, "\nserving target %s\n", targfile);
+			while (readn(net, &justbhdr, sizeof justbhdr) == sizeof justbhdr)
+				process(net, &justbhdr);
+			if (debug)
+				fprint(2, "\ninitiator closed connection\n");
+			exits(nil);
+		default:
+			close(nctl);
+		}
+	}
 }
