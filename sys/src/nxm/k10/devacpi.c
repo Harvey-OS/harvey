@@ -410,7 +410,7 @@ sdtchecksum(void* addr, int len)
 }
 
 static void *
-sdtmap(uintptr pa, int *n, int cksum)
+sdtmap(uintmem pa, int *n, int cksum)
 {
 	Sdthdr* sdt;
 
@@ -434,7 +434,7 @@ sdtmap(uintptr pa, int *n, int cksum)
 }
 
 static int
-loadfacs(uintptr pa)
+loadfacs(uintmem pa)
 {
 	int n;
 
@@ -459,7 +459,7 @@ loadfacs(uintptr pa)
 }
 
 static void
-loaddsdt(uintptr pa)
+loaddsdt(uintmem pa)
 {
 	int n;
 	uchar *dsdtp;
@@ -1111,7 +1111,7 @@ static int
 acpixsdtload(char *sig)
 {
 	int i, l, t, unmap, found;
-	uintptr dhpa;
+	uintmem dhpa;
 	uchar *sdt;
 	char tsig[5];
 
@@ -1162,7 +1162,7 @@ rsdscan(u8int* addr, int len, char* signature)
 static void*
 rsdsearch(char* signature)
 {
-	uintptr p;
+	uintmem p;
 	u8int *bda;
 	void *rsd;
 
@@ -1186,7 +1186,7 @@ acpirsdptr(void)
 {
 	Rsdp *rsd;
 	int asize;
-	uintptr sdtpa;
+	uintmem sdtpa;
 
 	if((rsd = rsdsearch("RSD PTR ")) == nil)
 		return;

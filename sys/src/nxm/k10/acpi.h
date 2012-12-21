@@ -235,7 +235,7 @@ struct Mdom
  */
 struct Madt
 {
-	u64int	lapicpa;		/* local APIC addr */
+	uintmem	lapicpa;		/* local APIC addr */
 	int	pcat;		/* the machine has PC/AT 8259s */
 	Apicst*	st;		/* list of Apic related structures */
 };
@@ -252,7 +252,7 @@ struct Apicst
 		struct{
 			int	id;	/* io apic id */
 			u32int	ibase;	/* interrupt base addr. */
-			u64int	addr;	/* base address */
+			uintmem	addr;	/* base address */
 		} ioapic, iosapic;
 		struct{
 			int	irq;	/* bus intr. source (ISA only) */
