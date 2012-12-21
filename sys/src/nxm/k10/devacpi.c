@@ -1267,33 +1267,21 @@ acpigen(Chan *c, char*, Dirtab *tab, int ntab, int i, Dir *dp)
 static int
 Gfmt(Fmt* f)
 {
-	static char* rnames[] = {
-			"mem", "io", "pcicfg", "embed",
-			"smb", "cmos", "pcibar", "ipmi"};
 	Gas *g;
 
 	g = va_arg(f->args, Gas*);
 	switch(g->spc){
-	case Rsysmem:
-	case Rsysio:
-	case Rembed:
-	case Rsmbus:
-	case Rcmos:
-	case Rpcibar:
-	case Ripmi:
-		fmtprint(f, "[%s ", rnames[g->spc]);
-		break;
 	case Rpcicfg:
 		fmtprint(f, "[pci ");
 		fmtprint(f, "dev %#ulx ", (ulong)(g->addr >> 32) & 0xFFFF);
 		fmtprint(f, "fn %#ulx ", (ulong)(g->addr & 0xFFFF0000) >> 16);
-		fmtprint(f, "adr %#ulx ", (ulong)(g->addr &0xFFFF));
+		fmtprint(f, "adr %#ulx ", (ulong)(g->addr & 0xFFFF));
 		break;
 	case Rfixedhw:
 		fmtprint(f, "[hw ");
 		break;
 	default:
-		fmtprint(f, "[spc=%#ux ", g->spc);
+		fmtprint(f, "[%s ", acpiregstr(g->spc));
 	}
 	return fmtprint(f, "off %d len %d addr %#ullx sz%d]",
 		g->off, g->len, g->addr, g->accsz);
