@@ -1,8 +1,8 @@
 MKSHELL=rc
 # where to put this?
 CFLAGS=-I $NXM/sys/include -I $NXM/$objtype/include
-CONF=k8cpuserial
-CONFLIST=k8cpuserial k8cpuserialfs
+CONF=k8regression
+CONFLIST=k8cpuserial k8cpuserialfs k8regression
 
 # override with the list of paths where to put extra
 # copies of the kernel. for each word $w in OTHERCOPIES,
@@ -31,10 +31,12 @@ $p$CONF:	$CONF.c $OBJ $LIB
 	ls -l 9k*
 	echo NOT DOING 9size $target
 
-$p$CONF.gz:	$p$CONF
-	strip -o /fd/1 $p$CONF | gzip -9 > $p$CONF.gz
+# not done portably.
+#$p$CONF.gz:	$p$CONF
+#	strip -o /fd/1 $p$CONF | gzip -9 > $p$CONF.gz
 
-install:QV:	$p$CONF $p$CONF.gz
+install:QV:	$p$CONF
+	cp $p$CONF $NXM/$objtype
 	for(d in '' $OTHERCOPIES){
 		if(test -d $d/$objtype){
 			cp $p$CONF $d/$objtype/$p$CONF 

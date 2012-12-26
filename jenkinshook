@@ -1,17 +1,33 @@
 #!/bin/bash
+# This script assumes you have set JENKINSHOME
+# in the environment. If you have not it will fail, which
+# will be quickly caught by jenkins, so there's no checking.
+. $JENKINSHOME/.bashrc
 echo "WARNING:This will fail if $NXM/xbin is in your PATH"
 set -e
 go version
 9c --version
-cp inferno-os/mkconfig.jenkins inferno-os/mkconfig
+cp /$JENKINSHOME/mkconfig.jenkins inferno-os/mkconfig
 sh BUILDTOOLCHAIN
-. SETUP
+# `special` system like suse want . files fully qualified
+. ./SETUP
 cd sys/src
 mk nuke
 mk libs
 mk install
-cd nxm/k10
-mk nuke
+mk kernels
 mk
-echo "Mission Success"
-exit 0
+
+# Boot the kernel and see if the output we get makes sense
+set +e
+qemu-system-x86_64 --kernel ~/nxm/sys/src/nxm/k10/9k8regression.elf  \
+	--nographic </dev/null > qemuout &
+set -e
+qemuproc=$!
+sleep 60
+kill -9 $!
+# things are not always identical. We need to do some filtering.
+# For now, just filter on the regression tests themselves.
+sed '1,/Morning/d' qemuout | diff - correctoutput
+date
+

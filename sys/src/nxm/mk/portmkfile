@@ -128,3 +128,4 @@ nuke:V:	clean
 	rm -f ../boot/libboot.a$O *.elf *.rr
 	@{cd ../root; mk clean nuke}
 	if(test -d ./root) @{cd ./root; mk clean nuke}; status=''
+	rm $NXM/$objtype/9k8*

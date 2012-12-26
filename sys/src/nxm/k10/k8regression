@@ -1,0 +1,204 @@
+dev +dev
+	root
+	cons
+	arch
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	rtc
+	ssl
+	cap
+	kprof
+#	pmc	pmcio
+	segment
+	acpi rdwr
+	tube
+	zp
+	ws
+
+# add to get cec in the kernel
+#	cec
+
+	ether		netif
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum inferno
+
+	pci
+
+	uart
+
+uart +dev
+	uarti8250
+	uartpci		pci
+
+ip +dev
+	tcp
+	udp
+	ipifc
+	icmp
+	icmp6
+
+link +dev
+	ether8169	pci ethermii
+	ether82557	pci
+	ether82563	pci
+	etherigbe	pci ethermii
+#	etherbcm	pci ethermii
+	ethermedium
+	loopbackmedium
+	netdevmedium
+
+misc +dev
+	mp		apic ioapic msi pci sipi rdwr
+
+boot
+	tcp
+
+
+rootdir
+	regression.fs boot
+	$NXM/amd64/bin/rc rc
+	$NXM/rc/lib/rcmain
+	$NXM/amd64/bin/echo echo
+	$NXM/amd64/bin/ls ls
+	$NXM/amd64/bin/ps ps
+	$NXM/amd64/bin/bind bind
+	$NXM/amd64/bin/cat cat
+	$NXM/amd64/bin/mkdir mkdir
+	$NXM/amd64/bin/mount mount
+	$NXM/amd64/bin/ramfs ramfs
+	../root/nvram nvram
+	$NXM/amd64/bin/regress/badsyscall badsyscall
+	$NXM/amd64/bin/regress/float float
+	$NXM/amd64/bin/regress/sysstatread sysstatread
+
+conf
+	int cpuserver = 1;
+
+#
+#dbgflg
+#	chan		'c'
+#	apic		'A'
+#	acpi		'C'
+#	hpet		'H'
+#	ht		'H'
+#	ioapic		'I'
+#	mp		'M'
+#	pci		'P'
+#	arch		'V'
+#
+dbgflg
+	acore		'c'
+	apic		'A'
+	arch		'V'
+	asm		'm'
+	devacpi		'C'
+	devsegment	'z'
+	devtube		'T'
+	devzp		'z'
+	hpet		'H'
+	ht		'H'
+	image		'p'
+	ioapic		'I'
+	main		'x'
+	memory		'm'
+	mp		'M'
+	nixcall		'n'
+	page		'p'
+	pager		'p'
+	physalloc		'm'
+	sysproc		'E'
+	sysseg		'p'
+	syssem		'S'
+	syszio		'z'
+	tcore		'c'
+	mmu		'v'
+
+amd64 +dev
+	l32p
+	l64v
+	l64idt
+	l64acidt
+	l64cpuid
+	l64syscall
+	l64acsyscall
+	l64fpu
+	acore
+	arch
+	archk10
+	asm
+	cga
+	crap
+	fpu
+	gdb
+	i8254
+	i8259
+	kbd
+	main
+	map
+	memory
+	mmu
+	multiboot
+	qmalloc
+	random
+	syscall
+	tcore
+	trap
+	vsvm
+	physalloc
+
+port
+	alarm
+	allocb
+	chan
+	dev
+	devtab
+	edf
+	fault
+	image
+	latin1
+	nixcall
+	page
+	pager
+	parse
+	pgrp
+	portclock
+	print
+	proc
+	ps
+	qio
+	qlock
+	rebootcmd
+	segment
+	sysauth
+	sysfile
+	sysproc
+	sysseg
+	syssem
+	systab
+	taslock
+	tod
+	syszio
+	syscallfmt
+
+linux
+	linuxsysemu
+	linuxarchsys
+	linuxsyscall
+
+#
+#dir
+# pc		-.I.
+#
+dir
+	386
+	ip
+	port
+	linux
+
+lib
+	libc
+	libip
+	libsec

@@ -71,10 +71,11 @@ release:V:
 	mk clean
 
 kernels:V:
-	for (i in 9 ) @{
+	for (i in nxm/k10 ) @{
 		cd $i
 		mk clean
 		mk install
+		mk all
 		mk clean
 	}
 
