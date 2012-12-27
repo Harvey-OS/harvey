@@ -13,6 +13,7 @@ BOOTFILES=\
 	settime.$O\
 	paq.$O\
 	printstub.$O\
+	parts.$O\
 
 $BOOTLIB(%.$O):N:	%.$O
 

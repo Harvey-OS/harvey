@@ -28,7 +28,7 @@ boot(int argc, char *argv[])
 	char *cmd, cmdbuf[64], *iargv[16];
 	char rootbuf[64];
 	int islocal, ishybrid;
-	char *rp, *rsp;
+	char *rp, *rsp, *rdparts;
 	int iargc, n;
 	char buf[32];
 	AuthInfo *ai;
@@ -86,6 +86,14 @@ boot(int argc, char *argv[])
 	 *  load keymap if it is there.
 	 */
 	kbmap();
+	bind("#æ", "/dev", MAFTER);	/* nvram could be here */
+	bind("#S", "/dev", MAFTER);	/* nvram could be here */
+
+	rdparts = getenv("rdparts");
+	if(rdparts)
+		readparts();
+	free(rdparts);
+
 
 	/*
  	 *  authentication agent
