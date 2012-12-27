@@ -1,0 +1,307 @@
+.TH CREEPY 4
+.SH NAME
+9pix, fmt, rip, arch \- creepy file server and WORM archive
+.SH SYNOPSIS
+.B creepy/9pix
+[
+.B -DFLAGS
+]
+[
+.B -ra
+]
+[
+.B -c
+.I n
+]
+[
+.B -A
+.I addr
+]
+[
+.B -S
+.I srv
+]
+.I disk
+.PP
+.B creepy/fmt
+[
+.B -DFLAGS
+]
+[
+.B -wy
+]
+.I disk
+.PP
+.B creepy/rip
+[
+.B -DFLAGS
+]
+[
+.B -a
+]
+[
+.B -c
+.I n
+]
+[
+.B -A
+.I addr
+]
+[
+.B -S
+.I srv
+]
+.I disk
+.PP
+.B creepy/arch
+[
+.B -DFLAGS
+]
+[
+.I dir
+]
+.SH DESCRIPTION
+.I Creepy
+is a prototype file server for Nix. It maintains a mutable file tree with unix semantics,
+kept in main memory, served through 9P, see
+.IR intro (5),
+and through IX.
+.PP
+.I Creepy/9pix
+is the main file server program. It serves a file tree through 9P and IX.
+The tree kept in memory is mutable. But frozen versions of the tree are written
+to
+.IR disk ,
+both upon request and also on a periodic basis, to survive power outages and other problems,
+and to be able to operate on trees larger than main memory.
+The tree(s) stored on disk are frozen and cannot be changed once written.
+.PP
+By default the program listens for 9P in the standard TCP port and posts a connection that
+can be mounted at
+.BR /srv/9pix .
+Flags
+.B -A
+and
+.B -S
+may be used to specify an alternate network address and/or
+.IR srv (3)
+file to post. Using these flags prevents
+.I 9pix
+from otherwise
+listening or posting to
+IR srv .
+Flag
+.B -r
+makes the program operate in read-only mode, and flag
+.B -a
+starts the program without requiring authentication to mount the file tree.
+.PP
+The program is aggresive in its usage of memory to keep disk blocks cached for
+further usage. Flag
+.B -c
+can be used to limit the size of the cache. Its argument indicates the desired number
+of megabytes to consume for such purpose. More memory will be consumed, e.g., for process
+stacks and protocol messages.
+.PP
+The on-disk image is organized as a log of blocks. When a new
+version of the tree must be written to disk, all blocks that changed are given disk addresses
+and are appended to the log. Once given addresses, they are frozen.
+If new changes are made to the tree, blocks are melted and forget their previous addresses:
+each time they are written again, they are assigned new ones.
+.PP
+When the disk gets full, all reachable blocks are marked and all other blocks are considered
+available for growing the log (this is a description of semantics, not of the implementation). Thus,
+the log is circular but jumps to the next available block each time it grows.
+If, after the mark process, the disk is still full, the file system becomes read only but for removing files.
+.PP
+Before using a disk it must be formatted using
+.IR creepy/fmt .
+This initializes blocks used to store marks for the mark and sweep process and also initializes a
+super block and an empty root directory. Flag
+.B -y
+forces the format even if the disk seems to contain a
+.I fossil (4)
+or
+.I creepy
+partition. Flag
+.B -w
+is used to format the partition for a WORM (described later) and not for a main file tree.
+.PP
+.I Creepy/rip
+is the same file server program, but operates in WORM mode. In this case, no mark and sweep
+for free blocks will ever happen. Blocks are consumed from the disk until it becomes full.
+The file tree served is always read-only. 
+.PP
+Operating the WORM to in administrative mode to add more trees or new versions of the
+archived trees does not require any protocol: it can be done using the standard file interface
+used to operate on any other tree, by mounting and changing it.
+.PP
+An alternate mount specifier,
+.IR wormwr ,
+can be used to mount the tree in read-write mode, to update the archive.
+Updating the archive is performed by creating new trees with the conventional
+.BI / treename / year / mmdd
+paths on the WORM. But note that such paths are not enforced by the program at all.
+Before updating a tree in the archive, for a new day, a control request described
+later can be used to link the directory for the previous version of the archive to the new one.
+After that, changes made to files would in effect copy on write all blocks affected, and
+refer to old ones when they did not change.
+.PP
+.I Creepy/arch
+is a program started by
+.I creepy/9pix
+to archive snapshots of the tree into a directory provided by
+.I creepy/rip
+(or by any other file server).
+The program is not expected to be run by users, and speaks a simple protocol through
+its standard input: A block address is written and the block contents are read from it.
+Usually, the standard input is a pipe to
+.IR creepy/9pix .
+The program takes the address of the root directory as kept on disk and then asks the
+file server program for block contents, to archive them into a mounted directory. Thus,
+the tree archived is always consistent because only consistent trees can be read from disk
+(the mutable file tree is kept in memory).
+.PP
+The file tree provided by
+.I 9pix
+and
+.I rip
+has the following layout:
+.EX
+	/
+	/root
+	/cons
+	/stats
+.EE
+And, by convention, archives kept in the WORM are expected to have names like:
+.EX
+	/root/treename/2012/0425
+	/root/treename/2012/0425.1
+	/root/treename/2012/0426
+.EE
+.PP
+Using the
+.B main
+attach specifier yields the tree as just shown. Using an empty specifier, or
+.BR root ,
+or
+.B main/active
+yields the tree found at
+.BR /root .
+In
+.I creepy/rip
+the attach specifier
+.B wormwr
+yields the root of the tree in read-write mode.
+.PP
+.IP \(bu
+The root directory is never found on disk. It is a placeholder for the contained files.
+.IP \(bu
+.I Cons
+is a synthesized file used as a console for file system administration, and it is not found
+on disk. It is still subject to file permissions, and coordinates concurrent access to the console
+by different users. The owner of the file server process is always allowed to access the console.
+.IP \(bu
+.I Stats
+is another synthesized file used to report statistics.
+.IP \(bu
+.I Root
+contains the actual  file tree. It corresponds to the file tree as seen at this moment
+by file system users. It's semantics are similar to those of a UNIX or Plan 9 file system.
+.PP
+Users and groups can be added by creating and editing
+.B /root/users .
+See an example shown later.
+.PP
+The console accepts the following commands:
+.TP
+.BI allow " " [ uid ]
+Lets
+.I uid
+bypass permissions, or show allowed users if none is given.
+.TP
+.BI disallow " " [ uid ]
+undoes the effect of the previous command for the given
+.I uid
+or for everyone if none is given.
+.TP
+.B halt
+Halts the file system and terminates the processes.
+.TP
+.B stats
+Reports usage statistics.
+.TP
+.B sync
+Synchronizes the disk by writing a new version of the tree to the log.
+.TP
+.BI uname " " [ uid ]
+Reports information about user
+.IR uid .
+.TP
+.B users
+Prints the list of users.
+.TP
+.B who
+Reports the list of network addresses and users currently using the file system.
+.TP
+.BI arch " name hour " [ path ] 
+Schedules an archival into the WORM with the given tree
+.I name
+and at the given
+.IR hour .
+By default, the WORM is expected at
+.B /n/rip
+in administrative mode. An optional
+.I path
+may be given to use a different directory.
+.TP
+.B "arch now
+archives the tree. The previous form must be used before to configure
+archival.
+.TP
+.B "arch none
+disables archival (this is the default).
+.TP
+.BI link " src dst
+is used in the WORM to initialize a new archive by linking the one of the
+previous day to a new name, before updating the tree.
+.TP
+.B ?
+Prints the list of known commands. More than those describe here will be shown,
+mostly for debugging.
+.SH EXAMPLES
+.PP
+Format a partition and a WORM
+.EX
+	creepy/fmt /dev/sdE0/creepy
+	creepy/fmt -w /dev/sdE0/rip
+.EE
+.PP
+Run the file system, mount it, initialize the user list with one from
+.IR fossil ,
+and populate it
+.EX
+	creepy/9pix /dev/sdE0/creepy
+	mount -c /srv/9pix /n/creepy main
+	cp /adm/users /n/creepy/root/users
+	echo allow $user >/n/creepy/cons
+	dircp /n/dist /n/creepy/root
+.EE
+Run the worm (the previously file server would mount it
+if it finds its file posted in
+.I srv
+and is asked to archive a tree.
+.EX
+	creepy/rip /dev/sdE0/rip
+.EE
+.SH SOURCE
+.B /sys/src/cmd/creepy
+.SH SEE ALSO
+.IR fossil (4),
+.IR venti (8)
+.SH BUGS
+Yes. But hopefully, with time and testing, less than those still waiting under
+the covers in other popular file server programs we use.
+.PP
+Do not use this for your own files yet. It is experimental and still under testing.
+
