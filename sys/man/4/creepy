@@ -97,9 +97,11 @@ makes the program operate in read-only mode, and flag
 starts the program without requiring authentication to mount the file tree.
 .PP
 The program is aggresive in its usage of memory to keep disk blocks cached for
-further usage. Flag
+further usage. By default it consumes half the memory available when started, or less
+if there is plenty.
+Flag
 .B -c
-can be used to limit the size of the cache. Its argument indicates the desired number
+can be used to set the size of the cache. Its argument indicates the desired number
 of megabytes to consume for such purpose. More memory will be consumed, e.g., for process
 stacks and protocol messages.
 .PP
@@ -298,9 +300,13 @@ and is asked to archive a tree.
 .B /sys/src/cmd/creepy
 .SH SEE ALSO
 .IR fossil (4),
-.IR venti (8)
+.IR venti (8).
+.br
+Franciscjo J. Ballesteros and Roger Peppe,
+``The Design and Implementation of the Creepy File System and the IX File Protocol'',
+2012.
 .SH BUGS
-Yes. But hopefully, with time and testing, less than those still waiting under
+Some. But hopefully, with time and testing, less than those still waiting under
 the covers in other popular file server programs we use.
 .PP
 Do not use this for your own files yet. It is experimental and still under testing.
