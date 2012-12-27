@@ -5,8 +5,8 @@ enum
 	Strsize		= 4096,
 	Hashsize	= 128,
 	Maxarg		= 512,
-	NFD		= 100,
-	Maxproc		= 50,
+	Maxproc		= 400,
+	NFD		= Maxproc+20,
 	Maxval		= 10,
 	Mempergc	= 1024*1024,
 };
@@ -243,6 +243,10 @@ void	windir(Map*, Node*, Node*, Node*);
 void	yyerror(char*, ...);
 int	yylex(void);
 int	yyparse(void);
+
+#pragma	varargck	argpos	error		1
+#pragma	varargck	argpos	fatal		1
+#pragma	varargck	argpos	yyerror		1
 
 enum
 {

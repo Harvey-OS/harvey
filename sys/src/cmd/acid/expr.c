@@ -537,7 +537,7 @@ omod(Node *n, Node *res)
 	res->op = OCONST;
 	res->type = TINT;
 	if(l.type != TINT || r.type != TINT)
-		error("bad expr type %");
+		error("bad expr type %%");
 	res->ival = l.ival%r.ival;
 }
 

@@ -329,6 +329,14 @@ loop:
 	case '\t':
 		goto loop;
 
+	case '/':
+		c = lexc();
+		if(c != '/'){
+			unlexc(c);
+			return '/';
+		}
+		eatnl();
+
 	case '\n':
 		line++;
 		if(interactive == 0)
@@ -390,15 +398,6 @@ loop:
 			return Tinc;
 		unlexc(c);
 		return '+';
-
-	case '/':
-		c = lexc();
-		if(c == '/') {
-			eatnl();
-			goto loop;
-		}
-		unlexc(c);
-		return '/';
 
 	case '\'':
 		c = lexc();

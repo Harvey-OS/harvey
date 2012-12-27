@@ -172,7 +172,7 @@ attachfiles(char *aout, int pid)
 			text = open(aout, OREAD);
 
 		if(text < 0)
-			error("%s: can't open %s: %r\n", argv0, aout);
+			error("%s: can't open %s: %r", argv0, aout);
 		readtext(aout);
 	}
 	if(pid)					/* pid given */

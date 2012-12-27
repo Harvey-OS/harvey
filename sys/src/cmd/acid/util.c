@@ -203,7 +203,7 @@ rget(Map *map, char *reg)
 		break;
 	}
 	if(ret < 0)
-		error("can't get register %s: %r\n", reg);
+		error("can't get register %s: %r", reg);
 	return v;
 }
 

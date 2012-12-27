@@ -77,17 +77,14 @@ nproc(char **argv)
 		write(fd, "hang", 4);
 		close(fd);
 
-		close(0);
-		close(1);
-		close(2);
-		for(i = 3; i < NFD; i++)
+		for(i = 0; i < NFD; i++)
 			close(i);
 
 		open("/dev/cons", OREAD);
 		open("/dev/cons", OWRITE);
 		open("/dev/cons", OWRITE);
 		exec(argv[0], argv);
-		fatal("new: exec %s: %r");
+		fatal("new: exec %s: %r", argv[0]);
 	default:
 		install(pid);
 		msg(pid, "waitstop");
