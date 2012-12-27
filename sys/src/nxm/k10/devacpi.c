@@ -870,7 +870,7 @@ pickcore(int mycolor, int index)
 	int ncorepercol;
 
 	if(slit == nil)
-		return 0;
+		return index;
 	ncorepercol = MACHMAX/slit->rowlen;
 	color = slit->e[mycolor][index/ncorepercol].dom;
 	return color * ncorepercol + index % ncorepercol;
