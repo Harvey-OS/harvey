@@ -574,8 +574,19 @@ archreset(void)
 	millidelay(1);
 	outb(0xcf9, i|0x06);				/* RST_CPU transition */
 
-	for(;;)
-		;
+	millidelay(100);
+
+	/* some broken hardware -- as well as qemu -- might
+	 * never reboot anyway with cf9. This is a standard
+	 * keyboard reboot sequence known to work on really
+	 * broken stuff -- like qemu. If there is no
+	 * keyboard it will do no harm.
+	 */
+	for(;;){
+		(void) inb(0x64);
+		outb(0x64, 0xFE);
+		millidelay(100);
+	}
 }
 
 /*
