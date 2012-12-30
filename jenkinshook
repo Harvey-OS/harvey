@@ -20,7 +20,7 @@ mk
 
 # Boot the kernel and see if the output we get makes sense
 set +e
-qemu-system-x86_64 --kernel ~/nxm/sys/src/nxm/k10/9k8regression.elf  \
+qemu-system-x86_64 -no-reboot --kernel ~/nxm/sys/src/nxm/k10/9k8regression.elf  \
 	--nographic </dev/null > qemuout &
 set -e
 qemuproc=$!

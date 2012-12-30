@@ -6,7 +6,7 @@ bind '#p' /proc
 bind '#d' /fd
 ramfs -s
 mount -bc /srv/ramfs /
-badsyscall
-float
-sysstatread
+echo badsyscall && badsyscall
+echo float && float
+echo sysstatread && sysstatread
 echo reboot > /dev/reboot
