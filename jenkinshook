@@ -16,18 +16,22 @@ mk nuke
 mk libs
 mk install
 mk kernels
-mk
 
 # Boot the kernel and see if the output we get makes sense
-set +e
-qemu-system-x86_64 -no-reboot --kernel ~/nxm/sys/src/nxm/k10/9k8regression.elf  \
-	--nographic </dev/null > qemuout &
-set -e
+# qemu must be in your path of course. It can be
+# the standard command or a shell script to make things
+# run correctly. On coreboot.org on my account it is
+# a shell script.
+qemu-system-x86_64 --kernel nxm/k10/9k8regression.elf  \
+	-no-reboot  --nographic </dev/null > qemuout &
 qemuproc=$!
 sleep 60
+# just in case ...
+set +e
 kill -9 $!
+set -e
 # things are not always identical. We need to do some filtering.
 # For now, just filter on the regression tests themselves.
-sed '1,/Morning/d' qemuout | diff - correctoutput
+sed '1,/Morning/d' qemuout | /usr/bin/diff -bw - correctoutput
 date
 
