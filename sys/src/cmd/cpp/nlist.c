@@ -170,7 +170,7 @@ setup(int argc, char **argv)
 			dp[len] = '\0';
 		}
 		fp = (char*)newstring((uchar*)argv[0], strlen(argv[0]), 0);
-		if ((fd = open(fp, 0)) <= 0)
+		if ((fd = open(fp, 0)) < 0)
 			error(FATAL, "Can't open input file %s", fp);
 	}
 	if (argc > 1) {
