@@ -15,7 +15,6 @@ dev +dev
 #	pmc	pmcio
 	segment
 	acpi rdwr
-	tube
 	zp
 	ws
 
@@ -96,7 +95,6 @@ dbgflg
 	asm		'm'
 	devacpi		'C'
 	devsegment	'z'
-	devtube		'T'
 	devzp		'z'
 	hpet		'H'
 	ht		'H'
@@ -105,7 +103,6 @@ dbgflg
 	main		'x'
 	memory		'm'
 	mp		'M'
-	nixcall		'n'
 	page		'p'
 	pager		'p'
 	physalloc		'm'
@@ -159,7 +156,6 @@ port
 	fault
 	image
 	latin1
-	nixcall
 	page
 	pager
 	parse

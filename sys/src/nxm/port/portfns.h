@@ -348,7 +348,6 @@ void		sleep(Rendez*, int (*)(void*), void*);
 void*		smalloc(ulong);
 char*		srvname(Chan*);
 void		startwaitstats(int);
-void		stopnixproc(void);
 int		swapcount(ulong);
 void		swapinit(void);
 void		syscallfmt(int, va_list list);

@@ -17,7 +17,6 @@ dev +dev
 #	pmc	pmcio
 	segment
 	acpi
-	tube
 	zp
 
 # add to get cec in the kernel
@@ -99,7 +98,6 @@ dbgflg
 	asm		'm'
 	devacpi		'C'
 	devsegment	'z'
-	devtube		'T'
 	devzp		'z'
 	hpet		'H'
 	ht		'H'
@@ -109,7 +107,6 @@ dbgflg
 	main		'x'
 	memory		'm'
 	mp		'M'
-	nixcall		'n'
 	page		'p'
 	pager		'p'
 	physalloc		'm'
@@ -163,7 +160,6 @@ port
 	image
 	kexec
 	latin1
-	nixcall
 	page
 	pager
 	parse

@@ -101,8 +101,6 @@ sdaoe.$O:	../386/aoe.h etherif.h io.h
 sdscsi.$O:	../port/error.h
 
 random.$O:	../port/error.h
-devtube.$O:	../port/tube.h
-syssem.$O: ../port/tube.h
 devacpi.$O: acpi.h
 physalloc.$O: acpi.h
 

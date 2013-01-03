@@ -12,10 +12,9 @@ dev +dev
 	ssl
 	cap
 	kprof
-#	pmc	pmcio
+	pmc	pmcio
 	segment
 	acpi
-	tube
 	zp
 	ws
 
@@ -100,7 +99,6 @@ dbgflg
 	asm		'm'
 	devacpi		'C'
 	devsegment	'z'
-	devtube		'T'
 	devzp		'z'
 	hpet		'H'
 	ht		'H'
@@ -109,7 +107,6 @@ dbgflg
 	main		'x'
 	memory		'm'
 	mp		'M'
-	nixcall		'n'
 	page		'p'
 	pager		'p'
 	physalloc		'm'
@@ -162,7 +159,6 @@ port
 	fault
 	image
 	latin1
-	nixcall
 	page
 	pager
 	parse
@@ -182,6 +178,7 @@ port
 	syssem
 	systab
 	taslock
+#	tcklock
 	tod
 	syszio
 	syscallfmt

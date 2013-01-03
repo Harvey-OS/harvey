@@ -178,7 +178,6 @@ port
 	tod
 	syssem
 	syszio
-	nixcall
 
 linux
 	linuxsysemu

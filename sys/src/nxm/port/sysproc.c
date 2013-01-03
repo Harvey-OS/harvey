@@ -711,6 +711,12 @@ sysr1(Ar0* , va_list )
 	print("sysr1() called. recompile your binary\n");
 }
 
+void
+sysnixsyscall(Ar0* , va_list )
+{
+	print("nixsyscall() called. recompile your binary\n");
+}
+
 int
 return0(void*)
 {

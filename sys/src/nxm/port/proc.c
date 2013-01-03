@@ -438,6 +438,7 @@ dequeueproc(Sched *sch, Schedq *rq, Proc *tp)
 	/*
 	 *  p->mach==0 only when process state is saved
 	 */
+
 	if(p == 0 || p->mach){
 		unlock(sch);
 		return nil;
@@ -1427,7 +1428,6 @@ pexit(char *exitstr, int freemem)
 	lock(&pga);
 
 	stopac();
-	stopnixproc();
 	edfstop(up);
 	up->state = Moribund;
 	sched();
