@@ -13,6 +13,9 @@ patch \- simple patch creation and tracking system
 .PP
 .B patch/list
 [
+.B -av
+]
+[
 .I name ...
 ]
 .PP
@@ -52,6 +55,27 @@ to create patches and
 .I patch/pull
 to pull (apply) new patches that have been applied to the main distribution.
 All other tools are for contributors and maintainers.
+.PP
+.I Patch/pull
+applies to the tree mounted at
+.I /n/dist
+all patches applied to the main nix tree but not yet applied
+to that tree. 
+If there is no tree mounted at
+.I /n/dist
+then
+.I patch/pull
+will bind
+.B /
+there, and apply patches to the tree you are using.
+The history of patches applied to a tree is always kept at
+.B /dist/patch/applied
+within that tree.
+.PP
+To use this tool it is important that
+.I patch/applied
+is either not used (from outside this tool) or is used to apply
+the patches in exactly the same order used by the main tree.
 .PP
 .I Patch/create
 creates a new patch consisting of the changes to
@@ -94,7 +118,12 @@ discussed by mail.
 .PP
 .I Patch/list
 displays information about the named patches,
-or all currently pending patches if none are specified.
+or all currently pending patches if none are specified. Under flag
+.B -a
+it list all existing patches.
+Flag
+.B -v
+makes the tool verbose.
 .PP
 .I Patch/diff
 shows a patch as diffs between the original
@@ -132,15 +161,6 @@ is used by the main tree maintainers to apply patches to it.
 It is exactly
 .I patch/apply
 with a few changes to operate on the main Nix tree.
-.PP
-.I Patch/pull
-applies all patches applied to the main nix tree but not yet applied
-to the local tree. To use this tool it is important that
-.I patch/applied
-is either not used (from outside this tool) or is used to apply
-the patches in exactly the same order used by the main tree.
-The history of patches applied to a tree is always kept at
-.BR /dist/patch/applied .
 .PP
 .I Patch/notify
 is run frequently close to the main distribution to notify by mail of patch creations.
