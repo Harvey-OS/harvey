@@ -116,6 +116,13 @@ create
 a new patch using the same name, after having addressed the comments
 discussed by mail.
 .PP
+When you run
+.I patch/create
+to create a patch, the tree you are using considers the patch as applied, so that
+further
+.I patch/pull
+calls in that tree will not try to apply an already applied patch.
+.PP
 .I Patch/list
 displays information about the named patches,
 or all currently pending patches if none are specified. Under flag
@@ -211,7 +218,12 @@ patch/pull
 .EE
 .PP
 will get the new patch (as well as any other ones applied to the
-main distribution).
+main distribution, but not yet locally applied).
+.PP
+To ignore a patch and skip it from pull you can
+.EX
+echo patchname >>/dist/patch/applied
+.EE
 .SH FILES
 .B /n/patches.lsub.org/patch
 .B /n/sources.lsub.org/nix
