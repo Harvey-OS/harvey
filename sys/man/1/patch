@@ -171,6 +171,13 @@ with a few changes to operate on the main Nix tree.
 .PP
 .I Patch/notify
 is run frequently close to the main distribution to notify by mail of patch creations.
+.PP
+If there are conflicts you can resolve them by manually updating your local files
+as you please and then running
+.IR patch/appied ,
+which declares the patch as applied. To update your local files you can refer to the
+.BI /dist/patch/ patchname 
+directory which keeps the list of files affected as well as their old and new versions.
 .SH EXAMPLES
 Propose a change to
 .IR pwd ,
