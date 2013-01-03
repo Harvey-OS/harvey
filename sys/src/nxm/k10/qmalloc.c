@@ -556,6 +556,7 @@ realloc(void* ap, ulong size)
 	Header *p;
 	ulong osize;
 	uint nunits, ounits;
+	int delta;
 
 	/*
 	 * Easy stuff:
@@ -588,26 +589,20 @@ realloc(void* ap, ulong size)
 	 * adjust the tailptr.
 	 */
 	MLOCK;
-	if(tailptr != nil && p+ounits == tailptr){
-		if(ounits > nunits){
+	delta = ounits - nunits;
+	if(tailptr != nil && p+ounits == tailptr && (delta > 0 || tailsize <= delta)){
 			p->s.size = nunits;
-			tailsize += ounits-nunits;
+			tailsize += delta;
+			tailptr -= delta;
 			MUNLOCK;
 			return ap;
-		}
-		if(tailsize >= nunits-ounits){
-			p->s.size = nunits;
-			tailsize -= nunits-ounits;
-			MUNLOCK;
-			return ap;
-		}
 	}
 	MUNLOCK;
 
 	/*
 	 * Worth doing if it's a small reduction?
 	 * Do it anyway if <= NQUICK?
-	if((ounits-nunits) < 2)
+	if(delta < 2)
 		return ap;
 	 */
 
