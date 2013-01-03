@@ -211,6 +211,7 @@ struct PmcCtl {
 };
 
 struct PmcWait{
+	Ref;
 	Rendez r;
 	PmcWait*	next;
 };

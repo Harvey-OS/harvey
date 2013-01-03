@@ -52,19 +52,29 @@ pmcuserenab(int enable)
 
 PmcCtlCtrId pmcids[] = {
 	{"locked instr", "0x024 0x1"},
-	{"SMI intr", "0x02b 0"},
-	{"data access", "0x040 0x0"},
-	{"data miss", "0x041 0x0"},
-	{"L1 DTLB miss", "0x045 0x7"},	//L2 hit
+	{"locked cycles nonspec", "0x024 0x4"},	// cycles
+	{"SMI intr", "0x02b 0x0"},
+	{"DC access", "0x040 0x0"},
+	{"DC miss", "0x041 0x0"},
+	{"DC refills", "0x042 0x1f"},
+	{"DC evicted", "0x042 0x3f"},
+	{"L1 DTLB miss", "0x045 0x7"},		//DTLB L2 hit
 	{"L2 DTLB miss", "0x046 0x7"},
 	{"L1 DTLB hit", "0x04d 0x3"},
+	{"global TLB flush", "0x054 0x0"},
 	{"L2 hit", "0x07d 0x3f"},
 	{"L2 miss", "0x07e 0xf"},
-	{"instr miss", "0x081 0x0"},
-	{"L1 ITLB miss", "0x084 0"},	//L2 hit
+	{"IC miss", "0x081 0x0"},
+	{"IC refill from L2", "0x082 0x0"},
+	{"IC refill from system", "0x083 0x0"},
+	{"L1 ITLB miss", "0x084 0x0"},			//L2 ITLB hit
 	{"L2 ITLB miss", "0x085 0x3"},
 	{"DRAM access", "0x0e0 0x3f"},
-	{"L3 miss", "0x4e1 0x3"},	//one core, can be set to more
+	{"L3 miss core 0", "0x4e1 0x13"},		//core 0 only
+	{"L3 miss core 1", "0x4e1 0x23"},
+	{"L3 miss core 2", "0x4e1 0x43"},
+	{"L3 miss core 3", "0x4e1 0x83"},
+	{"L3 miss socket", "0x4e1 0xf3"},		//all cores in the socket
 	{"", ""},
 };
 
@@ -232,15 +242,6 @@ notstale(void *x)
 	return !p->stale;
 }
 
-/*
- *	As it is now, it sends an ipi if the proccessor is an ocuppied AC or a TC
- *	to update the counter, in case the processor is idle. Probably not needed for TC
- *	as it will be updated every time we cross the kernel boundary, but we are doing
- *	it now just in case it is idle or not being updated
- *	NB: this function releases the ilock
- */
-
-
 static PmcWait*
 newpmcw(void)
 {
@@ -260,11 +261,20 @@ pmcwclose(PmcWait *w)
 	free(w);
 }
 
+/*
+ *	As it is now, it sends an IPI if the processor is otherwise
+ *	ocuppied for it to update the counter.  Probably not needed
+ *	for TC/XC as it will be updated every time we cross the kernel
+ *	boundary, but we are doing it now just in case it is idle or
+ *	not being updated NB: this function releases the ilock
+ */
+
 static void
 waitnotstale(Mach *mp, PmcCtr *p)
 {
 	PmcWait *w;
 
+	p->stale = 1;
 	w = newpmcw();
 	w->next = p->wq;
 	p->wq = w;
@@ -278,6 +288,32 @@ waitnotstale(Mach *mp, PmcCtr *p)
 	sleep(&w->r, notstale, p);
 	poperror();
 	pmcwclose(w);
+}
+
+/*
+ *	The reason this is not racy is subtle.
+ *
+ *	If the processor suddenly changes state to busy once I have
+ *	decided not to IPI it, I don't wait for it.
+ *
+ *	In the other case, I have decided to IPI it and hence, wait.
+ *	The problem then is that it switches to idle (not
+ *	interruptible) and I wait forever but this switch crosses
+ *	kernel boundaries and gets the pmclock.  One of us gets there
+ *	first and either I never sleep (p->stale iscleared) or I sleep
+ *	and get waken after.  pmclock + rendez locks make sure this is
+ *	the case.
+ */
+static int
+shouldipi(Mach *mp)
+{
+	if(!mp->online)
+		return 0;
+
+	if(mp->proc == nil && mp->nixtype == NIXAC)
+		return 0;
+
+	return 1;
 }
 
 u64int
@@ -299,8 +335,7 @@ pmcgetctr(u32int coreno, u32int regno)
 	p = &mp->pmc[regno];
 	ilock(&mp->pmclock);
 	p->ctrset |= PmcGet;
-	p->stale = 1;
-	if(mp->proc != nil || mp->nixtype != NIXAC){
+	if(shouldipi(mp)){
 		waitnotstale(mp, p);
 		ilock(&mp->pmclock);
 	}
@@ -333,8 +368,7 @@ pmcsetctr(u32int coreno, u64int v, u32int regno)
 	ilock(&mp->pmclock);
 	p->ctr = v;
 	p->ctrset |= PmcSet;
-	p->stale = 1;
-	if(mp->proc != nil || mp->nixtype != NIXAC)
+	if(shouldipi(mp))
 		waitnotstale(mp, p);
 	else
 		iunlock(&mp->pmclock);
@@ -370,8 +404,7 @@ pmcsetctl(u32int coreno, PmcCtl *pctl, u32int regno)
 	ilock(&mp->pmclock);
 	ctl2ctl(&p->PmcCtl, pctl);
 	p->ctlset |= PmcSet;
-	p->stale = 1;
-	if(mp->proc != nil || mp->nixtype != NIXAC)
+	if(shouldipi(mp))
 		waitnotstale(mp, p);
 	else
 		iunlock(&mp->pmclock);
@@ -392,8 +425,7 @@ pmcgetctl(u32int coreno, PmcCtl *pctl, u32int regno)
 
 	ilock(&mp->pmclock);
 	p->ctlset |= PmcGet;
-	p->stale = 1;
-	if(mp->proc != nil || mp->nixtype != NIXAC){
+	if(shouldipi(mp)){
 		waitnotstale(mp, p);
 		ilock(&mp->pmclock);
 	}
