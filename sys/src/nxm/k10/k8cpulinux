@@ -79,8 +79,8 @@ rootdir
 	$NXM/rc/lib/rcmain
 	$NXM/amd64/bin/echo echo
 	$NXM/amd64/bin/acid acid
-	$NXM/amd64/bin/linux linux
-	$NXM/amd64/bin/testfork testfork
+#	$NXM/amd64/bin/linux linux
+#	$NXM/amd64/bin/testfork testfork
 	$NXM/amd64/bin/ls ls
 	$NXM/amd64/bin/ps ps
 	$NXM/amd64/bin/bind bind
@@ -93,7 +93,7 @@ rootdir
 	$NXM/sys/lib/acid/port port
 	$NXM/sys/lib/acid/amd64 amd64
 	../root/nvram nvram
-	../root/hello.out hello.out
+#	../root/hello.out hello.out
 #	../root/testlinux.out testlinux.out
 
 conf
