@@ -16,31 +16,42 @@ patch \- simple patch creation and tracking system
 .I name ...
 ]
 .PP
+.B patch/pull
+.PP
 .B patch/diff
 .I name
 .PP
 .B patch/apply
 .I name
 .PP
+.B patch/Apply
+.I name
+.PP
 .B patch/undo
 .I name
 .PP
-.B patch/note
+.B patch/applied
 .I name 
-[
-.B <
-.I note
-]
+.PP
+.B patch/notify
 .SH DESCRIPTION
 These scripts are a simple patch submission and tracking system
-used to propose additions or changes to Plan 9.
-There is no guarantee that any patch will be accepted, nor
-that it will be accepted verbatim.
+used to propose additions or changes to Nix. They are similar to Plan 9
+.IR patch (1)
+tools but there are important differences.
+.PP
 Each patch has a 
 .I name
 (lowercase letters, numbers, dash, dot, and underscore only)
 and is stored in
-.BI /n/sources/patch/ name.
+.BI /n/patches.lsub.org/patch/ name.
+.PP
+Users are expected to use only
+.I patch/create
+to create patches and
+.I patch/pull
+to pull (apply) new patches that have been applied to the main distribution.
+All other tools are for contributors and maintainers.
 .PP
 .I Patch/create
 creates a new patch consisting of the changes to
@@ -52,7 +63,7 @@ Test data or pointers to same to verify that the fix works are also welcome.
 When sending a patch, follow these guidelines:
 .IP • 3
 Before preparing the patch, run
-.I replica/pull
+.I patch/pull
 and base your patch on current distribution source code.
 .IP •
 If this is a bug fix, explain the bug clearly.
@@ -65,7 +76,7 @@ Make the new code look as much like the old code as possible:
 don't make gratuitous changes, and do follow the style of the old code.
 See
 .IR style (6)
-for the canonical Plan 9 coding style.
+for the canonical Plan 9 coding style, used in Nix.
 .IP •
 If your patch changes externally-visible behaviour,
 update the manual page.
@@ -74,10 +85,12 @@ The
 .I email
 address, if not
 .LR - ,
-will be sent notification messages when the patch is applied, rejected,
-or commented on.
-If rejected, the e-mail will contain a note explaining why and
-probably listing suggested changes and encouraging you to resubmit.
+will be included in the mail to notify that the patch has been created. All
+patch discussion will proceed in the same mail thread, until the patch
+is accepted or rejected. If it is rejected, the usual course of action is to
+create
+a new patch using the same name, after having addressed the comments
+discussed by mail.
 .PP
 .I Patch/list
 displays information about the named patches,
@@ -88,10 +101,9 @@ shows a patch as diffs between the original
 source files and the patched source files.
 .PP
 .I Patch/apply
-applies the patch to the current source tree.
-It is intended to be run by the Plan 9 developers with
-.B pie
-as their root file system.
+applies the patch to the current source tree mounted on
+.B /n/dist
+(the current tree if none is mounted there).
 If the source has changed since the patch was
 created,
 .I apply
@@ -99,16 +111,39 @@ will report the conflict and not change any files.
 Before changing any files,
 .I patch/apply
 makes backup copies of the current source tree's
-files.  The backups are stored in the patch directory.
+files.  The backups are stored in the patch directory created at
+.B /dist/patch
+for processing the patch.
 .PP
+After applying a patch, one of
+.I patch/undo
+and
+.I patch/applied
+must be executed:
 .I Patch/undo
 will copy the backups saved by
 .I patch/apply
 back into the source tree.
-It will not restore a backup if the file
-being replaced is not byte-identical to the one
-created by 
-.I patch/apply.
+.I Patch/applied
+records the patch as applied.
+.PP
+.I Patch/Apply
+is used by the main tree maintainers to apply patches to it.
+It is exactly
+.I patch/apply
+with a few changes to operate on the main Nix tree.
+.PP
+.I Patch/pull
+applies all patches applied to the main nix tree but not yet applied
+to the local tree. To use this tool it is important that
+.I patch/applied
+is either not used (from outside this tool) or is used to apply
+the patches in exactly the same order used by the main tree.
+The history of patches applied to a tree is always kept at
+.BR /dist/patch/applied .
+.PP
+.I Patch/notify
+is run frequently close to the main distribution to notify by mail of patch creations.
 .SH EXAMPLES
 Propose a change to
 .IR pwd ,
@@ -121,38 +156,47 @@ Fix pwd to print errors to fd 2 rather than 1.
 % 
 .EE
 .PP
-Then the developers at Bell Labs run
+Then the distribution maintainers and patch reviewers run
 .IP
 .EX
 patch/diff pwd-errors
 .EE
 .PP
 to inspect the change (possibly viewing
-.B /n/sources/patch/pwd-errors/pwd.c
+.B /n/patches.lsub.org/patch/pwd-errors/pwd.c
 to see the larger context).
-To make the change, they run
+To try the change, they run
 .IP
 .EX
 patch/apply pwd-errors
 .EE
 .LP
-Otherwise they run
+After that, they run
 .IP
 .EX
-% patch/note pwd-errors
-Pwd should definitely print errors to fd 1 because ...
-^D
+% patch/undo pwd-errors
 % 
 .EE
 .PP
-to add a note to the 
-.B /n/sources/pwd-errors/notes
-file.
+to end the trial. Should the patch be accepted, maintainers run
+.IP
+.EX
+patch/Apply pwd-errors
+.EE
+.PP
+to apply it to the main distribution. After that, those that run
+.IP
+.EX
+patch/pull
+.EE
+.PP
+will get the new patch (as well as any other ones applied to the
+main distribution).
 .SH FILES
-.B /n/sources/patch
+.B /n/patches.lsub.org/patch
+.B /n/sources.lsub.org/nix
+.B /dist/patch
 .SH SOURCE
 .B /rc/bin/patch
 .SH SEE ALSO
 .IR diff (1)
-.br
-.B http://plan9.bell-labs.com/wiki/plan9/How_to_contribute
