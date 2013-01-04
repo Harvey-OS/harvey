@@ -41,7 +41,7 @@ static ulong
 getaux(Fid* fp)
 {
 	assert(sizeof(ulong) <= sizeof(fp->aux));
-	return (ulong)fp->aux;
+	return (uintptr)fp->aux;
 }
 
 static void
