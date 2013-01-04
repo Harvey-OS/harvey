@@ -32,6 +32,6 @@ kill -9 $!
 set -e
 # things are not always identical. We need to do some filtering.
 # For now, just filter on the regression tests themselves.
-sed '1,/Morning/d' qemuout | /usr/bin/diff -bw - correctoutput
+sed '1,/Morning/d' qemuout | sed 's/badsyscall.*://' | /usr/bin/diff -bw - correctoutput
 date
 
