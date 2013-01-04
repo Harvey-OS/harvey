@@ -52,11 +52,12 @@ The Tdiscover packet is used to discover the avaliable cec devices on the local
 network.  The packet sent is of the form
 
 	Tdiscover = {
-	[dest]	0xffffffff,
+	[dest]	mac of destination interface or 0xffffffff,
 	[src]	mac of local interface,
 	[etype]	service type,
 	[type]	Tdiscover,
-	[seq]	0,
+	[conn]	don't care
+	[seq]	seq != 0,
 	[len]	0,
 	[data]	0,
 	}
@@ -64,6 +65,9 @@ network.  The packet sent is of the form
 The reply to the Tdiscover packet is of type Toffer which differes from
 Tdiscover in that data and len may be set.  The contents of data is application
 specific.
+
+Servers typically send an unsolicited Toffer on startup to allow clients
+to reconnect automaticly.  Seq should be 0 for unsolicited Toffers.
 
 3.  Initializing a connection. Tinit[abc]
 

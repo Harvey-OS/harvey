@@ -19,6 +19,11 @@ struct Mux {
 	Muxproc	p[2];
 	int	pfd[2];
 	int	inuse;
+	int	to;
+	int	retries;
+	int	step;
+	vlong	t0;
+	vlong	t1;
 };
 
 static Mux smux = {
@@ -100,11 +105,63 @@ mux(int fd[2])
 	return m;
 }
 
+#define MSEC()	(nsec()/1000000)
+
+static void
+timestamp(Mux *m)
+{
+	m->t0 = MSEC();
+}
+
+int
+timeout(Mux *m)
+{
+	vlong t;
+
+	if(m->to == 0)
+		return -1;
+	t = m->t0 + m->step;
+	if(t > m->t1)
+		t = m->t1;
+	t -= MSEC();
+	if(t < 5)
+		t = 0;
+	return t;
+}
+
 int
 muxread(Mux *m, Pkt *p)
 {
-	if(read(m->pfd[0], &m->m, sizeof m->m) == -1)
-		return -1;
+	int r, t;
+
+	t = timeout(m);
+	r = -1;
+	if(t != 0){
+		if(t > 0)
+			alarm(t);
+		r = read(m->pfd[0], &m->m, sizeof m->m);
+		if(t > 0)
+			alarm(0);
+	}
+	if(r == -1){
+		timestamp(m);
+		if(m->t0 + 5 >= m->t1)
+			return Ftimedout;
+		m->retries++;
+		if(m->step < 1000)
+			m->step <<= 1;
+		return Ftimeout;
+	}
 	memcpy(p, &m->m.p, sizeof *p);
 	return m->m.type;
+}
+
+void
+muxtimeout(Mux *m, int to)
+{
+	m->retries = 0;
+	timestamp(m);
+	m->step = 75;
+	m->to = to;
+	m->t1 = m->t0 + to;
 }

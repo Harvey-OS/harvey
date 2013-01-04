@@ -1,6 +1,10 @@
+enum {
+	Eaddrlen	= 6,
+};
+
 typedef struct {
-	uchar	dst[6];
-	uchar	src[6];
+	uchar	dst[Eaddrlen];
+	uchar	src[Eaddrlen];
 	ushort	etype;
 	uchar	type;
 	uchar	conn;
@@ -12,6 +16,8 @@ typedef struct {
 enum {
 	Fkbd,
 	Fcec,
+	Ftimeout,
+	Ftimedout,
 	Ffatal,
 };
 
@@ -27,6 +33,7 @@ int debug;
 Mux	*mux(int fd[2]);
 void	muxfree(Mux*);
 int	muxread(Mux*, Pkt*);
+void	muxtimeout(Mux*, int);
 
 int	netget(void *, int);
 int	netopen(char *name);
