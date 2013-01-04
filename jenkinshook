@@ -22,14 +22,15 @@ mk kernels
 # the standard command or a shell script to make things
 # run correctly. On coreboot.org on my account it is
 # a shell script.
-qemu-system-x86_64 --kernel nxm/k10/9k8regression.elf  \
-	-no-reboot  --nographic </dev/null > qemuout &
-qemuproc=$!
-sleep 60
-# just in case ...
+
+# timeout will return non-zero if something goes wrong, but
+# I think we'll want to get the diff output rather than bailing
+# out immediately
 set +e
-kill -9 $!
+timeout 60s qemu-system-x86_64 --kernel nxm/k10/9k8regression.elf  \
+	-no-reboot  --nographic </dev/null > qemuout
 set -e
+
 # things are not always identical. We need to do some filtering.
 # For now, just filter on the regression tests themselves.
 sed '1,/Morning/d' qemuout | sed 's/badsyscall.*://' | /usr/bin/diff -bw - correctoutput
