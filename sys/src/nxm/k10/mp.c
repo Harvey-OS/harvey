@@ -404,7 +404,11 @@ sigsearch(char* signature)
 	if((r = sigscan(KADDR(p-1024), 1024, signature)) != nil)
 		return r;
 
-	return sigscan(BIOSSEG(0xe000), 0x20000, signature);
+	r = sigscan(BIOSSEG(0xe000), 0x20000, signature);
+	if(r != nil)
+		return r;
+	/* and virtualbox hidden mp tables... */
+	return sigscan(KADDR(0xa0000 - 1024), 1024, signature);
 }
 
 void
@@ -415,8 +419,11 @@ mpsinit(int maxcores)
 	_MP_ *mp;
 	PCMP *pcmp;
 
-	if((mp = sigsearch("_MP_")) == nil)
+	if((mp = sigsearch("_MP_")) == nil){
+		print("no mp tables\n");
 		return;
+	}
+
 	if(DBGFLG){
 		DBG("_MP_ @ %#p, addr %#ux length %ud rev %d",
 			mp, l32get(mp->addr), mp->length, mp->revision);
