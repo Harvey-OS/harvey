@@ -56,7 +56,6 @@ static Fid *	newfid(int);
 static void	error(char*);
 static void	io(void);
 static void	vacshutdown(void);
-static void	usage(void);
 static int	perm(Fid*, int);
 static int	permf(VacFile*, char*, int);
 static ulong	getl(void *p);
@@ -122,7 +121,6 @@ vacfs(void)
 {
 	char *defsrv, *srvname;
 	int p[2], fd;
-	long ncache;
 	
 	defsrv = "mmventi";
 
@@ -157,13 +155,6 @@ srv(void *a)
 	USED(a);
 	io();
 	vacshutdown();
-}
-
-static void
-usage(void)
-{
-	fprint(2, "usage: %s [-sd] [-h host] [-c ncache] [-m mountpoint] vacfile\n", argv0);
-	threadexitsall("usage");
 }
 
 static char*
@@ -661,7 +652,7 @@ io(void)
 	char *err;
 	int n;
 	dflag=2;
-	fmtinstall('G', fcallfmt);
+	fmtinstall('Q', fcallfmt);
 
 	for(;;){
 		n = read9pmsg(mfd[0], mdata, sizeof mdata);
@@ -671,7 +662,7 @@ io(void)
 			sysfatal("convM2S conversion error");
 
 		if(dflag)
-			fprint(2, "vacfs:<-%G\n", &rhdr);
+			fprint(2, "vacfs:<-%Q\n", &rhdr);
 
 		thdr.data = (char*)mdata + IOHDRSZ;
 		if(!fcalls[rhdr.type])
@@ -687,7 +678,7 @@ io(void)
 		}
 		thdr.tag = rhdr.tag;
 		if(dflag)
-			fprint(2, "vacfs:->%G\n", &thdr);
+			fprint(2, "vacfs:->%Q\n", &thdr);
 		n = convS2Mu(&thdr, mdata, messagesize, dotu);
 		if(n <= BIT16SZ)
 			sysfatal("convS2Mu conversion error");

@@ -44,7 +44,7 @@ UPDATE=\
 	mkfile\
 	$CFILES\
 	$HFILES\
-	${TARG:%=$NXM/386/bin/%}
+	${TARG:%=$NXM/amd64/bin/%}
 
 default:V: all
 

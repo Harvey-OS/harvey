@@ -1413,32 +1413,33 @@ vacfilewrite(VacFile *f, void *buf, int cnt, vlong offset)
 		werrstr(ENotFile);
 		return -1;
 	}
+	if(debug)
 		fprint(2, "vacfilewrite%d.", i++);
 	if(filelock(f) < 0)
 		return -1;
-	if (1)
+	if(debug)
 		fprint(2, "vacfilewrite%d.", i++);
 	if(f->source->mode != VtORDWR){
 		werrstr(EReadOnly);
 		goto Err;
 	}
-	if (1)
+	if(debug)
 		fprint(2, "vacfilewrite%d.", i++);
 	if(offset < 0){
 		werrstr(EBadOffset);
 		goto Err;
 	}
 
-	if (1)
+	if(debug)
 		fprint(2, "vacfilewrite%d.", i++);
 	if(vtfilelock(f->source, -1) < 0)
 		goto Err;
-	if (1)
+	if(debug)
 		fprint(2, "vacfilewrite%d.", i++);
 	if(f->dir.mode & ModeAppend)
 		offset = vtfilegetsize(f->source);
-	if (1)
-		fprint(2, "vacfilewrite%d.", i++);
+	if(debug)
+		fprint(2, "vacfilewrite%d.", i);
 	if(vtfilewrite(f->source, buf, cnt, offset) != cnt
 	|| vtfileflushbefore(f->source, offset) < 0){
 		vtfileunlock(f->source);
@@ -1446,7 +1447,7 @@ vacfilewrite(VacFile *f, void *buf, int cnt, vlong offset)
 	}
 	vtfileunlock(f->source);
 	fileunlock(f);
-	if (1)
+	if(debug)
 		fprint(2, "vacfilewriteret%d.", cnt);
 	return cnt;
 
@@ -1787,7 +1788,6 @@ readscore(int fd, uchar score[VtScoreSize])
 VacFs*
 vacfsopen(VtConn *z, char *scorez, int mode, int ncache)
 {
-	int fd;
 	uchar score[VtScoreSize];
 	char *prefix;
 	
