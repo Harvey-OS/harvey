@@ -36,6 +36,7 @@ enum {
 	Qgdb,
 	Qbase,
 	Qmapram,
+	Qrealmem,
 
 	Qmax = 16,
 };
@@ -53,6 +54,7 @@ static Dirtab archdir[Qmax] = {
 	"iol",		{ Qiol, 0 },		0,	0660,
 	"gdb",		{ Qgdb, 0}, 		0,	0660,
 	"mapram",	{ Qmapram, 0 },	0,	0444,
+	"realmodemem",	{ Qrealmem, 0 },	0,	0660,
 };
 Lock archwlock;	/* the lock is only for changing archdir */
 int narchdir = Qbase;
@@ -549,10 +551,48 @@ cputyperead(Chan*, void *a, long n, vlong off)
 	return readstr(off, a, n, buf);
 }
 
+
+static long
+rmemrw(int isr, void *a, long n, vlong off)
+{
+	if(off < 0)
+		error("offset must be >= 0");
+	if(n < 0)
+		error("count must be >= 0");
+	if(isr){
+		if(off >= MB)
+			error("offset must be < 1MB");
+		if(off+n >= MB)
+			n = MB - off;
+		memmove(a, KADDR((ulong)off), n);
+	} else {
+		/* realmode buf page ok, allow vga framebuf's access */
+		if(off >= MB)
+			error("offset must be < 1MB");
+		if(off+n > MB && (off < 0xA0000 || off+n > 0xB0000+0x10000))
+			error("bad offset/count in write");
+		memmove(KADDR((ulong)off), a, n);
+	}
+	return n;
+}
+
+static long
+rmemread(Chan*, void *a, long n, vlong off)
+{
+	return rmemrw(1, a, n, off);
+}
+
+static long
+rmemwrite(Chan*, void *a, long n, vlong off)
+{
+	return rmemrw(0, a, n, off);
+}
+
 void
 archinit(void)
 {
 	addarchfile("cputype", 0444, cputyperead, nil);
+	addarchfile("realmodemem", 0660, rmemread, rmemwrite);
 }
 
 void
