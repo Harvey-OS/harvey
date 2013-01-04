@@ -3,6 +3,9 @@
 patch \- simple patch creation and tracking system
 .SH SYNOPSIS
 .B patch/create
+[
+.B -f
+]
 .I name
 .I email
 .I files ...
@@ -20,6 +23,8 @@ patch \- simple patch creation and tracking system
 ]
 .PP
 .B patch/pull
+.PP
+.B patch/pullbin
 .PP
 .B patch/diff
 .I name
@@ -77,8 +82,20 @@ To use this tool it is important that
 is either not used (from outside this tool) or is used to apply
 the patches in exactly the same order used by the main tree.
 .PP
+.I Patch/pullbin
+relies on
+.IR up (1)
+to suggest commands to update
+.B /386/bin
+and
+.B /386/lib
+with those found in the distribution.
+No remove command will be issued if a binary is
+removed from the distribution, and newer local binaries
+will be left alone.
+.PP
 .I Patch/create
-creates a new patch consisting of the changes to
+creates a new patch (or redefines an existing one) consisting of the changes to
 the listed files from the distribution, reading
 a description of the patch from standard input:
 please provide an explanation of what the change is supposed to do,
@@ -122,6 +139,14 @@ to create a patch, the tree you are using considers the patch as applied, so tha
 further
 .I patch/pull
 calls in that tree will not try to apply an already applied patch.
+.PP
+Running
+.I patch/create
+with the name of an existing patch can be used to modify a not yet
+applied patch. In this case, flag
+.B -f
+must be supplied or the tool will refuse to continue, to prevent accidental
+redefinition of existing patches.
 .PP
 .I Patch/list
 displays information about the named patches,
