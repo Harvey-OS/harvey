@@ -313,7 +313,7 @@ The compilers accept
 .CW long
 .CW long
 as a basic type meaning 64-bit integer.
-On all of the machines
+On some of the machines
 this type is synthesized from 32-bit instructions.
 .NH 2
 Pragma

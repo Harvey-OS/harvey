@@ -14,15 +14,13 @@ char	*nregs[] = {
 	"4k", "4l", "4m", "4n", "4o", "4p", "5a", "5b", "5c", "5d",
 	"5e", "5f", "5g", "5h", "5i", "5j", "5k", "5l", "5m", "5n",
 	"5o", "5p", "5q", "5r", "5s", "5t", "5u", "5v", "5w", "5x",
-	0};
+	0
+};
 
-
-char	*
+char *
 reg(int col, int place)
 {
-	if (sizeof(nregs) < 2 * 3 * qcol)
+	if (nelem(nregs) - 1 < 3 * qcol)
 		error("Too many columns for registers");
 	return (nregs[qcol*place+col]);
 }
-
-

@@ -323,6 +323,7 @@ squirrelserveraddrs(void)
 			l = &(*l)->next;
 			continue;
 		}
+		memset(&req, 0, sizeof req);
 		req.isslave = 1;
 		req.aborttime = NS2MS(nowns) + Maxreqtm;
 		*l = dnresolve(rp->host->name, Cin, Ta, &req, 0, 0, Recurse, 0, 0);
