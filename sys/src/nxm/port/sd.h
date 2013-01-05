@@ -2,11 +2,14 @@
  * Storage Device.
  */
 typedef struct SDev SDev;
+typedef struct SDfile SDfile;
 typedef struct SDifc SDifc;
 typedef struct SDpart SDpart;
 typedef struct SDperm SDperm;
 typedef struct SDreq SDreq;
 typedef struct SDunit SDunit;
+typedef struct Devport Devport;
+typedef struct Devconf Devconf;
 
 struct SDperm {
 	char*	name;
@@ -22,11 +25,20 @@ struct SDpart {
 	ulong	vers;
 };
 
+typedef long SDrw(SDunit*, Chan*, void*, long, vlong);
+struct SDfile {
+	SDperm;
+	SDrw	*r;
+	SDrw	*w;
+};
+
 struct SDunit {
 	SDev*	dev;
 	int	subno;
 	uchar	inquiry[255];		/* format follows SCSI spec */
 	uchar	sense[18];		/* format follows SCSI spec */
+	uchar	rsense[18];		/* support seperate rq sense and inline return */
+	uchar	haversense;
 	SDperm;
 
 	QLock	ctl;
@@ -42,6 +54,8 @@ struct SDunit {
 	int	state;
 	SDreq*	req;
 	SDperm	rawperm;
+	SDfile	efile[5];
+	int	nefile;
 };
 
 /*
@@ -67,7 +81,7 @@ struct SDifc {
 	char*	name;
 
 	SDev*	(*pnp)(void);
-	SDev*	(*legacy)(int, int);
+	SDev*	(*xxlegacy)(int, int);		/* unused.  remove me */
 	int	(*enable)(SDev*);
 	int	(*disable)(SDev*);
 
@@ -77,27 +91,31 @@ struct SDifc {
 	int	(*rctl)(SDunit*, char*, int);
 	int	(*wctl)(SDunit*, Cmdbuf*);
 
-	long	(*bio)(SDunit*, int, int, void*, long, vlong);
+	long	(*bio)(SDunit*, int, int, void*, long, uvlong);
 	SDev*	(*probe)(DevConf*);
 	void	(*clear)(SDev*);
 	char*	(*rtopctl)(SDev*, char*, char*);
 	int	(*wtopctl)(SDev*, Cmdbuf*);
+	int	(*ataio)(SDreq*);
 };
 
 struct SDreq {
 	SDunit*	unit;
 	int	lun;
-	int	write;
-	uchar	cmd[16];
+	char	write;
+	char	proto;
+	char	ataproto;
+	uchar	cmd[0x20];
 	int	clen;
 	void*	data;
 	int	dlen;
 
 	int	flags;
+	ulong	timeout;		/* in ticks */
 
 	int	status;
 	long	rlen;
-	uchar	sense[256];
+	uchar	sense[32];
 };
 
 enum {
@@ -119,6 +137,12 @@ enum {
 
 	SDmaxio		= 2048*1024,
 	SDnpart		= 16,
+
+	SDread	= 0,
+	SDwrite,
+
+	SData		= 1,
+	SDcdb		= 2,
 };
 
 #define sdmalloc(n)	malloc(n)
@@ -127,25 +151,25 @@ enum {
 /* devsd.c */
 extern void sdadddevs(SDev*);
 extern int sdsetsense(SDreq*, int, int, int, int);
-extern int sdmodesense(SDreq*, uchar*, void*, int);
-extern int sdfakescsi(SDreq*, void*, int);
+extern int sdfakescsi(SDreq*);
+extern int sdfakescsirw(SDreq*, uvlong*, int*, int*);
+extern int sdaddfile(SDunit*, char*, int, char*, SDrw*, SDrw*);
 
 /* sdscsi.c */
 extern int scsiverify(SDunit*);
 extern int scsionline(SDunit*);
-extern long scsibio(SDunit*, int, int, void*, long, vlong);
-extern SDev* scsiid(SDev*, SDifc*);
+extern long scsibio(SDunit*, int, int, void*, long, uvlong);
+
 
 /*
  *  hardware info about a device
  */
-typedef struct {
+struct Devport {
 	ulong	port;	
 	int	size;
-} Devport;
+};
 
-struct DevConf
-{
+struct DevConf {
 	ulong	intnum;			/* interrupt number */
 	char	*type;			/* card type, malloced */
 	int	nports;			/* Number of ports */
