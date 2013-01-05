@@ -1,0 +1,348 @@
+.TH FIS 2
+.SH NAME
+setfissig, txmodefis, atapirwfis, featfis, 
+flushcachefis, identifyfis, nopfis, rwfis,
+skelfis, sigtofis, fiswr, fisrw,
+id16, id32, id64,
+idmove, idfeat, idwwn, idss, idpuis, pflag, fistosig,
+sasbhash, sashash \- SATA/SAS FIS and drive feature functions
+.de PB
+.PP
+.ft L
+.nf
+..
+.SH SYNOPSIS
+.ta \w'\fLdouble 'u +\w'\fLDatapi16 'u +\w'\fLspeeds:    'u
+.de PB
+.PP
+.ft L
+.nf
+..
+.PB
+#include <u.h>
+#include <libc.h>
+#include <fis.h>
+.PB
+enum {
+	Fissize	= 0x20,		/* nominal (fits all) fis size */
+.PB
+	Dlba	= 1<<0,
+	Dllba 	= 1<<1,
+	Dsmart	= 1<<2,
+	Dpower	= 1<<3,
+	Dnop	= 1<<4,
+	Datapi	= 1<<5,
+	Datapi16	= 1<<6,
+	Data8	= 1<<7,
+	Dsct	= 1<<8,
+};
+.PB
+enum {
+	Pspinup	= 1<<0,
+	Pidready	= 1<<1,
+};
+
+struct Sfis {
+	ushort	feat;		/* features supportd */
+	uchar	udma;		/* modes supported */
+	uchar	speeds;		/* sata: allowed speeds */
+	uint	sectsz;		/* sector size */
+	uint	phystol;		/* log2(logical/physical) */
+	uint	sig;		/* signature */
+	uint	c;		/* cylinder */
+	uint	h;		/* head */
+	uint	s;		/* sector */
+};
+.PB
+void	setfissig(Sfis *sfis, uint sig)
+.PB
+int	txmodefis(Sfis *sfis, uchar *fis, uchar mode)
+.PB
+int	featfis(Sfis *sfis, uchar *fis, uchar feat)
+.PB
+int	flushcachefis(Sfis *sfis, uchar *fis)
+.PB
+int	identifyfis(Sfis *sfis, uchar *fis)
+.PB
+int	nopfis(Sfis *sfis, uchar *fis, int srst)
+.PB
+int	fisrw(Sfis *f, uchar *fis, int *count)
+.PB
+int	rwfis(Sfis *sfis, uchar *fis, int rw, int nsect, uvlong lba)
+.PB
+int	atapirwfis(Sfis *sfis, uchar *fis, uchar *cdb, int cdblen, int ndata)
+.PB
+void	skelfis(uchar *fis)
+.PB
+void	sigtofis(Sfis *sfis, uchar *d2hfis)
+.PB
+uvlong	fisrw(Sfis *sfis, uchar *fis, int *nsect)
+.PB
+ushort	id16(ushort *id, int idx)
+.PB
+uint	id32(ushort *id, int idx)
+.PB
+uvlong	id64(ushort *id, int idx)
+.PB
+void	idmove(char *buf, ushort *ididx, int n)
+.PB
+vlong	idfeat(Sfis *sfis, ushort *id)
+.PB
+uvlong	idwwn(Sfis*, ushort *id)
+.PB
+int	idss(Sfis *sfis, ushort *id)
+.PB
+int	idpuis(ushort *id)
+.PB
+char	*pflag(char *p, char *e, Sfis *sbis)
+.PB
+uint	fistosig(uchar *fis)
+.PB
+uint	sashash(uvlong u)
+.PB
+uchar*	sasbhash(uchar *t, uchar *s)
+.SH DESCRIPTION
+The
+.B Sfis
+type describes the connection between an ATA drive and
+a Host Bus Adaptor (HBA).  The details of this connection,
+such as DMA and LBA support, and the logcal sectors per
+physical sector are used to construct the proper SATA FISes.
+.PP
+Since ATA uses a seperate sector size for addressing
+(the logical sector size) and for ECC calculations (the
+physical sector size), the library returns values based on
+the physical sector size.  This allows clients to make
+intelligent decisions about IO size without worrying about
+this implementation botch.
+.PP
+.TP 10
+.B feat
+selected features supported by the drive.  Set by
+.BR idfeat .
+.TP
+.B udma
+the UDMA modes supported by the drive.  Set by
+.BR idfeat .
+.TP
+.B speeds
+bitmaped signaling speeds supported by the device.
+SATA drives may support 1.5gbit/s, 3.0gbit/s and
+6.0gbit/s signaling.
+.TP
+.B sig
+this field contains the drive's “signature.”
+Drives that support the packet command
+set have a signature of
+.BR 0xeb140000 ,
+while conventional drives have a signature of
+.BR 0x0101 .
+The signature is set by
+.BR setfissig .
+See
+.IR sd (3)
+for more information.
+.TP
+.B "c\fP,\fP\ h\fP,\fP\ s"
+the number of physical or logical cylinders, heads and sectors claimed
+by the drive.  CHS addressing is not allowed by SATA drivers.  Set by
+.BR idfeat .
+.PP
+Typically, a client starts by filling out
+.BR sfis->sig .
+Device drivers typically have an ideosyncratic method of obtaining
+a signature.  Clients of
+.IR sd (3)
+can use special commands to obtain a signature.  Given a signature
+the client can use
+.B identifyfis
+to identify the device and finally
+.BR idfeat ,
+.B idss 
+and
+.B idwwn 
+to fill out the structure and extract the maximum LBA+1
+and the sector size.
+.PP
+The
+.IB xto fis
+functions create FISes to be sent from the host to the device.
+These are called H2D or Host to Device Register FISes.  All
+require a
+.B fis
+buffer of at least
+.B Fislen
+bytes.  The return value is the ATA protocol of the returned
+command.  For example,
+.B identifyfis
+returns
+.BR "Pin|Ppio|P28|P512" .
+.TP
+.BI setfissig( sfis\fP,\fP\ sig )
+sets the device's ATA signature.
+.TP
+.BI identifyfis( sfis\fP,\fP\ fis )
+builds an ATA
+.B IDENTIFY
+.B DEVICE
+or
+.B IDENTIFY
+.B PACKET
+.B DEVICE
+FIS, based on
+.IB sfis ->sig\fR.
+.TP
+.BI id16( id\fP,\fP\ idx "), id32, id64"
+return id word, double-world or quad-word at position
+.IR idx .
+.TP
+.BI idss( sfis\fP,\fP\ id )
+return the physical sector size of the disk.
+The physical sector size is the quanta protected
+by ECC and is never smaller than the logical
+sector size, which is used in LBA calcuations.
+.TP
+.BI idpuis( id )
+checks for PUIS (power up in standby) modes.
+Invalid id blocks return -1.  Otherwise
+.B Pspinup
+is set if the drive needs
+.B "SET FEATURES"
+subcommand 7 to return complete data and
+.B Pidready
+bit set if the id block is complete.  Both or neither bits
+may be set.
+.TP
+.BI idfeat( sfis\fP,\fP\ id )
+parses the 512-byte data block returned by
+the identify commands.  On success, the last LBA+1
+is returned.  Unparseable or unsupportable data
+blocks return -1.  Flags may be converted to a
+descriptive string with
+.BR pflag .
+.B Idss
+and
+.B idwwn
+return the sector size and World Wide Name from
+the same data.
+.TP
+.BI idmove( buf\fP,\fP\ ididx\fP,\fP\ n )
+converts an ATA string of length
+.I n
+into a null-terminated string.  Trailing
+spaces are deleted.
+.TP
+.BI fistosig( fis )
+converts a D2H FIS into a device signature.
+.TP
+.BI txmodefis( sfis\fP,\fP\ fis\fP,\fP\ mode )
+builds a
+.B "SET TRANSFER MODE"
+FIS.
+.TP
+.BI featfis( sfis\fP,\fP\ fis\fP,\fP\ feat )
+builds a
+.B "SET FEATURES"
+FIS.
+.TP
+.BI flushcachefis( sfis\fP,\fP\ fis )
+builds a
+.B "FLUSH CACHE"
+FIS.
+.TP
+.BI nopfis( sfis\fP,\fP\ fis\fP,\fP\ srst )
+builds a
+.B "NOP"
+FIS.  If
+.I srst
+is set, then out-of-band signaling is used to request
+a soft reset.  It is not expected that
+.I srst
+will be useful outside of device drivers.
+.TP
+.BI rwfis( sfis\fP,\fP\ fis\fP,\fP\ rw\fP,\fP\ nsect\fP,\fP\ lba )
+generates a FIS requesting an
+.I nsect
+i/o at
+.IR lba .
+If
+.I rw
+is non-zero, then a write is requested otherwise a
+read is requested.  The correct command to issue is
+determined by
+.I sfis .
+DMA and 48-bit (LLBA) commands are preferred.
+The inverse is
+.B fisrw
+which returns the
+.I lba
+and
+.I nsect
+given a FIS generated by
+.BR rwfis.
+.TP
+.BI atapirwfis( sfis\fP,\fP\ fis\fP,\fP\ cdb\fP,\fP\ cdlen\fP,\fP\ ndata )
+generates an ATAPI read or write FIS.  The
+.I cdb
+contains a
+.IR cdblen -byte
+SCSI Command Data Block describing an
+.IR nbyte -byte
+i/o operation.
+.TP
+.BI skelfis( fis )
+builds a skeleton
+Host-to-Device (H2D) Register FIS.
+.I Fis
+must be a buffer of at least
+.B Fislen
+bytes.
+.PP
+The
+.BI fis tox
+functions create FISes to be sent from the device to the host.
+These are called D2H or Device to Host Register FISes
+and are used to generate faux responses where actual
+communication with a device would be desirable.
+All require a
+.B fis
+buffer of at least
+.B Fislen
+bytes.
+.TP
+.BI sigtofis( sfis\fP,\fP\ d2hfis )
+builds a device signature fis from based on a device's
+.BR sfis .
+.TP
+.BI sashash( sasaddr )
+generates a 4-byte hashed SAS address from an 8 byte
+WWN.
+.TP
+.BI sasbhash( sasaddr\fP,\fP\ wwn )
+fills the buffer
+.I sasaddr
+with the hashed SAS addresse from the 8 byte buffer
+.IR wwn .
+.TP
+.BI sigtofis( sfis\fP,\fP\ d2hfis )
+.SH SOURCE
+.B /sys/src/libfis
+.SH "SEE ALSO"
+.IR atazz (8) ,
+.IR sd (3) ,
+.IR sdide (3) ,
+.IR sdahci (3) ,
+.IR sdodin (3),
+.IR smart (8) 
+.SH BUGS
+Support for CHS-style addressing is somewhat weak.
+In particular,
+.B rwfis
+does not do the usual LBA-to-CHS transations.  This
+is done by drivers that support CHS addressing.  Currently
+this is only the IDE driver.
+.PP
+The
+.B Sfis
+structure arguably could contain the LBA size,
+it is required for the correct construction of FISes.
