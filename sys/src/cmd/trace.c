@@ -211,17 +211,28 @@ static
 struct{
 	int pid;
 	int state;
-}graphs[16];
+}graphs[64];
 
 static void
 addtograph(Traceevent *t)
 {
-	int i;
+	int i, dead;
 
+	dead = -1;
 	for(i = 0; i < nelem(graphs); i++){
-		if(graphs[i].pid == t->pid)
+		if(graphs[i].pid == t->pid){
+			/*
+			 * dead procs might get some sleep/wakeup events, keep them dead.
+			 */
+			if(graphs[i].state == SDead)
+				return;
 			break;
-		if(graphs[i].pid == 0){
+		}
+		if(graphs[i].state == SDead)
+			dead = i;
+		if(graphs[i].pid == 0 || i == nelem(graphs)-1){
+			if(dead >= 0)
+				i = dead;
 			graphs[i].pid = t->pid;
 			break;
 		}
@@ -232,7 +243,7 @@ addtograph(Traceevent *t)
 }
 
 static void
-printgraph(Biobuf *bout, int pid, int core, uvlong time)
+printgraph(Biobuf *bout, int pid, int core, uvlong time, char *sname)
 {
 	int i;
 	static char *schar[] = {
@@ -253,15 +264,18 @@ printgraph(Biobuf *bout, int pid, int core, uvlong time)
 	[SLock] =	"!l",
 	};
 
-	Bprint(bout, "%20.20lld %02d", time, core);
+	Bprint(bout, "%20.20lld %02d %4d", time, core, pid);
 	for(i = 0; i < nelem(graphs); i++){
 		if(graphs[i].pid == 0)
 			break;
-		Bprint(bout, "\t%c", schar[graphs[i].state][0]);
+		if(graphs[i].pid != pid && graphs[i].state == SDead)
+			Bprint(bout, "\t ");
+		else
+			Bprint(bout, "\t%c", schar[graphs[i].state][0]);
 		if(graphs[i].pid == pid)
 			Bputc(bout, schar[graphs[i].state][1]);
 	}
-	Bprint(bout, "\n");
+	Bprint(bout, "\t%s\n", sname);
 }
 
 static void
@@ -277,6 +291,9 @@ tracefile(int graph)
 		sysfatal("%s: open: %r", profdev);
 	if(Binit(&bout, 1, OWRITE) < 0)
 		sysfatal("stdout: Binit: %r");
+	if(graph)
+		Bprint(&bout, "#time               core pid  states\n");
+	t0 = 0;
 	while(read(logfd, buf, sizeof buf) == sizeof buf){
 		t.pid = GBIT32(buf);
 		t.etype = GBIT32(buf+BIT32SZ);
@@ -295,7 +312,7 @@ tracefile(int graph)
 			addtograph(&t);
 			if(t0 == 0)
 				t0 = t.time;
-			printgraph(&bout, t.pid, t.core, t.time-t0);
+			printgraph(&bout, t.pid, t.core, t.time-t0, schedstatename[t.etype]);
 		}
 	}
 	Bterm(&bout);
