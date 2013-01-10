@@ -13,6 +13,7 @@ dev +dev
 	cap
 	kprof
 #	pmc	pmcio
+	regress
 	segment
 	acpi rdwr
 	zp

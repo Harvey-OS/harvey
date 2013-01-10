@@ -1,0 +1,25 @@
+.TH ARCH 3
+.SH NAME
+regress \- regression testing device
+.SH SYNOPSIS
+.nf
+.B bind -a #Z /dev
+.sp 0.3v
+.B /dev/regressctl
+.B /dev/mallo
+.SH DESCRIPTION
+This device is only for the regression kernel and is used for 
+regression testing.
+.PP
+Writes to 
+.I regressctl
+allow one to increase (V) or decrease (v) the verbosity level. 
+.PP
+Write to
+.I malloc
+allow one to force allocation of a number of bytes. The
+number is standard form, hence can be octal, decimal, or hex.
+The bytes are immediately freed.
+.EE
+.SH SOURCE
+.B /sys/src/nxm/k10/devregress.c
