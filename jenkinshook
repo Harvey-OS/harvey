@@ -28,7 +28,7 @@ mk kernels
 # out immediately
 set +e
 timeout 60s qemu-system-x86_64 --kernel nxm/k10/9k8regression.elf  \
-	-no-reboot  --nographic </dev/null > qemuout
+	-no-reboot  --nographic -m 512 </dev/null > qemuout
 set -e
 
 # things are not always identical. We need to do some filtering.

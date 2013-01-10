@@ -652,7 +652,7 @@ morecore(uint nunits)
 	if(nunits < NUNITS(128*KiB))
 		nunits = NUNITS(128*KiB);
 	if(nunits > tailnunits)
-		nunits = tailnunits;
+		return 0;
 	tailnunits -= nunits;
 
 	return nunits;
