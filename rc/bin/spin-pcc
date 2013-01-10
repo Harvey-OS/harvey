@@ -1,0 +1,3 @@
+#!/bin/rc
+
+pcc -D_POSIX_SOURCE -D_SUSV2_SOURCE $*
