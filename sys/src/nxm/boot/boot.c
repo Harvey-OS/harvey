@@ -51,7 +51,7 @@ boot(int argc, char *argv[])
 	for(fd = 0; fd < argc; fd++)
 		print("%#p %s ", argv[fd], argv[fd]);
 	print("\n");
-#endif DEBUG
+#endif
 
 	ARGBEGIN{
 	case 'k':
@@ -99,8 +99,6 @@ print("connect...");
 	fd = (*mp->connect)();
 	if(fd < 0)
 		fatal("can't connect to file server");
-	if(getenv("srvold9p"))
-		fd = old9p(fd);
 	if(!islocal && !ishybrid){
 		if(cfs)
 			fd = (*cfs)(fd);
@@ -272,33 +270,6 @@ swapproc(void)
 	if(write(fd, "start", 5) <= 0)
 		warning("starting swap kproc");
 	close(fd);
-}
-
-int
-old9p(int fd)
-{
-	int p[2];
-
-	if(pipe(p) < 0)
-		fatal("pipe");
-
-	print("srvold9p...");
-	switch(fork()) {
-	case -1:
-		fatal("rfork srvold9p");
-	case 0:
-		dup(fd, 1);
-		close(fd);
-		dup(p[0], 0);
-		close(p[0]);
-		close(p[1]);
-		execl("/srvold9p", "srvold9p", "-s", 0);
-		fatal("exec srvold9p");
-	default:
-		close(fd);
-		close(p[0]);
-	}
-	return p[1];
 }
 
 static void
