@@ -637,7 +637,7 @@ mallocinit(void)
 
 	tailbase = UINT2PTR(sys->vmunused);
 	tailptr = tailbase;
-	tailnunits = NUNITS(sys->vmend - sys->vmunused);
+	tailnunits = NUNITS(sys->vmend - sys->vmunused) - 1;
 	print("base %#p ptr %#p nunits %ud\n", tailbase, tailptr, tailnunits);
 }
 
