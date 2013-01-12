@@ -415,7 +415,7 @@ trap(Ureg* ureg)
 			 * Don't re-enable, it confuses the crash dumps.
 			nmienable();
 			 */
-			iprint("cpu%d: PC %#8.8lux\n", m->machno, ureg->pc);
+			iprint("cpu%d: NMI PC %#8.8lux\n", m->machno, ureg->pc);
 			while(m->machno != 0)
 				;
 		}
