@@ -11,7 +11,6 @@ BOOTFILES=\
 	local.$O\
 	embed.$O\
 	settime.$O\
-	sac.$O\
 	paq.$O\
 	printstub.$O\
 
