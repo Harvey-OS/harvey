@@ -71,9 +71,6 @@ TEXT _intrr<>(SB), 1, $-4			/* so ktrace can pop frame */
 	JEQ	_iretnested
 
 	SWAPGS
-	/*	per the architecture manual, moving 16 bits to FS can zero it. Bad ... 
-	 *	not restoring it gives back the bad segment selector bug
-	 */
 	MOVW	22(SP), GS
 	/* Linux needs 64-bit FS for thread local storage. 
 	 * 16-bit FS is an utterly useless register anyway. So don't
