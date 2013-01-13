@@ -57,9 +57,6 @@ extern int	connecttcp(void);
 extern void	configlocal(Method*);
 extern int	connectlocal(void);
 
-extern void	configsac(Method*);
-extern int	connectsac(void);
-
 extern void	configpaq(Method*);
 extern int	connectpaq(void);
 
