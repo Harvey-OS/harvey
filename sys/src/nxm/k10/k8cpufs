@@ -125,7 +125,7 @@ amd64 +dev
 	l64syscall
 	l64acsyscall
 	l64fpu
-	cpuidamd64
+	l64cpuid
 	acore
 	arch
 	archk10
