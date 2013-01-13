@@ -90,12 +90,13 @@ ndbreopen(Ndb *db)
 	Dir *d;
 
 	/* forget what we know about the open files */
-	if(db->mtime){
+	if(db->isopen){
 		_ndbcacheflush(db);
 		hffree(db);
 		close(Bfildes(&db->b));
 		Bterm(&db->b);
 		db->mtime = 0;
+		db->isopen = 0;
 	}
 
 	/* try the open again */
@@ -111,6 +112,7 @@ ndbreopen(Ndb *db)
 	db->qid = d->qid;
 	db->mtime = d->mtime;
 	db->length = d->length;
+	db->isopen = 1;
 	Binits(&db->b, fd, OREAD, db->buf, sizeof(db->buf));
 	free(d);
 	return 0;

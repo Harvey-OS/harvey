@@ -33,6 +33,7 @@ struct Ndb
 	Qid		qid;		/* qid of db file */
 	char		file[128];/* path name of db file */
 	ulong		length;		/* length of db file */
+	int		isopen;	/* true if the file is open */
 
 	int		nohash;		/* don't look for hash files */
 	Ndbhf		*hf;		/* open hash files */
