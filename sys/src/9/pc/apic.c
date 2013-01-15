@@ -218,7 +218,7 @@ lapicinit(Apic* apic)
 
 	lvt = (lapicr(LapicVER)>>16) & 0xFF;
 	if(lvt >= 4)
-		lapicw(LapicPCINT, ApicIMASK);
+		lapicw(LapicPCINT, ApicIMASK|(VectorPIC+IrqPCINT));
 	lapicw(LapicERROR, VectorPIC+IrqERROR);
 	lapicw(LapicESR, 0);
 	lapicr(LapicESR);
@@ -425,8 +425,16 @@ lapicintroff(void)
 void
 lapicnmienable(void)
 {
+	/*
+	 * On the one hand the manual says the vector information
+	 * is ignored if the delivery mode is NMI, and on the other
+	 * a "Receive Illegal Vector" should be generated for a
+	 * vector in the range 0 through 15.
+	 * Some implementations generate the error interrupt if the
+	 * NMI vector is invalid, so always give a valid value.
+	 */
 	if (lapicbase)
-		lapicw(LapicPCINT, ApicNMI);
+		lapicw(LapicPCINT, ApicNMI|(VectorPIC+IrqPCINT));
 	else
 		print("lapicnmienable: no lapic\n");
 }
@@ -435,7 +443,7 @@ void
 lapicnmidisable(void)
 {
 	if (lapicbase)
-		lapicw(LapicPCINT, ApicIMASK);
+		lapicw(LapicPCINT, ApicIMASK|(VectorPIC+IrqPCINT));
 	else
 		print("lapicnmidisable: no lapic\n");
 }
