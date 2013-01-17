@@ -10,16 +10,17 @@ typedef	struct	Lapic	Lapic;
 typedef	struct	Apic	Apic;
 
 struct Ioapic {
-	Lock;					/* IOAPIC: register access */
-	u32int*	addr;				/* IOAPIC: register base */
-	int	nrdt;				/* IOAPIC: size of RDT */
-	int	gsib;				/* IOAPIC: global RDT index */
+	Lock;					/* register access */
+	u32int*	addr;				/* register base */
+	uintmem	paddr;				/* register base */
+	int	nrdt;				/* size of RDT */
+	int	ibase;				/* global interrupt base */
 };
 
 struct Lapic {
 	int	machno;				/* APIC */
 
-	u32int	lvt[6];
+	u32int	lvt[7];
 	int	nlvt;
 	int	ver;
 
@@ -36,7 +37,7 @@ struct Apic {
 };
 
 enum {
-	Nbus		= 256,
+	Nbus		= 256,			/* must be 256 */
 	Napic		= 254,			/* xAPIC architectural limit */
 	Nrdt		= 64,
 };

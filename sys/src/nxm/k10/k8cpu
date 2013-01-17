@@ -53,7 +53,7 @@ link +dev
 
 misc +dev
 #	cache
-	mp		apic ioapic msi pci sipi
+	mp		mpacpi apic ioapic msi pci sipi
 
 #
 #boot cpu

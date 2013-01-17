@@ -51,7 +51,7 @@ link +dev
 	netdevmedium
 
 misc +dev
-	mp		apic ioapic msi pci sipi rdwr
+	mp		mpacpi apic ioapic msi pci sipi rdwr
 
 boot
 	tcp

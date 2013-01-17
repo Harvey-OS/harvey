@@ -40,7 +40,6 @@ enum {						/* IOAPIC registers */
 
 static Rdt rdtarray[Nrdt];
 static int nrdtarray;
-static int gsib;
 static Rbus* rdtbus[Nbus];
 static Rdt* rdtvecno[IdtMAX+1];
 
@@ -121,9 +120,10 @@ ioapicintrinit(int busno, int apicno, int intin, int devno, u32int lo)
 }
 
 void
-ioapicinit(int id, uintptr pa)
+ioapicinit(int id, int ibase, uintptr pa)
 {
 	Apic *apic;
+	static int base;
 
 	/*
 	 * Mark the IOAPIC useable if it has a good ID
@@ -136,6 +136,7 @@ ioapicinit(int id, uintptr pa)
 	if(apic->useable || (apic->addr = vmap(pa, 1024)) == nil)
 		return;
 	apic->useable = 1;
+	apic->paddr = pa;
 
 	/*
 	 * Initialise the I/O APIC.
@@ -145,9 +146,12 @@ ioapicinit(int id, uintptr pa)
 	lock(apic);
 	*(apic->addr+Ioregsel) = Ioapicver;
 	apic->nrdt = ((*(apic->addr+Iowin)>>16) & 0xff) + 1;
-	apic->gsib = gsib;
-	gsib += apic->nrdt;
-
+	if(ibase != -1)
+		apic->ibase = ibase;
+	else{
+		apic->ibase = base;
+		base += apic->nrdt;
+	}
 	*(apic->addr+Ioregsel) = Ioapicid;
 	*(apic->addr+Iowin) = id<<24;
 	unlock(apic);
@@ -168,8 +172,8 @@ ioapicdump(void)
 		apic = &xioapic[i];
 		if(!apic->useable || apic->addr == 0)
 			continue;
-		print("ioapic %d addr %#p nrdt %d gsib %d\n",
-			i, apic->addr, apic->nrdt, apic->gsib);
+		print("ioapic %d addr %#p nrdt %d ibase %d\n",
+			i, apic->addr, apic->nrdt, apic->ibase);
 		for(n = 0; n < apic->nrdt; n++){
 			lock(apic);
 			rtblget(apic, n, &hi, &lo);
@@ -367,19 +371,19 @@ ioapicintrenable(Vctl* v)
 
 		busno = BUSBNO(v->tbdf);
 		if((pcidev = pcimatchtbdf(v->tbdf)) == nil)
-			panic("no PCI dev for tbdf %#8.8ux\n", v->tbdf);
+			panic("no PCI dev for tbdf %#8.8ux", v->tbdf);
 		if((vecno = intrenablemsi(v, pcidev)) != -1)
 			return vecno;
 		disablemsi(v, pcidev);
 		if((devno = pcicfgr8(pcidev, PciINTP)) == 0)
-			panic("no INTP for tbdf %#8.8ux\n", v->tbdf);
+			panic("no INTP for tbdf %#8.8ux", v->tbdf);
 		devno = BUSDNO(v->tbdf)<<2|(devno-1);
 		DBG("ioapicintrenable: tbdf %#8.8ux busno %d devno %d\n",
 			v->tbdf, busno, devno);
 	}
 	else{
 		SET(busno, devno);
-		panic("unknown tbdf %#8.8ux\n", v->tbdf);
+		panic("unknown tbdf %#8.8ux", v->tbdf);
 	}
 
 	rdt = nil;

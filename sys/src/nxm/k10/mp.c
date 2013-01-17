@@ -173,7 +173,7 @@ mpmkintr(u8int* p)
 	return v;
 }
 
-static void
+static int
 mpparse(PCMP* pcmp, int maxcores)
 {
 	u32int lo;
@@ -245,7 +245,7 @@ mpparse(PCMP* pcmp, int maxcores)
 		 * p[1] is the APIC ID, p[4-7] is the memory mapped address.
 		 */
 		if(p[3] & 0x01)
-			ioapicinit(p[1], l32get(p+4));
+			ioapicinit(p[1], -1, l32get(p+4));
 
 		p += 8;
 		break;
@@ -348,6 +348,7 @@ mpparse(PCMP* pcmp, int maxcores)
 		p += p[1];
 		break;
 	}
+	return maxcores;
 }
 
 static int
@@ -477,7 +478,8 @@ mpsinit(int maxcores)
 	 * for later interrupt enabling and application processor
 	 * startup.
 	 */
-	mpparse(pcmp, maxcores);
+	maxcores = mpparse(pcmp, maxcores);
+	mpacpi(maxcores);
 
 	apicdump();
 	ioapicdump();

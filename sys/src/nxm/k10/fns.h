@@ -218,7 +218,7 @@ extern int apiconline(void);
 extern void apicpri(int);
 extern void apicsipi(int, uintmem);
 
-extern void ioapicinit(int, uintmem);
+extern void ioapicinit(int, int, uintmem);
 extern void ioapicintrinit(int, int, int, int, u32int);
 extern void ioapiconline(void);
 
@@ -247,6 +247,7 @@ extern u64int l64get(u8int *p);
  * mp.c
  */
 extern void mpsinit(int);
+extern int mpacpi(int);
 
 /*
  * sipi.c
