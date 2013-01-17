@@ -418,7 +418,7 @@ void
 mpsinit(int maxcores)
 {
 	u8int *p;
-	int i, n;
+	int i, n, ncleft;
 	_MP_ *mp;
 	PCMP *pcmp;
 
@@ -480,8 +480,8 @@ mpsinit(int maxcores)
 	 * for later interrupt enabling and application processor
 	 * startup.
 	 */
-	maxcores = mpparse(pcmp, maxcores);
-	mpacpi(maxcores);
+	ncleft = mpparse(pcmp, maxcores);
+	mpacpi(ncleft);
 
 	apicdump();
 	ioapicdump();

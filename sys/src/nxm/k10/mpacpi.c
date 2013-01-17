@@ -11,7 +11,7 @@
 extern	Madt	*apics;
 
 int
-mpacpi(int maxcores)
+mpacpi(int ncleft)
 {
 	char *already;
 	int np, bp;
@@ -25,16 +25,20 @@ mpacpi(int maxcores)
 		already = "";
 		switch(st->type){
 		case ASlapic:
-			if(st->lapic.id > Napic || np == maxcores)
+			/* this table is supposed to have all of them if it exists */
+			if(st->lapic.id > Napic)
 				break;
 			apic = xlapic + st->lapic.id;
 			bp = (np++ == 0);
 			if(apic->useable){
 				already = "(mp)";
-				goto pr;
 			}
-			apicinit(st->lapic.id, apics->lapicpa, bp);
-		pr:
+			else if(ncleft != 0){
+				ncleft--;
+				apicinit(st->lapic.id, apics->lapicpa, bp);
+			} else
+				already = "(off)";
+
 			print("apic proc %d/%d apicid %d %s\n", np-1, apic->machno, st->lapic.id, already);
 			break;
 		case ASioapic:
@@ -53,5 +57,5 @@ mpacpi(int maxcores)
 			break;
 		}
 	}
-	return maxcores - np;
+	return ncleft;
 }
