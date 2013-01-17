@@ -353,7 +353,6 @@ syscall(int badscallnr, Ureg* ureg)
 	/*
 	 * NIX: for the execac() syscall, what follows is done within
 	 * the system call, because it never returns.
-	 * See acore.c:/^retfromsyscall
 	 */
 
 	noerrorsleft();
