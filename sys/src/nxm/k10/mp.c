@@ -203,8 +203,10 @@ mpparse(PCMP* pcmp, int maxcores)
 		 */
 		DBG("mpparse: cpu %d pa %#ux bp %d\n",
 			p[1], l32get(pcmp->apicpa), p[3] & 0x02);
-		if((p[3] & 0x01) != 0 && maxcores-- > 0)
-			apicinit(p[1], l32get(pcmp->apicpa), p[3] & 0x02);
+		if((p[3] & 0x01) != 0 && maxcores > 0){
+				maxcores--;
+				apicinit(p[1], l32get(pcmp->apicpa), p[3] & 0x02);
+		}
 		p += 20;
 		break;
 	case 1:					/* bus */
