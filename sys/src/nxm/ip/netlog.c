@@ -7,7 +7,7 @@
 #include	"../ip/ip.h"
 
 enum {
-	Nlog		= 4*1024,
+	Nlog		= 16*1024,
 };
 
 /*
@@ -87,6 +87,8 @@ netlogopen(Fs *f)
 	if(f->alog->opens == 0){
 		if(f->alog->buf == nil)
 			f->alog->buf = malloc(Nlog);
+		if(f->alog->buf == nil)
+			error(Enomem);
 		f->alog->rptr = f->alog->buf;
 		f->alog->end = f->alog->buf + Nlog;
 	}
@@ -202,6 +204,7 @@ netlogctl(Fs *f, char* s, int n)
 		else
 			f->alog->iponlyset = 1;
 		free(cb);
+		poperror();
 		return;
 
 	default:
@@ -227,7 +230,7 @@ netlogctl(Fs *f, char* s, int n)
 void
 netlog(Fs *f, int mask, char *fmt, ...)
 {
-	char buf[128], *t, *fp;
+	char buf[256], *t, *fp;
 	int i, n;
 	va_list arg;
 
