@@ -72,7 +72,7 @@ TEXT _intrr<>(SB), 1, $-4			/* so ktrace can pop frame */
 
 	SWAPGS
 	MOVW	22(SP), GS
-	/* Linux needs 64-bit FS for thread local storage. 
+	/* Linux needs 64-bit FS for thread local storage.
 	 * 16-bit FS is an utterly useless register anyway. So don't
 	 * bother reloading it.
 	 * consider removing all loads of the 16-bit segments.

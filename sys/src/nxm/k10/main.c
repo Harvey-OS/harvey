@@ -294,7 +294,7 @@ main(u32int ax, u32int bx)
 
 	vsvminit(MACHSTKSZ, NIXTC);
 
-	sys->nmach = 1;			
+	sys->nmach = 1;
 
 	fmtinit();
 	print("\nNxM\n");
@@ -332,7 +332,7 @@ main(u32int ax, u32int bx)
 	 * things like that completely broken).
 	 */
 	acpiinit();
-	
+
 	umeminit();
 	trapinit();
 	printinit();
@@ -367,7 +367,7 @@ main(u32int ax, u32int bx)
 	swapinit();
 	userinit();
 	nixsquids();
-testiccs();	
+testiccs();
 print("schedinit...\n");
 	schedinit();
 }

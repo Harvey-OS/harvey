@@ -77,9 +77,9 @@ _linuxsyscallentry:
 
 TEXT linuxsyscallreturn(SB), 1, $-4
 #ifdef NOTNOW
-	/* we do the TLS setup in linuxsyscall.c. 
+	/* we do the TLS setup in linuxsyscall.c.
 	 * Leave this here in case we ever think it should be done
-	 * here. 
+	 * here.
 	 */
 	/* this is the time to set up TLS */
 	/* TLS is held in proc->tls, offset 32 */
@@ -120,7 +120,7 @@ _linuxsyscallreturn:
 	SWAPGS
 	MOVW	0(SP), DS
 	MOVW	2(SP), ES
-	/* This breaks TLS. 
+	/* This breaks TLS.
 	MOVW	4(SP), FS
 	*/
 	MOVW	6(SP), GS

@@ -239,10 +239,10 @@ traceend(int scallnr, uintptr sp, Ar0 *ar0, vlong startns, vlong stopns)
 	splx(s);
 	if(up->syscalltrace)
 		free(up->syscalltrace);
-	up->syscalltrace = nil;		
+	up->syscalltrace = nil;
 }
 
-/* special case: leaving sysrfork as a child. We consider 0 time to have passed. 
+/* special case: leaving sysrfork as a child. We consider 0 time to have passed.
  * always return 0.
  */
 void
@@ -286,13 +286,13 @@ syscall(int badscallnr, Ureg* ureg)
 		if(sp < (USTKTOP-BIGPGSZ) || sp > (USTKTOP-sizeof(up->arg)-BY2SE))
 			validaddr(UINT2PTR(sp), sizeof(up->arg)+BY2SE, 0);
 
-		syscallfmt(scallnr, (va_list)(sp+BY2SE));	
+		syscallfmt(scallnr, (va_list)(sp+BY2SE));
 		up->procctl = Proc_stopme;
 		procctl(up);
 		if(up->syscalltrace)
 			free(up->syscalltrace);
 		up->syscalltrace = nil;
-		startns = todget(nil);		
+		startns = todget(nil);
 	}
 
 	up->scallnr = scallnr;

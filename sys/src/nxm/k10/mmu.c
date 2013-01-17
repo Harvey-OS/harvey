@@ -283,7 +283,7 @@ checkpte(uintmem ppn, void *a)
 		l, pte, pte?*pte:~0);
 	return;
 Panic:
-	
+
 	seprint(s, buf+sizeof buf,
 		"checkpte: l%d addr %#p ppn %#ullx kaddr %#p pte %#p = %llux",
 		l, a, ppn, KADDR(ppn), pte, pte?*pte:~0);
@@ -332,7 +332,7 @@ mmuptpcheck(Proc *proc)
 				panic("ptpcheck: wrong prev");
 			}
 		}
-		
+
 	}
 	npgs = 0;
 	for(fp = proc->mmuptp[0]; fp != nil; fp = fp->next){
@@ -384,7 +384,7 @@ mmuput(uintptr va, Page *pg, uint attr)
 		panic("mmuput: zero pa");
 
 	if(DBGFLG){
-		snprint(buf, sizeof buf, "cpu%d: up %#p mmuput %#p %#P %#ux\n", 
+		snprint(buf, sizeof buf, "cpu%d: up %#p mmuput %#p %#P %#ux\n",
 			m->machno, up, va, pa, attr);
 		print("%s", buf);
 	}
@@ -462,7 +462,7 @@ mmuput(uintptr va, Page *pg, uint attr)
 	splx(pl);
 
 	if(DBGFLG){
-		snprint(buf, sizeof buf, "cpu%d: up %#p new pte %#p = %#llux\n", 
+		snprint(buf, sizeof buf, "cpu%d: up %#p new pte %#p = %#llux\n",
 			m->machno, up, pte, pte?*pte:~0);
 		print("%s", buf);
 	}

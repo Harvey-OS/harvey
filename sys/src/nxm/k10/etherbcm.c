@@ -91,7 +91,7 @@ enum {
 	MACPortMII		= 1<<2,
 	MACEnable		= 1<<23 | 1<<22 | 1<<21 | 1 << 15 | 1 << 14 | 1<<12 | 1<<11,
 	MACHalfDuplex		= 1<<1,
-	
+
 	MACEventStatus		= 0x404,
 	MACEventEnable	= 0x408,
 	MACAddress		= 0x410,
@@ -105,7 +105,7 @@ enum {
 	TxMACLengths		= 0x464,
 	MACHash		= 0x470,
 	RxRules			= 0x480,
-	
+
 	RxRulesConf		= 0x500,
 	LowWaterMax		= 0x504,
 	LowWaterMaxMask	= ~0xFFFF,
@@ -120,13 +120,13 @@ enum {
 	SendBDSelectorMode	= 0x1400,
 	SendBDInitiatorMode	= 0x1800,
 	SendBDCompletionMode	= 0x1C00,
-	
+
 	RxListPlacementMode	= 0x2000,
 	RxListPlacement		= 0x2010,
 	RxListPlacementConf	= 0x2014,
 	RxStats			= 1<<0,
 	RxListPlacementMask	= 0x2018,
-	
+
 	RxDataBDInitiatorMode	= 0x2400,
 	RxBDHostAddr		= 0x2450,
 	RxBDFlags		= 0x2458,
@@ -134,7 +134,7 @@ enum {
 	RxDataCompletionMode	= 0x2800,
 	RxBDInitiatorMode	= 0x2C00,
 	RxBDRepl		= 0x2C18,
-	
+
 	RxBDCompletionMode	= 0x3000,
 	HostCoalMode		= 0x3C00,
 	HostCoalRxTicks		= 0x3C08,
@@ -147,27 +147,27 @@ enum {
 	FlowAttention		= 0x3C48,
 
 	MemArbiterMode		= 0x4000,
-	
+
 	BufferManMode		= 0x4400,
-	
+
 	MBUFLowWater		= 0x4414,
 	MBUFHighWater		= 0x4418,
-	
+
 	ReadDMAMode		= 0x4800,
 	ReadDMAStatus		= 0x4804,
 	WriteDMAMode		= 0x4C00,
 	WriteDMAStatus		= 0x4C04,
-	
+
 	RISCState		= 0x5004,
 	FTQReset		= 0x5C00,
 	MSIMode		= 0x6000,
-	
+
 	ModeControl		= 0x6800,
 	ByteWordSwap		= 1<<4 | 1<<5 | 1<<2, // | 1<<1,
 	HostStackUp		= 1<<16,
 	HostSendBDs		= 1<<17,
 	InterruptOnMAC		= 1<<26,
-	
+
 	MiscConf		= 0x6804,
 	CoreClockBlocksReset	= 1<<0,
 	GPHYPwrdnOverride	= 1<<26,
@@ -177,7 +177,7 @@ enum {
 	MiscLocalControl		= 0x6808,
 	InterruptOnAttn		= 1<<3,
 	AutoSEEPROM		= 1<<24,
-	
+
 	SwArbitration		= 0x7020,
 	SwArbitSet1		= 1<<1,
 	SwArbitWon1		= 1<<9,
@@ -186,11 +186,11 @@ enum {
 	PhyAuxControl		= 0x18,
 	PhyIntStatus		= 0x1A,
 	PhyIntMask		= 0x1B,
-	
+
 	Updated			= 1<<0,
 	LinkStateChange		= 1<<1,
 	Error			= 1<<2,
-	
+
 	PacketEnd		= 1<<2,
 	FrameError		= 1<<10,
 };
@@ -389,7 +389,7 @@ replenish(Ctlr *ctlr)
 	uint incr;
 	u32int *next;
 	Block *bp;
-	
+
 	incr = (ctlr->recvprodi + 1) & (RxProdRingLen - 1);
 	if(incr == (ctlr->status[2] >> 16))
 		return -1;
@@ -419,7 +419,7 @@ bcmreceive(Ether *edev)
 	u32int *pkt;
 	Ctlr *ctlr;
 	Block *bp;
-	
+
 	ctlr = edev->ctlr;
 	for(; pkt = currentrecvret(ctlr); replenish(ctlr), consumerecvret(ctlr)) {
 		bp = ctlr->rxs[pkt[7]];
@@ -444,7 +444,7 @@ static void
 bcmtransclean(Ether *edev)
 {
 	Ctlr *ctlr;
-	
+
 	ctlr = edev->ctlr;
 	ilock(&ctlr->txlock);
 	while(ctlr->sendcleani != (ctlr->status[4] >> 16)) {
@@ -462,7 +462,7 @@ bcmtransmit(Ether *edev)
 	u32int *next;
 	Ctlr *ctlr;
 	Block *bp;
-	
+
 	ctlr = edev->ctlr;
 	ilock(&ctlr->txlock);
 	for(;;){
@@ -491,7 +491,7 @@ static void
 bcmerror(Ether *edev)
 {
 	Ctlr *ctlr;
-	
+
 	ctlr = edev->ctlr;
 	if(csr32(ctlr, FlowAttention)) {
 		if(csr32(ctlr, FlowAttention) & 0xf8ff8080)
@@ -518,7 +518,7 @@ bcminterrupt(Ureg*, void *arg)
 	u32int status, tag, dummy;
 	Ether *edev;
 	Ctlr *ctlr;
-	
+
 	edev = arg;
 	ctlr = edev->ctlr;
 	ilock(&ctlr->imlock);
@@ -579,7 +579,7 @@ bcminit(Ether *edev)
 	uint i;
 	u32int j;
 	Ctlr *ctlr;
-	
+
 	ctlr = edev->ctlr;
 	dprint("bcm: reset\n");
 	/* initialization procedure according to the datasheet */
@@ -748,7 +748,7 @@ didtype(Pcidev *p)
 {
 	if(p->vid != 0x14e4)
 		return -1;
-	
+
 	switch(p->did){
 	default:
 		return -1;
@@ -825,7 +825,7 @@ static void
 bcmpromiscuous(void* arg, int on)
 {
 	Ctlr *ctlr;
-	
+
 	ctlr = ((Ether*)arg)->ctlr;
 	if(on)
 		csr32(ctlr, RxMACMode) |= 1<<8;
@@ -848,7 +848,7 @@ bcmpnp(Ether* edev)
 		bcmpci();
 		done = 1;
 	}
-	
+
 redux:
 	for(ctlr = bcmhead; ; ctlr = ctlr->next) {
 		if(ctlr == nil)

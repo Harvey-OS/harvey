@@ -142,7 +142,7 @@ struct Reg
 	int	accsz;		/* access size */
 };
 
-/* Generic address structure. 
+/* Generic address structure.
  */
 #pragma pack on
 struct Gas
@@ -314,7 +314,7 @@ struct Srat
 			u64int	addr;	/* base address */
 			u64int	len;
 			int	hplug;	/* hot pluggable */
-			int	nvram;	/* non volatile */	
+			int	nvram;	/* non volatile */
 		} mem;
 		struct{
 			int	dom;	/* proximity domain */

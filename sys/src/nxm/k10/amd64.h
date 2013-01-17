@@ -147,7 +147,7 @@ enum {						/* Segment Descriptor */
  * Performance Counter Configuration
  */
 enum {						/* Performance Event Selector */
-    				 
+
 	PeHo		= 0x0000020000000000ull,/* Host only */
 	PeGo		= 0x0000010000000000ull,/* Guest only */
 	PeEvMskH	= 0x0000000f00000000ull,/* Event mask H */

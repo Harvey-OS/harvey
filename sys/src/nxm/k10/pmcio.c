@@ -12,7 +12,7 @@
 #include	"../port/pmc.h"
 
 
-/* non portable, for intel will be CPUID.0AH.EDX 
+/* non portable, for intel will be CPUID.0AH.EDX
  */
 
 enum {
@@ -29,7 +29,7 @@ pmcnregs(void)
 }
 
 //PeHo|PeGo
-#define PeAll	(PeOS|PeUsr)	
+#define PeAll	(PeOS|PeUsr)
 #define SetEvMsk(v, e) ((v)|(((e)&PeEvMskL)|(((e)<<(PeEvMsksh-8))&PeEvMskH)))
 #define SetUMsk(v, u) ((v)|(((u)<<8ull)&PeUnMsk))
 
@@ -194,16 +194,16 @@ pmcctlstr(char *str, int nstr, PmcCtl *p)
 		ns += snprint(str + ns, nstr - ns, "enable\n");
 	else
 		ns += snprint(str + ns, nstr - ns, "disable\n");
-		
+
 	if (p->user && p->user != PmcCtlNullval)
 		ns += snprint(str + ns, nstr - ns, "user\n");
 	if (p->os && p->user != PmcCtlNullval)
 		ns += snprint(str + ns, nstr - ns, "os\n");
-	
+
 	//TODO, inverse pmctrans?
 	if(!p->nodesc)
 		ns += snprint(str + ns, nstr - ns, "%s\n", p->descstr);
-	else 
+	else
 		ns += snprint(str + ns, nstr - ns, "no desc\n");
 	return ns;
 }

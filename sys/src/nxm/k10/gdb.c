@@ -536,7 +536,7 @@ gdb_handle_exception (struct Ureg *raw_regs, int type, int code)
 		remcomOutBuffer[0] = 0;
 
 		getpacket (remcomInBuffer);
-		switch (remcomInBuffer[0]) 
+		switch (remcomInBuffer[0])
 		{
 		case '?':
 			remcomOutBuffer[0] = 'S';

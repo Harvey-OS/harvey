@@ -150,7 +150,7 @@ struct MFPU
 struct NIX
 {
 	ICC*	icc;			/* inter-core call */
-	int	nixtype;	
+	int	nixtype;
 };
 
 /*

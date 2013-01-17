@@ -30,7 +30,7 @@ cpuidinit(void)
 
 	/* is mnonitor supported? */
 	if (m->cpuinfo[1][2] & 8) {
-		cpuid(5, 0, m->cpuinfo[2]);	
+		cpuid(5, 0, m->cpuinfo[2]);
 		mwait = k10mwait;
 	}
 
@@ -320,7 +320,7 @@ fmtW(Fmt *f)
 	return fmtprint(f, "%#ullx=0x[%ullx][%ullx][%ullx][%ullx][%ullx]", va,
 		PTLX(va, 3), PTLX(va, 2), PTLX(va, 1), PTLX(va, 0),
 		va & ((1<<PGSHFT)-1));
-		
+
 }
 
 void

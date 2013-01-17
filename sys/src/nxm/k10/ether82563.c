@@ -1,5 +1,5 @@
  /*
- * Intel 8256[367], 8257[1-9], 82573[ev], 
+ * Intel 8256[367], 8257[1-9], 82573[ev],
  * 82575eb, 82576, 82577, 82579, 8258[03]
  *	Gigabit Ethernet PCI-Express Controllers
  * Coraid EtherDrive® hba
@@ -479,7 +479,7 @@ enum {
 	i82575,
 	i82576,
 	i82577,
-	i82577m,	
+	i82577m,
 	i82578,
 	i82578m,
 	i82579,
@@ -870,7 +870,7 @@ i82563txinit(Ctlr* ctlr)
 	csr32w(ctlr, Tdt, 0);
 	for(i = 0; i < ctlr->ntd; i++){
 		if((bp = ctlr->tb[i]) != nil){
-			ctlr->tb[i] = nil;	
+			ctlr->tb[i] = nil;
 			freeb(bp);
 		}
 		memset(&ctlr->tdba[i], 0, sizeof(Td));
@@ -1910,7 +1910,7 @@ didtype(int d)
 	case 0x150f:		/* fiber */
 	case 0x1510:		/* backplane */
 	case 0x1511:		/* sfp */
-	case 0x1516:		
+	case 0x1516:
 		return i82580;
 	case 0x1506:		/* v */
 		return i82583;
@@ -1961,7 +1961,7 @@ i82563pci(void)
 		if((type = didtype(p->did)) == -1)
 			continue;
 		ctlr = malloc(sizeof(Ctlr));
-		if(ctlr == nil) 
+		if(ctlr == nil)
 			error(Enomem);
 		ctlr->type = type;
 		ctlr->pcidev = p;

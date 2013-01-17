@@ -292,16 +292,16 @@ kexit(Ureg*)
 		mp = up->ac;
 	else
 		mp = m;
-	tos->core = mp->machno;	
+	tos->core = mp->machno;
 	tos->nixtype = mp->nixtype;
-	_pmcupdate(m);	
+	_pmcupdate(m);
 	/*
 	 * The process may change its core.
 	 * Be sure it has the right cyclefreq.
 	 */
 	tos->cyclefreq = mp->cyclefreq;
 	/* Set thread local storage, used now in both Linux
-	 * and Go processes. 
+	 * and Go processes.
 	 */
 	wrmsr(FSbase, (uintptr) up->tls);
 }
@@ -671,7 +671,7 @@ userpc(Ureg* ureg)
 
 /* This routine must save the values of registers the user is not permitted
  * to write from devproc and then restore the saved values before returning.
- * TODO: fix this because the segment registers are wrong for 64-bit mode. 
+ * TODO: fix this because the segment registers are wrong for 64-bit mode.
  */
 void
 setregisters(Ureg* ureg, char* pureg, char* uva, int n)

@@ -38,7 +38,7 @@ getac(Proc *p, int core)
 		if(core >= MACHMAX)
 			error("no such core");
 		mp = sys->machptr[core];
-		DBG("Core %d mp %p online %p proc %p\n", core, mp, 
+		DBG("Core %d mp %p online %p proc %p\n", core, mp,
 				mp ? mp->online : 0, mp ? mp->proc : nil);
 		if(mp == nil || mp->online == 0 || mp->proc != nil)
 			error("core not online or busy");
@@ -65,7 +65,7 @@ getac(Proc *p, int core)
  * This is important for note handling, because postnote()
  * assumes that it's ok to send an IPI to an AC, no matter its
  * state. The /proc interface also assumes that.
- * 
+ *
  */
 void
 intrac(Proc *p)
@@ -310,7 +310,7 @@ runacore(void)
 	}
 ToTC:
 	/*
-	 *  to procctl, then syscall,  to 
+	 *  to procctl, then syscall,  to
 	 *  be back in the TC
 	 */
 	DBG("runacore: up %#p: return\n", up);

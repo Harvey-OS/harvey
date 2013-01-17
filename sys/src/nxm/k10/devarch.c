@@ -292,7 +292,7 @@ iounused(int start, int end)
 	for(map = iomap.map; map; map = map->next){
 		if(start >= map->start && start < map->end
 		|| start <= map->start && end > map->start)
-			return 0; 
+			return 0;
 	}
 	return 1;
 }
@@ -435,7 +435,7 @@ archread(Chan *c, void *a, long n, vlong offset)
 			}
 #endif
 		error("Not yet");
-	
+
 		break;
 	}
 
@@ -675,7 +675,7 @@ delay(int millisecs)
 		;
 }
 
-/*  
+/*
  *  performance measurement ticks.  must be low overhead.
  *  doesn't have to count over a second.
  */
