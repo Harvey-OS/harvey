@@ -25,6 +25,14 @@ _syslogopen(void)
 	sl.fd = open(buf, OWRITE|OCEXEC);
 }
 
+static int
+eqdirdev(Dir *a, Dir *b)
+{
+	return a != nil && b != nil &&
+		a->dev == b->dev && a->type == b->type &&
+		a->qid.path == b->qid.path;
+}
+
 /*
  * Print
  *  sysname: time: mesg
@@ -50,40 +58,31 @@ syslog(int cons, char *logname, char *fmt, ...)
 	 *  hasn't broken our fd's
 	 */
 	d = dirfstat(sl.fd);
-	if(sl.fd < 0
-	   || sl.name == nil
-	   || strcmp(sl.name, logname)!=0
-	   || sl.d == nil
-	   || d == nil
-	   || d->dev != sl.d->dev
-	   || d->type != sl.d->type
-	   || d->qid.path != sl.d->qid.path){
+	if(sl.fd < 0 || sl.name == nil || strcmp(sl.name, logname) != 0 ||
+	   !eqdirdev(d, sl.d)){
 		free(sl.name);
 		sl.name = strdup(logname);
 		if(sl.name == nil)
 			cons = 1;
 		else{
+			free(sl.d);
+			sl.d = nil;
 			_syslogopen();
 			if(sl.fd < 0)
 				cons = 1;
-			free(sl.d);
-			sl.d = d;
-			d = nil;	/* don't free it */
+			else
+				sl.d = dirfstat(sl.fd);
 		}
 	}
 	free(d);
 	if(cons){
 		d = dirfstat(sl.consfd);
-		if(sl.consfd < 0
-		   || d == nil
-		   || sl.consd == nil
-		   || d->dev != sl.consd->dev
-		   || d->type != sl.consd->type
-		   || d->qid.path != sl.consd->qid.path){
-			sl.consfd = open("#c/cons", OWRITE|OCEXEC);
+		if(sl.consfd < 0 || !eqdirdev(d, sl.consd)){
 			free(sl.consd);
-			sl.consd = d;
-			d = nil;	/* don't free it */
+			sl.consd = nil;
+			sl.consfd = open("#c/cons", OWRITE|OCEXEC);
+			if(sl.consfd >= 0)
+				sl.consd = dirfstat(sl.consfd);
 		}
 		free(d);
 	}
