@@ -2,12 +2,9 @@ Notify passed
 Writing from NxM program to stdout via linux write(2)
 Write to stdout is 54, should be 54
 Call pipe 7fffffbf9eb8
-handler: 7fffffbf9d38 linux:22 0x7fffffbf9eb8 0x7fffffbf9eb8 0x36 0x0 0x3600000000 0x0
 PIPE ret 0 = fd [3,4]
 write to pipe is 3 (should be 3)
 read from pipe is 3 (should be 3); data is :hi.:
-badsyscall 12: bad linux sys call number 16383(Unknown) pc 0x2003b1 max 1025
-handler: 7fffffbf9d38 sys: bad sys call pc=0x2003b1
 Handled 2
 Double-precision test number: 0.0000004000000000125
 Expected internal representation: 3e9ad7f29ac0499f
