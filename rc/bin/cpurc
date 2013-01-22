@@ -50,6 +50,8 @@ if(! test -e /srv/dns)
 #	mv /rc/bin/service/tcp567 /rc/bin/service/_tcp567
 # }
 
+# netssh
+
 # start listeners if it hasn't already been done (dicey check)
 if(! netstat -n | grep -s 'tcp.*Listen.* (7|9|21|22|23|25|110|113|565|993|17007|17009|17010) .*')
 	aux/listen -q tcp
