@@ -93,11 +93,11 @@ syslog(int cons, char *logname, char *fmt, ...)
 	}
 
 	ctim = ctime(time(0));
-	werrstr(err);
 	p = buf + snprint(buf, sizeof(buf)-1, "%s ", sysname());
 	strncpy(p, ctim+4, 15);
 	p += 15;
 	*p++ = ' ';
+	errstr(err, sizeof err);
 	va_start(arg, fmt);
 	p = vseprint(p, buf+sizeof(buf)-1, fmt, arg);
 	va_end(arg);
