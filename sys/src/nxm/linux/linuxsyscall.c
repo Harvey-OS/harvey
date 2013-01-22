@@ -107,8 +107,6 @@ linuxsyscall(unsigned int, Ureg* ureg)
 		linuxargs[5] = ureg->r9;
 
 		if(scallnr >= nlinuxsyscall){
-			pprint("bad linux sys call number %d(%s) pc %#ullx max %d\n",
-				scallnr, name, ureg->ip, nlinuxsyscall);
 			postnote(up, 1, "sys: bad sys call", NDebug);
 			error(Ebadarg);
 		}

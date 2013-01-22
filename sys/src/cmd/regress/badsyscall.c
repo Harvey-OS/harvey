@@ -8,6 +8,7 @@ int handled = 0;
 int back = 0;
 int inhandler = 0;
 int badsys = 0;
+int verbose = 0;
 char *msg = "Writing from NxM program to stdout via linux write(2)\n";
 
 void
@@ -19,7 +20,8 @@ handler(void *v, char *s)
         int i, n, nf;
 
 	inhandler = 1;
-	fprint(2, "handler: %p %s\n", v, s);
+	if (verbose)
+		fprint(2, "handler: %p %s\n", v, s);
 	handled++;
 	if (strncmp(s, "sys: bad sys call", 17)==0 && badsys){
 		badsys = 0;
