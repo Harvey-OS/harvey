@@ -5,12 +5,12 @@ enum {
 typedef struct {
 	uchar	dst[Eaddrlen];
 	uchar	src[Eaddrlen];
-	ushort	etype;
+	uchar	etype[2];
 	uchar	type;
 	uchar	conn;
 	uchar	seq;
 	uchar	len;
-	uchar	data[1500];
+	uchar	data[256];
 } Pkt;
 
 enum {

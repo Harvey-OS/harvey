@@ -6,7 +6,6 @@
 #include <u.h>
 #include <libc.h>
 #include <ip.h>		/* really! */
-#include <ctype.h>
 #include <bio.h>
 #include <ndb.h>
 #include "cec.h"
@@ -261,7 +260,7 @@ top:
 	ntab = 0;
 	memset(q.dst, 0xff, Eaddrlen);
 	memset(q.src, 0, Eaddrlen);
-	q.etype = htons(Etype);
+	putbe(q.etype, Etype, 2);
 	q.type = Tdiscover;
 	q.len = 0;
 	q.conn = 0;
@@ -349,7 +348,7 @@ pickone(void)
 		case -1:
 				exits0(0);
 		}
-		if(isdigit(buf[0])){
+		if(buf[0] >= '0' && buf[0] <= '9'){
 			buf[n] = 0;
 			i = atoi(buf);
 			if(i >= 0 && i < ntab)
@@ -360,14 +359,14 @@ pickone(void)
 }
 
 void
-sethdr(Pkt *pp, int type)
+sethdr(Pkt *p, int type)
 {
-	memmove(pp->dst, con->ea, Eaddrlen);
-	memset(pp->src, 0, Eaddrlen);
-	pp->etype = htons(Etype);
-	pp->type = type;
-	pp->len = 0;
-	pp->conn = contag;
+	memmove(p->dst, con->ea, Eaddrlen);
+	memset(p->src, 0, Eaddrlen);
+	putbe(p->etype, Etype, 2);
+	p->type = type;
+	p->len = 0;
+	p->conn = contag;
 }
 
 void
@@ -401,7 +400,7 @@ ethopen(int force)
 			w = Iowait;
 		}
 		timewait(w);
-		netget(&rpk, 1000);
+		netget(&rpk, sizeof rpk);
 		alarm(0);
 	}
 	if(rpk.type != Tinitb)
@@ -527,9 +526,8 @@ top:
 		}
 		break;
 	case Fcec:
-		if(memcmp(spk.src, ea, 6) != 0 || ntohs(spk.etype) != Etype)
+		if(memcmp(spk.src, ea, 6) != 0 || getbe(spk.etype, 2) != Etype)
 			continue;
-//		if(spk.type == Toffer && memcmp(spk.dst, bcast, 6) != 0){
 		if(spk.type == Toffer && spk.seq == 0){
 			muxfree(m);
 			return 1;

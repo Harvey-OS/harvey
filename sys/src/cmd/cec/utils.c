@@ -41,12 +41,12 @@ format(uchar *buf, int n, int t)
 			fprint(2, "%s\n", line);
 		sprint(line + r*Perch, "%.2x ", buf[i]);
 	}
+	if(n % 16 > 0)
+		fprint(2, "%s\n", line);
 }
 
 void
 dump(uchar *p, int n)
 {
 	format(p, n, 0);
-	if(n % 16 > 0)
-		print("%s\n", line);
 }

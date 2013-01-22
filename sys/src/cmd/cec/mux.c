@@ -4,9 +4,10 @@
 
 typedef struct {
 	char	type;
-	char	pad[3];
 	Pkt	p;
 } Muxmsg;
+
+#define	Muxo	(offsetof(Muxmsg, p))
 
 typedef struct {
 	int	fd;
@@ -38,7 +39,7 @@ muxcec(int, int cfd)
 
 	m.type = Fcec;
 	while((l = netget(&m.p, sizeof m.p)) > 0)
-		if(write(cfd, &m, l+4) != l+4)
+		if(write(cfd, &m, l+Muxo) != l+Muxo)
 			break;
 	exits("");
 }
@@ -47,10 +48,12 @@ void
 muxkbd(int kfd, int cfd)
 {
 	Muxmsg m;
+	int o;
 
 	m.type = Fkbd;
+	o = offsetof(Muxmsg, p.data[0]);
 	while((m.p.len = read(kfd, m.p.data, sizeof m.p.data)) > 0)
-		if(write(cfd, &m, m.p.len+22) != m.p.len+22)
+		if(write(cfd, &m, o+m.p.len) != o+m.p.len)
 			break;
 	m.type = Ffatal;
 	write(cfd, &m, 4);
@@ -152,7 +155,7 @@ muxread(Mux *m, Pkt *p)
 			m->step <<= 1;
 		return Ftimeout;
 	}
-	memcpy(p, &m->m.p, sizeof *p);
+	memcpy(p, &m->m.p, r-Muxo);
 	return m->m.type;
 }
 
