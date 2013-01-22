@@ -229,6 +229,9 @@ struct Dev
 	int	(*wstat)(Chan*, uchar*, int);
 	void	(*power)(int);	/* power mgt: power(1) => on, power (0) => off */
 	int	(*config)(int, char*, DevConf*);	/* returns nil on error */
+
+	/* not initialised */
+	int	attached;				/* debugging */
 };
 
 struct Dirtab
@@ -704,6 +707,7 @@ struct Proc
 	void	*kparg;
 
 	FPsave	fpsave;		/* address of this is known by db */
+	void	(*fpexit)(void); /* if non-nil, called by pexit */
 	int	scallnr;	/* sys call number - known by db */
 	Sargs	s;		/* address of this is known by db */
 	int	nerrlab;
