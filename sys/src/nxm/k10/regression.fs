@@ -9,6 +9,7 @@ ramfs -s
 mount -bc /srv/ramfs /
 echo badsyscall && badsyscall
 echo float && float
+echo frexp && frexp
 echo sysstatread && sysstatread
 #This will break jenkins but is useful for testing
 #echo -n V > /dev/regressctl
