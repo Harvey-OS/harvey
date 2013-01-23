@@ -4,6 +4,7 @@ MKSHELL=rc
 TARG = \
 	badsyscall\
 	float\
+	frexp\
 	sysstatread\
 	idseg\
 
