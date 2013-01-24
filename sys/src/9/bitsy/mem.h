@@ -1,6 +1,15 @@
 /*
  * Memory and machine-specific definitions.  Used in C and assembler.
  */
+#define KiB		1024u			/* Kibi 0x0000000000000400 */
+#define MiB		1048576u		/* Mebi 0x0000000000100000 */
+#define GiB		1073741824u		/* Gibi 000000000040000000 */
+
+#define HOWMANY(x, y)	(((x)+((y)-1))/(y))
+#define ROUNDUP(x, y)	(HOWMANY((x), (y))*(y))	/* ceiling */
+#define ROUNDDN(x, y)	(((x)/(y))*(y))		/* floor */
+#define MIN(a, b)	((a) < (b)? (a): (b))
+#define MAX(a, b)	((a) > (b)? (a): (b))
 
 /*
  * Sizes
