@@ -475,9 +475,13 @@ fpiarm(Ureg *ur)
 	 * because all the emulated fp state is in the proc structure,
 	 * it need not be saved/restored
 	 */
-	if(up->fpstate != FPactive){
+	switch(up->fpstate){
+	case FPactive:
+	case FPinactive:
+		error("illegal instruction: emulated fpu opcode in VFP mode");
+	case FPinit:
 		assert(sizeof(Internal) <= sizeof(ufp->regs[0]));
-		up->fpstate = FPactive;
+		up->fpstate = FPemu;
 		ufp->control = 0;
 		ufp->status = (0x01<<28)|(1<<12); /* sw emulation, alt. C flag */
 		for(n = 0; n < 8; n++)

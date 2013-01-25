@@ -37,19 +37,15 @@ and
 .B -c
 (CPU)
 force the behavior to correspond to the specified service class.
-Otherwise
-.I init
-uses the value of the environment variable
-.B $service
-to decide the service class.
+Otherwise the default is CPU.
 .PP
 .I Init
 sets environment variables
 .B $service
-(either to the incoming value or according to
-.B -t
+(to
+.L terminal
 or
-.BR -c ),
+.LR cpu ),
 .B $objtype
 (to the value of
 .BR $cputype ),

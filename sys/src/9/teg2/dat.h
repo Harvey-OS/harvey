@@ -95,13 +95,14 @@ struct FPsave
 };
 
 /*
- * FPsave.status
+ * FPsave.fpstate
  */
 enum
 {
 	FPinit,
 	FPactive,
 	FPinactive,
+	FPemu,
 
 	/* bit or'd with the state */
 	FPillegal= 0x100,

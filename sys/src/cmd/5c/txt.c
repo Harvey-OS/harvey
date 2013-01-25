@@ -721,8 +721,13 @@ gmove(Node *f, Node *t)
 			regfree(&nod1);
 			p1 = p;
 			regalloc(&nod, t, Z);
-			gins(AMOVF, nodfconst(2147483648.), &nod);
-			gins(AADDF, &nod, t);
+			if(tt == TFLOAT) {
+				gins(AMOVF, nodfconst(2147483648.), &nod);
+				gins(AADDF, &nod, t);
+			} else {
+				gins(AMOVD, nodfconst(2147483648.), &nod);
+				gins(AADDD, &nod, t);
+			}
 			regfree(&nod);
 			patch(p1, pc);
 			return;
@@ -1056,7 +1061,8 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 		nextpc();
 		p->as = a;
 		naddr(f1, &p->from);
-		if(a == ACMP && f1->op == OCONST && p->from.offset < 0) {
+		if(a == ACMP && f1->op == OCONST && p->from.offset < 0 &&
+		    p->from.offset != 0x80000000) {
 			p->as = ACMN;
 			p->from.offset = -p->from.offset;
 		}

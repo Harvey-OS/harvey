@@ -815,7 +815,7 @@ void
 trap(Ureg *ureg)
 {
 	int clockintr, user, rem;
-	uintptr va, ifar;
+	uintptr va, ifar, ifsr;
 
 	splhi();			/* paranoia */
 	if(up != nil)
@@ -860,11 +860,26 @@ trap(Ureg *ureg)
 		break;
 	case PsrMabt:			/* prefetch (instruction) fault */
 		va = ureg->pc;
-		ifar = cprdsc(0, CpFAR, 0, CpIFAR);
-		if (va != ifar)
-			iprint("trap: cpu%d: i-fault va %#p != ifar %#p\n",
-				m->machno, va, ifar);
-		faultarm(ureg, va, user, 1);
+		ifsr = cprdsc(0, CpFSR, 0, CpIFSR);
+		ifsr = (ifsr>>7) & 0x8 | ifsr & 0x7;
+		switch(ifsr){
+		case 0x02:		/* instruction debug event (BKPT) */
+			if(user)
+				postnote(up, 1, "sys: breakpoint", NDebug);
+			else{
+				iprint("kernel bkpt: pc %#lux inst %#ux\n",
+					va, *(u32int*)va);
+				panic("kernel bkpt");
+			}
+			break;
+		default:
+			ifar = cprdsc(0, CpFAR, 0, CpIFAR);
+			if (va != ifar)
+				iprint("trap: cpu%d: i-fault va %#p != ifar %#p\n",
+					m->machno, va, ifar);
+			faultarm(ureg, va, user, 1);
+			break;
+		}
 		break;
 	case PsrMabt+1:			/* data fault */
 		datafault(ureg, user);

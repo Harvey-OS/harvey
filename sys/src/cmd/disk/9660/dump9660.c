@@ -23,9 +23,13 @@ void
 usage(void)
 {
 	if(mk9660)
-		fprint(2, "usage: disk/mk9660 [-D:] [-9cjr] [-b bootfile] [-o offset blocksize] [-p proto] [-s src] cdimage\n");
+		fprint(2, "usage: disk/mk9660 [-D:] [-9cjr] "
+			"[-[bB] bootfile] [-o offset blocksize] "
+			"[-p proto] [-s src] cdimage\n");
 	else
-		fprint(2, "usage: disk/dump9660 [-D:] [-9cjr] [-m maxsize] [-n now] [-p proto] [-s src] cdimage\n");
+		fprint(2, "usage: disk/dump9660 [-D:] [-9cjr] "
+			"[-m maxsize] [-n now] "
+			"[-p proto] [-s src] cdimage\n");
 	exits("usage");
 }
 

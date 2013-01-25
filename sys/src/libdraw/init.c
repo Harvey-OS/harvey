@@ -200,7 +200,7 @@ getwindow(Display *d, int ref)
 Display*
 initdisplay(char *dev, char *win, void(*error)(Display*, char*))
 {
-	char buf[128], info[NINFO+1], *t, isnew;
+	char buf[NINFO+1], info[NINFO+1], *t, isnew;
 	int n, datafd, ctlfd, reffd;
 	Display *disp;
 	Dir *dir;

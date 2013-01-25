@@ -639,6 +639,9 @@ ocmp(const void *a1, const void *a2)
 	n = (p2->flag&V4) - (p1->flag&V4);	/* architecture version */
 	if(n)
 		return n;
+	n = (p2->flag&VFP) - (p1->flag&VFP);	/* floating point arch */
+	if(n)
+		return n;
 	n = p1->a1 - p2->a1;
 	if(n)
 		return n;
@@ -657,14 +660,18 @@ buildop(void)
 	int i, n, r;
 
 	armv4 = !debug['h'];
+	vfp = debug['f'];
 	for(i=0; i<C_GOK; i++)
 		for(n=0; n<C_GOK; n++)
 			xcmp[i][n] = cmp(n, i);
-	for(n=0; optab[n].as != AXXX; n++)
+	for(n=0; optab[n].as != AXXX; n++) {
+		if((optab[n].flag & VFP) && !vfp)
+			optab[n].as = AXXX;
 		if((optab[n].flag & V4) && !armv4) {
 			optab[n].as = AXXX;
 			break;
 		}
+	}
 	qsort(optab, n, sizeof(optab[0]), ocmp);
 	for(i=0; i<n; i++) {
 		r = optab[i].as;
@@ -679,6 +686,8 @@ buildop(void)
 		default:
 			diag("unknown op in build: %A", r);
 			errorexit();
+		case AXXX:
+			break;
 		case AADD:
 			oprange[AAND] = oprange[r];
 			oprange[AEOR] = oprange[r];

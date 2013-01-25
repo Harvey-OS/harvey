@@ -6,20 +6,21 @@
 # real dns root server ips
 #
 dom=a.root-servers.net ip=198.41.0.4
-dom=b.root-servers.net ip=128.9.0.107
+dom=b.root-servers.net ip=192.228.79.201
 dom=c.root-servers.net ip=192.33.4.12
-dom=d.root-servers.net ip=128.8.10.90
+dom=d.root-servers.net ip=199.7.91.13
 dom=e.root-servers.net ip=192.203.230.10
 dom=f.root-servers.net ip=192.5.5.241
 dom=g.root-servers.net ip=192.112.36.4
 dom=h.root-servers.net ip=128.63.2.53
 dom=i.root-servers.net ip=192.36.148.17
-dom=j.root-servers.net ip=198.41.0.10
+dom=j.root-servers.net ip=192.58.128.30
 dom=k.root-servers.net ip=193.0.14.129
 dom=l.root-servers.net ip=199.7.83.42		# nov 2007
 dom=m.root-servers.net ip=202.12.27.33
 
 # dom=a.root-servers.net ipv6=2001:503:ba3e::2:30
+# dom=d.root-servers.net ipv6=2001:500:2d::d
 # dom=f.root-servers.net ipv6=2001:500:2f::f
 # dom=h.root-servers.net ipv6=2001:500:1::803f:235
 # dom=i.root-servers.net ipv6=2001:7fe::53
@@ -202,6 +203,7 @@ tcp=time port=37
 tcp=whois port=43
 tcp=dns port=53
 tcp=domain port=53
+tcp=dns-test port=54	# localism
 tcp=uucp port=64
 tcp=gopher port=70
 tcp=rje port=77
@@ -248,6 +250,7 @@ tcp=guard port=566
 tcp=ticket port=567
 tcp=ldaps port=636
 tcp=fmclient port=729
+tcp=iscsi-system port=860
 tcp=ftps-data port=989
 tcp=ftps port=990
 tcp=imaps port=993
@@ -257,6 +260,7 @@ tcp=pptp port=1723
 tcp=nfs port=2049
 tcp=webster port=2627
 tcp=weather port=3000
+tcp=iscsi port=3260
 tcp=mysql port=3306
 tcp=sip port=5060
 tcp=sips port=5061
@@ -275,6 +279,7 @@ tcp=inflogin port=6673
 tcp=bandt port=7330
 tcp=ccnx port=9695
 tcp=dhashgate port=11978
+tcp=piepea port=13146	# πp
 tcp=exportfs port=17007
 tcp=rexexec port=17009
 tcp=ncpu port=17010
@@ -308,6 +313,7 @@ udp=bootp port=67
 udp=bootps port=67
 udp=domain port=53
 udp=dns port=53
+udp=dns-test port=54		# localism
 udp=portmap port=111
 udp=ntp port=123
 udp=netbios-ns port=137
@@ -330,6 +336,7 @@ udp=dhash port=11977
 udp=ulctl port=12666
 udp=uldata port=12667
 udp=dldata port=12668
+udp=piepea port=13146	# πp
 
 gre=ppp port=34827
 
@@ -358,6 +365,69 @@ auth=whale.lsub.org
 # for jmk
 auth=tor.texas.9grid.us authdom=9grid.us
 auth=9grid.net authdom=9grid.net
+auth=ibmremote.dyndns.org
+	authdom=ibmremote.dyndns.org
+	authdom=austin.ibm.com
 
 # for sape
 auth=130.89.145.31 authdom=cs.utwente.nl
+
+# for quanstro
+auth=tyty.coraid.com authdom=coraid.com
+auth=ladd.quanstro.net authdom=plan9.quanstro.net
+
+# for noah
+auth=172.17.3.23 authdom=plan9.anl.gov
+
+#
+# ipv6 networks
+#
+ipnet=all-v6 ip=:: ipmask=/0
+	fs=pie.cs.bell-labs.com			# was v6
+	venti=pie.cs.bell-labs.com		# was v6
+	cpu=fish				# was v6
+	ntp=chips
+	ntp=time1.net.lucent.com
+	dnsdomain=cs.bell-labs.com
+	dnsdomain=research.bell-labs.com
+	dnsdomain=bell-labs.com
+	radius=lra-radius
+	smtp=chipsv6.cs.bell-labs.com
+	dns=chipsv6
+	auth=p9authv6.cs.bell-labs.com
+	authdom=cs.bell-labs.com
+#
+# contact: Deborah Hogan
+# sub-allocations done by thomas.galuschka@hp.com
+#
+ipnet=lucent-v6 ip=2620:0:60:: ipmask=/48
+	fs=pie.cs.bell-labs.com			# was v6
+	venti=pie.cs.bell-labs.com		# was v6
+	cpu=fish				# was v6
+	ntp=chips
+	ntp=time1.net.lucent.com
+	dnsdomain=cs.bell-labs.com
+	dnsdomain=research.bell-labs.com
+	dnsdomain=bell-labs.com
+	radius=lra-radius
+	smtp=chipsv6.cs.bell-labs.com
+	dns=chipsv6
+	auth=p9authv6.cs.bell-labs.com
+	authdom=cs.bell-labs.com
+#
+# contact: Alastair Johnson
+#
+ipnet=alu-asia-pac-v6 ip=2406:c800:: ipmask=/32
+	fs=pie.cs.bell-labs.com			# was v6
+	venti=pie.cs.bell-labs.com		# was v6
+	cpu=fish				# was v6
+	ntp=chips
+	ntp=time1.net.lucent.com
+	dnsdomain=cs.bell-labs.com
+	dnsdomain=research.bell-labs.com
+	dnsdomain=bell-labs.com
+	radius=lra-radius
+	smtp=chipsv6.cs.bell-labs.com
+	dns=chipsv6
+	auth=p9authv6.cs.bell-labs.com
+	authdom=cs.bell-labs.com

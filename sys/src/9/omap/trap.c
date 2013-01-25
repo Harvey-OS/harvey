@@ -493,7 +493,23 @@ trap(Ureg *ureg)
 		break;
 	case PsrMabt:			/* prefetch fault */
 		ldrexvalid = 0;
-		faultarm(ureg, ureg->pc, user, 1);
+		x = ifsrget();
+		fsr = (x>>7) & 0x8 | x & 0x7;
+		switch(fsr){
+		case 0x02:		/* instruction debug event (BKPT) */
+			if(user){
+				snprint(buf, sizeof buf, "sys: breakpoint");
+				postnote(up, 1, buf, NDebug);
+			}else{
+				iprint("kernel bkpt: pc %#lux inst %#ux\n",
+					ureg->pc, *(u32int*)ureg->pc);
+				panic("kernel bkpt");
+			}
+			break;
+		default:
+			faultarm(ureg, ureg->pc, user, 1);
+			break;
+		}
 		break;
 	case PsrMabt+1:			/* data fault */
 		ldrexvalid = 0;

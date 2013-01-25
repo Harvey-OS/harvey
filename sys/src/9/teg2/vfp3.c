@@ -1,5 +1,5 @@
 /*
- * VFPv3 floating point unit
+ * VFPv2 or VFPv3 floating point unit
  */
 #include "u.h"
 #include "../port/lib.h"
@@ -9,6 +9,12 @@
 #include "ureg.h"
 #include "arm.h"
 
+/* subarchitecture code in m->havefp */
+enum {
+	VFPv2	= 2,
+	VFPv3	= 3,
+};
+
 /* fp control regs.  most are read-only */
 enum {
 	Fpsid =	0,
@@ -16,8 +22,8 @@ enum {
 	Mvfr1 =	6,
 	Mvfr0 =	7,
 	Fpexc =	8,			/* rw */
-	Fpinst =9,			/* optional, for exceptions */
-	Fpinst2 =10,
+	Fpinst= 9,			/* optional, for exceptions */
+	Fpinst2=10,
 };
 enum {
 	/* Fpexc bits */
@@ -34,12 +40,16 @@ enum {
 	/* Fpscr bits; see u.h for more */
 	Stride =	MASK(2) << 20,
 	Len =		MASK(3) << 16,
+	Dn=		1 << 25,
+	Fz=		1 << 24,
 	/* trap exception enables (not allowed in vfp3) */
 	FPIDNRM =	1 << 15,	/* input denormal */
 	Alltraps = FPIDNRM | FPINEX | FPUNFL | FPOVFL | FPZDIV | FPINVAL,
 	/* pending exceptions */
 	FPAIDNRM =	1 << 7,		/* input denormal */
-#define Allexc (FPAIDNRM | FPAINEX | FPAUNFL | FPAOVFL | FPAZDIV | FPAINVAL)
+	Allexc = FPAIDNRM | FPAINEX | FPAUNFL | FPAOVFL | FPAZDIV | FPAINVAL,
+	/* condition codes */
+	Allcc =		MASK(4) << 28,
 };
 enum {
 	/* CpCPaccess bits */
@@ -51,8 +61,8 @@ static char *
 subarch(int impl, uint sa)
 {
 	static char *armarchs[] = {
-		"VFPv1 (pre-armv7)",
-		"VFPv2 (pre-armv7)",
+		"VFPv1 (unsupported)",
+		"VFPv2",
 		"VFPv3+ with common VFP subarch v2",
 		"VFPv3+ with null subarch",
 		"VFPv3+ with common VFP subarch v3",
@@ -77,7 +87,7 @@ static int
 havefp(void)
 {
 	int gotfp;
-	ulong acc;
+	ulong acc, sid;
 
 	if (m->havefpvalid)
 		return m->havefp;
@@ -99,14 +109,24 @@ havefp(void)
 		m->havefpvalid = 1;
 		return 0;
 	}
-	if (acc & Cpaccd16)
+	m->fpon = 1;			/* don't panic */
+	sid = fprd(Fpsid);
+	m->fpon = 0;
+	switch((sid >> 16) & MASK(7)){
+	case 0:				/* VFPv1 */
+		break;
+	case 1:				/* VFPv2 */
+		m->havefp = VFPv2;
 		m->fpnregs = 16;
-	else
-		m->fpnregs = 32;
+		break;
+	default:			/* VFPv3 or later */
+		m->havefp = VFPv3;
+		m->fpnregs = (acc & Cpaccd16) ? 16 : 32;
+		break;
+	}
 	if (m->machno == 0)
 		print("fp: %d registers,%s simd\n", m->fpnregs,
 			(acc & Cpaccnosimd? " no": ""));
-	m->havefp = 1;
 	m->havefpvalid = 1;
 	return 1;
 }
@@ -143,7 +163,7 @@ fpcfg(void)
 	static int printed;
 
 	/* clear pending exceptions; no traps in vfp3; all v7 ops are scalar */
-	m->fpscr = FPRNR | (FPINVAL | FPZDIV | FPOVFL) & ~Alltraps;
+	m->fpscr = Dn | Fz | FPRNR | (FPINVAL | FPZDIV | FPOVFL) & ~Alltraps;
 	fpwr(Fpscr, m->fpscr);
 	m->fpconfiged = 1;
 
@@ -151,7 +171,7 @@ fpcfg(void)
 		return;
 	sid = fprd(Fpsid);
 	impl = sid >> 24;
-	print("fp: %s arch %s; r%ld\n", implement(impl),
+	print("fp: %s arch %s; rev %ld\n", implement(impl),
 		subarch(impl, (sid >> 16) & MASK(7)), sid & MASK(4));
 	printed = 1;
 }
@@ -171,7 +191,7 @@ fpon(void)
 	if (havefp()) {
 	 	fpononly();
 		if (m->fpconfiged)
-			fpwr(Fpscr, m->fpscr);
+			fpwr(Fpscr, (fprd(Fpscr) & Allcc) | m->fpscr);
 		else
 			fpcfg();	/* 1st time on this fpu; configure it */
 	}
@@ -260,6 +280,19 @@ fpsave(FPsave *fps)
 	fpoff();
 }
 
+static void
+fprestore(Proc *p)
+{
+	int n;
+
+	fpon();
+	fpwr(Fpscr, p->fpsave.control);
+	m->fpscr = fprd(Fpscr) & ~Allcc;
+	assert(m->fpnregs);
+	for (n = 0; n < m->fpnregs; n++)
+		fprestreg(n, *(uvlong *)p->fpsave.regs[n]);
+}
+
 /*
  * Called from sched() and sleep() via the machine-dependent
  * procsave() routine.
@@ -295,18 +328,8 @@ fpuprocsave(Proc *p)
  * exception and the state will then be restored.
  */
 void
-fpuprocrestore(Proc *p)
+fpuprocrestore(Proc *)
 {
-	int n;
-
-	if (p->fpstate == FPactive) {
-		fpon();
-		fpwr(Fpscr, p->fpsave.control);
-		m->fpscr = fprd(Fpscr);
-		assert(m->fpnregs);
-		for (n = 0; n < m->fpnregs; n++)
-			fprestreg(n, *(uvlong *)p->fpsave.regs[n]);
-	}
 }
 
 /*
@@ -353,9 +376,9 @@ mathnote(void)
 static void
 mathemu(Ureg *)
 {
-	if (!(fprd(Fpexc) & (Fpex|Fpdex)))
-		iprint("mathemu: not an FP exception but an unknown FP opcode\n");
 	switch(up->fpstate){
+	case FPemu:
+		error("illegal instruction: VFP opcode in emulated mode");
 	case FPinit:
 		fpinit();
 		up->fpstate = FPactive;
@@ -372,7 +395,7 @@ mathemu(Ureg *)
 			mathnote();
 			break;
 		}
-		fpuprocrestore(up);
+		fprestore(up);
 		up->fpstate = FPactive;
 		break;
 	case FPactive:
@@ -450,13 +473,10 @@ condok(int cc, int c)
 int
 fpuemu(Ureg* ureg)
 {
-	int s, nfp;
-	int cop, op;
+	int s, nfp, cop, op;
 	uintptr pc;
 
-	s = spllo();
 	if(waserror()){
-		splx(s);
 		postnote(up, 1, up->errstr, NDebug);
 		return 1;
 	}
@@ -471,18 +491,25 @@ fpuemu(Ureg* ureg)
 		iprint("fpuemu: conditional instr shouldn't have got here\n");
 	op  = (*(ulong *)pc >> 24) & MASK(4);
 	cop = (*(ulong *)pc >>  8) & MASK(4);
-	fpstuck(pc);			/* debugging; could move down 1 line */
+	if(m->fpon)
+		fpstuck(pc);		/* debugging; could move down 1 line */
 	if (ISFPAOP(cop, op)) {		/* old arm 7500 fpa opcode? */
-		iprint("fpuemu: fpa instr %#8.8lux at %#p\n", *(ulong *)pc, pc);
-		error("illegal instruction: old arm 7500 fpa opcode");
-//		nfp = fpiarm(ureg);	/* advances pc past emulated instr(s) */
-//		if (nfp > 1)		/* could adjust this threshold */
-//			m->fppc = m->fpcnt = 0;
+//		iprint("fpuemu: fpa instr %#8.8lux at %#p\n", *(ulong *)pc, pc);
+//		error("illegal instruction: old arm 7500 fpa opcode");
+		s = spllo();
+		if(waserror()){
+			splx(s);
+			nexterror();
+		}
+		nfp = fpiarm(ureg);	/* advances pc past emulated instr(s) */
+		if (nfp > 1)		/* could adjust this threshold */
+			m->fppc = m->fpcnt = 0;
+		splx(s);
+		poperror();
 	} else 	if (ISVFPOP(cop, op)) {	/* if vfp, fpu must be off */
 		mathemu(ureg);		/* enable fpu & retry */
 		nfp = 1;
 	}
-	splx(s);
 
 	poperror();
 	return nfp;

@@ -50,6 +50,7 @@ extern u32int fsrget(void);
 extern u32int getscr(void);
 extern u32int getpsr(void);
 extern ulong getwayssets(void);
+extern u32int ifsrget(void);
 extern void intrsoff(void);
 extern int isaconfig(char*, int, ISAConf*);
 extern int isdmadone(int);

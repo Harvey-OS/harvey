@@ -13,6 +13,7 @@
 #include "prolific.h"
 #include "ucons.h"
 #include "ftdi.h"
+#include "silabs.h"
 
 int serialdebug;
 
@@ -646,7 +647,11 @@ openeps(Serialport *p, int epin, int epout, int epintr)
 		fprint(2, "serial: openep %d: %r\n", epin);
 		return -1;
 	}
-	p->epout = openep(ser->dev, epout);
+	if(epout == epin){
+		incref(p->epin);
+		p->epout = p->epin;
+	}else
+		p->epout = openep(ser->dev, epout);
 	if(p->epout == nil){
 		fprint(2, "serial: openep %d: %r\n", epout);
 		closedev(p->epin);
@@ -672,8 +677,12 @@ openeps(Serialport *p, int epin, int epout, int epintr)
 
 	if(ser->seteps!= nil)
 		ser->seteps(p);
-	opendevdata(p->epin, OREAD);
-	opendevdata(p->epout, OWRITE);
+	if(p->epin == p->epout)
+		opendevdata(p->epin, ORDWR);
+	else{
+		opendevdata(p->epin, OREAD);
+		opendevdata(p->epout, OWRITE);
+	}
 	if(p->epin->dfd < 0 ||p->epout->dfd < 0 ||
 	    (ser->hasepintr && p->epintr->dfd < 0)){
 		fprint(2, "serial: open i/o ep data: %r\n");
@@ -707,9 +716,9 @@ findendpoints(Serial *ser, int ifc)
 		    ep->dir == Ein && epintr == -1)
 			epintr = ep->id;
 		if(ep->type == Ebulk){
-			if(ep->dir == Ein && epin == -1)
+			if((ep->dir == Ein || ep->dir == Eboth) && epin == -1)
 				epin = ep->id;
-			if(ep->dir == Eout && epout == -1)
+			if((ep->dir == Ein || ep->dir == Eboth) && epout == -1)
 				epout = ep->id;
 		}
 	}
@@ -833,6 +842,8 @@ serialmain(Dev *dev, int argc, char* argv[])
 		ser->Serialops = uconsops;
 	else if(ftmatch(ser, buf) == 0)
 		ser->Serialops = ftops;
+	else if(slmatch(buf) == 0)
+		ser->Serialops = slops;
 	else {
 		werrstr("serial: no serial devices found");
 		return -1;

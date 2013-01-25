@@ -135,7 +135,7 @@ char*	addsub[2] =
 int
 armclass(long w)
 {
-	int op, done;
+	int op, done, cp;
 
 	op = (w >> 25) & 0x7;
 	switch(op) {
@@ -220,8 +220,62 @@ armclass(long w)
 		op = (48+24+4+4+2) + ((w >> 24) & 0x1);
 		break;
 	case 7:	/* coprocessor crap */
+		cp = (w >> 8) & 0xF;
+		if(cp == 10 || cp == 11){	/* vfp */
+			if((w >> 4) & 0x1){
+				/* vfp register transfer */
+				switch((w >> 21) & 0x7){
+				case 0:
+					op = 118 + ((w >> 20) & 0x1);
+					break;
+				case 7:
+					op = 118+2 + ((w >> 20) & 0x1);
+					break;
+				default:
+					op = (48+24+4+4+2+2+4+4);
+					break;
+				}
+				break;
+			}
+			/* vfp data processing */
+			if(((w >> 23) & 0x1) == 0){
+				op = 100 + ((w >> 19) & 0x6) + ((w >> 6) & 0x1);
+				break;
+			}
+			switch(((w >> 19) & 0x6) + ((w >> 6) & 0x1)){
+			case 0:
+				op = 108;
+				break;
+			case 7:
+				if(((w >> 19) & 0x1) == 0)
+					if(((w >> 17) & 0x1) == 0)
+						op = 109 + ((w >> 16) & 0x4) +
+							((w >> 15) & 0x2) +
+							((w >> 7) & 0x1);
+					else if(((w >> 16) & 0x7) == 0x7)
+						op = 117;
+				else
+					switch((w >> 16) & 0x7){
+					case 0:
+					case 4:
+					case 5:
+						op = 117;
+						break;
+					}
+				break;
+			}
+			if(op == 7)
+				op = (48+24+4+4+2+2+4+4);
+			break;
+		}
 		op = (48+24+4+4+2+2) + ((w >> 3) & 0x2) + ((w >> 20) & 0x1);
 		break;
+	case 6:	/* vfp load / store */
+		if(((w >> 21) &0x9) == 0x8){
+			op = 122 + ((w >> 20) & 0x1);
+			break;
+		}
+		/* fall through */
 	default:	  
 		op = (48+24+4+4+2+2+4+4);
 		break;
@@ -402,6 +456,20 @@ armsdti(Opcode *o, Instr *i)
 		format("RET%C%p", i, "%I");
 		return;
 	}
+	format(o->o, i, o->a);
+}
+
+static void
+armvstdi(Opcode *o, Instr *i)
+{
+	ulong v;
+
+	v = (i->w & 0xff) << 2;
+	if(!(i->w & (1<<23)))
+		v = -v;
+	i->imm = v;
+	i->rn = (i->w >> 16) & 0xf;
+	i->rd = (i->w >> 12) & 0xf;
 	format(o->o, i, o->a);
 }
 
@@ -870,6 +938,40 @@ static Opcode opcodes[] =
 
 /* 99 */
 	"RFEV7%P%a",	armbdt, 0,	"(R%n)",
+
+/* 100 */
+	"MLA%f%C",	armdps,	0,	"F%s,F%n,F%d",
+	"MLS%f%C",	armdps,	0,	"F%s,F%n,F%d",
+	"NMLS%f%C",	armdps,	0,	"F%s,F%n,F%d",
+	"NMLA%f%C",	armdps,	0,	"F%s,F%n,F%d",
+	"MUL%f%C",	armdps,	0,	"F%s,F%n,F%d",
+	"NMUL%f%C",	armdps,	0,	"F%s,F%n,F%d",
+	"ADD%f%C",	armdps,	0,	"F%s,F%n,F%d",
+	"SUB%f%C",	armdps,	0,	"F%s,F%n,F%d",
+	"DIV%f%C",	armdps,	0,	"F%s,F%n,F%d",
+
+/* 109 */
+	"MOV%f%C",	armdps,	0,	"F%s,F%d",
+	"ABS%f%C",	armdps,	0,	"F%s,F%d",
+	"NEG%f%C",	armdps,	0,	"F%s,F%d",
+	"SQRT%f%C",	armdps,	0,	"F%s,F%d",
+	"CMP%f%C",	armdps,	0,	"F%s,F%d",
+	"CMPE%f%C",	armdps,	0,	"F%s,F%d",
+	"CMP%f%C",	armdps,	0,	"$0.0,F%d",
+	"CMPE%f%C",	armdps,	0,	"$0.0,F%d",
+
+/* 117 */
+	"MOV%F%R%C",	armdps, 0,	"F%s,F%d",
+
+/* 118 */
+	"MOVW%C",	armdps, 0,	"R%d,F%n",
+	"MOVW%C",	armdps, 0,	"F%n,R%d",
+	"MOVW%C",	armdps, 0,	"R%d,%x",
+	"MOVW%C",	armdps, 0,	"%x,R%d",
+
+/* 122 */
+	"MOV%f%C",	armvstdi,	0,	"F%d,%I",
+	"MOV%f%C",	armvstdi,	0,	"%I,F%d",
 };
 
 static void
@@ -1017,6 +1119,68 @@ format(char *mnemonic, Instr *i, char *f)
 		case 'g':
 			i->curr += gsymoff(i->curr, i->end-i->curr,
 				i->imm, CANY);
+			break;
+
+		case 'f':
+			switch((i->w >> 8) & 0xF){
+			case 10:
+				bprint(i, "F");
+				break;
+			case 11:
+				bprint(i, "D");
+				break;
+			}
+			break;
+
+		case 'F':
+			switch(((i->w >> 15) & 0xE) + ((i->w >> 8) & 0x1)){
+			case 0x0:
+				bprint(i, ((i->w >> 7) & 0x1)? "WF" : "WF.U");
+				break;
+			case 0x1:
+				bprint(i, ((i->w >> 7) & 0x1)? "WD" : "WD.U");
+				break;
+			case 0x8:
+				bprint(i, "FW.U");
+				break;
+			case 0x9:
+				bprint(i, "DW.U");
+				break;
+			case 0xA:
+				bprint(i, "FW");
+				break;
+			case 0xB:
+				bprint(i, "DW");
+				break;
+			case 0xE:
+				bprint(i, "FD");
+				break;
+			case 0xF:
+				bprint(i, "DF");
+				break;
+			}
+			break;
+
+		case 'R':
+			if(((i->w >> 7) & 0x1) == 0)
+				bprint(i, "R");
+			break;
+
+		case 'x':
+			switch(i->rn){
+			case 0:
+				bprint(i, "FPSID");
+				break;
+			case 1:
+				bprint(i, "FPSCR");
+				break;
+			case 2:
+				bprint(i, "FPEXC");
+				break;
+			default:
+				bprint(i, "FPS(%d)", i->rn);
+				break;
+			}
 			break;
 
 		case 'r':

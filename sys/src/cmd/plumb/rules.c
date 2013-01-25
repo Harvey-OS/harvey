@@ -123,6 +123,7 @@ popinput(void)
 		Bterm(in->fd);
 		free(in->fd);
 	}
+	free(in->file);
 	free(in);
 	return 1;
 }
@@ -572,6 +573,8 @@ readruleset(void)
 					parseerror("too many ports");
 				if(lookup(r->qarg, badports) >= 0)
 					parseerror("illegal port name %s", r->qarg);
+				if(rs->port)
+					free(rs->port);
 				rs->port = estrdup(r->qarg);
 			}else
 				ncmd++;	/* start or client rule */
