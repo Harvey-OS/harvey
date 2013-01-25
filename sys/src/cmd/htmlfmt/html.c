@@ -12,6 +12,7 @@ char urlexpr[] =
 	"://([a-zA-Z0-9_@\\-]+([.:][a-zA-Z0-9_@\\-]+)*)";
 Reprog	*urlprog;
 
+int newitextitem;
 int inword = 0;
 int col = 0;
 int wordi = 0;
@@ -68,7 +69,7 @@ emitword(Bytes *b, Rune *r, int nr)
 	if(nr == 0)
 		return;
 	s = smprint("%.*S", nr, r);
-	space = b->n > 0 && !isspace(b->b[b->n-1]) && !closingpunct(*s);
+	space = b->n > 0 && !isspace(b->b[b->n-1]) && (!newitextitem || !closingpunct(*s));
 	if(col > 0 && col+space+nr > width){
 		growbytes(b, "\n", 1);
 		space = 0;
@@ -82,12 +83,15 @@ emitword(Bytes *b, Rune *r, int nr)
 	col += nr;
 	free(s);
 	inword = 0;
+	newitextitem = 0;
 }
 
 void
 renderrunes(Bytes *b, Rune *r)
 {
 	int i, n;
+
+	newitextitem = 1;
 
 	n = runestrlen(r);
 	for(i=0; i<n; i++){
@@ -212,8 +216,10 @@ render(URLwin *u, Bytes *t, Item *items, int curanchor)
 			it = (Itext*)il;
 			if(it->state & IFwrap)
 				renderrunes(t, it->s);
-			else
+			else {
+				newitextitem = 1;
 				emitword(t, it->s, runestrlen(it->s));
+			}
 			break;
 		case Iruletag:
 			if(t->n>0 && t->b[t->n-1]!='\n')

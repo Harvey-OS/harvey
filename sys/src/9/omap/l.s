@@ -474,8 +474,12 @@ TEXT dacput(SB), 1, $-4				/* domain access control */
 	ISB
 	RET
 
-TEXT fsrget(SB), 1, $-4				/* fault status */
-	MRC	CpSC, 0, R0, C(CpFSR), C(0)
+TEXT fsrget(SB), 1, $-4				/* data fault status */
+	MRC	CpSC, 0, R0, C(CpFSR), C(0), CpDFSR
+	RET
+
+TEXT ifsrget(SB), 1, $-4			/* instruction fault status */
+	MRC	CpSC, 0, R0, C(CpFSR), C(0), CpIFSR
 	RET
 
 TEXT farget(SB), 1, $-4				/* fault address */

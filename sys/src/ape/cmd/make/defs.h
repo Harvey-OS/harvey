@@ -27,12 +27,14 @@ typedef char flag;	/* represent a few bit flag */
 #define NLEFTS	512
 #define NCHARS	500
 #define NINTS	250
-#define INMAX	20000
-#define OUTMAX	20000
-#define QBUFMAX	20000
-#define MAXDIR	10
-#define MAXPROC	100
-#define MAXINCLUDE	17
+
+/* cranked these up, we're not on the pdp-11 any more */
+#define INMAX	80000
+#define OUTMAX	80000
+#define QBUFMAX	80000
+#define MAXDIR	30
+#define MAXPROC	200
+#define MAXINCLUDE	32
 #define PROCLIMIT	3
 
 #define ALLDEPS	1
@@ -196,7 +198,7 @@ extern char	*copys(char *);
 extern char	*concat(char *, char *, char *);
 extern int	suffix(char *, char *, char *);
 extern int	*ckalloc(int);
-extern char	*subst(char *, char *);
+extern char	*subst(char *, char *, char *);
 extern void	setvar(char *, char *, int);
 extern void	set3var(char *, char *);
 extern int	eqsign(char *);

@@ -31,8 +31,8 @@ VFP3 floating point.  The go 5l generates VFP 3 floating-point
 instructions (among other changes).  Attempts to transplant just that
 code into our 5l failed to generate correct code.  Eventually someone
 will get this to work, and then we'll be able to use the hardware
-floating-point.  Even with only software emulation of floating-point,
-astro runs in under 3 seconds.
+floating-point.  [Eventually someone did, thanks.]  Even with only
+software emulation of floating-point, astro runs in under 3 seconds.
 
 In-line 64-bit arithmetic in 5[cl].
 

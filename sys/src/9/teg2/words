@@ -5,7 +5,7 @@ dram is 1GB at 0.
 linux believes that u-boot runs in the bottom 4MB.
 the l2 cache is a non-architectural bag nailed on the side.
 mp arm systems have a generic interrupt controller; this one is gic v1(!).
-vfp 3 floating-point is present.  5l doesn't yet generate those instructions.
+vfp 3 floating-point is present.
 
 section numbers (§) are in the tegra 2 tech. ref. man.
 for a minimal cpu server, need these devices to work:
@@ -19,7 +19,7 @@ for a minimal cpu server, need these devices to work:
 then add these:
 ☑	2nd cpu (cortex.a9.mpcore.pdf),
 ☑	l2 cache (l2cache.pl310.pdf, errata),
-☹	fpu (cortex.a9.fp.pdf): kernel done, 5l isn't,
+☑	fpu (cortex.a9.fp.pdf),
 ☑	user profiling,
 	kprof,
 	in-line 64-bit arithmetic,

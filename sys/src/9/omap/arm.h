@@ -58,6 +58,12 @@
 #define CpTTBctl	2			/* cortex */
 
 /*
+ * CpFSR op1==0, Crm==0 opcode 2 values.
+ */
+#define CpDFSR		0			/* data fault status */
+#define CpIFSR		1			/* instruction fault status */
+
+/*
  * CpID Secondary (CRm) registers.
  */
 #define CpIDidct	0

@@ -40,7 +40,7 @@ drawbar(void)
 {
 	int i, j;
 	int p;
-	char buf[200], bar[100], *s;
+	char buf[200], bar[100];
 	static char lastbar[100];
 
 	if(n > d || n < 0 || d <= 0)

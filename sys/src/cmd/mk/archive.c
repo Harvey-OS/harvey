@@ -101,7 +101,7 @@ atimes(char *ar)
 	}
 	at = d->mtime;
 	free(d);
-	while(read(fd, (char *)&h, sizeof(h)) == sizeof(h)){
+	while(read(fd, (char *)&h, SAR_HDR) == SAR_HDR){
 		t = atol(h.date);
 		if(t >= at)	/* new things in old archives confuses mk */
 			t = at-1;

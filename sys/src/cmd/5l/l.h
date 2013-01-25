@@ -139,6 +139,7 @@ enum
 	LTO		= 1<<1,
 	LPOOL		= 1<<2,
 	V4		= 1<<3,	/* arm v4 arch */
+	VFP		= 1<<4,	/* arm vfpv3 floating point */
 
 	C_NONE		= 0,
 	C_REG,
@@ -274,6 +275,7 @@ EXTERN	char	xcmp[C_GOK+1][C_GOK+1];
 EXTERN	Prog	zprg;
 EXTERN	int	dtype;
 EXTERN	int	armv4;
+EXTERN	int vfp;
 
 EXTERN	int	doexp, dlm;
 EXTERN	int	imports, nimports;
@@ -369,6 +371,7 @@ int	ocmp(const void*, const void*);
 long	opirr(int);
 Optab*	oplook(Prog*);
 long	oprrr(int, int);
+long	opvfprrr(int, int);
 long	olr(long, int, int, int);
 long	olhr(long, int, int, int);
 long	olrr(int, int, int, int);

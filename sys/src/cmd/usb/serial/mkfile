@@ -2,7 +2,7 @@
 
 TARG=serial
 OFILES=main.$O
-LIBDOFILES=ftdi.$O serial.$O prolific.$O ucons.$O
+LIBDOFILES=ftdi.$O serial.$O prolific.$O ucons.$O silabs.$O
 HFILES=\
 	../lib/usb.h\
 	ftdi.h\

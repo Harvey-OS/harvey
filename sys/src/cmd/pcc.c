@@ -12,11 +12,8 @@ typedef struct Objtype {
 
 Objtype objtype[] = {
 	{"spim",	"0c", "0l", "0", "0.out"},
-	{"68000",	"1c", "1l", "1", "1.out"},
-	{"68020",	"2c", "2l", "2", "2.out"},
 	{"arm",		"5c", "5l", "5", "5.out"},
 	{"amd64",	"6c", "6l", "6", "6.out"},
-	{"alpha",	"7c", "7l", "7", "7.out"},
 	{"386",		"8c", "8l", "8", "8.out"},
 	{"power64",	"9c", "9l", "9", "9.out"},
 	{"sparc",	"kc", "kl", "k", "k.out"},
@@ -110,6 +107,10 @@ main(int argc, char *argv[])
 			break;
 		case 'p':
 			append(&ldargs, "-p");
+			break;
+		case 'f':
+			if(strcmp(ot->name, "arm") == 0)
+				append(&ldargs, "-f");
 			break;
 		case 'a':
 			/* hacky look inside ARGBEGIN insides, to see if we have -aa */

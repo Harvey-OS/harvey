@@ -150,6 +150,16 @@ and
 only)
 Move strings into the text segment.
 .TP
+.B -f
+(\c
+.I 5l
+only)
+Generate VFP hardware floating-point instructions.
+Without this option,
+.I 5l
+generates arm7500 floating-point
+instructions which are emulated in the kernel.
+.TP
 .BI -H n
 Executable header is type
 .IR n .

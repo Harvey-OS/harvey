@@ -64,7 +64,7 @@ enum {
 int kbmain(Dev *d, int argc, char*argv[]);
 
 enum{
-	MaxChLen	= 16,	/* bytes */
+	MaxChLen	= 64,	/* bytes */
 };
 
 struct Chain {
@@ -83,13 +83,13 @@ enum {
 	KindY,
 	KindWheel,
 
-	MaxVals	= 8,
+	MaxVals	= 16,
 	MaxIfc	= 8,
 };
 
 struct HidInterface {
 	ulong	v[MaxVals];	/* one ulong per val should be enough */
-	int	kind[MaxVals];
+	uchar	kind[MaxVals];
 	int	nbits;
 	int	count;
 };
@@ -116,10 +116,12 @@ enum {
 	HidPtr		= 0x01,
 	HidX		= 0x30,
 	HidY		= 0x31,
+	HidZ		= 0x32,
 	HidWheel	= 0x38,
 
 	HidInput	= 0x81,
 	HidReportId	= 0x85,
+	HidReportIdPtr	= 0x01,
 
 	HidEnd		= 0xc0,
 };

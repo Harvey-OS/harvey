@@ -35,7 +35,7 @@ _sock_ingetaddr(Rock *r, struct sockaddr_in *ip, int *alen, char *a)
 			if(p){
 				*p++ = 0;
 				ip->sin_family = AF_INET;
-				ip->sin_port = atoi(p);
+				ip->sin_port = htons(atoi(p));
 				ip->sin_addr.s_addr = inet_addr(name);
 				if(alen)
 					*alen = sizeof(struct sockaddr_in);

@@ -24,7 +24,7 @@ as specified by the environment variable
 The object files are then loaded using one of the loaders described in
 .IR 8l (1).
 The options are:
-.TP \w'\fL-D\ \fIname=def\ 'u
+.TP \w'\fL-D\ \fIname\ 'u
 .B "-+
 Accept C++
 .B //
@@ -137,6 +137,9 @@ Enable vararg type checking as described in
 This is of limited use without the appropriate 
 .B #pragma 
 definitions.
+.TP
+.B -f
+(ARM only) Generate VFP hardware floating point instructions.
 .PP
 The APE environment contains all of the include
 files and library routines specified in the ANSI C standard
@@ -170,7 +173,7 @@ ANSI C/POSIX library.
 .IR acid (1),
 .IR db (1),
 .IR prof (1)
-.PP
+.br
 Howard Trickey,
 ``APE \(em The ANSI/POSIX Environment''
 .SH SOURCE

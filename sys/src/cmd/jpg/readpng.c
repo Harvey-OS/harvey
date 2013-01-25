@@ -15,7 +15,7 @@ enum
 	/* filtering algorithms */
 	FilterNone =	0,	/* new[x][y] = buf[x][y] */
 	FilterSub =	1,	/* new[x][y] = buf[x][y] + new[x-1][y] */ 
-	FilterUp =		2,	/* new[x][y] = buf[x][y] + new[x][y-1] */ 
+	FilterUp =	2,	/* new[x][y] = buf[x][y] + new[x][y-1] */ 
 	FilterAvg =	3,	/* new[x][y] = buf[x][y] + (new[x-1][y]+new[x][y-1])/2 */ 
 	FilterPaeth =	4,	/* new[x][y] = buf[x][y] + paeth(new[x-1][y],new[x][y-1],new[x-1][y-1]) */
 	FilterLast =	5,
@@ -389,8 +389,8 @@ readslave(Biobuf *b)
 	ZlibW zw;
 
 	buf = pngmalloc(IDATSIZE, 0);
-	Bread(b, buf, sizeof PNGmagic);
-	if(memcmp(PNGmagic, buf, sizeof PNGmagic) != 0)
+	if(Bread(b, buf, sizeof PNGmagic) != sizeof PNGmagic ||
+	    memcmp(PNGmagic, buf, sizeof PNGmagic) != 0)
 		sysfatal("bad PNGmagic");
 
 	n = getchunk(b, type, buf, IDATSIZE);

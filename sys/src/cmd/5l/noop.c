@@ -302,6 +302,30 @@ noops(void)
 
 			break;
 
+		/*
+		 * 5c code generation for unsigned -> double made the
+		 * unfortunate assumption that single and double floating
+		 * point registers are aliased - true for emulated 7500
+		 * but not for vfp.  Now corrected, but this test is
+		 * insurance against old 5c compiled code in libraries.
+		 */
+		case AMOVWD:
+			if((q = p->link) != P && q->as == ACMP)
+			if((q = q->link) != P && q->as == AMOVF)
+			if((q1 = q->link) != P && q1->as == AADDF)
+			if(q1->to.type == D_FREG && q1->to.reg == p->to.reg) {
+				q1->as = AADDD;
+				q1 = prg();
+				q1->scond = q->scond;
+				q1->line = q->line;
+				q1->as = AMOVFD;
+				q1->from = q->to;
+				q1->to = q1->from;
+				q1->link = q->link;
+				q->link = q1;
+			}
+			break;
+
 		case ADIV:
 		case ADIVU:
 		case AMOD:

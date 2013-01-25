@@ -302,7 +302,6 @@ getbits(DState *s, int lll, int *vvv, int nnn)
 		if (s->strm->total_in_lo32 == 0)
 			s->strm->total_in_hi32++;
 	}
-	return -1;	/* KEN */
 }
 
 #define GET_UCHAR(lll,uuu)                        \

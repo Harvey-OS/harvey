@@ -1,7 +1,6 @@
 CC = cc     # the usual situation
 CFLAGS =    # the usual situation
 
-CC = lcc        # you will probably want to remove this 
 CFLAGS = -g -N -I/usr/include/lcc -I/usr/include       # and this
 
 YFLAGS = -d
