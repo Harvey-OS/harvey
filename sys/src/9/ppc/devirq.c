@@ -74,6 +74,23 @@ Lock irqlock;
 static void interrupt(Ureg*, void*);
 void dumpvno(void);
 
+#ifdef notdef
+ulong multiplier;
+
+ulong
+µs(void)
+{
+	uvlong x;
+
+	if(multiplier == 0){
+		multiplier = (uvlong)(1000000LL << 16) / m->cyclefreq;
+		print("µs: multiplier %ld, cyclefreq %lld, shifter %d\n", multiplier, m->cyclefreq, 16);
+	}
+	cycles(&x);
+	return (x*multiplier) >> 16;
+}
+#endif
+
 static void
 ticmstimer(Ureg*, Timer *t)
 {
@@ -302,7 +319,7 @@ irqwrite(Chan *c, void *a, long n, vlong)
 			iomem->simr_h, iomem->simr_l,
 			iomem->sipnr_h, iomem->sipnr_l,
 			iomem->siexr, iomem->siprr);
-		dumpvno();
+//		dumpvno();
 	}
 	poperror();
 	free(cb);

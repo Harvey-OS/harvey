@@ -1,0 +1,57 @@
+dev
+	root
+	cons
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+	arch
+	ip		arp chandial ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum inferno
+	draw	screen vcore
+	mouse	mouse
+	kbin	kbd latin1
+	uart
+
+	fakertc
+	sd
+	usb
+
+link
+	archbcm
+	loopbackmedium
+	ethermedium
+	usbdwc
+
+ip
+	tcp
+	udp
+	ipifc
+	icmp
+	icmp6
+	ipmux
+
+misc
+	uartmini
+	sdmmc	emmc
+	dma
+	vfp3	coproc
+
+port
+	int cpuserver = 0;
+
+bootdir
+	boot.rc			boot
+	/arm/bin/rc
+	/rc/lib/rcmain
+	/arm/bin/mount
+	/arm/bin/bind
+	/arm/bin/echo
+	/arm/bin/disk/fdisk
+	/arm/bin/dossrv
+	/arm/bin/ls
+	/arm/bin/cat
+	/arm/bin/usb/usbd
+
+

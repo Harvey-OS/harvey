@@ -501,6 +501,8 @@ ifstat(Ether* ether, void* a, long n, ulong offset)
 	return n;
 }
 
+IMM* imm;
+
 /*
  * This follows the MPC8260 user guide: section28.9's initialisation sequence.
  */

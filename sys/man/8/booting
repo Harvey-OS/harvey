@@ -105,7 +105,7 @@ Once the kernel is loaded,
 it prompts for the Ethernet
 protocol to use to reach the root file server; request the default.
 .
-.SS ARM CPU Servers
+.SS ARM Systems
 All ARM systems are started by
 .I U-boot
 using similar commands.
@@ -128,6 +128,11 @@ for TI OMAP3 boards (IGEPv2 from ISEE, Gumstix Overo)
 .TP
 .L /arm/9ts
 for Trimslice systems, which contain the Nvidia Tegra 2
+.TP
+.L /arm/9pi
+.TP
+.L /arm/9picpu
+for Raspberry Pis
 .PD
 .LP
 In the following,
@@ -233,6 +238,14 @@ type this after
 .IP
 .EX
 \&'dhcp; dhcp; tftpboot 0x410000; tftpboot 0x400000 %C; go 0x410000'
+.EE
+.PP
+For Raspberry Pis,
+type this after
+.LR "setenv bootcmd" :
+.IP
+.EX
+\&'usb start; dhcp; tftp 100 %C; go 8000'
 .EE
 .PP
 Thereafter, the boards will automatically boot via BOOTP and TFTP

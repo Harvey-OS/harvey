@@ -104,12 +104,14 @@ for the iPAQ, which uses a StrongArm SA1, and the Sheevaplug,
 Guruplug, Dreamplug, Gumstix Overo, Compulab Trimslice and others.
 The compiler supports the ARMv4 and later 32-bit architectures;
 it does not support the Thumb instruction sets.
-It has been used on ARM7500FE, ARM926 and Cortex-A8 processors
+It has been used on ARM7500FE, ARM926 and Cortex-A8 and -A9 processors
 and the Strongarm SA1 core machines.
 The compiler generates instructions for
-ARM 7500 FPA floating-point coprocessor 1,
-but probably should instead generate VFP 3+ instructions
-for coprocessors 10 and 11.
+ARM 7500 FPA floating-point coprocessor 1 by default,
+but
+.CW 5l
+.CW -f
+instead generates VFP instructions for coprocessors 10 and 11.
 .
 .SH
 The IBM PC operating system
@@ -237,7 +239,7 @@ for information about installing Plan 9 on the iPAQ.
 The Marvell Kirkwood operating system
 .PP
 This is an ARM kernel for the ARM926EJ-S processor
-and it emulates floating-point and
+and it emulates ARM 7500 floating-point and
 CAS (compare-and-swap) instructions.
 It is known to run on the Sheevaplug, Guruplug, Dreamplug
 and Openrd-client boards.
@@ -254,7 +256,7 @@ The Marvell PXA168 operating system
 .PP
 This is an ARM kernel for the ARM-v5-architecture processor in the
 Marvell PXA168 system-on-a-chip
-and it emulates floating-point and
+and it emulates ARM 7500 floating-point and
 CAS (compare-and-swap) instructions.
 It is known to run on the Guruplug Display.
 There are many features of the system-on-a-chip
@@ -267,7 +269,7 @@ we hope to add crypto acceleration, and a video driver.
 The TI OMAP35 operating system
 .PP
 This is an ARM kernel for the Cortex-A8 processor
-and it emulates pre-VFPv3 floating-point and
+and it emulates ARM 7500 floating-point and
 CAS (compare-and-swap) instructions.
 It is known to run on the IGEPv2 board and the Gumstix Overo,
 and might eventually run on the Beagleboard, once USB is working.
@@ -281,16 +283,21 @@ The Nvidia Tegra2 operating system
 .PP
 This is an ARM kernel for the dual Cortex-A9 processors
 in the Nvidia Tegra2 system-on-a-chip
-and it emulates pre-VFPv3 floating-point and
-CAS (compare-and-swap) instructions
-(the hardware has VFP3 floating-point but
-.CW 5l
-doesn't generate the new opcodes yet).
+and it emulates ARM 7500 floating-point and
+CAS (compare-and-swap) instructions, but
+the hardware includes VFP3 floating-point.
 It runs on the Compulab Trimslice.
 There are many features of the system-on-a-chip that it does not exploit.
 Initially, there are drivers for the Ethernet interface
 and the console serial port;
 we hope to add USB, flash memory and video drivers.
+.SH
+The Broadcom 2835 operating system
+.PP
+This is terminal and CPU kernels for the ARM1176 processor
+in the Broadcom 2835 system-on-a-chip.
+The hardware includes VFP2 floating-point.
+It runs on the Raspberry Pi Model B.
 .
 .ig
 .SH

@@ -11,6 +11,18 @@
 static Lock vctllock;
 Vctl *vctl[256];
 
+int intrstack[5];
+uvlong intrtime[5];
+vlong lastoffset;
+int inintr;
+int nintr[10];
+int nintro;
+int dblintr[64];
+ulong thisto[32];
+ulong thistoo;
+vlong vnot[64];
+ulong vnon[64];
+
 void
 intrenable(int irq, void (*f)(Ureg*, void*), void* a, char *name)
 {
@@ -387,6 +399,63 @@ setmvec(int v, void (*r)(void), void (*t)(void))
 		vp[n] = 0x4e800021;		/* BL (LR) */
 	}else
 		vp[n] = (18<<26)|(pa&0x3FFFFFC)|3;	/* bla */
+}
+
+
+void
+intr(Ureg *ureg)
+{
+	int vno, pvno, i;
+	Vctl *ctl, *v;
+	void (*pt)(Proc*, int, vlong);
+	uvlong tt, x;
+
+	cycles(&tt);
+	pt = proctrace;
+	pvno = -1;
+	for(i = 0; i < 64; i++){
+		vno = intvec();
+		if(vno == 0)
+			break;
+		cycles(&x);
+		vnot[vno] -= x;
+		if(vno == pvno)
+			dblintr[vno]++;
+		pvno = vno;
+		if(pt && up && up->trace)
+			pt(up, (vno << 16) | SInts, 0);
+	
+		if(vno > nelem(vctl) || (ctl = vctl[vno]) == 0) {
+			iprint("spurious intr %d\n", vno);
+			return;
+		}
+
+		for(v = ctl; v != nil; v = v->next)
+			if(v->f)
+				v->f(ureg, v->a);
+
+		intend(vno);	/* reenable the interrupt */
+
+		if(pt && up && up->trace)
+			pt(up, (vno << 16) | SInte, 0);
+		cycles(&x);
+		vnot[vno] += x;
+		vnon[vno]++;
+	}
+	if(i < nelem(nintr))
+		nintr[i]++;
+	else
+		nintro++;
+	cycles(&x);
+	tt = x - tt;
+	i = tt / 3600;	 /* 100 microseconds units */
+	if(i < nelem(thisto))
+		thisto[i]++;
+	else
+		thistoo++;
+
+	if(up)
+		preempted();
 }
 
 char*

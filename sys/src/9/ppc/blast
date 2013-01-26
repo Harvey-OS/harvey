@@ -56,4 +56,4 @@ bootdir
 	/power/bin/auth/factotum
 	/power/bin/ls
 	/power/bin/auth/wrkey
-	/sys/lib/sysconfig/blast/boot
+	/sys/lib/sysconfig/ppc/boot
