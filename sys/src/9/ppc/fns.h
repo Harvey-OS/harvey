@@ -1,9 +1,11 @@
 #include "../port/portfns.h"
 
+ulong	cankaddr(ulong);
 int	cistrcmp(char*, char*);
 int	cistrncmp(char*, char*, int);
 void	clockinit(void);
 void	clockintr(Ureg*);
+int	cmpswap(long*, long, long);
 void	cpuidprint(void);
 void	cycles(uvlong*);
 void	dbgputc(int c);

@@ -97,6 +97,57 @@ smcpnp(void)
 }
 
 void
+smcsetup(Uart *uart)
+{
+	Uartsmc *p;
+	SMC *smc;
+	UartData *ud;
+
+	ud = uart->regs;
+
+	/* magic addresses */
+
+	p = &m->immr->uartsmc[ud->smcno];
+	smc = imm->smc + ud->smcno;	/* SMC1 */
+	ud->smc = smc;
+	ud->usmc = p;
+
+	/* step 0: disable rx/tx */
+	smc->smcmr &= ~3;
+
+	ioplock();
+
+	/* step 1, Using Port D */
+	if (ud->smcno != 0)
+		panic("Don't know how to set Port D bits");
+	imm->port[SMC1PORT].ppar |= SMRXD1|SMTXD1;
+	imm->port[SMC1PORT].pdir |= SMTXD1;
+	imm->port[SMC1PORT].pdir &= ~SMRXD1;
+	imm->port[SMC1PORT].psor &= ~(SMRXD1|SMTXD1);
+
+	/* step 2: set up brgc1 */
+	imm->brgc[ud->smcno]  = baudgen(uart->baud) | 0x10000;
+
+	/* step 3: route clock to SMC1 */
+	imm->cmxsmr &= (ud->smcno == 0) ? ~0xb0 : ~0xb;	/* clear smcx and smcxcs */
+
+	iopunlock();
+
+	/* step 4: assign a pointer to the SMCparameter RAM */
+	m->immr->param[ud->smcno].smcbase = (ulong)p - IMMR;
+
+	/* step 6: issue command to CP */
+	if (ud->smcno == 0)
+		cpmop(InitRxTx, SMC1ID, 0);
+	else
+		cpmop(InitRxTx, SMC2ID, 0);
+
+	/* step 7: protocol parameters */
+	p->rfcr = 0x30;
+	p->tfcr = 0x30;
+}
+
+void
 smcinit(Uart *uart)
 {
 	Uartsmc *p;

@@ -64,8 +64,10 @@ LIB=\
 	/$objtype/lib/libmemlayer.a\
 	/$objtype/lib/libmemdraw.a\
 	/$objtype/lib/libdraw.a\
-	/$objtype/lib/libc.a\
 	/$objtype/lib/libsec.a\
+	/$objtype/lib/libmp.a\
+	/$objtype/lib/libip.a\
+	/$objtype/lib/libc.a\
 
 ETHER=`{echo devether.c ether*.c | sed 's/\.c/.'$O'/g'}
 VGA=`{echo devvga.c screen.c vga*.c | sed 's/\.c/.'$O'/g'}
@@ -103,6 +105,6 @@ init.h:	../port/initcode.c init9.s
 	$AS init9.s
 	$LD -l -s -R4 -o init.out init9.$O initcode.$O /power/lib/libc.a
 	{echo 'uchar initcode[]={'
-	 strip < init.out | xd -1x |
+		strip -o /fd/1 init.out | xd -1x |
 		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
 	 echo '};'} > init.h

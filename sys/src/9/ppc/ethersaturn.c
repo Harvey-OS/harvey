@@ -65,6 +65,7 @@ typedef struct {
 	ulong	overflows;
 } Ctlr;
 
+uchar etheraddr[6] = { 0x90, 0x85, 0x82, 0x32, 0x83, 0x00};
 static ushort*etcr=(ushort*)Etcr;
 static ushort*etsr=(ushort*)Etsr;
 static ushort*ercr=(ushort*)Ercr;

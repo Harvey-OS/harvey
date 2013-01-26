@@ -56,4 +56,4 @@ bootdir
 	/power/bin/ls
 	/power/bin/ps
 	/power/bin/auth/wrkey
-	/sys/lib/sysconfig/blast/boot
+	/sys/lib/sysconfig/ppc/boot

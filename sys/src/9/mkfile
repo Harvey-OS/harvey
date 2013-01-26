@@ -1,4 +1,5 @@
 ARCH=\
+	bcm\
 	bitsy\
 	kw\
 	mtx\

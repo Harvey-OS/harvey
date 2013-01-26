@@ -1,0 +1,30 @@
+#!/boot/rc -m /boot/rcmain
+
+/boot/echo -n boot...
+path=(/bin /boot)
+bind '#p' /proc
+bind '#d' /fd
+bind -a '#P' /dev
+bind -a '#t' /dev
+bind -a '#S' /dev
+bind -a '#I' /net
+echo -n rpi >/dev/hostowner
+echo -n fdisk...
+fdisk -p /dev/sdM0/data >/dev/sdM0/ctl
+dossrv -f/dev/sdM0/dos boot
+rootdir=/root/plan9
+rootspec=''
+mount -c /srv/boot /root
+bind -ac $rootdir /
+bind -ac $rootdir/mnt /mnt
+
+bind /$cputype/bin /bin
+bind -a /rc/bin /bin
+
+if (! ~ $#init 0)
+	exec `{echo $init}
+if (~ $service cpu)
+	exec /$cputype/init -c
+if not
+	exec /$cputype/init -t
+exec /boot/rc -m/boot/rcmain -i

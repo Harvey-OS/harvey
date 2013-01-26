@@ -145,6 +145,8 @@ fsysproc(void *)
 	Fcall t;
 	uchar *buf;
 
+	threadsetname("fsysproc");
+
 	x = nil;
 	for(;;){
 		buf = emalloc(messagesize+UTFmax);	/* overflow for appending partial rune in xfidwrite */
@@ -323,7 +325,8 @@ fsysversion(Xfid *x, Fid*)
 
 	if(x->msize < 256)
 		return respond(x, &t, "version: message size too small");
-	messagesize = x->msize;
+	if(x->msize < messagesize)
+		messagesize = x->msize;
 	t.msize = messagesize;
 	if(strncmp(x->version, "9P2000", 6) != 0)
 		return respond(x, &t, "unrecognized 9P version");
@@ -625,7 +628,7 @@ fsysread(Xfid *x, Fid *f)
 			for(j=0; j<row.ncol; j++){
 				c = row.col[j];
 				for(k=0; k<c->nw; k++){
-					ids = realloc(ids, (nids+1)*sizeof(int));
+					ids = erealloc(ids, (nids+1)*sizeof(int));
 					ids[nids++] = c->w[k]->id;
 				}
 			}

@@ -27,6 +27,8 @@
  *
  *	CS2, CS3, CS4, (and CS5) are covered by DBAT 0,  CS0 and CS1 by DBAT 3, CS6 by DBAT 2
  */
+#define	IMMR		0xf0000000
+
 #define	FLASHMEM	0xfe000000
 #define	FLASHSIZE	0x01000000
 #define	DSP1BASE		0xfc000000
