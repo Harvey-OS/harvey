@@ -64,15 +64,20 @@ struct Intfeat {
 };
 
 enum {
+	Featrandwrite	= 0x20,
 	Featdfctmgmt	= 0x24,
+	Featwriteonce	= 0x25,
 	Featedfctrpt	= 0x29,
+	Featdvdrw	= 0x2a,
 };
 
 Intfeat intfeats[] = {
+	Featrandwrite,	"random writable",	/* for write-and-verify */
 //	0x21,		"incr. streaming writable",
-//	0x25,		"write once",
 	Featdfctmgmt,	"hw defect mgmt.",
+	Featwriteonce,	"write once",		/* for write-and-verify */
 	Featedfctrpt,	"enhanced defect reporting",
+	Featdvdrw,	"dvd+rw",		/* for dvd write-and-verify */
 	0x38,		"pseudo-overwrite",
 //	0x40,		"bd read",
 //	0x41,		"bd write",
@@ -829,9 +834,11 @@ notefeats(Drive *drive, uchar *p, ulong datalen)
 		ftnm = featname(feat);
 		if (vflag && ftnm)
 			fprint(2, "%#ux (%s) curr %d\n", feat, ftnm, p[2] & 1);
-		if (feat >= Maxfeatures)
-			fprint(2, "feature %d too big for bit map\n", feat);
-		else if (p[2] & 1)
+		if (feat >= Maxfeatures) {	/* could be vendor-specific */
+			if (vflag)
+				fprint(2, "feature %d too big for bit map\n",
+					feat);
+		} else if (p[2] & 1)
 			drive->features[feat/8] |= 1 << (feat%8);
 	}
 }
@@ -1657,6 +1664,16 @@ format(Drive *drive)
 	return scsi(drive, cmd, sizeof(cmd), parms, sizeof parms, Swrite);
 }
 
+static int
+dvdcanverify(Drive *drive)
+{
+	return (drive->mmctype == Mmcdvdplus ||
+		drive->mmctype == Mmcdvdminus) &&
+		isbitset(Featrandwrite, drive->features) &&
+		isbitset(Featwriteonce, drive->features) &&
+		isbitset(Featdvdrw, drive->features);
+}
+
 static long
 mmcxwrite(Otrack *o, void *v, long nblk)
 {
@@ -1691,7 +1708,7 @@ mmcxwrite(Otrack *o, void *v, long nblk)
 	 * "write and verify" (ScmdExtwritever) only works on write-once media
 	 * and not on CDs (mmc-6 §6.48.1).
 	 */
-	if (drive->mmctype != Mmccd &&
+	if ((drive->mmctype == Mmcbd || dvdcanverify(drive)) &&
 	    drive->recordable == Yes && drive->erasable == No)
 		initcdb(cmd, sizeof cmd, ScmdExtwritever);
 	else
