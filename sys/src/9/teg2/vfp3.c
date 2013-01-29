@@ -125,7 +125,7 @@ havefp(void)
 		break;
 	}
 	if (m->machno == 0)
-		print("fp: %d registers,%s simd\n", m->fpnregs,
+		print("fp: %d registers, %s simd\n", m->fpnregs,
 			(acc & Cpaccnosimd? " no": ""));
 	m->havefpvalid = 1;
 	return 1;
@@ -506,7 +506,7 @@ fpuemu(Ureg* ureg)
 			m->fppc = m->fpcnt = 0;
 		splx(s);
 		poperror();
-	} else 	if (ISVFPOP(cop, op)) {	/* if vfp, fpu must be off */
+	} else if (ISVFPOP(cop, op)) {	/* if vfp, fpu must be off */
 		mathemu(ureg);		/* enable fpu & retry */
 		nfp = 1;
 	}
