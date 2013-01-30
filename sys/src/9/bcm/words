@@ -10,11 +10,12 @@ l1 I & D VIPT caches
 unified l2 PIPT cache 128K: 4-way?, 1024? sets, 32-byte lines, mostly for gpu
 (by default CPU doesn't see it)
 
-we arrange that device register accesses are uncached.
+we arrange that device register accesses are uncached and unbuffered
+(strongly ordered, in armv6/v7 terminology).
 
-256MB of dram at physical address 0, shared with gpu
+256MB or 512MB of dram at physical address 0, shared with gpu
 non-16550 uart for console
-	uart serial voltages are wrong (3.3v but rs232 is nominally 12v);
+	uart serial voltages are TTL (3.3v, not rs232 which is nominally 12v);
 	could use usb serial (ick).
 there's no real ethernet controller, so we have to use usb ether,
 and the usb controller is nastier than usual.
@@ -56,7 +57,7 @@ Booting from sd card:
 
 hex addr size	what
 ----
-0	 256MB	sdram, cached
+0	 256MB	sdram, cached (newer models have 512MB)
 00000000 64	exception vectors
 00000100 7936	boot ATAGs (inc. cmdline.txt)
 00002000 4K	Mach
@@ -95,8 +96,7 @@ hex addr size	what
 ----
 0	 512MB	user process address space
 7e000000 16M	i/o registers
-80000000 <=224M	kernel ram (reserve some for GPU)
-c0000000 256MB	kzero, mapped to 0
+80000000 <=224M	kzero, kernel ram (reserve some for GPU)
 ffff0000 4K	exception vectors
 
 Linux params at *R2 (default 0x100) are a sequence of ATAGs

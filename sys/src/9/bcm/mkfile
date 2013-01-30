@@ -1,6 +1,6 @@
 CONF=pi
 CONFLIST=pi picpu pifat
-EXTRACOPIES=piestand lookout boundary # bovril
+EXTRACOPIES=
 
 loadaddr=0x80008000
 
@@ -130,8 +130,6 @@ reboot.h:D:	rebootcode.s arm.s arm.h mem.h
 	 xd -1x reboot.out |
 		sed -e '1,2d' -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
 	 echo '};'} > reboot.h
-errstr.h:D:	../port/mkerrstr ../port/error.h
-	rc ../port/mkerrstr > errstr.h
 
 $CONF.clean:
 	rm -rf $p$CONF s$p$CONF errstr.h reboot.h $CONF.c boot$CONF.c

@@ -146,7 +146,7 @@ dmastart(int chan, int dev, int dir, void *src, void *dst, int len)
 		ctlr->regs = (u32int*)(DMAREGS + chan*Regsize);
 		ctlr->cb = xspanalloc(sizeof(Cb), Cbalign, 0);
 		assert(ctlr->cb != nil);
-		dmaregs[Enable] |= 1 << chan;
+		dmaregs[Enable] |= 1<<chan;
 		ctlr->regs[Cs] = Reset;
 		while(ctlr->regs[Cs] & Reset)
 			;
@@ -175,7 +175,7 @@ dmastart(int chan, int dev, int dir, void *src, void *dst, int len)
 		cb->destad = DMAADDR(dst);
 		break;
 	}
-	cb->ti = ti | dev << Permapshift | Inten;
+	cb->ti = ti | dev<<Permapshift | Inten;
 	cb->txfrlen = len;
 	cb->stride = 0;
 	cb->nextconbk = 0;

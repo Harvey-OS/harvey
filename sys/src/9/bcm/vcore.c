@@ -139,7 +139,9 @@ vcreq(int tag, void *buf, int vallen, int rsplen)
 			return -1;
 		base = 0;
 	}
-	if(prop->req == RspOk && prop->tag == tag && prop->taglen & TagResp) {
+	if(prop->req == RspOk &&
+	   prop->tag == tag &&
+	   (prop->taglen&TagResp)) {
 		if((n = prop->taglen & ~TagResp) < rsplen)
 			rsplen = n;
 		memmove(buf, prop->data, rsplen);
@@ -212,7 +214,7 @@ setpower(int dev, int on)
 	u32int buf[2];
 
 	buf[0] = dev;
-	buf[1] = Powerwait | (on? 1: 0);
+	buf[1] = Powerwait | (on? 1 : 0);
 	vcreq(TagSetpower, buf, sizeof buf, sizeof buf);
 }
 
