@@ -273,6 +273,20 @@ returnok(Ar0*, va_list)
 	return;
 }
 
+int
+linuxmunmap(Ar0*, va_list)
+{
+/* If we ever implement this fully, these are the arguments.
+	void *v;
+	uintptr length;
+
+	v = va_arg(list, void *);
+	length = va_arg(list, uintptr);
+*/
+
+	return 0;
+}
+
 /* void  *  mmap(void *start, size_t length, int prot , int flags, int fd,
        off_t offset); */
 /* can be a malloc or a true map of a file. fd == -1 is a malloc */

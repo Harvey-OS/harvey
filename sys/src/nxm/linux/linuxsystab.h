@@ -28,6 +28,7 @@ Syscall gasm;
 Syscall linuxcga;
 Syscall getrusage;
 Syscall arch_prctl;
+Syscall linuxmunmap;
 extern Syscall sys_write;
 extern Syscall sys_read;
 extern Syscall sysopen;
@@ -77,7 +78,7 @@ struct syscall linuxsystab[] = {
 	[7] {"poll", nil, 1, {.p = (void *)-1}},
 	[8] {"lseek", nil, 1, {.p = (void *)-1}},
 
-	[11] {"munmap", nil, 1, {.p = (void *)-1}},
+	[11] {"munmap", linuxmunmap, 2, {.i = 0}},
 
 	[15] {"rt_sigreturn", nil, 1, {.p = (void *)-1}},
 	[16] {"ioctl", nil, 1, {.p = (void *)-1}},
