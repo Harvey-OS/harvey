@@ -77,7 +77,7 @@ chanalloc(Ep *ep)
 	bitmap = ctlr->chanbusy;
 	for(i = 0; i < ctlr->nchan; i++)
 		if((bitmap & (1<<i)) == 0){
-			ctlr->chanbusy = bitmap | 1 << i;
+			ctlr->chanbusy = bitmap | 1<<i;
 			qunlock(&ctlr->chanlock);
 			return &ctlr->regs->hchan[i];
 		}
@@ -95,7 +95,7 @@ chanrelease(Ep *ep, Hostchan *chan)
 	ctlr = ep->hp->aux;
 	i = chan - ctlr->regs->hchan;
 	qlock(&ctlr->chanlock);
-	ctlr->chanbusy &= ~(1 << i);
+	ctlr->chanbusy &= ~(1<<i);
 	qunlock(&ctlr->chanlock);
 }
 
@@ -138,7 +138,7 @@ chansetup(Hostchan *hc, Ep *ep)
 		hcc |= Lspddev;
 		/* fall through */
 	case Fullspeed:
-		hc->hcsplt = Spltena | POS_ALL | ep->dev->hub << OHubaddr |
+		hc->hcsplt = Spltena | POS_ALL | ep->dev->hub<<OHubaddr |
 			ep->dev->port;
 		break;
 	default:
@@ -168,7 +168,7 @@ sofwait(Ctlr *ctlr, int n)
 	do{
 		r->gintsts = Sofintr;
 		x = splfhi();
-		ctlr->sofchan |= 1 << n;
+		ctlr->sofchan |= 1<<n;
 		r->gintmsk |= Sofintr;
 		sleep(&ctlr->chanintr[n], sofdone, r);
 		splx(x);
@@ -196,7 +196,7 @@ chanwait(Ep *ep, Ctlr *ctlr, Hostchan *hc, int mask)
 	for(;;){
 restart:
 		x = splfhi();
-		r->haintmsk |= 1 << n;
+		r->haintmsk |= 1<<n;
 		hc->hcintmsk = mask;
 		sleep(&ctlr->chanintr[n], chandone, hc);
 		hc->hcintmsk = 0;
@@ -211,14 +211,15 @@ restart:
 			intr = hc->hcint;
 			if(intr & Chhltd){
 				if((ointr != Ack && ointr != (Ack|Xfercomp)) ||
-				    intr != (Ack|Chhltd|Xfercomp) ||
-				    (now - start) > 60)
+				   intr != (Ack|Chhltd|Xfercomp) ||
+				   (now - start) > 60)
 					dprint("await %x after %ld %x -> %x\n",
 						mask, now - start, ointr, intr);
 				return intr;
 			}
 			if((intr & mask) == 0){
-				dprint("ep%d.%d await %x intr %x -> %x\n",						ep->dev->nb, ep->nb, mask, ointr, intr);
+				dprint("ep%d.%d await %x intr %x -> %x\n",
+					ep->dev->nb, ep->nb, mask, ointr, intr);
 				goto restart;
 			}
 			now = fastticks(0);
@@ -248,7 +249,7 @@ chanintr(Ctlr *ctlr, int n)
 	int i;
 
 	hc = &ctlr->regs->hchan[n];
-	if(ctlr->debugchan & (1 << n))
+	if(ctlr->debugchan & (1<<n))
 		clog(nil, hc);
 	if((hc->hcsplt & Spltena) == 0)
 		return 0;
@@ -340,7 +341,7 @@ chanio(Ep *ep, Hostchan *hc, int dir, int pid, void *a, int len)
 		n = ROUND(len, ep->maxpkt);
 	else
 		n = len;
-	hc->hctsiz = n | npkt << OPktcnt | pid;
+	hc->hctsiz = n | npkt<<OPktcnt | pid;
 	hc->hcdma  = PADDR(a);
 
 	nleft = len;
@@ -407,31 +408,33 @@ chanio(Ep *ep, Hostchan *hc, int dir, int pid, void *a, int len)
 					hcdma, hc->hcdma, i, hc->hcint);
 		}
 		n = hc->hcdma - hcdma;
-		if(n == 0)
+		if(n == 0){
 			if((hc->hctsiz & Pktcnt) != (hctsiz & Pktcnt))
 				break;
 			else
 				continue;
+		}
 		if(dir == Epin && ep->ttype == Tbulk && n == nleft){
 			nt = (hctsiz & Xfersize) - (hc->hctsiz & Xfersize);
-			if(nt != n)
-				if(n == ((nt+3) & ~3))
+			if(nt != n){
+				if(n == ROUND(nt, 4))
 					n = nt;
 				else
-					print("usbotg: intr %8.8ux dma "
-						"%8.8ux-%8.8ux hctsiz "
-						"%8.8ux-%8.ux\n",
+					print("usbotg: intr %8.8ux "
+						"dma %8.8ux-%8.8ux "
+						"hctsiz %8.8ux-%8.ux\n",
 						i, hcdma, hc->hcdma, hctsiz,
 						hc->hctsiz);
+			}
 		}
 		if(n > nleft){
-			if(n != ((nleft+3) & ~3))
+			if(n != ROUND(nleft, 4))
 				dprint("too much: wanted %d got %d\n",
 					len, len - nleft + n);
 			n = nleft;
 		}
 		nleft -= n;
-		if(nleft == 0 || n % maxpkt != 0)
+		if(nleft == 0 || (n % maxpkt) != 0)
 			break;
 		if((i & Xfercomp) && ep->ttype != Tctl)
 			break;
@@ -479,7 +482,7 @@ eptrans(Ep *ep, int rw, void *a, long n)
 		}while(sofar < n && m == ep->maxpkt);
 		n = sofar;
 	}else{
-		n = chanio(ep, hc, rw == Read? Epin: Epout, ep->toggle[rw],
+		n = chanio(ep, hc, rw == Read? Epin : Epout, ep->toggle[rw],
 			a, n);
 		ep->toggle[rw] = hc->hctsiz & Pid;
 	}
@@ -602,7 +605,7 @@ init(Hci *hp)
 	tx = 0x100;
 	ptx = 0x200;
 	r->grxfsiz = rx;
-	r->gnptxfsiz = rx | tx << ODepth;
+	r->gnptxfsiz = rx | tx<<ODepth;
 	tsleep(&up->sleep, return0, 0, 1);
 	r->hptxfsiz = (rx + tx) | ptx << ODepth;
 	greset(r, Rxfflsh);
@@ -639,9 +642,11 @@ fiqintr(Ureg*, void *a)
 	if(intr & Hcintr){
 		haint = r->haint & r->haintmsk;
 		for(i = 0; haint; i++){
-			if(haint & 1 && chanintr(ctlr, i) == 0){
-				r->haintmsk &= ~(1 << i);
-				wakechan |= 1 << i;
+			if(haint & 1){
+				if(chanintr(ctlr, i) == 0){
+					r->haintmsk &= ~(1<<i);
+					wakechan |= 1<<i;
+				}
 			}
 			haint >>= 1;
 		}

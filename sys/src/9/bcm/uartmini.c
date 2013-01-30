@@ -85,7 +85,7 @@ gpiosel(uint pin, int func)
 	gp = (u32int*)GPIOREGS;
 	fsel = &gp[Fsel0 + pin/10];
 	off = (pin % 10) * 3;
-	*fsel = (*fsel & ~(FuncMask << off)) | func << off;
+	*fsel = (*fsel & ~(FuncMask<<off)) | func<<off;
 }
 
 void
@@ -111,7 +111,7 @@ gpioout(uint pin, int set)
 	int v;
 
 	gp = (u32int*)GPIOREGS;
-	v = set? Set0: Clr0;
+	v = set? Set0 : Clr0;
 	gp[v + pin/32] = 1 << (pin % 32);
 }
 
@@ -139,11 +139,12 @@ interrupt(Ureg*, void *arg)
 	if(ap[MuLsr] & TxRdy)
 		uartkick(uart);
 	if(ap[MuLsr] & RxRdy){
-		if(uart->console)
+		if(uart->console){
 			if(uart->opens == 1)
 				uart->putc = kbdcr2nl;
 			else
 				uart->putc = nil;
+		}
 		do{
 			uartrecv(uart, ap[MuIo] & 0xFF);
 		}while(ap[MuLsr] & RxRdy);
@@ -177,7 +178,7 @@ enable(Uart *uart, int ie)
 	ap[MuIir] = 6;
 	ap[MuLcr] = Bits8;
 	ap[MuCntl] = TxEn|RxEn;
-	ap[MuBaud] = 250000000 / (115200 * 8) - 1;
+	ap[MuBaud] = 250000000/(115200*8) - 1;
 	if(ie){
 		intrenable(IRQaux, interrupt, uart, 0, "uart");
 		ap[MuIer] = RxIen|TxIen;

@@ -299,7 +299,8 @@ screensize(void)
 
 	p = getconf("vgasize");
 	if(p == nil || getfields(p, f, nelem(f), 0, "x") != nelem(f) ||
-	    (width = atoi(f[0])) < 16 || (height = atoi(f[1])) <= 0 ||
+	    (width = atoi(f[0])) < 16 ||
+	    (height = atoi(f[1])) <= 0 ||
 	    (depth = atoi(f[2])) <= 0)
 		return -1;
 	xgscreen.r.max = Pt(width, height);

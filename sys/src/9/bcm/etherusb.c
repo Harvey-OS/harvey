@@ -197,7 +197,7 @@ transmitasix(Ctlr *ctlr, Block *b)
 	int n;
 
 	n = BLEN(b) & 0xFFFF;
-	n = 0xFFFF0000 & ~(n << 16) | n;
+	n |= ~n << 16;
 	padblock(b, 4);
 	PUT4(b->rp, n);
 	if(BLEN(b) % ctlr->maxpkt == 0){

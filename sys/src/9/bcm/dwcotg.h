@@ -434,8 +434,8 @@ enum {
 		Episo		= 1<<18,
 		Epbulk		= 2<<18,
 		Epintr		= 3<<18,
-	Multicnt	= 0x3<<20,	/* transactions per μframe or retries */
-					/* per periodic split */
+	Multicnt	= 0x3<<20,	/* transactions per μframe */
+					/* or retries per periodic split */
 		OMulticnt	= 20,
 	Devaddr		= 0x7f<<22,	/* device address */
 		ODevaddr	= 22,

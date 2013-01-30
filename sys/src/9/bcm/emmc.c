@@ -160,7 +160,7 @@ WR(int reg, u32int val)
 	u32int *r = (u32int*)EMMCREGS;
 
 	if(0)print("WR %2.2ux %ux\n", reg<<2, val);
-	microdelay(emmc.fastclock? 2: 20);
+	microdelay(emmc.fastclock? 2 : 20);
 	r[reg] = val;
 }
 
@@ -226,8 +226,8 @@ emmcenable(void)
 	int i;
 
 	r = (u32int*)EMMCREGS;
-	WR(Control1, clkdiv(emmc.extclk / Initfreq - 1) | DTO << Datatoshift |
-		Clkgendiv | Clken | Clkintlen);
+	WR(Control1, clkdiv(emmc.extclk/Initfreq - 1) |
+		DTO<<Datatoshift | Clkgendiv | Clken | Clkintlen);
 	for(i = 0; i < 1000; i++){
 		delay(1);
 		if(r[Control1] & Clkstable)
@@ -259,8 +259,8 @@ emmccmd(u32int cmd, u32int arg, u32int *resp)
 		while(r[Status] & Cmdinhibit)
 			;
 	}
-	if((c & Isdata || (c & Respmask) == Resp48busy) &&
-	    r[Status] & Datinhibit){
+	if((r[Status] & Datinhibit) &&
+	   ((c & Isdata) || (c & Respmask) == Resp48busy)){
 		print("emmccmd: need to reset Datinhibit intr %ux stat %ux\n",
 			r[Interrupt], r[Status]);
 		WR(Control1, r[Control1] | Srstdata);
@@ -325,8 +325,8 @@ emmccmd(u32int cmd, u32int arg, u32int *resp)
 	 */
 	if(cmd == MMCSelect){
 		delay(10);
-		WR(Control1, clkdiv(emmc.extclk / SDfreq - 1) |
-			DTO << Datatoshift | Clkgendiv | Clken | Clkintlen);
+		WR(Control1, clkdiv(emmc.extclk/SDfreq - 1) |
+			DTO<<Datatoshift | Clkgendiv | Clken | Clkintlen);
 		for(i = 0; i < 1000; i++){
 			delay(1);
 			if(r[Control1] & Clkstable)
@@ -338,7 +338,7 @@ emmccmd(u32int cmd, u32int arg, u32int *resp)
 	/*
 	 * If card bus width changes, change host bus width
 	 */
-	if(cmd == Setbuswidth)
+	if(cmd == Setbuswidth){
 		switch(arg){
 		case 0:
 			WR(Control0, r[Control0] & ~Dwidth4);
@@ -347,6 +347,7 @@ emmccmd(u32int cmd, u32int arg, u32int *resp)
 			WR(Control0, r[Control0] | Dwidth4);
 			break;
 		}
+	}
 	return 0;
 }
 
