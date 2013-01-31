@@ -1,0 +1,14 @@
+APE=/sys/src/ape
+<$APE/config
+
+LIB=/$objtype/lib/ape/libmp.a
+
+OFILES=	\
+
+HFILES=/$objtype/include/u.h /sys/include/ape/mp.h ../../../../libmp/port/dat.h
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+
+</sys/src/cmd/mksyslib

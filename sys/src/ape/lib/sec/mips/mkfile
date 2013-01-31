@@ -1,0 +1,23 @@
+APE=/sys/src/ape
+<$APE/config
+
+LIB=/$objtype/lib/ape/libsec.a
+
+FILES=\
+	md5block\
+	sha1block\
+
+HFILES=/sys/include/ape/libsec.h
+
+SFILES=${FILES:%=%.s}
+
+OFILES=${SFILES:%.s=%.$O}
+
+UPDATE=mkfile\
+	$HFILES\
+	$SFILES\
+
+</sys/src/cmd/mksyslib
+
+%.$O:	../../../../libsec/mips/%.s
+	$AS ../../../../libsec/mips/$stem.s

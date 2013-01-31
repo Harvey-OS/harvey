@@ -1,0 +1,26 @@
+APE=/sys/src/ape
+<$APE/config
+
+LIB=/$objtype/lib/ape/libmp.a
+
+SFILES=\
+	mpvecadd.s\
+	mpvecdigmuladd.s\
+	mpvecdigmulsub.s\
+	mpvecsub.s\
+	mpdigdiv.s\
+
+HFILES=\
+	/sys/include/ape/mp.h\
+	../../../../libmp/port/dat.h
+
+OFILES=${SFILES:%.s=%.$O}
+
+UPDATE=mkfile\
+	$HFILES\
+	$SFILES\
+
+</sys/src/cmd/mksyslib
+
+%.$O:	../../../../libmp/386/%.s
+	$AS ../../../../libmp/386/$stem.s

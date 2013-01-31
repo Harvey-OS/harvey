@@ -619,7 +619,7 @@ freekdev(void *a)
 static void
 kbstart(Dev *d, Ep *ep, Kin *in, void (*f)(void*), KDev *kd)
 {
-	uchar desc[128];
+	uchar desc[512];
 	int n, res;
 
 	qlock(&inlck);
@@ -739,7 +739,7 @@ kbmain(Dev *d, int argc, char* argv[])
 
 	for(i = 0; i < nelem(ud->ep); i++){
 		if((ep = ud->ep[i]) == nil)
-			break;
+			continue;
 		if(kena && ep->type == Eintr && ep->dir == Ein &&
 		    ep->iface->csp == KbdCSP){
 			kd = d->aux = emallocz(sizeof(KDev), 1);
