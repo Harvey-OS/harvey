@@ -3,6 +3,7 @@
  */
 typedef struct SDev SDev;
 typedef struct SDifc SDifc;
+typedef struct SDio SDio;
 typedef struct SDpart SDpart;
 typedef struct SDperm SDperm;
 typedef struct SDreq SDreq;
@@ -77,7 +78,7 @@ struct SDifc {
 	int	(*rctl)(SDunit*, char*, int);
 	int	(*wctl)(SDunit*, Cmdbuf*);
 
-	long	(*bio)(SDunit*, int, int, void*, long, vlong);
+	long	(*bio)(SDunit*, int, int, void*, long, uvlong);
 	SDev*	(*probe)(DevConf*);
 	void	(*clear)(SDev*);
 	char*	(*rtopctl)(SDev*, char*, char*);
@@ -103,6 +104,19 @@ struct SDreq {
 enum {
 	SDnosense	= 0x00000001,
 	SDvalidsense	= 0x00010000,
+
+	SDinq0periphqual= 0xe0,
+	SDinq0periphtype= 0x1f,
+	SDinq1removable	= 0x80,
+
+	/* periphtype values */
+	SDperdisk	= 0,	/* Direct access (disk) */
+	SDpertape	= 1,	/* Sequential eg, tape */
+	SDperpr		= 2,	/* Printer */
+	SDperworm	= 4,	/* Worm */
+	SDpercd		= 5,	/* CD-ROM */
+	SDpermo		= 7,	/* rewriteable MO */
+	SDperjuke	= 8,	/* medium-changer */
 };
 
 enum {
@@ -121,11 +135,38 @@ enum {
 	SDnpart		= 16,
 };
 
+/*
+ * Allow the default #defines for sdmalloc & sdfree to be overridden by
+ * system-specific versions.  This can be used to avoid extra copying
+ * by making sure sd buffers are cache-aligned (some ARM systems) or
+ * page-aligned (xen) for DMA.
+ */
+#ifndef sdmalloc
 #define sdmalloc(n)	malloc(n)
 #define sdfree(p)	free(p)
+#endif
+
+/*
+ * mmc/sd/sdio host controller interface
+ */
+
+struct SDio {
+	char	*name;
+	int	(*init)(void);
+	void	(*enable)(void);
+	int	(*inquiry)(char*, int);
+	int	(*cmd)(u32int, u32int, u32int*);
+	void	(*iosetup)(int, void*, int, int);
+	void	(*io)(int, uchar*, int);
+};
+
+extern SDio sdio;
 
 /* devsd.c */
 extern void sdadddevs(SDev*);
+extern void sdaddconf(SDunit*);
+extern void sdaddallconfs(void (*f)(SDunit*));
+extern void sdaddpart(SDunit*, char*, uvlong, uvlong);
 extern int sdsetsense(SDreq*, int, int, int, int);
 extern int sdmodesense(SDreq*, uchar*, void*, int);
 extern int sdfakescsi(SDreq*, void*, int);
@@ -133,7 +174,7 @@ extern int sdfakescsi(SDreq*, void*, int);
 /* sdscsi.c */
 extern int scsiverify(SDunit*);
 extern int scsionline(SDunit*);
-extern long scsibio(SDunit*, int, int, void*, long, vlong);
+extern long scsibio(SDunit*, int, int, void*, long, uvlong);
 extern SDev* scsiid(SDev*, SDifc*);
 
 /*

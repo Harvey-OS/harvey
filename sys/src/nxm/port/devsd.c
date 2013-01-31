@@ -6,6 +6,8 @@
 #include "mem.h"
 #include "dat.h"
 #include "fns.h"
+#include "io.h"
+#include "ureg.h"
 #include "../port/error.h"
 
 #include "../port/sd.h"
@@ -70,7 +72,7 @@ enum {
 					 ((p)<<PartSHIFT)|((t)<<TypeSHIFT))
 
 
-static void
+void
 sdaddpart(SDunit* unit, char* name, uvlong start, uvlong end)
 {
 	SDpart *pp;
@@ -158,7 +160,7 @@ sddelpart(SDunit* unit, char* name)
 }
 
 static void
-sdincvers(SDunit* unit)
+sdincvers(SDunit *unit)
 {
 	int i;
 
@@ -183,13 +185,14 @@ sdinitpart(SDunit* unit)
 		sdincvers(unit);
 	}
 
-	if(unit->inquiry[0] & 0xC0)
+	/* device must be connected or not; other values are trouble */
+	if(unit->inquiry[0] & 0xC0)	/* see SDinq0periphqual */
 		return 0;
-	switch(unit->inquiry[0] & 0x1F){
-	case 0x00:			/* DA */
-	case 0x04:			/* WORM */
-	case 0x05:			/* CD-ROM */
-	case 0x07:			/* MO */
+	switch(unit->inquiry[0] & SDinq0periphtype){
+	case SDperdisk:
+	case SDperworm:
+	case SDpercd:
+	case SDpermo:
 		break;
 	default:
 		return 0;
@@ -376,6 +379,27 @@ sdadddevs(SDev *sdev)
 	}
 }
 
+// void
+// sdrmdevs(SDev *sdev)
+// {
+// 	char buf[2];
+//
+// 	snprint(buf, sizeof buf, "%c", sdev->idno);
+// 	unconfigure(buf);
+// }
+
+void
+sdaddallconfs(void (*addconf)(SDunit *))
+{
+	int i, u;
+	SDev *sdev;
+
+	for(i = 0; i < nelem(devs); i++)		/* each controller */
+		for(sdev = devs[i]; sdev; sdev = sdev->next)
+			for(u = 0; u < sdev->nunit; u++)	/* each drive */
+				(*addconf)(sdev->unit[u]);
+}
+
 static int
 sd2gen(Chan* c, int i, Dir* dp)
 {
@@ -399,7 +423,7 @@ sd2gen(Chan* c, int i, Dir* dp)
 		perm = &unit->ctlperm;
 		if(emptystr(perm->user)){
 			kstrdup(&perm->user, eve);
-			perm->perm = 0640;
+			perm->perm = 0644;	/* nothing secret in ctl */
 		}
 		devdir(c, q, "ctl", 0, perm->user, perm->perm, dp);
 		rv = 1;
@@ -441,7 +465,7 @@ sd1gen(Chan* c, int i, Dir* dp)
 	switch(i){
 	case Qtopctl:
 		mkqid(&q, QID(0, 0, 0, Qtopctl), 0, QTFILE);
-		devdir(c, q, "sdctl", 0, eve, 0640, dp);
+		devdir(c, q, "sdctl", 0, eve, 0644, dp);	/* no secrets */
 		return 1;
 	}
 	return -1;
@@ -552,7 +576,7 @@ sdgen(Chan* c, char*, Dirtab*, int, int s, Dir* dp)
 			decref(&sdev->r);
 			return 0;
 		}
-		l = (pp->end - pp->start) * unit->secsize;
+		l = (pp->end - pp->start) * (vlong)unit->secsize;
 		mkqid(&q, QID(DEV(c->qid), UNIT(c->qid), i, Qpart),
 			unit->vers+pp->vers, QTFILE);
 		if(emptystr(pp->user))
@@ -768,7 +792,7 @@ sdbio(Chan* c, int write, char* a, long len, vlong off)
 		poperror();
 		return 0;
 	}
-	if(!(unit->inquiry[1] & 0x80)){
+	if(!(unit->inquiry[1] & SDinq1removable)){
 		qunlock(&unit->ctl);
 		poperror();
 	}
@@ -778,7 +802,7 @@ sdbio(Chan* c, int write, char* a, long len, vlong off)
 		error(Enomem);
 	if(waserror()){
 		sdfree(b);
-		if(!(unit->inquiry[1] & 0x80))
+		if(!(unit->inquiry[1] & SDinq1removable))
 			decref(&sdev->r);		/* gadverdamme! */
 		nexterror();
 	}
@@ -820,7 +844,7 @@ sdbio(Chan* c, int write, char* a, long len, vlong off)
 	sdfree(b);
 	poperror();
 
-	if(unit->inquiry[1] & 0x80){
+	if(unit->inquiry[1] & SDinq1removable){
 		qunlock(&unit->ctl);
 		poperror();
 	}
@@ -1074,7 +1098,8 @@ sdread(Chan *c, void *a, long n, vlong off)
 	case Qtopctl:
 		m = 64*1024;	/* room for register dumps */
 		p = buf = malloc(m);
-		assert(p);
+		if(p == nil)
+			error(Enomem);
 		e = p + m;
 		qlock(&devslock);
 		for(i = 0; i < nelem(devs); i++){
@@ -1099,6 +1124,8 @@ sdread(Chan *c, void *a, long n, vlong off)
 		unit = sdev->unit[UNIT(c->qid)];
 		m = 16*1024;	/* room for register dumps */
 		p = malloc(m);
+		if(p == nil)
+			error(Enomem);
 		l = snprint(p, m, "inquiry %.48s\n",
 			(char*)unit->inquiry+8);
 		qlock(&unit->ctl);
@@ -1238,7 +1265,8 @@ sdwrite(Chan* c, void* a, long n, vlong off)
 			error(Ebadctl);
 		poperror();
 		poperror();
-		decref(&sdev->r);
+		if(sdev)
+			decref(&sdev->r);
 		free(cb);
 		break;
 
@@ -1494,7 +1522,7 @@ Dev sddevtab = {
 	devremove,
 	sdwstat,
 	devpower,
-	sdconfig,
+	sdconfig,	/* probe; only called for pcmcia-like devices */
 };
 
 /*
@@ -1532,6 +1560,8 @@ getnewport(DevConf* dc)
 	Devport *p;
 
 	p = (Devport *)malloc((dc->nports + 1) * sizeof(Devport));
+	if(p == nil)
+		error(Enomem);
 	if(dc->nports > 0){
 		memmove(p, dc->ports, dc->nports * sizeof(Devport));
 		free(dc->ports);

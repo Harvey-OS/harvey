@@ -19,6 +19,8 @@ dev +dev
 	zp
 	ws
 
+	sd
+
 # add to get cec in the kernel
 #	cec
 
@@ -49,6 +51,9 @@ link +dev
 	ethermedium
 	loopbackmedium
 	netdevmedium
+
+sd +dev
+	sdiahci		pci sdscsi
 
 misc +dev
 	mp		mpacpi apic ioapic msi pci sipi rdwr
