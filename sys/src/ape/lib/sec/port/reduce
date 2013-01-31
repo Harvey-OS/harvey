@@ -1,0 +1,22 @@
+O=$1
+shift
+objtype=$1
+shift
+
+cwd=`{basename -d `{pwd}}
+cwd=$cwd/$objtype
+bind -ac /sys/src/libsec/$objtype $cwd
+
+ls -p ../$objtype/*.[cs] >[2]/dev/null | sed 's/..$//' > /tmp/reduce.$pid
+#
+#	if empty directory, just return the input files
+#
+if (! ~ $status '|') {
+	echo $*
+	rm /tmp/reduce.$pid
+	unmount $cwd
+	exit 0
+}
+echo $* | tr ' ' \012 | grep -v -f /tmp/reduce.$pid | tr \012 ' '
+rm /tmp/reduce.$pid
+unmount $cwd

@@ -1,6 +1,5 @@
 ARCH=\
 	bcm\
-	bitsy\
 	kw\
 	mtx\
 	omap\

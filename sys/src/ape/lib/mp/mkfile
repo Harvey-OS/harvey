@@ -1,0 +1,54 @@
+APE=/sys/src/ape
+<$APE/config
+
+DIRS=port $CPUS
+
+default:V:	all
+
+install all:V:
+	for(i in port $objtype)@{
+		echo $i
+		cd $i
+		mk $MKFLAGS $target
+	}
+
+nuke:V: clean
+	rm -f /$objtype/lib/ape/libmp.a
+
+clean:V:
+	for(i in $DIRS)@{
+		echo $i
+		cd $i
+		mk $MKFLAGS $target
+	}
+
+installall:V:
+	for(objtype in $CPUS) mk $MKFLAGS install
+
+everything:V:
+	rm -f */*.[012456789kvx]
+	for(objtype in 386)@{
+		echo $objtype
+		mk $MKFLAGS install
+	}
+	rm -f */*.[012456789kvx]
+
+test.$O: ../../../libmp/test.c /sys/include/ape/mp.h ../../../libmp/port/dat.h
+	$CC -D_POSIX_SOURCE -D_PLAN9_SOURCE -Iport -I../../../libmp/port ../../../libmp/test.c
+
+$O.test: test.$O /$objtype/lib/ape/libmp.a
+	$LD -o $O.test test.$O
+
+bigtest.$O: ../../../libmp/bigtest.c /sys/include/ape/mp.h ../../../libmp/port/dat.h
+	$CC -D_POSIX_SOURCE -D_PLAN9_SOURCE -Iport -I../../../libmp/port ../../../libmp/bigtest.c
+
+$O.bigtest: bigtest.$O /$objtype/lib/ape/libmp.a
+	$LD -o $O.bigtest bigtest.$O
+
+allout:
+	objtype=386; mk; mk 8.test 8.bigtest
+	objtype=amd64; mk; mk 6.test 6.bigtest
+	objtype=arm; mk; mk 5.test 5.bigtest
+
+cleanout:
+	rm -f [568].* *.[568]

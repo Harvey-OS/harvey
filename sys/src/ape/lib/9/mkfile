@@ -14,6 +14,12 @@ OFILES=errstr.$O\
 	segflush.$O\
 	segfree.$O\
 	setmalloctag.$O\
+	sysfatal.$O\
+	tokenize.$O\
+	truerand.$O\
+	u16.$O\
+	u32.$O\
+	u64.$O\
 	unmount.$O\
 
 </sys/src/cmd/mksyslib
@@ -25,3 +31,21 @@ CFLAGS=-c $CFLAGS -D_POSIX_SOURCE -D_PLAN9_SOURCE
 
 %.$O:	$objtype/%.c
 	$CC $CFLAGS $prereq
+
+sysfatal.$O: ../../../libc/9sys/sysfatal.c
+	$CC $CFLAGS -I. ../../../libc/9sys/sysfatal.c
+
+tokenize.$O: ../../../libc/port/tokenize.c
+	$CC $CFLAGS -I. ../../../libc/port/tokenize.c
+
+truerand.$O: ../../../libc/9sys/truerand.c
+	$CC $CFLAGS -I. ../../../libc/9sys/truerand.c
+
+u16.$O: ../../../libc/port/u16.c
+	$CC $CFLAGS -I. ../../../libc/port/u16.c
+
+u32.$O: ../../../libc/port/u32.c
+	$CC $CFLAGS -I. ../../../libc/port/u32.c
+
+u64.$O: ../../../libc/port/u64.c
+	$CC $CFLAGS -I. ../../../libc/port/u64.c

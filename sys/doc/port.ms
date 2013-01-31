@@ -82,6 +82,12 @@ build the code in
 .CW /sys/src/libc/386/387 .
 .
 .SH
+The AMD64 compiler
+.PP
+The AMD64 compiler has been used to build 64-bit variants of Plan 9.
+It seems to be reasonably solid.
+.
+.SH
 The PowerPC compiler
 .PP
 The PowerPC compiler supports the 32-bit PowerPC architecture only;
@@ -95,6 +101,13 @@ The compiler makes little or no use of unusual PowerPC features such as the
 counter register, several condition code registers, and multiply-accumulate
 instructions, but they are sometimes
 used by assembly language routines in the libraries.
+.
+.SH
+The PowerPC64 compiler
+.PP
+The PowerPC64 compiler supports the 64-bit PowerPC architecture only.
+It has been lightly used on IBM's Blue Gene machines.
+.
 .SH
 The ARM compiler
 .PP
@@ -116,7 +129,7 @@ instead generates VFP instructions for coprocessors 10 and 11.
 .SH
 The IBM PC operating system
 .PP
-The PC version of Plan 9 can boot either from MS-DOS
+The PC version of Plan 9 can boot via PXE
 or directly from a disk created by the
 .CW format
 command; see
@@ -134,11 +147,11 @@ no guarantee that the machine you buy today will contain the
 same components as the one you bought yesterday.
 (For our lab, we buy components and assemble the machines
 ourselves in an attempt to lessen this effect.)
-Both IDE/ATA and SCSI disks are supported, and
-there is support for large ATA drives.
+IDE/ATA, SATA and SCSI disks are supported.
 CD-ROMs are supported two ways, either on the SCSI bus, or as ATA(PI) devices.
 The SCSI adapter must be a member of the Mylex Multimaster (old Buslogic BT-*) series
 or the Symbios 53C8XX series.
+.PP
 Supported Ethernet cards include the
 AMD79C790,
 3COM Etherlink III and 3C589 series,
@@ -146,14 +159,24 @@ Lucent Wavelan and compatibles,
 NE2000,
 WD8003,
 WD8013,
+Realtek 8139,
 SMC Elite and Elite Ultra,
 Linksys Combo EthernetCard and EtherFast 10/100,
 and a variety of controllers based on the
 Intel i8255[789] and Digital (now Intel) 21114x chips.
-We mostly use Etherlink III, i8255[789], and 21114x, so those drivers may be more robust.
+We support Gigabit Ethernet via
+Realtek 8110S/8169S,
+and
+Intel 8254[013467], 8256[36], and 8257[1-79] controllers.
+We support 10-Gigabit Ethernet via
+Intel's 8259[89],
+and
+Myricom's 10g-pcie-8a.
+We mostly use Intel and Realtek gigabit controllers,
+so those drivers may be more robust.
+.PP
 There must be an explicit Plan 9 driver for peripherals;
 it cannot use DOS or Windows drivers.
-Also,
 Plan 9 cannot exploit special hardware-related features that fall outside of the
 IBM PC model,
 such as power management,
@@ -165,10 +188,9 @@ Over the years,
 Plan 9 has run on a number of VGA cards.
 Recent changes to the graphics system have not been
 tested on most of the older cards; some effort may be needed to get them working again.
-In our lab, most of our machines use the ATI Mach64, S3 ViRGE, or S3 Savage chips,
+In our lab, most of our machines use the ATI or Nvidia chips,
 so such devices are probably
 the most reliable.
-We also use a few Matrox and TNT cards.
 The system requires a hardware cursor.
 For more details see
 .I vgadb (6)
@@ -213,28 +235,6 @@ and at present only a single CPU is permitted.
 .PP
 We have ports to the Xilinx Virtex 4 and 5 FPGAs
 which use PowerPC 405 and 440 processors, respectively.
-.SH
-The Compaq iPAQ operating system
-.PP
-Plan 9 was ported to Compaq's iPAQ Pocket PC,
-which uses the StrongArm SA1 processor.
-The model we have is a 3630; neighboring models also work.
-The kernel can drive a PCMCIA sleeve with a WaveLAN card, but no other PCMCIA
-devices have been ported yet.
-.PP
-The iPAQ runs
-.CW rio
-with a small keyboard application that allows Palm-style handwriting
-input as well as typing with the stylus on a miniature keyboard.
-.PP
-Fco. J. Ballesteros
-.CW nemo@plan9.escet.urjc.es ) (
-added support for hibernation, but we haven't been able to
-get that to work again in the new kernel; the code is there, however,
-for volunteers to play with.
-See the file
-.CW /sys/src/9/bitsy/Booting101
-for information about installing Plan 9 on the iPAQ.
 .SH
 The Marvell Kirkwood operating system
 .PP

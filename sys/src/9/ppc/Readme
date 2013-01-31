@@ -1,0 +1,30 @@
+This directory contains source code for two PowerPC ports,
+
+The kernel made with
+	mk 'CONF=blast'
+is an 8260 kernel.  The 8260 (PowerQuick II) is an embedded PowerPC
+with on-chip DMA, Uart, Ethernet, ATM controllers and a few other things.
+
+The 8260-specific code is in m8260.c (no surprises there) and in the
+device drivers for SMC uart (uartsmc.c) and FCC ethernet (etherfcc.c).
+
+The kernel made with
+	mk 'CONF=ucu'
+is a PowerPC 750/755 kernel using the saturn chip for Ether and Uart.
+
+We run both kernels on Lucent proprietary boards, but the kernels are
+pretty generic.  On a different board, the ports may be hooked up differently,
+the clocks may be running at different speeds, the memory banks may be
+configured differently and this will require tweaking the Ethernet setup,
+Uart setup, Memory bank setup and several other things as well.
+
+There is 8260 and Ucu specific code in l.s too (lucu.s and lblast.s).
+These differences primarily concern the state of the system at bootup.
+In the case of the ucu, virtual memory is already on when the kernel
+starts.
+
+Questions to Sape or Pb (@plan9.bell-labs.com).  No whining, however,
+you're lucky to be looking at this code at all.
+
+	Sape
+
