@@ -1,6 +1,5 @@
 #include <u.h>
 #include <libc.h>
-#include <stdio.h>
 
 #define R rand()&32767
 #define T 0.125
@@ -812,7 +811,7 @@ getxx()
 
 	rv = (X) malloc(sizeof *rv);
 	if (rv == 0) {
-		fprintf(stderr, "festoon: outa space\n");
+		fprint(2, "festoon: outa space\n");
 		exits("space");
 	}
 	*rv = empty;
@@ -1112,7 +1111,7 @@ getenvq()
 	E               v;
 	v = (E) malloc(sizeof *v);
 	if (v == 0) {
-		printf("outa room\n");
+		print("outa room\n");
 		exits("room");
 	}
 	*v = empty;
@@ -1292,7 +1291,7 @@ equation(void) {
 
 	x = 'a' + (R)%26;
 	v->type = "-eqn";
-	sprintf(eqnbuff,"$%s from %c=%d to %s %s ( %c ) d%c %s %s$",
+	sprint(eqnbuff,"$%s from %c=%d to %s %s ( %c ) d%c %s %s$",
 		CHOOSE(eqnelem), x, (R)&077, CHOOSE(eqnval), CHOOSE(eqnfn),
 		x, x, CHOOSE(eqnrel), CHOOSE(eqnval));
 	v->list.s[0] = eqnbuff;
@@ -1365,7 +1364,7 @@ splitup(char *strlab)  {
 
 void
 abo(void) {
-	fprintf(stderr, "usage: festoon [-pet] [-sSEED] [SENTENCES] [%%-invented-nouns]\n");
+	fprint(2, "usage: festoon [-pet] [-sSEED] [SENTENCES] [%%-invented-nouns]\n");
 	exits("usage");
 }
 
@@ -1425,7 +1424,7 @@ main(int argc, char *argv[]) {
 	static char	*piccon[] = { "arrow", "line", "line <-", "line <->",
 	"spline", "spline <-", "spline <->"};
 	static char	*picdir[] = { "right", "down right", "down",
-	"left", "up left", "left", "down", "down right", NULL};
+	"left", "up left", "left", "down", "down right", nil};
 	E               env;
 	X               tree;
 	int             i, j = 0, k = 0;
@@ -1469,18 +1468,18 @@ main(int argc, char *argv[]) {
 		lim = 25;
 	srand((int) t);
 
-	printf(".TL\n");
+	print(".TL\n");
 	env = getenvq();
 	tree = np(env);
 	io = 0;
 	pr(tree);
 	buff[io] = 0;
 	caps();
-	printf("%s\n", buff);
-	printf(".AU \"C. C. Festoon\" CCF Headquarters %d\n", t);
+	print("%s\n", buff);
+	print(".AU \"C. C. Festoon\" CCF Headquarters %ld\n", t);
 	if (eqn)
-		printf(".EQ\ndelim $$\n.EN\n");
-	printf(".AS\n");
+		print(".EQ\ndelim $$\n.EN\n");
+	print(".AS\n");
 	free(env);
 	do {
 		env = getenvq();
@@ -1488,72 +1487,72 @@ main(int argc, char *argv[]) {
 		io = 0;
 		pr(tree);
 		buff[io] = 0;
-		printf("%s.\n", buff);
+		print("%s.\n", buff);
 		free(env);
 	} while (prob(0.75));
-	printf(".AE\n");
-	printf(".MT \"MEMORANDUM FOR %s\"\n.hy 1\n",
+	print(".AE\n");
+	print(".MT \"MEMORANDUM FOR %s\"\n.hy 1\n",
 	       CHOOSE(furniture));
 	while (i++ < lim) {
 		if (i % 23 == 0) {	/* Time for a section header */
 			env = getenvq();
 			tree = np(env);
 			io = 0;
-			printf(".H 1 \"");
+			print(".H 1 \"");
 			pr(tree);
 			buff[io] = 0;
 			caps();
-			printf("%s\"\n", buff);
+			print("%s\"\n", buff);
 			free(env);
 		}
 		if (i % 27 == 0 && pic) {	/* Time for a picture */
-			printf(".DS CB\n.ps -1\n.PS\n");
+			print(".DS CB\n.ps -1\n.PS\n");
 			str = &(CHOOSE(picdir));
-			if (*str == NULL) str = &picdir[0];
+			if (*str == nil) str = &picdir[0];
  			junk2 = (R&07) + 3;
 			for(junk = 1; junk < junk2; junk++) {
-				printf("%s; ", *str);
+				print("%s; ", *str);
 				if (str == &picdir[0]) {
-					pic = 2; printf("A: ");
+					pic = 2; print("A: ");
 				}
-				printf("%s %s ht %3.1f wid %3.1f\n",
+				print("%s %s ht %3.1f wid %3.1f\n",
 				CHOOSE(picelem), splitup(CHOOSE(nounlist)),
 				0.4+0.5/junk2, 0.8+0.6/junk2);
-				printf("%s %s %3.1f ",
+				print("%s %s %3.1f ",
 				CHOOSE(piccon), *str, 0.2+.3/junk2);
-				if (*++str == NULL) str = &picdir[0];
-				printf("then %s %3.1f %s\n",
+				if (*++str == nil) str = &picdir[0];
+				print("then %s %3.1f %s\n",
 				*str, 0.3+.2/junk2,
 				splitup(CHOOSE(adjlist)));
 			}
-			printf("circle rad .3 \"process\" \"completion\"\n");
+			print("circle rad .3 \"process\" \"completion\"\n");
 			if (pic == 2) {
 				pic =1;
-				printf("line <- dashed up .25 from A.n\n");
-				printf("circle rad .3 \"process\" \"start\"\n");
+				print("line <- dashed up .25 from A.n\n");
+				print("circle rad .3 \"process\" \"start\"\n");
 			}
-			printf(".PE\n.ps +1\n.DE\n");
-			printf(".ce\n\\fBFigure %d\\fP\n", i/27);
+			print(".PE\n.ps +1\n.DE\n");
+			print(".ce\n\\fBFigure %d\\fP\n", i/27);
 		}
 		if (i % 41 == 0 && tbl) {	/* Time for a table */
-			printf(".TS\n");
-			printf("box, center;\nc\ts\ts\n");
-			printf("n | l | lw(%3.1fi).\n", 2.0+(41.0+(t&07))/i);
-			printf("Action Plan %d\n=\n", i);
-			printf("Item\tWho\tAction\n");
+			print(".TS\n");
+			print("box, center;\nc\ts\ts\n");
+			print("n | l | lw(%3.1fi).\n", 2.0+(41.0+(t&07))/i);
+			print("Action Plan %d\n=\n", i);
+			print("Item\tWho\tAction\n");
 			for (junk = 1; junk < (i&17)+4; junk++) {
-				printf("_\n%d\t", t/i+junk);
-				printf("%s\tT{\n", CHOOSE(ccto));
+				print("_\n%ld\t", t/i+junk);
+				print("%s\tT{\n", CHOOSE(ccto));
 				env = getenvq();
 				io = 0;
 				tree = sent(env);
 				pr(tree);
 				buff[io] = 0;
-				printf("%s.\nT}\n", buff);
+				print("%s.\nT}\n", buff);
 				free(env);
 			}
-			printf(".TE\n");
-			printf(".ce\n\\fBTable %d\\fP\n", i/41);
+			print(".TE\n");
+			print(".ce\n\\fBTable %d\\fP\n", i/41);
 		}
 		env = getenvq();
 		tree = turgid(env);
@@ -1561,47 +1560,47 @@ main(int argc, char *argv[]) {
 		pr(tree);
 		buff[io] = 0;
 		if (++k % 13 == 0 && prob(0.35)) {	/* Bullet list */
-			printf("%s:\n", buff);
-			printf(".BL\n");
+			print("%s:\n", buff);
+			print(".BL\n");
 			do {
-				printf(".LI\n");
+				print(".LI\n");
 				free(env);
 				env = getenvq();
 				io = 0;
 				tree = sent(env);
 				pr(tree);
 				buff[io] = 0;
-				printf("%s.\n", buff);
+				print("%s.\n", buff);
 			} while (prob(.83));
-			printf(".LE\n");
-			printf(".P\n");
+			print(".LE\n");
+			print(".P\n");
 		} else {
 			if (k % 11 == 0 && prob(.21)) {	/* do as footnote */
-				printf("%s\\*F.\n", buff);
+				print("%s\\*F.\n", buff);
 				free(env);
 				env = getenvq();
 				io = 0;
 				tree = sent(env);
 				pr(tree);
 				buff[io] = 0;
-				printf(".FS\n%s.\n.FE\n", buff);
+				print(".FS\n%s.\n.FE\n", buff);
 			}
-			else printf("%s.\n", buff);	/* normal flush */
+			else print("%s.\n", buff);	/* normal flush */
 		}
 		if (++j > 2 && prob(0.4))
-			printf(".P\n"), j = 0;
+			print(".P\n"), j = 0;
 		free(env);
 	}
 	USED(i);
-	printf(".SG\n");
-	printf(".NS 0\n");
+	print(".SG\n");
+	print(".NS 0\n");
 	for (j = 0; j == 0;) {
 		for (i = 0; i < sizeof ccto / sizeof *ccto; i++) {
 			if (prob(.10))
-				j = 1, printf("%s\n", ccto[i]);
+				j = 1, print("%s\n", ccto[i]);
 		}
 	}
-	printf(".NE\n");
+	print(".NE\n");
 	USED(i);
 	exits("");
 }

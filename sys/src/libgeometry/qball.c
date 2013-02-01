@@ -4,7 +4,6 @@
 #include <u.h>
 #include <libc.h>
 #include <draw.h>
-#include <stdio.h>
 #include <event.h>
 #include <geometry.h>
 #define	BORDER	4

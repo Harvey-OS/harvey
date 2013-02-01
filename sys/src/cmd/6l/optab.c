@@ -15,8 +15,10 @@ uchar	ynop[] =
 	Ynone,	Ynone,	Zpseudo,1,
 	Ynone,	Yml,	Zpseudo,1,
 	Ynone,	Yrf,	Zpseudo,1,
+	Ynone,	Yxr,	Zpseudo,1,
 	Yml,	Ynone,	Zpseudo,1,
 	Yrf,	Ynone,	Zpseudo,1,
+	Yxr,	Ynone,	Zpseudo,1,
 	0
 };
 uchar	yxorb[] =
