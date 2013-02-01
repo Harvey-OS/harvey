@@ -18,6 +18,9 @@ mpacpi(int ncleft)
 	Apic *apic;
 	Apicst *st;
 
+	if (apics == nil)
+		return ncleft;
+
 	print("APIC lapic paddr %#.8llux, flags %#.8ux\n",
 		apics->lapicpa, apics->pcat);
 	np = 0;
