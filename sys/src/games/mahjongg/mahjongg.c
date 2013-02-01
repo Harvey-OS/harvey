@@ -2,7 +2,6 @@
 #include <libc.h>
 #include <draw.h>
 #include <event.h>
-#include <stdio.h>
 #include "mahjongg.h"
 
 #define MJDIR "/sys/games/lib/mahjongg/"

@@ -244,9 +244,8 @@ rm /mnt/cd/wa
 .TF "\fLhttp://www.t10.org\fP"
 .TP
 .B http://www.t10.org
-optical disc interface standards
-.br
-in particular,
+optical disc interface standards,
+notably
 .I "Multi-Media Commands"
 (MMC)
 .PD
