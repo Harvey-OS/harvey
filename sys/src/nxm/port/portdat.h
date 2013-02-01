@@ -763,6 +763,7 @@ union Ar0 {
 	uintptr	p;
 	usize	u;
 	void*	v;
+	vlong	vl;
 };
 
 struct Linux {
