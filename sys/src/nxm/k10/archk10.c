@@ -28,7 +28,7 @@ cpuidinit(void)
 	if((eax = cpuid(0x80000000, 0, info)) >= 0x80000000)
 		m->ncpuinfoe = (eax & ~0x80000000) + 1;
 
-	/* is mnonitor supported? */
+	/* is monitor supported? */
 	if (m->cpuinfo[1][2] & 8) {
 		cpuid(5, 0, m->cpuinfo[2]);
 		mwait = k10mwait;
@@ -170,6 +170,7 @@ cpuidhz(u32int info[2][4])
 				return 0;
 			hz = (800 + 200*((msr>>1) & 0x1f)) * 1000000ll;
 			break;
+		case 0x00100f40:		/* Phenom II X4 */
 		case 0x00100f90:		/* K10 */
 		case 0x00000620:		/* QEMU64 */
 			msr = rdmsr(0xc0010064);
