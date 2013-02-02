@@ -1,9 +1,9 @@
 #include <unistd.h>
 #define	NONEXIT	34
-extern int (*_atexitfns[NONEXIT])(void);
+extern void (*_atexitfns[NONEXIT])(void);
 
 int
-atexit(int (*f)(void))
+atexit(void (*f)(void))
 {
 	int i;
 	for(i=0; i<NONEXIT; i++)
