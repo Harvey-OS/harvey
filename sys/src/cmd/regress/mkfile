@@ -5,6 +5,7 @@ TARG = \
 	badsyscall\
 	float\
 	frexp\
+	mixedfloat\
 	sysstatread\
 	idseg\
 

@@ -10,6 +10,7 @@ mount -bc /srv/ramfs /
 echo badsyscall && badsyscall
 echo float && float
 echo frexp && frexp
+echo mixedfloat && mixedfloat
 echo sysstatread && sysstatread
 #This will break jenkins but is useful for testing
 #echo -n V > /dev/regressctl

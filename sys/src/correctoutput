@@ -25,5 +25,8 @@ Actual decomposition: +Inf*2^0
 NaN: NaN
 Expected decomposition: NaN*2^0
 Actual decomposition: NaN*2^0
+mixedfloat
+[double] addition: 4; multiplication: 5
+[float] addition: 4; multiplication: 5
 sysstatread
 cpu0: exiting

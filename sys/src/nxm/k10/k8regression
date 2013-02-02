@@ -73,6 +73,7 @@ rootdir
 	$NXM/amd64/bin/regress/badsyscall badsyscall
 	$NXM/amd64/bin/regress/float float
 	$NXM/amd64/bin/regress/frexp frexp
+	$NXM/amd64/bin/regress/mixedfloat mixedfloat
 	$NXM/amd64/bin/regress/sysstatread sysstatread
 
 conf
