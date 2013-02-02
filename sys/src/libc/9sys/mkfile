@@ -29,7 +29,6 @@ OFILES=\
 	getppid.$O\
 	getwd.$O\
 	iounit.$O\
-	nixcall.$O\
 	nsec.$O\
 	nulldir.$O\
 	postnote.$O\

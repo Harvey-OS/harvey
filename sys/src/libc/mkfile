@@ -1,7 +1,7 @@
 MKSHELL=rc
 <$NXM/$objtype/mkfile
 
-PORTDIRS=9sys 9syscall fmt port thr
+PORTDIRS=9sys 9syscall fmt port
 DIRS=$PORTDIRS $CPUS
 OLDCPUS=68000 68020 sparc
 CPUS=amd64

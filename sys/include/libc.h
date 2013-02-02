@@ -564,7 +564,7 @@ extern	void		freenetconninfo(NetConnInfo*);
 
 /* bits in Qid.type */
 #define QTDIR		0x80		/* type bit for directories */
-#define QTAPPEND	0x40		/* type bit for append only files */
+#define QTAPPEND		0x40		/* type bit for append only files */
 #define QTEXCL		0x20		/* type bit for exclusive use files */
 #define QTMOUNT		0x10		/* type bit for mounted channel */
 #define QTAUTH		0x08		/* type bit for authentication file */
@@ -573,7 +573,7 @@ extern	void		freenetconninfo(NetConnInfo*);
 
 /* bits in Dir.mode */
 #define DMDIR		0x80000000	/* mode bit for directories */
-#define DMAPPEND	0x40000000	/* mode bit for append only files */
+#define DMAPPEND		0x40000000	/* mode bit for append only files */
 #define DMEXCL		0x20000000	/* mode bit for exclusive use files */
 #define DMMOUNT		0x10000000	/* mode bit for mounted channel */
 #define DMAUTH		0x08000000	/* mode bit for authentication file */
@@ -602,6 +602,14 @@ enum
 	RFCORE		= (1<<17),
 	RFCCORE		= (1<<18),
 	RFSTACK		= (1<<19),
+};
+
+/* execac */
+enum
+{
+	EXTC = 0,	/* exec on time-sharing */
+	EXAC,		/* want an AC for the exec'd image */
+	EXXC,		/* want an XC for the exec'd image */
 };
 
 typedef
@@ -784,25 +792,6 @@ extern	int	semalt(int*[], int);
 extern	void	semstats(void);
 extern	int	semdebug;
 
-/*
- * NIX queue based system call mechanism
- */
-typedef struct Nixcall Nixcall;
-typedef struct Nixret Nixret;
-#pragma incomplete Nixcall
-#pragma incomplete Nixret
-
-extern void	nixcall(Nixcall*,int);
-extern void*	nixret(Nixret*);
-extern void	nixsyscall(void);
-
-/*
- * NIX threads using the queue based system call mechanism
- */
-extern int newthr(char*, void (*f)(int, void*[]), int, void*[]);
-extern int gettid(void);
-extern int tsyscall(int nr, ...);
-extern void texits(char *sts);
 
 /*
  * Performance counters

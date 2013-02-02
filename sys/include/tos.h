@@ -1,37 +1,8 @@
-typedef struct Callq Callq;
-typedef struct Nixcall Nixcall;
-typedef struct Nixret Nixret;
 typedef struct Plink Plink;
 typedef struct Tos Tos;
 
 #pragma incomplete Plink
 
-#define CALLQSZ	512
-
-struct Nixcall
-{
-	void*	tag;
-	int	scall;
-	va_list	sarg;
-};
-
-struct Nixret
-{
-	void*	tag;
-	int	sret;
-	char*	err;
-};
-
-struct Callq
-{
-	int	ksleep;
-	unsigned int	qr;	/* don't use uint for ape */
-	unsigned int	qw;
-	unsigned int	rr;
-	unsigned int	rw;
-	Nixcall q[CALLQSZ];
-	Nixret	r[CALLQSZ];
-};
 
 struct Tos
 {
@@ -49,9 +20,11 @@ struct Tos
 	vlong	pcycles;	/* cycles spent in process (kernel + user) */
 	ulong	clock;
 
+	/*
+	 * Fields below are not available on Plan 9 kernels.
+	 */
 	int	nixtype;		/* role of the core we are running at */
 	int	core;		/* core we are running at */
-	Callq	callq;		/* NIX queue based system calls */
 
 	/* Used as TLS data in Go.*/
 	void *Go_g;	/* goroutines */
