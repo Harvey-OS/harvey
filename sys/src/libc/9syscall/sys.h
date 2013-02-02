@@ -56,4 +56,5 @@
 #define	ZIOPREAD	57
 #define	ZIOPWRITE	58
 #define	ZIOFREE		59
+#define	NANOTIME	60
 #define	SETTLS		128

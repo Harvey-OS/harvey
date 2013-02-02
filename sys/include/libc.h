@@ -668,6 +668,7 @@ extern	int	fwstat(int, uchar*, int);
 extern	int	fversion(int, int, char*, int);
 extern	int	mount(int, int, char*, int, char*);
 extern	int	unmount(char*, char*);
+extern	vlong	nanotime(void);
 extern	int	noted(int);
 extern	int	notify(void(*)(void*, char*));
 extern	int	open(char*, int);

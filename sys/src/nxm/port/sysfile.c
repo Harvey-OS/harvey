@@ -314,6 +314,15 @@ sysopen(Ar0* ar0, va_list list)
 }
 
 void
+sysnanotime(Ar0* ar0, va_list)
+{
+	/*
+	 * vlong nanotime(void);
+	 */
+	ar0->vl = todget(nil);
+}
+
+void
 fdclose(int fd, int flag)
 {
 	int i;
