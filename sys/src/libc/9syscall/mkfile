@@ -77,8 +77,10 @@ oldinstall:V:
 				echo TEXT _seek'(SB)', 1, '$0'
 			if not
 				echo TEXT $i'(SB)', 1, '$0'
-			echo MOVQ RARG, 'a0+0(FP)'
+                        if(! ~ $i nanotime)
+				echo MOVQ RARG, 'a0+0(FP)'
 			echo MOVQ '$'$n, RARG
+			echo MOVQ '$'0x8000,AX
 			echo SYSCALL
 			echo RET
 		case sparc sparc64

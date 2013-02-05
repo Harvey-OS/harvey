@@ -29,7 +29,9 @@ func main(){
 			name = "_" + name
 		}
 		ass = ass + fmt.Sprintf("%s(SB), 1, $0\n", name)
-		ass = ass + "\tMOVQ RARG, a0+0(FP)\n"
+		if (name != "nanotime"){
+			ass = ass + "\tMOVQ RARG, a0+0(FP)\n"
+		}
 		ass = ass + "\tMOVQ $"+ll[2]+",RARG\n"
 		ass = ass + "\tMOVQ $0x8000,AX\n"
 		ass = ass + "\tSYSCALL\n\tRET\n"
