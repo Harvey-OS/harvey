@@ -80,6 +80,7 @@ rootdir
 	$NXM/amd64/bin/regress/frexp frexp
 	$NXM/amd64/bin/regress/mixedfloat mixedfloat
 	$NXM/amd64/bin/regress/sysstatread sysstatread
+	$NXM/amd64/bin/regress/nanotime nanotime
 
 conf
 	int cpuserver = 1;

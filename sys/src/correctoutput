@@ -29,4 +29,5 @@ mixedfloat
 [double] addition: 4; multiplication: 5
 [float] addition: 4; multiplication: 5
 sysstatread
+nanotime
 cpu0: exiting

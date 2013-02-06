@@ -12,6 +12,7 @@ echo float && float
 echo frexp && frexp
 echo mixedfloat && mixedfloat
 echo sysstatread && sysstatread
+echo nanotime && nanotime
 #This will break jenkins but is useful for testing
 #echo -n V > /dev/regressctl
 echo -n 0x8000000 >/dev/malloc
