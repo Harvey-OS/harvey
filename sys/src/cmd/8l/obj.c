@@ -27,7 +27,7 @@ static	int	maxlibdir = 0;
 void
 usage(void)
 {
-	diag("usage: 6l [-options] objects");
+	diag("usage: %s [-options] objects", argv0);
 	errorexit();
 }
 
