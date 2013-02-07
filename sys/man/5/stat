@@ -34,6 +34,8 @@ machine-independent
 .IR entry ,
 .IR stat ,
 laid out as follows:
+.TF \fIqid.path[8]
+.PD
 .TP
 .I size\f1[2]\fP
 total byte count of the following data
