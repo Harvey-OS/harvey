@@ -170,7 +170,10 @@ are defined by
 \fL	0x80000000\fP	directory
 \fL	0x40000000\fP	append only
 \fL	0x20000000\fP	exclusive use (locked)
-
+.\" \fL	0x10000000\fP	mounted channel
+.\" \fL	0x08000000\fP	authentication file
+\fL	0x04000000\fP	non-backed-up files
+.sp 0.3v
 \fL	      0400\fP	read permission by owner
 \fL	      0200\fP	write permission by owner
 \fL	      0100\fP	execute permission (search on directory) by owner
@@ -183,9 +186,12 @@ There are constants defined in
 for these bits:
 .BR DMDIR ,
 .BR DMAPPEND ,
+.BR DMEXCL ,
+.\" .BR DMMOUNT ,
+.\" .BR DMAUTH ,
 and
-.B DMEXCL
-for the first three; and
+.BR DMTMP
+for the first four; and
 .BR DMREAD ,
 .BR DMWRITE ,
 and
