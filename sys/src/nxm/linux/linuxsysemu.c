@@ -322,14 +322,21 @@ void linuxmmap(Ar0 *ar0, va_list list)
 	}
 
 	/* allocate the memory we need. We might allocate more than needed. */
-	oldv = ibrk(0, BSEG);
+	if (!up->seg[MSEG]){
+		struct Segment *ns;
+		ns = newseg(SG_BSS, MMAPBASE, 0);
+		ns->color = -1;
+		up->seg[MSEG] = ns;
+	}
+
+	oldv = ibrk(0, MSEG);
 
 	if (up->attr & 128)
 		print("%d:mmap anon: current is %p\n", up->pid, oldv);
 	newv =  oldv + length;
 	if (up->attr & 128)
 		print("%d:mmap anon: ask for %p\n", up->pid, newv);
-	ret = ibrk(newv, BSEG);
+	ret = ibrk(newv, MSEG);
 	if (up->attr & 128)
 		print("%d:mmap anon: new is %p\n", up->pid, ret);
 
@@ -339,7 +346,7 @@ void linuxmmap(Ar0 *ar0, va_list list)
 		return;
 	}
 
-	nixprepage(BSEG);
+	nixprepage(MSEG);
 	iop = oldv;
 	while (length > 0){
 		nn = c->dev->read(c, (void *)oldv, length, offset);

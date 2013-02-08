@@ -50,6 +50,23 @@
 #define	PGSPERBIG	(BIGPGSZ/PGSZ)
 
 /*
+ * 1G pages
+ */
+#define	GSHIFT		30
+#define	GPGSZ		(1ull<<GSHIFT)
+#define	GPGROUND(x)	ROUNDUP((x),GPGSZ)
+#define	PGSPERG		(GPGSZ/PGSZ)
+
+/*
+ * 512G pages
+ * we don't really want most people using these.
+ */
+#define	_512GSHIFT	39
+#define	_512GPGSZ	(1ull<<_512GSHIFT)
+#define	_512GPGROUND(x)	ROUNDUP((x),_512GPGSZ)
+#define	_512PGSPERG	(_512GPGSZ/PGSZ)
+
+/*
  * Time
  */
 #define HZ		(100)			/* clock frequency */
@@ -71,6 +88,12 @@
 #define BIGBSSSIZE	(32ull*GiB)			/* size of big heap segment */
 #define HEAPTOP		(BIGBSSTOP-BIGBSSSIZE)	/* end of shared heap segments */
 
+/* until now, on linux emulation, we had allowed mmap and brk areas
+ * to intermix. The glibc runtime can't take it. So we have to find
+ * a separate place for mmap. For now, we put it at the base of the
+ * USTK "_512G" page
+ */
+#define MMAPBASE	(_512GPGROUND(USTKTOP-_512GPGSZ))
 
 /*
  *  Address spaces. Kernel, sorted by address.
