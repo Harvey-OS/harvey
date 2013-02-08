@@ -46,7 +46,7 @@ enum {			/* Packet Types */
 
 enum
 {
-	MinAdvise	= 24,	/* minimum needed for us to advise another protocol */ 
+	MinAdvise	= 24,	/* minimum needed for us to advise another protocol */
 };
 
 char *icmpnames[Maxtype+1] =
@@ -177,9 +177,9 @@ icmpkick(void *x, Block *bp)
 	p = (Icmp *)(bp->rp);
 	p->vihl = IP_VER4;
 	ipriv = c->p->priv;
-	if(p->type <= Maxtype)	
+	if(p->type <= Maxtype)
 		ipriv->out[p->type]++;
-	
+
 	v6tov4(p->dst, c->raddr);
 	v6tov4(p->src, c->laddr);
 	p->proto = IP_ICMPPROTO;
@@ -332,7 +332,7 @@ icmpiput(Proto *icmp, Ipifc*, Block *bp)
 	Icmppriv *ipriv;
 
 	ipriv = icmp->priv;
-	
+
 	ipriv->stats[InMsgs]++;
 
 	p = (Icmp *)bp->rp;
@@ -465,7 +465,7 @@ icmpstats(Proto *icmp, char *buf, int len)
 	}
 	return p - buf;
 }
-	
+
 void
 icmpinit(Fs *fs)
 {

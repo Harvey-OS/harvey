@@ -178,7 +178,7 @@ struct Rudpcb
 };
 
 /*
- * local functions 
+ * local functions
  */
 void	relsendack(Conv*, Reliable*, int);
 int	reliput(Conv*, Block*, uchar*, ushort);
@@ -436,7 +436,7 @@ rudpkick(void *x)
 
 	upriv->ustats.rudpOutDatagrams++;
 
-	DPRINT("sent: %lud/%lud, %lud/%lud\n", 
+	DPRINT("sent: %lud/%lud, %lud/%lud\n",
 		r->sndseq, r->sndgen, r->rcvseq, r->rcvgen);
 
 	doipoput(c, f, bp, 0, c->ttl, c->tos);
@@ -480,8 +480,8 @@ rudpiput(Proto *rudp, Ipifc *ifc, Block *bp)
 
 	uh = (Udphdr*)(bp->rp);
 
-	/* Put back pseudo header for checksum 
-	 * (remember old values for icmpnoconv()) 
+	/* Put back pseudo header for checksum
+	 * (remember old values for icmpnoconv())
 	 */
 	ottl = uh->Unused;
 	uh->Unused = 0;
@@ -537,15 +537,15 @@ rudpiput(Proto *rudp, Ipifc *ifc, Block *bp)
 	len -= (UDP_RHDRSIZE-UDP_PHDRSIZE);
 	bp = trimblock(bp, UDP_IPHDR+UDP_RHDRSIZE, len);
 	if(bp == nil) {
-		netlog(f, Logrudp, "rudp: len err %I.%d -> %I.%d\n", 
+		netlog(f, Logrudp, "rudp: len err %I.%d -> %I.%d\n",
 			raddr, rport, laddr, lport);
-		DPRINT("rudp: len err %I.%d -> %I.%d\n", 
+		DPRINT("rudp: len err %I.%d -> %I.%d\n",
 			raddr, rport, laddr, lport);
 		upriv->lenerr++;
 		return;
 	}
 
-	netlog(f, Logrudpmsg, "rudp: %I.%d -> %I.%d l %d\n", 
+	netlog(f, Logrudpmsg, "rudp: %I.%d -> %I.%d l %d\n",
 		raddr, rport, laddr, lport, len);
 
 	switch(ucb->headers){
@@ -584,7 +584,7 @@ rudpiput(Proto *rudp, Ipifc *ifc, Block *bp)
 	}
 	else
 		qpass(c->rq, bp);
-	
+
 	qunlock(ucb);
 }
 
@@ -765,7 +765,7 @@ relstate(Rudpcb *ucb, uchar *addr, ushort port, char *from)
 
 	l = &ucb->r;
 	for(r = *l; r; r = *l){
-		if(memcmp(addr, r->addr, IPaddrlen) == 0 && 
+		if(memcmp(addr, r->addr, IPaddrlen) == 0 &&
 		    port == r->port)
 			break;
 		l = &r->next;
@@ -776,7 +776,7 @@ relstate(Rudpcb *ucb, uchar *addr, ushort port, char *from)
 		while(generation == 0)
 			generation = rand();
 
-		DPRINT("from %s new state %lud for %I!%ud\n", 
+		DPRINT("from %s new state %lud for %I!%ud\n",
 		        from, generation, addr, port);
 
 		r = smalloc(sizeof(Reliable));
@@ -835,7 +835,7 @@ relforget(Conv *c, uchar *ip, int port, int originator)
 	}
 }
 
-/* 
+/*
  *  process a rcvd reliable packet. return -1 if not to be passed to user process,
  *  0 therwise.
  *
@@ -865,7 +865,7 @@ reliput(Conv *c, Block *bp, uchar *addr, ushort port)
 	ucb = (Rudpcb*)c->ptcl;
 	r = relstate(ucb, addr, port, "input");
 
-	DPRINT("rcvd %lud/%lud, %lud/%lud, r->sndgen = %lud\n", 
+	DPRINT("rcvd %lud/%lud, %lud/%lud, r->sndgen = %lud\n",
 		seq, sgen, ack, agen, r->sndgen);
 
 	/* if acking an incorrect generation, ignore */
@@ -898,7 +898,7 @@ reliput(Conv *c, Block *bp, uchar *addr, ushort port)
 		while(r->unacked != nil && INSEQ(ack, r->ackrcvd, r->sndseq)){
 			nbp = r->unacked;
 			r->unacked = nbp->list;
-			DPRINT("%lud/%lud acked, r->sndgen = %lud\n", 
+			DPRINT("%lud/%lud acked, r->sndgen = %lud\n",
 			       ack, agen, r->sndgen);
 			freeb(nbp);
 			r->ackrcvd = NEXTSEQ(r->ackrcvd);
@@ -920,7 +920,7 @@ reliput(Conv *c, Block *bp, uchar *addr, ushort port)
 				relrexmit(c, r);
 			}
 		}
-		
+
 	}
 
 	/* no message or input queue full */
