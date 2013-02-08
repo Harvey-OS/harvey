@@ -977,11 +977,6 @@ poolallocl(Pool *p, ulong dsize)
 	Free *fb;
 	Alloc *ab;
 
-	if(dsize >= 0x80000000UL){	/* for sanity, overflow */
-		werrstr("invalid allocation size");
-		return nil;
-	}
-
 	bsize = dsize2bsize(p, dsize);
 
 	fb = treelookupgt(p->freeroot, bsize);
