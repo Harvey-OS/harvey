@@ -97,7 +97,7 @@ newarp6(Arp *arp, uchar *ip, Ipifc *ifc, int addrxt)
 	}
 	else { /* queue icmp unreachable for rxmitproc later on, w/o arp lock */
 		if(xp){
-			if(arp->dropl == nil) 
+			if(arp->dropl == nil)
 				arp->dropf = xp;
 			else
 				arp->dropl->list = xp;
@@ -150,7 +150,7 @@ newarp6(Arp *arp, uchar *ip, Ipifc *ifc, int addrxt)
 			l = &f->nextrxt;
 		}
 		*l = a;
-		if(empty) 
+		if(empty)
 			wakeup(&arp->rxmtq);
 	}
 
@@ -170,7 +170,7 @@ cleanarpent(Arp *arp, Arpent *a)
 	a->ctime = 0;
 	a->type = 0;
 	a->state = 0;
-	
+
 	/* take out of current chain */
 	l = &arp->hash[haship(a->ip)];
 	for(f = *l; f; f = f->hash){
@@ -236,7 +236,7 @@ arpget(Arp *arp, Block *bp, int version, Ipifc *ifc, uchar *ip, uchar *mac)
 			else
 				a->hold = bp;
 			a->last = bp;
-			bp->list = nil; 
+			bp->list = nil;
 		}
 		return a;		/* return with arp qlocked */
 	}
@@ -488,7 +488,7 @@ arpwrite(Fs *fs, char *s, int len)
 			}
 			l = &a->hash;
 		}
-	
+
 		if(a){
 			/* take out of re-transmit chain */
 			l = &arp->rxmt;
@@ -580,7 +580,7 @@ rxmitsols(Arp *arp)
 		goto dodrops; 		/* return nrxt; */
 	}
 	nrxt = a->rtime - NOW;
-	if(nrxt > 3*ReTransTimer/4) 
+	if(nrxt > 3*ReTransTimer/4)
 		goto dodrops; 		/* return nrxt; */
 
 	for(; a; a = a->nextrxt){
@@ -591,7 +591,7 @@ rxmitsols(Arp *arp)
 			a->hold = nil;
 
 			if(xp){
-				if(arp->dropl == nil) 
+				if(arp->dropl == nil)
 					arp->dropf = xp;
 				else
 					arp->dropl->list = xp;
@@ -607,11 +607,11 @@ rxmitsols(Arp *arp)
 
 
 	qunlock(arp);	/* for icmpns */
-	if((sflag = ipv6anylocal(ifc, ipsrc)) != SRC_UNSPEC) 
-		icmpns(f, ipsrc, sflag, a->ip, TARG_MULTI, ifc->mac); 
+	if((sflag = ipv6anylocal(ifc, ipsrc)) != SRC_UNSPEC)
+		icmpns(f, ipsrc, sflag, a->ip, TARG_MULTI, ifc->mac);
 
 	runlock(ifc);
-	qlock(arp);	
+	qlock(arp);
 
 	/* put to the end of re-transmit chain */
 	l = &arp->rxmt;
@@ -633,7 +633,7 @@ rxmitsols(Arp *arp)
 	a = arp->rxmt;
 	if(a==nil)
 		nrxt = 0;
-	else 
+	else
 		nrxt = a->rtime - NOW;
 
 dodrops:
@@ -676,10 +676,10 @@ rxmitproc(void *v)
 	}
 	for(;;){
 		wakeupat = rxmitsols(arp);
-		if(wakeupat == 0) 
-			sleep(&arp->rxmtq, rxready, v); 
-		else if(wakeupat > ReTransTimer/4) 
-			tsleep(&arp->rxmtq, return0, 0, wakeupat); 
+		if(wakeupat == 0)
+			sleep(&arp->rxmtq, rxready, v);
+		else if(wakeupat > ReTransTimer/4)
+			tsleep(&arp->rxmtq, return0, 0, wakeupat);
 	}
 }
 

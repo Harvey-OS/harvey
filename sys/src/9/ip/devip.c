@@ -1175,7 +1175,7 @@ ipwrite(Chan* ch, void *v, long n, vlong off)
 				error("maxfragsize needs size");
 
 			c->maxfragsize = (int)strtol(cb->f[1], nil, 0);
-			
+
 		} else if(x->ctl != nil) {
 			p = x->ctl(c, cb->f, cb->nf);
 			if(p != nil)

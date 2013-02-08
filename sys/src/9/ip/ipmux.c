@@ -52,7 +52,7 @@ enum
 	Cmifc,
 };
 
-char *ftname[] = 
+char *ftname[] =
 {
 [Tproto]	"proto",
 [Tdata]		"data",
@@ -198,7 +198,7 @@ parseop(char **pp)
 	else
 		f->skiphdr = 0;
 
-	return f;	
+	return f;
 }
 
 static int
@@ -329,7 +329,7 @@ parseerror:
 
 /*
  *  Compare relative ordering of two ipmuxs.  This doesn't compare the
- *  values, just the fields being looked at.  
+ *  values, just the fields being looked at.
  *
  *  returns:	<0 if a is a more specific match
  *		 0 if a and b are matching on the same fields
@@ -346,7 +346,7 @@ ipmuxcmp(Ipmux *a, Ipmux *b)
 		return n;
 
 	/* compare offsets, call earlier ones more specific */
-	n = (a->off+((int)a->skiphdr)*(ulong)ipoff->data) - 
+	n = (a->off+((int)a->skiphdr)*(ulong)ipoff->data) -
 		(b->off+((int)b->skiphdr)*(ulong)ipoff->data);
 	if(n != 0)
 		return n;
@@ -387,7 +387,7 @@ ipmuxvalcmp(Ipmux *a, Ipmux *b)
 	if(n != 0)
 		return n;
 	return memcmp(a->val, b->val, a->len*a->n);
-} 
+}
 
 /*
  *  add onto an existing ipmux chain in the canonical comparison
@@ -590,7 +590,7 @@ static int
 ipmuxstate(Conv *c, char *state, int n)
 {
 	Ipmuxrock *r;
-	
+
 	r = (Ipmuxrock*)(c->ptcl);
 	return ipmuxsprint(r->chain, 0, state, n);
 }
@@ -781,8 +781,8 @@ ipmuxsprint(Ipmux *mux, int level, char *buf, int len)
 		n += snprint(buf+n, len-n, "\n");
 		return n;
 	}
-	n += snprint(buf+n, len-n, "h[%d:%d]&", 
-               mux->off+((int)mux->skiphdr)*((int)ipoff->data), 
+	n += snprint(buf+n, len-n, "h[%d:%d]&",
+               mux->off+((int)mux->skiphdr)*((int)ipoff->data),
                mux->off+(((int)mux->skiphdr)*((int)ipoff->data))+mux->len-1);
 	for(i = 0; i < mux->len; i++)
 		n += snprint(buf+n, len - n, "%2.2ux", mux->mask[i]);

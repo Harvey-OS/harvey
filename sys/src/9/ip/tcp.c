@@ -3404,7 +3404,7 @@ static void
 tcpsetscale(Conv *s, Tcpctl *tcb, ushort rcvscale, ushort sndscale)
 {
 	/*
-	 * guess at reasonable queue sizes.  there's no current way 
+	 * guess at reasonable queue sizes.  there's no current way
 	 * to know how many nic receive buffers we can safely tie up in the
 	 * tcp stack, and we don't adjust our queues to maximize throughput
 	 * and minimize bufferbloat.  n.b. the offer (rcvscale) needs to be

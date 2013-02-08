@@ -33,7 +33,7 @@ struct IGMPpkt
 	uchar	len[2];		/* packet length (including headers) */
 	uchar	id[2];		/* Identification */
 	uchar	frag[2];	/* Fragment information */
-	uchar	Unused;	
+	uchar	Unused;
 	uchar	proto;		/* Protocol */
 	uchar	cksum[2];	/* checksum of ip portion */
 	uchar	src[IPaddrlen];		/* Ip source */
@@ -131,7 +131,7 @@ igmpproc(void *a)
 
 			if(igmpalloc.reports == nil)
 				break;
-	
+
 			/* look for a single report */
 			lrp = &igmpalloc.reports;
 			mp = nil;
@@ -200,7 +200,7 @@ igmpiput(Medium *m, Ipifc *, Block *bp)
 	}
 
 	group = nhgetl(ghp->group);
-	
+
 	lock(&igmpalloc);
 	switch(ghp->vertype & 0xf){
 	case IGMPquery:

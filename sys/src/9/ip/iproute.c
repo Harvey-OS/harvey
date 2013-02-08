@@ -281,7 +281,7 @@ addnode(Fs *f, Route **cur, Route *new)
 		addnode(f, &p->mid, new);
 		break;
 	}
-	
+
 	balancetree(cur);
 }
 
@@ -377,7 +377,7 @@ looknode(Route **cur, Route *r)
 		p = *cur;
 		if(p == 0)
 			return 0;
-	
+
 		switch(rangecompare(r, p)){
 		case Rcontains:
 			return 0;
@@ -592,7 +592,7 @@ next:		;
 		c->r = q;
 		c->rgen = v6routegeneration;
 	}
-	
+
 	return q;
 }
 
