@@ -28,8 +28,8 @@ struct utsname {
 
 struct timeval
   {
-    u32int tv_sec;		/* Seconds.  */
-    u32int tv_usec;	/* Microseconds.  */
+    u64int tv_sec;		/* Seconds.  */
+    u64int tv_usec;	/* Microseconds.  */
   };
 
 struct  rusage {
@@ -84,6 +84,23 @@ linuxuname(Ar0*ar, va_list list)
 //#define BULLSHIT "Linux\0 NIX\0 2.6.19\0NIX\0x86_64\0GNUsucks"
 //	memmove(va, BULLSHIT, strlen(BULLSHIT)+1);
 	if (up->attr&128) print("Returns %s\n", linuxutsname.release);
+	ar->i = 0;
+}
+
+/* not complete. No TZ support. */
+void
+gettimeofday(Ar0*ar, va_list list)
+{
+	struct timeval *tv, time;
+	vlong nsec;
+	tv = va_arg(list, struct timeval *);
+	if (up->attr & 128) print("%d:gettimeofday tv %p\n", up->pid, tv);
+	validaddr(tv, sizeof(*tv), 1);
+	nsec = todget(nil);
+	time.tv_usec = (nsec/1000) % 1000000;
+	time.tv_sec = nsec/1000000000;
+	memmove(tv, &time, sizeof(time));
+	if (up->attr&128) print("Returns %0x%08lx:0x%08lx, nsec returned %ullx\n", time.tv_sec, time.tv_usec, nsec);
 	ar->i = 0;
 }
 

@@ -24,7 +24,7 @@ Syscall linuxprocid;
 Syscall linuxranks2coords;
 Syscall linuxmprotect;
 Syscall linuxclone;
-Syscall gasm;
+Syscall gettimeofday;
 Syscall linuxcga;
 Syscall getrusage;
 Syscall arch_prctl;
@@ -161,7 +161,7 @@ struct syscall linuxsystab[] = {
 	[93] {"fchown", nil, 1, {.p = (void *)-1}},
 	[94] {"lchown", nil, 1, {.p = (void *)-1}},
 	[95] {"umask", nil, 1, {.p = (void *)-1}},
-	[96] {"gettimeofday", nil, 1, {.p = (void *)-1}},
+	[96] {"gettimeofday", gettimeofday, 2, {.i = -1}},
 	[97] {"getrlimit", nil, 1, {.p = (void *)-1}},
 
 	[99] {"sysinfo", nil, 1, {.p = (void *)-1}},
