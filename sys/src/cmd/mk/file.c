@@ -2,17 +2,17 @@
 
 /* table-driven version in bootes dump of 12/31/96 */
 
-long
+ulong
 mtime(char *name)
 {
 	return mkmtime(name, 1);
 }
 
-long
+ulong
 timeof(char *name, int force)
 {
 	Symtab *sym;
-	long t;
+	ulong t;
 
 	if(utfrune(name, '('))
 		return atimeof(force, name);		/* archive */
@@ -60,7 +60,7 @@ delete(char *name)
 void
 timeinit(char *s)
 {
-	long t;
+	ulong t;
 	char *cp;
 	Rune r;
 	int c, n;

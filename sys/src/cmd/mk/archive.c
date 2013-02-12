@@ -4,11 +4,11 @@
 static void atimes(char *);
 static char *split(char*, char**);
 
-long
+ulong
 atimeof(int force, char *name)
 {
 	Symtab *sym;
-	long t;
+	ulong t;
 	char *archive, *member, buf[512];
 
 	archive = split(name, &member);
@@ -82,7 +82,7 @@ static void
 atimes(char *ar)
 {
 	struct ar_hdr h;
-	long at, t;
+	ulong at, t;
 	int fd, i;
 	char buf[BIGBLOCK];
 	Dir *d;
@@ -102,10 +102,10 @@ atimes(char *ar)
 	at = d->mtime;
 	free(d);
 	while(read(fd, (char *)&h, SAR_HDR) == SAR_HDR){
-		t = atol(h.date);
+		t = strtoul(h.date, nil, 0);
 		if(t >= at)	/* new things in old archives confuses mk */
 			t = at-1;
-		if(t <= 0)	/* as it sometimes happens; thanks ken */
+		if(t == 0)	/* as it sometimes happens; thanks ken */
 			t = 1;
 		for(i = sizeof(h.name)-1; i > 0 && h.name[i] == ' '; i--)
 			;
@@ -140,7 +140,7 @@ type(char *file)
 		return 0;
 	}
 	close(fd);
-	return !strncmp(ARMAG, buf, SARMAG);
+	return strncmp(ARMAG, buf, SARMAG) == 0;
 }
 
 static char*

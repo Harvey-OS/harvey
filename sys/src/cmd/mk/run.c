@@ -272,17 +272,17 @@ killchildren(char *msg)
 	Exit();
 }
 
-static long tslot[1000];
-static long tick;
+static ulong tslot[1000];
+static ulong tick;
 
 void
 usage(void)
 {
-	long t;
+	ulong t;
 
-	time(&t);
+	t = time(0);
 	if(tick)
-		tslot[nrunning] += (t-tick);
+		tslot[nrunning] += t - tick;
 	tick = t;
 }
 
@@ -293,5 +293,5 @@ prusage(void)
 
 	usage();
 	for(i = 0; i <= nevents; i++)
-		fprint(1, "%d: %ld\n", i, tslot[i]);
+		fprint(1, "%d: %lud\n", i, tslot[i]);
 }
