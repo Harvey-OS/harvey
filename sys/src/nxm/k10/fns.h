@@ -33,7 +33,7 @@ void	(*coherence)(void);
 int	corecolor(int);
 u32int	cpuid(u32int, u32int, u32int[4]);
 int	dbgprint(char*, ...);
-int	decref(Ref*);
+#define decref(r)	adec(&(r)->ref)
 void	delay(int);
 void	dumpmmu(Proc*);
 void	dumpmmuwalk(u64int pa);
@@ -63,7 +63,7 @@ void	idlehands(void);
 void	acidthandlers(void);
 void	idthandlers(void);
 int	inb(int);
-int	incref(Ref*);
+#define incref(r)	ainc(&(r)->ref)
 void	insb(int, void*, int);
 ushort	ins(int);
 void	inss(int, void*, int);

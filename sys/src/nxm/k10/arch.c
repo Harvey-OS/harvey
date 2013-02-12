@@ -11,6 +11,7 @@
 #include "fns.h"
 #include "../port/error.h"
 
+#ifndef incref
 int
 incref(Ref *r)
 {
@@ -21,7 +22,9 @@ incref(Ref *r)
 	unlock(r);
 	return x;
 }
+#endif /* incref */
 
+#ifndef decref
 int
 decref(Ref *r)
 {
@@ -35,6 +38,7 @@ decref(Ref *r)
 
 	return x;
 }
+#endif /* decref */
 
 void
 procrestore(Proc *p)
