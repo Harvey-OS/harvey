@@ -27,6 +27,12 @@ is not zero then
 .BI * tp
 is also set to the answer.
 .PP
+Times from
+.I time
+should be stored in and treated as
+.BR ulong s;
+this extends the range of valid times into the year 2106.
+.PP
 These functions work by reading
 .BR /dev/bintime ,
 opening that file when they are first called.

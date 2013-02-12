@@ -8,7 +8,7 @@ cputime, times, cycles \- cpu time in this process and children
 .PP
 .ta \w'\fLdouble 'u
 .B
-int	times(long t[4])
+long	times(long t[4])
 .PP
 .B
 double	cputime(void)

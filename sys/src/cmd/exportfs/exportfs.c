@@ -254,7 +254,12 @@ main(int argc, char **argv)
 		/* do nothing */
 	}
 	else if(srv) {
-		chdir(srv);
+		if(chdir(srv) < 0) {
+			errstr(ebuf, sizeof ebuf);
+			fprint(0, "chdir(\"%s\"): %s\n", srv, ebuf);
+			DEBUG(DFD, "chdir(\"%s\"): %s\n", srv, ebuf);
+			exits(ebuf);
+		}
 		DEBUG(DFD, "invoked as server for %s", srv);
 		strncpy(buf, srv, sizeof buf);
 	}
@@ -264,15 +269,15 @@ main(int argc, char **argv)
 		n = read(0, buf, sizeof(buf)-1);
 		if(n < 0) {
 			errstr(buf, sizeof buf);
-			fprint(0, "read(0): %s", buf);
-			DEBUG(DFD, "read(0): %s", buf);
+			fprint(0, "read(0): %s\n", buf);
+			DEBUG(DFD, "read(0): %s\n", buf);
 			exits(buf);
 		}
 		buf[n] = 0;
 		if(chdir(buf) < 0) {
 			errstr(ebuf, sizeof ebuf);
-			fprint(0, "chdir(%d:\"%s\"): %s", n, buf, ebuf);
-			DEBUG(DFD, "chdir(%d:\"%s\"): %s", n, buf, ebuf);
+			fprint(0, "chdir(%d:\"%s\"): %s\n", n, buf, ebuf);
+			DEBUG(DFD, "chdir(%d:\"%s\"): %s\n", n, buf, ebuf);
 			exits(ebuf);
 		}
 	}
