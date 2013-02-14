@@ -9,9 +9,6 @@
 
 #include "../port/sd.h"
 
-#define	HOWMANY(x, y)	(((x)+((y)-1))/(y))
-#define ROUNDUP(x, y)	(HOWMANY((x), (y))*(y))
-
 extern SDifc sdataifc;
 
 enum {

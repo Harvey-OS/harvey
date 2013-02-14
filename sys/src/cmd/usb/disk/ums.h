@@ -59,7 +59,7 @@ struct Umsc
 	long	off;		/* offset within a block */
 	long	nb;		/* byte count */
 
-	uchar 	rawcmd[10];
+	uchar 	rawcmd[16];
 	uchar	phase;
 	char	*inq;
 	Ums	*ums;

@@ -90,7 +90,6 @@ $p$CONF:DQ:	$CONF.c $OBJ $LIB mkfile
 
 s$p$CONF:DQ:	$CONF.$O $OBJ $LIB
 	echo '# linking 9 kernel with symbols'
-#	$LD -o $target -R4096 -T$loadaddr -l -a $OBJ $CONF.$O $LIB >$target.list
 	$LD -o $target -R4096 -T$loadaddr -l $OBJ $CONF.$O $LIB
 	size $target
 
@@ -149,6 +148,3 @@ reboot.h:D:	rebootcode.s cache.v7.s arm.s arm.h mem.h
 	 echo '};'} > reboot.h
 errstr.h:D:	../port/mkerrstr ../port/error.h
 	rc ../port/mkerrstr > errstr.h
-
-$CONF.clean:
-	rm -rf $p$CONF s$p$CONF errstr.h reboot.h $CONF.c boot$CONF.c
