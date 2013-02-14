@@ -2,9 +2,6 @@
  * Memory and machine-specific definitions.  Used in C and assembler.
  */
 
-#define MIN(a, b)	((a) < (b)? (a): (b))
-#define MAX(a, b)	((a) > (b)? (a): (b))
-
 /*
  * Sizes
  */
@@ -16,8 +13,6 @@
 #define	WD2PG		(BY2PG/BY2WD)		/* words per page */
 #define	BY2XPG		(4096*1024)		/* bytes per big page */
 #define	PGSHIFT		12			/* log(BY2PG) */
-#define	ROUND(s, sz)	(((s)+((sz)-1))&~((sz)-1))
-#define	PGROUND(s)	ROUND(s, BY2PG)
 #define CACHELINESZ	32			/* pentium & later */
 #define	BLOCKALIGN	8
 #define FPalign		16			/* required for FXSAVE */
@@ -51,6 +46,7 @@
 #define	VMAPSIZE	(0x10000000-VPTSIZE-KMAPSIZE)
 #define	UZERO		0			/* base of user address space */
 #define	UTZERO		(UZERO+BY2PG)		/* first address in user text */
+#define UTROUND(t)	ROUNDUP((t), BY2PG)
 #define	USTKTOP		(VMAP-BY2PG)		/* byte just beyond user stack */
 #define	USTKSIZE	(16*1024*1024)		/* size of user stack */
 #define	TSTKTOP		(USTKTOP-USTKSIZE)	/* end of new stack in sysexec */

@@ -103,8 +103,9 @@ install-in-flash:V: /$objtype/$p$CONF paqdisk
 /$objtype/$p$CONF:D: $p$CONF s$p$CONF
 	cp -x $p$CONF s$p$CONF /$objtype/ &
 	for(i in $EXTRACOPIES)
-		{ echo $i: && 9fs $i && cp $p$CONF s$p$CONF /n/$i/$objtype } &
+		{ 9fs $i && cp $p$CONF s$p$CONF /n/$i/$objtype && echo -n $i... & }
 	wait
+	echo
 	touch $target
 
 paqdisk:
@@ -153,6 +154,3 @@ reboot.h:D:	rebootcode.s arm.s arm.h mem.h
 	 echo '};'} > reboot.h
 errstr.h:D:	../port/mkerrstr ../port/error.h
 	rc ../port/mkerrstr > errstr.h
-
-plug.clean:
-	rm -rf $p$CONF s$p$CONF armpaq paqdisk $CONF.c boot$CONF.c ../boot/libboot.a5

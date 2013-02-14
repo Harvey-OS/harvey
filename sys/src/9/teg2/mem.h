@@ -5,39 +5,24 @@
 #define MiB		1048576u		/* Mebi 0x0000000000100000 */
 #define GiB		1073741824u		/* Gibi 000000000040000000 */
 
-#define HOWMANY(x, y)	(((x)+((y)-1))/(y))
-#define ROUNDUP(x, y)	(HOWMANY((x), (y))*(y))	/* ceiling */
-#define ROUNDDN(x, y)	(((x)/(y))*(y))		/* floor */
-#define MIN(a, b)	((a) < (b)? (a): (b))
-#define MAX(a, b)	((a) > (b)? (a): (b))
-
 /*
  * Not sure where these macros should go.
  * This probably isn't right but will do for now.
  * The macro names are problematic too.
  */
 /*
- * In B(o), 'o' is the bit offset in the register.
+ * In BITN(o), 'o' is the bit offset in the register.
  * For multi-bit fields use F(v, o, w) where 'v' is the value
  * of the bit-field of width 'w' with LSb at bit offset 'o'.
  */
-#define B(o)		(1<<(o))
+#define BITN(o)		(1<<(o))
 #define F(v, o, w)	(((v) & ((1<<(w))-1))<<(o))
-
-#define FCLR(d, o, w)	((d) & ~(((1<<(w))-1)<<(o)))
-#define FEXT(d, o, w)	(((d)>>(o)) & ((1<<(w))-1))
-#define FINS(d, o, w, v) (FCLR((d), (o), (w))|F((v), (o), (w)))
-#define FSET(d, o, w)	((d)|(((1<<(w))-1)<<(o)))
-
-#define FMASK(o, w)	(((1<<(w))-1)<<(o))
 
 /*
  * Sizes
  */
 #define	BY2PG		(4*KiB)			/* bytes per page */
 #define	PGSHIFT		12			/* log(BY2PG) */
-#define	PGROUND(s)	ROUNDUP(s, BY2PG)
-#define	ROUND(s, sz)	(((s)+(sz-1))&~(sz-1))
 
 /* max # of cpus system can run.  tegra2 cpu ids are two bits wide. */
 #define	MAXMACH		4

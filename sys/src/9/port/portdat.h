@@ -58,6 +58,28 @@ typedef int    Devgen(Chan*, char*, Dirtab*, int, int, Dir*);
 
 #include <fcall.h>
 
+#define HOWMANY(x, y)	(((x)+((y)-1))/(y))
+#define ROUNDUP(x, y)	(HOWMANY((x), (y))*(y))	/* ceiling */
+#define ROUNDDN(x, y)	(((x)/(y))*(y))		/* floor */
+#define	ROUND(s, sz)	(((s)+(sz-1))&~(sz-1))
+#define	PGROUND(s)	ROUNDUP(s, BY2PG)
+#define MIN(a, b)	((a) < (b)? (a): (b))
+#define MAX(a, b)	((a) > (b)? (a): (b))
+
+/*
+ * For multi-bit fields use FIELD(v, o, w) where 'v' is the value
+ * of the bit-field of width 'w' with LSb at bit offset 'o'.
+ */
+#define FIELD(v, o, w)	(((v) & ((1<<(w))-1))<<(o))
+
+#define FCLR(d, o, w)	((d) & ~(((1<<(w))-1)<<(o)))
+#define FEXT(d, o, w)	(((d)>>(o)) & ((1<<(w))-1))
+#define FINS(d, o, w, v) (FCLR((d), (o), (w))|FIELD((v), (o), (w)))
+#define FSET(d, o, w)	((d)|(((1<<(w))-1)<<(o)))
+
+#define FMASK(o, w)	(((1<<(w))-1)<<(o))
+
+/* let each port override any of these */
 #ifndef KMESGSIZE
 #define KMESGSIZE (16*1024)
 #endif
