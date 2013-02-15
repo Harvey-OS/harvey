@@ -2,10 +2,10 @@ badsyscall
 Notify passed
 Writing from NxM program to stdout via linux write(2)
 Write to stdout is 54, should be 54
-Call pipe 7fffffbf9eb8
+Call pipe
 PIPE ret 0 = fd [3,4]
 write to pipe is 3 (should be 3)
-read from pipe is 3 (should be 3); data is :hi.:
+read from pipe is 3 (should be 3); data is :hi.:
 Handled 2
 float
 Double-precision test number: 0.0000004000000000125

@@ -49,7 +49,7 @@ main(int argc, char *argv[])
 	uvlong callbadsys(uvlong, ...);
 	int fd[2];
 	int ret;
-	char data[3];
+	char data[4];
   
 	if (notify(handler)){
 		fprint(2, "%r\n");
@@ -64,11 +64,12 @@ main(int argc, char *argv[])
 	ret = callbadsys((uvlong)1, (uvlong)1, msg, strlen(msg));
 	fprint(2, "Write to stdout is %d, should be %d\n", ret, strlen(msg));
 	/* try a emulated linux system call */
-	fprint(2, "Call pipe %p\n", fd);
+	fprint(2, "Call pipe\n");
 	ret = callbadsys((uvlong)22, (uvlong)fd);
 	fprint(2, "PIPE ret %d = fd [%d,%d]\n", ret, fd[0], fd[1]);
 	ret = write(fd[0], "hi.", 3);
 	fprint(2, "write to pipe is %d (should be 3)\n", ret);
+	data[3] = 0;
 	read(fd[1], data, 3);
 	fprint(2, "read from pipe is %d (should be 3); data is :%s:\n", ret, data);
 	/* now try a bad linux system call */
