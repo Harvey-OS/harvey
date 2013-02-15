@@ -718,7 +718,7 @@ findendpoints(Serial *ser, int ifc)
 		if(ep->type == Ebulk){
 			if((ep->dir == Ein || ep->dir == Eboth) && epin == -1)
 				epin = ep->id;
-			if((ep->dir == Ein || ep->dir == Eboth) && epout == -1)
+			if((ep->dir == Eout || ep->dir == Eboth) && epout == -1)
 				epout = ep->id;
 		}
 	}
