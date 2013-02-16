@@ -171,7 +171,7 @@ for subsequent processes to
 .I Boot
 completes by
 .IR exec (2)'ing
-.B /$objtype/init
+.B /$cputype/init
 .BR -t .
 If the
 .B -m
@@ -224,7 +224,7 @@ Once connected,
 .I boot
 behaves as on the terminal except for
 .IR exec (2)'ing
-.B /$objtype/init
+.B /$cputype/init
 .BR -c .
 .SS Booting Methods
 The methods available to any system depend on what was

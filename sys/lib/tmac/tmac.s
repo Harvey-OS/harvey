@@ -106,7 +106,7 @@
 .if !\\n(IM .if !\\n(MN .pn 0
 .so \\*(sd/tmac.scover
 .if !\\n(IM .if !\\n(MN .rm IM MF MR
-.if n .if !\\n(.T .pi /usr/bin/col
+.if n .if !\\n(.T .pi /bin/col
 .nr ST 1
 .ds QF TECHNICAL MEMORANDUM
 .br
