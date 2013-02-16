@@ -3,425 +3,450 @@
  * 
  * The client does not authenticate the server, hence no CAI
  *
- * Protocol:
+ * Client protocol:
+ *	write Chapchal 
+ *	read response Chapreply or MSchaprely structure
  *
- *	S -> C: random 8-byte challenge
- *	C -> S: user in UTF-8
- *	C -> S: Chapreply or MSchapreply structure
- *	S -> C: ok or 'bad why'
- *
- * The chap protocol requires the client to give it id=%d, the id of
- * the PPP message containing the challenge, which is used
- * as part of the response.  Because the client protocol is message-id
- * specific, there is no point in looping to try multiple keys.
- *
- * The MS chap protocol actually uses two different hashes, an
- * older insecure one called the LM (Lan Manager) hash, and a newer
- * more secure one called the NT hash.  By default we send back only
- * the NT hash, because the LM hash can help an eavesdropper run
- * a brute force attack.  If the key has an lm attribute, then we send only the
- * LM hash.
+ * Server protocol:
+ *	read challenge: 8 bytes binary
+ *	write user: utf8
+ *	write response: Chapreply or MSchapreply structure
  */
 
-#include "std.h"
+#include <ctype.h>
 #include "dat.h"
-
-extern Proto chap, mschap;
 
 enum {
 	ChapChallen = 8,
-
-	MShashlen = 16,
-	MSchallen = 8,
-	MSresplen = 24
+	ChapResplen = 16,
+	MSchapResplen = 24,
 };
 
-static int
-chapcheck(Key *k)
+static int dochal(State*);
+static int doreply(State*, void*, int);
+static void doLMchap(char *, uchar [ChapChallen], uchar [MSchapResplen]);
+static void doNTchap(char *, uchar [ChapChallen], uchar [MSchapResplen]);
+static void dochap(char *, int, char [ChapChallen], uchar [ChapResplen]);
+
+
+struct State
 {
-	if(!strfindattr(k->attr, "user") || !strfindattr(k->privattr, "!password")){
-		werrstr("need user and !password attributes");
-		return -1;
-	}
-	return 0;
-}
-
-static void
-nthash(uchar hash[MShashlen], char *passwd)
-{
-	uchar buf[512];
-	int i;
-	
-	for(i=0; *passwd && i<sizeof(buf); passwd++) {
-		buf[i++] = *passwd;
-		buf[i++] = 0;
-	}
-
-	memset(hash, 0, 16);
-
-	md4(buf, i, hash, 0);
-}
-
-static void
-desencrypt(uchar data[8], uchar key[7])
-{
-	ulong ekey[32];
-
-	key_setup(key, ekey);
-	block_cipher(ekey, data, 0);
-}
-
-static void
-lmhash(uchar hash[MShashlen], char *passwd)
-{
-	uchar buf[14];
-	char *stdtext = "KGS!@#$%";
-	int i;
-
-	strncpy((char*)buf, passwd, sizeof(buf));
-	for(i=0; i<sizeof(buf); i++)
-		if(buf[i] >= 'a' && buf[i] <= 'z')
-			buf[i] += 'A' - 'a';
-
-	memset(hash, 0, 16);
-	memcpy(hash, stdtext, 8);
-	memcpy(hash+8, stdtext, 8);
-
-	desencrypt(hash, buf);
-	desencrypt(hash+8, buf+7);
-}
-
-static void
-mschalresp(uchar resp[MSresplen], uchar hash[MShashlen], uchar chal[MSchallen])
-{
-	int i;
-	uchar buf[21];
-	
-	memset(buf, 0, sizeof(buf));
-	memcpy(buf, hash, MShashlen);
-
-	for(i=0; i<3; i++) {
-		memmove(resp+i*MSchallen, chal, MSchallen);
-		desencrypt(resp+i*MSchallen, buf+i*7);
-	}
-}
-
-static int
-chapclient(Conv *c)
-{
-	int id, astype, nchal, npw, ret;
-	uchar *chal;
-	char *s, *pw, *user, *res;
-	Attr *attr;
-	Key *k;
-	Chapreply cr;
-	MSchapreply mscr;
-	DigestState *ds;
-
-	ret = -1;
-	chal = nil;
-	k = nil;
-	attr = c->attr;
-
-	if(c->proto == &chap){
-		astype = AuthChap;
-		s = strfindattr(attr, "id");
-		if(s == nil || *s == 0){
-			werrstr("need id=n attr in start message");
-			goto out;
-		}
-		id = strtol(s, &s, 10);
-		if(*s != 0 || id < 0 || id >= 256){
-			werrstr("bad id=n attr in start message");
-			goto out;
-		}
-		cr.id = id;
-	}else if(c->proto == &mschap)
-		astype = AuthMSchap;
-	else{
-		werrstr("bad proto");
-		goto out;
-	}
-
-	c->state = "find key";
-	k = keyfetch(c, "%A %s", attr, c->proto->keyprompt);
-	if(k == nil)
-		goto out;
-
-	c->attr = addattrs(copyattr(attr), k->attr);
-
-	c->state = "read challenge";
-	if((nchal = convreadm(c, (char**)(void*)&chal)) < 0)
-		goto out;
-	if(astype == AuthMSchap && nchal != MSchallen)
-	c->state = "write user";
-	if((user = strfindattr(k->attr, "user")) == nil){
-		werrstr("key has no user (cannot happen?)");
-		goto out;
-	}
-	if(convprint(c, "%s", user) < 0)
-		goto out;
-
-	c->state = "write response";
-	if((pw = strfindattr(k->privattr, "!password")) == nil){
-		werrstr("key has no password (cannot happen?)");
-		goto out;
-	}
-	npw = strlen(pw);
-
-	if(astype == AuthChap){
-		ds = md5(&cr.id, 1, 0, 0);
-		md5((uchar*)pw, npw, 0, ds);
-		md5(chal, nchal, (uchar*)cr.resp, ds);
-		if(convwrite(c, &cr, sizeof cr) < 0)
-			goto out;
-	}else{
-		uchar hash[MShashlen];
-
-		memset(&mscr, 0, sizeof mscr);
-		if(strfindattr(k->attr, "lm")){
-			lmhash(hash, pw);
-			mschalresp((uchar*)mscr.LMresp, hash, chal);
-		}else{
-			nthash(hash, pw);
-			mschalresp((uchar*)mscr.NTresp, hash, chal);
-		}
-		if(convwrite(c, &mscr, sizeof mscr) < 0)
-			goto out;
-	}
-
-	c->state = "read result";
-	if(convreadm(c, &res) < 0)
-		goto out;
-	if(strcmp(res, "ok") == 0){
-		ret = 0;
-		werrstr("succeeded");
-		goto out;
-	}
-	if(strncmp(res, "bad ", 4) != 0){
-		werrstr("bad result: %s", res);
-		goto out;
-	}
-
-	c->state = "replace key";
-	keyevict(c, k, "%s", res+4);
-	werrstr("%s", res+4);
-
-out:
-	free(res);
-	keyclose(k);
-	free(chal);
-	if(c->attr != attr)
-		freeattr(attr);
-	return ret;
-}
-
-/* shared with auth dialing routines */
-typedef struct ServerState ServerState;
-struct ServerState
-{
+	char *protoname;
+	int astype;
 	int asfd;
-	Key *k;
-	Ticketreq tr;
-	Ticket t;
-	char *dom;
-	char *hostid;
+	Key *key;
+	Ticket	t;
+	Ticketreq	tr;
+	char chal[ChapChallen];
+	MSchapreply mcr;
+	char cr[ChapResplen];
+	char err[ERRMAX];
+	char user[64];
+	uchar secret[16];	/* for mschap */
+	int nsecret;
 };
 
-static int chapchal(ServerState*, int, char[ChapChallen]);
-static int chapresp(ServerState*, char*, char*);
+enum
+{
+	CNeedChal,
+	CHaveResp,
+
+	SHaveChal,
+	SNeedUser,
+	SNeedResp,
+	SHaveZero,
+	SHaveCAI,
+
+	Maxphase
+};
+
+static char *phasenames[Maxphase] =
+{
+[CNeedChal]	"CNeedChal",
+[CHaveResp]	"CHaveResp",
+
+[SHaveChal]	"SHaveChal",
+[SNeedUser]	"SNeedUser",
+[SNeedResp]	"SNeedResp",
+[SHaveZero]	"SHaveZero",
+[SHaveCAI]	"SHaveCAI",
+};
 
 static int
-chapserver(Conv *c)
+chapinit(Proto *p, Fsstate *fss)
 {
-	char chal[ChapChallen], *user, *resp;
-	ServerState s;
-	int astype, ret;
-	Attr *a;
+	int iscli, ret;
+	State *s;
 
-	ret = -1;
-	user = nil;
-	resp = nil;
-	memset(&s, 0, sizeof s);
-	s.asfd = -1;
+	if((iscli = isclient(_strfindattr(fss->attr, "role"))) < 0)
+		return failure(fss, nil);
 
-	if(c->proto == &chap)
-		astype = AuthChap;
-	else if(c->proto == &mschap)
-		astype = AuthMSchap;
+	s = emalloc(sizeof *s);
+	fss->phasename = phasenames;
+	fss->maxphase = Maxphase;
+	s->asfd = -1;
+	if(p == &chap){
+		s->astype = AuthChap;
+		s->protoname = "chap";
+	}else{
+		s->astype = AuthMSchap;
+		s->protoname = "mschap";
+	}
+
+	if(iscli)
+		fss->phase = CNeedChal;
 	else{
-		werrstr("bad proto");
-		goto out;
+		if((ret = findp9authkey(&s->key, fss)) != RpcOk){
+			free(s);
+			return ret;
+		}
+		if(dochal(s) < 0){
+			free(s);
+			return failure(fss, nil);
+		}
+		fss->phase = SHaveChal;
 	}
 
-	c->state = "find key";
-	if((s.k = plan9authkey(c->attr)) == nil)
-		goto out;
+	fss->ps = s;
+	return RpcOk;
+}
 
-	a = copyattr(s.k->attr);
-	a = delattr(a, "proto");
-	c->attr = addattrs(c->attr, a);
-	freeattr(a);
+static void
+chapclose(Fsstate *fss)
+{
+	State *s;
 
-	c->state = "authdial";
-	s.hostid = strfindattr(s.k->attr, "user");
-	s.dom = strfindattr(s.k->attr, "dom");
-	if((s.asfd = xioauthdial(nil, s.dom)) < 0){
-		werrstr("authdial %s: %r", s.dom);
-		goto out;
+	s = fss->ps;
+	if(s->asfd >= 0){
+		close(s->asfd);
+		s->asfd = -1;
 	}
+	free(s);
+}
 
-	c->state = "authchal";
-	if(chapchal(&s, astype, chal) < 0)
-		goto out;
 
-	c->state = "write challenge";
-	if(convprint(c, "%s", chal) < 0)
-		goto out;
+static int
+chapwrite(Fsstate *fss, void *va, uint n)
+{
+	int ret, nreply;
+	char *a, *v;
+	void *reply;
+	Key *k;
+	Keyinfo ki;
+	State *s;
+	Chapreply cr;
+	MSchapreply mcr;
+	OChapreply ocr;
+	OMSchapreply omcr;
 
-	c->state = "read user";
-	if(convreadm(c, &user) < 0)
-		goto out;
-
-	c->state = "read response";
-	if(convreadm(c, &resp) < 0)
-		goto out;
-
-	c->state = "authwrite";
-	switch(chapresp(&s, user, resp)){
+	s = fss->ps;
+	a = va;
+	switch(fss->phase){
 	default:
-		fprint(2, "factotum: bad result from chapresp\n");
-		goto out;
-	case -1:
-		goto out;
-	case 0:
-		c->state = "write status";
-		if(convprint(c, "bad authentication failed") < 0)
-			goto out;
-		goto out;
+		return phaseerror(fss, "write");
 
-	case 1:
-		c->state = "write status";
-		if(convprint(c, "ok") < 0)
-			goto out;
-		goto ok;
+	case CNeedChal:
+		ret = findkey(&k, mkkeyinfo(&ki, fss, nil), "%s", fss->proto->keyprompt);
+		if(ret != RpcOk)
+			return ret;
+		v = _strfindattr(k->privattr, "!password");
+		if(v == nil)
+			return failure(fss, "key has no password");
+		setattrs(fss->attr, k->attr);
+		switch(s->astype){
+		default:
+			abort();
+		case AuthMSchap:
+			doLMchap(v, (uchar *)a, (uchar *)s->mcr.LMresp);
+			doNTchap(v, (uchar *)a, (uchar *)s->mcr.NTresp);
+			break;
+		case AuthChap:
+			dochap(v, *a, a+1, (uchar *)s->cr);
+			break;
+		}
+		closekey(k);
+		fss->phase = CHaveResp;
+		return RpcOk;
+
+	case SNeedUser:
+		if(n >= sizeof s->user)
+			return failure(fss, "user name too long");
+		memmove(s->user, va, n);
+		s->user[n] = '\0';
+		fss->phase = SNeedResp;
+		return RpcOk;
+
+	case SNeedResp:
+		switch(s->astype){
+		default:
+			return failure(fss, "chap internal botch");
+		case AuthChap:
+			if(n != sizeof(Chapreply))
+				return failure(fss, "did not get Chapreply");
+			memmove(&cr, va, sizeof cr);
+			ocr.id = cr.id;
+			memmove(ocr.resp, cr.resp, sizeof ocr.resp);
+			memset(omcr.uid, 0, sizeof(omcr.uid));
+			strecpy(ocr.uid, ocr.uid+sizeof ocr.uid, s->user);
+			reply = &ocr;
+			nreply = sizeof ocr;
+			break;
+		case AuthMSchap:
+			if(n != sizeof(MSchapreply))
+				return failure(fss, "did not get MSchapreply");
+			memmove(&mcr, va, sizeof mcr);
+			memmove(omcr.LMresp, mcr.LMresp, sizeof omcr.LMresp);
+			memmove(omcr.NTresp, mcr.NTresp, sizeof omcr.NTresp);
+			memset(omcr.uid, 0, sizeof(omcr.uid));
+			strecpy(omcr.uid, omcr.uid+sizeof omcr.uid, s->user);
+			reply = &omcr;
+			nreply = sizeof omcr;
+			break;
+		}
+		if(doreply(s, reply, nreply) < 0)
+			return failure(fss, nil);
+		fss->phase = Established;
+		fss->ai.cuid = s->t.cuid;
+		fss->ai.suid = s->t.suid;
+		fss->ai.secret = s->secret;
+		fss->ai.nsecret = s->nsecret;
+		fss->haveai = 1;
+		return RpcOk;
 	}
-
-ok:
-	ret = 0;
-	c->attr = addcap(c->attr, c->sysuser, &s.t);
-
-out:
-	keyclose(s.k);
-	free(user);
-	free(resp);
-/*	xioclose(s.asfd); */
-	return ret;
 }
 
 static int
-chapchal(ServerState *s, int astype, char chal[ChapChallen])
+chapread(Fsstate *fss, void *va, uint *n)
 {
+	State *s;
+
+	s = fss->ps;
+	switch(fss->phase){
+	default:
+		return phaseerror(fss, "read");
+
+	case CHaveResp:
+		switch(s->astype){
+		default:
+			phaseerror(fss, "write");
+			break;
+		case AuthMSchap:
+			if(*n > sizeof(MSchapreply))
+				*n = sizeof(MSchapreply);
+			memmove(va, &s->mcr, *n);
+			break;
+		case AuthChap:
+			if(*n > ChapResplen)
+				*n = ChapResplen;
+			memmove(va, s->cr, ChapResplen);
+			break;
+		}
+		fss->phase = Established;
+		fss->haveai = 0;
+		return RpcOk;
+
+	case SHaveChal:
+		if(*n > sizeof s->chal)
+			*n = sizeof s->chal;
+		memmove(va, s->chal, *n);
+		fss->phase = SNeedUser;
+		return RpcOk;
+	}
+}
+
+static int
+dochal(State *s)
+{
+	char *dom, *user;
 	char trbuf[TICKREQLEN];
-	Ticketreq tr;
 
-	memset(&tr, 0, sizeof tr);
+	s->asfd = -1;
 
-	tr.type = astype;
-
-	if(strlen(s->hostid) >= sizeof tr.hostid){
-		werrstr("hostid too long");
-		return -1;
+	/* send request to authentication server and get challenge */
+	if((dom = _strfindattr(s->key->attr, "dom")) == nil
+	|| (user = _strfindattr(s->key->attr, "user")) == nil){
+		werrstr("chap/dochal cannot happen");
+		goto err;
 	}
-	strcpy(tr.hostid, s->hostid);
+	s->asfd = _authdial(nil, dom);
+	if(s->asfd < 0)
+		goto err;
+	
+	memset(&s->tr, 0, sizeof(s->tr));
+	s->tr.type = s->astype;
+	safecpy(s->tr.authdom, dom, sizeof s->tr.authdom);
+	safecpy(s->tr.hostid, user, sizeof(s->tr.hostid));
+	convTR2M(&s->tr, trbuf);
 
-	if(strlen(s->dom) >= sizeof tr.authdom){
-		werrstr("domain too long");
-		return -1;
-	}
-	strcpy(tr.authdom, s->dom);
+	if(write(s->asfd, trbuf, TICKREQLEN) != TICKREQLEN)
+		goto err;
 
-	convTR2M(&tr, trbuf);
-	if(xiowrite(s->asfd, trbuf, TICKREQLEN) != TICKREQLEN)
-		return -1;
-
-	if(xioasrdresp(s->asfd, chal, ChapChallen) <= 5)
-		return -1;
-
-	s->tr = tr;
+	/* readn, not _asrdresp.  needs to match auth.srv.c. */
+	if(readn(s->asfd, s->chal, sizeof s->chal) != sizeof s->chal)
+		goto err;
 	return 0;
+
+err:
+	if(s->asfd >= 0)
+		close(s->asfd);
+	s->asfd = -1;
+	return -1;
 }
 
 static int
-chapresp(ServerState *s, char *user, char *resp)
+doreply(State *s, void *reply, int nreply)
 {
-	char tabuf[TICKETLEN+AUTHENTLEN];
-	char trbuf[TICKREQLEN];
-	int len;
+	char ticket[TICKETLEN+AUTHENTLEN];
+	int n;
 	Authenticator a;
-	Ticket t;
-	Ticketreq tr;
 
-	tr = s->tr;
-	if(memrandom(tr.chal, CHALLEN) < 0)
-		return -1;
-
-	if(strlen(user) >= sizeof tr.uid){
-		werrstr("uid too long");
-		return -1;
-	}
-	strcpy(tr.uid, user);
-
-	convTR2M(&tr, trbuf);
-	if(xiowrite(s->asfd, trbuf, TICKREQLEN) != TICKREQLEN)
-		return -1;
-
-	len = strlen(resp);
-	if(xiowrite(s->asfd, resp, len) != len)
-		return -1;
-
-	if(xioasrdresp(s->asfd, tabuf, TICKETLEN+AUTHENTLEN) != TICKETLEN+AUTHENTLEN)
-		return 0;
-
-	convM2T(tabuf, &t, s->k->priv);
-	if(t.num != AuthTs
-	|| memcmp(t.chal, tr.chal, sizeof tr.chal) != 0){
-		werrstr("key mismatch with auth server");
-		return -1;
+	if((n=write(s->asfd, reply, nreply)) != nreply){
+		if(n >= 0)
+			werrstr("short write to auth server");
+		goto err;
 	}
 
-	convM2A(tabuf+TICKETLEN, &a, t.key);
+	if(_asrdresp(s->asfd, ticket, TICKETLEN+AUTHENTLEN) < 0){
+		/* leave connection open so we can try again */
+		return -1;
+	}
+	s->nsecret = readn(s->asfd, s->secret, sizeof s->secret);
+	if(s->nsecret < 0)
+		s->nsecret = 0;
+	close(s->asfd);
+	s->asfd = -1;
+	convM2T(ticket, &s->t, s->key->priv);
+	if(s->t.num != AuthTs
+	|| memcmp(s->t.chal, s->tr.chal, sizeof(s->t.chal)) != 0){
+		if(s->key->successes == 0)
+			disablekey(s->key);
+		werrstr(Easproto);
+		return -1;
+	}
+	s->key->successes++;
+	convM2A(ticket+TICKETLEN, &a, s->t.key);
 	if(a.num != AuthAc
-	|| memcmp(a.chal, tr.chal, sizeof a.chal) != 0
+	|| memcmp(a.chal, s->tr.chal, sizeof(a.chal)) != 0
 	|| a.id != 0){
-		werrstr("key2 mismatch with auth server");
+		werrstr(Easproto);
 		return -1;
 	}
 
-	s->t = t;
-	return 1;
+	return 0;
+err:
+	if(s->asfd >= 0)
+		close(s->asfd);
+	s->asfd = -1;
+	return -1;
 }
-
-static Role
-chaproles[] = 
-{
-	"client",	chapclient,
-	"server",	chapserver,
-	0
-};
 
 Proto chap = {
-	"chap",
-	chaproles,
-	"user? !password?",
-	chapcheck
+.name=	"chap",
+.init=	chapinit,
+.write=	chapwrite,
+.read=	chapread,
+.close=	chapclose,
+.addkey= replacekey,
+.keyprompt= "!password?"
 };
 
 Proto mschap = {
-	"mschap",
-	chaproles,
-	"user? !password?",
-	chapcheck
+.name=	"mschap",
+.init=	chapinit,
+.write=	chapwrite,
+.read=	chapread,
+.close=	chapclose,
+.addkey= replacekey,
+.keyprompt= "!password?"
 };
 
+static void
+hash(uchar pass[16], uchar c8[ChapChallen], uchar p24[MSchapResplen])
+{
+	int i;
+	uchar p21[21];
+	ulong schedule[32];
+
+	memset(p21, 0, sizeof p21 );
+	memmove(p21, pass, 16);
+
+	for(i=0; i<3; i++) {
+		key_setup(p21+i*7, schedule);
+		memmove(p24+i*8, c8, 8);
+		block_cipher(schedule, p24+i*8, 0);
+	}
+}
+
+static void
+doNTchap(char *pass, uchar chal[ChapChallen], uchar reply[MSchapResplen])
+{
+	Rune r;
+	int i, n;
+	uchar digest[MD4dlen];
+	uchar *w, unipass[256];
+
+	// Standard says unlimited length, experience says 128 max
+	if ((n = strlen(pass)) > 128)
+		n = 128;
+
+	for(i=0, w=unipass; i < n; i++) {
+		pass += chartorune(&r, pass);
+		*w++ = r & 0xff;
+		*w++ = r >> 8;
+	}
+
+	memset(digest, 0, sizeof digest);
+	md4(unipass, w-unipass, digest, nil);
+	memset(unipass, 0, sizeof unipass);
+	hash(digest, chal, reply);
+}
+
+static void
+doLMchap(char *pass, uchar chal[ChapChallen], uchar reply[MSchapResplen])
+{
+	int i;
+	ulong schedule[32];
+	uchar p14[15], p16[16];
+	uchar s8[8] = {0x4b, 0x47, 0x53, 0x21, 0x40, 0x23, 0x24, 0x25};
+	int n = strlen(pass);
+
+	if(n > 14){
+		// let prudent people avoid the LM vulnerability
+		//   and protect the loop below from buffer overflow
+		memset(reply, 0, MSchapResplen);
+		return;
+	}
+
+	// Spec says space padded, experience says otherwise
+	memset(p14, 0, sizeof p14 -1);
+	p14[sizeof p14 - 1] = '\0';
+
+	// NT4 requires uppercase, Win XP doesn't care
+	for (i = 0; pass[i]; i++)
+		p14[i] = islower(pass[i])? toupper(pass[i]): pass[i];
+
+	for(i=0; i<2; i++) {
+		key_setup(p14+i*7, schedule);
+		memmove(p16+i*8, s8, 8);
+		block_cipher(schedule, p16+i*8, 0);
+	}
+
+	memset(p14, 0, sizeof p14);
+	hash(p16, chal, reply);
+}
+
+static void
+dochap(char *pass, int id, char chal[ChapChallen], uchar resp[ChapResplen])
+{
+	char buf[1+ChapChallen+MAXNAMELEN+1];
+	int n = strlen(pass);
+
+	*buf = id;
+	if (n > MAXNAMELEN)
+		n = MAXNAMELEN-1;
+	memset(buf, 0, sizeof buf);
+	strncpy(buf+1, pass, n);
+	memmove(buf+1+n, chal, ChapChallen);
+	md5((uchar*)buf, 1+n+ChapChallen, resp, nil);
+}
 

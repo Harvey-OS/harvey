@@ -1,0 +1,290 @@
+cipher3des.c:18: uchar key[3][8];
+cipher3des.c:44: "3des-cbc",
+cipher3des.c:45: 8,
+cipheraes.c:24: setupAESstate(&cs->state, c->s2cek, bits/8, c->s2civ);
+cipheraes.c:26: setupAESstate(&cs->state, c->c2sek, bits/8, c->c2siv);
+cipheraes.c:34: return initaes(c, dir, 128);
+cipheraes.c:40: return initaes(c, dir, 192);
+cipheraes.c:46: return initaes(c, dir, 256);
+cipherblowfish.c:22: for(i = 0; i < 16; ++i)
+cipherblowfish.c:25: for(i = 0; i < 16; ++i)
+cipherblowfish.c:28: for(i = 0; i < 8; ++i)
+cipherblowfish.c:31: for(i = 0; i < 8; ++i)
+cipherblowfish.c:39: setupBFstate(&cs->state, c->s2cek, 16, c->s2civ);
+cipherblowfish.c:41: setupBFstate(&cs->state, c->c2sek, 16, c->c2siv);
+cipherblowfish.c:62: 8,
+cipherrc4.c:21: setupRC4state(&cs->state, c->s2cek, 16);
+cipherrc4.c:23: setupRC4state(&cs->state, c->c2sek, 16);
+cipherrc4.c:41: 8,
+dh.c:16: Errnokey = -2,	/* no key on keyring */
+dh.c:30: "29024E088A67CC74020BBEA63B139B22514A08798E3404DD"
+dh.c:37: * 2048-bit MODP group (id 14) from RFC 3526
+dh.c:41: "29024E088A67CC74020BBEA63B139B22514A08798E3404DD"
+dh.c:46: "83655D23DCA3AD961C62F356208552BB9ED529077096966D"
+dh.c:47: "670C354E4ABC9804F1746C08CA18217C32905E462E36CE3B"
+dh.c:50: "15728E5A8AACAA68FFFFFFFFFFFFFFFF";
+dh.c:69: two = strtomp("2", nil, 10, nil);
+dh.c:70: p1 = strtomp(group1p, nil, 16, nil);
+dh.c:71: p14 = strtomp(group14p, nil, 16, nil);
+dh.c:112: myrsakey.pub.n = strtomp(p+3, nil, 16, nil);
+dh.c:123: myrsakey.pub.ek = strtomp(p+4, nil, 16, nil);
+dh.c:136: myrsakey.dk = strtomp(p+5, nil, 16, nil);
+dh.c:179: mydsskey.pub.p = strtomp(p+3, nil, 16, nil);
+dh.c:186: mydsskey.pub.q = strtomp(p+3, nil, 16, nil);
+dh.c:193: mydsskey.pub.alpha = strtomp(p+7, nil, 16, nil);
+dh.c:200: mydsskey.pub.key = strtomp(p+5, nil, 16, nil);
+dh.c:211: mydsskey.secret = strtomp(p+9, nil, 16, nil);
+dh.c:242: n = nb - (nelem(sha1der) + SHA1dlen) - 3;
+dh.c:266: n = (nbit + 7) / 8;
+dh.c:269: /* Compute s: RFC 3447 */
+dh.c:285: auth_rpc(ar, "start", "role=sign proto=rsa", 19) != ARok ||
+dh.c:328: n = (nbit + 7) / 8;
+dh.c:330: /* Compute s: RFC 3447 */
+dh.c:333: s = mpnew(1024);
+dh.c:350: buf = emalloc9p(Blobsz / 2);
+dh.c:352: p = (char *)get_string(nil, (uchar *)sig, buf, Blobsz / 2, nil);
+dh.c:406: uchar sstr[2*SHA1dlen];
+dh.c:424: auth_rpc(ar, "start", "role=sign proto=dsa", 19) != ARok ||
+dh.c:436: add_block(sig, sstr, 2*SHA1dlen);
+dh.c:451: return dh_server(c, pack1, p1, 1024);
+dh.c:457: return dh_server(c, pack1, p14, 2048);
+dh.c:474: y = mprand(nbit / 8, genrandom, nil);
+dh.c:491: /* Compute H: RFC 4253 */
+dh.c:570: c->e = mpnew(1024);
+dh.c:575: c->x = mprand(128, genrandom, nil);
+dh.c:597: keymbox.msg = smprint("b%04ld%s", strlen(newkey), newkey);
+dh.c:606: keymbox.msg = smprint("%c%04ld%s", n == NoKeyFile || n == NoKey?
+dh.c:616: keymbox.msg = smprint("f%04ld%s", strlen(newkey), newkey);
+dh.c:690: char buf[10];
+dh.c:704: q += nhgetl(q) + 4;
+dh.c:707: k = mpnew(1024);
+dh.c:710: /* Compute H: RFC 4253 */
+dh.c:741: q += nhgetl(q) + 4;
+dh.c:760: keymbox.msg = smprint("f%04ld%s", strlen(newkey), newkey);
+dh.c:764: keymbox.msg = smprint("f%04ld%s", strlen(newkey), newkey);
+dh.c:796: e = mpnew(2048);
+dh.c:797: x = mprand(256, genrandom, nil);
+dh.c:828: char buf[82], *bp, *be;			/* magic 82 */
+dh.c:832: /* Compute 40 bytes (320 bits) of keys: each alg can use what it needs */
+dh.c:900: for (n = 0, bp = buf; n < SHA1dlen*2; ++n)
+dh.c:905: for (n = 0, bp = buf; n < SHA1dlen*2; ++n)
+dh.c:910: for (n = 0, bp = buf; n < SHA1dlen*2; ++n)
+dh.c:915: for (n = 0, bp = buf; n < SHA1dlen*2; ++n)
+dial.c:14: Maxstring	= 128,
+dial.c:15: Maxpath		= 256,
+dial.c:17: Maxcsreply	= 64*80,	/* this is probably overly generous */
+dial.c:22: Maxconnms	= 2*60*1000,	/* 2 minutes */
+dial.c:171: char *fields[5];			/* pid + 3 times + error */
+dial.c:177: if (n < 4)
+dial.c:188: strncpy(conn->err, fields[4], sizeof conn->err - 1);
+dial.c:210: char exitsts[2*ERRMAX];
+dial.c:385: bleft = sizeof dp->addrlist - 2;	/* 2 is room for \n\0 */
+dial.thread.c:22: Defstksize	= 8192,
+dial.thread.c:24: Maxstring	= 128,
+dial.thread.c:25: Maxpath		= 256,
+dial.thread.c:27: Maxcsreply	= 64*80,	/* this is probably overly generous */
+dial.thread.c:32: Maxconnms	= 2*60*1000,	/* 2 minutes */
+dial.thread.c:57: int	kidthrids[64];		/* one per addr; ought to be enough */
+dial.thread.c:393: bleft = sizeof dp->addrlist - 2;	/* 2 is room for \n\0 */
+netssh.c:48: PKA *pkas[3];
+netssh.c:71: char uid[32];
+netssh.c:175: case '9':
+netssh.c:209: keymbox.mchan = chancreate(4, 0);
+netssh.c:259: werrstr("bad length in 9P2000 message header");
+netssh.c:283: netsshsrv.tree = alloctree(uid, uid, 0777, nil);
+netssh.c:284: rootfile = createfile(netsshsrv.tree->root, "ssh", uid, 0555|DMDIR,
+netssh.c:286: clonefile = createfile(rootfile, "clone", uid, 0666, (void*)Qclone);
+netssh.c:287: ctlfile = createfile(rootfile, "ctl", uid, 0666, (void*)Qctl);
+netssh.c:288: keysfile = createfile(rootfile, "keys", uid, 0600, (void *)Qreqrem);
+netssh.c:305: d.mode = 0666;
+netssh.c:330: char buf[32];
+netssh.c:347: /* should use dial(2) instead of diddling /net/tcp */
+netssh.c:455: /* should use dial(2) instead of diddling /net/tcp */
+netssh.c:541: hnputl(p2->payload + 5, c->chans[i]->id);
+netssh.c:542: hnputl(p2->payload + 9, Maxpayload);
+netssh.c:543: hnputl(p2->payload + 13, Maxrpcbuf);
+netssh.c:544: p2->rlength = 18;
+netssh.c:591: if (sc->rwindow < 16*1024) {		/* magic.  half-way, maybe? */
+netssh.c:598: hnputl(p->payload+5, Maxpayload);
+netssh.c:599: p->rlength += 8;
+netssh.c:691: n = pread(c->ctlfd, buf, 10, 0); // magic 10
+netssh.c:725: n = pread(c->ctlfd, buf, 10, 0); /* magic 10 */
+netssh.c:813: n = ioread(io, c->ctlfd, buf, 10); /* magic 10 */
+netssh.c:989: * should use dial(2) instead of doing it by hand.
+netssh.c:991: sshdebug(c, "tcp connect %s %s", toks[1], ntok > 3? toks[2]: "");
+netssh.c:992: return fprint(c->ctlfd, "connect %s %s", toks[1], ntok > 3? toks[2]: "");
+netssh.c:999: char *attrs[5];
+netssh.c:1002: if (ntok < 3 || ntok > 4)
+netssh.c:1008: c->user = estrdup9p(toks[2]);
+netssh.c:1011: if (ntok == 4 && strcmp(toks[1], "k") == 0) {
+netssh.c:1018: c->password = estrdup9p(toks[3]);
+netssh.c:1028: attrs[2] = smprint("user=%s", c->user);
+netssh.c:1029: attrs[3] = smprint("sys=%s", c->remote);
+netssh.c:1033: if (ntok == 3)
+netssh.c:1034: c->authkey = factlookup(4, 2, attrs);
+netssh.c:1036: attrs[4] = toks[3];
+netssh.c:1037: c->authkey = factlookup(5, 2, attrs);
+netssh.c:1039: free(attrs[2]);
+netssh.c:1040: free(attrs[3]);
+netssh.c:1080: char *tcpconn2, *buf, *toks[4];
+netssh.c:1111: if (ntok < 2)
+netssh.c:1118: if (ntok < 2)
+netssh.c:1121: * should use dial(2) instead of doing it by hand.
+netssh.c:1131: pkas[2] = nil;
+netssh.c:1161: /* should use dial(2) instead of diddling /net/tcp */
+netssh.c:1187: add_string(p, toks[2]);
+netssh.c:1194: fprint(c->ctlfd, "reject %s %s", buf, toks[2]);
+netssh.c:1271: char *cmd, *q, *buf, *toks[4];
+netssh.c:1286: if (r->ifcall.count <= 10)
+netssh.c:1287: buf = emalloc9p(10 + 1);
+netssh.c:1357: for (n = 2; n < ntok; ++n) {
+netssh.c:1396: p->rlength += 4;
+netssh.c:1413: * called clunk.  But if there are no other references, a 9P Tclunk
+netssh.c:1485: p->rlength += 4;
+netssh.c:1603: c->dir = createfile(rootfile, buf, uid, 0555|DMDIR,
+netssh.c:1605: c->clonefile = createfile(c->dir, "clone", uid, 0666,
+netssh.c:1607: c->ctlfile = createfile(c->dir, "ctl", uid, 0666,
+netssh.c:1609: c->datafile = createfile(c->dir, "data", uid, 0666,
+netssh.c:1611: c->listenfile = createfile(c->dir, "listen", uid, 0666,
+netssh.c:1613: c->localfile = createfile(c->dir, "local", uid, 0444,
+netssh.c:1615: c->remotefile = createfile(c->dir, "remote", uid, 0444,
+netssh.c:1617: c->statusfile = createfile(c->dir, "status", uid, 0444,
+netssh.c:1619: c->tcpfile = createfile(c->dir, "tcp", uid, 0444,
+netssh.c:1661: sc->dir = createfile(c->dir, buf, uid, 0555|DMDIR,
+netssh.c:1663: sc->ctl = createfile(sc->dir, "ctl", uid, 0666,
+netssh.c:1665: sc->data = createfile(sc->dir, "data", uid, 0666,
+netssh.c:1667: sc->listen = createfile(sc->dir, "listen", uid, 0666,
+netssh.c:1669: sc->request = createfile(sc->dir, "request", uid, 0666,
+netssh.c:1671: sc->status = createfile(sc->dir, "status", uid, 0444,
+netssh.c:1673: sc->tcp = createfile(sc->dir, "tcp", uid, 0444,
+netssh.c:1688: sc->inchan = chancreate(4, 0);
+netssh.c:1692: sc->reqchan = chancreate(4, 0);
+netssh.c:1792: if (n < 5)		/* can't be a valid SSH id string */
+netssh.c:1799: if (n < 5)		/* can't be a valid SSH id string */
+netssh.c:1855: 0 && c->role == Client && strncmp(remid, "SSH-2", 5) != 0 &&
+netssh.c:1856: strncmp(remid, "SSH-1.99", 8) != 0) {
+netssh.c:1953: if (n < 5) {		/* can't be a valid SSH id string */
+netssh.c:1961: strncmp(path, "SSH-2", 5) != 0 &&
+netssh.c:1962: strncmp(path, "SSH-1.99", 8) != 0) {
+netssh.c:1999: /* should use hangup in dial(2) instead of diddling /net/tcp */
+netssh.c:2002: iowrite(io, fd, "hangup", 6);
+netssh.c:2024: for (i = 0; i < 16; ++i)
+netssh.c:2027: add_packet(c->skexinit, buf, 16);		/* cookie */
+netssh.c:2063: memset(buf, 0, 5);
+netssh.c:2064: add_packet(c->skexinit, buf, 5);
+netssh.c:2094: get_string(p, p->payload + 5, buf, Arbbufsz, nil);
+netssh.c:2104: memmove(c->c2siv, c->nc2siv, SHA1dlen*2);
+netssh.c:2105: memmove(c->s2civ, c->ns2civ, SHA1dlen*2);
+netssh.c:2106: memmove(c->c2sek, c->nc2sek, SHA1dlen*2);
+netssh.c:2107: memmove(c->s2cek, c->ns2cek, SHA1dlen*2);
+netssh.c:2108: memmove(c->c2sik, c->nc2sik, SHA1dlen*2);
+netssh.c:2109: memmove(c->s2cik, c->ns2cik, SHA1dlen*2);
+netssh.c:2231: add_block(p2, p->payload + 5, 4);
+netssh.c:2232: hnputl(p2->payload + p2->rlength - 1, 4);
+netssh.c:2233: p2->rlength += 4;
+netssh.c:2256: get_string(p, p->payload + 5, buf, Arbbufsz, nil);
+netssh.c:2265: get_string(p, p->payload + 2, buf, Arbbufsz, nil);
+netssh.c:2299: ch->twindow = nhgetl(q+4);
+netssh.c:2325: ch->otherid = nhgetl(p->payload+5);
+netssh.c:2326: ch->twindow = nhgetl(p->payload+9);
+netssh.c:2340: ch->twindow += nhgetl(p->payload + 5);
+netssh.c:2354: pl->rem = nhgetl(p->payload + 5);
+netssh.c:2355: pl->st = pl->pack->payload + 9;
+netssh.c:2357: pl->rem = nhgetl(p->payload + 9);
+netssh.c:2358: pl->st = pl->pack->payload + 13;
+netssh.c:2386: p2->rlength += 4;
+netssh.c:2411: q = get_string(p, p->payload+5, buf, Arbbufsz, nil);
+netssh.c:2418: memmove(pl->pack->payload + n, q + 1, p->rlength - (11 + n-2));
+netssh.c:2419: pl->rem = p->rlength - 11 + 2;
+netssh.c:2458: nb = 4;
+netssh.c:2477: np = ioreadn(c->rio, c->datafd, p->nlength + nb, p->rlength + 4 - nb);
+netssh.c:2479: nm = ioreadn(c->rio, c->datafd, p->nlength + p->rlength + 4,
+netssh.c:2480: SHA1dlen);		/* SHA1dlen was magic 20 */
+netssh.c:2494: /* SHA1dlen was magic 20 */
+netssh.c:2495: if (np != p->rlength + 4 - nb || c->inmac != -1 && nm != SHA1dlen) {
+netssh.c:2500: p->rlength = n - 4;
+netssh.c:2531: get_string(p, p->payload + 5, buf, Arbbufsz, nil);
+netssh.c:2543: case -2:		/* can't happen, now at least */
+netssh.c:2603: q = p->payload + 17;
+netssh.c:2702: q = p->payload + 17;
+netssh.c:2802: cap = emalloc9p(fromtosz + sizeof(rand)*3 + 1);
+netssh.c:2803: snprint(cap, fromtosz + sizeof(rand)*3 + 1, "%s@%s", from, to);
+netssh.c:2806: enc64(key, sizeof(rand)*3, rand, sizeof(rand));
+netssh.c:2849: werrstr("Password mismatch 2");
+netssh.c:2875: char method[32];
+netssh.c:2938: char key1[DESKEYLEN], key2[DESKEYLEN], method[32];
+netssh.c:3042: ek = strtomp(r+4, nil, 16, nil);
+netssh.c:3043: nk = strtomp(s+3, nil, 16, nil);
+netssh.c:3134: if (c->clonefile->ref <= 2 && c->ctlfile->ref <= 2 &&
+netssh.c:3135: c->datafile->ref <= 2 && c->listenfile->ref <= 2 &&
+netssh.c:3136: c->localfile->ref <= 2 && c->remotefile->ref <= 2 &&
+netssh.c:3137: c->statusfile->ref <= 2)
+pubkey.c:12: Arbsz =	256,
+pubkey.c:22: n = strtoul(s, &p, 10);
+pubkey.c:33: n = strtoul(s, &p, 10);
+pubkey.c:79: if(parsepubkey(s, key, sp, 10) == 0 ||
+pubkey.c:80: parsepubkey(s, key, sp, 16) == 0)
+pubkey.c:164: Bprint(bw, "%s %d %.10M %.10M\n",
+pubkey.c:169: Bprint(bw, "%s %d %.10M %.10M\n", host, mpsignif(hostkey->n),
+pubkey.c:213: fd = create(keyfile, OWRITE, 0666);
+pubkey.c:220: if(seek(fd, 0, 2) >= 0 &&
+pubkey.c:221: fprint(fd, "%s %d %.10M %.10M\n", host, mpsignif(key->n),
+rsa2ssh2.c:54: e = strtomp(ep+4, nil, 16, nil);
+rsa2ssh2.c:55: n = strtomp(np+3, nil, 16, nil);
+rsa2ssh2.c:61: sysfatal("base-64 encoding failed\n");
+ssh.c:130: oalarm = alarm(5*1000);		/* don't get stuck here */
+ssh.c:163: //		for (fd = 3; fd < 40; fd++)
+ssh.c:219: if (buf[n-1] == ('u' & 037))
+ssh.c:251: write(kconsfd, buf+5, n);
+ssh.c:257: write(kconsfd, buf+5, n);
+ssh.c:265: seek(keyfd, 0, 2);
+ssh.c:266: if (readn(keyfd, buf, 5) <= 0)
+ssh.c:268: buf[5] = 0;
+ssh.c:269: n = strtol(buf+1, nil, 10);
+ssh.c:270: n = readn(keyfd, buf+5, n);
+ssh.c:273: buf[n+5] = 0;
+ssh.c:278: fprint(kconsfd, "%s\n", buf+5);
+ssh.c:292: if (size < 6)
+ssh.c:306: n = read(keyfd, buf, 5);		/* reading /net/ssh/keys */
+ssh.c:309: buf[5] = 0;
+ssh.c:310: n = strtol(buf+1, nil, 10);
+ssh.c:311: n = readn(keyfd, buf+5, n);
+ssh.c:312: buf[n < 0? 5: n+5] = 0;
+ssh.c:318: fprint(kconsfd, "%s\n", buf+5);
+ssh.c:404: ds = netmkaddr(remote, dir, "22");		/* tcp port 22 is ssh */
+ssh.c:578: char buf[64];
+ssh.c:582: return strlen(buf) >= 9 && strcmp(buf+strlen(buf)-9, "/dev/cons") == 0;
+sshsession.c:228: errfd = 2;
+sshsession.c:411: q += 4;
+sshsession.c:425: q += 4;
+sshsession.c:475: dup(datafd, 2);
+transport.c:42: p->rlength += 4;
+transport.c:50: *data += 4;
+transport.c:68: p->rlength += 4;
+transport.c:77: uchar nn[4];
+transport.c:82: memmove(q, nn, 4);
+transport.c:83: memmove(q+4, s, n);
+transport.c:84: p->rlength += n + 4;
+transport.c:95: q += 4;
+transport.c:115: n = mptobe(x, q + 4, Maxpktpay - p->rlength + 1 - 4, nil);
+transport.c:116: if(q[4] & 0x80){
+transport.c:117: memmove(q + 5, q + 4, n);
+transport.c:118: q[4] = 0;
+transport.c:122: p->rlength += n + 4;
+transport.c:128: return betomp(q + 4, nhgetl(q), nil);
+transport.c:139: blklen = 8;
+transport.c:145: if(blklen < 8)
+transport.c:146: blklen = 8;
+transport.c:149: n2 = blklen - (n1 + 5) % blklen;
+transport.c:150: if(n2 < 4)
+transport.c:162: memmove(buf + 4, p->nlength, p->rlength + 4);
+transport.c:163: hmac_sha1(buf, p->rlength + 8, c->outik, maclen, q, nil);
+transport.c:167: cryptos[c->encrypt]->encrypt(c->enccs, p->nlength, p->rlength + 4);
+transport.c:173: return p->rlength + 4 + maclen;
+transport.c:189: nb = 4;
+transport.c:193: p->rlength -= SHA1dlen;			/* was magic 20 */
+transport.c:197: p->rlength + 4 - nb);
+transport.c:201: memmove(buf + 4, p->nlength, nlength + 4);
+transport.c:202: hmac_sha1(buf, nlength + 8, c->inik, SHA1dlen, rmac, nil);
+transport.c:227: if(i % 16 == 15)
+transport.c:229: if(q - buf > Copybufsz - 4){

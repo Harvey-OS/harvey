@@ -8,55 +8,50 @@
  * Server protocol:
  *	unimplemented
  */
-#include "std.h"
 #include "dat.h"
 
-static void
-digest(char *user, char *realm, char *passwd,
-	char *nonce, char *method, char *uri,
-	char *dig);
+enum
+{
+	CNeedChal,
+	CHaveResp,
+
+	Maxphase,
+};
+
+static char *phasenames[Maxphase] = {
+[CNeedChal]	"CNeedChal",
+[CHaveResp]	"CHaveResp",
+};
+
+struct State
+{
+	char resp[MD5dlen*2+1];
+};
 
 static int
-hdclient(Conv *c)
+hdinit(Proto *p, Fsstate *fss)
 {
-	char *realm, *passwd, *user, *f[4], *s, resp[MD5dlen*2+1];
-	int ret;
-	Key *k;
-	
-	ret = -1;
-	s = nil;
-	
-	c->state = "keylookup";
-	k = keyfetch(c, "%A", c->attr);
-	if(k == nil)
-		goto out;
+	int iscli;
+	State *s;
 
-	user = strfindattr(k->attr, "user");
-	realm = strfindattr(k->attr, "realm");
-	passwd = strfindattr(k->attr, "!password");
+	if((iscli = isclient(_strfindattr(fss->attr, "role"))) < 0)
+		return failure(fss, nil);
+	if(!iscli)
+		return failure(fss, "%s server not supported", p->name);
 
-	if(convreadm(c, &s) < 0)
-		goto out;
-	if(tokenize(s, f, 4) != 3){
-		werrstr("bad challenge -- want nonce method uri");
-		goto out;
-	}
-
-	digest(user, realm, passwd, f[0], f[1], f[2], resp);
-	convwrite(c, resp, strlen(resp));
-	ret = 0;
-	
-out:
-	free(s);
-	keyclose(k);
-	return ret;
+	s = emalloc(sizeof *s);
+	fss->phasename = phasenames;
+	fss->maxphase = Maxphase;
+	fss->phase = CNeedChal;
+	fss->ps = s;
+	return RpcOk;
 }
 
 static void
 strtolower(char *s)
 {
 	while(*s){
-		*s = tolower((uchar)*s);
+		*s = tolower(*s);
 		s++;
 	}
 }
@@ -103,17 +98,87 @@ digest(char *user, char *realm, char *passwd,
 	strtolower(dig);
 }
 
-static Role hdroles[] = 
+static int
+hdwrite(Fsstate *fss, void *va, uint n)
 {
-	"client",	hdclient,
-	0
-};
+	State *s;
+	int ret;
+	char *a, *p, *r, *u, *t;
+	char *tok[4];
+	Key *k;
+	Keyinfo ki;
+	Attr *attr;
 
-Proto httpdigest =
+	s = fss->ps;
+	a = va;
+
+	if(fss->phase != CNeedChal)
+		return phaseerror(fss, "write");
+
+	attr = _delattr(_copyattr(fss->attr), "role");
+	mkkeyinfo(&ki, fss, attr);
+	ret = findkey(&k, &ki, "%s", fss->proto->keyprompt);
+	_freeattr(attr);
+	if(ret != RpcOk)
+		return ret;
+	p = _strfindattr(k->privattr, "!password");
+	if(p == nil)
+		return failure(fss, "key has no password");
+	r = _strfindattr(k->attr, "realm");
+	if(r == nil)
+		return failure(fss, "key has no realm");
+	u = _strfindattr(k->attr, "user");
+	if(u == nil)
+		return failure(fss, "key has no user");
+	setattrs(fss->attr, k->attr);
+
+	/* copy in case a is not null-terminated */
+	t = emalloc(n+1);
+	memcpy(t, a, n);
+	t[n] = 0;
+
+	/* get nonce, method, uri */
+	if(tokenize(t, tok, 4) != 3)
+		return failure(fss, "bad challenge");
+
+	digest(u, r, p, tok[0], tok[1], tok[2], s->resp);
+
+	free(t);
+	closekey(k);
+	fss->phase = CHaveResp;
+	return RpcOk;
+}
+
+static int
+hdread(Fsstate *fss, void *va, uint *n)
 {
-	"httpdigest",
-	hdroles,
-	"user? realm? !password?",
-	0,
-	0
+	State *s;
+
+	s = fss->ps;
+	if(fss->phase != CHaveResp)
+		return phaseerror(fss, "read");
+	if(*n > strlen(s->resp))
+		*n = strlen(s->resp);
+	memmove(va, s->resp, *n);
+	fss->phase = Established;
+	fss->haveai = 0;
+	return RpcOk;
+}
+
+static void
+hdclose(Fsstate *fss)
+{
+	State *s;
+	s = fss->ps;
+	free(s);
+}
+
+Proto httpdigest = {
+.name=		"httpdigest",
+.init=		hdinit,
+.write=		hdwrite,
+.read=		hdread,
+.close=		hdclose,
+.addkey=	replacekey,
+.keyprompt=	"user? realm? !password?"
 };

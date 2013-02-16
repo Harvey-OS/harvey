@@ -1,235 +1,58 @@
-#include "std.h"
-#include "dat.h"
-
 /*
  * RSA authentication.
- * 
- * Encrypt/Decrypt:
- *	start n=xxx ek=xxx
- *	write msg
- *	read encrypt/decrypt(msg)
+ *
+ * Old ssh client protocol:
+ *	read public key
+ *		if you don't like it, read another, repeat
+ *	write challenge
+ *	read response
+ *
+ * all numbers are hexadecimal biginits parsable with strtomp.
  *
  * Sign (PKCS #1 using hash=sha1 or hash=md5)
- *	start n=xxx ek=xxx
  *	write hash(msg)
  *	read signature(hash(msg))
- * 
+ *
  * Verify:
- *	start n=xxx ek=xxx
  *	write hash(msg)
  *	write signature(hash(msg))
  *	read ok or fail
- *
- * all numbers are hexadecimal biginits parsable with strtomp.
- * must be lower case for attribute matching in start.
  */
 
-static int
-convwritemp(Conv *c, mpint *m)
+#include "dat.h"
+
+enum {
+	CHavePub,
+	CHaveResp,
+	VNeedHash,
+	VNeedSig,
+	VHaveResp,
+	SNeedHash,
+	SHaveResp,
+	Maxphase,
+};
+
+static char *phasenames[] = {
+[CHavePub]	"CHavePub",
+[CHaveResp]	"CHaveResp",
+[VNeedHash]	"VNeedHash",
+[VNeedSig]	"VNeedSig",
+[VHaveResp]	"VHaveResp",
+[SNeedHash]	"SNeedHash",
+[SHaveResp]	"SHaveResp",
+};
+
+struct State
 {
-	char *s;
-	int n;
+	RSApriv *priv;
+	mpint *resp;
+	int off;
+	Key *key;
+	mpint *digest;
+	int sigresp;
+};
 
-	s = smprint("%B", m);
-	n = convwrite(c, s, strlen(s));
-	free(s);
-	return n;
-}
-
-static int
-xrsaclient(Conv *c)
-{
-	char *s;
-	int n, ret;
-	mpint *m;
-	Key *k;
-	RSApriv *key;
-
-	flog("rsa client: warning depricated ssh1 client");
-	ret = -1;
-	m = nil;
-
-	/* fetch key */
-	c->state = "keylookup";
-	k = keylookup("%A", c->attr);
-	if(k == nil)
-		goto out;
-	key = k->priv;
-
-	/* send response */
-	c->state = "write pub";
-	convwritemp(c, key->pub.n);
-
-	c->state = "read chal";
-	n = convreadm(c, &s);
-	s[n] = 0;
-	m = strtomp(s, nil, 16, nil);
-	if(m == nil){
-		werrstr("invalid challenge value");
-		goto out;
-	}
-	m = rsadecrypt(key, m, m);
-
-	c->state = "established";
-	convwritemp(c, m);
-	ret = 0;
-
-out:
-	keyclose(k);
-	mpfree(m);
-	return ret;
-}
-
-static int
-xrsadecrypt(Conv *c)
-{
-	char *txt, *be, *role;
-	int n, ret;
-	mpint *m, *mm;
-	Key *k;
-	RSApriv *key;
-
-	ret = -1;
-	txt = nil;
-	m = nil;
-	mm = nil;
-	be = nil;
-
-	/* fetch key */
-	c->state = "keylookup";
-	k = keylookup("%A", c->attr);
-	if(k == nil)
-		goto out;
-	key = k->priv;
-	
-	/* make sure have private half if needed */
-	role = strfindattr(c->attr, "role");
-	if(strcmp(role, "decrypt") == 0 && !key->c2){
-		werrstr("missing private half of key -- cannot decrypt");
-		goto out;
-	}
-	
-	/* read text */
-	c->state = "read";
-	if((n=convreadm(c, &txt)) < 0)
-		goto out;
-	if(n < 32){
-		convprint(c, "data too short");
-		goto out;
-	}
-
-	/* encrypt/decrypt */
-	m = betomp((uchar*)txt, n, nil);
-	if(m == nil)
-		goto out;
-	if(strcmp(role, "decrypt") == 0)
-		mm = rsadecrypt(key, m, nil);
-	else
-		mm = rsaencrypt(&key->pub, m, nil);
-	if(mm == nil)
-		goto out;
-	be = malloc(4096);
-	n = mptobe(mm, (uchar*)be, 4096, nil);
-	
-	/* send response */
-	c->state = "write";
-	convwrite(c, be, n);
-	ret = 0;
-
-out:
-	free(be);
-	mpfree(m);
-	mpfree(mm);
-	keyclose(k);
-	free(txt);
-	return ret;
-}
-
-static int
-xrsasign(Conv *c)
-{
-	char *hash, *role;
-	int dlen, n, ret;
-	DigestAlg *hashfn;
-	Key *k;
-	RSApriv *key;
-	uchar sig[1024], digest[64];
-	char *sig2;
-
-	ret = -1;
-
-	/* fetch key */
-	c->state = "keylookup";
-	k = keylookup("%A", c->attr);
-	if(k == nil)
-		goto out;
-
-	/* make sure have private half if needed */
-	key = k->priv;
-	role = strfindattr(c->attr, "role");
-	if(strcmp(role, "sign") == 0 && !key->c2){
-		werrstr("missing private half of key -- cannot sign");
-		goto out;
-	}
-	
-	/* get hash type from key */
-	hash = strfindattr(k->attr, "hash");
-	if(hash == nil)
-		hash = "sha1";
-	if(strcmp(hash, "sha1") == 0){
-		hashfn = sha1;
-		dlen = SHA1dlen;
-	}else if(strcmp(hash, "md5") == 0){
-		hashfn = md5;
-		dlen = MD5dlen;
-	}else{
-		werrstr("unknown hash function %s", hash);
-		goto out;
-	}
-
-	/* read hash */
-	c->state = "read hash";
-	if(convread(c, digest, dlen) < 0)
-		goto out;
-
-	if(strcmp(role, "sign") == 0){
-		/* sign */
-		if((n=rsasign(key, hashfn, digest, dlen, sig, sizeof sig)) < 0)
-			goto out;
-
-		/* write */
-		convwrite(c, sig, n);
-	}else{
-		/* read signature */
-		if((n = convreadm(c, &sig2)) < 0)
-			goto out;
-
-		/* verify */
-		if(rsaverify(&key->pub, hashfn, digest, dlen, (uchar*)sig2, n) == 0)
-			convprint(c, "ok");
-		else
-			convprint(c, "signature does not verify");
-		free(sig2);
-	}
-	ret = 0;
-
-out:
-	keyclose(k);
-	return ret;
-}
-
-/*
- * convert to canonical form (lower case) 
- * for use in attribute matches.
- */
-static void
-strlwr(char *a)
-{
-	for(; *a; a++){
-		if('A' <= *a && *a <= 'Z')
-			*a += 'a' - 'A';
-	}
-}
+static mpint* mkdigest(RSApub *key, char *hashalg, uchar *hash, uint dlen);
 
 static RSApriv*
 readrsapriv(Key *k)
@@ -239,41 +62,24 @@ readrsapriv(Key *k)
 
 	priv = rsaprivalloc();
 
-	if((a=strfindattr(k->attr, "ek"))==nil 
-	|| (priv->pub.ek=strtomp(a, nil, 16, nil))==nil)
+	if((a=_strfindattr(k->attr, "ek"))==nil || (priv->pub.ek=strtomp(a, nil, 16, nil))==nil)
 		goto Error;
-	strlwr(a);
-	if((a=strfindattr(k->attr, "n"))==nil 
-	|| (priv->pub.n=strtomp(a, nil, 16, nil))==nil)
+	if((a=_strfindattr(k->attr, "n"))==nil || (priv->pub.n=strtomp(a, nil, 16, nil))==nil)
 		goto Error;
-	strlwr(a);
-	if(k->privattr == nil)	/* only public half */
+	if(k->privattr == nil)		/* only public half */
 		return priv;
-
-	if((a=strfindattr(k->privattr, "!p"))==nil 
-	|| (priv->p=strtomp(a, nil, 16, nil))==nil)
+	if((a=_strfindattr(k->privattr, "!p"))==nil || (priv->p=strtomp(a, nil, 16, nil))==nil)
 		goto Error;
-	strlwr(a);
-	if((a=strfindattr(k->privattr, "!q"))==nil 
-	|| (priv->q=strtomp(a, nil, 16, nil))==nil)
+	if((a=_strfindattr(k->privattr, "!q"))==nil || (priv->q=strtomp(a, nil, 16, nil))==nil)
 		goto Error;
-	strlwr(a);
-	if((a=strfindattr(k->privattr, "!kp"))==nil 
-	|| (priv->kp=strtomp(a, nil, 16, nil))==nil)
+	if((a=_strfindattr(k->privattr, "!kp"))==nil || (priv->kp=strtomp(a, nil, 16, nil))==nil)
 		goto Error;
-	strlwr(a);
-	if((a=strfindattr(k->privattr, "!kq"))==nil 
-	|| (priv->kq=strtomp(a, nil, 16, nil))==nil)
+	if((a=_strfindattr(k->privattr, "!kq"))==nil || (priv->kq=strtomp(a, nil, 16, nil))==nil)
 		goto Error;
-	strlwr(a);
-	if((a=strfindattr(k->privattr, "!c2"))==nil 
-	|| (priv->c2=strtomp(a, nil, 16, nil))==nil)
+	if((a=_strfindattr(k->privattr, "!c2"))==nil || (priv->c2=strtomp(a, nil, 16, nil))==nil)
 		goto Error;
-	strlwr(a);
-	if((a=strfindattr(k->privattr, "!dk"))==nil 
-	|| (priv->dk=strtomp(a, nil, 16, nil))==nil)
+	if((a=_strfindattr(k->privattr, "!dk"))==nil || (priv->dk=strtomp(a, nil, 16, nil))==nil)
 		goto Error;
-	strlwr(a);
 	return priv;
 
 Error:
@@ -282,44 +88,315 @@ Error:
 }
 
 static int
-rsacheck(Key *k)
+rsainit(Proto*, Fsstate *fss)
 {
-	static int first = 1;
-	
-	if(first){
-		fmtinstall('B', mpfmt);
-		first = 0;
+	Keyinfo ki;
+	State *s;
+	char *role;
+
+	if((role = _strfindattr(fss->attr, "role")) == nil)
+		return failure(fss, "rsa role not specified");
+	if(strcmp(role, "client") == 0)
+		fss->phase = CHavePub;
+	else if(strcmp(role, "sign") == 0)
+		fss->phase = SNeedHash;
+	else if(strcmp(role, "verify") == 0)
+		fss->phase = VNeedHash;
+	else
+		return failure(fss, "rsa role %s unimplemented", role);
+
+	s = emalloc(sizeof *s);
+	fss->phasename = phasenames;
+	fss->maxphase = Maxphase;
+	fss->ps = s;
+
+	switch(fss->phase){
+	case SNeedHash:
+	case VNeedHash:
+		mkkeyinfo(&ki, fss, nil);
+		if(findkey(&s->key, &ki, nil) != RpcOk)
+			return failure(fss, nil);
+		/* signing needs private key */
+		if(fss->phase == SNeedHash && s->key->privattr == nil)
+			return failure(fss,
+				"missing private half of key -- cannot sign");
 	}
+	return RpcOk;
+}
+
+static int
+rsaread(Fsstate *fss, void *va, uint *n)
+{
+	RSApriv *priv;
+	State *s;
+	mpint *m;
+	Keyinfo ki;
+	int len, r;
+
+	s = fss->ps;
+	switch(fss->phase){
+	default:
+		return phaseerror(fss, "read");
+	case CHavePub:
+		if(s->key){
+			closekey(s->key);
+			s->key = nil;
+		}
+		mkkeyinfo(&ki, fss, nil);
+		ki.skip = s->off;
+		ki.noconf = 1;
+		if(findkey(&s->key, &ki, nil) != RpcOk)
+			return failure(fss, nil);
+		s->off++;
+		priv = s->key->priv;
+		*n = snprint(va, *n, "%B", priv->pub.n);
+		return RpcOk;
+	case CHaveResp:
+		*n = snprint(va, *n, "%B", s->resp);
+		fss->phase = Established;
+		return RpcOk;
+	case SHaveResp:
+		priv = s->key->priv;
+		len = (mpsignif(priv->pub.n)+7)/8;
+		if(len > *n)
+			return failure(fss, "signature buffer too short");
+		m = rsadecrypt(priv, s->digest, nil);
+		r = mptobe(m, (uchar*)va, len, nil);
+		if(r < len){
+			memmove((uchar*)va+len-r, va, r);
+			memset(va, 0, len-r);
+		}
+		*n = len;
+		mpfree(m);
+		fss->phase = Established;
+		return RpcOk;
+	case VHaveResp:
+		*n = snprint(va, *n, "%s", s->sigresp == 0? "ok":
+			"signature does not verify");
+		fss->phase = Established;
+		return RpcOk;
+	}
+}
+
+static int
+rsawrite(Fsstate *fss, void *va, uint n)
+{
+	RSApriv *priv;
+	mpint *m, *mm;
+	State *s;
+	char *hash;
+	int dlen;
+
+	s = fss->ps;
+	switch(fss->phase){
+	default:
+		return phaseerror(fss, "write");
+	case CHavePub:
+		if(s->key == nil)
+			return failure(fss, "no current key");
+		switch(canusekey(fss, s->key)){
+		case -1:
+			return RpcConfirm;
+		case 0:
+			return failure(fss, "confirmation denied");
+		case 1:
+			break;
+		}
+		m = strtomp(va, nil, 16, nil);
+		if(m == nil)
+			return failure(fss, "invalid challenge value");
+		m = rsadecrypt(s->key->priv, m, m);
+		s->resp = m;
+		fss->phase = CHaveResp;
+		return RpcOk;
+	case SNeedHash:
+	case VNeedHash:
+		/* get hash type from key */
+		hash = _strfindattr(s->key->attr, "hash");
+		if(hash == nil)
+			hash = "sha1";
+		if(strcmp(hash, "sha1") == 0)
+			dlen = SHA1dlen;
+		else if(strcmp(hash, "md5") == 0)
+			dlen = MD5dlen;
+		else
+			return failure(fss, "unknown hash function %s", hash);
+		if(n != dlen)
+			return failure(fss, "hash length %d should be %d",
+				n, dlen);
+		priv = s->key->priv;
+		s->digest = mkdigest(&priv->pub, hash, (uchar *)va, n);
+		if(s->digest == nil)
+			return failure(fss, nil);
+		if(fss->phase == VNeedHash)
+			fss->phase = VNeedSig;
+		else
+			fss->phase = SHaveResp;
+		return RpcOk;
+	case VNeedSig:
+		priv = s->key->priv;
+		m = betomp((uchar*)va, n, nil);
+		mm = rsaencrypt(&priv->pub, m, nil);
+		s->sigresp = mpcmp(s->digest, mm);
+		mpfree(m);
+		mpfree(mm);
+		fss->phase = VHaveResp;
+		return RpcOk;
+	}
+}
+
+static void
+rsaclose(Fsstate *fss)
+{
+	State *s;
+
+	s = fss->ps;
+	if(s->key)
+		closekey(s->key);
+	if(s->resp)
+		mpfree(s->resp);
+	if(s->digest)
+		mpfree(s->digest);
+	free(s);
+}
+
+static int
+rsaaddkey(Key *k, int before)
+{
+	fmtinstall('B', mpfmt);
 
 	if((k->priv = readrsapriv(k)) == nil){
 		werrstr("malformed key data");
 		return -1;
 	}
-	return 0;
+	return replacekey(k, before);
 }
 
 static void
-rsaclose(Key *k)
+rsaclosekey(Key *k)
 {
 	rsaprivfree(k->priv);
-	k->priv = nil;
 }
 
-static Role
-rsaroles[] = 
-{
-	"client",	xrsaclient, 		/* old crap.  support old ssh */
-	"sign",	xrsasign,
-	"verify",	xrsasign,	/* public operation */
-	"decrypt",	xrsadecrypt,
-	"encrypt",	xrsadecrypt,	/* public operation */
-	0
+Proto rsa = {
+.name=	"rsa",
+.init=		rsainit,
+.write=	rsawrite,
+.read=	rsaread,
+.close=	rsaclose,
+.addkey=	rsaaddkey,
+.closekey=	rsaclosekey,
 };
 
-Proto rsa = {
-	"rsa",
-	rsaroles,
-	nil,
-	rsacheck,
-	rsaclose
-};
+/*
+ * Simple ASN.1 encodings.
+ * Lengths < 128 are encoded as 1-bytes constants,
+ * making our life easy.
+ */
+
+/*
+ * Hash OIDs
+ *
+ * SHA1 = 1.3.14.3.2.26
+ * MDx = 1.2.840.113549.2.x
+ */
+#define O0(a,b)	((a)*40+(b))
+#define O2(x)	\
+	(((x)>> 7)&0x7F)|0x80, \
+	((x)&0x7F)
+#define O3(x)	\
+	(((x)>>14)&0x7F)|0x80, \
+	(((x)>> 7)&0x7F)|0x80, \
+	((x)&0x7F)
+uchar oidsha1[] = { O0(1, 3), 14, 3, 2, 26 };
+uchar oidmd2[] = { O0(1, 2), O2(840), O3(113549), 2, 2 };
+uchar oidmd5[] = { O0(1, 2), O2(840), O3(113549), 2, 5 };
+
+/*
+ *	DigestInfo ::= SEQUENCE {
+ *		digestAlgorithm AlgorithmIdentifier,
+ *		digest OCTET STRING
+ *	}
+ *
+ * except that OpenSSL seems to sign
+ *
+ *	DigestInfo ::= SEQUENCE {
+ *		SEQUENCE{ digestAlgorithm AlgorithmIdentifier, NULL }
+ *		digest OCTET STRING
+ *	}
+ *
+ * instead.  Sigh.
+ */
+static int
+mkasn1(uchar *asn1, char *alg, uchar *d, uint dlen)
+{
+	uchar *obj, *p;
+	uint olen;
+
+	if(strcmp(alg, "sha1") == 0){
+		obj = oidsha1;
+		olen = sizeof(oidsha1);
+	}else if(strcmp(alg, "md5") == 0){
+		obj = oidmd5;
+		olen = sizeof(oidmd5);
+	}else{
+		sysfatal("bad alg in mkasn1");
+		return -1;
+	}
+
+	p = asn1;
+	*p++ = 0x30;		/* sequence */
+	p++;
+
+	*p++ = 0x30;		/* another sequence */
+	p++;
+
+	*p++ = 0x06;		/* object id */
+	*p++ = olen;
+	memmove(p, obj, olen);
+	p += olen;
+
+	*p++ = 0x05;		/* null */
+	*p++ = 0;
+
+	asn1[3] = p - (asn1+4);	/* end of inner sequence */
+
+	*p++ = 0x04;		/* octet string */
+	*p++ = dlen;
+	memmove(p, d, dlen);
+	p += dlen;
+
+	asn1[1] = p - (asn1+2);	/* end of outer sequence */
+	return p - asn1;
+}
+
+static mpint*
+mkdigest(RSApub *key, char *hashalg, uchar *hash, uint dlen)
+{
+	mpint *m;
+	uchar asn1[512], *buf;
+	int len, n, pad;
+
+	/*
+	 * Create ASN.1
+	 */
+	n = mkasn1(asn1, hashalg, hash, dlen);
+
+	/*
+	 * PKCS#1 padding
+	 */
+	len = (mpsignif(key->n)+7)/8 - 1;
+	if(len < n+2){
+		werrstr("rsa key too short");
+		return nil;
+	}
+	pad = len - (n+2);
+	buf = emalloc(len);
+	buf[0] = 0x01;
+	memset(buf+1, 0xFF, pad);
+	buf[1+pad] = 0x00;
+	memmove(buf+1+pad+1, asn1, n);
+	m = betomp(buf, len, nil);
+	free(buf);
+	return m;
+}

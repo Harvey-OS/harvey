@@ -1,4 +1,3 @@
-MKSHELL=rc
 <$NXM/$objtype/mkfile
 
 TARG=factotum\
@@ -7,7 +6,6 @@ TARG=factotum\
 PROTO=\
 	apop.$O\
 	chap.$O\
-	dsa.$O\
 	httpdigest.$O\
 	p9any.$O\
 	p9cr.$O\
@@ -18,20 +16,12 @@ PROTO=\
 
 FOFILES=\
 	$PROTO\
-	attr.$O\
 	confirm.$O\
-	conv.$O\
-	ctl.$O\
 	fs.$O\
-	key.$O\
 	log.$O\
-	main.$O\
-	pkcs1.$O\
-	proto.$O\
 	rpc.$O\
-	secstore.$O\
 	util.$O\
-	xio.$O\
+	secstore.$O\
 
 HFILES=\
 	dat.h\
@@ -48,10 +38,7 @@ UPDATE=\
 <$NXM/sys/src/cmd/mkmany
 
 $O.factotum: $FOFILES
-	$LD $LDFLAGS -o $target $prereq
+	$LD -o $target $prereq
 
 $O.fgui: fgui.$O
-	$LD $LDFLAGS -o $target $prereq
-
-$O.test: test.$O
-	$LD $LDFLAGS -o $target $prereq
+	$LD -o $target $prereq

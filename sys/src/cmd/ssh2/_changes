@@ -1,0 +1,27 @@
+still work to be done!
+but the worst maintainability problems are fixed.
+
+work still to be done (not exhaustive):
+use dial(2) routines instead of manual diddling
+use factotum and auth_* routines
+
+fixed bugs
+	systemic bugs like overflow at both ends in
+		n = read(n, buf, sizeof buf);
+		buf[n] = 0;
+	fixed unchecked malloc calls
+replaced many magic numbers with named constants
+	see magic.out for remainder
+duplicated code broken out into functions
+	see dup.* for remaining offenders
+	use readio & writeio throughout
+big functions broken up
+	see long.funcs for remaining offenders
+converted to plan 9 style
+	*File -> Q* per all other file servers
+	very long lines wrapped for finite-width devices
+use syslog in daemons
+added /net/ssh/*/tcp containing number of the underlying tcp connection
+	originally for sshswitch, see _coexistence-is-futile
+edited manual page for clarity and brevity, split in two
+worked out problems with normal usage cases, fixed or documented them

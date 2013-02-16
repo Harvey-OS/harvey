@@ -1,360 +1,324 @@
 /*
  * APOP, CRAM - MD5 challenge/response authentication
  *
- * The client does not authenticate the server, hence no CAI.
+ * The client does not authenticate the server, hence no CAI
  *
- * Protocol:
+ * Client protocol:
+ *	write challenge: randomstring@domain
+ *	read response: 2*MD5dlen hex digits
  *
- *	S -> C:	random@domain
- *	C -> S:	user hex-response
- *	S -> C:	ok
- *
- * Note that this is the protocol between factotum and the local
- * program, not between the two factotums.  The information 
- * exchanged here is wrapped in the APOP protocol by the local
- * programs.
- *
- * If S sends "bad [msg]" instead of "ok", that is a hint that the key is bad.
- * The protocol goes back to "C -> S: user hex-response".
+ * Server protocol:
+ *	read challenge: randomstring@domain
+ *	write user: user
+ *	write response: 2*MD5dlen hex digits
  */
 
-#include "std.h"
 #include "dat.h"
 
-extern Proto apop, cram;
-
-static int
-apopcheck(Key *k)
-{
-	if(!strfindattr(k->attr, "user") || !strfindattr(k->privattr, "!password")){
-		werrstr("need user and !password attributes");
-		return -1;
-	}
-	return 0;
-}
-
-static int
-apopclient(Conv *c)
-{
-	char *chal, *pw, *res;
-	int astype, nchal, npw, ntry, ret;
-	uchar resp[MD5dlen];
-	Attr *attr;
-	DigestState *ds;
-	Key *k;
-	
-	chal = nil;
-	k = nil;
-	res = nil;
-	ret = -1;
-	attr = c->attr;
-
-	if(c->proto == &apop)
-		astype = AuthApop;
-	else if(c->proto == &cram)
-		astype = AuthCram;
-	else{
-		werrstr("bad proto");
-		goto out;
-	}
-
-	c->state = "find key";
-	k = keyfetch(c, "%A %s", attr, c->proto->keyprompt);
-	if(k == nil)
-		goto out;
-
-	c->state = "read challenge";
-	if((nchal = convreadm(c, &chal)) < 0)
-		goto out;
-
-  	for(ntry=1;; ntry++){
-		if(c->attr != attr)
-			freeattr(c->attr);
-		c->attr = addattrs(copyattr(attr), k->attr);
-		if((pw = strfindattr(k->privattr, "!password")) == nil){
-			werrstr("key has no password (cannot happen?)");
-			goto out;
-		}
-		npw = strlen(pw);
-
-		switch(astype){
-		case AuthApop:
-			ds = md5((uchar*)chal, nchal, nil, nil);
-			md5((uchar*)pw, npw, resp, ds);
-			break;
-		case AuthCram:
-			hmac_md5((uchar*)chal, nchal, (uchar*)pw, npw, resp, nil);
-			break;
-		}
-
-		/* C->S: APOP user hex-response\n */
-/*
-		if(ntry == 1)
-			c->state = "write user";
-		else{
-			sprint(c->statebuf, "write user (auth attempt #%d)", ntry);
-			c->state = c->statebuf;
-		}
-		if(convprint(c, "%s", strfindattr(k->attr, "user")) < 0)
-			goto out;
-*/
-
-		c->state = "write response";
-		if(convprint(c, "%.*H", sizeof resp, resp) < 0)
-			goto out;
-
-		c->state = "read result";
-		if(convreadm(c, &res) < 0)
-			goto out;
-
-		if(strcmp(res, "ok") == 0)
-			break;
-
-		if(strncmp(res, "bad ", 4) != 0){
-			werrstr("bad result: %s", res);
-			goto out;
-		}
-
-		c->state = "replace key";
-		if((k = keyreplace(c, k, "%s", res+4)) == nil){
-			c->state = "auth failed";
-			werrstr("%s", res+4);
-			goto out;
-		}
-		free(res);
-		res = nil;
-	}
-
-	werrstr("succeeded");
-	ret = 0;
-
-out:
-	keyclose(k);
-	free(chal);
-	if(c->attr != attr)
-		freeattr(attr);
-	return ret;
-}
-
-/* shared with auth dialing routines */
-typedef struct ServerState ServerState;
-struct ServerState
+struct State
 {
 	int asfd;
-	Key *k;
-	Ticketreq tr;
-	Ticket t;
-	char *dom;
-	char *hostid;
+	int astype;
+	Key *key;
+	Ticket	t;
+	Ticketreq	tr;
+	char chal[128];
+	char	resp[64];
+	char *user;
 };
 
 enum
 {
-	APOPCHALLEN = 128
+	CNeedChal,
+	CHaveResp,
+
+	SHaveChal,
+	SNeedUser,
+	SNeedResp,
+
+	Maxphase,
 };
 
-static int apopchal(ServerState*, int, char[APOPCHALLEN]);
-static int apopresp(ServerState*, char*, char*);
+static char *phasenames[Maxphase] = {
+[CNeedChal]	"CNeedChal",
+[CHaveResp]	"CHaveResp",
+
+[SHaveChal]	"SHaveChal",
+[SNeedUser]	"SNeedUser",
+[SNeedResp]	"SNeedResp",
+};
+
+static int dochal(State*);
+static int doreply(State*, char*, char*);
 
 static int
-apopserver(Conv *c)
+apopinit(Proto *p, Fsstate *fss)
 {
-	char chal[APOPCHALLEN], *user, *resp;
-	ServerState s;
-	int astype, ret;
-	Attr *a;
+	int iscli, ret;
+	State *s;
 
-	ret = -1;
-	user = nil;
-	resp = nil;
-	memset(&s, 0, sizeof s);
-	s.asfd = -1;
+	if((iscli = isclient(_strfindattr(fss->attr, "role"))) < 0)
+		return failure(fss, nil);
 
-	if(c->proto == &apop)
-		astype = AuthApop;
-	else if(c->proto == &cram)
-		astype = AuthCram;
+	s = emalloc(sizeof *s);
+	fss->phasename = phasenames;
+	fss->maxphase = Maxphase;
+	s->asfd = -1;
+	if(p == &apop)
+		s->astype = AuthApop;
+	else if(p == &cram)
+		s->astype = AuthCram;
+	else
+		abort();
+
+	if(iscli)
+		fss->phase = CNeedChal;
 	else{
-		werrstr("bad proto");
-		goto out;
-	}
-
-	c->state = "find key";
-	if((s.k = plan9authkey(c->attr)) == nil)
-		goto out;
-
-	a = copyattr(s.k->attr);
-	a = delattr(a, "proto");
-	c->attr = addattrs(c->attr, a);
-	freeattr(a);
-
-	c->state = "authdial";
-	s.hostid = strfindattr(s.k->attr, "user");
-	s.dom = strfindattr(s.k->attr, "dom");
-	if((s.asfd = xioauthdial(nil, s.dom)) < 0){
-		werrstr("authdial %s: %r", s.dom);
-		goto out;
-	}
-
-	c->state = "authchal";
-	if(apopchal(&s, astype, chal) < 0)
-		goto out;
-
-	c->state = "write challenge";
-	if(convprint(c, "%s", chal) < 0)
-		goto out;
-
-	for(;;){
-		c->state = "read user";
-		if(convreadm(c, &user) < 0)
-			goto out;
-		c->state = "read response";
-		if(convreadm(c, &resp) < 0)
-			goto out;
-		c->state = "authwrite";
-		switch(apopresp(&s, user, resp)){
-		default:
-		case -1:
-			goto out;
-		case 0:
-			c->state = "write status";
-			if(convprint(c, "bad authentication failed") < 0)
-				goto out;
-			break;
-		case 1:
-			c->done = 1;
-			c->active = 0;
-			c->state = "write status";
-			if(convprint(c, "ok") < 0)
-				goto out;
-			goto ok;
+		if((ret = findp9authkey(&s->key, fss)) != RpcOk){
+			free(s);
+			return ret;
 		}
-		free(user);
-		free(resp);
-		user = nil;
-		resp = nil;
+		if(dochal(s) < 0){
+			free(s);
+			return failure(fss, nil);
+		}
+		fss->phase = SHaveChal;
 	}
-
-ok:
-	ret = 0;
-	c->attr = addcap(c->attr, c->sysuser, &s.t);
-
-out:
-	keyclose(s.k);
-	free(user);
-	free(resp);
-	xioclose(s.asfd);
-	return ret;
+	fss->ps = s;
+	return RpcOk;
 }
 
 static int
-apopchal(ServerState *s, int astype, char chal[APOPCHALLEN])
+apopwrite(Fsstate *fss, void *va, uint n)
 {
-	char trbuf[TICKREQLEN];
-	Ticketreq tr;
+	char *a, *v;
+	int i, ret;
+	uchar digest[MD5dlen];
+	DigestState *ds;
+	Key *k;
+	State *s;
+	Keyinfo ki;
 
-	memset(&tr, 0, sizeof tr);
+	s = fss->ps;
+	a = va;
+	switch(fss->phase){
+	default:
+		return phaseerror(fss, "write");
 
-	tr.type = astype;
+	case CNeedChal:
+		ret = findkey(&k, mkkeyinfo(&ki, fss, nil), "%s", fss->proto->keyprompt);
+		if(ret != RpcOk)
+			return ret;
+		v = _strfindattr(k->privattr, "!password");
+		if(v == nil)
+			return failure(fss, "key has no password");
+		setattrs(fss->attr, k->attr);
+		switch(s->astype){
+		default:
+			abort();
+		case AuthCram:
+			hmac_md5((uchar*)a, n, (uchar*)v, strlen(v),
+				digest, nil);
+			snprint(s->resp, sizeof s->resp, "%.*H", MD5dlen, digest);
+			break;
+		case AuthApop:
+			ds = md5((uchar*)a, n, nil, nil);
+			md5((uchar*)v, strlen(v), digest, ds);
+			for(i=0; i<MD5dlen; i++)
+				sprint(&s->resp[2*i], "%2.2x", digest[i]);
+			break;
+		}
+		closekey(k);
+		fss->phase = CHaveResp;
+		return RpcOk;
+	
+	case SNeedUser:
+		if((v = _strfindattr(fss->attr, "user")) && strcmp(v, a) != 0)
+			return failure(fss, "bad user");
+		fss->attr = setattr(fss->attr, "user=%q", a);
+		s->user = estrdup(a);
+		fss->phase = SNeedResp;
+		return RpcOk;
 
-	if(strlen(s->hostid) >= sizeof tr.hostid){
-		werrstr("hostid too long");
-		return -1;
+	case SNeedResp:
+		if(n != 2*MD5dlen)
+			return failure(fss, "response not MD5 digest");
+		if(doreply(s, s->user, a) < 0){
+			fss->phase = SNeedUser;
+			return failure(fss, nil);
+		}
+		fss->haveai = 1;
+		fss->ai.cuid = s->t.cuid;
+		fss->ai.suid = s->t.suid;
+		fss->ai.nsecret = 0;
+		fss->ai.secret = nil;
+		fss->phase = Established;
+		return RpcOk;
 	}
-	strcpy(tr.hostid, s->hostid);
+}
 
-	if(strlen(s->dom) >= sizeof tr.authdom){
-		werrstr("domain too long");
-		return -1;
+static int
+apopread(Fsstate *fss, void *va, uint *n)
+{
+	State *s;
+
+	s = fss->ps;
+	switch(fss->phase){
+	default:
+		return phaseerror(fss, "read");
+
+	case CHaveResp:
+		if(*n > strlen(s->resp))
+			*n = strlen(s->resp);
+		memmove(va, s->resp, *n);
+		fss->phase = Established;
+		fss->haveai = 0;
+		return RpcOk;
+
+	case SHaveChal:
+		if(*n > strlen(s->chal))
+			*n = strlen(s->chal);
+		memmove(va, s->chal, *n);
+		fss->phase = SNeedUser;
+		return RpcOk;
 	}
-	strcpy(tr.authdom, s->dom);
+}
 
-	convTR2M(&tr, trbuf);
-	if(xiowrite(s->asfd, trbuf, TICKREQLEN) != TICKREQLEN)
-		return -1;
+static void
+apopclose(Fsstate *fss)
+{
+	State *s;
 
-	if(xioasrdresp(s->asfd, chal, APOPCHALLEN) <= 5)
-		return -1;
+	s = fss->ps;
+	if(s->asfd >= 0){
+		close(s->asfd);
+		s->asfd = -1;
+	}
+	if(s->key != nil){
+		closekey(s->key);
+		s->key = nil;
+	}
+	if(s->user != nil){
+		free(s->user);
+		s->user = nil;
+	}
+	free(s);
+}
 
-	s->tr = tr;
+static int
+dochal(State *s)
+{
+	char *dom, *user, trbuf[TICKREQLEN];
+
+	s->asfd = -1;
+
+	/* send request to authentication server and get challenge */
+	/* send request to authentication server and get challenge */
+	if((dom = _strfindattr(s->key->attr, "dom")) == nil
+	|| (user = _strfindattr(s->key->attr, "user")) == nil){
+		werrstr("apop/dochal cannot happen");
+		goto err;
+	}
+
+	s->asfd = _authdial(nil, dom);
+
+	/* could generate our own challenge on error here */
+	if(s->asfd < 0)
+		goto err;
+
+	memset(&s->tr, 0, sizeof(s->tr));
+	s->tr.type = s->astype;
+	safecpy(s->tr.authdom, dom, sizeof s->tr.authdom);
+	safecpy(s->tr.hostid, user, sizeof(s->tr.hostid));
+	convTR2M(&s->tr, trbuf);
+
+	if(write(s->asfd, trbuf, TICKREQLEN) != TICKREQLEN)
+		goto err;
+	if(_asrdresp(s->asfd, s->chal, sizeof s->chal) <= 5)
+		goto err;
 	return 0;
+
+err:
+	if(s->asfd >= 0)
+		close(s->asfd);
+	s->asfd = -1;
+	return -1;
 }
 
 static int
-apopresp(ServerState *s, char *user, char *resp)
+doreply(State *s, char *user, char *response)
 {
-	char tabuf[TICKETLEN+AUTHENTLEN];
+	char ticket[TICKETLEN+AUTHENTLEN];
 	char trbuf[TICKREQLEN];
-	int len;
+	int n;
 	Authenticator a;
-	Ticket t;
-	Ticketreq tr;
 
-	tr = s->tr;
-	if(memrandom(tr.chal, CHALLEN) < 0)
-		return -1;
-
-	if(strlen(user) >= sizeof tr.uid){
-		werrstr("uid too long");
-		return -1;
+	memrandom(s->tr.chal, CHALLEN);
+	safecpy(s->tr.uid, user, sizeof(s->tr.uid));
+	convTR2M(&s->tr, trbuf);
+	if((n=write(s->asfd, trbuf, TICKREQLEN)) != TICKREQLEN){
+		if(n >= 0)
+			werrstr("short write to auth server");
+		goto err;
 	}
-	strcpy(tr.uid, user);
-
-	convTR2M(&tr, trbuf);
-	if(xiowrite(s->asfd, trbuf, TICKREQLEN) != TICKREQLEN)
-		return -1;
-
-	len = strlen(resp);
-	if(len != 2*MD5dlen){
+	/* send response to auth server */
+	if(strlen(response) != MD5dlen*2){
 		werrstr("response not MD5 digest");
+		goto err;
+	}
+	if((n=write(s->asfd, response, MD5dlen*2)) != MD5dlen*2){
+		if(n >= 0)
+			werrstr("short write to auth server");
+		goto err;
+	}
+	if(_asrdresp(s->asfd, ticket, TICKETLEN+AUTHENTLEN) < 0){
+		/* leave connection open so we can try again */
 		return -1;
 	}
-	if(xiowrite(s->asfd, resp, len) != len)
-		return -1;
+	close(s->asfd);
+	s->asfd = -1;
 
-	if(xioasrdresp(s->asfd, tabuf, TICKETLEN+AUTHENTLEN) != TICKETLEN+AUTHENTLEN)
-		return 0;
-
-	convM2T(tabuf, &t, s->k->priv);
-	if(t.num != AuthTs
-	|| memcmp(t.chal, tr.chal, sizeof tr.chal) != 0){
-		werrstr("key mismatch with auth server");
-		return -1;
+	convM2T(ticket, &s->t, (char*)s->key->priv);
+	if(s->t.num != AuthTs
+	|| memcmp(s->t.chal, s->tr.chal, sizeof(s->t.chal)) != 0){
+		if(s->key->successes == 0)
+			disablekey(s->key);
+		werrstr(Easproto);
+		goto err;
 	}
-
-	convM2A(tabuf+TICKETLEN, &a, t.key);
+	s->key->successes++;
+	convM2A(ticket+TICKETLEN, &a, s->t.key);
 	if(a.num != AuthAc
-	|| memcmp(a.chal, tr.chal, sizeof a.chal) != 0
+	|| memcmp(a.chal, s->tr.chal, sizeof(a.chal)) != 0
 	|| a.id != 0){
-		werrstr("key2 mismatch with auth server");
-		return -1;
+		werrstr(Easproto);
+		goto err;
 	}
 
-	s->t = t;
-	return 1;
+	return 0;
+err:
+	if(s->asfd >= 0)
+		close(s->asfd);
+	s->asfd = -1;
+	return -1;
 }
-
-static Role
-apoproles[] = 
-{
-	"client",	apopclient,
-	"server",	apopserver,
-	0
-};
 
 Proto apop = {
-	"apop",
-	apoproles,
-	"user? !password?",
-	apopcheck,
-	nil
+.name=	"apop",
+.init=		apopinit,
+.write=	apopwrite,
+.read=	apopread,
+.close=	apopclose,
+.addkey=	replacekey,
+.keyprompt=	"!password?"
 };
 
 Proto cram = {
-	"cram",
-	apoproles,
-	"user? !password?",
-	apopcheck,
-	nil
+.name=	"cram",
+.init=		apopinit,
+.write=	apopwrite,
+.read=	apopread,
+.close=	apopclose,
+.addkey=	replacekey,
+.keyprompt=	"!password?"
 };
-

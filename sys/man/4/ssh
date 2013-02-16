@@ -1,0 +1,536 @@
+.TH SSH 4
+.SH NAME
+ssh, netssh \- serve SSH v2 over TCP
+.SH SYNOPSIS
+.B netssh
+[
+.B -9dkv
+] [
+.B -m
+.I mntpt
+] [
+.B -s
+.I srvpt
+]
+.PP
+.2C
+.B "cd /net/ssh"
+.B ./clone
+.B ./ctl
+.B ./keys
+.BI ./ n
+.BI ./ n /clone
+.BI ./ n /ctl
+.BI ./ n /data
+.BI ./ n /listen
+.BI ./ n /local
+.BI ./ n /remote
+.BI ./ n /status
+.BI ./ n /tcp
+\&...
+.BI ./ n / ch
+.BI ./ n / ch /ctl
+.BI ./ n / ch /data
+.BI ./ n / ch /listen
+.BI ./ n / ch /request
+.BI ./ n / ch /status
+\&...
+.1C
+.fi
+.SH DESCRIPTION
+The
+.I netssh
+file server implements SSH v2 over TCP.
+All of the encryption, authentication, and SSH protocol are handled
+by a server managing SSH tunnels
+that appears as a protocol directory,
+.BR /net/ssh ,
+similar to those of
+.IR ip (3)
+but with an extra level of hierarchy for SSH channels within connections.
+Options are:
+.TF -m
+.TP
+.B -d
+Increase the amount of debugging output.
+.TP
+.B -k
+Use
+.IR keyfs (4)
+for password validation.
+.TP
+.B -m
+Mount point for the SSH protocol directory; defaults to
+.BR /net .
+.TP
+.B -s
+Name to post in
+.BR /srv .
+If
+.B -s
+is not given, no file is posted to
+.BR /srv .
+.TP
+.B -v
+Do not verify the remote system's host key (which is somewhat pedantic anyway).
+This lets us talk to SSH v1 systems.
+The presence of
+.B /env/nosshkeyverify
+is equivalent to specifying this option.
+.PD
+.LP
+.B /net/ssh
+contains a set of numbered directories, each of which
+is an SSH connection that is currently active or has been used in the past,
+per
+.IR ip (3).
+Opening
+.B clone
+reserves an SSH connection, reading from
+it returns the connection number reserved, and writing to it writes to the
+.B ctl
+file in the numbered connection directory.
+Reading the
+.B ctl
+file returns the most active state of any connection.
+.B /net/ssh/ctl
+currently implements no commands.
+Finally, the
+.B keys
+file is used by
+.IR ssh2 (1)
+to relay information about keys and passwords between a user and the SSH server.
+.LP
+Each of the numbered connection directories contains
+a set of numbered directories, one for each channel used on
+that connection (see
+.ft B
+Channel Directories
+.ft
+below).
+Similar to the top-level
+.B clone
+file, opening a connection's
+.B clone
+file reserves a channel and gives access to its
+.B ctl
+file.
+Reading from the
+.B ctl
+file returns the connection number (also the name of that directory).
+Commands may be written to a connection's
+.B ctl
+file:
+.TF connect
+.TP
+.B connect
+Dial the remote system and perform the initial
+handshake to exchange versions, lists of supported algorithms,
+and to establish the encryption keys to use.
+.TP
+.B ssh-userauth
+Attempt to authenticate a user with the remote system, with either
+public key authentication or a password.
+.TP
+.B ssh-connection
+Currently unsupported.
+.TP
+.B hangup
+Shut down a connection and all of its channels.
+.TP
+.B announce
+.B /net/ssh
+will accept connection requests from remote systems.
+.TP
+.B accept
+Do the initial connection handshake with the calling system.
+.TP
+.B reject
+Send back a connection rejection message to the caller
+and shut down the connection.
+.PD
+.LP
+Because data is always carried over a channel, the connection data file
+is not used for usual data.
+However, reads from the connection data file do return the capability
+needed for
+.I sshsession
+to change identity to the user logging in.
+As with other protocol directories, opens on
+.B listen
+block until a remote system establishes a connection, at which point,
+a server should write either an
+.B accept
+or
+.B reject
+message to the
+.B ctl
+file.
+The
+.B local
+and
+.B remote
+files give the IP addresses and port numbers of the local and remote
+systems.
+The connection
+.B status
+file gives the status of the most-recently established channel.
+.
+.SS "Channel Directories"
+In each channel directory,
+.BI /net/ssh/ conn / chan\fR,
+reads from channel
+.B ctl
+files return the channel number.
+Commands that may be written to a channel
+.B ctl
+file include:
+.TF connect
+.TP
+.B connect
+Create a new channel over this connection.
+SSHv2 defines
+.BR session ,
+.BR x11 ,
+.BR forwarded-tcpip ,
+and
+.B direct-tcpip
+channels.
+The
+.B connect
+command defaults to a
+.B session
+channel if no argument is given.
+(This implementation correctly handles only session channel requests.)
+.TP
+.B global
+Reserved for future development.
+In particular, this is necessary to support TCP/IP forwarding.
+.TP
+.B hangup
+Shut down a channel.
+If this is the last open channel on this connection, then shut down
+the connection too.
+.TP
+.B announce
+Announce willingness to accept new channel requests from the calling system.
+.PD
+.LP
+The channel
+.B data
+file is the file over which all application data is carried.
+Opens of the channel
+.B listen
+file block until a channel is opened by the remote end.
+Unlike the connection
+.B listen
+file, the listening program should not write an
+.B accept
+or
+.B reject
+message to the
+.B ctl
+file.
+.PP
+SSHv2 defines a number of out-of-band channel requests,
+sent and received through the
+.B request
+file.
+Among these are
+.BR env ,
+.BR exec ,
+.BR exit-signal ,
+.BR exit-status ,
+.BR pty-req ,
+.BR shell ,
+.BR signal ,
+.BR subsystem ,
+.BR window-change ,
+.BR x11-req ,
+and
+.BR xon-xoff .
+.I Sshsession
+only fully handles the
+.B shell
+and
+.B exec
+requests.
+Others are blithely acknowledged, rejected or ignored,
+depending on whether they are expected to be available by
+the remote system.
+.PP
+The channel
+.B status
+file contains one of:
+.BR Empty ,
+.BR Allocated ,
+.BR Initting ,
+.BR Listening ,
+.BR Opening ,
+.BR Negotiating ,
+.BR Authing ,
+.BR Established ,
+.BR Eof ,
+.BR Closing ,
+or
+.BR Closed .
+.
+.SS "Cryptographic Algorithms"
+During the initial connection exchange, both parties send lists of
+supported algorithms.
+The first list is for key exchange;
+we support
+.B diffie-hellman-group1-sha1
+and
+.BR diffie-hellman-group14-sha1 .
+The second list is the set for which corresponding host keys exist;
+we support
+.B ssh-rsa
+and
+.BR ssh-dss .
+The next lists are encryption algorithms, which may be negotiated
+independently for the server-to-client and client-to-server directions;
+we support
+.BR aes128-cbc ,
+.BR aes192-cbc ,
+.BR aes256-cbc ,
+.BR 3des-cbc ,
+and
+.B arcfour
+with preference given in that order.
+The final list is message authentication code algorithms;
+we only support
+.BR hmac-sha1 .
+.
+.SS "Keys and Management"
+Various keys are used by the SSH server.
+Most of them are expected to be stored in the instance of
+.IR factotum (4)
+running in the namespace of that server instance.
+Sometimes there are alternative locations.
+.LP
+The first key needed is the host key for server operation.
+In the case of the keys being stored in
+.IR factotum (4),
+these keys will be the first ones listed with
+.B proto=rsa
+and
+.BR proto=dss .
+Alternatively, these keys can be specified in the environment variables
+.B rsakey
+and
+.B dsskey
+or in files of the same names in the directory where
+.I netssh
+is started.
+.LP
+The next set of keys are the public host keys used by clients to
+verify the identities of servers.
+As with the original Plan 9 SSH implementation,
+there is a system-wide list of these in
+.B /sys/lib/ssh/keyring
+and each user may have a list in
+.BR $home/lib/keyring .
+If a public key for a remote server is listed and matches the one
+offered by the server, the connection proceeds.
+If a public key for a remote server is listed but does not match
+the one offered by the server, or
+if no public key is listed for a remote server,
+.I ssh
+(see
+.IR ssh2 (1))
+presents the key to the user and asks whether to reject the
+key, accept the key only for that session, or accept the key permanently.
+The last option causes the key to be written to the user's keyring.
+In the case of a mismatching key, the accept option can
+either be to add to or replace the old key.
+.LP
+An SSH daemon,
+such as
+.I sshsession
+in
+.IR ssh2 (1),
+must also have a list of public keys
+for public key authentication.
+Again, these keys must be stored in the
+.I factotum
+instance running in the name space of the daemon's SSH server.
+Each such key must have the attributes
+.BR role=verify,
+.BR proto=rsa ,
+and either
+.B user=
+or
+.BR sys= .
+.LP
+The next key is a user's private key to be used for public key authentication.
+We only support RSA keys for this, and the key must be in the
+.I factotum
+instance running in the namespace of the
+.IR ssh (4)
+instance.
+Creating a key and putting it in
+.I factotum
+can be done by:
+.IP
+.EX
+auth/rsagen >key; read -m key >/mnt/factotum/ctl
+.EE
+.LP
+The key file will normally be loaded when
+.I factotum
+is started, either by way of
+.IR secstore (1)
+or directly in the user's
+.BR lib/profile .
+See
+.IR ssh2 (1)
+for
+.IR rsa2ssh2 .
+.LP
+The command
+.IP
+.EX
+auth/pemdecode 'RSA PRIVATE KEY' id_rsa | auth/asn12rsa >key
+.EE
+.LP
+will translate a private key used with OpenSSH to one suitable
+for loading into
+.IR factotum .
+.LP
+To disambiguate when a user has more than one private key stored in
+.IR factotum ,
+the following selection criteria are applied:
+.TF "M."
+.PD 0.2v
+.TP 3
+1.
+The selected key must have both
+.B proto=rsa
+and
+.B !dk=
+attributes present.
+.TP
+2.
+Among those keys, the attributes
+.BR user= ,
+.BR sys= ,
+and any attribute/value pair specified in a
+.B -z
+option to
+.I ssh
+are examined.
+The value of the
+.B user
+attribute is expected to be the user name being authenticated on the remote
+system, and the value of the
+.B sys
+attribute is expected to be the remote system as specified in the
+.I ssh
+invocation.
+.TP
+3.
+The key with the greatest number of matches (most specific match) is selected.
+Among keys with equal number of matches, the first is chosen.
+.PD
+.LP
+For password-based user authentication,
+.I netssh
+can run in one of two modes.
+If given
+.BR -k ,
+it will validate passwords against those stored in
+.B /mnt/keys
+provided by
+.IR keyfs (4).
+If run without
+.BR -k ,
+it will validate passwords with an authentication server using
+.I auth_userpasswd
+in
+.IR auth (2).
+.SH FILES
+.TF /sys/lib/ssh/keyring
+.TP
+.B /sys/lib/ssh/keyring
+System-wide known host public keys.
+.TP
+.B $home/lib/keyring
+Per-user known host public keys.
+.TP
+.B /env/nosshkeyverify
+.SH SOURCE
+.B /sys/src/cmd/ssh2
+.SH "SEE ALSO"
+.IR ssh2 (1),
+.IR ip (3),
+.IR factotum (4),
+.IR keyfs (4),
+.IR authsrv (6),
+.IR dsa (8),
+.IR rsa (8)
+.br
+RFCs 4250, 4251, 4252, 4253, 4254, and 4419
+.SH BUGS
+.I Netssh
+shouldn't have to run as the host owner and using
+.IR factotum (4)
+correctly would permit this.
+.PP
+.I Netssh
+should be simplified by removing the top (connection) level of the
+.B /net/ssh
+hierarchy and multiplexing a single network connection
+after the initial negotiation.
+This would fit better with
+.IR dial (2),
+permit transports other than TCP,
+and allow co-existence of v1 and v2 implementations on a single TCP port.
+Better still,
+use only a single channel (since we don't use X11)
+and eliminate the top 2 levels.
+.PP
+.I Netssh
+authentication via
+.I keyfs
+and public keys uses
+.LR #¤/caphash ,
+which isn't normally present after
+.I cpurc
+runs, so
+.I netssh
+needs to be converted to use
+.IR factotum .
+.PP
+.B netssh
+.B -k
+assumes that
+.I keyfs
+is mounted,
+which is typically only true of authentication servers.
+.PP
+The
+.B keys
+file protocol should be documented.
+.PP
+Only capable of using TCP for underlying connections.
+.PP
+Can't coexist with SSH v1 on the same port.
+.PP
+Several aspects of key management still need some work.
+.PP
+TCP/IP forwarding and some potentially useful channel requests have not
+been implemented.
+.PP
+.B Zlib
+compression is not supported and probably not needed.
+.PP
+The SSH v2 protocol is a classic second system:
+over-engineered,
+overly complicated,
+misdesigned
+and
+jammed full of pointless goodies.
+.PP
+Host key verification is broken, so it's disabled temporarily
+until it's fixed.

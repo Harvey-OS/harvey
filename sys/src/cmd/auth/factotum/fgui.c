@@ -1,4 +1,3 @@
-#include "std.h"
 #include "dat.h"
 #include <draw.h>
 #include <mouse.h>
@@ -46,7 +45,7 @@ static void	addmem(Attr*, Attr*);
 
 static void	confirm(Request*);
 static void	resizeconfirm(Controlset*);
-static void	fguineedkey(Request*);
+static void	needkey(Request*);
 static void	resizeneedkey(Controlset*);
 
 Control *b_remember;
@@ -56,7 +55,7 @@ Control *b_refuse;
 RequestType rt[] = 
 {
 	{ "/mnt/factotum/confirm",	confirm,	resizeconfirm, },
-	{ "/mnt/factotum/needkey",	fguineedkey,	resizeneedkey, },
+	{ "/mnt/factotum/needkey",	needkey,	resizeneedkey, },
 	{ 0 },
 };
 
@@ -719,7 +718,7 @@ teardownneedkey(Request *r)
 }
 
 static void
-fguineedkey(Request *r)
+needkey(Request *r)
 {
 	Channel *c;
 	char *nam, *val;

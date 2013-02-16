@@ -1,8 +1,8 @@
-.TH SSH 1
+.TH SSH1 1
 .SH NAME
-ssh, sshnet, scp, sshserve \- secure login and file copy from/to Unix or Plan 9
+ssh1, sshnet, scp, sshserve \- encrypted login and file copy with foreign systems via SSHv1
 .SH SYNOPSIS
-.B ssh
+.B ssh1
 [
 .B -CfiImPpRrw
 ]
@@ -45,28 +45,42 @@ ssh, sshnet, scp, sshserve \- secure login and file copy from/to Unix or Plan 9
 .RI [ user\fB@ ] host
 .PP
 .B scp
-[host:]file [host:]file
+.RI [ host :] file
+.RI [ host2 :] file2
 .br
 .B scp
-[host:]file ... [host:]dir
+.RI [ host :] file
+\&...
+.RI [ host2 :] dir
 .PP
 .B aux/sshserve
 [
-.B -p
+.B -A
+.I authlist
+]
+[
+.B -c
+.I cipherlist
+]
+[
+.B -i
+.I id-string
 ]
 .I address
 .SH DESCRIPTION
-.I Ssh
-allows authenticated login over an encrypted channel to hosts that
-support the ssh protocol (see the RFCs listed below for encryption and
+.I Ssh1
+performs authenticated login over an encrypted channel to hosts that
+support the SSH v1 protocol (see the RFCs listed below for encryption and
 authentication details).
-.LP
-.I Ssh
+.I Ssh1
 takes the host name of the machine to connect to as its mandatory argument.
 It may be specified as a domain name or an IP address.
-Normally, login is attempted using the user name from /dev/user.
+Normally, login is attempted using the user name from
+.BR /dev/user .
 .PP
 Command-line options are:
+.TF "C 
+.PD
 .TP
 .B -C
 force input to be read in cooked mode:
@@ -75,7 +89,7 @@ force input to be read in cooked mode:
 .B -f
 enable agent forwarding.
 With this flag,
-.I ssh
+.I ssh1
 uses SSH's agent forwarding protocol to allow
 programs running on the remote server to
 interact with
@@ -85,14 +99,14 @@ to perform RSA authentication.
 .B -i
 force interactive mode.
 In interactive mode, 
-.I ssh
+.I ssh1
 prompts for passwords and confirmations of
 new host keys when necessary.
 (In non-interactive mode, password requests
 are rejected and unrecognized host keys are 
 cause for disconnecting.)
 By default, 
-.I ssh 
+.I ssh 1
 runs in interactive mode only when its 
 input file descriptor is 
 .BR /dev/cons .
@@ -107,14 +121,12 @@ menu, described below.
 .TP
 .B -p
 force pseudoterminal request.
-The
-.I ssh
-protocol, grounded in Unix tradition,
+The SSH protocol, grounded in Unix tradition,
 differentiates between connections
 that request controlling pseudoterminals
 and those that do not.
 By default, 
-.I ssh
+.I ssh1
 requests a pseudoterminal only when no
 .I command
 is given.
@@ -199,33 +211,33 @@ a login session is started on the remote
 host.
 Otherwise, the command is executed with its arguments.
 .LP
-.I Ssh
-establishes a connection with an ssh daemon on the remote host.
+.I Ssh1
+establishes a connection with an SSH daemon on the remote host.
 The daemon sends to 
-.I ssh
+.I ssh1
 its RSA public host key and session key.
 Using these,
-.I ssh
+.I ssh1
 sends a session key which, presumably, only the
 daemon can decipher.  After this, both sides start encrypting their
 data with this session key.
 .LP
 When the daemon's host key has been received,
-.I ssh
+.I ssh1
 looks it up in 
 .B $home/lib/keyring
 and in 
 .BR /sys/lib/ssh/keyring .
 If
 the key is found there, and it matches the received key,
-.I ssh
+.I ssh1
 is satisfied.  If not,
-.I ssh
+.I ssh1
 reports this and offers to add the key to
 .BR $home/lib/keyring .
 .LP
 Over the encrypted channel,
-.I ssh
+.I ssh1
 attempts to convince the daemon to accept the call
 using the listed authentication protocols
 (see the
@@ -235,8 +247,7 @@ option above).
 The preferred way to authenticate is a
 .IR netkey -style
 challenge/response or via a SecurID token.
-.I Ssh
-users on other systems than Plan 9 should enable \s-2TIS_A\s0uthentication.
+SSH users on other systems than Plan 9 should enable \s-2TIS_A\s0uthentication.
 .LP
 When the connection is authenticated, the given command line,
 (by default, a login shell) is executed on the remote host.
@@ -253,38 +264,39 @@ mounted at
 .BR /net ),
 optionally posting a 9P service
 descriptor for the new file system as
-.IB /srv/ service \fR.
+.BI /srv/ service \fR.
 The
 .B -A
 and
 .B -c
-arguments are as in
-.IR ssh .
+arguments are as for
+.IR ssh1 .
 .sp 1
 .I Scp
 uses
 .I ssh
-to copy files from one host to another.  A remote file is identified by
+to copy files from one host to another.
+A remote file is identified by
 a host name, a colon and a file name (no spaces).
 .I Scp
 can copy files from remote hosts and to remote hosts.
-.sp 1
+.SS "Server and Keys
 .I Sshserve
 is the server that services
-.I ssh
+SSH
 calls from remote hosts. 
 The 
 .B -A
 and
 .B -c
 options set valid authentication methods and ciphers
-as in
-.IR ssh ,
+as for
+.IR ssh1 ,
 except that there is no
 .B rsa
 authentication method.
 Unlike in
-.IR ssh ,
+.IR ssh1 ,
 the list is not ordered: the server presents a set and the client makes the choice.
 The default sets are
 .B tis
@@ -292,6 +304,11 @@ and
 .B blowfish
 .B rc4
 .BR 3des .
+The
+.B -i
+option prevents reading the client's ID-string line and assumes
+its ID string to be
+.IR id-string .
 By default, users start with the namespace defined in
 .BR /lib/namespace .
 Users in group
@@ -329,18 +346,19 @@ grep 'service=sshserve' /mnt/factotum/ctl | auth/rsa2ssh
 .SH FILES
 .TP
 .B /sys/lib/ssh/keyring
-System key ring file containing public keys for remote ssh clients and servers.
+System key ring file containing public keys for remote SSH clients and servers.
 .TP
 .B /usr/\fIuser\fP/lib/keyring
-Personal key ring file containing public keys for remote ssh clients and
+Personal key ring file containing public keys for remote SSH clients and
 servers.
 .SH SOURCE
-.B /sys/src/cmd/ssh
+.B /sys/src/cmd/ssh1
 .SH "SEE ALSO"
 .B /lib/rfc/rfc425[0-6]
 .br
+.IR con (1),
+.IR cpu (1),
+.IR ssh2 (1),
 .IR factotum (4),
 .IR authsrv (6),
 .IR rsa (8)
-.SH BUGS
-Only version 1 of the SSH protocol is implemented.

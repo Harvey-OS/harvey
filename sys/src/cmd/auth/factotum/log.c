@@ -1,8 +1,7 @@
-#include "std.h"
 #include "dat.h"
 
 void
-lbkick(Logbuf *lb)
+logbufproc(Logbuf *lb)
 {
 	char *s;
 	int n;
@@ -42,61 +41,45 @@ lbkick(Logbuf *lb)
 }
 
 void
-lbread(Logbuf *lb, Req *r)
+logbufread(Logbuf *lb, Req *r)
 {
 	if(lb->waitlast == nil)
 		lb->waitlast = &lb->wait;
-	*lb->waitlast = r;
-	lb->waitlast = (Req**)(void*)&r->aux;
+	*(lb->waitlast) = r;
+	lb->waitlast = &r->aux;
 	r->aux = nil;
-	lbkick(lb);
+	logbufproc(lb);
 }
 
 void
-lbflush(Logbuf *lb, Req *r)
+logbufflush(Logbuf *lb, Req *r)
 {
 	Req **l;
 
-	for(l=&lb->wait; *l; l=(Req**)(void*)&(*l)->aux){
+	for(l=&lb->wait; *l; l=&(*l)->aux){
 		if(*l == r){
 			*l = r->aux;
 			r->aux = nil;
 			if(*l == nil)
 				lb->waitlast = l;
-			r->ofcall.count = 0;
-			respond(r, nil);
-			closereq(r);
+			respond(r, "interrupted");
 			break;
 		}
 	}
 }
 
 void
-lbappend(Logbuf *lb, char *fmt, ...)
+logbufappend(Logbuf *lb, char *buf)
 {
-	va_list arg;
+	if(debug)
+		fprint(2, "%s\n", buf);
 
-	va_start(arg, fmt);
-	lbvappend(lb, fmt, arg);
-	va_end(arg);
-}
-
-void
-lbvappend(Logbuf *lb, char *fmt, va_list arg)
-{
-	char *s;
-
-	s = vsmprint(fmt, arg);
-	if(s == nil)
-		sysfatal("out of memory");
-	if(0 && debug)
-		fprint(2, "FACT %s\n", s);
 	if(lb->msg[lb->wp])
 		free(lb->msg[lb->wp]);
-	lb->msg[lb->wp] = s;
+	lb->msg[lb->wp] = estrdup9p(buf);
 	if(++lb->wp == nelem(lb->msg))
 		lb->wp = 0;
-	lbkick(lb);
+	logbufproc(lb);
 }
 
 Logbuf logbuf;
@@ -104,22 +87,24 @@ Logbuf logbuf;
 void
 logread(Req *r)
 {
-	lbread(&logbuf, r);
+	logbufread(&logbuf, r);
 }
 
 void
 logflush(Req *r)
 {
-	lbflush(&logbuf, r);
+	logbufflush(&logbuf, r);
 }
 
 void
 flog(char *fmt, ...)
 {
+	char buf[1024];
 	va_list arg;
 
 	va_start(arg, fmt);
-	lbvappend(&logbuf, fmt, arg);
+	vseprint(buf, buf+sizeof buf, fmt, arg);
 	va_end(arg);
+	logbufappend(&logbuf, buf);
 }
 

@@ -3,20 +3,18 @@
  * to download a file at boot time.
  */
 
-#include "std.h"
 #include "dat.h"
 #include <ip.h>
 
 enum{ CHK = 16};
 enum{ MAXFILESIZE = 10*1024*1024 };
 
-enum{/* PW status bits */
+enum{// PW status bits
 	Enabled 	= (1<<0),
-	STA 		= (1<<1)	/* extra SecurID step */
+	STA 		= (1<<1),	// extra SecurID step
 };
 
 static char testmess[] = "__secstore\tPAK\nC=%s\nm=0\n";
-char *secstore;
 
 int
 havesecstore(void)
@@ -28,20 +26,14 @@ havesecstore(void)
 	hnputs(buf, 0x8000+n-2);
 
 	fd = secdial();
-	if(fd < 0){
-		if(debug)
-			fprint(2, "factotum: secdial: %r\n");
-		flog("secdial: %r");
+	if(fd < 0)
 		return 0;
-	}
 	if(write(fd, buf, n) != n || readn(fd, buf, 2) != 2){
-		flog("secstore: no count");
 		close(fd);
 		return 0;
 	}
 	n = ((buf[0]&0x7f)<<8) + buf[1];
 	if(n+1 > sizeof buf){
-		flog("secstore: bad count");
 		werrstr("implausibly large count %d", n);
 		close(fd);
 		return 0;
@@ -49,47 +41,40 @@ havesecstore(void)
 	m = readn(fd, buf, n);
 	close(fd);
 	if(m != n){
-		flog("secstore: unexpected eof");
 		if(m >= 0)
 			werrstr("short read from secstore");
 		return 0;
 	}
 	buf[n] = 0;
 	if(strcmp((char*)buf, "!account expired") == 0){
-		flog("secstore: account expired");
 		werrstr("account expired");
 		return 0;
 	}
-	if(strcmp((char*)buf, "!account exists") == 0){
-		flog("secstore: account exists");
-		return 1;
-	}
-	flog("secstore: %s", (char*)buf);
-	return 0;
+	return strcmp((char*)buf, "!account exists") == 0;
 }
 
-/* delimited, authenticated, encrypted connection */
-enum{ Maxmsg=4096 };	/* messages > Maxmsg bytes are truncated */
+// delimited, authenticated, encrypted connection
+enum{ Maxmsg=4096 };	// messages > Maxmsg bytes are truncated
 typedef struct SConn SConn;
 
-extern SConn* newSConn(int);	/* arg is open file descriptor */
+extern SConn* newSConn(int);	// arg is open file descriptor
 struct SConn{
 	void *chan;
 	int secretlen;
-	int (*secret)(SConn*, uchar*, int);/*  */
-	int (*read)(SConn*, uchar*, int); /* <0 if error;  errmess in buffer */
+	int (*secret)(SConn*, uchar*, int);// 
+	int (*read)(SConn*, uchar*, int); // <0 if error;  errmess in buffer
 	int (*write)(SConn*, uchar*, int);
-	void (*free)(SConn*);		/* also closes file descriptor */
+	void (*free)(SConn*);		// also closes file descriptor
 };
-/* secret(s,b,dir) sets secret for digest, encrypt, using the secretlen */
-/*		bytes in b to form keys 	for the two directions; */
-/*	  set dir=0 in client, dir=1 in server */
+// secret(s,b,dir) sets secret for digest, encrypt, using the secretlen
+//		bytes in b to form keys 	for the two directions;
+//	  set dir=0 in client, dir=1 in server
 
-/* error convention: write !message in-band */
+// error convention: write !message in-band
 #define readstr secstore_readstr
 static void writerr(SConn*, char*);
-static int readstr(SConn*, char*);  /* call with buf of size Maxmsg+1 */
-	/* returns -1 upon error, with error message in buf */
+static int readstr(SConn*, char*);  // call with buf of size Maxmsg+1
+	// returns -1 upon error, with error message in buf
 
 typedef struct ConnState {
 	uchar secret[SHA1dlen];
@@ -97,10 +82,9 @@ typedef struct ConnState {
 	RC4state rc4;
 } ConnState;
 
-#undef SS
-typedef struct SS {
-	int fd;		/* file descriptor for read/write of encrypted data */
-	int alg;	/* if nonzero, "alg sha rc4_128" */
+typedef struct SS{
+	int fd;		// file descriptor for read/write of encrypted data
+	int alg;	// if nonzero, "alg sha rc4_128"
 	ConnState in, out;
 } SS;
 
@@ -117,7 +101,7 @@ SC_secret(SConn *conn, uchar *sigma, int direction)
 		hmac_sha1(sigma, nsigma, (uchar*)"two", 3, ss->out.secret, nil);
 		hmac_sha1(sigma, nsigma, (uchar*)"one", 3, ss->in.secret, nil);
 	}
-	setupRC4state(&ss->in.rc4, ss->in.secret, 16); /* restrict to 128 bits */
+	setupRC4state(&ss->in.rc4, ss->in.secret, 16); // restrict to 128 bits
 	setupRC4state(&ss->out.rc4, ss->out.secret, 16);
 	ss->alg = 1;
 	return 0;
@@ -168,7 +152,7 @@ SC_read(SConn *conn, uchar *buf, int n)
 		werrstr("!SC_read invalid count");
 		return -1;
 	}
-	len = (count[0]&0x7f)<<8 | count[1];	/* SSL-style count; no pad */
+	len = (count[0]&0x7f)<<8 | count[1];	// SSL-style count; no pad
 	if(ss->alg){
 		len -= SHA1dlen;
 		if(len <= 0 || readn(ss->fd, digest, SHA1dlen) != SHA1dlen){
@@ -203,7 +187,7 @@ static int
 SC_write(SConn *conn, uchar *buf, int n)
 {
 	SS *ss = (SS*)(conn->chan);
-	uchar count[2], digest[SHA1dlen], *enc;
+	uchar count[2], digest[SHA1dlen], enc[Maxmsg+1];
 	int len;
 
 	if(n <= 0 || n > Maxmsg+1){
@@ -222,16 +206,13 @@ SC_write(SConn *conn, uchar *buf, int n)
 	if(ss->alg){
 		hash(ss->out.secret, buf, n, ss->out.seqno, digest);
 		rc4(&ss->out.rc4, digest, SHA1dlen);
-		enc = emalloc(Maxmsg+1);
 		memcpy(enc, buf, n);
 		rc4(&ss->out.rc4, enc, n);
 		if(write(ss->fd, digest, SHA1dlen) != SHA1dlen ||
 				write(ss->fd, enc, n) != n){
 			werrstr("!SC_write error on send");
-			free(enc);
 			return -1;
 		}
-		free(enc);
 	}else{
 		if(write(ss->fd, buf, n) != n){
 			werrstr("!SC_write error on send");
@@ -276,11 +257,10 @@ newSConn(int fd)
 static void
 writerr(SConn *conn, char *s)
 {
-	char *t;
+	char buf[Maxmsg];
 
-	t = smprint("!%s", s);
-	conn->write(conn, (uchar*)t, strlen(t));
-	free(t);
+	snprint(buf, Maxmsg, "!%s", s);
+	conn->write(conn, (uchar*)buf, strlen(buf));
 }
 
 static int
@@ -306,7 +286,7 @@ getfile(SConn *conn, uchar *key, int nkey)
 {
 	char *buf;
 	int nbuf, n, nr, len;
-	char *s, *gf, *p, *q;
+	char s[Maxmsg+1], *gf, *p, *q;
 	uchar skey[SHA1dlen], ib[Maxmsg+CHK], *ibr, *ibw;
 	AESstate aes;
 	DigestState *sha;
@@ -314,7 +294,6 @@ getfile(SConn *conn, uchar *key, int nkey)
 	gf = "factotum";
 	memset(&aes, 0, sizeof aes);
 
-	s = (char*)ib;
 	snprint(s, Maxmsg, "GET %s\n", gf);
 	conn->write(conn, (uchar*)s, strlen(s));
 
@@ -327,7 +306,7 @@ getfile(SConn *conn, uchar *key, int nkey)
 	if((len = atoi(s)) < 0){
 		werrstr("secstore: remote file %s does not exist", gf);
 		return -1;
-	}else if(len > MAXFILESIZE){/*assert */
+	}else if(len > MAXFILESIZE){//assert
 		werrstr("secstore: implausible file size %d for %s", len, gf);
 		return -1;
 	}
@@ -383,10 +362,8 @@ getfile(SConn *conn, uchar *key, int nkey)
 		if(q = strchr(p, '\n'))
 			*q++ = '\0';
 		n++;
-		if(ctlwrite(p) < 0){
-			flog("secstore %s:%d: %r", gf, n);
+		if(ctlwrite(p, 0) < 0)
 			fprint(2, "factotum: secstore(%s) line %d: %r\n", gf, n);
-		}
 		p = q;
 	}
 	free(buf);
@@ -401,7 +378,7 @@ typedef struct PAKparams{
 
 static PAKparams *pak;
 
-/* This group was generated by the seed EB7B6E35F7CD37B511D96C67D6688CC4DD440E1E. */
+// This group was generated by the seed EB7B6E35F7CD37B511D96C67D6688CC4DD440E1E.
 static void
 initPAKparams(void)
 {
@@ -423,8 +400,8 @@ initPAKparams(void)
 		"2A6E0BAE08B14258F8C03CC1B30E0DDADFCF7CEDF0727684D3D255F1", nil, 16, nil);
 }
 
-/* H = (sha(ver,C,sha(passphrase)))^r mod p, */
-/* a hash function expensive to attack by brute force. */
+// H = (sha(ver,C,sha(passphrase)))^r mod p,
+// a hash function expensive to attack by brute force.
 static void
 longhash(char *ver, char *C, uchar *passwd, mpint *H)
 {
@@ -450,7 +427,7 @@ longhash(char *ver, char *C, uchar *passwd, mpint *H)
 	mpexp(H, pak->r, pak->p, H);
 }
 
-/* Hi = H^-1 mod p */
+// Hi = H^-1 mod p
 static char *
 PAK_Hi(char *C, char *passphrase, mpint *H, mpint *Hi)
 {
@@ -463,8 +440,8 @@ PAK_Hi(char *C, char *passphrase, mpint *H, mpint *Hi)
 	return mptoa(Hi, 64, nil, 0);
 }
 
-/* another, faster, hash function for each party to */
-/* confirm that the other has the right secrets. */
+// another, faster, hash function for each party to
+// confirm that the other has the right secrets.
 static void
 shorthash(char *mess, char *C, char *S, char *m, char *mu, char *sigma, char *Hi, uchar *digest)
 {
@@ -486,12 +463,12 @@ shorthash(char *mess, char *C, char *S, char *m, char *mu, char *sigma, char *Hi
 	sha1((uchar*)Hi, strlen(Hi), digest, state);
 }
 
-/* On input, conn provides an open channel to the server; */
-/*	C is the name this client calls itself; */
-/*	pass is the user's passphrase */
-/* On output, session secret has been set in conn */
-/*	(unless return code is negative, which means failure). */
-/*    If pS is not nil, it is set to the (alloc'd) name the server calls itself. */
+// On input, conn provides an open channel to the server;
+//	C is the name this client calls itself;
+//	pass is the user's passphrase
+// On output, session secret has been set in conn
+//	(unless return code is negative, which means failure).
+//    If pS is not nil, it is set to the (alloc'd) name the server calls itself.
 static int
 PAKclient(SConn *conn, char *C, char *pass, char **pS)
 {
@@ -504,7 +481,7 @@ PAKclient(SConn *conn, char *C, char *pass, char **pS)
 
 	hexHi = PAK_Hi(C, pass, H, Hi);
 
-	/* random 1<=x<=q-1; send C, m=g**x H */
+	// random 1<=x<=q-1; send C, m=g**x H
 	x = mprand(164, genrandom, nil);
 	mpmod(x, pak->q, x);
 	if(mpcmp(x, mpzero) == 0)
@@ -518,9 +495,9 @@ PAKclient(SConn *conn, char *C, char *pass, char **pS)
 	snprint(mess, Maxmsg, "%s\tPAK\nC=%s\nm=%s\n", VERSION, C, hexm);
 	conn->write(conn, (uchar*)mess, strlen(mess));
 
-	/* recv g**y, S, check hash1(g**xy) */
+	// recv g**y, S, check hash1(g**xy)
 	if(readstr(conn, mess) < 0){
-		fprint(2, "factotum: PAKclient: error: %s\n", mess);
+		fprint(2, "factotum: error: %s\n", mess);
 		writerr(conn, "couldn't read g**y");
 		goto done;
 	}
@@ -557,18 +534,18 @@ PAKclient(SConn *conn, char *C, char *pass, char **pS)
 		goto done;
 	}
 
-	/* send hash2(g**xy) */
+	// send hash2(g**xy)
 	shorthash("client", C, S, hexm, hexmu, hexsigma, hexHi, digest);
 	enc64(kc, sizeof kc, digest, SHA1dlen);
 	snprint(mess2, Maxmsg, "k'=%s\n", kc);
 	conn->write(conn, (uchar*)mess2, strlen(mess2));
 
-	/* set session key */
+	// set session key
 	shorthash("session", C, S, hexm, hexmu, hexsigma, hexHi, digest);
 	memset(hexsigma, 0, strlen(hexsigma));
 	n = conn->secret(conn, digest, 0);
 	memset(digest, 0, SHA1dlen);
-	if(n < 0){/*assert */
+	if(n < 0){//assert
 		writerr(conn, "can't set secret");
 		goto done;
 	}
@@ -591,14 +568,13 @@ done:
 int
 secstorefetch(char *password)
 {
-	char *s, *pass, *sta;
-	int rv, fd;
+	int rv = -1, fd;
+	char s[Maxmsg+1];
 	SConn *conn;
+	char *pass, *sta;
 
 	sta = nil;
 	conn = nil;
-	s = nil;
-	rv = -1;
 	if(password != nil && *password)
 		pass = estrdup(password);
 	else
@@ -615,7 +591,6 @@ secstorefetch(char *password)
 		werrstr("password mistyped?");
 		goto Out;
 	}
-	s = emalloc(Maxmsg+1);
 	if(readstr(conn, s) < 0)
 		goto Out;
 	if(strcmp(s, "STA") == 0){
@@ -624,7 +599,7 @@ secstorefetch(char *password)
 			werrstr("cancel");
 			goto Out;
 		}
-		if(strlen(sta) >= Maxmsg - 3){
+		if(strlen(sta) >= sizeof s - 3){
 			werrstr("STA response too long");
 			goto Out;
 		}
@@ -642,13 +617,12 @@ secstorefetch(char *password)
 	rv = 0;
 
 Out:
-	if(rv < 0)
-		flog("secstorefetch: %r");
 	if(conn)
 		conn->free(conn);
-	free(s);
-	free(pass);
-	free(sta);
+	if(pass)
+		free(pass);
+	if(sta)
+		free(sta);
 	return rv;
 }
 

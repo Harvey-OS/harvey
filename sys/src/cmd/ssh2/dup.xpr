@@ -1,0 +1,235 @@
+percent redundancy, # redundant lines, #matches; file1, file2
+percent of file involved, #lines in file involved; file1,filename1
+percent of file involved, #lines in file involved; file2,filename2
+
+13, 5, 1; 0,0
+      26, 11; 0,cipher3des.c:
+      26, 11; 0,cipher3des.c:
+
+40, 31, 5; 1,1
+      70, 55; 1,cipheraes.c:
+      70, 55; 1,cipheraes.c:
+
+7, 4, 1; 2,2
+      13, 8; 2,cipherblowfish.c:
+      13, 8; 2,cipherblowfish.c:
+
+15, 5, 1; 3,3
+      28, 11; 3,cipherrc4.c:
+      28, 11; 3,cipherrc4.c:
+
+19, 152, 60; 5,5
+      30, 244; 5,dh.c:
+      30, 244; 5,dh.c:
+
+7, 28, 9; 6,6
+      13, 56; 6,dial.c:
+      13, 56; 6,dial.c:
+
+4, 17, 5; 7,7
+      8, 34; 7,dial.thread.c:
+      8, 34; 7,dial.thread.c:
+
+22, 646, 316; 9,9
+      34, 996; 9,netssh.c:
+      34, 996; 9,netssh.c:
+
+5, 10, 3; 10,10
+      10, 20; 10,pubkey.c:
+      10, 20; 10,pubkey.c:
+
+7, 36, 12; 12,12
+      12, 65; 12,ssh.c:
+      12, 65; 12,ssh.c:
+
+5, 20, 6; 13,13
+      9, 38; 13,sshsession.c:
+      9, 38; 13,sshsession.c:
+
+6, 12, 3; 14,14
+      11, 24; 14,transport.c:
+      11, 24; 14,transport.c:
+
+19, 22, 6; 0,1
+      47, 20; 0,cipher3des.c:
+      25, 20; 1,cipheraes.c:
+
+16, 22, 6; 1,2
+      25, 20; 1,cipheraes.c:
+      33, 20; 2,cipherblowfish.c:
+
+26, 25, 5; 2,3
+      38, 23; 2,cipherblowfish.c:
+      59, 23; 3,cipherrc4.c:
+
+1, 13, 6; 5,6
+      2, 15; 5,dh.c:
+      2, 9; 6,dial.c:
+
+33, 281, 33; 6,7
+      64, 275; 6,dial.c:
+      62, 267; 7,dial.thread.c:
+
+0, 10, 3; 8,9
+      40, 6; 8,esmprint.c:
+      0, 12; 9,netssh.c:
+
+0, 5, 2; 9,10
+      0, 3; 9,netssh.c:
+      3, 6; 10,pubkey.c:
+
+1, 7, 2; 11,12
+      12, 7; 11,rsa2ssh2.c:
+      1, 7; 12,ssh.c:
+
+2, 20, 5; 12,13
+      4, 20; 12,ssh.c:
+      5, 20; 13,sshsession.c:
+
+0, 3, 1; 13,14
+      1, 3; 13,sshsession.c:
+      1, 3; 14,transport.c:
+
+27, 27, 4; 0,2
+      60, 26; 0,cipher3des.c:
+      40, 24; 2,cipherblowfish.c:
+
+19, 22, 6; 1,3
+      25, 20; 1,cipheraes.c:
+      51, 20; 3,cipherrc4.c:
+
+1, 7, 2; 5,7
+      1, 7; 5,dh.c:
+      2, 7; 7,dial.thread.c:
+
+0, 15, 6; 7,9
+      3, 13; 7,dial.thread.c:
+      0, 14; 9,netssh.c:
+
+0, 9, 1; 9,11
+      0, 9; 9,netssh.c:
+      15, 9; 11,rsa2ssh2.c:
+
+1, 7, 2; 11,13
+      12, 7; 11,rsa2ssh2.c:
+      2, 7; 13,sshsession.c:
+
+32, 26, 5; 0,3
+      56, 24; 0,cipher3des.c:
+      62, 24; 3,cipherrc4.c:
+
+1, 21, 9; 6,9
+      4, 19; 6,dial.c:
+      1, 17; 9,netssh.c:
+
+2, 54, 23; 9,12
+      2, 59; 9,netssh.c:
+      8, 40; 12,ssh.c:
+
+3, 8, 1; 11,14
+      13, 8; 11,rsa2ssh2.c:
+      4, 8; 14,transport.c:
+
+1, 6, 1; 3,7
+      15, 6; 3,cipherrc4.c:
+      1, 6; 7,dial.thread.c:
+
+1, 33, 18; 5,9
+      3, 25; 5,dh.c:
+      1, 28; 9,netssh.c:
+
+1, 6, 1; 7,11
+      1, 6; 7,dial.thread.c:
+      10, 6; 11,rsa2ssh2.c:
+
+1, 33, 9; 9,13
+      1, 36; 9,netssh.c:
+      7, 29; 13,sshsession.c:
+
+1, 5, 2; 10,14
+      3, 6; 10,pubkey.c:
+      1, 3; 14,transport.c:
+
+1, 6, 1; 2,7
+      10, 6; 2,cipherblowfish.c:
+      1, 6; 7,dial.thread.c:
+
+1, 11, 3; 7,12
+      3, 12; 7,dial.thread.c:
+      2, 10; 12,ssh.c:
+
+0, 6, 2; 9,14
+      0, 6; 9,netssh.c:
+      3, 6; 14,transport.c:
+
+1, 4, 1; 0,6
+      9, 4; 0,cipher3des.c:
+      1, 4; 6,dial.c:
+
+1, 6, 1; 1,7
+      8, 6; 1,cipheraes.c:
+      1, 6; 7,dial.thread.c:
+
+2, 16, 5; 6,12
+      3, 13; 6,dial.c:
+      3, 17; 12,ssh.c:
+
+1, 6, 2; 7,13
+      2, 7; 7,dial.thread.c:
+      1, 4; 13,sshsession.c:
+
+2, 10, 2; 0,7
+      23, 10; 0,cipher3des.c:
+      2, 10; 7,dial.thread.c:
+
+1, 10, 4; 6,13
+      3, 13; 6,dial.c:
+      2, 7; 13,sshsession.c:
+
+1, 6, 1; 7,14
+      1, 6; 7,dial.thread.c:
+      3, 6; 14,transport.c:
+
+7, 7, 1; 3,11
+      18, 7; 3,cipherrc4.c:
+      12, 7; 11,rsa2ssh2.c:
+
+0, 3, 1; 5,13
+      0, 3; 5,dh.c:
+      1, 3; 13,sshsession.c:
+
+0, 6, 2; 0,9
+      9, 4; 0,cipher3des.c:
+      0, 8; 9,netssh.c:
+
+6, 7, 1; 2,11
+      12, 7; 2,cipherblowfish.c:
+      12, 7; 11,rsa2ssh2.c:
+
+5, 7, 1; 1,11
+      9, 7; 1,cipheraes.c:
+      12, 7; 11,rsa2ssh2.c:
+
+7, 7, 1; 0,11
+      16, 7; 0,cipher3des.c:
+      12, 7; 11,rsa2ssh2.c:
+
+3, 7, 1; 3,14
+      18, 7; 3,cipherrc4.c:
+      3, 7; 14,transport.c:
+
+3, 7, 1; 2,14
+      12, 7; 2,cipherblowfish.c:
+      3, 7; 14,transport.c:
+
+1, 4, 1; 0,13
+      9, 4; 0,cipher3des.c:
+      1, 4; 13,sshsession.c:
+
+2, 7, 1; 1,14
+      9, 7; 1,cipheraes.c:
+      3, 7; 14,transport.c:
+
+3, 7, 1; 0,14
+      16, 7; 0,cipher3des.c:
+      3, 7; 14,transport.c:
