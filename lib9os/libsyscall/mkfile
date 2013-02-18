@@ -145,7 +145,7 @@ oldinstall:V:
 		}} > $i.s
 		$AS $i.s
 	}
-	ar rvu ${NXM}/$objtype/lib/libc.a *.$O
+	ar rvu $NXM/$objtype/lib/libc.a *.$O
 
 goinstall:V:
 	mksys $objtype
@@ -161,3 +161,23 @@ installall:V:
 
 update:V:
 	update $UPDATEFLAGS mkfile sys.h
+
+user:V:
+	awk -v'objtype='$objtype 'BEGIN {print "Dynld _exporttab[] = "} 
+	{
+		s=tolower($2)
+		if(objtype ~ /amd64|alpha/ && s == "seek")
+			s = "_seek"
+		print "\t{signof("s"), "s", \""s"\"},"
+	}
+	END {print "};"}' <sys.h
+
+libos:V:
+	awk -v'objtype='$objtype 'BEGIN {print "Dynld _exporttab[] = "} 
+	{
+		s=tolower($2)
+		if(objtype ~ /amd64|alpha/ && s == "seek")
+			s = "_seek"
+		print "\t{signof("s"), lib"s", \""s"\"},"
+	}
+	END {print "};"}' <sys.h
