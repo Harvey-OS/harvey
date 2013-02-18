@@ -1,0 +1,40 @@
+libs=${LIBS:%=$ROOT/$OBJDIR/lib/lib%.a}
+
+all:V:	$O.out
+
+install:V:	$BIN/$TARG
+
+safeinstall:	$O.out
+	mv $BIN/$TARG $BIN/$TARG.`{date -n}
+	cp $O.out $BIN/$TARG
+
+installall:V:
+	for(objtype in $CPUS)
+		mk $MKFLAGS install
+
+nuke:V:	nuke-std
+
+clean:V: clean-std
+
+$O.out:	$OFILES $libs
+	$LD $LDFLAGS $OFILES $libs $SYSLIBS
+
+%.$O:	$HFILES		# don't combine with following %.$O rules
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.$O:	%.s
+	$AS $ASFLAGS $stem.s
+
+y.tab.h y.tab.c:	$YFILES
+	$YACC $YFLAGS $YFILES
+
+nuke-std:V:	clean-std
+	rm -f y.tab.? y.debug y.output
+
+clean-std:V:
+	rm -f *.[$OS] [$OS].out
+
+$BIN/%:	$O.out
+	rm -f $BIN/$stem && cp $O.out $BIN/$stem

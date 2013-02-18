@@ -1,0 +1,471 @@
+sizeof_1_ = 8;
+aggr _1_
+{
+	'U' 0 lo;
+	'U' 4 hi;
+};
+
+defn
+_1_(addr) {
+	complex _1_ addr;
+	print("	lo	", addr.lo, "\n");
+	print("	hi	", addr.hi, "\n");
+};
+
+sizeofFPdbleword = 8;
+aggr FPdbleword
+{
+	'F' 0 x;
+	{
+	'U' 0 lo;
+	'U' 4 hi;
+	};
+};
+
+defn
+FPdbleword(addr) {
+	complex FPdbleword addr;
+	print("	x	", addr.x, "\n");
+	print("_1_ {\n");
+		_1_(addr+0);
+	print("}\n");
+};
+
+UTFmax = 3;
+Runesync = 128;
+Runeself = 128;
+Runeerror = 65533;
+sizeofFmt = 48;
+aggr Fmt
+{
+	'b' 0 runes;
+	'X' 4 start;
+	'X' 8 to;
+	'X' 12 stop;
+	'X' 16 flush;
+	'X' 20 farg;
+	'D' 24 nfmt;
+	'X' 28 args;
+	'D' 32 r;
+	'D' 36 width;
+	'D' 40 prec;
+	'U' 44 flags;
+};
+
+defn
+Fmt(addr) {
+	complex Fmt addr;
+	print("	runes	", addr.runes, "\n");
+	print("	start	", addr.start\X, "\n");
+	print("	to	", addr.to\X, "\n");
+	print("	stop	", addr.stop\X, "\n");
+	print("	flush	", addr.flush\X, "\n");
+	print("	farg	", addr.farg\X, "\n");
+	print("	nfmt	", addr.nfmt, "\n");
+	print("	args	", addr.args\X, "\n");
+	print("	r	", addr.r, "\n");
+	print("	width	", addr.width, "\n");
+	print("	prec	", addr.prec, "\n");
+	print("	flags	", addr.flags, "\n");
+};
+
+FmtWidth = 1;
+FmtLeft = 2;
+FmtPrec = 4;
+FmtSharp = 8;
+FmtSpace = 16;
+FmtSign = 32;
+FmtZero = 64;
+FmtUnsigned = 128;
+FmtShort = 256;
+FmtLong = 512;
+FmtVLong = 1024;
+FmtComma = 2048;
+FmtByte = 4096;
+FmtFlag = 8192;
+sizeofTm = 40;
+aggr Tm
+{
+	'D' 0 sec;
+	'D' 4 min;
+	'D' 8 hour;
+	'D' 12 mday;
+	'D' 16 mon;
+	'D' 20 year;
+	'D' 24 wday;
+	'D' 28 yday;
+	'a' 32 zone;
+	'D' 36 tzoff;
+};
+
+defn
+Tm(addr) {
+	complex Tm addr;
+	print("	sec	", addr.sec, "\n");
+	print("	min	", addr.min, "\n");
+	print("	hour	", addr.hour, "\n");
+	print("	mday	", addr.mday, "\n");
+	print("	mon	", addr.mon, "\n");
+	print("	year	", addr.year, "\n");
+	print("	wday	", addr.wday, "\n");
+	print("	yday	", addr.yday, "\n");
+	print("	zone	", addr.zone, "\n");
+	print("	tzoff	", addr.tzoff, "\n");
+};
+
+PNPROC = 1;
+PNGROUP = 2;
+Profoff = 0;
+Profuser = 1;
+Profkernel = 2;
+Proftime = 3;
+Profsample = 4;
+sizeofLock = 4;
+aggr Lock
+{
+	'D' 0 val;
+};
+
+defn
+Lock(addr) {
+	complex Lock addr;
+	print("	val	", addr.val, "\n");
+};
+
+sizeofQLp = 12;
+aggr QLp
+{
+	'D' 0 inuse;
+	'A' QLp 4 next;
+	'C' 8 state;
+};
+
+defn
+QLp(addr) {
+	complex QLp addr;
+	print("	inuse	", addr.inuse, "\n");
+	print("	next	", addr.next\X, "\n");
+	print("	state	", addr.state, "\n");
+};
+
+sizeofQLock = 16;
+aggr QLock
+{
+	Lock 0 lock;
+	'D' 4 locked;
+	'A' QLp 8 $head;
+	'A' QLp 12 $tail;
+};
+
+defn
+QLock(addr) {
+	complex QLock addr;
+	print("Lock lock {\n");
+	Lock(addr.lock);
+	print("}\n");
+	print("	locked	", addr.locked, "\n");
+	print("	$head	", addr.$head\X, "\n");
+	print("	$tail	", addr.$tail\X, "\n");
+};
+
+sizeofRWLock = 20;
+aggr RWLock
+{
+	Lock 0 lock;
+	'D' 4 readers;
+	'D' 8 writer;
+	'A' QLp 12 $head;
+	'A' QLp 16 $tail;
+};
+
+defn
+RWLock(addr) {
+	complex RWLock addr;
+	print("Lock lock {\n");
+	Lock(addr.lock);
+	print("}\n");
+	print("	readers	", addr.readers, "\n");
+	print("	writer	", addr.writer, "\n");
+	print("	$head	", addr.$head\X, "\n");
+	print("	$tail	", addr.$tail\X, "\n");
+};
+
+sizeofRendez = 12;
+aggr Rendez
+{
+	'A' QLock 0 l;
+	'A' QLp 4 $head;
+	'A' QLp 8 $tail;
+};
+
+defn
+Rendez(addr) {
+	complex Rendez addr;
+	print("	l	", addr.l\X, "\n");
+	print("	$head	", addr.$head\X, "\n");
+	print("	$tail	", addr.$tail\X, "\n");
+};
+
+sizeofNetConnInfo = 36;
+aggr NetConnInfo
+{
+	'X' 0 dir;
+	'X' 4 root;
+	'X' 8 spec;
+	'X' 12 lsys;
+	'X' 16 lserv;
+	'X' 20 rsys;
+	'X' 24 rserv;
+	'X' 28 laddr;
+	'X' 32 raddr;
+};
+
+defn
+NetConnInfo(addr) {
+	complex NetConnInfo addr;
+	print("	dir	", addr.dir\X, "\n");
+	print("	root	", addr.root\X, "\n");
+	print("	spec	", addr.spec\X, "\n");
+	print("	lsys	", addr.lsys\X, "\n");
+	print("	lserv	", addr.lserv\X, "\n");
+	print("	rsys	", addr.rsys\X, "\n");
+	print("	rserv	", addr.rserv\X, "\n");
+	print("	laddr	", addr.laddr\X, "\n");
+	print("	raddr	", addr.raddr\X, "\n");
+};
+
+RFNAMEG = 1;
+RFENVG = 2;
+RFFDG = 4;
+RFNOTEG = 8;
+RFPROC = 16;
+RFMEM = 32;
+RFNOWAIT = 64;
+RFCNAMEG = 1024;
+RFCENVG = 2048;
+RFCFDG = 4096;
+RFREND = 8192;
+RFNOMNT = 16384;
+sizeofQid = 16;
+aggr Qid
+{
+	'W' 0 path;
+	'U' 8 vers;
+	'b' 12 type;
+};
+
+defn
+Qid(addr) {
+	complex Qid addr;
+	print("	path	", addr.path, "\n");
+	print("	vers	", addr.vers, "\n");
+	print("	type	", addr.type, "\n");
+};
+
+sizeofDir = 60;
+aggr Dir
+{
+	'u' 0 type;
+	'U' 4 dev;
+	Qid 8 qid;
+	'U' 24 mode;
+	'U' 28 atime;
+	'U' 32 mtime;
+	'V' 36 length;
+	'X' 44 name;
+	'X' 48 uid;
+	'X' 52 gid;
+	'X' 56 muid;
+};
+
+defn
+Dir(addr) {
+	complex Dir addr;
+	print("	type	", addr.type, "\n");
+	print("	dev	", addr.dev, "\n");
+	print("Qid qid {\n");
+	Qid(addr.qid);
+	print("}\n");
+	print("	mode	", addr.mode, "\n");
+	print("	atime	", addr.atime, "\n");
+	print("	mtime	", addr.mtime, "\n");
+	print("	length	", addr.length, "\n");
+	print("	name	", addr.name\X, "\n");
+	print("	uid	", addr.uid\X, "\n");
+	print("	gid	", addr.gid\X, "\n");
+	print("	muid	", addr.muid\X, "\n");
+};
+
+sizeofWaitmsg = 20;
+aggr Waitmsg
+{
+	'D' 0 pid;
+	'a' 4 time;
+	'X' 16 msg;
+};
+
+defn
+Waitmsg(addr) {
+	complex Waitmsg addr;
+	print("	pid	", addr.pid, "\n");
+	print("	time	", addr.time, "\n");
+	print("	msg	", addr.msg\X, "\n");
+};
+
+sizeofIOchunk = 8;
+aggr IOchunk
+{
+	'X' 0 addr;
+	'U' 4 len;
+};
+
+defn
+IOchunk(addr) {
+	complex IOchunk addr;
+	print("	addr	", addr.addr\X, "\n");
+	print("	len	", addr.len, "\n");
+};
+
+sizeofPool = 88;
+aggr Pool
+{
+	'X' 0 name;
+	'U' 4 maxsize;
+	'U' 8 cursize;
+	'U' 12 curfree;
+	'U' 16 curalloc;
+	'U' 20 minarena;
+	'U' 24 quantum;
+	'U' 28 minblock;
+	'X' 32 freeroot;
+	'X' 36 arenalist;
+	'X' 40 alloc;
+	'X' 44 merge;
+	'X' 48 move;
+	'D' 52 flags;
+	'D' 56 nfree;
+	'D' 60 lastcompact;
+	'X' 64 lock;
+	'X' 68 unlock;
+	'X' 72 print;
+	'X' 76 panic;
+	'X' 80 logstack;
+	'X' 84 private;
+};
+
+defn
+Pool(addr) {
+	complex Pool addr;
+	print("	name	", addr.name\X, "\n");
+	print("	maxsize	", addr.maxsize, "\n");
+	print("	cursize	", addr.cursize, "\n");
+	print("	curfree	", addr.curfree, "\n");
+	print("	curalloc	", addr.curalloc, "\n");
+	print("	minarena	", addr.minarena, "\n");
+	print("	quantum	", addr.quantum, "\n");
+	print("	minblock	", addr.minblock, "\n");
+	print("	freeroot	", addr.freeroot\X, "\n");
+	print("	arenalist	", addr.arenalist\X, "\n");
+	print("	alloc	", addr.alloc\X, "\n");
+	print("	merge	", addr.merge\X, "\n");
+	print("	move	", addr.move\X, "\n");
+	print("	flags	", addr.flags, "\n");
+	print("	nfree	", addr.nfree, "\n");
+	print("	lastcompact	", addr.lastcompact, "\n");
+	print("	lock	", addr.lock\X, "\n");
+	print("	unlock	", addr.unlock\X, "\n");
+	print("	print	", addr.print\X, "\n");
+	print("	panic	", addr.panic\X, "\n");
+	print("	logstack	", addr.logstack\X, "\n");
+	print("	private	", addr.private\X, "\n");
+};
+
+complex Pool mainmem;
+complex Pool imagmem;
+POOL_ANTAGONISM = 1;
+POOL_PARANOIA = 2;
+POOL_VERBOSITY = 4;
+POOL_DEBUGGING = 8;
+POOL_LOGGING = 16;
+POOL_TOLERANCE = 32;
+POOL_NOREUSE = 64;
+sizeof_2_ = 24;
+aggr _2_
+{
+	'X' 0 pp;
+	'X' 4 next;
+	'X' 8 last;
+	'X' 12 first;
+	'U' 16 pid;
+	'U' 20 what;
+};
+
+defn
+_2_(addr) {
+	complex _2_ addr;
+	print("	pp	", addr.pp\X, "\n");
+	print("	next	", addr.next\X, "\n");
+	print("	last	", addr.last\X, "\n");
+	print("	first	", addr.first\X, "\n");
+	print("	pid	", addr.pid, "\n");
+	print("	what	", addr.what, "\n");
+};
+
+sizeofTos = 56;
+aggr Tos
+{
+	_2_ 0 prof;
+	'W' 24 cyclefreq;
+	'V' 32 kcycles;
+	'V' 40 pcycles;
+	'U' 48 pid;
+	'U' 52 clock;
+};
+
+defn
+Tos(addr) {
+	complex Tos addr;
+	print("_2_ prof {\n");
+	_2_(addr.prof);
+	print("}\n");
+	print("	cyclefreq	", addr.cyclefreq, "\n");
+	print("	kcycles	", addr.kcycles, "\n");
+	print("	pcycles	", addr.pcycles, "\n");
+	print("	pid	", addr.pid, "\n");
+	print("	clock	", addr.clock, "\n");
+};
+
+complex Tos _tos;
+sizeofPrivate = 12;
+aggr Private
+{
+	Lock 0 lk;
+	'D' 4 pid;
+	'D' 8 printfd;
+};
+
+defn
+Private(addr) {
+	complex Private addr;
+	print("Lock lk {\n");
+	Lock(addr.lk);
+	print("}\n");
+	print("	pid	", addr.pid, "\n");
+	print("	printfd	", addr.printfd, "\n");
+};
+
+complex Private sbrkmempriv;
+complex Pool sbrkmem;
+complex Pool mainmem;
+complex Pool imagmem;
+complex Pool plock:p;
+complex Private plock:pv;
+complex Pool punlock:p;
+complex Private punlock:pv;
+complex Pool pprint:p;
+complex Private pprint:pv;
+complex Pool ppanic:p;
+complex Private ppanic:pv;
+Npadlong = 2;
+MallocOffset = 0;
+ReallocOffset = 1;

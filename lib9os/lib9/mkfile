@@ -1,0 +1,90 @@
+<../mkconfig
+
+LIB=lib9.a
+
+#
+# files used by all models
+#
+COMMONFILES=\
+	convD2M.$O\
+	convM2D.$O\
+	convM2S.$O\
+	convS2M.$O\
+	fcallfmt.$O\
+	qsort.$O\
+	runestrlen.$O\
+	strtoll.$O\
+	strtoull.$O\
+	rune.$O\
+#
+# files used by most models.  these are added to TARGFILES in some
+# model-specific mkfiles included below
+#
+IMPORTFILES=\
+	argv0.$O\
+	charstod.$O\
+	cistrcmp.$O\
+	cistrncmp.$O\
+	cistrstr.$O\
+	cleanname.$O\
+	create.$O\
+	dirwstat.$O\
+	dofmt.$O\
+	dorfmt.$O\
+	errfmt.$O\
+	exits.$O\
+	fmt.$O\
+	fmtfd.$O\
+	fmtlock.$O\
+	fmtprint.$O\
+	fmtquote.$O\
+	fmtrune.$O\
+	fmtstr.$O\
+	fmtvprint.$O\
+	fprint.$O\
+	getfields.$O\
+	nulldir.$O\
+	pow10.$O\
+	print.$O\
+	readn.$O\
+	rerrstr.$O\
+	runeseprint.$O\
+	runesmprint.$O\
+	runesnprint.$O\
+	runevseprint.$O\
+	seek.$O\
+	seprint.$O\
+	smprint.$O\
+	snprint.$O\
+	sprint.$O\
+	strdup.$O\
+	strecpy.$O\
+	sysfatal.$O\
+	tokenize.$O\
+	u16.$O\
+	u32.$O\
+	u64.$O\
+	utflen.$O\
+	utfnlen.$O\
+	utfrrune.$O\
+	utfrune.$O\
+	utfecpy.$O\
+	vfprint.$O\
+	vseprint.$O\
+	vsmprint.$O\
+	vsnprint.$O\
+
+<mkfile-$TARGMODEL
+
+OFILES=$COMMONFILES $TARGFILES
+
+HFILES=$ROOT/$SYSTARG/$OBJTYPE/include/lib9.h\
+	fmtdef.h\
+
+<$ROOT/mkfiles/mksyslib-$SHELLTYPE
+
+convD2M.$O: $ROOT/include/fcall.h
+convM2D.$O: $ROOT/include/fcall.h
+convM2S.$O: $ROOT/include/fcall.h
+convS2M.$O: $ROOT/include/fcall.h
+fcallfmt.$O: $ROOT/include/fcall.h

@@ -1,0 +1,32 @@
+<../../mkconfig
+
+LIB=lib9kern.a
+
+CFILES = main.c\
+	sysfile.c\
+	pgrp.c\
+	syscall.c\
+	error.c\
+	chan.c\
+	devmnt.c\
+	alloc.c\
+	dev.c\
+	qio.c\
+	cache.c\
+
+ALLOFILES=${CFILES:%.c=%.$O}
+
+# cull things in the per-machine directories from this list
+#OFILES=	`{$SHELLNAME ./reduce-$SHELLTYPE $O $TARGMODEL-$OBJTYPE $ALLOFILES }
+OFILES=$ALLOFILES
+
+HFILES=\
+	$ROOT/include/libkern.h\
+
+CFLAGS=$CFLAGS
+
+UPDATE=mkfile\
+	$HFILES\
+	$CFILES\
+
+<$ROOT/mkfiles/mksyslib-$SHELLTYPE

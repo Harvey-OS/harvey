@@ -1,0 +1,127 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libc.a
+CFILES=\
+	_assert.c\
+	abs.c\
+	asin.c\
+	atan.c\
+	atan2.c\
+	atexit.c\
+	atnotify.c\
+	atof.c\
+	atol.c\
+	atoll.c\
+	cistrcmp.c\
+	cistrncmp.c\
+	cistrstr.c\
+	charstod.c\
+	cleanname.c\
+	crypt.c\
+	ctype.c\
+	encodefmt.c\
+	execl.c\
+	exp.c\
+	fabs.c\
+	floor.c\
+	fmod.c\
+	frand.c\
+	frexp.c\
+	getcallerpc.c\
+	getfields.c\
+	getuser.c\
+	hangup.c\
+	hypot.c\
+	lnrand.c\
+	lock.c\
+	log.c\
+	lrand.c\
+	malloc.c\
+	memccpy.c\
+	memchr.c\
+	memcmp.c\
+	memmove.c\
+	memset.c\
+	mktemp.c\
+	muldiv.c\
+	nan.c\
+	needsrcquote.c\
+	netcrypt.c\
+	netmkaddr.c\
+	nrand.c\
+	ntruerand.c\
+	perror.c\
+	pool.c\
+	pow.c\
+	pow10.c\
+	profile.c\
+	qsort.c\
+	quote.c\
+	rand.c\
+	readn.c\
+	rune.c\
+	runestrcat.c\
+	runestrchr.c\
+	runestrcmp.c\
+	runestrcpy.c\
+	runestrecpy.c\
+	runestrdup.c\
+	runestrncat.c\
+	runestrncmp.c\
+	runestrncpy.c\
+	runestrrchr.c\
+	runestrlen.c\
+	runestrstr.c\
+	runetype.c\
+	sin.c\
+	sinh.c\
+	sqrt.c\
+	strcat.c\
+	strchr.c\
+	strcmp.c\
+	strcpy.c\
+	strecpy.c\
+	strcspn.c\
+	strdup.c\
+	strlen.c\
+	strncat.c\
+	strncmp.c\
+	strncpy.c\
+	strpbrk.c\
+	strrchr.c\
+	strspn.c\
+	strstr.c\
+	strtod.c\
+	strtok.c\
+	strtol.c\
+	strtoll.c\
+	strtoul.c\
+	strtoull.c\
+	tan.c\
+	tanh.c\
+	tokenize.c\
+	toupper.c\
+	utfecpy.c\
+	utflen.c\
+	utfnlen.c\
+	utfrune.c\
+	utfrrune.c\
+	utfutf.c\
+	u16.c\
+	u32.c\
+	u64.c\
+
+ALLOFILES=${CFILES:%.c=%.$O}
+
+# cull things in the per-machine directories from this list
+OFILES=	`{rc ./reduce $O $objtype $ALLOFILES}
+
+HFILES=/sys/include/libc.h
+
+UPDATE=mkfile\
+	$HFILES\
+	$CFILES\
+
+</sys/src/cmd/mksyslib
+
+profile.$O: /sys/include/tos.h

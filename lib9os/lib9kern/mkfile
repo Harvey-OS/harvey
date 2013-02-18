@@ -1,0 +1,6 @@
+<../mkconfig
+
+# TARGMODEL not SYSTARG for now
+DIRS=$SYSTARG
+
+<$ROOT/mkfiles/mklibsubdirs

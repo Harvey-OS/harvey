@@ -1,0 +1,66 @@
+SYSTARG=Plan9
+OBJTYPE=$objtype
+
+
+<../../mkconfig
+
+#Configurable parameters
+
+CONF=emu			#default configuration
+CONFLIST=emu
+CLEANCONFLIST=
+
+INSTALLDIR=$ROOT/$SYSTARG/$OBJTYPE/bin	#path of directory where kernel is installed
+
+#end configurable parameters
+
+<$ROOT/mkfiles/mkfile-$SYSTARG-$OBJTYPE	#set vars based on target system
+#<$ROOT/mkfiles/mksyslib-$SHELLTYPE
+
+
+
+<| $SHELLNAME ../port/mkdevlist $CONF	#sets $IP, $DEVS, $PORT, $LIBS
+
+OBJ=\
+	asm-$OBJTYPE.$O\
+	os.$O\
+	$CONF.root.$O\
+	$DEVS\
+	$PORT\
+
+
+HFILES=\
+
+CFLAGS='-DROOT="'$ROOT'"' -DEMU -I. -I../port -I$ROOT/$SYSTARG/$OBJTYPE/include -I$ROOT/include -I$ROOT/libinterp $CTHREADFLAGS $CFLAGS $EMUOPTIONS
+KERNDATE=`{$NDATE}
+
+LIB=lib9kern.a
+LIBDIR=$ROOT/$OBJDIR/lib/
+LIBRARY=$LIBDIR/$LIB
+LIBOBJ=${OFILES:%=$LIBRARY(%)}
+
+#default:V:	$LIBRARY
+
+default:V:	$O.$CONF
+
+
+<../port/portmkfile
+
+$LIBRARY:	$OBJ $CONF.c $CONF.root.h $LIBFILES
+	$CC $CFLAGS '-DKERNDATE='$KERNDATE $CONF.c
+	$AR  $ARFLAGS $target $OBJ $CONF.$O $LIBFILES
+
+$O.$CONF:	$OBJ $CONF.c $CONF.root.h $LIBFILES
+	$CC $CFLAGS '-DKERNDATE='$KERNDATE $CONF.c
+	$AR  $ARFLAGS $LIBRARY $OBJ $CONF.$O 
+
+#safeinstall:V: $LIBRARY
+
+#install:V: $LIBRARY
+
+safeinstall:V:	$O.$CONF
+	mv $INSTALLDIR/$CONF $INSTALLDIR/$CONF.`{date -n}
+	cp $O.$CONF $INSTALLDIR/$CONF
+
+install:V: $O.$CONF
+	cp $O.$CONF $INSTALLDIR/$CONF

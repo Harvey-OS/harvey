@@ -1,0 +1,39 @@
+NatClique
+
+NatClique assumes that every NAT box can talk to every other NAT box
+over a TCP connection (the connection may be RUDP/UDP/something else;
+for now, it is TCP).
+
+Need a canonical NAT table -- hard to pin down as changes happen
+at different times on different copies.
+
+seed (long open connections) + updates; updates identified by 
+(sender id, update #). has an identifying hash.
+
+Some parameters:
+	Update frequency: UF
+	Deadline for recving (at box i) update message from box j: Rij
+	Deadline for sending (from box i) update message to box j: Sij
+	Cleanup frequency : CF
+
+Message Header
+	SenderId
+	AuthInfo
+	MesgId
+	MesgType
+	TimeStamp
+	Body
+
+MesgType:
+	Auth, ReqTab, RepTab, Update, ReqAbAn, RepAbAn,  
+
+
+
+
+
+
+NatStar
+
+NatStar assumes that there is a "leader" and a "backup leader" 
+and that every box talks to these two. The role of the backup
+leader is to take over the leadership if the leader dies.

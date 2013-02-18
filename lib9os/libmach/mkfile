@@ -1,0 +1,57 @@
+<../mkconfig
+
+LIB=libmach.a
+FILES=\
+	executable\
+	map\
+	obj\
+	swap\
+	sym\
+	access\
+	machdata\
+	setmach\
+	v\
+	k\
+	u\
+	q\
+	0\
+	2\
+	5\
+	6\
+	7\
+	8\
+	9\
+	vdb\
+	kdb\
+	udb\
+	qdb\
+	2db\
+	5db\
+	7db\
+	8db\
+	vobj\
+	kobj\
+	uobj\
+	2obj\
+	5obj\
+	6obj\
+	7obj\
+	8obj\
+	9obj\
+	qobj\
+	vcodas\
+
+HFILES=/sys/include/mach.h elf.h obj.h
+
+CFILES=${FILES:%=%.c}
+
+OFILES=${FILES:%=%.$O}
+
+UPDATE=mkfile\
+	/386/lib/libmach.a\
+	$HFILES\
+	$CFILES\
+
+<$ROOT/mkfiles/mksyslib-$SHELLTYPE
+
+CFLAGS=$CFLAGS -I/sys/src/cmd

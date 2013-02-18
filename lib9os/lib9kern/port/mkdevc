@@ -1,0 +1,99 @@
+$AWK '
+BEGIN{
+		if(ARGC < 2)
+			exit
+}
+
+/^$/{
+		next;
+}
+/^#/{
+		next;
+}
+collect && /^[^	\t]/{
+		collect = 0;
+}
+collect && section ~ "dev"{
+		dev[ndev++] = $1;
+}
+collect && section ~ "ip"{
+		ip[nip++] = $1;
+}
+collect && section ~ "link"{
+		link[nlink++] = $1;
+}
+collect && section ~ "mod"{
+		mod[nmod++] = $1;
+}
+collect && section ~ "misc"{
+		misc[nmisc++] = $1;
+}
+collect && section ~ "port"{
+		port[nport++] = $0;
+}
+collect && section ~ "code"{
+		code[ncode++] = $0;
+}
+$0 ~ /^[^ \t]/{
+		if($0 ~ "(code|dev|ip|lib|link|mod|misc|port|root)"){
+			section = $0;
+			collect = 1;
+		}
+		next;
+}
+
+END{
+		if(ARGC < 2)
+			exit "usage"
+
+		printf "#include \"dat.h\"\n"
+		printf "#include \"fns.h\"\n"
+		printf "#include \"error.h\"\n"
+		printf "#include \"interp.h\"\n\n\n"
+		printf "#include \"%s.root.h\"\n\n", ARGV[1];
+
+		nildev = 8;
+		printf "ulong ndevs = %s;\n\n", ndev+nildev
+		for(i = 0; i < ndev; i++)
+			printf "extern Dev %sdevtab;\n", dev[i];
+		printf "Dev* devtab[]={\n"
+		for(i = 0; i < ndev; i++)
+			printf "\t&%sdevtab,\n", dev[i];
+		for(i = 0; i < nildev; i++)
+			printf("\tnil,\n");
+		printf "\tnil,\n};\n\n";
+
+
+		for(i = 0; i < nlink; i++)
+			printf "extern void %slink(void);\n", link[i];
+
+		printf "void links(void){\n";
+		for(i = 0; i < nlink; i++)
+			printf "\t%slink();\n", link[i];
+		printf "}\n\n";
+
+		for(i = 0; i < nmod; i++)
+			printf "extern void %smodinit(void);\n", mod[i];
+		printf "void modinit(void){\n";
+		for(i = 0; i < nmod; i++)
+			printf "\t%smodinit();\n",mod[i];
+		printf "}\n\n";
+	
+		if(nip){
+			printf "#include \"../ip/ip.h\"\n";
+			for(i = 0; i < nip; i++)
+				printf "extern void %sinit(Fs*);\n", ip[i];
+			printf "void (*ipprotoinit[])(Fs*) = {\n";
+			for(i = 0; i < nip; i++)
+				printf "\t%sinit,\n", ip[i];
+			printf "\tnil,\n};\n\n";
+		}
+
+		for(i = 0; i < ncode; i++)
+			printf "%s\n", code[i];
+
+		printf "char* conffile = \"%s\";\n", ARGV[1];
+		printf "ulong kerndate = KERNDATE;\n";
+
+		exit
+}' $*

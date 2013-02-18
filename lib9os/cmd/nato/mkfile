@@ -1,0 +1,30 @@
+<../../mkconfig
+
+TARG=nato
+HFILES=\
+	block.h\
+	nat.h\
+	packethdr.h\
+	
+OFILES=\
+	block.$O\
+	dstructs.$O\
+	msession.$O\
+	nat.$O\
+	natmain.$O\
+	pr.$O\
+	proc.$O\
+
+LIBS=9 9kern 9
+
+CFLAGS=$CFLAGS -I../include
+
+BIN=$ROOT/$OBJDIR/bin
+
+<$ROOT/mkfiles/mkone-$SHELLTYPE
+
+# What about tests?	
+#test1.$O\
+#test2.$O\
+#test3.$O\
+#tst.$O\	

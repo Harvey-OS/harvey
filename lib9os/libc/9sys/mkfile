@@ -1,0 +1,64 @@
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libc.a
+OFILES=\
+	abort.$O\
+	access.$O\
+	announce.$O\
+	convD2M.$O\
+	convM2D.$O\
+	convM2S.$O\
+	convS2M.$O\
+	cputime.$O\
+	ctime.$O\
+	dial.$O\
+	dirfstat.$O\
+	dirfwstat.$O\
+	dirmodefmt.$O\
+	dirread.$O\
+	dirstat.$O\
+	dirwstat.$O\
+	fcallfmt.$O\
+	fork.$O\
+	getnetconninfo.$O\
+	getenv.$O\
+	getpid.$O\
+	getppid.$O\
+	getwd.$O\
+	iounit.$O\
+	nsec.$O\
+	nulldir.$O\
+	postnote.$O\
+	privalloc.$O\
+	pushssl.$O\
+	pushtls.$O\
+	putenv.$O\
+	qlock.$O\
+	read.$O\
+	read9pmsg.$O\
+	readv.$O\
+	rerrstr.$O\
+	sbrk.$O\
+	setnetmtpt.$O\
+	sysfatal.$O\
+	syslog.$O\
+	sysname.$O\
+	time.$O\
+	times.$O\
+	tm2sec.$O\
+	truerand.$O\
+	wait.$O\
+	waitpid.$O\
+	werrstr.$O\
+	write.$O\
+	writev.$O\
+
+HFILES=/sys/include/libc.h
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+
+</sys/src/cmd/mksyslib
+

@@ -1,0 +1,52 @@
+<../mkconfig
+
+PORTDIRS=9sys 9syscall fmt port
+DIRS=$PORTDIRS $CPUS
+OLDCPUS=68000 68020 sparc
+
+all install:V:
+	for(i in $PORTDIRS $objtype)@{
+		echo $i
+		cd $i
+		mk $MKFLAGS install
+	}
+
+clean:V:
+	for(i in $DIRS)@{
+		echo $i
+		cd $i
+		mk $MKFLAGS clean
+	}
+
+nuke:V:
+	for(i in $PORTDIRS $objtype)@{
+		echo $i
+		cd $i
+		mk $MKFLAGS nuke
+	}
+	# do not nuke other objtypes
+	for(i in $CPUS)@{
+		echo $i
+		cd $i
+		mk $MKFLAGS clean
+	}
+
+update:V:
+	for(i in $DIRS)@{
+		echo $i
+		cd $i
+		mk $MKFLAGS update
+	}
+	update $UPDATEFLAGS /386/lib/libc.a
+
+installall:V:
+	for(objtype in $CPUS) mk $MKFLAGS install
+
+everything:V:
+	rm -f */*.[012456789kqvxz]
+	for(objtype in $CPUS $OLDCPUS)@{
+		echo $objtype
+		mk $MKFLAGS install
+	}
+	rm -f */*.[012456789kqvxz]
+

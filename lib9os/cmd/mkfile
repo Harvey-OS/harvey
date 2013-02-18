@@ -1,0 +1,16 @@
+<../mkconfig
+
+TARG=ls
+
+OFILES=	ls.$O\
+
+HFILES= $ROOT/$SYSTARG/$OBJDIR/include/libc.h\
+
+LIBS=9 dynld 9kern 9 dynld 9kern 
+
+BIN=$ROOT/$OBJDIR/bin
+
+LDFLAGS=$LDFLAGS -x
+
+<$ROOT/mkfiles/mkone-$SHELLTYPE
+

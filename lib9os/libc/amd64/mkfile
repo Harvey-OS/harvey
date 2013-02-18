@@ -1,0 +1,41 @@
+objtype=amd64
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libc.a
+SFILES=\
+	argv0.s\
+	atom.s\
+	cycles.s\
+	getfcr.s\
+	main9.s\
+	main9p.s\
+	memccpy.s\
+	memchr.s\
+	memcmp.s\
+	memcpy.s\
+	memmove.s\
+	memset.s\
+	muldiv.s\
+	setjmp.s\
+	sqrt.s\
+	strcat.s\
+	strchr.s\
+	strcpy.s\
+	strlen.s\
+	tas.s\
+
+CFILES=\
+	_seek.c\
+	getcallerpc.c\
+	notejmp.c\
+
+HFILES=/sys/include/libc.h
+
+OFILES=${CFILES:%.c=%.$O} ${SFILES:%.s=%.$O}
+
+UPDATE=mkfile\
+	$HFILES\
+	$CFILES\
+	$SFILES\
+
+</sys/src/cmd/mksyslib

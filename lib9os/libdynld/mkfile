@@ -1,0 +1,12 @@
+<../mkconfig
+
+LIB=libdynld.a
+
+OFILES=\
+	dynld-$OBJTYPE.$O\
+	dynloadfd.$O\
+	dynld.$O\
+
+HFILES=$ROOT/$SYSTARG/$OBJTYPE/include/lib9.h\
+
+<$ROOT/mkfiles/mksyslib-$SHELLTYPE

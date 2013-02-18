@@ -1,0 +1,100 @@
+dev
+	root
+	cons
+	env
+	mnt
+	pipe
+	prog
+	prof
+	srv
+	ssl
+	cap
+	fs
+	cmd	cmd
+	indir
+	sign
+
+	draw	win
+
+#	ip and eia are simply bound in from Plan 9
+
+lib
+	interp
+	tk
+	freetype
+	math
+	draw
+	memlayer
+	memdraw
+	keyring
+	crypt
+	9
+
+link
+
+mod
+	sys
+	draw
+	tk
+	math
+#	srv		not used on Plan 9
+	keyring
+	crypt
+	ipints
+	loader
+	freetype
+
+port
+	alloc
+	cache
+	chan
+	dev
+	devtab
+
+	dial
+	dis
+	discall
+	env
+	error
+	errstr
+	exception
+	exportfs
+	inferno
+	latin1
+	main
+	parse
+	pgrp
+	print
+	proc
+	qio
+	sysfile
+	uqid
+
+code
+
+init
+	emuinit
+
+root
+	/dev	/
+	/prog	/
+	/prof	/
+	/net	/
+	/net.alt	/
+	/chan	/
+	/nvfs	/
+	/env	/
+#	/chan
+#	/dev
+#	/dis
+#	/env
+#	/n
+#	/net
+#	/nvfs /
+#	/prog
+#	/icons
+#	/osinit.dis
+#	/dis/emuinit.dis
+#	/dis/lib/auth.dis
+#	/dis/lib/ssl.dis
+#	/n/local /

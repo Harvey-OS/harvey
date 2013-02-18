@@ -1,0 +1,33 @@
+objtype=alpha
+</$objtype/mkfile
+
+LIB=/$objtype/lib/libc.a
+SFILES=\
+	argv0.s\
+	atom.s\
+	divl.s\
+	divq.s\
+	getcallerpc.s\
+	getfcr.s\
+	main9.s\
+	main9p.s\
+	memmove.s\
+	memset.s\
+	setjmp.s\
+	tas.s
+
+CFILES=\
+	_seek.c\
+	cycles.c\
+	notejmp.c\
+
+HFILES=/sys/include/libc.h
+
+OFILES=${CFILES:%.c=%.$O} ${SFILES:%.s=%.$O}
+
+UPDATE=mkfile\
+	$HFILES\
+	$CFILES\
+	$SFILES\
+
+</sys/src/cmd/mksyslib

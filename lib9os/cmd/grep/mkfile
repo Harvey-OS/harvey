@@ -1,0 +1,21 @@
+<../../mkconfig
+
+TARG=grep
+HFILES=\
+	grep.h\
+
+OFILES=\
+	y.tab.$O\
+	main.$O\
+	comp.$O\
+	sub.$O\
+
+YFILES=grep.y\
+
+LIBS=9 9kern 9
+
+CFLAGS=$CFLAGS -I../include
+
+BIN=$ROOT/$OBJDIR/bin
+
+<$ROOT/mkfiles/mkone-$SHELLTYPE

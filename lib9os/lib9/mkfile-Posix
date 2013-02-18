@@ -1,0 +1,9 @@
+TARGFILES=\
+	$IMPORTFILES\
+	dirstat-posix.$O\
+	errstr-posix.$O\
+	getuser-posix.$O\
+	getcallerpc-$SYSTARG-$OBJTYPE.$O\
+	getwd-posix.$O\
+	sbrk-posix.$O\
+	isnan-posix.$O\

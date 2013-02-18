@@ -1,0 +1,16 @@
+<../mkconfig
+
+TARG=cat
+
+OFILES=	cat.$O\
+
+HFILES= $ROOT/$SYSTARG/$OBJDIR/include/libc.h\
+
+LIBS=c 
+
+BIN=$ROOT/$OBJDIR/bin
+
+LDFLAGS= $LDFLAGS -u 
+
+<$ROOT/mkfiles/mkone-$SHELLTYPE
+

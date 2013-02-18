@@ -1,0 +1,3 @@
+	TEXT	pow10(SB),$0
+	FTENTOXL n+0(FP),F0
+	RTS

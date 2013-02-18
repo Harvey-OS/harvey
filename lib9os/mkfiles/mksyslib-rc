@@ -1,0 +1,41 @@
+#
+#	Rules for updating a library with rc
+#
+LIBDIR=$ROOT/$OBJDIR/lib
+LIBRARY=$LIBDIR/$LIB
+LIBOBJ=${OFILES:%=$LIBRARY(%)}
+
+default:V:	all
+
+all install:V:	$LIBRARY
+
+installall:V:
+	for(objtype in $CPUS)
+		mk $MKFLAGS install
+
+clean:V: clean-std	
+
+nuke:V:	nuke-std
+
+$LIBRARY:	$LIBOBJ
+	$AR $ARFLAGS $target $newmember
+
+$LIBRARY(%.$O):N:	%.$O
+
+%.$O:	$HFILES		# don't combine with following %.$O rules
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.$O:	%.s
+	$AS $ASFLAGS $stem.s
+
+y.tab.h y.tab.c:	$YFILES
+	$YACC $YFLAGS $prereq
+
+clean-std:V:
+	rm -f *.[$OS] [$OS].out
+
+nuke-std:V:	clean-std
+	rm -f y.tab.? y.output y.error
+	rm -f $LIBRARY

@@ -1,0 +1,6 @@
+bind -b '#l1' /net.alt
+bind -b '#I1' /net.alt
+ip/ipconfig -h p9nat -x /net.alt -g 10.0.0.1 ether /net.alt/ether1 10.0.0.1 255.255.255.0 10.0.0.2 135.104.9.42 135.104.9.7
+telnet udp!135.104.8.38!echo
+snoopy -tu /net.alt/ether1
+
