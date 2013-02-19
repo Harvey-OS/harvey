@@ -452,6 +452,7 @@ subsection.
 This percentage should be large enough to include the entire bloom filter.
 This overrides all other memory sizing parameters,
 including those on the command line and in the configuration file.
+25% is a reasonable choice.
 .TP
 .B -r
 Allow only read access to the venti data.

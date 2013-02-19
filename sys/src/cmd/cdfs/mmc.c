@@ -1247,11 +1247,15 @@ alltrackinfo(Drive *drive, int first, int last)
 		if (osfx == nil || strcmp(osfx, drive->laysfx) != 0)
 			drive->relearn = 1;
 	}
+	if (drive->mmctype == Mmcnone)
+		return last;				/* no disc */
 	nwa = computenwa(drive, first, last);
 	aux = drive->aux;
 	if (vflag)
 		fprint(2, "nwa from drive %,ld; computed nwa %,ld\n",
 			aux->mmcnwa, nwa);
+	if (aux->mmcnwa == -1 && nwa == 0)
+		return last;			/* probably a blank disc */
 	if (aux->mmcnwa == -1)
 		fprint(2, "%s: disc is full\n", argv0);
 	/* reconcile differing nwas */
@@ -1700,9 +1704,6 @@ mmcxwrite(Otrack *o, void *v, long nblk)
 		fprint(2, "mmcxwrite: nblk %ld <= 0\n", nblk);
 	aux->ntotby += nblk * bs;
 	aux->ntotbk += nblk;
-
-	while (scsiready(drive) < 0)		/* paranoia */
-		sleep(0);
 
 	/*
 	 * "write and verify" (ScmdExtwritever) only works on write-once media
