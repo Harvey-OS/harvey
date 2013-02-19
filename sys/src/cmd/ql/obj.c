@@ -203,8 +203,16 @@ main(int argc, char *argv[])
 			INITRND = 0;
 		break;
 	case 5:	/* elf executable */
-	case 6:	/* elf for virtex 4 */
 		HEADR = rnd(52L+3*32L, 16);
+		if(INITTEXT == -1)
+			INITTEXT = 0x00400000L+HEADR;
+		if(INITDAT == -1)
+			INITDAT = 0x10000000;
+		if(INITRND == -1)
+			INITRND = 0;
+		break;
+	case 6:	/* elf for virtex 4 */
+		HEADR = rnd(52L+4*32L, 16);
 		if(INITTEXT == -1)
 			INITTEXT = 0x00400000L+HEADR;
 		if(INITDAT == -1)
