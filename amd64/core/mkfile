@@ -1,0 +1,12 @@
+MKSHELL=rc
+<${NXM}/sys/src/mkfile.proto
+
+CC=6c
+GC=6g
+LD=6l
+O=6
+AS=6a
+LDFLAGS=-L$NXM/$objtype/core/lib -u
+CFLAGS=-I $NXM/$objtype/include -I $NXM/sys/include
+INCLUDE=$NXM
+MKSHELL=rc

@@ -1,4 +1,5 @@
-<../mkconfig
+MKSHELL=rc
+<$NXM/$objtype/mkfile
 
 PORTDIRS=9sys 9syscall fmt port
 DIRS=$PORTDIRS $CPUS

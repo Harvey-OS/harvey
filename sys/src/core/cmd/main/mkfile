@@ -1,0 +1,27 @@
+MKSHELL=rc
+<$NXM/$objtype/mkfile
+
+# default domain for faces, overridden by $facedom
+DEFAULT="astro"
+
+TARG=faces
+
+OFILES=main.$O\
+	facedb.$O\
+	plumb.$O\
+	util.$O\
+
+HFILES=faces.h\
+
+BIN=$NXM/$objtype/bin
+
+UPDATE=\
+	mkfile\
+	$HFILES\
+	${OFILES:%.$O=%.c}\
+
+<$NXM/sys/src/cmd/mkone
+CFLAGS=$CFLAGS '-DDEFAULT='$DEFAULT
+
+$O.dblook: dblook.$O facedb.$O util.$O
+	$LD $LDFLAGS -o $target $prereq
