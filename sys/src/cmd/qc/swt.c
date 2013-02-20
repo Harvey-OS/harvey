@@ -657,8 +657,8 @@ maxround(long max, long v)
 	w = SZ_LONG;
 	if((debug['8'] || hasdoubled) && !debug['4'])
 		w = SZ_DOUBLE;
-	v += w-1;
+	v = round(v, w);
 	if(v > max)
-		max = round(v, w);
+		return v;
 	return max;
 }
