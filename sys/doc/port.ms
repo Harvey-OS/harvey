@@ -294,10 +294,10 @@ we hope to add USB, flash memory and video drivers.
 .SH
 The Broadcom 2835 operating system
 .PP
-This is terminal and CPU kernels for the ARM1176 processor
+This consists of terminal and CPU kernels for the ARM1176 processor
 in the Broadcom 2835 system-on-a-chip.
 The hardware includes VFP2 floating-point.
-It runs on the Raspberry Pi Model B.
+It runs on the Raspberry Pi Models A and B.
 .
 .ig
 .SH

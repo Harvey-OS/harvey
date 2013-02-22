@@ -10,7 +10,7 @@
 
 enum
 {
-	Stack = 8*1024
+	Stack = 16*1024
 };
 
 typedef struct Dirtab Dirtab;
