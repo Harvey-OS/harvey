@@ -84,6 +84,7 @@ clockshutdown(void)
 
 	tm = (Armtimer*)ARMTIMER;
 	tm->ctl = 0;
+	wdogoff();
 }
 
 void
