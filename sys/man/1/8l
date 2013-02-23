@@ -159,6 +159,8 @@ Without this option,
 .I 5l
 generates arm7500 floating-point
 instructions which are emulated in the kernel.
+.br
+.ne 6
 .TP
 .BI -H n
 Executable header is type
@@ -169,10 +171,25 @@ regular Plan 9 format, the default.  These are reversed on the MIPS.
 The Next boot format is 3.  Type 4 in
 .I vl
 creates a MIPS executable for an SGI Unix system.
+There is often a type that produces ELF or ELF64 format;
+5 for ELF is common.
+See
+.B obj.c
+in the source directory for a complete list.
+.TP
+.B -P
+(ELF only)
+Executable is standalone boot image or kernel.
 .TP
 .BI -T t
-The text segment starts at address
+The text segment starts at (virtual) address
 .IR t .
+.TP
+.BI -F t
+(ELF only)
+The text segment starts at physical address
+.I t
+(by default the text segment's virtual start address).
 .TP
 .BI -D d
 The data segment starts at address
@@ -211,7 +228,7 @@ for
 .BI -l lib
 arguments.
 .SH SOURCE
-.B /sys/src/cmd/8l
+.BR /sys/src/cmd/8l ,
 etc.
 .SH "SEE ALSO"
 .IR 8c (1),
