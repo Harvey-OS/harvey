@@ -185,7 +185,7 @@ If loading with
 .IR 9load ,
 the
 .I bootfile
-may be compressed with
+may be a Plan 9 boot image compressed with
 .IR gzip (1).
 In all cases,
 the uncompressed kernel must be in Plan 9 boot image or ELF format.
@@ -532,6 +532,7 @@ PC-bootstrap-specific source
 common kernel source
 .PD
 .SH "SEE ALSO"
+.IR 8l (1),
 .IR cons (3),
 .IR booting (8),
 .IR dhcpd (8),
