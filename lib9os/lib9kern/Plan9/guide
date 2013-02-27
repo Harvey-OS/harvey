@@ -1,1 +1,0 @@
-	8c -D'ROOT="/usr/lib9os"' -DEMU -I. -I../port -I/usr/lib9os/Plan9/386/include -I/usr/lib9os/include -I/usr/lib9os/libinterp -wFVT -I/usr/lib9os/Plan9/386/include -I/usr/lib9os/include -I. ../port/devproc.c

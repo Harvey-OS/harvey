@@ -1,1 +1,0 @@
-echo 'progargs="/lib/ndb/local"; calltrace()' | acid | grep 'TRACE' | sed 's/TRACE//g'
