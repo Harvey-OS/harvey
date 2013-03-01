@@ -876,7 +876,7 @@ exit
 00035c saint song corp.
 00035d bosung hi-net co., ltd.
 00035e metropolitan area networks, inc.
-00035f prueftechnik condition monitoring gmbh & co. kg
+00035f prüftechnik condition monitoring gmbh & co. kg
 000360 pac interactive technology, inc.
 000361 widcomm, inc.
 000362 vodtel communications, inc.
@@ -1438,7 +1438,7 @@ exit
 00058e flextronics international gmbh & co. nfg. kg
 00058f clcsoft co.
 000590 swissvoice ltd.
-000591 active silicon ltd.
+000591 active silicon ltd
 000592 pultek corp.
 000593 grammar engine inc.
 000594 ixxat automation gmbh
@@ -1449,7 +1449,7 @@ exit
 000599 drs test and energy management or drs-tem
 00059a cisco systems, inc.
 00059b cisco systems, inc.
-00059c kleinknecht gmbh, ing. buero
+00059c kleinknecht gmbh, ing. büro
 00059d daniel computing systems, inc.
 00059e zinwell corporation
 00059f yotta networks, inc.
@@ -1536,7 +1536,7 @@ exit
 0005f0 satec
 0005f1 vrcom, inc.
 0005f2 power r, inc.
-0005f3 weboyn
+0005f3 webyn
 0005f4 system base co., ltd.
 0005f5 oyo geospace
 0005f6 young chang co. ltd.
@@ -1608,7 +1608,7 @@ exit
 000638 sungjin c&c co., ltd.
 000639 newtec
 00063a dura micro, inc.
-00063b arcturus networks, inc.
+00063b arcturus networks inc.
 00063c intrinsyc europe ltd
 00063d microwave data systems inc.
 00063e opthos inc.
@@ -1637,7 +1637,7 @@ exit
 000655 yipee, inc.
 000656 tactel ab
 000657 market central, inc.
-000658 helmut fischer gmbh institut fÃÆÃÂ¼r elektronik und messtechnik
+000658 helmut fischer gmbh institut für elektronik und messtechnik
 000659 eal (apeldoorn) b.v.
 00065a strix systems
 00065b dell computer corp.
@@ -1715,7 +1715,7 @@ exit
 0006a3 bitran corporation
 0006a4 innowell corp.
 0006a5 pinon corp.
-0006a6 artistic licence (uk) ltd
+0006a6 artistic licence engineering ltd
 0006a7 primarion
 0006a8 kc technology, inc.
 0006a9 universal instruments corp.
@@ -1795,7 +1795,7 @@ exit
 0006f3 accelight networks
 0006f4 prime electronics & satellitics inc.
 0006f5 alps co,. ltd.
-0006f6 cisco systems
+0006f6 cisco systems, inc.
 0006f7 alps electric co,. ltd.
 0006f8 cpu technology, inc.
 0006f9 mitsui zosen systems research inc.
@@ -1818,8 +1818,8 @@ exit
 00070a unicom automation co., ltd.
 00070b novabase sgps, sa
 00070c sva-intrusion.com co. ltd.
-00070d cisco systems inc.
-00070e cisco systems inc.
+00070d cisco systems, inc.
+00070e cisco systems, inc.
 00070f fujant, inc.
 000710 adax, inc.
 000711 acterna
@@ -1832,7 +1832,7 @@ exit
 000718 icantek co., ltd.
 000719 mobiis co., ltd.
 00071a finedigital inc.
-00071b cdv americas ltd
+00071b cdvi americas ltd
 00071c at&t fixed wireless services
 00071d satelsa sistemas y aplicaciones de telecomunicaciones, s.a.
 00071e tri-m engineering / nupak dev. corp.
@@ -1930,15 +1930,15 @@ exit
 00077a infoware system co., ltd.
 00077b millimetrix broadband networks
 00077c westermo teleindustri ab
-00077d cisco systems
+00077d cisco systems, inc.
 00077e elrest gmbh
 00077f j communications co., ltd.
 000780 bluegiga technologies oy
 000781 itron inc.
 000782 oracle corporation
 000783 syncom network, inc.
-000784 cisco systems inc.
-000785 cisco systems inc.
+000784 cisco systems, inc.
+000785 cisco systems, inc.
 000786 wireless networks inc.
 000787 idea system co., ltd.
 000788 clipcomm, inc.
@@ -1951,7 +1951,7 @@ exit
 00078f emkay innovative products
 000790 tri-m technologies (s) limited
 000791 international data communications, inc.
-000792 suetron electronic gmbh
+000792 sütron electronic gmbh
 000793 shin satellite public company limited
 000794 simple devices, inc.
 000795 elitegroup computer system co. (ecs)
@@ -1984,8 +1984,8 @@ exit
 0007b0 office details, inc.
 0007b1 equator technologies
 0007b2 transaccess s.a.
-0007b3 cisco systems inc.
-0007b4 cisco systems inc.
+0007b3 cisco systems, inc.
+0007b4 cisco systems, inc.
 0007b5 any one wireless ltd.
 0007b6 telecom technology ltd.
 0007b7 samurai ind. prods eletronicos ltda
@@ -2013,7 +2013,7 @@ exit
 0007cd nmtel co., ltd.
 0007ce cabletime limited
 0007cf anoto ab
-0007d0 automat engenharia de automaoa ltda.
+0007d0 automat engenharia de automação ltda.
 0007d1 spectrum signal processing inc.
 0007d2 logopak systeme
 0007d3 stork prints b.v.
@@ -2040,8 +2040,8 @@ exit
 0007e8 edgewave
 0007e9 intel corporation
 0007ea massana, inc.
-0007eb cisco systems inc.
-0007ec cisco systems inc.
+0007eb cisco systems, inc.
+0007ec cisco systems, inc.
 0007ed altera corporation
 0007ee telco informationssysteme gmbh
 0007ef lockheed martin tactical systems
@@ -2093,11 +2093,11 @@ exit
 00081d ipsil, incorporated
 00081e repeatit ab
 00081f pou yuen tech corp. ltd.
-000820 cisco systems inc.
-000821 cisco systems inc.
+000820 cisco systems, inc.
+000821 cisco systems, inc.
 000822 inpro comm
 000823 texa corp.
-000824 copitrak inc
+000824 nuance document imaging
 000825 acme packet
 000826 colorado med tech
 000827 adb broadband italia
@@ -2108,9 +2108,10 @@ exit
 00082c homag ag
 00082d indus teqsite private limited
 00082e multitone electronics plc
-00082f cisco systems
-000830 cisco systems
-000831 cisco systems
+00082f cisco systems, inc.
+000830 cisco systems, inc.
+000831 cisco systems, inc.
+000832 cisco
 00084e divergenet, inc.
 00084f qualstar corporation
 000850 arizona instrument corp.
@@ -2158,7 +2159,7 @@ exit
 00087a wipotec gmbh
 00087b rtx telecom a/s
 00087c cisco systems, inc.
-00087d cisco systems inc.
+00087d cisco systems, inc.
 00087e bon electro-telecom inc.
 00087f spaun electronic gmbh & co. kg
 000880 broadtel canada communications inc.
@@ -2166,7 +2167,7 @@ exit
 000882 sigma corporation
 000883 hewlett-packard company
 000884 index braille ab
-000885 ems dr. thomas wuensche
+000885 ems dr. thomas wünsche
 000886 hansung teliann, inc.
 000887 maschinenfabrik reinhausen gmbh
 000888 oullim information technology inc,.
@@ -2196,8 +2197,8 @@ exit
 0008a0 stotz feinmesstechnik gmbh
 0008a1 cnet technology inc.
 0008a2 adi engineering, inc.
-0008a3 cisco systems
-0008a4 cisco systems
+0008a3 cisco systems, inc.
+0008a4 cisco systems, inc.
 0008a5 peninsula systems inc.
 0008a6 multiware & image co., ltd.
 0008a7 ilogic inc.
@@ -2227,7 +2228,7 @@ exit
 0008bf aptus elektronik ab
 0008c0 asa systems
 0008c1 avistar communications corporation
-0008c2 cisco systems
+0008c2 cisco systems, inc.
 0008c3 contex a/s
 0008c4 hikari co.,ltd.
 0008c5 liontech co., ltd.
@@ -2259,8 +2260,8 @@ exit
 0008df alistel inc.
 0008e0 ato technology ltd.
 0008e1 barix ag
-0008e2 cisco systems
-0008e3 cisco systems
+0008e2 cisco systems, inc.
+0008e3 cisco systems, inc.
 0008e4 envenergy inc
 0008e5 idk corporation
 0008e6 littlefeet
@@ -2280,7 +2281,7 @@ exit
 0008f4 bluetake technology co., ltd.
 0008f5 yestechnology co.,ltd.
 0008f6 sumitomo electric system solutions co.,ltd.
-0008f7 hitachi ltd, semiconductor &amp; integrated circuits gr
+0008f7 hitachi ltd, semiconductor & integrated circuits gr
 0008f8 utc ccs
 0008f9 emerson network power
 0008fa karl e.brinkmann gmbh
@@ -2306,8 +2307,8 @@ exit
 00090e helix technology inc.
 00090f fortinet inc.
 000910 simple access inc.
-000911 cisco systems
-000912 cisco systems
+000911 cisco systems, inc.
+000912 cisco systems, inc.
 000913 systemk corporation
 000914 computrols inc.
 000915 cas corp.
@@ -2320,7 +2321,7 @@ exit
 00091c cachevision, inc
 00091d proteam computer corporation
 00091e firstech technology corp.
-00091f a&amp;d co., ltd.
+00091f a&d co., ltd.
 000920 epox computer co.,ltd.
 000921 planmeca oy
 000922 tst biometrics gmbh
@@ -2356,8 +2357,8 @@ exit
 000940 agfeo gmbh & co. kg
 000941 allied telesis k.k.
 000942 wireless technologies, inc
-000943 cisco systems
-000944 cisco systems
+000943 cisco systems, inc.
+000944 cisco systems, inc.
 000945 palmmicro communications inc
 000946 cluster labs gmbh
 000947 aztek, inc.
@@ -2412,8 +2413,8 @@ exit
 000978 aiji system co., ltd.
 000979 advanced television systems committee, inc.
 00097a louis design labs.
-00097b cisco systems
-00097c cisco systems
+00097b cisco systems, inc.
+00097c cisco systems, inc.
 00097d secwell networks oy
 00097e imi technology co., ltd
 00097f vsecure 2000 ltd.
@@ -2471,8 +2472,8 @@ exit
 0009b3 mcm systems ltd
 0009b4 kisan telecom co., ltd.
 0009b5 3j tech. co., ltd.
-0009b6 cisco systems
-0009b7 cisco systems
+0009b6 cisco systems, inc.
+0009b7 cisco systems, inc.
 0009b8 entise systems
 0009b9 action imaging solutions
 0009ba maku informationstechik gmbh
@@ -2505,7 +2506,7 @@ exit
 0009d5 signal communication, inc.
 0009d6 knc one gmbh
 0009d7 dc security products
-0009d8 fÃÆÃÂ¤lt communications ab
+0009d8 fält communications ab
 0009d9 neoscale systems, inc
 0009da control module inc.
 0009db espace
@@ -2521,8 +2522,8 @@ exit
 0009e5 hottinger baldwin messtechnik gmbh
 0009e6 cyber switching inc.
 0009e7 adc techonology
-0009e8 cisco systems
-0009e9 cisco systems
+0009e8 cisco systems, inc.
+0009e9 cisco systems, inc.
 0009ea yem inc.
 0009eb humandata ltd.
 0009ec daktronics, inc.
@@ -2609,8 +2610,8 @@ exit
 000a3e eads telecom
 000a3f data east corporation
 000a40 crown audio -- harmanm international
-000a41 cisco systems
-000a42 cisco systems
+000a41 cisco systems, inc.
+000a42 cisco systems, inc.
 000a43 chunghwa telecom co., ltd.
 000a44 avery dennison deutschland gmbh
 000a45 audio-technica corp.
@@ -2632,7 +2633,7 @@ exit
 000a55 markem corporation
 000a56 hitachi maxell ltd.
 000a57 hewlett-packard company - standards
-000a58 ingenieur-buero freyer & siegel
+000a58 ingenieur-büro freyer & siegel
 000a59 hw server
 000a5a greennet technologies co.,ltd.
 000a5b power-one as
@@ -2682,8 +2683,8 @@ exit
 000a87 integrated micromachines inc.
 000a88 incypher s.a.
 000a89 creval systems, inc.
-000a8a cisco systems
-000a8b cisco systems
+000a8a cisco systems, inc.
+000a8b cisco systems, inc.
 000a8c guardware systems ltd.
 000a8d eurotherm limited
 000a8e invacom ltd
@@ -2727,8 +2728,8 @@ exit
 000ab4 etic telecommunications
 000ab5 digital electronic network
 000ab6 compunetix, inc
-000ab7 cisco systems
-000ab8 cisco systems
+000ab7 cisco systems, inc.
+000ab8 cisco systems, inc.
 000ab9 astera technologies corp.
 000aba arcon technology limited
 000abb taiwan secom co,. ltd
@@ -2778,7 +2779,7 @@ exit
 000ae7 eliop s.a.
 000ae8 cathay roxus information technology co. ltd
 000ae9 airvast technology inc.
-000aea adam elektronik ltd.sti.
+000aea adam elektronik ltd. Şti
 000aeb shenzhen tp-link technology co; ltd.
 000aec koatsu gas kogyo co., ltd.
 000aed harting systems gmbh & co kg
@@ -2787,8 +2788,8 @@ exit
 000af0 shin-oh electronics co., ltd. r&d
 000af1 clarity design, inc.
 000af2 neoaxiom corp.
-000af3 cisco systems
-000af4 cisco systems
+000af3 cisco systems, inc.
+000af4 cisco systems, inc.
 000af5 airgo networks, inc.
 000af6 emerson climate technologies retail solutions, inc.
 000af7 broadcom corp.
@@ -2856,7 +2857,7 @@ exit
 000b35 quad bit system co., ltd.
 000b36 productivity systems, inc.
 000b37 manufacture des montres rolex sa
-000b38 knuerr gmbh
+000b38 knürr gmbh
 000b39 keisoku giken co.,ltd.
 000b3a qustream corporation
 000b3b devolo ag
@@ -2864,13 +2865,13 @@ exit
 000b3d contal ok ltd.
 000b3e bittware, inc
 000b3f anthology solutions inc.
-000b40 opnext inc.
-000b41 ing. buero dr. beutlhauser
+000b40 oclaro
+000b41 ing. büro dr. beutlhauser
 000b42 commax co., ltd.
 000b43 microscan systems, inc.
 000b44 concord idea corp.
-000b45 cisco
-000b46 cisco
+000b45 cisco systems, inc.
+000b46 cisco systems, inc.
 000b47 advanced energy
 000b48 sofrel
 000b49 rf-link system inc.
@@ -2895,10 +2896,10 @@ exit
 000b5c newtech co.,ltd
 000b5d fujitsu limited
 000b5e audio engineering society inc.
-000b5f cisco systems
-000b60 cisco systems
-000b61 friedrich lÃÆÃÂ¼tze gmbh &co.
-000b62 ingenieurbuero fuer elektronikdesign ingo mohnen
+000b5f cisco systems, inc.
+000b60 cisco systems, inc.
+000b61 friedrich lütze gmbh & co. kg
+000b62 ingenieurbüro für elektronikdesign ingo mohnen
 000b63 kaleidescape
 000b64 kieback & peter gmbh & co kg
 000b65 sy.a.c. srl
@@ -2933,7 +2934,7 @@ exit
 000b82 grandstream networks, inc.
 000b83 datawatt b.v.
 000b84 bodet
-000b85 cisco systems
+000b85 cisco systems, inc.
 000b86 aruba networks
 000b87 american reliance inc.
 000b88 vidisco ltd.
@@ -2944,8 +2945,8 @@ exit
 000b8d avvio networks
 000b8e ascent corporation
 000b8f akita electronics systems co.,ltd.
-000b90 adva optical networking inc.
-000b91 aglaia gesellschaft fÃÆÃÂ¼r bildverarbeitung und kommunikation m
+000b90 adva optical networking ltd.
+000b91 aglaia gesellschaft für bildverarbeitung und kommunikation mbh
 000b92 ascom danmark a/s
 000b93 ritter elektronik
 000b94 digital monitoring products, inc.
@@ -2990,8 +2991,8 @@ exit
 000bbb etin systems co., ltd
 000bbc en garde systems, inc.
 000bbd connexionz limited
-000bbe cisco systems
-000bbf cisco systems
+000bbe cisco systems, inc.
+000bbf cisco systems, inc.
 000bc0 china iwncomm co., ltd.
 000bc1 bay microsystems, inc.
 000bc2 corinex communication corp.
@@ -3052,8 +3053,8 @@ exit
 000bf9 gemstone communications, inc.
 000bfa exemys srl
 000bfb d-net international corporation
-000bfc cisco systems
-000bfd cisco systems
+000bfc cisco systems, inc.
+000bfd cisco systems, inc.
 000bfe castel broadband limited
 000bff berkeley camera engineering
 000c00 beb industrie-elektronik ag
@@ -3104,8 +3105,8 @@ exit
 000c2d fullwave technology co., ltd.
 000c2e openet information technology(shenzhen) co., ltd.
 000c2f seorimtechnology co.,ltd.
-000c30 cisco
-000c31 cisco
+000c30 cisco systems, inc.
+000c31 cisco systems, inc.
 000c32 avionic design development gmbh
 000c33 compucase enterprise co. ltd.
 000c34 vixen co., ltd.
@@ -3133,7 +3134,7 @@ exit
 000c4a cygnus microsystems (p) limited
 000c4b cheops elektronik
 000c4c arcor ag&co.
-000c4d acra control
+000c4d curtiss-wright controls avionics & electronics
 000c4e winbest technology co,lt
 000c4f udtech japan corporation
 000c50 seagate technology
@@ -3189,8 +3190,8 @@ exit
 000c82 network technologies inc
 000c83 logical solutions
 000c84 eazix, inc.
-000c85 cisco systems
-000c86 cisco systems
+000c85 cisco systems, inc.
+000c86 cisco systems, inc.
 000c87 amd
 000c88 apache micro peripherals, inc.
 000c89 ac electric vehicles, ltd.
@@ -3262,8 +3263,8 @@ exit
 000ccb design combus ltd
 000ccc aeroscout ltd.
 000ccd iec - tc57
-000cce cisco systems
-000ccf cisco systems
+000cce cisco systems, inc.
+000ccf cisco systems, inc.
 000cd0 symetrix
 000cd1 sfom technology corp.
 000cd2 schaffner emv ag
@@ -3298,7 +3299,7 @@ exit
 000cef open networks engineering ltd
 000cf0 m & n gmbh
 000cf1 intel corporation
-000cf2 gamesa eÃÆÃ¢â¬Ålica
+000cf2 gamesa eólica
 000cf3 call image sa
 000cf4 akatsuki electric mfg.co.,ltd.
 000cf5 infoexpress
@@ -3352,8 +3353,8 @@ exit
 000d25 sanden corporation
 000d26 primagraphics limited
 000d27 microplex printware ag
-000d28 cisco
-000d29 cisco
+000d28 cisco systems, inc.
+000d29 cisco systems, inc.
 000d2a scanmatic as
 000d2b racal instruments
 000d2c patapsco designs ltd
@@ -3398,7 +3399,7 @@ exit
 000d53 beijing 5w communication corp.
 000d54 3com ltd
 000d55 sanycom technology co.,ltd
-000d56 dell pcba test
+000d56 dell esg pcba test
 000d57 fujitsu i-network systems limited.
 000d58 
 000d59 amity systems, inc.
@@ -3413,9 +3414,9 @@ exit
 000d62 funkwerk dabendorf gmbh
 000d63 dent instruments, inc.
 000d64 comag handels ag
-000d65 cisco systems
-000d66 cisco systems
-000d67 belair networks inc.
+000d65 cisco systems, inc.
+000d66 cisco systems, inc.
+000d67 ericsson
 000d68 vinci systems, inc.
 000d69 tmt&d corporation
 000d6a redwood technologies ltd
@@ -3485,7 +3486,7 @@ exit
 000daa s.a.tehnology co.,ltd.
 000dab parker hannifin gmbh electromechanical division europe
 000dac japan cbm corporation
-000dad dataprobe inc
+000dad dataprobe, inc.
 000dae samsung heavy industries co., ltd.
 000daf plexus corp (uk) ltd
 000db0 olym-tech co.,ltd.
@@ -3498,10 +3499,10 @@ exit
 000db7 sanko electric co,.ltd
 000db8 schiller ag
 000db9 pc engines gmbh
-000dba ocÃÆÃÂ© document technologies gmbh
+000dba océ document technologies gmbh
 000dbb nippon dentsu co.,ltd.
-000dbc cisco systems
-000dbd cisco systems
+000dbc cisco systems, inc.
+000dbd cisco systems, inc.
 000dbe bel fuse europe ltd.,uk
 000dbf tektone sound & signal mfg., inc.
 000dc0 spagat as
@@ -3533,7 +3534,7 @@ exit
 000dda allied telesis k.k.
 000ddb airwave technologies inc.
 000ddc vac
-000ddd profÃÆÃÂlo telra elektronÃÆÃÂk sanayÃÆÃÂ ve tÃÆÃÂcaret a.ÃÆÃÂ¾.
+000ddd profilo telra elektronik sanayi ve ticaret. a.Ş
 000dde joyteck co., ltd.
 000ddf japan image & network inc.
 000de0 icpdas co.,ltd
@@ -3548,8 +3549,8 @@ exit
 000de9 napatech aps
 000dea kingtel telecommunication corp.
 000deb compxs limited
-000dec cisco systems
-000ded cisco systems
+000dec cisco systems, inc.
+000ded cisco systems, inc.
 000dee andrew rf power amplifier group
 000def soc. coop. bilanciai
 000df0 qcom technology inc.
@@ -3581,11 +3582,11 @@ exit
 000e0a sakuma design office
 000e0b netac technology co., ltd.
 000e0c intel corporation
-000e0d hesch schrÃÆÃÂ¶der gmbh
+000e0d hesch schröder gmbh
 000e0e esa elettronica s.p.a.
 000e0f ermme
 000e10 c-guys, inc.
-000e11 bdt bÃÆÃÂ¼ro- und datentechnik gmbh & co. kg
+000e11 bdt büro und datentechnik gmbh & co.kg
 000e12 adaptive micro systems inc.
 000e13 accu-sort systems inc.
 000e14 visionary solutions, inc.
@@ -3624,8 +3625,8 @@ exit
 000e35 intel corp
 000e36 heinesys, inc.
 000e37 harms & wende gmbh & co.kg
-000e38 cisco systems
-000e39 cisco systems
+000e38 cisco systems, inc.
+000e39 cisco systems, inc.
 000e3a cirrus logic
 000e3b hawking technologies, inc.
 000e3c transact technologies inc
@@ -3699,8 +3700,8 @@ exit
 000e80 thomson technology inc
 000e81 devicescape software, inc.
 000e82 commtech wireless
-000e83 cisco systems
-000e84 cisco systems
+000e83 cisco systems, inc.
+000e84 cisco systems, inc.
 000e85 catalyst enterprises, inc.
 000e86 alcatel north america
 000e87 adp gauselmann gmbh
@@ -3715,7 +3716,7 @@ exit
 000e90 ponico corp.
 000e91 navico auckland ltd
 000e92 millinet co., ltd.
-000e93 milÃÆÃÂ©nio 3 sistemas electrÃÆÃÂ³nicos, lda.
+000e93 milénio 3 sistemas electrónicos, lda.
 000e94 maas international bv
 000e95 fujiya denki seisakusho co.,ltd.
 000e96 cubic defense applications, inc.
@@ -3782,8 +3783,8 @@ exit
 000ed3 epicenter, inc.
 000ed4 cresitt industrie
 000ed5 copan systems inc.
-000ed6 cisco systems
-000ed7 cisco systems
+000ed6 cisco systems, inc.
+000ed7 cisco systems, inc.
 000ed8 aktino, inc.
 000ed9 aksys, ltd.
 000eda c-tech united corp.
@@ -3855,12 +3856,12 @@ exit
 000f1c digitall world co., ltd
 000f1d cosmo techs co., ltd.
 000f1e chengdu kt electric co.of high & new technology
-000f1f ww pcba test
+000f1f dell esg pcba test
 000f20 hewlett-packard company
 000f21 scientific atlanta, inc
 000f22 helius, inc.
-000f23 cisco systems
-000f24 cisco systems
+000f23 cisco systems, inc.
+000f24 cisco systems, inc.
 000f25 aimvalley b.v.
 000f26 worldaccxx  llc
 000f27 teal electronics, inc.
@@ -3876,8 +3877,8 @@ exit
 000f31 allied vision technologies canada inc
 000f32 lootom optoelectronic technology (wuxi) co ltd
 000f33 duali inc.
-000f34 cisco systems
-000f35 cisco systems
+000f34 cisco systems, inc.
+000f35 cisco systems, inc.
 000f36 accurate techhnologies, inc.
 000f37 xambala incorporated
 000f38 netstar
@@ -3967,8 +3968,8 @@ exit
 000f8c gigawavetech pte ltd
 000f8d fast tv-server ag
 000f8e dongyang telecom co.,ltd.
-000f8f cisco systems
-000f90 cisco systems
+000f8f cisco systems, inc.
+000f90 cisco systems, inc.
 000f91 aerotelecom co.,ltd.
 000f92 microhard systems inc.
 000f93 landis+gyr ltd.
@@ -4071,8 +4072,8 @@ exit
 000ff4 guntermann & drunck gmbh
 000ff5 gn&s company
 000ff6 darfon electronics corp.
-000ff7 cisco systems
-000ff8 cisco  systems
+000ff7 cisco systems, inc.
+000ff8 cisco systems, inc.
 000ff9 valcretec, inc.
 000ffa optinel systems, inc.
 000ffb nippon denso industry co., ltd.
@@ -4367,8 +4368,8 @@ exit
 00111d hectrix limited
 00111e epsg (ethernet powerlink standardization group)
 00111f doremi labs, inc.
-001120 cisco systems
-001121 cisco systems
+001120 cisco systems, inc.
+001121 cisco systems, inc.
 001122 cimsys inc
 001123 appointech, inc.
 001124 apple computer
@@ -4402,7 +4403,7 @@ exit
 001140 nanometrics inc.
 001141 goodman corporation
 001142 e-smartcom  inc.
-001143 dell inc.
+001143 dell esg pcba test
 001144 assurance technology corp
 001145 valuepoint networks
 001146 telecard-pribor ltd
@@ -4427,8 +4428,8 @@ exit
 001159 matisse networks inc
 00115a ivoclar vivadent ag
 00115b elitegroup computer system co. (ecs)
-00115c cisco
-00115d cisco
+00115c cisco systems, inc.
+00115d cisco systems, inc.
 00115e prominent dosiertechnik gmbh
 00115f itx security co., ltd.
 001160 artdio company co., ltd
@@ -4458,7 +4459,7 @@ exit
 001178 chiron technology ltd
 001179 singular technology co. ltd.
 00117a singim international corp.
-00117b bÃÆÃÂ¼chi labortechnik ag
+00117b büchi  labortechnik ag
 00117c e-zy.net
 00117d zmd america, inc.
 00117e progeny, a division of midmark corp
@@ -4466,7 +4467,7 @@ exit
 001180 motorola mobility, inc.
 001181 interenergy co.ltd,
 001182 imi norgren ltd
-001183 datalogic mobile, inc.
+001183 datalogic adc, inc.
 001184 humo laboratory,ltd.
 001185 hewlett-packard company
 001186 prime systems, inc.
@@ -4481,14 +4482,14 @@ exit
 00118f eutech instruments pte. ltd.
 001190 digital design corporation
 001191 cts-clima temperatur systeme gmbh
-001192 cisco systems
-001193 cisco systems
+001192 cisco systems, inc.
+001193 cisco systems, inc.
 001194 chi mei communication systems, inc.
 001195 d-link corporation
 001196 actuality systems, inc.
 001197 monitoring technologies limited
 001198 prism media products limited
-001199 2wcom gmbh
+001199 2wcom systems gmbh
 00119a alkeria srl
 00119b telesynergy research inc.
 00119c ep&t energy
@@ -4522,8 +4523,8 @@ exit
 0011b8 liebherr - elektronik gmbh
 0011b9 inner range pty. ltd.
 0011ba elexol pty ltd
-0011bb cisco systems
-0011bc cisco systems
+0011bb cisco systems, inc.
+0011bc cisco systems, inc.
 0011bd bombardier transportation
 0011be agp telecom co. ltd
 0011bf aesys s.p.a.
@@ -4591,10 +4592,10 @@ exit
 0011fd korg inc.
 0011fe keiyo system research, inc.
 0011ff digitro tecnologia ltda
-001200 cisco
-001201 cisco
+001200 cisco systems, inc.
+001201 cisco systems, inc.
 001202 decrane aerospace - audio international inc.
-001203 activ networks
+001203 activnetworks
 001204 u10 networks, inc.
 001205 terrasat communications, inc.
 001206 iquest (nz) ltd
@@ -4654,12 +4655,12 @@ exit
 00123c second rule llc
 00123d ges
 00123e erune technology co., ltd.
-00123f dell inc
+00123f dell esg pcba test
 001240 amoi electronics co.,ltd
 001241 a2i marketing center
 001242 millennial net
-001243 cisco
-001244 cisco
+001243 cisco systems, inc.
+001244 cisco systems, inc.
 001245 zellweger analytics, inc.
 001246 t.o.m technology inc..
 001247 samsung electronics co., ltd.
@@ -4718,8 +4719,8 @@ exit
 00127c swegon ab
 00127d mobilearia
 00127e digital lifestyles group, inc.
-00127f cisco
-001280 cisco
+00127f cisco systems, inc.
+001280 cisco systems, inc.
 001281 march networks s.p.a.
 001282 qovia
 001283 nortel networks
@@ -4808,8 +4809,8 @@ exit
 0012d6 jiangsu yitong high-tech co.,ltd
 0012d7 invento networks, inc.
 0012d8 international games system co., ltd.
-0012d9 cisco systems
-0012da cisco systems
+0012d9 cisco systems, inc.
+0012da cisco systems, inc.
 0012db ziehl industrie-elektronik gmbh + co kg
 0012dc suncorp industrial limited
 0012dd shengqu information technology (shanghai) co., ltd.
@@ -4872,8 +4873,8 @@ exit
 001316 l-s-b broadcast technologies gmbh
 001317 gn netcom as
 001318 dgstation co., ltd.
-001319 cisco systems
-00131a cisco systems
+001319 cisco systems, inc.
+00131a cisco systems, inc.
 00131b becell innovations corp.
 00131c litetouch, inc.
 00131d scanvaegt international a/s
@@ -4942,8 +4943,8 @@ exit
 00135c onsite systems, inc.
 00135d nttpc communications, inc.
 00135e eab/rwi/k
-00135f cisco systems
-001360 cisco systems
+00135f cisco systems, inc.
+001360 cisco systems, inc.
 001361 biospace co., ltd.
 001362 shinheung precision co., ltd.
 001363 verascape, inc.
@@ -4961,7 +4962,7 @@ exit
 00136f packetmotion, inc.
 001370 nokia danmark a/s
 001371 motorola mobility, inc.
-001372 dell inc.
+001372 dell esg pcba test
 001373 blwave electronics co., ltd
 001374 atheros communications, inc.
 001375 american security products co.
@@ -4974,8 +4975,8 @@ exit
 00137c kaicom co., ltd.
 00137d dynalab, inc.
 00137e coredge networks, inc.
-00137f cisco systems
-001380 cisco systems
+00137f cisco systems, inc.
+001380 cisco systems, inc.
 001381 chips & systems, inc.
 001382 cetacea networks corporation
 001383 application technologies and engineering research laboratory
@@ -4984,7 +4985,7 @@ exit
 001386 abb inc./totalflow
 001387 27m technologies ab
 001388 wimedia alliance
-001389 redes de telefonÃÆÃÂ­a mÃÆÃÂ³vil s.a.
+001389 redes de telefonía móvil s.a.
 00138a qingdao goertek electronics co.,ltd.
 00138b phantom technologies llc
 00138c kumyoung.co.ltd
@@ -4998,7 +4999,7 @@ exit
 001394 infohand co.,ltd
 001395 congatec ag
 001396 acbel polytech inc.
-001397 xsigo systems, inc.
+001397 oracle corporation
 001398 trafficsim co.,ltd
 001399 stac corporation.
 00139a k-ubique id corp.
@@ -5042,8 +5043,8 @@ exit
 0013c0 trix tecnologia ltda.
 0013c1 asoka usa corporation
 0013c2 wacom co.,ltd
-0013c3 cisco systems
-0013c4 cisco systems
+0013c3 cisco systems, inc.
+0013c4 cisco systems, inc.
 0013c5 lightron fiber-optic devices inc.
 0013c6 opengear, inc
 0013c7 ionos co.,ltd.
@@ -5122,7 +5123,7 @@ exit
 001410 suzhou keda technology co.,ltd
 001411 deutschmann automation gmbh & co. kg
 001412 s-tec electronics ag
-001413 trebing & himstedt prozessautomation gmbh & co. kg
+001413 trebing & himstedt prozeßautomation gmbh & co. kg
 001414 jumpnode systems llc.
 001415 intec automation inc.
 001416 scosche industries, inc.
@@ -5130,14 +5131,14 @@ exit
 001418 c4line
 001419 sidsa
 00141a deicy corporation
-00141b cisco systems
-00141c cisco systems
+00141b cisco systems, inc.
+00141c cisco systems, inc.
 00141d lust antriebstechnik gmbh
 00141e p.a. semi, inc.
 00141f sunkwang electronics co., ltd
 001420 g-links networking company
 001421 total wireless technologies pte. ltd.
-001422 dell inc.
+001422 dell esg pcba test
 001423 j-s co. neurocom
 001424 merry electrics co., ltd.
 001425 galactic computing corp.
@@ -5208,8 +5209,8 @@ exit
 001466 kleinhenz elektronik gmbh
 001467 arrowspan inc.
 001468 celplan international, inc.
-001469 cisco systems
-00146a cisco systems
+001469 cisco systems, inc.
+00146a cisco systems, inc.
 00146b anagran, inc.
 00146c netgear inc.
 00146d rf technologies
@@ -5271,14 +5272,14 @@ exit
 0014a5 gemtek technology co., ltd.
 0014a6 teranetics, inc.
 0014a7 nokia danmark a/s
-0014a8 cisco systems
-0014a9 cisco systems
+0014a8 cisco systems, inc.
+0014a9 cisco systems, inc.
 0014aa ashly audio, inc.
 0014ab senhai electronic technology co., ltd.
 0014ac bountiful wifi
-0014ad gassner wiege- u. meÃÆÃÂ¸technik gmbh
+0014ad gassner wiege- und meßtechnik gmbh
 0014ae wizlogics co., ltd.
-0014af datasym inc.
+0014af datasym pos inc.
 0014b0 naeil community
 0014b1 avitec ab
 0014b2 mcubelogics corporation
@@ -5344,13 +5345,13 @@ exit
 0014ee western digital technologies, inc.
 0014ef tzero technologies, inc.
 0014f0 business security ol ab
-0014f1 cisco systems
-0014f2 cisco systems
+0014f1 cisco systems, inc.
+0014f2 cisco systems, inc.
 0014f3 vixs systems inc
 0014f4 dektec digital video b.v.
 0014f5 osi security devices
 0014f6 juniper networks, inc.
-0014f7 crevis
+0014f7 crevis co., ltd
 0014f8 scientific atlanta
 0014f9 vantage controls
 0014fa asga s.a.
@@ -5402,16 +5403,16 @@ exit
 001528 beacon medical products llc d.b.a. beaconmedaes
 001529 n3 corporation
 00152a nokia gmbh
-00152b cisco systems
-00152c cisco systems
+00152b cisco systems, inc.
+00152c cisco systems, inc.
 00152d tenx networks, llc
 00152e packethop, inc.
 00152f motorola mobility, inc.
-001530 bus-tech, inc.
+001530 emc corporation
 001531 kocom
 001532 consumer technologies group, llc
 001533 nadam.co.,ltd
-001534 a beltrÃÆÃ¢â¬Ånica, companhia de comunicaÃÆÃÂ§ÃÆÃÂµes, lda
+001534 a beltrónica-companhia de comunicações, lda
 001535 ote spa
 001536 powertech co.,ltd
 001537 ventus networks
@@ -5457,8 +5458,8 @@ exit
 00155f greenpeak technologies
 001560 hewlett-packard company
 001561 jjplus corporation
-001562 cisco systems
-001563 cisco systems
+001562 cisco systems, inc.
+001563 cisco systems, inc.
 001564 behringer spezielle studiotechnik gmbh
 001565 xiamen yealink network technology co.,ltd
 001566 a-first technology co., ltd.
@@ -5477,7 +5478,7 @@ exit
 001573 newsoft  technology corporation
 001574 horizon semiconductors ltd.
 001575 nevis networks inc.
-001576 scil animal care company gmbh
+001576 labitec - labor biomedical technologies gmbh
 001577 allied telesis
 001578 audio / video innovations
 001579 lunatone industrielle elektronik gmbh
@@ -5485,7 +5486,7 @@ exit
 00157b leuze electronic gmbh + co. kg
 00157c dave networks, inc.
 00157d posdata co., ltd.
-00157e weidmÃÂ¼ller interface gmbh & co. kg
+00157e weidmüller interface gmbh & co. kg
 00157f chuang international holding co.,ltd.
 001580 u-way corporation
 001581 makus inc.
@@ -5556,9 +5557,9 @@ exit
 0015c2 3m germany
 0015c3 ruf telematik ag
 0015c4 flovel co., ltd.
-0015c5 dell inc
-0015c6 cisco systems
-0015c7 cisco systems
+0015c5 dell esg pcba test
+0015c6 cisco systems, inc.
+0015c7 cisco systems, inc.
 0015c8 flexipanel ltd
 0015c9 gumstix, inc
 0015ca terarecon, inc.
@@ -5608,8 +5609,8 @@ exit
 0015f6 science and engineering services, inc.
 0015f7 wintecronics ltd.
 0015f8 kingtronics industrial co. ltd.
-0015f9 cisco systems
-0015fa cisco systems
+0015f9 cisco systems, inc.
+0015fa cisco systems, inc.
 0015fb setex schermuly textile computer gmbh
 0015fc littelfuse startco
 0015fd complete media systems
@@ -5640,7 +5641,7 @@ exit
 001616 browan communication inc.
 001617 msi
 001618 hivion co., ltd.
-001619 la factorÃÆÃÂ­a de comunicaciones aplicadas,s.l.
+001619 la factoría de comunicaciones aplicadas,s.l.
 00161a dametric ab
 00161b micronet corporation
 00161c e:cue
@@ -5662,7 +5663,7 @@ exit
 00162c xanboo
 00162d stnet co., ltd.
 00162e space shuttle hi-tech co., ltd.
-00162f geutebrÃÆÃÂ¼ck gmbh
+00162f geutebrück gmbh
 001630 vativ technologies
 001631 xteam
 001632 samsung electronics co., ltd.
@@ -5670,7 +5671,7 @@ exit
 001634 mathtech, inc.
 001635 hewlett-packard company
 001636 quanta computer inc.
-001637 citel srl
+001637 citel spa
 001638 tecom co., ltd.
 001639 ubiquam co.,ltd
 00163a yves technology co., ltd.
@@ -5685,8 +5686,8 @@ exit
 001643 sunhillo corporation
 001644 lite-on technology corp.
 001645 power distribution, inc.
-001646 cisco systems
-001647 cisco systems
+001646 cisco systems, inc.
+001647 cisco systems, inc.
 001648 ssd company limited
 001649 setone gmbh
 00164a vibration technology limited
@@ -5734,7 +5735,7 @@ exit
 001674 eurocb (phils.), inc.
 001675 motorola mobility, inc.
 001676 intel corporation
-001677 bihl+wiedemann gmbh
+001677 bihl + wiedemann gmbh
 001678 shenzhen baoan gaoke electronics co., ltd
 001679 eon communications
 00167a skyworth overseas dvelopment ltd.
@@ -5771,8 +5772,8 @@ exit
 001699 tonic dvb marketing ltd
 00169a quadrics ltd
 00169b alstom transport
-00169c cisco systems
-00169d cisco systems
+00169c cisco systems, inc.
+00169d cisco systems, inc.
 00169e tv one ltd
 00169f vimtron electronics co., ltd.
 0016a0 auto-maskin
@@ -5814,8 +5815,8 @@ exit
 0016c4 sirf technology, inc.
 0016c5 shenzhen xing feng industry co.,ltd
 0016c6 north atlantic industries
-0016c7 cisco systems
-0016c8 cisco systems
+0016c7 cisco systems, inc.
+0016c8 cisco systems, inc.
 0016c9 nat seattle, inc.
 0016ca nortel
 0016cb apple computer
@@ -5862,7 +5863,7 @@ exit
 0016f4 eidicom co., ltd.
 0016f5 dalian golden hualu digital technology co.,ltd
 0016f6 video products group
-0016f7 l-3 communications, electrodynamics, inc.
+0016f7 l-3 communications, aviation recorders
 0016f8 aviqtech technology co., ltd.
 0016f9 cetrta pot, d.o.o., kranj
 0016fa eci telecom ltd.
@@ -5885,8 +5886,8 @@ exit
 00170b contela, inc.
 00170c twig com ltd.
 00170d dust networks inc.
-00170e cisco systems
-00170f cisco systems
+00170e cisco systems, inc.
+00170f cisco systems, inc.
 001710 casa systems inc.
 001711 ge healthcare bio-sciences ab
 001712 isco international
@@ -5960,8 +5961,8 @@ exit
 001756 vinci labs oy
 001757 rix technology limited
 001758 thruvision ltd
-001759 cisco systems
-00175a cisco systems
+001759 cisco systems, inc.
+00175a cisco systems, inc.
 00175b acs solutions switzerland ltd.
 00175c sharp corporation
 00175d dongseo system.
@@ -6019,8 +6020,8 @@ exit
 001791 lintech gmbh
 001792 falcom wireless comunications gmbh
 001793 tigi corporation
-001794 cisco systems
-001795 cisco systems
+001794 cisco systems, inc.
+001795 cisco systems, inc.
 001796 rittmeyer ag
 001797 telsy elettronica s.p.a.
 001798 azonic technology co., ltd
@@ -6094,8 +6095,8 @@ exit
 0017dc daemyung zero1
 0017dd clipsal australia
 0017de advantage six ltd
-0017df cisco systems
-0017e0 cisco systems
+0017df cisco systems, inc.
+0017e0 cisco systems, inc.
 0017e1 dacos technologies co., ltd.
 0017e2 motorola mobility, inc.
 0017e3 texas instruments
@@ -6151,8 +6152,8 @@ exit
 001815 gz technologies, inc.
 001816 ubixon co., ltd.
 001817 d. e. shaw research, llc
-001818 cisco systems
-001819 cisco systems
+001818 cisco systems, inc.
+001819 cisco systems, inc.
 00181a avermedia information inc.
 00181b taijin metal co., ltd.
 00181c exterity limited
@@ -6172,7 +6173,7 @@ exit
 00182a taiwan video & monitor
 00182b softier
 00182c ascend networks, inc.
-00182d artec group oÃÆÃâ
+00182d artec design
 00182e xstreamhd, llc
 00182f texas instruments
 001830 texas instruments
@@ -6227,7 +6228,7 @@ exit
 001861 ooma, inc.
 001862 seagate technology
 001863 veritech electronics limited
-001864 cybectec inc.
+001864 eaton corporation
 001865 siemens healthcare diagnostics manufacturing ltd
 001866 leutron vision
 001867 evolution robotics retail
@@ -6242,8 +6243,8 @@ exit
 001870 e28 shanghai limited
 001871 hewlett-packard company
 001872 expertise engineering
-001873 cisco systems
-001874 cisco systems
+001873 cisco systems, inc.
+001874 cisco systems, inc.
 001875 anacise testnology pte ltd
 001876 wowwee ltd.
 001877 amplex a/s
@@ -6266,7 +6267,7 @@ exit
 001888 gotive a.s.
 001889 winnet solutions limited
 00188a infinova llc
-00188b dell
+00188b dell esg pcba test
 00188c mobile action technology inc.
 00188d nokia danmark a/s
 00188e ekahau, inc.
@@ -6312,15 +6313,15 @@ exit
 0018b6 s3c, inc.
 0018b7 d3 led, llc
 0018b8 new voice international ag
-0018b9 cisco systems
-0018ba cisco systems
+0018b9 cisco systems, inc.
+0018ba cisco systems, inc.
 0018bb eliwell controls srl
 0018bc zao nvp bolid
 0018bd shenzhen dvbworld technology co., ltd.
 0018be ansa corporation
 0018bf essence technology solution, inc.
 0018c0 motorola mobility, inc.
-0018c1 almitec informÃÆÃÂ¡tica e comÃÆÃÂ©rcio ltda.
+0018c1 almitec informática e comércio
 0018c2 firetide, inc
 0018c3 cs corporation
 0018c4 raba technologies llc
@@ -6389,10 +6390,10 @@ exit
 001903 bigfoot networks inc
 001904 wb electronics sp. z o.o.
 001905 schrack seconet ag
-001906 cisco systems
-001907 cisco systems
+001906 cisco systems, inc.
+001907 cisco systems, inc.
 001908 duaxes corporation
-001909 devi a/s
+001909 devi - danfoss a/s
 00190a hasware inc.
 00190b southern vision systems, inc.
 00190c encore electronics, inc.
@@ -6430,13 +6431,13 @@ exit
 00192c motorola mobility, inc.
 00192d nokia corporation
 00192e spectral instruments, inc.
-00192f cisco systems
-001930 cisco systems
+00192f cisco systems, inc.
+001930 cisco systems, inc.
 001931 balluff gmbh
 001932 gude analog- und digialsysteme gmbh
 001933 strix systems, inc.
 001934 trendon touch technology corp.
-001935 duerr dental gmbh & co. kg
+001935 dÜrr dental ag
 001936 sterlite optical technologies limited
 001937 commerceguard ab
 001938 umb communications co., ltd.
@@ -6468,8 +6469,8 @@ exit
 001952 acogito co., ltd
 001953 chainleader communications corp.
 001954 leaf corporation.
-001955 cisco systems
-001956 cisco systems
+001955 cisco systems, inc.
+001956 cisco systems, inc.
 001957 saafnet canada inc.
 001958 bluetooth sig, inc.
 001959 staccato communications inc.
@@ -6552,8 +6553,8 @@ exit
 0019a6 motorola mobility, inc.
 0019a7 itu-t
 0019a8 wiquest communications
-0019a9 cisco systems
-0019aa cisco systems
+0019a9 cisco systems, inc.
+0019aa cisco systems, inc.
 0019ab raycom co ., ltd
 0019ac gsp systems inc.
 0019ad bobst sa
@@ -6614,8 +6615,8 @@ exit
 0019e4 2wire, inc
 0019e5 lynx studio technology, inc.
 0019e6 toyo medic co.,ltd.
-0019e7 cisco systems
-0019e8 cisco systems
+0019e7 cisco systems, inc.
+0019e8 cisco systems, inc.
 0019e9 s-information technolgy, co., ltd.
 0019ea teramage technologies co., ltd.
 0019eb pyronix ltd
@@ -6686,8 +6687,8 @@ exit
 001a2c satec co.,ltd
 001a2d the navvo group
 001a2e ziova coporation
-001a2f cisco systems
-001a30 cisco systems
+001a2f cisco systems, inc.
+001a30 cisco systems, inc.
 001a31 scan coin industries ab
 001a32 activa multimedia
 001a33 asi communications, inc.
@@ -6747,8 +6748,8 @@ exit
 001a69 wuhan yangtze optical technology co.,ltd.
 001a6a tranzas, inc.
 001a6b universal global scientific industrial co., ltd.
-001a6c cisco systems
-001a6d cisco systems
+001a6c cisco systems, inc.
+001a6d cisco systems, inc.
 001a6e impro technologies
 001a6f mi.tel s.r.l.
 001a70 cisco-linksys, llc
@@ -6783,7 +6784,7 @@ exit
 001a8d avecs bergen gmbh
 001a8e 3way networks ltd
 001a8f nortel
-001a90 trÃÆÃÂ³pico sistemas e telecomunicaÃÆÃÂ§ÃÆÃÂµes da amazÃÆÃÂ´nia ltda.
+001a90 trópico sistemas e telecomunicações da amazônia ltda.
 001a91 fusiondynamic ltd.
 001a92 asustek computer inc.
 001a93 erco leuchten gmbh
@@ -6798,10 +6799,10 @@ exit
 001a9c righthand technologies, inc.
 001a9d skipper wireless, inc.
 001a9e icon digital international limited
-001a9f a-link europe ltd
+001a9f a-link ltd
 001aa0 dell inc
-001aa1 cisco systems
-001aa2 cisco systems
+001aa1 cisco systems, inc.
+001aa2 cisco systems, inc.
 001aa3 delorme
 001aa4 future university-hakodate
 001aa5 brn phoenix
@@ -6865,8 +6866,8 @@ exit
 001adf interactivetv pty limited
 001ae0 mythology tech express inc.
 001ae1 edge access inc
-001ae2 cisco systems
-001ae3 cisco systems
+001ae2 cisco systems, inc.
+001ae3 cisco systems, inc.
 001ae4 medicis technologies corporation
 001ae5 mvox technologies inc.
 001ae6 atlanta advanced communications holdings limited
@@ -6907,8 +6908,8 @@ exit
 001b09 matrix telecom pvt. ltd.
 001b0a intelligent distributed controls ltd
 001b0b phidgets inc.
-001b0c cisco systems
-001b0d cisco systems
+001b0c cisco systems, inc.
+001b0d cisco systems, inc.
 001b0e inotec gmbh organisationssysteme
 001b0f petratec
 001b10 shenzhen kang hui technology co.,ltd
@@ -6937,8 +6938,8 @@ exit
 001b27 merlin csi
 001b28 polygon, jsc
 001b29 avantis.co.,ltd
-001b2a cisco systems
-001b2b cisco systems
+001b2a cisco systems, inc.
+001b2b cisco systems, inc.
 001b2c atron electronic gmbh
 001b2d med-eng systems inc.
 001b2e sinkyo electron inc
@@ -6978,8 +6979,8 @@ exit
 001b50 nizhny novgorod factory named after m.frunze, fsue (nzif)
 001b51 vector technology corp.
 001b52 motorola mobility, inc.
-001b53 cisco systems
-001b54 cisco systems
+001b53 cisco systems, inc.
+001b54 cisco systems, inc.
 001b55 hurco automation ltd.
 001b56 tehuti networks ltd.
 001b57 semindia systems private limited
@@ -7038,8 +7039,8 @@ exit
 001b8c jmicron technology corp.
 001b8d electronic computer systems, inc.
 001b8e hulu sweden ab
-001b8f cisco systems
-001b90 cisco systems
+001b8f cisco systems, inc.
+001b90 cisco systems, inc.
 001b91 efkon ag
 001b92 l-acoustics
 001b93 jc decaux sa dnt
@@ -7056,7 +7057,7 @@ exit
 001b9e askey  computer  corp
 001b9f calyptech pty ltd
 001ba0 awox
-001ba1 ÃÆÃ¢â¬Â¦mic ab
+001ba1 Åmic ab
 001ba2 ids imaging development systems gmbh
 001ba3 flexit group gmbh
 001ba4 s.a.e afikim
@@ -7107,8 +7108,8 @@ exit
 001bd1 sogestmatic
 001bd2 ultra-x asia pacific inc.
 001bd3 matsushita electric panasonic avc
-001bd4 cisco systems
-001bd5 cisco systems
+001bd4 cisco systems, inc.
+001bd5 cisco systems, inc.
 001bd6 kelvin hughes ltd
 001bd7 scientific atlanta, a cisco company
 001bd8 dvtel ltd
@@ -7140,7 +7141,7 @@ exit
 001bf2 kworld computer co., ltd
 001bf3 transradio sendersysteme berlin ag
 001bf4 kenwin industrial(hk) ltd.
-001bf5 tellink sistemas de telecomunicaciÃÆÃÂ³n s.l.
+001bf5 tellink sistemas de telecomunicación s.l.
 001bf6 conwise technology corporation ltd.
 001bf7 lund ip products ab
 001bf8 digitrax inc.
@@ -7165,8 +7166,8 @@ exit
 001c0b smartant telecom
 001c0c tanita corporation
 001c0d g-technology, inc.
-001c0e cisco systems
-001c0f cisco systems
+001c0e cisco systems, inc.
+001c0f cisco systems, inc.
 001c10 cisco-linksys, llc
 001c11 motorola mobility, inc.
 001c12 motorola mobility, inc.
@@ -7238,8 +7239,8 @@ exit
 001c54 hillstone networks inc
 001c55 shenzhen kaifa technology co.
 001c56 pado systems, inc.
-001c57 cisco systems
-001c58 cisco systems
+001c57 cisco systems, inc.
+001c58 cisco systems, inc.
 001c59 devon it
 001c5a advanced relay corporation
 001c5b chubb electronic security systems ltd
@@ -7248,10 +7249,10 @@ exit
 001c5e aston france
 001c5f winland electronics, inc.
 001c60 csp frontier technologies,inc.
-001c61 galaxy technology (hk) ltd.
+001c61 galaxy  microsystems limited
 001c62 lg electronics inc
 001c63 truen
-001c64 cellnet+hunt
+001c64 landis+gyr
 001c65 joescan, inc.
 001c66 ucamp co.,ltd
 001c67 pumpkin networks, inc.
@@ -7327,8 +7328,8 @@ exit
 001cad wuhan telecommunication devices co.,ltd
 001cae wichorus, inc.
 001caf plato networks inc.
-001cb0 cisco systems
-001cb1 cisco systems
+001cb0 cisco systems, inc.
+001cb1 cisco systems, inc.
 001cb2 bpt spa
 001cb3 apple, inc
 001cb4 iridium satellite llc
@@ -7397,10 +7398,10 @@ exit
 001cf3 evs broadcast equipment
 001cf4 media technology systems inc
 001cf5 wiseblue technology limited
-001cf6 cisco systems
+001cf6 cisco systems, inc.
 001cf7 audioscience
 001cf8 parade technologies, ltd.
-001cf9 cisco systems
+001cf9 cisco systems, inc.
 001cfa alarm.com
 001cfb motorola mobility, inc.
 001cfc suminet communication technologies (shanghai) co., ltd.
@@ -7449,7 +7450,7 @@ exit
 001d27 nac-intercom
 001d28 sony ericsson mobile communications ab
 001d29 doro ab
-001d2a tideway electronic ltd
+001d2a shenzhen bul-tech co.,ltd.
 001d2b wuhan pont technology co. , ltd
 001d2c wavetrend technologies (pty) limited
 001d2d pylone, inc.
@@ -7476,8 +7477,8 @@ exit
 001d42 nortel
 001d43 shenzhen g-link digital technology co., ltd.
 001d44 krohne
-001d45 cisco systems
-001d46 cisco systems
+001d45 cisco systems, inc.
+001d46 cisco systems, inc.
 001d47 covote gmbh & co kg
 001d48 sensor-technik wiedemann gmbh
 001d49 innovation wireless inc.
@@ -7498,7 +7499,7 @@ exit
 001d58 cq inc
 001d59 mitra energy & infrastructure
 001d5a 2wire inc.
-001d5b tecvan informatica ltda
+001d5b tecvan informática ltda
 001d5c tom communication industrial co.,ltd.
 001d5d control dynamics pty. ltd.
 001d5e coming media corp.
@@ -7519,8 +7520,8 @@ exit
 001d6d confidant international llc
 001d6e nokia danmark a/s
 001d6f chainzone technology co., ltd
-001d70 cisco systems
-001d71 cisco systems
+001d70 cisco systems, inc.
+001d71 cisco systems, inc.
 001d72 wistron corporation
 001d73 buffalo inc.
 001d74 tianjin china-silicon microelectronics co., ltd.
@@ -7568,8 +7569,8 @@ exit
 001d9e axion technologies
 001d9f matt   r.p.traczynscy sp.j.
 001da0 heng yu electronic manufacturing company limited
-001da1 cisco systems
-001da2 cisco systems
+001da1 cisco systems, inc.
+001da2 cisco systems, inc.
 001da3 sabioso
 001da4 hangzhou system technology co., ltd
 001da5 wb electronics
@@ -7610,7 +7611,7 @@ exit
 001dc8 scadametrcs, llc.
 001dc9 gainspan corp.
 001dca pav electronics limited
-001dcb exÃÆÃÂ©ns development oy
+001dcb exéns development oy
 001dcc hetra secure solutions
 001dcd arris group, inc.
 001dce arris group, inc.
@@ -7636,8 +7637,8 @@ exit
 001de2 radionor communications
 001de3 intuicom
 001de4 visioneered image systems
-001de5 cisco systems
-001de6 cisco systems
+001de5 cisco systems, inc.
+001de6 cisco systems, inc.
 001de7 marine sonic technology, ltd.
 001de8 nikko denki tsushin company(ndtc)
 001de9 nokia danmark a/s
@@ -7645,7 +7646,7 @@ exit
 001deb dinec international
 001dec marusys
 001ded grid net, inc.
-001dee nextvision sistemas digitais de televisÃÆÃâo ltda.
+001dee nextvision sistemas digitais de televisÃo ltda.
 001def trimm, inc.
 001df0 vidient systems, inc.
 001df1 intego systems, inc.
@@ -7654,7 +7655,7 @@ exit
 001df4 magellan technology pty limited
 001df5 sunshine co,ltd
 001df6 samsung electronics co.,ltd
-001df7 r. stahl schaltgerÃÆÃÂ¤te gmbh
+001df7 r. stahl schaltgeräte gmbh
 001df8 webpro vision technology corporation
 001df9 cybiotronics (far east) limited
 001dfa fujian landi commercial equipment co.,ltd
@@ -7682,8 +7683,8 @@ exit
 001e10 shenzhen huawei communication technologies co.,ltd.
 001e11 elelux international ltd
 001e12 ecolab
-001e13 cisco systems
-001e14 cisco systems
+001e13 cisco systems, inc.
+001e14 cisco systems, inc.
 001e15 beech hill electronics
 001e16 keytronix
 001e17 stn bv
@@ -7736,8 +7737,8 @@ exit
 001e46 motorola mobility, inc.
 001e47 pt. hariff daya tunggal engineering
 001e48 wi-links
-001e49 cisco systems
-001e4a cisco systems
+001e49 cisco systems, inc.
+001e4a cisco systems, inc.
 001e4b city theatrical
 001e4c hon hai precision ind.co., ltd.
 001e4d welkin sciences, llc
@@ -7784,8 +7785,8 @@ exit
 001e76 thermo fisher scientific
 001e77 air2app
 001e78 owitek technology ltd.,
-001e79 cisco systems
-001e7a cisco systems
+001e79 cisco systems, inc.
+001e7a cisco systems, inc.
 001e7b r.i.co. s.r.l.
 001e7c taiwick limited
 001e7d samsung electronics co.,ltd
@@ -7852,8 +7853,8 @@ exit
 001eba high density devices as
 001ebb bluelight technology inc.
 001ebc wintech automation co.,ltd.
-001ebd cisco systems
-001ebe cisco systems
+001ebd cisco systems, inc.
+001ebe cisco systems, inc.
 001ebf haas automation inc.
 001ec0 microchip technology inc.
 001ec1 3com europe ltd
@@ -7909,8 +7910,8 @@ exit
 001ef3 from2
 001ef4 l-3 communications display systems
 001ef5 hitek automated inc.
-001ef6 cisco systems
-001ef7 cisco systems
+001ef6 cisco systems, inc.
+001ef7 cisco systems, inc.
 001ef8 emfinity inc.
 001ef9 pascom kommunikations systeme gmbh.
 001efa protei ltd.
@@ -7957,8 +7958,8 @@ exit
 001f23 interacoustics
 001f24 digitview technology co., ltd.
 001f25 mbs gmbh
-001f26 cisco systems
-001f27 cisco systems
+001f26 cisco systems, inc.
+001f27 cisco systems, inc.
 001f28 procurve networking by hp
 001f29 hewlett-packard company
 001f2a accm
@@ -8002,7 +8003,7 @@ exit
 001f50 swissdis ag
 001f51 hd communications corp
 001f52 uvt unternehmensberatung fur verkehr und technik gmbh
-001f53 gemac gesellschaft fÃÆÃÂ¼r mikroelektronikanwendung chemnitz mbh
+001f53 gemac gesellschaft für mikroelektronikanwendung chemnitz mbh
 001f54 lorex technology inc.
 001f55 honeywell security (china) co., ltd.
 001f56 digital forecast
@@ -8027,8 +8028,8 @@ exit
 001f69 pingood technology co., ltd.
 001f6a packetflux technologies, inc.
 001f6b lg electronics
-001f6c cisco systems
-001f6d cisco systems
+001f6c cisco systems, inc.
+001f6d cisco systems, inc.
 001f6e vtech engineering corporation
 001f6f fujian sunnada communication co.,ltd.
 001f70 botik technologies ltd
@@ -8076,8 +8077,8 @@ exit
 001f9a nortel networks
 001f9b posbro
 001f9c ledco
-001f9d cisco systems
-001f9e cisco systems
+001f9d cisco systems, inc.
+001f9e cisco systems, inc.
 001f9f thomson telecom belgium
 001fa0 a10 networks
 001fa1 gtran inc
@@ -8120,8 +8121,8 @@ exit
 001fc6 asustek computer inc.
 001fc7 casio hitachi mobile comunications co., ltd.
 001fc8 up-today industrial co., ltd.
-001fc9 cisco systems
-001fca cisco systems
+001fc9 cisco systems, inc.
+001fca cisco systems, inc.
 001fcb niw solutions
 001fcc samsung electronics co.,ltd
 001fcd samsung electronics
@@ -8155,7 +8156,7 @@ exit
 001fe9 printrex, inc.
 001fea applied media technologies corporation
 001feb trio datacom pty ltd
-001fec synapse ÃÆÃÂ©lectronique
+001fec synapse Électronique
 001fed tecan systems inc.
 001fee ubisys technologies gmbh
 001fef shinsei industries co.,ltd
@@ -8345,7 +8346,7 @@ exit
 0020a7 pairgain technologies, inc.
 0020a8 sast technology corp.
 0020a9 white horse industrial
-0020aa digimedia vision ltd.
+0020aa ericsson television limited
 0020ab micro industries corp.
 0020ac interflex datensysteme gmbh
 0020ad linq systems
@@ -8458,8 +8459,8 @@ exit
 002118 athena tech, inc.
 002119 samsung electro-mechanics
 00211a lintech corporation
-00211b cisco systems
-00211c cisco systems
+00211b cisco systems, inc.
+00211c cisco systems, inc.
 00211d dataline ab
 00211e motorola mobility, inc.
 00211f shinsung deltatech co.,ltd.
@@ -8516,8 +8517,8 @@ exit
 002152 general satellite research & development limited
 002153 seamicro inc.
 002154 d-tacq solutions ltd
-002155 cisco systems
-002156 cisco systems
+002155 cisco systems, inc.
+002156 cisco systems, inc.
 002157 national datacast, inc.
 002158 style flying technology co.
 002159 juniper networks
@@ -8591,8 +8592,8 @@ exit
 00219d adesys bv
 00219e sony ericsson mobile communications
 00219f satel oy
-0021a0 cisco systems
-0021a1 cisco systems
+0021a0 cisco systems, inc.
+0021a1 cisco systems, inc.
 0021a2 eke-electronics ltd.
 0021a3 micromint
 0021a4 dbii networks
@@ -8646,8 +8647,8 @@ exit
 0021d4 vollmer werke gmbh
 0021d5 x2e gmbh
 0021d6 lxi consortium
-0021d7 cisco systems
-0021d8 cisco systems
+0021d7 cisco systems, inc.
+0021d8 cisco systems, inc.
 0021d9 sekonic corporation
 0021da automation products group inc.
 0021db santachi video technology (shenzhen) co., ltd.
@@ -8689,7 +8690,7 @@ exit
 0021ff cyfrowy polsat sa
 002200 ibm corp
 002201 aksys networks inc
-002202 excito elektronik i skÃÆÃÂ¥ne ab
+002202 excito elektronik i skåne ab
 002203 glensound electronics ltd
 002204 koratek
 002205 welink solutions, inc.
@@ -8699,8 +8700,8 @@ exit
 002209 omron healthcare co., ltd
 00220a onlive, inc
 00220b national source coding center
-00220c cisco systems
-00220d cisco systems
+00220c cisco systems, inc.
+00220d cisco systems, inc.
 00220e indigo security co., ltd.
 00220f moca (multimedia over coax alliance)
 002210 motorola mobility, inc.
@@ -8772,8 +8773,8 @@ exit
 002252 zoll lifecor corporation
 002253 entorian technologies
 002254 bigelow aerospace
-002255 cisco systems
-002256 cisco systems
+002255 cisco systems, inc.
+002256 cisco systems, inc.
 002257 3com europe ltd
 002258 taiyo yuden co., ltd.
 002259 guangzhou new postcom equipment co.,ltd.
@@ -8800,11 +8801,11 @@ exit
 00226e gowell electronic limited
 00226f 3onedata technology co. ltd.
 002270 abk north america, llc
-002271 jÃÆÃÂ¤ger computergesteuerte messtechnik gmbh
+002271 jäger computergesteuerte meßtechnik gmbh.
 002272 american micro-fuel device corp.
 002273 techway
 002274 familyphone ab
-002275 belkin international, inc.
+002275 belkin international inc.
 002276 triple eye b.v.
 002277 nec australia pty ltd
 002278 shenzhen  tongfang multimedia  technology co.,ltd.
@@ -8816,8 +8817,8 @@ exit
 00227e chengdu 30kaitian communication industry co.ltd
 00227f ruckus wireless
 002280 a2b electronics ab
-002281 daintree networks inc
-002282 8086 limited
+002281 daintree networks pty
+002282 8086 consultancy
 002283 juniper networks
 002284 desay a&v science and technology co.,ltd
 002285 nomus comm systems
@@ -8831,8 +8832,8 @@ exit
 00228d gbs laboratories llc
 00228e tv-numeric
 00228f cnrs
-002290 cisco systems
-002291 cisco systems
+002290 cisco systems, inc.
+002291 cisco systems, inc.
 002292 cinetal
 002293 zte corporation
 002294 kyocera corporation
@@ -8876,18 +8877,18 @@ exit
 0022ba huth elektronik systeme gmbh
 0022bb beyerdynamic gmbh & co. kg
 0022bc jdsu france sas
-0022bd cisco systems
-0022be cisco systems
+0022bd cisco systems, inc.
+0022be cisco systems, inc.
 0022bf sieamp group of companies
 0022c0 shenzhen forcelink electronic co, ltd
 0022c1 active storage inc.
-0022c2 proview eletronica do brasil ltda
+0022c2 proview eletrônica do brasil ltda
 0022c3 zeeport technology inc.
 0022c4 epro gmbh
 0022c5 inforson co,ltd.
 0022c6 sutus inc
 0022c7 segger microcontroller gmbh & co. kg
-0022c8 applied instruments
+0022c8 applied instruments b.v.
 0022c9 lenord, bauer & co gmbh
 0022ca anviz biometric tech. co., ltd.
 0022cb ionodes inc.
@@ -8897,7 +8898,7 @@ exit
 0022cf planex communications inc
 0022d0 polar electro oy
 0022d1 albrecht jung gmbh & co. kg
-0022d2 all earth comÃÆÃÂ©rcio de eletrÃÆÃÂ´nicos ltda.
+0022d2 all earth comércio de eletrônicos ltda.
 0022d3 hub-tech
 0022d4 comworth co., ltd.
 0022d5 eaton corp. electrical group data center solutions - pulizzi
@@ -8947,8 +8948,8 @@ exit
 002301 witron technology limited
 002302 cobalt digital, inc.
 002303 lite-on it corporation
-002304 cisco systems
-002305 cisco systems
+002304 cisco systems, inc.
+002305 cisco systems, inc.
 002306 alps electric co., ltd
 002307 future innovation tech co.,ltd
 002308 arcadyan technology corporation
@@ -8994,8 +8995,8 @@ exit
 002330 dizipia, inc.
 002331 nintendo co., ltd.
 002332 apple, inc
-002333 cisco systems
-002334 cisco systems
+002333 cisco systems, inc.
+002334 cisco systems, inc.
 002335 linkflex co.,ltd
 002336 metel s.r.o.
 002337 global star solutions ulc
@@ -9036,8 +9037,8 @@ exit
 00235a compal information (kunshan) co., ltd.
 00235b gulfstream
 00235c aprius, inc.
-00235d cisco systems
-00235e cisco systems
+00235d cisco systems, inc.
+00235e cisco systems, inc.
 00235f silicon micro sensors gmbh
 002360 lookit technology co., ltd
 002361 unigen corporation
@@ -9097,12 +9098,12 @@ exit
 002397 westell technologies inc.
 002398 sky control
 002399 vd division, samsung electronics co.
-00239a easydata software gmbh
+00239a easydata hardware gmbh
 00239b elster solutions, llc
 00239c juniper networks
 00239d mapower electronics co., ltd
 00239e jiangsu lemote technology corporation limited
-00239f institut fÃÆÃÂ¼r prÃÆÃÂ¼ftechnik
+00239f institut für prüftechnik
 0023a0 hana cns co., ltd.
 0023a1 trend electronics ltd
 0023a2 motorola mobility, inc.
@@ -9114,8 +9115,8 @@ exit
 0023a8 marshall electronics
 0023a9 beijing detianquan electromechanical equipment co., ltd
 0023aa hfr, inc.
-0023ab cisco systems
-0023ac cisco systems
+0023ab cisco systems, inc.
+0023ac cisco systems, inc.
 0023ad xmark corporation
 0023ae dell inc.
 0023af motorola mobility, inc.
@@ -9177,8 +9178,8 @@ exit
 0023e7 hinke a/s
 0023e8 demco corp.
 0023e9 f5 networks, inc.
-0023ea cisco systems
-0023eb cisco systems
+0023ea cisco systems, inc.
+0023eb cisco systems, inc.
 0023ec algorithmix gmbh
 0023ed motorola chs
 0023ee motorola mobility, inc.
@@ -9218,8 +9219,8 @@ exit
 002410 nueteq technology,inc.
 002411 pharmasmart llc
 002412 benign technologies co, ltd.
-002413 cisco systems
-002414 cisco systems
+002413 cisco systems, inc.
+002414 cisco systems, inc.
 002415 magnetic autocontrol gmbh
 002416 any use
 002417 thomson telecom belgium
@@ -9277,8 +9278,8 @@ exit
 00244d hokkaido electronics corporation
 00244e radchips, inc.
 00244f asantron technologies ltd.
-002450 cisco systems
-002451 cisco systems
+002450 cisco systems, inc.
+002451 cisco systems, inc.
 002452 silicon software gmbh
 002453 initra d.o.o.
 002454 samsung electronics co., ltd
@@ -9347,8 +9348,8 @@ exit
 002494 shenzhen baoxin tech co., ltd.
 002495 motorola mobility, inc.
 002496 ginzinger electronic systems
-002497 cisco systems
-002498 cisco systems
+002497 cisco systems, inc.
+002498 cisco systems, inc.
 002499 aquila technologies
 00249a beijing zhongchuang telecommunication test co., ltd.
 00249b action star enterprise co., ltd.
@@ -9391,8 +9392,8 @@ exit
 0024c0 nti comodo inc
 0024c1 motorola mobility, inc.
 0024c2 asumo co.,ltd.
-0024c3 cisco systems
-0024c4 cisco systems
+0024c3 cisco systems, inc.
+0024c4 cisco systems, inc.
 0024c5 meridian audio limited
 0024c6 hager electro sas
 0024c7 mobilarm ltd
@@ -9443,9 +9444,9 @@ exit
 0024f4 kaminario technologies ltd.
 0024f5 nds surgical imaging
 0024f6 miyoshi electronics corporation
-0024f7 cisco systems
+0024f7 cisco systems, inc.
 0024f8 technical solutions company ltd.
-0024f9 cisco systems
+0024f9 cisco systems, inc.
 0024fa hilger u. kern gmbh
 0024fb 
 0024fc quopin co., ltd.
@@ -9519,8 +9520,8 @@ exit
 002542 pittasoft
 002543 moneytech
 002544 lojack corporation
-002545 cisco systems
-002546 cisco systems
+002545 cisco systems, inc.
+002546 cisco systems, inc.
 002547 nokia danmark a/s
 002548 nokia danmark a/s
 002549 jeorich tech. co.,ltd.
@@ -9572,7 +9573,7 @@ exit
 002577 d-box technologies
 002578 jsc "concern "sozvezdie"
 002579 j & f labs
-00257a camco produktions- und vertriebs-gmbh fÃÆÃÂ¼r beschallungs- und beleuchtungsanlagen
+00257a camco produktions- und vertriebs-gmbh für  beschallungs- und beleuchtungsanlagen
 00257b stj  electronics  pvt  ltd
 00257c huachentel technology development co., ltd
 00257d pointred telecom private ltd.
@@ -9581,8 +9582,8 @@ exit
 002580 equipson s.a.
 002581 x-star networks inc.
 002582 maksat technologies (p) ltd
-002583 cisco systems
-002584 cisco systems
+002583 cisco systems, inc.
+002584 cisco systems, inc.
 002585 kokuyo s&t co., ltd.
 002586 tp-link technologies co., ltd.
 002587 vitality, inc.
@@ -9628,10 +9629,10 @@ exit
 0025af comfile technology
 0025b0 schmartz inc
 0025b1 maya-creation corporation
-0025b2 lfk-lenkflugkÃÆÃÂ¶rpersysteme gmbh
+0025b2 lfk-lenkflugkörpersysteme gmbh
 0025b3 hewlett-packard company
-0025b4 cisco systems
-0025b5 cisco systems
+0025b4 cisco systems, inc.
+0025b5 cisco systems, inc.
 0025b6 telecom fm
 0025b7 costar  electronics, inc.,
 0025b8 agile communications, inc.
@@ -9659,7 +9660,7 @@ exit
 0025ce innerspace
 0025cf nokia danmark a/s
 0025d0 nokia danmark a/s
-0025d1 eastech electronics (taiwan) inc.
+0025d1 eastern asia technology limited
 0025d2 inpegvision co., ltd
 0025d3 azurewave technologies, inc
 0025d4 fortress technologies
@@ -9693,7 +9694,7 @@ exit
 0025f0 suga electronics limited
 0025f1 motorola mobility, inc.
 0025f2 motorola mobility, inc.
-0025f3 nordwestdeutsche zÃÆÃÂ¤hlerrevision
+0025f3 nordwestdeutsche zählerrevision
 0025f4 koco connector ag
 0025f5 dvs korea, co., ltd
 0025f6 nettalk.com, inc.
@@ -9704,7 +9705,7 @@ exit
 0025fc enda endustriyel elektronik ltd. sti.
 0025fd obr centrum techniki morskiej s.a.
 0025fe pilot electronics corporation
-0025ff crenova technology gmbh
+0025ff crenova multimedia co., ltd
 002600 teac australia pty ltd.
 002601 cutera inc
 002602 smart temps llc
@@ -9715,8 +9716,8 @@ exit
 002607 enabling technology pty ltd
 002608 apple, inc
 002609 phyllis co., ltd.
-00260a cisco systems
-00260b cisco systems
+00260a cisco systems, inc.
+00260b cisco systems, inc.
 00260c dataram
 00260d micronetics, inc.
 00260e ablaze systems, llc
@@ -9745,7 +9746,7 @@ exit
 002625 mediasputnik
 002626 geophysical survey systems, inc.
 002627 truesell
-002628 companytec automaÃÆÃÂ§ÃÆÃÂ£o e controle ltda
+002628 companytec automação e controle ltda.
 002629 juphoon system software inc.
 00262a proxense, llc
 00262b wongs electronics co. ltd.
@@ -9765,7 +9766,7 @@ exit
 002639 t.m. electronics, inc.
 00263a digitec systems
 00263b onbnetech
-00263c bachmann gmbh & co. kg
+00263c bachmann technology gmbh & co. kg
 00263d mia corporation
 00263e trapeze networks
 00263f lios technology gmbh
@@ -9782,10 +9783,10 @@ exit
 00264c shanghai digivision technology co., ltd.
 00264d arcadyan technology corporation
 00264e rail & road protec gmbh
-00264f krÃÆÃÂ¼ger&gothe gmbh
+00264f krüger &gothe gmbh
 002650 2wire
-002651 cisco systems
-002652 cisco systems
+002651 cisco systems, inc.
+002652 cisco systems, inc.
 002653 daysequerra corporation
 002654 3com corporation
 002655 hewlett-packard company
@@ -9826,7 +9827,7 @@ exit
 002678 logic instrument sa
 002679 euphonic technologies, inc.
 00267a wuhan hongxin telecommunication technologies co.,ltd
-00267b gsi helmholtzzentrum fÃÆÃÂ¼r schwerionenforschung gmbh
+00267b gsi helmholtzzentrum für schwerionenforschung gmbh
 00267c metz-werke gmbh & co kg
 00267d a-max technology macao commercial offshore company limited
 00267e parrot sa
@@ -9855,8 +9856,8 @@ exit
 002695 zt group int'l inc
 002696 noolix co., ltd
 002697 cheetah technologies, l.p.
-002698 cisco systems
-002699 cisco systems
+002698 cisco systems, inc.
+002699 cisco systems, inc.
 00269a carina system co., ltd.
 00269b sokrat ltd.
 00269c itus japan co. ltd
@@ -9905,8 +9906,8 @@ exit
 0026c7 intel corporate
 0026c8 system sensor
 0026c9 proventix systems, inc.
-0026ca cisco systems
-0026cb cisco systems
+0026ca cisco systems, inc.
+0026cb cisco systems, inc.
 0026cc nokia danmark a/s
 0026cd purplecomm, inc.
 0026ce kozumi usa corp.
@@ -9971,8 +9972,8 @@ exit
 002709 nintendo co., ltd.
 00270a iee s.a.
 00270b adura technologies
-00270c cisco systems
-00270d cisco systems
+00270c cisco systems, inc.
+00270d cisco systems, inc.
 00270e intel corporate
 00270f envisionnovation inc
 002710 intel corporate
@@ -9994,8 +9995,8 @@ exit
 002720 new-sol com
 002721 shenzhen baoan fenda industrial co., ltd
 002722 ubiquiti networks
-0027f8 brocade communications systems, inc
-002a6a cisco systems
+0027f8 brocade communications systems, inc.
+002a6a cisco systems, inc.
 002aaf larsys-automation gmbh
 002d76 titech gmbh
 003000 allwell technology corp.
@@ -10210,7 +10211,7 @@ exit
 0030d1 inova corporation
 0030d2 win technologies, co., ltd.
 0030d3 agilent technologies
-0030d4 aae systems, inc
+0030d4 aae systems, inc.
 0030d5 dresearch gmbh
 0030d6 msc vertriebs gmbh
 0030d7 innovative systems, l.l.c.
@@ -10260,11 +10261,11 @@ exit
 0036f8 conti temic microelectronic gmbh
 0036fe supervision
 00376d murata manufacturing co., ltd.
-003a98 cisco systems
-003a99 cisco systems
-003a9a cisco systems
-003a9b cisco systems
-003a9c cisco systems
+003a98 cisco systems, inc.
+003a99 cisco systems, inc.
+003a9a cisco systems, inc.
+003a9b cisco systems, inc.
+003a9c cisco systems, inc.
 003a9d nec accesstechnica, ltd.
 003aaf bluebit ltd.
 003cc5 wonwoo engineering co., ltd
@@ -10420,7 +10421,7 @@ exit
 004093 paxdata networks ltd.
 004094 shographics, inc.
 004095 r.p.t. intergroups int'l ltd.
-004096 cisco systems, inc.
+004096 cisco systems
 004097 datex division of
 004098 dressler gmbh & co.
 004099 newgen systems corp.
@@ -10695,11 +10696,11 @@ exit
 0050ab naltec, inc.
 0050ac maple computer corporation
 0050ad communique wireless corp.
-0050ae iwaki electronics co., ltd.
+0050ae fdk co., ltd
 0050af intergon, inc.
 0050b0 technology atlanta corporation
 0050b1 giddings & lewis
-0050b2 brodel automation
+0050b2 brodel gmbh
 0050b3 voiceboard corporation
 0050b4 satchwell control systems, ltd
 0050b5 fichet-bauche
@@ -10715,7 +10716,7 @@ exit
 0050bf metalligence technology corp.
 0050c0 gatan, inc.
 0050c1 gemflex networks, ltd.
-0050c2 ieee registration authority
+0050c2 ieee registration authority  - please see iab public listing for more information.
 0050c4 imd
 0050c5 ads technologies, inc
 0050c6 loop telecommunication international, inc.
@@ -10773,6 +10774,7 @@ exit
 0050ff hakko electronics co., ltd.
 005218 wuxi keboda electron co.ltd
 0054af continental automotive systems inc.
+005907 lenovoemc products usa, llc
 005cb1 gospell digital technology co., ltd
 005d03 xilinx, inc
 006000 xycom inc.
@@ -11031,8 +11033,9 @@ exit
 0060fd netics, inc.
 0060fe lynx system developers, inc.
 0060ff quvis, inc.
-006440 cisco systems
+006440 cisco systems, inc.
 0064a6 maquet cardiovascular
+00664b huawei technologies co., ltd
 006b9e vizio inc
 006ba0 shenzhen universal intellisys pte ltd
 006dfb vutrix (uk) ltd
@@ -11859,7 +11862,7 @@ exit
 00b0ce technology rescue
 00b0d0 dell computer corp.
 00b0db nextcell, inc.
-00b0df reldata inc
+00b0df starboard storage systems
 00b0e7 british federal ltd.
 00b0ec eacem
 00b0ee ajile systems, inc.
@@ -11872,6 +11875,7 @@ exit
 00b9f6 shenzhen super rich electronics co.,ltd
 00bac0 biometric access company
 00bb01 octothorpe corp.
+00bb3a 
 00bb8e hme co., ltd.
 00bbf0 ungermann-bass inc.
 00bd27 exar corp.
@@ -12090,7 +12094,7 @@ exit
 00c0d2 syntellect, inc.
 00c0d3 olympus image systems, inc.
 00c0d4 axon networks, inc.
-00c0d5 werbeagentur jÃÆÃÂ¼rgen siebert
+00c0d5 werbeagentur jürgen siebert
 00c0d6 j1 systems, inc.
 00c0d7 taiwan trading center dba
 00c0d8 universal data systems
@@ -12133,6 +12137,7 @@ exit
 00c0fd prosum
 00c0fe aptec computer systems, inc.
 00c0ff dot hill systems corporation
+00c14f ddl co,.ltd.
 00c2c6 intel corporate
 00c610 apple, inc.
 00cbbd cambridge broadband networks ltd.
@@ -12277,7 +12282,7 @@ exit
 00d088 motorola, inc.
 00d089 dynacolor, inc.
 00d08a photron usa
-00d08b adva optical networking ltd
+00d08b adva optical networking ltd.
 00d08c genoa technology, inc.
 00d08d phoenix group, inc.
 00d08e nvision inc.
@@ -12416,7 +12421,7 @@ exit
 00dd0d ungermann-bass inc.
 00dd0e ungermann-bass inc.
 00dd0f ungermann-bass inc.
-00defb cisco systems
+00defb cisco systems, inc.
 00e000 fujitsu limited
 00e001 strand lighting limited
 00e002 crossroads systems, inc.
@@ -12551,7 +12556,7 @@ exit
 00e083 jato technologies, inc.
 00e084 compulite r&d
 00e085 global maintech, inc.
-00e086 cybex computer products
+00e086 emerson network power, avocent division
 00e087 lecroy - networking productions division
 00e088 ltx corporation
 00e089 ion networks, inc.
@@ -12677,6 +12682,7 @@ exit
 00e666 arima communications corp.
 00e6d3 nixdorf computer corp.
 00e8ab meggitt training systems, inc.
+00eb2d sony mobile communications ab
 00f051 kwb gmbh
 00f403 orbis systems oy
 00f4b9 apple, inc.
@@ -12702,6 +12708,7 @@ exit
 040ae0 xmit ag computer networks
 040cce apple, inc.
 040ec2 viewsonic mobile china limited
+041552 apple
 04180f samsung electronics co.,ltd
 0418b6 
 0418d6 ubiquiti networks
@@ -12709,7 +12716,8 @@ exit
 041e64 apple, inc
 04209a panasonic avc networks company
 042234 wireless standard extensions
-042605 gfr gesellschaft fÃÂ¼r regelungstechnik und energieeinsparung mbh
+042605 gfr gesellschaft für regelungstechnik und energieeinsparung mbh
+042665 apple
 042bbb picocela, inc.
 042f56 atocs (shenzhen) ltd
 0432f4 partron
@@ -12717,12 +12725,15 @@ exit
 044665 murata manufacturing co., ltd.
 044a50 ramaxel technology (shenzhen) limited company
 044bff guangzhou hedy digital technology co., ltd
+044cef fujian sanao technology co.,ltd
 044faa ruckus wireless
 045453 apple, inc.
 0455ca briview (xiamen) corp.
+04586f sichuan whayer information industry co.,ltd
 045a95 nokia corporation
 045c06 zmodo technology corporation
 045d56 camtron industrial inc.
+045fa7 shenzhen yichen technology development co.,ltd
 0462d7 alstom hydro france
 0463e0 nome oy
 046d42 bryston ltd.
@@ -12745,17 +12756,19 @@ exit
 04a82a nokia corporation
 04b3b6 seamap (uk) ltd
 04b466 bsp co., ltd.
+04bfa8 isb corporation
 04c05b tigo energy
 04c06f huawei device co., ltd
 04c1b9 fiberhome telecommunication tech.co.,ltd.
-04c5a4 cisco systems
+04c5a4 cisco systems, inc.
 04c880 samtec inc
 04ce14 wilocity ltd.
 04d783 y&h e&c co.,ltd.
+04dad2 cisco
 04dd4c ipblaze
 04e0c4 triumph-adler ag
-04e1c8 ims soluÃÂ§ÃÂµes em energia ltda.
-04e2f8 aep srl
+04e1c8 ims soluções em energia ltda.
+04e2f8 aep ticketing solutions srl
 04e451 texas instruments
 04e548 cohda wireless pty ltd
 04e662 acroname inc.
@@ -12767,7 +12780,7 @@ exit
 04f7e4 apple
 04f8c2 flaircomm microelectronics, inc.
 04fe31 samsung electronics co.,ltd
-04fe7f cisco systems
+04fe7f cisco systems, inc.
 04ff51 novamedia innovision sp. z o.o.
 080001 computervision corporation
 080002 bridge communications inc.
@@ -12912,37 +12925,47 @@ exit
 08008e tandem computers
 08008f chipcom corporation
 080090 sonoma systems
+0808c2 samsung electronics
 0808ea amsc
 080c0b sysmik gmbh dresden
 080cc9 mission technology group, dba magma
 080d84 geco, inc.
+080ea8 velex s.r.l.
 080ffa ksp inc.
 081196 intel corporate
 081443 unibrain s.a.
 081651 shenzhen sea star technology co.,ltd
-081735 cisco systems
+081735 cisco systems, inc.
 0817f4 ibm corp
 08181a zte corporation
 08184c a. s. thomas, inc.
 0819a6 huawei technologies co.,ltd
-081ff3 cisco systems
+081dfb shanghai mexon communication technology co.,ltd
+081f3f wondalink inc.
+081ff3 cisco systems, inc.
 082522 advansee
 082ad0 srd innovations inc.
 082e5f hewlett packard
+08373d samsung electronics co.,ltd
 08379c topaz co. ltd.
 0838a5 funkwerk plettac electronic gmbh
 083ab8 shinoda plasma co., ltd.
 083e8e hon hai precision ind.co.ltd
+08482c raycore taiwan co., ltd.
 084e1c h2a systems, llc
 084ebf broad net mux corporation
 08512e orion diagnostica oy
 085b0e fortinet, inc.
 08606e asustek computer inc.
+086361 huawei technologies co., ltd
+0868d0 japan system design
 0868ea eito electronics co., ltd.
 087572 obelux oy
 087618 vie technologies sdn. bhd.
 087695 auto industrial co., ltd.
 0876ff thomson telecom belgium
+087999 aim gmbh
+087a4c huawei technologies co., ltd
 087baa svyazkomplektservice, llc
 087cbe quintic corp.
 087d21 altasec technology corporation
@@ -12961,7 +12984,8 @@ exit
 08b7ec wireless seismic
 08bbcc ak-nord edv vertriebsges. mbh
 08be09 astrol electronic ag
-08d09f cisco systems
+08cc68 cisco
+08d09f cisco systems, inc.
 08d29a proformatique
 08d40c intel corporate
 08d42b samsung electronics
@@ -12977,6 +13001,9 @@ exit
 08f6f8 get engineering
 08fae0 fohhn audio ag
 08fc52 openxs bv
+08fc88 samsung electronics co.,ltd
+0c0400 jantar d.o.o.
+0c1105 ringslink (xiamen) network communication technologies co., ltd
 0c130b uniqoteq ltd.
 0c1420 samsung electronics co.,ltd
 0c15c5 sdtec co., ltd.
@@ -12985,32 +13012,38 @@ exit
 0c1dc2 seah networks
 0c2755 valuable techologies limited
 0c2a69 electric imp, incorporated
+0c2ae7 beijing general research institute of mining and metallurgy
 0c37dc huawei technologies co., ltd
 0c3956 observator instruments
 0c3c65 dome imaging inc
 0c469d ms sedco
 0c4c39 mitrastar technology
 0c51f7 chauvin arnoux
+0c5521 axiros gmbh
 0c565c hybroad vision (hong kong) technology co ltd
 0c57eb mueller systems
 0c5a19 axtion sdn bhd
 0c6076 hon hai precision ind. co.,ltd.
 0c6e4f primevolt co., ltd.
 0c715d samsung electronics co.,ltd
+0c722c tp-link technologies co.,ltd.
 0c74c2 apple, inc.
 0c7523 beijing gehua catv network co.,ltd
 0c771a apple, inc.
 0c7d7c kexiang information technology co, ltd.
 0c8112 
 0c8230 shenzhen magnus technologies co.,ltd
+0c8268 tp-link technologies co.,ltd.
 0c826a wuhan huagong genuine optics technology co., ltd
 0c8411 a.o. smith water products
-0c8525 cisco systems
+0c8484 zenovia electronics inc.
+0c8525 cisco systems, inc.
 0c8bfd intel corporate
 0c8cdc suunto oy
 0c8d98 top eight ind corp
 0c924e rice lake weighing systems
 0c93fb bns solutions
+0c96bf huawei technologies co., ltd
 0c9d56 consort controls ltd
 0c9e91 sankosha corporation
 0ca138 blinq wireless inc.
@@ -13034,7 +13067,7 @@ exit
 0cd502 westell
 0cd696 amimon ltd
 0cd7c2 axium technologies, inc.
-0cd996 cisco systems
+0cd996 cisco systems, inc.
 0cd9c1 johnson controls-asg
 0cda41 hangzhou h3c technologies co., limited
 0cdccc inala technologies
@@ -13049,6 +13082,7 @@ exit
 0cf0b4 globalsat international technology ltd
 0cf361 java information
 0cf3ee em microelectronic
+0cf405 beijing signalway technologies co.,ltd
 0cf893 arris group, inc.
 0cfc83 airoha technology corp.,
 100000 
@@ -13068,12 +13102,15 @@ exit
 1013ee justec international technology inc.
 10189e elmo motion control
 101b54 huawei technologies co.,ltd
+101c0c apple
 101d51 on-q llc dba on-q mesh networks
 101dc0 samsung electronics co.,ltd
 101f74 hewlett-packard company
+102831 morion inc.
 102d96 looxcie inc.
 102eaf texas instruments
 103711 simlink as
+103dea hfc technology (beijing) ltd. co.
 1040f3 apple, inc.
 104369 soundmax electronic limited
 10445a shaanxi hitech electronic co., ltd
@@ -13081,23 +13118,27 @@ exit
 1045f8 lnt-automation gmbh
 104780 huawei technologies co.,ltd
 1048b1 beijing duokan technology limited
+104d77 innovative computer engineering
 1056ca peplink international ltd.
 105cbf durobyte inc
+105f06 actiontec electronics, inc
 105f49 cisco spvtg
 10604b hewlett packard
 1062c9 adatis gmbh & co. kg
 1064e2 adfweb.com s.r.l.
 1065a3 panamax inc.
 1065cf iqsim
+106682 nec accesstechnica, ltd.
 10683f lg electronics
 106f3f buffalo inc.
 106fef ad-sol nissin corp
 1071f9 cloud telecomputers, llc
 10768a eocell
+1077b1 samsung electronics co.,ltd
 1078d2 elitegroup computer system co., ltd.
 1083d2 microseven systems, llc
-10880f daruma telecomunicaÃÆÃ¢â¬Â¡ÃÆÃ¢â¬Â¢es e informÃÆÃÂtica s/a
-108ccf cisco systems
+10880f daruma telecomunicações e informática s.a.
+108ccf cisco systems, inc.
 1093e9 apple, inc.
 109add apple, inc.
 109fa9 actiontec electronics, inc
@@ -13105,8 +13146,9 @@ exit
 10a743 sk mtek limited
 10a932 beijing cyber cloud technology co. ,ltd.
 10b7f6 plastoform industries ltd.
+10b9fe lika srl
 10baa5 gana i&c co., ltd
-10bd18 cisco systems
+10bd18 cisco systems, inc.
 10bf48 asustek computer inc.
 10c2ba utt co., ltd.
 10c586 bio sound lab co., ltd.
@@ -13116,6 +13158,7 @@ exit
 10ca81 precia
 10ccdb aximum produits electroniques
 10d1dc instar deutschland gmbh
+10d542 samsung electronics co.,ltd
 10ddb1 apple
 10e2d5 qi hardware inc.
 10e3c7 seohwa telecom
@@ -13124,6 +13167,7 @@ exit
 10e8ee phasespace
 10ea59 cisco spvtg
 10eed9 canoga perkins corporation
+10f311 cisco
 10f3db gridco systems, inc.
 10f49a t3 innovation
 10f96f lg electronics
@@ -13136,10 +13180,12 @@ exit
 1407e0 abrantix ag
 140c76 freebox sas
 14109f apple inc
+141330 anakreon uk llp
 14144b fujian star-net communication co.,ltd
 141a51 treetech sistemas digitais
 141bbd volex inc.
 141bf0 intellimedia systems ltd
+1423d7 eutronix co., ltd.
 142df5 amphitech
 14307a avermetrics
 14358b mediabridge products, llc.
@@ -13148,6 +13194,7 @@ exit
 14373b procom systems
 143aea dynapower company llc
 143e60 alcatel-lucent
+1441e2 monaco enterprises, inc.
 144319 creative&link technology limited
 144978 digital control incorporated
 144c1a max communication gmbh
@@ -13162,10 +13209,12 @@ exit
 147db3 joa telecom.co.,ltd
 147dc5 murata manufacturing co., ltd.
 14825b hefei radio communication technology co., ltd
+148692 tp-link technologies co.,ltd.
 1489fd samsung electronics
 148a70 ads gmbh
 148fc6 apple, inc.
 149090 kongtop industrial(shen zhen)co.,ltd
+149448 blu castle s.a.
 149fe8 lenovo mobile communication technology ltd.
 14a62c s.m. dezac s.a.
 14a86b shenzhen telacom science&technology co., ltd
@@ -13189,6 +13238,7 @@ exit
 14feaf sagittar limited
 14feb5 dell inc
 18002d sony mobile communications ab
+1800db fitbit inc.
 1801e3 elektrobit wireless communications ltd
 180373 dell inc
 1803fa ibt interfaces
@@ -13199,13 +13249,15 @@ exit
 181420 teb sas
 181456 nokia corporation
 181714 daewoois
+181725 cameo communications, inc.
 18193f tamtron oy
 182032 apple, inc.
 182861 airties wireless networks
 182a7b nintendo co., ltd.
 182b05 8d technologies
 182c91 concept development, inc.
-18339d cisco systems
+1832a2 laon technology co., ltd.
+18339d cisco systems, inc.
 183451 apple, inc.
 183825 wuhan lingjiu high-tech co.,ltd.
 183919 unicoi systems
@@ -13218,16 +13270,20 @@ exit
 1848d8 fastback networks
 184e94 messoa technologies inc.
 185253 pixord corporation
+1853e0 hanyang digitech co.ltd
 18550f cisco spvtg
 185933 cisco spvtg
+185ae8 zenotech.co.,ltd
 1866e3 veros systems, inc.
 18673f hanover displays limited
 186751 komeg industrielle messtechnik gmbh
+1867b0 samsung electronics co.,ltd
 186d99 adanis inc.
 187a93 amiccom electronics corporation
 187c81 valeo vision systems
 1880ce barberry solutions ltd
 1880f5 alcatel-lucent shanghai bell co., ltd
+188410 coretrust inc.
 18863a digital art system
 1886ac nokia danmark a/s
 188796 htc corporation
@@ -13251,14 +13307,17 @@ exit
 18d071 dasan smc, inc.
 18d66a inmarsat
 18d949 qvis labs, llc
+18dc56 yulong computer telecommunication scientific(shenzhen)co.,lt
 18e288 stt condigi
 18e2c2 samsung electronics
 18e7f4 apple, inc.
 18e80f viking electronics inc.
-18ef63 cisco systems
+18e8dd moduletek
+18ef63 cisco systems, inc.
 18f46a hon hai precision ind. co.,ltd.
 18f650 multimedia pacific limited
 18f87a i3 international inc.
+18fa6f isc applied systems corp
 18fc9f changhe electronics co., ltd.
 1c0656 idy corporation
 1c0b52 epicom s.a
@@ -13266,15 +13325,17 @@ exit
 1c11e1 wartsila finland oy
 1c129d ieee pes psrc/sub
 1c1448 motorola mobility, inc.
-1c17d3 cisco systems
+1c17d3 cisco systems, inc.
 1c184a shenzhen richerlink technologies co.,ltd
 1c19de eyevis gmbh
 1c1d67 huawei device co., ltd
 1c334d its telecom
 1c3477 innovation wireless
 1c35f1 new lift neue elektronische wege steuerungsbau gmbh
+1c37bf cloudium systems ltd.
 1c3a4f accuspec electronics, llc
 1c3de7 sigma koki co.,ltd.
+1c3e84 hon hai precision ind. co.,ltd.
 1c43ec japan circuit co.,ltd
 1c4593 texas instruments
 1c4bd6 azurewave
@@ -13293,6 +13354,7 @@ exit
 1c6bca mitsunami co., ltd.
 1c6f65 giga-byte technology co.,ltd.
 1c7508 compal information (kunshan) co., ltd.
+1c76ca terasic technologies inc.
 1c7c11 eid
 1c7c45 vitek industrial video products, inc.
 1c7ee5 d-link international
@@ -13305,12 +13367,13 @@ exit
 1c955d i-lax electronics inc.
 1c959f veethree electronics and marine llc
 1c973d pricom design
-1caa07 cisco systems
+1caa07 cisco systems, inc.
 1caba7 apple, inc.
 1caff7 d-link international pte limited
 1cb094 htc corporation
 1cb17f nec accesstechnica, ltd.
 1cb243 tdc a/s
+1cba8c texas instruments
 1cbba8 ojsc "ufimskiy zavod "promsvyaz"
 1cbd0e amplified engineering pty ltd
 1cbdb9 d-link international pte limited
@@ -13318,7 +13381,7 @@ exit
 1cc316 milesight technology co., ltd.
 1cc63c arcadyan technology corporation
 1cd40c kriwan industrie-elektronik gmbh
-1cdf0f cisco systems
+1cdf0f cisco systems, inc.
 1ce165 marshal corporation
 1ce192 qisda corporation
 1ce2cc texas instruments
@@ -13326,6 +13389,7 @@ exit
 1cf061 scaps gmbh
 1cf4ca 
 1cf5e7 turtle industry co., ltd.
+1cfa68 tp-link technologies co.,ltd.
 1cfea7 identytech solutins ltd.
 20014f linea research ltd
 2002af murata manufactuaring co.,ltd.
@@ -13336,11 +13400,12 @@ exit
 201257 most lucky trading ltd
 2013e0 samsung electronics co.,ltd
 2016d8 liteon technology corporation
+201a06 compal information (kunshan) co., ltd.
 2021a5 lg electronics inc
 202598 teleview
 202bc1 huawei device co., ltd
 202cb7 kong yue electronics & information industry (xinhui) ltd.
-203706 cisco systems
+203706 cisco systems, inc.
 2037bc kuipers electronic engineering bv
 203a07 cisco
 204005 feno gmbh
@@ -13349,6 +13414,7 @@ exit
 2046a1 vecow co., ltd
 2046f9 advanced network devices (dba:and)
 204aaa hanscan spain s.a.
+204c6d hugo brennenstuhl gmbh & co. kg.
 204e6b axxana(israel) ltd
 204e7f netgear
 205476 sony mobile communications ab
@@ -13365,9 +13431,11 @@ exit
 2074cf shenzhen voxtech co.,ltd
 207600 actiontec electronics, inc
 207c8f quanta microsystems,inc.
+207d74 apple
 20858c assa
 208984 compal information (kunshan) co., ltd
-2091d9 i&#39;m spa
+20918a profalux
+2091d9 i'm spa
 209ba5 jiaxing glead electronics co.,ltd
 20a2e7 lee-dickens ltd
 20aa25 ip-net llc
@@ -13376,6 +13444,7 @@ exit
 20b399 enterasys
 20b5c6 mimosa networks
 20b7c0 omicron electronics gmbh
+20bbc0 cisco
 20bbc6 jabil circuit hungary ltd.
 20bfdb dvl
 20c1af i wit digital co., limited
@@ -13400,6 +13469,7 @@ exit
 20fedb m2m solution s.a.s.
 2401c7 cisco
 240917 devlin electronics limited
+240a64 azurewavetechnologies,inc
 240b2a viettel group
 240bb1 kostal industrie elektrik gmbh
 241064 shenzhen ecsino tecnical co. ltd
@@ -13417,21 +13487,25 @@ exit
 24470e pentronicab
 24497b innovative converged devices inc
 245fdf kyocera corporation
+246278 sysmocom - systems for mobile communications gmbh
 246511 avm gmbh
 24694a jasmine systems inc.
+2469a5 huawei technologies co., ltd
 24767d cisco spvtg
 247703 intel corporate
+2481aa ksh international co., ltd.
 24828a prowave technologies ltd.
 2486f4 ctek, inc.
 248707 senergy corporation
 249442 open road solutions , inc.
+249504 sfr
 24a42c koukaam a.s.
 24a43c ubiquiti networks, inc
 24a937 pure storage
 24ab81 apple, inc.
 24af4a alcatel-lucent-ipd
 24af54 nexgen mediatech inc.
-24b657 cisco systems
+24b657 cisco systems, inc.
 24b6b8 friem spa
 24b6fd dell inc
 24b88c crenus co.,ltd.
@@ -13448,11 +13522,13 @@ exit
 24cf21 shenzhen state micro technology co., ltd
 24d2cc smartdrive systems inc.
 24d921 avaya, inc
-24dab6 sistemas de gestiÃÂ³n energÃÂ©tica s.a. de c.v.
+24dab6 sistemas de gestión energética s.a. de c.v
 24dbac huawei device co., ltd
 24dbad shoppertrak rct corporation
 24dec6 aruba networks
 24e6ba jsc zavod im. kozitsky
+24ea40 systeme helmholz gmbh
+24eb65 saet i.s. s.r.l.
 24ec99 askey computer corp
 24ee3a chengdu yingji electronic hi-tech co ltd
 24f0ff ght co., ltd.
@@ -13466,9 +13542,12 @@ exit
 281471 lantis co., ltd.
 28162e 2wire
 2817ce omnisense ltd
+281878 microsoft corporation
 2818fd aditya infotech ltd.
 2826a6 pbr electronics gmbh
 2829d9 globalbeiming technology (beijing)co. ltd
+282cb2 tp-link technologies co.,ltd.
+283152 huawei technologies co.,ltd
 283410 enigma diagnostics limited
 283737 apple, inc.
 2838cf gen2wave
@@ -13490,10 +13569,10 @@ exit
 2872f0 athena
 28852d touch networks
 288915 cashguard sverige ab
-2891d0 stage tec entwicklungsgesellschaft fuer professionelle audiotechnik mbh
+2891d0 stage tec entwicklungsgesellschaft für professionelle audiotechnik mbh
 28924a hewlett packard
-2893fe cisco systems
-28940f cisco systems
+2893fe cisco systems, inc.
+28940f cisco systems, inc.
 28987b samsung electronics co.,ltd
 289a4b steelseries aps
 289edf danfoss turbocor compressors, inc
@@ -13502,16 +13581,22 @@ exit
 28a574 miller electric mfg. co.
 28af0a sirius xm radio inc
 28b0cc xenya d.o.o.
+28b2bd intel corporate
 28b3ab genmark automation
 28ba18 nextnav, llc
 28be9b technicolor usa inc.
 28c0da juniper networks
+28c68e netgear inc.,
 28c718 altierre
 28c914 taimag corporation
+28cbeb one
+28cc01 samsung electronics co.,ltd
 28ccff corporacion empresarial altra sl
 28cd1c espotel oy
 28cd4c individual computers gmbh
+28cd9c shenzhen dynamax software development co.,ltd.
 28cfda apple, inc.
+28cfe9 apple
 28d1af nokia corporation
 28d244 lcfc(hefei) electronics technology co., ltd.
 28d576 premier wireless, inc.
@@ -13535,29 +13620,35 @@ exit
 2c1984 idn telecom, inc.
 2c1eea aerodev
 2c2172 juniper networks
+2c245f babolat vs
+2c26c5 zte corporation
 2c27d7 hewlett-packard company
+2c282d bbk communicatiao technology co.,ltd.
 2c2d48 bct electronic gesmbh
 2c3068 pantech co.,ltd
-2c3427 erco &amp; gener
+2c3427 erco & gener
 2c3557 elliy power co..ltd
 2c36a0 capisco limited
-2c36f8 cisco systems
-2c3a28 fagor electrÃÂ³nica
+2c36f8 cisco systems, inc.
+2c3996 sagemcom
+2c3a28 fagor electrónica
 2c3bfd netstor technology co., ltd.
-2c3f38 cisco systems
+2c3f38 cisco systems, inc.
 2c3f3e alge-timing gmbh
 2c4138 hewlett-packard company
 2c4401 samsung electronics co.,ltd
 2c441b spectrum medical limited
-2c542d cisco systems
+2c542d cisco systems, inc.
+2c59e5 hewlett packard
 2c5aa3 promate electronic co.ltd
 2c625a finest security systems co., ltd
 2c6289 regenersis (glenrothes) ltd
 2c67fb shenzhen zhengjili electronics co., ltd
+2c69ba rf controls, llc
 2c6bf5 juniper networks
 2c750f shanghai dongzhou-lawton communication technology co. ltd.
 2c768a hewlett-packard company
-2c7afe iee&e "black" ops
+2c7b5a milper ltd
 2c7ecf onzo ltd
 2c8065 harting inc. of north america
 2c8158 hon hai precision ind. co.,ltd
@@ -13572,11 +13663,14 @@ exit
 2cab25 shenzhen gongjin electronics co.,ltd
 2cb05d netgear
 2cb0df soliton technologies pvt ltd
+2cb43a apple
+2cb693 radware
 2cb69d red digital cinema
 2cbe97 ingenieurbuero bickele und buehler gmbh
 2cc260 ravello systems
 2ccd27 precor inc
 2ccd43 summit technology group
+2cd05a liteon technology corporation
 2cd1da sanjole, inc.
 2cd2e7 nokia corporation
 2cd444 fujitsu limited
@@ -13586,11 +13680,14 @@ exit
 2ce871 alert metalguard aps
 2cedeb alpheus digital company limited
 2cee26 petroleum geo-services
-2cf4c5 avaya inc
+2cf203 emko elektronik san ve tic as
+2cf4c5 avaya, inc
+30055c brother industries, ltd.
 300b9c delta mobile systems, inc.
 300ed5 hon hai precision ind.co.ltd
 30142d piciorgros gmbh
 30144a wistron neweb corp.
+301518 ubiquitous communication co. ltd.
 30168d prolon
 3017c8 sony ericsson mobile communications ab
 3018cf deos control systems gmbh
@@ -13599,7 +13696,7 @@ exit
 302de8 jda, llc (jda systems)
 303294 w-ie-ne-r plein & baus gmbh
 3032d4 hanilstm co., ltd.
-3037a6 cisco systems
+3037a6 cisco systems, inc.
 303855 nokia corporation
 303926 sony ericsson mobile communications ab
 303955 shenzhen jinhengjia electronic co., ltd.
@@ -13626,16 +13723,22 @@ exit
 307ecb sfr
 3085a9 asustek computer inc
 308730 huawei device co., ltd
+308999 guangdong east power co.,
 308cfb dropcam
+3090ab apple
 3092f6 shanghai sunmon communication technogy co.,ltd
+30aabd shanghai reallytek information technology co.,ltd
+30ae7b deqing dusun electron co., ltd
 30aef6 radio mobile access
 30b216 hytec geraetebau gmbh
 30b3a2 shenzhen heguang measurement & control technology co.,ltd
 30c82a wi-next s.r.l.
+30cda7 samsung electronics its, printer division
 30d357 logosol, inc.
+30d46a autosales incorporated
 30de86 cedac software s.r.l.
 30e48e vodafone uk
-30e4db cisco systems
+30e4db cisco systems, inc.
 30eb25 intek digital
 30efd1 alstom strongwish (shenzhen) co., ltd.
 30f33a +plugg srl
@@ -13660,6 +13763,7 @@ exit
 346bd3 huawei technologies co., ltd
 346e8a ecosense
 346f92 white rodgers division
+3475c7 avaya, inc
 3476c5 i-o data device, inc.
 347877 o-net communications(shenzhen) limited
 347e39 nokia danmark a/s
@@ -13679,7 +13783,9 @@ exit
 34a84e cisco
 34aa99 alcatel-lucent
 34aaee mikrovisatos servisas uab
+34ade4 shanghai chint power systems co., ltd.
 34af2c nintendo co., ltd.
+34b1f7 texas instruments
 34b571 plds
 34ba51 se-kure controls, inc.
 34ba9a asiatelco technologies co.
@@ -13694,6 +13800,7 @@ exit
 34c731 alps electric co,. ltd.
 34c803 nokia corporation
 34c99d eidolon communications technology co. ltd.
+34cdbe huawei technologies co., ltd
 34ce94 parsec (pty) ltd
 34d09b mobilmax technology inc.
 34d2c4 rena gmbh print systeme
@@ -13704,6 +13811,7 @@ exit
 34ef44 2wire
 34ef8b ntt communications corporation
 34f39b wizlan ltd.
+34f62d sharp corporation
 34f968 atek products, llc
 34fa40 guangzhou robustel technologies co., limited
 34fc6f alcea
@@ -13711,7 +13819,9 @@ exit
 380a0a sky-city communication and electronics limited company
 380a94 samsung electronics co.,ltd
 380dd4 primax electronics ltd.
+380fe4 dedicated network partners oy
 3816d1 samsung electronics co.,ltd
+381766 promzakaz ltd.
 38192f nokia corporation
 381c4a simcom wireless solutions co.,ltd.
 38229d adb broadband italia
@@ -13720,8 +13830,11 @@ exit
 3828ea fujian netcom technology co., ltd
 3831ac weg
 383f10 dbl technology ltd.
+384369 patrol products consortium llc
 38458c mycloud technology corporation
 384608 zte corporation
+38484c apple
+384ff0 azurewave technologies, inc.
 38521a alcatel-lucent 7705
 38580c panaccess systems gmbh
 3859f9 hon hai precision ind. co.,ltd.
@@ -13729,28 +13842,33 @@ exit
 386077 pegatron corporation
 3863f6 3nod multimedia(shenzhen)co.,ltd
 386645 oosic technology co.,ltd
+386793 asia optical co., inc.
 386bbb motorola mobility, inc.
 386e21 wasion group ltd.
 3872c0 comtrend
 388345 tp-link technologies co., ltd.
-388ab7 panasonic telecom co.,ltd
+388ab7 itc networks
 388ee7 fanhattan llc
 3891fb xenox holding bv
 389592 beijing tendyron corporation
 389f83 otn systems n.v.
 38a5b6 shenzhen megmeet electrical co.,ltd
 38a851 quickset international inc
+38a86b orga bv
 38a95f actifio inc
 38aa3c samsung electro-mechanics
 38b12d sonotronic nagel gmbh
+38b5bd e.g.o. elektro-ger
 38bb23 ozvision america llc
 38bc1a meizu technology co.,ltd
 38bf33 nec casio mobile communications
+38c096 alps electric co.,ltd.
 38c7ba cs services co.,ltd.
 38c85c cisco spvtg
 38d135 easyio corporation sdn. bhd.
 38de60 mohlenhoff gmbh
-38e08e mitsubishi electric co.
+38e08e mitsubishi electric corporation
+38e595 shenzhen gongjin electronics co.,ltd
 38e7d8 htc corporation
 38e8df b gmbh medien + datenbanken
 38e98c reco s.p.a.
@@ -13765,6 +13883,7 @@ exit
 3c05ab product creation studio
 3c0754 apple, inc.
 3c0771 sony corporation
+3c081e beijing yupont electric power technology co.,ltd
 3c096d powerhouse dynamics
 3c0fc1 kbc networks
 3c106f albahith technologies
@@ -13773,7 +13892,7 @@ exit
 3c1a79 huayuan technology co.,ltd
 3c1cbe jadak llc
 3c26d5 sotera wireless
-3c2763 sle quality engineering gmbh &amp; co. kg
+3c2763 sle quality engineering gmbh & co. kg
 3c2db7 texas instruments
 3c2f3a sforzato corp.
 3c363d nokia corporation
@@ -13793,16 +13912,19 @@ exit
 3c672c sciovid inc.
 3c6a7d niigata power systems co., ltd.
 3c6f45 fiberpro inc.
+3c6ff7 entek systems, inc.
 3c7059 makerbot industries
 3c7437 rim
 3c754a motorola mobility, inc.
 3c7db1 texas instruments
 3c81d8 sagemcom sas
 3c83b5 advance vision electronics co. ltd.
+3c86a8 sangshin elecom .co,, ltd
 3c8ae5 tensun information technology(hangzhou) co.,ltd
 3c8bfe samsung electronics
 3c9157 hangzhou yulong conmunication co.,ltd
 3c9174 along communication technology
+3c94d5 juniper networks
 3c970e wistron infocomm(kunshan)co.,ltd.
 3c98bf quest controls, inc.
 3c99f7 lansentechnology ab
@@ -13815,16 +13937,18 @@ exit
 3cb87a 
 3cb9a6 belden deutschland gmbh
 3cbdd8 lg electronics inc
-3cc0c6 d&amp;b audiotechnik gmbh
+3cc0c6 d&b audiotechnik gmbh
 3cc12c aes corporation
 3cc1f6 melange systems pvt. ltd.
+3cc243 nokia corporation
 3cc99e huiyang technology co., ltd
-3cce73 cisco systems
+3cce73 cisco systems, inc.
 3cd0f8 apple, inc.
 3cd16e telepower communication co., ltd
 3cd7da sk mtek microelectronics(shenzhen)limited
 3cd92b hewlett-packard company
-3cdf1e cisco systems
+3cdf1e cisco systems, inc.
+3ce072 apple
 3ce5a6 hangzhou h3c technologies co., ltd.
 3ce5b4 kidasen industria e comercio de antenas ltda
 3ce624 lg display
@@ -13833,6 +13957,7 @@ exit
 3cf392 virtualtek. co. ltd
 3cf52c dspecialists gmbh
 3cf72a nokia corporation
+3cfb96 emcraft systems llc
 4001c6 3com europe ltd
 40040c a&t
 400e67 tremol ltd.
@@ -13858,8 +13983,9 @@ exit
 404a03 zyxel communications corporation
 404d8e huawei device co., ltd
 4050e0 milton security group llc
+40516c grandex international corporation
 40520d pico technology
-405539 cisco systems
+405539 cisco systems, inc.
 405a9b anovo
 405fbe rim
 405fc2 texas instruments
@@ -13884,10 +14010,11 @@ exit
 40984c casacom solutions ag
 40984e texas instruments
 40987b aisino corporation
-409fc7 baekchun enc co., ltd.
+409fc7 baekchun i&c co., ltd.
 40a6a4 passivsystems ltd
 40a6d9 apple, inc.
 40ac8d data management, inc.
+40b0fa lg electronics
 40b2c8 nortel networks
 40b395 apple
 40b3fc logital co. limited
@@ -13897,35 +14024,43 @@ exit
 40bc8b itelio gmbh
 40bf17 digistar telecom. sa
 40c245 shenzhen hexicom technology co., ltd.
+40c4d6 chongqing camyu technology development co.,ltd.
 40c7c9 naviit inc.
+40cba8 huawei technologies co., ltd
 40cd3a z3 technology
 40d32d apple, inc
 40d40e biodata ltd
 40d559 micro s.e.r.i.
 40d855 ieee registration authority
+40e730 dey storage systems, inc.
 40e793 shenzhen siviton technology co.,ltd
 40ecf8 siemens ag
 40ef4c fihonest communication co.,ltd
 40f14c ise europe sprl
 40f2e9 ibm
 40f407 nintendo co., ltd.
-40f4ec cisco systems
+40f4ec cisco systems, inc.
 40f52e leica microsystems (schweiz) ag
 40fc89 motorola mobility, inc.
 4403a7 cisco
 440cfd netman co., ltd.
 441319 wkk technology ltd.
+44184f fitview
+4419b6 hangzhou hikvision digital technology co.,ltd.
 441ea1 hewlett-packard company
 4423aa farmage co., ltd.
 4425bb bamboo entertainment corporation
 442a60 apple, inc.
-442b03 cisco systems
-44322a avaya inc
+442b03 cisco systems, inc.
+44322a avaya, inc
+4432c8 technicolor usa inc.
+44334c shenzhen bilian electronic co.,ltd
 44348f mxt industrial ltda
 443719 2 save energy ltd
 44376f young electric sign co
 4437e6 hon hai precision ind.co.ltd
 443839 cumulus networks, inc
+4439c4 universal global scientific industrial co.,ltd
 443d21 nuvolt
 443eb2 deotron co., ltd.
 444c0c apple inc
@@ -13940,6 +14075,7 @@ exit
 445ef3 tonalite holding b.v.
 445f7a shihlin electric & engineering corp.
 446132 ecobee inc
+44619c fonsystem co. ltd.
 4468ab juin company, limited
 446c24 reallin electronic co.,ltd
 446d57 liteon technology corporation
@@ -13953,7 +14089,9 @@ exit
 448e12 dt research, inc.
 448e81 vig
 4491db shanghai huaqin telecom technology co.,ltd
+4494fc netgear inc.,
 4495fa qingdao santong digital technology co.ltd
+449b78 the now factory
 449cb5 alcomp, inc
 44a42d tct mobile limited
 44a689 promax electronica sa
@@ -13961,6 +14099,7 @@ exit
 44a8c2 sewoo tech co., ltd
 44aa27 udworks co., ltd.
 44aae8 nanotec electronic gmbh & co. kg
+44add9 cisco
 44b382 kuang-chi institute of advanced technology
 44c15c texas instruments
 44c233 guangzhou comet technology development co.ltd
@@ -13968,7 +14107,7 @@ exit
 44c9a2 greenwald industries
 44d15e shanghai kingto information technology ltd
 44d2ca anvia tv oy
-44d3ca cisco systems
+44d3ca cisco systems, inc.
 44d63d talari networks
 44d832 azurewave technologies, inc.
 44d884 apple, inc.
@@ -13976,10 +14115,11 @@ exit
 44dccb semindia systems pvt ltd
 44e08e cisco spvtg
 44e49a omnitronics pty ltd
-44e4d9 cisco systems
+44e4d9 cisco systems, inc.
 44e8a5 myreka technologies sdn. bhd.
 44ed57 longicorn, inc.
 44f459 samsung electronics
+44f849 union pacific railroad
 44fb42 apple
 48022a b-link electronic limited
 480362 desay electronics(huizhou)co.,ltd
@@ -14004,7 +14144,7 @@ exit
 486fd2 storsimple inc
 487119 sgb group ltd.
 488e42 digalog gmbh
-489153 weinmann gerÃ¤te fÃ¼r medizin gmbh + co. kg
+489153 weinmann geräte für medizin gmbh + co. kg
 4891f6 shenzhen reach software technology co.,ltd
 489be2 sci innovations ltd
 48a22d shenzhen huaxuchang telecom technology co.,ltd
@@ -14013,6 +14153,7 @@ exit
 48b253 marketaxess corporation
 48b8de homewins technology co.,ltd.
 48b9c2 teletics inc.
+48be2d symanitron
 48c1ac plantronics, inc.
 48c862 simo wireless,inc.
 48c8b6 systec gmbh
@@ -14026,11 +14167,13 @@ exit
 48ea63 zhejiang uniview technologies co., ltd.
 48eb30 eterna technology, inc.
 48ed80 daesung eltec
+48f230 ubizcore co.,ltd
 48f317 
 48f47d techvision holding  internation limited
 48f7f1 alcatel-lucent
 48f8b3 cisco-linksys, llc
 48f8e1 alcatel lucent wt
+48f925 maestronic
 48fcb8 woodstream corporation
 4c022e cmr korea co., ltd
 4c0289 lex computech co., ltd
@@ -14043,8 +14186,10 @@ exit
 4c1480 noregon systems, inc
 4c17eb sagemcom
 4c1a3a prima research and production enterprise ltd.
+4c1a95 novakon co., ltd.
 4c1fcc huawei technologies co.,ltd
 4c2258 cozybit, inc.
+4c2578 nokia corporation
 4c2c80 beijing skyway technologies co.,ltd
 4c2f9d icm controls
 4c3089 thales transportation systems gmbh
@@ -14053,6 +14198,7 @@ exit
 4c3910 newtek electronics co., ltd.
 4c3b74 vogtec(h.k.) co., ltd
 4c4b68 mobile device, inc.
+4c4e35 cisco
 4c5427 linepro sp. z o.o.
 4c5499 huawei device co., ltd
 4c5585 hamilton systems
@@ -14060,6 +14206,7 @@ exit
 4c5fd2 alcatel-lucent
 4c60d5 airpointe of new hampshire
 4c60de netgear
+4c6255 sanmina-sci system de mexico s.a. de c.v.
 4c63eb application solutions (electronics and vision) ltd
 4c64d9 guangdong leawin group co., ltd
 4c72b9 pegatron corporation
@@ -14067,9 +14214,14 @@ exit
 4c73a5 kove
 4c774f embedded wireless labs
 4c7897 arrowhead alarm products ltd
+4c79ba intel corporate
+4c804f armstrong monitoring corp
 4c8093 intel corporate
+4c82cf echostar technologies
 4c8b55 grupo digicon
 4c8bef huawei technologies co., ltd
+4c8d79 apple
+4c8fa5 jastec
 4c98ef zeo
 4c9e80 kyokko electric co., ltd.
 4c9ee4 hanyang navicom co.,ltd.
@@ -14086,6 +14238,8 @@ exit
 4cc452 shang hai tyd. electon technology ltd.
 4cc602 radios, inc.
 4cc94f alcatel-lucent
+4cca53 skyera, inc.
+4ccc34 motorola solutions inc.
 4ce676 buffalo inc.
 4ceb42 intel corporate
 4cedde askey computer corp
@@ -14093,6 +14247,7 @@ exit
 50008c hong kong telecommunications (hkt) limited
 5001bb samsung electronics
 50053d cywee group ltd
+500604 cisco
 500b32 foxda technology industrial(shenzhen)co.,ltd
 500e6d trafficcast international
 5011eb silvernet ltd
@@ -14105,15 +14260,19 @@ exit
 502da2 intel corporate
 502df4 phytec messtechnik gmbh
 502ece asahi electronics co.,ltd
+503275 samsung electronics co.,ltd
 503955 cisco spvtg
-503de5 cisco systems
+503de5 cisco systems, inc.
 503f56 syncmold enterprise corp
 50465d asustek computer inc.
 5048eb beijing haihejinsheng network technology co. ltd.
 504a5e masimo corporation
+504f94 loxone electronics gmbh
 505663 texas instruments
-5057a8 cisco systems
+5057a8 cisco systems, inc.
+505ac6 guangdong super telecom co.,ltd.
 506028 xirrus inc.
+5061d6 indu-sol gmbh
 506313 hon hai precision ind. co.,ltd.
 506441 greenlee
 5067f0 zyxel communications corporation
@@ -14128,23 +14287,30 @@ exit
 508a42 uptmate technology co., ltd
 508acb shenzhen maxmade technology co., ltd.
 508c77 dirmeier schanktechnik gmbh &co kg
+508d6f chahoo limited
 50934f gradual tecnologia ltda.
 509772 westinghouse digital
+509f27 huawei technologies co., ltd
+50a4c8 samsung electronics co.,ltd
 50a6e3 david clark company
+50a715 aboundi, inc.
 50a733 ruckus wireless
+50abbf hoseo telecom
 50af73 shenzhen bitland information technology co., ltd.
 50b7c3 samsung electronics co.,ltd
 50c58d juniper networks
 50c971 gn netcom a/s
 50ccf8 samsung electro mechanics
+50cd32 nanjing chaoran science & technology co.,ltd.
 50ce75 measy electronics ltd
 50d274 steffes corporation
 50d6d7 takahata precision
 50e549 giga-byte technology co.,ltd.
 50ead6 apple, inc.
-50eb1a brocade communications systems, inc
+50eb1a brocade communications systems, inc.
 50ed94 egatel sl
 50f003 open stack, inc.
+50f520 samsung electronics co.,ltd
 50f61a kunshan jade technologies co., ltd.
 50faab l-tek d.o.o.
 50fc30 treehouse labs
@@ -14154,25 +14320,30 @@ exit
 54055f alcatel lucent
 54115f atamo pty ltd
 541dfb freestyle energy ltd
+541fd5 advantage electronics
 542018 tely labs
 542696 apple
 542a9c lsy defense, llc.
 543131 raster vision ltd
 5435df symeo gmbh
 543968 edgewater networks inc
+543d37 ruckus wireless
 544249 sony corporation
 54466b shenzhen cztic electronic technology co., ltd
 544a05 wenglor sensoric gmbh
 5453ed sony corporation
+545414 digital rf corea, inc
 545ebd nl technologies
 545fa9 teracom limited
+5461ea zaplox ab
 547398 toyo electronics corporation
 5474e6 webtech wireless
-5475d0 cisco systems
+5475d0 cisco systems, inc.
 54781a cisco
+547975 nokia corporation
 547f54 ingenico
 547fa8 telco systems, s.r.o.
-547fee cisco systems
+547fee cisco systems, inc.
 5481ad eagle research corporation
 54847b digital devices gmbh
 548922 zelfy inc
@@ -14191,14 +14362,16 @@ exit
 54d1b0 universal laser systems, inc
 54d46f cisco spvtg
 54df63 intrakey technologies gmbh
+54e032 juniper networks
 54e63f shenzhen lingkeweier technology co., ltd.
 54e6fc tp-link technologies co., ltd.
 54f5b6 oriental pacific international limited
 54f666 berthold technologies gmbh and co.kg
 54fdbf scheidt & bachmann gmbh
 580556 elettronica gf s.r.l.
-5808fa fiber optic &amp; telecommunication inc.
+5808fa fiber optic & telecommunication inc.
 580943 
+5809e5 kivic inc.
 581243 acsip technology corp.
 581626 avaya, inc
 58170c sony ericsson mobile communications ab
@@ -14208,7 +14381,7 @@ exit
 582efe lighting science group
 582f42 universal electric corporation
 58343b glovast technology ltd.
-5835d9 cisco systems
+5835d9 cisco systems, inc.
 583cc6 omneality ltd.
 5842e4 sigma international general medical apparatus, llc.
 5846e1 baxter healthcare
@@ -14234,7 +14407,7 @@ exit
 5884e4 ip500 alliance e.v.
 58874c lite-on clean energy technology corp.
 5887e2 shenzhen coship electronics co., ltd.
-588d09 cisco systems
+588d09 cisco systems, inc.
 5891cf intel corporate
 58920d kinetic avionics limited
 589396 ruckus wireless
@@ -14247,9 +14420,9 @@ exit
 58b035 apple, inc
 58b0d4 zunidata systems inc.
 58b9e1 crystalfontz america, inc.
-58bc27 cisco systems
+58bc27 cisco systems, inc.
 58bda3 nintendo co., ltd.
-58bfea cisco systems
+58bfea cisco systems, inc.
 58c232 nec corporation
 58c38b samsung electronics
 58cf4b lufkin industries
@@ -14261,6 +14434,7 @@ exit
 58e636 evrsafe technologies
 58e747 deltanet ag
 58e808 autonics corporation
+58eb14 proteus digital health
 58ece1 newport corporation
 58eece icon time systems
 58f67b xia men unioncore technology ltd.
@@ -14276,6 +14450,8 @@ exit
 5c1737 i-view now, llc.
 5c17d3 lge
 5c18b5 talon communications
+5c20d0 asoni communication co., ltd.
+5c22c4 dae eun eletronics co., ltd
 5c2479 baltech ag
 5c260a dell inc.
 5c338e alpha networkc inc.
@@ -14283,9 +14459,10 @@ exit
 5c35da there corporation oy
 5c38e0 shanghai super electronics technology co.,ltd
 5c4058 jefferson audio video systems, inc.
+5c43d2 hazemeyer
 5c4a26 enguity technology corp
 5c4ca9 huawei device co., ltd
-5c5015 cisco systems
+5c5015 cisco systems, inc.
 5c514f intel corporate
 5c56ed 3pleplay electronics private limited
 5c571a arris group, inc.
@@ -14300,6 +14477,7 @@ exit
 5c6f4f s.a. sistel
 5c7757 haivision network video
 5c7d5e huawei technologies co., ltd
+5c8486 brightsource industries israel ltd
 5c864a secret labs llc
 5c8778 cybertelbridge co.,ltd
 5c89d4 beijing banner electric co.,ltd
@@ -14316,10 +14494,12 @@ exit
 5cca32 theben ag
 5ccead cdyne corporation
 5cd135 xtreme power systems
+5cd2e4 intel corporate
 5cd41b uczoon technology co., ltd
 5cd4ab zektor
 5cd998 d-link corporation
 5cdad4 murata manufacturing co., ltd.
+5ce0ca feitian united (beijing) system technology co., ltd.
 5ce0f6 nic.br- nucleo de informacao e coordenacao do ponto br
 5ce223 delphin technology ag
 5ce286 nortel networks
@@ -14328,17 +14508,21 @@ exit
 5ceb4e r. stahl hmi systems gmbh
 5cee79 global digitech co ltd
 5cf207 speco technologies
+5cf370 cc&c technologies, inc
 5cf3fc ibm corp
+5cf6dc samsung electronics co.,ltd
+5cf8a1 murata manufactuaring co.,ltd.
 5cf9dd dell inc
 5cff35 wistron corporation
 6002b4 wistron neweb corp.
 600f77 silverplus, inc
-601199 data-tester inc.
+601199 siama systems inc
 601283 soluciones tecnologicas para la salud y el bienestar sa
 6015c7 idatech
 60190c rramac
 601929 voltronic power technology(shenzhen) corp.
 601d0f midnite solar
+601e02 eltexalatau
 6021c0 murata manufactuaring co.,ltd.
 602a54 cardiotek b.v.
 602ad0 cisco spvtg
@@ -14355,6 +14539,7 @@ exit
 604616 xiamen vann intelligent co., ltd
 6052d0 facts engineering
 605464 eyedro green solutions inc.
+60601f sz dji technology co.,ltd
 6063fd transcend communication beijing co.,ltd.
 606720 intel corporate
 606bbd samsung electronics co., ltd
@@ -14367,7 +14552,7 @@ exit
 608645 avery weigh-tronix, llc
 60893c thermo fisher scientific p.o.a.
 6089b1 key digital systems
-6089b7 kael mÃÅhendislik elektronik ticaret sanayi limited ÃÅ¾irketi
+6089b7 kael mÜhendİslİk elektronİk tİcaret sanayİ lİmİted Şİrketİ
 608c2b hanson technology
 608d17 sentrus government systems division, inc
 609084 dssd inc
@@ -14375,10 +14560,13 @@ exit
 609e64 vivonic gmbh
 609f9d cloudswitch
 60a10a samsung electronics co.,ltd
+60a44c asustek computer inc.
+60b185 ath system
 60b3c4 elber srl
 60b606 phorus
 60b933 deutron electronics corp.
 60b982 ro.ve.r. laboratories s.p.a.
+60bb0c beijing huaqinworld technology co,ltd
 60bc4c ewm hightec welding gmbh
 60bd91 move innovation
 60c547 apple, inc.
@@ -14393,6 +14581,7 @@ exit
 60d819 hon hai precision ind. co.,ltd.
 60da23 estech co.,ltd
 60de44 huawei technologies co.,ltd
+60e00e shinsei electronics co ltd
 60e956 ayla networks, inc
 60eb69 quanta computer inc.
 60f13d jablocom s.r.o.
@@ -14404,13 +14593,14 @@ exit
 60f673 terumo corporation
 60facd apple, inc.
 60fb42 apple, inc
-6400f1 cisco systems
+60fec5 apple
+6400f1 cisco systems, inc.
 64094c beijing superbee wireless technology co.,ltd
 640e36 taztag
 640e94 pluribus networks, inc.
 640f28 2wire
 641084 hexium technical development co., ltd.
-64168d cisco systems
+64168d cisco systems, inc.
 6416f0 shehzhen huawei communication technologies co., ltd.
 641a22 heliospectra/woodhill investments
 641c67 digibras industria do brasils/a
@@ -14430,6 +14620,7 @@ exit
 644f74 lenus co., ltd.
 64517e long ben (dongguan) electronic technology co.,ltd.
 645299 chamberlain
+64535d frauscher sensortechnik
 645422 equinox payments
 645563 intelight inc.
 64557f nsfocus information technology co., ltd.
@@ -14445,8 +14636,10 @@ exit
 6469bc hytera communications co .,ltd
 646e6c radio datacom llc
 647002 tp-link technologies co., ltd.
+6472d8 goowi technology co.,limited
 6473e2 arbiter systems, inc.
 647657 innovative security designs
+647791 samsung electronics co.,ltd
 647bd4 texas instruments
 647c34 ubee interactive corp.
 647d81 yokota industrial co,.ltd
@@ -14457,35 +14650,40 @@ exit
 648788 juniper networks
 6487d7 adb broadband italia
 64995d lge
+649968 elentec
+6499a0 ag elektronik ab
 649b24 v technology co., ltd.
 649c8e texas instruments
-649ef3 cisco systems
+649ef3 cisco systems, inc.
 649ff7 kone oyj
-64a0e7 cisco systems
+64a0e7 cisco systems, inc.
 64a232 ooo samlight
 64a341 wonderlan (beijing) technology co., ltd.
 64a3cb apple
 64a769 htc corporation
 64a837 juni korea co., ltd
-64ae0c cisco systems
+64ae0c cisco systems, inc.
 64ae88 polytec gmbh
+64b310 samsung electronics co.,ltd
 64b64a vivotech, inc.
 64b9e8 apple, inc
 64bc11 combiq ab
 64c5aa south african broadcasting corporation
+64c667 barnes&noble
 64c6af axerra networks ltd
 64c944 lark technologies, inc
 64d02d next generation integration (ngi)
 64d1a3 sitecom europe bv
 64d241 keith & koep gmbh
 64d4da intel corporate
-64d814 cisco systems
+64d814 cisco systems, inc.
 64d912 solidica, inc.
-64d989 cisco systems
+64d989 cisco systems, inc.
 64db18 openpattern
 64dc01 static systems group plc
 64de1c kingnetic pte ltd
 64e161 dep corp.
+64e599 efm networks
 64e682 apple, inc.
 64e84f serialway communication technology co. ltd
 64e8e6 global moisture management system
@@ -14504,15 +14702,19 @@ exit
 681729 intel corporate
 681ab2 zte corporation
 681ca2 rosewill inc.
+681e8b infosight corporation
 681fd8 advanced telemetry
 68234b nihon dengyo kousaku
 683b1e countwise ltd
+683eec ereca
 684352 bhuu limited
 684b88 galtronics telemetry inc.
 684ca8 shenzhen herotel tech. co., ltd.
 6851b7 powercloud systems, inc.
+6854ed alcatel-lucent - nuage
 6854f5 enlighted inc
 68597f alcatel lucent
+685b35 apple inc
 685b36 powertech industrial co., ltd.
 685d43 intel corporate
 685e6b powerray co., ltd.
@@ -14523,40 +14725,49 @@ exit
 68784c nortel networks
 687924 els-gmbh & co. kg
 6879ed sharp corporation
+687cd5 y soft corporation, a.s.
 687f74 cisco-linksys, llc
+68831a pandora mobility corporation
 688470 essys co.,ltd
 688540 igi mobile, inc.
+6886a7 cisco
+6886e7 orbotix, inc.
 68876b inq mobile limited
 689234 ruckus wireless
 689423 hon hai precision ind. co.,ltd.
 68967b apple inc
 68974b shenzhen costar electronics co. ltd.
+6897e8 society of motion picture &amp; television engineers
 689c5e acsip technology corp.
 68a1b7 honghao mingchuan technology (beijing) co.,ltd.
 68a3c4 liteon technology corporation
+68a40e bsh bosch and siemens home appliances gmbh
 68a86d apple, inc.
 68aad2 datecs ltd.,
 68ab8a rf ideas
 68af13 futura mobility
+68b094 inesa electron co.,ltd
 68b43a waterfurnace international, inc.
 68b599 hewlett-packard company
 68b6fc hitron technologies. inc
 68b8d9 act kde, inc.
-68bc0c cisco systems
-68bdab cisco systems
+68bc0c cisco systems, inc.
+68bdab cisco systems, inc.
 68ca00 octopus systems limited
 68cc9c mine site technologies
 68cd0f u tek company limited
 68ce4e l-3 communications infrared products
 68d1fd shenzhen trimax technology co.,ltd
 68d925 prosys development services
+68db67 nantong coship electronics co., ltd
 68db96 opwill technologies co .,ltd
 68dce8 packetstorm communications
 68e41f unglaube identech gmbh
 68ebae samsung electronics co.,ltd
 68ebc5 angstrem telecom
+68ec62 yodo technology corp. ltd.
 68ed43 research in motion
-68efbd cisco systems
+68efbd cisco systems, inc.
 68f125 data controls inc.
 68f895 redflow limited
 68fb95 generalplus technology inc.
@@ -14567,6 +14778,7 @@ exit
 6c2056 cisco
 6c22ab ainsworth game technology
 6c23b9 sony ericsson mobile communications ab
+6c2995 intel corporate
 6c2e33 accelink technologies co.,ltd.
 6c2e85 sagemcom
 6c32de indieon technologies pvt. ltd.
@@ -14577,25 +14789,28 @@ exit
 6c3e6d apple inc
 6c3e9c ke knestel elektronik gmbh
 6c40c6 nimbus data systems, inc.
-6c504d cisco systems
+6c504d cisco systems, inc.
 6c5a34 shenzhen haitianxiong electronic co., ltd.
 6c5cde sunreports, inc.
 6c5d63 shenzhen rapoo technology co., ltd.
 6c5e7a ubiquitous internet telecom co., ltd
+6c6126 rinicom holdings
 6c626d micro-star int'l co., ltd
 6c6f18 stereotaxis, inc.
 6c7039 novar gmbh
 6c71d9 azurewave technologies, inc
 6c81fe mitsuba corporation
 6c8336 samsung electronics co.,ltd
+6c8686 technonia
 6c8814 intel corporate
+6c8b2f zte corporation
 6c8cdb otus technologies ltd
 6c8d65 wireless glue networks, inc.
 6c92bf inspur electronic information industry co.,ltd.
 6c9ac9 valentine research, inc.
 6c9b02 nokia corporation
 6c9ce9 nimble storage
-6c9ced cisco systems
+6c9ced cisco systems, inc.
 6ca682 edam information & communications
 6ca780 nokia corporation
 6ca906 telefield ltd
@@ -14610,6 +14825,7 @@ exit
 6cc1d2 motorola mobility, inc.
 6cc26b apple, inc.
 6cd032 lg electronics
+6cd146 smartek d.o.o.
 6cd68a lg electronics inc
 6cdc6a promethean limited
 6ce0b0 sound4
@@ -14618,17 +14834,22 @@ exit
 6ce907 nokia corporation
 6ce983 gastron co., ltd.
 6cf049 giga-byte technology co.,ltd.
+6cf373 samsung electronics co.,ltd
 6cf37f aruba networks
+6cfa58 avaya, inc
 6cfdb9 proware technologies co ltd.
 6cffbe mpb communications inc.
 700258 01db-metravib
 700514 lg electronics
 700bc0 dewav technology company
+70105c cisco
+701124 apple
 701404 limited liability company "research center "bresler"
 701a04 liteon tech corp.
 701aed advas co., ltd.
 702393 fos4x gmbh
 702526 alcatel-lucent
+702559 cybertan technology, inc.
 702b1d e-domus international limited
 702f4b polyvision inc.
 702f97 aava mobile oy
@@ -14636,14 +14857,17 @@ exit
 703187 acx gmbh
 7032d5 athena wireless communications inc
 703811 invensys rail
-7038ee avaya inc
+7038b4 low tech solutions
+7038ee avaya, inc
 703ad8 shenzhen afoundry electronic co., ltd
 703c39 seawing kft
 7041b7 edwards lifesciences llc
 704642 chyng hong electronic co., ltd.
 704aae xstream flow (pty) ltd
 704ae4 rinstrum pty ltd
+7052c5 avaya, inc.
 7054d2 pegatron corporation
+7054f5 huawei technologies co.,ltd
 705681 apple inc
 705812 panasonic avc networks company
 705ab6 compal information (kunshan) co., ltd.
@@ -14662,7 +14886,8 @@ exit
 707be8 huawei technologies co.,ltd
 707e43 motorola mobility, inc.
 707ede nastec ltd.
-708105 cisco systems
+708105 cisco systems, inc.
+70820e as electronics gmbh
 70828e oleumtech corporation
 708b78 citygrow technology co., ltd
 7093f8 space monkey, inc.
@@ -14679,7 +14904,7 @@ exit
 70b265 hiltron s.r.l.
 70b599 embedded technologies s.r.o.
 70b921 fiberhome telecommunication technologies co.,ltd
-70ca9b cisco systems
+70ca9b cisco systems, inc.
 70cd60 apple, inc.
 70d4f2 rim
 70d57e scalar corporation
@@ -14700,6 +14925,7 @@ exit
 741489 srt wireless
 7415e2 tri-sen systems corporation
 741e93 fiberhome telecommunication tech.co.,ltd.
+74258a hangzhou h3c technologies co., limited
 74273c changyang technology (nanjing) co., ltd
 7427ea elitegroup computer systems co., ltd.
 742b0f infinidat ltd.
@@ -14711,11 +14937,13 @@ exit
 743889 annax anzeigesysteme gmbh
 744401 netgear
 74458a samsung electronics co.,ltd
+7446a0 hewlett packard
 744d79 arrive systems inc.
 745327 commsen co., limited
 745612 motorola mobility, inc.
 745798 trumpf laser gmbh + co. kg
 745e1c pioneer corporation
+745f00 samsung semiconductor inc.
 745fae tsl ppl
 7463df vts gmbh
 7465d1 atlinks
@@ -14727,6 +14955,7 @@ exit
 747db6 aliwei communications, inc
 747e1a red embedded design limited
 747e2d beijing thomson citic digital technology co. ltd.
+74867a dell inc pcba test
 74888b adb broadband italia
 748ef8 brocade communications systems, inc.
 749050 renesas electronics corporation
@@ -14744,6 +14973,7 @@ exit
 74bfa1 hyunteck
 74cd0c smith myers communications ltd.
 74ce56 packet force technology limited company
+74d02b asustek computer inc.
 74d0dc ericsson ab
 74d675 wyma tecnologia
 74d850 evrisko systems
@@ -14757,8 +14987,10 @@ exit
 74e543 liteon technology corporation
 74e7c6 motorola mobility, inc.
 74ea3a tp-link technologies co.,ltd.
+74ecf1 acumen
 74f06d azurewave technologies, inc.
 74f07d bncom co.,ltd
+74f102 beijing hchcom technology co., ltd
 74f612 motorola mobility, inc.
 74f726 neuron robotics
 74fda0 compupal (group) corporation
@@ -14774,12 +15006,14 @@ exit
 781c5a sharp corporation
 781dba huawei technologies co.,ltd
 781dfd jabil inc
+781fdb samsung electronics co.,ltd
 78223d affirmed networks
 782544 omnima limited
 7825ad samsung electronics co., ltd.
 782bcb dell inc
 782eef nokia corporation
 7830e1 ultraclenz, llc
+78324f millennium group, inc.
 783ce3 kai-ee
 783f15 easysync ltd.
 784405 fujitu(hong kong) electronic co.,ltd.
@@ -14788,13 +15022,17 @@ exit
 7846c4 daehap hyper-tech
 78471d samsung electronics co.,ltd
 78510c liveu ltd.
+78521a samsung electronics co.,ltd
 785262 shenzhen hojy software co., ltd.
+78542e d-link international
+785517 sankyuelectronics
 785712 mobile integration workgroup
 78593e rafi gmbh & co.kg
 78595e samsung electronics co.,ltd
 785c72 hioso technology co., ltd.
 78617c mitsumi electric co.,ltd
 7866ae ztec instruments, inc.
+786c1c apple
 787f62 gik mbh
 78818f server racks australia pty ltd
 78843c sony corporation
@@ -14804,10 +15042,12 @@ exit
 78929c intel corporate
 7898fd q9 networks inc.
 78995c nationz technologies inc
+789966 musilab electronics (dongguan)co.,ltd.
 78998f mediline italia srl
 789ed0 samsung electronics
 789f87 siemens ag i ia pp prm
 78a051 iinet labs pty ltd
+78a106 tp-link technologies co.,ltd.
 78a183 advidia
 78a2a0 nintendo co., ltd.
 78a3e4 apple, inc.
@@ -14842,18 +15082,21 @@ exit
 78ec22 shanghai qihui telecom technology co., ltd
 78ef4c unetconvergence co., ltd.
 78f5fd huawei technologies co., ltd
+78f7be samsung electronics co.,ltd
 78f7d0 silverbrook research
 78fe3d juniper networks
+78ff57 intel corporate
 7c0187 curtis instruments, inc.
 7c02bc hansung electronics co. ltd
 7c034c sagemcom
 7c03d8 sagemcom sas
+7c0507 pegatron corporation
 7c051e rafael ltd.
 7c08d9 shanghai engineering research center for broadband technologies and applications
 7c092b bekey a/s
 7c0a50 j-mex inc.
 7c11be apple, inc.
-7c1476 damall technologies s.a.s. di ludovic anselme glaglanon & c.
+7c1476 damall technologies sas
 7c160d saia-burgess controls ag
 7c1e52 microsoft
 7c1eb3 2n telekomunikace a.s.
@@ -14866,6 +15109,7 @@ exit
 7c3920 ssoma security
 7c3bd5 imago group
 7c3e9d patech
+7c438f e-band communications corp.
 7c4a82 portsmith llc
 7c4aa8 mindtree wireless pvt ltd
 7c4b78 red sun synthesis pte ltd
@@ -14882,15 +15126,18 @@ exit
 7c6d62 apple, inc
 7c6f06 caterpillar trimble control technologies
 7c7673 enmas gmbh
-7c7be4 z&#39;sedai kenkyusho corporation
+7c7a91 intel corporate
+7c7be4 z'sedai kenkyusho corporation
 7c7d41 jinmuyu electronics co., ltd.
 7c822d nortec
 7c8ee4 texas instruments
 7c94b2 philips healthcare pcci
 7c9a9b vse valencia smart energy
-7ca29b d.signt gmbh &amp; co. kg
+7ca15d gn resound a/s
+7ca29b d.signt gmbh & co. kg
 7ca61d mhl, llc
 7cacb2 bosch software innovations gmbh
+7cad74 cisco
 7cb03e osram ag
 7cb21b cisco spvtg
 7cb232 tcl king high frequency ei,co.,ltd
@@ -14902,9 +15149,11 @@ exit
 7cc8ab acro associates, inc.
 7cc8d0 tianjin yaan technology co., ltd.
 7cc8d7 damalisk
-7ccb0d aaxeon technologies inc.
+7ccb0d antaira technologies, llc
 7ccfcf shanghai seari intelligent system co., ltd
 7cd1c3 apple inc
+7cd762 freestyle technology pty ltd
+7cd844 enmotus inc
 7cd9fe new cosmos electric co., ltd.
 7cda84 dongnian networks inc.
 7cdd11 chongqing mas sci&tech.co.,ltd
@@ -14920,6 +15169,7 @@ exit
 7cf098 bee beans technologies, inc.
 7cf0ba linkwell telesystems pvt ltd
 7cf429 nuuo inc.
+7cfadf apple
 7cfe28 salutron inc.
 80000b intel corporate
 800010 att bell laboratories
@@ -14963,6 +15213,8 @@ exit
 8081a5 tongqing communication equipment (shenzhen) co.,ltd
 808287 atcom technology co.ltd.
 808698 netronics technologies inc.
+8086f2 intel corporate
+808b5c shenzhen runhuicheng technology co., ltd
 80912a lih rong electronic enterprise co., ltd.
 8091c0 agilemesh, inc.
 80929f apple
@@ -14990,12 +15242,14 @@ exit
 80d733 qsr automations, inc.
 80db31 power quotient international co., ltd.
 80ee73 shuttle inc.
-80f593 irco sistemas de telecomunicaciÃÂ³n s.a.
+80f593 irco sistemas de telecomunicación s.a.
 80f62e hangzhou h3c technologies co., limited
+80fa5b clevo co.
 80fb06 huawei technologies co.,ltd
 80ffa8 unidis
 8400d2 sony ericsson mobile communications ab
 840b2d samsung electro-mechanics co., ltd
+841715 gp electronics (hk) ltd.
 841888 juniper networks
 841b5e netgear
 842141 shenzhen ginwave technologies ltd.
@@ -15007,6 +15261,7 @@ exit
 842b2b dell inc.
 842b50 huria co.,ltd.
 842bbc modelleisenbahn gmbh
+842f75 innokas group
 8430e5 skyhawke technologies, llc
 843497 hewlett packard
 843611 hyungseul publishing networks
@@ -15018,22 +15273,29 @@ exit
 845181 samsung electronics co.,ltd
 845787 dvr c&c co., ltd.
 845dd7 shenzhen netcom electronics co.,ltd
+846223 shenzhen coship electronics co., ltd.
+8462a6 eurocb (phils), inc.
 846aed wireless tsukamoto.,co.ltd
 846eb1 park assist llc
 84742a zte corporation
 8478ac cisco
+847a88 htc corporation
 847e40 texas instruments
 8482f4 beijing huasun unicreate technology co., ltd
 848506 apple inc
 848d84 rajant corporation
+848e96 embertec pty ltd
 848f69 dell inc.
-849000 arnold &amp; richter cine technik
+849000 arnold & richter cine technik
 8497b8 memjet inc.
+849ca6 arcadyan technology corporation
 849dc5 centera photonics inc.
 84a6c8 intel corporate
 84a8e4 huawei device co., ltd
 84a991 cyber trans japan co.,ltd.
+84aca4 beijing novel super digital tv technology co., ltd
 84af1f beat system service co,. ltd.
+84c2e4 jiangsu qinheng co., ltd.
 84c727 gnodal ltd
 84c7a9 c3po s.a.
 84c8b1 incognito software inc.
@@ -15041,32 +15303,43 @@ exit
 84d32a ieee p1905.1
 84d9c8 unipattern co.,
 84db2f sierra wireless inc
+84dd20 texas instruments
 84de3d crystal vision ltd
 84df0c net2grid bv
 84e714 liang herng enterprise,co.ltd.
 84ea99 vieworks
+84ed33 bbmc co.,ltd
+84f493 oms spol. s.r.o.
 84f64c cross point bv
 84fcfe apple
+880905 mtmcommunications
 881036 panodic(shenzhen) electronics limted
+881544 meraki, inc.
 8818ae tamron co., ltd
 882012 lmi technologies
 8821e3 nebusens, s.l.
 8823fe tttech computertechnik ag
 88252c arcadyan technology corporation
+882e5a storone
 88308a murata manufactuaring co.,ltd.
+88329b samsung electro mechanics co.,ltd.
+883314 texas instruments
 8841c1 orbisat da amazonia ind e aerol sa
-8843e1 cisco systems
+8843e1 cisco systems, inc.
 884b39 siemens ag, healthcare sector
+8851fb hewlett packard
 88532e intel corporate
 885395 apple
 8853d4 huawei technologies co., ltd
 885c4f alcatel lucent
 88615a siano mobile silicon ltd.
+88685c shenzhen chuangdao & perpetual eternal technology co.,ltd
 886b76 china hopeful group hopeful electric co.,ltd
 887556 cisco
 8886a0 simton technologies, ltd.
 888717 canon inc.
 8887dd darbeevision inc.
+888964 gsi electronics inc.
 888b5d storage appliance corporation
 888c19 brady corp asia pacific ltd
 8891dd racktivity
@@ -15086,6 +15359,7 @@ exit
 88bfd5 simple audio ltd
 88c36e beijing ereneben lnformation technology limited
 88c663 apple, inc.
+88cb87 apple
 88d7bc dep company
 88dc96 senao networks, inc.
 88dd79 voltaire
@@ -15095,11 +15369,12 @@ exit
 88e7a6 iknowledge integration corp.
 88e917 tamaggo
 88ed1c cudo communication co., ltd.
-88f077 cisco systems
+88f077 cisco systems, inc.
 88f488 cellon communications technology(shenzhen)co.,ltd.
 88f490 jetmobile pte ltd
 88fd15 lineeye co., ltd
 8c04ff technicolor usa inc.
+8c078c flow data inc
 8c0c90 ruckus wireless
 8c0ca3 amper
 8c0ee3 guangdong oppo mobile telecommunications corp.,ltd.
@@ -15122,9 +15397,10 @@ exit
 8c57fd lvx western
 8c5877 apple, inc.
 8c598b c technologies ab
+8c5af0 exeltech solar products
 8c5ca1 d-broad,inc
 8c5fdf beijing railway signal factory
-8c604f cisco systems
+8c604f cisco systems, inc.
 8c640b beyond devices d.o.o.
 8c6422 sony ericsson mobile communications ab
 8c6878 nortek-as
@@ -15132,7 +15408,9 @@ exit
 8c705a intel corporate
 8c71f8 samsung electronics co.,ltd
 8c736e fujitsu limited
+8c76c1 goden tech limited
 8c7712 samsung electronics co.,ltd
+8c7716 longcheer telecommunication limited
 8c7b9d apple, inc.
 8c7cb5 hon hai precision ind. co.,ltd.
 8c7cff brocade communications systems, inc.
@@ -15148,12 +15426,13 @@ exit
 8ca048 beijing netopchip technology co.,ltd
 8ca982 intel corporate
 8cae4c plugable technologies
-8cb64f cisco systems
+8cb64f cisco systems, inc.
 8cb82c ipitomy communications
 8cb864 acsip technology corp.
 8cc121 panasonic avc networks company
 8cc5e1 shenzhen konka telecommunication technology co.,ltd
 8cc7aa radinet communications inc.
+8cc7d0 zhejiang ebang communication co.,ltd
 8cc8cd samsung electronics co., ltd
 8ccde8 nintendo co., ltd.
 8ccf5c befega gmbh
@@ -15183,6 +15462,7 @@ exit
 9018ae shanghai meridian technologies, co. ltd.
 901900 scs sa
 901b0e fujitsu technology solutions gmbh
+901d27 zte corporation
 901edd great computer corporation
 902155 htc corporation
 9027e4 apple, inc.
@@ -15202,15 +15482,19 @@ exit
 905446 tes electronic solutions
 9055ae ericsson, eab/rwi/k
 905682 lenbrook industries limited
+905692 autotalks ltd.
 9059af texas instruments
+905f2e tct mobile limited
 905f8d modas gmbh
 90610c fida international (s) pte ltd
 9067b5 alcatel-lucent
 9067f3 alcatel lucent
-906dc8 dlg automaÃÆÃÂ§ÃÆÃÂ£o industrial ltda
+906dc8 dlg automação industrial ltda
 906ebb hon hai precision ind. co.,ltd.
 907025 garea microsys co.,ltd.
+907af1 snupi technologies
 907f61 chicony electronics co., ltd.
+908260 ieee 1904.1 working group
 90840d apple, inc
 9088a2 ionics technology me ltda
 908d1d gh technologies
@@ -15239,6 +15523,7 @@ exit
 90d7eb texas instruments
 90d852 comtec co., ltd.
 90d92c hug-witschi ag
+90da4e avanu
 90e0f0 ieee p1722
 90e2ba intel corporation
 90e6ba asustek computer inc.
@@ -15249,24 +15534,25 @@ exit
 90f72f phillips machine & welding co., inc.
 90fb5b avaya, inc
 90fba6 hon hai precision ind.co.ltd
+90ff79 metro ethernet forum
 940070 nokia corporation
 940149 autohotbox
 940b2d netview technologies(shenzhen) co., ltd
 940c6d tp-link technologies co.,ltd.
-9411da itf froschl gmbh
+9411da itf fröschl gmbh
 941673 point core sarl
 941d1c tlab west systems ab
 942053 nokia corporation
 942197 stalmart technology limited
 94236e shenzhen junlan electronic ltd
 942e17 schneider electric canada inc
-942e63 finsÃÆÃÂ©cur
+942e63 finsécur
 94319b alphatronics bv
 9433dd taco electronic solutions, inc.
 9439e5 hon hai precision ind. co.,ltd.
 943af0 nokia corporation
 944444 lg innotek
-944452 belkin international, inc.
+944452 belkin international inc.
 944696 baudtec corporation
 944a09 bitwise controls
 945103 samsung electronics
@@ -15275,24 +15561,30 @@ exit
 946124 pason systems
 9463d1 samsung electronics co.,ltd
 9471ac tct mobile limited
+94756e qinetiq north america
 9481a4 azuray technologies
 94857a evantage industries corp
 948854 texas instruments
 948b03 eaget innovation and technology co., ltd.
 948d50 beamex oy ab
 948fee hughes telematics, inc.
+949426 apple
+9498a2 shanghai listen tech.ltd
 949bfd trans new technology, inc.
 949c55 alta data technologies
 94a7bc bodymedia, inc.
 94aab8 joview(beijing) technology co. ltd.
+94acca trivum technologies gmbh
 94ae61 alcatel lucent
-94ba31 visiontec da amazÃÆÃÂ´nia ltda.
+94ba31 visiontec da amazônia ltda.
 94c4e9 powerlayer microsystems hongkong limited
 94c6eb nova electronics, inc.
 94c7af raylios technology
+94c962 teseq ag
 94ca0f honeywell analytics
 94ccb9 motorola mobility, inc.
 94cdac creowave oy
+94ce2c sony mobile communications ab
 94d019 cydle corp.
 94d723 shanghai dareglobal technologies co., ltd
 94d93c enelps
@@ -15306,6 +15598,7 @@ exit
 94e226 d. ortiz consulting, llc
 94e711 xirka dama persada pt
 94e848 fylde micro ltd
+94ebcd research in motion limited
 94f692 geminico co.,ltd.
 94f720 tianjin deviser electronics instrument co., ltd
 94fae8 shenzhen eycom technology co., ltd
@@ -15316,6 +15609,7 @@ exit
 9803a0 abb n.v. power quality products
 9803d8 apple, inc.
 980c82 samsung electro mechanics
+980d2e htc corporation
 980ee4 
 98208e definium technologies
 98262a applied research associates, inc
@@ -15324,19 +15618,24 @@ exit
 982cbe 2wire
 982d56 resolution audio
 983000 beijing kemacom technologies co., ltd.
+983071 daikyung vascom
 983571 sub10 systems ltd
 9835b8 assembled products corporation
+983f9f china ssj (suzhou) network technology inc.
 984246 sol industry pte., ltd
 98473c shanghai sunmon communication technogy co.,ltd
 984a47 chg hospital beds
 984b4a motorola mobility inc.
 984be1 hewlett-packard company
+984c04 zhangzhou keneng electrical equipment co ltd
 984cd3 mantis deposition
 984e97 starlight marketing (h. k.) ltd.
+984fee intel corporate
 9852b1 samsung electronics
 9857d3 hon hai-ccpbg  precision ind.co.,ltd.
 98588a sysgration ltd.
 985945 texas instruments
+985c93 sbg systems sas
 985e1b conversdigital co., ltd.
 986022 emw co., ltd.
 9866ea industrial control communications, inc.
@@ -15348,8 +15647,9 @@ exit
 988b5d sagem communication
 988bad corintech ltd.
 988e34 zhejiang boxsam electronic co.,ltd
-988edd raychem international
+988edd te connectivity limerick
 989080 linkpower network system inc ltd.
+9893cc lg electronics inc.
 989449 skyworth wireless technology ltd.
 98a7b0 mcst zao
 98aad7 blue wave networking co ltd
@@ -15359,6 +15659,7 @@ exit
 98c845 packetaccess
 98d686 chyi lee industry co., ltd.
 98d6bb apple, inc.
+98d6f7 lg electronics
 98d88c nortel networks
 98dcd9 unitec co., ltd.
 98e165 accutome
@@ -15376,17 +15677,20 @@ exit
 9c066e hytera communications corporation limited
 9c0dac tymphany hk limited
 9c1874 nokia danmark a/s
+9c1c12 aruba networks
 9c1fdd accupix inc.
 9c207b apple inc
 9c220e tascan service gmbh
 9c28bf continental automotive czech republic s.r.o.
 9c2a70 hon hai precision ind. co.,ltd.
+9c3178 foshan huadian intelligent communications teachnologies co.,ltd
 9c31b6 kulite semiconductor products inc
+9c3aaf samsung electronics co.,ltd
 9c417c hame  technology co.,  limited
 9c4563 dimep sistemas
 9c4a7b nokia corporation
 9c4cae mesa labs
-9c4e20 cisco systems
+9c4e20 cisco systems, inc.
 9c4e36 intel corporate
 9c4e8e alt systems ltd
 9c53cd engicam s.r.l.
@@ -15395,7 +15699,7 @@ exit
 9c55b4 i.s.e. s.r.l.
 9c5711 feitian xunda(beijing) aeronautical information technology co., ltd.
 9c5b96 nmr corporation
-9c5c8d firemax indÃÅ¡stria e comÃâ°rcio de produtos eletrÃânicos ltda
+9c5c8d firemax indÚstria e comÉrcio de produtos eletrÔnicos  ltda
 9c5d12 aerohive networks inc
 9c5d95 vtc electronics corp.
 9c5e73 calibre uk ltd
@@ -15413,11 +15717,14 @@ exit
 9c8edc teracom limited
 9c934e xerox corporation
 9c95f8 smartdoor systems, llc
+9c9726 technicolor
+9c9811 guangzhou sunrise electronics development co., ltd
 9c9c1d starkey labs inc.
 9ca134 nike, inc.
 9ca3ba sakura internet inc.
+9ca577 osorno enterprises inc.
 9cadef obihai technology, inc.
-9cafca cisco systems
+9cafca cisco systems, inc.
 9cb008 ubiquitous computing technology corporation
 9cb206 procentec
 9cb70d liteon technology corporation
@@ -15432,23 +15739,27 @@ exit
 9cdf03 harman/becker automotive systems gmbh
 9ce10e nctech ltd
 9ce1d6 junger audio-studiotechnik gmbh
+9ce635 nintendo co., ltd.
+9ce6e7 samsung electronics co.,ltd
 9cebe8 bizlink (kunshan) co.,ltd
 9cf61a utc fire and security
 9cf67d ricardo prague, s.r.o.
 9cf938 areva np gmbh
 9cffbe otsl inc.
+a00363 robert bosch healthcare gmbh
 a00798 samsung electronics
 a007b6 advanced technical support, inc.
 a00abf wieson technologies co., ltd.
 a00bba samsung electro-mechanics
 a00ca1 sktb "skit"
-a0133b copyright ÃÂ© hiti digital, inc.
+a0133b copyright © hiti digital, inc.
 a0165c tangotec ltd.
 a01859 shenzhen yidashi electronics co ltd
 a01917 bertel s.p.a.
+a01c05 nimax telecom co.,ltd.
 a02195 samsung electronics digital imaging
 a021b7 netgear
-a0231b telecomp r&amp;d corp.
+a0231b telecomp r&d corp.
 a02ef3 united integrated services co., led.
 a0369f intel corporation
 a036f0 comprehensive power
@@ -15474,12 +15785,16 @@ a06d09 intelcan technosystems inc.
 a06e50 nanotek elektronik sistemler ltd. sti.
 a071a9 nokia corporation
 a07332 cashmaster international limited
+a073fc rancore technologies private limited
 a07591 samsung electronics co.,ltd
 a078ba pantech co., ltd.
+a0821f samsung electronics co.,ltd
 a082c7 p.t.i co.,ltd
+a0861d chengdu fuhuaxin technology co.,ltd
 a086ec saehan hitec co., ltd
 a08869 intel corporate
 a088b4 intel corporate
+a08a87 huizhou kaiyue electronic co.,ltd
 a08c15 gerhard d. wempe kg
 a08c9b xtreme technologies corp
 a090de veedims,llc
@@ -15496,7 +15811,7 @@ a0b9ed skytap
 a0bab8 pixon imaging
 a0bfa5 coresys
 a0c3de triton electronic systems ltd.
-a0cf5b cisco systems
+a0cf5b cisco systems, inc.
 a0dc04 becker-antriebe gmbh
 a0dd97 polarlink technologies, ltd
 a0dde5 sharp corporation
@@ -15506,50 +15821,55 @@ a0e25a amicus sk, s.r.o.
 a0e295 dat system co.,ltd
 a0e534 stratec biomedical ag
 a0e9db ningbo freewings technologies co.,ltd
+a0eb76 aircuve inc.
 a0ef84 seine image int'l co., ltd
 a0f217 ge medical system(china) co., ltd.
 a0f3c1 tp-link technologies co., ltd.
 a0f3e4 alcatel lucent ipd
 a0f419 nokia corporation
 a0f450 htc corporation
+a0fe91 avat automation gmbh
 a40130 abisystems co., ltd
 a40bed carry technology co.,ltd
-a40cc3 cisco systems
+a40cc3 cisco systems, inc.
 a4134e luxul
 a41731 hon hai precision ind. co.,ltd.
-a41875 cisco systems
+a41875 cisco systems, inc.
 a41bc0 fastec imaging corporation
 a41f72 dell inc.
 a4218a nortel networks
 a424b3 flatfrog laboratories ab
 a429b7 bluesky
+a42c08 masterwork automodules
 a433d1 fibrlink communications co.,ltd.
 a438fc plastic logic
 a4466b eoc technology
 a446fa amtran video corporation
 a44b15 sun cupid technology (hk) ltd
-a44c11 cisco systems
+a44c11 cisco systems, inc.
 a44e2d adaptive wireless solutions, llc
 a44e31 intel corporate
 a45055 busware.de
 a4526f adb broadband italia
 a4561b mcot corporation
-a45630 cisco systems
+a45630 cisco systems, inc.
 a45a1c smart-electronic gmbh
 a45c27 nintendo co., ltd.
 a46706 apple, inc.
 a46e79 dft system co.ltd
 a479e4 klinfo corp
 a47aa4 motorola mobility, inc.
+a47acf vibicom communications inc.
 a47c14 chargestorm ab
 a47c1f global microwave systems inc.
 a4856b q electronics ltd
 a49005 china greatwall computer shenzhen co.,ltd
-a4934c cisco systems
+a4934c cisco systems, inc.
 a497bb hitachi industrial equipment systems co.,ltd
 a49947 huawei technologies co., ltd
 a49981 fujian elite power tech co.,ltd.
 a49b13 burroughs payment systems, inc.
+a49edb autocrib, inc.
 a4a24a cisco spvtg
 a4a80f shenzhen coship electronics co., ltd.
 a4ad00 ragsdale technology
@@ -15561,6 +15881,7 @@ a4b1e9 technicolor
 a4b1ee h. zander gmbh & co. kg
 a4b2a7 adaxys solutions ag
 a4b36a jsc sdo chromatec
+a4b818 penta gesellschaft für elektronische industriedatenverarbeitung mbh
 a4b980 parking boxx inc.
 a4badb dell inc.
 a4be61 eutrovision system, inc.
@@ -15569,35 +15890,45 @@ a4c2ab hangzhou lead-it information & technology co.,ltd
 a4d18f shenzhen skyee optical fiber communication technology ltd.
 a4d1d1 ecotality north america
 a4d1d2 apple, inc.
+a4d856 qualcomm labs inc.
 a4da3f bionics corp.
 a4db2e kingspan environmental ltd
 a4de50 total walther gmbh
-a4e32e silicon &amp; software systems ltd.
+a4e0e6 filizola s.a. pesagem e automacao
+a4e32e silicon & software systems ltd.
 a4e391 deny fontaine
 a4e731 nokia corporation
 a4e7e4 connex gmbh
+a4e991 sistemas audiovisuales itelsis s.l.
+a4ebd3 samsung electronics co.,ltd
 a4ed4e motorola mobility, inc.
 a4ee57 seiko epson corporation
 a4ef52 telewave co., ltd.
 a4f7d0 lan accessories co., ltd.
+a80180 imago technologies gmbh
+a80600 samsung electronics co.,ltd
+a8154d tp-link technologies co.,ltd.
 a816b2 lg electronics
-a81758 elektronik system i umeÃ¥ ab
+a81758 elektronik system i umeå ab
 a81b18 xts corp
 a81faf krypton polska
 a82066 apple inc
 a826d9 htc corporation
+a8294c precision optical transceivers, inc.
 a82bd6 shina system co., ltd
 a830ad wei fang goertek electronics co.,ltd
 a83944 actiontec electronics, inc
 a84041 dragino technology co., limited
+a84481 nokia corporation
 a845e9 firich enterprises co., ltd.
 a849a5 lisantech co., ltd.
 a854b2 wistron neweb corp.
 a8556a pocketnet technology inc.
 a85bb0 shenzhen dehoo technology co.,ltd
 a85bf3 audivo gmbh
+a861aa cloudview limited
 a862a2 jiwumedia co., ltd.
-a863df displÃ¢â¬â¢aire corporation
+a863df displaire corporation
 a863f2 texas instruments
 a865b2 dongguan yishang electronic technology co., limited
 a86a6f rim
@@ -15611,19 +15942,20 @@ a887ed arc wireless llc
 a88cee micromade galka i drozdz sp.j.
 a8922c lg electronics
 a893e6 jiangxi jinggangshan cking communication technology co.,ltd
+a895b0 aker subsea ltd
 a8968a apple
 a898c6 shinbo co., ltd.
 a8995c aizo ag
 a89b10 inmotion ltd.
 a8ad3d alcatel-lucent shanghai bell co., ltd
 a8b0ae leoni
-a8b1d4 cisco systems
+a8b1d4 cisco systems, inc.
 a8bd1a honey bee (hong kong) limited
 a8c222 tm-research inc.
 a8cb95 east best co., ltd.
 a8ce90 cvc
 a8d0e5 juniper networks
-a8d3c8 wachendorff elektronik  gmbh &amp; co. kg
+a8d3c8 wachendorff elektronik  gmbh & co. kg
 a8e018 nokia corporation
 a8e3ee sony computer entertainment inc.
 a8ef26 tritonwave
@@ -15647,16 +15979,19 @@ ac1461 ataw  co., ltd.
 ac14d2 wi-daq, inc.
 ac162d hewlett packard
 ac1702 fibar group sp. z o.o.
+ac1826 seiko epson corporation
 ac199f sungrow power supply co.,ltd.
 ac20aa dmatek co., ltd.
 ac2fa8 humannix co.,ltd.
 ac319d shenzhen tg-net botone technology co.,ltd.
 ac34cb shanhai gbcom communication technology co. ltd
+ac3c0b apple
 ac3cb4 nilan a/s
 ac3d05 instorescreen aisa
 ac3d75 hangzhou zhiway technologies co.,ltd.
 ac3fa4 taiyo yuden co.,ltd
 ac40ea c&t solution inc.
+ac4122 eclipse electronic systems inc.
 ac44f2 revolabs inc
 ac4723 genelec
 ac4afe hisense broadband multimedia technology co.,ltd.
@@ -15677,6 +16012,7 @@ ac6fd9 valueplus inc.
 ac7236 lexking technology co., ltd.
 ac7289 intel corporate
 ac7a42 iconnectivity
+ac7ba1 intel corporate
 ac80d6 hexatronic ab
 ac8112 gemtek technology co., ltd.
 ac81f3 nokia corporation
@@ -15691,8 +16027,9 @@ ac9403 envision peripherals inc
 ac9a96 lantiq deutschland gmbh
 ac9b84 smak tecnologia e automacao
 ac9ce4 alcatel-lucent shanghai bell co., ltd
-aca016 cisco systems
+aca016 cisco systems, inc.
 aca22c baycity technologies ltd
+aca430 peerless av
 acab8d lyngso marine a/s
 acbd0b imac co.,ltd
 acbe75 ufine technologies co.,ltd.
@@ -15709,25 +16046,31 @@ accf23 hi-flying electronics technology co.,ltd
 acd180 crexendo business solutions, inc.
 acd364 abb spa, abb sace div.
 acd9d6 tci gmbh
+acdbda shenzhen geniatech inc, ltd
 acde48 
 ace215 huawei technologies co., ltd
 ace348 madgetech, inc
 ace64b shenzhen baojia battery technology co., ltd.
 ace87b huawei technologies co., ltd
 ace87e bytemark computer consulting ltd
+ace97f iot tech limited
 ace9aa hay systems ltd
 acea6a genix infocomm co., ltd.
 acee3b 6harmonics inc
 acf0b2 becker electronics taiwan ltd.
 acf1df d-link international
 acf2c5 cisco
+acf7f3 xiaomi corporation
 acf97e elesys inc.
 b01203 dynamics hong kong limited
 b01266 futaba-kikaku
+b01408 lightspeed international co.
+b01743 edison global circuits llc
 b01b7c ontrol a.s.
 b01c91 elim co
 b0358d nokia corporation
 b03829 siliconware precision industries co., ltd.
+b03850 nanjing cas-zdc iot system co.,ltd
 b0435d nuleds, inc.
 b046fc mitrastar technology corp.
 b0487a tp-link technologies co., ltd.
@@ -15744,6 +16087,7 @@ b077ac motorola mobility, inc.
 b07994 motorola mobility llc
 b07d62 dipl.-ing. h. horstmann gmbh
 b081d8 i-sys corp
+b08807 strata worldwide
 b08991 lge
 b08e1a uradio systems co., ltd
 b09074 fulan electronics limited
@@ -15759,14 +16103,17 @@ b0aa36 guangdong oppo mobile telecommunications corp.,ltd.
 b0acfa fujitsu limited
 b0b2dc zyxel communications corporation
 b0b32b slican sp. z o.o.
+b0b448 texas instruments
 b0b8d5 nanjing nengrui auto equipment co.,ltd
 b0bd6d echostreams innovative solutions
 b0bda1 zaklad elektroniczny sims
 b0bf99 wizitdongdo
+b0c4e7 samsung electronics
 b0c69a juniper networks
 b0c745 buffalo inc.
 b0c83f jiangsu cynray iot co., ltd.
 b0c8ad people power company
+b0c95b beijing symtech co.,ltd
 b0cf4d mi-zone technology ireland
 b0d09c samsung electronics co.,ltd
 b0d2f5 vello systems, inc.
@@ -15778,6 +16125,7 @@ b0e97e advanced micro peripherals
 b0ec71 samsung electronics co.,ltd
 b0ee45 azurewave technologies, inc.
 b0f1bc dhemax ingenieros ltda
+b0faeb cisco
 b4009c cableworld ltd.
 b40142 gci science & technology co.,ltd
 b40418 smartchip integrated inc.
@@ -15787,7 +16135,7 @@ b40b7a brusa elektronik ag
 b40c25 palo alto networks
 b40e96 heran
 b40edc lg-ericsson co.,ltd.
-b41489 cisco systems
+b41489 cisco systems, inc.
 b41def internet laboratories, inc.
 b4211d beijing guangxin technology co., ltd
 b4218a dog hunter llc
@@ -15812,6 +16160,7 @@ b46238 exablox
 b46293 samsung electronics co.,ltd
 b467e9 qingdao goertek technology co., ltd.
 b4749f askey computer corp
+b47f5e foresight manufacture (s) pte ltd
 b48255 research products corporation
 b482c5 relay2, inc.
 b482fe askey computer corp
@@ -15822,7 +16171,7 @@ b499ba hewlett-packard company
 b49db4 axion technologies inc.
 b49ee6 shenzhen technology co ltd
 b4a4b5 zen eye co.,ltd
-b4a4e3 cisco systems
+b4a4e3 cisco systems, inc.
 b4a5a9 modi gmbh
 b4aa4d ensequence, inc.
 b4ab2c mtm technology corporation
@@ -15838,10 +16187,12 @@ b4c810 umpi elettronica
 b4cfdb shenzhen jiuzhou electric co.,ltd
 b4d8a9 betterbots
 b4d8de iota computing, inc.
+b4dd15 controlthings oy ab
 b4df3b chromlech
 b4dffa litemax electronics inc.
 b4e0cd io turbine, inc.
 b4e1eb 
+b4e9b0 cisco
 b4ed19 pie digital, inc.
 b4ed54 wohler technologies
 b4eed4 texas instruments
@@ -15849,46 +16200,55 @@ b4f0ab apple
 b4f2e8 pace plc
 b4f323 petatel inc.
 b4fc75 sema electronics(hk) co.,ltd
+b4fe8c centro sicurezza italia spa
 b80305 intel corporate
 b80415 bayan audio
 b80b9d ropex industrie-elektronik gmbh
 b81413 keen high holding(hk) ltd.
+b81619 motorola mobility, inc.
 b817c2 apple, inc.
 b81999 nesys
 b820e7 guangzhou horizontal information & network integration co. ltd
 b82410 magneti marelli slovakia s.r.o.
-b826d4 furukawa industrial s.a. produtos elÃÂ©tricos
+b826d4 furukawa industrial s.a. produtos elétricos
 b827eb raspberry pi foundation
 b8288b parker hannifin
 b829f7 blaster tech
-b82adc efr europÃÂ¤ische funk-rundsteuerung gmbh
+b82adc efr europäische funk-rundsteuerung gmbh
 b82ca0 honeywell hommed
+b838ca kyokko tsushin system co.,ltd
 b83a7b worldplay (canada) inc.
 b83d4e shenzhen cultraview digital technology co.,ltd shanghai branch
 b83e59 roku, inc
 b8415f asp ag
 b85510 zioncom electronics (shenzhen) ltd.
 b85810 numera, inc.
+b85af7 ouya, inc
 b85afe handaer communication technology (beijing) co., ltd
+b86091 onnet technologies and innovations llc
 b8616f accton wireless broadband(awb), corp.
-b8621f cisco systems
+b8621f cisco systems, inc.
+b863bc robotis, co, ltd
 b86491 ck telecom ltd
 b8653b bolymin, inc.
 b86b23 toshiba
 b870f4 compal information (kunshan) co., ltd.
 b87424 viessmann elektronik gmbh
 b87447 convergence technologies
+b8763f hon hai precision ind. co.,ltd.
 b877c3 decagon devices, inc.
+b8782e apple
 b8797e secure meters (uk) limited
 b8871e good mind industries co., ltd.
 b888e3 compal information (kunshan) co., ltd
 b889ca iljin electric co., ltd.
+b88a60 intel corporate
 b88d12 apple, inc.
 b88e3a infinite technologies jlt
 b88f14 analytica gmbh
-b8921d bg t&amp;a
+b8921d bg t&a
 b894d2 retail innovation htt ab
-b89674 alldsp gmbh &amp; co. kg
+b89674 alldsp gmbh & co. kg
 b8975a biostar microtech int'l corp.
 b898b0 atlona inc.
 b89aed oceanserver technology, inc
@@ -15897,6 +16257,7 @@ b8a386 d-link international
 b8a3e0 benrui technology co.,ltd
 b8a8af logic s.p.a.
 b8ac6f dell inc
+b8ae6e nintendo co., ltd.
 b8af67 hewlett-packard company
 b8b1c7 bt&com co.,ltd
 b8b42e gionee communication equipment co,ltd.shenzhen
@@ -15905,10 +16266,12 @@ b8b94e shenzhen ibaby labs, inc.
 b8ba68 xi'an jizhong digital communication co.,ltd
 b8ba72 cynove
 b8bb6d eneres co.,ltd.
-b8bebf cisco systems
+b8bebf cisco systems, inc.
+b8c46f primmcon industries inc
 b8c68e samsung electronics co.,ltd
 b8c716 fiberhome telecommunication technologies co.,ltd
 b8c75d apple, inc.
+b8ca3a dell pcba test
 b8cda7 maxeler technologies ltd.
 b8d06f guangzhou hkust fok ying tung research institute
 b8d49d m seven system ltd.
@@ -15936,8 +16299,10 @@ bc0f2b fortune techgroup co.,ltd
 bc125e beijing  wisvideo  inc.
 bc1401 hitron technologies. inc
 bc15a6 taiwan jantek electronics,ltd.
+bc1665 cisco
 bc20a4 samsung electronics
 bc20ba inspur (shandong) electronic information co., ltd
+bc261d hong kong tecon technology
 bc2846 nextbit computing pvt. ltd.
 bc28d6 rowley associates limited
 bc2c55 bear flag design, inc.
@@ -15945,6 +16310,7 @@ bc305b dell inc.
 bc35e5 hydro systems company
 bc38d2 pandachip limited
 bc39a6 csun system technology co.,ltd
+bc3baf apple
 bc3e13 accordance systems inc.
 bc4377 hang zhou huite technology co.,ltd.
 bc4760 samsung electronics co.,ltd
@@ -15953,12 +16319,14 @@ bc4e3c core staff co., ltd.
 bc51fe swann communications pty ltd
 bc52b7 apple inc
 bc5ff4 asrock incorporation
+bc629f telenet systems p. ltd.
 bc6778 apple inc
 bc6784 environics oy
 bc6a16 tdvine
 bc6a29 texas instruments
 bc6e76 green energy options ltd
 bc71c1 xtrillion, inc.
+bc72b1 samsung electronics co.,ltd
 bc764e rackspace us, inc.
 bc7670 huawei device co., ltd
 bc7737 intel corporate
@@ -15969,6 +16337,7 @@ bc8199 basic co.,ltd.
 bc83a7 shenzhen chuangwei-rgb electronics co.,lt
 bc851f samsung electronics
 bc8b55 npp eliks america inc. dba t&m atlantic
+bc926b apple
 bc99bc fonsee technology inc.
 bc9da5 dascom europe gmbh
 bca4e1 nabto
@@ -15977,13 +16346,16 @@ bcaec5 asustek computer inc.
 bcb181 sharp corporation
 bcb1f3 samsung electronics
 bcb852 cybera, inc.
+bcbae1 arec inc.
 bcbbc9 kellendonk elektronik gmbh
 bcc168 dinbox sverige ab
 bcc23a thomson video networks
 bcc61a spectra embedded systems
+bcc6db nokia corporation
 bcc810 cisco spvtg
 bccd45 voismart
 bccfcc htc corporation
+bcd177 tp-link technologies co.,ltd.
 bcd5b6 d2d technologies
 bcd940 asr co,.ltd.
 bce09d eoslink
@@ -15994,13 +16366,14 @@ bcf685 d-link international
 bcfe8c altronic, llc
 bcffac topcon corporation
 c00d7e additech, inc.
+c011a6 fort-telecom ltd.
 c01242 alpha security products
 c0143d hon hai precision ind. co.,ltd.
 c01885 hon hai precision ind. co.,ltd.
 c01e9b pixavi as
 c02250 
 c02506 avm gmbh
-c027b9 beijing national railway research & design institute  of signal & communication
+c027b9 beijing national railway research & design institute  of signal & communication co., ltd.
 c02973 audyssey laboratories inc.
 c029f3 xysystem
 c02bfc ines. applied informatics gmbh
@@ -16011,18 +16384,23 @@ c03b8f minicom digital signage
 c03f0e netgear
 c03f2a biscotti, inc.
 c041f6 lg electronics inc
+c04301 epec oy
 c044e3 shenzhen sinkna electronics co., ltd
 c0493d maitrise technologique
+c04a00 tp-link technologies co.,ltd.
+c04df7 serelec
 c058a7 pico systems co., ltd.
+c05e6f v. stonkaus firma "kodinis raktas"
 c05e79 shenzhen huaxun ark technologies co.,ltd
-c0626b cisco systems
+c0626b cisco systems, inc.
 c06c0f dobbs stanford
 c07e40 shenzhen xdk communication equipment co.,ltd
 c08170 effigis geosolutions
 c0830a 2wire
 c0847a apple, inc.
+c0885b snd tech co., ltd.
 c08ade ruckus wireless
-c08b6f s i sistemas inteligentes eletronicos ltda
+c08b6f s i sistemas inteligentes eletrônicos ltda
 c09132 patriot memory
 c09134 procurve networking by hp
 c09c92 coby
@@ -16031,18 +16409,20 @@ c0a0c7 fairfield industries
 c0a0de multi touch oy
 c0a0e2 eden innovations
 c0a26d abbott point of care
-c0a364 3d systems burlington
+c0a364 3d systems massachusetts
 c0aa68 osasi technos inc.
 c0ac54 sagemcom
 c0b339 comigo ltd.
 c0b357 yoshiki electronics industry ltd.
+c0b8b1 bitbox ltd
 c0bae6 application solutions (safety and security) ltd
 c0bd42 zpa smart energy a.s.
 c0c1c0 cisco-linksys, llc
+c0c3b6 automatic systems
 c0c520 ruckus wireless
 c0c946 mitsuya laboratories inc.
 c0cb38 hon hai precision ind. co.,ltd.
-c0cfa3 creative electronics &amp; software, inc.
+c0cfa3 creative electronics & software, inc.
 c0d044 sagemcom
 c0d962 askey computer corp.
 c0df77 conrad electronic se
@@ -16053,7 +16433,7 @@ c0f8da hon hai precision ind. co.,ltd.
 c40142 maxmedia technology limited
 c4017c ruckus wireless
 c401b1 seektech inc
-c40acb cisco systems
+c40acb cisco systems, inc.
 c40f09 hermes electronic gmbh
 c4108a ruckus wireless
 c416fa prysm inc
@@ -16062,6 +16442,7 @@ c4198b dominion voting systems corporation
 c41ece hmi sources ltd.
 c4237a whiznets inc.
 c4242e galvanic applied sciences inc
+c42628 airo wireless
 c42c03 apple, inc.
 c436da rusteletech ltd.
 c438d3 tagatec co.,ltd
@@ -16073,24 +16454,29 @@ c44567 sambon precison and electronics
 c44619 hon hai precision ind. co.,ltd.
 c44ad0 fireflies rtls
 c44b44 omniprint inc.
+c44eac shenzhen shiningworth technology co., ltd.
 c455a6 cadac holdings ltd
 c455c2 bach-simpson
 c45600 galleon embedded computing
+c458c2 shenzhen tatfook technology co., ltd.
 c45976 fugoo
+c45dd8 hdmi forum
 c46044 everex electronics limited
 c46354 u-raku, inc.
-c46413 cisco systems
+c46413 cisco systems, inc.
 c467b5 libratone a/s
 c46ab7 xiaomi technology,inc.
 c46df1 datagravity
 c47130 fon technology s.l.
-c471fe cisco systems
+c471fe cisco systems, inc.
 c4731e samsung eletronics co., ltd
 c47b2f beijing joinhope image technology ltd.
 c47ba3 navis inc.
-c47d4f cisco systems
+c47d4f cisco systems, inc.
+c47dcc motorola solutions inc.
 c4823f fujian newland auto-id tech. co,.ltd.
 c48508 intel corporation
+c488e5 samsung electronics co.,ltd
 c49300 8devices
 c49313 100fio networks technology llc
 c495a2 shenzhen weijiu industry and trade development co., ltd
@@ -16105,8 +16491,11 @@ c4cd45 beijing boomsense technology co.,ltd.
 c4d489 jiangsu joyque information industry co.,ltd
 c4d987 intel corporate
 c4da26 noblex sa
+c4e032 ieee 1904.1 working group
 c4e17c u2s co.
 c4e7be scspro co.,ltd
+c4ebe3 rrcn sas
+c4edba texas instruments
 c4eeae vss monitoring
 c4eef5 oclaro, inc.
 c4f464 spica international
@@ -16116,6 +16505,7 @@ c802a6 beijing newmine technology
 c80718 tdsi
 c80aa9 quanta computer inc.
 c80e77 le shi zhi xin electronic technology (tianjin)  co.,ltd
+c80e95 omnilync inc.
 c819f7 samsung electronics co.,ltd
 c81afe dlogic gmbh
 c81e8e adv security (s) pte ltd
@@ -16134,13 +16524,14 @@ c83ea7 kunbus gmbh
 c84529 imk networks co.,ltd
 c84544 shanghai enlogic electric technology co., ltd.
 c848f5 medison xray co., ltd
-c84c75 cisco systems
+c84c75 cisco systems, inc.
 c85645 intermas france
 c86000 asustek computer inc.
 c864c7 zte corporation
 c86c1e display systems ltd
 c86c87 zyxel communications corp
 c86cb6 optcom co., ltd.
+c86f1d apple
 c87248 aplicom oy
 c87b5b zte corporation
 c87cbc valink co., ltd.
@@ -16152,10 +16543,11 @@ c8873b net optics
 c88a83 dongguan huahong electronics co.,ltd
 c88b47 nolangroup s.p.a con socio unico
 c8903e pakton technologies
+c89346 mxchip company limited
 c89383 embedded automation, inc.
 c894d2 jiangsu datang  electronic products co., ltd
 c8979f nokia corporation
-c89c1d cisco systems
+c89c1d cisco systems, inc.
 c89cdc elitegroup computer system co., ltd.
 c89f42 vdii innovation ab
 c8a030 texas instruments
@@ -16168,6 +16560,7 @@ c8aa21 motorola mobility, inc.
 c8aacc 
 c8ae9c shanghai tyd elecronic technology co. ltd
 c8af40 marco systemanalyse und entwicklung gmbh
+c8b373 cisco-linksys, llc
 c8bbd3 embrane
 c8bcc8 apple, inc.
 c8be19 d-link international
@@ -16182,39 +16575,51 @@ c8d2c1 jetlun (shenzhen) corporation
 c8d3a3 d-link international
 c8d5fe shenzhen zowee technology co., ltd
 c8d719 cisco consumer products, llc
+c8ddc9 lenovo mobile communication technology ltd.
 c8de51 integra networks, inc.
 c8df7c nokia corporation
 c8e1a7 vertu corporation limited
 c8ee08 tangtop technology co.,ltd
+c8eea6 shenzhen shx technology co., ltd
 c8ef2e beijing gefei tech. co., ltd
 c8f406 avaya, inc
 c8f704 building block video
 c8f733 intel corporate
 c8f981 seneca s.r.l.
-c8f9f9 cisco systems
+c8f9f9 cisco systems, inc.
 c8fb26 cisco spvtg
 c8fe30 bejing dayo mobile communication technology ltd.
 cc0080 trust system co.,
+cc047c g-way microwave
 cc051b samsung electronics co.,ltd
 cc08e0 apple, inc.
 cc09c8 imaqliq ltd
 cc0cda miljovakt as
+cc0dec cisco spvtg
 cc14a6 yichun myenergy domain, inc
 cc187b manzanita systems, inc.
+cc1afa zte corporation
 cc1eff metrological group bv
 cc2218 innodigital co., ltd.
 cc262d verifi, llc
+cc2d8c lg electronics inc
 cc34d7 gewiss s.p.a.
+cc3a61 samsung electro mechanics co., ltd.
+cc3c3f sa.s.s. datentechnik ag
+cc3e5f hewlett packard
 cc43e3 trump s.a.
 cc4bfb hellberg safety ab
+cc4e24 brocade communications systems, inc.
 cc501c kvh industries, inc.
 cc5076 ocom communications, inc.
 cc52af universal global scientific industrial co., ltd.
+cc53b5 huawei technologies co.,ltd
 cc5459 ontime networks as
 cc55ad rim
 cc593e toumaz ltd
 cc5c75 weightech com. imp. exp. equip. pesagem ltda
 cc5d4e zyxel communications corporation
+cc5d57 information  system research institute,inc.
 cc60bb empower rf systems
 cc69b0 global traffic technologies, llc
 cc6b98 minetec wireless technologies
@@ -16222,6 +16627,7 @@ cc6bf1 sound masking inc.
 cc6da0 roku, inc.
 cc6def tjk tietolaite oy
 cc7669 seetech
+cc785f apple
 cc7a30 cmax wireless co., ltd.
 cc7d37 motorola mobility, inc.
 cc7ee7 panasonic avc networks company
@@ -16232,7 +16638,7 @@ cc944a pfeiffer vacuum gmbh
 cc96a0 huawei device co., ltd
 cc9e00 nintendo co., ltd.
 cca374 guangdong guanglian electronic technology co.ltd
-cca462 arris group, inc
+cca462 arris group, inc.
 ccaf78 hon hai precision ind. co.,ltd.
 ccb255 d-link international
 ccb3f8 fujitsu isotec limited
@@ -16255,7 +16661,7 @@ cce798 my social stuff
 cce7df american magnetics, inc.
 ccea1c dconworks  co., ltd
 cceed9 deto mechatronic gmbh
-ccef48 cisco systems
+ccef48 cisco systems, inc.
 ccf3a5 chi mei communication systems, inc
 ccf67a ayecka communication systems ltd
 ccf841 lumewave
@@ -16273,13 +16679,16 @@ d01aa7 uniprint
 d01cbb beijing ctimes digital technology co., ltd.
 d023db apple, inc.
 d02788 hon hai precision ind.co.ltd
+d02db3 huawei technologies co., ltd
 d03110 ingenic semiconductor co.,ltd
 d03761 texas instruments
 d046dc southwest research institute
 d04cc1 sintrones technology corp.
+d05099 asrock incorporation
 d05162 sony mobile communications ab
+d052a8 physical graph corporation
 d0542d cambridge industries(group) co.,ltd.
-d0574c cisco systems
+d0574c cisco systems, inc.
 d05785 pantech co., ltd.
 d05875 active control technology inc.
 d059c3 ceramicro technology corporation
@@ -16290,28 +16699,33 @@ d0667b samsung electronics co., ltd
 d067e5 dell inc
 d0699e luminex lighting control equipment
 d0738e dong oh precision co., ltd.
-d075be reno a&amp;e
+d073d5 lifi labs management pty ltd
+d075be reno a&e
 d07de5 forward pay systems, inc.
 d07e28 hewlett packard
 d08999 apcon, inc.
+d08b7e passif semiconductor
 d08cb5 texas instruments
 d08cff upwis ab
 d093f8 stonestreet one llc
 d09b05 emtronix
-d0a311 neuberger gebÃÂ¯ÃÂ¿ÃÂ½udeautomation gmbh
+d0a311 neuberger gebäudeautomation gmbh
 d0aeec alpha networks inc.
 d0afb6 linktop technology co., ltd
 d0b33f shenzhen tinno mobile technology co.,ltd.
 d0b498 robert bosch llc automotive electronics
 d0b53d sepro robotique
 d0bb80 shl telemedicine international ltd.
+d0be2c cnslink co., ltd.
 d0c1b1 samsung electronics co.,ltd
-d0c282 cisco systems
+d0c282 cisco systems, inc.
+d0cde1 scientech electronics
 d0cf5e energy micro as
-d0d0fd cisco systems
+d0d0fd cisco systems, inc.
 d0d212 k2net co.,ltd.
-d0d286 beckman coulter biomedical k.k.
+d0d286 beckman coulter k.k.
 d0d3fc mios, ltd.
+d0d471 mvtech co., ltd
 d0d6cc wintop
 d0db32 nokia corporation
 d0df9a liteon technology corporation
@@ -16321,11 +16735,15 @@ d0e347 yoga
 d0e40b wearable inc.
 d0e54d pace plc
 d0e782 azurewave technologies, inc.
+d0eb03 zhehua technology limited
 d0eb9e seowoo inc.
 d0f0db ericsson
+d0f27f steadyserv technoligies, llc
 d0f73b helmut mauell gmbh
 d4000d phoenix broadband technologies, llc.
 d40057 mc technologies gmbh
+d40129 broadcom corporation
+d4016d tp-link technologies co.,ltd.
 d4024a delphian systems llc
 d40fb2 applied micro electronics ame bv
 d410cf huanshun network science and technology co., ltd.
@@ -16337,8 +16755,12 @@ d41c1c rcf s.p.a.
 d41e35 toho electronics inc.
 d41f0c tvi vision oy
 d4206d htc corporation
+d4223f lenovo mobile communication technology ltd.
+d42751 infopia co., ltd
 d428b2 iobridge, inc.
+d429ea zimory gmbh
 d42c3d sky light digital limited
+d43a65 igrs engineering lab ltd.
 d43ae9 dongguan ipt industrial co., ltd
 d43d67 carma industries inc.
 d43d7e micro-star int'l co, ltd
@@ -16354,41 +16776,49 @@ d453af vigo system s.a.
 d45ab2 galleon systems
 d45c70 wireless gigabit alliance
 d45d42 nokia corporation
+d464f7 chengdu usee digital technology co., ltd
 d466a8 riedo networks gmbh
 d46cbf goodrich isr
 d46cda csm gmbh
+d46e5c huawei technologies co., ltd
 d46f42 waxess usa inc
-d479c3 cameronet gmbh &amp; co. kg
+d479c3 cameronet gmbh & co. kg
 d47b75 harting electronics gmbh & co. kg
 d4823e argosy technologies, ltd.
 d48564 hewlett-packard company
 d487d8 samsung electronics
 d48890 samsung electronics co.,ltd
-d48cb5 cisco systems
+d48cb5 cisco systems, inc.
 d48faa sogecam industrial, s.a.
 d491af electroacustica general iberica, s.a.
 d493a0 fidelix oy
 d4945a cosmo co., ltd
 d494a1 texas instruments
+d49524 clover network, inc.
 d496df sungjin c&t co.,ltd
 d49a20 apple, inc
 d49c28 jaybird gear llc
 d49c8e university of fukui
 d49e6d wuhan zhongyuan huadian science & technology co.,
-d4a02a cisco systems
+d4a02a cisco systems, inc.
 d4a425 smax technology co., ltd.
+d4a499 inview technology corporation
 d4a928 greenwave reality inc
 d4aaff micro world
+d4ac4e bodi rs, llc
 d4ae52 dell inc
 d4bed9 dell inc
+d4bf2d se controls asia pacific ltd
+d4bf7f upvel
 d4c1fc nokia corporation
 d4c766 acentic gmbh
 d4ca6d routerboard.com
+d4ca6e u-blox ag
 d4cbaf nokia corporation
 d4ceb8 enatel ltd
 d4d184 adb broadband italia
 d4d249 power ethernet
-d4d748 cisco systems
+d4d748 cisco systems, inc.
 d4d898 korea cno tech co., ltd
 d4df57 alpinion medical systems
 d4e32c s. siedle & sohne
@@ -16396,6 +16826,7 @@ d4e33f alcatel-lucent
 d4e8b2 samsung electronics
 d4ea0e avaya, inc
 d4ec0c harley-davidson motor company
+d4ee07 hiwifi co., ltd.
 d4f027 navetas energy management
 d4f0b4 napco security technologies
 d4f143 iproad.,inc
@@ -16404,14 +16835,18 @@ d8004d apple
 d8052e skyviia corporation
 d806d1 honeywell fire system (shanghai) co,. ltd.
 d808f5 arcadia networks co. ltd.
+d809c3 cercacor labs
 d80de3 fxi technologies as
 d8160a nippon electro-sensory devices
 d8182b conti temic microelectronic gmbh
+d819ce telesquare
 d81bfe twinlinx corporation
 d81c14 compacta international, ltd.
-d824bd cisco systems
+d81ede b&w group ltd
+d824bd cisco systems, inc.
 d826b9 guangdong coagent electronics s &t co., ltd.
 d828c9 general electric consumer and industrial
+d82916 ascent communication technology
 d82986 best wish technology ltd
 d82a7e nokia corporation
 d82de1 tricascade inc.
@@ -16425,7 +16860,7 @@ d8543a texas instruments
 d857ef samsung electronics
 d85d4c tp-link technologies co.,ltd.
 d85d84 cax soft gmbh
-d867d9 cisco systems
+d867d9 cisco systems, inc.
 d86bf7 nintendo co., ltd.
 d86ce9 sagemcom sas
 d87157 lenovo mobile communication technology ltd.
@@ -16438,12 +16873,14 @@ d8952f texas instruments
 d89685 gopro
 d8973b emerson network power embedded power
 d89760 c2 development, inc.
+d89d67 hewlett packard
 d89db9 emegatech international corp.
 d89e3f apple, inc.
 d8a25e apple, inc.
 d8ae90 itibia technologies
 d8af3b hangzhou bigbright integrated communications system co.,ltd
 d8aff1 panasonic appliances company
+d8b02e guangzhou zonerich business machine co., ltd
 d8b12a panasonic mobile communications co., ltd.
 d8b377 htc corporation
 d8b6c1 networkaccountant, inc.
@@ -16472,15 +16909,18 @@ dc0265 meditech kft
 dc028e zte corporation
 dc05ed nabtesco  corporation
 dc07c1 hangzhou qiyang technology co.,ltd.
-dc0b1a adb broadband spa
+dc0b1a adb broadband italia
 dc0ea1 compal information (kunshan) co., ltd
 dc16a2 medtronic diabetes
 dc175a hitachi high-technologies corporation
 dc1d9f u & b tech
+dc1dd4 microstep-mis spol. s r.o.
 dc1ea3 accensus llc
 dc2008 asd electronics ltd
+dc2a14 shanghai longjing technology co.
 dc2b61 apple, inc.
 dc2b66 infoblock
+dc2bca zera gmbh
 dc2c26 iton technology limited
 dc2e6a hct. co., ltd.
 dc309c say systems limited
@@ -16493,8 +16933,12 @@ dc3e51 solberg & andersen as
 dc4517 motorola mobility, inc.
 dc49c9 casco signal ltd
 dc4ede shinyei technology co., ltd.
+dc5726 power-one
+dc647c c.r.s. iimotion gmbh
+dc6f08 bay storage technology
 dc7144 samsung electro mechanics
-dc7b94 cisco systems
+dc7b94 cisco systems, inc.
+dc825b janus, spol. s r.o.
 dc85de azurewave technologies., inc.
 dc9b1e intercom, inc.
 dc9c52 sapphire technology limited.
@@ -16504,6 +16948,7 @@ dca6bd beijing lanbo technology co., ltd.
 dca7d9 compressor controls corp
 dca8cf new spin golf, llc.
 dca971 intel corporate
+dca989 macandc
 dcb058 burkert werke gmbh
 dcb4c4 microsoft xcg
 dcbf90 huizhou qiaoxing telecommunication industry co.,ltd.
@@ -16520,13 +16965,14 @@ dcdeca akyllor
 dce2ac lumens digital optics inc.
 dce71c aug elektronik gmbh
 dcf05d letta teknoloji
-dcf858 lorent networksÃÂ£ÃÂ¬ inc.
+dcf858 lorent networks, inc.
 dcfad5 strong ges.m.b.h.
 e005c5 tp-link technologies co.,ltd.
 e006e6 hon hai precision ind. co.,ltd.
 e00b28 inovonics
 e00c7f nintendo co., ltd.
 e0143e modoosis inc.
+e01877 fujitsu limited
 e01c41 aerohive networks inc.
 e01cee bravo tech, inc.
 e01d3b cambridge industries(group) co.,ltd
@@ -16547,12 +16993,15 @@ e0469a netgear
 e05597 emergent vision technologies inc.
 e0589e laerdal medical
 e05b70 innovid, co., ltd.
-e05da6 detlef fink elektronik &amp; softwareentwicklung
-e05fb9 cisco systems
+e05da6 detlef fink elektronik & softwareentwicklung
+e05fb9 cisco systems, inc.
 e061b2 hangzhou zenointel technology co., ltd
 e06290 jinan jovision science & technology co., ltd.
 e064bb digiview s.r.l.
 e06995 pegatron corporation
+e0757d motorola mobility llc
+e07c62 whistle labs, inc.
+e08177 greenbytes, inc.
 e087b1 nata-info ltd.
 e08a7e exponent
 e08fec repotec co., ltd.
@@ -16560,6 +17009,7 @@ e09153 xavi technologies corp.
 e091f5 netgear
 e09467 intel corporate
 e09579 orthosoft inc, d/b/a zimmer cas
+e09d31 intel corporate
 e09db8 planex communications inc.
 e0a1d7 sfr
 e0a30f pevco
@@ -16567,10 +17017,15 @@ e0a670 nokia corporation
 e0aab0 general vision electronics co. ltd.
 e0abfe orb networks, inc.
 e0ae5e alps electric co,. ltd.
+e0aeed loenk
+e0b7b1 pace plc
 e0b9a5 azurewave
 e0b9ba apple, inc.
 e0bc43 c2 microsystems, inc.
 e0c286 aisai communication technology co., ltd.
+e0c2b7 masimo corporation
+e0c3f3 zte corporation
+e0c6b3 mildef ab
 e0c79d texas instruments
 e0c922 jireh energy tech., ltd.
 e0c97a apple inc
@@ -16578,18 +17033,22 @@ e0ca4d shenzhen unistar communication co.,ltd
 e0ca94 askey computer
 e0cb1d 
 e0cb4e asustek computer inc.
+e0cec3 askey computer corp
 e0cf2d gemintek corporation
 e0d10a katoudenkikougyousyo co ltd
 e0d7ba texas instruments
+e0d9a2 hippih aps
 e0dadc jvc kenwood corporation
 e0db55 dell inc
 e0e751 nintendo co., ltd.
 e0e8e8 olive telecommunication pvt. ltd
 e0ed1a vastriver technology co., ltd
+e0edc7 shenzhen friendcom technology development co., ltd
 e0ee1b panasonic automotive systems company of america
 e0ef25 lintes technology co., ltd.
 e0f211 digitalwatt
 e0f379 vaddio
+e0f5c6 apple inc
 e0f5ca cheng uei precision industry co.,ltd.
 e0f847 apple, inc.
 e0f9be cloudena corp.
@@ -16597,6 +17056,7 @@ e4115b hewlett packard
 e41289 topsystem systemhaus gmbh
 e41c4b v2 technology, inc.
 e41f13 ibm corp
+e425e7 apple
 e425e9 color-chip
 e42771 smartlabs
 e42ad3 magneti marelli s.p.a. powertrain
@@ -16615,17 +17075,21 @@ e44f29 ma lighting technology gmbh
 e44f5f eds elektronik destek san.tic.ltd.sti
 e455ea dedicated computing
 e45614 suttle apparatus
+e457a8 stuart manufacturing, inc.
 e46449 motorola mobility, inc.
 e467ba danish interpretation systems a/s
+e468a3 huawei technologies co.,ltd
 e46c21 messma gmbh
 e47185 securifi ltd
 e4751e getinge sterilization ab
 e477d4 minrray industry co.,ltd
 e47cf9 samsung electronics co., ltd
+e47d5a beijing hanbang technology corp.
 e48399 motorola mobility, inc.
 e48ad5 rf window co., ltd.
 e48b7f apple
 e49069 rockwell automation
+e492e7 gridlink tech. co.,ltd.
 e496ae altographics inc.
 e497f0 shanghai vlc technologies ltd. co.
 e4a5ef tron link electronics co., ltd.
@@ -16647,11 +17111,12 @@ e4e409 leifheit ag
 e4ec10 nokia corporation
 e4eefd mr&d manufacturing
 e4f365 time-o-matic, inc.
+e4f7a1 datafox gmbh
 e4fa1d pad peripheral advanced design inc.
 e4ffdd electron india
 e8039a samsung electronics co.,ltd
 e8040b apple, inc.
-e80462 cisco systems
+e80462 cisco systems, inc.
 e804f3 throughtek co., ltd.
 e8056d nortel networks
 e80688 apple, inc.
@@ -16663,13 +17128,15 @@ e81132 samsung electronics co.,ltd
 e81324 guangzhou bonsoninfo system co.,ltd
 e82877 tmy co., ltd.
 e828d5 cots technology
+e82aea intel corporate
+e82e24 out of the fog research llc
 e83935 hewlett packard
 e839df askey computer
 e83a97 ocz technology group
 e83eb6 rim
 e83efb geodesic ltd.
-e83efc arris group, inc
-e84040 cisco systems
+e83efc arris group, inc.
+e84040 cisco systems, inc.
 e840f2 pegatron corporation
 e843b6 qnap systems, inc.
 e84e06 edup international (hk) co., ltd
@@ -16688,10 +17155,12 @@ e8718d elsys equipamentos eletronicos ltda
 e8757f firs technologies(shenzhen) co., ltd
 e878a1 beoview intercom doo
 e87af3 s5 tech s.r.l.
-e8892c arris group, inc
+e8892c arris group, inc.
+e88d28 apple
 e88df5 znyx networks, inc.
 e892a4 lg electronics
 e8944c cogent healthcare systems ltd
+e894f6 tp-link technologies co.,ltd.
 e8995a piigab, processinformation i goteborg ab
 e899c4 htc corporation
 e89a8f quanta computer inc.
@@ -16701,17 +17170,19 @@ e8a364 signal path international / peachtree audio
 e8a4c1 deep sea electronics plc
 e8abfa shenzhen reecam tech.ltd.
 e8b4ae shenzhen c&d electronics co.,ltd
-e8b748 cisco systems
-e8ba70 cisco systems
+e8b748 cisco systems, inc.
+e8ba70 cisco systems, inc.
 e8be81 sagemcom
 e8c229 h-displays (msc) bhd
 e8c320 austco communication systems pty ltd
 e8cba1 nokia corporation
 e8cc32 micronet  ltd
+e8cd2d huawei technologies co., ltd
 e8d0fa mks instruments deutschland gmbh
 e8d483 ultimate europe transportation equipment gmbh
 e8da96 zhuhai tianrui electrical power tech. co., ltd.
 e8daaa videohome technology corp.
+e8de27 tp-link technologies co.,ltd.
 e8dff2 prf co., ltd.
 e8e08f gravotech marking sas
 e8e0b7 toshiba
@@ -16719,6 +17190,7 @@ e8e1e2 energotest
 e8e5d6 samsung electronics co.,ltd
 e8e732 alcatel-lucent
 e8e776 shenzhen kootion technology co., ltd
+e8e875 is5 communications inc.
 e8f1b0 sagemcom sas
 e8f928 rftech srl
 ec0ed6 itech instruments sas
@@ -16728,14 +17200,17 @@ ec172f tp-link technologies co., ltd.
 ec1a59 belkin international inc.
 ec233d huawei technologies co., ltd
 ec2368 intellivoice co.,ltd.
-ec3091 cisco systems
+ec2c49 university of tokyo
+ec3091 cisco systems, inc.
+ec3586 apple`
 ec3bf0 novelsat
 ec3f05 institute 706, the second academy china aerospace science & industry corp
 ec42f0 adl embedded solutions, inc.
 ec43e6 awcer ltd.
-ec4476 cisco systems
+ec43f6 zyxel communications corporation
+ec4476 cisco systems, inc.
 ec4644 ttk sas
-ec4670 meinberg funkuhren gmbh &amp; co. kg
+ec4670 meinberg funkuhren gmbh & co. kg
 ec473c redwire, llc
 ec4993 qihan technology co., ltd
 ec4c4d zao npk rotek
@@ -16744,7 +17219,7 @@ ec55f9 hon hai precision ind. co.,ltd.
 ec5c69 mitsubishi heavy industries mechatronics systems,ltd.
 ec6264 global411 internet services, llc
 ec63e5 epboard design llc
-ec66d1 b&amp;w group ltd
+ec66d1 b&w group ltd
 ec6c9f chengdu volans technology co.,ltd
 ec7c74 justone technologies co., ltd.
 ec7d9d mei
@@ -16768,9 +17243,10 @@ ecb541 shinano e and e co.ltd.
 ecbbae digivoice tecnologia em eletronica ltda
 ecbd09 fusion electronics ltd
 ecc38a accuenergy (canada) inc
-ecc882 cisco systems
+ecc882 cisco systems, inc.
 eccd6d allied telesis, inc.
 ecd00e miraerecognition co., ltd.
+ecd040 gea farm technologies gmbh
 ecd19a zhuhai liming industries co., ltd
 ecd925 rami
 ecd950 irt sa
@@ -16785,7 +17261,7 @@ ecea03 darfon lighting corp
 ecf00e abocom
 ecf236 neomontana electronics
 ecfaaa the ims company
-ecfc55 a. eberle gmbh &amp; co. kg
+ecfc55 a. eberle gmbh & co. kg
 ecfe7e blueradios, inc.
 f0007f janz - contadores de energia, sa
 f0022b chrontel
@@ -16794,9 +17270,12 @@ f00786 shandong bittel electronics co., ltd
 f008f1 samsung electronics co.,ltd
 f013c3 shenzhen fenda technology co., ltd
 f01c13 lg electronics
+f0219d cal-comp electronics & communications company ltd.
+f02329 showa denki co.,ltd.
 f02408 talaris (sweden) ab
-f02572 cisco systems
+f02572 cisco systems, inc.
 f0264c dr. sigrist ag
+f02929 cisco
 f02a61 waldo networks, inc.
 f02fd8 bi2-vision
 f03a55 omega elektronik as
@@ -16807,17 +17286,23 @@ f04bf2 jtech communications, inc.
 f04da2 dell inc.
 f04f7c 
 f05849 careview communications
+f05a09 samsung electronics co.,ltd
 f05d89 dycon limited
+f05dc8 duracell powermat
 f05f5a getriebebau nord gmbh and co. kg
 f0620d shenzhen egreat tech corp.,ltd
 f06281 procurve networking by hp
 f065dd primax electronics ltd.
 f06853 integrated corporation
+f06bca samsung electronics co.,ltd
 f073ae peak-system technik
+f07765 sourcefire, inc
 f077d0 xcellen
 f07bcb hon hai precision ind. co.,ltd.
 f07d68 d-link corporation
+f07f0c leopold kostal gmbh &co. kg
 f081af irz automation technologies ltd
+f084c9 zte corporation
 f08bfe costel.,co.ltd
 f0933a nxtconect
 f093c5 garland technology
@@ -16847,24 +17332,28 @@ f0dce2 apple inc
 f0de71 shanghai edo technologies co.,ltd.
 f0deb9 shanghai y&y electronics co., ltd
 f0def1 wistron infocomm (kunshan)co
-f0e5c3 draegerwerk ag &amp;amp; co. kg aa
+f0e5c3 drägerwerk ag & co. kg aa
 f0e77e samsung electronics co.,ltd
 f0ec39 essec
 f0ed1e bilkon bilgisayar kontrollu cih. im.ltd.
 f0eebb vipar gmbh
 f0f002 hon hai precision ind. co.,ltd.
+f0f260 mobitec ab
 f0f644 whitesky science & technology co.,ltd.
-f0f755 cisco systems
+f0f669 motion analysis corporation
+f0f755 cisco systems, inc.
 f0f7b3 phorm
 f0f842 keebox, inc.
-f0f9f7 ies gmbh &amp; co. kg
+f0f9f7 ies gmbh & co. kg
 f0fda0 acurix networks lp
 f40321 benext b.v.
 f4044c valencetech limited
 f40b93 research in motion
 f40f9b wavelink
+f41ba1 apple
 f41e26 simon-kaloi engineering
 f41f0b yamabishi corporation
+f41fc2 cisco
 f436e1 abilis systems sarl
 f43814 shanghai howell electronic co.,ltd
 f43d80 fag industrial services gmbh
@@ -16882,6 +17371,7 @@ f45433 rockwell automation
 f45595 hengbao corporation ltd.
 f4559c huawei technologies co., ltd
 f455e0 niceway cnc technology co.,ltd.hunan province
+f45842 boxx tv ltd
 f45fd4 cisco spvtg
 f45ff7 dq technology inc.
 f4600d panoptic technology, inc
@@ -16891,18 +17381,23 @@ f46de2 zte corporation
 f473ca conversion sound inc.
 f47626 viltechmeda uab
 f47acc solidfire, inc.
-f47f35 cisco systems
+f47b5e samsung eletronics co., ltd
+f47f35 cisco systems, inc.
 f48771 infoblox
 f48e09 nokia corporation
 f490ea deciso b.v.
 f49461 nexgen storage
 f49466 countmax,  ltd
+f499ac weber schraubautomaten gmbh
 f49f54 samsung electronics
 f4a52a hawa technologies inc
-f4acc1 cisco systems
+f4acc1 cisco systems, inc.
 f4b164 lightning telecommunications technology co. ltd
+f4b381 windowmaster a/s
 f4b549 yeastar technology co., ltd.
 f4b72a time interconnect ltd
+f4b7e2 hon hai precision ind. co.,ltd.
+f4c6d7 blackned gmbh
 f4c714 huawei device co., ltd
 f4c795 wey elektronik ag
 f4cae5 freebox sa
@@ -16912,14 +17407,17 @@ f4dc4d beijing ccd digital technology co., ltd
 f4dcda zhuhai jiahe communication technology co., limited
 f4e142 delta elektronika bv
 f4e6d7 solar power technologies, inc.
-f4ea67 cisco systems
+f4ea67 cisco systems, inc.
 f4ec38 tp-link technologies co., ltd.
+f4f15a apple
 f4fc32 texas instruments
+f80113 huawei technologies co., ltd
 f80332 khomp
 f8051c drs imaging and targeting solutions
 f80bbe motorola mobility, inc.
 f80bd0 datang telecom communication terminal (tianjin) co., ltd.
 f80cf3 lg electronics
+f80dea zycast technology inc.
 f80f41 wistron infocomm(zhongshan) corporation
 f80f84 natural security sas
 f81037 atopia systems, lp
@@ -16927,7 +17425,9 @@ f81a67 tp-link technologies co., ltd.
 f81d93 longdhua(beijing) controls technology co.,ltd
 f81edf apple, inc
 f82285 cypress technology co., ltd.
+f82edb rtw gmbh & co. kg
 f82f5b egauge systems llc
+f82fa8 hon hai precision ind. co.,ltd.
 f83094 alcatel-lucent telecom limited
 f8313e endeavour gmbh
 f83376 good mind innovation co., ltd.
@@ -16939,7 +17439,7 @@ f84897 hitachi, ltd.
 f85063 verathon
 f852df vnl europe ab
 f85f2a nokia corporation
-f866f2 cisco systems
+f866f2 cisco systems, inc.
 f86971 seibu electric co.,
 f86ecf arcx inc
 f871fe the goldman sachs group, inc.
@@ -16972,13 +17472,15 @@ f8d3a9 axan networks
 f8d462 pumatronix equipamentos eletronicos ltda.
 f8d756 simm tronic limited
 f8d7bf rev ritter gmbh
+f8dadf ecotech, inc.
 f8dae2 beta lasermike
 f8daf4 taishan online technology co., ltd.
 f8db4c pny technologies, inc.
 f8db7f htc corporation
 f8dc7a variscite ltd
+f8dfa8 zte corporation
 f8e4fb actiontec electronics, inc
-f8e7b5 utech engenharia e automaÃÂ§ao ltda
+f8e7b5 µtech engenharia e automação ltda
 f8e968 egker kft.
 f8ea0a dipl.-math. michael rauch
 f8eda5 arris group, inc.
@@ -16989,30 +17491,37 @@ f8f7d3 international communications corporation
 f8f7ff syn-tech systems inc
 f8fb2f santur corporation
 f8fe5c reciprocal labs corp
+f8fea8 technico japan corporation
 fc0012 toshiba samsung storage technolgoy korea corporation
 fc01cd fundacion tekniker
+fc0647 cortland research, llc
 fc0877 prentke romich company
 fc0a81 motorola solutions inc.
 fc0fe6 sony computer entertainment inc.
 fc10bd control sistematizado s.a.
+fc1186 logic3 plc
 fc1794 intercreative co., ltd
 fc1d59 i smart cities hk ltd
 fc1f19 samsung electro-mechanics co., ltd.
 fc1fc0 eurecam
+fc229c han kyung i net co.,ltd.
 fc253f apple, inc.
-fc2a54 connected data
+fc2a54 connected data, inc.
 fc2e2d lorom industrial co.ltd.
 fc2f40 calxeda, inc.
 fc3598 favite inc.
 fc4463 universal audio
+fc4499 swarco lea d.o.o.
 fc455f jiangxi shanshui optoelectronic technology co.,ltd
 fc48ef huawei technologies co.,ltd
 fc4dd4 universal global scientific industrial co., ltd.
 fc5090 simex sp. z o.o.
 fc52ce control id
+fc58fa shen zhen shi xin zhong xin technology co.,ltd.
 fc5b24 weibel scientific a/s
 fc5b26 mikrobits
 fc6198 nec personal products, ltd
+fc626e beijing mdc telecom
 fc683e directed perception, inc
 fc6c31 lxinstruments gmbh
 fc7516 d-link international
@@ -17020,14 +17529,17 @@ fc75e6 handreamnet
 fc7ce7 fci usa llc
 fc8329 trei technics
 fc8399 avaya, inc
+fc8b97 shenzhen gongjin electronics co.,ltd
 fc8e7e pace plc
 fc8fc4 intelligent technology inc.
 fc946c ubivelox
 fc94e3 technicolor usa inc.
 fc9947 cisco
+fc9fae fidus systems inc
 fca13e samsung electronics
 fca841 avaya, inc
 fca9b0 miartech (shanghai),inc.
+fcad0f qts networks
 fcaf6a conemtech ab
 fcc23d atmel corporation
 fcc734 samsung electronics co.,ltd
@@ -17037,6 +17549,8 @@ fccf62 ibm corp
 fcd4f2 the coca cola company
 fcd4f6 messana air.ray conditioning s.r.l.
 fcd6bd robert bosch gmbh
+fcdb96 enervalley co., ltd
+fcdd55 shenzhen wewins wireless co.,ltd
 fce192 sichuan jinwangtong electronic science&technology co,.ltd
 fce23f clay paky spa
 fce557 nokia corporation
@@ -17046,4 +17560,4 @@ fcf1cd optex-fa co.,ltd.
 fcf528 zyxel communications corporation
 fcf8ae intel corporate
 fcfaf7 shanghai baud data communication co.,ltd.
-fcfbfb cisco systems
+fcfbfb cisco systems, inc.

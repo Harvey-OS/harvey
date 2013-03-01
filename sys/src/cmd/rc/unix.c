@@ -4,11 +4,16 @@
  *	upper case letter.
  */
 #include "rc.h"
+#include "io.h"
 #include "exec.h"
+#include "getflags.h"
 #include <errno.h>
+
 char Rcmain[]="/usr/lib/rcmain";
 char Fdprefix[]="/dev/fd/";
-int execumask(), execfinit();
+
+void execfinit(void);
+
 struct builtin Builtin[] = {
 	"cd",		execcd,
 	"whatis",	execwhatis,
@@ -39,7 +44,10 @@ register char *s;
 	*t = c;
 	return v;
 }
-Vinit(){
+
+void
+Vinit(void)
+{
 	extern char **environ;
 	char *s;
 	char **env = environ;
@@ -60,8 +68,12 @@ Vinit(){
 		}
 	}
 }
+
 char **envp;
-Xrdfn(){
+
+void
+Xrdfn(void)
+{
 	char *s;
 	int len;
 	for(;*envp;envp++){
@@ -84,8 +96,12 @@ Xrdfn(){
 	}
 	Xreturn();
 }
+
 union code rdfns[4];
-execfinit(){
+
+void
+execfinit(void)
+{
 	static int first = 1;
 	if(first){
 		rdfns[0].i = 1;
@@ -98,23 +114,29 @@ execfinit(){
 	envp = environp;
 	start(rdfns, 1, runq->local);
 }
-cmpenv(a, b)
-char **a, **b;
+
+int
+cmpenv(const void *aa, const void *ab)
 {
+	char **a = aa, **b = ab;
+
 	return strcmp(*a, *b);
 }
 
-char*
-*mkenv()
+char **
+mkenv(void)
 {
 	char **env, **ep, *p, *q;
 	struct var **h, *v;
 	struct word *a;
 	int nvar = 0, nchr = 0, sep;
+
 	/*
-	 * Slightly kludgy loops look at locals then globals
+	 * Slightly kludgy loops look at locals then globals.
+	 * locals no longer exist - geoff
 	 */
-	for(h = var-1;h!=&var[NVAR];h++) for(v = h>=var?*h:runq->local;v;v = v->next){
+	for(h = gvar-1; h != &gvar[NVAR]; h++)
+	for(v = h >= gvar? *h: runq->local; v ;v = v->next){
 		if((v==vlook(v->name)) && v->val){
 			nvar++;
 			nchr+=strlen(v->name)+1;
@@ -129,7 +151,8 @@ char*
 	env = (char **)emalloc((nvar+1)*sizeof(char *)+nchr);
 	ep = env;
 	p = (char *)&env[nvar+1];
-	for(h = var-1;h!=&var[NVAR];h++) for(v = h>=var?*h:runq->local;v;v = v->next){
+	for(h = gvar-1; h != &gvar[NVAR]; h++)
+	for(v = h >= gvar? *h: runq->local;v;v = v->next){
 		if((v==vlook(v->name)) && v->val){
 			*ep++=p;
 			q = v->name;
@@ -156,7 +179,7 @@ char*
 		}
 	}
 	*ep = 0;
-	qsort((char *)env, nvar, sizeof ep[0], cmpenv);
+	qsort((void *)env, nvar, sizeof ep[0], cmpenv);
 	return env;	
 }
 char *sigmsg[] = {
@@ -182,11 +205,15 @@ char *sigmsg[] = {
 /* 19 SIGCONT */ "Process continued",
 /* 20 SIGCHLD */ "Child death",
 };
-Waitfor(pid, persist){
+
+void
+Waitfor(int pid, int persist)
+{
 	int wpid, sig;
 	struct thread *p;
 	int wstat;
 	char wstatstr[12];
+
 	for(;;){
 		errno = 0;
 		wpid = wait(&wstat);
@@ -226,31 +253,39 @@ Waitfor(pid, persist){
 	}
 }
 
-char*
-*mkargv(a)
+char **
+mkargv(a)
 register struct word *a;
 {
 	char **argv = (char **)emalloc((count(a)+2)*sizeof(char *));
 	char **argp = argv+1;	/* leave one at front for runcoms */
-	for(;a;a = a->next) *argp++=a->word;
+
+	for(;a;a = a->next)
+		*argp++=a->word;
 	*argp = 0;
 	return argv;
 }
-Updenv(){}
-Execute(args, path)
-register struct word *args, *path;
+
+void
+Updenv(void)
+{
+}
+
+void
+Execute(struct word *args, struct word *path)
 {
 	char *msg="not found";
 	int txtbusy = 0;
 	char **env = mkenv();
 	char **argv = mkargv(args);
 	char file[512];
+
 	for(;path;path = path->next){
 		strcpy(file, path->word);
 		if(file[0])
 			strcat(file, "/");
 		strcat(file, argv[1]);
-	ReExec:
+ReExec:
 		execve(file, argv+1, env);
 		switch(errno){
 		case ENOEXEC:
@@ -279,7 +314,9 @@ Bad:
 	efree((char *)env);
 	efree((char *)argv);
 }
+
 #define	NDIR	14		/* should get this from param.h */
+
 Globsize(p)
 register char *p;
 {
@@ -296,10 +333,14 @@ register char *p;
 	}
 	return isglob?globlen:0;
 }
+
 #include <sys/types.h>
-#include <ndir.h>
+#include <dirent.h>
+
 #define	NDIRLIST	50
+
 DIR *dirlist[NDIRLIST];
+
 Opendir(name)
 char *name;
 {
@@ -311,21 +352,25 @@ char *name;
 		}
 	return -1;
 }
-Readdir(f, p, onlydirs)
-int f;
-void *p;
-int onlydirs;		/* ignored, just advisory */
+
+int
+Readdir(int f, char *p, int onlydirs)
 {
-	struct direct *dp = readdir(dirlist[f]);
+	struct dirent *dp = readdir(dirlist[f]);
+
 	if(dp==0)
 		return 0;
 	strcpy(p, dp->d_name);
 	return 1;
 }
-Closedir(f){
+
+void
+Closedir(int f)
+{
 	closedir(dirlist[f]);
 	dirlist[f] = 0;
 }
+
 char *Signame[] = {
 	"sigexit",	"sighup",	"sigint",	"sigquit",
 	"sigill",	"sigtrap",	"sigiot",	"sigemt",
@@ -338,21 +383,25 @@ char *Signame[] = {
 	0,
 };
 
-int
-gettrap(sig)
+void
+gettrap(int sig)
 {
 	signal(sig, gettrap);
 	trap[sig]++;
 	ntrap++;
 	if(ntrap>=NSIG){
 		pfmt(err, "rc: Too many traps (trap %d), dumping core\n", sig);
-		signal(SIGIOT, (int (*)())0);
-		kill(getpid(), SIGIOT);
+		signal(SIGABRT, (void (*)())0);
+		kill(getpid(), SIGABRT);
 	}
 }
-Trapinit(){
+
+void
+Trapinit(void)
+{
 	int i;
-	int (*sig)();
+	void (*sig)();
+
 	if(1 || flag['d']){	/* wrong!!! */
 		sig = signal(SIGINT, gettrap);
 		if(sig==SIG_IGN)
@@ -366,18 +415,19 @@ Trapinit(){
 		}
 	}
 }
+
 Unlink(name)
 char *name;
 {
 	return unlink(name);
 }
 Write(fd, buf, cnt)
-void *buf;
+char *buf;
 {
 	return write(fd, buf, cnt);
 }
 Read(fd, buf, cnt)
-void *buf;
+char *buf;
 {
 	return read(fd, buf, cnt);
 }
@@ -405,10 +455,11 @@ Dup1(a){
 /*
  * Wrong:  should go through components of a|b|c and return the maximum.
  */
-Exit(stat)
-register char *stat;
+void
+Exit(char *stat)
 {
 	int n = 0;
+
 	while(*stat){
 		if(*stat!='|'){
 			if(*stat<'0' || '9'<*stat)
@@ -422,16 +473,25 @@ register char *stat;
 Eintr(){
 	return errno==EINTR;
 }
-Noerror(){
+
+void
+Noerror()
+{
 	errno = 0;
 }
 Isatty(fd){
 	return isatty(fd);
 }
-Abort(){
+
+void
+Abort()
+{
 	abort();
 }
-execumask(){		/* wrong -- should fork before writing */
+
+void
+execumask(void)		/* wrong -- should fork before writing */
+{
 	int m;
 	struct io out[1];
 	switch(count(runq->argv->words)){
@@ -455,15 +515,32 @@ execumask(){		/* wrong -- should fork before writing */
 	setstatus("");
 	poplist();
 }
+
+void
 Memcpy(a, b, n)
-void *a, *b;
-long n;
+char *a, *b;
 {
 	memmove(a, b, n);
 }
 
 void*
-Malloc(n)
+Malloc(unsigned long n)
 {
 	return (void *)malloc(n);
+}
+
+void
+errstr(char *buf, int len)
+{
+	strncpy(buf, strerror(errno), len);
+}
+
+int
+needsrcquote(int c)
+{
+	if(c <= ' ')
+		return 1;
+	if(strchr("`^#*[]=|\\?${}()'<>&;", c))
+		return 1;
+	return 0;
 }

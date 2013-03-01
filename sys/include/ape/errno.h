@@ -78,6 +78,9 @@ extern int errno;
 #define ECANCELED	61
 #define EINPROGRESS	62
 
+/* from research unix */
+#define ETXTBSY		63
+
 #endif /* _POSIX_SOURCE */
 
 #endif /* __ERRNO */
