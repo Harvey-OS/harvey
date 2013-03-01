@@ -18,7 +18,7 @@ int	binary;
 int	halfswap;
 int	srec = 2;
 uvlong	addr;
-ulong 	psize = 4096;
+uvlong 	psize = 4096;
 Biobuf 	stdout;
 Fhdr	exech;
 Biobuf *bio;

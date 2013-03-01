@@ -290,7 +290,7 @@ smbplan9length2size32(vlong length)
 vlong
 smbl2roundupvlong(vlong v, int l2)
 {
-	ulong mask;
+	uvlong mask;
 	mask = (1 << l2) - 1;
 	return (v + mask) & ~mask;
 }

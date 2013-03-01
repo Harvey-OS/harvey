@@ -1,9 +1,9 @@
 /*
  * Plan9 is defined for plan 9
  * Unix is defined for Unix
- * Please don't litter the code with ifdefs.  The six below should be enough.
+ * Please don't litter the code with ifdefs.  The two below should be enough.
  */
-#define	Plan9
+#define	Unix
 #ifdef	Plan9
 #include <u.h>
 #include <libc.h>

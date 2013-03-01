@@ -15,6 +15,7 @@ extern double asin(double);
 extern double atan(double);
 extern double atan2(double, double);
 extern double cos(double);
+extern double hypot(double, double);
 extern double sin(double);
 extern double tan(double);
 extern double cosh(double);
