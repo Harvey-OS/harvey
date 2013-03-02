@@ -9,8 +9,8 @@
 #include "getflags.h"
 #include <errno.h>
 
-char Rcmain[]="/usr/lib/rcmain";
-char Fdprefix[]="/dev/fd/";
+char *Rcmain = "/usr/lib/rcmain";
+char *Fdprefix = "/dev/fd/";
 
 void execfinit(void);
 
@@ -542,5 +542,51 @@ needsrcquote(int c)
 		return 1;
 	if(strchr("`^#*[]=|\\?${}()'<>&;", c))
 		return 1;
+	return 0;
+}
+
+int
+rfork(int bits)
+{
+	return fork();
+}
+
+int *waitpids;
+int nwaitpids;
+
+void
+addwaitpid(int pid)
+{
+	waitpids = realloc(waitpids, (nwaitpids+1)*sizeof waitpids[0]);
+	if(waitpids == 0)
+		panic("Can't realloc %d waitpids", nwaitpids+1);
+	waitpids[nwaitpids++] = pid;
+}
+
+void
+delwaitpid(int pid)
+{
+	int r, w;
+	
+	for(r=w=0; r<nwaitpids; r++)
+		if(waitpids[r] != pid)
+			waitpids[w++] = waitpids[r];
+	nwaitpids = w;
+}
+
+void
+clearwaitpids(void)
+{
+	nwaitpids = 0;
+}
+
+int
+havewaitpid(int pid)
+{
+	int i;
+
+	for(i=0; i<nwaitpids; i++)
+		if(waitpids[i] == pid)
+			return 1;
 	return 0;
 }
