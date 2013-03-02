@@ -84,7 +84,6 @@ attachproc(int pid, int kflag, int corefd, Fhdr *fp)
 	int fd;
 	Map *map;
 	uvlong n;
-	int mode;
 
 	map = newmap(0, 4);
 	if (!map)
@@ -93,10 +92,11 @@ attachproc(int pid, int kflag, int corefd, Fhdr *fp)
 		regs = "kregs";
 	else
 		regs = "regs";
-	mode = ORDWR;
 	if (mach->regsize) {
 		sprint(buf, "/proc/%d/%s", pid, regs);
-		fd = open(buf, mode);
+		fd = open(buf, ORDWR);
+		if(fd < 0)
+			fd = open(buf, OREAD);
 		if(fd < 0) {
 			free(map);
 			return 0;
@@ -105,7 +105,9 @@ attachproc(int pid, int kflag, int corefd, Fhdr *fp)
 	}
 	if (mach->fpregsize) {
 		sprint(buf, "/proc/%d/fpregs", pid);
-		fd = open(buf, mode);
+		fd = open(buf, ORDWR);
+		if(fd < 0)
+			fd = open(buf, OREAD);
 		if(fd < 0) {
 			close(map->seg[0].fd);
 			free(map);

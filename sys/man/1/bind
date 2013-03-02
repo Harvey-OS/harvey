@@ -198,7 +198,7 @@ is unmounted.
 To compile a program with the C library from July 16, 1992:
 .IP
 .EX
-mount /srv/boot /n/dump dump
+mount /srv/boot /n/dump main/archive
 bind /n/dump/1992/0716/mips/lib/libc.a /mips/lib/libc.a
 mk
 .EE

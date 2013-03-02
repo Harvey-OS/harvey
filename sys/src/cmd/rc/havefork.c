@@ -71,8 +71,6 @@ Xpipe(void)
 	}
 }
 
-enum { Wordmax = 8192, };
-
 /*
  * Who should wait for the exit from the fork?
  */
@@ -81,8 +79,8 @@ Xbackq(void)
 {
 	int c, pid;
 	int pfd[2];
-	char wd[Wordmax + 1];
-	char *s, *ewd = &wd[Wordmax], *stop;
+	char wd[NTOK + 1];
+	char *s, *ewd = &wd[NTOK], *stop;
 	struct io *f;
 	var *ifs = vlook("ifs");
 	word *v, *nextv;

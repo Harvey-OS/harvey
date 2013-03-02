@@ -1,38 +1,22 @@
 /*
- * Plan9 is defined for plan 9
- * Unix is defined for Unix
+ * Assume plan 9 by default; if Unix is defined, assume unix.
  * Please don't litter the code with ifdefs.  The six below should be enough.
  */
-#define	Plan9
-#ifdef	Plan9
+
+#ifndef Unix
+/* plan 9 */
 #include <u.h>
 #include <libc.h>
+
 #define	NSIG	32
 #define	SIGINT	2
 #define	SIGQUIT	3
-#endif
 
-#ifdef Unix
-#define _BSD_EXTENSION
-#define _PLAN9_SOURCE
-#define _POSIX_SOURCE
-#define _RESEARCH_SOURCE
-#define _SUSV2_SOURCE
-
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <lib9.h>
-#include <signal.h>
-#include <inttypes.h>
-
-#ifndef NSIG
-#define NSIG 32
-#endif
-
-#define uintptr uintptr_t
+#define fcntl(fd, op, arg)	/* unix compatibility */
+#define F_SETFD
+#define FD_CLOEXEC
+#else
+#include "unix.h"
 #endif
 
 #ifndef ERRMAX
@@ -40,9 +24,12 @@
 #endif
 
 #define	YYMAXDEPTH	500
+#ifndef YYPREFIX
 #ifndef PAREN
 #include "x.tab.h"
 #endif
+#endif
+
 typedef struct tree tree;
 typedef struct word word;
 typedef struct io io;
@@ -53,14 +40,14 @@ typedef struct redir redir;
 typedef struct thread thread;
 typedef struct builtin builtin;
 
-#ifdef Plan9
+#ifndef Unix
 #pragma incomplete word
 #pragma incomplete io
 #endif
 
 struct tree{
 	int	type;
-	int	rtype, fd0, fd1;		/* details of REDIR PIPE DUP tokens */
+	int	rtype, fd0, fd1;	/* details of REDIR PIPE DUP tokens */
 	char	*str;
 	int	quoted;
 	int	iskw;
@@ -90,7 +77,7 @@ union code{
 char *promptstr;
 int doprompt;
 
-#define	NTOK	8192
+#define	NTOK	8192		/* maximum bytes in a word (token) */
 
 char tok[NTOK];
 
@@ -123,7 +110,7 @@ void *emalloc(long);
 void *Malloc(ulong);
 void efree(void *);
 
-#define	NOFILE	128		/* should come from <param.h> */
+#define	NOFILE	128		/* should come from <sys/param.h> on unix */
 
 struct here{
 	tree	*tag;
@@ -161,7 +148,8 @@ int doprompt;		/* is it time for a prompt? */
  */
 #define	PRD	0
 #define	PWR	1
-char Rcmain[], Fdprefix[];
+
+char *Rcmain, *Fdprefix;
 /*
  * How many dot commands have we executed?
  * Used to ensure that -v flag doesn't print rcmain.

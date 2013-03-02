@@ -1,0 +1,20 @@
+yacc -d syn.y
+cmp -s x.tab.h y.tab.h || cp y.tab.h x.tab.h
+cc -DUnix -c -I. code.c
+cc -DUnix -c -I. exec.c
+cc -DUnix -c -I. getflags.c
+cc -DUnix -c -I. glob.c
+cc -DUnix -c -I. here.c
+cc -DUnix -c -I. io.c
+cc -DUnix -c -I. lex.c
+cc -DUnix -c -I. pcmd.c
+cc -DUnix -c -I. pfnc.c
+cc -DUnix -c -I. simple.c
+cc -DUnix -c -I. subr.c
+cc -DUnix -c -I. trap.c
+cc -DUnix -c -I. tree.c
+cc -DUnix -c -I. var.c
+cc -DUnix -c -I. havefork.c
+cc -DUnix -c -I. unix.c
+cc -DUnix -c -I. y.tab.c
+cc  -o rc code.o exec.o getflags.o glob.o here.o io.o lex.o pcmd.o pfnc.o simple.o subr.o trap.o tree.o var.o havefork.o unix.o y.tab.o

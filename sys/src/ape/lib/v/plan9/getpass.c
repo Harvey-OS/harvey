@@ -2,6 +2,7 @@
 #define _RESEARCH_SOURCE
 #include <stdio.h>
 #include <signal.h>
+#include <limits.h>
 #include <libv.h>
 
 char *
@@ -10,7 +11,7 @@ getpass(char *prompt)
 	int c;
 	char *p;
 	FILE *fi;
-	static char pbuf[9];
+	static char pbuf[PASS_MAX];
 	void (*sig)(int);
 
 	if ((fi = fopen("/dev/cons", "r")) == NULL)
@@ -28,7 +29,7 @@ getpass(char *prompt)
 		else if (c == '\b') {
 			if (p > pbuf)
 				p--;
-		} else if (p < &pbuf[8])
+		} else if (p < &pbuf[sizeof(pbuf)-1])
 			*p++ = c;
 	*p = '\0';
 

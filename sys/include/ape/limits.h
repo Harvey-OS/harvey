@@ -49,6 +49,7 @@
 #define	_POSIX_TIMER_MAX		32
 #define _POSIX_TZNAME_MAX		3
 
+
 /* pedagogy: those that standard allows omitting are commented out */
 /*#define AIO_LIST_MAX _POSIX_AIO_LIST_MAX */
 /*#define AIO_MAX _POSIX_AIO_MAX */
@@ -65,6 +66,7 @@
 #define NGROUPS_MAX 10
 /*#define OPEN_MAX _POSIX_OPEN_MAX */
 /*#define PAGESIZE 1 */
+#define PASS_MAX	64
 /*#define PATH_MAX _POSIX_PATH_MAX */
 /*#define PIPE_BUF _POSIX_PIPE_BUF */
 /*#define RTSIG_MAX _POSIX_RTSIG_MAX */

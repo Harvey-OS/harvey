@@ -24,8 +24,9 @@ char *syssigname[] = {
 	"term",
 	0
 };
-char Rcmain[]="/rc/lib/rcmain";
-char Fdprefix[]="/fd/";
+char *Rcmain = "/rc/lib/rcmain";
+char *Fdprefix = "/fd/";
+
 void execfinit(void);
 void execbind(void);
 
