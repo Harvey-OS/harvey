@@ -15,6 +15,7 @@ extern double asin(double);
 extern double atan(double);
 extern double atan2(double, double);
 extern double cos(double);
+extern double hypot(double, double);
 extern double sin(double);
 extern double tan(double);
 extern double cosh(double);
@@ -72,6 +73,6 @@ extern double yn(int, double);
 #endif
 
 #define isnan(x) isNaN(x)
-#define isinf(x) isInf(x)
+#define isinf(x) isInf(x, 0)
 
 #endif /* __MATH */

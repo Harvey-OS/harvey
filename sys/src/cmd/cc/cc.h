@@ -741,7 +741,6 @@ void	gextern(Sym*, Node*, long, long);
 void	ginit(void);
 long	outstring(char*, long);
 long	outlstring(ushort*, long);
-void	sextern(Sym*, Node*, long, long);
 void	xcom(Node*);
 long	exreg(Type*);
 long	align(long, Type*, int);

@@ -240,23 +240,6 @@ loop:
 }
 
 void
-sextern(Sym *s, Node *a, long o, long w)
-{
-	long e, lw;
-
-	for(e=0; e<w; e+=NSNAME) {
-		lw = NSNAME;
-		if(w-e < lw)
-			lw = w-e;
-		gpseudo(ADATA, s, nodconst(0));
-		p->from.offset += o+e;
-		p->reg = lw;
-		p->to.type = D_SCONST;
-		memmove(p->to.sval, a->cstring+e, lw);
-	}
-}
-
-void
 gextern(Sym *s, Node *a, long o, long w)
 {
 	if(a->op == OCONST && typev[a->type->etype]) {
