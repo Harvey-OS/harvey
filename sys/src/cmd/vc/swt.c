@@ -19,7 +19,7 @@ swit2(C1 *q, int nc, long def, Node *n, Node *tn)
 
 	if(nc < 5) {
 		for(i=0; i<nc; i++) {
-			if(debug['W'])
+			if(debug['K'])
 				print("case = %.8llux\n", q->val);
 			gmove(nodconst(q->val), tn);
 			gopcode(OEQ, n, tn, Z);
@@ -32,7 +32,7 @@ swit2(C1 *q, int nc, long def, Node *n, Node *tn)
 	}
 	i = nc / 2;
 	r = q+i;
-	if(debug['W'])
+	if(debug['K'])
 		print("case > %.8llux\n", r->val);
 	gmove(nodconst(r->val), tn);
 	gopcode(OLT, tn, n, Z);
@@ -41,7 +41,7 @@ swit2(C1 *q, int nc, long def, Node *n, Node *tn)
 	patch(p, r->label);
 	swit2(q, i, def, n, tn);
 
-	if(debug['W'])
+	if(debug['K'])
 		print("case < %.8llux\n", r->val);
 	patch(sp, pc);
 	swit2(r+1, nc-i-1, def, n, tn);
@@ -231,23 +231,6 @@ loop:
 	}
 	p += 2;
 	goto loop;
-}
-
-void
-sextern(Sym *s, Node *a, long o, long w)
-{
-	long e, lw;
-
-	for(e=0; e<w; e+=NSNAME) {
-		lw = NSNAME;
-		if(w-e < lw)
-			lw = w-e;
-		gpseudo(ADATA, s, nodconst(0));
-		p->from.offset += o+e;
-		p->reg = lw;
-		p->to.type = D_SCONST;
-		memmove(p->to.sval, a->cstring+e, lw);
-	}
 }
 
 void

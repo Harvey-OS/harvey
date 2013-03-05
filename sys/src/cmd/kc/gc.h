@@ -267,7 +267,6 @@ int	mulcon(Node*, Node*);
 Multab*	mulcon0(Node*, long);
 int	mulcon1(Node*, long, Node*);
 void	nullwarn(Node*, Node*);
-void	sextern(Sym*, Node*, long, long);
 void	gextern(Sym*, Node*, long, long);
 void	outcode(void);
 void	ieeedtod(Ieee*, double);
