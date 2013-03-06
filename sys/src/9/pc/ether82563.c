@@ -1258,7 +1258,6 @@ i82563attach(Ether* edev)
 		return;
 	}
 
-	ctlr->edev = edev;			/* point back to Ether* */
 	ctlr->nrd = Nrd;
 	ctlr->ntd = Ntd;
 
@@ -1294,6 +1293,7 @@ i82563attach(Ether* edev)
 		freeb(bp);
 	}
 
+	ctlr->edev = edev;			/* point back to Ether* */
 	ctlr->attached = 1;
 
 	snprint(name, sizeof name, "#l%dl", edev->ctlrno);
@@ -1356,7 +1356,8 @@ i82575interrupt(Ureg*, void *)
 {
 	Ctlr *ctlr;
 
-	for (ctlr = i82563ctlrhead; ctlr != nil; ctlr = ctlr->next)
+	for (ctlr = i82563ctlrhead; ctlr != nil && ctlr->edev != nil;
+	     ctlr = ctlr->next)
 		i82563interrupt(nil, ctlr->edev);
 }
 
