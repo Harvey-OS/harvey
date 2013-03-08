@@ -271,11 +271,11 @@ ahciclear(void *v)
 }
 
 static void
-aesleep(Aportm *m, Asleep *a, int ms)
+aesleep(Aportm *pm, Asleep *a, int ms)
 {
 	if(waserror())
 		return;
-	tsleep(m, ahciclear, a, ms);
+	tsleep(pm, ahciclear, a, ms);
 	poperror();
 }
 
@@ -511,15 +511,15 @@ ahciidentify(Aportc *pc, ushort *id)
 {
 	int i, sig;
 	vlong s;
-	Aportm *m;
+	Aportm *pm;
 
-	m = pc->m;
-	m->feat = 0;
-	m->smart = 0;
+	pm = pc->m;
+	pm->feat = 0;
+	pm->smart = 0;
 	i = 0;
 	sig = pc->p->sig >> 16;
 	if(sig == 0xeb14){
-		m->feat |= Datapi;
+		pm->feat |= Datapi;
 		i = 1;
 	}
 	if(ahciidentify0(pc, id, i) == -1)
@@ -527,26 +527,26 @@ ahciidentify(Aportc *pc, ushort *id)
 
 	i = gbit16(id+83) | gbit16(id+86);
 	if(i & (1<<10)){
-		m->feat |= Dllba;
+		pm->feat |= Dllba;
 		s = gbit64(id+100);
 	}else
 		s = gbit32(id+60);
 
-	if(m->feat&Datapi){
+	if(pm->feat&Datapi){
 		i = gbit16(id+0);
 		if(i&1)
-			m->feat |= Datapi16;
+			pm->feat |= Datapi16;
 	}
 
 	i = gbit16(id+83);
 	if((i>>14) == 1) {
 		if(i & (1<<3))
-			m->feat |= Dpower;
+			pm->feat |= Dpower;
 		i = gbit16(id+82);
 		if(i & 1)
-			m->feat |= Dsmart;
+			pm->feat |= Dsmart;
 		if(i & (1<<14))
-			m->feat |= Dnop;
+			pm->feat |= Dnop;
 	}
 	return s;
 }
@@ -723,15 +723,15 @@ ahciconfigdrive(Drive *d)
 	char *name;
 	Ahba *h;
 	Aport *p;
-	Aportm *m;
+	Aportm *pm;
 
 	h = d->ctlr->hba;
 	p = d->portc.p;
-	m = d->portc.m;
-	if(m->list == 0){
-		setupfis(&m->fis);
-		m->list = malign(sizeof *m->list, 1024);
-		m->ctab = malign(sizeof *m->ctab, 128);
+	pm = d->portc.m;
+	if(pm->list == 0){
+		setupfis(&pm->fis);
+		pm->list = malign(sizeof *pm->list, 1024);
+		pm->ctab = malign(sizeof *pm->ctab, 128);
 	}
 
 	if (d->unit)
@@ -748,9 +748,9 @@ ahciconfigdrive(Drive *d)
 
 	p->serror = SerrAll;
 
-	p->list = PCIWADDR(m->list);
+	p->list = PCIWADDR(pm->list);
 	p->listhi = 0;
-	p->fis = PCIWADDR(m->fis.base);
+	p->fis = PCIWADDR(pm->fis.base);
 	p->fishi = 0;
 	p->cmd |= Afre|Ast;
 
@@ -1073,10 +1073,10 @@ newdrive(Drive *d)
 {
 	char *name;
 	Aportc *c;
-	Aportm *m;
+	Aportm *pm;
 
 	c = &d->portc;
-	m = &d->portm;
+	pm = &d->portm;
 
 	name = d->unit->name;
 	if(name == 0)
@@ -1093,8 +1093,8 @@ newdrive(Drive *d)
 		dprint("%s: identify failure\n", name);
 		goto lose;
 	}
-	if(m->feat & Dpower && setfeatures(c, 0x85) == -1){
-		m->feat &= ~Dpower;
+	if(pm->feat & Dpower && setfeatures(c, 0x85) == -1){
+		pm->feat &= ~Dpower;
 		if(ahcirecover(c) == -1)
 			goto lose;
 	}
@@ -1104,7 +1104,7 @@ newdrive(Drive *d)
 	qunlock(c->m);
 
 	idprint("%s: %sLBA %,llud sectors: %s %s %s %s\n", d->unit->name,
-		(m->feat & Dllba? "L": ""), d->sectors, d->model, d->firmware,
+		(pm->feat & Dllba? "L": ""), d->sectors, d->model, d->firmware,
 		d->serial, d->mediachange? "[mediachange]": "");
 	return 0;
 
@@ -1322,7 +1322,7 @@ static void
 iainterrupt(Ureg*, void *a)
 {
 	int i;
-	ulong cause, m;
+	ulong cause, mask;
 	Ctlr *c;
 	Drive *d;
 
@@ -1336,18 +1336,18 @@ iainterrupt(Ureg*, void *a)
 		return;
 	}
 	for(i = 0; cause && i <= c->mport; i++){
-		m = 1 << i;
-		if((cause & m) == 0)
+		mask = 1 << i;
+		if((cause & mask) == 0)
 			continue;
 		d = c->rawdrive + i;
 		ilock(d);
 		isdrivejabbering(d);
-		if(d->port->isr && c->hba->pi & m)
+		if(d->port->isr && c->hba->pi & mask)
 			updatedrive(d);
-		c->hba->isr = m;
+		c->hba->isr = mask;
 		iunlock(d);
 
-		cause &= ~m;
+		cause &= ~mask;
 	}
 	if (cause) {
 		isctlrjabbering(c, cause);
@@ -1514,17 +1514,17 @@ ahcibuild(Drive *d, uchar *cmd, void *data, int n, vlong lba)
 	uchar *c, acmd, dir, llba;
 	Alist *l;
 	Actab *t;
-	Aportm *m;
+	Aportm *pm;
 	Aprdt *p;
 	static uchar tab[2][2] = { 0xc8, 0x25, 0xca, 0x35, };
 
-	m = &d->portm;
+	pm = &d->portm;
 	dir = *cmd != 0x28;
-	llba = m->feat&Dllba? 1: 0;
+	llba = pm->feat&Dllba? 1: 0;
 	acmd = tab[dir][llba];
-	qlock(m);
-	l = m->list;
-	t = m->ctab;
+	qlock(pm);
+	l = pm->list;
+	t = pm->ctab;
 	c = t->cfis;
 
 	c[0] = 0x27;
@@ -1569,7 +1569,7 @@ ahcibuild(Drive *d, uchar *cmd, void *data, int n, vlong lba)
 }
 
 static Alist*
-ahcibuildpkt(Aportm *m, SDreq *r, void *data, int n)
+ahcibuildpkt(Aportm *pm, SDreq *r, void *data, int n)
 {
 	int fill, len;
 	uchar *c;
@@ -1577,12 +1577,12 @@ ahcibuildpkt(Aportm *m, SDreq *r, void *data, int n)
 	Actab *t;
 	Aprdt *p;
 
-	qlock(m);
-	l = m->list;
-	t = m->ctab;
+	qlock(pm);
+	l = pm->list;
+	t = pm->ctab;
 	c = t->cfis;
 
-	fill = m->feat&Datapi16? 16: 12;
+	fill = pm->feat&Datapi16? 16: 12;
 	if((len = r->clen) > fill)
 		len = fill;
 	memmove(t->atapi, r->cmd, len);

@@ -520,13 +520,11 @@ static char *smarttab[] = {
 static char *
 pflag(char *s, char *e, uchar f)
 {
-	uchar i, m;
+	uchar i;
 
-	for(i = 0; i < 8; i++){
-		m = 1 << i;
-		if(f & m)
+	for(i = 0; i < 8; i++)
+		if(f & (1 << i))
 			s = seprint(s, e, "%s ", flagname[i]);
-	}
 	return seprint(s, e, "\n");
 }
 

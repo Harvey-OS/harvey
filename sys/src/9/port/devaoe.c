@@ -1,6 +1,6 @@
 /*
  *	© 2005-2010 coraid
- *	aoe storage initiator
+ *	ATA-over-Ethernet (AoE) storage initiator
  */
 
 #include "u.h"
@@ -1216,13 +1216,11 @@ readmem(ulong off, void *dst, long n, void *src, long size)
 static char *
 pflag(char *s, char *e, uchar f)
 {
-	uchar i, m;
+	uchar i;
 
-	for(i = 0; i < 8; i++){
-		m = 1 << i;
-		if(f & m)
+	for(i = 0; i < 8; i++)
+		if(f & (1 << i))
 			s = seprint(s, e, "%s ", flagname[i]? flagname[i]: "oops");
-	}
 	return seprint(s, e, "\n");
 }
 
@@ -1471,9 +1469,9 @@ configwrite(Aoedev *d, void *db, long len)
 static int getmtu(Chan*);
 
 static int
-devmaxdata(Aoedev *d)
+devmaxdata(Aoedev *d)		/* return aoe mtu (excluding headers) */
 {
-	int i, m, mtu;
+	int i, nmtu, mtu;
 	Devlink *l;
 	Netlink *n;
 
@@ -1483,22 +1481,29 @@ devmaxdata(Aoedev *d)
 		n = l->nl;
 		if((l->flag & Dup) == 0 || (n->flag & Dup) == 0)
 			continue;
-		m = getmtu(n->mtu);
-		if(m < mtu)
-			mtu = m;
+		nmtu = getmtu(n->mtu);
+		if(mtu > nmtu)
+			mtu = nmtu;
 	}
 	if(mtu == 100000)
-		mtu = 0;
+		mtu = ETHERMAXTU;		/* normal ethernet mtu */
 	mtu -= AOEATASZ;
+	mtu -= (uint)mtu % Aoesectsz;
+	if(mtu < 2*Aoesectsz)			/* sanity */
+		mtu = 2*Aoesectsz;
 	return mtu;
 }
 
 static int
-toggle(char *s, int init)
+toggle(char *s, int f, int bit)
 {
 	if(s == nil)
-		return init ^ 1;
-	return strcmp(s, "on") == 0;
+		f ^= bit;
+	else if(strcmp(s, "on") == 0)
+		f |= bit;
+	else
+		f &= ~bit;
+	return f;
 }
 
 static void ataident(Aoedev*);
@@ -1506,7 +1511,7 @@ static void ataident(Aoedev*);
 static long
 unitctlwrite(Aoedev *d, void *db, long n)
 {
-	uint maxbcnt, m;
+	uint maxbcnt, mtu;
 	uvlong bsize;
 	enum {
 		Failio,
@@ -1545,14 +1550,7 @@ unitctlwrite(Aoedev *d, void *db, long n)
 		ataident(d);
 		break;
 	case Jumbo:
-		m = 0;
-		if(d->flag & Djumbo)
-			m = 1;
-		toggle(cb->f[1], m);
-		if(m)
-			d->flag |= Djumbo;
-		else
-			d->flag &= ~Djumbo;
+		d->flag = toggle(cb->f[1], d->flag, Djumbo);
 		break;
 	case Maxbno:
 	case Mtu:
@@ -1560,24 +1558,21 @@ unitctlwrite(Aoedev *d, void *db, long n)
 		if(cb->nf > 2)
 			error(Ecmdargs);
 		if(cb->nf == 2){
-			m = strtoul(cb->f[1], 0, 0);
+			mtu = strtoul(cb->f[1], 0, 0);
 			if(ct->index == Maxbno)
-				m *= Aoesectsz;
+				mtu *= Aoesectsz;
 			else{
-				m -= AOEATASZ;
-				m &= ~(Aoesectsz-1);
+				mtu -= AOEATASZ;
+				mtu &= ~(Aoesectsz-1);
 			}
-			if(m == 0 || m > maxbcnt)
+			if(mtu == 0 || mtu > maxbcnt)
 				cmderror(cb, "mtu out of legal range");
-			maxbcnt = m;
+			maxbcnt = mtu;
 		}
 		d->maxbcnt = maxbcnt;
 		break;
 	case Nofailf:
-		if (toggle(cb->f[1], (d->flag & Dnofail) != 0))
-			d->flag |= Dnofail;
-		else
-			d->flag &= ~Dnofail;
+		d->flag = toggle(cb->f[1], d->flag, Dnofail);
 		break;
 	case Setsize:
 		bsize = d->realbsize;
@@ -1823,15 +1818,15 @@ ataident(Aoedev *d)
 }
 
 static int
-getmtu(Chan *m)
+getmtu(Chan *mtuch)
 {
 	int n, mtu;
 	char buf[36];
 
-	mtu = 1514;
-	if(m == nil || waserror())
+	mtu = ETHERMAXTU;
+	if(mtuch == nil || waserror())
 		return mtu;
-	n = devtab[m->type]->read(m, buf, sizeof buf - 1, 0);
+	n = devtab[mtuch->type]->read(mtuch, buf, sizeof buf - 1, 0);
 	if(n > 12){
 		buf[n] = 0;
 		mtu = strtoul(buf + 12, 0, 0);
@@ -2523,19 +2518,19 @@ topctlwrite(void *db, long n)
 	f = cb->f[1];
 	switch(ct->index){
 	case Autodiscover:
-		autodiscover = toggle(f, autodiscover);
+		autodiscover = toggle(f, autodiscover, 1);
 		break;
 	case Bind:
 		netbind(f);
 		break;
 	case Debug:
-		debug = toggle(f, debug);
+		debug = toggle(f, debug, 1);
 		break;
 	case Discover:
 		discoverstr(f);
 		break;
 	case Rediscover:
-		rediscover = toggle(f, rediscover);
+		rediscover = toggle(f, rediscover, 1);
 		break;
 	case Remove:
 		removedev(f);
