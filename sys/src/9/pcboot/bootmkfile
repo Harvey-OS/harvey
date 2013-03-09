@@ -67,10 +67,9 @@ ETHER=`{echo devether.c ether*.c | sed 's/\.c/.'$O'/g'}
 
 $p$CONF:Q:	$CONF.c $OBJ $LIB
 	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
-	echo linking bootstraps
+	echo linking $p$CONF^'*'
 	$LD -o $target -H3 -T$KTZERO -l $OBJ $CONF.$O $LIB	# dos .com
 	$LD -o $target^debug -T$KTZERO -l $OBJ $CONF.$O $LIB
-#	$LD -o $target.exe -H4 -T$KTZERO -l $OBJ $CONF.$O $LIB	# dos .exe
 #	$LD -o $target.elf -H5 -R4096 -T$KTZERO -l $OBJ $CONF.$O $LIB
 	size $target^debug
 

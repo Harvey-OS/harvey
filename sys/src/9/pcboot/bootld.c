@@ -18,22 +18,27 @@
 
 #undef KADDR
 #undef PADDR
-// #define PADDR(a)	(paddr)((void *)(a))
 
 #define KADDR(a)	((void*)((ulong)(a) | KZERO))
 #define PADDR(a)	((ulong)(a) & ~KSEGM)
 
 extern int debug;
+
 extern void pagingoff(ulong);
 
-static uchar elfident[7] = {
-	'\177', 'E', 'L', 'F', '\1', '\1', '\1'
+static uchar elfident[] = {
+	'\177', 'E', 'L', 'F',
 };
 static Ehdr ehdr, rehdr;
+static E64hdr e64hdr;
 static Phdr *phdr;
+static P64hdr *p64hdr;
+
 static int curphdr;
 static ulong curoff;
 static ulong elftotal;
+
+static uvlong (*swav)(uvlong);
 static long (*swal)(long);
 static ushort (*swab)(ushort);
 
@@ -101,6 +106,21 @@ leswal(long l)
 }
 
 /*
+ * little-endian vlong
+ */
+uvlong
+leswav(uvlong v)
+{
+	uchar *p;
+
+	p = (uchar*)&v;
+	return ((uvlong)p[7]<<56) | ((uvlong)p[6]<<48) | ((uvlong)p[5]<<40)
+				  | ((uvlong)p[4]<<32) | ((uvlong)p[3]<<24)
+				  | ((uvlong)p[2]<<16) | ((uvlong)p[1]<<8)
+				  | (uvlong)p[0];
+}
+
+/*
  * Convert header to canonical form
  */
 static void
@@ -108,6 +128,15 @@ hswal(long *lp, int n, long (*swap) (long))
 {
 	while (n--) {
 		*lp = (*swap) (*lp);
+		lp++;
+	}
+}
+
+static void
+hswav(uvlong *lp, int n, uvlong (*swap)(uvlong))
+{
+	while (n--) {
+		*lp = (*swap)(*lp);
 		lp++;
 	}
 }
@@ -132,7 +161,7 @@ readehdr(Boot *b)
 		print("bad ELF encoding - not big or little endian\n");
 		return 0;
 	}
-	memmove(&rehdr, &ehdr, sizeof(Ehdr));
+	memmove(&rehdr, &ehdr, sizeof(Ehdr));	/* copy; never used */
 
 	ehdr.type = swab(ehdr.type);
 	ehdr.machine = swab(ehdr.machine);
@@ -161,6 +190,7 @@ readehdr(Boot *b)
 	b->bp = (char*)smalloc(i);
 	b->wp = b->bp;
 	b->ep = b->wp + i;
+	elftotal = 0;
 	phdr = (Phdr*)(b->bp + ehdr.phoff-sizeof(Ehdr));
 	if(debug)
 		print("phdr...");
@@ -169,10 +199,69 @@ readehdr(Boot *b)
 }
 
 static int
+reade64hdr(Boot *b)
+{
+	int i;
+
+	/* bitswap the header according to the DATA format */
+	if(e64hdr.ident[CLASS] != ELFCLASS64) {
+		print("bad ELF class - not 64 bit\n");
+		return 0;
+	}
+	if(e64hdr.ident[DATA] == ELFDATA2LSB) {
+		swab = leswab;
+		swal = leswal;
+		swav = leswav;
+	} else if(e64hdr.ident[DATA] == ELFDATA2MSB) {
+		swab = beswab;
+		swal = beswal;
+		swav = beswav;
+	} else {
+		print("bad ELF encoding - not big or little endian\n");
+		return 0;
+	}
+//	memmove(&rehdr, &ehdr, sizeof(Ehdr));	/* copy; never used */
+
+	e64hdr.type = swab(e64hdr.type);
+	e64hdr.machine = swab(e64hdr.machine);
+	e64hdr.version = swal(e64hdr.version);
+	e64hdr.elfentry = swav(e64hdr.elfentry);
+	e64hdr.phoff = swav(e64hdr.phoff);
+	e64hdr.shoff = swav(e64hdr.shoff);
+	e64hdr.flags = swal(e64hdr.flags);
+	e64hdr.ehsize = swab(e64hdr.ehsize);
+	e64hdr.phentsize = swab(e64hdr.phentsize);
+	e64hdr.phnum = swab(e64hdr.phnum);
+	e64hdr.shentsize = swab(e64hdr.shentsize);
+	e64hdr.shnum = swab(e64hdr.shnum);
+	e64hdr.shstrndx = swab(e64hdr.shstrndx);
+	if(e64hdr.type != EXEC || e64hdr.version != CURRENT)
+		return 0;
+	if(e64hdr.phentsize != sizeof(P64hdr))
+		return 0;
+
+	if(debug)
+		print("reade64hdr OK entry %#llux\n", e64hdr.elfentry);
+
+	curoff = sizeof(E64hdr);
+	i = e64hdr.phoff + e64hdr.phentsize*e64hdr.phnum - curoff;
+	b->state = READ64PHDR;
+	b->bp = (char*)smalloc(i);
+	b->wp = b->bp;
+	b->ep = b->wp + i;
+	elftotal = 0;
+	p64hdr = (P64hdr*)(b->bp + e64hdr.phoff-sizeof(E64hdr));
+	if(debug)
+		print("p64hdr...");
+
+	return 1;
+}
+
+static int
 nextphdr(Boot *b)
 {
 	Phdr *php;
-	ulong entry, offset;
+	ulong offset;
 	char *physaddr;
 
 	if(debug)
@@ -217,8 +306,64 @@ nextphdr(Boot *b)
 	if(curphdr != 0){
 		print("=%lud\n", elftotal);
 		b->state = TRYEBOOT;
-		entry = ehdr.elfentry & ~KSEGM;
-		PLLONG(b->hdr.entry, entry);
+		b->entry = ehdr.elfentry;
+		// PLLONG(b->hdr.entry, b->entry);
+		return 1;
+	}
+
+	return 0;
+}
+
+static int
+nextp64hdr(Boot *b)
+{
+	P64hdr *php;
+	uvlong offset;
+	char *physaddr;
+
+	if(debug)
+		print("reade64data %d\n", curphdr);
+
+	for(; curphdr < e64hdr.phnum; curphdr++){
+		php = p64hdr+curphdr;
+		if(php->type != LOAD)
+			continue;
+		offset = php->offset;
+		physaddr = (char*)KADDR(PADDR(php->paddr));
+		if(offset < curoff){
+			/*
+			 * Can't (be bothered to) rewind the
+			 * input, it might be from tftp. If we
+			 * did then we could boot FreeBSD kernels
+			 * too maybe.
+			 */
+			return 0;
+		}
+		if(php->offset > curoff){
+			b->state = READE64PAD;
+			b->bp = (char*)smalloc(offset - curoff);
+			b->wp = b->bp;
+			b->ep = b->wp + offset - curoff;
+			if(debug)
+				print("nextp64hdr %llud...\n", offset - curoff);
+			return 1;
+		}
+		b->state = READE64DATA;
+		b->bp = physaddr;
+		b->wp = b->bp;
+		b->ep = b->wp+php->filesz;
+		print("%llud+", php->filesz);
+		elftotal += php->filesz;
+		if(debug)
+			print("nextp64hdr %llud@%#p\n", php->filesz, physaddr);
+
+		return 1;
+	}
+
+	if(curphdr != 0){
+		print("=%lud\n", elftotal);
+		b->state = TRYE64BOOT;
+		b->entry = e64hdr.elfentry;
 		return 1;
 	}
 
@@ -236,6 +381,19 @@ readepad(Boot *b)
 	curoff = php->offset;
 
 	return nextphdr(b);
+}
+
+static int
+reade64pad(Boot *b)
+{
+	P64hdr *php;
+
+	php = p64hdr+curphdr;
+	if(debug)
+		print("reade64pad %d\n", curphdr);
+	curoff = php->offset;
+
+	return nextp64hdr(b);
 }
 
 static int
@@ -259,6 +417,26 @@ readedata(Boot *b)
 }
 
 static int
+reade64data(Boot *b)
+{
+	P64hdr *php;
+
+	php = p64hdr+curphdr;
+	if(debug)
+		print("reade64data %d\n", curphdr);
+	if(php->filesz < php->memsz){
+		print("%llud",  php->memsz - php->filesz);
+		elftotal += php->memsz - php->filesz;
+		memset((char*)KADDR(PADDR(php->paddr) + php->filesz), 0,
+			php->memsz - php->filesz);
+	}
+	curoff = php->offset + php->filesz;
+	curphdr++;
+
+	return nextp64hdr(b);
+}
+
+static int
 readphdr(Boot *b)
 {
 	Phdr *php;
@@ -276,17 +454,38 @@ readphdr(Boot *b)
 }
 
 static int
+readp64hdr(Boot *b)
+{
+	int hdr;
+	P64hdr *php, *p;
+
+	php = p = p64hdr;
+	for (hdr = 0; hdr < e64hdr.phnum; hdr++, p++) {
+		hswal((long*)p, 2, swal);
+		hswav((uvlong*)&p->offset, 6, swav);
+	}
+	if(debug)
+		print("p64hdr curoff %lud vaddr %#llux paddr %#llux\n",
+			curoff, php->vaddr, php->paddr);
+
+	curoff = e64hdr.phoff + e64hdr.phentsize*e64hdr.phnum;
+	curphdr = 0;
+
+	return nextp64hdr(b);
+}
+
+static int
 addbytes(char **dbuf, char *edbuf, char **sbuf, char *esbuf)
 {
 	int n;
 
 	n = edbuf - *dbuf;
 	if(n <= 0)
-		return 0;
+		return 0;			/* dest buffer is full */
 	if(n > esbuf - *sbuf)
 		n = esbuf - *sbuf;
 	if(n <= 0)
-		return -1;
+		return -1;			/* src buffer is empty */
 
 	memmove(*dbuf, *sbuf, n);
 	*sbuf += n;
@@ -338,13 +537,156 @@ warp9(ulong entry)
 	pagingoff(PADDR(entry));
 }
 
+static int
+bootfail(Boot *b)
+{
+	b->state = FAILED;
+	return FAIL;
+}
+
+static int
+isgzipped(uchar *p)
+{
+	return p[0] == 0x1F && p[1] == 0x8B && p[2] == 0x08;
+}
+
+static int
+readexec(Boot *b)
+{
+	Exechdr *hdr;
+	ulong pentry, text, data, magic;
+
+	hdr = &b->hdr;
+	magic = GLLONG(hdr->magic);
+	if(magic == I_MAGIC || magic == S_MAGIC) {
+		pentry = PADDR(GLLONG(hdr->entry));
+		text = GLLONG(hdr->text);
+		data = GLLONG(hdr->data);
+		if (pentry < MB)
+			panic("kernel entry %#p below 1 MB", pentry);
+		if (PGROUND(pentry + text) + data > MB + Kernelmax)
+			panic("kernel larger than %d bytes", Kernelmax);
+		b->state = READ9TEXT;
+		b->bp = (char*)KADDR(pentry);
+		b->wp = b->bp;
+		b->ep = b->wp+text;
+
+		if(magic == I_MAGIC){
+			memmove(b->bp, b->hdr.uvl, sizeof(b->hdr.uvl));
+			b->wp += sizeof(b->hdr.uvl);
+		}
+
+		print("%lud", text);
+	} else if(memcmp(b->bp, elfident, 4) == 0 &&
+	    (uchar)b->bp[4] == ELFCLASS32){
+		b->state = READEHDR;
+		b->bp = (char*)&ehdr;
+		b->wp = b->bp;
+		b->ep = b->wp + sizeof(Ehdr);
+		memmove(b->bp, &b->hdr, sizeof(Exechdr));
+		b->wp += sizeof(Exechdr);
+		print("elf...");
+	} else if(memcmp(b->bp, elfident, 4) == 0 &&
+	    (uchar)b->bp[4] == ELFCLASS64){
+		b->state = READE64HDR;
+		b->bp = (char*)&e64hdr;
+		b->wp = b->bp;
+		b->ep = b->wp + sizeof(E64hdr);
+		memmove(b->bp, &b->hdr, sizeof(Exechdr));
+		b->wp += sizeof(Exechdr);
+		print("elf64...");
+	} else if(isgzipped((uchar *)b->bp)) {
+		b->state = READGZIP;
+		/* could use Unzipbuf instead of smalloc() */
+		b->bp = (char*)smalloc(Kernelmax);
+		b->wp = b->bp;
+		b->ep = b->wp + Kernelmax;
+		memmove(b->bp, &b->hdr, sizeof(Exechdr));
+		b->wp += sizeof(Exechdr);
+		print("gz...");
+	} else {
+		print("bad kernel format (magic %#lux)\n", magic);
+		return bootfail(b);
+	}
+	return MORE;
+}
+
+static void
+boot9(Boot *b, ulong magic, ulong entry)
+{
+	if(magic == I_MAGIC){
+		print("entry: %#lux\n", entry);
+		warp9(PADDR(entry));
+	}
+	else if(magic == S_MAGIC)
+		warp64(beswav(b->hdr.uvl[0]));
+	else
+		print("bad magic %#lux\n", magic);
+}
+
+/* only returns upon failure */
+static void
+readgzip(Boot *b)
+{
+	ulong entry, text, data, bss, magic, all, pentry;
+	uchar *sdata;
+	Exechdr *hdr;
+
+	/* the whole gzipped kernel is now at b->bp */
+	hdr = &b->hdr;
+	if(!isgzipped((uchar *)b->bp)) {
+		print("lost magic\n");
+		return;
+	}
+	print("%ld => ", b->wp - b->bp);
+	/* just fill hdr from gzipped b->bp, to get various sizes */
+	if(gunzip((uchar*)hdr, sizeof *hdr, (uchar*)b->bp, b->wp - b->bp)
+	    < sizeof *hdr) {
+		print("error uncompressing kernel exec header\n");
+		return;
+	}
+
+	/* assume uncompressed kernel is a plan 9 boot image */
+	magic = GLLONG(hdr->magic);
+	entry = GLLONG(hdr->entry);
+	text = GLLONG(hdr->text);
+	data = GLLONG(hdr->data);
+	bss = GLLONG(hdr->bss);
+	print("%lud+%lud+%lud=%lud\n", text, data, bss, text+data+bss);
+
+	pentry = PADDR(entry);
+	if (pentry < MB)
+		panic("kernel entry %#p below 1 MB", pentry);
+	if (PGROUND(pentry + text) + data > MB + Kernelmax)
+		panic("kernel larger than %d bytes", Kernelmax);
+
+	/* fill entry from gzipped b->bp */
+	all = sizeof(Exec) + text + data;
+	if(gunzip((uchar *)KADDR(PADDR(entry)) - sizeof(Exec), all,
+	    (uchar*)b->bp, b->wp - b->bp) < all) {
+		print("error uncompressing kernel\n");
+		return;
+	}
+
+	/* relocate data to start at page boundary */
+	sdata = KADDR(PADDR(entry+text));
+	memmove((void*)PGROUND((uintptr)sdata), sdata, data);
+
+	boot9(b, magic, entry);
+}
+
+/*
+ * if nbuf is zero, boot.
+ * else add nbuf bytes from vbuf to b->wp (if there is room)
+ * and advance the state machine, which may reset b's pointers
+ * and return to the top.
+ */
 int
 bootpass(Boot *b, void *vbuf, int nbuf)
 {
 	char *buf, *ebuf;
-	uchar *sdata;
 	Exechdr *hdr;
-	ulong entry, pentry, text, data, bss, magic;
+	ulong entry, bss;
 	uvlong entry64;
 
 	if(b->state == FAILED)
@@ -355,7 +697,9 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 
 	buf = vbuf;
 	ebuf = buf+nbuf;
+	/* possibly copy into b->wp from buf (not first time) */
 	while(addbytes(&b->wp, b->ep, &buf, ebuf) == 0) {
+		/* b->bp is full, so advance the state machine */
 		switch(b->state) {
 		case INITKERNEL:
 			b->state = READEXEC;
@@ -364,54 +708,7 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 			b->ep = b->bp+sizeof(Exechdr);
 			break;
 		case READEXEC:
-			hdr = &b->hdr;
-			magic = GLLONG(hdr->magic);
-			if(magic == I_MAGIC || magic == S_MAGIC) {
-				pentry = PADDR(GLLONG(hdr->entry));
-				text = GLLONG(hdr->text);
-				data = GLLONG(hdr->data);
-				if (pentry < MB)
-					panic("kernel entry %#p below 1 MB",
-						pentry);
-				if (PGROUND(pentry + text) + data >
-				    MB + Kernelmax)
-					panic("kernel larger than %d bytes",
-						Kernelmax);
-				b->state = READ9TEXT;
-				b->bp = (char*)KADDR(pentry);
-				b->wp = b->bp;
-				b->ep = b->wp+text;
-
-				if(magic == I_MAGIC){
-					memmove(b->bp, b->hdr.uvl, sizeof(b->hdr.uvl));
-					b->wp += sizeof(b->hdr.uvl);
-				}
-
-				print("%lud", text);
-			} else if(memcmp(b->bp, elfident, 4) == 0){
-				b->state = READEHDR;
-				b->bp = (char*)&ehdr;
-				b->wp = b->bp;
-				b->ep = b->wp + sizeof(Ehdr);
-				memmove(b->bp, &b->hdr, sizeof(Exechdr));
-				b->wp += sizeof(Exechdr);
-				print("elf...");
-			} else if(b->bp[0] == 0x1F && (uchar)b->bp[1] == 0x8B &&
-			    b->bp[2] == 0x08) {
-				b->state = READGZIP;
-				/* could use Unzipbuf instead of smalloc() */
-				b->bp = (char*)smalloc(Kernelmax);
-				b->wp = b->bp;
-				b->ep = b->wp + Kernelmax;
-				memmove(b->bp, &b->hdr, sizeof(Exechdr));
-				b->wp += sizeof(Exechdr);
-				print("gz...");
-			} else {
-				print("bad kernel format (magic %#lux)\n",
-					magic);
-				b->state = FAILED;
-				return FAIL;
-			}
+			readexec(b);
 			break;
 
 		case READ9TEXT:
@@ -434,39 +731,47 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 			b->state = TRYBOOT;
 			return ENOUGH;
 
+		/*
+		 * elf
+		 */
 		case READEHDR:
-			if(!readehdr(b)){
+			if(!readehdr(b))
 				print("readehdr failed\n");
-				b->state = FAILED;
-				return FAIL;
-			}
 			break;
-
 		case READPHDR:
-			if(!readphdr(b)){
-				b->state = FAILED;
-				return FAIL;
-			}
+			readphdr(b);
 			break;
-
 		case READEPAD:
-			if(!readepad(b)){
-				b->state = FAILED;
-				return FAIL;
-			}
+			readepad(b);
+			break;
+		case READEDATA:
+			readedata(b);
+			if(b->state == TRYEBOOT)
+				return ENOUGH;
 			break;
 
-		case READEDATA:
-			if(!readedata(b)){
-				b->state = FAILED;
-				return FAIL;
-			}
-			if(b->state == TRYBOOT)
+		/*
+		 * elf64
+		 */
+		case READE64HDR:
+			if(!reade64hdr(b))
+				print("reade64hdr failed\n");
+			break;
+		case READ64PHDR:
+			readp64hdr(b);
+			break;
+		case READE64PAD:
+			reade64pad(b);
+			break;
+		case READE64DATA:
+			reade64data(b);
+			if(b->state == TRYE64BOOT)
 				return ENOUGH;
 			break;
 
 		case TRYBOOT:
 		case TRYEBOOT:
+		case TRYE64BOOT:
 		case READGZIP:
 			return ENOUGH;
 
@@ -477,9 +782,10 @@ bootpass(Boot *b, void *vbuf, int nbuf)
 		default:
 			panic("bootstate");
 		}
+		if(b->state == FAILED)
+			return FAIL;
 	}
 	return MORE;
-
 
 Endofinput:
 	/* end of input */
@@ -492,80 +798,45 @@ Endofinput:
 	case READPHDR:
 	case READEPAD:
 	case READEDATA:
+	case READE64HDR:
+	case READ64PHDR:
+	case READE64PAD:
+	case READE64DATA:
 		print("premature EOF\n");
-		b->state = FAILED;
-		return FAIL;
+		break;
 
 	case TRYBOOT:
-		entry = GLLONG(b->hdr.entry);
-		magic = GLLONG(b->hdr.magic);
-		if(magic == I_MAGIC){
-			print("entry: %#lux\n", entry);
-			warp9(PADDR(entry));
-		}
-		else if(magic == S_MAGIC){
-			entry64 = beswav(b->hdr.uvl[0]);
-			warp64(entry64);
-		}
-		b->state = FAILED;
-		return FAIL;
+		boot9(b, GLLONG(b->hdr.magic), GLLONG(b->hdr.entry));
+		break;
 
 	case TRYEBOOT:
-		entry = GLLONG(b->hdr.entry);
+		entry = b->entry;
 		if(ehdr.machine == I386){
 			print("entry: %#lux\n", entry);
 			warp9(PADDR(entry));
 		}
-		else if(ehdr.machine == AMD64){
-			print("entry: %#lux\n", entry);
+		else if(ehdr.machine == AMD64)
 			warp64(entry);
-		}	
-		b->state = FAILED;
-		return FAIL;
+		else
+			panic("elf boot: ehdr.machine %d unknown", ehdr.machine);
+		break;
+
+	case TRYE64BOOT:
+		entry64 = b->entry;
+		if(e64hdr.machine == I386){
+			print("entry: %#llux\n", entry64);
+			warp9(PADDR(entry64));
+		}
+		else if(e64hdr.machine == AMD64)
+			warp64(entry64);
+		else
+			panic("elf64 boot: e64hdr.machine %d unknown",
+				e64hdr.machine);
+		break;
 
 	case READGZIP:
-		/* apparently the whole gzipped kernel is now at b->bp */
-		hdr = &b->hdr;
-		if(b->bp[0] != 0x1F || (uchar)b->bp[1] != 0x8B || b->bp[2] != 0x08)
-			print("lost magic\n");
-
-		print("%ld => ", b->wp - b->bp);
-		/* fill hdr from gzipped b->bp to get various sizes */
-		if(gunzip((uchar*)hdr, sizeof *hdr, (uchar*)b->bp, b->wp - b->bp)
-		    < sizeof *hdr) {
-			print("badly compressed kernel\n");
-			return FAIL;
-		}
-
-		magic = GLLONG(hdr->magic);
-		entry = GLLONG(hdr->entry);
-		text = GLLONG(hdr->text);
-		data = GLLONG(hdr->data);
-		bss = GLLONG(hdr->bss);
-		print("%lud+%lud+%lud=%lud\n", text, data, bss, text+data+bss);
-
-		/* fill entry from gzipped b->bp */
-		if(gunzip((uchar *)KADDR(PADDR(entry)) - sizeof(Exec),
-		     sizeof(Exec)+text+data, 
-		     (uchar*)b->bp, b->wp-b->bp) < sizeof(Exec)+text+data) {
-			print("error uncompressing kernel\n");
-			return FAIL;
-		}
-		/* relocate data to start at page boundary */
-		sdata = KADDR(PADDR(entry+text));
-		memmove((void*)PGROUND((uintptr)sdata), sdata, data);
-
-		if(magic == I_MAGIC){
-			print("entry: %#lux\n", entry);
-			warp9(PADDR(entry));
-		}
-		else if(magic == S_MAGIC){
-			entry64 = beswav(hdr->uvl[0]);
-			warp64(entry64);
-		} else
-			print("bad magic %#lux\n", magic);
-		b->state = FAILED;
-		return FAIL;
+		readgzip(b);
+		break;
 
 	case INIT9LOAD:
 	case READ9LOAD:
@@ -574,6 +845,5 @@ Endofinput:
 	default:
 		panic("bootdone");
 	}
-	b->state = FAILED;
-	return FAIL;
+	return bootfail(b);
 }

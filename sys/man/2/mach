@@ -1,7 +1,7 @@
 .TH MACH 2
 .SH NAME
 crackhdr, machbytype, machbyname, newmap, setmap, findseg, unusemap,
-loadmap, attachproc, get1, get2, get4, get8, geta, put1, put2, put4, put8, puta
+loadmap, attachproc, get1, get2, get4, get8, geta, put1, put2, put4, put8, puta,
 beswab, beswal, beswav, leswab, leswal, leswav \- machine-independent access to executable files
 .SH SYNOPSIS
 .B #include <u.h>

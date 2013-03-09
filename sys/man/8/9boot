@@ -188,7 +188,7 @@ the
 may be a Plan 9 boot image compressed with
 .IR gzip (1).
 In all cases,
-the uncompressed kernel must be in Plan 9 boot image or ELF format.
+the uncompressed kernel must be in Plan 9 boot image, ELF or ELF64 format.
 If the
 .B plan9.ini
 file contains multiple
