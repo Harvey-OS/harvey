@@ -59,6 +59,11 @@ Insert profiling code into the executable output.
 .B -w
 Print compiler warning messages.
 .TP
+.B -W
+Print all the messages that
+.B -w
+would print as warnings, but make them errors.
+.TP
 .BI -l lib
 Include
 .BI / $objtype /lib/ape/lib lib .a
@@ -77,6 +82,10 @@ conversion warnings, as in
 .B -v
 Echo the preprocessing, compiling, and loading commands
 before they are executed.
+.TP
+.BI -x " file"
+Produce an export file in the executable, as described in
+.IR 8l (1).
 .TP
 .BI -D name=def
 .br

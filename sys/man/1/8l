@@ -35,6 +35,11 @@ is one of
 .BR 386 ,
 etc. as listed in
 .IR 8c (1).
+If the environment variable
+.B ccroot
+is defined, the library is sought in
+.BR $ccroot/$objtype/lib
+instead.
 The libraries must have tables of contents
 (see
 .IR ar (1)).
@@ -201,6 +206,17 @@ The text segment is rounded to a multiple of
 (if
 .I r
 is nonzero).
+.TP
+.BI -L dir
+For a library reference
+.BI -l ext,
+search
+.I dir
+before looking in the standard library directory.
+If more than one
+.B -L
+option is given,
+directories will be searched in order of appearance.
 .PP
 The numbers in the above options can begin with
 .L 0x

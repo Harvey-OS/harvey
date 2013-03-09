@@ -83,6 +83,7 @@ main(int argc, char *argv[])
 		case 'S':
 		case 'T':
 		case 'V':
+		case 'W':
 			append(&cc, smprint("-%c", ARGC()));
 			break;
 		case 's':
@@ -111,6 +112,12 @@ main(int argc, char *argv[])
 		case 'f':
 			if(strcmp(ot->name, "arm") == 0)
 				append(&ldargs, "-f");
+			break;
+		case 'x':
+			s = ARGF();
+			if(s == nil || *s == '-')
+				fatal("no -x argument");
+			append(&ldargs, smprint("-x %s", s));
 			break;
 		case 'a':
 			/* hacky look inside ARGBEGIN insides, to see if we have -aa */
