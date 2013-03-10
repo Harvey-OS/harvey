@@ -10,19 +10,20 @@
  *  be larger on large servers'.  dns at Bell Labs starts off with
  *  about 1780 names.
  *
- * aging seems to corrupt the cache, so raise the trigger from 4000 until we
- * figure it out.
+ *  aging corrupts the cache, so raise the trigger to avoid it.
  */
 enum {
 	Deftarget	= 1<<30,	/* effectively disable aging */
 	Minage		= 1<<30,
 	Defagefreq	= 1<<30,	/* age names this often (seconds) */
-	Restartmins	= 600,
 
 	/* these settings will trigger frequent aging */
 //	Deftarget	= 4000,
 //	Minage		=  5*60,
 //	Defagefreq	= 15*60,	/* age names this often (seconds) */
+
+	Restartmins	= 0,
+//	Restartmins	= 600,
 };
 
 /*
@@ -721,7 +722,7 @@ putactivity(int recursive)
 	/* if we've been running for long enough, restart */
 	if(start == 0)
 		start = time(nil);
-	if(0 && time(nil) - start > Restartmins*60){	// TODO
+	if(Restartmins > 0 && time(nil) - start > Restartmins*60){
 		dnslog("killing all dns procs for timed restart");
 		postnote(PNGROUP, getpid(), "die");
 		dnvars.mutex = 0;
