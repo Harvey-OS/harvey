@@ -1631,6 +1631,9 @@ i82563pci(void)
 		case 0x105e:
 			type = i82571;
 			break;
+		case 0x107d:		/* eb copper */
+		case 0x107e:		/* ei fiber */
+		case 0x107f:		/* ei */
 		case 0x10b9:		/* sic, 82572gi */
 			type = i82572;
 			break;
