@@ -155,6 +155,11 @@ TEXT syscallentry(SB), 1, $-4
 	PUSHQ	CX				/* old ip */
 
 	SUBQ	$(18*8), SP			/* unsaved registers */
+	/* register arguments */
+	MOVQ	DI, (5*8)(SP)
+	MOVQ	SI, (4*8)(SP)
+	MOVQ	DX, (3*8)(SP)
+	MOVQ	R10, (9*8)(SP)
 
 	MOVW	$SSEL(SiUDS, SsRPL3), (15*8+0)(SP)
 	MOVW	ES, (15*8+2)(SP)
