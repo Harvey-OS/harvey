@@ -83,8 +83,7 @@
 #define KMBASE		(0x0008000000000000ull)
 #define USTKSIZE		(16*1024*1024)		/* size of user stack */
 #define TSTKTOP		(USTKTOP-USTKSIZE)	/* end of new stack in sysexec */
-#define	NIXCALL		(TSTKTOP-USTKSIZE)	/* nix syscall queues (2MiB) */
-#define BIGBSSTOP	((NIXCALL-BIGPGSZ) & ~(1ULL*GiB-1))
+#define BIGBSSTOP	((TSTKTOP-BIGPGSZ) & ~(1ULL*GiB-1))
 #define BIGBSSSIZE	(32ull*GiB)			/* size of big heap segment */
 #define HEAPTOP		(BIGBSSTOP-BIGBSSSIZE)	/* end of shared heap segments */
 
