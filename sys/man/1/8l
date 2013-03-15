@@ -182,15 +182,15 @@ See
 .B obj.c
 in the source directory for a complete list.
 .TP
-.B -P
+.B -k
 (ELF only)
-Executable is standalone boot image or kernel.
+Executable is a standalone boot image or kernel.
 .TP
 .BI -T t
 The text segment starts at (virtual) address
 .IR t .
 .TP
-.BI -F t
+.BI -P t
 (ELF only)
 The text segment starts at physical address
 .I t
