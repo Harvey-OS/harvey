@@ -254,7 +254,8 @@ rforktraceend(void)
 }
 /* it should be unsigned. FIXME */
 void
-syscall(int badscallnr, Ureg* ureg)
+syscall(int badscallnr, Ureg* ureg,
+	uintptr, uintptr, uintptr, uintptr, uintptr)
 {
 	unsigned int scallnr = (u8int) badscallnr;
 	char *e;

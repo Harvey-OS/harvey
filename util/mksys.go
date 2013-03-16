@@ -39,9 +39,10 @@ func main(){
 		 */
 		ass = ass + "\tMOVQ $0xc000,AX\n"
 		ass = ass + "\tMOVQ a1+0x8(FP), DI\n"
-		ass = ass + "\tMOVQ a1+0x10(FP), SI\n"
-		ass = ass + "\tMOVQ a1+0x18(FP), DX\n"
-		ass = ass + "\tMOVQ a1+0x20(FP), R10\n"
+		ass = ass + "\tMOVQ a2+0x10(FP), SI\n"
+		ass = ass + "\tMOVQ a3+0x18(FP), DX\n"
+		ass = ass + "\tMOVQ a4+0x20(FP), R10\n"
+		ass = ass + "\tMOVQ a5+0x28(FP), R8\n"
 
 		ass = ass + "\tSYSCALL\n\tRET\n"
 		err = ioutil.WriteFile(filename, []byte(ass), 0666)
