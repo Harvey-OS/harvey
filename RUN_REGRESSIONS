@@ -1,0 +1,50 @@
+You can run your own regressions. This can be incredibly handy for test.
+
+For example, when I've changed something in the kernel and want to test it,
+I can put a throwaway print line in the kernel.
+
+Then I cd to ~/nxm, and run this script:
+sh ~/jenkinshook.
+
+The script is tailored to my environment and looks like this:
+
+#!/bin/bash
+PATH=/home/rminnich/bin:$PATH
+set
+# The jenkinshook uses this variable.
+export JENKINSHOME="/home/rminnich"
+# sh -x ./jenkinshook
+echo "For debugging errors, we cat the jenkins hook here"
+echo "==="
+cat jenkinshook
+echo "==="
+. ./jenkinshook
+
+This does a clean build of everything -- libraries, commands,
+kernels -- and then boots the k8regression kernel. If all goes well, you see
+a date at the end. If not, you see lots of output. The output
+is the diff between sys/src/correctoutput and sys/src/qemuout.
+
+You're also going to need one more file, for the inferno config.
+It is called mkconfig.jenkins
+It goes in $JENKINSHOME. Mine looks like this:
+#
+#       Set the following 4 variables.  The host system is the system where
+#       the software will be built; the target system is where it will run.
+#       They are almost always the same.
+ROOT=$NXM/inferno-os/
+TKSTYLE=std
+SYSHOST=Linux           # build system OS type (Hp, Inferno, Irix, Linux, MacOSX, Nt, Plan9, Solaris)
+SYSTARG=$SYSHOST                # target system OS type (Hp, Inferno, Irix, Linux, Nt, Plan9, Solaris)
+OBJTYPE=386
+OBJDIR=$SYSTARG/$OBJTYPE
+<$ROOT/mkfiles/mkhost-$SYSHOST                  # variables appropriate for host system
+<$ROOT/mkfiles/mkfile-$SYSTARG-$OBJTYPE # variables used to build target object type
+
+Just recently, I was testing the new system call stuff.
+I put a print in that tested whether the new args matched the args
+on the stack.
+
+It did not, and it was really easy to find out this way before trying
+to run on real hardware. Going beyond build to a full boot, in the linux
+command line, is a real timesaver.
