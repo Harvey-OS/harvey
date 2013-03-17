@@ -156,16 +156,10 @@ TEXT syscallentry(SB), 1, $-4
 
 	SUBQ	$(18*8), SP			/* unsaved registers */
 	/* register arguments */
-	/* there's a bit of a trick here. We don't
-	 * care about restoring the registers -- it's caller-save.
-	 * so they need not go on the stack in order.
-	 * Place them so the syscall function signature can be
-	 * syscall(scallnr, Ureg *, u64int_t av[])
-	 */
-	MOVQ	DI, (0*8)(SP)
-	MOVQ	SI, (1*8)(SP)
-	MOVQ	DX, (2*8)(SP)
-	MOVQ	R10, (3*8)(SP)
+	MOVQ	DI, (5*8)(SP)
+	MOVQ	SI, (4*8)(SP)
+	MOVQ	DX, (3*8)(SP)
+	MOVQ	R10, (9*8)(SP)
 
 	MOVW	$SSEL(SiUDS, SsRPL3), (15*8+0)(SP)
 	MOVW	ES, (15*8+2)(SP)
