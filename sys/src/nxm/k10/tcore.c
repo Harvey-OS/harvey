@@ -231,7 +231,6 @@ runacore(void)
 	int rc, flush, s;
 	char *n;
 	uvlong t1;
-	uintptr a1, a2, a3, a4, a5;
 
 	if(waserror())
 		panic("runacore: error: %s\n", up->errstr);
@@ -292,8 +291,7 @@ runacore(void)
 			DBG("runacore: syscall ax %#ullx ureg %#p\n",
 				ureg->ax, ureg);
 			cr3put(m->pml4->pa);
-			a1 = a2 = a3 = a4 = a5 = 0;
-			syscall(ureg->ax, ureg, a1, a2, a3, a4, a5);
+			syscall(ureg->ax, ureg);
 			flush = 1;
 			fn = acsysret;
 			if(0)

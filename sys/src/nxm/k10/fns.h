@@ -138,8 +138,7 @@ void	splx(u64int);
 void	splxpc(u64int);
 void	stopac(void);
 void	syncclock(void);
-void	syscall(int scallnr, Ureg* ureg,
-	uintptr, uintptr, uintptr, uintptr, uintptr);
+void	syscall(int scallnr, Ureg* ureg);
 void*	sysexecregs(uintptr, ulong, ulong);
 uintptr	sysexecstack(uintptr, int);
 void	sysprocsetup(Proc*);

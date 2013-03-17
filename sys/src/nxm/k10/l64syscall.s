@@ -166,7 +166,6 @@ TEXT syscallentry(SB), 1, $-4
 	MOVQ	SI, (1*8)(SP)
 	MOVQ	DX, (2*8)(SP)
 	MOVQ	R10, (3*8)(SP)
-	MOVQ	R8, (4*8)(SP)
 
 	MOVW	$SSEL(SiUDS, SsRPL3), (15*8+0)(SP)
 	MOVW	ES, (15*8+2)(SP)
