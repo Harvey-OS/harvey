@@ -258,7 +258,7 @@ syscall(int badscallnr, Ureg* ureg)
 {
 	unsigned int scallnr = (u8int) badscallnr;
 	char *e;
-	uintptr	sp;
+	uintptr	sp, *args;
 	int s;
 	vlong startns, stopns;
 	Ar0 ar0;
@@ -313,10 +313,12 @@ syscall(int badscallnr, Ureg* ureg)
 			error(Ebadarg);
 		}
 
-		if(sp < (USTKTOP-BIGPGSZ) || sp > (USTKTOP-sizeof(up->arg)-BY2SE))
-			validaddr(UINT2PTR(sp), sizeof(up->arg)+BY2SE, 0);
-
-		memmove(up->arg, UINT2PTR(sp+BY2SE), sizeof(up->arg));
+		args = (uintptr *)up->arg;
+		args[0] = ureg->di;
+		args[1] = ureg->si;
+		args[2] = ureg->dx;
+		args[3] = ureg->r10;
+		args[4] = ureg->r8;
 		up->psstate = systab[scallnr].n;
 
 		systab[scallnr].f(&ar0, (va_list)up->arg);

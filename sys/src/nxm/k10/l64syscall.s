@@ -156,10 +156,12 @@ TEXT syscallentry(SB), 1, $-4
 
 	SUBQ	$(18*8), SP			/* unsaved registers */
 	/* register arguments */
+	/* saved in the order in which they are used. */
 	MOVQ	DI, (5*8)(SP)
 	MOVQ	SI, (4*8)(SP)
 	MOVQ	DX, (3*8)(SP)
 	MOVQ	R10, (9*8)(SP)
+	MOVQ	R8, (7*8)(SP)
 
 	MOVW	$SSEL(SiUDS, SsRPL3), (15*8+0)(SP)
 	MOVW	ES, (15*8+2)(SP)
