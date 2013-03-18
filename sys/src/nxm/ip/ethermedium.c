@@ -5,6 +5,7 @@
 #include "fns.h"
 #include "../port/error.h"
 
+#include "../port/netif.h"
 #include "ip.h"
 #include "ipv6.h"
 
@@ -46,23 +47,6 @@ Medium ethermedium =
 .hsize=		14,
 .mintu=		60,
 .maxtu=		1514,
-.maclen=	6,
-.bind=		etherbind,
-.unbind=	etherunbind,
-.bwrite=	etherbwrite,
-.addmulti=	etheraddmulti,
-.remmulti=	etherremmulti,
-.ares=		arpenter,
-.areg=		sendgarp,
-.pref2addr=	etherpref2addr,
-};
-
-Medium fbemedium =
-{
-.name=		"fbe",
-.hsize=		14,
-.mintu=		60,
-.maxtu=		4000,
 .maclen=	6,
 .bind=		etherbind,
 .unbind=	etherunbind,
@@ -173,12 +157,12 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 	}
 
 	/*
-	 *  open ipv4 converstation
+	 *  open ipv4 conversation
 	 *
 	 *  the dial will fail if the type is already open on
 	 *  this device.
 	 */
-	snprint(addr, sizeof(addr), "%s!0x800", argv[2]);
+	snprint(addr, sizeof(addr), "%s!0x800", argv[2]);	/* ETIP4 */
 	mchan4 = chandial(addr, nil, dir, &cchan4);
 
 	/*
@@ -215,9 +199,9 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 		ifc->mbps = 100;
 
 	/*
- 	 *  open arp conversation
+	 *  open arp conversation
 	 */
-	snprint(addr, sizeof(addr), "%s!0x806", argv[2]);
+	snprint(addr, sizeof(addr), "%s!0x806", argv[2]);	/* ETARP */
 	achan = chandial(addr, nil, nil, nil);
 
 	/*
@@ -226,7 +210,7 @@ etherbind(Ipifc *ifc, int argc, char **argv)
 	 *  the dial will fail if the type is already open on
 	 *  this device.
 	 */
-	snprint(addr, sizeof(addr), "%s!0x86DD", argv[2]);
+	snprint(addr, sizeof(addr), "%s!0x86DD", argv[2]);	/* ETIP6 */
 	mchan6 = chandial(addr, nil, dir, &cchan6);
 
 	/*
@@ -260,11 +244,11 @@ etherunbind(Ipifc *ifc)
 	Etherrock *er = ifc->arg;
 
 	if(er->read4p)
-		postnote(er->read4p, 1, "unbind", NUser);
+		postnote(er->read4p, 1, "unbind", 0);
 	if(er->read6p)
-		postnote(er->read6p, 1, "unbind", NUser);
+		postnote(er->read6p, 1, "unbind", 0);
 	if(er->arpp)
-		postnote(er->arpp, 1, "unbind", NUser);
+		postnote(er->arpp, 1, "unbind", 0);
 
 	/* wait for readers to die */
 	while(er->arpp != 0 || er->read4p != 0 || er->read6p != 0)
@@ -327,7 +311,7 @@ etherbwrite(Ipifc *ifc, Block *bp, int version, uchar *ip)
 	memmove(eh->s, ifc->mac, sizeof(eh->s));
 	memmove(eh->d, mac, sizeof(eh->d));
 
- 	switch(version){
+	switch(version){
 	case V4:
 		eh->t[0] = 0x08;
 		eh->t[1] = 0x00;
@@ -720,14 +704,14 @@ multicastea(uchar *ea, uchar *ip)
 		ea[4] = ip[14];
 		ea[5] = ip[15];
 		break;
- 	case V6:
- 		ea[0] = 0x33;
- 		ea[1] = 0x33;
- 		ea[2] = ip[12];
+	case V6:
+		ea[0] = 0x33;
+		ea[1] = 0x33;
+		ea[2] = ip[12];
 		ea[3] = ip[13];
- 		ea[4] = ip[14];
- 		ea[5] = ip[15];
- 		break;
+		ea[4] = ip[14];
+		ea[5] = ip[15];
+		break;
 	}
 	return x;
 }
@@ -766,7 +750,6 @@ void
 ethermediumlink(void)
 {
 	addipmedium(&ethermedium);
-	addipmedium(&fbemedium);
 	addipmedium(&gbemedium);
 }
 

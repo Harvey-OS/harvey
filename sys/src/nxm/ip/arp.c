@@ -40,15 +40,16 @@ struct Arp
 	Arpent	*rxmt;
 	Proc	*rxmitp;	/* neib sol re-transmit proc */
 	Rendez	rxmtq;
-	Block 	*dropf, *dropl;
+	Block	*dropf, *dropl;
 };
 
 char *Ebadarp = "bad arp";
 
 #define haship(s) ((s)[IPaddrlen-1]%NHASH)
 
-extern int 	ReTransTimer = RETRANS_TIMER;
-static void 	rxmitproc(void *v);
+extern int	ReTransTimer = RETRANS_TIMER;
+
+static void	rxmitproc(void *v);
 
 void
 arpinit(Fs *f)
@@ -446,7 +447,8 @@ arpwrite(Fs *fs, char *s, int len)
 		default:
 			error(Ebadarg);
 		case 3:
-			parseip(ip, f[1]);
+			if (parseip(ip, f[1]) == -1)
+				error(Ebadip);
 			if(isv4(ip))
 				r = v4lookup(fs, ip+IPv4off, nil);
 			else
@@ -460,7 +462,8 @@ arpwrite(Fs *fs, char *s, int len)
 			type = ipfindmedium(f[1]);
 			if(type == nil)
 				error(Ebadarp);
-			parseip(ip, f[2]);
+			if (parseip(ip, f[2]) == -1)
+				error(Ebadip);
 			n = parsemac(mac, f[3], type->maclen);
 			break;
 		}
@@ -473,7 +476,8 @@ arpwrite(Fs *fs, char *s, int len)
 		if(n != 2)
 			error(Ebadarg);
 
-		parseip(ip, f[1]);
+		if (parseip(ip, f[1]) == -1)
+			error(Ebadip);
 		qlock(arp);
 
 		l = &arp->hash[haship(ip)];
@@ -573,11 +577,11 @@ rxmitsols(Arp *arp)
 	a = arp->rxmt;
 	if(a==nil){
 		nrxt = 0;
-		goto dodrops; 		/* return nrxt; */
+		goto dodrops;		/* return nrxt; */
 	}
 	nrxt = a->rtime - NOW;
 	if(nrxt > 3*ReTransTimer/4)
-		goto dodrops; 		/* return nrxt; */
+		goto dodrops;		/* return nrxt; */
 
 	for(; a; a = a->nextrxt){
 		ifc = a->ifc;
@@ -600,6 +604,7 @@ rxmitsols(Arp *arp)
 	}
 	if(a == nil)
 		goto dodrops;
+
 
 	qunlock(arp);	/* for icmpns */
 	if((sflag = ipv6anylocal(ifc, ipsrc)) != SRC_UNSPEC)
@@ -639,7 +644,7 @@ dodrops:
 
 	for(; xp; xp = next){
 		next = xp->list;
-		icmphostunr(f, ifc, xp, icmp6_adr_unreach, 1);
+		icmphostunr(f, ifc, xp, Icmp6_adr_unreach, 1);
 	}
 
 	return nrxt;

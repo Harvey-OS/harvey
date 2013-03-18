@@ -1,8 +1,12 @@
 typedef struct	Conv	Conv;
+typedef struct	Fragment4 Fragment4;
+typedef struct	Fragment6 Fragment6;
 typedef struct	Fs	Fs;
 typedef union	Hwaddr	Hwaddr;
 typedef struct	IP	IP;
 typedef struct	IPaux	IPaux;
+typedef struct	Ip4hdr	Ip4hdr;
+typedef struct	Ipfrag	Ipfrag;
 typedef struct	Ipself	Ipself;
 typedef struct	Ipselftab	Ipselftab;
 typedef struct	Iplink	Iplink;
@@ -19,8 +23,8 @@ typedef struct	Arp Arp;
 typedef struct	Route	Route;
 
 typedef struct	Routerparams	Routerparams;
-typedef struct 	Hostparams	Hostparams;
-typedef struct 	v6router	v6router;
+typedef struct	Hostparams	Hostparams;
+typedef struct	v6router	v6router;
 typedef struct	v6params	v6params;
 
 #pragma incomplete Arp
@@ -49,8 +53,13 @@ enum
 	/* ip versions */
 	V4=		4,
 	V6=		6,
-	IP_VER4= 	0x40,
+	IP_VER4=	0x40,
 	IP_VER6=	0x60,
+	IP_HLEN4=	5,		/* v4: Header length in words */
+	IP_DF=		0x4000,		/* v4: Don't fragment */
+	IP_MF=		0x2000,		/* v4: More fragments */
+	IP4HDR=		20,		/* sizeof(Ip4hdr) */
+	IP_MAX=		64*1024,	/* Max. Internet packet size, v4 & v6 */
 
 	/* 2^Lroot trees in the root table */
 	Lroot=		10,
@@ -65,6 +74,95 @@ enum
 	Announced=	2,
 	Connecting=	3,
 	Connected=	4,
+};
+
+/* MIB II counters */
+enum
+{
+	Forwarding,
+	DefaultTTL,
+	InReceives,
+	InHdrErrors,
+	InAddrErrors,
+	ForwDatagrams,
+	InUnknownProtos,
+	InDiscards,
+	InDelivers,
+	OutRequests,
+	OutDiscards,
+	OutNoRoutes,
+	ReasmTimeout,
+	ReasmReqds,
+	ReasmOKs,
+	ReasmFails,
+	FragOKs,
+	FragFails,
+	FragCreates,
+
+	Nipstats,
+};
+
+struct Fragment4
+{
+	Block*	blist;
+	Fragment4*	next;
+	ulong	src;
+	ulong	dst;
+	ushort	id;
+	ulong	age;
+};
+
+struct Fragment6
+{
+	Block*	blist;
+	Fragment6*	next;
+	uchar	src[IPaddrlen];
+	uchar	dst[IPaddrlen];
+	uint	id;
+	ulong	age;
+};
+
+struct Ipfrag
+{
+	ushort	foff;
+	ushort	flen;
+
+	uchar	payload[];
+};
+
+#define IPFRAGSZ offsetof(Ipfrag, payload[0])
+
+/* an instance of IP */
+struct IP
+{
+	uvlong		stats[Nipstats];
+
+	QLock		fraglock4;
+	Fragment4*	flisthead4;
+	Fragment4*	fragfree4;
+	Ref		id4;
+
+	QLock		fraglock6;
+	Fragment6*	flisthead6;
+	Fragment6*	fragfree6;
+	Ref		id6;
+
+	int		iprouting;	/* true if we route like a gateway */
+};
+
+/* on the wire packet header */
+struct Ip4hdr
+{
+	uchar	vihl;		/* Version and header length */
+	uchar	tos;		/* Type of service */
+	uchar	length[2];	/* packet length */
+	uchar	id[2];		/* ip->identification */
+	uchar	frag[2];	/* Fragment information */
+	uchar	ttl;		/* Time to live */
+	uchar	proto;		/* Protocol */
+	uchar	cksum[2];	/* Header checksum */
+	uchar	src[4];		/* IP source */
+	uchar	dst[4];		/* IP destination */
 };
 
 /*
@@ -93,6 +191,8 @@ struct Conv
 	int	inuse;			/* opens of listen/data/ctl */
 	int	length;
 	int	state;
+
+	int	maxfragsize;		/* If set, used for fragmentation */
 
 	/* udp specific */
 	int	headers;		/* data src/dst headers in udp */
@@ -169,8 +269,8 @@ struct Iplifc
 	uchar	tentative;	/* =1 => v6 dup disc on, =0 => confirmed unique */
 	uchar	onlink;		/* =1 => onlink, =0 offlink. */
 	uchar	autoflag;	/* v6 autonomous flag */
-	long 	validlt;	/* v6 valid lifetime */
-	long 	preflt;		/* v6 preferred lifetime */
+	long	validlt;	/* v6 valid lifetime */
+	long	preflt;		/* v6 preferred lifetime */
 	long	origint;	/* time when addr was added */
 	Iplink	*link;		/* addresses linked to this lifc */
 	Iplifc	*next;
@@ -194,7 +294,7 @@ struct Iplink
 struct Routerparams {
 	int	mflag;		/* flag: managed address configuration */
 	int	oflag;		/* flag: other stateful configuration */
-	int 	maxraint;	/* max. router adv interval (ms) */
+	int	maxraint;	/* max. router adv interval (ms) */
 	int	minraint;	/* min. router adv interval (ms) */
 	int	linkmtu;	/* mtu options */
 	int	reachtime;	/* reachable time */
@@ -213,7 +313,7 @@ struct Ipifc
 
 	Conv	*conv;		/* link to its conversation structure */
 	char	dev[64];	/* device we're attached to */
-	Medium	*medium;		/* Media pointer */
+	Medium	*medium;	/* Media pointer */
 	int	maxtu;		/* Maximum transfer unit */
 	int	mintu;		/* Minumum tranfer unit */
 	int	mbps;		/* megabits per second */
@@ -309,7 +409,6 @@ struct Proto
 	int		nc;		/* number of conversations */
 	int		ac;
 	Qid		qid;		/* qid for protocol directory */
-	ushort		nextport;
 	ushort		nextrport;
 
 	void		*priv;
@@ -361,7 +460,7 @@ struct v6params
 	Routerparams	rp;		/* v6 params, one copy per node now */
 	Hostparams	hp;
 	v6router	v6rlist[3];	/* max 3 default routers, currently */
-	int		cdrouter;	/* uses only v6rlist[cdrouter] if   */
+	int		cdrouter;	/* uses only v6rlist[cdrouter] if */
 					/* cdrouter >= 0. */
 };
 
@@ -387,11 +486,9 @@ enum
 	Logip=		1<<1,
 	Logtcp=		1<<2,
 	Logfs=		1<<3,
-	Logil=		1<<4,
 	Logicmp=	1<<5,
 	Logudp=		1<<6,
 	Logcompress=	1<<7,
-	Logilmsg=	1<<8,
 	Loggre=		1<<9,
 	Logppp=		1<<10,
 	Logtcprxmt=	1<<11,
@@ -415,6 +512,8 @@ long	ifclogread(Fs*, Chan *,void*, ulong, long);
 void	ifclog(Fs*, uchar *, int);
 void	ifclogopen(Fs*, Chan*);
 void	ifclogclose(Fs*, Chan*);
+
+#pragma varargck argpos netlog	3
 
 /*
  *  iproute.c
@@ -567,7 +666,7 @@ extern uchar IPnoaddr[IPaddrlen];
 extern uchar v4prefix[IPaddrlen];
 extern uchar IPallbits[IPaddrlen];
 
-#define	NOW	TK2MS(sys->machptr[0]->ticks)
+#define	NOW	TK2MS(sys->ticks)
 
 /*
  *  media
@@ -621,16 +720,16 @@ extern int	ipstats(Fs*, char*, int);
 extern ushort	ptclbsum(uchar*, int);
 extern ushort	ptclcsum(Block*, int, int);
 extern void	ip_init(Fs*);
+extern void	update_mtucache(uchar*, ulong);
+extern ulong	restrict_mtu(uchar*, ulong);
 /*
  * bootp.c
  */
-extern char*	bootp(Ipifc*);
 extern int	bootpread(char*, ulong, int);
 
 /*
  *  resolving inferno/plan9 differences
  */
-Chan*		commonfdtochan(int, int, int, int);
 char*		commonuser(void);
 char*		commonerror(void);
 

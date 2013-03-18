@@ -31,7 +31,7 @@ loopbackbind(Ipifc *ifc, int, char**)
 	lb->f = ifc->conv->p->f;
 	lb->q = qopen(1024*1024, Qmsg, nil, nil);
 	ifc->arg = lb;
-	ifc->mbps = 10001;
+	ifc->mbps = 1000;
 
 	kproc("loopbackread", loopbackread, ifc);
 
@@ -43,7 +43,7 @@ loopbackunbind(Ipifc *ifc)
 	LB *lb = ifc->arg;
 
 	if(lb->readp)
-		postnote(lb->readp, 1, "unbind", NUser);
+		postnote(lb->readp, 1, "unbind", 0);
 
 	/* wait for reader to die */
 	while(lb->readp != 0)

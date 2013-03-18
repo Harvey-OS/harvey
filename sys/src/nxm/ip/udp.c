@@ -73,8 +73,8 @@ typedef struct Udpstats Udpstats;
 struct Udpstats
 {
 	uvlong	udpInDatagrams;
-	uvlong	udpNoPorts;
-	uvlong	udpInErrors;
+	ulong	udpNoPorts;
+	ulong	udpInErrors;
 	uvlong	udpOutDatagrams;
 };
 
@@ -87,8 +87,8 @@ struct Udppriv
 	Udpstats	ustats;
 
 	/* non-MIB stats */
-	uvlong		csumerr;		/* checksum errors */
-	uvlong		lenerr;			/* short packet */
+	ulong		csumerr;		/* checksum errors */
+	ulong		lenerr;			/* short packet */
 };
 
 void (*etherprofiler)(char *name, int qlen);
@@ -416,7 +416,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 			icmpnoconv(f, bp);
 			break;
 		case V6:
-			icmphostunr(f, ifc, bp, icmp6_adr_unreach, 0);
+			icmphostunr(f, ifc, bp, Icmp6_port_unreach, 0);
 			break;
 		default:
 			panic("udpiput2: version %d", version);
@@ -555,7 +555,7 @@ udpadvise(Proto *udp, Block *bp, char *msg)
 		break;
 	default:
 		panic("udpadvise: version %d", version);
-		return;  /* to avoid a warning */
+		return;	/* to avoid a warning */
 	}
 
 	/* Look for a connection */
@@ -587,7 +587,8 @@ udpstats(Proto *udp, char *buf, int len)
 	Udppriv *upriv;
 
 	upriv = udp->priv;
-	return snprint(buf, len, "InDatagrams: %llud\nNoPorts: %llud\nInErrors: %llud\nOutDatagrams: %llud\n",
+	return snprint(buf, len, "InDatagrams: %llud\nNoPorts: %lud\n"
+		"InErrors: %lud\nOutDatagrams: %llud\n",
 		upriv->ustats.udpInDatagrams,
 		upriv->ustats.udpNoPorts,
 		upriv->ustats.udpInErrors,

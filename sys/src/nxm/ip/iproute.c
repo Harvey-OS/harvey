@@ -12,10 +12,10 @@ static void	addnode(Fs*, Route**, Route*);
 static void	calcd(Route*);
 
 /* these are used for all instances of IP */
-Route*	v4freelist;
-Route*	v6freelist;
-RWlock	routelock;
-ulong	v4routegeneration, v6routegeneration;
+static Route*	v4freelist;
+static Route*	v6freelist;
+static RWlock	routelock;
+static ulong	v4routegeneration, v6routegeneration;
 
 static void
 freeroute(Route *r)
@@ -78,7 +78,7 @@ addqueue(Route **q, Route *r)
 }
 
 /*
- *  compare 2 v6 addresses
+ *   compare 2 v6 addresses
  */
 static int
 lcmp(ulong *a, ulong *b)
@@ -617,7 +617,7 @@ routetype(int type, char *p)
 		*p = 'p';
 }
 
-char *rformat = "%-15I %-4M %-15I %4.4s %4.4s %3s\n";
+static char *rformat = "%-15I %-4M %-15I %4.4s %4.4s %3s\n";
 
 void
 convroute(Route *r, uchar *addr, uchar *mask, uchar *gate, char *t, int *nifc)
@@ -662,7 +662,7 @@ sprintroute(Route *r, Routewalk *rw)
 	iname = "-";
 	if(nifc != -1) {
 		iname = ifbuf;
-		sprint(ifbuf, "%d", nifc);
+		snprint(ifbuf, sizeof ifbuf, "%d", nifc);
 	}
 	p = seprint(rw->p, rw->e, rformat, addr, mask, gate, t, r->tag, iname);
 	if(rw->o < 0){
@@ -759,7 +759,7 @@ delroute(Fs *f, Route *r, int dolock)
 
 /*
  *  recurse until one route is deleted
- *  returns 0 if nothing is deleted, 1 otherwise
+ *    returns 0 if nothing is deleted, 1 otherwise
  */
 int
 routeflush(Fs *f, Route *r, char *tag)
@@ -781,6 +781,31 @@ routeflush(Fs *f, Route *r, char *tag)
 	return 0;
 }
 
+Route *
+iproute(Fs *fs, uchar *ip)
+{
+	if(isv4(ip))
+		return v4lookup(fs, ip+IPv4off, nil);
+	else
+		return v6lookup(fs, ip, nil);
+}
+
+static void
+printroute(Route *r)
+{
+	int nifc;
+	char t[5], *iname, ifbuf[5];
+	uchar addr[IPaddrlen], mask[IPaddrlen], gate[IPaddrlen];
+
+	convroute(r, addr, mask, gate, t, &nifc);
+	iname = "-";
+	if(nifc != -1) {
+		iname = ifbuf;
+		snprint(ifbuf, sizeof ifbuf, "%d", nifc);
+	}
+	print(rformat, addr, mask, gate, t, r->tag, iname);
+}
+
 long
 routewrite(Fs *f, Chan *c, char *p, int n)
 {
@@ -791,6 +816,7 @@ routewrite(Fs *f, Chan *c, char *p, int n)
 	uchar mask[IPaddrlen];
 	uchar gate[IPaddrlen];
 	IPaux *a, *na;
+	Route *q;
 
 	cb = parsecmd(p, n);
 	if(waserror()){
@@ -815,7 +841,8 @@ routewrite(Fs *f, Chan *c, char *p, int n)
 	} else if(strcmp(cb->f[0], "remove") == 0){
 		if(cb->nf < 3)
 			error(Ebadarg);
-		parseip(addr, cb->f[1]);
+		if (parseip(addr, cb->f[1]) == -1)
+			error(Ebadip);
 		parseipmask(mask, cb->f[2]);
 		if(memcmp(addr, v4prefix, IPv4off) == 0)
 			v4delroute(f, addr+IPv4off, mask+IPv4off, 1);
@@ -824,9 +851,10 @@ routewrite(Fs *f, Chan *c, char *p, int n)
 	} else if(strcmp(cb->f[0], "add") == 0){
 		if(cb->nf < 4)
 			error(Ebadarg);
-		parseip(addr, cb->f[1]);
+		if(parseip(addr, cb->f[1]) == -1 ||
+		    parseip(gate, cb->f[3]) == -1)
+			error(Ebadip);
 		parseipmask(mask, cb->f[2]);
-		parseip(gate, cb->f[3]);
 		tag = "none";
 		if(c != nil){
 			a = c->aux;
@@ -844,6 +872,18 @@ routewrite(Fs *f, Chan *c, char *p, int n)
 		na = newipaux(a->owner, cb->f[1]);
 		c->aux = na;
 		free(a);
+	} else if(strcmp(cb->f[0], "route") == 0) {
+		if(cb->nf < 2)
+			error(Ebadarg);
+		if (parseip(addr, cb->f[1]) == -1)
+			error(Ebadip);
+
+		q = iproute(f, addr);
+		print("%I: ", addr);
+		if(q == nil)
+			print("no route\n");
+		else
+			printroute(q);
 	}
 
 	poperror();

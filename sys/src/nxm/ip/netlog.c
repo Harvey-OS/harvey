@@ -40,11 +40,9 @@ static Netlogflag flags[] =
 	{ "ip",		Logip, },
 	{ "fs",		Logfs, },
 	{ "tcp",	Logtcp, },
-	{ "il",		Logil, },
 	{ "icmp",	Logicmp, },
 	{ "udp",	Logudp, },
 	{ "compress",	Logcompress, },
-	{ "ilmsg",	Logil|Logilmsg, },
 	{ "gre",	Loggre, },
 	{ "tcpwin",	Logtcp|Logtcpwin, },
 	{ "tcprxmt",	Logtcp|Logtcprxmt, },
@@ -208,7 +206,7 @@ netlogctl(Fs *f, char* s, int n)
 		return;
 
 	default:
-		cmderror(cb, "unknown ip control message");
+		cmderror(cb, "unknown netlog control message");
 	}
 
 	for(i = 1; i < cb->nf; i++){

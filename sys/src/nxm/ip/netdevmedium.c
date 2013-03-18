@@ -66,7 +66,7 @@ netdevunbind(Ipifc *ifc)
 	Netdevrock *er = ifc->arg;
 
 	if(er->readp != nil)
-		postnote(er->readp, 1, "unbind", NUser);
+		postnote(er->readp, 1, "unbind", 0);
 
 	/* wait for readers to die */
 	while(er->readp != nil)

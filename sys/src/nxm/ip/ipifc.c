@@ -15,7 +15,7 @@ enum {
 	Nself		= Maxmedia*5,
 	NHASH		= 1<<6,
 	NCACHE		= 256,
-	QMAX		= 64*1024-1,
+	QMAX		= 192*1024-1,
 };
 
 Medium *media[Maxmedia] = { 0 };
@@ -225,10 +225,12 @@ ipifcstate(Conv *c, char *state, int n)
 {
 	Ipifc *ifc;
 	Iplifc *lifc;
-	int m;
+	char *e, *s;
 
 	ifc = (Ipifc*)c->ptcl;
-	m = snprint(state, n, sfixedformat,
+	s = state;
+	e = s+n;
+	s = seprint(s, e, sfixedformat,
 		ifc->dev, ifc->maxtu, ifc->sendra6, ifc->recvra6,
 		ifc->rp.mflag, ifc->rp.oflag, ifc->rp.maxraint,
 		ifc->rp.minraint, ifc->rp.linkmtu, ifc->rp.reachtime,
@@ -236,13 +238,13 @@ ipifcstate(Conv *c, char *state, int n)
 		ifc->in, ifc->out, ifc->inerr, ifc->outerr);
 
 	rlock(ifc);
-	for(lifc = ifc->lifc; lifc && n > m; lifc = lifc->next)
-		m += snprint(state+m, n - m, slineformat, lifc->local,
+	for(lifc = ifc->lifc; lifc && s < e; lifc = lifc->next)
+		s = seprint(s, e, slineformat, lifc->local,
 			lifc->mask, lifc->remote, lifc->validlt, lifc->preflt);
 	if(ifc->lifc == nil)
-		m += snprint(state+m, n - m, "\n");
+		s = seprint(s, e, "\n");
 	runlock(ifc);
-	return m;
+	return s - state;
 }
 
 static int
@@ -251,20 +253,21 @@ ipifclocal(Conv *c, char *state, int n)
 	Ipifc *ifc;
 	Iplifc *lifc;
 	Iplink *link;
-	int m;
+	char *e, *s;
 
 	ifc = (Ipifc*)c->ptcl;
-	m = 0;
+	s = state;
+	e = s+n;
 
 	rlock(ifc);
-	for(lifc = ifc->lifc; lifc; lifc = lifc->next){
-		m += snprint(state+m, n - m, "%-40.40I ->", lifc->local);
+	for(lifc = ifc->lifc; lifc && s < e; lifc = lifc->next){
+		s = seprint(s, e, "%-40.40I ->", lifc->local);
 		for(link = lifc->link; link; link = link->lifclink)
-			m += snprint(state+m, n - m, " %-40.40I", link->self->a);
-		m += snprint(state+m, n - m, "\n");
+			s = seprint(s, e, " %-40.40I", link->self->a);
+		s = seprint(s, e, "\n");
 	}
 	runlock(ifc);
-	return m;
+	return s - state;
 }
 
 static int
@@ -316,7 +319,7 @@ ipifccreate(Conv *c)
 	Ipifc *ifc;
 
 	c->rq = qopen(QMAX, 0, 0, 0);
-	c->sq = qopen(2*QMAX, 0, 0, 0);
+	c->sq = qopen(QMAX, 0, 0, 0);
 	c->wq = qopen(QMAX, Qkick, ipifckick, c);
 	ifc = (Ipifc*)c->ptcl;
 	ifc->conv = c;
@@ -390,19 +393,21 @@ ipifcadd(Ipifc *ifc, char **argv, int argc, int tentative, Iplifc *lifcp)
 			ifc->maxtu = mtu;
 		/* fall through */
 	case 4:
-		parseip(ip, argv[1]);
+		if (parseip(ip, argv[1]) == -1 || parseip(rem, argv[3]) == -1)
+			return Ebadip;
 		parseipmask(mask, argv[2]);
-		parseip(rem, argv[3]);
 		maskip(rem, mask, net);
 		break;
 	case 3:
-		parseip(ip, argv[1]);
+		if (parseip(ip, argv[1]) == -1)
+			return Ebadip;
 		parseipmask(mask, argv[2]);
 		maskip(ip, mask, rem);
 		maskip(rem, mask, net);
 		break;
 	case 2:
-		parseip(ip, argv[1]);
+		if (parseip(ip, argv[1]) == -1)
+			return Ebadip;
 		memmove(mask, defmask(ip), IPaddrlen);
 		maskip(ip, mask, rem);
 		maskip(rem, mask, net);
@@ -590,12 +595,14 @@ ipifcrem(Ipifc *ifc, char **argv, int argc)
 	if(argc < 3)
 		return Ebadarg;
 
-	parseip(ip, argv[1]);
+	if (parseip(ip, argv[1]) == -1)
+		return Ebadip;
 	parseipmask(mask, argv[2]);
 	if(argc < 4)
 		maskip(ip, mask, rem);
 	else
-		parseip(rem, argv[3]);
+		if (parseip(rem, argv[3]) == -1)
+			return Ebadip;
 
 	wlock(ifc);
 
@@ -1026,35 +1033,36 @@ enum
 long
 ipselftabread(Fs *f, char *cp, ulong offset, int n)
 {
-	int i, m, nifc, off;
+	int i, nifc, off;
 	Ipself *p;
 	Iplink *link;
-	char state[8];
+	char *e, *s, state[8];
 
-	m = 0;
+	s = cp;
+	e = s+n;
 	off = offset;
 	qlock(f->self);
-	for(i = 0; i < NHASH && m < n; i++){
-		for(p = f->self->hash[i]; p != nil && m < n; p = p->next){
+	for(i = 0; i < NHASH && s < e; i++){
+		for(p = f->self->hash[i]; p != nil && s < e; p = p->next){
 			nifc = 0;
 			for(link = p->link; link; link = link->selflink)
 				nifc++;
 			routetype(p->type, state);
-			m += snprint(cp + m, n - m, stformat, p->a, nifc, state);
+			s = seprint(s, e, stformat, p->a, nifc, state);
 			if(off > 0){
-				off -= m;
-				m = 0;
+				off -= s - cp;
+				s = cp;
 			}
 		}
 	}
 	qunlock(f->self);
-	return m;
+	return s - cp;
 }
 
 int
 iptentative(Fs *f, uchar *addr)
 {
- 	Ipself *p;
+	Ipself *p;
 
 	p = f->self->hash[hashipa(addr)];
 	for(; p; p = p->next){
@@ -1146,7 +1154,9 @@ enum {
 int
 v6addrtype(uchar *addr)
 {
-	if(islinklocal(addr) ||
+	if(isv4(addr) || ipcmp(addr, IPnoaddr) == 0)
+		return unknownv6;
+	else if(islinklocal(addr) ||
 	    isv6mcast(addr) && (addr[1] & 0xF) <= Link_local_scop)
 		return linklocalv6;
 	else
@@ -1229,7 +1239,7 @@ findlocalip(Fs *f, uchar *local, uchar *remote)
 	USED(atypel);
 	qlock(f->ipifc);
 	r = v6lookup(f, remote, nil);
- 	version = (memcmp(remote, v4prefix, IPv4off) == 0)? V4: V6;
+	version = (memcmp(remote, v4prefix, IPv4off) == 0)? V4: V6;
 
 	if(r != nil){
 		ifc = r->ifc;
@@ -1474,7 +1484,7 @@ ipifcremmulti(Conv *c, uchar *ma, uchar *ia)
 
 	multi = *l;
 	if(multi == nil)
-		return; 	/* we don't have it open */
+		return;		/* we don't have it open */
 
 	*l = multi->next;
 

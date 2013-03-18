@@ -55,7 +55,7 @@ enum {
 	InfoRequest	= 15,
 	InfoReply	= 16,
 	AddrMaskRequest = 17,
-	AddrMaskReply   = 18,
+	AddrMaskReply	= 18,
 	EchoRequestV6	= 128,
 	EchoReplyV6	= 129,
 	RouterSolicit	= 133,
@@ -67,38 +67,46 @@ enum {
 	Maxtype6	= 137,
 };
 
-typedef struct ICMPpkt ICMPpkt;
+/* on-the-wire packet formats */
 typedef struct IPICMP IPICMP;
 typedef struct Ndpkt Ndpkt;
 typedef struct NdiscC NdiscC;
 
-struct ICMPpkt {
-	uchar	type;
-	uchar	code;
-	uchar	cksum[2];
-	uchar	icmpid[2];
-	uchar	seq[2];
-};
+/* we do this to avoid possible struct padding  */
+#define ICMPHDR \
+	IPV6HDR; \
+	uchar	type; \
+	uchar	code; \
+	uchar	cksum[2]; \
+	uchar	icmpid[2]; \
+	uchar	seq[2]
 
 struct IPICMP {
-	Ip6hdr;
-	ICMPpkt;
+	ICMPHDR;
+	uchar	payload[];
 };
 
-struct NdiscC
-{
-	IPICMP;
+#define IPICMPSZ offsetof(IPICMP, payload[0])
+
+struct NdiscC {
+	ICMPHDR;
 	uchar	target[IPaddrlen];
+	uchar	payload[];
 };
 
-struct Ndpkt
-{
-	NdiscC;
+#define NDISCSZ offsetof(NdiscC, payload[0])
+
+struct Ndpkt {
+	ICMPHDR;
+	uchar	target[IPaddrlen];
 	uchar	otype;
 	uchar	olen;		/* length in units of 8 octets(incl type, code),
 				 * 1 for IEEE 802 addresses */
 	uchar	lnaddr[6];	/* link-layer address */
+	uchar	payload[];
 };
+
+#define NDPKTSZ offsetof(Ndpkt, payload[0])
 
 typedef struct Icmppriv6
 {
@@ -159,12 +167,14 @@ static char *statnames6[Nstats6] =
 
 static char *unreachcode[] =
 {
-[icmp6_no_route]	"no route to destination",
-[icmp6_ad_prohib]	"comm with destination administratively prohibited",
-[icmp6_unassigned]	"icmp unreachable: unassigned error code (2)",
-[icmp6_adr_unreach]	"address unreachable",
-[icmp6_port_unreach]	"port unreachable",
-[icmp6_unkn_code]	"icmp unreachable: unknown code",
+[Icmp6_no_route]	"no route to destination",
+[Icmp6_ad_prohib]	"comm with destination administratively prohibited",
+[Icmp6_out_src_scope]	"beyond scope of source address",
+[Icmp6_adr_unreach]	"address unreachable",
+[Icmp6_port_unreach]	"port unreachable",
+[Icmp6_gress_src_fail]	"source address failed ingress/egress policy",
+[Icmp6_rej_route]	"reject route to destination",
+[Icmp6_unknown]		"icmp unreachable: unknown code",
 };
 
 static void icmpkick6(void *x, Block *bp);
@@ -181,8 +191,8 @@ set_cksum(Block *bp)
 {
 	IPICMP *p = (IPICMP *)(bp->rp);
 
-	hnputl(p->vcf, 0);  	/* borrow IP header as pseudoheader */
-	hnputs(p->ploadlen, blocklen(bp)-IPV6HDR_LEN);
+	hnputl(p->vcf, 0);	/* borrow IP header as pseudoheader */
+	hnputs(p->ploadlen, blocklen(bp) - IP6HDR);
 	p->proto = 0;
 	p->ttl = ICMPv6;	/* ttl gets set later */
 	hnputs(p->cksum, 0);
@@ -244,10 +254,10 @@ icmpkick6(void *x, Block *bp)
 		bp->rp += IPaddrlen;
 		ipmove(raddr, bp->rp);
 		bp->rp += IPaddrlen;
-		bp = padblock(bp, sizeof(Ip6hdr));
+		bp = padblock(bp, IP6HDR);
 	}
 
-	if(blocklen(bp) < sizeof(IPICMP)){
+	if(blocklen(bp) < IPICMPSZ){
 		freeblist(bp);
 		return;
 	}
@@ -329,9 +339,9 @@ mkechoreply6(Block *bp, Ipifc *ifc)
 
 /*
  * sends out an ICMPv6 neighbor solicitation
- * 	suni == SRC_UNSPEC or SRC_UNI,
+ *	suni == SRC_UNSPEC or SRC_UNI,
  *	tuni == TARG_MULTI => multicast for address resolution,
- * 	and tuni == TARG_UNI => neighbor reachability.
+ *	and tuni == TARG_UNI => neighbor reachability.
  */
 extern void
 icmpns(Fs *f, uchar* src, int suni, uchar* targ, int tuni, uchar* mac)
@@ -341,7 +351,7 @@ icmpns(Fs *f, uchar* src, int suni, uchar* targ, int tuni, uchar* mac)
 	Proto *icmp = f->t2p[ICMPv6];
 	Icmppriv6 *ipriv = icmp->priv;
 
-	nbp = newIPICMP(sizeof(Ndpkt));
+	nbp = newIPICMP(NDPKTSZ);
 	np = (Ndpkt*) nbp->rp;
 
 	if(suni == SRC_UNSPEC)
@@ -362,7 +372,7 @@ icmpns(Fs *f, uchar* src, int suni, uchar* targ, int tuni, uchar* mac)
 		np->olen = 1;		/* 1+1+6 = 8 = 1 8-octet */
 		memmove(np->lnaddr, mac, sizeof(np->lnaddr));
 	} else
-		nbp->wp -= sizeof(Ndpkt) - sizeof(NdiscC);
+		nbp->wp -= NDPKTSZ - NDISCSZ;
 
 	set_cksum(nbp);
 	np = (Ndpkt*)nbp->rp;
@@ -384,7 +394,7 @@ icmpna(Fs *f, uchar* src, uchar* dst, uchar* targ, uchar* mac, uchar flags)
 	Proto *icmp = f->t2p[ICMPv6];
 	Icmppriv6 *ipriv = icmp->priv;
 
-	nbp = newIPICMP(sizeof(Ndpkt));
+	nbp = newIPICMP(NDPKTSZ);
 	np = (Ndpkt*)nbp->rp;
 
 	memmove(np->src, src, IPaddrlen);
@@ -412,7 +422,7 @@ extern void
 icmphostunr(Fs *f, Ipifc *ifc, Block *bp, int code, int free)
 {
 	int osz = BLEN(bp);
-	int sz = MIN(sizeof(IPICMP) + osz, v6MINTU);
+	int sz = MIN(IPICMPSZ + osz, v6MINTU);
 	Block *nbp;
 	IPICMP *np;
 	Ip6hdr *p;
@@ -429,10 +439,10 @@ icmphostunr(Fs *f, Ipifc *ifc, Block *bp, int code, int free)
 
 	rlock(ifc);
 	if(ipv6anylocal(ifc, np->src))
-		netlog(f, Logicmp, "send icmphostunr -> s%I d%I\n",
+		netlog(f, Logicmp, "send icmphostunr -> src %I dst %I\n",
 			p->src, p->dst);
 	else {
-		netlog(f, Logicmp, "icmphostunr fail -> s%I d%I\n",
+		netlog(f, Logicmp, "icmphostunr fail -> src %I dst %I\n",
 			p->src, p->dst);
 		freeblist(nbp);
 		if(free)
@@ -444,7 +454,7 @@ icmphostunr(Fs *f, Ipifc *ifc, Block *bp, int code, int free)
 	memmove(np->dst, p->src, IPaddrlen);
 	np->type = UnreachableV6;
 	np->code = code;
-	memmove(nbp->rp + sizeof(IPICMP), bp->rp, sz - sizeof(IPICMP));
+	memmove(nbp->rp + IPICMPSZ, bp->rp, sz - IPICMPSZ);
 	set_cksum(nbp);
 	np->ttl = HOP_LIMIT;
 	np->vcf[0] = 0x06 << 4;
@@ -466,7 +476,7 @@ extern void
 icmpttlexceeded6(Fs *f, Ipifc *ifc, Block *bp)
 {
 	int osz = BLEN(bp);
-	int sz = MIN(sizeof(IPICMP) + osz, v6MINTU);
+	int sz = MIN(IPICMPSZ + osz, v6MINTU);
 	Block *nbp;
 	IPICMP *np;
 	Ip6hdr *p;
@@ -482,10 +492,10 @@ icmpttlexceeded6(Fs *f, Ipifc *ifc, Block *bp)
 	np = (IPICMP *) nbp->rp;
 
 	if(ipv6anylocal(ifc, np->src))
-		netlog(f, Logicmp, "send icmpttlexceeded6 -> s%I d%I\n",
+		netlog(f, Logicmp, "send icmpttlexceeded6 -> src %I dst %I\n",
 			p->src, p->dst);
 	else {
-		netlog(f, Logicmp, "icmpttlexceeded6 fail -> s%I d%I\n",
+		netlog(f, Logicmp, "icmpttlexceeded6 fail -> src %I dst %I\n",
 			p->src, p->dst);
 		return;
 	}
@@ -493,7 +503,7 @@ icmpttlexceeded6(Fs *f, Ipifc *ifc, Block *bp)
 	memmove(np->dst, p->src, IPaddrlen);
 	np->type = TimeExceedV6;
 	np->code = 0;
-	memmove(nbp->rp + sizeof(IPICMP), bp->rp, sz - sizeof(IPICMP));
+	memmove(nbp->rp + IPICMPSZ, bp->rp, sz - IPICMPSZ);
 	set_cksum(nbp);
 	np->ttl = HOP_LIMIT;
 	np->vcf[0] = 0x06 << 4;
@@ -505,7 +515,7 @@ extern void
 icmppkttoobig6(Fs *f, Ipifc *ifc, Block *bp)
 {
 	int osz = BLEN(bp);
-	int sz = MIN(sizeof(IPICMP) + osz, v6MINTU);
+	int sz = MIN(IPICMPSZ + osz, v6MINTU);
 	Block *nbp;
 	IPICMP *np;
 	Ip6hdr *p;
@@ -521,10 +531,10 @@ icmppkttoobig6(Fs *f, Ipifc *ifc, Block *bp)
 	np = (IPICMP *)nbp->rp;
 
 	if(ipv6anylocal(ifc, np->src))
-		netlog(f, Logicmp, "send icmppkttoobig6 -> s%I d%I\n",
+		netlog(f, Logicmp, "send icmppkttoobig6 -> src %I dst %I\n",
 			p->src, p->dst);
 	else {
-		netlog(f, Logicmp, "icmppkttoobig6 fail -> s%I d%I\n",
+		netlog(f, Logicmp, "icmppkttoobig6 fail -> src %I dst %I\n",
 			p->src, p->dst);
 		return;
 	}
@@ -533,7 +543,7 @@ icmppkttoobig6(Fs *f, Ipifc *ifc, Block *bp)
 	np->type = PacketTooBigV6;
 	np->code = 0;
 	hnputl(np->icmpid, ifc->maxtu - ifc->medium->hsize);
-	memmove(nbp->rp + sizeof(IPICMP), bp->rp, sz - sizeof(IPICMP));
+	memmove(nbp->rp + IPICMPSZ, bp->rp, sz - IPICMPSZ);
 	set_cksum(nbp);
 	np->ttl = HOP_LIMIT;
 	np->vcf[0] = 0x06 << 4;
@@ -555,14 +565,14 @@ valid(Proto *icmp, Ipifc *ifc, Block *bp, Icmppriv6 *ipriv)
 
 	USED(ifc);
 	n = blocklen(bp);
-	if(n < sizeof(IPICMP)) {
+	if(n < IPICMPSZ) {
 		ipriv->stats[HlenErrs6]++;
 		netlog(icmp->f, Logicmp, "icmp hlen %d\n", n);
 		goto err;
 	}
 
 	iplen = nhgets(p->ploadlen);
-	if(iplen > n-IPV6HDR_LEN || (iplen % 1)) {
+	if(iplen > n - IP6HDR) {
 		ipriv->stats[LenErrs6]++;
 		netlog(icmp->f, Logicmp, "icmp length %d\n", iplen);
 		goto err;
@@ -578,7 +588,7 @@ valid(Proto *icmp, Ipifc *ifc, Block *bp, Icmppriv6 *ipriv)
 	ttl = p->ttl;
 	p->ttl = p->proto;
 	p->proto = 0;
-	if(ptclcsum(bp, 0, iplen + IPV6HDR_LEN)) {
+	if(ptclcsum(bp, 0, iplen + IP6HDR)) {
 		ipriv->stats[CsumErrs6]++;
 		netlog(icmp->f, Logicmp, "icmp checksum error\n");
 		goto err;
@@ -628,7 +638,7 @@ valid(Proto *icmp, Ipifc *ifc, Block *bp, Icmppriv6 *ipriv)
 			break;
 
 		case RouterAdvert:
-			if(pktsz - sizeof(Ip6hdr) < 16) {
+			if(pktsz - IP6HDR < 16) {
 				ipriv->stats[HlenErrs6]++;
 				goto err;
 			}
@@ -636,7 +646,7 @@ valid(Proto *icmp, Ipifc *ifc, Block *bp, Icmppriv6 *ipriv)
 				ipriv->stats[RouterAddrErrs6]++;
 				goto err;
 			}
-			sz = sizeof(IPICMP) + 8;
+			sz = IPICMPSZ + 8;
 			while (sz+1 < pktsz) {
 				osz = packet[sz+1];
 				if(osz <= 0) {
@@ -648,12 +658,12 @@ valid(Proto *icmp, Ipifc *ifc, Block *bp, Icmppriv6 *ipriv)
 			break;
 
 		case RouterSolicit:
-			if(pktsz - sizeof(Ip6hdr) < 8) {
+			if(pktsz - IP6HDR < 8) {
 				ipriv->stats[HlenErrs6]++;
 				goto err;
 			}
 			unsp = (ipcmp(p->src, v6Unspecified) == 0);
-			sz = sizeof(IPICMP) + 8;
+			sz = IPICMPSZ + 8;
 			while (sz+1 < pktsz) {
 				osz = packet[sz+1];
 				if(osz <= 0 ||
@@ -732,12 +742,12 @@ icmpiput6(Proto *icmp, Ipifc *ipifc, Block *bp)
 		break;
 
 	case UnreachableV6:
-		if(p->code > 4)
-			msg = unreachcode[icmp6_unkn_code];
+		if(p->code >= nelem(unreachcode))
+			msg = unreachcode[Icmp6_unknown];
 		else
 			msg = unreachcode[p->code];
 
-		bp->rp += sizeof(IPICMP);
+		bp->rp += IPICMPSZ;
 		if(blocklen(bp) < 8){
 			ipriv->stats[LenErrs6]++;
 			goto raise;
@@ -749,7 +759,7 @@ icmpiput6(Proto *icmp, Ipifc *ipifc, Block *bp)
 			return;
 		}
 
-		bp->rp -= sizeof(IPICMP);
+		bp->rp -= IPICMPSZ;
 		goticmpkt6(icmp, bp, 0);
 		break;
 
@@ -757,7 +767,7 @@ icmpiput6(Proto *icmp, Ipifc *ipifc, Block *bp)
 		if(p->code == 0){
 			sprint(m2, "ttl exceeded at %I", p->src);
 
-			bp->rp += sizeof(IPICMP);
+			bp->rp += IPICMPSZ;
 			if(blocklen(bp) < 8){
 				ipriv->stats[LenErrs6]++;
 				goto raise;
@@ -768,7 +778,7 @@ icmpiput6(Proto *icmp, Ipifc *ipifc, Block *bp)
 				(*pr->advise)(pr, bp, m2);
 				return;
 			}
-			bp->rp -= sizeof(IPICMP);
+			bp->rp -= IPICMPSZ;
 		}
 
 		goticmpkt6(icmp, bp, 0);

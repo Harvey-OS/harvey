@@ -336,7 +336,9 @@ icmpiput(Proto *icmp, Ipifc*, Block *bp)
 	ipriv->stats[InMsgs]++;
 
 	p = (Icmp *)bp->rp;
-	netlog(icmp->f, Logicmp, "icmpiput %d %d\n", p->type, p->code);
+	netlog(icmp->f, Logicmp, "icmpiput %s (%d) %d\n",
+		(p->type < nelem(icmpnames)? icmpnames[p->type]: ""),
+		p->type, p->code);
 	n = blocklen(bp);
 	if(n < ICMP_IPSIZE+ICMP_HDRSIZE){
 		ipriv->stats[InErrors]++;
@@ -345,7 +347,7 @@ icmpiput(Proto *icmp, Ipifc*, Block *bp)
 		goto raise;
 	}
 	iplen = nhgets(p->length);
-	if(iplen > n || (iplen % 1)){
+	if(iplen > n){
 		ipriv->stats[LenErrs]++;
 		ipriv->stats[InErrors]++;
 		netlog(icmp->f, Logicmp, "icmp length error n %d iplen %d\n",
