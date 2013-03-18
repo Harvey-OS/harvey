@@ -288,10 +288,14 @@ runacore(void)
 			fn = actrapret;
 			break;
 		case ICCSYSCALL:
-			DBG("runacore: syscall ax %#ullx ureg %#p\n",
-				ureg->ax, ureg);
+			DBG("runacore: syscall ax %#ullx bp %#ullx ureg %#p\n",
+				ureg->ax, ureg->bp, ureg);
 			cr3put(m->pml4->pa);
-			syscall(ureg->ax, ureg);
+			/* The call to error might even work ... */
+			if(ureg->ax & 0x8000)
+				syscall(ureg->bp, ureg);
+			else
+				error("sys:no Linux calls from AC yet");
 			flush = 1;
 			fn = acsysret;
 			if(0)

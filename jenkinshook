@@ -27,7 +27,7 @@ mk kernels
 # I think we'll want to get the diff output rather than bailing
 # out immediately
 set +e
-timeout 60s qemu-system-x86_64 --kernel nxm/k10/9k8regression.elf  \
+timeout 90s qemu-system-x86_64 --kernel nxm/k10/9k8regression.elf  \
 	-no-reboot  --nographic -m 512 </dev/null > qemuout
 set -e
 

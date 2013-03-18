@@ -29,7 +29,8 @@ TEXT acsyscallentry(SB), 1, $-4
 	MOVW	FS,  124(R12)
 	MOVW	GS,  126(R12)
 
-	MOVQ	RARG, 	0(R12)			/* system call number: up->dbgregs->ax  */
+	MOVQ	RARG, 	0(R12)			/* system call modifier: up->dbgregs->ax  */
+	MOVQ	RARG, 	(6*8)(R12)		/* system call number: up->dbgregs->bp  */
 	CALL	acsyscall(SB)
 NDNR:	JMP NDNR
 
