@@ -73,10 +73,10 @@ struct Udp6hdr {
 typedef struct Udpstats Udpstats;
 struct Udpstats
 {
-	ulong	udpInDatagrams;
-	ulong	udpNoPorts;
-	ulong	udpInErrors;
-	ulong	udpOutDatagrams;
+	uvlong	udpInDatagrams;
+	uvlong	udpNoPorts;
+	uvlong	udpInErrors;
+	uvlong	udpOutDatagrams;
 };
 
 typedef struct Udppriv Udppriv;
@@ -88,8 +88,8 @@ struct Udppriv
 	Udpstats	ustats;
 
 	/* non-MIB stats */
-	ulong		csumerr;		/* checksum errors */
-	ulong		lenerr;			/* short packet */
+	uvlong		csumerr;		/* checksum errors */
+	uvlong		lenerr;			/* short packet */
 };
 
 void (*etherprofiler)(char *name, int qlen);
@@ -195,7 +195,7 @@ udpkick(void *x, Block *bp)
 	upriv = c->p->priv;
 	f = c->p->f;
 
-	netlog(c->p->f, Logudp, "udp: kick\n");
+//	netlog(c->p->f, Logudp, "udp: kick\n");	/* frequent and uninteresting */
 	if(bp == nil)
 		return;
 
@@ -421,7 +421,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 
 	c = iphtlook(&upriv->ht, raddr, rport, laddr, lport);
 	if(c == nil){
-		/* no converstation found */
+		/* no conversation found */
 		upriv->ustats.udpNoPorts++;
 		qunlock(udp);
 		netlog(f, Logudp, "udp: no conv %I!%d -> %I!%d\n", raddr, rport,
@@ -432,7 +432,7 @@ udpiput(Proto *udp, Ipifc *ifc, Block *bp)
 			icmpnoconv(f, bp);
 			break;
 		case V6:
-			icmphostunr(f, ifc, bp, icmp6_port_unreach, 0);
+			icmphostunr(f, ifc, bp, icmp6_adr_unreach, 0);
 			break;
 		default:
 			panic("udpiput2: version %d", version);
@@ -619,7 +619,7 @@ udpstats(Proto *udp, char *buf, int len)
 	Udppriv *upriv;
 
 	upriv = udp->priv;
-	return snprint(buf, len, "InDatagrams: %lud\nNoPorts: %lud\nInErrors: %lud\nOutDatagrams: %lud\n",
+	return snprint(buf, len, "InDatagrams: %llud\nNoPorts: %llud\nInErrors: %llud\nOutDatagrams: %llud\n",
 		upriv->ustats.udpInDatagrams,
 		upriv->ustats.udpNoPorts,
 		upriv->ustats.udpInErrors,
