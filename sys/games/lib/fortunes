@@ -4307,3 +4307,5 @@ the rate at which apple fiddles with stuff is pretty amazing.  - quanstro
 Good to know: Git won't add an icon anywhere, it's not that sort of application.
 # Note that there must be at least one file in the sudoers.d directory (this one will do), and all files in this directory should be mode 0440.
 If it is good information which comes from nowhere it is all right but this is wrong information that comes from nowhere and it is completely wrong. - Arsène Wenger.
+I fixed their fix and it does work.  - forsyth
+To maintain backward compatibility, the relationships between the many options are quite complex.  - ls(1) OS X Manual Page
