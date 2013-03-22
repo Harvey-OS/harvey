@@ -185,7 +185,8 @@ findonekernel(Bootfs *fs)
 	kerns = 0;
 	for (n = 0; (name = array[n]) != nil; n++)
 		if(strncmp(name, "9pc", 3) == 0 ||
-		   strncmp(name, "9k8", 3) == 0){
+		   strncmp(name, "9k8", 3) == 0 ||
+		   strncmp(name, "9k10", 4) == 0){
 			bootfile = name;
 			kerns++;
 		}
