@@ -245,7 +245,7 @@ type this after
 .LR "setenv bootcmd" :
 .IP
 .EX
-\&'usb start; dhcp; tftp 100 %C; go 8000'
+\&'usb start; dhcp 8000; tftp 100 %C; go 8000'
 .EE
 .PP
 Thereafter, the boards will automatically boot via BOOTP and TFTP
