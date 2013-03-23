@@ -1,0 +1,7 @@
+# example raspberry pi
+vgasize=1600x1200x16
+monitor=vesa
+# console=0 b115200
+nobootprompt=tcp
+readparts=1
+###

@@ -241,24 +241,24 @@ type this after
 .EE
 .PP
 For Raspberry Pis,
-type this after
-.LR "setenv bootcmd" :
-.IP
-.EX
-\&'usb start; dhcp 8000; tftp 100 %C; go 8000'
-.EE
+.I gunzip
+the
+.B pi.uboot.sd.img.gz
+named below onto an SD card and insert that into your Pi.
 .PP
 Thereafter, the boards will automatically boot via BOOTP and TFTP
 when reset.
 .
+.SH FILES
+.B /n/sources/extra/pi.uboot.sd.img.gz
+is a compressed bootable SD card image for Raspberry Pi, uses PXE booting.
+.SH SOURCE
+.B /sys/src/boot
+.br
+.B /sys/src/9/pcboot
 .SH "SEE ALSO"
 .IR ndb (6),
 .IR 9boot (8),
 .IR boot (8),
 .IR init (8),
 .IR plan9.ini (8)
-.SH SOURCE
-Sources for the various boot programs are under
-.B /sys/src/boot
-and
-.BR /sys/src/9/pcboot .
