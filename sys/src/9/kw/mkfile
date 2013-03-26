@@ -128,7 +128,7 @@ arch.$O clock.$O fpiarm.$O main.$O mmu.$O screen.$O sdscsi.$O syscall.$O \
 archkw.$O devether.$O ether1116.$O ethermii.$O: \
 	etherif.h ethermii.h ../port/netif.h
 archkw.$O devflash.$O flashkw.$O: ../port/flashif.h
-fpi.$O fpiarm.$O fpimem.$O: fpi.h
+fpi.$O fpiarm.$O fpimem.$O: ../port/fpi.h
 l.$O lexception.$O lproc.$O mmu.$O: arm.s arm.h mem.h
 main.$O:	errstr.h init.h reboot.h
 mouse.$O:	screen.h

@@ -120,7 +120,7 @@ arch.$O clock.$O fpiarm.$O main.$O mmu.$O screen.$O sdscsi.$O syscall.$O \
 archtegra.$O devether.$0 ether9221.$O: etherif.h ../port/netif.h
 archtegra.$O devflash.$O flashtegra.$O flashigep.$O: ../port/flashif.h
 ecc.$O flashtegra.$O flashigep.$O: ../port/nandecc.h io.h
-fpi.$O fpiarm.$O fpimem.$O: fpi.h
+fpi.$O fpiarm.$O fpimem.$O: ../port/fpi.h
 l.$O lexception.$O lproc.$O mmu.$O: arm.s mem.h
 l.$O rebootcode.$O: cache.v7.s
 main.$O: errstr.h init.h reboot.h
