@@ -2,6 +2,7 @@
 #include	<libc.h>
 #include	<bio.h>
 #include	"../8c/8.out.h"
+#include	"../8l/elf.h"
 
 #ifndef	EXTERN
 #define	EXTERN	extern
@@ -216,6 +217,7 @@ EXTERN	long	HEADTYPE;
 EXTERN	long	INITDAT;
 EXTERN	long	INITRND;
 EXTERN	long	INITTEXT;
+EXTERN	long	INITTEXTP;
 EXTERN	char*	INITENTRY;		/* entry point */
 EXTERN	Biobuf	bso;
 EXTERN	long	bsssize;
@@ -331,6 +333,8 @@ void	listinit(void);
 Sym*	lookup(char*, int);
 void	lput(long);
 void	lputl(long);
+void	llput(vlong v);
+void	llputl(vlong v);
 void	main(int, char*[]);
 void	mkfwd(void);
 void*	mysbrk(ulong);
@@ -344,10 +348,12 @@ int	relinv(int);
 long	reuse(Prog*, Sym*);
 long	rnd(long, long);
 void	span(void);
+void	strnput(char*, int);
 void	undef(void);
 void	undefsym(Sym*);
 long	vaddr(Adr*);
-void	wput(ushort);
+void	wput(long);
+void	wputl(long);
 void	xdefine(char*, int, long);
 void	xfol(Prog*);
 int	zaddr(uchar*, Adr*, Sym*[]);

@@ -216,58 +216,8 @@ asmb(void)
 		lputl(0xe3300000);		/* nop */
 		break;
 	case 7:	/* elf */
-		strnput("\177ELF", 4);		/* e_ident */
-		cput(1);			/* class = 32 bit */
-		cput(2);			/* data = MSB */
-		cput(1);			/* version = CURRENT */
-		strnput("", 9);
-		lput((2L<<16)|40);		/* type = EXEC; machine = ARM */
-		lput(1L);			/* version = CURRENT */
-		lput(entryvalue());		/* entry vaddr */
-		lput(52L);			/* offset to first phdr */
-
-		debug['S'] = 1;			/* no symbol table */
-		if(debug['S']){
-			lput(HEADR+textsize+datsize+symsize);	/* offset to first shdr */
-			lput(0L);		/* flags = PPC */
-			lput((52L<<16)|32L);	/* Ehdr & Phdr sizes*/
-			lput((4L<<16)|40L);	/* # Phdrs & Shdr size */
-			lput((4L<<16)|2L);	/* # Shdrs & shdr string size */
-		}
-		else{
-			lput(0L);
-			lput(0L);		/* flags = PPC */
-			lput((52L<<16)|32L);	/* Ehdr & Phdr sizes*/
-			lput((4L<<16)|0L);	/* # Phdrs & Shdr size */
-			lput((4L<<16)|0L);	/* # Shdrs & shdr string size */
-		}
-
-		lput(1L);			/* text - type = PT_LOAD */
-		lput(HEADR);			/* file offset */
-		lput(INITTEXT);			/* vaddr */
-		lput(INITTEXT);			/* paddr */
-		lput(textsize);			/* file size */
-		lput(textsize);			/* memory size */
-		lput(0x05L);			/* protections = RX */
-		lput(0);			/* alignment */
-
-		lput(1L);			/* data - type = PT_LOAD */
-		lput(HEADR+textsize);		/* file offset */
-		lput(INITDAT);			/* vaddr */
-		lput(INITDAT);			/* paddr */
-		lput(datsize);			/* file size */
-		lput(datsize+bsssize);		/* memory size */
-		lput(0x07L);			/* protections = RWX */
-		lput(0);			/* alignment */
-
-		lput(0L);			/* data - type = PT_NULL */
-		lput(HEADR+textsize+datsize);	/* file offset */
-		lput(0L);			/* vaddr */
-		lput(0L);			/* paddr */
-		lput(symsize);			/* symbol table size */
-		lput(lcsize);			/* line number size */
-		lput(0x04L);			/* protections = R */
-		lput(0x04L);			/* alignment code?? */
+		debug['S'] = 1;			/* symbol table */
+		elf32(ARM, ELFDATA2LSB, 0, nil);
 		break;
 	}
 	cflush();
@@ -307,6 +257,18 @@ wput(long l)
 }
 
 void
+wputl(long l)
+{
+
+	cbp[0] = l;
+	cbp[1] = l>>8;
+	cbp += 2;
+	cbc -= 2;
+	if(cbc <= 0)
+		cflush();
+}
+
+void
 lput(long l)
 {
 
@@ -332,6 +294,20 @@ lputl(long l)
 	cbc -= 4;
 	if(cbc <= 0)
 		cflush();
+}
+
+void
+llput(vlong v)
+{
+	lput(v>>32);
+	lput(v);
+}
+
+void
+llputl(vlong v)
+{
+	lputl(v);
+	lputl(v>>32);
 }
 
 void

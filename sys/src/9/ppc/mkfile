@@ -2,6 +2,7 @@ CONF=ucu
 CONFLIST=blast ucu
 
 loadaddr = 0x80100000
+physaddr = 0x00100000
 
 objtype=power
 </$objtype/mkfile
@@ -85,7 +86,7 @@ it:V: $p$CONF
 
 9ucu:	$CONF.c $OBJ $LIB
 	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
-	$LD -R0x1000 -H5 -o $target -T$loadaddr -l $OBJ $CONF.$O $LIB
+	$LD -R0x1000 -H5 -o $target -T$loadaddr -P$physaddr -l $OBJ $CONF.$O $LIB
 
 install:V: $p$CONF
 	cp $p$CONF /$objtype/$p$CONF
