@@ -10,12 +10,15 @@ OFILES=\
 	list.$O\
 	enam.$O\
 	compat.$O\
+	elf.$O\
 
 HFILES=\
 	l.h\
 	../6c/6.out.h\
+	../8l/elf.h\
 
 BIN=/$objtype/bin
+CFLAGS=$CFLAGS -. -I.
 CFILES=${OFILES:%.$O=%.c}
 CFILES=${CFILES:enam.c=../6c/enam.c}
 UPDATE=\
@@ -28,4 +31,5 @@ UPDATE=\
 
 enam.$O:	../6c/enam.c
 	$CC $CFLAGS ../6c/enam.c
-
+elf.$O:	../8l/elf.c
+	$CC $CFLAGS ../8l/elf.c

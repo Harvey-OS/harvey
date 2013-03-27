@@ -2,8 +2,6 @@
 
 #define	Dbufslop	100
 
-#define PADDR(a)	((ulong)(a) & ~0xF0000000)
-
 long
 entryvalue(void)
 {
@@ -28,15 +26,16 @@ entryvalue(void)
 	return s->value;
 }
 
+/* these need to take long arguments to be compatible with elf.c */
 void
-wputl(ushort w)
+wputl(long w)
 {
 	cput(w);
 	cput(w>>8);
 }
 
 void
-wput(ushort w)
+wput(long w)
 {
 	cput(w>>8);
 	cput(w);
@@ -58,6 +57,20 @@ lputl(long l)
 	cput(l>>8);
 	cput(l>>16);
 	cput(l>>24);
+}
+
+void
+llput(vlong v)
+{
+	lput(v>>32);
+	lput(v);
+}
+
+void
+llputl(vlong v)
+{
+	lputl(v);
+	lputl(v>>32);
 }
 
 void
@@ -335,51 +348,7 @@ asmb(void)
 		wputl(0x0000);			/* overlay number */
 		break;
 	case 5:
-		strnput("\177ELF", 4);		/* e_ident */
-		cput(1);			/* class = 32 bit */
-		cput(1);			/* data = LSB */
-		cput(1);			/* version = CURRENT */
-		strnput("", 9);
-		wputl(2);			/* type = EXEC */
-		wputl(3);			/* machine = 386 */
-		lputl(1L);			/* version = CURRENT */
-		lputl(PADDR(entryvalue()));	/* entry vaddr */
-		lputl(52L);			/* offset to first phdr */
-		lputl(0L);			/* offset to first shdr */
-		lputl(0L);			/* flags = 386 */
-		wputl(52);			/* Ehdr size */
-		wputl(32);			/* Phdr size */
-		wputl(3);			/* # of Phdrs */
-		wputl(0);			/* Shdr size */
-		wputl(0);			/* # of Shdrs */
-		wputl(0);			/* Shdr string size */
-
-		lputl(1L);			/* text - type = PT_LOAD */
-		lputl(HEADR);			/* file offset */
-		lputl(INITTEXT);		/* vaddr */
-		lputl(PADDR(INITTEXT));		/* paddr */
-		lputl(textsize);		/* file size */
-		lputl(textsize);		/* memory size */
-		lputl(0x05L);			/* protections = RX */
-		lputl(INITRND);			/* alignment */
-
-		lputl(1L);			/* data - type = PT_LOAD */
-		lputl(HEADR+textsize);		/* file offset */
-		lputl(INITDAT);			/* vaddr */
-		lputl(PADDR(INITDAT));		/* paddr */
-		lputl(datsize);			/* file size */
-		lputl(datsize+bsssize);		/* memory size */
-		lputl(0x06L);			/* protections = RW */
-		lputl(INITRND);			/* alignment */
-
-		lputl(0L);			/* data - type = PT_NULL */
-		lputl(HEADR+textsize+datsize);	/* file offset */
-		lputl(0L);
-		lputl(0L);
-		lputl(symsize);			/* symbol table size */
-		lputl(lcsize);			/* line number size */
-		lputl(0x04L);			/* protections = R */
-		lputl(0x04L);			/* alignment */
+		elf32(I386, ELFDATA2LSB, 0, nil);
 		break;
 	}
 	cflush();
