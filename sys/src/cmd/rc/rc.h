@@ -1,6 +1,6 @@
 /*
  * Assume plan 9 by default; if Unix is defined, assume unix.
- * Please don't litter the code with ifdefs.  The six below should be enough.
+ * Please don't litter the code with ifdefs.  The five below should be enough.
  */
 
 #ifndef Unix

@@ -573,7 +573,8 @@ irqdisable(uint irq, void (*f)(Ureg*, void*), void* a, char *name)
 	lock(&vctllock);
 	for(vp = &vctl[irq]; v = *vp; vp = &v->next)
 		if (v->f == f && v->a == a && strcmp(v->name, name) == 0){
-			print("irqdisable: remove %s\n", name);
+			if(Debug)
+				print("irqdisable: remove %s\n", name);
 			*vp = v->next;
 			free(v->name);
 			free(v);
@@ -583,7 +584,8 @@ irqdisable(uint irq, void (*f)(Ureg*, void*), void* a, char *name)
 	if(v == nil)
 		print("irqdisable: irq %d, name %s not enabled\n", irq, name);
 	if(vctl[irq] == nil){
-		print("irqdisable: clear icmr bit %d\n", irq);
+		if(Debug)
+			print("irqdisable: clear icmr bit %d\n", irq);
 		intcmask(irq);
 	}
 	unlock(&vctllock);

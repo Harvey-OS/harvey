@@ -4,14 +4,11 @@ $	pnp
 /	root
 9	p9am
 A	audio
-A	uda1341
 B	bridge
 C	ce
 D	ssl
 E	sdp
 F	flash
-F	ppcflash
-G	gs1
 I	ip
 K	kprof
 L	lpt
@@ -33,11 +30,9 @@ i	draw
 k	fs
 l	ether
 m	mouse
-m	penmouse
 p	proc
-q	qmux
+r	fakertc
 r	rtc
-r	µc
 s	srv
 t	uart
 u	usb
@@ -45,9 +40,7 @@ v	dss
 v	lcd
 v	vga
 w	wd
-x	xenstore
 y	i82365
-y	pcmcia
 |	pipe
 ¤	cap
 æ	aoe
@@ -59,7 +52,6 @@ y	pcmcia
 ⁲	twsi
 ↔	usbcons
 ☹	bios
-霞	kasumi
 
 α	local use
 β	local use
