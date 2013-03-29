@@ -277,18 +277,15 @@ syscall(int badscallnr, Ureg* ureg)
 	sp = ureg->sp;
 	startns = 0;
 
-	if(up->procctl == Proc_tracesyscall){
-		/*
-		 * Redundant validaddr.  Do we care?
-		 * Tracing syscalls is not exactly a fast path...
-		 * Beware, validaddr currently does a pexit rather
-		 * than an error if there's a problem; that might
-		 * change in the future.
-		 */
-		if(sp < (USTKTOP-BIGPGSZ) || sp > (USTKTOP-sizeof(up->arg)-BY2SE))
-			validaddr(UINT2PTR(sp), sizeof(up->arg)+BY2SE, 0);
+	args = (uintptr *)up->arg;
+	args[0] = ureg->di;
+	args[1] = ureg->si;
+	args[2] = ureg->dx;
+	args[3] = ureg->r10;
+	args[4] = ureg->r8;
 
-		syscallfmt(scallnr, (va_list)(sp+BY2SE));
+	if(up->procctl == Proc_tracesyscall){
+		syscallfmt(scallnr, (va_list)args);
 		up->procctl = Proc_stopme;
 		procctl(up);
 		if(up->syscalltrace)
@@ -313,12 +310,6 @@ syscall(int badscallnr, Ureg* ureg)
 			error(Ebadarg);
 		}
 
-		args = (uintptr *)up->arg;
-		args[0] = ureg->di;
-		args[1] = ureg->si;
-		args[2] = ureg->dx;
-		args[3] = ureg->r10;
-		args[4] = ureg->r8;
 		up->psstate = systab[scallnr].n;
 
 		systab[scallnr].f(&ar0, (va_list)up->arg);
