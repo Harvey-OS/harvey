@@ -62,7 +62,7 @@ the
 file.
 The
 .B mousein
-file, which is exclusive-use and may be opened
+file, which may be opened
 only by the host owner, is intended for controlling devices, such as USB mice,
 that are managed by user-level software.
 Each event should consist of

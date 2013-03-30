@@ -299,9 +299,9 @@ ptrrepvals(KDev *kd, Chain *ch, int *px, int *py, int *pb)
 	for(i = 0; i<sizeof buts; i++)
 		b |= (hidifcval(&kd->templ, KindButtons, i) & 1) << buts[i];
 	if(c > 3 && hidifcval(&kd->templ, KindWheel, 0) > 0)	/* up */
-		b |= 0x10;
-	if(c > 3 && hidifcval(&kd->templ, KindWheel, 0) < 0)	/* down */
 		b |= 0x08;
+	if(c > 3 && hidifcval(&kd->templ, KindWheel, 0) < 0)	/* down */
+		b |= 0x10;
 
 	*px = x;
 	*py = y;
