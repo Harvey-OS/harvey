@@ -131,13 +131,15 @@ sleep 2; date > _timestamp	# so we can find which files have been edited.
 
 # edit the files
 if(~ $edit yes) $editor `{for(i in $files) basename $i}
-if(~ $flush yes ){
-	echo flushing old keys
-	echo delkey > /mnt/factotum/ctl
-}
-if(~ $load yes){
-	echo loading factotum keys
-	if (~ factotum $files) read -m < factotum > /mnt/factotum/ctl
+if(~ factotum $files){
+	if(~ $flush yes){
+		echo flushing old keys
+		echo delkey > /mnt/factotum/ctl
+	}
+	if(~ $load yes){
+		echo loading factotum keys
+		read -m < factotum > /mnt/factotum/ctl
+	}
 }
 
 # copy the files back
@@ -151,8 +153,6 @@ for(i in `{editedfiles}){
 			exit password
 		}
 		echo ''''$i'''' copied to $name
-		if(~ $i factotum)
-			read -m < $i > /mnt/factotum/ctl
 	case [xXqQ]*
 		exit
 	case [nN]* *
