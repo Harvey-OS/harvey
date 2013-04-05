@@ -4309,3 +4309,4 @@ Good to know: Git won't add an icon anywhere, it's not that sort of application.
 If it is good information which comes from nowhere it is all right but this is wrong information that comes from nowhere and it is completely wrong. - Arsène Wenger.
 I fixed their fix and it does work.  - forsyth
 To maintain backward compatibility, the relationships between the many options are quite complex.  - ls(1) OS X Manual Page
+qemu: could not open serial device 'dev': Success
