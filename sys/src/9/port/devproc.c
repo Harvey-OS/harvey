@@ -7,7 +7,7 @@
 #include	"fns.h"
 #include	"../port/error.h"
 #include	"ureg.h"
-#include	"edf.h"
+#include	"../port/edf.h"
 
 enum
 {

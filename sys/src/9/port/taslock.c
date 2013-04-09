@@ -4,7 +4,7 @@
 #include "dat.h"
 #include "fns.h"
 #include "../port/error.h"
-#include "edf.h"
+#include "../port/edf.h"
 
 long maxlockcycles;
 long maxilockcycles;

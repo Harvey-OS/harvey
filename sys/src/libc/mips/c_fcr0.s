@@ -1,0 +1,3 @@
+	TEXT	C_fcr0(SB), $0
+	MOVW	FCR0, R1
+	RET

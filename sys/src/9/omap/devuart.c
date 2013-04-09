@@ -75,17 +75,17 @@ uartenable(Uart *p)
 	p->cts = 1;
 	p->ctsbackoff = 0;
 
-if (up) {
-	if(p->bits == 0)
-		uartctl(p, "l8");
-	if(p->stop == 0)
-		uartctl(p, "s1");
-	if(p->parity == 0)
-		uartctl(p, "pn");
-	if(p->baud == 0)
-		uartctl(p, "b9600");
-	(*p->phys->enable)(p, 1);
-}
+	if (up) {
+		if(p->bits == 0)
+			uartctl(p, "l8");
+		if(p->stop == 0)
+			uartctl(p, "s1");
+		if(p->parity == 0)
+			uartctl(p, "pn");
+		if(p->baud == 0)
+			uartctl(p, "b9600");
+		(*p->phys->enable)(p, 1);
+	}
 
 	/*
 	 * use ilock because uartclock can otherwise interrupt here
@@ -767,8 +767,14 @@ uartgetc(void)
 void
 uartputc(int c)
 {
-	if(consuart == nil || consuart->phys->putc == nil)
+	char c2;
+
+	if(consuart == nil || consuart->phys->putc == nil) {
+		c2 = c;
+		if (lprint)
+			(*lprint)(&c2, 1);
 		return;
+	}
 	consuart->phys->putc(consuart, c);
 }
 
@@ -777,8 +783,11 @@ uartputs(char *s, int n)
 {
 	char *e;
 
-	if(consuart == nil || consuart->phys->putc == nil)
+	if(consuart == nil || consuart->phys->putc == nil) {
+		if (lprint)
+			(*lprint)(s, n);
 		return;
+	}
 
 	e = s+n;
 	for(; s<e; s++){

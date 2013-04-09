@@ -31,6 +31,7 @@ startboot(char *argv0, char **argv)
 	bind(e, env, MCREATE|MAFTER);
 	bind(s, srv, MREPL|MCREATE);
 
+	USED(argv0);
 	exec(boot, argv);
 
 	rerrstr(buf, sizeof buf);
