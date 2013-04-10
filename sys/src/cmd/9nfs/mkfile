@@ -1,5 +1,4 @@
 </$objtype/mkfile
-CFLAGS=-FVw
 
 TARG=nfsserver\
 	portmapper\

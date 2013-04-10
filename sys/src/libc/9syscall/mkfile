@@ -61,7 +61,13 @@ install:V:
 				echo TEXT _seek'(SB)', 1, '$0'
 			if not
 				echo TEXT $i'(SB)', 1, '$0'
-			echo MOVQ RARG, 'a0+0(FP)'
+			#
+			# For architectures which pass the first argument
+			# in a register, if the system call takes no arguments
+			# there will be no 'a0+0(FP)' reserved on the stack.
+			#
+			if(! ~ $i asystemcallwithnoarguments)
+				echo MOVQ RARG, 'a0+0(FP)'
 			echo MOVQ '$'$n, RARG
 			echo SYSCALL
 			echo RET

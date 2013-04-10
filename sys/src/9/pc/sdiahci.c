@@ -43,7 +43,7 @@ enum {
 	 * if we get more than this many interrupts per tick for a drive,
 	 * either the hardware is broken or we've got a bug in this driver.
 	 */
-	Maxintrspertick = 1000,
+	Maxintrspertick = 2000,		/* was 1000 */
 };
 
 /* pci space configuration */
@@ -1963,8 +1963,10 @@ didtype(Pcidev *p)
 		}
 		break;
 	}
-	if(p->ccrb == Pcibcstore && p->ccru == Pciscsata && p->ccrp == 1)
+	if(p->ccrb == Pcibcstore && p->ccru == Pciscsata && p->ccrp == 1){
+		print("ahci: Tunk: VID %#4.4ux DID %#4.4ux\n", p->vid, p->did);
 		return Tunk;
+	}
 	return -1;
 }
 
