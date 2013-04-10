@@ -39,7 +39,7 @@ void	showauth(Auth*);
 void	srvinit(int, char*, char*);
 char*	strfind(char*);
 int	string2S(void*, String*);
-int	strparse(void*, int, char**);
+int	strparse(char*, int, char**);
 void	strprint(int);
 char*	strstore(char*);
 Waitmsg	*system(char*, char**);

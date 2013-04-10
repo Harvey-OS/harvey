@@ -84,6 +84,7 @@ noted(Ureg* cur, uintptr arg0)
 		nf->arg0 = &nf->ureg;
 		nf->ip = 0;
 		cur->sp = PTR2UINT(nf);
+		cur->r0 = PTR2UINT(nf->arg0);
 		break;
 	default:
 		pprint("unknown noted arg %#p\n", arg0);
