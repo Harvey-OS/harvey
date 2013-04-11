@@ -543,7 +543,7 @@ tproc(void *v)
 	e = v;
 	c = e->ctlr;
 	for (;;) {
-		sleep(&c->trendez, tim, c);	/* transmit kicks us */
+		sleep(&c->trendez, tim, c);  /* transmit interrupt kicks us */
 		c->tim = 0;
 		transmit(e);
 	}
