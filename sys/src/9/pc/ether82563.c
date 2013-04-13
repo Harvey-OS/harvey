@@ -388,7 +388,8 @@ enum {					/* Tdesc status */
 typedef struct {
 	u16int	*reg;
 	u32int	*reg32;
-	int	sz;
+	u16int	base;
+	u16int	lim;
 } Flash;
 
 enum {
@@ -1526,11 +1527,11 @@ fload(Ctlr *c)
 	if(f.reg == nil)
 		return -1;
 	f.reg32 = (void*)f.reg;
-	f.sz = f.reg32[Bfpr];
-	r = f.sz & 0x1fff;
+	f.base = f.reg32[Bfpr] & FMASK(0, 13);
+	f.lim = (f.reg32[Bfpr]>>16) & FMASK(0, 13);
 	if(csr32r(c, Eec) & (1<<22))
-		r += c->type == i82579? 16 : 1;
-	r <<= 12;
+		f.base += (f.lim + 1 - f.base) >> 1;
+	r = f.base << 12;
 
 	sum = 0;
 	for (adr = 0; adr < 0x40; adr++) {

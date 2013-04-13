@@ -8,7 +8,7 @@ if(test -f $home/lib/profile){
 }
 cd $home
 x='$'
-mkdir bin bin/rc bin/mips bin/386 bin/power bin/arm
+mkdir bin bin/rc bin/mips bin/386 bin/power bin/arm bin/amd64
 mkdir lib tmp
 chmod +t tmp
 bind -c $home/tmp /tmp
