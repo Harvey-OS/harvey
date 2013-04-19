@@ -989,7 +989,7 @@ enum
 	Qmsg		= (1<<1),	/* message stream */
 	Qclosed		= (1<<2),	/* queue has been closed/hungup */
 	Qflow		= (1<<3),	/* producer flow controlled */
-	Qcoalesce	= (1<<4),	/* coallesce packets on read */
+	Qcoalesce	= (1<<4),	/* coalesce packets on read */
 	Qkick		= (1<<5),	/* always call the kick routine after qwrite */
 };
 
