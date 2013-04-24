@@ -1938,7 +1938,8 @@ didtype(Pcidev *p)
 		/*
 		 * 0x27c4 is the intel 82801 in compatibility (not sata) mode.
 		 */
-		if (p->did == 0x24d1 ||			/* 82801eb/er */
+		if (p->did == 0x1e02 ||			/* c210 */
+		    p->did == 0x24d1 ||			/* 82801eb/er */
 		    (p->did & 0xfffb) == 0x27c1 ||	/* 82801g[bh]m ich7 */
 		    p->did == 0x2821 ||			/* 82801h[roh] */
 		    (p->did & 0xfffe) == 0x2824 ||	/* 82801h[b] */

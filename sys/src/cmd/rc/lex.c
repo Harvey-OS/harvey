@@ -166,15 +166,25 @@ addtok(char *p, int val)
 char*
 addutf(char *p, int c)
 {
-	p = addtok(p, c);
-	if(twobyte(c))	 /* 2-byte escape */
-		return addtok(p, advance());
-	if(threebyte(c)){	/* 3-byte escape */
+	uchar b, m;
+	int i;
+
+	p = addtok(p, c);	/* 1-byte UTF runes are special */
+	if(onebyte(c))
+		return p;
+
+	m = 0xc0;
+	b = 0x80;
+	for(i=1; i < UTFmax; i++){
+		if((c&m) == b)
+			break;
 		p = addtok(p, advance());
-		return addtok(p, advance());
+		b = m;
+		m = (m >> 1)|0x80;
 	}
 	return p;
 }
+
 int lastdol;	/* was the last token read '$' or '$#' or '"'? */
 int lastword;	/* was the last token read a word or compound word terminator? */
 

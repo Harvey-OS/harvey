@@ -53,7 +53,7 @@ enum
 
 	Caselim		= 7,
 	Nhunk		= 1<<16,
-	Cbegin		= 0x10000,
+	Cbegin		= Runemax+1,
 	Flshcnt		= (1<<9)-1,
 
 	Cflag		= 1<<0,

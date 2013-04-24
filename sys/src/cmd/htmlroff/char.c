@@ -16,6 +16,12 @@ rune2html(Rune r)
 	if(r == '\n')
 		return L("\n");
 
+	if(((uint)r&~0xFFFF) != 0){
+		/* The cache must grow a lot to handle them */
+		fprint(2, "%s: can't handle rune '%C'\n", argv0, r);
+		return L("?");
+	}
+
 	if(tcscache[r>>8] && tcscache[r>>8][r&0xFF])
 		return tcscache[r>>8][r&0xFF];
 
@@ -59,7 +65,7 @@ rune2html(Rune r)
 typedef struct Trtab Trtab;
 struct Trtab
 {
-	char t[3];
+	char t[UTFmax];
 	Rune r;
 };
 

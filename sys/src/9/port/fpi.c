@@ -291,6 +291,8 @@ fpicmp(Internal *x, Internal *y)
 		return 0;
 	if(IsInfinity(x) && IsInfinity(y))
 		return y->s - x->s;
+	if(IsZero(x) && IsZero(y))
+		return 0;
 	if(x->e == y->e && x->h == y->h && x->l == y->l)
 		return y->s - x->s;
 	if(x->e < y->e

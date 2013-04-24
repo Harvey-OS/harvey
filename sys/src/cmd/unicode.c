@@ -51,13 +51,13 @@ range(char *argv[])
 			return "bad range";
 		}
 		min = strtoul(q, &q, 16);
-		if(min<0 || min>0xFFFF || *q!='-')
+		if(min<0 || min>Runemax || *q!='-')
 			goto err;
 		q++;
 		if(strchr(hex, *q) == 0)
 			goto err;
 		max = strtoul(q, &q, 16);
-		if(max<0 || max>0xFFFF || max<min || *q!=0)
+		if(max<0 || max>Runemax || max<min || *q!=0)
 			goto err;
 		i = 0;
 		do{
@@ -79,17 +79,22 @@ nums(char *argv[])
 {
 	char *q;
 	Rune r;
-	int w;
+	int w, rsz;
+	char utferr[UTFmax];
 
+	r = Runeerror;
+	rsz = runetochar(utferr, &r);
 	while(*argv){
 		q = *argv;
 		while(*q){
 			w = chartorune(&r, q);
-			if(r==0x80 && (q[0]&0xFF)!=0x80){
-				fprint(2, "unicode: invalid utf string %s\n", *argv);
-				return "bad utf";
+			if(r==Runeerror){
+				if(strlen(q) != rsz || memcmp(q, utferr, rsz) != 0){
+					fprint(2, "unicode: invalid utf string %s\n", *argv);
+					return "bad utf";
+				}
 			}
-			Bprint(&bout, "%.4x\n", r);
+			Bprint(&bout, "%.6x\n", r);
 			q += w;
 		}
 		argv++;
@@ -111,7 +116,7 @@ chars(char *argv[])
 			return "bad char";
 		}
 		m = strtoul(q, &q, 16);
-		if(m<0 || m>0xFFFF || *q!=0)
+		if(m<0 || m>Runemax || *q!=0)
 			goto err;
 		Bprint(&bout, "%C", m);
 		if(!text)
