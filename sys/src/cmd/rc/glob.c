@@ -111,25 +111,22 @@ glob(void *ap)
 	else
 		globsort(globv, svglobv);
 }
+
 /*
  * Do p and q point at equal utf codes
  */
-
 int
 equtf(uchar *p, uchar *q)
 {
+	Rune pr, qr;
 	if(*p!=*q)
 		return 0;
-	if(twobyte(*p)) return p[1]==q[1];
-	if(threebyte(*p)){
-		if(p[1]!=q[1])
-			return 0;
-		if(p[1]=='\0')
-			return 1;	/* broken code at end of string! */
-		return p[2]==q[2];
-	}
-	return 1;
+	
+	chartorune(&pr, (char*)p);
+	chartorune(&qr, (char*)q);
+	return pr == qr;
 }
+
 /*
  * Return a pointer to the next utf code in the string,
  * not jumping past nuls in broken utf codes!
@@ -138,10 +135,10 @@ equtf(uchar *p, uchar *q)
 uchar*
 nextutf(uchar *p)
 {
-	if(twobyte(*p)) return p[1]=='\0'?p+1:p+2;
-	if(threebyte(*p)) return p[1]=='\0'?p+1:p[2]=='\0'?p+2:p+3;
-	return p+1;
+	Rune dummy;
+	return p + chartorune(&dummy, (char*)p);
 }
+
 /*
  * Convert the utf code at *p to a unicode value
  */
@@ -149,14 +146,12 @@ nextutf(uchar *p)
 int
 unicode(uchar *p)
 {
-	int u = *p;
+	Rune r;
 
-	if(twobyte(u))
-		return ((u&0x1f)<<6)|(p[1]&0x3f);
-	if(threebyte(u))
-		return (u<<12)|((p[1]&0x3f)<<6)|(p[2]&0x3f);
-	return u;
+	chartorune(&r, (char*)p);
+	return r;
 }
+
 /*
  * Does the string s match the pattern p
  * . and .. are only matched by patterns starting with .

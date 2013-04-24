@@ -2,7 +2,7 @@
 #include <libc.h>
 #include <bio.h>
 
-uvlong	count[1<<16];
+uvlong	count[Runemax+1];
 Biobuf	bout;
 
 void	usage(void);

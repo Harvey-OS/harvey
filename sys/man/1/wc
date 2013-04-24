@@ -37,13 +37,6 @@ are reported.
 .SH SOURCE
 .B /sys/src/cmd/wc.c
 .SH BUGS
-The Unicode Standard has many blank characters scattered through it,
-but
-.I wc
-looks for only
-.SM ASCII
-space, tab and newline.
-.PP
 .I Wc
 should have options to count suboptimal
 .SM UTF

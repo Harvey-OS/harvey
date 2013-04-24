@@ -15,10 +15,8 @@ uchar	bits[] = { 1, 2, 4, 8, 16, 32, 64, 128 };
 #define	CLEARBIT(a,c)		((a)[(c)/8] &= ~bits[(c)&07])
 #define	BITSET(a,c)		((a)[(c)/8] & bits[(c)&07])
 
-#define	MAXRUNE	0xFFFF
-
-uchar	f[(MAXRUNE+1)/8];
-uchar	t[(MAXRUNE+1)/8];
+uchar	f[(Runemax+1)/8];
+uchar	t[(Runemax+1)/8];
 char 	wbuf[4096];
 char	*wptr;
 

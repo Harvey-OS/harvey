@@ -20,7 +20,7 @@ Rune		*lastregexp;
 typedef struct Inst Inst;
 struct Inst
 {
-	uint	type;	/* < 0x10000 ==> literal, otherwise action */
+	uint	type;	/* <= Runemax+1 ==> literal, otherwise action */
 	union {
 		int sid;
 		int subid;
@@ -61,25 +61,28 @@ static	Rangeset sempty;
  *	0x100xx are operators, value == precedence
  *	0x200xx are tokens, i.e. operands for operators
  */
-#define	OPERATOR	0x10000	/* Bitmask of all operators */
-#define	START		0x10000	/* Start, used for marker on stack */
-#define	RBRA		0x10001	/* Right bracket, ) */
-#define	LBRA		0x10002	/* Left bracket, ( */
-#define	OR		0x10003	/* Alternation, | */
-#define	CAT		0x10004	/* Concatentation, implicit operator */
-#define	STAR		0x10005	/* Closure, * */
-#define	PLUS		0x10006	/* a+ == aa* */
-#define	QUEST		0x10007	/* a? == a|nothing, i.e. 0 or 1 a's */
-#define	ANY		0x20000	/* Any character but newline, . */
-#define	NOP		0x20001	/* No operation, internal use only */
-#define	BOL		0x20002	/* Beginning of line, ^ */
-#define	EOL		0x20003	/* End of line, $ */
-#define	CCLASS		0x20004	/* Character class, [] */
-#define	NCCLASS		0x20005	/* Negated character class, [^] */
-#define	END		0x20077	/* Terminate: match found */
+enum {
+	OPERATOR = Runemask+1,	/* Bitmask of all operators */
+	START	= OPERATOR,	/* Start, used for marker on stack */
+	RBRA,			/* Right bracket, ) */
+	LBRA,			/* Left bracket, ( */
+	OR,			/* Alternation, | */
+	CAT,			/* Concatentation, implicit operator */
+	STAR,			/* Closure, * */
+	PLUS,			/* a+ == aa* */
+	QUEST,			/* a? == a|nothing, i.e. 0 or 1 a's */
 
-#define	ISATOR		0x10000
-#define	ISAND		0x20000
+	ANY	= OPERATOR<<1,	/* Any character but newline, . */
+	NOP,			/* No operation, internal use only */
+	BOL,			/* Beginning of line, ^ */
+	EOL,			/* End of line, $ */
+	CCLASS,			/* Character class, [] */
+	NCCLASS,		/* Negated character class, [^] */
+	END,			/* Terminate: match found */
+
+	ISATOR	= OPERATOR,
+	ISAND	= OPERATOR<<1,
+};
 
 /*
  * Parser Information
@@ -452,7 +455,7 @@ nextrec(void)
 			exprp++;
 			return '\n';
 		}
-		return *exprp++|0x10000;
+		return *exprp++|(Runemax+1);
 	}
 	return *exprp++;
 }
@@ -487,7 +490,7 @@ bldcclass(void)
 			exprp++;	/* eat '-' */
 			if((c2 = nextrec()) == ']')
 				goto Error;
-			classp[n+0] = 0xFFFF;
+			classp[n+0] = Runemax;
 			classp[n+1] = c1;
 			classp[n+2] = c2;
 			n += 3;
@@ -509,7 +512,7 @@ classmatch(int classno, int c, int negate)
 
 	p = class[classno];
 	while(*p){
-		if(*p == 0xFFFF){
+		if(*p == Runemax){
 			if(p[1]<=c && c<=p[2])
 				return !negate;
 			p += 3;

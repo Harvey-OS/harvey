@@ -128,13 +128,12 @@ int mypid;
  *	GLOBGLOB matches GLOB
  */
 #define	GLOB	((char)0x01)
+
 /*
- * onebyte(c), twobyte(c), threebyte(c)
- * Is c the first character of a one- two- or three-byte utf sequence?
+ * onebyte(c)
+ * Is c the first character of a one-byte utf sequence?
  */
 #define	onebyte(c)	((c&0x80)==0x00)
-#define	twobyte(c)	((c&0xe0)==0xc0)
-#define	threebyte(c)	((c&0xf0)==0xe0)
 
 char **argp;
 char **args;

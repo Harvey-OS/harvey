@@ -67,6 +67,7 @@ tcomo(Node *n, int f)
 	Node *l, *r;
 	Type *t;
 	int o;
+	static TRune zer;
 
 	if(n == Z) {
 		diag(Z, "Z in tcom");
@@ -633,10 +634,10 @@ tcomo(Node *n, int f)
 		break;
 
 	case OLSTRING:
-		if(n->type->link != types[TUSHORT]) {
+		if(n->type->link != types[TRUNE]) {
 			o = outstring(0, 0);
 			while(o & 3) {
-				outlstring(L"", sizeof(ushort));
+				outlstring(&zer, sizeof(TRune));
 				o = outlstring(0, 0);
 			}
 		}
