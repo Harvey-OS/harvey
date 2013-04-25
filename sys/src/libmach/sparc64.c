@@ -2,6 +2,7 @@
  * sparc64 definition
  */
 #include <u.h>
+#include <libc.h>
 #include <bio.h>
 #include "sparc64/ureg.h"
 #include <mach.h>

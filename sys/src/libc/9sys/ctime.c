@@ -106,8 +106,8 @@ gmtime(long tim)
 	/*
 	 * break initial number into days
 	 */
-	hms = tim % 86400L;
-	day = tim / 86400L;
+	hms = (ulong)tim % 86400L;
+	day = (ulong)tim / 86400L;
 	if(hms < 0) {
 		hms += 86400L;
 		day -= 1;

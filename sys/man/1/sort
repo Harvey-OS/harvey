@@ -256,7 +256,5 @@ The result can make a sub-field not sort
 less than a longer field.
 .PP
 Some of the options, e.g.
-.B -i
-and
 .BR -M ,
 are hopelessly provincial.
