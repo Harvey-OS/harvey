@@ -4,6 +4,7 @@
  * currently no compiler - not related to 0c
  */
 #include <u.h>
+#include <libc.h>
 #include <bio.h>
 #include "mips2ureg.h"
 #include <mach.h>

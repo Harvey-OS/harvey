@@ -2,6 +2,7 @@
  * alpha definition
  */
 #include <u.h>
+#include <libc.h>
 #include <bio.h>
 #include "alpha/ureg.h"
 #include <mach.h>

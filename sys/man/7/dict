@@ -55,7 +55,7 @@ Patterns are matched against an index of headwords and variants,
 to form a `match set'.
 By default, both patterns and the index are folded:
 upper case characters are mapped into their lower case equivalents,
-and Latin accented characters are mapped into their non-accented
+and accented characters are mapped into their base
 equivalents.
 In interactive mode, there is always a `current match set'
 and a `current entry' within the match set.

@@ -493,8 +493,12 @@ cop0(Instr *i)
 			m = "rfe";
 			break;
 	
-		case 32:
+		case 24:
 			m = "eret";
+			break;
+	
+		case 32:
+			m = "wait";
 			break;
 		}
 		if (m) {

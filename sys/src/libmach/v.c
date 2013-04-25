@@ -2,6 +2,7 @@
  * mips definition
  */
 #include <u.h>
+#include <libc.h>
 #include <bio.h>
 #include "/mips/include/ureg.h"
 #include <mach.h>
