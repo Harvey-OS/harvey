@@ -2,6 +2,7 @@
  * 386 definition
  */
 #include <u.h>
+#include <libc.h>
 #include <bio.h>
 #include "/386/include/ureg.h"
 #include <mach.h>
