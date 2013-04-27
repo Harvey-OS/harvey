@@ -699,9 +699,9 @@ writeproc(void *v)
 	threadsetname("writeproc");
 	a = v;
 	sync = a[0];
-	fd = (int)a[1];
+	fd = (uintptr)a[1];
 	s = a[2];
-	np =(long)a[3];
+	np =(uintptr)a[3];
 	free(a);
 
 	for(i=0; i<np; i+=n){
