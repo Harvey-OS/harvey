@@ -9,6 +9,8 @@
 #include "flayer.h"
 #include "samterm.h"
 
+int	mainstacksize = 16*1024;
+
 Text	cmd;
 Rune	*scratch;
 long	nscralloc;
