@@ -379,7 +379,7 @@ etherreset(void)
 			continue;
 
 		if(isaconfig("ether", ctlrno, ether) == 0){
-			free(ether);
+//			free(ether);
 //			return nil;
 			continue;
 		}

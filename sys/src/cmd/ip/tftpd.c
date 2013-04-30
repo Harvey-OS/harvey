@@ -596,6 +596,9 @@ sendfile(int net, char *name, char *mode, int opts)
 
 	for(txtry = 0; txtry < timeout;) {
 		if(rexmit == Ackok) {
+			/* block number wraparound for enormous hogs */
+			if (block >= 65536)
+				block = 0;
 			block++;
 			buf[0] = 0;
 			buf[1] = Tftp_DATA;
