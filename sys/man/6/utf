@@ -7,7 +7,7 @@ based on the Unicode Standard and on the ISO multibyte
 .SM UTF-8
 encoding (Universal Character
 Set Transformation Format, 8 bits wide).
-The Unicode Standard represents its characters in 16
+The Unicode Standard represents its characters in 21
 bits;
 .SM UTF-8
 represents such
@@ -19,7 +19,7 @@ is shortened to
 .PP
 In Plan 9, a
 .I rune
-is a 16-bit quantity representing a Unicode character.
+is a 21-bit quantity representing a Unicode character.
 Internally, programs may store characters as runes.
 However, any external manifestation of textual information,
 in files or at the interface between programs, uses a
@@ -65,19 +65,21 @@ a rune x is converted to a multibyte
 sequence
 as follows:
 .PP
-01.   x in [00000000.0bbbbbbb] → 0bbbbbbb
+01.   x in [000000.00000000.0bbbbbbb] → 0bbbbbbb
 .br
-10.   x in [00000bbb.bbbbbbbb] → 110bbbbb, 10bbbbbb
+10.   x in [000000.00000bbb.bbbbbbbb] → 110bbbbb, 10bbbbbb
 .br
-11.   x in [bbbbbbbb.bbbbbbbb] → 1110bbbb, 10bbbbbb, 10bbbbbb
+11.   x in [000000.bbbbbbbb.bbbbbbbb] → 1110bbbb, 10bbbbbb, 10bbbbbb
+.br
+100. x in [bbbbbb.bbbbbbbb.bbbbbbbb] → 1110bbbb, 10bbbbbb, 10bbbbbb, 10bbbbbb
 .br
 .PP
 Conversion 01 provides a one-byte sequence that spans the
 .SM ASCII
 character set in a compatible way.
-Conversions 10 and 11 represent higher-valued characters
-as sequences of two or three bytes with the high bit set.
-Plan 9 does not support the 4, 5, and 6 byte sequences proposed by X-Open.
+Conversions 10, 11 and 100 represent higher-valued characters
+as sequences of two, three or four bytes with the high bit set.
+Plan 9 does not support the 5 and 6 byte sequences proposed by X-Open.
 When there are multiple ways to encode a value, for example rune 0,
 the shortest encoding is used.
 .PP

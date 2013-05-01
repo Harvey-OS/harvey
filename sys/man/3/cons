@@ -51,7 +51,7 @@ and a backspace
 the previous non-kill, non-erase character from the input buffer.
 Killing and erasing only delete characters back to, but not including,
 the last newline.
-Characters typed at the keyboard actually produce 16-bit runes (see
+Characters typed at the keyboard actually produce 21-bit runes (see
 .IR utf (6)),
 but the runes are translated into the variable-length
 .SM UTF

@@ -1070,7 +1070,7 @@ loop:
 		 */
 		i = 2;
 		if(longflg)
-			i = 4;
+			i = 6;
 		l = 0;
 		for(; i>0; i--) {
 			c = getc();
@@ -1100,7 +1100,7 @@ loop:
 		 */
 		i = 2;
 		if(longflg)
-			i = 5;
+			i = 8;
 		l = c - '0';
 		for(; i>0; i--) {
 			c = getc();

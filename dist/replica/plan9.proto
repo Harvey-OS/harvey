@@ -31,12 +31,6 @@ usr	- sys sys
 # architectures owned by sys
 386	- sys sys
 	+	- sys sys
-68000	- sys sys
-	+	- sys sys
-68020	- sys sys
-	+	- sys sys
-alpha	- sys sys
-	+	- sys sys
 amd64	- sys sys
 	+	- sys sys
 arm	- sys sys
@@ -48,8 +42,6 @@ power	- sys sys
 power64	- sys sys
 	+	- sys sys
 sparc	- sys sys
-	+	- sys sys
-sparc64	- sys sys
 	+	- sys sys
 
 # everything else is owned by sys
