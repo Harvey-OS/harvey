@@ -12,7 +12,7 @@ typedef unsigned int	uint;
 typedef   signed char	schar;
 typedef	long long	vlong;
 typedef	unsigned long long uvlong;
-typedef	ushort		Rune;
+typedef	unsigned int		Rune;
 typedef 	union FPdbleword FPdbleword;
 typedef	char*	p9va_list;
 

@@ -54,7 +54,7 @@ bytes starting at
 and returns the number of bytes copied.
 .BR UTFmax ,
 defined as
-.B 3
+.B 4
 in
 .BR <libc.h> ,
 is the maximum number of bytes required to represent a rune.

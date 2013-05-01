@@ -257,7 +257,7 @@ Otherwise, a zero is returned.
 calls
 .I Bputc
 to output the low order
-16 bits of
+21 bits of
 .I c
 as a rune
 in

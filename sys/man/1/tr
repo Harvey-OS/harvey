@@ -62,9 +62,9 @@ character whose
 value is given by those digits.
 The character sequence
 .L \ex
-followed by 1, 2, 3, or 4 hexadecimal digits stands
+followed by 1 to 6 hexadecimal digits stands
 for the character whose
-16-bit value is given by those digits.
+21-bit value is given by those digits.
 A 
 .L \e
 followed by any other character stands

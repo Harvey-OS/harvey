@@ -41,12 +41,12 @@ extern	int	tokenize(char*, char**, int);
 
 enum
 {
-	UTFmax		= 3,		/* maximum bytes per rune */
+	UTFmax		= 4,		/* maximum bytes per rune */
 	Runesync	= 0x80,		/* cannot represent part of a UTF sequence (<) */
 	Runeself	= 0x80,		/* rune and UTF sequences are the same (<) */
 	Runeerror	= 0xFFFD,	/* decoding error in UTF */
-	Runemax		= 0xFFFF,	/* largest 16-bit character */
-	Runemask	= 0xFFFF,	/* bits used by runes (see grep) */
+	Runemax		= 0x10FFFF,	/* 21-bit rune */
+	Runemask	= 0x1FFFFF,	/* bits used by runes (see grep) */
 };
 
 /*
@@ -80,12 +80,14 @@ extern	Rune*	runestrstr(Rune*, Rune*);
 extern	Rune	tolowerrune(Rune);
 extern	Rune	totitlerune(Rune);
 extern	Rune	toupperrune(Rune);
+extern	Rune tobaserune(Rune);
 extern	int	isalpharune(Rune);
+extern	int	isbaserune(Rune);
+extern	int	isdigitrune(Rune);
 extern	int	islowerrune(Rune);
 extern	int	isspacerune(Rune);
 extern	int	istitlerune(Rune);
 extern	int	isupperrune(Rune);
-extern	int	isdigitrune(Rune);
 
 /*
  * malloc

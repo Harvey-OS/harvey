@@ -1,4 +1,4 @@
-typedef unsigned short Rune;		/* 16 bits */
+typedef unsigned long Rune;		/* 21 bits */
 typedef unsigned char uchar;
 #define		Runeerror	0x80	/* decoding error in UTF */
 #define		Runeself	0x80	/* rune and UTF sequences are the same (<) */

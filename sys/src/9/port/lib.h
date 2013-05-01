@@ -35,10 +35,12 @@ extern	int	cistrncmp(char*, char*, int);
 
 enum
 {
-	UTFmax		= 3,	/* maximum bytes per rune */
-	Runesync	= 0x80,	/* cannot represent part of a UTF sequence */
-	Runeself	= 0x80,	/* rune and UTF sequences are the same (<) */
-	Runeerror	= 0x80,	/* decoding error in UTF */
+	UTFmax		= 4,		/* maximum bytes per rune */
+	Runesync	= 0x80,		/* cannot represent part of a UTF sequence (<) */
+	Runeself	= 0x80,		/* rune and UTF sequences are the same (<) */
+	Runeerror	= 0xFFFD,	/* decoding error in UTF */
+	Runemax		= 0x10FFFF,	/* 24 bit rune */
+	Runemask	= 0x1FFFFF,	/* bits used by runes (see grep) */
 };
 
 /*

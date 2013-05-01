@@ -16,7 +16,6 @@ if (! test -e $dist/web.protect/plan9.iso) {
 	echo import web.protect failed: $dist/web.protect/plan9.iso missing \
 		>[1=2]
 
-	9fs outfsother
 	bind /n/outfsother/web.protect $dist/web.protect	# HACK
 	if (! test -e $dist/web.protect/plan9.iso) {
 		echo bind outfsother failed: $dist/web.protect/plan9.iso \
