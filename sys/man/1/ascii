@@ -140,7 +140,7 @@ Print the hex value of `p'.
 .B "unicode 2200-22f1"
 Print a table of miscellaneous mathematical symbols.
 .TP
-.B "look 039 /lib/unicode"
+.B "look 00039 /lib/unicode"
 See the start of the Greek alphabet's encoding in the Unicode Standard.
 .SH FILES
 .TF \fL/lib/unicode
