@@ -61,7 +61,7 @@ range(char *argv[])
 			goto err;
 		i = 0;
 		do{
-			Bprint(&bout, "%.4x %C", min, min);
+			Bprint(&bout, "%.6x %C", min, min);
 			i++;
 			if(min==max || (i&7)==0)
 				Bprint(&bout, "\n");

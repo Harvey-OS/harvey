@@ -1,11 +1,14 @@
 .HTML "How to Use the Plan 9 C Compiler
 .TL
-How to Use the Plan 9 C Compiler
+How to Use the Plan 9 C Compiler*
 .AU
 Rob Pike
 rob@plan9.bell-labs.com
 .SH
 Introduction
+.FS
+* This paper has been revised to reflect the move to 21-bit Unicode.
+.FE
 .PP
 The C compiler on Plan 9 is a wholly new program; in fact
 it was the first piece of software written for what would
@@ -834,11 +837,11 @@ see the Programmer's Manual.
 Perhaps the most dramatic difference in the I/O interface of Plan 9 from other
 systems' is that text is not ASCII.
 The format for
-text in Plan 9 is a byte-stream encoding of 16-bit characters.
+text in Plan 9 is a byte-stream encoding of 21-bit characters.
 The character set is based on the Unicode Standard and is backward compatible with
 ASCII:
 characters with value 0 through 127 are the same in both sets.
-The 16-bit characters, called
+The 21-bit characters, called
 .I runes
 in Plan 9, are encoded using a representation called
 UTF,
@@ -848,7 +851,7 @@ throughout Plan 9 it's just called
 UTF.)
 UTF
 defines multibyte sequences to
-represent character values from 0 to 65535.
+represent character values from 0 to 1,114,111.
 In
 UTF,
 character values up to 127 decimal, 7F hexadecimal, represent themselves,
@@ -911,7 +914,7 @@ and
 to transform the external byte stream
 UTF
 format to and from
-internal 16-bit runes.
+internal 21-bit runes.
 Also, the
 .CW %s
 format to
@@ -924,7 +927,7 @@ The
 .CW %S
 format prints a null-terminated sequence of runes;
 .CW %C
-prints a character after narrowing it to 16 bits.
+prints a character after narrowing it to 21 bits.
 For more information, see the Programmer's Manual, in particular
 .I utf (6)
 and
@@ -968,7 +971,7 @@ Rune *rp = L"abcÿ";
 .P2
 initializes the variable
 .CW rp
-to point to an array of unsigned short integers holding the 16-bit
+to point to an array of unsigned long integers holding the 21-bit
 values of the characters
 .CW abcÿ .
 Note that in both these declarations the characters in the source

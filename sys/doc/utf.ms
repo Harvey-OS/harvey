@@ -23,10 +23,12 @@ Originally appeared, in a slightly different form, in
 Proc. of the Winter 1993 USENIX Conf.,
 .R
 pp. 43-50,
-San Diego
+San Diego.
+It has been revised to reflect the move to 21-bit Unicode.
 .FE
 Plan 9 from Bell Labs has recently been converted from ASCII
-to an ASCII-compatible variant of the Unicode Standard, a 16-bit character set.
+to an ASCII-compatible variant of the Unicode Standard,
+a 16-bit (now 21-bit) character set.
 In this paper we explain the reasons for the change,
 describe the character set and representation we chose,
 and present the programming models and software changes
@@ -257,6 +259,11 @@ lets us see the dictionary as it really is, with pronunciation
 in the IPA font, foreign phrases properly rendered, and so on,
 .I "in plain text.
 .PP
+As of Unicode 4.0,
+characters are now 21 bits wide and the longest UTF-8 encoding of a character
+requires 4 bytes.
+We are adapting the system to match.
+.PP
 In the rest of this paper, except when
 stated otherwise, the term `UTF' refers to the UTF-8 encoding
 of Unicode characters as adopted by Plan 9.
@@ -299,14 +306,17 @@ and admits string and character constants
 of this type.
 We chose the wide character type to be
 .CW unsigned
-.CW short .
+.CW short
+(now
+.CW unsigned
+.CW long) .
 In the libraries, the word
 .CW Rune
-is defined by a
+is now defined by a
 .CW typedef
 to be equivalent to
 .CW unsigned
-.CW short
+.CW long
 and is
 used to signify a Unicode character.
 .PP
@@ -330,7 +340,7 @@ with 22 elements
 and a null byte,
 while the latter is an array of
 .CW unsigned
-.CW shorts
+.CW long s
 .CW Runes ) (
 with 8 elements and a null
 .CW Rune .
@@ -474,18 +484,20 @@ Libraries
 A header file included by all programs (see [Pike92]) declares
 the
 .CW Rune
-type to hold 16-bit character values:
+type to hold 21-bit character values:
 .P1
-typedef unsigned short Rune;
+typedef unsigned long Rune;
 .P2
 Also defined are several constants relevant to UTF:
 .P1
 enum
 {
-    UTFmax    = 3,    /* maximum bytes per rune */
-    Runesync  = 0x80, /* can't appear in UTF sequence (<) */
-    Runeself  = 0x80, /* rune==UTF sequence (<) */
-    Runeerror = 0x80, /* decoding error in UTF */
+    UTFmax	= 4,	/* maximum bytes per rune */
+    Runesync	= 0x80,	/* cannot be in a UTF sequence (<) */
+    Runeself	= 0x80,	/* rune==UTF sequence (<) */
+    Runeerror	= 0xFFFD,	/* decoding error in UTF */
+    Runemax	= 0x10FFFF,	/* largest 21-bit rune */
+    Runemask	= 0x1FFFFF,	/* bits used by runes (see grep) */
 };
 .P2
 (With the original UTF,
@@ -525,8 +537,7 @@ The Unicode Standard defines an error character, value FFFD, to stand for
 characters from other sets that it does not represent.
 The
 .CW Runeerror
-character is a different concept, related to the encoding rather than the character set, so we
-chose a different character for it.
+character is a different concept, related to the encoding rather than the character set.
 .PP
 The Plan 9 C library contains a number of routines for
 manipulating runes.
@@ -777,7 +788,7 @@ rethinking.
 Consider
 .CW tr ,
 which originally used multiple 256-byte arrays for the mapping.
-The naïve conversion would yield multiple 65536-rune arrays.
+The naïve conversion would yield multiple 1,114,112-rune arrays.
 Instead Plan 9
 .CW tr
 saves space by building in effect
@@ -825,14 +836,14 @@ converting them to operate on variable-sized byte sequences is awkward.
 On the other hand, converting the input stream to runes adds measurable
 expense
 and the state tables expand
-from size 256 to 65536; it can be expensive just to generate them.
+from size 256 to 1,114,112; it can be expensive just to generate them.
 For simple string searching,
 the Boyer-Moore algorithm works with UTF provided the input is
 guaranteed to be only valid UTF strings; however, it does not work
 with the old UTF encoding.
 At a more mundane level, even character classes are harder:
 the usual bit-vector representation within a non-deterministic automaton
-is unwieldy with 65536 characters in the alphabet.
+is unwieldy with 1,114,112 characters in the alphabet.
 .PP
 We compromised.
 An existing library for compiling and executing regular expressions
@@ -909,7 +920,7 @@ in just the problem of
 displaying a single image for each character, that is, the
 Unicode equivalent of a plain text terminal.
 With 128 or even 256 characters, a font can be just
-an array of bitmaps.  With 65536 characters,
+an array of bitmaps.  With 1,114,112 characters,
 a more sophisticated design is necessary.  To store the ideographs
 for just Japanese as 16×16×1 bit images,
 the smallest they can reasonably be, takes over a quarter of a
