@@ -30,7 +30,7 @@ struct	Sym
 {
 	Sym*	link;
 	char*	macro;
-	long	value;
+	vlong	value;
 	ushort	type;
 	char	*name;
 	char	sym;
@@ -62,7 +62,7 @@ EXTERN	struct
 struct	Gen
 {
 	Sym*	sym;
-	long	offset;
+	vlong	offset;
 	short	type;
 	short	reg;
 	short	name;
@@ -75,7 +75,7 @@ struct	Hist
 	Hist*	link;
 	char*	name;
 	long	line;
-	long	offset;
+	vlong	offset;
 };
 #define	H	((Hist*)0)
 
