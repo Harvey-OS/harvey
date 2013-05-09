@@ -35,7 +35,7 @@ The files and directory structure are divided into
 byte blocks.
 Larger blocks make large files more compact but take longer to access.
 .I Blocksize
-must be in the range of 512 bytes to 52K bytes.
+must be in the range of 512 bytes to 512K bytes.
 If the
 .B -u
 option is set, the blocks are not compressed.
