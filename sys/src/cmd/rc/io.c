@@ -79,6 +79,35 @@ rchr(io *b)
 	return *b->bufp++;
 }
 
+int
+rutf(io *b, char *buf, Rune *r)
+{
+	int n, i, c;
+
+	c = rchr(b);
+	if(c == EOF)
+		return EOF;
+	*buf = c;
+	if(c < Runesync){
+		*r = c;
+		return 1;
+	}
+	for(i = 1; (c = rchr(b)) != EOF; ){
+		buf[i++] = c;
+		buf[i] = 0;
+		if(fullrune(buf, i)){
+			n = chartorune(r, buf);
+			b->bufp -= i - n;	/* push back unconsumed bytes */
+			assert(b->fd == -1 || b->bufp > b->buf);
+			return n;
+		}
+	}
+	/* at eof */
+	b->bufp -= i - 1;			/* consume 1 byte */
+	*r = Runeerror;
+	return runetochar(buf, r);
+}
+
 void
 pquo(io *f, char *s)
 {

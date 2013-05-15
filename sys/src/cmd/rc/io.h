@@ -12,6 +12,7 @@ io *openfd(int), *openstr(void), *opencore(char *, int);
 int emptybuf(io*);
 void pchr(io*, int);
 int rchr(io*);
+int rutf(io*, char*, Rune*);
 void closeio(io*);
 void flush(io*);
 int fullbuf(io*, int);
