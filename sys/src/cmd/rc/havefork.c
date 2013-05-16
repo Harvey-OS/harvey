@@ -3,6 +3,7 @@
 #include "exec.h"
 #include "io.h"
 #include "fns.h"
+#include <String.h>
 
 int havefork = 1;
 
@@ -74,16 +75,19 @@ Xpipe(void)
 /*
  * Who should wait for the exit from the fork?
  */
+
 void
 Xbackq(void)
 {
-	int c, pid;
+	int n, pid;
 	int pfd[2];
-	char wd[NTOK + 1];
-	char *s, *ewd = &wd[NTOK], *stop;
+	char *stop;
+	char utf[UTFmax+1];
 	struct io *f;
 	var *ifs = vlook("ifs");
 	word *v, *nextv;
+	Rune r;
+	String *word;
 
 	stop = ifs->val? ifs->val->word: "";
 	if(pipe(pfd)<0){
@@ -106,30 +110,26 @@ Xbackq(void)
 		addwaitpid(pid);
 		close(pfd[PWR]);
 		f = openfd(pfd[PRD]);
-		s = wd;
-		v = 0;
-		/*
-		 * this isn't quite right for utf.  stop could have utf
-		 * in it, and we're processing the input as bytes, not
-		 * utf encodings of runes.  further, if we run out of
-		 * room in wd, we can chop in the middle of a utf encoding
-		 * (not to mention stepping on one of the bytes).
-		 * presotto's Strings seem like the right data structure here.
-		 */
-		while((c = rchr(f))!=EOF){
-			if(strchr(stop, c) || s==ewd){
-				if(s!=wd){
-					*s='\0';
-					v = newword(wd, v);
-					s = wd;
+		word = s_new();
+		v = nil;
+		/* rutf requires at least UTFmax+1 bytes in utf */
+		while((n = rutf(f, utf, &r)) != EOF){
+			utf[n] = '\0';
+			if(utfutf(stop, utf) == nil)
+				s_nappend(word, utf, n);
+			else
+				/*
+				 * utf/r is an ifs rune (e.g., \t, \n), thus
+				 * ends the current word, if any.
+				 */
+				if(s_len(word) > 0){
+					v = newword(s_to_c(word), v);
+					s_reset(word);
 				}
-			}
-			else *s++=c;
 		}
-		if(s!=wd){
-			*s='\0';
-			v = newword(wd, v);
-		}
+		if(s_len(word) > 0)
+			v = newword(s_to_c(word), v);
+		s_free(word);
 		closeio(f);
 		Waitfor(pid, 0);
 		/* v points to reversed arglist -- reverse it onto argv */
