@@ -79,7 +79,7 @@ int doprompt;
 
 #define	NTOK	8192		/* maximum bytes in a word (token) */
 
-char tok[NTOK];
+char tok[NTOK + UTFmax];
 
 #define	APPEND	1
 #define	WRITE	2
@@ -110,8 +110,6 @@ void *emalloc(long);
 void *Malloc(ulong);
 void efree(void *);
 
-#define	NOFILE	128		/* should come from <sys/param.h> on unix */
-
 struct here{
 	tree	*tag;
 	char	*name;
@@ -128,12 +126,6 @@ int mypid;
  *	GLOBGLOB matches GLOB
  */
 #define	GLOB	((char)0x01)
-
-/*
- * onebyte(c)
- * Is c the first character of a one-byte utf sequence?
- */
-#define	onebyte(c)	((c&0x80)==0x00)
 
 char **argp;
 char **args;

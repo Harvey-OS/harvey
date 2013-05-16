@@ -159,13 +159,11 @@ struct Mach
 	int	load;
 	int	intr;
 	vlong	fastclock;		/* last sampled value */
-	uvlong	inidle;			/* time spent in idlehands() */
 	ulong	spuriousintr;
 	int	lastintr;
 	int	ilockdepth;
 	Perf	perf;			/* performance counters */
 
-//	int	cpumhz;
 	uvlong	cpuhz;			/* speed of cpu */
 	uvlong	cyclefreq;		/* Frequency of user readable cycle counter */
 

@@ -198,7 +198,6 @@ struct Mach
 	int	load;
 	int	intr;
 	uvlong	fastclock;		/* last sampled value */
-	uvlong	inidle;			/* time spent in idlehands() */
 	ulong	spuriousintr;
 	int	lastintr;
 	int	ilockdepth;
