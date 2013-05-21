@@ -71,7 +71,7 @@ struct	Field
 	int	end2;
 
 	long	flags;
-	uchar	mapto[1+0xffff];	/* this is not Runemax to keep this table small */
+	uchar	mapto[1+255];
 
 	void	(*dokey)(Key*, uchar*, uchar*, Field*);
 };
@@ -1292,7 +1292,7 @@ dokey_dfi(Key *k, uchar *lp, uchar *lpe, Field *f)
 		/*
 		 * for characters out of range,
 		 * the table does not do Rflag.
-		 * ignore is based on mapto[nelem(f->mapto)]
+		 * ignore is based on mapto[nelem(f->mapto)-1]
 		 */
 		if(c != 0 && c < nelem(f->mapto)) {
 			c = f->mapto[c];
