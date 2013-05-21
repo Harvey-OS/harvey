@@ -58,12 +58,19 @@ Decimal.
 .PD
 .PP
 Other options are
-.TP \w'\fL-a\fIstyle\fLXX'u
+.TP \w'\fL-a\fIstyle\fLX'u
 .B -c
 Format as
 .B 1x
 but print
 .SM ASCII
+representations or C escape sequences where possible.
+.TP
+.B -R
+Format as
+.B 1x
+but print
+.B Rune
 representations or C escape sequences where possible.
 .TP
 .BI -a style
