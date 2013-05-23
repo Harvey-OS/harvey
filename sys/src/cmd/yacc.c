@@ -141,7 +141,7 @@ Biobuf*	foutput;	/* y.output file */
 
 char*	infile;			/* input file name */
 int	numbval;		/* value of an input number */
-char	tokname[NAMESIZE+4];	/* input token name, slop for runes and 0 */
+char	tokname[NAMESIZE+UTFmax+1]; /* input token name, slop for runes and 0 */
 
 	/* structure declarations */
 
