@@ -19,7 +19,7 @@ static char pbotch[] = "rcmd: protocol botch\n";
 static char lbotch[] = "rcmd: botch starting error stream\n";
 
 static void
-ding(int x)
+ding(int)
 {
 }
 
@@ -58,6 +58,7 @@ rcmd(char **dst, int port, char *luser, char *ruser, char *cmd, int *fd2p)
 	}
 
 	/* error stream */
+	lfd = -1;
 	if(fd2p){
 		/* create an error stream and wait for a call in */
 		for(i = 0; i < 10; i++){
@@ -91,12 +92,11 @@ rcmd(char **dst, int port, char *luser, char *ruser, char *cmd, int *fd2p)
 	if(write(fd, luser, strlen(luser)+1) < 0
 	|| write(fd, ruser, strlen(ruser)+1) < 0
 	|| write(fd, cmd, strlen(cmd)+1) < 0){
-		if(fd2p)
-			close(fd2);
 		fprintf(stderr, pbotch);
 		return -1;
 	}
 
+	fd2 = -1;
 	if(fd2p){
 		x = signal(SIGALRM, ding);
 		alarm(15);
@@ -116,8 +116,10 @@ rcmd(char **dst, int port, char *luser, char *ruser, char *cmd, int *fd2p)
 
 	/* get reply */
 	if(read(fd, &c, 1) != 1){
-		if(fd2p)
+		if(fd2p){
 			close(fd2);
+			*fd2p = -1;
+		}
 		fprintf(stderr, pbotch);
 		return -1;
 	}

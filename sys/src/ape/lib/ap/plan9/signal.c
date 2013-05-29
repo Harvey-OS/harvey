@@ -37,8 +37,10 @@ static struct {
 
 void	(*_sighdlr[MAXSIG+1])(int, char*, Ureg*); /* 0 initialized: SIG_DFL */
 
+/* must match signal.h: extern void (*signal(int, void (*)()))(); */
+//void (*signal(int sig, void (*func)(int, char*, Ureg*)))(int, char*, Ureg*)
 void
-(*signal(int sig, void (*func)(int, char*, Ureg*)))(int, char*, Ureg*)
+(*signal(int sig, void (*func)()))()
 {
 	void(*oldf)(int, char*, Ureg*);
 
@@ -88,7 +90,7 @@ sigaction(int sig, struct sigaction *act, struct sigaction *oact)
 
 /* this is registered in _envsetup */
 int
-_notehandler(Ureg *u, char *msg)
+_notehandler(void *u, char *msg)
 {
 	int i;
 	void(*f)(int, char*, Ureg*);
@@ -106,7 +108,7 @@ _notehandler(Ureg *u, char *msg)
 				/* notetramp is machine-dependent; doesn't return to here */
 			}
 			_NOTED(0); /* NCONT */
-			return;
+			return 0;
 		}
 	}
 	_doatexits();

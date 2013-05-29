@@ -21,9 +21,9 @@ _sock_ipattr(char *name)
 	int alpha = 0;
 
 	for(p = name; *p; p++){
-		if(isdigit(*p))
+		if(isdigit(*p)){
 			;
-		else if(isalpha(*p) || *p == '-')
+		}else if(isalpha(*p) || *p == '-')
 			alpha = 1;
 		else if(*p == '.')
 			dot = 1;

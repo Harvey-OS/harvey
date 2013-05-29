@@ -16,7 +16,7 @@
 #include "priv.h"
 
 int
-getsockname(int fd, struct sockaddr *addr, int *alen)
+getsockname(int fd, void *addr, int *alen)
 {
 	Rock *r;
 	int i;

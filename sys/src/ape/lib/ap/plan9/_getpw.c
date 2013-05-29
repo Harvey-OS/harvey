@@ -61,6 +61,7 @@ _getpw(int *pnum, char **pname, char **plist)
 	}
 	matchnum = (*pname == NULL);
 	matched = 0;
+	mem = nil;
 	/* try using memo */
 	for(i = 0; i<nmemo; i++) {
 		mem = memo[i];

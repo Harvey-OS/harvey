@@ -773,7 +773,11 @@ l:								 ;\
 	MOVL	CR0, AX						 ;\
 	ANDL	$~0xC, AX			/* EM=0, TS=0 */ ;\
 	MOVL	AX, CR0
-	
+
+TEXT fpon(SB), $0				/* enable */
+	FPON
+	RET
+
 TEXT fpoff(SB), $0				/* disable */
 	FPOFF(l1)
 	RET
@@ -809,7 +813,7 @@ TEXT fpstatus(SB), $0				/* get floating point status */
 
 TEXT fpenv(SB), $0				/* save state without waiting */
 	MOVL	p+0(FP), AX
-	FSTENV	0(AX)
+	FSTENV	0(AX)				/* also masks FP exceptions */
 	RET
 
 TEXT fpclear(SB), $0				/* clear pending exceptions */

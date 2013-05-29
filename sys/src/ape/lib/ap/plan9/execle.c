@@ -1,7 +1,7 @@
 #include <unistd.h>
 
 int
-execle(const char *name, const char *arg0, const char *aore, ...)
+execle(const char *name, const char *arg0, const char *, ...)
 {
 	char *p;
 

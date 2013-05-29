@@ -11,8 +11,6 @@ dup(int oldd)
 int
 dup2(int oldd, int newd)
 {
-	int n;
-
 	if(newd < 0 || newd >= OPEN_MAX){
 		errno = EBADF;
 		return -1;

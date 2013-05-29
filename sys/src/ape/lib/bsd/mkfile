@@ -51,4 +51,4 @@ HFILES=priv.h
 
 </sys/src/cmd/mksyslib
 
-CFLAGS=-c -D_POSIX_SOURCE -D_BSD_EXTENSION -D_PLAN9_SOURCE -I../ap/plan9
+CFLAGS=$CFLAGS -c -D_POSIX_SOURCE -D_BSD_EXTENSION -D_PLAN9_SOURCE -I../ap/plan9

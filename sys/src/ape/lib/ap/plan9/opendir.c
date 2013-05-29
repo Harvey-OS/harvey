@@ -84,7 +84,7 @@ rewinddir(DIR *d)
 struct dirent *
 readdir(DIR *d)
 {
-	int i, n;
+	int i;
 	struct dirent *dr;
 	Dir *dirs;
 

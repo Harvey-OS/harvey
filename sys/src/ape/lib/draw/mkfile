@@ -69,7 +69,7 @@ UPDATE=\
 
 </sys/src/cmd/mksyslib
 
-CFLAGS=-c $CFLAGS -D_POSIX_SOURCE -D_PLAN9_SOURCE -I.
+CFLAGS=$CFLAGS -c $CFLAGS -D_POSIX_SOURCE -D_PLAN9_SOURCE -I.
 
 %.$O: /sys/src/libdraw/%.c
 	$CC $CFLAGS /sys/src/libdraw/$stem.c

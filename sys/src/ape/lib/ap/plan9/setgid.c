@@ -7,7 +7,7 @@
  */
 
 int
-setgid(gid_t gid)
+setgid(gid_t)
 {
 	errno = EPERM;
 	return -1;

@@ -6,7 +6,7 @@
  */
 
 int
-sigsuspend(sigset_t *set)
+sigsuspend(sigset_t *)
 {
 	errno = EINVAL;
 	return -1;

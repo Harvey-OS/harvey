@@ -3,7 +3,7 @@
 #include <errno.h>
 
 int
-fsync(int fd)
+fsync(int)
 {
 	errno = EINVAL;
 	return -1;

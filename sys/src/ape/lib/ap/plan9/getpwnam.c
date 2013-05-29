@@ -14,7 +14,7 @@ getpwnam(const char *name)
 	char *nam, *mem;
 
 	num = 0;
-	nam = name;
+	nam = (char *)name;
 	mem = 0;
 	if(_getpw(&num, &nam, &mem)){
 		holdpw.pw_name = nam;

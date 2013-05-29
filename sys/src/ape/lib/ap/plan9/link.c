@@ -5,7 +5,7 @@
  * BUG: LINK_MAX==1 isn't really allowed
  */
 int
-link(const char *name1, const char *name2)
+link(const char *, const char *)
 {
 	errno = EMLINK;
 	return -1;

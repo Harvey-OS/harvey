@@ -49,7 +49,7 @@ pwdecode(char *p)
 	passwd.pw_dir = p;
 	p = pwskip(p);
 	passwd.pw_shell = p;
-	p = pwskip(p);
+	pwskip(p);
 	return(&passwd);
 }
 

@@ -10,4 +10,4 @@ OFILES=allprint.$O\
 
 </sys/src/cmd/mksyslib
 
-CFLAGS=-c -D_RESEARCH_SOURCE
+CFLAGS=$CFLAGS -c -D_RESEARCH_SOURCE

@@ -13,7 +13,7 @@ getgrnam(const char *name)
 	char *nam, *mem;
 
 	num = 0;
-	nam = name;
+	nam = (char *)name;
 	mem = 0;
 	if(_getpw(&num, &nam, &mem)){
 		holdgroup.gr_name = nam;

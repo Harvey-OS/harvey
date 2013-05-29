@@ -9,7 +9,7 @@
 #include <sys/socket.h>
 
 int
-socketpair(int domain, int type, int protocol, int *sv)
+socketpair(int domain, int , int , int *sv)
 {
 	switch(domain){
 	case PF_UNIX:

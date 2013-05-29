@@ -50,8 +50,8 @@ static int copynotehandler(void *, char *);
 int
 _startbuf(int fd)
 {
-	long i, n, slot;
-	int pid, sid;
+	long i, slot;
+	int pid;
 	Fdinfo *f;
 	Muxbuf *b;
 
@@ -264,7 +264,7 @@ goteof:
 int
 select(int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds, struct timeval *timeout)
 {
-	int n, i, tmp, t, slots, fd, err;
+	int n, i, t, slots, fd, err;
 	Fdinfo *f;
 	Muxbuf *b;
 
@@ -368,7 +368,7 @@ static int timerreset;
 static int timerpid;
 
 static void
-alarmed(int v)
+alarmed(int)
 {
 	timerreset = 1;
 }
@@ -454,11 +454,8 @@ _detachbuf(void)
 }
 
 static int
-copynotehandler(void *u, char *msg)
+copynotehandler(void *, char *)
 {
-	int i;
-	void(*f)(int);
-
 	if(_finishing)
 		_finish(0, 0);
 	_NOTED(1);

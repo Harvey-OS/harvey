@@ -7,22 +7,12 @@
 
 #include "nan.h"
 
-#ifdef __APPLE__
-#define _NEEDLL
-#endif
-
 typedef unsigned long long uvlong;
 typedef unsigned long ulong;
 
-#ifdef _NEEDLL
 static uvlong uvnan    = 0x7FF0000000000001LL;
 static uvlong uvinf    = 0x7FF0000000000000LL;
 static uvlong uvneginf = 0xFFF0000000000000LL;
-#else
-static uvlong uvnan    = 0x7FF0000000000001;
-static uvlong uvinf    = 0x7FF0000000000000;
-static uvlong uvneginf = 0xFFF0000000000000;
-#endif
 
 double
 __NaN(void)

@@ -13,7 +13,7 @@ strcspn(const char *s, const char *b)
 		if(*b++ == 0)
 			break;
 	}
-	os = s;
+	os = (char *)s;
 	while(map[*(unsigned char*)s++] == 0)
 		;
 	return s - os - 1;
