@@ -12,4 +12,4 @@ OFILES=regcomp.$O\
 
 </sys/src/cmd/mksyslib
 
-CFLAGS=-c -DUTF -D_REGEXP_EXTENSION
+CFLAGS=$CFLAGS -c -DUTF -D_REGEXP_EXTENSION

@@ -15,7 +15,7 @@ writev(int fd, struct iovec *v, int ent)
 	char *t, *e, *f;
 	char buf[10*1024];
 
-	written = n = 0;
+	written = 0;
 	t = buf;
 	e = buf+sizeof(buf);
 	for(;ent ; v++, ent--){

@@ -14,7 +14,7 @@ static int ctlfd = -1;
 
 /* fd is ignored */
 
-tty_echooff(int fd)
+tty_echooff(int)
 {
 	if(ctlfd >= 0)
 		return 0;
@@ -25,7 +25,7 @@ tty_echooff(int fd)
 	return 0;
 }
 
-tty_echoon(int fd)
+tty_echoon(int)
 {
 	if(ctlfd >= 0){
 		write(ctlfd, "rawoff", 6);

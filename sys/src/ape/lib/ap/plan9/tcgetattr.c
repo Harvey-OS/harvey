@@ -87,7 +87,7 @@ tcgetattr(int fd, struct termios *t)
 /* BUG: ignores optional actions */
 
 int
-tcsetattr(int fd, int optactions, const struct termios *t)
+tcsetattr(int fd, int, const struct termios *t)
 {
 	int n, i;
 	char buf[100];

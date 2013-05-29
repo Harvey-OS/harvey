@@ -7,7 +7,7 @@
  */
 
 mode_t
-umask(mode_t numask)
+umask(mode_t)
 {
 	return 0;
 }

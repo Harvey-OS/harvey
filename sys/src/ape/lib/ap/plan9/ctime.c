@@ -148,7 +148,7 @@ localtime_r(const time_t *timp, struct tm *result)
 	struct tm *ct;
 	time_t t, tim;
 	long *p;
-	int i, dlflag;
+	int dlflag;
 
 	tim = *timp;
 	if(timezone.stname[0] == 0)

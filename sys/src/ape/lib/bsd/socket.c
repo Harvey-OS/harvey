@@ -109,7 +109,7 @@ int
 socket(int domain, int stype, int protocol)
 {
 	Rock *r;
-	int cfd, fd, n;
+	int cfd;
 	int pfd[2];
 	char *net;
 

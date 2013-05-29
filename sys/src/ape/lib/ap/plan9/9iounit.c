@@ -25,6 +25,7 @@ getfields(char *str, char **args, int max, int mflag)
 		narg++;
 	intok = 0;
 	for(;;) {
+		nr = 1;			/* utf bytes in this rune */
 		r = *str++;
 		if(r == 0)
 			break;

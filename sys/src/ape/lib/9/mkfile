@@ -24,7 +24,7 @@ OFILES=errstr.$O\
 
 </sys/src/cmd/mksyslib
 
-CFLAGS=-c $CFLAGS -D_POSIX_SOURCE -D_PLAN9_SOURCE
+CFLAGS=$CFLAGS -c $CFLAGS -D_POSIX_SOURCE -D_PLAN9_SOURCE
 
 %.$O:	$objtype/%.s
 	$AS $prereq

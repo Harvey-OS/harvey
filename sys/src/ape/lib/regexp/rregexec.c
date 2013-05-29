@@ -25,7 +25,6 @@ rregexec1(Reprog *progp,	/* program to run */
 	wchar_t *s;
 	int i, checkstart;
 	wchar_t r, *rp, *ep;
-	int n;
 	Relist* tl;		/* This list, next list */
 	Relist* nl;
 	Relist* tle;		/* ends of this and next list */

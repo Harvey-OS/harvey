@@ -9,6 +9,6 @@ strrchr(const char *s, int c)
 		return strchr(s, 0);
 	r = 0;
 	while(s = strchr(s, c))
-		r = s++;
+		r = (char *)s++;
 	return r;
 }

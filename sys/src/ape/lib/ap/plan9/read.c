@@ -12,7 +12,7 @@ read(int d, void *buf, size_t nbytes)
 	int n, noblock, isbuf;
 	Fdinfo *f;
 
-	if(d<0 || d>=OPEN_MAX || !((f = &_fdinfo[d])->flags&FD_ISOPEN)){
+	if(d<0 || d>=OPEN_MAX || !(_fdinfo[d].flags&FD_ISOPEN)){
 		errno = EBADF;
 		return -1;
 	}

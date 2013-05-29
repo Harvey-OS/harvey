@@ -53,7 +53,7 @@ UPDATE=\
 
 </sys/src/cmd/mksyslib
 
-CFLAGS=-c -+ -D_POSIX_SOURCE -D_PLAN9_SOURCE -I. -I../../../libmp/port -I/sys/include/ape -I/sys/include
+CFLAGS=$CFLAGS -c -+ -D_POSIX_SOURCE -D_PLAN9_SOURCE -I. -I../../../libmp/port -I/sys/include/ape -I/sys/include
 
 %.$O:	../../../../libmp/port/%.c
 	$CC $CFLAGS ../../../../libmp/port/$stem.c

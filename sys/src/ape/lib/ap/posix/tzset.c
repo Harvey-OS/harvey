@@ -138,4 +138,5 @@ tzset(void)
 	 * we could go on...
 	 * but why bother?
 	 */
+	USED(env);
 }

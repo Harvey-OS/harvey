@@ -25,7 +25,7 @@
 #define vlong _fmtvlong
 #define uvlong _fmtuvlong
 
-#define USED(x) if(x);else
+// #define USED(x) if(x);else
 
 typedef unsigned char		uchar;
 typedef unsigned short		ushort;

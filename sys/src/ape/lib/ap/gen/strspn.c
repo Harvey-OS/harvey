@@ -10,7 +10,7 @@ strspn(const char *s, const char *b)
 	memset(map, 0, N);
 	while(*b)
 		map[*(unsigned char *)b++] = 1;
-	os = s;
+	os = (char *)s;
 	while(map[*(unsigned char *)s++])
 		;
 	return s - os - 1;

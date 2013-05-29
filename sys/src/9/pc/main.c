@@ -580,7 +580,9 @@ matherror(Ureg *ur, void*)
 	/*
 	 *  save floating point state to check out error
 	 */
-	fpenv(&up->fpsave);
+	fpenv(&up->fpsave);	/* result ignored, but masks fp exceptions */
+	fpsave(&up->fpsave);		/* also turns fpu off */
+	fpon();
 	mathnote();
 
 	if((ur->pc & 0xf0000000) == KZERO){

@@ -16,7 +16,7 @@
 #include "priv.h"
 
 int
-getpeername(int fd, struct sockaddr *addr, int *alen)
+getpeername(int fd, void *addr, int *alen)
 {
 	Rock *r;
 	int i;

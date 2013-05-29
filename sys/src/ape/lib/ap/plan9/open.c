@@ -18,7 +18,6 @@ open(const char *path, int flags, ...)
 	int mode;
 	Fdinfo *fi;
 	va_list va;
-	struct stat sbuf;
 
 	f = flags&O_ACCMODE;
 	if(flags&O_CREAT){

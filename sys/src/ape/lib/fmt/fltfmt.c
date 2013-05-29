@@ -149,7 +149,7 @@ xaddexp(char *p, int e)
 		while(i > 0)
 			*p++ = se[--i];
 	}
-	*p++ = '\0';
+	*p = '\0';
 }
 
 static char*
@@ -266,12 +266,6 @@ xdodtoa(char *s1, double f, int chr, int prec, int *decpt, int *rsign)
 
 found:
 	errno = oerr;
-
-	/*
-	 * sign
-	 */
-	d = 0;
-	i = 0;
 
 	/*
 	 * round & adjust 'f' digits

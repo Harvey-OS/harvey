@@ -60,7 +60,7 @@ execve(const char *name, const char *argv[], const char *envp[])
 	f = _CREATE("#e/_sighdlr", OWRITE, 0666);
 	if(f >= 0){
 		ss = buf;
-		for(i = 0, n=0; i <=MAXSIG && ss < &buf[sizeof(buf)]-5; i++) {
+		for(i = 0; i <=MAXSIG && ss < &buf[sizeof(buf)]-5; i++) {
 			if(_sighdlr[i] == SIG_IGN) {
 				ss = _ultoa(ss, i);
 				*ss++ = ' ';
@@ -71,7 +71,7 @@ execve(const char *name, const char *argv[], const char *envp[])
 	}
 	if(envp){
 		strcpy(nam, "#e/");
-		for(e = envp; (ss = *e); e++) {
+		for(e = (char **)envp; (ss = *e); e++) {
 			se = strchr(ss, '=');
 			if(!se || ss==se)
 				continue;	/* what is name? value? */
