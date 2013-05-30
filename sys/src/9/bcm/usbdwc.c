@@ -138,9 +138,12 @@ chansetup(Hostchan *hc, Ep *ep)
 		hcc |= Lspddev;
 		/* fall through */
 	case Fullspeed:
-		hc->hcsplt = Spltena | POS_ALL | ep->dev->hub<<OHubaddr |
-			ep->dev->port;
-		break;
+		if(ep->dev->hub > 1){
+			hc->hcsplt = Spltena | POS_ALL | ep->dev->hub<<OHubaddr |
+				ep->dev->port;
+			break;
+		}
+		/* fall through */
 	default:
 		hc->hcsplt = 0;
 		break;
@@ -181,6 +184,8 @@ chandone(void *a)
 	Hostchan *hc;
 
 	hc = a;
+	if(hc->hcint == (Chhltd|Ack))
+		return 0;
 	return (hc->hcint & hc->hcintmsk) != 0;
 }
 
@@ -390,7 +395,7 @@ chanio(Ep *ep, Hostchan *hc, int dir, int pid, void *a, int len)
 		if((i & Xfercomp) == 0 && i != (Chhltd|Ack) && i != Chhltd){
 			if(i & Stall)
 				error(Estalled);
-			if(i & Nyet)
+			if(i & (Nyet|Frmovrun))
 				continue;
 			if(i & Nak){
 				if(ep->ttype == Tintr)
@@ -399,6 +404,7 @@ chanio(Ep *ep, Hostchan *hc, int dir, int pid, void *a, int len)
 					tsleep(&up->sleep, return0, 0, 1);
 				continue;
 			}
+			logdump(ep);
 			print("usbotg: ep%d.%d error intr %8.8ux\n",
 				ep->dev->nb, ep->nb, i);
 			if(i & ~(Chhltd|Ack))
@@ -447,6 +453,24 @@ chanio(Ep *ep, Hostchan *hc, int dir, int pid, void *a, int len)
 }
 
 static long
+multitrans(Ep *ep, Hostchan *hc, int rw, void *a, long n)
+{
+	long sofar, m;
+
+	sofar = 0;
+	do{
+		m = n - sofar;
+		if(m > ep->maxpkt)
+			m = ep->maxpkt;
+		m = chanio(ep, hc, rw == Read? Epin : Epout, ep->toggle[rw],
+			(char*)a + sofar, m);
+		ep->toggle[rw] = hc->hctsiz & Pid;
+		sofar += m;
+	}while(sofar < n && m == ep->maxpkt);
+	return sofar;
+}
+
+static long
 eptrans(Ep *ep, int rw, void *a, long n)
 {
 	Hostchan *hc;
@@ -467,21 +491,9 @@ eptrans(Ep *ep, int rw, void *a, long n)
 		nexterror();
 	}
 	chansetup(hc, ep);
-	if(rw == Read && ep->ttype == Tbulk){
-		long sofar, m;
-
-		sofar = 0;
-		do{
-			m = n - sofar;
-			if(m > ep->maxpkt)
-				m = ep->maxpkt;
-			m = chanio(ep, hc, Epin, ep->toggle[rw],
-				(char*)a + sofar, m);
-			ep->toggle[rw] = hc->hctsiz & Pid;
-			sofar += m;
-		}while(sofar < n && m == ep->maxpkt);
-		n = sofar;
-	}else{
+	if(rw == Read && ep->ttype == Tbulk)
+		n = multitrans(ep, hc, rw, a, n);
+	else{
 		n = chanio(ep, hc, rw == Read? Epin : Epout, ep->toggle[rw],
 			a, n);
 		ep->toggle[rw] = hc->hctsiz & Pid;
@@ -532,7 +544,11 @@ ctltrans(Ep *ep, uchar *req, long n)
 	chansetup(hc, ep);
 	chanio(ep, hc, Epout, SETUP, req, Rsetuplen);
 	if(req[Rtype] & Rd2h){
-		b->wp += chanio(ep, hc, Epin, DATA1, data, datalen);
+		if(ep->dev->hub <= 1){
+			ep->toggle[Read] = DATA1;
+			b->wp += multitrans(ep, hc, Read, data, datalen);
+		}else
+			b->wp += chanio(ep, hc, Epin, DATA1, data, datalen);
 		chanio(ep, hc, Epout, DATA1, nil, 0);
 		n = Rsetuplen;
 	}else{
