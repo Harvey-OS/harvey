@@ -51,8 +51,8 @@ BEGIN	{ files = "'$"files'" }
 END {
 	x = ""
 	if (refer) {
-		if (e)	x = "refer/refer -e " files " | "
-		else	x =  "refer/refer " files "| "
+		if (e)	x = "refer -e " files " | "
+		else	x =  "refer " files "| "
 		files = ""
 	}
 	else if (prefer) { x = "cat " files "| '$prefer'| "; files = "" }
