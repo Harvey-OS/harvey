@@ -299,14 +299,14 @@ getjobinfo(int fd)
 				strncpy(info.host, "unknown", NAMELEN);
 			else
 				strncpy(info.host, (const char *)&ap[1], NAMELEN);
-			info.host[strlen(info.host)] = '\0';
+			info.host[NAMELEN] = '\0';
 			break;
 		case 'P':
 			if (ap[1] == '\0')
 				strncpy(info.user, "unknown", NAMELEN);
 			else
 				strncpy(info.user, (const char *)&ap[1], NAMELEN);
-			info.user[strlen(info.user)] = '\0';
+			info.user[NAMELEN] = '\0';
 			break;
 		}
 	}
