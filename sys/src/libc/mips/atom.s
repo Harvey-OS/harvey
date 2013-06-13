@@ -49,9 +49,3 @@ spincas:
 fail:
 	MOVW	$0, R1
 	RET
-
-/* general-purpose abort */
-_trap:
-	MOVD	$0, R0
-	MOVD	0(R0), R0
-	RET

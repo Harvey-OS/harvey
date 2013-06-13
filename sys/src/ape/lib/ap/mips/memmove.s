@@ -26,7 +26,7 @@ ok:
 
 /*
  * if not at least 4 chars,
- * dont even mess around.
+ * don't even mess around.
  * 3 chars to guarantee any
  * rounding up to a word
  * boundary and 4 characters

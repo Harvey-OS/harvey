@@ -2,6 +2,7 @@ APE=/sys/src/ape
 <$APE/config
 LIB=/$objtype/lib/ape/libap.a
 OFILES=\
+	c_fcr0.$O\
 	cycles.$O\
 	getfcr.$O\
 	lock.$O\

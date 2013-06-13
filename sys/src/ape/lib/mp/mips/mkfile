@@ -8,7 +8,7 @@ SFILES=\
 	mpvecdigmuladd.s\
 	mpvecdigmulsub.s\
 	mpvecsub.s\
-	mpdigdiv.s\
+#	mpdigdiv.s\
 
 HFILES=\
 	/sys/include/ape/mp.h\

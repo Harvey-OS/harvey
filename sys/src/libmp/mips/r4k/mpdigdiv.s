@@ -1,6 +1,6 @@
 /*
  *  This only works on R[45]000 chips that allow 64 bit
- *  integer arithmetic even when uding 32 bit addresses
+ *  integer arithmetic even when using 32 bit addresses
  *
  *	R1 = dividend*
  *	R2 = dividend[low]
@@ -38,4 +38,3 @@ _digovfl:
 	MOVW	$-1,R1
 	MOVW	R1,0(R5)
 	RET
-
