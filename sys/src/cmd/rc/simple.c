@@ -460,6 +460,7 @@ execwhatis(void){	/* mildly wrong -- should fork before writing */
 		return;
 	}
 	setstatus("");
+	memset(out, 0, sizeof out);
 	out->fd = mapfd(1);
 	out->bufp = out->buf;
 	out->ebuf = &out->buf[NBUF];

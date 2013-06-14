@@ -86,13 +86,15 @@ srvstat(Chan *c, uchar *db, int n)
 char*
 srvname(Chan *c)
 {
+	int size;
 	Srv *sp;
 	char *s;
 
 	for(sp = srv; sp; sp = sp->link)
 		if(sp->chan == c){
-			s = smalloc(3+strlen(sp->name)+1);
-			sprint(s, "#s/%s", sp->name);
+			size = 3+strlen(sp->name)+1;
+			s = smalloc(size);
+			snprint(s, size, "#s/%s", sp->name);
 			return s;
 		}
 	return nil;

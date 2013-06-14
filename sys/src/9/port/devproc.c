@@ -215,7 +215,7 @@ procgen(Chan *c, char *name, Dirtab *tab, int, int s, Dir *dp)
 		pid = p->pid;
 		if(pid == 0)
 			return 0;
-		sprint(up->genbuf, "%lud", pid);
+		snprint(up->genbuf, sizeof up->genbuf, "%lud", pid);
 		/*
 		 * String comparison is done in devwalk so name must match its formatted pid
 		*/
@@ -528,7 +528,7 @@ procqidwidth(Chan *c)
 {
 	char buf[32];
 
-	return sprint(buf, "%lud", c->qid.vers);
+	return snprint(buf, sizeof buf, "%lud", c->qid.vers);
 }
 
 int
@@ -875,7 +875,8 @@ procread(Chan *c, void *va, long n, vlong off)
 			sg = p->seg[i];
 			if(sg == 0)
 				continue;
-			j += sprint(statbuf+j, "%-6s %c%c %.8lux %.8lux %4ld\n",
+			j += snprint(statbuf+j, sizeof statbuf - j,
+				"%-6s %c%c %.8lux %.8lux %4ld\n",
 				sname[sg->type&SG_TYPE],
 				sg->type&SG_RONLY ? 'R' : ' ',
 				sg->profile ? 'P' : ' ',

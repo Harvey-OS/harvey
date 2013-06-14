@@ -5,6 +5,8 @@ fshalt, reboot \- halt any local file systems and optionally reboot the system
 .B fshalt
 [
 .B -r
+] [
+.I new-kernel
 ]
 .br
 .B reboot
@@ -25,6 +27,10 @@ If given
 .BR -r ,
 .I fshalt
 will then reboot the machine.
+If
+.I new-kernel
+is given, it will be loaded as the new kernel rather than
+the currently-loaded kernel.
 The halting and rebooting is done by copying all necessary
 commands into a
 .IR ramfs (4)

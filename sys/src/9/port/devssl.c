@@ -168,7 +168,7 @@ sslgen(Chan *c, char*, Dirtab *d, int nd, int s, Dir *dp)
 			else
 				nm = eve;
 			if(dsname[s] == nil){
-				sprint(name, "%d", s);
+				snprint(name, sizeof name, "%d", s);
 				kstrdup(&dsname[s], name);
 			}
 			devdir(c, q, dsname[s], 0, nm, 0555, dp);
@@ -671,7 +671,7 @@ sslread(Chan *c, void *a, long n, vlong off)
 		error(Ebadusefd);
 	case Qctl:
 		ft = CONV(c->qid);
-		sprint(buf, "%d", ft);
+		snprint(buf, sizeof buf, "%d", ft);
 		return readstr(offset, a, n, buf);
 	case Qdata:
 		b = sslbread(c, n, offset);

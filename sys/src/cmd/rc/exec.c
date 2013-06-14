@@ -154,6 +154,7 @@ main(int argc, char *argv[])
 				:(word *)0);
 	setvar("rcname", newword(argv[0], (word *)0));
 	i = 0;
+	memset(bootstrap, 0, sizeof bootstrap);
 	bootstrap[i++].i = 1;
 	bootstrap[i++].f = Xmark;
 	bootstrap[i++].f = Xword;
@@ -202,14 +203,18 @@ main(int argc, char *argv[])
  * Xconc(left, right)			concatenate, push results
  * Xcount(name)				push var count
  * Xdelfn(name)				delete function definition
- * Xdeltraps(names)			delete named traps
+ * Xdelhere
  * Xdol(name)				get variable value
- * Xqdol(name)				concatenate variable components
  * Xdup[i j]				dup file descriptor
+ * Xeflag
+ * Xerror
  * Xexit				rc exits with status
  * Xfalse{...}				execute {} if false
  * Xfn(name){... Xreturn}			define function
  * Xfor(var, list){... Xreturn}		for loop
+ * Xglob
+ * Xif
+ * Xifnot
  * Xjump[addr]				goto
  * Xlocal(name, val)			create local variable, assign value
  * Xmark				mark stack
@@ -218,16 +223,21 @@ main(int argc, char *argv[])
  * 					wait for both
  * Xpipefd[type]{... Xreturn}		connect {} to pipe (input or output,
  * 					depending on type), push /dev/fd/??
+ * Xpipewait
  * Xpopm(value)				pop value from stack
+ * Xpopredir
+ * Xrdcmds
+ * Xrdfn
  * Xrdwr(file)[fd]			open file for reading and writing
  * Xread(file)[fd]			open file to read
- * Xsettraps(names){... Xreturn}		define trap functions
- * Xshowtraps				print trap list
- * Xsimple(args)			run command and wait
+ * Xqdol(name)				concatenate variable components
  * Xreturn				kill thread
+ * Xsimple(args)			run command and wait
+ * Xsub
  * Xsubshell{... Xexit}			execute {} in a subshell and wait
  * Xtrue{...}				execute {} if true
  * Xunlocal				delete local variable
+ * Xwastrue
  * Xword[string]			push string
  * Xwrite(file)[fd]			open file to write
  */

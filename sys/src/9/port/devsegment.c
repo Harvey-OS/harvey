@@ -327,7 +327,8 @@ segmentread(Chan *c, void *a, long n, vlong voff)
 		g = c->aux;
 		if(g->s == nil)
 			error("segment not yet allocated");
-		sprint(buf, "va %#lux %#lux\n", g->s->base, g->s->top-g->s->base);
+		snprint(buf, sizeof buf, "va %#lux %#lux\n", g->s->base,
+			g->s->top-g->s->base);
 		return readstr(voff, a, n, buf);
 	case Qdata:
 		g = c->aux;

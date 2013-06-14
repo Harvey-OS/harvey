@@ -363,7 +363,7 @@ trap(Ureg* ureg)
 	}
 	else if(vno < nelem(excname) && user){
 		spllo();
-		sprint(buf, "sys: trap: %s", excname[vno]);
+		snprint(buf, sizeof buf, "sys: trap: %s", excname[vno]);
 		postnote(up, 1, buf, NDebug);
 	}
 	else if(vno >= VectorPIC && vno != VectorSYSCALL){
@@ -591,7 +591,7 @@ debugbpt(Ureg* ureg, void*)
 		panic("kernel bpt");
 	/* restore pc to instruction that caused the trap */
 	ureg->pc--;
-	sprint(buf, "sys: breakpoint");
+	snprint(buf, sizeof buf, "sys: breakpoint");
 	postnote(up, 1, buf, NDebug);
 }
 
@@ -641,7 +641,7 @@ fault386(Ureg* ureg, void*)
 		}
 		checkpages();
 		checkfault(addr, ureg->pc);
-		sprint(buf, "sys: trap: fault %s addr=0x%lux",
+		snprint(buf, sizeof buf, "sys: trap: fault %s addr=0x%lux",
 			read ? "read" : "write", addr);
 		postnote(up, 1, buf, NDebug);
 	}
@@ -806,7 +806,8 @@ notify(Ureg* ureg)
 		l = strlen(n->msg);
 		if(l > ERRMAX-15)	/* " pc=0x12345678\0" */
 			l = ERRMAX-15;
-		sprint(n->msg+l, " pc=0x%.8lux", ureg->pc);
+		seprint(n->msg+l, &n->msg[sizeof n->msg], " pc=0x%.8lux",
+			ureg->pc);
 	}
 
 	if(n->flag!=NUser && (up->notified || up->notify==0)){

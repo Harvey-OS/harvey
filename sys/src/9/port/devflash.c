@@ -89,7 +89,7 @@ flashgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 		mkqid(&q, QID(0, Qtopdir), 0, QTDIR);
 		n = "#F";
 		if(c->dev != 0){
-			sprint(up->genbuf, "#F%ld", c->dev);
+			snprint(up->genbuf, sizeof up->genbuf, "#F%ld", c->dev);
 			n = up->genbuf;
 		}
 		devdir(c, q, n, 0, eve, 0555, dp);
@@ -102,7 +102,8 @@ flashgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 		mkqid(&q, QID(0, Qflashdir), 0, QTDIR);
 		n = "flash";
 		if(c->dev != 0){
-			sprint(up->genbuf, "flash%ld", c->dev);
+			snprint(up->genbuf, sizeof up->genbuf, "flash%ld",
+				c->dev);
 			n = up->genbuf;
 		}
 		devdir(c, q, n, 0, eve, 0555, dp);

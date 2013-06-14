@@ -72,13 +72,14 @@ timeconv(Fmt *f)
 		sign = "";
 	if (t > Onesecond){
 		t += OneRound;
-		sprint(buf, "%s%d.%.3ds", sign, (int)(t / Onesecond),
+		snprint(buf, sizeof buf, "%s%d.%.3ds", sign,
+			(int)(t / Onesecond),
 			(int)(t % Onesecond)/Onemillisecond);
 	}else if (t > Onemillisecond)
-		sprint(buf, "%s%d.%.3dms", sign, (int)(t / Onemillisecond),
-			(int)(t % Onemillisecond));
+		snprint(buf, sizeof buf, "%s%d.%.3dms", sign,
+			(int)(t / Onemillisecond), (int)(t % Onemillisecond));
 	else
-		sprint(buf, "%s%dµs", sign, (int)t);
+		snprint(buf, sizeof buf, "%s%dµs", sign, (int)t);
 	return fmtstrcpy(f, buf);
 }
 

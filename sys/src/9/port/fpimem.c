@@ -71,6 +71,38 @@ fpiw2i(Internal *i, void *v)
 }
 
 void
+fpiv2i(Internal *i, void *v)
+{
+	Vlong w, word = *(Vlong*)v;
+	short e;
+
+	if(word < 0){
+		i->s = 1;
+		word = -word;
+	}
+	else
+		i->s = 0;
+	if(word == 0){
+		SetZero(i);
+		return;
+	}
+	if(word > 0){
+		for (e = 0, w = word; w; w >>= 1, e++)
+			;
+	} else
+		e = 32;
+	if(e > FractBits){
+		i->h = word>>(e - FractBits);
+		i->l = (word & ((1<<(e - FractBits)) - 1))<<(2*FractBits - e);
+	}
+	else {
+		i->h = word<<(FractBits - e);
+		i->l = 0;
+	}
+	i->e = (e - 1) + ExpBias;
+}
+
+void
 fpii2s(void *v, Internal *i)
 {
 	short e;
@@ -128,6 +160,27 @@ fpii2w(Word *word, Internal *i)
 		w = 0x7FFFFFFF;
 	else if(e > FractBits)
 		w = (i->h<<(e - FractBits))|(i->l>>(2*FractBits - e));
+	else
+		w = i->h>>(FractBits-e);
+	if(i->s)
+		w = -w;
+	*word = w;
+}
+
+void
+fpii2v(Vlong *word, Internal *i)
+{
+	Vlong w;
+	short e;
+
+	fpiround(i);
+	e = (i->e - ExpBias) + 1;
+	if(e <= 0)
+		w = 0;
+	else if(e > 63)
+		w = (1ull<<63) - 1;		/* maxlong */
+	else if(e > FractBits)
+		w = (Vlong)i->h<<(e - FractBits) | i->l>>(2*FractBits - e);
 	else
 		w = i->h>>(FractBits-e);
 	if(i->s)
