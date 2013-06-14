@@ -22,7 +22,7 @@ fault(ulong addr, int read)
 	spllo();
 
 	m->pfault++;
-	for(tries = 200; tries > 0; tries--) {	/* TODO: reset to 20 */
+	for(tries = 200; tries > 0; tries--) {
 		s = seg(up, addr, 1);		/* leaves s->lk qlocked if seg != nil */
 		if(s == 0) {
 			up->psstate = sps;
@@ -41,8 +41,7 @@ fault(ulong addr, int read)
 	/*
 	 * if we loop more than a few times, we're probably stuck on
 	 * an unfixable address, almost certainly due to a bug
-	 * elsewhere (e.g., bad page tables) so there's no point
-	 * in spinning forever.
+	 * elsewhere, so there's no point in spinning forever.
 	 */
 	if (tries <= 0)
 		panic("fault: fault stuck on va %#8.8p read %d\n", addr, read);

@@ -1,5 +1,4 @@
 /*
- *
  * download - host resident font downloader
  *
  * Prepends host resident fonts to PostScript input files. The program assumes
@@ -49,15 +48,16 @@
  *
  * Was written quickly, so there's much room for improvement. Undoubtedly should
  * be a more general program (e.g. scan for other comments).
- *
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
 #include <signal.h>
 #include <sys/types.h>
-#include <fcntl.h>
 #include <sys/stat.h>
-#include <string.h>
 
 #include "comments.h"			/* PostScript file structuring comments */
 #include "gen.h"			/* general purpose definitions */
@@ -236,7 +236,7 @@ readmap()
 	return;
 
     if ( *mapname != '/' ) {
-	if ( (path = (char *)malloc(strlen(hostfontdir) + strlen(mapname) +
+	if ( (path = malloc(strlen(hostfontdir) + strlen(mapname) +
 						strlen(suffix) + 2)) == NULL )
 	    error(FATAL, "no memory");
 	sprintf(path, "%s/%s%s", hostfontdir, mapname, suffix);
@@ -245,8 +245,8 @@ readmap()
     if ( (fd = open(path, 0)) != -1 ) {
 	if ( fstat(fd, &sbuf) == -1 )
 	    error(FATAL, "can't fstat %s", path);
-	if ( (stringspace = (char *)malloc(sbuf.st_size + 2)) == NULL )
-	    error(FATAL, "no memory");
+	if ( (stringspace = malloc(sbuf.st_size + 2)) == NULL )
+	    error(FATAL, "no memory for %s (%d bytes)", path, sbuf.st_size + 2);
 	if ( read(fd, stringspace, sbuf.st_size) == -1 )
 	    error(FATAL, "can't read %s", path);
 	close(fd);
@@ -444,7 +444,7 @@ copyfonts(list)
 	}   /* End if */
 	if ( (n = lookup(font)) < next ) {
 	    if ( *map[n].file != '/' ) {
-		if ( (path = (char *)malloc(strlen(hostfontdir)+strlen(map[n].file)+2)) == NULL )
+		if ( (path = malloc(strlen(hostfontdir)+strlen(map[n].file)+2)) == NULL )
 		    error(FATAL, "no memory");
 		sprintf(path, "%s/%s", hostfontdir, map[n].file);
 		cat(path);
@@ -512,32 +512,18 @@ lookup(font)
 
 }   /* End of lookup */
 
-/*****************************************************************************/
-
-Map *allocate(ptr, num)
-
-    Map		*ptr;
-    int		num;
-
-{
-
 /*
- *
  * Allocates space for num Map elements. Calls malloc() if ptr is NULL and
  * realloc() otherwise.
- *
  */
-
-    if ( ptr == NULL )
-	ptr = (Map *)malloc(num * sizeof(Map));
-    else ptr = (Map *)realloc(ptr, num * sizeof(Map));
-
-    if ( ptr == NULL )
-	error(FATAL, "no map memory");
-
-    return(ptr);
-
-}   /* End of allocate */
-
-/*****************************************************************************/
-
+Map *
+allocate(Map *ptr, int num)
+{
+	if (ptr == NULL)
+		ptr = (Map *)malloc(num * sizeof(Map));
+	else
+		ptr = (Map *)realloc(ptr, num * sizeof(Map));
+	if (ptr == NULL)
+		error(FATAL, "no map memory");
+	return ptr;
+}

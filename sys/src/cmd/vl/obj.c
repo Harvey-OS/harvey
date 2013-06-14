@@ -18,7 +18,7 @@ static	int	maxlibdir = 0;
 /*
  *	-H0 -T0x40004C -D0x10000000	is abbrev unix
  *	-H1 -T0x80020000 -R4		is bootp() format for 3k
- *	-H2 -T4128 -R4096		is plan9 format
+ *	-H2 -T16416 -R16384		is plan9 format
  *	-H3 -T0x80020000 -R8		is bootp() format for 4k
  *	-H4 -T0x400000 -R4		is sgi unix coff executable
  *	-H5 -T0x4000A0 -R4		is sgi unix elf executable
@@ -153,12 +153,12 @@ main(int argc, char *argv[])
 		break;
 	case 2:	/* plan 9 */
 		HEADR = 32L;
-		if(INITTEXT == -1)
-			INITTEXT = 4128;
 		if(INITDAT == -1)
 			INITDAT = 0;
 		if(INITRND == -1)
-			INITRND = 4096;
+			INITRND = 16*1024;
+		if(INITTEXT == -1)
+			INITTEXT = INITRND + HEADR;
 		break;
 	case 3:	/* boot for 4k */
 		HEADR = 20L+56L+3*40L;

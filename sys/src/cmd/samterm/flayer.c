@@ -70,6 +70,13 @@ flrect(Flayer *l, Rectangle r)
 	return r;
 }
 
+static void
+fontbuggered(char *name)
+{
+	fprint(2, "samterm: font %s has zero-width \"0\" character\n", name);
+	threadexits("font zero-width");
+}
+
 void
 flinit(Flayer *l, Rectangle r, Font *ft, Image **cols)
 {
@@ -79,6 +86,8 @@ flinit(Flayer *l, Rectangle r, Font *ft, Image **cols)
 	l->origin = l->p0 = l->p1 = 0;
 	frinit(&l->f, insetrect(flrect(l, r), FLMARGIN), ft, screen, cols);
 	l->f.maxtab = maxtab*stringwidth(ft, "0");
+	if(l->f.maxtab == 0)
+		fontbuggered(ft->name);
 	newvisibilities(1);
 	draw(screen, l->entire, l->f.cols[BACK], nil, ZP);
 	scrdraw(l, 0L);
@@ -414,6 +423,8 @@ flprepare(Flayer *l)
 		n = f->nchars;
 		frinit(f, f->entire, f->font, f->b, 0);
 		f->maxtab = maxtab*stringwidth(f->font, "0");
+		if(f->maxtab == 0)
+			fontbuggered(f->font->name);
 		r = (*l->textfn)(l, n, &n);
 		frinsert(f, r, r+n, (ulong)0);
 		frdrawsel(f, frptofchar(f, f->p0), f->p0, f->p1, 0);

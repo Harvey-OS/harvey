@@ -125,7 +125,7 @@ int mypid;
  *	GLOB[...] matches anything in the brackets
  *	GLOBGLOB matches GLOB
  */
-#define	GLOB	((char)0x01)
+#define	GLOB	'\001'
 
 char **argp;
 char **args;

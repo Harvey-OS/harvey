@@ -1,16 +1,28 @@
 #!/bin/rc
-# fshalt [-r] - sync (flush) and, if possible, halt all file servers
-#	and optionally reboot
+# fshalt [-r] [new-kernel] - sync (flush) and, if possible, halt all
+#	file servers and optionally reboot
 rfork nes
+kern=()
 kerncopy=()
 reboot=no
+fn usage {
+	echo usage: $1 '[-r] [new-kernel]' >[1=2]
+	exit usage
+}
+if (! ~ $#* 0)
+	switch ($1) {
+	case -r
+		reboot=yes
+		shift
+	case -*
+		usage $0
+	}
 switch ($#*) {
 case 0
 case 1
-	reboot=yes
+	kern = $1
 case *
-	echo usage: $0 '[-r]' >[1=2]
-	exit usage
+	usage $0
 }
 
 path=(/bin)
@@ -42,8 +54,9 @@ fn usekernel {
 
 # make a copy of the right kernel
 if (~ $reboot yes) {
-	kern=`{echo $terminal |
-		sed 's;^([^ ]+) .*/([^/ ]+).*$;/n/boot/'$cputype'/9\2;'}
+	if (~ $#kern 0)
+		kern=`{echo $terminal |
+			sed 's;^([^ ]+) .*/([^/ ]+).*$;/n/boot/'$cputype'/9\2;'}
 	if (isbootable $kern)
 		usekernel $kern
 	if not {

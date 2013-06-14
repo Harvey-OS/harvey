@@ -414,7 +414,8 @@ archread(Chan *c, void *a, long n, vlong offset)
 	for(m = iomap.m; n > 0 && m != nil; m = m->next){
 		if(offset-- > 0)
 			continue;
-		sprint(p, "%8lux %8lux %-12.12s\n", m->start, m->end-1, m->tag);
+		seprint(p, &buf[n], "%8lux %8lux %-12.12s\n", m->start,
+			m->end-1, m->tag);
 		p += Linelen;
 		n--;
 	}
@@ -722,8 +723,8 @@ cpuidprint(void)
 	int i;
 	char buf[128];
 
-	i = sprint(buf, "cpu%d: %s%dMHz ", m->machno, m->machno < 10? " ": "",
-		m->cpumhz);
+	i = snprint(buf, sizeof buf, "cpu%d: %s%dMHz ", m->machno,
+		m->machno < 10? " ": "", m->cpumhz);
 	if(m->cpuidid[0])
 		i += sprint(buf+i, "%12.12s ", m->cpuidid);
 	seprint(buf+i, buf + sizeof buf - 1,

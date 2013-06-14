@@ -34,6 +34,7 @@ void	fpoff(void);
 void	fpon(void);
 void	(*fprestore)(FPsave*);
 void	(*fpsave)(FPsave*);
+void	fpsavealloc(void);
 void	fpsserestore(FPsave*);
 void	fpsserestore0(FPsave*);
 void	fpssesave(FPsave*);

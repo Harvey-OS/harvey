@@ -21,8 +21,9 @@ pcmd(io *f, tree *t)
 {
 	if(t==0)
 		return;
+	assert(f != nil);
 	switch(t->type){
-	default:	pfmt(f, "bad %d %p %p %p", t->type, c0, c1, c2);
+	default:	pfmt(f, "bad cmd %d %p %p %p", t->type, c0, c1, c2);
 	break;
 	case '$':	pfmt(f, "$%t", c0);
 	break;

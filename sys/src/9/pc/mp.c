@@ -399,6 +399,7 @@ squidboy(Apic* apic)
 //	iprint("Hello Squidboy\n");
 
 	machinit();
+	fpsavealloc();
 	mmuinit();
 
 	cpuidentify();

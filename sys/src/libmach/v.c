@@ -107,8 +107,8 @@ Mach mmips =
 	"setR30",	/* static base register name */
 	0,		/* value */
 	0x1000,		/* page size */
-	0xC0000000ULL,	/* kernel base */
-	0x40000000ULL,	/* kernel text mask */
+	0x80000000ULL,	/* kernel base */
+	0x80000000ULL,	/* kernel text mask */
 	0x7FFFFFFFULL,	/* user stack top */
 	4,		/* quantization of pc */
 	4,		/* szaddr */

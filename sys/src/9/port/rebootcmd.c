@@ -72,7 +72,13 @@ rebootcmd(int argc, char *argv[])
 	entry = l2be(exec.entry);
 	text = l2be(exec.text);
 	data = l2be(exec.data);
-	if(magic != AOUT_MAGIC)
+	/*
+	 * AOUT_MAGIC is sometimes defined like this:
+	 * #define AOUT_MAGIC	V_MAGIC || magic==M_MAGIC
+	 * so we can only use it in a fairly stylized manner.
+	 */
+	if(magic == AOUT_MAGIC) {
+	} else
 		error(Ebadexec);
 
 	/* round text out to page boundary */

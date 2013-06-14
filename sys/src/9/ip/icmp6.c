@@ -765,7 +765,7 @@ icmpiput6(Proto *icmp, Ipifc *ipifc, Block *bp)
 
 	case TimeExceedV6:
 		if(p->code == 0){
-			sprint(m2, "ttl exceeded at %I", p->src);
+			snprint(m2, sizeof m2, "ttl exceeded at %I", p->src);
 
 			bp->rp += IPICMPSZ;
 			if(blocklen(bp) < 8){

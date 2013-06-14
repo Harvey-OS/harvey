@@ -76,6 +76,14 @@ extern void mmuinit0(void);
 extern void (*i8237alloc)(void);
 
 void
+fpsavealloc(void)
+{
+	m->fpsavalign = mallocalign(sizeof(FPssestate), FPalign, 0, 0);
+	if (m->fpsavalign == nil)
+		panic("cpu%d: can't allocate fpsavalign", m->machno);
+}
+
+void
 main(void)
 {
 	cgapost(0);
@@ -104,6 +112,7 @@ main(void)
 	printinit();
 	cpuidprint();
 	mmuinit();
+	fpsavealloc();
 	if(arch->intrinit)	/* launches other processors on an mp */
 		arch->intrinit();
 	timersinit();
@@ -306,10 +315,11 @@ bootargs(void *base)
 	cp[BOOTLINELEN-1] = 0;
 	buf[0] = 0;
 	if(strncmp(cp, "fd", 2) == 0){
-		sprint(buf, "local!#f/fd%lddisk", strtol(cp+2, 0, 0));
+		snprint(buf, sizeof buf, "local!#f/fd%lddisk",
+			strtol(cp+2, 0, 0));
 		av[ac++] = pusharg(buf);
 	} else if(strncmp(cp, "sd", 2) == 0){
-		sprint(buf, "local!#S/sd%c%c/fs", *(cp+2), *(cp+3));
+		snprint(buf, sizeof buf, "local!#S/sd%c%c/fs", *(cp+2), *(cp+3));
 		av[ac++] = pusharg(buf);
 	} else if(strncmp(cp, "ether", 5) == 0)
 		av[ac++] = pusharg("-n");
@@ -527,7 +537,7 @@ mathnote(void)
 
 /*
  * sse fp save and restore buffers have to be 16-byte (FPalign) aligned,
- * so we shuffle the data up and down as needed or make copies.
+ * so we shuffle the data down as needed or make copies.
  */
 
 void
@@ -535,10 +545,13 @@ fpssesave(FPsave *fps)
 {
 	FPsave *afps;
 
+	fps->magic = 0x1234;
 	afps = (FPsave *)ROUND(((uintptr)fps), FPalign);
 	fpssesave0(afps);
 	if (fps != afps)  /* not aligned? shuffle down from aligned buffer */
-		memmove(fps, afps, sizeof(FPssestate) - FPalign);
+		memmove(fps, afps, sizeof(FPssestate));
+	if (fps->magic != 0x1234)
+		print("fpssesave: magic corrupted\n");
 }
 
 void
@@ -546,20 +559,15 @@ fpsserestore(FPsave *fps)
 {
 	FPsave *afps;
 
+	fps->magic = 0x4321;
 	afps = (FPsave *)ROUND(((uintptr)fps), FPalign);
 	if (fps != afps) {
-		if (m->fpsavalign == nil)
-			m->fpsavalign = mallocalign(sizeof(FPssestate),
-				FPalign, 0, 0);
-		if (m->fpsavalign)
-			afps = m->fpsavalign;
-		/* copy or shuffle up to make aligned */
-		memmove(afps, fps, sizeof(FPssestate) - FPalign);
+		afps = m->fpsavalign;
+		memmove(afps, fps, sizeof(FPssestate));	/* make aligned copy */
 	}
 	fpsserestore0(afps);
-	/* if we couldn't make a copy, shuffle regs back down */
-	if (fps != afps && afps != m->fpsavalign)
-		memmove(fps, afps, sizeof(FPssestate) - FPalign);
+	if (fps->magic != 0x4321)
+		print("fpsserestore: magic corrupted\n");
 }
 
 /*

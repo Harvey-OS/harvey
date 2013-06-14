@@ -621,7 +621,7 @@ Memcpy(void *a, void *b, long n)
 void*
 Malloc(ulong n)
 {
-	return malloc(n);
+	return mallocz(n, 1);
 }
 
 int *waitpids;

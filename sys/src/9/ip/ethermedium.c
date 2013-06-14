@@ -412,7 +412,7 @@ etheraddmulti(Ipifc *ifc, uchar *a, uchar *)
 	int version;
 
 	version = multicastea(mac, a);
-	sprint(buf, "addmulti %E", mac);
+	snprint(buf, sizeof buf, "addmulti %E", mac);
 	switch(version){
 	case V4:
 		devtab[er->cchan4->type]->write(er->cchan4, buf, strlen(buf), 0);
@@ -434,7 +434,7 @@ etherremmulti(Ipifc *ifc, uchar *a, uchar *)
 	int version;
 
 	version = multicastea(mac, a);
-	sprint(buf, "remmulti %E", mac);
+	snprint(buf, sizeof buf, "remmulti %E", mac);
 	switch(version){
 	case V4:
 		devtab[er->cchan4->type]->write(er->cchan4, buf, strlen(buf), 0);

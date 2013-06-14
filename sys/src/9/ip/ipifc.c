@@ -1650,8 +1650,8 @@ ipifcadd6(Ipifc *ifc, char**argv, int argc)
 	if(!ifc->m->pref2addr)
 		return Ebadarg;
 	ifc->m->pref2addr(prefix, ifc->mac);	/* mac → v6 link-local addr */
-	sprint(addr, "%I", prefix);
-	sprint(preflen, "/%d", plen);
+	snprint(addr, sizeof addr, "%I", prefix);
+	snprint(preflen, sizeof preflen, "/%d", plen);
 	params[0] = "add";
 	params[1] = addr;
 	params[2] = preflen;

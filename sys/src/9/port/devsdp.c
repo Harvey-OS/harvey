@@ -557,7 +557,7 @@ sdpread(Chan *ch, void *a, long n, vlong off)
 		qunlock(c);
 		return n;
 	case Qctl:
-		sprint(buf, "%lud", CONV(ch->qid));
+		snprint(buf, sizeof buf, "%lud", CONV(ch->qid));
 		return readstr(off, a, n, buf);
 	case Qcontrol:
 		b = readcontrol(sdp->conv[CONV(ch->qid)], n);
