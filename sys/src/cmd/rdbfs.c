@@ -137,12 +137,13 @@ Biobuf	rfb;
 char*	portname = "/dev/eia0";
 char*	textfile = "/386/9pc";
 char*	procname = "1";
+char*	srvname;
 Channel* rchan;
 
 void
 usage(void)
 {
-	fprint(2, "usage: rdbfs [-p procnum] [-t textfile] [serialport]\n");
+	fprint(2, "usage: rdbfs [-p procnum] [-s srvname] [-t textfile] [serialport]\n");
 	exits("usage");
 }
 
@@ -397,6 +398,9 @@ threadmain(int argc, char **argv)
 	case 'p':
 		procname = EARGF(usage());
 		break;
+	case 's':
+		srvname = EARGF(usage());
+		break;
 	case 't':
 		textfile = EARGF(usage());
 		break;
@@ -427,7 +431,7 @@ threadmain(int argc, char **argv)
 	for(i=0; i<nelem(tab); i++)
 		closefile(createfile(dir, tab[i].s, "rdbfs", tab[i].mode, (void*)tab[i].id));
 	closefile(dir);
-	threadpostmountsrv(&fs, nil, "/proc", MBEFORE);
+	threadpostmountsrv(&fs, srvname, "/proc", MBEFORE);
 	exits(0);
 }
 

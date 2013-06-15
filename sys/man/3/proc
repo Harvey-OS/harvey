@@ -170,6 +170,10 @@ If the process has no extant children, living or exited,
 a read of
 .B wait
 will block.
+If the file's length is non-zero
+(see
+.IR stat (2)),
+there is at least one wait record to read.
 It is an error for a process to attempt to read its own
 .B wait
 file when it has no children.
