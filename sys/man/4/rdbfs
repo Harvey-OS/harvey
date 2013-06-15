@@ -11,6 +11,10 @@ rdbfs \- remote kernel debugging file system
 .I pid
 ]
 [
+.B -s
+.I srvname
+]
+[
 .B -t
 .I text
 ]
@@ -28,6 +32,15 @@ a kernel over the serial line
 .I device
 (default 
 .BR /dev/eia0 ).
+If the
+.B -s
+option is given,
+.I rdbfs
+will post its channel in
+.BI /srv/ srvname
+(see
+.IR srv (3)),
+allowing the session to be shared or reattached later.
 .PP
 The 
 .B text
