@@ -4,13 +4,17 @@
  * the following routines depend on memory format, not the machine
  */
 
+enum {
+	Sign	= 1u << 31,
+};
+
 void
 fpis2i(Internal *i, void *v)
 {
 	Single *s = v;
 
-	i->s = (*s & 0x80000000) ? 1: 0;
-	if((*s & ~0x80000000) == 0){
+	i->s = (*s & Sign) ? 1: 0;
+	if((*s & ~Sign) == 0){
 		SetZero(i);
 		return;
 	}
@@ -28,7 +32,7 @@ fpid2i(Internal *i, void *v)
 {
 	Double *d = v;
 
-	i->s = (d->h & 0x80000000) ? 1: 0;
+	i->s = (d->h & Sign) ? 1: 0;
 	i->e = (d->h>>20) & 0x07FF;
 	i->h = ((d->h & 0x000FFFFF)<<(4+NGuardBits))|((d->l>>25) & 0x7F);
 	i->l = (d->l & 0x01FFFFFF)<<NGuardBits;
@@ -90,7 +94,7 @@ fpiv2i(Internal *i, void *v)
 		for (e = 0, w = word; w; w >>= 1, e++)
 			;
 	} else
-		e = 32;
+		e = 64;
 	if(e > FractBits){
 		i->h = word>>(e - FractBits);
 		i->l = (word & ((1<<(e - FractBits)) - 1))<<(2*FractBits - e);
@@ -101,6 +105,12 @@ fpiv2i(Internal *i, void *v)
 	}
 	i->e = (e - 1) + ExpBias;
 }
+
+/*
+ * Note that all of these conversions from Internal format
+ * potentially alter *i, so it should be a disposable copy
+ * of the value to be converted.
+ */
 
 void
 fpii2s(void *v, Internal *i)
@@ -113,7 +123,7 @@ fpii2s(void *v, Internal *i)
 		i->h &= ~HiddenBit;
 	else
 		i->e--;
-	*s = i->s ? 0x80000000: 0;
+	*s = i->s ? Sign: 0;
 	e = i->e;
 	if(e < ExpBias){
 		if(e <= (ExpBias - SingleExpBias))
@@ -141,7 +151,7 @@ fpii2d(void *v, Internal *i)
 		i->e--;
 	i->l = ((i->h & GuardMask)<<25)|(i->l>>NGuardBits);
 	i->h >>= NGuardBits;
-	d->h = i->s ? 0x80000000: 0;
+	d->h = i->s ? Sign: 0;
 	d->h |= (i->e<<20)|((i->h & 0x00FFFFFF)>>4);
 	d->l = (i->h<<28)|i->l;
 }
