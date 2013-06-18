@@ -320,13 +320,13 @@ again:
 		mi = &mitem[i];
 	
 		p = str;
-		p += sprint(p, "menuitem=%s\n", mi->mb->name);
+		p += snprint(p, len, "menuitem=%s\n", mi->mb->name);
 		for(i = 0; i < nmblock; i++){
 			mb = &mblock[i];
 			if(mi->mb != mb && cistrcmp(mb->name, "common") != 0)
 				continue;
 			for(n = mb->start; n < mb->end; n++)
-				p += sprint(p, "%s\n", line[n]);
+				p += snprint(p, &str[len] - p, "%s\n", line[n]);
 		}
 
 		if(show){
