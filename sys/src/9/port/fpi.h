@@ -1,10 +1,15 @@
+#ifndef nil
+#include <u.h>
+#endif
+
 typedef long Word;
 typedef long long Vlong;
 typedef unsigned long Single;
-typedef struct {
-	unsigned long l;
-	unsigned long h;
-} Double;
+
+/* use u.h's FPdbleword */
+#define Double	FPdbleword
+#define h hi
+#define l lo
 
 enum {
 	FractBits	= 28,
