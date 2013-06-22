@@ -80,11 +80,11 @@ noted(Ureg* cur, uintptr arg0)
 		qunlock(&up->debug);
 
 		splhi();
-		nf->arg1 = nf->msg;
-		nf->arg0 = &nf->ureg;
+		nf->arg1 = nf->msg;		/* arg 1 is string */
+		nf->arg0 = &nf->ureg;		/* arg 0 XX(FP) is ureg* */
 		nf->ip = 0;
 		cur->sp = PTR2UINT(nf);
-		cur->r0 = PTR2UINT(nf->arg0);
+		cur->r0 = PTR2UINT(nf->arg0);	/* arg 0 in reg is ureg* */
 		break;
 	default:
 		pprint("unknown noted arg %#p\n", arg0);
@@ -168,9 +168,9 @@ notify(Ureg* ureg)
 	nf->old = up->ureg;
 	up->ureg = nf;
 	memmove(nf->msg, up->note[0].msg, ERRMAX);
-	nf->arg1 = nf->msg;
-	nf->arg0 = &nf->ureg;
-	ureg->r0 = PTR2UINT(nf->arg0);
+	nf->arg1 = nf->msg;			/* arg 1 is string */
+	nf->arg0 = &nf->ureg;			/* arg 0 XX(FP) is ureg* */
+	ureg->r0 = PTR2UINT(nf->arg0);		/* arg 0 in r0 is ureg* */
 	nf->ip = 0;
 
 	ureg->sp = sp;
