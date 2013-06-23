@@ -1,5 +1,184 @@
 #include	"l.h"
 
+/*
+ * flag: insert nops to prevent three consecutive stores.
+ * workaround for 24k erratum #48, costs about 10% in text space,
+ * so only enable this if you need it.  a test case is "hoc -e '7^6'".
+ */
+enum {
+	Mips24k	= 0,
+};
+
+static int
+isdblwrdmov(Prog *p)
+{
+	if(p == nil)
+		return 0;
+	switch(p->as){
+	case AMOVD:
+	case AMOVDF:
+	case AMOVDW:
+	case AMOVFD:
+	case AMOVWD:
+	case AMOVV:
+	case AMOVVL:
+	case AMOVVR:
+	case AMOVFV:
+	case AMOVDV:
+	case AMOVVF:
+	case AMOVVD:
+		return 1;
+	}
+	return 0;
+}
+
+static int
+ismove(Prog *p)
+{
+	if(p == nil)
+		return 0;
+	switch(p->as){
+	case AMOVB:
+	case AMOVBU:
+	case AMOVF:
+	case AMOVFW:
+	case AMOVH:
+	case AMOVHU:
+	case AMOVW:
+	case AMOVWF:
+	case AMOVWL:
+	case AMOVWR:
+	case AMOVWU:
+		return 1;
+	}
+	if(isdblwrdmov(p))
+		return 1;
+	return 0;
+}
+
+static int
+isstore(Prog *p)
+{
+	if(p == nil)
+		return 0;
+	if(ismove(p))
+		switch(p->to.type) {
+		case D_OREG:
+		case D_EXTERN:
+		case D_STATIC:
+		case D_AUTO:
+		case D_PARAM:
+			return 1;
+		}
+	return 0;
+}
+
+static int
+iscondbranch(Prog *p)
+{
+	if(p == nil)
+		return 0;
+	switch(p->as){
+	case ABEQ:
+	case ABFPF:
+	case ABFPT:
+	case ABGEZ:
+	case ABGEZAL:
+	case ABGTZ:
+	case ABLEZ:
+	case ABLTZ:
+	case ABLTZAL:
+	case ABNE:
+		return 1;
+	}
+	return 0;
+}
+
+static int
+isbranch(Prog *p)
+{
+	if(p == nil)
+		return 0;
+	switch(p->as){
+	case AJAL:
+	case AJMP:
+	case ARET:
+	case ARFE:
+		return 1;
+	}
+	if(iscondbranch(p))
+		return 1;
+	return 0;
+}
+
+/*
+ * workaround for 24k erratum #48, costs about 0.5% in space.
+ * inserts a NOP before the last of 3 consecutive stores.
+ * double-word stores complicate things.
+ */
+static int
+no3stores(Prog *p)
+{
+	Prog *p1;
+
+	if(!isstore(p))
+		return 0;
+	p1 = p->link;
+	if(!isstore(p1))
+		return 0;
+	if(isdblwrdmov(p) || isdblwrdmov(p1)) {
+		p->mark |= LABEL|SYNC;
+		addnop(p);
+		nop.store.count++;
+		nop.store.outof++;
+		return 1;
+	}
+	if(isstore(p1->link)) {
+		p1->mark |= LABEL|SYNC;
+		addnop(p1);
+		nop.store.count++;
+		nop.store.outof++;
+		return 1;
+	}
+	return 0;
+}
+
+/*
+ * keep stores out of branch delay slots.
+ * this is costly in space (the other 9.5%), but makes no3stores effective.
+ * there is undoubtedly a better way to do this.
+ */
+void
+storesnosched(void)
+{
+	Prog *p;
+
+	for(p = firstp; p != P; p = p->link)
+		if(isstore(p))
+			p->mark |= NOSCHED; /* keep stores out of delay slots */
+}
+
+void
+triplestorenops(void)
+{
+	Prog *p, *p1;
+
+	for(p = firstp; p != P; p = p1) {
+		p1 = p->link;
+//		if (p->mark & NOSCHED)
+//			continue;
+		if(ismove(p))
+			no3stores(p);
+		else if (isbranch(p))
+			/*
+			 * can't ignore delay slot of a conditional branch;
+			 * the branch could fail and fall through.
+			 */
+			if (!iscondbranch(p) && p1)
+				p1 = p1->link;	/* skip its delay slot */
+	}
+}
+
 void
 noops(void)
 {
@@ -348,6 +527,8 @@ noops(void)
 			break;
 		}
 	}
+	if (Mips24k)
+		storesnosched();
 
 	curtext = P;
 	q = P;		/* p - 1 */
@@ -388,6 +569,9 @@ noops(void)
 		}
 		q = p;
 	}
+
+	if (Mips24k)
+		triplestorenops();
 }
 
 void
