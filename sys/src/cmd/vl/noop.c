@@ -3,7 +3,8 @@
 /*
  * flag: insert nops to prevent three consecutive stores.
  * workaround for 24k erratum #48, costs about 10% in text space,
- * so only enable this if you need it.  a test case is "hoc -e '7^6'".
+ * so only enable this if you need it.  test cases are "hoc -e '7^6'"
+ * and "{ echo moon; echo plot } | scat".
  */
 enum {
 	Mips24k	= 0,
@@ -111,6 +112,13 @@ isbranch(Prog *p)
 	return 0;
 }
 
+static void
+nopafter(Prog *p)
+{
+	p->mark |= LABEL|SYNC;
+	addnop(p);
+}
+
 /*
  * workaround for 24k erratum #48, costs about 0.5% in space.
  * inserts a NOP before the last of 3 consecutive stores.
@@ -127,15 +135,13 @@ no3stores(Prog *p)
 	if(!isstore(p1))
 		return 0;
 	if(isdblwrdmov(p) || isdblwrdmov(p1)) {
-		p->mark |= LABEL|SYNC;
-		addnop(p);
+		nopafter(p);
 		nop.store.count++;
 		nop.store.outof++;
 		return 1;
 	}
 	if(isstore(p1->link)) {
-		p1->mark |= LABEL|SYNC;
-		addnop(p1);
+		nopafter(p1);
 		nop.store.count++;
 		nop.store.outof++;
 		return 1;
@@ -155,21 +161,48 @@ storesnosched(void)
 
 	for(p = firstp; p != P; p = p->link)
 		if(isstore(p))
-			p->mark |= NOSCHED; /* keep stores out of delay slots */
+			p->mark |= NOSCHED;
 }
 
-void
+int
 triplestorenops(void)
 {
+	int r;
 	Prog *p, *p1;
 
+	r = 0;
 	for(p = firstp; p != P; p = p1) {
 		p1 = p->link;
 //		if (p->mark & NOSCHED)
 //			continue;
-		if(ismove(p))
-			no3stores(p);
-		else if (isbranch(p))
+		if(ismove(p) && isstore(p)) {
+			if (no3stores(p))
+				r++;
+			/*
+			 * given storenosched, the next two
+			 * checks shouldn't be necessary.
+			 */
+			/*
+			 * add nop after first MOV in `MOV; Bcond; MOV'.
+			 */
+			else if(isbranch(p1) && isstore(p1->link)) {
+				nopafter(p);
+				nop.branch.count++;
+				nop.branch.outof++;
+				r++;
+			}
+			/*
+			 * this may be a branch target, so insert a nop after,
+			 * in case a branch leading here has a store in its
+			 * delay slot and we have consecutive stores here.
+			 */
+			if(p->mark & (LABEL|SYNC) && !isnop(p1)) {
+				nopafter(p);
+				nop.branch.count++;
+				nop.branch.outof++;
+				r++;
+			}
+		} else if (isbranch(p))
 			/*
 			 * can't ignore delay slot of a conditional branch;
 			 * the branch could fail and fall through.
@@ -177,6 +210,7 @@ triplestorenops(void)
 			if (!iscondbranch(p) && p1)
 				p1 = p1->link;	/* skip its delay slot */
 	}
+	return r;
 }
 
 void

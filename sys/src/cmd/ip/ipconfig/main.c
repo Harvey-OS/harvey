@@ -1156,6 +1156,10 @@ dhcprecv(void)
 			DEBUG("dhcprecv: read timed out");
 		return;
 	}
+	if(n == 0){
+		warning("dhcprecv: zero-length packet read");
+		return;
+	}
 
 	bp = parsebootp(buf, n);
 	if(bp == 0) {
@@ -1608,7 +1612,8 @@ parsebootp(uchar *p, int n)
 
 	bp = (Bootp*)p;
 	if(n < bp->optmagic - p) {
-		warning("parsebootp: short bootp packet");
+		warning("parsebootp: short bootp packet; with options, "
+			"need %d bytes, got %d", bp->optmagic - p, n);
 		return nil;
 	}
 

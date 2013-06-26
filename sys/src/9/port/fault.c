@@ -8,7 +8,6 @@
 int
 fault(ulong addr, int read)
 {
-	int tries;
 	Segment *s;
 	char *sps;
 
@@ -22,7 +21,7 @@ fault(ulong addr, int read)
 	spllo();
 
 	m->pfault++;
-	for(tries = 200; tries > 0; tries--) {
+	for(;;) {
 		s = seg(up, addr, 1);		/* leaves s->lk qlocked if seg != nil */
 		if(s == 0) {
 			up->psstate = sps;
@@ -38,13 +37,6 @@ fault(ulong addr, int read)
 		if(fixfault(s, addr, read, 1) == 0)	/* qunlocks s->lk */
 			break;
 	}
-	/*
-	 * if we loop more than a few times, we're probably stuck on
-	 * an unfixable address, almost certainly due to a bug
-	 * elsewhere, so there's no point in spinning forever.
-	 */
-	if (tries <= 0)
-		panic("fault: fault stuck on va %#8.8p read %d\n", addr, read);
 
 	up->psstate = sps;
 	return 0;
