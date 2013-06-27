@@ -1456,7 +1456,7 @@ iself(void)
 
 			if(n>0 && n < nelem(type) && type[n])
 				t = type[n];
-			print("%s ELF %s\n", p, t);
+			print("%s ELF%s %s\n", p, (buf[4] == 2? "64": "32"), t);
 		}
 		else
 			print("application/x-elf-executable");
