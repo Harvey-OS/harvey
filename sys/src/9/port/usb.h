@@ -191,6 +191,5 @@ struct Udev
 void	addhcitype(char *type, int (*reset)(Hci*));
 
 extern char *usbmodename[];
-extern char Estalled[];
 
 extern char *seprintdata(char*,char*,uchar*,int);

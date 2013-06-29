@@ -275,7 +275,7 @@ setvolsize(Cdimg *cd, uvlong block, ulong size)
 	assert(block != 0);
 
 	Cwseek(cd, block * Blocksize + offsetof(Cvoldesc, volsize[0]));
-	Cputn(cd, size, 4);
+	Cputn(cd, size, 4);			/* size in blocks */
 }
 
 void

@@ -51,3 +51,8 @@ extern char Enegoff[];		/* negative i/o offset */
 extern char Ecmdargs[];		/* wrong #args in control message */
 extern char Ebadip[];		/* bad ip address syntax */
 extern char Edirseek[];		/* seek in directory */
+extern char Echange[];		/* media or partition has changed */
+extern char Estalled[];		/* endpoint stalled */
+extern char Edetach[];		/* device is detached */
+extern char Enotconf[];		/* endpoint not configured */
+extern char Eaoedown[];		/* aoe device is down */

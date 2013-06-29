@@ -322,11 +322,10 @@ Dofix:
 		 * Patch in root directories.
 		 */
 		setroot(cd, cd->iso9660pvd, iroot.block, iroot.length);
-		setvolsize(cd, cd->iso9660pvd, (vlong)cd->nextblock * Blocksize);
+		setvolsize(cd, cd->iso9660pvd, cd->nextblock);
 		if(cd->flags & CDjoliet){
 			setroot(cd, cd->jolietsvd, jroot.block, jroot.length);
-			setvolsize(cd, cd->jolietsvd,
-				(vlong)cd->nextblock * Blocksize);
+			setvolsize(cd, cd->jolietsvd, cd->nextblock);
 		}
 	}else{
 		/*
@@ -356,11 +355,10 @@ Dofix:
 		 * Patch in new root directory entry.
 		 */
 		setroot(cd, cd->iso9660pvd, idumproot.block, idumproot.length);
-		setvolsize(cd, cd->iso9660pvd, (vlong)cd->nextblock * Blocksize);
+		setvolsize(cd, cd->iso9660pvd, cd->nextblock);
 		if(cd->flags & CDjoliet){
 			setroot(cd, cd->jolietsvd, jdumproot.block, jdumproot.length);
-			setvolsize(cd, cd->jolietsvd,
-				(vlong)cd->nextblock * Blocksize);
+			setvolsize(cd, cd->jolietsvd, cd->nextblock);
 		}
 	}
 	writepathtables(cd);	
