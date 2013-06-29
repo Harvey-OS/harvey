@@ -22,7 +22,8 @@ static	int	maxlibdir = 0;
  *	-H3 -T0x80020000 -R8		is bootp() format for 4k
  *	-H4 -T0x400000 -R4		is sgi unix coff executable
  *	-H5 -T0x4000A0 -R4		is sgi unix elf executable
- *	-H6						is headerless
+ *	-H6				is headerless
+ *	-H7				is 64-bit elf executable
  */
 
 int little;
@@ -196,14 +197,23 @@ main(int argc, char *argv[])
 		if(INITRND == -1)
 			INITRND = 4096;
 		break;
+	case 7:	/* 64-bit elf executable */
+		HEADR = rnd(Ehdr64sz+3*Phdr64sz, 16);
+		if(INITTEXT == -1)
+			INITTEXT = 0x00400000L+HEADR;
+		if(INITDAT == -1)
+			INITDAT = 0x10000000;
+		if(INITRND == -1)
+			INITRND = 0;
+		break;
 	}
 	if (INITTEXTP == -1)
 		INITTEXTP = INITTEXT;
 	if(INITDAT != 0 && INITRND != 0)
-		print("warning: -D0x%lux is ignored because of -R0x%lux\n",
+		print("warning: -D%#llux is ignored because of -R%#llux\n",
 			INITDAT, INITRND);
 	if(debug['v'])
-		Bprint(&bso, "HEADER = -H0x%d -T0x%lux -D0x%lux -R0x%lux\n",
+		Bprint(&bso, "HEADER = -H%d -T%#llux -D%#llux -R%#llux\n",
 			HEADTYPE, INITTEXT, INITDAT, INITRND);
 	Bflush(&bso);
 	zprg.as = AGOK;
@@ -746,7 +756,7 @@ readsome(int f, uchar *buf, uchar *good, uchar *stop, int max)
 void
 ldobj(int f, long c, char *pn)
 {
-	long ipc;
+	vlong ipc;
 	Prog *p, *t;
 	uchar *bloc, *bsize, *stop;
 	Sym *h[NSYM], *s, *di;
@@ -776,7 +786,7 @@ loop:
 	}
 	o = bloc[0];		/* as */
 	if(o <= AXXX || o >= ALAST) {
-		diag("%s: line %ld: opcode out of range %d", pn, pc-ipc, o);
+		diag("%s: line %lld: opcode out of range %d", pn, pc-ipc, o);
 		print("	probably not a .%c file\n", thechar);
 		errorexit();
 	}

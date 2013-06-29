@@ -104,10 +104,6 @@ struct Hcitype
 
 #define QID(q)	((int)(q).path)
 
-static char Edetach[] = "device is detached";
-static char Enotconf[] = "endpoint not configured";
-char Estalled[] = "endpoint stalled";
-
 static Cmdtab usbctls[] =
 {
 	{CMdebug,	"debug",	2},

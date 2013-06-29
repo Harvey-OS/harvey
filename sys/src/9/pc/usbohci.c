@@ -363,10 +363,6 @@ static Edpool edpool;
 static Tdpool tdpool;
 static Ctlr* ctlrs[Nhcis];
 
-static	char	EnotWritten[] = "usb write unfinished";
-static	char	EnotRead[] = "usb read unfinished";
-static	char	Eunderrun[] = "usb endpoint underrun";
-
 static	QLock	usbhstate;	/* protects name space state */
 
 static int	schedendpt(Ctlr *ub, Ep *ep);
