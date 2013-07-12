@@ -3,6 +3,7 @@
 TEXT	_mainp(SB), 1, $(16 + NPRIVATES*4)
 
 	MOVW	$setR30(SB), R30
+	/* _tos = arg */
 	MOVW	R1, _tos(SB)
 
 	MOVW	$p-64(SP), R1
@@ -10,9 +11,13 @@ TEXT	_mainp(SB), 1, $(16 + NPRIVATES*4)
 	MOVW	$NPRIVATES, R1
 	MOVW	R1, _nprivates(SB)
 
+	/* _profmain(); */
 	JAL	_profmain(SB)
-	MOVW	__prof+4(SB), R1
-	MOVW	R1, __prof+0(SB)
+	/* _tos->prof.pp = _tos->prof.next; */
+	MOVW	_tos(SB), R1
+	MOVW	4(R1), R2
+	MOVW	R2, 0(R1)
+	/* main(argc, argv); */
 	MOVW	inargc-4(FP), R1
 	MOVW	$inargv+0(FP), R2
 	MOVW	R1, 4(R29)
