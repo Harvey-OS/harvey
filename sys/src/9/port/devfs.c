@@ -84,6 +84,7 @@ struct Fsdev
 	vlong	size;		/* min(inner[X].isize) */
 	vlong	start;		/* start address (for Fpart) */
 	uint	ndevs;		/* number of inner devices */
+	int	perm;		/* minimum of inner device perms */
 	Inner	*inner[Ndevs];	/* inner devices */
 };
 
@@ -104,9 +105,11 @@ static Tree fstree;		/* The main "fs" tree. Never goes away */
 static Tree *trees[Ntrees];	/* internal representation of config */
 static int ntrees;		/* max number of trees */
 static int qidvers;
+
 static char *disk;		/* default tree name used */
 static char *source;		/* default inner device used */
 static int sectorsz = Sectorsz;	/* default sector size */
+
 static char confstr[Maxconf];	/* textual configuration */
 
 static int debug;
@@ -502,16 +505,21 @@ parsename(char *name, char *disk, char **tree, char **dev)
 	validname(*dev, 0);
 }
 
-static vlong
-getlen(Chan *c)
+static int
+getattrs(Chan *c, vlong *lenp, int *permp)
 {
 	uchar	buf[128];	/* old DIRLEN plus a little should be plenty */
 	Dir	d;
 	long	l;
 
+	*lenp = 0;
+	*permp = 0;
 	l = devtab[c->type]->stat(c, buf, sizeof buf);
-	convM2D(buf, l, &d, nil);
-	return d.length;
+	if (l >= 0 && convM2D(buf, l, &d, nil) > 0) {
+		*lenp = d.length;
+		*permp = d.mode & 0777;
+	}
+	return l;
 }
 
 /*
@@ -526,6 +534,7 @@ static void
 mconfig(char* a, long n)
 {
 	int	i;
+	int	*iperm;
 	vlong	size, start;
 	vlong	*ilen;
 	char	*tname, *dname, *fakef[4];
@@ -547,6 +556,7 @@ mconfig(char* a, long n)
 	cb = nil;
 	idev = nil;
 	ilen = nil;
+	iperm = nil;
 
 	if(waserror()){
 		free(cb);
@@ -622,14 +632,17 @@ Fail:
 			mdeldev(mp);
 		free(idev);
 		free(ilen);
+		free(iperm);
 		free(cb);
 		nexterror();
 	}
+	/* record names, lengths and perms of all named files */
 	idev = smalloc(sizeof(Chan*) * Ndevs);
 	ilen = smalloc(sizeof(vlong) * Ndevs);
+	iperm = smalloc(sizeof(int) * Ndevs);
 	for(i = 1; i < cb->nf; i++){
 		idev[i-1] = namec(cb->f[i], Aopen, ORDWR, 0);
-		ilen[i-1] = getlen(idev[i-1]);
+		getattrs(idev[i-1], &ilen[i-1], &iperm[i-1]);
 	}
 	poperror();
 	runlock(&lck);
@@ -657,11 +670,13 @@ Fail:
 		error(Enomem);
 	}
 
+	/* construct mp from iname, idev and iperm arrays */
 	mp->type = ct->index;
 	if(mp->type == Fpart){
 		mp->start = start * sectorsz;
 		mp->size = size * sectorsz;
 	}
+	mp->perm = 0666;
 	for(i = 1; i < cb->nf; i++){
 		inprv = mp->inner[i-1] = mallocz(sizeof(Inner), 1);
 		if(inprv == nil)
@@ -670,6 +685,8 @@ Fail:
 		kstrdup(&inprv->iname, cb->f[i]);
 		inprv->idev = idev[i-1];
 		idev[i-1] = nil;
+		/* use the most restrictive of the inner permissions */
+		mp->perm &= iperm[i-1];
 	}
 	setdsize(mp, ilen);
 
@@ -677,6 +694,7 @@ Fail:
 	wunlock(&lck);
 	free(idev);
 	free(ilen);
+	free(iperm);
 	free(cb);
 }
 
@@ -796,7 +814,7 @@ mgen(Chan *c, char*, Dirtab*, int, int i, Dir *dp)
 		qid.type = QTFILE;
 		qid.vers = mp->vers;
 		qid.path = mkpath(treeno, Qfirst+i);
-		devdir(c, qid, mp->name, mp->size, eve, 0664, dp);
+		devdir(c, qid, mp->name, mp->size, eve, mp->perm, dp);
 		return 1;
 	}
 
@@ -867,7 +885,7 @@ mstat(Chan *c, uchar *db, int n)
 			mp = getdev(t, path2devno(p) - Qfirst, Mustexist);
 			q = c->qid;
 			q.vers = mp->vers;
-			devdir(c, q, mp->name, mp->size, eve, 0664, &d);
+			devdir(c, q, mp->name, mp->size, eve, mp->perm, &d);
 		}
 	}
 	n = convD2M(&d, db, n);
@@ -897,6 +915,7 @@ mopen(Chan *c, int omode)
 		mp = path2dev(q);
 		if(mp->gone)
 			error(Egone);
+		devpermcheck(eve, mp->perm, omode);
 		incref(mp);
 		poperror();
 		runlock(&lck);

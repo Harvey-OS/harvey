@@ -1,9 +1,6 @@
 #!/bin/rc
 # backup [-np] [-d dev] [-s set] - backup venti arenas to disc set using dev
 #	and record that.  also print recent fossil dump scores.
-#
-# it would be good to have some way to cope with truncated tracks left
-# by write errors causing fewer tracks than expected to fit on a disc.
 
 rfork ne
 cd /sys/lib/backup

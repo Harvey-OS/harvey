@@ -65,9 +65,12 @@ allocb(int size)
 	if(up == nil)
 		panic("allocb without up: %#p", getcallerpc(&size));
 	if((b = _allocb(size)) == nil){
+		splhi();
 		xsummary();
 		mallocsummary();
-		panic("allocb: no memory for %d bytes", size);
+		delay(500);
+		panic("allocb: no memory for %d bytes; caller %#p", size,
+			getcallerpc(&size));
 	}
 	setmalloctag(b, getcallerpc(&size));
 
