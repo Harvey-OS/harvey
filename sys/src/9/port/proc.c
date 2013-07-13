@@ -1378,13 +1378,6 @@ kproc(char *name, void (*func)(void *), void *arg)
 	memset(p->time, 0, sizeof(p->time));
 	p->time[TReal] = MACHP(0)->ticks;
 	ready(p);
-	/*
-	 *  since the bss/data segments are now shareable,
-	 *  any mmu info about this process is now stale
-	 *  and has to be discarded.
-	 */
-	p->newtlb = 1;
-	flushmmu();
 }
 
 /*
