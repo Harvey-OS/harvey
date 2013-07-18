@@ -687,6 +687,8 @@ srchtext(uvlong addr)
 	top = ntxt;
 	for (mid = (bot+top)/2; mid < top; mid = (bot+top)/2) {
 		sp = txt[mid].sym;
+		if(sp == nil)
+			return -1;
 		if(val < sp->value)
 			top = mid;
 		else if(mid != ntxt-1 && val >= txt[mid+1].sym->value)
@@ -712,6 +714,8 @@ srchdata(uvlong addr)
 	val = addr;
 	for(mid = (bot+top)/2; mid < top; mid = (bot+top)/2) {
 		sp = globals[mid];
+		if(sp == nil)
+			return -1;
 		if(val < sp->value)
 			top = mid;
 		else if(mid < nglob-1 && val >= globals[mid+1]->value)

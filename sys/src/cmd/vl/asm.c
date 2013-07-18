@@ -175,10 +175,74 @@ entryvalue(void)
 	return s->value;
 }
 
+static void
+plan9bootimage(ulong sects, ulong submagicvers, ulong tm,
+	ulong hdrtxtsz, ulong textsz, ulong textva, ulong lcsize)
+{
+	lput(0x160L<<16|sects);		/* magic and sections */
+	lput(tm);			/* time and date */
+	lput(hdrtxtsz+datsize);		/* offset to symbol table */
+	lput(symsize);			/* size of symbol table */
+	lput((0x38L<<16)|7L);		/* size of optional hdr and flags */
+	lput(submagicvers);		/* magic and version */
+
+	lput(textsz);			/* segment sizes */
+	lput(datsize);
+	lput(bsssize);
+
+	lput(entryvalue());		/* va of entry */
+	lput(textva);			/* va of base of text */
+	lput(INITDAT);			/* va of base of data */
+	lput(INITDAT+datsize);		/* va of base of bss */
+
+	lput(~0);			/* gp reg mask */
+	lput(lcsize);			/* pcsize / cprmask[0] */
+	lput(0);			/* coproc reg masks[1⋯3] */
+	lput(0);
+	lput(0);
+	lput(~0);			/* gp value ?? */
+}
+
+static void
+symhdrs(ulong hdrtxtsz)
+{
+	strnput(".text", 8);		/* text segment */
+	lput(INITTEXT);			/* address */
+	lput(INITTEXT);
+	lput(textsize);
+	lput(HEADR);
+	lput(0);
+	lput(HEADR+textsize+datsize+symsize);
+	lput(lcsize);			/* line number size */
+	lput(0x20);			/* flags */
+
+	strnput(".data", 8);		/* data segment */
+	lput(INITDAT);			/* address */
+	lput(INITDAT);
+	lput(datsize);
+	lput(hdrtxtsz);
+	lput(0);
+	lput(0);
+	lput(0);
+	lput(0x40);			/* flags */
+
+	strnput(".bss", 8);		/* bss segment */
+	lput(INITDAT+datsize);		/* address */
+	lput(INITDAT+datsize);
+	lput(bsssize);
+	lput(0);
+	lput(0);
+	lput(0);
+	lput(0);
+	lput(0x80);			/* flags */
+}
+
 void
 asmb(void)
 {
 	Prog *p;
+	long tm;
+	ulong rndtxtsz;
 	vlong t, etext;
 	Optab *o;
 
@@ -282,50 +346,20 @@ asmb(void)
 	Bflush(&bso);
 	OFFSET = 0;
 	seek(cout, OFFSET, 0);
+
+	rndtxtsz = rnd(HEADR+textsize, (INITRND > 0? INITRND: 4096));
+	tm = time(0);
 	switch(HEADTYPE) {
 	case 0:
-		lput(0x160L<<16);		/* magic and sections */
-		lput(0L);			/* time and date */
-		lput(rnd(HEADR+textsize, 4096)+datsize);
-		lput(symsize);			/* nsyms */
-		lput((0x38L<<16)|7L);		/* size of optional hdr and flags */
-		lput((0413<<16)|0437L);		/* magic and version */
-		lput(rnd(HEADR+textsize, 4096));	/* sizes */
-		lput(datsize);
-		lput(bsssize);
-		lput(entryvalue());		/* va of entry */
-		lput(INITTEXT-HEADR);		/* va of base of text */
-		lput(INITDAT);			/* va of base of data */
-		lput(INITDAT+datsize);		/* va of base of bss */
-		lput(~0L);			/* gp reg mask */
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(~0L);			/* gp value ?? */
+		/* 0413: plan 9 boot image, text segment rounded (to 4KB) */
+		plan9bootimage(0, 0413<<16|0437, 0, rndtxtsz, rndtxtsz,
+			INITTEXT-HEADR, 0);
 		break;
 	case 1:
-		lput(0x160L<<16);		/* magic and sections */
-		lput(0L);			/* time and date */
-		lput(HEADR+textsize+datsize);
-		lput(symsize);			/* nsyms */
-		lput((0x38L<<16)|7L);		/* size of optional hdr and flags */
-
-		lput((0407<<16)|0437L);		/* magic and version */
-		lput(textsize);			/* sizes */
-		lput(datsize);
-		lput(bsssize);
-		lput(entryvalue());		/* va of entry */
-		lput(INITTEXT);			/* va of base of text */
-		lput(INITDAT);			/* va of base of data */
-		lput(INITDAT+datsize);		/* va of base of bss */
-		lput(~0L);			/* gp reg mask */
-		lput(lcsize);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(~0L);			/* gp value ?? */
-		lput(0L);			/* complete mystery */
+		/* 0407: plan 9 boot image, extra word */
+		plan9bootimage(0, 0407<<16|0437, 0, HEADR+textsize, textsize,
+			INITTEXT, lcsize);
+		lput(0);			/* extra; complete mystery */
 		break;
 	case 2:					/* plan 9 format */
 		if (little)
@@ -341,109 +375,16 @@ asmb(void)
 		lput(lcsize);
 		break;
 	case 3:
-		lput((0x160L<<16)|3L);		/* magic and sections */
-		lput(time(0));			/* time and date */
-		lput(HEADR+textsize+datsize);
-		lput(symsize);			/* nsyms */
-		lput((0x38L<<16)|7L);		/* size of optional hdr and flags */
-
-		lput((0407<<16)|0437L);		/* magic and version */
-		lput(textsize);			/* sizes */
-		lput(datsize);
-		lput(bsssize);
-		lput(entryvalue());		/* va of entry */
-		lput(INITTEXT);			/* va of base of text */
-		lput(INITDAT);			/* va of base of data */
-		lput(INITDAT+datsize);		/* va of base of bss */
-		lput(~0L);			/* gp reg mask */
-		lput(lcsize);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(~0L);			/* gp value ?? */
-
-		strnput(".text", 8);		/* text segment */
-		lput(INITTEXT);			/* address */
-		lput(INITTEXT);
-		lput(textsize);
-		lput(HEADR);
-		lput(0L);
-		lput(HEADR+textsize+datsize+symsize);
-		lput(lcsize);			/* line number size */
-		lput(0x20L);			/* flags */
-
-		strnput(".data", 8);		/* data segment */
-		lput(INITDAT);			/* address */
-		lput(INITDAT);
-		lput(datsize);
-		lput(HEADR+textsize);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(0x40L);			/* flags */
-
-		strnput(".bss", 8);		/* bss segment */
-		lput(INITDAT+datsize);		/* address */
-		lput(INITDAT+datsize);
-		lput(bsssize);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(0x80L);			/* flags */
+		/* 0407: plan 9 mips 4k boot image with symbols */
+		plan9bootimage(3, 0407<<16|0437, tm, HEADR+textsize, textsize,
+			INITTEXT, lcsize);
+		symhdrs(HEADR+textsize);
 		break;
 	case 4:
-
-		lput((0x160L<<16)|3L);		/* magic and sections */
-		lput(time(0));			/* time and date */
-		lput(rnd(HEADR+textsize, 4096)+datsize);
-		lput(symsize);			/* nsyms */
-		lput((0x38L<<16)|7L);		/* size of optional hdr and flags */
-
-		lput((0413<<16)|01012L);	/* magic and version */
-		lput(textsize);			/* sizes */
-		lput(datsize);
-		lput(bsssize);
-		lput(entryvalue());		/* va of entry */
-		lput(INITTEXT);			/* va of base of text */
-		lput(INITDAT);			/* va of base of data */
-		lput(INITDAT+datsize);		/* va of base of bss */
-		lput(~0L);			/* gp reg mask */
-		lput(lcsize);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(~0L);			/* gp value ?? */
-
-		strnput(".text", 8);		/* text segment */
-		lput(INITTEXT);			/* address */
-		lput(INITTEXT);
-		lput(textsize);
-		lput(HEADR);
-		lput(0L);
-		lput(HEADR+textsize+datsize+symsize);
-		lput(lcsize);			/* line number size */
-		lput(0x20L);			/* flags */
-
-		strnput(".data", 8);		/* data segment */
-		lput(INITDAT);			/* address */
-		lput(INITDAT);
-		lput(datsize);
-		lput(rnd(HEADR+textsize, 4096));	/* sizes */
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(0x40L);			/* flags */
-
-		strnput(".bss", 8);		/* bss segment */
-		lput(INITDAT+datsize);		/* address */
-		lput(INITDAT+datsize);
-		lput(bsssize);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(0L);
-		lput(0x80L);			/* flags */
+		/* 0413: plan 9 mips 4k boot image with symbols */
+		plan9bootimage(3, 0413<<16|01012, tm, rndtxtsz, textsize,
+			INITTEXT, lcsize);
+		symhdrs(rndtxtsz);
 		break;
 	case 5:
 		elf32(MIPS, little? ELFDATA2LSB: ELFDATA2MSB, 0, nil);

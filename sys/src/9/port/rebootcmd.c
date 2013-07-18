@@ -4,19 +4,9 @@
 #include	"dat.h"
 #include	"fns.h"
 #include	"../port/error.h"
-#include	"a.out.h"
+#include	<a.out.h>
 
-static ulong
-l2be(long l)
-{
-	uchar *cp;
-
-	cp = (uchar*)&l;
-	return (cp[0]<<24) | (cp[1]<<16) | (cp[2]<<8) | cp[3];
-}
-
-
-static void
+void
 readn(Chan *c, void *vp, long n)
 {
 	char *p = vp;
@@ -56,6 +46,7 @@ rebootcmd(int argc, char *argv[])
 	Chan *c;
 	Exec exec;
 	ulong magic, text, rtext, entry, data, size;
+	ulong sizes[3];
 	uchar *p;
 
 	if(argc == 0)
@@ -69,17 +60,23 @@ rebootcmd(int argc, char *argv[])
 
 	readn(c, &exec, sizeof(Exec));
 	magic = l2be(exec.magic);
-	entry = l2be(exec.entry);
-	text = l2be(exec.text);
-	data = l2be(exec.data);
 	/*
 	 * AOUT_MAGIC is sometimes defined like this:
 	 * #define AOUT_MAGIC	V_MAGIC || magic==M_MAGIC
 	 * so we can only use it in a fairly stylized manner.
 	 */
 	if(magic == AOUT_MAGIC) {
-	} else
+		entry = l2be(exec.entry);
+		text = l2be(exec.text);
+		data = l2be(exec.data);
+	} else if(parseboothdr && (*parseboothdr)(c, magic, sizes) >= 0){
+		entry = sizes[0];
+		text = sizes[1];
+		data = sizes[2];
+	} else {
 		error(Ebadexec);
+		return;				/* for the compiler */
+	}
 
 	/* round text out to page boundary */
 	rtext = ROUNDUP(entry+text, MAXBY2PG) - entry;

@@ -810,6 +810,7 @@ extern	Queue*	kprintoq;
 extern 	Ref	noteidalloc;
 extern	int	nsyscall;
 extern	Palloc	palloc;
+	int	(*parseboothdr)(Chan *, ulong, ulong [3]);
 extern	Queue*	serialoq;
 extern	char*	statename[];
 extern	Image	swapimage;
