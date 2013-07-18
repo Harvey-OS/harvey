@@ -1,3 +1,4 @@
+/* vl - mips linker */
 #define	EXTERN
 #include	"l.h"
 #include	<ar.h>
@@ -10,23 +11,22 @@ char	*noname		= "<none>";
 char	symname[]	= SYMDEF;
 char	thechar		= 'v';
 char	*thestring 	= "mips";
+int little;
 
 char**	libdir;
 int	nlibdir	= 0;
 static	int	maxlibdir = 0;
 
 /*
- *	-H0 -T0x40004C -D0x10000000	is abbrev unix
- *	-H1 -T0x80020000 -R4		is bootp() format for 3k
- *	-H2 -T16416 -R16384		is plan9 format
- *	-H3 -T0x80020000 -R8		is bootp() format for 4k
- *	-H4 -T0x400000 -R4		is sgi unix coff executable
- *	-H5 -T0x4000A0 -R4		is sgi unix elf executable
- *	-H6				is headerless
- *	-H7				is 64-bit elf executable
+ * -H0 -T0x40004C -D0x10000000 is abbrev unix		(boot image)
+ * -H1 -T0x80020000 -R4	is bootp() format for 3k	(boot image)
+ * -H2 -T16416 -R16384	is plan9 format
+ * -H3 -T0x80020000 -R8	is bootp() format for 4k	(4k boot image)
+ * -H4 -T0x400000 -R4	is sgi unix coff executable	(4k boot image)
+ * -H5 -T0x4000A0 -R4	is sgi unix elf executable
+ * -H6			is headerless
+ * -H7			is 64-bit elf executable
  */
-
-int little;
 
 void
 usage(void)
