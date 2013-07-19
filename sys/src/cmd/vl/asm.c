@@ -299,6 +299,7 @@ asmb(void)
 	case 3:
 	case 5:
 	case 6:
+	case 7:
 		OFFSET = HEADR+textsize;
 		seek(cout, OFFSET, 0);
 		break;
@@ -327,6 +328,7 @@ asmb(void)
 		case 1:
 		case 5:
 		case 6:
+		case 7:
 			OFFSET = HEADR+textsize+datsize;
 			seek(cout, OFFSET, 0);
 			break;

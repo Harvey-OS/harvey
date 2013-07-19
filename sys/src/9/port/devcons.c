@@ -618,7 +618,7 @@ static Dirtab consdir[]={
 	"pid",		{Qpid},		NUMSIZE,	0444,
 	"ppid",		{Qppid},	NUMSIZE,	0444,
 	"random",	{Qrandom},	0,		0444,
-	"reboot",	{Qreboot},	0,		0664,
+	"reboot",	{Qreboot},	0,		0660,
 	"swap",		{Qswap},	0,		0664,
 	"sysname",	{Qsysname},	0,		0664,
 	"sysstat",	{Qsysstat},	0,		0666,

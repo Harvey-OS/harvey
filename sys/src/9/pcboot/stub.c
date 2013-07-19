@@ -398,3 +398,12 @@ void
 fpsserestore(FPsave *)
 {
 }
+
+ulong
+l2be(long l)
+{
+	uchar *cp;
+
+	cp = (uchar*)&l;
+	return (cp[0]<<24) | (cp[1]<<16) | (cp[2]<<8) | cp[3];
+}
