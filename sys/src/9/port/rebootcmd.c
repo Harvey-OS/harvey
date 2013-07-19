@@ -79,7 +79,7 @@ rebootcmd(int argc, char *argv[])
 	}
 
 	/* round text out to page boundary */
-	rtext = ROUNDUP(entry+text, MAXBY2PG) - entry;
+	rtext = ROUNDUP(entry+text, BY2PG) - entry;
 	size = rtext + data;
 	p = malloc(size);
 	if(p == nil)
