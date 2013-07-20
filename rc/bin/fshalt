@@ -44,8 +44,8 @@ if (test -e '#v/vgactl' && test -e '#P/realmode') {
 }
 
 fn isbootable {
-	# on mips (for example), kernels are now a.out format
-	test -e $1 && ~ `{file $1} *' plan 9 boot image' *' plan 9 executable'*
+	test -e $1 && ~ `{file $1} *' plan 9 boot image' \
+		*' plan 9 executable'* *ELF*' executable'
 }
 fn usekernel {
 	kerncopy=kern
