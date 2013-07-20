@@ -5,6 +5,21 @@
 #include	"fns.h"
 #include	"../port/error.h"
 #include	<a.out.h>
+#include 	"/sys/src/libmach/elf.h"
+
+enum {
+	Ehdr32sz	= 52,
+	Phdr32sz	= 32,
+	Shdr32sz	= 40,
+
+	Ehdr64sz	= 64,
+	Phdr64sz	= 56,
+	Shdr64sz	= 64,
+};
+
+static uchar elfident[] = {
+	'\177', 'E', 'L', 'F',
+};
 
 void
 readn(Chan *c, void *vp, long n)
@@ -20,6 +35,49 @@ readn(Chan *c, void *vp, long n)
 		p += nn;
 		n -= nn;
 	}
+}
+
+/* assume the elf header is in the byte order of this machine */
+int
+readelfhdr(Chan *c, ulong, Execvals *evp)
+{
+	Ehdr ehdr;
+	Phdr phdrs[3];
+
+	c->offset = 0;			/* back up */
+	readn(c, &ehdr, sizeof ehdr);
+	if(memcmp(&ehdr.ident[MAG0], elfident, sizeof elfident) != 0 ||
+	    ehdr.ident[CLASS] != ELFCLASS32)
+		return -1;
+
+	/* get textsize and datasize from Phdrs */
+	readn(c, phdrs, sizeof phdrs);
+	evp->entry = ehdr.elfentry;
+	evp->textsize = phdrs[0].filesz;
+	evp->datasize = phdrs[1].filesz;
+	c->offset = ROUNDUP(Ehdr32sz + 3*Phdr32sz, 16);	/* position for text */
+	return 0;
+}
+
+static int
+readelf64hdr(Chan *c, ulong, Execvals *evp)
+{
+	E64hdr ehdr;
+	P64hdr phdrs[3];
+
+	c->offset = 0;			/* back up */
+	readn(c, &ehdr, sizeof ehdr);
+	if(memcmp(&ehdr.ident[MAG0], elfident, sizeof elfident) != 0 ||
+	    ehdr.ident[CLASS] != ELFCLASS64)
+		return -1;
+
+	/* get textsize and datasize from Phdrs */
+	readn(c, phdrs, sizeof phdrs);
+	evp->entry = ehdr.elfentry;
+	evp->textsize = phdrs[0].filesz;
+	evp->datasize = phdrs[1].filesz;
+	c->offset = ROUNDUP(Ehdr64sz + 3*Phdr64sz, 16);	/* position for text */
+	return 0;
 }
 
 static void
@@ -45,8 +103,8 @@ rebootcmd(int argc, char *argv[])
 {
 	Chan *c;
 	Exec exec;
+	Execvals ev;
 	ulong magic, text, rtext, entry, data, size;
-	ulong sizes[3];
 	uchar *p;
 
 	if(argc == 0)
@@ -69,10 +127,12 @@ rebootcmd(int argc, char *argv[])
 		entry = l2be(exec.entry);
 		text = l2be(exec.text);
 		data = l2be(exec.data);
-	} else if(parseboothdr && (*parseboothdr)(c, magic, sizes) >= 0){
-		entry = sizes[0];
-		text = sizes[1];
-		data = sizes[2];
+	} else if(parseboothdr && (*parseboothdr)(c, magic, &ev) >= 0 ||
+	    readelfhdr(c, magic, &ev) >= 0 ||
+	    readelf64hdr(c, magic, &ev) >= 0){
+		entry = ev.entry;
+		text = ev.textsize;
+		data = ev.datasize;
 	} else {
 		error(Ebadexec);
 		return;				/* for the compiler */

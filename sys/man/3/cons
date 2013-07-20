@@ -207,6 +207,12 @@ variable is set to
 .IR kernelpath .
 Only the host
 owner has the ability to open this file.
+The named kernel may be a Plan 9 executable or
+a 32-bit or 64-bit ELF executable.
+On some architectures
+(e.g.,
+.BR mips ),
+it may also be a Plan 9 boot image.
 .PP
 .B Bintime
 is a binary interface that provides
