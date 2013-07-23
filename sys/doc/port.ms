@@ -219,6 +219,28 @@ and
 for more information.
 .
 .SH
+The Routerboard 450G operating system
+.PP
+This is a CPU kernel that runs on the Mikrotik Routerboard RB450G,
+which contains a MIPS 24K CPU
+(the Atheros 7161), which implements the MIPS32R2 architecture.
+It has 256MB of RAM and a serial port.
+The CPU lacks the 64-bit instructions of previous MIPS systems (e.g.,
+SGI Challenge and Carrera).
+There is no hardware floating-point, so we emulate the instructions.
+Only the first of the five Gigabit Ethernet ports is currently supported;
+the other four are connected via an internal switch.
+To avoid a bug in the CPU (erratum 48), we run the caches write-through,
+rather than write-back, and compiled
+.CW /mips
+with a
+.I vl
+modified to emit enough NOPs to avoid three consecutive store instructions
+(see
+.CW /sys/src/cmd/vl/noop.c
+to enable this).
+.
+.SH
 The PowerPC operating system
 .PP
 We have a version of the system that runs on the PowerPC
@@ -235,6 +257,7 @@ and at present only a single CPU is permitted.
 .PP
 We have ports to the Xilinx Virtex 4 and 5 FPGAs
 which use PowerPC 405 and 440 processors, respectively.
+.
 .SH
 The Marvell Kirkwood operating system
 .PP

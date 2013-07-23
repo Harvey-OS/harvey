@@ -18,6 +18,8 @@ struct Tos {
 	vlong	pcycles;	/* cycles spent in process (kernel + user) */
 	ulong	pid;		/* might as well put the pid here */
 	ulong	clock;
+	/* scratch space for kernel use (e.g., mips fp delay-slot execution) */
+	ulong	kscr[4];
 	/* top of stack is here */
 };
 
