@@ -1,0 +1,73 @@
+mikrotik rb450g routerboard
+
+atheros ar7161 cpu: mips 24Kc v3.5 rev 0: 30 dec 2005,
+	big-endian, 32-bit only, 8- or 9-stage pipeline; 8kb cache
+	option, but no l2 support, no relocatable reset exception
+	vector, no UserLocal register, no wait with interrupts
+	disabled, no errata fixes.
+no fpu
+256mb dram
+mmu 16 tlbs
+l1 i-cache 4 ways, 512 sets, 32 bytes per line = 64K
+l1 d-cache 4 ways, 256 sets, 32 bytes per line = 32k
+config1: 0x9ee3519e
+config2: 0x80000000 (no l2 cache)
+config3: 0x20	(VInt: vectored interrupts available)
+config7: 0	(wait instruction not interruptible)
+cause:	0x50008018 (original interrupt behaviour)
+intctl: 0	(original interrupt behaviour)
+srsctl, srsmap are 0
+perf ctl 0: 0x80000000
+perf ctl 1: 0x0
+ll/sc target memory must be cached.
+
+1 uart		8250 (actually 16550ish)
+2 ethers	arge[01] ar71xx, 2nd has 4 ports & a bridge
+pci bus(es)
+no video
+no disk but has flash, alas
+
+addresses
+
+devices; access by KSEG1|addr
+0x10000000	pci memory space
+0x18020000	uart 16550 in apb space
+0x19000000	ether arge1, phy0-3
+0x1a000000	ether arge0, phy4
+0x1b000000	ehci
+0x1c000000	ochi
+0x1f000000	spi
+
+0x80060000	virtual start addr (linux)
+0xbfc00000	prom
+
+irqs
+2	pci
+3	ehci
+4	arge1 ar71xx @ 0x19:: + ar8316 switch
+5	arge0 ar71xx @ 0x1a::
+6	uart
+7	clock
+
+apb intrs
+0	timer
+1	error
+2	gpio
+3	uart
+4	watchdog
+5	hwpmc
+6	ohci
+7	dma
+
+for previous mips assembler code, see
+	/1998/0101/sys/src/boot/carrera
+	/1998/0101/sys/src/brazil/carrera
+	/2000/0615/sys/src/9/carrera
+	/n/fornaxdump/1997/1201/sys/src/brazil/magnum
+
+for ether, see
+	/o/bsd/free/sys/mips/atheros/if_arge.c
+	/o/bsd/free/sys/mips/atheros/if_argevar.h
+	/o/bsd/free/sys/mips/atheros/ar71xxreg.h
+	/o/bsd/free/sys/dev/etherswitch/*
+	/o/openwrt/target/linux/ar71xx/files/drivers/net/ethernet/atheros/ag71xx

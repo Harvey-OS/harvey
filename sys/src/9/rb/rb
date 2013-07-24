@@ -1,0 +1,58 @@
+# routerboard rb450g
+dev
+	root
+	cons
+	arch
+	env
+	pipe
+	proc
+	mnt
+	srv
+	dup
+#	rtc
+	ssl
+	tls
+	cap
+	kprof
+	fs
+
+	ether		netif
+	ip		arp chandial inferno ip ipv6 ipaux iproute netlog nullmedium pktmedium ptclbsum
+
+	uart
+link
+	loopbackmedium
+	ethermedium
+
+misc
+	uarti8250
+# emulated fp
+	fpi
+	fpimips
+	fpimem
+	ethermii
+
+ip
+	tcp
+	udp
+	ipifc
+	icmp
+	icmp6
+	gre
+	ipmux
+	esp
+
+port
+	int cpuserver = 1;
+	uchar arge0mac[] = { 0xd4, 0xca, 0x6d, 0x7d, 0xf1, 0xce, };
+	uchar arge1mac[] = { 0xd4, 0xca, 0x6d, 0x7d, 0xf1, 0xcf, };
+};
+
+boot cpu
+	tcp
+
+bootdir
+	boot$CONF.out boot
+	/mips/bin/ip/ipconfig
+	/mips/bin/auth/factotum
+	nvram
