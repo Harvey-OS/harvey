@@ -1,0 +1,131 @@
+CONF=rb
+CONFLIST=rb
+# no rb with nvram on bovril (outside)
+EXTRACOPIES=piestand lookout boundary 
+
+objtype=mips
+</$objtype/mkfile
+p=9
+# must match mem.h
+KTZERO=0x80020000
+PHYSKTZERO=0x20000
+# must match mem.h
+UTZERO=0x4020
+# must match mem.h
+BY2PG=4096
+# must match mem.h
+MAXBY2PG=16384
+
+# CFLAGS=$CFLAGS -DFPEMUDEBUG
+
+DEVS=`{rc ../port/mkdevlist $CONF}
+
+PORT=\
+	alarm.$O\
+	alloc.$O\
+	allocb.$O\
+	auth.$O\
+	cache.$O\
+	chan.$O\
+	dev.$O\
+	edf.$O\
+	fault.$O\
+	latin1.$O\
+	mul64fract.$O\
+	page.$O\
+	parse.$O\
+	pgrp.$O\
+	portclock.$O\
+	print.$O\
+	proc.$O\
+	qio.$O\
+	qlock.$O\
+	rdb.$O\
+	rebootcmd.$O\
+	segment.$O\
+	swap.$O\
+	sysfile.$O\
+	sysproc.$O\
+	taslock.$O\
+	tod.$O\
+	xalloc.$O\
+
+OBJ=\
+	l.$O\
+	clock.$O\
+	faultmips.$O\
+	main.$O\
+	mmu.$O\
+	random.$O\
+	syscallfmt.$O\
+	trap.$O\
+	$CONF.root.$O\
+	$CONF.rootc.$O\
+	$DEVS\
+	$PORT\
+
+LIB=\
+	/mips/lib/libauth.a\
+	/mips/lib/libsec.a\
+	/mips/lib/libmp.a\
+	/mips/lib/libip.a\
+	/mips/lib/libc.a\
+
+# generate ELF format for pxe booting via RouterBOOT
+$p$CONF:Q:	$OBJ $CONF.c $LIB
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+	echo linking kernel
+	# -a for debugging
+	$LD -a -o $target -H5 -l -R$BY2PG -T$KTZERO -P$PHYSKTZERO -S $OBJ $CONF.$O $LIB >$target.list
+	# -H1 is plan 9 boot image with rounded segments
+	# $LD -o $target -H1 -l -R$BY2PG -T$KTZERO $OBJ $CONF.$O $LIB
+	size $target
+
+install:V:	$p$CONF
+	cp $p$CONF /$objtype/
+	echo installed.
+	for(i in $EXTRACOPIES)
+		{ 9fs $i && cp $p$CONF /n/$i/$objtype/ && echo -n $i... & }
+	wait
+	echo
+
+<../boot/bootmkfile
+<../port/portmkfile
+<|../port/mkbootrules $CONF
+
+init.h:	init9.s ../port/initcode.c /sys/src/libc/9syscall/sys.h
+	va init9.s
+	vc ../port/initcode.c
+	vl -T$UTZERO -R4 -o init.out init9.$O initcode.$O
+	{echo 'uchar initcode[]={'
+	 xd -r -1x init.out |
+		sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > init.h
+
+reboot.h:D:	initreboot.s rebootcode.c mem.h
+	$AS initreboot.s
+	$CC -FTVw rebootcode.c
+	# -lc is only for memmove.  -T arg is REBOOTADDR.
+	$LD -l -a -s -T0x80001000 -R4 -o reboot.out initreboot.$O rebootcode.$O -lc >reboot.list
+	{echo 'uchar rebootcode[]={'
+	 xd -1x reboot.out |
+		sed -e '1,2d' -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > reboot.h
+
+l.$O: mips.s
+arch.$O clock.$O fpimips.$O faultmips.$O mmu.$O syscall.$O \
+	trap.$O: /$objtype/include/ureg.h
+main.$O:	/$objtype/include/ureg.h errstr.h init.h reboot.h
+fpi.$O fpiarm.$O fpimem.$O: ../port/fpi.h
+devether.$O: 		../port/netif.h etherif.h
+
+%.clean:V:
+	rm -f $stem.c [9bz]$stem [9bz]$stem.gz boot$stem.* reboot.h apbootstrap.h init.h *.list
+
+# override ../port/portmkfile
+# create /boot/boot
+boot$CONF.out: $CONF print.$O $BOOTDIR/boot.c $BOOTLIB
+	$BOOTDIR/mkboot $CONF > boot$CONF.c
+	$CC $CFLAGS boot$CONF.c ../boot/printstub.c
+	$AS c_fcr0.s
+	$LD -o boot$CONF.out -T$UTZERO -R$MAXBY2PG boot$CONF.$O $BOOTLIB printstub.$O c_fcr0.$O

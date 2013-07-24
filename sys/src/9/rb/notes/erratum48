@@ -1,0 +1,36 @@
+/*
+ * 24K Erratum 48: Lost Data on Stores During Refill.
+
+  Problem: The FSB (fetch store buffer) acts as an intermediate buffer
+  for the data cache refills and store data. The following describes
+  the scenario where the store data could be lost.
+
+  * A data cache miss, due to either a load or a store, causing fill
+    data to be supplied by the memory subsystem
+  * The first three doublewords of fill data are returned and written
+    into the cache
+  * A sequence of four stores occurs in consecutive cycles around the
+    final doubleword of the fill:
+  * Store A
+  * Store B
+  * Store C
+  * Zero, One or more instructions
+  * Store D
+
+  The four stores A-D must be to different doublewords of the line that
+  is being filled. The fourth instruction in the sequence above permits
+  the fill of the final doubleword to be transferred from the FSB into
+  the cache. In the sequence above, the stores may be either integer
+  (sb, sh, sw, swr, swl, sc) or coprocessor (swc1/swc2, sdc1/sdc2,
+  swxc1, sdxc1, suxc1) stores, as long as the four stores are to
+  different doublewords on the line. If the floating point unit is
+  running in 1:2 mode, it is not possible to create the sequence above
+  using only floating point store instructions.  In this case, the cache
+  line being filled is incorrectly marked invalid, thereby losing the
+  data from any store to the line that occurs between the original miss
+  and the completion of the five cycle sequence shown above.
+
+  * Run the data cache in write-through mode.
+  * Insert a non-store instruction between
+    Store A and Store B or Store B and Store C.
+ */

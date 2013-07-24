@@ -5,6 +5,7 @@ ARCH=\
 	omap\
 	pc\
 	ppc\
+	rb\
 	teg2\
 	
 all:V:
