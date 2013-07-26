@@ -7,6 +7,7 @@
 
 #include "init.h"
 #include <pool.h>
+#include <tos.h>
 
 #include "arm.h"
 #include "reboot.h"
@@ -24,6 +25,9 @@
 
 enum {
 	Minmem	= 256*MB,			/* conservative default */
+
+	/* space for syscall args, return PC, top-of-stack struct */
+	Ustkheadroom	= sizeof(Sargs) + sizeof(uintptr) + sizeof(Tos),
 };
 
 #define isascii(c) ((uchar)(c) > 0 && (uchar)(c) < 0177)
@@ -714,7 +718,7 @@ bootargs(uintptr base)
 	 * of the argument list checked in syscall.
 	 */
 	i = oargblen+1;
-	p = UINT2PTR(STACKALIGN(base + BY2PG - sizeof(up->s.args) - i));
+	p = UINT2PTR(STACKALIGN(base + BY2PG - Ustkheadroom));
 	memmove(p, oargb, i);
 
 	/*

@@ -16,9 +16,13 @@
 #include	"pool.h"
 #include	"reboot.h"
 #include	"ip.h"		/* for eipfmt */
+#include	<tos.h>
 
 enum {
 	Datamagic = 0xbabeabed,
+
+	/* space for syscall args, return PC, top-of-stack struct */
+	Ustkheadroom	= sizeof(Sargs) + sizeof(uintptr) + sizeof(Tos),
 };
 
 Mach *m;
@@ -343,7 +347,7 @@ pusharg(char *p)
 	return sp;
 }
 
-/* we're a bootstrap loader, so we aren't passed any options. */
+/* we're a bootstrap loader, so we aren't passed any options to pass on. */
 void
 bootargs(void *base)
 {
@@ -353,7 +357,7 @@ bootargs(void *base)
 	char *cp = "";
 	char buf[64];
 
-	sp = (uchar*)base + BY2PG - MAXSYSARG*BY2WD;
+	sp = (uchar*)base + BY2PG - Ustkheadroom;
 
 	ac = 0;
 	av[ac++] = pusharg("/386/9dos");
