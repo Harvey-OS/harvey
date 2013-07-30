@@ -11,13 +11,18 @@ ncd:V: $scr/plan9-new.iso.bz2
 ncd-dist:V: $scr/plan9-new.iso.bz2
 	mk $dist/web.protect/plan9-new.iso.bz2
 
-cd-dist:V: $scr/plan9.iso.bz2
-	mk $dist/web.protect/plan9.iso.bz2
+usb-dist:V: 
+	cd pc; mk usbdisk
 
-contrib-cd:V: $scr/contrib.iso.bz2
-	mk $dist/web.protect/contrib.iso.bz2
+#contrib-cd:V: $scr/contrib.iso.bz2
+#	mk $dist/web.protect/contrib.iso.bz2
+#$scr/contrib.iso:DV:
+#	rm -f $target
+#	disk/mk9660 -9cj -v 'Plan 9 Extras' -s /n/sources \
+#		-p ./contrib.proto $target
 
 $scr/%.iso:D: $src9/dist/replica/plan9.log
+	rfork n
 	@ { cd pc; mk cddisk }
 	rm -f $target
 	bind pc/cddisk cdstub/bootdisk.img
@@ -30,8 +35,9 @@ $scr/%.iso:D: $src9/dist/replica/plan9.log
 	echo 'CD:' $title
 	disk/mk9660 -9cj -v $title -s $src9 -B pbsraw -x 9load $target
 
-# copy compressed file from scratch space to the distribution, carefully
-$dist/web.protect/%.iso.bz2:	$scr/%.iso.bz2
+# copy (compressed) file from scratch space to the distribution, carefully
+# $dist/web.protect/%.iso.bz2:	$scr/%.iso.bz2
+$dist/web.protect/%:		$scr/%
 	>>$target.new
 	chmod +t $target.new		# waste write buf, not venti store
 	cp $prereq $target.new
@@ -82,7 +88,7 @@ odump:V:
 	disk/dump9660 -9cj -v 'Plan 9 4e Dumps' -s $src9 \
 		-p /sys/lib/sysconfig/proto/allproto $scr/distdump.iso
 
-cd.install:V:
+cd.install:DV:
 	bzip2 -9 <$scr/plan9.iso >web.protect/nplan9.iso.bz2
 
 D.install:V:
@@ -138,11 +144,6 @@ $scr/%.iso.bz2:D: $scr/%.iso
 			sha1 `{sha1sum <$stem.iso.bz2} \
 			$stem.iso.bz2 >>/usr/web/plan9checksums.txt
 	}
-
-$scr/contrib.iso:DV:
-	rm -f $target
-	disk/mk9660 -9cj -v 'Plan 9 Extras' -s /n/sources \
-		-p ./contrib.proto $target
 
 rebuild:V:
 	chmod +l build.lock >>build.lock

@@ -15,10 +15,12 @@ HFILES=
 BIN=/sys/lib/dist/bin/$objtype
 </sys/src/cmd/mkmany
 
-all:V:	bzfs!all
-install:V:	bzfs!install
-clean:V:	bzfs!clean
+all:V:		bzfs!all multi!all
+install:V:	bzfs!install multi!install
+clean:V:	bzfs!clean multi!clean
 
 bzfs!%:V:
-	cd bzfs; mk $stem; cd ..
+	@ { cd bzfs; mk $stem }
 
+multi!%:V:
+	@ { cd multi; mk $stem }
