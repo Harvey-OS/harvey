@@ -96,7 +96,10 @@ default
 architecture of the default kernel in the disk image
 .TP
 .B /tmp/9load
+files created while executing
 .PD 0
+.TP
+.B /tmp/9pccpuf.gz
 .TP
 .B /srv/fossil
 .TP
@@ -105,7 +108,6 @@ architecture of the default kernel in the disk image
 .B /srv/fscons
 .TP
 .B /srv/fscons.open
-files created while executing
 .SH SOURCE
 .B /rc/bin/mkusbboot
 .SH SEE ALSO
@@ -123,7 +125,11 @@ Due to name clashes in
 should be run only on machines with no running
 .I fossil
 instance named
-.LR fossil .
+.LR fossil
+and thus no
+.BR /srv/fossil ,
+.BR /srv/fossil.open ,
+etc.
 .PP
 Not all BIOSes can reliably read from USB devices.
 Your mileage may vary.

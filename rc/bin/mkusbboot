@@ -12,7 +12,8 @@ quantum=1000000
 # size of image in $quantum-byte units.  1900 is enough for production system
 # (fs, /n/boot, ~1.2GB); 900 is ample for our install image
 # (sources, /n/sources/plan9, ~370MB).
-size=1900
+defsize=1900
+size=()
 
 fn usage {
 	echo usage: $argv0 '[-b boot] [-p proto] [-r root] [-s 10⁶-bytes]' >[1=2]
@@ -46,7 +47,9 @@ if (! ~ $#* 0)
 if (~ $srcroot /n/*)
 	srcfs=`{ echo $srcroot | sed 's;^/n/([^/]+).*;\1;' }
 if (~ $srcfs sources)
-	size=900
+	defsize=900
+if (~ $#size 0)
+	size=$defsize
 
 # make empty disk image file of maximum size
 echo -n 'image: ' >[1=2]
@@ -67,7 +70,10 @@ disk/prep -bw -a^(9fat nvram fscfg fossil) plan9 >/dev/null
 echo -n 9fat... >[1=2]
 switch ($objtype) {
 case 386
-	k=/$objtype/9pccpuf.gz
+	# we don't normally keep gzipped kernels around,
+	# but usb can be flakey and slow, so we'll make one.
+	k=/tmp/9pccpuf.gz
+	gzip -9 </$objtype/9pccpuf >$k
 case amd64
 	k=/$objtype/9k8cpu
 case *
@@ -78,6 +84,8 @@ cp $boot /tmp/9load		# force format to record the name `9load'
 disk/format -b /386/pbslba -d -r 2 9fat /tmp/9load $k \
 	$syscfg/usb/plan9.ini >[2=1] |
 	grep -v '^(add .* at clust |Init|type |Adding file|used )'
+if (~ $objtype 386)
+	rm -f $k
 rm -f /tmp/9load
 cp /dev/zero nvram >[2]/dev/null
 cp /dev/zero fscfg >[2]/dev/null

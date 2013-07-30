@@ -1,17 +1,18 @@
+# /sys/lib/dist/pc/mkfile
 out=outside			# outside web server
 s=/sys/lib/dist/pc
 x=`{bind -b /sys/lib/dist/bin/$cputype /bin}
 
-default:V: ndisk
-	ls -l ndisk
+default:V: cddisk
 
 SUB=`{ls sub inst}
-boot.raw:Q: proto $SUB
+boot.raw:DQ: proto $SUB
+	rfork n
 	rm -rf boot
 	mkdir boot
 	bind /dev/null /sys/log/timesync
 	# make files writable for now.
-	cat proto | sed 's!d000!d775!;s!000!664!;s!555!775!;s!444!664!' >proto.cp
+	sed 's!d000!d775!;s!000!664!;s!555!775!;s!444!664!' proto >proto.cp
 	disk/mkfs -a proto.cp | disk/mkext -d boot
 	@{
 		cd boot/386
@@ -19,18 +20,17 @@ boot.raw:Q: proto $SUB
 		cd bin
 		strip * */* >[2]/dev/null || status=''
 	}
-	cat proto | sed 's!/.*!!' >proto.cp
+	sed 's!/.*!!' proto >proto.cp
 	disk/mkfs -a -s boot proto.cp | tee >{wc -c >[1=2]} | 
-		touchfs 1000000000 >boot.raw
+		touchfs 1000000000 >$target
 
-boot.bz2:Q: boot.raw
+boot.bz2:DQ: boot.raw
 	ls -l boot.raw
-	bflz -n 32 < boot.raw >boot.bflz
-	ls -l boot.bflz
-	bzip2 -9 < boot.bflz >$target
-	ls -l $target
+	bflz -n 32 <boot.raw >boot.bflz
+	bzip2 -9 <boot.bflz >$target
+	ls -l boot.bflz $target
 
-root.bz2:Q: boot.bz2
+root.bz2:DQ: boot.bz2
 	{
 		echo bzfilesystem
 		cat boot.bz2
@@ -59,40 +59,49 @@ root.bz2:Q: boot.bz2
 	cp $prereq $target
 	cp /386/9loaddebug 9loaddebug
 
-ndisk: 9load /sys/src/9/pc/9pcflop.gz plan9.ini /lib/vgadb
-	dd -if /dev/zero -of ndisk -bs 1024 -count 1440 >[2]/dev/null
-	disk/format -f -b /386/pbs -d ndisk \
-		9load /sys/src/9/pc/9pcflop.gz plan9.ini /lib/vgadb
-	ls -l ndisk
+# 9load no longer loads from floppies, and even if it did, this
+# no longer works, since 9load+9pcflop.gz won't fit on a floppy:
+#	disk/format: data does not fit on disk (2849 2849)
+#ndisk: 9load /sys/src/9/pc/9pcflop.gz plan9.ini /lib/vgadb
+#	dd -if /dev/zero -of ndisk -bs 1024 -count 1440 >[2]/dev/null
+#	disk/format -f -b /386/pbs -d ndisk \
+#		9load /sys/src/9/pc/9pcflop.gz plan9.ini /lib/vgadb
+#	ls -l ndisk
 
 # cannot list both 9pcflop.gz and 9pccd.gz because they cannot be built 
 # in parallel.  stupid mk
-cddisk:DV: 9load /sys/src/9/pc/9pcflop.gz plan9.ini.cd /lib/vgadb
+cddisk:D: 9load /sys/src/9/pc/9pcflop.gz plan9.ini.cd /lib/vgadb
 	mk -a /sys/src/9/pc/9pccd.gz
 	mk -a /sys/src/9/pc/9pcflop.gz
 	rfork n
 	cp -x plan9.ini.cd subst/plan9.ini
-	dd -if /dev/zero -of cddisk -bs 1024 -count 2880 >[2]/dev/null
-	disk/format -t 3½QD -f -b /386/pbs -d cddisk \
-		/sys/src/9/pc/^(9pcflop.gz 9pccd.gz) \
-		subst/plan9.ini /lib/vgadb
-	ls -l cddisk
+	dd -if /dev/zero -of $target -bs 1024 -count 2880 >[2]/dev/null
+	disk/format -t 3½QD -f -b /386/pbs -d $target \
+		/sys/src/9/pc/^(9pcflop 9pccd)^.gz subst/plan9.ini /lib/vgadb
+	ls -l $target
+
+usbdisk:D: /n/sources/plan9
+	cd $scr
+	mkusbboot -s 1900 -r /n/sources/plan9 && mv image $target
+	gzip -9 $target
+	pwd
+	ls -l $target*
 
 clean:V:
 	if (! unmount 9load >[2]/dev/null)
 		;
 	rm -rf boot boot.bz2 boot.bflz boot.raw root.bz2 9pcflop ndisk 9load cddisk proto.cp 9loaddebug
 
-install:V: ndisk 9loaddebug
+install:V: 9loaddebug # ndisk
 	9fs $out
 	dst=/n/$out/sys/lib/dist/web.protect
 	cp 9loaddebug $dst
-	gzip -9 < ndisk > $dst/plan9.flp.gz
+	# gzip -9 <ndisk > $dst/plan9.flp.gz
 	# mk clean
 
-test:V: ndisk 9loaddebug
+test:V: 9loaddebug # ndisk
 	cp 9loaddebug ../web.protect2/n9loaddebug
-	cp ndisk ../web.protect2/ndisk
+	# cp ndisk ../web.protect2/ndisk
 
 cd0:D:	cddisk
 	rm -f cd0

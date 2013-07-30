@@ -2,6 +2,7 @@ objtype=386
 </$objtype/mkfile
 
 TARG=multi
+BIN=/sys/lib/dist/bin/$objtype
 
 PIECES=\
 	aux/mouse\
@@ -57,9 +58,9 @@ PIECES=\
 	wc\
 	xd\
 
-8.multi:V: mkmulti mkfile
+$O.multi: mkmulti mkfile
 	mkmulti $PIECES 
-	ls -l 8.multi
+	ls -l $O.multi
 	ls -l /386/bin/$PIECES | awk '{s += $6} END{print s}'
 
 scripts:V:
@@ -71,6 +72,4 @@ scripts:V:
 		chmod +x ../../pc/multi/$b
 	}
 
-BIN=/sys/lib/dist/bin/$objtype
 </sys/src/cmd/mkmany
-
