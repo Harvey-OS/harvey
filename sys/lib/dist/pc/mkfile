@@ -83,6 +83,7 @@ cddisk:D: 9load /sys/src/9/pc/9pcflop.gz plan9.ini.cd /lib/vgadb
 usbdisk:D: /n/sources/plan9
 	cd $scr
 	mkusbboot -s 1900 -r /n/sources/plan9 && mv image $target
+	rm -f $target.gz
 	gzip -9 $target
 	pwd
 	ls -l $target*
