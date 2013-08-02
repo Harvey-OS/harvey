@@ -110,11 +110,11 @@ as an Ethernet medium carrying IP and ARP packets
 and associate it with this interface.
 The kernel will
 .IR dial (2)
-.IR path !0x800
-and
+.IR path !0x800,
 .IR path !0x806
-and use the two connections for IPv4 and
-ARP respectively.
+and
+.IR path !0x86dd
+and use the connections for IPv4, ARP and IPv6 respectively.
 .TP
 .B "bind pkt
 Treat this interface as a packet interface.  Assume
