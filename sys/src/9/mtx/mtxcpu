@@ -40,7 +40,9 @@ boot cpu
 	tcp
 
 bootdir
-	bootmtxcpu.out boot
-	ipconfig.hack ipconfig
-	factotum.hack factotum
-
+	boot$CONF.out boot
+# don't know how to generate foo.hack, so use the stock ones
+#	ipconfig.hack ipconfig
+#	factotum.hack factotum
+	/power/bin/ip/ipconfig
+	/power/bin/auth/factotum

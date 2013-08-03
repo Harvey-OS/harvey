@@ -428,6 +428,9 @@ trap(Ureg *ureg)
 	case PsrMabt:			/* prefetch fault */
 		ldrexvalid = 0;
 		faultarm(ureg, ureg->pc, user, 1);
+		if(up->nnote == 0 &&
+		   (*(u32int*)ureg->pc & ~(0xF<<28)) == 0x01200070)
+			postnote(up, 1, "sys: breakpoint", NDebug);
 		break;
 	case PsrMabt+1:			/* data fault */
 		ldrexvalid = 0;
@@ -492,10 +495,9 @@ trap(Ureg *ureg)
 	case PsrMund:	/* undefined instruction */
 		if(user){
 			if(seg(up, ureg->pc, 0) != nil &&
-			   *(u32int*)ureg->pc == 0xD1200070){
-				snprint(buf, sizeof buf, "sys: breakpoint");
-				postnote(up, 1, buf, NDebug);
-			}else{
+			   (*(u32int*)ureg->pc & ~(0xF<<28)) == 0x01200070)
+				postnote(up, 1, "sys: breakpoint", NDebug);
+			else{
 				/* look for floating point instructions to interpret */
 				x = spllo();
 				rv = fpiarm(ureg);

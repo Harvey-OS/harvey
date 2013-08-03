@@ -39,7 +39,7 @@ struct Mntcache
 typedef struct Cache Cache;
 struct Cache
 {
-	Lock;
+	QLock;
 	int		pgno;
 	Mntcache	*head;
 	Mntcache	*tail;
@@ -113,10 +113,10 @@ cinit(void)
 		panic("cinit: no memory");
 
 	/* a better algorithm would be nice */
-//	if(conf.npage*BY2PG > 200*MB)
-//		maxcache = 10*MAXCACHE;
-//	if(conf.npage*BY2PG > 400*MB)
-//		maxcache = 50*MAXCACHE;
+	if(conf.npage*BY2PG > 400*MB)
+		maxcache = 50*MAXCACHE;
+	else if(conf.npage*BY2PG > 200*MB)
+		maxcache = 10*MAXCACHE;
 
 	for(i = 0; i < NFILE-1; i++) {
 		m->next = m+1;
@@ -223,14 +223,14 @@ copen(Chan *c)
 		return;
 
 	h = c->qid.path%NHASH;
-	lock(&cache);
+	qlock(&cache);
 	for(m = cache.hash[h]; m; m = m->hash) {
 		if(m->qid.path == c->qid.path)
 		if(m->qid.type == c->qid.type)
 		if(m->dev == c->dev && m->type == c->type) {
 			c->mcp = m;
 			ctail(m);
-			unlock(&cache);
+			qunlock(&cache);
 
 			/* File was updated, invalidate cache */
 			if(m->qid.vers != c->qid.vers) {
@@ -267,7 +267,7 @@ copen(Chan *c)
 	c->mcp = m;
 	e = m->list;
 	m->list = 0;
-	unlock(&cache);
+	qunlock(&cache);
 
 	while(e) {
 		next = e->next;
@@ -402,7 +402,7 @@ cchain(uchar *buf, ulong offset, int len, Extent **tail)
 		e->start = offset;
 		e->len = l;
 
-		lock(&cache);
+		qlock(&cache);
 		e->bid = cache.pgno;
 		cache.pgno += BY2PG;
 		/* wrap the counter; low bits are unused by pghash but checked by lookpage */
@@ -413,7 +413,7 @@ cchain(uchar *buf, ulong offset, int len, Extent **tail)
 			}else
 				cache.pgno++;
 		}
-		unlock(&cache);
+		qunlock(&cache);
 
 		p->daddr = e->bid;
 		k = kmap(p);

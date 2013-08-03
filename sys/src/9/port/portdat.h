@@ -112,6 +112,7 @@ struct QLock
 	Proc	*head;		/* next process waiting for object */
 	Proc	*tail;		/* last process waiting for object */
 	int	locked;		/* flag */
+	uintptr	qpc;		/* pc of the holder */
 };
 
 struct RWlock

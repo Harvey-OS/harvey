@@ -252,12 +252,18 @@ drawgen(Chan *c, char*, Dirtab*, int, int s, Dir *dp)
 			devdir(c, q, "draw", 0, eve, 0555, dp);
 			break;
 		case 1:
-			mkqid(&q, Qwinname, 0, 0);
+			mkqid(&q, Qwinname, 0, QTFILE);
 			devdir(c, q, "winname", 0, eve, 0444, dp);
 			break;
 		default:
 			return -1;
 		}
+		return 1;
+	}
+
+	if(t == Qwinname){
+		mkqid(&q, Qwinname, 0, QTFILE);
+		devdir(c, q, "winname", 0, eve, 0444, dp);
 		return 1;
 	}
 

@@ -30,6 +30,7 @@ int	row[NLIFE];
 int	col[NLIFE];
 char	action[18];		/* index by cell contents to find action */
 char	*adjust[NADJUST];
+int		delay;
 
 Point	cen;
 Image	*box;
@@ -100,9 +101,15 @@ idle(void)
 
 	while (ecanmouse())
 		emouse();			/* throw away mouse events */
-	while (ecankbd())
-		if ((c = ekbd()) == 'q' || c == 0177) /* watch keyboard ones */
+	while (ecankbd()){
+		c = ekbd();
+		if (c  == 'q' || c == 0177) /* watch keyboard ones */
 			exits(nil);
+		if (c >= '1' && c <= '9')
+			delay = (c - '0') * 100;
+		else if (c == '0')
+			delay = 1000;
+	}
 	if (needresize)
 		reshape();
 }
@@ -110,8 +117,7 @@ idle(void)
 void
 main(int argc, char *argv[])
 {
-	int delay = 1000;
-
+	delay = 1000;
 	setrules(".d.d..b..d.d.d.d.d");			/* regular rules */
 	ARGBEGIN {
 	case '3':

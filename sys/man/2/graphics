@@ -18,11 +18,8 @@ int	initdraw(void (*errfun)(Display*, char*), char *font,
 .PP
 .B
 int	geninitdraw(char *devdir, void(*errfun)(Display*, char*),
-.PP
 .B
-	   char *font, char *label, char *mousedir, char *windir,
-.B
-	   int ref)
+	   char *font, char *label, char *windir, int ref)
 .PP
 .B
 int	newwindow(char *str)
@@ -368,12 +365,8 @@ and
 .I label
 are as in
 .IR initdraw ;
-.I mousedir
-and
 .I windir
-are the directories holding the
-.B mouse
-and
+is the directory holding the
 .B winname
 files; and
 .I ref

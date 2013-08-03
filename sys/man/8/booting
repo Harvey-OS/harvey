@@ -70,7 +70,7 @@ or
 .
 .SS MIPS Routerboard CPU Server
 Configure RouterBOOT via the serial port (115200 baud)
-to always boot from Ethernet, and arrange to load the ELF executable
+to always boot from Ethernet via DHCP and TFTP, and arrange to load the ELF executable
 .B /mips/9rb
 in
 .IR ndb (6).
