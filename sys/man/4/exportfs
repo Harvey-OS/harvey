@@ -139,17 +139,27 @@ Make the served name space read only.
 .B -r \fIroot
 Bypass the initial protocol, serving the name space rooted at
 .IR root .
+A corresponding
+.IR import (4)
+must use the
+.B -m
+option.
 .TP
 .B -S \fIservice
-bypass the initial protocol, serving the result of mounting
+Bypass the initial protocol, serving the result of mounting
 .IR service .
 A separate mount is used for each
 .IR attach (5)
 message,
 to correctly handle servers in which each mount
 corresponds to a different client
-.IR e.g. , (
+(e.g.,
 .IR rio (4)).
+A corresponding
+.IR import (4)
+must use the
+.B -m
+option.
 .TP
 .B -s
 equivalent to

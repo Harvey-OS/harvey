@@ -13,6 +13,14 @@ import \- import a name space from a remote system
 ]
 .PP
 .B import
+.B -m
+[
+.I options
+]
+.I system
+.I mountpoint
+.PP
+.B import
 .B -B
 [
 .I options
@@ -114,6 +122,27 @@ temporary network outages.
 Post the connection's mountable file descriptor as
 .BI /srv/ name\fR.
 .PD
+.PP
+The
+.B -m
+option mounts a file exported by
+.IR exportfs (4)
+with its
+.B -r
+or
+.B -S
+options, which skip the part of its protocol that allows the importer to specify
+the
+.I file
+to export.
+Instead, the file or name space is selected by
+.IR exportfs ,
+and
+.I import
+mounts it on
+.I mountpoint
+as guided by the other
+.IR options .
 .PP
 The 
 .B -B

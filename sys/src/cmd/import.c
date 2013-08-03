@@ -92,11 +92,12 @@ void
 main(int argc, char **argv)
 {
 	char *mntpt, *srvpost, srvfile[64];
-	int backwards = 0, fd, mntflags, oldserver;
+	int backwards = 0, fd, mntflags, oldserver, notree;
 
 	quotefmtinstall();
 	srvpost = nil;
 	oldserver = 0;
+	notree = 0;
 	mntflags = MREPL;
 	ARGBEGIN{
 	case 'A':
@@ -145,6 +146,9 @@ main(int argc, char **argv)
 	case 'B':
 		backwards = 1;
 		break;
+	case 'm':
+		notree = 1;
+		break;
 	default:
 		usage();
 	}ARGEND;
@@ -164,6 +168,8 @@ main(int argc, char **argv)
 			mntpt = argv[1];
 			break;
 		case 3:
+			if(notree)
+				usage();
 			mntpt = argv[2];
 			break;
 		default:
@@ -179,6 +185,8 @@ main(int argc, char **argv)
 
 	if(backwards)
 		fd = passive();
+	else if(notree)
+		fd = connect(argv[0], nil, oldserver);
 	else
 		fd = connect(argv[0], argv[1], oldserver);
 
@@ -312,20 +320,22 @@ connect(char *system, char *tree, int oldserver)
 			sysfatal("%r: %s", system);
 	}
 
-	procsetname("writing tree name %s", tree);
-	n = write(fd, tree, strlen(tree));
-	if(n < 0)
-		sysfatal("can't write tree: %r");
+	if(tree != nil){
+		procsetname("writing tree name %s", tree);
+		n = write(fd, tree, strlen(tree));
+		if(n < 0)
+			sysfatal("can't write tree: %r");
 
-	strcpy(buf, "can't read tree");
+		strcpy(buf, "can't read tree");
 
-	procsetname("awaiting OK for %s", tree);
-	n = read(fd, buf, sizeof buf - 1);
-	if(n!=2 || buf[0]!='O' || buf[1]!='K'){
-		if (timedout)
-			sysfatal("timed out connecting to %s", na);
-		buf[sizeof buf - 1] = '\0';
-		sysfatal("bad remote tree: %s", buf);
+		procsetname("awaiting OK for %s", tree);
+		n = read(fd, buf, sizeof buf - 1);
+		if(n!=2 || buf[0]!='O' || buf[1]!='K'){
+			if (timedout)
+				sysfatal("timed out connecting to %s", na);
+			buf[sizeof buf - 1] = '\0';
+			sysfatal("bad remote tree: %s", buf);
+		}
 	}
 
 	if(oldserver)
@@ -362,7 +372,7 @@ passive(void)
 void
 usage(void)
 {
-	fprint(2, "usage: import [-abcC] [-A] [-E clear|ssl|tls] "
+	fprint(2, "usage: import [-abcCm] [-A] [-E clear|ssl|tls] "
 "[-e 'crypt auth'|clear] [-k keypattern] [-p] host remotefs [mountpoint]\n");
 	exits("usage");
 }

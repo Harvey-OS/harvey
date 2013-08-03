@@ -386,6 +386,10 @@ enum {
 	 */
 	FT4232HDid	= 0x6011,		/* FTDI FT4232H based device */
 
+	/*
+	 * Amontec JTAGkey (http://www.amontec.com/)
+	 */
+	AMONKEYDid	= 0xCFF8,
 };
 
 /* Commands */

@@ -412,6 +412,7 @@ mntwalk(Chan *c, Chan *nc, char **name, int nname)
 		alloc = 1;
 	}
 	wq->clone = nc;
+	nc->flag |= c->flag&CCACHE;
 
 	if(waserror()) {
 		mntfree(r);

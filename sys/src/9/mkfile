@@ -7,7 +7,7 @@ ARCH=\
 	ppc\
 	rb\
 	teg2\
-	
+
 all:V:
 	for(i in $ARCH)@{
 		cd $i
@@ -23,7 +23,7 @@ pcboot:V:
 installall install:V:
 	for(i in $ARCH) @{
 		cd $i
-		mk install
+		mk $target
 	}
 	@{ cd pc; mk clean }
 	@{ cd pcboot; mk install }

@@ -36,8 +36,8 @@
 void
 main(int argc, char *argv[])
 {
-	char *defs[50], *p;
-	int nproc, nout, status, i, c, ndef;
+	char **defs, **np, *p;
+	int nproc, nout, status, i, c, ndef, maxdef;
 
 	memset(debug, 0, sizeof(debug));
 	tinit();
@@ -47,9 +47,11 @@ main(int argc, char *argv[])
 
 	profileflg = 1;	/* #pragma can turn it off */
 	tufield = simplet((1L<<tfield->etype) | BUNSIGNED);
+	maxdef = 0;
 	ndef = 0;
 	outfile = 0;
-	include[ninclude++] = ".";
+	defs = nil;
+	setinclude(".");
 	ARGBEGIN {
 	default:
 		c = ARGC();
@@ -73,6 +75,13 @@ main(int argc, char *argv[])
 	case 'D':
 		p = ARGF();
 		if(p) {
+			if(ndef >= maxdef){
+				maxdef += 50;
+				np = alloc(maxdef * sizeof *np);
+				if(defs != nil)
+					memmove(np, defs, (maxdef - 50) * sizeof *np);
+				defs = np;
+			}
 			defs[ndef++] = p;
 			dodefine(p);
 		}
@@ -153,7 +162,7 @@ int
 compile(char *file, char **defs, int ndef)
 {
 	char ofile[400], incfile[20];
-	char *p, *av[100], opt[256];
+	char *p, **av, opt[256];
 	int i, c, fd[2];
 	static int first = 1;
 
@@ -241,6 +250,7 @@ compile(char *file, char **defs, int ndef)
 			close(fd[0]);
 			mydup(fd[1], 1);
 			close(fd[1]);
+			av = alloc((3 + ndef + ninclude + 2) * sizeof *av);
 			av[0] = CPP;
 			i = 1;
 			if(debug['.'])
@@ -1522,23 +1532,26 @@ void
 setinclude(char *p)
 {
 	int i;
-	char *e;
+	char *e, **np;
 
 	while(*p != 0) {
 		e = strchr(p, ' ');
 		if(e != 0)
 			*e = '\0';
 
-		for(i=1; i < ninclude; i++)
+		for(i=0; i < ninclude; i++)
 			if(strcmp(p, include[i]) == 0)
 				break;
 
-		if(i >= ninclude)
+		if(i >= ninclude){
+			if(i >= maxinclude){
+				maxinclude += 20;
+				np = alloc(maxinclude * sizeof *np);
+				if(include != nil)
+					memmove(np, include, (maxinclude - 20) * sizeof *np);
+				include = np;
+			}
 			include[ninclude++] = p;
-
-		if(ninclude > nelem(include)) {
-			diag(Z, "ninclude too small %d", nelem(include));
-			exits("ninclude");
 		}
 
 		if(e == 0)

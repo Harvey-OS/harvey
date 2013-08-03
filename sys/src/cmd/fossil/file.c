@@ -961,6 +961,24 @@ fileIsDir(File *f)
 }
 
 int
+fileIsAppend(File *f)
+{
+	return (f->dir.mode & ModeAppend) != 0;
+}
+
+int
+fileIsExclusive(File *f)
+{
+	return (f->dir.mode & ModeExclusive) != 0;
+}
+
+int
+fileIsTemporary(File *f)
+{
+	return (f->dir.mode & ModeTemporary) != 0;
+}
+
+int
 fileIsRoot(File *f)
 {
 	return f == f->fs->file;
