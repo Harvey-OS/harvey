@@ -73,7 +73,8 @@ parseip(uchar *to, char *from)
 	for(i = 0; i < IPaddrlen && ipcharok(*p); i+=2){
 		op = p;
 		x = strtoul(p, &p, 16);
-		if(*p == '.' || (*p == 0 && i == 0)){	/* ends with v4? */
+		if((*p == '.' && i <= IPaddrlen-4) || (*p == 0 && i == 0)){
+			/* ends with v4 */
 			p = v4parseip(to+i, op);
 			i += 4;
 			break;
