@@ -46,7 +46,7 @@ proto=$3
 fossconf=$4
 
 if (test -e /srv/fossil -o -e /srv/fossil.open) {
-	echo $0: /srv/fossil* exists, not safe to start a new one >[1=2]
+	echo $0: /srv/fossil* exists, not safe to start a new fossil >[1=2]
 	exit fossil-already-running
 }
 
