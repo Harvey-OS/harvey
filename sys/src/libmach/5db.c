@@ -93,7 +93,7 @@ armexcep(Map *map, Rgetter rget)
 	case 0x13:
 		return "SVC/SWI Exception";
 	case 0x17:
-		return "Prefetch Abort/Data Abort";
+		return "Prefetch Abort/Breakpoint";
 	case 0x18:
 		return "Data Abort";
 	case 0x1b:
@@ -140,6 +140,16 @@ armclass(long w)
 	op = (w >> 25) & 0x7;
 	switch(op) {
 	case 0:	/* data processing r,r,r */
+		if((w & 0x0ff00080) == 0x01200000) {
+			op = (w >> 4) & 0x7;
+			if(op == 7)
+				op = 124;	/* bkpt */
+			else if (op > 0 && op < 4)
+				op += 124;	/* bx, blx */
+			else
+				op = 92;	/* unk */
+			break;
+		}
 		op = ((w >> 4) & 0xf);
 		if(op == 0x9) {
 			op = 48+16;		/* mul, swp or *rex */
@@ -550,6 +560,13 @@ armb(Opcode *o, Instr *i)
 }
 
 static void
+armbpt(Opcode *o, Instr *i)
+{
+	i->imm = ((i->w >> 4) & 0xfff0) | (i->w &0xf);
+	format(o->o, i, o->a);
+}
+
+static void
 armco(Opcode *o, Instr *i)		/* coprocessor instructions */
 {
 	int op, p, cp;
@@ -768,6 +785,19 @@ armfadd(Map *map, Rgetter rget, Instr *i, uvlong pc)
 }
 
 static uvlong
+armfbx(Map *map, Rgetter rget, Instr *i, uvlong pc)
+{
+	char buf[8];
+	int r;
+
+	if(!armcondpass(map, rget, (i->w>>28)&0xf))
+		return pc+4;
+	r = (i->w >> 0) & 0xf;
+	sprint(buf, "R%d", r);
+	return rget(map, buf);
+}
+
+static uvlong
 armfmovm(Map *map, Rgetter rget, Instr *i, uvlong pc)
 {
 	ulong v;
@@ -982,6 +1012,12 @@ static Opcode opcodes[] =
 /* 122 */
 	"MOV%f%C",	armvstdi,	0,	"F%d,%I",
 	"MOV%f%C",	armvstdi,	0,	"%I,F%d",
+
+/* 124 */
+	"BKPT%C",	armbpt,	0,		"$#%i",
+	"BX%C",		armdps,	armfbx,	"(R%s)",
+	"BXJ%C",	armdps,	armfbx,	"(R%s)",
+	"BLX%C",	armdps,	armfbx,	"(R%s)",
 };
 
 static void

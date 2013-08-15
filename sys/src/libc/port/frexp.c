@@ -89,6 +89,16 @@ modf(double d, double *ip)
 	FPdbleword x;
 	int e;
 
+	x.x = d;
+	e = (x.hi >> SHIFT) & MASK;
+	if(e == MASK){
+		*ip = d;
+		if(x.lo != 0 || (x.hi & 0xfffffL) != 0)	/* NaN */
+			return d;
+		/* ±Inf */
+		x.hi &= 0x80000000L;
+		return x.x;
+	}
 	if(d < 1) {
 		if(d < 0) {
 			x.x = modf(-d, ip);
@@ -98,8 +108,7 @@ modf(double d, double *ip)
 		*ip = 0;
 		return d;
 	}
-	x.x = d;
-	e = ((x.hi >> SHIFT) & MASK) - BIAS;
+	e -= BIAS;
 	if(e <= SHIFT+1) {
 		x.hi &= ~(0x1fffffL >> e);
 		x.lo = 0;
