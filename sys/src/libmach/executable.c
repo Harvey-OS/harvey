@@ -844,7 +844,7 @@ elfdotout(int fd, Fhdr *fp, ExecHdr *hp)
 	else if(ep->ident[CLASS] == ELFCLASS64)
 		return elf64dotout(fd, fp, hp);
 
-	werrstr("bad ELF class - not 32 bit");
+	werrstr("bad ELF class - not 32- nor 64-bit");
 	return 0;
 }
 

@@ -4,7 +4,7 @@ style \- Plan 9 coding conventions for C
 .SH DESCRIPTION
 Plan 9 C code has its own conventions.
 You would do well to follow them.
-Here are a few:
+Here are a few (and this is not an exhaustive list):
 .IP • 3
 don't use
 .L //
