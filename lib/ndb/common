@@ -355,8 +355,9 @@ auth=mordor.tip9ug.jp authdom=tip9ug.jp
 
 # for geoff's external ipv6 testing
 auth=9grid.hamnavoe.com
-	authdom=hamnavoe.com
 	authdom=9grid.hamnavoe.com
+auth=ec2.hamnavoe.com
+	authdom=ec2.hamnavoe.com
 
 auth=whale.lsub.org
 	authdom=lsub.org
