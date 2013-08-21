@@ -81,6 +81,10 @@ cddisk:D: 9load /sys/src/9/pc/9pcflop.gz plan9.ini.cd /lib/vgadb
 	ls -l $target
 
 usbdisk:D: /n/sources/plan9
+	if (~ $#scr 0 || ~ $scr '') {
+		echo '$scr unset' >[1=2]
+		exit not-set-up
+	}
 	cd $scr
 	mkusbboot -s 1900 -r /n/sources/plan9 && mv image $target
 	rm -f $target.bz2
