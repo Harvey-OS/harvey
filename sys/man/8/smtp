@@ -6,7 +6,7 @@ smtp, smtpd \-  mail transport
 .ti -0.5i
 .B upas/smtp
 [
-.B -aAdfips
+.B -aAdfiops
 ] [
 .B -b
 .I busted-mx
@@ -107,6 +107,11 @@ specified, it will default to the contents of
 under
 .BR -a ,
 authenticate even if we can't start TLS.
+.TP
+.B -o
+under
+.BR -s ,
+use TLS even if we don't know the remote system.
 .TP
 .B -p
 ping: just verify that the users named in the
