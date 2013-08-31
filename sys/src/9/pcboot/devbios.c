@@ -748,23 +748,18 @@ biosread(Chan *c, void *db, long n, vlong off)
 	}
 }
 
+/* name is typically "9fat" */
 void *
 biosgetfspart(int i, char *name, int chatty)
 {
+	char part[32];
 	static Bootfs fs;
-
-	if(strcmp(name, "9fat") != 0){	// TODO use any bootfile partition given
-		if(chatty)
-			print("unknown partition bios%d!%s (use bios%d!9fat)\n",
-				i, name, i);
-		return nil;
-	}
 
 	fs.dev = i;
 	fs.diskread = biosread0;
 	fs.diskseek = biosseek;
-
-	if(dosinit(&fs, "#S/sdB0/9fat") < 0){
+	snprint(part, sizeof part, "#S/sdB0/%s", name);
+	if(dosinit(&fs, part) < 0){
 		if(chatty)
 			print("bios%d!%s does not contain a FAT file system\n",
 				i, name);
