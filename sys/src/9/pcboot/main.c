@@ -20,9 +20,6 @@
 
 enum {
 	Datamagic = 0xbabeabed,
-
-	/* space for syscall args, return PC, top-of-stack struct */
-	Ustkheadroom	= sizeof(Sargs) + sizeof(uintptr) + sizeof(Tos),
 };
 
 Mach *m;
@@ -334,56 +331,6 @@ userinit(void)
 	/* NB: no user stack nor text segments are set up */
 
 	ready(p);
-}
-
-uchar *
-pusharg(char *p)
-{
-	int n;
-
-	n = strlen(p)+1;
-	sp -= n;
-	memmove(sp, p, n);
-	return sp;
-}
-
-/* we're a bootstrap loader, so we aren't passed any options to pass on. */
-void
-bootargs(void *base)
-{
- 	int i, ac;
-	uchar *av[32];
-	uchar **lsp;
-	char *cp = "";
-	char buf[64];
-
-	sp = (uchar*)base + BY2PG - Ustkheadroom;
-
-	ac = 0;
-	av[ac++] = pusharg("/386/9dos");
-
-	/* when boot is changed to only use rc, this code can go away */
-//	cp[BOOTLINELEN-1] = 0;
-	buf[0] = 0;
-	if(strncmp(cp, "fd", 2) == 0){
-		snprint(buf, sizeof buf, "local!#f/fd%lddisk", strtol(cp+2, 0, 0));
-		av[ac++] = pusharg(buf);
-	} else if(strncmp(cp, "sd", 2) == 0){
-		snprint(buf, sizeof buf, "local!#S/sd%c%c/fs", *(cp+2), *(cp+3));
-		av[ac++] = pusharg(buf);
-	} else if(strncmp(cp, "ether", 5) == 0)
-		av[ac++] = pusharg("-n");
-
-	/* 4 byte word align stack */
-	sp = (uchar*)((ulong)sp & ~3);
-
-	/* build argc, argv on stack */
-	sp -= (ac+1)*sizeof(sp);
-	lsp = (uchar**)sp;
-	for(i = 0; i < ac; i++)
-		*lsp++ = av[i] + ((USTKTOP - BY2PG) - (ulong)base);
-	*lsp = 0;
-	sp += (USTKTOP - BY2PG) - (ulong)base - sizeof(ulong);
 }
 
 void

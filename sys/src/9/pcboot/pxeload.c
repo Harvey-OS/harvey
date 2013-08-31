@@ -95,7 +95,7 @@ etheraddr(Openeth *oe)
 {
 	int n;
 	char name[32], buf[32];
-	uchar ea[Eaddrlen];
+	static uchar ea[Eaddrlen];
 
 	memset(ea, 0, sizeof ea);
 	snprint(name, sizeof name, "#l%d/ether%d/addr", oe->ctlrno, oe->ctlrno);
