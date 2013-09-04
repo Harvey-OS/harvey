@@ -33,6 +33,10 @@ enum {
 	Prefsegsize =	1400,
 	Maxsegsize =	2048,
 	Bufsz =		Maxsegsize + 2,
+
+	Ok =		0,
+	Err =		-1,
+	Nonexist =	-2,
 };
 
 typedef struct Ethaddr Ethaddr;
@@ -73,10 +77,12 @@ struct Ethaddr {		/* communication with sleep procs */
 };
 
 static char ethernm[] = "ether";
+static uchar myea[Eaddrlen];
+static Pxenetaddr myaddr;		/* actually, local ip addr & port */
 
 /*
  * there can be at most one concurrent tftp session until we move these
- * variables into Openeth or some other struct.
+ * variables into Openeth or some other struct (Tftpstate).
  */
 static ushort tftpport;
 static int tftpblockno;
@@ -84,11 +90,10 @@ static int tftpphase;
 static int progress;
 static int segsize;
 static Tftp *tftpb;
-
-static uchar myea[Eaddrlen];
-static Pxenetaddr myaddr;		/* actually, local ip addr & port */
 static Pxenetaddr tftpserv;		/* actually, remote ip addr & port */
 static Pxenetaddr bootpserv;
+
+static int	tftpconnect(Openeth *, Bootp *);
 
 uchar *
 etheraddr(Openeth *oe)
@@ -404,15 +409,19 @@ tftpread1st(Openeth *oe, Pxenetaddr *a, char *name, Tftp *tftp)
 		switch((tftp->header[0]<<8)|tftp->header[1]){
 
 		case Tftp_ERROR:
+			if(strstr((char *)tftp->data, "does not exist") != nil){
+				print("%s\n", (char*)tftp->data);
+				return Nonexist;
+			}
 			print("tftpread1st: error (%d): %s\n",
 				(tftp->header[2]<<8)|tftp->header[3], (char*)tftp->data);
-			return -1;
+			return Err;
 
 		case Tftp_OACK:
 			n = optval("blksize", (char *)tftp->header+2, rlen-2);
 			if (n <= 0) {
 				nak(oe, a, 0, "bad blksize option value", 0);
-				return -1;
+				return Err;
 			}
 			segsize = n;
 			/* no bytes stashed in tftp.data */
@@ -426,7 +435,7 @@ tftpread1st(Openeth *oe, Pxenetaddr *a, char *name, Tftp *tftp)
 			if(len != tftpblockno){
 				print("tftpread1st: block error: %d\n", len);
 				nak(oe, a, 1, "block error", 0);
-				return -1;
+				return Err;
 			}
 			rlen -= Tftphdrsz;
 			if(rlen < segsize)
@@ -437,12 +446,12 @@ tftpread1st(Openeth *oe, Pxenetaddr *a, char *name, Tftp *tftp)
 		default:
 			print("tftpread1st: unexpected pkt type recv'd\n");
 			nak(oe, a, 0, "unexpected pkt type recv'd", 0);
-			return -1;
+			return Err;
 		}
 	}
 
 	print("tftpread1st: failed to connect to server (%I!%d)\n", a->ip, oport);
-	return -1;
+	return Err;
 }
 
 static int
@@ -606,6 +615,9 @@ tftpopen(Openeth *oe, char *file, Bootp *rep)
 	char buf[128];
 	static uchar ipv4noaddr[IPv4addrlen];
 
+	if (tftpconnect(oe, rep) < 0)
+		return Err;
+
 	/*
 	 * read file from tftp server in bootp answer
 	 */
@@ -641,13 +653,15 @@ tftpopen(Openeth *oe, char *file, Bootp *rep)
 	return tftpread1st(oe, &tftpserv, filename, tftpb);
 }
 
+/* load the kernel in file via tftp on oe */
 int
 tftpboot(Openeth *oe, char *file, Bootp *rep, Boot *b)
 {
 	int n;
 
+	/* file must exist, else it's an error */
 	if((n = tftpopen(oe, file, rep)) < 0)
-		return -1;
+		return n;
 
 	progress = 0;			/* no more dots; we're on a roll now */
 	print(" ");			/* after "sys (ip!port): kernel ..." */
@@ -661,7 +675,7 @@ tftpboot(Openeth *oe, char *file, Bootp *rep, Boot *b)
 	else
 		nak(oe, &tftpserv, 3, "ok", 0);	/* tftpclose to abort transfer */
 	bootpass(b, nil, 0);	/* boot if possible */
-	return -1;
+	return Err;
 }
 
 /* leave the channel to /net/ipifc/clone open */
@@ -816,9 +830,8 @@ optget(uchar *p, int op, int *np)
 			continue;
 		}
 		if(np != nil){
-			if(*np > len) {
+			if(*np > len)
 				return 0;
-			}
 			*np = len;
 		}
 		return p;
@@ -971,13 +984,13 @@ tftprdfile(Openeth *oe, int openread, void* va, long len)
 			break;
 
 		if((n = tftpread(oe, &tftpserv, tftpb, segsize)) < 0)
-			return -1;
+			return n;
 	}
 	return p-v;
 }
 
 static int
-newtftpconn(Openeth *oe, Bootp *rep)
+tftpconnect(Openeth *oe, Bootp *rep)
 {
 	char num[16], dialstr[64];
 
@@ -1025,31 +1038,20 @@ setipcfg(Openeth *oe, Bootp *rep)
 	return 0;
 }
 
+/*
+ * use bootp answer (rep) to open cfgpxe.
+ * reads first pkt of cfgpxe into tftpb->data.
+ */
 static int
-getkernname(Openeth *oe, Bootp *rep, Kernname *kp)
+rdcfgpxe(Openeth *oe, Bootp *rep, char *cfgpxe)
 {
 	int n;
-	char *ini, *p;
-	char cfgpxe[32], buf[64];
+	char *ini;
 
-	if (kp->bootfile) {
-		print("getkernname: already have bootfile %s\n", kp->bootfile);
-		return 0;
-	}
-	if (newtftpconn(oe, rep) < 0)
-		return -1;
-
-	/* use our mac address instead of relying on a bootp answer */
-	snprint(cfgpxe, sizeof cfgpxe, "/cfg/pxe/%E", myea);
-	/*
-	 * use bootp answer (rep) to open cfgpxe.
-	 * reads first pkt of cfgpxe into tftpb->data.
-	 */
+	/* cfgpxe is optional */
 	n = tftpopen(oe, cfgpxe, rep);
-	if (n < 0) {
-		print("\nfailed.\n");
-		return -1;
-	}
+	if (n < 0)
+		return n;
 	if (Debug)
 		print("\opened %s\n", cfgpxe);
 
@@ -1059,7 +1061,7 @@ getkernname(Openeth *oe, Bootp *rep, Kernname *kp)
 	if (n < 0) {
 		print("error reading %s\n", cfgpxe);
 		free(ini);
-		return -1;
+		return n;
 	}
 	print(" read %d bytes", n);
 
@@ -1068,17 +1070,17 @@ getkernname(Openeth *oe, Bootp *rep, Kernname *kp)
 	 * thus we can't free ini.
 	 */
 	dotini(ini);
-	i8250console();		/* configure serial port with defaults */
+	return Ok;
+}
 
-	kp->edev = kp->bootfile = nil;
-	p = getconf("bootfile");
-	if (p)
-		kstrdup(&kp->bootfile, p);
-	if (kp->bootfile == nil)
-		askbootfile(buf, sizeof buf, &kp->bootfile, Promptsecs,
-			"ether0!/386/9pccpu");
-	if (strcmp(kp->bootfile, "manual") == 0)
-		askbootfile(buf, sizeof buf, &kp->bootfile, 0, "");
+/*
+ * break kp->bootfile into kp->edev & kp->bootfile,
+ * copy any args for new kernel to low memory.
+ */
+static int
+parsebootfile(Kernname *kp)
+{
+	char *p;
 
 	p = strchr(kp->bootfile, '!');
 	if (p != nil) {
@@ -1088,16 +1090,57 @@ getkernname(Openeth *oe, Bootp *rep, Kernname *kp)
 		kstrdup(&kp->bootfile, p);
 		if (strncmp(kp->edev, ethernm, sizeof ethernm - 1) != 0) {
 			print("bad ether device %s\n", kp->edev);
-			return -1;
+			return Err;
 		}
 	}
 
-	/* pass arguments to kernels that can use them */
+	/* pass any arguments to kernels that expect them */
 	strecpy(BOOTLINE, BOOTLINE+BOOTLINELEN, kp->bootfile);
 	p = strchr(kp->bootfile, ' ');
 	if(p != nil)
 		*p = '\0';
-	return 0;
+	return Ok;
+}
+
+static int
+getkernname(Openeth *oe, Bootp *rep, Kernname *kp)
+{
+	int n;
+	char *p;
+	char cfgpxe[32], buf[64];
+
+	if (kp->bootfile) {
+		/* i think returning here is a bad idea */
+		// print("getkernname: already have bootfile %s\n",
+		//	kp->bootfile);
+		free(kp->bootfile);
+		// return Ok;
+	}
+	kp->edev = kp->bootfile = nil;
+	i8250console();		/* configure serial port with defaults */
+
+	/* use our mac address instead of relying on a bootp answer. */
+	snprint(cfgpxe, sizeof cfgpxe, "/cfg/pxe/%E", myea);
+	n = rdcfgpxe(oe, rep, cfgpxe);
+	switch (n) {
+	case Ok:
+		p = getconf("bootfile");
+		if (p)
+			kstrdup(&kp->bootfile, p);
+		if (kp->bootfile == nil)
+			askbootfile(buf, sizeof buf, &kp->bootfile, Promptsecs,
+				"ether0!/386/9pccpu");
+		if (strcmp(kp->bootfile, "manual") == 0)
+			askbootfile(buf, sizeof buf, &kp->bootfile, 0, "");
+		break;
+	case Err:
+		print("\nfailed.\n");
+		return n;
+	case Nonexist:
+		askbootfile(buf, sizeof buf, &kp->bootfile, 0, "");
+		break;
+	}
+	return parsebootfile(kp);
 }
 
 static void
@@ -1119,39 +1162,62 @@ unbinddevip(Openeth *oe)
  * phase 2: load /cfg/pxe, parse it, extract kernel filename.
  * phase 3: load kernel and jump to it.
  */
-static void
+static int
 tftpload(Openeth *oe, Kernname *kp)
 {
+	int r, n;
+	char buf[64];
 	Bootp rep;
 	Boot boot;
 
+	r = -1;
 	if(waserror()) {
 		print("tftpload: %s\n", up->errstr);
 		closeudp(oe);
 		unbinddevip(oe);
-		return;
+		return r;
 	}
 
 	memset(&rep, 0, sizeof rep);
-	if (setipcfg(oe, &rep) >= 0 &&
-	    getkernname(oe, &rep, kp) >= 0 &&
-	    (!kp->edev ||
-	     oe->ctlrno == strtol(kp->edev + sizeof ethernm - 1, 0, 10)) &&
-	    newtftpconn(oe, &rep) >= 0) {
+	if (setipcfg(oe, &rep) < 0)
+		error("can't set ip config");
+
+	n = getkernname(oe, &rep, kp);
+	if (n < 0) {
+		r = n;			/* pass reason back to caller */
+		USED(r);
+		nexterror();
+	}
+	do {
+		if (kp->edev &&
+		    oe->ctlrno != strtol(kp->edev + sizeof ethernm - 1, 0, 10)){
+			/* user specified an ether & it's not this one; next! */
+			r = Ok;
+			USED(r);
+			nexterror();
+		}
+
 		memset(&boot, 0, sizeof boot);
 		boot.state = INITKERNEL;
-		tftpboot(oe, kp->bootfile, &rep, &boot);
-	}
+		r = tftpboot(oe, kp->bootfile, &rep, &boot);
 
-	/* we failed or bootfile asked for another ether */
+		/* we failed or bootfile asked for another ether */
+		if (r == Nonexist)
+			do {
+				askbootfile(buf, sizeof buf, &kp->bootfile, 0, "");
+			} while (parsebootfile(kp) != Ok);
+	} while (r == Nonexist);
+
 	poperror();
 	closeudp(oe);
 	unbinddevip(oe);
+	return r;
 }
 
 static int
 etherload(int eth, Kernname *kp)
 {
+	int r;
 	Openeth *oe;
 
 	print("pxe on ether%d ", eth);
@@ -1163,11 +1229,11 @@ etherload(int eth, Kernname *kp)
 		oe->ctlrno);
 	initbind(oe);
 
-	tftpload(oe, kp);
+	r = tftpload(oe, kp);
 
 	/* failed to boot; keep going */
 	unmount(nil, "/net");
-	return 0;
+	return r;
 }
 
 static int

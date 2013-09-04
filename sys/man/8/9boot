@@ -1,6 +1,6 @@
 .TH 9BOOT 8
 .SH NAME
-9boot, 9bootpbs, 9load, 9loadusb \- PC bootstrap programs
+9boot, 9bootpbs, 9load, 9loadusb, pbs \- PC bootstrap programs
 .SH SYNOPSIS
 .I none
 .SH DESCRIPTION
@@ -18,7 +18,7 @@ kernel and start it.
 .I 9load
 and
 .I 9loadusb
-are less commonly used variants
+are less-commonly-used variants
 that reside in a FAT file system under the name
 .L 9load
 and bootstrap Plan 9.
@@ -66,94 +66,6 @@ kernel
 .\" .IR 9load ,
 .\" kernel
 .PP
-Details follow.
-.SS "Loading these bootstraps"
-.I 9boot
-is a bootstrap program that loads and starts a program,
-typically the kernel, on a PC.
-It is run by the PXE boot ROM of a PC,
-which loads
-.I 9boot
-at location
-.B 0x7C00
-(31K).
-.I 9boot
-reads a
-.IR plan.ini (8)
-file from
-.B /cfg/pxe
-via PXE,
-then loads the named
-.I bootfile
-via TFTP,
-trying each ethernet in sequence,
-at the entry address specified by the header,
-usually virtual
-.BR 0xF0100020 .
-After loading,
-.I 9boot
-creates a Gnu Multiboot header in low memory for
-the benefit of the loaded kernel
-and
-control is passed to the entry location.
-So far, only
-.B amd64
-kernels expect Multiboot headers.
-.PP
-.I 9load
-is a similar bootstrap program,
-run by the PC partition boot sector program (PBS),
-which usually resides in the first
-sector of the active partition.
-A copy of the Plan 9 PBS is kept in
-.BR /386/pbs ,
-but due to the ``cylinder-head-sector'' (CHS) addressing mode of old BIOSes, it can only
-operate up to 8.5GB into the disk.
-Plan 9 partitions further into the disk
-can only be booted using
-.BR /386/pbslba ,
-and then only if the machine's BIOS supports
-linear block addressing (LBA) mode for disk transfers.
-.PP
-When booting from disk,
-.\" or floppy,
-the BIOS loads the
-first sector of the medium at location
-.BR 0x7C00 .
-In the case of a disk, it is the master boot record (MBR).
-.\" In the case of a floppy, this is the PBS.
-The MBR copies itself to address
-.BR 0x600 ,
-finds the active partition and loads its PBS at address
-.BR 0x7C00 .
-A copy of the Plan 9 MBR is kept in
-.BR /386/mbr ;
-some commercial MBRs cannot read sectors
-past 2GB.
-The Plan 9 MBR can read sectors up to 8.5GB into
-the disk, and further if the BIOS supports LBA.
-The single file
-.B /386/mbr
-detects whether the BIOS supports LBA and
-acts appropriately, defaulting to CHS mode
-when LBA is not present.
-The PBSs cannot do this due to code size limitations.
-The Plan 9 MBR is suitable for booting non-Plan-9
-operating systems,
-and (modulo the large disk constraints just described)
-non-Plan-9 MBRs are suitable for booting Plan 9.
-.PP
-.I 9load
-begins execution at virtual address
-.B 0x80010000
-(physical 64K) and
-loads the
-.I bootfile
-at the entry address specified by the header,
-usually virtual
-.BR 0xF0100020 .
-After loading, control is passed to the entry location.
-.PP
 In summary,
 Plan 9 is usually booted on a PC
 by using a PXE-capable BIOS to boot
@@ -167,6 +79,179 @@ prepared using
 to install the appropriate files and bootstrap sectors
 (see
 .IR prep (8)).
+.PP
+Details follow.
+.SS Kernel loading
+.I 9boot
+is a bootstrap program that loads and starts a program,
+typically the kernel, on a PC.
+It is run by the PXE boot ROM of a PC,
+which loads
+.I 9boot
+at physical address
+.B 0x7C00
+(31K).
+When it starts running,
+it switches to 32-bit mode.
+It then double maps the first 16Mb of physical memory to
+virtual addresses
+.B 0
+and
+.BR 0x80000000 .
+Only devices which can be automatically configured,
+e.g. most PCI ethernet adapters,
+will be recognised.
+If the file
+.BI /cfg/pxe/ ether
+can be located via a DHCP server,
+where
+.I ether
+is the lower-case MAC address of a recognised ethernet adapter,
+the contents are obtained by TFTP and used as a
+.IR plan9.ini (8).
+.I 9boot
+then loads the
+.I bootfile
+named within via TFTP,
+trying each ethernet in sequence,
+at the entry address specified by the kernel executable's header,
+usually virtual
+.BR 0xF0100020 .
+After loading,
+.I 9boot
+creates a Gnu Multiboot header in low memory for
+the benefit of the loaded kernel
+and
+control is passed to the entry location
+in 32-bit protected mode, even for 64-bit kernels.
+So far, only
+.B amd64
+kernels expect Multiboot headers.
+.PP
+Some options in
+.B plan9.ini
+are used by
+.IR 9boot :
+.TF bootfile=manual
+.TP
+.B console
+.TP
+.B baud
+Specifies the console device and baud rate if not a display.
+.TP
+.BI ether n
+Ethernet interfaces. These can be used to load the
+.I bootfile
+over a network.
+.TP
+.BI bootfile= bootfile
+Specifies the
+.IR bootfile .
+.ig
+.TP
+.B bootfile=auto
+Default.
+.TP
+.B bootfile=local
+Like
+.IR auto ,
+but do not attempt to load over the network.
+..
+.TP
+.B bootfile=manual
+After determining which devices are available for loading from,
+enter prompt mode.
+.PD
+.PP
+.I 9load
+is a similar bootstrap program,
+loaded by the PC partition boot sector program (PBS),
+which usually resides in the first
+sector of the active disk partition.
+It is initially loaded at physical address
+.BR 0x10000 (64K);
+it begins execution at virtual address
+.BR 0x80010000 .
+In order to find configuration information,
+.I 9load
+searches all units on devices
+.\" .BR fd
+.\" and
+.B sd?[0-9]*
+(all
+.B sd
+devices),
+for a file called
+.\" .B plan9\eplan9.ini
+.\" or
+.B plan9.ini
+(see
+.IR plan9.ini (8))
+on a FAT partition named
+.B dos
+or
+.BR 9fat .
+If one is found, searching stops and the file is read into memory
+at physical address
+.B 0x1200
+where it can be found later by any loaded
+.IR bootfile .
+.PP
+When the search for
+.B plan9.ini
+is done,
+.I 9load
+proceeds to determine which bootfile to load.
+If there was no
+.I bootfile
+option,
+.I 9load
+searches
+.B sd?[0-9]*
+FAT partitions for a kernel
+(any file named
+.BR 9pc* ,
+.B 9k8*
+or
+.BR 9k10* )
+and if it finds exactly one kernel in a given FAT partition,
+chooses it.
+.I 9load
+then attempts to load the
+.IR bootfile .
+.ig
+unless
+the
+.B bootfile=manual
+option was given, in which case prompt mode is entered immediately.
+..
+.ig
+If the default device is
+.BR fd ,
+.I 9load
+will prompt the user for input before proceeding with the
+default bootfile load after 5 seconds;
+this prompt is omitted if a
+.I bootfile
+option
+was given.
+..
+.PP
+.I 9load
+prints the list of available
+.IR device s
+and
+enters prompt mode on encountering any error
+or if directed to do so by a
+.B bootfile=manual
+option.
+In prompt mode, the user is required to type
+a
+.IB bootfile
+in response to the
+.L Boot
+.L from:
+prompt.
 .br
 .ne 4
 .SS Bootfile
@@ -299,150 +384,44 @@ A special case of
 that uses
 .BI bios n
 to read from a FAT file system.
-.SS Kernel loading
-.I 9boot
-is initially loaded by the PXE BIOS at physical address
+.SS Boot Sectors
+A copy of the Plan 9 PBS is kept in
+.BR /386/pbs ,
+but due to the ``cylinder-head-sector'' (CHS) addressing mode of old BIOSes, it can only
+operate up to 8.5GB into the disk.
+Plan 9 partitions further into the disk
+can only be booted using
+.BR /386/pbslba ,
+and then only if the machine's BIOS supports
+linear block addressing (LBA) mode for disk transfers.
+.PP
+When booting from disk,
+.\" or floppy,
+the BIOS loads the
+first sector of the medium at location
 .BR 0x7C00 .
-When it starts running,
-it switches to 32-bit mode.
-It then double maps the first 16Mb of physical memory to
-virtual addresses
-.B 0
-and
-.BR 0x80000000 .
-Only devices which can be automatically configured,
-e.g. most PCI ethernet adapters,
-will be recognised.
-If the file
-.BI /cfg/pxe/ ether
-can be located via a DHCP server,
-where
-.I ether
-is the lower-case MAC address of a recognised ethernet adapter,
-the contents are obtained by TFTP and used as a
-.IR plan9.ini .
-.PP
-.I 9load
-differs slightly in operation from
-.IR 9boot .
-It is initially loaded by a partition boot sector at physical address
-.BR 0x10000 .
-In order to find configuration information,
-.I 9load
-searches all units on devices
-.\" .BR fd
-.\" and
-.B sd?[0-9]*
-(all
-.B sd
-devices),
-for a file called
-.\" .B plan9\eplan9.ini
-.\" or
-.B plan9.ini
-(see
-.IR plan9.ini (8))
-on a FAT partition named
-.B dos
-or
-.BR 9fat .
-If one is found, searching stops and the file is read into memory
-at physical address
-.B 0x1200
-where it can be found later by any loaded
-.IR bootfile .
-Some options in
-.B plan9.ini
-are used by
-.IR 9boot :
-.TF bootfile=manual
-.TP
-.B console
-.TP
-.B baud
-Specifies the console device and baud rate if not a display.
-.TP
-.BI ether n
-Ethernet interfaces. These can be used to load the
-.I bootfile
-over a network.
-.TP
-.BI bootfile= bootfile
-Specifies the
-.IR bootfile .
-This option is overridden by a command-line argument.
-.ig
-.TP
-.B bootfile=auto
-Default.
-.TP
-.B bootfile=local
-Like
-.IR auto ,
-but do not attempt to load over the network.
-..
-.TP
-.B bootfile=manual
-After determining which devices are available for loading from,
-enter prompt mode.
-.PD
-.PP
-When the search for
-.B plan9.ini
-is done,
-.I 9load
-proceeds to determine which bootfile to load.
-If there was no
-.I bootfile
-option,
-.I 9load
-searches
-.B sd?[0-9]*
-FAT partitions for a kernel
-(any file named
-.BR 9pc* ,
-.B 9k8*
-or
-.BR 9k10* )
-and if it finds exactly one kernel in a given FAT partition,
-chooses it.
-.I 9load
-then attempts to load the
-.IR bootfile .
-.ig
-unless
-the
-.B bootfile=manual
-option was given, in which case prompt mode is entered immediately.
-..
-.ig
-If the default device is
-.BR fd ,
-.I 9load
-will prompt the user for input before proceeding with the
-default bootfile load after 5 seconds;
-this prompt is omitted if
-a command-line argument or
-.I bootfile
-option
-was given.
-..
-.PP
-.I 9load
-prints the list of available
-.IR device s
-and
-enters prompt mode on encountering any error
-or if directed to do so by a
-.B bootfile=manual
-option.
-In prompt mode, the user is required to type
-a
-.IB bootfile
-in response to the
-.L Boot
-.L from:
-prompt.
+In the case of a disk, it is the master boot record (MBR).
+.\" In the case of a floppy, this is the PBS.
+The MBR copies itself to address
+.BR 0x600 ,
+finds the active partition and loads its PBS at address
+.BR 0x7C00 .
+A copy of the Plan 9 MBR is kept in
+.BR /386/mbr ;
+some commercial MBRs cannot read sectors
+past 2GB.
+The Plan 9 MBR can read sectors up to 8.5GB into
+the disk, and further if the BIOS supports LBA.
+The single file
+.B /386/mbr
+detects whether the BIOS supports LBA and
+acts appropriately, defaulting to CHS mode
+when LBA is not present.
+The PBSs cannot do this due to code size limitations.
+The Plan 9 MBR is suitable for booting non-Plan-9
+operating systems,
+and (modulo the large disk constraints just described)
+non-Plan-9 MBRs are suitable for booting Plan 9.
 .br
 .ne 4
 .SS Other facilities and caveats
