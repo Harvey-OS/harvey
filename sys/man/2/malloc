@@ -78,7 +78,7 @@ is non-zero, the memory returned will be zeroed.
 .PP
 .I Mallocalign
 allocates a block of at least 
-.I n
+.I size
 bytes of memory respecting alignment contraints.
 If
 .I align
@@ -91,8 +91,8 @@ If
 .I span
 is non-zero,
 the
-.I n
-byte block allocated will not span a
+.IR size -byte
+block allocated will not span a
 .IR span -byte
 boundary.
 .PP
@@ -107,18 +107,20 @@ The contents will be unchanged up to the
 lesser of the new and old sizes.
 .I Realloc
 takes on special meanings when one or both arguments are zero:
+.TF "\fLrealloc(0, sz)
+.PD
 .TP
-.B "realloc(0,\ size)
+.B "realloc(0, sz)
 means
-.LR malloc(size) ;
+.LR malloc(sz) ;
 returns a pointer to the newly-allocated memory
 .TP
-.B "realloc(ptr,\ 0)
+.B "realloc(ptr, 0)
 means
 .LR free(ptr) ;
 returns null
 .TP
-.B "realloc(0,\ 0)
+.B "realloc(0, 0)
 no-op; returns null
 .PD
 .PP

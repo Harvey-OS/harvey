@@ -419,7 +419,7 @@ ready(Proc *p)
 		return;
 	}
 
-	if(up != p)
+	if(up != p && (p->wired == nil || p->wired == m))
 		m->readied = p;	/* group scheduling */
 
 	updatecpu(p);
@@ -505,6 +505,7 @@ runproc(void)
 
 	/* cooperative scheduling until the clock ticks */
 	if((p=m->readied) && p->mach==0 && p->state==Ready
+	&& (p->wired == nil || p->wired == m)
 	&& runq[Nrq-1].head == nil && runq[Nrq-2].head == nil){
 		skipscheds++;
 		rq = &runq[p->priority];
@@ -848,7 +849,7 @@ tsleep(Rendez *r, int (*fn)(void*), void *arg, ulong ms)
 		nexterror();
 	}
 	sleep(r, tfn, arg);
-	if (up->tt)
+	if(up->tt)
 		timerdel(up);
 	up->twhen = 0;
 	poperror();
