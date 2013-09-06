@@ -160,6 +160,7 @@ typedef struct Srb Srb;
 struct Srb {
 	Rendez;
 	Srb	*next;
+	int	shared;	/* Srb shared with kproc (don't free) */
 	ulong	ticksent;
 	ulong	len;
 	vlong	sector;
@@ -267,6 +268,7 @@ srballoc(ulong sz)
 		error(Enomem);
 	srb->dp = srb->data = srb+1;
 	srb->ticksent = MACHP(0)->ticks;
+	srb->shared = 0;
 	return srb;
 }
 
@@ -280,17 +282,24 @@ srbkalloc(void *db, ulong)
 		error(Enomem);
 	srb->dp = srb->data = db;
 	srb->ticksent = MACHP(0)->ticks;
+	srb->shared = 0;
 	return srb;
 }
 
-#define srbfree(srb) free(srb)
+static void
+srbfree(Srb *srb)
+{
+	while(srb->shared)
+		sched();
+	free(srb);
+}
 
 static void
 srberror(Srb *srb, char *s)
 {
 	srb->error = s;
 	srb->nout--;
-	if (srb->nout == 0)
+	if(srb->nout == 0)
 		wakeup(srb);
 }
 
@@ -1081,7 +1090,7 @@ srbready(void *v)
 	Srb *s;
 
 	s = v;
-	return s->error || (!s->nout && !s->len);
+	return s->error || (s->nout == 0 && s->len == 0);
 }
 
 static Frame*
@@ -1137,6 +1146,7 @@ strategy(Aoedev *d, Srb *srb)
 	d->tail = srb;
 	if(d->head == nil)
 		d->head = srb;
+	srb->shared = 1;
 	work(d);
 	poperror();
 	qunlock(d);
@@ -1399,6 +1409,7 @@ configwrite(Aoedev *d, void *db, long len)
 	if(s == nil)
 		error(Enomem);
 	memmove(s, db, len);
+
 	if(waserror()){
 		srbfree(srb);
 		free(s);
@@ -1415,6 +1426,7 @@ configwrite(Aoedev *d, void *db, long len)
 			break;
 		poperror();
 		qunlock(d);
+
 		if(waserror())
 			nexterror();
 		tsleep(&up->sleep, return0, 0, 100);
@@ -1423,8 +1435,16 @@ configwrite(Aoedev *d, void *db, long len)
 	f->nhdr = AOEQCSZ;
 	memset(f->hdr, 0, f->nhdr);
 	ch = (Aoeqc*)f->hdr;
-	if(hset(d, f, ch, ACconfig) == -1)
+	if(hset(d, f, ch, ACconfig) == -1) {
+		/*
+		 * these refer to qlock & waserror in the above for loop.
+		 * there's still the first waserror outstanding.
+		 */
+		poperror();
+		qunlock(d);
 		return 0;
+	}
+	srb->shared = 1;
 	f->srb = srb;
 	f->dp = s;
 	ch->verccmd = AQCfset;
@@ -1433,10 +1453,7 @@ configwrite(Aoedev *d, void *db, long len)
 	srb->nout++;
 	f->dl->npkt++;
 	f->dlen = len;
-	/*
-	 * these refer to qlock & waserror in the above for loop.
-	 * there's still the first waserror outstanding.
-	 */
+	/* these too */
 	poperror();
 	qunlock(d);
 
@@ -1706,8 +1723,8 @@ newdev(long major, long minor, int n)
 	d->flag = Djumbo;
 	d->unit = newunit();		/* bzzt.  inaccurate if units removed */
 	if(d->unit == -1){
-		free(d);
 		free(d->frames);
+		free(d);
 		error("too many units");
 	}
 	d->dl = d->dltab;
@@ -1933,6 +1950,7 @@ qcfgrsp(Block *b, Netlink *nl)
 		memmove(f->dp, ch + 1, cslen);
 		f->srb->nout--;
 		wakeup(f->srb);
+		f->srb->shared = 0;
 		d->nout--;
 		f->srb = nil;
 		f->tag = Tfree;
@@ -2156,8 +2174,10 @@ atarsp(Block *b)
 		}
 	}
 
-	if(srb && --srb->nout == 0 && srb->len == 0)
+	if(srb && --srb->nout == 0 && srb->len == 0){
 		wakeup(srb);
+		srb->shared = 0;
+	}
 	f->srb = nil;
 	f->tag = Tfree;
 	d->nout--;

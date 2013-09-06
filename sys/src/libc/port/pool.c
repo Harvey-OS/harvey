@@ -1100,7 +1100,7 @@ alignptr(void *v, ulong align, long offset)
 	return c;
 }
 
-/* poolspanallocl: allocate as described below; assumes pool locked */
+/* poolallocalignl: allocate as described below; assumes pool locked */
 static void*
 poolallocalignl(Pool *p, ulong dsize, ulong align, long offset, ulong span)
 {
