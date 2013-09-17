@@ -1,6 +1,7 @@
 .TH RSA 2
 .SH NAME
 asn1dump,
+asn1toRSApub,
 asn1toRSApriv,
 decodePEM,
 rsadecrypt,
@@ -11,6 +12,7 @@ rsaprivfree,
 rsaprivtopub,
 rsapuballoc,
 rsapubfree,
+RSApubtoasn1,
 X509toRSApub,
 X509gen,
 X509verify \- RSA encryption algorithm
@@ -50,6 +52,12 @@ RSApub*	rsaprivtopub(RSApriv*)
 .PP
 .B
 RSApub*	X509toRSApub(uchar *cert, int ncert, char *name, int nname)
+.PP
+.B
+RSApub*	asn1toRSApub(uchar *pub, int npub)
+.PP
+.B
+uchar* RSApubtoasn1(RSApub *pub, int *keylen)
 .PP
 .B
 RSApriv*	asn1toRSApriv(uchar *priv, int npriv)
@@ -171,6 +179,17 @@ using the quoting conventions of
 .I tokenize
 in
 .IR getfields (2).
+.PP
+.I Asn1toRSApub
+converts an ASN1-formatted RSA public key into the corresponding
+.B RSApub
+structure.
+.PP
+.I RSApubtoasn1
+encodes an RSA public key using ASN.1 DER.  It returns a pointer
+to the encoded key; if keylen is non-nil, it sets
+.B *keylen
+to the length of the encoded key.
 .PP
 .I Asn1toRSApriv
 converts an ASN1 formatted RSA private key into the corresponding

@@ -26,6 +26,7 @@ enum {
 };
 
 enum {
+	STACKSIZE = 2048*sizeof(void*),
 	Messagesize = 8*1024+IOHDRSZ,
 	Undef = 0x80000000,
 	/* 256 buffers of 4096 bytes represents 5.9 seconds

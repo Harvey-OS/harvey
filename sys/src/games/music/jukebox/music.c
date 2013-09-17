@@ -10,6 +10,10 @@
 #include "playlist.h"
 #include "../debug.h"
 
+enum {
+	STACKSIZE = 2048 * sizeof(void*),
+};
+
 int	debug = 0; //DBGSERVER|DBGPUMP|DBGSTATE|DBGPICKLE|DBGPLAY;
 
 char	usage[] = "Usage: %s [-d mask] [-t] [-w]\n";
@@ -1079,10 +1083,10 @@ threadmain(int argc, char *argv[]){
 	playctlfd = open(playctlfile, OWRITE);
 	if(playctlfd < 0)
 		sysfatal("%s: %r", playctlfile);
-	proccreate(playlistproc, nil, 8192);
+	proccreate(playlistproc, nil, STACKSIZE);
 	playevent = chancreate(sizeof(char *), 1);
-	proccreate(playctlproc, playevent, 8192);
-	proccreate(playvolproc, cs->ctl, 8192);
+	proccreate(playctlproc, playevent, STACKSIZE);
+	proccreate(playvolproc, cs->ctl, STACKSIZE);
 
 	work();
 

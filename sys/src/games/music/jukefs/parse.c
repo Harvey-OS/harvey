@@ -436,7 +436,7 @@ addchild(Object *parent, Object *child, char *where)
 		 */
 		for(i = 0; i < parent->nchildren; i++)
 				if(parent->children[i] == child) return;
-		parent->children = realloc(parent->children, (i+1)*4);
+		parent->children = realloc(parent->children, (i+1)*sizeof child);
 		parent->children[i] = child;
 		parent->nchildren++;
 		if(parent->type == Category && child->type == Category)
@@ -457,7 +457,7 @@ addchild(Object *parent, Object *child, char *where)
 		i = child->ncatparents;
 		if(0) fprint(2, "addcatparent %s parent %d type %d child %d type %d\n",where,
 			parent->tabno, parent->type, child->tabno, child->type);
-		child->catparents = realloc(child->catparents, (i+1)*4);
+		child->catparents = realloc(child->catparents, (i+1)*sizeof parent);
 		child->catparents[i] = parent;
 		child->ncatparents++;
 }
@@ -476,7 +476,7 @@ addcatparent(Object *parent, Object *child)
 //				if(child->catparents[i] == parent) return;
 		i = child->ncatparents;
 		fprint(2, "addcatparent parent %d child %d\n", parent->tabno, child->tabno);
-		child->catparents = realloc(child->catparents, (i+1)*4);
+		child->catparents = realloc(child->catparents, (i+1)*sizeof parent);
 		child->catparents[i] = parent;
 		child->ncatparents++;
 }
@@ -564,7 +564,7 @@ newobject(Type t, Object *parent){
 	}else{
 		if(sotab < notab+1){
 			sotab += 512;
-			otab = realloc(otab, sizeof(Object*)*sotab);
+			otab = realloc(otab, sotab * sizeof o);
 			if(otab == nil)
 				sysfatal("realloc: %r");
 		}

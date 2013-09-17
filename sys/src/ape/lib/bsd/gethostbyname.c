@@ -26,7 +26,7 @@ enum
  *  for inet addresses only
  */
 struct hostent*
-gethostbyname(char *name)
+gethostbyname(const char *name)
 {
 	int i, t, fd, m;
 	char *p, *bp;
