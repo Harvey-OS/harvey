@@ -718,7 +718,7 @@ allocwork(Req *r)
 	w->eventc = chancreate(sizeof(Wmsg), 1);
 	if(debug & DbgWorker)
 		fprint(2, "new worker 0x%p\n", w);/**/
-	threadcreate(worker, w, 4096);
+	threadcreate(worker, w, STACKSIZE);
 	send(w->eventc, &m);
 }
 
@@ -829,11 +829,11 @@ srv(void*)
 	close(srvfd[1]);
 
 	dispatchc = chancreate(sizeof(Req*), 1);
-	procrfork(srvio, dispatchc, 4096, RFFDG);
+	procrfork(srvio, dispatchc, STACKSIZE, RFFDG);
 
-	threadcreate(volumeupdater, nil, 4096);
-	threadcreate(playupdater, nil, 4096);
-	threadcreate(playlistsrv, nil, 4096);
+	threadcreate(volumeupdater, nil, STACKSIZE);
+	threadcreate(playupdater, nil, STACKSIZE);
+	threadcreate(playlistsrv, nil, STACKSIZE);
 
 	while(r = recvp(dispatchc))
 		allocwork(r);

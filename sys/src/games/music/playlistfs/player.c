@@ -140,7 +140,7 @@ startplay(ushort n)
 	pfd->filename = file;	/* mallocated already */
 	pfd->fd = fd[1];
 	pfd->cfd = fd[0];
-	procrfork(pac4dec, pfd, 4096, RFFDG);
+	procrfork(pac4dec, pfd, STACKSIZE, RFFDG);
 	close(fd[1]);	/* write fd, for pac4dec */
 	return fd[0];	/* read fd */
 }
@@ -413,8 +413,8 @@ playinit(void)
 		sendp(spare, malloc(sizeof(Pacbuf)));
 
 	playc = chancreate(sizeof(Pmsg), 1);
-	procrfork(pacproc, nil, 32*1024, RFFDG);
-	procrfork(pcmproc, nil, 32*1024, RFFDG);
+	procrfork(pacproc, nil, 8*STACKSIZE, RFFDG);
+	procrfork(pcmproc, nil, 8*STACKSIZE, RFFDG);
 }
 
 char *

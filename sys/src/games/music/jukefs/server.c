@@ -9,6 +9,8 @@
 #include "catset.h"
 #include "../debug.h"
 
+// #include <pool.h>
+
 char		*user, *mapname, *svrname;
 int		p[2];
 int		mfd[2];
@@ -94,6 +96,8 @@ threadmain(int argc, char *argv[]) {
 	srvname = nil;
 	list = 0;
 
+	// mainmem->flags |= POOL_NOREUSE;
+
 	ARGBEGIN{
 	case 'l':
 		list = 1;
@@ -161,7 +165,7 @@ threadmain(int argc, char *argv[]) {
 	if(debug)
 		fmtinstall('F', fcallfmt);
 
-	procrfork(io, nil, 8192, RFFDG);	//RFNOTEG?
+	procrfork(io, nil, STACKSIZE, RFFDG);	//RFNOTEG?
 
 	close(p[0]);	/* don't deadlock if child fails */
 

@@ -1,6 +1,6 @@
 dirs = playlistfs jukefs jukebox
 
-# DEFAULTMAP = /lib/audio/map
+DEFAULTMAP = /lib/audio/map
 ICONPATH = /lib/audio/icon
 
 ICONS = \

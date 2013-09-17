@@ -39,7 +39,8 @@ hash(char *s, int l) {
 }
 
 BOOLEAN
-readDESC(void) {
+readDESC(void)
+{
 	char token[MAXTOKENSIZE];
 	char *descnameformat = "%s/dev%s/DESC";
 	char *descfilename = 0;
@@ -54,7 +55,7 @@ readDESC(void) {
 	sprint(descfilename, descnameformat, FONTDIR, devname);
 	if ((bfd = Bopen(descfilename, OREAD)) == 0) {
 		error(WARNING, "cannot open file %s\n", descfilename);
-		return(0);
+		return 0;
 	}
 	Bfd = &(bfd->Biobufhdr);
 
@@ -81,7 +82,7 @@ readDESC(void) {
 			if (fontmnt <=0) {
 				if (!isdigit(*token)) {
 					error(WARNING, "readdesc: expecting number of fonts in mount table.\n");
-					return(FALSE);
+					return FALSE;
 				}
 				fontmnt = atoi(token) + 1;
 				fontmtab = galloc(fontmtab, fontmnt*sizeof(char *), "readdesc:");
@@ -101,7 +102,7 @@ readDESC(void) {
 			/* device resolution in dots per inch */
 			if (!isdigit(*token)) {
 				error(WARNING, "readdesc: expecting device resolution.\n");
-				return(FALSE);
+				return FALSE;
 			}
 			devres = atoi(token);
 			if (debug) Bprint(Bstderr, "res %d\n", devres);
@@ -136,5 +137,5 @@ readDESC(void) {
 		}
 	}
 	Bterm(Bfd);
-	return(TRUE);
+	return 0;
 }

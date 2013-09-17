@@ -1,5 +1,5 @@
 unsigned long
-ntohl(int x)
+ntohl(unsigned long x)
 {
 	unsigned long n;
 	unsigned char *p;
@@ -24,7 +24,7 @@ htonl(unsigned long h)
 }
 
 unsigned short
-ntohs(int x)
+ntohs(unsigned short x)
 {
 	unsigned short n;
 	unsigned char *p;
