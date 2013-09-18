@@ -15,7 +15,7 @@ struct Graph
 {
 	int		colindex;
 	Rectangle	r;
-	int		*data;
+	uvlong		*data;
 	int		ndata;
 	char		*label;
 	void		(*newvalue)(Machine*, uvlong*, uvlong*, int);
@@ -358,10 +358,13 @@ datapoint(Graph *g, int x, uvlong v, uvlong vmax)
 			y = (y+2.)/3.;
 		}
 	}
-	p.y = g->r.max.y - Dy(g->r)*y - Dot;
-	if(p.y < g->r.min.y)
-		p.y = g->r.min.y;
-	if(p.y > g->r.max.y-Dot)
+	if(y < 0x7fffffff){	/* avoid floating overflow */
+		p.y = g->r.max.y - Dy(g->r)*y - Dot;
+		if(p.y < g->r.min.y)
+			p.y = g->r.min.y;
+		if(p.y > g->r.max.y-Dot)
+			p.y = g->r.max.y-Dot;
+	}else
 		p.y = g->r.max.y-Dot;
 	return p;
 }
@@ -430,7 +433,7 @@ int
 readnums(Machine *m, int n, uvlong *a, int spanlines)
 {
 	int i;
-	char *p, *ep;
+	char *p, *q, *ep;
 
 	if(spanlines)
 		ep = m->ebufp;
@@ -444,7 +447,8 @@ readnums(Machine *m, int n, uvlong *a, int spanlines)
 			p++;
 		if(p == ep)
 			break;
-		a[i] = strtoull(p, &p, 10);
+		a[i] = strtoull(p, &q, 10);
+		p = q;
 	}
 	if(ep < m->ebufp)
 		ep++;
@@ -1199,9 +1203,9 @@ resize(void)
 			/* allocate data */
 			ondata = g->ndata;
 			g->ndata = Dx(machr)+1;	/* may be too many if label will be drawn here; so what? */
-			g->data = erealloc(g->data, g->ndata*sizeof(ulong));
+			g->data = erealloc(g->data, g->ndata*sizeof(g->data[0]));
 			if(g->ndata > ondata)
-				memset(g->data+ondata, 0, (g->ndata-ondata)*sizeof(ulong));
+				memset(g->data+ondata, 0, (g->ndata-ondata)*sizeof(g->data[0]));
 			/* set geometry */
 			g->r = machr;
 			g->r.min.y = y;

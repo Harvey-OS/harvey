@@ -320,6 +320,43 @@ smscbwrite(Ether *e, Buf *bp)
 	return n;
 }
 
+static int
+smscpromiscuous(Ether *e, int on)
+{
+	USED(on, e);
+#ifdef TODO		/* copied from asix */
+	int rxctl;
+
+	deprint(2, "%s: smscpromiscuous %d\n", argv0, on);
+	rxctl = getrxctl(e->dev);
+	if(on != 0)
+		rxctl |= Rxctlprom;
+	else
+		rxctl &= ~Rxctlprom;
+	return wr(e->dev, Cwrxctl, rxctl);
+#endif
+	return -1;
+}
+
+static int
+smscmulticast(Ether *e, uchar *addr, int on)
+{
+	USED(addr, on, e);
+#ifdef TODO		/* needed for ipv6; copied from asix */
+	int rxctl;
+
+	/* BUG: should write multicast filter */
+	rxctl = getrxctl(e->dev);
+	if(e->nmcasts != 0)
+		rxctl |= Rxctlamall;
+	else
+		rxctl &= ~Rxctlamall;
+	deprint(2, "%s: smscmulticast %d\n", argv0, e->nmcasts);
+	return wr(e->dev, Cwrxctl, rxctl);
+#endif
+	return -1;
+}
+
 static void
 smscfree(Ether *ether)
 {
@@ -354,6 +391,8 @@ smscreset(Ether *ether)
 			ether->free = smscfree;
 			ether->bread = smscbread;
 			ether->bwrite = smscbwrite;
+			ether->promiscuous = smscpromiscuous;
+			ether->multicast = smscmulticast;
 			ether->mbps = 100;	/* BUG */
 			return 0;
 		}

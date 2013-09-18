@@ -118,7 +118,6 @@ extern	void		rewritembox(Window*, Message*);
 
 extern	void		mkreply(Message*, char*, char*, Plumbattr*, char*);
 extern	void		delreply(Message*);
-extern	int		write2(int, int, char*, int, int);
 
 extern	int		mesgadd(Message*, char*, Dir*, char*);
 extern	void		mesgmenu(Window*, Message*);

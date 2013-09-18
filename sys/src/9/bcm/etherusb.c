@@ -414,10 +414,22 @@ etherusbpnp(Ether* edev)
 	edev->ctlr = ctlr;
 	edev->irq = -1;
 	edev->mbps = 100;	/* TODO: get this from usbether */
+
+	/*
+	 * Linkage to the generic ethernet driver.
+	 */
 	edev->attach = etherusbattach;
 	edev->transmit = etherusbtransmit;
+	edev->interrupt = nil;
 	edev->ifstat = etherusbifstat;
 	edev->ctl = etherusbctl;
+
+	edev->arg = edev;
+	/* TODO: promiscuous, multicast (for ipv6), shutdown (for reboot) */
+//	edev->promiscuous = etherusbpromiscuous;
+//	edev->shutdown = etherusbshutdown;
+//	edev->multicast = etherusbmulticast;
+
 	return 0;
 }
 

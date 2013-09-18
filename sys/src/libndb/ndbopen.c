@@ -22,7 +22,7 @@ ndbopen(char *file)
 	Ndbs s;
 	Ndbtuple *t, *nt;
 
-	if(file == 0)
+	if(file == nil && (file = getenv("NDBFILE")) == nil)
 		file = deffile;
 	db = doopen(file);
 	if(db == 0)
