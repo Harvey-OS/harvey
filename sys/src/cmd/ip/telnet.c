@@ -161,7 +161,7 @@ telnet(int net)
 		fromkbd(net);
 		if(notkbd)
 			for(;;)
-				sleep(0);
+				sleep(1000); // sleep(0) is a cpuhog
 		if (svc)
 			remove(svc);
 		sendnote(netpid, "die");

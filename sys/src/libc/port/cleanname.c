@@ -8,56 +8,90 @@
 char*
 cleanname(char *name)
 {
-	char *p, *q, *dotdot;
-	int rooted, erasedprefix;
+	char *s;	/* source of copy */
+	char *d;	/* destination of copy */
+	char *d0;	/* start of path afer the root name */
+	Rune r;
+	int rooted;
 
-	rooted = name[0] == '/';
-	erasedprefix = 0;
+	if(name[0] == 0)
+		return strcpy(name, ".");
+	rooted = 0;
+	d0 = name;
+	if(d0[0] == '#'){
+		if(d0[1] == 0)
+			return d0;
+		d0  += 1 + chartorune(&r, d0+1); /* ignore slash: #/ */
+		while(!SEP(*d0))
+			d0 += chartorune(&r, d0);
+		if(d0 == 0)
+			return name;
+		d0++;	/* keep / after #<name> */
+		rooted = 1;
+	}else if(d0[0] == '/'){
+		rooted = 1;
+		d0++;
+	}
 
-	/*
-	 * invariants:
-	 *	p points at beginning of path element we're considering.
-	 *	q points just past the last path element we wrote (no slash).
-	 *	dotdot points just past the point where .. cannot backtrack
-	 *		any further (no slash).
-	 */
-	p = q = dotdot = name+rooted;
-	while(*p) {
-		if(p[0] == '/')	/* null element */
-			p++;
-		else if(p[0] == '.' && SEP(p[1])) {
-			if(p == name)
-				erasedprefix = 1;
-			p += 1;	/* don't count the separator in case it is nul */
-		} else if(p[0] == '.' && p[1] == '.' && SEP(p[2])) {
-			p += 2;
-			if(q > dotdot) {	/* can backtrack */
-				while(--q > dotdot && *q != '/')
-					;
-			} else if(!rooted) {	/* /.. is / but ./../ is .. */
-				if(q != name)
-					*q++ = '/';
-				*q++ = '.';
-				*q++ = '.';
-				dotdot = q;
-			}
-			if(q == name)
-				erasedprefix = 1;	/* erased entire path via dotdot */
-		} else {	/* real path element */
-			if(q != name+rooted)
-				*q++ = '/';
-			while((*q = *p) != '/' && *q != 0)
-				p++, q++;
+	s = d0;
+	if(rooted){
+		/* skip extra '/' at root name */
+		for(; *s == '/'; s++)
+			;
+	}
+	/* remove dup slashes */
+	for(d = d0; *s != 0; s++){
+		*d++ = *s;
+		if(*s == '/')
+			while(s[1] == '/')
+				s++;
+	}
+	*d = 0;
+
+	d = d0;
+	s = d0;
+	while(*s != 0){
+		if(s[0] == '.' && SEP(s[1])){
+			if(s[1] == 0)
+				break;
+			s+= 2;
+			continue;
 		}
+		if(s[0] == '.' && s[1] == '.' && SEP(s[2])){
+			if(d == d0){
+				if(rooted){
+					/* /../x -> /x */
+					if(s[2] == 0)
+						break;
+					s += 3;
+					continue;
+				}else{
+					/* ../x -> ../x; and never collect ../ */
+					d0 += 3;
+				}
+			}
+			if(d > d0){
+				/* a/../x -> x */
+				assert(d-2 >= d0 && d[-1] == '/');
+				for(d -= 2; d > d0 && d[-1] != '/'; d--)
+						;
+				if(s[2] == 0)
+					break;
+				s += 3;
+				continue;
+			}
+		}
+		while(!SEP(*s))
+			*d++ = *s++;
+		if(*s == 0)
+			break;
+		
+		*d++ = *s++;
 	}
-	if(q == name)	/* empty string is really ``.'' */
-		*q++ = '.';
-	*q = '\0';
-	if(erasedprefix && name[0] == '#'){	
-		/* this was not a #x device path originally - make it not one now */
-		memmove(name+2, name, strlen(name)+1);
-		name[0] = '.';
-		name[1] = '/';
-	}
+	*d = 0;
+	if(d-1 > name && d[-1] == '/')	/* thanks to #/ */
+		*--d = 0;
+	if(name[0] == 0)
+		strcpy(name, ".");
 	return name;
 }

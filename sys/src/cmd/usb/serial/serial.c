@@ -464,7 +464,7 @@ dirgen(Usbfs *fs, Qid, int i, Dir *d, void *p)
 }
 
 enum {
-	Serbufsize	= 255,
+	Serbufsize	= 256,
 };
 
 static long
@@ -494,6 +494,7 @@ dread(Usbfs *fs, Fid *fid, void *data, long count, vlong offset)
 	case Qdata:
 		if(count > ser->maxread)
 			count = ser->maxread;
+
 		dsprint(2, "serial: reading from data\n");
 		do {
 			err[0] = 0;

@@ -425,7 +425,7 @@ asixpromiscuous(Ether *e, int on)
 {
 	int rxctl;
 
-	deprint(2, "%s: aixprompiscuous %d\n", argv0, on);
+	deprint(2, "%s: asixpromiscuous %d\n", argv0, on);
 	rxctl = getrxctl(e->dev);
 	if(on != 0)
 		rxctl |= Rxctlprom;

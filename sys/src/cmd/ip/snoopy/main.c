@@ -149,7 +149,7 @@ main(int argc, char **argv)
 		snprint(buf, Blen, "%s!-1", file);
 		fd = dial(buf, 0, 0, &cfd);
 		if(fd < 0)
-			sysfatal("dialing %s", buf);
+			sysfatal("dialing %s: %r", buf);
 		if(pflag && fprint(cfd, prom, strlen(prom)) < 0)
 			sysfatal("setting %s", prom);
 	} else if((!tiflag) && strstr(file, "ipifc")){

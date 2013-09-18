@@ -389,7 +389,7 @@ enum
 {
 	NARGS		= 100,
 	NARGCHAR	= 8*1024,
-	EXECSTACK 	= 4096+(NARGS+1)*sizeof(char*)+NARGCHAR
+	EXECSTACK 	= 8192+(NARGS+1)*sizeof(char*)+NARGCHAR
 };
 
 /* copy argv to stack and free the incoming strings, so we don't leak argument vectors */
