@@ -80,7 +80,7 @@ extern	Rune*	runestrstr(Rune*, Rune*);
 extern	Rune	tolowerrune(Rune);
 extern	Rune	totitlerune(Rune);
 extern	Rune	toupperrune(Rune);
-extern	Rune tobaserune(Rune);
+extern	Rune	tobaserune(Rune);
 extern	int	isalpharune(Rune);
 extern	int	isbaserune(Rune);
 extern	int	isdigitrune(Rune);
@@ -412,11 +412,21 @@ enum {
 extern	void	prof(void (*fn)(void*), void *arg, int entries, int what);
 
 /*
+ * atomic
+ */
+long	ainc(long*);
+long	adec(long*);
+int	cas32(u32int*, u32int, u32int);
+int	casp(void**, void*, void*);
+int	casl(ulong*, ulong, ulong);
+
+/*
  *  synchronization
  */
 typedef
 struct Lock {
-	int	val;
+	long	key;
+	long	sem;
 } Lock;
 
 extern int	_tas(int*);
@@ -540,6 +550,7 @@ extern	void		freenetconninfo(NetConnInfo*);
 #define	OCEXEC	32	/* or'ed in, close on exec */
 #define	ORCLOSE	64	/* or'ed in, remove on close */
 #define	OEXCL	0x1000	/* or'ed in, exclusive use (create only) */
+// #define	OBEHIND	0x2000	/* use write behind for writes [for 9n] */
 
 #define	AEXIST	0	/* accessible: exists */
 #define	AEXEC	1	/* execute access */
@@ -660,6 +671,7 @@ extern	int	noted(int);
 extern	int	notify(void(*)(void*, char*));
 extern	int	open(char*, int);
 extern	int	fd2path(int, char*, int);
+// extern	int	fdflush(int);
 extern	int	pipe(int*);
 extern	long	pread(int, void*, long, vlong);
 extern	long	preadv(int, IOchunk*, int, vlong);

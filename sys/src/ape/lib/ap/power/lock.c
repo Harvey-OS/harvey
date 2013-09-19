@@ -2,44 +2,35 @@
 #include "../plan9/sys9.h"
 #define _LOCK_EXTENSION
 #include <lock.h>
-
-int	tas(int*);
+//#include <lib9.h>
 
 void
-lock(Lock *lk)
+lock(Lock *l)
 {
-	int i;
+	if(ainc(&l->key) == 1)
+		return;	/* changed from 0 -> 1: we hold lock */
+	/* otherwise wait in kernel */
+	while(_SEMACQUIRE(&l->sem, 1) < 0){
+		/* interrupted; try again */
+	}
+}
 
-	/* once fast */
-	if(!tas(&lk->val))
-		return;
-	/* a thousand times pretty fast */
-	for(i=0; i<1000; i++){
-		if(!tas(&lk->val))
-			return;
-		_SLEEP(0);
-	}
-	/* now nice and slow */
-	for(i=0; i<1000; i++){
-		if(!tas(&lk->val))
-			return;
-		_SLEEP(100);
-	}
-	/* take your time */
-	while(tas(&lk->val))
-		_SLEEP(1000);
+void
+unlock(Lock *l)
+{
+	if(adec(&l->key) == 0)
+		return;	/* changed from 1 -> 0: no contention */
+	_SEMRELEASE(&l->sem, 1);
 }
 
 int
-canlock(Lock *lk)
+canlock(Lock *l)
 {
-	if(tas(&lk->val))
-		return 0;
-	return 1;
-}
-
-void
-unlock(Lock *lk)
-{
-	lk->val = 0;
+	if(ainc(&l->key) == 1)
+		return 1;	/* changed from 0 -> 1: success */
+	/* Undo increment (but don't miss wakeup) */
+	if(adec(&l->key) == 0)
+		return 0;	/* changed from 1 -> 0: no contention */
+	_SEMRELEASE(&l->sem, 1);
+	return 0;
 }

@@ -24,7 +24,6 @@ SFILES=\
 
 CFILES=\
 	cycles.c\
-	lock.c\
 	notejmp.c\
 	sqrt.c\
 	vlrt.c\

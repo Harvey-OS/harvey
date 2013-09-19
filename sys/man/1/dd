@@ -16,8 +16,8 @@ The standard input and output are used by default.
 The input and output block size may be
 specified to take advantage of raw physical I/O.
 The options are
-.TF "quiet\ \ \fIn
-.PD
+.TF "quietb\ \ \fIn
+.PD 0.2v
 .TP
 .BI -if\  f
 Open file
@@ -54,47 +54,53 @@ Set conversion buffer size.
 .BI -skip\  n\^
 Skip
 .I n
-input records before copying.
+input blocks before copying.
 .TP
 .BI -iseek\  n\^
 Seek
 .I n
-records forward on input file
+blocks forward on input file
 before copying.
+.TP
+.BI -iseekb\  n\^
+Seek
+.I n
+bytes forward on input file before copying.
 .TP
 .BI -files\  n\^
 Catenate
-.I n 
+.I n
 input files (useful only for magnetic tape or similar input device).
 .TP
 .BI -oseek\  n\^
 Seek
 .I n\^
-records from beginning of output file before copying.
+blocks from beginning of output file before copying.
+.TP
+.BI -oseekb\  n\^
+Seek
+.I n\^
+bytes from beginning of output file before copying.
 .TP
 .BI -count\  n\^
 Copy only
 .I n
-input records.
+input blocks.
 .TP
 .BI -trunc\  n\^
-By default,
-.I dd
-truncates the output file when it opens it;
-.B -trunc
-.B 0
-opens it without truncation.
+If
+.I n
+is
+.BR 0 ,
+open the output file without truncating it.
 .TP
 .BI -quiet\  n\^
-By default,
-.I dd
-prints the number of blocks read and written
-once it is finished.
-.B -quiet
-.B 1
-silences this summary.
+If
+.I n
+is 1,
+omit the summary of blocks transferred.
 .HP
-\fL-conv\ ascii\ \ \ \ \fRConvert
+\fL-conv\ ascii\ \ \ \fRConvert
 .SM EBCDIC
 to
 .SM ASCII.
@@ -113,14 +119,14 @@ Like
 but with a slightly different character map.
 .TP
 .B block
-Convert variable length
+Convert variable-length
 .SM ASCII
-records to fixed length.
+records (lines) to fixed length blocks.
 .TP
 .B unblock
 Convert fixed length
 .SM ASCII
-records to variable length.
+blocks to variable-length lines.
 .TP
 .B lcase
 Map alphabetics to lower case.
@@ -135,7 +141,7 @@ Swap every pair of bytes.
 Do not stop processing on an error.
 .TP
 .B sync
-Pad every input record to
+Pad every input block to
 .I  ibs\^
 bytes.
 .RE
@@ -173,7 +179,7 @@ trailing blanks are trimmed and new-line is added
 before sending the line to the output.
 In the latter three cases, characters are read into the
 conversion buffer and blanks are added to make up an
-output record of size
+output block of size
 .IR n .
 If
 .L cbs\^
