@@ -10,7 +10,8 @@
 
 typedef struct
 {
-	int	val;
+	long	key;
+	long	sem;
 } Lock;
 
 #ifdef __cplusplus

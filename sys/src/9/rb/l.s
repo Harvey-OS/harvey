@@ -842,7 +842,8 @@ loop:
 	MOVW	$1, R3
 	LL(2, 1)
 	NOP
-	ADDU	R1, R3, R3
+	ADDU	R1, R3
+	MOVW	R3, R1		/* return new value */
 	SC(2, 3)
 	NOP
 	BEQ	R3, loop
@@ -856,14 +857,15 @@ loop1:
 	MOVW	$-1, R3
 	LL(2, 1)
 	NOP
-	ADDU	R1, R3, R3
-	MOVW	R3, R1
+	ADDU	R1, R3
+	MOVW	R3, R1		/* return new value */
 	SC(2, 3)
 	NOP
 	BEQ	R3, loop1
 	NOP
 	RETURN
 
+/* used by the semaphore implementation */
 TEXT cmpswap(SB), $0
 	MOVW	R1, R2		/* address of key */
 	MOVW	old+4(FP), R3	/* old value */

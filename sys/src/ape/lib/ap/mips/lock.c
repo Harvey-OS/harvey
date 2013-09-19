@@ -1,177 +1,36 @@
-#define _LOCK_EXTENSION
-#include <stdlib.h>
-#include <string.h>
+#include "../plan9/lib.h"
 #include "../plan9/sys9.h"
+#define _LOCK_EXTENSION
 #include <lock.h>
+//#include <lib9.h>
 
-enum
+void
+lock(Lock *l)
 {
-	Pagesize	= 4096,
-	Semperpg	= Pagesize/(16*sizeof(unsigned int)),
-	Lockaddr	= 0x60000000,
-
-	POWER		= 0x320,
-	MAGNUM		= 0x330,
-	MAGNUMII	= 0x340,
-	R4K		= 0x500,
-};
-
-static	int arch;
-extern	int C_3ktas(int*);
-extern	int C_4ktas(int*);
-extern	int C_fcr0(void);
-
-static void
-lockinit(void)
-{
-	int n;
-
-	if(arch != 0)
-		return;	/* allow multiple calls */
-	arch = C_fcr0();
-	switch(arch) {
-	case POWER:
-		n = _SEGATTACH(0,  "lock", (void*)Lockaddr, Pagesize);
-		if(n < 0) {
-			arch = MAGNUM;
-			break;
-		}
-		memset((void*)Lockaddr, 0, Pagesize);
-		break;
-	case MAGNUM:
-	case MAGNUMII:
-	case R4K:
-		break;
-	default:
-		arch = R4K;
-		break;
+	if(ainc(&l->key) == 1)
+		return;	/* changed from 0 -> 1: we hold lock */
+	/* otherwise wait in kernel */
+	while(_SEMACQUIRE(&l->sem, 1) < 0){
+		/* interrupted; try again */
 	}
-	
 }
 
 void
-lock(Lock *lk)
+unlock(Lock *l)
 {
-	int *hwsem;
-	int hash;
-
-retry:
-	switch(arch) {
-	case 0:
-		lockinit();
-		goto retry;
-	case MAGNUM:
-	case MAGNUMII:
-		while(C_3ktas(&lk->val))
-			_SLEEP(0);
-		return;
-	case R4K:
-		for(;;){
-			while(lk->val)
-				;
-			if(C_4ktas(&lk->val) == 0)
-				return;
-		}
-		break;
-	case POWER:
-		/* Use low order lock bits to generate hash */
-		hash = ((int)lk/sizeof(int)) & (Semperpg-1);
-		hwsem = (int*)Lockaddr+hash;
-
-		for(;;) {
-			if((*hwsem & 1) == 0) {
-				if(lk->val)
-					*hwsem = 0;
-				else {
-					lk->val = 1;
-					*hwsem = 0;
-					return;
-				}
-			}
-			while(lk->val)
-				;
-		}
-	}	
+	if(adec(&l->key) == 0)
+		return;	/* changed from 1 -> 0: no contention */
+	_SEMRELEASE(&l->sem, 1);
 }
 
 int
-canlock(Lock *lk)
+canlock(Lock *l)
 {
-	int *hwsem;
-	int hash;
-
-retry:
-	switch(arch) {
-	case 0:
-		lockinit();
-		goto retry;
-	case MAGNUM:
-	case MAGNUMII:
-		if(C_3ktas(&lk->val))
-			return 0;
-		return 1;
-	case R4K:
-		if(C_4ktas(&lk->val))
-			return 0;
-		return 1;
-	case POWER:
-		/* Use low order lock bits to generate hash */
-		hash = ((int)lk/sizeof(int)) & (Semperpg-1);
-		hwsem = (int*)Lockaddr+hash;
-
-		if((*hwsem & 1) == 0) {
-			if(lk->val)
-				*hwsem = 0;
-			else {
-				lk->val = 1;
-				*hwsem = 0;
-				return 1;
-			}
-		}
-		return 0;
-	default:
-		return 0;
-	}	
-}
-
-void
-unlock(Lock *lk)
-{
-	lk->val = 0;
-}
-
-int
-tas(int *p)
-{
-	int *hwsem;
-	int hash;
-
-retry:
-	switch(arch) {
-	case 0:
-		lockinit();
-		goto retry;
-	case MAGNUM:
-	case MAGNUMII:
-		return C_3ktas(p);
-	case R4K:
-		return C_4ktas(p);
-	case POWER:
-		/* Use low order lock bits to generate hash */
-		hash = ((int)p/sizeof(int)) & (Semperpg-1);
-		hwsem = (int*)Lockaddr+hash;
-
-		if((*hwsem & 1) == 0) {
-			if(*p)
-				*hwsem = 0;
-			else {
-				*p = 1;
-				*hwsem = 0;
-				return 0;
-			}
-		}
-		return 1;
-	default:
-		return 0;
-	}	
+	if(ainc(&l->key) == 1)
+		return 1;	/* changed from 0 -> 1: success */
+	/* Undo increment (but don't miss wakeup) */
+	if(adec(&l->key) == 0)
+		return 0;	/* changed from 1 -> 0: no contention */
+	_SEMRELEASE(&l->sem, 1);
+	return 0;
 }

@@ -17,6 +17,7 @@ btas:
 	BLTZ	R1, btas
 	RET
 
+	TEXT	_tas(SB), $0
 	TEXT	C_4ktas(SB), $0
 	MOVW	R1, R2		/* address of key */
 tas1:
