@@ -14,7 +14,7 @@
 #include <utf.h>
 #include <fmt.h>
 #include <signal.h>
-#include <time.h>
+// #include <time.h>
 
 #define	nelem(x)	(sizeof(x)/sizeof((x)[0]))
 
@@ -64,6 +64,37 @@ struct Waitmsg
 	char	*msg;
 } Waitmsg;
 
+/*
+ * Time-of-day
+ */
+
+typedef
+struct Tm
+{
+	int	sec;
+	int	min;
+	int	hour;
+	int	mday;
+	int	mon;
+	int	year;
+	int	wday;
+	int	yday;
+	char	zone[4];
+	int	tzoff;
+} Tm;
+
+extern	Tm*	gmtime(long);
+extern	Tm*	localtime(long);
+extern	char*	asctime(Tm*);
+extern	char*	ctime(long);
+extern	double	cputime(void);
+extern	long	times(long*);
+extern	long	tm2sec(Tm*);
+extern	vlong	nsec(void);
+
+extern	void	cycles(uvlong*);	/* 64-bit value of the cycle counter if there is one, 0 if there isn't */
+
+extern	long	time(long*);
 
 extern	int	_AWAIT(char*, int);
 extern	int	_ALARM(unsigned long);

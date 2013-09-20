@@ -41,13 +41,14 @@ UPDATE=\
 
 </sys/src/cmd/mksyslib
 
-CFLAGS=$CFLAGS -c -+ -D_POSIX_SOURCE -D_PLAN9_SOURCE -I../../../../libmp/port -I. -I/sys/include/ape -I/sys/include
+CFLAGS=$CFLAGS -c -+ -D_POSIX_SOURCE -D_PLAN9_SOURCE -I../../../../libmp/port \
+ -I. -I/sys/include/ape -I/sys/include
 
 %.$O:	../../../../libsec/port/%.c
 	$CC $CFLAGS ../../../../libsec/port/$stem.c
 
 x509-ape.c:	../../../../libsec/port/x509.c
-
+	cp $prereq $target
 
 $O.rsatest: rsatest.$O
 	$LD -o $target $prereq
