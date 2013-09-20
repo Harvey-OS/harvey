@@ -1,0 +1,1235 @@
+sizeof_1_ = 8;
+aggr _1_
+{
+	'U' 0 lo;
+	'U' 4 hi;
+};
+
+defn
+_1_(addr) {
+	complex _1_ addr;
+	print("	lo	", addr.lo, "\n");
+	print("	hi	", addr.hi, "\n");
+};
+
+sizeofFPdbleword = 8;
+aggr FPdbleword
+{
+	'F' 0 x;
+	{
+	'U' 0 lo;
+	'U' 4 hi;
+	};
+};
+
+defn
+FPdbleword(addr) {
+	complex FPdbleword addr;
+	print("	x	", addr.x, "\n");
+	print("_1_ {\n");
+		_1_(addr+0);
+	print("}\n");
+};
+
+UTFmax = 4;
+Runesync = 128;
+Runeself = 128;
+Runeerror = 65533;
+Runemax = 1114111;
+Runemask = 2097151;
+sizeofFmt = 48;
+aggr Fmt
+{
+	'b' 0 runes;
+	'X' 4 start;
+	'X' 8 to;
+	'X' 12 stop;
+	'X' 16 flush;
+	'X' 20 farg;
+	'D' 24 nfmt;
+	'X' 28 args;
+	'D' 32 r;
+	'D' 36 width;
+	'D' 40 prec;
+	'U' 44 flags;
+};
+
+defn
+Fmt(addr) {
+	complex Fmt addr;
+	print("	runes	", addr.runes, "\n");
+	print("	start	", addr.start\X, "\n");
+	print("	to	", addr.to\X, "\n");
+	print("	stop	", addr.stop\X, "\n");
+	print("	flush	", addr.flush\X, "\n");
+	print("	farg	", addr.farg\X, "\n");
+	print("	nfmt	", addr.nfmt, "\n");
+	print("	args	", addr.args\X, "\n");
+	print("	r	", addr.r, "\n");
+	print("	width	", addr.width, "\n");
+	print("	prec	", addr.prec, "\n");
+	print("	flags	", addr.flags, "\n");
+};
+
+FmtWidth = 1;
+FmtLeft = 2;
+FmtPrec = 4;
+FmtSharp = 8;
+FmtSpace = 16;
+FmtSign = 32;
+FmtZero = 64;
+FmtUnsigned = 128;
+FmtShort = 256;
+FmtLong = 512;
+FmtVLong = 1024;
+FmtComma = 2048;
+FmtByte = 4096;
+FmtFlag = 8192;
+sizeofTm = 40;
+aggr Tm
+{
+	'D' 0 sec;
+	'D' 4 min;
+	'D' 8 hour;
+	'D' 12 mday;
+	'D' 16 mon;
+	'D' 20 year;
+	'D' 24 wday;
+	'D' 28 yday;
+	'a' 32 zone;
+	'D' 36 tzoff;
+};
+
+defn
+Tm(addr) {
+	complex Tm addr;
+	print("	sec	", addr.sec, "\n");
+	print("	min	", addr.min, "\n");
+	print("	hour	", addr.hour, "\n");
+	print("	mday	", addr.mday, "\n");
+	print("	mon	", addr.mon, "\n");
+	print("	year	", addr.year, "\n");
+	print("	wday	", addr.wday, "\n");
+	print("	yday	", addr.yday, "\n");
+	print("	zone	", addr.zone, "\n");
+	print("	tzoff	", addr.tzoff, "\n");
+};
+
+PNPROC = 1;
+PNGROUP = 2;
+Profoff = 0;
+Profuser = 1;
+Profkernel = 2;
+Proftime = 3;
+Profsample = 4;
+sizeofLock = 8;
+aggr Lock
+{
+	'D' 0 key;
+	'D' 4 sem;
+};
+
+defn
+Lock(addr) {
+	complex Lock addr;
+	print("	key	", addr.key, "\n");
+	print("	sem	", addr.sem, "\n");
+};
+
+sizeofQLp = 12;
+aggr QLp
+{
+	'D' 0 inuse;
+	'A' QLp 4 next;
+	'C' 8 state;
+};
+
+defn
+QLp(addr) {
+	complex QLp addr;
+	print("	inuse	", addr.inuse, "\n");
+	print("	next	", addr.next\X, "\n");
+	print("	state	", addr.state, "\n");
+};
+
+sizeofQLock = 20;
+aggr QLock
+{
+	Lock 0 lock;
+	'D' 8 locked;
+	'A' QLp 12 $head;
+	'A' QLp 16 $tail;
+};
+
+defn
+QLock(addr) {
+	complex QLock addr;
+	print("Lock lock {\n");
+	Lock(addr.lock);
+	print("}\n");
+	print("	locked	", addr.locked, "\n");
+	print("	$head	", addr.$head\X, "\n");
+	print("	$tail	", addr.$tail\X, "\n");
+};
+
+sizeofRWLock = 24;
+aggr RWLock
+{
+	Lock 0 lock;
+	'D' 8 readers;
+	'D' 12 writer;
+	'A' QLp 16 $head;
+	'A' QLp 20 $tail;
+};
+
+defn
+RWLock(addr) {
+	complex RWLock addr;
+	print("Lock lock {\n");
+	Lock(addr.lock);
+	print("}\n");
+	print("	readers	", addr.readers, "\n");
+	print("	writer	", addr.writer, "\n");
+	print("	$head	", addr.$head\X, "\n");
+	print("	$tail	", addr.$tail\X, "\n");
+};
+
+sizeofRendez = 12;
+aggr Rendez
+{
+	'A' QLock 0 l;
+	'A' QLp 4 $head;
+	'A' QLp 8 $tail;
+};
+
+defn
+Rendez(addr) {
+	complex Rendez addr;
+	print("	l	", addr.l\X, "\n");
+	print("	$head	", addr.$head\X, "\n");
+	print("	$tail	", addr.$tail\X, "\n");
+};
+
+sizeofNetConnInfo = 36;
+aggr NetConnInfo
+{
+	'X' 0 dir;
+	'X' 4 root;
+	'X' 8 spec;
+	'X' 12 lsys;
+	'X' 16 lserv;
+	'X' 20 rsys;
+	'X' 24 rserv;
+	'X' 28 laddr;
+	'X' 32 raddr;
+};
+
+defn
+NetConnInfo(addr) {
+	complex NetConnInfo addr;
+	print("	dir	", addr.dir\X, "\n");
+	print("	root	", addr.root\X, "\n");
+	print("	spec	", addr.spec\X, "\n");
+	print("	lsys	", addr.lsys\X, "\n");
+	print("	lserv	", addr.lserv\X, "\n");
+	print("	rsys	", addr.rsys\X, "\n");
+	print("	rserv	", addr.rserv\X, "\n");
+	print("	laddr	", addr.laddr\X, "\n");
+	print("	raddr	", addr.raddr\X, "\n");
+};
+
+RFNAMEG = 1;
+RFENVG = 2;
+RFFDG = 4;
+RFNOTEG = 8;
+RFPROC = 16;
+RFMEM = 32;
+RFNOWAIT = 64;
+RFCNAMEG = 1024;
+RFCENVG = 2048;
+RFCFDG = 4096;
+RFREND = 8192;
+RFNOMNT = 16384;
+sizeofQid = 16;
+aggr Qid
+{
+	'W' 0 path;
+	'U' 8 vers;
+	'b' 12 type;
+};
+
+defn
+Qid(addr) {
+	complex Qid addr;
+	print("	path	", addr.path, "\n");
+	print("	vers	", addr.vers, "\n");
+	print("	type	", addr.type, "\n");
+};
+
+sizeofDir = 60;
+aggr Dir
+{
+	'u' 0 type;
+	'U' 4 dev;
+	Qid 8 qid;
+	'U' 24 mode;
+	'U' 28 atime;
+	'U' 32 mtime;
+	'V' 36 length;
+	'X' 44 name;
+	'X' 48 uid;
+	'X' 52 gid;
+	'X' 56 muid;
+};
+
+defn
+Dir(addr) {
+	complex Dir addr;
+	print("	type	", addr.type, "\n");
+	print("	dev	", addr.dev, "\n");
+	print("Qid qid {\n");
+	Qid(addr.qid);
+	print("}\n");
+	print("	mode	", addr.mode, "\n");
+	print("	atime	", addr.atime, "\n");
+	print("	mtime	", addr.mtime, "\n");
+	print("	length	", addr.length, "\n");
+	print("	name	", addr.name\X, "\n");
+	print("	uid	", addr.uid\X, "\n");
+	print("	gid	", addr.gid\X, "\n");
+	print("	muid	", addr.muid\X, "\n");
+};
+
+sizeofWaitmsg = 20;
+aggr Waitmsg
+{
+	'D' 0 pid;
+	'a' 4 time;
+	'X' 16 msg;
+};
+
+defn
+Waitmsg(addr) {
+	complex Waitmsg addr;
+	print("	pid	", addr.pid, "\n");
+	print("	time	", addr.time, "\n");
+	print("	msg	", addr.msg\X, "\n");
+};
+
+sizeofIOchunk = 8;
+aggr IOchunk
+{
+	'X' 0 addr;
+	'U' 4 len;
+};
+
+defn
+IOchunk(addr) {
+	complex IOchunk addr;
+	print("	addr	", addr.addr\X, "\n");
+	print("	len	", addr.len, "\n");
+};
+
+sizeof_2_ = 32;
+aggr _2_
+{
+	'D' 0 fd;
+	'C' 4 flags;
+	'C' 5 state;
+	'X' 8 buf;
+	'X' 12 rp;
+	'X' 16 wp;
+	'X' 20 lp;
+	'D' 24 bufl;
+	'a' 28 unbuf;
+};
+
+defn
+_2_(addr) {
+	complex _2_ addr;
+	print("	fd	", addr.fd, "\n");
+	print("	flags	", addr.flags, "\n");
+	print("	state	", addr.state, "\n");
+	print("	buf	", addr.buf\X, "\n");
+	print("	rp	", addr.rp\X, "\n");
+	print("	wp	", addr.wp\X, "\n");
+	print("	lp	", addr.lp\X, "\n");
+	print("	bufl	", addr.bufl, "\n");
+	print("	unbuf	", addr.unbuf, "\n");
+};
+
+DOpaque = 4294967295;
+DTransparent = 0;
+DBlack = 255;
+DWhite = 4294967295;
+DRed = 4278190335;
+DGreen = 16711935;
+DBlue = 65535;
+DCyan = 16777215;
+DMagenta = 4278255615;
+DYellow = 4294902015;
+DPaleyellow = 4294945535;
+DDarkyellow = 4008615679;
+DDarkgreen = 1149781247;
+DPalegreen = 2868882175;
+DMedgreen = 2295105791;
+DDarkblue = 22015;
+DPalebluegreen = 2868903935;
+DPaleblue = 48127;
+DBluegreen = 8947967;
+DGreygreen = 1437248255;
+DPalegreygreen = 2666458879;
+DYellowgreen = 2576960767;
+DMedblue = 39423;
+DGreyblue = 6142975;
+DPalegreyblue = 1234427391;
+DPurpleblue = 2290666751;
+DNotacolor = 4294967040;
+DNofill = 4294967040;
+Displaybufsize = 8000;
+ICOSSCALE = 1024;
+Borderwidth = 4;
+Refbackup = 0;
+Refnone = 1;
+Refmesg = 2;
+Endsquare = 0;
+Enddisc = 1;
+Endarrow = 2;
+Endmask = 31;
+Clear = 0;
+SinD = 8;
+DinS = 4;
+SoutD = 2;
+DoutS = 1;
+S = 10;
+SoverD = 11;
+SatopD = 9;
+SxorD = 3;
+D = 5;
+DoverS = 7;
+DatopS = 6;
+DxorS = 3;
+Ncomp = 12;
+CRed = 0;
+CGreen = 1;
+CBlue = 2;
+CGrey = 3;
+CAlpha = 4;
+CMap = 5;
+CIgnore = 6;
+NChan = 7;
+GREY1 = 49;
+GREY2 = 50;
+GREY4 = 52;
+GREY8 = 56;
+CMAP8 = 88;
+RGB15 = 1627723045;
+RGB16 = 333349;
+RGB24 = 530472;
+RGBA32 = 135800904;
+ARGB32 = 1208490024;
+XRGB32 = 1745360936;
+BGR24 = 2627592;
+ABGR32 = 1210587144;
+XBGR32 = 1747458056;
+sizeofPoint = 8;
+aggr Point
+{
+	'D' 0 x;
+	'D' 4 y;
+};
+
+defn
+Point(addr) {
+	complex Point addr;
+	print("	x	", addr.x, "\n");
+	print("	y	", addr.y, "\n");
+};
+
+sizeofRectangle = 16;
+aggr Rectangle
+{
+	Point 0 min;
+	Point 8 max;
+};
+
+defn
+Rectangle(addr) {
+	complex Rectangle addr;
+	print("Point min {\n");
+	Point(addr.min);
+	print("}\n");
+	print("Point max {\n");
+	Point(addr.max);
+	print("}\n");
+};
+
+sizeofScreen = 16;
+aggr Screen
+{
+	'X' 0 display;
+	'D' 4 id;
+	'X' 8 image;
+	'X' 12 fill;
+};
+
+defn
+Screen(addr) {
+	complex Screen addr;
+	print("	display	", addr.display\X, "\n");
+	print("	id	", addr.id, "\n");
+	print("	image	", addr.image\X, "\n");
+	print("	fill	", addr.fill\X, "\n");
+};
+
+sizeofDisplay = 180;
+aggr Display
+{
+	QLock 0 qlock;
+	'D' 20 locking;
+	'D' 24 dirno;
+	'D' 28 fd;
+	'D' 32 reffd;
+	'D' 36 ctlfd;
+	'D' 40 imageid;
+	'D' 44 $local;
+	'X' 48 error;
+	'X' 52 devdir;
+	'X' 56 windir;
+	'a' 60 oldlabel;
+	'U' 124 dataqid;
+	'X' 128 white;
+	'X' 132 black;
+	'X' 136 opaque;
+	'X' 140 transparent;
+	'X' 144 image;
+	'X' 148 buf;
+	'D' 152 bufsize;
+	'X' 156 bufp;
+	'X' 160 defaultfont;
+	'X' 164 defaultsubfont;
+	'X' 168 windows;
+	'X' 172 screenimage;
+	'D' 176 _isnewdisplay;
+};
+
+defn
+Display(addr) {
+	complex Display addr;
+	print("QLock qlock {\n");
+	QLock(addr.qlock);
+	print("}\n");
+	print("	locking	", addr.locking, "\n");
+	print("	dirno	", addr.dirno, "\n");
+	print("	fd	", addr.fd, "\n");
+	print("	reffd	", addr.reffd, "\n");
+	print("	ctlfd	", addr.ctlfd, "\n");
+	print("	imageid	", addr.imageid, "\n");
+	print("	$local	", addr.$local, "\n");
+	print("	error	", addr.error\X, "\n");
+	print("	devdir	", addr.devdir\X, "\n");
+	print("	windir	", addr.windir\X, "\n");
+	print("	oldlabel	", addr.oldlabel, "\n");
+	print("	dataqid	", addr.dataqid, "\n");
+	print("	white	", addr.white\X, "\n");
+	print("	black	", addr.black\X, "\n");
+	print("	opaque	", addr.opaque\X, "\n");
+	print("	transparent	", addr.transparent\X, "\n");
+	print("	image	", addr.image\X, "\n");
+	print("	buf	", addr.buf\X, "\n");
+	print("	bufsize	", addr.bufsize, "\n");
+	print("	bufp	", addr.bufp\X, "\n");
+	print("	defaultfont	", addr.defaultfont\X, "\n");
+	print("	defaultsubfont	", addr.defaultsubfont\X, "\n");
+	print("	windows	", addr.windows\X, "\n");
+	print("	screenimage	", addr.screenimage\X, "\n");
+	print("	_isnewdisplay	", addr._isnewdisplay, "\n");
+};
+
+sizeofImage = 60;
+aggr Image
+{
+	'A' Display 0 display;
+	'D' 4 id;
+	Rectangle 8 r;
+	Rectangle 24 clipr;
+	'D' 40 depth;
+	'U' 44 chan;
+	'D' 48 repl;
+	'A' Screen 52 screen;
+	'A' Image 56 next;
+};
+
+defn
+Image(addr) {
+	complex Image addr;
+	print("	display	", addr.display\X, "\n");
+	print("	id	", addr.id, "\n");
+	print("Rectangle r {\n");
+	Rectangle(addr.r);
+	print("}\n");
+	print("Rectangle clipr {\n");
+	Rectangle(addr.clipr);
+	print("}\n");
+	print("	depth	", addr.depth, "\n");
+	print("	chan	", addr.chan, "\n");
+	print("	repl	", addr.repl, "\n");
+	print("	screen	", addr.screen\X, "\n");
+	print("	next	", addr.next\X, "\n");
+};
+
+sizeofRGB = 12;
+aggr RGB
+{
+	'U' 0 red;
+	'U' 4 green;
+	'U' 8 blue;
+};
+
+defn
+RGB(addr) {
+	complex RGB addr;
+	print("	red	", addr.red, "\n");
+	print("	green	", addr.green, "\n");
+	print("	blue	", addr.blue, "\n");
+};
+
+sizeofFontchar = 8;
+aggr Fontchar
+{
+	'D' 0 x;
+	'b' 4 top;
+	'b' 5 bottom;
+	'C' 6 left;
+	'b' 7 width;
+};
+
+defn
+Fontchar(addr) {
+	complex Fontchar addr;
+	print("	x	", addr.x, "\n");
+	print("	top	", addr.top, "\n");
+	print("	bottom	", addr.bottom, "\n");
+	print("	left	", addr.left, "\n");
+	print("	width	", addr.width, "\n");
+};
+
+sizeofSubfont = 20;
+aggr Subfont
+{
+	'X' 0 name;
+	'd' 4 n;
+	'b' 6 height;
+	'C' 7 ascent;
+	'A' Fontchar 8 info;
+	'A' Image 12 bits;
+	'D' 16 ref;
+};
+
+defn
+Subfont(addr) {
+	complex Subfont addr;
+	print("	name	", addr.name\X, "\n");
+	print("	n	", addr.n, "\n");
+	print("	height	", addr.height, "\n");
+	print("	ascent	", addr.ascent, "\n");
+	print("	info	", addr.info\X, "\n");
+	print("	bits	", addr.bits\X, "\n");
+	print("	ref	", addr.ref, "\n");
+};
+
+LOG2NFCACHE = 6;
+NFCACHE = 64;
+NFLOOK = 5;
+NFSUBF = 2;
+MAXFCACHE = 1029;
+MAXSUBF = 50;
+DSUBF = 4;
+SUBFAGE = 10000;
+CACHEAGE = 10000;
+sizeofCachefont = 20;
+aggr Cachefont
+{
+	'U' 0 min;
+	'U' 4 max;
+	'D' 8 offset;
+	'X' 12 name;
+	'X' 16 subfontname;
+};
+
+defn
+Cachefont(addr) {
+	complex Cachefont addr;
+	print("	min	", addr.min, "\n");
+	print("	max	", addr.max, "\n");
+	print("	offset	", addr.offset, "\n");
+	print("	name	", addr.name\X, "\n");
+	print("	subfontname	", addr.subfontname\X, "\n");
+};
+
+sizeofCacheinfo = 12;
+aggr Cacheinfo
+{
+	'u' 0 x;
+	'b' 2 width;
+	'C' 3 left;
+	'U' 4 value;
+	'u' 8 age;
+};
+
+defn
+Cacheinfo(addr) {
+	complex Cacheinfo addr;
+	print("	x	", addr.x, "\n");
+	print("	width	", addr.width, "\n");
+	print("	left	", addr.left, "\n");
+	print("	value	", addr.value, "\n");
+	print("	age	", addr.age, "\n");
+};
+
+sizeofCachesubf = 12;
+aggr Cachesubf
+{
+	'U' 0 age;
+	'A' Cachefont 4 cf;
+	'A' Subfont 8 f;
+};
+
+defn
+Cachesubf(addr) {
+	complex Cachesubf addr;
+	print("	age	", addr.age, "\n");
+	print("	cf	", addr.cf\X, "\n");
+	print("	f	", addr.f\X, "\n");
+};
+
+sizeofFont = 48;
+aggr Font
+{
+	'X' 0 name;
+	'A' Display 4 display;
+	'd' 8 height;
+	'd' 10 ascent;
+	'd' 12 width;
+	'd' 14 nsub;
+	'U' 16 age;
+	'D' 20 maxdepth;
+	'D' 24 ncache;
+	'D' 28 nsubf;
+	'A' Cacheinfo 32 cache;
+	'A' Cachesubf 36 subf;
+	'A' Cachefont 40 sub;
+	'A' Image 44 cacheimage;
+};
+
+defn
+Font(addr) {
+	complex Font addr;
+	print("	name	", addr.name\X, "\n");
+	print("	display	", addr.display\X, "\n");
+	print("	height	", addr.height, "\n");
+	print("	ascent	", addr.ascent, "\n");
+	print("	width	", addr.width, "\n");
+	print("	nsub	", addr.nsub, "\n");
+	print("	age	", addr.age, "\n");
+	print("	maxdepth	", addr.maxdepth, "\n");
+	print("	ncache	", addr.ncache, "\n");
+	print("	nsubf	", addr.nsubf, "\n");
+	print("	cache	", addr.cache\X, "\n");
+	print("	subf	", addr.subf\X, "\n");
+	print("	sub	", addr.sub\X, "\n");
+	print("	cacheimage	", addr.cacheimage\X, "\n");
+};
+
+complex Point ZP;
+complex Rectangle ZR;
+complex Display display;
+complex Font font;
+complex Image screen;
+complex Screen _screen;
+sizeofpen_point = 12;
+aggr pen_point
+{
+	{
+	'D' 0 x;
+	'D' 4 y;
+	};
+	'D' 8 chaincode;
+};
+
+defn
+pen_point(addr) {
+	complex pen_point addr;
+	print("Point {\n");
+		Point(addr+0);
+	print("}\n");
+	print("	chaincode	", addr.chaincode, "\n");
+};
+
+sizeofStroke = 8;
+aggr Stroke
+{
+	'U' 0 npts;
+	'A' pen_point 4 pts;
+};
+
+defn
+Stroke(addr) {
+	complex Stroke addr;
+	print("	npts	", addr.npts, "\n");
+	print("	pts	", addr.pts\X, "\n");
+};
+
+sizeofScribble = 40;
+aggr Scribble
+{
+	'A' Point 0 pt;
+	'D' 4 ppasize;
+	Stroke 8 ps;
+	'X' 16 graf;
+	'D' 20 capsLock;
+	'D' 24 puncShift;
+	'D' 28 tmpShift;
+	'D' 32 ctrlShift;
+	'D' 36 curCharSet;
+};
+
+defn
+Scribble(addr) {
+	complex Scribble addr;
+	print("	pt	", addr.pt\X, "\n");
+	print("	ppasize	", addr.ppasize, "\n");
+	print("Stroke ps {\n");
+	Stroke(addr.ps);
+	print("}\n");
+	print("	graf	", addr.graf\X, "\n");
+	print("	capsLock	", addr.capsLock, "\n");
+	print("	puncShift	", addr.puncShift, "\n");
+	print("	tmpShift	", addr.tmpShift, "\n");
+	print("	ctrlShift	", addr.ctrlShift, "\n");
+	print("	curCharSet	", addr.curCharSet, "\n");
+};
+
+sizeof_3_ = 12;
+aggr _3_
+{
+	'X' 0 ri_locale;
+	'X' 4 ri_name;
+	'X' 8 ri_subset;
+};
+
+defn
+_3_(addr) {
+	complex _3_ addr;
+	print("	ri_locale	", addr.ri_locale\X, "\n");
+	print("	ri_name	", addr.ri_name\X, "\n");
+	print("	ri_subset	", addr.ri_subset\X, "\n");
+};
+
+sizeof_4_ = 20;
+aggr _4_
+{
+	Rectangle 0 pr_area;
+	'd' 16 pr_row;
+	'd' 18 pr_col;
+};
+
+defn
+_4_(addr) {
+	complex _4_ addr;
+	print("Rectangle pr_area {\n");
+	Rectangle(addr.pr_area);
+	print("}\n");
+	print("	pr_row	", addr.pr_row, "\n");
+	print("	pr_col	", addr.pr_col, "\n");
+};
+
+sizeof_ls_set = 4;
+aggr _ls_set
+{
+	'X' 0 aval;
+	'X' 0 wval;
+};
+
+defn
+_ls_set(addr) {
+	complex _ls_set addr;
+	print("	aval	", addr.aval\X, "\n");
+	print("	wval	", addr.wval\X, "\n");
+};
+
+sizeof_letterset = 8;
+aggr _letterset
+{
+	'C' 0 ls_type;
+	_ls_set 4 ls_set;
+};
+
+defn
+_letterset(addr) {
+	complex _letterset addr;
+	print("	ls_type	", addr.ls_type, "\n");
+	print("_ls_set ls_set {\n");
+	_ls_set(addr.ls_set);
+	print("}\n");
+};
+
+sizeof_5_ = 4;
+aggr _5_
+{
+	'X' 0 gval;
+	'X' 0 aval;
+	'X' 0 wval;
+	'X' 0 rcval;
+};
+
+defn
+_5_(addr) {
+	complex _5_ addr;
+	print("	gval	", addr.gval\X, "\n");
+	print("	aval	", addr.aval\X, "\n");
+	print("	wval	", addr.wval\X, "\n");
+	print("	rcval	", addr.rcval\X, "\n");
+};
+
+sizeofrec_element = 12;
+aggr rec_element
+{
+	'C' 0 re_type;
+	_5_ 4 re_result;
+	'b' 8 re_conf;
+};
+
+defn
+rec_element(addr) {
+	complex rec_element addr;
+	print("	re_type	", addr.re_type, "\n");
+	print("_5_ re_result {\n");
+	_5_(addr.re_result);
+	print("}\n");
+	print("	re_conf	", addr.re_conf, "\n");
+};
+
+sizeofrec_alternative = 20;
+aggr rec_alternative
+{
+	rec_element 0 ra_elem;
+	'U' 12 ra_nalter;
+	'A' rec_alternative 16 ra_next;
+};
+
+defn
+rec_alternative(addr) {
+	complex rec_alternative addr;
+	print("rec_element ra_elem {\n");
+	rec_element(addr.ra_elem);
+	print("}\n");
+	print("	ra_nalter	", addr.ra_nalter, "\n");
+	print("	ra_next	", addr.ra_next\X, "\n");
+};
+
+sizeofgesture = 36;
+aggr gesture
+{
+	'X' 0 g_name;
+	'U' 4 g_nhs;
+	'A' pen_point 8 g_hspots;
+	Rectangle 12 g_bbox;
+	'X' 28 g_action;
+	'X' 32 g_wsinfo;
+};
+
+defn
+gesture(addr) {
+	complex gesture addr;
+	print("	g_name	", addr.g_name\X, "\n");
+	print("	g_nhs	", addr.g_nhs, "\n");
+	print("	g_hspots	", addr.g_hspots\X, "\n");
+	print("Rectangle g_bbox {\n");
+	Rectangle(addr.g_bbox);
+	print("}\n");
+	print("	g_action	", addr.g_action\X, "\n");
+	print("	g_wsinfo	", addr.g_wsinfo\X, "\n");
+};
+
+sizeofrec_correlation = 28;
+aggr rec_correlation
+{
+	rec_element 0 ro_elem;
+	'U' 12 ro_nstrokes;
+	'A' Stroke 16 ro_strokes;
+	'X' 20 ro_start;
+	'X' 24 ro_stop;
+};
+
+defn
+rec_correlation(addr) {
+	complex rec_correlation addr;
+	print("rec_element ro_elem {\n");
+	rec_element(addr.ro_elem);
+	print("}\n");
+	print("	ro_nstrokes	", addr.ro_nstrokes, "\n");
+	print("	ro_strokes	", addr.ro_strokes\X, "\n");
+	print("	ro_start	", addr.ro_start\X, "\n");
+	print("	ro_stop	", addr.ro_stop\X, "\n");
+};
+
+sizeof_wordset = 12;
+aggr _wordset
+{
+	'X' 0 ws_pathname;
+	'X' 4 ws_recognizer;
+	'X' 8 ws_internal;
+};
+
+defn
+_wordset(addr) {
+	complex _wordset addr;
+	print("	ws_pathname	", addr.ws_pathname\X, "\n");
+	print("	ws_recognizer	", addr.ws_recognizer\X, "\n");
+	print("	ws_internal	", addr.ws_internal\X, "\n");
+};
+
+sizeof_Recognizer = 88;
+aggr _Recognizer
+{
+	'U' 0 recognizer_magic;
+	'X' 4 recognizer_version;
+	'A' _3_ 8 recognizer_info;
+	'X' 12 recognizer_specific;
+	'X' 16 recognizer_load_state;
+	'X' 20 recognizer_save_state;
+	'X' 24 recognizer_error;
+	'X' 28 recognizer_load_dictionary;
+	'X' 32 recognizer_save_dictionary;
+	'X' 36 recognizer_free_dictionary;
+	'X' 40 recognizer_add_to_dictionary;
+	'X' 44 recognizer_delete_from_dictionary;
+	'X' 48 recognizer_set_context;
+	'X' 52 recognizer_get_context;
+	'X' 56 recognizer_clear;
+	'X' 60 recognizer_get_buffer;
+	'X' 64 recognizer_set_buffer;
+	'X' 68 recognizer_translate;
+	'X' 72 recognizer_get_extension_functions;
+	'X' 76 recognizer_get_gesture_names;
+	'X' 80 recognizer_set_gesture_action;
+	'U' 84 recognizer_end_magic;
+};
+
+defn
+_Recognizer(addr) {
+	complex _Recognizer addr;
+	print("	recognizer_magic	", addr.recognizer_magic, "\n");
+	print("	recognizer_version	", addr.recognizer_version\X, "\n");
+	print("	recognizer_info	", addr.recognizer_info\X, "\n");
+	print("	recognizer_specific	", addr.recognizer_specific\X, "\n");
+	print("	recognizer_load_state	", addr.recognizer_load_state\X, "\n");
+	print("	recognizer_save_state	", addr.recognizer_save_state\X, "\n");
+	print("	recognizer_error	", addr.recognizer_error\X, "\n");
+	print("	recognizer_load_dictionary	", addr.recognizer_load_dictionary\X, "\n");
+	print("	recognizer_save_dictionary	", addr.recognizer_save_dictionary\X, "\n");
+	print("	recognizer_free_dictionary	", addr.recognizer_free_dictionary\X, "\n");
+	print("	recognizer_add_to_dictionary	", addr.recognizer_add_to_dictionary\X, "\n");
+	print("	recognizer_delete_from_dictionary	", addr.recognizer_delete_from_dictionary\X, "\n");
+	print("	recognizer_set_context	", addr.recognizer_set_context\X, "\n");
+	print("	recognizer_get_context	", addr.recognizer_get_context\X, "\n");
+	print("	recognizer_clear	", addr.recognizer_clear\X, "\n");
+	print("	recognizer_get_buffer	", addr.recognizer_get_buffer\X, "\n");
+	print("	recognizer_set_buffer	", addr.recognizer_set_buffer\X, "\n");
+	print("	recognizer_translate	", addr.recognizer_translate\X, "\n");
+	print("	recognizer_get_extension_functions	", addr.recognizer_get_extension_functions\X, "\n");
+	print("	recognizer_get_gesture_names	", addr.recognizer_get_gesture_names\X, "\n");
+	print("	recognizer_set_gesture_action	", addr.recognizer_set_gesture_action\X, "\n");
+	print("	recognizer_end_magic	", addr.recognizer_end_magic, "\n");
+};
+
+sizeofPointList = 20;
+aggr PointList
+{
+	{
+	'U' 0 npts;
+	'A' pen_point 4 pts;
+	};
+	'D' 8 xrange;
+	'D' 12 yrange;
+	'A' PointList 16 next;
+};
+
+defn
+PointList(addr) {
+	complex PointList addr;
+	print("Stroke {\n");
+		Stroke(addr+0);
+	print("}\n");
+	print("	xrange	", addr.xrange, "\n");
+	print("	yrange	", addr.yrange, "\n");
+	print("	next	", addr.next\X, "\n");
+};
+
+sizeof_6_ = 1608;
+aggr _6_
+{
+	'X' 0 file_name;
+	'D' 4 nclasses;
+	'a' 8 ex;
+	'a' 408 cnames;
+	'a' 808 canonex;
+	'a' 1208 dompts;
+};
+
+defn
+_6_(addr) {
+	complex _6_ addr;
+	print("	file_name	", addr.file_name\X, "\n");
+	print("	nclasses	", addr.nclasses, "\n");
+	print("	ex	", addr.ex, "\n");
+	print("	cnames	", addr.cnames, "\n");
+	print("	canonex	", addr.canonex, "\n");
+	print("	dompts	", addr.dompts, "\n");
+};
+
+sizeof_7_ = 1612;
+aggr _7_
+{
+	'U' 0 li_magic;
+	_6_ 4 li_rc;
+};
+
+defn
+_7_(addr) {
+	complex _7_ addr;
+	print("	li_magic	", addr.li_magic, "\n");
+	print("_6_ li_rc {\n");
+	_6_(addr.li_rc);
+	print("}\n");
+};
+
+complex PointList add_example:l;
+complex pen_point add_example:pts;
+complex pen_point add_example:lpts;
+complex PointList add_example:p;
+complex PointList delete_examples:l;
+complex PointList delete_examples:p;
+complex _6_ recognize_internal:rec;
+complex Stroke recognize_internal:str;
+complex PointList recognize_internal:stroke;
+complex _2_ read_classifier_points:fd;
+complex PointList read_classifier_points:ex;
+complex pen_point read_classifier_points:pts;
+complex _2_ read_classifier:fd;
+complex _6_ read_classifier:rc;
+complex _Recognizer recognizer_getClasses:r;
+complex _7_ recognizer_getClasses:rec;
+complex _Recognizer isa_li:r;
+complex _Recognizer li_recognizer_get_example:r;
+complex pen_point li_recognizer_get_example:points;
+complex _7_ li_recognizer_get_example:rec;
+complex PointList li_recognizer_get_example:pl;
+complex _Recognizer li_recognizer_load:r;
+complex _2_ li_recognizer_load:fd;
+complex _7_ li_recognizer_load:rec;
+complex _6_ li_recognizer_load:rc;
+complex _Recognizer li_recognizer_error:rec;
+complex _Recognizer li_recognizer_clear:r;
+complex _7_ li_recognizer_clear:rec;
+complex _Recognizer li_recognizer_translate:r;
+complex Stroke li_recognizer_translate:tps;
+complex rec_alternative li_recognizer_translate:ret;
+complex _7_ li_recognizer_translate:rec;
+complex _6_ li_recognizer_translate:rc;
+complex _Recognizer li_recognizer_get_extension_functions:rec;
+complex _3_ __recognizer_internal_initialize:ri;
+complex _Recognizer __recognizer_internal_initialize:r;
+complex _7_ __recognizer_internal_initialize:rec;
+complex _6_ free_rClassifier:rc;
+complex _Recognizer __recognizer_internal_finalize:r;
+complex _7_ __recognizer_internal_finalize:rec;
+sizeofRegionList = 16;
+aggr RegionList
+{
+	'D' 0 start;
+	'D' 4 end;
+	'D' 8 type;
+	'A' RegionList 12 next;
+};
+
+defn
+RegionList(addr) {
+	complex RegionList addr;
+	print("	start	", addr.start, "\n");
+	print("	end	", addr.end, "\n");
+	print("	type	", addr.type, "\n");
+	print("	next	", addr.next\X, "\n");
+};
+
+complex _6_ lialg_initialize:rec;
+complex _6_ lialg_recognize_stroke:rec;
+complex PointList lialg_recognize_stroke:stroke;
+complex PointList lialg_recognize_stroke:input_dompts;
+complex PointList lialg_recognize_stroke:curr_dompts;
+complex PointList lialg_preprocess_stroke:points;
+complex PointList lialg_compute_dominant_points:points;
+complex PointList lialg_compute_dominant_points:ipts;
+complex RegionList lialg_compute_dominant_points:regions;
+complex PointList lialg_compute_dominant_points:dpts;
+complex RegionList lialg_compute_dominant_points:curr;
+complex RegionList lialg_compute_dominant_points:next;
+complex PointList lialg_interpolate_points:points;
+complex PointList lialg_interpolate_points:newpts;
+complex pen_point lialg_interpolate_points:pta;
+complex pen_point lialg_interpolate_points:ptb;
+complex pen_point lialg_interpolate_points:startpt;
+complex pen_point lialg_interpolate_points:endpt;
+complex pen_point lialg_bresline:startpt;
+complex pen_point lialg_bresline:endpt;
+complex PointList lialg_bresline:newpts;
+complex PointList lialg_compute_chain_code:pts;
+complex pen_point lialg_compute_chain_code:startpt;
+complex pen_point lialg_compute_chain_code:endpt;
+complex PointList lialg_compute_unit_chain_code:pts;
+complex pen_point lialg_compute_unit_chain_code:startpt;
+complex pen_point lialg_compute_unit_chain_code:endpt;
+complex PointList lialg_compute_regions:pts;
+complex RegionList lialg_compute_regions:regions;
+complex RegionList lialg_compute_regions:curr_reg;
+complex RegionList lialg_compute_regions:next_reg;
+complex RegionList lialg_compute_regions:next_reg;
+complex RegionList lialg_compute_regions:tmp;
+complex RegionList lialg_compute_regions:prev_reg;
+complex RegionList lialg_compute_regions:saved_next;
+complex PointList lialg_compute_dompts:pts;
+complex RegionList lialg_compute_dompts:regions;
+complex PointList lialg_compute_dompts:dpts;
+complex RegionList lialg_compute_dompts:r;
+complex RegionList lialg_compute_dompts:curr;
+complex PointList lialg_compute_contour_angle_set:pts;
+complex RegionList lialg_compute_contour_angle_set:regions;
+complex RegionList lialg_compute_contour_angle_set:curr_reg;
+complex PointList lialg_score_stroke:input_dompts;
+complex PointList lialg_score_stroke:curr_dompts;
+complex PointList lialg_compute_similarity:input_dompts;
+complex PointList lialg_compute_similarity:curr_dompts;
+complex PointList lialg_compute_similarity:A;
+complex PointList lialg_compute_similarity:B;
+complex PointList lialg_compute_distance:input_dompts;
+complex PointList lialg_compute_distance:curr_dompts;
+complex PointList lialg_compute_distance:A;
+complex PointList lialg_compute_distance:B;
+complex _6_ lialg_read_classifier_digest:rec;
+complex _2_ lialg_read_classifier_digest:fp;
+complex PointList lialg_read_classifier_digest:dpts;
+complex _6_ lialg_canonicalize_examples:rec;
+complex PointList lialg_canonicalize_examples:pts;
+complex PointList lialg_canonicalize_examples:tmp;
+complex PointList lialg_canonicalize_examples:avg;
+complex PointList lialg_canonicalize_example_stroke:points;
+complex PointList lialg_compute_equipoints:points;
+complex pen_point lialg_compute_equipoints:equipoints;
+complex PointList lialg_compute_pathlen:points;
+complex PointList lialg_compute_pathlen_subset:points;
+complex PointList lialg_filter_points:points;
+complex pen_point lialg_filter_points:filtered_pts;
+complex PointList lialg_translate_points:points;
+complex PointList lialg_get_bounding_box:points;
+complex pen_point lialg_get_bounding_box:pt;

@@ -2186,6 +2186,97 @@ X509toRSApub(uchar *cert, int ncert, char *name, int nname)
 	return pk;
 }
 
+int
+getalgo(Elem *e)
+{
+	Value *v;
+	Elist *el;
+	int a;
+
+	if((a = parse_alg(e)) >= 0)
+		return a;
+	v = &e->val;
+	if(v->tag == VSeq){
+		print("Seq\n");
+		for(el = v->u.seqval; el!=nil; el = el->tl){
+			if((a = getalgo(&el->hd)) >= 0)
+				return a;
+		}
+	}
+	return -1;
+}
+
+static void edump(Elem e);
+
+RSApub*
+asn1toRSApub(uchar *der, int nder)
+{
+	Elem e;
+	Elist *el, *l;
+	int n;
+	Bits *b;
+	RSApub *key;
+	mpint *mp;
+
+	if(decode(der, nder, &e) != ASN_OK){
+		print("didn't parse\n");
+		return nil;
+	}
+	if(!is_seq(&e, &el)){
+		print("no seq");
+		return nil;
+	}
+	if((n = elistlen(el)) != 2){
+		print("bad length %d\n", n);
+		return nil;
+	}
+	if((n = getalgo(&el->hd)) < 0){
+		print("no algo\n");
+		return nil;
+	}
+	if(n != 0){
+		print("cant do algorithm %d\n", n);
+		return nil;
+	}
+	if(!is_bitstring(&el->tl->hd, &b)){
+		print("no bits\n");
+		return nil;
+	}
+	if(decode(b->data, b->len, &e) != ASN_OK){
+		print("no second decode\n");
+		return nil;
+	}
+	if(!is_seq(&e, &el)){
+		print("no second seq\n");
+		return nil;
+	}
+	if(elistlen(el) != 2){
+		print("no second length\n");
+		return nil;
+	}
+	key = rsapuballoc();
+
+	l = el;
+
+	key->n = mp = asn1mpint(&el->hd);
+	if(mp == nil)
+		goto errret;
+
+	el = el->tl;
+	key->ek = mp = asn1mpint(&el->hd);
+	if(mp == nil)
+		goto errret;
+
+	if(l != nil)
+		freeelist(l);
+	return key;
+errret:
+	if(l != nil)
+		freeelist(l);
+	rsapubfree(key);
+	return nil;
+}
+
 char*
 X509verify(uchar *cert, int ncert, RSApub *pk)
 {
@@ -2288,13 +2379,13 @@ mkutc(long t)
 {
 	Elem e;
 	char utc[50];
-	struct tm *tm0 = gmtime(&t);
+	Tm *tm = gmtime(t);
 
 	e.tag.class = Universal;
 	e.tag.num = UTCTime;
 	e.val.tag = VString;
 	snprint(utc, 50, "%.2d%.2d%.2d%.2d%.2d%.2dZ",
-		tm0->tm_year % 100, tm0->tm_mon+1, tm0->tm_mday, tm0->tm_hour, tm0->tm_min, tm0->tm_sec);
+		tm->year % 100, tm->mon+1, tm->mday, tm->hour, tm->min, tm->sec);
 	e.val.u.stringval = estrdup(utc);
 	return e;
 }
@@ -2383,6 +2474,34 @@ mkDN(char *dn)
 	return mkseq(el);
 }
 
+uchar*
+RSApubtoasn1(RSApub *pub, int *keylen)
+{
+	Elem pubkey;
+	Bytes *pkbytes;
+	uchar *key;
+
+	key = nil;
+	pubkey = mkseq(mkel(mkbigint(pub->n),mkel(mkint(mptoi(pub->ek)),nil)));
+	if(encode(pubkey, &pkbytes) != ASN_OK)
+		goto errret;
+	freevalfields(&pubkey.val);
+	pubkey = mkseq(
+		mkel(mkalg(ALG_rsaEncryption),
+		mkel(mkbits(pkbytes->data, pkbytes->len),
+		nil)));
+	freebytes(pkbytes);
+	if(encode(pubkey, &pkbytes) != ASN_OK)
+		goto errret;
+	if(keylen)
+		*keylen = pkbytes->len;
+	key = malloc(pkbytes->len);
+	memmove(key, pkbytes->data, pkbytes->len);
+	free(pkbytes);
+errret:
+	freevalfields(&pubkey.val);
+	return key;
+}
 
 uchar*
 X509gen(RSApriv *priv, char *subj, ulong valid[2], int *certlen)
@@ -2564,7 +2683,10 @@ edump(Elem e)
 	case VBigInt: print("BigInt[%d] %.2x%.2x...",v.u.bigintval->len,v.u.bigintval->data[0],v.u.bigintval->data[1]); break;
 	case VReal: print("Real..."); break;
 	case VOther: print("Other..."); break;
-	case VBitString: print("BitString..."); break;
+	case VBitString: print("BitString");
+		for(i = 0; i<v.u.bitstringval->len; i++)
+			print(" %02x", v.u.bitstringval->data[i]);
+		break;
 	case VNull: print("Null"); break;
 	case VEOC: print("EOC..."); break;
 	case VObjId: print("ObjId");
