@@ -14,6 +14,7 @@
 #define	SZ_VLONG	8
 #define	SZ_DOUBLE	8
 #define	FNX		100
+#define	BTRUE		0x1000
 
 typedef	struct	Adr	Adr;
 typedef	struct	Prog	Prog;
