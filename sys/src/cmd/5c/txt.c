@@ -929,12 +929,14 @@ gins(int a, Node *f, Node *t)
 void
 gopcode(int o, Node *f1, Node *f2, Node *t)
 {
-	int a, et;
+	int a, et, true;
 	Adr ta;
 
 	et = TLONG;
 	if(f1 != Z && f1->type != T)
 		et = f1->type->etype;
+	true = o & BTRUE;
+	o &= ~BTRUE;
 	a = AGOK;
 	switch(o) {
 	case OAS:
@@ -1076,15 +1078,24 @@ gopcode(int o, Node *f1, Node *f2, Node *t)
 			break;
 		case OLT:
 			a = ABLT;
+			/* ensure NaN comparison is always false */
+			if(typefd[et] && !true)
+				a = ABMI;
 			break;
 		case OLE:
 			a = ABLE;
+			if(typefd[et] && !true)
+				a = ABLS;
 			break;
 		case OGE:
 			a = ABGE;
+			if(typefd[et] && true)
+				a = ABPL;
 			break;
 		case OGT:
 			a = ABGT;
+			if(typefd[et] && true)
+				a = ABHI;
 			break;
 		case OLO:
 			a = ABLO;

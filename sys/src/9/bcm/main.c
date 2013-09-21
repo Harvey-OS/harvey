@@ -17,7 +17,7 @@ enum {
 
 /* Firmware compatibility */
 #define	Minfirmrev	326770
-#define	Minfirmdate	"22 Jul 2012"
+#define	Minfirmdate	"19 Aug 2013"
 
 /*
  * Where configuration info is left for the loaded programme.
@@ -245,8 +245,8 @@ main(void)
 	rev = getfirmware();
 	print("firmware: rev %d\n", rev);
 	if(rev < Minfirmrev){
-		print("Sorry, firmware (start.elf) must be at least rev %d (%s)\n",
-			Minfirmrev, Minfirmdate);
+		print("Sorry, firmware (start*.elf) must be at least rev %d"
+		      " or newer than %s\n", Minfirmrev, Minfirmdate);
 		for(;;)
 			;
 	}
