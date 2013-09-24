@@ -3,11 +3,13 @@
 #include <libc.h>
 #include <stdio.h>
 #include <ctype.h>
+
 #define F1 0
 #define F2 1
 #define F0 3
 #define	NFLD	100	/* max field per line */
 #define comp() runecmp(ppi[F1][j1],ppi[F2][j2])
+
 FILE *f[2];
 Rune buf[2][BUFSIZ];	/*input lines */
 Rune *ppi[2][NFLD+1];	/* pointers to fields in lines */
@@ -32,7 +34,6 @@ void oparse(char*);
 void error(char*, char*);
 void seek1(void), seek2(void);
 Rune *strtorune(Rune *, char *);
-
 
 void
 main(int argc, char **argv)
@@ -139,30 +140,47 @@ proceed:
 		error("some input line was truncated", "");
 	exits("");
 }
-int runecmp(Rune *a, Rune *b){
-	while(*a==*b){
-		if(*a=='\0') return 0;
+
+int
+runecmp(Rune *a, Rune *b)
+{
+	while(*a == *b) {
+		if(*a == '\0')
+			return 0;
 		a++;
 		b++;
 	}
-	if(*a<*b) return -1;
+	if(*a < *b)
+		return -1;
 	return 1;
 }
-char *runetostr(char *buf, Rune *r){
+
+char *
+runetostr(char *buf, Rune *r)
+{
 	char *s;
-	for(s=buf;*r;r++) s+=runetochar(s, r);
-	*s='\0';
+
+	for(s = buf; *r; r++)
+		s += runetochar(s, r);
+	*s = '\0';
 	return buf;
 }
-Rune *strtorune(Rune *buf, char *s){
+
+Rune *
+strtorune(Rune *buf, char *s)
+{
 	Rune *r;
-	for(r=buf;*s;r++) s+=chartorune(r, s);
-	*r='\0';
+
+	for (r = buf; *s; r++)
+		s += chartorune(r, s);
+	*r = '\0';
 	return buf;
 }
+
 /* lazy.  there ought to be a clean way to combine seek1 & seek2 */
 #define get1() n1=input(F1)
 #define get2() n2=input(F2)
+
 void
 seek2()
 {
@@ -253,7 +271,7 @@ seek1()
 int
 input(int n)		/* get input line and split into fields */
 {
-	register int i, c;
+	int i, c;
 	Rune *bp;
 	Rune **pp;
 	char line[BUFSIZ];
@@ -358,7 +376,8 @@ oparse(char *s)
 				olistf[no] = *s=='1'? F1: F2;
 				olist[no] = atoi(s += 2);
 				break;
-			} /* fall thru */
+			}
+			/* fall thru */
 		default:
 			error("invalid -o list", "");
 		}
