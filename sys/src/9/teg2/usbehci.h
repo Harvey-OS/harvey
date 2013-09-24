@@ -77,23 +77,6 @@ struct Eopio
 	ulong	insn[6];	/* implementation-specific */
 };
 
-typedef struct Uhh Uhh;
-struct Uhh {
-	ulong	revision;	/* ro */
-	uchar	_pad0[0x10-0x4];
-	ulong	sysconfig;
-	ulong	sysstatus;	/* ro */
-
-	uchar	_pad1[0x40-0x18];
-	ulong	hostconfig;
-	ulong	debug_csr;
-};
-
-enum {
-	/* hostconfig bits */
-	P1ulpi_bypass = 1<<0,	/* utmi if set; else ulpi */
-};
-
 extern Ecapio *ehcidebugcapio;
 extern int ehcidebugport;
 
