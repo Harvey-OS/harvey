@@ -9,33 +9,34 @@
 
 char	*optnames = "a:c:f:l:m:n:o:p:s:t:x:y:P:";
 
-Biobuf *bstdin, *bstdout, *bstderr;
-Biobufhdr *Bstdin, *Bstdout, *Bstderr;
-int char_no = 0;		/* character to be done on a line */
-int line_no = 0;		/* line number on a page */
-int page_no = 0;		/* page number in a document */
-int in_string;		/* Boolean, to know whether or not we are inside a Postscript string */
-int spaces = 0;
-int tabs = 0;
-int pages_printed;
-double aspectratio = 1.0;
-int copies = 1;
-double magnification = 1.0;
-int landscape = 0;
-int formsperpage = 1;
-int linesperpage = 66;
-int pointsize = 10;
-double xoffset = .25;
-double yoffset = .25;
-char *passthrough = 0;
-static int pplistmaxsize=0;
+double	aspectratio = 1.0;
+Biobuf	inbuf, outbuf;
+Biobuf	*bin, *bout;
+int	char_no = 0;		/* character to be done on a line */
+int	copies = 1;
+int	formsperpage = 1;
+int	in_string;		/* flag: we are inside a Postscript string */
+int	landscape = 0;
+int	line_no = 0;		/* line number on a page */
+int	linesperpage = 66;
+double	magnification = 1.0;
+int	page_no = 0;		/* page number in a document */
+int	pages_printed;
+char	*passthrough = 0;
+int	pointsize = 10;
+int	spaces = 0;
+int	tabs = 0;
+double	xoffset = .25;
+double	yoffset = .25;
 
-unsigned char *pplist=0;	/* bitmap list for storing pages to print */
+static int pplistmaxsize = 0;
+
+uchar *pplist = 0;		/* bitmap list for storing pages to print */
 
 struct strtab {
-	int size;
-	char *str;
-	int used;
+	int	size;
+	char	*str;
+	int	used;
 };
 
 struct strtab charcode[256] = {
@@ -153,28 +154,18 @@ struct strtab fontname[FONTABSIZE] = {
 
 int
 cat(char *filename) {
-	Biobuf *bfile;
-	Biobufhdr *Bfile;
 	int n;
-	static char buf[Bsize];
+	char buf[Bsize];
+	Biobuf *bfile;
 
-	bstdin = Bopen(filename, 0);
-	if (bstdin == 0) {
+	if ((bfile = Bopen(filename, OREAD)) == nil)
 		return(1);
-	}
-	Bstdin = &(bstdin->Biobufhdr);
-	if ((bfile = Bopen(filename, OREAD)) == 0) {
+	while ((n = Bread(bfile, buf, Bsize)) > 0)
+		if (Bwrite(bout, buf, n) != n)
+			break;
+	Bterm(bfile);
+	if (n != 0)
 		return(1);
-	}
-	Bfile = &(bfile->Biobufhdr);
-	while ((n=Bread(Bfile, buf, Bsize)) > 0) {
-		if (Bwrite(Bstdout, buf, n) != n) {
-			return(1);
-		}
-	}
-	if (n != 0) {
-		return(1);
-	}
 	return(0);
 }
 
@@ -183,16 +174,14 @@ prologues(void) {
 	char *ts;
 	int tabstop;
 
-	Bprint(Bstdout, "%s", CONFORMING);
-	Bprint(Bstdout, "%s %s\n", VERSION, PROGRAMVERSION);
-	Bprint(Bstdout, "%s %s\n", DOCUMENTFONTS, ATEND);
-	Bprint(Bstdout, "%s %s\n", PAGES, ATEND);
-	Bprint(Bstdout, "%s", ENDCOMMENTS);
+	Bprint(bout, "%s", CONFORMING);
+	Bprint(bout, "%s %s\n", VERSION, PROGRAMVERSION);
+	Bprint(bout, "%s %s\n", DOCUMENTFONTS, ATEND);
+	Bprint(bout, "%s %s\n", PAGES, ATEND);
+	Bprint(bout, "%s", ENDCOMMENTS);
 
-	if (cat(POSTPRINT)) {
-		Bprint(Bstderr, "can't read %s", POSTPRINT);
-		exits("prologue");
-	}
+	if (cat(POSTPRINT))
+		sysfatal("can't read %s: %r", POSTPRINT);
 
 	if (DOROUND)
 		cat(ROUNDPAGE);
@@ -203,45 +192,46 @@ prologues(void) {
 		tabstop = strtol(ts, nil, 0);
 	if(tabstop == 0)
 		tabstop = 8;
-	Bprint(Bstdout, "/f {findfont pointsize scalefont setfont} bind def\n");
-	Bprint(Bstdout, "/tabwidth /Courier f (");
+	Bprint(bout, "/f {findfont pointsize scalefont setfont} bind def\n");
+	Bprint(bout, "/tabwidth /Courier f (");
 	while(tabstop--)
-		Bputc(Bstdout, 'n');
-	Bprint(Bstdout, ") stringwidth pop def\n");
-	Bprint(Bstdout, "/tab {tabwidth 0 ne {currentpoint 3 1 roll exch tabwidth mul add tabwidth\n");
-	Bprint(Bstdout, "\tdiv truncate tabwidth mul exch moveto} if} bind def\n");
-	Bprint(Bstdout, "/spacewidth /%s f ( ) stringwidth pop def\n", fontname[0].str);
-	Bprint(Bstdout, "/sp {spacewidth mul 0 rmoveto} bind def\n");
-	Bprint(Bstdout, "%s", ENDPROLOG);
-	Bprint(Bstdout, "%s", BEGINSETUP);
-	Bprint(Bstdout, "mark\n");
+		Bputc(bout, 'n');
+	Bprint(bout, ") stringwidth pop def\n");
+	Bprint(bout, "/tab {tabwidth 0 ne {currentpoint 3 1 roll exch tabwidth mul add tabwidth\n");
+	Bprint(bout, "\tdiv truncate tabwidth mul exch moveto} if} bind def\n");
+	Bprint(bout, "/spacewidth /%s f ( ) stringwidth pop def\n", fontname[0].str);
+	Bprint(bout, "/sp {spacewidth mul 0 rmoveto} bind def\n");
+	Bprint(bout, "%s", ENDPROLOG);
+	Bprint(bout, "%s", BEGINSETUP);
+	Bprint(bout, "mark\n");
 
 	if (formsperpage > 1) {
-		Bprint(Bstdout, "%s %d\n", FORMSPERPAGE, formsperpage);
-		Bprint(Bstdout, "/formsperpage %d def\n", formsperpage);
+		Bprint(bout, "%s %d\n", FORMSPERPAGE, formsperpage);
+		Bprint(bout, "/formsperpage %d def\n", formsperpage);
 	}
-	if (aspectratio != 1) Bprint(Bstdout, "/aspectratio %g def\n", aspectratio);
-	if (copies != 1) Bprint(Bstdout, "/#copies %d store\n", copies);
-	if (landscape) Bprint(Bstdout, "/landscape true def\n");
-	if (magnification != 1) Bprint(Bstdout, "/magnification %s def\n", magnification);
-	if (pointsize != 10) Bprint(Bstdout, "/pointsize %d def\n", pointsize);
-	if (xoffset != .25) Bprint(Bstdout, "/xoffset %g def\n", xoffset);
-	if (yoffset != .25) Bprint(Bstdout, "/yoffset %g def\n", yoffset);
+	if (aspectratio != 1) Bprint(bout, "/aspectratio %g def\n", aspectratio);
+	if (copies != 1) Bprint(bout, "/#copies %d store\n", copies);
+	if (landscape) Bprint(bout, "/landscape true def\n");
+	if (magnification != 1) Bprint(bout, "/magnification %g def\n", magnification);
+	if (pointsize != 10) Bprint(bout, "/pointsize %d def\n", pointsize);
+	if (xoffset != .25) Bprint(bout, "/xoffset %g def\n", xoffset);
+	if (yoffset != .25) Bprint(bout, "/yoffset %g def\n", yoffset);
 	cat(ENCODINGDIR"/Latin1.enc");
-	if (passthrough != 0) Bprint(Bstdout, "%s\n", passthrough);
-	Bprint(Bstdout, "setup\n");
+	if (passthrough != 0) Bprint(bout, "%s\n", passthrough);
+	Bprint(bout, "setup\n");
 	if (formsperpage > 1) {
 		cat(FORMFILE);
-		Bprint(Bstdout, "%d setupforms \n", formsperpage);
+		Bprint(bout, "%d setupforms \n", formsperpage);
 	}
 	if (cat(UNKNOWNCHAR))
-		Bprint(Bstderr, "cannot open %s\n", UNKNOWNCHAR);
-	Bprint(Bstdout, "%s", ENDSETUP);
+		fprint(2, "cannot open %s: %r\n", UNKNOWNCHAR);
+	Bprint(bout, "%s", ENDSETUP);
 }
 
 int
 pageon(void) {
-	if (pplist == 0 && page_no != 0) return(1);	/* no page list, print all pages */
+	if (pplist == 0 && page_no != 0)
+		return(1);	/* no page list, print all pages */
 	if (page_no/8 < pplistmaxsize && (pplist[page_no/8] & 1<<(page_no%8)))
 		return(1);
 	else
@@ -255,10 +245,10 @@ startpage(void) {
 	++page_no;
 	if (pageon()) {
 		++pages_printed;
-		Bprint(Bstdout, "%s %d %d\n", PAGE, page_no, pages_printed);
-		Bprint(Bstdout, "/saveobj save def\n");
-		Bprint(Bstdout, "mark\n");
-		Bprint(Bstdout, "%d pagesetup\n", pages_printed);
+		Bprint(bout, "%s %d %d\n", PAGE, page_no, pages_printed);
+		Bprint(bout, "/saveobj save def\n");
+		Bprint(bout, "mark\n");
+		Bprint(bout, "%d pagesetup\n", pages_printed);
 	}
 }
 
@@ -267,17 +257,17 @@ endpage(void) {
 	line_no = 0;
 	char_no = 0;
 	if (pageon()) {
-		Bprint(Bstdout, "cleartomark\n");
-		Bprint(Bstdout, "showpage\n");
-		Bprint(Bstdout, "saveobj restore\n");
-		Bprint(Bstdout, "%s %d %d\n", ENDPAGE, page_no, pages_printed);
+		Bprint(bout, "cleartomark\n");
+		Bprint(bout, "showpage\n");
+		Bprint(bout, "saveobj restore\n");
+		Bprint(bout, "%s %d %d\n", ENDPAGE, page_no, pages_printed);
 	}
 }
 
 void
 startstring(void) {
 	if (!in_string) {
-		if (pageon()) Bprint(Bstdout, "(");
+		if (pageon()) Bprint(bout, "(");
 		in_string = 1;
 	}
 }
@@ -285,7 +275,7 @@ startstring(void) {
 void
 endstring(void) {
 	if (in_string) {
-		if (pageon()) Bprint(Bstdout, ") show ");
+		if (pageon()) Bprint(bout, ") show ");
 		in_string = 0;
 	}
 }
@@ -294,7 +284,7 @@ void
 prspace(void) {
 	if (spaces) {
 		endstring();
-		if (pageon()) Bprint(Bstdout, "%d sp ", spaces);
+		if (pageon()) Bprint(bout, "%d sp ", spaces);
 		spaces = 0;
 	}
 }
@@ -303,7 +293,7 @@ void
 prtab(void) {
 	if (tabs) {
 		endstring();
-		if (pageon()) Bprint(Bstdout, "%d tab ", tabs);
+		if (pageon()) Bprint(bout, "%d tab ", tabs);
 		tabs = 0;
 	}
 }
@@ -321,7 +311,7 @@ txt2post(void) {
 	page_no = 0;
 	spaces = 0;
 	fontname[0].used++;
-	while ((r=Bgetrune(Bstdin)) >= 0) {
+	while ((r = Bgetrune(bin)) >= 0) {
 		thischar = r & 0xff;
 		thisfont = (r>>8) & 0xff;
 
@@ -329,7 +319,7 @@ txt2post(void) {
 			startpage();
 
 		if (line_no == 1 && char_no == 1) {
-			if (pageon()) Bprint(Bstdout, " /%s f\n", fontname[thisfont].str);
+			if (pageon()) Bprint(bout, " /%s f\n", fontname[thisfont].str);
 			lastfont = thisfont;
 		}
 
@@ -344,14 +334,13 @@ txt2post(void) {
 		case '\n':
 		case '\f':
 			startstring();
-			if (pageon()) Bprint(Bstdout, ")l\n");
+			if (pageon()) Bprint(bout, ")l\n");
 			char_no = 1;
 			in_string = 0;
 			spaces = 0;
 			tabs = 0;
-			if (++line_no > linesperpage || r == '\f') {
+			if (++line_no > linesperpage || r == '\f')
 				endpage();
-			}
 			lastchar = -1;
 			continue;
 		case '\t':
@@ -364,7 +353,7 @@ txt2post(void) {
 			/* just toss out backspaces for now */
 			if (lastchar != -1) {
 				endstring();
-				if (pageon()) Bprint(Bstdout, "(%s) stringwidth pop neg 0 rmoveto ", charcode[lastchar].str);
+				if (pageon()) Bprint(bout, "(%s) stringwidth pop neg 0 rmoveto ", charcode[lastchar].str);
 			}
 			char_no++;
 			lastchar = -1;
@@ -376,7 +365,7 @@ txt2post(void) {
 			prspace();
 			prtab();
 			endstring();
-			Bprint(Bstdout, "pw ");
+			Bprint(bout, "pw ");
 			char_no++;
 			lastchar = -1;
 			continue;
@@ -385,24 +374,24 @@ txt2post(void) {
 		if (thisfont != lastfont) {
 			endstring();
 			if (pageon()) {
-				Bprint(Bstdout, "/%s f\n", fontname[thisfont].str);
+				Bprint(bout, "/%s f\n", fontname[thisfont].str);
 			}
 			fontname[thisfont].used++;
 		}
 		prspace();
 		prtab();
 		startstring();
-		if (pageon()) Bprint(Bstdout, "%s", charcode[thischar].str);
-/*		if (pageon()) Bprint(Bstdout, "%2.2x", thischar);	/* try hex strings*/
+		if (pageon()) Bprint(bout, "%s", charcode[thischar].str);
+/*		if (pageon()) Bprint(bout, "%2.2x", thischar); /* try hex strings*/
 		char_no++;
 		lastchar = thischar;
 		lastfont = thisfont;
 	}
 	if (line_no != 0 || char_no != 0) {
 		if (char_no != 1) {
-			Bprint(Bstderr, "premature EOF: newline appended\n");
+			fprint(2, "premature EOF: newline appended\n");
 			startstring();
-			if (pageon()) Bprint(Bstdout, ")l\n");
+			if (pageon()) Bprint(bout, ")l\n");
 		}
 		endpage();
 	}
@@ -411,10 +400,12 @@ txt2post(void) {
 void
 pagelist(char *list) {
 	char c;
-	int n, m;
-	int state, start, end;
+	int n, state, start;
+	unsigned m;
 
-	if (list == 0) return;
+	if (list == 0)
+		return;
+	start = 0;
 	state = 1;
 	while ((c=*list) != '\0') {
 		n = 0;
@@ -425,13 +416,12 @@ pagelist(char *list) {
 		switch (state) {
 		case 1:
 			start = n;
+			/* fall through */
 		case 2:
 			if (n/8+1 > pplistmaxsize) {
 				pplistmaxsize = n/8+1;
-				if ((pplist = realloc(pplist, n/8+1)) == 0) {
-					Bprint(Bstderr, "cannot allocate memory for page list\n");
-					exits("malloc");
-				}
+				if ((pplist = realloc(pplist, n/8+1)) == 0)
+					sysfatal("malloc");
 			}
 			for (m=start; m<=n; m++)
 				pplist[m/8] |= 1<<(m%8);
@@ -456,110 +446,95 @@ void
 finish(void) {
 	int i;
 
-	Bprint(Bstdout, "%s", TRAILER);
-	Bprint(Bstdout, "done\n");
-	Bprint(Bstdout, "%s", DOCUMENTFONTS);
+	Bprint(bout, "%s", TRAILER);
+	Bprint(bout, "done\n");
+	Bprint(bout, "%s", DOCUMENTFONTS);
 
 	for (i=0; i<FONTABSIZE; i++)
 		if (fontname[i].used)
-			Bprint(Bstdout, " %s", fontname[i].str);
-	Bprint(Bstdout, "\n");
+			Bprint(bout, " %s", fontname[i].str);
+	Bprint(bout, "\n");
 
-	Bprint(Bstdout, "%s %d\n", PAGES, pages_printed);
-
+	Bprint(bout, "%s %d\n", PAGES, pages_printed);
 }
 
 void
 main(int argc, char *argv[]) {
 	int i;
 	char *t;
-	Biobuf *input;
 
-	if ((bstderr = (Biobuf *)malloc(sizeof(Biobuf))) == nil)
-		exits("malloc");
-	if (Binit(bstderr, 2, OWRITE) == Beof)
-		exits("Binit");
-	Bstderr = &(bstderr->Biobufhdr);
-
-	if ((bstdout = (Biobuf *)malloc(sizeof(Biobuf))) == nil)
-		exits("malloc");
-	if (Binit(bstdout, 1, OWRITE) == Beof)
-		exits("Binit");
-	Bstdout = &(bstdout->Biobufhdr);
+	bin = &inbuf;
+	bout = &outbuf;
+	if (Binit(bout, 1, OWRITE) == Beof)
+		sysfatal("Binit");
 
 	ARGBEGIN{
-		case 'a':			/* aspect ratio */
-			aspectratio = atof(ARGF());
-			break;
-		case 'c':			/* copies */
-			copies = atoi(ARGF());
-			break;
-		case 'f':			/* primary font, for now */
-			t = ARGF();
-			fontname[0].str = malloc(strlen(t)+1);
-			strcpy(fontname[0].str, t);
-			break;
-		case 'l':			/* lines per page */
-			linesperpage = atoi(ARGF());
-			break;
-		case 'm':			/* magnification */
-			magnification = atof(ARGF());
-			break;
-		case 'n':			/* forms per page */
-			formsperpage = atoi(ARGF());
-			break;
-		case 'o':			/* output page list */
-			pagelist(ARGF());
-			break;
-		case 'p':			/* landscape or portrait mode */
-			if ( ARGF()[0] == 'l' )
-				landscape = 1;
-			else
-				landscape = 0;
-			break;
-		case 's':			/* point size */
-			pointsize = atoi(ARGF());
-			break;
-		case 'x':			/* shift things horizontally */
-			xoffset = atof(ARGF());
-			break;
+	case 'a':			/* aspect ratio */
+		aspectratio = atof(ARGF());
+		break;
+	case 'c':			/* copies */
+		copies = atoi(ARGF());
+		break;
+	case 'f':			/* primary font, for now */
+		t = ARGF();
+		fontname[0].str = malloc(strlen(t)+1);
+		strcpy(fontname[0].str, t);
+		break;
+	case 'l':			/* lines per page */
+		linesperpage = atoi(ARGF());
+		break;
+	case 'm':			/* magnification */
+		magnification = atof(ARGF());
+		break;
+	case 'n':			/* forms per page */
+		formsperpage = atoi(ARGF());
+		break;
+	case 'o':			/* output page list */
+		pagelist(ARGF());
+		break;
+	case 'p':			/* landscape or portrait mode */
+		if ( ARGF()[0] == 'l' )
+			landscape = 1;
+		else
+			landscape = 0;
+		break;
+	case 's':			/* point size */
+		pointsize = atoi(ARGF());
+		break;
+	case 'x':			/* shift things horizontally */
+		xoffset = atof(ARGF());
+		break;
 
-		case 'y':			/* and vertically on the page */
-			yoffset = atof(ARGF());
-			break;
-		case 'P':			/* PostScript pass through */
-			t = ARGF();
-			i = strlen(t) + 1;
-			passthrough = malloc(i);
-			if (passthrough == 0) {
-				Bprint(Bstderr, "cannot allocate memory for argument string\n");
-				exits("malloc");
-			}
-			strncpy(passthrough, t, i);
-			break;
-		default:			/* don't know what to do for ch */
-			Bprint(Bstderr, "unknown option %C\n", ARGC());
-			break;
+	case 'y':			/* and vertically on the page */
+		yoffset = atof(ARGF());
+		break;
+	case 'P':			/* PostScript pass through */
+		t = ARGF();
+		i = strlen(t) + 1;
+		passthrough = malloc(i);
+		if (passthrough == 0)
+			sysfatal("malloc");
+		strncpy(passthrough, t, i);
+		break;
+	default:
+		fprint(2, "unknown option %C\n", ARGC());
+		break;
 	}ARGEND;
+
 	prologues();
 	if (argc <= 0) {
-		if ((bstdin = (Biobuf *)malloc(sizeof(Biobuf))) == nil)
-			exits("malloc");
-		if (Binit(bstdin, 0, OREAD) == Beof) {
-			fprint(2, "cannot Binit stdin\n");
-			exits("Binit");
-		}
-		Bstdin = &(bstdin->Biobufhdr);
+		if (Binit(bin, 0, OREAD) == Beof)
+			sysfatal("cannot Binit stdin");
 		txt2post();
 	}
 	for (i=0; i<argc; i++) {
-		bstdin = Bopen(argv[i], 0);
-		if (bstdin == 0) {
-			fprint(2, "cannot open file %s\n", argv[i]);
+		bin = Bopen(argv[i], OREAD);
+		if (bin == nil) {
+			fprint(2, "cannot open %s: %r\n", argv[i]);
 			continue;
 		}
-		Bstdin = &(bstdin->Biobufhdr);
 		txt2post();
+		Bterm(bin);
 	}
 	finish();
 	exits("");

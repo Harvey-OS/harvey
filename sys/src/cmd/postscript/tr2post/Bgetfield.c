@@ -7,45 +7,47 @@
 int
 isspace(Rune r)
 {
-	return(r==' ' || r=='\t' || r=='\n' || r == '\r' || r=='\f');
+ 	return r==' ' || r=='\t' || r=='\n' || r=='\r' || r=='\f';
 }
 
 int
 Bskipws(Biobufhdr *bp) {
-	int r;
-	char c[UTFmax];
-	int sindex = 0;
+	int r, sindex = 0;
 
 	/* skip over initial white space */
 	do {
 		r = Bgetrune(bp);
-		if (r == '\n') inputlineno++;
-		sindex++;	
+		if (r == '\n')
+			inputlineno++;
+		sindex++;
 	} while (r>=0 && isspace(r));
-	if (r<0) {
+	if (r<0)
 		return(-1);
-	} else if (!isspace(r)) {
+	else if (!isspace(r)) {
 		Bungetrune(bp);
 		--sindex;
 	}
-	return(sindex);
+	return sindex;
 }
 
 int
 asc2dig(char c, int base) {
 	if (c >= '0' && c <= '9')
-		if (base == 8 && c > '7') return(-1);
-		else return(c - '0');
-
+		if (base == 8 && c > '7')
+			return(-1);
+		else
+			return(c - '0');
 	if (base == 16)
-		if (c >= 'a' && c <= 'f') return(10 + c - 'a');
-		else if (c >= 'A' && c <= 'F') return(10 + c - 'A');
-
+		if (c >= 'a' && c <= 'f')
+			return(10 + c - 'a');
+		else if (c >= 'A' && c <= 'F')
+			return(10 + c - 'A');
 	return(-1);
 }
 
-/* get a string of type: "d" for decimal integer, "u" for unsigned,
- * "s" for string", "c" for char, 
+/*
+ * get a string of type: "d" for decimal integer, "u" for unsigned,
+ * "s" for string", "c" for char,
  * return the number of characters gotten for the field.  If nothing
  * was gotten and the end of file was reached, a negative value
  * from the Bgetrune is returned.
@@ -53,20 +55,21 @@ asc2dig(char c, int base) {
 
 int
 Bgetfield(Biobufhdr *bp, int type, void *thing, int size) {
-	int r;
-	Rune R;
-	char c[UTFmax];
-	int sindex = 0, i, j, n = 0;
-	int negate = 0;
 	int base = 10;
-	BOOLEAN bailout = FALSE;
 	int dig;
-	unsigned int u = 0;
+	int negate = 0;
+	int sindex = 0, i, j, n = 0;
+	long r;
+	Rune R;
+	unsigned u = 0;
+	BOOLEAN bailout = FALSE;
+	char c[UTFmax];
 
 	/* skip over initial white space */
 	if (Bskipws(bp) < 0)
 		return(-1);
 
+	r = 0;
 	switch (type) {
 	case 'd':
 		while (!bailout && (r = Bgetrune(bp))>=0) {
@@ -81,7 +84,7 @@ Bgetfield(Biobufhdr *bp, int type, void *thing, int size) {
 				case '0':
 					base = 8;
 					continue;
-				default:	
+				default:
 					break;
 				}
 				break;
@@ -90,11 +93,15 @@ Bgetfield(Biobufhdr *bp, int type, void *thing, int size) {
 					base = 16;
 					continue;
 				}
+				break;
 			}
-			if ((dig = asc2dig(r, base)) == -1) bailout = TRUE;						
-			else n = dig + (n * base);
+			if ((dig = asc2dig(r, base)) == -1)
+				bailout = TRUE;
+			else
+				n = dig + (n * base);
 		}
-		if (r < 0) return(-1);
+		if (r < 0)
+			return(-1);
 		*(int *)thing = (negate)?-n:n;
 		Bungetrune(bp);
 		break;
@@ -112,24 +119,30 @@ Bgetfield(Biobufhdr *bp, int type, void *thing, int size) {
 					base = 16;
 					continue;
 				}
+				break;
 			}
-			if ((dig = asc2dig(r, base)) == -1) bailout = TRUE;						
-			else u = dig + (n * base);
+			if ((dig = asc2dig(r, base)) == -1)
+				bailout = TRUE;
+			else
+				u = dig + (n * base);
 		}
 		*(int *)thing = u;
-		if (r < 0) return(-1);
+		if (r < 0)
+			return(-1);
 		Bungetrune(bp);
 		break;
 	case 's':
 		j = 0;
-		while ((size>j+UTFmax) && (r = Bgetrune(bp))>=0 && !isspace(r)) {
+		while (size > j+UTFmax && (r = Bgetrune(bp)) >= 0 &&
+		    !isspace(r)) {
 			R = r;
 			i = runetochar(&(((char *)thing)[j]), &R);
 			j += i;
 			sindex++;
 		}
-		((char *)thing)[j++] = '\0';
-		if (r < 0) return(-1);
+		((char *)thing)[j] = '\0';
+		if (r < 0)
+			return(-1);
 		Bungetrune(bp);
 		break;
 	case 'r':
@@ -138,7 +151,8 @@ Bgetfield(Biobufhdr *bp, int type, void *thing, int size) {
 			sindex++;
 			return(sindex);
 		}
-		if (r <= 0) return(-1);
+		if (r <= 0)
+			return(-1);
 		Bungetrune(bp);
 		break;
 	default:

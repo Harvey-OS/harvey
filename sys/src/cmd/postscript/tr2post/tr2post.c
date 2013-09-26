@@ -26,7 +26,6 @@ int debug = 0;
 char tmpfilename[MAXTOKENSIZE];
 char copybuf[BUFSIZ];
 
-
 struct charent **build_char_list = 0;
 int build_char_cnt = 0;
 
@@ -43,13 +42,13 @@ prologues(void) {
 	Bprint(Bstdout, "%s", ENDCOMMENTS);
 
 	if (cat(DPOST)) {
-		Bprint(Bstderr, "can't read %s\n", DPOST);
+		fprint(2, "can't read %s\n", DPOST);
 		exits("dpost prologue");
 	}
 
 	if (drawflag) {
 		if (cat(DRAW)) {
-			Bprint(Bstderr, "can't read %s\n", DRAW);
+			fprint(2, "can't read %s\n", DRAW);
 			exits("draw prologue");
 		}
 	}
@@ -84,7 +83,7 @@ prologues(void) {
 	for (i=0; i<build_char_cnt; i++) {
 		sprint(charlibname, "%s/%s", CHARLIB, build_char_list[i]->name);
 		if (cat(charlibname))
-		Bprint(Bstderr, "cannot open %s\n", charlibname);
+		fprint(2, "cannot open %s\n", charlibname);
 	}
 
 	Bprint(Bstdout, "%s", ENDSETUP);
@@ -103,118 +102,103 @@ main(int argc, char *argv[]) {
 	char *t;
 
 	programname = argv[0];
-	if (Binit(&bstderr, 2, OWRITE) == Beof) {
-		exits("Binit");
-	}
+	if (Binit(&bstderr, 2, OWRITE) == Beof)
+		sysfatal("Binit");
 	Bstderr = &bstderr.Biobufhdr;
 
 	tmpnam(tmpfilename);
-	if ((bstdout=Bopen(tmpfilename, OWRITE)) == 0) {
-		Bprint(Bstderr, "cannot open temporary file %s\n", tmpfilename);
-		exits("Bopen");
-	}
+	if ((bstdout=Bopen(tmpfilename, OWRITE)) == 0)
+		sysfatal("cannot open temporary file %s: %r", tmpfilename);
 	atexit(cleanup);
 	Bstdout = &bstdout->Biobufhdr;
-	
+
 	ARGBEGIN{
-		case 'a':			/* aspect ratio */
-			aspectratio = atof(ARGF());
-			break;
-		case 'c':			/* copies */
-			copies = atoi(ARGF());
-			break;
-		case 'd':
-			debug = 1;
-			break;
-		case 'm':			/* magnification */
-			magnification = atof(ARGF());
-			break;
-		case 'n':			/* forms per page */
-			formsperpage = atoi(ARGF());
-			break;
-		case 'o':			/* output page list */
-			pagelist(ARGF());
-			break;
-		case 'p':			/* landscape or portrait mode */
-			if ( ARGF()[0] == 'l' )
-				landscape = 1;
-			else
-				landscape = 0;
-			break;
-		case 'x':			/* shift things horizontally */
-			xoffset = atof(ARGF());
-			break;
-		case 'y':			/* and vertically on the page */
-			yoffset = atof(ARGF());
-			break;
-		case 'P':			/* PostScript pass through */
-			t = ARGF();
-			i = strlen(t) + 1;
-			passthrough = malloc(i);
-			if (passthrough == 0) {
-				Bprint(Bstderr, "cannot allocate memory for argument string\n");
-				exits("malloc");
-			}
-			strncpy(passthrough, t, i);
-			break;
-		default:			/* don't know what to do for ch */
-			Bprint(Bstderr, "unknown option %C\n", ARGC());
-			break;
+	case 'a':			/* aspect ratio */
+		aspectratio = atof(ARGF());
+		break;
+	case 'c':			/* copies */
+		copies = atoi(ARGF());
+		break;
+	case 'd':
+		debug = 1;
+		break;
+	case 'm':			/* magnification */
+		magnification = atof(ARGF());
+		break;
+	case 'n':			/* forms per page */
+		formsperpage = atoi(ARGF());
+		break;
+	case 'o':			/* output page list */
+		pagelist(ARGF());
+		break;
+	case 'p':			/* landscape or portrait mode */
+		if ( ARGF()[0] == 'l' )
+			landscape = 1;
+		else
+			landscape = 0;
+		break;
+	case 'x':			/* shift things horizontally */
+		xoffset = atof(ARGF());
+		break;
+	case 'y':			/* and vertically on the page */
+		yoffset = atof(ARGF());
+		break;
+	case 'P':			/* PostScript pass through */
+		t = ARGF();
+		i = strlen(t) + 1;
+		passthrough = malloc(i);
+		if (passthrough == 0)
+			sysfatal("malloc");
+		strncpy(passthrough, t, i);
+		break;
+	default:			/* don't know what to do for ch */
+		fprint(2, "unknown option %C\n", ARGC());
+		break;
 	}ARGEND;
+
 	readDESC();
 	if (argc == 0) {
-		if ((binp = (Biobuf *)malloc(sizeof(Biobuf))) == nil) {
-			Bprint(Bstderr, "malloc failed.\n");
-			exits("malloc");
-		}
-		if (Binit(binp, 0, OREAD) == Beof) {
-			Bprint(Bstderr, "Binit of <stdin> failed.\n");
-			exits("Binit");
-		}
-		Binp = &(binp->Biobufhdr);
-		if (debug) Bprint(Bstderr, "using standard input\n");
+		if ((binp = (Biobuf *)malloc(sizeof(Biobuf))) == nil)
+			sysfatal("malloc");
+		if (Binit(binp, 0, OREAD) == Beof)
+			sysfatal("Binit of <stdin> failed.");
+		Binp = &binp->Biobufhdr;
+		if (debug) fprint(2, "using standard input\n");
 		conv(Binp);
 		Bterm(Binp);
 	}
 	for (i=0; i<argc; i++) {
 		if ((binp=Bopen(argv[i], OREAD)) == 0) {
-			Bprint(Bstderr, "cannot open file %s\n", argv[i]);
+			fprint(2, "cannot open file %s\n", argv[i]);
 			continue;
 		}
-		Binp = &(binp->Biobufhdr);
+		Binp = &binp->Biobufhdr;
 		inputfilename = argv[i];
 		conv(Binp);
 		Bterm(Binp);
 	}
 	Bterm(Bstdout);
 
-	if ((ifd=open(tmpfilename, OREAD)) < 0) {
-		Bprint(Bstderr, "open of %s failed.\n", tmpfilename);
-		exits("open");
-	}
+	if ((ifd=open(tmpfilename, OREAD)) < 0)
+		sysfatal("open of %s failed: %r", tmpfilename);
 
 	bstdout = galloc(0, sizeof(Biobuf), "bstdout");
-	if (Binit(bstdout, 1, OWRITE) == Beof) {
-		Bprint(Bstderr, "Binit of <stdout> failed.\n");
-		exits("Binit");
-	}
+	if (Binit(bstdout, 1, OWRITE) == Beof)
+		sysfatal("Binit of <stdout> failed.");
 	Bstdout = &(bstdout->Biobufhdr);
 	prologues();
 	Bflush(Bstdout);
-	tot = 0; i = 0;
+	tot = 0;
 	while ((i=read(ifd, copybuf, BUFSIZ)) > 0) {
 		if (write(1, copybuf, i) != i) {
-			Bprint(Bstderr, "write error on copying from temp file.\n");
+			fprint(2, "write error on copying from temp file.\n");
 			exits("write");
 		}
 		tot += i;
 	}
-	if (debug) Bprint(Bstderr, "copied %d bytes to final output i=%d\n", tot, i);
-	if (i < 0) {
-		Bprint(Bstderr, "read error on copying from temp file.\n");
-		exits("read");
-	}
+	if (debug) fprint(2, "copied %d bytes to final output i=%d\n", tot, i);
+	if (i < 0)
+		sysfatal("read error copying from temp file: %r");
 	finish();
-		
 	exits("");
 }
