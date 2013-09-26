@@ -6,10 +6,11 @@
 #include "tr2post.h"
 
 BOOLEAN drawflag = FALSE;
-BOOLEAN	inpath = FALSE;			/* TRUE if we're putting pieces together */
+BOOLEAN	inpath = FALSE;		/* TRUE if we're putting pieces together */
 
 void
 cover(double x, double y) {
+	USED(x, y);
 }
 
 void
@@ -17,29 +18,23 @@ drawspline(Biobufhdr *Bp, int flag) {	/* flag!=1 connect end points */
 	int x[100], y[100];
 	int i, N;
 /*
- *
  * Spline drawing routine for Postscript printers. The complicated stuff is
  * handled by procedure Ds, which should be defined in the library file. I've
  * seen wrong implementations of troff's spline drawing, so fo the record I'll
  * write down the parametric equations and the necessary conversions to Bezier
  * cubic splines (as used in Postscript).
  *
- *
  * Parametric equation (x coordinate only):
- *
  *
  *	    (x2 - 2 * x1 + x0)    2                    (x0 + x1)
  *	x = ------------------ * t   + (x1 - x0) * t + ---------
  *		    2					   2
  *
- *
  * The coefficients in the Bezier cubic are,
- *
  *
  *	A = 0
  *	B = (x2 - 2 * x1 + x0) / 2
  *	C = x1 - x0
- *
  *
  * while the current point is,
  *
@@ -48,11 +43,9 @@ drawspline(Biobufhdr *Bp, int flag) {	/* flag!=1 connect end points */
  * Using the relationships given in the Postscript manual (page 121) it's easy to
  * see that the control points are given by,
  *
- *
  *	x0' = (x0 + 5 * x1) / 6
  *	x1' = (x2 + 5 * x1) / 6
  *	x2' = (x1 + x2) / 2
- *
  *
  * where the primed variables are the ones used by curveto. The calculations
  * shown above are done in procedure Ds using the coordinates set up in both
@@ -61,9 +54,7 @@ drawspline(Biobufhdr *Bp, int flag) {	/* flag!=1 connect end points */
  * A simple test of whether your spline drawing is correct would be to use cip
  * to draw a spline and some tangent lines at appropriate points and then print
  * the file.
- *
  */
-
 	for (N=2; N<sizeof(x)/sizeof(x[0]); N++)
 		if (Bgetfield(Bp, 'd', &x[N], 0)<=0 || Bgetfield(Bp, 'd', &y[N], 0)<=0)
 			break;
@@ -229,17 +220,14 @@ drawpath(char *buf, int copy) {
 }
 
 
-/*****************************************************************************/
-
 static void
 parsebuf(char *buf)
 {
-	char	*p;			/* usually the next token */
+	char *p;			/* usually the next token */
 	char *q;
-	int		gsavelevel = 0;		/* non-zero if we've done a gsave */
+	int gsavelevel = 0;		/* non-zero if we've done a gsave */
 
 /*
- *
  * Simple minded attempt at parsing the string that followed an "x X DrawPath"
  * command. Everything not recognized here is simply ignored - there's absolutely
  * no error checking and what was originally in buf is clobbered by strtok().
@@ -274,13 +262,10 @@ parsebuf(char *buf)
  * quotes. Straight PostScript is only bracketed by the outermost gsave/grestore
  * pair (ie. the one from the initial "x X BeginPath") although that's probably
  * a mistake. Suspect I may have to change the double quote delimiters.
- *
  */
-
-	for( ; p != nil ; p = q ) {
-		if( q = strchr(p, ' ') ) {
+	for(p = buf; p != nil; p = q) {
+		if( q = strchr(p, ' ') )
 			*q++ = '\0';
-		}
 
 		if ( gsavelevel == 0 ) {
 			Bprint(Bstdout, "gsave\n");

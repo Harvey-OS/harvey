@@ -1,5 +1,4 @@
 /*
- *
  * PostScript picture inclusion routines. Support for managing in-line pictures
  * has been added, and works in combination with the simple picpack pre-processor
  * that's supplied with this package. An in-line picture begins with a special
@@ -30,7 +29,6 @@
  * pictures included, doesn't fit the device independent language accepted by
  * important post-processors (like proff) and that means you won't be able to
  * reliably preview a packed file on your 5620 (or whatever).
- *
  */
 
 #include <u.h>
@@ -40,14 +38,10 @@
 #include "ext.h"
 #include "common.h"
 #include "tr2post.h"
-/* PostScript file structuring comments */
-#include "comments.h"
-/* general purpose definitions */
-/* #include "gen.h" */
-/* just for TEMPDIR definition */
-#include "path.h"
-/* external variable declarations */
-/* #include "ext.h" */
+#include "comments.h"		/* PostScript file structuring comments */
+/* #include "gen.h" */		/* general purpose definitions */
+#include "path.h"		/* just for TEMPDIR definition */
+/* #include "ext.h" */		/* external variable declarations */
 
 Biobuf	*bfp_pic = NULL;
 Biobufhdr	*Bfp_pic;
@@ -60,31 +54,28 @@ int nfields;
 extern int	devres, hpos, vpos;
 extern int	picflag;
 
-/*****************************************************************************/
-
 void
 picture(Biobufhdr *inp, char *buf) {
-	int	poffset;		/* page offset */
-	int	indent;		/* indent */
-	int	length;		/* line length  */
-	int	totrap;		/* distance to next trap */
-	char	name[100];	/* picture file and page string */
-	char	hwo[40], *p;	/* height, width and offset strings */
-	char	flags[20];		/* miscellaneous stuff */
-	int	page = 1;		/* page number pulled from name[] */
-	double	frame[4];	/* height, width, y, and x offsets from hwo[] */
-	char	units;		/* scale indicator for frame dimensions */
-	int	whiteout = 0;	/* white out the box? */
+	int	i;
+	int	indent;
+	int	length;		/* line length */
 	int	outline = 0;	/* draw a box around the picture? */
+	int	page = 1;	/* page number pulled from name[] */
+	int	poffset;	/* page offset */
 	int	scaleboth = 0;	/* scale both dimensions? */
+	int	totrap;		/* distance to next trap */
+	int	whiteout = 0;	/* white out the box? */
+	char	flags[20];	/* miscellaneous stuff */
+	char	hwo[40], *p;	/* height, width and offset strings */
+	char	name[100];	/* picture file and page string */
+	char	units;		/* scale indicator for frame dimensions */
 	double	adjx = 0.5;	/* left-right adjustment */
 	double	adjy = 0.5;	/* top-bottom adjustment */
+	double	frame[4];	/* height, width, y, and x offsets from hwo[] */
 	double	rot = 0;	/* rotation in clockwise degrees */
-	Biobufhdr	*fp_in;	/* for *name */
-	int	i;			/* loop index */
+	Biobufhdr *fp_in;	/* for *name */
 
 /*
- *
  * Called from devcntrl() after an 'x X PI' command is found. The syntax of that
  * command is:
  *
@@ -107,9 +98,8 @@ picture(Biobufhdr *inp, char *buf) {
  * clockwise degrees, is set by the a flag. If it's not followed by an angle
  * the current rotation angle is incremented by 90 degrees, otherwise the angle
  * is set by the number that immediately follows the a.
- *
  */
-
+	USED(inp);
 	if (!picflag)		/* skip it */
 		return;
 	endstring();
@@ -182,18 +172,15 @@ picture(Biobufhdr *inp, char *buf) {
 	Bprint(Bstdout, "/saveobj save def\n");
 	Bprint(Bstdout, "mark\n");
 	Bterm(fp_in);
-
 }
 
 /*
- *
  * Responsible for finding and opening the next picture file. If we've accumulated
  * any in-line pictures fp_pic won't be NULL and we'll look there first. If *path
  * is found in *fp_pic we create another temp file, open it for update, unlink it,
  * copy in the picture, seek back to the start of the new temp file, and return
  * the file pointer to the caller. If fp_pic is NULL or the lookup fails we just
  * open file *path and return the resulting file pointer to the caller.
- *
  */
 Biobufhdr *
 picopen(char *path) {
@@ -201,13 +188,11 @@ picopen(char *path) {
 /*	long	pos;			/* current position */
 /*	long	total;			/* and sizes - from *fp_pic */
 	Biobuf *bfp;
-	Biobufhdr	*Bfp;		/* and pointer for the new temp file */
-
 
 	if ((bfp = Bopen(path, OREAD)) == 0)
 		error(FATAL, "can't open %s\n", path);
-	Bfp = &(bfp->Biobufhdr);
-	return(Bfp);
+	return bfp;
+
 #ifdef UNDEF
 	if (Bfp_pic != NULL) {
 		Bseek(Bfp_pic, 0L, 0);
@@ -227,22 +212,16 @@ picopen(char *path) {
 			Bseek(Bfp_pic, total+pos, 0);
 		}
 	}
-	if ((bfp = Bopen(path, OREAD)) == 0)
-		Bfp = 0;
-	else
-		Bfp = &(bfp->Biobufhdr);
-	return(Bfp);
+	return Bopen(path, OREAD);
 #endif
 }
 
 /*
- *
  * Adds an in-line picture file to the end of temporary file *Bfp_pic. All pictures
  * grabbed from the input file are saved in the same temp file. Each is preceeded
  * by a one line header that includes the original picture file pathname and the
  * size of the picture in bytes. The in-line picture file is opened for update,
  * left open, and unlinked so it disappears when we do.
- *
  */
 /*	*fp;			/* current input file */
 /*	*buf;			/* whatever followed "x X InlinePicture" */
@@ -253,33 +232,27 @@ inlinepic(Biobufhdr *Bfp, char *buf) {
 	char	name[100];		/* picture file pathname */
 	long	total;			/* and size - both from *buf */
 
-
 	if (Bfp_pic == NULL ) {
 		tmpnam(pictmpname);
 		if ((bfp_pic = Bopen(pictmpname, ORDWR)) == 0)
 	    		error(FATAL, "can't open in-line picture file %s", ipictmpname);
 		unlink(pictmpname);
 	}
-
 	if ( sscanf(buf, "%s %ld", name, &total) != 2 )
 		error(FATAL, "in-line picture error");
-
 	fseek(Bfp_pic, 0L, 2);
 	fprintf(Bfp_pic, "%s %ld\n", name, total);
 	getc(fp);
 	fflush(fp_pic);
 	piccopy(fp, fp_pic, total);
 	ungetc('\n', fp);
-
 }
 #endif
 
 /*
- *
  * Copies total bytes from file fp_in to fp_out. Used to append picture files to
  * *fp_pic and then copy them to yet another temporary file immediately before
  * they're used (in picture()).
- *
  */
 /*	*fp_in;	input */
 /*	*fp_out;	and output file pointers */

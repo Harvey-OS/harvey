@@ -48,13 +48,12 @@ struct sjt specialjumptable[] = {
 	{"ExportPS", notavail("ExportPS")},
 	{NULL, NULL}
 };
-*/
+ */
 
 void
 devcntl(Biobufhdr *inp) {
-
 	char cmd[50], buf[256], str[MAXTOKENSIZE], *line;
-	int c, n, linelen;
+	int c, n;
 
 /*
  *
@@ -102,16 +101,18 @@ devcntl(Biobufhdr *inp) {
 		break;
 
 	case 'T':			/* device name */
-		Bgetfield(inp, 's', &devname, 16);
+		Bgetfield(inp, 's', devname, 16);
 		if (debug) Bprint(Bstderr, "devname=%s\n", devname);
 		break;
 
 	case 'E':			/* input encoding - not in troff yet */
-		Bgetfield(inp, 's', &str, 100);
-/*		if ( strcmp(str, "UTF") == 0 )
-		    reading = UTFENCODING;
-		else reading = ONEBYTE;
-  */
+		Bgetfield(inp, 's', str, 100);
+/*
+		if (strcmp(str, "UTF") == 0)
+			reading = UTFENCODING;
+		else
+			reading = ONEBYTE;
+ */
 		break;
 
 	case 'X':			/* copy through - from troff */
@@ -175,4 +176,3 @@ devcntl(Biobufhdr *inp) {
 	while ((c = Bgetc(inp)) != '\n' && c != Beof);
 	inputlineno++;
 }
-

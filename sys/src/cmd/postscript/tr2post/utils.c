@@ -40,18 +40,22 @@ hmot(int x) {
 	if ((x<expecthmot-1) || (x>expecthmot+1)) {
 		delta = x - expecthmot;
 		if (curtrofffontid <0 || curtrofffontid >= troffontcnt) {
-			Bprint(Bstderr, "troffontcnt=%d curtrofffontid=%d\n", troffontcnt, curtrofffontid);
-			Bflush(Bstderr);
+			fprint(2, "troffontcnt=%d curtrofffontid=%d\n",
+				troffontcnt, curtrofffontid);
 			exits("");
 		}
-		if (delta == troffontab[curtrofffontid].spacewidth*fontsize/10 && isinstring()) {
-			if (pageon()) runeout(' ');
+		if (delta == troffontab[curtrofffontid].spacewidth*fontsize/10 &&
+		    isinstring()) {
+			if (pageon())
+				runeout(' ');
 		} else {
-			if (pageon()) {	
+			if (pageon()) {
 				endstring();
 				/* Bprint(Bstdout, " %d 0 rmoveto ", delta); */
 /*				Bprint(Bstdout, " %d %d m ", hpos+x, vpos); */
-				if (debug) Bprint(Bstderr, "x=%d expecthmot=%d\n", x, expecthmot);
+				if (debug)
+					fprint(2, "x=%d expecthmot=%d\n",
+						x, expecthmot);
 			}
 		}
 	}
@@ -72,7 +76,7 @@ findglyph(int trfid, Rune rune, char *stoken) {
 
 	for (cp = &(troffontab[trfid].charent[RUNEGETGROUP(rune)][RUNEGETCHAR(rune)]); *cp != 0; cp = &((*cp)->next)) {
 		if ((*cp)->name) {
-			if (debug) Bprint(Bstderr, "looking for <%s>, have <%s> in font %s\n", stoken, (*cp)->name, troffontab[trfid].trfontid);
+			if (debug) fprint(2, "looking for <%s>, have <%s> in font %s\n", stoken, (*cp)->name, troffontab[trfid].trfontid);
 			if (strcmp((*cp)->name, stoken) == 0)
 				break;
 		}
@@ -89,44 +93,56 @@ glyphout(Rune rune, char *stoken, BOOLEAN specialflag) {
 	struct charent **cp;
 	struct troffont *tfp;
 	struct psfent *psfp;
-	int i, t;
+	int i, t, mi, wid;
 	int fontid;	/* this is the troff font table index, not the mounted font table index */
-	int mi, fi, wid;
 	Rune r;
 
+	mi = 0;
 	settrfont();
 
 	/* check current font for the character, special or not */
 	fontid = curtrofffontid;
-if (debug) fprint(2, "	looking through current font: trying %s\n", troffontab[fontid].trfontid);
+	if (debug)
+		fprint(2, "\tlooking through current font: trying %s\n",
+			troffontab[fontid].trfontid);
 	cp = findglyph(fontid, rune, stoken);
-	if (*cp != 0) goto foundit;
+	if (*cp != 0)
+		goto foundit;
 
 	if (specialflag) {
-		if (expecthmot) hmot(0);
+		if (expecthmot)
+			hmot(0);
 
 		/* check special fonts for the special character */
 		/* cycle through the (troff) mounted fonts starting at the next font */
 		for (mi=0; mi<fontmnt; mi++) {
-			if (troffontab[fontid].trfontid==0) error(WARNING, "glyphout:troffontab[%d].trfontid=0x%x, botch!\n",
-				fontid, troffontab[fontid].trfontid);
+			if (troffontab[fontid].trfontid==0)
+				error(WARNING, "glyphout:troffontab[%d].trfontid=0x%x, botch!\n",
+					fontid, troffontab[fontid].trfontid);
 			if (fontmtab[mi]==0) {
-				if (debug) fprint(2, "fontmtab[%d]=0x%x, fontmnt=%d\n", mi, fontmtab[mi], fontmnt);
+				if (debug)
+					fprint(2, "fontmtab[%d]=%#p, fontmnt=%d\n",
+						mi, fontmtab[mi], fontmnt);
 				continue;
 			}
-			if (strcmp(troffontab[fontid].trfontid, fontmtab[mi])==0) break;
+			if (strcmp(troffontab[fontid].trfontid, fontmtab[mi])==0)
+				break;
 		}
-		if (mi==fontmnt) error(FATAL, "current troff font is not mounted, botch!\n");
+		if (mi==fontmnt)
+			error(FATAL, "current troff font is not mounted, botch!\n");
 		for (i=(mi+1)%fontmnt; i!=mi; i=(i+1)%fontmnt) {
 			if (fontmtab[i]==0) {
-				if (debug) fprint(2, "fontmtab[%d]=0x%x, fontmnt=%d\n", i, fontmtab[i], fontmnt);
+				if (debug)
+					fprint(2, "fontmtab[%d]=%#p, fontmnt=%d\n",
+						i, fontmtab[i], fontmnt);
 				continue;
 			}
 			fontid = findtfn(fontmtab[i], TRUE);
 if (debug) fprint(2, "	looking through special fonts: trying %s\n", troffontab[fontid].trfontid);
 			if (troffontab[fontid].special) {
 				cp = findglyph(fontid, rune, stoken);
-				if (*cp != 0) goto foundit;
+				if (*cp != 0)
+					goto foundit;
 			}
 		}
 
@@ -149,7 +165,7 @@ if (debug) fprint(2, "	looking through font at position 1: trying %s\n", troffon
 	rune = 'p';	stoken = "pw";
 	for (i=(mi+1)%fontmnt; i!=mi; i=(i+1)%fontmnt) {
 		if (fontmtab[i]==0) {
-			if (debug) fprint(2, "fontmtab[%d]=0x%x\n", i, fontmtab[i]);
+			if (debug) fprint(2, "fontmtab[%d]=%#p\n", i, fontmtab[i]);
 			continue;
 		}
 		fontid = findtfn(fontmtab[i], TRUE);
@@ -159,25 +175,27 @@ if (debug) fprint(2, "	looking through special fonts: trying %s\n", troffontab[f
 			if (*cp != 0) goto foundit;
 		}
 	}
-	
+
 	if (*cp == 0) {
-		error(WARNING, "cannot find glyph, rune=0x%x stoken=<%s> troff font %s\n", rune, stoken,
-			troffontab[curtrofffontid].trfontid);
+		error(WARNING, "cannot find glyph, rune=0x%x stoken=<%s> troff font %s\n",
+			rune, stoken, troffontab[curtrofffontid].trfontid);
 		expecthmot = 0;
 		return;
 	}
 
 foundit:
 	t = (((*cp)->postfontid&0xff)<<8) | ((*cp)->postcharid&0xff);
-	if (debug) {
-		Bprint(Bstderr, "runeout(0x%x)<%C> postfontid=0x%x postcharid=0x%x troffcharwidth=%d\n",
-			rune, rune, (*cp)->postfontid, (*cp)->postcharid, (*cp)->troffcharwidth);
-	}
-		
-	tfp = &(troffontab[fontid]);
+	if (debug)
+		fprint(2, "runeout(0x%x)<%C> postfontid=0x%x postcharid=0x%x troffcharwidth=%d\n",
+			rune, rune, (*cp)->postfontid, (*cp)->postcharid,
+			(*cp)->troffcharwidth);
+
+	tfp = &troffontab[fontid];
+	psfp = nil;
 	for (i=0; i<tfp->psfmapsize; i++) {
 		psfp = &(tfp->psfmap[i]);
-		if(t>=psfp->start && t<=psfp->end) break;
+		if(t>=psfp->start && t<=psfp->end)
+			break;
 	}
 	if (i >= tfp->psfmapsize)
 		error(FATAL, "character <0x%x> does not have a Postscript font defined.\n", rune);
@@ -187,44 +205,47 @@ foundit:
 	if (t == 0x0001) {	/* character is in charlib */
 		endstring();
 		if (pageon()) {
-			struct charent *tcp;
-
 			Bprint(Bstdout, "%d %d m ", hpos, vpos);
 			/* if char is unicode character rather than name, clean up for postscript */
 			wid = chartorune(&r, (*cp)->name);
 			if(' '<r && r<0x7F)
-				Bprint(Bstdout, "%d build_%s\n", (*cp)->troffcharwidth, (*cp)->name);
+				Bprint(Bstdout, "%d build_%s\n",
+					(*cp)->troffcharwidth, (*cp)->name);
 			else{
 				if((*cp)->name[wid] != 0)
 					error(FATAL, "character <%s> badly named\n", (*cp)->name);
-				Bprint(Bstdout, "%d build_X%.4x\n", (*cp)->troffcharwidth, r);
+				Bprint(Bstdout, "%d build_X%.4x\n",
+					(*cp)->troffcharwidth, r);
 			}
 
-			/* stash charent pointer in a list so that we can print these character definitions
-			 * in the prologue.
+			/*
+			 * stash charent pointer in a list so that we can
+			 * print these character definitions in the prologue.
 			 */
 			for (i=0; i<build_char_cnt; i++)
-				if (*cp == build_char_list[i]) break;
+				if (*cp == build_char_list[i])
+					break;
 			if (i == build_char_cnt) {
-				build_char_list = galloc(build_char_list, sizeof(struct charent *) * ++build_char_cnt,
-				"build_char_list");
+				build_char_list = galloc(build_char_list,
+					sizeof(struct charent *)*++build_char_cnt,
+					"build_char_list");
 				build_char_list[build_char_cnt-1] = *cp;
 			}
 		}
 		expecthmot = (*cp)->troffcharwidth * fontsize / unitwidth;
 	} else if (isinstring() || rune != ' ') {
 		startstring();
-		if (pageon()) {
+		if (pageon())
 			if (rune == ' ')
 				Bprint(Bstdout, " ");
 			else
 				Bprint(Bstdout, "%s", charcode[RUNEGETCHAR(t)].str);
-		}
 		expecthmot = (*cp)->troffcharwidth * fontsize / unitwidth;
 	}
 }
 
-/* runeout puts a symbol into a string (queue) to be output.
+/*
+ * runeout puts a symbol into a string (queue) to be output.
  * It also has to keep track of the current and last symbol
  * output to check that the spacing is correct by default
  * or needs to be adjusted with a spacing operation.
@@ -243,22 +264,23 @@ runeout(Rune rune) {
 void
 specialout(char *stoken) {
 	Rune rune;
-	int i;
 
-	i = chartorune(&rune, stoken);
+	chartorune(&rune, stoken);
 	glyphout(rune, stoken, TRUE);
 }
 
 void
 graphfunc(Biobufhdr *bp) {
+	USED(bp);
 }
 
 long
 nametorune(char *name) {
+	USED(name);
 	return(0);
 }
 
 void
 notavail(char *msg) {
-	Bprint(Bstderr, "%s is not available at this time.\n", msg);
+	fprint(2, "%s is not available at this time.\n", msg);
 }

@@ -29,7 +29,8 @@ BIN=$POSTBIN
 
 </sys/src/cmd/mkone
 
-CFLAGS=-c -D'PROGRAMVERSION="0.1"' -D'DOROUND=1' -I$COMMONDIR -D'PROGRAMNAME="troff, Plan 9 edition"'
+CFLAGS=$CFLAGS -D'PROGRAMVERSION="0.1"' -D'DOROUND=1' -I$COMMONDIR \
+ -D'PROGRAMNAME="troff, Plan 9 edition"'
 
 %.$O:	$COMMONDIR/%.c
 	$CC $CFLAGS $COMMONDIR/$stem.c

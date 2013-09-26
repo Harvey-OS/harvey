@@ -13,7 +13,6 @@ static char *buf;
 
 static void
 copy(Biobufhdr *fin, Biobufhdr *fout, Section *s) {
-	int cond;
 	if (s->end <= s->start)
 		return;
 	Bseek(fin, s->start, 0);
@@ -34,7 +33,6 @@ copy(Biobufhdr *fin, Biobufhdr *fout, Section *s) {
 }
 
 /*
- *
  * Reads a PostScript file (*fin), and uses structuring comments to locate the
  * prologue, trailer, global definitions, and the requested page. After the whole
  * file is scanned, the  special ps_include PostScript definitions are copied to
@@ -44,7 +42,6 @@ copy(Biobufhdr *fin, Biobufhdr *fout, Section *s) {
  *
  * By default we assume the picture is 8.5 by 11 inches, but the BoundingBox
  * comment, if found, takes precedence.
- *
  */
 /*	*fin, *fout;		/* input and output files */
 /*	page_no;		/* physical page number from *fin */
@@ -60,25 +57,25 @@ void
 ps_include(Biobufhdr *fin, Biobufhdr *fout, int page_no, int whiteout,
 	int outline, int scaleboth, double cx, double cy, double sx, double sy,
 	double ax, double ay, double rot) {
-	char		**strp;
-	int		foundpage = 0;		/* found the page when non zero */
-	int		foundpbox = 0;		/* found the page bounding box */
-	int		nglobal = 0;		/* number of global defs so far */
-	int		maxglobal = 0;		/* and the number we've got room for */
-	Section	prolog, page, trailer;	/* prologue, page, and trailer offsets */
-	Section	*global;		/* offsets for all global definitions */
-	double	llx, lly;		/* lower left and */
-	double	urx, ury;		/* upper right corners - default coords */
-	double	w = whiteout != 0;	/* mostly for the var() macro */
-	double	o = outline != 0;
-	double	s = scaleboth != 0;
-	int		i;		/* loop index */
+	int foundpage = 0;		/* found the page when non zero */
+	int foundpbox = 0;		/* found the page bounding box */
+	int i;
+	int maxglobal = 0;		/* the number we've got room for */
+	int nglobal = 0;		/* number of global defs so far */
+	char **strp;
+	double llx, lly;		/* lower left and */
+	double o = outline != 0;
+	double s = scaleboth != 0;
+	double urx, ury;		/* upper right corners - default coords */
+	double w = whiteout != 0;	/* mostly for the var() macro */
+	Section *global;		/* offsets for all global definitions */
+	Section prolog, page, trailer;	/* prologue, page, and trailer offsets */
 
 #define has(word)	(strncmp(buf, word, strlen(word)) == 0)
 #define grab(n)		((Section *)(nglobal \
 			? realloc((char *)global, n*sizeof(Section)) \
 			: calloc(n, sizeof(Section))))
-
+	global = nil;
 	llx = lly = 0;		/* default BoundingBox - 8.5x11 inches */
 	urx = 72 * 8.5;
 	ury = 72 * 11.0;
