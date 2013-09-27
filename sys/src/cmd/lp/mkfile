@@ -12,7 +12,7 @@ HFILES=
 
 BIN=/$objtype/bin/aux
 </sys/src/cmd/mkmany
-CFLAGS=-Dplan9
+CFLAGS=$CFLAGS -Dplan9
 
 installall:V:	/sys/lib/lp/bin/lpsend.rc
 

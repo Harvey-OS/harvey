@@ -1,5 +1,9 @@
+#define _BSD_EXTENSION
+#define _POSIX_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <limits.h>
 #include <ctype.h>
 #include <string.h>

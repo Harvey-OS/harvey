@@ -193,7 +193,7 @@ loop:
 		while (cbits(i) != '\n')
 			pchar(i = getch());
 		tflg = 0;
-		copyf--;
+		copyf--;			/* pointless */
 		goto loop;
 	}
 	if (j == cc || j == c2) {
@@ -670,7 +670,6 @@ char	ifilt[32] = { 0, 001, 002, 003, 0, 005, 006, 007, 010, 011, 012 };
 
 Tchar getch0(void)
 {
-	int j;
 	Tchar i;
 
 again:
@@ -713,7 +712,6 @@ g0:
 			if (ip)
 				goto again;
 		}
-g2:
 		if (i >= 040)			/* zapped: && i < 0177 */
 			goto g4;
 		i = ifilt[i];
@@ -741,6 +739,7 @@ Tchar get1ch(FILE *fp)	/* get one "character" from input, figure out what alphab
 	char buf[100], *p;
 	int i, n, c;
 
+	n = c = 0;
 	for (i = 0, p = buf; i < MB_CUR_MAX; i++) {
 		if ((c = getc(fp)) == EOF)
 			return c;
@@ -911,7 +910,6 @@ void casenx(void)
 getname(void)
 {
 	int j, k;
-	Tchar i;
 
 	lgf++;
 	for (k = 0; k < NS - 1; k++) {
@@ -929,10 +927,10 @@ getname(void)
 void caseso(void)
 {
 	FILE *fp;
-	char *p, *q;
 
 	lgf++;
 	nextf[0] = 0;
+	fp = NULL;
 	if (skip() || !getname() || (fp = fopen(nextf, "r")) == NULL || ifi >= NSO) {
 		ERROR "can't open file %s", nextf WARN;
 		done(02);

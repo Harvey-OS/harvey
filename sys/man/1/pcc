@@ -129,6 +129,14 @@ Don't optimize compiled code.
 Print an assembly language version of the object code
 on standard output.
 .TP
+.B -T
+Pass type signatures on all external and global entities.
+The signature is based on the C
+.B signof
+operator.
+See
+.IR dynld (2).
+.TP
 .B -a
 Instead of compiling, print on standard output acid functions (see
 .IR acid (1))

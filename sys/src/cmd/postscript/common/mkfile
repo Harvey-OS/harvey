@@ -18,5 +18,5 @@ HFILES=comments.h\
 
 </sys/src/cmd/mklib
 
-CFLAGS=-c -D$SYSTEM -D_POSIX_SOURCE -B
+CFLAGS=$CFLAGS -c -D$SYSTEM -D_POSIX_SOURCE -B
 CC=pcc

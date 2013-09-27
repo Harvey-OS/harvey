@@ -27,7 +27,7 @@ BIN=/$objtype/bin
 </sys/src/cmd/mkone
 CC=pcc
 LD=pcc
-CFLAGS=-c
+CFLAGS=-FTV -c
 YFLAGS=-S -d
 
 picy.c:	y.tab.c

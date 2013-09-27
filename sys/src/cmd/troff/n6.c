@@ -83,9 +83,9 @@ void n_setps(void )
 	i = cbits(getch());
 	if (isdigit(i)) {		/* \sd or \sdd */
 		i -= '0';
-		if (i == 0)		/* \s0 */
+		if (i == 0) {		/* \s0 */
 			;
-		else if (i <= 3 && (ch=getch()) && isdigit(cbits(ch))) {	/* \sdd */
+		} else if (i <= 3 && (ch=getch()) && isdigit(cbits(ch))) {	/* \sdd */
 			ch = 0;
 		}
 	} else if (i == '(') {		/* \s(dd */
@@ -294,7 +294,7 @@ void n_casebd(void)
 {
 	int i, j, k;
 
-	k = 0;
+	j = k = 0;
 bd0:
 	if (skip() || !(i = getrq()) || (j = findft(i)) == -1) {
 		if (k)

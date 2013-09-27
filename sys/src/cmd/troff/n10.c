@@ -39,7 +39,7 @@ static char *parse(char *s, int typeit)	/* convert \0, etc to nroff driving tabl
 	}
 	for (;;) {
 		if (quote && *s == '"') {
-			s++;
+			s++;			/* pointless */
 			break;
 		}
 		if (!quote && (*s == ' ' || *s == '\t' || *s == '\n' || *s == '\0'))
@@ -74,14 +74,13 @@ static char *parse(char *s, int typeit)	/* convert \0, etc to nroff driving tabl
 
 static int getnrfont(FILE *fp)	/* read the nroff description file */
 {
-	FILE *fin;
 	Chwid chtemp[NCHARS];
 	static Chwid chinit;
 	int i, nw, n, wid, code, type;
-	char buf[100], ch[100], s1[100], s2[100], cmd[300];
+	char buf[100], ch[100], s1[100], s2[100];
 	wchar_t wc;
 
-
+	code = 0;			/* no idea what this should be */
 	chinit.wid = 1;
 	chinit.str = "";
 	for (i = 0; i < ALPHABET; i++) {
@@ -114,6 +113,7 @@ static int getnrfont(FILE *fp)	/* read the nroff description file */
 #endif	/*UNICODE*/
 		} else {
 			if (strcmp(ch, "---") == 0) { /* no name */
+				/* code used to be uninitialised here */
 				sprintf(ch, "%d", code);
 				type = Number;
 			} else
@@ -139,7 +139,7 @@ static int getnrfont(FILE *fp)	/* read the nroff description file */
 void n_ptinit(void)
 {
 	int i;
-	char *p, *cp;
+	char *p;
 	char opt[50], cmd[100];
 	FILE *fp;
 

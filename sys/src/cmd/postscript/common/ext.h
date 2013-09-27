@@ -1,7 +1,5 @@
 /*
- *
  * External varibles - most are in glob.c.
- *
  */
 
 extern char	**argv;			/* global so everyone can use them */
@@ -27,14 +25,10 @@ extern int	writing;		/* and output encoding */
 extern char	*optarg;		/* for getopt() */
 extern int	optind;
 
-extern void	interrupt();
+extern int	cat(char *);
+extern void	error(int, char *, ...);
+extern int	in_olist(int);
+extern void	interrupt(int);
+extern int	out_list(char *);
+extern int	setencoding(char *);
 extern char	*tempnam(char*,char*);
-/* 
- * extern char	*malloc();
- * extern char	*calloc();
- * extern char	*strtok();
- * extern long	ftell();
- * extern double	atof();
- * extern double	sqrt();
- * extern double	atan2();
- */

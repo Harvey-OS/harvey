@@ -1,5 +1,11 @@
+#define _BSD_EXTENSION
+#define _NET_EXTENSION
+#define _POSIX_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <ctype.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>

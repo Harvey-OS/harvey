@@ -50,6 +50,8 @@
  * be a more general program (e.g. scan for other comments).
  */
 
+#define _BSD_EXTENSION
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -83,15 +85,20 @@ int	atend = FALSE;			/* TRUE only if a comment says so */
 FILE	*fp_in = stdin;			/* next input file */
 FILE	*fp_temp = NULL;		/* for copying stdin */
 
-/*****************************************************************************/
+void	arguments(void);
+void	copyfonts(char *);
+void	copyinput(void);
+void	done(void);
+void	download(void);
+void	init_signals(void);
+void	options(void);
+void	readmap(void);
+void	readresident(void);
 
 main(agc, agv)
-
     int		agc;
     char	*agv[];
-
 {
-
 /*
  *
  * Host resident font downloader. The input files are assumed to be part of a
@@ -111,19 +118,14 @@ main(agc, agv)
     arguments();			/* then process non-option arguments */
     done();				/* and clean things up */
     exit(x_stat);			/* not much could be wrong */
+    return 0;
+}
 
-}   /* End of main */
-
-/*****************************************************************************/
-
-init_signals()
-
+void
+init_signals(void)
 {
-
 /*
- *
  * Makes sure we handle interrupts properly.
- *
  */
 
     if ( signal(SIGINT, interrupt) == SIG_IGN ) {
@@ -133,18 +135,14 @@ init_signals()
     } else {
 	signal(SIGHUP, interrupt);
 	signal(SIGQUIT, interrupt);
-    }   /* End else */
+    }
 
     signal(SIGTERM, interrupt);
+}
 
-}   /* End of init_signals */
-
-/*****************************************************************************/
-
-options()
-
+void
+options(void)
 {
-
     int		ch;			/* return value from getopt() */
     char	*optnames = "c:fm:p:r:H:T:DI";
 
@@ -207,29 +205,23 @@ options()
 
     argc -= optind;			/* get ready for non-option args */
     argv += optind;
+}
 
-}   /* End of options */
-
-/*****************************************************************************/
-
-readmap()
-
+void
+readmap(void)
 {
-
     char	*path;
     char	*ptr;
     int		fd;
     struct stat	sbuf;
 
 /*
- *
  * Initializes the map table by reading an ASCII mapping file. If mapname begins
  * with a / it's the map table. Otherwise hostfontdir, mapname, and suffix are
  * combined to build the final pathname. If we can open the file we read it all
  * into memory, erase comments, and separate the font and file name pairs. When
  * we leave next points to the next free slot in the map[] array. If it's zero
  * nothing was in the file or we couldn't open it.
- *
  */
 
     if ( hostfontdir == NULL || mapname == NULL )
@@ -268,29 +260,23 @@ readmap()
 		break;
 	    if ( map[next].file == NULL )
 		error(FATAL, "map table format error - check %s", path);
-	}   /* End for */
-    }	/* End if */
+	}
+    }
+}
 
-}   /* End of readmap */
-
-/*****************************************************************************/
-
-readresident()
-
+void
+readresident(void)
 {
-
     FILE	*fp;
     char	*path;
     int		ch;
     int		n;
 
 /*
- *
  * Reads a file that lists the resident fonts for a particular printer and marks
  * each font as already downloaded. Nothing's done if the file can't be read or
  * there's no mapping file. Comments, as in the map file, begin with a % and
  * extend to the end of the line. Added for Unix 4.0 lp.
- *
  */
 
     if ( next == 0 || (printer == NULL && residentfonts == NULL) )
@@ -308,16 +294,12 @@ readresident()
 	    else if ( (n = lookup(buf)) < next )
 		map[n].downloaded = TRUE;
 	fclose(fp);
-    }	/* End if */
+    }
+}
 
-}   /* End of readresident */
-
-/*****************************************************************************/
-
-arguments()
-
+void
+arguments(void)
 {
-
 /*
  *
  * Makes sure all the non-option command line arguments are processed. If we get
@@ -343,34 +325,23 @@ arguments()
 		fclose(fp_temp);
 	    argc--;
 	    argv++;
-	}   /* End while */
-    }	/* End else */
+	}
+    }
+}
 
-}   /* End of arguments */
-
-/*****************************************************************************/
-
-done()
-
+void
+done(void)
 {
-
 /*
- *
  * Clean things up before we quit.
- *
  */
-
     if ( temp_file != NULL )
 	unlink(temp_file);
+}
 
-}   /* End of done */
-
-/*****************************************************************************/
-
-download()
-
+void
+download(void)
 {
-
     int		infontlist = FALSE;
 
 /*
@@ -407,32 +378,24 @@ download()
 	    } else if ( buf[2] == '+' && infontlist == TRUE )
 		copyfonts(buf);
 	    else infontlist = FALSE;
-	}   /* End while */
-    }	/* End if */
-
+	}
+    }
     copyinput();
+}
 
-}   /* End of download */
-
-/*****************************************************************************/
-
+void
 copyfonts(list)
-
     char	*list;
-
 {
-
     char	*font;
     char	*path;
     int		n;
 
 /*
- *
  * list points to a %%DocumentFonts: or continuation comment. What follows the
  * the keyword will be a list of fonts separated by white space (or (atend)).
  * Look for each font in the map table and if it's found copy the font file to
  * stdout (once only).
- *
  */
 
     strtok(list, " \n");		/* skip to the font list */
@@ -441,7 +404,7 @@ copyfonts(list)
 	if ( strcmp(font, ATEND) == 0 ) {
 	    atend = TRUE;
 	    break;
-	}   /* End if */
+	}
 	if ( (n = lookup(font)) < next ) {
 	    if ( *map[n].file != '/' ) {
 		if ( (path = malloc(strlen(hostfontdir)+strlen(map[n].file)+2)) == NULL )
@@ -451,17 +414,13 @@ copyfonts(list)
 		free(path);
 	    } else cat(map[n].file);
 	    map[n].downloaded = TRUE;
-	}   /* End if */
-    }	/* End while */
+	}
+    }
+}
 
-}   /* End of copyfonts */
-
-/*****************************************************************************/
-
-copyinput()
-
+void
+copyinput(void)
 {
-
 /*
  *
  * Copies the input file to stdout. If fp_temp isn't NULL seek to the start and
@@ -481,17 +440,11 @@ copyinput()
 
     while ( fgets(buf, sizeof(buf), fp_in) != NULL )
 	printf("%s", buf);
-
-}   /* End of copyinput */
-
-/*****************************************************************************/
+}
 
 lookup(font)
-
     char	*font;
-
 {
-
     int		i;
 
 /*

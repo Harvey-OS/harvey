@@ -37,13 +37,17 @@
  *		Joe Orost		(decvax!vax135!petsd!joe)
  */
 #define _PLAN9_SOURCE
+#define _BSD_EXTENSION
+#define _POSIX_SOURCE
 
 #include <u.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <signal.h>
+#include <utime.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -69,9 +73,6 @@ uchar magic_header[] = { 0x1F, 0x9D };	/* 1F 9D */
 	a fourth header byte (for expansion).
 */
 #define INIT_BITS 9			/* initial number of bits/code */
-
-void onintr(int);
-void oops(int);
 
 #define ARGVAL() (*++(*argv) || (--argc && *++argv))
 
@@ -107,9 +108,22 @@ count_int fsize;
 code_int free_ent = 0;			/* first unused entry */
 int exit_stat = 0;
 
-code_int getcode();
+void	cl_block(void);
+void	cl_hash(count_int);
+void	compress(void);
+void	copystat(char *, char *);
+void	decompress(void);
+int	foreground(void);
+code_int getcode(void);
+void	onintr(int);
+void	oops(int);
+void	output(code_int);
+void	prratio(FILE *, long, long);
+void	version(void);
+void	writeerr(void);
 
-Usage()
+void
+Usage(void)
 {
 #ifdef DEBUG
 	fprintf(stderr,"Usage: compress [-cdfDV] [-b maxbits] [file ...]\n");
@@ -443,6 +457,7 @@ nextarg:
 	}
 	}
 	exit(exit_stat);
+	return 0;
 }
 
 static int offset;
@@ -465,10 +480,11 @@ long out_count = 0;		/* # of codes output (for debugging) */
  * file size for noticeable speed improvement on small files.  Please direct
  * questions about this implementation to ames!jaw.
  */
-compress()
+void
+compress(void)
 {
 	code_int ent, hsize_reg;
-	code_int i = 0;
+	code_int i;
 	int c, disp, hshift;
 	long fcode;
 
@@ -584,6 +600,7 @@ static char buf[BITS];
 uchar lmask[9] = {0xff, 0xfe, 0xfc, 0xf8, 0xf0, 0xe0, 0xc0, 0x80, 0x00};
 uchar rmask[9] = {0x00, 0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f, 0xff};
 
+void
 output( code )
 code_int  code;
 {
@@ -695,7 +712,8 @@ code_int  code;
  * be stored in the compressed file.  The tables used herein are shared
  * with those of the compress() routine.  See the definitions above.
  */
-decompress()
+void
+decompress(void)
 {
 	int finchar;
 	code_int code, oldcode, incode;
@@ -948,18 +966,20 @@ in_stack(int c, int stack_top)
 }
 #endif /* DEBUG */
 
-writeerr()
+void
+writeerr(void)
 {
 	perror(ofname);
 	unlink(ofname);
 	exit(1);
 }
 
+void
 copystat(ifname, ofname)
 char *ifname, *ofname;
 {
 	int mode;
-	time_t timep[2];
+	time_t timep[2];			/* should be struct utimbuf */
 	struct stat statbuf;
 
 	fclose(stdout);
@@ -986,7 +1006,7 @@ char *ifname, *ofname;
 		timep[0] = statbuf.st_atime;
 		timep[1] = statbuf.st_mtime;
 		/* Update last accessed and modified times */
-		utime(ofname, timep);
+		utime(ofname, (struct utimbuf *)timep);
 //		if (unlink(ifname))	/* Remove input file */
 //			perror(ifname);
 		return;			/* success */
@@ -1001,7 +1021,8 @@ char *ifname, *ofname;
  * This routine returns 1 if we are running in the foreground and stderr
  * is a tty.
  */
-foreground()
+int
+foreground(void)
 {
 	if(bgnd_flag)			/* background? */
 		return 0;
@@ -1012,6 +1033,7 @@ foreground()
 void
 onintr(int x)
 {
+	USED(x);
 	unlink(ofname);
 	exit(1);
 }
@@ -1019,13 +1041,15 @@ onintr(int x)
 void
 oops(int x)		/* wild pointer -- assume bad input */
 {
+	USED(x);
 	if (do_decomp == 1)
 		fprintf(stderr, "uncompress: corrupt input\n");
 	unlink(ofname);
 	exit(1);
 }
 
-cl_block ()		/* table clear for block compress */
+void
+cl_block(void)		/* table clear for block compress */
 {
 	long rat;
 
@@ -1065,8 +1089,8 @@ cl_block ()		/* table clear for block compress */
 	}
 }
 
-cl_hash(hsize)		/* reset code table */
-count_int hsize;
+void
+cl_hash(count_int hsize)		/* reset code table */
 {
 	count_int *htab_p = htab+hsize;
 	long i;
@@ -1096,6 +1120,7 @@ count_int hsize;
 		*--htab_p = m1;
 }
 
+void
 prratio(stream, num, den)
 FILE *stream;
 long num, den;
@@ -1113,7 +1138,8 @@ long num, den;
 	fprintf(stream, "%d.%02d%%", q / 100, q % 100);
 }
 
-version()
+void
+version(void)
 {
 	fprintf(stderr, "%s\n", rcs_ident);
 	fprintf(stderr, "Options: ");

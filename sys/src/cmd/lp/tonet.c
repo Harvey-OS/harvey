@@ -17,7 +17,7 @@ alarmhandler(void *, char *note)
 void
 pass(int in, int out)
 {
-	int rv = 0;
+	int rv;
 	static char buf[4096];
 
 	for(;;) {

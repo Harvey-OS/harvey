@@ -1,5 +1,4 @@
 /*
- *
  * Boundingbox code for PostScript translators. The boundingbox for each page
  * is accumulated in bbox - the one for the whole document goes in docbbox. A
  * call to writebbox() puts out an appropriate comment, updates docbbox, and
@@ -7,10 +6,13 @@
  * is that we're really printing the current page only if output is now going
  * to stdout - a valid assumption for all supplied translators. Needs the math
  * library.
- *
  */
 
+#define _RESEARCH_SOURCE
+
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 #include <sys/types.h>
 #include <fcntl.h>
@@ -32,19 +34,20 @@ Bbox	docbbox = {FALSE, 0.0, 0.0, 0.0, 0.0};
 double	ctm[6] = {1.0, 0.0, 0.0, 1.0, 0.0, 0.0};
 double	matrix1[6], matrix2[6];
 
-/*****************************************************************************/
+void	concat(double []);
+void	resetbbox(int);
+void	rotate(double);
+void	scale(double, double);
+void	translate(double, double);
+void	writebbox(FILE *, char *, int);
 
+void
 cover(x, y)
-
     double	x, y;
-
 {
-
 /*
- *
  * Adds point (x, y) to bbox. Coordinates are in user space - the transformation
  * to default coordinates happens in writebbox().
- *
  */
 
     if ( bbox.set == FALSE ) {
@@ -60,30 +63,23 @@ cover(x, y)
 	    bbox.urx = x;
 	if ( y > bbox.ury )
 	    bbox.ury = y;
-    }	/* End else */
+    }
+}
 
-}   /* End of cover */
-
-/*****************************************************************************/
-
+void
 writebbox(fp, keyword, slop)
-
     FILE	*fp;			/* the comment is written here */
     char	*keyword;		/* the boundingbox comment string */
     int		slop;			/* expand (or contract?) the box a bit */
-
 {
-
     Bbox	ubbox;			/* user space bounding box */
     double	x, y;
 
 /*
- *
  * Transforms the numbers in the bbox[] using ctm[], adjusts the corners a bit
  * (depending on slop) and then writes comment. If *keyword is BoundingBox use
  * whatever's been saved in docbbox, otherwise assume the comment is just for
  * the current page.
- *
  */
 
     if ( strcmp(keyword, BOUNDINGBOX) == 0 )
@@ -108,55 +104,39 @@ writebbox(fp, keyword, slop)
 	bbox.lly -= slop + 0.5;
 	bbox.urx += slop + 0.5;
 	bbox.ury += slop + 0.5;
-	fprintf(fp, "%s %d %d %d %d\n", keyword, (int)bbox.llx, (int)bbox.lly,(int)bbox.urx, (int)bbox.ury);
+	fprintf(fp, "%s %d %d %d %d\n", keyword, (int)bbox.llx, (int)bbox.lly,
+		(int)bbox.urx, (int)bbox.ury);
 	bbox = ubbox;
-    }	/* End if */
+    }
+    resetbbox(fp == stdout);
+}
 
-    resetbbox((fp == stdout) ? TRUE : FALSE);
-
-}   /* End of writebbox */
-
-/*****************************************************************************/
-
-resetbbox(output)
-
-    int		output;
-
+void
+resetbbox(int output)
 {
-
 /*
- *
  * Adds bbox to docbbox and resets bbox for the next page. Only update docbbox
  * if we really did output on the last page.
- *
  */
 
     if ( docbbox.set == TRUE ) {
 	cover(docbbox.llx, docbbox.lly);
 	cover(docbbox.urx, docbbox.ury);
-    }	/* End if */
+    }
 
     if ( output == TRUE ) {
 	docbbox = bbox;
 	docbbox.set = TRUE;
-    }	/* End if */
+    }
 
     bbox.set = FALSE;
+}
 
-}   /* End of resetbbox */
-
-/*****************************************************************************/
-
-scale(sx, sy)
-
-    double	sx, sy;
-
+void
+scale(double sx, double sy)
 {
-
 /*
- *
  * Scales the default matrix.
- *
  */
 
     matrix1[0] = sx;
@@ -167,21 +147,13 @@ scale(sx, sy)
     matrix1[5] = 0;
 
     concat(matrix1);
+}
 
-}   /* End of scale */
-
-/*****************************************************************************/
-
-translate(tx, ty)
-
-    double	tx, ty;
-
+void
+translate(double tx, double ty)
 {
-
 /*
- *
  * Translates the default matrix.
- *
  */
 
     matrix1[0] = 1.0;
@@ -192,24 +164,17 @@ translate(tx, ty)
     matrix1[5] = ty;
 
     concat(matrix1);
+}
 
-}   /* End of translate */
-
-/*****************************************************************************/
-
-rotate(angle)
-
-    double	angle;
-
+void
+rotate(double angle)
 {
 
 /*
- *
  * Rotates by angle degrees.
- *
  */
 
-    angle *= 3.1416 / 180;
+    angle *= M_PI / 180;
 
     matrix1[0] = matrix1[3] = cos(angle);
     matrix1[1] = sin(angle);
@@ -218,23 +183,15 @@ rotate(angle)
     matrix1[5] = 0.0;
 
     concat(matrix1);
+}
 
-}   /* End of rotate */
-
-/*****************************************************************************/
-
-concat(m1)
-
-    double	m1[];
-
+void
+concat(double m1[])
 {
-
     double	m2[6];
 
 /*
- *
  * Replaces the ctm[] by the result of the matrix multiplication m1[] x ctm[].
- *
  */
 
     m2[0] = ctm[0];
@@ -250,8 +207,4 @@ concat(m1)
     ctm[3] = m1[2] * m2[1] + m1[3] * m2[3];
     ctm[4] = m1[4] * m2[0] + m1[5] * m2[2] + m2[4];
     ctm[5] = m1[4] * m2[1] + m1[5] * m2[3] + m2[5];
-
-}   /* End of concat */
-
-/*****************************************************************************/
-
+}

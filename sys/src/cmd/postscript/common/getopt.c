@@ -1,14 +1,21 @@
 #ifndef _POSIX_SOURCE
 #include <u.h>
 #include <libc.h>
+#else
+#define _BSD_EXTENSION
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
 #endif
+
 #include	<stdio.h>
+
 #define ERR(str, chr)       if(opterr){fprintf(stderr, "%s%s%c\n", argv[0], str, chr);}
+
 int     opterr = 1;
 int     optind = 1;
 int	optopt;
 char    *optarg;
-char    *strchr();
 
 int
 getopt (argc, argv, opts)

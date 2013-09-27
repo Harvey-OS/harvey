@@ -252,6 +252,7 @@ nextchar(void)
 {
 	register int c;
 
+	c = 0;
   loop:
 	switch (srcp->type) {
 	case Free:	/* free string */
@@ -482,7 +483,11 @@ void eprint(void)	/* try to print context around error */
 	ep = ebuf;
 }
 
-void yywrap(void) {}
+int
+yywrap(void)
+{
+	return 1;		/* read eof; did not switch inputs */
+}
 
 char	*newfile = 0;		/* filename for file copy */
 char	*untilstr = 0;		/* string that terminates a thru */
