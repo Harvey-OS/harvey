@@ -83,6 +83,7 @@ chget(int c)
 {
 	Tchar i;
 
+	i = 0;
 	if (skip() || ismot(i = getch()) || cbits(i) == ' ' || cbits(i) == '\n') {
 		ch = i;
 		return(c);
@@ -431,7 +432,7 @@ void casetm1(int ab, FILE *out)
 		else {
 			extern int error;
 			int savtrac = trace;
-			i = trace = 0;
+			trace = 0;
 			noscale++;
 			i = inumb(&trace);
 			noscale--;
@@ -472,7 +473,7 @@ void casetm1(int ab, FILE *out)
 				sprintf(&tmbuf[i], "\\N'%s'", p+1);
 				break;
 			case Troffchar:
-				if ((j = strlen(p+1)) == 2)
+				if (strlen(p+1) == 2)
 					sprintf(&tmbuf[i], "\\(%s", p+1);
 				else
 					sprintf(&tmbuf[i], "\\C'%s'", p+1);

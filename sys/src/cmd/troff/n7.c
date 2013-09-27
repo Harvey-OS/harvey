@@ -4,6 +4,7 @@
 
 #ifdef STRICT
 	/* not in ANSI or POSIX */
+#undef  isascii
 #define	isascii(a) ((a) >= 0 && (a) <= 127)
 #endif
 
@@ -354,6 +355,7 @@ void newline(int a)
 	int i, j, nlss;
 	int opn;
 
+	nlss = 0;
 	if (a)
 		goto nl1;
 	if (dip != d) {
@@ -656,7 +658,7 @@ getword(int x)
 	int noword;
 	int obits;
 
-	noword = 0;
+	j = noword = 0;
 	if (x)
 		if (pendw) {
 			*pendw = 0;

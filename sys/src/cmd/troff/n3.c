@@ -64,7 +64,7 @@ void blockinit(void)
 
 char *grow(char *ptr, int num, int size)	/* make array bigger */
 {
-	char *p, new;
+	char *p;
 
 	if (ptr == NULL)
 		p = (char *) calloc(num, size);
@@ -176,8 +176,7 @@ void mrehash(void)
 
 void caserm(void)
 {
-	int j;
-	int k = 0;
+	int j, k;
 
 	lgf++;
 g0:
@@ -249,7 +248,7 @@ void casede(void)
 		savoff = offset;
 		offset = apptr;
 		wbf((Tchar) IMP);
-		offset = savoff;
+		offset = savoff;	/* pointless */
 	}
 	offset = dip->op;
 	if (req != '.')
@@ -307,7 +306,6 @@ void growcontab(void)
 Offset finds(int mn)
 {
 	int i;
-	Tchar j = IMP;
 	Offset savip;
 
 	oldmn = findmn(mn);
@@ -383,6 +381,7 @@ int copyb(void)
 	flushi();
 	nlflg = 0;
 	state = 1;
+	savoff = 0;
 
 /* state 0	eat up
  * state 1	look for .
@@ -506,7 +505,7 @@ void wbf(Tchar i)	/* store i into offset, get ready for next one */
 	if (i == 0)
 		contabp[savslot].emx = offset;
 	off = boffset(offset);
-	blist[j].bp[off++] = i;
+	blist[j].bp[off] = i;
 	offset++;
 	if (pastend(offset)) {	/* off the end of this block */
 		if (blist[j].nextoff == -1) {

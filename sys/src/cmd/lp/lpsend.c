@@ -138,8 +138,7 @@ char jobbuf[RDSIZE];
 int
 pass(int inpfd, int outfd, int bsize)
 {
-	int bcnt = 0;
-	int rv = 0;
+	int rv, bcnt;
 
 	for(bcnt=bsize; bcnt > 0; bcnt -= rv) {
 		alarm(WRNETIMEOUT);	/* to break hanging */
@@ -227,7 +226,6 @@ recvACK(int netfd)
 void
 main(int argc, char *argv[])
 {
-	char *devdir;
 	int i, rv, netfd, bsize, datafd;
 #ifndef plan9
 	void (*oldhandler)();

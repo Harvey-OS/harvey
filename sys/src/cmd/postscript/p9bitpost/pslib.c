@@ -688,7 +688,7 @@ imagebits(Biobuf *ioutb, Memimage *im)
 	for (i = 0; i < n4; i += 4){
 		cmap2ascii85(data+i, c85);
 		lsf += strlen((char *)c85);
-		Bprint(ioutb, "%s", c85);
+		Bprint(ioutb, "%s", (char *)c85);
 		if (lsf > 74) {
 			Bprint(ioutb, "\n");
 			lsf = 0;
@@ -705,7 +705,7 @@ imagebits(Biobuf *ioutb, Memimage *im)
 		cmap2ascii85(foo, c85);
 		if (strcmp((char *)c85, "z") == 0 )
 			strcpy((char *)c85, "!!!!!");
-		Bprint(ioutb, "%.*s", nrest+1, c85);
+		Bprint(ioutb, "%.*s", nrest+1, (char *)c85);
 	}
 	Bprint(ioutb, "\n~>");
 	Bprint(ioutb, "\n");

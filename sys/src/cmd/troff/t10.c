@@ -156,11 +156,11 @@ void t_ptout(Tchar i)
 
 int ptout0(Tchar *pi)
 {
-	int j, k, w;
-	int z, dx, dy, dx2, dy2, n;
-	Tchar i;
+	int j, k, w, z, dx, dy, dx2, dy2, n;
 	int outsize;	/* size of object being printed */
+	Tchar i;
 
+	w = 0;
 	outsize = 1;	/* default */
 	i = *pi;
 	k = cbits(i);

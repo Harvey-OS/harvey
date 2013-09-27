@@ -103,6 +103,7 @@ getfont(char *name, int pos)	/* create width tab for font */
 		chtemp[i] = chinit;	/* zero out to begin with */
 	ftemp->specfont = ftemp->ligfont = 0;
 	ftemp->defaultwidth = ftemp->spacewidth = Inch * Unitwidth / 72 / 3; /* should be rounded */
+	nw = code = 0;
 	while (fscanf(fin, "%s", cmd) != EOF) {
 		if (strcmp(cmd, "name") == 0)
 			fscanf(fin, "%s", ftemp->longname);

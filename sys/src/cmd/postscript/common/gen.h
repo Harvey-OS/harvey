@@ -1,8 +1,6 @@
 /*
- *
  * A few definitions that shouldn't have to change. Used by most programs in
  * this package.
- *
  */
 
 #define PROGRAMVERSION	"3.3.2"
@@ -62,4 +60,3 @@
 #define ABS(A)		((A) >= 0 ? (A) : -(A))
 #define MIN(A, B)	((A) < (B) ? (A) : (B))
 #define MAX(A, B)	((A) > (B) ? (A) : (B))
-

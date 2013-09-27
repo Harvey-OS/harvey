@@ -1,20 +1,23 @@
+#define _BSD_EXTENSION
+#define _NET_EXTENSION
+#define _POSIX_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
-
-#ifdef plan9
-#include <bsd.h>
-#endif
-
+#include <unistd.h>
+#include <fcntl.h>
 #include <string.h>
+#include <ctype.h>
 #include <signal.h>
 #include <errno.h>
+#include <select.h>
 #include <sys/types.h>
 #include <sys/time.h>
-
 #include <sys/socket.h>
+#include <sys/wait.h>
 
 extern	int dial_debug;
-extern	int	dial(char*, char*, char*, int*);
+extern	int dial(char*, char*, char*, int*);
 
 
 /* debug = 0 for no debugging */
@@ -346,7 +349,7 @@ dowait:
 		if (n > 0) {
 			fprintf(stderr, "more fds selected than requested!\n");
 			exit(1);
-		};	
+		};
 	} while ((progstate != FATAL_ERROR) && (progstate != OVER_AND_OUT));
 
 	if (progstate == FATAL_ERROR)
@@ -361,7 +364,7 @@ sendfile(int infd, int printerfd, int pipefd)
 	unsigned char proto;
 	int progstate = START;
 	int i, n, nfds;
-	int bytesread,  bytesent = 0; 
+	int bytesread,  bytesent = 0;
 
 	nfds = ((pipefd>printerfd)?pipefd:printerfd) + 1;
 
@@ -463,10 +466,10 @@ sendfile(int infd, int printerfd, int pipefd)
 
 void main(int argc, char *argv[]) {
 	int c, usgflg=0, infd, printerfd;
-	int cpid;
+	int cpid, sprv;
 	int pipefd[2];
 	char *dialstr;
-	unsigned long rprv, sprv;
+	unsigned long rprv;
 
 	dialstr = 0;
 
@@ -484,14 +487,15 @@ void main(int argc, char *argv[]) {
 		case '?':
 			fprintf(stderr, "unknown option %c\n", c);
 			usgflg++;
+			break;
 		}
 	if (optind < argc)
 		dialstr = argv[optind++];
-	else {
+	else
 		usgflg++;
-	}
 	if (usgflg) {
-		fprintf(stderr, "usage: %s [-b baudrate] net!host!service [infile]\n", argv[0]);
+		fprintf(stderr, "usage: %s [-b baudrate] net!host!service [infile]\n",
+			argv[0]);
 		exit (2);
 	}
 	if (optind < argc) {
@@ -504,10 +508,13 @@ void main(int argc, char *argv[]) {
 	} else
 		infd = 0;
 
-	if (debug & 02) fprintf(stderr, "blocksize=%d\n", blocksize);
-	if (debug) fprintf(stderr, "dialing address=%s\n", dialstr);
+	if (debug & 02)
+		fprintf(stderr, "blocksize=%d\n", blocksize);
+	if (debug)
+		fprintf(stderr, "dialing address=%s\n", dialstr);
 	printerfd = dial(dialstr, 0, 0, 0);
-	if (printerfd < 0) exit(1);
+	if (printerfd < 0)
+		exit(1);
 
 	fprintf(stderr, "printer startup\n");
 
@@ -519,16 +526,19 @@ void main(int argc, char *argv[]) {
 	case -1:
 		perror("fork error");
 		exit(1);
-	case 0:
+	case 0:				/* child - to printer */
 		close(pipefd[1]);
-		sprv = sendfile(infd, printerfd, pipefd[0]);	/* child - to printer */
-		if (debug) fprintf(stderr, "to remote - exiting\n");
+		sprv = sendfile(infd, printerfd, pipefd[0]);
+		if (debug)
+			fprintf(stderr, "to remote - exiting\n");
 		exit(sprv);
-	default:
+	default:			/* parent - from printer */
 		close(pipefd[0]);
-		rprv = readprinter(printerfd, pipefd[1]);	/* parent - from printer */
-		if (debug) fprintf(stderr, "from remote - exiting\n");
-		while(wait(&sprv) != cpid);
+		rprv = readprinter(printerfd, pipefd[1]);
+		if (debug)
+			fprintf(stderr, "from remote - exiting\n");
+		while(wait(&sprv) != cpid)
+			;
 		exit(rprv|sprv);
 	}
 }

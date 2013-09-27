@@ -51,11 +51,11 @@ void print(void)
 				move(x0, y0);
 				fillstart(p->o_fillval);
 			}
-			if (p->o_type == BLOCK)
+			if (p->o_type == BLOCK){
 				;	/* nothing at all */
-			else if (invis && !fill)
+			}else if (invis && !fill){
 				;	/* nothing at all */
-			else if (p->o_attr & (DOTBIT|DASHBIT))
+			}else if (p->o_attr & (DOTBIT|DASHBIT))
 				dotbox(x0, y0, x1, y1, p->o_attr, p->o_ddval);
 			else
 				box(x0, y0, x1, y1);

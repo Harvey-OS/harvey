@@ -1,5 +1,4 @@
 /*
- *
  * postreverse - reverse the page order in certain PostScript files.
  *
  * Page reversal relies on being able to locate sections of a document using file
@@ -67,10 +66,15 @@
  * then processes that file. That means the input is read three times (rather than
  * two) whenever we handle stdin. That's expensive, and shouldn't be too difficult
  * to fix, but I haven't gotten around to it yet.
- *
  */
 
+#define _BSD_EXTENSION
+#define _POSIX_SOURCE
+
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
 #include <signal.h>
 #include <sys/types.h>
 #include <fcntl.h>
@@ -101,23 +105,16 @@ char	buf[2048];			/* line buffer for input file */
 FILE	*fp_in;				/* stuff is read from this file */
 FILE	*fp_out = stdout;		/* and written here */
 
-/*****************************************************************************/
-
 main(agc, agv)
-
     int		agc;
     char	*agv[];
-
 {
-
 /*
- *
  * A simple program that reverses the pages in specially formatted PostScript
  * files. Will work with all the translators in this package, and should handle
  * any document that conforms to Adobe's version 1.0 or 2.0 file structuring
  * conventions. Only one input file is allowed, and it can either be a named (on
  * the command line) file or stdin.
- *
  */
 
     argc = agc;				/* other routines may want them */
@@ -131,19 +128,13 @@ main(agc, agv)
     done();				/* and clean things up */
 
     exit(x_stat);			/* not much could be wrong */
-
-}   /* End of main */
-
-/*****************************************************************************/
+    return 0;
+}
 
 init_signals()
-
 {
-
 /*
- *
  * Makes sure we handle interrupts properly.
- *
  */
 
     if ( signal(SIGINT, interrupt) == SIG_IGN )  {
@@ -153,18 +144,13 @@ init_signals()
     } else {
 	signal(SIGHUP, interrupt);
 	signal(SIGQUIT, interrupt);
-    }   /* End else */
+    }
 
     signal(SIGTERM, interrupt);
-
-}   /* End of init_signals */
-
-/*****************************************************************************/
+}
 
 options()
-
 {
-
     int		ch;			/* return value from getopt() */
     char	*optnames = "n:o:rvT:DI";
 

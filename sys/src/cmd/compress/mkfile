@@ -7,4 +7,4 @@ BIN=/$objtype/bin
 </sys/src/cmd/mkone
 CC=pcc
 LD=pcc
-CFLAGS=-B -c
+CFLAGS=-FTV -c

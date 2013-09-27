@@ -1,5 +1,4 @@
 /*
- *
  * postprint - PostScript translator for ASCII files.
  *
  * A simple program that translates ASCII files into PostScript. All it really
@@ -75,10 +74,11 @@
  * The -P option passes arbitrary PostScript through to the output file. Among
  * other things it can be used to set (or change) values that can't be accessed by
  * other options.
- *
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <signal.h>
 #include <ctype.h>
 #ifdef plan9
