@@ -31,12 +31,10 @@ FPdbleword(addr) {
 	print("}\n");
 };
 
-UTFmax = 4;
+UTFmax = 3;
 Runesync = 128;
 Runeself = 128;
 Runeerror = 65533;
-Runemax = 1114111;
-Runemask = 2097151;
 sizeofFmt = 48;
 aggr Fmt
 {
@@ -122,18 +120,16 @@ Profuser = 1;
 Profkernel = 2;
 Proftime = 3;
 Profsample = 4;
-sizeofLock = 8;
+sizeofLock = 4;
 aggr Lock
 {
-	'D' 0 key;
-	'D' 4 sem;
+	'D' 0 val;
 };
 
 defn
 Lock(addr) {
 	complex Lock addr;
-	print("	key	", addr.key, "\n");
-	print("	sem	", addr.sem, "\n");
+	print("	val	", addr.val, "\n");
 };
 
 sizeofQLp = 12;
@@ -152,13 +148,13 @@ QLp(addr) {
 	print("	state	", addr.state, "\n");
 };
 
-sizeofQLock = 20;
+sizeofQLock = 16;
 aggr QLock
 {
 	Lock 0 lock;
-	'D' 8 locked;
-	'A' QLp 12 $head;
-	'A' QLp 16 $tail;
+	'D' 4 locked;
+	'A' QLp 8 $head;
+	'A' QLp 12 $tail;
 };
 
 defn
@@ -172,14 +168,14 @@ QLock(addr) {
 	print("	$tail	", addr.$tail\X, "\n");
 };
 
-sizeofRWLock = 24;
+sizeofRWLock = 20;
 aggr RWLock
 {
 	Lock 0 lock;
-	'D' 8 readers;
-	'D' 12 writer;
-	'A' QLp 16 $head;
-	'A' QLp 20 $tail;
+	'D' 4 readers;
+	'D' 8 writer;
+	'A' QLp 12 $head;
+	'A' QLp 16 $tail;
 };
 
 defn
@@ -482,35 +478,35 @@ Screen(addr) {
 	print("	fill	", addr.fill\X, "\n");
 };
 
-sizeofDisplay = 180;
+sizeofDisplay = 176;
 aggr Display
 {
 	QLock 0 qlock;
-	'D' 20 locking;
-	'D' 24 dirno;
-	'D' 28 fd;
-	'D' 32 reffd;
-	'D' 36 ctlfd;
-	'D' 40 imageid;
-	'D' 44 $local;
-	'X' 48 error;
-	'X' 52 devdir;
-	'X' 56 windir;
-	'a' 60 oldlabel;
-	'U' 124 dataqid;
-	'X' 128 white;
-	'X' 132 black;
-	'X' 136 opaque;
-	'X' 140 transparent;
-	'X' 144 image;
-	'X' 148 buf;
-	'D' 152 bufsize;
-	'X' 156 bufp;
-	'X' 160 defaultfont;
-	'X' 164 defaultsubfont;
-	'X' 168 windows;
-	'X' 172 screenimage;
-	'D' 176 _isnewdisplay;
+	'D' 16 locking;
+	'D' 20 dirno;
+	'D' 24 fd;
+	'D' 28 reffd;
+	'D' 32 ctlfd;
+	'D' 36 imageid;
+	'D' 40 $local;
+	'X' 44 error;
+	'X' 48 devdir;
+	'X' 52 windir;
+	'a' 56 oldlabel;
+	'U' 120 dataqid;
+	'X' 124 white;
+	'X' 128 black;
+	'X' 132 opaque;
+	'X' 136 transparent;
+	'X' 140 image;
+	'X' 144 buf;
+	'D' 148 bufsize;
+	'X' 152 bufp;
+	'X' 156 defaultfont;
+	'X' 160 defaultsubfont;
+	'X' 164 windows;
+	'X' 168 screenimage;
+	'D' 172 _isnewdisplay;
 };
 
 defn
@@ -647,14 +643,14 @@ MAXSUBF = 50;
 DSUBF = 4;
 SUBFAGE = 10000;
 CACHEAGE = 10000;
-sizeofCachefont = 20;
+sizeofCachefont = 16;
 aggr Cachefont
 {
-	'U' 0 min;
-	'U' 4 max;
-	'D' 8 offset;
-	'X' 12 name;
-	'X' 16 subfontname;
+	'u' 0 min;
+	'u' 2 max;
+	'D' 4 offset;
+	'X' 8 name;
+	'X' 12 subfontname;
 };
 
 defn
@@ -667,14 +663,14 @@ Cachefont(addr) {
 	print("	subfontname	", addr.subfontname\X, "\n");
 };
 
-sizeofCacheinfo = 12;
+sizeofCacheinfo = 8;
 aggr Cacheinfo
 {
 	'u' 0 x;
 	'b' 2 width;
 	'C' 3 left;
-	'U' 4 value;
-	'u' 8 age;
+	'u' 4 value;
+	'u' 6 age;
 };
 
 defn
