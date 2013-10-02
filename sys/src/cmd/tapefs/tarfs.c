@@ -144,10 +144,12 @@ populate(char *name)
 		}
 		f.mode &= DMDIR | 0777;
 
-		/* make file name safe and canonical */
+		/* make file name safe, canonical and free of . and .. */
 		while (fname[0] == '/')		/* don't allow absolute paths */
 			++fname;
 		cleanname(fname);
+		while (strncmp(fname, "../", 3) == 0)
+			fname += 3;
 
 		/* reject links */
 		linkflg = hp->linkflag == LF_SYMLINK1 ||

@@ -869,6 +869,7 @@ replace(char **argv)
 	int i, ar;
 	ulong blksleft, blksread;
 	Off bytes;
+	char *arg;
 	Hdr *hp;
 	Compress *comp = nil;
 	Pushstate ps;
@@ -909,7 +910,12 @@ replace(char **argv)
 	}
 
 	for (i = 0; argv[i] != nil; i++) {
-		addtoar(ar, argv[i], argv[i]);
+		arg = argv[i];
+		cleanname(arg);
+		if (strcmp(arg, "..") == 0 || strncmp(arg, "../", 3) == 0)
+			fprint(2, "%s: name starting with .. is a bad idea\n",
+				argv0);
+		addtoar(ar, arg, arg);
 		chdir(origdir);		/* for correctness & profiling */
 	}
 
