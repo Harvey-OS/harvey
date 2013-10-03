@@ -119,6 +119,9 @@
 ..
 .deSH
 .PD
+.\" avoid a lone heading at page bottom
+.br
+.ne 3v
 .}X 0 "\\$1"
 .nr)E 2
 \&\Xhtml <H4>\\$1 \|\\$2 \|\\$3 \|\\$4 \|\\$5 \|\\$6\Xhtml </H4>

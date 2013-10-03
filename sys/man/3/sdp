@@ -1,0 +1,147 @@
+.TH SDP 3
+.SH NAME
+sdp \- secure datagram protocol
+.SH SYNOPSIS
+.nf
+.B bind -a #E\fIspec\fP /net
+.sp 0.3v
+.B /net/sdp/clone
+.B /net/sdp/log
+.BI /net/sdp/ n
+.BI /net/sdp/ n /data
+.BI /net/sdp/ n /control
+.BI /net/sdp/ n /ctl
+.BI /net/sdp/ n /rstats
+.BI /net/sdp/ n /stats
+.BI /net/sdp/ n /status
+\&...
+.fi
+.SH DESCRIPTION
+The
+.I sdp
+device provides the interface to the Secure Datagram Protocol (SDP).
+SDP (un)compresses and (de-)encrypts packets.
+.I Spec
+is an integer from 0 to 15 identifying a stack.
+Each stack is independent of all others:
+the only information transfer between them is via programs that
+mount multiple stacks.
+Normally a system uses only one stack.
+However multiple stacks can be used for debugging
+new networks or implementing firewalls or proxy
+services.
+.PP
+The top level directory contains a
+.B clone
+file, a
+.B log
+file, and subdirectories numbered from zero to the number of connections
+opened for this protocol.
+.PP
+Opening the
+.B clone
+file reserves a connection.  The file descriptor returned from the
+.IR open (2)
+will point to the control file,
+.BR ctl ,
+of the newly allocated connection.
+Reading
+.B ctl
+returns a text
+string representing the number of the
+connection.
+Connections may be used either to listen for incoming calls
+or to initiate calls to other machines.
+.PP
+A connection is controlled by writing text strings to the associated
+.B ctl
+file.
+After a connection has been established data may be read from
+and written to
+.BR data .
+A connection can be actively established using the
+.B connect
+message (see also
+.IR dial (2)).
+A connection can be established passively by first
+using an
+.B announce
+message (see
+.IR dial (2))
+to bind to a local port and then
+opening the
+.B listen
+file (see
+.IR dial (2))
+to receive incoming calls.
+.PP
+The following control messages are supported:
+.TF "outsecret \fIsecret
+.PD
+.TP
+.BI accept " file"
+Accept an incoming encrypted connection on
+.IR file ,
+typically a
+.B data
+file.
+.TP
+.BI dial " file"
+Initiate a new encrypted connection on
+.IR file ,
+typically a UDP
+.B data
+file.
+.TP
+.BI drop " permil"
+Randomly drop approximately one of every
+.I permil
+output packets,
+thus simulating network errors.
+.TP
+.BI cipher " algorithm"
+Use ciphering
+.IR algorithm ;
+choices are
+.LR null ,
+.LR des_56_cbc ,
+.LR rc4_128 ,
+and
+.LR rc4_256 .
+.TP
+.BI auth " algorithm"
+Use authentication
+.IR algorithm ;
+choices are
+.LR null ,
+.LR hmac_sha1_96 ,
+and
+.LR hmac_md5_96 .
+.TP
+.BI comp " algorithm"
+Use compression
+.IR algorithm ;
+choices are
+.L null
+and
+.LR thwack .
+.TP
+.BI insecret " secret"
+Use
+.I secret
+to decrypt incoming packets.
+.TP
+.BI outsecret " secret"
+Use
+.I secret
+to encrypt outgoing packets.
+.
+.SH "SEE ALSO"
+.IR dial (2),
+.IR ip (3)
+.br
+.IR "Robust Data Compression of Network Packets" ,
+Sean Dorward and Sean Quilan, Bell Labs, Lucent Technologies,
+.BR http://plan9.bell-labs.com/who/seanq/networkcomp.pdf .
+.SH SOURCE
+.B /sys/src/9/port/devsdp.c
