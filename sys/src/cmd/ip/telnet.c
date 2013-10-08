@@ -328,7 +328,7 @@ rawon(void)
 	if(consctl < 0)
 		consctl = open("/dev/consctl", OWRITE);
 	if(consctl < 0){
-		fprint(2, "can't open consctl: %r\n");
+		fprint(2, "%s: can't open consctl: %r\n", argv0);
 		return;
 	}
 	write(consctl, "rawon", 5);
@@ -345,7 +345,7 @@ rawoff(void)
 	if(consctl < 0)
 		consctl = open("/dev/consctl", OWRITE);
 	if(consctl < 0){
-		fprint(2, "can't open consctl: %r\n");
+		fprint(2, "%s: can't open consctl: %r\n", argv0);
 		return;
 	}
 	write(consctl, "rawoff", 6);
