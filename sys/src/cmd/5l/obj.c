@@ -1078,6 +1078,11 @@ loop:
 		}
 		goto casedef;
 
+	case AMOVDF:
+		if(!vfp || p->from.type != D_FCONST)
+			goto casedef;
+		p->as = AMOVF;
+		/* fall through */
 	case AMOVF:
 		if(skip)
 			goto casedef;
