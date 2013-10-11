@@ -81,7 +81,7 @@ timeout(void *x, char *msg)
 		exits(Retry);
 	}
 	if(strstr(msg, "closed pipe")){
-			/* call _exits() to prevent Bio from trying to flush closed pipe */
+		/* call _exits() to prevent Bio from trying to flush closed pipe */
 		fprint(2, "smtp timeout: connection closed to %s\n", farend);
 		if(quitting){
 			syslog(0, "smtp.fail", "closed pipe to %s", farend);
