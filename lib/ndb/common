@@ -1,8 +1,4 @@
 #
-#	The master for this file is /n/fs/lib/ndb/common
-#
-
-#
 # real dns root server ips
 #
 dom=a.root-servers.net ip=198.41.0.4
@@ -80,9 +76,9 @@ dom=10.in-addr.arpa soa=		# rfc1918 zones
 	dom=9.e.f.ip6.arpa soa=
 	dom=a.e.f.ip6.arpa soa=
 	dom=b.e.f.ip6.arpa soa=
-	refresh=3600 ttl=3600
-	ns=ns1.cs.bell-labs.com
-	ns=ns2.cs.bell-labs.com
+	refresh=86400 ttl=86400
+	ns=a.root-servers.net
+	ns=j.root-servers.net
 
 #
 #  ip protocol numbers
@@ -196,7 +192,7 @@ tcp=netstat port=15
 tcp=chargen port=19
 tcp=ftp-data port=20
 tcp=ftp port=21
-tcp=ssh port=22		# v2 nowadays
+tcp=ssh port=22
 tcp=telnet port=23
 tcp=smtp port=25
 tcp=time port=37
@@ -283,7 +279,7 @@ tcp=piepea port=13146	# πp
 tcp=exportfs port=17007
 tcp=rexexec port=17009
 tcp=ncpu port=17010
-tcp=cpu port=17013
+# tcp=cpu port=17013
 tcp=glenglenda1 port=17020
 tcp=glenglenda2 port=17021
 tcp=glenglenda3 port=17022
@@ -299,7 +295,6 @@ tcp=venti port=17034
 tcp=wiki port=17035
 tcp=vica port=17036
 tcp=aan port=17037
-tcp=ssh1 port=17122		# v1
 tcp=face port=32000
 
 # testing
@@ -336,7 +331,7 @@ udp=dhash port=11977
 udp=ulctl port=12666
 udp=uldata port=12667
 udp=dldata port=12668
-udp=piepea port=13146	# πp
+udp=piepea port=13146		# πp
 
 gre=ppp port=34827
 
@@ -347,11 +342,6 @@ ssh=ssh port=22
 # even for outside machines.  putting them here ensures
 # their visibility everywhere.
 #
-
-# for geoff
-auth=www.9netics.com authdom=9netics.com
-auth=newcpu.9netics.net authdom=9netics.net
-auth=mordor.tip9ug.jp authdom=tip9ug.jp
 
 # for geoff's external ipv6 testing
 auth=9grid.hamnavoe.com
@@ -372,63 +362,3 @@ auth=ibmremote.dyndns.org
 
 # for sape
 auth=130.89.145.31 authdom=cs.utwente.nl
-
-# for quanstro
-auth=tyty.coraid.com authdom=coraid.com
-auth=ladd.quanstro.net authdom=plan9.quanstro.net
-
-# for noah
-auth=172.17.3.23 authdom=plan9.anl.gov
-
-#
-# ipv6 networks
-#
-ipnet=all-v6 ip=:: ipmask=/0
-	fs=pie.cs.bell-labs.com			# was v6
-	venti=pie.cs.bell-labs.com		# was v6
-	cpu=fish				# was v6
-	ntp=chips
-	ntp=time1.net.lucent.com
-	dnsdomain=cs.bell-labs.com
-	dnsdomain=research.bell-labs.com
-	dnsdomain=bell-labs.com
-	radius=lra-radius
-	smtp=chipsv6.cs.bell-labs.com
-	dns=chipsv6
-	auth=p9authv6.cs.bell-labs.com
-	authdom=cs.bell-labs.com
-#
-# contact: Deborah Hogan
-# sub-allocations done by thomas.galuschka@hp.com
-#
-ipnet=lucent-v6 ip=2620:0:60:: ipmask=/48
-	fs=pie.cs.bell-labs.com			# was v6
-	venti=pie.cs.bell-labs.com		# was v6
-	cpu=fish				# was v6
-	ntp=chips
-	ntp=time1.net.lucent.com
-	dnsdomain=cs.bell-labs.com
-	dnsdomain=research.bell-labs.com
-	dnsdomain=bell-labs.com
-	radius=lra-radius
-	smtp=chipsv6.cs.bell-labs.com
-	dns=chipsv6
-	auth=p9authv6.cs.bell-labs.com
-	authdom=cs.bell-labs.com
-#
-# contact: Alastair Johnson
-#
-ipnet=alu-asia-pac-v6 ip=2406:c800:: ipmask=/32
-	fs=pie.cs.bell-labs.com			# was v6
-	venti=pie.cs.bell-labs.com		# was v6
-	cpu=fish				# was v6
-	ntp=chips
-	ntp=time1.net.lucent.com
-	dnsdomain=cs.bell-labs.com
-	dnsdomain=research.bell-labs.com
-	dnsdomain=bell-labs.com
-	radius=lra-radius
-	smtp=chipsv6.cs.bell-labs.com
-	dns=chipsv6
-	auth=p9authv6.cs.bell-labs.com
-	authdom=cs.bell-labs.com
