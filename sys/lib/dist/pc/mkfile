@@ -91,6 +91,10 @@ usbdisk:D: /n/sources/plan9
 	bzip2 $target && rm -f $target
 	pwd
 	ls -l $target*
+	if (test `{ls -s $target.bz2 | awk '{print $1}'} -lt 80000) {
+		echo $target.bz2 implausibly small >[1=2]
+		exit bz2-too-small
+	}
 
 clean:V:
 	if (! unmount 9load >[2]/dev/null)
