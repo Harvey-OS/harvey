@@ -64,7 +64,7 @@ chmod(char *file, int mode)
 	return 0;
 }
 
-/* start partfs on first usb disk, if any */
+/* start partfs on first usb disk, if any.  optionally post partfs in /srv. */
 static int
 startpartfs(int post)
 {
@@ -127,6 +127,10 @@ mountusbparts(void)
 	return startpartfs(Post);
 }
 
+/*
+ *  start usbd, which mounts itself on /dev.
+ *  start partfs on first disk, if any, to permit nvram on usb.
+ */
 void
 usbinit(int post)
 {

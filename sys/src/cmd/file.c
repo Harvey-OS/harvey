@@ -538,6 +538,7 @@ Filemagic long0tab[] = {
 	070707,		0xFFFF,		"cpio archive\n", OCTET,
 	0x2F7,		0xFFFF,		"tex dvi\n", "application/dvi",
 	0xfaff,		0xfeff,		"mp3 audio\n",	"audio/mpeg",
+	0xf0ff,		0xf6ff,		"aac audio\n",	"audio/mpeg",
 	0xfeff0000,	0xffffffff,	"utf-32be\n",	"text/plain charset=utf-32be",
 	0xfffe,		0xffffffff,	"utf-32le\n",	"text/plain charset=utf-32le",
 	0xfeff,		0xffff,		"utf-16be\n",	"text/plain charset=utf-16be",

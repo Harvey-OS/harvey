@@ -13,7 +13,7 @@ typedef struct Mx	Mx;
 struct Mx
 {
 	char	host[Maxstring];
-	char	ip[Maxipstr];
+	char	ip[Maxipstr];		/* this is just the first ip */
 	int	pref;
 };
 
@@ -130,16 +130,11 @@ callmx(DS *ds, char *dest, char *domain)
 	if(nmx > 1)
 		qsort(mx, nmx, sizeof(Mx), compar);
 
-	/* dial each one in turn */
+	/* dial each one in turn by name, not ip */
 	for(i = 0; i < nmx; i++){
 		if (busted(mx[i].host)) {
 			if (debug)
 				fprint(2, "mxdial skipping busted mx %s\n",
-					mx[i].host);
-			continue;
-		}else if(isloopback(mx[i].host)){
-			if(debug)
-				fprint(2, "host ip %s is loopback\n",
 					mx[i].host);
 			continue;
 		}
@@ -150,6 +145,8 @@ callmx(DS *ds, char *dest, char *domain)
 		atnotify(timeout, 1);
 		alarm(10*1000);
 		fd = dial(addr, 0, 0, 0);
+		if (debug && fd < 0)
+			fprint(2, "dial: %r\n");
 		alarm(0);
 		atnotify(timeout, 0);
 		if(fd >= 0)
@@ -220,6 +217,7 @@ mxlookup1(DS *ds, char *domain)
 	} else {
 		/*
 		 *  get any mx entries
+		 *  assumes one record per read
 		 */
 		seek(fd, 0, 0);
 		while(nmx < Nmx && (n = read(fd, buf, sizeof buf-1)) > 0){
@@ -240,13 +238,12 @@ mxlookup1(DS *ds, char *domain)
 			nmx++;
 		}
 		if(debug)
-			fprint(2, "dns mx; got %d entries\n", nmx);
+			fprint(2, "dns mx: got %d mx servers\n", nmx);
 	}
 
 	/*
 	 * no mx record? try name itself.
-	 */
-	/*
+	 *
 	 * BUG? If domain has no dots, then we used to look up ds->host
 	 * but return domain instead of ds->host in the list.  Now we return
 	 * ds->host.  What will this break?
@@ -258,7 +255,9 @@ mxlookup1(DS *ds, char *domain)
 	}
 
 	/*
-	 * look up all ip addresses
+	 * look up first ip address of each mx name.
+	 * should really look at all addresses.
+	 * assumes one record per read.
 	 */
 	for(i = 0; i < nmx; i++){
 		mxp = &mx[i];
@@ -286,6 +285,7 @@ mxlookup1(DS *ds, char *domain)
 		*mxp = mx[nmx];
 		i--;
 	}
+	close(fd);
 	return nmx;
 }
 

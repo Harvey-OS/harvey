@@ -279,7 +279,7 @@ tcp=piepea port=13146	# πp
 tcp=exportfs port=17007
 tcp=rexexec port=17009
 tcp=ncpu port=17010
-# tcp=cpu port=17013
+# tcp=cpu port=17013		# phasing out this obsolete protocol
 tcp=glenglenda1 port=17020
 tcp=glenglenda2 port=17021
 tcp=glenglenda3 port=17022
