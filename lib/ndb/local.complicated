@@ -100,14 +100,14 @@ ipnet=mysubnetwork ip=10.0.1.0 ipmask=255.255.255.0
 #
 ip=10.0.1.10 ether=0010dc724074 sys=fs
 	dom=myfileserver.myuniversity.edu 
-	bootf=/386/9pcfs
+	bootf=/386/9boot			# to load /386/9pcfs
 
 ip=10.0.1.11 ether=0010dc724075 sys=auth
 	dom=myauthserver.myuniversity.edu
-	bootf=/386/9pccpu
+	bootf=/386/9boot			# to load /386/9pccpu
 
 ip=10.0.1.12 ether=0010dc724076 sys=term
 	dom=myterminal.myuniversity.edu
-	bootf=/386/9pc
+	bootf=/386/9boot			# to load /386/9pc
 
 auth=sources.cs.bell-labs.com authdom=outside.plan9.bell-labs.com
