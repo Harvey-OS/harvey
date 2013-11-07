@@ -93,8 +93,11 @@ if (~ $#ip 1 && ! ~ $ip '') {
 }
 if not
 	ipconfig
+# if outside, add explicit vfw routing to the inside
 switch (`{sed '/\.(0|255)[	 ]/d' /net/ipselftab}) {
-case 204.178.31.*
+case 135.104.24.*				# new outside
+	echo 'add 135.104.9.0 255.255.255.0 135.104.24.13' >>/net/iproute
+case 204.178.31.*				# old outside
 	echo 'add 135.104.9.0 255.255.255.0 204.178.31.10' >>/net/iproute
 }
 ipconfig loopback /dev/null 127.1
