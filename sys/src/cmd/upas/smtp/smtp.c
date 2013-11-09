@@ -174,6 +174,8 @@ main(int argc, char **argv)
 		argv++; argc--;
 	} else
 		domain = domainname_read();
+	if(domain == nil)
+		fprint(2, "%s: nil domainname_read()\n", argv0);
 	if(host == 0)
 		host = sysname_read();
 	strcpy(hostdomain, domainify(host, domain));
