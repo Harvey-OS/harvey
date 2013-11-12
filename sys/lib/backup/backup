@@ -67,7 +67,7 @@ fn backup1 {
 
 		sed 1,$disc1trks^d arenas >morearenas
 		mv morearenas arenas
-		arenas=`{cat arenas}
+		arenas_todo=`{cat arenas}
 	}
 }
 
@@ -75,8 +75,8 @@ cd $set
 tobackup $set >arenas
 quitonfailure $status
 
-arenas=`{cat arenas}
-if (~ $#arenas 0) {
+arenas_todo=`{cat arenas}
+if (~ $#arenas_todo 0) {
 	echo no sealed arenas not yet on disc exist on $fs
 	exit ''
 }
@@ -95,7 +95,7 @@ if (! ~ $debug yes && ~ $set set1 && ~ $print yes) {
 }
 
 progress=yes
-while (test $#arenas -gt 0 && ~ $progress yes) {
+while (test $#arenas_todo -gt 0 && ~ $progress yes) {
 	backup1
 	quitonfailure $status
 }

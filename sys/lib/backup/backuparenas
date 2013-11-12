@@ -39,17 +39,23 @@ if (! ~ $ok [Yy]*)
 	exit bad-nwa
 
 cd $fsroot/dev/fs
+shname = `{basename $arenas}
+if (! test -r $shname){
+	echo $0: $shname in `{pwd} not readable >[1=2]
+	exit unreadable-arenas
+}
+
 for (name) {
 	grep next /mnt/cd/ctl
 	# use -o 8192 to avoid devmnt fragmentation if bd drive is imported
-	venti/rdarena arena0 $name |
+	venti/rdarena $shname $name |
 		pump -i 65536 -o 8192 -k 100000 -d 5 >/mnt/cd/wd/$name
 #		pump -i 65536 -o 1048576 -k 51200 -d 10 >/mnt/cd/wd/$name
 	quitonfailure $status
 
 #	ls -l /mnt/cd
 	if (test -e '/env/fn#dumpdone' -a -e '/env/set')
-		dumpdone arena0 $name
+		dumpdone $shname $name
 }
 echo 'remember to *not* remove /mnt/cd/wd' >[1=2]
 # don't remove /mnt/cd/wd, since that would finalize the disc
