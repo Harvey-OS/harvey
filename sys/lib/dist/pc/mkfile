@@ -80,20 +80,33 @@ cddisk:D: 9load /sys/src/9/pc/9pcflop.gz plan9.ini.cd /lib/vgadb
 		/sys/src/9/pc/^(9pcflop 9pccd)^.gz subst/plan9.ini /lib/vgadb
 	ls -l $target
 
-usbdisk:D: /n/sources/plan9
+$scr/usbdisk:D: /n/sources/plan9
+	@ {
+	rfork n
 	if (~ $#scr 0 || ~ $scr '') {
 		echo '$scr unset' >[1=2]
 		exit not-set-up
 	}
 	cd $scr
-	mkusbboot -s 1900 -r /n/sources/plan9 && mv image $target
-	rm -f $target.bz2
-	bzip2 $target && rm -f $target
-	pwd
-	ls -l $target*
-	if (test `{ls -s $target.bz2 | awk '{print $1}'} -lt 80000) {
-		echo $target.bz2 implausibly small >[1=2]
-		exit bz2-too-small
+	bind /dev/null /dev/cons
+	bind /dev/null /dev/consctl
+	{ mkusbboot -s 1900 -r /n/sources/plan9; mv image $target } >[2=1] |
+		grep -v 'mkfs: /sys/lib/sysconfig/proto/.*can''t stat'
+	exit ''
+	}
+$scr/usbdisk.bz2:D: $scr/usbdisk
+	@ {
+	rm -f $target
+	bzip2 $prereq && rm -f $prereq
+	ls -l $target
+	targsz = `{{ls -s $target; echo 0} | awk '{print $1; exit}'}
+	if (test $targsz -lt 80000) {
+		echo $target implausibly small:	>[1=2]
+		ls -l $target			>[1=2]
+		rm -f $target
+		exit $target-too-small
+	}
+	exit ''
 	}
 
 clean:V:
