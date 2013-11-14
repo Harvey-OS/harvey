@@ -7,19 +7,23 @@
 9fs outfsother
 
 if (test -e /cfg/$sysname/config)
-	. /cfg/$sysname/config
-if not
-	outip=204.178.31.2
+	.   /cfg/$sysname/config
+if not {
+	outsys=outside
+	out=$outsys.cs.bell-labs.com
+	outfs=outfs		# outside is a client of outfs
+}
 
-import -c tcp!$outip!666 $dist/web.protect
-if (! test -e $dist/web.protect/plan9.iso) {
-	echo import web.protect failed: $dist/web.protect/plan9.iso missing \
-		>[1=2]
+# for some reason, -c doesn't actually enable creation
+#import -c tcp!$out!666 $dist/web.protect
+#if (! test -e $dist/web.protect/plan9.iso) {
+#	echo import web.protect failed: $dist/web.protect/plan9.iso missing \
+#		>[1=2]
 
-	bind /n/outfsother/web.protect $dist/web.protect	# HACK
+	bind -c /n/outfsother/web.protect $dist/web.protect	# HACK
 	if (! test -e $dist/web.protect/plan9.iso) {
 		echo bind outfsother failed: $dist/web.protect/plan9.iso \
 			missing >[1=2]
 		exit no-web-protect
 	}
-}
+#}

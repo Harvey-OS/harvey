@@ -11,8 +11,9 @@ ncd:V: $scr/plan9-new.iso.bz2
 ncd-dist:V: $scr/plan9-new.iso.bz2
 	mk $dist/web.protect/plan9-new.iso.bz2
 
-usb-dist:V: 
-	cd pc; mk usbdisk
+$scr/usbdisk.bz2:D: $scr/plan9.iso.bz2
+	cd pc; mk $target
+usb-dist:V: $dist/web.protect/usbdisk.bz2
 
 #contrib-cd:V: $scr/contrib.iso.bz2
 #	mk $dist/web.protect/contrib.iso.bz2
@@ -36,7 +37,6 @@ $scr/%.iso:D: $src9/dist/replica/plan9.log
 	disk/mk9660 -9cj -v $title -s $src9 -B pbsraw -x 9load $target
 
 # copy (compressed) file from scratch space to the distribution, carefully
-# $dist/web.protect/%.iso.bz2:	$scr/%.iso.bz2
 $dist/web.protect/%:		$scr/%
 	>>$target.new
 	chmod +t $target.new		# waste write buf, not venti store
