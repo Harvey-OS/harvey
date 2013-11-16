@@ -42,8 +42,6 @@ usr	- sys sys
 			+	- sys sys
 		disk	- sys sys
 			+	- sys sys
-		fb	- sys sys
-			+	- sys sys
 		fossil	- sys sys
 			+	- sys sys
 		fs	- sys sys
