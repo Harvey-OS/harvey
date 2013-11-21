@@ -308,3 +308,9 @@ Restricts access to only those files rooted in the
 .IR ndb (6),
 .IR 9boot (8),
 .IR booting (8)
+.SH BUGS
+.I Dhcpd
+doesn't really understand a single interface having addresses
+on multiple subnets, as during renumbering of a subnet.
+It will only respond with addresses on the subnet
+of its primary IP address on that interface.
