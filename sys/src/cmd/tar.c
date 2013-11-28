@@ -217,16 +217,19 @@ ewrite(char *name, int fd, void *buf, long len)
 static Compress *
 compmethod(char *name)
 {
-	int i, nmlen = strlen(name), sfxlen;
+	int i, nmlen, sfxlen;
 	Compress *cp;
 
-	for (cp = comps; cp < comps + nelem(comps); cp++)
-		for (i = 0; i < nelem(cp->sfx) && cp->sfx[i]; i++) {
-			sfxlen = strlen(cp->sfx[i]);
-			if (nmlen > sfxlen &&
-			    strcmp(cp->sfx[i], name + nmlen - sfxlen) == 0)
-				return cp;
-		}
+	if (name != nil) {
+		nmlen = strlen(name);
+		for (cp = comps; cp < comps + nelem(comps); cp++)
+			for (i = 0; i < nelem(cp->sfx) && cp->sfx[i]; i++) {
+				sfxlen = strlen(cp->sfx[i]);
+				if (nmlen > sfxlen &&
+				    strcmp(cp->sfx[i], name+nmlen-sfxlen) == 0)
+					return cp;
+			}
+	}
 	return docompress? comps: nil;
 }
 
@@ -863,51 +866,68 @@ addtoar(int ar, char *file, char *shortf)
 		s_free(name);
 }
 
+static void
+skip(int ar, Hdr *hp, char *msg)
+{
+	ulong blksleft, blksread;
+	Off bytes;
+
+	bytes = arsize(hp);
+	for (blksleft = BYTES2TBLKS(bytes); blksleft > 0; blksleft -= blksread) {
+		if (getblkrd(ar, Justnxthdr) == nil)
+			sysfatal("unexpected EOF on archive %s %s", arname, msg);
+		blksread = gothowmany(blksleft);
+		putreadblks(ar, blksread);
+	}
+}
+
+static void
+skiptoend(int ar)
+{ 
+	Hdr *hp;
+
+	while ((hp = readhdr(ar)) != nil)
+		skip(ar, hp, "skipping to end");
+
+	/*
+	 * we have just read the end-of-archive Tblock.
+	 * now seek back over the (big) archive block containing it,
+	 * and back up curblk ptr over end-of-archive Tblock in memory.
+	 */
+	if (seek(ar, blkoff, 0) < 0)
+		sysfatal("can't seek back over end-of-archive in %s: %r", arname);
+	curblk--;
+}
+
 static char *
 replace(char **argv)
 {
 	int i, ar;
-	ulong blksleft, blksread;
-	Off bytes;
 	char *arg;
-	Hdr *hp;
 	Compress *comp = nil;
 	Pushstate ps;
 
-	if (usefile && docreate) {
+	/* open archive to be updated */
+	if (usefile && docreate)
 		ar = create(usefile, OWRITE, 0666);
+	else if (usefile) {
 		if (docompress)
-			comp = compmethod(usefile);
-	} else if (usefile)
+			sysfatal("cannot update compressed archive");
 		ar = open(usefile, ORDWR);
-	else
+	} else
 		ar = Stdout;
-	if (comp)
-		ar = push(ar, comp->comp, Output, &ps);
+
+	/* push compression filter, if requested */
+	if (docompress) {
+		comp = compmethod(usefile);
+		if (comp)
+			ar = push(ar, comp->comp, Output, &ps);
+	}
 	if (ar < 0)
 		sysfatal("can't open archive %s: %r", usefile);
 
-	if (usefile && !docreate) {
-		/* skip quickly to the end */
-		while ((hp = readhdr(ar)) != nil) {
-			bytes = arsize(hp);
-			for (blksleft = BYTES2TBLKS(bytes);
-			     blksleft > 0 && getblkrd(ar, Justnxthdr) != nil;
-			     blksleft -= blksread) {
-				blksread = gothowmany(blksleft);
-				putreadblks(ar, blksread);
-			}
-		}
-		/*
-		 * we have just read the end-of-archive Tblock.
-		 * now seek back over the (big) archive block containing it,
-		 * and back up curblk ptr over end-of-archive Tblock in memory.
-		 */
-		if (seek(ar, blkoff, 0) < 0)
-			sysfatal("can't seek back over end-of-archive in %s: %r",
-				arname);
-		curblk--;
-	}
+	if (usefile && !docreate)
+		skiptoend(ar);
 
 	for (i = 0; argv[i] != nil; i++) {
 		arg = argv[i];
@@ -1190,37 +1210,24 @@ extract1(int ar, Hdr *hp, char *fname)
 	}
 }
 
-static void
-skip(int ar, Hdr *hp, char *fname)
-{
-	ulong blksleft, blksread;
-	Hdr *hbp;
-
-	for (blksleft = BYTES2TBLKS(arsize(hp)); blksleft > 0;
-	     blksleft -= blksread) {
-		hbp = getblkrd(ar, Justnxthdr);
-		if (hbp == nil)
-			sysfatal("unexpected EOF on archive extracting %s from %s",
-				fname, arname);
-		blksread = gothowmany(blksleft);
-		putreadblks(ar, blksread);
-	}
-}
-
 static char *
 extract(char **argv)
 {
 	int ar;
 	char *longname;
+	char msg[Maxname + 40];
+	Compress *comp;
 	Hdr *hp;
-	Compress *comp = nil;
 	Pushstate ps;
 
-	if (usefile) {
+	/* open archive to be read */
+	if (usefile)
 		ar = open(usefile, OREAD);
-		comp = compmethod(usefile);
-	} else
+	else
 		ar = Stdin;
+
+	/* push decompression filter if requested or extension is known */
+	comp = compmethod(usefile);
 	if (comp)
 		ar = push(ar, comp->decomp, Input, &ps);
 	if (ar < 0)
@@ -1230,8 +1237,10 @@ extract(char **argv)
 		longname = name(hp);
 		if (match(longname, argv))
 			extract1(ar, hp, longname);
-		else
-			skip(ar, hp, longname);
+		else {
+			snprint(msg, sizeof msg, "extracting %s", longname);
+			skip(ar, hp, msg);
+		}
 	}
 
 	if (comp)
