@@ -59,6 +59,7 @@ Ctype ctype[] = {
 	{ "text/tab-separated-values",	"tsv",	1,	0	},
 	{ "text/richtext",		"rtx",	1,	0	},
 	{ "text/rtf",			"rtf",	1,	0	},
+	{ "text/calendar",		"ics",	1,	0	},
 	{ "text",			"txt",	1,	0	},
 	{ "message/rfc822",		"msg",	0,	0	},
 	{ "image/bmp",			"bmp",	0,	"image"	},
@@ -1321,6 +1322,22 @@ ncmd(Cmd*, Message *m)
 	return m->next;
 }
 
+/* turn crlfs into newlines */
+int
+decrlf(char *buf, int n)
+{
+	char *nl;
+	int left;
+
+	for (nl = buf, left = n; left >= 2 &&
+	    (nl = memchr(nl, '\r', left)) != nil; left = n - (nl - buf))
+		if (nl[1] == '\n'){
+			memmove(nl, nl+1, left-1);	/* delete the cr */
+			--n;
+		}
+	return n;
+}
+
 int
 printpart(String *s, char *part)
 {
@@ -1339,6 +1356,7 @@ printpart(String *s, char *part)
 	while((n = read(fd, buf, sizeof(buf))) > 0){
 		if(interrupted)
 			break;
+		n = decrlf(buf, n);
 		if(Bwrite(&out, buf, n) <= 0)
 			break;
 		tot += n;
@@ -1388,6 +1406,66 @@ compress(char *p)
 	*np = 0;
 }
 
+/*
+ * find the best alternative part.
+ *
+ * turkeys have started emitting empty text/plain parts,
+ * with the actual content in a text/html part, which complicates the choice.
+ *
+ * bigger turkeys emit a tiny base64-encoded text/plain part,
+ * a small base64-encoded text/html part, and the real content is in
+ * a text/calendar part.
+ *
+ * the magic lengths are empirically derived.
+ * as turkeys devolve and mutate, this will only get worse.
+ */
+static Message*
+bestalt(Message *m)
+{
+	Message *nm;
+	Message *realplain, *realhtml, *realcal;
+	Ctype *cp;
+
+	realplain = realhtml = realcal = nil;
+	for(nm = m->child; nm != nil; nm = nm->next){
+		cp = findctype(nm);
+		if(cp->ext != nil)
+			if(strncmp(cp->ext, "txt", 3) == 0 && nm->len >= 88)
+				realplain = nm;
+			else if(strncmp(cp->ext, "html", 3) == 0 &&
+			    nm->len >= 670)
+				realhtml = nm;
+			else if(strncmp(cp->ext, "ics", 3) == 0)
+				realcal = nm;
+	}
+	if(realplain == nil && realhtml == nil && realcal)
+		return realcal;			/* super-turkey */
+	else if(realplain == nil && realhtml)
+		return realhtml;		/* regular turkey */
+	else
+		return realplain;
+}
+
+static void
+pralt(Message *m)
+{
+	Message *nm;
+	Ctype *cp;
+
+	nm = bestalt(m);
+	if(nm == nil)
+		/* no winner.  print the first displayable part. */
+		for(nm = m->child; nm != nil; nm = nm->next){
+			cp = findctype(nm);
+			if(cp->display)
+				break;
+		}
+	if(nm != nil)
+		pcmd(nil, nm);
+	else
+		hcmd(nil, m);
+}
+
 Message*
 pcmd(Cmd*, Message *m)
 {
@@ -1408,23 +1486,9 @@ pcmd(Cmd*, Message *m)
 			printhtml(m);
 		else
 			printpart(m->path, "body");
-	} else if(strcmp(m->type, "multipart/alternative") == 0){
-		for(nm = m->child; nm != nil; nm = nm->next){
-			cp = findctype(nm);
-			if(cp->ext != nil && strncmp(cp->ext, "txt", 3) == 0)
-				break;
-		}
-		if(nm == nil)
-			for(nm = m->child; nm != nil; nm = nm->next){
-				cp = findctype(nm);
-				if(cp->display)
-					break;
-			}
-		if(nm != nil)
-			pcmd(nil, nm);
-		else
-			hcmd(nil, m);
-	} else if(strncmp(m->type, "multipart/", 10) == 0){
+	} else if(strcmp(m->type, "multipart/alternative") == 0)
+		pralt(m);
+	else if(strncmp(m->type, "multipart/", 10) == 0){
 		nm = m->child;
 		if(nm != nil){
 			// always print first part

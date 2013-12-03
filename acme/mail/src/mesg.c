@@ -43,6 +43,7 @@ char *goodtypes[] = {
 	"message/rfc822",
 	"text/richtext",
 	"text/tab-separated-values",
+	"text/calendar",
 	"application/octet-stream",
 	nil,
 };
@@ -989,6 +990,48 @@ printheader(char *dir, Biobuf *b, char **okheaders)
 	free(s);
 }
 
+/*
+ * find the best alternative part.
+ *
+ * turkeys have started emitting empty text/plain parts,
+ * with the actual content in a text/html part, which complicates the choice.
+ *
+ * bigger turkeys emit a tiny base64-encoded text/plain part,
+ * a small base64-encoded text/html part, and the real content is in
+ * a text/calendar part.
+ *
+ * the magic lengths are empirically derived.
+ * as turkeys devolve and mutate, this will only get worse.
+ */
+static Message*
+bestalt(Message *m, char *dir)
+{
+	int len;
+	char *subdir;
+	Message *nm;
+	Message *realplain, *realhtml, *realcal;
+
+	realplain = realhtml = realcal = nil;
+	for(nm = m->head; nm != nil; nm = nm->next){
+		subdir = estrstrdup(dir, nm->name);
+		len = 0;
+		free(readbody(nm->type, subdir, &len));
+		free(subdir);
+		if(strcmp(nm->type, "text/plain") == 0 && len >= 8)
+			realplain = nm;
+		else if(strcmp(nm->type, "text/html") == 0 && len >= 600)
+			realhtml = nm;
+		else if(strcmp(nm->type, "text/calendar") == 0)
+			realcal = nm;
+	}
+	if(realplain == nil && realhtml == nil && realcal)
+		return realcal;			/* super-turkey */
+	else if(realplain == nil && realhtml)
+		return realhtml;		/* regular turkey */
+	else
+		return realplain;
+}
+
 void
 mesgload(Message *m, char *rootdir, char *file, Window *w)
 {
@@ -1029,12 +1072,15 @@ mesgload(Message *m, char *rootdir, char *file, Window *w)
 		/* multi-part message, either multipart/* or message/rfc822 */
 		thisone = nil;
 		if(strcmp(m->type, "multipart/alternative") == 0){
-			thisone = m->head;	/* in case we can't find a good one */
-			for(mp=m->head; mp!=nil; mp=mp->next)
-				if(isprintable(mp->type)){
-					thisone = mp;
-					break;
-				}
+			thisone = bestalt(m, dir);
+			if(thisone == nil){
+				thisone = m->head; /* in case we can't find a good one */
+				for(mp=m->head; mp!=nil; mp=mp->next)
+					if(isprintable(mp->type)){
+						thisone = mp;
+						break;
+					}
+			}
 		}
 		for(mp=m->head; mp!=nil; mp=mp->next){
 			if(thisone!=nil && mp!=thisone)
@@ -1043,8 +1089,11 @@ mesgload(Message *m, char *rootdir, char *file, Window *w)
 			name = estrstrdup(file, mp->name);
 			/* skip first element in name because it's already in window name */
 			if(mp != m->head)
-				Bprint(w->body, "\n===> %s (%s) [%s]\n", strchr(name, '/')+1, mp->type, mp->disposition);
-			if(strcmp(mp->type, "text")==0 || strncmp(mp->type, "text/", 5)==0){
+				Bprint(w->body, "\n===> %s (%s) [%s]\n",
+					strchr(name, '/')+1, mp->type,
+					mp->disposition);
+			if(strcmp(mp->type, "text")==0 ||
+			    strncmp(mp->type, "text/", 5)==0){
 				mimedisplay(mp, name, rootdir, w, 1);
 				printheader(subdir, w->body, okheaders);
 				printheader(subdir, w->body, extraheaders);
@@ -1053,7 +1102,8 @@ mesgload(Message *m, char *rootdir, char *file, Window *w)
 				winwritebody(w, s, n);
 				free(s);
 			}else{
-				if(strncmp(mp->type, "multipart/", 10)==0 || strcmp(mp->type, "message/rfc822")==0){
+				if(strncmp(mp->type, "multipart/", 10)==0 ||
+				    strcmp(mp->type, "message/rfc822")==0){
 					mp->w = w;
 					mesgload(mp, rootdir, name, w);
 					mp->w = nil;

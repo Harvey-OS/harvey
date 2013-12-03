@@ -384,7 +384,8 @@ ifstat(Ether *e, void *a, long n, ulong offset)
 	readstats(c);
 	for(i = 0; i < nelem(stattab); i++)
 		if(c->stats[i] > 0)
-			p = seprint(p, q, "%.10s  %uld\n", stattab[i].name,					c->stats[i]);
+			p = seprint(p, q, "%.10s  %uld\n", stattab[i].name,
+				c->stats[i]);
 	t = c->speeds;
 	p = seprint(p, q, "speeds: 0:%d 1000:%d 10000:%d\n", t[0], t[1], t[2]);
 	p = seprint(p, q, "mtu: min:%d max:%d\n", e->minmtu, e->maxmtu);

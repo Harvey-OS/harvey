@@ -1370,7 +1370,7 @@ i82575interrupt(Ureg*, void *)
 }
 
 static int
-i82563detach(Ctlr* ctlr)
+i82563detach0(Ctlr* ctlr)
 {
 	int r, timeo;
 
@@ -1442,6 +1442,18 @@ i82563detach(Ctlr* ctlr)
 	return 0;
 }
 
+static int
+i82563detach(Ctlr* ctlr)
+{
+	int r;
+	static Lock detlck;
+
+	ilock(&detlck);
+	r = i82563detach0(ctlr);
+	iunlock(&detlck);
+	return r;
+}
+
 static void
 i82563shutdown(Ether* ether)
 {
@@ -1451,9 +1463,13 @@ i82563shutdown(Ether* ether)
 static ushort
 eeread(Ctlr *ctlr, int adr)
 {
+	ulong n;
+
 	csr32w(ctlr, Eerd, EEstart | adr << 2);
-	while ((csr32r(ctlr, Eerd) & EEdone) == 0)
+	for (n = 1000000; (csr32r(ctlr, Eerd) & EEdone) == 0 && n-- > 0; )
 		;
+	if (n == 0)
+		panic("i82563: eeread stuck");
 	return csr32r(ctlr, Eerd) >> 16;
 }
 
@@ -1494,6 +1510,7 @@ static int
 fread(Ctlr *c, Flash *f, int ladr)
 {
 	ushort s;
+	ulong n;
 
 	delay(1);
 	if(fcycle(c, f) == -1)
@@ -1508,8 +1525,10 @@ fread(Ctlr *c, Flash *f, int ladr)
 	s &= ~(2*Flcycle);		/* read */
 	f->reg[Fctl] = s | Fgo;
 
-	while((f->reg[Fsts] & Fdone) == 0)
+	for (n = 1000000; (f->reg[Fsts] & Fdone) == 0 && n-- > 0; )
 		;
+	if (n == 0)
+		panic("i82563: fread stuck");
 	if(f->reg[Fsts] & (Fcerr|Ael))
 		return -1;
 	return f->reg32[Fdata] & 0xffff;

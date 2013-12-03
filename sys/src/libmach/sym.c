@@ -1109,11 +1109,15 @@ fileelem(Sym **fp, uchar *cp, char *buf, int n)
 {
 	int i, j;
 	char *c, *bp, *end;
+	Sym *sym;
 
 	bp = buf;
 	end = buf+n-1;
 	for(i = 1; j = (cp[i]<<8)|cp[i+1]; i+=2){
-		c = fp[j]->name;
+		sym = fp[j];
+		if (sym == nil)
+			break;
+		c = sym->name;
 		if(bp != buf && bp[-1] != '/' && bp < end)
 			*bp++ = '/';
 		while(bp < end && *c)

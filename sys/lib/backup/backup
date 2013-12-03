@@ -89,8 +89,7 @@ if not
 if (! ~ $debug yes && ~ $set set1 && ~ $print yes) {
 	9fs log
 	# don't hang in lp
-	tail -50 /n/$fs/sys/log/fs.archive |
-		pr -h 'recent fossil dump scores' | lp &
+	tail -50 /sys/log/fs.archive | pr -h 'recent fossil dump scores' | lp &
 	echo fossil dump scores just printed.
 }
 

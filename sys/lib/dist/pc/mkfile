@@ -1,4 +1,6 @@
 # /sys/lib/dist/pc/mkfile
+<../defs
+
 out=outside			# outside web server
 s=/sys/lib/dist/pc
 x=`{bind -b /sys/lib/dist/bin/$cputype /bin}
@@ -80,7 +82,7 @@ cddisk:D: 9load /sys/src/9/pc/9pcflop.gz plan9.ini.cd /lib/vgadb
 		/sys/src/9/pc/^(9pcflop 9pccd)^.gz subst/plan9.ini /lib/vgadb
 	ls -l $target
 
-$scr/usbdisk:D: /n/sources/plan9
+$scr/usbdisk:D: $scr/plan9.iso.bz2 /n/sources/plan9
 	@ {
 	rfork n
 	if (~ $#scr 0 || ~ $scr '') {
@@ -96,8 +98,7 @@ $scr/usbdisk:D: /n/sources/plan9
 	}
 $scr/usbdisk.bz2:D: $scr/usbdisk
 	@ {
-	rm -f $target
-	bzip2 $prereq && rm -f $prereq
+	bzip2 <$prereq >$target && rm -f $prereq
 	ls -l $target
 	targsz = `{{ls -s $target; echo 0} | awk '{print $1; exit}'}
 	if (test $targsz -lt 80000) {

@@ -581,6 +581,24 @@ canpage(Proc *p)
 	return ok;
 }
 
+void
+noprocpanic(char *msg)
+{
+	/*
+	 * setting exiting will make hzclock() on each processor call exit(0).
+	 * clearing our bit in machs avoids calling exit(0) from hzclock()
+	 * on this processor.
+	 */
+	lock(&active);
+	active.machs &= ~(1<<m->machno);
+	active.exiting = 1;
+	unlock(&active);
+
+	procdump();
+	delay(1000);
+	panic(msg);
+}
+
 Proc*
 newproc(void)
 {
@@ -588,13 +606,19 @@ newproc(void)
 	Proc *p;
 
 	lock(&procalloc);
-	for(;;) {
-		if(p = procalloc.free)
-			break;
+	while((p = procalloc.free) == nil) {
+		unlock(&procalloc);
 
 		snprint(msg, sizeof msg, "no procs; %s forking",
 			up? up->text: "kernel");
-		unlock(&procalloc);
+		/*
+		 * the situation is unlikely to heal itself.
+		 * dump the proc table and restart by default.
+		 * *noprocspersist in plan9.ini will yield the old
+		 * behaviour of trying forever.
+		 */
+		if(getconf("*noprocspersist") == nil)
+			noprocpanic(msg);
 		resrcwait(msg);
 		lock(&procalloc);
 	}

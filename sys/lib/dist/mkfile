@@ -13,7 +13,8 @@ ncd-dist:V: $scr/plan9-new.iso.bz2
 
 $scr/usbdisk.bz2:D: $scr/plan9.iso.bz2
 	cd pc; mk $target
-usb-dist:V: $dist/web.protect/usbdisk.bz2
+usb-dist:V: $scr/usbdisk.bz2
+	mk $dist/web.protect/usbdisk.bz2
 
 #contrib-cd:V: $scr/contrib.iso.bz2
 #	mk $dist/web.protect/contrib.iso.bz2
