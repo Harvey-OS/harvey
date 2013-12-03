@@ -27,25 +27,13 @@ static void	swapproc(void);
 static Method	*rootserver(char*);
 static void	kbmap(void);
 
-void
-boot(int argc, char *argv[])
+/*
+ * we should inherit the standard fds all referring to /dev/cons,
+ * but we're being paranoid.
+ */
+static void
+opencons(void)
 {
-	int fd, afd;
-	Method *mp;
-	char *cmd, cmdbuf[64], *iargv[16];
-	char rootbuf[64];
-	int islocal, ishybrid;
-	char *rp, *rsp, *rdparts;
-	int iargc, n;
-	char buf[32];
-	AuthInfo *ai;
-
-	fmtinstall('r', errfmt);
-
-	/*
-	 * we should inherit the standard fds all referring to /dev/cons,
-	 * but we're being paranoid.
-	 */
 	close(0);
 	close(1);
 	close(2);
@@ -53,13 +41,25 @@ boot(int argc, char *argv[])
 	open("/dev/cons", OREAD);
 	open("/dev/cons", OWRITE);
 	open("/dev/cons", OWRITE);
-	/*
-	 * init will reinitialize its namespace.
-	 * #ec gets us plan9.ini settings (*var variables).
-	 */
+}
+
+/*
+ * init will reinitialize its namespace.
+ * #ec gets us plan9.ini settings (*var variables).
+ */
+static void
+bindenvsrv(void)
+{
 	bind("#ec", "/env", MREPL);
 	bind("#e", "/env", MBEFORE|MCREATE);
 	bind("#s", "/srv/", MREPL|MCREATE);
+}
+
+static void
+debuginit(int argc, char **argv)
+{
+	int fd;
+
 	if(getenv("debugboot"))
 		debugboot = 1;
 #ifdef DEBUG
@@ -68,77 +68,62 @@ boot(int argc, char *argv[])
 		print("%#p %s ", argv[fd], argv[fd]);
 	print("\n");
 #endif	/* DEBUG */
+	SET(fd, argc, argv); USED(fd, argc, argv);
+}
 
-	ARGBEGIN{
-	case 'k':
-		kflag = 1;
-		break;
-	case 'm':
-		mflag = 1;
-		break;
-	case 'f':
-		fflag = 1;
-		break;
-	}ARGEND
+/*
+ * read disk partition tables here so that readnvram via factotum
+ * can see them.  ideally we would have this information in
+ * environment variables before attaching #S, which would then
+ * parse them and create partitions.
+ */
+static void
+partinit(void)
+{
+	char *rdparts;
 
-	readfile("#e/cputype", cputype, sizeof(cputype));
-
-	/*
-	 *  set up usb keyboard & mouse, if any.
-	 *  starts usbd, which mounts itself on /dev.
-	 *  starts partfs on first disk, if any, to permit nvram on usb.
-	 */
-	usbinit(Dontpost);
-
-	/*
-	 *  pick a method and initialize it
-	 */
-	if(method[0].name == nil)
-		fatal("no boot methods");
-	mp = rootserver(argc ? *argv : 0);
-	(*mp->config)(mp);
-	islocal = strcmp(mp->name, "local") == 0;
-	ishybrid = strcmp(mp->name, "hybrid") == 0;
-
-	/*
-	 *  load keymap if it's there.
-	 */
-	kbmap();
-
-	/* don't trigger aoe until the network has been configured */
-	bind("#æ", "/dev", MAFTER);	/* nvram could be here */
-	bind("#S", "/dev", MAFTER);	/* nvram could be here */
-
-	/*
-	 * read disk partition tables here so that readnvram via factotum
-	 * can see them.  ideally we would have this information in
-	 * environment variables before attaching #S, which would then
-	 * parse them and create partitions.
-	 */
 	rdparts = getenv("readparts");
 	if(rdparts)
 		readparts();
 	free(rdparts);
+}
 
-	/*
- 	 *  authentication agent
-	 *  sets hostowner, creating an auth discontinuity
-	 */
+/*
+ *  pick a method and initialize it
+ */
+static Method *
+pickmethod(int argc, char **argv)
+{
+	Method *mp;
+
+	if(method[0].name == nil)
+		fatal("no boot methods");
+	mp = rootserver(argc ? *argv : 0);
+	(*mp->config)(mp);
+	return mp;
+}
+
+/*
+ *  authentication agent
+ *  sets hostowner, creating an auth discontinuity
+ */
+static void
+doauth(int cpuflag)
+{
 	if(debugboot)
 		fprint(2, "auth...");
 	authentication(cpuflag);
+}
 
-	/* leave existing subprocesses in their own namespace */
-	rfork(RFNAMEG);
+/*
+ *  connect to the root file system
+ */
+static int
+connectroot(Method *mp, int islocal, int ishybrid)
+{
+	int fd, n;
+	char buf[32];
 
-	/*
-	 * restart partfs under the new hostowner id
-	 */
-	usbinit(Post);
-
-	/*
-	 *  connect to the root file system
-	 */
 	fd = (*mp->connect)();
 	if(fd < 0)
 		fatal("can't connect to file server");
@@ -154,10 +139,20 @@ boot(int argc, char *argv[])
 	if(n < 0)
 		fatal("can't init 9P");
 	srvcreate("boot", fd);
+	return fd;
+}
 
-	/*
-	 *  create the name space, mount the root fs
-	 */
+/*
+ *  create the name space, mount the root fs
+ */
+static int
+nsinit(int fd, char **rspp)
+{
+	int afd;
+	char *rp, *rsp;
+	AuthInfo *ai;
+	static char rootbuf[64];
+
 	if(bind("/", "/", MREPL) < 0)
 		fatal("bind /");
 	rp = getenv("rootspec");
@@ -185,23 +180,28 @@ boot(int argc, char *argv[])
 		rp = rootbuf;
 		if(bind(rp, "/", MAFTER|MCREATE) < 0){
 			fprint(2, "boot: couldn't bind $rootdir=%s to root: %r\n", rp);
-			if(strcmp(rootbuf, "/root//plan9") == 0){
-				fprint(2, "**** warning: remove rootdir=/plan9 entry from plan9.ini\n");
-				rp = "/root";
-				if(bind(rp, "/", MAFTER|MCREATE) < 0)
-					fatal("second bind /");
-			}else
+			if(strcmp(rootbuf, "/root//plan9") != 0)
+				fatal("second bind /");
+			/* undo installer's work */
+			fprint(2, "**** warning: remove rootdir=/plan9 "
+				"entry from plan9.ini\n");
+			rp = "/root";
+			if(bind(rp, "/", MAFTER|MCREATE) < 0)
 				fatal("second bind /");
 		}
 	}
-	close(fd);
 	setenv("rootdir", rp);
+	*rspp = rsp;
+	return afd;
+}
 
-	settime(islocal, afd, rsp);
-	if(afd > 0)
-		close(afd);
-	swapproc();
+static void
+execinit(void)
+{
+	int iargc;
+	char *cmd, cmdbuf[64], *iargv[16];
 
+	/* exec init */
 	cmd = getenv("init");
 	if(cmd == nil){
 		sprint(cmdbuf, "/%s/init -%s%s", cputype,
@@ -222,6 +222,64 @@ boot(int argc, char *argv[])
 	chmod("/srv/" PARTSRV, 0600);
 	exec(cmd, iargv);
 	fatal(cmd);
+}
+
+void
+boot(int argc, char *argv[])
+{
+	int fd, afd, islocal, ishybrid;
+	char *rsp;
+	Method *mp;
+
+	fmtinstall('r', errfmt);
+	opencons();
+	bindenvsrv();
+	debuginit(argc, argv);
+
+	ARGBEGIN{
+	case 'k':
+		kflag = 1;
+		break;
+	case 'm':
+		mflag = 1;
+		break;
+	case 'f':
+		fflag = 1;
+		break;
+	}ARGEND
+
+	readfile("#e/cputype", cputype, sizeof(cputype));
+
+	/*
+	 *  set up usb keyboard & mouse, if any.
+	 *  starts partfs on first disk, if any, to permit nvram on usb.
+	 */
+	usbinit(Dontpost);
+
+	mp = pickmethod(argc, argv);
+	islocal = strcmp(mp->name, "local") == 0;
+	ishybrid = strcmp(mp->name, "hybrid") == 0;
+
+	kbmap();			/*  load keymap if it's there. */
+
+	/* don't trigger aoe until the network has been configured */
+	bind("#æ", "/dev", MAFTER);	/* nvram could be here */
+	bind("#S", "/dev", MAFTER);	/* nvram could be here */
+	partinit();
+
+	doauth(cpuflag);	/* authentication usually changes hostowner */
+	rfork(RFNAMEG);		/* leave existing subprocs in own namespace */
+	usbinit(Post);		/* restart partfs under the new hostowner id */
+	fd = connectroot(mp, islocal, ishybrid);
+	afd = nsinit(fd, &rsp);
+	close(fd);
+
+	settime(islocal, afd, rsp);
+	if(afd > 0)
+		close(afd);
+	swapproc();
+	execinit();
+	exits("failed to exec init");
 }
 
 static Method*
