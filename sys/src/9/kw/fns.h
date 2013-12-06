@@ -162,12 +162,10 @@ void	pcisetioe(Pcidev*);
 void	pcisetmwi(Pcidev*);
 int	pcisetpms(Pcidev*, int);
 int	cas32(void*, u32int, u32int);
-int	tas32(void*);
 
 #define CASU(p, e, n)	cas32((p), (u32int)(e), (u32int)(n))
 #define CASV(p, e, n)	cas32((p), (u32int)(e), (u32int)(n))
 #define CASW(addr, exp, new)	cas32((addr), (exp), (new))
-#define TAS(addr)	tas32(addr)
 
 extern void forkret(void);
 extern int userureg(Ureg*);

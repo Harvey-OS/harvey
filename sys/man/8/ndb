@@ -746,10 +746,10 @@ and its IP address in the DNS.
 .EX
 % ndb/dnsquery
 > plan9.bell-labs.com ip
-plan9.bell-labs.com ip	204.178.31.2
-> 204.178.31.2 ptr
-2.31.178.204.in-addr.arpa ptr	plan9.bell-labs.com
-2.31.178.204.in-addr.arpa ptr	ampl.com
+plan9.bell-labs.com ip	135.104.24.16
+> 135.104.24.16 ptr
+16.24.104.135.in-addr.arpa ptr	plan9.bell-labs.com
+16.24.104.135.in-addr.arpa ptr	ampl.com
 >
 .EE
 .LP

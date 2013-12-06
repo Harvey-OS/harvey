@@ -357,8 +357,8 @@ bindings.
 .EX
 % bind -b '#l1' /net.alt
 % bind -b '#I1' /net.alt
-% ip/ipconfig -x /net.alt -g 204.178.31.1 ether /net.alt/ether1\\
-	204.178.31.6 255.255.255.0
+% ip/ipconfig -x /net.alt -g 135.104.24.1 ether /net.alt/ether1\\
+	135.104.24.14 255.255.255.0
 % ndb/cs -x /net.alt -f /lib/ndb/external
 % ndb/dns -sx /net.alt -f /lib/ndb/external
 % aux/listen -d /rc/bin/service.alt /net.alt/tcp
