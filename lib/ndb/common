@@ -81,13 +81,14 @@ dom=10.in-addr.arpa soa=		# rfc1918 zones
 	ns=j.root-servers.net
 
 #
-#  ip protocol numbers
+#  ip v4 & v6 protocol numbers (only used by ape's getprotobyname via cs).
 #
-protocol=reserved	ipv4proto=0
+protocol=hopopt		ipv4proto=0
 protocol=icmp		ipv4proto=1
 protocol=igmp		ipv4proto=2
 protocol=ggp		ipv4proto=3
 protocol=ip		ipv4proto=4
+protocol=ipv4		ipv4proto=4
 protocol=st		ipv4proto=5
 protocol=tcp		ipv4proto=6
 protocol=ucl		ipv4proto=7
@@ -124,20 +125,25 @@ protocol=ddp		ipv4proto=37
 protocol=idpr-cmtp	ipv4proto=38
 protocol=tp++		ipv4proto=39
 protocol=il		ipv4proto=40
-protocol=sip		ipv4proto=41
+protocol=ipv6		ipv4proto=41
 protocol=sdrp		ipv4proto=42
-protocol=sip-sr		ipv4proto=43
-protocol=sip-frag	ipv4proto=44
+protocol=ipv6-route	ipv4proto=43
+protocol=ipv6-frag	ipv4proto=44
 protocol=idrp		ipv4proto=45
 protocol=rsvp		ipv4proto=46
 protocol=gre		ipv4proto=47
 protocol=mhrp		ipv4proto=48
 protocol=bna		ipv4proto=49
-protocol=sipp-esp	ipv4proto=50
-protocol=sipp-ah	ipv4proto=51
+protocol=esp		ipv4proto=50
+protocol=ah		ipv4proto=51
 protocol=i-nlsp		ipv4proto=52
 protocol=swipe		ipv4proto=53
-protocol=nhrp		ipv4proto=54
+protocol=narp		ipv4proto=54
+protocol=mobile		ipv4proto=55
+protocol=tlsp		ipv4proto=56
+protocol=ipv6-icmp	ipv4proto=58
+protocol=ipv6-nonxt	ipv4proto=59
+protocol=ipv6-opts	ipv4proto=60
 protocol=any		ipv4proto=61
 protocol=cftp		ipv4proto=62
 protocol=any		ipv4proto=63
@@ -178,6 +184,9 @@ protocol=etherip	ipv4proto=97
 protocol=encap		ipv4proto=98
 protocol=any		ipv4proto=99
 protocol=gmtp		ipv4proto=100
+protocol=pipe		ipv4proto=131
+protocol=mobility	ipv4proto=135
+protocol=mpls-in-ip	ipv4proto=137
 protocol=rudp		ipv4proto=254	# unofficial
 
 #
