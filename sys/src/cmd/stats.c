@@ -194,6 +194,7 @@ Graph	*graph;
 Machine	*mach;
 Font	*mediumfont;
 char	*mysysname;
+char	*mycputype;
 char	argchars[] = "8bceEfiImlnpstwz";
 int	pids[NPROC];
 int 	parity;	/* toggled to avoid patterns in textured background */
@@ -881,6 +882,8 @@ tlbmissval(Machine *m, uvlong *v, uvlong *vmax, int init)
 	*vmax = (sleeptime/1000)*10*m->nproc;
 	if(init)
 		*vmax = (sleeptime/1000)*10;
+	if (mycputype && strcmp(mycputype, "mips") == 0)
+		*vmax *= 50000;		/* mainly for 16-entry tlbs (rb) */	
 }
 
 void
@@ -1304,6 +1307,7 @@ main(int argc, char *argv[])
 		exits("sysname");
 	}
 	mysysname = estrdup(mysysname);
+	mycputype = getenv("cputype");
 
 	nargs = 0;
 	ARGBEGIN{

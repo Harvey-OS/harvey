@@ -10,6 +10,7 @@ typedef struct Objtype {
 	char	*oname;
 } Objtype;
 
+/* sync with /sys/src/ape/cmd/cc.c */
 Objtype objtype[] = {
 	{"spim",	"0c", "0l", "0", "0.out"},
 	{"arm",		"5c", "5l", "5", "5.out"},
@@ -20,10 +21,11 @@ Objtype objtype[] = {
 	{"power",	"qc", "ql", "q", "q.out"},
 	{"mips",	"vc", "vl", "v", "v.out"},
 };
+char	*allos = "05689kqv";
 
 enum {
 	Nobjs = (sizeof objtype)/(sizeof objtype[0]),
-	Maxlist = 500,
+	Maxlist = 2000,
 };
 
 typedef struct List {
@@ -33,7 +35,6 @@ typedef struct List {
 
 List	srcs, objs, cpp, cc, ld, ldargs;
 int	cflag, vflag, Eflag, Pflag;
-char	*allos = "01245678kqv";
 
 void	append(List *, char *);
 char	*changeext(char *, char *);
