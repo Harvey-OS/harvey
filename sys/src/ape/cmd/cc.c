@@ -20,18 +20,21 @@ typedef struct Objtype {
 	char	*cc;
 	char	*ld;
 	char	*o;
+	char	*oname;		/* compatibility with pcc.c; unused */
 } Objtype;
 
+/* sync with /sys/src/cmd/pcc.c */
 Objtype objtype[] = {
-	{"68020",	"2c", "2l", "2"},
-	{"arm",		"5c", "5l", "5"},
-	{"amd64",	"6c", "6l", "6"},
-	{"alpha",	"7c", "7l", "7"},
-	{"386",		"8c", "8l", "8"},
-	{"sparc",	"kc", "kl", "k"},
-	{"power",	"qc", "ql", "q"},
-	{"mips",	"vc", "vl", "v"},
+	{"spim",	"0c", "0l", "0", "0.out"},
+	{"arm",		"5c", "5l", "5", "5.out"},
+	{"amd64",	"6c", "6l", "6", "6.out"},
+	{"386",		"8c", "8l", "8", "8.out"},
+	{"power64",	"9c", "9l", "9", "9.out"},
+	{"sparc",	"kc", "kl", "k", "k.out"},
+	{"power",	"qc", "ql", "q", "q.out"},
+	{"mips",	"vc", "vl", "v", "v.out"},
 };
+char	*allos = "05689kqv";
 
 enum {
 	Nobjs = (sizeof objtype)/(sizeof objtype[0]),
@@ -45,7 +48,6 @@ typedef struct List {
 
 List	srcs, objs, cpp, cc, ld, ldargs, srchlibs;
 int	cflag, vflag, Eflag, Sflag, Aflag;
-char	*allos = "2678kqv";
 
 void	append(List *, char *);
 char	*changeext(char *, char *);
