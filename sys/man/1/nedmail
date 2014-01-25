@@ -191,7 +191,7 @@ Print message.	An interrupt stops the printing.
 Reply to the sender of the message.
 .I Marshal
 is used to format the reply.
-If and optional
+If any optional
 .I Args
 are specified, they are added to the command line to
 .I marshal
