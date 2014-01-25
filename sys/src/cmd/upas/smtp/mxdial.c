@@ -143,7 +143,8 @@ callmx(DS *ds, char *dest, char *domain)
 		if(debug)
 			fprint(2, "mxdial trying %s\n", addr);
 		atnotify(timeout, 1);
-		alarm(10*1000);
+		/* this was 10 seconds, but oclsc.org at least needs more. */
+		alarm(60*1000);
 		fd = dial(addr, 0, 0, 0);
 		if (debug && fd < 0)
 			fprint(2, "dial: %r\n");
