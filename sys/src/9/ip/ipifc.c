@@ -16,6 +16,7 @@ enum {
 	NHASH		= 1<<6,
 	NCACHE		= 256,
 	QMAX		= 192*1024-1,
+	Maxv6repr	= (128/(4*4))*(4+1), /* limit of xxxx:xxxx:⋯ notation */
 };
 
 Medium *media[Maxmedia] = { 0 };
@@ -1607,7 +1608,7 @@ ipifcadd6(Ipifc *ifc, char**argv, int argc)
 {
 	int plen = 64;
 	long origint = NOW / 1000, preflt = ~0L, validlt = ~0L;
-	char addr[40], preflen[6];
+	char addr[Maxv6repr], preflen[6];
 	char *params[3];
 	uchar autoflag = 1, onlink = 1;
 	uchar prefix[IPaddrlen];
@@ -1635,9 +1636,17 @@ ipifcadd6(Ipifc *ifc, char**argv, int argc)
 		return Ebadarg;
 	}
 
-	if (parseip(prefix, argv[1]) != 6 || validlt < preflt || plen < 0 ||
-	    plen > 64 || islinklocal(prefix))
-		return Ebadarg;
+	if (parseip(prefix, argv[1]) != 6)
+		return "bad ipv6 address";
+	if (validlt < preflt)
+		return "valid ipv6 lifetime less than preferred lifetime";
+	if (plen < 0)
+		return "negative ipv6 prefix length";
+	/* i think that this length limit is bogus - geoff */
+//	if (plen > 64)
+//		return "ipv6 prefix length greater than 64;
+	if (islinklocal(prefix))
+		return "ipv6 prefix is link-local";
 
 	lifc = smalloc(sizeof(Iplifc));
 	lifc->onlink = (onlink != 0);
@@ -1648,7 +1657,7 @@ ipifcadd6(Ipifc *ifc, char**argv, int argc)
 
 	/* issue "add" ctl msg for v6 link-local addr and prefix len */
 	if(!ifc->m->pref2addr)
-		return Ebadarg;
+		return "no pref2addr on interface";
 	ifc->m->pref2addr(prefix, ifc->mac);	/* mac → v6 link-local addr */
 	snprint(addr, sizeof addr, "%I", prefix);
 	snprint(preflen, sizeof preflen, "/%d", plen);

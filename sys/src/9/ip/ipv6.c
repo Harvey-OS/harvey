@@ -259,7 +259,7 @@ ipiput6(Fs *f, Ipifc *ifc, Block *bp)
 	tentative = iptentative(f, v6dst);
 
 	if(tentative && h->proto != ICMPv6) {
-		print("ipv6 tentative addr %I, drop\n", v6dst);
+		print("ipv6 non-icmp tentative addr %I, drop\n", v6dst);
 		freeblist(bp);
 		return;
 	}

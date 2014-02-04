@@ -26,6 +26,8 @@ timesync \- synchronize the system clock to a time source
 synchronizes the system clock to a time source, by default a
 file server.
 The options are:
+.TF -L
+.PD
 .TP
 .B -f
 synchronize to a file server.  If
@@ -108,3 +110,5 @@ where the last frequency guess is kept
 log file
 .SH SOURCE
 .B /sys/src/cmd/aux/timesync.c
+.SH BUGS
+Only works with IPv4.
