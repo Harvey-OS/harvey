@@ -51,6 +51,7 @@ int	rejectcheck(void);
 String*	startcmd(void);
 
 static void	logmsg(char *action);
+static int	delaysecs(void);
 
 static int
 catchalarm(void *a, char *msg)
@@ -199,8 +200,8 @@ main(int argc, char **argv)
 		dom = domainname_read();
 	if(dom == 0 || dom[0] == 0)
 		dom = me;
-	sayhi();
 	parseinit();
+	sayhi();
 
 	/* allow 45 minutes to parse the header */
 	atnotify(catchalarm, 1);
@@ -287,7 +288,20 @@ reset(void)
 void
 sayhi(void)
 {
-	reply("220 %s ESMTP\r\n", dom);
+	Dir *dp;
+
+	reply("220-%s ESMTP\r\n", dom);
+	sleep(3000);
+	dp = dirfstat(0);
+	if (dp && dp->length > 0) {
+		syslog(0, "smtpd", "Hung up on impatient spammer %s", nci->rsys);
+		if(Dflag)
+			sleep(delaysecs()*1000);
+		reply("554 5.7.0 Spammer!\r\n");
+		exits("spammer didn't wait for greeting to finish");
+	}
+	free(dp);
+	reply("220 \r\n");
 }
 
 /*
@@ -1734,3 +1748,4 @@ bomb_out:
 	if (s_resp2_64)
 		s_free(s_resp2_64);
 }
+
