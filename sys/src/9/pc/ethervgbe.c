@@ -741,7 +741,7 @@ vgbetransmit(Ether* edev)
 	if(ctlr->tx_count)
 		wiob(ctlr, TxCsrS, TxCsr_Wakeup);
 
-	if(count == 0)
+	if((ctlr->debugflags & DumpTx) && count == 0)
 		print("vgbe: transmit: no Tx entry available\n");
 }
 

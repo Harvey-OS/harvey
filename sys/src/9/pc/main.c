@@ -420,8 +420,8 @@ confinit(void)
 		 * The patch of nimage is a band-aid, scanning the whole
 		 * page list in imagereclaim just takes too long.
 		 */
-		if(kpages > (128*MB + conf.npage*sizeof(Page))/BY2PG){
-			kpages = (128*MB + conf.npage*sizeof(Page))/BY2PG;
+		if(kpages > (200*MB + conf.npage*sizeof(Page))/BY2PG){
+			kpages = (200*MB + conf.npage*sizeof(Page))/BY2PG;
 			conf.nimage = 2000;
 			kpages += (conf.nproc*KSTACK)/BY2PG;
 		}

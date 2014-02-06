@@ -484,8 +484,10 @@ cmd(Ctlr *c, int type, uvlong data)
 	coherence();
 	memmove(c->ram + Cmdoff, buf, sizeof buf);
 
-	if(waserror())
+	if(waserror()){
+		qunlock(&c->cmdl);
 		nexterror();
+	}
 	for(i = 0; i < 15; i++){
 		if(cmd->i[1] != Noconf){
 			poperror();
@@ -493,11 +495,10 @@ cmd(Ctlr *c, int type, uvlong data)
 			qunlock(&c->cmdl);
 			if(cmd->i[1] != 0)
 				dprint("[%lux]", i);
-			return i;
+			return i;	/* normal return */
 		}
 		tsleep(&up->sleep, return0, 0, 1);
 	}
-	qunlock(&c->cmdl);
 	iprint("m10g: cmd timeout [%ux %ux] cmd=%d\n",
 		cmd->i[0], cmd->i[1], type);
 	error(Etimeout);
@@ -523,8 +524,10 @@ maccmd(Ctlr *c, int type, uchar *m)
 	coherence();
 	memmove(c->ram + Cmdoff, buf, sizeof buf);
 
-	if(waserror())
+	if(waserror()){
+		qunlock(&c->cmdl);
 		nexterror();
+	}
 	for(i = 0; i < 15; i++){
 		if(cmd->i[1] != Noconf){
 			poperror();
@@ -532,11 +535,10 @@ maccmd(Ctlr *c, int type, uchar *m)
 			qunlock(&c->cmdl);
 			if(cmd->i[1] != 0)
 				dprint("[%lux]", i);
-			return i;
+			return i;	/* normal return */
 		}
 		tsleep(&up->sleep, return0, 0, 1);
 	}
-	qunlock(&c->cmdl);
 	iprint("m10g: maccmd timeout [%ux %ux] cmd=%d\n",
 		cmd->i[0], cmd->i[1], type);
 	error(Etimeout);
@@ -566,15 +568,12 @@ dmatestcmd(Ctlr *c, int type, uvlong addr, int len)
 	coherence();
 	memmove(c->ram + Cmdoff, buf, sizeof buf);
 
-	if(waserror())
-		nexterror();
 	for(i = 0; i < 15; i++){
 		if(c->cmd->i[1] != Noconf){
 			i = gbit32(c->cmd->c);
 			if(i == 0)
 				error(Eio);
-			poperror();
-			return i;
+			return i;	/* normal return */
 		}
 		tsleep(&up->sleep, return0, 0, 5);
 	}
@@ -599,17 +598,13 @@ rdmacmd(Ctlr *c, int on)
 	prepcmd(buf, 6);
 	memmove(c->ram + Rdmaoff, buf, sizeof buf);
 
-	if(waserror())
-		nexterror();
 	for(i = 0; i < 20; i++){
-		if(c->cmd->i[0] == Noconf){
-			poperror();
-			return gbit32(c->cmd->c);
-		}
+		if(c->cmd->i[0] == Noconf)
+			return gbit32(c->cmd->c);	/* normal return */
 		tsleep(&up->sleep, return0, 0, 1);
 	}
-	error(Etimeout);
 	iprint("m10g: rdmacmd timeout\n");
+	error(Etimeout);
 	return ~0;			/* silence! */
 }
 
@@ -1344,7 +1339,7 @@ m10gdetach(Ctlr *c)
 	dprint("m10gdetach\n");
 //	reset(e->ctlr);
 	vunmap(c->ram, c->pcidev->mem[0].size);
-	ctlrfree(c);
+	ctlrfree(c);		/* this is a bad idea: don't free c */
 	return -1;
 }
 
@@ -1362,7 +1357,6 @@ lstcount(Block *b)
 static long
 m10gifstat(Ether *e, void *v, long n, ulong off)
 {
-	int l;
 	char *p;
 	Ctlr *c;
 	Stats s;
@@ -1371,12 +1365,10 @@ m10gifstat(Ether *e, void *v, long n, ulong off)
 	p = malloc(READSTR+1);
 	if(p == nil)
 		error(Enomem);
-	l = 0;
 	/* no point in locking this because this is done via dma. */
 	memmove(&s, c->stats, sizeof s);
 
-	// l +=
-	snprint(p+l, READSTR,
+	snprint(p, READSTR,
 		"txcnt = %lud\n"  "linkstat = %lud\n" 	"dlink = %lud\n"
 		"derror = %lud\n" "drunt = %lud\n" 	"doverrun = %lud\n"
 		"dnosm = %lud\n"  "dnobg = %lud\n"	"nrdma = %lud\n"
@@ -1571,7 +1563,7 @@ m10gpci(void)
 		}
 		c = malloc(sizeof *c);
 		if(c == nil)
-			continue;
+			break;
 		c->pcidev = p;
 		c->id = p->did<<16 | p->vid;
 		c->boot = pcicap(p, PciCapVND);
@@ -1621,13 +1613,11 @@ m10gpnp(Ether *e)
 	e->interrupt = m10ginterrupt;
 	e->ifstat = m10gifstat;
 	e->ctl = m10gctl;
-//	e->power = m10gpower;
 	e->shutdown = m10gshutdown;
 
 	e->arg = e;
 	e->promiscuous = m10gpromiscuous;
 	e->multicast = m10gmulticast;
-
 	return 0;
 }
 
