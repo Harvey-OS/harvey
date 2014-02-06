@@ -182,6 +182,7 @@ struct Block
 	void	(*free)(Block*);
 	ushort	flag;
 	ushort	checksum;		/* IP checksum of complete packet (minus media header) */
+	ulong	magic;
 };
 
 #define BLEN(s)	((s)->wp - (s)->rp)

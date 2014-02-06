@@ -321,6 +321,8 @@ This consists of terminal and CPU kernels for the ARM1176 processor
 in the Broadcom 2835 system-on-a-chip.
 The hardware includes VFP2 floating-point.
 It runs on the Raspberry Pi Models A and B.
+Since it relies upon USB Ethernet and the Plan 9 USB Ethernet
+driver doesn't implement multicast, this port can't speak IPv6.
 .
 .ig
 .SH

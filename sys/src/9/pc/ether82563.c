@@ -414,8 +414,9 @@ enum {
 };
 
 enum {
-	Nrd		= 256,		/* power of two */
+	Nrd		= 512,		/* power of two */
 	Ntd		= 64,		/* power of two */
+	/* 1024 buffers can be filled in 12 ms. at full line rate */
 	Nrb		= 1024,		/* private receive buffers per Ctlr */
 };
 
@@ -477,7 +478,7 @@ struct Ctlr {
 	int	attached;
 	int	nrd;
 	int	ntd;
-	int	nrb;			/* # bufs this Ctlr has in the pool */
+	int	nrb;			/* # rcv bufs this Ctlr has in the pool */
 	unsigned rbsz;			/* unsigned for % and / by 1024 */
 
 	int	*nic;
@@ -534,6 +535,7 @@ static Ctlr* i82563ctlrtail;
 
 static Lock i82563rblock;		/* free receive Blocks */
 static Block* i82563rbpool;
+static int nrbfull;	/* # of rcv Blocks with data awaiting processing */
 
 static char* statistics[] = {
 	"CRC Error",
@@ -676,6 +678,7 @@ i82563ifstat(Ether* edev, void* a, long n, ulong offset)
 	p = seprint(p, e, "speeds: 10:%ud 100:%ud 1000:%ud ?:%ud\n",
 		ctlr->speeds[0], ctlr->speeds[1], ctlr->speeds[2], ctlr->speeds[3]);
 	p = seprint(p, e, "type: %s\n", tname[ctlr->type]);
+	p = seprint(p, e, "nrbfull (rcv blocks outstanding): %d\n", nrbfull);
 
 //	p = seprint(p, e, "eeprom:");
 //	for(i = 0; i < 0x40; i++){
@@ -815,6 +818,7 @@ i82563rbfree(Block* b)
 	ilock(&i82563rblock);
 	b->next = i82563rbpool;
 	i82563rbpool = b;
+	nrbfull--;
 	iunlock(&i82563rblock);
 }
 
@@ -942,22 +946,18 @@ i82563replenish(Ctlr* ctlr)
 	while(Next(rdt, m) != ctlr->rdh){
 		rd = &ctlr->rdba[rdt];
 		if(ctlr->rb[rdt] != nil){
-			iprint("#l%d: 82563: rx overrun\n", ctlr->edev->ctlrno);
+			print("#l%d: 82563: rx overrun\n", ctlr->edev->ctlrno);
 			break;
 		}
 		bp = i82563rballoc();
-		if(bp == nil){
-			vlong now;
-			static vlong lasttime;
-
-			/* don't flood the console */
-			now = tk2ms(MACHP(0)->ticks);
-			if (now - lasttime > 2000)
-				iprint("#l%d: 82563: all %d rx buffers in use\n",
-					ctlr->edev->ctlrno, ctlr->nrb);
-			lasttime = now;
-			break;
-		}
+		if(bp == nil)
+			/*
+			 * this almost never gets better.  likely there's a bug
+			 * elsewhere in the kernel that is failing to free a
+			 * receive Block.
+			 */
+			panic("#l%d: 82563: all %d rx buffers in use, nrbfull %d",
+				ctlr->edev->ctlrno, ctlr->nrb, nrbfull);
 		ctlr->rb[rdt] = bp;
 		rd->addr[0] = PCIWADDR(bp->rp);
 //		rd->addr[1] = 0;
@@ -1072,16 +1072,16 @@ i82563rproc(void* arg)
 	m = ctlr->nrd-1;
 
 	for(;;){
+		i82563replenish(ctlr);
 		i82563im(ctlr, Rxt0|Rxo|Rxdmt0|Rxseq|Ack);
 		ctlr->rsleep++;
-//		coherence();
 		sleep(&ctlr->rrendez, i82563rim, ctlr);
 
 		rdh = ctlr->rdh;
 		for(;;){
-			rd = &ctlr->rdba[rdh];
 			rim = ctlr->rim;
 			ctlr->rim = 0;
+			rd = &ctlr->rdba[rdh];
 			if(!(rd->status & Rdd))
 				break;
 
@@ -1117,6 +1117,9 @@ i82563rproc(void* arg)
 					bp->checksum = rd->checksum;
 					bp->flag |= Bpktck;
 				}
+				ilock(&i82563rblock);
+				nrbfull++;
+				iunlock(&i82563rblock);
 				etheriq(edev, bp, 1);
 			} else {
 				if (rd->status & Reop && rd->errors)
@@ -1300,6 +1303,7 @@ i82563attach(Ether* edev)
 		bp->free = i82563rbfree;
 		freeb(bp);
 	}
+	nrbfull = 0;
 
 	ctlr->edev = edev;			/* point back to Ether* */
 	ctlr->attached = 1;
@@ -1332,7 +1336,7 @@ i82563interrupt(Ureg*, void* arg)
 	ilock(&ctlr->imlock);
 	csr32w(ctlr, Imc, ~0);
 	im = ctlr->im;
-	i = 1000;			/* don't livelock */
+	i = Nrd;			/* don't livelock */
 	for(icr = csr32r(ctlr, Icr); icr & ctlr->im && i-- > 0;
 	    icr = csr32r(ctlr, Icr)){
 		if(icr & Lsc){

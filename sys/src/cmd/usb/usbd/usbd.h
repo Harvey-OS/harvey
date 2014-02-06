@@ -52,9 +52,7 @@ enum
 	Pconfiged,
 
 	/* Delays, timeouts (ms) */
-//	Spawndelay	= 1000,		/* how often may we re-spawn a driver */
-	Spawndelay	= 250,		/* how often may we re-spawn a driver */
-//	Connectdelay	= 1000,		/* how much to wait after a connect */
+	Spawndelay	= 100,		/* how often may we re-spawn a driver */
 	Connectdelay	= 500,		/* how much to wait after a connect */
 	Resetdelay	= 20,		/* how much to wait after a reset */
 	Enabledelay	= 20,		/* how much to wait after an enable */
