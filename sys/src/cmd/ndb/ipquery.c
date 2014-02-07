@@ -11,7 +11,7 @@
 void
 usage(void)
 {
-	fprint(2, "usage: ipquery attr value rattribute\n");
+	fprint(2, "usage: ipquery [-f ndb-root] attr value rattribute\n");
 	exits("usage");
 }
 
@@ -36,6 +36,9 @@ main(int argc, char **argv)
 	ARGBEGIN{
 	case 'f':
 		dbfile = ARGF();
+		break;
+	default:
+		usage();
 		break;
 	}ARGEND;
 
