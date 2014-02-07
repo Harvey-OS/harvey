@@ -38,15 +38,6 @@ if (test -e /dev/usb/ctl) {
 	echo -n usb...
 	usbd
 }
-if not if (test -e /dev/usb0) {
-	echo -n old usb...
-	usbd
-	if (test -e '#m/mouse')
-		kb -a2
-	if not
-		kb -k
-	disk -l -s usbdisk -m /mnt	# mounts on /mnt/<lun>
-}
 
 echo -n disks...
 if(! ~ $dmaon no)
@@ -97,12 +88,10 @@ if not
 switch (`{sed '/\.(0|255)[	 ]/d' /net/ipselftab}) {
 case 135.104.24.*				# new outside
 	echo 'add 135.104.9.0 255.255.255.0 135.104.24.13' >>/net/iproute
-case 204.178.31.*				# old outside
-	echo 'add 135.104.9.0 255.255.255.0 204.178.31.10' >>/net/iproute
 }
 ipconfig loopback /dev/null 127.1
 
-# local hackery: add extra sr luns
+# local hackery: add extra sr luns of shelf 1
 if (test -e /dev/aoe/1.1 && ! test -e /dev/sdf0)
 	echo config switch on spec f type aoe//dev/aoe/1.1 >/dev/sdctl
 if (test -e /dev/aoe/1.2 && ! test -e /dev/sdg0)
