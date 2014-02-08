@@ -748,7 +748,7 @@ yes:
 		bp = concatblock(bp);
 		if(bp != nil)
 			if(qpass(c->rq, bp) < 0)
-				print("Q");
+				print("ipmuxiput: qpass failed\n");
 		return;
 	}
 
