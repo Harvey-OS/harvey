@@ -1,8 +1,8 @@
 .TH SSH2 1
 .SH NAME
-ssh, sshsession, rsa2ssh2 \- encrypted login and copy with foreign systems via SSHv2
+ssh2, sshsession, rsa2ssh2 \- encrypted login and copy with foreign systems via SSHv2
 .SH SYNOPSIS
-.B ssh
+.B ssh2
 [
 .B -adIiKkmrvx
 ] [
@@ -51,17 +51,17 @@ These programs collectively implement communication via SSH v2 over TCP.
 All of the encryption, authentication, and SSH protocol are handled by
 .IR ssh (4).
 .PP
-.I Ssh
+.I Ssh2
 dials a remote
 .I system
 and runs a shell (or some other command) there.
-.L "ssh root@hannibal"
+.L "ssh2 root@hannibal"
 will result in a command prompt on the machine
 .B hannibal
 logged in as
 .BR root .
 If
-.I ssh
+.I ssh2
 does not find an SSH server in
 .BR /net ,
 it runs
@@ -69,7 +69,7 @@ it runs
 (see
 .IR ssh (4))
 to start one.
-.I Ssh
+.I Ssh2
 dials the remote SSH server and exchanges encryption keys with
 the server using Diffie-Hellman key exchange.
 .PP
@@ -82,7 +82,7 @@ similar to that of
 .IR ip (3)
 creates a session in the established connection.
 In the course of session creation,
-.I ssh
+.I ssh2
 first attempts to authenticate the user with the server using
 public key authentication.
 If that fails, it prompts for a password, and attempts to
@@ -90,7 +90,7 @@ authenticate with password authentication.
 It also passes across the value of the environment variable
 .B TERM
 as would be set if
-.I ssh
+.I ssh2
 is run inside of
 .IR vt (1).
 .LP
@@ -123,7 +123,7 @@ Increase the amount of debugging output.
 .TP
 .B -i -I
 Sets
-.I ssh
+.I ssh2
 to interactive
 .RB ( -i )
 or non-interactive
@@ -132,7 +132,7 @@ mode.
 This determines whether the user is prompted for a password
 if none is found in factotum.
 Without either of these options,
-.I ssh
+.I ssh2
 uses interactive mode if run in a term window.
 .TP
 .B -k
@@ -141,7 +141,7 @@ Skip the attempt to authenticate using public key authentication.
 .B -K
 Don't fall back to password authentication.
 If the public key authentication fails,
-.I ssh
+.I ssh2
 will exit.
 .TP
 .B -l
@@ -171,7 +171,7 @@ window or from within
 in
 .IR acme (1).
 It is normally not used when running
-.I ssh
+.I ssh2
 from within
 .IR vt (1).
 .TP
@@ -188,7 +188,7 @@ or
 .IR listen1 ;
 it is not normally run directly by the user.
 Like
-.IR ssh ,
+.IR ssh2 ,
 it does all of its SSH communication through
 .IR ssh (4).
 .I Sshsession

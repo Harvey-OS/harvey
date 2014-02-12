@@ -3,7 +3,7 @@
 TARG=\
 	netssh\
 	rsa2ssh2\
-	ssh\
+	ssh2\
 	sshsession\
 
 HFILES=\
@@ -46,7 +46,7 @@ new:V:
 
 $O.rsa2ssh2 $O.ssh2key: transport.$O
 
-$O.ssh: dial.$O
+$O.ssh2: dial.$O
 
 $O.netssh: $CIPHEROFILES $FSOFILES dial.thread.$O
 
