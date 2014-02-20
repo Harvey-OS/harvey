@@ -914,13 +914,14 @@ respond(Job *job, Mfile *mf, RR *rp, char *errbuf, int status, int wantsav)
 	return nil;
 }
 
+#ifdef notused
 /* simulate what dnsudpserver does */
 static char *
 lookupquerynew(Job *job, Mfile *mf, Request *req, char *errbuf, char *p,
 	int wantsav, int)
 {
 	char *err;
-	uchar buf[Udphdrsize + Maxudp + 1024];
+	uchar buf[Udphdrsize + Maxpayload];
 	DNSmsg *mp;
 	DNSmsg repmsg;
 	RR *rp;
@@ -932,6 +933,7 @@ lookupquerynew(Job *job, Mfile *mf, Request *req, char *errbuf, char *p,
 	rp->owner = dnlookup(p, Cin, 1);
 	mp = newdnsmsg(rp, Frecurse|Oquery, (ushort)rand());
 
+	/* BUG: buf is srcip, yet it's uninitialised */
 	dnserver(mp, &repmsg, req, buf, Rok);
 
 	freeanswers(mp);
@@ -940,6 +942,7 @@ lookupquerynew(Job *job, Mfile *mf, Request *req, char *errbuf, char *p,
 	freeanswers(&repmsg);
 	return err;
 }
+#endif
 
 void
 rclunk(Job *job, Mfile *mf)

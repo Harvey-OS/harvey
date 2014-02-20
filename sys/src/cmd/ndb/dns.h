@@ -136,9 +136,17 @@ enum
 	/* reserved time (can't be timed out earlier) */
 	Reserved=	5*Min,
 
-	/* packet sizes */
-	Maxudp=		512,	/* maximum bytes per udp message sent */
-	Maxudpin=	2048,	/* maximum bytes per udp message rcv'd */
+	/* tcp & udp port number */
+	Dnsport=	53,
+
+	/*
+	 * payload size.  originally, 512 bytes was the upper bound, to
+	 * eliminate fragmentation when using udp transport.
+	 * with edns (rfc 6891), that has been raised to 4096.
+	 * we don't currently generate edns, but we might be sent edns packets.
+	 */
+	Maxdnspayload=	512,
+	Maxpayload=	4096,
 
 	/* length of domain name hash table */
 	HTLEN= 		4*1024,
