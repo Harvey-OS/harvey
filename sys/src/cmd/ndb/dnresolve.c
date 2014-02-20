@@ -621,14 +621,14 @@ mkreq(DN *dp, int type, uchar *buf, int flags, ushort reqno)
 
 	/* stuff port number into output buffer */
 	memset(uh, 0, sizeof *uh);
-	hnputs(uh->rport, 53);
+	hnputs(uh->rport, Dnsport);
 
 	/* make request and convert it to output format */
 	memset(&m, 0, sizeof m);
 	rp = rralloc(type);
 	rp->owner = dp;
 	initdnsmsg(&m, rp, flags, reqno);
-	len = convDNS2M(&m, &buf[Udphdrsize], Maxudp);
+	len = convDNS2M(&m, &buf[Udphdrsize], Maxdnspayload);
 	rrfreelistptr(&m.qd);
 	memset(&m, 0, sizeof m);		/* cause trouble */
 	return len;
@@ -669,7 +669,7 @@ readnet(Query *qp, int medium, uchar *ibuf, uvlong endms, uchar **replyp,
 		if (qp->udpfd <= 0)
 			dnslog("readnet: qp->udpfd closed");
 		else {
-			len = read(qp->udpfd, ibuf, Udphdrsize+Maxudpin);
+			len = read(qp->udpfd, ibuf, Udphdrsize+Maxpayload);
 			alarm(0);
 			notestats(startns, len < 0, qp->type);
 			if (len >= IPaddrlen)
@@ -1520,8 +1520,7 @@ static int
 udpquery(Query *qp, char *mntpt, int depth, int patient, int inns)
 {
 	int fd, rv;
-	long now;
-	ulong pcntprob;
+	ulong now, pcntprob;
 	uvlong wait, reqtm;
 	char *msg;
 	uchar *obuf, *ibuf;
@@ -1530,7 +1529,7 @@ udpquery(Query *qp, char *mntpt, int depth, int patient, int inns)
 
 	/* use alloced buffers rather than ones from the stack */
 	ibuf = emalloc(64*1024);		/* max. tcp reply size */
-	obuf = emalloc(Maxudp+Udphdrsize);
+	obuf = emalloc(Maxpayload+Udphdrsize);
 
 	fd = udpport(mntpt);
 	while (fd < 0 && cfg.straddle && strcmp(mntpt, "/net.alt") == 0) {

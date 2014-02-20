@@ -47,7 +47,7 @@ errtoolong(RR *rp, Scan *sp, int remain, int need, char *where)
 	 * if the (udp) packet is full-sized, if must be truncated because
 	 * it is incomplete.  otherwise, it's just garbled.
 	 */
-	if (sp->ep - sp->base >= Maxudp) {
+	if (sp->ep - sp->base >= Maxpayload) {
 		sp->trunc = 1;
 		seprint(p, ep, " (truncated)");
 	}
@@ -262,7 +262,7 @@ gname(char *to, RR *rp, Scan *sp)
 				*to++ = '.';
 			}
 			break;
-		case 0100:		/* edns extended label type, rfc 2671 */
+		case 0100:		/* edns extended label type, rfc 6891 */
 			/*
 			 * treat it like an EOF for now; it seems to be at
 			 * the end of a long tcp reply.
@@ -568,7 +568,7 @@ rrloop(Scan *sp, char *what, int count, int quest)
  *  set *codep to the outgoing response code (e.g., Rformat), which will
  *  abort processing and reply immediately with the outgoing response code.
  *
- *  ideally would note if len == Maxudp && query was via UDP, for errtoolong.
+ *  ideally would note if len == Maxpayload && query was via UDP, for errtoolong.
  */
 char*
 convM2DNS(uchar *buf, int len, DNSmsg *m, int *codep)

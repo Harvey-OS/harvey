@@ -114,7 +114,7 @@ redistrib(uchar *buf, int len)
 	for (tp = forwtarg; tp < forwtarg + currtarg; tp++)
 		if (tp->fd > 0) {
 			memmove(outpkt, tp->addr, sizeof tp->addr);
-			hnputs(uh->rport, 53);		/* dns port */
+			hnputs(uh->rport, Dnsport);
 			if (write(tp->fd, outpkt, len) != len) {
 				close(tp->fd);
 				tp->fd = -1;
@@ -134,7 +134,7 @@ dnudpserver(char *mntpt)
 	volatile int fd, len, op, rcode;
 	char *volatile err;
 	volatile char tname[32];
-	volatile uchar buf[Udphdrsize + Maxudp + 1024];
+	volatile uchar buf[Udphdrsize + Maxpayload];
 	volatile DNSmsg reqmsg, repmsg;
 	Inprogress *volatile p;
 	volatile Request req;
@@ -320,7 +320,7 @@ reply(int fd, uchar *buf, DNSmsg *rep, Request *reqp)
 			rrname(rep->qd->type, tname, sizeof tname),
 			rep->qd, rep->an, rep->ns, rep->ar);
 
-	len = convDNS2M(rep, &buf[Udphdrsize], Maxudp);
+	len = convDNS2M(rep, &buf[Udphdrsize], Maxdnspayload);
 	len += Udphdrsize;
 	if(write(fd, buf, len) != len)
 		dnslog("error sending reply: %r");

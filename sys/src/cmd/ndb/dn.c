@@ -1001,7 +1001,8 @@ rrlookup(DN *dp, int type, int flag)
 
 	/* try for an authoritative db entry */
 	for(rp = dp->rr; rp; rp = rp->next){
-		assert(rp->magic == RRmagic && rp->cached);
+		assert(rp->magic == RRmagic);
+		assert(rp->cached);
 		if(rp->db)
 		if(rp->auth)
 		if(tsame(type, rp->type)) {
