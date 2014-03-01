@@ -30,6 +30,7 @@ struct Req
 	/* parsed options */
 	int	p9request;		/* flag: this is a bootp with plan9 options */
 	int	genrequest;		/* flag: this is a bootp with generic options */
+	int	broadcast;		/* flag: request was broadcast */
 	int	dhcptype;		/* dhcp message type */
 	int	leasetime;		/* dhcp lease */
 	uchar	ip[IPaddrlen];		/* requested address */
@@ -333,8 +334,10 @@ proto(Req *rp, int n)
 	rp->e = rp->buf + n;
 	rp->bp = (Bootp*)rp->buf;
 	rp->up = (Udphdr*)rp->buf;
-	if (ipcmp(rp->up->laddr, IPv4bcast) == 0)
+	if (ipcmp(rp->up->laddr, IPv4bcast) == 0){
 		ipmove(rp->up->laddr, rp->up->ifcaddr);
+		rp->broadcast = 1;
+	}
 	rp->max = rp->buf + Udphdrsize + MINSUPPORTED - IPUDPHDRSIZE;
 	rp->p = rp->bp->optdata;
 	v4tov6(rp->giaddr, rp->bp->giaddr);
@@ -404,6 +407,10 @@ proto(Req *rp, int n)
 	timestamp("done");
 }
 
+/*
+ * since we are single-threaded, this causes us to effectively
+ * stop listening for two seconds.
+ */
 static void
 slowdelay(Req *rp)
 {
@@ -904,11 +911,11 @@ bootp(Req *rp)
 	Iplifc *lifc;
 	Info *iip;
 
-	warning(0, "bootp %s %I->%I from %s via %I, file %s",
+	warning(0, "bootp %s %I->%I from %s via %I, file %s %s",
 		rp->genrequest? "generic": (rp->p9request? "p9": ""),
 		rp->up->raddr, rp->up->laddr,
 		rp->id, rp->gii.ipaddr,
-		rp->bp->file);
+		rp->bp->file, rp->broadcast? "broadcast": "unicast");
 
 	if(nobootp)
 		return;
@@ -1639,7 +1646,7 @@ logdhcp(Req *rp)
 		if(rp->requested[i] != 0)
 			p = seprint(p, e, "%s ", optname[rp->requested[i]]);
 	p = seprint(p, e, ")");
-
+	p = seprint(p, e, " %s", rp->broadcast? "broadcast": "unicast");
 	USED(p);
 	syslog(0, blog, "%s", buf);
 }
