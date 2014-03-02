@@ -1151,12 +1151,15 @@ igberproc(void* arg)
 			 * an indication of whether the checksums were
 			 * calculated and valid.
 			 */
+			/* ignore checksum offload as it has known bugs. */
+			rd->errors &= ~(Ipe | Tcpe);
 			if((rd->status & Reop) && rd->errors == 0){
 				bp = ctlr->rb[rdh];
 				ctlr->rb[rdh] = nil;
 				bp->wp += rd->length;
 				bp->next = nil;
-				if(!(rd->status & Ixsm)){
+				/* ignore checksum offload as it has known bugs. */
+				if(0 && !(rd->status & Ixsm)){
 					ctlr->ixsm++;
 					if(rd->status & Ipcs){
 						/*

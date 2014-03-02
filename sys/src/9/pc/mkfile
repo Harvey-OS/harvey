@@ -1,16 +1,20 @@
 CONF=pc
-CONFLIST=pc pccpu pcf pcdisk # pccpuf pcauth
-CRAPLIST=pccd pcflop
-EXTRACOPIES=
-#EXTRACOPIES=lookout boundary	# copy to these servers on install
+CONFLIST=pc pccpu pcf pccpuf pcdisk pcfs pccpudisk
+CRAPLIST=pccd pcflop pcinst pcauth pcall
+VENTILIST=pccpuf pcf pcfs pcauth
+EXTRACOPIES=piestand pxe0 lookout bovril boundary
 
 objtype=386
 </$objtype/mkfile
 p=9
 
 # must match mem.h
-APBOOTSTRAP=0xF0003000
-KTZERO=0xF0100020
+KZERO=0xF0000000
+KTZEROP=0x100020
+
+APBOOTSTRAP=`{echo $KZERO+0x3000'=X' | dbcalc}
+# this KTZERO sits after the a.out header, unlike mem.h's
+KTZERO=`{echo $KZERO+$KTZEROP'=X' | dbcalc}
 
 DEVS=`{rc ../port/mkdevlist $CONF}
 
@@ -79,6 +83,9 @@ $p$CONF:	$CONF.c $OBJ $LIB
 	$LD -o $target -T$KTZERO -l $OBJ $CONF.$O $LIB
 	size $target
 
+# this makes an ELF kernel:
+# $LD -o $target.elf -PH5 -R4096 -T$KTZERO -F$KTZEROP -l $OBJ $CONF.$O $LIB
+
 # don't strip the gzipped kernels -- too frustrating when that's all you have!
 $p%.gz:D:	$p%
 	gzip -9 <$p$stem >$p$stem.gz
@@ -91,11 +98,13 @@ $p%.gz:D:	$p%
 9pccd.gz:D: 9pccd
 	strip -o /fd/1 9pccd | gzip -9 >9pccd.gz
 
-
-install:V:	$p$CONF
-	cp $p$CONF /$objtype/
+# we don't need gzipped kernels otherwise, so don't make them
+install:V:	$p$CONF				# $p$CONF.gz
+	cp $p$CONF /$objtype/ &
 	for(i in $EXTRACOPIES)
-		import $i / /n/$i && cp $p$CONF /n/$i/$objtype/
+		{ 9fs $i && cp $p$CONF /n/$i/$objtype && echo -n $i... & }
+	wait
+	echo
 
 <../boot/bootmkfile
 <../port/portmkfile
@@ -179,7 +188,7 @@ checkdist:VQ:
 		mk $i.$j
 
 %.clean:V:
-	rm -f $stem.c [9bz]$stem [9bz]$stem.gz boot$stem.* reboot.h apbootstrap.h init.h
+	rm -f $stem.c [9bz]$stem [9bz]$stem.gz boot$stem.* reboot.h apbootstrap.h init.h [9bz]$stem.elf
 
 # testing
 9load:D: /usr/rsc/boot/$O.load 9pcload
