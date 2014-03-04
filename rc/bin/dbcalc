@@ -1,0 +1,3 @@
+#!/bin/rc
+# use db as a pure calculator
+db /dev/null | grep -v ' binary$'
