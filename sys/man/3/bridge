@@ -1,10 +1,10 @@
 .TH BRIDGE 3
 .SH NAME
-bridge \- IPv4 Ethernet bridge
+bridge \- Ethernet bridge and IPv4 tunnel
 .SH SYNOPSIS
 .nf
 .B bind -a #B\fIb\fP /net
-
+.sp 0.4v
 .B /net/bridge\fIb\fP/ctl
 .B /net/bridge\fIb\fP/cache
 .B /net/bridge\fIb\fP/log
@@ -17,7 +17,7 @@ bridge \- IPv4 Ethernet bridge
 .SH DESCRIPTION
 The
 .I bridge
-device bridges IPv4 packets amongst Ethernet interfaces.
+device bridges (copies) packets amongst Ethernet interfaces.
 The number
 .I b
 in the bind is optional and selects a particular bridge
@@ -58,7 +58,7 @@ Treat the device mounted at
 .I path
 (e.g.,
 .LR /net/ether0 )
-as an Ethernet medium carrying IPv4 and ARP packets
+as an Ethernet medium
 and associate it with this bridge (forward its packets to the
 other interfaces associated with this bridge).
 .I Ownhash
@@ -67,10 +67,10 @@ is an `owner hash'.
 .BI "bind tunnel " "name ownhash path path2
 Treat the device mounted at
 .I path
-as a network tunnel carrying IPv4 and ARP packets,
+as a network tunnel (of IPv4 in IPv4),
 the device mounted at
 .I path2
-as an Ethernet medium carrying IPv4 and ARP packets
+as an Ethernet medium
 and associate them with this bridge
 (forward its packets to the
 other interfaces associated with this bridge).
@@ -112,7 +112,7 @@ Set bridge
 The only known option is
 .LR tcpmss ,
 which limits the TCP Maximum Segment Size of
-TCPv4 packets passing through to 1300 bytes.
+TCP packets passing through to 1300 bytes.
 .TP
 .BI "clear " option
 Clear bridge
@@ -168,4 +168,4 @@ echo 'bind ether inner 0 /net/ether1' >/net/bridge0/ctl
 .SH SOURCE
 .B /sys/src/9/port/devbridge.c
 .SH BUGS
-Doesn't understand IPv6.
+Understands but won't tunnel nor fragment IPv6.
