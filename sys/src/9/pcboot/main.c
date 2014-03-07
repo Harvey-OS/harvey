@@ -109,8 +109,11 @@ a20init(void)
 	b = inb(Sysctla);
 	if (!(b & Sysctla20ena))
 		outb(Sysctla, (b & ~Sysctlreset) | Sysctla20ena);
-	if (!isa20on())
+	if (!isa20on()){
 		iprint("a20 didn't come on!\n");
+		for(;;)
+			;
+	}
 }
 
 void
