@@ -382,7 +382,8 @@ dnage(DN *dp)
 
 	l = &dp->rr;
 	for(rp = dp->rr; rp; rp = next){
-		assert(rp->magic == RRmagic && rp->cached);
+		assert(rp->magic == RRmagic);
+		assert(rp->cached);
 		next = rp->next;
 		if(!rp->db && (rp->expire < now || diff > dnvars.oldest))
 			rrdelhead(l); /* rp == *l before; *l == rp->next after */
@@ -764,7 +765,8 @@ rrattach1(RR *new, int auth)
 	RR *rp;
 	DN *dp;
 
-	assert(new->magic == RRmagic && !new->cached);
+	assert(new->magic == RRmagic);
+	assert(!new->cached);
 
 //	dnslog("rrattach1: %s", new->owner->name);
 	if(!new->db) {
@@ -786,7 +788,8 @@ rrattach1(RR *new, int auth)
 	 */
 	l = &dp->rr;
 	for(rp = *l; rp; rp = *l){
-		assert(rp->magic == RRmagic && rp->cached);
+		assert(rp->magic == RRmagic);
+		assert(rp->cached);
 		if(rp->type == new->type)
 			break;
 		l = &rp->next;
@@ -802,7 +805,8 @@ rrattach1(RR *new, int auth)
 	 *  fields (e.g. multiple NS servers).
 	 */
 	while ((rp = *l) != nil){
-		assert(rp->magic == RRmagic && rp->cached);
+		assert(rp->magic == RRmagic);
+		assert(rp->cached);
 		if(rp->type != new->type)
 			break;
 
