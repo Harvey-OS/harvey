@@ -477,6 +477,10 @@ struct Ctlr {
 
 	int	link;
 
+	Watermark wmrb;
+	Watermark wmrd;
+	Watermark wmtd;
+
 	QLock	slock;
 	uint	statistics[Nstatistics];
 	uint	lsleep;
@@ -521,6 +525,7 @@ static Ctlr* igbectlrtail;
 
 static Lock igberblock;		/* free receive Blocks */
 static Block* igberbpool;	/* receive Blocks for all igbe controllers */
+static int nrbfull;	/* # of rcv Blocks with data awaiting processing */
 
 static char* statistics[Nstatistics] = {
 	"CRC Error",
@@ -593,7 +598,7 @@ static long
 igbeifstat(Ether* edev, void* a, long n, ulong offset)
 {
 	Ctlr *ctlr;
-	char *p, *s;
+	char *p, *s, *e;
 	int i, l, r;
 	uvlong tuvl, ruvl;
 
@@ -667,6 +672,13 @@ igbeifstat(Ether* edev, void* a, long n, ulong offset)
 		}
 		snprint(p+l, READSTR-l, "\n");
 	}
+	e = p + READSTR;
+	s = p + l + 1;
+	s = seprintmark(s, e, &ctlr->wmrb);
+	s = seprintmark(s, e, &ctlr->wmrd);
+	s = seprintmark(s, e, &ctlr->wmtd);
+	USED(s);
+
 	n = readstr(offset, a, n, p);
 	free(p);
 	qunlock(&ctlr->slock);
@@ -789,6 +801,7 @@ igberbfree(Block* bp)
 	ilock(&igberblock);
 	bp->next = igberbpool;
 	igberbpool = bp;
+	nrbfull--;
 	iunlock(&igberblock);
 }
 
@@ -1013,6 +1026,8 @@ igbetransmit(Ether* edev)
 		td->control = ((BLEN(bp) & LenMASK)<<LenSHIFT);
 		td->control |= Dext|Ifcs|Teop|DtypeDD;
 		ctlr->tb[tdt] = bp;
+		/* note size of queue of tds awaiting transmission */
+		notemark(&ctlr->wmtd, (tdt + Ntd - tdh) % Ntd);
 		tdt = NEXT(tdt, ctlr->ntd);
 		if(NEXT(tdt, ctlr->ntd) == tdh){
 			td->control |= Rs;
@@ -1085,6 +1100,7 @@ igberxinit(Ctlr* ctlr)
 		}
 	}
 	igbereplenish(ctlr);
+	nrbfull = 0;
 
 	switch(ctlr->id){
 	case i82540em:
@@ -1120,7 +1136,7 @@ igberproc(void* arg)
 	Rd *rd;
 	Block *bp;
 	Ctlr *ctlr;
-	int r, rdh;
+	int r, rdh, passed;
 	Ether *edev;
 
 	edev = arg;
@@ -1130,7 +1146,6 @@ igberproc(void* arg)
 	r = csr32r(ctlr, Rctl);
 	r |= Ren;
 	csr32w(ctlr, Rctl, r);
-
 	for(;;){
 		ctlr->rim = 0;
 		igbeim(ctlr, Rxt0|Rxo|Rxdmt0|Rxseq);
@@ -1138,6 +1153,7 @@ igberproc(void* arg)
 		sleep(&ctlr->rrendez, igberim, ctlr);
 
 		rdh = ctlr->rdh;
+		passed = 0;
 		for(;;){
 			rd = &ctlr->rdba[rdh];
 
@@ -1180,7 +1196,12 @@ igberproc(void* arg)
 					bp->checksum = rd->checksum;
 					bp->flag |= Bpktck;
 				}
+				ilock(&igberblock);
+				nrbfull++;
+				iunlock(&igberblock);
+				notemark(&ctlr->wmrb, nrbfull);
 				etheriq(edev, bp, 1);
+				passed++;
 			}
 			else if(ctlr->rb[rdh] != nil){
 				freeb(ctlr->rb[rdh]);
@@ -1196,6 +1217,8 @@ igberproc(void* arg)
 
 		if(ctlr->rdfree < ctlr->nrd/2 || (ctlr->rim & Rxdmt0))
 			igbereplenish(ctlr);
+		/* note how many rds had full buffers */
+		notemark(&ctlr->wmrd, passed);
 	}
 }
 
@@ -1258,6 +1281,9 @@ igbeattach(Ether* edev)
 		bp->free = igberbfree;
 		freeb(bp);
 	}
+	initmark(&ctlr->wmrb, Nrb, "rcv bufs unprocessed");
+	initmark(&ctlr->wmrd, Nrd-1, "rcv descrs processed at once");
+	initmark(&ctlr->wmtd, Ntd-1, "xmit descr queue len");
 
 	snprint(name, KNAMELEN, "#l%dlproc", edev->ctlrno);
 	kproc(name, igbelproc, edev);

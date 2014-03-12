@@ -19,6 +19,7 @@ int	mflag;
 int	fflag;
 int	kflag;
 int	debugboot;
+int	nousbboot;
 
 char	*bargv[Nbarg];
 int	bargc;
@@ -62,6 +63,8 @@ debuginit(int argc, char **argv)
 
 	if(getenv("debugboot"))
 		debugboot = 1;
+	if(getenv("nousbboot"))
+		nousbboot = 1;
 #ifdef DEBUG
 	print("argc=%d\n", argc);
 	for(fd = 0; fd < argc; fd++)
@@ -111,8 +114,7 @@ pickmethod(int argc, char **argv)
 static void
 doauth(int cpuflag)
 {
-	if(debugboot)
-		fprint(2, "auth...");
+	dprint("auth...");
 	authentication(cpuflag);
 }
 
@@ -255,8 +257,10 @@ boot(int argc, char *argv[])
 	 *  set up usb keyboard & mouse, if any.
 	 *  starts partfs on first disk, if any, to permit nvram on usb.
 	 */
-	usbinit(Dontpost);
+	if (!nousbboot)
+		usbinit(Dontpost);
 
+	dprint("pickmethod...");
 	mp = pickmethod(argc, argv);
 	islocal = strcmp(mp->name, "local") == 0;
 	ishybrid = strcmp(mp->name, "hybrid") == 0;
@@ -264,13 +268,17 @@ boot(int argc, char *argv[])
 	kbmap();			/*  load keymap if it's there. */
 
 	/* don't trigger aoe until the network has been configured */
+	dprint("bind #æ...");
 	bind("#æ", "/dev", MAFTER);	/* nvram could be here */
+	dprint("bind #S...");
 	bind("#S", "/dev", MAFTER);	/* nvram could be here */
+	dprint("partinit...");
 	partinit();
 
 	doauth(cpuflag);	/* authentication usually changes hostowner */
 	rfork(RFNAMEG);		/* leave existing subprocs in own namespace */
-	usbinit(Post);		/* restart partfs under the new hostowner id */
+	if (!nousbboot)
+		usbinit(Post);	/* restart partfs under the new hostowner id */
 	fd = connectroot(mp, islocal, ishybrid);
 	afd = nsinit(fd, &rsp);
 	close(fd);
@@ -319,6 +327,7 @@ rootserver(char *arg)
 	int n;
 
 	/* look for required reply */
+	dprint("read #e/nobootprompt...");
 	readfile("#e/nobootprompt", reply, sizeof(reply));
 	if(reply[0]){
 		mp = findmethod(reply);
@@ -336,6 +345,7 @@ rootserver(char *arg)
 	sprint(prompt+n, ")");
 
 	/* create default reply */
+	dprint("read #e/bootargs...");
 	readfile("#e/bootargs", reply, sizeof(reply));
 	if(reply[0] == 0 && arg != 0)
 		strcpy(reply, arg);
@@ -349,6 +359,7 @@ rootserver(char *arg)
 
 	/* parse replies */
 	do{
+		dprint("outin...");
 		outin(prompt, reply, sizeof(reply));
 		mp = findmethod(reply);
 	}while(mp == nil);
@@ -359,6 +370,7 @@ HaveMethod:
 	cp = strchr(reply, '!');
 	if(cp)
 		strcpy(sys, cp+1);
+	dprint("pickmethod done\n");
 	return mp;
 }
 
