@@ -12,6 +12,8 @@ enum
 	Nbarg=	16,
 };
 
+#define dprint(...) if(debugboot) fprint(2, __VA_ARGS__); else USED(debugboot)
+
 extern char*	bootdisk;		/* defined in ../$arch/boot$CONF.c */
 extern char*	rootdir;
 extern int	(*cfs)(int);

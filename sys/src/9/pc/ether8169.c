@@ -297,6 +297,10 @@ typedef struct Ctlr {
 	int	rcr;			/* receive configuration register */
 	int	imr;
 
+	Watermark wmrb;
+	Watermark wmrd;
+	Watermark wmtd;
+
 	QLock	slock;			/* statistics */
 	Dtcc*	dtcc;
 	uint	txdu;
@@ -494,7 +498,7 @@ rtl8169multicast(void* ether, uchar *eaddr, int add)
 static long
 rtl8169ifstat(Ether* edev, void* a, long n, ulong offset)
 {
-	char *p;
+	char *p, *s, *e;
 	Ctlr *ctlr;
 	Dtcc *dtcc;
 	int i, l, r, timeo;
@@ -535,6 +539,7 @@ rtl8169ifstat(Ether* edev, void* a, long n, ulong offset)
 
 	if((p = malloc(READSTR)) == nil)
 		error(Enomem);
+	e = p + READSTR;
 
 	l = snprint(p, READSTR, "TxOk: %llud\n", dtcc->txok);
 	l += snprint(p+l, READSTR-l, "RxOk: %llud\n", dtcc->rxok);
@@ -575,6 +580,11 @@ rtl8169ifstat(Ether* edev, void* a, long n, ulong offset)
 		}
 		snprint(p+l, READSTR-l, "\n");
 	}
+	s = p + l + 1;
+//	s = seprintmark(s, e, &ctlr->wmrb);
+	s = seprintmark(s, e, &ctlr->wmrd);
+	s = seprintmark(s, e, &ctlr->wmtd);
+	USED(s);
 
 	n = readstr(offset, a, n, p);
 
@@ -851,6 +861,9 @@ rtl8169attach(Ether* edev)
 		}
 		memset(ctlr->dtcc, 0, sizeof(Dtcc));	/* paranoia */
 		rtl8169init(edev);
+		initmark(&ctlr->wmrb, Nrd, "rcv bufs unprocessed");
+		initmark(&ctlr->wmrd, Nrd-1, "rcv descrs processed at once");
+		initmark(&ctlr->wmtd, Ntd-1, "xmit descr queue len");
 		ctlr->init = 1;
 	}
 	qunlock(&ctlr->alock);
@@ -942,6 +955,8 @@ rtl8169transmit(Ether* edev)
 		coherence();
 		d->control |= Own | Fs | Ls | BLEN(bp);
 
+		/* note size of queue of tds awaiting transmission */
+		notemark(&ctlr->wmtd, (x + Ntd - ctlr->tdh) % Ntd);
 		x = NEXT(x, ctlr->ntd);
 		ctlr->ntq++;
 	}
@@ -959,7 +974,7 @@ static void
 rtl8169receive(Ether* edev)
 {
 	D *d;
-	int rdh;
+	int rdh, passed;
 	Block *bp;
 	Ctlr *ctlr;
 	u32int control;
@@ -967,6 +982,7 @@ rtl8169receive(Ether* edev)
 	ctlr = edev->ctlr;
 
 	rdh = ctlr->rdh;
+	passed = 0;
 	for(;;){
 		d = &ctlr->rd[rdh];
 
@@ -1009,6 +1025,7 @@ rtl8169receive(Ether* edev)
 				break;
 			}
 			etheriq(edev, bp, 1);
+			passed++;
 		}else{
 			if(!(control & Res))
 				ctlr->frag++;
@@ -1023,6 +1040,8 @@ rtl8169receive(Ether* edev)
 		if(ctlr->nrdfree < ctlr->nrd/2)
 			rtl8169replenish(ctlr);
 	}
+	/* note how many rds had full buffers */
+	notemark(&ctlr->wmrd, passed);
 	ctlr->rdh = rdh;
 }
 

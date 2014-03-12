@@ -45,6 +45,7 @@ PORT=\
 	sysproc.$O\
 	taslock.$O\
 	tod.$O\
+	watermarks.$O\
 	xalloc.$O\
 
 OBJ=\

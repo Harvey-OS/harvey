@@ -24,7 +24,7 @@ enum {
 	/* tunable parameters */
 	Nrd	= 256,		/* multiple of 8, power of 2 for NEXTPOW2 */
 	Nrb	= 1024,
-	Ntd	= 128,		/* multiple of 8, power of 2 for NEXTPOW2 */
+	Ntd	= 64,		/* multiple of 8, power of 2 for NEXTPOW2 */
 	Goslow	= 0,		/* flag: go slow by throttling intrs, etc. */
 };
 
@@ -312,8 +312,12 @@ struct Ctlr {
 	int	procsrunning;
 	int	attached;
 
-	Lock	slock;
-	Lock	alock;			/* attach lock */
+	Watermark wmrb;
+	Watermark wmrd;
+	Watermark wmtd;
+
+	QLock	slock;
+	QLock	alock;			/* attach lock */
 	QLock	tlock;
 	Rendez	lrendez;
 	Rendez	trendez;
@@ -350,16 +354,17 @@ static	Ctlr	*ctlrtab[4];
 static	int	nctlr;
 static	Lock	rblock;
 static	Block	*rbpool;
+static	int	nrbfull;  /* # of rcv Blocks with data awaiting processing */
 
 static void
-readstats(Ctlr *c)
+readstats(Ctlr *ctlr)
 {
 	int i;
 
-	lock(&c->slock);
-	for(i = 0; i < nelem(c->stats); i++)
-		c->stats[i] += c->reg[stattab[i].reg >> 2];
-	unlock(&c->slock);
+	qlock(&ctlr->slock);
+	for(i = 0; i < nelem(ctlr->stats); i++)
+		ctlr->stats[i] += ctlr->reg[stattab[i].reg >> 2];
+	qunlock(&ctlr->slock);
 }
 
 static int speedtab[] = {
@@ -369,28 +374,32 @@ static int speedtab[] = {
 };
 
 static long
-ifstat(Ether *e, void *a, long n, ulong offset)
+ifstat(Ether *edev, void *a, long n, ulong offset)
 {
 	uint i, *t;
-	char *s, *p, *q;
-	Ctlr *c;
+	char *s, *p, *e;
+	Ctlr *ctlr;
 
-	c = e->ctlr;
+	ctlr = edev->ctlr;
 	p = s = malloc(READSTR);
 	if(p == nil)
 		error(Enomem);
-	q = p + READSTR;
+	e = p + READSTR;
 
-	readstats(c);
+	readstats(ctlr);
 	for(i = 0; i < nelem(stattab); i++)
-		if(c->stats[i] > 0)
-			p = seprint(p, q, "%.10s  %uld\n", stattab[i].name,
-				c->stats[i]);
-	t = c->speeds;
-	p = seprint(p, q, "speeds: 0:%d 1000:%d 10000:%d\n", t[0], t[1], t[2]);
-	p = seprint(p, q, "mtu: min:%d max:%d\n", e->minmtu, e->maxmtu);
-	seprint(p, q, "rdfree %d rdh %d rdt %d\n", c->rdfree, c->reg[Rdt],
-		c->reg[Rdh]);
+		if(ctlr->stats[i] > 0)
+			p = seprint(p, e, "%.10s  %uld\n", stattab[i].name,
+				ctlr->stats[i]);
+	t = ctlr->speeds;
+	p = seprint(p, e, "speeds: 0:%d 1000:%d 10000:%d\n", t[0], t[1], t[2]);
+	p = seprint(p, e, "mtu: min:%d max:%d\n", edev->minmtu, edev->maxmtu);
+	p = seprint(p, e, "rdfree %d rdh %d rdt %d\n", ctlr->rdfree, ctlr->reg[Rdt],
+		ctlr->reg[Rdh]);
+	p = seprintmark(p, e, &ctlr->wmrb);
+	p = seprintmark(p, e, &ctlr->wmrd);
+	p = seprintmark(p, e, &ctlr->wmtd);
+	USED(p);
 	n = readstr(offset, a, n, s);
 	free(s);
 
@@ -398,12 +407,12 @@ ifstat(Ether *e, void *a, long n, ulong offset)
 }
 
 static void
-ienable(Ctlr *c, int i)
+ienable(Ctlr *ctlr, int i)
 {
-	ilock(&c->imlock);
-	c->im |= i;
-	c->reg[Ims] = c->im;
-	iunlock(&c->imlock);
+	ilock(&ctlr->imlock);
+	ctlr->im |= i;
+	ctlr->reg[Ims] = ctlr->im;
+	iunlock(&ctlr->imlock);
 }
 
 static int
@@ -416,23 +425,23 @@ static void
 lproc(void *v)
 {
 	int r, i;
-	Ctlr *c;
+	Ctlr *ctlr;
 	Ether *e;
 
 	e = v;
-	c = e->ctlr;
+	ctlr = e->ctlr;
 	for (;;) {
-		r = c->reg[Links];
+		r = ctlr->reg[Links];
 		e->link = (r & Lnkup) != 0;
 		i = 0;
 		if(e->link)
 			i = 1 + ((r & Lnkspd) != 0);
-		c->speeds[i]++;
+		ctlr->speeds[i]++;
 		e->mbps = speedtab[i];
-		c->lim = 0;
-		ienable(c, Lsc);
-		sleep(&c->lrendez, lim, c);
-		c->lim = 0;
+		ctlr->lim = 0;
+		ienable(ctlr, Lsc);
+		sleep(&ctlr->lrendez, lim, ctlr);
+		ctlr->lim = 0;
 	}
 }
 
@@ -466,23 +475,24 @@ rbfree(Block *b)
 	ilock(&rblock);
 	b->next = rbpool;
 	rbpool = b;
+	nrbfull--;
 	iunlock(&rblock);
 }
 
 static int
-cleanup(Ctlr *c, int tdh)
+cleanup(Ctlr *ctlr, int tdh)
 {
 	Block *b;
 	uint m, n;
 
-	m = c->ntd - 1;
-	while(c->tdba[n = NEXTPOW2(tdh, m)].status & Tdd){
+	m = ctlr->ntd - 1;
+	while(ctlr->tdba[n = NEXTPOW2(tdh, m)].status & Tdd){
 		tdh = n;
-		b = c->tb[tdh];
-		c->tb[tdh] = 0;
+		b = ctlr->tb[tdh];
+		ctlr->tb[tdh] = 0;
 		if (b)
 			freeb(b);
-		c->tdba[tdh].status = 0;
+		ctlr->tdba[tdh].status = 0;
 	}
 	return tdh;
 }
@@ -491,42 +501,44 @@ void
 transmit(Ether *e)
 {
 	uint i, m, tdt, tdh;
-	Ctlr *c;
+	Ctlr *ctlr;
 	Block *b;
 	Td *t;
 
-	c = e->ctlr;
-	if(!canqlock(&c->tlock)){
-		ienable(c, Itx0);
+	ctlr = e->ctlr;
+	if(!canqlock(&ctlr->tlock)){
+		ienable(ctlr, Itx0);
 		return;
 	}
-	tdh = c->tdh = cleanup(c, c->tdh);
-	tdt = c->tdt;
-	m = c->ntd - 1;
+	tdh = ctlr->tdh = cleanup(ctlr, ctlr->tdh);
+	tdt = ctlr->tdt;
+	m = ctlr->ntd - 1;
 	for(i = 0; ; i++){
 		if(NEXTPOW2(tdt, m) == tdh){	/* ring full? */
-			ienable(c, Itx0);
+			ienable(ctlr, Itx0);
 			break;
 		}
 		if((b = qget(e->oq)) == nil)
 			break;
-		assert(c->tdba != nil);
-		t = c->tdba + tdt;
+		assert(ctlr->tdba != nil);
+		t = ctlr->tdba + tdt;
 		t->addr[0] = PCIWADDR(b->rp);
 		t->length = BLEN(b);
 		t->cmd = Ifcs | Teop;
 		if (!Goslow)
 			t->cmd |= Rs;
-		c->tb[tdt] = b;
+		ctlr->tb[tdt] = b;
+		/* note size of queue of tds awaiting transmission */
+		notemark(&ctlr->wmtd, (tdt + Ntd - tdh) % Ntd);
 		tdt = NEXTPOW2(tdt, m);
 	}
 	if(i) {
 		coherence();
-		c->reg[Tdt] = c->tdt = tdt;	/* make new Tds active */
+		ctlr->reg[Tdt] = ctlr->tdt = tdt;  /* make new Tds active */
 		coherence();
-		ienable(c, Itx0);
+		ienable(ctlr, Itx0);
 	}
-	qunlock(&c->tlock);
+	qunlock(&ctlr->tlock);
 }
 
 static int
@@ -538,101 +550,114 @@ tim(void *c)
 static void
 tproc(void *v)
 {
-	Ctlr *c;
+	Ctlr *ctlr;
 	Ether *e;
 
 	e = v;
-	c = e->ctlr;
+	ctlr = e->ctlr;
 	for (;;) {
-		sleep(&c->trendez, tim, c);  /* transmit interrupt kicks us */
-		c->tim = 0;
+		sleep(&ctlr->trendez, tim, ctlr); /* xmit interrupt kicks us */
+		ctlr->tim = 0;
 		transmit(e);
 	}
 }
 
 static void
-rxinit(Ctlr *c)
+rxinit(Ctlr *ctlr)
 {
-	int i, is598;
+	int i, is598, autoc;
+	ulong until;
 	Block *b;
 
-	c->reg[Rxctl] &= ~Rxen;
-	c->reg[Rxdctl] = 0;
-	for(i = 0; i < c->nrd; i++){
-		b = c->rb[i];
-		c->rb[i] = 0;
+	ctlr->reg[Rxctl] &= ~Rxen;
+	ctlr->reg[Rxdctl] = 0;
+	for(i = 0; i < ctlr->nrd; i++){
+		b = ctlr->rb[i];
+		ctlr->rb[i] = 0;
 		if(b)
 			freeb(b);
 	}
-	c->rdfree = 0;
+	ctlr->rdfree = 0;
 
 	coherence();
-	c->reg[Fctrl] |= Bam;
-	c->reg[Fctrl] &= ~(Upe | Mpe);
+	ctlr->reg[Fctrl] |= Bam;
+	ctlr->reg[Fctrl] &= ~(Upe | Mpe);
 
 	/* intel gets some csums wrong (e.g., errata 44) */
-	c->reg[Rxcsum] &= ~Ippcse;
-	c->reg[Hlreg0] &= ~Jumboen;		/* jumbos are a bad idea */
-	c->reg[Hlreg0] |= Txcrcen | Rxcrcstrip | Txpaden;
-	c->reg[Srrctl] = (c->rbsz + 1024 - 1) / 1024;
-	c->reg[Mhadd] = c->rbsz << 16;
+	ctlr->reg[Rxcsum] &= ~Ippcse;
+	ctlr->reg[Hlreg0] &= ~Jumboen;		/* jumbos are a bad idea */
+	ctlr->reg[Hlreg0] |= Txcrcen | Rxcrcstrip | Txpaden;
+	ctlr->reg[Srrctl] = (ctlr->rbsz + 1024 - 1) / 1024;
+	ctlr->reg[Mhadd] = ctlr->rbsz << 16;
 
-	c->reg[Rbal] = PCIWADDR(c->rdba);
-	c->reg[Rbah] = 0;
-	c->reg[Rdlen] = c->nrd*sizeof(Rd);	/* must be multiple of 128 */
-	c->reg[Rdh] = 0;
-	c->reg[Rdt] = c->rdt = 0;
+	ctlr->reg[Rbal] = PCIWADDR(ctlr->rdba);
+	ctlr->reg[Rbah] = 0;
+	ctlr->reg[Rdlen] = ctlr->nrd*sizeof(Rd); /* must be multiple of 128 */
+	ctlr->reg[Rdh] = 0;
+	ctlr->reg[Rdt] = ctlr->rdt = 0;
 	coherence();
 
-	is598 = (c->type == I82598);
+	is598 = (ctlr->type == I82598);
 	if (is598)
-		c->reg[Rdrxctl] = Rdmt¼;
+		ctlr->reg[Rdrxctl] = Rdmt¼;
 	else {
-		c->reg[Rdrxctl] |= Crcstrip;
-		c->reg[Rdrxctl] &= ~Rscfrstsize;
+		ctlr->reg[Rdrxctl] |= Crcstrip;
+		ctlr->reg[Rdrxctl] &= ~Rscfrstsize;
 	}
 	if (Goslow && is598)
-		c->reg[Rxdctl] = 8<<Wthresh | 8<<Pthresh | 4<<Hthresh | Renable;
+		ctlr->reg[Rxdctl] = 8<<Wthresh | 8<<Pthresh | 4<<Hthresh | Renable;
 	else
-		c->reg[Rxdctl] = Renable;
+		ctlr->reg[Rxdctl] = Renable;
 	coherence();
-	while (!(c->reg[Rxdctl] & Renable))
+
+	/*
+	 * don't wait forever like an idiot (and hang the system),
+	 * maybe it's disconnected.
+	 */
+	until = TK2MS(MACHP(0)->ticks) + 250;
+	while (!(ctlr->reg[Rxdctl] & Renable) && TK2MS(MACHP(0)->ticks) < until)
 		;
-	c->reg[Rxctl] |= Rxen | (is598? Dmbyps: 0);
+	if(!(ctlr->reg[Rxdctl] & Renable))
+		print("#l%d: Renable didn't come on, might be disconnected\n",
+			ctlr->edev->ctlrno);
+
+	ctlr->reg[Rxctl] |= Rxen | (is598? Dmbyps: 0);
 
 	if (is598){
-		print("82598: autoc %#ux; lms %d (3 is 10g sfp)\n",
-			c->reg[Autoc], ((c->reg[Autoc]>>Lmsshift) & Lmsmask));
-		c->reg[Autoc] |= Flu;
+		autoc = ctlr->reg[Autoc];
+		/* what is this rubbish and why do we care? */
+		print("#l%d: autoc %#ux; lms %d (3 is 10g sfp)\n",
+			ctlr->edev->ctlrno, autoc, (autoc>>Lmsshift) & Lmsmask);
+		ctlr->reg[Autoc] |= Flu;
 		coherence();
 		delay(50);
 	}
 }
 
 static void
-replenish(Ctlr *c, uint rdh)
+replenish(Ctlr *ctlr, uint rdh)
 {
 	int rdt, m, i;
 	Block *b;
 	Rd *r;
 
-	m = c->nrd - 1;
+	m = ctlr->nrd - 1;
 	i = 0;
-	for(rdt = c->rdt; NEXTPOW2(rdt, m) != rdh; rdt = NEXTPOW2(rdt, m)){
-		r = c->rdba + rdt;
+	for(rdt = ctlr->rdt; NEXTPOW2(rdt, m) != rdh; rdt = NEXTPOW2(rdt, m)){
+		r = ctlr->rdba + rdt;
 		if((b = rballoc()) == nil){
-			print("82598: no buffers\n");
+			print("#l%d: no buffers\n", ctlr->edev->ctlrno);
 			break;
 		}
-		c->rb[rdt] = b;
+		ctlr->rb[rdt] = b;
 		r->addr[0] = PCIWADDR(b->rp);
 		r->status = 0;
-		c->rdfree++;
+		ctlr->rdfree++;
 		i++;
 	}
 	if(i) {
 		coherence();
-		c->reg[Rdt] = c->rdt = rdt;	/* hand back recycled rdescs */
+		ctlr->reg[Rdt] = ctlr->rdt = rdt; /* hand back recycled rdescs */
 		coherence();
 	}
 }
@@ -646,63 +671,75 @@ rim(void *v)
 void
 rproc(void *v)
 {
+	int passed;
 	uint m, rdh;
-	Block *b;
-	Ctlr *c;
+	Block *bp;
+	Ctlr *ctlr;
 	Ether *e;
 	Rd *r;
 
 	e = v;
-	c = e->ctlr;
-	m = c->nrd - 1;
+	ctlr = e->ctlr;
+	m = ctlr->nrd - 1;
 	for (rdh = 0; ; ) {
-		replenish(c, rdh);
-		ienable(c, Irx0);
-		sleep(&c->rrendez, rim, c);
+		replenish(ctlr, rdh);
+		ienable(ctlr, Irx0);
+		sleep(&ctlr->rrendez, rim, ctlr);
+		passed = 0;
 		for (;;) {
-			c->rim = 0;
-			r = c->rdba + rdh;
+			ctlr->rim = 0;
+			r = ctlr->rdba + rdh;
 			if(!(r->status & Rdd))
 				break;		/* wait for pkts to arrive */
-			b = c->rb[rdh];
-			c->rb[rdh] = 0;
+			bp = ctlr->rb[rdh];
+			ctlr->rb[rdh] = 0;
 			if (r->length > ETHERMAXTU)
-				print("82598: got jumbo of %d bytes\n", r->length);
-			b->wp += r->length;
-			b->lim = b->wp;			/* lie like a dog */
+				print("#l%d: got jumbo of %d bytes\n",
+					e->ctlrno, r->length);
+			bp->wp += r->length;
+			bp->lim = bp->wp;		/* lie like a dog */
 //			r->status = 0;
-			etheriq(e, b, 1);
-			c->rdfree--;
+
+			ilock(&rblock);
+			nrbfull++;
+			iunlock(&rblock);
+			notemark(&ctlr->wmrb, nrbfull);
+			etheriq(e, bp, 1);
+
+			passed++;
+			ctlr->rdfree--;
 			rdh = NEXTPOW2(rdh, m);
-			if (c->rdfree <= c->nrd - 16)
-				replenish(c, rdh);
+			if (ctlr->rdfree <= ctlr->nrd - 16)
+				replenish(ctlr, rdh);
 		}
+		/* note how many rds had full buffers */
+		notemark(&ctlr->wmrd, passed);
 	}
 }
 
 static void
 promiscuous(void *a, int on)
 {
-	Ctlr *c;
+	Ctlr *ctlr;
 	Ether *e;
 
 	e = a;
-	c = e->ctlr;
+	ctlr = e->ctlr;
 	if(on)
-		c->reg[Fctrl] |= Upe | Mpe;
+		ctlr->reg[Fctrl] |= Upe | Mpe;
 	else
-		c->reg[Fctrl] &= ~(Upe | Mpe);
+		ctlr->reg[Fctrl] &= ~(Upe | Mpe);
 }
 
 static void
 multicast(void *a, uchar *ea, int on)
 {
 	int b, i;
-	Ctlr *c;
+	Ctlr *ctlr;
 	Ether *e;
 
 	e = a;
-	c = e->ctlr;
+	ctlr = e->ctlr;
 
 	/*
 	 * multiple ether addresses can hash to the same filter bit,
@@ -715,14 +752,14 @@ multicast(void *a, uchar *ea, int on)
 	b = (ea[5]&1)<<4 | ea[4]>>4;
 	b = 1 << b;
 	if(on)
-		c->mta[i] |= b;
+		ctlr->mta[i] |= b;
 //	else
-//		c->mta[i] &= ~b;
-	c->reg[Mta+i] = c->mta[i];
+//		ctlr->mta[i] &= ~b;
+	ctlr->reg[Mta+i] = ctlr->mta[i];
 }
 
 static void
-freemem(Ctlr *c)
+freemem(Ctlr *ctlr)
 {
 	Block *b;
 
@@ -730,46 +767,46 @@ freemem(Ctlr *c)
 		b->free = 0;
 		freeb(b);
 	}
-	free(c->rdba);
-	c->rdba = nil;
-	free(c->tdba);
-	c->tdba = nil;
-	free(c->rb);
-	c->rb = nil;
-	free(c->tb);
-	c->tb = nil;
+	free(ctlr->rdba);
+	ctlr->rdba = nil;
+	free(ctlr->tdba);
+	ctlr->tdba = nil;
+	free(ctlr->rb);
+	ctlr->rb = nil;
+	free(ctlr->tb);
+	ctlr->tb = nil;
 }
 
 static int
-detach(Ctlr *c)
+detach(Ctlr *ctlr)
 {
 	int i, is598;
 
-	c->reg[Imc] = ~0;
-	c->reg[Ctrl] |= Rst;
+	ctlr->reg[Imc] = ~0;
+	ctlr->reg[Ctrl] |= Rst;
 	for(i = 0; i < 100; i++){
 		delay(1);
-		if((c->reg[Ctrl] & Rst) == 0)
+		if((ctlr->reg[Ctrl] & Rst) == 0)
 			break;
 	}
 	if (i >= 100)
 		return -1;
-	is598 = (c->type == I82598);
+	is598 = (ctlr->type == I82598);
 	if (is598) {			/* errata */
 		delay(50);
-		c->reg[Ecc] &= ~(1<<21 | 1<<18 | 1<<9 | 1<<6);
+		ctlr->reg[Ecc] &= ~(1<<21 | 1<<18 | 1<<9 | 1<<6);
 	}
 
 	/* not cleared by reset; kill it manually. */
 	for(i = 1; i < 16; i++)
-		c->reg[is598? Rah98: Rah99] &= ~Enable;
+		ctlr->reg[is598? Rah98: Rah99] &= ~Enable;
 	for(i = 0; i < 128; i++)
-		c->reg[Mta + i] = 0;
+		ctlr->reg[Mta + i] = 0;
 	for(i = 1; i < (is598? 640: 128); i++)
-		c->reg[Vfta + i] = 0;
+		ctlr->reg[Vfta + i] = 0;
 
-//	freemem(c);			// TODO
-	c->attached = 0;
+//	freemem(ctlr);			// TODO
+	ctlr->attached = 0;
 	return 0;
 }
 
@@ -782,133 +819,133 @@ shutdown(Ether *e)
 
 /* ≤ 20ms */
 static ushort
-eeread(Ctlr *c, int i)
+eeread(Ctlr *ctlr, int i)
 {
-	c->reg[Eerd] = EEstart | i<<2;
-	while((c->reg[Eerd] & EEdone) == 0)
+	ctlr->reg[Eerd] = EEstart | i<<2;
+	while((ctlr->reg[Eerd] & EEdone) == 0)
 		;
-	return c->reg[Eerd] >> 16;
+	return ctlr->reg[Eerd] >> 16;
 }
 
 static int
-eeload(Ctlr *c)
+eeload(Ctlr *ctlr)
 {
 	ushort u, v, p, l, i, j;
 
-	if((eeread(c, 0) & 0xc0) != 0x40)
+	if((eeread(ctlr, 0) & 0xc0) != 0x40)
 		return -1;
 	u = 0;
 	for(i = 0; i < 0x40; i++)
-		u +=  eeread(c, i);
+		u +=  eeread(ctlr, i);
 	for(i = 3; i < 0xf; i++){
-		p = eeread(c, i);
-		l = eeread(c, p++);
+		p = eeread(ctlr, i);
+		l = eeread(ctlr, p++);
 		if((int)p + l + 1 > 0xffff)
 			continue;
 		for(j = p; j < p + l; j++)
-			u += eeread(c, j);
+			u += eeread(ctlr, j);
 	}
 	if(u != 0xbaba)
 		return -1;
-	if(c->reg[Status] & (1<<3))
-		u = eeread(c, 10);
+	if(ctlr->reg[Status] & (1<<3))
+		u = eeread(ctlr, 10);
 	else
-		u = eeread(c, 9);
+		u = eeread(ctlr, 9);
 	u++;
 	for(i = 0; i < Eaddrlen;){
-		v = eeread(c, u + i/2);
-		c->ra[i++] = v;
-		c->ra[i++] = v>>8;
+		v = eeread(ctlr, u + i/2);
+		ctlr->ra[i++] = v;
+		ctlr->ra[i++] = v>>8;
 	}
-	c->ra[5] += (c->reg[Status] & 0xc) >> 2;
+	ctlr->ra[5] += (ctlr->reg[Status] & 0xc) >> 2;
 	return 0;
 }
 
 static int
-reset(Ctlr *c)
+reset(Ctlr *ctlr)
 {
 	int i, is598;
 	uchar *p;
 
-	if(detach(c)){
+	if(detach(ctlr)){
 		print("82598: reset timeout\n");
 		return -1;
 	}
-	if(eeload(c)){
+	if(eeload(ctlr)){
 		print("82598: eeprom failure\n");
 		return -1;
 	}
-	p = c->ra;
-	is598 = (c->type == I82598);
-	c->reg[is598? Ral98: Ral99] = p[3]<<24 | p[2]<<16 | p[1]<<8 | p[0];
-	c->reg[is598? Rah98: Rah99] = p[5]<<8 | p[4] | Enable;
+	p = ctlr->ra;
+	is598 = (ctlr->type == I82598);
+	ctlr->reg[is598? Ral98: Ral99] = p[3]<<24 | p[2]<<16 | p[1]<<8 | p[0];
+	ctlr->reg[is598? Rah98: Rah99] = p[5]<<8 | p[4] | Enable;
 
-	readstats(c);
-	for(i = 0; i<nelem(c->stats); i++)
-		c->stats[i] = 0;
+	readstats(ctlr);
+	for(i = 0; i<nelem(ctlr->stats); i++)
+		ctlr->stats[i] = 0;
 
-	c->reg[Ctrlext] |= 1 << 16;	/* required by errata (spec change 4) */
+	ctlr->reg[Ctrlext] |= 1 << 16;	/* required by errata (spec change 4) */
 	if (Goslow) {
 		/* make some guesses for flow control */
-		c->reg[Fcrtl] = 0x10000 | Enable;
-		c->reg[Fcrth] = 0x40000 | Enable;
-		c->reg[Rcrtv] = 0x6000;
+		ctlr->reg[Fcrtl] = 0x10000 | Enable;
+		ctlr->reg[Fcrth] = 0x40000 | Enable;
+		ctlr->reg[Rcrtv] = 0x6000;
 	} else
-		c->reg[Fcrtl] = c->reg[Fcrth] = c->reg[Rcrtv] = 0;
+		ctlr->reg[Fcrtl] = ctlr->reg[Fcrth] = ctlr->reg[Rcrtv] = 0;
 
 	/* configure interrupt mapping (don't ask) */
-	c->reg[Ivar+0] =     0 | 1<<7;
-	c->reg[Ivar+64/4] =  1 | 1<<7;
-//	c->reg[Ivar+97/4] = (2 | 1<<7) << (8*(97%4));
+	ctlr->reg[Ivar+0] =     0 | 1<<7;
+	ctlr->reg[Ivar+64/4] =  1 | 1<<7;
+//	ctlr->reg[Ivar+97/4] = (2 | 1<<7) << (8*(97%4));
 
 	if (Goslow) {
 		/* interrupt throttling goes here. */
 		for(i = Itr; i < Itr + 20; i++)
-			c->reg[i] = 128;		/* ¼µs intervals */
-		c->reg[Itr + Itx0] = 256;
+			ctlr->reg[i] = 128;		/* ¼µs intervals */
+		ctlr->reg[Itr + Itx0] = 256;
 	} else {					/* don't throttle */
 		for(i = Itr; i < Itr + 20; i++)
-			c->reg[i] = 0;			/* ¼µs intervals */
-		c->reg[Itr + Itx0] = 0;
+			ctlr->reg[i] = 0;		/* ¼µs intervals */
+		ctlr->reg[Itr + Itx0] = 0;
 	}
 	return 0;
 }
 
 static void
-txinit(Ctlr *c)
+txinit(Ctlr *ctlr)
 {
 	Block *b;
 	int i;
 
 	if (Goslow)
-		c->reg[Txdctl] = 16<<Wthresh | 16<<Pthresh;
+		ctlr->reg[Txdctl] = 16<<Wthresh | 16<<Pthresh;
 	else
-		c->reg[Txdctl] = 0;
-	if (c->type == I82599)
-		c->reg[Dtxctl99] = 0;
+		ctlr->reg[Txdctl] = 0;
+	if (ctlr->type == I82599)
+		ctlr->reg[Dtxctl99] = 0;
 	coherence();
-	for(i = 0; i < c->ntd; i++){
-		b = c->tb[i];
-		c->tb[i] = 0;
+	for(i = 0; i < ctlr->ntd; i++){
+		b = ctlr->tb[i];
+		ctlr->tb[i] = 0;
 		if(b)
 			freeb(b);
 	}
 
-	assert(c->tdba != nil);
-	memset(c->tdba, 0, c->ntd * sizeof(Td));
-	c->reg[Tdbal] = PCIWADDR(c->tdba);
-	c->reg[Tdbah] = 0;
-	c->reg[Tdlen] = c->ntd*sizeof(Td);	/* must be multiple of 128 */
-	c->reg[Tdh] = 0;
-	c->tdh = c->ntd - 1;
-	c->reg[Tdt] = c->tdt = 0;
+	assert(ctlr->tdba != nil);
+	memset(ctlr->tdba, 0, ctlr->ntd * sizeof(Td));
+	ctlr->reg[Tdbal] = PCIWADDR(ctlr->tdba);
+	ctlr->reg[Tdbah] = 0;
+	ctlr->reg[Tdlen] = ctlr->ntd*sizeof(Td); /* must be multiple of 128 */
+	ctlr->reg[Tdh] = 0;
+	ctlr->tdh = ctlr->ntd - 1;
+	ctlr->reg[Tdt] = ctlr->tdt = 0;
 	coherence();
-	if (c->type == I82599)
-		c->reg[Dtxctl99] |= Te;
+	if (ctlr->type == I82599)
+		ctlr->reg[Dtxctl99] |= Te;
 	coherence();
-	c->reg[Txdctl] |= Ten;
+	ctlr->reg[Txdctl] |= Ten;
 	coherence();
-	while (!(c->reg[Txdctl] & Ten))
+	while (!(ctlr->reg[Txdctl] & Ten))
 		;
 }
 
@@ -916,51 +953,58 @@ static void
 attach(Ether *e)
 {
 	Block *b;
-	Ctlr *c;
+	Ctlr *ctlr;
 	char buf[KNAMELEN];
 
-	c = e->ctlr;
-	c->edev = e;			/* point back to Ether* */
-	lock(&c->alock);
+	ctlr = e->ctlr;
+	ctlr->edev = e;			/* point back to Ether* */
+	qlock(&ctlr->alock);
 	if(waserror()){
-		unlock(&c->alock);
-		freemem(c);
+		reset(ctlr);
+		freemem(ctlr);
+		qunlock(&ctlr->alock);
 		nexterror();
 	}
-	if(c->rdba == nil) {
-		c->nrd = Nrd;
-		c->ntd = Ntd;
-		c->rdba = mallocalign(c->nrd * sizeof *c->rdba, Descalign, 0, 0);
-		c->tdba = mallocalign(c->ntd * sizeof *c->tdba, Descalign, 0, 0);
-		c->rb = malloc(c->nrd * sizeof(Block *));
-		c->tb = malloc(c->ntd * sizeof(Block *));
-		if (c->rdba == nil || c->tdba == nil ||
-		    c->rb == nil || c->tb == nil)
+	if(ctlr->rdba == nil) {
+		ctlr->nrd = Nrd;
+		ctlr->ntd = Ntd;
+		ctlr->rdba = mallocalign(ctlr->nrd * sizeof *ctlr->rdba,
+			Descalign, 0, 0);
+		ctlr->tdba = mallocalign(ctlr->ntd * sizeof *ctlr->tdba,
+			Descalign, 0, 0);
+		ctlr->rb = malloc(ctlr->nrd * sizeof(Block *));
+		ctlr->tb = malloc(ctlr->ntd * sizeof(Block *));
+		if (ctlr->rdba == nil || ctlr->tdba == nil ||
+		    ctlr->rb == nil || ctlr->tb == nil)
 			error(Enomem);
 
-		for(c->nrb = 0; c->nrb < 2*Nrb; c->nrb++){
-			b = allocb(c->rbsz + BY2PG);	/* see rbfree() */
+		for(ctlr->nrb = 0; ctlr->nrb < 2*Nrb; ctlr->nrb++){
+			b = allocb(ctlr->rbsz + BY2PG);	/* see rbfree() */
 			if(b == nil)
 				error(Enomem);
 			b->free = rbfree;
 			freeb(b);
 		}
 	}
-	if (!c->attached) {
-		rxinit(c);
-		txinit(c);
-		if (!c->procsrunning) {
+	if (!ctlr->attached) {
+		rxinit(ctlr);
+		txinit(ctlr);
+		nrbfull = 0;
+		if (!ctlr->procsrunning) {
 			snprint(buf, sizeof buf, "#l%dl", e->ctlrno);
 			kproc(buf, lproc, e);
 			snprint(buf, sizeof buf, "#l%dr", e->ctlrno);
 			kproc(buf, rproc, e);
 			snprint(buf, sizeof buf, "#l%dt", e->ctlrno);
 			kproc(buf, tproc, e);
-			c->procsrunning = 1;
+			ctlr->procsrunning = 1;
 		}
-		c->attached = 1;
+		initmark(&ctlr->wmrb, Nrb, "rcv bufs unprocessed");
+		initmark(&ctlr->wmrd, Nrd-1, "rcv descrs processed at once");
+		initmark(&ctlr->wmtd, Ntd-1, "xmit descr queue len");
+		ctlr->attached = 1;
 	}
-	unlock(&c->alock);
+	qunlock(&ctlr->alock);
 	poperror();
 }
 
@@ -968,33 +1012,33 @@ static void
 interrupt(Ureg*, void *v)
 {
 	int icr, im;
-	Ctlr *c;
+	Ctlr *ctlr;
 	Ether *e;
 
 	e = v;
-	c = e->ctlr;
-	ilock(&c->imlock);
-	c->reg[Imc] = ~0;			/* disable all intrs */
-	im = c->im;
-	while((icr = c->reg[Icr] & c->im) != 0){
+	ctlr = e->ctlr;
+	ilock(&ctlr->imlock);
+	ctlr->reg[Imc] = ~0;			/* disable all intrs */
+	im = ctlr->im;
+	while((icr = ctlr->reg[Icr] & ctlr->im) != 0){
 		if(icr & Irx0){
 			im &= ~Irx0;
-			c->rim = Irx0;
-			wakeup(&c->rrendez);
+			ctlr->rim = Irx0;
+			wakeup(&ctlr->rrendez);
 		}
 		if(icr & Itx0){
 			im &= ~Itx0;
-			c->tim = Itx0;
-			wakeup(&c->trendez);
+			ctlr->tim = Itx0;
+			wakeup(&ctlr->trendez);
 		}
 		if(icr & Lsc){
 			im &= ~Lsc;
-			c->lim = Lsc;
-			wakeup(&c->lrendez);
+			ctlr->lim = Lsc;
+			wakeup(&ctlr->lrendez);
 		}
 	}
-	c->reg[Ims] = c->im = im;  /* enable only intrs we didn't service */
-	iunlock(&c->imlock);
+	ctlr->reg[Ims] = ctlr->im = im; /* enable only intrs we didn't service */
+	iunlock(&ctlr->imlock);
 }
 
 static void
@@ -1003,7 +1047,7 @@ scan(void)
 	int pciregs, pcimsix, type;
 	ulong io, iomsi;
 	void *mem, *memmsi;
-	Ctlr *c;
+	Ctlr *ctlr;
 	Pcidev *p;
 
 	p = 0;
@@ -1030,7 +1074,7 @@ scan(void)
 			continue;
 		}
 		pciregs = 0;
-		if(nctlr == nelem(ctlrtab)){
+		if(nctlr >= nelem(ctlrtab)){
 			print("i82598: too many controllers\n");
 			return;
 		}
@@ -1052,28 +1096,28 @@ scan(void)
 			continue;
 		}
 
-		c = malloc(sizeof *c);
-		if(c == nil) {
+		ctlr = malloc(sizeof *ctlr);
+		if(ctlr == nil) {
 			vunmap(mem, p->mem[pciregs].size);
 			vunmap(memmsi, p->mem[pcimsix].size);
 			error(Enomem);
 		}
-		c->p = p;
-		c->type = type;
-		c->physreg = (u32int*)io;
-		c->physmsix = (u32int*)iomsi;
-		c->reg = (u32int*)mem;
-		c->msix = (u32int*)memmsi;	/* unused */
-		c->rbsz = Rbsz;
-		if(reset(c)){
+		ctlr->p = p;
+		ctlr->type = type;
+		ctlr->physreg = (u32int*)io;
+		ctlr->physmsix = (u32int*)iomsi;
+		ctlr->reg = (u32int*)mem;
+		ctlr->msix = (u32int*)memmsi;	/* unused */
+		ctlr->rbsz = Rbsz;
+		if(reset(ctlr)){
 			print("i82598: can't reset\n");
-			free(c);
+			free(ctlr);
 			vunmap(mem, p->mem[pciregs].size);
 			vunmap(memmsi, p->mem[pcimsix].size);
 			continue;
 		}
 		pcisetbme(p);
-		ctlrtab[nctlr++] = c;
+		ctlrtab[nctlr++] = ctlr;
 	}
 }
 
@@ -1081,27 +1125,28 @@ static int
 pnp(Ether *e)
 {
 	int i;
-	Ctlr *c = nil;
+	Ctlr *ctlr;
 
 	if(nctlr == 0)
 		scan();
+	ctlr = nil;
 	for(i = 0; i < nctlr; i++){
-		c = ctlrtab[i];
-		if(c == nil || c->flag & Factive)
+		ctlr = ctlrtab[i];
+		if(ctlr == nil || ctlr->flag & Factive)
 			continue;
-		if(e->port == 0 || e->port == (ulong)c->reg)
+		if(e->port == 0 || e->port == (ulong)ctlr->reg)
 			break;
 	}
 	if (i >= nctlr)
 		return -1;
-	c->flag |= Factive;
-	e->ctlr = c;
-	e->port = (uintptr)c->physreg;
-	e->irq = c->p->intl;
-	e->tbdf = c->p->tbdf;
+	ctlr->flag |= Factive;
+	e->ctlr = ctlr;
+	e->port = (uintptr)ctlr->physreg;
+	e->irq = ctlr->p->intl;
+	e->tbdf = ctlr->p->tbdf;
 	e->mbps = 10000;
 	e->maxmtu = ETHERMAXTU;
-	memmove(e->ea, c->ra, Eaddrlen);
+	memmove(e->ea, ctlr->ra, Eaddrlen);
 
 	e->arg = e;
 	e->attach = attach;
@@ -1121,4 +1166,5 @@ void
 ether82598link(void)
 {
 	addethercard("i82598", pnp);
+	addethercard("i10gbe", pnp);
 }
