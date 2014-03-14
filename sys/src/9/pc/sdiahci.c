@@ -1663,7 +1663,7 @@ lockready(Drive *d)
 	int i;
 
 	qlock(&d->portm);
-	while ((i = waitready(d)) == 1) {
+	while ((i = waitready(d)) == 1) {	/* could wait forever? */
 		qunlock(&d->portm);
 		esleep(1);
 		qlock(&d->portm);
@@ -1720,6 +1720,7 @@ retry:
 		esleep(1);
 		goto retry;
 	}
+	/* d->portm qlock held here */
 
 	ilock(d);
 	d->portm.flag = 0;
@@ -1733,8 +1734,15 @@ retry:
 
 	while(waserror())
 		;
-	sleep(&d->portm, ahciclear, &as);
+	/* don't sleep here forever */
+	tsleep(&d->portm, ahciclear, &as, 3*1000);
 	poperror();
+	if(!ahciclear(&as)) {
+		qunlock(&d->portm);
+		print("%s: ahciclear not true after 3 seconds\n", name);
+		r->status = SDcheck;
+		return SDcheck;
+	}
 
 	d->active--;
 	ilock(d);
@@ -1856,6 +1864,7 @@ retry:
 			esleep(1);
 			goto retry;
 		}
+		/* d->portm qlock held here */
 		ilock(d);
 		d->portm.flag = 0;
 		iunlock(d);
@@ -1868,8 +1877,15 @@ retry:
 
 		while(waserror())
 			;
-		sleep(&d->portm, ahciclear, &as);
+		/* don't sleep here forever */
+		tsleep(&d->portm, ahciclear, &as, 3*1000);
 		poperror();
+		if(!ahciclear(&as)) {
+			qunlock(&d->portm);
+			print("%s: ahciclear not true after 3 seconds\n", name);
+			r->status = SDcheck;
+			return SDcheck;
+		}
 
 		d->active--;
 		ilock(d);
@@ -1910,7 +1926,8 @@ retry:
 }
 
 /*
- * configure drives 0-5 as ahci sata  (c.f. errata)
+ * configure drives 0-5 as ahci sata (c.f. errata).
+ * what about 6 & 7, as claimed by marvell 0x9123?
  */
 static int
 iaahcimode(Pcidev *p)
@@ -1964,15 +1981,13 @@ didtype(Pcidev *p)
 		}
 		break;
 	case Vmarvell:
-		/* can't cope with sata 3 yet; touching sd files will hang */
-		if (p->did == 0x9123) {
-			print("ahci: ignoring sata 3 controller\n");
-			return -1;
-		}
+		if (p->did == 0x9123)
+			print("ahci: marvell sata 3 controller has delusions "
+				"of something on unit 7\n");
 		break;
 	}
 	if(p->ccrb == Pcibcstore && p->ccru == Pciscsata && p->ccrp == 1){
-		print("ahci: Tunk: VID %#4.4ux DID %#4.4ux\n", p->vid, p->did);
+		print("ahci: Tunk: vid %#4.4ux did %#4.4ux\n", p->vid, p->did);
 		return Tunk;
 	}
 	return -1;
