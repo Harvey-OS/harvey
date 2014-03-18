@@ -425,6 +425,14 @@ fswstat(Chan *c, uchar *buf, int n)
 
 	uif = c->aux;
 
+	fspath(c, 0, old);
+	if(~d.mode != 0 && (int)(d.mode&0777) != (int)(stbuf.st_mode&0777)) {
+		if(chmod(old, d.mode&0777) < 0)
+			error(strerror(errno));
+		uif->mode &= ~0777;
+		uif->mode |= d.mode&0777;
+	}
+
 	if(d.name[0] && strcmp(d.name, lastelem(c)) != 0) {
 		fspath(c, 0, old);
 		strcpy(new, old);
@@ -434,13 +442,6 @@ fswstat(Chan *c, uchar *buf, int n)
 			error(strerror(errno));
 	}
 
-	fspath(c, 0, old);
-	if(~d.mode != 0 && (int)(d.mode&0777) != (int)(stbuf.st_mode&0777)) {
-		if(chmod(old, d.mode&0777) < 0)
-			error(strerror(errno));
-		uif->mode &= ~0777;
-		uif->mode |= d.mode&0777;
-	}
 /*
 	p = name2pass(gid, d.gid);
 	if(p == 0)

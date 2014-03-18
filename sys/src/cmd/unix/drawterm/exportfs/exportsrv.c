@@ -16,7 +16,7 @@ char Eversion[] = "Bad 9P2000 version";
 
 int iounit(int x)
 {
-	return 8192+IOHDRSZ;
+	return 8*8192+IOHDRSZ;
 }
 
 void*

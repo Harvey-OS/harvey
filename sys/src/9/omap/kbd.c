@@ -51,7 +51,7 @@ enum {
  * The codes at 0x79 and 0x7b are produced by the PFU Happy Hacking keyboard.
  * A 'standard' keyboard doesn't produce anything above 0x58.
  */
-Rune kbtab[Nscan] = 
+Rune kbtab[Nscan] =
 {
 [0x00]	No,	0x1b,	'1',	'2',	'3',	'4',	'5',	'6',
 [0x08]	'7',	'8',	'9',	'0',	'-',	'=',	'\b',	'\t',
@@ -111,6 +111,46 @@ Rune kbtabesc1[Nscan] =
 [0x78]	No,	Up,	No,	No,	No,	No,	No,	No,
 };
 
+Rune kbtabshiftesc1[Nscan] =
+{
+[0x00]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x08]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x10]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x18]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x20]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x28]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x30]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x38]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x40]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x48]	Up,	No,	No,	No,	No,	No,	No,	No,
+[0x50]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x58]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x60]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x68]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x70]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x78]	No,	Up,	No,	No,	No,	No,	No,	No,
+};
+
+Rune kbtabctrlesc1[Nscan] =
+{
+[0x00]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x08]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x10]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x18]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x20]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x28]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x30]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x38]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x40]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x48]	Up,	No,	No,	No,	No,	No,	No,	No,
+[0x50]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x58]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x60]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x68]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x70]	No,	No,	No,	No,	No,	No,	No,	No,
+[0x78]	No,	Up,	No,	No,	No,	No,	No,	No,
+};
+
 Rune kbtabaltgr[Nscan] =
 {
 [0x00]	No,	No,	No,	No,	No,	No,	No,	No,
@@ -133,17 +173,17 @@ Rune kbtabaltgr[Nscan] =
 
 Rune kbtabctrl[Nscan] =
 {
-[0x00]	No,	'', 	'', 	'', 	'', 	'', 	'', 	'', 
+[0x00]	No,	'', 	'', 	'', 	'', 	'', 	'', 	'',
 [0x08]	'', 	'', 	'', 	'', 	'', 	'', 	'\b',	'\t',
 [0x10]	'', 	'', 	'', 	'', 	'', 	'', 	'', 	'\t',
-[0x18]	'', 	'', 	'', 	'', 	'\n',	Ctrl,	'', 	'', 
-[0x20]	'', 	'', 	'', 	'\b',	'\n',	'', 	'', 	'', 
-[0x28]	'', 	No, 	Shift,	'', 	'', 	'', 	'', 	'', 
+[0x18]	'', 	'', 	'', 	'', 	'\n',	Ctrl,	'', 	'',
+[0x20]	'', 	'', 	'', 	'\b',	'\n',	'', 	'', 	'',
+[0x28]	'', 	No, 	Shift,	'', 	'', 	'', 	'', 	'',
 [0x30]	'', 	'', 	'', 	'', 	'', 	'', 	Shift,	'\n',
-[0x38]	Latin,	No, 	Ctrl,	'', 	'', 	'', 	'', 	'', 
-[0x40]	'', 	'', 	'', 	'', 	'', 	'', 	'', 	'', 
-[0x48]	'', 	'', 	'', 	'', 	'', 	'', 	'', 	'', 
-[0x50]	'', 	'', 	'', 	'', 	No,	No,	No,	'', 
+[0x38]	Latin,	No, 	Ctrl,	'', 	'', 	'', 	'', 	'',
+[0x40]	'', 	'', 	'', 	'', 	'', 	'', 	'', 	'',
+[0x48]	'', 	'', 	'', 	'', 	'', 	'', 	'', 	'',
+[0x50]	'', 	'', 	'', 	'', 	No,	No,	No,	'',
 [0x58]	'', 	No,	No,	No,	No,	No,	No,	No,
 [0x60]	No,	No,	No,	No,	No,	No,	No,	No,
 [0x68]	No,	No,	No,	No,	No,	No,	No,	No,
@@ -211,7 +251,10 @@ kbdputsc(int c, int external)
 		return;
 	}
 
-	if(kbscan->esc1){
+	if(kbscan->esc1 && kbscan->shift){
+		c = kbtabshiftesc1[c];
+		kbscan->esc1 = 0;
+	} else if(kbscan->esc1){
 		c = kbtabesc1[c];
 		kbscan->esc1 = 0;
 	} else if(kbscan->esc2){
@@ -306,10 +349,10 @@ kbdputsc(int c, int external)
 			 * to make the VM give up keyboard and mouse focus.
 			 * This has the unfortunate side effect that when you
 			 * come back into focus, Plan 9 thinks you want to type
-			 * a compose sequence (you just typed alt). 
+			 * a compose sequence (you just typed alt).
 			 *
-			 * As a clumsy hack around this, we look for ctl-alt
-			 * and don't treat it as the start of a compose sequence.
+			 * As a clumsy hack around this, we look for ctl-alt and
+			 * don't treat it as the start of a compose sequence.
 			 */
 			if(!kbscan->ctl){
 				kbscan->collecting = 1;
@@ -375,8 +418,14 @@ kbdputmap(ushort m, ushort scanc, Rune r)
 	case 3:
 		kbtabaltgr[scanc] = r;
 		break;
-	case 4:	
+	case 4:
 		kbtabctrl[scanc] = r;
+		break;
+	case 5:
+		kbtabctrlesc1[scanc] = r;
+		break;
+	case 6:
+		kbtabshiftesc1[scanc] = r;
 		break;
 	}
 }
@@ -405,6 +454,12 @@ kbdgetmap(uint offset, int *t, int *sc, Rune *r)
 		return 1;
 	case 4:
 		*r = kbtabctrl[*sc];
+		return 1;
+	case 5:
+		*r = kbtabctrlesc1[*sc];
+		return 1;
+	case 6:
+		*r = kbtabshiftesc1[*sc];
 		return 1;
 	}
 }

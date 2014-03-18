@@ -473,7 +473,7 @@ Abort:
 }
 
 
-#define hasesc1(sc)	(((sc) > 0x47) || ((sc) == 0x38))
+#define hasesc1(sc)	((sc) >= 0x47 || (sc) == 0x38)
 
 static void
 putmod(KDev *f, uchar mods, uchar omods, uchar mask, uchar esc, uchar sc)

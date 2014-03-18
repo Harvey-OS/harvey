@@ -366,7 +366,7 @@ icmpiput(Proto *icmp, Ipifc*, Block *bp)
 	case EchoRequest:
 		if (iplen < n)
 			bp = trimblock(bp, 0, iplen);
-		r = mkechoreply(bp);
+		r = mkechoreply(concatblock(bp));
 		ipriv->out[EchoReply]++;
 		ipoput4(icmp->f, r, 0, MAXTTL, DFLTTOS, nil);
 		break;

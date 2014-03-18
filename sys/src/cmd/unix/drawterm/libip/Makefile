@@ -1,12 +1,13 @@
 ROOT=..
 include ../Make.config
-LIB=../libmachdep.a
+LIB=libip.a
 
 OFILES=\
-	getcallerpc.$O\
-	md5block.$O\
-	sha1block.$O\
-	tas.$O
+	eipfmt.$O\
+	parseip.$O\
+	classmask.$O\
+	bo.$O\
+	ipaux.$O\
 
 default: $(LIB)
 $(LIB): $(OFILES)
@@ -15,11 +16,4 @@ $(LIB): $(OFILES)
 
 %.$O: %.c
 	$(CC) $(CFLAGS) $*.c
-
-%.$O: %.s
-	$(AS) -o $*.$O $*.s
-
-%.s: %.spp
-	cpp $*.spp >$*.s
-
 

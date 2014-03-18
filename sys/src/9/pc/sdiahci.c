@@ -285,7 +285,7 @@ ahciwait(Aportc *c, int ms)
 	p->ci = 1;
 	as.p = p;
 	as.i = 1;
-	aesleep(c->m, &as, ms);
+	aesleep(c->pm, &as, ms);
 	if((p->task&1) == 0 && p->ci == 0)
 		return 0;
 	dreg("ahciwait timeout ", c->p);
@@ -298,7 +298,7 @@ cfissetup(Aportc *pc)
 {
 	uchar *cfis;
 
-	cfis = pc->m->ctab->cfis;
+	cfis = pc->pm->ctab->cfis;
 	memset(cfis, 0, 0x20);
 	cfis[0] = 0x27;
 	cfis[1] = 0x80;
@@ -312,10 +312,10 @@ listsetup(Aportc *pc, int flags)
 {
 	Alist *list;
 
-	list = pc->m->list;
+	list = pc->pm->list;
 	list->flags = flags | 5;
 	list->len = 0;
-	list->ctab = PCIWADDR(pc->m->ctab);
+	list->ctab = PCIWADDR(pc->pm->ctab);
 	list->ctabhi = 0;
 }
 
@@ -324,7 +324,7 @@ nop(Aportc *pc)
 {
 	uchar *c;
 
-	if((pc->m->feat & Dnop) == 0)
+	if((pc->pm->feat & Dnop) == 0)
 		return -1;
 	c = cfissetup(pc);
 	c[2] = 0;
@@ -394,7 +394,7 @@ smart(Aportc *pc, int n)
 {
 	uchar *c;
 
-	if((pc->m->feat&Dsmart) == 0)
+	if((pc->pm->feat&Dsmart) == 0)
 		return -1;
 	c = cfissetup(pc);
 	c[2] = 0xb0;
@@ -424,7 +424,7 @@ smartrs(Aportc *pc)
 	c[6] = 0xc2;
 	listsetup(pc, Lwrite);
 
-	c = pc->m->fis.r;
+	c = pc->pm->fis.r;
 	if(ahciwait(pc, 1000) == -1 || pc->p->task & (1|32)){
 		dprint("ahci: smart fail %#lux\n", pc->p->task);
 		preg(c, 20);
@@ -441,7 +441,7 @@ ahciflushcache(Aportc *pc)
 	uchar *c;
 
 	c = cfissetup(pc);
-	c[2] = pc->m->feat & Dllba? 0xea: 0xe7;
+	c[2] = pc->pm->feat & Dllba? 0xea: 0xe7;
 	listsetup(pc, Lwrite);
 	if(ahciwait(pc, 60000) == -1 || pc->p->task & (1|32)){
 		dprint("ahciflushcache: fail %#lux\n", pc->p->task);
@@ -495,7 +495,7 @@ ahciidentify0(Aportc *pc, void *id, int atapi)
 	listsetup(pc, 1<<16);
 
 	memset(id, 0, 0x100);			/* magic */
-	p = &pc->m->ctab->prdt;
+	p = &pc->pm->ctab->prdt;
 	p->dba = PCIWADDR(id);
 	p->dbahi = 0;
 	p->count = 1<<31 | (0x200-2) | 1;
@@ -509,7 +509,7 @@ ahciidentify(Aportc *pc, ushort *id)
 	vlong s;
 	Aportm *pm;
 
-	pm = pc->m;
+	pm = pc->pm;
 	pm->feat = 0;
 	pm->smart = 0;
 	i = 0;
@@ -723,7 +723,7 @@ ahciconfigdrive(Drive *d)
 
 	h = d->ctlr->hba;
 	p = d->portc.p;
-	pm = d->portc.m;
+	pm = d->portc.pm;
 	if(pm->list == 0){
 		setupfis(&pm->fis);
 		pm->list = malign(sizeof *pm->list, 1024);
@@ -953,7 +953,7 @@ updatedrive(Drive *d)
 		case Devpresent:		/* device but no phy comm. */
 			if((p->sstatus & Intpm) == Intslumber ||
 			   (p->sstatus & Intpm) == Intpartpwr)
-				d->state = Dnew; /* slumbering */
+				d->state = Dnew;	/* slumbering */
 			else
 				d->state = Derror;
 			break;
@@ -970,7 +970,7 @@ updatedrive(Drive *d)
 			diskstates[s0], diskstates[d->state], p->sstatus);
 		/* print pulled message here. */
 		if(s0 == Dready && d->state != Dready)
-			idprint("%s: pulled\n", name);
+			idprint("%s: pulled\n", name);		/* wtf? */
 		if(d->state != Dready)
 			d->portm.flag |= Ferror;
 		ewake = 1;
@@ -1088,7 +1088,7 @@ newdrive(Drive *d)
 
 	if(d->port->task == 0x80)
 		return -1;
-	qlock(c->m);
+	qlock(c->pm);
 	if(setudmamode(c, 5) == -1){
 		dprint("%s: can't set udma mode\n", name);
 		goto lose;
@@ -1103,7 +1103,7 @@ newdrive(Drive *d)
 			goto lose;
 	}
 	setstate(d, Dready);
-	qunlock(c->m);
+	qunlock(c->pm);
 
 	idprint("%s: %sLBA %,llud sectors: %s %s %s %s\n", d->unit->name,
 		(pm->feat & Dllba? "L": ""), d->sectors, d->model, d->firmware,
@@ -1113,7 +1113,7 @@ newdrive(Drive *d)
 lose:
 	idprint("%s: can't be initialized\n", d->unit->name);
 	setstate(d, Dnull);
-	qunlock(c->m);
+	qunlock(c->pm);
 	return -1;
 }
 
@@ -2023,7 +2023,7 @@ newctlr(Ctlr *ctlr, SDev *sdev, int nunit)
 			continue;
 		drive->port = (Aport*)(ctlr->mmio + 0x80*i + 0x100);
 		drive->portc.p = drive->port;
-		drive->portc.m = &drive->portm;
+		drive->portc.pm = &drive->portm;
 		drive->driveno = n++;
 		ctlr->drive[drive->driveno] = drive;
 		iadrive[niadrive + drive->driveno] = drive;
