@@ -8,14 +8,14 @@ LDFLAGS=
 YFLAGS=-d
 
 NOTSYS=sml|dup|.+\..+
-BUGGERED=unix|postscript
+BUGGERED=unix
 OUTOFDATE=old
 
 NOMK=$NOTSYS|$BUGGERED|$OUTOFDATE
 
 cpuobjtype=`{sed -n 's/^O=//p' /$cputype/mkfile}
 DIRS=`{ls -l | sed '/^d/!d; s/.* //; /^('$NOMK')$/d'}
-APEDIRS=awk bzip2 compress cvs eqn grap gs links-ape lp pic postscript spin \
+APEDIRS=awk bzip2 compress cvs eqn grap gs lp pic postscript spin \
 	tex troff
 
 none:VQ:

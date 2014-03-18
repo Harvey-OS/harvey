@@ -1074,9 +1074,10 @@ searchUCmd(char *tg, char *cmd, int uids)
 	if(uids)
 		uid = "uid ";
 	if(rock.next != nil && rock.next->key == SKCharset){
-		if(cistrstr(rock.next->s, "utf-8") != 0
+		if(cistrcmp(rock.next->s, "utf-8") != 0
 		&& cistrcmp(rock.next->s, "us-ascii") != 0){
-			Bprint(&bout, "%s NO [BADCHARSET] (\"US-ASCII\" \"UTF-8\") %s%s failed\r\n", tg, uid, cmd);
+			Bprint(&bout, "%s NO [BADCHARSET] (\"US-ASCII\" \"UTF-8\") %s%s failed\r\n",
+				tg, uid, cmd);
 			checkBox(selected, 0);
 			status(uids, uids);
 			return;

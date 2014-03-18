@@ -23,6 +23,7 @@ LIBS1=\
 	libdraw/libdraw.a\
 	gui-$(GUI)/libgui.a\
 	libc/libc.a\
+	libip/libip.a\
 
 # stupid gcc
 LIBS=$(LIBS1) $(LIBS1) $(LIBS1) libmachdep.a
@@ -66,6 +67,9 @@ libdraw/libdraw.a:
 
 libc/libc.a:
 	(cd libc; $(MAKE))
+
+libip/libip.a:
+	(cd libip; $(MAKE))
 
 gui-$(GUI)/libgui.a:
 	(cd gui-$(GUI); $(MAKE))

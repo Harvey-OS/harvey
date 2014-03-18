@@ -3,6 +3,9 @@
 #define listen  pm_listen
 #define sleep	ksleep
 #define wakeup	kwakeup
+#ifdef strtod
+#undef strtod
+#endif
 #define strtod		fmtstrtod
 
 /* conflicts on some os's */

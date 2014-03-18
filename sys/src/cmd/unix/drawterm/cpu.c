@@ -29,7 +29,7 @@ static AuthInfo *p9any(int);
 static char	*system;
 static int	cflag;
 extern int	dbg;
-extern char*	base;	// fs base for devroot
+extern char*   base;   // fs base for devroot 
 
 static char	*srvname = "ncpu";
 static char	*ealgs = "rc4_256 sha1";
@@ -169,14 +169,14 @@ cpumain(int argc, char **argv)
 	if(mountfactotum() < 0){
 		if(secstoreserver == nil)
 			secstoreserver = authserver;
-	        if(havesecstore(secstoreserver, user)){
-	                s = secstorefetch(secstoreserver, user, nil);
-	                if(s){
-	                        if(strlen(s) >= sizeof secstorebuf)
-	                                sysfatal("secstore data too big");
-	                        strcpy(secstorebuf, s);
-	                }
-	        }
+	 	if(havesecstore(secstoreserver, user)){
+			s = secstorefetch(secstoreserver, user, nil);
+			if(s){
+				if(strlen(s) >= sizeof secstorebuf)
+					sysfatal("secstore data too big");
+				strcpy(secstorebuf, s);
+			}
+		}
 	}
 
 	if((err = rexcall(&data, system, srvname)))
@@ -560,6 +560,7 @@ p9any(int fd)
 
 	if((afd = open("/mnt/factotum/ctl", ORDWR)) >= 0)
 		return p9anyfactotum(fd, afd);
+	werrstr("");
 
 	if(readstr(fd, buf, sizeof buf) < 0)
 		fatal(1, "cannot read p9any negotiation");
@@ -582,8 +583,8 @@ p9any(int fd)
 	if(write(fd, buf2, strlen(buf2)+1) != strlen(buf2)+1)
 		fatal(1, "cannot write user/domain choice in p9any");
 	if(v2){
-		if(readstr(fd, buf, sizeof buf) != 3)
-			fatal(1, "cannot read OK in p9any");
+		if(readstr(fd, buf, sizeof buf) < 0)
+			fatal(1, "cannot read OK in p9any: got %d %s", n, buf);
 		if(memcmp(buf, "OK\0", 3) != 0)
 			fatal(1, "did not get OK in p9any");
 	}

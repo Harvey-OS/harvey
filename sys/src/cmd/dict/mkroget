@@ -1,0 +1,23 @@
+#!/bin/rc
+
+rtf2txt roget-body.rtf |
+	sed '
+		1,12d
+		/^100. /{
+			N
+			s/\n//
+			p
+		}
+		/^388a. /{
+			N
+			s/\n//
+			p
+		}
+	' > /lib/dict/roget
+
+mkindex -d roget | 
+	sort -u -t'	' +0f -1 +0 -1 +1n -2 |
+	sed '
+		s/[ 	]+$//g
+		s/ 	/	/g
+	' > /lib/dict/rogetindex
