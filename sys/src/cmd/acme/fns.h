@@ -19,10 +19,11 @@ void	undo(Text*, Text*, Text*, int, int, Rune*, int);
 char*	getname(Text*, Text*, Rune*, int, int);
 void	scrsleep(uint);
 void	savemouse(Window*);
-void	restoremouse(Window*);
+int	restoremouse(Window*);
 void	clearmouse(void);
 void	allwindows(void(*)(Window*, void*), void*);
 uint loadfile(int, uint, int*, int(*)(void*, uint, Rune*, int), void*);
+void	movetodel(Window*);
 
 Window*	errorwin(Mntdir*, int);
 Window*	errorwinforwin(Window*);

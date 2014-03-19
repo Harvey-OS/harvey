@@ -22,10 +22,11 @@ enum {
 	Descalign= 128,		/* 599 manual needs 128-byte alignment */
 
 	/* tunable parameters */
-	Nrd	= 256,		/* multiple of 8, power of 2 for NEXTPOW2 */
-	Nrb	= 1024,
-	Ntd	= 64,		/* multiple of 8, power of 2 for NEXTPOW2 */
 	Goslow	= 0,		/* flag: go slow by throttling intrs, etc. */
+	/* were 256, 1024 & 64, but 30, 47 and 1 are ample. */
+	Nrd	= 64,		/* multiple of 8, power of 2 for NEXTPOW2 */
+	Nrb	= 128,
+	Ntd	= 32,		/* multiple of 8, power of 2 for NEXTPOW2 */
 };
 
 enum {

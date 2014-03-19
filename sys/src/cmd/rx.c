@@ -24,6 +24,12 @@ usage(void)
 	exits("usage");
 }
 
+static int
+catch(void *, char *s)
+{
+	return strstr(s, "alarm") != nil;
+}
+
 void
 main(int argc, char *argv[])
 {
@@ -58,6 +64,7 @@ main(int argc, char *argv[])
 		usage();
 	host = argv[0];
 	args = buildargs(&argv[1]);
+	atnotify(catch, 1);
 
 	/* try rexexec p9any then dial again with p9sk2 */
 	fd = call(0, host, "rexexec", &addr);
@@ -97,10 +104,12 @@ void
 rex(int fd, char *cmd, char *proto)
 {
 	char buf[4096];
-	int kid, n;
+	int kid, n, oalarm;
 	AuthInfo *ai;
 
+	oalarm = alarm(2 * 60 * 1000);		/* don't hang forever */
 	ai = auth_proxy(fd, auth_getkey, "proto=%s role=client %s", proto, key);
+	alarm(oalarm);
 	if(ai == nil){
 		if(strcmp(proto, "p9any") == 0)
 			return;

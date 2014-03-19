@@ -443,10 +443,11 @@ enum {					/* Td status */
 };
 
 enum {
-	Nrd		= 256,		/* multiple of 8 */
-	Ntd		= 64,		/* multiple of 8 */
-	Nrb		= 1024,		/* private receive buffers per Ctlr */
 	Rbsz		= 2048,
+	/* were 256, 1024 & 64, but 52, 253 and 9 are ample. */
+	Nrd		= 128,		/* multiple of 8 */
+	Nrb		= 256,		/* private receive buffers per Ctlr */
+	Ntd		= 32,		/* multiple of 8 */
 };
 
 typedef struct Ctlr Ctlr;

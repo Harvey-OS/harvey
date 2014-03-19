@@ -1,25 +1,23 @@
 #!/bin/rc
-# ipv6on [netdir ndbfile [gwv4]] - configure an interface for ipv6,
-#	once ipv4 is configured.  use ipv6 address from ndb if present,
-#	else do stateless-autoconfiguration (SLAC).
+# ipv6on [netdir ndbfile] - configure an interface for ipv6.
+#	use ipv6 address from ndb if present,
+#	else do stateless address autoconfiguration (SLAAC).
 if (! ~ $#* 0 2 3) {
-	echo usage: $0 '[netdir ndbfile [gw-v4-name]]' >[1=2]
+	echo usage: $0 '[netdir ndbfile [obs-gw-v4-name]]' >[1=2]
 	exit usage
 }
 rfork e
+fn ipq {			# attr val rattr
+	ndb/ipquery $* | sed 's/^[a-z0-9]+=//'
+}
+
 if (~ $#* 0) {
 	netdir=/net
 	ndbf=/lib/ndb/local
-	gw=`{ndb/ipquery sys $sysname ipgw | sed 's/ipgw=//'}
 }
 if not {
 	netdir=$1
 	ndbf=$2
-	if (~ $#* 2)
-		# gw=()
-		gw=`{ndb/ipquery sys $sysname ipgw | sed 's/ipgw=//'}
-	if not
-		gw=$3
 }
 if (~ $netdir /net) {
 	xsfx=()
@@ -43,65 +41,32 @@ fn nonnil {		# variable
 
 #
 # configure v6 for link-local addresses (fe80::) & multicast (ff02::).
-# accept router advertisements.
+# accept router advertisements, which will contain a default route.
 #
 if (! ip/ipconfig -6 $xdir ether $netdir/ether?)
 	exit 'ipconfig -6 failed'
 ip/ipconfig $xdir ether $netdir/ether? ra6 recvra 1
 
-# lookup any v6 address for me in ndb
-mev6=`{ndb/query -f $ndbf sys $sysname ipv6}
-if (~ $#sysname 0 || ~ $sysname '')
-	mev6=`{ndb/query -f $ndbf sys $sysname ip | grep :}
-
-# for testing
-mylnk=`{ip/linklocal `{cat $netdir/ether?/addr}}
-nonnil mylnk
-
-#
-# have gateway? try to map to a v6 address; get eui-64 of v4's mac
-#
-if (~ $#gw 1) {
-	if (~ $gw [0-9]*.[0-9]*.[0-9]*.[0-9]*)	# is it v4?
-		gwv4 = $gw
-	if (~ $#gwv4 0 || ~ $gwv4 '')
-		gwv4=`{ndb/query -f $ndbf sys $gw ip}
-	gwv6=`{ndb/query -f $ndbf sys $gw ipv6}
-
-	if (! ~ $#gwv4 0) {			# have v4 gateway?
-		# echo ping gw $gwv4...
-		# load arp cache with gw mac
-		ip/ping -qn 3 $netdir/icmp!$gwv4 >/dev/null >[2=1] &
-		sleep 1				# wait briefly for ping
-
-		# get v4 gateway's mac
-		gweth=`{grep '* '^$gwv4^' ' $netdir/arp | awk '{print $4}' }
-		nonnil gweth >[2]/dev/null	# don't frighten users
-		gwlnk=`{ip/linklocal $gweth}	# get mac's eui-64
-		nonnil gwlnk >[2]/dev/null
-	}
+# lookup any v6 address for me in ndb, else use slaac
+myeth=`{cat $netdir/ether?/addr}
+mev6=`{ndb/query -f $ndbf ether $myeth ipv6}
+if (~ $#mev6 0 || ~ $mev6 '')
+	mev6=`{ndb/query -f $ndbf sys $sysname ipv6}
+if (~ $#mev6 0 || ~ $mev6 '') {
+	# slaac: could perhaps get prefix from above RA
+	ipnet=`{ipq ether $myeth ipnet}
+	if (~ $#ipnet 0 || ~ $ipnet '')
+		ipnet=`{ipq sys $sysname ipnet}
+	nonnil ipnet
+	v6pfx=`{ipq ipnet $ipnet ipv6pfx}
+	nonnil v6pfx
+	mev6=`{ip/linklocal $myeth | sed 's/^fe80:/'$v6pfx'/'}
 }
 nonnil mev6
+
 #
 # configure my global v6 addresses
 #
-v6mask=`{ndb/ipquery ip $mev6 ipmask}
+v6mask=`{ipq ip $mev6 ipmask}
 ip/ipconfig $xdir ether $netdir/ether?	add $mev6 $v6mask
 ip/ipconfig $xdir loopback /dev/null	add $mev6 /128
-
-#
-# have gateway? find its v6 address and make it our default route
-#
-if (~ $#gw 1) {
-	if (~ $#gwv6 0 || ~ $gwv6 '') {
-		if (~ $#gwlnk 0 || ~ $gwlnk '')
-			gwv6=`{ip/linklocal $gweth}
-		if not
-			gwv6=$gwlnk
-	}
-	nonnil gwv6
-
-	# add default v6 route to v6 addr of v4 gw
-	echo add :: /0 $gwv6 >$netdir/iproute	# need not be link-local
-}
-exit ''
