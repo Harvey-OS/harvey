@@ -103,7 +103,7 @@ main(int argc, char **argv)
 	setsym();
 	dotmap = dumbmap(-1);
 	if (name && machbyname(name) == 0)
-			dprint ("unknown machine %s", name);
+		dprint("unknown machine %s\n", name);
 	dprint("%s binary\n", mach->name);
 	if(setjmp(env) == 0){
 		if (corfil) {

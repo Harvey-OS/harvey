@@ -84,6 +84,34 @@ wininit(Window *w, Window *clone, Rectangle r)
 }
 
 int
+delrunepos(Window *w)
+{
+	int n;
+	Rune rune;
+	
+	for(n=0; n<w->tag.file->nc; n++) {
+		bufread(w->tag.file, n, &rune, 1);
+		if(rune == ' ')
+			break;
+	}
+	n += 2;
+	if(n >= w->tag.file->nc)
+		return -1;
+	return n;
+}
+
+void
+movetodel(Window *w)
+{
+	int n;
+	
+	n = delrunepos(w);
+	if(n < 0)
+		return;
+	moveto(mousectl, addpt(frptofchar(&w->tag, n), Pt(4, w->tag.font->height-4)));
+}
+
+int
 winresize(Window *w, Rectangle r, int safe)
 {
 	Rectangle r1;

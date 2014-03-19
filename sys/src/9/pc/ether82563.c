@@ -414,10 +414,10 @@ enum {
 };
 
 enum {
-	Nrd		= 512,		/* power of two */
-	Ntd		= 64,		/* power of two */
-	/* 1024 buffers can be filled in 12 ms. at full line rate */
-	Nrb		= 1024,		/* private receive buffers per Ctlr */
+	/* were 512, 1024 & 64, but 52, 253 and 9 are ample. */
+	Nrd		= 128,		/* power of two */
+	Nrb		= 256,		/* private receive buffers per Ctlr */
+	Ntd		= 32,		/* power of two */
 };
 
 enum {

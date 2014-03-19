@@ -55,9 +55,7 @@ ipconfig, rip, linklocal, ipv6on \- Internet configuration and routing
 [
 .I netmtpt
 .I ndbfile
-[
-.I gwipv4
-]\|]
+]
 .SH DESCRIPTION
 .I Ipconfig
 binds a device interface (default
@@ -321,12 +319,15 @@ uses the network database at
 .I ndbfile
 to configure the network mounted on
 .I netmtpt
-with a link-local address (derived from its MAC address)
-and attempts to add a default IPv6 route to the local
-IPv4 gateway's IPv6 address.
-If
-.I gwipv4
-is supplied, it will be used as the gateway's IPv4 address.
+with an IPv6 link-local address (derived from its MAC address)
+and an IPv6 global address, either from an
+.B ipv6
+attribute for
+.B $sysname
+or the interface's MAC address,
+if present,
+or via stateless address autoconfiguration.
+It also attempts to add a default IPv6 route from a router advertisement.
 .SH EXAMPLES
 Configure Ethernet 0 as the primary IP interface.
 Get all addresses via DHCP.  Start up a connection server
@@ -393,3 +394,10 @@ ip/ipconfig ra6 recvra 1
 .br
 .B /lib/rfc/rfc2373
 for IPv6's modified EUI-64
+.SH BUGS
+Currently, SLAAC relies on each
+.B ipnet
+declaration containing an
+.B ipv6pfx
+attribute.
+This should be replaced by a router advertisement prefix.

@@ -203,11 +203,11 @@ just log them and what
 would have done.
 .TP
 .B s
-Sleep 2 seconds before answering requests for static addresses.
+Sleep roughly 1 to 2 seconds before answering requests for static addresses.
 This is used to make a server be a backup only.
 .TP
 .B S
-Sleep 2 seconds before answering requests for dynamic addresses.
+Sleep roughly 1 to 2 seconds before answering requests for dynamic addresses.
 .TP
 .B x
 The IP stack to use is mounted at 

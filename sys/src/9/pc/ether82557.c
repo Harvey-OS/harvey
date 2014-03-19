@@ -20,8 +20,12 @@
 #include "etherif.h"
 
 enum {
-	Nrfd		= 64,		/* receive frame area */
-	Ncb		= 64,		/* maximum control blocks queued */
+	/*
+	 * these were both 64.  increased them to try to improve lookout's
+	 * reliability as a pxe booter.
+	 */
+	Nrfd		= 128,		/* receive frame area */
+	Ncb		= 128,		/* maximum control blocks queued */
 
 	NullPointer	= 0xFFFFFFFF,	/* 82557 NULL pointer */
 };
