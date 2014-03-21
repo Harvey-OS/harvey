@@ -25,6 +25,12 @@ pump \- copy asynchronously via a large circular buffer
 .B -s
 .I start-KB
 ] [
+.B -S
+.I off
+] [
+.B -t
+.I minutes
+] [
 .I file
 \&... ]
 .SH DESCRIPTION
@@ -93,6 +99,19 @@ bytes.
 prevents output until
 .I start-KB
 kilobytes have been read.
+.TP
+.B -S
+seeks both input and output files to
+.I off
+before copying.
+.TP
+.B -t
+stops output after
+.I minutes
+have passed.
+This assumes that
+.I pump
+can copy 10,584,000 bytes per minute.
 .SH EXAMPLES
 Append a
 .IR venti (8)
@@ -117,3 +136,10 @@ venti/rdarena arena0 arena.3 |
 .I Pump
 processes spin while waiting for the circular buffer
 to fill or drain.
+.PP
+.IR Dd ,
+.IR ecp
+and
+.I pump
+occupy slightly different niches
+but perhaps some simplification is possible.
