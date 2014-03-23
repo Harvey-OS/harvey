@@ -290,3 +290,18 @@ in
 .IR securenet (8)
 .SH BUGS
 Only CPU kernels permit changing userid.
+.PP
+Ensure that
+.I keyfs
+is not running when you run
+.I convkeys
+or
+.IR convkeys2 .
+.PP
+.I Login
+has the string
+.L "cs.bell-labs.com"
+embedded in it.
+You'll want to change that to your local domain
+(or fix
+.IR login ).
