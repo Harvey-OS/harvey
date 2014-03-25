@@ -177,6 +177,10 @@ runconfig(char *file, Config *config)
 			}
 			config->vaddr = estrdup(flds[1]);
 		}else{
+			/*
+			 * this is insanely paranoid.  a single typo should not
+			 * prevent venti from starting.
+			 */
 			seterr(EAdmin, "illegal line '%s' in configuration file %s", line, file);
 			break;
 		}
