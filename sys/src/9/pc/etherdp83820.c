@@ -338,7 +338,7 @@ enum {
 	Rbsz		= ROUNDUP(sizeof(Etherpkt)+8, 8),
 	/* were 256, 4*Nrd & 64, but 52, 253 and 9 are ample. */
 	Nrd		= 128,
-	Nrb		= 256,
+	Nrb		= 512,
 	Ntd		= 32,
 };
 
