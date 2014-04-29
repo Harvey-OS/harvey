@@ -1065,12 +1065,12 @@ vt6105Mreset(Ctlr* ctlr)
 	r = csr8r(ctlr, Eecsr);
 	csr8w(ctlr, Eecsr, Autold|r);
 	/* limit used to be 100, but that wasn't enough for our Soekris 5501s */
-	for(timeo = 0; timeo < 100000; timeo++){
+	for(timeo = 0; timeo < 1000000; timeo++){
 		if(!(csr8r(ctlr, Cr) & Autold))
 			break;
 		microdelay(1);
 	}
-	if(timeo >= 100)
+	if(timeo >= 1000000)
 		return -1;
 
 	for(i = 0; i < Eaddrlen; i++)
