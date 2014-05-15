@@ -113,7 +113,7 @@ syscallfmt(int syscallno, ulong pc, va_list list)
 		a = va_arg(list, char*);
 		fmtuserstring(&fmt, a, "");
 		argv = va_arg(list, char**);
-		evenaddr(PTR2UINT(argv));
+		validalign(PTR2UINT(argv), sizeof(char*));
 		for(;;){
 			validaddr((ulong)argv, sizeof(char**), 0);
 			a = *(char **)argv;
@@ -299,6 +299,10 @@ syscallfmt(int syscallno, ulong pc, va_list list)
 			fmtprint(&fmt, " %lld", vl);
 		}
 		break;
+	case NSEC:
+		v = va_arg(list, vlong*);
+		fmtprint(&fmt, "%#p", v);
+		break;
 	}
 
 	up->syscalltrace = fmtstrflush(&fmt);
@@ -399,6 +403,9 @@ sysretfmt(int syscallno, va_list list, long ret, uvlong start, uvlong stop)
 			fmtprint(&fmt, " %lld", vl);
 		}
 		fmtprint(&fmt, " = %ld", ret);
+		break;
+	case NSEC:
+		fmtprint(&fmt, " = %ld", ret);		/* FoV */
 		break;
 	}
 	fmtprint(&fmt, " %s %#llud %#llud\n", errstr, start, stop);

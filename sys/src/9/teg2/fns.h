@@ -197,13 +197,13 @@ extern void ucfreeb(Block*);
 extern void delay(int);				/* only scheddump() */
 extern int islo(void);
 extern void microdelay(int);			/* only edf.c */
-extern void evenaddr(uintptr);
 extern void idlehands(void);
 extern void setkernur(Ureg*, Proc*);		/* only devproc.c */
 extern void syscallfmt(int syscallno, ulong pc, va_list list);
 extern void sysretfmt(int syscallno, va_list list, long ret, uvlong start, uvlong stop);
 extern void* sysexecregs(uintptr, ulong, int);
 extern void sysprocsetup(Proc*);
+extern void validalign(uintptr, unsigned);
 
 /* libc */
 long labs(long);

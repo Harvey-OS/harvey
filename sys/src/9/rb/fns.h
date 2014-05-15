@@ -12,7 +12,6 @@ int	cmpswap(long*, long, long);
 void	coherence(void);
 void	cycles(uvlong *);
 void	dcflush(void*, ulong);
-void	evenaddr(ulong);
 void	faultmips(Ureg*, int, int);
 ulong	fcr31(void);
 void	firmware(int);
@@ -123,6 +122,7 @@ ulong	tlbvirt(void);
 void	touser(uintptr);
 void	unleash(void);
 #define	userureg(ur) ((ur)->status & KUSER)
+void	validalign(uintptr, unsigned);
 void	vecinit(void);
 void	vector0(void);
 void	vector100(void);

@@ -128,13 +128,13 @@ extern Block* uciallocb(int);
 extern void delay(int);				/* only scheddump() */
 extern int islo(void);
 extern void microdelay(int);			/* only edf.c */
-extern void evenaddr(uintptr);
 extern void idlehands(void);
 extern void setkernur(Ureg*, Proc*);		/* only devproc.c */
 extern void spldone(void);
 extern int splfhi(void);
 extern int splflo(void);
 extern void sysprocsetup(Proc*);
+extern void validalign(uintptr, unsigned);
 
 /*
  * PCI

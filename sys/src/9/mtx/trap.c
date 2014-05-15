@@ -522,15 +522,32 @@ kprocchild(Proc *p, void (*func)(void*), void *arg)
 }
 
 /*
- * called in sysfile.c
+ * called in syscallfmt.c, sysfile.c, sysproc.c
  */
 void
-evenaddr(ulong addr)
+validalign(uintptr addr, unsigned align)
 {
-	if(addr & 3){
-		postnote(up, 1, "sys: odd address", NDebug);
-		error(Ebadarg);
-	}
+	/*
+	 * Plan 9 is a 32-bit O/S, and the hardware it runs on
+	 * does not usually have instructions which move 64-bit
+	 * quantities directly, synthesizing the operations
+	 * with 32-bit move instructions. Therefore, the compiler
+	 * (and hardware) usually only enforce 32-bit alignment,
+	 * if at all.
+	 *
+	 * Take this out if the architecture warrants it.
+	 */
+	if(align == sizeof(vlong))
+		align = sizeof(long);
+
+	/*
+	 * Check align is a power of 2, then addr alignment.
+	 */
+	if((align != 0 && !(align & (align-1))) && !(addr & (align-1)))
+		return;
+	postnote(up, 1, "sys: odd address", NDebug);
+	error(Ebadarg);
+	/*NOTREACHED*/
 }
 
 long

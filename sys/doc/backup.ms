@@ -32,9 +32,9 @@ as the term is used by everyone but disk manufacturers.
 In the case of BDs,
 even that is an exaggeration, with the actual capacity being
 closer to $48.44 times 10 sup 9$ bytes,
-so the claimed capacity should be read as `50 VAX-gigabytes',
+so the claimed capacity should be read as `50 BD-gigabytes',
 where a
-.I VAX-gigabyte
+.I BD-gigabyte
 is 968,800,338 bytes.
 The default
 .I venti

@@ -33,18 +33,27 @@ should be stored in and treated as
 .BR ulong s;
 this extends the range of valid times into the year 2106.
 .PP
-These functions work by reading
+.I Time
+simply calls
+.I nsec
+and returns the value divided by 1000000000.
+.PP
+.I Nsec
+is a system call.
+Previous implementations read
 .BR /dev/bintime ,
-opening that file when they are first called.
+opening that file when first called,
+and maintaining a static file descriptor;
+however,
+the maintenance of file descriptors in the face
+of process forks is overly complex and prone to error.
 .SH SOURCE
 .B /sys/src/libc/9sys/time.c
 .br
-.B /sys/src/libc/9sys/nsec.c
+.B /sys/src/libc/9syscall
 .SH SEE ALSO
 .IR cputime (2),
 .IR cons (3)
 .SH DIAGNOSTICS
 Sets
 .IR errstr .
-.SH BUGS
-These routines maintain a static file descriptor.

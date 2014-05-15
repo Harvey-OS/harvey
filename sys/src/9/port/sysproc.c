@@ -315,7 +315,7 @@ sysexec(ulong *arg)
 			nargs++;
 		}
 	}
-	evenaddr(arg[1]);
+	validalign(arg[1], sizeof(char**));
 	argp = (char**)arg[1];
 	validaddr((ulong)argp, BY2WD, 0);
 	while(*argp){
@@ -591,7 +591,7 @@ sys_wait(ulong *arg)
 		return pwait(nil);
 
 	validaddr(arg[0], sizeof(OWaitmsg), 1);
-	evenaddr(arg[0]);
+	validalign(arg[0], BY2WD);			/* who cares? */
 	pid = pwait(&w);
 	if(pid >= 0){
 		ow = (OWaitmsg*)arg[0];
@@ -1083,7 +1083,7 @@ syssemacquire(ulong *arg)
 	Segment *s;
 
 	validaddr(arg[0], sizeof(long), 1);
-	evenaddr(arg[0]);
+	validalign(arg[0], sizeof(long));
 	addr = (long*)arg[0];
 	block = arg[1];
 	
@@ -1102,7 +1102,7 @@ systsemacquire(ulong *arg)
 	Segment *s;
 
 	validaddr(arg[0], sizeof(long), 1);
-	evenaddr(arg[0]);
+	validalign(arg[0], sizeof(long));
 	addr = (long*)arg[0];
 	ms = arg[1];
 
@@ -1120,7 +1120,7 @@ syssemrelease(ulong *arg)
 	Segment *s;
 
 	validaddr(arg[0], sizeof(long), 1);
-	evenaddr(arg[0]);
+	validalign(arg[0], sizeof(long));
 	addr = (long*)arg[0];
 	delta = arg[1];
 
@@ -1130,4 +1130,15 @@ syssemrelease(ulong *arg)
 	if(delta < 0 || *addr < 0)
 		error(Ebadarg);
 	return semrelease(s, addr, delta);
+}
+
+long
+sysnsec(ulong *arg)
+{
+	validaddr(arg[0], sizeof(vlong), 1);
+	validalign(arg[0], sizeof(vlong));
+
+	*(vlong*)arg[0] = todget(nil);
+
+	return 0;
 }
