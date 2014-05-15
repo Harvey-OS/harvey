@@ -13,7 +13,7 @@ install:V:
 			echo MOVW R1, '0(FP)'
 			echo MOVW '$'$n, R1
 			echo SYSCALL
-			if(~ $i seek) {
+			if(~ $i seek || ~ $i nsec) {
 				echo 'MOVW $-1,R5
 				BNE R1,R5,4(PC)
 				MOVW a+0(FP),R5
@@ -36,7 +36,7 @@ install:V:
 			echo ADD '$4',R29
 			echo SYSCALL
 			echo ADD '$-4',R29
-			if(~ $i seek) {		# untested so far - geoff
+			if(~ $i seek || ~ $i nsec) {	# untested so far - geoff
 				echo 'MOVW $-1,R5
 				BNE R1,R5,4(PC)
 				MOVW a+0(FP),R5
@@ -48,7 +48,7 @@ install:V:
 			echo TEXT $i'(SB)', 1, '$0'
 			echo MOVL '$'$n, AX
 			echo INT '$'64
-			if(~ $i seek) {
+			if(~ $i seek || ~ $i nsec) {
 				echo 'CMPL AX,$-1
 				JNE 4(PC)
 				MOVL a+0(FP),CX
@@ -66,7 +66,7 @@ install:V:
 			# in a register, if the system call takes no arguments
 			# there will be no 'a0+0(FP)' reserved on the stack.
 			#
-			if(! ~ $i asystemcallwithnoarguments)
+			if(! ~ $i asystemcallwithnoarguments || ! ~ $i nsec)
 				echo MOVQ RARG, 'a0+0(FP)'
 			echo MOVQ '$'$n, RARG
 			echo SYSCALL
@@ -76,7 +76,7 @@ install:V:
 			echo MOVW R7, '0(FP)'
 			echo MOVW '$'$n, R7
 			echo TA R0
-			if(~ $i seek) {
+			if(~ $i seek || ~ $i nsec) {
 				echo 'CMP R7,$-1
 				BNE 4(PC)
 				MOVW a+0(FP),R8
@@ -89,7 +89,7 @@ install:V:
 			echo MOVW R0, '0(FP)'
 			echo MOVW '$'$n, R0
 			echo SWI 0
-			if(~ $i seek) {
+			if(~ $i seek || ~ $i nsec) {
 				echo 'CMP $-1,R0
 				BNE 4(PC)
 				MOVW a+0(FP),R1
@@ -102,7 +102,7 @@ install:V:
 			echo MOVW R3, '0(FP)'
 			echo MOVW '$'$n, R3
 			echo SYSCALL
-			if(~ $i seek) {
+			if(~ $i seek || ~ $i nsec) {
 				echo 'CMP R3,$-1
 				BNE 4(PC)
 				MOVW a+0(FP),R8

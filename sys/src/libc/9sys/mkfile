@@ -26,7 +26,6 @@ OFILES=\
 	getppid.$O\
 	getwd.$O\
 	iounit.$O\
-	nsec.$O\
 	nulldir.$O\
 	postnote.$O\
 	privalloc.$O\
