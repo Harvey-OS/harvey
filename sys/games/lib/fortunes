@@ -4322,3 +4322,5 @@ How do you tell a bad standard?  If it begins with "I", e.g, I2O, IPMI.  If it e
 It's frequently easier to read disassembled glibc object code than the glibc source. - Ron Minnich
 Most of your set-top box issues can be resolved by rebooting the device. Please select this option to reboot your device. This will NOT erase the settings. - FiOS set-top box troubleshooter.
 There is no avoiding war, it can only be postponed to the advantage of the enemy. - Niccolò Machiavelli
+Important info: Login screen freezes for German speaking users
+[Errno 30] Read-only filesystem: '/target/boot/vmlinuz-3.13.0-24-generic'
