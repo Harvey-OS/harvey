@@ -164,7 +164,7 @@ TEXT wholecache+0(SB), $-4
 	MOVW	$(CACHECONF+4), R4	/* +4 = l1setsh */
 	CMP	$0, R8		/* cache == 1? */
 	ADD.NE	$(4*2), R3	/* no, assume l2: +8 = l2waysh */
-	ADD.NE	$(4*2), R3	/* +12 = l2setsh */
+	ADD.NE	$(4*2), R4	/* +12 = l2setsh */
 
 	MOVW	R14, R0		/* get R14's segment ... */
 	AND	$KSEGM, R0
