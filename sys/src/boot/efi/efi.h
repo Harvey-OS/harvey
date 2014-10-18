@@ -48,6 +48,14 @@ typedef struct {
 	UINT32		ReservedMask;
 } EFI_PIXEL_BITMASK;
 
+enum {
+	PixelRedGreenBlueReserved8BitPerColor,
+	PixelBlueGreenRedReserved8BitPerColor,
+	PixelBitMask,
+	PixelBltOnly,
+	PixelFormatMax,
+};
+
 typedef struct {
 	UINT32		Version;
 	UINT32		HorizontalResolution;
