@@ -199,35 +199,49 @@ acpiconf(char **cfg)
 	}
 }
 
+
 static int
 topbit(ulong mask)
 {
-	int bit;
+	int bit = 0;
 
-	for(bit=1; bit < 32 && (mask >> bit) != 0; bit++)
-		;
+	while(mask != 0){
+		mask >>= 1;
+		bit++;
+	}
 	return bit;
 }
 
 static int
 lowbit(ulong mask)
 {
-	int bit;
+	int bit = 0;
 
-	for(bit=0; bit < 32 && (mask & (1<<bit)) == 0; bit++)
-		;
+	while((mask & 1) == 0){
+		mask >>= 1;
+		bit++;
+	}
 	return bit;
 }
 
-static char*
-modeinfostr(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info, char *s)
+static void
+screenconf(char **cfg)
 {
+	EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info;
 	ulong mr, mg, mb, mx, mc;
-	int n, depth;
+	int bits, depth;
+	char *s;
+
+	gop = nil;
+	if(LocateProtocol(&EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, nil, &gop) || gop == nil)
+		return;
+
+	if((info = gop->Mode->Info) == nil)
+		return;
 
 	switch(info->PixelFormat){
 	default:
-		return nil;	/* unsupported */
+		return;	/* unsupported */
 
 	case PixelRedGreenBlueReserved8BitPerColor:
 		mr = 0x000000ff;
@@ -235,12 +249,14 @@ modeinfostr(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info, char *s)
 		mb = 0x00ff0000;
 		mx = 0xff000000;
 		break;
+
 	case PixelBlueGreenRedReserved8BitPerColor:
 		mb = 0x000000ff;
 		mg = 0x0000ff00;
 		mr = 0x00ff0000;
 		mx = 0xff000000;
 		break;
+
 	case PixelBitMask:
 		mr = info->PixelInformation.RedMask;
 		mg = info->PixelInformation.GreenMask;
@@ -249,8 +265,11 @@ modeinfostr(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info, char *s)
 		break;
 	}
 
-	depth = topbit(mr | mg | mb | mx);
+	if((depth = topbit(mr | mg | mb | mx)) == 0)
+		return;
 
+	s = *cfg;
+	memmove(s, "*bootscreen=", 12), s += 12;
 	s = decfmt(s, 0, info->PixelsPerScanLine), *s++ = 'x';
 	s = decfmt(s, 0, info->VerticalResolution), *s++ = 'x';
 	s = decfmt(s, 0, depth), *s++ = ' ';
@@ -271,31 +290,12 @@ modeinfostr(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info, char *s)
 		} else {
 			break;
 		}
-		n = depth - lowbit(mc);
-		s = decfmt(s, 0, n);
-		depth -= n;
-	}
-	*s = '\0';
-
-	return s;
-}
-
-static void
-screenconf(char **cfg)
-{
-	char *s;
-
-	gop = nil;
-	if(LocateProtocol(&EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, nil, &gop) || gop == nil)
-		return;
-
-	s = *cfg;
-	memmove(s, "*bootscreen=", 12), s += 12;
-	if((s = modeinfostr(gop->Mode->Info, s)) == nil){
-		**cfg = '\0';
-		return;
+		bits = depth - lowbit(mc);
+		s = decfmt(s, 0, bits);
+		depth -= bits;
 	}
 	*s++ = ' ';
+
 	*s++ = '0', *s++ = 'x';
 	s = hexfmt(s, 0, gop->Mode->FrameBufferBase), *s++ = '\n';
 	*s = '\0';
