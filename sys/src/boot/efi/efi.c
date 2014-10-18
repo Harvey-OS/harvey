@@ -199,6 +199,87 @@ acpiconf(char **cfg)
 	}
 }
 
+static int
+topbit(ulong mask)
+{
+	int bit;
+
+	for(bit=1; bit < 32 && (mask >> bit) != 0; bit++)
+		;
+	return bit;
+}
+
+static int
+lowbit(ulong mask)
+{
+	int bit;
+
+	for(bit=0; bit < 32 && (mask & (1<<bit)) == 0; bit++)
+		;
+	return bit;
+}
+
+static char*
+modeinfostr(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info, char *s)
+{
+	ulong mr, mg, mb, mx, mc;
+	int n, depth;
+
+	switch(info->PixelFormat){
+	default:
+		return nil;	/* unsupported */
+
+	case PixelRedGreenBlueReserved8BitPerColor:
+		mr = 0x000000ff;
+		mg = 0x0000ff00;
+		mb = 0x00ff0000;
+		mx = 0xff000000;
+		break;
+	case PixelBlueGreenRedReserved8BitPerColor:
+		mb = 0x000000ff;
+		mg = 0x0000ff00;
+		mr = 0x00ff0000;
+		mx = 0xff000000;
+		break;
+	case PixelBitMask:
+		mr = info->PixelInformation.RedMask;
+		mg = info->PixelInformation.GreenMask;
+		mb = info->PixelInformation.BlueMask;
+		mx = info->PixelInformation.ReservedMask;
+		break;
+	}
+
+	depth = topbit(mr | mg | mb | mx);
+
+	s = decfmt(s, 0, info->PixelsPerScanLine), *s++ = 'x';
+	s = decfmt(s, 0, info->VerticalResolution), *s++ = 'x';
+	s = decfmt(s, 0, depth), *s++ = ' ';
+
+	while(depth > 0){
+		if(depth == topbit(mr)){
+			mc = mr;
+			*s++ = 'r';
+		} else if(depth == topbit(mg)){
+			mc = mg;
+			*s++ = 'g';
+		} else if(depth == topbit(mb)){
+			mc = mb;
+			*s++ = 'b';
+		} else if(depth == topbit(mx)){
+			mc = mx;
+			*s++ = 'x';
+		} else {
+			break;
+		}
+		n = depth - lowbit(mc);
+		s = decfmt(s, 0, n);
+		depth -= n;
+	}
+	*s = '\0';
+
+	return s;
+}
+
 static void
 screenconf(char **cfg)
 {
@@ -210,32 +291,17 @@ screenconf(char **cfg)
 
 	s = *cfg;
 	memmove(s, "*bootscreen=", 12), s += 12;
-
-	s = decfmt(s, 0, gop->Mode->Info->PixelsPerScanLine), *s++ = 'x';
-	s = decfmt(s, 0, gop->Mode->Info->VerticalResolution), *s++ = 'x';
-	s = decfmt(s, 0, 32), *s++ = ' ';
-
-	memmove(s, "x8r8g8b8", 8), s += 8;
+	if((s = modeinfostr(gop->Mode->Info, s)) == nil){
+		**cfg = '\0';
+		return;
+	}
 	*s++ = ' ';
-
 	*s++ = '0', *s++ = 'x';
 	s = hexfmt(s, 0, gop->Mode->FrameBufferBase), *s++ = '\n';
 	*s = '\0';
 
 	print(*cfg);
 	*cfg = s;
-
-/*
-	Print(" Width="), Printi(gop->Mode->Info->HorizontalResolution), Print("\r\n");
-	Print(" Height="), Printi(gop->Mode->Info->VerticalResolution), Print("\r\n");
-	Print(" Stride="), Printi(gop->Mode->Info->PixelsPerScanLine), Print("\r\n");
-	Print(" PixelFormat="), Printi(gop->Mode->Info->PixelFormat), Print("\r\n");
-	Print(" RedMask="), Printi(gop->Mode->Info->PixelInformation.RedMask), Print("\r\n");
-	Print(" GreenMask="), Printi(gop->Mode->Info->PixelInformation.GreenMask), Print("\r\n");
-	Print(" BlueMask="), Printi(gop->Mode->Info->PixelInformation.BlueMask), Print("\r\n");
-	Print(" FrameBufferBase="), Printi(gop->Mode->FrameBufferBase), Print("\r\n");
-	Print(" FrameBufferSize="), Printi(gop->Mode->FrameBufferSize), Print("\r\n");
-*/
 }
 
 void
