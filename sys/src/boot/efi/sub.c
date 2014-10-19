@@ -20,19 +20,13 @@ readn(void *f, void *data, int len)
 {
 	uchar *p, *e;
 
-	putc(' ');
 	p = data;
 	e = p + len;
 	while(p < e){
-		if(((ulong)p & 0xF000) == 0){
-			putc('\b');
-			putc(hex[((ulong)p>>16)&0xF]);
-		}
 		if((len = read(f, p, e - p)) <= 0)
 			break;
 		p += len;
 	}
-	putc('\b');
 
 	return p - (uchar*)data;
 }
@@ -362,13 +356,13 @@ bootkern(void *f)
 	if(readn(f, t, n) != n)
 		goto Error;
 	t += n;
-	d = (uchar*)PGROUND((ulong)t);
+	d = (uchar*)PGROUND((uintptr)t);
 	memset(t, 0, d - t);
 	n = beswal(ex.data);
 	if(readn(f, d, n) != n)
 		goto Error;
 	d += n;
-	t = (uchar*)PGROUND((ulong)d);
+	t = (uchar*)PGROUND((uintptr)d);
 	t += PGROUND(beswal(ex.bss));
 	memset(d, 0, t - d);
 
