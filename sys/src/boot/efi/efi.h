@@ -10,6 +10,12 @@ typedef uintptr	UINTN;
 typedef void*	EFI_HANDLE;
 typedef UINT32	EFI_STATUS;
 
+enum {
+	AllHandles,
+	ByRegisterNotify,
+	ByProtocol,
+};
+
 typedef struct {
 	UINT32		Data1;
 	UINT16		Data2;

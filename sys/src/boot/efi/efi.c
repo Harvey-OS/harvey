@@ -9,8 +9,6 @@ enum {
 UINTN MK;
 EFI_HANDLE IH;
 EFI_SYSTEM_TABLE *ST;
-
-EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
 EFI_FILE_PROTOCOL *root;
 
 void
@@ -45,12 +43,6 @@ unload(void)
 	eficall(2, ST->BootServices->ExitBootServices, IH, MK);
 }
 
-EFI_STATUS
-LocateProtocol(EFI_GUID *guid, void *reg, void **pif)
-{
-	return eficall(3, ST->BootServices->LocateProtocol, guid, reg, pif);
-}
-
 void
 fsinit(void)
 {
@@ -58,7 +50,8 @@ fsinit(void)
 
 	fs = nil;
 	root = nil;
-	if(LocateProtocol(&EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, nil, &fs))
+	if(eficall(3, ST->BootServices->LocateProtocol,
+		&EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, nil, &fs))
 		return;
 	if(eficall(2, fs->OpenVolume, fs, &root)){
 		root = nil;
@@ -227,47 +220,72 @@ lowbit(ulong mask)
 static void
 screenconf(char **cfg)
 {
+	EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
+	EFI_HANDLE *Handles;
+	UINTN Count;
+
 	EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *info;
 	ulong mr, mg, mb, mx, mc;
-	int bits, depth;
+	int i, bits, depth;
 	char *s;
 
-	gop = nil;
-	if(LocateProtocol(&EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, nil, &gop) || gop == nil)
+	Count = 0;
+	Handles = nil;
+	if(eficall(5, ST->BootServices->LocateHandleBuffer,
+		ByProtocol, &EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, nil, &Count, &Handles))
 		return;
 
-	if((info = gop->Mode->Info) == nil)
-		return;
+	for(i=0; i<Count; i++){
+		gop = nil;
+		if(eficall(3, ST->BootServices->HandleProtocol,
+			Handles[i], &EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, &gop))
+			continue;
 
-	switch(info->PixelFormat){
-	default:
-		return;	/* unsupported */
+		if(gop == nil)
+			continue;
+		if((info = gop->Mode->Info) == nil)
+			continue;
 
-	case PixelRedGreenBlueReserved8BitPerColor:
-		mr = 0x000000ff;
-		mg = 0x0000ff00;
-		mb = 0x00ff0000;
-		mx = 0xff000000;
-		break;
+		switch(info->PixelFormat){
+		default:
+			continue;	/* unsupported */
 
-	case PixelBlueGreenRedReserved8BitPerColor:
-		mb = 0x000000ff;
-		mg = 0x0000ff00;
-		mr = 0x00ff0000;
-		mx = 0xff000000;
-		break;
+		case PixelRedGreenBlueReserved8BitPerColor:
+			mr = 0x000000ff;
+			mg = 0x0000ff00;
+			mb = 0x00ff0000;
+			mx = 0xff000000;
+			break;
 
-	case PixelBitMask:
-		mr = info->PixelInformation.RedMask;
-		mg = info->PixelInformation.GreenMask;
-		mb = info->PixelInformation.BlueMask;
-		mx = info->PixelInformation.ReservedMask;
-		break;
+		case PixelBlueGreenRedReserved8BitPerColor:
+			mb = 0x000000ff;
+			mg = 0x0000ff00;
+			mr = 0x00ff0000;
+			mx = 0xff000000;
+			break;
+
+		case PixelBitMask:
+			mr = info->PixelInformation.RedMask;
+			mg = info->PixelInformation.GreenMask;
+			mb = info->PixelInformation.BlueMask;
+			mx = info->PixelInformation.ReservedMask;
+			break;
+		}
+
+		if((depth = topbit(mr | mg | mb | mx)) == 0)
+			continue;
+
+		/* make sure we have linear framebuffer */
+		if(gop->Mode->FrameBufferBase == 0)
+			continue;
+		if(gop->Mode->FrameBufferSize == 0)
+			continue;
+
+		goto Found;
 	}
+	return;
 
-	if((depth = topbit(mr | mg | mb | mx)) == 0)
-		return;
-
+Found:
 	s = *cfg;
 	memmove(s, "*bootscreen=", 12), s += 12;
 	s = decfmt(s, 0, info->PixelsPerScanLine), *s++ = 'x';
@@ -297,7 +315,7 @@ screenconf(char **cfg)
 	*s++ = ' ';
 
 	*s++ = '0', *s++ = 'x';
-	s = hexfmt(s, 0, gop->Mode->FrameBufferBase), *s++ = '\n';
+	s = hexfmt(s, 16, gop->Mode->FrameBufferBase), *s++ = '\n';
 	*s = '\0';
 
 	print(*cfg);

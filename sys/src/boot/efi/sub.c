@@ -367,6 +367,7 @@ bootkern(void *f)
 	memset(d, 0, t - d);
 
 	close(f);
+	print("boot\n");
 	unload();
 
 	jump(e);
