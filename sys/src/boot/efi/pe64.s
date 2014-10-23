@@ -136,25 +136,28 @@ TEXT reloc(SB), 1, $-4
 	REP; MOVSB
 
 	MOVQ 16(SP), BP
-	MOVQ $main(SB), DI
+	MOVQ $efimain(SB), DI
 	MOVQ DI, (SP)
 	RET
 
 TEXT eficall(SB), 1, $-4
-	MOVQ 0(SP), DI	/* saved by callee */
-	MOVQ 16(SP), AX
-	ADDQ $24, SP
+	MOVQ SP, SI
+	MOVQ SP, DI
+	MOVL $(8*16), CX
+	SUBQ CX, DI
+	ANDQ $~15ULL, DI
+	LEAQ 16(DI), SP
+	CLD
+	REP; MOVSB
+	SUBQ $(8*16), SI
 
-	/* arguments in regisyers */
 	MOVQ 0(SP), CX
 	MOVQ 8(SP), DX
 	MOVQ 16(SP), R8
 	MOVQ 24(SP), R9
+	CALL BP
 
-	CALL AX
-
-	SUBQ $24, SP
-	MOVQ DI, 0(SP)
+	MOVQ SI, SP
 	RET
 
 #include "mem.h"
