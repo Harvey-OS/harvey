@@ -4,6 +4,7 @@ typedef uchar	UINT8;
 typedef ushort	UINT16;
 typedef ulong	UINT32;
 typedef uvlong	UINT64;
+typedef UINT8	BOOLEAN;
 
 typedef uintptr	UINTN;
 
@@ -86,41 +87,6 @@ typedef struct {
 	void		*Blt;
 	EFI_GRAPHICS_OUTPUT_PROTOCOL_MODE *Mode;
 } EFI_GRAPHICS_OUTPUT_PROTOCOL;
-
-EFI_GUID EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID = {
-	0x9042a9de, 0x23dc, 0x4a38,
-	0x96, 0xfb, 0x7a, 0xde,
-	0xd0, 0x80, 0x51, 0x6a,
-};
-
-typedef struct {
-	UINT64		Revision;
-	void		*Open;
-	void		*Close;
-	void		*Delete;
-	void		*Read;
-	void		*Write;
-	void		*GetPosition;
-	void		*SetPosition;
-	void		*GetInfo;
-	void		*SetInfo;
-	void		*Flush;
-	void		*OpenEx;
-	void		*ReadEx;
-	void		*WriteEx;
-	void		*FlushEx;
-} EFI_FILE_PROTOCOL;
-
-typedef struct {
-	UINT64		Revision;
-	void		*OpenVolume;
-} EFI_SIMPLE_FILE_SYSTEM_PROTOCOL;
-
-EFI_GUID EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID = {
-	0x0964e5b22, 0x6459, 0x11d2,
-	0x8e, 0x39, 0x00, 0xa0,
-	0xc9, 0x69, 0x72, 0x3b,
-};
 
 enum {
 	EfiReservedMemoryType,
@@ -243,19 +209,6 @@ typedef struct {
 	void		*QueryVariableInfo;
 } EFI_RUNTIME_SERVICES;
 
-
-EFI_GUID ACPI_20_TABLE_GUID = {
-	0x8868e871, 0xe4f1, 0x11d3,
-	0xbc, 0x22, 0x00, 0x80,
-	0xc7, 0x3c, 0x88, 0x81,
-};
-
-EFI_GUID ACPI_10_TABLE_GUID = {
-	0xeb9d2d30, 0x2d88, 0x11d3,
-	0x9a, 0x16, 0x00, 0x90,
-	0x27, 0x3f, 0xc1, 0x4d,
-};
-
 typedef struct {
 	EFI_GUID	VendorGuid;
 	void		*VendorTable;
@@ -282,3 +235,6 @@ typedef struct {
 	UINTN			NumberOfTableEntries;
 	EFI_CONFIGURATION_TABLE	*ConfigurationTable;
 } EFI_SYSTEM_TABLE;
+
+extern EFI_SYSTEM_TABLE *ST;
+extern EFI_HANDLE IH;

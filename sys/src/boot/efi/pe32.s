@@ -129,7 +129,7 @@ TEXT reloc(SB), 1, $0
 	MOVL $edata-IMAGEBASE(SB), CX
 	CLD
 	REP; MOVSB
-	MOVL $main(SB), DI
+	MOVL $efimain(SB), DI
 	MOVL DI, (SP)
 	RET
 
@@ -138,12 +138,22 @@ TEXT jump(SB), $0
 	MOVL 4(SP), AX
 	JMP *AX
 
-
 TEXT eficall(SB), 1, $0
-	MOVL 0(SP), DI	/* saved by callee */
-	MOVL 8(SP), AX
-	ADDL $12, SP
+	MOVL SP, SI
+	MOVL SP, DI
+	MOVL $(4*16), CX
+	SUBL CX, DI
+	ANDL $~15ULL, DI
+	SUBL $8, DI
+
+	MOVL 4(SI), AX
+	LEAL 8(DI), SP
+
+	CLD
+	REP; MOVSB
+	SUBL $(4*16), SI
+
 	CALL AX
-	SUBL $12, SP
-	MOVL DI, 0(SP)
+
+	MOVL SI, SP
 	RET

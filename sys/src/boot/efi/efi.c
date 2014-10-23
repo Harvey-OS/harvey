@@ -2,14 +2,13 @@
 #include "fns.h"
 #include "efi.h"
 
-enum {
-	MAXPATH = 128,
-};
-
 UINTN MK;
 EFI_HANDLE IH;
 EFI_SYSTEM_TABLE *ST;
-EFI_FILE_PROTOCOL *root;
+
+void* (*open)(char *name);
+int (*read)(void *f, void *data, int len);
+void (*close)(void *f);
 
 void
 putc(int c)
@@ -18,7 +17,7 @@ putc(int c)
 
 	w[0] = c;
 	w[1] = 0;
-	eficall(2, ST->ConOut->OutputString, ST->ConOut, w);
+	eficall(ST->ConOut->OutputString, ST->ConOut, w);
 }
 
 int
@@ -26,7 +25,7 @@ getc(void)
 {
 	EFI_INPUT_KEY k;
 
-	if(eficall(2, ST->ConIn->ReadKeyStroke, ST->ConIn, &k))
+	if(eficall(ST->ConIn->ReadKeyStroke, ST->ConIn, &k))
 		return 0;
 	return k.UnicodeChar;
 }
@@ -34,77 +33,14 @@ getc(void)
 void
 usleep(int us)
 {
-	eficall(1, ST->BootServices->Stall, (UINTN)us);
+	eficall(ST->BootServices->Stall, (UINTN)us);
 }
 
 void
 unload(void)
 {
-	eficall(2, ST->BootServices->ExitBootServices, IH, MK);
+	eficall(ST->BootServices->ExitBootServices, IH, MK);
 }
-
-void
-fsinit(void)
-{
-	EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *fs;
-
-	fs = nil;
-	root = nil;
-	if(eficall(3, ST->BootServices->LocateProtocol,
-		&EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, nil, &fs))
-		return;
-	if(eficall(2, fs->OpenVolume, fs, &root)){
-		root = nil;
-		return;
-	}
-}
-
-static void
-towpath(CHAR16 *w, int nw, char *s)
-{
-	int i;
-
-	for(i=0; *s && i<nw-1; i++){
-		*w = *s++;
-		if(*w == '/')
-			*w = '\\';
-		w++;
-	}
-	*w = 0;
-}
-
-EFI_FILE_PROTOCOL*
-fswalk(EFI_FILE_PROTOCOL *dir, char *name)
-{
-	CHAR16 wname[MAXPATH];
-	EFI_FILE_PROTOCOL *fp;
-
-	towpath(wname, MAXPATH, name);
-
-	fp = nil;
-	if(eficall(5, dir->Open, dir, &fp, wname, (UINT64)1, (UINT64)1))
-		return nil;
-	return fp;
-}
-
-
-int
-read(void *f, void *data, int len)
-{
-	UINTN size;
-
-	size = len;
-	if(eficall(3, ((EFI_FILE_PROTOCOL*)f)->Read, f, &size, data))
-		return 0;
-	return (int)size;
-}
-
-void
-close(void *f)
-{
-	eficall(1, ((EFI_FILE_PROTOCOL*)f)->Close, f);
-}
-
 
 static void
 memconf(char **cfg)
@@ -134,7 +70,7 @@ memconf(char **cfg)
 	mapsize = sizeof(mapbuf);
 	entsize = sizeof(EFI_MEMORY_DESCRIPTOR);
 	entvers = 1;
-	if(eficall(5, ST->BootServices->GetMemoryMap, &mapsize, mapbuf, &MK, &entsize, &entvers))
+	if(eficall(ST->BootServices->GetMemoryMap, &mapsize, mapbuf, &MK, &entsize, &entvers))
 		return;
 
 	s = *cfg;
@@ -165,6 +101,16 @@ memconf(char **cfg)
 static void
 acpiconf(char **cfg)
 {
+	static EFI_GUID ACPI_20_TABLE_GUID = {
+		0x8868e871, 0xe4f1, 0x11d3,
+		0xbc, 0x22, 0x00, 0x80,
+		0xc7, 0x3c, 0x88, 0x81,
+	};
+	static EFI_GUID ACPI_10_TABLE_GUID = {
+		0xeb9d2d30, 0x2d88, 0x11d3,
+		0x9a, 0x16, 0x00, 0x90,
+		0x27, 0x3f, 0xc1, 0x4d,
+	};
 	EFI_CONFIGURATION_TABLE *t;
 	uintptr pa;
 	char *s;
@@ -220,6 +166,11 @@ lowbit(ulong mask)
 static void
 screenconf(char **cfg)
 {
+	static EFI_GUID EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID = {
+		0x9042a9de, 0x23dc, 0x4a38,
+		0x96, 0xfb, 0x7a, 0xde,
+		0xd0, 0x80, 0x51, 0x6a,
+	};
 	EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
 	EFI_HANDLE *Handles;
 	UINTN Count;
@@ -231,13 +182,13 @@ screenconf(char **cfg)
 
 	Count = 0;
 	Handles = nil;
-	if(eficall(5, ST->BootServices->LocateHandleBuffer,
+	if(eficall(ST->BootServices->LocateHandleBuffer,
 		ByProtocol, &EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, nil, &Count, &Handles))
 		return;
 
 	for(i=0; i<Count; i++){
 		gop = nil;
-		if(eficall(3, ST->BootServices->HandleProtocol,
+		if(eficall(ST->BootServices->HandleProtocol,
 			Handles[i], &EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID, &gop))
 			continue;
 
@@ -331,7 +282,7 @@ eficonfig(char **cfg)
 }
 
 EFI_STATUS
-main(EFI_HANDLE ih, EFI_SYSTEM_TABLE *st)
+efimain(EFI_HANDLE ih, EFI_SYSTEM_TABLE *st)
 {
 	char path[MAXPATH], *kern;
 	void *f;
@@ -339,12 +290,13 @@ main(EFI_HANDLE ih, EFI_SYSTEM_TABLE *st)
 	IH = ih;
 	ST = st;
 
-	fsinit();
+	f = pxeinit();
+	if(f == nil)
+		f = fsinit();
 
-	f = fswalk(root, "/plan9.ini");
 	for(;;){
 		kern = configure(f, path);
-		f = fswalk(root, kern);
+		f = open(kern);
 		if(f == nil){
 			print("not found\n");
 			continue;

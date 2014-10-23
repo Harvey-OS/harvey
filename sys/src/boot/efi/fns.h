@@ -1,11 +1,20 @@
+enum {
+	MAXPATH = 128,
+};
+
 extern char hex[];
 
 void usleep(int t);
 void jump(void *pc);
 
-int read(void *f, void *data, int len);
+void* pxeinit(void);
+void* fsinit(void);
+
+void* (*open)(char *name);
+int (*read)(void *f, void *data, int len);
+void (*close)(void *f);
+
 int readn(void *f, void *data, int len);
-void close(void *f);
 void unload(void);
 
 int getc(void);
@@ -25,5 +34,5 @@ char *bootkern(void *f);
 char *hexfmt(char *s, int i, uvlong a);
 char *decfmt(char *s, int i, ulong a);
 
-long eficall(long narg, void *proc, ...);
+uintptr eficall(void *proc, ...);
 void eficonfig(char **cfg);
