@@ -266,7 +266,7 @@ Found:
 	*s++ = ' ';
 
 	*s++ = '0', *s++ = 'x';
-	s = hexfmt(s, 16, gop->Mode->FrameBufferBase), *s++ = '\n';
+	s = hexfmt(s, 0, gop->Mode->FrameBufferBase), *s++ = '\n';
 	*s = '\0';
 
 	print(*cfg);
@@ -276,9 +276,9 @@ Found:
 void
 eficonfig(char **cfg)
 {
-	screenconf(cfg);
-	acpiconf(cfg);
 	memconf(cfg);
+	acpiconf(cfg);
+	screenconf(cfg);
 }
 
 EFI_STATUS
@@ -290,9 +290,9 @@ efimain(EFI_HANDLE ih, EFI_SYSTEM_TABLE *st)
 	IH = ih;
 	ST = st;
 
-	f = pxeinit();
-	if(f == nil)
-		f = fsinit();
+	f = nil;
+	if(pxeinit(&f) && fsinit(&f))
+		print("no boot devices\n");
 
 	for(;;){
 		kern = configure(f, path);

@@ -83,8 +83,8 @@ fsclose(void *f)
 	eficall(((EFI_FILE_PROTOCOL*)f)->Close, f);
 }
 
-void*
-fsinit(void)
+int
+fsinit(void **pf)
 {
 	EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *fs;
 
@@ -92,15 +92,18 @@ fsinit(void)
 	fsroot = nil;
 	if(eficall(ST->BootServices->LocateProtocol,
 		&EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID, nil, &fs))
-		return nil;
+		return -1;
 	if(eficall(fs->OpenVolume, fs, &fsroot)){
 		fsroot = nil;
-		return nil;
+		return -1;
 	}
 
 	read = fsread;
 	close = fsclose;
 	open = fsopen;
 
-	return fsopen("/plan9.ini");
+	if(pf != nil)
+		*pf = fsopen("/plan9.ini");
+
+	return 0;
 }

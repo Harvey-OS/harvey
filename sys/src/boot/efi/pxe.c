@@ -70,6 +70,11 @@ typedef struct {
 
 	UINT8		DhcpDiscover[1472];
 	UINT8		DhcpAck[1472];
+	UINT8		ProxyOffer[1472];
+	UINT8		PxeDiscover[1472];
+	UINT8		PxeReply[1472];
+	UINT8		PxeBisReply[1472];
+
 } EFI_PXE_BASE_CODE_MODE;
 
 typedef struct {
@@ -308,19 +313,17 @@ pxeopen(char *name)
 	memmove(&t->dip, dhcp->BootpSiAddr, 4);
 	memmove(&t->sip, pxe->Mode->StationIp, 4);
 
-	if(tftpopen(t, name) == 0)
-		return t;
-	return nil;
+	if(tftpopen(t, name))
+		return nil;
+	return t;
 }
 
-void*
-pxeinit(void)
+int
+pxeinit(void **pf)
 {
+	EFI_PXE_BASE_CODE_MODE *mode;
 	EFI_HANDLE *Handles;
 	UINTN Count;
-	char ini[24];
-	uchar *mac;
-	void *f;
 	int i;
 
 	pxe = nil;
@@ -329,31 +332,46 @@ pxeinit(void)
 	Handles = nil;
 	if(eficall(ST->BootServices->LocateHandleBuffer,
 		ByProtocol, &EFI_PXE_BASE_CODE_PROTOCOL_GUID, nil, &Count, &Handles))
-		return nil;
+		return -1;
 
 	for(i=0; i<Count; i++){
 		pxe = nil;
 		if(eficall(ST->BootServices->HandleProtocol,
 			Handles[i], &EFI_PXE_BASE_CODE_PROTOCOL_GUID, &pxe))
 			continue;
-		if(pxe->Mode != nil && pxe->Mode->Started)
-			break;
+		mode = pxe->Mode;
+		if(mode == nil || mode->UsingIpv6 || mode->Started == 0)
+			continue;
+		if(mode->DhcpAckReceived){
+			dhcp = (EFI_PXE_BASE_CODE_DHCPV4_PACKET*)mode->DhcpAck;
+			goto Found;
+		}
+		if(mode->PxeReplyReceived){
+			dhcp = (EFI_PXE_BASE_CODE_DHCPV4_PACKET*)mode->PxeReply;
+			goto Found;
+		}
 	}
-	dhcp = (EFI_PXE_BASE_CODE_DHCPV4_PACKET*)pxe->Mode->DhcpAck;
+	return -1;
 
-	mac = dhcp->BootpHwAddr;
-	memmove(ini, "/cfg/pxe/", 9);
-	for(i=0; i<6; i++){
-		ini[9+i*2+0] = hex[mac[i] >> 4];
-		ini[9+i*2+1] = hex[mac[i] & 0xF];
-	}
-	ini[9+12] = '\0';
-
+Found:
 	open = pxeopen;
 	read = pxeread;
 	close = pxeclose;
 
-	if((f = pxeopen(ini)) != nil)
-		return f;
-	return pxeopen("/cfg/pxe/default");
+	if(pf != nil){
+		char ini[24];
+		uchar *mac;
+
+		mac = dhcp->BootpHwAddr;
+		memmove(ini, "/cfg/pxe/", 9);
+		for(i=0; i<6; i++){
+			ini[9+i*2+0] = hex[mac[i] >> 4];
+			ini[9+i*2+1] = hex[mac[i] & 0xF];
+		}
+		ini[9+12] = '\0';
+		if((*pf = pxeopen(ini)) == nil)
+			*pf = pxeopen("/cfg/pxe/default");
+	}
+
+	return 0;
 }
