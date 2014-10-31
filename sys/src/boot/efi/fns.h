@@ -8,6 +8,7 @@ void usleep(int t);
 void jump(void *pc);
 
 int pxeinit(void **pf);
+int isoinit(void **pf);
 int fsinit(void **pf);
 
 void* (*open)(char *name);
