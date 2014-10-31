@@ -1,4 +1,4 @@
-TARG=bootia32.efi bootx64.efi
+TARG=bootia32.efi bootx64.efi efiboot.fat
 HFILES=fns.h mem.h
 IMAGEBASE=0x8000
 CFLAGS=-FTVw
@@ -7,8 +7,7 @@ PEFLAGS=$CFLAGS '-DIMAGEBASE='$IMAGEBASE
 all:V: $TARG
 
 install:V: $TARG
-	cp bootia32.efi /386
-	cp bootx64.efi /386
+	cp $prereq /386
 
 bootia32.efi:	pe32.8 efi.8 fs.8 pxe.8 iso.8 sub.8
 	8l -l -H3 -T$IMAGEBASE -o $target $prereq
@@ -58,6 +57,32 @@ sub.6:	sub.c
 
 %.6:	$HFILES
 
+efiboot.fat:D:	bootia32.efi bootx64.efi
+	s = $target.$pid
+	rm -f $target
+	dd -if /dev/zero -of $target -bs 1024 -count 1024
+	disk/format -xd -t hard $target
+	dossrv -f $target $s
+	mount -c /srv/$s /n/esp
+	mkdir /n/esp/efi
+	mkdir /n/esp/efi/boot
+	cp bootia32.efi /n/esp/efi/boot
+	cp bootx64.efi /n/esp/efi/boot
+	unmount /n/esp
+	rm /srv/$s
+
+
+test.iso:D:	efiboot.fat
+	rm -fr tmp
+	mkdir tmp
+	mkdir tmp/cfg
+	mkdir tmp/386
+	cp efiboot.fat tmp/386
+	cp /386/9bootiso tmp/386
+	cp /386/9pcf tmp/386
+	echo 'bootfile=/386/9pcf' >tmp/cfg/plan9.ini
+	disk/mk9660 -B 386/9bootiso -E 386/efiboot.fat -p <{echo +} -s tmp $target
+	rm -r tmp
 
 test.fat:D:	bootia32.efi bootx64.efi
 	s = $target.$pid
@@ -75,16 +100,6 @@ test.fat:D:	bootia32.efi bootx64.efi
 	unmount /n/esp
 	rm /srv/$s
 
-test.iso:D:	test.fat
-	rm -fr tmp
-	mkdir tmp
-	cp test.fat tmp
-	mkdir tmp/cfg
-	mkdir tmp/386
-	cp /386/9pcf tmp/386
-	echo 'bootfile=/386/9pcf' >tmp/cfg/plan9.ini
-	disk/mk9660 -E test.fat -p <{echo +} -s tmp $target
-	rm -r tmp
 
 clean:V:
 	rm -f *.[68] *.out $TARG test.* 
