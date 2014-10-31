@@ -10,9 +10,6 @@ install:V: $TARG
 	cp bootia32.efi /386
 	cp bootx64.efi /386
 
-clean:V:
-	rm -f *.[68] *.out $TARG
-
 bootia32.efi:	pe32.8 efi.8 fs.8 pxe.8 sub.8
 	8l -l -H3 -T$IMAGEBASE -o $target $prereq
 
@@ -54,3 +51,27 @@ sub.6:	sub.c
 	6c $CFLAGS sub.c
 
 %.6:	$HFILES
+
+
+test.fat:D:	bootia32.efi bootx64.efi
+	s = $target.$pid
+	rm -f /srv/$s $target
+	dd -if /dev/zero -of $target -bs 65536 -count 256
+	disk/format -xd -t hard $target
+	dossrv -f $target $s
+	mount -c /srv/$s /n/esp
+	mkdir /n/esp/efi
+	mkdir /n/esp/efi/boot
+	cp bootia32.efi /n/esp/efi/boot
+	cp bootx64.efi /n/esp/efi/boot
+	cp /386/9pcf /n/esp
+	echo 'bootfile=9pcf' >/n/esp/plan9.ini
+	unmount /n/esp
+	rm /srv/$s
+
+test.iso:D:	test.fat
+	disk/mk9660 -E test.fat -p <{echo test.fat} -s . $target
+
+
+clean:V:
+	rm -f *.[68] *.out $TARG test.* 
