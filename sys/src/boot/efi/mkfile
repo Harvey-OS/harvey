@@ -10,7 +10,7 @@ install:V: $TARG
 	cp bootia32.efi /386
 	cp bootx64.efi /386
 
-bootia32.efi:	pe32.8 efi.8 fs.8 pxe.8 sub.8
+bootia32.efi:	pe32.8 efi.8 fs.8 pxe.8 iso.8 sub.8
 	8l -l -H3 -T$IMAGEBASE -o $target $prereq
 
 pe32.8:	pe32.s
@@ -25,13 +25,16 @@ fs.8:	fs.c efi.h
 pxe.8:	pxe.c efi.h
 	8c $CFLAGS pxe.c
 
+iso.8:	iso.c efi.h
+	8c $CFLAGS iso.c
+
 sub.8:	sub.c
 	8c $CFLAGS sub.c
 
 %.8:	$HFILES
 
 
-bootx64.efi:	pe64.6 efi.6 fs.6 pxe.6 sub.6
+bootx64.efi:	pe64.6 efi.6 fs.6 pxe.6 iso.6 sub.6
 	6l -l -s -R1 -T$IMAGEBASE -o bootx64.out $prereq
 	dd -if bootx64.out -bs 1 -iseek 40 >$target
 
@@ -47,6 +50,9 @@ fs.6:	fs.c efi.h
 pxe.6:	pxe.c efi.h
 	6c $CFLAGS pxe.c
 
+iso.6:	iso.c efi.h
+	6c $CFLAGS iso.c
+
 sub.6:	sub.c
 	6c $CFLAGS sub.c
 
@@ -55,8 +61,8 @@ sub.6:	sub.c
 
 test.fat:D:	bootia32.efi bootx64.efi
 	s = $target.$pid
-	rm -f /srv/$s $target
-	dd -if /dev/zero -of $target -bs 65536 -count 256
+	rm -f $target
+	dd -if /dev/zero -of $target -bs 65536 -count 128
 	disk/format -xd -t hard $target
 	dossrv -f $target $s
 	mount -c /srv/$s /n/esp
@@ -70,8 +76,15 @@ test.fat:D:	bootia32.efi bootx64.efi
 	rm /srv/$s
 
 test.iso:D:	test.fat
-	disk/mk9660 -E test.fat -p <{echo test.fat} -s . $target
-
+	rm -fr tmp
+	mkdir tmp
+	cp test.fat tmp
+	mkdir tmp/cfg
+	mkdir tmp/386
+	cp /386/9pcf tmp/386
+	echo 'bootfile=/386/9pcf' >tmp/cfg/plan9.ini
+	disk/mk9660 -E test.fat -p <{echo +} -s tmp $target
+	rm -r tmp
 
 clean:V:
 	rm -f *.[68] *.out $TARG test.* 

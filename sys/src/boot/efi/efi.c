@@ -291,7 +291,7 @@ efimain(EFI_HANDLE ih, EFI_SYSTEM_TABLE *st)
 	ST = st;
 
 	f = nil;
-	if(pxeinit(&f) && fsinit(&f))
+	if(pxeinit(&f) && isoinit(&f) && fsinit(&f))
 		print("no boot devices\n");
 
 	for(;;){
