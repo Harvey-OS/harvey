@@ -39,6 +39,8 @@ Ctlr* ctlrs[] = {
 	&ics2494,				/* clock */
 	&ics2494a,				/* clock */
 	&ics534x,				/* gendac */
+	&igfx,					/* ctlr */
+	&igfxhwgc,				/* hwgc */
 	&mach32,				/* ctlr */
 	&mach64,				/* ctlr */
 	&mach64xx,				/* ctlr */

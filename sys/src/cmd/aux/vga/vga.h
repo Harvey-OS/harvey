@@ -302,6 +302,16 @@ extern void printreg(ulong);
 extern void printflag(ulong);
 extern void setpalette(int, int, int, int);
 extern int curprintindex;
+extern uvlong rdmsr(long);
+extern void wrmsr(long, uvlong);
+
+/* geode.c */
+extern Ctlr geode;
+extern Ctlr geodehwgc;
+
+/* igfx.c */
+extern Ctlr igfx;
+extern Ctlr igfxhwgc;
 
 /* mach32.c */
 extern Ctlr mach32;

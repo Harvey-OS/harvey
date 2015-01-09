@@ -106,6 +106,7 @@ misc
 	vgaet4000	+cur
 	vgahiqvideo	+cur
 	vgai81x		+cur
+	vgaigfx		+cur
 	vgamach64xx	+cur
 	vgamga2164w	+cur
 	vgamga4xx	+cur
