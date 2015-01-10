@@ -25,7 +25,7 @@ igfxenable(VGAscr* scr)
 	scr->mmio = vmap(p->mem[0].bar&~0x0F, p->mem[0].size);
 	if(scr->mmio == nil)
 		return;
-	addvgaseg("igfxmmio", p->mem[0].bar&~0x0F, p->mem[1].size);
+	addvgaseg("igfxmmio", p->mem[0].bar&~0x0F, p->mem[0].size);
 	if(scr->paddr == 0)
 		vgalinearpci(scr);
 	if(scr->apsize){

@@ -119,6 +119,7 @@ struct Igfx {
 	Pcidev	*pci;
 
 	u32int	pio;
+	u32int	*mmio;
 
 	int	type;
 
@@ -157,6 +158,8 @@ rr(Igfx *igfx, u32int a)
 	if(a == 0)
 		return 0;
 	assert((a & 3) == 0);
+	if(igfx->mmio != nil)
+		return igfx->mmio[a/4];
 	outportl(igfx->pio, a);
 	return inportl(igfx->pio + 4);
 }
@@ -165,8 +168,11 @@ wr(Igfx *igfx, u32int a, u32int v)
 {
 	if(a == 0)	/* invalid */
 		return;
-
 	assert((a & 3) == 0);
+	if(igfx->mmio != nil){
+		igfx->mmio[a/4] = v;
+		return;
+	}
 	outportl(igfx->pio, a);
 	outportl(igfx->pio + 4, v);
 }
@@ -319,11 +325,18 @@ snarf(Vga* vga, Ctlr* ctlr)
 			error("%s: unrecognized device\n", ctlr->name);
 			return;
 		}
-		if((igfx->pci->mem[4].bar & 1) == 0){
-			error("%s: no pio bar\n", ctlr->name);
-			return;
+		vgactlpci(igfx->pci);
+		if(1){
+			vgactlw("type", ctlr->name);
+			igfx->mmio = segattach(0, "igfxmmio", 0, igfx->pci->mem[0].size);
+			if(igfx->mmio == (u32int*)-1)
+				error("%s: segattach mmio failed: %r\n", ctlr->name);
+		} else {
+			if((igfx->pci->mem[4].bar & 1) == 0)
+				error("%s: no pio bar\n", ctlr->name);
+			igfx->pio = igfx->pci->mem[4].bar & ~1;
+			igfx->mmio = nil;
 		}
-		igfx->pio = igfx->pci->mem[4].bar & ~1;
 		vga->private = igfx;
 	}
 
