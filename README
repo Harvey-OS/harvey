@@ -1,4 +1,5 @@
-This is a re-release of the 4th Edition of Plan 9 from Bell Labs.
+This is a re-release of the final version of the 4th Edition of Plan 9
+from Bell Labs distributed directly by Bell Labs.
 
 4th Edition was originally released by Lucent Technologies in 2002. It
 was released under the terms the Lucent Public License Version 1.02.
@@ -17,7 +18,9 @@ available, it is still quite old, and this release is mostly for
 educational and research purposes. The file protocol and
 authentication mechanisms are continued in modern Plan 9, though, so
 researchers looking to run this should have an easier time than with
-all previous releases.
+all previous releases. This is a second release of the 4th Edition,
+marking the final state of Plan 9 as distributed directly by Bell
+Labs.
 
 The only changes between this release and the original 4th Edition
 release are the new NOTICE, LICENSE, and README files, and moving the
