@@ -299,7 +299,6 @@ devtype(Igfx *igfx)
 	case 0x0166:	/* X230 */
 		return TypeIVB;
 
-	case 0x2a43:	/* X200 */
 	case 0x2a42:	/* X200s */
 		return TypeG45;
 	}

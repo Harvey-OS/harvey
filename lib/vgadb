@@ -436,7 +436,6 @@ ctlr
 
 ctlr
 	vid=0x8086 did=0x0166	# X230
-	vid=0x8086 did=0x2a43	# X200
 	vid=0x8086 did=0x2a42	# X200s
 	link=vga
 	hwgc=igfxhwgc
@@ -1691,17 +1690,14 @@ x230=1366x768		# 60Hz
 	lcd=1
 
 #
-# Lenovo X200 (LCD) LVDS
+# Lenovo X200s (LCD) LVDS
 #
-x200=1280x800		# 60Hz
+x200s=1280x800		# 60Hz
 	clock=75
 	shb=1296 ehb=1344 ht=1512
 	vrs=802 vre=804 vt=830
 	hsync=- vsync=-
 	lcd=1
-
-x200s
-	alias=x200
 
 #
 # LG Flatron L1730P

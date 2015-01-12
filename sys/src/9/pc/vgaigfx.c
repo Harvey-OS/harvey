@@ -84,10 +84,7 @@ igfxcurregs(VGAscr* scr, int pipe)
 	/* check PIPExCONF if enabled */
 	if((scr->mmio[(0x70008 | o)/4] & (1<<31)) == 0)
 		return nil;
-	switch(scr->pci->did){
-	case 0x2a42:	/* X200 */
-	case 0x2a43:	/* X200s */
-		/* G45 */
+	if(scr->pci->did == 0x2a42){	/* G45 */
 		if(pipe > 1)
 			return nil;
 		o = pipe*0x40;
