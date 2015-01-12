@@ -428,6 +428,20 @@ ctlr
 	ctlr=radeon linear=1
 	hwgc=radeonhwgc
 
+ctlr
+	vid=0x1022 did=0x2081 # AMD Geode LX
+	link=vga
+	hwgc=geodehwgc
+	ctlr=geode linear=1
+
+ctlr
+	vid=0x8086 did=0x0166	# X230
+	vid=0x8086 did=0x2a43	# X200
+	vid=0x8086 did=0x2a42	# X200s
+	link=vga
+	hwgc=igfxhwgc
+	ctlr=igfx linear=1
+
 #
 # mode:
 # These entries specify a monitor operating mode.
@@ -1631,3 +1645,69 @@ p109b6=1600x1200		# 75Hz
 # QUXGA		3200x2400	Quad UXGA
 # QUXGA-W	3840x2400	Wide-QUXGA
 #
+
+geode
+	alias=vga
+
+geode=1024x768
+	defaultclock=65
+	shb=1032 ehb=1176 ht=1344
+	shs=1056
+	vrs=771 vre=777 vt=806
+	hsync=- vsync=-
+
+geode=1280x1024
+	defaultclock=108
+	shb=1312 ehb=1496 ht=1720
+	vrs=1025 vre=1028 vt=1074
+
+
+#
+# EIZO Flexscan s2231W (LCD) Analog
+#
+s2231wA=1680x1050
+	defaultclock=146.25
+	shb=1784 ehb=1960 ht=2240
+	vrs=1053 vre=1059 vt=1089
+	hsync=- vsync=+
+
+#
+# EIZO Flexscan s2231w (LCD) Digital
+#
+s2231wD=1680x1050
+	defaultclock=119.0
+	shb=1728 ehb=1760 vt=1840
+	vrs=1053 vre=1059 vt=1080
+	hsync=+ vsync=-
+
+#
+# Lenovo X230 (LCD) LVDS
+#
+x230=1366x768		# 60Hz
+	clock=75.2
+	shb=1414 ehb=1478 ht=1582
+	vrs=772 vre=779 vt=792
+	hsync=+ vsync=-
+	lcd=1
+
+#
+# Lenovo X200 (LCD) LVDS
+#
+x200=1280x800		# 60Hz
+	clock=75
+	shb=1296 ehb=1344 ht=1512
+	vrs=802 vre=804 vt=830
+	hsync=- vsync=-
+	lcd=1
+
+x200s
+	alias=x200
+
+#
+# LG Flatron L1730P
+#
+l1730p=1280x1024		# 60Hz
+	clock=108
+	shb=1320 ehb=1440 ht=1688
+	vrs=1025 vre=1028 vt=1066
+	hsync=+ vsync=+
