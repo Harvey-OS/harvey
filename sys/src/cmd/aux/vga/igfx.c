@@ -356,6 +356,7 @@ devtype(Igfx *igfx)
 	case 0x0152:	/* 2nd/3rd Gen Core - Core-i3 */
 		return TypeIVB;
 
+	case 0x2a43:	/* X200 */
 	case 0x2a42:	/* X200s */
 		return TypeG45;
 	}
