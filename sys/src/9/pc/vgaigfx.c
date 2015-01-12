@@ -159,13 +159,7 @@ igfxcurregs(VGAscr* scr, int pipe)
 	/* check PIPExCONF if enabled */
 	if((scr->mmio[(0x70008 | o)/4] & (1<<31)) == 0)
 		return nil;
-	switch(scr->pci->did){
-	case 0x0116:	/* Ivy Bridge */
-		if(pipe > 2)
-			return nil;
-		break;
-	case 0x27a2:	/* X60t */
-	case 0x2a42:	/* X200 */
+	if(scr->pci->did == 0x2a42){	/* G45 */
 		if(pipe > 1)
 			return nil;
 		o = pipe*0x40;

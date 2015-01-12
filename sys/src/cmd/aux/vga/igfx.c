@@ -355,15 +355,8 @@ devtype(Igfx *igfx)
 	case 0x0166:	/* 3rd Gen Core - ThinkPad X230 */
 	case 0x0152:	/* 2nd/3rd Gen Core - Core-i3 */
 		return TypeIVB;
-	case 0x0046:	/* Thinkpad T510 */
-	case 0x0102:	/* Dell Optiplex 790 */
-	case 0x0126:	/* Thinkpad X220 */
-		return TypeSNB;
-	case 0x27a2:	/* GM945/82940GML - ThinkPad X60 Tablet */
-	case 0x29a2:	/* 82P965/G965 HECI desktop */
-	case 0x2a02:	/* GM965/GL960/X3100 - ThinkPad X61 Tablet */
-	case 0x2a42:	/* 4 Series Mobile - ThinkPad X200 */
-	case 0x2592:	/* 915GM */
+
+	case 0x2a42:	/* X200s */
 		return TypeG45;
 	}
 	return -1;
