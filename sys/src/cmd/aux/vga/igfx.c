@@ -281,7 +281,7 @@ snarfpipe(Igfx *igfx, int x)
 
 	p = &igfx->pipe[x];
 
-	o = x == 3 ? 0x6F000 : 0x60000 + x*0x1000;
+	o = 0x60000 + x*0x1000;
 	snarftrans(igfx, p, o);
 
 	if(igfx->type != TypeHSW || x != 3)
@@ -322,13 +322,10 @@ snarfpipe(Igfx *igfx, int x)
 	p->dsp->stride		= snarfreg(igfx, 0x70188 + x*0x1000);
 	p->dsp->tileoff		= snarfreg(igfx, 0x701A4 + x*0x1000);
 	p->dsp->surf		= snarfreg(igfx, 0x7019C + x*0x1000);
-	if(igfx->type == TypeHSW)
-		p->dsp->leftsurf = snarfreg(igfx, 0x701B0 + x*0x1000);
 
 	/* cursor plane */
 	switch(igfx->type){
 	case TypeIVB:
-	case TypeHSW:
 		p->cur->cntr	= snarfreg(igfx, 0x70080 + x*0x1000);
 		p->cur->base	= snarfreg(igfx, 0x70084 + x*0x1000);
 		p->cur->pos	= snarfreg(igfx, 0x70088 + x*0x1000);
