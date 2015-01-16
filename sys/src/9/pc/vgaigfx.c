@@ -12,6 +12,48 @@
 #include <cursor.h>
 #include "screen.h"
 
+#define MB	0x100000
+
+static ulong
+preallocsize(Pcidev *p)
+{
+	switch(p->did){
+	case 0x0166:	/* Ivy Bridge */
+		switch((pcicfgr16(p, 0x50) >> 3) & 0x1f){
+		case 0x01:	return 32*MB	- 2*MB;
+		case 0x02:	return 64*MB	- 2*MB;
+		case 0x03:	return 96*MB	- 2*MB;
+		case 0x04:	return 128*MB	- 2*MB;
+		case 0x05:	return 32*MB	- 2*MB;
+		case 0x06:	return 48*MB	- 2*MB;
+		case 0x07:	return 64*MB	- 2*MB;
+		case 0x08:	return 128*MB	- 2*MB;
+		case 0x09:	return 256*MB	- 2*MB;
+		case 0x0A:	return 96*MB	- 2*MB;
+		case 0x0B:	return 160*MB	- 2*MB;
+		case 0x0C:	return 224*MB	- 2*MB;
+		case 0x0D:	return 352*MB	- 2*MB;
+		case 0x0E:	return 448*MB	- 2*MB;
+		case 0x0F:	return 480*MB	- 2*MB;
+		case 0x10:	return 512*MB	- 2*MB;
+		}
+		break;
+	case 0x27a2:	/* X60t */
+	case 0x2a42:	/* X200 */
+		switch((pcicfgr16(p, 0x52) >> 4) & 7){
+		case 0x01:	return 1*MB;
+		case 0x02:	return 4*MB;
+		case 0x03:	return 8*MB;
+		case 0x04:	return 16*MB;
+		case 0x05:	return 32*MB;
+		case 0x06:	return 48*MB;
+		case 0x07:	return 64*MB;
+		}
+		break;
+	}
+	return 0;
+}
+
 static void
 igfxenable(VGAscr* scr)
 {
@@ -30,9 +72,11 @@ igfxenable(VGAscr* scr)
 		vgalinearpci(scr);
 	if(scr->apsize){
 		addvgaseg("igfxscreen", scr->paddr, scr->apsize);
-		scr->storage = (scr->apsize - 64*64*4) & ~(BY2PG-1);
-		if(scr->storage > 0x1000000)
-			scr->storage = 0x1000000;
+		scr->storage = preallocsize(p);
+		if(scr->storage > scr->apsize)
+			scr->storage = scr->apsize;
+		if(scr->storage != 0)
+			scr->storage -= PGROUND(64*64*4);
 	}
 }
 
@@ -48,6 +92,8 @@ igfxcurload(VGAscr* scr, Cursor* curs)
 	u32int *p;
 	int i, j;
 
+	if(scr->storage == 0)
+		return;
 	p = (u32int*)((uchar*)scr->vaddr + scr->storage);
 	memset(p, 0, 64*64*4);
 	for(i=0;i<32;i++) {
@@ -84,10 +130,20 @@ igfxcurregs(VGAscr* scr, int pipe)
 	/* check PIPExCONF if enabled */
 	if((scr->mmio[(0x70008 | o)/4] & (1<<31)) == 0)
 		return nil;
-	if(scr->pci->did == 0x2a42){	/* G45 */
+	switch(scr->pci->did){
+	case 0x0116:	/* Ivy Bridge */
+		if(pipe > 2)
+			return nil;
+		break;
+	case 0x27a2:	/* X60t */
+	case 0x2a42:	/* X200 */
 		if(pipe > 1)
 			return nil;
 		o = pipe*0x40;
+		break;
+	default:
+		if(pipe > 0)
+			return nil;
 	}
 	return (u32int*)((uchar*)scr->mmio + (0x70080 + o));
 }
