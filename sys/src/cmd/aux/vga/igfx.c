@@ -332,14 +332,17 @@ snarfpipe(Igfx *igfx, int x)
 	/* cursor plane */
 	switch(igfx->type){
 	case TypeIVB:
-		p->cur->cntr	= snarfreg(igfx, 0x70080 | x*0x1000);
-		p->cur->base	= snarfreg(igfx, 0x70084 | x*0x1000);
-		p->cur->pos	= snarfreg(igfx, 0x70088 | x*0x1000);
+		p->cur->cntr	= snarfreg(igfx, 0x70080 + x*0x1000);
+		p->cur->base	= snarfreg(igfx, 0x70084 + x*0x1000);
+		p->cur->pos	= snarfreg(igfx, 0x70088 + x*0x1000);
 		break;
 	case TypeG45:
-		p->cur->cntr	= snarfreg(igfx, 0x70080 | x*0x40);
-		p->cur->base	= snarfreg(igfx, 0x70084 | x*0x40);
-		p->cur->pos	= snarfreg(igfx, 0x7008C | x*0x40);
+		p->dsp->pos	= snarfreg(igfx, 0x7018C + x*0x1000);
+		p->dsp->size	= snarfreg(igfx, 0x70190 + x*0x1000);
+
+		p->cur->cntr	= snarfreg(igfx, 0x70080 + x*0x40);
+		p->cur->base	= snarfreg(igfx, 0x70084 + x*0x40);
+		p->cur->pos	= snarfreg(igfx, 0x7008C + x*0x40);
 		break;
 	}
 }

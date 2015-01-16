@@ -74,9 +74,11 @@ igfxenable(VGAscr* scr)
 		vgalinearpci(scr);
 	if(scr->apsize){
 		addvgaseg("igfxscreen", scr->paddr, scr->apsize);
-		scr->storage = (scr->apsize - 64*64*4) & ~(BY2PG-1);
-		if(scr->storage > 0x1000000)
-			scr->storage = 0x1000000;
+		scr->storage = preallocsize(p);
+		if(scr->storage > scr->apsize)
+			scr->storage = scr->apsize;
+		if(scr->storage != 0)
+			scr->storage -= PGROUND(64*64*4);
 	}
 }
 
@@ -214,6 +216,8 @@ igfxcurload(VGAscr* scr, Cursor* curs)
 	u32int *p;
 	int i, j;
 
+	if(scr->storage == 0)
+		return;
 	p = (u32int*)((uchar*)scr->vaddr + scr->storage);
 	memset(p, 0, 64*64*4);
 	for(i=0;i<32;i++) {
@@ -250,10 +254,20 @@ igfxcurregs(VGAscr* scr, int pipe)
 	/* check PIPExCONF if enabled */
 	if((scr->mmio[(0x70008 | o)/4] & (1<<31)) == 0)
 		return nil;
-	if(scr->pci->did == 0x2a42){	/* G45 */
+	switch(scr->pci->did){
+	case 0x0116:	/* Ivy Bridge */
+		if(pipe > 2)
+			return nil;
+		break;
+	case 0x27a2:	/* X60t */
+	case 0x2a42:	/* X200 */
 		if(pipe > 1)
 			return nil;
 		o = pipe*0x40;
+		break;
+	default:
+		if(pipe > 0)
+			return nil;
 	}
 	return (u32int*)((uchar*)scr->mmio + (0x70080 + o));
 }
