@@ -38,7 +38,6 @@ preallocsize(Pcidev *p)
 		case 0x10:	return 512*MB	- 2*MB;
 		}
 		break;
-	case 0x27a2:	/* X60t */
 	case 0x2a42:	/* X200 */
 		switch((pcicfgr16(p, 0x52) >> 4) & 7){
 		case 0x01:	return 1*MB;
@@ -135,7 +134,6 @@ igfxcurregs(VGAscr* scr, int pipe)
 		if(pipe > 2)
 			return nil;
 		break;
-	case 0x27a2:	/* X60t */
 	case 0x2a42:	/* X200 */
 		if(pipe > 1)
 			return nil;
