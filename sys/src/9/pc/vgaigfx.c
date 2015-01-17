@@ -190,7 +190,6 @@ igfxcurregs(VGAscr* scr, int pipe)
 		if(pipe > 2)
 			return nil;
 		break;
-	case 0x2592:	/* GM915 */
 	case 0x2a42:	/* X200 */
 	case 0x2a02:	/* CF-R7 */
 		if(pipe > 1)
