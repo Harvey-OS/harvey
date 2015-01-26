@@ -114,6 +114,8 @@ readline(void *f, char buf[64])
 				if(*p == '\r')
 					putc('\n');
 				else if(*p == '\b' && p > buf){
+					putc(' ');
+					putc('\b');
 					p--;
 					continue;
 				}
