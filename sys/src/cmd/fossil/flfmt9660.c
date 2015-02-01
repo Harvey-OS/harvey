@@ -1,4 +1,13 @@
 /*
+ * This file is part of the UCB release of Plan 9. It is subject to the license
+ * terms in the LICENSE file found in the top-level directory of this
+ * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
+ * part of the UCB release of Plan 9, including this file, may be copied,
+ * modified, propagated, or distributed except according to the terms contained
+ * in the LICENSE file.
+ */
+
+/*
  * Initialize a fossil file system from an ISO9660 image already in the
  * file system.  This is a fairly bizarre thing to do, but it lets us generate
  * installation CDs that double as valid Plan 9 disk partitions.  

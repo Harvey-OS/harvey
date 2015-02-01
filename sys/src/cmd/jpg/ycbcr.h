@@ -1,3 +1,12 @@
+/*
+ * This file is part of the UCB release of Plan 9. It is subject to the license
+ * terms in the LICENSE file found in the top-level directory of this
+ * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
+ * part of the UCB release of Plan 9, including this file, may be copied,
+ * modified, propagated, or distributed except according to the terms contained
+ * in the LICENSE file.
+ */
+
 uint ycbcrmap[256] = {
 	0x008080, 0x07A27A, 0x0FC474, 0x17E66F, 0x276963, 0x2F8B5E, 0x37AD58, 0x3FCF52, 
 	0x4F5247, 0x577441, 0x5F963C, 0x67B836, 0x773C2A, 0x7F5E25, 0x87801F, 0x8FA21A, 

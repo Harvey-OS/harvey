@@ -1,3 +1,12 @@
+/*
+ * This file is part of the UCB release of Plan 9. It is subject to the license
+ * terms in the LICENSE file found in the top-level directory of this
+ * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
+ * part of the UCB release of Plan 9, including this file, may be copied,
+ * modified, propagated, or distributed except according to the terms contained
+ * in the LICENSE file.
+ */
+
 uint rgbmap[256] = {
 	0x000000, 0x000044, 0x000088, 0x0000CC, 0x004400, 0x004444, 0x004488, 0x0044CC, 
 	0x008800, 0x008844, 0x008888, 0x0088CC, 0x00CC00, 0x00CC44, 0x00CC88, 0x00CCCC, 

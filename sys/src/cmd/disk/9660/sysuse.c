@@ -1,4 +1,13 @@
 /*
+ * This file is part of the UCB release of Plan 9. It is subject to the license
+ * terms in the LICENSE file found in the top-level directory of this
+ * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
+ * part of the UCB release of Plan 9, including this file, may be copied,
+ * modified, propagated, or distributed except according to the terms contained
+ * in the LICENSE file.
+ */
+
+/*
  * To understand this code, see Rock Ridge Interchange Protocol
  * standard 1.12 and System Use Sharing Protocol version 1.12
  * (search for rrip112.ps and susp112.ps on the web).

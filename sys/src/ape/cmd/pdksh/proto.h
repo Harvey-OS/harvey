@@ -1,4 +1,13 @@
 /*
+ * This file is part of the UCB release of Plan 9. It is subject to the license
+ * terms in the LICENSE file found in the top-level directory of this
+ * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
+ * part of the UCB release of Plan 9, including this file, may be copied,
+ * modified, propagated, or distributed except according to the terms contained
+ * in the LICENSE file.
+ */
+
+/*
  * prototypes for PD-KSH
  * originally generated using "cproto.c 3.5 92/04/11 19:28:01 cthuang "
  * $Id: proto.h,v 1.3 1994/05/19 18:32:40 michael Exp michael $

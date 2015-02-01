@@ -1,2 +1,41 @@
 Copyright © 2002 Lucent Technologies Inc.
 All Rights Reserved
+
+The University of California, Berkeley, has been authorised by
+Alcatel-Lucent to release all Plan 9 software previously governed by
+the Lucent Public License, Version 1.02 under the GNU General
+Public License, Version 2.
+
+You can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; version 2 of the License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+
+The Plan 9 software is provided under the terms of the
+Lucent Public License, Version 1.02, with the following notable exceptions:
+
+1. No right is granted to create derivative works of or
+   to redistribute (other than with the Plan 9 Operating System)
+   the screen imprinter fonts identified in subdirectory
+   /lib/font/bit/lucida and printer fonts (Lucida Sans Unicode, Lucida
+   Sans Italic, Lucida Sans Demibold, Lucida Typewriter, Lucida Sans
+   Typewriter83), identified in subdirectory /sys/lib/postscript/font.
+   These directories contain material copyrights by B&H Inc. and Y&Y Inc.
+
+2. The printer fonts identified in subdirectory /sys/lib/ghostscript/font
+   are subject to the GNU GPL, reproduced in the file /LICENSE.gpl.
+
+3. The ghostscript program in the subdirectory /sys/src/cmd/gs is
+   covered by the Aladdin Free Public License, reproduced in the file
+   /LICENSE.afpl.
+
+Other, less notable exceptions are marked in the file tree with
+COPYING, COPYRIGHT, or LICENSE files.

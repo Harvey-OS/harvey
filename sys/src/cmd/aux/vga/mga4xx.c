@@ -1,3 +1,12 @@
+/*
+ * This file is part of the UCB release of Plan 9. It is subject to the license
+ * terms in the LICENSE file found in the top-level directory of this
+ * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
+ * part of the UCB release of Plan 9, including this file, may be copied,
+ * modified, propagated, or distributed except according to the terms contained
+ * in the LICENSE file.
+ */
+
 /* Philippe Anel <philippe.anel@noos.fr> 
 	- 2001-08-12 : First release.
 	- 2001-08-15 : Added G450, with source code "adapted from" from Xfree86 4.1.0

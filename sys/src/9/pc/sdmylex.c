@@ -1,4 +1,13 @@
 /*
+ * This file is part of the UCB release of Plan 9. It is subject to the license
+ * terms in the LICENSE file found in the top-level directory of this
+ * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
+ * part of the UCB release of Plan 9, including this file, may be copied,
+ * modified, propagated, or distributed except according to the terms contained
+ * in the LICENSE file.
+ */
+
+/*
  * Mylex MultiMaster (Buslogic BT-*) SCSI Host Adapter
  * in both 24-bit and 32-bit mode.
  * 24-bit mode works for Adaptec AHA-154xx series too.

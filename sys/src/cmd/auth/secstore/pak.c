@@ -1,3 +1,12 @@
+/*
+ * This file is part of the UCB release of Plan 9. It is subject to the license
+ * terms in the LICENSE file found in the top-level directory of this
+ * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
+ * part of the UCB release of Plan 9, including this file, may be copied,
+ * modified, propagated, or distributed except according to the terms contained
+ * in the LICENSE file.
+ */
+
 // PAK is an encrypted key exchange protocol designed by Philip MacKenzie et al.
 // It is patented and use outside Plan 9 requires you get a license.
 // (All other EKE protocols are patented as well, by Lucent or others.)

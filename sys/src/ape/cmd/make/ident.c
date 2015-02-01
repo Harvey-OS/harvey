@@ -1,3 +1,12 @@
+/*
+ * This file is part of the UCB release of Plan 9. It is subject to the license
+ * terms in the LICENSE file found in the top-level directory of this
+ * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
+ * part of the UCB release of Plan 9, including this file, may be copied,
+ * modified, propagated, or distributed except according to the terms contained
+ * in the LICENSE file.
+ */
+
 char *xxxvers =  "\n@(#) MAKE.  VERSION 2.78     22 MAY 1986\n" ;
 static	char *sccsid = "@(#)ident.c	8th Edition (Bell Labs) 85/10/28";
 

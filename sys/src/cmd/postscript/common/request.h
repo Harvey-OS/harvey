@@ -1,4 +1,13 @@
 /*
+ * This file is part of the UCB release of Plan 9. It is subject to the license
+ * terms in the LICENSE file found in the top-level directory of this
+ * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
+ * part of the UCB release of Plan 9, including this file, may be copied,
+ * modified, propagated, or distributed except according to the terms contained
+ * in the LICENSE file.
+ */
+
+/*
  *
  * Things used to handle special PostScript requests (like manual feed) globally
  * or on a per page basis. All the translators I've supplied accept the -R option

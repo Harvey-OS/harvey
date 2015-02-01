@@ -1,4 +1,13 @@
 /*
+ * This file is part of the UCB release of Plan 9. It is subject to the license
+ * terms in the LICENSE file found in the top-level directory of this
+ * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
+ * part of the UCB release of Plan 9, including this file, may be copied,
+ * modified, propagated, or distributed except according to the terms contained
+ * in the LICENSE file.
+ */
+
+/*
  * Intel RS-82543GC Gigabit Ethernet Controller
  * as found on the Intel PRO/1000[FT] Server Adapter.
  * The older non-[FT] cards use the 82542 (LSI L2A1157) chip; no attempt

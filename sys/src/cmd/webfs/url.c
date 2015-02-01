@@ -1,4 +1,13 @@
 /*
+ * This file is part of the UCB release of Plan 9. It is subject to the license
+ * terms in the LICENSE file found in the top-level directory of this
+ * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
+ * part of the UCB release of Plan 9, including this file, may be copied,
+ * modified, propagated, or distributed except according to the terms contained
+ * in the LICENSE file.
+ */
+
+/*
  * This is a URL parser, written to parse "Common Internet Scheme" URL
  * syntax as described in RFC1738 and updated by RFC2396.  Only absolute URLs 
  * are supported, using "server-based" naming authorities in the schemes.

@@ -1,3 +1,12 @@
+/*
+ * This file is part of the UCB release of Plan 9. It is subject to the license
+ * terms in the LICENSE file found in the top-level directory of this
+ * distribution and at http://akaros.cs.berkeley.edu/files/Plan9License. No
+ * part of the UCB release of Plan 9, including this file, may be copied,
+ * modified, propagated, or distributed except according to the terms contained
+ * in the LICENSE file.
+ */
+
 #undef _FORTIFY_SOURCE	/* stupid ubuntu warnings */
 #define __BSD_VISIBLE 1 /* FreeBSD 5.x */
 #define _BSD_SOURCE 1
