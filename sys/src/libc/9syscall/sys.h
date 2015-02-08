@@ -59,3 +59,11 @@
 #define	PWRITE		51
 #define	TSEMACQUIRE	52
 #define NSEC		53
+#define	SEMSLEEP	54
+#define	SEMWAKEUP	55
+#define	SEMALT		56
+#define	EXECAC		57
+#define	NIXSYSCALL	58
+#define	ZIOPREAD	59
+#define	ZIOPWRITE	60
+#define	ZIOFREE		61

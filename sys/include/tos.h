@@ -29,6 +29,12 @@ struct Tos {
 	ulong	clock;
 	/* scratch space for kernel use (e.g., mips fp delay-slot execution) */
 	ulong	kscr[4];
+
+	/*
+	 * Fields below are not available on Plan 9 kernels.
+	 */
+	int	nixtype;	/* role of the core we are running at */
+	int	core;		/* core we are running at */
 	/* top of stack is here */
 };
 
