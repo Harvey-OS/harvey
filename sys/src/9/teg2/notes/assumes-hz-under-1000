@@ -1,4 +1,0 @@
-./dat.h:9: #define	MS2HZ		(1000/HZ)		/* millisec per clock tick */
-./random.c:87: 	addclock0link(randomclock, 1000/HZ);
-../port/portclock.c:255: 		ms = 1000/HZ;
-../port/portfns.h:335: #define		TK2MS(x) ((x)*(1000/HZ))
