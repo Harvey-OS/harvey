@@ -233,6 +233,8 @@ function mksystab(					a, i, f, n, s, t){
 			t = t "{ .v = (void*)-1 } },\n";
 		else if($2 ~ "(ALARM|_READ|_WRITE|PREAD|PWRITE)")
 			t = t "{ .l = -1 } },\n";
+		else if($2 ~ "(NSEC)")
+			t = t "{ .vl = -1LL } },\n";
 		else
 			t = t "{ .i = -1 } },\n";
 	}

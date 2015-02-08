@@ -323,6 +323,15 @@ sysopen(Ar0* ar0, va_list list)
 }
 
 void
+sysnsec(Ar0* ar0, va_list)
+{
+	/*
+	 * vlong nsec(void);
+	 */
+	ar0->vl = todget(nil);
+}
+
+void
 fdclose(int fd, int flag)
 {
 	int i;
