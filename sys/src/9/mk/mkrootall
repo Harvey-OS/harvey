@@ -1,0 +1,31 @@
+#!/bin/rc
+
+rfork e
+n=`{echo $#*^'%3' | hoc}
+if(! ~ $n 0){
+	echo 'usage: mkrootall [name cname file]...' >[1=2]
+	exit usage
+}
+
+tmp=mkroot.$pid.out
+fn sigexit {
+	rm -f $tmp
+}
+
+allcname=()
+while(! ~ $#* 0){
+	name=$1
+	cname=$2
+	file=$3
+	shift
+	shift 
+	shift
+	allcname=($allcname $cname)
+	cp $file $tmp
+	t=`{file $tmp}
+	# do not strip venti - it uses its own symbols
+	if(~ $"t *executable* && ! ~ $name venti)
+		strip $tmp
+	aux/data2s $cname < $tmp
+}
+exit 0

@@ -1,0 +1,45 @@
+This is regression testing for nix.
+Each directory named with a number  represents a single test.
+(e.g., 1/ 2/ ...)
+A test directory may be also named k1, k2, k....
+All k tests run affter all std. tests. They are meant to install ad-hoc
+kernels for testing.
+
+The script actually running the tests is runtests, which should be run from
+cpustart during the machine boot process.
+That is, include
+	test -x /cfg/$sysname/runtests && /cfg/$sysname/runtests
+in your  cpustart file.
+It is not meant to start the testing sequence by hand.
+To (re)run all the tests, you should run ./Tests instead.
+
+See 1/ for a template. Copy it to your own and tweak it at will.
+
+To start testing, run the script ./Tests in clu, which would
+change the boot sequence such that the machine starts to run tests
+(perhaps installing different kernels and rebooting) until all
+tests have been run or one has failed.
+
+Each directory must contain:
+
+- kern:	a script used to compile and install a kernel used for testing
+ if no such file is found, no new kernel is installed. the current one
+ is used. Otherwise, the indicated kernel is installed and the machine
+ reboots using this kernel.
+
+- runtest: a script used to run a test. This is mandatory.
+
+- whichever other files must be available for the tests to run.
+
+Tests generate within each test directory:
+
+- koutput:	a file keeping the output for a kern that did run
+- output:	a file keeping the output for a test that did run
+- FAIL:		an empty file, reporting that a test did fail.
+
+
+BEWARE that if you install a kernel for a test then that kernel is used
+for all following tests.
+As a convention, tests installing a kernel should be named k0, k1, ...
+test 1 installs the std kernel, so that all tests use the regular kernel.
+

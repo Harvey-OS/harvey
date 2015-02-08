@@ -1,0 +1,20 @@
+
+To compile and use it you have to do the binds shown in ./nix
+
+This is the main nix source tree.
+It's using 2M pages, and supports 1G pages.
+In there, there are experimental frameworks for zero-copy, tubes, what else?
+
+The main author was initially jmk and perhaps others from bell labs, when it was 9k.
+Today it has been changed by many others including (|sort order):
+esoriano
+forsyth
+jmk
+nemo
+npe
+paurea
+rminnich
+
+You can reach as at nix A_T lsub.org
+But don't write A_T like that.
+Fri Sep  2 22:03:15 CET 2011

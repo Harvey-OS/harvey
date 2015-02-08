@@ -1,0 +1,128 @@
+%.$O:	%.s
+	$AS $AFLAGS $stem.s
+
+%.$O:	%.c
+	$CC $CFLAGS $stem.c
+
+%.m:	%.$O
+	$LD -o $target -uX -l $prereq
+
+%.acid:	%.c
+	$CC $CFLAGS -a $stem.c >$stem.acid
+
+%.acid:	../ip/%.c
+	$CC $CFLAGS -a -I.  ../ip/$stem.c >$stem.acid
+
+%.acid:	../port/%.c
+	$CC $CFLAGS -a -I. ../port/$stem.c >$stem.acid
+
+%.db:	main.$O
+	$CC -s$stem main.c | dbfmt > $stem.db
+
+%.$O:	/$objtype/include/u.h
+%.$O:	../port/lib.h
+%.$O:	mem.h
+%.$O:	dat.h ../port/portdat.h
+%.$O:	fns.h ../port/portfns.h
+
+alloc.$O:	/sys/include/pool.h
+chan.$O:	../port/error.h
+dev.$O:		../port/error.h
+devcap.$O:	../port/error.h
+devcap.$O:	/sys/include/libsec.h
+devcons.$O:	/sys/include/authsrv.h /sys/include/pool.h
+devdup.$O:	../port/error.h
+devenv.$O:	../port/error.h
+devkprof.$O:	../port/error.h
+devmnt.$O:	../port/error.h
+devpipe.$O:	../port/error.h
+devprobe.$O:	../port/netif.h probe.h
+devproc.$O:	../port/error.h ../port/edf.h
+devproc.$O:	/sys/include/tos.h /sys/include/trace.h /$objtype/include/ureg.h
+devsd.$O:	../port/error.h ../port/sd.h
+devsrv.$O:	../port/error.h
+devssl.$O:	../port/error.h
+devssl.$O:	/sys/include/libsec.h
+devtab.$O:	../port/error.h
+devtls.$O:	../port/error.h
+devtls.$O:	/sys/include/libsec.h
+devuart.$O:	../port/error.h
+devwd.$O:	../port/error.h
+edf.$O:		../port/error.h ../port/edf.h
+edf.$O:		/sys/include/trace.h
+ethermii.$O:	../port/ethermii.h ../port/netif.h
+fault.$O:	../port/error.h
+image.$O:	../port/error.h
+initcode.$O:	/sys/include/libc.h
+latin1.$O:	../port/latin1.h
+netif.$O:	../port/error.h ../port/netif.h
+parse.$O:	../port/error.h
+pgrp.$O:	../port/error.h
+portclock.$O:	/$objtype/include/ureg.h
+proc.$O:	../port/error.h ../port/edf.h errstr.h
+proc.$O:	/sys/include/trace.h
+qio.$O:		../port/error.h
+rdb.$O:		/$objtype/include/ureg.h
+rebootcmd.$O:	../port/error.h
+rebootcmd.$O:	/sys/include/a.out.h
+segment.$O:	../port/error.h
+swap.$O:	../port/error.h
+sysauth.$O:	../port/error.h
+sysauth.$O:	/sys/include/authsrv.h
+sysfile.$O:	../port/error.h
+sysproc.$O:	../port/error.h ../port/edf.h
+sysproc.$O:	/sys/include/a.out.h
+sysseg.$O:	../port/error.h
+taslock.$O:	../port/edf.h
+
+../port/latin1.h:	/lib/keyboard
+	aux/mklatinkbd /lib/keyboard > $target
+
+../port/systab.c:	../mk/parse /sys/src/libc/9syscall/sys.h
+	awk -f ../mk/parse -- -mksystab /sys/src/libc/9syscall/sys.h $CONF > $target
+
+systab.$O:	../port/systab.c
+	$CC $CFLAGS -I. ../port/systab.c
+
+errstr.h:	../mk/parse ../port/error.h
+	awk -f ../mk/parse -- -mkerrstr > $target
+
+init.h:		init.out
+	{echo 'uchar initcode[]={'
+	 xd -1x $prereq | sed -e 's/^[0-9a-f]+ //' -e 's/ ([0-9a-f][0-9a-f])/0x\1,/g'
+	 echo '};'} > init.h
+
+$CONF.$O:	$CONF.c
+	$CC $CFLAGS '-DKERNDATE='`{date -n} $CONF.c
+
+$CONF.c:	../mk/parse $CONF
+	awk -f ../mk/parse -- -mkdevc $CONF > $CONF.c
+
+./root/$O.%:	./root/%.c
+	@{cd ./root; mk $O.$stem}
+
+../root/$O.%:	../root/%.c
+	@{cd ../root; mk $O.$stem}
+
+all:V:
+	for(i in $CONFLIST)
+		mk 'CONF='$i
+
+installall:V:
+	for(i in $CONFLIST)
+		mk 'CONF='$i install
+
+%.clean:V:
+	rm -f $stem.c [9bz]$stem [9bz]$stem.gz boot$stem.*
+
+clean:V:
+	rm -f *.[$OS] *.root.[cs] *.out *.m *.acid errstr.h init.h $objtype^l.h
+	for(i in $CONFLIST)
+		mk $i.clean
+	@{cd ../root; mk clean}
+	if(test -d ./root) @{cd ./root; mk clean}; status=''	
+
+nuke:V:	clean
+	rm -f ../boot/libboot.a$O *.elf *.rr
+	@{cd ../root; mk clean nuke}
+	if(test -d ./root) @{cd ./root; mk clean nuke}; status=''
