@@ -1,0 +1,17 @@
+386/9*
+386/bin
+386/init
+386/lib
+386/mbr
+386/pbs
+386/pbslba
+386/pbsraw
+
+amd64/9*
+amd64/bin
+amd64/init
+amd64/lib
+
+sys/src/9/k10/sipi.h
+sys/src/9/port/systab.c
+sys/src/9/root/nvram
